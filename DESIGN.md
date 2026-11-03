@@ -33,6 +33,11 @@ maps and selection tables stay its own.
 - Map edges: solid or wrapping is a configuration the game sets (geo `SolidEdges`); SotSB is asked to explain why it depends on wrapping.
 - Key repeat: one shared delay and rate for all games.
 - dax other-disk fallback (`OneDisk`): deferred, to be tackled later.
+- Saving throws: one code path for all games, with por's signed-compare fix.
+- Trap damage: per game.
+- Encumbrance and weight: cut in all games (por's standard: no weight rules).
+- XP split: per game for now.
+- Shop pricing: per game, never unified.
 - WALLDEF trailing partial chunk: dropped (whole 780-byte chunks only), as the later games' developers did.
 
 ## Modules
