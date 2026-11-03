@@ -348,9 +348,11 @@ func NewPlayer(c Config) (*Player, error) {
 	if img, err := os.ReadFile(filepath.Join(c.Dir, "DISK2", "SOUND.BIN")); err == nil && len(img) == amiga.End-amiga.Base {
 		s.am = amiga.New(img)
 	}
-	s.isr = true // soundInit: the timer interrupt hooked, song 0 on both sets
-	s.start(&s.speaker, 0)
-	s.start(&s.tandySet, 0)
+	if s.typ != sndNone { // soundInit (R7E4:00CB): with a card, the timer interrupt hooked, song 0 on both sets
+		s.isr = true
+		s.start(&s.speaker, 0)
+		s.start(&s.tandySet, 0)
+	}
 	return &Player{s}, nil
 }
 
