@@ -6,7 +6,7 @@
 //
 // Every address is an offset in the driver's segment. The per-game values are in
 // audio/API.md. It checks that the scripts use only what the player implements; without
-// -notes (Pool of Radiance, Curse) no notes, and the fields that only notes read are dropped.
+// -notes (games with no notes) no notes, and the fields that only notes read are dropped.
 package main
 
 import (
@@ -21,8 +21,8 @@ import (
 	"strings"
 )
 
-// The driver's segment (R7E4) in the load image, and its data. The driver is Curse of
-// the Azure Bonds' (its R699), its data 2 bytes further up and its code 8591 bytes down.
+// The driver's segment (R7E4) in the load image, and its data. The driver is
+// the older game's, its data 2 bytes further up and its code 8591 bytes down.
 const (
 	channelSize   = 48
 	channels      = 4
@@ -48,7 +48,7 @@ func init() {
 	flag.IntVar(&enabledFlag, "enabled", 0, "the driver's enabled flag (starts 1)")
 	flag.IntVar(&speakerPeriods, "speakerperiods", 0, "with -notes: the speaker's 12 note periods")
 	flag.IntVar(&tandyPeriods, "tandyperiods", 0, "with -notes: the Tandy's 12 note periods")
-	flag.BoolVar(&notes, "notes", false, "the songs play notes with envelopes (Silver Blades)")
+	flag.BoolVar(&notes, "notes", false, "the songs play notes with envelopes (a game with notes)")
 	flag.Func("commands", "handler addresses: reset=N,return=N,call=N,switch=N,loop=N,set=N", func(v string) error {
 		for _, kv := range strings.Split(v, ",") {
 			k, a, ok := strings.Cut(kv, "=")

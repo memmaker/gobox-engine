@@ -4,7 +4,8 @@ START.EXE's speaker/Tandy sound driver, the Amiga player and oto output. Tables 
 type Config struct {
     Data   []byte                    // sounddata.json (go:embed)
     Card   byte                      // 'P' speaker, 'T' Tandy, else silent
-    Dir    string                    // DISK2/SOUND.BIN under it selects the Amiga sound
+    Amiga       []byte  // Amiga SOUND.BIN image (amiga.Base..End); nil: DOS driver
+    AmigaSongOn uint32  // address of the Amiga player's "song running" byte
     Volume func(kind string) float64 // "music"|"sfx" -> 0..1; nil = 1
 }
 func NewPlayer(Config) (*Player, error)
@@ -26,3 +27,7 @@ game's sound.go, sounddata.go, amiga/, volume_*.go; embed the JSON; `NewPlayer`,
   -enabled 525 -commands reset=5710,return=5804,call=5811,switch=5701,loop=5678,set=5759` (por's synth not moved).
 Cotab/sotsb differences: notes, envelopes, periods are data (sotsb only); song count is the table length; volume
 is Config.Volume; card/dir are Config; NewPlayer hooks the timer (sotsb never set `isr`: assumed bug).
+
+## Migrate
+- `Config.Dir` is gone (no DISK2 probing). Read the Amiga `SOUND.BIN` yourself and set `Config.Amiga` (nil keeps the DOS driver) and `Config.AmigaSongOn` (was the hard-coded 0x667d5 in `amiga`).
+- The DS offsets in sound.go were comments only; no sounddata.json change.

@@ -3,21 +3,19 @@ package audio
 import (
 	"encoding/binary"
 	"math"
-	"os"
-	"path/filepath"
 	"sync"
 
 	"gobox/amiga"
 )
 
-// The sound driver of START.EXE (Pool of Radiance's 08AE, Curse's R699, Silver Blades' R7E4): a sequencer run from the timer
+// The sound driver of START.EXE (the driver segment differs per game): a sequencer run from the timer
 // interrupt, reprogrammed to 236.7 Hz, that steps two sets of four channels every tick,
 // the PC speaker's and the Tandy/PCjr's (three tones and the noise of its SN76489). A song
 // starts a script on each channel of one set; a script sets the channel's fields (its
 // period and level and their slides, a vibrato) or plays notes, each with a level
 // envelope, and waits on its timer. The songs, their scripts, the vibrato waveforms,
 // the envelopes and the note periods are in the game's sounddata.json, generated from the exe by
-// cmd/sounddata. Curse's songs use no notes. Op 0 of the program ends a script.
+// cmd/sounddata. Some games' songs use no notes. Op 0 of the program ends a script.
 //
 // Nothing is audible, and nothing waits, until NewPlayer is called, so the
 // headless tools stay silent and fast.
@@ -31,7 +29,7 @@ const (
 	speakerAmp  = 4000
 )
 
-// The sound numbers the game passes to PlaySound (the table at DS:2612).
+// The sound numbers the game passes to PlaySound.
 const (
 	sndStop       = 255 // stop the song
 	sndMute       = 0   // stop and mute
@@ -51,9 +49,9 @@ const (
 	sndCountdown  = 15
 )
 
-// The game's sound card (DS:5C04).
+// The game's sound card.
 const (
-	sndSpeaker = iota // DS:5C04, from the config file's 'P'
+	sndSpeaker = iota // from the config file's 'P'
 	sndTandy          // 'T'
 	sndNone
 )
@@ -74,7 +72,7 @@ const (
 	sndReturn                //
 	sndSwitch                // work on channel arg of the set from here on, its sound cleared
 	sndLoop                  // count field down and go to op arg until it reaches 0 (from 0: always)
-	sndNote                  // play a note (R7E4:3796)
+	sndNote                  // play a note
 )
 
 // The notes' octaves and envelopes.
@@ -197,9 +195,9 @@ type sound struct {
 	volume    func(string) float64
 	on        bool // a sink is attached (NewPlayer called)
 	isr       bool // the timer interrupt is hooked
-	typ       int  // DS:5C04: sndSpeaker, sndTandy or sndNone
-	saved     int  // DS:5C05: typ before Ctrl-S turned the sound off
-	installed bool // DS:5C06: soundInit ran, PlaySound(sndStop) not since
+	typ       int  // sndSpeaker, sndTandy or sndNone
+	saved     int  // typ before Ctrl-S turned the sound off
+	installed bool // soundInit ran, PlaySound(sndStop) not since
 	song      int  // the song playing, 0 none
 	enabled   bool // PlaySound(sndUnmute) and (sndMute)
 	ret       int  // where sndReturn goes
@@ -209,7 +207,7 @@ type sound struct {
 	tickLeft  float64
 	tandy     bool // Tandy sound chip present (config 'T'): render the SN76489
 	sn        sn76489
-	am        *amiga.Player // DISK2/SOUND.BIN imported: the Amiga players instead
+	am        *amiga.Player // Config.Amiga given: the Amiga players instead
 }
 
 // amigaFx maps PlaySound 2..12 to Amiga effects: the Amiga's effect table parallels the
@@ -315,10 +313,11 @@ func (s *sound) snSilence() {
 
 // Config is what a game gives NewPlayer.
 type Config struct {
-	Data   []byte                    // the game's sounddata.json (cmd/sounddata)
-	Card   byte                      // 'P' speaker, 'T' Tandy, else none
-	Dir    string                    // the game's data directory: DISK2/SOUND.BIN there selects the Amiga sound
-	Volume func(kind string) float64 // fader for "music" or "sfx", 0 to 1; nil: 1
+	Data        []byte                    // the game's sounddata.json (cmd/sounddata)
+	Card        byte                      // 'P' speaker, 'T' Tandy, else none
+	Amiga       []byte                    // the Amiga SOUND.BIN image (amiga.Base..amiga.End): selects the Amiga sound; nil: DOS
+	AmigaSongOn uint32                    // address of the Amiga player's "song running" byte (amiga.Player.SongOn)
+	Volume      func(kind string) float64 // fader for "music" or "sfx", 0 to 1; nil: 1
 }
 
 // NewPlayer starts the driver; the Player's Read is the audio stream: signed 16-bit
@@ -345,10 +344,11 @@ func NewPlayer(c Config) (*Player, error) {
 		s.typ = sndNone
 	}
 	s.on = true
-	if img, err := os.ReadFile(filepath.Join(c.Dir, "DISK2", "SOUND.BIN")); err == nil && len(img) == amiga.End-amiga.Base {
-		s.am = amiga.New(img)
+	if len(c.Amiga) == amiga.End-amiga.Base {
+		s.am = amiga.New(c.Amiga)
+		s.am.SongOn = c.AmigaSongOn
 	}
-	if s.typ != sndNone { // soundInit (R7E4:00CB): with a card, the timer interrupt hooked, song 0 on both sets
+	if s.typ != sndNone { // soundInit: with a card, the timer interrupt hooked, song 0 on both sets
 		s.isr = true
 		s.start(&s.speaker, 0)
 		s.start(&s.tandySet, 0)
@@ -539,7 +539,7 @@ func (ch *sndChannel) nextEnvelopeStep(envelopes [][envelopeSteps][2]uint16) {
 	}
 }
 
-// note = R7E4:3796: the current channel waits the note's length; a note for the
+// note = the current channel waits the note's length; a note for the
 // set's first channel (the others are only waited on) starts there with its
 // envelope, an octave of the period table shifted down.
 func (s *sound) note(set *sndChannelSet, c int, op sndOp) {
@@ -628,11 +628,11 @@ func (s *sound) stop() {
 	s.start(&s.speaker, 0)
 }
 
-// Play = R7E4:0020 (n): only 0..15 and 255 are taken, and only with a sound
+// Play (n): only 0..15 and 255 are taken, and only with a sound
 // card. sndMute starts the empty song 0 on both sets, sndUnmute lets the speaker
 // sound, sndStop silences everything and unhooks the timer interrupt; 2..14 start
 // song n-1 on the card's set. 15 arms the driver's copy-protection countdown
-// (R699:1338: after 5000 ticks it prints a message and exits); no caller passes it.
+// (after 5000 ticks it prints a message and exits); no caller passes it.
 func (r *Player) Play(n int) {
 	s := r.s
 	if !(n >= sndMute && n <= sndCountdown || n == sndStop) {
