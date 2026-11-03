@@ -612,3 +612,49 @@ type Beast struct {
 	Icon   image.Image // the combat icon (nil: none)
 	Pic    image.Image // the picture window's when first met (nil: none)
 }
+// Pages is help's or the journal's page (View.Pages), in a box round the
+// whole page: ActPage -1 and +1 page back and on (the journal: scroll a
+// tall picture first), ActClose closes, any other key the next page.
+type Pages struct {
+	Title       PaneRun     // the box's title, on row 1
+	Top         int         // the row of Lines[0]
+	Lines       [][]PaneRun // the page's text, a line a row, X the page's column
+	Scans       []Scan      // the journal's pictures on the page
+	Hint        PaneRun     // on the message row: the page count or the keys
+	Page, Pages int
+}
+
+// Scan is a journal picture (the file Name in journal/): the part Src of
+// Img scaled into the page rectangle At, on paper of colour Paper.
+type Scan struct {
+	Name    string
+	Img     image.Image
+	Src, At image.Rectangle
+	Paper   color.RGBA
+}
+
+// FullMap is the full-screen map (FullMapView), the presenter's: its
+// cursor cell's context menu has Walk (WalkTo), Mark and Remove.
+type FullMap struct {
+	Name     string      // the map's name, top left
+	Map      *MapSquares // the squares, the legend's letter on each labelled square
+	At       image.Point // the map's top left on the page, in pixels
+	Cell     int         // pixels a square
+	Cursor   image.Point // the cursor's square
+	Legend   []MapLabel  // the legend's lines, from cell LegendAt down
+	LegendAt image.Point
+	Info     string  // the cursor's square and its label, on the message row
+	Label    *string // the label being typed (nil: none), on the prompt row
+	Labelled bool    // the cursor's square has a label (Mark is not offered)
+	Mine     bool    // ... the player's (Remove is offered)
+}
+
+// MapLabel is a line of the full map's legend: the letter on its squares
+// (in EGA colour Colour, by kind), its text and its first square.
+type MapLabel struct {
+	Letter byte
+	Text   string
+	Colour int
+	First  image.Point
+}
+
