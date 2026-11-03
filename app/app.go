@@ -59,10 +59,15 @@ type Capture struct {
 	Quit   bool       // the run ends after the keys
 	Window [2]int     // W, H (points): a window of that size and any shape; 0: Theme's
 	GPU    gpu.Config // gpu's measuring and capture switches
+	Slot   string     // a save slot to start from instead of the game's own start ("": none); passed to a Starter
 }
 
 // Scripted says whether the run is scripted: the user's input is ignored.
 func (c Capture) Scripted() bool { return c.Shot != "" || c.Freeze || c.Quit }
+
+// Starter is a Game told before the first tick which save slot to start
+// from (Capture.Slot, "" none); what that means is the game's.
+type Starter interface{ Start(slot string) }
 
 // Config is the app: the game and how it runs.
 type Config struct {
@@ -119,6 +124,9 @@ func Run(cfg Config) error {
 	gpu.SetTPS(cfg.TPS)
 	gpu.SetFullscreen(cfg.Settings.Fullscreen)
 	gpu.SetConfig(cfg.Capture.GPU)
+	if st, ok := cfg.Game.(Starter); ok {
+		st.Start(cfg.Capture.Slot)
+	}
 	return gpu.RunGame(&shell{cfg: cfg})
 }
 

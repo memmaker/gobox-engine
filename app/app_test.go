@@ -1,6 +1,7 @@
 package app
 
 import (
+	"os"
 	"slices"
 	"testing"
 )
@@ -10,5 +11,23 @@ func TestParseKeys(t *testing.T) {
 	want := []Key{'a', 13, Right, Left, Next, Wait, '\\', 'x', '\\'}
 	if !slices.Equal(got, want) {
 		t.Fatalf("%x, want %x", got, want)
+	}
+}
+
+func TestPrefs(t *testing.T) {
+	p := Prefs{Dir: t.TempDir() + "/sub"}
+	type opts struct{ A, B int }
+	o := opts{A: 1, B: 2}
+	if p.Load(&o) {
+		t.Fatal("no file loaded")
+	}
+	if err := p.Save(map[string]int{"A": 5}); err != nil {
+		t.Fatal(err)
+	}
+	if !p.Load(&o) || o != (opts{5, 2}) {
+		t.Fatalf("got %+v", o)
+	}
+	if b, _ := os.ReadFile(p.Path()); string(b) != "{\n \"A\": 5\n}" {
+		t.Fatalf("file %q", b)
 	}
 }

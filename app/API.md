@@ -17,11 +17,17 @@ No game names: the title, shape, key codes and save marker are the game's data.
 - `Game` interface: `Update()` once a tick (TPS a second; in a scripted run
   the game must ignore the user's input), `Step(k Key)` once a scripted
   frame before Draw (k = the key due, 0 none), `Draw(dst *gpu.Image)`.
-- `Capture{Shot, Keys, Freeze, Quit, Window, GPU}`, `Scripted()`: a run is
+- `Capture{Shot, Keys, Freeze, Quit, Window, GPU, Slot}`, `Scripted()`: a run is
   scripted when Shot, Freeze or Quit is set. A key every `Ticks` (15)
   frames; after the keys plus 4 more: Shot is written (with `%d`: every
   frame while the keys play, numbered) and the run exits; Quit exits;
   Freeze stops Step. GPU is passed to `gpu.SetConfig`.
+  Slot (a save slot name, "" none) is passed to the game's `Start` if it is
+  a `Starter`, once before the first tick; what it means is the game's.
+- `Prefs{Dir}`: the settings file `Dir/SETTINGS.JSON`, generic JSON keys
+  (their meaning is the game's). `Load(dst ...any) bool` fills each pointer
+  (missing keys keep dst's defaults; false: no file), `Save(v) error` writes
+  v indented, atomically (temp file then rename), creating Dir.
 - `Key` (uint16): a game key code, or the shell's `Right`, `Left` (a click
   at the pointer), `Next` (the pointer to its next position), `Wait`.
 - `ParseKeys(s, esc map[byte]Key) []Key`: `\M \C \P \w` are the shell's,
@@ -40,5 +46,5 @@ No game names: the title, shape, key codes and save marker are the game's data.
 - `Name(s)`: keeps letters, digits and " -_!'", trimmed.
 
 ## Gotchas
-- The game keeps its input reading, the latch and its settings file; the
+- The game keeps its input reading, the latch and its settings' keys; the
   shell only ticks and draws it.
