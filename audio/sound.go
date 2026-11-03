@@ -378,9 +378,8 @@ func scale(p []byte, g float64) {
 	}
 }
 
-// Read renders the speaker as a square wave (plus the SN76489 when the
-// Tandy chip is present), running the sequencer once per timer tick while
-// the interrupt is hooked.
+// Read renders the Amiga players, or the speaker and the Tandy (render) at the
+// effects volume.
 func (r *Player) Read(p []byte) (int, error) {
 	s := r.s
 	s.mu.Lock()
@@ -394,7 +393,16 @@ func (r *Player) Read(p []byte) (int, error) {
 		}
 		return n, nil
 	}
-	for i := 0; i < n; i += 4 {
+	s.render(p[:n])
+	scale(p[:n], s.vol("sfx")) // the DOS game has no music
+	return n, nil
+}
+
+// render renders the speaker as a square wave (plus the SN76489 when the
+// Tandy chip is present), running the sequencer once per timer tick while
+// the interrupt is hooked; p is whole stereo frames.
+func (s *sound) render(p []byte) {
+	for i := 0; i+3 < len(p); i += 4 {
 		v := 0
 		if s.isr {
 			if s.tickLeft--; s.tickLeft < 0 {
@@ -419,8 +427,6 @@ func (r *Player) Read(p []byte) (int, error) {
 		}
 		p[i], p[i+1], p[i+2], p[i+3] = byte(v), byte(v>>8), byte(v), byte(v>>8)
 	}
-	scale(p[:n], s.vol("sfx")) // the DOS game has no music
-	return n, nil
 }
 
 // tick = the timer interrupt: the speaker's set, then the Tandy's.
