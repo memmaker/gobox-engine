@@ -58,32 +58,40 @@ func TestWalldef(t *testing.T) {
 	}
 }
 
-// Real data: skips when the DOS files are missing.
+// Real data: each game's DOS files (SOTSB_DATA overrides sotsb's); a missing set is skipped.
 func TestRealData(t *testing.T) {
-	files, _ := filepath.Glob("../../por-go/data/dos/GEO*.DAX")
-	if len(files) == 0 {
-		t.Skip("no game files")
+	sotsb := os.Getenv("SOTSB_DATA")
+	if sotsb == "" {
+		sotsb = "../../sotsb-re/gog"
 	}
-	n := 0
-	for _, f := range files {
-		for id, b := range daxBlocks(t, f) {
-			m, err := ParseMap(b)
-			if err != nil {
-				t.Fatalf("%s %d: %v", f, id, err)
+	for _, dir := range []string{"../../por-go/data/dos", sotsb} {
+		t.Run(filepath.Base(dir), func(t *testing.T) {
+			files, _ := filepath.Glob(filepath.Join(dir, "GEO*.DAX"))
+			if len(files) == 0 {
+				t.Skip("no game files")
 			}
-			_ = m.MapCell(3, 3)
-			n++
-		}
-	}
-	if n == 0 {
-		t.Fatal("no blocks")
-	}
-	for _, f := range mustGlob("../../por-go/data/dos/WALLDEF*.DAX") {
-		for id, b := range daxBlocks(t, f) {
-			if _, err := ParseWalldef(b); err != nil {
-				t.Fatalf("%s %d: %v", f, id, err)
+			n := 0
+			for _, f := range files {
+				for id, b := range daxBlocks(t, f) {
+					m, err := ParseMap(b)
+					if err != nil {
+						t.Fatalf("%s %d: %v", f, id, err)
+					}
+					_ = m.MapCell(3, 3)
+					n++
+				}
 			}
-		}
+			if n == 0 {
+				t.Fatal("no blocks")
+			}
+			for _, f := range mustGlob(filepath.Join(dir, "WALLDEF*.DAX")) {
+				for id, b := range daxBlocks(t, f) {
+					if _, err := ParseWalldef(b); err != nil {
+						t.Fatalf("%s %d: %v", f, id, err)
+					}
+				}
+			}
+		})
 	}
 }
 
