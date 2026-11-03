@@ -1,5 +1,7 @@
 package front
 
+import "image"
+
 // Game is the rule calls the party menu and the creation sheet make; the
 // game implements it over its engine and keeps all state. A call that the
 // rules refuse returns the refusal as an error (nil: done).
@@ -66,6 +68,57 @@ type Game interface {
 	Save(name string)
 	DeleteSlot(name string)
 	Load(name string, loadOnly bool) bool
+
+	// Paced steps (View.Pace).
+	Animate()
+	CombatStep() error
+	RestStep() error
+	StoryStep() error
+	WalkStep() error
+	TurnChoice(a Action, sure bool) error
+
+	// Sheet and inventory.
+	OpenSheet(n int) error
+	CloseSheet() error
+	ShowMember(n int) error
+	OpenItems(n int, direct bool) error
+	CloseItems(all bool) error
+	Ready(i, x int) error
+	UseItem(i, spell, target int, sure bool) error
+	Drop(i int) error
+	Sell(i int) error
+	Buy(w int) error
+	TakeAll() error
+	SetPolicy(id int, p Policy) error
+
+	// Shops, temples, training (Pending, Training).
+	Browse(n int) error
+	Identify(n, x int) error
+	Appraise(jewelry bool) error
+	KeepAppraised(keep bool) error
+	Cure(n, x int) error
+	ViewMember(n int) error
+	Leave() error
+	OpenTraining(n int) error
+	CloseTraining() error
+	TrainingView() *Training
+	Train() error
+	Learn(id int) error
+	PickPower(id int) error
+
+	// The full map and the journal.
+	FullMapView(cursor image.Point, label *string) *FullMap
+	Mark(x, y int, text string)
+	Unmark(x, y int)
+	WalkTo(x, y int) bool
+	JournalPage(title string, lines []string, p, off int) (*Pages, int)
+	SpeakPage(lines []string, p int)
+	ClueChapters() []string
+	ClueRead(i int) *Read
+
+	View() View      // the view published last
+	Refuse(s string) // the game says no with s
+	Resets() int     // counts the loads and returns to the main menu: the screens over the old game close
 }
 
 // Host is what a screen needs of the front end that shows it: the rule
