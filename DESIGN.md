@@ -21,6 +21,13 @@ game, and a game feeds it plain Go values built from its own data.
 6. Each game supplies what uniquely defines it: maps, area scripts, graphics,
    music, story texts and the like.
 
+## Rule 2 decisions (the user's)
+
+- Map edges: off the 16x16 map is always solid, in every game (no wrapping).
+- Key repeat: one shared delay and rate for all games.
+- dax other-disk fallback (`OneDisk`): deferred, to be tackled later.
+- WALLDEF trailing partial chunk: open, explained to the user, awaiting a decision.
+
 ## Modules
 
 Each directory is its own Go module. A game uses them with `replace`:
