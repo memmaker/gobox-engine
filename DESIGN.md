@@ -23,10 +23,10 @@ game, and a game feeds it plain Go values built from its own data.
 
 ## Rule 2 decisions (the user's)
 
-- Map edges: off the 16x16 map is always solid, in every game (no wrapping).
+- Map edges: solid or wrapping is a configuration the game sets (geo `SolidEdges`); SotSB is asked to explain why it depends on wrapping.
 - Key repeat: one shared delay and rate for all games.
 - dax other-disk fallback (`OneDisk`): deferred, to be tackled later.
-- WALLDEF trailing partial chunk: open, explained to the user, awaiting a decision.
+- WALLDEF trailing partial chunk: dropped (whole 780-byte chunks only), as the later games' developers did.
 
 ## Modules
 
