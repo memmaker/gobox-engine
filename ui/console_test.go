@@ -1,6 +1,10 @@
 package ui
 
 import (
+	"bytes"
+	"gobox/ui/fonts"
+	"image"
+	"image/color"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -267,5 +271,39 @@ func TestLineHelpers(t *testing.T) {
 	}
 	if PadLeft("42", 5) != "   42" || Commas(1234567) != "1,234,567" || Commas(999) != "999" {
 		t.Fatal("pad/commas")
+	}
+}
+
+// glyphAtOracle is por-go present/remaster glyphAt, drawing one run character.
+func glyphAtOracle(m *image.RGBA, g [8]byte, x, y int, fg, bg color.RGBA) {
+	for r := 0; r < 8; r++ {
+		for b := 0; b < 8; b++ {
+			c := bg
+			if g[r]&(0x80>>b) != 0 {
+				c = fg
+			}
+			m.SetRGBA(x+b, y+r, c)
+		}
+	}
+}
+
+func TestConsoleDraw(t *testing.T) {
+	pal := func(i byte) color.RGBA { return color.RGBA{i * 16, 255 - i, i, 255} }
+	c := NewConsole(6, 2, Theme{})
+	c.Text(0, 0, 10, "Hi [x]")
+	c.Put(1, 1, 3, 4, 'q', false)
+	got := image.NewRGBA(image.Rect(0, 0, 48, 16))
+	want := image.NewRGBA(got.Rect)
+	c.Draw(got, nil, pal, nil)
+	for y, row := range c.Cells {
+		for x, cl := range row {
+			if cl.Set {
+				g, _ := fonts.Glyph(nil, cl.C, cl.Upcase)
+				glyphAtOracle(want, g, x*8, y*8, pal(cl.Colour), pal(cl.Bg))
+			}
+		}
+	}
+	if !bytes.Equal(got.Pix, want.Pix) {
+		t.Fatal("pixels differ")
 	}
 }
