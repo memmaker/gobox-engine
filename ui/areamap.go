@@ -31,6 +31,17 @@ func AreaGeom(b, mb image.Rectangle, k0 float64, tile int, party image.Point) (k
 // Draw draws pic (tiles of tile pixels) with marker (nil: none) on the
 // party's square, at least k0 times its pixels.
 func (a *AreaMap) Draw(dst *gpu.Image, pic image.Image, tile int, party image.Point, marker image.Image, k0 float64) {
+	a.draw(dst, image.Point{}, pic, tile, party, marker, k0)
+}
+
+// DrawIn is Draw into the rectangle r of dst only (clipped to it, centred
+// on the party as in a window of r's size).
+func (a *AreaMap) DrawIn(dst *gpu.Image, r image.Rectangle, pic image.Image, tile int, party image.Point, marker image.Image, k0 float64) {
+	a.draw(dst.SubImage(r).(*gpu.Image), r.Min, pic, tile, party, marker, k0)
+}
+
+// draw draws into dst with its map origin at off.
+func (a *AreaMap) draw(dst *gpu.Image, off image.Point, pic image.Image, tile int, party image.Point, marker image.Image, k0 float64) {
 	if a.src != pic {
 		if a.img != nil {
 			a.img.Deallocate()
@@ -41,7 +52,7 @@ func (a *AreaMap) Draw(dst *gpu.Image, pic image.Image, tile int, party image.Po
 	k, n, x, y := AreaGeom(dst.Bounds(), mb, k0, tile, party)
 	op := &gpu.DrawImageOptions{}
 	op.GeoM.Scale(k, k)
-	op.GeoM.Translate(-x, -y)
+	op.GeoM.Translate(float64(off.X)-x, float64(off.Y)-y)
 	dst.DrawImage(a.img, op)
 	if marker == nil {
 		return
@@ -55,6 +66,6 @@ func (a *AreaMap) Draw(dst *gpu.Image, pic image.Image, tile int, party image.Po
 	mk := marker.Bounds()
 	op = &gpu.DrawImageOptions{}
 	op.GeoM.Scale(k, k)
-	op.GeoM.Translate(float64(party.X)*n+(n-k*float64(mk.Dx()))/2-x, float64(party.Y)*n+(n-k*float64(mk.Dy()))/2-y)
+	op.GeoM.Translate(float64(party.X)*n+(n-k*float64(mk.Dx()))/2-x+float64(off.X), float64(party.Y)*n+(n-k*float64(mk.Dy()))/2-y+float64(off.Y))
 	dst.DrawImage(a.mark, op)
 }

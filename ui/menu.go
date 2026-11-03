@@ -100,6 +100,17 @@ func MenuNav(a input.Act, k uint16, sel *int, keys []byte) (pick int, back, ok b
 	return -1, false, true
 }
 
+// MenuNavH is MenuNav for a horizontal bar: Left is Up and Right is Down.
+func MenuNavH(a input.Act, k uint16, sel *int, keys []byte) (pick int, back, ok bool) {
+	switch a {
+	case input.Left:
+		a = input.Up
+	case input.Right:
+		a = input.Down
+	}
+	return MenuNav(a, k, sel, keys)
+}
+
 // HotText is row s as drawn with hotkey key: the column of its white letter
 // (-1 none); a key not in the text, and every digit (a row's digit in its
 // text is a price, not the key), is shown in front, as "[E] Camp".
