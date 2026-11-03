@@ -12,6 +12,9 @@ supplies Theme and Data; the module never owns game state.
   - party menu: `Begin, Lead(n), RemoveMember(n), DropMember(n), NewClass(n, class)` (refused with a pick-a-class error), `QuickStart(), QuitGame()`
   - creation: `CreateCharacter(), ModifyCharacter(n), Roll(minimal, minimums), Rename, SetStat(i, typed), SetField(field, option), EndCreation(keep), CreationView() *Creation`
 
+- `ActKind`, `Action` and the `Act*` kinds; `Intro`; Game's title calls (`TitlePicture, TitleCredits, TitleFlash, TitleDone`).
+- `Host`: `Call(func(Game))`, `Edit(func(Game))`, the rule-call queue a screen takes (por's Presenter implements it). Screens written against it in por: present/remaster/creation.go (createAct), title.go (introStep).
+
 ## Planned (not code yet; the screens still live in por's presenter)
 Game gains the slots calls (`SlotsView(loadOnly)`, `Save`, `DeleteSlot`, `Load`) and the picker/icon-editor calls
 (`OpenPicker, PickerView, Pick, ClosePicker, EditIcon, IconEditorView, IconSize, IconColour, IconRemove, EndIcon`),
