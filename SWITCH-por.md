@@ -20,3 +20,12 @@ Note: blobber imports no por/... packages (no cycle).
 - `blobber.NewView()` is now `blobber.NewView(nil)` (nil keeps the embedded PoR walls).
 - The package global `blobber.Night` is gone: set `v.Night` on the View instead.
 - The scratch `por-switch.patch` predates this; rebuild after applying and fix these call sites.
+
+## Tier 1/2 switch caveats (agreed with the POR session)
+
+- dax: por's `.Block(` → `.BlockShared(` everywhere; keep the `b == nil` "missing" checks
+  (engine/pic.go:32, :74, anim.go:37, files.go:317) on BlockShared.
+- geo: por keeps its own LoadWalldef (no ParseWalldef). LoadGeo's wrapper: a zero-length
+  block is silent (no error); a longer block is passed as b[:0x402]; keep the block-10 quirk.
+- ui pager: map engine.Pages.Page onto Pager's page so the clamp holds; speak after every key.
+- After the switch: por-go `go test ./...` incl. the pages_test goldens must pass.
