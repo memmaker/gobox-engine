@@ -1,4 +1,4 @@
-// Package gpu is the slice of Ebiten's API that por and Blobber use, built
+// Package gpu is the slice of Ebiten's API the games use, built
 // on gogpu and gogpu/wgpu (pure Go, no cgo): a window, input, images drawn with batched
 // triangles, WGSL shaders in the role of Kage, and depth-tested meshes for
 // the 3D views. The device code is copied from VoxelLib's wgpu backend.
@@ -183,7 +183,7 @@ func passOn(t *texture, depth bool) *wgpu.RenderPassEncoder {
 	return p
 }
 
-// passLog, when set, collects a line per render pass (POR_PASSES=1: one frame's passes, printed with the fps line).
+// passLog, when set, collects a line per render pass (Config.Passes: one frame's passes, printed with the fps line).
 var passLog *[]string
 
 func endPass() {

@@ -1,4 +1,4 @@
-# gobox/gpu API (the slice of Ebiten por and Blobber use; gogpu/wgpu, pure Go)
+# gobox/gpu API (the slice of Ebiten the games use; gogpu/wgpu, pure Go)
 
 Names mirror ebiten: swap the import. Subpackage gobox/gpu/vector draws filled and stroked paths.
 
@@ -6,7 +6,7 @@ Names mirror ebiten: swap the import. Subpackage gobox/gpu/vector draws filled a
 - `RunGame(Game) error`: opens a resizable window, blocks. `Game{Update() error; Draw(*Image); Layout(w,h)->(sw,sh)}`.
   Update runs at TPS (default 60, `SetTPS`), Draw once a frame into a screen of Layout's size. Return `ErrTermination` from Update to quit cleanly.
 - Window: `SetWindowTitle/Size/Aspect(w,h)`, `SetFullscreen`/`IsFullscreen`, `DeviceScaleFactor`, `SetCursorCaptured`/`IsCursorCaptured` (mouselook: read `MouseDelta`).
-- `Sized(&img,w,h) bool`: (re)make an image of that size, true if new. `Stats` (draw/pass counters), `Skip(name)` (POR_SKIP).
+- `Sized(&img,w,h) bool`: (re)make an image of that size, true if new. `Stats` (draw/pass counters), `Skip(name)` (`Config.Skip`).
 
 ## Input (polled in Update; state is per tick)
 - Keys: `IsKeyPressed`, `IsKeyJustPressed`, `KeyPressDuration` (ticks), `AppendPressedKeys`, `AppendJustPressedKeys`. `Key*` consts, plus `KeyShift/Control/Alt/Meta` meaning either side.
@@ -37,7 +37,22 @@ Implement Game, call RunGame once. Per Update poll input; per Draw draw into `sc
 
 ## Gotchas
 - Global state: one window/device/input struct per process (package vars `win`, `dev`, `in`, `batch`); one RunGame only.
-- Env switches read at runtime: POR_FPS, POR_SHOT, POR_SKIP, POR_PASSES, POR_NOVSYNC, POR_OFFSCREEN, POR_GLITCH.
+- gpu reads no environment. The host calls `SetConfig(Config{FPS, Passes, NoVSync, Offscreen, GlitchDir, Skip})` before RunGame; the zero value is the normal run. `Skip(name)` tests `Config.Skip`.
 - Draws are batched; ReadPixels/At flush. Deallocated images must not be used again.
 - `SubImage` keeps the parent's coordinates; DrawImage draws src's bounds at the origin.
 - Mesh.Set data lives in the frame's vertex stream: Set each frame, not once.
+
+## Headless
+No window-free render path for RunGame. Images, shaders and meshes work without a window (a headless device is made on first use, see device.go `initDevice`), so a test can `NewImage`, `DrawMesh` into it and `ReadPixels`. `Config.Offscreen` only keeps the screen an image inside a running window (screenshots).
+
+## Go module replaces
+Go ignores `replace` in dependencies, so every game's go.mod repeats gpu's (paths relative to the game repo, siblings of the games' parent dir):
+
+    replace github.com/gogpu/wgpu => ../gogpu-wgpu
+    replace github.com/go-webgpu/goffi => ../goffi
+    replace github.com/gogpu/gogpu => ../goplay/third_party/gogpu
+
+`scripts/check_replaces.sh GAMEDIR...` verifies a game has them.
+
+## Migrate
+Replace the POR_* env reads: build a `gpu.Config` from your flags or env (e.g. `POR_FPS` -> `FPS`, `POR_SHOT`/`BLOBBER_SHOT`/`POR_OFFSCREEN` -> `Offscreen`, `POR_GLITCH=DIR` -> `GlitchDir`, `POR_SKIP=a,b` -> `Skip` split on commas, `POR_NOVSYNC` -> `NoVSync`, `POR_PASSES` -> `Passes`) and call `gpu.SetConfig` before `RunGame`. Without it these switches do nothing.

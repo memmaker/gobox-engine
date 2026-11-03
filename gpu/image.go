@@ -231,7 +231,7 @@ func (i *Image) WritePixels(px []byte) {
 
 // ReadPixels copies the image's pixels into px (premultiplied RGBA).
 func (i *Image) ReadPixels(px []byte) {
-	if i.t.external { // the frame is not readable: POR_SHOT, BLOBBER_SHOT and POR_GLITCH make the screen an image of its own
+	if i.t.external { // the frame is not readable: Config.Offscreen and GlitchDir make the screen an image of its own
 		fmt.Fprintln(os.Stderr, "gpu: ReadPixels of the window's frame: nothing read")
 		return
 	}

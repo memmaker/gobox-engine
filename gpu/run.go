@@ -44,7 +44,7 @@ var win struct {
 	locked   bool          // the cursor is captured (SetCursorCaptured)
 	frames   int
 	fpsStart time.Time
-	drawT    time.Duration // in Draw and in present since fpsStart (POR_FPS)
+	drawT    time.Duration // in Draw and in present since fpsStart (Config.FPS)
 	presentT time.Duration
 	updT     time.Duration // in Update
 	outT     time.Duration // outside Draw: the window's own work
@@ -113,7 +113,7 @@ func DeviceScaleFactor() float64 {
 // Update returns an error.
 func RunGame(g Game) error {
 	cfg := gogpu.DefaultConfig().WithTitle(win.title).WithSize(win.ww, win.wh).
-		WithResizable(true).WithContinuousRender(true).WithVSync(os.Getenv("POR_NOVSYNC") == "") // POR_NOVSYNC=1: frames as fast as they come, for measuring
+		WithResizable(true).WithContinuousRender(true).WithVSync(!conf.NoVSync) // NoVSync: frames as fast as they come, for measuring
 	if win.full {
 		cfg = cfg.WithFullscreen()
 		setComposition(false)
@@ -199,7 +199,7 @@ func RunGame(g Game) error {
 		win.lw, win.lh = ww, wh
 		sw, sh := g.Layout(ww, wh)
 		sw, sh = max(sw, 1), max(sh, 1)
-		direct := sw == fw && sh == fh && !offscreen // the game draws straight into the frame: no copy of the whole screen per frame
+		direct := sw == fw && sh == fh && !offscreen() // the game draws straight into the frame: no copy of the whole screen per frame
 		if screen == nil || screen.r.Dx() != sw || screen.r.Dy() != sh || (screen.t == surf) != direct {
 			if screen != nil && screen.t != surf {
 				screen.Deallocate()
@@ -226,7 +226,7 @@ func RunGame(g Game) error {
 		surf.view = view
 		screen.Clear()
 		var passes []string
-		if win.frames == 0 && os.Getenv("POR_PASSES") != "" { // POR_PASSES=1: one frame's render passes with each fps line
+		if win.frames == 0 && conf.Passes { // Config.Passes: one frame's render passes with each fps line
 			passLog = &passes
 		}
 		t0 := time.Now()
@@ -245,7 +245,7 @@ func RunGame(g Game) error {
 			present(screen, view, fw, fh)
 		}
 		win.presentT += time.Since(t1)
-		if glitchDir != "" {
+		if conf.GlitchDir != "" {
 			glitchCheck(screen)
 		}
 		if passLog != nil {
@@ -256,7 +256,7 @@ func RunGame(g Game) error {
 		win.outT += now.Sub(win.lastOut) // since the last Draw returned: the window's own work (events, the swap chain)
 		win.lastOut = time.Now()
 		if d := now.Sub(win.fpsStart).Seconds(); d >= 1 {
-			if os.Getenv("POR_FPS") != "" { // POR_FPS=1: a line a second with the frame rate and where a frame's time goes
+			if conf.FPS { // Config.FPS: a line a second with the frame rate and where a frame's time goes
 				n := time.Duration(max(win.frames, 1))
 				fr := max(win.frames, 1)
 				fmt.Fprintf(os.Stderr, "fps %.1f  frame %v  update %v  draw %v  present %v  outside %v  per frame: draws %d (3D %d) passes %d clears %d writes %d uploads %d\n", float64(win.frames)/d, time.Duration(d*float64(time.Second))/n, win.updT/n, win.drawT/n, win.presentT/n, win.outT/n, Stats.Draws/fr, Stats.Draws3D/fr, Stats.Passes/fr, Stats.Clears/fr, Stats.Writes/fr, Stats.Uploads/fr)
@@ -272,17 +272,15 @@ func RunGame(g Game) error {
 	return runErr
 }
 
-// Stats counts the GPU work issued since the last POR_FPS line: draw calls,
+// Stats counts the GPU work issued since the last FPS line: draw calls,
 // render passes, buffer writes and texture uploads.
 var Stats struct{ Draws, Draws3D, Passes, Clears, Writes, Uploads int }
 
-// POR_GLITCH=DIR: after each frame is presented the screen is read back and
+// Config.GlitchDir: after each frame is presented the screen is read back and
 // compared to the frame before; when more than half of its pixels changed,
 // both frames go to DIR as PNGs (a glitch of one frame that a capture of
 // every frame would be too slow to catch, and that reading the screen before
 // the present could hide).
-var glitchDir = os.Getenv("POR_GLITCH")
-
 var glitch struct {
 	prev, cur []byte
 	n, saved  int
@@ -302,7 +300,7 @@ func glitchCheck(screen *Image) {
 	}
 	if glitch.n > 0 && d*32 > len(glitch.cur) && glitch.saved < 40 {
 		for k, px := range [][]byte{glitch.prev, glitch.cur} {
-			f, err := os.Create(filepath.Join(glitchDir, fmt.Sprintf("glitch%d_%c.png", glitch.saved, 'a'+k)))
+			f, err := os.Create(filepath.Join(conf.GlitchDir, fmt.Sprintf("glitch%d_%c.png", glitch.saved, 'a'+k)))
 			if err == nil {
 				err = (&png.Encoder{CompressionLevel: png.BestSpeed}).Encode(f, &image.RGBA{Pix: px, Stride: w * 4, Rect: image.Rect(0, 0, w, h)})
 				f.Close()
@@ -318,14 +316,31 @@ func glitchCheck(screen *Image) {
 	glitch.n++
 }
 
-// Skip reports whether name is in POR_SKIP, a comma list of the frame's parts left out
+// Skip reports whether name is in Config.Skip, the frame's parts left out
 // (fill, sky, planes, floors, walls, bills, dither, hud; in a battle table, board, shadows, frames,
 // figures, sparks) to time the rest, or of its savings (clear: a whole-image Fill drawn, not cleared;
 // back: the planes write depth) to check the picture is the same without them.
-func Skip(name string) bool { return slices.Contains(strings.Split(os.Getenv("POR_SKIP"), ","), name) }
+func Skip(name string) bool { return slices.Contains(conf.Skip, name) }
 
 // surf stands for the window's frame, drawn into directly when the screen is the frame's
-// size; its view is the one gogpu lends each frame. offscreen keeps the screen an image of
+// size; its view is the one gogpu lends each frame. offscreen() keeps the screen an image of
 // its own (and a present pass copying it) when something reads it back.
 var surf = &texture{external: true}
-var offscreen = os.Getenv("POR_SHOT") != "" || os.Getenv("BLOBBER_SHOT") != "" || os.Getenv("POR_GLITCH") != "" || os.Getenv("POR_OFFSCREEN") != ""
+
+// Config is what a host sets for measuring and debugging; the zero value is
+// the normal run. The host fills it from its own flags or environment.
+type Config struct {
+	FPS       bool     // a line a second with the frame rate and where a frame's time goes
+	Passes    bool     // one frame's render passes with each fps line
+	NoVSync   bool     // frames as fast as they come
+	Offscreen bool     // keep the screen an image of its own (something reads it back: screenshots)
+	GlitchDir string   // see glitchCheck; implies Offscreen
+	Skip      []string // parts of the frame left out, see Skip
+}
+
+var conf Config
+
+// SetConfig sets the switches; call it before RunGame.
+func SetConfig(c Config) { conf = c }
+
+func offscreen() bool { return conf.Offscreen || conf.GlitchDir != "" }
