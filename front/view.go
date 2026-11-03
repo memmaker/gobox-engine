@@ -612,6 +612,7 @@ type Beast struct {
 	Icon   image.Image // the combat icon (nil: none)
 	Pic    image.Image // the picture window's when first met (nil: none)
 }
+
 // Pages is help's or the journal's page (View.Pages), in a box round the
 // whole page: ActPage -1 and +1 page back and on (the journal: scroll a
 // tall picture first), ActClose closes, any other key the next page.
@@ -657,4 +658,3 @@ type MapLabel struct {
 	Colour int
 	First  image.Point
 }
-

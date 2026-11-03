@@ -1,0 +1,88 @@
+// title.go plays the title (View.Intro, ovr02:0626 title_screen): TITLE
+// picture 1 five seconds, with the full intro picture 2 five seconds with
+// its lightning, then the credits ten; a key or click cuts each short (and
+// a lightning flash one step). The game draws (TitlePicture,
+// TitleCredits, TitleFlash) and ends it (TitleDone).
+
+package front
+
+import (
+	"math/rand/v2"
+	"time"
+)
+
+// The title's phases.
+const (
+	IntroNone = iota // not started
+	IntroFirst
+	IntroSecond
+	IntroCredits
+)
+
+// IntroUI is the title being played.
+type IntroUI struct {
+	Phase int
+	end   time.Time // the phase's end
+	Flash []int     // the lightning's colours left, a step each
+	ms    []int     // ... and each step's length
+	step  time.Time // the flash step's end
+	acc   int       // the lightning's chance, as the original's counter
+}
+
+// IntroStep plays the title (nil: none waits) this frame on in; key: a
+// key or click came.
+func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
+	if intro == nil {
+		*in = IntroUI{}
+		return
+	}
+	now := time.Now()
+	if len(in.Flash) > 0 { // Delay: the step goes on until its time is up or a key
+		if !key && now.Before(in.step) {
+			return
+		}
+		in.Flash, in.ms = in.Flash[1:], in.ms[1:]
+		c := 1
+		if len(in.Flash) > 0 && len(in.Flash)%5 != 0 {
+			c = in.Flash[0]
+		}
+		if len(in.Flash) > 0 {
+			in.step = now.Add(time.Duration(in.ms[0]) * time.Millisecond)
+			if len(in.Flash)%5 == 0 {
+				h.Call(func(e Game) { e.TitleFlash(1) })
+				c = in.Flash[0]
+			}
+		}
+		h.Call(func(e Game) { e.TitleFlash(c) })
+		return
+	}
+	if in.Phase == IntroSecond && !key && intro.Lightning {
+		if in.acc += rand.IntN(4); in.acc > 50000 {
+			in.acc = 0
+			for range rand.IntN(3) + 1 {
+				in.Flash = append(in.Flash, 9, 11, 15, 11, 9)
+				in.ms = append(in.ms, 150, 100, 50, 100, 150)
+			}
+			in.step = now.Add(time.Duration(in.ms[0]) * time.Millisecond)
+			c := in.Flash[0]
+			h.Call(func(e Game) { e.TitleFlash(c) })
+			return
+		}
+	}
+	if in.Phase != IntroNone && !key && now.Before(in.end) {
+		return
+	}
+	switch {
+	case in.Phase == IntroNone:
+		in.Phase, in.end = IntroFirst, now.Add(5*time.Second)
+		h.Call(func(e Game) { e.TitlePicture(1) })
+	case in.Phase == IntroFirst && intro.Full:
+		in.Phase, in.end = IntroSecond, now.Add(5*time.Second)
+		h.Call(func(e Game) { e.TitlePicture(2) })
+	case in.Phase == IntroSecond:
+		in.Phase, in.end = IntroCredits, now.Add(10*time.Second)
+		h.Call(func(e Game) { e.TitleCredits() })
+	default:
+		h.Call(func(e Game) { e.TitleDone() })
+	}
+}
