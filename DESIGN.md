@@ -16,6 +16,25 @@ require gobox/gpu v0.0.0
 replace gobox/gpu => ../gobox-engine/gpu
 ```
 
+Data and sound (each module's API.md has its exported API and the switch
+steps per game):
+
+```
+adf       Amiga disk images                       identical in all three
+ega       EGA palette, W/H, Amiga palettes        palette only; sotsb's Screen stays
+dax       DAX files, images, sprites               Block copies; BlockShared = por's cached slice
+exe       EXEPACK START.EXE                        Load(path, ds): por 0xC7C, cotab 2750, sotsb 3554
+geo       GEO/WALLDEF parsing                      bytes in; LoadGeo/LoadWalldef, engine state stay in the game
+amiga     Amiga SOUND.BIN player                   por's player; SongOn address a field
+audio     PC speaker/Tandy synth, oto Output       NewPlayer(Config), Play(n); data JSON from audio/cmd/sounddata
+fixture   save fixtures for tests                  the game supplies callbacks (Open, ParseDecision ...)
+scripts   build_n_run.sh GAMEDIR                   one line wrapper per game
+tools/remaster  texture pipeline                   per-game remaster.json + areas_data.py
+ui        widgets: scroll bars, menu rows, key tables, pager core, map images, results
+```
+
+Presentation:
+
 ```
 gpu       window (glfw), input, 2D batches, WGSL shaders, DrawMesh (wgpu)
 input     Act: what a key does (bindings live in the game's front end)
