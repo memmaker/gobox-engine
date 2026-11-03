@@ -131,6 +131,7 @@ game. Until then cotab-go and sotsb-go keep their copies of the screens.
 - [ ] interfaces agreed with the POR and COTAB sessions
 - [ ] cotab-go switched; sotsb-go adopts at D11–D13
 - [ ] window (phase 2)
+- [ ] combat bar icons for Move, View and Aim (`combat/icons/{move,view,aim}.png`, 64px like the others); letters until then. They're art: ask before spending on an image model
 - [ ] dax: remove `Loader.OneDisk`. Make the other-disk fallback opt-in (por sets it) and drop `OneDisk = true` from cotab and sotsb
 
 combat status: extracted into `combat/` (module gobox/combat), kinds are named
