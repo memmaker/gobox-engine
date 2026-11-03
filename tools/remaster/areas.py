@@ -46,7 +46,7 @@ def area(name, digit, walls, **kw):
     a["walls"] = {v: d for v, (s, d) in walls.items() if d}
     for v, (s, d) in walls.items():
         if d is None:
-            a["reuse"][v] = kw.get("por", {})[v]
+            a["reuse"][v] = kw.get("reused", kw.get("por", {}))[v]  # "por": the old key name, still read
 
 
 def load(game):

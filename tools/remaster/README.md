@@ -17,3 +17,7 @@ with `area()/src()/origin()` in scope), `maps.txt` (optional: per-map walls + `i
 
 Moving a game over: split its `areas.py` into `areas_data.py` (the AREAS entries only; helpers live here) and
 write `remaster.json`. `groups.json` is not read by these scripts.
+
+## Migrate
+
+In `areas_data.py`, pass `reused={value: texture}` to `area()` instead of `por=`. The old `por=` key is still read as a fallback.
