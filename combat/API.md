@@ -15,7 +15,7 @@ Reads a `Board` snapshot, draws figurines on a wooden table, returns `Decision`s
 - `Draw(dst, *Board)`; `DrawBar(dst, glyph, *Board, k, bottom)` the action bar at scale k; `HideBar()`.
 - Input: `Key(act input.Act, k uint16) bool` (W A S D pan, arrows cursor, Q/E turn, Home reset, digits/letters buttons, Tab cycles targets, Enter, Esc = No, Backspace ends turn), `Point(x,y)`, `Click(x,y) bool`, `Zoom(in, speed)`, `Pick(x,y)`, `Hovered()`.
 - Out: `Actions() []Decision` (drain once a frame). `Float(id,n,heal)` starts a damage number.
-- Fields the host sets: `Theme` (colours, set before the first Draw; `DefaultTheme` is por's current look, games copy and change it), `Shift` (Shift held, set each frame: health bars, Shift-Tab, Shift-U), `Icons map[Kind]image.Image` (the game's bar icons by action; none embedded, the hotkey letter shows without) + `IconKey` (redraw cue), `Glyph`, `Pointer`, `Stick` (pad right stick pans), `Picking`/`PickKind` (spell list up: bar off), `Asking` (bar shows Yes/No).
+- Fields the host sets: `Theme` (colours, set before the first Draw; `DefaultTheme` is por's current look, games copy and change it), `Shift` (Shift held, set each frame: health bars, Shift-Tab, Shift-U), `Icons map[Kind]image.Image` (overrides the embedded default icon of an action) + `IconKey` (redraw cue), `Glyph`, `Pointer`, `Stick` (pad right stick pans), `Picking`/`PickKind` (spell list up: bar off), `Asking` (bar shows Yes/No).
 
 ## Adapter pattern
 Each game writes one small adapter: its battle -> `*combat.Board` (every frame), `combat.Decision` -> its engine call. Examples: por-go/present/remaster/combat.go (`toBoard`, `toAction`), cotab-go/cmd/cotab/combat.go (`board`, `decision`, `input`; it offers ActStep/ActView from its own menu). Game-only extras (weapon, spells) stay in the game; pass their words and icons via `Turn.Labels` and `Presenter.Icons`.
@@ -29,9 +29,8 @@ Fields/kinds only, no behaviour in combat: `Board.Confirm`, `Decision.Pre`, `Act
 - Presenter holds all GPU state; Board is read-only and rebuilt by the game each frame.
 
 ## Migrate
-Embedded icons are gone (`icons/*.png`: attack, bandage, cast, end, guard, items, quick, turn, wait). They are in history at commit e500eb9: `git -C gobox-engine show e500eb9:combat/icons/attack.png > <game>/.../attack.png` (or `git archive e500eb9 combat/icons`). Each game:
-- Copy the PNGs into its own art, load them, and set `Presenter.Icons[kind]` (ActAttack->attack, ActBandage->bandage, ActCast->cast, ActEnd and ActClose->end, ActGuard->guard, ActItems->items, ActQuick->quick, ActTurn->turn, ActWait->wait). Without one the bar shows the hotkey letter.
+The bar icons stay embedded in combat (`icons/*.png`) as the shared default set, so games need not copy them. `Presenter.Icons[kind]` overrides a default; with neither, the hotkey letter shows. `Turn.Icons` is removed (nothing read it). Each game:
 - Set `p.Theme = combat.DefaultTheme` (por's look, pixel-identical; cotab/sotsb may copy and change fields) before the first Draw. The zero Theme draws transparent black.
 - Set `p.Shift = gpu.IsKeyPressed(gpu.KeyShift)` each frame before Draw and Key.
 - Set `Board.StoneTile = 3` (the old fixed value) wherever WallTiles is set.
-- Drop any `Turn.Icons` use (nothing read it).
+- Drop any `Turn.Icons` use.
