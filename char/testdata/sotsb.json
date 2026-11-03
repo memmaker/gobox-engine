@@ -1,0 +1,289 @@
+{
+ "size": 439,
+ "fields": {
+  "name": {
+   "off": 0,
+   "size": 1,
+   "n": 16
+  },
+  "score": {
+   "off": 16,
+   "size": 1,
+   "n": 6,
+   "stride": 2
+  },
+  "scoreUse": {
+   "off": 17,
+   "size": 1,
+   "n": 6,
+   "stride": 2
+  },
+  "str00Use": {
+   "off": 28,
+   "size": 1
+  },
+  "str00": {
+   "off": 29,
+   "size": 1
+  },
+  "memorized": {
+   "off": 30,
+   "size": 1,
+   "n": 75
+  },
+  "spellsToLearn": {
+   "off": 105,
+   "size": 1
+  },
+  "thac0Base": {
+   "off": 106,
+   "size": 1
+  },
+  "race": {
+   "off": 107,
+   "size": 1
+  },
+  "class": {
+   "off": 108,
+   "size": 1
+  },
+  "paladinCures": {
+   "off": 109,
+   "size": 1
+  },
+  "age": {
+   "off": 110,
+   "size": 2
+  },
+  "maxHP": {
+   "off": 112,
+   "size": 1
+  },
+  "spellBook": {
+   "off": 113,
+   "size": 1,
+   "n": 117
+  },
+  "fightLevel": {
+   "off": 230,
+   "size": 1
+  },
+  "size": {
+   "off": 231,
+   "size": 1
+  },
+  "saves": {
+   "off": 232,
+   "size": 1,
+   "n": 5
+  },
+  "baseMove": {
+   "off": 237,
+   "size": 1
+  },
+  "maxLevel": {
+   "off": 238,
+   "size": 1
+  },
+  "multiclassLevel": {
+   "off": 239,
+   "size": 1
+  },
+  "drained": {
+   "off": 240,
+   "size": 1
+  },
+  "drainedHP": {
+   "off": 241,
+   "size": 1
+  },
+  "undead": {
+   "off": 242,
+   "size": 1
+  },
+  "thief": {
+   "off": 243,
+   "size": 1,
+   "n": 8
+  },
+  "control": {
+   "off": 255,
+   "size": 1
+  },
+  "share": {
+   "off": 256,
+   "size": 1
+  },
+  "oldClass": {
+   "off": 257,
+   "size": 1
+  },
+  "coins": {
+   "off": 259,
+   "size": 2,
+   "n": 7
+  },
+  "levels": {
+   "off": 273,
+   "size": 1,
+   "n": 7
+  },
+  "oldLevels": {
+   "off": 280,
+   "size": 1,
+   "n": 7
+  },
+  "sex": {
+   "off": 287,
+   "size": 1
+  },
+  "alignment": {
+   "off": 288,
+   "size": 1
+  },
+  "baseAttack": {
+   "off": 289,
+   "size": 1,
+   "n": 2
+  },
+  "baseDice": {
+   "off": 291,
+   "size": 1,
+   "n": 2
+  },
+  "baseSides": {
+   "off": 293,
+   "size": 1,
+   "n": 2
+  },
+  "baseBonus": {
+   "off": 295,
+   "size": 1,
+   "n": 2
+  },
+  "baseAC": {
+   "off": 297,
+   "size": 1
+  },
+  "strBonus": {
+   "off": 298,
+   "size": 1
+  },
+  "exp": {
+   "off": 300,
+   "size": 4
+  },
+  "classMask": {
+   "off": 304,
+   "size": 1
+  },
+  "hpRoll": {
+   "off": 305,
+   "size": 1
+  },
+  "spellSlots": {
+   "off": 306,
+   "size": 1,
+   "n": 28
+  },
+  "expValue": {
+   "off": 334,
+   "size": 2
+  },
+  "expPerHP": {
+   "off": 336,
+   "size": 1
+  },
+  "creatureFlags": {
+   "off": 349,
+   "size": 1
+  },
+  "monsterFlags": {
+   "off": 350,
+   "size": 1
+  },
+  "itemCount": {
+   "off": 352,
+   "size": 1
+  },
+  "itemList": {
+   "off": 353,
+   "size": 4
+  },
+  "slots": {
+   "off": 357,
+   "size": 1,
+   "n": 52
+  },
+  "hands": {
+   "off": 409,
+   "size": 1
+  },
+  "saveBonus": {
+   "off": 410,
+   "size": 1,
+   "signed": true
+  },
+  "weight": {
+   "off": 411,
+   "size": 2
+  },
+  "magicResistance": {
+   "off": 421,
+   "size": 1
+  },
+  "status": {
+   "off": 422,
+   "size": 1
+  },
+  "okay": {
+   "off": 423,
+   "size": 1
+  },
+  "side": {
+   "off": 424,
+   "size": 1
+  },
+  "auto": {
+   "off": 425,
+   "size": 1
+  },
+  "thac0": {
+   "off": 426,
+   "size": 1
+  },
+  "ac": {
+   "off": 427,
+   "size": 1,
+   "n": 2
+  },
+  "attacks": {
+   "off": 429,
+   "size": 1,
+   "n": 2
+  },
+  "dice": {
+   "off": 431,
+   "size": 1,
+   "n": 2
+  },
+  "sides": {
+   "off": 433,
+   "size": 1,
+   "n": 2
+  },
+  "bonus": {
+   "off": 435,
+   "size": 1,
+   "n": 2
+  },
+  "hp": {
+   "off": 437,
+   "size": 1
+  },
+  "move": {
+   "off": 438,
+   "size": 1
+  }
+ }
+}

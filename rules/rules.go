@@ -1,0 +1,259 @@
+// Package rules holds the rules the Gold Box games share, copied from the
+// games' engines and kept behaviour-identical, including the exact order of
+// RNG calls. What differs per game is a Config flag, a Hooks func or a table
+// the game passes in. The package never knows which game runs.
+package rules
+
+import "gobox/char"
+
+// RNG is the game's own random source (its original-RNG implementation).
+type RNG interface {
+	Dice(n, sides int) int
+}
+
+// Roll is the rule globals the games keep in rv: the last results, which the
+// affect handlers read.
+type Roll struct {
+	Save     byte
+	SaveType byte
+	SaveMade bool
+	DiceN    byte
+	HitRoll  int8
+}
+
+// Hooks are the game's side effects around a roll. Nil funcs do nothing.
+type Hooks struct {
+	Begin  func()              // AttackHits: before the roll (attacking ends invisibility)
+	Groups func()              // AttackHits: after a roll that is not a miss (attacker then defender affects)
+	Group  func()              // SavingThrow, TrapHits: the save / defender affect group
+	Hit    func(over int) bool // AttackHits: extra rule-set veto (por's rules4e Hits); nil accepts
+}
+
+// Config is what differs per game.
+type Config struct {
+	TrapSkipStoned bool // sotsb: a stoned member takes no trap damage (damage.go:36)
+	TrapRollEach   bool // sotsb: each member rolls their own trap damage (damage.go:154)
+}
+
+// Status values shared by the games' status tables.
+const (
+	StatusOkay        = 0
+	StatusAnimated    = 1
+	StatusRunning     = 3
+	StatusUnconscious = 4
+	StatusDying       = 5
+	StatusDead        = 6
+	StatusStoned      = 7
+)
+
+// Class indexes of the shared class order (cleric druid fighter paladin ranger ...).
+const (
+	ClsFighter = 2
+	ClsPaladin = 3
+	ClsRanger  = 4
+)
+
+// RollDice = Dice that also remembers n (the games' RollDice).
+func RollDice(rv *Roll, rng RNG, n, sides int) int {
+	rv.DiceN = byte(n)
+	return rng.Dice(n, sides)
+}
+
+// hitRoll rolls the d20 the attack and trap rolls share: 1 misses, 20 counts 100.
+func hitRoll(rv *Roll, rng RNG) bool {
+	rv.HitRoll = int8(rng.Dice(1, 20))
+	if rv.HitRoll <= 1 {
+		return false
+	}
+	if rv.HitRoll == 20 {
+		rv.HitRoll = 100
+	}
+	return true
+}
+
+// AttackHits: d20 + THAC0 + adj (the side's modifier) must reach need.
+func AttackHits(rv *Roll, rng RNG, att char.Stats, adj int, need int, h Hooks) bool {
+	if h.Begin != nil {
+		h.Begin()
+	}
+	if !hitRoll(rv, rng) {
+		return false
+	}
+	if h.Groups != nil {
+		h.Groups()
+	}
+	over := int(rv.HitRoll) + att.THAC0() + adj - int(byte(need))
+	return rv.HitRoll >= 0 && over >= 0 && (h.Hit == nil || rv.HitRoll == 100 || h.Hit(over))
+}
+
+// TrapHits: a d20 with the defender's affects plus bonus must beat AC 0.
+func TrapHits(rv *Roll, rng RNG, c char.Stats, bonus byte, h Hooks) bool {
+	if !hitRoll(rv, rng) {
+		return false
+	}
+	if h.Group != nil {
+		h.Group()
+	}
+	return rv.HitRoll >= 0 && int(rv.HitRoll)+int(bonus) > c.AC(0)
+}
+
+// SavingThrow: 1 always fails, 20 always saves, otherwise d20 + bonus + the
+// save bonus must reach the target for the type. One path for all games: the
+// total is compared signed (por's fix), so a penalty below 0 does not wrap.
+func SavingThrow(rv *Roll, rng RNG, c char.Stats, typ, bonus int, h Hooks) bool {
+	rv.SaveMade = true
+	rv.Save = byte(rng.Dice(1, 20))
+	switch rv.Save {
+	case 1:
+		rv.SaveMade = false
+	case 20:
+		rv.SaveMade = true
+	default:
+		rv.Save = byte(int(rv.Save) + int(int8(c.SaveBonus())) + int(int8(bonus)))
+		rv.SaveType = byte(typ)
+		if h.Group != nil {
+			h.Group()
+		}
+		rv.SaveMade = c.Save(int(int8(typ))) <= int(int8(rv.Save))
+	}
+	return rv.SaveMade
+}
+
+// Thac0At reads the THAC0 table like the original: flat, indexed
+// class*width + level (levels past the row run into the next class's row).
+func Thac0At(table [][]byte, class int, level int8) byte {
+	w := len(table[0])
+	i := class*w + int(level)
+	return table[i/w][i%w]
+}
+
+// Strength limits.
+const (
+	StrMax        = 18
+	StrEncodeBase = 100
+)
+
+// StrengthCode: one byte for a strength: 18/xx as xx+1 (18/00 is 101), others +100.
+func StrengthCode(str, str00 byte) byte {
+	if str == StrMax {
+		return str00 + 1
+	}
+	return str + StrEncodeBase
+}
+
+// ConHitPoints works the maximum hit points out again for constitution con:
+// the rolled ones plus the constitution bonus of each class level (fighters
+// more), shared out over the classes; the hit points follow the change.
+// maxHitDice is the game's per-class hit dice table.
+func ConHitPoints(c char.Stats, con byte, maxHitDice []byte) {
+	classes := 0
+	oldMax := byte(c.MaxHP())
+	maxHP := byte(c.HPRoll())
+	multi := byte(c.MulticlassLevel())
+	var bonus byte
+	addLevels := func(k int, lvl byte) {
+		if maxHitDice[k] <= lvl {
+			lvl = maxHitDice[k] - 1
+		}
+		if k == ClsRanger && (multi == 0 || byte(c.OldLevel(ClsRanger)) == multi) {
+			lvl++
+		}
+		if k == ClsFighter || k == ClsPaladin || k == ClsRanger {
+			switch {
+			case con >= 15 && con <= 19:
+				bonus += lvl * (con - 14)
+			case con == 20:
+				bonus += lvl * 5
+			case con >= 21 && con <= 23:
+				bonus += lvl * 6
+			case con >= 24 && con <= 25:
+				bonus += lvl * 7
+			}
+			return
+		}
+		if con > 15 {
+			bonus += lvl * 2
+		} else if con == 15 {
+			bonus += lvl
+		}
+	}
+	for k := 0; k < c.Classes(); k++ {
+		if lvl := byte(c.OldLevel(k)); lvl > 0 {
+			addLevels(k, lvl)
+		}
+		lvl := byte(c.Level(k))
+		if lvl > 0 {
+			classes++
+		}
+		if maxHitDice[k] < lvl {
+			lvl = maxHitDice[k]
+		}
+		if lvl > multi {
+			addLevels(k, lvl-multi)
+		}
+	}
+	if classes > 0 {
+		bonus /= byte(classes)
+	}
+	maxHP += bonus
+	c.SetMaxHP(int(maxHP))
+	hp := byte(c.HP())
+	switch {
+	case maxHP > oldMax:
+		c.SetHP(int(hp + (maxHP - oldMax)))
+	case maxHP < oldMax:
+		if lost := oldMax - maxHP; hp > lost {
+			c.SetHP(int(hp - lost))
+		} else {
+			c.SetHP(0)
+		}
+	}
+}
+
+// DamagePlayer takes dmg off the hit points: down to 0, then unconscious,
+// dying (bleeding rounds) or dead at 10 below. over is the overkill; dying
+// reports that the status is now Dying (the game stores over in its combat
+// block); down that the member is out (the game updates its side count and
+// delay when fighting).
+func DamagePlayer(c char.Stats, dmg byte) (over byte, dying, down bool) {
+	hp := byte(c.HP())
+	var left byte
+	if hp >= dmg {
+		left = hp - dmg
+	} else {
+		over = dmg - hp
+	}
+	status := c.Status()
+	switch {
+	case over > 9 || left == 0 && status == StatusAnimated:
+		status = StatusDead
+	case over > 0:
+		status = StatusDying
+		dying = true
+	case left == 0:
+		status = StatusUnconscious
+	}
+	c.SetStatus(status)
+	if status == StatusOkay || status == StatusAnimated {
+		c.SetHP(int(left))
+		return over, false, false
+	}
+	c.SetOkay(0)
+	c.SetHP(0)
+	return over, dying, true
+}
+
+// TrapSkips: a member who takes no trap damage message or damage.
+func (cfg Config) TrapSkips(status int) bool {
+	return status == StatusDead || cfg.TrapSkipStoned && status == StatusStoned
+}
+
+// TrapNextDamage is the damage after one member of an "everyone" trap:
+// with TrapRollEach the game's roll is called again (at that point of the
+// RNG sequence), otherwise the damage stays.
+func (cfg Config) TrapNextDamage(dmg byte, roll func() byte) byte {
+	if cfg.TrapRollEach {
+		return roll()
+	}
+	return dmg
+}
