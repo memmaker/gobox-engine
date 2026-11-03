@@ -115,6 +115,9 @@ Rules for every module:
 - Per-game differences are data in the snapshot or a `Config`, never a
   build tag or a game switch inside the module.
 
+Dependency direction: `ui` is a leaf (drawing only, no screen types);
+`front` (screens, calls, latch) may import `ui`; `app` (the shell) sits on top.
+
 ## Per-game differences (as data)
 
 | Difference | Where it goes |
