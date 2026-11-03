@@ -152,6 +152,10 @@ game. Until then cotab-go and sotsb-go keep their copies of the screens.
 - [x] interfaces agreed with the POR, COTAB and SOTSB sessions
 - [x] por-go, cotab-go switched; sotsb-go on the data modules (audio, blobber, combat at D11–D14)
 - [ ] window (phase 2)
+- [ ] blobber: one View per scene, not one global per process; the host fills Textures once per scene (SotSB)
+- [ ] ui: text, font and list widgets, so the games stop building their own console layout (rule 1: fonts stay the game's)
+- [ ] gpu: a headless path, so tests can check the 3D view
+- [ ] gpu: move the wgpu, goffi and gogpu replaces so a game's go.mod needs only the gobox ones
 - [ ] combat bar icons for Move, View and Aim (`combat/icons/{move,view,aim}.png`, 64px like the others); letters until then. They're art: ask before spending on an image model
 - [ ] dax: remove `Loader.OneDisk`. Make the other-disk fallback opt-in (por sets it) and drop `OneDisk = true` from cotab and sotsb
 
