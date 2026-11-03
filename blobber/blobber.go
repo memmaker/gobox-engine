@@ -604,7 +604,7 @@ var (
 )
 
 // graphicsFont is the Font line's row on the Graphics page.
-const graphicsFont = 10
+const graphicsFont = 3
 
 // OnSaveLoad, when set, adds "Save / Load" to the Esc menu (the host's save slots); OnMainMenu
 // adds "Back to Main Menu" (asked first).
