@@ -47,6 +47,25 @@ type Game interface {
 	LootDetect() error
 	LootLeave(sure bool) error // refused with Confirm while treasure is left
 	TryDoor(k DoorWay) error
+
+	// Grid pickers (PickHead ..) and the combat icon editor.
+	OpenPicker(kind int) bool
+	PickerView(page int) *Picker
+	Pick(i int) (done bool)
+	ClosePicker()
+	EditIcon(n int)
+	IconEditorView() *IconEditor
+	IconSize()
+	IconColour(part, shade, v int)
+	IconRemove()
+	IconPNG(path string)
+	EndIcon(keep bool)
+
+	// Save slots.
+	SlotsView(loadOnly bool) *Slots
+	Save(name string)
+	DeleteSlot(name string)
+	Load(name string, loadOnly bool) bool
 }
 
 // Host is what a screen needs of the front end that shows it: the rule
