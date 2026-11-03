@@ -77,3 +77,15 @@ type Slots struct {
 	LoadOnly     bool   // the party menu's Load
 	Current      string // the last save ("" none): the list starts on it
 }
+
+// MainMenu is the party menu's page: the functions open now, the title's
+// pictures and the party.
+type MainMenu struct {
+	Open     []ActKind   // ActCreate .. ActQuit, ActMember, ActDropMember
+	Hall     bool        // the training hall's: over the 3D view, Begin leaves the hall
+	Logo     image.Image // the title's lettering on transparent black
+	Backdrop image.Image // the painted title under it (nil: black)
+	Party    int         // the members
+	Selected int         // the selected member (-1: none)
+	Name     string      // ... its name ("" none)
+}
