@@ -18,6 +18,9 @@ Imports only gobox/gpu, gobox/input, gobox/gpu/vector. Tests need no window.
 - BIOSKey(gpu.Key)->(code,ok): the INT 16h table (Enter 13, Esc 27, Bksp 8, Tab 9, F1-F10 0x3B00.., arrows/KP 2468 0x48/50/4B/4D00, Home/End/PgUp/PgDn/KP1379, KP5 0x4C00, Delete 0x5300).
 - input.Repeat(held,delay,rate)->bool (gobox/input, no gpu): held = ticks down (1 = first tick); true on 1, at delay, then every rate. Host sets delay/rate.
 - ResultsRuns(Results,cw,ch)->[]Run{Text,X,Y,Role}; ResultsTitle(Results). Roles: RunGreen/Cyan/Red.
+- Console{Cols,Rows,Cells,Col,Row,Theme}: NewConsole(cols,rows,Theme). Put/PutSymbol/Text/TextBg/Blank, Border(x1,y1,x2,y2,style,colour), BoxTitled(...,title), TextBlock(x1,y1,x2,y2,colour,clear,s,full) (cursor = Col,Row; full = the game's "press a key"), MenuBar(x0,y,menu,items,sel,normal,hi,black,lastCol). Cell{Set,Upcase,Symbol,C,Colour,Bg,Sym}; the game renders Cells with its own font. Theme{Border(style)->Frame{Corner,Vert,Horz}} is the game's border symbol ids.
+- Flow(s,x1,y1,x2,y2,&col,&row,put,full), Wrap(s,x1,x2), Punct; MenuItems(menu)->[]MenuItem{First,Last}, IsHotkey; PadLeft, PriceLine(name,price,width), Commas.
+- List{Top,Index,Rows,Total,Skip(i)}: Step, SkipRows, Move(fwd), Page(fwd), HasNext(), HasPrev(leadingHdr): the cursor of the scrolling list (sotsb listmenu). Drawing, keys and prices stay the game's.
 
 ## What por's remaster must change (adapters)
 - Pixel output is meant identical (same arithmetic); run pages_test goldens after switching.
@@ -43,7 +46,12 @@ Repeat differs per copy (report): por d==1 || d>=tps/3 && (d-tps/3)%(tps*3/20)==
 - Wilderness pane: a.DrawIn(dst, paneRect, ...). Horizontal bars: ui.MenuNavH instead of MenuNav.
 
 ## Migrate
-No API change. ui holds no colours, fonts or borders (callers pass them: `BarColors`, `ink`, `glyph`); only comments were reworded.
+Console/List additions (golden tests in console_test.go compare against copies of the games' code).
+- por: text.go punct/flow/Wrap -> ui.Punct/Flow/Wrap (Engine.textBlock = ui.Console.TextBlock with full = PromptRow24+ClearKeyboard, or keep its own cells and call ui.Flow). textCell may become ui.Cell.
+- sotsb: text.go punct + DisplayTextBlock loop -> ui.Console.TextBlock (keep slowText delay via the Console's put: use ui.Flow directly with a put that calls DisplayChar and Delay); DrawBorder/DrawBoxTitled -> Console.Border/BoxTitled with Theme{Border: style -> Frame{b,b+1,b+2}, b=0x114+style*3}; menu.go isHotkey/menuItemsOf -> ui.IsHotkey/MenuItems, drawMenuBar -> Console.MenuBar; listmenu.go lmStep/lmSkipHeaders/lmMoveCursor/lmPageScroll -> ui.List (listTop = List.Top); shop spaces/padLeft/commas -> ui.PriceLine/PadLeft/Commas.
+- cotab: text.go punct is unused (DisplayTextBlock only emits an event); menu.go isHotkey/menuItemsOf -> ui.IsHotkey/MenuItems. Its list menu is already a Question to the front end: nothing to share.
+- Left in the games: ListMenu/DisplayInput loops (engine state, input, Trace), shop/sheet/camp/viewplayer screens (prices, stats, ECL state; only the small string helpers above were shared), por's text pane regions (texts.row).
+Before: No API change. ui holds no colours, fonts or borders (callers pass them: `BarColors`, `ink`, `glyph`); only comments were reworded.
 
 ## Migrate (ui/fonts)
 `gobox/ui/fonts`: `All() []Font`, `Get(name) []byte`, `Load(dir) []Font` (the game's own .f8 in dir first, then the pool), `Find(fs, name) int`. Font = {Name, Bits}.

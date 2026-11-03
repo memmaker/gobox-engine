@@ -90,7 +90,7 @@ func (c *Console) Border(x1, y1, x2, y2, style, colour int) {
 }
 
 // BoxTitled blanks the interior, draws the border (colour) and centres the
-// title on the top border row.
+// title on row y1 (the interior's first row, as the games do).
 func (c *Console) BoxTitled(x1, y1, x2, y2, style, colour int, title string) {
 	title = title[:min(len(title), c.Cols)]
 	c.Blank(x1, y1, x2, y2)
