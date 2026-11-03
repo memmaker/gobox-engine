@@ -70,17 +70,34 @@ var hotkeys = map[string]struct {
 }{"Attack": {'f', 0, "F"}, "Ranged": {'m', 0, "M"}, "Guard": {'g', 0, "G"}, "End": {0, input.EndTurn, "\x1b"}, "Wait": {'p', 0, "P"}, "Cast": {'c', 0, "C"},
 	"Quick": {'u', 0, "U"}, "Items": {'i', 0, "I"}, "Turn": {'t', 0, "T"}, "Bandage": {'b', 0, "B"}, "Flee": {'r', 0, "R"}, "Maneuver": {'v', 0, "V"}, "Yes": {'y', 0, "Y"}, "No": {'n', 0, "N"}, "Cancel": {0, input.Esc, "Esc"}}
 
+// hotkeyOf is word's hotkey: the table's, else its first letter (a game's own Labels).
+func hotkeyOf(word string) (h struct {
+	key   uint16
+	act   input.Act
+	label string
+}) {
+	if h, ok := hotkeys[word]; ok {
+		return h
+	}
+	if word != "" {
+		c := word[0] | 0x20
+		h.key, h.label = uint16(c), string(c&^0x20)
+	}
+	return h
+}
+
 // leftArrow is the glyph drawn for "\x1b" (Backspace): the game's font has none.
 var leftArrow = [8]byte{0x00, 0x10, 0x30, 0x7E, 0x30, 0x10, 0x00, 0x00}
 
 // actWords are the bar's words for the turn's actions.
 var actWords = map[Kind]string{ActAttack: "Attack", ActRanged: "Ranged", ActGuard: "Guard", ActItems: "Items",
-	ActCast: "Cast", ActTurn: "Turn", ActBandage: "Bandage", ActWait: "Wait", ActEnd: "End", ActQuick: "Quick", ActFlee: "Flee", ActManeuver: "Maneuver"}
+	ActCast: "Cast", ActTurn: "Turn", ActBandage: "Bandage", ActWait: "Wait", ActEnd: "End", ActQuick: "Quick", ActFlee: "Flee", ActManeuver: "Maneuver",
+	ActStep: "Move", ActView: "View", ActAim: "Aim"}
 
 // hotkey is the button whose hotkey is letter k or the table's key a (nil: none).
 func (b *bar) hotkey(a input.Act, k uint16) *barItem {
 	for i, it := range b.items {
-		if h, ok := hotkeys[it.Text]; ok && (h.key != 0 && h.key == k || h.act != input.None && h.act == a) && i < len(b.rects) {
+		if h := hotkeyOf(it.Text); (h.key != 0 && h.key == k || h.act != input.None && h.act == a) && i < len(b.rects) {
 			return &b.items[i]
 		}
 	}
@@ -110,7 +127,13 @@ func shownItems(b *Board, asking bool) (items []barItem) {
 		return []barItem{{'E', "Cancel", ActClose}}
 	default:
 		for _, k := range t.Can {
-			w := actWords[k]
+			w := t.Labels[k] // the game's own word, else the bar's
+			if w == "" {
+				w = actWords[k]
+			}
+			if w == "" { // a kind the bar has no word for
+				continue
+			}
 			items = append(items, barItem{w[0], w, k})
 		}
 	}
@@ -308,7 +331,7 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 		} else {
 			textOn(f, string(it.Key), (face-32)/2, (face-32)/2, 4, rgb(15))
 		}
-		if h, ok := hotkeys[it.Text]; ok { // its hotkey, bottom right
+		if h := hotkeyOf(it.Text); h.label != "" { // its hotkey, bottom right
 			const s = 2 // 16px letters on the 64px face
 			lw := len(h.label) * 8 * s
 			at := image.Pt(face-lw-2*s, face-10*s)
