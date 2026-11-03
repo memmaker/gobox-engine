@@ -12,6 +12,10 @@ require (
 	github.com/gogpu/gputypes v0.8.0 // indirect
 	github.com/gogpu/naga v0.19.0 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
+	gobox/blobber v0.0.0
+	gobox/front v0.0.0
+	gobox/input v0.0.0
+	gobox/ui v0.0.0
 	golang.org/x/sys v0.47.0 // indirect
 )
 
@@ -22,3 +26,11 @@ replace github.com/gogpu/wgpu => ../../gogpu-wgpu
 replace github.com/go-webgpu/goffi => ../../goffi
 
 replace github.com/gogpu/gogpu => ../../goplay/third_party/gogpu
+
+replace gobox/blobber => ../blobber
+
+replace gobox/front => ../front
+
+replace gobox/input => ../input
+
+replace gobox/ui => ../ui

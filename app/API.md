@@ -12,12 +12,22 @@ No game names: the title, shape, key codes and save marker are the game's data.
   screen's own resolution and shape. `Capture.Window` (W, H points) opens a
   window of that size and any shape. Layout is in device pixels: the game
   draws the whole window every frame (no bars but its own).
-- `Config{Game, Theme, Settings, Capture, TPS}`; `Theme{Title, W, H}`;
-  `Settings{Scale, Fullscreen}`.
+- `Config{Game, Front, Art, FontPrev, Menu, Theme, Settings, Capture, TPS}`;
+  `Theme{Title, W, H}`; `Settings{Scale, Fullscreen, Window}` (Window forces a window).
+- `Front` (instead of Game): the game's screens; the shell reads keyboard,
+  mouse, pads and No Grid's walk and look, all through `front.Latch`
+  (`Screen()` names the screen), BIOS codes (`ui.BIOSKey`), Ctrl-letter
+  1..26, Ctrl-Shift-F `FontPrev`, F12 `Art.Toggle`. A Front may be a Starter.
+- `Art{Want, Toggle, Set}`: two arts; Draw cross-fades (600 ms) when Want changes, then Set.
+- `Menu{Prefs, Extra, Rows, Apply, SaveLoad, MainMenu, Font...}`: blobber's Esc
+  menu. Run loads `blobber.Settings` and `*Extra` from Prefs, calls Apply, and
+  wires blobber's hooks (OnSettings: Apply then Save of both, Extra's fields at
+  the top level; ExtraRows; Repeats at TPS; Held through the latch).
+  `blobber.Settings.Fullscreen` ORs into Settings.Fullscreen.
 - `Game` interface: `Update()` once a tick (TPS a second; in a scripted run
   the game must ignore the user's input), `Step(k Key)` once a scripted
   frame before Draw (k = the key due, 0 none), `Draw(dst *gpu.Image)`.
-- `Capture{Shot, Keys, Freeze, Quit, Window, GPU, Slot}`, `Scripted()`: a run is
+- `Capture{Shot, Keys, Freeze, Quit, Window, GPU, Slot, Pointer}` (Pointer: with Shot, the pointer's window pixels, Next steps on), `Scripted()`: a run is
   scripted when Shot, Freeze or Quit is set. A key every `Ticks` (15)
   frames; after the keys plus 4 more: Shot is written (with `%d`: every
   frame while the keys play, numbered) and the run exits; Quit exits;
