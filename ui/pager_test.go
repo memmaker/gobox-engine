@@ -1,0 +1,47 @@
+package ui
+
+import (
+	"testing"
+
+	"gobox/input"
+)
+
+type src struct{ pages, maxOff int }
+
+func (s src) Page(p, off int) (int, int, int, bool) {
+	return min(p, s.pages-1), s.pages, s.maxOff, true
+}
+
+func TestPager(t *testing.T) {
+	var pg Pager
+	s := src{3, 40}
+	for _, c := range []struct {
+		a      input.Act
+		p, off int
+		closed bool
+	}{{input.Enter, 0, 16, false}, {input.Down, 0, 32, false}, {input.Down, 0, 40, false}, {input.Down, 1, 0, false},
+		{input.Up, 0, 0, false}, {input.Up, 0, 0, false}, {input.Esc, 0, 0, true}} {
+		closed, _ := pg.Key(c.a, s)
+		if closed != c.closed || pg.P != c.p || pg.Off != c.off {
+			t.Fatalf("%v: %+v closed %v", c.a, pg, closed)
+		}
+	}
+	pg = Pager{P: 2}
+	if closed, _ := pg.Key(input.Enter, src{3, 0}); !closed {
+		t.Fatal("past the last page")
+	}
+}
+
+func TestHelpPages(t *testing.T) {
+	var l [][2]string
+	for range 3 {
+		l = append(l, [2]string{"Head", ""}, [2]string{"k", "d"}, [2]string{"k", "d"}, [2]string{"", ""})
+	}
+	p := HelpPages(l, 5)
+	if len(p) != 3 || p[1][0][0] != "Head" {
+		t.Fatalf("%q", p)
+	}
+	if len(HelpPages(nil, 5)) != 1 {
+		t.Fatal("no page")
+	}
+}
