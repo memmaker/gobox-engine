@@ -50,6 +50,9 @@ fonts into the pool and selects by name.
 - Save and load: a gobox feature, UI included (slots, files, listing,
   delete); the game supplies only its state bytes.
 - Coins: shared party state, one purse, uint64, por's purse as the template.
+- Common UI machinery (drawing, call queuing, questions/refusals, menus,
+  lists, input dispatch, the input latch) lives in gobox; a game keeps its
+  engine, Theme/Data values and the glue to front's Game interface.
 - Text: games never draw text; they name a font and gobox ui draws.
 - WALLDEF trailing partial chunk: dropped (whole 780-byte chunks only), as the later games' developers did.
 
