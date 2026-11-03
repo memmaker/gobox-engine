@@ -1,0 +1,422 @@
+package gpu
+
+import (
+	"sync"
+
+	"github.com/gogpu/gogpu"
+	"github.com/gogpu/gpucontext"
+)
+
+// Key is a keyboard key: gogpu's key codes, plus the either-side modifiers.
+type Key int
+
+const (
+	KeySpace     = Key(gpucontext.KeySpace)
+	KeyComma     = Key(gpucontext.KeyComma)
+	KeyMinus     = Key(gpucontext.KeyMinus)
+	KeyPeriod    = Key(gpucontext.KeyPeriod)
+	KeySlash     = Key(gpucontext.KeySlash)
+	Key0         = Key(gpucontext.Key0)
+	Key1         = Key0 + 1
+	Key2         = Key0 + 2
+	Key3         = Key0 + 3
+	Key4         = Key0 + 4
+	Key5         = Key0 + 5
+	Key6         = Key0 + 6
+	Key7         = Key0 + 7
+	Key8         = Key0 + 8
+	Key9         = Key0 + 9
+	KeyEqual     = Key(gpucontext.KeyEqual)
+	KeyA         = Key(gpucontext.KeyA)
+	KeyB         = KeyA + 1
+	KeyC         = KeyA + 2
+	KeyD         = KeyA + 3
+	KeyE         = KeyA + 4
+	KeyF         = KeyA + 5
+	KeyG         = KeyA + 6
+	KeyH         = KeyA + 7
+	KeyI         = KeyA + 8
+	KeyJ         = KeyA + 9
+	KeyK         = KeyA + 10
+	KeyL         = KeyA + 11
+	KeyM         = KeyA + 12
+	KeyN         = KeyA + 13
+	KeyO         = KeyA + 14
+	KeyP         = KeyA + 15
+	KeyQ         = KeyA + 16
+	KeyR         = KeyA + 17
+	KeyS         = KeyA + 18
+	KeyT         = KeyA + 19
+	KeyU         = KeyA + 20
+	KeyV         = KeyA + 21
+	KeyW         = KeyA + 22
+	KeyX         = KeyA + 23
+	KeyY         = KeyA + 24
+	KeyZ         = KeyA + 25
+	KeyEscape    = Key(gpucontext.KeyEscape)
+	KeyEnter     = Key(gpucontext.KeyEnter)
+	KeyTab       = Key(gpucontext.KeyTab)
+	KeyBackspace = Key(gpucontext.KeyBackspace)
+	KeyInsert    = Key(gpucontext.KeyInsert)
+	KeyDelete    = Key(gpucontext.KeyDelete)
+	KeyRight     = Key(gpucontext.KeyRight)
+	KeyLeft      = Key(gpucontext.KeyLeft)
+	KeyDown      = Key(gpucontext.KeyDown)
+	KeyUp        = Key(gpucontext.KeyUp)
+	KeyPageUp    = Key(gpucontext.KeyPageUp)
+	KeyPageDown  = Key(gpucontext.KeyPageDown)
+	KeyHome      = Key(gpucontext.KeyHome)
+	KeyEnd       = Key(gpucontext.KeyEnd)
+	KeyF1        = Key(gpucontext.KeyF1)
+	KeyF2        = KeyF1 + 1
+	KeyF3        = KeyF1 + 2
+	KeyF4        = KeyF1 + 3
+	KeyF5        = KeyF1 + 4
+	KeyF6        = KeyF1 + 5
+	KeyF7        = KeyF1 + 6
+	KeyF8        = KeyF1 + 7
+	KeyF9        = KeyF1 + 8
+	KeyF10       = KeyF1 + 9
+	KeyF11       = KeyF1 + 10
+	KeyF12       = KeyF1 + 11
+	KeyKP0       = Key(gpucontext.KeyNumpad0)
+	KeyKP1       = KeyKP0 + 1
+	KeyKP2       = KeyKP0 + 2
+	KeyKP3       = KeyKP0 + 3
+	KeyKP4       = KeyKP0 + 4
+	KeyKP5       = KeyKP0 + 5
+	KeyKP6       = KeyKP0 + 6
+	KeyKP7       = KeyKP0 + 7
+	KeyKP8       = KeyKP0 + 8
+	KeyKP9       = KeyKP0 + 9
+	KeyKPEnter   = Key(gpucontext.KeyNumpadEnter)
+
+	KeyArrowUp    = KeyUp
+	KeyArrowDown  = KeyDown
+	KeyArrowLeft  = KeyLeft
+	KeyArrowRight = KeyRight
+
+	keyCount = 512 // gogpu's codes stay below
+
+	// either side
+	KeyShift Key = keyCount + iota
+	KeyControl
+	KeyAlt
+	KeyMeta
+	keyAll
+)
+
+var sides = map[Key][2]gpucontext.Key{
+	KeyShift:   {gpucontext.KeyLeftShift, gpucontext.KeyRightShift},
+	KeyControl: {gpucontext.KeyLeftControl, gpucontext.KeyRightControl},
+	KeyAlt:     {gpucontext.KeyLeftAlt, gpucontext.KeyRightAlt},
+	KeyMeta:    {gpucontext.KeyLeftSuper, gpucontext.KeyRightSuper},
+}
+
+var modFlags = map[Key]gpucontext.Modifiers{
+	KeyShift:   gpucontext.ModShift,
+	KeyControl: gpucontext.ModControl,
+	KeyAlt:     gpucontext.ModAlt,
+	KeyMeta:    gpucontext.ModSuper,
+}
+
+// MouseButton is a mouse button.
+type MouseButton int
+
+const (
+	MouseButtonLeft   = MouseButton(gpucontext.MouseButtonLeft)
+	MouseButtonRight  = MouseButton(gpucontext.MouseButtonRight)
+	MouseButtonMiddle = MouseButton(gpucontext.MouseButtonMiddle)
+	mouseCount        = 8
+)
+
+// GamepadID is a connected gamepad.
+type GamepadID int
+
+// StandardGamepadButton is a button of the standard layout, named by place.
+type StandardGamepadButton int
+
+const (
+	StandardGamepadButtonRightBottom StandardGamepadButton = iota // A
+	StandardGamepadButtonRightRight                               // B
+	StandardGamepadButtonRightLeft                                // X
+	StandardGamepadButtonRightTop                                 // Y
+	StandardGamepadButtonFrontTopLeft
+	StandardGamepadButtonFrontTopRight
+	StandardGamepadButtonFrontBottomLeft  // left trigger
+	StandardGamepadButtonFrontBottomRight // right trigger
+	StandardGamepadButtonCenterLeft       // back
+	StandardGamepadButtonCenterRight      // start
+	StandardGamepadButtonLeftStick
+	StandardGamepadButtonRightStick
+	StandardGamepadButtonLeftTop // d-pad
+	StandardGamepadButtonLeftBottom
+	StandardGamepadButtonLeftLeft
+	StandardGamepadButtonLeftRight
+	StandardGamepadButtonCenterCenter
+	padButtons
+)
+
+// StandardGamepadAxis is an axis of the standard layout.
+type StandardGamepadAxis int
+
+const (
+	StandardGamepadAxisLeftStickHorizontal StandardGamepadAxis = iota
+	StandardGamepadAxisLeftStickVertical
+	StandardGamepadAxisRightStickHorizontal
+	StandardGamepadAxisRightStickVertical
+)
+
+// in is the input as Update sees it: per key and button, the ticks it has
+// been held (counted at each tick, so a press shorter than a tick still
+// counts once).
+var in struct {
+	down, hit [keyAll]bool
+	dur       [keyAll]int
+	mdown     [mouseCount]bool
+	mhit      [mouseCount]bool
+	mdur      [mouseCount]int
+	chars     []rune // typed since the last tick
+	drops     []Drop // files dropped on the window since the last tick
+	tickDrops []Drop
+	tickChars []rune
+	wheel     [2]float64
+	tickWheel [2]float64
+	cursor    [2]float64 // window units
+	delta     [2]float64 // the mouse's movement since the last tick, window units
+	tickDelta [2]float64
+}
+
+func initInput(app *gogpu.App) {
+	ev := app.EventSource()
+	key := func(k gpucontext.Key, mods gpucontext.Modifiers, down bool) {
+		if int(k) >= keyCount {
+			return
+		}
+		in.down[k] = down
+		in.hit[k] = in.hit[k] || down
+		for mk, m := range modFlags { // a modifier's lost release (a stuck Shift): every key event carries the modifiers really held
+			if s := sides[mk]; mods&m == 0 && k != s[0] && k != s[1] {
+				in.down[s[0]], in.down[s[1]] = false, false
+			}
+		}
+	}
+	ev.OnKeyPress(func(k gpucontext.Key, mods gpucontext.Modifiers) { key(k, mods, true) })
+	ev.OnKeyRelease(func(k gpucontext.Key, mods gpucontext.Modifiers) { key(k, mods, false) })
+	ev.OnTextInput(func(t string) { in.chars = append(in.chars, []rune(t)...) })
+	button := func(b gpucontext.MouseButton, down bool, x, y float64) {
+		in.cursor = [2]float64{x, y}
+		if int(b) < mouseCount {
+			in.mdown[b] = down
+			in.mhit[b] = in.mhit[b] || down
+		}
+	}
+	ev.OnMousePress(func(b gpucontext.MouseButton, x, y float64) {
+		if x < 0 || y < 0 || win.lw > 0 && (x >= float64(win.lw) || y >= float64(win.lh)) { // on the title bar or the frame: the window's, not the game's
+			return
+		}
+		button(b, true, x, y)
+	})
+	ev.OnMouseRelease(func(b gpucontext.MouseButton, x, y float64) { button(b, false, x, y) })
+	ev.OnMouseMove(func(x, y float64) { in.cursor = [2]float64{x, y} })
+	if ps, ok := ev.(gpucontext.PointerEventSource); ok { // the mouse's own movement, also while the cursor is captured (MouseDelta)
+		ps.OnPointer(func(p gpucontext.PointerEvent) {
+			if p.Type == gpucontext.PointerMove && p.PointerType == gpucontext.PointerTypeMouse {
+				in.delta[0] += p.DeltaX
+				in.delta[1] += p.DeltaY
+			}
+		})
+	}
+	ev.OnScroll(func(dx, dy float64) { in.wheel[0] += dx; in.wheel[1] += dy })
+	app.OnDragDrop(func(paths []string, x, y float64) { // window units, as the pointer
+		px, py := screenPos(x, y)
+		for _, p := range paths {
+			in.drops = append(in.drops, Drop{p, px, py})
+		}
+	})
+	app.OnFocus(func(focused bool) { // the releases while another window has the focus never arrive: nothing stays held (a stuck Shift)
+		if !focused {
+			in.down, in.mdown = [keyAll]bool{}, [mouseCount]bool{}
+		}
+	})
+}
+
+// tickInput advances the held counts; called before each Update.
+func tickInput() {
+	for _, k := range []Key{KeyShift, KeyControl, KeyAlt, KeyMeta} {
+		s := sides[k]
+		in.down[k] = in.down[s[0]] || in.down[s[1]]
+		in.hit[k] = in.hit[s[0]] || in.hit[s[1]]
+	}
+	for k := range in.dur {
+		if in.down[k] || in.hit[k] && in.dur[k] == 0 {
+			in.dur[k]++
+		} else {
+			in.dur[k] = 0
+		}
+		in.hit[k] = false
+	}
+	for b := range in.mdur {
+		if in.mdown[b] || in.mhit[b] && in.mdur[b] == 0 {
+			in.mdur[b]++
+		} else {
+			in.mdur[b] = 0
+		}
+		in.mhit[b] = false
+	}
+	in.tickChars, in.chars = append(in.tickChars[:0], in.chars...), in.chars[:0]
+	in.tickWheel, in.wheel = in.wheel, [2]float64{}
+	in.tickDelta, in.delta = in.delta, [2]float64{}
+	in.tickDrops, in.drops = append(in.tickDrops[:0], in.drops...), in.drops[:0]
+	tickPads()
+}
+
+// Drop is a file dropped on the window, at a screen pixel (as CursorPosition).
+type Drop struct {
+	Path string
+	X, Y int
+}
+
+// AppendDroppedFiles appends the files dropped on the window this tick.
+func AppendDroppedFiles(ps []Drop) []Drop { return append(ps, in.tickDrops...) }
+
+func IsKeyPressed(k Key) bool     { return k >= 0 && k < keyAll && in.dur[k] > 0 }
+func IsKeyJustPressed(k Key) bool { return KeyPressDuration(k) == 1 }
+func KeyPressDuration(k Key) int {
+	if k < 0 || k >= keyAll {
+		return 0
+	}
+	return in.dur[k]
+}
+
+// AppendJustPressedKeys appends the keys pressed this tick.
+func AppendJustPressedKeys(ks []Key) []Key {
+	for k := range Key(keyCount) {
+		if in.dur[k] == 1 {
+			ks = append(ks, k)
+		}
+	}
+	return ks
+}
+
+// AppendPressedKeys appends the keys held now.
+func AppendPressedKeys(ks []Key) []Key {
+	for k := range Key(keyCount) {
+		if in.dur[k] > 0 {
+			ks = append(ks, k)
+		}
+	}
+	return ks
+}
+
+// AppendInputChars appends the characters typed since the last tick.
+func AppendInputChars(rs []rune) []rune { return append(rs, in.tickChars...) }
+
+func IsMouseButtonPressed(b MouseButton) bool { return b >= 0 && b < mouseCount && in.mdur[b] > 0 }
+func IsMouseButtonJustPressed(b MouseButton) bool {
+	return b >= 0 && b < mouseCount && in.mdur[b] == 1
+}
+
+// CursorPosition is the pointer's position on the screen image.
+func CursorPosition() (int, int) {
+	if win.app == nil || win.k == 0 {
+		return 0, 0
+	}
+	return screenPos(in.cursor[0], in.cursor[1])
+}
+
+// screenPos is the screen pixel under window point (x, y).
+func screenPos(x, y float64) (int, int) {
+	s := DeviceScaleFactor()
+	return int((x*s - win.ox) / win.k), int((y*s - win.oy) / win.k)
+}
+
+// MouseDelta is the mouse's movement since the last tick in screen pixels,
+// also while the cursor is captured (SetCursorCaptured).
+func MouseDelta() (float64, float64) {
+	s := DeviceScaleFactor() / max(win.k, 1e-9)
+	return in.tickDelta[0] * s, in.tickDelta[1] * s
+}
+
+// Wheel is the wheel movement since the last tick.
+func Wheel() (float64, float64) { return in.tickWheel[0], in.tickWheel[1] }
+
+// maxPads is how many gamepads are read.
+const maxPads = 4
+
+// padState is one gamepad as its platform reads it.
+type padState struct {
+	ok   bool // connected, with the standard layout
+	btn  [padButtons]bool
+	axis [4]float64 // StandardGamepadAxis order, -1..1, down positive
+}
+
+// triggerDown is how far an analogue trigger goes to count as pressed.
+const triggerDown = 0.5
+
+// pads: the main thread reads the platform into polled (pollPads); each tick
+// takes it into cur and counts the held ticks as for keys.
+var pads struct {
+	sync.Mutex
+	polled [maxPads]padState
+	cur    [maxPads]padState
+	dur    [maxPads][padButtons]int
+}
+
+// pollPads reads the gamepads; on the main thread, as the window's events.
+func pollPads() {
+	var p [maxPads]padState
+	readPads(&p)
+	pads.Lock()
+	pads.polled = p
+	pads.Unlock()
+}
+
+func tickPads() {
+	pads.Lock()
+	pads.cur = pads.polled
+	pads.Unlock()
+	for i, p := range pads.cur {
+		for b, down := range p.btn {
+			if down && p.ok {
+				pads.dur[i][b]++
+			} else {
+				pads.dur[i][b] = 0
+			}
+		}
+	}
+}
+
+func pad(id GamepadID) *padState {
+	if id < 0 || id >= maxPads {
+		return &padState{}
+	}
+	return &pads.cur[id]
+}
+
+// AppendGamepadIDs appends the connected gamepads.
+func AppendGamepadIDs(ids []GamepadID) []GamepadID {
+	for i, p := range pads.cur {
+		if p.ok {
+			ids = append(ids, GamepadID(i))
+		}
+	}
+	return ids
+}
+
+func IsStandardGamepadLayoutAvailable(id GamepadID) bool { return pad(id).ok }
+func IsStandardGamepadButtonPressed(id GamepadID, b StandardGamepadButton) bool {
+	return StandardGamepadButtonPressDuration(id, b) > 0
+}
+func StandardGamepadButtonPressDuration(id GamepadID, b StandardGamepadButton) int {
+	if id < 0 || id >= maxPads || b < 0 || b >= padButtons {
+		return 0
+	}
+	return pads.dur[id][b]
+}
+func StandardGamepadAxisValue(id GamepadID, a StandardGamepadAxis) float64 {
+	if a < 0 || int(a) >= len(pad(id).axis) {
+		return 0
+	}
+	return pad(id).axis[a]
+}
