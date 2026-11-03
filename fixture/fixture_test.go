@@ -17,7 +17,7 @@ func TestRunRawSave(t *testing.T) {
 	os.WriteFile(dec, []byte("# c\nwalk 1\n"), 0o644)
 	g := Game{
 		Root:          func(string) (string, error) { return data, nil },
-		Open:          func(string, string) (State, error) { return OpenRawSave(sv) },
+		Open:          func(string, string) (State, error) { return OpenRawSave(sv, testLayout) },
 		ECL:           func(string, int) (int, []byte, error) { return 2, []byte{1, 2, 3}, nil },
 		Member:        func(_, n, e string) ([]byte, error) { return os.ReadFile(filepath.Join(data, n+e)) },
 		Strong:        MakeStrong,
@@ -40,3 +40,19 @@ func TestRunRawSave(t *testing.T) {
 		t.Fatal("bad -set accepted")
 	}
 }
+
+// testLayout is an example layout (a Gold Box game's, passed by that game).
+var testLayout = RawLayout{Size: svSize, Disk: svDisk, Area: svArea, Game: svGame, ECL: svECL, ECLSize: 0x1E00,
+	Pos: svPos, Count: svCount, Names: svNames, NameSize: 0x29, GameSymSet: 0x624,
+	AreaBlock: 0x1E4, AreaGeo: 0x18A, AreaWallBlock: 0x3F4, AreaWallSlot: 0x3FA}
+
+const (
+	svDisk  = 0x0000
+	svArea  = 0x0001
+	svGame  = 0x0801
+	svECL   = 0x1401
+	svPos   = 0x3201
+	svCount = 0x3208
+	svNames = 0x3209
+	svSize  = 0x3351
+)

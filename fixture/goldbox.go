@@ -5,48 +5,55 @@ import (
 	"fmt"
 )
 
-// SAVGAMx.DAT layout shared by cotab and sotsb (engine/files.go LoadGame).
-const (
-	svDisk  = 0x0000
-	svArea  = 0x0001 // 0x800
-	svGame  = 0x0801 // 0x800
-	svECL   = 0x1401 // 0x1E00
-	svPos   = 0x3201 // x, y, facing, 2 more
-	svCount = 0x3208
-	svNames = 0x3209 // 8 x 0x29 Pascal strings
-	svSize  = 0x3351
-)
+// RawLayout describes a game's SAVGAMx.DAT byte layout; the game passes it (offsets are data).
+// Area and Game are 0x800-byte regions; the offsets At... are inside them.
+type RawLayout struct {
+	Size                        int // the whole file
+	Disk                        int // the disk byte
+	Area, Game                  int // regions
+	ECL, ECLSize                int
+	Pos                         int // x, y, facing, 2 more
+	Count                       int // party size byte
+	Names                       int // Pascal strings of NameSize bytes
+	NameSize                    int
+	GameSymSet                  int // in Game: the symbol set byte
+	AreaBlock, AreaGeo          int // in Area: u16 each
+	AreaWallBlock, AreaWallSlot int // in Area: 3 u16 each
+}
 
-// RawSave edits a cotab/sotsb SAVGAMA.DAT in place; it is a State.
-type RawSave struct{ sv []byte }
+// RawSave edits a SAVGAMA.DAT in place; it is a State.
+type RawSave struct {
+	sv []byte
+	l  RawLayout
+}
 
 // OpenRawSave checks the size and wraps sv.
-func OpenRawSave(sv []byte) (*RawSave, error) {
-	if len(sv) != svSize {
-		return nil, fmt.Errorf("SAVGAMA.DAT: %d bytes, want %d", len(sv), svSize)
+func OpenRawSave(sv []byte, l RawLayout) (*RawSave, error) {
+	if len(sv) != l.Size {
+		return nil, fmt.Errorf("SAVGAMA.DAT: %d bytes, want %d", len(sv), l.Size)
 	}
-	return &RawSave{sv}, nil
+	return &RawSave{sv, l}, nil
 }
 
 func (r *RawSave) Bytes() []byte { return r.sv }
 
 func (r *RawSave) EnterArea(disk, block, geo int, ecl []byte, walls [3]int) {
-	sv := r.sv
-	area, game := sv[svArea:svArea+0x800], sv[svGame:svGame+0x800]
-	sv[svDisk] = byte(disk)
-	game[0x624] = byte(disk) // DS:6E12 symbol set
-	binary.LittleEndian.PutUint16(area[0x1E4:], uint16(block))
-	binary.LittleEndian.PutUint16(area[0x18A:], uint16(geo))
-	e := sv[svECL : svECL+0x1E00]
+	sv, l := r.sv, r.l
+	area, game := sv[l.Area:l.Area+0x800], sv[l.Game:l.Game+0x800]
+	sv[l.Disk] = byte(disk)
+	game[l.GameSymSet] = byte(disk)
+	binary.LittleEndian.PutUint16(area[l.AreaBlock:], uint16(block))
+	binary.LittleEndian.PutUint16(area[l.AreaGeo:], uint16(geo))
+	e := sv[l.ECL : l.ECL+l.ECLSize]
 	clear(e)
 	copy(e, ecl)
-	for i, id := range walls { // SaveGame: area 0x3F4+2i block, 0x3FA+2i slot (-1 none)
+	for i, id := range walls { // SaveGame: block and slot per wall set (-1 none)
 		blk, slot := id, i+1
 		if id == 0xFF {
 			blk, slot = -1, -1
 		}
-		binary.LittleEndian.PutUint16(area[0x3F4+2*i:], uint16(blk))
-		binary.LittleEndian.PutUint16(area[0x3FA+2*i:], uint16(slot))
+		binary.LittleEndian.PutUint16(area[l.AreaWallBlock+2*i:], uint16(blk))
+		binary.LittleEndian.PutUint16(area[l.AreaWallSlot+2*i:], uint16(slot))
 	}
 	for v := 0x4A00; v <= 0x4A1F; v++ { // zeroed on entry (InitAreaScript)
 		binary.LittleEndian.PutUint16(area[2*(v-0x4900):], 0)
@@ -56,13 +63,13 @@ func (r *RawSave) EnterArea(disk, block, geo int, ecl []byte, walls [3]int) {
 func (r *RawSave) SetPos(x, y, dir int) {
 	for i, v := range []int{x, y, dir} {
 		if v >= 0 {
-			r.sv[svPos+i] = byte(v)
+			r.sv[r.l.Pos+i] = byte(v)
 		}
 	}
 }
 
 func (r *RawSave) SetVar(a int, n uint16) error {
-	area, game := r.sv[svArea:svArea+0x800], r.sv[svGame:svGame+0x800]
+	area, game := r.sv[r.l.Area:r.l.Area+0x800], r.sv[r.l.Game:r.l.Game+0x800]
 	switch {
 	case a >= 0x4900 && a <= 0x4CFF:
 		binary.LittleEndian.PutUint16(area[2*(a-0x4900):], n)
@@ -75,14 +82,14 @@ func (r *RawSave) SetVar(a int, n uint16) error {
 }
 
 func (r *RawSave) Party() (names []string) {
-	for i := 0; i < int(r.sv[svCount]); i++ {
-		p := r.sv[svNames+i*0x29:]
+	for i := 0; i < int(r.sv[r.l.Count]); i++ {
+		p := r.sv[r.l.Names+i*r.l.NameSize:]
 		names = append(names, string(p[1:1+p[0]]))
 	}
 	return
 }
 
-// MakeStrong is cotab/sotsb's Strong callback.
+// MakeStrong is the Strong callback for the Gold Box character record.
 func MakeStrong(b []byte) []byte {
 	b[0x2D] = 40                             // hit dice: THAC0 is recomputed from it
 	b[0x32], b[0x11B] = 250, 250             // max HP, HP
