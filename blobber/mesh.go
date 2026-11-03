@@ -435,7 +435,7 @@ func (g *Game) frameUniforms(c cam, vp gpu.Mat4) {
 	warm := []float32{1.08, 0.94, 0.78}
 	if openSky {
 		warm = []float32{1, 1, 1}
-		if Night { // phlan-poc: moonlight, dim and blue
+		if night() { // phlan-poc: moonlight, dim and blue
 			warm = nightTint
 		}
 	}
@@ -668,7 +668,7 @@ func (g *Game) draw3D(screen *gpu.Image, c cam) {
 	}
 	if openSky && !gpu.Skip("planes") {
 		ct := texClouds
-		if Night {
+		if night() {
 			ct = texStars
 		}
 		back := gpu.BlendSourceOverBack

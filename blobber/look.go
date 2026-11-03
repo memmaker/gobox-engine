@@ -121,7 +121,7 @@ const hazeCells = 128
 
 // hazeCol is the sky's colour just above the horizon, day or night.
 func hazeCol() []float32 {
-	if Night {
+	if night() {
 		return []float32{10.0 / 255, 32.0 / 255, 70.0 / 255}
 	}
 	return []float32{165.0 / 255, 195.0 / 255, 220.0 / 255}

@@ -6,7 +6,7 @@ import "testing"
 func TestViewFollow(t *testing.T) {
 	g := &Game{t: 1}
 	game = g
-	v := &View{g}
+	v := &View{g: g}
 	v.Show(&Scene{Rows: []string{"#####", "#...#", "#...#", "#####"}}, Camera{1, 1, 1})
 	v.Follow(Camera{2, 1, 1})
 	if !g.moving || g.x != 2 || g.sway != 0 {
@@ -32,7 +32,7 @@ func TestViewFollow(t *testing.T) {
 func TestViewFollowQueue(t *testing.T) {
 	g := &Game{smooth: true, t: 1}
 	game = g
-	v := &View{g}
+	v := &View{g: g}
 	v.Show(&Scene{Rows: []string{"######", "#....#", "######"}}, Camera{1, 1, 1})
 	v.Follow(Camera{2, 1, 1})
 	v.Follow(Camera{3, 1, 1}) // the engine took the next step already
@@ -57,7 +57,7 @@ func TestViewFlow(t *testing.T) {
 	Settings.Fluid = true
 	g := &Game{smooth: true, t: 1}
 	game = g
-	v := &View{g}
+	v := &View{g: g}
 	v.Show(&Scene{Rows: []string{"######", "#....#", "######"}}, Camera{1, 1, 1})
 	for _, c := range []Camera{{2, 1, 1}, {2, 1, 2}} { // a step, then a turn
 		v.Follow(c)

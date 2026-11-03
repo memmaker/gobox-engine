@@ -1,8 +1,10 @@
 package blobber
 
 import (
-	"gobox/gpu"
+	"image"
 	"os"
+
+	"gobox/gpu"
 )
 
 // View is the renderer for a host that owns the game loop and the rules
@@ -13,18 +15,50 @@ import (
 // ponytail: one View per process; the scene and camera live in package
 // state. Make them per-View when two views must
 // draw at once.
-type View struct{ g *Game }
+type View struct {
+	g *Game
+
+	// Textures are the wall, floor and ceiling images by name (FacePart.Tex,
+	// "floor_NAME", "ceiling_NAME"); the host fills them, and calls
+	// ResetTextures after changing them. Nil: the embedded PoR walls.
+	Textures map[string]image.Image
+
+	// The open sky. Night: the night sky and its stars, the world lit by
+	// moonlight. SunUp: the sun at bearing SunAz (compass radians, 0 north,
+	// pi/2 east) and SunEl above the horizon. Mountains: a range on the
+	// northern horizon (cotab: in daylight).
+	Night, SunUp, Mountains bool
+	SunAz, SunEl            float64
+}
+
+// cur is the View drawing (one per process, see View).
+var cur *View
 
 // Camera is a cell and a facing (0 N, 1 E, 2 S, 3 W).
 type Camera struct{ X, Y, Dir int }
 
-// NewView makes the textures and shaders. Call it once ebiten runs.
-func NewView() (*View, error) {
+// NewView makes the textures and shaders. Call it once the window runs.
+// textures is View.Textures (nil: the embedded PoR walls).
+// BLOBBER_NIGHT=1 starts at night.
+func NewView(textures map[string]image.Image) (*View, error) {
+	v := &View{Textures: textures, Night: os.Getenv("BLOBBER_NIGHT") != ""}
+	cur = v
 	g, err := newGame(0)
 	if err != nil {
 		return nil, err
 	}
-	return &View{g}, nil
+	v.g = g
+	return v, nil
+}
+
+// SetFlats makes floor and sky (or ceiling) the flats under and over the
+// camera's square (names as in the package's SetFlats).
+func (v *View) SetFlats(floor, sky string) { SetFlats(floor, sky) }
+
+// ResetTextures forgets the GPU copies of Textures (the host changed them).
+func (v *View) ResetTextures() {
+	clear(wallCache)
+	clear(texMats)
 }
 
 // Show makes s the scene and puts the camera at c at once.
@@ -47,7 +81,7 @@ func (v *View) Follow(c Camera) {
 	if c == last {
 		return
 	}
-	g.asked = false // the move asked for came
+	g.asked = false      // the move asked for came
 	if Settings.NoGrid { // the free camera walks (free.go): no steps queue up behind it
 		g.next = g.next[:0]
 		SetMap(level, c.X, c.Y)

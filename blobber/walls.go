@@ -18,6 +18,9 @@ var wallFS embed.FS
 var wallCache = map[string]*gpu.Image{}
 
 func decodeWall(name string) image.Image {
+	if cur != nil && cur.Textures != nil {
+		return cur.Textures[name]
+	}
 	b, err := wallFS.ReadFile("assets/walls/" + name + ".png")
 	if err != nil {
 		return nil
@@ -29,7 +32,7 @@ func decodeWall(name string) image.Image {
 	return img
 }
 
-// wallTexture loads assets/walls/<name>.png (once), or nil when there is none; a painted texture
+// wallTexture loads View.Textures[name], or assets/walls/<name>.png without them, (once), or nil when there is none; a painted texture
 // replaces the generated one for its material character.
 func wallTexture(name string) *gpu.Image {
 	if t, ok := wallCache[name]; ok {

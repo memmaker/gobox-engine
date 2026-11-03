@@ -10,7 +10,6 @@ import (
 	"io"
 	"math"
 	"math/rand"
-	"os"
 	"reflect"
 	"slices"
 	"strings"
@@ -802,9 +801,8 @@ func visibleCells(c cam) map[[2]int]bool {
 // drawSky fills the upper half with the ceiling texture as a panorama: the picture and its mirror
 // image side by side make one full turn, so there is no seam and the sky need not tile.
 // ponytail: roll is ignored, the horizon stays at H/2.
-// Night (phlan-poc): the open sky is the night sky and its stars, the world lit by moonlight; T switches it
-// (PoR has a day and night cycle). BLOBBER_NIGHT=1 starts at night.
-var Night = os.Getenv("BLOBBER_NIGHT") != ""
+// night: View.Night of the current View.
+func night() bool { return cur != nil && cur.Night }
 
 var nightTint = []float32{0.42, 0.48, 0.72}
 
@@ -813,7 +811,7 @@ var texNightSky, texStars *gpu.Image
 
 func (g *Game) drawSky(dst *gpu.Image, c cam) {
 	hy := horizon(c)
-	if texClouds != nil && Night {
+	if texClouds != nil && night() {
 		b := texNightSky.Bounds()
 		op := &gpu.DrawImageOptions{}
 		op.GeoM.Scale(float64(W)/float64(b.Dx()), hy/float64(b.Dy()))
@@ -825,6 +823,7 @@ func (g *Game) drawSky(dst *gpu.Image, c cam) {
 		op := &gpu.DrawImageOptions{}
 		op.GeoM.Scale(float64(W)/float64(b.Dx()), hy/float64(b.Dy()))
 		dst.DrawImage(texCeil, op)
+		drawCelestial(dst, c, hy)
 		return
 	}
 	b := texCeil.Bounds()
@@ -843,6 +842,7 @@ func (g *Game) drawSky(dst *gpu.Image, c cam) {
 		op.GeoM.Translate(x, 0)
 		dst.DrawImage(texCeil, op)
 	}
+	drawCelestial(dst, c, hy)
 }
 
 // horizon is the screen row of the horizon: the middle, shifted by the pitch.
