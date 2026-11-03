@@ -22,4 +22,17 @@ type Game interface {
 	SetField(field, option int)
 	EndCreation(keep bool)
 	CreationView() *Creation
+
+	// Title (Intro).
+	TitlePicture(n int)
+	TitleCredits()
+	TitleFlash(c int)
+	TitleDone()
+}
+
+// Host is what a screen needs of the front end that shows it: the rule
+// calls it queues run on the game between frames.
+type Host interface {
+	Call(f func(Game))
+	Edit(f func(Game)) // Call, after which the laid-out pages are laid out again
 }

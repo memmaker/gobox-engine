@@ -51,3 +51,10 @@ type Option struct {
 	Text string
 	Fits bool
 }
+
+// Intro is the title waiting to be played (TitlePicture, TitleCredits,
+// TitleFlash, TitleDone).
+type Intro struct {
+	Full      bool // picture 2 and the credits follow picture 1
+	Lightning bool // picture 2 flashes (EGA graphics: palette entry 1)
+}
