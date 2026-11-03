@@ -44,3 +44,11 @@ Repeat differs per copy (report): por d==1 || d>=tps/3 && (d-tps/3)%(tps*3/20)==
 
 ## Migrate
 No API change. ui holds no colours, fonts or borders (callers pass them: `BarColors`, `ink`, `glyph`); only comments were reworded.
+
+## Migrate (ui/fonts)
+`gobox/ui/fonts`: `All() []Font`, `Get(name) []byte`, `Load(dir) []Font` (the game's own .f8 in dir first, then the pool), `Find(fs, name) int`. Font = {Name, Bits}.
+Verified: the 56 .f8 files (plus LICENSE.txt) in por-go and sotsb-go engine/fonts are byte-identical; cotab-go has no PC fonts (it draws only its own 8X8D1 font) and may adopt the pool the same way.
+- por-go, sotsb-go: delete engine/fonts/ and the embed + `pcFont`/`pcFonts`/`fontFS` in engine/fonts.go; `pcFont{name,bits}` becomes `fonts.Font{Name,Bits}`; loadFont = `e.ext.fonts = fonts.Load(dir)` (por: dir `data/assets/fonts`, sotsb: `<game dir>/FONTS`) then `i := fonts.Find(e.ext.fonts, name); if i >= 0 { e.ext.font = i+1 }`. Keep FONT.CFG, cycleFont, Glyph, Note, the Ctrl-L keys and the "Pool of Radiance" label (game text, game-side).
+- sotsb-go `PCFont(name)` -> `fonts.Get(name)`.
+- por-go's own data/assets/fonts/Dark_Queen_of_Krynn.f8 stays in the game (Load picks it up first).
+- Requires `gobox/ui` in go.mod with its replace (ui pulls gpu/input; fonts itself imports only the stdlib).

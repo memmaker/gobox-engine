@@ -26,3 +26,5 @@ import `por/dax` | `cotab/dax` | `sotsb/dax` -> `gobox/dax`; delete the game's d
 ## Migrate (tools)
 - cotab-go, sotsb-go: delete cmd/fontdump and cmd/ecldump; run `go run gobox/dax/cmd/blockdump` / `ecldump` from the dax module (cotab: add `-onedisk`).
 - The tools also need nothing in the game's go.mod.
+- cotab-go, sotsb-go engine/records.go: `wordAt`/`putWord` are not moved; switch to `binary.LittleEndian.Uint16(b[o:])` / `binary.LittleEndian.PutUint16(b[o:], v)` and delete them.
+- Left in the games, not moved: engine/porstate.go `eclRun` (ovr04 interpreter globals still read by por-derived combat/camp/treasure code, in cotab-go and sotsb-go; por-go has no porstate.go).
