@@ -20,7 +20,9 @@ import (
 
 // Presenter keeps the GPU side of one combat map.
 type Presenter struct {
-	Icons                      map[Kind]image.Image // a button's icon in place of the generic one: the weapon in hand on Attack, what Ranged shoots
+	Theme                      Theme                // the host's colours; set before the first Draw
+	Shift                      bool                 // Shift is held (the host sets it each frame): the health bars show
+	Icons                      map[Kind]image.Image // a button's icon by action (the game's art; without one the hotkey letter shows); the weapon in hand on Attack, what Ranged shoots
 	IconKey                    string               // names them, so the bar redraws when they change
 	white, atlas, shadow, wood *gpu.Image
 	tiles                      [256]image.Image // the tiles the atlas holds
@@ -202,7 +204,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		return &o
 	}
 
-	dst.Fill(color.RGBA{0x0C, 0x0B, 0x0A, 0xFF})
+	dst.Fill(p.Theme.Backdrop)
 	dst.ClearDepth()
 	if !gpu.Skip("table") {
 		dst.DrawMesh(p.table, p.wood, vp, opts(gpu.Ident, [4]float32{1, 1, 1, 1}, 0.1))
@@ -377,7 +379,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	if !gpu.Skip("sparks") {
 		p.drawSparks(dst, vp, dt)
 	}
-	if gpu.IsKeyPressed(gpu.KeyShift) {
+	if p.Shift {
 		p.drawHealth(dst, vp, heads)
 	}
 	for _, hd := range heads {
@@ -443,7 +445,7 @@ func (p *Presenter) sync(b *Board) {
 			[4][2]float32{{0, 1}, {1, 1}, {1, 0}, {0, 0}}, [3]float32{0, 1, 0}))
 		p.atlas = gpu.NewImage(atlasCols*tilePx, atlasRows*tilePx)
 		p.shadow = gpu.NewImageFromImage(blob(32))
-		p.wood = gpu.NewImageFromImage(woodTexture(64))
+		p.wood = gpu.NewImageFromImage(woodTexture(64, p.Theme.Wood))
 		p.table = gpu.NewMesh(tableMesh())
 	}
 	changed := b.Floor != p.floor
@@ -469,7 +471,7 @@ func (p *Presenter) sync(b *Board) {
 				put(i, t)
 			}
 		}
-		put(wallSlot, stoneTexture(p.tiles[:b.WallTiles], b.Floor))
+		put(wallSlot, stoneTexture(p.tiles[:b.WallTiles], b.StoneTile, b.Floor))
 		put(floorSlot, floorTile(b.Floor))
 		p.atlas.WritePixels(a.Pix)
 	}

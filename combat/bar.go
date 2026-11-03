@@ -19,7 +19,7 @@ import (
 // as one picture with the bar (64px, its native size, at scale 2); the word
 // shows under the button the mouse is on. The bar is drawn in screen
 // pixels, its text at the bar's scale. A menu's question shows on the
-// bottom rows instead (remaster fight.go).
+// bottom rows instead.
 const (
 	face    = 64 // an icon's side, and the button face's at scale 2
 	promptH = 2  // a margin over the buttons, at scale 1
@@ -178,7 +178,7 @@ func (p *Presenter) DrawBar(dst *gpu.Image, glyph func(byte) [8]byte, b *Board, 
 	}
 	if id != br.id {
 		br.id = id
-		br.img.WritePixels(barPixels(glyph, items, lit, w, h, k, p.Icons, caption).Pix)
+		br.img.WritePixels(barPixels(glyph, items, lit, w, h, k, p.Icons, caption, p.Theme).Pix)
 	}
 	x0, y0 := dst.Bounds().Dx()/2-w/2, bottom-h
 	op := &gpu.DrawImageOptions{}
@@ -288,8 +288,7 @@ func (p *Presenter) Hovered() (kind Kind, r image.Rectangle, ok bool) {
 }
 
 // barPixels is the bar's picture at scale k (hover: the button whose word shows, -1 none).
-func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, icons map[Kind]image.Image, caption string) *image.RGBA {
-	rgb := ega
+func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, icons map[Kind]image.Image, caption string, th Theme) *image.RGBA {
 	im := image.NewRGBA(image.Rect(0, 0, w, h))
 	textOn := func(im *image.RGBA, s string, x, y, scale int, c color.RGBA) {
 		for i := 0; i < len(s); i++ {
@@ -313,30 +312,28 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(im, r, image.NewUniform(c), image.Point{}, draw.Src) }
 	for i, it := range items {
 		r := buttonRect(w, len(items), i, k)
-		fill(r, rgb(8))
+		fill(r, th.Button)
 		if i == hover {
-			selectOutline(r, 2*k, fill)
+			selectOutline(r, 2*k, th.Accent, fill)
 		}
 		in := r.Inset(2 * k)
 		// the face at the icon's size: the icon 1:1, the letters on it in
 		// proportion; then scaled as one to the button (so their relation holds)
 		f := image.NewRGBA(image.Rect(0, 0, face, face))
-		draw.Draw(f, f.Bounds(), image.NewUniform(color.RGBA{0x18, 0x20, 0x38, 0xFF}), image.Point{}, draw.Src)
-		if ic, own := iconPicture(it.Text), icons[it.Kind]; own != nil { // the item's own icon (the inventory's atlas cell), 3x in the middle
+		draw.Draw(f, f.Bounds(), image.NewUniform(th.Panel), image.Point{}, draw.Src)
+		if own := icons[it.Kind]; own != nil { // the item's own icon (the inventory's atlas cell), 3x in the middle
 			b := own.Bounds()
 			s := (face - 3*b.Dx()) / 2
 			xdraw.NearestNeighbor.Scale(f, image.Rect(s, s, s+3*b.Dx(), s+3*b.Dy()), own, b, draw.Over, nil)
-		} else if ic != nil {
-			draw.Draw(f, f.Bounds(), ic, ic.Bounds().Min, draw.Over)
 		} else {
-			textOn(f, string(it.Key), (face-32)/2, (face-32)/2, 4, rgb(15))
+			textOn(f, string(it.Key), (face-32)/2, (face-32)/2, 4, th.Letter)
 		}
 		if h := hotkeyOf(it.Text); h.label != "" { // its hotkey, bottom right
 			const s = 2 // 16px letters on the 64px face
 			lw := len(h.label) * 8 * s
 			at := image.Pt(face-lw-2*s, face-10*s)
-			draw.Draw(f, image.Rect(at.X-s, at.Y-s, at.X+lw+s, at.Y+9*s), image.NewUniform(color.RGBA{0, 0, 0, 0xB0}), image.Point{}, draw.Over) // darkens the icon under it
-			textOn(f, h.label, at.X, at.Y, s, rgb(15))
+			draw.Draw(f, image.Rect(at.X-s, at.Y-s, at.X+lw+s, at.Y+9*s), image.NewUniform(th.Shadow), image.Point{}, draw.Over) // darkens the icon under it
+			textOn(f, h.label, at.X, at.Y, s, th.Letter)
 		}
 		var sc xdraw.Scaler = xdraw.NearestNeighbor // pixel art stays crisp growing
 		if in.Dx() < face {
@@ -351,13 +348,13 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 			continue
 		}
 		wx := min(max(0, r.Min.X+(r.Dx()-len(word)*8*k)/2), w-len(word)*8*k)
-		fill(image.Rect(wx-3*k, r.Max.Y+3*k, wx+(len(word)*8+3)*k, r.Max.Y+13*k).Intersect(im.Bounds()), color.RGBA{0, 0, 0, 0xB0}) // as the prompt's
-		text(word, wx, r.Max.Y+4*k, k, rgb(10))
+		fill(image.Rect(wx-3*k, r.Max.Y+3*k, wx+(len(word)*8+3)*k, r.Max.Y+13*k).Intersect(im.Bounds()), th.Shadow) // as the prompt's
+		text(word, wx, r.Max.Y+4*k, k, th.Accent)
 	}
 	if caption != "" { // in the hovered word's place
 		y, wx := promptH*k+buttonRect(w, len(items), 0, k).Dy(), (w-len(caption)*8*k)/2
-		fill(image.Rect(wx-3*k, y+3*k, wx+(len(caption)*8+3)*k, y+13*k), color.RGBA{0, 0, 0, 0xB0})
-		text(caption, wx, y+4*k, k, rgb(14))
+		fill(image.Rect(wx-3*k, y+3*k, wx+(len(caption)*8+3)*k, y+13*k), th.Shadow)
+		text(caption, wx, y+4*k, k, th.Caption)
 	}
 	return im
 }

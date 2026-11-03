@@ -1,9 +1,14 @@
 package input
 
+// RepeatDelay and RepeatRate are the shared key repeat, in seconds: after
+// RepeatDelay held, then every RepeatRate. One value for all games.
+var RepeatDelay, RepeatRate = 0.3, 0.1
+
 // Repeat reports whether a key or pad button held for held ticks (1 on the
-// tick it went down, 0 not held) fires this tick: on the first, then after
-// delay ticks, then every rate ticks. The host sets delay and rate (por:
-// tps/3 and tps*3/20). Pure: the caller counts the ticks.
-func Repeat(held, delay, rate int) bool {
-	return held == 1 || held > 1 && rate > 0 && held >= delay && (held-delay)%rate == 0
+// tick it went down, 0 not held) fires this tick, at tps ticks a second:
+// on the first, then after RepeatDelay, then every RepeatRate (at least
+// one tick). Pure: the caller counts the ticks.
+func Repeat(held, tps int) bool {
+	delay, rate := int(RepeatDelay*float64(tps)+.5), max(1, int(RepeatRate*float64(tps)+.5))
+	return held == 1 || held > 1 && held >= delay && (held-delay)%rate == 0
 }

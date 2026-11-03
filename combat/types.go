@@ -11,6 +11,7 @@ type Board struct {
 	Ground    [25][50]Square
 	Tiles     []image.Image // the tile set by tile number
 	WallTiles int           // tiles 0..WallTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
+	StoneTile int           // the wall tile whose face is the stone texture (a plain one)
 	Floor     color.RGBA    // the ground's colour
 	Dungeon   bool
 	Units     []Unit
@@ -41,8 +42,7 @@ type Turn struct {
 	Aim     bool
 	Casting string
 	Moves   int
-	Labels  map[Kind]string      // optional button words
-	Icons   map[Kind]image.Image // optional button icons
+	Labels  map[Kind]string // optional button words
 }
 
 // Effect is a sprite over the map for a moment.
@@ -124,19 +124,38 @@ type Decision struct {
 	Pre     image.Point // a maneuver's pre-aimed square (TODO, not emitted yet)
 }
 
-// The EGA colours the bar uses.
-var egaPalette = [16][3]uint8{
-	{0, 0, 0}, {0, 0, 173}, {0, 173, 0}, {0, 173, 173},
-	{173, 0, 0}, {173, 0, 173}, {173, 82, 0}, {173, 173, 173},
-	{82, 82, 82}, {82, 82, 255}, {82, 255, 82}, {82, 255, 255},
-	{255, 82, 82}, {255, 82, 255}, {255, 255, 82}, {255, 255, 255},
+// Theme is the host's colours for what combat draws besides the board's own.
+// DefaultTheme is por's current look; a game copies and changes it.
+type Theme struct {
+	Backdrop    color.RGBA // behind the table
+	Wood        color.RGBA // the table's plank colour (its grain darkens it)
+	Panel       color.RGBA // a button's face behind its icon
+	Button      color.RGBA // the button's frame
+	Shadow      color.RGBA // darkens what text sits on
+	Letter      color.RGBA // the hotkey and the big letter
+	Accent      color.RGBA // the selection frame and the hovered word
+	Caption     color.RGBA // the casting caption
+	Hurt, Heal  color.RGBA // damage numbers
+	TextOutline color.RGBA // round the damage numbers
 }
 
-func ega(i int) color.RGBA { c := egaPalette[i&15]; return color.RGBA{c[0], c[1], c[2], 255} }
+// DefaultTheme is por's current look (EGA colours).
+var DefaultTheme = Theme{
+	Backdrop:    color.RGBA{0x0C, 0x0B, 0x0A, 0xFF},
+	Wood:        color.RGBA{92, 60, 36, 255},
+	Panel:       color.RGBA{0x18, 0x20, 0x38, 0xFF},
+	Button:      color.RGBA{82, 82, 82, 255},
+	Shadow:      color.RGBA{0, 0, 0, 0xB0},
+	Letter:      color.RGBA{255, 255, 255, 255},
+	Accent:      color.RGBA{82, 255, 82, 255},
+	Caption:     color.RGBA{255, 255, 82, 255},
+	Hurt:        color.RGBA{255, 255, 85, 255},
+	Heal:        color.RGBA{85, 255, 85, 255},
+	TextOutline: color.RGBA{0, 0, 0, 255},
+}
 
-// selectOutline fills a green frame t pixels thick inside r.
-func selectOutline(r image.Rectangle, t int, fill func(image.Rectangle, color.RGBA)) {
-	c := ega(10)
+// selectOutline fills a frame of colour c, t pixels thick inside r.
+func selectOutline(r image.Rectangle, t int, c color.RGBA, fill func(image.Rectangle, color.RGBA)) {
 	fill(image.Rect(r.Min.X, r.Min.Y, r.Max.X, r.Min.Y+t), c)
 	fill(image.Rect(r.Min.X, r.Max.Y-t, r.Max.X, r.Max.Y), c)
 	fill(image.Rect(r.Min.X, r.Min.Y, r.Min.X+t, r.Max.Y), c)

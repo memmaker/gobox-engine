@@ -59,7 +59,7 @@ func TestStoneTexture(t *testing.T) {
 	tile.SetRGBA(20, 1, color.RGBA{255, 255, 255, 255}) // in the bevel
 	tile.SetRGBA(5, 5, color.RGBA{})                    // mortar
 	mortar := color.RGBA{1, 2, 3, 255}
-	got := stoneTexture([]image.Image{nil, nil, nil, tile}, mortar)
+	got := stoneTexture([]image.Image{nil, nil, nil, tile}, 3, mortar)
 	if got.RGBAAt(20, 1) != tile.RGBAAt(1, 20) {
 		t.Errorf("bevel pixel %v, want the mirrored stone %v", got.RGBAAt(20, 1), tile.RGBAAt(1, 20))
 	}

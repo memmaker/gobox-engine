@@ -11,14 +11,14 @@ import (
 // The tabletop's own props: the stone texture, the bases, shadows, the
 // board's edge and the table under it.
 
-// stoneTexture is the dungeon wall's face: wall tile 3, nearly plain
-// stone in both the DOS and the Amiga art, with its bevel (the triangle
+// stoneTexture is the dungeon wall's face: the board's StoneTile, nearly plain
+// stone in the art we know, with its bevel (the triangle
 // from the diagonal x-y = 16 to the top right corner) replaced by the stone
 // mirrored across the main diagonal, from the clean bottom left. The
 // ground-coloured gaps between stones (transparent in the tiles) show the
 // ground's colour, as the original draws them.
-func stoneTexture(tiles []image.Image, mortar color.RGBA) *image.RGBA {
-	const base, bevel = 3, 16
+func stoneTexture(tiles []image.Image, base int, mortar color.RGBA) *image.RGBA {
+	const bevel = 16
 	im := image.NewRGBA(image.Rect(0, 0, tilePx, tilePx))
 	if len(tiles) <= base || tiles[base] == nil {
 		return im
@@ -71,7 +71,7 @@ func blob(n int) *image.NRGBA {
 }
 
 // woodTexture is a dark oak plank: lengthwise grain.
-func woodTexture(n int) *image.RGBA {
+func woodTexture(n int, c color.RGBA) *image.RGBA {
 	im := image.NewRGBA(image.Rect(0, 0, n, n))
 	for y := range n {
 		for x := range n {
@@ -80,7 +80,7 @@ func woodTexture(n int) *image.RGBA {
 			if y%16 == 0 { // the joint between planks
 				k = 0.55
 			}
-			im.SetRGBA(x, y, color.RGBA{uint8(92 * k), uint8(60 * k), uint8(36 * k), 255})
+			im.SetRGBA(x, y, color.RGBA{uint8(float64(c.R) * k), uint8(float64(c.G) * k), uint8(float64(c.B) * k), 255})
 		}
 	}
 	return im

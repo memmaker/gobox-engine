@@ -27,15 +27,15 @@ func (p *Presenter) Float(id, n int, heal bool) {
 	if !ok || p.Glyph == nil || n <= 0 {
 		return
 	}
-	c := color.RGBA{255, 255, 85, 255}
+	c := p.Theme.Hurt
 	if heal {
-		c = color.RGBA{85, 255, 85, 255}
+		c = p.Theme.Heal
 	}
-	p.floats = append(p.floats, floater{at: at, img: gpu.NewImageFromImage(textImage(p.Glyph, strconv.Itoa(n), c))})
+	p.floats = append(p.floats, floater{at: at, img: gpu.NewImageFromImage(textImage(p.Glyph, strconv.Itoa(n), c, p.Theme.TextOutline))})
 }
 
 // textImage is s in the game's font, in c on a dark outline.
-func textImage(glyph func(byte) [8]byte, s string, c color.RGBA) *image.RGBA {
+func textImage(glyph func(byte) [8]byte, s string, c, outline color.RGBA) *image.RGBA {
 	im := image.NewRGBA(image.Rect(0, 0, len(s)*8+2, 10))
 	set := func(dx, dy int, c color.RGBA) {
 		for i := 0; i < len(s); i++ {
@@ -50,7 +50,7 @@ func textImage(glyph func(byte) [8]byte, s string, c color.RGBA) *image.RGBA {
 		}
 	}
 	for _, d := range [][2]int{{-1, 0}, {1, 0}, {0, -1}, {0, 1}} {
-		set(d[0], d[1], color.RGBA{0, 0, 0, 255})
+		set(d[0], d[1], outline)
 	}
 	set(0, 0, c)
 	return im

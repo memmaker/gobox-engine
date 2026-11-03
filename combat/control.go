@@ -29,7 +29,7 @@ func (p *Presenter) Zoom(in bool, speed float64) {
 // which Enter presses), Enter takes the aimed one, Esc gives up (No) and
 // Backspace ends the turn. It reports whether k was taken.
 //
-// a is what the binding table (present/remaster/bindings.go) makes of the
+// a is what the binding table makes of the
 // key, k the key itself: the digits and the bar's letters are raw input.
 func (p *Presenter) Key(a input.Act, k uint16) bool {
 	p.initCamera()
@@ -39,7 +39,7 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 	b := p.b
 	aiming := b != nil && b.Turn != nil && b.Turn.Aim
 	cycle := a == input.Tab || a == input.PgUp || a == input.PgDn
-	back := a == input.PgUp || a == input.Tab && gpu.IsKeyPressed(gpu.KeyShift)
+	back := a == input.PgUp || a == input.Tab && p.Shift
 	switch {
 	case a == input.TurnLeft:
 		p.yawTo -= math.Pi / 4
@@ -54,7 +54,7 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 		if i := (int(k) - '0' + 9) % 10; i < len(p.bar.rects) { // 1 is the first button, 0 the tenth
 			p.press(p.bar.items[i])
 		}
-	case k == 'u' && gpu.IsKeyPressed(gpu.KeyShift) && p.bar.hotkey(a, k) != nil: // Shift-U: Quick for the whole party
+	case k == 'u' && p.Shift && p.bar.hotkey(a, k) != nil: // Shift-U: Quick for the whole party
 		p.act(Decision{Kind: ActQuick, N: 1})
 	case p.bar.hotkey(a, k) != nil:
 		p.press(*p.bar.hotkey(a, k))
