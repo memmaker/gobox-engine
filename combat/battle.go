@@ -1,0 +1,555 @@
+// Package combat draws the combat map as a tabletop: the map is a board
+// on a wooden table, dungeon walls are stone blocks, outdoor things stand
+// or lie on it, and the combatants are figurines extruded from their combat
+// icons on round painted bases (blue for the party, red for its enemies).
+// The camera turns in eighths like XCOM's. It only reads Board:
+// what it shows is what the original shows, in 3D.
+package combat
+
+import (
+	"image"
+	"image/color"
+	"image/draw"
+	"math"
+	"math/rand/v2"
+	"slices"
+	"time"
+
+	"gobox/gpu"
+)
+
+// Presenter keeps the GPU side of one combat map.
+type Presenter struct {
+	Icons                      map[Kind]image.Image // a button's icon in place of the generic one: the weapon in hand on Attack, what Ranged shoots
+	IconKey                    string               // names them, so the bar redraws when they change
+	white, atlas, shadow, wood *gpu.Image
+	tiles                      [256]image.Image // the tiles the atlas holds
+	empty                      [256]bool        // tiles with nothing on the ground
+	cut                        [256]bool        // tiles with see-through texels: sprites, not ground cover
+	floor                      color.RGBA
+	ground                     [25][50]Square // the squares the meshes show
+	walls                      int            // wall tiles when a dungeon, else 0
+	board, shadows, table      *gpu.Mesh
+	box, base, flatQuad        *gpu.Mesh
+	figs                       map[image.Image]*figure // ponytail: never evicted; a few dozen pictures a game
+	bar                        bar
+
+	b             *Board       // the last frame's
+	out           []Decision   // queued for Actions
+	Picking       bool         // the spell list is up (Cast): the bar is off
+	PickKind      Kind         // the list Picking shows: ActCast's spells or ActManeuver's maneuvers
+	Asking        bool         // a yes/no question (View.Ask, AskConfirm) waits: the bar shows Yes and No
+	Pointer       image.Point  // the mouse on the screen, as the host last saw it (the bar's hover; captures script it)
+	pointed       image.Point  // the square the aim was last pointed at
+	free          *image.Point // the keys' and pad's square cursor while not aiming (nil: the mouse points)
+	mouseAt       image.Point  // the pointer as Point last saw it: a moved mouse takes over from free
+	Stick         [2]float64   // the pad's right stick (x right, y down, -1..1): pans the camera
+	cursor        image.Point  // the aim cursor's square in the last frame
+	tabFrom       *image.Point // Tab was pressed with the aim here: the camera jumps to where it goes
+	tabTo         *vec         // the target Tab went to: watched while aiming
+	focus, offset vec          // what the camera watches; W A S D's and the right stick's pan from it
+	yaw, yawTo    float64      // camera heading: 0 looks north, as the original's screen
+	dist, distTo  float64      // camera distance in squares
+	at            vec          // what the camera looks at (eased)
+	cam           camera       // the last frame's camera, for picking
+	screen        image.Rectangle
+	units         map[int]*[2]float64 // each unit's shown position (eased between squares)
+	sparks        []spark
+	sparkMesh     *gpu.Mesh        // all of this frame's sparks, one draw
+	sparkVs       []gpu.MeshVertex // its vertices, reused
+	boxVs         []gpu.MeshVertex // one spark's cube
+	strike        Strike           // the last attack shown
+	strikeT       float64          // seconds since it began
+	burst         bool             // its sparks are out
+	last          time.Time
+	clock         float64 // seconds shown, for pulses
+
+	Glyph  func(byte) [8]byte // the game's font, for the damage numbers
+	tops   map[int]vec        // over each unit's head, as last drawn (where its numbers start)
+	floats []floater
+}
+
+type figure struct {
+	mesh *gpu.Mesh
+	tex  *gpu.Image
+	glow [3]float32 // its average colour, for an effect's light and sparks
+}
+
+// spark is a particle rising from a spell or a hit.
+type spark struct {
+	p, v      vec
+	life, max float64
+	col       [3]float32
+}
+
+// Framing and look.
+const (
+	pitch     = 0.82 // camera radians above the board
+	minDist   = 5.0
+	maxDist   = 24.0
+	pedestal  = 0.09 // a base's height
+	lunge     = 0.35 // seconds an attack's lunge lasts
+	boardEdge = 0.25 // how far the board stands above the table
+)
+
+var (
+	partyColour = [4]float32{0.22, 0.42, 0.95, 1}
+	enemyColour = [4]float32{0.88, 0.2, 0.14, 1}
+	cursorGlow  = [4]float32{1, 0.78, 0.2, 1}
+	markGlow    = [4]float32{0.25, 0.8, 0.85, 1} // the original frames choices in light cyan
+	hoverGlow   = [4]float32{0.45, 0.45, 0.45, 1}
+	areaGlow    = [4]float32{1, 0.5, 0.1, 1}
+	areaFill    = [4]float32{0.22, 0.09, 0.01, 1}
+	targetGlow  = [4]float32{0.95, 0.12, 0.08, 1}
+	blockedGlow = [4]float32{1, 0.08, 0.05, 1} // an aim that cannot be taken: area, frames and cursor in red
+	blockedFill = [4]float32{0.26, 0.015, 0.01, 1}
+	reachGlow   = [4]float32{0.015, 0.05, 0.13, 1}
+	pathGlow    = [4]float32{0.1, 0.35, 0.8, 1}
+	skipGlow    = [4]float32{0.55, 0.55, 0.75, 1} // an ally in a spell's area the cast passes over (Bless: an enemy next to it)
+	freeGlow    = [4]float32{0.9, 0.1, 0.05, 1}
+	sunDir      = [3]float32{0.45, 1, 0.6}
+)
+
+// Draw shows b on dst.
+func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
+	p.initCamera()
+	p.b = b
+	if b.Turn == nil || b.Turn.Aim || !slices.Contains(b.Turn.Can, p.PickKind) {
+		p.Picking = false
+	}
+	p.sync(b)
+	dt := p.tick()
+	if b.Strike.Seq != p.strike.Seq {
+		p.strike, p.strikeT, p.burst = b.Strike, 0, false
+	}
+	p.strikeT += dt
+
+	// where the eye goes: an effect, else the target Tab went to, else whose
+	// turn it is (the aim cursor otherwise is the player's to follow: the camera pans by hand)
+	if !b.CursorOn {
+		p.tabFrom, p.tabTo = nil, nil
+	}
+	if f := p.tabFrom; f != nil && b.Cursor != *f { // Tab moved the aim: look there at once
+		t := vec{float64(b.Cursor.X) + .5, 0, float64(b.Cursor.Y) + .5}
+		p.tabFrom, p.tabTo, p.at = nil, &t, t
+	}
+	p.cursor = b.Cursor
+	if b.Turn == nil || b.Turn.Aim { // the free cursor lives for one turn's choice
+		p.free = nil
+	}
+	focus := vec{float64(b.View.X) + 6, 0, float64(b.View.Y) + 3.5}
+	for _, u := range b.Units {
+		if u.Active {
+			c := unitCentre(u)
+			focus = vec{c[0], 0, c[1]}
+		}
+	}
+	if p.tabTo != nil {
+		focus = *p.tabTo
+	}
+	if c := p.free; c != nil { // the keys' cursor: the eye follows it out of the comfort box
+		focus = vec{float64(c.X) + .5, 0, float64(c.Y) + .5}
+	}
+	if n := len(b.Effects); n > 0 {
+		f := b.Effects[n-1]
+		focus = vec{f.X + .5, 0, f.Y + .5}
+	}
+	if focus != p.focus { // a new thing to watch: let go of the pan
+		p.focus, p.offset = focus, vec{}
+	}
+	panned := p.pan(dt, focus)
+	focus = focus.add(p.offset)
+	k := 1 - math.Exp(-dt*8)
+	p.yaw += (p.yawTo - p.yaw) * k
+	p.dist += (p.distTo - p.dist) * k
+	if panned { // the camera is in the player's hand: it goes where the keys say, at once
+		p.at = focus
+	} else {
+		p.at = p.at.add(focus.sub(p.at).mul(k * p.chase(focus)))
+	}
+
+	r := dst.Bounds()
+	h := p.dist * math.Cos(pitch)
+	p.cam = camera{
+		eye:  vec{p.at[0] + h*math.Sin(p.yaw), p.dist * math.Sin(pitch), p.at[2] + h*math.Cos(p.yaw)},
+		at:   p.at,
+		fovy: 0.8, aspect: float64(r.Dx()) / float64(r.Dy()),
+	}
+	p.screen = r
+	vp := p.cam.viewProj()
+	eye := [3]float32{float32(p.cam.eye[0]), float32(p.cam.eye[1]), float32(p.cam.eye[2])}
+	light := gpu.MeshOptions{Light: sunDir, Ambient: 0.5, Eye: eye}
+	// an effect lights its surroundings in its own colour
+	var glows []*figure
+	for _, f := range b.Effects {
+		g := p.figure(f.Pic, 0)
+		glows = append(glows, g)
+		light.Point = [4]float32{float32(f.X) + .5, 1.1, float32(f.Y) + .5, 3.5}
+		light.PointColor = [4]float32{g.glow[0], g.glow[1], g.glow[2], 1.6}
+	}
+	opts := func(model gpu.Mat4, tint [4]float32, spec float32) *gpu.MeshOptions {
+		o := light
+		o.Model, o.Tint, o.Spec = model, tint, spec
+		return &o
+	}
+
+	dst.Fill(color.RGBA{0x0C, 0x0B, 0x0A, 0xFF})
+	dst.ClearDepth()
+	if !gpu.Skip("table") {
+		dst.DrawMesh(p.table, p.wood, vp, opts(gpu.Ident, [4]float32{1, 1, 1, 1}, 0.1))
+	}
+	if !gpu.Skip("board") {
+		dst.DrawMesh(p.board, p.atlas, vp, opts(gpu.Ident, [4]float32{1, 1, 1, 1}, 0.04))
+	}
+
+	// shadows under what stands: the map's things, then the figurines
+	shade := gpu.MeshOptions{Blend: gpu.MeshAlpha, Tint: [4]float32{0, 0, 0, 0.7}}
+	if !gpu.Skip("shadows") {
+		dst.DrawMesh(p.shadows, p.shadow, vp, &shade)
+	}
+	shown := map[int]bool{}
+	for _, u := range b.Units {
+		if u.Icon == nil || gpu.Skip("shadows") {
+			continue
+		}
+		shown[u.ID] = true
+		x, z, _ := p.unitAt(u, dt)
+		fw, fd := footprint(u)
+		o := shade
+		o.Model = place(x+.12, 0.004, z+.1, 0, fw+.05, 1, fd+.05)
+		dst.DrawMesh(p.flatQuad, p.shadow, vp, &o)
+	}
+	for id := range p.units {
+		if !shown[id] {
+			delete(p.units, id)
+		}
+	}
+
+	// frames on the board: choices, the cursor, the square under the mouse
+	frame := func(x, z int, tint [4]float32, lift float32) {
+		if gpu.Skip("frames") {
+			return
+		}
+		o := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: tint}
+		fx, fz := float32(x), float32(z)
+		for _, bar := range [4][4]float32{{fx + .5, fz + .06, .9, .06}, {fx + .5, fz + .94, .9, .06}, {fx + .06, fz + .5, .06, .9}, {fx + .94, fz + .5, .06, .9}} {
+			o.Model = place(bar[0], 0.006+lift, bar[1], 0, bar[2], 0.01, bar[3])
+			dst.DrawMesh(p.box, p.white, vp, &o)
+		}
+	}
+	marks, fill, cursor := markGlow, areaFill, cursorGlow
+	if b.Area { // a spell's area: XCOM's orange
+		marks = areaGlow
+	}
+	if b.AimWhy != "" { // the aimed square cannot be taken: say so in red
+		marks, fill, cursor = blockedGlow, blockedFill, blockedGlow
+	}
+	for _, m := range b.Marks {
+		if !targetAt(b, m) { // a target's red frame stands alone
+			frame(m.X, m.Y, marks, 0)
+		}
+	}
+	for _, a := range b.AreaAt { // the ground a spell's area covers: an orange wash
+		if slices.Contains(b.Skipped, a) { // an ally the cast passes over: framed apart below
+			continue
+		}
+		o := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: fill, Model: place(float32(a.X)+.5, 0.0035, float32(a.Y)+.5, 0, .96, .005, .96)}
+		dst.DrawMesh(p.box, p.white, vp, &o)
+	}
+	for _, s := range b.Skipped {
+		frame(s.X, s.Y, skipGlow, 0.001)
+	}
+	for _, u := range b.Units { // the foes a click attacks: red
+		if slices.Contains(b.Targets, u.ID) {
+			for _, s := range u.Squares {
+				frame(s.X, s.Y, targetGlow, 0.001)
+			}
+		}
+	}
+	for _, r := range b.Reach { // where a click walks: XCOM's blue
+		o := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: reachGlow, Model: place(float32(r.X)+.5, 0.003, float32(r.Y)+.5, 0, .96, .005, .96)}
+		dst.DrawMesh(p.box, p.white, vp, &o)
+	}
+	if mx, my, ok := p.hoverSquare(); ok {
+		frame(mx, my, hoverGlow, 0)
+		for i, s := range b.Paths[image.Pt(mx, my)] { // the walk a click takes; red where leaving lets a foe strike
+			if i == 0 { // the mover's own square
+				continue
+			}
+			tint := pathGlow
+			if s.Free {
+				tint = freeGlow
+			}
+			o := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: tint, Model: place(float32(s.X)+.5, 0.004, float32(s.Y)+.5, 0, .5, .005, .5)}
+			dst.DrawMesh(p.box, p.white, vp, &o)
+		}
+	}
+	pulse := float32(0.75 + 0.25*math.Sin(p.clock*5))
+	if b.CursorOn {
+		for _, c := range b.CursorAt {
+			frame(c.X, c.Y, [4]float32{cursor[0] * pulse, cursor[1] * pulse, cursor[2] * pulse, 1}, 0.002)
+		}
+	}
+
+	// the figurines
+	var heads []head // where each one's health bar goes (Shift)
+	for _, u := range b.Units {
+		if u.Icon == nil || gpu.Skip("figures") {
+			continue
+		}
+		x, z, sq := p.unitAt(u, dt)
+		tint := enemyColour
+		if u.Party {
+			tint = partyColour
+		}
+		fw, fd := footprint(u) // the base covers the squares it stands on, not the icon's size
+		dst.DrawMesh(p.base, p.white, vp, opts(place(x, 0, z, 0, fw-.22, pedestal, fd-.22), tint, 0.25))
+		if u.Active { // whose turn: a gold ring round the base
+			dst.DrawMesh(p.base, p.white, vp, opts(place(x, 0, z, 0, fw-.14, pedestal*.5, fd-.14),
+				[4]float32{0.95 * pulse, 0.72 * pulse, 0.2 * pulse, 1}, 0.9))
+		}
+		ib := iconSize(u)
+		f := p.figure(u.Icon, max(ib.X, ib.Y))
+		size := sq * .92
+		half := size * float32(ib.Y) / float32(max(ib.X, ib.Y)) / 2
+		// the attacker lunges at its target; the target flashes red and sheds sparks when hit, grey ones when missed
+		tint = [4]float32{1, 1, 1, 1}
+		if t := p.strikeT; t < lunge {
+			if to, ok := p.units[p.strike.To]; ok && u.ID == p.strike.From {
+				dx, dz := float32(to[0])-x, float32(to[1])-z
+				if n := float32(math.Hypot(float64(dx), float64(dz))); n > 0 {
+					d := float32(math.Sin(math.Pi*t/lunge)) * .35 / n
+					x, z = x+dx*d, z+dz*d
+				}
+			}
+			if u.ID == p.strike.To && t >= lunge/2 {
+				col, n := [3]float32{.6, .6, .6}, 6
+				if p.strike.Hit {
+					col, n = [3]float32{1, .15, .05}, 16
+					w := float32(4 * (1 - t/lunge)) // the flash, fading
+					tint = [4]float32{1 + w, 1 - w/4, 1 - w/4, 1}
+				}
+				for i := 0; !p.burst && i < n; i++ {
+					p.sparks = append(p.sparks, spark{
+						p:   vec{float64(x), pedestal + float64(half), float64(z)},
+						v:   vec{rand.Float64()*2 - 1, rand.Float64() * 1.5, rand.Float64()*2 - 1},
+						max: 0.3 + rand.Float64()*.3, col: col,
+					})
+				}
+				p.burst = true
+			}
+		}
+		o := opts(place(x, pedestal+half, z, 0, size, size, size), tint, 0.12)
+		o.Ambient = 0.85 // fixed facing, so its back is lit enough to read from any heading
+		dst.DrawMesh(f.mesh, f.tex, vp, o)
+		heads = append(heads, head{u, vec{float64(x), float64(pedestal + 2*half + .1), float64(z)}})
+	}
+
+	// effects: the sprite hangs over its square, glowing, shedding sparks
+	for i, f := range b.Effects {
+		g := glows[i]
+		ib := f.Pic.Bounds()
+		sq := float32(max(ib.Dx(), ib.Dy())) / tilePx
+		x, z := float32(f.X)+float32(ib.Dx())/tilePx/2, float32(f.Y)+float32(ib.Dy())/tilePx/2
+		full := gpu.MeshOptions{Tint: [4]float32{1.3, 1.3, 1.3, 1}, Light: sunDir, Ambient: 1}
+		full.Model = place(x, 1.05, z, float32(p.yaw), sq*.9, sq*.9, sq*.9) // over the heads, facing the eye: light, not figurines
+		dst.DrawMesh(g.mesh, g.tex, vp, &full)
+		halo := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: [4]float32{g.glow[0], g.glow[1], g.glow[2], 0.5}}
+		halo.Model = place(x, 0.01, z, 0, 2.2, 1, 2.2)
+		dst.DrawMesh(p.flatQuad, p.shadow, vp, &halo) // a pool of light on the board
+		for range 2 {
+			p.sparks = append(p.sparks, spark{
+				p:   vec{float64(x) + rand.Float64()*.6 - .3, 0.8 + rand.Float64()*.4, float64(z) + rand.Float64()*.6 - .3},
+				v:   vec{rand.Float64()*.4 - .2, 0.5 + rand.Float64()*.6, rand.Float64()*.4 - .2},
+				max: 0.5 + rand.Float64()*.5, col: g.glow,
+			})
+		}
+	}
+	if !gpu.Skip("sparks") {
+		p.drawSparks(dst, vp, dt)
+	}
+	if gpu.IsKeyPressed(gpu.KeyShift) {
+		p.drawHealth(dst, vp, heads)
+	}
+	for _, hd := range heads {
+		p.tops[hd.u.ID] = hd.top
+	}
+	p.drawDamage(dst, vp, dt)
+}
+
+// drawSparks moves, fades and draws the particles, all in one draw call:
+// a draw each made missiles and hits stutter.
+func (p *Presenter) drawSparks(dst *gpu.Image, vp gpu.Mat4, dt float64) {
+	if p.sparkMesh == nil {
+		p.sparkMesh, p.boxVs = gpu.NewMesh(nil), box()
+	}
+	const size = .05
+	c, sn := float32(math.Cos(p.yaw))*size, float32(math.Sin(p.yaw))*size
+	vs := p.sparkVs[:0]
+	live := p.sparks[:0]
+	for _, s := range p.sparks {
+		s.life += dt
+		if s.life >= s.max {
+			continue
+		}
+		s.p = s.p.add(s.v.mul(dt))
+		a := float32(1 - s.life/s.max)
+		x, y, z := float32(s.p[0]), float32(s.p[1]), float32(s.p[2])
+		for _, v := range p.boxVs { // place(x, y, z, yaw, size...) on the CPU
+			v.X, v.Y, v.Z = x+c*v.X+sn*v.Z, y+size*v.Y, z-sn*v.X+c*v.Z
+			v.NX, v.NZ = c/size*v.NX+sn/size*v.NZ, -sn/size*v.NX+c/size*v.NZ
+			v.R, v.G, v.B, v.A = s.col[0], s.col[1], s.col[2], a
+			vs = append(vs, v)
+		}
+		live = append(live, s)
+	}
+	p.sparks, p.sparkVs = live, vs
+	if len(vs) == 0 {
+		return
+	}
+	p.sparkMesh.Set(vs)
+	dst.DrawMesh(p.sparkMesh, p.white, vp, &gpu.MeshOptions{Blend: gpu.MeshAdd})
+}
+
+// tick is the time since the last frame, at most a tenth of a second.
+func (p *Presenter) tick() float64 {
+	now := time.Now()
+	dt := 0.1
+	if !p.last.IsZero() {
+		dt = min(now.Sub(p.last).Seconds(), 0.1)
+	}
+	p.last = now
+	p.clock += dt
+	return dt
+}
+
+// sync brings the atlas and the board up to b.
+func (p *Presenter) sync(b *Board) {
+	if p.white == nil {
+		p.white, p.tops = gpu.NewImage(1, 1), map[int]vec{}
+		p.white.Fill(color.White)
+		p.box = gpu.NewMesh(box())
+		p.base = gpu.NewMesh(disc(24))
+		p.flatQuad = gpu.NewMesh(quad(nil, [4][3]float32{{-.5, 0, .5}, {.5, 0, .5}, {.5, 0, -.5}, {-.5, 0, -.5}},
+			[4][2]float32{{0, 1}, {1, 1}, {1, 0}, {0, 0}}, [3]float32{0, 1, 0}))
+		p.atlas = gpu.NewImage(atlasCols*tilePx, atlasRows*tilePx)
+		p.shadow = gpu.NewImageFromImage(blob(32))
+		p.wood = gpu.NewImageFromImage(woodTexture(64))
+		p.table = gpu.NewMesh(tableMesh())
+	}
+	changed := b.Floor != p.floor
+	for i := range p.tiles {
+		var t image.Image
+		if i < len(b.Tiles) {
+			t = b.Tiles[i]
+		}
+		if t != p.tiles[i] {
+			p.tiles[i], changed = t, true
+			p.empty[i], p.cut[i] = isEmpty(t), hasHoles(t)
+		}
+	}
+	if changed {
+		p.floor = b.Floor
+		a := image.NewRGBA(p.atlas.Bounds())
+		put := func(slot int, t image.Image) {
+			o := image.Pt(slot%atlasCols*tilePx, slot/atlasCols*tilePx)
+			draw.Draw(a, image.Rectangle{o, o.Add(t.Bounds().Size())}, t, t.Bounds().Min, draw.Src)
+		}
+		for i, t := range p.tiles {
+			if t != nil {
+				put(i, t)
+			}
+		}
+		put(wallSlot, stoneTexture(p.tiles[:b.WallTiles], b.Floor))
+		put(floorSlot, floorTile(b.Floor))
+		p.atlas.WritePixels(a.Pix)
+	}
+	walls := 0
+	if b.Dungeon {
+		walls = b.WallTiles
+	}
+	if p.board == nil || changed || b.Ground != p.ground || walls != p.walls {
+		p.ground, p.walls = b.Ground, walls
+		for _, m := range []*gpu.Mesh{p.board, p.shadows} {
+			if m != nil {
+				m.Dispose()
+			}
+		}
+		empty := func(t int) bool { return t < 0 || t >= len(p.empty) || p.empty[t] }
+		cut := func(t int) bool { return t >= 0 && t < len(p.cut) && p.cut[t] }
+		p.board = gpu.NewMesh(append(mapMesh(&p.ground, p.walls, empty, cut, p.tiles[:]), boardSides()...))
+		p.shadows = gpu.NewMesh(standShadows(&p.ground, p.walls, empty, cut))
+	}
+}
+
+// figure is the extruded mesh for a picture (cached).
+// texels: the width of the sprite the picture stands for (0: its own),
+// which sets the slab's thickness (extrude).
+func (p *Presenter) figure(pic image.Image, texels int) *figure {
+	if f, ok := p.figs[pic]; ok {
+		return f
+	}
+	if p.figs == nil {
+		p.figs = map[image.Image]*figure{}
+	}
+	if texels == 0 {
+		b := pic.Bounds()
+		texels = max(b.Dx(), b.Dy())
+	}
+	f := &figure{gpu.NewMesh(extrude(pic, texels)), gpu.NewImageFromImage(pic), averageColour(pic)}
+	p.figs[pic] = f
+	return f
+}
+
+// isEmpty: no tile, or nothing on the ground.
+func isEmpty(t image.Image) bool {
+	if t == nil {
+		return true
+	}
+	b := t.Bounds()
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			if _, _, _, a := t.At(x, y).RGBA(); a != 0 {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// hasHoles is whether a tile has see-through texels (alphaCut).
+func hasHoles(t image.Image) bool {
+	if t == nil {
+		return false
+	}
+	b := t.Bounds()
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			if _, _, _, a := t.At(x, y).RGBA(); a>>8 < alphaCut {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// averageColour is a picture's mean opaque colour, brightened to a light's.
+func averageColour(t image.Image) [3]float32 {
+	var r, g, bl, n float64
+	b := t.Bounds()
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			if cr, cg, cb, a := t.At(x, y).RGBA(); a > 0x8000 {
+				r, g, bl, n = r+float64(cr), g+float64(cg), bl+float64(cb), n+1
+			}
+		}
+	}
+	if n == 0 {
+		return [3]float32{1, 1, 1}
+	}
+	m := max(r, g, bl) / n / 0xFFFF
+	if m == 0 {
+		return [3]float32{1, 1, 1}
+	}
+	return [3]float32{float32(r / n / 0xFFFF / m), float32(g / n / 0xFFFF / m), float32(bl / n / 0xFFFF / m)}
+}

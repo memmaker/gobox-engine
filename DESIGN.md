@@ -112,3 +112,9 @@ game. Until then cotab-go and sotsb-go keep their copies of the screens.
 - [ ] interfaces agreed with the POR and COTAB sessions
 - [ ] cotab-go switched; sotsb-go adopts at D11–D13
 - [ ] window (phase 2)
+
+combat status: extracted into `combat/` (module gobox/combat), kinds are named
+`ActWalk` etc. (`Step` and `Turn` are also types). TODO: `Board.Confirm`,
+`Decision.Pre` and `ActStep`/`ActView` are fields/kinds only; no behaviour yet
+(no Yes/No from Confirm, no double aim, no keypad step, Turn.Labels/Icons not
+drawn, Turn.Moves unused).
