@@ -41,6 +41,13 @@ fonts into the pool and selects by name.
 - Shop pricing: per game, never unified.
 - Main menu, party setup and character creation: one shared gobox module,
   Pool of Radiance as the template; each game supplies only its styling and data.
+- Character creation: por's single in-place sheet in all games; each game's
+  rules answer which choices are allowed.
+- Stat and HP rolling: one rule, the way the majority of the games roll,
+  presented the way por presents it.
+- Main menu entries: por's list in all games; a game adds an entry only when it
+  really needs one (e.g. character import), as data.
+- Text: games never draw text; they name a font and gobox ui draws.
 - WALLDEF trailing partial chunk: dropped (whole 780-byte chunks only), as the later games' developers did.
 
 ## Modules
