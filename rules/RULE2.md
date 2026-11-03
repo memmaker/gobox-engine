@@ -26,6 +26,7 @@
 - Encumbrance (cut): cotab int16-wraps `Weight - carry` (charcalc.go:238), sotsb uses plain int (:275).
 
 ## Not moved yet
+(Coins are moved now: `Purse`, one shared party purse; see API.md.)
 Ability-score effects (`statAffects`, `strengthDecode`, `strongerThan`: need affect and item lists), `ApplyItems`,
 `weaponStats`, `itemAC`, `armourMove`, coins, `computeExp`, the `cmdDamage` target loop (all tied to Engine
 state, items, affects and UI). They need an Item/Affect interface; do them when the item model is shared.
