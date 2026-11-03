@@ -126,10 +126,10 @@ game. Until then cotab-go and sotsb-go keep their copies of the screens.
 
 ## Status
 
-- [ ] gpu, input, blobber extracted; por-go builds against them
-- [ ] combat extracted with its own types; por-go adapter
-- [ ] interfaces agreed with the POR and COTAB sessions
-- [ ] cotab-go switched; sotsb-go adopts at D11–D13
+- [x] gpu, input, blobber extracted; por-go builds against them
+- [x] combat extracted with its own types; por-go adapter
+- [x] interfaces agreed with the POR, COTAB and SOTSB sessions
+- [x] por-go, cotab-go switched; sotsb-go on the data modules (audio, blobber, combat at D11–D14)
 - [ ] window (phase 2)
 - [ ] combat bar icons for Move, View and Aim (`combat/icons/{move,view,aim}.png`, 64px like the others); letters until then. They're art: ask before spending on an image model
 - [ ] dax: remove `Loader.OneDisk`. Make the other-disk fallback opt-in (por sets it) and drop `OneDisk = true` from cotab and sotsb
