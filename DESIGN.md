@@ -156,9 +156,9 @@ game. Until then cotab-go and sotsb-go keep their copies of the screens.
 - [x] interfaces agreed with the POR, COTAB and SOTSB sessions
 - [x] por-go, cotab-go switched; sotsb-go on the data modules (audio, blobber, combat at D11–D14)
 - [ ] window (phase 2)
-- [ ] rule 4: gpu reads POR_* env vars (POR_FPS, POR_SHOT, POR_SKIP, POR_PASSES, POR_NOVSYNC, POR_OFFSCREEN, POR_GLITCH); make them a gpu.Config or GOBOX_* names
-- [ ] combat reads gpu input itself (IsKeyPressed(KeyShift) in battle.go, control.go): pass the modifier in
-- [ ] blobber.Options holds host settings blobber doesn't use (volumes, DOSArt, Combat4e): move them to the games
+- [x] rule 4: gpu reads POR_* env vars (POR_FPS, POR_SHOT, POR_SKIP, POR_PASSES, POR_NOVSYNC, POR_OFFSCREEN, POR_GLITCH); make them a gpu.Config or GOBOX_* names
+- [x] combat reads gpu input itself (IsKeyPressed(KeyShift) in battle.go, control.go): pass the modifier in
+- [x] blobber.Options holds host settings blobber doesn't use (volumes, DOSArt, Combat4e): move them to the games
 - [ ] blobber: one View per scene, not one global per process; the host fills Textures once per scene (SotSB)
 - [ ] ui: text, font and list widgets, so the games stop building their own console layout (rule 1: fonts stay the game's)
 - [ ] gpu: a headless path, so tests can check the 3D view
@@ -170,5 +170,5 @@ combat status: extracted into `combat/` (module gobox/combat), kinds are named
 `ActWalk` etc. (`Step` and `Turn` are also types). TODO: `Board.Confirm`,
 `Decision.Pre` and `ActStep`/`ActView` are fields/kinds only; no behaviour yet
 (no Yes/No from Confirm, no double aim, no keypad step, Turn.Moves unused).
-The bar draws Turn.Labels; Turn.Icons is not read (icons come from
-Presenter.Icons): use it or drop it.
+The bar draws Turn.Labels; icons are the embedded shared set, overridden by
+Presenter.Icons. Turn.Icons is gone.
