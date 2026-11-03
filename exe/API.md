@@ -18,3 +18,14 @@ go.mod: `require gobox/exe v0.0.0` + `replace gobox/exe => ../gobox-engine/exe`;
   and sotsb-go cmd/tablegen, tablefind also use LoadCurse -> `exe.Load(p, 2750)`
 - por-go:   `exe.Load(p)` -> `exe.Load(p, 0xC7C)`       (=3196, old DS 0xC7C0 bytes; cmd/sounddata only uses Mem)
 - cotab-go/sotsb-go cmd/sounddata: `exe.Load(p)` -> `exe.Load(p, 0)` (only Mem is used; DS irrelevant)
+
+## tablespec and cmd/tablegen
+`gobox/exe/tablespec`: `Kind` (`Bytes Signed Words SignedWords Longs String(n)`, text form bytes|signed|words|swords|longs|string:N), `Table{Name, At, Len, Kind, Doc, Cols, Img, Stride}` (json tags lower-case), `Generate(pkg, tables, imgs ...*exe.Image) ([]byte, error)`.
+`Img` is the superset of sotsb's `Curse bool`: the index of the executable a table is read from. `Stride` (sotsb) is the row pitch when rows are padded. `Longs` and the "slot holds data, not a string" check (sotsb) are included.
+`go run gobox/exe/cmd/tablegen -spec tables.json -pkg engine START.EXE:DS [OTHER.EXE:DS] > tables.go`
+
+## Migrate
+- cotab-go: delete tablespec/ and cmd/tablegen/. Turn `tablespec.Tables` into tables.json (same fields; `{"kind":"bytes"}`, `"string:10"` for `String(10)`; all rows `img` 0). Replace the generate line with `tablegen -spec tables.json -pkg engine START.EXE:2750`. Output is unchanged.
+- sotsb-go: same; a table with `Curse: true` becomes `"img": 1`; run `tablegen -spec tables.json -pkg engine BLADES-START.EXE:3554 CURSE-START.EXE:2750`.
+- Either game may instead keep its list as a Go value and call `tablespec.Generate` from its own tiny main.
+- Delete the game's `tablespec` import (`cotab/tablespec`, `sotsb/tablespec`); nothing at run time uses it.
