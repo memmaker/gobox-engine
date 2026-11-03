@@ -14,8 +14,8 @@ happen in the games' order. Characters come in as `char.Stats`; the game's RNG i
 - `DamagePlayer(c, dmg) (over, dying, down)` - the game applies its combat bookkeeping.
 - `Config{TrapSkipStoned, TrapRollEach}` with `TrapSkips(status)` and `TrapNextDamage(dmg, roll)`.
 
-- `Purse{Gold, Copper, Gems, Jewelry int64}`: the one shared party purse (no per-member coins). `Add(q, Rates)`,
-  `AddCopper(n, Rates)` (copper rolls into gold), `Pay(gold) bool`, `Empty()`, and `FromCoins(coins []int64, Rates)`
+- `Purse{Gold, Copper, Gems, Jewelry uint64}`: the one shared party purse (no per-member coins). `Add(q, Rates)`,
+  `AddCopper(n, Rates)` (copper rolls into gold), `Pay(gold) bool`, `Empty()`, and `FromCoins(coins []uint64, Rates)`
   which turns a record's coins (kinds in `Rates.Coin`, then gems, jewelry) into a Purse. `Rates{CopperPerGold, Coin}` is data;
   `GoldBoxRates` = 200 copper per gold, coins 1/10/100/200/1000 copper. Oracle: por's money.go in `purse_test.go`.
 
@@ -45,7 +45,7 @@ Same as cotab, plus `Config{TrapSkipStoned: true, TrapRollEach: true}`:
 - `RollHit` -> `rules.TrapHits` (pass `byte(bonus)`).
 - `RollDice` -> `rules.RollDice`.
 - Purse: `purse` -> `rules.Purse`, fields exported (`gold` -> `Gold`), `add`/`addCopper` take `rules.GoldBoxRates`, `coinsToPurse`
-  -> `FromCoins`. `pay` keeps its message and calls `Pay`. Save file stays byte-identical: `appendPurse` writes the int64
+  -> `FromCoins`. `pay` keeps its message and calls `Pay`. Save file stays byte-identical: `appendPurse` writes the uint64
   fields saturated to uint32 (ponytail ceiling: a purse over 4294967295 saves as that; widen the format when it matters).
 
 ### Purse in cotab-go and sotsb-go (one shared party purse)
@@ -58,7 +58,7 @@ Coins in the record (7 uint16 at +251: copper, silver, electrum, gold, platinum,
   purse in the game's own trailer (as por: gold, gems, jewelry, copper as uint32, saturated; ponytail ceiling uint32). A .GUY
   exported on leaving the party carries no coins; the purse stays with the party. An imported .GUY with coins (cotab's Pool
   character has 300 platinum at +251) pays its coins into the purse on join.
-- Shop prices: `shopPrice` is unchanged (price in gold, uint16 from the item); buying is `e.pay(int64(price))` against
+- Shop prices: `shopPrice` is unchanged (price in gold, uint16 from the item); buying is `e.pay(uint64(price))` against
   `purse.Gold` (fold copper: it is under one gold, so gold alone decides). The member-then-pool fallback in `shopBuy` goes: one
   purse. Selling adds `AddCopper(value)`. cotab's `(copper + 100) / 200` rounding in `goldWorth` goes with it.
 - Treasure pool: the pool is a Purse (`e.loot`, as por). ECL treasure commands set it with

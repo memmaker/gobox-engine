@@ -34,19 +34,19 @@ func TestPurseOracle(t *testing.T) {
 	var got Purse
 	for _, c := range cases {
 		w := porCoinsToPurse(c)
-		in := make([]int64, 7)
+		in := make([]uint64, 7)
 		for i, v := range c {
-			in[i] = int64(v)
+			in[i] = uint64(v)
 		}
 		g := FromCoins(in, GoldBoxRates)
-		if int64(w.gold) != g.Gold || int64(w.copper) != g.Copper || int64(w.gems) != g.Gems || int64(w.jewelry) != g.Jewelry {
+		if uint64(w.gold) != g.Gold || uint64(w.copper) != g.Copper || uint64(w.gems) != g.Gems || uint64(w.jewelry) != g.Jewelry {
 			t.Fatalf("FromCoins(%v) = %+v, por %+v", c, g, w)
 		}
 		want.add(w)
 		got.Add(g, GoldBoxRates)
 		want.addCopper(77)
 		got.AddCopper(77, GoldBoxRates)
-		if int64(want.gold) != got.Gold || int64(want.copper) != got.Copper || int64(want.gems) != got.Gems || int64(want.jewelry) != got.Jewelry {
+		if uint64(want.gold) != got.Gold || uint64(want.copper) != got.Copper || uint64(want.gems) != got.Gems || uint64(want.jewelry) != got.Jewelry {
 			t.Fatalf("after %v: %+v, por %+v", c, got, want)
 		}
 	}
