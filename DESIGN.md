@@ -131,6 +131,7 @@ game. Until then cotab-go and sotsb-go keep their copies of the screens.
 - [ ] interfaces agreed with the POR and COTAB sessions
 - [ ] cotab-go switched; sotsb-go adopts at D11–D13
 - [ ] window (phase 2)
+- [ ] dax: remove `Loader.OneDisk`. Make the other-disk fallback opt-in (por sets it) and drop `OneDisk = true` from cotab and sotsb
 
 combat status: extracted into `combat/` (module gobox/combat), kinds are named
 `ActWalk` etc. (`Step` and `Turn` are also types). TODO: `Board.Confirm`,

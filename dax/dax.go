@@ -113,6 +113,7 @@ func Decode(src []byte, rawSize int) []byte {
 type Loader struct {
 	Dir     string
 	OneDisk bool // a missing block stays missing (no fallback to the other disks' files, sotsb)
+	// ponytail: OneDisk is to go: flip the default (the other-disk fallback opt-in, set by por only), then remove the field from cotab and sotsb
 	mu      sync.Mutex
 	files   map[string]*File
 	names   map[string]string   // lower-case name -> real file name
