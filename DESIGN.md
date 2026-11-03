@@ -39,6 +39,8 @@ fonts into the pool and selects by name.
 - Encumbrance and weight: cut in all games (por's standard: no weight rules).
 - XP split: per game for now.
 - Shop pricing: per game, never unified.
+- Main menu, party setup and character creation: one shared gobox module,
+  Pool of Radiance as the template; each game supplies only its styling and data.
 - WALLDEF trailing partial chunk: dropped (whole 780-byte chunks only), as the later games' developers did.
 
 ## Modules
