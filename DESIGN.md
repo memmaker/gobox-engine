@@ -23,7 +23,10 @@ game, and a game feeds it plain Go values built from its own data.
 
 Shared assets (the user's exception to rule 6): gobox supplies item sprites,
 merged character portraits and icons, and the combat UI icons, for all games
-to use. A game may override any of them with its own data.
+to use. A game may override any of them with its own data. Blobber walls,
+portraits and combat sprites are merged from all games into one pool each
+(`gobox/walls`, `gobox/sprites`); a game selects from a pool by name, and its
+maps and selection tables stay its own.
 
 ## Rule 2 decisions (the user's)
 
