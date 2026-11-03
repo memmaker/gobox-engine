@@ -67,3 +67,5 @@ Games never render text; they pick a font and call gobox. `fonts.Glyph(bits, ch,
 - por-go: done (engine/fonts.go only wraps the Chooser; page.go glyphAt calls fonts.DrawGlyph).
 - sotsb-go: delete glyph() (engine/fonts.go:99) and the embedded font loading; `e.fonts = fonts.NewChooser(filepath.Join(e.L.Dir,"FONTS"), "", cfg)`, glyph lookups -> `e.fonts.Glyph(e.fonts.Cur, ch, upcase)`; the blit loops that turn a glyph into pixels -> fonts.DrawGlyph / Console.Draw.
 - cotab-go: delete glyph() (cmd/cotab/combat.go:31), `combat.font` and the Block("8X8D1",201) read (main.go:618); text blits -> fonts.DrawText(img, nil, s, x, y, fg, &bg) / fonts.Glyph(nil, ch, true). Gold_Box_8x8D1 is the same bytes as its block 201.
+
+Pure helpers (Console, Cell, Frame, Theme, MenuItem, List, IsHotkey, MenuItems, Punct, Flow, Wrap, PadLeft, PriceLine, Commas) live in `gobox/ui/text`, free of gpu and input; `ui` re-exports them as aliases. A game whose own names clash wraps them in a small adapter.

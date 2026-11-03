@@ -25,7 +25,9 @@ go.mod: `require gobox/exe v0.0.0` + `replace gobox/exe => ../gobox-engine/exe`;
 `go run gobox/exe/cmd/tablegen -spec tables.json -pkg engine START.EXE:DS [OTHER.EXE:DS] > tables.go`
 
 ## Migrate
-- cotab-go: delete tablespec/ and cmd/tablegen/. Turn `tablespec.Tables` into tables.json (same fields; `{"kind":"bytes"}`, `"string:10"` for `String(10)`; all rows `img` 0). Replace the generate line with `tablegen -spec tables.json -pkg engine START.EXE:2750`. Output is unchanged.
+- cotab-go: delete tablespec/ and cmd/tablegen/. Turn `tablespec.Tables` into tables.json (same fields; `{"kind":"bytes"}`, `"string:10"` for `String(10)`; all rows `img` 0). Run `tablegen -spec tables.json -pkg engine START.EXE:2750`. Output is unchanged.
 - sotsb-go: same; a table with `Curse: true` becomes `"img": 1`; run `tablegen -spec tables.json -pkg engine BLADES-START.EXE:3554 CURSE-START.EXE:2750`.
 - Either game may instead keep its list as a Go value and call `tablespec.Generate` from its own tiny main.
 - Delete the game's `tablespec` import (`cotab/tablespec`, `sotsb/tablespec`); nothing at run time uses it.
+
+A game whose own names clash with this API wraps them in a small adapter.

@@ -62,3 +62,7 @@ por's ecl.go/eclops*.go use int addresses and `eclByte`, with a different operan
 (a) widening nothing: add an adapter Host that converts uint16 addresses to por's ints and a Layout with por's ranges, and
 (b) moving its operand reading onto `ReadArgs`, then taking `Default()` opcodes that match por's semantics after a diff
 (not done here: por was not diffed opcode by opcode).
+
+## Cloning state
+
+When a game deep-copies its state, it must rebind the Host the VM holds to the copy (cotab's clone does this); otherwise the cloned VM calls back into the original. A game whose own names clash with the API (e.g. Host.Exit) wraps them in a small adapter.

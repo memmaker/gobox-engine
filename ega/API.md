@@ -15,5 +15,7 @@ Each game: add `require gobox/ega v0.0.0` + `replace gobox/ega => ../gobox-engin
 
 ## Migrate
 Colour numbers `ega.Black Blue Green Cyan Red Magenta Brown LightGrey DarkGrey LightBlue LightGreen LightCyan LightRed LightMagenta Yellow White` (0..15).
-- cotab-go, sotsb-go engine/colours.go: delete the `colourBlack ... colourWhite` consts and use `ega.Black`, `ega.Blue`, `ega.Red`, `ega.Magenta`, `ega.Green`, `ega.Cyan`, `ega.LightRed`, `ega.LightMagenta`, `ega.Yellow`, `ega.White` (cotab uses the subset without Red/Magenta). Keep ticksPerSecond, titleSound, states, scan codes.
+- cotab-go, sotsb-go engine/colours.go: delete the `colourBlack ... colourWhite` consts and use `ega.Black`, `ega.Blue`, `ega.Red`, `ega.Magenta`, `ega.LightGreen`, `ega.LightCyan`, `ega.LightRed`, `ega.LightMagenta`, `ega.Yellow`, `ega.White` (cotab uses the subset without Red/Magenta; both games' green and cyan are LightGreen and LightCyan, 10 and 11). A game whose own names clash wraps the API in a small adapter.. Keep ticksPerSecond, titleSound, states, scan codes.
 - sotsb-go: import gobox/ega under another name (`gega`), as its own package is `ega`.
+
+A game whose own names clash with this API wraps them in a small adapter.

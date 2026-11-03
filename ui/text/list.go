@@ -1,4 +1,4 @@
-package ui
+package text
 
 // List is the cursor of a scrolling list of Total rows, Rows visible from
 // Top, Index the selected row. Skip(i) marks rows the cursor passes over
