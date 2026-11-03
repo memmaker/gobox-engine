@@ -28,7 +28,12 @@ func (f *fake) SetVar(a, v uint16)            { f.mem[a] = v }
 func (f *fake) TextVar(a uint16) string       { return f.texts[a] }
 func (f *fake) SetTextVar(a uint16, s string) { f.texts[a] = s }
 func (f *fake) Random(n int) int              { return f.rnd % n }
-func (f *fake) Exit(vm *VM)                   { f.exits++; vm.Stop = true; vm.PC++ }
+func (f *fake) Exit(vm *VM) {
+	f.exits++
+	if vm != nil {
+		vm.Stop = true
+	}
+}
 
 func newVM(h Host, b ...byte) *VM {
 	code := make([]byte, 7680)
@@ -47,6 +52,11 @@ type oracle struct {
 	argHi   [MaxArgs]byte
 	text    [MaxArgs]string
 	h       Host
+	flags   [6]bool
+	calls   []uint16
+	command byte
+	skip    *[256]byte
+	stopped bool
 }
 
 func (s *oracle) codeByte(a uint16) byte { return s.code[uint16(a-32768)%7680] }

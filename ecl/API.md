@@ -17,7 +17,7 @@ are handed in.
 - `vm.Ops [256]Op` (`func(vm *VM, h Host)`), filled by `Default()` in `New`; the game overrides entries.
 - `vm.Step(h)` runs one command; `vm.Run(h, halt)` loops until Stop or `halt()`.
 - Shared opcodes: GOTO GOSUB COMPARE ADD SUB DIV MUL RANDOM SAVE RETURN COMPARE-AND IF* ON-GOTO ON-GOSUB GET-TABLE AND OR SAVE-TABLE.
-  DIVIDE writes its remainder with `Host.SetVar(remainderAddr, ..)` (cotab/sotsb: 31744+831).
+  DIVIDE writes its remainder with `Host.SetVar(remainderAddr, ..)` (cotab/sotsb: 31744+831). Checked in both games: word 831 has no case in charValue/setCharValue (cvPartyCount is 830; memo, coin and wall ranges end below or sit elsewhere), so SetVar(area2 word 831) equals the original raw putWord; no SetRaw needed.
 - `vm.Trace` hook (replaces sotsb's scriptTrace; `ArgsTrace` gives the same output).
 
 ## Suspension
@@ -55,9 +55,6 @@ Both games (cotab-go, sotsb-go `engine/`):
    (sotsb adds cmd 65 to the 2-operand list), then `skipCommand` = `vm.Skip(e)`.
 5. cotab commandTable bounds check is covered by the fixed 256 table; sotsb's trace -> `vm.Trace = ecl.ArgsTrace(e, ...)`.
 6. Net: about 450 lines removed per game, ~600 touched call sites; run the fixture/replay tests for equality.
-
-Check before migrating: cotab's setVar for area2 also calls setCharValue; DIVIDE's remainder used a raw putWord on the
-area2 record, shared code uses `SetVar`, so confirm word 831 has no char-value mapping (it does not in the shipped tables; add a guard in Host if it does).
 
 ## Por
 
