@@ -48,6 +48,7 @@ type Presenter struct {
 	tabFrom       *image.Point // Tab was pressed with the aim here: the camera jumps to where it goes
 	tabTo         *vec         // the target Tab went to: watched while aiming
 	focus, offset vec          // what the camera watches; W A S D's and the right stick's pan from it
+	centring      bool         // a new focus: the eye eases all the way onto it, not only into the comfort box
 	yaw, yawTo    float64      // camera heading: 0 looks north, as the original's screen
 	dist, distTo  float64      // camera distance in squares
 	at            vec          // what the camera looks at (eased)
@@ -155,7 +156,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		focus = vec{f.X + .5, 0, f.Y + .5}
 	}
 	if focus != p.focus { // a new thing to watch: let go of the pan
-		p.focus, p.offset = focus, vec{}
+		p.focus, p.offset, p.centring = focus, vec{}, true
 	}
 	panned := p.pan(dt, focus)
 	focus = focus.add(p.offset)
@@ -165,7 +166,15 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	if panned { // the camera is in the player's hand: it goes where the keys say, at once
 		p.at = focus
 	} else {
-		p.at = p.at.add(focus.sub(p.at).mul(k * p.chase(focus)))
+		c := p.chase(focus)
+		if p.centring {
+			c = 1
+		}
+		d := focus.sub(p.at)
+		p.at = p.at.add(d.mul(k * c))
+		if d = focus.sub(p.at); d[0]*d[0]+d[2]*d[2] < .01 {
+			p.centring = false
+		}
 	}
 
 	r := dst.Bounds()

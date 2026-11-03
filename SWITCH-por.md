@@ -14,3 +14,9 @@ Run in /Users/felix/Projects/por-go when no other session is editing.
 4. git rm -r gpu present/input phlan-poc/blobber (also rm -rf ignored leftovers: phlan-poc/blobber/{art,cmd,.claude,settings.json}).
 5. go mod tidy; go build ./... && go test -short ./present/...
 Note: blobber imports no por/... packages (no cycle).
+
+## blobber API since 5ab7d33
+
+- `blobber.NewView()` is now `blobber.NewView(nil)` (nil keeps the embedded PoR walls).
+- The package global `blobber.Night` is gone: set `v.Night` on the View instead.
+- The scratch `por-switch.patch` predates this; rebuild after applying and fix these call sites.
