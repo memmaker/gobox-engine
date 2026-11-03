@@ -60,7 +60,7 @@ Coins in the record (7 uint16 at +251: copper, silver, electrum, gold, platinum,
   character has 300 platinum at +251) pays its coins into the purse on join.
 - Shop prices: `shopPrice` is unchanged (price in gold, uint16 from the item); buying is `e.pay(uint64(price))` against
   `purse.Gold` (fold copper: it is under one gold, so gold alone decides). The member-then-pool fallback in `shopBuy` goes: one
-  purse. Selling adds `AddCopper(value)`. cotab's `(copper + 100) / 200` rounding in `goldWorth` goes with it.
+  purse. Selling adds the value in the unit the game prices in: `Gold += v` for gold prices, `AddCopper(v)` for copper. cotab's `(copper + 100) / 200` rounding in `goldWorth` goes with it.
 - Treasure pool: the pool is a Purse (`e.loot`, as por). ECL treasure commands set it with
   `FromCoins(args, GoldBoxRates)`; taking the treasure does `e.purse.Add(e.loot, rates)` and clears it. The take/share/drop
   per-kind screens and `treasureExpDivisor`/`Factor` experience (computed from the pool's kinds before Add) are the places
