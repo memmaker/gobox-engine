@@ -12,6 +12,6 @@ All games: `require gobox/dax v0.0.0`, `replace gobox/dax => ../gobox-engine/dax
 import `por/dax` | `cotab/dax` | `sotsb/dax` -> `gobox/dax`; delete the game's dax/ (and cotab's palette.go).
 - por: rename every `.Block(` on a dax Loader/File to `.BlockShared(` (keeps exact old no-copy behaviour);
   UseAmiga/DOSBlock/Image.Alt/Fit unchanged. por's dax tests moved here.
-- cotab: no call changes (Block copies, DISK2 auto-detect, dax.Palette alias). Image has extra fields (Alt, File, Block, Base) unused.
-- sotsb: no call changes; its dax/amiga.go ega import is now gobox/ega internally.
-- `Loader.OneDisk`: a block missing from its file stays missing (default: looked up on the other disks, GEO3 → GEO1..8). sotsb sets it.
+- cotab: set `l.OneDisk = true` after every NewLoader; otherwise no call changes (Block copies, DISK2 auto-detect, dax.Palette alias). Image has extra fields (Alt, File, Block, Base) unused.
+- sotsb: set `l.OneDisk = true`; otherwise no call changes; its dax/amiga.go ega import is now gobox/ega internally.
+- `Loader.OneDisk`: a block missing from its file stays missing (default: looked up on the other disks, GEO3 → GEO1..8, por's behaviour). cotab and sotsb set it.

@@ -12,7 +12,7 @@ func (*Player) Play(n int)   // PlaySound number 0..15, 255
 func (*Player) Read([]byte)  // s16le stereo 44100 Hz
 func Output(io.Reader)       // oto, shared context; no device = no-op
 ```
-Generator: `go run gobox/audio/cmd/sounddata <flags> START.EXE > sounddata.json`.
+Generator: `go -C ../gobox-engine/audio run ./cmd/sounddata <flags> START.EXE > sounddata.json` (`go run gobox/audio/...` works only from a module that requires gobox/audio).
 Switch, all games: `require gobox/audio v0.0.0`, `replace gobox/audio => ../gobox-engine/audio`; delete the
 game's sound.go, sounddata.go, amiga/, volume_*.go; embed the JSON; `NewPlayer`, `audio.Output(p)`.
 - cotab: `Card: Cfg.Sound, Dir: *dir`, Volume = the old volume_js.go logic; EvSound n -> `p.Play(n)`, `Play(255)` on Exit.
