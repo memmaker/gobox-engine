@@ -53,7 +53,7 @@ func TestWalldef(t *testing.T) {
 	if !w.Fits(2) || w.Fits(3) || SymbolBlock(7, 2, 2) != 72 || SymbolBlock(7, 1, 1) != 7 {
 		t.Fatal("fits")
 	}
-	if _, err := ParseWalldef(b[:10]); err == nil {
+	if w, err := ParseWalldef(b[:10]); err != nil || len(w.Sets) != 0 {
 		t.Fatal("short")
 	}
 }
@@ -127,4 +127,13 @@ func daxBlocks(t *testing.T, path string) map[int][]byte {
 		out[int(b[i])] = o[:min(len(o), raw)]
 	}
 	return out
+}
+
+func TestMapLength(t *testing.T) {
+	if _, err := ParseMap(make([]byte, Size+10)); err != nil {
+		t.Fatal("a long GEO block is refused:", err)
+	}
+	if _, err := ParseMap(make([]byte, Size-1)); err != ErrSize {
+		t.Fatal("a short GEO block is accepted")
+	}
 }

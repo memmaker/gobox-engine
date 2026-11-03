@@ -14,3 +14,4 @@ import `por/dax` | `cotab/dax` | `sotsb/dax` -> `gobox/dax`; delete the game's d
   UseAmiga/DOSBlock/Image.Alt/Fit unchanged. por's dax tests moved here.
 - cotab: no call changes (Block copies, DISK2 auto-detect, dax.Palette alias). Image has extra fields (Alt, File, Block, Base) unused.
 - sotsb: no call changes; its dax/amiga.go ega import is now gobox/ega internally.
+- `Loader.OneDisk`: a block missing from its file stays missing (default: looked up on the other disks, GEO3 → GEO1..8). sotsb sets it.

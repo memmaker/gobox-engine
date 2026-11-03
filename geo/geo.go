@@ -22,9 +22,10 @@ type Map struct {
 
 var ErrSize = errors.New("geo: bad GEO block size")
 
-// ParseMap reads a GEO block. SolidEdges is left false for the caller to set.
+// ParseMap reads a GEO block; bytes past Size are ignored (the games report
+// a long block themselves). SolidEdges is left false for the caller to set.
 func ParseMap(b []byte) (*Map, error) {
-	if len(b) != Size {
+	if len(b) < Size {
 		return nil, ErrSize
 	}
 	m := &Map{}
@@ -99,10 +100,7 @@ type Walldef struct{ Sets [][]byte }
 // ParseWalldef splits a block; an empty or short block is an error the
 // caller ignores (the original stops the game there).
 func ParseWalldef(b []byte) (*Walldef, error) {
-	n := len(b) / SetSize
-	if n == 0 {
-		return nil, errors.New("geo: bad WALLDEF block")
-	}
+	n := len(b) / SetSize // shorter than one chunk: no sets
 	w := &Walldef{}
 	for k := 0; k < n; k++ {
 		w.Sets = append(w.Sets, append([]byte(nil), b[k*SetSize:(k+1)*SetSize]...))

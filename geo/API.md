@@ -1,7 +1,7 @@
 # gobox/geo API
 Pure parser: block bytes in (caller's own dax), plain values out. No dax, no engine state, no drawing.
 
-- `ParseMap(b) (*Map, error)`: GEO block (0x402 bytes, else `ErrSize`). `Map.Plane` is the 4 planes; `Map.SolidEdges` set by game.
+- `ParseMap(b) (*Map, error)`: GEO block (at least 0x402 bytes, else `ErrSize`; longer ones are cut). `ParseWalldef` of a block shorter than one 0x30C chunk is an empty Walldef, not an error. `Map.Plane` is the 4 planes; `Map.SolidEdges` set by game.
 - `Map.WallAt/DoorAt/MapCell(x,y[,dir])`: dir 0 N,2 E,4 S,6 W. Off map: 0 if SolidEdges, else wrap (>15->0, <0->15). DoorAt: 1 for a side without wall; 2-bit state otherwise.
 - `OnMap(x,y)`, `ValidWallSlot(s)` (1..3).
 - `ParseWalldef(b) (*Walldef, error)`: split into 0x30C chunks (5 walls x 0x9C ids); `Sets`, `Wall(k,i)`, `Fits(slot)`, `Relocate(k,delta)` (ids >= 0x2D), `SymbolBlock(block,k,n)` (block*10+k if n>1).

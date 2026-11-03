@@ -111,12 +111,13 @@ func Decode(src []byte, rawSize int) []byte {
 // and keeps opened files cached, like the original's single-file cache but
 // without the reload cost.
 type Loader struct {
-	Dir   string
-	mu    sync.Mutex
-	files map[string]*File
-	names map[string]string   // lower-case name -> real file name
-	amiga *Loader             // UseAmiga's: Amiga graphics by base name (PIC.DAX for PIC1..8)
-	memo  map[amigaKey][]byte // finished Amiga blocks (name munging and centre done once)
+	Dir     string
+	OneDisk bool // a missing block stays missing (no fallback to the other disks' files, sotsb)
+	mu      sync.Mutex
+	files   map[string]*File
+	names   map[string]string   // lower-case name -> real file name
+	amiga   *Loader             // UseAmiga's: Amiga graphics by base name (PIC.DAX for PIC1..8)
+	memo    map[amigaKey][]byte // finished Amiga blocks (name munging and centre done once)
 }
 
 type amigaKey struct {
@@ -239,6 +240,9 @@ func (l *Loader) dosBlock(name string, id int) []byte {
 		}
 	}
 	for _, n := range siblings(name) { // all data is always there: the block on another disk
+		if l.OneDisk {
+			break
+		}
 		if f := l.File(n); f != nil {
 			if b := f.BlockShared(id); b != nil {
 				return b
