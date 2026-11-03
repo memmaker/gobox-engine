@@ -7,6 +7,20 @@ synchronous, no goroutines, no Ebiten) and its data reading (DAX, ECL, GEO,
 WALLDEF). gobox-engine holds only what presents a game: it never imports a
 game, and a game feeds it plain Go values built from its own data.
 
+## Rules
+
+1. Unify UI code but keep each game's theme: colour schemes, fonts and
+   border graphics are the game's data, handed to the shared UI.
+2. Rules that are the same, or should be the same, are unified in a `rules`
+   package. Whether a rule "should be the same" is the user's call: ask.
+3. A rule specific to one game stays in that game's code base.
+4. gobox-engine never knows which game is running and never runs code
+   specific to one game. Every difference between the games comes from data.
+5. gobox-engine reads the original data files, and derived or extended data
+   files made at import time or at run time.
+6. Each game supplies what uniquely defines it: maps, area scripts, graphics,
+   music, story texts and the like.
+
 ## Modules
 
 Each directory is its own Go module. A game uses them with `replace`:
