@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-// The host's Textures replace the embedded walls; nil keeps them; the sky reads the current View.
+// The host's Textures are the only painted images; the sky reads the current View.
 func TestViewTexturesAndSky(t *testing.T) {
 	defer func(c *View) { cur = c }(cur)
 	cur = &View{}
-	if decodeWall("stone") == nil {
-		t.Fatal("nil Textures: the embedded stone should load")
+	if decodeWall("stone") != nil {
+		t.Fatal("nil Textures: no images")
 	}
 	img := image.NewRGBA(image.Rect(0, 0, 4, 4))
 	cur = &View{Textures: map[string]image.Image{"wall1": img}}
