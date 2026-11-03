@@ -135,14 +135,11 @@ func NewLoader(dir string) (*Loader, error) {
 	l := &Loader{Dir: dir, files: map[string]*File{}, names: map[string]string{}}
 	for _, e := range ents {
 		l.names[strings.ToLower(e.Name())] = e.Name()
-		if e.IsDir() && strings.EqualFold(e.Name(), "DISK2") {
-			l.amiga, _ = NewLoader(filepath.Join(dir, e.Name()))
-		}
 	}
 	return l, nil
 }
 
-// UseAmiga makes the Amiga archives in dir (cmd/por -import-disk2) stand in
+// UseAmiga makes the Amiga archives in dir stand in
 // for the DOS ones of the same base name; a missing dir changes nothing.
 func (l *Loader) UseAmiga(dir string) {
 	l.amiga, _ = NewLoader(dir)
