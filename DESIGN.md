@@ -21,6 +21,10 @@ game, and a game feeds it plain Go values built from its own data.
 6. Each game supplies what uniquely defines it: maps, area scripts, graphics,
    music, story texts and the like.
 
+Shared assets (the user's exception to rule 6): gobox supplies item sprites,
+merged character portraits and icons, and the combat UI icons, for all games
+to use. A game may override any of them with its own data.
+
 ## Rule 2 decisions (the user's)
 
 - Map edges: solid or wrapping is a configuration the game sets (geo `SolidEdges`); SotSB is asked to explain why it depends on wrapping.
