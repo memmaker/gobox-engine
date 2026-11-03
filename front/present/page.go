@@ -1,0 +1,531 @@
+package present
+
+import (
+	"fmt"
+	"gobox/front"
+	"gobox/ui/fonts"
+	"image"
+	"image/color"
+	"image/draw"
+	"math"
+	"strconv"
+	"strings"
+
+	xdraw "golang.org/x/image/draw"
+
+	"gobox/ega"
+	"gobox/gpu"
+	"gobox/ui"
+)
+
+// Rect is where the page lands on the window, in device pixels.
+type Rect struct{ X, Y, W, H float64 }
+
+// Note is a toast shown on the bottom line of the page (row 24, in place
+// of the prompt), in the game's current font.
+type Note struct {
+	Text  string
+	Show  bool
+	Glyph func(byte) [8]byte
+	Font  func(ch byte, upcase bool) [8]byte // a pane run's glyphs (front.PaneRun)
+}
+
+// page is the engine's screen (pageSize: 320x200 at least) drawn from the
+// View's Page and Text.
+type page struct {
+	img   *gpu.Image
+	px    *image.RGBA
+	seq   uint64
+	noted bool
+	own   string // the presenter's screens it shows (Screens)
+	drawn bool
+	page  []front.Picture      // what img shows: the View's pictures...
+	text  string               // ...and text (pageText)
+	overs []overlay            // the screens' portraits over the page
+	scans map[image.Image]scan // the overlays on the GPU
+	fit   *gpu.Image           // fit's whole-scale copy
+	pane  *gpu.Image           // the text pane (paneImage)
+	pic   *gpu.Image           // the picture window (pictureBox)
+	toast *gpu.Image           // the note's line over the 3D view
+	notes *gpu.Image           // the text box's "> Notes" (paneBox)
+}
+
+// pageSize is v's page in pixels: its text cells, 8 by 8 (the original's
+// 320x200 for a View without any).
+func pageSize(v front.View) (w, h int) {
+	if v.Cells.X == 0 || v.Cells.Y == 0 {
+		return ega.W, ega.H
+	}
+	return v.Cells.X * 8, v.Cells.Y * 8
+}
+
+// grid is the text cells the window holds: 40x25 at least, more at the
+// largest whole scale the original's screen fits (scale), so a larger
+// window shows more rather than bigger cells; the engine lays its screens
+// out to it (ActResize).
+func grid(dst *gpu.Image) (cols, rows int) {
+	b, k := dst.Bounds(), int(scale(dst))
+	return max(40, b.Dx()/(8*k)), max(25, b.Dy()/(8*k))
+}
+
+// fit draws img, w by h unscaled pixels, over the whole of dst: nearest
+// neighbour at the largest whole scale that fits (sharp pixels), then
+// stretched the rest of the way to the window's edges, under a cell on
+// each axis when the page is the window's grid. No black bars, ever:
+// every screen fills the window. It returns the scale on each axis.
+func (p *Presenter) fit(dst, img *gpu.Image, w, h int) (kx, ky float64) {
+	b := dst.Bounds()
+	k := max(1, min(b.Dx()/w, b.Dy()/h))
+	kx, ky = float64(b.Dx())/float64(w), float64(b.Dy())/float64(h)
+	op := &gpu.DrawImageOptions{}
+	if kx == float64(k) && ky == float64(k) {
+		op.GeoM.Scale(kx, ky)
+		dst.DrawImage(img, op)
+		return
+	}
+	pg := &p.pg
+	gpu.Sized(&pg.fit, w*k, h*k)
+	op.GeoM.Scale(float64(k), float64(k))
+	pg.fit.DrawImage(img, op)
+	op = &gpu.DrawImageOptions{Filter: gpu.FilterLinear}
+	op.GeoM.Scale(kx/float64(k), ky/float64(k))
+	dst.DrawImage(pg.fit, op)
+	return
+}
+
+// scan is an overlay on the GPU: the picture itself (w, h 0), or a copy
+// scaled up to w by h window pixels (Catmull-Rom: sharper than the GPU's
+// bilinear).
+type scan struct {
+	im   *gpu.Image
+	w, h int
+	part image.Rectangle // the part of the scan a scaled copy (w, h) is of
+}
+
+// pageImage draws v's page (only when a new View or the note changed) and
+// returns it.
+func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
+	pg := &p.pg
+	w, h := pageSize(v)
+	if gpu.Sized(&pg.img, w, h) {
+		pg.px, pg.drawn = image.NewRGBA(image.Rect(0, 0, w, h)), false
+	}
+	if pg.drawn && !note.Show && !pg.noted && pg.own == p.pageKey() && (v.Seq == pg.seq || !p.modal(v) && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
+		pg.seq = v.Seq
+		return pg.img
+	}
+	pg.drawn, pg.seq, pg.noted, pg.own = true, v.Seq, note.Show, p.pageKey()
+	pg.page, pg.text = append(pg.page[:0], v.Pictures...), pageText(v)
+	m := pg.px
+	if p.modal(v) { // help, the journal, the maps, the overview: from their data alone, nothing of the page under them
+		draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
+		pg.overs = nil
+	} else {
+		c := screenPage(v)
+		c.draw(m, v, note)
+		pg.overs = c.overs
+	}
+	p.drawModal(m, v, note)
+	if note.Show {
+		noteLine(m, note, h-8)
+	}
+	pg.img.WritePixels(m.Pix)
+	return pg.img
+}
+
+// ownPage: v shows a screen the presenter lays out from its data
+// (screenPage), drawn anew with each View.
+func ownPage(v front.View) bool {
+	return v.SheetPage != nil || v.Picker != nil || v.Slots != nil || v.IconEditor != nil
+}
+
+// modal: v shows a screen over the whole page (help, the journal, the
+// full map, the overview), drawn from its data over the page under it.
+func (p *Presenter) modal(v front.View) bool {
+	return p.pager != nil || p.fullMap != nil || p.overview
+}
+
+// pagerMark is the column of pager pg's mark for the page before (d -1)
+// or after (d +1) on a page cols cells wide, on its hint row; ok: there is
+// such a page.
+func pagerMark(pg *front.Pages, cols, d int) (x int, ok bool) {
+	if d < 0 {
+		return 1, pg.Page > 0
+	}
+	return cols - 2, pg.Page < pg.Pages-1
+}
+
+// drawModal draws v's screen over the whole page (modal) into m as the
+// game draws such a page: a box round it, text in the game's font.
+func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
+	if !p.modal(v) {
+		return
+	}
+	cols, rows := m.Rect.Dx()/8, m.Rect.Dy()/8
+	run := func(r front.PaneRun, y int) {
+		for i := 0; i < len(r.Text); i++ {
+			glyphAt(m, note.Font(r.Text[i], r.Upcase), (r.X+i)*8, y*8, r.Fg, r.Bg)
+		}
+	}
+	str := func(x, y, c int, s string) { // DisplayString
+		run(front.PaneRun{X: x, Text: s[:max(0, min(len(s), cols-x))], Fg: col(c), Bg: col(0), Upcase: true}, y)
+	}
+	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(m, r, image.NewUniform(c), image.Point{}, draw.Src) }
+	box := func(x2, y2 int) { // DrawBoxTitled(1, 1, x2, y2): the inside cleared, the border's cells round it
+		fill(image.Rect(8, 8, x2*8+8, y2*8+8), col(0))
+		cellBorder(m, v, front.CellRect{X1: 1, Y1: 1, X2: x2, Y2: y2})
+	}
+	prompt := func(s string, c int) { // the prompt row cleared, s on it
+		str(0, rows-1, 0, strings.Repeat(" ", cols))
+		str(0, rows-1, c, s)
+	}
+	switch {
+	case p.pager != nil:
+		pg, _ := p.pages(v)
+		box(cols-2, rows-2)
+		run(pg.Title, 1)
+		for _, s := range pg.Scans { // the paper; the scan goes over the window (drawOverlays)
+			fill(s.At, s.Paper)
+		}
+		for i, l := range pg.Lines {
+			for _, r := range l {
+				run(r, pg.Top+i)
+			}
+		}
+		run(pg.Hint, rows-2)
+		for _, d := range []int{-1, 1} { // the clickable marks (pagerMark): ◀ while there is a page before, ▶ while one after
+			if x, ok := pagerMark(pg, cols, d); ok {
+				for i := range 4 { // a triangle 4 pixels deep, 7 tall, pointing d
+					c := x*8 + 2 + i
+					if d < 0 {
+						c = x*8 + 5 - i
+					}
+					fill(image.Rect(c, (rows-2)*8+1+i, c+1, (rows-2)*8+8-i), col(10))
+				}
+			}
+		}
+	case p.fm() != nil:
+		fm := p.fm()
+		lx := fm.LegendAt.X
+		fill(m.Rect, col(0))
+		str(0, 0, 15, fm.Name[:min(len(fm.Name), lx-1)])
+		str(lx, 0, 15, "Labels")
+		for i, l := range fm.Legend {
+			str(lx, fm.LegendAt.Y+i, l.Colour, string(l.Letter))
+			str(lx+2, fm.LegendAt.Y+i, 10, l.Text[:min(len(l.Text), cols-lx-2)])
+		}
+		str(1, rows-2, 11, fm.Info[:min(len(fm.Info), cols-2)])
+		mi := mapImage(fm.Map, fm.Cell, v.Ink, note.Font)
+		draw.Draw(m, mi.Bounds().Add(fm.At), mi, image.Point{}, draw.Over)
+		n, c := fm.Cell, fm.At.Add(fm.Cursor.Mul(fm.Cell))
+		for _, r := range []image.Rectangle{image.Rect(0, 0, n, 1), image.Rect(0, n-1, n, n), image.Rect(0, 0, 1, n), image.Rect(n-1, 0, n, n)} {
+			fill(r.Add(c), col(14))
+		}
+		if fm.Label != nil {
+			prompt("Label: ", 13)
+			str(7, rows-1, 15, *fm.Label+"_")
+		}
+	case p.overview:
+		box(cols-2, rows-2)
+		const title = "Party"
+		str((cols-1-len(title))/2, 1, 15, title)
+		y := 3
+		// Spells and XP to the next level only where the window has room for them
+		str(2, y, 15, "Name")
+		str(19, y, 15, "HP")
+		str(27, y, 15, "AC")
+		str(31, y, 15, "Status")
+		if cols >= 50 {
+			str(43, y, 15, "Spells")
+		}
+		if cols >= 61 {
+			str(50, y, 15, "XP to next")
+		}
+		y += 2
+		for _, c := range v.Party {
+			if y > rows-9 { // above the purse
+				break
+			}
+			colour := 11
+			if c.Selected {
+				colour = 15
+			}
+			str(2, y, colour, c.Name[:min(len(c.Name), 15)])
+			hpc := 10
+			switch {
+			case c.HP <= 0:
+				hpc = 12
+			case c.HP*2 < c.MaxHP:
+				hpc = 14
+			}
+			str(19, y, hpc, strconv.Itoa(c.HP)+"/"+strconv.Itoa(c.MaxHP))
+			str(27, y, 10, strconv.Itoa(c.AC))
+			str(31, y, 10, c.Status)
+			if cols >= 50 {
+				str(43, y, 10, c.Spells)
+			}
+			if cols >= 61 {
+				xp := "-"
+				if c.NextExp > 0 {
+					xp = strconv.Itoa(max(c.NextExp-c.Exp, 0))
+				}
+				str(50, y, 10, xp)
+			}
+			w := 0 // the hit point bar under the name, 32 steps
+			if c.MaxHP > 0 && c.HP > 0 {
+				w = min((c.HP*0x20+c.MaxHP-1)/c.MaxHP, 0x20)
+			}
+			px, py := 2*8, (y+1)*8+2
+			fill(image.Rect(px, py, px+0x20*4, py+3), col(8))
+			fill(image.Rect(px, py, px+w*4, py+3), col(hpc))
+			y += 2
+		}
+		if p := v.Purse; p != nil { // a blank row between the pairs and before the items
+			str(2, rows-7, 14, fmt.Sprintf("%d gold  %d copper", p.Gold, p.Copper))
+			str(2, rows-5, 14, fmt.Sprintf("%d gems  %d jewelry", p.Gems, p.Jewelry))
+			str(2, rows-3, 11, fmt.Sprintf("Party items %d/%d", p.Items, p.Slots))
+		}
+		// no prompt: the frame runs round the whole page, any key still closes it
+	}
+}
+
+// drawPictures draws pics on black into m, whose top left is page pixel
+// at: a fill as its colour, a picture over what is under it (the borders
+// are the page's: cellPage).
+func drawPictures(m *image.RGBA, pics []front.Picture, at image.Point) {
+	draw.Draw(m, m.Bounds(), image.Black, image.Point{}, draw.Src)
+	for _, s := range pics {
+		r := s.At.Sub(at).Add(m.Rect.Min)
+		switch {
+		case s.Fill:
+			draw.Draw(m, r, image.NewUniform(s.Colour), image.Point{}, draw.Src)
+		case s.Img != nil:
+			draw.Draw(m, r, s.Img, s.Img.Bounds().Min, draw.Over)
+		}
+	}
+}
+
+// pictureBox draws the pictures in page rectangle r (the picture window)
+// into *img.
+func pictureBox(img **gpu.Image, pics []front.Picture, r image.Rectangle) *gpu.Image {
+	m := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
+	drawPictures(m, pics, r.Min)
+	return upload(img, m)
+}
+
+// noteLine is the one toast: the note in red (EGA 12), centred on a black
+// line at y of m, the bottom row of every view (the page's prompt line, the
+// 3D view's band, the inventory's row under its menu row, combat's status line).
+func noteLine(m *image.RGBA, note Note, y int) {
+	w := m.Rect.Dx()
+	draw.Draw(m, image.Rect(0, y, w, y+8), image.Black, image.Point{}, draw.Src)
+	x0 := (w - 8*len(note.Text)) / 2
+	for i := 0; i < len(note.Text); i++ {
+		glyphAt(m, note.Glyph(note.Text[i]), x0+i*8, y, ega.RGBA(12), color.RGBA{A: 255})
+	}
+}
+
+// paneImage draws the text pane's runs on black in *img (made or remade
+// at the pane's size): what drawBox shows inside the pane's border.
+func paneImage(img **gpu.Image, pn *front.Pane, note Note) *gpu.Image {
+	r := paneBox.Pixels()
+	m := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
+	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
+	for y, l := range pn.Lines {
+		for _, run := range l {
+			for i := 0; i < len(run.Text); i++ {
+				glyphAt(m, note.Font(run.Text[i], run.Upcase), (run.X+i)*8, y*8, run.Fg, run.Bg)
+			}
+		}
+	}
+	return upload(img, m)
+}
+
+// viewTextImage draws the text over the view window (View.ViewText, rows
+// rows from 1, columns of the page) as the window's inside r shows it.
+func viewTextImage(img **gpu.Image, rows [][]front.PaneRun, r image.Rectangle, note Note) *gpu.Image {
+	m := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
+	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
+	for y, l := range rows {
+		for _, run := range l {
+			for i := 0; i < len(run.Text); i++ {
+				glyphAt(m, note.Font(run.Text[i], run.Upcase), (run.X+i)*8-r.Min.X, (y+1)*8-r.Min.Y, run.Fg, run.Bg)
+			}
+		}
+	}
+	return upload(img, m)
+}
+
+// upload writes m to *img, made or remade at m's size.
+func upload(img **gpu.Image, m *image.RGBA) *gpu.Image {
+	gpu.Sized(img, m.Rect.Dx(), m.Rect.Dy())
+	(*img).WritePixels(m.Pix)
+	return *img
+}
+
+// glyphAt draws glyph g at x, y: set bits fg, the rest bg.
+func glyphAt(m *image.RGBA, g [8]byte, x, y int, fg, bg color.RGBA) {
+	fonts.DrawGlyph(m, g, x, y, &fg, &bg)
+}
+
+// drawPage shows the whole page over the whole window (fit), with the
+// overlays at the window's own resolution; it returns where. A page not yet
+// of the window's grid (the engine has the resize still to do) is shown
+// at a whole scale in the middle meanwhile, so nothing stretches.
+func (p *Presenter) drawPage(dst *gpu.Image, v front.View, note Note) Rect {
+	img := p.pageImage(v, note)
+	dst.Fill(color.Black)
+	b := dst.Bounds()
+	w, h := pageSize(v)
+	var r Rect
+	if cols, rows := grid(dst); cols*8 == w && rows*8 == h {
+		kx, ky := p.fit(dst, img, w, h)
+		r = Rect{0, 0, kx * float64(w), ky * float64(h)}
+	} else {
+		k := math.Max(1, math.Floor(math.Min(float64(b.Dx())/float64(w), float64(b.Dy())/float64(h))))
+		r = Rect{(float64(b.Dx()) - k*float64(w)) / 2, (float64(b.Dy()) - k*float64(h)) / 2, k * float64(w), k * float64(h)}
+		op := &gpu.DrawImageOptions{}
+		op.GeoM.Scale(k, k)
+		op.GeoM.Translate(r.X, r.Y)
+		dst.DrawImage(img, op)
+	}
+	os := append([]overlay(nil), p.pg.overs...)
+	if pg, _ := p.pages(v); pg != nil {
+		for _, s := range pg.Scans {
+			os = append(os, overlay{Img: s.Img, Src: s.Src, At: s.At})
+		}
+	}
+	p.drawOverlays(dst, os, r, w, h)
+	return r
+}
+
+// drawOverlays draws the overlays (journal scans) over the page of w by h
+// pixels at r.
+func (p *Presenter) drawOverlays(dst *gpu.Image, os []overlay, r Rect, w, h int) {
+	pg := &p.pg
+	for img, im := range pg.scans { // drop the copies of scans no longer shown
+		keep := false
+		for _, o := range os {
+			keep = keep || o.Img == img
+		}
+		if !keep {
+			im.im.Deallocate()
+			delete(pg.scans, img)
+		}
+	}
+	kx, ky := r.W/float64(w), r.H/float64(h)
+	for _, o := range os {
+		b := o.Part()
+		tw, th := int(float64(o.At.Dx())*kx), int(float64(o.At.Dy())*ky) // its place in window pixels
+		x, y := r.X+float64(o.At.Min.X)*kx, r.Y+float64(o.At.Min.Y)*ky
+		// a picture smaller than its place (a portrait) is scaled up by whole
+		// pixels when that nearly fills the place (crisp pixel art, on its
+		// foot), else by Catmull-Rom to the exact size; a larger one (a journal
+		// scan) shrinks bilinear on the GPU
+		s := wholeScale(b.Dx(), b.Dy(), tw, th)
+		sw, sh := 0, 0
+		if s == 0 && tw >= b.Dx() && th >= b.Dy() && !o.Crisp {
+			sw, sh = tw, th
+		}
+		sc, ok := pg.scans[o.Img]
+		if !ok || sc.w != sw || sc.h != sh || sw > 0 && sc.part != b { // a scaled copy is of one part: a scrolled scan copies its new one
+			if ok {
+				sc.im.Deallocate()
+			}
+			if pg.scans == nil {
+				pg.scans = map[image.Image]scan{}
+			}
+			src := o.Img
+			if sw > 0 {
+				m := image.NewRGBA(image.Rect(0, 0, sw, sh))
+				xdraw.CatmullRom.Scale(m, m.Bounds(), o.Img, b, draw.Src, nil)
+				src = m
+			}
+			sc = scan{gpu.NewImageFromImage(src), sw, sh, b}
+			pg.scans[o.Img] = sc
+		}
+		im := sc.im
+		op := &gpu.DrawImageOptions{Filter: gpu.FilterLinear}
+		switch {
+		case o.Crisp: // sharp pixels at any scale, the aspect kept
+			f := min(float64(tw)/float64(b.Dx()), float64(th)/float64(b.Dy()))
+			im = im.SubImage(b).(*gpu.Image)
+			op.Filter = gpu.FilterNearest
+			op.GeoM.Scale(f, f)
+			x += (float64(tw) - f*float64(b.Dx())) / 2
+			y += (float64(th) - f*float64(b.Dy())) / 2
+		case s > 0:
+			im = im.SubImage(b).(*gpu.Image)
+			op.Filter = gpu.FilterNearest
+			op.GeoM.Scale(float64(s), float64(s))
+			x += float64(tw-s*b.Dx()) / 2
+			y += float64(th - s*b.Dy())
+		case sw > 0:
+			op.Filter = gpu.FilterNearest
+		default:
+			im = im.SubImage(b).(*gpu.Image) // drawn from its own top left
+			op.GeoM.Scale(float64(tw)/float64(b.Dx()), float64(th)/float64(b.Dy()))
+		}
+		op.GeoM.Translate(x, y)
+		dst.DrawImage(im, op)
+	}
+}
+
+// samePage reports whether v's page and text are what pg.img shows. The
+// engine publishes a View every tick, most of them with the page unchanged;
+// a layer's picture is the same when it is the same pixels.
+func samePage(v front.View, pg *page) bool {
+	if len(v.Pictures) != len(pg.page) || pageText(v) != pg.text {
+		return false
+	}
+	for i, s := range v.Pictures {
+		if o := pg.page[i]; s.At != o.At || s.Fill != o.Fill || s.Colour != o.Colour || !sameImage(s.Img, o.Img) {
+			return false
+		}
+	}
+	return true
+}
+
+// pageText is the text v's page shows (screenPage's texts), to tell pages
+// apart.
+func pageText(v front.View) string {
+	var b strings.Builder
+	if v.Pane != nil {
+		fmt.Fprint(&b, v.Pane.Lines)
+	}
+	fmt.Fprint(&b, v.Prompt, v.ViewText, v.Credits, v.Ink)
+	if v.Results != nil {
+		fmt.Fprintf(&b, "%+v", *v.Results)
+	}
+	return b.String()
+}
+
+func sameImage(a, b image.Image) bool {
+	switch a := a.(type) {
+	case *image.RGBA:
+		b, ok := b.(*image.RGBA)
+		return ok && a.Rect == b.Rect && a.Stride == b.Stride && len(a.Pix) == len(b.Pix) && (len(a.Pix) == 0 || &a.Pix[0] == &b.Pix[0])
+	case nil:
+		return b == nil
+	}
+	return false
+}
+
+// paneBox draws the text pane in its box at scale k round (cx, cy), and on
+// its bottom border, right, the "> Notes" that puts the text into the
+// journal (ActNote; Ctrl-N, the pad's Back).
+func (p *Presenter) paneBox(dst *gpu.Image, note Note, v front.View, k float64, cx, cy int) {
+	txt := paneBox.Framed()
+	drawBox(dst, paneImage(&p.pg.pane, v.Pane, note), p.border.tiles, txt, k, cx, cy)
+	const label = " > Notes "
+	m := image.NewRGBA(image.Rect(0, 0, 8*len(label), 8))
+	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
+	ui.DrawText(m, note.Glyph, label, 0, 0, col(14))
+	px := txt.Pixels()
+	x, y := float64(cx)+k*float64(px.Dx()/2-16-m.Rect.Dx()), float64(cy)+k*float64(px.Dy()/2-8)
+	op := &gpu.DrawImageOptions{}
+	op.GeoM.Scale(k, k)
+	op.GeoM.Translate(x, y)
+	dst.DrawImage(upload(&p.pg.notes, m), op)
+	p.noteBtn = image.Rect(int(x), int(y), int(x+k*float64(m.Rect.Dx())), int(y+k*8))
+}

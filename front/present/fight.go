@@ -1,0 +1,452 @@
+package present
+
+import (
+	"fmt"
+	"gobox/front"
+	"image"
+	"math"
+	"regexp"
+	"slices"
+	"strconv"
+	"strings"
+	"time"
+
+	"gobox/combat"
+	"gobox/ega"
+	"gobox/gpu"
+	"gobox/ui"
+
+	"gobox/input"
+)
+
+// The combat screen's own rows (extra): the original's two rows under the
+// map (the panel and the message line) drawn from View.Battle in its font,
+// colours and border; the spell list Cast opens and the battle Log.
+
+const fightRows = 1 // cells: the status line
+
+const logRows = 20 // the battle Log's lines shown at a time
+
+// drawFight draws the rows, the bar, whose turn it is, the spell list and the Log over the 3D map.
+func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
+	glyph := note.Glyph
+	b, k := v.Battle, scale(dst)
+	p.mapBottom = dst.Bounds().Dy() - int(k)*8*fightRows
+	if b.Turn != nil {
+		for _, m := range v.Party { // whose turn: the portrait card, bottom left
+			if m.Selected {
+				ck := max(1, int(k)/2) // as the bar
+				y := p.mapBottom - (cardH+cardGap)*ck + cardFoot*ck
+				p.fightCard = image.Rect(cardGap*ck, y, cardGap*ck+cardW*ck, y+cardH*ck)
+				p.drawParty(dst, []front.Member{m}, func(int, int) image.Rectangle { return p.fightCard })
+			}
+		}
+	}
+	p.battle.Icons, p.battle.IconKey = nil, ""
+	if b.Turn != nil { // the Attack button shows the weapon in hand, Ranged what it shoots
+		p.inv.load()
+		for kind, it := range map[front.ActKind]*front.InvItem{front.ActAttack: b.Turn.Weapon, front.ActRanged: b.Turn.Missile} {
+			if it == nil {
+				continue
+			}
+			if n := p.inv.icon(it); n >= 0 {
+				at := image.Pt(n%atlasCols*atlasCell, n/atlasCols*atlasCell)
+				if p.battle.Icons == nil {
+					p.battle.Icons = map[combat.Kind]image.Image{}
+				}
+				p.battle.Icons[combatKinds[kind]] = p.inv.atlas.(interface {
+					SubImage(image.Rectangle) image.Image
+				}).SubImage(image.Rectangle{at, at.Add(image.Pt(atlasCell, atlasCell))})
+				p.battle.IconKey += strconv.Itoa(int(kind)) + ":" + strconv.Itoa(n) + " "
+			}
+		}
+	}
+	p.syncBattle()
+	p.battle.Pointer = p.pointer
+	p.battle.DrawBar(dst, glyph, toBoard(b), max(1, int(k)/2), p.mapBottom)
+	if ck, r, ok := p.battle.Hovered(); ok && b.Turn != nil {
+		kind := engineKinds[ck] // the readied weapon over Attack and Ranged: what it does, its rules
+		if it := map[front.ActKind]*front.InvItem{front.ActAttack: b.Turn.Weapon, front.ActRanged: b.Turn.Missile}[kind]; it != nil {
+			p.drawTipOver(dst, it.Name, append(slices.Clone(it.Look), it.Rules...), max(1, int(k)/2), r)
+		}
+		if kind == front.ActBandage {
+			p.drawTipOver(dst, "Bandage", []string{
+				"Binds the wounds of the first",
+				"party member who is Dying.",
+				"They become Unconscious and",
+				"stop bleeding; the Dying die",
+				"after 10 rounds unbandaged.",
+				"Uses this character's turn.",
+			}, max(1, int(k)/2), r)
+		}
+	}
+	p.drawFightRows(dst, note, b, k)
+	cx := dst.Bounds().Dx() / 2
+	switch {
+	case p.battle.Picking && b.Turn != nil && p.pick == nil: // the bar's Cast list (View.Ask (AskSpell) is drawn by Draw)
+		p.drawPickList(dst, glyph, k, cx, int(k)*16)
+	case p.fightLog:
+		var lines []string
+		for _, m := range b.Log {
+			for _, l := range ui.WrapWords(m, 36) {
+				lines = append(lines, logInk(l))
+			}
+		}
+		if len(lines) == 0 {
+			lines = []string{"Nothing has happened yet."}
+		}
+		n := len(lines)
+		p.logTop = min(max(p.logTop, 0), max(0, n-logRows))
+		lines = lines[p.logTop:min(n, p.logTop+logRows)]
+		p.logGrey = true
+		p.drawMenu(dst, glyph, "Battle Log", lines, make([]byte, len(lines)), nil, -1, k, cx, int(k)*16)
+		p.logGrey = false
+		p.menuBar(dst, p.menuRects, n, len(lines), &p.logTop, nil, k)
+		p.menuRects = p.menuRects[:0]
+	}
+}
+
+// drawTipOver draws a tooltip (title, lines) at scale k above r, kept on screen.
+func (p *Presenter) drawTipOver(dst *gpu.Image, title string, lines []string, k int, r image.Rectangle) {
+	rows := append(ui.WrapWords(title, 24), "")
+	rows = append(rows, lines...)
+	w := 0
+	for _, l := range rows {
+		w = max(w, len(l))
+	}
+	w, h := (w+4)*8*k, (len(rows)+2)*8*k
+	cx := r.Min.X + r.Dx()/2
+	top := r.Min.Y - h - 4*k
+	if top < 0 { // no room above: under r (tipMenu keeps it on the window)
+		top = r.Max.Y + 4*k
+	}
+	p.tipMenu(dst, title, lines, make([]byte, len(lines)), -1, float64(k), cx, top)
+}
+
+// drawFightRows draws the status line along the bottom: the question
+// asked, the aiming help, else the panel (the unit under the pointer, else
+// the one the game names); between the player's turns the last message.
+// All of them are in the Log (L).
+func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *front.Battle, k float64) {
+	w, h := max(40, int(float64(dst.Bounds().Dx())/k)/8)*8, fightRows*8 // as many cells as the window has
+	glyph := note.Glyph
+	if p.rowsImg == nil || p.rowsImg.Bounds().Dx() != w {
+		p.rowsKey = ""
+		p.rowsImg = gpu.NewImage(w, h)
+	}
+	var puts []struct { // the line's pieces: drawn only when they change (a texture upload a frame otherwise)
+		s string
+		c int
+	}
+	x := 0
+	put := func(s string, c int, y int) {
+		s = s[:min(len(s), max(0, (w-x)/8))]
+		puts = append(puts, struct {
+			s string
+			c int
+		}{s, c})
+		x += len(s)*8 + 8
+	}
+	panel := b.Panel
+	if b.Turn != nil && panel == 0 {
+		panel = b.Turn.Unit
+	}
+	hover := false
+	if mx, my, ok := p.battle.Pick(gpu.CursorPosition()); ok && my < p.mapBottom {
+		for _, u := range b.Units {
+			for _, s := range u.Squares {
+				if s == image.Pt(mx, my) {
+					panel, hover = u.ID, true
+				}
+			}
+		}
+	}
+	switch {
+	case note.Show: // a refusal (why the attack is not possible ...): the toast, as every view's (noteLine)
+	case b.Turn != nil && b.Turn.Aim && b.AimWhy != "":
+		put(b.AimWhy, 12, 0)
+	case b.Turn != nil && b.Turn.Aim && b.Turn.Casting != "":
+		put(b.Turn.Casting+": W A S D, Tab; Enter, click; Esc", 10, 0)
+	case b.Turn != nil && b.Turn.Aim:
+		put("Aim: W A S D, Tab; Enter, click; Esc", 10, 0)
+	case b.Turn == nil && b.Panel == 0 && !hover && len(b.Log) > 0: // between the player's turns: what happens
+		put(b.Log[len(b.Log)-1], 10, 0)
+	default:
+		for _, u := range b.Units {
+			if u.ID != panel {
+				continue
+			}
+			name := 10
+			if !u.Party {
+				name = 12
+			}
+			put(u.Name, name, 0)
+			x -= 8
+			put(" HP", 15, 0)
+			x -= 8
+			put(" "+strconv.Itoa(u.HP), 10, 0)
+			put("AC", 15, 0)
+			x -= 8
+			put(" "+strconv.Itoa(u.AC), 10, 0)
+			if u.Status != "" {
+				put(u.Status, 15, 0)
+				break
+			}
+			put("Dmg", 15, 0)
+			x -= 8
+			put(" "+u.Dmg, 10, 0)
+			if u.Hit > 0 {
+				put("CtH", 15, 0)
+				x -= 8
+				put(" "+strconv.Itoa(u.Hit), 10, 0)
+			}
+		}
+	}
+	if key := fmt.Sprint(note.Show, note.Text, puts); key != p.rowsKey {
+		p.rowsKey = key
+		im := image.NewRGBA(image.Rect(0, 0, w, h))
+		for i := 3; i < len(im.Pix); i += 4 {
+			im.Pix[i] = 255
+		}
+		x = 0
+		if note.Show {
+			noteLine(im, note, 0)
+		}
+		for _, t := range puts {
+			ui.DrawText(im, glyph, t.s, x, 0, ega.RGBA(t.c))
+			x += len(t.s)*8 + 8
+		}
+		p.rowsImg.WritePixels(im.Pix)
+	}
+	op := &gpu.DrawImageOptions{}
+	op.GeoM.Scale(k, k)
+	op.GeoM.Translate((float64(dst.Bounds().Dx())-k*float64(w))/2, float64(p.mapBottom))
+	dst.DrawImage(p.rowsImg, op)
+}
+
+// fightKey takes key k on the combat screen: the spell list's, L for the
+// Log, else the 3D map's and bar's.
+func (p *Presenter) fightKey(k uint16) bool {
+	if p.pickKey(k) {
+		return true
+	}
+	a := combatAct(k)
+	if a == input.Log || p.fightLog && a == input.Esc {
+		p.fightLog = !p.fightLog && a != input.Esc
+		p.logTop = math.MaxInt32 // it opens on the latest lines
+		return true
+	}
+	if d, ok := map[input.Act]int{input.Up: -1, input.Down: 1, input.PgUp: -logRows, input.PgDn: logRows, input.Home: -math.MaxInt32, input.End: math.MaxInt32}[actOf(k)]; ok && p.fightLog { // Up/Down, PgUp/PgDn, Home/End scroll the Log, as every list
+		p.logTop = max(0, min(p.logTop, math.MaxInt32-logRows)+d) // clamped when drawn
+		return true
+	}
+	if a == input.Options && p.view != nil {
+		p.view.OpenOptions()
+		return true
+	}
+	if a == input.PadA { // pad A: as Enter
+		a = input.Enter
+	}
+	p.syncBattle()
+	if p.battle.Key(a, k) {
+		return true
+	}
+	if a == input.Esc && p.view != nil { // Esc with nothing to give up: the options
+		p.view.OpenOptions()
+		return true
+	}
+	return false
+}
+
+// fightClick takes a click at (x, y) on the combat screen.
+func (p *Presenter) fightClick(x, y int) bool {
+	if p.fightLog {
+		p.fightLog = false
+		return true
+	}
+	if p.pickClick(x, y) {
+		return true
+	}
+	if image.Pt(x, y).In(p.fightCard) && p.fightView != nil && p.fightView.Turn != nil { // the active member's inventory
+		p.send(front.ActItems, 0)
+		return true
+	}
+	return p.battle.Click(x, y)
+}
+
+// replay is the events still to play (Play): one held for Ms (or until a
+// key: Key) shows the fight or the page (Scene) it carries; the engine waits until all are played (no
+// ActTick, no decisions: Playing), then the live View is drawn again.
+type replay struct {
+	q    []front.CombatEvent
+	from time.Time // the shown event began
+	skip bool      // a key cut the shown event short
+}
+
+// Play queues the fight's events Apply handed out.
+func (p *Presenter) Play(evs []front.CombatEvent) { p.replay.q = append(p.replay.q, evs...) }
+
+// Playing: the fight's events are still being played.
+func (p *Presenter) Playing() bool { return len(p.replay.q) > 0 }
+
+// playing is the event to show now (nil: none), the ones played dropped.
+func (p *Presenter) playing() *front.CombatEvent {
+	r := &p.replay
+	for len(r.q) > 0 {
+		if ev := &r.q[0]; ev.Kind == front.EvSound && p.Sound != nil && r.from.IsZero() {
+			p.Sound(*ev)
+		}
+		if ev := &r.q[0]; (ev.Kind == front.EvDamage || ev.Kind == front.EvHeal) && r.from.IsZero() && Host.DamageNumbers {
+			p.battle.Float(ev.Unit, ev.Amount, ev.Kind == front.EvHeal)
+		}
+		if ev := &r.q[0]; (ev.Ms > 0 || ev.Key) && (ev.Battle != nil || ev.Scene != nil) && !r.skip {
+			if r.from.IsZero() {
+				r.from = time.Now()
+			}
+			if ev.Key || time.Since(r.from) < time.Duration(ev.Ms)*time.Millisecond {
+				return ev
+			}
+		}
+		r.q, r.from, r.skip = r.q[1:], time.Time{}, false
+	}
+	return nil
+}
+
+// CombatPad: the combat map is up with no menu over it (no question, Log
+// or spell list): the gamepad takes the combat bindings (PadKeys).
+func (p *Presenter) CombatPad() bool {
+	return p.fight && confirm(p.shownView) == "" && !p.fightLog && p.pickList() == nil && !p.Options()
+}
+
+// PadStick hands over the pad's right stick (x right, y down, -1..1): in
+// combat it pans the camera.
+func (p *Presenter) PadStick(x, y float64) {
+	dead := func(v float64) float64 { // a resting stick drifts a little
+		if math.Abs(v) < 0.25 {
+			return 0
+		}
+		return v
+	}
+	p.battle.Stick = [2]float64{dead(x), dead(y)}
+}
+
+// pickList is the spell list up for a choice: View.Ask (AskSpell) anywhere, else
+// the bar's Cast in combat (Picking); nil when none.
+func (p *Presenter) pickList() []front.Spell {
+	switch {
+	case p.pick != nil:
+		return p.pick
+	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil && p.battle.PickKind == combat.ActManeuver:
+		var out []front.Spell
+		for _, m := range p.fightView.Turn.Maneuvers {
+			out = append(out, front.Spell{ID: m.ID, Name: m.Name})
+		}
+		return out
+	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil:
+		return p.fightView.Turn.Spells
+	}
+	return nil
+}
+
+// maneuvering: the bar's Maneuver list is up (pickList holds maneuvers).
+func (p *Presenter) maneuvering() bool {
+	return p.pick == nil && p.fight && p.battle.Picking && p.battle.PickKind == combat.ActManeuver
+}
+
+// drawPickList draws the spell list (pickList) as a menu with hotkeys, its
+// box centred on cx with its top at top.
+func (p *Presenter) drawPickList(dst *gpu.Image, glyph func(byte) [8]byte, k float64, cx, top int) {
+	lines := make([]string, len(p.pickList()))
+	for i, s := range p.pickList() {
+		lines[i] = s.Name
+	}
+	p.pickSel = min(max(p.pickSel, 0), len(lines)-1)
+	title := "Cast"
+	if p.maneuvering() {
+		title = "Maneuver"
+	}
+	p.drawMenu(dst, glyph, title, lines, spellKeys(len(lines)), nil, p.pickSel, k, cx, top)
+	switch {
+	case p.pickSel < 0 || len(p.menuRects) == 0:
+	case p.maneuvering():
+		p.drawTip(dst, ui.WrapWords(p.fightView.Turn.Maneuvers[p.pickSel].Tip, 36), k, cx)
+	default:
+		p.drawSpellTip(dst, p.pickList()[p.pickSel].ID, k, cx)
+	}
+}
+
+// spellKeys are a spell list's hotkeys, as every spell list's (camp,
+// training): the digits 1-9 (digitKeys).
+func spellKeys(n int) []byte { return ui.DigitKeys(make([]byte, n), func(int) bool { return true }) }
+
+// pickKey takes key k while a spell is picked: the arrows, Enter, a hotkey, Esc.
+func (p *Presenter) pickKey(k uint16) bool {
+	spells := p.pickList()
+	if spells == nil || globalKey(k) {
+		return false
+	}
+	switch i, back, _ := ui.MenuNav(actOf(k), k, &p.pickSel, spellKeys(len(spells))); {
+	case back:
+		p.cast(-1)
+	case i >= 0:
+		p.cast(i)
+	}
+	return true
+}
+
+// pickClick takes a click while a spell is picked: a line casts, elsewhere gives up.
+func (p *Presenter) pickClick(x, y int) bool {
+	if p.pickList() == nil {
+		return false
+	}
+	p.cast(slices.IndexFunc(p.menuRects, func(r image.Rectangle) bool { return image.Pt(x, y).In(r) }))
+	return true
+}
+
+// cast casts spell i of the list (-1: none, giving up).
+func (p *Presenter) cast(i int) {
+	spells, fromBar := p.pickList(), p.pick == nil
+	p.battle.Picking = false
+	switch {
+	case i >= 0 && i < len(spells) && fromBar && p.battle.PickKind == combat.ActManeuver:
+		p.send(front.ActManeuver, spells[i].ID)
+	case i >= 0 && i < len(spells):
+		p.send(front.ActCast, spells[i].ID)
+	case !fromBar: // the game waits for the pick: give it up
+		p.send(front.ActClose, 0)
+	}
+}
+
+// logSpecial are the battle Log's events drawn in gold: spells, backstabs, the fallen.
+var logSpecial = regexp.MustCompile(`(?i)backstab|spell|casting|goes down|dying|killed|dies|slain`)
+
+// logInk marks a battle Log line: its numbers (the damage) red, a special
+// event's line gold, the rest in the log's grey.
+func logInk(l string) string {
+	gold := logSpecial.MatchString(l)
+	var b strings.Builder
+	mark := func() { // opens or closes the gold span
+		if gold {
+			b.WriteByte(ui.InkGold)
+		}
+	}
+	mark()
+	for i := 0; i < len(l); i++ {
+		if l[i] >= '0' && l[i] <= '9' {
+			j := i
+			for j < len(l) && l[j] >= '0' && l[j] <= '9' {
+				j++
+			}
+			mark()
+			b.WriteByte(ui.InkRed)
+			b.WriteString(l[i:j])
+			b.WriteByte(ui.InkRed)
+			mark()
+			i = j - 1
+			continue
+		}
+		b.WriteByte(l[i])
+	}
+	mark()
+	return b.String()
+}

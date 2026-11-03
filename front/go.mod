@@ -2,7 +2,10 @@ module gobox/front
 
 go 1.26.2
 
-require gobox/gpu v0.0.0
+require (
+	gobox/gpu v0.0.0
+	golang.org/x/image v0.47.0
+)
 
 require (
 	github.com/go-webgpu/goffi v0.6.3 // indirect
@@ -12,7 +15,25 @@ require (
 	github.com/gogpu/gputypes v0.8.0 // indirect
 	github.com/gogpu/naga v0.19.0 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	gobox/blobber v0.0.0
+	gobox/combat v0.0.0
+	gobox/ega v0.0.0
+	gobox/input v0.0.0
+	gobox/ui v0.0.0
+	gobox/walls v0.0.0
+	golang.org/x/sys v0.49.0 // indirect
 )
 
 replace gobox/gpu => ../gpu
+
+replace gobox/blobber => ../blobber
+
+replace gobox/combat => ../combat
+
+replace gobox/ega => ../ega
+
+replace gobox/input => ../input
+
+replace gobox/ui => ../ui
+
+replace gobox/walls => ../walls

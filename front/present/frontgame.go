@@ -1,0 +1,206 @@
+// frontgame.go: the presenter is the screens' front.Host; its rule calls run on
+// the game, a front.Game.
+
+package present
+
+import (
+	"fmt"
+	"gobox/front"
+	"gobox/gpu"
+	"image"
+	"slices"
+)
+
+var _ front.Host = (*Presenter)(nil)
+
+// Call queues f (call).
+func (p *Presenter) Call(f func(front.Game)) { p.call(func(e front.Game) { f(e) }) }
+
+// Edit queues f (edit).
+func (p *Presenter) Edit(f func(front.Game)) { p.edit(func(e front.Game) { f(e) }) }
+
+// ownCreation puts the creation sheet up in v, over the party menu.
+func (p *Presenter) ownCreation(v front.View) front.View {
+	if p.creating && p.eng != nil {
+		v.Creation = p.eng.CreationView()
+		v.MainMenu, v.Logo, v.Backdrop = nil, nil, nil
+	}
+	return v
+}
+
+// Ask puts q up (nil: none).
+func (p *Presenter) Ask(q *front.Question) { p.q = q }
+
+// Asking is the question up (nil: none).
+func (p *Presenter) Asking() *front.Question { return p.q }
+
+// Shown is what the last frame showed, as the screens see it.
+func (p *Presenter) Shown() front.Shown {
+	v := p.shownView
+	return front.Shown{Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: v.Battle != nil,
+		Camp: v.Camp != nil, MainMenu: v.MainMenu != nil, Loot: v.Loot, Door: v.Door, Resting: v.Resting, Party: len(v.Party)}
+}
+
+// ownQuestion is v with the presenter's question up.
+func (p *Presenter) ownQuestion(v front.View) front.View {
+	q := p.q
+	if q == nil && v.Ask == nil {
+		q = front.GateQuestion(p, v.Loot, v.Door)
+	}
+	if q != nil {
+		a := q.Ask
+		v.Ask, v.Exploring, v.CanCast, v.Interact = &a, false, false, false // the question takes the keys
+		if a.Kind == front.AskMember {
+			v.Party = slices.Clone(v.Party)
+			for i := range v.Party {
+				v.Party[i].Selected = i == q.Cand
+			}
+		}
+	}
+	return v
+}
+
+// questionAct takes a while the presenter's question is up, at the gate
+// or while camp rests (AskAct); then the powers and the rule calls of the
+// screens up; false leaves a to the others.
+func (p *Presenter) questionAct(a front.Action) bool {
+	if taken, done := front.AskAct(p, a); done {
+		return taken
+	}
+	return front.PowerAct(p, a) || p.viewAct(a) || p.turnAct(a) || front.StateAct(p, a)
+}
+
+// edit queues f, after which the picker's and the editor's pages are
+// laid out again.
+func (p *Presenter) edit(f func(e front.Game)) {
+	p.call(func(e front.Game) { f(e); p.ran++ })
+}
+
+// ownPicker puts the picker and the icon editor up in v, over the screens
+// under them (the creation sheet, camp, the party menu).
+func (p *Presenter) ownPicker(v front.View) front.View {
+	if p.eng == nil || p.gridPick == nil && p.icon == nil {
+		return v
+	}
+	key := [2]any{p.ran, v.Cells}
+	v.Creation, v.SheetPage, v.Camp, v.MainMenu, v.Sheet, v.Inventory = nil, nil, nil, nil, nil, nil
+	v.Portrait, v.IconBox, v.Logo, v.Backdrop = front.CellRect{}, front.CellRect{}, nil, nil
+	if p.icon != nil {
+		if ed := p.icon.Layout(p.eng, key); ed != nil {
+			v.IconEditor, v.IconDrop = ed, true
+		}
+	}
+	if p.gridPick != nil {
+		v.Picker, v.IconEditor, v.IconDrop = p.gridPick.Layout(p.eng, key), nil, false
+	}
+	return v
+}
+
+// openSlots puts the slot screen up (F10, the menu's Save/Load), or takes
+// it down when it is up; not over another page of the whole window.
+func (p *Presenter) openSlots(v front.View, loadOnly bool) {
+	switch {
+	case p.slots != nil:
+		p.slots = nil
+	case p.eng != nil && !p.modal(v) && p.eng.SlotsView(loadOnly) != nil:
+		p.slots = &front.SlotsUI{LoadOnly: loadOnly}
+	}
+}
+
+// OpenSlots is F10 from the renderer's options (Save/Load).
+func (p *Presenter) OpenSlots() { p.openSlots(p.shownView, false) }
+
+// own is v with the presenter's own screens the engine's View carries:
+// the slots.
+func (p *Presenter) own(v front.View) front.View {
+	if p.eng != nil && p.eng.Resets() != p.resets { // a load or Back to Main Menu closed what they were over
+		p.resets = p.eng.Resets()
+		p.gridPick, p.icon, p.creating, p.training, p.q, p.clue = nil, nil, false, false, nil, nil
+	}
+	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
+	if p.slots != nil && p.eng != nil {
+		v.Slots = p.eng.SlotsView(p.slots.LoadOnly)
+	}
+	return v
+}
+
+// slotAct takes a decision a on the slot screen: false leaves it to the
+// engine.
+func (p *Presenter) slotAct(a front.Action) bool {
+	sl := p.slots
+	if sl == nil {
+		return p.questionAct(a) || front.PickAct(p, &p.gridPick, a) || front.IconAct(p, &p.icon, a) || front.CreateAct(p, &p.creating, a) || p.serviceAct(a)
+	}
+	return front.SlotsAct(p, &p.slots, a)
+}
+
+// frontScreens names the front's screens the presenter has up (Screens).
+func (p *Presenter) frontScreens() string {
+	return front.Screens(
+		front.ScreenUp{Name: front.ScreenSlots, On: p.slots != nil},
+		front.ScreenUp{Name: front.ScreenTitle, On: p.intro.Phase != front.IntroNone, State: fmt.Sprint(p.intro.Phase, len(p.intro.Flash))},
+		front.ScreenUp{Name: front.ScreenPicker, On: p.gridPick != nil},
+		front.ScreenUp{Name: front.ScreenIconEditor, On: p.icon != nil},
+		front.ScreenUp{Name: front.ScreenCreation, On: p.creating},
+		front.ScreenUp{Name: front.ScreenQuestion, On: p.q != nil})
+}
+
+// mainView is v's party menu as the main menu takes it.
+func mainView(v front.View) front.MainMenu {
+	return front.MainMenu{Open: v.MainMenu, Hall: v.Hall, Logo: v.Logo, Backdrop: v.Backdrop,
+		Party: len(v.Party), Selected: selectedIndex(v), Name: selectedName(v)}
+}
+
+// Send sends the action k, N n (send).
+func (p *Presenter) Send(k front.ActKind, n int) { p.send(k, n) }
+
+// DrawMenu draws a menu in the game's font (drawMenu).
+func (p *Presenter) DrawMenu(dst *gpu.Image, lines []string, keys []byte, sel int, k float64, cx, top int) {
+	p.drawMenu(dst, p.glyph, "", lines, keys, nil, sel, k, cx, top)
+}
+
+// MenuRects are the rows of the menu drawn last.
+func (p *Presenter) MenuRects() []image.Rectangle { return p.menuRects }
+
+// KeyWindow pops a question up (keyWindow).
+func (p *Presenter) KeyWindow(dst *gpu.Image, title string, lines []string, keys []byte, sel int) {
+	p.keyWindow(dst, title, lines, keys, nil, sel, false)
+}
+
+// WinRects are the rows of the pop-up drawn last.
+func (p *Presenter) WinRects() []image.Rectangle { return p.winRects }
+
+// DrawCards draws the party's cards where the 3D view has them, exp the
+// way to the next level under each, and the tip of the one pointed at.
+func (p *Presenter) DrawCards(dst *gpu.Image, exp bool) []image.Rectangle {
+	v := p.shownView
+	p.expShown = exp
+	p.drawParty(dst, v.Party, cardAt(dst))
+	p.expShown = false
+	p.cards = p.cards[:0]
+	for i := range v.Party {
+		p.cards = append(p.cards, cardAt(dst)(i, len(v.Party)))
+	}
+	p.drawCardTip(dst, v)
+	return p.cards
+}
+
+// PopUp is whether a pop-up question is up, and its highlight.
+func (p *Presenter) PopUp() (*bool, *int) { return &p.ask, &p.sel }
+
+// Point puts the pointer at x, y over the cards; moved: it was elsewhere.
+func (p *Presenter) Point(x, y int) bool {
+	p.cardHover = 1 + cardUnder(p.cards, x, y)
+	if image.Pt(x, y) == p.pointer {
+		return false
+	}
+	p.pointer = image.Pt(x, y)
+	return true
+}
+
+// Calls hands over the rule calls the screens made since the last call
+// (call); the game runs them on its rules before the actions.
+func (p *Presenter) Calls() []func(front.Game) { return p.calls.Take() }
+
+// SetEngine gives the presenter the game its queries (JournalPage) ask.
+func (p *Presenter) SetEngine(e front.Game) { p.eng = e }

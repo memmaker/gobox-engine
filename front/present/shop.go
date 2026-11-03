@@ -1,0 +1,83 @@
+package present
+
+import (
+	"fmt"
+	"gobox/front"
+	"gobox/ui"
+)
+
+// The shop (View.Shop): Browse is the inventory with the goods; the
+// presenter asks before an Id.
+func (p *Presenter) shopItems(v front.View) (string, []ui.MenuRow) {
+	c, s := &p.camp, v.Shop
+	switch c.screen {
+	case shopID:
+		if len(s.Unknown) == 0 {
+			break
+		}
+		var it []ui.MenuRow
+		for i, u := range s.Unknown {
+			it = append(it, ui.MenuRow{Text: u.Owner + ": " + u.Name, Key: 0, Do: func() { c.pick = i; c.to(shopDeal, 1)() }})
+		}
+		return withGold("Identify for "+gold(s.IDPrice), s.Gold), append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: c.back(campMain)})
+	case shopDeal:
+		if c.pick >= len(s.Unknown) {
+			c.screen = shopID
+			return p.shopItems(v)
+		}
+		u := s.Unknown[c.pick]
+		return withGold(fmt.Sprintf("Identify %s for %s. Is it a deal?", u.Name, gold(s.IDPrice)), s.Gold), []ui.MenuRow{
+			{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e front.Game) { e.Identify(u.Member, u.Item) }); c.back(shopID)() }},
+			{Text: "No", Key: 'N', Do: c.back(shopID)}}
+	case appraise:
+		return p.appraiseItems(s.Appraise, c.back(campMain))
+	}
+	it := []ui.MenuRow{{Text: "Browse", Key: 'B', Do: func() { p.send(front.ActInventory, -1) }}}
+	if appraisable(s.Appraise) {
+		it = append(it, ui.MenuRow{Text: "Appraise", Key: 'A', Do: c.to(appraise, 0)})
+	}
+	if len(s.Unknown) > 0 {
+		it = append(it, ui.MenuRow{Text: "Identify", Key: 'I', Do: c.to(shopID, 0)})
+	}
+	return "Shop", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: func() { p.send(front.ActClose, 0) }})
+}
+
+// serviceAct takes the decisions of the shop, the temple and the training
+// hall (and the party menu's Train, which opens the hall) as their rule
+// calls: false leaves a to the engine.
+func (p *Presenter) serviceAct(a front.Action) bool {
+	v := p.shownView
+	switch {
+	case p.training:
+		switch a.Kind {
+		case front.ActClose:
+			p.call(func(e front.Game) { e.CloseTraining(); p.training = e.TrainingView() != nil })
+		case front.ActLead: // the hall is for the member it opened on
+		default:
+			return false
+		}
+	case a.Kind == front.ActTraining && v.MainMenu != nil:
+		p.call(func(e front.Game) { e.OpenTraining(a.N); p.training = e.TrainingView() != nil })
+	case v.Shop != nil && a.Kind == front.ActInventory:
+		p.call(func(e front.Game) { e.Browse(a.N) })
+	case v.Temple != nil && a.Kind == front.ActMember:
+		p.call(func(e front.Game) { e.ViewMember(a.N) })
+	case (v.Shop != nil || v.Temple != nil) && a.Kind == front.ActClose:
+		p.call(func(e front.Game) { e.Leave() })
+	default:
+		return false
+	}
+	return true
+}
+
+// ownTraining puts the training hall up in v, over the party menu.
+func (p *Presenter) ownTraining(v front.View) front.View {
+	if p.training && p.eng != nil {
+		v.Training = p.eng.TrainingView()
+		p.training = v.Training != nil // a game loaded closes it
+	}
+	if p.training {
+		v.MainMenu, v.Hall, v.Logo, v.Backdrop, v.Powers = nil, false, nil, nil, nil
+	}
+	return v
+}

@@ -1,0 +1,59 @@
+package present
+
+import (
+	"errors"
+	"gobox/front"
+	"slices"
+)
+
+// The presenter paces what goes on with time (View.Pace: the fight's
+// turns, camp's rest, the finale, the auto-walk, the picture) and asks the
+// yes/no questions the rules need answered (Flee?, Attack Ally?, Stop
+// resting?) itself.
+
+// Pace queues the call that goes on with time now; nothing while one of
+// its questions waits.
+func (p *Presenter) Pace(v front.View) {
+	if p.q != nil {
+		return
+	}
+	switch v.Pace {
+	case front.PaceFight:
+		p.call(func(e front.Game) { e.CombatStep() })
+	case front.PaceRest:
+		p.call(func(e front.Game) { e.RestStep() })
+	case front.PaceStory:
+		p.call(func(e front.Game) { e.StoryStep() })
+	case front.PaceWalk:
+		p.call(func(e front.Game) { e.WalkStep() })
+	case front.PaceAnim:
+		p.call(func(e front.Game) { e.Animate() })
+	}
+}
+
+// turnActs are the decisions of a member's combat turn (TurnChoice).
+var turnActs = []front.ActKind{front.ActWalk, front.ActAttack, front.ActItems, front.ActMember, front.ActRanged,
+	front.ActManeuver, front.ActCast, front.ActTurn, front.ActQuick, front.ActGuard, front.ActBandage,
+	front.ActWait, front.ActEnd, front.ActFlee, front.ActPoint, front.ActAim, front.ActClose}
+
+// turnAct makes a decision of the turn up a rule call; false: no turn waits.
+func (p *Presenter) turnAct(a front.Action) bool {
+	v := p.shownView
+	if v.Battle == nil || v.Battle.Turn == nil || v.Inventory != nil || v.Sheet != nil || !slices.Contains(turnActs, a.Kind) {
+		return false
+	}
+	p.turnCall(a, false)
+	return true
+}
+
+// turnCall calls TurnChoice; a question it is refused with is asked, Yes
+// calls it again sure.
+func (p *Presenter) turnCall(a front.Action, sure bool) {
+	p.call(func(e front.Game) {
+		var q front.Confirm
+		err := e.TurnChoice(a, sure)
+		if errors.As(err, &q) {
+			front.AskYes(p, string(q), func() { p.turnCall(a, true) })
+		}
+	})
+}
