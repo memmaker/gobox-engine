@@ -18,3 +18,11 @@ import `por/dax` | `cotab/dax` | `sotsb/dax` -> `gobox/dax`; delete the game's d
 
 ## Migrate
 - `NewLoader` no longer looks for a DISK2 subdir. A game that kept Amiga archives there calls `l.UseAmiga(filepath.Join(dir, "DISK2"))` (cotab, sotsb) right after `NewLoader`.
+
+## cmd (dev tools)
+- `dax/cmd/blockdump FILE.DAX ID` (was cmd/fontdump, identical in cotab and sotsb): block to stdout.
+- `dax/cmd/ecldump [-onedisk] DATA [AREA [BLOCK]]` (was cmd/ecldump): counts ECL commands. cotab's copy hard-coded OneDisk=true: pass `-onedisk`.
+
+## Migrate (tools)
+- cotab-go, sotsb-go: delete cmd/fontdump and cmd/ecldump; run `go run gobox/dax/cmd/blockdump` / `ecldump` from the dax module (cotab: add `-onedisk`).
+- The tools also need nothing in the game's go.mod.

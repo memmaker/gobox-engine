@@ -10,3 +10,9 @@ func TestPalette(t *testing.T) {
 		t.Fatal("palette")
 	}
 }
+
+func TestColourNames(t *testing.T) {
+	if Black != 0 || Red != 4 || Green != 2 || LightRed != 12 || Yellow != 14 || White != 15 {
+		t.Fatal("colour numbers")
+	}
+}

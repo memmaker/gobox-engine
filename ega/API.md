@@ -12,3 +12,8 @@ Each game: add `require gobox/ega v0.0.0` + `replace gobox/ega => ../gobox-engin
 - sotsb: delete Palette/Amiga*/W/H/AmigaBase from sotsb/ega, keep Screen etc.; replace uses with
   `gobox/ega` (import under another name, e.g. `gega`, as sotsb's own package is also `ega`).
   Screen.RGBA's Amiga branch -> `gega.AmigaRGBA(i)`.
+
+## Migrate
+Colour numbers `ega.Black Blue Green Cyan Red Magenta Brown LightGrey DarkGrey LightBlue LightGreen LightCyan LightRed LightMagenta Yellow White` (0..15).
+- cotab-go, sotsb-go engine/colours.go: delete the `colourBlack ... colourWhite` consts and use `ega.Black`, `ega.Blue`, `ega.Red`, `ega.Magenta`, `ega.Green`, `ega.Cyan`, `ega.LightRed`, `ega.LightMagenta`, `ega.Yellow`, `ega.White` (cotab uses the subset without Red/Magenta). Keep ticksPerSecond, titleSound, states, scan codes.
+- sotsb-go: import gobox/ega under another name (`gega`), as its own package is `ega`.

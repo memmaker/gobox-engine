@@ -18,6 +18,26 @@ var Palette = [16][3]uint8{
 	{255, 82, 82}, {255, 82, 255}, {255, 255, 82}, {255, 255, 255},
 }
 
+// The EGA colour numbers (indexes of Palette).
+const (
+	Black = iota
+	Blue
+	Green
+	Cyan
+	Red
+	Magenta
+	Brown
+	LightGrey
+	DarkGrey
+	LightBlue
+	LightGreen
+	LightCyan
+	LightRed
+	LightMagenta
+	Yellow
+	White
+)
+
 // RGBA is colour i of Palette.
 func RGBA(i int) color.RGBA { c := Palette[i&15]; return color.RGBA{c[0], c[1], c[2], 255} }
 
