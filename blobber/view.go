@@ -8,7 +8,7 @@ import (
 )
 
 // View is the renderer for a host that owns the game loop and the rules
-// (the remastered Pool of Radiance): it draws a Scene from a Camera the host
+// (a remaster): it draws a Scene from a Camera the host
 // moves, into the host's image, and animates each step and turn. Nothing
 // here reads the keyboard but the Esc menu (UpdateOptions).
 //
@@ -20,15 +20,23 @@ type View struct {
 
 	// Textures are the wall, floor and ceiling images by name (FacePart.Tex,
 	// "floor_NAME", "ceiling_NAME"); the host fills them, and calls
-	// ResetTextures after changing them. Nil: the embedded PoR walls.
+	// ResetTextures after changing them. Nil: only the generated materials.
 	Textures map[string]image.Image
+
+	// Painted maps a wall character to the Textures name drawn for it (a
+	// name may have a name+"_light" glow); '#' is "stone" unless listed.
+	Painted map[byte]string
 
 	// The open sky. Night: the night sky and its stars, the world lit by
 	// moonlight. SunUp: the sun at bearing SunAz (compass radians, 0 north,
 	// pi/2 east) and SunEl above the horizon. Mountains: a range on the
-	// northern horizon (cotab: in daylight).
+	// northern horizon (in daylight).
 	Night, SunUp, Mountains bool
 	SunAz, SunEl            float64
+
+	// The ponds' shape (see pondEdge): NewView sets pool half width 0.46,
+	// neck half width 0.36 and bank width 0.12 (por's values).
+	PondHalf, PondNeck, PondMud float64
 }
 
 // cur is the View drawing (one per process, see View).
@@ -38,10 +46,10 @@ var cur *View
 type Camera struct{ X, Y, Dir int }
 
 // NewView makes the textures and shaders. Call it once the window runs.
-// textures is View.Textures (nil: the embedded PoR walls).
+// textures is View.Textures (nil: only the generated materials).
 // BLOBBER_NIGHT=1 starts at night.
 func NewView(textures map[string]image.Image) (*View, error) {
-	v := &View{Textures: textures, Night: os.Getenv("BLOBBER_NIGHT") != ""}
+	v := &View{Textures: textures, Night: os.Getenv("BLOBBER_NIGHT") != "", PondHalf: 0.46, PondNeck: 0.36, PondMud: 0.12}
 	cur = v
 	g, err := newGame(0)
 	if err != nil {

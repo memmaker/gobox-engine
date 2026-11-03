@@ -15,7 +15,6 @@ go test ./...
 ## Layout
 
 - Root package: grid renderer, movement, walls, billboards.
-- `maps`: the `.map` files, embedded for the remaster.
 - `assets`: textures.
 
 See `ROADMAP.md` for design decisions and status.

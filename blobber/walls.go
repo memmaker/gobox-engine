@@ -1,38 +1,23 @@
 package blobber
 
 import (
-	"bufio"
-	"bytes"
-	"embed"
 	"image"
-	"image/png"
 	"os"
 	"strings"
 
 	"gobox/gpu"
 )
 
-//go:embed assets/walls/*.png assets/walls/walls.txt
-var wallFS embed.FS
-
 var wallCache = map[string]*gpu.Image{}
 
 func decodeWall(name string) image.Image {
-	if cur != nil && cur.Textures != nil {
+	if cur != nil {
 		return cur.Textures[name]
 	}
-	b, err := wallFS.ReadFile("assets/walls/" + name + ".png")
-	if err != nil {
-		return nil
-	}
-	img, err := png.Decode(bytes.NewReader(b))
-	if err != nil {
-		return nil
-	}
-	return img
+	return nil
 }
 
-// wallTexture loads View.Textures[name], or assets/walls/<name>.png without them, (once), or nil when there is none; a painted texture
+// wallTexture loads View.Textures[name], (once), or nil when there is none; a painted texture
 // replaces the generated one for its material character.
 func wallTexture(name string) *gpu.Image {
 	if t, ok := wallCache[name]; ok {
@@ -48,21 +33,12 @@ func wallTexture(name string) *gpu.Image {
 	return t
 }
 
-// paintedWalls reads assets/walls/walls.txt: map character -> texture name.
+// paintedWalls is View.Painted: map character -> texture name.
 func paintedWalls() map[byte]string {
-	out := map[byte]string{}
-	f, err := wallFS.Open("assets/walls/walls.txt")
-	if err != nil {
-		return out
+	if cur != nil {
+		return cur.Painted
 	}
-	defer f.Close()
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		if l := strings.Fields(strings.SplitN(sc.Text(), "#", 2)[0]); len(l) == 2 && len(l[0]) == 1 {
-			out[l[0][0]] = l[1]
-		}
-	}
-	return out
+	return nil
 }
 
 var flatNames [2]string // the current map's floor and ceiling ("" = default)
@@ -74,7 +50,7 @@ var openSky bool
 // SetFlats makes floor and ceiling (names from Flats; "" = the default textures) the current
 // map's. Hosts call it on every map change; it holds across GenTextures.
 func SetFlats(floor, ceiling string) {
-	if c := os.Getenv("BLOBBER_CEILING"); c != "" { // phlan-poc: try a ceiling (e.g. cave) on any map
+	if c := os.Getenv("BLOBBER_CEILING"); c != "" { // try a ceiling (e.g. cave) on any map
 		ceiling = c
 	}
 	flatNames = [2]string{floor, ceiling}

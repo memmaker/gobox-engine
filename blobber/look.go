@@ -116,7 +116,7 @@ const (
 	modeGlow          // additive, tinted by the vertex colour
 )
 
-// hazeCells is how far the distance fog reaches full strength (phlan-poc: past the map, out to the horizon).
+// hazeCells is how far the distance fog reaches full strength (past the map, out to the horizon).
 const hazeCells = 128
 
 // hazeCol is the sky's colour just above the horizon, day or night.

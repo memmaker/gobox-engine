@@ -23,7 +23,7 @@ var (
 	focal = float64(W) * focalW
 )
 
-// phlan-poc: Pool of Radiance's projection, measured from its view (88 px square; a wall right ahead
+// The projection, measured from the original view (88 px square; a wall right ahead
 // 56 px wide, one square further 24 px): the eye 0.75 squares from the wall ahead, a focal length of
 // 42/88 of the square view (in the 4:3 window that square is 3/4 of the width), walls 64/56 as tall
 // as wide, standing on the floor 0.5 below the eye.
@@ -68,15 +68,15 @@ type Object struct {
 	X, Y int
 	Img  *gpu.Image
 	Size float64
-	At   *[2]float64 // phlan-poc: an exact floor position (a tree on a square's edge or corner) instead of the cell's centre
-	// phlan-poc: Front > 0: while the party stands on its square it stands this far in front of the square's
-	// centre, whichever way they face, as PoR paints a thing in its own square (Kuto's well)
+	At   *[2]float64 // an exact floor position (a tree on a square's edge or corner) instead of the cell's centre
+	// Front > 0: while the party stands on its square it stands this far in front of the square's
+	// centre, whichever way they face, as the original paints a thing in its own square (Kuto's well)
 	Front float64
-	Sink  float64     // phlan-poc: its foot this far below the floor (a ladder down a well)
-	Ring  *[3]float64 // phlan-poc: a hole in the floor: half width, half depth, rim width; Img is the rim's stones
+	Sink  float64     // its foot this far below the floor (a ladder down a well)
+	Ring  *[3]float64 // a hole in the floor: half width, half depth, rim width; Img is the rim's stones
 }
 
-// texBlack (phlan-poc) fills the opening of a Ring.
+// texBlack  fills the opening of a Ring.
 var texBlack *gpu.Image
 
 // Objects is the host-maintained list of objects on the current map.
@@ -98,11 +98,11 @@ const Door, Locked = 'D', 'L'
 
 var Faces = map[[3]int][]FacePart{}
 
-// Edges (phlan-poc) are thin walls: key {x, y, side} blocks stepping out of cell x, y towards
-// dirs[side]. With Faces they give a map edge walls of no thickness, one-sided like Pool of Radiance's.
+// Edges  are thin walls: key {x, y, side} blocks stepping out of cell x, y towards
+// dirs[side]. With Faces they give a map edge walls of no thickness, one-sided like the original's.
 var Edges = map[[3]int]bool{}
 
-// NoMap (phlan-poc) are faces the minimap leaves out: objects the party walks through, like graves.
+// NoMap  are faces the minimap leaves out: objects the party walks through, like graves.
 var NoMap = map[[3]int]bool{}
 
 // blocked: a wall cell at x+dx, y+dy, or a thin wall on the way there.
@@ -115,29 +115,28 @@ func blocked(x, y, dx, dy int) bool {
 	return wall(x+dx, y+dy)
 }
 
-// Water (phlan-poc) are the cells drawn as water instead of floor; so is everything off the map.
+// Water  are the cells drawn as water instead of floor; so is everything off the map.
 var Water = map[[2]int]bool{}
 
-// Sea (phlan-poc): water off the map even without water squares on it (a river along the map's edge).
+// Sea : water off the map even without water squares on it (a river along the map's edge).
 var Sea bool
 
-// Pond (phlan-poc) are cells drawn as water that are not sea: no water off the map for them.
+// Pond  are cells drawn as water that are not sea: no water off the map for them.
 var Pond = map[[2]int]bool{}
 
-// phlan-poc: a pond square's pool is a rounded square (a superellipse, as PoR paints it) of half width pondH,
-// joined to a neighbouring pond square by a neck of half width pondNeck; a damp bank pondMudW wide around it
-const pondH, pondNeck, pondMudW = 0.46, 0.36, 0.12
+// A pond square's pool is a rounded square (a superellipse) of half width View.PondHalf, joined to a
+// neighbouring pond square by a neck of half width View.PondNeck; a damp bank View.PondMud wide around it.
 
 // pondEdge is the point of the pool's outline at angle t, from the square's centre.
 func pondEdge(t float64) (float64, float64) {
 	c, s := math.Cos(t), math.Sin(t)
-	return pondH * math.Copysign(math.Sqrt(math.Abs(c)), c), pondH * math.Copysign(math.Sqrt(math.Abs(s)), s)
+	return cur.PondHalf * math.Copysign(math.Sqrt(math.Abs(c)), c), cur.PondHalf * math.Copysign(math.Sqrt(math.Abs(s)), s)
 }
 
-var texPondWater *gpu.Image // the sea's water, lighter: PoR's ponds are a bright blue
+var texPondWater *gpu.Image // the sea's water, lighter: ponds may be a bright blue
 
 var mudFor map[[2]int]bool         // the Pond map mudTiles were made for
-var mudTiles map[[2]int]*gpu.Image // phlan-poc: per cell, its share of the bank around the ponds
+var mudTiles map[[2]int]*gpu.Image // per cell, its share of the bank around the ponds
 
 // pondMud is cell's share of the mud bank around the map's ponds: alpha from the distance to the whole
 // outline (discs on the pond cells, joined by strips as wide), so a pond over several cells gets one bank.
@@ -151,11 +150,11 @@ func pondMud(cell [2]int) *gpu.Image {
 			d := math.Inf(1)
 			for p := range Pond {
 				cx, cz := float64(p[0])+0.5, float64(p[1])+0.5
-				d = math.Min(d, math.Pow(math.Pow(x-cx, 4)+math.Pow(z-cz, 4), 0.25)-pondH)
+				d = math.Min(d, math.Pow(math.Pow(x-cx, 4)+math.Pow(z-cz, 4), 0.25)-cur.PondHalf)
 				for _, s := range [][2]float64{{1, 0}, {0, 1}} {
 					if Pond[[2]int{p[0] + int(s[0]), p[1] + int(s[1])}] { // the neck: a box from centre to centre
 						a, b := (x-cx)*s[0]+(z-cz)*s[1], math.Abs((x-cx)*s[1]+(z-cz)*s[0])
-						d = math.Min(d, math.Hypot(math.Max(0, math.Max(-a, a-1)), math.Max(0, b-pondNeck))+math.Min(0, math.Max(math.Max(-a, a-1), b-pondNeck)))
+						d = math.Min(d, math.Hypot(math.Max(0, math.Max(-a, a-1)), math.Max(0, b-cur.PondNeck))+math.Min(0, math.Max(math.Max(-a, a-1), b-cur.PondNeck)))
 					}
 				}
 			}
@@ -173,7 +172,7 @@ func pondMud(cell [2]int) *gpu.Image {
 					for j := 0; j < px; j++ {
 						for i := 0; i < px; i++ {
 							d := dist(float64(c[0])+(float64(i)+0.5)/px, float64(c[1])+(float64(j)+0.5)/px)
-							t := math.Max(0, math.Min(1, d/pondMudW))
+							t := math.Max(0, math.Min(1, d/cur.PondMud))
 							a := (1 - t*t*(3-2*t)) * 0.45 // damp earth at the water, a soft fade out (smoothstep)
 							img.Set(i, j, color.RGBA{uint8(46 * a), uint8(30 * a), uint8(16 * a), uint8(255 * a)})
 						}
@@ -188,16 +187,16 @@ func pondMud(cell [2]int) *gpu.Image {
 
 func inMap(x, y int) bool { return y >= 0 && y < len(level) && x >= 0 && x < len(level[y]) }
 
-// texWater, texClouds (phlan-poc): floor_phlan_water and ceiling_phlan_clouds, loaded on first use.
+// texWater, texClouds : floor_water and ceiling_clouds, loaded on first use.
 var texWater, texClouds *gpu.Image
 
 type FacePart struct {
 	Mat            byte
 	T0, T1, U0, U1 float64
-	Tex            string // phlan-poc: a painted texture by name (assets/walls/TEX.png), instead of Mat
+	Tex            string // a painted texture by name (View.Textures[TEX]), instead of Mat
 }
 
-var texMats = map[string]*mat{} // phlan-poc: FacePart.Tex materials, loaded on first use
+var texMats = map[string]*mat{} // FacePart.Tex materials, loaded on first use
 
 func texMat(name string) *mat {
 	m, ok := texMats[name]
@@ -309,7 +308,7 @@ func genTextures() {
 	}
 	texFloor = genStone(64, 64, false, [3]float64{115, 110, 105}, [3]float64{60, 58, 55}, 0.4, -1)
 	texCeil = genStone(64, 64, false, [3]float64{70, 66, 72}, [3]float64{40, 38, 42}, 0.4, 1)
-	if t := wallTexture("floor"); t != nil { // painted floor and ceiling, when assets/walls has them
+	if t := wallTexture("floor"); t != nil { // painted floor and ceiling, when Textures has them
 		texFloor = t
 	}
 	if t := wallTexture("ceiling"); t != nil {
@@ -528,41 +527,10 @@ func step(v, lo, hi, s float64, d int) float64 {
 	return math.Round(math.Max(lo, math.Min(hi, v))/s) * s
 }
 
-// UISteps are the sizes the host's screen elements come in: whole steps of
-// the host's one glyph cell size (K), never fractions.
-var UISteps = []float64{1, 2, 3, 4}
-
-// uiLine is a Graphics line stepping *v through UISteps (Enter: round to the smallest past the largest).
-func uiLine(label string, v *float64) menuLine {
-	return menuLine{label, func(*Game) string {
-		return fmt.Sprintf("%.0fx", *v)
-	}, func(_ *Game, d int) {
-		i := slices.Index(UISteps, *v)
-		if i < 0 {
-			i = 0
-		}
-		switch {
-		case d < 0:
-			i = max(i-1, 0)
-		case d > 0:
-			i = min(i+1, len(UISteps)-1)
-		default:
-			i = (i + 1) % len(UISteps)
-		}
-		*v = UISteps[i]
-	}}
-}
-
 // bar draws v in lo..hi (step s) as a slider.
 func bar(v, lo, hi, s float64) string {
 	i, n := int(math.Round((v-lo)/s)), int(math.Round((hi-lo)/s))
 	return strings.Repeat("#", i+1) + strings.Repeat("-", n-i)
-}
-
-// volumeLine is an Audio line stepping *v through 0..1 in tenths, as a slider.
-func volumeLine(label string, v *float64) menuLine {
-	return menuLine{label, func(*Game) string { return bar(*v, 0, 1, 0.1) + fmt.Sprintf(" %3.0f%%", *v*100) },
-		func(_ *Game, d int) { *v = step(*v, 0, 1, 0.1, d) }}
 }
 
 func onOffOf(p *bool) func(*Game) string { return func(*Game) string { return onOff(*p) } }
@@ -581,17 +549,7 @@ func (g *Game) menuOptions() []menuLine {
 			{"Fullscreen", func(*Game) string { return onOff(gpu.IsFullscreen()) }, func(*Game, int) { gpu.SetFullscreen(!gpu.IsFullscreen()) }},
 			{"Dithered darkness", func(g *Game) string { return onOff(g.dither) }, func(g *Game, _ int) { g.dither = !g.dither }},
 			{"Torch intensity", func(g *Game) string { return fmt.Sprintf("%.1f", g.torch) }, func(g *Game, d int) { g.torch = step(g.torch, 0.5, 1.5, 0.5, d) }},
-			uiLine("Portraits", &Settings.Cards),
-			{"Party layout", func(*Game) string { return map[bool]string{false: "Sides", true: "Row"}[Settings.PartyRow] }, flip(&Settings.PartyRow)},
-			{"Minimap", func(*Game) string { return onOff(!Settings.MapOff) }, flip(&Settings.MapOff)},
-			{"Minimap opacity", func(*Game) string {
-				return bar(Settings.MapAlpha, minAlpha, 1, 0.1) + fmt.Sprintf(" %3.0f%%", Settings.MapAlpha*100)
-			}, func(_ *Game, d int) { Settings.MapAlpha = step(Settings.MapAlpha, minAlpha, 1, 0.1, d) }},
-			uiLine("Minimap size", &Settings.Map),
-			uiLine("Picture box", &Settings.Pic),
-			{"Damage Numbers", onOffOf(&Settings.DamageNumbers), flip(&Settings.DamageNumbers)},
 			{"Font", func(*Game) string { return FontNames()[FontAt()] }, func(g *Game, _ int) { g.page, g.sel = "Font", FontAt() }},
-			{"Artwork", func(*Game) string { return map[bool]string{false: "Amiga", true: "DOS"}[Settings.DOSArt] }, flip(&Settings.DOSArt)},
 			exit,
 		}
 	case "Font": // every font, each line in its own; the highlighted one is in use at once
@@ -600,31 +558,14 @@ func (g *Game) menuOptions() []menuLine {
 			o = append(o, menuLine{label: n, change: func(g *Game, _ int) { g.page, g.sel = "Graphics", graphicsFont }})
 		}
 		return o
-	case "Audio":
-		return []menuLine{
-			{"Voice-over", func(*Game) string { return onOff(Voice(false)) }, func(*Game, int) { Voice(true) }},
-			{"Music", func(*Game) string { return map[bool]string{false: "Original", true: "Soundtrack"}[Settings.Soundtrack] }, flip(&Settings.Soundtrack)},
-			{"DASP Sfx", onOffOf(&Settings.Dasp), flip(&Settings.Dasp)},
-			{"Step sounds", onOffOf(&Settings.Steps), flip(&Settings.Steps)},
-			volumeLine("Music volume", &Settings.Music),
-			volumeLine("Effects volume", &Settings.Effects),
-			volumeLine("Voice volume", &Settings.Voice),
-			exit,
-		}
 	case "Gameplay":
 		return []menuLine{
 			{"Smooth movement", func(g *Game) string { return onOff(g.smooth) }, func(g *Game, _ int) { g.smooth = !g.smooth }},
 			{"Fluid movement", onOffOf(&Settings.Fluid), flip(&Settings.Fluid)},
 			{"No Grid", onOffOf(&Settings.NoGrid), flip(&Settings.NoGrid)},
-			{"Explicit Interactions", onOffOf(&Settings.Explicit), flip(&Settings.Explicit)},
 			{"Walk speed", func(*Game) string {
 				return bar(Settings.Speed, minSpeed, maxSpeed, 0.25) + fmt.Sprintf(" %.2fx", Settings.Speed)
 			}, func(_ *Game, d int) { Settings.Speed = step(Settings.Speed, minSpeed, maxSpeed, 0.25, d) }},
-			{"Deskew combat maps", onOffOf(&Settings.Deskew), flip(&Settings.Deskew)},
-			{"4e Combat", onOffOf(&Settings.Combat4e), flip(&Settings.Combat4e)},
-			{"Zoom speed", func(*Game) string {
-				return bar(Settings.Zoom, minZoom, maxZoom, 0.25) + fmt.Sprintf(" %.2fx", Settings.Zoom)
-			}, func(_ *Game, d int) { Settings.Zoom = step(Settings.Zoom, minZoom, maxZoom, 0.25, d) }},
 			exit,
 		}
 	}
@@ -639,9 +580,6 @@ func (g *Game) menuOptions() []menuLine {
 		o = append(o, menuLine{label: "Save / Load", change: func(g *Game, _ int) { g.menu = false; OnSaveLoad() }})
 	}
 	o = append(o, page("Gameplay"), page("Graphics"))
-	if Voice != nil {
-		o = append(o, page("Audio"))
-	}
 	if OnMainMenu != nil {
 		o = append(o, ask("Back to Main Menu", "Back to the main menu? Unsaved progress is lost.", func() { g.menu = false; OnMainMenu() }))
 	}
@@ -788,7 +726,7 @@ func visibleCells(c cam) map[[2]int]bool {
 			} else {
 				cz, tz = cz+stepZ, tz+tdz
 			}
-			if wall(cx, cz) && inMap(cx, cz) { // phlan-poc: off the map the view runs on over water
+			if wall(cx, cz) && inMap(cx, cz) { // off the map the view runs on over water
 				break
 			}
 			cells[[2]int{cx, cz}] = true
@@ -806,7 +744,7 @@ func night() bool { return cur != nil && cur.Night }
 
 var nightTint = []float32{0.42, 0.48, 0.72}
 
-// texNightSky, texStars (phlan-poc): ceiling_sky_night and ceiling_night_stars, loaded with texClouds.
+// texNightSky, texStars : ceiling_sky_night and ceiling_night_stars, loaded with texClouds.
 var texNightSky, texStars *gpu.Image
 
 func (g *Game) drawSky(dst *gpu.Image, c cam) {
@@ -818,7 +756,7 @@ func (g *Game) drawSky(dst *gpu.Image, c cam) {
 		dst.DrawImage(texNightSky, op)
 		return
 	}
-	if texClouds != nil { // phlan-poc: the ceiling texture is a gradient, stretched; the cloud layer moves
+	if texClouds != nil { // the ceiling texture is a gradient, stretched; the cloud layer moves
 		b := texCeil.Bounds()
 		op := &gpu.DrawImageOptions{}
 		op.GeoM.Scale(float64(W)/float64(b.Dx()), hy/float64(b.Dy()))
@@ -950,38 +888,16 @@ type Options struct {
 	Smooth, Fluid, Dither, Fullscreen bool // Fluid: a held key walks or turns on without slowing at each cell
 	Torch                             float64
 	Speed                             float64 // walk and turn speed, minSpeed to maxSpeed times the normal
-	MapOff                            bool    // the host's minimap: hidden
-	PartyRow                          bool    // the host's portraits in one row along the bottom instead of down the sides
-	MapAlpha                          float64 // the minimap's opacity, minAlpha to 1
-	Cards, Map, Pic                   float64 // the host's portraits, minimap and picture box: one of UISteps times their normal size (the host shrinks them as far as the screen needs); text boxes and menus have no size of their own
-	Deskew                            bool    // the host's combat maps on a square grid (walls straight) instead of the original's perspective
-	Zoom                              float64 // the host's battle camera: how far one wheel step zooms, minZoom to maxZoom times 15 percent
-	Music, Effects, Voice             float64 // the host's volumes, 0 to 1
-	Dasp                              bool    // the host's Dubtrain sound pack effects in place of the original's
-	Soundtrack                        bool    // the host's music from the recordings in data/assets/soundtrack instead of the original's
-	Steps                             bool    // the host's step and turn sound
-	DamageNumbers                     bool    // the host's battle: hit points lost float over the heads
-	Combat4e                          bool    // the host's fights under the 4e rule set (package rules4e) laid over the original's
 	NoGrid                            bool    // free walking: W A S D and mouselook, the host told each square entered (free.go)
-	Explicit                          bool    // the host's harmless square events wait for Space instead of running on stepping
-	DOSArt                            bool    // the host's pictures, portraits and combat icons in the DOS art instead of the Amiga's (F12)
 }
 
-const minAlpha = 0.2
-
 const minSpeed, maxSpeed = 0.5, 2.0
-
-const minZoom, maxZoom = 0.25, 2.0
 
 // Settings are the options the view starts with; set them before NewView (from a settings file).
 // OnSettings is called with the new options whenever the player changes one.
 var (
-	Settings   = Options{Smooth: true, Fluid: true, Dither: true, Fullscreen: true, Torch: 1, Speed: 1, MapAlpha: 1, Deskew: true, Zoom: 0.5, Cards: 1, Map: 1, Pic: 1, Music: 1, Effects: 1, Voice: 1, Dasp: true, Steps: true, DamageNumbers: true}
+	Settings   = Options{Smooth: true, Fluid: true, Dither: true, Fullscreen: true, Torch: 1, Speed: 1}
 	OnSettings func(Options)
-	// Voice, when set, adds the Audio page with its "Voice-over" line (it toggles
-	// the voice first when toggle, then reports whether it is on), the
-	// DASP Sfx and Step sounds switches and the Music, Effects and Voice volume sliders.
-	Voice func(toggle bool) bool
 )
 
 // newGame makes the textures and shaders and the one Game, facing dir.

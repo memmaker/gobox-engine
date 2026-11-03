@@ -8,7 +8,7 @@ import (
 	"gobox/gpu"
 )
 
-// The sun and the far mountains of the open sky (cotab: the original draws
+// The sun and the far mountains of the open sky (the original draws
 // a sun picture by the hour and a mountain range when facing north, in
 // daylight). Bearings are compass radians (0 north, pi/2 east).
 var (

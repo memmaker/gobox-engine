@@ -1,6 +1,6 @@
 package blobber
 
-// The 3D view as meshes (phlan-poc). The walls, floor, ceiling and water of
+// The 3D view as meshes . The walls, floor, ceiling and water of
 // a map are built once into one vertex buffer (buildWorld) and drawn in a few
 // calls a frame with the camera as a uniform; what moves (billboards, glows,
 // the clouds) goes into a second buffer rebuilt each frame. The GPU depth
@@ -325,7 +325,7 @@ func buildWorld() *world {
 		}
 		w.mud = append(w.mud, texRange{t, first, len(vs) - first})
 	}
-	// the ponds: a pool per cell (pondH), joined to a neighbouring pond cell by a neck
+	// the ponds: a pool per cell (PondHalf), joined to a neighbouring pond cell by a neck
 	first = len(vs)
 	for cell := range Pond {
 		const n = 48
@@ -339,7 +339,7 @@ func buildWorld() *world {
 		for _, d := range [][2]int{{1, 0}, {0, 1}} { // each join once, from the west / north cell
 			if Pond[[2]int{cell[0] + d[0], cell[1] + d[1]}] {
 				ex, ez := float64(d[0]), float64(d[1])
-				px, pz := ez*pondNeck, ex*pondNeck
+				px, pz := ez*cur.PondNeck, ex*cur.PondNeck
 				vs = quad(vs, wv(mx-px, mz-pz), wv(mx+px, mz+pz), wv(mx+px+ex, mz+pz+ez), wv(mx-px+ex, mz-pz+ez), layer(layerPond), white4)
 			}
 		}
@@ -358,9 +358,9 @@ func buildWorld() *world {
 				continue
 			}
 			for i, s := range sides(float64(cx), float64(cy), float64(cx+1), float64(cy+1)) {
-				parts := Faces[[3]int{cx, cy, i}] // phlan-poc: a face of its own, also in front of a passable cell
+				parts := Faces[[3]int{cx, cy, i}] // a face of its own, also in front of a passable cell
 				if parts == nil {
-					if !wall(cx+dirs[i][0], cy+dirs[i][1]) || !inMap(cx+dirs[i][0], cy+dirs[i][1]) { // phlan-poc: no wall around the map
+					if !wall(cx+dirs[i][0], cy+dirs[i][1]) || !inMap(cx+dirs[i][0], cy+dirs[i][1]) { // no wall around the map
 						continue
 					}
 					parts = []FacePart{{Mat: 0, T1: 1, U1: 1}}
@@ -435,7 +435,7 @@ func (g *Game) frameUniforms(c cam, vp gpu.Mat4) {
 	warm := []float32{1.08, 0.94, 0.78}
 	if openSky {
 		warm = []float32{1, 1, 1}
-		if night() { // phlan-poc: moonlight, dim and blue
+		if night() { // moonlight, dim and blue
 			warm = nightTint
 		}
 	}
@@ -472,12 +472,12 @@ func (g *Game) draw3D(screen *gpu.Image, c cam) {
 		dst.Fill(fogCol)
 	}
 	if texWater == nil {
-		texWater, texClouds = FlatTexture("floor", "phlan_water"), FlatTexture("ceiling", "phlan_clouds")
+		texWater, texClouds = FlatTexture("floor", "water"), FlatTexture("ceiling", "clouds")
 		texNightSky, texStars = FlatTexture("ceiling", "sky_night"), FlatTexture("ceiling", "night_stars")
 	}
 	if openSky && !gpu.Skip("sky") {
 		g.drawSky(dst, c)
-		if texWater != nil && (len(Water) > 0 || Sea) { // phlan-poc: the sea runs on to the horizon past the last cells drawn
+		if texWater != nil && (len(Water) > 0 || Sea) { // the sea runs on to the horizon past the last cells drawn
 			hy := float32(horizon(c))
 			vector.DrawFilledRect(dst, 0, hy, float32(W), float32(H)-hy, color.RGBA{40, 98, 160, 255})
 		}
@@ -509,7 +509,7 @@ func (g *Game) draw3D(screen *gpu.Image, c cam) {
 		bills = append(bills, bill{first, 6, tex, bias, mode})
 	}
 	clouds := [2]int{}
-	if openSky { // phlan-poc: a cloud layer high above, so the sky moves with every step and turn
+	if openSky { // a cloud layer high above, so the sky moves with every step and turn
 		const hgt, span, size = -6.0, 130.0, 14.0 // height, reach and cloud tile size in cells
 		a, b, cc, d := ahead(c, hgt, span, 1/size)
 		clouds[0] = len(dyn)
@@ -563,7 +563,7 @@ func (g *Game) draw3D(screen *gpu.Image, c cam) {
 			continue
 		}
 		ox, oz := float64(o.X)+0.5+c.fwx*eyeBack, float64(o.Y)+0.5+c.fwz*eyeBack
-		if o.At != nil { // phlan-poc: stands where it stands, seen like a wall (no culling by cell)
+		if o.At != nil { // stands where it stands, seen like a wall (no culling by cell)
 			ox, oz = o.At[0], o.At[1]
 		} else if !vis[[2]int{o.X, o.Y}] {
 			continue

@@ -10,7 +10,7 @@ import (
 var padKeys = map[gpu.Key]bool{}
 
 // KeyJustPressed reports a key pressed this frame on the keyboard or a gamepad.
-var shooting = os.Getenv("BLOBBER_SHOT") != "" // phlan-poc: screenshots ignore the keyboard
+var shooting = os.Getenv("BLOBBER_SHOT") != "" // screenshots ignore the keyboard
 
 func KeyJustPressed(k gpu.Key) bool {
 	return !shooting && gpu.IsKeyJustPressed(k) || padKeys[k]
@@ -26,5 +26,5 @@ func KeyRepeated(k gpu.Key) bool {
 }
 
 // Held reports whether a held key may repeat; a host that ignores keys held
-// through a screen change (por's latch) sets it.
+// through a screen change (the host's latch) sets it.
 var Held = func(gpu.Key) bool { return true }
