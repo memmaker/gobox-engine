@@ -41,3 +41,6 @@ Repeat differs per copy (report): por d==1 || d>=tps/3 && (d-tps/3)%(tps*3/20)==
 - cotab: delete keyCodes' code column (loop gpu keys through ui.BIOSKey, keep its repeat set), pressed/padPressed -> input.Repeat(d,16,4).
 - blobber: Repeats default can stay (por already overrides it).
 - Wilderness pane: a.DrawIn(dst, paneRect, ...). Horizontal bars: ui.MenuNavH instead of MenuNav.
+
+## Migrate
+No API change. ui holds no colours, fonts or borders (callers pass them: `BarColors`, `ink`, `glyph`); only comments were reworded.

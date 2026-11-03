@@ -2,8 +2,8 @@ package ui
 
 import "gobox/gpu"
 
-// BIOSKey is the code INT 16h gave for window key k (por's table, which
-// cotab's and blobber's hosts share): low byte ASCII for Enter, Esc,
+// BIOSKey is the code INT 16h gave for window key k (the original BIOS table, which
+// the hosts share): low byte ASCII for Enter, Esc,
 // Backspace and Tab, else the scan code in the high byte (arrows, Home,
 // End, PgUp, PgDn, Delete, F1-F10, and the keypad's 1-9 as the same
 // keys; KP5 is 0x4C00). ok is false for any other key.
