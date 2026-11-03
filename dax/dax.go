@@ -114,11 +114,11 @@ type Loader struct {
 	Dir     string
 	OneDisk bool // a missing block stays missing (no fallback to the other disks' files, sotsb)
 	// ponytail: OneDisk is to go: flip the default (the other-disk fallback opt-in, set by por only), then remove the field from cotab and sotsb
-	mu      sync.Mutex
-	files   map[string]*File
-	names   map[string]string   // lower-case name -> real file name
-	amiga   *Loader             // UseAmiga's: Amiga graphics by base name (PIC.DAX for PIC1..8)
-	memo    map[amigaKey][]byte // finished Amiga blocks (name munging and centre done once)
+	mu    sync.Mutex
+	files map[string]*File
+	names map[string]string   // lower-case name -> real file name
+	amiga *Loader             // UseAmiga's: Amiga graphics by base name (PIC.DAX for PIC1..8)
+	memo  map[amigaKey][]byte // finished Amiga blocks (name munging and centre done once)
 }
 
 type amigaKey struct {
