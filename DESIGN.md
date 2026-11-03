@@ -203,3 +203,4 @@ combat status: extracted into `combat/` (module gobox/combat), kinds are named
 (no Yes/No from Confirm, no double aim, no keypad step, Turn.Moves unused).
 The bar draws Turn.Labels; icons are the embedded shared set, overridden by
 Presenter.Icons. Turn.Icons is gone.
+- [ ] purse: gobox save/load stores the purse as uint64 (the games' uint32 .SAV trailers saturate today); reset the purse when the last member leaves, as por does or decide (sotsb gap)
