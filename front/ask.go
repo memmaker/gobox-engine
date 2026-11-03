@@ -83,3 +83,12 @@ type Spell struct {
 	ID   int
 	Name string
 }
+
+// Question is a question a screen asks: Answer takes each decision while
+// it is up, true when it is answered (it goes); Cand is a member pick's
+// candidate.
+type Question struct {
+	Ask    Ask
+	Answer func(a Action) bool
+	Cand   int
+}
