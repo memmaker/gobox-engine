@@ -26,7 +26,8 @@ merged character portraits and icons, and the combat UI icons, for all games
 to use. A game may override any of them with its own data. Blobber walls,
 portraits and combat sprites are merged from all games into one pool each
 (`gobox/walls`, `gobox/sprites`); a game selects from a pool by name, and its
-maps and selection tables stay its own.
+maps and selection tables stay its own. Fonts are pooled too (`ui/fonts`): each game merges its
+fonts into the pool and selects by name.
 
 ## Rule 2 decisions (the user's)
 
