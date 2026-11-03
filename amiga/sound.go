@@ -1,4 +1,4 @@
-// Package amiga plays the Amiga Pool of Radiance sound: the effects player
+// Package amiga plays the Amiga sound: the effects player
 // (hunk 33, 0x90172) and Wally Beben's music player (hunk 27, 0x638a0),
 // translated instruction by instruction over the program's own memory
 // (hunks 27-33, so the songs, instruments, samples and tables are the
@@ -28,7 +28,7 @@ type Player struct {
 	trace func(off, size int, v uint32) // every custom-chip write, for tests
 	frac  float64
 	lp    [2]float64 // output filter state
-	// SongOn is the address of the music player's "song running" byte (PoR 0x667d5, the default).
+	// SongOn is the address of the music player's "song running" byte; the host sets it (no default).
 	SongOn uint32
 }
 
@@ -41,7 +41,7 @@ type voice struct {
 
 // New wants the bytes from Base to End.
 func New(img []byte) *Player {
-	return &Player{m: append([]byte(nil), img...), SongOn: 0x667d5}
+	return &Player{m: append([]byte(nil), img...)}
 }
 
 func (p *Player) rb(a uint32) byte {
@@ -292,7 +292,7 @@ func (p *Player) stopVol() {
 func (p *Player) stopAll() {
 	p.stopVol()
 	p.wb(0x667d7, 0)
-	p.wb(0x667d5, 0)
+	p.wb(p.SongOn, 0)
 }
 
 // musTick = 0x638c2: a song request at 0x638c0 (0 stop, 1-7 start), else
@@ -310,7 +310,7 @@ func (p *Player) musStep() bool {
 	p.movem(0x666c8)
 	setB(&d[0], p.rb(0x638c0))
 	if byte(d[0]) == 0 {
-		p.wb(0x667d5, 0)
+		p.wb(p.SongOn, 0)
 		p.stopVol()
 		return false
 	}
@@ -335,11 +335,11 @@ func (p *Player) musStep() bool {
 			}
 		}
 		p.stopAll()
-		p.wb(0x667d5, 1)
+		p.wb(p.SongOn, 1)
 		p.wb(0x667e0, 0xf)
 		return false
 	}
-	if p.rb(0x667d5) == 0 { // 0x639ac
+	if p.rb(p.SongOn) == 0 { // 0x639ac
 		return false
 	}
 	p.wb(0x667d4, 3)
