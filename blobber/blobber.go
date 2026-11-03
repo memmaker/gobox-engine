@@ -490,7 +490,8 @@ func (g *Game) back() bool {
 		return false
 	}
 	if g.page == "Font" {
-		g.page, g.sel = "Graphics", graphicsFont
+		g.page = "Graphics"
+		g.sel = g.fontRow()
 		return true
 	}
 	if g.confirm != nil { // back to the row the question or the page was opened from
@@ -508,6 +509,48 @@ type menuLine struct {
 	label  string
 	value  func(g *Game) string
 	change func(g *Game, d int)
+}
+
+// Row is a host row on an Esc menu page: Get is the value shown, Change runs on Enter (0), Left (-1)
+// and Right (1). At is the built-in row it goes before (rows of equal At keep their order).
+type Row struct {
+	Label  string
+	At     int
+	Get    func() string
+	Change func(d int)
+}
+
+// ExtraRows are the host's rows by page ("Gameplay", "Graphics"); any other key is a page of its own,
+// listed on the root menu after Graphics (sorted by title), with every row's At ignored.
+var ExtraRows map[string][]Row
+
+// withExtra is the built-in rows of page with the host's inserted, then exit.
+func withExtra(page string, rows []menuLine, exit menuLine) []menuLine {
+	var o []menuLine
+	extra := ExtraRows[page]
+	for i := 0; i <= len(rows); i++ {
+		for _, r := range extra {
+			if r.At == i {
+				o = append(o, r.line())
+			}
+		}
+		if i < len(rows) {
+			o = append(o, rows[i])
+		}
+	}
+	return append(o, exit)
+}
+
+func (r Row) line() menuLine {
+	l := menuLine{label: r.Label, change: func(_ *Game, d int) {
+		if r.Change != nil {
+			r.Change(d)
+		}
+	}}
+	if r.Get != nil {
+		l.value = func(*Game) string { return r.Get() }
+	}
+	return l
 }
 
 func flip(p *bool) func(*Game, int) { return func(*Game, int) { *p = !*p } }
@@ -545,29 +588,34 @@ func (g *Game) menuOptions() []menuLine {
 	exit := menuLine{label: "Exit", change: func(g *Game, _ int) { g.back() }} // a settings page's way back, as Esc
 	switch g.page {
 	case "Graphics":
-		return []menuLine{
+		return withExtra("Graphics", []menuLine{
 			{"Fullscreen", func(*Game) string { return onOff(gpu.IsFullscreen()) }, func(*Game, int) { gpu.SetFullscreen(!gpu.IsFullscreen()) }},
 			{"Dithered darkness", func(g *Game) string { return onOff(g.dither) }, func(g *Game, _ int) { g.dither = !g.dither }},
 			{"Torch intensity", func(g *Game) string { return fmt.Sprintf("%.1f", g.torch) }, func(g *Game, d int) { g.torch = step(g.torch, 0.5, 1.5, 0.5, d) }},
 			{"Font", func(*Game) string { return FontNames()[FontAt()] }, func(g *Game, _ int) { g.page, g.sel = "Font", FontAt() }},
-			exit,
-		}
+		}, exit)
 	case "Font": // every font, each line in its own; the highlighted one is in use at once
 		var o []menuLine
 		for _, n := range FontNames() {
-			o = append(o, menuLine{label: n, change: func(g *Game, _ int) { g.page, g.sel = "Graphics", graphicsFont }})
+			o = append(o, menuLine{label: n, change: func(g *Game, _ int) { g.page = "Graphics"; g.sel = g.fontRow() }})
 		}
 		return o
 	case "Gameplay":
-		return []menuLine{
+		return withExtra("Gameplay", []menuLine{
 			{"Smooth movement", func(g *Game) string { return onOff(g.smooth) }, func(g *Game, _ int) { g.smooth = !g.smooth }},
 			{"Fluid movement", onOffOf(&Settings.Fluid), flip(&Settings.Fluid)},
 			{"No Grid", onOffOf(&Settings.NoGrid), flip(&Settings.NoGrid)},
 			{"Walk speed", func(*Game) string {
 				return bar(Settings.Speed, minSpeed, maxSpeed, 0.25) + fmt.Sprintf(" %.2fx", Settings.Speed)
 			}, func(_ *Game, d int) { Settings.Speed = step(Settings.Speed, minSpeed, maxSpeed, 0.25, d) }},
-			exit,
+		}, exit)
+	}
+	if rows, ok := ExtraRows[g.page]; ok && g.page != "" {
+		var o []menuLine
+		for _, r := range rows {
+			o = append(o, r.line())
 		}
+		return append(o, exit)
 	}
 	page := func(p string) menuLine {
 		return menuLine{label: p, change: func(g *Game, _ int) { g.pageSel, g.page, g.sel = g.sel, p, 0 }}
@@ -580,6 +628,16 @@ func (g *Game) menuOptions() []menuLine {
 		o = append(o, menuLine{label: "Save / Load", change: func(g *Game, _ int) { g.menu = false; OnSaveLoad() }})
 	}
 	o = append(o, page("Gameplay"), page("Graphics"))
+	var pages []string
+	for p := range ExtraRows {
+		if p != "Gameplay" && p != "Graphics" {
+			pages = append(pages, p)
+		}
+	}
+	slices.Sort(pages)
+	for _, p := range pages {
+		o = append(o, page(p))
+	}
 	if OnMainMenu != nil {
 		o = append(o, ask("Back to Main Menu", "Back to the main menu? Unsaved progress is lost.", func() { g.menu = false; OnMainMenu() }))
 	}
@@ -603,8 +661,18 @@ var (
 	MenuGlyph func(line int, ch byte) [8]byte
 )
 
-// graphicsFont is the Font line's row on the Graphics page.
-const graphicsFont = 3
+// fontRow is the Font line's row on the Graphics page.
+func (g *Game) fontRow() int {
+	save := g.page
+	g.page = "Graphics"
+	defer func() { g.page = save }()
+	for i, l := range g.menuOptions() {
+		if l.label == "Font" {
+			return i
+		}
+	}
+	return 0
+}
 
 // OnSaveLoad, when set, adds "Save / Load" to the Esc menu (the host's save slots); OnMainMenu
 // adds "Back to Main Menu" (asked first).

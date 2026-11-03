@@ -32,7 +32,7 @@ Embedded game assets were removed from blobber. Last commit that has them: `b8cb
 Each game now supplies:
 - Textures: `View.Textures` (name -> image) and `View.Painted` (wall char -> name). Names are plain now: `floor_water`, `ceiling_clouds` (were `*_phlan_*`), `stone`, `floor`, `ceiling`, `wall_*`, `prop_*`.
 - Maps: the .map files, read with `LoadMap(io.Reader)`; `maps.Levels` is gone.
-- Menu: the Esc menu lost the host rows (portraits, minimap, artwork, audio page and volumes, deskew, 4e, zoom, explicit) and `Voice`, `UISteps`; the game keeps those settings in its own struct.
+- Menu: the Esc menu lost the host rows (portraits, minimap, artwork, audio page and volumes, deskew, 4e, zoom, explicit) and `Voice`, `UISteps`; the game keeps those settings in its own struct and puts the rows back with `blobber.ExtraRows` (`map[page][]Row{Label, At, Get func() string, Change func(d int)}`: `Gameplay` and `Graphics` rows go before built-in row `At`; any other key is a new page on the root menu, after Graphics, sorted). `Change` gets 0 Enter, -1 Left, 1 Right; `OnSettings` runs after it.
 - Ponds: `View.PondHalf/PondNeck/PondMud` default to 0.46/0.36/0.12 (por's).
 - por copies its assets (run in por-go):
   `git -C ../gobox-engine archive b8cbba982153eafcde2ccd3266300f7e481f732a blobber/assets blobber/maps blobber/tools blobber/create_textures.sh | tar -x --strip-components=1 -C <dest>`
