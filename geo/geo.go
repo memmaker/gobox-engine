@@ -93,8 +93,8 @@ func (m *Map) MapCell(x, y int) byte {
 }
 
 // Walldef is a WALLDEF block split into 5-wall chunks of SetSize bytes.
-// A trailing partial chunk is dropped (cotab/sotsb deviation: the original
-// copies it too).
+// A trailing partial chunk is dropped: the decided behaviour (DESIGN.md, Rule 2 decisions); the original
+// copies it too.
 type Walldef struct{ Sets [][]byte }
 
 // ParseWalldef splits a block; an empty or short block is an error the
@@ -112,7 +112,7 @@ func ParseWalldef(b []byte) (*Walldef, error) {
 func (w *Walldef) Fits(slot int) bool { return ValidWallSlot(slot) && slot+len(w.Sets) <= 4 }
 
 // Relocate adds delta to every symbol id >= SymWallBase of chunk k
-// (cotab/sotsb: symFix[slot]-symFix[1], symFix={1,46,116,186,256}).
+// The game computes delta from its own per-slot symbol base table (data it owns); geo holds no table.
 func (w *Walldef) Relocate(k int, delta byte) {
 	for i, v := range w.Sets[k] {
 		if v >= SymWallBase {
