@@ -14,6 +14,7 @@ import (
 	"gobox/ega"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 )
@@ -284,15 +285,11 @@ func centre(b []byte, w int) []byte {
 }
 
 // Block is BlockShared as a private copy the caller may modify.
-func (f *File) Block(id int) []byte { return append([]byte(nil), f.BlockShared(id)...) }
+func (f *File) Block(id int) []byte { return slices.Clone(f.BlockShared(id)) } // an empty block stays non-nil
 
 // Block is BlockShared as a private copy the caller may modify (nil if missing).
 func (l *Loader) Block(name string, id int) []byte {
-	b := l.BlockShared(name, id)
-	if b == nil {
-		return nil
-	}
-	return append([]byte(nil), b...)
+	return slices.Clone(l.BlockShared(name, id)) // an empty block stays non-nil
 }
 
 // Palette is the 16-colour EGA palette the pictures index (a copy of ega.Palette).

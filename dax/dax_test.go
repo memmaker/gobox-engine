@@ -23,3 +23,13 @@ func TestBlockCopy(t *testing.T) {
 		t.Fatal("Block aliased the cache")
 	}
 }
+
+func TestBlockEmptyNotNil(t *testing.T) {
+	f := &File{cache: map[int][]byte{1: {}}}
+	if f.Block(1) == nil {
+		t.Fatal("an empty block reads as missing")
+	}
+	if f.Block(2) != nil {
+		t.Fatal("a missing block reads as present")
+	}
+}
