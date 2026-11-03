@@ -9,6 +9,10 @@ game, and a game feeds it plain Go values built from its own data.
 
 ## Rules
 
+Guiding principle (the user's): a game is only a data holder and a rules
+engine. Everything else (presentation, screens, input, drawing, sound
+playback, save/load, the app shell) is gobox.
+
 1. Unify UI code but keep each game's theme: colour schemes, fonts and
    border graphics are the game's data, handed to the shared UI.
 2. Rules that are the same, or should be the same, are unified in a `rules`
