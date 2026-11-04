@@ -176,9 +176,10 @@ type Reach struct {
 
 // Ground is one battlefield square.
 type Ground struct {
-	At    image.Point
-	Art   Picture
-	Block bool
+	At     image.Point
+	Art    Picture
+	Block  bool
+	Height int // the square's height (a wall, a tree)
 }
 
 // Unit is a combatant.
@@ -195,12 +196,14 @@ type Unit struct {
 	Squares    []image.Point // squares covered
 	AC         int
 	Status     string
+	Dmg        string // the unit's damage, e.g. "1d8+6"
 }
 
 // Turn is whose turn it is and what they may do.
 type Turn struct {
 	Unit    int
 	Moves   int
+	Casting int // the spell the unit is casting over rounds, 0 none
 	Options []Option
 }
 
@@ -213,7 +216,15 @@ type Option struct {
 
 // Shop, Service, Training, Loot, Door, Vault: the place an area script has
 // opened (Mode says which); nil when none is open.
+// Offer is the shop's price for one member's gem or jewel (Appraise).
+type Offer struct {
+	Member, Item int
+	Kind         string // Gems or Jewelry
+	Value        int
+}
+
 type Shop struct {
+	Offers []Offer
 	Name   string
 	Goods  []Item
 	Prices []int
@@ -335,21 +346,28 @@ type (
 	Move    struct{ To image.Point } // combat
 	Attack  struct{ Target int }
 	Cast    struct {
-		Spell, Target int
-		At            image.Point
+		Member, Spell, Target int // Member: outside combat, who casts
+		At                    image.Point
+		Ats                   []image.Point // one square per target, when the spell takes several
 	}
-	UseItem  struct{ Member, Item, Target int }
+	UseItem struct {
+		Member, Item, Target int
+		Ats                  []image.Point // one square per target
+	}
 	Ready    struct{ Member, Item int }
 	Drop     struct{ Member, Item int }
 	Trade    struct{ From, To, Item int }
-	Buy      struct{ Item int }
+	Buy      struct{ Member, Item int } // Member: who buys and carries it
 	Sell     struct{ Member, Item int }
-	TakeLoot struct{ Item int }    // Item -1: all
-	Rest     struct{ Minutes int } // 0: the default rest
-	Camp     struct{}
-	Train    struct{ Member int }
-	Heal     struct{ Service, Member int }
-	Create   struct {
+	TakeLoot struct {
+		Item int  // -1: the money only
+		All  bool // the money and every item
+	}
+	Rest   struct{ Minutes int } // 0: the default rest
+	Camp   struct{}
+	Train  struct{ Member int }
+	Heal   struct{ Service, Member int }
+	Create struct {
 		Field string
 		N     int
 		Text  string
@@ -377,11 +395,14 @@ type (
 	TurnUndead struct{}
 	Aim        struct{ At image.Point }
 	// Items and money.
-	Unready   struct{ Member, Item int }
-	Halve     struct{ Member, Item int } // split a stack
-	Join      struct{ Member, Item int } // merge stacks
-	Identify  struct{ Member, Item int }
-	Appraise  struct{ Member, Item int }
+	Unready  struct{ Member, Item int }
+	Halve    struct{ Member, Item int } // split a stack
+	Join     struct{ Member, Item int } // merge stacks
+	Identify struct{ Member, Item int }
+	Appraise struct {
+		Member, Item int
+		Keep         bool // keep the gem or jewel rather than sell it at the offer
+	}
 	Repair    struct{ Member, Item int }
 	PoolCoins struct{ Member int }
 	Leave     struct{} // leave the open shop, vault, loot or temple
