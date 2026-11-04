@@ -59,6 +59,26 @@ var TryCeiling string
 // FlatTexture where no flat is named; Scene.Show sets them.
 var FlatColors [2]*color.RGBA
 
+// backdrop is the current scene's Scene.Backdrop on the GPU (nil: none);
+// backdropSrc the image it was made from.
+var (
+	backdrop    *gpu.Image
+	backdropSrc image.Image
+)
+
+func setBackdrop(m image.Image) {
+	if m == backdropSrc {
+		return
+	}
+	if backdrop != nil {
+		backdrop.Deallocate()
+	}
+	backdrop, backdropSrc = nil, m
+	if m != nil {
+		backdrop = gpu.NewImageFromImage(m)
+	}
+}
+
 var solidCache = map[color.RGBA]*gpu.Image{}
 
 // SetFlats makes floor and ceiling (names from Flats; "" = the default textures) the current

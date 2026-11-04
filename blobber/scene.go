@@ -2,6 +2,7 @@ package blobber
 
 import (
 	"fmt"
+	"image"
 	"image/color"
 	"io"
 	"strconv"
@@ -21,6 +22,7 @@ type Scene struct {
 	FloorRGBA, CeilRGBA *color.RGBA // plain flat colours, where Floor or Ceiling is ""
 	Floor, Ceiling      string      // painted assets/walls/floor_NAME.png / ceiling_NAME.png ("" = default)
 	Props               []*Object   // billboards and wells, fixed in place
+	Backdrop            image.Image // over the whole view behind the walls, opaque and stretched nearest-neighbour, in place of sky and flats (nil: none)
 }
 
 // ParseScene reads a .map file: the scene, and the lines it left for the host.
@@ -123,5 +125,6 @@ func (s *Scene) Show(objs ...*Object) {
 	worldChanged()
 	FlatColors = [2]*color.RGBA{s.FloorRGBA, s.CeilRGBA}
 	SetFlats(s.Floor, s.Ceiling)
+	setBackdrop(s.Backdrop)
 	Objects = append(append(Objects[:0], s.Props...), objs...)
 }

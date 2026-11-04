@@ -325,6 +325,7 @@ type Walls struct {
 	Sun                 bool                // by day outside: the sun up, at SunAz
 	SunAz, SunEl        float64             // the sun's bearing (compass radians, 0 north, pi/2 east) and height above the horizon
 	Mountains           bool                // by day outside: the mountain range on the horizon
+	Backdrop            *Picture            // over the whole view behind the walls, opaque and stretched, in place of the flats (nil: none): Img, or the game's pixels or DAX ref the presenter decodes into Img
 }
 
 // Dir is a facing: N, E, S, W.

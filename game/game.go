@@ -135,6 +135,10 @@ type Walls struct {
 	Sun                 bool           // by day outside: the sun up, at SunAz
 	SunAz, SunEl        float64        // the sun's bearing (0 north, pi/2 east) and height
 	Mountains           bool           // by day outside: the mountain range on the horizon
+	// Backdrop, when set, is drawn opaque over the whole 3D view behind the
+	// walls, stretched with nearest-neighbour filtering, in place of the sky
+	// and floor flats (nil: none, the flats and CeilRGBA/FloorRGBA fills show).
+	Backdrop *Picture `json:",omitempty"`
 }
 
 // Intro is the title waiting to be played.

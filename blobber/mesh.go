@@ -475,7 +475,12 @@ func (g *Game) draw3D(screen *gpu.Image, c cam) {
 		texWater, texClouds = FlatTexture("floor", "water"), FlatTexture("ceiling", "clouds")
 		texNightSky, texStars = FlatTexture("ceiling", "sky_night"), FlatTexture("ceiling", "night_stars")
 	}
-	if openSky && !gpu.Skip("sky") {
+	if backdrop != nil { // the scene's picture in place of sky and flats
+		b := backdrop.Bounds()
+		op := &gpu.DrawImageOptions{} // FilterNearest
+		op.GeoM.Scale(float64(W)/float64(b.Dx()), float64(H)/float64(b.Dy()))
+		dst.DrawImage(backdrop, op)
+	} else if openSky && !gpu.Skip("sky") {
 		g.drawSky(dst, c)
 		if texWater != nil && (len(Water) > 0 || Sea) { // the sea runs on to the horizon past the last cells drawn
 			hy := float32(horizon(c))
@@ -658,15 +663,17 @@ func (g *Game) draw3D(screen *gpu.Image, c cam) {
 	// face's depth (0.9999 at most), so writing theirs would hide nothing: tested only, which lets
 	// the GPU test before it shades (a shader that discards puts the test after a write)
 	if !gpu.Skip("floors") {
-		draw(w.mesh, w.floor, texFloor, nil, modeShaded, 0, 0, 0, 0, gpu.BlendSourceOver)
-		draw(w.mesh, w.ceil, texCeil, nil, modeShaded, 0, 0, 0, 0, gpu.BlendSourceOver)
+		if backdrop == nil {
+			draw(w.mesh, w.floor, texFloor, nil, modeShaded, 0, 0, 0, 0, gpu.BlendSourceOver)
+			draw(w.mesh, w.ceil, texCeil, nil, modeShaded, 0, 0, 0, 0, gpu.BlendSourceOver)
+		}
 		draw(w.mesh, w.water, texWater, nil, modeShaded, 0, 0, 0, wind, gpu.BlendSourceOver)
 		for _, r := range w.mud {
 			draw(w.mesh, [2]int{r.first, r.n}, r.tex, nil, modeShaded, 0, 0, 0, 0, gpu.BlendSourceOver)
 		}
 		draw(w.mesh, w.pond, texPondWater, nil, modeShaded, 0, 0, 0, wind, gpu.BlendSourceOver)
 	}
-	if openSky && !gpu.Skip("planes") {
+	if openSky && backdrop == nil && !gpu.Skip("planes") {
 		ct := texClouds
 		if night() {
 			ct = texStars

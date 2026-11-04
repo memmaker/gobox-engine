@@ -26,6 +26,13 @@ func Walls(v front.View, s game.State, art map[string]game.Picture) front.View {
 			f.FrontPix[k] = fp
 		}
 	}
+	if b := w.Backdrop; b != nil {
+		fb := pix(*b)
+		if fb.Pix == nil {
+			fb = front.Picture{File: b.File, Block: b.Block, Frame: b.Frame}
+		}
+		f.Backdrop = &fb
+	}
 	v.Walls = f
 	return v
 }

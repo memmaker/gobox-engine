@@ -135,6 +135,12 @@ func pixView(v front.View) front.View {
 		}
 		v.Walls = &c
 	}
+	if w := v.Walls; w != nil && w.Backdrop != nil && w.Backdrop.Img == nil {
+		c, b := *w, *w.Backdrop
+		b.Img = picImage(b, ink)
+		c.Backdrop = &b
+		v.Walls = &c
+	}
 	if pixParty(v.Party) {
 		v.Party = append([]front.Member(nil), v.Party...)
 		for i := range v.Party {
