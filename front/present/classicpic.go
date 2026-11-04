@@ -47,6 +47,22 @@ func pixImage(pc front.Picture, ink [16]color.RGBA) image.Image {
 	return m
 }
 
+// picImage is pc as an image: its pixels in ink, else the DAX picture its
+// File, Block and Frame name (EGA colours), else nil.
+func picImage(pc front.Picture, ink [16]color.RGBA) image.Image {
+	if pc.Pix != nil {
+		return pixImage(pc, ink)
+	}
+	if pc.File != "" {
+		mask := -1
+		if pc.Mask != nil {
+			mask = int(*pc.Mask)
+		}
+		return daxMasked(pc.File, pc.Block, pc.Frame, mask)
+	}
+	return nil
+}
+
 // indexedPictures is ps with the pictures given as pixels converted in ink.
 func indexedPictures(ps []front.Picture, ink [16]color.RGBA) []front.Picture {
 	var out []front.Picture
@@ -82,13 +98,21 @@ func pixView(v front.View) front.View {
 		for y, row := range m.SquarePix {
 			c.Squares[y] = make([]image.Image, len(row))
 			for x, pc := range row {
-				c.Squares[y][x] = pixImage(pc, ink)
+				c.Squares[y][x] = picImage(pc, ink)
 			}
 		}
 		c.Marker = pixImage(m.MarkerPix, ink)
 		v.AreaMap = &c
 	}
 	v.Battle = pixBattle(v.Battle, ink)
+	if w := v.Walls; w != nil && w.FrontPix != nil && w.Fronts == nil {
+		c := *w
+		c.Fronts = make(map[int]image.Image, len(w.FrontPix))
+		for k, pc := range w.FrontPix {
+			c.Fronts[k] = picImage(pc, ink)
+		}
+		v.Walls = &c
+	}
 	if pixParty(v.Party) {
 		v.Party = append([]front.Member(nil), v.Party...)
 		for i := range v.Party {
@@ -125,24 +149,26 @@ func pixParty(ms []front.Member) bool {
 
 // pixBattle is b with its pictures given as pixels coloured in ink.
 func pixBattle(b *front.Battle, ink [16]color.RGBA) *front.Battle {
-	if b == nil || b.TilePix == nil || b.Tiles != nil {
+	if b == nil || b.TilePix == nil && b.IconPix == nil && b.EffectPix == nil {
 		return b
 	}
 	c := *b
-	c.Tiles = make([]image.Image, len(b.TilePix))
-	for i, pc := range b.TilePix {
-		c.Tiles[i] = pixImage(pc, ink)
+	if b.Tiles == nil && b.TilePix != nil {
+		c.Tiles = make([]image.Image, len(b.TilePix))
+		for i, pc := range b.TilePix {
+			c.Tiles[i] = picImage(pc, ink)
+		}
 	}
 	c.Units = append([]front.Unit(nil), b.Units...)
 	for i := range c.Units {
 		if u := &c.Units[i]; u.Icon == nil && i < len(b.IconPix) {
-			u.Icon = pixImage(b.IconPix[i], ink)
+			u.Icon = picImage(b.IconPix[i], ink)
 		}
 	}
 	c.Effects = append([]front.Effect(nil), b.Effects...)
 	for i := range c.Effects {
 		if f := &c.Effects[i]; f.Pic == nil && i < len(b.EffectPix) {
-			f.Pic = pixImage(b.EffectPix[i], ink)
+			f.Pic = picImage(b.EffectPix[i], ink)
 		}
 	}
 	return &c

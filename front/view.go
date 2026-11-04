@@ -42,9 +42,9 @@ type AreaMap struct {
 type Battle struct {
 	Ground    [25][50]Square
 	Tiles     []image.Image // the tile set by tile number, in combat's colours
-	TilePix   []Picture     // Tiles as the game's pixels in View.Ink, the presenter's to colour into Tiles
-	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here)
-	EffectPix []Picture     // Effects' pictures so, by effect
+	TilePix   []Picture     // Tiles as the game's pixels in View.Ink, or DAX refs (File, Block, Frame), the presenter's to make into Tiles
+	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here); used where Icon is nil
+	EffectPix []Picture     // Effects' pictures so, by effect; used where Pic is nil
 	Floor     color.RGBA    // the ground's colour
 	Dungeon   bool          // tiles 0..DungeonTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
 	Units     []Unit
@@ -309,6 +309,7 @@ type Walls struct {
 	Key          string              // what the scene is built from (map, wall sets): a new Key builds it again
 	Side         [][][4]int          // a square's wall value by side, rows from the top (0: open)
 	Fronts       map[int]image.Image // a wall value's picture: the original's front view of it
+	FrontPix     map[int]Picture     // Fronts as the game's pixels (Picture.Pix, in View.Ink) or DAX refs (File, Block, Frame), the presenter's to make into Fronts
 	Pool         map[int]string      // a wall value's remastered texture by gobox/walls pool name, in place of Fronts
 	Floor, Sky   string              // the flats' pool names (floor_NAME, ceiling_NAME); outside (not View.Inside) the sky shows
 	Sun          bool                // by day outside: the sun up, at SunAz
