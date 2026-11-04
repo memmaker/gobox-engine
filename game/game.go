@@ -1111,10 +1111,13 @@ type Typeface struct {
 
 // AdLib is the AdLib songs (file Music, song N its block N) and effects
 // (file Sounds, effect N its block Effects[N]), unsigned 8-bit PCM at Rate Hz.
+// Tempo is the sequencer's fixed tempo divisor (SotSB's SOUND.DAX: 0x76); 0
+// takes each song header's tempo word / 84 (PoD).
 type AdLib struct {
 	Music, Sounds string
 	Effects       map[int]int
 	Rate          int
+	Tempo         int
 }
 
 // RestKind is one of camp's rests: Text with its Key rests the N way. Fix: offered

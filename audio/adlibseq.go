@@ -26,8 +26,14 @@ type sequencer struct {
 }
 
 // newSequencer parses a song block (song 0) and writes the init registers; nil if malformed.
-func newSequencer(b []byte, w func(int, byte)) *sequencer {
-	if len(b) < 0x1BC+0x0C || string(b[:4]) != "GLBR" || string(b[0x1BC:0x1C0]) != "SLBR" {
+// The SLBR starts where the GLBR header's u32 says (PoD 0x1BC, SotSB 0x1B2). div is the
+// tempo divisor (SotSB's driver: 0x76); 0 takes the song header's tempo word / 84 (PoD).
+func newSequencer(b []byte, div int, w func(int, byte)) *sequencer {
+	if len(b) < 12 || string(b[:4]) != "GLBR" {
+		return nil
+	}
+	so := int(binary.BigEndian.Uint32(b[4:]))
+	if so < 12 || so+0x0C > len(b) || string(b[so:so+4]) != "SLBR" {
 		return nil
 	}
 	cnt := int(binary.BigEndian.Uint16(b[10:]))
@@ -43,7 +49,7 @@ func newSequencer(b []byte, w func(int, byte)) *sequencer {
 		s.inst[i] = b[off : off+12]
 		off += int(binary.BigEndian.Uint16(b[12+2*i:]))
 	}
-	sl := b[0x1BC:]
+	sl := b[so:]
 	if len(sl) < 0x0C {
 		return nil
 	}
@@ -55,7 +61,9 @@ func newSequencer(b []byte, w func(int, byte)) *sequencer {
 	if len(h) < 0x0E {
 		return nil
 	}
-	s.div = int(binary.BigEndian.Uint16(h)) / 84
+	if s.div = div; div == 0 {
+		s.div = int(binary.BigEndian.Uint16(h)) / 84
+	}
 	if s.div == 0 {
 		return nil
 	}

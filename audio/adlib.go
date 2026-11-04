@@ -21,6 +21,7 @@ type AdLib struct {
 	rs    *opl2.Resampler
 	song  int            // block playing, 0 none
 	named map[string]int // AdLibData.Named: name -> block
+	tempo int            // AdLibData.Tempo
 	seq   *sequencer
 
 	acc int // PIT ticks accumulated, in 1193182/(outRate*16384) units
@@ -35,13 +36,14 @@ type AdLibData struct {
 	Effects map[int]int       // effect number -> Sounds block id
 	Rate    int               // effect playback rate, Hz (9000 for PoD)
 	Named   map[string][]byte // more song blocks by name (a VACE cue's .SMS file); Named finds them
+	Tempo   int               // the sequencer's tempo divisor (SotSB's SOUND.DAX driver: 0x76); 0: the song header's tempo word / 84 (PoD)
 }
 
 const adlibRate = 44100
 
 // NewAdLib parses the DAX containers.
 func NewAdLib(d AdLibData) (*AdLib, error) {
-	a := &AdLib{effects: map[int][]byte{}, rate: d.Rate}
+	a := &AdLib{effects: map[int][]byte{}, rate: d.Rate, tempo: d.Tempo}
 	var err error
 	if a.music, err = daxBlocks(d.Music); err != nil {
 		return nil, err
@@ -125,7 +127,7 @@ func (a *AdLib) Len() int { return len(a.music) }
 
 // Has: block n holds a song.
 func (a *AdLib) Has(n int) bool {
-	return n > 0 && n < len(a.music) && newSequencer(a.music[n], func(int, byte) {}) != nil
+	return n > 0 && n < len(a.music) && newSequencer(a.music[n], a.tempo, func(int, byte) {}) != nil
 }
 func (a *AdLib) Song() int     { return a.song }
 func (a *AdLib) Playing() bool { return a.seq != nil || a.fx != nil }
@@ -146,7 +148,7 @@ func (a *AdLib) Start(n int) {
 	}
 	a.chip = opl2.New()
 	a.rs = opl2.NewResampler(a.chip, adlibRate)
-	a.seq = newSequencer(a.music[n], func(r int, v byte) { a.chip.Write(r, v) })
+	a.seq = newSequencer(a.music[n], a.tempo, func(r int, v byte) { a.chip.Write(r, v) })
 	a.song, a.acc = n, 0
 }
 
@@ -171,7 +173,7 @@ func (a *AdLib) Mix(m []byte, loop bool) {
 				if !a.seq.tick() {
 					a.seq.silence()
 					if loop {
-						a.seq = newSequencer(a.music[a.song], a.seq.w)
+						a.seq = newSequencer(a.music[a.song], a.tempo, a.seq.w)
 					} else {
 						a.seq = nil
 					}

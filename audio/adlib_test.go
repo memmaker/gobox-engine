@@ -1,6 +1,7 @@
 package audio
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"os"
@@ -28,7 +29,7 @@ func TestAdLibRegs(t *testing.T) {
 	a := adlibData(t)
 	var got []string
 	now := 0
-	s := newSequencer(a.music[1], func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) })
+	s := newSequencer(a.music[1], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) })
 	for now < 300 {
 		now = s.now + 1
 		if !s.tick() {
@@ -114,7 +115,7 @@ func TestAdLibNamedSMS(t *testing.T) {
 		if n == 0 {
 			t.Fatalf("%s: not a song", c.name)
 		}
-		s := newSequencer(named[c.name], func(int, byte) {})
+		s := newSequencer(named[c.name], 0, func(int, byte) {})
 		var ev []int
 		for _, tr := range s.tr {
 			k := 0
@@ -137,5 +138,39 @@ func TestAdLibNamedSMS(t *testing.T) {
 	}
 	if a.Named("P2") != 0 {
 		t.Error("P2 named")
+	}
+}
+
+// SotSB's title (SOUND.DAX block 2: GLBR, SLBR at 0x1B2, fixed tempo divisor 0x76) plays
+// once for 84.45 s on the same sequencer.
+func TestSotSBTitle(t *testing.T) {
+	f, err := os.ReadFile("/Users/felix/Projects/sotsb-go/data/dos/SOUND.DAX")
+	if err != nil {
+		t.Skip("no Secret of the Silver Blades files")
+	}
+	render := func() (bool, bool, []byte) {
+		a, err := NewAdLib(AdLibData{Music: f, Tempo: 0x76})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if a.Has(1) || !a.Has(2) {
+			t.Fatalf("songs: block 1 %v, block 2 %v", a.Has(1), a.Has(2))
+		}
+		a.Start(2)
+		m := make([]byte, 84*adlibRate*4)
+		a.Mix(m, false)
+		at84 := a.Playing()
+		a.Mix(make([]byte, adlibRate*4), false)
+		return at84, a.Playing(), m
+	}
+	at84, at85, m := render()
+	if !at84 || at85 {
+		t.Errorf("playing at 84 s %v, at 85 s %v; want true, false (84.45 s)", at84, at85)
+	}
+	if !slices.ContainsFunc(m, func(b byte) bool { return b != 0 }) {
+		t.Error("silent")
+	}
+	if _, _, m2 := render(); !bytes.Equal(m, m2) {
+		t.Error("not deterministic")
 	}
 }

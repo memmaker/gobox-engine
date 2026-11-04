@@ -233,7 +233,7 @@ func gameData(g game.Data) {
 		music, _ := os.ReadFile(daxLoader.Path(g.AdLib.Music))
 		snd, _ := os.ReadFile(daxLoader.Path(g.AdLib.Sounds))
 		if music != nil {
-			adLib = &audio.AdLibData{Music: music, Sounds: snd, Effects: g.AdLib.Effects, Rate: g.AdLib.Rate, Named: map[string][]byte{}}
+			adLib = &audio.AdLibData{Music: music, Sounds: snd, Effects: g.AdLib.Effects, Rate: g.AdLib.Rate, Tempo: g.AdLib.Tempo, Named: map[string][]byte{}}
 			for _, sq := range g.Sequences { // the songs the animations cue (NAME.SMS beside them)
 				for _, m := range sq.Music {
 					if b, err := os.ReadFile(filepath.Join(g.Files, m+".SMS")); err == nil {
