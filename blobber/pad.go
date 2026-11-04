@@ -2,7 +2,6 @@ package blobber
 
 import (
 	"gobox/gpu"
-	"os"
 )
 
 // padKeys are the keys the host's gamepad sent the Esc menu this frame
@@ -10,10 +9,11 @@ import (
 var padKeys = map[gpu.Key]bool{}
 
 // KeyJustPressed reports a key pressed this frame on the keyboard or a gamepad.
-var shooting = os.Getenv("BLOBBER_SHOT") != "" // screenshots ignore the keyboard
+// Shooting makes the view ignore the keyboard (the host sets it for screenshots).
+var Shooting bool
 
 func KeyJustPressed(k gpu.Key) bool {
-	return !shooting && gpu.IsKeyJustPressed(k) || padKeys[k]
+	return !Shooting && gpu.IsKeyJustPressed(k) || padKeys[k]
 }
 
 // Repeats reports whether a key held d ticks repeats this tick; a host with its own

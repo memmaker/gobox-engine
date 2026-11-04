@@ -2,7 +2,6 @@ package blobber
 
 import (
 	"image"
-	"os"
 	"strings"
 
 	"gobox/gpu"
@@ -47,11 +46,14 @@ var flatNames [2]string // the current map's floor and ceiling ("" = default)
 // ceiling tiles, panning with the view angle.
 var openSky bool
 
+// TryCeiling, when set by the host (a dev flag), replaces every map's ceiling.
+var TryCeiling string
+
 // SetFlats makes floor and ceiling (names from Flats; "" = the default textures) the current
 // map's. Hosts call it on every map change; it holds across GenTextures.
 func SetFlats(floor, ceiling string) {
-	if c := os.Getenv("BLOBBER_CEILING"); c != "" { // try a ceiling (e.g. cave) on any map
-		ceiling = c
+	if TryCeiling != "" { // try a ceiling (e.g. cave) on any map
+		ceiling = TryCeiling
 	}
 	flatNames = [2]string{floor, ceiling}
 	openSky = strings.HasPrefix(ceiling, "sky")

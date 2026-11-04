@@ -49,7 +49,7 @@ type Camera struct{ X, Y, Dir int }
 // textures is View.Textures (nil: only the generated materials).
 // BLOBBER_NIGHT=1 starts at night.
 func NewView(textures map[string]image.Image) (*View, error) {
-	v := &View{Textures: textures, Night: os.Getenv("BLOBBER_NIGHT") != "", PondHalf: 0.46, PondNeck: 0.36, PondMud: 0.12}
+	v := &View{Textures: textures, PondHalf: 0.46, PondNeck: 0.36, PondMud: 0.12}
 	cur = v
 	g, err := newGame(0)
 	if err != nil {
