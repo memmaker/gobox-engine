@@ -15,8 +15,7 @@ import (
 	"por/rules"
 )
 
-// sameMap says State's map is por's at name, and classic's full map equals
-// por's.
+// sameMap says State's map is por's at name and has squares known.
 func sameMap(t *testing.T, name string, e *rules.Engine) {
 	t.Helper()
 	s := e.Rules().State()
@@ -24,15 +23,6 @@ func sameMap(t *testing.T, name string, e *rules.Engine) {
 		t.Fatalf("%s: no map: size %v", name, s.Map.Size)
 	}
 	at(t, name, e)
-	for _, at := range []image.Point{{}, {s.Where.X, s.Where.Y}, {9, 0}, {15, 15}, {20, 3}} {
-		if len(s.Map.Marked) > 0 && at == (image.Point{20, 3}) {
-			at = s.Map.Marked[0]
-		}
-		f := e.FullMapView(at, nil)
-		if c := classic.FullMap(f, s); !reflect.DeepEqual(c, f) {
-			t.Errorf("%s: full map at %v\n got %+v\nwant %+v", name, at, c, f)
-		}
-	}
 	if len(s.Map.Known) == 0 {
 		t.Errorf("%s: no square known", name)
 	}

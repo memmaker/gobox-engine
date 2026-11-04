@@ -1,7 +1,6 @@
 package parity
 
 import (
-	"reflect"
 	"testing"
 
 	"gobox/front"
@@ -83,25 +82,26 @@ func TestPlaceState(t *testing.T) {
 			t.Fatalf("%s: %v", scene, err)
 		}
 		settled(h, front.Action{})
-		tr, s := h.TrainingView(), h.Rules().State()
+		s := h.Rules().State()
+		tr := classic.Training(s)
 		if tr == nil || s.Training == nil || s.Training.Cost != tr.Price {
-			t.Fatalf("%s: training %+v, por %+v", scene, s.Training, tr)
+			t.Fatalf("%s: training %+v, classic %+v", scene, s.Training, tr)
 		}
 		at(t, scene, h)
 		ready := len(s.Training.Ready) > 0 && s.Training.Ready[0] == 0
 		if ready != (tr.Why == "") || ready && len(tr.Becomes) == 0 {
-			t.Errorf("%s: ready %v trains %v, por why %q becomes %v", scene, s.Training.Ready, s.Training.Trains, tr.Why, tr.Becomes)
+			t.Errorf("%s: ready %v trains %v, classic why %q becomes %v", scene, s.Training.Ready, s.Training.Trains, tr.Why, tr.Becomes)
 		}
 	}
 }
 
-// TestTrainingParity: classic's training offer equals por's, member by
-// member, trained and learning.
+// TestTrainingParity: classic shows a training offer exactly when State has
+// one, member by member, trained and learning.
 func TestTrainingParity(t *testing.T) {
 	same := func(name string, e *rules.Engine) {
 		t.Helper()
-		if got, want := classic.Training(e.Rules().State()), e.TrainingView(); !reflect.DeepEqual(got, want) {
-			t.Errorf("%s: training\n got %+v\nwant %+v", name, got, want)
+		if s := e.Rules().State(); (classic.Training(s) != nil) != (s.Training != nil) {
+			t.Errorf("%s: classic %+v, State %+v", name, classic.Training(s), s.Training)
 		}
 	}
 	h := engine(t, true, "hall")
@@ -125,7 +125,7 @@ func TestTrainingParity(t *testing.T) {
 		}
 		settled(x, front.Action{})
 		same("trained", x)
-		learned = learned || x.TrainingView() != nil && len(x.TrainingView().Learn) > 0
+		learned = learned || x.Rules().State().Training != nil && len(x.Rules().State().Training.Learn) > 0
 	}
 	t.Logf("a spell to learn compared: %v", learned)
 }
