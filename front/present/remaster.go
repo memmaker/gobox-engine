@@ -134,6 +134,7 @@ type Presenter struct {
 	ctxBox      image.Rectangle             // where its box went: the spell pick opens there
 	pick        []front.Spell               // View.Ask (AskSpell) as last drawn: a spell to cast is being picked on this screen
 	picBottom   int                         // the bottom of the picture box drawn this frame (0: none): menus go under it
+	labelAt     []image.Rectangle           // the top labels drawn this frame (Sweeping, <act>)
 	pickAt      image.Rectangle             // the context menu's box the pick list replaces (zero: the top middle, the bar's scale)
 	pickSel     int                         // the pick list's highlight ...
 	picking     bool                        // ... reset when it opens
@@ -253,6 +254,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 				cx = at.Max.X - w/2
 			}
 			cx = min(max(cx, w/2), dst.Bounds().Dx()-w/2)
+			top = max(0, min(top, p.listFloor(dst)-int(k)*8*(len(p.pick)+4))) // the row: above the cards, not down over them
 		}
 		p.drawPickList(dst, note.Glyph, k, cx, top)
 	}
@@ -404,6 +406,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	} else {
 		p.draw3D(dst, v, sc, note)
 	}
+	p.labelAt = p.labelAt[:0]
 	if v.Sweeping { // the reminder: under the minimap, else in its corner
 		k := cardScale(dst)
 		const s = "Sweeping"
@@ -413,12 +416,14 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			y = p.mapAt.Max.Y + gap/2
 		}
 		p.label(dst, s, dst.Bounds().Dx()-gap-w, y, k)
+		p.labelAt = append(p.labelAt, image.Rect(dst.Bounds().Dx()-gap-w, y, dst.Bounds().Dx()-gap, y+int(k*10)))
 	}
 	if v.Interact { // Explicit Interactions: the square's event waits for Space (or the command menu's Interact)
 		k := cardScale(dst)
 		const s = "<act>"
 		w, gap := int(k*float64(8*len(s)+2)), int(k*cardGap)
 		p.label(dst, s, (dst.Bounds().Dx()-w)/2, gap, k)
+		p.labelAt = append(p.labelAt, image.Rect((dst.Bounds().Dx()-w)/2, gap, (dst.Bounds().Dx()+w)/2, gap+int(k*10)))
 	}
 	p.ordering = v.Ordering
 	if !p.ordering {
@@ -533,7 +538,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.asking(v, func() { p.drawList(dst, note.Glyph, v, mk, cx, max(0, min(top, b.Max.Y-int(mk*float64(rows)*8)))) }) // all of it on screen, over the picture's edge if it must
 	} else if screenUp(v) && spellPick(v) == nil { // camp (camp.go), the temple, the shop, training
 		p.menu = false
-		p.drawCamp(dst, note.Glyph, v, mk, cx, max(b.Dy()/4, picBottom+int(pk*4)), b.Max.Y)
+		p.drawCamp(dst, note.Glyph, v, mk, cx, max(b.Dy()/4, picBottom+int(pk*4)), p.listFloor(dst))
 		if p.campHome(v) {
 			p.drawCampMenus(dst, v)
 		}

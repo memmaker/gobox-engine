@@ -400,7 +400,7 @@ func (p *Presenter) drawTip(dst *gpu.Image, lines []string, k float64, cx int) {
 	}
 	h := int(k) * 8 * (len(lines) + 2)
 	top := box.Max.Y + int(k)*16
-	if top+h > dst.Bounds().Dy() {
+	if top+h > p.listFloor(dst) {
 		top = max(0, box.Min.Y-int(k)*32-h)
 	}
 	p.tipImg, p.tipBuf, p.spellTipImg, p.spellTipBuf = p.spellTipImg, p.spellTipBuf, p.tipImg, p.tipBuf

@@ -397,9 +397,11 @@ func cardAt(dst *gpu.Image) func(i, n int) image.Rectangle {
 			col, row, per = 1, i-left, n-left
 		}
 		y := b.Dy() - px((per-row)*(cardH+cardGap)) + px(cardFoot) // the bars end a gap above the bottom
-		if Host.MapOff { // no map: the column spread evenly down the whole height, as far apart top, between and bottom
-			g := (b.Dy() - per*px(cardH)) / (per + 1)
-			y = g + row*(px(cardH)+g)
+		// no map: spread evenly under the top labels (labelBand), as far apart top, between and bottom
+		if Host.MapOff {
+			band := px(labelBand)
+			g := (b.Dy() - band - per*px(cardH)) / (per + 1)
+			y = band + g + row*(px(cardH)+g)
 		}
 		x := px(cardGap)
 		if col == 1 {
@@ -410,6 +412,22 @@ func cardAt(dst *gpu.Image) func(i, n int) image.Rectangle {
 }
 
 const cardGap, cardRows = 8, 4
+
+// labelBand is the strip along the top the Sweeping and <act> labels take
+// (Draw: a gap down, 10 high) at scale 1: no map, the columns start under it.
+const labelBand = cardGap + 10
+
+// listFloor is how far down a list or submenu may reach: in the row, a
+// gap above the cards; else the window's bottom.
+func (p *Presenter) listFloor(dst *gpu.Image) int {
+	f := dst.Bounds().Dy()
+	if Host.PartyRow {
+		for _, c := range p.cards {
+			f = min(f, c.Min.Y-int(cardGap*cardScale(dst)))
+		}
+	}
+	return f
+}
 
 // menuChars is the widest context menu line of the party's (setup): the
 // row spaces its cards so the menus over them never meet.
@@ -443,7 +461,7 @@ func cardScale(dst *gpu.Image) float64 {
 	}
 	if Host.MapOff { // no map: as large as a column of four fits down the whole height, a gap round each
 		return fitScale(1, 64, func(k float64) bool {
-			return k*(cardRows*cardH+(cardRows+1)*cardGap) <= float64(b.Dy()) && k*cardW <= float64(b.Dx())/6
+			return k*(labelBand+cardRows*cardH+(cardRows+1)*cardGap) <= float64(b.Dy()) && k*cardW <= float64(b.Dx())/6
 		})
 	}
 	return fitScale(float64(cardBase(dst)), Host.Cards, func(k float64) bool {
