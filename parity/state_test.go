@@ -79,6 +79,8 @@ var unsetLate = []string{
 	`,"Blink":false`,                 // TextRun
 	`,"Frames":null,"FrameMs":0`,     // Layer
 	`,"Ms":0,"Page":null`,            // Event
+	`,"Pose":0`,                      // Event
+	`"Foe":false,`,                   // Member
 }
 
 // sum is the first bytes of the hash of v's JSON.

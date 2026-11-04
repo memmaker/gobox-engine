@@ -3,7 +3,7 @@
 # module (tests included) that directly imports UI code. gobox/app is
 # (the app shell) and gobox/front/present and /classic (the wiring) are
 # allowed only from cmd/ mains.
-for g in por-go cotab-go sotsb-go pod-go buckrogers-go; do
+for g in por-go cotab-go sotsb-go pod-go buckrogers-go buckrogers2-go; do
   d=$HOME/Projects/$g
   [ -d "$d" ] || continue
   (cd "$d" && go list -test -deps -f '{{if .Module}}{{if .Module.Main}}{{.ImportPath}}|{{join .Imports " "}}{{end}}{{end}}' ./... 2>/dev/null) |

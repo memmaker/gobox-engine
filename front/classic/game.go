@@ -2,6 +2,7 @@ package classic
 
 import (
 	"image"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -71,14 +72,19 @@ func (g *Game) step() error {
 }
 
 // View is the page classic builds from State.
-func (g *Game) View() front.View {
-	s := g.state()
-	art := g.D.Art
+// art is the rules' art as it is now, else the Data's.
+func (g *Game) art() map[string]game.Picture {
 	if r, ok := g.R.(interface {
 		Art() map[string]game.Picture
-	}); ok { // the rules' art as it is now
-		art = r.Art()
+	}); ok {
+		return r.Art()
 	}
+	return g.D.Art
+}
+
+func (g *Game) View() front.View {
+	s := g.state()
+	art := g.art()
 	v := front.View{Exploring: s.Mode == game.ModeExplore}
 	if s.Map.Size == image.Pt(16, 16) {
 		v.Map = &front.MapSquares{}
@@ -142,14 +148,14 @@ func (g *Game) Settle() front.View {
 		g.step()
 	}
 	v := g.View()
-	v.Events = combatEvents(g.events, v)
+	v.Events = combatEvents(g.events, v, g.posedBattle)
 	g.events = nil
 	return v
 }
 
 // combatEvents are the fight's events as the presenter plays them; the
 // kinds a fight has no moment for (pictures, songs) are left out.
-func combatEvents(es []game.Event, v front.View) (out []front.CombatEvent) {
+func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.Battle) (out []front.CombatEvent) {
 	kinds := map[game.EventKind]front.EventKind{
 		game.EvAttack: front.EvAttack, game.EvHit: front.EvHit, game.EvMiss: front.EvMiss, game.EvDamage: front.EvDamage,
 		game.EvDown: front.EvDied, game.EvSpell: front.EvSpell, game.EvMove: front.EvMoved, game.EvMissile: front.EvMissile,
@@ -162,10 +168,32 @@ func combatEvents(es []game.Event, v front.View) (out []front.CombatEvent) {
 			continue
 		}
 		if k, ok := kinds[e.Kind]; ok {
-			out = append(out, front.CombatEvent{Kind: k, Unit: e.Unit, Target: e.Target, Amount: e.N, From: e.At, To: e.To, Text: e.Text})
+			ce := front.CombatEvent{Kind: k, Unit: e.Unit, Target: e.Target, Amount: e.N, From: e.At, To: e.To, Text: e.Text}
+			if e.Pose > 0 && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose
+				ce.Ms, ce.Battle = e.Ms, posed(e)
+			}
+			out = append(out, ce)
 		}
 	}
 	return out
+}
+
+// posedBattle is the fight as it stands with e's Unit in e's Pose (nil:
+// no fight).
+func (g *Game) posedBattle(e game.Event) *front.Battle {
+	s := g.state()
+	if s.Combat == nil {
+		return nil
+	}
+	c := *s.Combat
+	c.Units = slices.Clone(c.Units)
+	for k := range c.Units {
+		if c.Units[k].ID == e.Unit {
+			c.Units[k].Pose = e.Pose
+		}
+	}
+	s.Combat = &c
+	return BattleOf(s, g.art())
 }
 
 func (g *Game) Open(string)       {}

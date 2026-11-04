@@ -436,6 +436,7 @@ type Member struct {
 	SlotsMax                             map[string]int // spell slots in all, keys as Slots
 	CanCast                              bool           // may cast now (status, no-magic area)
 	Powers                               []Option       // the member\'s special powers menu (Decisions)
+	Foe                                  bool           // on the monsters' side (gobox colours its name as such)
 	Chosen                               bool           // the card is marked: the selected member, or the candidate while one is picked
 	Colour                               int            // the roster colour of the name (EGA number)
 	Head                                 string         // the head the player chose: a Data.Art name, "" none
@@ -1036,6 +1037,7 @@ type Event struct {
 	Sprite       []Picture
 	Ms           int   // >0 with Page: the front shows Page for Ms milliseconds (a timed moment outside a fight)
 	Page         *Page // the whole page as it stood for this moment (nil: none)
+	Pose         int   // >0 with Ms in a fight: Unit's icon pose (1 action) while this moment shows
 }
 
 // Data is declarative overrides only; no drawing, no positions. A game's

@@ -33,7 +33,7 @@ func Party(s game.State, art map[string]game.Picture) []front.Member {
 			m.Dropped = sprites.Image(Series, "portraits", m.PortraitHeadID)
 		}
 		out = append(out, front.Member{Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
-			Selected: m.Chosen, Colour: m.Colour, HeadPix: pix(art[m.Head]), Portrait: m.Dropped, Powers: powers(m.Card),
+			Selected: m.Chosen, Colour: nameColour(m), HeadPix: pix(art[m.Head]), Portrait: m.Dropped, Powers: powers(m.Card),
 			Exp: int(int32(m.Exp)), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
 	}
 	return out
@@ -46,4 +46,21 @@ func Purse(s game.State) *front.Purse {
 		return nil
 	}
 	return &front.Purse{Gold: p[game.Gold], Copper: p[game.Copper], Gems: p[game.Gems], Jewelry: p[game.Jewelry], Items: s.PoolItems, Slots: s.PartyCap}
+}
+
+// nameColour is the roster colour of m's name (EGA number) when not
+// selected: red out of action, yellow on the monsters' side, magenta
+// ready for a level, else cyan. A game's own Colour still wins.
+func nameColour(m game.Member) int {
+	switch {
+	case m.Colour != 0:
+		return m.Colour
+	case !m.Okay:
+		return 12
+	case m.Foe:
+		return 14
+	case m.NextExp > 0 && int(m.Exp) >= m.NextExp:
+		return 13
+	}
+	return 11
 }
