@@ -67,7 +67,7 @@ func TestPlaceState(t *testing.T) {
 		t.Fatalf("temple: %+v, por %+v", s.Temple, v.Temple)
 	}
 	for i, c := range v.Temple.Cures {
-		if s.Temple[i] != (game.Service{Name: c.Name, Price: c.Price}) {
+		if s.Temple[i].Name != c.Name || s.Temple[i].Price != c.Price { // Needs is checked when the temple switches
 			t.Errorf("cure %d: %+v, por %+v", i, s.Temple[i], c)
 		}
 	}
