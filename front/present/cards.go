@@ -199,6 +199,9 @@ func (p *Presenter) drawCardTip(dst *gpu.Image, v front.View) {
 // its next free one.
 func powerLines(ps []front.Power) (lines []string, acts []front.ActKind, keys []byte) {
 	for _, pw := range ps {
+		if pw.Kind == front.ActIconEdit { // no Icon on the member menus (the creation sheet has it)
+			continue
+		}
 		var key byte
 		for _, c := range []byte(strings.ToUpper(pw.Name)) {
 			if c >= 'A' && c <= 'Z' && !slices.Contains(keys, c) {
