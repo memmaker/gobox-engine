@@ -3,3 +3,4 @@ blobber/cmd/
 blobber/settings.json
 blobber/.claude/
 por-switch.patch
+.DS_Store
