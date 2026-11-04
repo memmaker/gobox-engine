@@ -127,6 +127,7 @@ func (p *Presenter) own(v front.View) front.View {
 	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
 	if p.slots != nil && p.eng != nil {
 		v.Slots = p.eng.SlotsView(p.slots.LoadOnly)
+		v.MainMenu, v.Logo, v.Backdrop = nil, nil, nil // the page covers the party menu: its keys are the page's
 	}
 	return v
 }

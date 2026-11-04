@@ -233,6 +233,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.list = listUI{sel: max(0, slices.IndexFunc(askList(v), func(l front.ListLine) bool { return !l.Off }))}
 	}
 	p.shownView = v
+	p.main = v.MainMenu != nil // before the pages, which return early: a stale main menu would take their keys
 	p.pace(v)
 	p.pageMenu = false
 	if !v.Exploring {
@@ -273,7 +274,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.drawOpen(dst)
 		return Rect{}
 	}
-	if p.main = v.MainMenu != nil; p.main && v.Hall { // the training hall: its menu over the 3D view
+	if p.main && v.Hall { // the training hall: its menu over the 3D view
 		p.active, p.menu = false, false
 		if sc := p.scene(v); sc != nil {
 			p.draw3D(dst, v, sc, note)
