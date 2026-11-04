@@ -507,25 +507,36 @@ func (p *Presenter) appraiseItems(a front.Appraise, back func()) (string, []ui.M
 }
 
 // askRest asks how many days, then hours, rest N goes on, and rests so
-// long (ActRest N, X days, Y hours); Esc gives up.
+// long: ActRest N, X days, Y hours, handed to the game itself (Answer;
+// CampRest takes no duration); Esc gives up.
 func (p *Presenter) askRest(n int) {
-	p.askCount("Days?", func(days int) {
-		p.askCount("Hours?", func(hours int) { p.sendA(front.Action{Kind: front.ActRest, N: n, X: days, Y: hours}) })
+	p.askCount("Days", 99, func(days int) {
+		p.askCount("Hours", 23, func(hours int) {
+			p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActRest, N: n, X: days, Y: hours})
+		})
 	})
 }
 
-// askCount asks for a number (AskNumber), then hands it to then.
-func (p *Presenter) askCount(prompt string, then func(int)) {
-	q := &front.Question{Ask: front.Ask{Kind: front.AskNumber, Menu: front.Menu{Prompt: prompt}, Max: 3}}
+// countItems are a number picker's options: down, up, done.
+var countItems = []front.MenuItem{{Text: "Less", Key: 'L'}, {Text: "More", Key: 'M'}, {Text: "Done", Key: 'D'}}
+
+// askCount asks for a number 0..most with a picker every device works
+// (Less, More, Done: keys, clicks, the pad's rows), then hands it to then.
+func (p *Presenter) askCount(what string, most int, then func(int)) {
+	n := 0
+	q := &front.Question{Ask: front.Ask{Kind: front.AskMenu, Menu: front.Menu{Items: countItems}, Default: 1}}
+	set := func() { q.Ask.Prompt = what + ": " + strconv.Itoa(n) }
+	set()
 	q.Answer = func(a front.Action) bool {
-		switch a.Kind {
-		case front.ActText:
-			q.Ask.Text = a.Text
+		switch {
+		case a.Kind == front.ActChoose && a.N < 2:
+			n = min(most, max(0, n+2*a.N-1))
+			q.Ask.Default = a.N
+			set()
 			return false
-		case front.ActOK:
-			n, _ := strconv.Atoi(q.Ask.Text)
+		case a.Kind == front.ActChoose, a.Kind == front.ActOK:
 			then(n)
-		case front.ActClose:
+		case a.Kind == front.ActClose:
 		default:
 			return false
 		}
