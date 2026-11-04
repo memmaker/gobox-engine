@@ -295,6 +295,21 @@ type Quest struct {
 	Done               bool
 }
 
+// Walls is a 3D view the presenter builds from the rules' own map
+// (View.Walls), seen from View.X, Y, Facing: a wall face on every side
+// Side[y][x][d] (N E S W) that holds a wall value, textured with that
+// value's picture.
+type Walls struct {
+	Key          string              // what the scene is built from (map, wall sets): a new Key builds it again
+	Side         [][][4]int          // a square's wall value by side, rows from the top (0: open)
+	Fronts       map[int]image.Image // a wall value's picture: the original's front view of it
+	Pool         map[int]string      // a wall value's remastered texture by gobox/walls pool name, in place of Fronts
+	Floor, Sky   string              // the flats' pool names (floor_NAME, ceiling_NAME); outside (not View.Inside) the sky shows
+	Sun          bool                // by day outside: the sun up, at SunAz
+	SunAz, SunEl float64             // the sun's bearing (compass radians, 0 north, pi/2 east) and height above the horizon
+	Mountains    bool                // by day outside: the mountain range on the horizon
+}
+
 // Dir is a facing: N, E, S, W.
 type Dir int
 
@@ -446,6 +461,7 @@ type View struct {
 	Party      []Member
 	Border     [8]image.Image // the window border's pieces by place (ui.TopLeft ..) in EGA colours; all nil: the presenter decodes Theme.Border
 	Battle     *Battle        // the combat map (nil outside combat)
+	Walls      *Walls         // the 3D view built from the rules' own map (nil: the remastered map Data.AreaMaps names)
 	Events     []CombatEvent  // what happened in the fight since the last Apply, in order (Apply's View only)
 	Note       Note           // the status line's toast, shown on the bottom row a while after At
 	Inventory  *Inventory     // the inventory screen is up (nil otherwise)

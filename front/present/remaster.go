@@ -687,7 +687,11 @@ func (s *srcImage) of(src image.Image) *gpu.Image {
 // draw3D draws the 3D view of the area and its minimap.
 func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note Note) {
 	cam := blobber.Camera{X: v.X, Y: v.Y, Dir: int(v.Facing)}
-	if name := areaMaps[v.Area]; name != p.shown {
+	name := areaMaps[v.Area]
+	if v.Walls != nil {
+		name = sceneName(v)
+	}
+	if name != p.shown {
 		p.view.Show(sc, cam)
 		p.shown, p.inside = name, false
 	} else {
@@ -702,6 +706,11 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 		}
 	}
 	p.view.Night = !v.Day
+	if w := v.Walls; w != nil { // the rules' own map: night only outside, the sun and the mountains by day outside
+		day := v.Day && !v.Inside
+		p.view.Night = !v.Inside && !v.Day
+		p.view.SunUp, p.view.SunAz, p.view.SunEl, p.view.Mountains = w.Sun && day, w.SunAz, w.SunEl, w.Mountains && day
+	}
 	p.animate()
 	p.view.Draw(dst)
 	p.drawMap(dst, v, note.Font)

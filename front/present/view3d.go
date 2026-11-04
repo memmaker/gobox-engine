@@ -68,11 +68,71 @@ func (p *Presenter) drawMap(dst *gpu.Image, v front.View, font func(byte, bool) 
 // scene is the remastered map of the area v shows, or nil for an area
 // without one (logged once: there is no other view of it).
 func (p *Presenter) scene(v front.View) *blobber.Scene {
-	name, ok := areaMaps[v.Area]
-	if !ok {
-		name = fmt.Sprintf("area%d", v.Area)
+	if v.Walls != nil {
+		return p.wallScene(v.Walls)
 	}
-	return p.sceneNamed(name)
+	return p.sceneNamed(sceneName(v))
+}
+
+// sceneName names the scene v shows: the rules' map's (View.Walls), or the remastered map's.
+func sceneName(v front.View) string {
+	if v.Walls != nil {
+		return "walls:" + v.Walls.Key
+	}
+	if name, ok := areaMaps[v.Area]; ok {
+		return name
+	}
+	return fmt.Sprintf("area%d", v.Area)
+}
+
+// wallScene is the scene of the rules' own map w: a face and a thin wall on
+// every side that holds a wall value, built once a Key.
+func (p *Presenter) wallScene(w *front.Walls) *blobber.Scene {
+	p.newView()
+	name := "walls:" + w.Key
+	if sc, ok := p.scenes[name]; ok {
+		return sc
+	}
+	rows := make([]string, len(w.Side))
+	for y := range rows {
+		rows[y] = strings.Repeat(".", len(w.Side[y]))
+	}
+	sc := &blobber.Scene{Rows: rows, Faces: map[[3]int][]blobber.FacePart{}, Edges: map[[3]int]bool{},
+		NoMap: map[[3]int]bool{}, Water: map[[2]int]bool{}, Pond: map[[2]int]bool{}, Floor: w.Floor, Ceiling: w.Sky}
+	for y, row := range w.Side {
+		for x, sides := range row {
+			for d, n := range sides {
+				tex := p.wallTexture(w, n)
+				if tex == "" {
+					continue
+				}
+				k := [3]int{x, y, d}
+				sc.Faces[k] = []blobber.FacePart{{Tex: tex, T1: 1, U1: 1}}
+				sc.Edges[k] = true
+			}
+		}
+	}
+	p.scenes[name] = sc
+	return sc
+}
+
+// wallTexture is the texture of wall value n of w: its remastered one from
+// the pool, else its picture under a name of w's own ("": none).
+func (p *Presenter) wallTexture(w *front.Walls, n int) string {
+	if n == 0 {
+		return ""
+	}
+	if t := w.Pool[n]; t != "" && walls.Image(t) != nil {
+		p.view.Textures[t] = walls.Image(t)
+		return t
+	}
+	im := w.Fronts[n]
+	if im == nil {
+		return ""
+	}
+	t := w.Key + "#wall" + strconv.Itoa(n) // ponytail: one texture per map and value, kept for the run
+	p.view.Textures[t] = im
+	return t
 }
 
 // openAt (Data.OpenAt, map:NAME:X:Y:D, D 0..3 for N E S W) shows the 3D
@@ -117,16 +177,7 @@ func paintedWalls() map[byte]string {
 
 // sceneNamed is the remastered map NAME, or nil (logged once).
 func (p *Presenter) sceneNamed(name string) *blobber.Scene {
-	if p.view == nil {
-		var err error
-		if p.view, err = blobber.NewView(wallImages()); err != nil {
-			log.Fatalln("remaster:", err)
-		}
-		p.view.Painted = paintedWalls()
-		blobber.Window = func(d *gpu.Image, t string, l []string, k []byte, sel int, b bool) { // its menu and options in the game's box
-			p.keyWindow(d, t, l, k, nil, sel, b)
-		}
-	}
+	p.newView()
 	if sc, ok := p.scenes[name]; ok {
 		return sc
 	}
@@ -139,11 +190,25 @@ func (p *Presenter) sceneNamed(name string) *blobber.Scene {
 			log.Printf("remaster: %s.map: %v", name, err)
 		}
 	}
+	p.scenes[name] = sc // nil too: a missing or broken map is logged once
+	return sc
+}
+
+// newView makes the 3D view and the scenes' cache once.
+func (p *Presenter) newView() {
 	if p.scenes == nil {
 		p.scenes = map[string]*blobber.Scene{}
 	}
-	p.scenes[name] = sc // nil too: a missing or broken map is logged once
-	return sc
+	if p.view == nil {
+		var err error
+		if p.view, err = blobber.NewView(wallImages()); err != nil {
+			log.Fatalln("remaster:", err)
+		}
+		p.view.Painted = paintedWalls()
+		blobber.Window = func(d *gpu.Image, t string, l []string, k []byte, sel int, b bool) { // its menu and options in the game's box
+			p.keyWindow(d, t, l, k, nil, sel, b)
+		}
+	}
 }
 
 // Scripted stops animate's clock: a capture script ticks the renderer itself (Tick), so
