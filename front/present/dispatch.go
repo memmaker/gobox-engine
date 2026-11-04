@@ -240,6 +240,10 @@ func (p *Presenter) Click(x, y int) bool {
 		p.confirmPick(slices.IndexFunc(p.confirmAt, image.Pt(x, y).In))
 		return true
 	}
+	if v := p.shownView; v.Ask != nil && v.Ask.Reselect && cardUnder(p.cards, x, y) >= 0 && cardUnder(p.cards, x, y) < len(v.Party) { // another member while the question stays up
+		p.send(front.ActLead, cardUnder(p.cards, x, y))
+		return true
+	}
 	if v := p.shownView; askList(v) != nil && askMenu(v) != nil && !choosing(v) && cardUnder(p.cards, x, y) < 0 { // a card is the member the list is for (below)
 		p.listClick(x, y, v)
 		return true

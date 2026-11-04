@@ -481,7 +481,7 @@ func askAnswered(k uint16, v front.View, send func(front.ActKind, int)) bool {
 		send(front.ActDir, d)
 		return true
 	}
-	if n := int(actOf(k) - input.Member1); a.Reselect && n >= 0 && n < 8 && n < len(v.Party) {
+	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), false); a.Reselect && ok { // F1..F8, the pad's stick buttons
 		send(front.ActLead, n)
 		return true
 	}
