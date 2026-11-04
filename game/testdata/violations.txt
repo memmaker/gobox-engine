@@ -5,10 +5,6 @@ cotab-go cotab/presentdata -> gobox/front/present
 cotab-go cotab/presentdata -> gobox/ui
 cotab-go cotab/presentdata -> gobox/ui/fonts
 cotab-go cotab/rules -> gobox/front
-pod-go pod/cmd/pod -> gobox/ui/fonts
-pod-go pod/presentdata -> gobox/front
-pod-go pod/presentdata -> gobox/front/present
-pod-go pod/presentdata -> gobox/ui
 por-go por/presentdata -> gobox/blobber
 por-go por/presentdata -> gobox/front
 por-go por/presentdata -> gobox/front/present
