@@ -433,6 +433,14 @@ func (g *Game) Answer(a front.Action) error {
 func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	at := image.Pt(a.X, a.Y)
 	m := g.sel(a.N)
+	if q := g.state().Pending; q != nil && g.state().Mode == game.ModeAsk { // a square or a direction answers the question
+		switch {
+		case q.Kind == game.Square && a.Kind == front.ActAim:
+			return game.Answer{At: at}, true
+		case q.Kind == game.Direction && a.Kind == front.ActDir && a.N >= 1 && a.N <= 9 && a.N != 5:
+			return game.Answer{N: [10]int{1: 5, 2: 4, 3: 3, 4: 6, 6: 2, 7: 7, 8: 0, 9: 1}[a.N]}, true // keypad 8 up: facing 0 north, 2 east ...
+		}
+	}
 	switch a.Kind {
 	case front.ActClose:
 		return game.Cancel{}, true

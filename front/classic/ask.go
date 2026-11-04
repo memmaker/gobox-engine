@@ -9,6 +9,7 @@ import (
 var askKinds = map[game.AskKind]front.AskKind{
 	game.Choice: front.AskMenu, game.Continue: front.AskMenu, game.Name: front.AskText,
 	game.Number: front.AskNumber, game.PickMember: front.AskMember, game.PickItem: front.AskList,
+	game.YesNo: front.AskConfirm, game.Square: front.AskSquare, game.Direction: front.AskMove,
 }
 
 // Ask is the question from s (nil: none up), and false where classic

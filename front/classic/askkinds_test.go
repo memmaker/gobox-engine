@@ -1,0 +1,18 @@
+package classic
+
+import (
+	"testing"
+
+	"gobox/front"
+	"gobox/game"
+)
+
+// Yes/no, square and direction questions are classic's too.
+func TestAskKinds(t *testing.T) {
+	for k, want := range map[game.AskKind]front.AskKind{game.YesNo: front.AskConfirm, game.Square: front.AskSquare, game.Direction: front.AskMove} {
+		q, ok := Ask(game.State{Mode: game.ModeAsk, Pending: &game.Ask{Kind: k, Prompt: "?"}})
+		if !ok || q == nil || q.Kind != want {
+			t.Errorf("kind %d: %+v %v", k, q, ok)
+		}
+	}
+}
