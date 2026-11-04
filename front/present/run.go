@@ -39,7 +39,8 @@ type Front struct {
 // with its rules), or else through a Driver it builds from Data.Sounds and
 // Data.AmigaSound, on the Tandy, and plays out itself.
 func NewFront(g front.Game, snd ...front.Sound) *Front {
-	f := &Front{Game: g}
+	f := &Front{}
+	f.Game = WithRules(g, &f.P)
 	if len(snd) > 0 {
 		f.P.Snd = snd[0]
 	} else if d := newDriver(); d != nil {
@@ -53,7 +54,7 @@ func NewFront(g front.Game, snd ...front.Sound) *Front {
 			d.SetSoundtrack(true, 0, 0)
 		}
 	}
-	f.P.SetEngine(g)
+	f.P.SetEngine(f.Game)
 	return f
 }
 
