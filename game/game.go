@@ -97,6 +97,24 @@ type State struct {
 	Picker                 *Picker     // a grid picker is up
 	IconEditor             *IconEditor // the combat icon designer is up
 	Page                   *Page       // the text page: the game's scripted text and story pictures
+	Flags                  *Flags      // the plain status flags of the screen
+}
+
+// Flags are the plain yes/no facts of the screen the front shows or takes
+// decisions by.
+type Flags struct {
+	Exploring bool    // the party explores: the adventuring decisions are taken
+	Sweeping  bool    // ... at the slow, searching pace
+	Interact  bool    // ... on a square whose event waits for an interaction
+	CanCast   bool    // ... and the selected member has a spell to cast
+	Open      [4]bool // the party's square's sides (N E S W) a step may go through
+	Adventure bool    // the party is out in the world
+	Day       bool    // 6:00 to 20:00
+	Inside    bool    // the party stands on an inside square
+	Ordering  bool    // the camp's party order bar is up
+	Credits   bool    // the title's credits page
+	Full      bool    // the pictures are one whole-screen picture
+	IconDrop  bool    // the combat icon designer is up
 }
 
 // Page is the text a game wrote and the pictures it showed: scripted text,
