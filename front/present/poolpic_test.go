@@ -1,0 +1,66 @@
+package present
+
+import (
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"testing"
+
+	"gobox/dax"
+	"gobox/front"
+	"gobox/sprites"
+)
+
+// Every portrait the pool maps from a game's DAX is pixel-identical to the decoded DAX
+// (games whose data/dos is not installed are skipped).
+func TestPoolMatchesDAX(t *testing.T) {
+	home, _ := os.UserHomeDir()
+	defer func(l *dax.Loader, id string) { daxLoader, gameID = l, id }(daxLoader, gameID)
+	n := 0
+	defer func() { t.Logf("compared %d", n) }()
+	for id, files := range sprites.Origins() {
+		dir := filepath.Join(home, "Projects", id+"-go", "data", "dos")
+		l, err := dax.NewLoader(dir)
+		if _, e := os.Stat(dir); e != nil || err != nil {
+			t.Logf("skip %s: no data", id)
+			continue
+		}
+		daxLoader, gameID = l, id
+		for file, refs := range files {
+			for ref, name := range refs {
+				if !strings.HasPrefix(name, "head_") && !strings.HasPrefix(name, "body_") {
+					continue
+				}
+				b, f, _ := strings.Cut(ref, ".")
+				bi, _ := strconv.Atoi(b)
+				fi, _ := strconv.Atoi(f)
+				clear(daxPics)
+				want := daxImage(file, bi, fi)
+				if want == nil {
+					continue
+				}
+				n++
+				got := poolImage(frontPic(file, bi, fi))
+				if got == nil || got.Bounds() != want.Bounds() {
+					t.Errorf("%s %s %s: pool %v dax %v", id, file, ref, got != nil, want.Bounds())
+					continue
+				}
+				bd := want.Bounds()
+				for y := bd.Min.Y; y < bd.Max.Y; y++ {
+					for x := bd.Min.X; x < bd.Max.X; x++ {
+						gr, gg, gb, ga := got.At(x, y).RGBA()
+						wr, wg, wb, wa := want.At(x, y).RGBA()
+						if gr != wr || gg != wg || gb != wb || ga != wa {
+							t.Fatalf("%s %s %s (%s): pixel %d,%d differs", id, file, ref, name, x, y)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func frontPic(file string, b, f int) front.Picture {
+	return front.Picture{File: file, Block: b, Frame: f}
+}
