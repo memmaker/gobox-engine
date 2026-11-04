@@ -79,22 +79,6 @@ func toBoard(b *front.Battle) *combat.Board {
 	}
 	if t := b.Turn; t != nil {
 		o.Turn = &combat.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Casting, Moves: t.Moves, CastDirect: len(t.Spells) == 0}
-		for k, w := range t.Labels {
-			if c, ok := combatKinds[k]; ok {
-				if o.Turn.Labels == nil {
-					o.Turn.Labels = map[combat.Kind]string{}
-				}
-				o.Turn.Labels[c] = w
-			}
-		}
-		for k, h := range t.Keys {
-			if c, ok := combatKinds[k]; ok {
-				if o.Turn.Keys == nil {
-					o.Turn.Keys = map[combat.Kind]int{}
-				}
-				o.Turn.Keys[c] = h
-			}
-		}
 		for _, k := range t.Can {
 			if c, ok := combatKinds[k]; ok {
 				o.Turn.Can = append(o.Turn.Can, c)
