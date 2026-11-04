@@ -27,6 +27,7 @@ func (g classicGame) View() front.View {
 		}
 		v.AreaMap = classic.AreaMap(v.AreaMap, s, art)
 	}
+	v.Battle = classic.Battle(v.Battle, s)
 	return v
 }
 
