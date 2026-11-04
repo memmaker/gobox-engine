@@ -44,6 +44,9 @@ func NewGame(r game.Rules, d game.Data) *Game {
 // do hands d to the rules, keeping its events; the refusal is the error.
 func (g *Game) do(d game.Decision) error {
 	res := g.R.Apply(d)
+	if st, ok := d.(game.Sidestep); ok && res.Err != nil && g.R.State().Mode == game.ModeExplore {
+		return g.sidestep(st.By)
+	}
 	g.events = append(g.events, res.Events...)
 	for _, e := range res.Events {
 		if e.Kind == game.EvReset {
@@ -55,6 +58,21 @@ func (g *Game) do(d game.Decision) error {
 		return nil
 	}
 	return res.Err
+}
+
+// sidestep is a step back or aside for rules that have none of their own:
+// turn, step forward, turn back, the turns unseen (their events dropped). A
+// step that ends the exploring (a fight, a script) keeps the new facing, as
+// the original's events chose it.
+func (g *Game) sidestep(by int) error {
+	if r := g.R.Apply(game.TurnBy{By: by}); r.Err != nil {
+		return r.Err
+	}
+	err := g.do(game.Forward{})
+	if g.R.State().Mode == game.ModeExplore {
+		g.R.Apply(game.TurnBy{By: (8 - by) % 8})
+	}
+	return err
 }
 
 // sel is the selected member's index for n < 0.
