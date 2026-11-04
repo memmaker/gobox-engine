@@ -33,6 +33,16 @@ TILING = (" No trim, pilaster or border strip at the left or right edge. IMPORTA
           "frame closing off either side unless the reference shows one there.")
 
 ARGS = sys.argv[2:]
+FORCE = "--force" in ARGS  # overwrite existing textures (OUT may be the shared gobox/walls pool)
+ARGS = [a for a in ARGS if a != "--force"]
+INDEX = ROOT / CFG["index"] if "index" in CFG else OUT / "index.txt"  # the game's map table, kept out of the pool
+
+
+def put(path, data):
+    """Write texture bytes, refusing to replace a different existing file unless --force."""
+    if path.exists() and path.read_bytes() != data and not FORCE:
+        sys.exit(f"{path} exists and differs; rerun with --force to overwrite")
+    path.write_bytes(data)
 NAME = ARGS.pop(0) if ARGS and ARGS[0] in AREAS else next(iter(AREAS))
 A = AREAS[NAME]
 RAW = HERE / "raw" / NAME
@@ -230,7 +240,9 @@ def finish(v):
         im = arch(im, WALLS[v][0])
     if v not in NOSEAM:
         im = seams(im)
-    im.save(OUT / f"wall_{NAME}_v{v:02}.png")
+    b = io.BytesIO()
+    im.save(b, "PNG")
+    put(OUT / f"wall_{NAME}_v{v:02}.png", b.getvalue())
 
 
 WATER = A["water"]  # the sea behind them is drawn by the engine as a water surface
@@ -307,7 +319,7 @@ ALIAS = CFG.get("alias", {})
 
 
 def index():
-    """OUT/index.txt for the game: per map (GEO digit and block, the WALLDEF blocks of slots 1-3, as in
+    """INDEX (cfg "index", default OUT/index.txt) for the game: per map (GEO digit and block, the WALLDEF blocks of slots 1-3, as in
     maps.txt) and wall value the texture its faces show, matched by the original picture (the same
     picture on two maps shows the same texture); values not listed keep the original art."""
     import hashlib
@@ -330,7 +342,7 @@ def index():
         d, geo, blocks, v = p.stem.split("-")
         if (t := tex.get(key(p)) or ALIAS.get(p.stem)):
             lines.append(f"{d} {geo} {blocks.replace('_', ' ')} {int(v[1:])} {t}")
-    (OUT / "index.txt").write_text("\n".join(lines) + "\n")
+    INDEX.write_text("\n".join(lines) + "\n")
     print(len(lines), "map walls textured")
 
 
@@ -345,7 +357,8 @@ def main():
     RAW.mkdir(parents=True, exist_ok=True)
     OUT.mkdir(parents=True, exist_ok=True)
     for v, name in REUSE.items():  # another game's texture of the same original wall
-        (OUT / f"{name}.png").write_bytes((REUSE_DIR / f"{name}.png").read_bytes())
+        if (REUSE_DIR / f"{name}.png").resolve() != (OUT / f"{name}.png").resolve():
+            put(OUT / f"{name}.png", (REUSE_DIR / f"{name}.png").read_bytes())
         print(f"wall {v}: reused {name}")
     dump = HERE / "viewdump"
     # cfg "dump": the command writing the wall pictures, {data} and {out} filled in

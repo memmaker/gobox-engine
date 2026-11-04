@@ -36,5 +36,8 @@ png = rw.openai(F["prompt"], buf.getvalue())
 raw = areas.REM / "raw"
 raw.mkdir(exist_ok=True)
 (raw / F["raw"]).write_bytes(png)
-tile(Image.open(io.BytesIO(png))).save(ROOT / F["out"])
+out = ROOT / F["out"]
+if out.exists() and "--force" not in sys.argv:  # out may be in the shared gobox/walls pool
+    sys.exit(f"{out} exists; rerun with --force to overwrite")
+tile(Image.open(io.BytesIO(png))).save(out)
 print("floor: ok")
