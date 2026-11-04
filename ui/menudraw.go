@@ -109,7 +109,7 @@ func (m *MenuCanvas) Draw(dst *gpu.Image, st MenuStyle, title string, items []st
 	ink := green // a colour span goes on over a wrapped line
 	for r, s := range rows {
 		y0, x0 := at[r]*8+8, pad
-		if r == sel {
+		if r == sel && t.Sel.A != 0 {
 			for y := y0; y < y0+rh(r)*8; y++ { // the text selection: a blue ground
 				for x := 8; x < (cw-1)*8; x++ {
 					set(x, y, t.Sel)
@@ -153,7 +153,7 @@ func (m *MenuCanvas) Draw(dst *gpu.Image, st MenuStyle, title string, items []st
 			switch {
 			case grey[r]:
 				c = dim
-			case i == hk:
+			case i == hk, r == sel && t.Sel.A == 0: // no selection ground (Sel transparent): the selected row in the hotkey colour
 				c = white
 			}
 			for y := 0; y < 8; y++ {

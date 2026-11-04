@@ -222,7 +222,7 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 		return
 	}
 	if id := menuID(m); id != p.asked {
-		p.asked, p.sel = id, 0
+		p.asked, p.sel = id, askDefault(v)
 	}
 	p.pageMenu = true
 	rows := itemRows(m)

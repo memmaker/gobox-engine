@@ -107,6 +107,9 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		return
 	}
 	p.typing = false
+	if askAnswered(k, v, p.send) {
+		return
+	}
 	if askList(v) != nil && askMenu(v) != nil && !choosing(v) && p.listKey(k, v) {
 		return
 	}
@@ -327,6 +330,14 @@ func askMenu(v front.View) *front.Menu {
 	return nil
 }
 
+// askDefault is the option v's question highlights first (Ask.Default).
+func askDefault(v front.View) int {
+	if v.Ask != nil {
+		return v.Ask.Default
+	}
+	return 0
+}
+
 // askList is the list v asks a line of (nil: none).
 func askList(v front.View) []front.ListLine {
 	if a := v.Ask; a != nil && a.Kind == front.AskList {
@@ -442,4 +453,26 @@ func (p *Presenter) confirmPick(i int) {
 		return
 	}
 	p.send(front.ActNo, 0)
+}
+
+// keypadDirs are the direction keys as the keypad's digits (ActDir N).
+var keypadDirs = map[input.Act]int{input.Up: 8, input.Down: 2, input.Left: 4, input.Right: 6, input.Home: 7, input.PgUp: 9, input.End: 1, input.PgDn: 3}
+
+// askAnswered sends what key k answers on v's question by its data: a
+// direction (Ask.Dirs, AskMove: ActDir), another member (Ask.Reselect,
+// F1..F8: ActLead); false: k is none of these.
+func askAnswered(k uint16, v front.View, send func(front.ActKind, int)) bool {
+	a := v.Ask
+	if a == nil {
+		return false
+	}
+	if d, ok := keypadDirs[actOf(k)]; ok && (a.Dirs || a.Kind == front.AskMove) {
+		send(front.ActDir, d)
+		return true
+	}
+	if n := int(actOf(k) - input.Member1); a.Reselect && n >= 0 && n < 8 && n < len(v.Party) {
+		send(front.ActLead, n)
+		return true
+	}
+	return false
 }

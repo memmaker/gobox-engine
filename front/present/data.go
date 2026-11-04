@@ -36,7 +36,7 @@ type Data struct {
 	LabelInks     []int                                                         // a map label's palette index (View.Ink) by its kind
 	SelectOutline func(image.Rectangle, int, func(image.Rectangle, color.RGBA)) // draws the outline round the selected box
 
-	RestFix, RestWait, RestUntil int // camp's rests (ActRest N)
+	Rests []Rest // camp's rests, in the menu's order
 
 	Credits        []Credit
 	RemasterCredit [2]string
@@ -56,6 +56,8 @@ type Data struct {
 	DAX *dax.Loader // the game's own DAX loader, over its own files: it decodes the pictures named by File and Block with Img nil and Theme.Border (nil: they stay undrawn)
 
 	Bindings []ui.Binding // the game's own help rows, after Any time's Ctrl-F row
+
+	Sounds []byte // the sound driver's tables (gobox/audio NewSynth's data: songs, scripts, vibrato waveforms; nil: none)
 }
 
 var (
@@ -66,7 +68,7 @@ var (
 	texts                            map[string]string
 	labelInks                        []int
 	selectOutline                    func(image.Rectangle, int, func(image.Rectangle, color.RGBA))
-	restFix, restWait, restUntil     int
+	rests                            []Rest
 	credits                          []Credit
 	remasterCredit                   [2]string
 	iconParts                        []string
@@ -80,6 +82,7 @@ var (
 	itemsRec                         string
 	daxLoader                        *dax.Loader
 	mapSide                          int // View.Map's side in pixels
+	sounds                           []byte
 )
 
 // SetData hands the presenter the game's data.
@@ -93,7 +96,7 @@ func SetData(d Data) {
 		applyTheme(DefaultTheme)
 	}
 	doorRGBA, labelInks, selectOutline = d.DoorRGBA, d.LabelInks, d.SelectOutline
-	restFix, restWait, restUntil = d.RestFix, d.RestWait, d.RestUntil
+	rests = d.Rests
 	credits, remasterCredit, iconParts, spellRules = d.Credits, d.RemasterCredit, d.IconParts, d.SpellRules
 	dollBoxes, slotNames = d.DollBoxes, d.SlotNames
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
@@ -101,6 +104,22 @@ func SetData(d Data) {
 	daxLoader = d.DAX
 	mapSide = 16 * mapCell
 	setBindings(d.Bindings)
+	sounds = d.Sounds
+}
+
+// Rest is one of camp's rests (Data.Rests): Text with its Key sends
+// ActRest N. Fix: offered only while someone resting heals or studies
+// (Camp.Healing, Studying). Night, NightKey: its text and key at night
+// ("": Text's). Duration: the player sets how long first, in days and
+// hours (ActRest N, X days, Y hours).
+type Rest struct {
+	Text     string
+	Key      byte
+	N        int
+	Fix      bool
+	Night    string
+	NightKey byte
+	Duration bool
 }
 
 // Options are the presenter's settings the game keeps (and saves).
@@ -132,6 +151,9 @@ type Entry struct {
 	Act   front.ActKind
 	Party bool
 }
+
+// Sounds is the game's sound tables (Data.Sounds), for audio.NewSynth.
+func Sounds() []byte { return sounds }
 
 // Text is the game's named text (Data.Texts; "": none).
 func Text(name string) string { return texts[name] }

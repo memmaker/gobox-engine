@@ -135,8 +135,12 @@ type Game interface {
 	// Refuse is the game saying no with s. The front calls it inside a
 	// Call (between frames) to show a call's refusal; a game may call it
 	// itself at any time. Either way the game puts s where its refusals
-	// go and shows it in its next View: por sets the note (View.Note); a
-	// game with a message log appends s to it (in combat, Battle.Log).
+	// go and shows it in its next View. Where that is is the game's data:
+	// View.Note (Text, and At the time it was said) is the status line's
+	// toast, which the presenter draws on the bottom row (in place of the
+	// prompt) for a second plus 80 ms a letter after At, in the Warn
+	// colour; por puts its refusals there. A game with a message log may
+	// append s to its log instead (in combat, Battle.Log), or do both.
 	Refuse(s string)
 	// Resets counts every load and return to the main menu, the game's own
 	// too (a script's or death's load, a quick start): when it changes, the

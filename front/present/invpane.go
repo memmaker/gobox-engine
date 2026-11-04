@@ -93,7 +93,9 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel int, ware, p
 		y := listTop + (i-pn.top)*rowH
 		r := image.Rect(x0, y, tr, y+rowH)
 		if it.Index == sel || inv.hover.In(r) && !busy {
-			inv.fill(r, col(inkBlue)) // the text selection
+			if inkBlue >= 0 {
+				inv.fill(r, col(inkBlue)) // the text selection
+			}
 		}
 		inv.drawIcon(it, image.Rect(x0, y, x0+rowH, y+rowH))
 		tc := green

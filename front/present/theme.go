@@ -18,7 +18,7 @@ type Theme struct {
 // Palette is the presenter's colours by role, as EGA indices.
 type Palette struct {
 	Background int // the page's black, a cell's ground
-	Selected   int // the selected row's ground, a text selection
+	Selected   int // the selected row's ground, a text selection (-1: none, the row marked by the Hotkey colour alone); any role -1: none
 	Log        int // the battle log's text, light grey
 	Off        int // a row that is off; greys behind poses and swatches
 	Text       int // body text, values
@@ -37,6 +37,7 @@ type Border struct {
 	File   string
 	Block  int
 	Pieces [ui.Pieces]int
+	Mask   *uint8 // the colour index left transparent (as Picture.Mask; nil: none)
 }
 
 // DefaultTheme is por's look.
@@ -71,7 +72,11 @@ func borderPieces(v front.View) [ui.Pieces]image.Image {
 	var t [ui.Pieces]image.Image
 	for i, f := range theme.Border.Pieces {
 		if f >= 0 {
-			if m := daxImage(theme.Border.File, theme.Border.Block, f); m != nil {
+			mask := -1
+			if theme.Border.Mask != nil {
+				mask = int(*theme.Border.Mask)
+			}
+			if m := daxMasked(theme.Border.File, theme.Border.Block, f, mask); m != nil {
 				t[i] = m
 			}
 		}

@@ -189,7 +189,9 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 		case !w.on:
 			c, hc = dark, dark
 		case inv.hover.In(w.r) || inv.focus == i+1:
-			inv.fill(w.r, col(inkBlue)) // the text selection
+			if inkBlue >= 0 {
+				inv.fill(w.r, col(inkBlue)) // the text selection
+			}
 		}
 		inv.text(w.text[:1], x, rowY, hc)
 		inv.text(w.text[1:], x+8, rowY, c)

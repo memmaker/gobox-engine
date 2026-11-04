@@ -109,6 +109,7 @@ const (
 
 	ActDir    // a direction key answers View.Ask (Ask.Dirs, AskMove): N is the keypad's 1..9 (8 up, 6 right ...)
 	ActRaise  // AskModify: row N's value goes X (+1 or -1)
+	ActImport // the party menu: import characters from another game's saves (a Data.Entries entry's Act)
 
 )
 

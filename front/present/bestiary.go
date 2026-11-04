@@ -43,7 +43,9 @@ func (p *Presenter) drawBestiary(dst *gpu.Image, note Note, v front.View) {
 		y := 10 + (i-c.top)*rowH
 		r := image.Rect(6, y-2, 8+lw+2, y+10)
 		if i == c.sel {
-			draw.Draw(sc.px, r, image.NewUniform(col(inkBlue)), image.Point{}, draw.Src)
+			if inkBlue >= 0 {
+				draw.Draw(sc.px, r, image.NewUniform(col(inkBlue)), image.Point{}, draw.Src)
+			}
 		}
 		col := inkGreen
 		if i == 0 || i == len(items)-1 { // Sort and Exit

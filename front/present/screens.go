@@ -373,7 +373,7 @@ func (p *Presenter) slotList(dst *gpu.Image, lines []string, keys []byte, off []
 	}
 	for r := s.top; r < end; r++ {
 		y0 := (r - s.top) * 8
-		if r == s.sel {
+		if r == s.sel && inkBlue >= 0 {
 			for y := y0; y < y0+8; y++ {
 				for x := range w * 8 {
 					set(x, y, col(inkBlue))
@@ -386,7 +386,7 @@ func (p *Presenter) slotList(dst *gpu.Image, lines []string, keys []byte, off []
 			switch {
 			case off[r]:
 				c = col(inkDark)
-			case i == hk:
+			case i == hk, r == s.sel && inkBlue < 0:
 				c = col(inkWhite)
 			}
 			g := p.glyph(t[i])

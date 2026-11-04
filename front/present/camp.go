@@ -6,6 +6,7 @@ import (
 	"gobox/front"
 	"image"
 	"slices"
+	"strconv"
 	"time"
 
 	"gobox/gpu"
@@ -139,14 +140,20 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 			{Text: "No", Key: 'N', Do: c.back(campMain)}}
 	}
 	var it []ui.MenuRow // the party's, the rests first: each member's own are on their card's menu (drawCampMenus)
-	if cp.Healing || cp.Studying {
-		it = append(it, ui.MenuRow{Text: "Until fixed", Key: 'F', Do: act(front.ActRest, restFix)})
+	for _, r := range rests {
+		if r.Fix && !cp.Healing && !cp.Studying {
+			continue
+		}
+		text, key := r.Text, r.Key
+		if !v.Day && r.Night != "" {
+			text, key = r.Night, r.NightKey
+		}
+		do := act(front.ActRest, r.N)
+		if r.Duration {
+			do = func() { p.askRest(r.N) }
+		}
+		it = append(it, ui.MenuRow{Text: text, Key: key, Do: do})
 	}
-	until := ui.MenuRow{Text: "Until night", Key: 'N', Do: act(front.ActRest, restUntil)}
-	if !v.Day {
-		until = ui.MenuRow{Text: "Until day", Key: 'D', Do: act(front.ActRest, restUntil)}
-	}
-	it = append(it, ui.MenuRow{Text: "Wait an hour", Key: 'W', Do: act(front.ActRest, restWait)}, until)
 	if len(cp.Bestiary) > 0 {
 		it = append(it, ui.MenuRow{Text: "Bestiary", Key: 'B', Do: c.to(campBestiary, 0)})
 	}
@@ -497,4 +504,32 @@ func (p *Presenter) appraiseItems(a front.Appraise, back func()) (string, []ui.M
 		title = "Nothing to appraise"
 	}
 	return title, append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: back})
+}
+
+// askRest asks how many days, then hours, rest N goes on, and rests so
+// long (ActRest N, X days, Y hours); Esc gives up.
+func (p *Presenter) askRest(n int) {
+	p.askCount("Days?", func(days int) {
+		p.askCount("Hours?", func(hours int) { p.sendA(front.Action{Kind: front.ActRest, N: n, X: days, Y: hours}) })
+	})
+}
+
+// askCount asks for a number (AskNumber), then hands it to then.
+func (p *Presenter) askCount(prompt string, then func(int)) {
+	q := &front.Question{Ask: front.Ask{Kind: front.AskNumber, Menu: front.Menu{Prompt: prompt}, Max: 3}}
+	q.Answer = func(a front.Action) bool {
+		switch a.Kind {
+		case front.ActText:
+			q.Ask.Text = a.Text
+			return false
+		case front.ActOK:
+			n, _ := strconv.Atoi(q.Ask.Text)
+			then(n)
+		case front.ActClose:
+		default:
+			return false
+		}
+		return true
+	}
+	p.Ask(q)
 }

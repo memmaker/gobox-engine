@@ -35,6 +35,9 @@ const (
 )
 
 func col(i int) color.RGBA {
+	if i < 0 { // a role of none (Palette's -1): transparent
+		return color.RGBA{}
+	}
 	c := ega.Palette[i]
 	return color.RGBA{c[0], c[1], c[2], 255}
 }

@@ -449,7 +449,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if askMenu(v) != nil && !v.Exploring && !noChoice(v) && !choosing(v) { // a question: its choices pop up at once
 		if id := menuID(askMenu(v)); id != p.asked { // not the menu just answered
-			p.asked, p.menu, p.menuFor, p.sel = id, true, id, 0
+			p.asked, p.menu, p.menuFor, p.sel = id, true, id, askDefault(v)
 		}
 	} else {
 		p.asked = ""

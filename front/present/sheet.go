@@ -195,7 +195,9 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 		for j, it := range items {
 			r := image.Rect(x-4, rowY-2, x+8*len(it.Text)+4, rowY+10)
 			if j == p.sel {
-				draw.Draw(sc.px, r, image.NewUniform(col(inkBlue)), image.Point{}, draw.Src)
+				if inkBlue >= 0 {
+					draw.Draw(sc.px, r, image.NewUniform(col(inkBlue)), image.Point{}, draw.Src)
+				}
 			}
 			text(it.Text[:1], x, rowY, white)
 			text(it.Text[1:], x+8, rowY, green)
