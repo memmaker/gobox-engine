@@ -396,7 +396,7 @@ type Member struct {
 	Spells                               []SpellRef
 	Portrait                             Picture
 	Icon                                 map[string]int // icon designer choices as numbers
-	PortraitID, IconID                   string         // gobox's opaque shared-pool picks; the game only stores and states them back ("": none, gobox falls back to Portrait/Icon)
+	PortraitID, IconID                   string         // gobox's opaque shared-pool picks; the game only stores and states them back ("": none, gobox falls back to Portrait/Icon). PortraitID is "head_NNN+body_NNN", IconID "combat_head_NNN+combat_body_NNN" (pool names joined by '+')
 	BaseStats                            map[string]int // stats before magic and age
 	IconColors                           []byte         // icon palette indices
 	ClassText, LevelText                 string         // e.g. "old/new", "3/3"
