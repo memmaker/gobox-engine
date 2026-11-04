@@ -158,7 +158,7 @@ func helpPage(v front.View, n int) *front.Pages {
 	cols := max(v.Cells.X, 40)
 	run := func(x, c int, s string) front.PaneRun {
 		s = s[:max(0, min(len(s), cols-x))]
-		return front.PaneRun{X: x, Text: s, Fg: v.Ink[c], Bg: v.Ink[inkBlack], Upcase: true}
+		return front.PaneRun{X: x, Text: s, Fg: egaInk[c], Bg: egaInk[inkBlack], Upcase: true}
 	}
 	const title = "Help"
 	pg := &front.Pages{Title: run((cols-1-len(title))/2, 15, title), Top: 2, Page: n, Pages: len(pages)}

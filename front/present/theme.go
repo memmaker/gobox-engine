@@ -11,12 +11,17 @@ import (
 // Theme is a game's look in the presenter: the font, the text colours by
 // role and the ribbon border.
 type Theme struct {
-	Font    string // the ui/fonts pool name of the default font
-	Palette Palette
-	Border  Border
+	Font   string // the ui/fonts pool name of the default font
+	Border Border
 
-	HeadTitles bool // menu titles and the slot page's column heads in the Heading colour (else Text, the titles of the menus, and the Hotkey colour)
+	// Deprecated: font colours are gobox's alone (fontPalette); these are
+	// ignored and go once no game sets them.
+	Palette    Palette
+	HeadTitles bool
 }
+
+// fontPalette is every game's font colours, gobox's (no game overrides them).
+var fontPalette = Palette{Background: 0, Selected: 1, Log: 7, Off: 8, Text: 10, Heading: 11, Warn: 12, Mark: 13, Gold: 14, Hotkey: 15}
 
 // Palette is the presenter's colours by role, as EGA indices.
 type Palette struct {
@@ -60,9 +65,8 @@ type Border struct {
 
 // DefaultTheme is por's look.
 var DefaultTheme = Theme{
-	Font:    "Dark_Queen_of_Krynn",
-	Palette: Palette{Background: 0, Selected: 1, Log: 7, Off: 8, Text: 10, Heading: 11, Warn: 12, Mark: 13, Gold: 14, Hotkey: 15},
-	Border:  Border{Pieces: [ui.Pieces]int{0x114, 0x114, 0x114, 0x114, 0x116, 0x116, 0x115, 0x115}}, // por hands its pieces in (View.Border): its symbols are in the game's palette
+	Font:   "Dark_Queen_of_Krynn",
+	Border: Border{Pieces: [ui.Pieces]int{0x114, 0x114, 0x114, 0x114, 0x116, 0x116, 0x115, 0x115}}, // por hands its pieces in (View.Border): its symbols are in the game's palette
 }
 
 var theme Theme
@@ -72,15 +76,12 @@ func init() { applyTheme(DefaultTheme) }
 // applyTheme makes t the presenter's look.
 func applyTheme(t Theme) {
 	theme = t
-	q := t.Palette
+	q := fontPalette
 	inkBlack, inkBlue, inkGrey, inkDark, inkGreen, inkCyan, inkRed, inkMagenta, inkYellow, inkWhite = q.Background, q.Selected, q.Log, q.Off, q.Text, q.Heading, q.Warn, q.Mark, q.Gold, q.Hotkey
 	green, white, cyan, gray, dark, red = col(inkGreen), col(inkWhite), col(inkCyan), col(inkGrey), col(inkDark), col(inkRed)
 	menuTheme = ui.MenuTheme{
 		Text: col(inkGreen), Hot: col(inkWhite), Off: col(inkDark), Sel: col(inkBlue),
 		Gold: col(inkYellow), Head: col(inkCyan), Red: col(inkRed), Foot: col(inkYellow),
-	}
-	if t.HeadTitles {
-		menuTheme.Title = col(inkCyan)
 	}
 }
 

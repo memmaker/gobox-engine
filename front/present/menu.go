@@ -50,7 +50,7 @@ func (p *Presenter) drawMenuIcons(dst *gpu.Image, glyph func(byte) [8]byte, titl
 
 // roleInk is role r's palette index (false: RoleNone, the presenter's own).
 func roleInk(r front.Role) (int, bool) {
-	q := theme.Palette
+	q := fontPalette
 	i, ok := map[front.Role]int{front.RoleText: q.Text, front.RoleHeading: q.Heading, front.RoleSelected: q.Selected, front.RoleOff: q.Off,
 		front.RoleWarn: q.Warn, front.RoleMark: q.Mark, front.RoleGold: q.Gold, front.RoleHotkey: q.Hotkey, front.RoleLog: q.Log,
 		front.RoleBackground: q.Background}[r]

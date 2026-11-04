@@ -14,7 +14,7 @@ import (
 // creation's, the pickers, the save slots, the icon editor) are laid out
 // here on the page's text cells as the original's code put them there.
 
-// The text colours by role (Theme.Palette, applyTheme).
+// The text colours by role (fontPalette, applyTheme).
 var inkBlack, inkBlue, inkGrey, inkDark, inkGreen, inkCyan, inkRed, inkMagenta, inkYellow, inkWhite int
 
 // overlay is a picture drawn over the page at the window's resolution:
@@ -68,7 +68,7 @@ func (c *cellPage) run(r front.PaneRun, y int) {
 	}
 	for i := 0; i < len(r.Text) && r.X+i < c.cols; i++ {
 		if r.X+i >= 0 {
-			c.cells[y][r.X+i] = cell{true, r.Upcase, r.Text[i], r.Fg, r.Bg}
+			c.cells[y][r.X+i] = cell{true, r.Upcase, r.Text[i], fontInk(r.Fg), fontInk(r.Bg)}
 		}
 	}
 }
@@ -79,7 +79,7 @@ func (c *cellPage) str(x, y, colour int, s string) {
 		return
 	}
 	for i := 0; i < len(s) && x+i < c.cols && y < c.rows; i++ {
-		c.cells[y][x+i] = cell{true, true, s[i], c.ink[colour], c.ink[inkBlack]}
+		c.cells[y][x+i] = cell{true, true, s[i], egaInk[colour], c.ink[inkBlack]} // text in gobox's colours, not the page palette
 	}
 }
 
@@ -207,9 +207,6 @@ func screenPage(v front.View) *cellPage {
 		if len(sl.Names) > 0 { // the column heads above the rows (slotList: text from column 3)
 			w, lc := slotCols(c.cols)
 			h := inkWhite
-			if theme.HeadTitles {
-				h = inkCyan
-			}
 			c.str(3, 2, h, "Name")
 			c.str(3+lc, 2, h, "Level")
 			c.str(3+w-4, 2, h, "Date")

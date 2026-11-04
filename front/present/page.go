@@ -383,7 +383,23 @@ func upload(img **gpu.Image, m *image.RGBA) *gpu.Image {
 
 // glyphAt draws glyph g at x, y: set bits fg, the rest bg.
 func glyphAt(m *image.RGBA, g [8]byte, x, y int, fg, bg color.RGBA) {
+	fg, bg = fontInk(fg), fontInk(bg)
 	fonts.DrawGlyph(m, g, x, y, &fg, &bg)
+}
+
+// fontInk is c as gobox's font colour: the EGA colour nearest c in gobox's
+// own RGB, whatever palette the game drew c from (no game sets font colours).
+func fontInk(c color.RGBA) color.RGBA {
+	best, d := 0, 1<<30
+	for i, k := range egaInk {
+		dr, dg, db := int(k.R)-int(c.R), int(k.G)-int(c.G), int(k.B)-int(c.B)
+		if e := dr*dr + dg*dg + db*db; e < d {
+			best, d = i, e
+		}
+	}
+	k := egaInk[best]
+	k.A = c.A
+	return k
 }
 
 // drawPage shows the whole page over the whole window (fit), with the
