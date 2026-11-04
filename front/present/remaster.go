@@ -669,10 +669,14 @@ var (
 	edgeTiles ui.Edges
 	edgesFor  ui.Ribbon
 	edgeMap   map[string][]*gpu.Image
+	// edgePrefix names the box being drawn's own edges ("view.": the 3D
+	// view's inner box), tried before the general ones.
+	edgePrefix string
 )
 
-// sizedEdges is edgeTiles with each edge's own table for its length (key
-// "edge＠n", the original's per-length arrays) where the theme has one.
+// sizedEdges is edgeTiles with the box's own edges (edgePrefix+"edge"),
+// else each edge's table for its length ("edge＠n", the original's
+// per-length arrays), where the theme has them.
 func sizedEdges(cw, ch int) ui.Edges {
 	e := edgeTiles
 	for _, s := range []struct {
@@ -680,7 +684,9 @@ func sizedEdges(cw, ch int) ui.Edges {
 		key string
 		n   int
 	}{{&e.Top, "top", cw}, {&e.Bottom, "bottom", cw}, {&e.Left, "left", ch}, {&e.Right, "right", ch}, {&e.Divider, "divider", ch}} {
-		if t := edgeMap[s.key+"＠"+strconv.Itoa(s.n)]; len(t) > 0 {
+		if t := edgeMap[edgePrefix+s.key]; edgePrefix != "" && len(t) > 0 {
+			*s.seq = t
+		} else if t := edgeMap[s.key+"＠"+strconv.Itoa(s.n)]; len(t) > 0 {
 			*s.seq = t
 		}
 	}

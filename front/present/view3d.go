@@ -225,6 +225,10 @@ func drawBox(dst, inside *gpu.Image, tiles ui.Ribbon, r front.CellRect, k float6
 	var g gpu.GeoM
 	g.Scale(k, k)
 	g.Translate(float64(cx)-k*float64(px.Dx())/2, float64(cy)-k*float64(px.Dy())/2)
+	if r == innerWindow.Framed() { // the 3D view's inner box: the theme's "view." edges
+		edgePrefix = "view."
+		defer func() { edgePrefix = "" }()
+	}
 	in := window(dst, tiles, g, r.X2-r.X1+1, r.Y2-r.Y1+1, nil)
 	op := &gpu.DrawImageOptions{}
 	op.GeoM.Scale(k, k)
