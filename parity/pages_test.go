@@ -102,7 +102,7 @@ func TestSlotsAdapter(t *testing.T) {
 			g := classic.NewGame(b.Rules(), b.Data())
 			for _, loadOnly := range []bool{false, true} {
 				want, got := a.SlotsView(loadOnly), g.SlotsView(loadOnly)
-				if !reflect.DeepEqual(got, want) {
+				if !reflect.DeepEqual(got, (*front.Slots)(want)) {
 					t.Errorf("loadOnly %v: adapter %+v, por %+v", loadOnly, got, want)
 				}
 				if scene == "" && (want == nil || len(want.Names) == 0 || want.Levels[0] == 0 || want.Times[0] == "") {

@@ -2,6 +2,7 @@ package parity
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 
 	"gobox/front"
@@ -17,7 +18,11 @@ func TestEffectsClues(t *testing.T) {
 			a := engine(t, true, scene)
 			g := classic.NewGame(a.Rules(), a.Data())
 			for n := range 6 {
-				want, got := a.EffectsList(n), g.EffectsList(n)
+				got := g.EffectsList(n)
+				var want []front.ListLine
+				for _, l := range a.EffectsList(n) {
+					want = append(want, front.ListLine(l))
+				}
 				seen = seen || len(want) > 0
 				if !reflect.DeepEqual(got, want) {
 					t.Fatalf("EffectsList(%d): adapter %+v, por %+v", n, got, want)
@@ -27,8 +32,8 @@ func TestEffectsClues(t *testing.T) {
 				t.Fatal("no clue chapters")
 			}
 			for i := range g.ClueChapters() {
-				var want, got *front.Read = a.ClueRead(i), g.ClueRead(i)
-				if !reflect.DeepEqual(got, want) {
+				want, got := a.ClueRead(i), g.ClueRead(i)
+				if got.Title != want.Title || got.Page != want.Page || !slices.Equal(got.Lines, want.Lines) {
 					t.Fatalf("ClueRead(%d): adapter %+v, por %+v", i, got, want)
 				}
 			}
