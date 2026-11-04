@@ -956,7 +956,18 @@ type Data struct {
 	SpellRules map[int]string // what each spell does, by spell id (the spell tip text)
 	Art        map[string]Picture
 	Sounds     map[string]string
-	Palette    []byte   // palette bytes
-	Commands   []Option // extra party commands: Decisions with labels
-	Imports    []string // other games' rosters and saves this game reads, by game id
+	Palette    []byte      // palette bytes
+	Commands   []Option    // extra party commands: Decisions with labels
+	Imports    []string    // other games' rosters and saves this game reads, by game id
+	QuickParty []QuickPick // the party menu's Quick Start party (every game offers it while the party is empty)
+}
+
+// QuickPick is one Quick Start member: the creation answers by the names the
+// game's sheet shows, the abilities rerolled for (StatKeys key -> minimum),
+// and the name and portrait it is saved under.
+type QuickPick struct {
+	Race, Gender, Class, Align string
+	Need                       map[string]int
+	Name                       string
+	Head, Body                 int
 }
