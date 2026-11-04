@@ -152,7 +152,7 @@ var Scripted bool
 
 // drawBox copies box r of the classic frame onto dst at scale k, centred
 // on cx, cy: its inside, in a plain window of tiles' cells.
-func drawBox(dst, inside *gpu.Image, tiles [3]*gpu.Image, r front.CellRect, k float64, cx, cy int) {
+func drawBox(dst, inside *gpu.Image, tiles ui.Ribbon, r front.CellRect, k float64, cx, cy int) {
 	px := r.Pixels()
 	var g gpu.GeoM
 	g.Scale(k, k)

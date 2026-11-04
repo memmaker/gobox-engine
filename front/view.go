@@ -24,12 +24,14 @@ const (
 )
 
 // AreaMap (extra) is the whole area map for a screen of its own: every
-// tile, Tile pixels square, and the party's square and marker.
+// square's picture (Squares[y][x], nil: none drawn), Tile pixels square,
+// and the party's square and marker. The presenter builds the map's picture
+// and keeps it while no square's picture changes.
 type AreaMap struct {
-	Img    image.Image
-	Tile   int
-	Party  image.Point // the party's map square
-	Marker image.Image // the party's icon, facing its way
+	Squares [][]image.Image
+	Tile    int
+	Party   image.Point // the party's map square
+	Marker  image.Image // the party's icon, facing its way
 }
 
 // Battle is the combat map as the remaster's 3D view needs it.
@@ -361,11 +363,11 @@ type MapSquares struct {
 }
 
 // MapSquare is a square of a map: how far the party has seen it, its
-// walls (N E S W) and its label (Ink 0: none).
+// walls (N E S W) and its label (Letter 0: none).
 type MapSquare struct {
 	Seen   Seen
 	Walls  [4]MapWall
-	Ink    int  // the label's EGA colour, by kind
+	Kind   int  // the label's kind: its colour is Data.LabelInks[Kind]
 	Letter byte // the label's legend letter
 }
 
@@ -434,7 +436,7 @@ type View struct {
 	Slots      *Slots      // the save slots: never the engine's; the presenter puts its F10 screen here (SlotsView)
 	Ask        *Ask        // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
 	Party      []Member
-	Border     [3]image.Image // the window border's corner, side and top cells (DrawBorder style 0) in EGA colours; nil before the symbols load
+	Border     [8]image.Image // the window border's pieces by place (ui.TopLeft ..) in EGA colours; all nil: the presenter decodes Theme.Border
 	Battle     *Battle        // the combat map (nil outside combat)
 	Events     []CombatEvent  // what happened in the fight since the last Apply, in order (Apply's View only)
 	Inventory  *Inventory     // the inventory screen is up (nil otherwise)
@@ -580,6 +582,8 @@ type Training struct {
 	Why     string      // the hall refuses: why
 	Becomes []string    // "a level 3 Fighter" (Train trains)
 	Price   int         // gold
+	Will    string      // the offer's "will become" lines as the game words them ("": Name will become Becomes)
+	Cost    string      // the price as the game writes it ("": Price in gold); red while Gold < Price
 	Gold    int         // the party's gold
 	Learn   []BookSpell // a mage level was gained: the spell for the book (Learn), chosen before leaving
 }
@@ -655,6 +659,6 @@ type FullMap struct {
 type MapLabel struct {
 	Letter byte
 	Text   string
-	Colour int
+	Kind   int // its colour is Data.LabelInks[Kind]
 	First  image.Point
 }

@@ -168,15 +168,15 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 		}
 	}
 	str := func(x, y, c int, s string) { // DisplayString
-		run(front.PaneRun{X: x, Text: s[:max(0, min(len(s), cols-x))], Fg: col(c), Bg: col(0), Upcase: true}, y)
+		run(front.PaneRun{X: x, Text: s[:max(0, min(len(s), cols-x))], Fg: col(c), Bg: col(inkBlack), Upcase: true}, y)
 	}
 	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(m, r, image.NewUniform(c), image.Point{}, draw.Src) }
 	box := func(x2, y2 int) { // DrawBoxTitled(1, 1, x2, y2): the inside cleared, the border's cells round it
-		fill(image.Rect(8, 8, x2*8+8, y2*8+8), col(0))
+		fill(image.Rect(8, 8, x2*8+8, y2*8+8), col(inkBlack))
 		cellBorder(m, v, front.CellRect{X1: 1, Y1: 1, X2: x2, Y2: y2})
 	}
 	prompt := func(s string, c int) { // the prompt row cleared, s on it
-		str(0, rows-1, 0, strings.Repeat(" ", cols))
+		str(0, rows-1, inkBlack, strings.Repeat(" ", cols))
 		str(0, rows-1, c, s)
 	}
 	switch {
@@ -200,90 +200,90 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 					if d < 0 {
 						c = x*8 + 5 - i
 					}
-					fill(image.Rect(c, (rows-2)*8+1+i, c+1, (rows-2)*8+8-i), col(10))
+					fill(image.Rect(c, (rows-2)*8+1+i, c+1, (rows-2)*8+8-i), col(inkGreen))
 				}
 			}
 		}
 	case p.fm() != nil:
 		fm := p.fm()
 		lx := fm.LegendAt.X
-		fill(m.Rect, col(0))
-		str(0, 0, 15, fm.Name[:min(len(fm.Name), lx-1)])
-		str(lx, 0, 15, "Labels")
+		fill(m.Rect, col(inkBlack))
+		str(0, 0, inkWhite, fm.Name[:min(len(fm.Name), lx-1)])
+		str(lx, 0, inkWhite, "Labels")
 		for i, l := range fm.Legend {
-			str(lx, fm.LegendAt.Y+i, l.Colour, string(l.Letter))
-			str(lx+2, fm.LegendAt.Y+i, 10, l.Text[:min(len(l.Text), cols-lx-2)])
+			str(lx, fm.LegendAt.Y+i, labelInks[l.Kind], string(l.Letter))
+			str(lx+2, fm.LegendAt.Y+i, inkGreen, l.Text[:min(len(l.Text), cols-lx-2)])
 		}
-		str(1, rows-2, 11, fm.Info[:min(len(fm.Info), cols-2)])
+		str(1, rows-2, inkCyan, fm.Info[:min(len(fm.Info), cols-2)])
 		mi := mapImage(fm.Map, fm.Cell, v.Ink, note.Font)
 		draw.Draw(m, mi.Bounds().Add(fm.At), mi, image.Point{}, draw.Over)
 		n, c := fm.Cell, fm.At.Add(fm.Cursor.Mul(fm.Cell))
 		for _, r := range []image.Rectangle{image.Rect(0, 0, n, 1), image.Rect(0, n-1, n, n), image.Rect(0, 0, 1, n), image.Rect(n-1, 0, n, n)} {
-			fill(r.Add(c), col(14))
+			fill(r.Add(c), col(inkYellow))
 		}
 		if fm.Label != nil {
 			prompt("Label: ", 13)
-			str(7, rows-1, 15, *fm.Label+"_")
+			str(7, rows-1, inkWhite, *fm.Label+"_")
 		}
 	case p.overview:
 		box(cols-2, rows-2)
 		const title = "Party"
-		str((cols-1-len(title))/2, 1, 15, title)
+		str((cols-1-len(title))/2, 1, inkWhite, title)
 		y := 3
 		// Spells and XP to the next level only where the window has room for them
-		str(2, y, 15, "Name")
-		str(19, y, 15, "HP")
-		str(27, y, 15, "AC")
-		str(31, y, 15, "Status")
+		str(2, y, inkWhite, "Name")
+		str(19, y, inkWhite, "HP")
+		str(27, y, inkWhite, "AC")
+		str(31, y, inkWhite, "Status")
 		if cols >= 50 {
-			str(43, y, 15, "Spells")
+			str(43, y, inkWhite, "Spells")
 		}
 		if cols >= 61 {
-			str(50, y, 15, "XP to next")
+			str(50, y, inkWhite, "XP to next")
 		}
 		y += 2
 		for _, c := range v.Party {
 			if y > rows-9 { // above the purse
 				break
 			}
-			colour := 11
+			colour := inkCyan
 			if c.Selected {
-				colour = 15
+				colour = inkWhite
 			}
 			str(2, y, colour, c.Name[:min(len(c.Name), 15)])
-			hpc := 10
+			hpc := inkGreen
 			switch {
 			case c.HP <= 0:
-				hpc = 12
+				hpc = inkRed
 			case c.HP*2 < c.MaxHP:
-				hpc = 14
+				hpc = inkYellow
 			}
 			str(19, y, hpc, strconv.Itoa(c.HP)+"/"+strconv.Itoa(c.MaxHP))
-			str(27, y, 10, strconv.Itoa(c.AC))
-			str(31, y, 10, c.Status)
+			str(27, y, inkGreen, strconv.Itoa(c.AC))
+			str(31, y, inkGreen, c.Status)
 			if cols >= 50 {
-				str(43, y, 10, c.Spells)
+				str(43, y, inkGreen, c.Spells)
 			}
 			if cols >= 61 {
 				xp := "-"
 				if c.NextExp > 0 {
 					xp = strconv.Itoa(max(c.NextExp-c.Exp, 0))
 				}
-				str(50, y, 10, xp)
+				str(50, y, inkGreen, xp)
 			}
 			w := 0 // the hit point bar under the name, 32 steps
 			if c.MaxHP > 0 && c.HP > 0 {
 				w = min((c.HP*0x20+c.MaxHP-1)/c.MaxHP, 0x20)
 			}
 			px, py := 2*8, (y+1)*8+2
-			fill(image.Rect(px, py, px+0x20*4, py+3), col(8))
+			fill(image.Rect(px, py, px+0x20*4, py+3), col(inkDark))
 			fill(image.Rect(px, py, px+w*4, py+3), col(hpc))
 			y += 2
 		}
 		if p := v.Purse; p != nil { // a blank row between the pairs and before the items
-			str(2, rows-7, 14, fmt.Sprintf("%d gold  %d copper", p.Gold, p.Copper))
-			str(2, rows-5, 14, fmt.Sprintf("%d gems  %d jewelry", p.Gems, p.Jewelry))
-			str(2, rows-3, 11, fmt.Sprintf("Party items %d/%d", p.Items, p.Slots))
+			str(2, rows-7, inkYellow, fmt.Sprintf("%d gold  %d copper", p.Gold, p.Copper))
+			str(2, rows-5, inkYellow, fmt.Sprintf("%d gems  %d jewelry", p.Gems, p.Jewelry))
+			str(2, rows-3, inkCyan, fmt.Sprintf("Party items %d/%d", p.Items, p.Slots))
 		}
 		// no prompt: the frame runs round the whole page, any key still closes it
 	}
@@ -321,7 +321,7 @@ func noteLine(m *image.RGBA, note Note, y int) {
 	draw.Draw(m, image.Rect(0, y, w, y+8), image.Black, image.Point{}, draw.Src)
 	x0 := (w - 8*len(note.Text)) / 2
 	for i := 0; i < len(note.Text); i++ {
-		glyphAt(m, note.Glyph(note.Text[i]), x0+i*8, y, ega.RGBA(12), color.RGBA{A: 255})
+		glyphAt(m, note.Glyph(note.Text[i]), x0+i*8, y, col(inkRed), color.RGBA{A: 255})
 	}
 }
 
@@ -520,7 +520,7 @@ func (p *Presenter) paneBox(dst *gpu.Image, note Note, v front.View, k float64, 
 	const label = " > Notes "
 	m := image.NewRGBA(image.Rect(0, 0, 8*len(label), 8))
 	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
-	ui.DrawText(m, note.Glyph, label, 0, 0, col(14))
+	ui.DrawText(m, note.Glyph, label, 0, 0, col(inkYellow))
 	px := txt.Pixels()
 	x, y := float64(cx)+k*float64(px.Dx()/2-16-m.Rect.Dx()), float64(cy)+k*float64(px.Dy()/2-8)
 	op := &gpu.DrawImageOptions{}

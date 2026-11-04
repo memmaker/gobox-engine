@@ -28,7 +28,12 @@ type Data struct {
 	MapCell      int // pixels a square of View.Map
 	DungeonTiles int // the tiles at the start of the combat set
 
+	Theme   *Theme            // the look (nil: DefaultTheme)
+	Texts   map[string]string // the game's named texts and tables beyond Credits, SpellRules and IconParts (Text)
+	Entries []Entry           // the game's own main menu entries, after the default list (nil: none)
+
 	DoorRGBA      color.RGBA                                                    // a door's colour on the maps
+	LabelInks     []int                                                         // a map label's palette index (View.Ink) by its kind
 	SelectOutline func(image.Rectangle, int, func(image.Rectangle, color.RGBA)) // draws the outline round the selected box
 
 	RestFix, RestWait, RestUntil int // camp's rests (ActRest N)
@@ -48,7 +53,7 @@ type Data struct {
 	BarsPNG, DollPNG, AtlasPNG []byte // the cards' bars, the paper doll, the item icons
 	ItemsRec                   string // the icons' records
 
-	DAX *dax.Loader // decodes the pictures named by File and Block with Img nil (nil: they stay undrawn)
+	DAX *dax.Loader // the game's own DAX loader, over its own files: it decodes the pictures named by File and Block with Img nil and Theme.Border (nil: they stay undrawn)
 
 	Bindings []ui.Binding // the game's own help rows, after Any time's Ctrl-F row
 }
@@ -57,6 +62,9 @@ var (
 	paneBox, viewWindow, innerWindow front.CellRect
 	mapCell, dungeonTiles            int
 	doorRGBA                         color.RGBA
+	menuEntries                      []Entry
+	texts                            map[string]string
+	labelInks                        []int
 	selectOutline                    func(image.Rectangle, int, func(image.Rectangle, color.RGBA))
 	restFix, restWait, restUntil     int
 	credits                          []Credit
@@ -78,7 +86,13 @@ var (
 func SetData(d Data) {
 	paneBox, viewWindow, innerWindow = d.PaneBox, d.ViewWindow, d.InnerWindow
 	mapCell, dungeonTiles = d.MapCell, d.DungeonTiles
-	doorRGBA, selectOutline = d.DoorRGBA, d.SelectOutline
+	menuEntries, texts = d.Entries, d.Texts
+	if d.Theme != nil {
+		applyTheme(*d.Theme)
+	} else {
+		applyTheme(DefaultTheme)
+	}
+	doorRGBA, labelInks, selectOutline = d.DoorRGBA, d.LabelInks, d.SelectOutline
 	restFix, restWait, restUntil = d.RestFix, d.RestWait, d.RestUntil
 	credits, remasterCredit, iconParts, spellRules = d.Credits, d.RemasterCredit, d.IconParts, d.SpellRules
 	dollBoxes, slotNames = d.DollBoxes, d.SlotNames
@@ -108,3 +122,16 @@ var Host = &DefaultOptions
 
 // UISteps are the sizes the screen elements come in: whole steps of the one glyph cell size (K).
 var UISteps = []float64{1, 2, 3, 4}
+
+// Entry is a main menu entry of the game's own (Data.Entries): Text with
+// its Key sends Act (N -1) to the game, on the main list or, Party, in the
+// Party submenu.
+type Entry struct {
+	Text  string
+	Key   byte
+	Act   front.ActKind
+	Party bool
+}
+
+// Text is the game's named text (Data.Texts; "": none).
+func Text(name string) string { return texts[name] }

@@ -103,9 +103,8 @@ func (p *Presenter) combatCast() {
 func (p *Presenter) useCall(i, spell, target int, sure bool) {
 	p.call(func(e front.Game) {
 		var (
-			who   front.PickMember
-			pick  front.PickSpell
-			yesNo front.Confirm
+			who  front.PickMember
+			pick front.PickSpell
 		)
 		switch err := e.UseItem(i, spell, target, sure); {
 		case errors.As(err, &who):
@@ -113,8 +112,8 @@ func (p *Presenter) useCall(i, spell, target int, sure bool) {
 			front.AskForMember(p, string(who), sel, func(t int) { p.useCall(i, spell, t, sure) })
 		case errors.As(err, &pick):
 			front.AskForSpell(p, pick, func(id int) { p.useCall(i, id, target, sure) })
-		case errors.As(err, &yesNo):
-			front.AskYes(p, string(yesNo), func() { p.useCall(i, spell, target, true) })
+		default:
+			front.AskSure(p, err, func() { p.useCall(i, spell, target, true) })
 		}
 	})
 }

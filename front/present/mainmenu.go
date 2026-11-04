@@ -152,6 +152,7 @@ func (m *mainUI) items(h MainHost, v front.MainMenu) (string, []ui.MenuRow) {
 		for _, k := range []front.ActKind{front.ActAdd, front.ActCreate, front.ActForget, front.ActDropMember, front.ActModify, front.ActTraining, front.ActMember, front.ActRemove} {
 			add(k)
 		}
+		it = m.entries(h, it, true)
 		return "", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: func() { m.sub, m.sel = false, m.back }})
 	}
 	add(front.ActBegin)
@@ -164,7 +165,18 @@ func (m *mainUI) items(h MainHost, v front.MainMenu) (string, []ui.MenuRow) {
 		add(front.ActQuickStart)
 	}
 	add(front.ActQuit)
-	return "", it
+	return "", m.entries(h, it, false)
+}
+
+// entries is it with the game's own entries (Data.Entries) of the Party
+// submenu (party) or the main list after it.
+func (m *mainUI) entries(h MainHost, it []ui.MenuRow, party bool) []ui.MenuRow {
+	for _, e := range menuEntries {
+		if e.Party == party {
+			it = append(it, ui.MenuRow{Text: e.Text, Key: e.Key, Do: func() { h.Send(e.Act, -1) }})
+		}
+	}
+	return it
 }
 
 // drawMainUI draws the main menu's lettering, functions and cards.

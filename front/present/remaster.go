@@ -78,6 +78,7 @@ type Presenter struct {
 	journal     journalUI                   // the quest journal (journal.go)
 	resultsPage sheetCanvas                 // the after-combat page (drawResults)
 	area        ui.AreaMap                  // the overland's map and marker last uploaded (drawAreaMap)
+	areaPic     areaPic                     // the overland's picture built from its squares (drawAreaMap)
 	winRects    []image.Rectangle           // the Esc menu's lines on screen, as last drawn
 	noMenu      bool                        // nothing to pick: any click answers
 	pointer     image.Point                 // the mouse, as Hover last saw it (keys move the highlight while it rests)
@@ -628,7 +629,7 @@ func scale(dst *gpu.Image) float64 {
 }
 
 // window is ui.Window: every window's frame, the ribbon border in tiles t.
-func window(dst *gpu.Image, t [3]*gpu.Image, g gpu.GeoM, cw, ch int, bg color.Color) image.Rectangle {
+func window(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) image.Rectangle {
 	return ui.Window(dst, t, g, cw, ch, bg)
 }
 

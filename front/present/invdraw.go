@@ -3,7 +3,6 @@
 package present
 
 import (
-	"gobox/ega"
 	"gobox/front"
 	"gobox/gpu"
 	"gobox/ui"
@@ -190,7 +189,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 		case !w.on:
 			c, hc = dark, dark
 		case inv.hover.In(w.r) || inv.focus == i+1:
-			inv.fill(w.r, ega.RGBA(1)) // the text selection
+			inv.fill(w.r, col(inkBlue)) // the text selection
 		}
 		inv.text(w.text[:1], x, rowY, hc)
 		inv.text(w.text[1:], x+8, rowY, c)
@@ -225,7 +224,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 		onBorder(inv.img, inv.glyph, lx, 0, true, []string{"Loot"}, []color.RGBA{white})
 	case shop:
 		onBorder(inv.img, inv.glyph, lx, 0, true, []string{"Shop"}, []color.RGBA{white})
-		onBorder(inv.img, inv.glyph, rr, (ch-1)*8-8, false, []string{"party " + price(front.Money{Gold: in.Gold, Copper: in.Copper})}, []color.RGBA{col(14)})
+		onBorder(inv.img, inv.glyph, rr, (ch-1)*8-8, false, []string{"party " + price(front.Money{Gold: in.Gold, Copper: in.Copper})}, []color.RGBA{col(inkYellow)})
 	}
 	if !shop && in.Member >= 0 && in.Member < len(v.Party) {
 		paneName(inv.img, inv.glyph, v.Party[in.Member].Name)
@@ -310,7 +309,7 @@ func onBorder(dst *gpu.Image, glyph func(byte) [8]byte, x, y int, left bool, tex
 
 // tooltip tells what the pointer is on: a doll slot's item (or what goes
 // there), an item's name, what it does and what it costs or sells for.
-func (inv *inventory) tooltip(t [3]*gpu.Image, in *front.Inventory) {
+func (inv *inventory) tooltip(t ui.Ribbon, in *front.Inventory) {
 	var lines []string
 	describe := func(it *front.InvItem, price string) {
 		lines = []string{strings.TrimSpace(it.Name), ""}
@@ -361,7 +360,7 @@ func (inv *inventory) tooltip(t [3]*gpu.Image, in *front.Inventory) {
 
 // panel draws lines in a box of the game's border over the canvas (over
 // the boxes' borders), the first line cyan, at(w, h) its top left.
-func (inv *inventory) panel(t [3]*gpu.Image, lines []string, at func(w, h int) image.Point) {
+func (inv *inventory) panel(t ui.Ribbon, lines []string, at func(w, h int) image.Point) {
 	cw := 0
 	for _, l := range lines {
 		cw = max(cw, len(l))

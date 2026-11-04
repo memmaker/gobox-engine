@@ -11,9 +11,9 @@ func CreateAct(h Host, creating *bool, a Action) bool {
 	if !*creating {
 		switch a.Kind {
 		case ActCreate:
-			h.Edit(func(e Game) { e.CreateCharacter(); *creating = e.CreationView() != nil })
+			h.Edit(func(e Game) { refused(e, e.CreateCharacter()); *creating = e.CreationView() != nil })
 		case ActModify:
-			h.Edit(func(e Game) { e.ModifyCharacter(a.N); *creating = e.CreationView() != nil })
+			h.Edit(func(e Game) { refused(e, e.ModifyCharacter(a.N)); *creating = e.CreationView() != nil })
 		default:
 			return false
 		}
@@ -21,18 +21,25 @@ func CreateAct(h Host, creating *bool, a Action) bool {
 	}
 	switch a.Kind {
 	case ActRoll:
-		h.Edit(func(e Game) { e.Roll(a.N == 1, a.Text) })
+		h.Edit(func(e Game) { refused(e, e.Roll(a.N == 1, a.Text)) })
 	case ActName:
-		h.Edit(func(e Game) { e.Rename(a.Text) })
+		h.Edit(func(e Game) { refused(e, e.Rename(a.Text)) })
 	case ActStat:
-		h.Edit(func(e Game) { e.SetStat(a.N, a.Text) })
+		h.Edit(func(e Game) { refused(e, e.SetStat(a.N, a.Text)) })
 	case ActSetField:
-		h.Edit(func(e Game) { e.SetField(a.N, a.X) })
+		h.Edit(func(e Game) { refused(e, e.SetField(a.N, a.X)) })
 	case ActKeep, ActClose:
 		*creating = false
-		h.Edit(func(e Game) { e.EndCreation(a.Kind == ActKeep) })
+		h.Edit(func(e Game) { refused(e, e.EndCreation(a.Kind == ActKeep)) })
 	default:
 		return false
 	}
 	return true
+}
+
+// refused shows the refusal err (nil: none) as the game's Refuse.
+func refused(e Game, err error) {
+	if err != nil {
+		e.Refuse(err.Error())
+	}
 }

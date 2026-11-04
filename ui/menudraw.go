@@ -26,7 +26,7 @@ type MenuTheme struct {
 // kept wholly on the window.
 type MenuStyle struct {
 	Theme    MenuTheme
-	Tiles    [3]*gpu.Image
+	Tiles    Ribbon
 	Glyph    func(byte) [8]byte
 	RowGlyph func(row int, c byte) [8]byte
 	Tight    bool

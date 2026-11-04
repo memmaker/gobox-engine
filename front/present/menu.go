@@ -2,7 +2,6 @@ package present
 
 import (
 	"gobox/blobber"
-	"gobox/ega"
 	"gobox/ui"
 	"image"
 
@@ -24,17 +23,14 @@ const iconRow = ui.IconRow
 // menuTheme is the menu look: green on black, hotkeys white, rows off
 // grey (EGA 8), the selection a blue EGA 1 ground; the colour spans gold,
 // cyan and red, the footer gold.
-var menuTheme = ui.MenuTheme{
-	Text: ega.RGBA(10), Hot: ega.RGBA(15), Off: ega.RGBA(8), Sel: ega.RGBA(1),
-	Gold: ega.RGBA(14), Head: ega.RGBA(11), Red: ega.RGBA(12), Foot: ega.RGBA(14),
-}
+var menuTheme ui.MenuTheme // applyTheme
 
 // drawMenuIcons is drawMenu with an icon before each row of icons that is
 // not nil (ui.MenuCanvas.Draw), in the theme and the presenter's menu state.
 func (p *Presenter) drawMenuIcons(dst *gpu.Image, glyph func(byte) [8]byte, title string, items []string, keys []byte, off []bool, icons []image.Image, sel int, k float64, cx, top int) {
 	st := ui.MenuStyle{Theme: menuTheme, Tiles: p.border.tiles, Glyph: glyph, RowGlyph: blobber.MenuGlyph, Tight: p.menuTight, Tip: p.tipping}
 	if p.logGrey {
-		st.Theme.Text = ega.RGBA(7) // the battle Log's light grey
+		st.Theme.Text = col(inkGrey) // the battle Log's light grey
 	}
 	if p.menuGrey {
 		st.Tiles = p.border.grey

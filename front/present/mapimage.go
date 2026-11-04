@@ -14,7 +14,10 @@ func mapImage(m *front.MapSquares, cell int, ink [16]color.RGBA, glyph func(byte
 	u := &ui.MapSquares{Party: m.Party, Ahead: m.Ahead}
 	for y, row := range m.Squares {
 		for x, q := range row {
-			s := ui.MapSquare{Seen: ui.Seen(q.Seen), Ink: q.Ink, Letter: q.Letter}
+			s := ui.MapSquare{Seen: ui.Seen(q.Seen), Letter: q.Letter}
+			if q.Letter != 0 {
+				s.Ink = labelInks[q.Kind]
+			}
 			for d, w := range q.Walls {
 				s.Walls[d] = ui.Wall(w)
 			}

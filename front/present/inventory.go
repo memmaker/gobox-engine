@@ -39,11 +39,7 @@ func col(i int) color.RGBA {
 	return color.RGBA{c[0], c[1], c[2], 255}
 }
 
-var (
-	green, white, cyan = col(10), col(15), col(11)
-	gray, dark         = col(7), col(8)
-	red                = col(12)
-)
+var green, white, cyan, gray, dark, red color.RGBA // the roles' colours (applyTheme)
 
 // inventory is the screen's state between frames.
 type inventory struct {
