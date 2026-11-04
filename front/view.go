@@ -489,6 +489,7 @@ type View struct {
 	Note          Note           // the status line's toast, shown on the bottom row a while after At
 	Inventory     *Inventory     // the inventory screen is up (nil otherwise)
 	Map           *MapSquares    // the current map, drawn by the presenter at MapCell pixels a square (nil where the game has no map)
+	NoMap         bool           // the game marks this area unmappable (game.Automap.NoMap)
 	Pictures      []Picture      // the screen's pictures, symbols and fills, bottom first
 	Adventure     bool           // the party is out in the world: the 3D view (or the overland map) is the screen
 	Prompt        []PaneRun      // the prompt row's text (the last row), X the page's column

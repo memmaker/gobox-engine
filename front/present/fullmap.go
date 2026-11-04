@@ -24,7 +24,7 @@ type fullMapUI struct {
 // openMap puts the full map up over the 3D view, the cursor on the
 // party; where it is not allowed the engine says "Not Here".
 func (p *Presenter) openMap(v front.View) {
-	if p.eng == nil || !v.Exploring {
+	if p.eng == nil || !v.Exploring || mapBarred(v) {
 		return
 	}
 	if p.eng.FullMapView(image.Pt(v.X, v.Y), nil) == nil {
@@ -177,3 +177,6 @@ func (p *Presenter) mapMouse(cx, cy int, in, left, right bool) {
 		p.fullMap = nil
 	}
 }
+
+// mapBarred: v's area is marked unmappable and the No Map Zones option is on.
+func mapBarred(v front.View) bool { return v.NoMap && Host.NoMapZones }

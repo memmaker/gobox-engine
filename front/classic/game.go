@@ -91,7 +91,7 @@ func (g *Game) ViewOf(s game.State) front.View {
 		s.Pending, s.Mode = g.asked, game.ModeAsk
 	}
 	art := g.art()
-	v := front.View{Exploring: s.Mode == game.ModeExplore}
+	v := front.View{Exploring: s.Mode == game.ModeExplore, NoMap: s.Map.NoMap}
 	if s.Map.Size == image.Pt(16, 16) {
 		v.Map = &front.MapSquares{}
 	}

@@ -508,6 +508,9 @@ type Automap struct {
 	// Data.Art["marker/<facing>"]. Known and Walked apply as on a dungeon
 	// map. Empty for a dungeon map.
 	Terrain []int
+	// NoMap marks the area unmappable: while the player's "No Map Zones"
+	// option is on, gobox shows no minimap and no full map here.
+	NoMap bool `json:",omitempty"`
 }
 
 // Label is a named place on the automap.

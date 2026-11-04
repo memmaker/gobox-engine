@@ -169,11 +169,12 @@ type Options struct {
 	Pic           float64 // the picture box: one of UISteps times its normal size
 	Zoom          float64 // the battle camera: how far one wheel step zooms, 0.25 to 2 times 15 percent
 	DamageNumbers bool    // the battle: hit points lost float over the heads
+	NoMapZones    bool    // a game may take the minimap and full map away in areas it marks (game.Automap.NoMap)
 	PixelWalls    bool    // the 3D view: the pixel-art walls instead of the hi-def ones (Shift-F12)
 }
 
 // DefaultOptions are the settings before the game's are loaded.
-var DefaultOptions = Options{MapAlpha: 1, Zoom: 0.5, Cards: 1, Map: 1, Pic: 1, DamageNumbers: true}
+var DefaultOptions = Options{MapAlpha: 1, Zoom: 0.5, Cards: 1, Map: 1, Pic: 1, DamageNumbers: true, NoMapZones: true}
 
 // Host is the settings in use: the game points it at its own.
 var Host = &DefaultOptions

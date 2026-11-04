@@ -42,7 +42,7 @@ func fitScale(unit, s float64, ok func(k float64) bool) float64 { return ui.FitS
 // drawMap shows the map as the full map draws it (View.Map) in mapRect.
 func (p *Presenter) drawMap(dst *gpu.Image, v front.View, font func(byte, bool) [8]byte) {
 	p.mapAt = image.Rectangle{}
-	if v.Map == nil || Host.MapOff {
+	if v.Map == nil || Host.MapOff || mapBarred(v) {
 		return
 	}
 	if p.mapImg == nil {
