@@ -55,24 +55,35 @@ func (b *borders) update(t [ui.Places]image.Image) {
 	}
 	b.src = t
 	defer func() { // the theme's cracked edges go with these tiles
-		edgesFor, edgeTiles, edgeMap = b.tiles, ui.Edges{}, nil
-		up := func(ms []image.Image) (out []*gpu.Image) {
+		edgeTiles, edgeSets = ui.Edges{}, nil
+		es := borderEdges()
+		if es == nil {
+			return
+		}
+		up := func(ms []image.Image, grey bool) (out []*gpu.Image) {
 			for _, m := range ms {
 				var g *gpu.Image
-				if m != nil {
+				if m != nil && grey {
+					g = gpu.NewImageFromImage(greyed(m))
+				} else if m != nil {
 					g = gpu.NewImageFromImage(m)
 				}
 				out = append(out, g)
 			}
 			return out
 		}
-		if es := borderEdges(); es != nil {
-			edgeMap = map[string][]*gpu.Image{}
+		for _, set := range []struct {
+			for_ ui.Ribbon
+			grey bool
+		}{{b.tiles, false}, {b.grey, true}} { // the grey cards are cracked too, greyed alike
+			m := map[string][]*gpu.Image{}
 			for k, ms := range es {
-				edgeMap[k] = up(ms)
+				m[k] = up(ms, set.grey)
 			}
-			edgeTiles = ui.Edges{Top: edgeMap["top"], Bottom: edgeMap["bottom"], Left: edgeMap["left"], Right: edgeMap["right"], Divider: edgeMap["divider"]}
+			edgeSets = append(edgeSets, edgeSet{set.for_, m})
 		}
+		m := edgeSets[0].edges
+		edgeTiles = ui.Edges{Top: m["top"], Bottom: m["bottom"], Left: m["left"], Right: m["right"], Divider: m["divider"]}
 	}()
 	for i, m := range t {
 		if m == nil { // an end cap the game leaves out
@@ -80,16 +91,21 @@ func (b *borders) update(t [ui.Places]image.Image) {
 			continue
 		}
 		b.tiles[i] = gpu.NewImageFromImage(m)
-		g := image.NewRGBA(m.Bounds())
-		for y := m.Bounds().Min.Y; y < m.Bounds().Max.Y; y++ {
-			for x := m.Bounds().Min.X; x < m.Bounds().Max.X; x++ {
-				c := color.RGBAModel.Convert(m.At(x, y)).(color.RGBA)
-				l := uint8((299*int(c.R) + 587*int(c.G) + 114*int(c.B)) / 1000)
-				g.SetRGBA(x, y, color.RGBA{l, l, l, c.A})
-			}
-		}
-		b.grey[i] = gpu.NewImageFromImage(g)
+		b.grey[i] = gpu.NewImageFromImage(greyed(m))
 	}
+}
+
+// greyed is m in grey (the unselected cards' border).
+func greyed(m image.Image) *image.RGBA {
+	g := image.NewRGBA(m.Bounds())
+	for y := m.Bounds().Min.Y; y < m.Bounds().Max.Y; y++ {
+		for x := m.Bounds().Min.X; x < m.Bounds().Max.X; x++ {
+			c := color.RGBAModel.Convert(m.At(x, y)).(color.RGBA)
+			l := uint8((299*int(c.R) + 587*int(c.G) + 114*int(c.B)) / 1000)
+			g.SetRGBA(x, y, color.RGBA{l, l, l, c.A})
+		}
+	}
+	return g
 }
 
 // setup takes this frame's font and border tiles from the game.

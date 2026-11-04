@@ -333,7 +333,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 	}
 	all := borderEdges()
 	es := func(key string, n int) []image.Image { // the edge's own table for length n, else its general one
-		if t := all[key+"＠"+strconv.Itoa(n)]; len(t) > 0 {
+		if t := all[key+"@"+strconv.Itoa(n)]; len(t) > 0 {
 			return t
 		}
 		return all[key]

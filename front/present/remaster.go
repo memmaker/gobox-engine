@@ -649,8 +649,8 @@ func scale(dst *gpu.Image) float64 {
 // window is ui.Window: every window's frame, the ribbon border in tiles t.
 func window(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) image.Rectangle {
 	r := ui.Window(dst, t, g, cw, ch, bg)
-	if t[ui.Top] != nil && t[ui.Top] == edgesFor[ui.Top] { // the theme's own tiles: its cracked edges too (not the grey cards')
-		ui.WindowEdges(dst, sizedEdges(cw, ch), g, cw, ch)
+	if m := edgesOf(t); m != nil { // the theme's own tiles (or their grey): its cracked edges too
+		ui.WindowEdges(dst, sizedEdges(m, cw, ch), g, cw, ch)
 	}
 	return r
 }
@@ -658,27 +658,41 @@ func window(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, cw, ch int, bg color.Color)
 // divider redraws column 0 of the window at g, ch cells high, as the
 // theme's cracked divider (when t is the theme's tiles).
 func divider(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, ch int) {
-	if t[ui.Top] != nil && t[ui.Top] == edgesFor[ui.Top] {
-		ui.WindowDivider(dst, sizedEdges(0, ch), g, ch)
+	if m := edgesOf(t); m != nil {
+		ui.WindowDivider(dst, sizedEdges(m, 0, ch), g, ch)
 	}
 }
 
-// edgeTiles are Theme.Border.Edges on the GPU, for the ribbon edgesFor;
-// edgeMap all of them by key, the "edge＠n" tables too.
+// edgeTiles are Theme.Border.Edges on the GPU (the menus'); edgeSets all
+// of them by key, the "edge@n" tables too, for the colour ribbon and its grey.
 var (
 	edgeTiles ui.Edges
-	edgesFor  ui.Ribbon
-	edgeMap   map[string][]*gpu.Image
+	edgeSets  []edgeSet
 	// edgePrefix names the box being drawn's own edges ("view.": the 3D
 	// view's inner box), tried before the general ones.
 	edgePrefix string
 )
 
+type edgeSet struct {
+	for_  ui.Ribbon
+	edges map[string][]*gpu.Image
+}
+
+// edgesOf is the theme's edges drawn with ribbon t (nil: t is none of the theme's).
+func edgesOf(t ui.Ribbon) map[string][]*gpu.Image {
+	for _, s := range edgeSets {
+		if t[ui.Top] != nil && t[ui.Top] == s.for_[ui.Top] {
+			return s.edges
+		}
+	}
+	return nil
+}
+
 // sizedEdges is edgeTiles with the box's own edges (edgePrefix+"edge"),
-// else each edge's table for its length ("edge＠n", the original's
+// else each edge's table for its length ("edge@n", the original's
 // per-length arrays), where the theme has them.
-func sizedEdges(cw, ch int) ui.Edges {
-	e := edgeTiles
+func sizedEdges(edgeMap map[string][]*gpu.Image, cw, ch int) ui.Edges {
+	e := ui.Edges{Top: edgeMap["top"], Bottom: edgeMap["bottom"], Left: edgeMap["left"], Right: edgeMap["right"], Divider: edgeMap["divider"]}
 	for _, s := range []struct {
 		seq *[]*gpu.Image
 		key string
@@ -686,7 +700,7 @@ func sizedEdges(cw, ch int) ui.Edges {
 	}{{&e.Top, "top", cw}, {&e.Bottom, "bottom", cw}, {&e.Left, "left", ch}, {&e.Right, "right", ch}, {&e.Divider, "divider", ch}} {
 		if t := edgeMap[edgePrefix+s.key]; edgePrefix != "" && len(t) > 0 {
 			*s.seq = t
-		} else if t := edgeMap[s.key+"＠"+strconv.Itoa(s.n)]; len(t) > 0 {
+		} else if t := edgeMap[s.key+"@"+strconv.Itoa(s.n)]; len(t) > 0 {
 			*s.seq = t
 		}
 	}
