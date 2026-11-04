@@ -140,7 +140,7 @@ func TestTitleAdapter(t *testing.T) {
 		{"start", func() {}, func() {}},
 		{"picture", func() { a.TitlePicture(1) }, func() { g.TitlePicture(1) }},
 		{"flash", func() { a.TitleFlash(14) }, func() { g.TitleFlash(14) }},
-		{"credits", a.TitleCredits, g.TitleCredits},
+		{"credits", a.TitleCredits, func() { g.TitleCredits(0) }},
 		{"done", a.TitleDone, g.TitleDone},
 	} {
 		step.por()

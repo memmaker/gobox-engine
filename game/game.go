@@ -323,7 +323,7 @@ type Flags struct {
 	Inside     bool    // the party stands on an inside square
 	Ordering   bool    // the camp's party order bar is up
 	Credits    bool    // the title's credits page
-	CreditPage int     // which one (Credit.Page) while Credits
+	CreditPage int     `json:",omitempty"` // which one (Credit.Page) while Credits
 	Full       bool    // the pictures are one whole-screen picture
 	IconDrop   bool    // the combat icon designer is up
 }
