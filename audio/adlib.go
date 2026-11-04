@@ -58,7 +58,6 @@ func NewAdLib(d AdLibData) (*AdLib, error) {
 	return a, nil
 }
 
-
 // daxBlocks unpacks a DAX file into blocks indexed by id.
 func daxBlocks(f []byte) ([][]byte, error) {
 	if len(f) < 2 {
