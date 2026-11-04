@@ -36,6 +36,7 @@ func (g classicGame) View() front.View {
 	v = classic.Results(v, s)
 	v = classic.Screen(v, s)
 	v = classic.Read(v, s)
+	v = classic.Pacing(v, s)
 	return v
 }
 
