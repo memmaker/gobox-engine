@@ -60,6 +60,7 @@ fonts into the pool and selects by name.
 - Common UI machinery (drawing, call queuing, questions/refusals, menus,
   lists, input dispatch, the input latch) lives in gobox; a game keeps its
   engine, Theme/Data values and the glue to front's Game interface.
+- Map, minimap and exploration HUD: gobox front (por's as the template); a game supplies only map data, marks and styling.
 - Text: games never draw text; they name a font and gobox ui draws.
 - WALLDEF trailing partial chunk: dropped (whole 780-byte chunks only), as the later games' developers did.
 
