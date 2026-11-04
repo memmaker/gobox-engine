@@ -9,7 +9,7 @@ import (
 var padKeys = map[gpu.Key]bool{}
 
 // KeyJustPressed reports a key pressed this frame on the keyboard or a gamepad.
-// Shooting makes the view ignore the keyboard (the host sets it for screenshots).
+// Shooting makes the view ignore the keyboard (app.Run sets it for -shot captures).
 var Shooting bool
 
 func KeyJustPressed(k gpu.Key) bool {

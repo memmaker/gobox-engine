@@ -122,6 +122,7 @@ type shell struct {
 // Run opens the window and runs the game until it ends.
 func Run(cfg Config) error {
 	t := cfg.Theme
+	blobber.Shooting = cfg.Capture.Shot != "" // -shot: the 3D view ignores the keyboard
 	var fg *frontGame
 	if cfg.Front != nil {
 		fg = &frontGame{f: cfg.Front, cfg: cfg, tps: cfg.TPS}
