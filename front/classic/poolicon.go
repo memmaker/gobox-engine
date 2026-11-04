@@ -19,7 +19,7 @@ var iconParts = [6]int{1, 2, 3, 4, 6, 7}
 // 1 action), mirrored when flip: the body with the head OR'd over it by
 // palette index (a transparent pixel takes the other's), the six parts
 // recoloured by colours (low nibble the low colour, high nibble the high one;
-// fewer than six: as drawn). EGA art comes back as indices (Palette nil),
+// fewer than six: as drawn; VGA art the same, by index). EGA art comes back as indices (Palette nil),
 // other art as indices into its own Palette. ok is false when a picture is missing.
 func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front.Picture, ok bool) {
 	load := func(name string) *image.Paletted {
@@ -66,9 +66,9 @@ func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front
 		switch {
 		case ega && v >= 16:
 			v = clearPix
-		case ega:
+		case ega, v < 16 && !clear(b, v): // VGA art (PoD) recolours the same sixteen indices, its transparent colour aside (R1C3)
 			v = to[v]
-		} // other art keeps its indices: its palette has the alpha
+		} // other art keeps its other indices: its palette has the alpha
 		out[y*w+x] = v
 	}
 	pic = front.Picture{Pix: out, PixW: w}
