@@ -3,6 +3,7 @@ package present
 import (
 	"gobox/front"
 	"image"
+	"slices"
 
 	"gobox/combat"
 	"gobox/gpu"
@@ -48,6 +49,14 @@ func toBoard(b *front.Battle) *combat.Board {
 		Cursor: b.Cursor, CursorOn: b.CursorOn, CursorAt: b.CursorAt, Marks: b.Marks, Reach: b.Reach,
 		Targets: b.Targets, Panel: b.Panel, Log: b.Log, Area: b.Area, AreaAt: b.AreaAt, Skipped: b.Skipped,
 		AimWhy: b.AimWhy, View: b.View, Strike: combat.Strike(b.Strike),
+	}
+	if b.CursorOn && len(b.CursorAt) == 0 { // a game that sets only Cursor: the square (a large unit's footprint)
+		o.CursorAt = []image.Point{b.Cursor}
+		for _, u := range b.Units {
+			if slices.Contains(u.Squares, b.Cursor) {
+				o.CursorAt = u.Squares
+			}
+		}
 	}
 	for y := range b.Ground {
 		for x, s := range b.Ground[y] {
