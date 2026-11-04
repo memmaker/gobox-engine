@@ -70,3 +70,5 @@ func (*AdLib) Effect(n int) bool          // PCM over the song; the caller Reset
 ```
 Mix fills m (s16le stereo 44100 Hz) with OPL2 (opl2.Resampler) plus the effect. Not locked; the Driver's lock covers it.
 Spec: pod-go docs/MUSIC.md; test compares the first 300 ticks with `podmusic.py regs` (testdata/pod_regs1.txt).
+- `AdLibData.Tempo` (game.AdLib.Tempo): fixed sequencer divisor (SotSB SOUND.DAX: 0x76); 0 = header tempo/84 (PoD). The SLBR offset comes from the GLBR header.
+- `Driver.Attach` takes an `audio.Amiga` (`*amiga.Player` or `*amiga.MX`).

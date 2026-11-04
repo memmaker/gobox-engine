@@ -25,3 +25,12 @@ Test: `AMIGA_SOUND=path/to/SOUND.BIN go test` checks testdata/golden.txt (skippe
 ## Migrate
 - `New` no longer sets `SongOn`: set `p.SongOn` after it (was 0x667d5). The player now uses the field everywhere (it was a literal in the song start/stop code).
 - Other 0x667xx addresses in the player are the same RAM block of the one SOUND.BIN image; a game whose image puts the block elsewhere needs those parametrised too (only SongOn is, so far).
+
+## Music-X (SotSB)
+```
+m, err := amiga.NewMX(mx, glb)  SECRET.MX (MXTX) and sounds.glb (GLIB of DIG8; may be nil)
+m.Songs map[int]int             Song n -> file song (0-based); nil: n-1
+m.Song(n) / m.Effect(i)         song once (0 stops) / GLIB entry i on two channels at volume 45
+m.Render, Playing, Sounding     as Player; m.Len() songs in the file
+```
+Front: game.Data.AmigaMusic{Songs, Effects, SongOf, EffectOf}; amigaimport Spec.Files copies the files.
