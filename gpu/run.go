@@ -224,6 +224,7 @@ func RunGame(g Game) error {
 			surf.groups = nil
 		}
 		surf.view = view
+		freeDropped()
 		screen.Clear()
 		var passes []string
 		if win.frames == 0 && conf.Passes { // Config.Passes: one frame's render passes with each fps line
@@ -325,7 +326,7 @@ func Skip(name string) bool { return slices.Contains(conf.Skip, name) }
 // surf stands for the window's frame, drawn into directly when the screen is the frame's
 // size; its view is the one gogpu lends each frame. offscreen() keeps the screen an image of
 // its own (and a present pass copying it) when something reads it back.
-var surf = &texture{external: true}
+var surf = &texture{texGPU: &texGPU{}, external: true}
 
 // Config is what a host sets for measuring and debugging; the zero value is
 // the normal run. The host fills it from its own flags or environment.

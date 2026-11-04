@@ -6,6 +6,8 @@ import (
 	"image/color"
 	"image/draw"
 	"os"
+	"runtime"
+	"sync"
 
 	"github.com/gogpu/gputypes"
 	"github.com/gogpu/wgpu"
@@ -14,12 +16,8 @@ import (
 // texture is one GPU texture (RGBA8, premultiplied alpha), drawable and
 // sampleable; Images are rectangles of one.
 type texture struct {
-	tex        *wgpu.Texture
-	view       *wgpu.TextureView
+	*texGPU
 	w, h       int
-	groups     map[*wgpu.Sampler]*wgpu.BindGroup
-	depth      *wgpu.Texture
-	dview      *wgpu.TextureView
 	clear      bool           // the next pass into it clears it first (Fill of the whole image)
 	clearCol   gputypes.Color // to this
 	clearDepth bool
@@ -29,7 +27,8 @@ type texture struct {
 }
 
 func newTexture(w, h int) *texture {
-	t := &texture{w: w, h: h} // WebGPU starts it transparent
+	t := &texture{texGPU: &texGPU{}, w: w, h: h} // WebGPU starts it transparent
+	runtime.AddCleanup(t, dropGPU, t.texGPU)     // an image dropped without Deallocate is freed at the next frame
 	if dev.device != nil {
 		t.make()
 	}
@@ -113,18 +112,61 @@ func (t *texture) release() {
 		endPass()
 	}
 	submit() // draws recorded with it must reach the GPU first
-	for _, g := range t.groups {
+	t.texGPU.free()
+}
+
+// texGPU is a texture's GPU objects, apart from it so a cleanup can free
+// them once the texture is unreachable.
+type texGPU struct {
+	tex    *wgpu.Texture
+	view   *wgpu.TextureView
+	groups map[*wgpu.Sampler]*wgpu.BindGroup
+	depth  *wgpu.Texture
+	dview  *wgpu.TextureView
+}
+
+func (r *texGPU) free() {
+	for _, g := range r.groups {
 		g.Release()
 	}
-	t.groups = nil
-	t.view.Release()
-	t.view = nil
-	t.tex.Release()
-	if t.depth != nil {
-		t.dview.Release()
-		t.depth.Release()
+	r.groups = nil
+	if r.view != nil {
+		r.view.Release()
 	}
-	t.tex = nil
+	if r.tex != nil {
+		r.tex.Release()
+	}
+	if r.depth != nil {
+		r.dview.Release()
+		r.depth.Release()
+	}
+	r.tex, r.view, r.depth, r.dview = nil, nil, nil, nil
+}
+
+// dropped are the GPU objects of textures the GC found unreachable; the
+// render thread frees them at the start of a frame (dropGPU runs on the
+// cleanup goroutine, where wgpu calls are not safe).
+var dropped struct {
+	sync.Mutex
+	rs []*texGPU
+}
+
+func dropGPU(r *texGPU) {
+	dropped.Lock()
+	dropped.rs = append(dropped.rs, r)
+	dropped.Unlock()
+}
+
+// freeDropped frees the dropped textures' GPU objects; on the render thread,
+// after the last frame's work was submitted.
+func freeDropped() {
+	dropped.Lock()
+	rs := dropped.rs
+	dropped.rs = nil
+	dropped.Unlock()
+	for _, r := range rs {
+		r.free()
+	}
 }
 
 // gone reports whether any of ts was deallocated: a draw from or into one
