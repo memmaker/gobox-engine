@@ -9,7 +9,7 @@ import (
 )
 
 func TestPartyMenu(t *testing.T) {
-	s := game.State{Mode: game.ModeParty, Where: game.Where{Detail: map[string]int{HallDetail: 1}},
+	s := game.State{Mode: game.ModeParty, Where: game.Where{Hall: true},
 		Pending: &game.Ask{Kind: game.Choice, Options: []game.Option{{Label: "Begin Adventuring"}, {Label: "Forget Character"}, {Label: "Exit to DOS"}}}}
 	open, hall := PartyMenu(s)
 	if !hall || !slices.Equal(open, []front.ActKind{front.ActBegin, front.ActForget, front.ActQuit}) {

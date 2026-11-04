@@ -16,9 +16,6 @@ var partyFunctions = map[string]front.ActKind{
 	"Forget Character": front.ActForget,
 }
 
-// HallDetail is the Where.Detail key saying the party menu is the training hall's.
-const HallDetail = "hall"
-
 // PartyMenu is the party menu's open functions (nil: not up) and whether it
 // is the training hall's.
 func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
@@ -30,5 +27,16 @@ func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
 			open = append(open, k)
 		}
 	}
-	return open, s.Where.Detail[HallDetail] != 0
+	return open, s.Where.Hall
+}
+
+// View is v with the screens classic builds from s in place of the game's:
+// the party menu (MainMenu, Hall). The title's Logo and Backdrop stay the
+// game's while the menu is up.
+func View(v front.View, s game.State) front.View {
+	v.MainMenu, v.Hall = PartyMenu(s)
+	if v.MainMenu == nil {
+		v.Logo, v.Backdrop = nil, nil
+	}
+	return v
 }
