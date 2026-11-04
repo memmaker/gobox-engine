@@ -86,7 +86,7 @@ type Slots struct {
 type MainMenu struct {
 	Open     []ActKind   // ActCreate .. ActQuit, ActMember, ActDropMember
 	Hall     bool        // the training hall's: over the 3D view, Begin leaves the hall
-	Logo     image.Image // the title's lettering on transparent black
+	Logo     *Picture    // the title picture (Pix) the lettering is cut from (Data.Logo); nil: none
 	Backdrop image.Image // the painted title under it (nil: black)
 	Party    int         // the members
 	Selected int         // the selected member (-1: none)

@@ -491,7 +491,7 @@ type View struct {
 	Purse      *Purse         // the party's money and party items (nil without a party)
 	Ordering   bool           // the camp's Party Order bar is up: a card dragged onto another's place moves the member (ActOrder)
 	MainMenu   []ActKind      // the party menu is up: the functions open now (ActCreate .. ActQuit, ActMember, ActDropMember); ActLead selects a member
-	Logo       image.Image    // the title's lettering on transparent black, with MainMenu
+	Logo       *Picture       // with MainMenu: the title picture (Pix) the presenter cuts the lettering from (present.Data.Logo)
 	Backdrop   image.Image    // the Amiga painted title under MainMenu (nil: black)
 	Hall       bool           // MainMenu is the training hall's: over the 3D view, Begin leaves the hall
 	Seq        uint64         // counts the Views published: a presenter redraws the page on a new one

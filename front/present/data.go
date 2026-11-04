@@ -40,6 +40,8 @@ type Data struct {
 
 	Rests []Rest // camp's rests, in the menu's order
 
+	Logo LogoCut // how the main menu's lettering is cut from View.Logo
+
 	Credits        []Credit
 	RemasterCredit [2]string
 	IconParts      []string
@@ -86,6 +88,7 @@ var (
 	mapSide                          int // View.Map's side in pixels
 	sounds                           []byte
 	series                           = "pool"
+	logoCut                          LogoCut // Data.Logo
 )
 
 // SetData hands the presenter the game's data.
@@ -95,7 +98,7 @@ func SetData(d Data) {
 	if series = d.Series; series == "" {
 		series = "pool"
 	}
-	menuEntries, texts = d.Entries, d.Texts
+	menuEntries, texts, logoCut = d.Entries, d.Texts, d.Logo
 	if d.Theme != nil {
 		applyTheme(*d.Theme)
 	} else {

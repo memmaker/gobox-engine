@@ -31,7 +31,8 @@ type Theme struct {
 }
 // Data: the game's content.
 type Data struct {
-    Logo, Backdrop image.Image
+    Logo     *front.Picture // the title picture's Pix, the lettering cut by present.Data.Logo (LogoCut)
+    Backdrop image.Image
     Entries []Entry // extra party-menu entries, after por's default list
 }
 ```

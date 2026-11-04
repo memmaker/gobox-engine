@@ -194,18 +194,19 @@ func (m *mainUI) drawMainUI(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	}
 	menuH := float64(len(lines)+2) * 8 * mk
 	var lh, lk int
-	if v.Logo != nil {
-		lb := v.Logo.Bounds()
+	logo := logoImage(v.Logo)
+	if logo != nil {
+		lb := logo.Bounds()
 		lk = max(1, min(b.Dx()*3/4/lb.Dx(), (b.Dy()-int(menuH))*2/3/lb.Dy()))
 		lh = lb.Dy() * lk
 	}
 	gap := int(16 * mk)
 	top := (b.Dy() - lh - gap - int(menuH)) / 2
-	if v.Logo != nil {
+	if logo != nil {
 		op := &gpu.DrawImageOptions{}
 		op.GeoM.Scale(float64(lk), float64(lk))
-		op.GeoM.Translate(float64((b.Dx()-v.Logo.Bounds().Dx()*lk)/2), float64(top))
-		dst.DrawImage(m.logo.of(v.Logo), op)
+		op.GeoM.Translate(float64((b.Dx()-logo.Bounds().Dx()*lk)/2), float64(top))
+		dst.DrawImage(m.logo.of(logo), op)
 	}
 	m.sel = min(max(m.sel, 0), len(lines)-1)
 	h.DrawMenu(dst, lines, keys, m.sel, mk, b.Dx()/2, top+lh+gap)
