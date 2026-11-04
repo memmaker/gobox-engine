@@ -545,10 +545,13 @@ type SheetPage struct {
 	Age                int
 	Alignment          string
 	Class              string
-	Stats              [6]int // STR .. CHA
-	Str00              string // the exceptional strength after STR: "(78)", ""
-	Creating           bool   // the creation's sheet: no level, experience, party items, items or status
-	Levels             string // "1/2"
+	Stats              [6]int   // STR .. CHA
+	StatRows           []Stat   // the game's own abilities in its order, in place of Stats and Str00 (nil: STR .. CHA)
+	Derived            []Stat   // the only figures shown, in order, in place of Age, AC, HP, THAC0, Damage and Move (nil: those)
+	FieldRows          []string // the creation's fields one per row from row 3, in place of Sex, Race, Age, Alignment and Class (nil: those)
+	Str00              string   // the exceptional strength after STR: "(78)", ""
+	Creating           bool     // the creation's sheet: no level, experience, party items, items or status
+	Levels             string   // "1/2"
 	Exp                int
 	Next               int // the experience the next level takes (0: none)
 	AC, HP             int // AC as displayed (10 down to negative)

@@ -21,34 +21,54 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 		v.Abandon = a.Prompt
 	}
 	v.Name = front.CellRect{X1: 1, Y1: 1, X2: max(1, len(d.Name)), Y2: 1}
-	for f := range min(len(c.Fields), len(v.Fields)) {
-		cf, fl := c.Fields[f], &v.Fields[f]
-		fl.Name, fl.Cur = cf.Name, cf.Pick
-		for i, o := range cf.Options {
-			fl.Options = append(fl.Options, front.Option{Text: o, Fits: i < len(cf.Fits) && cf.Fits[i]})
-		}
+	main := min(len(c.Fields), 4) // adnd1: the four sheet fields, then the power picks
+	if Flow == game.CreationADnD2BR {
+		main = len(c.Fields) // ponytail: no power picks in this flow; add a count to the contract if one needs them
 	}
-	for _, cf := range c.Fields[min(len(c.Fields), len(v.Fields)):] {
+	for i, cf := range c.Fields {
 		fl := front.Field{Name: cf.Name, Cur: cf.Pick}
 		for i, o := range cf.Options {
 			fl.Options = append(fl.Options, front.Option{Text: o, Fits: i < len(cf.Fits) && cf.Fits[i]})
 		}
-		v.Powers = append(v.Powers, fl)
-	}
-	g := 0
-	if sex := v.Fields[front.FieldSex]; sex.Cur >= 0 && sex.Cur < len(sex.Options) {
-		g = len(sex.Options[sex.Cur].Text)
-	}
-	v.Fields[front.FieldSex].At = front.CellRect{X1: 1, Y1: 3, X2: g, Y2: 3}
-	v.Fields[front.FieldRace].At = front.CellRect{X1: g + 2, Y1: 3, X2: g + 1 + len(d.Race), Y2: 3}
-	v.Fields[front.FieldAlign].At = front.CellRect{X1: 1, Y1: 4, X2: len(d.Alignment), Y2: 4}
-	v.Fields[front.FieldClass].At = front.CellRect{X1: 1, Y1: 5, X2: len(d.Class), Y2: 5}
-	for i := range v.Stats {
-		x1 := 6 // "STR 18", "(00)" after an exceptional strength
-		if i == 0 && d.Stats["str"] == 18 && d.Str00 != 0 {
-			x1 += len("(00)")
+		if i < main {
+			v.Fields = append(v.Fields, fl)
+		} else {
+			v.Powers = append(v.Powers, fl)
 		}
-		v.Stats[i] = front.CellRect{X1: 1, Y1: 7 + i, X2: x1, Y2: 7 + i}
+	}
+	if Flow == game.CreationADnD2BR { // one field per row, as draftRows draws them
+		for i := range v.Fields {
+			v.Fields[i].At = front.CellRect{X1: 1, Y1: fieldRow + i, X2: max(1, len(picked(c.Fields[i]))), Y2: fieldRow + i}
+		}
+	} else {
+		g := 0
+		if len(c.Fields) > 0 {
+			g = len(picked(c.Fields[front.FieldSex]))
+		}
+		for i := range v.Fields {
+			v.Fields[i].At = []front.CellRect{
+				{X1: 1, Y1: 3, X2: g, Y2: 3},
+				{X1: g + 2, Y1: 3, X2: g + 1 + len(d.Race), Y2: 3},
+				{X1: 1, Y1: 4, X2: len(d.Alignment), Y2: 4},
+				{X1: 1, Y1: 5, X2: len(d.Class), Y2: 5},
+			}[i]
+		}
+	}
+	if c.Stats != nil {
+		for i, st := range c.Stats {
+			v.StatNames = append(v.StatNames, st.Label)
+			x2 := front.StatCol(st.Label) + 1 + len(st.Extra)
+			v.Stats = append(v.Stats, front.CellRect{X1: 1, Y1: 7 + i, X2: x2, Y2: 7 + i})
+		}
+	} else {
+		v.StatNames = []string{"STR", "INT", "WIS", "DEX", "CON", "CHA"}
+		for i := range v.StatNames {
+			x1 := 6 // "STR 18", "(00)" after an exceptional strength
+			if i == 0 && d.Stats["str"] == 18 && d.Str00 != 0 {
+				x1 += len("(00)")
+			}
+			v.Stats = append(v.Stats, front.CellRect{X1: 1, Y1: 7 + i, X2: x1, Y2: 7 + i})
+		}
 	}
 	sc := max(1, min((winRight-37)/11, (winBottom-3)/14)) // the combat stats reach column 37, the prompt row stays free
 	left := winRight - 11*sc + 1                          // the portrait's 11x11 cells at 1x
@@ -63,3 +83,17 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 // Creation in ModeCreate. A game may state its Creation (the new
 // character's first step, the roster) on the party menu too; that is no sheet.
 func Drafting(s game.State) bool { return s.Creation != nil && s.Mode == game.ModeCreate }
+
+// Flow is game.Data.CreationFlow.
+var Flow game.CreationFlow
+
+// fieldRow is the first row of the adnd2-br sheet's fields.
+const fieldRow = 3
+
+// picked is f's picked option ("": none).
+func picked(f game.Field) string {
+	if f.Pick >= 0 && f.Pick < len(f.Options) {
+		return f.Options[f.Pick]
+	}
+	return ""
+}

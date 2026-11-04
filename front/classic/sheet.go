@@ -24,7 +24,8 @@ func Sheet(v front.View, s game.State) front.View {
 	}
 	v.Portrait, v.IconBox = cells(s.Portrait), cells(s.IconBox)
 	p := s.SheetPage
-	if p == nil && Drafting(s) { // the creation sheet: gobox lays it out from the draft
+	drafted := p == nil && Drafting(s)
+	if drafted { // the creation sheet: gobox lays it out from the draft
 		p = draftPage(s.Creation)
 	}
 	if p != nil {
@@ -40,6 +41,9 @@ func Sheet(v front.View, s game.State) front.View {
 			m := subject(s)
 			k.Portrait = poolID("portraits", m.PortraitHeadID, m.PortraitBodyID)
 		}
+		if drafted {
+			draftRows(k, s.Creation)
+		}
 		v.SheetPage = k
 	}
 	return v
@@ -54,10 +58,8 @@ func draftPage(c *game.Creation) *game.SheetPage {
 	if d.ClassText != "" {
 		p.Class = d.ClassText
 	}
-	for _, f := range c.Fields {
-		if f.Name == "gender" && f.Pick >= 0 && f.Pick < len(f.Options) {
-			p.Sex = f.Options[f.Pick]
-		}
+	if len(c.Fields) > front.FieldSex {
+		p.Sex = picked(c.Fields[front.FieldSex])
 	}
 	for i, k := range []string{"str", "int", "wis", "dex", "con", "cha"} {
 		p.Stats[i] = d.Stats[k]
@@ -66,4 +68,24 @@ func draftPage(c *game.Creation) *game.SheetPage {
 		p.Str00 = fmt.Sprintf("(%02d)", d.Str00%100)
 	}
 	return p
+}
+
+// draftRows puts c's own fields, abilities and figures on k as given:
+// adnd2-br the fields one per row, the figures in order.
+func draftRows(k *front.SheetPage, c *game.Creation) {
+	if Flow == game.CreationADnD2BR {
+		k.FieldRows = []string{}
+		for _, f := range c.Fields {
+			k.FieldRows = append(k.FieldRows, picked(f))
+		}
+	}
+	for _, st := range c.Stats {
+		k.StatRows = append(k.StatRows, front.Stat{Name: st.Label, Value: fmt.Sprintf("%2d", st.Value) + st.Extra})
+	}
+	if c.Derived != nil {
+		k.Derived = []front.Stat{}
+		for _, d := range c.Derived {
+			k.Derived = append(k.Derived, front.Stat{Name: d.Label, Value: d.Value})
+		}
+	}
 }

@@ -681,11 +681,11 @@ func (p *Presenter) spots(v front.View) []spot {
 		}
 	case cr != nil:
 		at(cr.Name, 0, func() { p.typeAt(cr.Name, "Name", 15, front.ActName, 0) })
-		for _, f := range []int{front.FieldSex, front.FieldRace, front.FieldAlign, front.FieldClass} {
-			at(cr.Fields[f].At, 0, func() { p.openField(cr, f) })
+		for f, fl := range cr.Fields {
+			at(fl.At, 0, func() { p.openField(cr, f) })
 		}
 		for i, r := range cr.Stats {
-			at(r, 0, func() { p.typeAt(r, statNames[i], 5, front.ActStat, i) })
+			at(r, 0, func() { p.typeAt(r, cr.StatNames[i], 5, front.ActStat, i) })
 		}
 		at(cr.Head, 0, send(front.ActPicker, front.PickHead))
 		at(cr.Body, 0, send(front.ActPicker, front.PickBody))

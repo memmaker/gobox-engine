@@ -711,6 +711,44 @@ type Creation struct {
 	Roster       []string // saved characters that can be added
 	MinHP, MaxHP int
 	Minimums     string // the rules' text on stat minimums for the chosen class
+	// Stats are the abilities the sheet shows, in the game's order and
+	// count (nil: STR INT WIS DEX CON CHA from Draft.Stats, with 18/xx).
+	Stats []StatDef `json:",omitempty"`
+	// Derived are the figures the sheet shows besides the abilities
+	// (age, AC, THAC0, ...), in the game's order. When set they are the only
+	// source: a figure not given is not shown. nil: the figures come from
+	// Draft.
+	Derived []Derived `json:",omitempty"`
+}
+
+// CreationFlow picks gobox's generic creation sheet layout and step
+// sequence; the game's Fields, Stats and Derived carry the meaning.
+type CreationFlow int
+
+const (
+	// CreationADnD1 is the Pool games' sheet (the default): four fields at
+	// fixed places, six abilities with 18/xx, the Minimal roll and the
+	// power picks after the fourth field.
+	CreationADnD1 CreationFlow = iota
+	// CreationADnD2BR is Buck Rogers' sheet: every field one per row in the
+	// game's order (no power picks), Stats and Derived drawn as given.
+	CreationADnD2BR
+)
+
+// StatDef is one ability on the creation sheet.
+type StatDef struct {
+	Key      string // the Member.Stats key ("str", "tech", ...), for the game
+	Label    string // what the sheet shows ("STR", "TECH", ...)
+	Min, Max int    // the range the rules allow it (0, 0: not given)
+	Value    int    // its current value
+	Extra    string // shown after the value, e.g. "(00)" for an exceptional strength
+}
+
+// Derived is one figure on the creation sheet: its label and its value as
+// the sheet shows it.
+type Derived struct {
+	Label string // as the sheet shows it ("Age", "AC", ...)
+	Value string // "21", "10", "3d4", ...
 }
 
 // Field is one creation choice: its options, which fit the draft so far,
@@ -1048,22 +1086,23 @@ type Event struct {
 // rules package exports it as func Data() Data, and its cmd hands gobox
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
-	Series     string
-	ID         string // game id
-	Texts      map[string]string
-	Credits    []string
-	SpellRules map[int]string // what each spell does, by spell id (the spell tip text)
-	Art        map[string]Picture
-	Sounds     map[string]string
-	Palette    []byte                        // palette bytes
-	Commands   []Option                      // extra party commands: Decisions with labels
-	Imports    []string                      // other games' rosters and saves this game reads, by game id
-	QuickParty []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
-	Clues      []Clue                        // the clue book's chapters (nil: the game has none)
-	Scans      func(name string) image.Image // the picture a Read's line "\x01name" shows (nil: none)
-	Font       string                        // the ui/fonts pool name of the game's font ("": gobox's default)
-	Fonts      []Typeface                    // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
-	Border     *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
+	Series       string
+	ID           string       // game id
+	CreationFlow CreationFlow // the creation sheet's layout and steps
+	Texts        map[string]string
+	Credits      []string
+	SpellRules   map[int]string // what each spell does, by spell id (the spell tip text)
+	Art          map[string]Picture
+	Sounds       map[string]string
+	Palette      []byte                        // palette bytes
+	Commands     []Option                      // extra party commands: Decisions with labels
+	Imports      []string                      // other games' rosters and saves this game reads, by game id
+	QuickParty   []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
+	Clues        []Clue                        // the clue book's chapters (nil: the game has none)
+	Scans        func(name string) image.Image // the picture a Read's line "\x01name" shows (nil: none)
+	Font         string                        // the ui/fonts pool name of the game's font ("": gobox's default)
+	Fonts        []Typeface                    // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
+	Border       *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
 	Sequences    []Sequence  // the full-screen animations State.Sequence names (nil: none)
 	Files        string      // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)

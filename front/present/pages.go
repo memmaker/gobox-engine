@@ -453,26 +453,40 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 	if s.NPC {
 		c.str(len(s.Name)+3, 1, inkGreen, "(NPC)")
 	}
-	x := 1
-	c.str(x, 3, inkWhite, s.Sex)
-	x += len(s.Sex) + 1
-	c.str(x, 3, inkWhite, s.Race)
-	x += len(s.Race) + 1
-	c.str(x, 3, inkWhite, "Age "+strconv.Itoa(s.Age))
-	c.str(1, 4, inkWhite, s.Alignment)
-	c.str(1, 5, inkWhite, s.Class)
-	for i, l := range []string{"STR ", "INT ", "WIS ", "DEX ", "CON ", "CHA "} { // and showStat
-		y := i + 7
-		c.str(1, y, inkGreen, l)
-		c.clear(5, y, 11, y)
-		x := 5
-		if s.Stats[i] < 10 {
-			x++
+	if s.FieldRows != nil {
+		for i, f := range s.FieldRows {
+			c.str(1, 3+i, inkWhite, f)
 		}
-		c.str(x, y, inkGreen, strconv.Itoa(s.Stats[i]))
-		if i == 0 {
-			c.str(7, 7, inkGreen, s.Str00)
+	} else {
+		x := 1
+		c.str(x, 3, inkWhite, s.Sex)
+		x += len(s.Sex) + 1
+		c.str(x, 3, inkWhite, s.Race)
+		x += len(s.Race) + 1
+		c.str(x, 3, inkWhite, "Age "+strconv.Itoa(s.Age))
+		c.str(1, 4, inkWhite, s.Alignment)
+		c.str(1, 5, inkWhite, s.Class)
+	}
+	if s.StatRows == nil {
+		for i, l := range []string{"STR ", "INT ", "WIS ", "DEX ", "CON ", "CHA "} { // and showStat
+			y := i + 7
+			c.str(1, y, inkGreen, l)
+			c.clear(5, y, 11, y)
+			x := 5
+			if s.Stats[i] < 10 {
+				x++
+			}
+			c.str(x, y, inkGreen, strconv.Itoa(s.Stats[i]))
+			if i == 0 {
+				c.str(7, 7, inkGreen, s.Str00)
+			}
 		}
+	}
+	for i, r := range s.StatRows { // the game's own abilities, as given
+		y, x := i+7, front.StatCol(r.Name)
+		c.str(1, y, inkGreen, r.Name+" ")
+		c.clear(x, y, x+6, y)
+		c.str(x, y, inkGreen, r.Value)
 	}
 	if s.Saves[0] > 0 { // extra: the saving throws beside the abilities
 		for i, l := range []string{"Paralyze", "Petrify", "Rod", "Breath", "Spell"} {
@@ -493,20 +507,29 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 		}
 	}
 	y := 0x11 // showCombatStats
-	c.str(1, y, inkWhite, "AC    ")
-	c.str(4, y, inkGreen, strconv.Itoa(s.AC))
-	c.str(1, y+1, inkWhite, "HP    ")
-	hp := inkGreen
-	if s.HP < s.MaxHP {
-		hp = inkYellow
+	if s.Derived != nil {
+		// the game's figures in order, two to a row
+		for i, f := range s.Derived {
+			x, fy := 1+16*(i%2), y+i/2
+			c.str(x, fy, inkWhite, f.Name)
+			c.str(x+len(f.Name)+1, fy, inkGreen, f.Value)
+		}
+	} else {
+		c.str(1, y, inkWhite, "AC    ")
+		c.str(4, y, inkGreen, strconv.Itoa(s.AC))
+		c.str(1, y+1, inkWhite, "HP    ")
+		hp := inkGreen
+		if s.HP < s.MaxHP {
+			hp = inkYellow
+		}
+		c.str(4, y+1, hp, strconv.Itoa(s.HP))
+		c.str(9, y, inkWhite, "THAC0   ")
+		c.str(15, y, inkGreen, strconv.Itoa(s.THAC0))
+		c.str(8, y+1, inkWhite, "Damage        ")
+		c.str(15, y+1, inkGreen, s.Damage)
+		c.str(0x16+3, y+1, inkWhite, "Movement   ")
+		c.str(0x16+0xC, y+1, inkGreen, strconv.Itoa(s.Move))
 	}
-	c.str(4, y+1, hp, strconv.Itoa(s.HP))
-	c.str(9, y, inkWhite, "THAC0   ")
-	c.str(15, y, inkGreen, strconv.Itoa(s.THAC0))
-	c.str(8, y+1, inkWhite, "Damage        ")
-	c.str(15, y+1, inkGreen, s.Damage)
-	c.str(0x16+3, y+1, inkWhite, "Movement   ")
-	c.str(0x16+0xC, y+1, inkGreen, strconv.Itoa(s.Move))
 	if !s.Creating {
 		y = 0x14
 		c.str(1, y, inkWhite, "Status")
