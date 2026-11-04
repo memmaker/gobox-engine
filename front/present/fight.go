@@ -334,6 +334,7 @@ type replay struct {
 	q    []front.CombatEvent
 	from time.Time // the shown event began
 	skip bool      // a key cut the shown event short
+	fast bool      // Space: the rest of the queued timed events pass at once (the computer's turn sped up)
 }
 
 // Play queues the fight's events Apply handed out.
@@ -367,7 +368,7 @@ func (p *Presenter) playing() *front.CombatEvent {
 		if ev := &r.q[0]; (ev.Kind == front.EvDamage || ev.Kind == front.EvHeal) && r.from.IsZero() && Host.DamageNumbers {
 			p.battle.Float(ev.Unit, ev.Amount, ev.Kind == front.EvHeal)
 		}
-		if ev := &r.q[0]; (ev.Ms > 0 || ev.Key) && (ev.Battle != nil || ev.Scene != nil) && !r.skip {
+		if ev := &r.q[0]; (ev.Key || ev.Ms > 0 && !r.fast) && (ev.Battle != nil || ev.Scene != nil) && !r.skip {
 			if r.from.IsZero() {
 				r.from = time.Now()
 			}
@@ -377,6 +378,7 @@ func (p *Presenter) playing() *front.CombatEvent {
 		}
 		r.q, r.from, r.skip = r.q[1:], time.Time{}, false
 	}
+	r.fast = false
 	return nil
 }
 
