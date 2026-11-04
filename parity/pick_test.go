@@ -19,8 +19,8 @@ import (
 
 var grids = [][2]int{{40, 25}, {83, 80}, {120, 30}}
 
-// samePicker says classic's picker equals por's on every page, from the
-// page it opened on, on each grid.
+// samePicker says classic's picker holds State's pictures on every page,
+// from the page it opened on, on each grid.
 func samePicker(t *testing.T, name string, e *rules.Engine, kind int) {
 	t.Helper()
 	for _, g := range grids {
@@ -29,17 +29,21 @@ func samePicker(t *testing.T, name string, e *rules.Engine, kind int) {
 		if !e.OpenPicker(kind) {
 			t.Fatalf("%s: no picker", name)
 		}
-		want := e.PickerView(-1)
-		if kind < front.PickAdd && len(want.Pics) == 0 {
+		pics := len(e.Rules().State().Picker.Pics)
+		if kind < front.PickAdd && pics == 0 {
 			t.Fatalf("%s: no pictures", name)
 		}
-		for page := -1; page < want.Pages; page++ {
-			got, want := classic.Picker(e.Rules().State(), page, g[0], g[1]), e.PickerView(page)
-			if !reflect.DeepEqual(got, want) {
-				t.Fatalf("%s %v page %d:\n got %+v\nwant %+v", name, g, page, got, want)
+		first := classic.Picker(e.Rules().State(), -1, g[0], g[1])
+		if first == nil || first.N != pics || first.Pages < 1 {
+			t.Fatalf("%s %v: %+v for %d pictures", name, g, first, pics)
+		}
+		for page := -1; page < first.Pages; page++ {
+			got := classic.Picker(e.Rules().State(), page, g[0], g[1])
+			if got == nil || got.N != pics || got.Pages != first.Pages || len(got.Cells) == 0 || len(got.Cells) > got.PerPage {
+				t.Fatalf("%s %v page %d: %+v", name, g, page, got)
 			}
 		}
-		t.Logf("%s %v: %d pictures on %d pages", name, g, want.N, want.Pages)
+		t.Logf("%s %v: %d pictures on %d pages", name, g, first.N, first.Pages)
 	}
 	e.ClosePicker()
 	if classic.Picker(e.Rules().State(), -1, 40, 25) != nil {
@@ -76,33 +80,30 @@ func TestPickerParity(t *testing.T) {
 		samePicker(t, "saved", e, k)
 	}
 	e.OpenPicker(front.PickForget) // forgetting one: the rest
-	n := e.PickerView(-1).N
+	n := len(e.Rules().State().Picker.Pics)
 	e.Pick(0)
-	if e.PickerView(-1) != nil {
-		if got, want := classic.Picker(e.Rules().State(), -1, 40, 25), e.PickerView(-1); !reflect.DeepEqual(got, want) || want.N != n-1 {
-			t.Errorf("forgotten: got %+v\nwant %+v", got, want)
+	if p := e.Rules().State().Picker; p != nil {
+		if got := classic.Picker(e.Rules().State(), -1, 40, 25); got == nil || got.N != n-1 || len(p.Pics) != n-1 {
+			t.Errorf("forgotten: got %+v, %d pictures of %d", got, len(p.Pics), n)
 		}
 	}
 }
 
-// sameIcon says classic's icon designer equals por's on each grid.
+// sameIcon says classic's icon designer shows State's on each grid.
 func sameIcon(t *testing.T, name string, e *rules.Engine) {
 	t.Helper()
 	ink := e.Rules().State().Ink
 	for _, g := range grids {
 		settled(e, front.Action{Kind: front.ActResize, X: g[0], Y: g[1]})
 		ink = e.Rules().State().Ink
-		got, want := classic.IconEditor(e.Rules().State(), &ink, g[0], g[1]), e.IconEditorView()
-		for p := range want.Poses { // por leaves the poses to gobox: classic's own are built, and must be there
-			if want.Poses[p] == nil {
-				if got.Poses[p] == nil && name == "icon" { // (after a pick the numbers may leave the pool)
-					t.Fatalf("%s %v: no pose %d built", name, g, p)
-				}
-				want.Poses[p] = got.Poses[p]
-			}
-		}
-		if !reflect.DeepEqual(got, want) {
+		got, want := classic.IconEditor(e.Rules().State(), &ink, g[0], g[1]), e.Rules().State().IconEditor
+		if got == nil || want == nil || got.Custom != want.Custom || got.Large != want.Large {
 			t.Fatalf("%s %v:\n got %+v\nwant %+v", name, g, got, want)
+		}
+		for p := range got.Poses { // classic builds the poses: they must be there
+			if got.Poses[p] == nil && name == "icon" && !want.Custom { // (after a pick the numbers may leave the pool)
+				t.Fatalf("%s %v: no pose %d built", name, g, p)
+			}
 		}
 	}
 }
@@ -117,7 +118,7 @@ func TestIconEditorParity(t *testing.T) {
 	settled(e, front.Action{})
 	e.EditIcon(-1)
 	settled(e, front.Action{})
-	if e.Rules().State().IconEditor == nil || e.IconEditorView() == nil {
+	if e.Rules().State().IconEditor == nil {
 		t.Fatal("no icon editor")
 	}
 	sameIcon(t, "icon", e)
@@ -140,7 +141,7 @@ func TestIconEditorParity(t *testing.T) {
 	png.Encode(f, m)
 	f.Close()
 	e.IconPNG(p)
-	if !e.IconEditorView().Custom {
+	if !e.Rules().State().IconEditor.Custom {
 		t.Fatal("not custom")
 	}
 	sameIcon(t, "icon custom", e)

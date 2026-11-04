@@ -75,7 +75,7 @@ func picked(t *testing.T) *rules.Engine {
 		e.PickPower(p.Options[0].ID)
 		settled(e, front.Action{})
 	}
-	e.Apply(front.Action{Kind: front.ActLead, N: 4})
+	e.Apply(rules.Action{Kind: rules.ActLead, N: 4})
 	return e
 }
 
@@ -143,7 +143,7 @@ func TestCalls(t *testing.T) {
 		{"LootTake", scene("loot"), func(e *rules.Engine) error { return e.LootTake(0) }, game.LootTake{}},
 		{"LootDetect", scene("lootdetect"), (*rules.Engine).LootDetect, game.LootDetect{}},
 		{"LootLeave", scene("loot"), func(e *rules.Engine) error { return e.LootLeave(true) }, game.LootLeave{Sure: true}},
-		{"TryDoor", then(scene("lockeddoor"), func(e *rules.Engine) { e.Apply(front.Action{Kind: front.ActForward}) }), func(e *rules.Engine) error { return e.TryDoor(front.DoorBash) }, game.TryDoor{Way: int(front.DoorBash)}},
+		{"TryDoor", then(scene("lockeddoor"), func(e *rules.Engine) { e.Apply(rules.Action{Kind: rules.ActForward}) }), func(e *rules.Engine) error { return e.TryDoor(rules.DoorBash) }, game.TryDoor{Way: int(rules.DoorBash)}},
 		{"OpenPicker", created, func(e *rules.Engine) error {
 			if !e.OpenPicker(front.PickHead) {
 				return &game.Refusal{Text: "no such picker"}
@@ -164,7 +164,7 @@ func TestCalls(t *testing.T) {
 		{"ShowMember", scene("sheet"), func(e *rules.Engine) error { return e.ShowMember(1) }, game.ShowMember{Member: 1}},
 		{"OpenItems", scene("sheet"), func(e *rules.Engine) error { return e.OpenItems(0, true) }, game.OpenItems{Direct: true}},
 		{"CloseItems", scene("items"), func(e *rules.Engine) error { return e.CloseItems(true) }, game.CloseItems{All: true}},
-		{"SetPolicy", picked, func(e *rules.Engine) error { return e.SetPolicy(106, front.Never) }, game.SetPolicy{ID: 106, Policy: int(front.Never)}},
+		{"SetPolicy", picked, func(e *rules.Engine) error { return e.SetPolicy(106, rules.Never) }, game.SetPolicy{ID: 106, Policy: int(rules.Never)}},
 		{"UseItem", scene("usable"), func(e *rules.Engine) error { e.ShowMember(0); return e.UseItem(lastItem(e), 0, 0, true) }, game.UseItem{}},
 		{"Browse", scene("shop"), func(e *rules.Engine) error { return e.Browse(-1) }, game.Browse{Member: -1}},
 		{"Identify", scene("shop"), func(e *rules.Engine) error { return e.Identify(0, 0) }, game.Identify{}},

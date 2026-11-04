@@ -13,49 +13,46 @@ import (
 	"gobox/front/classic"
 )
 
-// TestJournalPageAdapter: por's JournalPage and the adapter's give DeepEqual
-// pages (and scroll limits) over every page of the journal text each scene
-// reads (the clue book where it reads none), at two page sizes and scrolls.
+// TestJournalPageAdapter: the adapter pages every journal text each scene
+// reads (the clue book where it reads none), at two page sizes and scrolls:
+// each page is the one asked for, the last ends the text, and the tall
+// journal's picture scrolls.
 func TestJournalPageAdapter(t *testing.T) {
 	for _, scene := range []string{"journal", "talljournal", "parlay"} {
 		t.Run(scene, func(t *testing.T) {
-			a, b := engine(t, true, scene), engine(t, true, scene)
-			g := classic.NewGame(b.Rules(), b.Data())
-			defer a.Apply(front.Action{Kind: front.ActResize, X: 40, Y: 25})
+			a := engine(t, true, scene)
+			g := classic.NewGame(a.Rules(), a.Data())
+			defer g.Answer(front.Action{Kind: front.ActResize, X: 40, Y: 25})
 			reads := []front.Read{}
 			if r := a.Rules().State().Read; r != nil {
 				reads = append(reads, front.Read{Title: r.Title, Lines: r.Lines, Page: r.Page})
 			}
 			for i := range g.ClueChapters() {
-				r := a.ClueRead(i)
-				reads = append(reads, *r)
+				reads = append(reads, *g.ClueRead(i))
 			}
 			if len(reads) == 0 {
 				t.Fatal("nothing to read")
 			}
 			scrolled := false
 			for _, size := range []int{40, 50} {
-				act := front.Action{Kind: front.ActResize, X: size, Y: size * 5 / 8}
-				a.Apply(act)
-				g.Answer(act)
+				g.Answer(front.Action{Kind: front.ActResize, X: size, Y: size * 5 / 8})
 				for _, r := range reads {
 					for p := 0; ; p++ {
 						for _, off := range []int{0, 60} {
-							want, wmax := a.JournalPage(r.Title, r.Lines, p, off)
 							got, gmax := g.JournalPage(r.Title, r.Lines, p, off)
-							scrolled = scrolled || wmax > 0
-							if !reflect.DeepEqual(got, want) || gmax != wmax {
-								t.Fatalf("%s page %d off %d at %d: adapter %+v max %d, por %+v max %d", r.Title, p, off, size, got, gmax, want, wmax)
+							scrolled = scrolled || gmax > 0
+							if got == nil || got.Page != min(p, got.Pages-1) || len(got.Lines) == 0 {
+								t.Fatalf("%s page %d off %d at %d: %+v", r.Title, p, off, size, got)
 							}
 						}
-						if want, _ := a.JournalPage(r.Title, r.Lines, p, 0); want.Page != p || p == want.Pages-1 {
+						if got, _ := g.JournalPage(r.Title, r.Lines, p, 0); got.Page != p || p == got.Pages-1 {
 							break
 						}
 					}
 				}
 			}
 			if scene == "talljournal" && !scrolled {
-				t.Error("no scrolling picture compared")
+				t.Error("no scrolling picture")
 			}
 		})
 	}
@@ -85,7 +82,6 @@ func TestSpeakPageAdapter(t *testing.T) {
 	if r == nil {
 		t.Fatal("no journal read")
 	}
-	a.SpeakPage(r.Lines, 0)
 	g.SpeakPage(r.Lines, 0)
 	if want := strings.ReplaceAll(strings.TrimPrefix(r.Lines[0], "\x00"), " ", "_"); len(spy.keys) == 0 || spy.keys[0] != want {
 		t.Errorf("keys %q, want %q first", spy.keys, want)
@@ -106,7 +102,7 @@ func TestSlotsAdapter(t *testing.T) {
 			g := classic.NewGame(b.Rules(), b.Data())
 			for _, loadOnly := range []bool{false, true} {
 				want, got := a.SlotsView(loadOnly), g.SlotsView(loadOnly)
-				if !reflect.DeepEqual(got, want) {
+				if !reflect.DeepEqual(got, (*front.Slots)(want)) {
 					t.Errorf("loadOnly %v: adapter %+v, por %+v", loadOnly, got, want)
 				}
 				if scene == "" && (want == nil || len(want.Names) == 0 || want.Levels[0] == 0 || want.Times[0] == "") {

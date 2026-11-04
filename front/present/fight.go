@@ -355,7 +355,7 @@ func (p *Presenter) playing() *front.CombatEvent {
 		if ev := &r.q[0]; r.from.IsZero() {
 			switch {
 			case ev.Kind == front.EvSound && p.Sound != nil:
-				p.Sound(*ev)
+				p.Sound(ev.Amount, ev.Text)
 			case ev.Kind == front.EvSound && p.adLibEffect(ev.Amount):
 			case ev.Kind == front.EvSound && p.Snd != nil:
 				p.Snd.Effect(ev.Amount, false)

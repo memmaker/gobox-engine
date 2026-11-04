@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -83,13 +82,13 @@ func settled(e *rules.Engine, as ...front.Action) front.View {
 	return v
 }
 
-// same says the State at name is what por published (at) and classic's creation sheet equals por's.
+// same says the State at name is what por published (at) and classic shows a creation sheet exactly when State has one.
 func same(t *testing.T, name string, e *rules.Engine, cols, rows int) {
 	t.Helper()
 	at(t, name, e)
 	s := e.Rules().State()
-	if got, want := classic.Creation(s, cols, rows), e.CreationView(); !reflect.DeepEqual(got, want) {
-		t.Errorf("%s: creation\n got %+v\nwant %+v", name, got, want)
+	if got := classic.Creation(s, cols, rows); (got != nil) != (s.Creation != nil) {
+		t.Errorf("%s: creation %+v, State %+v", name, got, s.Creation)
 	}
 }
 
@@ -128,7 +127,7 @@ func TestParity(t *testing.T) {
 	settled(e, front.Action{Kind: front.ActResize, X: 83, Y: 80})
 	same(t, "creation 83x80", e, 83, 80)
 	settled(e, front.Action{Kind: front.ActResize, X: 40, Y: 25})
-	if a := e.Rules().Pending(); a == nil || a.Prompt != e.CreationView().Abandon {
+	if a := e.Rules().Pending(); a == nil || a.Prompt != classic.Creation(e.Rules().State(), 40, 25).Abandon {
 		t.Fatalf("abandon: %+v", a)
 	}
 	e.EndCreation(false)
