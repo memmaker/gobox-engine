@@ -272,16 +272,12 @@ func (c *cellPage) texts(v front.View) {
 		// and after the version).
 		dx, gaps := max(0, (c.cols-40)/2), 0
 		last := credits[len(credits)-1]
-		if c.rows-2 > last.Y+len(creditGaps) {
-			gaps = len(creditGaps)
-		}
+		gaps = min(len(creditGaps), max(0, c.rows-2-last.Y)) // as many as fit: the first ones, so no row stays on the lower box's border
 		for _, l := range credits {
 			y := l.Y
-			if gaps > 0 {
-				for _, g := range creditGaps {
-					if l.Y > g {
-						y++
-					}
+			for _, g := range creditGaps[:gaps] {
+				if l.Y > g {
+					y++
 				}
 			}
 			c.str(l.X+dx, y, l.Colour, l.Text)

@@ -45,7 +45,7 @@ type Data struct {
 
 	Credits        []Credit
 	RemasterCredit [2]string
-	CreditGaps     []int // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
+	CreditGaps     []int // the credits' rows a blank row follows on a tall page, as many as fit from the first (nil: 4, 5, 6)
 	IconParts      []string
 	SpellRules     []string // what each spell does, by spell id (the camp's spell tips; "" none)
 
