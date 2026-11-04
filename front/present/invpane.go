@@ -145,10 +145,11 @@ func wareAt(in *front.Inventory, i int) *front.InvItem {
 	return nil
 }
 
+// decodePNG decodes b; empty or bad data gives a 1x1 clear image.
 func decodePNG(b []byte) image.Image {
 	im, err := png.Decode(bytes.NewReader(b))
-	if err != nil {
-		panic(err)
+	if err != nil { // no art: a clear pixel, so everything drawn from it is nothing
+		return image.NewRGBA(image.Rect(0, 0, 1, 1))
 	}
 	return im
 }
