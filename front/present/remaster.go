@@ -56,6 +56,7 @@ type Presenter struct {
 	main        bool                        // the main menu is up (mainmenu.go)
 	mm          mainUI                      // ... its state
 	ask         bool                        // ... with a question over it
+	gridTries   int                         // the ActResize sent for this grid
 	grid        [2]int                      // the text cells the window holds, as last told to the engine (ActResize)
 	gridAge     int                         // frames since
 	cards       []image.Rectangle           // the party's cards on screen in the 3D view, as last drawn (none elsewhere)
@@ -644,8 +645,13 @@ func (p *Presenter) resize(dst *gpu.Image, v front.View) {
 	cols, rows := grid(dst)
 	pw, ph := pageSize(v)
 	p.gridAge++
-	if g := [2]int{cols, rows}; g != p.grid || p.gridAge > 30 && (pw != cols*8 || ph != rows*8) {
+	g := [2]int{cols, rows}
+	if g != p.grid {
+		p.gridTries = 0
+	}
+	if g != p.grid || p.gridAge > 30 && p.gridTries < 3 && (pw != cols*8 || ph != rows*8) { // a game that never lays out to it (it does not apply ActResize) is asked three times, not for ever
 		p.grid, p.gridAge = g, 0
+		p.gridTries++
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActResize, X: cols, Y: rows})
 	}
 }
