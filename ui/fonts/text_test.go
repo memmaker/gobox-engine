@@ -75,11 +75,11 @@ func TestDrawText(t *testing.T) {
 func TestChooser(t *testing.T) {
 	cfg := t.TempDir() + "/FONT.CFG"
 	c := NewChooser(t.TempDir(), "Dark_Queen_of_Krynn", cfg)
-	if c.List[0].Name != "Dark_Queen_of_Krynn" || len(c.List) != 58 {
+	if c.List[0].Name != "Dark_Queen_of_Krynn" || len(c.List) != 59 {
 		t.Fatal("order")
 	}
 	c.Step(-1)
-	if c.Cur != 58 {
+	if c.Cur != 59 {
 		t.Fatal(c.Cur)
 	}
 	c.Set(2)

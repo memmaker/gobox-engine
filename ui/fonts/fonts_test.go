@@ -4,7 +4,7 @@ import "testing"
 
 func TestFonts(t *testing.T) {
 	all := All()
-	if len(all) != 58 {
+	if len(all) != 59 {
 		t.Fatalf("%d fonts", len(all))
 	}
 	for _, f := range all {
@@ -16,7 +16,7 @@ func TestFonts(t *testing.T) {
 		t.Fatal("Get")
 	}
 	l := Load(t.TempDir())
-	if len(l) != 58 || Find(l, "IBM_BIOS") < 0 || Find(l, "x") != -1 {
+	if len(l) != 59 || Find(l, "IBM_BIOS") < 0 || Find(l, "x") != -1 {
 		t.Fatal("Load/Find")
 	}
 }
