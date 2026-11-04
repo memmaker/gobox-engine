@@ -18,6 +18,8 @@ type Picture struct {
 	Block, Frame int
 	Img          image.Image // nil for a fill, or for a picture front/present decodes from File, Block, Frame
 	Mask         *uint8      // with File: this colour index is transparent too, as the mask (nil: only dax.Clear)
+	Pix          []uint8     // the game's own pixels, PixW wide, Img nil: front/present converts them in View.Ink (IndexedRGBA)
+	PixW         int
 	At           image.Rectangle
 	Fill         bool
 	Colour       color.RGBA
