@@ -1,8 +1,8 @@
-// Command poolsprites builds series/pool/{portraits,combat}: every portrait
-// head/body and combat icon of the four Pool games, deduplicated by exact
-// pixels, plus INDEX.md's tables and series/pool/origins.json.
+// Command poolsprites builds series/<series>/{portraits,combat}: every portrait
+// and combat icon of the series' games, deduplicated by exact pixels, plus
+// series/<series>/origins.json (and, for the pool series, INDEX.md's tables).
 //
-//	go run . [-games ~/Projects] [-out ../..]   (run in sprites/cmd/poolsprites)
+//	go run . [-series pool|buck-rogers] [-games ~/Projects] [-out ../..]   (run in sprites/cmd/poolsprites)
 package main
 
 import (
@@ -30,7 +30,7 @@ type source struct {
 
 var (
 	games = []string{"por", "cotab", "sotsb", "pod"}
-	vga   = map[string]bool{"pod": true} // games whose pictures are VGA (dax.ParseVGA) not EGA
+	vga   = map[string]bool{"pod": true, "buckrogers": true} // games whose pictures are VGA (dax.ParseVGA) not EGA
 	// The per-game file lists: the only game knowledge here.
 	sources = []source{
 		{"portraits", "head", false, []string{"HEAD1", "HEAD2", "HEAD3", "HEAD4", "HEAD5", "HEAD6", "HEAD7", "HEAD8"}},
@@ -39,6 +39,14 @@ var (
 		{"combat", "combat_body", true, []string{"CBODY"}},
 		{"combat", "combat_sprite", true, []string{"COMSPR"}},
 		{"combat", "combat_icon", true, []string{"ICON"}},
+	}
+	// The buck-rogers series: CPIC is the character picture, CHARS the characters'
+	// combat icons, COMSPR the combat sprites (buckroger-re src/O157.PAS, O0CA.PAS).
+	brGames   = []string{"buckrogers"}
+	brSources = []source{
+		{"portraits", "portrait", false, []string{"CPIC1", "CPIC2", "CPIC3", "CPIC4", "CPIC5", "CPIC6"}},
+		{"combat", "combat_icon", true, []string{"CHARS"}},
+		{"combat", "combat_sprite", true, []string{"COMSPR"}},
 	}
 )
 
@@ -53,8 +61,16 @@ type entry struct {
 func main() {
 	root := flag.String("games", "..", "directory holding <game>-go")
 	out := flag.String("out", "../..", "sprites module directory")
+	series := flag.String("series", "pool", "series to build: pool (por, cotab, sotsb, pod) or buck-rogers")
 	flag.Parse()
-	pool := filepath.Join(*out, "series", "pool")
+	switch *series {
+	case "pool":
+	case "buck-rogers":
+		games, sources = brGames, brSources
+	default:
+		check(fmt.Errorf("unknown series %q", *series))
+	}
+	pool := filepath.Join(*out, "series", *series)
 	byDir := map[string][]*entry{}
 	origins := map[string]map[string]map[string]string{}
 	count := map[string]int{}             // prefix -> next number
@@ -125,15 +141,17 @@ func main() {
 			}
 		}
 	}
-	b, _ = json.MarshalIndent(poses, "", " ")
-	check(os.WriteFile(filepath.Join(pool, "combat", "poses.json"), append(b, '\n'), 0o644))
-	index(filepath.Join(*out, "INDEX.md"), byDir)
+	if *series == "pool" {
+		b, _ = json.MarshalIndent(poses, "", " ")
+		check(os.WriteFile(filepath.Join(pool, "combat", "poses.json"), append(b, '\n'), 0o644))
+		index(filepath.Join(*out, "INDEX.md"), byDir)
+	}
 	for _, g := range games {
 		for _, k := range []string{"portraits", "combat"} {
 			fmt.Printf("%s %s: %d decoded, %d new\n", g, k, before[g][k], after[g][k])
 		}
 	}
-	fmt.Println("pool portraits", len(byDir["portraits"]), "combat", len(byDir["combat"]))
+	fmt.Println(*series, "portraits", len(byDir["portraits"]), "combat", len(byDir["combat"]))
 }
 
 // render is frame fr in RGBA: the image's own palette (VGA) or EGA, Clear transparent.
