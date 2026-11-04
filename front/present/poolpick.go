@@ -41,7 +41,7 @@ func (g classicGame) OpenPicker(kind int) bool {
 	if !has {
 		return ok
 	}
-	for _, n := range sprites.Names("pool", pp.kind) {
+	for _, n := range sprites.Names(series, pp.kind) {
 		if len(n) > len(poolPrefix[pp.field]) && n[:len(poolPrefix[pp.field])] == poolPrefix[pp.field] {
 			pp.names = append(pp.names, n)
 		}
@@ -64,7 +64,7 @@ func (g classicGame) PickerView(page int) *front.Picker {
 		if v != nil {
 			v.Portraits = make([]image.Image, len(pp.names))
 			for i, n := range pp.names {
-				v.Portraits[i] = sprites.Image("pool", pp.kind, n)
+				v.Portraits[i] = sprites.Image(series, pp.kind, n)
 			}
 		}
 		return v

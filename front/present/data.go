@@ -196,6 +196,7 @@ func gameData(g game.Data) {
 	if g.Series != "" {
 		series = g.Series
 	}
+	classic.Series = series
 	if g.SpellRules != nil {
 		n := 0
 		for id := range g.SpellRules {

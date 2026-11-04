@@ -27,11 +27,11 @@ var iconParts = [6]int{1, 2, 3, 4, 6, 7}
 func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front.Picture, ok bool) {
 	load := func(name string) *image.Paletted {
 		if pose == 1 {
-			if p := sprites.Pose(name); p != "" {
+			if p := sprites.Pose(Series, name); p != "" {
 				name = p
 			}
 		}
-		im, _ := sprites.Image("pool", "combat", name).(*image.Paletted)
+		im, _ := sprites.Image(Series, "combat", name).(*image.Paletted)
 		return im
 	}
 	h, b := load(head), load(body)
@@ -87,6 +87,9 @@ func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front
 // GameID is game.Data.ID, the origins.json key that maps a member's original
 // icon numbers to pool names when it has no pool ids (old saves, imports).
 var GameID string
+
+// Series is game.Data.Series, the asset series whose shared pool the members' ids name ("pool" when unset).
+var Series = "pool"
 
 var iconOrigins = sync.OnceValue(sprites.Origins)
 

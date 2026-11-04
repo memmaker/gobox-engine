@@ -30,7 +30,7 @@ func Party(s game.State, art map[string]game.Picture) []front.Member {
 	var out []front.Member
 	for _, m := range s.Party {
 		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone
-			m.Dropped = sprites.Image("pool", "portraits", m.PortraitHeadID)
+			m.Dropped = sprites.Image(Series, "portraits", m.PortraitHeadID)
 		}
 		out = append(out, front.Member{Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
 			Selected: m.Chosen, Colour: m.Colour, HeadPix: pix(art[m.Head]), Portrait: m.Dropped, Powers: powers(m.Card),

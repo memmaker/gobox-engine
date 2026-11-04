@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"image"
 	"image/png"
+	"io/fs"
 	"sort"
 	"strings"
 )
@@ -41,18 +42,25 @@ func Names(series, kind string) []string {
 	return out
 }
 
-// Origins is the pool's origins.json: game id, DAX file, "block" or "block.frame" -> pool sprite name.
+// Origins is every series' origins.json merged (game ids are unique across
+// series): game id, DAX file, "block" or "block.frame" -> its series' sprite name.
 func Origins() map[string]map[string]map[string]string {
-	var o map[string]map[string]map[string]string
-	if b, err := fsys.ReadFile("series/pool/origins.json"); err == nil {
-		json.Unmarshal(b, &o)
+	o := map[string]map[string]map[string]string{}
+	files, _ := fs.Glob(fsys, "series/*/origins.json")
+	for _, f := range files {
+		var m map[string]map[string]map[string]string
+		if b, err := fsys.ReadFile(f); err == nil && json.Unmarshal(b, &m) == nil {
+			for k, v := range m {
+				o[k] = v
+			}
+		}
 	}
 	return o
 }
 
-// Pose is the pool combat head or body name drawn in the action pose when name is the ready one ("": none).
-func Pose(name string) string {
-	b, err := fsys.ReadFile("series/pool/combat/poses.json")
+// Pose is the series' combat head or body name drawn in the action pose when name is the ready one ("": none).
+func Pose(series, name string) string {
+	b, err := fsys.ReadFile("series/" + series + "/combat/poses.json")
 	if err != nil {
 		return ""
 	}
