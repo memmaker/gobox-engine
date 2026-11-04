@@ -97,7 +97,7 @@ var (
 	readiedMark                      string
 	slotNames                        []string
 	areaMaps                         map[front.AreaID]string
-	art                              fs.FS
+	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
 	openAt                           string
 	dollPNG, atlasPNG                []byte
 	itemsRec                         string

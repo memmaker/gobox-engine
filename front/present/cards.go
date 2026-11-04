@@ -113,6 +113,13 @@ func greyed(m image.Image) *image.RGBA {
 func (p *Presenter) setup(note Note, v front.View) {
 	p.glyph, blobber.Glyph = note.Glyph, note.Glyph
 	p.border.update(borderPieces(v))
+	menuChars = 0 // the row's spacing: the widest context menu line
+	for _, m := range v.Party {
+		lines, _, _ := powerLines(m.Powers)
+		for _, l := range lines {
+			menuChars = max(menuChars, len(l))
+		}
+	}
 	if p.faceImgs == nil {
 		p.faceImgs, p.hiFaces, p.labels = map[image.Image]*gpu.Image{}, map[image.Image]*gpu.Image{}, map[string]*gpu.Image{}
 		p.faces = map[image.Image]image.Image{}
@@ -230,8 +237,8 @@ func (p *Presenter) cardMenu(dst *gpu.Image, i int, lines []string, keys []byte,
 		cx = r.Min.X - gap - w/2
 	}
 	top := r.Min.Y
-	if Host.PartyRow { // the row: above the card, beside it
-		top = max(0, r.Max.Y-int(k*8*float64(len(lines)+2)))
+	if Host.PartyRow { // the row: right above the card (cardAt spaces the cards so these never meet)
+		cx, top = (r.Min.X+r.Max.X)/2, max(0, r.Min.Y-gap-int(k*8*float64(len(lines)+2)))
 	}
 	if f := p.menuFloor; f > 0 { // never over the text pane
 		top = max(0, min(top, f-int(k*8*float64(len(lines)+2))))
@@ -378,9 +385,9 @@ func cardAt(dst *gpu.Image) func(i, n int) image.Rectangle {
 	k := cardScale(dst)
 	px := func(n int) int { return int(math.Round(float64(n) * k)) }
 	return func(i, n int) image.Rectangle {
-		if Host.PartyRow { // one row along the bottom, centred
-			step := px(cardW + cardGap)
-			x := (b.Dx()-n*step+px(cardGap))/2 + i*step
+		if Host.PartyRow { // one row along the bottom, evenly across the width: each card a slot at least as wide as its context menu (cardScale)
+			step := float64(b.Dx()) / float64(n)
+			x := int(float64(i)*step + (step-float64(px(cardW)))/2)
 			y := b.Dy() - px(cardH+cardGap) + px(cardFoot)
 			return image.Rect(x, y, x+px(cardW), y+px(cardH))
 		}
@@ -390,6 +397,10 @@ func cardAt(dst *gpu.Image) func(i, n int) image.Rectangle {
 			col, row, per = 1, i-left, n-left
 		}
 		y := b.Dy() - px((per-row)*(cardH+cardGap)) + px(cardFoot) // the bars end a gap above the bottom
+		if Host.MapOff { // no map: the column spread evenly down the whole height, as far apart top, between and bottom
+			g := (b.Dy() - per*px(cardH)) / (per + 1)
+			y = g + row*(px(cardH)+g)
+		}
 		x := px(cardGap)
 		if col == 1 {
 			x = b.Dx() - px(cardGap) - px(cardW)
@@ -399,6 +410,16 @@ func cardAt(dst *gpu.Image) func(i, n int) image.Rectangle {
 }
 
 const cardGap, cardRows = 8, 4
+
+// menuChars is the widest context menu line of the party's (setup): the
+// row spaces its cards so the menus over them never meet.
+var menuChars int
+
+// rowSlot is a card's width in the row at scale 1, its gap included: the
+// card, or its context menu's box (cardMenu) where that is wider.
+func rowSlot() int {
+	return max(cardW, 8*(menuChars+4)) + cardGap
+}
 
 // cardBase is the cards' size 1 (Esc, Graphics, Portraits): the largest
 // whole scale where a column of four fits under the smallest map.
@@ -417,7 +438,12 @@ func cardScale(dst *gpu.Image) float64 {
 	}
 	if Host.PartyRow { // eight across the bottom, under the map, at most a third of the height
 		return fitScale(float64(cardBase(dst)), Host.Cards, func(k float64) bool {
-			return k*8*(cardW+cardGap)+k*cardGap <= float64(b.Dx()) && k*(cardH+cardGap) <= min(room, float64(b.Dy())/3)
+			return k*8*float64(rowSlot()) <= float64(b.Dx()) && k*(cardH+cardGap) <= min(room, float64(b.Dy())/3)
+		})
+	}
+	if Host.MapOff { // no map: as large as a column of four fits down the whole height, a gap round each
+		return fitScale(1, 64, func(k float64) bool {
+			return k*(cardRows*cardH+(cardRows+1)*cardGap) <= float64(b.Dy()) && k*cardW <= float64(b.Dx())/6
 		})
 	}
 	return fitScale(float64(cardBase(dst)), Host.Cards, func(k float64) bool {
