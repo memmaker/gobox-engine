@@ -61,25 +61,27 @@ const (
 
 // State is the domain superset across the games. Fields a game lacks stay zero.
 type State struct {
-	Mode     Mode
-	Pending  *Ask
-	Party    []Member
-	Selected int // index into Party
-	Where    Where
-	Picture  Picture // story / view picture
-	Story    []Picture
-	LastText string
-	Purse    map[string]int // money by kind ("gold", "platinum", ...)
-	Quests   []Quest
-	Map      Automap
-	Combat   *Combat
-	Shop     *Shop
-	Temple   []Service
-	Training *Training
-	Loot     *Loot
-	Door     *Door
-	Vault    *Vault
-	Creation *Creation
+	Mode       Mode
+	Pending    *Ask
+	Party      []Member
+	Selected   int // index into Party
+	Where      Where
+	Picture    Picture // story / view picture
+	Story      []Picture
+	LastText   string
+	Purse      map[string]int // money by kind ("gold", "platinum", ...)
+	Quests     []Quest
+	Map        Automap
+	Combat     *Combat
+	Shop       *Shop
+	Temple     []Service
+	TempleName string
+	Training   *Training
+	Loot       *Loot
+	Door       *Door
+	Vault      *Vault
+	Saves      []SaveSlot
+	Creation   *Creation
 }
 
 // Where is the party's place and time.
@@ -89,7 +91,10 @@ type Where struct {
 	Facing    int // 0 N, 2 E, 4 S, 6 W
 	Inside    bool
 	Day       int
-	Minute    int
+	Hour      int
+	Minute    int // of the hour
+	Month     int
+	Year      int
 	Mode      string // travel mode: "dungeon", "wilderness", "town", ...
 	Searching bool
 	Detail    map[string]int // game-specific domain numbers (block ids, wall sets)
@@ -106,6 +111,11 @@ type Member struct {
 	Spells                               []SpellRef
 	Portrait                             Picture
 	Icon                                 map[string]int // icon designer choices as numbers
+	BaseStats                            map[string]int // stats before magic and age
+	IconColors                           []byte         // icon palette indices
+	ClassText, LevelText                 string         // e.g. "old/new", "3/3"
+	Slots                                map[string]int // spell slots left by kind/level
+	Okay                                 bool
 }
 
 // SpellRef is a spell a member knows or has memorized.
@@ -134,6 +144,14 @@ type Automap struct {
 	Size   image.Point
 	Known  []image.Point // squares seen
 	Marked []image.Point
+	Walls  []Wall // by square
+	Doors  []Wall
+}
+
+// Wall is a wall or door on one side of a square. Side as Facing; Kind is the game's wall/door kind.
+type Wall struct {
+	At         image.Point
+	Side, Kind int
 }
 
 // Combat is a fight. Squares hold art refs, not cells.
@@ -142,6 +160,17 @@ type Combat struct {
 	Squares []Ground
 	Units   []Unit
 	Turn    *Turn
+	Round   int
+	Dungeon bool
+	Reach   []Reach    // squares the turn's unit may walk to
+	Spells  []SpellRef // castable by the turn's unit
+	Aims    []SpellRef // spells that take a square
+}
+
+// Reach is a square the unit can walk to and the steps it costs.
+type Reach struct {
+	At    image.Point
+	Steps int
 }
 
 // Ground is one battlefield square.
@@ -161,6 +190,10 @@ type Unit struct {
 	HP, MaxHP  int
 	Art        Picture
 	Dead, Gone bool
+	Size       int           // footprint edge in squares
+	Squares    []image.Point // squares covered
+	AC         int
+	Status     string
 }
 
 // Turn is whose turn it is and what they may do.
@@ -192,8 +225,9 @@ type Service struct {
 }
 
 type Training struct {
-	Ready []int // party indices able to level
-	Cost  int
+	Ready  []int // party indices able to level
+	Cost   int
+	Trains map[int]string // party index to what it trains to
 }
 
 type Loot struct {
@@ -213,10 +247,16 @@ type Vault struct {
 
 // Creation is the character creation draft.
 type Creation struct {
-	Draft   Member
-	Step    string // "race", "class", "stats", "name", ...
-	Choices []string
-	Roster  []string // saved characters that can be added
+	Draft        Member
+	Step         string // "race", "class", "stats", "name", ...
+	Choices      []string
+	Roster       []string // saved characters that can be added
+	MinHP, MaxHP int
+}
+
+// SaveSlot is a save slot: its name and info text.
+type SaveSlot struct {
+	Name, Info string
 }
 
 // AskKind says what an Ask wants.
@@ -239,6 +279,7 @@ const (
 type Ask struct {
 	Kind    AskKind
 	Prompt  string
+	Text    string   // the question's body text
 	Options []Option // Choice: labels with the original hotkeys
 	Default int      // default option or number
 	Max     int      // Name length, Number upper bound
@@ -273,8 +314,8 @@ type (
 	Trade    struct{ From, To, Item int }
 	Buy      struct{ Item int }
 	Sell     struct{ Member, Item int }
-	TakeLoot struct{ Item int } // Item -1: all
-	Rest     struct{}
+	TakeLoot struct{ Item int }    // Item -1: all
+	Rest     struct{ Minutes int } // 0: the default rest
 	Camp     struct{}
 	Train    struct{ Member int }
 	Heal     struct{ Service, Member int }
@@ -290,6 +331,47 @@ type (
 	Flee     struct{}
 	Save     struct{ Slot int }
 	Load     struct{ Slot int }
+
+	// Camp.
+	Fix       struct{ Member int }
+	Memorize  struct{ Member, Spell int }
+	Forget    struct{ Member, Spell int }
+	Scribe    struct{ Member, Spell int }
+	Order     struct{ From, To int }
+	LeaveCamp struct{}
+	// Combat.
+	Guard      struct{}
+	EndTurn    struct{}
+	Quick      struct{}
+	Bandage    struct{ Member int }
+	TurnUndead struct{}
+	Aim        struct{ At image.Point }
+	// Items and money.
+	Unready   struct{ Member, Item int }
+	Halve     struct{ Member, Item int } // split a stack
+	Join      struct{ Member, Item int } // merge stacks
+	Identify  struct{ Member, Item int }
+	Appraise  struct{ Member, Item int }
+	Repair    struct{ Member, Item int }
+	PoolCoins struct{ Member int }
+	Leave     struct{} // leave the open shop, vault, loot or temple
+	// Paladin.
+	LayOnHands struct{ Member int }
+	Cure       struct{ Member, Service int }
+	// Party.
+	Reroll           struct{}
+	DiscardCharacter struct{}
+	RemoveCharacter  struct{ Roster int }
+	ChangeClass      struct{ Member, Class int }
+	DropMember       struct{ Member int }
+	SetSpeed         struct{ N int }
+	SetDifficulty    struct{ N int }
+	SetIcon          struct {
+		Member int
+		Field  string
+		N      int
+	}
+	Call struct{ Member int }
 )
 
 func (Answer) decision()   {}
@@ -320,6 +402,38 @@ func (Wait) decision()     {}
 func (Flee) decision()     {}
 func (Save) decision()     {}
 func (Load) decision()     {}
+
+func (Fix) decision()              {}
+func (Memorize) decision()         {}
+func (Forget) decision()           {}
+func (Scribe) decision()           {}
+func (Order) decision()            {}
+func (LeaveCamp) decision()        {}
+func (Guard) decision()            {}
+func (EndTurn) decision()          {}
+func (Quick) decision()            {}
+func (Bandage) decision()          {}
+func (TurnUndead) decision()       {}
+func (Aim) decision()              {}
+func (Unready) decision()          {}
+func (Halve) decision()            {}
+func (Join) decision()             {}
+func (Identify) decision()         {}
+func (Appraise) decision()         {}
+func (Repair) decision()           {}
+func (PoolCoins) decision()        {}
+func (Leave) decision()            {}
+func (LayOnHands) decision()       {}
+func (Cure) decision()             {}
+func (Reroll) decision()           {}
+func (DiscardCharacter) decision() {}
+func (RemoveCharacter) decision()  {}
+func (ChangeClass) decision()      {}
+func (DropMember) decision()       {}
+func (SetSpeed) decision()         {}
+func (SetDifficulty) decision()    {}
+func (SetIcon) decision()          {}
+func (Call) decision()             {}
 
 // EventKind says what an Event reports.
 type EventKind int
