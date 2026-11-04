@@ -567,8 +567,8 @@ func (g *Game) Rules() game.Rules { return g.R }
 // state is the rules' state with a Refusal's question pending.
 func (g *Game) state() game.State {
 	s := g.R.State()
-	if g.asked != nil && s.Pending == nil {
-		s.Pending = g.asked
+	if g.asked != nil {
+		s.Pending, s.Mode = g.asked, game.ModeAsk
 	}
 	return s
 }
