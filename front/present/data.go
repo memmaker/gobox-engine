@@ -253,6 +253,15 @@ func gameData(g game.Data) {
 	if g.IconParts != nil {
 		iconParts = g.IconParts
 	}
+	if g.LabelInks != nil {
+		labelInks = g.LabelInks
+	}
+	if g.MapCell != 0 {
+		mapCell = g.MapCell
+	} else if mapCell == 0 {
+		mapCell = 10 // the pool games' area map square
+	}
+	mapSide = 16 * mapCell
 	if g.ReadyMark != "" {
 		readiedMark = g.ReadyMark
 	}

@@ -24,7 +24,7 @@ func Sheet(v front.View, s game.State) front.View {
 	}
 	v.Portrait, v.IconBox = cells(s.Portrait), cells(s.IconBox)
 	p := s.SheetPage
-	if p == nil && s.Creation != nil { // the creation sheet: gobox lays it out from the draft
+	if p == nil && s.Creation != nil && s.Mode == game.ModeCreate { // the creation sheet: gobox lays it out from the draft
 		p = draftPage(s.Creation)
 	}
 	if p != nil {

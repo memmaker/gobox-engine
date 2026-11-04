@@ -1044,6 +1044,8 @@ type Data struct {
 	CreditGaps   []int      // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
 	IconParts    []string   // the combat icon designer's parts
 	ReadyMark    string     // shown before a readied item's name ("": none)
+	LabelInks    []int      // a map label's EGA colour by its kind
+	MapCell      int        // pixels a square of the area map (0: gobox's)
 }
 
 // AdLib is the AdLib songs (file Music, song N its block N) and effects
