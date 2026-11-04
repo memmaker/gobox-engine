@@ -54,7 +54,6 @@ const (
 	ModeTemple
 	ModeTraining
 	ModeVault
-	ModeSheet
 	ModeLoot
 	ModeCombat
 	ModeStory
@@ -178,7 +177,8 @@ type Option struct {
 	Do    Decision
 }
 
-// Shop, Service, Training, Loot, Door, Vault: domain facts of those places.
+// Shop, Service, Training, Loot, Door, Vault: the place an area script has
+// opened (Mode says which); nil when none is open.
 type Shop struct {
 	Name   string
 	Goods  []Item
@@ -205,11 +205,10 @@ type Door struct {
 	Locked, Stuck, Secret bool
 }
 
-// Vault facts: Allowed says vault interactions are allowed at the party's square.
+// Vault is the party's storage an area script has opened, like a shop.
 type Vault struct {
-	Allowed bool
-	Items   []Item
-	Money   map[string]int
+	Items []Item
+	Money map[string]int
 }
 
 // Creation is the character creation draft.
