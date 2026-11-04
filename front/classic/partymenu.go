@@ -31,10 +31,13 @@ func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
 }
 
 // View is v with the screens classic builds from s in place of the game's:
-// the party menu (MainMenu, Hall). The title's Logo and Backdrop stay the
+// the party menu (MainMenu, Hall) and the question (Ask). The title's Logo and Backdrop stay the
 // game's while the menu is up.
 func View(v front.View, s game.State) front.View {
 	v.MainMenu, v.Hall = PartyMenu(s)
+	if q, ok := Ask(s); ok {
+		v.Ask = q
+	}
 	if v.MainMenu == nil {
 		v.Logo, v.Backdrop = nil, nil
 	}
