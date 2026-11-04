@@ -384,7 +384,8 @@ type ScrollSpell struct {
 type Where struct {
 	Area      string
 	X, Y      int
-	Facing    int // 0 N, 2 E, 4 S, 6 W
+	Square    *image.Point // the square the 3D view stands on where X, Y is another map's (the overland); nil: X, Y
+	Facing    int          // 0 N, 2 E, 4 S, 6 W
 	Inside    bool
 	Day       int
 	Hour      int
@@ -701,9 +702,12 @@ type Field struct {
 	Pick    int
 }
 
-// SaveSlot is a save slot: its name and info text.
+// SaveSlot is a save slot: its name, info text, when it was saved (as the
+// slot list shows it) and the highest level in its party (0: none read).
 type SaveSlot struct {
 	Name, Info string
+	Time       string
+	Level      int
 }
 
 // AskKind says what an Ask wants.
@@ -808,7 +812,7 @@ type (
 		Ats                  []image.Point // one square per target
 		Spell                int           // a scroll's spell to read, 0 the first
 	}
-	Ready    struct{ Member, Item int }
+	Ready    struct{ Member, Item, Count int } // Count of a stack to ready (0: all of it)
 	Drop     struct{ Member, Item int }
 	Trade    struct{ From, To, Item int }
 	Buy      struct{ Member, Item int } // Member: who buys and carries it
@@ -1015,11 +1019,12 @@ type Data struct {
 	SpellRules map[int]string // what each spell does, by spell id (the spell tip text)
 	Art        map[string]Picture
 	Sounds     map[string]string
-	Palette    []byte      // palette bytes
-	Commands   []Option    // extra party commands: Decisions with labels
-	Imports    []string    // other games' rosters and saves this game reads, by game id
-	QuickParty []QuickPick // the party menu's Quick Start party (every game offers it while the party is empty)
-	Clues      []Clue      // the clue book's chapters (nil: the game has none)
+	Palette    []byte                        // palette bytes
+	Commands   []Option                      // extra party commands: Decisions with labels
+	Imports    []string                      // other games' rosters and saves this game reads, by game id
+	QuickParty []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
+	Clues      []Clue                        // the clue book's chapters (nil: the game has none)
+	Scans      func(name string) image.Image // the picture a Read's line "\x01name" shows (nil: none)
 }
 
 // QuickPick is one Quick Start member: the creation answers by the names the

@@ -73,6 +73,14 @@ type (
 	}
 	Unmark struct{ At image.Point }
 	WalkTo struct{ At image.Point }
+	// Speak voices the speech clip Key (a journal page's paragraph).
+	Speak struct{ Key string }
+	// The title sequence (State.Intro): picture step N, the credits, the
+	// lightning's palette colour C, and its end.
+	TitlePicture struct{ N int }
+	TitleCredits struct{}
+	TitleFlash   struct{ C int }
+	TitleDone    struct{}
 )
 
 func (QuickStart) decision()    {}
@@ -118,5 +126,10 @@ func (Learn) decision()         {}
 func (PickPower) decision()     {}
 func (Resize) decision()        {}
 func (Mark) decision()          {}
+func (TitlePicture) decision()  {}
+func (TitleCredits) decision()  {}
+func (TitleFlash) decision()    {}
+func (TitleDone) decision()     {}
+func (Speak) decision()         {}
 func (Unmark) decision()        {}
 func (WalkTo) decision()        {}
