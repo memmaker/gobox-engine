@@ -11,6 +11,7 @@ import (
 	"gobox/audio"
 	"gobox/blobber"
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 	"gobox/ui"
 )
@@ -34,11 +35,12 @@ type Front struct {
 	started bool   // the game has put its first screen up (Act)
 }
 
-// NewFront is a Front over g.
-// It plays sound through snd (the game's own driver, one instance shared
-// with its rules), or else through a Driver it builds from Data.Sounds and
-// Data.AmigaSound, on the Tandy, and plays out itself.
-func NewFront(g front.Game, snd ...front.Sound) *Front {
+// NewFront is a Front over g, with the game's declarative data over what
+// SetData handed in. It plays sound through snd (the game's own driver,
+// one instance shared with its rules), or else through a Driver it builds
+// from Data.Sounds and Data.AmigaSound, on the Tandy, and plays out itself.
+func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
+	gameData(data)
 	f := &Front{}
 	f.Game = WithRules(g, &f.P)
 	if len(snd) > 0 {
