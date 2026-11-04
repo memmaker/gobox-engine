@@ -119,7 +119,11 @@ type Game interface {
 
 	View() View      // the view published last
 	Refuse(s string) // the game says no with s
-	Resets() int     // counts the loads and returns to the main menu: the screens over the old game close
+	// Resets counts every load and return to the main menu, the game's own
+	// too (a script's or death's load, a quick start): when it changes, the
+	// screens over the old game close. The front cannot see a load the game
+	// makes itself, so the game owns the count and bumps it on each one.
+	Resets() int
 }
 
 // Host is what a screen needs of the front end that shows it: the rule
