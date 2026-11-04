@@ -29,6 +29,7 @@ type Data struct {
 	DungeonTiles int // the tiles at the start of the combat set
 
 	DoorRGBA      color.RGBA                                                    // a door's colour on the maps
+	LabelInks     []int                                                         // a map label's palette index (View.Ink) by its kind
 	SelectOutline func(image.Rectangle, int, func(image.Rectangle, color.RGBA)) // draws the outline round the selected box
 
 	RestFix, RestWait, RestUntil int // camp's rests (ActRest N)
@@ -57,6 +58,7 @@ var (
 	paneBox, viewWindow, innerWindow front.CellRect
 	mapCell, dungeonTiles            int
 	doorRGBA                         color.RGBA
+	labelInks                        []int
 	selectOutline                    func(image.Rectangle, int, func(image.Rectangle, color.RGBA))
 	restFix, restWait, restUntil     int
 	credits                          []Credit
@@ -78,7 +80,7 @@ var (
 func SetData(d Data) {
 	paneBox, viewWindow, innerWindow = d.PaneBox, d.ViewWindow, d.InnerWindow
 	mapCell, dungeonTiles = d.MapCell, d.DungeonTiles
-	doorRGBA, selectOutline = d.DoorRGBA, d.SelectOutline
+	doorRGBA, labelInks, selectOutline = d.DoorRGBA, d.LabelInks, d.SelectOutline
 	restFix, restWait, restUntil = d.RestFix, d.RestWait, d.RestUntil
 	credits, remasterCredit, iconParts, spellRules = d.Credits, d.RemasterCredit, d.IconParts, d.SpellRules
 	dollBoxes, slotNames = d.DollBoxes, d.SlotNames

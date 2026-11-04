@@ -30,8 +30,8 @@ const (
 type AreaMap struct {
 	Squares [][]image.Image
 	Tile    int
-	Party  image.Point // the party's map square
-	Marker image.Image // the party's icon, facing its way
+	Party   image.Point // the party's map square
+	Marker  image.Image // the party's icon, facing its way
 }
 
 // Battle is the combat map as the remaster's 3D view needs it.
@@ -363,11 +363,11 @@ type MapSquares struct {
 }
 
 // MapSquare is a square of a map: how far the party has seen it, its
-// walls (N E S W) and its label (Ink 0: none).
+// walls (N E S W) and its label (Letter 0: none).
 type MapSquare struct {
 	Seen   Seen
 	Walls  [4]MapWall
-	Ink    int  // the label's EGA colour, by kind
+	Kind   int  // the label's kind: its colour is Data.LabelInks[Kind]
 	Letter byte // the label's legend letter
 }
 
@@ -657,6 +657,6 @@ type FullMap struct {
 type MapLabel struct {
 	Letter byte
 	Text   string
-	Colour int
+	Kind   int // its colour is Data.LabelInks[Kind]
 	First  image.Point
 }

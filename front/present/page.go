@@ -211,7 +211,7 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 		str(0, 0, 15, fm.Name[:min(len(fm.Name), lx-1)])
 		str(lx, 0, 15, "Labels")
 		for i, l := range fm.Legend {
-			str(lx, fm.LegendAt.Y+i, l.Colour, string(l.Letter))
+			str(lx, fm.LegendAt.Y+i, labelInks[l.Kind], string(l.Letter))
 			str(lx+2, fm.LegendAt.Y+i, 10, l.Text[:min(len(l.Text), cols-lx-2)])
 		}
 		str(1, rows-2, 11, fm.Info[:min(len(fm.Info), cols-2)])
