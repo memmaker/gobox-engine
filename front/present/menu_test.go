@@ -256,3 +256,16 @@ func TestCardClickPicksMember(t *testing.T) {
 		t.Errorf("card click on a member pick: %v, ctx %d", a, p.ctx)
 	}
 }
+
+// A question with Dirs takes the arrows as ActDir, not the command bar.
+func TestDirsAskTakesArrows(t *testing.T) {
+	p := &Presenter{active: true, view: &blobber.View{}, menu: true}
+	v := front.View{Exploring: true, Ask: &front.Ask{Kind: front.AskMenu, Dirs: true}}
+	if p.key(0x4800, v) {
+		t.Fatal("the bar took an arrow the question answers")
+	}
+	p.keyAct(0x4800, v)
+	if len(p.inv.acts) != 1 || p.inv.acts[0].Kind != front.ActDir || p.inv.acts[0].N != 8 {
+		t.Fatal(p.inv.acts)
+	}
+}

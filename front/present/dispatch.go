@@ -67,6 +67,11 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if p.main && (p.mm.skip(p.shownView.Hall) || p.mm.key(p, k, mainView(v))) {
 		return true
 	}
+	if a := v.Ask; a != nil && a.Dirs { // the arrows answer the question (ActDir), the bars do not take them (keyAct)
+		if _, ok := keypadDirs[actOf(k)]; ok {
+			return false
+		}
+	}
 	if p.pickKey(k) {
 		return true
 	}
