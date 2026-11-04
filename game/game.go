@@ -83,6 +83,10 @@ type State struct {
 	Vault      *Vault
 	Saves      []SaveSlot
 	Creation   *Creation
+	// Allowed lists the item verbs the rules take now, by Decision type
+	// name ("UseItem", "Sell", "Trade", "Halve", "Join", ...); gobox offers
+	// only these.
+	Allowed map[string]bool
 }
 
 // Where is the party's place and time.
@@ -119,12 +123,14 @@ type Member struct {
 	ClassText, LevelText                 string         // e.g. "old/new", "3/3"
 	Slots                                map[string]int // spell slots left by kind/level
 	Okay                                 bool
+	ItemCap                              int // most items carried, 0 no limit
 }
 
 // SpellRef is a spell a member knows or has memorized.
 type SpellRef struct {
 	ID        int
 	Name      string
+	Level     int
 	Memorized bool
 }
 
@@ -133,6 +139,12 @@ type Item struct {
 	Name                        string
 	Readied, Identified, Cursed bool
 	Charges, Price, Weight      int
+	Type                        int    // item type id (picks the icon)
+	Kind                        string // "weapon", "armor", "ring", ...
+	Count                       int    // stack size, 0 or 1 for one
+	Slot                        string // the body slot it is readied in, "" none
+	Wrong                       bool   // the holder may not use it (class, race)
+	Text                        string // what Look tells of it
 }
 
 // Quest is a quest fact.
@@ -225,25 +237,36 @@ type Offer struct {
 	Member, Item int
 	Kind         string // Gems or Jewelry
 	Value        int
+	CanKeep      bool // Appraise.Keep is allowed
 }
 
+// ItemRef names one member's item.
+type ItemRef struct{ Member, Item int }
+
 type Shop struct {
-	Offers []Offer
-	Name   string
-	Goods  []Item
-	Prices []int
-	Buys   bool // the shop buys from the party
+	Offers        []Offer
+	Name          string
+	Goods         []Item
+	Prices        []int
+	Buys          bool // the shop buys from the party
+	IdentifyPrice int
+	Unknown       []ItemRef // the party's unidentified items the shop can identify
 }
 
 type Service struct {
 	Name  string
 	Price int
+	Needs []int // party indices the service would help; the rest have no need of it
 }
 
 type Training struct {
-	Ready  []int // party indices able to level
-	Cost   int
-	Trains map[int]string // party index to what it trains to
+	Ready    []int // party indices able to level
+	Cost     int
+	Trains   map[int]string   // party index to what it trains to
+	Becomes  map[int][]string // party index to its new level per class
+	Why      map[int]string   // party index to why it may not train
+	Learning bool             // a spell is being chosen (Learn), not training offered
+	Learn    []SpellRef       // the spells the member may learn now
 }
 
 type Loot struct {
