@@ -164,7 +164,7 @@ func AreaMap(m *front.AreaMap, s game.State, art map[string]game.Picture) *front
 // cursor's square and label from s. nil where f is.
 func FullMap(f *front.FullMap, s game.State) *front.FullMap {
 	if f == nil || s.Map.Size != image.Pt(16, 16) {
-		return f
+		return nil // no 16x16 map up: nothing to draw (a FullMap without Map crashed the presenter)
 	}
 	c := *f
 	c.Name, c.Map, c.Labelled, c.Mine, c.Legend = s.Map.Area, Map(f.Map, s), false, false, nil
