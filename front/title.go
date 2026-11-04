@@ -92,7 +92,7 @@ func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
 		in.end = now.Add(5 * time.Second)
 		n := pics[in.Phase-1]
 		h.Call(func(e Game) { e.TitlePicture(n) })
-	case in.Phase != IntroCredits:
+	case in.Phase != IntroCredits && len(pics) > 1: // a lone picture ends the title
 		in.Phase, in.end = IntroCredits, now.Add(10*time.Second)
 		h.Call(func(e Game) { e.TitleCredits() })
 	default:
