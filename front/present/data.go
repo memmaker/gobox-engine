@@ -8,6 +8,7 @@ import (
 	"image"
 	"image/color"
 	"io/fs"
+	"testing/fstest"
 
 	"gobox/dax"
 	"gobox/front"
@@ -113,6 +114,9 @@ func SetData(d Data) {
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
 	barsPNG, dollPNG, atlasPNG, itemsRec = d.BarsPNG, d.DollPNG, d.AtlasPNG, d.ItemsRec
 	daxLoader = d.DAX
+	if art == nil {
+		art = fstest.MapFS{} // no remastered maps: every area falls back to its original view
+	}
 	mapSide = 16 * mapCell
 	setBindings(d.Bindings)
 	sounds, amigaSound = d.Sounds, d.AmigaSound
