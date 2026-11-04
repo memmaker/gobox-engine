@@ -16,6 +16,7 @@ var combatKinds = map[front.ActKind]combat.Kind{
 	front.ActEnd: combat.ActEnd, front.ActQuick: combat.ActQuick, front.ActGuard: combat.ActGuard, front.ActBandage: combat.ActBandage,
 	front.ActFlee: combat.ActFlee, front.ActTurn: combat.ActTurn, front.ActCast: combat.ActCast, front.ActItems: combat.ActItems,
 	front.ActRanged: combat.ActRanged, front.ActManeuver: combat.ActManeuver,
+	front.ActStep: combat.ActStep, front.ActView: combat.ActView,
 }
 
 var engineKinds = func() map[combat.Kind]front.ActKind {
@@ -68,7 +69,15 @@ func toBoard(b *front.Battle) *combat.Board {
 		o.Effects = append(o.Effects, combat.Effect(f))
 	}
 	if t := b.Turn; t != nil {
-		o.Turn = &combat.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Casting, Moves: t.Moves}
+		o.Turn = &combat.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Casting, Moves: t.Moves, CastDirect: len(t.Spells) == 0}
+		for k, w := range t.Labels {
+			if c, ok := combatKinds[k]; ok {
+				if o.Turn.Labels == nil {
+					o.Turn.Labels = map[combat.Kind]string{}
+				}
+				o.Turn.Labels[c] = w
+			}
+		}
 		for _, k := range t.Can {
 			if c, ok := combatKinds[k]; ok {
 				o.Turn.Can = append(o.Turn.Can, c)

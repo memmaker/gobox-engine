@@ -254,10 +254,10 @@ func (p *Presenter) Point(x, y int) {
 	}
 }
 
-// press takes button it: Cast opens the spell list, Maneuver the
+// press takes button it: Cast opens the spell list (acts at once with Turn.CastDirect), Maneuver the
 // maneuvers', the others act.
 func (p *Presenter) press(it barItem) {
-	if it.Kind == ActCast || it.Kind == ActManeuver {
+	if it.Kind == ActManeuver || it.Kind == ActCast && (p.b == nil || p.b.Turn == nil || !p.b.Turn.CastDirect) {
 		p.Picking, p.PickKind = true, it.Kind
 		return
 	}

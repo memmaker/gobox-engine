@@ -70,15 +70,16 @@ type Battle struct {
 
 // Turn is what the acting member may do (the original's combat menu).
 type Turn struct {
-	Unit      int        // whose turn
-	Can       []ActKind  // the actions offered, in the menu's order
-	Spells    []Spell    // what ActCast casts
-	Maneuvers []Maneuver // extra: what ActManeuver does (the rule set's; empty under the original's)
-	Aim       bool       // aiming: ActAim takes a square, ActPoint previews one, ActClose gives up
-	Casting   string     // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
-	Weapon    *InvItem   // extra: the weapon in hand (its icon on the Attack button), or nil
-	Missile   *InvItem   // extra: what ActRanged shoots (its icon on the Ranged button), or nil
-	Moves     int        // squares of move left
+	Unit      int                // whose turn
+	Can       []ActKind          // the actions offered, in the menu's order
+	Spells    []Spell            // what ActCast casts
+	Maneuvers []Maneuver         // extra: what ActManeuver does (the rule set's; empty under the original's)
+	Aim       bool               // aiming: ActAim takes a square, ActPoint previews one, ActClose gives up
+	Casting   string             // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
+	Weapon    *InvItem           // extra: the weapon in hand (its icon on the Attack button), or nil
+	Missile   *InvItem           // extra: what ActRanged shoots (its icon on the Ranged button), or nil
+	Moves     int                // squares of move left
+	Labels    map[ActKind]string // extra: the game's own words for Can's bar buttons (nil, or a kind missing: the bar's own)
 }
 
 // Effect is a sprite the original draws over the map for a moment.

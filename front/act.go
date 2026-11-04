@@ -111,6 +111,9 @@ const (
 	ActRaise  // AskModify: row N's value goes X (+1 or -1)
 	ActImport // the party menu: import characters from another game's saves (a Data.Entries entry's Act)
 
+	ActStep // combat: one step, N the keypad's direction 1..9 (the bar's Move button sends it with N 0)
+	ActView // combat: the bar's View button (what it shows is the game's)
+
 )
 
 // Action is one thing the player did on a remastered screen.
