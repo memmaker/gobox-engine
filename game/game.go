@@ -140,7 +140,7 @@ type Walls struct {
 // Intro is the title waiting to be played.
 type Intro struct {
 	Full      bool  // picture 2 and the credits follow picture 1 (when Pictures is nil)
-	Pictures  []int // the picture steps (nil: 1, with Full 1 and 2)
+	Pictures  []int // the steps: N > 0 picture N, -N credits page N-1 (nil: 1, with Full 1 and 2; with no -N step the credits follow the last picture)
 	Lightning bool  // picture 2 flashes
 }
 
@@ -313,18 +313,19 @@ type SheetPage struct {
 // Flags are the plain yes/no facts of the screen the front shows or takes
 // decisions by.
 type Flags struct {
-	Exploring bool    // the party explores: the adventuring decisions are taken
-	Sweeping  bool    // ... at the slow, searching pace
-	Interact  bool    // ... on a square whose event waits for an interaction
-	CanCast   bool    // ... and the selected member has a spell to cast
-	Open      [4]bool // the party's square's sides (N E S W) a step may go through
-	Adventure bool    // the party is out in the world
-	Day       bool    // 6:00 to 20:00
-	Inside    bool    // the party stands on an inside square
-	Ordering  bool    // the camp's party order bar is up
-	Credits   bool    // the title's credits page
-	Full      bool    // the pictures are one whole-screen picture
-	IconDrop  bool    // the combat icon designer is up
+	Exploring  bool    // the party explores: the adventuring decisions are taken
+	Sweeping   bool    // ... at the slow, searching pace
+	Interact   bool    // ... on a square whose event waits for an interaction
+	CanCast    bool    // ... and the selected member has a spell to cast
+	Open       [4]bool // the party's square's sides (N E S W) a step may go through
+	Adventure  bool    // the party is out in the world
+	Day        bool    // 6:00 to 20:00
+	Inside     bool    // the party stands on an inside square
+	Ordering   bool    // the camp's party order bar is up
+	Credits    bool    // the title's credits page
+	CreditPage int     // which one (Credit.Page) while Credits
+	Full       bool    // the pictures are one whole-screen picture
+	IconDrop   bool    // the combat icon designer is up
 }
 
 // Page is the text a game wrote and the pictures it showed: scripted text,
@@ -1149,6 +1150,7 @@ type RestKind struct {
 type Credit struct {
 	X, Y, Colour int
 	Text         string
+	Page         int // the credits page it is on (0: the first)
 }
 
 // Border is the window border as frames of block Block of DAX file File:

@@ -27,6 +27,7 @@ import (
 type Credit struct {
 	X, Y, Colour int
 	Text         string
+	Page         int
 }
 
 // Data is what the game hands the presenter.

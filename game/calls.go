@@ -79,7 +79,7 @@ type (
 	// The title sequence (State.Intro): picture step N, the credits, the
 	// lightning's palette colour C, and its end.
 	TitlePicture struct{ N int }
-	TitleCredits struct{}
+	TitleCredits struct{ Page int } // Page: the credits page (Credit.Page) to show
 	TitleFlash   struct{ C int }
 	TitleDone    struct{}
 	// SequenceDone: the State.Sequence Name ended or the player skipped it.

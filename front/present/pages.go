@@ -273,9 +273,18 @@ func (c *cellPage) texts(v front.View) {
 		// each of creditGaps' rows (Pool: before "game created by", after it
 		// and after the version).
 		dx, gaps := max(0, (c.cols-40)/2), 0
-		last := credits[len(credits)-1]
-		gaps = min(len(creditGaps), max(0, c.rows-2-last.Y)) // as many as fit: the first ones, so no row stays on the lower box's border
+		var page []Credit
 		for _, l := range credits {
+			if l.Page == v.CreditPage {
+				page = append(page, l)
+			}
+		}
+		if len(page) == 0 {
+			return
+		}
+		last := page[len(page)-1]
+		gaps = min(len(creditGaps), max(0, c.rows-2-last.Y)) // as many as fit: the first ones, so no row stays on the lower box's border
+		for _, l := range page {
 			y := l.Y
 			for _, g := range creditGaps[:gaps] {
 				if l.Y > g {

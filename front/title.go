@@ -8,6 +8,7 @@ package front
 
 import (
 	"math/rand/v2"
+	"slices"
 	"time"
 )
 
@@ -89,12 +90,17 @@ func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
 	switch {
 	case in.Phase >= IntroFirst && in.Phase < len(pics) || in.Phase == IntroNone:
 		in.Phase++
-		in.end = now.Add(5 * time.Second)
 		n := pics[in.Phase-1]
+		if n < 0 { // a credits page step
+			in.end = now.Add(10 * time.Second)
+			h.Call(func(e Game) { e.TitleCredits(-n - 1) })
+			break
+		}
+		in.end = now.Add(5 * time.Second)
 		h.Call(func(e Game) { e.TitlePicture(n) })
-	case in.Phase != IntroCredits && len(pics) > 1: // a lone picture ends the title
+	case in.Phase != IntroCredits && len(pics) > 1 && !slices.ContainsFunc(pics, func(n int) bool { return n < 0 }): // a lone picture ends the title
 		in.Phase, in.end = IntroCredits, now.Add(10*time.Second)
-		h.Call(func(e Game) { e.TitleCredits() })
+		h.Call(func(e Game) { e.TitleCredits(0) })
 	default:
 		h.Call(func(e Game) { e.TitleDone() })
 	}

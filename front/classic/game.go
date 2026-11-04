@@ -274,7 +274,7 @@ func (g *Game) SetStat(i int, typed string) error {
 
 // Title: the presenter plays it from State.Intro, the game draws it.
 func (g *Game) TitlePicture(n int) { g.do(game.TitlePicture{N: n}) }
-func (g *Game) TitleCredits()      { g.do(game.TitleCredits{}) }
+func (g *Game) TitleCredits(page int) { g.do(game.TitleCredits{Page: page}) }
 func (g *Game) TitleFlash(c int)   { g.do(game.TitleFlash{C: c}) }
 func (g *Game) TitleDone()         { g.do(game.TitleDone{}) }
 
