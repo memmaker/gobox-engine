@@ -4,6 +4,7 @@ go 1.26.2
 
 require (
 	gobox/front v0.0.0
+	gobox/game v0.0.0
 	por v0.0.0
 )
 
@@ -29,11 +30,11 @@ require (
 	gobox/combat v0.0.0 // indirect
 	gobox/dax v0.0.0 // indirect
 	gobox/ega v0.0.0 // indirect
-	gobox/game v0.0.0 // indirect
 	gobox/geo v0.0.0 // indirect
 	gobox/gpu v0.0.0 // indirect
 	gobox/input v0.0.0 // indirect
 	gobox/rules v0.0.0 // indirect
+	gobox/sprites v0.0.0 // indirect
 	gobox/ui v0.0.0 // indirect
 	gobox/walls v0.0.0 // indirect
 	golang.org/x/image v0.47.0 // indirect
@@ -88,3 +89,5 @@ replace github.com/gogpu/wgpu => ../../gogpu-wgpu
 replace github.com/go-webgpu/goffi => ../../goffi
 
 replace github.com/gogpu/gogpu => ../../goplay/third_party/gogpu
+
+replace gobox/sprites => ../sprites
