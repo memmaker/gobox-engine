@@ -88,6 +88,8 @@ type State struct {
 	// only these.
 	Allowed                map[string]bool
 	RestHeals, RestStudies bool    // what resting now does
+	TempleOffers           []Offer // the temple\'s appraisals, as Shop.Offers
+	PartyCap               int     // most items the party carries in all, 0 no limit
 	Bestiary               []Beast // the monsters the party has met
 }
 
@@ -122,7 +124,7 @@ type Member struct {
 	Str00                                int            // exceptional strength: 0 none, 1..100 for 18/01..18/00
 	HP, MaxHP, AC, THAC0, Move           int
 	Exp                                  uint32
-	Items                                []Item
+	Items                                []Item // in the rules' order; gobox keeps it
 	Spells                               []SpellRef
 	Portrait                             Picture
 	Icon                                 map[string]int // icon designer choices as numbers
@@ -134,6 +136,7 @@ type Member struct {
 	ItemCap                              int            // most items carried, 0 no limit
 	SlotsMax                             map[string]int // spell slots in all, keys as Slots
 	CanCast                              bool           // may cast now (status, no-magic area)
+	Powers                               []Option       // the member\'s special powers menu (Decisions)
 }
 
 // SpellRef is a spell a member knows or has memorized.
@@ -154,14 +157,18 @@ type Item struct {
 	Name                        string
 	Readied, Identified, Cursed bool
 	Charges, Price, Weight      int
-	Type                        int    // item type id (picks the icon)
-	Kind                        string // "weapon", "armor", "ring", ...
-	Count                       int    // stack size, 0 or 1 for one
-	Slot                        string // readied in: weapon, shield, armor, helm, belt, robe, cloak, boots, gauntlets, ring, ring2, arrows, bolts; "" none
-	Wrong                       bool   // the holder may not use it (class, race)
-	Text                        string // what Look tells of it
-	Spell                       int    // a scroll's spell id, 0 none
-	Scribe                      bool   // the holder may scribe the scroll's spell
+	Type                        int            // item type id (picks the icon)
+	Kind                        string         // "weapon", "armor", "ring", ...
+	Count                       int            // stack size, 0 or 1 for one
+	Slot                        string         // readied in: weapon, shield, armor, helm, belt, robe, cloak, boots, gauntlets, ring, ring2, arrows, bolts; "" none
+	Wrong                       bool           // the holder may not use it (class, race)
+	Text                        string         // what Look tells of it
+	Spell                       int            // a scroll's spell id, 0 none
+	Scribe                      bool           // the holder may scribe the scroll's spell
+	Usable                      bool           // UseItem takes it now
+	Words                       []string       // the name\'s words as the original builds them
+	Hidden                      string         // an unidentified item\'s real name, shown once identified
+	Sale                        map[string]int // what a shop pays for it, by money kind
 }
 
 // Quest is a quest fact.
@@ -292,12 +299,15 @@ type Shop struct {
 	Buys          bool // the shop buys from the party
 	IdentifyPrice int
 	Unknown       []ItemRef // the party's unidentified items the shop can identify
+	Identified    *ItemRef  // the item last identified here, nil none
+	Identifies    int       // identifications done here so far
 }
 
 type Service struct {
 	Name  string
 	Price int
-	Needs []int // party indices the service would help; the rest have no need of it
+	Needs []int          // party indices the service would help; the rest have no need of it
+	Not   map[int]string // party index to why the service is of no use ("is not blind.")
 }
 
 type Training struct {
@@ -384,9 +394,10 @@ type Ask struct {
 // Line is one row of a PickItem list.
 type Line struct {
 	Text     string
-	Header   bool // a heading, not pickable
-	Dim, Off bool // shown dimmed; not pickable
-	Spell    int  // the spell the row names, 0 if none
+	Header   bool  // a heading, not pickable
+	Dim, Off bool  // shown dimmed; not pickable
+	Spell    int   // the spell the row names, 0 if none
+	Hides    []int // Ask.Options hidden while this row is chosen
 }
 
 // Decision is a typed rule verb. Screen verbs are not Decisions.
