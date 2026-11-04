@@ -178,7 +178,7 @@ type Automap struct {
 	Marked []image.Point
 	Notes  []string      // the player's text for each Marked square
 	Walls  []Wall        // by square
-	Doors  []Wall        // Kind 1 open, 2 locked, 3 wizard-locked
+	Doors  []Wall        // State says what each door is
 	Walked []image.Point // squares walked on (Known also holds those only seen)
 	Labels []Label       // the map's own labels; the player's are Marked/Notes
 	// Terrain is the overland map's terrain id per square, row by row over
@@ -198,7 +198,18 @@ type Label struct {
 type Wall struct {
 	At         image.Point
 	Side, Kind int
+	State      DoorState // a door's state; walls leave it zero
 }
+
+// DoorState is what a door on the automap is.
+type DoorState int
+
+const (
+	DoorClosed DoorState = iota
+	DoorOpen
+	DoorLocked
+	DoorWizardLocked
+)
 
 // Combat is a fight. Squares hold art refs, not cells.
 type Combat struct {
