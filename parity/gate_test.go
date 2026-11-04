@@ -34,7 +34,16 @@ func TestLootGate(t *testing.T) {
 	if err := e.Rules().Apply(game.LootLeave{Sure: false}).Err; err == nil || err.Error() != "There is still treasure left. Leave it?" {
 		t.Fatalf("leaving with treasure left: %v", err)
 	}
-	t.Skip("gap: the refusal carries no Ask (rules/gamecalls.go), so classic puts no Confirm to the presenter and Yes cannot be tried")
+	if v = shownBy(g, p, front.Action{Kind: front.ActClose}); v.Ask == nil || len(v.Ask.Items) != 0 {
+		t.Fatal("leaving with treasure left put no Confirm to the presenter")
+	}
+	if v = shownBy(g, p, front.Action{Kind: front.ActNo}); v.Loot == nil || v.Ask == nil || len(v.Ask.Items) != 3 {
+		t.Fatal("No did not stay on the treasure")
+	}
+	shownBy(g, p, front.Action{Kind: front.ActClose}, front.Action{Kind: front.ActYes})
+	if g.View().Loot != nil {
+		t.Fatal("Yes did not leave the treasure")
+	}
 }
 
 // reloaded is the game with n more resets.
@@ -65,7 +74,14 @@ func TestResetDropsOwn(t *testing.T) {
 }
 
 // TestSheetPNGAdapter: por's sheetpng golden (a PNG dropped on the sheet
-// becomes the portrait) needs ActPortrait, which classic.Game does not answer.
+// becomes the portrait) through classic.Game alone.
 func TestSheetPNGAdapter(t *testing.T) {
-	t.Skip("gap: classic.Game answers no ActPortrait, so the sheetpng golden cannot be reached through it")
+	e := engine(t, true, "")
+	g := classic.NewGame(e.Rules(), e.Data())
+	g.OpenSheet(-1)
+	g.Settle()
+	g.ShowMember(1)
+	g.Settle()
+	g.Answer(front.Action{Kind: front.ActPortrait, N: -1, Text: writePNG(t, 40, 60)})
+	golden(t, "sheetpng", g.Settle())
 }

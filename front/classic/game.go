@@ -246,7 +246,14 @@ func (g *Game) LootView(n int) error      { return g.do(game.LootLook{Member: n}
 func (g *Game) LootTake(n int) error      { return g.do(game.LootTake{Member: n}) }
 func (g *Game) LootDetect() error         { return g.do(game.LootDetect{}) }
 func (g *Game) LootShare() error          { return g.do(game.LootShare{}) }
-func (g *Game) LootLeave(sure bool) error { return g.do(game.LootLeave{Sure: sure}) }
+func (g *Game) LootLeave(sure bool) error {
+	err := g.do(game.LootLeave{Sure: sure})
+	if a := g.asked; a != nil && a.Kind == game.YesNo { // the presenter asks it as a Confirm
+		g.asked = nil
+		return front.Confirm(a.Prompt)
+	}
+	return err
+}
 func (g *Game) TryDoor(k front.DoorWay) error {
 	return g.do(game.TryDoor{Way: int(k)})
 }
@@ -508,7 +515,7 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.Scribe{Member: m, Spell: a.X}, true
 	case front.ActDropMember:
 		return game.DropChar{Member: m}, true
-	case front.ActIcon:
+	case front.ActIcon, front.ActPortrait: // the rules say which takes it: the icon, or the sheet's portrait
 		return game.IconPNG{Path: a.Text}, true
 	case front.ActIconEdit:
 		return game.EditIcon{Member: a.N}, true
