@@ -30,9 +30,7 @@ type AdLibData struct {
 	Music   []byte      // MUSIC.DAX: song n is block n
 	Sounds  []byte      // ZOUNDS.DAX; may be nil
 	Effects map[int]int // effect number -> Sounds block id
-	Header  bool        // effects are 8SVX FORMs (every byte ^0x80): skip to BODY; else raw u8 PCM
 	Rate    int         // effect playback rate, Hz (9000 for PoD)
-	Skip    []int       // Sounds blocks that are raw PCM even if Header
 }
 
 const adlibRate = 44100
@@ -53,45 +51,13 @@ func NewAdLib(d AdLibData) (*AdLib, error) {
 		if id >= len(a.sounds) || a.sounds[id] == nil {
 			continue
 		}
-		b := make([]byte, len(a.sounds[id]))
-		for i, v := range a.sounds[id] {
-			b[i] = v ^ 0x80
-		}
-		if d.Header && !contains(d.Skip, id) {
-			b = svxBody(b)
-		} else {
-			b = a.sounds[id]
-		}
-		a.effects[n] = b
+		a.effects[n] = a.sounds[id] // raw u8 PCM, as the original hands it to DigPak
 	}
 	a.chip = opl2.New()
 	a.rs = opl2.NewResampler(a.chip, adlibRate)
 	return a, nil
 }
 
-func contains(l []int, v int) bool {
-	for _, x := range l {
-		if x == v {
-			return true
-		}
-	}
-	return false
-}
-
-// svxBody returns the BODY chunk of an (already unxored) FORM/8SVX, or b if there is none.
-func svxBody(b []byte) []byte {
-	if len(b) < 12 || string(b[:4]) != "FORM" {
-		return b
-	}
-	for p := 12; p+8 <= len(b); {
-		n := int(binary.BigEndian.Uint32(b[p+4:]))
-		if string(b[p:p+4]) == "BODY" {
-			return b[p+8 : min(len(b), p+8+n)]
-		}
-		p += 8 + n + n&1
-	}
-	return b
-}
 
 // daxBlocks unpacks a DAX file into blocks indexed by id.
 func daxBlocks(f []byte) ([][]byte, error) {

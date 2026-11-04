@@ -14,7 +14,7 @@ func adlibData(t *testing.T) *AdLib {
 	for n := 2; n <= 12; n++ {
 		fx[n] = n - 1
 	}
-	a, err := NewAdLib(AdLibData{Music: m, Sounds: z, Effects: fx, Header: true, Skip: []int{4}, Rate: 9000})
+	a, err := NewAdLib(AdLibData{Music: m, Sounds: z, Effects: fx, Rate: 9000})
 	if err != nil {
 		t.Fatal(err)
 	}
