@@ -540,3 +540,6 @@ func paneText(s game.State) string {
 
 // State is the rules' state.
 func (g *Game) State() game.State { return g.R.State() }
+
+// Rules is the game's rules (present.WithRules wraps the game with gobox's pool pickers).
+func (g *Game) Rules() game.Rules { return g.R }
