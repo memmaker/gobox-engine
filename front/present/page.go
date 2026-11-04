@@ -300,7 +300,15 @@ func drawPictures(m *image.RGBA, pics []front.Picture, at image.Point) {
 		case s.Fill:
 			draw.Draw(m, r, image.NewUniform(s.Colour), image.Point{}, draw.Src)
 		case s.Img != nil:
-			draw.Draw(m, r, s.Img, s.Img.Bounds().Min, draw.Over)
+			if b := s.Img.Bounds(); b.Dx() == r.Dx() && b.Dy() == r.Dy() || r.Empty() || b.Empty() {
+				draw.Draw(m, r, s.Img, b.Min, draw.Over)
+			} else { // not the area's size (a picker's cell): scaled to fit, aspect kept, centred
+				w, h := r.Dx(), b.Dy()*r.Dx()/b.Dx()
+				if h > r.Dy() {
+					w, h = b.Dx()*r.Dy()/b.Dy(), r.Dy()
+				}
+				xdraw.NearestNeighbor.Scale(m, image.Rect(0, 0, w, h).Add(r.Min.Add(image.Pt((r.Dx()-w)/2, (r.Dy()-h)/2))), s.Img, b, draw.Over, nil)
+			}
 		}
 	}
 }
