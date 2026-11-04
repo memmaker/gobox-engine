@@ -2,6 +2,7 @@ package present
 
 import (
 	"image"
+	"image/color"
 
 	"gobox/front"
 	"gobox/ui"
@@ -40,6 +41,10 @@ type Border struct {
 	Block  int
 	Pieces [ui.Pieces]int
 	Mask   *uint8 // the colour index left transparent (as Picture.Mask; nil: none)
+
+	// Pics, when set, give the pieces as DAX picture refs (Picture.File, Block,
+	// Frame, Mask) by place instead of File's symbols; a ref with File "": no piece.
+	Pics [ui.Pieces]front.Picture
 }
 
 // DefaultTheme is por's look.
@@ -71,12 +76,22 @@ func applyTheme(t Theme) {
 // borderPieces is v's border pieces, or Theme.Border's decoded when the
 // game hands none in.
 func borderPieces(v front.View) [ui.Pieces]image.Image {
-	if v.Border != ([ui.Pieces]image.Image{}) || theme.Border.File == "" {
+	if v.Border != ([ui.Pieces]image.Image{}) {
 		return v.Border
 	}
 	var t [ui.Pieces]image.Image
+	for i, pc := range theme.Border.Pics {
+		if pc.File != "" {
+			if m := picImage(pc, [16]color.RGBA{}); m != nil {
+				t[i] = m
+			}
+		}
+	}
+	if theme.Border.File == "" {
+		return t // the zero value with no Pics: no pieces, as v.Border was
+	}
 	for i, f := range theme.Border.Pieces {
-		if f >= 0 {
+		if f >= 0 && t[i] == nil {
 			mask := -1
 			if theme.Border.Mask != nil {
 				mask = int(*theme.Border.Mask)
