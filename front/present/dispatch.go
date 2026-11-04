@@ -64,7 +64,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if confirm(v) != "" {
 		return p.confirmKey(k)
 	}
-	if p.main && (p.mm.skip(p.shownView.Hall) || p.mm.key(p, k, mainView(v))) {
+	if p.main && (p.mm.skip(p.shownView.Hall, p.shownView.Backdrop) || p.mm.key(p, k, mainView(v))) {
 		return true
 	}
 	if a := v.Ask; a != nil && a.Dirs { // the arrows answer the question (ActDir), the bars do not take them (keyAct)
@@ -286,7 +286,7 @@ func (p *Presenter) Click(x, y int) bool {
 		}
 	}
 	if p.main {
-		if p.mm.skip(p.shownView.Hall) {
+		if p.mm.skip(p.shownView.Hall, p.shownView.Backdrop) {
 			return true
 		}
 		return p.mm.click(p, mainView(p.shownView), x, y)

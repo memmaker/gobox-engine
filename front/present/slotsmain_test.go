@@ -32,7 +32,6 @@ func TestSlotsFromMainMenu(t *testing.T) {
 	defer dst.Deallocate()
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{} }, Font: func(byte, bool) [8]byte { return [8]byte{} }}
 	v := front.View{MainMenu: []front.ActKind{front.ActLoad, front.ActQuit}}
-	p.mm.skip(false)
 	p.Draw(dst, note, v)
 	p.send(front.ActLoad, 0)
 	if p.slots == nil {
