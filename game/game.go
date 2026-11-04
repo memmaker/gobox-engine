@@ -98,6 +98,7 @@ type Where struct {
 	Year      int
 	Mode      string // travel mode: "dungeon", "wilderness", "town", ...
 	Searching bool
+	Hall      bool           // the party is where characters may join or leave it (a guild hall, an inn)
 	Detail    map[string]int // game-specific domain numbers (block ids, wall sets)
 }
 
@@ -262,8 +263,19 @@ type Creation struct {
 	Draft        Member
 	Step         string // "race", "class", "stats", "name", ...
 	Choices      []string
+	Fields       []Field  // the draft's fields with their options (race, gender, class, alignment ...)
 	Roster       []string // saved characters that can be added
 	MinHP, MaxHP int
+	Minimums     string // the rules' text on stat minimums for the chosen class
+}
+
+// Field is one creation choice: its options, which fit the draft so far,
+// and the current pick (-1 none).
+type Field struct {
+	Name    string
+	Options []string
+	Fits    []bool
+	Pick    int
 }
 
 // SaveSlot is a save slot: its name and info text.
