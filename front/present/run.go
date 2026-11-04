@@ -31,9 +31,10 @@ type Front struct {
 	OnStart func()
 	ArtNew  bool // the art changed: the game publishes its page again in it (a menu waiting has no tick)
 
-	pic     Rect   // where the picture is drawn, in device pixels
-	slot    string // the save to start from (Open)
-	started bool   // the game has put its first screen up (Act)
+	pic     Rect       // where the picture is drawn, in device pixels
+	slot    string     // the save to start from (Open)
+	started bool       // the game has put its first screen up (Act)
+	off     *gpu.Image // Frame's offscreen picture
 }
 
 // NewFront is a Front over g, with the game's declarative data over what
