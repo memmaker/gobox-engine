@@ -92,4 +92,3 @@ replace github.com/go-webgpu/goffi => ../../goffi
 
 replace github.com/gogpu/gogpu => ../../goplay/third_party/gogpu
 
-replace gobox/sprites => ../sprites
