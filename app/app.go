@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 
+	"gobox/blobber"
 	"gobox/gpu"
 )
 
@@ -49,17 +50,19 @@ type Theme struct {
 type Settings struct {
 	Scale      int  // the window is Theme.W x Theme.H times Scale
 	Fullscreen bool // the screen at its own resolution instead of a window
+	Window     bool // a window whatever Fullscreen or the Esc menu says
 }
 
 // Capture is a scripted run: keys in, frames out, the user's input ignored.
 type Capture struct {
-	Shot   string     // FILE.png: the window after the keys, then exit; with %d every frame while the keys play
-	Keys   []Key      // the script (ParseKeys)
-	Freeze bool       // time stands still after the keys
-	Quit   bool       // the run ends after the keys
-	Window [2]int     // W, H (points): a window of that size and any shape; 0: Theme's
-	GPU    gpu.Config // gpu's measuring and capture switches
-	Slot   string     // a save slot to start from instead of the game's own start ("": none); passed to a Starter
+	Shot    string     // FILE.png: the window after the keys, then exit; with %d every frame while the keys play
+	Keys    []Key      // the script (ParseKeys)
+	Freeze  bool       // time stands still after the keys
+	Quit    bool       // the run ends after the keys
+	Window  [2]int     // W, H (points): a window of that size and any shape; 0: Theme's
+	GPU     gpu.Config // gpu's measuring and capture switches
+	Slot    string     // a save slot to start from instead of the game's own start ("": none); passed to a Starter
+	Pointer [][2]int   // with Shot: the pointer at these window pixels, one after another (Next)
 }
 
 // Scripted says whether the run is scripted: the user's input is ignored.
@@ -71,7 +74,11 @@ type Starter interface{ Start(slot string) }
 
 // Config is the app: the game and how it runs.
 type Config struct {
-	Game     Game
+	Game     Game // or Front: the shell reads the input for the game's screens
+	Front    Front
+	Art      *Art  // with Front: two arts, cross-faded (nil: one)
+	FontPrev Key   // with Front: the code Ctrl-Shift-F sends (0: none)
+	Menu     *Menu // the Esc menu's settings (nil: blobber's own)
 	Theme    Theme
 	Settings Settings
 	Capture  Capture
@@ -114,6 +121,22 @@ type shell struct {
 // Run opens the window and runs the game until it ends.
 func Run(cfg Config) error {
 	t := cfg.Theme
+	var fg *frontGame
+	if cfg.Front != nil {
+		fg = &frontGame{f: cfg.Front, cfg: cfg, tps: cfg.TPS}
+		cfg.Game = fg
+	}
+	if cfg.Menu != nil {
+		held := func(any) bool { return true }
+		if fg != nil {
+			held = func(k any) bool { return fg.latch.Down(k, true) }
+		}
+		cfg.Menu.setup(held, cfg.TPS)
+		cfg.Settings.Fullscreen = cfg.Settings.Fullscreen || blobber.Settings.Fullscreen
+	}
+	if fg != nil && cfg.Art != nil {
+		fg.art = cfg.Art.Want()
+	}
 	gpu.SetWindowSize(t.W*cfg.Settings.Scale, t.H*cfg.Settings.Scale) // the title pictures' shape (16:10): they fill the window whole, uncropped
 	gpu.SetWindowAspect(t.W, t.H)                                     // and a resize keeps it so; the full screen has its own shape, the UI pages lay out to it and the pictures get black bars
 	if w := cfg.Capture.Window; w[0] > 0 && w[1] > 0 {                // a window of that size and shape, for captures of other shapes
@@ -122,9 +145,11 @@ func Run(cfg Config) error {
 	}
 	gpu.SetWindowTitle(t.Title)
 	gpu.SetTPS(cfg.TPS)
-	gpu.SetFullscreen(cfg.Settings.Fullscreen)
+	gpu.SetFullscreen(cfg.Settings.Fullscreen && !cfg.Settings.Window)
 	gpu.SetConfig(cfg.Capture.GPU)
 	if st, ok := cfg.Game.(Starter); ok {
+		st.Start(cfg.Capture.Slot)
+	} else if st, ok := cfg.Front.(Starter); ok {
 		st.Start(cfg.Capture.Slot)
 	}
 	return gpu.RunGame(&shell{cfg: cfg})

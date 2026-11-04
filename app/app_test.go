@@ -1,6 +1,8 @@
 package app
 
 import (
+	"encoding/json"
+	"gobox/blobber"
 	"os"
 	"slices"
 	"testing"
@@ -29,5 +31,19 @@ func TestPrefs(t *testing.T) {
 	}
 	if b, _ := os.ReadFile(p.Path()); string(b) != "{\n \"A\": 5\n}" {
 		t.Fatalf("file %q", b)
+	}
+}
+
+// The Esc menu's file holds the game's options beside blobber's, at the top level, in order.
+func TestMenuBoth(t *testing.T) {
+	type Extra struct{ Zoom float64 }
+	m := Menu{Extra: &Extra{2}}
+	got, _ := json.Marshal(m.both(blobber.Options{Torch: 1}))
+	want, _ := json.Marshal(struct {
+		blobber.Options
+		Extra
+	}{blobber.Options{Torch: 1}, Extra{2}})
+	if string(got) != string(want) {
+		t.Fatalf("%s\nwant %s", got, want)
 	}
 }
