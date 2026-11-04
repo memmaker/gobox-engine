@@ -145,7 +145,7 @@ type Quest struct {
 type Automap struct {
 	Area   string
 	Size   image.Point
-	Known  []image.Point // squares seen
+	Known  []image.Point // squares seen; empty: nothing is known
 	Marked []image.Point
 	Notes  []string // the player's text for each Marked square
 	Walls  []Wall   // by square
