@@ -39,7 +39,11 @@ func (p *Presenter) shopItems(v front.View) (string, []ui.MenuRow) {
 	if len(s.Unknown) > 0 {
 		it = append(it, ui.MenuRow{Text: "Identify", Key: 'I', Do: c.to(shopID, 0)})
 	}
-	return "Shop", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: func() { p.send(front.ActClose, 0) }})
+	title := "Shop"
+	if s.Pooled > 0 {
+		title = withGold(title, s.Gold) + " Pooled " + price(front.Money{Gold: s.Pooled})
+	}
+	return title, append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: func() { p.send(front.ActClose, 0) }})
 }
 
 // serviceAct takes the decisions of the shop, the temple and the training

@@ -20,6 +20,7 @@ func Loot(s game.State) *front.Loot {
 	for _, n := range l.Money { // Share: only classic.Game has LootShare (front.Game's other makers lack it)
 		v.Share = v.Share || n > 0
 	}
+	v.Pool = s.Allowed["PoolCoins"]
 	if v.Take && s.Selected >= 0 && s.Selected < len(s.Party) {
 		for _, sp := range s.Party[s.Selected].Spells {
 			v.Detect = v.Detect || sp.Memorized && sp.Name == detectMagic

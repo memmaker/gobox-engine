@@ -183,6 +183,11 @@ func Gate(h Host, l *Loot, d *DoorOpts) (string, []GateItem) {
 				s.LootShare()
 			}
 		}) // only a game that offers it sets Share
+		add(l.Pool, "Pool", func(e Game) {
+			if p, ok := e.(interface{ LootPool() error }); ok {
+				p.LootPool()
+			}
+		}) // only a game that offers it sets Pool
 		add(true, "Exit", func(e Game) {
 			AskSure(h, e.LootLeave(false), func() { h.Call(func(e Game) { e.LootLeave(true) }) })
 		})

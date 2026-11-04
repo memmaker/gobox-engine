@@ -642,7 +642,9 @@ type Shop struct {
 	Name          string
 	Goods         []Item
 	Prices        []int
-	Buys          bool // the shop buys from the party
+	Buys          bool           // the shop buys from the party
+	Reloads       bool           // the shop refills clips (Reload)
+	Pooled        map[string]int // money pooled with the shop, by coin (nil: none)
 	IdentifyPrice int
 	Unknown       []ItemRef // the party's unidentified items the shop can identify
 	Identified    *ItemRef  // the item last identified here, nil none
@@ -883,7 +885,8 @@ type (
 	}
 	Repair    struct{ Member, Item int }
 	PoolCoins struct{ Member int }
-	Leave     struct{} // leave the open shop, vault, loot or temple
+	Reload    struct{ Member, Item int } // refill a clip (the shop's Ammo / Fill Clip)
+	Leave     struct{}                   // leave the open shop, vault, loot or temple
 	// Paladin.
 	LayOnHands struct{ Member int }
 	Cure       struct{ Member, Service int }
@@ -962,6 +965,7 @@ func (Identify) decision()         {}
 func (Appraise) decision()         {}
 func (Repair) decision()           {}
 func (PoolCoins) decision()        {}
+func (Reload) decision()           {}
 func (Leave) decision()            {}
 func (LayOnHands) decision()       {}
 func (Cure) decision()             {}

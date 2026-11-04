@@ -48,8 +48,11 @@ func (inv *inventory) menu(in *front.Inventory) []word {
 		return []word{{text: "Take", act: front.ActBuy, on: wareAt(in, inv.ware) != nil}, {text: "All", act: front.ActTakeAll, on: len(in.Wares) > 0}, {text: "Exit", act: front.ActClose, on: true}}
 	}
 	if in.Wares != nil { // the shop: buy a ware, sell an item
-		return []word{{text: "Buy", act: front.ActBuy, on: wareAt(in, inv.ware) != nil}, {text: "Sell", act: front.ActSell, on: it != nil && in.Sell},
-			{text: "Exit", act: front.ActClose, on: true}}
+		w := []word{{text: "Buy", act: front.ActBuy, on: wareAt(in, inv.ware) != nil}, {text: "Sell", act: front.ActSell, on: it != nil && in.Sell}}
+		if in.Reload {
+			w = append(w, word{text: "Reload", act: front.ActReload, on: it != nil})
+		}
+		return append(w, word{text: "Exit", act: front.ActClose, on: true})
 	}
 	w := []word{{text: "Ready", act: front.ActReady, on: it != nil && it.Slot}}
 	if in.Use {

@@ -120,6 +120,7 @@ const (
 	ActHalve   // inventory: split item N's stack in two (Inventory.Halve; the game answers or refuses)
 	ActJoin    // inventory: join item N with the same items of the member (Inventory.Join; the game answers or refuses)
 	ActCommand // the party menu: game.Data.Commands[N]'s Do
+	ActReload  // inventory: the shop refills item N's clip (Inventory.Reload)
 
 )
 

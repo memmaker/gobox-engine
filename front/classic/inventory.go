@@ -73,7 +73,7 @@ func Inventory(v *front.Inventory, s game.State) *front.Inventory {
 	}
 	m := s.Party[s.Selected]
 	n := &front.Inventory{Member: s.Selected, Cap: s.PartyCap, Doll: make([]*front.InvItem, len(DollSlots)),
-		Use: s.Allowed["UseItem"], Sell: s.Allowed["Sell"], Switch: s.Allowed["Select"],
+		Use: s.Allowed["UseItem"], Sell: s.Allowed["Sell"], Reload: s.Shop != nil && s.Shop.Reloads, Switch: s.Allowed["Select"],
 		Trade: s.Allowed["Trade"], Halve: s.Allowed["Halve"], Join: s.Allowed["Join"]}
 	for _, p := range m.Powers {
 		if k, ok := powerKind(p.Do); ok && (k != front.ActSpells || !n.Sell) { // no spells in a shop
@@ -140,7 +140,7 @@ func Shop(h *front.Shop, s game.State) *front.Shop {
 	if h == nil || sh == nil {
 		return h
 	}
-	v := &front.Shop{IDPrice: sh.IdentifyPrice, Gold: s.Purse[game.Gold], Appraise: appraise(s, sh.Offers), IdentifiedN: sh.Identifies}
+	v := &front.Shop{IDPrice: sh.IdentifyPrice, Gold: s.Purse[game.Gold], Pooled: sh.Pooled[game.Gold], Appraise: appraise(s, sh.Offers), IdentifiedN: sh.Identifies}
 	item := func(r game.ItemRef) *game.Item {
 		if r.Member >= 0 && r.Member < len(s.Party) && r.Item >= 0 && r.Item < len(s.Party[r.Member].Items) {
 			return &s.Party[r.Member].Items[r.Item]

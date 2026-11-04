@@ -242,10 +242,11 @@ func (g *Game) EffectsList(n int) (out []front.ListLine) {
 }
 
 // Waits.
-func (g *Game) LootView(n int) error      { return g.do(game.LootLook{Member: n}) }
-func (g *Game) LootTake(n int) error      { return g.do(game.LootTake{Member: n}) }
-func (g *Game) LootDetect() error         { return g.do(game.LootDetect{}) }
-func (g *Game) LootShare() error          { return g.do(game.LootShare{}) }
+func (g *Game) LootView(n int) error { return g.do(game.LootLook{Member: n}) }
+func (g *Game) LootTake(n int) error { return g.do(game.LootTake{Member: n}) }
+func (g *Game) LootDetect() error    { return g.do(game.LootDetect{}) }
+func (g *Game) LootShare() error     { return g.do(game.LootShare{}) }
+func (g *Game) LootPool() error      { return g.do(game.PoolCoins{Member: g.sel(-1)}) }
 func (g *Game) LootLeave(sure bool) error {
 	err := g.do(game.LootLeave{Sure: sure})
 	if a := g.asked; a != nil && a.Kind == game.YesNo { // the presenter asks it as a Confirm
@@ -477,6 +478,8 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.Drop{Member: g.sel(-1), Item: a.N}, true
 	case front.ActSell:
 		return game.Sell{Member: g.sel(-1), Item: a.N}, true
+	case front.ActReload:
+		return game.Reload{Member: g.sel(-1), Item: a.N}, true
 	case front.ActBuy:
 		return game.Buy{Member: g.sel(-1), Item: a.N}, true
 	case front.ActTakeAll:
