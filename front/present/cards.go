@@ -189,6 +189,9 @@ func (p *Presenter) cardMenu(dst *gpu.Image, i int, lines []string, keys []byte,
 	if Host.PartyRow { // the row: above the card, beside it
 		top = max(0, r.Max.Y-int(k*8*float64(len(lines)+2)))
 	}
+	if f := p.menuFloor; f > 0 { // never over the text pane
+		top = max(0, min(top, f-int(k*8*float64(len(lines)+2))))
+	}
 	return p.tipMenu(dst, "", lines, keys, sel, k, cx, top), image.Rect(cx-w/2, top, cx+w/2, top)
 }
 

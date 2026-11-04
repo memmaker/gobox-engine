@@ -454,6 +454,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	shown = shown && !(v.Shop != nil && p.camp.screen != campMain)                            // the shop's submenus (identify, appraise) stand alone, the greeting gone
 	if shown && v.Exploring && v.Window != front.WinPicture && v.Window != front.WinText {    // the text under the command bar: along the bottom edge
 		p.paneBox(dst, note, v, tk, cx, b.Dy()-int(tk*th/2))
+		p.menuFloor = b.Dy() - int(tk*th) // the camp's member menus stop above the text
+		defer func() { p.menuFloor = 0 }()
 	} else if shown { // a question, or a message to confirm (Enter, a click): a box in the middle, its choices under it
 		p.paneBox(dst, note, v, tk, cx, cy)
 		picBottom = max(picBottom, cy+int(tk*th/2)) // the menus go under the text too
