@@ -36,7 +36,8 @@ type Picture struct {
 	Block, Frame int
 	Name         string
 	W, H         int
-	Pixels       []byte
+	Pixels       []byte // palette indices, W*H
+	Clear        int    // the index drawn transparent, -1 none
 }
 
 // Mode says what the game waits for.
@@ -288,13 +289,42 @@ type Ask struct {
 // Decision is a typed rule verb. Screen verbs are not Decisions.
 type Decision interface{ decision() }
 
-// Answer answers the pending Ask: N option/index/number, Text typed line,
-// At a square.
+// Answer answers the pending Ask, the same way in every game, by its Kind:
+//   - Choice: N is the index into Ask.Options
+//   - YesNo: N is 1 for yes, 0 for no
+//   - PickMember: N is the party index; PickItem: the item's index in its list;
+//     PickSpell: the spell id
+//   - Number: N; Name: Text
+//   - Square: At
+//   - Direction: N is the facing (0 north, 2 east, 4 south, 6 west; odd: diagonals)
+//   - Continue: no fields
+//
+// Backing out of a question is Cancel, never a special N.
 type Answer struct {
 	N    int
 	Text string
 	At   image.Point
 }
+
+// Cancel backs out of the pending Ask (the original's Esc / Exit).
+type Cancel struct{}
+
+// Adjust raises or lowers one of the creation draft's stats by By (the
+// original's stat modify step); Stat indexes Member.Stats.
+type Adjust struct{ Stat, By int }
+
+// Money kinds: Purse, Loot.Money and Vault.Money use these names, the same in
+// every game.
+const (
+	Copper   = "copper"
+	Silver   = "silver"
+	Electrum = "electrum"
+	Gold     = "gold"
+	Platinum = "platinum"
+	Gems     = "gems"
+	Jewelry  = "jewelry"
+	Credits  = "credits"
+)
 
 type (
 	Forward struct{}
@@ -375,6 +405,8 @@ type (
 )
 
 func (Answer) decision()   {}
+func (Cancel) decision()   {}
+func (Adjust) decision()   {}
 func (Forward) decision()  {}
 func (TurnBy) decision()   {}
 func (Search) decision()   {}
