@@ -26,6 +26,13 @@ type Menu struct {
 	FontGlyph func(font int, ch byte) [8]byte
 }
 
+// fontHost is a Front with text fonts of its own (present.Front): the
+// Font list comes from it unless the Menu fills it.
+type fontHost interface {
+	KeepFonts(dir, title string)
+	FontMenu() (func() []string, func() int, func(int), func(int, byte) [8]byte)
+}
+
 // setup loads the settings file and hands blobber the menu; held is the
 // latch (no key held through a screen change repeats), tps the tick rate.
 func (m *Menu) setup(held func(any) bool, tps int) {

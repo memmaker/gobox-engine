@@ -77,8 +77,15 @@ type Chooser struct {
 // NewChooser lists Load(dir) with first (a name) put first, the rest in
 // Load's order, and picks the font named in file (if any).
 func NewChooser(dir, first, file string) *Chooser {
-	c := &Chooser{File: file}
-	for _, f := range Load(dir) {
+	c := NewChooserOf(Dir(dir), first)
+	c.Keep(file)
+	return c
+}
+
+// NewChooserOf lists own, then the pool, with first (a name) put first.
+func NewChooserOf(own []Font, first string) *Chooser {
+	c := &Chooser{}
+	for _, f := range append(append([]Font{}, own...), All()...) {
 		if Find(c.List, f.Name) < 0 {
 			c.List = append(c.List, f)
 		}
@@ -87,12 +94,17 @@ func NewChooser(dir, first, file string) *Chooser {
 		f := c.List[i]
 		c.List = append([]Font{f}, append(c.List[:i], c.List[i+1:]...)...)
 	}
+	return c
+}
+
+// Keep keeps the choice in file from now on, and picks the font it names (if any).
+func (c *Chooser) Keep(file string) {
+	c.File = file
 	if b, err := os.ReadFile(file); err == nil {
 		if i := Find(c.List, strings.TrimSpace(string(b))); i >= 0 {
 			c.Cur = i + 1
 		}
 	}
-	return c
 }
 
 // Names are the fonts' names with the game's first, as label.

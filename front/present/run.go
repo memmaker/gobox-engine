@@ -47,6 +47,7 @@ func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
 		f.Glyph = func(ch byte) [8]byte { g, _ := fonts.Glyph(font, ch, true); return g }
 		f.Font = func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(font, ch, text); return g }
 	}
+	f.chooseFonts(data.Fonts)
 	f.Game = WithRules(g, &f.P)
 	if len(snd) > 0 {
 		f.P.Snd = snd[0]
@@ -160,6 +161,9 @@ func (f *Front) Cell(x, y float64) (int, int, bool) {
 func (f *Front) Draw(dst *gpu.Image) {
 	v := f.Game.View()
 	n := v.Note
+	if f.P.fontNote != "" && time.Since(f.P.fontAt) < 2*time.Second { // Ctrl-F's font name
+		n.Text, n.At = f.P.fontNote, f.P.fontAt
+	}
 	note := Note{Text: n.Text, Show: time.Since(n.At) < time.Second+time.Duration(len(n.Text))*80*time.Millisecond, Glyph: f.Glyph, Font: f.Font}
 	if f.P.Inventory(dst, note, v) { // the inventory screen
 		f.pic = Rect{}

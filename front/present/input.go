@@ -143,9 +143,13 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 	case a == input.Overview:
 		p.send(front.ActOverview, 0)
 	case a == input.Font:
-		p.send(front.ActFont, 1)
+		if !p.cycleFont(1) {
+			p.send(front.ActFont, 1)
+		}
 	case a == input.FontPrev:
-		p.send(front.ActFont, -1)
+		if !p.cycleFont(-1) {
+			p.send(front.ActFont, -1)
+		}
 	case a == input.Sound:
 		p.send(front.ActSound, 0)
 	case a == input.SaveLoad:

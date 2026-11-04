@@ -142,6 +142,10 @@ func Run(cfg Config) error {
 		if fg != nil {
 			held = func(k any) bool { return fg.latch.Down(k, true) }
 		}
+		if h, ok := cfg.Front.(fontHost); ok && cfg.Menu.FontNames == nil { // the front's text fonts
+			h.KeepFonts(cfg.Menu.Prefs.Dir, cfg.Theme.Title)
+			cfg.Menu.FontNames, cfg.Menu.FontAt, cfg.Menu.SetFont, cfg.Menu.FontGlyph = h.FontMenu()
+		}
 		cfg.Menu.setup(held, cfg.TPS)
 		cfg.Settings.Fullscreen = cfg.Settings.Fullscreen || blobber.Settings.Fullscreen
 	}
