@@ -132,6 +132,9 @@ type SpellRef struct {
 	Name      string
 	Level     int
 	Memorized bool
+	Range     int // aim: squares from the caster, 0 touch
+	Targets   int // aim: squares picked, 0 or 1 for one
+	Area      int // aim: radius hit around each square, 0 just that square
 }
 
 // Item is one item.
