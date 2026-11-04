@@ -20,7 +20,8 @@ ARGS = ARGS[2:] if SERIES != "pool" or ARGS[:1] == ["--series"] else ARGS
 POOL = GOBOX / "walls" / "series" / SERIES
 FILE = HERE / f"{SERIES}_index.txt"
 GAMES = {"pool": [("por", PROJ / "por-go/phlan-poc/areas.py", PROJ / "por-go/phlan-poc/viewdump"),
-                  ("cotab", HERE / "areas.py", PROJ / "cotab-go/remaster/viewdump")],
+                  ("cotab", HERE / "areas.py", PROJ / "cotab-go/remaster/viewdump"),
+                  ("por", HERE / "areas.py", PROJ / "por-go/remaster/viewdump")],
          "buck-rogers": [("buckrogers", HERE / "areas.py", PROJ / "buckrogers-go/remaster/viewdump")]}
 SKY = [(85, 255, 255)]
 

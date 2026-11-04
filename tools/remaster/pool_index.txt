@@ -126,6 +126,17 @@ a2a1d2cdc8e3ef3cf921d1cbe824d06de39c949c wall_podol_v13 por WALLDEF1-005-1-wall3
 e60af44a49539a5745b0ee94acc044ae1a62a0c2 wall_podol_v14 por WALLDEF1-005-1-wall4
 c289aa15c3fb925c09c145f63a36d375d3ff3043 wall_podol_v15 cotab WALLDEF2-003-1-wall5
 3907c3361a8cc49a35fe8f60ba9dd6ecd457655b wall_podol_v15 por WALLDEF1-005-1-wall5
+a491dad292b9ec30b143db5749d39f09bf623d49 wall_porx_v01 por WALLDEF2-002-1-wall1
+177bca8c5a95454a590b7aa29df631ca06b066fa wall_porx_v02 por WALLDEF2-023-1-wall1
+52449ca23f4c7b0c2e9a020bc8f2c19ce71e40d4 wall_porx_v03 por WALLDEF2-023-1-wall3
+84d79a1323c61fc8d667e20df1022e226bb369e4 wall_porx_v04 por WALLDEF2-023-1-wall5
+5f0bfab97feb865aa6afd7ead70729583baabdaa wall_porx_v05 por WALLDEF5-024-2-wall5
+1a1e6ac74a7f2d01b805e7be639d7f22f234e81c wall_porx_v06 por WALLDEF7-007-1-wall3
+8a2b1f32bf7f14396adb4990f963a0f7fa4726f0 wall_porx_v07 por WALLDEF7-007-1-wall4
+002b16526f7420f645dbcc672c80da9be1f22845 wall_porx_v08 por WALLDEF7-008-1-wall1
+2b1cc674f49ffe1e1714ec379d5bfd9701a8f891 wall_porx_v09 por WALLDEF7-008-1-wall2
+c2c2111a4d8ccd52459e7b09739a30aeb6ef7a7e wall_porx_v10 por WALLDEF7-008-1-wall3
+dfab9c3dc28e4350478e374e075df8dc2273abb3 wall_porx_v11 por WALLDEF7-008-1-wall5
 25cd258d636150779484a51810109ec814f78ce4 wall_pyramid_v14 por WALLDEF8-023-1-wall4
 8d8c1ecca36108eca86c409f2f566d1a06916e8f wall_slums_v02 cotab WALLDEF2-001-1-wall2
 7407a0dc61ed41573f0e22f08ab18eeb28ed0dc7 wall_slums_v02 por WALLDEF2-002-1-wall2
