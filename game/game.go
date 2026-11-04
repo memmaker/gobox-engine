@@ -157,7 +157,7 @@ type Item struct {
 	Type                        int    // item type id (picks the icon)
 	Kind                        string // "weapon", "armor", "ring", ...
 	Count                       int    // stack size, 0 or 1 for one
-	Slot                        string // the body slot it is readied in, "" none
+	Slot                        string // readied in: weapon, shield, armor, helm, belt, robe, cloak, boots, gauntlets, ring, ring2, arrows, bolts; "" none
 	Wrong                       bool   // the holder may not use it (class, race)
 	Text                        string // what Look tells of it
 	Spell                       int    // a scroll's spell id, 0 none
