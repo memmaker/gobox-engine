@@ -146,6 +146,7 @@ const (
 	EvFled                     // Unit got away
 	EvSound                    // sound Amount (Text: the sound pack's event) goes off here (extra: with what it belongs to, PlayEventSound)
 	EvSong                     // the Amiga song Amount starts (0 stops), for a front that plays its own Sound
+	EvSaves                    // the save screen goes up (game.EvSaves)
 )
 
 // CombatEvent is one thing that happened in a fight, in order (View.Events,

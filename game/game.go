@@ -1023,6 +1023,7 @@ const (
 	EvSong    // Name starts playing
 	EvRefused // Text says why
 	EvReset   // the state changed wholesale (load, new game): redraw from State
+	EvSaves   // gobox puts its save screen up (a script's "save the game?" choice)
 )
 
 // Event is something that happened.

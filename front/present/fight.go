@@ -363,6 +363,8 @@ func (p *Presenter) playing() *front.CombatEvent {
 			case ev.Kind == front.EvSong && p.AdLib != nil && p.Snd != nil && p.Snd.Song(ev.Amount, 0, false): // the AdLib song, as the driver's soundtrack
 			case ev.Kind == front.EvSong && p.Snd != nil:
 				p.Snd.AmigaSong(ev.Amount)
+			case ev.Kind == front.EvSaves && p.slots == nil:
+				p.openSlots(p.shownView, false)
 			}
 		}
 		if ev := &r.q[0]; (ev.Kind == front.EvDamage || ev.Kind == front.EvHeal) && r.from.IsZero() && Host.DamageNumbers {
