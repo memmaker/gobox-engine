@@ -81,7 +81,12 @@ func IconEditor(s game.State, ink *[16]color.RGBA, cols, rows int) *front.IconEd
 		Size:  cell(wc, previewRow+2, wc+9, previewRow+2),
 		Names: cell(partCol, pr, swatchCol-1, pr+5), Parts: cell(swatchCol, pr, swatchCol+4, pr+5),
 		Palette: cell(paletteCol, pr+7, paletteCol+15, pr+8)}
-	look := func(n int) color.RGBA { return front.IndexedRGBA([]uint8{k.Looks[n&15]}, 1, -1, ink).RGBAAt(0, 0) }
+	look := func(n int) color.RGBA {
+		if len(s.IconPalette) == 16 {
+			return s.IconPalette[n&15]
+		}
+		return front.IndexedRGBA([]uint8{k.Looks[n&15]}, 1, -1, ink).RGBAAt(0, 0)
+	}
 	m := subject(s)
 	var cs []byte
 	for _, c := range k.Colour {

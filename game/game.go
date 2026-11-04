@@ -97,6 +97,7 @@ type State struct {
 	Bestiary               []Beast         // the monsters the party has met
 	Picker                 *Picker         // a grid picker is up
 	IconEditor             *IconEditor     // the combat icon designer is up
+	IconPalette            []color.RGBA    // the colour of each icon colour index 0..15 as the art set shows it (empty: the EGA colours)
 	Page                   *Page           // the text page: the game's scripted text and story pictures
 	Flags                  *Flags          // the plain status flags of the screen
 	Walls                  *Walls          // the 3D view the rules build from their own map (nil: the remastered map)
