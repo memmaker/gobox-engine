@@ -23,6 +23,13 @@ type Game struct {
 	resets int
 	tiles  bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
 	asked  *game.Ask // a Refusal's question put instead (answered by its options' Do)
+	aim    *aiming   // a combat spell's squares being picked (Combat.Aims)
+}
+
+// aiming is the squares picked so far for spell, up to n.
+type aiming struct {
+	spell, n int
+	ats      []image.Point
 }
 
 var _ front.Game = (*Game)(nil)
@@ -411,6 +418,34 @@ func (g *Game) Answer(a front.Action) error {
 	if a.Kind == front.ActResize {
 		g.grid = image.Pt(max(a.X, 40), max(a.Y, 25))
 		return g.do(game.Resize{Cols: a.X, Rows: a.Y})
+	}
+	if m := g.aim; m != nil { // up to n squares, then the cast; Enter casts on those picked, Esc gives up
+		switch {
+		case a.Kind == front.ActAim:
+			if m.ats = append(m.ats, image.Pt(a.X, a.Y)); len(m.ats) < m.n {
+				return nil
+			}
+		case a.Kind == front.ActOK && len(m.ats) > 0:
+		case a.Kind == front.ActClose:
+			g.aim, g.asked = nil, nil
+			return nil
+		default:
+			return nil
+		}
+		g.aim, g.asked = nil, nil
+		return g.do(game.Cast{Member: -1, Spell: m.spell, At: m.ats[0], Ats: m.ats})
+	}
+	if a.Kind == front.ActCast {
+		if c := g.R.State().Combat; c != nil {
+			for _, sp := range c.Aims {
+				if sp.ID == a.N {
+					g.aim = &aiming{spell: sp.ID, n: max(sp.Targets, 1)}
+					g.asked = &game.Ask{Kind: game.Square, Prompt: "Aim " + sp.Name}
+					return nil
+				}
+			}
+			return g.do(game.Cast{Member: -1, Spell: a.N})
+		}
 	}
 	if q := g.asked; q != nil { // a Refusal's question: an option's Do, or anything else drops it
 		g.asked = nil
