@@ -8,7 +8,6 @@ import (
 	"image/color"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	"gobox/gpu"
@@ -155,18 +154,6 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 			do = func() { p.askRest(r.N) }
 		}
 		it = append(it, ui.MenuRow{Text: text, Key: key, Do: do})
-	}
-	for i, st := range cp.Settings {
-		val := strconv.Itoa(st.Value)
-		if st.Value < len(st.Names) {
-			val = st.Names[st.Value]
-		}
-		next := (st.Value + 1) % (st.Max + 1)
-		// its first letter is the key: no digit, drawn as "[1]"
-		it = append(it, ui.MenuRow{Text: st.Name + ": " + val, Key: strings.ToUpper(st.Name + " ")[0], Do: func() { p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActAlter, N: i, X: next}) }})
-	}
-	if cp.Icon {
-		it = append(it, ui.MenuRow{Text: "Icon", Key: 'I', Do: func() { p.send(front.ActIconEdit, selectedIndex(v)) }})
 	}
 	if len(cp.Bestiary) > 0 {
 		it = append(it, ui.MenuRow{Text: "Bestiary", Key: 'B', Do: c.to(campBestiary, 0)})
