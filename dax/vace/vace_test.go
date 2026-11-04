@@ -40,7 +40,7 @@ func TestAnims(t *testing.T) {
 		hashes map[int]string
 		song   string
 	}{
-		{"INTRO", 133, map[int]string{0: "a287f4c68ee7347e", 10: "4547d2b13f46fad7", 132: "ba24034af085fff7"}, "P1"},
+		{"INTRO", 133, map[int]string{0: "5e20607fa120986a", 10: "4547d2b13f46fad7", 132: "ba24034af085fff7"}, "P1"},
 		{"FINAL", 58, map[int]string{0: "af0169acbb7e59e5", 10: "e2156e32f8b5b2e6", 57: "40eef4d3d885a26f"}, "P3"},
 	} {
 		a := load(t, c.base)

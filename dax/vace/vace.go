@@ -136,6 +136,7 @@ func Decode(acf, bma []byte) (*Anim, error) {
 			flush()
 			return &a, nil
 		case 2: // palette entry: hi(w0) index, lo(w0) R, hi(w1) G, lo(w1) B, 6-bit
+			flush() // a shown frame keeps the palette it was shown with; these entries are the next frame's
 			if len(r.w) >= 2 {
 				c6 := func(v uint16) uint8 { v &= 0x3f; return uint8(v<<2 | v>>4) }
 				pal[r.w[0]>>8] = color.RGBA{c6(r.w[0]), c6(r.w[1] >> 8), c6(r.w[1]), 255}
