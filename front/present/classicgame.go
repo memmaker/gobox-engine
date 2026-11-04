@@ -1,6 +1,8 @@
 package present
 
 import (
+	"image"
+
 	"gobox/front"
 	"gobox/front/classic"
 	"gobox/game"
@@ -20,6 +22,11 @@ func (g classicGame) View() front.View { return classic.View(g.Game.View(), g.r.
 // CreationView is the sheet on the page the presenter last laid out (ActResize).
 func (g classicGame) CreationView() *front.Creation {
 	return classic.Creation(g.r.State(), g.p.grid[0], g.p.grid[1])
+}
+
+// FullMapView is the game's full map with the parts classic.FullMap takes from State.
+func (g classicGame) FullMapView(cursor image.Point, label *string) *front.FullMap {
+	return classic.FullMap(g.Game.FullMapView(cursor, label), g.r.State())
 }
 
 // WithRules is g as classicGame (p lays out its page) when it gives its rules (Rules()).
