@@ -17,6 +17,7 @@ import (
 	"gobox/front"
 	"gobox/front/classic"
 	"gobox/front/present"
+	"por/presentdata"
 )
 
 // known are the View fields classic cannot yet build from State alone, per
@@ -145,6 +146,8 @@ func shownBy(g *classic.Game, p *present.Presenter, as ...front.Action) front.Vi
 // TestPagesAdapter: por's presentdata goldens (creationpng, icon, pickweapon,
 // the party roster, picksaved, slots) through classic.Game alone.
 func TestPagesAdapter(t *testing.T) {
+	present.Host = &presentdata.Host.Options
+	present.SetData(presentdata.Data("")) // the presenter's game data: the icon editor's part names
 	e := partyMenu(t)
 	g := classic.NewGame(e.Rules(), e.Data())
 	p := &present.Presenter{}

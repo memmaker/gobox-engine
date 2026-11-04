@@ -92,7 +92,16 @@ func sameIcon(t *testing.T, name string, e *rules.Engine) {
 	for _, g := range grids {
 		settled(e, front.Action{Kind: front.ActResize, X: g[0], Y: g[1]})
 		ink = e.View().Ink
-		if got, want := classic.IconEditor(e.Rules().State(), &ink, g[0], g[1]), e.IconEditorView(); !reflect.DeepEqual(got, want) {
+		got, want := classic.IconEditor(e.Rules().State(), &ink, g[0], g[1]), e.IconEditorView()
+		for p := range want.Poses { // por leaves the poses to gobox: classic's own are built, and must be there
+			if want.Poses[p] == nil {
+				if got.Poses[p] == nil && name == "icon" { // (after a pick the numbers may leave the pool)
+					t.Fatalf("%s %v: no pose %d built", name, g, p)
+				}
+				want.Poses[p] = got.Poses[p]
+			}
+		}
+		if !reflect.DeepEqual(got, want) {
 			t.Fatalf("%s %v:\n got %+v\nwant %+v", name, g, got, want)
 		}
 	}
@@ -100,6 +109,7 @@ func sameIcon(t *testing.T, name string, e *rules.Engine) {
 
 func TestIconEditorParity(t *testing.T) {
 	e := partyMenu(t)
+	classic.GameID = e.Data().ID // the origins the poses are built from
 	if classic.IconEditor(e.Rules().State(), new([16]color.RGBA), 40, 25) != nil {
 		t.Fatal("an icon editor before it is up")
 	}
