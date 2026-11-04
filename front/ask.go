@@ -55,6 +55,7 @@ type Ask struct {
 	Spells []Spell    // AskSpell: the spells to pick from (ActCast ID)
 
 	Default  int  // the option (or List line) highlighted first
+	Yes      bool // AskConfirm: the highlight starts on Yes (false: on No)
 	Dirs     bool // the direction keys answer too (ActDir N, the keypad's 1..9), as a one-option menu's keypad
 	Reselect bool // ActLead N selects another member while the question stays up
 	View     bool // V opens the View menu on the member selected (ActView -1) while the question stays up

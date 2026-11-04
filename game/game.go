@@ -793,6 +793,7 @@ type Ask struct {
 	Text    string   // the question's body text
 	Options []Option // Choice: labels with the original hotkeys
 	Default int      // default option or number
+	Yes     bool     `json:",omitempty"` // YesNo: the highlight starts on Yes (false: on No)
 	Max     int      // Name length, Number upper bound
 	Lines   []Line   // PickItem: the list's rows
 	Typed   string   // Name, Number: what is typed so far
