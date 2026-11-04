@@ -154,9 +154,14 @@ func contentPictures(v front.View) []front.Picture {
 	case v.Picker != nil:
 		return v.Picker.Pics
 	default:
-		in = append(in, v.Portrait.Pixels(), v.IconBox.Pixels())
+		boxes := []front.CellRect{v.Portrait, v.IconBox}
 		if cr := v.Creation; cr != nil {
-			in = append(in, cr.Head.Pixels(), cr.Body.Pixels(), cr.Icon.Pixels())
+			boxes = append(boxes, cr.Head, cr.Body, cr.Icon)
+		}
+		for _, b := range boxes {
+			if b != (front.CellRect{}) { // a box the screen has: not one at the origin
+				in = append(in, b.Pixels())
+			}
 		}
 	}
 	var out []front.Picture
