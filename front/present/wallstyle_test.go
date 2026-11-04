@@ -61,11 +61,11 @@ func TestWallStyleSwapsTextures(t *testing.T) {
 	if r, b := frame(); r == 0 || b != 0 {
 		t.Fatalf("hi-def: %d red, %d blue pixels, want the red wall", r, b)
 	}
-	p.keyAct(KeyF11, front.View{})
+	p.keyAct(KeyShiftF12, front.View{})
 	if r, b := frame(); b == 0 || r != 0 || walls.Style() != "pixel" || !Host.PixelWalls {
 		t.Fatalf("pixel: %d red, %d blue pixels (style %s), want the blue wall", r, b, walls.Style())
 	}
-	p.keyAct(KeyF11, front.View{})
+	p.keyAct(KeyShiftF12, front.View{})
 	if r, b := frame(); r == 0 || b != 0 || walls.Style() != "hd" {
 		t.Fatalf("back to hi-def: %d red, %d blue pixels, want the red wall", r, b)
 	}

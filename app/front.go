@@ -186,6 +186,8 @@ func (g *frontGame) keys() {
 		}
 		if code, ok := ui.BIOSKey(k); ok {
 			g.f.Key(code)
+		} else if k == gpu.KeyF12 && gpu.IsKeyPressed(gpu.KeyShift) {
+			g.f.Key(ui.ShiftF12) // the wall style
 		} else if k == gpu.KeyF12 && g.cfg.Art != nil { // the other art (Draw fades it in)
 			g.cfg.Art.Toggle()
 			if blobber.OnSettings != nil {

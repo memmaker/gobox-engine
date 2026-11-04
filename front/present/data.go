@@ -169,7 +169,7 @@ type Options struct {
 	Pic           float64 // the picture box: one of UISteps times its normal size
 	Zoom          float64 // the battle camera: how far one wheel step zooms, 0.25 to 2 times 15 percent
 	DamageNumbers bool    // the battle: hit points lost float over the heads
-	PixelWalls    bool    // the 3D view: the pixel-art walls instead of the hi-def ones (F11)
+	PixelWalls    bool    // the 3D view: the pixel-art walls instead of the hi-def ones (Shift-F12)
 }
 
 // DefaultOptions are the settings before the game's are loaded.
@@ -223,6 +223,7 @@ func gameData(g game.Data) {
 		series = g.Series
 	}
 	classic.Series = series
+	classic.Flow = g.CreationFlow
 	if g.Font != "" || g.Border != nil { // the game's look, as plain data
 		t := theme
 		if g.Font != "" {

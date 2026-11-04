@@ -64,7 +64,7 @@ const (
 	Options // the pad's Start: the options, even while aiming
 	Log
 
-	WallStyle // any time: the walls hi-def or pixel art (F11)
+	WallStyle // any time: the walls hi-def or pixel art (Shift-F12)
 )
 
 // Members is how many member keys there are (F1-F8).

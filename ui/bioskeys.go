@@ -5,8 +5,12 @@ import "gobox/gpu"
 // BIOSKey is the code INT 16h gave for window key k (the original BIOS table, which
 // the hosts share): low byte ASCII for Enter, Esc,
 // Backspace and Tab, else the scan code in the high byte (arrows, Home,
-// End, PgUp, PgDn, Delete, F1-F11, and the keypad's 1-9 as the same
+// End, PgUp, PgDn, Delete, F1-F10, and the keypad's 1-9 as the same
 // keys; KP5 is 0x4C00). ok is false for any other key.
+// ShiftF12 is the BIOS code for Shift-F12, which the window sends itself
+// (BIOSKey maps unshifted keys only).
+const ShiftF12 = 0x8800
+
 func BIOSKey(k gpu.Key) (code uint16, ok bool) {
 	switch k {
 	case gpu.KeyEnter, gpu.KeyKPEnter:
@@ -23,8 +27,6 @@ func BIOSKey(k gpu.Key) (code uint16, ok bool) {
 		return 0x4300, true
 	case gpu.KeyF10:
 		return 0x4400, true
-	case gpu.KeyF11:
-		return 0x8500, true
 	case gpu.KeyArrowUp, gpu.KeyKP8:
 		return 0x4800, true
 	case gpu.KeyArrowDown, gpu.KeyKP2:
