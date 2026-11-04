@@ -96,7 +96,15 @@ type State struct {
 // Beast is a bestiary entry.
 type Beast struct {
 	Name, Text string
-	Art        Picture
+	Danger     int     // 1..8 (I..VIII), 0 unrated
+	Art        Picture // the fight picture
+	Icon       Picture // the combat icon
+}
+
+// ScrollSpell is one spell on a scroll.
+type ScrollSpell struct {
+	ID       int
+	Scribing bool // being scribed now
 }
 
 // Where is the party's place and time.
@@ -163,7 +171,8 @@ type Item struct {
 	Slot                        string         // readied in: weapon, shield, armor, helm, belt, robe, cloak, boots, gauntlets, ring, ring2, arrows, bolts; "" none
 	Wrong                       bool           // the holder may not use it (class, race)
 	Text                        string         // what Look tells of it
-	Spell                       int            // a scroll's spell id, 0 none
+	Spell                       int            // a scroll's first spell id, 0 none (all of them: Scroll)
+	Scroll                      []ScrollSpell  // a scroll's spells
 	Scribe                      bool           // the holder may scribe the scroll's spell
 	Usable                      bool           // UseItem takes it now
 	Words                       []string       // the name\'s words as the original builds them
@@ -179,18 +188,21 @@ type Quest struct {
 
 // Automap is what the party knows of the map.
 type Automap struct {
-	Area   string
-	Size   image.Point
-	Known  []image.Point // squares seen; empty: nothing is known
-	Marked []image.Point
-	Notes  []string      // the player's text for each Marked square
-	Walls  []Wall        // by square
-	Doors  []Wall        // State says what each door is
-	Walked []image.Point // squares walked on (Known also holds those only seen)
-	Labels []Label       // the map's own labels; the player's are Marked/Notes
+	Area      string
+	Size      image.Point
+	Known     []image.Point // squares seen; empty: nothing is known
+	Marked    []image.Point
+	Notes     []string      // the player's text for each Marked square
+	NoteKinds []string      // a Label.Kind for each Marked square, \"\" none
+	Walls     []Wall        // by square
+	Doors     []Wall        // State says what each door is
+	Walked    []image.Point // squares walked on (Known also holds those only seen)
+	Labels    []Label       // the map's own labels; the player's are Marked/Notes
 	// Terrain is the overland map's terrain id per square, row by row over
-	// Size; its art is Data.Art["terrain/<id>"], the party marker
-	// Data.Art["marker"]. Empty for a dungeon map.
+	// Size; its art is Data.Art["terrain/<id>"] (a game numbers each
+	// remapped variant as its own id and gives its Pixels), the party marker
+	// Data.Art["marker/<facing>"]. Known and Walked apply as on a dungeon
+	// map. Empty for a dungeon map.
 	Terrain []int
 }
 
