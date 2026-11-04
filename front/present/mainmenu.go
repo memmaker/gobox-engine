@@ -3,6 +3,8 @@ package present
 import (
 	"image"
 	"image/color"
+	"image/png"
+	"os"
 	"slices"
 	"time"
 
@@ -43,16 +45,17 @@ type mainUI struct {
 func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	dst.Fill(color.Black)
 	b := dst.Bounds()
-	if v.Backdrop == nil {
+	bd := backdropImage(v.Backdrop)
+	if bd == nil {
 		m.drawMainUI(h, dst, v)
 		return
 	}
-	bb := v.Backdrop.Bounds()
+	bb := bd.Bounds()
 	k := min(float64(b.Dx())/float64(bb.Dx()), float64(b.Dy())/float64(bb.Dy())) // fit, keeping the aspect: the window has its shape (SetWindowAspect); the full screen gets black bars rather than a cropped or stretched picture
 	op := &gpu.DrawImageOptions{}
 	op.GeoM.Scale(k, k)
 	op.GeoM.Translate((float64(b.Dx())-float64(bb.Dx())*k)/2, (float64(b.Dy())-float64(bb.Dy())*k)/2)
-	dst.DrawImage(m.backdrop.of(v.Backdrop), op)
+	dst.DrawImage(m.backdrop.of(bd), op)
 	a := m.fade()
 	dim := uint8(titleDim * 255 * min(max(a, 0), 1)) // the picture darkens as the menu comes, so the lettering reads
 	vector.DrawFilledRect(dst, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: dim})
@@ -306,4 +309,35 @@ func (m *mainUI) key(h MainHost, k uint16, v front.MainMenu) bool {
 		m.pick(h, v, i)
 	}
 	return ok
+}
+
+// backdropCache is the last backdrop decoded, by its file.
+var backdropCache struct {
+	file string
+	img  image.Image
+}
+
+// backdropImage decodes p's PNG file once (nil without one, or when it is not a PNG).
+func backdropImage(p *front.Picture) image.Image {
+	if p == nil || p.File == "" {
+		return nil
+	}
+	if backdropCache.file != p.File {
+		backdropCache.file, backdropCache.img = p.File, ReadPNG(p.File)
+	}
+	return backdropCache.img
+}
+
+// ReadPNG decodes the PNG at path, nil when it is not one.
+func ReadPNG(path string) image.Image {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	im, err := png.Decode(f)
+	if err != nil {
+		return nil
+	}
+	return im
 }
