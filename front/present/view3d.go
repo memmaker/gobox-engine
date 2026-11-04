@@ -125,8 +125,7 @@ func (p *Presenter) wallTexture(w *front.Walls, n int) string {
 	if n == 0 {
 		return ""
 	}
-	if t := w.Pool[n]; t != "" && walls.Image(series, t) != nil {
-		p.view.Textures[t] = walls.Image(series, t)
+	if t := w.Pool[n]; t != "" && walls.Has(series, t) { // decoded on first draw (View.Load)
 		return t
 	}
 	im := w.Fronts[n]
@@ -163,8 +162,9 @@ func (p *Presenter) drawOpen(dst *gpu.Image) {
 	p.view.Draw(dst)
 }
 
-// wallImages is View.Textures: the game's series of the shared pool (the maps name their textures; walls.txt is the character table).
-func wallImages() map[string]image.Image { return walls.Textures(series, walls.Names(series)...) }
+// wallImage is View.Load: a texture of the game's series of the shared pool,
+// decoded when first drawn (the maps name their textures; walls.txt is the character table).
+func wallImage(name string) image.Image { return walls.Image(series, name) }
 
 // paintedWalls is View.Painted, from assets/walls/walls.txt: map character, then texture name.
 func paintedWalls() map[byte]string {
@@ -204,9 +204,10 @@ func (p *Presenter) newView() {
 	}
 	if p.view == nil {
 		var err error
-		if p.view, err = blobber.NewView(wallImages()); err != nil {
+		if p.view, err = blobber.NewView(map[string]image.Image{}); err != nil {
 			log.Fatalln("remaster:", err)
 		}
+		p.view.Load = wallImage
 		p.view.Painted = paintedWalls()
 		blobber.Window = func(d *gpu.Image, t string, l []string, k []byte, sel int, b bool) { // its menu and options in the game's box
 			p.keyWindow(d, t, l, k, nil, sel, b)

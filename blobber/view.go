@@ -22,6 +22,9 @@ type View struct {
 	// "floor_NAME", "ceiling_NAME"); the host fills them, and calls
 	// ResetTextures after changing them. Nil: only the generated materials.
 	Textures map[string]image.Image
+	// Load is the fallback for a name Textures lacks (nil: none), called
+	// once a name on first draw, so a large pool decodes only what is shown.
+	Load func(name string) image.Image
 
 	// Painted maps a wall character to the Textures name drawn for it (a
 	// name may have a name+"_light" glow); '#' is "stone" unless listed.

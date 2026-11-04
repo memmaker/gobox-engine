@@ -8,6 +8,7 @@ import (
 	"embed"
 	"image"
 	"image/png"
+	"io/fs"
 	"sort"
 	"strings"
 )
@@ -38,6 +39,12 @@ func Image(series, name string) image.Image {
 		return nil
 	}
 	return img
+}
+
+// Has says whether series has texture name, without decoding it.
+func Has(series, name string) bool {
+	_, err := fs.Stat(pool, "series/"+series+"/"+name+".png")
+	return err == nil
 }
 
 // Names lists every texture name of series, sorted.

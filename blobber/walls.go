@@ -12,10 +12,13 @@ import (
 var wallCache = map[string]*gpu.Image{}
 
 func decodeWall(name string) image.Image {
-	if cur != nil {
-		return cur.Textures[name]
+	if cur == nil {
+		return nil
 	}
-	return nil
+	if img := cur.Textures[name]; img != nil || cur.Load == nil {
+		return img
+	}
+	return cur.Load(name)
 }
 
 // wallTexture loads View.Textures[name], (once), or nil when there is none; a painted texture
