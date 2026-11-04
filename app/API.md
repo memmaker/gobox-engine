@@ -27,7 +27,7 @@ No game names: the title, shape, key codes and save marker are the game's data.
 - `Game` interface: `Update()` once a tick (TPS a second; in a scripted run
   the game must ignore the user's input), `Step(k Key)` once a scripted
   frame before Draw (k = the key due, 0 none), `Draw(dst *gpu.Image)`.
-- `Capture{Shot, Keys, Freeze, Quit, Window, GPU, Slot, Pointer}` (Pointer: with Shot, the pointer's window pixels, Next steps on), `Scripted()`: a run is
+- `Capture{Shot, Keys, Freeze, Quit, Window, GPU, Slot, Pointer, PNG}` (Pointer: with Shot, the pointer's window pixels, Next steps on), `Scripted()`: a run is
   scripted when Shot, Freeze or Quit is set. A key every `Ticks` (15)
   frames; after the keys plus 4 more: Shot is written (with `%d`: every
   frame while the keys play, numbered) and the run exits; Quit exits;
@@ -40,6 +40,14 @@ No game names: the title, shape, key codes and save marker are the game's data.
   v indented, atomically (temp file then rename), creating Dir.
 - `Key` (uint16): a game key code, or the shell's `Right`, `Left` (a click
   at the pointer), `Next` (the pointer to its next position), `Wait`.
+- `Flags(esc map[byte]Key) func() Capture`: every game's capture and test
+  switches on the command line, registered before flag.Parse, read after it:
+  `-shot FILE.png -keys S -freeze -quit -slot NAME -pointer x,y;x,y -png FILE
+  -size WxH -fps -passes -novsync -offscreen -glitch DIR -skip a,b
+  -cpuprofile FILE -stacks N`. No env vars.
+- `CopyFS(fsys, root, dst) error`, `WriteCover(dosDir, out) error`: a game's
+  `-setup` step: its embedded assets beside the imported files, and
+  COVER.PNG from TITLE.DAX block 2 in the EGA palette.
 - `ParseKeys(s, esc map[byte]Key) []Key`: `\M \C \P \w` are the shell's,
   esc the game's (`\r`, `\e`, arrows, F-keys: the game's codes); any other
   byte is its own code.

@@ -63,6 +63,7 @@ type Capture struct {
 	GPU     gpu.Config // gpu's measuring and capture switches
 	Slot    string     // a save slot to start from instead of the game's own start ("": none); passed to a Starter
 	Pointer [][2]int   // with Shot: the pointer at these window pixels, one after another (Next)
+	PNG     string     // a picture a dev scene uses (e.g. a portrait); the game's to read
 }
 
 // Scripted says whether the run is scripted: the user's input is ignored.
