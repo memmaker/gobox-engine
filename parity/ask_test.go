@@ -45,3 +45,30 @@ func TestAskParity(t *testing.T) {
 		t.Errorf("who answered: ask %+v", v.Ask)
 	}
 }
+
+// TestAskSweep: classic's question equals por's at each stop of the dev
+// scenes, answered on with Enter; typed text, pauses and lists among them.
+func TestAskSweep(t *testing.T) {
+	seen := map[front.AskKind]int{}
+	for _, scene := range []string{"password", "parlay", "who", "journal", "talljournal", "runes", "lockeddoor", "shop", "temple", "appraise", "loot", "effects", "autocombat"} {
+		e := engine(t, true, scene)
+		v := settled(e, front.Action{})
+		for i := 0; i < 12; i++ {
+			s := e.Rules().State()
+			if q, ok := classic.Ask(s); ok && v.Ask != nil {
+				seen[v.Ask.Kind]++
+				if !reflect.DeepEqual(q, v.Ask) {
+					t.Errorf("%s step %d: ask\n got %+v\nwant %+v", scene, i, q, v.Ask)
+				}
+			}
+			a := front.Action{Kind: front.ActOK}
+			if v.Ask != nil && v.Ask.Kind == front.AskText {
+				if v.Ask.Text == "" {
+					a = front.Action{Kind: front.ActText, Text: "SWO"}
+				}
+			}
+			v = settled(e, a)
+		}
+	}
+	t.Logf("asks compared by kind: %v", seen)
+}

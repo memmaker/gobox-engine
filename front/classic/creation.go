@@ -38,7 +38,7 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 	v.Fields[front.FieldClass].At = front.CellRect{X1: 1, Y1: 5, X2: len(d.Class), Y2: 5}
 	for i := range v.Stats {
 		x1 := 6 // "STR 18", "(00)" after an exceptional strength
-		if i == 0 && d.Stats["str"] == 18 && d.Stats["str00"] != 0 {
+		if i == 0 && d.Stats["str"] == 18 && d.Str00 != 0 {
 			x1 += len("(00)")
 		}
 		v.Stats[i] = front.CellRect{X1: 1, Y1: 7 + i, X2: x1, Y2: 7 + i}

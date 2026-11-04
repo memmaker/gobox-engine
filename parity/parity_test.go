@@ -104,7 +104,7 @@ func TestParity(t *testing.T) {
 	same(t, "creation", e, 40, 25)
 	e.SetStat(0, "18/50") // the human fighter it starts as
 	settled(e, front.Action{})
-	if e.Rules().State().Creation.Draft.Stats["str00"] != 50 {
+	if e.Rules().State().Creation.Draft.Str00 != 50 {
 		t.Fatal("no 18/50")
 	}
 	same(t, "creation 18/50", e, 40, 25)
