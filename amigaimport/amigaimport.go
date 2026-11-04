@@ -33,6 +33,9 @@ type Gfx struct {
 	Base   int  // an unindexed library's id of its entry 0 (SKY: 0xfa)
 	Frames bool // an unindexed library is one block, id Base, of all its pictures (DUNGCOM: Base 1)
 	Mask   byte // colour written for transparent pixels (the game's mask colour)
+	// Pal is the file offset in Spec.Exe of the 16 12-bit RGB words that
+	// colour this archive's pictures that carry no palette of their own.
+	Pal int
 }
 
 // Spec is the game's data.
@@ -41,6 +44,7 @@ type Spec struct {
 	MinGfx  int            // archives a disk must hold to be the data disk (without Disks)
 	Program string         // file holding the sound players ("program")
 	Intro   string         // file holding the painted title ("intro")
+	Exe     string         // file holding the fixed palettes (Gfx.Pal)
 	// Disks are the volume names or file paths (case-insensitive) that mark
 	// this game's disks. When set, every disk matching one is read and no
 	// other: MinGfx is ignored, and of two releases the one whose marker
@@ -53,6 +57,7 @@ func Import(src, out string, s Spec) error {
 	var disk []adf.File
 	var snd []byte
 	var title image.Image
+	var exe []byte
 	look := func(img []byte) bool {
 		vol, files, err := adf.Read(img)
 		if err != nil {
@@ -68,6 +73,9 @@ func Import(src, out string, s Spec) error {
 		for _, f := range files {
 			if s.Program != "" && strings.EqualFold(f.Path, s.Program) && snd == nil {
 				snd = amiga.Image(f.Data)
+			}
+			if s.Exe != "" && strings.EqualFold(f.Path, s.Exe) && exe == nil {
+				exe = f.Data
 			}
 			if s.Intro != "" && strings.EqualFold(f.Path, s.Intro) && title == nil {
 				title = amiga.Title(f.Data)
@@ -159,6 +167,18 @@ func Import(src, out string, s Spec) error {
 		}
 	}
 	for name, b := range blocks {
+		if p := s.Gfx[name].Pal; p > 0 && p+32 <= len(exe) {
+			rgb := make([]byte, 48)
+			for i := range rgb {
+				w := int(exe[p+i/3*2])<<8 | int(exe[p+i/3*2+1])
+				rgb[i] = byte(w>>(8-4*(i%3))&15) * 17
+			}
+			for id := range b {
+				if pals[name][id] == nil {
+					pals[name][id] = rgb
+				}
+			}
+		}
 		if err := os.WriteFile(filepath.Join(out, strings.ToUpper(name)+".DAX"), dax.WriteDOS(b), 0o644); err != nil {
 			return err
 		}

@@ -128,3 +128,53 @@ func TestPORDisks(t *testing.T) {
 		}
 	}
 }
+
+// Curse and Silver Blades colour pictures without a palette of their own
+// from the fixed one in the program; it lands near the DOS EGA colours.
+func TestFixedPalette(t *testing.T) {
+	for _, c := range []struct {
+		game, exe, dos, name string
+		pal                  int
+	}{
+		{"cotab", "Curse", "/Users/felix/Projects/cotab-go/data/dos", "CHEAD", 0x47410},
+		{"sotsb", "Secret", "/Users/felix/Projects/sotsb-go/data/dos", "CBODY", 0x4fdea},
+	} {
+		t.Run(c.game, func(t *testing.T) {
+			s := games[c.game]
+			s.Exe, s.Gfx = c.exe, map[string]Gfx{strings.ToLower(c.name): {Pal: c.pal}}
+			out := importGame(t, s)
+			am, err := dax.Open(filepath.Join(out, c.name+".DAX"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			pal, err := dax.Open(filepath.Join(out, c.name+"PAL.DAX"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			dos, err := dax.Open(filepath.Join(c.dos, c.name+".DAX"))
+			if err != nil {
+				t.Skip("no DOS data")
+			}
+			n := 0
+			for _, e := range dos.Entries {
+				a, d, p := dax.ParseImage(am.BlockShared(e.ID), false, 0), dax.ParseImage(dos.BlockShared(e.ID), false, 0), pal.BlockShared(e.ID)
+				if a == nil || d == nil || len(a.Data) != len(d.Data) || len(p) != 48 {
+					t.Fatalf("block %d: no picture or palette", e.ID)
+				}
+				for i := 0; i < len(a.Data); i += 97 {
+					c := int(a.Data[i]) - ega.AmigaBase
+					got, want := p[c*3:c*3+3], ega.Palette[d.Data[i]&15]
+					for k := range 3 {
+						if diff := int(got[k]) - int(want[k]); diff < -0x40 || diff > 0x40 {
+							t.Fatalf("block %d pixel %d: %x, DOS %x", e.ID, i, got, want)
+						}
+					}
+					n++
+				}
+			}
+			if n < 100 {
+				t.Errorf("only %d pixels checked", n)
+			}
+		})
+	}
+}
