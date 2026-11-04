@@ -31,6 +31,10 @@ func Sheet(v front.View, s game.State) front.View {
 		for _, r := range p.Rules {
 			k.Rules = append(k.Rules, front.Stat(r))
 		}
+		if k.Portrait == nil && s.Selected >= 0 && s.Selected < len(s.Party) {
+			m := s.Party[s.Selected]
+			k.Portrait = poolID("portraits", m.PortraitHeadID, m.PortraitBodyID)
+		}
 		v.SheetPage = k
 	}
 	return v

@@ -35,6 +35,7 @@ const (
 	PickWeapon          // its weapon
 	PickAdd             // the saved characters to add to the party (party menu)
 	PickForget          // the saved characters to forget (party menu)
+	PickIconBody        // the combat icon's body (gobox's pool pick only)
 )
 
 // IconEditor is the combat icon editor's page (View.IconEditor), in cells:

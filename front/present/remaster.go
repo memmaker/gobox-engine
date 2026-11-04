@@ -35,6 +35,7 @@ type Presenter struct {
 	overview bool                    // the party overview is up (any key or click closes it)
 	pager    *pager                  // the help or a Read is up (pager.go)
 	eng      front.Game              // for queries (SetEngine)
+	pool     *poolPick               // gobox's own pool picker is up (poolpick.go)
 
 	pauseFrom time.Time // a script's pause (AskPause) began; zero: none up
 

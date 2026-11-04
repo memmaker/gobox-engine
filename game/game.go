@@ -396,7 +396,8 @@ type Member struct {
 	Spells                               []SpellRef
 	Portrait                             Picture
 	Icon                                 map[string]int // icon designer choices as numbers
-	PortraitID, IconID                   string         // gobox's opaque shared-pool picks; the game only stores and states them back ("": none, gobox falls back to Portrait/Icon). PortraitID is "head_NNN+body_NNN", IconID "combat_head_NNN+combat_body_NNN" (pool names joined by '+')
+	PortraitHeadID, PortraitBodyID       string         // gobox's opaque shared-pool picks, one pool name each ("head_NNN", "body_NNN"); the game only stores and states them back ("": none, gobox falls back to Portrait)
+	IconHeadID, IconBodyID               string         // likewise the combat icon's ("combat_head_NNN", "combat_body_NNN"; "": none, gobox falls back to Icon)
 	BaseStats                            map[string]int // stats before magic and age
 	IconColors                           []byte         // icon palette indices
 	ClassText, LevelText                 string         // e.g. "old/new", "3/3"
@@ -771,7 +772,7 @@ type (
 	Train  struct{ Member int }
 	Heal   struct{ Service, Member int }
 	Create struct {
-		Field string // "portrait" or "icon": Text is gobox's opaque pool id, stored as Member.PortraitID / IconID
+		Field string // "portraithead", "portraitbody", "iconhead" or "iconbody": Text is gobox's opaque pool name, stored as Member.PortraitHeadID .. IconBodyID
 		N     int
 		Text  string
 	}
@@ -834,7 +835,7 @@ type (
 	SetDifficulty    struct{ N int }
 	SetIcon          struct {
 		Member int
-		Field  string // "portrait" or "icon" with ID: store that opaque pool id
+		Field  string // "portraithead" .. "iconbody" with ID: store that opaque pool name
 		N      int
 		ID     string
 	}

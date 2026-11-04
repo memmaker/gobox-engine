@@ -54,7 +54,7 @@ func (g classicGame) art() map[string]game.Picture {
 }
 
 // PickerView is page page of the grid picker State holds (the game's where it holds none).
-func (g classicGame) PickerView(page int) *front.Picker {
+func (g classicGame) pickerView(page int) *front.Picker {
 	if p := classic.Picker(g.r.State(), page, g.p.grid[0], g.p.grid[1]); p != nil {
 		return p
 	}

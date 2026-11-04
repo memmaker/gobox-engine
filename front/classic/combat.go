@@ -55,8 +55,8 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 			o.Units[i].Party, o.Units[i].Active, o.Units[i].Name = !g.Foe, g.Active, g.Name
 			o.Units[i].HP, o.Units[i].MaxHP, o.Units[i].AC = g.HP, g.MaxHP, g.AC
 			o.Units[i].Hit, o.Units[i].Dmg, o.Units[i].Status = g.Hit, g.Dmg, g.Status
-			if !g.Foe && g.Member >= 0 && g.Member < len(s.Party) && s.Party[g.Member].IconID != "" {
-				if im := poolID("combat", s.Party[g.Member].IconID); im != nil {
+			if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) && s.Party[m].IconHeadID != "" {
+				if im := poolID("combat", s.Party[m].IconHeadID, s.Party[m].IconBodyID); im != nil {
 					o.Units[i].Icon = im
 				}
 			}

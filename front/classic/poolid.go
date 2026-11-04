@@ -3,21 +3,17 @@ package classic
 import (
 	"image"
 	"image/draw"
-	"strings"
 
 	"gobox/sprites"
 )
 
-// poolID is the image of an opaque pool id "A+B" (nil if it names nothing):
-// a portrait "head_N+body_M" is the head over the body, an icon
-// "combat_head_N+combat_body_M" the head laid on the body's top.
-// ponytail: pool combat PNGs are not recoloured by palette index, add via origins when a game needs it.
-func poolID(kind, id string) image.Image {
-	h, b, ok := strings.Cut(id, "+")
-	if !ok {
-		return nil
-	}
-	hi, bi := sprites.Image("pool", kind, h), sprites.Image("pool", kind, b)
+// poolID is the pool picture of head and body names (nil if either is
+// missing): a portrait is the head over the body, as the creation sheet
+// stacks its Head and Body boxes (88x40 over 88x48), a combat icon the head
+// laid on the body's top. kind is "portraits" or "combat".
+// ponytail: pool combat PNGs are RGBA, so no recolouring by palette index, facing or pose yet.
+func poolID(kind, head, body string) image.Image {
+	hi, bi := sprites.Image("pool", kind, head), sprites.Image("pool", kind, body)
 	if hi == nil || bi == nil {
 		return nil
 	}
