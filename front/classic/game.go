@@ -362,6 +362,14 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	switch a.Kind {
 	case front.ActClose:
 		return game.Cancel{}, true
+	case front.ActMainMenu:
+		return game.EndGame{}, true
+	case front.ActNote:
+		return game.AddNote{Text: paneText(g.R.State())}, true
+	case front.ActNoteRemove:
+		return game.RemoveNote{ID: a.N}, true
+	case front.ActOrder:
+		return game.Order{From: a.N, To: a.X}, true
 	case front.ActOK, front.ActChoose:
 		return game.Answer{N: a.N}, true
 	case front.ActYes:
@@ -462,4 +470,18 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.KeepAppraised{Keep: a.N == 1}, true
 	}
 	return nil, false
+}
+
+// paneText is the message pane's words on one line: the note ActNote takes.
+func paneText(s game.State) string {
+	if s.Page == nil {
+		return ""
+	}
+	var w []string
+	for _, l := range s.Page.Pane {
+		for _, r := range l {
+			w = append(w, strings.Fields(r.Text)...)
+		}
+	}
+	return strings.Join(w, " ")
 }
