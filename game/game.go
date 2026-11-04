@@ -90,14 +90,122 @@ type State struct {
 	// name ("UseItem", "Sell", "Trade", "Halve", "Join", ...); gobox offers
 	// only these.
 	Allowed                map[string]bool
-	RestHeals, RestStudies bool        // what resting now does
-	TempleOffers           []Offer     // the temple\'s appraisals, as Shop.Offers
-	PartyCap               int         // most items the party carries in all, 0 no limit
-	Bestiary               []Beast     // the monsters the party has met
-	Picker                 *Picker     // a grid picker is up
-	IconEditor             *IconEditor // the combat icon designer is up
-	Page                   *Page       // the text page: the game's scripted text and story pictures
-	Flags                  *Flags      // the plain status flags of the screen
+	RestHeals, RestStudies bool            // what resting now does
+	TempleOffers           []Offer         // the temple\'s appraisals, as Shop.Offers
+	PartyCap               int             // most items the party carries in all, 0 no limit
+	Bestiary               []Beast         // the monsters the party has met
+	Picker                 *Picker         // a grid picker is up
+	IconEditor             *IconEditor     // the combat icon designer is up
+	Page                   *Page           // the text page: the game's scripted text and story pictures
+	Flags                  *Flags          // the plain status flags of the screen
+	Window                 Window          // what the view window shows
+	Holding                Hold            // what the game waits on out of a question
+	Lore                   []Lore          // the journal's notes, newest first
+	PowerPick              *PowerPick      // a member must choose a power
+	PoolItems              int             // the party items held (Purse's room is PartyCap)
+	Sheet                  *Sheet          // the selected member's sheet offers
+	SheetPage              *SheetPage      // the character sheet's page is up
+	Portrait               image.Rectangle // the sheet's portrait box in text cells, Max inclusive (zero elsewhere)
+	IconBox                image.Rectangle // the creation sheet's combat icon box, as Portrait
+}
+
+// Window says what the view window shows.
+type Window int
+
+const (
+	WindowScene   Window = iota // the 3D view
+	WindowMap                   // the wilderness or city map
+	WindowPicture               // a picture, portrait or approaching sprite
+	WindowText                  // text in the whole window
+)
+
+// Hold is what the game waits on besides a question.
+type Hold int
+
+const (
+	HoldNone Hold = iota
+	HoldShop
+	HoldTemple
+	HoldFight
+	HoldStory
+	HoldLoot
+	HoldDoor
+)
+
+// Lore is a journal note: a story text read or a note the player wrote
+// (ID its index, -1 for a story text).
+type Lore struct {
+	Title, Place string
+	Text         []string
+	ID           int
+}
+
+// PowerOption is one of the maneuvers a power offers; Aim is 0 a foe with the
+// weapon, 1 none, 2 a foe in Range, 3 an ally in Range, 4 a square in Range
+// with a burst of Area; Move the squares first walked.
+type PowerOption struct {
+	ID               int
+	Name, Tip        string
+	Aim, Range, Area int
+	Move             int
+}
+
+// PowerPick is a member choosing a power: what it is and the maneuvers.
+type PowerPick struct {
+	Name, What string
+	Options    []PowerOption
+}
+
+// Entry is one choice of a member's menu; Verb says what it does: "view",
+// "items", "cast", "magic", "heal", "cure", "memorize", "scribe", "icon", "drop".
+type Entry struct{ Name, Verb string }
+
+// Reaction is one of the rule set's reactions a member has; Policy is 0
+// always, 1 never, 2 only on a hit.
+type Reaction struct {
+	ID     int
+	Name   string
+	Policy int
+}
+
+// Sheet is what the character sheet offers besides the page.
+type Sheet struct {
+	Powers    []Entry
+	Reactions []Reaction
+}
+
+// Stat is one of a rule set's figures on the sheet, with its tooltip lines.
+type Stat struct {
+	Name, Value string
+	Help        []string
+}
+
+// SheetPage is what the character sheet's page shows.
+type SheetPage struct {
+	Name                        string
+	NameColour                  int
+	NPC                         bool
+	Spells                      string
+	Sex, Race                   string
+	Age                         int
+	Alignment, Class            string
+	Stats                       [6]int
+	Str00                       string
+	Creating                    bool
+	Levels                      string
+	Exp, Next                   int
+	AC, HP, MaxHP, THAC0        int
+	Damage                      string
+	Move                        int
+	Saves                       [5]int
+	Mods                        [6]int
+	Rules                       []Stat
+	Status                      string
+	Weapon, Armour              string
+	Encumbrance, Coins, Effects string
+	PortraitAt                  image.Rectangle // as State.Portrait
+	Portrait                    image.Image     // a dropped PNG in the box
+	Icons                       [2]image.Image  // the creation's icon poses from a PNG
 }
 
 // Flags are the plain yes/no facts of the screen the front shows or takes
@@ -219,6 +327,13 @@ type Member struct {
 	SlotsMax                             map[string]int // spell slots in all, keys as Slots
 	CanCast                              bool           // may cast now (status, no-magic area)
 	Powers                               []Option       // the member\'s special powers menu (Decisions)
+	Chosen                               bool           // the card is marked: the selected member, or the candidate while one is picked
+	Colour                               int            // the roster colour of the name (EGA number)
+	Head                                 string         // the head the player chose: a Data.Art name, "" none
+	Dropped                              image.Image    // the PNG dropped on the sheet in place of the head, nil none
+	Card                                 []Entry        // the card's context menu out of combat
+	LevelExp, NextExp                    int            // the experience the level took and the next takes (0: none)
+	SpellsReady, Memo                    string         // spells ready over the slots ("0/3"), in camp too
 }
 
 // SpellRef is a spell a member knows or has memorized.
@@ -256,8 +371,10 @@ type Item struct {
 
 // Quest is a quest fact.
 type Quest struct {
-	ID, Text string
-	Done     bool
+	ID, Text     string
+	Done         bool
+	Giver, Place string
+	Brief        []string // Text by paragraph
 }
 
 // Automap is what the party knows of the map.
@@ -425,6 +542,7 @@ type Loot struct {
 
 type Door struct {
 	Locked, Stuck, Secret bool
+	Bash, Pick, Knock     bool // the ways to get through a locked door
 }
 
 // Vault is the party's storage an area script has opened, like a shop.
