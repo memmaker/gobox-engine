@@ -16,6 +16,7 @@ prop_grass1 | 512x201 | por
 prop_grass2 | 512x157 | por
 prop_kuto_ladder | 224x512 | por
 prop_nomad_tree | 225x512 | por
+prop_porx_rail | 483x191 | por
 stone | 256x256 | por
 wall_buccaneer_v06 | 512x512 | por
 wall_buccaneer_v07 | 512x512 | por
