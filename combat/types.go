@@ -27,6 +27,7 @@ type Board struct {
 	Log       []string
 	Area      bool
 	AreaAt    []image.Point
+	AimArea   int // no AreaAt: radius+1 washed round the hovered square (0 none)
 	Skipped   []image.Point
 	AimWhy    string
 	Effects   []Effect

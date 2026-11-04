@@ -115,6 +115,13 @@ func (g *Game) View() front.View {
 		v.Logo, v.Backdrop = Title(v.Logo, v.Backdrop, art)
 	}
 	v.Battle = BattleOf(s, art)
+	if m := g.aim; m != nil && v.Battle != nil && s.Combat != nil && len(v.Battle.AreaAt) == 0 { // the aimed spell's area, previewed under the pointer
+		for _, sp := range s.Combat.Aims {
+			if sp.ID == m.spell {
+				v.Battle.AimArea = sp.Area + 1
+			}
+		}
+	}
 	v = Page(v, s)
 	v = Flags(v, s)
 	v = Place(v, s)

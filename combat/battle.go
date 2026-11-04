@@ -267,6 +267,14 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		o := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: fill, Model: place(float32(a.X)+.5, 0.0035, float32(a.Y)+.5, 0, .96, .005, .96)}
 		dst.DrawMesh(p.box, p.white, vp, &o)
 	}
+	if r := b.AimArea - 1; r >= 0 && len(b.AreaAt) == 0 { // the area previewed round the hovered square
+		if hx, hy, ok := p.hoverSquare(); ok {
+			for _, a := range areaRound(image.Pt(hx, hy), r) {
+				o := gpu.MeshOptions{Blend: gpu.MeshAdd, Tint: areaFill, Model: place(float32(a.X)+.5, 0.0035, float32(a.Y)+.5, 0, .96, .005, .96)}
+				dst.DrawMesh(p.box, p.white, vp, &o)
+			}
+		}
+	}
 	for _, s := range b.Skipped {
 		frame(s.X, s.Y, skipGlow, 0.001)
 	}
@@ -563,4 +571,18 @@ func averageColour(t image.Image) [3]float32 {
 		return [3]float32{1, 1, 1}
 	}
 	return [3]float32{float32(r / n / 0xFFFF / m), float32(g / n / 0xFFFF / m), float32(bl / n / 0xFFFF / m)}
+}
+
+// areaRound is the squares within r of c (a square burst, as the Gold Box
+// draws an area), clipped to the 50x25 map.
+// ponytail: square burst; a game whose areas aren't square states AreaAt instead.
+func areaRound(c image.Point, r int) (out []image.Point) {
+	for y := c.Y - r; y <= c.Y+r; y++ {
+		for x := c.X - r; x <= c.X+r; x++ {
+			if x >= 0 && y >= 0 && x < 50 && y < 25 {
+				out = append(out, image.Pt(x, y))
+			}
+		}
+	}
+	return out
 }

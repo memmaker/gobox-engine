@@ -61,6 +61,7 @@ type Battle struct {
 	Log       []string               // this battle's messages, oldest first
 	Area      bool                   // Marks are a spell's area (else a move's reach or a choice)
 	AreaAt    []image.Point          // the squares a spell's area covers round the aimed square
+	AimArea   int                    // aiming a spell with no AreaAt: the area's radius round the hovered square, washed as a preview (0 none; radius+1)
 	Skipped   []image.Point          // squares of allies in the area the spell passes over (Bless: an enemy next to them)
 	AimWhy    string                 // aiming: why the aimed square cannot be taken ("" when it can); views draw the aim red
 	Effects   []Effect               // sprites over the map: a missile, a hit, a fall
