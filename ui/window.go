@@ -76,3 +76,41 @@ func Window(dst *gpu.Image, t Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) im
 	cell(BottomRight, cw-1, ch-1)
 	return image.Rect(int(x0), int(y0), int(x1), int(y1))
 }
+
+// Edges are a border's cells one by one per edge, corners included (the
+// original's cracked borders); a nil edge is drawn by the Ribbon.
+type Edges struct{ Top, Bottom, Left, Right []*gpu.Image }
+
+// EdgeCell is the entry of an m-entry edge sequence for cell i of n: the
+// ends fixed, the middle entries repeated.
+func EdgeCell(i, n, m int) int {
+	switch {
+	case m <= 2 || i == 0:
+		return min(i, m-1)
+	case i == n-1:
+		return m - 1
+	}
+	return (i-1)%(m-2) + 1
+}
+
+// WindowEdges draws e over a cw by ch cell window's border at g (after
+// Window): the verticals, then the horizontals over the corners.
+func WindowEdges(dst *gpu.Image, e Edges, g gpu.GeoM, cw, ch int) {
+	run := func(seq []*gpu.Image, n int, at func(i int) (int, int)) {
+		for i := 0; i < n && len(seq) > 0; i++ {
+			t := seq[EdgeCell(i, n, len(seq))]
+			if t == nil {
+				continue
+			}
+			x, y := at(i)
+			op := &gpu.DrawImageOptions{}
+			op.GeoM.Translate(float64(x*8), float64(y*8))
+			op.GeoM.Concat(g)
+			dst.DrawImage(t, op)
+		}
+	}
+	run(e.Left, ch, func(i int) (int, int) { return 0, i })
+	run(e.Right, ch, func(i int) (int, int) { return cw - 1, i })
+	run(e.Top, cw, func(i int) (int, int) { return i, 0 })
+	run(e.Bottom, cw, func(i int) (int, int) { return i, ch - 1 })
+}

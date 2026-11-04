@@ -340,7 +340,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 	run := func(seq []image.Image, n int, at func(i int) (int, int)) {
 		for i := range n {
 			x, y := at(i)
-			put(seq[edgeCell(i, n, len(seq))], x, y)
+			put(seq[ui.EdgeCell(i, n, len(seq))], x, y)
 		}
 	}
 	h, w := f.Y2-f.Y1+1, f.X2-f.X1+1

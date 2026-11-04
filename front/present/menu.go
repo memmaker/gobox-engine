@@ -31,7 +31,7 @@ var menuTheme ui.MenuTheme // applyTheme
 // drawMenuIcons is drawMenu with an icon before each row of icons that is
 // not nil (ui.MenuCanvas.Draw), in the theme and the presenter's menu state.
 func (p *Presenter) drawMenuIcons(dst *gpu.Image, glyph func(byte) [8]byte, title string, items []string, keys []byte, off []bool, icons []image.Image, sel int, k float64, cx, top int) {
-	st := ui.MenuStyle{Theme: menuTheme, Tiles: p.border.tiles, Glyph: glyph, RowGlyph: blobber.MenuGlyph, Tight: p.menuTight, Tip: p.tipping}
+	st := ui.MenuStyle{Theme: menuTheme, Tiles: p.border.tiles, Edges: edgeTiles, Glyph: glyph, RowGlyph: blobber.MenuGlyph, Tight: p.menuTight, Tip: p.tipping}
 	if p.logGrey {
 		st.Theme.Text = col(inkGrey) // the battle Log's light grey
 	}

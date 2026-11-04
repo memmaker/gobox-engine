@@ -647,8 +647,18 @@ func scale(dst *gpu.Image) float64 {
 
 // window is ui.Window: every window's frame, the ribbon border in tiles t.
 func window(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) image.Rectangle {
-	return ui.Window(dst, t, g, cw, ch, bg)
+	r := ui.Window(dst, t, g, cw, ch, bg)
+	if t[ui.Top] != nil && t[ui.Top] == edgesFor[ui.Top] { // the theme's own tiles: its cracked edges too (not the grey cards')
+		ui.WindowEdges(dst, edgeTiles, g, cw, ch)
+	}
+	return r
 }
+
+// edgeTiles are Theme.Border.Edges on the GPU, for the ribbon edgesFor.
+var (
+	edgeTiles ui.Edges
+	edgesFor  ui.Ribbon
+)
 
 // resize tells the engine the text cells the window holds (grid) when
 // they change, and again now and then while the page is not yet of that

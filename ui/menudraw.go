@@ -28,6 +28,7 @@ type MenuTheme struct {
 type MenuStyle struct {
 	Theme    MenuTheme
 	Tiles    Ribbon
+	Edges    Edges // the cracked edges over Tiles (empty: none)
 	Glyph    func(byte) [8]byte
 	RowGlyph func(row int, c byte) [8]byte
 	Tight    bool
@@ -173,6 +174,7 @@ func (m *MenuCanvas) Draw(dst *gpu.Image, st MenuStyle, title string, items []st
 	m.Img.WritePixels(m.Buf)
 
 	Window(m.Img, st.Tiles, gpu.GeoM{}, cw, ch, nil)
+	WindowEdges(m.Img, st.Edges, gpu.GeoM{}, cw, ch)
 	if foot != "" { // gold on black, right on the bottom border
 		fw := len(foot) * 8
 		if gpu.Sized(&m.footImg, fw, 8) {

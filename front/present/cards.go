@@ -54,6 +54,22 @@ func (b *borders) update(t [ui.Places]image.Image) {
 		return
 	}
 	b.src = t
+	defer func() { // the theme's cracked edges go with these tiles
+		edgesFor, edgeTiles = b.tiles, ui.Edges{}
+		up := func(ms []image.Image) (out []*gpu.Image) {
+			for _, m := range ms {
+				var g *gpu.Image
+				if m != nil {
+					g = gpu.NewImageFromImage(m)
+				}
+				out = append(out, g)
+			}
+			return out
+		}
+		if es := borderEdges(); es != nil {
+			edgeTiles = ui.Edges{Top: up(es["top"]), Bottom: up(es["bottom"]), Left: up(es["left"]), Right: up(es["right"])}
+		}
+	}()
 	for i, m := range t {
 		if m == nil { // an end cap the game leaves out
 			b.tiles[i], b.grey[i] = nil, nil

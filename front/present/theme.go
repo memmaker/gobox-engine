@@ -102,18 +102,6 @@ func borderEdges() map[string][]image.Image {
 	return out
 }
 
-// edgeCell is the entry of an m-entry edge sequence for cell i of n: the
-// ends fixed, the middle entries repeated.
-func edgeCell(i, n, m int) int {
-	switch {
-	case m <= 2 || i == 0:
-		return min(i, m-1)
-	case i == n-1:
-		return m - 1
-	}
-	return (i-1)%(m-2) + 1
-}
-
 // borderPieces is v's border pieces, or Theme.Border's decoded when the
 // game hands none in.
 func borderPieces(v front.View) [ui.Places]image.Image {
