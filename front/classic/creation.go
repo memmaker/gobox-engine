@@ -16,7 +16,7 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 	}
 	d := c.Draft
 	winRight, winBottom := max(cols, 40)-2, max(rows, 25)-3
-	v := &front.Creation{Minimums: c.Minimums}
+	v := &front.Creation{Minimums: c.Minimums, Abandon: "Abandon this character?"}
 	if a := s.Pending; a != nil && a.Kind == game.YesNo {
 		v.Abandon = a.Prompt
 	}
