@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -75,7 +76,47 @@ func ReadSide[T any](s Store, name, file string) (T, error) {
 func (s Store) Path(name string) string { return filepath.Join(s.Dir, name) }
 
 // List is the slots, newest first.
+//
+// It is read again only when the folder changed (its time: a slot written,
+// renamed in or removed): rules list the slots in every State, many a frame.
 func (s Store) List() []Slot {
+	st, err := os.Stat(s.Dir)
+	key := s.Dir + "\x00" + s.Marker
+	listed.Lock()
+	defer listed.Unlock()
+	if c, ok := listed.m[key]; ok && err == nil && st.ModTime().Equal(c.at) {
+		return slices.Clone(c.slots)
+	}
+	out := s.list()
+	if err == nil {
+		if listed.m == nil {
+			listed.m = map[string]listing{}
+		}
+		listed.m[key] = listing{st.ModTime(), out}
+	}
+	return slices.Clone(out)
+}
+
+// listed is List's last read of each folder.
+var listed struct {
+	sync.Mutex
+	m map[string]listing
+}
+
+type listing struct {
+	at    time.Time
+	slots []Slot
+}
+
+// forget drops List's read of s, after s wrote or removed a slot (the
+// folder's time may not have moved within its resolution).
+func (s Store) forget() {
+	listed.Lock()
+	delete(listed.m, s.Dir+"\x00"+s.Marker)
+	listed.Unlock()
+}
+
+func (s Store) list() []Slot {
 	ents, _ := os.ReadDir(s.Dir)
 	var out []Slot
 	for _, en := range ents {
@@ -101,6 +142,7 @@ func (s Store) Index(name string) int {
 func (s Store) Delete(name string) {
 	if s.Index(name) >= 0 {
 		os.RemoveAll(s.Path(name))
+		s.forget()
 	}
 }
 
@@ -121,6 +163,7 @@ func (s Store) Write(name string, write func(dir string) error) error {
 		return ErrIncomplete
 	}
 	os.RemoveAll(s.Path(name))
+	defer s.forget()
 	return os.Rename(tmp, s.Path(name))
 }
 

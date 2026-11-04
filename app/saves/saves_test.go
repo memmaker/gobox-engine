@@ -10,7 +10,10 @@ import (
 
 func TestStore(t *testing.T) {
 	s := Store{Dir: t.TempDir(), Marker: "M"}
-	mark := func(dir string) error { os.MkdirAll(dir, 0o755); return os.WriteFile(filepath.Join(dir, "M"), nil, 0o644) }
+	mark := func(dir string) error {
+		os.MkdirAll(dir, 0o755)
+		return os.WriteFile(filepath.Join(dir, "M"), nil, 0o644)
+	}
 	if err := s.Write("a", mark); err != nil {
 		t.Fatal(err)
 	}
@@ -53,5 +56,34 @@ func TestMetaSide(t *testing.T) {
 	bad := errors.New("full")
 	if err := s.Write("a", func(string) error { return bad }); err != bad || s.Index("a") != 0 {
 		t.Fatal(err)
+	}
+}
+
+// List reads the folder again only when it changed: the rules list the slots in every State.
+func TestListCachedUntilChange(t *testing.T) {
+	s := Store{Dir: t.TempDir(), Marker: "M"}
+	if err := s.Write("a", func(d string) error { os.MkdirAll(d, 0o755); return os.WriteFile(filepath.Join(d, "M"), nil, 0o644) }); err != nil {
+		t.Fatal(err)
+	}
+	if n := len(s.List()); n != 1 {
+		t.Fatalf("%d slots, want 1", n)
+	}
+	s.Write("b", func(d string) error { os.MkdirAll(d, 0o755); return os.WriteFile(filepath.Join(d, "M"), nil, 0o644) })
+	if n := len(s.List()); n != 2 {
+		t.Fatalf("after a write: %d slots, want 2", n)
+	}
+	os.RemoveAll(s.Path("a")) // a game removing a slot itself
+	if n := len(s.List()); n != 1 {
+		t.Fatalf("after a removal: %d slots, want 1", n)
+	}
+}
+
+func BenchmarkList(b *testing.B) {
+	s := Store{Dir: b.TempDir(), Marker: "M"}
+	for i := range 30 {
+		s.Write(string(rune('a'+i)), func(d string) error { os.MkdirAll(d, 0o755); return os.WriteFile(filepath.Join(d, "M"), nil, 0o644) })
+	}
+	for range b.N {
+		s.List()
 	}
 }
