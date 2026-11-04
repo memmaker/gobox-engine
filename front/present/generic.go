@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"strings"
 
 	"gobox/gpu"
 )
@@ -61,5 +62,13 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 		defer func() { p.menuFloor = 0 }()
 	}
 	p.drawPageMenu(dst, note, v)
+	if m := askMenu(v); m != nil && len(m.Items) == 1 && !choosing(v) && typing(v) == nil && askList(v) == nil { // "press Enter": nothing to pick, the prompt alone above the text
+		mk := math.Max(1, math.Floor(k))
+		text := strings.TrimSpace(m.Prompt)
+		if text == "" {
+			text = m.Items[0].Text
+		}
+		p.drawMenu(dst, note.Glyph, "", []string{text}, nil, nil, -1, mk, cx, int(float64(b.Dy()-int(th))/2)-int(mk*12))
+	}
 	return Rect{0, 0, float64(b.Dx()), float64(b.Dy())}
 }
