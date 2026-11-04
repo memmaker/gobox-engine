@@ -32,6 +32,8 @@ func (g classicGame) View() front.View {
 	v = classic.Border(v, g.art())
 	v = classic.Walls(v, s, g.art())
 	v = classic.Intro(v, s)
+	v = classic.Note(v, s)
+	v = classic.Results(v, s)
 	return v
 }
 
