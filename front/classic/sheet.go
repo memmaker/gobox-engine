@@ -36,7 +36,7 @@ func Sheet(v front.View, s game.State) front.View {
 		for _, r := range p.Rules {
 			k.Rules = append(k.Rules, front.Stat(r))
 		}
-		if k.Portrait == nil {
+		if k.Portrait == nil && (ownSubject(s).PortraitHeadID != "" || !pictured(v, k.PortraitAt.Pixels())) { // a default fills an empty box only
 			m := subject(s)
 			k.Portrait = poolID("portraits", m.PortraitHeadID, m.PortraitBodyID)
 		}

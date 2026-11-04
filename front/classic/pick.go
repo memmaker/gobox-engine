@@ -151,15 +151,29 @@ func Title(logo, backdrop *front.Picture, art map[string]game.Picture) (*front.P
 	return logo, backdrop
 }
 
-// subject is the member whose portrait and icon are on show: the creation's draft, else the selected one.
-func subject(s game.State) game.Member {
+// subject is the member whose portrait and icon are on show: the creation's
+// draft, else the selected one, with gobox's defaults where it names none.
+func subject(s game.State) game.Member { return defaultIcon(defaultPortrait(ownSubject(s))) }
+
+// ownSubject is subject as the rules state it, without the defaults.
+func ownSubject(s game.State) game.Member {
 	switch {
 	case Drafting(s):
-		return defaultIcon(defaultPortrait(s.Creation.Draft))
+		return s.Creation.Draft
 	case s.Selected >= 0 && s.Selected < len(s.Party):
-		return defaultIcon(defaultPortrait(s.Party[s.Selected]))
+		return s.Party[s.Selected]
 	}
 	return game.Member{}
+}
+
+// pictured: a picture of the game's (not a fill) already covers part of r.
+func pictured(v front.View, r image.Rectangle) bool {
+	for _, pc := range v.Pictures {
+		if !pc.Fill && pc.At.Overlaps(r) {
+			return true
+		}
+	}
+	return false
 }
 
 // defaultPortrait is m with a pool head and body filled in where it names none,

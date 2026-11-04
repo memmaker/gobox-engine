@@ -37,6 +37,9 @@ func PoolPortrait(v front.View, s game.State) front.View {
 	}
 	var keep []front.Picture
 	port := cr.Head.Pixels().Union(cr.Body.Pixels())
+	if own := ownSubject(s); own.PortraitHeadID == "" && pictured(v, port) { // a default fills an empty box only
+		return v
+	}
 	for _, pc := range v.Pictures {
 		if !pc.Fill && pc.At.Overlaps(port) {
 			continue
