@@ -26,6 +26,7 @@ type source struct {
 	dir, prefix string // output kind dir and pool name prefix
 	masked      bool   // colour 0 is transparent (combat art)
 	files       []string
+	byFrame     bool // named <prefix>_<frame> with no dedup, so the game can name a tile by its frame
 }
 
 var (
@@ -33,20 +34,25 @@ var (
 	vga   = map[string]bool{"pod": true, "buckrogers": true} // games whose pictures are VGA (dax.ParseVGA) not EGA
 	// The per-game file lists: the only game knowledge here.
 	sources = []source{
-		{"portraits", "head", false, []string{"HEAD1", "HEAD2", "HEAD3", "HEAD4", "HEAD5", "HEAD6", "HEAD7", "HEAD8"}},
-		{"portraits", "body", false, []string{"BODY1", "BODY2", "BODY3", "BODY4", "BODY5", "BODY6", "BODY7", "BODY8"}},
-		{"combat", "combat_head", true, []string{"CHEAD"}},
-		{"combat", "combat_body", true, []string{"CBODY"}},
-		{"combat", "combat_sprite", true, []string{"COMSPR"}},
-		{"combat", "combat_icon", true, []string{"ICON"}},
+		{"portraits", "head", false, []string{"HEAD1", "HEAD2", "HEAD3", "HEAD4", "HEAD5", "HEAD6", "HEAD7", "HEAD8"}, false},
+		{"portraits", "body", false, []string{"BODY1", "BODY2", "BODY3", "BODY4", "BODY5", "BODY6", "BODY7", "BODY8"}, false},
+		{"combat", "combat_head", true, []string{"CHEAD"}, false},
+		{"combat", "combat_body", true, []string{"CBODY"}, false},
+		{"combat", "combat_sprite", true, []string{"COMSPR"}, false},
+		{"combat", "combat_icon", true, []string{"ICON"}, false},
 	}
 	// The buck-rogers series: CPIC is the character picture, CHARS the characters'
 	// combat icons, COMSPR the combat sprites (buckroger-re src/O157.PAS, O0CA.PAS).
 	brGames   = []string{"buckrogers"}
 	brSources = []source{
-		{"portraits", "portrait", false, []string{"CPIC1", "CPIC2", "CPIC3", "CPIC4", "CPIC5", "CPIC6"}},
-		{"combat", "combat_icon", true, []string{"CHARS"}},
-		{"combat", "combat_sprite", true, []string{"COMSPR"}},
+		{"portraits", "portrait", false, []string{"CPIC1", "CPIC2", "CPIC3", "CPIC4", "CPIC5", "CPIC6"}, false},
+		{"combat", "combat_icon", true, []string{"CHARS"}, false},
+		{"combat", "combat_sprite", true, []string{"COMSPR"}, false},
+		// The combat map tile sets (pO157_0022): block 1, one 24x24 tile a frame.
+		{"combat", "hitek_tile", false, []string{"HITEK"}, true},
+		{"combat", "lotek_tile", false, []string{"LOTEK"}, true},
+		{"combat", "marscom_tile", false, []string{"MARSCOM"}, true},
+		{"combat", "venuscom_tile", false, []string{"VENUSCOM"}, true},
 	}
 )
 
@@ -102,9 +108,13 @@ func main() {
 						}
 						pix := render(im, fr)
 						key := s.dir + fmt.Sprint(im.Width, im.Height) + s.prefix + string(pix.Pix)
+						n := count[s.prefix]
+						if s.byFrame {
+							key, n = s.prefix+idx, fr
+						}
 						en := seen[key]
 						if en == nil {
-							en = &entry{name: fmt.Sprintf("%s_%03d", s.prefix, count[s.prefix]), w: im.Width * 8, h: im.Height}
+							en = &entry{name: fmt.Sprintf("%s_%03d", s.prefix, n), w: im.Width * 8, h: im.Height}
 							count[s.prefix]++
 							seen[key] = en
 							byDir[s.dir] = append(byDir[s.dir], en)
