@@ -290,6 +290,14 @@ func (c *cellPage) texts(v front.View) {
 	}
 }
 
+// capOr is the end cap's place when b has that cap, else side's.
+func capOr(b [ui.Places]image.Image, cap, side int) int {
+	if b[cap] != nil {
+		return cap
+	}
+	return side
+}
+
 // cellBorder draws View.Border's cells into m round the cells of r. The
 // page boxes are text-grid cells drawn into the page's CPU image (uploaded
 // once per View, cropped by the adventure frame), not window()'s GPU pass.
@@ -310,8 +318,15 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		tile(ui.Bottom, x, f.Y2)
 	}
 	for y := f.Y1 + 1; y < f.Y2; y++ {
-		tile(ui.Left, f.X1, y)
-		tile(ui.Right, f.X2, y)
+		l, r := ui.Left, ui.Right
+		if y == f.Y1+1 {
+			l, r = capOr(b, ui.LeftTopCap, l), capOr(b, ui.RightTopCap, r)
+		}
+		if y == f.Y2-1 {
+			l, r = capOr(b, ui.LeftBottomCap, l), capOr(b, ui.RightBottomCap, r)
+		}
+		tile(l, f.X1, y)
+		tile(r, f.X2, y)
 	}
 }
 

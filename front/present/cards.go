@@ -44,17 +44,21 @@ var (
 // borders are the window border's tiles (View.Border) on the GPU, in
 // colour and in grey.
 type borders struct {
-	src         [ui.Pieces]image.Image
+	src         [ui.Places]image.Image
 	tiles, grey ui.Ribbon
 }
 
 // update uploads the game's tiles when they change.
-func (b *borders) update(t [ui.Pieces]image.Image) {
+func (b *borders) update(t [ui.Places]image.Image) {
 	if t == b.src || t[0] == nil {
 		return
 	}
 	b.src = t
 	for i, m := range t {
+		if m == nil { // an end cap the game leaves out
+			b.tiles[i], b.grey[i] = nil, nil
+			continue
+		}
 		b.tiles[i] = gpu.NewImageFromImage(m)
 		g := image.NewRGBA(m.Bounds())
 		for y := m.Bounds().Min.Y; y < m.Bounds().Max.Y; y++ {

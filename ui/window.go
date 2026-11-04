@@ -18,12 +18,17 @@ const (
 	Bottom
 	Left
 	Right
-	Pieces
+	Pieces                // the corners and sides; a game's fixed [Pieces] literals stay valid
+	LeftTopCap = iota - 1 // a side's first and last cell, just inside the corners; nil: the side piece
+	LeftBottomCap
+	RightTopCap
+	RightBottomCap
+	Places // every place, caps included
 )
 
 // Ribbon is a border's 8x8 pieces by place (TopLeft ..); a nil piece is
 // not drawn.
-type Ribbon [Pieces]*gpu.Image
+type Ribbon [Places]*gpu.Image
 
 // Window is every window's frame: a cw by ch cell box at g on dst, bg
 // inside (nil: the inside stays as drawn), then the ribbon border in tiles
@@ -48,9 +53,22 @@ func Window(dst *gpu.Image, t Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) im
 		cell(Top, x, 0)
 		cell(Bottom, x, ch-1)
 	}
+	pick := func(cap, side int, end bool) int {
+		if end && t[cap] != nil {
+			return cap
+		}
+		return side
+	}
 	for y := 1; y < ch-1; y++ {
-		cell(Left, 0, y)
-		cell(Right, cw-1, y)
+		l, r := Left, Right
+		if y == 1 {
+			l, r = pick(LeftTopCap, l, true), pick(RightTopCap, r, true)
+		}
+		if y == ch-2 {
+			l, r = pick(LeftBottomCap, l, true), pick(RightBottomCap, r, true)
+		}
+		cell(l, 0, y)
+		cell(r, cw-1, y)
 	}
 	cell(TopLeft, 0, 0)
 	cell(TopRight, cw-1, 0)

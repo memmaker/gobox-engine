@@ -40,11 +40,13 @@ type Border struct {
 	File   string
 	Block  int
 	Pieces [ui.Pieces]int
+	Caps   []int  // frames of the end caps (ui.LeftTopCap ..), 4 entries; absent or below 0: none, the side piece
 	Mask   *uint8 // the colour index left transparent (as Picture.Mask; nil: none)
 
 	// Pics, when set, give the pieces as DAX picture refs (Picture.File, Block,
 	// Frame, Mask) by place instead of File's symbols; a ref with File "": no piece.
-	Pics [ui.Pieces]front.Picture
+	Pics    [ui.Pieces]front.Picture
+	CapPics [4]front.Picture // the caps' refs, as Pics
 }
 
 // DefaultTheme is por's look.
@@ -75,12 +77,16 @@ func applyTheme(t Theme) {
 
 // borderPieces is v's border pieces, or Theme.Border's decoded when the
 // game hands none in.
-func borderPieces(v front.View) [ui.Pieces]image.Image {
-	if v.Border != ([ui.Pieces]image.Image{}) {
-		return v.Border
+func borderPieces(v front.View) [ui.Places]image.Image {
+	if v.Border != ([8]image.Image{}) {
+		var t [ui.Places]image.Image
+		copy(t[:], v.Border[:])
+		copy(t[ui.LeftTopCap:], v.BorderCaps[:])
+		return t
 	}
-	var t [ui.Pieces]image.Image
-	for i, pc := range theme.Border.Pics {
+	var t [ui.Places]image.Image
+	pics := append(theme.Border.Pics[:], theme.Border.CapPics[:]...)
+	for i, pc := range pics {
 		if pc.File != "" {
 			if m := picImage(pc, [16]color.RGBA{}); m != nil {
 				t[i] = m
@@ -90,7 +96,8 @@ func borderPieces(v front.View) [ui.Pieces]image.Image {
 	if theme.Border.File == "" {
 		return t // the zero value with no Pics: no pieces, as v.Border was
 	}
-	for i, f := range theme.Border.Pieces {
+	frames := append(theme.Border.Pieces[:], theme.Border.Caps...)
+	for i, f := range frames {
 		if f >= 0 && t[i] == nil {
 			mask := -1
 			if theme.Border.Mask != nil {
