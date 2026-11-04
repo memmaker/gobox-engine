@@ -10,6 +10,7 @@ import (
 	"image/color"
 	"math"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -649,7 +650,7 @@ func scale(dst *gpu.Image) float64 {
 func window(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) image.Rectangle {
 	r := ui.Window(dst, t, g, cw, ch, bg)
 	if t[ui.Top] != nil && t[ui.Top] == edgesFor[ui.Top] { // the theme's own tiles: its cracked edges too (not the grey cards')
-		ui.WindowEdges(dst, edgeTiles, g, cw, ch)
+		ui.WindowEdges(dst, sizedEdges(cw, ch), g, cw, ch)
 	}
 	return r
 }
@@ -658,15 +659,33 @@ func window(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, cw, ch int, bg color.Color)
 // theme's cracked divider (when t is the theme's tiles).
 func divider(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, ch int) {
 	if t[ui.Top] != nil && t[ui.Top] == edgesFor[ui.Top] {
-		ui.WindowDivider(dst, edgeTiles, g, ch)
+		ui.WindowDivider(dst, sizedEdges(0, ch), g, ch)
 	}
 }
 
-// edgeTiles are Theme.Border.Edges on the GPU, for the ribbon edgesFor.
+// edgeTiles are Theme.Border.Edges on the GPU, for the ribbon edgesFor;
+// edgeMap all of them by key, the "edge＠n" tables too.
 var (
 	edgeTiles ui.Edges
 	edgesFor  ui.Ribbon
+	edgeMap   map[string][]*gpu.Image
 )
+
+// sizedEdges is edgeTiles with each edge's own table for its length (key
+// "edge＠n", the original's per-length arrays) where the theme has one.
+func sizedEdges(cw, ch int) ui.Edges {
+	e := edgeTiles
+	for _, s := range []struct {
+		seq *[]*gpu.Image
+		key string
+		n   int
+	}{{&e.Top, "top", cw}, {&e.Bottom, "bottom", cw}, {&e.Left, "left", ch}, {&e.Right, "right", ch}, {&e.Divider, "divider", ch}} {
+		if t := edgeMap[s.key+"＠"+strconv.Itoa(s.n)]; len(t) > 0 {
+			*s.seq = t
+		}
+	}
+	return e
+}
 
 // resize tells the engine the text cells the window holds (grid) when
 // they change, and again now and then while the page is not yet of that

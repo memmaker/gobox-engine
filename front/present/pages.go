@@ -331,7 +331,13 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 	if v.Border != ([8]image.Image{}) {
 		return // the game's own pieces
 	}
-	es := borderEdges()
+	all := borderEdges()
+	es := func(key string, n int) []image.Image { // the edge's own table for length n, else its general one
+		if t := all[key+"＠"+strconv.Itoa(n)]; len(t) > 0 {
+			return t
+		}
+		return all[key]
+	}
 	put := func(t image.Image, x, y int) {
 		if t != nil {
 			draw.Draw(m, image.Rect(x*8, y*8, x*8+8, y*8+8), t, t.Bounds().Min, draw.Src)
@@ -353,10 +359,10 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		x   int
 	}{{"left", f.X1}, {"right", f.X2}} {
 		key := side.key
-		if side.x > 0 && side.x < cols-1 && len(es["divider"]) > 0 { // between two boxes: the divider
+		if side.x > 0 && side.x < cols-1 && len(es("divider", h)) > 0 { // between two boxes: the divider
 			key = "divider"
 		}
-		if seq := es[key]; len(seq) > 0 {
+		if seq := es(key, h); len(seq) > 0 {
 			run(seq, h, func(i int) (int, int) { return side.x, f.Y1 + i })
 		}
 	}
@@ -369,7 +375,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		if edge.outerRow {
 			key = edge.outer
 		}
-		if seq := es[key]; len(seq) > 0 {
+		if seq := es(key, w); len(seq) > 0 {
 			run(seq, w, func(i int) (int, int) { return f.X1 + i, edge.y })
 		}
 	}

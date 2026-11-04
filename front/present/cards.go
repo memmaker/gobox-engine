@@ -55,7 +55,7 @@ func (b *borders) update(t [ui.Places]image.Image) {
 	}
 	b.src = t
 	defer func() { // the theme's cracked edges go with these tiles
-		edgesFor, edgeTiles = b.tiles, ui.Edges{}
+		edgesFor, edgeTiles, edgeMap = b.tiles, ui.Edges{}, nil
 		up := func(ms []image.Image) (out []*gpu.Image) {
 			for _, m := range ms {
 				var g *gpu.Image
@@ -67,7 +67,11 @@ func (b *borders) update(t [ui.Places]image.Image) {
 			return out
 		}
 		if es := borderEdges(); es != nil {
-			edgeTiles = ui.Edges{Top: up(es["top"]), Bottom: up(es["bottom"]), Left: up(es["left"]), Right: up(es["right"]), Divider: up(es["divider"])}
+			edgeMap = map[string][]*gpu.Image{}
+			for k, ms := range es {
+				edgeMap[k] = up(ms)
+			}
+			edgeTiles = ui.Edges{Top: edgeMap["top"], Bottom: edgeMap["bottom"], Left: edgeMap["left"], Right: edgeMap["right"], Divider: edgeMap["divider"]}
 		}
 	}()
 	for i, m := range t {
