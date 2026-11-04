@@ -17,7 +17,6 @@ por-go por/presentdata -> gobox/walls
 por-go por/rules -> gobox/front
 por-go por/rules -> gobox/ui/fonts
 por-go por/rules -> gobox/ui/text
-sotsb-go sotsb/cmd/blades -> gobox/ui/fonts
 sotsb-go sotsb/presentdata -> gobox/front
 sotsb-go sotsb/presentdata -> gobox/front/present
 sotsb-go sotsb/presentdata -> gobox/ui
