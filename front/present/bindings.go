@@ -47,6 +47,18 @@ func memberCodes() []ui.Code {
 	return c
 }
 
+// MemberDigits is a row a game opts into (Data.Bindings): the digits 1-6
+// pick party member 1-6, as F1-F6 do (the original's keys in some games);
+// the digits then no longer pick a menu's lines. Its mouse and pad ways
+// are F1-F8's: a click on the card, the stick buttons.
+var MemberDigits = ui.Binding{Ctx: ctxMenus, Keys: "1-6", Desc: "member 1-6", Mouse: "click a card", Pad: "L3 R3", Codes: func() []ui.Code {
+	c := make([]ui.Code, 6)
+	for i := range c {
+		c[i] = ui.Code{K: '1' + uint16(i), A: input.Member1 + input.Act(i)}
+	}
+	return c
+}()}
+
 // helpKeyW and helpDescW are the help's columns: the keys (or the mouse's
 // or pad's way), then what they do.
 const helpKeyW, helpDescW = 12, 23
