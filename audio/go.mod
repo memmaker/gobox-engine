@@ -7,7 +7,10 @@ require (
 	github.com/jfreymuth/oggvorbis v1.0.5
 )
 
-require github.com/jfreymuth/vorbis v1.0.2 // indirect
+require (
+	github.com/jfreymuth/vorbis v1.0.2 // indirect
+	github.com/memmaker/opl2 v0.1.0 // indirect
+)
 
 require (
 	github.com/ebitengine/purego v0.11.0 // indirect

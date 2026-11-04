@@ -56,3 +56,17 @@ is Config.Volume; card/dir are Config; NewPlayer hooks the timer (sotsb never se
 ## Migrate
 - `Config.Dir` is gone (no DISK2 probing). Read the Amiga `SOUND.BIN` yourself and set `Config.Amiga` (nil keeps the DOS driver) and `Config.AmigaSongOn` (was the hard-coded 0x667d5 in `amiga`).
 - The DS offsets in sound.go were comments only; no sounddata.json change.
+
+## AdLib (OPL2) and PCM effects
+```go
+type AdLibData struct {
+    Music, Sounds []byte      // MUSIC.DAX (song n = block n), ZOUNDS.DAX (may be nil)
+    Effects map[int]int       // effect number -> Sounds block id
+    Header bool; Skip []int   // 8SVX^0x80 FORMs (play BODY); Skip: block ids that are raw u8 PCM
+    Rate int                  // effect rate, Hz
+}
+func NewAdLib(AdLibData) (*AdLib, error)  // a Tracks: Len, Has, Song, Reset, Start, Playing, Mix(m, loop)
+func (*AdLib) Effect(n int) bool          // PCM over the song; the caller Resets the music if the game cuts it
+```
+Mix fills m (s16le stereo 44100 Hz) with OPL2 (opl2.Resampler) plus the effect. Not locked; the Driver's lock covers it.
+Spec: pod-go docs/MUSIC.md; test compares the first 300 ticks with `podmusic.py regs` (testdata/pod_regs1.txt).
