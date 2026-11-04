@@ -198,6 +198,7 @@ type Unit struct {
 	AC         int
 	Status     string
 	Dmg        string // the unit's damage, e.g. "1d8+6"
+	Member     int    // party index of a party unit, -1 for a monster
 }
 
 // Turn is whose turn it is and what they may do.
