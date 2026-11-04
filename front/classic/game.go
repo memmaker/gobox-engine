@@ -202,11 +202,11 @@ func (g *Game) SetStat(i int, typed string) error {
 	return g.do(game.Adjust{Stat: 7, By: x - c.Draft.Str00})
 }
 
-// Title: the presenter plays it from State.Intro.
-func (g *Game) TitlePicture(int) {}
-func (g *Game) TitleCredits()    {}
-func (g *Game) TitleFlash(int)   {}
-func (g *Game) TitleDone()       {}
+// Title: the presenter plays it from State.Intro, the game draws it.
+func (g *Game) TitlePicture(n int) { g.do(game.TitlePicture{N: n}) }
+func (g *Game) TitleCredits()      { g.do(game.TitleCredits{}) }
+func (g *Game) TitleFlash(c int)   { g.do(game.TitleFlash{C: c}) }
+func (g *Game) TitleDone()         { g.do(game.TitleDone{}) }
 
 // Camp.
 func (g *Game) LeaveCamp() error { return g.do(game.LeaveCamp{}) }
@@ -291,13 +291,16 @@ func (g *Game) IconRemove()         { g.do(game.IconRemove{}) }
 func (g *Game) IconPNG(path string) { g.do(game.IconPNG{Path: path}) }
 func (g *Game) EndIcon(keep bool)   { g.do(game.EndIcon{Keep: keep}) }
 
-// SlotsView: State.Saves has the names and infos; the levels are not State's.
+// SlotsView is State.Saves as the slot list (nil on the title).
 func (g *Game) SlotsView(loadOnly bool) *front.Slots {
 	st := g.R.State()
+	if st.Intro != nil {
+		return nil
+	}
 	inGame := len(st.Party) > 0 && st.Mode != game.ModeTitle && st.Mode != game.ModeParty && st.Mode != game.ModeCreate && st.Mode != game.ModeCombat
 	v := &front.Slots{CanSave: !loadOnly && inGame, LoadOnly: loadOnly}
 	for _, sl := range st.Saves {
-		v.Names, v.Times, v.Levels = append(v.Names, sl.Name), append(v.Times, sl.Info), append(v.Levels, 0)
+		v.Names, v.Times, v.Levels = append(v.Names, sl.Name), append(v.Times, sl.Time), append(v.Levels, sl.Level)
 	}
 	if len(v.Names) > 0 {
 		v.Current = v.Names[0]
@@ -326,7 +329,7 @@ func (g *Game) OpenItems(n int, direct bool) error {
 	return g.do(game.OpenItems{Member: n, Direct: direct})
 }
 func (g *Game) CloseItems(all bool) error { return g.do(game.CloseItems{All: all}) }
-func (g *Game) Ready(i, x int) error      { return g.do(game.Ready{Member: g.sel(-1), Item: i}) }
+func (g *Game) Ready(i, x int) error      { return g.do(game.Ready{Member: g.sel(-1), Item: i, Count: x}) }
 func (g *Game) UseItem(i, spell, target int, sure bool) error {
 	return g.do(game.UseItem{Member: g.sel(-1), Item: i, Spell: spell, Target: target})
 }
@@ -361,9 +364,17 @@ func (g *Game) Mark(x, y int, text string) { g.do(game.Mark{At: image.Pt(x, y), 
 func (g *Game) Unmark(x, y int)            { g.do(game.Unmark{At: image.Pt(x, y)}) }
 func (g *Game) WalkTo(x, y int) bool       { return g.do(game.WalkTo{At: image.Pt(x, y)}) == nil }
 
-// JournalPage and SpeakPage are the presenter's (pagination, speech).
-func (g *Game) JournalPage(string, []string, int, int) (*front.Pages, int) { return nil, 0 }
-func (g *Game) SpeakPage([]string, int)                                    {}
+// JournalPage is the journal text laid out on the page (Data.Scans has its pictures).
+func (g *Game) JournalPage(title string, lines []string, p, off int) (*front.Pages, int) {
+	return JournalPage(title, lines, p, off, g.grid.X, g.grid.Y, g.R.State().Ink, g.D.Scans)
+}
+
+// SpeakPage has the game voice the page's clips.
+func (g *Game) SpeakPage(lines []string, p int) {
+	for _, k := range SpeakKeys(lines, p, g.grid.X, g.grid.Y) {
+		g.do(game.Speak{Key: k})
+	}
+}
 
 // ClueChapters and ClueRead are Data.Clues.
 func (g *Game) ClueChapters() (out []string) {
@@ -436,7 +447,7 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActSheet:
 		return game.CloseItems{}, true
 	case front.ActReady:
-		return game.Ready{Member: g.sel(-1), Item: a.N}, true
+		return game.Ready{Member: g.sel(-1), Item: a.N, Count: a.X}, true
 	case front.ActUse:
 		return game.UseItem{Member: g.sel(-1), Item: a.N}, true
 	case front.ActDrop:

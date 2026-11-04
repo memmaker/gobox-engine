@@ -13,5 +13,8 @@ func Place(v front.View, s game.State) front.View {
 	a, _ := strconv.Atoi(s.Where.Area)
 	v.Window, v.Area = front.Window(s.Window), front.AreaID(a)
 	v.X, v.Y, v.Facing = s.Where.X, s.Where.Y, front.Dir(s.Where.Facing/2&3)
+	if q := s.Where.Square; q != nil {
+		v.X, v.Y = q.X, q.Y
+	}
 	return v
 }

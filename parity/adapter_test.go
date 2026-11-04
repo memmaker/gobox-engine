@@ -23,7 +23,7 @@ import (
 // known are the View fields classic cannot yet build from State alone, per
 // scene: X and Y on the overland (por keeps the
 // dungeon's square there). Any other field that differs fails.
-var known = map[string][]string{"overland": {"X", "Y"}}
+var known = map[string][]string{}
 
 // TestAdapter runs por twice over each dev scene and the same actions: as a
 // front.Game itself (rules.Engine) and through classic.Game over its
