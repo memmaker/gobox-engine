@@ -245,6 +245,7 @@ func (g *Game) EffectsList(n int) (out []front.ListLine) {
 func (g *Game) LootView(n int) error      { return g.do(game.LootLook{Member: n}) }
 func (g *Game) LootTake(n int) error      { return g.do(game.LootTake{Member: n}) }
 func (g *Game) LootDetect() error         { return g.do(game.LootDetect{}) }
+func (g *Game) LootShare() error          { return g.do(game.LootShare{}) }
 func (g *Game) LootLeave(sure bool) error { return g.do(game.LootLeave{Sure: sure}) }
 func (g *Game) TryDoor(k front.DoorWay) error {
 	return g.do(game.TryDoor{Way: int(k)})

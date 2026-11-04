@@ -7,6 +7,7 @@ package front
 type Loot struct {
 	Take   bool // there is treasure to take (LootTake)
 	Detect bool // the selected member has Detect Magic memorized (LootDetect)
+	Share  bool // there is money to divide among the party (LootShare)
 }
 
 // DoorOpts is a locked door's options besides Exit (View.Door).
