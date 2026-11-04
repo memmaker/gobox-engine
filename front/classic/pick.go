@@ -1,13 +1,16 @@
 package classic
 
 import (
+	"hash/fnv"
 	"image"
 	"image/color"
 	"strconv"
+	"strings"
 
 	"gobox/ega"
 	"gobox/front"
 	"gobox/game"
+	"gobox/sprites"
 )
 
 // Picker is page page of the grid picker in s (page < 0: the one holding
@@ -152,9 +155,51 @@ func Title(logo, backdrop *front.Picture, art map[string]game.Picture) (*front.P
 func subject(s game.State) game.Member {
 	switch {
 	case Drafting(s):
-		return s.Creation.Draft
+		return defaultIcon(defaultPortrait(s.Creation.Draft))
 	case s.Selected >= 0 && s.Selected < len(s.Party):
-		return s.Party[s.Selected]
+		return defaultIcon(defaultPortrait(s.Party[s.Selected]))
 	}
 	return game.Member{}
+}
+
+// defaultPortrait is m with a pool head and body filled in where it names none,
+// picked by its race and class so the same kind of character gets the same
+// face; the game never chooses one.
+func defaultPortrait(m game.Member) game.Member {
+	if m.PortraitHeadID != "" && m.PortraitBodyID != "" || m.Portrait.File != "" || m.Portrait.Pixels != nil {
+		return m
+	}
+	if m.PortraitHeadID == "" {
+		m.PortraitHeadID = poolPick(m, "portraits", "head_")
+	}
+	if m.PortraitBodyID == "" {
+		m.PortraitBodyID = poolPick(m, "portraits", "body_")
+	}
+	return m
+}
+
+// defaultIcon is m with a pool combat head and body filled in when it has
+// neither pool ids nor original icon numbers, picked like defaultPortrait.
+func defaultIcon(m game.Member) game.Member {
+	if m.IconHeadID != "" || m.Icon != nil {
+		return m
+	}
+	m.IconHeadID, m.IconBodyID = poolPick(m, "combat", "combat_head_"), poolPick(m, "combat", "combat_body_")
+	return m
+}
+
+// poolPick is one kind/prefix pool name chosen by m's race and class ("": none).
+func poolPick(m game.Member, kind, prefix string) string {
+	h := fnv.New32a()
+	h.Write([]byte(m.Race + "/" + m.Class))
+	var ns []string
+	for _, n := range sprites.Names(Series, kind) {
+		if strings.HasPrefix(n, prefix) {
+			ns = append(ns, n)
+		}
+	}
+	if len(ns) == 0 {
+		return ""
+	}
+	return ns[int(h.Sum32()%uint32(len(ns)))]
 }

@@ -29,6 +29,7 @@ func powers(es []game.Entry) []front.Power {
 func Party(s game.State, art map[string]game.Picture) []front.Member {
 	var out []front.Member
 	for _, m := range s.Party {
+		m = defaultPortrait(m)
 		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone
 			m.Dropped = sprites.Image(Series, "portraits", m.PortraitHeadID)
 		}
