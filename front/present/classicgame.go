@@ -26,6 +26,7 @@ func (g classicGame) View() front.View {
 	if v.MainMenu != nil && !v.Hall && v.Powers == nil { // the title under the party menu
 		v.Logo, v.Backdrop = classic.Title(v.Logo, v.Backdrop, g.art())
 	}
+	v.Battle = classic.Battle(v.Battle, s)
 	return v
 }
 

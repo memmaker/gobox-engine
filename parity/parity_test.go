@@ -29,7 +29,10 @@ func porDir(t *testing.T) string {
 }
 
 // engine is por started headless on its data (dev: a -dev scene, "" none).
-func engine(t *testing.T, explore bool, dev string) *rules.Engine {
+func engine(t *testing.T, explore bool, dev string) *rules.Engine { return engineSeed(t, explore, dev, 7) }
+
+// engineSeed is engine with the dice seeded seed.
+func engineSeed(t *testing.T, explore bool, dev string, seed uint32) *rules.Engine {
 	dir := filepath.Join(porDir(t), "data")
 	if _, err := os.Stat(filepath.Join(dir, "dos", "TITLE.DAX")); err != nil {
 		t.Skip("no game files")
@@ -38,7 +41,6 @@ func engine(t *testing.T, explore bool, dev string) *rules.Engine {
 	if err != nil {
 		t.Fatal(err)
 	}
-	seed := uint32(7)
 	e.FixedSeed = &seed
 	e.Cfg.SaveDir = t.TempDir()
 	e.Explore = explore

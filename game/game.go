@@ -267,7 +267,15 @@ type Combat struct {
 	Dungeon bool
 	Reach   []Reach    // squares the turn's unit may walk to
 	Spells  []SpellRef // castable by the turn's unit
-	Aims    []SpellRef // spells that take a square
+	Aims    []SpellRef // spells that take a square, with their Range, Targets and Area
+	Targets []int      // unit IDs the turn's Attack takes; while aiming, the foes Tab cycles through
+	Panel   int        // the unit ID the status row shows (who acts, or is being hit), 0 none
+	// Marks are the squares framed for a choice: with Area, a spell's area
+	// (AreaAt the squares it covers round the aimed square, Skipped the allies
+	// in it that it passes over), else the units an aim would hit.
+	Marks, AreaAt, Skipped []image.Point
+	Area                   bool
+	Why                    string // aiming: why the aimed square cannot be taken, "" when it can
 }
 
 // Reach is a square the unit can walk to and the steps it costs.
@@ -300,13 +308,17 @@ type Unit struct {
 	Status     string
 	Dmg        string // the unit's damage, e.g. "1d8+6"
 	Member     int    // party index of a party unit, -1 for a monster
+	Active     bool   // it is the unit the player acts for
+	Hit        int    // the active unit's chance in percent to hit it with one blow, 0 not a target
 }
 
 // Turn is whose turn it is and what they may do.
 type Turn struct {
 	Unit    int
 	Moves   int
-	Casting int // the spell the unit is casting over rounds, 0 none
+	Casting int    // the spell the unit is casting over rounds, 0 none
+	Aim     bool   // aiming: Aim takes a square (Cast: Ats), Cancel gives up
+	Spell   string // aiming a spell, its name
 	Options []Option
 }
 
@@ -550,6 +562,9 @@ type (
 	Bandage    struct{ Member int }
 	TurnUndead struct{}
 	Aim        struct{ At image.Point }
+	Ranged     struct{} // combat: shoot or throw the missile
+	Items      struct{} // combat: open the inventory
+	Maneuver   struct{} // combat: pick one of the rule set's maneuvers
 	// Items and money.
 	Unready  struct{ Member, Item int }
 	Halve    struct{ Member, Item int } // split a stack
@@ -624,6 +639,9 @@ func (Quick) decision()            {}
 func (Bandage) decision()          {}
 func (TurnUndead) decision()       {}
 func (Aim) decision()              {}
+func (Ranged) decision()           {}
+func (Items) decision()            {}
+func (Maneuver) decision()         {}
 func (Unready) decision()          {}
 func (Halve) decision()            {}
 func (Join) decision()             {}
