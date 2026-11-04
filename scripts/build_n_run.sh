@@ -8,4 +8,6 @@ set -e
 [ -d "$1" ] || { echo "usage: $0 GAMEDIR [flags...]" >&2; exit 1; }
 cd "$1"; shift
 [ -x ./run.sh ] || { echo "no $(pwd)/run.sh: the game supplies its build-and-run hook (see gobox-engine/scripts/README.md)" >&2; exit 1; }
-GOBOX_ENGINE=$(cd "$(dirname "$0")/.." && pwd) exec ./run.sh "$@"
+# The user plays: the window comes to the front and takes the keys (without a TTY,
+# say from an editor task, gogpu would otherwise open it behind, as for agents).
+GOBOX_FOREGROUND=${GOBOX_FOREGROUND-1} GOBOX_ENGINE=$(cd "$(dirname "$0")/.." && pwd) exec ./run.sh "$@"
