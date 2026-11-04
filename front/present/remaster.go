@@ -654,6 +654,14 @@ func window(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, cw, ch int, bg color.Color)
 	return r
 }
 
+// divider redraws column 0 of the window at g, ch cells high, as the
+// theme's cracked divider (when t is the theme's tiles).
+func divider(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, ch int) {
+	if t[ui.Top] != nil && t[ui.Top] == edgesFor[ui.Top] {
+		ui.WindowDivider(dst, edgeTiles, g, ch)
+	}
+}
+
 // edgeTiles are Theme.Border.Edges on the GPU, for the ribbon edgesFor.
 var (
 	edgeTiles ui.Edges

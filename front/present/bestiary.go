@@ -133,6 +133,7 @@ func (p *Presenter) drawBestiary(dst *gpu.Image, note Note, v front.View) {
 	var g gpu.GeoM
 	g.Translate(float64(leftCells-1)*8, 0)
 	window(sc.img, t, g, cw-leftCells+1, ch, nil)
+	divider(sc.img, t, g, ch)
 	paneName(sc.img, note.Glyph, "Bestiary")
 	kx, ky := p.fit(dst, sc.img, sc.w, sc.h)
 	p.menuRects = p.menuRects[:0] // the rows on the window: hover and clicks as on every camp list

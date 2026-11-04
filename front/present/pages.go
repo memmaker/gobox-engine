@@ -344,11 +344,19 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		}
 	}
 	h, w := f.Y2-f.Y1+1, f.X2-f.X1+1
+	cols := v.Cells.X
+	if cols == 0 {
+		cols = 40
+	}
 	for _, side := range []struct {
 		key string
 		x   int
 	}{{"left", f.X1}, {"right", f.X2}} {
-		if seq := es[side.key]; len(seq) > 0 {
+		key := side.key
+		if side.x > 0 && side.x < cols-1 && len(es["divider"]) > 0 { // between two boxes: the divider
+			key = "divider"
+		}
+		if seq := es[key]; len(seq) > 0 {
 			run(seq, h, func(i int) (int, int) { return side.x, f.Y1 + i })
 		}
 	}

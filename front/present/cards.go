@@ -67,7 +67,7 @@ func (b *borders) update(t [ui.Places]image.Image) {
 			return out
 		}
 		if es := borderEdges(); es != nil {
-			edgeTiles = ui.Edges{Top: up(es["top"]), Bottom: up(es["bottom"]), Left: up(es["left"]), Right: up(es["right"])}
+			edgeTiles = ui.Edges{Top: up(es["top"]), Bottom: up(es["bottom"]), Left: up(es["left"]), Right: up(es["right"]), Divider: up(es["divider"])}
 		}
 	}()
 	for i, m := range t {

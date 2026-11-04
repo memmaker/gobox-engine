@@ -420,6 +420,7 @@ func (p *Presenter) drawJournal(dst *gpu.Image, note Note, v front.View) {
 	var g gpu.GeoM
 	g.Translate(float64(listCells)*8, 0)
 	window(sc.img, t, g, cw-listCells, ch, nil)
+	divider(sc.img, t, g, ch)
 	onBorder(sc.img, note.Glyph, (lw-8*9)/2, 0, true, []string{"Journal"}, []color.RGBA{white})
 	kx, ky := p.fit(dst, sc.img, sc.w, sc.h)
 	on := func(r image.Rectangle) image.Rectangle {

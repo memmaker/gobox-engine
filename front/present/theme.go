@@ -50,7 +50,8 @@ type Border struct {
 
 	// Edges, when set, give an edge's cells one by one as frames of File's
 	// symbols, corners included: "top" and "bottom" (the screen's top and
-	// bottom rows), "rule" (any other horizontal edge), "left", "right". An
+	// bottom rows), "rule" (any other horizontal edge), "left", "right",
+	// "divider" (a vertical edge between two boxes or windows). An
 	// edge of another length keeps the first and last entries at its ends and
 	// repeats the middle ones (the original's cracked borders); a missing
 	// edge draws the Pieces.

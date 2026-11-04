@@ -79,7 +79,7 @@ func Window(dst *gpu.Image, t Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) im
 
 // Edges are a border's cells one by one per edge, corners included (the
 // original's cracked borders); a nil edge is drawn by the Ribbon.
-type Edges struct{ Top, Bottom, Left, Right []*gpu.Image }
+type Edges struct{ Top, Bottom, Left, Right, Divider []*gpu.Image } // Divider: a vertical rule between two boxes
 
 // EdgeCell is the entry of an m-entry edge sequence for cell i of n: the
 // ends fixed, the middle entries repeated.
@@ -113,4 +113,10 @@ func WindowEdges(dst *gpu.Image, e Edges, g gpu.GeoM, cw, ch int) {
 	run(e.Right, ch, func(i int) (int, int) { return cw - 1, i })
 	run(e.Top, cw, func(i int) (int, int) { return i, 0 })
 	run(e.Bottom, cw, func(i int) (int, int) { return i, ch - 1 })
+}
+
+// WindowDivider draws e.Divider down column 0 of a ch-cell-high box at g:
+// the rule two side-by-side windows share (nil: as drawn).
+func WindowDivider(dst *gpu.Image, e Edges, g gpu.GeoM, ch int) {
+	WindowEdges(dst, Edges{Left: e.Divider}, g, 1, ch)
 }

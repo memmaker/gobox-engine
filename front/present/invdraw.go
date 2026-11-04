@@ -230,6 +230,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	var g gpu.GeoM
 	g.Translate(float64(split-1)*8, 0) // the boxes share the divider
 	window(inv.img, t, g, cw-split+1, ch-1, nil)
+	divider(inv.img, t, g, ch-1)
 	switch { // the headings on the top border, the party's money on the shop's bottom one
 	case in.Loot:
 		onBorder(inv.img, inv.glyph, lx, 0, true, []string{"Loot"}, []color.RGBA{white})
