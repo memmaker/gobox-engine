@@ -1,6 +1,9 @@
 package front
 
-import "image"
+import (
+	"image"
+	"log"
+)
 
 // Game is the rule calls the party menu and the creation sheet make; the
 // game implements it over its engine and keeps all state. A call that the
@@ -117,14 +120,32 @@ type Game interface {
 	ClueChapters() []string
 	ClueRead(i int) *Read
 
-	View() View      // the view published last
-	Refuse(s string) // the game says no with s
+	View() View // the view published last
+	// Refuse is the game saying no with s. The front calls it inside a
+	// Call (between frames) to show a call's refusal; a game may call it
+	// itself at any time. Either way the game puts s where its refusals
+	// go and shows it in its next View: por sets the note (View.Note); a
+	// game with a message log appends s to it (in combat, Battle.Log).
+	Refuse(s string)
 	// Resets counts every load and return to the main menu, the game's own
 	// too (a script's or death's load, a quick start): when it changes, the
 	// screens over the old game close. The front cannot see a load the game
 	// makes itself, so the game owns the count and bumps it on each one.
 	Resets() int
 }
+
+// Applying actions: every Action the presenter's Actions returns is the
+// game's to apply, in order (por: Engine.Apply), after the queued rule
+// calls. They are the page's own decisions (ActOK, ActClose, ActChoose,
+// ActText, ActYes, ActNo, ActLead, ActMember, the command bar's and the
+// exploration keys' kinds) and the screen-wide passes (ActHead,
+// ActPortrait, ActFont, ActSound, ActResize, ActMainMenu, ActNote,
+// ActNoteRemove, ActIcon, ActMinimap). A kind the game does not apply it
+// hands to Unhandled.
+
+// Unhandled reports an action the game did not apply: a log line by
+// default; a test may set it to collect them.
+var Unhandled = func(a Action) { log.Printf("front: action %d (N %d) not applied by the game", a.Kind, a.N) }
 
 // Host is what a screen needs of the front end that shows it: the rule
 // calls it queues run on the game between frames.

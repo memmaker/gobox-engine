@@ -17,6 +17,7 @@ type Picture struct {
 	File         string // "" for a fill (the presenter adds its own pictures, the minimap, so)
 	Block, Frame int
 	Img          image.Image // nil for a fill, or for a picture front/present decodes from File, Block, Frame
+	Mask         *uint8      // with File: this colour index is transparent too, as the mask (nil: only dax.Clear)
 	At           image.Rectangle
 	Fill         bool
 	Colour       color.RGBA

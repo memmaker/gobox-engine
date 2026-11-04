@@ -84,7 +84,7 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []front.Member, at func(i, n in
 		return
 	}
 	if p.bars == nil {
-		p.bars = gpu.NewImageFromImage(decodePNG(barsPNG))
+		p.bars = gpu.NewImageFromImage(barArt())
 	}
 	for len(p.cardImgs) < len(ms) {
 		p.cardImgs = append(p.cardImgs, gpu.NewImage(cardW, cardH))
@@ -462,4 +462,22 @@ func (p *Presenter) face(head image.Image) image.Image {
 	draw.Draw(f, f.Bounds(), head, c.Sub(image.Pt(n/2, n/2)), draw.Over)
 	p.faces[head] = f
 	return f
+}
+
+// barArt is Data.BarsPNG, or without one the bar art drawn in the theme's
+// colours: a dark groove with a grey rim, then the green, red and gold
+// fills (barLeft .. goldFill).
+func barArt() image.Image {
+	if barsPNG != nil {
+		return decodePNG(barsPNG)
+	}
+	m := image.NewRGBA(image.Rect(0, 0, goldFill.Max.X, goldFill.Max.Y))
+	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(m, r, image.NewUniform(c), image.Point{}, draw.Src) }
+	groove := image.Rect(0, 0, barRight.Max.X, barLeft.Max.Y)
+	fill(groove, gray)
+	fill(groove.Inset(1), dark)
+	fill(greenFill, green)
+	fill(redFill, red)
+	fill(goldFill, col(inkYellow))
+	return m
 }

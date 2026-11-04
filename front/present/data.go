@@ -28,8 +28,9 @@ type Data struct {
 	MapCell      int // pixels a square of View.Map
 	DungeonTiles int // the tiles at the start of the combat set
 
-	Theme   *Theme  // the look (nil: DefaultTheme)
-	Entries []Entry // the game's own main menu entries, after the default list (nil: none)
+	Theme   *Theme            // the look (nil: DefaultTheme)
+	Texts   map[string]string // the game's named texts and tables beyond Credits, SpellRules and IconParts (Text)
+	Entries []Entry           // the game's own main menu entries, after the default list (nil: none)
 
 	DoorRGBA      color.RGBA                                                    // a door's colour on the maps
 	LabelInks     []int                                                         // a map label's palette index (View.Ink) by its kind
@@ -52,7 +53,7 @@ type Data struct {
 	BarsPNG, DollPNG, AtlasPNG []byte // the cards' bars, the paper doll, the item icons
 	ItemsRec                   string // the icons' records
 
-	DAX *dax.Loader // decodes the pictures named by File and Block with Img nil (nil: they stay undrawn)
+	DAX *dax.Loader // the game's own DAX loader, over its own files: it decodes the pictures named by File and Block with Img nil and Theme.Border (nil: they stay undrawn)
 
 	Bindings []ui.Binding // the game's own help rows, after Any time's Ctrl-F row
 }
@@ -62,6 +63,7 @@ var (
 	mapCell, dungeonTiles            int
 	doorRGBA                         color.RGBA
 	menuEntries                      []Entry
+	texts                            map[string]string
 	labelInks                        []int
 	selectOutline                    func(image.Rectangle, int, func(image.Rectangle, color.RGBA))
 	restFix, restWait, restUntil     int
@@ -84,7 +86,7 @@ var (
 func SetData(d Data) {
 	paneBox, viewWindow, innerWindow = d.PaneBox, d.ViewWindow, d.InnerWindow
 	mapCell, dungeonTiles = d.MapCell, d.DungeonTiles
-	menuEntries = d.Entries
+	menuEntries, texts = d.Entries, d.Texts
 	if d.Theme != nil {
 		applyTheme(*d.Theme)
 	} else {
@@ -130,3 +132,6 @@ type Entry struct {
 	Act   front.ActKind
 	Party bool
 }
+
+// Text is the game's named text (Data.Texts; "": none).
+func Text(name string) string { return texts[name] }

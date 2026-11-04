@@ -1,7 +1,6 @@
 package present
 
 import (
-	"errors"
 	"gobox/front"
 	"slices"
 )
@@ -50,10 +49,6 @@ func (p *Presenter) turnAct(a front.Action) bool {
 // calls it again sure.
 func (p *Presenter) turnCall(a front.Action, sure bool) {
 	p.call(func(e front.Game) {
-		var q front.Confirm
-		err := e.TurnChoice(a, sure)
-		if errors.As(err, &q) {
-			front.AskYes(p, string(q), func() { p.turnCall(a, true) })
-		}
+		front.AskSure(p, e.TurnChoice(a, sure), func() { p.turnCall(a, true) })
 	})
 }

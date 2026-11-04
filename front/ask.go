@@ -4,6 +4,8 @@ package front
 // rule call that ask for something first (Confirm, PickMember, PickSpell,
 // PickClass): the screen asks, then makes the call again with the answer.
 
+import "errors"
+
 // AskKind is what a question waits for.
 type AskKind int
 
@@ -37,6 +39,38 @@ type Ask struct {
 type Confirm string
 
 func (q Confirm) Error() string { return string(q) }
+
+// ConfirmNo is Confirm whose No goes on: the game's question is asked and,
+// answered No, the call is made again sure; Yes stays ("Do you want to go
+// back and claim your treasure?").
+type ConfirmNo string
+
+func (q ConfirmNo) Error() string { return string(q) }
+
+// AskSure asks err's question when it is a Confirm or a ConfirmNo, and
+// calls again on the answer that goes on; false: err is neither.
+func AskSure(h Host, err error, again func()) bool {
+	var yes Confirm
+	var no ConfirmNo
+	switch {
+	case errors.As(err, &yes):
+		AskYes(h, string(yes), again)
+	case errors.As(err, &no):
+		h.Ask(&Question{Ask: Ask{Kind: AskConfirm, Menu: Menu{Prompt: string(no)}}, Answer: func(a Action) bool {
+			switch a.Kind {
+			case ActNo:
+				again()
+			case ActYes, ActClose:
+			default:
+				return false
+			}
+			return true
+		}})
+	default:
+		return false
+	}
+	return true
+}
 
 // PickClass is NewClass's refusal: one of these classes (ID: the class)
 // is to be picked; the call is made again with it.

@@ -142,17 +142,16 @@ func PowerAct(h Host, a Action) bool {
 func PowerCall(h Host, n int, k ActKind, spell, target int, sure bool) {
 	h.Call(func(e Game) {
 		var (
-			who   PickMember
-			pick  PickSpell
-			yesNo Confirm
+			who  PickMember
+			pick PickSpell
 		)
 		switch err := e.UsePower(n, k, spell, target, sure); {
 		case errors.As(err, &who):
 			AskForMember(h, string(who), e.SelectedMember(), func(t int) { PowerCall(h, n, k, spell, t, sure) })
 		case errors.As(err, &pick):
 			AskForSpell(h, pick, func(id int) { PowerCall(h, n, k, id, target, sure) })
-		case errors.As(err, &yesNo):
-			AskYes(h, string(yesNo), func() { PowerCall(h, n, k, spell, target, true) })
+		default:
+			AskSure(h, err, func() { PowerCall(h, n, k, spell, target, true) })
 		}
 	})
 }
@@ -180,10 +179,7 @@ func Gate(h Host, l *Loot, d *DoorOpts) (string, []GateItem) {
 		add(l.Take, "Take", func(e Game) { e.LootTake(-1) })
 		add(l.Detect, "Detect", func(e Game) { e.LootDetect() })
 		add(true, "Exit", func(e Game) {
-			var sure Confirm
-			if err := e.LootLeave(false); errors.As(err, &sure) {
-				AskYes(h, string(sure), func() { h.Call(func(e Game) { e.LootLeave(true) }) })
-			}
+			AskSure(h, e.LootLeave(false), func() { h.Call(func(e Game) { e.LootLeave(true) }) })
 		})
 		return "", items
 	case d != nil:
