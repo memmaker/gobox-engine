@@ -321,7 +321,7 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 		// proportion; then scaled as one to the button (so their relation holds)
 		f := image.NewRGBA(image.Rect(0, 0, face, face))
 		draw.Draw(f, f.Bounds(), image.NewUniform(th.Panel), image.Point{}, draw.Src)
-		if ic, own := iconPicture(it.Text), icons[it.Kind]; own != nil { // the item's own icon (the inventory's atlas cell), 3x in the middle
+		if ic, own := iconPicture(th.Series, it.Text), icons[it.Kind]; own != nil { // the item's own icon (the inventory's atlas cell), 3x in the middle
 			b := own.Bounds()
 			s := (face - 3*b.Dx()) / 2
 			xdraw.NearestNeighbor.Scale(f, image.Rect(s, s, s+3*b.Dx(), s+3*b.Dy()), own, b, draw.Over, nil)

@@ -137,6 +137,7 @@ type Theme struct {
 	Caption     color.RGBA // the casting caption
 	Hurt, Heal  color.RGBA // damage numbers
 	TextOutline color.RGBA // round the damage numbers
+	Series      string     // the asset series whose bar icons show (icons/<series>/)
 }
 
 // DefaultTheme is por's current look (EGA colours).
@@ -152,6 +153,7 @@ var DefaultTheme = Theme{
 	Hurt:        color.RGBA{255, 255, 85, 255},
 	Heal:        color.RGBA{85, 255, 85, 255},
 	TextOutline: color.RGBA{0, 0, 0, 255},
+	Series:      "pool",
 }
 
 // selectOutline fills a frame of colour c, t pixels thick inside r.
