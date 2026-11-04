@@ -88,10 +88,10 @@ func TestPickerParity(t *testing.T) {
 // sameIcon says classic's icon designer equals por's on each grid.
 func sameIcon(t *testing.T, name string, e *rules.Engine) {
 	t.Helper()
-	ink := e.View().Ink
+	ink := e.Rules().State().Ink
 	for _, g := range grids {
 		settled(e, front.Action{Kind: front.ActResize, X: g[0], Y: g[1]})
-		ink = e.View().Ink
+		ink = e.Rules().State().Ink
 		got, want := classic.IconEditor(e.Rules().State(), &ink, g[0], g[1]), e.IconEditorView()
 		for p := range want.Poses { // por leaves the poses to gobox: classic's own are built, and must be there
 			if want.Poses[p] == nil {
@@ -153,27 +153,26 @@ func TestIconEditorParity(t *testing.T) {
 }
 
 // TestTitleParity: the party menu's title picture and backdrop from Data.Art,
-// read live as present.classicGame does, equal por's.
+// read live as classic.Game does, are por's (wantTitle), and the hall has none.
 func TestTitleParity(t *testing.T) {
 	e := partyMenu(t)
-	v := e.View()
-	if v.MainMenu == nil || v.Logo == nil {
-		t.Fatalf("no title: menu %v logo %v", v.MainMenu, v.Logo)
-	}
+	at(t, "menu", e)
 	logo, backdrop := classic.Title(nil, nil, e.Data().Art)
-	if !reflect.DeepEqual(logo, v.Logo) || !reflect.DeepEqual(backdrop, v.Backdrop) {
-		t.Errorf("title: logo %v backdrop %v, por %v %v", logo != nil, backdrop, v.Logo != nil, v.Backdrop)
+	if logo == nil {
+		t.Fatal("no title picture")
 	}
-	p := &present.Presenter{}
-	g := present.WithRules(e, p)
-	p.SetEngine(g)
-	if c := g.View(); !reflect.DeepEqual(c.Logo, v.Logo) || !reflect.DeepEqual(c.Backdrop, v.Backdrop) || c.MainMenu == nil {
+	bd := *backdrop // the file's name, not where the checkout is
+	bd.File = filepath.Base(bd.File)
+	if got := sum([]any{logo, bd}); got != wantTitle {
+		t.Errorf("title %s, por %s", got, wantTitle)
+	}
+	if c := gameOf(e).View(); !reflect.DeepEqual(c.Logo, logo) || !reflect.DeepEqual(c.Backdrop, backdrop) || c.MainMenu == nil {
 		t.Errorf("title through classic: logo %v backdrop %v", c.Logo != nil, c.Backdrop)
 	}
 	h := engine(t, true, "hall") // the hall has none
 	settled(h, front.Action{})
-	g = present.WithRules(h, p)
-	if c := g.View(); c.Logo != nil || c.Backdrop != nil {
+	at(t, "hall", h)
+	if c := gameOf(h).View(); c.Logo != nil || c.Backdrop != nil {
 		t.Error("a title in the hall")
 	}
 }
@@ -183,7 +182,7 @@ func TestTitleParity(t *testing.T) {
 func poolIconPick(t *testing.T, e *rules.Engine, kind int, prefix string) {
 	t.Helper()
 	p := &present.Presenter{}
-	g := present.WithRules(e, p)
+	g := present.WithRules(gameOf(e), p)
 	p.SetEngine(g)
 	if !g.OpenPicker(kind) {
 		t.Fatalf("icon pick %d: no pool picker", kind)

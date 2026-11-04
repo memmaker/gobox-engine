@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-	"time"
 
 	"gobox/front"
 	"gobox/front/classic"
@@ -24,8 +23,8 @@ func TestJournalPageAdapter(t *testing.T) {
 			g := classic.NewGame(b.Rules(), b.Data())
 			defer a.Apply(front.Action{Kind: front.ActResize, X: 40, Y: 25})
 			reads := []front.Read{}
-			if r := a.View().Read; r != nil {
-				reads = append(reads, *r)
+			if r := a.Rules().State().Read; r != nil {
+				reads = append(reads, front.Read{Title: r.Title, Lines: r.Lines, Page: r.Page})
 			}
 			for i := range g.ClueChapters() {
 				r := a.ClueRead(i)
@@ -82,7 +81,7 @@ func TestSpeakPageAdapter(t *testing.T) {
 	a, b := engine(t, true, "journal"), engine(t, true, "journal")
 	spy := &speakSpy{Rules: b.Rules()}
 	g := classic.NewGame(spy, b.Data())
-	r := a.View().Read
+	r := a.Rules().State().Read
 	if r == nil {
 		t.Fatal("no journal read")
 	}
@@ -119,7 +118,7 @@ func TestSlotsAdapter(t *testing.T) {
 }
 
 // TestTitleAdapter: the title calls (picture, lightning, credits, done)
-// through the adapter leave the same View as por's own.
+// through the adapter leave the same State as por's own (and por's, at).
 func TestTitleAdapter(t *testing.T) {
 	dir := filepath.Join(porDir(t), "data")
 	if _, err := os.Stat(filepath.Join(dir, "dos", "TITLE.DAX")); err != nil {
@@ -150,10 +149,10 @@ func TestTitleAdapter(t *testing.T) {
 	} {
 		step.por()
 		step.ad()
-		va, vb := a.Apply(), g.Settle()
-		for _, v := range []*front.View{&va, &vb} {
-			v.Seq, v.Note.At, v.Events = 0, time.Time{}, nil
-		}
+		a.Apply()
+		g.Settle()
+		va, vb := normal(a), normal(b)
+		at(t, step.name, b)
 		if i == 0 && va.Intro == nil {
 			t.Fatal("no title up")
 		}

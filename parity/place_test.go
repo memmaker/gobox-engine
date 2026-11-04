@@ -10,19 +10,16 @@ import (
 	"por/rules"
 )
 
-// sameLoot says classic's treasure screen equals por's.
+// sameLoot says State's treasure screen is por's at name.
 func sameLoot(t *testing.T, name string, e *rules.Engine) {
 	t.Helper()
-	v := e.View()
-	if c := classic.View(v, e.Rules().State()); !reflect.DeepEqual(c.Loot, v.Loot) {
-		t.Errorf("%s: loot %+v, por %+v", name, c.Loot, v.Loot)
-	}
+	at(t, name, e)
 }
 
 func TestLootParity(t *testing.T) {
 	e := engine(t, true, "loot")
 	settled(e, front.Action{})
-	if e.View().Loot == nil {
+	if e.Rules().State().Loot == nil {
 		t.Fatal("no loot")
 	}
 	sameLoot(t, "loot", e)
@@ -44,31 +41,33 @@ func TestLootParity(t *testing.T) {
 	}
 }
 
-// TestPlaceState: the shop, temple and hall in State as por's View shows them.
+// TestPlaceState: the shop, temple and hall in State.
 func TestPlaceState(t *testing.T) {
 	sh := engine(t, true, "shop")
 	settled(sh, front.Action{})
-	s, v := sh.Rules().State(), sh.View()
-	if v.Shop == nil || s.Mode != game.ModeShop || s.Shop == nil || len(s.Shop.Goods) != 6 {
+	at(t, "shop", sh)
+	s := sh.Rules().State()
+	if s.Mode != game.ModeShop || s.Shop == nil || len(s.Shop.Goods) != 6 {
 		t.Fatalf("shop: %v %+v", s.Mode, s.Shop)
 	}
 	sh.Browse(-1)
-	v = settled(sh, front.Action{})
+	v := settled(sh, front.Action{})
+	at(t, "browse", sh)
 	for _, w := range v.Inventory.Wares { // the wares sorted, the goods in the engine's order
 		if g := sh.Rules().State().Shop.Goods[w.Index]; g.Name != w.Name || g.Price != w.Price.Gold {
-			t.Errorf("ware %d: %+v, por %+v", w.Index, g, w)
+			t.Errorf("ware %d: %+v, sorted %+v", w.Index, g, w)
 		}
 	}
 
 	tp := engine(t, true, "temple")
 	settled(tp, front.Action{})
-	s, v = tp.Rules().State(), tp.View()
-	if v.Temple == nil || len(s.Temple) != len(v.Temple.Cures) {
-		t.Fatalf("temple: %+v, por %+v", s.Temple, v.Temple)
+	at(t, "temple", tp)
+	if s = tp.Rules().State(); len(s.Temple) == 0 {
+		t.Fatalf("temple: %+v", s.Temple)
 	}
-	for i, c := range v.Temple.Cures {
-		if s.Temple[i].Name != c.Name || s.Temple[i].Price != c.Price { // Needs is checked when the temple switches
-			t.Errorf("cure %d: %+v, por %+v", i, s.Temple[i], c)
+	for i, c := range s.Temple {
+		if c.Name == "" || c.Price == 0 { // Needs is checked when the temple switches
+			t.Errorf("cure %d: %+v", i, c)
 		}
 	}
 
@@ -81,13 +80,14 @@ func TestPlaceState(t *testing.T) {
 			}
 			continue
 		} else if err != nil {
-			t.Fatalf("%s: %v, menu %v", scene, err, h.View().MainMenu)
+			t.Fatalf("%s: %v", scene, err)
 		}
 		settled(h, front.Action{})
 		tr, s := h.TrainingView(), h.Rules().State()
 		if tr == nil || s.Training == nil || s.Training.Cost != tr.Price {
 			t.Fatalf("%s: training %+v, por %+v", scene, s.Training, tr)
 		}
+		at(t, scene, h)
 		ready := len(s.Training.Ready) > 0 && s.Training.Ready[0] == 0
 		if ready != (tr.Why == "") || ready && len(tr.Becomes) == 0 {
 			t.Errorf("%s: ready %v trains %v, por why %q becomes %v", scene, s.Training.Ready, s.Training.Trains, tr.Why, tr.Becomes)
