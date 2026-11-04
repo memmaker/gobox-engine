@@ -3,6 +3,7 @@ package front
 import (
 	"image"
 	"log"
+	"sync"
 )
 
 // Game is the rule calls the party menu and the creation sheet make; the
@@ -160,7 +161,14 @@ type Game interface {
 
 // Unhandled reports an action the game did not apply: a log line by
 // default; a test may set it to collect them.
-var Unhandled = func(a Action) { log.Printf("front: action %d (N %d) not applied by the game", a.Kind, a.N) }
+// A kind is logged once per run (a resize sends one every frame of a drag).
+var Unhandled = func(a Action) {
+	if _, seen := unhandledSeen.LoadOrStore(a.Kind, true); !seen {
+		log.Printf("front: action %d (N %d) not applied by the game", a.Kind, a.N)
+	}
+}
+
+var unhandledSeen sync.Map
 
 // Host is what a screen needs of the front end that shows it: the rule
 // calls it queues run on the game between frames.
