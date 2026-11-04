@@ -17,7 +17,12 @@ type classicGame struct {
 	p *Presenter
 }
 
-func (g classicGame) View() front.View { return classic.View(g.Game.View(), g.r.State()) }
+func (g classicGame) View() front.View {
+	s := g.r.State()
+	v := classic.View(g.Game.View(), s)
+	v.AreaMap = classic.AreaMap(v.AreaMap, s, gameArt)
+	return v
+}
 
 // CreationView is the sheet on the page the presenter last laid out (ActResize).
 func (g classicGame) CreationView() *front.Creation {

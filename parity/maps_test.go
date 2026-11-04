@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"slices"
+	"strconv"
 	"testing"
 
 	"gobox/front"
@@ -148,5 +149,60 @@ func sameCamp(t *testing.T, name string, e *rules.Engine) {
 	v, s := e.View(), e.Rules().State()
 	if c := classic.View(v, s); !reflect.DeepEqual(c.Camp, v.Camp) {
 		t.Errorf("%s: camp\n got %+v\nwant %+v", name, c.Camp, v.Camp)
+	}
+}
+
+// TestOverlandParity: the overland's terrain, art, marker and seen squares
+// in State and Data.Art build the map por's View publishes.
+func TestOverlandParity(t *testing.T) {
+	e := engine(t, true, "overland")
+	v := settled(e, front.Action{})
+	s := e.Rules().State()
+	if v.AreaMap == nil || len(s.Map.Terrain) != 44*36 || len(s.Map.Known) != 44*36 {
+		t.Fatalf("overland: map %v, %d terrain, %d known", v.AreaMap != nil, len(s.Map.Terrain), len(s.Map.Known))
+	}
+	art := e.Data().Art
+	if art["marker/"+strconv.Itoa(s.Where.Facing)].Pixels == nil || art["terrain/"+strconv.Itoa(s.Map.Terrain[0])].Pixels == nil {
+		t.Fatal("no overland art")
+	}
+	if got := classic.AreaMap(v.AreaMap, s, art); !reflect.DeepEqual(got, v.AreaMap) {
+		t.Errorf("area map\n got %+v\nwant %+v", got.Party, v.AreaMap.Party)
+	}
+	s.Map.Known = s.Map.Known[1:] // one square unseen: drawn as none
+	if got := classic.AreaMap(v.AreaMap, s, art); got.Seen == nil || got.Seen[0][0] {
+		t.Error("unseen square drawn")
+	}
+}
+
+// TestBestiaryParity: the bestiary classic builds from State (danger, fight
+// picture, combat icon) equals por's, and carries the art.
+func TestBestiaryParity(t *testing.T) {
+	b := engine(t, true, "bestiary")
+	settled(b, front.Action{})
+	sameCamp(t, "bestiary", b)
+	for _, be := range b.Rules().State().Bestiary {
+		if be.Danger < 1 || be.Danger > 8 || be.Icon.Pixels == nil {
+			t.Errorf("%s: danger %d, icon %v", be.Name, be.Danger, be.Icon.Pixels != nil)
+		}
+	}
+}
+
+// TestItemParity: the inventory party's powers, doll slots and scrolls build
+// por's inventory, and every readied slot is a shared name.
+func TestItemParity(t *testing.T) {
+	e := engine(t, true, "inventory")
+	settled(e, front.Action{})
+	if err := e.OpenItems(0, true); err != nil {
+		t.Fatal(err)
+	}
+	settled(e, front.Action{})
+	members(t, "items", e)
+	shared := []string{"", "weapon", "shield", "armor", "gauntlets", "helm", "belt", "robe", "cloak", "boots", "ring", "ring2", "arrows", "bolts"}
+	for _, m := range e.Rules().State().Party {
+		for _, it := range m.Items {
+			if !slices.Contains(shared, it.Slot) {
+				t.Errorf("%s: slot %q", it.Name, it.Slot)
+			}
+		}
 	}
 }

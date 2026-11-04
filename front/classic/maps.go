@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"slices"
+	"strconv"
 	"strings"
 
 	"gobox/front"
@@ -32,7 +33,11 @@ func labels(a game.Automap) []label {
 	}
 	for i, at := range a.Marked {
 		if i < len(a.Notes) {
-			l = append(l, label{game.Label{At: at, Text: a.Notes[i]}, true})
+			k := ""
+			if i < len(a.NoteKinds) {
+				k = a.NoteKinds[i]
+			}
+			l = append(l, label{game.Label{At: at, Text: a.Notes[i], Kind: k}, true})
 		}
 	}
 	slices.SortStableFunc(l, func(p, q label) int { return (p.At.Y<<8 | p.At.X) - (q.At.Y<<8 | q.At.X) })
@@ -97,6 +102,55 @@ func Map(m *front.MapSquares, s game.State) *front.MapSquares {
 		if b.At.In(on) {
 			q := &c.Squares[b.At.Y][b.At.X]
 			q.Kind, q.Letter = labelKinds[b.Kind], l[b.Text]
+		}
+	}
+	return &c
+}
+
+// pix is p (the game's) as the front's pixels.
+func pix(p game.Picture) front.Picture {
+	if p.W == 0 || p.Pixels == nil {
+		return front.Picture{}
+	}
+	f := front.Picture{Pix: p.Pixels, PixW: p.W}
+	if p.Clear >= 0 {
+		m := uint8(p.Clear)
+		f.Mask = &m
+	}
+	return f
+}
+
+// AreaMap is m (the game's) with the overland's squares and marker from
+// s.Map.Terrain and art (Data.Art: "terrain/<id>", "marker/<facing>"), and
+// the squares seen from s.Map.Known. m where it is nil, s has no overland
+// or art has none of it.
+func AreaMap(m *front.AreaMap, s game.State, art map[string]game.Picture) *front.AreaMap {
+	a := s.Map
+	if m == nil || len(a.Terrain) == 0 || len(art) == 0 || len(a.Terrain) != a.Size.X*a.Size.Y {
+		return m
+	}
+	c := *m
+	c.SquarePix = make([][]front.Picture, a.Size.Y)
+	for y := range c.SquarePix {
+		c.SquarePix[y] = make([]front.Picture, a.Size.X)
+		for x := range c.SquarePix[y] {
+			p := art["terrain/"+strconv.Itoa(a.Terrain[y*a.Size.X+x])]
+			c.SquarePix[y][x] = pix(p)
+			c.Tile = max(c.Tile, p.W)
+		}
+	}
+	c.Party = image.Pt(s.Where.X, s.Where.Y)
+	c.MarkerPix = pix(art["marker/"+strconv.Itoa(s.Where.Facing)])
+	c.Seen = nil
+	if len(a.Known) < len(a.Terrain) { // else every square is seen
+		c.Seen = make([][]bool, a.Size.Y)
+		for y := range c.Seen {
+			c.Seen[y] = make([]bool, a.Size.X)
+		}
+		for _, p := range a.Known {
+			if p.In(image.Rectangle{Max: a.Size}) {
+				c.Seen[p.Y][p.X] = true
+			}
 		}
 	}
 	return &c
