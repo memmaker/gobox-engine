@@ -36,7 +36,7 @@ type AreaMap struct {
 	Seen    [][]bool    // Seen[y][x]: the party has seen that square (nil: all seen); unseen squares are drawn as none
 
 	SquarePix [][]Picture // Squares as the game's pixels (Picture.Pix), the presenter's to colour into Squares
-	MarkerPix Picture     // Marker so
+	MarkerPix Picture     // Marker so, or a DAX ref
 }
 
 // Battle is the combat map as the remaster's 3D view needs it.

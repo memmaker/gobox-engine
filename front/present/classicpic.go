@@ -104,7 +104,7 @@ func pixView(v front.View) front.View {
 				c.Squares[y][x] = picImage(pc, ink)
 			}
 		}
-		c.Marker = pixImage(m.MarkerPix, ink)
+		c.Marker = picImage(m.MarkerPix, ink)
 		v.AreaMap = &c
 	}
 	v.Battle = pixBattle(v.Battle, ink)
