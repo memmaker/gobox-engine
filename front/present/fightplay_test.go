@@ -29,3 +29,20 @@ func TestSpaceFastForward(t *testing.T) {
 		t.Fatalf("after Space: %+v, want the key moment", ev)
 	}
 }
+
+// A 5-frame blast (5 timed scenes of 60 ms) plays, and Space passes it.
+func TestBlastPlaysAndSpacePasses(t *testing.T) {
+	var p Presenter
+	var evs []front.CombatEvent
+	for i := 0; i < 5; i++ {
+		evs = append(evs, front.CombatEvent{Kind: front.EvFrame, Ms: 60, Scene: &front.View{}})
+	}
+	p.Play(evs)
+	if p.playing() == nil {
+		t.Fatal("blast not shown")
+	}
+	p.Key(' ', front.View{})
+	if ev := p.playing(); ev != nil || p.Playing() {
+		t.Fatalf("after Space: %+v", ev)
+	}
+}

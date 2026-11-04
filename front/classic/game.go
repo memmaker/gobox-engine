@@ -142,20 +142,25 @@ func (g *Game) Settle() front.View {
 		g.step()
 	}
 	v := g.View()
-	v.Events = combatEvents(g.events)
+	v.Events = combatEvents(g.events, v)
 	g.events = nil
 	return v
 }
 
 // combatEvents are the fight's events as the presenter plays them; the
 // kinds a fight has no moment for (pictures, songs) are left out.
-func combatEvents(es []game.Event) (out []front.CombatEvent) {
+func combatEvents(es []game.Event, v front.View) (out []front.CombatEvent) {
 	kinds := map[game.EventKind]front.EventKind{
 		game.EvAttack: front.EvAttack, game.EvHit: front.EvHit, game.EvMiss: front.EvMiss, game.EvDamage: front.EvDamage,
 		game.EvDown: front.EvDied, game.EvSpell: front.EvSpell, game.EvMove: front.EvMoved, game.EvMissile: front.EvMissile,
 		game.EvMessage: front.EvMessage, game.EvSound: front.EvSound,
 	}
 	for _, e := range es {
+		if e.Page != nil { // a timed page: the scene as the page stood
+			sc := Page(v, game.State{Page: e.Page})
+			out = append(out, front.CombatEvent{Kind: front.EvFrame, Ms: e.Ms, Scene: &sc})
+			continue
+		}
 		if k, ok := kinds[e.Kind]; ok {
 			out = append(out, front.CombatEvent{Kind: k, Unit: e.Unit, Target: e.Target, Amount: e.N, From: e.At, To: e.To, Text: e.Text})
 		}

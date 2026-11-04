@@ -1034,6 +1034,8 @@ type Event struct {
 	Unit, Target int
 	At, To       image.Point
 	Sprite       []Picture
+	Ms           int   // >0 with Page: the front shows Page for Ms milliseconds (a timed moment outside a fight)
+	Page         *Page // the whole page as it stood for this moment (nil: none)
 }
 
 // Data is declarative overrides only; no drawing, no positions. A game's
