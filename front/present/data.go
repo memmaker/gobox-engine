@@ -45,6 +45,7 @@ type Data struct {
 
 	Credits        []Credit
 	RemasterCredit [2]string
+	CreditGaps     []int // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
 	IconParts      []string
 	SpellRules     []string // what each spell does, by spell id (the camp's spell tips; "" none)
 
@@ -77,6 +78,7 @@ var (
 	rests                            []Rest
 	credits                          []Credit
 	remasterCredit                   [2]string
+	creditGaps                       []int
 	iconParts                        []string
 	spellRules                       []string
 	dollBoxes                        []image.Rectangle
@@ -110,6 +112,9 @@ func SetData(d Data) {
 	doorRGBA, labelInks, selectInk = d.DoorRGBA, d.LabelInks, d.SelectInk
 	rests = d.Rests
 	credits, remasterCredit, iconParts, spellRules = d.Credits, d.RemasterCredit, d.IconParts, d.SpellRules
+	if creditGaps = d.CreditGaps; creditGaps == nil {
+		creditGaps = []int{4, 5, 6}
+	}
 	dollBoxes, slotNames = d.DollBoxes, d.SlotNames
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
 	barsPNG, dollPNG, atlasPNG, itemsRec = d.BarsPNG, d.DollPNG, d.AtlasPNG, d.ItemsRec
