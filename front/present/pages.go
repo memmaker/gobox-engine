@@ -502,8 +502,12 @@ func (c *cellPage) iconEditor(ed *front.IconEditor) {
 	c.border(1, 1, c.cols-2, c.rows-3) // the bar under it
 	for p, r := range ed.PoseAt {
 		c.pics = append(c.pics, front.Picture{At: r.Pixels(), Fill: true, Colour: col(inkDark)}) // the pose on grey (the page's, not the combat palette's dark): its black parts show
-		if ed.Poses[p] != nil {
-			c.overs = append(c.overs, overlay{Img: ed.Poses[p], At: r.Pixels(), Crisp: true})
+		img := ed.Poses[p]
+		if ed.Indexed {
+			img = picImage(ed.PosePix[p], c.ink)
+		}
+		if img != nil {
+			c.overs = append(c.overs, overlay{Img: img, At: r.Pixels(), Crisp: true})
 		}
 	}
 	c.str(ed.PoseAt[0].X1+2, ed.PoseAt[0].Y1-1, inkWhite, "ready")
@@ -534,12 +538,20 @@ func (c *cellPage) iconEditor(ed *front.IconEditor) {
 			if i == ed.Part && sh == ed.Shade {
 				frame = col(inkWhite)
 			}
-			swatch(ed.Parts.X1+3*sh, ed.Parts.Y1+i, ed.Swatch[i][sh], frame)
+			sw := ed.Swatch[i][sh]
+			if ed.Indexed {
+				sw = c.ink[ed.SwatchIx[i][sh]]
+			}
+			swatch(ed.Parts.X1+3*sh, ed.Parts.Y1+i, sw, frame)
 		}
 	}
 	for i, n := range ed.Colours {
 		if n >= 0 {
-			swatch(ed.Palette.X1+2*(i%8), ed.Palette.Y1+i/8, ed.PaletteInk[i], col(inkDark))
+			pi := ed.PaletteInk[i]
+			if ed.Indexed {
+				pi = c.ink[ed.PaletteIx[i]]
+			}
+			swatch(ed.Palette.X1+2*(i%8), ed.Palette.Y1+i/8, pi, col(inkDark))
 		}
 	}
 }

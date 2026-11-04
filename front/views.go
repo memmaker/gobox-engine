@@ -56,6 +56,13 @@ type IconEditor struct {
 	Remove             CellRect         // the Remove word, when Custom
 	Swatch             [6][2]color.RGBA // each part's two colours as they show
 	PaletteInk         [16]color.RGBA   // each palette cell's colour as it shows
+	// Indexed alternative to Poses, Swatch and PaletteInk: with Indexed set the
+	// presenter draws PosePix (as the game's pixels in View.Ink, or a DAX ref)
+	// and takes SwatchIx and PaletteIx as View.Ink indices.
+	Indexed   bool
+	PosePix   [2]Picture
+	SwatchIx  [6][2]int
+	PaletteIx [16]int
 }
 
 // Picker is a grid picker's page as the engine drew it.
