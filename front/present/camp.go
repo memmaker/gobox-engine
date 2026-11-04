@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gobox/front"
 	"image"
+	"image/color"
 	"slices"
 	"strconv"
 	"time"
@@ -369,7 +370,19 @@ func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, v front.V
 // drawSpellTip draws spell id's rules under the spell list (above it when
 // they do not fit), on its own image: the card tip has the tip's.
 func (p *Presenter) drawSpellTip(dst *gpu.Image, id int, k float64, cx int) {
-	p.drawTip(dst, spellRules(id, 36), k, cx)
+	if id > 0 && id < len(spellRules) {
+		p.drawTip(dst, ui.WrapWords(spellRules[id], 36), k, cx)
+	}
+}
+
+// selectOutline marks picture r: fill paints a frame of Data.SelectInk t
+// pixels thick along the inside of r.
+func selectOutline(r image.Rectangle, t int, fill func(image.Rectangle, color.RGBA)) {
+	c := selectInk
+	fill(image.Rect(r.Min.X, r.Min.Y, r.Max.X, r.Min.Y+t), c)
+	fill(image.Rect(r.Min.X, r.Max.Y-t, r.Max.X, r.Max.Y), c)
+	fill(image.Rect(r.Min.X, r.Min.Y, r.Min.X+t, r.Max.Y), c)
+	fill(image.Rect(r.Max.X-t, r.Min.Y, r.Max.X, r.Max.Y), c)
 }
 
 // drawTip draws lines in the spell tip's box under (or over) the menu.

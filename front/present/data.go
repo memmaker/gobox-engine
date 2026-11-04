@@ -34,9 +34,9 @@ type Data struct {
 	Texts   map[string]string // the game's named texts and tables beyond Credits, SpellRules and IconParts (Text)
 	Entries []Entry           // the game's own main menu entries, after the default list (nil: none)
 
-	DoorRGBA      color.RGBA                                                    // a door's colour on the maps
-	LabelInks     []int                                                         // a map label's palette index (View.Ink) by its kind
-	SelectOutline func(image.Rectangle, int, func(image.Rectangle, color.RGBA)) // draws the outline round the selected box
+	DoorRGBA  color.RGBA // a door's colour on the maps
+	LabelInks []int      // a map label's palette index (View.Ink) by its kind
+	SelectInk color.RGBA // the frame round the selected box (selectOutline)
 
 	Rests []Rest // camp's rests, in the menu's order
 
@@ -45,7 +45,7 @@ type Data struct {
 	Credits        []Credit
 	RemasterCredit [2]string
 	IconParts      []string
-	SpellRules     func(id, w int) []string
+	SpellRules     []string // what each spell does, by spell id (the camp's spell tips; "" none)
 
 	DollBoxes []image.Rectangle // the doll's slot boxes in doll pixels, by doll slot
 	SlotNames []string          // their names
@@ -71,12 +71,12 @@ var (
 	menuEntries                      []Entry
 	texts                            map[string]string
 	labelInks                        []int
-	selectOutline                    func(image.Rectangle, int, func(image.Rectangle, color.RGBA))
+	selectInk                        color.RGBA
 	rests                            []Rest
 	credits                          []Credit
 	remasterCredit                   [2]string
 	iconParts                        []string
-	spellRules                       func(id, w int) []string
+	spellRules                       []string
 	dollBoxes                        []image.Rectangle
 	slotNames                        []string
 	areaMaps                         map[front.AreaID]string
@@ -104,7 +104,7 @@ func SetData(d Data) {
 	} else {
 		applyTheme(DefaultTheme)
 	}
-	doorRGBA, labelInks, selectOutline = d.DoorRGBA, d.LabelInks, d.SelectOutline
+	doorRGBA, labelInks, selectInk = d.DoorRGBA, d.LabelInks, d.SelectInk
 	rests = d.Rests
 	credits, remasterCredit, iconParts, spellRules = d.Credits, d.RemasterCredit, d.IconParts, d.SpellRules
 	dollBoxes, slotNames = d.DollBoxes, d.SlotNames
