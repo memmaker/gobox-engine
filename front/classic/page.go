@@ -1,6 +1,9 @@
 package classic
 
 import (
+	"image/color"
+
+	"gobox/ega"
 	"gobox/front"
 	"gobox/game"
 )
@@ -8,6 +11,9 @@ import (
 func paneRuns(l []game.TextRun) []front.PaneRun {
 	var r []front.PaneRun
 	for _, t := range l {
+		if t.Fg == (color.RGBA{}) { // unset: the body text's colour (gobox's, as every font colour)
+			t.Fg = ega.RGBA(10)
+		}
 		r = append(r, front.PaneRun{X: t.X, Text: t.Text, Fg: t.Fg, Bg: t.Bg, Upcase: t.Upcase})
 	}
 	return r
