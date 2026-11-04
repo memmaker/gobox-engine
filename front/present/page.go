@@ -38,6 +38,7 @@ type page struct {
 	seq   uint64
 	noted bool
 	own   string // the presenter's screens it shows (Screens)
+	edit  string // the icon editor's content it shows (iconKey)
 	drawn bool
 	page  []front.Picture      // what img shows: the View's pictures...
 	text  string               // ...and text (pageText)
@@ -110,11 +111,11 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 	if gpu.Sized(&pg.img, w, h) {
 		pg.px, pg.drawn = image.NewRGBA(image.Rect(0, 0, w, h)), false
 	}
-	if pg.drawn && !note.Show && !pg.noted && pg.own == p.pageKey() && (v.Seq == pg.seq || !p.modal(v) && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
+	if pg.drawn && !note.Show && !pg.noted && pg.own == p.pageKey() && pg.edit == iconKey(v.IconEditor) && (v.Seq == pg.seq || !p.modal(v) && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
 		pg.seq = v.Seq
 		return pg.img
 	}
-	pg.drawn, pg.seq, pg.noted, pg.own = true, v.Seq, note.Show, p.pageKey()
+	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, v.Seq, note.Show, p.pageKey(), iconKey(v.IconEditor)
 	pg.page, pg.text = append(pg.page[:0], v.Pictures...), pageText(v)
 	m := pg.px
 	if p.modal(v) { // help, the journal, the maps, the overview: from their data alone, nothing of the page under them
@@ -131,6 +132,15 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 	}
 	pg.img.WritePixels(m.Pix)
 	return pg.img
+}
+
+// iconKey names the icon editor's content (the game need not bump View.Seq
+// for an edit): a change redraws the page.
+func iconKey(e *front.IconEditor) string {
+	if e == nil {
+		return ""
+	}
+	return fmt.Sprintf("%p %p %v %v %v %v %v %v", e.Poses[0], e.Poses[1], e.Large, e.Part, e.Shade, e.Colour, e.Custom, e.Colours)
 }
 
 // ownPage: v shows a screen the presenter lays out from its data
