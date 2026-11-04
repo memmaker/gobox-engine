@@ -190,7 +190,7 @@ var gameArt map[string]game.Picture
 // gameData overlays the game's declarative game.Data (NewFront's) on what
 // SetData handed in: its series and its spell tips (by spell id).
 func gameData(g game.Data) {
-	gameArt = g.Art
+	gameArt, gameID = g.Art, g.ID
 	if g.Series != "" {
 		series = g.Series
 	}

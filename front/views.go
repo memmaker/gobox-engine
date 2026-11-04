@@ -16,6 +16,7 @@ import (
 type Picture struct {
 	File         string // "" for a fill (the presenter adds its own pictures, the minimap, so)
 	Block, Frame int
+	Name         string      // a pool portrait name ("head_003"); with File, drawn from the pool when it resolves
 	Img          image.Image // nil for a fill, or for a picture front/present decodes from File, Block, Frame
 	Mask         *uint8      // with File: this colour index is transparent too, as the mask (nil: only dax.Clear)
 	Pix          []uint8     // the game's own pixels, PixW wide, Img nil: front/present converts them in View.Ink (IndexedRGBA)

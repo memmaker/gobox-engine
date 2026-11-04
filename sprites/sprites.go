@@ -5,6 +5,7 @@ package sprites
 import (
 	"bytes"
 	"embed"
+	"encoding/json"
 	"image"
 	"image/png"
 	"sort"
@@ -38,4 +39,13 @@ func Names(series, kind string) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// Origins is the pool's origins.json: game id, DAX file, "block" or "block.frame" -> pool sprite name.
+func Origins() map[string]map[string]map[string]string {
+	var o map[string]map[string]map[string]string
+	if b, err := fsys.ReadFile("series/pool/origins.json"); err == nil {
+		json.Unmarshal(b, &o)
+	}
+	return o
 }

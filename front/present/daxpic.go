@@ -51,14 +51,18 @@ func daxMasked(file string, block, frame, mask int) image.Image {
 func daxPictures(ps []front.Picture) []front.Picture {
 	out := ps
 	for i, pc := range ps {
-		if pc.Img != nil || pc.Fill || pc.File == "" {
+		if pc.Img != nil || pc.Fill || pc.File == "" && pc.Name == "" {
 			continue
 		}
 		mask := -1
 		if pc.Mask != nil {
 			mask = int(*pc.Mask)
 		}
-		if m := daxMasked(pc.File, pc.Block, pc.Frame, mask); m != nil {
+		m := poolImage(pc)
+		if m == nil && pc.File != "" {
+			m = daxMasked(pc.File, pc.Block, pc.Frame, mask)
+		}
+		if m != nil {
 			if &out[0] == &ps[0] {
 				out = slices.Clone(ps)
 			}

@@ -51,7 +51,7 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 		v.Cells = append(v.Cells, front.CellRect{X1: x, Y1: y, X2: x + cw - 1, Y2: y + ch - 1})
 		if p := k.Pics[i]; p.Pixels != nil && p.W > 0 {
 			f := pix(p)
-			f.File, f.Block, f.Frame = p.File, p.Block, p.Frame
+			f.File, f.Block, f.Frame, f.Name = p.File, p.Block, p.Frame, p.Name
 			f.At = image.Rect(x*8, y*8, x*8+p.W, y*8+p.H)
 			v.Pics = append(v.Pics, f)
 		}

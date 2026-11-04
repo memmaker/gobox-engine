@@ -27,6 +27,10 @@ require (
 
 replace gobox/gpu => ../gpu
 
+require gobox/sprites v0.0.0
+
+replace gobox/sprites => ../sprites
+
 replace gobox/blobber => ../blobber
 
 replace gobox/combat => ../combat
