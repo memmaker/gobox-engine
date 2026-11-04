@@ -13,41 +13,73 @@ import (
 // ahead is the step towards each facing (N E S W).
 var ahead = [4]image.Point{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
 
+// labelKinds are the label kinds by game.Label.Kind: their colours are
+// Data.LabelInks[kind]; the player's ("") are 0.
+var labelKinds = map[string]int{"": 0, "shop": 1, "temple": 2, "inn": 3, "civic": 4}
+
+// label is a label on a square of the map, the map's or the player's.
+type label struct {
+	game.Label
+	mine bool
+}
+
+// labels are a's labels, the map's and the player's, square by square
+// (row by row): the player's are a.Marked with a.Notes.
+func labels(a game.Automap) []label {
+	var l []label
+	for _, b := range a.Labels {
+		l = append(l, label{b, false})
+	}
+	for i, at := range a.Marked {
+		if i < len(a.Notes) {
+			l = append(l, label{game.Label{At: at, Text: a.Notes[i]}, true})
+		}
+	}
+	slices.SortStableFunc(l, func(p, q label) int { return (p.At.Y<<8 | p.At.X) - (q.At.Y<<8 | q.At.X) })
+	return l
+}
+
 // letters gives each label text its legend letter: A..Z, then a..z, in the
 // texts' order ignoring case.
-func letters(notes []string) map[string]byte {
-	texts := slices.Clone(notes)
+func letters(ls []label) (texts []string, l map[string]byte) {
+	for _, b := range ls {
+		texts = append(texts, b.Text)
+	}
 	slices.SortFunc(texts, func(a, b string) int { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) })
 	texts = slices.Compact(texts)
-	l := map[string]byte{}
+	l = map[string]byte{}
 	for i, t := range texts {
 		l[t] = byte('A' + i)
 		if i >= 26 {
 			l[t] = byte('a' + i - 26)
 		}
 	}
-	return l
+	return texts, l
 }
 
-// Map is m (the game's) with what s.Map gives in its place: the party's
-// square and step ahead, the walls and doors (door Kind 2 and up: locked)
-// and the labels' letters. How far each square is seen and the labels'
-// kinds stay the game's: game.Automap has neither. nil where m is.
+// Map is m (the game's) with what s.Map gives in its place: how far each
+// square is seen, the party's square and step ahead, the walls and doors
+// and the labels' kinds and letters. nil where m is.
 func Map(m *front.MapSquares, s game.State) *front.MapSquares {
 	a := s.Map
-	if m == nil || a.Size == (image.Point{}) {
+	if m == nil || a.Size != image.Pt(16, 16) {
 		return m
 	}
-	c := *m
-	c.Party, c.Ahead = image.Pt(s.Where.X, s.Where.Y), ahead[s.Where.Facing/2&3]
-	for y := range c.Squares {
-		for x := range c.Squares[y] {
-			c.Squares[y][x].Walls, c.Squares[y][x].Letter = [4]front.MapWall{}, 0
+	c := front.MapSquares{Party: image.Pt(s.Where.X, s.Where.Y), Ahead: ahead[s.Where.Facing/2&3]}
+	on := image.Rect(0, 0, 16, 16)
+	for _, p := range a.Known {
+		if p.In(on) {
+			c.Squares[p.Y][p.X].Seen = front.SeenFar
+		}
+	}
+	for _, p := range a.Walked {
+		if p.In(on) {
+			c.Squares[p.Y][p.X].Seen = front.Visited
 		}
 	}
 	set := func(ws []game.Wall, k func(game.Wall) front.MapWall) {
 		for _, w := range ws {
-			if w.At.In(image.Rect(0, 0, 16, 16)) {
+			if w.At.In(on) {
 				c.Squares[w.At.Y][w.At.X].Walls[w.Side/2&3] = k(w)
 			}
 		}
@@ -59,28 +91,37 @@ func Map(m *front.MapSquares, s game.State) *front.MapSquares {
 		}
 		return front.Door
 	})
-	l := letters(a.Notes)
-	for i, at := range a.Marked {
-		if i < len(a.Notes) && at.In(image.Rect(0, 0, 16, 16)) {
-			c.Squares[at.Y][at.X].Letter = l[a.Notes[i]]
+	ls := labels(a)
+	_, l := letters(ls)
+	for _, b := range ls {
+		if b.At.In(on) {
+			q := &c.Squares[b.At.Y][b.At.X]
+			q.Kind, q.Letter = labelKinds[b.Kind], l[b.Text]
 		}
 	}
 	return &c
 }
 
-// FullMap is f (the game's) with its map (Map), name, and the cursor's
-// square and label from s. The legend's kinds and whether a label is the
-// player's (Mine) stay the game's. nil where f is.
+// FullMap is f (the game's) with its map (Map), name, legend, and the
+// cursor's square and label from s. nil where f is.
 func FullMap(f *front.FullMap, s game.State) *front.FullMap {
-	if f == nil || s.Map.Size == (image.Point{}) {
+	if f == nil || s.Map.Size != image.Pt(16, 16) {
 		return f
 	}
 	c := *f
-	c.Name, c.Map, c.Labelled = s.Map.Area, Map(f.Map, s), false
+	c.Name, c.Map, c.Labelled, c.Mine, c.Legend = s.Map.Area, Map(f.Map, s), false, false, nil
 	c.Info = fmt.Sprintf("%d,%d", f.Cursor.X, f.Cursor.Y)
-	if i := slices.Index(s.Map.Marked, f.Cursor); i >= 0 && i < len(s.Map.Notes) {
-		c.Info += " " + s.Map.Notes[i]
-		c.Labelled = true
+	ls := labels(s.Map)
+	texts, l := letters(ls)
+	for _, b := range ls {
+		if b.At == f.Cursor {
+			c.Info += " " + b.Text
+			c.Labelled, c.Mine = true, b.mine
+		}
+	}
+	for _, t := range texts {
+		i := slices.IndexFunc(ls, func(b label) bool { return b.Text == t })
+		c.Legend = append(c.Legend, front.MapLabel{Letter: l[t], Text: t, Kind: labelKinds[ls[i].Kind], First: ls[i].At})
 	}
 	return &c
 }

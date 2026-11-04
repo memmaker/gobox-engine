@@ -94,6 +94,10 @@ func TestCampState(t *testing.T) {
 	if b.View().Camp == nil || b.Rules().State().Mode != game.ModeCamp {
 		t.Fatalf("bestiary camp: %v", b.Rules().State().Mode)
 	}
+	sameCamp(t, "bestiary", b)
+	if bs, v := b.Rules().State().Bestiary, b.View().Camp.Bestiary; len(bs) != len(v) || len(v) == 0 || bs[0].Name != v[0].Name || bs[0].Text != v[0].Text {
+		t.Errorf("bestiary %d, por %d", len(bs), len(v))
+	}
 	e := capture(t)
 	booked := false
 	for i := range e.Rules().State().Party { // camp shows the selected member's book
@@ -116,6 +120,17 @@ func TestCampState(t *testing.T) {
 			want = append(want, b.ID)
 		}
 		booked = booked || len(want) > 0
+		sameCamp(t, "capture", e)
+		if len(want) > 0 { // a spell planned: the book's counts and its level's plan
+			if err := e.PlanSpell(i, want[0], 1); err != nil {
+				t.Fatal(err)
+			}
+			settled(e, front.Action{})
+			if v := e.View().Camp; v.Book[0].Count != 1 {
+				t.Errorf("member %d planned %+v", i, v.Book[0])
+			}
+			sameCamp(t, "planned", e)
+		}
 		if !slices.Equal(book, want) {
 			t.Errorf("member %d book %v, por %v", i, book, want)
 		}
@@ -124,5 +139,14 @@ func TestCampState(t *testing.T) {
 	}
 	if !booked {
 		t.Error("no one has a spell book")
+	}
+}
+
+// sameCamp says classic's camp equals por's.
+func sameCamp(t *testing.T, name string, e *rules.Engine) {
+	t.Helper()
+	v, s := e.View(), e.Rules().State()
+	if c := classic.View(v, s); !reflect.DeepEqual(c.Camp, v.Camp) {
+		t.Errorf("%s: camp\n got %+v\nwant %+v", name, c.Camp, v.Camp)
 	}
 }
