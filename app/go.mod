@@ -16,7 +16,7 @@ require (
 	gobox/front v0.0.0
 	gobox/input v0.0.0
 	gobox/ui v0.0.0
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 )
 
 replace gobox/gpu => ../gpu
