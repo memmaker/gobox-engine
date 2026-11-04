@@ -37,7 +37,7 @@ type Picture struct {
 	Name         string
 	W, H         int
 	Pixels       []byte // palette indices, W*H
-	Clear        int    // the index drawn transparent, -1 none
+	Clear        int    // with Pixels: the index drawn transparent, -1 none (ignored without Pixels)
 }
 
 // Mode says what the game waits for.
@@ -299,7 +299,9 @@ const (
 	Continue
 )
 
-// Ask is a domain question. The answer is an Answer decision.
+// Ask is a domain question. The answer is an Answer decision. Options on an
+// Ask of another kind are extra moves the player may make instead of an
+// answer (a move question's Done): gobox applies the Option's Do as is.
 type Ask struct {
 	Kind    AskKind
 	Prompt  string
@@ -332,9 +334,13 @@ type Answer struct {
 // Cancel backs out of the pending Ask (the original's Esc / Exit).
 type Cancel struct{}
 
-// Adjust raises or lowers one of the creation draft's stats by By (the
-// original's stat modify step); Stat indexes Member.Stats.
+// Adjust raises or lowers one of the creation draft's values by By (the
+// original's modify step); Stat indexes StatKeys.
 type Adjust struct{ Stat, By int }
+
+// StatKeys is the order of the values Adjust names: the Member.Stats keys,
+// then hit points.
+var StatKeys = []string{"str", "int", "wis", "dex", "con", "cha", "hp"}
 
 // Money kinds: Purse, Loot.Money and Vault.Money use these names, the same in
 // every game.
@@ -540,13 +546,15 @@ type Event struct {
 	Sprite       []Picture
 }
 
-// Data is declarative overrides only; no drawing, no positions.
+// Data is declarative overrides only; no drawing, no positions. A game's
+// rules package exports it as func Data() Data, and its cmd hands gobox
+// the rules and the data together: app.Run(rules, data).
 type Data struct {
 	Series     string
 	ID         string // game id
 	Texts      map[string]string
 	Credits    []string
-	SpellRules map[string]int
+	SpellRules map[int]string // what each spell does, by spell id (the spell tip text)
 	Art        map[string]Picture
 	Sounds     map[string]string
 	Palette    []byte   // palette bytes
