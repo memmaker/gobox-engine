@@ -66,6 +66,49 @@ fonts into the pool and selects by name.
 - Text: games never draw text; they name a font and gobox ui draws.
 - WALLDEF trailing partial chunk: dropped (whole 780-byte chunks only), as the later games' developers did.
 
+## The shape of every game (the user's, 2026-11-04)
+
+Every Gold Box game ported to Go (por-go, cotab-go, sotsb-go, pod-go, and the
+buck-rogers series) has the same stack, architecture and control flow. A game is
+its rules plus declarative data; gobox is everything else.
+
+Stack: Go only, the gobox modules through `replace` (no other UI, window or
+audio library), native window through gobox/gpu, original files read through
+gobox dax/geo/exe/ecl/adf, saves through gobox app/saves. No Electron, no web
+UI, no env vars for behaviour (flags or app Prefs instead).
+
+Packages, the same names in every repo:
+- `rules`: the game's rules engine. `rules.New(dir) (*Engine, error)`; `*Engine`
+  implements `front.Game` itself (`var _ front.Game = (*Engine)(nil)` in rules), with
+  no wrapper or adapter type. It imports no gpu, ui, front/present, app or
+  image-decoding code, starts no goroutines and never blocks for input.
+- `presentdata`: `Data(...) present.Data`: the game's Theme, Series, Entries, Rests,
+  Texts, Bindings, Sounds, LabelInks and box positions. Declarative only: values,
+  tables, DAX refs; no drawing.
+- `cmd/<game>`: main.go only wires it: flags, `rules.New`, `present.SetData`,
+  `app.Run(present.NewFront(e))`, plus a `-setup` step that gameimport's
+  import.toml runs. Data tools (dumps, finders) may sit beside it in cmd/.
+- adventure data: the original files plus derived declarative files (tables.json,
+  area scripts, item/monster tables) read at run time; nothing hard-coded that a
+  data file can hold.
+
+Control flow, the same in every game:
+1. app.Run drives present.NewFront(e) frame by frame; the game owns no loop.
+2. `Open(slot)` runs the rules to their first wait; `Settle()` lets them go on
+   and returns the `front.View` snapshot (screen, Ask, Note, Walls, Battle,
+   Events, ...).
+3. Every player decision comes back as a synchronous rule call or
+   `Answer(front.Action)`, which returns a refusal error or nil; nothing else
+   changes game state.
+4. Every rule call and answer is recorded as a decision, so a save fixture can
+   replay a session byte for byte (gobox/fixture); tests are replay goldens.
+5. Anything the player sees or hears goes out through the View: pictures as
+   DAX refs or indexed Pix, sounds and combat steps as View.Events.
+
+Shared pieces stay shared: one purse (gobox/rules), saving throws, one rolling
+rule, por's menus and sheet, gobox's 3D view and combat board, the asset
+series pools, gameimport.
+
 ## Modules
 
 Each directory is its own Go module. A game uses them with `replace`:
