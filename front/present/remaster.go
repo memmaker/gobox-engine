@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"gobox/audio"
 	"gobox/ega"
 	"gobox/front"
 	"gobox/gpu"
@@ -104,6 +105,7 @@ type Presenter struct {
 	dragAt      image.Point                 // where the pointer is while a card is dragged
 	Sound       func(front.CombatEvent)     // plays a fight's EvSound when its turn comes (Engine.PlayEventSound)
 	Snd         front.Sound                 // the sound driver EvSound and EvSong play through when Sound is nil (NewFront)
+	AdLib       *audio.AdLib                // Data.AdLib's player: EvSong and EvSound go to it first (NewFront)
 	dragStart   image.Point                 // where it was pressed
 	dragged     bool                        // it has moved far enough from dragStart to be a drag
 	ordering    bool                        // View.Ordering

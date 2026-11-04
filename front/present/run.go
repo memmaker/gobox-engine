@@ -46,6 +46,13 @@ func NewFront(g front.Game, snd ...front.Sound) *Front {
 		f.P.Snd = d
 		audio.Output(d)
 	}
+	if d, ok := f.P.Snd.(*audio.Driver); ok && adLib != nil { // the AdLib songs are the driver's soundtrack, its effects over them
+		if a, err := audio.NewAdLib(*adLib); err == nil {
+			f.P.AdLib = a
+			d.Attach(nil, nil, a, nil, nil, nil)
+			d.SetSoundtrack(true, 0, 0)
+		}
+	}
 	f.P.SetEngine(g)
 	return f
 }

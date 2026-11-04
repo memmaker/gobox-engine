@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"testing/fstest"
 
+	"gobox/audio"
 	"gobox/dax"
 	"gobox/front"
 	"gobox/ui"
@@ -51,6 +52,7 @@ type Data struct {
 
 	DollBoxes []image.Rectangle // the doll's slot boxes in doll pixels, by doll slot
 	SlotNames []string          // their names
+	ReadyMark string            // shown before a readied item's name (InvItem.Readied), for a game without a doll ("": none)
 
 	AreaMaps map[front.AreaID]string // the 3D map (Art maps/NAME.map) of each area
 	Art      fs.FS                   // maps/NAME.map and assets/walls/walls.txt
@@ -63,8 +65,9 @@ type Data struct {
 
 	Bindings []ui.Binding // the game's own help rows, after Any time's Ctrl-F row
 
-	Sounds     []byte // the sound driver's tables (gobox/audio NewSynth's data: songs, scripts, vibrato waveforms; nil: none)
-	AmigaSound []byte // the Amiga's SOUND.BIN (amiga.Base..End; nil: the DOS driver), for the Driver NewFront builds
+	Sounds     []byte           // the sound driver's tables (gobox/audio NewSynth's data: songs, scripts, vibrato waveforms; nil: none)
+	AdLib      *audio.AdLibData // the AdLib player's music and effects (nil: none); NewFront attaches it to the driver as the soundtrack
+	AmigaSound []byte           // the Amiga's SOUND.BIN (amiga.Base..End; nil: the DOS driver), for the Driver NewFront builds
 }
 
 var (
@@ -82,6 +85,7 @@ var (
 	iconParts                        []string
 	spellRules                       []string
 	dollBoxes                        []image.Rectangle
+	readiedMark                      string
 	slotNames                        []string
 	areaMaps                         map[front.AreaID]string
 	art                              fs.FS
@@ -92,6 +96,7 @@ var (
 	mapSide                          int // View.Map's side in pixels
 	sounds                           []byte
 	amigaSound                       []byte
+	adLib                            *audio.AdLibData
 	series                           = "pool"
 	logoCut                          LogoCut // Data.Logo
 )
@@ -115,7 +120,7 @@ func SetData(d Data) {
 	if creditGaps = d.CreditGaps; creditGaps == nil {
 		creditGaps = []int{4, 5, 6}
 	}
-	dollBoxes, slotNames = d.DollBoxes, d.SlotNames
+	dollBoxes, slotNames, readiedMark = d.DollBoxes, d.SlotNames, d.ReadyMark
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
 	barsPNG, dollPNG, atlasPNG, itemsRec = d.BarsPNG, d.DollPNG, d.AtlasPNG, d.ItemsRec
 	daxLoader = d.DAX
@@ -124,7 +129,7 @@ func SetData(d Data) {
 	}
 	mapSide = 16 * mapCell
 	setBindings(d.Bindings)
-	sounds, amigaSound = d.Sounds, d.AmigaSound
+	sounds, amigaSound, adLib = d.Sounds, d.AmigaSound, d.AdLib
 }
 
 // Rest is one of camp's rests (Data.Rests): Text with its Key sends

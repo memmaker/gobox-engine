@@ -43,6 +43,8 @@ replace gobox/dax => ../dax
 
 require gobox/audio v0.0.0
 
+require github.com/memmaker/opl2 v0.1.0 // indirect
+
 require (
 	github.com/ebitengine/oto/v3 v3.5.0 // indirect
 	github.com/ebitengine/purego v0.11.0 // indirect

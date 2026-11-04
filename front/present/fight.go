@@ -311,8 +311,10 @@ func (p *Presenter) playing() *front.CombatEvent {
 			switch {
 			case ev.Kind == front.EvSound && p.Sound != nil:
 				p.Sound(*ev)
+			case ev.Kind == front.EvSound && p.adLibEffect(ev.Amount):
 			case ev.Kind == front.EvSound && p.Snd != nil:
 				p.Snd.Effect(ev.Amount, false)
+			case ev.Kind == front.EvSong && p.AdLib != nil && p.Snd != nil && p.Snd.Song(ev.Amount, 0, false): // the AdLib song, as the driver's soundtrack
 			case ev.Kind == front.EvSong && p.Snd != nil:
 				p.Snd.AmigaSong(ev.Amount)
 			}
@@ -470,4 +472,18 @@ func logInk(l string) string {
 	}
 	mark()
 	return b.String()
+}
+
+// adLibEffect plays effect n on the AdLib player when it has it and the
+// soundtrack is on (the sound setting); false leaves n to the driver.
+// ponytail: Effect is not locked against the driver's Read; a lock hook in audio if it races.
+func (p *Presenter) adLibEffect(n int) bool {
+	if p.AdLib == nil || p.Snd == nil {
+		return false
+	}
+	if on, _ := p.Snd.Track(); !on {
+		return true // sound off: nothing plays, no fallback either
+	}
+	p.AdLib.Reset()
+	return p.AdLib.Effect(n)
 }
