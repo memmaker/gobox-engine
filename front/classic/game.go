@@ -518,7 +518,12 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.Rename{Name: a.Text}, true
 	case front.ActSetField:
 		return game.SetField{Field: a.N, Option: a.X}, true
+	case front.ActStat:
+		return game.SetStat{Stat: a.N, Text: a.Text}, true
 	case front.ActKeep:
+		if g.R.State().Creation != nil { // the creation sheet's Keep
+			return game.KeepDraft{}, true
+		}
 		return game.KeepAppraised{Keep: a.N == 1}, true
 	}
 	return nil, false

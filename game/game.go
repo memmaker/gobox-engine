@@ -830,7 +830,12 @@ type (
 		N     int
 		Text  string
 	}
-	AddChar struct {
+	SetStat struct {
+		Stat int    // 0..5: STR .. CHA
+		Text string // the value as typed ("18/50" for an exceptional strength)
+	} // creation: set an ability by hand
+	KeepDraft struct{} // creation and Modify: keep the draft (save the new character, apply the changes)
+	AddChar   struct {
 		Roster int
 		From   string // a roster the game imports from (Data.Imports), "" its own
 	}
@@ -899,36 +904,38 @@ type (
 	Call struct{ Member int }
 )
 
-func (Answer) decision()   {}
-func (Cancel) decision()   {}
-func (Adjust) decision()   {}
-func (Forward) decision()  {}
-func (TurnBy) decision()   {}
-func (Search) decision()   {}
-func (Look) decision()     {}
-func (Select) decision()   {}
-func (Move) decision()     {}
-func (Attack) decision()   {}
-func (Cast) decision()     {}
-func (UseItem) decision()  {}
-func (Ready) decision()    {}
-func (Drop) decision()     {}
-func (Trade) decision()    {}
-func (Buy) decision()      {}
-func (Sell) decision()     {}
-func (TakeLoot) decision() {}
-func (Rest) decision()     {}
-func (Camp) decision()     {}
-func (Train) decision()    {}
-func (Heal) decision()     {}
-func (Create) decision()   {}
-func (AddChar) decision()  {}
-func (DropChar) decision() {}
-func (Begin) decision()    {}
-func (Wait) decision()     {}
-func (Flee) decision()     {}
-func (Save) decision()     {}
-func (Load) decision()     {}
+func (Answer) decision()    {}
+func (Cancel) decision()    {}
+func (Adjust) decision()    {}
+func (Forward) decision()   {}
+func (TurnBy) decision()    {}
+func (Search) decision()    {}
+func (Look) decision()      {}
+func (Select) decision()    {}
+func (Move) decision()      {}
+func (Attack) decision()    {}
+func (Cast) decision()      {}
+func (UseItem) decision()   {}
+func (Ready) decision()     {}
+func (Drop) decision()      {}
+func (Trade) decision()     {}
+func (Buy) decision()       {}
+func (Sell) decision()      {}
+func (TakeLoot) decision()  {}
+func (Rest) decision()      {}
+func (Camp) decision()      {}
+func (Train) decision()     {}
+func (Heal) decision()      {}
+func (Create) decision()    {}
+func (SetStat) decision()   {}
+func (KeepDraft) decision() {}
+func (AddChar) decision()   {}
+func (DropChar) decision()  {}
+func (Begin) decision()     {}
+func (Wait) decision()      {}
+func (Flee) decision()      {}
+func (Save) decision()      {}
+func (Load) decision()      {}
 
 func (Fix) decision()              {}
 func (Memorize) decision()         {}
