@@ -7,11 +7,13 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	"gobox/front"
 	"gobox/front/classic"
 	"gobox/front/present"
+	"gobox/sprites"
 	"por/rules"
 )
 
@@ -60,8 +62,8 @@ func TestPickerParity(t *testing.T) {
 	settled(e, front.Action{})
 	e.EditIcon(-1)
 	settled(e, front.Action{})
-	samePicker(t, "icon heads", e, front.PickIconHead)
-	samePicker(t, "weapons", e, front.PickWeapon)
+	poolIconPick(t, e, front.PickIconHead, "combat_head_")
+	poolIconPick(t, e, front.PickWeapon, "combat_body_")
 	e.EndIcon(false)
 
 	e.DropMember(0) // a character saved: the party menu's lists
@@ -163,5 +165,32 @@ func TestTitleParity(t *testing.T) {
 	g = present.WithRules(h, p)
 	if c := g.View(); c.Logo != nil || c.Backdrop != nil {
 		t.Error("a title in the hall")
+	}
+}
+
+// poolIconPick: the icon head and weapon pickers are gobox's pool pickers (por publishes none): each lists
+// every combat name with prefix, and a pick is stored as the member's pool id.
+func poolIconPick(t *testing.T, e *rules.Engine, kind int, prefix string) {
+	t.Helper()
+	p := &present.Presenter{}
+	g := present.WithRules(e, p)
+	p.SetEngine(g)
+	if !g.OpenPicker(kind) {
+		t.Fatalf("icon pick %d: no pool picker", kind)
+	}
+	n := 0
+	for _, name := range sprites.Names("pool", "combat") {
+		if strings.HasPrefix(name, prefix) {
+			n++
+		}
+	}
+	if v := g.PickerView(-1); v == nil || n == 0 || v.N != n || len(v.Portraits) != n {
+		t.Fatalf("icon pick %d: %d pool names, picker %+v", kind, n, v)
+	}
+	if !g.Pick(0) {
+		t.Fatalf("icon pick %d: pick refused", kind)
+	}
+	if s := e.Rules().State(); !strings.HasPrefix(map[int]string{front.PickIconHead: s.Party[s.Selected].IconHeadID, front.PickWeapon: s.Party[s.Selected].IconBodyID}[kind], prefix) {
+		t.Errorf("icon pick %d: pick not stored", kind)
 	}
 }

@@ -35,6 +35,7 @@ func (g classicGame) View() front.View {
 	v.Party, v.Purse = classic.Party(s, g.art()), classic.Purse(s)
 	v = classic.Sheet(v, s)
 	v = classic.PoolPortrait(v, s)
+	v = classic.PoolIcon(v, s)
 	v = classic.Border(v, g.art())
 	v = classic.Walls(v, s, g.art())
 	v = classic.Intro(v, s)

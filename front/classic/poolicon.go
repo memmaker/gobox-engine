@@ -102,3 +102,28 @@ func memberIcon(m game.Member) (head, body string) {
 	}
 	return o["CHEAD.DAX"][strconv.Itoa(m.Icon["head"])], o["CBODY.DAX"][strconv.Itoa(m.Icon["body"])]
 }
+
+// PoolIcon is v with the creation draft's combat icon (pool ids, else its Icon numbers) in the
+// sheet's Icon box, in place of the game's picture there (v itself when the draft has none).
+func PoolIcon(v front.View, s game.State) front.View {
+	cr, m := v.Creation, subject(s)
+	if cr == nil {
+		return v
+	}
+	head, body := memberIcon(m)
+	pic, ok := poolIcon(head, body, m.IconColors, 0, false)
+	if !ok || head == "" {
+		return v
+	}
+	box := cr.Icon.Pixels()
+	var keep []front.Picture
+	for _, pc := range v.Pictures {
+		if !pc.Fill && pc.At.Overlaps(box) {
+			continue
+		}
+		keep = append(keep, pc)
+	}
+	pic.At = image.Rectangle{box.Min, box.Min.Add(image.Pt(pic.PixW, len(pic.Pix)/pic.PixW))}
+	v.Pictures = append(keep, pic)
+	return v
+}
