@@ -85,3 +85,40 @@ func TestCastParity(t *testing.T) {
 	next(t, e, game.Aim{At: self})
 	sameBattle(t, "cast", e)
 }
+
+// TestBattleView: the adapter's Battle (built from State; gobox composes the
+// icons) has an icon for every unit, a picture for every square's tile, and
+// some party, foes and walls.
+func TestBattleView(t *testing.T) {
+	e := engine(t, true, "combat")
+	g := classic.NewGame(e.Rules(), e.Data())
+	g.Answer(front.Action{})
+	b := g.Settle().Battle
+	if b == nil {
+		t.Fatal("no Battle in combat")
+	}
+	party, foes, walls := 0, 0, 0
+	for i, u := range b.Units {
+		if u.Icon == nil && b.IconPix[i].Pix == nil {
+			t.Errorf("unit %+v has no icon", u)
+		}
+		if u.Party {
+			party++
+		} else {
+			foes++
+		}
+	}
+	for _, row := range b.Ground {
+		for _, s := range row {
+			if s.Wall {
+				walls++
+			}
+			if b.TilePix[s.Tile].Pix == nil {
+				t.Fatalf("square tile %d missing from Tiles", s.Tile)
+			}
+		}
+	}
+	if party == 0 || foes == 0 || walls == 0 {
+		t.Errorf("party %d foes %d walls %d: want some of each", party, foes, walls)
+	}
+}

@@ -1,6 +1,7 @@
 package parity
 
 import (
+	"image"
 	"reflect"
 	"slices"
 	"testing"
@@ -12,10 +13,9 @@ import (
 )
 
 // known are the View fields classic cannot yet build from State alone, per
-// scene: Battle (the ground's tiles, icons, effects, paths and strike are
-// the game's own View, not State), X and Y on the overland (por keeps the
+// scene: X and Y on the overland (por keeps the
 // dungeon's square there). Any other field that differs fails.
-var known = map[string][]string{"combat": {"Battle"}, "overland": {"X", "Y"}}
+var known = map[string][]string{"overland": {"X", "Y"}}
 
 // TestAdapter runs por twice over each dev scene and the same actions: as a
 // front.Game itself (rules.Engine) and through classic.Game over its
@@ -38,6 +38,7 @@ func TestAdapter(t *testing.T) {
 			defer a.Apply(front.Action{Kind: front.ActResize, X: 40, Y: 25}) // the page size is global in por: put it back
 			for _, v := range []*front.View{&va, &vb} {
 				v.Seq, v.Note.At, v.Events = 0, time.Time{}, nil
+				noPartyIcons(v.Battle)
 			}
 			for _, n := range diffFields(va, vb) {
 				if slices.Contains(known[scene], n) {
@@ -90,4 +91,17 @@ func TestSheetAdapter(t *testing.T) {
 	golden(t, "sheet", v)
 	g.ShowMember(1)
 	golden(t, "sheet2", g.Settle())
+}
+
+// noPartyIcons blanks the party units' icons: por composes none (gobox does,
+// TestBattleView).
+func noPartyIcons(b *front.Battle) {
+	if b == nil {
+		return
+	}
+	for i := range b.Units {
+		if b.Units[i].Party {
+			b.Units[i].Icon, b.Units[i].IconSize, b.IconPix[i] = nil, image.Point{}, front.Picture{}
+		}
+	}
 }

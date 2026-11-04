@@ -26,7 +26,10 @@ type Game struct {
 var _ front.Game = (*Game)(nil)
 
 // NewGame is the front.Game over r and d.
-func NewGame(r game.Rules, d game.Data) *Game { return &Game{R: r, D: d, grid: image.Pt(40, 25)} }
+func NewGame(r game.Rules, d game.Data) *Game {
+	GameID = d.ID
+	return &Game{R: r, D: d, grid: image.Pt(40, 25)}
+}
 
 // do hands d to the rules, keeping its events; the refusal is the error.
 func (g *Game) do(d game.Decision) error {
@@ -87,7 +90,7 @@ func (g *Game) View() front.View {
 	if v.MainMenu != nil && !v.Hall && v.Powers == nil {
 		v.Logo, v.Backdrop = Title(v.Logo, v.Backdrop, art)
 	}
-	v.Battle = Battle(nil, s)
+	v.Battle = BattleOf(s, art)
 	v = Page(v, s)
 	v = Flags(v, s)
 	v = Place(v, s)

@@ -533,12 +533,46 @@ type Combat struct {
 	Marks, AreaAt, Skipped []image.Point
 	Area                   bool
 	Why                    string // aiming: why the aimed square cannot be taken, "" when it can
+
+	// The ground as a view draws it: Squares' Tile numbers index Tiles, the
+	// Data.Art names of the tile set (read live; "" a tile with no picture),
+	// Floor is the bare ground's colour.
+	Tiles    []string
+	Floor    color.RGBA
+	Effects  []Effect    // sprites over the map
+	Cursor   image.Point // the square the cursor was last drawn on
+	CursorOn bool        // the cursor icon is up (aiming, looking)
+	CursorAt []image.Point
+	View     image.Point // top left square of the scrolled view window
+	Strike   Strike      // the last weapon attack
+	Log      []string    // the battle's messages, oldest first
+}
+
+// Effect is a sprite over the combat map: its top left corner in thirds of a
+// square.
+type Effect struct {
+	X, Y int
+	Art  Picture
+}
+
+// Strike is the last weapon attack; Seq counts attacks, From and To are unit IDs.
+type Strike struct {
+	Seq, From, To int
+	Hit           bool
+	Damage        int
+}
+
+// Step is one square of a walk; Free: leaving it lets an enemy take a free attack.
+type Step struct {
+	At   image.Point
+	Free bool
 }
 
 // Reach is a square the unit can walk to and the steps it costs.
 type Reach struct {
 	At    image.Point
 	Steps int
+	Path  []Step // the walk there from the unit's own square
 }
 
 // Ground is one battlefield square.
@@ -547,6 +581,7 @@ type Ground struct {
 	Art    Picture
 	Block  bool
 	Height int // the square's height (a wall, a tree)
+	Tile   int // the tile number (Combat.Tiles)
 }
 
 // Unit is a combatant.
@@ -567,6 +602,7 @@ type Unit struct {
 	Member     int    // party index of a party unit, -1 for a monster
 	Active     bool   // it is the unit the player acts for
 	Hit        int    // the active unit's chance in percent to hit it with one blow, 0 not a target
+	Pose       int    // its icon's pose: 0 ready, 1 action
 }
 
 // Turn is whose turn it is and what they may do.

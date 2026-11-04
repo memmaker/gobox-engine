@@ -94,3 +94,75 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 	}
 	return &o
 }
+
+// BattleOf is the combat map built from s.Combat alone: the ground with its
+// tiles (Combat.Tiles, read from art), the units with their icons (a foe's
+// Art, a member's composed from its pool ids or original icon numbers),
+// effects, cursor, walks, aim, strike and log. nil outside a fight.
+func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
+	c := s.Combat
+	if c == nil {
+		return nil
+	}
+	b := &front.Battle{
+		Floor: c.Floor, Dungeon: c.Dungeon, Cursor: c.Cursor, CursorOn: c.CursorOn, CursorAt: slices.Clone(c.CursorAt),
+		Marks: slices.Clone(c.Marks), Targets: slices.Clone(c.Targets), Panel: c.Panel, Log: slices.Clone(c.Log),
+		Area: c.Area, AreaAt: slices.Clone(c.AreaAt), Skipped: slices.Clone(c.Skipped), AimWhy: c.Why, View: c.View,
+		Strike: front.Strike{Seq: c.Strike.Seq, From: c.Strike.From, To: c.Strike.To, Hit: c.Strike.Hit, Damage: c.Strike.Damage},
+	}
+	for _, g := range c.Squares {
+		if g.At.In(image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))) {
+			b.Ground[g.At.Y][g.At.X] = front.Square{Tile: g.Tile, Wall: g.Block, Height: g.Height}
+		}
+	}
+	b.TilePix = make([]front.Picture, 0x100)
+	for i, n := range c.Tiles {
+		if n != "" && i < len(b.TilePix) {
+			b.TilePix[i] = pix(art[n])
+		}
+	}
+	for _, f := range c.Effects {
+		b.Effects = append(b.Effects, front.Effect{X: float64(f.X) / 3, Y: float64(f.Y) / 3})
+		b.EffectPix = append(b.EffectPix, pix(f.Art))
+	}
+	for _, r := range c.Reach {
+		b.Reach = append(b.Reach, r.At)
+		if b.Paths == nil {
+			b.Paths = map[image.Point][]front.Step{}
+		}
+		var path []front.Step
+		for _, st := range r.Path {
+			path = append(path, front.Step{Point: st.At, Free: st.Free})
+		}
+		b.Paths[r.At] = path
+	}
+	for _, g := range c.Units {
+		u := front.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
+			Active: g.Active, Name: g.Name, HP: g.HP, MaxHP: g.MaxHP, AC: g.AC, Hit: g.Hit, Dmg: g.Dmg, Status: g.Status}
+		icon := pix(g.Art)
+		u.IconSize = image.Pt(24, 24)
+		if g.Art.W > 0 {
+			u.IconSize = image.Pt(g.Art.W, g.Art.H)
+		}
+		if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
+			head, body := memberIcon(s.Party[m])
+			if pic, ok := poolIcon(head, body, s.Party[m].IconColors, g.Pose, g.Facing > 3); ok {
+				icon, u.IconSize = pic, image.Pt(pic.PixW, len(pic.Pix)/pic.PixW)
+			}
+		}
+		b.Units = append(b.Units, u)
+		b.IconPix = append(b.IconPix, icon)
+	}
+	if t := c.Turn; t != nil {
+		b.Turn = &front.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves}
+		for _, op := range t.Options {
+			if act, ok := turnAct(op.Do); ok {
+				b.Turn.Can = append(b.Turn.Can, act)
+			}
+		}
+		for _, sp := range c.Spells {
+			b.Turn.Spells = append(b.Turn.Spells, front.Spell{ID: sp.ID, Name: sp.Name})
+		}
+	}
+	return b
+}
