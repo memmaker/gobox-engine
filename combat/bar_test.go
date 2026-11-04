@@ -15,16 +15,21 @@ func TestShownItemsLabels(t *testing.T) {
 			t.Errorf("item %d: %q, want %q", i, items[i].Text, w)
 		}
 	}
-	if h := hotkeyOf(barItem{Text: "Done"}); h.key != 0 || h.label != "" { // D is a camera key
-		t.Errorf("Done's hotkey %+v", h)
+	hk := func(its ...barItem) (ks []uint16) {
+		for _, h := range hotkeysOf(its) {
+			ks = append(ks, h.key)
+		}
+		return ks
 	}
-	if h := hotkeyOf(barItem{Text: "Done", Hot: 'x'}); h.key != 'x' || h.label != "X" {
-		t.Errorf("Done's own hotkey %+v", h)
+	if ks := hk(barItem{Text: "Done"}, barItem{Text: "Done", Hot: 'x'}, barItem{Text: "Move", Hot: -1}, barItem{Text: "Move"}); ks[0] != 0 || ks[1] != 'x' || ks[2] != 0 || ks[3] != 'm' {
+		t.Errorf("hotkeys %v", ks)
 	}
-	if h := hotkeyOf(barItem{Text: "Move", Hot: -1}); h.key != 0 {
-		t.Errorf("Move's none %+v", h)
-	}
-	if h := hotkeyOf(barItem{Text: "Move"}); h.key != 'm' {
-		t.Errorf("Move's hotkey %+v", h)
+}
+
+// TestHotkeysUnique: Use and Quick both want U; the table's Quick keeps it, Use has none.
+func TestHotkeysUnique(t *testing.T) {
+	hs := hotkeysOf([]barItem{{'U', "Use", ActItems, 0}, {'Q', "Quick", ActQuick, 0}, {'V', "Vow", ActWait, 0}})
+	if hs[0].key != 0 || hs[1].key != 'u' || hs[1].label != "U" || hs[2].key != 'v' {
+		t.Errorf("hotkeys %+v", hs)
 	}
 }

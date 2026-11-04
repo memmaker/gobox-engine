@@ -72,30 +72,45 @@ var hotkeys = map[string]struct {
 }{"Attack": {'f', 0, "F"}, "Ranged": {'m', 0, "M"}, "Guard": {'g', 0, "G"}, "End": {0, input.EndTurn, "\x1b"}, "Wait": {'p', 0, "P"}, "Cast": {'c', 0, "C"},
 	"Quick": {'u', 0, "U"}, "Items": {'i', 0, "I"}, "Turn": {'t', 0, "T"}, "Bandage": {'b', 0, "B"}, "Flee": {'r', 0, "R"}, "Maneuver": {'v', 0, "V"}, "Yes": {'y', 0, "Y"}, "No": {'n', 0, "N"}, "Cancel": {0, input.Esc, "Esc"}}
 
-// hotkeyOf is it's hotkey: the game's own (Hot), else the table's, else the
-// word's first letter (a game's own Labels), unless that is a camera key (W A S D Q E).
-func hotkeyOf(it barItem) (h struct {
-	key   uint16
-	act   input.Act
+type hotkey struct {
+	key   uint16    // a letter, raw input
+	act   input.Act // or the binding table's key
 	label string
-}) {
-	word, c := it.Text, byte(0)
+}
+
+// preferred is it's own hotkey: the game's (Hot), else the table's (none: zero).
+func preferred(it barItem) (h hotkey) {
 	switch {
 	case it.Hot < 0:
-		return h
 	case it.Hot > 0:
-		c = byte(it.Hot) | 0x20
+		c := byte(it.Hot) | 0x20
+		h.key, h.label = uint16(c), string(c&^0x20)
 	default:
-		if h, ok := hotkeys[word]; ok {
-			return h
-		}
-		if word == "" || strings.IndexByte("wasdqe", word[0]|0x20) >= 0 {
-			return h
-		}
-		c = word[0] | 0x20
+		h = hotkeys[it.Text]
 	}
-	h.key, h.label = uint16(c), string(c&^0x20)
 	return h
+}
+
+// hotkeysOf assigns the bar's hotkeys, unique over the bar: first the preferred
+// ones (the first button to prefer a letter keeps it), then each other button
+// takes its word's first letter unless that is a camera key (W A S D Q E) or
+// taken; else it has none (the number keys reach every button).
+func hotkeysOf(items []barItem) []hotkey {
+	hs, used := make([]hotkey, len(items)), map[uint16]bool{}
+	for i, it := range items {
+		if h := preferred(it); h.key == 0 || !used[h.key] {
+			hs[i], used[h.key] = h, used[h.key] || h.key != 0
+		}
+	}
+	for i, it := range items {
+		if it.Hot < 0 || hs[i] != (hotkey{}) || preferred(it) != (hotkey{}) || it.Text == "" || strings.IndexByte("wasdqe", it.Text[0]|0x20) >= 0 {
+			continue
+		}
+		if c := uint16(it.Text[0] | 0x20); !used[c] {
+			hs[i], used[c] = hotkey{key: c, label: string(byte(c) &^ 0x20)}, true
+		}
+	}
+	return hs
 }
 
 // leftArrow is the glyph drawn for "\x1b" (Backspace): the game's font has none.
@@ -108,8 +123,8 @@ var actWords = map[Kind]string{ActAttack: "Attack", ActRanged: "Ranged", ActGuar
 
 // hotkey is the button whose hotkey is letter k or the table's key a (nil: none).
 func (b *bar) hotkey(a input.Act, k uint16) *barItem {
-	for i, it := range b.items {
-		if h := hotkeyOf(it); (h.key != 0 && h.key == k || h.act != input.None && h.act == a) && i < len(b.rects) {
+	for i, h := range hotkeysOf(b.items) {
+		if (h.key != 0 && h.key == k || h.act != input.None && h.act == a) && i < len(b.rects) {
 			return &b.items[i]
 		}
 	}
@@ -322,6 +337,7 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 	}
 	text := func(s string, x, y, scale int, c color.RGBA) { textOn(im, s, x, y, scale, c) }
 	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(im, r, image.NewUniform(c), image.Point{}, draw.Src) }
+	hs := hotkeysOf(items)
 	for i, it := range items {
 		r := buttonRect(w, len(items), i, k)
 		fill(r, th.Button)
@@ -342,7 +358,7 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 		} else {
 			textOn(f, string(it.Key), (face-32)/2, (face-32)/2, 4, th.Letter)
 		}
-		if h := hotkeyOf(it); h.label != "" { // its hotkey, bottom right
+		if h := hs[i]; h.label != "" { // its hotkey, bottom right
 			const s = 2 // 16px letters on the 64px face
 			lw := len(h.label) * 8 * s
 			at := image.Pt(face-lw-2*s, face-10*s)
