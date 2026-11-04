@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"gobox/ega"
 	"gobox/gpu"
 	"gobox/ui"
 
@@ -379,6 +380,9 @@ func (p *Presenter) drawSpellTip(dst *gpu.Image, id int, k float64, cx int) {
 // pixels thick along the inside of r.
 func selectOutline(r image.Rectangle, t int, fill func(image.Rectangle, color.RGBA)) {
 	c := selectInk
+	if c == (color.RGBA{}) { // the game names none (Data.SelectInk): gobox's, the light green por gives
+		c = ega.RGBA(10)
+	}
 	fill(image.Rect(r.Min.X, r.Min.Y, r.Max.X, r.Min.Y+t), c)
 	fill(image.Rect(r.Min.X, r.Max.Y-t, r.Max.X, r.Max.Y), c)
 	fill(image.Rect(r.Min.X, r.Min.Y, r.Min.X+t, r.Max.Y), c)

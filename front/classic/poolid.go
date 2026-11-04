@@ -44,11 +44,12 @@ func PoolPortrait(v front.View, s game.State) front.View {
 		keep = append(keep, pc)
 	}
 	for _, p := range []struct {
-		im  image.Image
-		box front.CellRect
-	}{{head, cr.Head}, {body, cr.Body}} {
+		im   image.Image
+		box  front.CellRect
+		name string
+	}{{head, cr.Head, m.PortraitHeadID}, {body, cr.Body, m.PortraitBodyID}} {
 		at := p.box.Pixels().Min
-		keep = append(keep, front.Picture{Img: p.im, At: image.Rectangle{at, at.Add(p.im.Bounds().Size())}})
+		keep = append(keep, front.Picture{Name: p.name, Img: p.im, At: image.Rectangle{at, at.Add(p.im.Bounds().Size())}})
 	}
 	v.Pictures = keep
 	return v

@@ -166,7 +166,7 @@ func contentPictures(v front.View) []front.Picture {
 	}
 	var out []front.Picture
 	for _, pc := range v.Pictures {
-		if pc.Img == nil && pc.Pix == nil || pc.File == "" {
+		if pc.Img == nil && pc.Pix == nil || pc.File == "" && pc.Name == "" { // the pool's (PoolPortrait, PoolIcon) have a Name, no File
 			continue
 		}
 		if slices.ContainsFunc(in, func(r image.Rectangle) bool { return !r.Empty() && pc.At.Overlaps(r) }) {

@@ -137,6 +137,7 @@ func PoolIcon(v front.View, s game.State) front.View {
 			pic.File, pic.Block = "CBODY", m.Icon["body"]+128*pose
 		}
 		x := box.Min.X + 40*max(1, cr.Scale)*pose // the poses 5 cells apart
+		pic.Name = head
 		pic.At = image.Rectangle{image.Pt(x, box.Min.Y), image.Pt(x+pic.PixW, box.Min.Y+len(pic.Pix)/pic.PixW)}
 		keep = append(keep, pic)
 	}

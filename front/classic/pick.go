@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"strconv"
 
+	"gobox/ega"
 	"gobox/front"
 	"gobox/game"
 )
@@ -81,6 +82,13 @@ func IconEditor(s game.State, ink *[16]color.RGBA, cols, rows int) *front.IconEd
 		Size:  cell(wc, previewRow+2, wc+9, previewRow+2),
 		Names: cell(partCol, pr, swatchCol-1, pr+5), Parts: cell(swatchCol, pr, swatchCol+4, pr+5),
 		Palette: cell(paletteCol, pr+7, paletteCol+15, pr+8)}
+	if *ink == ([16]color.RGBA{}) { // unset: the EGA's own (View.Ink)
+		var egaInk [16]color.RGBA
+		for i := range egaInk {
+			egaInk[i] = ega.RGBA(i)
+		}
+		ink = &egaInk
+	}
 	look := func(n int) color.RGBA {
 		if len(s.IconPalette) == 16 {
 			return s.IconPalette[n&15]
