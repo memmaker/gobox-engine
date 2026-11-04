@@ -17,6 +17,19 @@ type areaPic struct {
 }
 
 func (a *areaPic) build(m *front.AreaMap) image.Image {
+	if m.Seen != nil { // unseen squares drawn as none
+		c := *m
+		c.Squares = make([][]image.Image, len(m.Squares))
+		for y, row := range m.Squares {
+			c.Squares[y] = append([]image.Image(nil), row...)
+			for x := range row {
+				if y >= len(m.Seen) || x >= len(m.Seen[y]) || !m.Seen[y][x] {
+					c.Squares[y][x] = nil
+				}
+			}
+		}
+		m = &c
+	}
 	if a.img != nil && a.tile == m.Tile && sameSquares(a.squares, m.Squares) {
 		return a.img
 	}

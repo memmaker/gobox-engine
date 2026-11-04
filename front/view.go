@@ -33,6 +33,7 @@ type AreaMap struct {
 	Tile    int
 	Party   image.Point // the party's map square
 	Marker  image.Image // the party's icon, facing its way
+	Seen    [][]bool    // Seen[y][x]: the party has seen that square (nil: all seen); unseen squares are drawn as none
 
 	SquarePix [][]Picture // Squares as the game's pixels (Picture.Pix), the presenter's to colour into Squares
 	MarkerPix Picture     // Marker so
