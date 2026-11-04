@@ -6,6 +6,7 @@ package front
 
 import (
 	"errors"
+	"os"
 )
 
 // StateAct makes a decision in camp or on the party menu a rule call;
@@ -46,7 +47,11 @@ func StateAct(h Host, a Action) bool {
 		case ActDropMember:
 			do(func(e Game) error { return e.DropMember(n) })
 		case ActQuit:
-			do(func(e Game) error { return e.QuitGame() })
+			h.Call(func(e Game) {
+				if e.QuitGame() == nil { // the player confirmed: every game's run ends here
+					os.Exit(0)
+				}
+			})
 		case ActQuickStart:
 			h.Call(func(e Game) { e.QuickStart() })
 		case ActNewClass:
