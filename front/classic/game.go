@@ -476,6 +476,8 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		switch {
 		case q.Kind == game.Square && a.Kind == front.ActAim:
 			return game.Answer{At: at}, true
+		case q.View && a.Kind == front.ActView: // the highlighted member (N, or the selected) is viewed; the ask stays
+			return game.ViewMember{Member: m}, true
 		case q.Kind == game.Direction && a.Kind == front.ActDir && a.N >= 1 && a.N <= 9 && a.N != 5:
 			return game.Answer{N: [10]int{1: 5, 2: 4, 3: 3, 4: 6, 6: 2, 7: 7, 8: 0, 9: 1}[a.N]}, true // keypad 8 up: facing 0 north, 2 east ...
 		}

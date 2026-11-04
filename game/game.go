@@ -751,6 +751,7 @@ type Ask struct {
 	Lines   []Line   // PickItem: the list's rows
 	Typed   string   // Name, Number: what is typed so far
 	Ms      int      // Continue: a timed pause of Ms milliseconds (0: wait for a key)
+	View    bool     // while set, the player may open the View menu on the highlighted option's member (game.ViewMember{N}) and the ask stays up; used by member picks
 }
 
 // Line is one row of a PickItem list.
