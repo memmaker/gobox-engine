@@ -460,6 +460,7 @@ type (
 	UseItem struct {
 		Member, Item, Target int
 		Ats                  []image.Point // one square per target
+		Spell                int           // a scroll's spell to read, 0 the first
 	}
 	Ready    struct{ Member, Item int }
 	Drop     struct{ Member, Item int }
