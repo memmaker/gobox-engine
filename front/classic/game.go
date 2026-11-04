@@ -420,8 +420,12 @@ func (g *Game) ClueRead(i int) *front.Read {
 // Answer does the Decision a names; ActResize is the front's own (the page's size).
 func (g *Game) Answer(a front.Action) error {
 	if a.Kind == front.ActResize {
-		g.grid = image.Pt(max(a.X, 40), max(a.Y, 25))
-		return g.do(game.Resize{Cols: a.X, Rows: a.Y})
+		err := g.do(game.Resize{Cols: a.X, Rows: a.Y})
+		g.grid = image.Pt(40, 25) // the page the game shows: its Cells, else the original's (a game that keeps its page lays nothing out wider)
+		if c := g.R.State().Cells; c.X > 0 && c.Y > 0 {
+			g.grid = image.Pt(max(c.X, 40), max(c.Y, 25))
+		}
+		return err
 	}
 	if m := g.aim; m != nil { // up to n squares, then the cast; Enter casts on those picked, Esc gives up
 		switch {
