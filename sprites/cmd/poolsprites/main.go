@@ -92,7 +92,11 @@ func main() {
 							count[s.prefix]++
 							seen[key] = en
 							byDir[s.dir] = append(byDir[s.dir], en)
-							write(filepath.Join(pool, s.dir, en.name+".png"), pix)
+							if s.masked { // combat art keeps its palette indices (gobox recolours the icon parts by them)
+								write(filepath.Join(pool, s.dir, en.name+".png"), indexed(im, fr))
+							} else {
+								write(filepath.Join(pool, s.dir, en.name+".png"), pix)
+							}
 							after[g][s.dir]++
 						}
 						before[g][s.dir]++
@@ -109,6 +113,20 @@ func main() {
 	}
 	b, _ := json.MarshalIndent(origins, "", " ")
 	check(os.WriteFile(filepath.Join(pool, "origins.json"), append(b, '\n'), 0o644))
+	poses := map[string]string{} // combat head/body frame 0 -> its pose-1 frame (the first origin's)
+	for _, files := range origins {
+		for _, refs := range files {
+			for ref, name := range refs {
+				if b, ok := strings.CutSuffix(ref, ".0"); ok && (strings.HasPrefix(name, "combat_head_") || strings.HasPrefix(name, "combat_body_")) {
+					if p := refs[b+".1"]; p != "" && poses[name] == "" {
+						poses[name] = p
+					}
+				}
+			}
+		}
+	}
+	b, _ = json.MarshalIndent(poses, "", " ")
+	check(os.WriteFile(filepath.Join(pool, "combat", "poses.json"), append(b, '\n'), 0o644))
 	index(filepath.Join(*out, "INDEX.md"), byDir)
 	for _, g := range games {
 		for _, k := range []string{"portraits", "combat"} {
@@ -136,7 +154,37 @@ func render(im *dax.Image, fr int) *image.NRGBA {
 	return out
 }
 
-func write(path string, im *image.NRGBA) {
+// indexed is frame fr as a paletted image keeping the DAX indices: EGA art
+// has 17 palette entries (the 16 colours, then transparent for Clear), VGA
+// art its own palette.
+func indexed(im *dax.Image, fr int) *image.Paletted {
+	w := im.Width * 8
+	var pal color.Palette
+	if im.Palette != nil {
+		for _, c := range im.Palette {
+			pal = append(pal, color.NRGBA(c))
+		}
+	} else {
+		for i := 0; i < 16; i++ {
+			pal = append(pal, color.NRGBA(ega.RGBA(i)))
+		}
+		pal = append(pal, color.NRGBA{})
+	}
+	out := image.NewPaletted(image.Rect(0, 0, w, im.Height), pal)
+	for i, v := range im.Frame(fr)[:w*im.Height] {
+		switch {
+		case im.Palette != nil:
+			out.Pix[i] = v
+		case v == dax.Clear:
+			out.Pix[i] = 16
+		default:
+			out.Pix[i] = v & 15
+		}
+	}
+	return out
+}
+
+func write(path string, im image.Image) {
 	check(os.MkdirAll(filepath.Dir(path), 0o755))
 	f, err := os.Create(path)
 	check(err)

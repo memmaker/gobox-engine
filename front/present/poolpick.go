@@ -25,7 +25,7 @@ var poolPicks = map[int]poolPick{
 	front.PickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5)},
 	front.PickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6)},
 	front.PickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5)},
-	front.PickIconBody: {"iconbody", "combat", nil, image.Pt(11, 6)},
+	front.PickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6)},
 }
 
 // poolPrefix is what the names of a field start with.

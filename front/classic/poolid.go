@@ -4,28 +4,52 @@ import (
 	"image"
 	"image/draw"
 
+	"gobox/front"
+	"gobox/game"
 	"gobox/sprites"
 )
 
-// poolID is the pool picture of head and body names (nil if either is
-// missing): a portrait is the head over the body, as the creation sheet
-// stacks its Head and Body boxes (88x40 over 88x48), a combat icon the head
-// laid on the body's top. kind is "portraits" or "combat".
-// ponytail: pool combat PNGs are RGBA, so no recolouring by palette index, facing or pose yet.
+// poolID is the pool portrait of head and body names (nil if either is
+// missing): the head over the body, as the creation sheet stacks its Head
+// and Body boxes (88x40 over 88x48).
 func poolID(kind, head, body string) image.Image {
 	hi, bi := sprites.Image("pool", kind, head), sprites.Image("pool", kind, body)
 	if hi == nil || bi == nil {
 		return nil
 	}
 	hb, bb := hi.Bounds(), bi.Bounds()
-	if kind == "combat" {
-		out := image.NewRGBA(image.Rect(0, 0, bb.Dx(), bb.Dy()))
-		draw.Draw(out, out.Bounds(), bi, bb.Min, draw.Src)
-		draw.Draw(out, image.Rect(0, 0, hb.Dx(), hb.Dy()), hi, hb.Min, draw.Over)
-		return out
-	}
 	out := image.NewRGBA(image.Rect(0, 0, max(hb.Dx(), bb.Dx()), hb.Dy()+bb.Dy()))
 	draw.Draw(out, image.Rect(0, 0, hb.Dx(), hb.Dy()), hi, hb.Min, draw.Src)
 	draw.Draw(out, image.Rect(0, hb.Dy(), bb.Dx(), hb.Dy()+bb.Dy()), bi, bb.Min, draw.Src)
 	return out
+}
+
+// PoolPortrait is v with the pool head and body of the creation draft in the sheet's Head and Body
+// boxes, in place of the game's pictures there (v itself when the draft names none).
+func PoolPortrait(v front.View, s game.State) front.View {
+	cr, m := v.Creation, subject(s)
+	if cr == nil || m.PortraitHeadID == "" || m.PortraitBodyID == "" {
+		return v
+	}
+	head, body := sprites.Image("pool", "portraits", m.PortraitHeadID), sprites.Image("pool", "portraits", m.PortraitBodyID)
+	if head == nil || body == nil {
+		return v
+	}
+	var keep []front.Picture
+	port := cr.Head.Pixels().Union(cr.Body.Pixels())
+	for _, pc := range v.Pictures {
+		if !pc.Fill && pc.At.Overlaps(port) {
+			continue
+		}
+		keep = append(keep, pc)
+	}
+	for _, p := range []struct {
+		im  image.Image
+		box front.CellRect
+	}{{head, cr.Head}, {body, cr.Body}} {
+		at := p.box.Pixels().Min
+		keep = append(keep, front.Picture{Img: p.im, At: image.Rectangle{at, at.Add(p.im.Bounds().Size())}})
+	}
+	v.Pictures = keep
+	return v
 }

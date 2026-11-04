@@ -82,10 +82,21 @@ func IconEditor(s game.State, ink *[16]color.RGBA, cols, rows int) *front.IconEd
 		Names: cell(partCol, pr, swatchCol-1, pr+5), Parts: cell(swatchCol, pr, swatchCol+4, pr+5),
 		Palette: cell(paletteCol, pr+7, paletteCol+15, pr+8)}
 	look := func(n int) color.RGBA { return front.IndexedRGBA([]uint8{k.Looks[n&15]}, 1, -1, ink).RGBAAt(0, 0) }
+	m := subject(s)
+	var cs []byte
+	for _, c := range k.Colour {
+		cs = append(cs, byte(c[0]&15|c[1]<<4))
+	}
 	for p := range 2 {
 		x := previewCols + (9*sc+2)*p
 		ed.PoseAt[p] = cell(x, previewRow, x+9*sc-1, previewRow+9*sc-1)
-		if k.Custom {
+		if pic, ok := poolIcon(m.IconHeadID, m.IconBodyID, cs, p, false); ok && !k.Custom && m.IconHeadID != "" {
+			if pic.Palette != nil {
+				ed.Poses[p] = front.PalettedRGBA(pic.Pix, pic.PixW, pic.Palette)
+			} else {
+				ed.Poses[p] = front.IndexedRGBA(pic.Pix, pic.PixW, -1, ink)
+			}
+		} else if k.Custom {
 			ed.Poses[p] = k.Icons[p]
 		} else if po := k.Poses[p]; po.Pixels != nil && po.W > 0 {
 			ed.Poses[p] = front.IndexedRGBA(po.Pixels, po.W, po.Clear, ink)
@@ -121,4 +132,15 @@ func Title(logo, backdrop *front.Picture, art map[string]game.Picture) (*front.P
 		backdrop = &front.Picture{File: p.File}
 	}
 	return logo, backdrop
+}
+
+// subject is the member whose portrait and icon are on show: the creation's draft, else the selected one.
+func subject(s game.State) game.Member {
+	switch {
+	case s.Creation != nil:
+		return s.Creation.Draft
+	case s.Selected >= 0 && s.Selected < len(s.Party):
+		return s.Party[s.Selected]
+	}
+	return game.Member{}
 }

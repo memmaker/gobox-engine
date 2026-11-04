@@ -49,3 +49,14 @@ func Origins() map[string]map[string]map[string]string {
 	}
 	return o
 }
+
+// Pose is the pool combat head or body name drawn in the action pose when name is the ready one ("": none).
+func Pose(name string) string {
+	b, err := fsys.ReadFile("series/pool/combat/poses.json")
+	if err != nil {
+		return ""
+	}
+	var m map[string]string
+	json.Unmarshal(b, &m)
+	return m[name]
+}

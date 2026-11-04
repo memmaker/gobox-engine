@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"image"
 	"slices"
 
 	"gobox/front"
@@ -49,6 +50,7 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 	}
 	o := *b
 	o.Units = slices.Clone(b.Units)
+	cloned := false
 	for i, u := range o.Units {
 		if k := slices.IndexFunc(c.Units, func(g game.Unit) bool { return g.ID == u.ID }); k >= 0 {
 			g := c.Units[k]
@@ -56,8 +58,14 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 			o.Units[i].HP, o.Units[i].MaxHP, o.Units[i].AC = g.HP, g.MaxHP, g.AC
 			o.Units[i].Hit, o.Units[i].Dmg, o.Units[i].Status = g.Hit, g.Dmg, g.Status
 			if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) && s.Party[m].IconHeadID != "" {
-				if im := poolID("combat", s.Party[m].IconHeadID, s.Party[m].IconBodyID); im != nil {
-					o.Units[i].Icon = im
+				pm := s.Party[m]
+				if pic, ok := poolIcon(pm.IconHeadID, pm.IconBodyID, pm.IconColors, 0, g.Facing > 3); ok {
+					if !cloned { // the game's IconPix by unit, so far
+						o.IconPix, cloned = append(make([]front.Picture, 0, len(o.Units)), b.IconPix...), true
+						o.IconPix = append(o.IconPix, make([]front.Picture, max(0, len(o.Units)-len(o.IconPix)))...)
+					}
+					o.Units[i].Icon, o.IconPix[i] = nil, pic
+					o.Units[i].IconSize = image.Pt(pic.PixW, len(pic.Pix)/pic.PixW)
 				}
 			}
 		}
