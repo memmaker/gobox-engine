@@ -19,9 +19,9 @@ func SlotsAct(h Host, slots **SlotsUI, a Action) bool {
 	case ActClose:
 		*slots = nil
 	case ActSaveSlot:
-		h.Call(func(e Game) { e.Save(name) })
+		h.Call(func(e Game) { refused(e, e.Save(name)) })
 	case ActDeleteSlot:
-		h.Call(func(e Game) { e.DeleteSlot(name) })
+		h.Call(func(e Game) { refused(e, e.DeleteSlot(name)) })
 	case ActLoad:
 		h.Call(func(e Game) {
 			if e.Load(name, sl.LoadOnly) {

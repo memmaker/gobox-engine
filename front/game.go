@@ -15,14 +15,15 @@ type Game interface {
 	QuickStart()
 	QuitGame() error
 
-	// Creation sheet (CreationView nil: none up).
-	CreateCharacter()
-	ModifyCharacter(n int)
-	Roll(minimal bool, minimums string)
-	Rename(name string)
-	SetStat(i int, typed string)
-	SetField(field, option int)
-	EndCreation(keep bool)
+	// Creation sheet (CreationView nil: none up). A refusal's error is
+	// shown (Refuse).
+	CreateCharacter() error
+	ModifyCharacter(n int) error
+	Roll(minimal bool, minimums string) error
+	Rename(name string) error
+	SetStat(i int, typed string) error
+	SetField(field, option int) error
+	EndCreation(keep bool) error
 	CreationView() *Creation
 
 	// Title (Intro).
@@ -63,10 +64,10 @@ type Game interface {
 	IconPNG(path string)
 	EndIcon(keep bool)
 
-	// Save slots.
+	// Save slots. A refusal's error is shown (Refuse).
 	SlotsView(loadOnly bool) *Slots
-	Save(name string)
-	DeleteSlot(name string)
+	Save(name string) error
+	DeleteSlot(name string) error
 	Load(name string, loadOnly bool) bool
 
 	// Paced steps (View.Pace).
