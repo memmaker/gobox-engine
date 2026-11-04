@@ -36,11 +36,6 @@ func groups(s game.State) (out []string) {
 		pace, p.Seq = int(p.Pace), 0
 		s.Pacing = &p
 	}
-	var shop any = s.Shop
-	if s.Shop != nil && !s.Shop.Reloads && s.Shop.Pooled == nil { // fields added after the hashes were taken: hashed only when set
-		b, _ := json.Marshal(s.Shop)
-		shop = json.RawMessage(bytes.Replace(b, []byte(`"Reloads":false,"Pooled":null,`), nil, 1))
-	}
 	for _, g := range []struct {
 		name string
 		v    any
@@ -50,7 +45,7 @@ func groups(s game.State) (out []string) {
 		{"page", s.Page}, {"read", s.Read}, {"note", s.Note.Text}, {"results", s.Results}, {"walls", s.Walls},
 		{"place", []any{s.Where, s.Window}}, {"quests", s.Quests}, {"lore", s.Lore}, {"party", []any{s.Party, s.Selected, s.Purse}},
 		{"sheet", []any{s.Sheet, s.SheetPage, s.Portrait, s.IconBox}}, {"items", []any{s.Items, s.PoolItems, s.PartyCap, s.Allowed}},
-		{"shop", []any{shop, s.Temple, s.TempleName, s.TempleOffers}}, {"loot", s.Loot}, {"map", s.Map},
+		{"shop", []any{s.Shop, s.Temple, s.TempleName, s.TempleOffers}}, {"loot", s.Loot}, {"map", s.Map},
 		{"camp", []any{s.Bestiary, s.RestHeals, s.RestStudies}}, {"combat", []any{s.Combat, reach}}, {"training", s.Training},
 		{"picker", s.Picker}, {"icon", []any{s.IconEditor, s.IconPalette}}, {"creation", s.Creation},
 	} {
@@ -73,11 +68,22 @@ func still(s game.State) game.State {
 	return s
 }
 
+// unsetLate are contract fields added after the hashes were taken, as JSON
+// at their zero value: left out of the hash while unset, so a new field the
+// rules do not fill changes nothing.
+var unsetLate = []string{
+	`"Reloads":false,"Pooled":null,`, // Shop
+	`,"View":false`,                  // Ask
+}
+
 // sum is the first bytes of the hash of v's JSON.
 func sum(v any) string {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return "unmarshalable: " + err.Error()
+	}
+	for _, f := range unsetLate {
+		b = bytes.ReplaceAll(b, []byte(f), nil)
 	}
 	h := sha256.Sum256(b)
 	return hex.EncodeToString(h[:3])

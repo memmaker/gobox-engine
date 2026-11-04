@@ -64,7 +64,7 @@ func TestMapImage(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		cell, glyph := want.Bounds().Dx()/16, e.FontGlyph
+		cell, glyph := want.Bounds().Dx()/16, present.PoolGlyph("Acer710_CGA") // the font the pngs were drawn in
 		if strings.HasSuffix(f, "_mini.json") {
 			glyph = nil
 		}
