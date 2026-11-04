@@ -635,6 +635,15 @@ type Camp struct {
 	Healing  bool        // someone resting can heal (RestFix)
 	Studying bool        // someone resting would memorize or scribe a spell (RestFix)
 	Bestiary []Beast     // the monster kinds met
+	Settings []Setting   // the game's numeric options, a row each that steps the value on (ActAlter)
+}
+
+// Setting is a numeric option the game publishes in camp: Value 0..Max,
+// shown as Names[Value] when Names has it, else as the number.
+type Setting struct {
+	Name       string
+	Value, Max int
+	Names      []string
 }
 
 // BookSpell is a spell with a count, and the slots of its level.

@@ -114,6 +114,8 @@ const (
 	ActStep // combat: one step, N the keypad's direction 1..9 (the bar's Move button sends it with N 0)
 	ActView // combat: the bar's View button (what it shows is the game's)
 
+	ActAlter // camp: setting N (Camp.Settings) takes the value X; the game answers it
+
 )
 
 // Action is one thing the player did on a remastered screen.
