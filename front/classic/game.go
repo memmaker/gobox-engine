@@ -169,6 +169,7 @@ func (g *Game) NewClass(n, class int) error {
 }
 func (g *Game) QuickStart()     { g.do(game.QuickStart{}) }
 func (g *Game) QuitGame() error { return g.do(game.Quit{}) }
+func (g *Game) EndGame() error  { return g.do(game.EndGame{}) }
 
 // Creation sheet.
 func (g *Game) CreateCharacter() error        { return g.do(game.NewCharacter{}) }
