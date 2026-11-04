@@ -143,7 +143,7 @@ func Title(logo, backdrop *front.Picture, art map[string]game.Picture) (*front.P
 // subject is the member whose portrait and icon are on show: the creation's draft, else the selected one.
 func subject(s game.State) game.Member {
 	switch {
-	case s.Creation != nil:
+	case Drafting(s):
 		return s.Creation.Draft
 	case s.Selected >= 0 && s.Selected < len(s.Party):
 		return s.Party[s.Selected]

@@ -112,7 +112,7 @@ func TestPoolIconCreation(t *testing.T) {
 	}
 	v := front.View{Creation: &front.Creation{Icon: front.CellRect{X1: 29, Y1: 13, X2: 31, Y2: 15}, Scale: 1}}
 	v.Pictures = []front.Picture{{File: "CBODY", At: image.Rect(232, 104, 256, 128)}}
-	v = PoolIcon(v, game.State{Creation: &game.Creation{Draft: d}})
+	v = PoolIcon(v, game.State{Mode: game.ModeCreate, Creation: &game.Creation{Draft: d}})
 	if len(v.Pictures) != 2 || !slices.Equal(v.Pictures[0].Pix, want.Pix) || v.Pictures[0].At.Min != image.Pt(232, 104) {
 		t.Fatalf("icon box not the pool icon: %+v", v.Pictures)
 	}

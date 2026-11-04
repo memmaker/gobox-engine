@@ -11,7 +11,7 @@ import (
 // whole scale the page leaves room for.
 func Creation(s game.State, cols, rows int) *front.Creation {
 	c := s.Creation
-	if c == nil {
+	if !Drafting(s) {
 		return nil
 	}
 	d := c.Draft
@@ -51,3 +51,8 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 	v.Icon, v.Scale = front.CellRect{X1: x, Y1: y, X2: x + 8*sc - 1, Y2: y + 3*sc - 1}, sc
 	return v
 }
+
+// Drafting says whether the creation (or Modify) sheet is up in s: a
+// Creation in ModeCreate. A game may state its Creation (the new
+// character's first step, the roster) on the party menu too; that is no sheet.
+func Drafting(s game.State) bool { return s.Creation != nil && s.Mode == game.ModeCreate }

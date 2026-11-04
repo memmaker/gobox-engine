@@ -91,7 +91,7 @@ func (g classicGame) Pick(i int) bool {
 	}
 	s := g.r.State()
 	var d game.Decision = game.SetIcon{Member: s.Selected, Field: pp.field, ID: pp.names[i]}
-	if s.Creation != nil {
+	if classic.Drafting(s) {
 		d = game.Create{Field: pp.field, Text: pp.names[i]}
 	}
 	if g.r.Apply(d).Err != nil {

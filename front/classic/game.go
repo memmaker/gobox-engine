@@ -324,7 +324,7 @@ func (g *Game) Pick(i int) bool {
 	if g.tiles {
 		s := g.R.State()
 		var d game.Decision = game.SetIcon{Member: s.Selected, Field: "iconbody", ID: PickTile(s, i)}
-		if s.Creation != nil {
+		if Drafting(s) {
 			d = game.Create{Field: "iconbody", Text: PickTile(s, i)}
 		}
 		if PickTile(s, i) == "" || g.R.Apply(d).Err != nil {
@@ -637,7 +637,7 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActStat:
 		return game.SetStat{Stat: a.N, Text: a.Text}, true
 	case front.ActKeep:
-		if g.R.State().Creation != nil { // the creation sheet's Keep
+		if Drafting(g.R.State()) { // the creation sheet's Keep
 			return game.KeepDraft{}, true
 		}
 		return game.KeepAppraised{Keep: a.N == 1}, true
