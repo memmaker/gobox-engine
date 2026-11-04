@@ -40,7 +40,7 @@ type mainUI struct {
 }
 
 // drawMain draws the main menu.
-func (m *mainUI) drawMain(h front.MainHost, dst *gpu.Image, v front.MainMenu) {
+func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	dst.Fill(color.Black)
 	b := dst.Bounds()
 	if v.Backdrop == nil {
@@ -107,7 +107,7 @@ const (
 // mainItems are the main menu's lines (the Party submenu with the
 // character functions) or, with a question up, its answers and the
 // question.
-func (m *mainUI) items(h front.MainHost, v front.MainMenu) (string, []ui.MenuRow) {
+func (m *mainUI) items(h MainHost, v front.MainMenu) (string, []ui.MenuRow) {
 	_, sel := h.PopUp()
 	ask := func(q int) func() { return func() { m.ask, *sel = q, 1 } }
 	no := ui.MenuRow{Text: "No", Key: 'N', Do: ask(askNone)}
@@ -168,7 +168,7 @@ func (m *mainUI) items(h front.MainHost, v front.MainMenu) (string, []ui.MenuRow
 }
 
 // drawMainUI draws the main menu's lettering, functions and cards.
-func (m *mainUI) drawMainUI(h front.MainHost, dst *gpu.Image, v front.MainMenu) {
+func (m *mainUI) drawMainUI(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	up, sel := h.PopUp()
 	b := dst.Bounds()
 	mk := scale(dst)
@@ -211,7 +211,7 @@ func (m *mainUI) drawMainUI(h front.MainHost, dst *gpu.Image, v front.MainMenu) 
 }
 
 // pick picks line i of the main menu or its question.
-func (m *mainUI) pick(h front.MainHost, v front.MainMenu, i int) {
+func (m *mainUI) pick(h MainHost, v front.MainMenu, i int) {
 	if _, items := m.items(h, v); i >= 0 && i < len(items) {
 		if up, _ := h.PopUp(); !*up {
 			m.sel = i
@@ -221,7 +221,7 @@ func (m *mainUI) pick(h front.MainHost, v front.MainMenu, i int) {
 }
 
 // click takes a click on the main menu: a function or a portrait.
-func (m *mainUI) click(h front.MainHost, v front.MainMenu, x, y int) bool {
+func (m *mainUI) click(h MainHost, v front.MainMenu, x, y int) bool {
 	if up, _ := h.PopUp(); *up {
 		i := slices.IndexFunc(h.WinRects(), image.Pt(x, y).In)
 		if i < 0 { // a click outside: back (No)
@@ -247,7 +247,7 @@ func (m *mainUI) click(h front.MainHost, v front.MainMenu, x, y int) bool {
 }
 
 // hover highlights the function under the pointer when it moves.
-func (m *mainUI) hover(h front.MainHost, x, y int) {
+func (m *mainUI) hover(h MainHost, x, y int) {
 	if !h.Point(x, y) {
 		return
 	}
@@ -269,7 +269,7 @@ func (m *mainUI) hover(h front.MainHost, x, y int) {
 
 // key moves the main menu's highlight (Up, Down), picks it (Enter, a
 // hotkey); Esc answers No or goes Back; the member keys select a member.
-func (m *mainUI) key(h front.MainHost, k uint16, v front.MainMenu) bool {
+func (m *mainUI) key(h MainHost, k uint16, v front.MainMenu) bool {
 	_, items := m.items(h, v)
 	up, psel := h.PopUp()
 	sel, n := &m.sel, len(items)

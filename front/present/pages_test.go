@@ -7,6 +7,7 @@ import (
 	"slices"
 	"testing"
 )
+
 // The spell lists' title replaces the sheet's name row (SpellList: a box
 // over row 1, the name's, the title after it), and the PNG portrait goes.
 func TestSheetSpellsTitle(t *testing.T) {

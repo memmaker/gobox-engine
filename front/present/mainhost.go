@@ -1,15 +1,16 @@
-package front
+package present
 
 import (
+	"gobox/front"
 	"image"
 
 	"gobox/gpu"
 )
 
-// MainHost is what the main menu (MainMenu) needs of the front end
+// MainHost is what the main menu (front.MainMenu) needs of the front end
 // drawing it.
 type MainHost interface {
-	Send(k ActKind, n int) // an action
+	Send(k front.ActKind, n int) // an action
 	// DrawMenu draws a menu of lines (keys the hotkeys) at K k, centred
 	// on cx from top; MenuRects are its rows.
 	DrawMenu(dst *gpu.Image, lines []string, keys []byte, sel int, k float64, cx, top int)

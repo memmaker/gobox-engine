@@ -3,7 +3,6 @@
 package present
 
 import (
-	"io/fs"
 	"fmt"
 	"gobox/blobber"
 	"gobox/front"
@@ -13,6 +12,7 @@ import (
 	"gobox/walls"
 	"image"
 	"image/color"
+	"io/fs"
 	"log"
 	"strconv"
 	"strings"
@@ -38,7 +38,6 @@ func mapPx(dst *gpu.Image) int {
 
 // fitScale is ui.FitScale: unit (K) times a whole size step that fits.
 func fitScale(unit, s float64, ok func(k float64) bool) float64 { return ui.FitScale(unit, s, ok) }
-
 
 // drawMap shows the map as the full map draws it (View.Map) in mapRect.
 func (p *Presenter) drawMap(dst *gpu.Image, v front.View, font func(byte, bool) [8]byte) {

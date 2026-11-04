@@ -35,7 +35,6 @@ const (
 	cardFace     = (cardW - portraitSize) / 2
 )
 
-
 // The bar art (bars.png): the groove's caps and middle, then the fills.
 var (
 	barLeft, barMid, barRight    = image.Rect(0, 0, 10, 11), image.Rect(10, 0, 22, 11), image.Rect(22, 0, 32, 11)

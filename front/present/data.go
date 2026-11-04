@@ -9,6 +9,7 @@ import (
 	"image/color"
 	"io/fs"
 
+	"gobox/dax"
 	"gobox/front"
 	"gobox/ui"
 )
@@ -47,6 +48,8 @@ type Data struct {
 	BarsPNG, DollPNG, AtlasPNG []byte // the cards' bars, the paper doll, the item icons
 	ItemsRec                   string // the icons' records
 
+	DAX *dax.Loader // decodes the pictures named by File and Block with Img nil (nil: they stay undrawn)
+
 	Bindings []ui.Binding // the game's own help rows, after Any time's Ctrl-F row
 }
 
@@ -67,6 +70,7 @@ var (
 	openAt                           string
 	barsPNG, dollPNG, atlasPNG       []byte
 	itemsRec                         string
+	daxLoader                        *dax.Loader
 	mapSide                          int // View.Map's side in pixels
 )
 
@@ -80,6 +84,7 @@ func SetData(d Data) {
 	dollBoxes, slotNames = d.DollBoxes, d.SlotNames
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
 	barsPNG, dollPNG, atlasPNG, itemsRec = d.BarsPNG, d.DollPNG, d.AtlasPNG, d.ItemsRec
+	daxLoader = d.DAX
 	mapSide = 16 * mapCell
 	setBindings(d.Bindings)
 }

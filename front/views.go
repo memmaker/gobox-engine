@@ -16,7 +16,7 @@ import (
 type Picture struct {
 	File         string // "" for a fill (the presenter adds its own pictures, the minimap, so)
 	Block, Frame int
-	Img          image.Image // nil for a fill
+	Img          image.Image // nil for a fill, or for a picture front/present decodes from File, Block, Frame
 	At           image.Rectangle
 	Fill         bool
 	Colour       color.RGBA
