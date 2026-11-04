@@ -23,7 +23,7 @@ func Ask(s game.State) (*front.Ask, bool) {
 	if !ok {
 		return nil, false
 	}
-	q := &front.Ask{Kind: k, Menu: front.Menu{Prompt: a.Prompt}, Max: a.Max, Default: a.Default, Text: a.Typed}
+	q := &front.Ask{Kind: k, Menu: front.Menu{Prompt: a.Prompt}, Max: a.Max, Default: a.Default, Text: a.Typed, View: a.View}
 	if a.Kind == game.Continue && a.Ms > 0 { // a timed pause; Ms 0: a message to acknowledge
 		q.Kind, q.Ms = front.AskPause, a.Ms
 	}

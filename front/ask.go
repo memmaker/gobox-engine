@@ -57,6 +57,7 @@ type Ask struct {
 	Default  int  // the option (or List line) highlighted first
 	Dirs     bool // the direction keys answer too (ActDir N, the keypad's 1..9), as a one-option menu's keypad
 	Reselect bool // ActLead N selects another member while the question stays up
+	View     bool // V opens the View menu on the member selected (ActView -1) while the question stays up
 
 	PromptInk, Ink, HotInk Role // the prompt's, the options' and the hotkeys' and highlight's colours (RoleNone: the presenter's)
 }

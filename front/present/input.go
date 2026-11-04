@@ -489,5 +489,9 @@ func askAnswered(k uint16, v front.View, send func(front.ActKind, int)) bool {
 		send(front.ActLead, n)
 		return true
 	}
+	if a.View && (k == 'v' || k == 'V') {
+		send(front.ActView, -1)
+		return true
+	}
 	return false
 }
