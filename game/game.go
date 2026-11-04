@@ -964,10 +964,11 @@ type Data struct {
 
 // QuickPick is one Quick Start member: the creation answers by the names the
 // game's sheet shows, the abilities rerolled for (StatKeys key -> minimum),
-// and the name and portrait it is saved under.
+// and the name and portrait it is saved under (Head and Body are pool
+// portrait names, sprites series "pool", kind "portraits", e.g. "head_003").
 type QuickPick struct {
 	Race, Gender, Class, Align string
 	Need                       map[string]int
 	Name                       string
-	Head, Body                 int
+	Head, Body                 string
 }
