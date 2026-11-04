@@ -166,6 +166,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 		v.Battle, v.Party = ev.Battle, ev.Party
 		v.Ask = nil
 	}
+	v = pixView(v) // an event's page or fight as the engine published it
 	p.scrolls.Reset()
 	p.noteBtn = image.Rectangle{}
 	p.battle.Asking = confirm(v) != ""

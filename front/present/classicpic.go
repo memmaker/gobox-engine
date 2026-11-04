@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 
+	"gobox/ega"
 	"gobox/front"
 )
 
@@ -13,19 +14,41 @@ type pixKey struct {
 	pix  string
 	w    int
 	mask int
+	ink  [16]color.RGBA
 }
 
-var (
-	pixPics = map[pixKey]image.Image{}
-	pixInk  [16]color.RGBA
-)
+var pixPics = map[pixKey]image.Image{}
+
+// egaInk is the EGA's own colours, for the pictures given in them.
+var egaInk = func() (k [16]color.RGBA) {
+	for i := range k {
+		k[i] = ega.RGBA(i)
+	}
+	return k
+}()
+
+// pixImage is pc's pixels in ink (nil without pixels), cached.
+func pixImage(pc front.Picture, ink [16]color.RGBA) image.Image {
+	if pc.Pix == nil {
+		return nil
+	}
+	if len(pixPics) > 4096 { // ponytail: whole cache dropped when big
+		clear(pixPics)
+	}
+	k := pixKey{string(pc.Pix), pc.PixW, -1, ink}
+	if pc.Mask != nil {
+		k.mask = int(*pc.Mask)
+	}
+	if m, ok := pixPics[k]; ok {
+		return m
+	}
+	m := front.IndexedRGBA(pc.Pix, pc.PixW, k.mask, &ink)
+	pixPics[k] = m
+	return m
+}
 
 // indexedPictures is ps with the pictures given as pixels converted in ink.
 func indexedPictures(ps []front.Picture, ink [16]color.RGBA) []front.Picture {
-	if ink != pixInk || len(pixPics) > 512 { // ponytail: whole cache dropped on a palette change or when big
-		clear(pixPics)
-		pixInk = ink
-	}
 	var out []front.Picture
 	for i, pc := range ps {
 		if pc.Pix == nil || pc.Img != nil {
@@ -34,19 +57,93 @@ func indexedPictures(ps []front.Picture, ink [16]color.RGBA) []front.Picture {
 		if out == nil {
 			out = append([]front.Picture(nil), ps...)
 		}
-		k := pixKey{string(pc.Pix), pc.PixW, -1}
-		if pc.Mask != nil {
-			k.mask = int(*pc.Mask)
-		}
-		if m, ok := pixPics[k]; ok {
-			out[i].Img = m
-			continue
-		}
-		out[i] = pc.Converted(&ink)
-		pixPics[k] = out[i].Img
+		out[i].Img = pixImage(pc, ink)
 	}
 	if out == nil {
 		return ps
 	}
 	return out
+}
+
+// pixView is v with the pictures given as pixels (the ...Pix fields)
+// coloured into their images; the game's own structs are copied, not changed.
+func pixView(v front.View) front.View {
+	ink := v.Ink
+	if v.BorderPix[0].Pix != nil {
+		for i, pc := range v.BorderPix {
+			if v.Border[i] == nil {
+				v.Border[i] = pixImage(pc, egaInk)
+			}
+		}
+	}
+	if m := v.AreaMap; m != nil && m.SquarePix != nil && m.Squares == nil {
+		c := *m
+		c.Squares = make([][]image.Image, len(m.SquarePix))
+		for y, row := range m.SquarePix {
+			c.Squares[y] = make([]image.Image, len(row))
+			for x, pc := range row {
+				c.Squares[y][x] = pixImage(pc, ink)
+			}
+		}
+		c.Marker = pixImage(m.MarkerPix, ink)
+		v.AreaMap = &c
+	}
+	v.Battle = pixBattle(v.Battle, ink)
+	if pixParty(v.Party) {
+		v.Party = append([]front.Member(nil), v.Party...)
+		for i := range v.Party {
+			if m := &v.Party[i]; m.Head == nil {
+				m.Head = pixImage(m.HeadPix, egaInk)
+			}
+		}
+	}
+	if c := v.Camp; c != nil && len(c.Bestiary) > 0 && c.Bestiary[0].Icon == nil {
+		cc := *c
+		cc.Bestiary = append([]front.Beast(nil), c.Bestiary...)
+		for i := range cc.Bestiary {
+			b := &cc.Bestiary[i]
+			if b.Icon == nil {
+				b.Icon = pixImage(b.IconPix, ink)
+			}
+			if b.Pic == nil {
+				b.Pic = pixImage(b.PicPix, ink)
+			}
+		}
+		v.Camp = &cc
+	}
+	return v
+}
+
+func pixParty(ms []front.Member) bool {
+	for _, m := range ms {
+		if m.Head == nil && m.HeadPix.Pix != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// pixBattle is b with its pictures given as pixels coloured in ink.
+func pixBattle(b *front.Battle, ink [16]color.RGBA) *front.Battle {
+	if b == nil || b.TilePix == nil || b.Tiles != nil {
+		return b
+	}
+	c := *b
+	c.Tiles = make([]image.Image, len(b.TilePix))
+	for i, pc := range b.TilePix {
+		c.Tiles[i] = pixImage(pc, ink)
+	}
+	c.Units = append([]front.Unit(nil), b.Units...)
+	for i := range c.Units {
+		if u := &c.Units[i]; u.Icon == nil && i < len(b.IconPix) {
+			u.Icon = pixImage(b.IconPix[i], ink)
+		}
+	}
+	c.Effects = append([]front.Effect(nil), b.Effects...)
+	for i := range c.Effects {
+		if f := &c.Effects[i]; f.Pic == nil && i < len(b.EffectPix) {
+			f.Pic = pixImage(b.EffectPix[i], ink)
+		}
+	}
+	return &c
 }
