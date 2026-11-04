@@ -486,7 +486,7 @@ type View struct {
 	Intro      *Intro         // the title waits to be played (TitlePicture, TitleCredits, TitleFlash, TitleDone)
 	Full       bool           // Pictures are one whole-screen picture (the title's): fitted to the window
 	Cells      image.Point    // the page's size in text cells (40x25 at least; a larger window gives more, ActResize)
-	Ink        [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now
+	Ink        [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now (all zero: the EGA's own)
 	Portrait   CellRect       // the sheet's portrait box (zero elsewhere): Shift-click takes the next head (ActHead), a dropped PNG becomes the portrait (ActPortrait)
 	IconDrop   bool           // the combat icon editor is up: a dropped PNG becomes the member's icon (ActIcon)
 	IconBox    CellRect       // the creation sheet's combat icon (zero elsewhere): a PNG dropped on it becomes the icon (ActIcon)

@@ -82,8 +82,11 @@ func indexedPictures(ps []front.Picture, ink [16]color.RGBA) []front.Picture {
 }
 
 // pixView is v with the pictures given as pixels (the ...Pix fields)
-// coloured into their images; the game's own structs are copied, not changed.
+// coloured into their images, and an unset Ink the EGA's; the game's own structs are copied, not changed.
 func pixView(v front.View) front.View {
+	if v.Ink == ([16]color.RGBA{}) { // unset: the EGA's own
+		v.Ink = egaInk
+	}
 	ink := v.Ink
 	if v.BorderPix[0].Pix != nil {
 		for i, pc := range v.BorderPix {
