@@ -433,6 +433,7 @@ type (
 	Cure       struct{ Member, Service int }
 	// Party.
 	Reroll           struct{}
+	KeepCharacter    struct{} // keep the creation draft as a new character
 	DiscardCharacter struct{}
 	RemoveCharacter  struct{ Roster int }
 	ChangeClass      struct{ Member, Class int }
@@ -501,6 +502,7 @@ func (Leave) decision()            {}
 func (LayOnHands) decision()       {}
 func (Cure) decision()             {}
 func (Reroll) decision()           {}
+func (KeepCharacter) decision()    {}
 func (DiscardCharacter) decision() {}
 func (RemoveCharacter) decision()  {}
 func (ChangeClass) decision()      {}
