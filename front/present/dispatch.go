@@ -34,6 +34,9 @@ func (p *Presenter) Key(k uint16, v front.View) {
 		p.replay.skip, p.replay.fast = true, p.replay.fast || k == ' '
 		return
 	}
+	if p.sfKey(k, v) { // the ship fight's window and bar
+		return
+	}
 	if p.overview { // any key closes the party overview
 		p.overview = false
 		return

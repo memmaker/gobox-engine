@@ -111,11 +111,18 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 	if gpu.Sized(&pg.img, w, h) {
 		pg.px, pg.drawn = image.NewRGBA(image.Rect(0, 0, w, h)), false
 	}
-	if pg.drawn && !note.Show && !pg.noted && pg.own == p.pageKey() && pg.edit == iconKey(v.IconEditor) && (v.Seq == pg.seq || !p.modal(v) && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
+	own := p.pageKey()
+	var sh sfShown
+	sf := sfOf(v)
+	if sf != nil && !p.modal(v) {
+		sh = p.sfState(v, sf)
+		own += fmt.Sprintf("%v%+v", *sf, sh)
+	}
+	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(v.IconEditor) && (v.Seq == pg.seq || !p.modal(v) && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
 		pg.seq = v.Seq
 		return pg.img
 	}
-	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, v.Seq, note.Show, p.pageKey(), iconKey(v.IconEditor)
+	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, v.Seq, note.Show, own, iconKey(v.IconEditor)
 	pg.page, pg.text = append(pg.page[:0], v.Pictures...), pageText(v)
 	m := pg.px
 	if p.modal(v) { // help, the journal, the maps, the overview: from their data alone, nothing of the page under them
@@ -123,6 +130,9 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 		pg.overs = nil
 	} else {
 		c := screenPage(v)
+		if sf != nil {
+			c.spaceFight(sf, sh, v.Ask)
+		}
 		c.draw(m, v, note)
 		pg.overs = c.overs
 	}

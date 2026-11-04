@@ -443,7 +443,7 @@ func spellPick(v front.View) []front.Spell {
 
 // confirm is v's yes/no question (AskConfirm), "" for none.
 func confirm(v front.View) string {
-	if a := v.Ask; a != nil && a.Kind == front.AskConfirm {
+	if a := v.Ask; a != nil && a.Kind == front.AskConfirm && sfOf(v) == nil { // the ship fight asks on its bar
 		return a.Prompt
 	}
 	return ""

@@ -13,6 +13,7 @@ func Screen(v front.View, s game.State) front.View {
 	if s.Cells.X > 0 {
 		v.Cells = s.Cells
 	}
+	v.Screen = s.Screen
 	if s.Ink != ([16]color.RGBA{}) {
 		v.Ink = s.Ink
 	}

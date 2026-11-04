@@ -176,6 +176,12 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 		game.EvMessage: front.EvMessage, game.EvSound: front.EvSound, game.EvSong: front.EvSong, game.EvSaves: front.EvSaves,
 	}
 	for _, e := range es {
+		if e.Screen != nil { // a timed typed screen: the scene with the screen as it stood
+			sc := v
+			sc.Screen = e.Screen
+			out = append(out, front.CombatEvent{Kind: front.EvFrame, Ms: e.Ms, Scene: &sc})
+			continue
+		}
 		if e.Page != nil { // a timed page: the scene as the page stood
 			sc := Page(v, game.State{Page: e.Page})
 			out = append(out, front.CombatEvent{Kind: front.EvFrame, Ms: e.Ms, Scene: &sc})

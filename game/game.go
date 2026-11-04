@@ -120,6 +120,7 @@ type State struct {
 	SheetPage              *SheetPage      // the character sheet's page is up
 	Portrait               image.Rectangle // the sheet's portrait box in text cells, Max inclusive (zero elsewhere)
 	IconBox                image.Rectangle // the creation sheet's combat icon box, as Portrait
+	Screen                 *Screen         `json:",omitempty"` // a typed screen is up (nil: none); Pending, when set, is asked on its prompt rows
 
 }
 
@@ -805,6 +806,7 @@ type Ask struct {
 	Lines   []Line   // PickItem: the list's rows
 	Typed   string   // Name, Number: what is typed so far
 	Ms      int      // Continue: a timed pause of Ms milliseconds (0: wait for a key)
+	Break   int      `json:",omitempty"` // Choice: >0 puts Options[Break:] on a second bar row (the original's '@'); the bar takes rows 23-24 and Up/Down switch rows
 	View    bool     // while set, the player may open the View menu on the highlighted option's member (game.ViewMember{N}) and the ask stays up; used by member picks
 }
 
@@ -1085,9 +1087,10 @@ type Event struct {
 	Unit, Target int
 	At, To       image.Point
 	Sprite       []Picture
-	Ms           int   // >0 with Page: the front shows Page for Ms milliseconds (a timed moment outside a fight)
-	Page         *Page // the whole page as it stood for this moment (nil: none)
-	Pose         int   // >0 with Ms in a fight: Unit's icon pose (1 action) while this moment shows
+	Ms           int     // >0 with Page: the front shows Page for Ms milliseconds (a timed moment outside a fight)
+	Page         *Page   // the whole page as it stood for this moment (nil: none)
+	Pose         int     // >0 with Ms in a fight: Unit's icon pose (1 action) while this moment shows
+	Screen       *Screen // with Ms: the typed screen as it stood for this moment (a blink, a blast frame), shown for Ms milliseconds
 }
 
 // Data is declarative overrides only; no drawing, no positions. A game's
@@ -1235,4 +1238,87 @@ type QuickPick struct {
 type Clue struct {
 	Title string
 	Read  Read
+}
+
+// Tone is what a line or figure means; gobox picks its colour.
+type Tone int
+
+const (
+	ToneText   Tone = iota // plain text
+	ToneOwn                // own crew and ship events, own labels
+	ToneBad                // dead, destroyed, zero
+	TonePrompt             // prompts, table titles
+	ToneWarn               // the foe, dying, damaged
+	ToneLoud               // headers, values
+)
+
+// ScreenKind is the Buck Rogers-style screen a game asks gobox to put up
+// (State.Screen). The kind comes from the game's state, never from its id.
+type ScreenKind int
+
+const (
+	ScreenNone        ScreenKind = iota
+	ScreenSpaceFight             // the ship fight: the view, both ships' systems, the weapons, the message window
+	ScreenShipSheet              // one ship's record
+	ScreenResultTable            // medic / repair columns
+	ScreenStarmap                // the system map with the rocket
+	ScreenIconGrid               // the 6x6 body icons
+	ScreenSkillPoints            // the skill table
+	ScreenWeaponSpec             // the Weapon Specialization list
+	ScreenTrainOffer             // "NAME will become: a level N CAREER"
+	ScreenCharSheet              // the BR character sheet
+)
+
+// Screen is the typed screen up: Kind says which pointer is set.
+type Screen struct {
+	Kind       ScreenKind
+	SpaceFight *SpaceFight // Kind ScreenSpaceFight
+}
+
+// SpaceFight is the ship fight's screen. gobox holds the layout: where the
+// view, the system icons and the weapons piece go (the SHIPS pictures).
+type SpaceFight struct {
+	Foe        Picture      // the foe's picture in the picture window (File "": none)
+	Status     string       // "Closing    " / "Retreating " / "Maneuvering" as the game's text holds it
+	Range      int          // shown as "Range: N" (below 0: 0)
+	Own, Enemy ShipSystems  // the six systems of each ship
+	SensorsOut bool         // own Sensors are 0: the enemy panel shows "Sensors Destroyed" only
+	Weapons    []WeaponSlot // own slots 0..2 for the compact panel
+	Blink      Blink        // what blinks in this snapshot (zero: nothing)
+	Blast      *Blast       // a blast frame drawn over the view (nil: none)
+	Log        []Message    // the message window's lines since the game last cleared it
+}
+
+// ShipSystems are a ship's Hull Sens Ctrl Life Fuel Engn figures.
+type ShipSystems struct {
+	Now, Max [6]int
+}
+
+// WeaponSlot is one weapon mount line.
+type WeaponSlot struct {
+	Short           string // the 8-character short name
+	Mounts, Working int    // a slot with Mounts 0 is not shown
+	Ammo, Reloads   int    // the ship sheet's columns
+}
+
+// Blink is what blinks in a SpaceFight snapshot (the original's 70 ms
+// half-steps, ten of them, ending on the normal colour).
+type Blink struct {
+	Own    bool // the system is the own ship's (else the foe's)
+	System int  // 1..6: Hull..Engn's figure blinks (0: none)
+	Slot   int  // 1..3: that own weapon line blinks (0: none)
+}
+
+// Blast is one blast frame: the SHIPS picture table's entry K (1..15:
+// three sizes by five frames) at the cell the game rolled.
+type Blast struct {
+	K  int
+	At image.Point
+}
+
+// Message is a line of a screen's message window.
+type Message struct {
+	Tone  Tone
+	Text  string
+	Clear bool // the window is cleared first, after a key pause when it holds text (the original's pause-and-clear)
 }

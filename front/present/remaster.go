@@ -179,6 +179,7 @@ type Presenter struct {
 	blinkSig    string                      // the blinking runs' text (blink.go) ...
 	blinkAt     time.Time                   // ... and when they began
 	paneMore    bool                        // ... and whether lines are left after those
+	sf          sfUI                        // the ship fight's window page, blink and bar (spacefight.go)
 }
 
 // Draw shows the game on dst and returns where the whole page went
@@ -364,8 +365,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		return Rect{}
 	}
 	sc := p.scene(v)
-	area := v.AreaMap != nil                                                                           // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
-	if sc == nil && !area || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure { // a member pick (Choosing) shows the view and the cards whatever page asked
+	area := v.AreaMap != nil                                                                                             // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
+	if sc == nil && !area || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure { // a member pick (Choosing) shows the view and the cards whatever page asked
 		if screenUp(v) { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			if sc != nil {
@@ -841,7 +842,7 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 // (the special screens, the pagers and maps, the after-combat page, the
 // credits); every other page is drawGeneric's.
 func (p *Presenter) ownLayout(v front.View) bool {
-	return pageScreen(v) || p.modal(v) || v.SheetPage != nil || v.Creation != nil || v.Credits
+	return pageScreen(v) || sfOf(v) != nil || p.modal(v) || v.SheetPage != nil || v.Creation != nil || v.Credits
 }
 
 // seqMusic plays an animation's music cues on the AdLib player's songs

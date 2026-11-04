@@ -217,6 +217,9 @@ func (p *Presenter) listHover(x, y int, v front.View) {
 // drawPageMenu pops a page's question (its options or its list) up over
 // the bottom of the page.
 func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
+	if sfOf(v) != nil { // the ship fight's bar is on its page (spacefight.go)
+		return
+	}
 	if pageScreen(v) {
 		p.pageMenu = true
 		p.drawScreen(dst, v)

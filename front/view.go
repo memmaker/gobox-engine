@@ -1,6 +1,7 @@
 package front
 
 import (
+	"gobox/game"
 	"image"
 	"image/color"
 	"strings"
@@ -513,6 +514,7 @@ type View struct {
 	Logo          *Picture       // with MainMenu: the title picture (Pix) the presenter cuts the lettering from (present.Data.Logo)
 	Backdrop      *Picture       // the Amiga painted title under MainMenu, File a PNG path the presenter decodes (nil: black)
 	Hall          bool           // MainMenu is the training hall's: over the 3D view, Begin leaves the hall
+	Screen        *game.Screen   // a game's typed screen is up (nil: none): the presenter draws it from its data, the Ask on its prompt rows
 	Seq           uint64         // counts the Views published: a presenter redraws the page on a new one
 	Pace          Pace           // what goes on with time: the call the presenter paces it with
 	Resting       bool           // camp's rest goes on (RestStep): a key asks to stop it (StopRest)
