@@ -15,10 +15,16 @@ func TestShownItemsLabels(t *testing.T) {
 			t.Errorf("item %d: %q, want %q", i, items[i].Text, w)
 		}
 	}
-	if h := hotkeyOf("Done"); h.key != 'd' || h.label != "D" {
+	if h := hotkeyOf(barItem{Text: "Done"}); h.key != 0 || h.label != "" { // D is a camera key
 		t.Errorf("Done's hotkey %+v", h)
 	}
-	if h := hotkeyOf("Move"); h.key != 'm' {
+	if h := hotkeyOf(barItem{Text: "Done", Hot: 'x'}); h.key != 'x' || h.label != "X" {
+		t.Errorf("Done's own hotkey %+v", h)
+	}
+	if h := hotkeyOf(barItem{Text: "Move", Hot: -1}); h.key != 0 {
+		t.Errorf("Move's none %+v", h)
+	}
+	if h := hotkeyOf(barItem{Text: "Move"}); h.key != 'm' {
 		t.Errorf("Move's hotkey %+v", h)
 	}
 }

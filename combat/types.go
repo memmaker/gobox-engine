@@ -43,6 +43,7 @@ type Turn struct {
 	Casting    string
 	Moves      int
 	Labels     map[Kind]string // optional button words
+	Keys       map[Kind]int    // optional hotkey letters by button (0 or missing: derived from the word; -1: none)
 	CastDirect bool            // Cast acts at once instead of opening the spell list (no spells to list)
 }
 

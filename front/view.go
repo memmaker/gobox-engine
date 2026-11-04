@@ -80,6 +80,7 @@ type Turn struct {
 	Missile   *InvItem           // extra: what ActRanged shoots (its icon on the Ranged button), or nil
 	Moves     int                // squares of move left
 	Labels    map[ActKind]string // extra: the game's own words for Can's bar buttons (nil, or a kind missing: the bar's own)
+	Keys      map[ActKind]int    // extra: a bar button's hotkey letter (A-Z) by kind; 0 or missing: its word's first letter (none if that is a camera key), -1: none
 }
 
 // Effect is a sprite the original draws over the map for a moment.

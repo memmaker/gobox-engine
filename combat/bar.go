@@ -6,6 +6,7 @@ import (
 	"image/draw"
 	"slices"
 	"strconv"
+	"strings"
 
 	xdraw "golang.org/x/image/draw"
 
@@ -56,6 +57,7 @@ type barItem struct {
 	Key  byte
 	Text string
 	Kind Kind
+	Hot  int // the game's hotkey letter (0: derived, -1: none)
 }
 
 // hotkeys are the remaster's letters for the bar's buttons, by word, and
@@ -70,19 +72,29 @@ var hotkeys = map[string]struct {
 }{"Attack": {'f', 0, "F"}, "Ranged": {'m', 0, "M"}, "Guard": {'g', 0, "G"}, "End": {0, input.EndTurn, "\x1b"}, "Wait": {'p', 0, "P"}, "Cast": {'c', 0, "C"},
 	"Quick": {'u', 0, "U"}, "Items": {'i', 0, "I"}, "Turn": {'t', 0, "T"}, "Bandage": {'b', 0, "B"}, "Flee": {'r', 0, "R"}, "Maneuver": {'v', 0, "V"}, "Yes": {'y', 0, "Y"}, "No": {'n', 0, "N"}, "Cancel": {0, input.Esc, "Esc"}}
 
-// hotkeyOf is word's hotkey: the table's, else its first letter (a game's own Labels).
-func hotkeyOf(word string) (h struct {
+// hotkeyOf is it's hotkey: the game's own (Hot), else the table's, else the
+// word's first letter (a game's own Labels), unless that is a camera key (W A S D Q E).
+func hotkeyOf(it barItem) (h struct {
 	key   uint16
 	act   input.Act
 	label string
 }) {
-	if h, ok := hotkeys[word]; ok {
+	word, c := it.Text, byte(0)
+	switch {
+	case it.Hot < 0:
 		return h
+	case it.Hot > 0:
+		c = byte(it.Hot) | 0x20
+	default:
+		if h, ok := hotkeys[word]; ok {
+			return h
+		}
+		if word == "" || strings.IndexByte("wasdqe", word[0]|0x20) >= 0 {
+			return h
+		}
+		c = word[0] | 0x20
 	}
-	if word != "" {
-		c := word[0] | 0x20
-		h.key, h.label = uint16(c), string(c&^0x20)
-	}
+	h.key, h.label = uint16(c), string(c&^0x20)
 	return h
 }
 
@@ -97,7 +109,7 @@ var actWords = map[Kind]string{ActAttack: "Attack", ActRanged: "Ranged", ActGuar
 // hotkey is the button whose hotkey is letter k or the table's key a (nil: none).
 func (b *bar) hotkey(a input.Act, k uint16) *barItem {
 	for i, it := range b.items {
-		if h := hotkeyOf(it.Text); (h.key != 0 && h.key == k || h.act != input.None && h.act == a) && i < len(b.rects) {
+		if h := hotkeyOf(it); (h.key != 0 && h.key == k || h.act != input.None && h.act == a) && i < len(b.rects) {
 			return &b.items[i]
 		}
 	}
@@ -121,10 +133,10 @@ func (p *Presenter) overBar(x, y int) bool {
 func shownItems(b *Board, asking bool) (items []barItem) {
 	switch t := b.Turn; {
 	case asking:
-		return []barItem{{'Y', "Yes", ActYes}, {'N', "No", ActNo}}
+		return []barItem{{'Y', "Yes", ActYes, 0}, {'N', "No", ActNo, 0}}
 	case t == nil:
 	case t.Aim:
-		return []barItem{{'E', "Cancel", ActClose}}
+		return []barItem{{'E', "Cancel", ActClose, 0}}
 	default:
 		for _, k := range t.Can {
 			w := t.Labels[k] // the game's own word, else the bar's
@@ -134,7 +146,7 @@ func shownItems(b *Board, asking bool) (items []barItem) {
 			if w == "" { // a kind the bar has no word for
 				continue
 			}
-			items = append(items, barItem{w[0], w, k})
+			items = append(items, barItem{w[0], w, k, t.Keys[k]})
 		}
 	}
 	return items
@@ -330,7 +342,7 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 		} else {
 			textOn(f, string(it.Key), (face-32)/2, (face-32)/2, 4, th.Letter)
 		}
-		if h := hotkeyOf(it.Text); h.label != "" { // its hotkey, bottom right
+		if h := hotkeyOf(it); h.label != "" { // its hotkey, bottom right
 			const s = 2 // 16px letters on the 64px face
 			lw := len(h.label) * 8 * s
 			at := image.Pt(face-lw-2*s, face-10*s)
