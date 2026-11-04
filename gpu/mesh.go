@@ -26,6 +26,7 @@ type Mesh struct {
 
 // NewMesh uploads a triangle list.
 func NewMesh(vs []MeshVertex) *Mesh {
+	needDevice() // headless (tests): before RunGame
 	data := bytesOf(vs)
 	b, err := dev.device.CreateBuffer(&wgpu.BufferDescriptor{Label: "mesh", Size: uint64(max(len(data), 4)),
 		Usage: wgpu.BufferUsageVertex | wgpu.BufferUsageCopyDst})
