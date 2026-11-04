@@ -19,6 +19,20 @@ type daxKey struct {
 
 var daxPics = map[daxKey]image.Image{} // decoded once; nil: not decodable
 
+// Arts is the shown art (DOS: true) and how to switch it, when Amiga
+// archives stand in for the game's DAX files (set nil: one art). The shell
+// cross-fades the switch (F12); every picture and border decodes anew.
+func (f *Front) Arts() (dos bool, set func(bool)) {
+	if !daxLoader.HasAmiga() {
+		return true, nil
+	}
+	return true, func(dos bool) {
+		daxLoader.SetDOS(dos)
+		clear(daxPics)
+		f.ArtNew = true
+	}
+}
+
 // daxImage is frame of block of file in the EGA colours (nil: none).
 func daxImage(file string, block, frame int) image.Image { return daxMasked(file, block, frame, -1) }
 

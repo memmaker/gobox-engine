@@ -9,6 +9,7 @@ import (
 	"image"
 	"image/color"
 	"io/fs"
+	"path/filepath"
 	"testing/fstest"
 
 	"gobox/audio"
@@ -126,6 +127,10 @@ func SetData(d Data) {
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
 	dollPNG, atlasPNG, itemsRec = d.DollPNG, d.AtlasPNG, d.ItemsRec
 	daxLoader = d.DAX
+	if daxLoader != nil && !daxLoader.HasAmiga() { // the Amiga art beside the DOS files (data/amiga), shown on F12
+		daxLoader.UseAmiga(filepath.Join(filepath.Dir(daxLoader.Dir), "amiga"))
+		daxLoader.SetDOS(true)
+	}
 	if art == nil {
 		art = fstest.MapFS{} // no remastered maps: every area falls back to its original view
 	}

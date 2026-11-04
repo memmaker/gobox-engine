@@ -127,6 +127,12 @@ func Run(cfg Config) error {
 	t := cfg.Theme
 	blobber.Shooting = cfg.Capture.Shot != "" // -shot: the 3D view ignores the keyboard
 	var fg *frontGame
+	if a, ok := cfg.Front.(interface{ Arts() (bool, func(bool)) }); ok && cfg.Art == nil {
+		if dos, set := a.Arts(); set != nil { // the front's own two arts (F12), DOS first
+			want := dos
+			cfg.Art = &Art{Want: func() bool { return want }, Toggle: func() { want = !want }, Set: set}
+		}
+	}
 	if cfg.Front != nil {
 		fg = &frontGame{f: cfg.Front, cfg: cfg, tps: cfg.TPS}
 		cfg.Game = fg
