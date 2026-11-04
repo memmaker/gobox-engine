@@ -495,6 +495,7 @@ type Automap struct {
 	Doors     []Wall        // State says what each door is
 	Walked    []image.Point // squares walked on (Known also holds those only seen)
 	Labels    []Label       // the map's own labels; the player's are Marked/Notes
+	Marker    string        // the party marker's art prefix on this map (Data.Art "<Marker>/<facing>"); "" is "marker"
 	// Terrain is the overland map's terrain id per square, row by row over
 	// Size; its art is Data.Art["terrain/<id>"] (a game numbers each
 	// remapped variant as its own id and gives its Pixels), the party marker

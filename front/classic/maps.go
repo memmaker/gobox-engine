@@ -140,7 +140,11 @@ func AreaMap(m *front.AreaMap, s game.State, art map[string]game.Picture) *front
 		}
 	}
 	c.Party = image.Pt(s.Where.X, s.Where.Y)
-	c.MarkerPix = pix(art["marker/"+strconv.Itoa(s.Where.Facing)])
+	mk := s.Map.Marker
+	if mk == "" {
+		mk = "marker"
+	}
+	c.MarkerPix = pix(art[mk+"/"+strconv.Itoa(s.Where.Facing)])
 	c.Seen = nil
 	if len(a.Known) < len(a.Terrain) { // else every square is seen
 		c.Seen = make([][]bool, a.Size.Y)
