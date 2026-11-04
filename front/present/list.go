@@ -115,6 +115,16 @@ func (p *Presenter) listRow(n int) int {
 // listPick takes the row sel: a line or an option.
 func (p *Presenter) listPick(v front.View, sel int) {
 	n := len(askList(v))
+	if modifying(v) { // a line, or Raise and Lower: that line up or down; the game's options as a list's
+		switch o := sel - n; {
+		case sel < n && !askList(v)[sel].Off:
+			p.raise(sel, 1)
+			return
+		case o >= 0 && o < len(p.list.opts) && p.list.opts[o] >= len(v.Ask.Items):
+			p.raise(p.listLine(v), 1-2*(p.list.opts[o]-len(v.Ask.Items)))
+			return
+		}
+	}
 	switch {
 	case sel < n && !askList(v)[sel].Off:
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActChoose, N: -1, X: sel})
@@ -126,6 +136,13 @@ func (p *Presenter) listPick(v front.View, sel int) {
 	p.asked = ""
 }
 
+// raise sends line i's value up (d +1) or down (-1) on AskModify.
+func (p *Presenter) raise(i, d int) {
+	if i >= 0 {
+		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActRaise, N: i, X: d})
+	}
+}
+
 // listKey takes key k on a list: the standard menu's keys (menuNav) over
 // the lines and the options; a move passes over the lines left out (Off).
 func (p *Presenter) listKey(k uint16, v front.View) bool {
@@ -133,6 +150,10 @@ func (p *Presenter) listKey(k uint16, v front.View) bool {
 	n := len(askList(v))
 	if _, ok := memberKey(k, 0, len(v.Party), false); ok { // the member the list is for (keyAct)
 		return false
+	}
+	if a := actOf(k); modifying(v) && (a == input.Left || a == input.Right) && l.sel < n { // the line highlighted down or up
+		p.raise(l.sel, map[input.Act]int{input.Left: -1, input.Right: 1}[a])
+		return true
 	}
 	keys := p.listKeys(v)
 	i, back, ok := ui.MenuNav(actOf(k), k, &l.sel, keys)

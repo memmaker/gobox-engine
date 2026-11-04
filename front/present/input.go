@@ -324,11 +324,22 @@ func unit(n int) int {
 // askMenu is the question's prompt and options when v asks for an option,
 // a line of a list or a member (nil otherwise).
 func askMenu(v front.View) *front.Menu {
+	if a := v.Ask; a != nil && a.Kind == front.AskModify { // the options, then the presenter's Raise and Lower (modifyItems) on the line highlighted
+		return &front.Menu{Prompt: a.Prompt, Items: append(slices.Clone(a.Items), modifyItems...)}
+	}
 	if a := v.Ask; a != nil && (a.Kind == front.AskMenu || a.Kind == front.AskList || a.Kind == front.AskMember) {
 		return &a.Menu
 	}
 	return nil
 }
+
+// modifyItems are the options AskModify adds to the game's: they raise
+// and lower the line highlighted (ActRaise X +1, -1), as Right and Left,
+// + and - and a click on the line (+1) do.
+var modifyItems = []front.MenuItem{{Text: "Raise", Key: '+'}, {Text: "Lower", Key: '-'}}
+
+// modifying: v asks for a stat raised or lowered (AskModify).
+func modifying(v front.View) bool { return v.Ask != nil && v.Ask.Kind == front.AskModify }
 
 // askDefault is the option v's question highlights first (Ask.Default).
 func askDefault(v front.View) int {
@@ -340,7 +351,7 @@ func askDefault(v front.View) int {
 
 // askList is the list v asks a line of (nil: none).
 func askList(v front.View) []front.ListLine {
-	if a := v.Ask; a != nil && a.Kind == front.AskList {
+	if a := v.Ask; a != nil && (a.Kind == front.AskList || a.Kind == front.AskModify) {
 		return a.List
 	}
 	return nil
