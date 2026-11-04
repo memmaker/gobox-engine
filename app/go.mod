@@ -37,3 +37,7 @@ replace gobox/input => ../input
 replace gobox/ui => ../ui
 
 replace gobox/ega => ../ega
+
+replace gobox/audio => ../audio
+
+replace gobox/amiga => ../amiga
