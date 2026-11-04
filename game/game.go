@@ -87,10 +87,37 @@ type State struct {
 	// name ("UseItem", "Sell", "Trade", "Halve", "Join", ...); gobox offers
 	// only these.
 	Allowed                map[string]bool
-	RestHeals, RestStudies bool    // what resting now does
-	TempleOffers           []Offer // the temple\'s appraisals, as Shop.Offers
-	PartyCap               int     // most items the party carries in all, 0 no limit
-	Bestiary               []Beast // the monsters the party has met
+	RestHeals, RestStudies bool        // what resting now does
+	TempleOffers           []Offer     // the temple\'s appraisals, as Shop.Offers
+	PartyCap               int         // most items the party carries in all, 0 no limit
+	Bestiary               []Beast     // the monsters the party has met
+	Picker                 *Picker     // a grid picker is up
+	IconEditor             *IconEditor // the combat icon designer is up
+}
+
+// Picker is a grid picker up (the creation's heads and bodies, the icon's
+// parts, the saved characters): every picture it holds, in order; the front
+// lays them out in pages.
+type Picker struct {
+	Cell      image.Point   // a picture's size in text cells
+	Cur       int           // the picture it opens on
+	Pics      []Picture     // one per picture; Pixels nil where it has none (W, H in pixels, the DAX ref as loaded)
+	Labels    []string      // the pictures' names (saved characters)
+	Classes   []string      // ... their classes ("": the files are gone)
+	Portraits []image.Image // ... their PNG portraits (nil: none; the DAX head is among Pics)
+	Ask       string        // the question before a pick (%s: the label), "" none
+}
+
+// IconEditor is the combat icon designer: the icon built so far and the
+// colours its six parts take. Colours name palette entries (Looks), in the
+// same index space as Picture.Pixels.
+type IconEditor struct {
+	Large, Custom bool           // Custom: the poses are a dropped PNG (Icons), no parts or colours
+	Poses         [2]Picture     // ready and action poses (Pixels nil: none)
+	Icons         [2]image.Image // Custom: the PNG's poses
+	Colour        [6][2]int      // each part's two colour numbers (0..15)
+	Cells         [16]int        // the colour number in each palette cell, row-major (-1: empty)
+	Looks         [16]byte       // the palette entry each colour number shows as
 }
 
 // Beast is a bestiary entry.
