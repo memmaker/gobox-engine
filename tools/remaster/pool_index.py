@@ -1,6 +1,7 @@
 """Pixel index of the originals behind the pool textures (walls/series/pool), for reuse before paying the image API.
-  python3 pool_index.py             rebuild pool_index.txt from por-go and cotab-go
-  python3 pool_index.py DUMPDIR     list DUMPDIR's walls (gobox viewdump -transparent output) with the pool texture
+  python3 pool_index.py [--series buck-rogers]            rebuild pool_index.txt from por-go and cotab-go
+                                                          (buck-rogers_index.txt from buckrogers-go)
+  python3 pool_index.py [--series buck-rogers] DUMPDIR    list DUMPDIR's walls (gobox viewdump -transparent output) with the pool texture
                                     of the same original pixels, or "new"
 pool_index.txt: <sha1 of the wall picture> <texture> <game> <dump name>. The key is the picture with fully transparent
 pixels zeroed and the sky colour (13, 0x55FFFF) cleared, so por's viewdump, cotab's walldump and gobox's viewdump
@@ -13,8 +14,14 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 GOBOX = HERE.parents[1]
 PROJ = GOBOX.parent
-POOL = GOBOX / "walls" / "series" / "pool"
-FILE = HERE / "pool_index.txt"
+ARGS = sys.argv[1:]
+SERIES = ARGS[1] if ARGS[:1] == ["--series"] else "pool"  # series are indexed apart: no matching across them
+ARGS = ARGS[2:] if SERIES != "pool" or ARGS[:1] == ["--series"] else ARGS
+POOL = GOBOX / "walls" / "series" / SERIES
+FILE = HERE / f"{SERIES}_index.txt"
+GAMES = {"pool": [("por", PROJ / "por-go/phlan-poc/areas.py", PROJ / "por-go/phlan-poc/viewdump"),
+                  ("cotab", HERE / "areas.py", PROJ / "cotab-go/remaster/viewdump")],
+         "buck-rogers": [("buckrogers", HERE / "areas.py", PROJ / "buckrogers-go/remaster/viewdump")]}
 SKY = [(85, 255, 255)]
 
 
@@ -44,8 +51,7 @@ def tables(game, path, dump):
 
 def build():
     rows = {}
-    for game, path, dump in [("por", PROJ / "por-go/phlan-poc/areas.py", PROJ / "por-go/phlan-poc/viewdump"),
-                             ("cotab", HERE / "areas.py", PROJ / "cotab-go/remaster/viewdump")]:
+    for game, path, dump in GAMES[SERIES]:
         for name, p in tables(game, path, dump):
             rows.setdefault(key(p), (name, game, p.stem))
     FILE.write_text("".join(f"{k} {n} {g} {s}\n" for k, (n, g, s) in sorted(rows.items(), key=lambda r: r[1])))
@@ -63,4 +69,4 @@ def lookup(dump):
 
 
 if __name__ == "__main__":
-    lookup(sys.argv[1]) if sys.argv[1:] else build()
+    lookup(ARGS[0]) if ARGS else build()
