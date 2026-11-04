@@ -21,6 +21,9 @@ func NewSynth(data []byte, card byte) (*Synth, error) {
 
 // Start starts song on the card's set.
 func (y *Synth) Start(song int) {
+	if song < 0 || song >= len(y.s.speaker.songs) || song >= len(y.s.tandySet.songs) {
+		return
+	}
 	if y.s.tandy {
 		y.s.start(&y.s.tandySet, song)
 	} else {

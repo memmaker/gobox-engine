@@ -68,3 +68,13 @@ func TestPlayerReads(t *testing.T) {
 	}
 	t.Fatal("sound 3 is silent")
 }
+
+// A song id past the table is ignored.
+func TestStartOutOfRange(t *testing.T) {
+	y, err := NewSynth(testData, 'T')
+	if err != nil {
+		t.Fatal(err)
+	}
+	y.Start(1 << 20)
+	y.Start(-1)
+}
