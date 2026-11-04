@@ -1,6 +1,7 @@
 package present
 
 import (
+	_ "embed"
 	"gobox/front"
 	"image"
 	"image/color"
@@ -518,20 +519,11 @@ func (p *Presenter) face(head image.Image) image.Image {
 	return f
 }
 
-// barArt is Data.BarsPNG, or without one the bar art drawn in the theme's
-// colours: a dark groove with a grey rim, then the green, red and gold
-// fills (barLeft .. goldFill).
-func barArt() image.Image {
-	if barsPNG != nil {
-		return decodePNG(barsPNG)
-	}
-	m := image.NewRGBA(image.Rect(0, 0, goldFill.Max.X, goldFill.Max.Y))
-	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(m, r, image.NewUniform(c), image.Point{}, draw.Src) }
-	groove := image.Rect(0, 0, barRight.Max.X, barLeft.Max.Y)
-	fill(groove, gray)
-	fill(groove.Inset(1), dark)
-	fill(greenFill, green)
-	fill(redFill, red)
-	fill(goldFill, col(inkYellow))
-	return m
-}
+// barsPNG is the cards' bar art (POR's, every game's): the groove's caps
+// and middle, then the fills.
+//
+//go:embed bars.png
+var barsPNG []byte
+
+// barArt is the cards' bar art.
+func barArt() image.Image { return decodePNG(barsPNG) }

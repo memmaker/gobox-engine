@@ -60,8 +60,8 @@ type Data struct {
 	Art      fs.FS                   // maps/NAME.map and assets/walls/walls.txt
 	OpenAt   string                  // map:NAME:X:Y:D shows map NAME from that square alone (drawOpen); "" none
 
-	BarsPNG, DollPNG, AtlasPNG []byte // the cards' bars, the paper doll, the item icons
-	ItemsRec                   string // the icons' records
+	DollPNG, AtlasPNG []byte // the paper doll, the item icons
+	ItemsRec          string // the icons' records
 
 	DAX *dax.Loader // the game's own DAX loader, over its own files: it decodes the pictures named by File and Block with Img nil and Theme.Border (nil: they stay undrawn)
 
@@ -92,7 +92,7 @@ var (
 	areaMaps                         map[front.AreaID]string
 	art                              fs.FS
 	openAt                           string
-	barsPNG, dollPNG, atlasPNG       []byte
+	dollPNG, atlasPNG                []byte
 	itemsRec                         string
 	daxLoader                        *dax.Loader
 	mapSide                          int // View.Map's side in pixels
@@ -124,7 +124,7 @@ func SetData(d Data) {
 	}
 	dollBoxes, slotNames, readiedMark = d.DollBoxes, d.SlotNames, d.ReadyMark
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
-	barsPNG, dollPNG, atlasPNG, itemsRec = d.BarsPNG, d.DollPNG, d.AtlasPNG, d.ItemsRec
+	dollPNG, atlasPNG, itemsRec = d.DollPNG, d.AtlasPNG, d.ItemsRec
 	daxLoader = d.DAX
 	if art == nil {
 		art = fstest.MapFS{} // no remastered maps: every area falls back to its original view

@@ -1,14 +1,16 @@
 package present
 
-import "testing"
+import (
+	"image"
+	"testing"
+)
 
-// Without Data.BarsPNG the cards' bars are drawn in the theme's colours.
-func TestBarArtWithoutPNG(t *testing.T) {
-	old := barsPNG
-	defer func() { barsPNG = old }()
-	barsPNG = nil
-	m := barArt()
-	if m.Bounds() != goldFill.Union(barRight) || m.At(greenFill.Min.X, greenFill.Min.Y) != green {
-		t.Fatalf("bar art %v", m.Bounds())
+// The embedded bar art holds every piece the cards cut from it.
+func TestBarArt(t *testing.T) {
+	b := barArt().Bounds()
+	for _, r := range []image.Rectangle{barLeft, barMid, barRight, greenFill, redFill, goldFill} {
+		if !r.In(b) {
+			t.Fatalf("%v outside the bar art %v", r, b)
+		}
 	}
 }
