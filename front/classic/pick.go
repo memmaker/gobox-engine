@@ -90,7 +90,8 @@ func IconEditor(s game.State, ink *[16]color.RGBA, cols, rows int) *front.IconEd
 	for p := range 2 {
 		x := previewCols + (9*sc+2)*p
 		ed.PoseAt[p] = cell(x, previewRow, x+9*sc-1, previewRow+9*sc-1)
-		if pic, ok := poolIcon(m.IconHeadID, m.IconBodyID, cs, p, false); ok && !k.Custom && m.IconHeadID != "" {
+		head, body := memberIcon(m)
+		if pic, ok := poolIcon(head, body, cs, p, false); ok && !k.Custom && head != "" {
 			if pic.Palette != nil {
 				ed.Poses[p] = front.PalettedRGBA(pic.Pix, pic.PixW, pic.Palette)
 			} else {

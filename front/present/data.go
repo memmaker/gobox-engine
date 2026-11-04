@@ -5,6 +5,7 @@
 package present
 
 import (
+	"gobox/front/classic"
 	"image"
 	"image/color"
 	"io/fs"
@@ -191,6 +192,7 @@ var gameArt map[string]game.Picture
 // SetData handed in: its series and its spell tips (by spell id).
 func gameData(g game.Data) {
 	gameArt, gameID = g.Art, g.ID
+	classic.GameID = g.ID
 	if g.Series != "" {
 		series = g.Series
 	}

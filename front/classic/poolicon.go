@@ -3,8 +3,11 @@ package classic
 import (
 	"image"
 	"image/color"
+	"strconv"
+	"sync"
 
 	"gobox/front"
+	"gobox/game"
 	"gobox/sprites"
 )
 
@@ -79,4 +82,23 @@ func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front
 		}
 	}
 	return pic, true
+}
+
+// GameID is game.Data.ID, the origins.json key that maps a member's original
+// icon numbers to pool names when it has no pool ids (old saves, imports).
+var GameID string
+
+var iconOrigins = sync.OnceValue(sprites.Origins)
+
+// memberIcon is m's combat icon head and body pool names: its pool ids, else
+// its original CHEAD and CBODY numbers (Icon "head", "body") through origins.json.
+func memberIcon(m game.Member) (head, body string) {
+	if m.IconHeadID != "" {
+		return m.IconHeadID, m.IconBodyID
+	}
+	o := iconOrigins()[GameID]
+	if o == nil || m.Icon == nil {
+		return "", ""
+	}
+	return o["CHEAD.DAX"][strconv.Itoa(m.Icon["head"])], o["CBODY.DAX"][strconv.Itoa(m.Icon["body"])]
 }

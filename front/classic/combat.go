@@ -57,9 +57,10 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 			o.Units[i].Party, o.Units[i].Active, o.Units[i].Name = !g.Foe, g.Active, g.Name
 			o.Units[i].HP, o.Units[i].MaxHP, o.Units[i].AC = g.HP, g.MaxHP, g.AC
 			o.Units[i].Hit, o.Units[i].Dmg, o.Units[i].Status = g.Hit, g.Dmg, g.Status
-			if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) && s.Party[m].IconHeadID != "" {
+			if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) && (s.Party[m].IconHeadID != "" || s.Party[m].Icon != nil) {
 				pm := s.Party[m]
-				if pic, ok := poolIcon(pm.IconHeadID, pm.IconBodyID, pm.IconColors, 0, g.Facing > 3); ok {
+				head, body := memberIcon(pm)
+				if pic, ok := poolIcon(head, body, pm.IconColors, 0, g.Facing > 3); ok {
 					if !cloned { // the game's IconPix by unit, so far
 						o.IconPix, cloned = append(make([]front.Picture, 0, len(o.Units)), b.IconPix...), true
 						o.IconPix = append(o.IconPix, make([]front.Picture, max(0, len(o.Units)-len(o.IconPix)))...)
