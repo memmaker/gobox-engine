@@ -83,7 +83,7 @@ type Config struct {
 	Theme    Theme
 	Settings Settings
 	Capture  Capture
-	TPS      int // Update calls a second
+	TPS      int // Update calls a second; 0: 60
 }
 
 // ParseKeys reads a script: \M \C \P \w are the shell's (Right ...),
@@ -121,6 +121,9 @@ type shell struct {
 
 // Run opens the window and runs the game until it ends.
 func Run(cfg Config) error {
+	if cfg.TPS <= 0 { // unset: the game would never tick after its first frame (a black, deaf window)
+		cfg.TPS = 60
+	}
 	t := cfg.Theme
 	blobber.Shooting = cfg.Capture.Shot != "" // -shot: the 3D view ignores the keyboard
 	var fg *frontGame
