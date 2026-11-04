@@ -540,6 +540,8 @@ func (p *Presenter) paneBox(dst *gpu.Image, note Note, v front.View, k float64, 
 	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
 	ui.DrawText(m, note.Glyph, label, 0, 0, col(inkYellow))
 	px := txt.Pixels()
+	hw, hh := int(k*float64(px.Dx())/2), int(k*float64(px.Dy())/2)
+	p.paneRect = image.Rect(cx-hw, cy-hh, cx+hw, cy+hh) // card menus keep clear of it
 	x, y := float64(cx)+k*float64(px.Dx()/2-16-m.Rect.Dx()), float64(cy)+k*float64(px.Dy()/2-8)
 	op := &gpu.DrawImageOptions{}
 	op.GeoM.Scale(k, k)

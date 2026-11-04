@@ -153,6 +153,7 @@ type Presenter struct {
 	scr         screenUI                    // the page screens' questions (screens.go)
 	screen      image.Rectangle             // the window, as last drawn
 	confirmFor  string                      // the yes/no question (View.Ask, AskConfirm) up, as last drawn ...
+	paneRect    image.Rectangle             // the page's text pane as drawn this frame: card menus keep clear of it
 	menuFloor   int                         // the page's text pane's top: a bottom menu stops above it (drawGeneric; 0 none)
 	confirmSel  int                         // ... its highlight (Yes 0, No 1) ...
 	confirmAt   []image.Rectangle           // ... and its rows on screen
@@ -452,7 +453,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	ask := typing(v) != nil && typing(v).Prompt != ""                                         // a script's input: its question and the line in one pop-up, no text box
 	shown = shown && !ask && !(askList(v) != nil && askMenu(v).Prompt != "")                  // a vertical menu's prompt is the list's own title
 	shown = shown && !(v.Shop != nil && p.camp.screen != campMain)                            // the shop's submenus (identify, appraise) stand alone, the greeting gone
-	if shown && v.Exploring && v.Window != front.WinPicture && v.Window != front.WinText {    // the text under the command bar: along the bottom edge
+	p.paneRect = image.Rectangle{}
+	if shown && v.Exploring && v.Window != front.WinPicture && v.Window != front.WinText { // the text under the command bar: along the bottom edge
 		p.paneBox(dst, note, v, tk, cx, b.Dy()-int(tk*th/2))
 		p.menuFloor = b.Dy() - int(tk*th) // the camp's member menus stop above the text
 		defer func() { p.menuFloor = 0 }()
