@@ -36,9 +36,10 @@ type Data struct {
 	Texts   map[string]string // the game's named texts and tables beyond Credits, SpellRules and IconParts (Text)
 	Entries []Entry           // the game's own main menu entries, after the default list (nil: none)
 
-	DoorRGBA  color.RGBA // a door's colour on the maps
-	LabelInks []int      // a map label's palette index (View.Ink) by its kind
-	SelectInk color.RGBA // the frame round the selected box (selectOutline)
+	DoorRGBA  color.RGBA               // a door's colour on the maps
+	LabelInks []int                    // a map label's palette index (View.Ink) by its kind
+	SelectInk color.RGBA               // the frame round the selected box (selectOutline)
+	BarWords  map[front.ActKind]string // the combat bar's word for an action (nil: gobox's own words); the hotkey follows from it
 
 	Rests []Rest // camp's rests, in the menu's order
 
@@ -78,6 +79,7 @@ var (
 	texts                            map[string]string
 	labelInks                        []int
 	selectInk                        color.RGBA
+	fightWords                       map[front.ActKind]string
 	rests                            []Rest
 	credits                          []Credit
 	remasterCredit                   [2]string
@@ -115,6 +117,7 @@ func SetData(d Data) {
 		applyTheme(DefaultTheme)
 	}
 	doorRGBA, labelInks, selectInk = d.DoorRGBA, d.LabelInks, d.SelectInk
+	fightWords = d.BarWords
 	rests = d.Rests
 	credits, remasterCredit, iconParts, spellRules = d.Credits, d.RemasterCredit, d.IconParts, d.SpellRules
 	if creditGaps = d.CreditGaps; creditGaps == nil {
