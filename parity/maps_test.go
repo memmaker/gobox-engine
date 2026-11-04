@@ -65,7 +65,7 @@ func TestMapParity(t *testing.T) {
 	if d.View().Map != nil {
 		sameMap(t, "locked door", d)
 	}
-	if !slices.ContainsFunc(d.Rules().State().Map.Doors, func(w game.Wall) bool { return w.Kind == 2 }) {
+	if !slices.ContainsFunc(d.Rules().State().Map.Doors, func(w game.Wall) bool { return w.State == game.DoorLocked || w.State == game.DoorWizardLocked }) {
 		t.Error("no locked door in State")
 	}
 
