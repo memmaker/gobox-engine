@@ -47,7 +47,7 @@ type Camera struct{ X, Y, Dir int }
 
 // NewView makes the textures and shaders. Call it once the window runs.
 // textures is View.Textures (nil: only the generated materials).
-// BLOBBER_NIGHT=1 starts at night.
+// The host sets View.Night to start at night.
 func NewView(textures map[string]image.Image) (*View, error) {
 	v := &View{Textures: textures, PondHalf: 0.46, PondNeck: 0.36, PondMud: 0.12}
 	cur = v
