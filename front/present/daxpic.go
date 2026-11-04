@@ -45,7 +45,15 @@ func daxMasked(file string, block, frame, mask int) image.Image {
 	}
 	var m *image.RGBA
 	if daxLoader != nil {
-		if im := dax.ParseImage(daxLoader.BlockShared(file, block), false, 0); im != nil && frame < im.Count {
+		b := daxLoader.BlockShared(file, block)
+		if im := dax.ParseVGA(b, false, 0); im != nil && frame < im.Count { // a VGA block (byte height, width: an EGA one's height high byte is 0)
+			m = image.NewRGBA(image.Rect(0, 0, im.Width*8, im.Height))
+			for i, c := range im.Frame(frame) {
+				if int(c) != mask {
+					m.Set(i%(im.Width*8), i/(im.Width*8), im.Palette[c])
+				}
+			}
+		} else if im := dax.ParseImage(b, false, 0); im != nil && frame < im.Count {
 			m = image.NewRGBA(image.Rect(0, 0, im.Width*8, im.Height))
 			pal := daxLoader.AmigaPalette(file, block)
 			for i, c := range im.Frame(frame) {
