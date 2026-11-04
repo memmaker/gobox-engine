@@ -21,13 +21,37 @@ func (g classicGame) View() front.View {
 	s := g.r.State()
 	v := classic.View(g.Game.View(), s)
 	if v.AreaMap != nil {
-		art := gameArt
-		if d, ok := g.Game.(interface{ Data() game.Data }); ok {
-			art = d.Data().Art // as loaded now: the art comes after NewFront, and the art set can change
-		}
-		v.AreaMap = classic.AreaMap(v.AreaMap, s, art)
+		v.AreaMap = classic.AreaMap(v.AreaMap, s, g.art())
+	}
+	if v.MainMenu != nil && !v.Hall && v.Powers == nil { // the title under the party menu
+		v.Logo, v.Backdrop = classic.Title(v.Logo, v.Backdrop, g.art())
 	}
 	return v
+}
+
+// art is the game's art as loaded now: it comes after NewFront, and the art set can change.
+func (g classicGame) art() map[string]game.Picture {
+	if d, ok := g.Game.(interface{ Data() game.Data }); ok {
+		return d.Data().Art
+	}
+	return gameArt
+}
+
+// PickerView is page page of the grid picker State holds (the game's where it holds none).
+func (g classicGame) PickerView(page int) *front.Picker {
+	if p := classic.Picker(g.r.State(), page, g.p.grid[0], g.p.grid[1]); p != nil {
+		return p
+	}
+	return g.Game.PickerView(page)
+}
+
+// IconEditorView is the icon designer State holds (the game's where it holds none).
+func (g classicGame) IconEditorView() *front.IconEditor {
+	ink := g.Game.View().Ink
+	if e := classic.IconEditor(g.r.State(), &ink, g.p.grid[0], g.p.grid[1]); e != nil {
+		return e
+	}
+	return g.Game.IconEditorView()
 }
 
 // CreationView is the sheet on the page the presenter last laid out (ActResize).
