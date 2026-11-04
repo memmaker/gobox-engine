@@ -29,6 +29,14 @@ func (g classicGame) View() front.View {
 	v.Battle = classic.Battle(v.Battle, s)
 	v = classic.Page(v, s)
 	v = classic.Flags(v, s)
+	v = classic.Border(v, g.art())
+	v = classic.Walls(v, s, g.art())
+	v = classic.Intro(v, s)
+	v = classic.Note(v, s)
+	v = classic.Results(v, s)
+	v = classic.Screen(v, s)
+	v = classic.Read(v, s)
+	v = classic.Pacing(v, s)
 	return v
 }
 

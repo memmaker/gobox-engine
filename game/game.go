@@ -8,6 +8,7 @@ package game
 import (
 	"image"
 	"image/color"
+	"time"
 )
 
 // Rules is a game's rules engine. It never blocks and starts no goroutines.
@@ -90,14 +91,90 @@ type State struct {
 	// name ("UseItem", "Sell", "Trade", "Halve", "Join", ...); gobox offers
 	// only these.
 	Allowed                map[string]bool
-	RestHeals, RestStudies bool        // what resting now does
-	TempleOffers           []Offer     // the temple\'s appraisals, as Shop.Offers
-	PartyCap               int         // most items the party carries in all, 0 no limit
-	Bestiary               []Beast     // the monsters the party has met
-	Picker                 *Picker     // a grid picker is up
-	IconEditor             *IconEditor // the combat icon designer is up
-	Page                   *Page       // the text page: the game's scripted text and story pictures
-	Flags                  *Flags      // the plain status flags of the screen
+	RestHeals, RestStudies bool           // what resting now does
+	TempleOffers           []Offer        // the temple\'s appraisals, as Shop.Offers
+	PartyCap               int            // most items the party carries in all, 0 no limit
+	Bestiary               []Beast        // the monsters the party has met
+	Picker                 *Picker        // a grid picker is up
+	IconEditor             *IconEditor    // the combat icon designer is up
+	Page                   *Page          // the text page: the game's scripted text and story pictures
+	Flags                  *Flags         // the plain status flags of the screen
+	Walls                  *Walls         // the 3D view the rules build from their own map (nil: the remastered map)
+	Intro                  *Intro         // the title waits to be played
+	Note                   Note           // the status line's toast
+	Results                *Results       // the after-combat page
+	Read                   *Read          // journal text the game waits to have read
+	Cells                  image.Point    // the page's size in text cells
+	Ink                    [16]color.RGBA // the text colours (EGA 0..15) now (all zero: the EGA's own)
+	Pacing                 *Pacing        // what goes on with time
+}
+
+// Walls are the facts of a 3D view seen from the party's square: a wall
+// face on every side. Fronts name the wall art (Data.Art), read live.
+type Walls struct {
+	Key                 string         // what the scene is built from: a new Key builds it again
+	Side                [][][4]int     // a square's wall value by side (N E S W), rows from the top (0: open)
+	Fronts              map[int]string // a wall value's art name in Data.Art
+	Pool                map[int]string // a wall value's remastered texture name, in place of Fronts
+	Floor, Sky          string         // the flats' pool names
+	FloorRGBA, CeilRGBA *color.RGBA    // plain flat colours (nil: none)
+	Sun                 bool           // by day outside: the sun up, at SunAz
+	SunAz, SunEl        float64        // the sun's bearing (0 north, pi/2 east) and height
+	Mountains           bool           // by day outside: the mountain range on the horizon
+}
+
+// Intro is the title waiting to be played.
+type Intro struct {
+	Full      bool  // picture 2 and the credits follow picture 1 (when Pictures is nil)
+	Pictures  []int // the picture steps (nil: 1, with Full 1 and 2)
+	Lightning bool  // picture 2 flashes
+}
+
+// Note is a toast for the status line: Text, put up at At (zero: none).
+type Note struct {
+	Text string
+	At   time.Time
+}
+
+// Results is the after-combat page: the hired NPCs hiding their shares,
+// else the outcome, or the party destroyed.
+type Results struct {
+	Shares  []string
+	Outcome string
+	Exp     string
+	Taken   string
+	Harmed  []Harm
+	End     string
+	EndAt   [4]int // the box's cells: X1, Y1, X2, Y2 (inclusive)
+}
+
+// Harm is a member's line on the after-combat page.
+type Harm struct{ Name, What string }
+
+// Read is journal text the game shows for the player to read.
+type Read struct {
+	Title string
+	Lines []string
+	Page  int // the page to start on
+}
+
+// Pace is the loop that goes on with time while the game waits.
+type Pace int
+
+const (
+	PaceNone  Pace = iota
+	PaceFight      // the fight's steps
+	PaceRest       // camp's rest
+	PaceStory      // the story's steps
+	PaceWalk       // the auto-walk
+	PaceAnim       // the picture's frames
+)
+
+// Pacing is what goes on with time.
+type Pacing struct {
+	Pace    Pace
+	Resting bool   // camp's rest goes on: a key asks to stop it
+	Seq     uint64 // counts the states published: a front redraws on a new one
 }
 
 // Flags are the plain yes/no facts of the screen the front shows or takes
