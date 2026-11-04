@@ -9,11 +9,39 @@ import (
 )
 
 // DollSlots are the paper doll's slots by Inventory.Doll index, by
-// game.Item.Slot name.
-var DollSlots = []string{"weapon", "shield", "armor", "gauntlets", "helm", "belt", "robe", "cloak", "boots", "ring", "ring2", "missiles", "launcher"}
+// game.Item.Slot name (arrows and bolts share the Missiles slot, the
+// launcher takes the Launcher slot when the weapon slot is taken).
+var DollSlots = []string{"weapon", "shield", "armor", "gauntlets", "helm", "belt", "robe", "cloak", "boots", "ring", "ring2", "arrows", "launcher"}
 
-// powerKinds are the inventory's member powers by their Gold Box names.
-var powerKinds = map[string]front.ActKind{"Cast": front.ActSpells, "Magic": front.ActMagic, "Heal": front.ActHeal, "Cure": front.ActCure} // ponytail: by name; a Decision per power once game has them
+// dollSlot is the Doll index for it, -1 for none.
+func dollSlot(it game.Item, doll []*front.InvItem) int {
+	switch it.Slot {
+	case "bolts":
+		return slices.Index(DollSlots, "arrows")
+	case "weapon":
+		if doll[0] != nil {
+			return slices.Index(DollSlots, "launcher")
+		}
+	}
+	return slices.Index(DollSlots, it.Slot)
+}
+
+// powerKind is the inventory's member power for a Decision: Cast the
+// spells (Spell -1 the spell effects), LayOnHands Heal, Cure Cure.
+func powerKind(d game.Decision) (front.ActKind, bool) {
+	switch d := d.(type) {
+	case game.Cast:
+		if d.Spell < 0 {
+			return front.ActMagic, true
+		}
+		return front.ActSpells, true
+	case game.LayOnHands:
+		return front.ActHeal, true
+	case game.Cure:
+		return front.ActCure, true
+	}
+	return 0, false
+}
 
 // itemKinds are the party inventory's tabs by game.Item.Kind (the rest: misc).
 var itemKinds = map[string]front.ItemKind{"weapon": front.KindWeapon, "armor": front.KindArmor}
@@ -48,15 +76,15 @@ func Inventory(v *front.Inventory, s game.State) *front.Inventory {
 		Use: s.Allowed["UseItem"], Sell: s.Allowed["Sell"], Switch: s.Allowed["Select"],
 		Trade: s.Allowed["Trade"], Halve: s.Allowed["Halve"], Join: s.Allowed["Join"]}
 	for _, p := range m.Powers {
-		if k := powerKinds[p.Label]; k != front.ActSpells || !n.Sell { // no spells in a shop
+		if k, ok := powerKind(p.Do); ok && (k != front.ActSpells || !n.Sell) { // no spells in a shop
 			n.Powers = append(n.Powers, front.Power{Name: p.Label, Kind: k})
 		}
 	}
 	for i, it := range m.Items {
 		x := invItem(i, it)
-		x.Slot, x.Wrong, x.Use, x.Look, x.Scribe = slotted(it), it.Wrong, it.Usable, lines(it.Text), it.Scribe
+		x.Slot, x.Wrong, x.Use, x.Look, x.Scribe = slotted(it), it.Wrong, it.Usable, lines(it.Text), slices.ContainsFunc(it.Scroll, func(s game.ScrollSpell) bool { return s.Scribing })
 		x.Price = front.Money{Gold: it.Sale[game.Gold], Copper: it.Sale[game.Copper]}
-		if d := slices.Index(DollSlots, it.Slot); it.Readied && d >= 0 && n.Doll[d] == nil {
+		if d := dollSlot(it, n.Doll); it.Readied && d >= 0 && n.Doll[d] == nil {
 			n.Doll[d] = &x
 			continue
 		}
