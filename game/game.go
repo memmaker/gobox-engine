@@ -107,6 +107,7 @@ type Member struct {
 	Name, Race, Class, Alignment, Status string
 	Levels                               []int
 	Stats                                map[string]int // "str", "int", ...
+	Str00                                int            // exceptional strength: 0 none, 1..100 for 18/01..18/00
 	HP, MaxHP, AC, THAC0, Move           int
 	Exp                                  uint32
 	Items                                []Item
@@ -310,6 +311,17 @@ type Ask struct {
 	Options []Option // Choice: labels with the original hotkeys
 	Default int      // default option or number
 	Max     int      // Name length, Number upper bound
+	Lines   []Line   // PickItem: the list's rows
+	Typed   string   // Name, Number: what is typed so far
+	Ms      int      // Continue: a timed pause of Ms milliseconds (0: wait for a key)
+}
+
+// Line is one row of a PickItem list.
+type Line struct {
+	Text     string
+	Header   bool // a heading, not pickable
+	Dim, Off bool // shown dimmed; not pickable
+	Spell    int  // the spell the row names, 0 if none
 }
 
 // Decision is a typed rule verb. Screen verbs are not Decisions.
@@ -340,8 +352,8 @@ type Cancel struct{}
 type Adjust struct{ Stat, By int }
 
 // StatKeys is the order of the values Adjust names: the Member.Stats keys,
-// then hit points.
-var StatKeys = []string{"str", "int", "wis", "dex", "con", "cha", "hp"}
+// then hit points, then exceptional strength (Member.Str00).
+var StatKeys = []string{"str", "int", "wis", "dex", "con", "cha", "hp", "str00"}
 
 // Money kinds: Purse, Loot.Money and Vault.Money use these names, the same in
 // every game.
