@@ -23,7 +23,8 @@ GAMES = {"pool": [("por", PROJ / "por-go/phlan-poc/areas.py", PROJ / "por-go/phl
                   ("cotab", HERE / "areas.py", PROJ / "cotab-go/remaster/viewdump"),
                   ("por", HERE / "areas.py", PROJ / "por-go/remaster/viewdump"),
                   ("pod", HERE / "areas.py", PROJ / "pod-go/remaster/viewdump")],
-         "buck-rogers": [("buckrogers", HERE / "areas.py", PROJ / "buckrogers-go/remaster/viewdump")]}
+         "buck-rogers": [("buckrogers", HERE / "areas.py", PROJ / "buckrogers-go/remaster/viewdump"),
+                         ("buckrogers2", HERE / "areas.py", PROJ / "buckrogers2-go/remaster/viewdump")]}
 SKY = [(85, 255, 255)]
 
 
