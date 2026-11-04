@@ -178,7 +178,11 @@ func Gate(h Host, l *Loot, d *DoorOpts) (string, []GateItem) {
 		add(true, "View", func(e Game) { e.LootView(-1) })
 		add(l.Take, "Take", func(e Game) { e.LootTake(-1) })
 		add(l.Detect, "Detect", func(e Game) { e.LootDetect() })
-		add(l.Share, "Share", func(e Game) { e.(interface{ LootShare() error }).LootShare() }) // only a game that offers it sets Share
+		add(l.Share, "Share", func(e Game) {
+			if s, ok := e.(interface{ LootShare() error }); ok {
+				s.LootShare()
+			}
+		}) // only a game that offers it sets Share
 		add(true, "Exit", func(e Game) {
 			AskSure(h, e.LootLeave(false), func() { h.Call(func(e Game) { e.LootLeave(true) }) })
 		})
