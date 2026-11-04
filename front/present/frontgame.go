@@ -92,6 +92,11 @@ func (p *Presenter) ownPicker(v front.View) front.View {
 	}
 	if p.gridPick != nil {
 		v.Picker, v.IconEditor, v.IconDrop = p.gridPick.Layout(p.eng, key), nil, false
+		if v.Picker != nil { // pictures named by DAX ref, as View.Pictures
+			pk := *v.Picker
+			pk.Pics = daxPictures(pk.Pics)
+			v.Picker = &pk
+		}
 	}
 	return v
 }
