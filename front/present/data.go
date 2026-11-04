@@ -28,6 +28,8 @@ type Data struct {
 	MapCell      int // pixels a square of View.Map
 	DungeonTiles int // the tiles at the start of the combat set
 
+	Entries []Entry // the game's own main menu entries, after the default list (nil: none)
+
 	DoorRGBA      color.RGBA                                                    // a door's colour on the maps
 	LabelInks     []int                                                         // a map label's palette index (View.Ink) by its kind
 	SelectOutline func(image.Rectangle, int, func(image.Rectangle, color.RGBA)) // draws the outline round the selected box
@@ -58,6 +60,7 @@ var (
 	paneBox, viewWindow, innerWindow front.CellRect
 	mapCell, dungeonTiles            int
 	doorRGBA                         color.RGBA
+	menuEntries                      []Entry
 	labelInks                        []int
 	selectOutline                    func(image.Rectangle, int, func(image.Rectangle, color.RGBA))
 	restFix, restWait, restUntil     int
@@ -80,6 +83,7 @@ var (
 func SetData(d Data) {
 	paneBox, viewWindow, innerWindow = d.PaneBox, d.ViewWindow, d.InnerWindow
 	mapCell, dungeonTiles = d.MapCell, d.DungeonTiles
+	menuEntries = d.Entries
 	doorRGBA, labelInks, selectOutline = d.DoorRGBA, d.LabelInks, d.SelectOutline
 	restFix, restWait, restUntil = d.RestFix, d.RestWait, d.RestUntil
 	credits, remasterCredit, iconParts, spellRules = d.Credits, d.RemasterCredit, d.IconParts, d.SpellRules
@@ -110,3 +114,13 @@ var Host = &DefaultOptions
 
 // UISteps are the sizes the screen elements come in: whole steps of the one glyph cell size (K).
 var UISteps = []float64{1, 2, 3, 4}
+
+// Entry is a main menu entry of the game's own (Data.Entries): Text with
+// its Key sends Act (N -1) to the game, on the main list or, Party, in the
+// Party submenu.
+type Entry struct {
+	Text  string
+	Key   byte
+	Act   front.ActKind
+	Party bool
+}
