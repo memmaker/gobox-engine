@@ -307,8 +307,15 @@ func (p *Presenter) Playing() bool { return len(p.replay.q) > 0 }
 func (p *Presenter) playing() *front.CombatEvent {
 	r := &p.replay
 	for len(r.q) > 0 {
-		if ev := &r.q[0]; ev.Kind == front.EvSound && p.Sound != nil && r.from.IsZero() {
-			p.Sound(*ev)
+		if ev := &r.q[0]; r.from.IsZero() {
+			switch {
+			case ev.Kind == front.EvSound && p.Sound != nil:
+				p.Sound(*ev)
+			case ev.Kind == front.EvSound && p.Snd != nil:
+				p.Snd.Effect(ev.Amount, false)
+			case ev.Kind == front.EvSong && p.Snd != nil:
+				p.Snd.AmigaSong(ev.Amount)
+			}
 		}
 		if ev := &r.q[0]; (ev.Kind == front.EvDamage || ev.Kind == front.EvHeal) && r.from.IsZero() && Host.DamageNumbers {
 			p.battle.Float(ev.Unit, ev.Amount, ev.Kind == front.EvHeal)
