@@ -34,6 +34,7 @@ require (
 	gobox/gpu v0.0.0 // indirect
 	gobox/input v0.0.0 // indirect
 	gobox/rules v0.0.0 // indirect
+	gobox/sprites v0.0.0 // indirect
 	gobox/ui v0.0.0 // indirect
 	gobox/walls v0.0.0 // indirect
 	golang.org/x/image v0.47.0 // indirect
@@ -74,6 +75,8 @@ replace gobox/ui => ../ui
 replace gobox/walls => ../walls
 
 replace gobox/front => ../front
+
+replace gobox/sprites => ../sprites
 
 replace gobox/rules => ../rules
 
