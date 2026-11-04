@@ -4,6 +4,9 @@ import (
 	"gobox/blobber"
 	"gobox/ui"
 	"image"
+	"image/color"
+
+	"gobox/front"
 
 	"gobox/gpu"
 )
@@ -32,8 +35,31 @@ func (p *Presenter) drawMenuIcons(dst *gpu.Image, glyph func(byte) [8]byte, titl
 	if p.logGrey {
 		st.Theme.Text = col(inkGrey) // the battle Log's light grey
 	}
+	if a := p.inkAsk; a != nil { // the question's own colours (Ask's roles)
+		for c, r := range map[*color.RGBA]front.Role{&st.Theme.Title: a.PromptInk, &st.Theme.Text: a.Ink, &st.Theme.Hot: a.HotInk} {
+			if i, ok := roleInk(r); ok {
+				*c = col(i)
+			}
+		}
+	}
 	if p.menuGrey {
 		st.Tiles = p.border.grey
 	}
 	p.menuRects = p.mc.Draw(dst, st, title, items, keys, off, icons, sel, k, cx, top, p.menuRects[:0])
+}
+
+// roleInk is role r's palette index (false: RoleNone, the presenter's own).
+func roleInk(r front.Role) (int, bool) {
+	q := theme.Palette
+	i, ok := map[front.Role]int{front.RoleText: q.Text, front.RoleHeading: q.Heading, front.RoleSelected: q.Selected, front.RoleOff: q.Off,
+		front.RoleWarn: q.Warn, front.RoleMark: q.Mark, front.RoleGold: q.Gold, front.RoleHotkey: q.Hotkey, front.RoleLog: q.Log,
+		front.RoleBackground: q.Background}[r]
+	return i, ok && i >= 0
+}
+
+// asking draws with v's question's colours (Ask's roles) while draw runs.
+func (p *Presenter) asking(v front.View, draw func()) {
+	p.inkAsk = v.Ask
+	defer func() { p.inkAsk = nil }()
+	draw()
 }

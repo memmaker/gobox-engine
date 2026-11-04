@@ -88,6 +88,7 @@ type Presenter struct {
 	fight       bool                        // the last frame was the 3D combat map
 	inv         inventory                   // the inventory screen (inventory.go)
 	fightView   *front.Battle               // the combat map last drawn
+	inkAsk      *front.Ask                  // the question whose menu is being drawn: its colours (asking)
 	replay      replay                      // the fight's events still to play
 	logGrey     bool                        // drawMenu's plain text light grey, not green (the battle Log)
 	fightLog    bool                        // the battle Log is up (fight.go)
@@ -475,7 +476,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.menu = false
 		rows := len(ui.TitleLines(askMenu(v).Prompt)) + min(len(askList(v)), listRows) + len(askMenu(v).Items) + 4 // drawMenu's: the title, a blank, the lines, a blank, the options, the border
 		top := max(b.Dy()/2-int(mk*float64(rows)*4), picBottom+int(pk*4))
-		p.drawList(dst, note.Glyph, v, mk, cx, max(0, min(top, b.Max.Y-int(mk*float64(rows)*8)))) // all of it on screen, over the picture's edge if it must
+		p.asking(v, func() { p.drawList(dst, note.Glyph, v, mk, cx, max(0, min(top, b.Max.Y-int(mk*float64(rows)*8)))) }) // all of it on screen, over the picture's edge if it must
 	} else if screenUp(v) && spellPick(v) == nil { // camp (camp.go), the temple, the shop, training
 		p.menu = false
 		p.drawCamp(dst, note.Glyph, v, mk, cx, max(b.Dy()/4, picBottom+int(pk*4)), b.Max.Y)
@@ -511,7 +512,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 				top = max(top, picBottom+int(pk*4))
 			}
 		}
-		p.drawMenu(dst, note.Glyph, askMenu(v).Prompt, lines, keys, nil, p.sel, mk, cx, top)
+		p.asking(v, func() { p.drawMenu(dst, note.Glyph, askMenu(v).Prompt, lines, keys, nil, p.sel, mk, cx, top) })
 	}
 	if note.Show { // the toast: pageImage's bottom line (noteLine) on a black band along the very bottom of the screen, no border
 		h := int(k * 8) // at K, as every glyph

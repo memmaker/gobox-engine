@@ -236,7 +236,9 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 	if askList(v) != nil {
 		b := dst.Bounds()
 		k := math.Max(1, math.Floor(scale(dst)))
-		p.drawList(dst, note.Glyph, v, k, b.Dx()/2, b.Dy()/2-int(k*float64(min(len(askList(v)), listRows)+len(m.Items)+6)*4))
+		p.asking(v, func() {
+			p.drawList(dst, note.Glyph, v, k, b.Dx()/2, b.Dy()/2-int(k*float64(min(len(askList(v)), listRows)+len(m.Items)+6)*4))
+		})
 		return
 	}
 	if len(m.Items) < 2 { // "press Enter": nothing to pick
@@ -252,7 +254,7 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 		lines[i] = r.Text
 	}
 	p.sel = min(max(p.sel, 0), len(lines)-1)
-	p.keyWindow(dst, m.Prompt, lines, keys, nil, p.sel, true)
+	p.asking(v, func() { p.keyWindow(dst, m.Prompt, lines, keys, nil, p.sel, true) })
 }
 
 // drawMapMenu draws m as the full map's cursor cell's context menu,

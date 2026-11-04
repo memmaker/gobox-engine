@@ -18,6 +18,7 @@ const IconRow = 3
 // (InkGold, InkHead, InkRed) and the footer on the bottom border.
 type MenuTheme struct {
 	Text, Hot, Off, Sel, Gold, Head, Red, Foot color.RGBA
+	Title                                      color.RGBA // the title's rows (transparent: Text)
 }
 
 // MenuStyle is how a menu is drawn: its theme, the border tiles (corner,
@@ -150,6 +151,9 @@ func (m *MenuCanvas) Draw(dst *gpu.Image, st MenuStyle, title string, items []st
 				g = st.RowGlyph(r-first, s[i])
 			}
 			c := ink
+			if r < first && ink == green && t.Title.A != 0 {
+				c = t.Title
+			}
 			switch {
 			case grey[r]:
 				c = dim
