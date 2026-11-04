@@ -292,7 +292,7 @@ func (g *Game) StopRest() error           { return g.do(game.StopRest{}) }
 
 // Powers.
 func (g *Game) UsePower(n int, k front.ActKind, spell, target int, sure bool) error {
-	return g.do(game.UsePower{Member: n, Kind: int(k), Spell: spell, Target: target, Sure: sure})
+	return g.asking(g.do(game.UsePower{Member: n, Kind: int(k), Spell: spell, Target: target, Sure: sure}))
 }
 func (g *Game) SelectedMember() int { return g.R.State().Selected }
 
@@ -413,7 +413,7 @@ func (g *Game) OpenItems(n int, direct bool) error {
 func (g *Game) CloseItems(all bool) error { return g.do(game.CloseItems{All: all}) }
 func (g *Game) Ready(i, x int) error      { return g.do(game.Ready{Member: g.sel(-1), Item: i, Count: x}) }
 func (g *Game) UseItem(i, spell, target int, sure bool) error {
-	return g.do(game.UseItem{Member: g.sel(-1), Item: i, Spell: spell, Target: target})
+	return g.asking(g.do(game.UseItem{Member: g.sel(-1), Item: i, Spell: spell, Target: target}))
 }
 func (g *Game) Drop(i int) error { return g.do(game.Drop{Member: g.sel(-1), Item: i}) }
 func (g *Game) Sell(i int) error { return g.do(game.Sell{Member: g.sel(-1), Item: i}) }
@@ -701,4 +701,37 @@ func (g *Game) state() game.State {
 		s.Pending, s.Mode = g.asked, game.ModeAsk
 	}
 	return s
+}
+
+// asking is a Refusal's question of UsePower or UseItem as the front's
+// pick or question (PickSpell, PickMember, Confirm), which the presenter
+// asks before making the call again with the answer.
+func (g *Game) asking(err error) error {
+	a := g.asked
+	if a == nil {
+		return err
+	}
+	switch a.Kind {
+	case game.PickSpell:
+		var ps front.PickSpell
+		for _, o := range a.Options {
+			id := 0
+			switch d := o.Do.(type) {
+			case game.UsePower:
+				id = d.Spell
+			case game.UseItem:
+				id = d.Spell
+			}
+			ps = append(ps, front.Spell{ID: id, Name: o.Label})
+		}
+		g.asked = nil
+		return ps
+	case game.PickMember:
+		g.asked = nil
+		return front.PickMember(a.Prompt)
+	case game.YesNo:
+		g.asked = nil
+		return front.Confirm(a.Prompt)
+	}
+	return err
 }
