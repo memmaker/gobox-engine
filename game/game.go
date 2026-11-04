@@ -8,6 +8,7 @@ package game
 import (
 	"image"
 	"image/color"
+	"io/fs"
 	"time"
 )
 
@@ -1063,6 +1064,34 @@ type Data struct {
 	ReadyMark    string     // shown before a readied item's name ("": none)
 	LabelInks    []int      // a map label's EGA colour by its kind
 	MapCell      int        // pixels a square of the area map (0: gobox's)
+
+	DoorInk, SelectInk color.RGBA        // a door's colour on the maps; the frame round the selected box (zero: gobox's)
+	Logo               *Logo             // how the main menu's lettering is cut from the title picture (nil: none)
+	RemasterCredit     [2]string         // the remaster's own lines at the bottom of the credits page
+	DollBoxes          []image.Rectangle // the paper doll's slot boxes in doll pixels, by slot
+	SlotNames          []string          // the slots' names
+	AreaMaps           map[int]string    // the remastered 3D map (Remaster maps/NAME.map) of each area id
+	Remaster           fs.FS             // the remastered art: maps/NAME.map and assets/walls/walls.txt
+	OpenAt             string            // debug: map:NAME:X:Y:D shows that remastered map alone
+	Doll, ItemAtlas    []byte            // the paper doll and the item icons, PNG
+	ItemRecs           string            // the item icons' records
+	Bindings           []Binding         // the game's own help rows, after the Any time Ctrl-F row
+}
+
+// Logo is how the title picture's lettering is cut out: EGA colours Keep
+// above row Sub stay, from Sub to Bottom the SubInk pixels are drawn in Gold
+// with an Outline round them; everything else is transparent.
+type Logo struct {
+	Sub, Bottom   int
+	Keep          []uint8
+	SubInk        uint8
+	Gold, Outline color.RGBA
+}
+
+// Binding is one row of the help: in context Ctx, Keys (and Mouse, Pad) do Desc.
+type Binding struct {
+	Ctx, Desc        string
+	Keys, Mouse, Pad string
 }
 
 // Typeface is an 8x8 text font: 256 glyphs of 8 rows, bit 7 leftmost.

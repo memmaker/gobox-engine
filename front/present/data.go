@@ -272,6 +272,43 @@ func gameData(g game.Data) {
 	if g.ReadyMark != "" {
 		readiedMark = g.ReadyMark
 	}
+	if g.DoorInk != (color.RGBA{}) {
+		doorRGBA = g.DoorInk
+	}
+	if g.SelectInk != (color.RGBA{}) {
+		selectInk = g.SelectInk
+	}
+	if l := g.Logo; l != nil {
+		logoCut = LogoCut(*l)
+	}
+	if g.RemasterCredit != ([2]string{}) {
+		remasterCredit = g.RemasterCredit
+	}
+	if g.DollBoxes != nil {
+		dollBoxes, slotNames = g.DollBoxes, g.SlotNames
+	}
+	if g.AreaMaps != nil {
+		areaMaps = map[front.AreaID]string{}
+		for id, n := range g.AreaMaps {
+			areaMaps[front.AreaID(id)] = n
+		}
+	}
+	if g.Remaster != nil {
+		art = g.Remaster
+	}
+	if g.OpenAt != "" {
+		openAt = g.OpenAt
+	}
+	if g.Doll != nil {
+		dollPNG, atlasPNG, itemsRec = g.Doll, g.ItemAtlas, g.ItemRecs
+	}
+	if g.Bindings != nil {
+		var own []ui.Binding
+		for _, b := range g.Bindings {
+			own = append(own, ui.Binding{Ctx: b.Ctx, Desc: b.Desc, Keys: b.Keys, Mouse: b.Mouse, Pad: b.Pad})
+		}
+		setBindings(own)
+	}
 	menuEntries = slices.DeleteFunc(menuEntries, func(e Entry) bool { return e.Act == front.ActCommand })
 	for i, c := range g.Commands {
 		menuEntries = append(menuEntries, Entry{Text: c.Label, Key: byte(c.Key), Act: front.ActCommand, N: i, Party: true})
@@ -295,3 +332,6 @@ func gameData(g game.Data) {
 		}
 	}
 }
+
+// UseGameData hands the presenter the game's data without building a Front (headless callers).
+func UseGameData(g game.Data) { gameData(g) }

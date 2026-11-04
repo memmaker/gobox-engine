@@ -104,3 +104,40 @@ func OptionRows(o *Options) map[string][]blobber.Row {
 		},
 	}
 }
+
+// HostRow is a row of the Esc menu for a setting of the game's own: on Page
+// before the built-in row At, editing Flag (ON/OFF, or Names off and on) or
+// Level (a 0 to 1 slider), or shown by Get and changed by Change.
+type HostRow struct {
+	Page, Label string
+	At          int
+	Flag        *bool
+	Names       [2]string
+	Level       *float64
+	Get         func() string
+	Change      func(int)
+}
+
+// HostRows are rows and o's own rows (OptionRows) by page for blobber.ExtraRows:
+// where they share a built-in row, rows come first.
+func HostRows(o *Options, rows ...HostRow) map[string][]blobber.Row {
+	out := map[string][]blobber.Row{}
+	for _, r := range rows {
+		var b blobber.Row
+		switch {
+		case r.Flag != nil && r.Names != [2]string{}:
+			b = FlipRow(r.Label, r.At, r.Flag, func() string { return Choice(*r.Flag, r.Names[0], r.Names[1]) })
+		case r.Flag != nil:
+			b = SwitchRow(r.Label, r.At, r.Flag)
+		case r.Level != nil:
+			b = SliderRow(r.Label, r.At, r.Level, 0, 1, 0.1, "", true)
+		default:
+			b = blobber.Row{Label: r.Label, At: r.At, Get: r.Get, Change: r.Change}
+		}
+		out[r.Page] = append(out[r.Page], b)
+	}
+	for page, rs := range OptionRows(o) {
+		out[page] = append(out[page], rs...)
+	}
+	return out
+}

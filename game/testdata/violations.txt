@@ -1,5 +1,0 @@
-por-go por/presentdata -> gobox/blobber
-por-go por/presentdata -> gobox/front
-por-go por/presentdata -> gobox/front/present
-por-go por/presentdata -> gobox/ui
-por-go por/presentdata -> gobox/walls

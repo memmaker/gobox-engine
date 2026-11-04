@@ -15,7 +15,6 @@ import (
 	"gobox/front"
 	"gobox/front/classic"
 	"gobox/front/present"
-	"por/presentdata"
 )
 
 // TestAdapter runs por through classic.Game over each dev scene and the
@@ -111,10 +110,9 @@ func shownBy(g *classic.Game, p *present.Presenter, as ...front.Action) front.Vi
 // TestCreationPage, unchanged, with its icon editor clicks) (creationpng, icon, pickweapon,
 // the party roster, picksaved, slots) through classic.Game alone.
 func TestPagesAdapter(t *testing.T) {
-	present.Host = &presentdata.Host.Options
-	present.SetData(presentdata.Data("")) // the presenter's game data: the icon editor's part names
 	e := partyMenu(t)
 	g := classic.NewGame(e.Rules(), e.Data())
+	present.UseGameData(e.Data()) // the presenter's game data: the icon editor's part names
 	p := &present.Presenter{}
 	p.SetEngine(g)
 	v := shownBy(g, p, front.Action{Kind: front.ActCreate})
