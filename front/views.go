@@ -20,6 +20,7 @@ type Picture struct {
 	Mask         *uint8      // with File: this colour index is transparent too, as the mask (nil: only dax.Clear)
 	Pix          []uint8     // the game's own pixels, PixW wide, Img nil: front/present converts them in View.Ink (IndexedRGBA)
 	PixW         int
+	Palette      []color.RGBA // with Pix: Pix are indices into it (a VGA picture; alpha 0 transparent), not EGA; nil: EGA
 	At           image.Rectangle
 	Fill         bool
 	Colour       color.RGBA

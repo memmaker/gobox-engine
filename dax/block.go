@@ -1,6 +1,9 @@
 package dax
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"image/color"
+)
 
 // Image is a decoded picture block: Count frames of Height x Width*8 pixels,
 // one byte per pixel (EGA colour 0..15). A masked load (0464:0111 with the
@@ -17,10 +20,11 @@ type Image struct {
 	Count         int
 	BPP           int // bytes (pixels) per frame
 	Data          []byte
-	Mask          int    // Clear for a masked load, -1 = none
-	File          string // where it came from (the loader sets it): the DAX file...
-	Block, Base   int    // ...its block, and the block's frame that is frame 0 here (an animation's frames)
-	Alt           *Image // the same picture in the other version's art (DOS for an Amiga one); a smaller one fitted to this size, a bigger one its own; nil: none
+	Mask          int          // Clear for a masked load, -1 = none
+	File          string       // where it came from (the loader sets it): the DAX file...
+	Block, Base   int          // ...its block, and the block's frame that is frame 0 here (an animation's frames)
+	Alt           *Image       // the same picture in the other version's art (DOS for an Amiga one); a smaller one fitted to this size, a bigger one its own; nil: none
+	Palette       []color.RGBA // VGA pictures (ParseVGA): the 256 colours Data indexes; nil for EGA
 }
 
 // Clear marks a masked-out pixel; the page draws it as colour 0.

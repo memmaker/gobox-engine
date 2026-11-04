@@ -55,6 +55,15 @@ func (inv *inventory) menu(in *front.Inventory) []word {
 	if in.Use {
 		w = append(w, word{text: "Use", act: front.ActUse, on: it != nil && it.Use})
 	}
+	for _, o := range []struct {
+		on   bool
+		text string
+		act  front.ActKind
+	}{{in.Trade, "Trade", front.ActTrade}, {in.Halve, "Halve", front.ActHalve}, {in.Join, "Join", front.ActJoin}} {
+		if o.on {
+			w = append(w, word{text: o.text, act: o.act, on: it != nil})
+		}
+	}
 	w = append(w, word{text: "Drop", act: front.ActDrop, on: it != nil})
 	if in.Sell {
 		w = append(w, word{text: "Sell", act: front.ActSell, on: it != nil})

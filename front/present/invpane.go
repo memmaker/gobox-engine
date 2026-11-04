@@ -102,7 +102,7 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel int, ware, p
 		if it.Wrong {
 			tc = red
 		}
-		inv.text(upTo(it.Name, chars), x0+rowH+4, y+(rowH-8)/2, tc)
+		inv.text(upTo(readyMark(it)+it.Name, chars), x0+rowH+4, y+(rowH-8)/2, tc)
 		if priced {
 			m := price(it.Price)
 			inv.text(m, tr-4-8*len(m), y+(rowH-8)/2, col(inkYellow))
@@ -244,4 +244,12 @@ func upTo(s string, n int) string { return s[:min(len(s), max(0, n))] }
 // gold is a price in a question's title, in gold (ui.InkGold).
 func gold(n int) string {
 	return string(rune(ui.InkGold)) + price(front.Money{Gold: n}) + string(rune(ui.InkGold))
+}
+
+// readyMark is Data.ReadyMark before a readied item's name ("": none).
+func readyMark(it *front.InvItem) string {
+	if it.Readied {
+		return readiedMark
+	}
+	return ""
 }

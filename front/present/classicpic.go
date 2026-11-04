@@ -15,6 +15,7 @@ type pixKey struct {
 	w    int
 	mask int
 	ink  [16]color.RGBA
+	pal  *color.RGBA // the palette's first entry (a game shares one slice), nil for EGA
 }
 
 var pixPics = map[pixKey]image.Image{}
@@ -35,14 +36,22 @@ func pixImage(pc front.Picture, ink [16]color.RGBA) image.Image {
 	if len(pixPics) > 4096 { // ponytail: whole cache dropped when big
 		clear(pixPics)
 	}
-	k := pixKey{string(pc.Pix), pc.PixW, -1, ink}
+	k := pixKey{string(pc.Pix), pc.PixW, -1, ink, nil}
+	if pc.Palette != nil {
+		k.pal = &pc.Palette[0]
+	}
 	if pc.Mask != nil {
 		k.mask = int(*pc.Mask)
 	}
 	if m, ok := pixPics[k]; ok {
 		return m
 	}
-	m := front.IndexedRGBA(pc.Pix, pc.PixW, k.mask, &ink)
+	var m *image.RGBA
+	if pc.Palette != nil {
+		m = front.PalettedRGBA(pc.Pix, pc.PixW, pc.Palette)
+	} else {
+		m = front.IndexedRGBA(pc.Pix, pc.PixW, k.mask, &ink)
+	}
 	pixPics[k] = m
 	return m
 }

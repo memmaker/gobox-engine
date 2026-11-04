@@ -238,6 +238,9 @@ type Inventory struct {
 	Loot   bool       // Wares are a fight's treasure (the Loot screen): ActBuy takes one for nothing
 	Gold   int        // the party's money, with Wares
 	Copper int
+	Trade  bool // the menu offers ActTrade
+	Halve  bool // ... ActHalve
+	Join   bool // ... ActJoin
 }
 
 // Power is a member's action of the View menu the inventory offers too.
@@ -248,19 +251,20 @@ type Power struct {
 
 // InvItem is one item of the inventory.
 type InvItem struct {
-	Index  int      // its place in the member's items (Action.N)
-	Name   string   // as the list shows it
-	Type   byte     // base item type
-	Words  []string // the item's name words, known or not (for its icon)
-	Count  int
-	Slot   bool     // it has a doll slot (it can be readied)
-	Wrong  bool     // the member's class cannot ready it
-	Use    bool     // it has a use (a scroll, a spell of its own)
-	Look   []string // what it does (the shop's Look text)
-	Price  Money    // what selling it pays (a ware: what it costs; loot: none)
-	Scribe bool     // a scroll someone was going to scribe from (the front end asks before it goes)
-	Kind   ItemKind // its party inventory tab
-	Rules  []string // extra: how it attacks in combat (the bar's tooltip), set on the Turn's Weapon and Missile
+	Index   int      // its place in the member's items (Action.N)
+	Name    string   // as the list shows it
+	Type    byte     // base item type
+	Words   []string // the item's name words, known or not (for its icon)
+	Count   int
+	Readied bool     // it is readied (shown with present.Data.ReadyMark, for a game without a doll)
+	Slot    bool     // it has a doll slot (it can be readied)
+	Wrong   bool     // the member's class cannot ready it
+	Use     bool     // it has a use (a scroll, a spell of its own)
+	Look    []string // what it does (the shop's Look text)
+	Price   Money    // what selling it pays (a ware: what it costs; loot: none)
+	Scribe  bool     // a scroll someone was going to scribe from (the front end asks before it goes)
+	Kind    ItemKind // its party inventory tab
+	Rules   []string // extra: how it attacks in combat (the bar's tooltip), set on the Turn's Weapon and Missile
 }
 
 // ItemKind sorts the party inventory into tabs (extra).

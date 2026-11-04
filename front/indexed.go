@@ -26,9 +26,24 @@ func IndexedRGBA(pix []uint8, w, mask int, ink *[16]color.RGBA) *image.RGBA {
 	return out
 }
 
+// PalettedRGBA is pix, w wide, as indices into pal (alpha 0 is transparent).
+func PalettedRGBA(pix []uint8, w int, pal []color.RGBA) *image.RGBA {
+	out := image.NewRGBA(image.Rect(0, 0, w, len(pix)/w))
+	for i, p := range pix {
+		if int(p) < len(pal) {
+			out.SetRGBA(i%w, i/w, pal[p])
+		}
+	}
+	return out
+}
+
 // Converted is p with Img made from its Pix (p itself without Pix).
 func (p Picture) Converted(ink *[16]color.RGBA) Picture {
 	if p.Pix == nil || p.Img != nil {
+		return p
+	}
+	if p.Palette != nil {
+		p.Img = PalettedRGBA(p.Pix, p.PixW, p.Palette)
 		return p
 	}
 	mask := -1
