@@ -639,10 +639,10 @@ type Scan struct {
 type FullMap struct {
 	Name     string      // the map's name, top left
 	Map      *MapSquares // the squares, the legend's letter on each labelled square
-	At       image.Point // the map's top left on the page, in pixels
+	At       image.Point // the map's top left on the page, in pixels (At, Cell, LegendAt: the presenter lays them out)
 	Cell     int         // pixels a square
 	Cursor   image.Point // the cursor's square
-	Legend   []MapLabel  // the legend's lines, from cell LegendAt down
+	Legend   []MapLabel  // the legend's lines, from cell LegendAt down (the game gives them all, the presenter keeps those that fit)
 	LegendAt image.Point
 	Info     string  // the cursor's square and its label, on the message row
 	Label    *string // the label being typed (nil: none), on the prompt row

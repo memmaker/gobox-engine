@@ -39,7 +39,29 @@ func (p *Presenter) fm() *front.FullMap {
 	if p.fullMap == nil || p.eng == nil {
 		return nil
 	}
-	return p.eng.FullMapView(p.fullMap.cursor, p.fullMap.label)
+	return layFullMap(p.eng.FullMapView(p.fullMap.cursor, p.fullMap.label), p.shownView.Cells)
+}
+
+// Full map geometry: 16x16 squares as large as the page's height under
+// the title row and above the message row allows, leaving fmLegendW text
+// columns to the right for the legend (11 pixels a square on 40x25).
+const (
+	fmX, fmY  = 0, 8
+	fmLegendW = 18
+)
+
+// layFullMap places fm on a page of cells (40x25 at least): the map's
+// corner and square size, the legend's place and the lines that fit.
+func layFullMap(fm *front.FullMap, cells image.Point) *front.FullMap {
+	if fm == nil {
+		return nil
+	}
+	cols, rows := max(cells.X, 40), max(cells.Y, 25)
+	fm.Cell = max(1, min((rows-3)*8, (cols-fmLegendW)*8)/16)
+	fm.At = image.Pt(fmX, fmY)
+	fm.LegendAt = image.Pt((16*fm.Cell+7)/8, 2)
+	fm.Legend = fm.Legend[:min(len(fm.Legend), rows-4)] // legend lines: rows 2..winBottom
+	return fm
 }
 
 // mapItems is the cursor cell's menu: Walk, Mark where it has no label,
