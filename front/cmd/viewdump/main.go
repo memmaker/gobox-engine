@@ -73,6 +73,10 @@ func main() {
 			// symbols are set k.
 			var sets [4]*dax.Image
 			sets[0] = pic(l, "8X8D1", 203)
+			if one := pic(l, sname, en.ID); one != nil && one.Palette != nil {
+				// VGA (Buck Rogers): one block of the same id holds every symbol, indexed by id
+				sets = [4]*dax.Image{one}
+			}
 			for k := 1; k <= chunks && k <= 3; k++ {
 				sb := en.ID
 				if chunks > 1 {
@@ -82,7 +86,9 @@ func main() {
 					}
 					sb += k
 				}
-				sets[k] = pic(l, sname, sb)
+				if sets[0].Palette == nil {
+					sets[k] = pic(l, sname, sb)
+				}
 			}
 			for k := 1; k <= chunks; k++ {
 				for w := range 5 {
@@ -104,6 +110,9 @@ func pic(l *dax.Loader, name string, id int) *dax.Image {
 	b := l.BlockShared(name, id)
 	if b == nil {
 		return nil
+	}
+	if im := dax.ParseVGA(b, true, 0xD); im != nil { // a VGA block (Buck Rogers): its own palette, as present decodes it
+		return im
 	}
 	return dax.ParseImage(b, true, 0xD)
 }
@@ -136,15 +145,26 @@ func writeWall(path string, def []byte, sets [4]*dax.Image, scale int, ground bo
 				set++
 			}
 			im, frame := sets[set], id-symFix[set]
+			if sets[0] != nil && sets[0].Palette != nil {
+				im, frame = sets[0], id
+			}
 			if id == 0 || im == nil || frame >= im.Count {
 				continue
 			}
 			for j, c := range im.Frame(frame) {
-				if c >= dax.Clear {
+				var col color.NRGBA
+				if im.Palette != nil {
+					p := im.Palette[c]
+					if p.A == 0 {
+						continue
+					}
+					col = color.NRGBA{p.R, p.G, p.B, 255}
+				} else if c >= dax.Clear {
 					continue
+				} else {
+					p := ega.Palette[c&15]
+					col = color.NRGBA{p[0], p[1], p[2], 255}
 				}
-				p := ega.Palette[c&15]
-				col := color.NRGBA{p[0], p[1], p[2], 255}
 				x, y := ox+cx*8+j%8, cy*8+j/8
 				for sy := range scale {
 					for sx := range scale {
