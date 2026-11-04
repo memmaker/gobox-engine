@@ -86,7 +86,15 @@ type State struct {
 	// Allowed lists the item verbs the rules take now, by Decision type
 	// name ("UseItem", "Sell", "Trade", "Halve", "Join", ...); gobox offers
 	// only these.
-	Allowed map[string]bool
+	Allowed                map[string]bool
+	RestHeals, RestStudies bool    // what resting now does
+	Bestiary               []Beast // the monsters the party has met
+}
+
+// Beast is a bestiary entry.
+type Beast struct {
+	Name, Text string
+	Art        Picture
 }
 
 // Where is the party's place and time.
@@ -123,7 +131,9 @@ type Member struct {
 	ClassText, LevelText                 string         // e.g. "old/new", "3/3"
 	Slots                                map[string]int // spell slots left by kind/level
 	Okay                                 bool
-	ItemCap                              int // most items carried, 0 no limit
+	ItemCap                              int            // most items carried, 0 no limit
+	SlotsMax                             map[string]int // spell slots in all, keys as Slots
+	CanCast                              bool           // may cast now (status, no-magic area)
 }
 
 // SpellRef is a spell a member knows or has memorized.
@@ -132,9 +142,11 @@ type SpellRef struct {
 	Name      string
 	Level     int
 	Memorized bool
-	Range     int // aim: squares from the caster, 0 touch
-	Targets   int // aim: squares picked, 0 or 1 for one
-	Area      int // aim: radius hit around each square, 0 just that square
+	Planned   int    // copies to memorize at the next rest
+	Group     string // the level group it is listed under, e.g. "cleric 1"
+	Range     int    // aim: squares from the caster, 0 touch
+	Targets   int    // aim: squares picked, 0 or 1 for one
+	Area      int    // aim: radius hit around each square, 0 just that square
 }
 
 // Item is one item.
@@ -148,6 +160,8 @@ type Item struct {
 	Slot                        string // the body slot it is readied in, "" none
 	Wrong                       bool   // the holder may not use it (class, race)
 	Text                        string // what Look tells of it
+	Spell                       int    // a scroll's spell id, 0 none
+	Scribe                      bool   // the holder may scribe the scroll's spell
 }
 
 // Quest is a quest fact.
@@ -162,9 +176,22 @@ type Automap struct {
 	Size   image.Point
 	Known  []image.Point // squares seen; empty: nothing is known
 	Marked []image.Point
-	Notes  []string // the player's text for each Marked square
-	Walls  []Wall   // by square
-	Doors  []Wall
+	Notes  []string      // the player's text for each Marked square
+	Walls  []Wall        // by square
+	Doors  []Wall        // Kind 1 open, 2 locked, 3 wizard-locked
+	Walked []image.Point // squares walked on (Known also holds those only seen)
+	Labels []Label       // the map's own labels; the player's are Marked/Notes
+	// Terrain is the overland map's terrain id per square, row by row over
+	// Size; its art is Data.Art["terrain/<id>"], the party marker
+	// Data.Art["marker"]. Empty for a dungeon map.
+	Terrain []int
+}
+
+// Label is a named place on the automap.
+type Label struct {
+	At   image.Point
+	Text string
+	Kind string // "shop", "temple", "inn", "civic", ...
 }
 
 // Wall is a wall or door on one side of a square. Side as Facing; Kind is the game's wall/door kind.
