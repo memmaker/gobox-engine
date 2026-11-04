@@ -154,12 +154,13 @@ func (g *Game) Settle() front.View {
 }
 
 // combatEvents are the fight's events as the presenter plays them; the
-// kinds a fight has no moment for (pictures, songs) are left out.
+// kinds with no moment to play (pictures) are left out. Outside fights too:
+// every step's events come through here (songs, sounds).
 func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.Battle) (out []front.CombatEvent) {
 	kinds := map[game.EventKind]front.EventKind{
 		game.EvAttack: front.EvAttack, game.EvHit: front.EvHit, game.EvMiss: front.EvMiss, game.EvDamage: front.EvDamage,
 		game.EvDown: front.EvDied, game.EvSpell: front.EvSpell, game.EvMove: front.EvMoved, game.EvMissile: front.EvMissile,
-		game.EvMessage: front.EvMessage, game.EvSound: front.EvSound,
+		game.EvMessage: front.EvMessage, game.EvSound: front.EvSound, game.EvSong: front.EvSong,
 	}
 	for _, e := range es {
 		if e.Page != nil { // a timed page: the scene as the page stood
@@ -169,6 +170,9 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 		}
 		if k, ok := kinds[e.Kind]; ok {
 			ce := front.CombatEvent{Kind: k, Unit: e.Unit, Target: e.Target, Amount: e.N, From: e.At, To: e.To, Text: e.Text}
+			if n, err := strconv.Atoi(e.Sound); err == nil && ce.Amount == 0 && (k == front.EvSound || k == front.EvSong) { // the sound or song ref as a number
+				ce.Amount = n
+			}
 			if e.Pose > 0 && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose
 				ce.Ms, ce.Battle = e.Ms, posed(e)
 			}
