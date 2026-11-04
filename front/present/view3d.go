@@ -71,6 +71,9 @@ func (p *Presenter) scene(v front.View) *blobber.Scene {
 	if v.Walls != nil {
 		return p.wallScene(v.Walls)
 	}
+	if _, ok := areaMaps[v.Area]; !ok && v.Walls == nil && !v.Exploring { // no 3D view: no map to look up
+		return nil
+	}
 	return p.sceneNamed(sceneName(v))
 }
 
