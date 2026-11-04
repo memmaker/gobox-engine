@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"gobox/ega"
 	"gobox/gpu"
 	"gobox/ui"
 
@@ -377,18 +376,18 @@ func (p *Presenter) slotList(dst *gpu.Image, lines []string, keys []byte, off []
 		if r == s.sel {
 			for y := y0; y < y0+8; y++ {
 				for x := range w * 8 {
-					set(x, y, ega.RGBA(1))
+					set(x, y, col(inkBlue))
 				}
 			}
 		}
 		t, hk := ui.HotText(lines[r], keys[r])
 		for i := 0; i < len(t) && i+1 < w; i++ {
-			c := ega.RGBA(10)
+			c := col(inkGreen)
 			switch {
 			case off[r]:
-				c = ega.RGBA(8)
+				c = col(inkDark)
 			case i == hk:
-				c = ega.RGBA(15)
+				c = col(inkWhite)
 			}
 			g := p.glyph(t[i])
 			for y := range 8 {

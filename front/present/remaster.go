@@ -629,7 +629,7 @@ func scale(dst *gpu.Image) float64 {
 }
 
 // window is ui.Window: every window's frame, the ribbon border in tiles t.
-func window(dst *gpu.Image, t [3]*gpu.Image, g gpu.GeoM, cw, ch int, bg color.Color) image.Rectangle {
+func window(dst *gpu.Image, t ui.Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) image.Rectangle {
 	return ui.Window(dst, t, g, cw, ch, bg)
 }
 

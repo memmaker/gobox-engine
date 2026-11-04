@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"gobox/ega"
 	"gobox/front"
 	"gobox/ui"
 	"image"
@@ -94,7 +93,7 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel int, ware, p
 		y := listTop + (i-pn.top)*rowH
 		r := image.Rect(x0, y, tr, y+rowH)
 		if it.Index == sel || inv.hover.In(r) && !busy {
-			inv.fill(r, ega.RGBA(1)) // the text selection
+			inv.fill(r, col(inkBlue)) // the text selection
 		}
 		inv.drawIcon(it, image.Rect(x0, y, x0+rowH, y+rowH))
 		tc := green
@@ -104,7 +103,7 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel int, ware, p
 		inv.text(upTo(it.Name, chars), x0+rowH+4, y+(rowH-8)/2, tc)
 		if priced {
 			m := price(it.Price)
-			inv.text(m, tr-4-8*len(m), y+(rowH-8)/2, col(14))
+			inv.text(m, tr-4-8*len(m), y+(rowH-8)/2, col(inkYellow))
 		}
 		inv.lines = append(inv.lines, hit{r: r, item: *it, ware: ware, whole: len(strings.TrimSpace(it.Name)) <= chars})
 	}

@@ -28,6 +28,7 @@ type Data struct {
 	MapCell      int // pixels a square of View.Map
 	DungeonTiles int // the tiles at the start of the combat set
 
+	Theme   *Theme  // the look (nil: DefaultTheme)
 	Entries []Entry // the game's own main menu entries, after the default list (nil: none)
 
 	DoorRGBA      color.RGBA                                                    // a door's colour on the maps
@@ -84,6 +85,11 @@ func SetData(d Data) {
 	paneBox, viewWindow, innerWindow = d.PaneBox, d.ViewWindow, d.InnerWindow
 	mapCell, dungeonTiles = d.MapCell, d.DungeonTiles
 	menuEntries = d.Entries
+	if d.Theme != nil {
+		applyTheme(*d.Theme)
+	} else {
+		applyTheme(DefaultTheme)
+	}
 	doorRGBA, labelInks, selectOutline = d.DoorRGBA, d.LabelInks, d.SelectOutline
 	restFix, restWait, restUntil = d.RestFix, d.RestWait, d.RestUntil
 	credits, remasterCredit, iconParts, spellRules = d.Credits, d.RemasterCredit, d.IconParts, d.SpellRules

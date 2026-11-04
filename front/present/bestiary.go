@@ -43,7 +43,7 @@ func (p *Presenter) drawBestiary(dst *gpu.Image, note Note, v front.View) {
 		y := 10 + (i-c.top)*rowH
 		r := image.Rect(6, y-2, 8+lw+2, y+10)
 		if i == c.sel {
-			draw.Draw(sc.px, r, image.NewUniform(ega.RGBA(1)), image.Point{}, draw.Src)
+			draw.Draw(sc.px, r, image.NewUniform(col(inkBlue)), image.Point{}, draw.Src)
 		}
 		col := inkGreen
 		if i == 0 || i == len(items)-1 { // Sort and Exit
@@ -94,7 +94,7 @@ func (p *Presenter) drawBestiary(dst *gpu.Image, note Note, v front.View) {
 			w, h := int(float64(ib.Dx())*s), int(float64(ib.Dy())*s)
 			at := image.Rect((rw-w)/2, y, (rw+w)/2, y+h)
 			if ground {
-				draw.Draw(ent, at, image.NewUniform(ega.RGBA(8)), image.Point{}, draw.Src) // on grey: its black parts show
+				draw.Draw(ent, at, image.NewUniform(col(inkDark)), image.Point{}, draw.Src) // on grey: its black parts show
 			}
 			for py := range h {
 				for px := range w {

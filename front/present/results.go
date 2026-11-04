@@ -20,7 +20,7 @@ func (p *Presenter) drawResults(dst *gpu.Image, v front.View, note Note) Rect {
 	}
 	p.fullPage(dst, &p.resultsPage, note, ui.ResultsTitle(u), func(m *image.RGBA, cw, ch int) {
 		for _, run := range ui.ResultsRuns(u, cw, ch) {
-			textAt(m, note, run.Text, run.X, run.Y, [...]int{inkGreen, inkCyan, 12}[run.Role])
+			textAt(m, note, run.Text, run.X, run.Y, [...]int{inkGreen, inkCyan, inkRed}[run.Role])
 		}
 	})
 	p.drawPageMenu(dst, note, v)

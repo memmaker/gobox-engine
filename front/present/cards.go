@@ -44,12 +44,12 @@ var (
 // borders are the window border's tiles (View.Border) on the GPU, in
 // colour and in grey.
 type borders struct {
-	src         [3]image.Image
-	tiles, grey [3]*gpu.Image
+	src         [ui.Pieces]image.Image
+	tiles, grey ui.Ribbon
 }
 
 // update uploads the game's tiles when they change.
-func (b *borders) update(t [3]image.Image) {
+func (b *borders) update(t [ui.Pieces]image.Image) {
 	if t == b.src || t[0] == nil {
 		return
 	}
@@ -71,7 +71,7 @@ func (b *borders) update(t [3]image.Image) {
 // setup takes this frame's font and border tiles from the game.
 func (p *Presenter) setup(note Note, v front.View) {
 	p.glyph, blobber.Glyph = note.Glyph, note.Glyph
-	p.border.update(v.Border)
+	p.border.update(borderPieces(v))
 	if p.faceImgs == nil {
 		p.faceImgs, p.hiFaces, p.labels = map[image.Image]*gpu.Image{}, map[image.Image]*gpu.Image{}, map[string]*gpu.Image{}
 		p.faces = map[image.Image]image.Image{}

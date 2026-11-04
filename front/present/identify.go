@@ -45,7 +45,7 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 	m := image.NewRGBA(image.Rect(0, 0, cw*8, ch*8))
 	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
 	centre := func(s string) int { return (cw*8 - 8*len(s)) / 2 }
-	sparkle := []int{13, 14, 11, 15, 10, 12} // the title's letters in turn: light magenta, yellow, cyan, white, green, red
+	sparkle := []int{inkMagenta, inkYellow, inkCyan, inkWhite, inkGreen, inkRed} // the title's letters in turn: light magenta, yellow, cyan, white, green, red
 	x0 := centre(title)
 	for i := 0; i < len(title); i++ {
 		ui.DrawText(m, glyph, title[i:i+1], x0+8*i, 8, ega.RGBA(sparkle[i%len(sparkle)]))
@@ -68,8 +68,8 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 	ui.DrawText(m, glyph, it.Name, centre(it.Name), y, ega.RGBA(inkYellow))
 	y += 16
 	for _, l := range it.Look {
-		ui.DrawText(m, glyph, "*", 16, y, ega.RGBA(13))
-		ui.DrawText(m, glyph, l, 32, y, ega.RGBA(11))
+		ui.DrawText(m, glyph, "*", 16, y, col(inkMagenta))
+		ui.DrawText(m, glyph, l, 32, y, col(inkCyan))
 		y += 8
 	}
 	ui.DrawText(m, glyph, hint, centre(hint), y+8, ega.RGBA(inkWhite))

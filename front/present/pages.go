@@ -1,8 +1,8 @@
 package present
 
 import (
-	"gobox/ega"
 	"gobox/front"
+	"gobox/ui"
 	"image"
 	"image/color"
 	"image/draw"
@@ -14,15 +14,8 @@ import (
 // creation's, the pickers, the save slots, the icon editor) are laid out
 // here on the page's text cells as the original's code put them there.
 
-// EGA text colours.
-const (
-	inkBlack   = 0
-	inkGreen   = 10 // light green
-	inkCyan    = 11
-	inkMagenta = 13
-	inkYellow  = 14
-	inkWhite   = 15
-)
+// The text colours by role (Theme.Palette, applyTheme).
+var inkBlack, inkBlue, inkGrey, inkDark, inkGreen, inkCyan, inkRed, inkMagenta, inkYellow, inkWhite int
 
 // overlay is a picture drawn over the page at the window's resolution:
 // the part Src of Img (empty: all of it) scaled into the page rectangle At
@@ -187,7 +180,7 @@ func screenPage(v front.View) *cellPage {
 		v.Ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
 	}
 	if cr := v.Creation; cr != nil && v.Picker == nil && v.Slots == nil { // the combat icon on grey, as in the icon editor: its black parts show
-		v.Pictures = append([]front.Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: ega.RGBA(8)}}, v.Pictures...)
+		v.Pictures = append([]front.Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: col(inkDark)}}, v.Pictures...)
 	}
 	c := newCellPage(v)
 	if cr := v.Creation; cr != nil && cr.Scale > 1 && v.Picker == nil && v.Slots == nil {
@@ -297,21 +290,23 @@ func (c *cellPage) texts(v front.View) {
 // once per View, cropped by the adventure frame), not window()'s GPU pass.
 func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 	f := r.Framed()
+	b := borderPieces(v)
 	tile := func(i, x, y int) {
-		if t := v.Border[i]; t != nil {
+		if t := b[i]; t != nil {
 			draw.Draw(m, image.Rect(x*8, y*8, x*8+8, y*8+8), t, t.Bounds().Min, draw.Over)
 		}
 	}
-	for _, p := range [][2]int{{f.X1, f.Y1}, {f.X2, f.Y1}, {f.X1, f.Y2}, {f.X2, f.Y2}} {
-		tile(0, p[0], p[1])
-	}
+	tile(ui.TopLeft, f.X1, f.Y1)
+	tile(ui.TopRight, f.X2, f.Y1)
+	tile(ui.BottomLeft, f.X1, f.Y2)
+	tile(ui.BottomRight, f.X2, f.Y2)
 	for x := f.X1 + 1; x < f.X2; x++ {
-		tile(2, x, f.Y1)
-		tile(2, x, f.Y2)
+		tile(ui.Top, x, f.Y1)
+		tile(ui.Bottom, x, f.Y2)
 	}
 	for y := f.Y1 + 1; y < f.Y2; y++ {
-		tile(1, f.X1, y)
-		tile(1, f.X2, y)
+		tile(ui.Left, f.X1, y)
+		tile(ui.Right, f.X2, y)
 	}
 }
 
@@ -488,7 +483,7 @@ func (c *cellPage) picker(pk *front.Picker) {
 func (c *cellPage) iconEditor(ed *front.IconEditor) {
 	c.border(1, 1, c.cols-2, c.rows-3) // the bar under it
 	for p, r := range ed.PoseAt {
-		c.pics = append(c.pics, front.Picture{At: r.Pixels(), Fill: true, Colour: ega.RGBA(8)}) // the pose on grey (the page's, not the combat palette's dark): its black parts show
+		c.pics = append(c.pics, front.Picture{At: r.Pixels(), Fill: true, Colour: col(inkDark)}) // the pose on grey (the page's, not the combat palette's dark): its black parts show
 		if ed.Poses[p] != nil {
 			c.overs = append(c.overs, overlay{Img: ed.Poses[p], At: r.Pixels(), Crisp: true})
 		}
@@ -517,16 +512,16 @@ func (c *cellPage) iconEditor(ed *front.IconEditor) {
 	}
 	for i := range iconParts {
 		for sh := range 2 {
-			frame := ega.RGBA(8) // the page's greys, not the combat palette's
+			frame := col(inkDark) // the page's greys, not the combat palette's
 			if i == ed.Part && sh == ed.Shade {
-				frame = ega.RGBA(15)
+				frame = col(inkWhite)
 			}
 			swatch(ed.Parts.X1+3*sh, ed.Parts.Y1+i, ed.Swatch[i][sh], frame)
 		}
 	}
 	for i, n := range ed.Colours {
 		if n >= 0 {
-			swatch(ed.Palette.X1+2*(i%8), ed.Palette.Y1+i/8, ed.PaletteInk[i], ega.RGBA(8))
+			swatch(ed.Palette.X1+2*(i%8), ed.Palette.Y1+i/8, ed.PaletteInk[i], col(inkDark))
 		}
 	}
 }

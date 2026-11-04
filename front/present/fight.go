@@ -164,41 +164,41 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *front.Battle, k 
 	switch {
 	case note.Show: // a refusal (why the attack is not possible ...): the toast, as every view's (noteLine)
 	case b.Turn != nil && b.Turn.Aim && b.AimWhy != "":
-		put(b.AimWhy, 12, 0)
+		put(b.AimWhy, inkRed, 0)
 	case b.Turn != nil && b.Turn.Aim && b.Turn.Casting != "":
-		put(b.Turn.Casting+": W A S D, Tab; Enter, click; Esc", 10, 0)
+		put(b.Turn.Casting+": W A S D, Tab; Enter, click; Esc", inkGreen, 0)
 	case b.Turn != nil && b.Turn.Aim:
-		put("Aim: W A S D, Tab; Enter, click; Esc", 10, 0)
+		put("Aim: W A S D, Tab; Enter, click; Esc", inkGreen, 0)
 	case b.Turn == nil && b.Panel == 0 && !hover && len(b.Log) > 0: // between the player's turns: what happens
-		put(b.Log[len(b.Log)-1], 10, 0)
+		put(b.Log[len(b.Log)-1], inkGreen, 0)
 	default:
 		for _, u := range b.Units {
 			if u.ID != panel {
 				continue
 			}
-			name := 10
+			name := inkGreen
 			if !u.Party {
-				name = 12
+				name = inkRed
 			}
 			put(u.Name, name, 0)
 			x -= 8
-			put(" HP", 15, 0)
+			put(" HP", inkWhite, 0)
 			x -= 8
-			put(" "+strconv.Itoa(u.HP), 10, 0)
-			put("AC", 15, 0)
+			put(" "+strconv.Itoa(u.HP), inkGreen, 0)
+			put("AC", inkWhite, 0)
 			x -= 8
-			put(" "+strconv.Itoa(u.AC), 10, 0)
+			put(" "+strconv.Itoa(u.AC), inkGreen, 0)
 			if u.Status != "" {
-				put(u.Status, 15, 0)
+				put(u.Status, inkWhite, 0)
 				break
 			}
-			put("Dmg", 15, 0)
+			put("Dmg", inkWhite, 0)
 			x -= 8
-			put(" "+u.Dmg, 10, 0)
+			put(" "+u.Dmg, inkGreen, 0)
 			if u.Hit > 0 {
-				put("CtH", 15, 0)
+				put("CtH", inkWhite, 0)
 				x -= 8
-				put(" "+strconv.Itoa(u.Hit), 10, 0)
+				put(" "+strconv.Itoa(u.Hit), inkGreen, 0)
 			}
 		}
 	}

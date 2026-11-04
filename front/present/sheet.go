@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/ega"
 	"gobox/gpu"
 	"gobox/ui"
 
@@ -91,7 +90,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	hpY, expY := y+10, y+36
 	hpc := green
 	if m.HP < m.MaxHP {
-		hpc = col(14)
+		hpc = col(inkYellow)
 	}
 	text("HP", lx, y, white)
 	hp := strconv.Itoa(m.HP) + "/" + strconv.Itoa(m.MaxHP)
@@ -151,7 +150,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 			if sp.Mods[j] >= 0 {
 				m = "+" + m
 			}
-			text(" ("+m+")", x, row(3+j), col(14))
+			text(" ("+m+")", x, row(3+j), col(inkYellow))
 		}
 	}
 	line("Movement", strconv.Itoa(sp.Move), 10, // a blank line after the abilities
@@ -196,7 +195,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 		for j, it := range items {
 			r := image.Rect(x-4, rowY-2, x+8*len(it.Text)+4, rowY+10)
 			if j == p.sel {
-				draw.Draw(sc.px, r, image.NewUniform(ega.RGBA(1)), image.Point{}, draw.Src)
+				draw.Draw(sc.px, r, image.NewUniform(col(inkBlue)), image.Point{}, draw.Src)
 			}
 			text(it.Text[:1], x, rowY, white)
 			text(it.Text[1:], x+8, rowY, green)

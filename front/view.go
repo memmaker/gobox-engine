@@ -436,7 +436,7 @@ type View struct {
 	Slots      *Slots      // the save slots: never the engine's; the presenter puts its F10 screen here (SlotsView)
 	Ask        *Ask        // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
 	Party      []Member
-	Border     [3]image.Image // the window border's corner, side and top cells (DrawBorder style 0) in EGA colours; nil before the symbols load
+	Border     [8]image.Image // the window border's pieces by place (ui.TopLeft ..) in EGA colours; all nil: the presenter decodes Theme.Border
 	Battle     *Battle        // the combat map (nil outside combat)
 	Events     []CombatEvent  // what happened in the fight since the last Apply, in order (Apply's View only)
 	Inventory  *Inventory     // the inventory screen is up (nil otherwise)
