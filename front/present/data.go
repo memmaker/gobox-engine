@@ -193,6 +193,12 @@ func Sounds() []byte { return sounds }
 // Text is the game's named text (Data.Texts; "": none).
 func Text(name string) string { return texts[name] }
 
+// sequences and filesDir are the game's Data.Sequences and Data.Files (View.Sequence).
+var (
+	sequences []game.Sequence
+	filesDir  string
+)
+
 // gameArt is the game's Data.Art (the overland's terrain and marker).
 var gameArt map[string]game.Picture
 
@@ -200,6 +206,7 @@ var gameArt map[string]game.Picture
 // SetData handed in: its series and its spell tips (by spell id).
 func gameData(g game.Data) {
 	gameArt, gameID = g.Art, g.ID
+	sequences, filesDir = g.Sequences, g.Files
 	classic.GameID = g.ID
 	if g.Series != "" {
 		series = g.Series

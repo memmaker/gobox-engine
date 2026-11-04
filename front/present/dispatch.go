@@ -17,6 +17,10 @@ import (
 // menu bar and Esc on the command bar the renderer's options.
 func (p *Presenter) Key(k uint16, v front.View) {
 	v = p.own(v)
+	if v.Sequence != nil { // a key ends the animation
+		front.SequenceStep(p, &p.seq, v.Sequence, true)
+		return
+	}
 	if v.Intro != nil { // a key cuts the title's phase short
 		front.IntroStep(p, &p.intro, v.Intro, true)
 		return
@@ -194,6 +198,10 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 func (p *Presenter) Click(x, y int) bool {
 	if p.Playing() { // the fight plays on: the click only cuts its moment short
 		p.replay.skip = true
+		return true
+	}
+	if p.shownView.Sequence != nil { // a click ends the animation
+		front.SequenceStep(p, &p.seq, p.shownView.Sequence, true)
 		return true
 	}
 	if p.shownView.Intro != nil { // a click cuts the title's phase short

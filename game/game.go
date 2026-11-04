@@ -102,6 +102,7 @@ type State struct {
 	Flags                  *Flags          // the plain status flags of the screen
 	Walls                  *Walls          // the 3D view the rules build from their own map (nil: the remastered map)
 	Intro                  *Intro          // the title waits to be played
+	Sequence               string          // the Data.Sequences entry playing full screen ("": none); gobox sends SequenceDone at its end or on a skip
 	Note                   Note            // the status line's toast
 	Results                *Results        // the after-combat page
 	Read                   *Read           // journal text the game waits to have read
@@ -140,6 +141,15 @@ type Intro struct {
 	Full      bool  // picture 2 and the credits follow picture 1 (when Pictures is nil)
 	Pictures  []int // the picture steps (nil: 1, with Full 1 and 2)
 	Lightning bool  // picture 2 flashes
+}
+
+// Sequence is a full-screen animation gobox plays (State.Sequence names
+// it): Anim the base name of its files in Data.Files (e.g. "INTRO": INTRO.ACF
+// and INTRO.BMA), Music the songs it cues.
+type Sequence struct {
+	Name  string
+	Anim  string
+	Music []string
 }
 
 // Note is a toast for the status line: Text, put up at At (zero: none).
@@ -1040,6 +1050,7 @@ type Data struct {
 	Fonts      []Typeface                    // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
 	Border     *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
+	Sequences    []Sequence // the full-screen animations State.Sequence names (nil: none)
 	Files        string     // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
 	SoundTables  []byte     // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
 	AdLib        *AdLib     // the AdLib music and effects (nil: none)

@@ -119,6 +119,7 @@ func (g *Game) View() front.View {
 	v = Border(v, art)
 	v = Walls(v, s, art)
 	v = Intro(v, s)
+	v = Sequence(v, s, g.D.Sequences, g.D.Files)
 	v = Note(v, s)
 	v = Results(v, s)
 	v = Screen(v, s)
@@ -220,6 +221,9 @@ func (g *Game) TitlePicture(n int) { g.do(game.TitlePicture{N: n}) }
 func (g *Game) TitleCredits()      { g.do(game.TitleCredits{}) }
 func (g *Game) TitleFlash(c int)   { g.do(game.TitleFlash{C: c}) }
 func (g *Game) TitleDone()         { g.do(game.TitleDone{}) }
+
+// SequenceDone: the presenter played State.Sequence to its end, or it was skipped.
+func (g *Game) SequenceDone(name string) { g.do(game.SequenceDone{Name: name}) }
 
 // Camp.
 func (g *Game) LeaveCamp() error { return g.do(game.LeaveCamp{}) }

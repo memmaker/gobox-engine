@@ -150,6 +150,8 @@ type Presenter struct {
 	ran         int                         // the picker's and editor's calls run: their pages are laid out again
 	slots       *front.SlotsUI              // the save slots up (slots.go)
 	intro       front.IntroUI               // the title being played (title.go)
+	seq         front.SequenceUI            // the full-screen animation being played (View.Sequence)
+	seqImg      srcImage                    // its frame on the GPU
 	clue        *clueUI                     // the clue book's chapter list up (cluebook.go)
 	clueRead    *front.Read                 // the clue book last read, at the page left
 	clueEnd     bool                        // ... read to its end: B gives the list
@@ -173,6 +175,19 @@ type Presenter struct {
 // (zero when it is not on screen: the mouse then points at nothing).
 func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	v = p.own(v)
+	if f := front.SequenceStep(p, &p.seq, v.Sequence, false); v.Sequence != nil { // the animation: full screen, over everything
+		p.shownView = v
+		dst.Fill(color.Black)
+		if f != nil {
+			b, bb := dst.Bounds(), f.Image.Bounds()
+			k := min(float64(b.Dx())/float64(bb.Dx()), float64(b.Dy())/float64(bb.Dy())) // fit, keeping the aspect, as the title backdrop
+			op := &gpu.DrawImageOptions{}
+			op.GeoM.Scale(k, k)
+			op.GeoM.Translate((float64(b.Dx())-float64(bb.Dx())*k)/2, (float64(b.Dy())-float64(bb.Dy())*k)/2)
+			dst.DrawImage(p.seqImg.of(f.Image), op)
+		}
+		return Rect{}
+	}
 	front.IntroStep(p, &p.intro, v.Intro, false)
 	if ev := p.playing(); ev != nil && ev.Scene != nil { // the page as it stood at the pause played
 		v = *ev.Scene

@@ -82,6 +82,8 @@ type (
 	TitleCredits struct{}
 	TitleFlash   struct{ C int }
 	TitleDone    struct{}
+	// SequenceDone: the State.Sequence Name ended or the player skipped it.
+	SequenceDone struct{ Name string }
 )
 
 func (QuickStart) decision()    {}
@@ -132,6 +134,7 @@ func (TitlePicture) decision()  {}
 func (TitleCredits) decision()  {}
 func (TitleFlash) decision()    {}
 func (TitleDone) decision()     {}
+func (SequenceDone) decision()  {}
 func (Speak) decision()         {}
 func (Unmark) decision()        {}
 func (WalkTo) decision()        {}

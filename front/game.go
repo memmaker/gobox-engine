@@ -35,6 +35,7 @@ type Game interface {
 	TitleCredits()
 	TitleFlash(c int)
 	TitleDone()
+	SequenceDone(name string) // the View.Sequence animation ended or was skipped
 
 	// Camp.
 	LeaveCamp() error
