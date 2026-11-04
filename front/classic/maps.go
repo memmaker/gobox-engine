@@ -54,7 +54,7 @@ func Map(m *front.MapSquares, s game.State) *front.MapSquares {
 	}
 	set(a.Walls, func(game.Wall) front.MapWall { return front.Wall })
 	set(a.Doors, func(w game.Wall) front.MapWall {
-		if w.Kind >= 2 {
+		if w.State == game.DoorLocked || w.State == game.DoorWizardLocked {
 			return front.LockedDoor
 		}
 		return front.Door
