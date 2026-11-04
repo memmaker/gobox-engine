@@ -1,6 +1,3 @@
-cotab-go cotab/presentdata -> gobox/front
-cotab-go cotab/presentdata -> gobox/front/present
-cotab-go cotab/presentdata -> gobox/ui
 por-go por/presentdata -> gobox/blobber
 por-go por/presentdata -> gobox/front
 por-go por/presentdata -> gobox/front/present
@@ -9,6 +6,3 @@ por-go por/presentdata -> gobox/walls
 por-go por/rules -> gobox/front
 por-go por/rules -> gobox/ui/fonts
 por-go por/rules -> gobox/ui/text
-sotsb-go sotsb/presentdata -> gobox/front
-sotsb-go sotsb/presentdata -> gobox/front/present
-sotsb-go sotsb/presentdata -> gobox/ui
