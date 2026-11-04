@@ -1032,6 +1032,22 @@ type Data struct {
 	QuickParty []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
 	Clues      []Clue                        // the clue book's chapters (nil: the game has none)
 	Scans      func(name string) image.Image // the picture a Read's line "\x01name" shows (nil: none)
+	Font       string                        // the ui/fonts pool name of the game's font ("": gobox's default)
+	Border     *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
+}
+
+// Border is the window border as frames of block Block of DAX file File:
+// Pieces by place (top-left, top-right, bottom-left, bottom-right, top,
+// bottom, left, right; below 0: none), Caps the 4 end caps, Mask the colour
+// index left transparent (nil: none), and Edges an edge's cells one by one
+// ("top", "bottom", "rule", "left", "right", "divider"; see gobox's present).
+type Border struct {
+	File   string
+	Block  int
+	Pieces [8]int
+	Caps   []int
+	Mask   *uint8
+	Edges  map[string][]int
 }
 
 // QuickPick is one Quick Start member: the creation answers by the names the

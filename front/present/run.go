@@ -5,6 +5,7 @@
 package present
 
 import (
+	"gobox/ui/fonts"
 	"time"
 
 	"gobox/amiga"
@@ -42,6 +43,10 @@ type Front struct {
 func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
 	gameData(data)
 	f := &Front{}
+	if font := fonts.Get(theme.Font); font != nil { // the theme's font; a game's own glyphs replace these
+		f.Glyph = func(ch byte) [8]byte { g, _ := fonts.Glyph(font, ch, true); return g }
+		f.Font = func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(font, ch, text); return g }
+	}
 	f.Game = WithRules(g, &f.P)
 	if len(snd) > 0 {
 		f.P.Snd = snd[0]

@@ -202,6 +202,16 @@ func gameData(g game.Data) {
 		series = g.Series
 	}
 	classic.Series = series
+	if g.Font != "" || g.Border != nil { // the game's look, as plain data
+		t := theme
+		if g.Font != "" {
+			t.Font = g.Font
+		}
+		if b := g.Border; b != nil {
+			t.Border = Border{File: b.File, Block: b.Block, Pieces: b.Pieces, Caps: b.Caps, Mask: b.Mask, Edges: b.Edges}
+		}
+		applyTheme(t)
+	}
 	if g.SpellRules != nil {
 		n := 0
 		for id := range g.SpellRules {
