@@ -24,7 +24,7 @@ type (
 	CampRest struct{ Kind int }
 	StopRest struct{}
 	UsePower struct {
-		Member, Kind, Spell, Target int
+		Member, Kind, Spell, Target int // Kind: PowerCast, PowerDisplay, PowerHeal or PowerCure
 		Sure                        bool
 	}
 	// Loot and doors.
@@ -138,3 +138,13 @@ func (SequenceDone) decision()  {}
 func (Speak) decision()         {}
 func (Unmark) decision()        {}
 func (WalkTo) decision()        {}
+
+// UsePower's Kinds: cast a memorised spell, list the member's spell
+// effects, the paladin's lay on hands and cure (the front's ActSpells,
+// ActMagic, ActHeal and ActCure numbers, which older rules still use).
+const (
+	PowerCast    = 36
+	PowerDisplay = 37
+	PowerHeal    = 38
+	PowerCure    = 39
+)
