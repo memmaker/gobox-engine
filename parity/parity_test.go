@@ -41,6 +41,7 @@ func engineSeed(t *testing.T, explore bool, dev string, seed uint32) *rules.Engi
 		t.Fatal(err)
 	}
 	e.FixedSeed = &seed
+	e.FixedPace = true // the walk steps on the count run() takes, not on the clock
 	e.Cfg.SaveDir = t.TempDir()
 	e.Explore = explore
 	if dev != "" {

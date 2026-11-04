@@ -74,6 +74,7 @@ func still(s game.State) game.State {
 var unsetLate = []string{
 	`"Reloads":false,"Pooled":null,`, // Shop
 	`,"View":false`,                  // Ask
+	`"Marker":"",`,                   // Automap
 }
 
 // sum is the first bytes of the hash of v's JSON.
