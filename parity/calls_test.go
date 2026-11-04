@@ -86,18 +86,29 @@ func created(t *testing.T) *rules.Engine {
 	return e
 }
 
-// run is e's View after as, each followed by the engine's paced steps until it
+// run is e's State once published, after the engine's paced steps until it
 // stops pacing (a count, not a clock: both engines take the same steps).
-func run(e *rules.Engine, as ...front.Action) front.View {
-	v := e.View()
-	for _, a := range as {
-		v = e.Apply(a)
-		for i := 0; v.Pace != front.PaceNone && v.Pace != front.PaceAnim && i < 20000; i++ {
-			e.Step()
-			v = e.Apply()
+func run(e *rules.Engine) game.State {
+	e.Apply() // publish what the call left
+	for i := 0; i < 20000; i++ {
+		if p := e.Rules().State().Pacing; p == nil || p.Pace == game.PaceNone || p.Pace == game.PaceAnim {
+			break
 		}
+		e.Step()
+		e.Apply()
 	}
-	return v
+	return normal(e)
+}
+
+// normal is e's State without the counts and clocks.
+func normal(e *rules.Engine) game.State {
+	s := e.Rules().State()
+	if s.Pacing != nil {
+		p := *s.Pacing
+		p.Seq, s.Pacing = 0, &p
+	}
+	s.Note.At = time.Time{}
+	return still(s)
 }
 
 // errText is err's words, "" for none.
@@ -108,7 +119,7 @@ func errText(err error) string {
 	return err.Error()
 }
 
-// TestCalls: Apply(decision) leaves the same View, and refuses the same way,
+// TestCalls: Apply(decision) leaves the same State, and refuses the same way,
 // as the rule call it names, on two engines started alike.
 func TestCalls(t *testing.T) {
 	pt := func(x, y int) image.Point { return image.Pt(x, y) }
@@ -186,12 +197,9 @@ func TestCalls(t *testing.T) {
 			}
 			derr := c.direct(a)
 			t.Logf("call error: %q", errText(derr))
-			va := run(a, front.Action{})
+			va := run(a)
 			res := b.Rules().Apply(c.d)
-			vb := run(b, front.Action{})
-			for _, v := range []*front.View{&va, &vb} {
-				v.Seq, v.Note.At, v.Events = 0, time.Time{}, nil // counts and clocks, not state; the fight's events are the Result's
-			}
+			vb := run(b)
 			if c.name == "WalkTo" && derr != nil && res.Err != nil {
 				derr, res.Err = nil, nil // both refused; the refusal's words are the game's note
 			}
@@ -199,8 +207,9 @@ func TestCalls(t *testing.T) {
 				t.Errorf("error: call %v, decision %v", derr, res.Err)
 			}
 			if !reflect.DeepEqual(va, vb) {
-				t.Errorf("views differ after %T: %v", c.d, diffFields(va, vb))
+				t.Errorf("states differ after %T: %v\n%+v\n%+v", c.d, diffFields(va, vb), va.Where, vb.Where)
 			}
+			atKey(t, "TestCalls/"+c.name, groups(vb))
 		})
 	}
 }
@@ -217,8 +226,8 @@ func prep(name string, b *rules.Engine) {
 	}
 }
 
-// diffFields names the View fields that differ.
-func diffFields(a, b front.View) (names []string) {
+// diffFields names the State fields that differ.
+func diffFields(a, b game.State) (names []string) {
 	x, y := reflect.ValueOf(a), reflect.ValueOf(b)
 	for i := range x.NumField() {
 		if !reflect.DeepEqual(x.Field(i).Interface(), y.Field(i).Interface()) {

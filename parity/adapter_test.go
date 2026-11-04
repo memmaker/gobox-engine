@@ -8,11 +8,9 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
-	"reflect"
 	"slices"
 	"strings"
 	"testing"
-	"time"
 
 	"gobox/front"
 	"gobox/front/classic"
@@ -20,40 +18,19 @@ import (
 	"por/presentdata"
 )
 
-// known are the View fields classic cannot yet build from State alone, per
-// scene: X and Y on the overland (por keeps the
-// dungeon's square there). Any other field that differs fails.
-var known = map[string][]string{}
-
-// TestAdapter runs por twice over each dev scene and the same actions: as a
-// front.Game itself (rules.Engine) and through classic.Game over its
-// game.Rules. The Views must be DeepEqual.
+// TestAdapter runs por through classic.Game over each dev scene and the
+// same actions: the State after each is por's (wantState).
 func TestAdapter(t *testing.T) {
 	actions := []front.Action{{}, {Kind: front.ActResize, X: 50, Y: 30}}
 	for _, scene := range []string{"", "shop", "hall", "temple", "appraise", "combat", "overland", "bestiary", "parlay", "password", "who", "effects", "journal", "inventory", "lockeddoor", "loot", "cast"} {
 		t.Run("scene "+scene, func(t *testing.T) {
-			a, b := engine(t, true, scene), engine(t, true, scene)
+			b := engine(t, true, scene)
 			g := classic.NewGame(b.Rules(), b.Data())
-			var va, vb front.View
-			for i, act := range actions {
-				va = a.Apply(act)
+			defer g.Answer(front.Action{Kind: front.ActResize, X: 40, Y: 25}) // the page size is global in por: put it back
+			for _, act := range actions {
 				g.Answer(act)
-				vb = g.Settle()
-				if i == 0 {
-					continue
-				}
-			}
-			defer a.Apply(front.Action{Kind: front.ActResize, X: 40, Y: 25}) // the page size is global in por: put it back
-			for _, v := range []*front.View{&va, &vb} {
-				v.Seq, v.Note.At, v.Events = 0, time.Time{}, nil
-				noPartyIcons(v.Battle)
-			}
-			for _, n := range diffFields(va, vb) {
-				if slices.Contains(known[scene], n) {
-					t.Logf("known gap: %s", n)
-				} else {
-					t.Errorf("%s differs:\n  engine  %+v\n  adapter %+v", n, reflect.ValueOf(va).FieldByName(n), reflect.ValueOf(vb).FieldByName(n))
-				}
+				g.Settle()
+				at(t, "after", b)
 			}
 		})
 	}
@@ -99,19 +76,6 @@ func TestSheetAdapter(t *testing.T) {
 	golden(t, "sheet", v)
 	g.ShowMember(1)
 	golden(t, "sheet2", g.Settle())
-}
-
-// noPartyIcons blanks the party units' icons: por composes none (gobox does,
-// TestBattleView).
-func noPartyIcons(b *front.Battle) {
-	if b == nil {
-		return
-	}
-	for i := range b.Units {
-		if b.Units[i].Party {
-			b.Units[i].Icon, b.Units[i].IconSize, b.IconPix[i] = nil, image.Point{}, front.Picture{}
-		}
-	}
 }
 
 // writePNG is a w x h noise PNG in a temp dir.

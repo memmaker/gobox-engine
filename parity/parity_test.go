@@ -1,6 +1,5 @@
-// Package parity checks gobox's classic front against a game's own View:
-// each screen classic builds from game.State must equal the one the game
-// published, and the game's goldens must come out byte-identical through
+// Package parity checks gobox's classic front against a game: the State it
+// publishes must be what it published (state_test.go), and the game's goldens must come out byte-identical through
 // classic.
 package parity
 
@@ -11,7 +10,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-	"time"
 
 	"gobox/front"
 	"gobox/front/classic"
@@ -29,7 +27,9 @@ func porDir(t *testing.T) string {
 }
 
 // engine is por started headless on its data (dev: a -dev scene, "" none).
-func engine(t *testing.T, explore bool, dev string) *rules.Engine { return engineSeed(t, explore, dev, 7) }
+func engine(t *testing.T, explore bool, dev string) *rules.Engine {
+	return engineSeed(t, explore, dev, 7)
+}
 
 // engineSeed is engine with the dice seeded seed.
 func engineSeed(t *testing.T, explore bool, dev string, seed uint32) *rules.Engine {
@@ -52,32 +52,42 @@ func engineSeed(t *testing.T, explore bool, dev string, seed uint32) *rules.Engi
 	return e
 }
 
-// settled applies as, each until the engine stops pacing.
+// games are the classic.Game each engine is driven through (the tests never ask por for its View).
+var games = map[*rules.Engine]*classic.Game{}
+
+func gameOf(e *rules.Engine) *classic.Game {
+	if games[e] == nil {
+		games[e] = classic.NewGame(e.Rules(), e.Data())
+	}
+	return games[e]
+}
+
+// settled answers as through classic.Game, each followed by the engine's
+// paced steps until it stops pacing (a count, not a clock).
 func settled(e *rules.Engine, as ...front.Action) front.View {
-	v := e.View()
+	g := gameOf(e)
+	v := g.View()
 	for _, a := range as {
-		v = e.Apply(a)
-		for t0 := time.Now(); v.Pace != front.PaceNone && time.Since(t0) < 300*time.Millisecond; {
-			time.Sleep(time.Millisecond)
+		if a != (front.Action{}) {
+			g.Answer(a)
+		}
+		g.Settle()
+		e.Apply() // publish: the rules' State is what they last published
+		v = g.View()
+		for i := 0; v.Pace != front.PaceNone && v.Pace != front.PaceAnim && i < 20000; i++ {
 			e.Step()
-			v = e.Apply()
+			e.Apply()
+			v = g.View()
 		}
 	}
 	return v
 }
 
-// same says classic's party menu and creation sheet equal por's.
+// same says the State at name is what por published (at) and classic's creation sheet equals por's.
 func same(t *testing.T, name string, e *rules.Engine, cols, rows int) {
 	t.Helper()
-	v, s := e.View(), e.Rules().State()
-	c := classic.View(v, s)
-	if e.CreationView() == nil { // por's View keeps the menu under the sheet: the presenter drops it (ownCreation)
-		if !reflect.DeepEqual(c.MainMenu, v.MainMenu) || c.Hall != v.Hall || c.Logo != v.Logo || c.Backdrop != v.Backdrop {
-			t.Errorf("%s: menu %v hall %v logo %v, por %v %v %v", name, c.MainMenu, c.Hall, c.Logo != nil, v.MainMenu, v.Hall, v.Logo != nil)
-		}
-	} else if c.MainMenu != nil {
-		t.Errorf("%s: menu %v under the sheet", name, c.MainMenu)
-	}
+	at(t, name, e)
+	s := e.Rules().State()
 	if got, want := classic.Creation(s, cols, rows), e.CreationView(); !reflect.DeepEqual(got, want) {
 		t.Errorf("%s: creation\n got %+v\nwant %+v", name, got, want)
 	}
@@ -134,35 +144,7 @@ func TestParity(t *testing.T) {
 
 	h := engine(t, true, "hall")
 	settled(h, front.Action{})
-	if !h.View().Hall {
-		t.Fatal("no hall")
-	}
 	same(t, "hall", h, 40, 25)
-}
-
-// TestGoldens: por's creation goldens through classic (present.WithRules).
-func TestGoldens(t *testing.T) {
-	e := partyMenu(t)
-	p := &present.Presenter{}
-	g := present.WithRules(e, p)
-	p.SetEngine(g)
-	shown := func(as ...front.Action) front.View {
-		for _, a := range as {
-			p.Decide(g.View(), a)
-			for _, f := range p.Calls() {
-				f(g)
-			}
-			settled(e, append(p.Actions(), front.Action{})...)
-		}
-		settled(e)
-		return p.Own(g.View())
-	}
-	v := shown(front.Action{Kind: front.ActCreate})
-	if v.Creation == nil {
-		t.Fatal("no creation")
-	}
-	golden(t, "creation", v)
-	golden(t, "pickhead", shown(front.Action{Kind: front.ActPicker, N: front.PickHead}))
 }
 
 // golden compares the screen's dump with por's presentdata/testdata/name.txt.

@@ -4,25 +4,25 @@ import (
 	"testing"
 
 	"gobox/front"
-	"gobox/front/classic"
+	"gobox/game"
 )
 
-// TestPacingParity: the pace, the rest and the count of views classic takes
-// from State equal por's, over the dev scenes, Enter on.
+// TestPacingParity: State.Pacing (the pace, the rest and the count of states)
+// over the dev scenes, Enter on.
 func TestPacingParity(t *testing.T) {
-	seen := map[front.Pace]int{}
+	seen := map[game.Pace]int{}
 	for _, scene := range []string{"", "autocombat", "shop"} {
 		e := engine(t, true, scene)
+		var last uint64
 		for i := 0; i < 6; i++ {
-			v, s := e.View(), e.Rules().State()
-			b := v
-			b.Pace, b.Resting, b.Seq = front.PaceNone, false, 0
-			c := classic.Pacing(b, s)
-			if c.Pace != v.Pace || c.Resting != v.Resting || c.Seq != v.Seq {
-				t.Errorf("%s: pace %v rest %v seq %v, want %v %v %v", scene, c.Pace, c.Resting, c.Seq, v.Pace, v.Resting, v.Seq)
+			at(t, scene, e)
+			p := e.Rules().State().Pacing
+			if p == nil || p.Seq < last {
+				t.Fatalf("%s step %d: pacing %+v after seq %d", scene, i, p, last)
 			}
-			seen[v.Pace]++
-			e.Apply(front.Action{Kind: front.ActOK})
+			last = p.Seq
+			seen[p.Pace]++
+			gameOf(e).Answer(front.Action{Kind: front.ActOK})
 			e.Step()
 		}
 	}

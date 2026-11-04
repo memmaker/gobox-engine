@@ -1,29 +1,17 @@
 package parity
 
 import (
-	"reflect"
 	"testing"
 
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"por/rules"
 )
 
-// samePlace says classic's temple, shop and inventory equal por's.
+// samePlace says the State's temple, shop and inventory are por's at name.
 func samePlace(t *testing.T, name string, e *rules.Engine) {
 	t.Helper()
-	v := e.View()
-	c := classic.View(v, e.Rules().State())
-	if !reflect.DeepEqual(c.Temple, v.Temple) {
-		t.Errorf("%s: temple\n got %+v\nwant %+v", name, c.Temple, v.Temple)
-	}
-	if !reflect.DeepEqual(c.Shop, v.Shop) {
-		t.Errorf("%s: shop\n got %+v\nwant %+v", name, c.Shop, v.Shop)
-	}
-	if !reflect.DeepEqual(c.Inventory, v.Inventory) {
-		t.Errorf("%s: inventory\n got %+v\nwant %+v", name, c.Inventory, v.Inventory)
-	}
+	at(t, name, e)
 }
 
 // members shows each member's items in turn (the inventory up).
@@ -56,7 +44,7 @@ func TestInventoryParity(t *testing.T) {
 		settled(sh, front.Action{})
 		samePlace(t, "identified", sh)
 	}
-	if sh.View().Shop.Identified == nil {
+	if sh.Rules().State().Shop.Identified == nil {
 		t.Error("no reveal")
 	}
 	if err := sh.Browse(-1); err != nil {
@@ -89,7 +77,7 @@ func TestInventoryParity(t *testing.T) {
 		t.Fatal(err)
 	}
 	settled(inv, front.Action{})
-	if inv.View().Inventory == nil {
+	if inv.Rules().State().Items == game.ItemsNone {
 		t.Fatal("no inventory")
 	}
 	members(t, "inventory", inv)
@@ -100,7 +88,7 @@ func TestInventoryParity(t *testing.T) {
 		t.Fatal(err)
 	}
 	settled(l, front.Action{})
-	if v := l.View().Inventory; v == nil || !v.Loot {
+	if l.Rules().State().Items != game.ItemsLoot {
 		t.Fatal("no treasure over the inventory")
 	}
 	samePlace(t, "loot", l)

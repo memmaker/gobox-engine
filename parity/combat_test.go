@@ -1,7 +1,6 @@
 package parity
 
 import (
-	"reflect"
 	"testing"
 
 	"gobox/front"
@@ -10,24 +9,23 @@ import (
 	"por/rules"
 )
 
-// sameBattle says classic's combat menu, combatant info and aim equal por's.
-func sameBattle(t *testing.T, name string, e *rules.Engine) front.View {
+// sameBattle says the State is a fight and at's stop is por's: the combat
+// menu, combatant info and aim.
+func sameBattle(t *testing.T, name string, e *rules.Engine) {
 	t.Helper()
-	v, s := settled(e, front.Action{}), e.Rules().State()
-	if v.Battle == nil || s.Combat == nil || s.Mode != game.ModeCombat {
+	settled(e, front.Action{})
+	s := e.Rules().State()
+	if s.Combat == nil || s.Mode != game.ModeCombat {
 		t.Fatalf("%s: no fight: %v %+v", name, s.Mode, s.Combat)
 	}
-	if c := classic.View(v, s); !reflect.DeepEqual(c.Battle, v.Battle) {
-		t.Errorf("%s: battle\n got %+v\nwant %+v", name, c.Battle, v.Battle)
-	}
-	return v
+	at(t, name, e)
 }
 
 func TestCombatParity(t *testing.T) {
 	e := engine(t, true, "combat")
-	v := sameBattle(t, "combat", e)
+	sameBattle(t, "combat", e)
 	s := e.Rules().State()
-	if s.Combat.Turn == nil || len(s.Combat.Turn.Options) == 0 || len(s.Combat.Units) != len(v.Battle.Units) || len(s.Combat.Reach) == 0 || len(s.Combat.Targets) == 0 {
+	if s.Combat.Turn == nil || len(s.Combat.Turn.Options) == 0 || len(s.Combat.Units) == 0 || len(s.Combat.Reach) == 0 || len(s.Combat.Targets) == 0 {
 		t.Fatalf("combat state %+v", s.Combat)
 	}
 	if _, ok := s.Combat.Turn.Options[0].Do.(game.Attack); !ok {

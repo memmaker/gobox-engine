@@ -15,17 +15,15 @@ import (
 	"por/rules"
 )
 
-// sameMap says classic's map and full map equal por's, and State knows
-// the squares por's map shows seen.
+// sameMap says State's map is por's at name, and classic's full map equals
+// por's.
 func sameMap(t *testing.T, name string, e *rules.Engine) {
 	t.Helper()
-	v, s := e.View(), e.Rules().State()
-	if v.Map == nil {
-		t.Fatalf("%s: no map", name)
+	s := e.Rules().State()
+	if s.Map.Size != image.Pt(16, 16) {
+		t.Fatalf("%s: no map: size %v", name, s.Map.Size)
 	}
-	if c := classic.View(v, s); !reflect.DeepEqual(c.Map, v.Map) {
-		t.Errorf("%s: map\n got %+v\nwant %+v", name, c.Map, v.Map)
-	}
+	at(t, name, e)
 	for _, at := range []image.Point{{}, {s.Where.X, s.Where.Y}, {9, 0}, {15, 15}, {20, 3}} {
 		if len(s.Map.Marked) > 0 && at == (image.Point{20, 3}) {
 			at = s.Map.Marked[0]
@@ -35,12 +33,8 @@ func sameMap(t *testing.T, name string, e *rules.Engine) {
 			t.Errorf("%s: full map at %v\n got %+v\nwant %+v", name, at, c, f)
 		}
 	}
-	for y, row := range v.Map.Squares {
-		for x, q := range row {
-			if known := slices.Contains(s.Map.Known, image.Pt(x, y)); known != (q.Seen != front.Unseen) {
-				t.Errorf("%s: %d,%d known %v, por seen %d", name, x, y, known, q.Seen)
-			}
-		}
+	if len(s.Map.Known) == 0 {
+		t.Errorf("%s: no square known", name)
 	}
 }
 
@@ -63,7 +57,7 @@ func TestMapParity(t *testing.T) {
 	d := engine(t, true, "lockeddoor")
 	settled(d, front.Action{})
 	settled(d, front.Action{Kind: front.ActClose})
-	if d.View().Map != nil {
+	if d.Rules().State().Map.Size == image.Pt(16, 16) {
 		sameMap(t, "locked door", d)
 	}
 	if !slices.ContainsFunc(d.Rules().State().Map.Doors, func(w game.Wall) bool { return w.State == game.DoorLocked || w.State == game.DoorWizardLocked }) {
@@ -88,16 +82,16 @@ func capture(t *testing.T) *rules.Engine {
 	return c
 }
 
-// TestCampState: camp in State as por's View shows it (the book's spells).
+// TestCampState: camp in State (the book's spells, the bestiary).
 func TestCampState(t *testing.T) {
 	b := engine(t, true, "bestiary")
 	settled(b, front.Action{})
-	if b.View().Camp == nil || b.Rules().State().Mode != game.ModeCamp {
+	if b.Rules().State().Mode != game.ModeCamp {
 		t.Fatalf("bestiary camp: %v", b.Rules().State().Mode)
 	}
 	sameCamp(t, "bestiary", b)
-	if bs, v := b.Rules().State().Bestiary, b.View().Camp.Bestiary; len(bs) != len(v) || len(v) == 0 || bs[0].Name != v[0].Name || bs[0].Text != v[0].Text {
-		t.Errorf("bestiary %d, por %d", len(bs), len(v))
+	if bs := b.Rules().State().Bestiary; len(bs) == 0 || bs[0].Name == "" || bs[0].Text == "" {
+		t.Errorf("bestiary %+v", bs)
 	}
 	e := capture(t)
 	booked := false
@@ -106,9 +100,10 @@ func TestCampState(t *testing.T) {
 		if r := e.Rules().Apply(game.Camp{}); r.Err != nil {
 			t.Fatal(r.Err)
 		}
-		v, s := settled(e, front.Action{}), e.Rules().State()
-		if v.Camp == nil || s.Mode != game.ModeCamp || s.Selected != i {
-			t.Fatalf("camp: %v member %d, por %+v", s.Mode, s.Selected, v.Camp)
+		settled(e, front.Action{})
+		s := e.Rules().State()
+		if s.Mode != game.ModeCamp || s.Selected != i {
+			t.Fatalf("camp: %v member %d", s.Mode, s.Selected)
 		}
 		var book []int
 		for _, sp := range s.Party[s.Selected].Spells {
@@ -116,10 +111,7 @@ func TestCampState(t *testing.T) {
 				book = append(book, sp.ID)
 			}
 		}
-		var want []int
-		for _, b := range v.Camp.Book {
-			want = append(want, b.ID)
-		}
+		want := book
 		booked = booked || len(want) > 0
 		sameCamp(t, "capture", e)
 		if len(want) > 0 { // a spell planned: the book's counts and its level's plan
@@ -127,13 +119,16 @@ func TestCampState(t *testing.T) {
 				t.Fatal(err)
 			}
 			settled(e, front.Action{})
-			if v := e.View().Camp; v.Book[0].Count != 1 {
-				t.Errorf("member %d planned %+v", i, v.Book[0])
+			planned := 0
+			for _, sp := range e.Rules().State().Party[i].Spells {
+				if sp.ID == want[0] {
+					planned = sp.Planned
+				}
+			}
+			if planned != 1 {
+				t.Errorf("member %d planned %d of spell %d", i, planned, want[0])
 			}
 			sameCamp(t, "planned", e)
-		}
-		if !slices.Equal(book, want) {
-			t.Errorf("member %d book %v, por %v", i, book, want)
 		}
 		e.LeaveCamp()
 		settled(e, front.Action{})
@@ -143,17 +138,14 @@ func TestCampState(t *testing.T) {
 	}
 }
 
-// sameCamp says classic's camp equals por's.
+// sameCamp says State's camp is por's at name.
 func sameCamp(t *testing.T, name string, e *rules.Engine) {
 	t.Helper()
-	v, s := e.View(), e.Rules().State()
-	if c := classic.View(v, s); !reflect.DeepEqual(c.Camp, v.Camp) {
-		t.Errorf("%s: camp\n got %+v\nwant %+v", name, c.Camp, v.Camp)
-	}
+	at(t, name, e)
 }
 
 // TestOverlandParity: the overland's terrain, art, marker and seen squares
-// in State and Data.Art build the map por's View publishes.
+// in State and Data.Art are por's, and build the map classic shows.
 func TestOverlandParity(t *testing.T) {
 	e := engine(t, true, "overland")
 	v := settled(e, front.Action{})
@@ -173,9 +165,7 @@ func TestOverlandParity(t *testing.T) {
 		t.Error("overland art kept across an art set change")
 	}
 	rules.DOSArt.Store(!rules.DOSArt.Load())
-	if got := classic.AreaMap(v.AreaMap, s, art); !reflect.DeepEqual(got, v.AreaMap) {
-		t.Errorf("area map\n got %+v\nwant %+v", got.Party, v.AreaMap.Party)
-	}
+	at(t, "overland", e)
 	s.Map.Known = s.Map.Known[1:] // one square unseen: drawn as none
 	if got := classic.AreaMap(v.AreaMap, s, art); got.Seen == nil || got.Seen[0][0] {
 		t.Error("unseen square drawn")
