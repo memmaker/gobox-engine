@@ -5,6 +5,9 @@
 package saves
 
 import (
+	"bytes"
+	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -25,6 +28,47 @@ type Store struct {
 type Slot struct {
 	Name string
 	At   time.Time // when Marker was written
+	Meta Meta      // the slot's MetaFile (zero: none written)
+}
+
+// Meta is what a slot list shows of a save beyond its name and time: a
+// game writes it into the slot with WriteMeta.
+type Meta struct {
+	Summary string // "Phlan, 4 members"
+	Levels  []int  // the members' levels
+}
+
+// MetaFile is the file WriteMeta writes in a slot.
+const MetaFile = "SLOT.META"
+
+// WriteMeta writes m into the slot folder dir (inside Write's write).
+func WriteMeta(dir string, m Meta) error {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, MetaFile), b, 0o644)
+}
+
+// WriteSide writes v, a fixed-size value (a uint64 purse, a struct of
+// them), little-endian into file in the slot folder dir (inside Write's
+// write).
+func WriteSide[T any](dir, file string, v T) error {
+	var b bytes.Buffer
+	if err := binary.Write(&b, binary.LittleEndian, v); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, file), b.Bytes(), 0o644)
+}
+
+// ReadSide reads WriteSide's file of slot name into a T.
+func ReadSide[T any](s Store, name, file string) (T, error) {
+	var v T
+	b, err := os.ReadFile(filepath.Join(s.Path(name), file))
+	if err == nil {
+		err = binary.Read(bytes.NewReader(b), binary.LittleEndian, &v)
+	}
+	return v, err
 }
 
 // Path is the slot's folder.
@@ -37,7 +81,11 @@ func (s Store) List() []Slot {
 	for _, en := range ents {
 		st, err := os.Stat(filepath.Join(s.Dir, en.Name(), s.Marker))
 		if en.IsDir() && err == nil && !strings.HasPrefix(en.Name(), ".") {
-			out = append(out, Slot{en.Name(), st.ModTime()})
+			sl := Slot{Name: en.Name(), At: st.ModTime()}
+			if b, err := os.ReadFile(filepath.Join(s.Dir, en.Name(), MetaFile)); err == nil {
+				json.Unmarshal(b, &sl.Meta)
+			}
+			out = append(out, sl)
 		}
 	}
 	slices.SortFunc(out, func(a, b Slot) int { return b.At.Compare(a.At) })
@@ -60,11 +108,15 @@ func (s Store) Delete(name string) {
 var ErrIncomplete = errors.New("saves: the save wrote no marker")
 
 // Write saves slot name: write fills a fresh folder (dir) beside the old
-// slot, which is replaced only once the new one holds Marker.
-func (s Store) Write(name string, write func(dir string)) error {
+// slot, which is replaced only once the new one holds Marker. write's
+// error comes back, the old slot kept.
+func (s Store) Write(name string, write func(dir string) error) error {
 	tmp := s.Path("." + name + ".saving")
 	os.RemoveAll(tmp)
-	write(tmp)
+	if err := write(tmp); err != nil {
+		os.RemoveAll(tmp)
+		return err
+	}
 	if _, err := os.Stat(filepath.Join(tmp, s.Marker)); err != nil {
 		return ErrIncomplete
 	}
