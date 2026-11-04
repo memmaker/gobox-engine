@@ -14,7 +14,7 @@ func paneRuns(l []game.TextRun) []front.PaneRun {
 		if t.Fg == (color.RGBA{}) { // unset: the body text's colour (gobox's, as every font colour)
 			t.Fg = ega.RGBA(10)
 		}
-		r = append(r, front.PaneRun{X: t.X, Text: t.Text, Fg: t.Fg, Bg: t.Bg, Upcase: t.Upcase})
+		r = append(r, front.PaneRun{X: t.X, Text: t.Text, Fg: t.Fg, Bg: t.Bg, Upcase: t.Upcase, Blink: t.Blink})
 	}
 	return r
 }

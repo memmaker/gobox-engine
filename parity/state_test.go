@@ -76,6 +76,7 @@ var unsetLate = []string{
 	`,"View":false`,                  // Ask
 	`"Marker":"",`,                   // Automap
 	`,"PaneRows":0`,                  // Page
+	`,"Blink":false`,                 // TextRun
 	`,"Frames":null,"FrameMs":0`,     // Layer
 }
 

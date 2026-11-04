@@ -345,6 +345,7 @@ type TextRun struct {
 	Text   string
 	Fg, Bg color.RGBA
 	Upcase bool
+	Blink  bool // the front alternates the run's ink with its highlight colour a few times, ending on normal
 }
 
 // Layer is a picture placed on the page: At in pixels of the page.

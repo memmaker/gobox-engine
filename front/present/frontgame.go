@@ -127,7 +127,7 @@ func (p *Presenter) own(v front.View) front.View {
 		p.resets = p.eng.Resets()
 		p.gridPick, p.icon, p.creating, p.training, p.q, p.clue = nil, nil, false, false, nil, nil
 	}
-	v = p.paged(pixView(v))
+	v = p.blinked(p.paged(pixView(v)))
 	v.Pictures = daxPictures(indexedPictures(v.Pictures, v.Ink))
 	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
 	if p.slots != nil && p.eng != nil {

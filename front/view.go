@@ -384,6 +384,7 @@ type PaneRun struct {
 	Text   string
 	Fg, Bg color.RGBA
 	Upcase bool
+	Blink  bool // the presenter alternates Fg with the highlight colour a few times (blink.go)
 }
 
 // MapSquares is a map as the maps show it (minimap, View.Map, the full
