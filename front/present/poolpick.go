@@ -19,13 +19,14 @@ type poolPick struct {
 	field, kind string
 	names       []string
 	cell        image.Point
+	tiles       bool // the bodies by original ref (classic.TilePicker)
 }
 
 var poolPicks = map[int]poolPick{
-	front.PickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5)},
-	front.PickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6)},
-	front.PickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5)},
-	front.PickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6)},
+	front.PickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5), false},
+	front.PickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6), false},
+	front.PickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5), false},
+	front.PickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6), false},
 }
 
 // poolPrefix is what the names of a field start with.
@@ -40,6 +41,11 @@ func (g classicGame) OpenPicker(kind int) bool {
 	pp, has := poolPicks[kind]
 	if !has {
 		return ok
+	}
+	if names, _ := classic.BodyTiles(g.r.State()); kind == front.PickWeapon && len(names) > 0 {
+		pp.names, pp.tiles = names, true
+		g.p.pool = &pp
+		return true
 	}
 	for _, n := range sprites.Names(series, pp.kind) {
 		if len(n) > len(poolPrefix[pp.field]) && n[:len(poolPrefix[pp.field])] == poolPrefix[pp.field] {
@@ -56,6 +62,9 @@ func (g classicGame) OpenPicker(kind int) bool {
 func (g classicGame) PickerView(page int) *front.Picker {
 	if pp := g.p.pool; pp != nil {
 		s := g.r.State()
+		if pp.tiles {
+			return classic.TilePicker(s, page, g.p.grid[0], g.p.grid[1])
+		}
 		s.Picker = &game.Picker{Cell: pp.cell, Pics: make([]game.Picture, len(pp.names))}
 		for i := range s.Picker.Pics {
 			s.Picker.Pics[i].W = 1 // present, no pixels: classic.Picker lays the cell out, the PNG fills it

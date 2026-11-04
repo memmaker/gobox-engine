@@ -21,6 +21,7 @@ type Game struct {
 	events []game.Event // the fight's events since the last Settle
 	note   front.Note   // the front's own refusal toast
 	resets int
+	tiles  bool // the weapon picker up is the pool bodies by original ref (TilePicker)
 }
 
 var _ front.Game = (*Game)(nil)
@@ -244,13 +245,40 @@ func (g *Game) TryDoor(k front.DoorWay) error {
 }
 
 // Pickers and the icon designer.
-func (g *Game) OpenPicker(kind int) bool { return g.do(game.OpenPicker{Kind: kind}) == nil }
+func (g *Game) OpenPicker(kind int) bool {
+	ok := g.do(game.OpenPicker{Kind: kind}) == nil
+	if s := g.R.State(); kind == front.PickWeapon && s.Picker == nil {
+		if n, _ := BodyTiles(s); len(n) > 0 { // no pictures from the game: the pool's, by original ref
+			g.tiles = true
+			return true
+		}
+	}
+	return ok
+}
 func (g *Game) PickerView(page int) *front.Picker {
+	if g.tiles {
+		return TilePicker(g.R.State(), page, g.grid.X, g.grid.Y)
+	}
 	return Picker(g.R.State(), page, g.grid.X, g.grid.Y)
 }
-func (g *Game) Pick(i int) bool { g.do(game.Pick{N: i}); return g.R.State().Picker == nil }
-func (g *Game) ClosePicker()    { g.do(game.ClosePicker{}) }
-func (g *Game) EditIcon(n int)  { g.do(game.EditIcon{Member: n}) }
+func (g *Game) Pick(i int) bool {
+	if g.tiles {
+		s := g.R.State()
+		var d game.Decision = game.SetIcon{Member: s.Selected, Field: "iconbody", ID: PickTile(s, i)}
+		if s.Creation != nil {
+			d = game.Create{Field: "iconbody", Text: PickTile(s, i)}
+		}
+		if PickTile(s, i) == "" || g.R.Apply(d).Err != nil {
+			return false
+		}
+		g.tiles = false
+		return true
+	}
+	g.do(game.Pick{N: i})
+	return g.R.State().Picker == nil
+}
+func (g *Game) ClosePicker()   { g.tiles = false; g.do(game.ClosePicker{}) }
+func (g *Game) EditIcon(n int) { g.do(game.EditIcon{Member: n}) }
 func (g *Game) IconEditorView() *front.IconEditor {
 	ink := g.View().Ink
 	return IconEditor(g.R.State(), &ink, g.grid.X, g.grid.Y)
