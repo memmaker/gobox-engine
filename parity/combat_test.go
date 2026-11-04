@@ -97,6 +97,11 @@ func TestBattleView(t *testing.T) {
 	if b == nil {
 		t.Fatal("no Battle in combat")
 	}
+	for i, m := range g.R.State().Party { // por composes no icon: State has the pool ids or the original numbers
+		if m.IconHeadID == "" && m.Icon == nil {
+			t.Errorf("member %d publishes no icon ids or numbers", i)
+		}
+	}
 	party, foes, walls := 0, 0, 0
 	for i, u := range b.Units {
 		if u.Icon == nil && b.IconPix[i].Pix == nil {

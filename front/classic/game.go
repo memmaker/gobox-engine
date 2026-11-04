@@ -61,6 +61,11 @@ func (g *Game) step() error {
 func (g *Game) View() front.View {
 	s := g.R.State()
 	art := g.D.Art
+	if r, ok := g.R.(interface {
+		Art() map[string]game.Picture
+	}); ok { // the rules' art as it is now
+		art = r.Art()
+	}
 	v := front.View{Exploring: s.Mode == game.ModeExplore}
 	if s.Map.Size == image.Pt(16, 16) {
 		v.Map = &front.MapSquares{}
@@ -110,6 +115,7 @@ func (g *Game) View() front.View {
 		v.Note = g.note
 	}
 	v.Creation = Creation(s, g.grid.X, g.grid.Y)
+	v = PoolIcon(v, s)
 	v.Training = Training(s)
 	v.Picker = Picker(s, 0, g.grid.X, g.grid.Y)
 	v.IconEditor = IconEditor(s, &v.Ink, g.grid.X, g.grid.Y)

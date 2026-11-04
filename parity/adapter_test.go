@@ -1,7 +1,9 @@
 package parity
 
 import (
+	"encoding/json"
 	"fmt"
+	"gobox/game"
 	"image"
 	"image/png"
 	"os"
@@ -206,4 +208,78 @@ func TestPartyAdapter(t *testing.T) {
 		t.Fatal("no slots")
 	}
 	golden(t, "slots", v)
+}
+
+// TestMapAdapter: the typed data behind por's recorded map pngs (map_*.json)
+// rebuilt through classic.Map from the State.Map it implies equals itself, so
+// present.MapImage gives the same pixels as por's TestMapImage.
+func TestMapAdapter(t *testing.T) {
+	files, _ := filepath.Glob(filepath.Join(porDir(t), "presentdata", "testdata", "map_*.json"))
+	if len(files) == 0 {
+		t.Fatal("no recorded maps")
+	}
+	kinds := [5]string{"", "shop", "temple", "inn", "civic"}
+	inks := [5]int{15, 10, 13, 14, 11} // por's label inks by kind
+	for _, f := range files {
+		var rec struct {
+			Squares [16][16]struct {
+				Seen   front.Seen
+				Walls  [4]front.MapWall
+				Ink    int
+				Letter byte
+			}
+			Party, Ahead image.Point
+		}
+		b, _ := os.ReadFile(f)
+		if err := json.Unmarshal(b, &rec); err != nil {
+			t.Fatal(err)
+		}
+		a := game.Automap{Size: image.Pt(16, 16)}
+		var have [26]bool
+		maxL := byte('A')
+		for y, row := range rec.Squares {
+			for x, q := range row {
+				at := image.Pt(x, y)
+				if q.Seen >= front.SeenFar {
+					a.Known = append(a.Known, at)
+				}
+				if q.Seen == front.Visited {
+					a.Walked = append(a.Walked, at)
+				}
+				for i, w := range q.Walls {
+					switch w {
+					case front.Wall:
+						a.Walls = append(a.Walls, game.Wall{At: at, Side: i * 2})
+					case front.Door:
+						a.Doors = append(a.Doors, game.Wall{At: at, Side: i * 2, State: game.DoorClosed})
+					case front.LockedDoor:
+						a.Doors = append(a.Doors, game.Wall{At: at, Side: i * 2, State: game.DoorLocked})
+					}
+				}
+				if q.Letter != 0 {
+					a.Labels = append(a.Labels, game.Label{At: at, Text: string(q.Letter), Kind: kinds[slices.Index(inks[:], q.Ink)]})
+					have[q.Letter-'A'], maxL = true, max(maxL, q.Letter)
+				}
+			}
+		}
+		for l := byte('A'); l < maxL; l++ { // the letters before the last are other labels' (off the map)
+			if !have[l-'A'] {
+				a.Labels = append(a.Labels, game.Label{At: image.Pt(-1, -1), Text: string(l)})
+			}
+		}
+		facing := slices.Index([]image.Point{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}, rec.Ahead) * 2
+		s := game.State{Map: a, Where: game.Where{X: rec.Party.X, Y: rec.Party.Y, Facing: facing}}
+		got := classic.Map(&front.MapSquares{}, s)
+		for y := range got.Squares {
+			for x, q := range got.Squares[y] {
+				w := rec.Squares[y][x]
+				if q.Seen != w.Seen || q.Walls != w.Walls || q.Letter != w.Letter || (w.Letter != 0 && inks[q.Kind] != w.Ink) {
+					t.Fatalf("%s: square %d,%d is %+v, want %+v", filepath.Base(f), x, y, q, w)
+				}
+			}
+		}
+		if got.Party != rec.Party || got.Ahead != rec.Ahead {
+			t.Errorf("%s: party %v ahead %v, want %v %v", filepath.Base(f), got.Party, got.Ahead, rec.Party, rec.Ahead)
+		}
+	}
 }
