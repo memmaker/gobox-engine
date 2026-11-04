@@ -37,12 +37,13 @@ type Board struct {
 
 // Turn is what the acting unit may do.
 type Turn struct {
-	Unit    int
-	Can     []Kind // the buttons offered, in the game's menu order
-	Aim     bool
-	Casting string
-	Moves   int
-	Labels  map[Kind]string // optional button words
+	Unit       int
+	Can        []Kind // the buttons offered, in the game's menu order
+	Aim        bool
+	Casting    string
+	Moves      int
+	Labels     map[Kind]string // optional button words
+	CastDirect bool            // Cast acts at once instead of opening the spell list (no spells to list)
 }
 
 // Effect is a sprite over the map for a moment.

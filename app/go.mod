@@ -41,3 +41,7 @@ replace gobox/ega => ../ega
 require gobox/dax v0.0.0
 
 replace gobox/dax => ../dax
+
+replace gobox/audio => ../audio
+
+replace gobox/amiga => ../amiga

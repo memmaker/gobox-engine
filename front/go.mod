@@ -40,3 +40,18 @@ replace gobox/ui => ../ui
 replace gobox/walls => ../walls
 
 replace gobox/dax => ../dax
+
+require gobox/audio v0.0.0
+
+require (
+	github.com/ebitengine/oto/v3 v3.5.0 // indirect
+	github.com/ebitengine/purego v0.11.0 // indirect
+	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
+	github.com/jfreymuth/pulse v0.1.3 // indirect
+	github.com/jfreymuth/vorbis v1.0.2 // indirect
+	gobox/amiga v0.0.0 // indirect
+)
+
+replace gobox/audio => ../audio
+
+replace gobox/amiga => ../amiga

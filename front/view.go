@@ -33,6 +33,7 @@ type AreaMap struct {
 	Tile    int
 	Party   image.Point // the party's map square
 	Marker  image.Image // the party's icon, facing its way
+	Seen    [][]bool    // Seen[y][x]: the party has seen that square (nil: all seen); unseen squares are drawn as none
 
 	SquarePix [][]Picture // Squares as the game's pixels (Picture.Pix), the presenter's to colour into Squares
 	MarkerPix Picture     // Marker so
@@ -42,9 +43,9 @@ type AreaMap struct {
 type Battle struct {
 	Ground    [25][50]Square
 	Tiles     []image.Image // the tile set by tile number, in combat's colours
-	TilePix   []Picture     // Tiles as the game's pixels in View.Ink, the presenter's to colour into Tiles
-	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here)
-	EffectPix []Picture     // Effects' pictures so, by effect
+	TilePix   []Picture     // Tiles as the game's pixels in View.Ink, or DAX refs (File, Block, Frame), the presenter's to make into Tiles
+	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here); used where Icon is nil
+	EffectPix []Picture     // Effects' pictures so, by effect; used where Pic is nil
 	Floor     color.RGBA    // the ground's colour
 	Dungeon   bool          // tiles 0..DungeonTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
 	Units     []Unit
@@ -55,7 +56,7 @@ type Battle struct {
 	Reach     []image.Point          // squares a click walks to from the main menu (the active unit's move)
 	Paths     map[image.Point][]Step // the walk to each Reach square, from the unit's own square
 	Targets   []int                  // units (by ID) ActAttack takes on the turn; aiming: the foes Tab cycles through
-	Turn      *Turn                  // the player's turn waits for an action (nil: no one to act for)
+	Turn      *Turn                  // the player's turn waits for an action (nil: no one to act for). The game fills it on every player's turn, even one whose only offer is Can: the presenter builds a Turn itself only for an AskSquare or AskMove question (askedBattle), since pace, the bar, the Cast list and the status row all read this one field
 	Panel     int                    // the unit the status row shows (who acts, or is being hit)
 	Log       []string               // this battle's messages, oldest first
 	Area      bool                   // Marks are a spell's area (else a move's reach or a choice)
@@ -69,15 +70,16 @@ type Battle struct {
 
 // Turn is what the acting member may do (the original's combat menu).
 type Turn struct {
-	Unit      int        // whose turn
-	Can       []ActKind  // the actions offered, in the menu's order
-	Spells    []Spell    // what ActCast casts
-	Maneuvers []Maneuver // extra: what ActManeuver does (the rule set's; empty under the original's)
-	Aim       bool       // aiming: ActAim takes a square, ActPoint previews one, ActClose gives up
-	Casting   string     // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
-	Weapon    *InvItem   // extra: the weapon in hand (its icon on the Attack button), or nil
-	Missile   *InvItem   // extra: what ActRanged shoots (its icon on the Ranged button), or nil
-	Moves     int        // squares of move left
+	Unit      int                // whose turn
+	Can       []ActKind          // the actions offered, in the menu's order
+	Spells    []Spell            // what ActCast casts
+	Maneuvers []Maneuver         // extra: what ActManeuver does (the rule set's; empty under the original's)
+	Aim       bool               // aiming: ActAim takes a square, ActPoint previews one, ActClose gives up
+	Casting   string             // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
+	Weapon    *InvItem           // extra: the weapon in hand (its icon on the Attack button), or nil
+	Missile   *InvItem           // extra: what ActRanged shoots (its icon on the Ranged button), or nil
+	Moves     int                // squares of move left
+	Labels    map[ActKind]string // extra: the game's own words for Can's bar buttons (nil, or a kind missing: the bar's own)
 }
 
 // Effect is a sprite the original draws over the map for a moment.
@@ -309,6 +311,7 @@ type Walls struct {
 	Key          string              // what the scene is built from (map, wall sets): a new Key builds it again
 	Side         [][][4]int          // a square's wall value by side, rows from the top (0: open)
 	Fronts       map[int]image.Image // a wall value's picture: the original's front view of it
+	FrontPix     map[int]Picture     // Fronts as the game's pixels (Picture.Pix, in View.Ink) or DAX refs (File, Block, Frame), the presenter's to make into Fronts
 	Pool         map[int]string      // a wall value's remastered texture by gobox/walls pool name, in place of Fronts
 	Floor, Sky   string              // the flats' pool names (floor_NAME, ceiling_NAME); outside (not View.Inside) the sky shows
 	Sun          bool                // by day outside: the sun up, at SunAz
@@ -483,7 +486,7 @@ type View struct {
 	Intro      *Intro         // the title waits to be played (TitlePicture, TitleCredits, TitleFlash, TitleDone)
 	Full       bool           // Pictures are one whole-screen picture (the title's): fitted to the window
 	Cells      image.Point    // the page's size in text cells (40x25 at least; a larger window gives more, ActResize)
-	Ink        [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now
+	Ink        [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now (all zero: the EGA's own)
 	Portrait   CellRect       // the sheet's portrait box (zero elsewhere): Shift-click takes the next head (ActHead), a dropped PNG becomes the portrait (ActPortrait)
 	IconDrop   bool           // the combat icon editor is up: a dropped PNG becomes the member's icon (ActIcon)
 	IconBox    CellRect       // the creation sheet's combat icon (zero elsewhere): a PNG dropped on it becomes the icon (ActIcon)
