@@ -5,7 +5,10 @@
 // rules.State / Decision / Apply / Pending / Event. Stdlib only.
 package game
 
-import "image"
+import (
+	"image"
+	"image/color"
+)
 
 // Rules is a game's rules engine. It never blocks and starts no goroutines.
 type Rules interface {
@@ -93,6 +96,32 @@ type State struct {
 	Bestiary               []Beast     // the monsters the party has met
 	Picker                 *Picker     // a grid picker is up
 	IconEditor             *IconEditor // the combat icon designer is up
+	Page                   *Page       // the text page: the game's scripted text and story pictures
+}
+
+// Page is the text a game wrote and the pictures it showed: scripted text,
+// story pages and the messages in the text window. Lines hold runs in the
+// colours the game chose; the front lays them out.
+type Page struct {
+	Pane   [][]TextRun // the messages' lines (nil: no message shown)
+	Prompt []TextRun   // the prompt row's text
+	View   [][]TextRun // text over the view window, rows from 1
+	Layers []Layer     // the pictures, bottom first
+}
+
+// TextRun is text in one colour on a line from column X (Upcase: the
+// glyphs of a game that upcases what it writes).
+type TextRun struct {
+	X      int
+	Text   string
+	Fg, Bg color.RGBA
+	Upcase bool
+}
+
+// Layer is a picture placed on the page: At in pixels of the page.
+type Layer struct {
+	Picture
+	At image.Rectangle
 }
 
 // Picker is a grid picker up (the creation's heads and bodies, the icon's
