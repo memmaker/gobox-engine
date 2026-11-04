@@ -17,6 +17,10 @@ import (
 // menu bar and Esc on the command bar the renderer's options.
 func (p *Presenter) Key(k uint16, v front.View) {
 	v = p.own(v)
+	if p.paneMore { // a key brings the pane's next lot of lines
+		p.paneFrom += v.Pane.Rows
+		return
+	}
 	if v.Sequence != nil { // a key ends the animation
 		front.SequenceStep(p, &p.seq, v.Sequence, true)
 		p.seqMusic(p.seq.Cues)

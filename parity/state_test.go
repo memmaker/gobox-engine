@@ -75,6 +75,8 @@ var unsetLate = []string{
 	`"Reloads":false,"Pooled":null,`, // Shop
 	`,"View":false`,                  // Ask
 	`"Marker":"",`,                   // Automap
+	`,"PaneRows":0`,                  // Page
+	`,"Frames":null,"FrameMs":0`,     // Layer
 }
 
 // sum is the first bytes of the hash of v's JSON.

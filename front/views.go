@@ -25,6 +25,8 @@ type Picture struct {
 	At           image.Rectangle
 	Fill         bool
 	Colour       color.RGBA
+	Frames       []int // with FrameMs: the presenter cycles Frame through these (empty: static)
+	FrameMs      int
 }
 
 // PickHead .. PickForget are the pickers OpenPicker readies.

@@ -374,6 +374,7 @@ type Member struct {
 // the messages and the debug values put there, a line per row.
 type Pane struct {
 	Lines [][]PaneRun
+	Rows  int // >0: the presenter shows Rows lines at a time and a key brings the next lot (0: all)
 }
 
 // PaneRun is text in one colour on a pane line from column X of the pane

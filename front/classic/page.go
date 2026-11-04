@@ -38,7 +38,7 @@ func Page(v front.View, s game.State) front.View {
 		return v
 	}
 	if p.Pane != nil {
-		v.Pane = &front.Pane{Lines: paneLines(p.Pane)}
+		v.Pane = &front.Pane{Lines: paneLines(p.Pane), Rows: p.PaneRows}
 	} else {
 		v.Pane = nil
 	}
@@ -47,6 +47,7 @@ func Page(v front.View, s game.State) front.View {
 	for _, l := range p.Layers {
 		f := pix(l.Picture)
 		f.File, f.Block, f.Frame, f.At = l.File, l.Block, l.Frame, l.At
+		f.Frames, f.FrameMs = l.Frames, l.FrameMs
 		v.Pictures = append(v.Pictures, f)
 	}
 	return v

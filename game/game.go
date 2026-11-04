@@ -331,10 +331,11 @@ type Flags struct {
 // story pages and the messages in the text window. Lines hold runs in the
 // colours the game chose; the front lays them out.
 type Page struct {
-	Pane   [][]TextRun // the messages' lines (nil: no message shown)
-	Prompt []TextRun   // the prompt row's text
-	View   [][]TextRun // text over the view window, rows from 1
-	Layers []Layer     // the pictures, bottom first
+	Pane     [][]TextRun // the messages' lines (nil: no message shown)
+	Prompt   []TextRun   // the prompt row's text
+	View     [][]TextRun // text over the view window, rows from 1
+	Layers   []Layer     // the pictures, bottom first
+	PaneRows int         // >0: the front shows this many Pane lines at a time and waits for a key before the next lot (0: no paging)
 }
 
 // TextRun is text in one colour on a line from column X (Upcase: the
@@ -349,7 +350,9 @@ type TextRun struct {
 // Layer is a picture placed on the page: At in pixels of the page.
 type Layer struct {
 	Picture
-	At image.Rectangle
+	At      image.Rectangle
+	Frames  []int // with FrameMs: the front cycles the picture through these frames (empty: static)
+	FrameMs int   // the milliseconds each of Frames shows (0: static)
 }
 
 // Picker is a grid picker up (the creation's heads and bodies, the icon's
