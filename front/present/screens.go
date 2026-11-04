@@ -24,10 +24,11 @@ import (
 
 // Sub-screens of a page screen.
 const (
-	scrMain  = iota
-	scrField // a drop-down (scr.field)
-	scrType  // a line being typed
-	scrAsk   // a yes/no question
+	scrMain   = iota
+	scrField  // a drop-down (scr.field)
+	scrType   // a line being typed
+	scrAsk    // a yes/no question
+	scrPowers // the creation's power picks (Creation.Powers)
 )
 
 const scrRows = 14 // the lines a page screen's menu shows at a time
@@ -95,12 +96,29 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 		cr := v.Creation
 		switch s.sub {
 		case scrField:
-			fl := cr.Fields[s.field]
+			fl := crField(cr, s.field)
 			var it []ui.MenuRow
 			for _, i := range fieldOrder(fl) {
-				it = append(it, ui.MenuRow{Text: fl.Options[i].Text, Key: 0, Do: func() { s.open(scrMain); s.anchor = nil; p.sendX(front.ActSetField, s.field, i) }})
+				it = append(it, ui.MenuRow{Text: fl.Options[i].Text, Key: 0, Do: func() {
+					f := s.field
+					s.open(scrMain)
+					if s.anchor = nil; f >= len(cr.Fields) {
+						s.open(scrPowers) // back to the picks
+					}
+					p.sendX(front.ActSetField, f, i)
+				}})
 			}
 			return "", it
+		case scrPowers:
+			var it []ui.MenuRow
+			for i, fl := range cr.Powers {
+				t := "(choose)"
+				if fl.Cur >= 0 {
+					t = fl.Options[fl.Cur].Text
+				}
+				it = append(it, ui.MenuRow{Text: upFirst(fl.Name) + ": " + t, Key: 0, Do: func() { p.openField(cr, len(cr.Fields)+i); s.anchor = nil }})
+			}
+			return "Powers", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: func() { s.open(scrMain) }})
 		}
 	case "slots":
 		sl := v.Slots
@@ -175,7 +193,10 @@ func (p *Presenter) minimal(cr *front.Creation) {
 // fieldOrder is the drop-down's rows: the value the field holds first,
 // over the field's text, the rest below in their order.
 func fieldOrder(fl front.Field) []int {
-	order := []int{fl.Cur}
+	var order []int
+	if fl.Cur >= 0 {
+		order = append(order, fl.Cur)
+	}
 	for i := range fl.Options {
 		if i != fl.Cur {
 			order = append(order, i)
@@ -204,7 +225,7 @@ func (p *Presenter) openField(cr *front.Creation, f int) {
 	s := &p.scr
 	s.open(scrField)
 	s.field, s.sel = f, 0 // the value it holds: the first row
-	at := cr.Fields[f].At
+	at := crField(cr, f).At
 	s.anchor = &at
 }
 
@@ -252,7 +273,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 		off[0] = false
 	}
 	if s.sub == scrField && v.Creation != nil { // grey: picking it changes what depends on it
-		fl := v.Creation.Fields[s.field]
+		fl := crField(v.Creation, s.field)
 		for r, i := range fieldOrder(fl) {
 			off[r] = !fl.Options[i].Fits
 		}
@@ -686,6 +707,9 @@ func barWords(v front.View) []footWord {
 	ws := []string{"Keep", "Exit"}
 	if v.IconEditor == nil {
 		ws = []string{"Roll", "Minimal", "Keep", "Exit"}
+		if v.Creation != nil && len(v.Creation.Powers) > 0 {
+			ws = []string{"Roll", "Minimal", "Powers", "Keep", "Exit"}
+		}
 	}
 	var out []footWord
 	x := 0
@@ -701,6 +725,8 @@ func (p *Presenter) barDo(v front.View, h byte) func() {
 	return func() {
 		cr := v.Creation
 		switch {
+		case h == 'K' && cr != nil && slices.ContainsFunc(cr.Powers, func(f front.Field) bool { return f.Cur < 0 }), h == 'P' && cr != nil:
+			p.scr.open(scrPowers) // a power still to pick: the picks first
 		case h == 'K':
 			p.send(front.ActKeep, 0)
 		case h == 'E' && (v.IconEditor != nil || cr == nil):
@@ -766,4 +792,20 @@ func nearest(sp []spot, cur int, d image.Point) int {
 		}
 	}
 	return best
+}
+
+// crField is creation field f: the four on the page, then the power picks.
+func crField(cr *front.Creation, f int) front.Field {
+	if f < len(cr.Fields) {
+		return cr.Fields[f]
+	}
+	return cr.Powers[f-len(cr.Fields)]
+}
+
+// upFirst is s with its first letter upper case.
+func upFirst(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }

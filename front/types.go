@@ -19,6 +19,7 @@ func (r CellRect) Framed() CellRect { return CellRect{r.X1 - 1, r.Y1 - 1, r.X2 +
 // cells a click on the name, an ability, the portrait or the icon takes.
 type Creation struct {
 	Fields   [4]Field // FieldSex, FieldRace, FieldAlign, FieldClass
+	Powers   []Field  // the rule set's power picks (ActSetField N 4+i), off the page: the bar's Powers; Cur -1: none picked yet
 	Name     CellRect
 	Stats    [6]CellRect // STR .. CHA
 	Head     CellRect    // the portrait's head (PickHead) ...

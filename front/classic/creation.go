@@ -28,6 +28,13 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 			fl.Options = append(fl.Options, front.Option{Text: o, Fits: i < len(cf.Fits) && cf.Fits[i]})
 		}
 	}
+	for _, cf := range c.Fields[min(len(c.Fields), len(v.Fields)):] {
+		fl := front.Field{Name: cf.Name, Cur: cf.Pick}
+		for i, o := range cf.Options {
+			fl.Options = append(fl.Options, front.Option{Text: o, Fits: i < len(cf.Fits) && cf.Fits[i]})
+		}
+		v.Powers = append(v.Powers, fl)
+	}
 	g := 0
 	if sex := v.Fields[front.FieldSex]; sex.Cur >= 0 && sex.Cur < len(sex.Options) {
 		g = len(sex.Options[sex.Cur].Text)
