@@ -20,7 +20,13 @@ type classicGame struct {
 func (g classicGame) View() front.View {
 	s := g.r.State()
 	v := classic.View(g.Game.View(), s)
-	v.AreaMap = classic.AreaMap(v.AreaMap, s, gameArt)
+	if v.AreaMap != nil {
+		art := gameArt
+		if d, ok := g.Game.(interface{ Data() game.Data }); ok {
+			art = d.Data().Art // as loaded now: the art comes after NewFront, and the art set can change
+		}
+		v.AreaMap = classic.AreaMap(v.AreaMap, s, art)
+	}
 	return v
 }
 

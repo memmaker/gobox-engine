@@ -165,6 +165,14 @@ func TestOverlandParity(t *testing.T) {
 	if art["marker/"+strconv.Itoa(s.Where.Facing)].Pixels == nil || art["terrain/"+strconv.Itoa(s.Map.Terrain[0])].Pixels == nil {
 		t.Fatal("no overland art")
 	}
+	if reflect.ValueOf(e.Data().Art).Pointer() != reflect.ValueOf(art).Pointer() {
+		t.Error("overland art rebuilt with nothing changed")
+	}
+	rules.DOSArt.Store(!rules.DOSArt.Load())
+	if reflect.ValueOf(e.Data().Art).Pointer() == reflect.ValueOf(art).Pointer() {
+		t.Error("overland art kept across an art set change")
+	}
+	rules.DOSArt.Store(!rules.DOSArt.Load())
 	if got := classic.AreaMap(v.AreaMap, s, art); !reflect.DeepEqual(got, v.AreaMap) {
 		t.Errorf("area map\n got %+v\nwant %+v", got.Party, v.AreaMap.Party)
 	}
