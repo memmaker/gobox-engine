@@ -76,6 +76,8 @@ replace gobox/walls => ../walls
 
 replace gobox/front => ../front
 
+replace gobox/sprites => ../sprites
+
 replace gobox/rules => ../rules
 
 replace gobox/char => ../char
