@@ -19,7 +19,13 @@ type classicGame struct {
 
 func (g classicGame) View() front.View {
 	s := g.r.State()
-	v := classic.View(g.Game.View(), s)
+	var gv front.View
+	if c, ok := g.Game.(interface{ ViewOf(game.State) front.View }); ok { // one State a View, not two
+		gv = c.ViewOf(s)
+	} else {
+		gv = g.Game.View()
+	}
+	v := classic.View(gv, s)
 	if v.AreaMap != nil {
 		v.AreaMap = classic.AreaMap(v.AreaMap, s, g.art())
 	}

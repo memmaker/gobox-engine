@@ -82,8 +82,14 @@ func (g *Game) art() map[string]game.Picture {
 	return g.D.Art
 }
 
-func (g *Game) View() front.View {
-	s := g.state()
+func (g *Game) View() front.View { return g.ViewOf(g.R.State()) }
+
+// ViewOf is View over s, the rules' State already read (a builder that
+// reads it too need not build it twice).
+func (g *Game) ViewOf(s game.State) front.View {
+	if g.asked != nil {
+		s.Pending, s.Mode = g.asked, game.ModeAsk
+	}
 	art := g.art()
 	v := front.View{Exploring: s.Mode == game.ModeExplore}
 	if s.Map.Size == image.Pt(16, 16) {
