@@ -161,7 +161,9 @@ func TestTitleParity(t *testing.T) {
 	if logo == nil {
 		t.Fatal("no title picture")
 	}
-	if got := sum([]any{logo, backdrop}); got != wantTitle {
+	bd := *backdrop // the file's name, not where the checkout is
+	bd.File = filepath.Base(bd.File)
+	if got := sum([]any{logo, bd}); got != wantTitle {
 		t.Errorf("title %s, por %s", got, wantTitle)
 	}
 	if c := gameOf(e).View(); !reflect.DeepEqual(c.Logo, logo) || !reflect.DeepEqual(c.Backdrop, backdrop) || c.MainMenu == nil {

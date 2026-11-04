@@ -110,5 +110,5 @@ func atKey(t *testing.T, key string, g []string) {
 // and the party menu's title and backdrop.
 const (
 	wantBorder = "ef7552"
-	wantTitle  = "19e1c6"
+	wantTitle  = "7ce7ab"
 )
