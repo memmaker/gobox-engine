@@ -79,7 +79,9 @@ type Presenter struct {
 	answered    string                      // the text pane under the last question: once it is answered, that text is done
 	mapImg      *gpu.Image                  // View.Map on the GPU
 	mapAt       image.Rectangle             // where drawMap last put the minimap (a click there opens the full map)
-	mapSrc      *front.MapSquares           // the View.Map it holds
+	mapSrc      *front.MapSquares           // the View.Map it holds (a copy: each View builds a new one)
+	mapInk      [16]color.RGBA              // the ink it was drawn in
+	mapFont     int                         // and the font (fonts.Cur, -1: the game's own)
 	menuRects   []image.Rectangle           // the vertical menu's items on screen, as last drawn
 	scrolls     ui.Bars                     // the scroll bars drawn this frame (scrollbar.go) and the drag
 	logTop      int                         // the battle Log's first line shown

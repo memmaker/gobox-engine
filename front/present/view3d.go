@@ -48,9 +48,14 @@ func (p *Presenter) drawMap(dst *gpu.Image, v front.View, font func(byte, bool) 
 	if p.mapImg == nil {
 		p.mapImg = gpu.NewImage(mapSide, mapSide)
 	}
-	if v.Map != p.mapSrc { // a new View: upload it once
+	cur := -1
+	if p.fonts != nil {
+		cur = p.fonts.Cur
+	}
+	if p.mapSrc == nil || *v.Map != *p.mapSrc || v.Ink != p.mapInk || cur != p.mapFont { // the map changed: upload it once (not every View, which builds a new one)
 		p.mapImg.WritePixels(mapImage(v.Map, mapCell, v.Ink, font).Pix)
-		p.mapSrc = v.Map
+		m := *v.Map
+		p.mapSrc, p.mapInk, p.mapFont = &m, v.Ink, cur
 	}
 	r := mapRect(dst, len(v.Party))
 	p.mapAt = r
