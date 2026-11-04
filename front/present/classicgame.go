@@ -30,6 +30,7 @@ func (g classicGame) View() front.View {
 	v = classic.Page(v, s)
 	v = classic.Flags(v, s)
 	v = classic.Border(v, g.art())
+	v = classic.Walls(v, s, g.art())
 	return v
 }
 
