@@ -23,3 +23,12 @@ func TestMap(t *testing.T) {
 		t.Errorf("full map %+v", f)
 	}
 }
+
+// TestFullMapNoSquares: the front's M asks FullMap with no squares yet; a
+// 16x16 map up must still come back with squares (nil crashed present.mapImage).
+func TestFullMapNoSquares(t *testing.T) {
+	s := game.State{Map: game.Automap{Size: image.Pt(16, 16)}}
+	if f := FullMap(&front.FullMap{}, s); f == nil || f.Map == nil {
+		t.Fatalf("FullMap: %+v", f)
+	}
+}

@@ -167,7 +167,10 @@ func FullMap(f *front.FullMap, s game.State) *front.FullMap {
 		return nil // no 16x16 map up: nothing to draw (a FullMap without Map crashed the presenter)
 	}
 	c := *f
-	c.Name, c.Map, c.Labelled, c.Mine, c.Legend = s.Map.Area, Map(f.Map, s), false, false, nil
+	if c.Map == nil { // the front's own M asks with no squares yet (Map keeps nil as nil)
+		c.Map = &front.MapSquares{}
+	}
+	c.Name, c.Map, c.Labelled, c.Mine, c.Legend = s.Map.Area, Map(c.Map, s), false, false, nil
 	c.Info = fmt.Sprintf("%d,%d", f.Cursor.X, f.Cursor.Y)
 	ls := labels(s.Map)
 	texts, l := letters(ls)
