@@ -1,6 +1,7 @@
 package parity
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -35,6 +36,11 @@ func groups(s game.State) (out []string) {
 		pace, p.Seq = int(p.Pace), 0
 		s.Pacing = &p
 	}
+	var shop any = s.Shop
+	if s.Shop != nil && !s.Shop.Reloads && s.Shop.Pooled == nil { // fields added after the hashes were taken: hashed only when set
+		b, _ := json.Marshal(s.Shop)
+		shop = json.RawMessage(bytes.Replace(b, []byte(`"Reloads":false,"Pooled":null,`), nil, 1))
+	}
 	for _, g := range []struct {
 		name string
 		v    any
@@ -44,7 +50,7 @@ func groups(s game.State) (out []string) {
 		{"page", s.Page}, {"read", s.Read}, {"note", s.Note.Text}, {"results", s.Results}, {"walls", s.Walls},
 		{"place", []any{s.Where, s.Window}}, {"quests", s.Quests}, {"lore", s.Lore}, {"party", []any{s.Party, s.Selected, s.Purse}},
 		{"sheet", []any{s.Sheet, s.SheetPage, s.Portrait, s.IconBox}}, {"items", []any{s.Items, s.PoolItems, s.PartyCap, s.Allowed}},
-		{"shop", []any{s.Shop, s.Temple, s.TempleName, s.TempleOffers}}, {"loot", s.Loot}, {"map", s.Map},
+		{"shop", []any{shop, s.Temple, s.TempleName, s.TempleOffers}}, {"loot", s.Loot}, {"map", s.Map},
 		{"camp", []any{s.Bestiary, s.RestHeals, s.RestStudies}}, {"combat", []any{s.Combat, reach}}, {"training", s.Training},
 		{"picker", s.Picker}, {"icon", []any{s.IconEditor, s.IconPalette}}, {"creation", s.Creation},
 	} {
