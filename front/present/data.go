@@ -13,6 +13,7 @@ import (
 	"gobox/audio"
 	"gobox/dax"
 	"gobox/front"
+	"gobox/game"
 	"gobox/ui"
 )
 
@@ -182,3 +183,23 @@ func Sounds() []byte { return sounds }
 
 // Text is the game's named text (Data.Texts; "": none).
 func Text(name string) string { return texts[name] }
+
+// SetGameData overlays the game's declarative game.Data on what SetData
+// handed in: its series and its spell tips (by spell id).
+func SetGameData(g game.Data) {
+	if g.Series != "" {
+		series = g.Series
+	}
+	if g.SpellRules != nil {
+		n := 0
+		for id := range g.SpellRules {
+			n = max(n, id+1)
+		}
+		spellRules = make([]string, n)
+		for id, t := range g.SpellRules {
+			if id >= 0 {
+				spellRules[id] = t
+			}
+		}
+	}
+}
