@@ -11,14 +11,29 @@ import (
 	"io/fs"
 	"sort"
 	"strings"
+	"sync"
 )
 
 //go:embed all:series
 var fsys embed.FS
 
 // Image decodes sprite name (no extension) of series from kind "portraits", "combat" or "items"; nil if absent.
+// Decoded once and kept: callers ask every View, and keep GPU copies by image identity.
 func Image(series, kind, name string) image.Image {
-	b, err := fsys.ReadFile("series/" + series + "/" + kind + "/" + name + ".png")
+	path := "series/" + series + "/" + kind + "/" + name + ".png"
+	if m, ok := decoded.Load(path); ok {
+		im, _ := m.(image.Image)
+		return im
+	}
+	m := decode(path)
+	decoded.Store(path, m)
+	return m
+}
+
+var decoded sync.Map // path -> image.Image (nil too: absent)
+
+func decode(path string) image.Image {
+	b, err := fsys.ReadFile(path)
 	if err != nil {
 		return nil
 	}
