@@ -269,3 +269,20 @@ func TestDirsAskTakesArrows(t *testing.T) {
 		t.Fatal(p.inv.acts)
 	}
 }
+
+// A game's own menu (AskMenu "Continue Battle:") in a fight is answered by
+// its keys and Esc, not left hanging.
+func TestFightMenuKeys(t *testing.T) {
+	v := front.View{Ask: &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "Continue Battle:",
+		Items: []front.MenuItem{{Text: "Yes", Key: 'Y'}, {Text: "No", Key: 'N'}}}}}
+	for _, c := range []struct {
+		k    uint16
+		want front.ActKind
+	}{{'y', front.ActChoose}, {27, front.ActClose}} {
+		p := &Presenter{fight: true, shownView: v}
+		p.key(c.k, v)
+		if a := p.Actions(); len(a) != 1 || a[0].Kind != c.want {
+			t.Errorf("key %x: %v", c.k, a)
+		}
+	}
+}

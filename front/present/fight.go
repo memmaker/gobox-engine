@@ -82,6 +82,18 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 	}
 	p.drawFightRows(dst, note, b, k)
 	cx := dst.Bounds().Dx() / 2
+	p.fightAskAt = nil
+	if m := askMenu(v); m != nil && len(m.Items) > 0 {
+		lines, keys := make([]string, len(m.Items)), make([]byte, len(m.Items))
+		for i, it := range m.Items {
+			lines[i], keys[i] = it.Text, it.Key
+		}
+		if id := menuID(m); id != p.menuFor {
+			p.menuFor, p.sel = id, min(askDefault(v), len(lines)-1)
+		}
+		p.keyWindow(dst, m.Prompt, lines, keys, nil, p.sel, false)
+		p.fightAskAt = slices.Clone(p.winRects)
+	}
 	switch {
 	case p.battle.Picking && b.Turn != nil && p.pick == nil: // the bar's Cast list (View.Ask (AskSpell) is drawn by Draw)
 		p.drawPickList(dst, glyph, k, cx, int(k)*16)
@@ -227,6 +239,21 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *front.Battle, k 
 // fightKey takes key k on the combat screen: the spell list's, L for the
 // Log, else the 3D map's and bar's.
 func (p *Presenter) fightKey(k uint16) bool {
+	if m := askMenu(p.shownView); m != nil && len(m.Items) > 0 { // the game's own menu (Continue Battle: Yes/No ...), over the board
+		keys := make([]byte, len(m.Items))
+		for i, it := range m.Items {
+			keys[i] = it.Key
+		}
+		switch i, back, ok := ui.MenuNav(actOf(k), k, &p.sel, keys); {
+		case back:
+			p.send(front.ActClose, 0)
+		case i >= 0:
+			p.send(front.ActChoose, i)
+		case !ok:
+			return !globalKey(k)
+		}
+		return true
+	}
 	if p.pickKey(k) {
 		return true
 	}
@@ -274,6 +301,12 @@ func (p *Presenter) fightKey(k uint16) bool {
 
 // fightClick takes a click at (x, y) on the combat screen.
 func (p *Presenter) fightClick(x, y int) bool {
+	if askMenu(p.shownView) != nil && len(askMenu(p.shownView).Items) > 0 {
+		if i := slices.IndexFunc(p.fightAskAt, image.Pt(x, y).In); i >= 0 {
+			p.send(front.ActChoose, i)
+		}
+		return true
+	}
 	if p.fightLog {
 		p.fightLog = false
 		return true

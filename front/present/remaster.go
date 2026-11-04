@@ -81,6 +81,7 @@ type Presenter struct {
 	resultsPage sheetCanvas                 // the after-combat page (drawResults)
 	area        ui.AreaMap                  // the overland's map and marker last uploaded (drawAreaMap)
 	areaPic     areaPic                     // the overland's picture built from its squares (drawAreaMap)
+	fightAskAt  []image.Rectangle           // the fight pop-up menu's lines on screen
 	winRects    []image.Rectangle           // the Esc menu's lines on screen, as last drawn
 	noMenu      bool                        // nothing to pick: any click answers
 	pointer     image.Point                 // the mouse, as Hover last saw it (keys move the highlight while it rests)
