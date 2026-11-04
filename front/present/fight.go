@@ -250,6 +250,12 @@ func (p *Presenter) fightKey(k uint16) bool {
 		case i >= 0:
 			p.send(front.ActChoose, i)
 		case !ok:
+			if k > ' ' && k < 128 { // a letter or digit the menu has no line for: the bar's hotkey (Quick) under it
+				p.syncBattle()
+				if p.battle.Key(combatAct(k), k) {
+					return true
+				}
+			}
 			return !globalKey(k)
 		}
 		return true
@@ -289,7 +295,7 @@ func (p *Presenter) fightKey(k uint16) bool {
 		}
 	}
 	p.syncBattle()
-	if p.battle.Key(a, k) {
+	if p.battle.Key(combatAct(k), k) {
 		return true
 	}
 	if a == input.Esc && p.view != nil { // Esc with nothing to give up: the options
