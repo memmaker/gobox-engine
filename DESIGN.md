@@ -70,7 +70,7 @@ fonts into the pool and selects by name.
 
 ## HARD RULE: games draw no UI (the user's, 2026-11-04)
 
-A game module never draws any UI. It does not import UI code (gobox/ui, gobox/front/present, gobox/gpu, gobox/blobber, gobox/combat's presenter, fonts, themes), and it does not even know that a UI is drawn. All UI and frontend come from gobox, transparently, with no part played by the game module. A game is its rules (state, the actions it accepts, the events and texts it produces) plus declarative data. gobox reads that and decides every screen, window, menu, bar, border, pane and key itself. Anything in "The shape of every game" below that has the game build a View, Pane, Ask, BorderPix, cells, Theme or labels conflicts with this rule; this rule wins, and that shape is being redesigned.
+A game module never draws any UI. It does not import UI code (gobox/ui, gobox/front/present, gobox/gpu, gobox/blobber, gobox/combat's presenter, fonts, themes), and it does not even know that a UI is drawn. All UI and frontend come from gobox, transparently, with no part played by the game module. A game is its rules (state, the actions it accepts, the events and texts it produces) plus declarative data. gobox reads that and decides every screen, window, menu, bar, border, pane and key itself.
 
 Decisions (the user's, 2026-11-04): screens POR lacks (a vault, another title flow) are added to gobox like all others and shared; the game only reports that an area script opened that place, as with a shop, temple or training hall. Text and picture placement is UI: gobox decides it all, games send text only. Dev tools, dev scenes, viewdump and screen/golden tests move to gobox and run from recorded game states. Plan: side-session-notes game-contract-plan.md (gobox/game types after pod's State/Decision/Ask/Event; POR's UI becomes gobox/front/classic, the default front; app.Run(rules, data); an import check that may only shrink).
 
@@ -86,32 +86,38 @@ gobox dax/geo/exe/ecl/adf, saves through gobox app/saves. No Electron, no web
 UI, no env vars for behaviour (flags or app Prefs instead).
 
 Packages, the same names in every repo:
-- `rules`: the game's rules engine. `rules.New(dir) (*Engine, error)`; `*Engine`
-  implements `front.Game` itself (`var _ front.Game = (*Engine)(nil)` in rules), with
-  no wrapper or adapter type. It imports no gpu, ui, front/present, app or
-  image-decoding code, starts no goroutines and never blocks for input.
-- `presentdata`: `Data(...) present.Data`: the game's Theme, Series, Entries, Rests,
-  Texts, Bindings, Sounds, LabelInks and box positions. Declarative only: values,
-  tables, DAX refs; no drawing.
-- `cmd/<game>`: main.go only wires it: flags, `rules.New`, `present.SetData`,
-  `app.Run(present.NewFront(e))`, plus a `-setup` step that gameimport's
-  import.toml runs. Data tools (dumps, finders) may sit beside it in cmd/.
+- `rules`: the game's rules engine. `rules.New(dir) (*Engine, error)`; the engine
+  offers `Rules() game.Rules` and `Data() game.Data` (gobox/game only). It
+  imports no gobox/ui, front, gpu, blobber or combat presenter, nor any
+  image-decoding code for drawing; it starts no goroutines and never blocks for
+  input.
+- `game.Data`: everything declarative: font, border, files, sound tables,
+  AdLib songs, rests, credits, labels, art, sequences. It holds values, tables
+  and DAX refs, never drawing.
+- `cmd/<game>`: main.go only wires it: flags, `rules.New`, then
+  `app.Run(classic.NewGame(e.Rules(), e.Data()))`, plus a `-setup` step that
+  gameimport's import.toml runs. cmd/<game> is the only package that may
+  import gobox app, present and classic (scripts/check-game-imports.sh,
+  game/testdata/violations.txt, which may only shrink). Data tools (dumps,
+  finders) may sit beside it in cmd/, with no drawing.
 - adventure data: the original files plus derived declarative files (tables.json,
   area scripts, item/monster tables) read at run time; nothing hard-coded that a
   data file can hold.
 
 Control flow, the same in every game:
-1. app.Run drives present.NewFront(e) frame by frame; the game owns no loop.
-2. `Open(slot)` runs the rules to their first wait; `Settle()` lets them go on
-   and returns the `front.View` snapshot (screen, Ask, Note, Walls, Battle,
-   Events, ...).
-3. Every player decision comes back as a synchronous rule call or
-   `Answer(front.Action)`, which returns a refusal error or nil; nothing else
-   changes game state.
-4. Every rule call and answer is recorded as a decision, so a save fixture can
-   replay a session byte for byte (gobox/fixture); tests are replay goldens.
-5. Anything the player sees or hears goes out through the View: pictures as
-   DAX refs or indexed Pix, sounds and combat steps as View.Events.
+1. app.Run drives gobox's classic front frame by frame; the game owns no loop.
+2. classic reads `game.State` from the rules after every step and builds each
+   screen, window, menu, pane and question from it. The game never sees a
+   View.
+3. Every player decision reaches the rules as a `game.Decision` (game/calls.go),
+   which returns a refusal (with an optional Ask) or nil; nothing else changes
+   game state.
+4. Every decision is recorded, so a save fixture can replay a session byte for
+   byte (gobox/fixture, parity); tests are replay goldens and contract tests
+   against classic.
+5. Anything the player sees or hears goes out through State and its events:
+   pictures as DAX refs, sounds and combat steps as events, intro and ending
+   animations as State.Sequence.
 
 Shared pieces stay shared: one purse (gobox/rules), saving throws, one rolling
 rule, por's menus and sheet, gobox's 3D view and combat board, the asset
