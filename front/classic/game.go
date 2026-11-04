@@ -21,7 +21,8 @@ type Game struct {
 	events []game.Event // the fight's events since the last Settle
 	note   front.Note   // the front's own refusal toast
 	resets int
-	tiles  bool // the weapon picker up is the pool bodies by original ref (TilePicker)
+	tiles  bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
+	asked  *game.Ask // a Refusal's question put instead (answered by its options' Do)
 }
 
 var _ front.Game = (*Game)(nil)
@@ -40,6 +41,10 @@ func (g *Game) do(d game.Decision) error {
 		if e.Kind == game.EvReset {
 			g.resets++
 		}
+	}
+	if r, ok := res.Err.(*game.Refusal); ok && r.Ask != nil { // the question to put instead
+		g.asked = r.Ask
+		return nil
 	}
 	return res.Err
 }
@@ -60,7 +65,7 @@ func (g *Game) step() error {
 
 // View is the page classic builds from State.
 func (g *Game) View() front.View {
-	s := g.R.State()
+	s := g.state()
 	art := g.D.Art
 	if r, ok := g.R.(interface {
 		Art() map[string]game.Picture
@@ -398,6 +403,15 @@ func (g *Game) Answer(a front.Action) error {
 		g.grid = image.Pt(max(a.X, 40), max(a.Y, 25))
 		return g.do(game.Resize{Cols: a.X, Rows: a.Y})
 	}
+	if q := g.asked; q != nil { // a Refusal's question: an option's Do, or anything else drops it
+		g.asked = nil
+		if (a.Kind == front.ActChoose || a.Kind == front.ActOK) && a.N >= 0 && a.N < len(q.Options) && q.Options[a.N].Do != nil {
+			return g.do(q.Options[a.N].Do)
+		}
+		if a.Kind == front.ActClose {
+			return nil
+		}
+	}
 	d, ok := g.decision(a)
 	if !ok {
 		front.Unhandled(a)
@@ -506,7 +520,7 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActTraining:
 		return game.OpenTraining{Member: m}, true
 	case front.ActNewClass:
-		return game.ChangeClass{Member: m, Class: a.X}, true
+		return game.ChangeClass{Member: m, Class: -1}, true // the game asks which (its Refusal's Ask)
 	case front.ActQuickStart:
 		return game.QuickStart{}, true
 	case front.ActBegin:
@@ -549,3 +563,12 @@ func (g *Game) State() game.State { return g.R.State() }
 
 // Rules is the game's rules (present.WithRules wraps the game with gobox's pool pickers).
 func (g *Game) Rules() game.Rules { return g.R }
+
+// state is the rules' state with a Refusal's question pending.
+func (g *Game) state() game.State {
+	s := g.R.State()
+	if g.asked != nil && s.Pending == nil {
+		s.Pending = g.asked
+	}
+	return s
+}
