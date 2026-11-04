@@ -1,0 +1,21 @@
+package classic
+
+import (
+	"slices"
+	"testing"
+
+	"gobox/front"
+	"gobox/game"
+)
+
+func TestPartyMenu(t *testing.T) {
+	s := game.State{Mode: game.ModeParty, Where: game.Where{Detail: map[string]int{HallDetail: 1}},
+		Pending: &game.Ask{Kind: game.Choice, Options: []game.Option{{Label: "Begin Adventuring"}, {Label: "Forget Character"}, {Label: "Exit to DOS"}}}}
+	open, hall := PartyMenu(s)
+	if !hall || !slices.Equal(open, []front.ActKind{front.ActBegin, front.ActForget, front.ActQuit}) {
+		t.Fatal(open, hall)
+	}
+	if open, _ := PartyMenu(game.State{Mode: game.ModeExplore}); open != nil {
+		t.Fatal(open)
+	}
+}
