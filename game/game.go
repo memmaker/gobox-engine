@@ -816,14 +816,15 @@ const (
 )
 
 type (
-	Forward struct{}
-	TurnBy  struct{ By int } // 2 right, 6 left, 4 about
-	Search  struct{}
-	Look    struct{}
-	Select  struct{ N int }
-	Move    struct{ To image.Point } // combat
-	Attack  struct{ Target int }
-	Cast    struct {
+	Forward  struct{}
+	TurnBy   struct{ By int } // 2 right, 6 left, 4 about
+	Sidestep struct{ By int } // a step with the facing kept: 4 back, 6 left, 2 right (rules that have none refuse it)
+	Search   struct{}
+	Look     struct{}
+	Select   struct{ N int }
+	Move     struct{ To image.Point } // combat
+	Attack   struct{ Target int }
+	Cast     struct {
 		Member, Spell, Target int // Member: outside combat, who casts
 		At                    image.Point
 		Ats                   []image.Point // one square per target, when the spell takes several
@@ -930,6 +931,7 @@ func (Answer) decision()    {}
 func (Cancel) decision()    {}
 func (Adjust) decision()    {}
 func (Forward) decision()   {}
+func (Sidestep) decision()  {}
 func (TurnBy) decision()    {}
 func (Search) decision()    {}
 func (Look) decision()      {}

@@ -273,10 +273,10 @@ func (g *Game) SetStat(i int, typed string) error {
 }
 
 // Title: the presenter plays it from State.Intro, the game draws it.
-func (g *Game) TitlePicture(n int) { g.do(game.TitlePicture{N: n}) }
+func (g *Game) TitlePicture(n int)    { g.do(game.TitlePicture{N: n}) }
 func (g *Game) TitleCredits(page int) { g.do(game.TitleCredits{Page: page}) }
-func (g *Game) TitleFlash(c int)   { g.do(game.TitleFlash{C: c}) }
-func (g *Game) TitleDone()         { g.do(game.TitleDone{}) }
+func (g *Game) TitleFlash(c int)      { g.do(game.TitleFlash{C: c}) }
+func (g *Game) TitleDone()            { g.do(game.TitleDone{}) }
 
 // SequenceDone: the presenter played State.Sequence to its end, or it was skipped.
 func (g *Game) SequenceDone(name string) { g.do(game.SequenceDone{Name: name}) }
@@ -563,6 +563,12 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.Answer{Text: a.Text}, true
 	case front.ActForward:
 		return game.Forward{}, true
+	case front.ActBackward:
+		return game.Sidestep{By: 4}, true
+	case front.ActStrafeLeft:
+		return game.Sidestep{By: 6}, true
+	case front.ActStrafeRight:
+		return game.Sidestep{By: 2}, true
 	case front.ActTurnRight:
 		return game.TurnBy{By: 2}, true
 	case front.ActTurnLeft:
