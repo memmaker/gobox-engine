@@ -405,7 +405,10 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if n := len(v.Party); n > 0 && Host.PartyRow { // pop-ups go over the card row
 		b.Max.Y = cardAt(dst)(0, n).Min.Y
 	} else if n > 0 { // pop-ups go between the card columns
-		b.Min.X, b.Max.X = cardAt(dst)(0, n).Max.X, cardAt(dst)(n-1, n).Min.X
+		b.Min.X = cardAt(dst)(0, n).Max.X
+		if n > 1 { // a lone card has no column on the right: the pop-ups run to the edge
+			b.Max.X = cardAt(dst)(n-1, n).Min.X
+		}
 	}
 	// the picture at the top, the text in the middle, an answer's menu right under it
 	pic, txt := innerWindow.Framed(), paneBox.Framed()
