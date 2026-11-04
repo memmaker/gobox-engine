@@ -524,6 +524,10 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.ChangeClass{Member: m, Class: -1}, true // the game asks which (its Refusal's Ask)
 	case front.ActQuickStart:
 		return game.QuickStart{}, true
+	case front.ActCommand: // a game's own party command (Data.Commands)
+		if a.N >= 0 && a.N < len(g.D.Commands) && g.D.Commands[a.N].Do != nil {
+			return g.D.Commands[a.N].Do, true
+		}
 	case front.ActBegin:
 		return game.Begin{}, true
 	case front.ActQuit:

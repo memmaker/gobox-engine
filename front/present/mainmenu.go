@@ -176,7 +176,11 @@ func (m *mainUI) items(h MainHost, v front.MainMenu) (string, []ui.MenuRow) {
 func (m *mainUI) entries(h MainHost, it []ui.MenuRow, party bool) []ui.MenuRow {
 	for _, e := range menuEntries {
 		if e.Party == party {
-			it = append(it, ui.MenuRow{Text: e.Text, Key: e.Key, Do: func() { h.Send(e.Act, -1) }})
+			n := -1
+			if e.Act == front.ActCommand {
+				n = e.N
+			}
+			it = append(it, ui.MenuRow{Text: e.Text, Key: e.Key, Do: func() { h.Send(e.Act, n) }})
 		}
 	}
 	return it

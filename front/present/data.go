@@ -9,7 +9,9 @@ import (
 	"image"
 	"image/color"
 	"io/fs"
+	"os"
 	"path/filepath"
+	"slices"
 	"testing/fstest"
 
 	"gobox/audio"
@@ -181,6 +183,7 @@ type Entry struct {
 	Text  string
 	Key   byte
 	Act   front.ActKind
+	N     int // ActCommand's: the index into game.Data.Commands
 	Party bool
 }
 
@@ -211,6 +214,57 @@ func gameData(g game.Data) {
 			t.Border = Border{File: b.File, Block: b.Block, Pieces: b.Pieces, Caps: b.Caps, Mask: b.Mask, Edges: b.Edges}
 		}
 		applyTheme(t)
+	}
+	if g.Files != "" && daxLoader == nil { // the game's DAX files, decoded here
+		if l, err := dax.NewLoader(g.Files); err == nil {
+			daxLoader = l
+			daxLoader.UseAmiga(filepath.Join(filepath.Dir(l.Dir), "amiga"))
+			daxLoader.SetDOS(true)
+		}
+	}
+	if g.AdLib != nil && daxLoader != nil && adLib == nil {
+		music, _ := os.ReadFile(daxLoader.Path(g.AdLib.Music))
+		snd, _ := os.ReadFile(daxLoader.Path(g.AdLib.Sounds))
+		if music != nil {
+			adLib = &audio.AdLibData{Music: music, Sounds: snd, Effects: g.AdLib.Effects, Rate: g.AdLib.Rate}
+		}
+	}
+	if g.SoundTables != nil {
+		sounds = g.SoundTables
+	}
+	if g.DungeonTiles != 0 {
+		dungeonTiles = g.DungeonTiles
+	}
+	if g.Rests != nil {
+		rests = nil
+		for _, r := range g.Rests {
+			rests = append(rests, Rest(r))
+		}
+	}
+	if g.CreditLines != nil {
+		credits = nil
+		for _, c := range g.CreditLines {
+			credits = append(credits, Credit(c))
+		}
+	}
+	if g.CreditGaps != nil {
+		creditGaps = g.CreditGaps
+	}
+	if g.IconParts != nil {
+		iconParts = g.IconParts
+	}
+	if g.ReadyMark != "" {
+		readiedMark = g.ReadyMark
+	}
+	menuEntries = slices.DeleteFunc(menuEntries, func(e Entry) bool { return e.Act == front.ActCommand })
+	for i, c := range g.Commands {
+		menuEntries = append(menuEntries, Entry{Text: c.Label, Key: byte(c.Key), Act: front.ActCommand, N: i, Party: true})
+	}
+	if paneBox == (front.CellRect{}) { // the pool games' main screen: the message pane, the view's frame and its picture
+		paneBox, viewWindow, innerWindow = front.CellRect{X1: 1, Y1: 17, X2: 38, Y2: 22}, front.CellRect{X1: 1, Y1: 1, X2: 15, Y2: 15}, front.CellRect{X1: 3, Y1: 3, X2: 13, Y2: 13}
+	}
+	if len(table.Rows) == len(bindings) { // no game rows: digits pick members
+		setBindings([]ui.Binding{MemberDigits})
 	}
 	if g.SpellRules != nil {
 		n := 0

@@ -1034,6 +1034,43 @@ type Data struct {
 	Scans      func(name string) image.Image // the picture a Read's line "\x01name" shows (nil: none)
 	Font       string                        // the ui/fonts pool name of the game's font ("": gobox's default)
 	Border     *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
+
+	Files        string     // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
+	SoundTables  []byte     // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
+	AdLib        *AdLib     // the AdLib music and effects (nil: none)
+	DungeonTiles int        // the tiles at the start of the combat set
+	Rests        []RestKind // camp's rests, in the menu's order (nil: none)
+	CreditLines  []Credit   // the title's credits page, placed (nil: Credits as plain lines)
+	CreditGaps   []int      // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
+	IconParts    []string   // the combat icon designer's parts
+	ReadyMark    string     // shown before a readied item's name ("": none)
+}
+
+// AdLib is the AdLib songs (file Music, song N its block N) and effects
+// (file Sounds, effect N its block Effects[N]), unsigned 8-bit PCM at Rate Hz.
+type AdLib struct {
+	Music, Sounds string
+	Effects       map[int]int
+	Rate          int
+}
+
+// RestKind is one of camp's rests: Text with its Key rests the N way. Fix: offered
+// only while someone heals or studies. Night, NightKey: its text and key at
+// night ("": Text's). Duration: the player sets how long first.
+type RestKind struct {
+	Text     string
+	Key      byte
+	N        int
+	Fix      bool
+	Night    string
+	NightKey byte
+	Duration bool
+}
+
+// Credit is one line of the title's credits page at cell X, Y in EGA colour Colour.
+type Credit struct {
+	X, Y, Colour int
+	Text         string
 }
 
 // Border is the window border as frames of block Block of DAX file File:
