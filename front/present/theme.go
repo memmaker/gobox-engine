@@ -47,6 +47,14 @@ type Border struct {
 	// Frame, Mask) by place instead of File's symbols; a ref with File "": no piece.
 	Pics    [ui.Pieces]front.Picture
 	CapPics [4]front.Picture // the caps' refs, as Pics
+
+	// Edges, when set, give an edge's cells one by one as frames of File's
+	// symbols, corners included: "top" and "bottom" (the screen's top and
+	// bottom rows), "rule" (any other horizontal edge), "left", "right". An
+	// edge of another length keeps the first and last entries at its ends and
+	// repeats the middle ones (the original's cracked borders); a missing
+	// edge draws the Pieces.
+	Edges map[string][]int
 }
 
 // DefaultTheme is por's look.
@@ -73,6 +81,37 @@ func applyTheme(t Theme) {
 	if t.HeadTitles {
 		menuTheme.Title = col(inkCyan)
 	}
+}
+
+// borderEdges is Theme.Border.Edges decoded, by edge (nil: none).
+func borderEdges() map[string][]image.Image {
+	b := theme.Border
+	if b.File == "" || len(b.Edges) == 0 {
+		return nil
+	}
+	mask := -1
+	if b.Mask != nil {
+		mask = int(*b.Mask)
+	}
+	out := map[string][]image.Image{}
+	for k, fs := range b.Edges {
+		for _, f := range fs {
+			out[k] = append(out[k], daxMasked(b.File, b.Block, f, mask))
+		}
+	}
+	return out
+}
+
+// edgeCell is the entry of an m-entry edge sequence for cell i of n: the
+// ends fixed, the middle entries repeated.
+func edgeCell(i, n, m int) int {
+	switch {
+	case m <= 2 || i == 0:
+		return min(i, m-1)
+	case i == n-1:
+		return m - 1
+	}
+	return (i-1)%(m-2) + 1
 }
 
 // borderPieces is v's border pieces, or Theme.Border's decoded when the

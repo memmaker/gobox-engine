@@ -328,6 +328,43 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		tile(l, f.X1, y)
 		tile(r, f.X2, y)
 	}
+	if v.Border != ([8]image.Image{}) {
+		return // the game's own pieces
+	}
+	es := borderEdges()
+	put := func(t image.Image, x, y int) {
+		if t != nil {
+			draw.Draw(m, image.Rect(x*8, y*8, x*8+8, y*8+8), t, t.Bounds().Min, draw.Src)
+		}
+	}
+	run := func(seq []image.Image, n int, at func(i int) (int, int)) {
+		for i := range n {
+			x, y := at(i)
+			put(seq[edgeCell(i, n, len(seq))], x, y)
+		}
+	}
+	h, w := f.Y2-f.Y1+1, f.X2-f.X1+1
+	for _, side := range []struct {
+		key string
+		x   int
+	}{{"left", f.X1}, {"right", f.X2}} {
+		if seq := es[side.key]; len(seq) > 0 {
+			run(seq, h, func(i int) (int, int) { return side.x, f.Y1 + i })
+		}
+	}
+	for _, edge := range []struct {
+		key, outer string
+		y          int
+		outerRow   bool
+	}{{"rule", "top", f.Y1, f.Y1 == 0}, {"rule", "bottom", f.Y2, f.Y2 >= v.Cells.Y-1}} {
+		key := edge.key
+		if edge.outerRow {
+			key = edge.outer
+		}
+		if seq := es[key]; len(seq) > 0 {
+			run(seq, w, func(i int) (int, int) { return f.X1 + i, edge.y })
+		}
+	}
 }
 
 // draw draws the page into m (its pictures, the borders' cells, the text
