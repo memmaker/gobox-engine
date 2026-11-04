@@ -147,7 +147,8 @@ type Automap struct {
 	Size   image.Point
 	Known  []image.Point // squares seen
 	Marked []image.Point
-	Walls  []Wall // by square
+	Notes  []string // the player's text for each Marked square
+	Walls  []Wall   // by square
 	Doors  []Wall
 }
 
@@ -403,7 +404,10 @@ type (
 		N     int
 		Text  string
 	}
-	AddChar  struct{ Roster int }
+	AddChar struct {
+		Roster int
+		From   string // a roster the game imports from (Data.Imports), "" its own
+	}
 	DropChar struct{ Member int }
 	Begin    struct{}
 	Wait     struct{} // combat: end turn / hold
@@ -412,7 +416,10 @@ type (
 		Slot int
 		Name string // the slot's name, gobox's; empty keeps the slot's own
 	}
-	Load struct{ Slot int }
+	Load struct {
+		Slot int
+		From string // as AddChar.From
+	}
 
 	// Camp.
 	Fix       struct{ Member int }
@@ -424,7 +431,7 @@ type (
 	// Combat.
 	Guard      struct{}
 	EndTurn    struct{}
-	Quick      struct{}
+	Quick      struct{ All bool } // All: the whole party, else the unit whose turn it is
 	Bandage    struct{ Member int }
 	TurnUndead struct{}
 	Aim        struct{ At image.Point }
@@ -577,4 +584,5 @@ type Data struct {
 	Sounds     map[string]string
 	Palette    []byte   // palette bytes
 	Commands   []Option // extra party commands: Decisions with labels
+	Imports    []string // other games' rosters and saves this game reads, by game id
 }
