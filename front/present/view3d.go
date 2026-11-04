@@ -101,6 +101,7 @@ func (p *Presenter) wallScene(w *front.Walls) *blobber.Scene {
 	if sc, ok := p.scenes[name]; ok {
 		return sc
 	}
+	gpu.Note("scene %s built", name)
 	rows := make([]string, len(w.Side))
 	for y := range rows {
 		rows[y] = strings.Repeat(".", len(w.Side[y]))
@@ -190,6 +191,7 @@ func (p *Presenter) sceneNamed(name string) *blobber.Scene {
 		return sc
 	}
 	var sc *blobber.Scene
+	gpu.Note("scene %s parsed", name)
 	if f, err := art.Open("maps/" + name + ".map"); err != nil {
 		log.Println("remaster:", err)
 	} else {
@@ -208,6 +210,7 @@ func (p *Presenter) newView() {
 		p.scenes = map[string]*blobber.Scene{}
 	}
 	if p.view == nil {
+		gpu.Note("3D view made")
 		var err error
 		if p.view, err = blobber.NewView(map[string]image.Image{}); err != nil {
 			log.Fatalln("remaster:", err)

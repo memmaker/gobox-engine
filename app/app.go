@@ -121,6 +121,7 @@ type shell struct {
 
 // Run opens the window and runs the game until it ends.
 func Run(cfg Config) error {
+	gpu.Mark("app.Run")
 	if cfg.TPS <= 0 { // unset: the game would never tick after its first frame (a black, deaf window)
 		cfg.TPS = 60
 	}
@@ -167,6 +168,7 @@ func Run(cfg Config) error {
 	} else if st, ok := cfg.Front.(Starter); ok {
 		st.Start(cfg.Capture.Slot)
 	}
+	gpu.Mark("app.Run: settings and fonts read, the window next")
 	return gpu.RunGame(&shell{cfg: cfg})
 }
 

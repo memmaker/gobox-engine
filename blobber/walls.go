@@ -33,6 +33,7 @@ func wallTexture(name string) *gpu.Image {
 		return nil
 	}
 	t := gpu.NewImageFromImage(img)
+	gpu.Note("texture %s %dx%d", name, img.Bounds().Dx(), img.Bounds().Dy())
 	wallCache[name] = t
 	return t
 }

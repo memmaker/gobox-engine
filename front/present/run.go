@@ -5,6 +5,7 @@
 package present
 
 import (
+	"fmt"
 	"gobox/ui/fonts"
 	"time"
 
@@ -37,6 +38,9 @@ type Front struct {
 	off     *gpu.Image // Frame's offscreen picture
 	v       front.View // the Game's View, kept while fresh (view)
 	fresh   bool
+
+	viewed     bool   // GOBOX_TIMING: a View was logged
+	lastScreen string // and what it showed
 }
 
 // NewFront is a Front over g, with the game's declarative data over what
@@ -44,6 +48,7 @@ type Front struct {
 // one instance shared with its rules), or else through a Driver it builds
 // from Data.Sounds and Data.AmigaSound, on the Tandy, and plays out itself.
 func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
+	gpu.Mark("NewFront")
 	gameData(data)
 	f := &Front{}
 	if font := fonts.Get(theme.Font); font != nil { // the theme's font; a game's own glyphs replace these
@@ -51,6 +56,7 @@ func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
 		f.Font = func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(font, ch, text); return g }
 	}
 	f.chooseFonts(data.Fonts)
+	gpu.Mark("NewFront: fonts")
 	f.Game = WithRules(g, &f.P)
 	if len(snd) > 0 {
 		f.P.Snd = snd[0]
@@ -66,6 +72,7 @@ func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
 		}
 	}
 	f.P.SetEngine(f.Game)
+	gpu.Mark("NewFront: sound out, done")
 	return f
 }
 
@@ -82,9 +89,22 @@ func (f *Front) Start(slot string) {
 // Act, Draw), and each build is the rules' whole State.
 func (f *Front) view() front.View {
 	if !f.fresh {
+		if gpu.Timing {
+			defer f.timedView(time.Now())
+		}
 		f.v, f.fresh = f.Game.View(), true
 	}
 	return f.v
+}
+
+// timedView logs the first View and each change of screen (GOBOX_TIMING).
+func (f *Front) timedView(at time.Time) {
+	v := f.v
+	s := fmt.Sprintf("exploring %v, fight %v, party menu %v, intro %v, page %v, area %d", v.Exploring, v.Battle != nil, v.MainMenu != nil, v.Intro != nil, v.Pane != nil, v.Area)
+	if !f.viewed || s != f.lastScreen {
+		gpu.Mark("View (%.1f ms to build): %s", float64(time.Since(at).Microseconds())/1000, s)
+	}
+	f.viewed, f.lastScreen = true, s
 }
 
 // stale drops the kept View: every call that may change the game or the screens makes it.

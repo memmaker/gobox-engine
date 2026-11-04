@@ -118,8 +118,10 @@ func RunGame(g Game) error {
 		cfg = cfg.WithFullscreen()
 		setComposition(false)
 	}
+	Mark("window: creating")
 	app := gogpu.NewApp(cfg)
 	win.app = app
+	Mark("window: created")
 	if win.full { // the Windows platform ignores the config's fullscreen: apply it as the Esc menu would (a no-op where the config did it)
 		win.toFull.Store(2)
 	}
@@ -160,6 +162,7 @@ func RunGame(g Game) error {
 			}
 			last = time.Now()
 			win.fpsStart = last
+			Mark("device: adopted (the first draw)")
 		}
 		now := time.Now()
 		acc += now.Sub(last).Seconds() * float64(win.tps)
@@ -173,6 +176,11 @@ func RunGame(g Game) error {
 			n = max(n, 1) // Update comes before the first Draw
 		}
 		tu := time.Now()
+		var frameN int
+		if Timing {
+			frameN = timedFrames
+			timedFrames++
+		}
 		for range n {
 			tickInput()
 			if err := g.Update(); err != nil {
@@ -246,6 +254,12 @@ func RunGame(g Game) error {
 			present(screen, view, fw, fh)
 		}
 		win.presentT += time.Since(t1)
+		if Timing {
+			if frameN == 0 {
+				Mark("first frame presented")
+			}
+			slowFrame(frameN, t0.Sub(tu), t1.Sub(t0), time.Since(t1))
+		}
 		if conf.GlitchDir != "" {
 			glitchCheck(screen)
 		}
@@ -272,6 +286,8 @@ func RunGame(g Game) error {
 	}
 	return runErr
 }
+
+var timedFrames int // GOBOX_TIMING's frame count
 
 // Stats counts the GPU work issued since the last FPS line: draw calls,
 // render passes, buffer writes and texture uploads.
