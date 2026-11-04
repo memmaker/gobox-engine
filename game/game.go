@@ -1037,6 +1037,7 @@ type Data struct {
 	Clues      []Clue                        // the clue book's chapters (nil: the game has none)
 	Scans      func(name string) image.Image // the picture a Read's line "\x01name" shows (nil: none)
 	Font       string                        // the ui/fonts pool name of the game's font ("": gobox's default)
+	Fonts      []Typeface                    // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
 	Border     *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
 	Files        string     // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
@@ -1050,6 +1051,12 @@ type Data struct {
 	ReadyMark    string     // shown before a readied item's name ("": none)
 	LabelInks    []int      // a map label's EGA colour by its kind
 	MapCell      int        // pixels a square of the area map (0: gobox's)
+}
+
+// Typeface is an 8x8 text font: 256 glyphs of 8 rows, bit 7 leftmost.
+type Typeface struct {
+	Name string
+	Bits []byte
 }
 
 // AdLib is the AdLib songs (file Music, song N its block N) and effects
