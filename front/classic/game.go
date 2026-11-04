@@ -196,7 +196,13 @@ func (g *Game) posedBattle(e game.Event) *front.Battle {
 	return BattleOf(s, g.art())
 }
 
-func (g *Game) Open(string)       {}
+// Open starts the rules on save slot slot ("" none) when they take it.
+func (g *Game) Open(slot string) {
+	if r, ok := g.R.(interface{ Open(string) }); ok {
+		r.Open(slot)
+	}
+}
+
 func (g *Game) Resets() int       { return g.resets }
 func (g *Game) Refuse(s string)   { g.note = front.Note{Text: s, At: time.Now()} }
 func (g *Game) Animate()          { g.step() }
