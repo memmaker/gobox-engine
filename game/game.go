@@ -396,8 +396,11 @@ type (
 	Begin    struct{}
 	Wait     struct{} // combat: end turn / hold
 	Flee     struct{}
-	Save     struct{ Slot int }
-	Load     struct{ Slot int }
+	Save     struct {
+		Slot int
+		Name string // the slot's name, gobox's; empty keeps the slot's own
+	}
+	Load struct{ Slot int }
 
 	// Camp.
 	Fix       struct{ Member int }
