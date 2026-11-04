@@ -1,0 +1,136 @@
+package classic
+
+import (
+	"slices"
+	"strings"
+
+	"gobox/front"
+	"gobox/game"
+)
+
+// DollSlots are the paper doll's slots by Inventory.Doll index, by
+// game.Item.Slot name.
+var DollSlots = []string{"weapon", "shield", "armor", "gauntlets", "helm", "belt", "robe", "cloak", "boots", "ring", "ring2", "missiles", "launcher"}
+
+// powerKinds are the inventory's member powers by their Gold Box names.
+var powerKinds = map[string]front.ActKind{"Cast": front.ActSpells, "Magic": front.ActMagic, "Heal": front.ActHeal, "Cure": front.ActCure} // ponytail: by name; a Decision per power once game has them
+
+// itemKinds are the party inventory's tabs by game.Item.Kind (the rest: misc).
+var itemKinds = map[string]front.ItemKind{"weapon": front.KindWeapon, "armor": front.KindArmor}
+
+// lines are an item's Look text as lines (nil: none).
+func lines(t string) []string {
+	if t == "" {
+		return nil
+	}
+	return strings.Split(t, "\n")
+}
+
+// invItem is it as the inventory shows it at index i: its icon's type and
+// words, its tab.
+func invItem(i int, it game.Item) front.InvItem {
+	return front.InvItem{Index: i, Name: it.Name, Type: byte(it.Type), Words: it.Words, Count: it.Count,
+		Kind: itemKinds[it.Kind]}
+}
+
+// slotted: it has a doll slot (it can be readied).
+func slotted(it game.Item) bool { return it.Kind != "" && it.Kind != "misc" }
+
+// Inventory is v (the game's; nil: not up) built from s: the selected
+// member's items, readied ones on the doll, what it may do, and with
+// the game's wares up the shop's goods or the treasure beside them.
+func Inventory(v *front.Inventory, s game.State) *front.Inventory {
+	if v == nil || s.Selected < 0 || s.Selected >= len(s.Party) {
+		return v
+	}
+	m := s.Party[s.Selected]
+	n := &front.Inventory{Member: s.Selected, Cap: s.PartyCap, Doll: make([]*front.InvItem, len(DollSlots)),
+		Use: s.Allowed["UseItem"], Sell: s.Allowed["Sell"], Switch: s.Allowed["Select"],
+		Trade: s.Allowed["Trade"], Halve: s.Allowed["Halve"], Join: s.Allowed["Join"]}
+	for _, p := range m.Powers {
+		if k := powerKinds[p.Label]; k != front.ActSpells || !n.Sell { // no spells in a shop
+			n.Powers = append(n.Powers, front.Power{Name: p.Label, Kind: k})
+		}
+	}
+	for i, it := range m.Items {
+		x := invItem(i, it)
+		x.Slot, x.Wrong, x.Use, x.Look, x.Scribe = slotted(it), it.Wrong, it.Usable, lines(it.Text), it.Scribe
+		x.Price = front.Money{Gold: it.Sale[game.Gold], Copper: it.Sale[game.Copper]}
+		if d := slices.Index(DollSlots, it.Slot); it.Readied && d >= 0 && n.Doll[d] == nil {
+			n.Doll[d] = &x
+			continue
+		}
+		x.Readied = it.Readied && it.Slot == "" // readied with no doll slot: the list marks it
+		n.Pool = append(n.Pool, x)
+	}
+	if v.Wares == nil {
+		return n
+	}
+	n.Gold, n.Copper, n.Wares = s.Purse[game.Gold], s.Purse[game.Copper], []front.InvItem{}
+	var goods []game.Item
+	switch {
+	case s.Loot != nil:
+		goods, n.Loot = s.Loot.Items, true
+	case s.Shop != nil:
+		goods = s.Shop.Goods
+	}
+	for i, it := range goods {
+		x := invItem(i, it)
+		x.Slot, x.Wrong, x.Look, x.Price = slotted(it), it.Wrong, lines(it.Text), front.Money{Gold: it.Price}
+		n.Wares = append(n.Wares, x)
+	}
+	return n
+}
+
+// appraise is the gems and jewelry to value, with the offer made (o).
+func appraise(s game.State, o []game.Offer) front.Appraise {
+	a := front.Appraise{Gems: s.Purse[game.Gems], Jewelry: s.Purse[game.Jewelry]}
+	if len(o) > 0 {
+		a.Valued, a.Jewel, a.CanKeep = o[0].Value, o[0].Kind == game.Jewelry, o[0].CanKeep
+	}
+	return a
+}
+
+// Temple is t (the game's; nil: not up) built from s: the services for
+// the selected member, needed or why not.
+func Temple(t *front.Temple, s game.State) *front.Temple {
+	if t == nil || s.Temple == nil {
+		return t
+	}
+	v := &front.Temple{Gold: s.Purse[game.Gold], Appraise: appraise(s, s.TempleOffers)}
+	for _, sv := range s.Temple {
+		v.Cures = append(v.Cures, front.Cure{Name: sv.Name, Price: sv.Price, Not: sv.Not[s.Selected],
+			Needed: s.Selected < 0 || s.Selected >= len(s.Party) || slices.Contains(sv.Needs, s.Selected)})
+	}
+	return v
+}
+
+// Shop is h (the game's; nil: not up) built from s: what Id would tell
+// about, its price, the last reveal.
+func Shop(h *front.Shop, s game.State) *front.Shop {
+	sh := s.Shop
+	if h == nil || sh == nil {
+		return h
+	}
+	v := &front.Shop{IDPrice: sh.IdentifyPrice, Gold: s.Purse[game.Gold], Appraise: appraise(s, sh.Offers), IdentifiedN: sh.Identifies}
+	item := func(r game.ItemRef) *game.Item {
+		if r.Member >= 0 && r.Member < len(s.Party) && r.Item >= 0 && r.Item < len(s.Party[r.Member].Items) {
+			return &s.Party[r.Member].Items[r.Item]
+		}
+		return nil
+	}
+	for _, r := range sh.Unknown {
+		if it := item(r); it != nil {
+			x := invItem(0, *it)
+			v.Unknown = append(v.Unknown, front.Unknown{Member: r.Member, Item: r.Item, Owner: s.Party[r.Member].Name, Name: it.Name, Icon: &x})
+		}
+	}
+	if r := sh.Identified; r != nil {
+		if it := item(*r); it != nil {
+			x := invItem(0, *it)
+			x.Look = lines(it.Text)
+			v.Identified = &x
+		}
+	}
+	return v
+}
