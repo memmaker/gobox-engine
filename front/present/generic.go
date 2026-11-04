@@ -57,6 +57,8 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 	}
 	if th > 0 { // the text along the bottom
 		p.paneBox(dst, note, v, k, cx, b.Dy()-gap-int(th/2))
+		p.menuFloor = b.Dy() - gap - int(th) // its question goes above the text, not over it
+		defer func() { p.menuFloor = 0 }()
 	}
 	p.drawPageMenu(dst, note, v)
 	return Rect{0, 0, float64(b.Dx()), float64(b.Dy())}

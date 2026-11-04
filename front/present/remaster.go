@@ -151,6 +151,7 @@ type Presenter struct {
 	scr         screenUI                    // the page screens' questions (screens.go)
 	screen      image.Rectangle             // the window, as last drawn
 	confirmFor  string                      // the yes/no question (View.Ask, AskConfirm) up, as last drawn ...
+	menuFloor   int                         // the page's text pane's top: a bottom menu stops above it (drawGeneric; 0 none)
 	confirmSel  int                         // ... its highlight (Yes 0, No 1) ...
 	confirmAt   []image.Rectangle           // ... and its rows on screen
 	noteBtn     image.Rectangle             // the text box's "> Notes" on the window (empty: no text box)

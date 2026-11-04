@@ -255,6 +255,9 @@ func (p *Presenter) keyWindow(screen *gpu.Image, title string, lines []string, k
 		bottom = false
 	}
 	b := screen.Bounds()
+	if bottom && p.menuFloor > 0 {
+		b.Max.Y = p.menuFloor
+	}
 	k, top := ui.KeyWindowFit(b, scale(screen), title, lines, bottom)
 	rects := slices.Clone(p.menuRects) // not the game's menu: its clicks stay
 	defer func() { p.menuRects = rects }()
