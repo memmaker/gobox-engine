@@ -436,7 +436,6 @@ type Member struct {
 	SlotsMax                             map[string]int // spell slots in all, keys as Slots
 	CanCast                              bool           // may cast now (status, no-magic area)
 	Powers                               []Option       // the member\'s special powers menu (Decisions)
-	Foe                                  bool           // on the monsters' side (gobox colours its name as such)
 	Chosen                               bool           // the card is marked: the selected member, or the candidate while one is picked
 	Colour                               int            // the roster colour of the name (EGA number)
 	Head                                 string         // the head the player chose: a Data.Art name, "" none
@@ -445,6 +444,7 @@ type Member struct {
 	LevelExp, NextExp                    int            // the experience the level took and the next takes (0: none)
 	SpellsReady, Memo                    string         // spells ready over the slots ("0/3"), in camp too
 	Effects                              []Line         // the sheet's list of spell effects on the member, as the game words it
+	Foe                                  bool           // on the monsters' side (gobox colours its name as such); last, for parity's unsetLate
 }
 
 // SpellRef is a spell a member knows or has memorized.

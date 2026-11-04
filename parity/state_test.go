@@ -78,9 +78,8 @@ var unsetLate = []string{
 	`,"PaneRows":0`,                  // Page
 	`,"Blink":false`,                 // TextRun
 	`,"Frames":null,"FrameMs":0`,     // Layer
-	`,"Ms":0,"Page":null`,            // Event
-	`,"Pose":0`,                      // Event
-	`"Foe":false,`,                   // Member
+	`,"Ms":0,"Page":null,"Pose":0}`,  // Event (Unit ends in "Pose" too)
+	`,"Foe":false}`,                  // Member (its last field)
 }
 
 // sum is the first bytes of the hash of v's JSON.
@@ -90,7 +89,11 @@ func sum(v any) string {
 		return "unmarshalable: " + err.Error()
 	}
 	for _, f := range unsetLate {
-		b = bytes.ReplaceAll(b, []byte(f), nil)
+		var keep []byte
+		if strings.HasSuffix(f, "}") { // a struct's last field: the struct's "}" stays
+			keep = []byte("}")
+		}
+		b = bytes.ReplaceAll(b, []byte(f), keep)
 	}
 	h := sha256.Sum256(b)
 	return hex.EncodeToString(h[:3])
