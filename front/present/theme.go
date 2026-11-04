@@ -13,6 +13,8 @@ type Theme struct {
 	Font    string // the ui/fonts pool name of the default font
 	Palette Palette
 	Border  Border
+
+	HeadTitles bool // menu titles and the slot page's column heads in the Heading colour (else Text, the titles of the menus, and the Hotkey colour)
 }
 
 // Palette is the presenter's colours by role, as EGA indices.
@@ -60,6 +62,9 @@ func applyTheme(t Theme) {
 	menuTheme = ui.MenuTheme{
 		Text: col(inkGreen), Hot: col(inkWhite), Off: col(inkDark), Sel: col(inkBlue),
 		Gold: col(inkYellow), Head: col(inkCyan), Red: col(inkRed), Foot: col(inkYellow),
+	}
+	if t.HeadTitles {
+		menuTheme.Title = col(inkCyan)
 	}
 }
 

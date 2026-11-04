@@ -206,9 +206,13 @@ func screenPage(v front.View) *cellPage {
 		c.box(1, 1, c.cols-2, c.rows-2, inkWhite, "Saved Games")
 		if len(sl.Names) > 0 { // the column heads above the rows (slotList: text from column 3)
 			w, lc := slotCols(c.cols)
-			c.str(3, 2, inkWhite, "Name")
-			c.str(3+lc, 2, inkWhite, "Level")
-			c.str(3+w-4, 2, inkWhite, "Date")
+			h := inkWhite
+			if theme.HeadTitles {
+				h = inkCyan
+			}
+			c.str(3, 2, h, "Name")
+			c.str(3+lc, 2, h, "Level")
+			c.str(3+w-4, 2, h, "Date")
 		}
 		if !sl.CanSave && !sl.LoadOnly {
 			c.str(2, c.rows-4, inkYellow, "No saving now") // promptRow-3
