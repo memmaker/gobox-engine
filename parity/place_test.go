@@ -94,3 +94,38 @@ func TestPlaceState(t *testing.T) {
 		}
 	}
 }
+
+// TestTrainingParity: classic's training offer equals por's, member by
+// member, trained and learning.
+func TestTrainingParity(t *testing.T) {
+	same := func(name string, e *rules.Engine) {
+		t.Helper()
+		if got, want := classic.Training(e.Rules().State()), e.TrainingView(); !reflect.DeepEqual(got, want) {
+			t.Errorf("%s: training\n got %+v\nwant %+v", name, got, want)
+		}
+	}
+	h := engine(t, true, "hall")
+	settled(h, front.Action{})
+	same("hall closed", h)
+	if err := h.OpenTraining(0); err != nil {
+		t.Fatal(err)
+	}
+	settled(h, front.Action{})
+	for i := range h.Rules().State().Party {
+		h.Rules().Apply(game.Select{N: i})
+		settled(h, front.Action{})
+		same("hall member", h)
+	}
+	learned := false
+	for i := range h.Rules().State().Party { // each member trained: a mage level learns a spell
+		x := engine(t, true, "hall")
+		settled(x, front.Action{})
+		if x.OpenTraining(i) != nil || x.Train() != nil {
+			continue
+		}
+		settled(x, front.Action{})
+		same("trained", x)
+		learned = learned || x.TrainingView() != nil && len(x.TrainingView().Learn) > 0
+	}
+	t.Logf("a spell to learn compared: %v", learned)
+}

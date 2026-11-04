@@ -10,7 +10,7 @@ import (
 
 // classicGame is a game that also gives its rules as a game.Rules: the
 // screens front/classic builds from its State stand in for the game's own
-// (classic.View, classic.Creation); everything else is the game's.
+// (classic.View, classic.Creation, classic.Training); everything else is the game's.
 type classicGame struct {
 	front.Game
 	r game.Rules
@@ -28,6 +28,9 @@ func (g classicGame) CreationView() *front.Creation {
 func (g classicGame) FullMapView(cursor image.Point, label *string) *front.FullMap {
 	return classic.FullMap(g.Game.FullMapView(cursor, label), g.r.State())
 }
+
+// TrainingView is the hall's offer classic.Training builds from State.
+func (g classicGame) TrainingView() *front.Training { return classic.Training(g.r.State()) }
 
 // WithRules is g as classicGame (p lays out its page) when it gives its rules (Rules()).
 func WithRules(g front.Game, p *Presenter) front.Game {
