@@ -13,7 +13,7 @@ require (
 	github.com/gogpu/naga v0.19.0 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
 	gobox/blobber v0.0.0
-	gobox/ega v0.0.0 // indirect
+	gobox/ega v0.0.0
 	gobox/front v0.0.0
 	gobox/input v0.0.0
 	gobox/ui v0.0.0
@@ -37,3 +37,7 @@ replace gobox/input => ../input
 replace gobox/ui => ../ui
 
 replace gobox/ega => ../ega
+
+require gobox/dax v0.0.0
+
+replace gobox/dax => ../dax
