@@ -68,6 +68,10 @@ fonts into the pool and selects by name.
 - Text: games never draw text; they name a font and gobox ui draws.
 - WALLDEF trailing partial chunk: dropped (whole 780-byte chunks only), as the later games' developers did.
 
+## HARD RULE: games draw no UI (the user's, 2026-11-04)
+
+A game module never draws any UI. It does not import UI code (gobox/ui, gobox/front/present, gobox/gpu, gobox/blobber, gobox/combat's presenter, fonts, themes), and it does not even know that a UI is drawn. All UI and frontend come from gobox, transparently, with no part played by the game module. A game is its rules (state, the actions it accepts, the events and texts it produces) plus declarative data. gobox reads that and decides every screen, window, menu, bar, border, pane and key itself. Anything in "The shape of every game" below that has the game build a View, Pane, Ask, BorderPix, cells, Theme or labels conflicts with this rule; this rule wins, and that shape is being redesigned.
+
 ## The shape of every game (the user's, 2026-11-04)
 
 Every Gold Box game ported to Go (por-go, cotab-go, sotsb-go, pod-go, and the
