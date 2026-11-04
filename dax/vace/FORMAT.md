@@ -16,7 +16,7 @@ switch is at 1FB1, table cs:1333).
 
 | op | len | meaning |
 |----|-----|---------|
-| 0  | 4  | speed: frame delay = 62 / w0 timer ticks (18.2 Hz BIOS clock; with music on VACE uses 261 / w0 of the sound driver's faster clock, the same ~3.4 s / w0) |
+| 0  | 4  | speed: frame delay = 62 / w0 (integer) timer ticks of 18.2065 Hz; with music on (226A) 261 / w0 ticks of 72.8227 Hz: VACE counts every INT 8 (its ISR at 30A1) and SOUND.COM sets the PIT divisor to 0x4000. About 5% slower, more after the truncation. Decode uses the music clock when the script loads a song |
 | 1  | 2  | end of script |
 | 2  | 6  | palette entry, set at once: hi(w0) index, lo(w0) R, hi(w1) G, lo(w1) B, VGA 6-bit |
 | 3  | 2  | wait until the delay since the last frame is up, then draw the next frame (frames past the last are skipped) |
@@ -31,7 +31,7 @@ switch is at 1FB1, table cs:1333).
 Palette fades are runs of op 2 between "empty" frames (op 3 on a frame
 that changes nothing).
 
-INTRO: 14 chunks, 133 frames, about 74 s. FINAL: 6 chunks, 58 frames, about 29 s.
+INTRO: 14 chunks, 133 frames, about 82 s with music (74 s without). FINAL: 6 chunks, 58 frames, about 33 s (29 s).
 Both load and play their song (P1, P3) before the first frame.
 
 ## .BMA: the frames
@@ -71,5 +71,17 @@ data (68000 big-endian words; the format is shared with SSI's other ports).
   tracks: byte pairs note/duration (`32 04`, `80 04` a rest) and
   0x80-0x87 commands (`84 xx` most often).
 
-Not decoded further: SOUND.COM's sequencer was not reversed, so the
-event meanings and tempo are unknown and the songs do not play yet.
+`P1.SMS` and `P3.SMS` are byte-identical to `MUSIC.DAX` blocks 1 and 3:
+the same song block the game hands SOUND.COM (driver fn 0 load, fn 1 play
+song 0, fn 3 stop). The sequencer (note/duration pairs, the 0x81-0xFE
+commands, 0xFF end, the 72.8 Hz PIT clock with events on even ticks, the
+tempo divisor = a SLBR song header word / 84, instrument loading) is
+reversed in pod-go `docs/MUSIC.md` and ported register for register in
+`gobox/audio/adlibseq.go`. P1: divisor 198, tracks of 878/330/337 events;
+P3: 167, 146/156/114.
+
+Playback: the game's Data lists each sequence's songs (`Sequence.Music`);
+`front/present` reads `NAME.SMS` from the files directory into
+`audio.AdLibData.Named` (deduplicated against the DAX blocks) and plays the
+cues while the animation shows: load picks the song, play starts it on the
+AdLib soundtrack, stop or the animation's end (or a skip) stops it.

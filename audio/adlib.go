@@ -1,8 +1,10 @@
 package audio
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
+	"slices"
 
 	"github.com/memmaker/opl2"
 )
@@ -15,10 +17,11 @@ type AdLib struct {
 	effects       map[int][]byte
 	rate          int // effect sample rate (Hz)
 
-	chip *opl2.Chip
-	rs   *opl2.Resampler
-	song int // block playing, 0 none
-	seq  *sequencer
+	chip  *opl2.Chip
+	rs    *opl2.Resampler
+	song  int            // block playing, 0 none
+	named map[string]int // AdLibData.Named: name -> block
+	seq   *sequencer
 
 	acc int // PIT ticks accumulated, in 1193182/(outRate*16384) units
 	fx  []byte
@@ -27,10 +30,11 @@ type AdLib struct {
 
 // AdLibData is what the game supplies.
 type AdLibData struct {
-	Music   []byte      // MUSIC.DAX: song n is block n
-	Sounds  []byte      // ZOUNDS.DAX; may be nil
-	Effects map[int]int // effect number -> Sounds block id
-	Rate    int         // effect playback rate, Hz (9000 for PoD)
+	Music   []byte            // MUSIC.DAX: song n is block n
+	Sounds  []byte            // ZOUNDS.DAX; may be nil
+	Effects map[int]int       // effect number -> Sounds block id
+	Rate    int               // effect playback rate, Hz (9000 for PoD)
+	Named   map[string][]byte // more song blocks by name (a VACE cue's .SMS file); Named finds them
 }
 
 const adlibRate = 44100
@@ -52,6 +56,15 @@ func NewAdLib(d AdLibData) (*AdLib, error) {
 			continue
 		}
 		a.effects[n] = a.sounds[id] // raw u8 PCM, as the original hands it to DigPak
+	}
+	a.named = map[string]int{}
+	for name, b := range d.Named { // an .SMS file is a song block: reuse an equal one
+		n := slices.IndexFunc(a.music, func(m []byte) bool { return bytes.Equal(m, b) })
+		if n < 1 {
+			n = len(a.music)
+			a.music = append(a.music, b)
+		}
+		a.named[name] = n
 	}
 	a.chip = opl2.New()
 	a.rs = opl2.NewResampler(a.chip, adlibRate)
@@ -98,6 +111,14 @@ func daxBlocks(f []byte) ([][]byte, error) {
 		out[id] = b[:min(len(b), raw)]
 	}
 	return out, nil
+}
+
+// Named is the block of the song AdLibData.Named called name (0: none).
+func (a *AdLib) Named(name string) int {
+	if n := a.named[name]; a.Has(n) {
+		return n
+	}
+	return 0
 }
 
 func (a *AdLib) Len() int { return len(a.music) }

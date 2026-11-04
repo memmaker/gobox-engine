@@ -19,6 +19,7 @@ func (p *Presenter) Key(k uint16, v front.View) {
 	v = p.own(v)
 	if v.Sequence != nil { // a key ends the animation
 		front.SequenceStep(p, &p.seq, v.Sequence, true)
+		p.seqMusic(p.seq.Cues)
 		return
 	}
 	if v.Intro != nil { // a key cuts the title's phase short
@@ -202,6 +203,7 @@ func (p *Presenter) Click(x, y int) bool {
 	}
 	if p.shownView.Sequence != nil { // a click ends the animation
 		front.SequenceStep(p, &p.seq, p.shownView.Sequence, true)
+		p.seqMusic(p.seq.Cues)
 		return true
 	}
 	if p.shownView.Intro != nil { // a click cuts the title's phase short

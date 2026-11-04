@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"gobox/audio"
+	"gobox/dax/vace"
 	"gobox/ega"
 	"gobox/front"
 	"gobox/gpu"
@@ -150,6 +151,7 @@ type Presenter struct {
 	ran         int                         // the picker's and editor's calls run: their pages are laid out again
 	slots       *front.SlotsUI              // the save slots up (slots.go)
 	intro       front.IntroUI               // the title being played (title.go)
+	seqSong     string                      // the song the animation loaded last (vace cue "load")
 	seq         front.SequenceUI            // the full-screen animation being played (View.Sequence)
 	seqImg      srcImage                    // its frame on the GPU
 	clue        *clueUI                     // the clue book's chapter list up (cluebook.go)
@@ -176,6 +178,7 @@ type Presenter struct {
 func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	v = p.own(v)
 	if f := front.SequenceStep(p, &p.seq, v.Sequence, false); v.Sequence != nil { // the animation: full screen, over everything
+		p.seqMusic(p.seq.Cues)
 		p.shownView = v
 		dst.Fill(color.Black)
 		if f != nil {
@@ -820,4 +823,23 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 // credits); every other page is drawGeneric's.
 func (p *Presenter) ownLayout(v front.View) bool {
 	return pageScreen(v) || p.modal(v) || v.SheetPage != nil || v.Creation != nil || v.Credits
+}
+
+// seqMusic plays an animation's music cues on the AdLib player's songs
+// (AdLibData.Named): load picks the song, play starts it, stop ends it.
+func (p *Presenter) seqMusic(cues []vace.Cue) {
+	for _, c := range cues {
+		switch c.Op {
+		case "load":
+			p.seqSong = c.Song
+		case "play":
+			if p.AdLib != nil && p.Snd != nil {
+				p.Snd.Song(p.AdLib.Named(p.seqSong), 0, true)
+			}
+		case "stop":
+			if p.AdLib != nil && p.Snd != nil {
+				p.Snd.Song(0, 0, false)
+			}
+		}
+	}
 }

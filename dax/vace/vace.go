@@ -19,6 +19,10 @@ import (
 // Tick is VACE's timer tick without music (the BIOS clock, 18.2065 Hz).
 const Tick = time.Second * 65536 / 1193182
 
+// MusicTick is VACE's tick with music on: SOUND.COM sets the PIT to
+// divisor 0x4000 (72.8227 Hz) and VACE counts every INT 8.
+const MusicTick = time.Second * 16384 / 1193182
+
 // Frame is one picture shown for Delay.
 type Frame struct {
 	Image *image.Paletted
@@ -103,6 +107,14 @@ func Decode(acf, bma []byte) (*Anim, error) {
 		pending *image.Paletted
 		next    int // global frame number
 	)
+	// With music on (VACE 226A) a frame waits 261/arg of the music's ticks,
+	// without 62/arg BIOS ticks; a script that loads a song plays with it.
+	num, tick := 62, Tick
+	for _, r := range recs {
+		if r.op == 8 {
+			num, tick = 261, MusicTick
+		}
+	}
 	for i := range pal {
 		pal[i] = color.RGBA{A: 255}
 	}
@@ -116,9 +128,9 @@ func Decode(acf, bma []byte) (*Anim, error) {
 	}
 	for _, r := range recs {
 		switch r.op {
-		case 0: // speed: a frame every 62/arg ticks
+		case 0: // speed: a frame every num/arg ticks
 			if len(r.w) > 0 && r.w[0] != 0 {
-				delay = time.Duration(62/int(r.w[0])) * Tick
+				delay = time.Duration(num/int(r.w[0])) * tick
 			}
 		case 1: // end
 			flush()
