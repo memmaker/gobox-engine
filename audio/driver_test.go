@@ -106,3 +106,32 @@ func TestCutAfter(t *testing.T) {
 		}
 	}
 }
+
+// fakeTracks: song 27 is a one-shot that ends at once.
+type fakeTracks struct{ song, starts int }
+
+func (f *fakeTracks) Len() int             { return 2 }
+func (f *fakeTracks) Has(n int) bool       { return true }
+func (f *fakeTracks) Song() int            { return f.song }
+func (f *fakeTracks) Reset()               { f.song = 0 }
+func (f *fakeTracks) Start(n int)          { f.song = n; f.starts++ }
+func (f *fakeTracks) Playing() bool        { return f.song != 27 }
+func (f *fakeTracks) Mix(m []byte, _ bool) { clear(m) }
+
+// A one-shot gives way to the song that follows it; again restarts it.
+func TestSongNext(t *testing.T) {
+	d, err := NewDriver(porData, 'T')
+	if err != nil {
+		t.Fatal(err)
+	}
+	tr := &fakeTracks{}
+	d.SetSoundtrack(true, 0, 0)
+	d.Attach(nil, nil, tr, nil, nil, nil)
+	if !d.Song(27, 11, true) || !d.Song(27, 11, true) || tr.starts != 2 {
+		t.Fatalf("again: %d starts", tr.starts)
+	}
+	d.Read(make([]byte, 400))
+	if on, song := d.Track(); !on || song != 11 || tr.song != 11 {
+		t.Fatalf("after the one-shot: on %v song %d", on, song)
+	}
+}

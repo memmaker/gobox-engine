@@ -165,3 +165,5 @@ func newDriver() *audio.Driver {
 	d.Wait(0)
 	return d
 }
+
+var _ front.Sound = (*audio.Driver)(nil)
