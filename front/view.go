@@ -582,6 +582,8 @@ type Training struct {
 	Why     string      // the hall refuses: why
 	Becomes []string    // "a level 3 Fighter" (Train trains)
 	Price   int         // gold
+	Will    string      // the offer's "will become" lines as the game words them ("": Name will become Becomes)
+	Cost    string      // the price as the game writes it ("": Price in gold); red while Gold < Price
 	Gold    int         // the party's gold
 	Learn   []BookSpell // a mage level was gained: the spell for the book (Learn), chosen before leaving
 }

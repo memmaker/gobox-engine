@@ -28,8 +28,15 @@ func (p *Presenter) trainItems(v front.View) (string, []ui.MenuRow) {
 		cost = ui.InkRed
 	}
 	g := func(c rune, s string) string { return string(c) + s + string(c) }
-	return fmt.Sprintf("%s will become\n%s.\n\nTraining costs %s.\nThe party has %s.\n\nDo you wish to train?",
-			t.Name, g(ui.InkGold, strings.Join(t.Becomes, " and ")), g(cost, price(front.Money{Gold: t.Price})), g(ui.InkGold, price(front.Money{Gold: t.Gold}))),
+	will, costs := t.Will, t.Cost
+	if will == "" {
+		will = t.Name + " will become\n" + g(ui.InkGold, strings.Join(t.Becomes, " and ")) + "."
+	}
+	if costs == "" {
+		costs = price(front.Money{Gold: t.Price})
+	}
+	return fmt.Sprintf("%s\n\nTraining costs %s.\nThe party has %s.\n\nDo you wish to train?",
+			will, g(cost, costs), g(ui.InkGold, price(front.Money{Gold: t.Gold}))),
 		[]ui.MenuRow{{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e front.Game) { e.Train(); p.training = e.TrainingView() != nil }) }}, {Text: "No", Key: 'N', Do: leave.Do}}
 }
 
