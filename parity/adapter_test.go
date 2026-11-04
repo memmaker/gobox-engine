@@ -143,7 +143,8 @@ func shownBy(g *classic.Game, p *present.Presenter, as ...front.Action) front.Vi
 	return p.Own(g.View())
 }
 
-// TestPagesAdapter: por's presentdata goldens (creationpng, icon, pickweapon,
+// TestPagesAdapter: por's presentdata goldens (moved here from por's
+// TestCreationPage, unchanged, with its icon editor clicks) (creationpng, icon, pickweapon,
 // the party roster, picksaved, slots) through classic.Game alone.
 func TestPagesAdapter(t *testing.T) {
 	present.Host = &presentdata.Host.Options
@@ -167,7 +168,24 @@ func TestPagesAdapter(t *testing.T) {
 		t.Fatal("Remove left the dropped icon")
 	}
 	golden(t, "icon", v)
-	shownBy(g, p, front.Action{Kind: front.ActIconSize})
+	ed := v.IconEditor
+	for _, k := range []struct {
+		x, y int
+		want front.Action
+	}{
+		{ed.Head.X1, ed.Head.Y1, front.Action{Kind: front.ActPicker, N: front.PickIconHead}},
+		{ed.PoseAt[1].X1, ed.PoseAt[1].Y1 + 5, front.Action{Kind: front.ActPicker, N: front.PickWeapon}},
+		{ed.Size.X2, ed.Size.Y1, front.Action{Kind: front.ActIconSize}},
+		{ed.Parts.X1 + 3, ed.Parts.Y1 + 2, front.Action{Kind: front.ActIconColour, N: 2, X: 1, Y: -1}},
+		{ed.Palette.X1 + 3, ed.Palette.Y1 + 1, front.Action{Kind: front.ActIconColour, N: ed.Part, X: ed.Shade, Y: ed.Colours[9]}},
+	} {
+		if a, ok := present.IconClick(ed, k.x, k.y); !ok || a != k.want {
+			t.Errorf("click %d,%d: %+v, want %+v", k.x, k.y, a, k.want)
+		}
+	}
+	if v = shownBy(g, p, front.Action{Kind: front.ActIconSize}); v.IconEditor == nil || v.IconEditor.Large == ed.Large {
+		t.Error("Size not taken")
+	}
 	shownBy(g, p, front.Action{Kind: front.ActIconSize})
 	golden(t, "pickweapon", shownBy(g, p, front.Action{Kind: front.ActPicker, N: front.PickWeapon}))
 }
