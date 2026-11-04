@@ -30,7 +30,7 @@ const logRows = 20 // the battle Log's lines shown at a time
 // drawFight draws the rows, the bar, whose turn it is, the spell list and the Log over the 3D map.
 func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 	glyph := note.Glyph
-	b, k := v.Battle, scale(dst)
+	b, k := askedBattle(v), scale(dst)
 	p.mapBottom = dst.Bounds().Dy() - int(k)*8*fightRows
 	if b.Turn != nil {
 		for _, m := range v.Party { // whose turn: the portrait card, bottom left
@@ -246,6 +246,20 @@ func (p *Presenter) fightKey(k uint16) bool {
 	}
 	if a == input.PadA { // pad A: as Enter
 		a = input.Enter
+	}
+	if v := p.shownView; askedTurn(v) && v.Ask.Kind == front.AskMove { // a step at a time, as the original's move mode: the direction keys step, Enter is done, Esc undoes
+		if d, ok := keypadDirs[actOf(k)]; ok {
+			p.send(front.ActDir, d)
+			return true
+		}
+		switch a {
+		case input.Enter:
+			p.send(front.ActOK, 0)
+			return true
+		case input.Esc:
+			p.send(front.ActClose, 0)
+			return true
+		}
 	}
 	p.syncBattle()
 	if p.battle.Key(a, k) {

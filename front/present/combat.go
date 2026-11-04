@@ -76,3 +76,62 @@ func toBoard(b *front.Battle) *combat.Board {
 	}
 	return o
 }
+
+// keypadSteps are the keypad's directions (ActDir N) by square offset.
+var keypadSteps = map[image.Point]int{{0, -1}: 8, {1, -1}: 9, {1, 0}: 6, {1, 1}: 3, {0, 1}: 2, {-1, 1}: 1, {-1, 0}: 4, {-1, -1}: 7}
+
+// askedTurn: v's question is a turn the tabletop answers (AskSquare: an
+// aim, AskMove: a step at a time) where the rules publish no Battle.Turn.
+func askedTurn(v front.View) bool {
+	return v.Battle != nil && v.Battle.Turn == nil && v.Ask != nil && (v.Ask.Kind == front.AskSquare || v.Ask.Kind == front.AskMove)
+}
+
+// askedBattle is v's battle, with the active unit's turn its question asks
+// for (askedTurn): an aim, or a move whose reach is the open squares next
+// to the unit and whose End ends it.
+func askedBattle(v front.View) *front.Battle {
+	if !askedTurn(v) {
+		return v.Battle
+	}
+	b := *v.Battle
+	t := &front.Turn{Aim: v.Ask.Kind == front.AskSquare, Can: []front.ActKind{front.ActAim}}
+	var at image.Point
+	for _, u := range b.Units {
+		if u.Active {
+			t.Unit, at = u.ID, image.Pt(u.X, u.Y)
+		}
+	}
+	if !t.Aim {
+		t.Can, b.Reach, b.Paths = []front.ActKind{front.ActEnd}, nil, nil
+		for d := range keypadSteps {
+			if q := at.Add(d); q.In(image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))) && !b.Ground[q.Y][q.X].Wall {
+				b.Reach = append(b.Reach, q)
+			}
+		}
+	}
+	b.Turn = t
+	return &b
+}
+
+// askAction is the tabletop's decision d as the answer to v's question:
+// on a move (askedTurn) a square walked to is that step (ActDir), End is
+// done (ActOK); otherwise toAction's.
+func askAction(v front.View, d combat.Decision) front.Action {
+	if !askedTurn(v) || v.Ask.Kind != front.AskMove {
+		return toAction(d)
+	}
+	switch d.Kind {
+	case combat.ActEnd:
+		return front.Action{Kind: front.ActOK}
+	case combat.ActStep:
+		return front.Action{Kind: front.ActDir, N: d.N}
+	case combat.ActWalk:
+		for _, u := range v.Battle.Units {
+			if n, ok := keypadSteps[image.Pt(d.X-u.X, d.Y-u.Y)]; u.Active && ok {
+				return front.Action{Kind: front.ActDir, N: n}
+			}
+		}
+		return front.Action{}
+	}
+	return toAction(d)
+}

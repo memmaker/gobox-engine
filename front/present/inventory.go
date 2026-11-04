@@ -179,7 +179,7 @@ func (p *Presenter) call(f func(front.Game)) { p.calls.Add(f) }
 // Actions hands over the actions the screens made since the last call.
 func (p *Presenter) Actions() []front.Action {
 	for _, a := range p.battle.Actions() {
-		a := toAction(a) // the turn's are rule calls (pace.go)
+		a := askAction(p.shownView, a) // the turn's are rule calls (pace.go)
 		p.sendA(a)
 	}
 	var as []front.Action

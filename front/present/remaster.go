@@ -256,10 +256,10 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if p.fight {
 		p.shown, p.active, p.menu = "", false, false
-		p.fightView = v.Battle
+		p.fightView = askedBattle(v)
 		p.battle.Glyph = note.Glyph
 		p.syncBattle()
-		p.battle.Draw(dst, toBoard(v.Battle))
+		p.battle.Draw(dst, toBoard(p.fightView))
 		p.drawFight(dst, note, v)
 		if p.view != nil {
 			p.view.DrawMenu(dst) // the Esc menu over the battle
