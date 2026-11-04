@@ -121,6 +121,17 @@ type Game interface {
 	ClueRead(i int) *Read
 
 	View() View // the view published last
+
+	// Running: Open runs the game to its first wait (the title, the party
+	// menu); slot is the save to start from ("" none; the shell's
+	// Capture.Slot). Answer hands the player's decision a to what waits on
+	// it (View.Ask, the page, exploring's commands). Settle, after the
+	// answers of a tick (or none), lets the game go on to its next wait
+	// and publish: the View it returns carries the fight's events since
+	// the last Settle (View.Events), for the presenter to play.
+	Open(slot string)
+	Answer(a Action) error
+	Settle() View
 	// Refuse is the game saying no with s. The front calls it inside a
 	// Call (between frames) to show a call's refusal; a game may call it
 	// itself at any time. Either way the game puts s where its refusals

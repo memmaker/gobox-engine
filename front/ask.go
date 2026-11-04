@@ -19,6 +19,27 @@ const (
 	AskKey                        // "press any key" (the pagers, PromptRow24): any key answers (ActOK, ActPage ...)
 	AskSpell                      // a memorized spell (Spells): ActCast N, ActClose backs out
 	AskConfirm                    // a yes/no question (Menu.Prompt, no Items): ActYes, or ActNo / ActClose; the presenter asks it, starting on No
+	AskSquare                     // a combat map square (aiming a spell, a throw): ActAim X, Y; ActPoint follows the cursor; ActClose gives up
+	AskMove                       // a step-by-step move: each step ActDir N (the keypad's direction); ActOK ends it, ActClose undoes
+	AskModify                     // raise or lower a stat (List's lines): ActModify N with X +1 or -1; ActOK keeps, ActClose gives up
+)
+
+// Role is a colour of the presenter's palette by what it is for (the
+// Theme's Palette); RoleNone: the presenter's own choice.
+type Role int
+
+const (
+	RoleNone Role = iota
+	RoleText
+	RoleHeading
+	RoleSelected
+	RoleOff
+	RoleWarn
+	RoleMark
+	RoleGold
+	RoleHotkey
+	RoleLog
+	RoleBackground
 )
 
 // Ask is the question waiting for the player (View.Ask): every one is
@@ -32,6 +53,12 @@ type Ask struct {
 	Max    int        // AskText, AskNumber: the longest line
 	Ms     int        // AskPause
 	Spells []Spell    // AskSpell: the spells to pick from (ActCast ID)
+
+	Default  int  // the option (or List line) highlighted first
+	Dirs     bool // the direction keys answer too (ActDir N, the keypad's 1..9), as a one-option menu's keypad
+	Reselect bool // ActLead N selects another member while the question stays up
+
+	PromptInk, Ink, HotInk Role // the prompt's, the options' and the hotkeys' and highlight's colours (RoleNone: the presenter's)
 }
 
 // Confirm is a turn call's refusal: it needs the yes/no question asked

@@ -107,6 +107,9 @@ const (
 
 	ActInteract // (extra) run the square's event that waits for it (View.Interact, interact.go)
 
+	ActDir    // a direction key answers View.Ask (Ask.Dirs, AskMove): N is the keypad's 1..9 (8 up, 6 right ...)
+	ActRaise  // AskModify: row N's value goes X (+1 or -1)
+
 )
 
 // Action is one thing the player did on a remastered screen.

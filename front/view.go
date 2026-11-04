@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"strings"
+	"time"
 )
 
 // View and its parts: the game as the player sees it, published by the game
@@ -403,6 +404,13 @@ func (p *Pane) Shown() bool {
 	return false
 }
 
+// Note is a toast for the status line (View.Note): Text, put up at At
+// (zero: none).
+type Note struct {
+	Text string
+	At   time.Time
+}
+
 // View is one published snapshot.
 type View struct {
 	Pane       *Pane // the text pane under the 3D view: out adventuring (Adventure), or it holds text (nil otherwise)
@@ -439,6 +447,7 @@ type View struct {
 	Border     [8]image.Image // the window border's pieces by place (ui.TopLeft ..) in EGA colours; all nil: the presenter decodes Theme.Border
 	Battle     *Battle        // the combat map (nil outside combat)
 	Events     []CombatEvent  // what happened in the fight since the last Apply, in order (Apply's View only)
+	Note       Note           // the status line's toast, shown on the bottom row a while after At
 	Inventory  *Inventory     // the inventory screen is up (nil otherwise)
 	Map        *MapSquares    // the current map, drawn by the presenter at MapCell pixels a square (nil where the game has no map)
 	Pictures   []Picture      // the screen's pictures, symbols and fills, bottom first
