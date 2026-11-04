@@ -309,15 +309,16 @@ type Quest struct {
 // Side[y][x][d] (N E S W) that holds a wall value, textured with that
 // value's picture.
 type Walls struct {
-	Key          string              // what the scene is built from (map, wall sets): a new Key builds it again
-	Side         [][][4]int          // a square's wall value by side, rows from the top (0: open)
-	Fronts       map[int]image.Image // a wall value's picture: the original's front view of it
-	FrontPix     map[int]Picture     // Fronts as the game's pixels (Picture.Pix, in View.Ink) or DAX refs (File, Block, Frame), the presenter's to make into Fronts
-	Pool         map[int]string      // a wall value's remastered texture by gobox/walls pool name, in place of Fronts
-	Floor, Sky   string              // the flats' pool names (floor_NAME, ceiling_NAME); outside (not View.Inside) the sky shows
-	Sun          bool                // by day outside: the sun up, at SunAz
-	SunAz, SunEl float64             // the sun's bearing (compass radians, 0 north, pi/2 east) and height above the horizon
-	Mountains    bool                // by day outside: the mountain range on the horizon
+	Key                 string              // what the scene is built from (map, wall sets): a new Key builds it again
+	Side                [][][4]int          // a square's wall value by side, rows from the top (0: open)
+	Fronts              map[int]image.Image // a wall value's picture: the original's front view of it
+	FrontPix            map[int]Picture     // Fronts as the game's pixels (Picture.Pix, in View.Ink) or DAX refs (File, Block, Frame), the presenter's to make into Fronts
+	Pool                map[int]string      // a wall value's remastered texture by gobox/walls pool name, in place of Fronts
+	Floor, Sky          string              // the flats' pool names (floor_NAME, ceiling_NAME); outside (not View.Inside) the sky shows
+	FloorRGBA, CeilRGBA *color.RGBA         // plain flat colours (nil: none), used where Floor or Sky is "": the pool's floor and ceiling are not
+	Sun                 bool                // by day outside: the sun up, at SunAz
+	SunAz, SunEl        float64             // the sun's bearing (compass radians, 0 north, pi/2 east) and height above the horizon
+	Mountains           bool                // by day outside: the mountain range on the horizon
 }
 
 // Dir is a facing: N, E, S, W.

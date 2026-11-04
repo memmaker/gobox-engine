@@ -98,7 +98,7 @@ func (p *Presenter) wallScene(w *front.Walls) *blobber.Scene {
 		rows[y] = strings.Repeat(".", len(w.Side[y]))
 	}
 	sc := &blobber.Scene{Rows: rows, Faces: map[[3]int][]blobber.FacePart{}, Edges: map[[3]int]bool{},
-		NoMap: map[[3]int]bool{}, Water: map[[2]int]bool{}, Pond: map[[2]int]bool{}, Floor: w.Floor, Ceiling: w.Sky}
+		NoMap: map[[3]int]bool{}, Water: map[[2]int]bool{}, Pond: map[[2]int]bool{}, Floor: w.Floor, Ceiling: w.Sky, FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA}
 	for y, row := range w.Side {
 		for x, sides := range row {
 			for d, n := range sides {

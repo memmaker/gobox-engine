@@ -2,6 +2,8 @@ package blobber
 
 import (
 	"image"
+	"image/color"
+	"image/draw"
 	"strings"
 
 	"gobox/gpu"
@@ -49,6 +51,12 @@ var openSky bool
 // TryCeiling, when set by the host (a dev flag), replaces every map's ceiling.
 var TryCeiling string
 
+// FlatColors are the current map's plain floor and ceiling colours (nil: none), used by
+// FlatTexture where no flat is named; Scene.Show sets them.
+var FlatColors [2]*color.RGBA
+
+var solidCache = map[color.RGBA]*gpu.Image{}
+
 // SetFlats makes floor and ceiling (names from Flats; "" = the default textures) the current
 // map's. Hosts call it on every map change; it holds across GenTextures.
 func SetFlats(floor, ceiling string) {
@@ -69,6 +77,16 @@ func FlatTexture(kind, name string) *gpu.Image {
 		if t := wallTexture(kind + "_" + name); t != nil {
 			return t
 		}
+	}
+	if c := FlatColors[map[string]int{"floor": 0, "ceiling": 1}[kind]]; c != nil && name == "" { // a game's colour, not the pool's flat
+		t, ok := solidCache[*c]
+		if !ok {
+			im := image.NewRGBA(image.Rect(0, 0, 2, 2))
+			draw.Draw(im, im.Bounds(), image.NewUniform(*c), image.Point{}, draw.Src)
+			t = gpu.NewImageFromImage(im)
+			solidCache[*c] = t
+		}
+		return t
 	}
 	if kind == "floor" {
 		return defFloor

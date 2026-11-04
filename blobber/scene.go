@@ -2,6 +2,7 @@ package blobber
 
 import (
 	"fmt"
+	"image/color"
 	"io"
 	"strconv"
 	"strings"
@@ -12,13 +13,14 @@ import (
 // A host keeps one per map and Shows it on entering; the lines that carry
 // game state (objects, items, monsters, events) are the host's.
 type Scene struct {
-	Rows           []string
-	Faces          map[[3]int][]FacePart
-	Edges, NoMap   map[[3]int]bool
-	Water, Pond    map[[2]int]bool
-	Sea            bool
-	Floor, Ceiling string    // painted assets/walls/floor_NAME.png / ceiling_NAME.png ("" = default)
-	Props          []*Object // billboards and wells, fixed in place
+	Rows                []string
+	Faces               map[[3]int][]FacePart
+	Edges, NoMap        map[[3]int]bool
+	Water, Pond         map[[2]int]bool
+	Sea                 bool
+	FloorRGBA, CeilRGBA *color.RGBA // plain flat colours, where Floor or Ceiling is ""
+	Floor, Ceiling      string      // painted assets/walls/floor_NAME.png / ceiling_NAME.png ("" = default)
+	Props               []*Object   // billboards and wells, fixed in place
 }
 
 // ParseScene reads a .map file: the scene, and the lines it left for the host.
@@ -119,6 +121,7 @@ func (s *Scene) line(l string) (bool, error) {
 func (s *Scene) Show(objs ...*Object) {
 	Faces, Edges, Water, NoMap, Pond, Sea = s.Faces, s.Edges, s.Water, s.NoMap, s.Pond, s.Sea
 	worldChanged()
+	FlatColors = [2]*color.RGBA{s.FloorRGBA, s.CeilRGBA}
 	SetFlats(s.Floor, s.Ceiling)
 	Objects = append(append(Objects[:0], s.Props...), objs...)
 }

@@ -1,6 +1,9 @@
 package blobber
 
-import "testing"
+import (
+	"image/color"
+	"testing"
+)
 
 // Follow animates a step or a turn and jumps anything further; held keys never move a View.
 func TestViewFollow(t *testing.T) {
@@ -82,5 +85,15 @@ func TestViewFlow(t *testing.T) {
 	}
 	if g.moving {
 		t.Fatal("still moving after the key was let go")
+	}
+}
+
+// Show hands the scene's flat colours on to FlatTexture.
+func TestSceneFlatColors(t *testing.T) {
+	c := color.RGBA{170, 0, 0, 255}
+	game = &Game{t: 1}
+	(&View{g: game}).Show(&Scene{Rows: []string{"###"}, FloorRGBA: &c}, Camera{})
+	if FlatColors[0] == nil || *FlatColors[0] != c || FlatColors[1] != nil {
+		t.Fatal(FlatColors)
 	}
 }
