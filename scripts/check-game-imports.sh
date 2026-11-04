@@ -2,7 +2,7 @@
 # Prints "game package -> forbidden import" for each package of each game
 # module (tests included) that directly imports UI code. gobox/app is
 # allowed only from cmd/ mains.
-for g in por-go cotab-go sotsb-go pod-go; do
+for g in por-go cotab-go sotsb-go pod-go buckrogers-go; do
   d=$HOME/Projects/$g
   [ -d "$d" ] || continue
   (cd "$d" && go list -test -deps -f '{{if .Module}}{{if .Module.Main}}{{.ImportPath}}|{{join .Imports " "}}{{end}}{{end}}' ./... 2>/dev/null) |
