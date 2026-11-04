@@ -16,7 +16,7 @@ const (
 	IntroNone = iota // not started
 	IntroFirst
 	IntroSecond
-	IntroCredits
+	IntroCredits = 1 << 16 // after the last picture (the pictures are Phase 1, 2, ...)
 )
 
 // IntroUI is the title being played.
@@ -26,6 +26,7 @@ type IntroUI struct {
 	Flash []int     // the lightning's colours left, a step each
 	ms    []int     // ... and each step's length
 	step  time.Time // the flash step's end
+	cut   bool      // a key cut a phase short since the last frame
 	acc   int       // the lightning's chance, as the original's counter
 }
 
@@ -37,6 +38,18 @@ func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
 		return
 	}
 	now := time.Now()
+	if !key {
+		in.cut = false
+	} else if in.cut { // one key cuts one phase, however often it is delivered
+		return
+	}
+	pics := intro.Pictures
+	if pics == nil {
+		pics = []int{1}
+		if intro.Full {
+			pics = []int{1, 2}
+		}
+	}
 	if len(in.Flash) > 0 { // Delay: the step goes on until its time is up or a key
 		if !key && now.Before(in.step) {
 			return
@@ -72,14 +85,14 @@ func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
 	if in.Phase != IntroNone && !key && now.Before(in.end) {
 		return
 	}
+	in.cut = key
 	switch {
-	case in.Phase == IntroNone:
-		in.Phase, in.end = IntroFirst, now.Add(5*time.Second)
-		h.Call(func(e Game) { e.TitlePicture(1) })
-	case in.Phase == IntroFirst && intro.Full:
-		in.Phase, in.end = IntroSecond, now.Add(5*time.Second)
-		h.Call(func(e Game) { e.TitlePicture(2) })
-	case in.Phase == IntroSecond:
+	case in.Phase >= IntroFirst && in.Phase < len(pics) || in.Phase == IntroNone:
+		in.Phase++
+		in.end = now.Add(5 * time.Second)
+		n := pics[in.Phase-1]
+		h.Call(func(e Game) { e.TitlePicture(n) })
+	case in.Phase != IntroCredits:
 		in.Phase, in.end = IntroCredits, now.Add(10*time.Second)
 		h.Call(func(e Game) { e.TitleCredits() })
 	default:

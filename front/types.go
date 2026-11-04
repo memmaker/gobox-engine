@@ -55,6 +55,7 @@ type Option struct {
 // Intro is the title waiting to be played (TitlePicture, TitleCredits,
 // TitleFlash, TitleDone).
 type Intro struct {
-	Full      bool // picture 2 and the credits follow picture 1
-	Lightning bool // picture 2 flashes (EGA graphics: palette entry 1)
+	Full      bool  // picture 2 and the credits follow picture 1 (when Pictures is nil)
+	Pictures  []int // the picture steps, each the n of TitlePicture(n) (nil: 1, with Full 1 and 2); the game starts a step's tune there
+	Lightning bool  // picture 2 flashes (EGA graphics: palette entry 1)
 }
