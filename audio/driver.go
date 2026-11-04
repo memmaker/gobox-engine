@@ -25,6 +25,16 @@ type Tracks interface {
 	Mix(m []byte, loop bool)
 }
 
+// Amiga is an Amiga player the Driver plays instead of the synth:
+// *amiga.Player (PoR's Wally Beben player) or *amiga.MX (SotSB's Music-X).
+type Amiga interface {
+	Song(n int)
+	Effect(n int)
+	Render(out []byte, rate int)
+	Playing() bool
+	Sounding() bool
+}
+
 // Pack is a sound pack's clips playing, mixed in on top (por's dasp); it
 // keeps its own lock, taken inside the driver's.
 type Pack interface{ Mix(p []byte) }
@@ -44,8 +54,8 @@ type Driver struct {
 	wait     int  // the driver's DS:5374
 	cut      int  // output frames until the 0.1 s cut (Stop+Unhook); 0: none
 	syn      *Synth
-	am       *amiga.Player // nil: the DOS driver
-	fx       []int         // the Amiga's effect for Effect n, at n-2
+	am       Amiga // nil: the DOS driver
+	fx       []int // the Amiga's effect for Effect n, at n-2
 	stBuf    []byte
 	stSong   int  // the soundtrack song playing
 	stNext   int  // the song that follows when a one-shot ends
@@ -77,9 +87,12 @@ func NewDriver(data []byte, card byte) (*Driver, error) {
 // Attach turns the driver on with the Amiga players (nil: none) and their
 // effect table, the soundtrack, the sound pack, the voice-over's speaking and
 // the volume sliders ("music", "sfx"); any may be nil.
-func (d *Driver) Attach(am *amiga.Player, fx []int, t Tracks, p Pack, speaking func() bool, vol func(kind string) float64) {
+func (d *Driver) Attach(am Amiga, fx []int, t Tracks, p Pack, speaking func() bool, vol func(kind string) float64) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
+	if p, ok := am.(*amiga.Player); ok && p == nil {
+		am = nil // a nil *amiga.Player (por's SoundParts without SOUND.BIN)
+	}
 	d.am, d.fx, d.t, d.pack = am, fx, t, p
 	if speaking != nil {
 		d.speaking = speaking

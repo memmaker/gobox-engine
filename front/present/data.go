@@ -14,6 +14,7 @@ import (
 	"slices"
 	"testing/fstest"
 
+	"gobox/amiga"
 	"gobox/audio"
 	"gobox/dax"
 	"gobox/front"
@@ -187,6 +188,12 @@ type Entry struct {
 	Party bool
 }
 
+// amigaMX and amigaFx are Data.AmigaMusic's player and effect table (newDriver).
+var (
+	amigaMX *amiga.MX
+	amigaFx []int
+)
+
 // Sounds is the game's sound tables (Data.Sounds), for audio.NewSynth.
 func Sounds() []byte { return sounds }
 
@@ -241,6 +248,14 @@ func gameData(g game.Data) {
 					}
 				}
 			}
+		}
+	}
+	if m := g.AmigaMusic; m != nil && daxLoader != nil && amigaMX == nil {
+		dir := filepath.Join(filepath.Dir(daxLoader.Dir), "amiga")
+		mx, _ := os.ReadFile(filepath.Join(dir, m.Songs))
+		glb, _ := os.ReadFile(filepath.Join(dir, m.Effects))
+		if p, err := amiga.NewMX(mx, glb); err == nil {
+			p.Songs, amigaMX, amigaFx = m.SongOf, p, m.EffectOf
 		}
 	}
 	if g.SoundTables != nil {

@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	_ "embed"
 	"fmt"
+	"gobox/amiga"
 	"testing"
 )
 
@@ -133,5 +134,45 @@ func TestSongNext(t *testing.T) {
 	d.Read(make([]byte, 400))
 	if on, song := d.Track(); !on || song != 11 || tr.song != 11 {
 		t.Fatalf("after the one-shot: on %v song %d", on, song)
+	}
+}
+
+// A Music-X player (amiga.MX) plays through the Driver's Amiga hooks; a nil
+// *amiga.Player (por without SOUND.BIN) leaves the DOS driver.
+func TestDriverMX(t *testing.T) {
+	d := newDriver(t, 'T')
+	d.Attach((*amiga.Player)(nil), nil, nil, nil, nil, nil)
+	d.Effect(3, false)
+	if d.am != nil {
+		t.Fatal("nil *amiga.Player kept")
+	}
+	// one song: note 60 (channel 0, velocity 0x40) for a quarter, end; one looped 32-byte square instrument
+	mx := []byte("MXTX\x00\x78\x00\x00\x00\x01\x00\x00\x00\x02" +
+		"\x3c\x80\x00\x00\x00\xc0" + "\xff\x00\x00\xc0\x00\x00" +
+		"\x00\x01" + "\x00\x00\x00\x00\x80\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x20\x00\x00\x00\x00")
+	for i := range 32 {
+		mx = append(mx, byte(int8(min(1, max(-1, 16-i))*100)))
+	}
+	glb := []byte("GLIB\x00\x00\x00\x00\x00\x01\x00\x00DIG8\x00\x00\x00\x18\x00\x00\x00\x20" + "\x1c\xfa\x00\x00\x00\x02\x40\x40")
+	m, err := amiga.NewMX(mx, glb)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d.Attach(m, []int{0}, nil, nil, nil, nil)
+	d.AmigaSong(1)
+	b := make([]byte, 4*sndRate/2)
+	d.Read(b)
+	if !loud(b) || !d.Sounding() {
+		t.Errorf("song: loud %v, sounding %v", loud(b), d.Sounding())
+	}
+	d.Read(b) // the song's end (0xff) is a quarter (0.5 s at 120) in
+	if d.Sounding() {
+		t.Error("song still going after its end")
+	}
+	d.AmigaSong(0)
+	d.Effect(2, false) // effect 2 -> GLIB entry 0
+	d.Read(b[:16])
+	if !loud(b[:16]) {
+		t.Error("effect silent")
 	}
 }

@@ -181,11 +181,14 @@ func newDriver() *audio.Driver {
 	if err != nil {
 		return nil
 	}
-	var am *amiga.Player
-	if len(amigaSound) == amiga.End-amiga.Base {
+	var am audio.Amiga
+	var fx []int
+	if amigaMX != nil {
+		am, fx = amigaMX, amigaFx
+	} else if len(amigaSound) == amiga.End-amiga.Base {
 		am = amiga.New(amigaSound)
 	}
-	d.Attach(am, nil, nil, nil, nil, nil)
+	d.Attach(am, fx, nil, nil, nil, nil)
 	d.Wait(0)
 	return d
 }

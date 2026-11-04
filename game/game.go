@@ -1061,18 +1061,19 @@ type Data struct {
 	Fonts      []Typeface                    // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
 	Border     *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
-	Sequences    []Sequence // the full-screen animations State.Sequence names (nil: none)
-	Files        string     // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
-	SoundTables  []byte     // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
-	AdLib        *AdLib     // the AdLib music and effects (nil: none)
-	DungeonTiles int        // the tiles at the start of the combat set
-	Rests        []RestKind // camp's rests, in the menu's order (nil: none)
-	CreditLines  []Credit   // the title's credits page, placed (nil: Credits as plain lines)
-	CreditGaps   []int      // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
-	IconParts    []string   // the combat icon designer's parts
-	ReadyMark    string     // shown before a readied item's name ("": none)
-	LabelInks    []int      // a map label's EGA colour by its kind
-	MapCell      int        // pixels a square of the area map (0: gobox's)
+	Sequences    []Sequence  // the full-screen animations State.Sequence names (nil: none)
+	Files        string      // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
+	SoundTables  []byte      // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
+	AdLib        *AdLib      // the AdLib music and effects (nil: none)
+	AmigaMusic   *AmigaMusic // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)
+	DungeonTiles int         // the tiles at the start of the combat set
+	Rests        []RestKind  // camp's rests, in the menu's order (nil: none)
+	CreditLines  []Credit    // the title's credits page, placed (nil: Credits as plain lines)
+	CreditGaps   []int       // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
+	IconParts    []string    // the combat icon designer's parts
+	ReadyMark    string      // shown before a readied item's name ("": none)
+	LabelInks    []int       // a map label's EGA colour by its kind
+	MapCell      int         // pixels a square of the area map (0: gobox's)
 
 	DoorInk, SelectInk color.RGBA        // a door's colour on the maps; the frame round the selected box (zero: gobox's)
 	Logo               *Logo             // how the main menu's lettering is cut from the title picture (nil: none)
@@ -1118,6 +1119,17 @@ type AdLib struct {
 	Effects       map[int]int
 	Rate          int
 	Tempo         int
+}
+
+// AmigaMusic is an Amiga Music-X player's files in the Amiga data directory
+// (data/amiga beside Files; amigaimport Spec.Files copies them off the disks):
+// Songs the MXTX song file, Effects the GLIB library of DIG8 samples ("": none).
+// EvSong n plays the file's song SongOf[n] (0-based; nil: n-1, 0 stops); the
+// game's effect n (PlaySound n, 2 up) plays GLIB entry EffectOf[n-2].
+type AmigaMusic struct {
+	Songs, Effects string
+	SongOf         map[int]int
+	EffectOf       []int
 }
 
 // RestKind is one of camp's rests: Text with its Key rests the N way. Fix: offered
