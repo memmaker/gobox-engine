@@ -204,8 +204,29 @@ func (p *Presenter) sceneNamed(name string) *blobber.Scene {
 	return sc
 }
 
+// wallStyle puts Host.PixelWalls' wall style in use (newView: every scene
+// lookup, so a saved style holds from the first frame): the 3D view drops its
+// textures and scenes (props hold their images), so the next frame draws the
+// other set, each texture decoded again when first drawn.
+func (p *Presenter) wallStyle() {
+	style := "hd"
+	if Host.PixelWalls {
+		style = "pixel"
+	}
+	if walls.Style() == style {
+		return
+	}
+	walls.SetStyle(style)
+	if p.view != nil {
+		p.view.ResetTextures()
+		clear(p.scenes)
+		p.shown = ""
+	}
+}
+
 // newView makes the 3D view and the scenes' cache once.
 func (p *Presenter) newView() {
+	p.wallStyle()
 	if p.scenes == nil {
 		p.scenes = map[string]*blobber.Scene{}
 	}

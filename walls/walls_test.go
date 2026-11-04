@@ -32,3 +32,21 @@ func TestSeriesOnDisk(t *testing.T) {
 		}
 	}
 }
+
+func TestStyle(t *testing.T) {
+	png1 := func(w int) []byte {
+		var b bytes.Buffer
+		png.Encode(&b, image.NewRGBA(image.Rect(0, 0, w, w)))
+		return b.Bytes()
+	}
+	Register("styled", fstest.MapFS{"a.png": {Data: png1(4)}, "b.png": {Data: png1(4)}, "pixel/a.png": {Data: png1(2)}})
+	defer SetStyle("hd")
+	size := func(n string) int { return Image("styled", n).Bounds().Dx() }
+	if Style() != "hd" || size("a") != 4 {
+		t.Fatal("hd: want the hi-def a")
+	}
+	SetStyle("pixel")
+	if Style() != "pixel" || size("a") != 2 || size("b") != 4 || Names("styled")[0] != "a" || len(Names("styled")) != 2 {
+		t.Fatal("pixel: want pixel/a, hi-def b (no pixel one), names unchanged")
+	}
+}

@@ -23,6 +23,7 @@ const (
 	KeyF1          = 0x3B00 // F1; F2..F8 follow at +0x100
 	KeyF9          = 0x4300 // camp: the party's menu
 	KeyF10         = 0x4400 // save / load
+	KeyF11         = 0x8500 // the walls: hi-def, pixel art
 	KeyFontPrev    = 0xFD00 // Ctrl-Shift-F (Ctrl-F is ASCII 6)
 	KeyPadSelect   = 0xE000 // gamepad: choose the highlighted (as Enter)
 	KeyPadMinimap  = 0xE100 // as Tab
@@ -163,6 +164,8 @@ var bindings = []ui.Binding{
 		Codes: []ui.Code{{K: '?', A: input.Help}}},
 	{Ctx: ctxAnytime, Keys: "F10", Desc: "save, load", Mouse: "Esc menu", Pad: "B, then pick",
 		Codes: []ui.Code{{K: KeyF10, A: input.SaveLoad}}},
+	{Ctx: ctxAnytime, Keys: "F11", Desc: "walls: hi-def, pixel", Gap: "the wall style has no mouse or pad way",
+		Codes: []ui.Code{{K: KeyF11, A: input.WallStyle}}},
 	{Ctx: ctxAnytime, Keys: "L D", Desc: "saves: load, delete", Mouse: "click footer", Pad: "X Y"},
 	{Ctx: ctxAnytime, Keys: "Ctrl-S", Desc: "sound on, off", Mouse: "Esc > Audio", Pad: "B, then pick",
 		Codes: []ui.Code{{K: keyCtrlS, A: input.Sound}}},

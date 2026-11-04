@@ -70,17 +70,50 @@ func Series() []string {
 	return out
 }
 
+var pixel bool // the style: pixel/<name>.png over <name>.png where there is one
+
+// SetStyle picks the textures' style: "pixel" (series/<series>/pixel/<name>.png,
+// each falling back to the hi-def one where it is missing) or anything else hi-def.
+func SetStyle(style string) {
+	mu.Lock()
+	defer mu.Unlock()
+	pixel = style == "pixel"
+}
+
+// Style is the textures' style, "hd" or "pixel".
+func Style() string {
+	mu.Lock()
+	defer mu.Unlock()
+	if pixel {
+		return "pixel"
+	}
+	return "hd"
+}
+
+// path is name's file in f in the current style.
+func path(f fs.FS, name string) string {
+	mu.Lock()
+	px := pixel
+	mu.Unlock()
+	if px {
+		if _, err := fs.Stat(f, "pixel/"+name+".png"); err == nil {
+			return "pixel/" + name + ".png"
+		}
+	}
+	return name + ".png"
+}
+
 func file(s, name string) ([]byte, error) {
 	f := open(s)
 	if f == nil {
 		return nil, fs.ErrNotExist
 	}
-	return fs.ReadFile(f, name)
+	return fs.ReadFile(f, path(f, name))
 }
 
 // Image decodes texture name (no extension) of series; nil if absent.
 func Image(series, name string) image.Image {
-	b, err := file(series, name+".png")
+	b, err := file(series, name)
 	if err != nil {
 		return nil
 	}

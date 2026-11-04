@@ -66,10 +66,24 @@ func NewView(textures map[string]image.Image) (*View, error) {
 // camera's square (names as in the package's SetFlats).
 func (v *View) SetFlats(floor, sky string) { SetFlats(floor, sky) }
 
-// ResetTextures forgets the GPU copies of Textures (the host changed them).
+// ResetTextures forgets the GPU copies of Textures and of what Load gave (the
+// host changed them); each decodes again when next drawn. Scenes parsed
+// before hold their props' old images: parse them again.
 func (v *View) ResetTextures() {
+	for _, t := range wallCache {
+		if t != nil {
+			t.Deallocate()
+		}
+	}
 	clear(wallCache)
 	clear(texMats)
+	if texPondWater != nil {
+		texPondWater.Deallocate()
+	}
+	texWater, texClouds, texNightSky, texStars, texPondWater = nil, nil, nil, nil, nil
+	if genMats != nil {
+		paintMats() // the world is rebuilt (SetFlats)
+	}
 }
 
 // Show makes s the scene and puts the camera at c at once.

@@ -1,6 +1,7 @@
 package present
 
 import (
+	"gobox/blobber"
 	"gobox/front"
 	"image"
 	"path/filepath"
@@ -39,7 +40,7 @@ func memberKey(k uint16, cur, n int, lr bool) (int, bool) {
 // load, the sound, the font. A screen passes it on rather than swallowing it.
 func globalKey(k uint16) bool {
 	switch actOf(k) {
-	case input.Help, input.Minimap, input.SaveLoad, input.Sound, input.Font, input.FontPrev:
+	case input.Help, input.Minimap, input.SaveLoad, input.Sound, input.Font, input.FontPrev, input.WallStyle:
 		return true
 	}
 	return false
@@ -154,6 +155,11 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		p.send(front.ActSound, 0)
 	case a == input.SaveLoad:
 		p.openSlots(v, false)
+	case a == input.WallStyle:
+		Host.PixelWalls = !Host.PixelWalls // newView puts it in use
+		if blobber.OnSettings != nil {     // saved with the host's settings
+			blobber.OnSettings(blobber.Settings)
+		}
 	case input.Cursor(a):
 		p.arrow(a, v)
 	case a == input.Help:

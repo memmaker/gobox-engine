@@ -8,6 +8,7 @@ import (
 	"image"
 	"image/color"
 	"io"
+	"maps"
 	"math"
 	"math/rand"
 	"reflect"
@@ -282,6 +283,33 @@ var MatColors = map[byte][2][3]float64{
 
 var mats = map[byte]*mat{}
 
+var genMats map[byte]*mat        // mats as generated, before the painted ones
+var genFloor, genCeil *gpu.Image // the generated floor and ceiling
+
+// paintMats lays the painted textures over the generated materials, floor and ceiling.
+func paintMats() {
+	clear(mats)
+	maps.Copy(mats, genMats)
+	painted := map[byte]string{'#': "stone"} // painted textures, each with an optional NAME_light.png
+	for ch, name := range paintedWalls() {
+		painted[ch] = name
+	}
+	for ch, name := range painted {
+		if t := wallTexture(name); t != nil {
+			mats[ch] = &mat{img: t, lit: wallTexture(name + "_light")}
+		}
+	}
+	texFloor, texCeil = genFloor, genCeil
+	if t := wallTexture("floor"); t != nil { // painted floor and ceiling, when Textures has them
+		texFloor = t
+	}
+	if t := wallTexture("ceiling"); t != nil {
+		texCeil = t
+	}
+	defFloor, defCeil = texFloor, texCeil
+	SetFlats(flatNames[0], flatNames[1])
+}
+
 func genTextures() {
 	rng.Seed(7)
 	worldChanged()
@@ -297,25 +325,10 @@ func genTextures() {
 	}
 	door := stoneMat(16, 128, false, MatColors['W']) // vertical planks
 	mats[Door], mats[Locked] = door, door
-	painted := map[byte]string{'#': "stone"} // painted textures, each with an optional NAME_light.png
-	for ch, name := range paintedWalls() {
-		painted[ch] = name
-	}
-	for ch, name := range painted {
-		if t := wallTexture(name); t != nil {
-			mats[ch] = &mat{img: t, lit: wallTexture(name + "_light")}
-		}
-	}
-	texFloor = genStone(64, 64, false, [3]float64{115, 110, 105}, [3]float64{60, 58, 55}, 0.4, -1)
-	texCeil = genStone(64, 64, false, [3]float64{70, 66, 72}, [3]float64{40, 38, 42}, 0.4, 1)
-	if t := wallTexture("floor"); t != nil { // painted floor and ceiling, when Textures has them
-		texFloor = t
-	}
-	if t := wallTexture("ceiling"); t != nil {
-		texCeil = t
-	}
-	defFloor, defCeil = texFloor, texCeil
-	SetFlats(flatNames[0], flatNames[1])
+	genMats = maps.Clone(mats)
+	genFloor = genStone(64, 64, false, [3]float64{115, 110, 105}, [3]float64{60, 58, 55}, 0.4, -1)
+	genCeil = genStone(64, 64, false, [3]float64{70, 66, 72}, [3]float64{40, 38, 42}, 0.4, 1)
+	paintMats()
 	glow := image.NewRGBA(image.Rect(0, 0, 64, 64))
 	for y := 0; y < 64; y++ {
 		for x := 0; x < 64; x++ {
