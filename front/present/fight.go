@@ -31,7 +31,7 @@ const logRows = 20 // the battle Log's lines shown at a time
 func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 	glyph := note.Glyph
 	b, k := askedBattle(v), scale(dst)
-	p.mapBottom = dst.Bounds().Dy() - int(k)*8*fightRows
+	p.mapBottom = dst.Bounds().Dy() - int(math.Ceil(k*8*fightRows)) // the line is drawn at k, whole or not
 	if b.Turn != nil {
 		for _, m := range v.Party { // whose turn: the portrait card, bottom left
 			if m.Selected {
