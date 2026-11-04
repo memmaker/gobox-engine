@@ -637,6 +637,7 @@ type Camp struct {
 	Studying bool        // someone resting would memorize or scribe a spell (RestFix)
 	Bestiary []Beast     // the monster kinds met
 	Settings []Setting   // the game's numeric options, a row each that steps the value on (ActAlter)
+	Icon     bool        // camp offers the selected member's combat icon editor (ActIconEdit)
 }
 
 // Setting is a numeric option the game publishes in camp: Value 0..Max,
