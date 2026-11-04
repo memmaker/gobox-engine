@@ -94,7 +94,7 @@ func (p *Presenter) ownPicker(v front.View) front.View {
 		v.Picker, v.IconEditor, v.IconDrop = p.gridPick.Layout(p.eng, key), nil, false
 		if v.Picker != nil { // pictures named by DAX ref, as View.Pictures
 			pk := *v.Picker
-			pk.Pics = daxPictures(pk.Pics)
+			pk.Pics = daxPictures(indexedPictures(pk.Pics, v.Ink))
 			v.Picker = &pk
 		}
 	}
@@ -122,7 +122,7 @@ func (p *Presenter) own(v front.View) front.View {
 		p.resets = p.eng.Resets()
 		p.gridPick, p.icon, p.creating, p.training, p.q, p.clue = nil, nil, false, false, nil, nil
 	}
-	v.Pictures = daxPictures(v.Pictures)
+	v.Pictures = daxPictures(indexedPictures(v.Pictures, v.Ink))
 	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
 	if p.slots != nil && p.eng != nil {
 		v.Slots = p.eng.SlotsView(p.slots.LoadOnly)
