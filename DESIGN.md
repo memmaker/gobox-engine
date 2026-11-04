@@ -62,6 +62,7 @@ fonts into the pool and selects by name.
   engine, Theme/Data values and the glue to front's Game interface.
 - Map, minimap and exploration HUD: gobox front (por's as the template); a game supplies only map data, marks and styling.
 - The presenter is gobox's (`front/present`), whole: 3D view hosting, combat board adapter, panes, frames, key bindings. A game keeps no present package and no drawing in cmd; its cmd only hands present.Data to app.Run.
+- Import: every game ships an `import.toml` for ~/Projects/gameimport's `cmd/gameimport` (por-go/import.toml is the template); its `run` steps call the game's own setup commands. goplay is not supported.
 - Text: games never draw text; they name a font and gobox ui draws.
 - WALLDEF trailing partial chunk: dropped (whole 780-byte chunks only), as the later games' developers did.
 
