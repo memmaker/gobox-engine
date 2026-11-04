@@ -1,7 +1,9 @@
-// Package amigaimport finds a Gold Box game's Amiga data disk among .adf
+// Package amigaimport finds a Gold Box game's Amiga disks among .adf
 // images (loose or zipped) and writes its graphics as DOS-layout DAX
 // archives, plus the program disk's SOUND.BIN and the intro's TITLE.PNG.
-// Which archives to convert, and how, is the game's data (Spec).
+// Pool of Radiance ships .dax archives; the later games GLIB libraries
+// (.TLB, glib.go) spread over several disks. Which archives to convert,
+// and how, is the game's data (Spec).
 package amigaimport
 
 import (
@@ -23,18 +25,27 @@ import (
 
 // Gfx is how one archive converts.
 type Gfx struct {
-	Slot   byte // ega.Amiga palette
-	Split  bool // frames pack two tiles side by side
+	Slot   byte // ega.Amiga palette (a 32-colour picture uses Slot and Slot+1)
+	Split  bool // frames pack two tiles side by side (.dax)
 	Sprite bool // animation block
-	XOR    bool // sprite frames XORed against the first
+	XOR    bool // .dax: sprite frames XORed against the first; .TLB: frames after the first are drawn over it (written whole)
+	// .TLB only:
+	Base   int  // an unindexed library's id of its entry 0 (SKY: 0xfa)
+	Frames bool // an unindexed library is one block, id Base, of all its pictures (DUNGCOM: Base 1)
+	Mask   byte // colour written for transparent pixels (the game's mask colour)
 }
 
 // Spec is the game's data.
 type Spec struct {
-	Gfx     map[string]Gfx // lower-case archive name without .dax
-	MinGfx  int            // archives a disk must hold to be the data disk
+	Gfx     map[string]Gfx // lower-case archive name without .dax/.tlb
+	MinGfx  int            // archives a disk must hold to be the data disk (without Disks)
 	Program string         // file holding the sound players ("program")
 	Intro   string         // file holding the painted title ("intro")
+	// Disks are the volume names or file paths (case-insensitive) that mark
+	// this game's disks. When set, every disk matching one is read and no
+	// other: MinGfx is ignored, and of two releases the one whose marker
+	// is listed wins.
+	Disks []string
 }
 
 // Import reads the .adf images under src and writes to out.
@@ -43,9 +54,15 @@ func Import(src, out string, s Spec) error {
 	var snd []byte
 	var title image.Image
 	look := func(img []byte) bool {
-		_, files, err := adf.Read(img)
+		vol, files, err := adf.Read(img)
 		if err != nil {
 			return false
+		}
+		if len(s.Disks) > 0 {
+			if !marked(vol, files, s.Disks) {
+				return false
+			}
+			disk = append(disk, files...)
 		}
 		n := 0
 		for _, f := range files {
@@ -58,6 +75,9 @@ func Import(src, out string, s Spec) error {
 			if _, ok := s.Gfx[strings.TrimSuffix(strings.ToLower(f.Path), ".dax")]; ok {
 				n++
 			}
+		}
+		if len(s.Disks) > 0 {
+			return false // read them all
 		}
 		if n >= s.MinGfx {
 			disk = files
@@ -114,28 +134,70 @@ func Import(src, out string, s Spec) error {
 			return err
 		}
 	}
+	blocks, pals := map[string]map[int][]byte{}, map[string]map[int][]byte{}
 	for _, f := range disk {
-		name := strings.TrimSuffix(strings.ToLower(f.Path), ".dax")
+		name := strings.ToLower(f.Path)
+		name = name[strings.LastIndex(name, "/")+1:]
+		ext := filepath.Ext(name)
+		if len(s.Disks) == 0 {
+			name = strings.ToLower(f.Path) // por: the data disk's own names, as ever
+			ext = ".dax"
+		}
+		name = strings.TrimSuffix(name, ext)
 		g, ok := s.Gfx[name]
 		if !ok {
 			continue
 		}
-		a := dax.OpenAmiga(f.Data)
-		blocks := map[int][]byte{}
-		for _, e := range a.Entries {
-			b := a.BlockShared(e.ID)
-			if len(b) < 16 || e.ID > 255 {
-				continue
-			}
-			if g.Sprite {
-				blocks[e.ID] = dax.AmigaSprite(b, g.XOR, g.Slot)
-			} else {
-				blocks[e.ID] = dax.AmigaImage(b, g.Split, g.Slot)
-			}
+		if blocks[name] == nil {
+			blocks[name], pals[name] = map[int][]byte{}, map[int][]byte{}
 		}
-		if err := os.WriteFile(filepath.Join(out, strings.ToUpper(name)+".DAX"), dax.WriteDOS(blocks), 0o644); err != nil {
+		switch ext {
+		case ".dax":
+			daxBlocks(f.Data, g, blocks[name])
+		case ".tlb":
+			tlbBlocks(f.Data, g, blocks[name], pals[name])
+		}
+	}
+	for name, b := range blocks {
+		if err := os.WriteFile(filepath.Join(out, strings.ToUpper(name)+".DAX"), dax.WriteDOS(b), 0o644); err != nil {
 			return err
+		}
+		if len(pals[name]) > 0 {
+			if err := os.WriteFile(filepath.Join(out, strings.ToUpper(name)+"PAL.DAX"), dax.WriteDOS(pals[name]), 0o644); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
+}
+
+// marked: the disk's volume or one of its files is a marker.
+func marked(vol string, files []adf.File, marks []string) bool {
+	for _, m := range marks {
+		if strings.EqualFold(vol, m) {
+			return true
+		}
+		for _, f := range files {
+			if strings.EqualFold(f.Path, m) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// daxBlocks converts a Pool of Radiance .dax archive.
+func daxBlocks(data []byte, g Gfx, blocks map[int][]byte) {
+	a := dax.OpenAmiga(data)
+	for _, e := range a.Entries {
+		b := a.BlockShared(e.ID)
+		if len(b) < 16 || e.ID > 255 {
+			continue
+		}
+		if g.Sprite {
+			blocks[e.ID] = dax.AmigaSprite(b, g.XOR, g.Slot)
+		} else {
+			blocks[e.ID] = dax.AmigaImage(b, g.Split, g.Slot)
+		}
+	}
 }

@@ -193,6 +193,9 @@ func AmigaSprite(b []byte, xor bool, slot byte) []byte {
 	return out
 }
 
+// wide: an amigaTag header of a one-byte-per-pixel picture.
+func wide(hdr []byte) bool { return len(hdr) > 3 && hdr[0] == 'A' && hdr[1] == 'M' && hdr[3] == 8 }
+
 // WriteDOS packs blocks (id -> decoded bytes) into a DOS .DAX archive with
 // every block stored uncompressed (raw size 0).
 func WriteDOS(blocks map[int][]byte) []byte {
@@ -215,14 +218,17 @@ func WriteDOS(blocks map[int][]byte) []byte {
 }
 
 // amigaTag: an "AM" mark and palette slot in a picture header's unused
-// bytes moves its colours to ega.AmigaBase+16*slot (masked pixels stay Clear).
-func amigaTag(hdr, px []byte) {
+// bytes moves its colours to ega.AmigaBase+16*slot, all but mask (the
+// mask colour, or -1), which clearMask turns Clear afterwards. A fourth
+// byte of 8 marks a wide picture: one byte per pixel, 32 colours over
+// slots slot and slot+1.
+func amigaTag(hdr, px []byte, mask int) {
 	if len(hdr) < 3 || hdr[0] != 'A' || hdr[1] != 'M' {
 		return
 	}
 	base := byte(ega.AmigaBase + 16*int(hdr[2]))
 	for i, c := range px {
-		if c < 16 {
+		if c < 32 && int(c) != mask {
 			px[i] = base + c
 		}
 	}

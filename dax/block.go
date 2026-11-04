@@ -56,19 +56,15 @@ func ParseImage(b []byte, masked bool, maskColour byte) *Image {
 	}
 	im.BPP = im.Height * im.Width * 8
 	im.Data = make([]byte, im.Count*im.BPP)
-	src := b[17:]
-	n := im.Count * im.BPP / 2
-	if n > len(src) {
-		n = len(src)
+	unpack(im.Data, b[17:], wide(b[9:]))
+	mask := -1
+	if masked {
+		mask = int(maskColour)
 	}
-	for i := 0; i < n; i++ {
-		im.Data[i*2] = src[i] >> 4
-		im.Data[i*2+1] = src[i] & 15
-	}
+	amigaTag(b[9:], im.Data, mask)
 	if masked {
 		clearMask(im.Data, maskColour)
 	}
-	amigaTag(b[9:], im.Data)
 	return im
 }
 
@@ -131,6 +127,10 @@ func ParseSprite(b []byte, masked bool, maskColour byte, xor bool) []SpriteFrame
 		y := int(binary.LittleEndian.Uint16(b[p+10:]))
 		p += 21
 		size := h * w * 4
+		bytes := wide(b[p-9:])
+		if bytes {
+			size *= 2
+		}
 		if p+size > len(b) {
 			size = len(b) - p
 		}
@@ -147,18 +147,32 @@ func ParseSprite(b []byte, masked bool, maskColour byte, xor bool) []SpriteFrame
 		}
 		im := &Image{Height: h, Width: w, X: x, Y: y, Count: 1, BPP: h * w * 8, Mask: -1}
 		im.Data = make([]byte, im.BPP)
-		for i := 0; i < len(raw) && i*2+1 < len(im.Data); i++ {
-			im.Data[i*2] = raw[i] >> 4
-			im.Data[i*2+1] = raw[i] & 15
+		unpack(im.Data, raw, bytes)
+		mask := -1
+		if masked {
+			mask = int(maskColour)
 		}
+		amigaTag(b[p-size-9:], im.Data, mask)
 		if masked {
 			im.Mask = Clear
 			clearMask(im.Data, maskColour)
 		}
-		amigaTag(b[p-size-9:], im.Data)
 		frames = append(frames, SpriteFrame{Delay: delay, Image: im})
 	}
 	return frames
+}
+
+// unpack fills px from packed nibbles (high first), or from one byte per
+// pixel for a wide (32-colour Amiga) picture.
+func unpack(px, src []byte, bytes bool) {
+	if bytes {
+		copy(px, src)
+		return
+	}
+	for i := 0; i < len(src) && i*2+1 < len(px); i++ {
+		px[i*2] = src[i] >> 4
+		px[i*2+1] = src[i] & 15
+	}
 }
 
 func clearMask(d []byte, colour byte) {

@@ -5,6 +5,7 @@ File: `Open`, `Block(id)`, `BlockShared(id)`, `Entries`. Also `Decode`, `WriteDO
 `AmigaImage`, `AmigaSprite`, `ParseImage(b,masked,maskColour)`, `ParseSprite`, `SpriteFrame`, `NewImage`,
 `Image` (Frame, Width, Height, Count, Mask, File, Block, Base, Alt, Clone, FlipLeftToRight, Fit), `Clear=16`,
 `Palette` (copy of ega.Palette, kept for cotab).
+Amiga "AM" tag (header bytes 9.., sprite frame bytes 12..): 'A','M',slot,8 = wide picture, one byte per pixel, 32 colours over slots slot, slot+1 (amigaimport writes it for Pools of Darkness).
 Block vs BlockShared: `Block` returns a private COPY (cotab/sotsb semantics, safe to modify);
 `BlockShared` returns the cached slice, read-only (por's old `Block`, with memo for Amiga overlay). Same on File and Loader.
 
