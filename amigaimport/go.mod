@@ -6,8 +6,9 @@ require (
 	gobox/adf v0.0.0
 	gobox/amiga v0.0.0
 	gobox/dax v0.0.0
-	gobox/ega v0.0.0
 )
+
+require gobox/ega v0.0.0 // indirect
 
 replace (
 	gobox/adf => ../adf

@@ -33,7 +33,7 @@ merged character portraits and icons, and the combat UI icons, for all games
 to use. A game may override any of them with its own data. Blobber walls,
 portraits and combat sprites are merged from all games into one pool each
 (`gobox/walls`, `gobox/sprites`); a game selects from a pool by name, and its
-maps and selection tables stay its own. Fonts are pooled too (`ui/fonts`): each game merges its
+maps and selection tables stay its own. Pools are keyed by asset series (the user's): `series/<series>/` in `walls` and `sprites`, `combat/icons/<series>/`. Only games of one series share assets: "pool" (por, cotab, sotsb, pod) and "buck-rogers" (the two Buck Rogers games). A game names its series in present.Data.Series. Fonts stay one unkeyed pool. Fonts are pooled too (`ui/fonts`): each game merges its
 fonts into the pool and selects by name.
 
 ## Rule 2 decisions (the user's)

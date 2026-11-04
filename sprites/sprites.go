@@ -1,4 +1,5 @@
-// Package sprites is the shared pool of portraits, combat sprites and item icons.
+// Package sprites is the shared pool of portraits, combat sprites and item
+// icons, keyed by asset series: series/<series>/<kind>/<name>.png.
 package sprites
 
 import (
@@ -10,12 +11,12 @@ import (
 	"strings"
 )
 
-//go:embed all:portraits all:combat all:items
+//go:embed all:series
 var fsys embed.FS
 
-// Image decodes sprite name (no extension) from pool "portraits", "combat" or "items"; nil if absent.
-func Image(pool, name string) image.Image {
-	b, err := fsys.ReadFile(pool + "/" + name + ".png")
+// Image decodes sprite name (no extension) of series from kind "portraits", "combat" or "items"; nil if absent.
+func Image(series, kind, name string) image.Image {
+	b, err := fsys.ReadFile("series/" + series + "/" + kind + "/" + name + ".png")
 	if err != nil {
 		return nil
 	}
@@ -26,9 +27,9 @@ func Image(pool, name string) image.Image {
 	return img
 }
 
-// Names lists the sprite names of a pool, sorted.
-func Names(pool string) []string {
-	es, _ := fsys.ReadDir(pool)
+// Names lists the sprite names of a series' kind, sorted.
+func Names(series, kind string) []string {
+	es, _ := fsys.ReadDir("series/" + series + "/" + kind)
 	var out []string
 	for _, e := range es {
 		if n, ok := strings.CutSuffix(e.Name(), ".png"); ok {

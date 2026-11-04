@@ -122,8 +122,8 @@ func (p *Presenter) wallTexture(w *front.Walls, n int) string {
 	if n == 0 {
 		return ""
 	}
-	if t := w.Pool[n]; t != "" && walls.Image(t) != nil {
-		p.view.Textures[t] = walls.Image(t)
+	if t := w.Pool[n]; t != "" && walls.Image(series, t) != nil {
+		p.view.Textures[t] = walls.Image(series, t)
 		return t
 	}
 	im := w.Fronts[n]
@@ -160,8 +160,8 @@ func (p *Presenter) drawOpen(dst *gpu.Image) {
 	p.view.Draw(dst)
 }
 
-// wallImages is View.Textures: the whole shared pool (the maps name their textures; walls.txt is the character table).
-func wallImages() map[string]image.Image { return walls.Textures(walls.Names()...) }
+// wallImages is View.Textures: the game's series of the shared pool (the maps name their textures; walls.txt is the character table).
+func wallImages() map[string]image.Image { return walls.Textures(series, walls.Names(series)...) }
 
 // paintedWalls is View.Painted, from assets/walls/walls.txt: map character, then texture name.
 func paintedWalls() map[byte]string {

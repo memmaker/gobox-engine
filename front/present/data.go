@@ -23,6 +23,8 @@ type Credit struct {
 
 // Data is what the game hands the presenter.
 type Data struct {
+	Series string // the asset series whose shared pools the game uses ("pool", "buck-rogers"; "": "pool")
+
 	PaneBox, ViewWindow, InnerWindow front.CellRect // the original's main screen boxes at their 40x25 places
 
 	MapCell      int // pixels a square of View.Map
@@ -83,12 +85,16 @@ var (
 	daxLoader                        *dax.Loader
 	mapSide                          int // View.Map's side in pixels
 	sounds                           []byte
+	series                           = "pool"
 )
 
 // SetData hands the presenter the game's data.
 func SetData(d Data) {
 	paneBox, viewWindow, innerWindow = d.PaneBox, d.ViewWindow, d.InnerWindow
 	mapCell, dungeonTiles = d.MapCell, d.DungeonTiles
+	if series = d.Series; series == "" {
+		series = "pool"
+	}
 	menuEntries, texts = d.Entries, d.Texts
 	if d.Theme != nil {
 		applyTheme(*d.Theme)
