@@ -89,6 +89,7 @@ var (
 	credits                          []Credit
 	remasterCredit                   [2]string
 	creditGaps                       []int
+	creditFrame                      string // game.Data.CreditFrame
 	iconParts                        []string
 	spellRules                       []string
 	dollBoxes                        []image.Rectangle
@@ -167,6 +168,7 @@ type Options struct {
 	Pic           float64 // the picture box: one of UISteps times its normal size
 	Zoom          float64 // the battle camera: how far one wheel step zooms, 0.25 to 2 times 15 percent
 	DamageNumbers bool    // the battle: hit points lost float over the heads
+	PixelWalls    bool    // the 3D view: the pixel-art walls instead of the hi-def ones (F11)
 }
 
 // DefaultOptions are the settings before the game's are loaded.
@@ -277,6 +279,7 @@ func gameData(g game.Data) {
 			credits = append(credits, Credit(c))
 		}
 	}
+	creditFrame = g.CreditFrame
 	if g.CreditGaps != nil {
 		creditGaps = g.CreditGaps
 	}

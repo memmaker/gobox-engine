@@ -1074,6 +1074,7 @@ type Data struct {
 	Rests        []RestKind  // camp's rests, in the menu's order (nil: none)
 	CreditLines  []Credit    // the title's credits page, placed (nil: Credits as plain lines)
 	CreditGaps   []int       // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
+	CreditFrame  string      // the credits' frame: "" two boxes (title, lines) with CreditGaps and the remaster's lines; "edges" one frame on the page's edges, the lines at their cells
 	IconParts    []string    // the combat icon designer's parts
 	ReadyMark    string      // shown before a readied item's name ("": none)
 	LabelInks    []int       // a map label's EGA colour by its kind

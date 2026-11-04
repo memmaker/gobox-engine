@@ -266,6 +266,16 @@ func (c *cellPage) texts(v front.View) {
 	for _, r := range v.Prompt {
 		c.run(r, c.rows-1)
 	}
+	if v.Credits && creditFrame == "edges" { // one frame on the page's edges, the lines at their own cells
+		c.border(0, 0, c.cols-1, c.rows-1)
+		dx := max(0, (c.cols-40)/2)
+		for _, l := range credits {
+			if l.Page == v.CreditPage {
+				c.str(l.X+dx, l.Y, l.Colour, l.Text)
+			}
+		}
+		return
+	}
 	if v.Credits { // drawCredits' two boxes: the title's, the lines'
 		c.border(1, 1, c.cols-2, 3)
 		c.border(1, 5, c.cols-2, c.rows-2)
