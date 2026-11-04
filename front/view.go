@@ -524,33 +524,35 @@ type Harm struct{ Name, What string }
 // laid out by the presenter, in the colours of
 // View.Ink. The DAX portrait is among View.Pictures.
 type SheetPage struct {
-	Name       string
-	NameColour int    // red when not okay, yellow a monster, else cyan (displayName)
-	NPC        bool   // "(NPC)" after the name
-	Spells     string // a spell list's title over the name row ("Spells in Memory"); "" none
-	Sex, Race  string
-	Age        int
-	Alignment  string
-	Class      string
-	Stats      [6]int // STR .. CHA
-	Str00      string // the exceptional strength after STR: "(78)", ""
-	Creating   bool   // the creation's sheet: no level, experience, party items, items or status
-	Levels     string // "1/2"
-	Exp        int
-	Next       int // the experience the next level takes (0: none)
-	AC, HP     int // AC as displayed (10 down to negative)
-	MaxHP      int // HP below it shows yellow
-	THAC0      int
-	Damage     string
-	Move       int
-	Saves      [5]int // extra: the saving throw targets, paralysis, petrification, rod, breath, spell (0: not shown)
-	Mods       [6]int // extra: the rule set's ability modifiers, STR .. CHA (shown with Rules)
-	Rules      []Stat // extra: the rule set's own figures (CombatRules.Sheet; nil: none, and no Mods)
-	Status     string
-	Effects    string         // the spell effects, as many as fit the row
-	PortraitAt CellRect       // the portrait's box (zero: no portrait)
-	Portrait   image.Image    // a dropped PNG in the box, in place of the DAX portrait (nil: none)
-	Icons      [2]image.Image // the creation's combat icon from a PNG, ready and action poses, in View.IconBox (nil: the DAX icon among the pictures)
+	Name               string
+	NameColour         int    // red when not okay, yellow a monster, else cyan (displayName)
+	NPC                bool   // "(NPC)" after the name
+	Spells             string // a spell list's title over the name row ("Spells in Memory"); "" none
+	Sex, Race          string
+	Age                int
+	Alignment          string
+	Class              string
+	Stats              [6]int // STR .. CHA
+	Str00              string // the exceptional strength after STR: "(78)", ""
+	Creating           bool   // the creation's sheet: no level, experience, party items, items or status
+	Levels             string // "1/2"
+	Exp                int
+	Next               int // the experience the next level takes (0: none)
+	AC, HP             int // AC as displayed (10 down to negative)
+	MaxHP              int // HP below it shows yellow
+	THAC0              int
+	Damage             string
+	Move               int
+	Saves              [5]int // extra: the saving throw targets, paralysis, petrification, rod, breath, spell (0: not shown)
+	Mods               [6]int // extra: the rule set's ability modifiers, STR .. CHA (shown with Rules)
+	Rules              []Stat // extra: the rule set's own figures (CombatRules.Sheet; nil: none, and no Mods)
+	Status             string
+	Weapon, Armour     string         // extra: the readied weapon and armour ("": none shown; POR shows them on its inventory)
+	Encumbrance, Coins string         // extra: the load carried and the coins held, as the game writes them ("": not shown)
+	Effects            string         // the spell effects, as many as fit the row
+	PortraitAt         CellRect       // the portrait's box (zero: no portrait)
+	Portrait           image.Image    // a dropped PNG in the box, in place of the DAX portrait (nil: none)
+	Icons              [2]image.Image // the creation's combat icon from a PNG, ready and action poses, in View.IconBox (nil: the DAX icon among the pictures)
 }
 
 // Stat is one of a rule set's figures on the sheet: "Fortitude", "13",

@@ -417,6 +417,15 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 			c.str(9, 0x13, inkGreen, s.Effects)
 		}
 	}
+	for _, f := range []struct { // extra: the readied weapon and armour, the load and the coins
+		x, y int
+		l, v string
+	}{{1, 13, "Weapon", s.Weapon}, {1, 14, "Armour", s.Armour}, {1, 21, "Load", s.Encumbrance}, {17, 21, "Coins", s.Coins}} {
+		if f.v != "" {
+			c.str(f.x, f.y, inkWhite, f.l)
+			c.str(f.x+len(f.l)+1, f.y, inkGreen, f.v)
+		}
+	}
 	if b := s.PortraitAt; b != (front.CellRect{}) {
 		c.border(b.X1, b.Y1, b.X2, b.Y2)
 		if s.Portrait != nil {
