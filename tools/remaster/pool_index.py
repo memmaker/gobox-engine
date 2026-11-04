@@ -4,7 +4,7 @@
   python3 pool_index.py [--series buck-rogers] DUMPDIR    list DUMPDIR's walls (gobox viewdump -transparent output) with the pool texture
                                     of the same original pixels, or "new"
 pool_index.txt: <sha1 of the wall picture> <texture> <game> <dump name>. The key is the picture with fully transparent
-pixels zeroed and the sky colour (13, 0x55FFFF) cleared, so por's viewdump, cotab's walldump and gobox's viewdump
+pixels zeroed, at 56x64 (scaled dumps sampled down), and the sky colour (13, 0x55FFFF) cleared, so por's viewdump, cotab's walldump and gobox's viewdump
 of the same wall give the same key."""
 import hashlib, importlib.util, subprocess, sys, tempfile
 from pathlib import Path
@@ -21,13 +21,15 @@ POOL = GOBOX / "walls" / "series" / SERIES
 FILE = HERE / f"{SERIES}_index.txt"
 GAMES = {"pool": [("por", PROJ / "por-go/phlan-poc/areas.py", PROJ / "por-go/phlan-poc/viewdump"),
                   ("cotab", HERE / "areas.py", PROJ / "cotab-go/remaster/viewdump"),
-                  ("por", HERE / "areas.py", PROJ / "por-go/remaster/viewdump")],
+                  ("por", HERE / "areas.py", PROJ / "por-go/remaster/viewdump"),
+                  ("pod", HERE / "areas.py", PROJ / "pod-go/remaster/viewdump")],
          "buck-rogers": [("buckrogers", HERE / "areas.py", PROJ / "buckrogers-go/remaster/viewdump")]}
 SKY = [(85, 255, 255)]
 
 
 def key(p):
-    a = np.array(Image.open(p).convert("RGBA"))
+    im = Image.open(p).convert("RGBA")
+    a = np.array(im)[::im.height // 64, ::im.width // 56]  # dumps at any integer scale of the 56x64 front
     for c in SKY:
         a[(a[..., :3] == c).all(axis=2), 3] = 0
     a[a[..., 3] == 0] = 0
