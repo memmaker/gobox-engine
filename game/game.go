@@ -807,12 +807,15 @@ type (
 	}
 
 	// Camp.
-	Fix       struct{ Member int }
-	Memorize  struct{ Member, Spell int }
-	Forget    struct{ Member, Spell int }
-	Scribe    struct{ Member, Spell int }
-	Order     struct{ From, To int }
-	LeaveCamp struct{}
+	Fix        struct{ Member int }
+	Memorize   struct{ Member, Spell int }
+	Forget     struct{ Member, Spell int }
+	Scribe     struct{ Member, Spell int }
+	Order      struct{ From, To int }
+	EndGame    struct{}              // the main menu: end the game in progress, back to the party menu
+	AddNote    struct{ Text string } // a player journal note of Text (the line gobox shows), with the place; a duplicate is refused
+	RemoveNote struct{ ID int }      // delete player note ID
+	LeaveCamp  struct{}
 	// Combat.
 	Guard      struct{}
 	EndTurn    struct{}
@@ -891,6 +894,9 @@ func (Memorize) decision()         {}
 func (Forget) decision()           {}
 func (Scribe) decision()           {}
 func (Order) decision()            {}
+func (EndGame) decision()          {}
+func (AddNote) decision()          {}
+func (RemoveNote) decision()       {}
 func (LeaveCamp) decision()        {}
 func (Guard) decision()            {}
 func (EndTurn) decision()          {}
