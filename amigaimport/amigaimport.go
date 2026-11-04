@@ -45,6 +45,9 @@ type Spec struct {
 	Program string         // file holding the sound players ("program")
 	Intro   string         // file holding the painted title ("intro")
 	Exe     string         // file holding the fixed palettes (Gfx.Pal)
+	// Files are more files copied as they are, by base name, case-insensitive
+	// (SotSB: "SECRET.MX", "sounds.glb"); each is written under the name given.
+	Files []string
 	// Disks are the volume names or file paths (case-insensitive) that mark
 	// this game's disks. When set, every disk matching one is read and no
 	// other: MinGfx is ignored, and of two releases the one whose marker
@@ -58,6 +61,7 @@ func Import(src, out string, s Spec) error {
 	var snd []byte
 	var title image.Image
 	var exe []byte
+	extra := map[string][]byte{}
 	look := func(img []byte) bool {
 		vol, files, err := adf.Read(img)
 		if err != nil {
@@ -76,6 +80,11 @@ func Import(src, out string, s Spec) error {
 			}
 			if s.Exe != "" && strings.EqualFold(f.Path, s.Exe) && exe == nil {
 				exe = f.Data
+			}
+			for _, n := range s.Files {
+				if strings.EqualFold(f.Path[strings.LastIndex(f.Path, "/")+1:], n) && extra[n] == nil {
+					extra[n] = f.Data
+				}
 			}
 			if s.Intro != "" && strings.EqualFold(f.Path, s.Intro) && title == nil {
 				title = amiga.Title(f.Data)
@@ -132,6 +141,11 @@ func Import(src, out string, s Spec) error {
 	}
 	if snd != nil {
 		if err := os.WriteFile(filepath.Join(out, "SOUND.BIN"), snd, 0o644); err != nil {
+			return err
+		}
+	}
+	for n, b := range extra {
+		if err := os.WriteFile(filepath.Join(out, n), b, 0o644); err != nil {
 			return err
 		}
 	}
