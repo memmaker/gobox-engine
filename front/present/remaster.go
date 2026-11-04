@@ -78,6 +78,7 @@ type Presenter struct {
 	journal     journalUI                   // the quest journal (journal.go)
 	resultsPage sheetCanvas                 // the after-combat page (drawResults)
 	area        ui.AreaMap                  // the overland's map and marker last uploaded (drawAreaMap)
+	areaPic     areaPic                     // the overland's picture built from its squares (drawAreaMap)
 	winRects    []image.Rectangle           // the Esc menu's lines on screen, as last drawn
 	noMenu      bool                        // nothing to pick: any click answers
 	pointer     image.Point                 // the mouse, as Hover last saw it (keys move the highlight while it rests)

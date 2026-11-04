@@ -24,10 +24,12 @@ const (
 )
 
 // AreaMap (extra) is the whole area map for a screen of its own: every
-// tile, Tile pixels square, and the party's square and marker.
+// square's picture (Squares[y][x], nil: none drawn), Tile pixels square,
+// and the party's square and marker. The presenter builds the map's picture
+// and keeps it while no square's picture changes.
 type AreaMap struct {
-	Img    image.Image
-	Tile   int
+	Squares [][]image.Image
+	Tile    int
 	Party  image.Point // the party's map square
 	Marker image.Image // the party's icon, facing its way
 }
