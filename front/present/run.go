@@ -59,8 +59,13 @@ func (f *Front) Start(slot string) {
 }
 
 func (f *Front) Screen() string { return front.ScreenOf(f.Game.View(), f.P.Screens()) }
-func (f *Front) Key(k uint16)   { f.P.Key(k, f.Game.View()) }
-func (f *Front) Tick()          { f.P.Tick() }
+func (f *Front) Key(k uint16) {
+	if !f.started { // the game opens (on its -slot) before it takes a key: the first one is not for the screen before
+		f.Act()
+	}
+	f.P.Key(k, f.Game.View())
+}
+func (f *Front) Tick() { f.P.Tick() }
 
 func (f *Front) Options() bool       { return f.P.Options() }
 func (f *Front) UpdateOptions()      { f.P.UpdateOptions() }
