@@ -82,9 +82,14 @@ func Window(dst *gpu.Image, t Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) im
 type Edges struct{ Top, Bottom, Left, Right, Divider []*gpu.Image } // Divider: a vertical rule between two boxes
 
 // EdgeCell is the entry of an m-entry edge sequence for cell i of n: the
-// ends fixed, the middle entries repeated.
+// ends fixed, the middle entries repeated. An edge no longer than its
+// table takes the table's head and tail (both ends' own cells kept).
 func EdgeCell(i, n, m int) int {
 	switch {
+	case n <= m && i < n-1-i:
+		return i
+	case n <= m:
+		return m - 1 - (n - 1 - i)
 	case m <= 2 || i == 0:
 		return min(i, m-1)
 	case i == n-1:

@@ -21,4 +21,7 @@ func TestEdgeCell(t *testing.T) {
 	if ui.EdgeCell(39, 40, 40) != 39 || ui.EdgeCell(13, 40, 40) != 13 {
 		t.Fatal("a full-length edge must take its table as is")
 	}
+	if ui.EdgeCell(17, 20, 40) != 37 || ui.EdgeCell(2, 20, 40) != 2 {
+		t.Fatal("a short edge must keep its table's head and tail")
+	}
 }
