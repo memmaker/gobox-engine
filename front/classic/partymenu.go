@@ -33,7 +33,8 @@ func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
 // View is v with the screens classic builds from s in place of the game's:
 // the party menu (MainMenu, Hall), the question (Ask) and the treasure
 // screen (Loot, under the game's inventory and sheet while they are up);
-// the map (Map) and camp (Camp) over the game's.
+// the map (Map), camp (Camp), temple (Temple), shop (Shop) and
+// inventory (Inventory) over the game's.
 // The title's Logo and Backdrop stay the game's while the menu is up.
 func View(v front.View, s game.State) front.View {
 	v.MainMenu, v.Hall = PartyMenu(s)
@@ -41,6 +42,7 @@ func View(v front.View, s game.State) front.View {
 		v.Loot = Loot(s)
 	}
 	v.Map, v.Camp = Map(v.Map, s), Camp(v.Camp, s)
+	v.Temple, v.Shop, v.Inventory = Temple(v.Temple, s), Shop(v.Shop, s), Inventory(v.Inventory, s)
 	if q, ok := Ask(s); ok {
 		v.Ask = q
 	}

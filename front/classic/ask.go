@@ -30,7 +30,13 @@ func Ask(s game.State) (*front.Ask, bool) {
 		q.Items = append(q.Items, front.MenuItem{Text: o.Label, Key: byte(o.Key)})
 	}
 	for _, l := range a.Lines {
-		q.List = append(q.List, front.ListLine{Text: l.Text, Header: l.Header, Dim: l.Dim, Off: l.Off, Spell: l.Spell})
+		ll := front.ListLine{Text: l.Text, Header: l.Header, Dim: l.Dim, Off: l.Off, Spell: l.Spell}
+		for _, k := range l.Hides {
+			if k >= 0 && k < len(a.Options) {
+				ll.Without = append(ll.Without, a.Options[k].Label)
+			}
+		}
+		q.List = append(q.List, ll)
 	}
 	return q, true
 }
