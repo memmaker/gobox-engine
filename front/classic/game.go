@@ -498,3 +498,6 @@ func paneText(s game.State) string {
 	}
 	return strings.Join(w, " ")
 }
+
+// State is the rules' state.
+func (g *Game) State() game.State { return g.R.State() }

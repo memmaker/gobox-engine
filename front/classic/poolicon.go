@@ -113,9 +113,11 @@ func PoolIcon(v front.View, s game.State) front.View {
 	if cr == nil {
 		return v
 	}
+	if p := s.SheetPage; p != nil && p.Icons[0] != nil { // a dropped PNG: the sheet draws it
+		return v
+	}
 	head, body := memberIcon(m)
-	pic, ok := poolIcon(head, body, m.IconColors, 0, false)
-	if !ok || head == "" {
+	if head == "" {
 		return v
 	}
 	box := cr.Icon.Pixels()
@@ -126,7 +128,18 @@ func PoolIcon(v front.View, s game.State) front.View {
 		}
 		keep = append(keep, pc)
 	}
-	pic.At = image.Rectangle{box.Min, box.Min.Add(image.Pt(pic.PixW, len(pic.Pix)/pic.PixW))}
-	v.Pictures = append(keep, pic)
+	for pose := range 2 {
+		pic, ok := poolIcon(head, body, m.IconColors, pose, false)
+		if !ok {
+			return v
+		}
+		if m.IconHeadID == "" { // composed from the original numbers: drawn from CBODY's block (+128: the action pose)
+			pic.File, pic.Block = "CBODY", m.Icon["body"]+128*pose
+		}
+		x := box.Min.X + 40*max(1, cr.Scale)*pose // the poses 5 cells apart
+		pic.At = image.Rectangle{image.Pt(x, box.Min.Y), image.Pt(x+pic.PixW, box.Min.Y+len(pic.Pix)/pic.PixW)}
+		keep = append(keep, pic)
+	}
+	v.Pictures = keep
 	return v
 }

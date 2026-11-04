@@ -6,6 +6,8 @@ package present
 import (
 	"fmt"
 	"gobox/front"
+	"gobox/front/classic"
+	"gobox/game"
 	"gobox/gpu"
 	"image"
 	"slices"
@@ -23,6 +25,9 @@ func (p *Presenter) Edit(f func(front.Game)) { p.edit(func(e front.Game) { f(e) 
 func (p *Presenter) ownCreation(v front.View) front.View {
 	if p.creating && p.eng != nil {
 		v.Creation = p.eng.CreationView()
+		if g, ok := p.eng.(interface{ State() game.State }); ok { // its icon boxes take the draft's combat icon
+			v = classic.PoolIcon(v, g.State())
+		}
 		v.MainMenu, v.Logo, v.Backdrop = nil, nil, nil
 	}
 	return v

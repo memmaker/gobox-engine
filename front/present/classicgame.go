@@ -92,3 +92,6 @@ func WithRules(g front.Game, p *Presenter) front.Game {
 	}
 	return g
 }
+
+// State is the rules' state.
+func (g classicGame) State() game.State { return g.r.State() }
