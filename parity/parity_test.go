@@ -176,9 +176,10 @@ func golden(t *testing.T, name string, v front.View) {
 		gl, wl := strings.Split(got, "\n"), strings.Split(string(want), "\n")
 		for i := range min(len(gl), len(wl)) {
 			if gl[i] != wl[i] {
-				t.Fatalf("%s line %d:\n got %s\nwant %s", name, i+1, gl[i], wl[i])
+				t.Errorf("%s line %d:\n got %s\nwant %s", name, i+1, gl[i], wl[i])
+				return
 			}
 		}
-		t.Fatalf("%s: %d lines, want %d", name, len(gl), len(wl))
+		t.Errorf("%s: %d lines, want %d", name, len(gl), len(wl))
 	}
 }

@@ -259,8 +259,10 @@ func (g *Game) EndIcon(keep bool)   { g.do(game.EndIcon{Keep: keep}) }
 
 // SlotsView: State.Saves has the names and infos; the levels are not State's.
 func (g *Game) SlotsView(loadOnly bool) *front.Slots {
-	v := &front.Slots{CanSave: !loadOnly, LoadOnly: loadOnly}
-	for _, sl := range g.R.State().Saves {
+	st := g.R.State()
+	inGame := len(st.Party) > 0 && st.Mode != game.ModeTitle && st.Mode != game.ModeParty && st.Mode != game.ModeCreate && st.Mode != game.ModeCombat
+	v := &front.Slots{CanSave: !loadOnly && inGame, LoadOnly: loadOnly}
+	for _, sl := range st.Saves {
 		v.Names, v.Times, v.Levels = append(v.Names, sl.Name), append(v.Times, sl.Info), append(v.Levels, 0)
 	}
 	if len(v.Names) > 0 {
@@ -445,6 +447,8 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.Scribe{Member: m, Spell: a.X}, true
 	case front.ActDropMember:
 		return game.DropChar{Member: m}, true
+	case front.ActIcon:
+		return game.IconPNG{Path: a.Text}, true
 	case front.ActIconEdit:
 		return game.EditIcon{Member: a.N}, true
 	case front.ActCreate:
