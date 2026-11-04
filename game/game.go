@@ -113,6 +113,7 @@ type State struct {
 	PowerPick              *PowerPick      // a member must choose a power
 	PoolItems              int             // the party items held (Purse's room is PartyCap)
 	Sheet                  *Sheet          // the selected member's sheet offers
+	Items                  ItemsUp         // the inventory screen is up, and whose goods it shows beside the member's
 	SheetPage              *SheetPage      // the character sheet's page is up
 	Portrait               image.Rectangle // the sheet's portrait box in text cells, Max inclusive (zero elsewhere)
 	IconBox                image.Rectangle // the creation sheet's combat icon box, as Portrait
@@ -195,6 +196,17 @@ const (
 	WindowMap                   // the wilderness or city map
 	WindowPicture               // a picture, portrait or approaching sprite
 	WindowText                  // text in the whole window
+)
+
+// ItemsUp says whether the inventory screen is up and what it shows with the
+// selected member's items: nothing, the shop's goods or the treasure.
+type ItemsUp int
+
+const (
+	ItemsNone ItemsUp = iota // not up
+	ItemsOwn                 // the member's own
+	ItemsShop                // with the shop's goods
+	ItemsLoot                // with the treasure
 )
 
 // Hold is what the game waits on besides a question.
@@ -414,6 +426,7 @@ type Member struct {
 	Card                                 []Entry        // the card's context menu out of combat
 	LevelExp, NextExp                    int            // the experience the level took and the next takes (0: none)
 	SpellsReady, Memo                    string         // spells ready over the slots ("0/3"), in camp too
+	Effects                              []Line         // the sheet's list of spell effects on the member, as the game words it
 }
 
 // SpellRef is a spell a member knows or has memorized.
@@ -963,6 +976,7 @@ type Data struct {
 	Commands   []Option    // extra party commands: Decisions with labels
 	Imports    []string    // other games' rosters and saves this game reads, by game id
 	QuickParty []QuickPick // the party menu's Quick Start party (every game offers it while the party is empty)
+	Clues      []Clue      // the clue book's chapters (nil: the game has none)
 }
 
 // QuickPick is one Quick Start member: the creation answers by the names the
@@ -974,4 +988,11 @@ type QuickPick struct {
 	Need                       map[string]int
 	Name                       string
 	Head, Body                 string
+}
+
+// Clue is a clue book chapter: its title, and the book read from it to its
+// end, laid out as a Read's Lines are.
+type Clue struct {
+	Title string
+	Read  Read
 }

@@ -64,6 +64,8 @@ type (
 	CloseTraining struct{}
 	Learn         struct{ Spell int }
 	PickPower     struct{ ID int }
+	// The page: the window shows Cols by Rows text cells (State.Cells follows).
+	Resize struct{ Cols, Rows int }
 	// Map.
 	Mark struct {
 		At   image.Point
@@ -114,6 +116,7 @@ func (OpenTraining) decision()  {}
 func (CloseTraining) decision() {}
 func (Learn) decision()         {}
 func (PickPower) decision()     {}
+func (Resize) decision()        {}
 func (Mark) decision()          {}
 func (Unmark) decision()        {}
 func (WalkTo) decision()        {}
