@@ -14,7 +14,8 @@ import (
 // viewPasses are the decisions that go on to the engine over the sheet
 // and the inventory (every screen's).
 var viewPasses = []front.ActKind{front.ActHead, front.ActPortrait, front.ActFont, front.ActSound, front.ActResize,
-	front.ActMainMenu, front.ActNote, front.ActNoteRemove, front.ActIcon, front.ActMinimap}
+	front.ActMainMenu, front.ActNote, front.ActNoteRemove, front.ActIcon, front.ActMinimap,
+	front.ActTrade, front.ActHalve, front.ActJoin}
 
 // viewAct makes a decision on (or opening) the sheet or the inventory a
 // rule call; false leaves it to the others.
