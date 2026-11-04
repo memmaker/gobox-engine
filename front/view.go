@@ -55,7 +55,7 @@ type Battle struct {
 	Reach     []image.Point          // squares a click walks to from the main menu (the active unit's move)
 	Paths     map[image.Point][]Step // the walk to each Reach square, from the unit's own square
 	Targets   []int                  // units (by ID) ActAttack takes on the turn; aiming: the foes Tab cycles through
-	Turn      *Turn                  // the player's turn waits for an action (nil: no one to act for)
+	Turn      *Turn                  // the player's turn waits for an action (nil: no one to act for). The game fills it on every player's turn, even one whose only offer is Can: the presenter builds a Turn itself only for an AskSquare or AskMove question (askedBattle), since pace, the bar, the Cast list and the status row all read this one field
 	Panel     int                    // the unit the status row shows (who acts, or is being hit)
 	Log       []string               // this battle's messages, oldest first
 	Area      bool                   // Marks are a spell's area (else a move's reach or a choice)
