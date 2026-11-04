@@ -12,6 +12,7 @@ func TestSetDOS(t *testing.T) {
 	os.Mkdir(filepath.Join(dir, "amiga"), 0o755)
 	os.WriteFile(filepath.Join(dir, "PIC.DAX"), WriteDOS(map[int][]byte{1: []byte("dos")}), 0o644)
 	os.WriteFile(filepath.Join(dir, "amiga", "PIC.DAX"), WriteDOS(map[int][]byte{1: []byte("amiga")}), 0o644)
+	os.WriteFile(filepath.Join(dir, "amiga", "PICPAL.DAX"), WriteDOS(map[int][]byte{1: {1, 2, 3}}), 0o644)
 	l, _ := NewLoader(dir)
 	l.UseAmiga(filepath.Join(dir, "amiga"))
 	for _, c := range []struct {
@@ -21,6 +22,9 @@ func TestSetDOS(t *testing.T) {
 		l.SetDOS(c.dos)
 		if got := string(l.BlockShared("PIC", 1)); got != c.want {
 			t.Errorf("SetDOS(%v): %q, want %q", c.dos, got, c.want)
+		}
+		if p := l.AmigaPalette("PIC2.DAX", 1); (p != nil) == c.dos {
+			t.Errorf("SetDOS(%v): palette %v", c.dos, p)
 		}
 	}
 }

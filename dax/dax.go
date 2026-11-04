@@ -224,6 +224,20 @@ func (l *Loader) BlockShared(name string, id int) []byte {
 	return l.dosBlock(name, id)
 }
 
+// AmigaPalette is the 8-bit RGB triplets the Amiga picture block id of
+// archive name was drawn in (the import's NAMEPAL.DAX); nil when the DOS
+// art shows or the picture has none.
+func (l *Loader) AmigaPalette(name string, id int) []byte {
+	if l == nil || l.amiga == nil || l.dos.Load() {
+		return nil
+	}
+	base := strings.TrimRight(strings.TrimSuffix(strings.ToUpper(name), ".DAX"), "0123456789")
+	if f := l.amiga.File(base + "PAL"); f != nil {
+		return f.BlockShared(id)
+	}
+	return nil
+}
+
 // DOSBlock is the DOS block that an Amiga one stands in for in Block; nil
 // when Block gives the DOS one anyway (the Image.Alt twin).
 func (l *Loader) DOSBlock(name string, id int) []byte {

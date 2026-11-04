@@ -5,6 +5,7 @@ package present
 
 import (
 	"image"
+	"image/color"
 	"slices"
 
 	"gobox/dax"
@@ -46,9 +47,10 @@ func daxMasked(file string, block, frame, mask int) image.Image {
 	if daxLoader != nil {
 		if im := dax.ParseImage(daxLoader.BlockShared(file, block), false, 0); im != nil && frame < im.Count {
 			m = image.NewRGBA(image.Rect(0, 0, im.Width*8, im.Height))
+			pal := daxLoader.AmigaPalette(file, block)
 			for i, c := range im.Frame(frame) {
 				if c < dax.Clear && int(c) != mask {
-					m.Set(i%(im.Width*8), i/(im.Width*8), ega.RGBA(int(c)))
+					m.Set(i%(im.Width*8), i/(im.Width*8), pixelRGBA(c, pal))
 				}
 			}
 		}
@@ -84,4 +86,19 @@ func daxPictures(ps []front.Picture) []front.Picture {
 		}
 	}
 	return out
+}
+
+// pixelRGBA is pixel value c in the EGA colours, or past ega.AmigaBase in
+// its picture's own Amiga palette pal (8-bit RGB triplets), else the shared
+// ega.Amiga slots.
+// ponytail: a 32-colour picture's index is taken modulo its palette, so its archive's Slot must be even.
+func pixelRGBA(c uint8, pal []byte) color.RGBA {
+	if c < ega.AmigaBase {
+		return ega.RGBA(int(c))
+	}
+	if n := len(pal) / 3; n > 0 {
+		i := int(c-ega.AmigaBase) % n * 3
+		return color.RGBA{pal[i], pal[i+1], pal[i+2], 255}
+	}
+	return ega.AmigaRGBA(c)
 }
