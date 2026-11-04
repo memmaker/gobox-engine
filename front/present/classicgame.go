@@ -34,6 +34,8 @@ func (g classicGame) View() front.View {
 	v = classic.Intro(v, s)
 	v = classic.Note(v, s)
 	v = classic.Results(v, s)
+	v = classic.Screen(v, s)
+	v = classic.Read(v, s)
 	return v
 }
 
