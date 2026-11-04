@@ -27,3 +27,21 @@ func TestPinnedView(t *testing.T) {
 }
 
 const want = "046f2dfc2b665b1810621fad37d4416bd71d0d021fa70ecdfc75fd527da77d98"
+
+// Pins a Buck Rogers view under the open sky (wall-compare BR-M9-01): the
+// BACK4 block 10+128 backdrop behind GEO4 block 65, walls block 10, square 1,5 facing north.
+func TestPinnedBuckRogersView(t *testing.T) {
+	l, err := dax.NewLoader(os.Getenv("HOME") + "/Projects/buckrogers-go/data/dos")
+	if err != nil || !l.Exists("BACK4.DAX") {
+		t.Skip("no buckrogers-go data")
+	}
+	im, err := Render(l, mapKey{4, 65, [3]int{10, 127, 127}}, 1, 5, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := fmt.Sprintf("%x", sha256.Sum256(im.Pix)); got != wantBR {
+		t.Fatalf("hash %s", got)
+	}
+}
+
+const wantBR = "0d438267fbf0ecf9e083e3c35d5673070b4bbfd4462262fe77d5f34956ec3cd1"

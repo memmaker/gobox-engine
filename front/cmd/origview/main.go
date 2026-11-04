@@ -276,8 +276,27 @@ func (v *view) draw(dir, px, py int) {
 // ponytail: the sky colour comes from area words the ECL sets at run time;
 // here it is the usual cyan (11) under the open sky and black under a roof
 // (cell >= 0x80), band 7, ground 6 (ovr30:0155's defaults).
-func (v *view) backdrop(l *dax.Loader, dir, x, y int) {
+func (v *view) backdrop(l *dax.Loader, m mapKey, dir, x, y int) {
 	roof := v.m.MapCell(x, y) >= 0x80
+	if back := fmt.Sprintf("BACK%d", m.disk); l.Exists(back+".DAX") && !l.Exists("SKYGRND.DAX") { // (Pools of Darkness has a BACK1 of its own use)
+		// Buck Rogers: LoadWalldef loads BACKn block b (under a roof) and b+128 (open sky)
+		// for the wall block b it loads (O0C2:0E15, O13E:0E1C), the last one loaded wins;
+		// Draw3dWorldBackground (O0C2:0175) covers the whole viewport with the one
+		// mapWallRoof (cell >= 0x80) picks. The colour fills under it never show.
+		b := -1
+		for _, k := range m.b { // the slots load in order
+			if !none(k) {
+				b = k
+			}
+		}
+		if !roof && l.BlockShared(back, b+128) != nil {
+			b += 128
+		}
+		// ponytail: under the open sky with no b+128 picture the original shows only the
+		// fills (sky colour from area words); here the roofed picture instead.
+		v.blit(pic(l, back, b), 0, 0, 0)
+		return
+	}
 	sky := byte(11)
 	if roof {
 		sky = 0
@@ -306,7 +325,7 @@ func Render(l *dax.Loader, m mapKey, x, y, dir int) (*image.NRGBA, error) {
 		return nil, err
 	}
 	v.px = image.NewNRGBA(image.Rect(0, 0, V, V))
-	v.backdrop(l, dir, x, y)
+	v.backdrop(l, m, dir, x, y)
 	v.draw(dir, x, y)
 	return v.px, nil
 }
