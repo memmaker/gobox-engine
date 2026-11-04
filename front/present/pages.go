@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"math"
 	"slices"
 	"strconv"
 )
@@ -266,12 +267,27 @@ func (c *cellPage) texts(v front.View) {
 	for _, r := range v.Prompt {
 		c.run(r, c.rows-1)
 	}
-	if v.Credits && creditFrame == "edges" { // one frame on the page's edges, the lines at their own cells
-		c.border(0, 0, c.cols-1, c.rows-1)
-		dx := max(0, (c.cols-40)/2)
+	if v.Credits && creditFrame == "edges" { // one frame on the page's edges, the lines laid out over the page inside it
+		c.border(1, 1, c.cols-2, c.rows-2)
+		var page []Credit
+		x1, x2, y2 := c.cols, 0, 1
 		for _, l := range credits {
 			if l.Page == v.CreditPage {
-				c.str(l.X+dx, l.Y, l.Colour, l.Text)
+				page = append(page, l)
+				x1, x2, y2 = min(x1, l.X), max(x2, l.X+len(l.Text)), max(y2, l.Y)
+			}
+		}
+		// The rows spread from the original's 1..y2 over 1..rows-6 (a blank
+		// row, the remaster's two, the frame below), never closer than its
+		// own; the block centred across.
+		f := max(1, float64(c.rows-7)/float64(max(1, y2-1)))
+		dx := max(0, (c.cols-(x2-x1))/2) - x1
+		for _, l := range page {
+			c.str(l.X+dx, 1+int(math.Round(float64(l.Y-1)*f)), l.Colour, l.Text)
+		}
+		if c.rows-6 > y2 { // on a page taller than the original's
+			for i, s := range remasterCredit {
+				c.str((c.cols-len(s))/2, c.rows-3+i, inkYellow, s)
 			}
 		}
 		return

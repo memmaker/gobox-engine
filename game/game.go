@@ -1083,6 +1083,7 @@ type Data struct {
 	DoorInk, SelectInk color.RGBA        // a door's colour on the maps; the frame round the selected box (zero: gobox's)
 	Logo               *Logo             // how the main menu's lettering is cut from the title picture (nil: none)
 	RemasterCredit     [2]string         // the remaster's own lines at the bottom of the credits page
+	TitleBackdrop      int               // a title picture N (TitlePicture n) not among Intro.Pictures' timed steps: gobox puts it up once the steps and credits are done, keeps it fitted under the main menu and zooms the menu in over it, then TitleDone (0: none)
 	DollBoxes          []image.Rectangle // the paper doll's slot boxes in doll pixels, by slot
 	SlotNames          []string          // the slots' names
 	AreaMaps           map[int]string    // the remastered 3D map (Remaster maps/NAME.map) of each area id

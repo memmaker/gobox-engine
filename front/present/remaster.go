@@ -198,6 +198,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 		}
 		return Rect{}
 	}
+	p.intro.Backdrop, p.intro.Hold = titleBackdrop, p.mm.title == nil
 	front.IntroStep(p, &p.intro, v.Intro, false)
 	if ev := p.playing(); ev != nil && ev.Scene != nil { // the page as it stood at the pause played
 		v = *ev.Scene
@@ -380,6 +381,9 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		}
 		if v.Results != nil {
 			return p.drawResults(dst, v, note)
+		}
+		if v.Credits && creditFrame == "edges" { // the credits at the in-game page's size, whatever page the game keeps
+			v.Cells.X, v.Cells.Y = grid(dst)
 		}
 		if !p.ownLayout(v) { // nothing of the engine's page: the page's pictures and text in the remaster's layout
 			return p.drawGeneric(dst, v, note)

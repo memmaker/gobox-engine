@@ -17,18 +17,21 @@ const (
 	IntroNone = iota // not started
 	IntroFirst
 	IntroSecond
-	IntroCredits = 1 << 16 // after the last picture (the pictures are Phase 1, 2, ...)
+	IntroCredits  = 1 << 16          // after the last picture (the pictures are Phase 1, 2, ...)
+	IntroBackdrop = IntroCredits + 1 // IntroUI.Backdrop up, after the steps, until the presenter has it (Hold) or 2 seconds
 )
 
 // IntroUI is the title being played.
 type IntroUI struct {
-	Phase int
-	end   time.Time // the phase's end
-	Flash []int     // the lightning's colours left, a step each
-	ms    []int     // ... and each step's length
-	step  time.Time // the flash step's end
-	cut   bool      // a key cut a phase short since the last frame
-	acc   int       // the lightning's chance, as the original's counter
+	Phase    int
+	end      time.Time // the phase's end
+	Flash    []int     // the lightning's colours left, a step each
+	ms       []int     // ... and each step's length
+	step     time.Time // the flash step's end
+	cut      bool      // a key cut a phase short since the last frame
+	acc      int       // the lightning's chance, as the original's counter
+	Backdrop int       // the presenter's: picture N (none of the steps) put up after them for the main menu to come in over (0: none)
+	Hold     bool      // the presenter's: it has not yet kept Backdrop's picture
 }
 
 // IntroStep plays the title (nil: none waits) this frame on in; key: a
@@ -83,7 +86,10 @@ func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
 			return
 		}
 	}
-	if in.Phase != IntroNone && !key && now.Before(in.end) {
+	if in.Phase == IntroBackdrop && in.Hold && now.Before(in.end) { // the picture is to show before the title ends
+		return
+	}
+	if in.Phase != IntroNone && in.Phase != IntroBackdrop && !key && now.Before(in.end) {
 		return
 	}
 	in.cut = key
@@ -98,9 +104,13 @@ func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
 		}
 		in.end = now.Add(5 * time.Second)
 		h.Call(func(e Game) { e.TitlePicture(n) })
-	case in.Phase != IntroCredits && len(pics) > 1 && !slices.ContainsFunc(pics, func(n int) bool { return n < 0 }): // a lone picture ends the title
+	case in.Phase != IntroBackdrop && in.Phase != IntroCredits && len(pics) > 1 && !slices.ContainsFunc(pics, func(n int) bool { return n < 0 }): // a lone picture ends the title
 		in.Phase, in.end = IntroCredits, now.Add(10*time.Second)
 		h.Call(func(e Game) { e.TitleCredits(0) })
+	case in.Backdrop > 0 && in.Phase != IntroBackdrop: // the last step done: the menu's picture
+		in.Phase, in.end = IntroBackdrop, now.Add(2*time.Second)
+		n := in.Backdrop
+		h.Call(func(e Game) { e.TitlePicture(n) })
 	default:
 		h.Call(func(e Game) { e.TitleDone() })
 	}

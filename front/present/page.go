@@ -88,7 +88,7 @@ func (p *Presenter) fit(dst, img *gpu.Image, w, h int) (kx, ky float64) {
 	gpu.Sized(&pg.fit, w*k, h*k)
 	op.GeoM.Scale(float64(k), float64(k))
 	pg.fit.DrawImage(img, op)
-	op = &gpu.DrawImageOptions{Filter: gpu.FilterLinear}
+	op = &gpu.DrawImageOptions{} // nearest: the pixels stay sharp
 	op.GeoM.Scale(kx/float64(k), ky/float64(k))
 	dst.DrawImage(pg.fit, op)
 	return

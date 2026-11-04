@@ -38,6 +38,7 @@ type mainUI struct {
 	layer    *gpu.Image        // the menu drawn for its fade in
 	logo     srcImage          // MainMenu.Logo on the GPU
 	backdrop srcImage          // MainMenu.Backdrop on the GPU
+	title    image.Image       // the title's picture kept under the menu (Data.TitleBackdrop; nil: none)
 	cards    []image.Rectangle // the party's cards drawn
 }
 
@@ -45,7 +46,10 @@ type mainUI struct {
 func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	dst.Fill(color.Black)
 	b := dst.Bounds()
-	bd := backdropImage(v.Backdrop)
+	bd, zoom := backdropImage(v.Backdrop), false
+	if bd == nil && m.title != nil { // the title's last picture stays: the menu zooms in over it
+		bd, zoom = m.title, true
+	}
 	if bd == nil {
 		m.drawMainUI(h, dst, v)
 		return
@@ -67,6 +71,11 @@ func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	m.layer.Clear()
 	m.drawMainUI(h, m.layer, v)
 	lo := &gpu.DrawImageOptions{}
+	if z := 0.1 + 0.9*float64(max(a, 0)); zoom { // from the centre out
+		lo.GeoM.Translate(-float64(b.Dx())/2, -float64(b.Dy())/2)
+		lo.GeoM.Scale(z, z)
+		lo.GeoM.Translate(float64(b.Dx())/2, float64(b.Dy())/2)
+	}
 	lo.ColorScale.ScaleAlpha(max(a, 0))
 	dst.DrawImage(m.layer, lo)
 }
@@ -84,7 +93,7 @@ func (m *mainUI) fade() float32 {
 // run, so the menu shows at once; it reports whether it did, and that
 // input goes no further: the menu it would have acted on was not yet seen.
 func (m *mainUI) skip(hall bool, bd *front.Picture) bool {
-	if hall || backdropImage(bd) == nil || m.fade() >= 1 { // the hall's menu, and a game without a title picture, have no title to wait for
+	if hall || backdropImage(bd) == nil && m.title == nil || m.fade() >= 1 { // the hall's menu, and a game without a title picture, have no title to wait for
 		return false
 	}
 	m.at = time.Now().Add(-titleHold - titleFade)

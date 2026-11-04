@@ -90,6 +90,7 @@ var (
 	remasterCredit                   [2]string
 	creditGaps                       []int
 	creditFrame                      string // game.Data.CreditFrame
+	titleBackdrop                    int    // game.Data.TitleBackdrop
 	iconParts                        []string
 	spellRules                       []string
 	dollBoxes                        []image.Rectangle
@@ -279,7 +280,7 @@ func gameData(g game.Data) {
 			credits = append(credits, Credit(c))
 		}
 	}
-	creditFrame = g.CreditFrame
+	creditFrame, titleBackdrop = g.CreditFrame, g.TitleBackdrop
 	if g.CreditGaps != nil {
 		creditGaps = g.CreditGaps
 	}

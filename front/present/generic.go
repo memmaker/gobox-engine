@@ -28,7 +28,12 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 			art, box = append(art, pc), box.Union(pc.At)
 		}
 	}
-	if v.Full && len(art) > 0 { // a whole-screen picture: fitted, its aspect kept (bars only on a screen of another shape)
+	if (v.Full || v.Intro != nil) && len(art) > 0 { // a whole-screen picture, a title's: fitted, its aspect kept, centred, sharp (bars only on a screen of another shape)
+		if in := v.Intro; in != nil && titleBackdrop > 0 && p.intro.Phase == front.IntroBackdrop && p.mm.title == nil { // the picture the main menu comes in over
+			m := image.NewRGBA(image.Rect(0, 0, box.Dx(), box.Dy()))
+			drawPictures(m, art, box.Min)
+			p.mm.title = m
+		}
 		s := math.Min(float64(b.Dx())/float64(box.Dx()), float64(b.Dy())/float64(box.Dy()))
 		op := &gpu.DrawImageOptions{}
 		op.GeoM.Scale(s, s)
