@@ -61,7 +61,8 @@ type Data struct {
 
 	Bindings []ui.Binding // the game's own help rows, after Any time's Ctrl-F row
 
-	Sounds []byte // the sound driver's tables (gobox/audio NewSynth's data: songs, scripts, vibrato waveforms; nil: none)
+	Sounds     []byte // the sound driver's tables (gobox/audio NewSynth's data: songs, scripts, vibrato waveforms; nil: none)
+	AmigaSound []byte // the Amiga's SOUND.BIN (amiga.Base..End; nil: the DOS driver), for the Driver NewFront builds
 }
 
 var (
@@ -87,6 +88,7 @@ var (
 	daxLoader                        *dax.Loader
 	mapSide                          int // View.Map's side in pixels
 	sounds                           []byte
+	amigaSound                       []byte
 	series                           = "pool"
 	logoCut                          LogoCut // Data.Logo
 )
@@ -113,7 +115,7 @@ func SetData(d Data) {
 	daxLoader = d.DAX
 	mapSide = 16 * mapCell
 	setBindings(d.Bindings)
-	sounds = d.Sounds
+	sounds, amigaSound = d.Sounds, d.AmigaSound
 }
 
 // Rest is one of camp's rests (Data.Rests): Text with its Key sends

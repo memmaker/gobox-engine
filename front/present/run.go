@@ -7,6 +7,8 @@ package present
 import (
 	"time"
 
+	"gobox/amiga"
+	"gobox/audio"
 	"gobox/blobber"
 	"gobox/front"
 	"gobox/gpu"
@@ -33,8 +35,17 @@ type Front struct {
 }
 
 // NewFront is a Front over g.
-func NewFront(g front.Game) *Front {
+// It plays sound through snd (the game's own driver, one instance shared
+// with its rules), or else through a Driver it builds from Data.Sounds and
+// Data.AmigaSound, on the Tandy, and plays out itself.
+func NewFront(g front.Game, snd ...front.Sound) *Front {
 	f := &Front{Game: g}
+	if len(snd) > 0 {
+		f.P.Snd = snd[0]
+	} else if d := newDriver(); d != nil {
+		f.P.Snd = d
+		audio.Output(d)
+	}
 	f.P.SetEngine(g)
 	return f
 }
@@ -136,3 +147,23 @@ func (f *Front) Draw(dst *gpu.Image) {
 		f.pic = f.P.Draw(dst, note, v)
 	}
 }
+
+// newDriver is the Driver over Data.Sounds (nil: none), hooked so sounds play on.
+func newDriver() *audio.Driver {
+	if sounds == nil {
+		return nil
+	}
+	d, err := audio.NewDriver(sounds, 'T')
+	if err != nil {
+		return nil
+	}
+	var am *amiga.Player
+	if len(amigaSound) == amiga.End-amiga.Base {
+		am = amiga.New(amigaSound)
+	}
+	d.Attach(am, nil, nil, nil, nil, nil)
+	d.Wait(0)
+	return d
+}
+
+var _ front.Sound = (*audio.Driver)(nil)

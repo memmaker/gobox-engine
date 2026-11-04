@@ -49,7 +49,7 @@ require (
 	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
 	github.com/jfreymuth/pulse v0.1.3 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
-	gobox/amiga v0.0.0 // indirect
+	gobox/amiga v0.0.0
 )
 
 replace gobox/audio => ../audio

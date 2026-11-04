@@ -102,6 +102,7 @@ type Presenter struct {
 	dragFrom    int                         // 1 + the card pressed while the party is being ordered (View.Ordering), it follows the pointer to the card it is dropped on (0 none)
 	dragAt      image.Point                 // where the pointer is while a card is dragged
 	Sound       func(front.CombatEvent)     // plays a fight's EvSound when its turn comes (Engine.PlayEventSound)
+	Snd         front.Sound                 // the sound driver EvSound and EvSong play through when Sound is nil (NewFront)
 	dragStart   image.Point                 // where it was pressed
 	dragged     bool                        // it has moved far enough from dragStart to be a drag
 	ordering    bool                        // View.Ordering
