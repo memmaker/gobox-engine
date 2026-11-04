@@ -298,7 +298,13 @@ type replay struct {
 }
 
 // Play queues the fight's events Apply handed out.
-func (p *Presenter) Play(evs []front.CombatEvent) { p.replay.q = append(p.replay.q, evs...) }
+// Their snapshots' pictures are made here, as View.Battle's are (pixView).
+func (p *Presenter) Play(evs []front.CombatEvent) {
+	for _, ev := range evs {
+		ev.Battle = pixBattle(ev.Battle, egaInk)
+		p.replay.q = append(p.replay.q, ev)
+	}
+}
 
 // Playing: the fight's events are still being played.
 func (p *Presenter) Playing() bool { return len(p.replay.q) > 0 }
