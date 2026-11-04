@@ -13,11 +13,6 @@ import (
 type Theme struct {
 	Font   string // the ui/fonts pool name of the default font
 	Border Border
-
-	// Deprecated: font colours are gobox's alone (fontPalette); these are
-	// ignored and go once no game sets them.
-	Palette    Palette
-	HeadTitles bool
 }
 
 // fontPalette is every game's font colours, gobox's (no game overrides them).
