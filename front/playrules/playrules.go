@@ -377,10 +377,10 @@ func (r *rules) State() game.State {
 		}
 		switch t.Kind {
 		case play.SceneTitle:
-			s.Mode, s.Intro = game.ModeTitle, t.Intro
+			s.Mode, s.Intro, s.Window = game.ModeTitle, t.Intro, game.WindowScene
 			s.Flags.Credits, s.Flags.CreditPage = r.title.credits, r.title.page
 		case play.SceneSequence:
-			s.Sequence = t.Sequence
+			s.Sequence, s.Window = t.Sequence, game.WindowScene // full screen: no text window (the old zero)
 		case play.SceneResults:
 			s.Results = t.Results
 		case play.SceneScreen:
@@ -436,7 +436,27 @@ func (r *rules) State() game.State {
 	}
 	s.Pacing.Seq = r.seq
 	s.Pending = r.pending(ps)
+	s.Mode = askMode(s.Mode, s.Pending, ps)
 	return s
+}
+
+// askMode is ModeAsk where a question is up over a scene (a menu, a list, a
+// name) or over the creation sheet (Common.Ask): the old front shows a
+// question only in ModeAsk, so in ModeStory or ModeCreate it stayed hidden.
+func askMode(m game.Mode, a *game.Ask, ps play.State) game.Mode {
+	if a == nil || a.Kind == game.Continue {
+		return m
+	}
+	switch {
+	case m == game.ModeStory:
+		if sc, ok := ps.(play.Scene); ok && sc.Kind == play.SceneScreen && sc.Screen != nil {
+			return m // a typed screen answers by its own keys
+		}
+		return game.ModeAsk
+	case m == game.ModeCreate && commonOf(ps).Ask != nil:
+		return game.ModeAsk
+	}
+	return m
 }
 
 // holding is what the old front waits on in ps.

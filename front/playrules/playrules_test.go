@@ -51,7 +51,7 @@ func TestAdapter(t *testing.T) {
 				if a := r.Pending(); a == nil || a.Kind != game.Choice || len(a.Options) != 2 || a.Options[1].Label != "Foe" {
 					t.Fatalf("pending %+v", a)
 				}
-				if s := r.State(); s.Mode != game.ModeStory || s.Page == nil || s.Pending == nil {
+				if s := r.State(); s.Mode != game.ModeAsk || s.Page == nil || s.Pending == nil {
 					t.Fatalf("state %+v", s)
 				}
 				if res.Err != nil || !slices.Equal(f.sent, []play.Action{play.Reply{N: 1}}) {

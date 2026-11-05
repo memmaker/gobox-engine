@@ -168,6 +168,10 @@ func TestParity(t *testing.T) {
 				}
 				return true
 			}},
+		{"scene menu is an ask", play.Scene{Kind: play.SceneTalk, Replies: []string{"Move", "Save"}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Mode == game.ModeAsk && s.Pending != nil }},
+		{"draft question is an ask", play.Assembling{Common: play.Common{Ask: &play.Question{Replies: []string{"A", "B"}}}, Draft: &play.Draft{Step: "sheet"}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Mode == game.ModeAsk }},
 		{"marks are no key", play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"* BAR"}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'B' }},
 		{"roster pick prompt", play.Scene{Replies: []string{"Wilma", "Buck"}, Common: play.Common{Status: "Add a character: "}}, game.Data{NoHotkeys: true}, nil, nil,
