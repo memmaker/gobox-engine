@@ -70,6 +70,7 @@ type Aimed struct {
 
 // Common is what every state shows besides its own view.
 type Common struct {
+	Portrait *Portrait // a speaker's portrait up (a shopkeeper), nil none; gobox composes it
 	NoSave   bool // saving is refused here (the rules say where the party may save)
 	NoLoad   bool // loading is refused here
 	Party    []Member
@@ -94,6 +95,13 @@ type Common struct {
 	PowerPick  *game.PowerPick  // PickPower answers
 	Picker     *game.Picker     // Pick, ClosePicker answer
 	IconEditor *game.IconEditor // IconSize, IconColour, IconRemove, IconPNG, EndIcon act on it
+}
+
+// Portrait is a portrait as the rules name it: the head and body pictures
+// (HEAD2 3, BODY2 3), or gobox pool ids where the game has them.
+type Portrait struct {
+	Head, Body     game.Picture
+	HeadID, BodyID string
 }
 
 // Question is what the rules ask over a state: the text and the answers
@@ -548,7 +556,10 @@ type (
 	// Fighting. EndTurn's outcome carries the monsters' moves up to the
 	// next member's turn.
 	MoveTo     struct{ To image.Point }
-	Attack     struct{ Target int }
+	Attack     struct {
+		Target int
+		At     *image.Point // aimed (Allowed.Aimed, squares): the square picked, nil by Target
+	}
 	Shoot      struct{ Ats []image.Point }
 	DoManeuver struct {
 		ID  int

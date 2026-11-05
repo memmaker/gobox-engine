@@ -172,3 +172,14 @@ Numeric sound/song names ("10") resolve as on the old path (front/classic turns 
 numbers). A free combat cursor (Aim with nothing pending) is gobox's; the game is not told.
 
 NoHotkeys covers vertical list picks only (creation choices, the roster); bar menus keep their keys. gobox never invents a key twice in one menu (the later one gets none). A Scene list pick shows Common.Status as its prompt.
+
+## COTAB extended parity
+
+| Old | play |
+|---|---|
+| Story portrait (HEAD2 3 + BODY2 3), WindowPicture | `Common.Portrait{Head, Body}` (or pool `HeadID/BodyID`); gobox composes it |
+| Attack with no adjacent foe (the core asks for a square) | `Allowed.Aimed` with `Attack{}` and squares; the answer is `Attack{At: &sq}` |
+| the combat menu's free Aim | gobox's own: Turn.Options always carries `Aim`, the game is not told |
+| Pending = the combat menu | not needed: gobox's front builds the menu from Turn.Options; Pending stays nil |
+| the fight's message pane | `Common.Text` (when set, it is Combat.Log; else the Narrated lines since the fight began) |
+| Flags.Adventure | camp, exploring, or any state with `Where.Mode` set |

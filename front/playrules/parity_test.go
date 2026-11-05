@@ -150,7 +150,26 @@ func TestParity(t *testing.T) {
 		{"turn keys unique", play.Fighting{Common: play.Common{Allowed: play.Allowed{Moves: []game.Reach{{}}, Plain: []play.Action{play.DoManeuver{}}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				o := s.Combat.Turn.Options
-				return len(o) == 2 && o[0].Key == 'M' && o[1].Key == 0
+				return len(o) == 3 && o[0].Key == 'M' && o[1].Key == 0
+			}},
+		{"keeper portrait", play.Trading{Common: play.Common{Portrait: &play.Portrait{Head: game.Picture{File: "HEAD2", Block: 3}, Body: game.Picture{File: "BODY2", Block: 3}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				return s.Window == game.WindowPicture && len(s.Story) == 2 && s.Story[0].File == "HEAD2"
+			}},
+		{"adventure on town loot", play.Looting{Common: play.Common{Where: game.Where{Mode: "town"}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Flags.Adventure }},
+		{"fight log from text", play.Fighting{Common: play.Common{Text: []string{"YOU GET INTO A BRAWL."}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return slices.Equal(s.Combat.Log, []string{"YOU GET INTO A BRAWL."}) }},
+		{"aimed attack", play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{},
+			[]game.Decision{game.Attack{}, game.Aim{At: image.Pt(2, 3)}}, []play.Action{play.Attack{At: &image.Point{2, 3}}},
+			func(s game.State, _ game.Result) bool {
+				var att, aim bool
+				for _, o := range s.Combat.Turn.Options {
+					_, a := o.Do.(game.Attack)
+					_, b := o.Do.(game.Aim)
+					att, aim = att || a, aim || b
+				}
+				return att && aim
 			}},
 		{"camp layers and day", play.Camping{Common: play.Common{Day: true, Layers: []game.Layer{{FrameMs: 100}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
@@ -178,7 +197,7 @@ func TestParity(t *testing.T) {
 				for _, o := range s.Combat.Turn.Options {
 					l = append(l, o.Label)
 				}
-				return slices.Equal(l, []string{"Move", "Wait", "End"})
+				return slices.Equal(l, []string{"Move", "Wait", "End", "Aim"})
 			}},
 		{"verb keys from data", play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Aid{}}}}},
 			game.Data{VerbKeys: map[string]rune{"Aid": 'H'}}, []game.Decision{game.Answer{N: 'H'}}, []play.Action{play.Aid{}},

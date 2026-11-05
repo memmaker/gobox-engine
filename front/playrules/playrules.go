@@ -286,6 +286,9 @@ func (r *rules) State() game.State {
 	if c.Picture != nil {
 		s.Picture = *c.Picture
 	}
+	if pt := c.Portrait; pt != nil { // gobox composes it from the head and body
+		s.Story = []game.Picture{pt.Head, pt.Body}
+	}
 	s.Page = &game.Page{Layers: c.Layers}
 	for _, t := range c.Text {
 		s.Page.Pane = append(s.Page.Pane, []game.TextRun{{Text: t, Fg: ink}})
@@ -297,10 +300,10 @@ func (r *rules) State() game.State {
 	s.Note = r.note
 	_, camp := ps.(play.Camping)
 	_, explore := ps.(play.Exploring)
-	s.Flags = &game.Flags{Adventure: camp || explore, Ordering: camp && s.Allowed["Order"], Sweeping: c.Where.Searching,
+	s.Flags = &game.Flags{Adventure: camp || explore || c.Where.Mode != "", Ordering: camp && s.Allowed["Order"], Sweeping: c.Where.Searching,
 		Inside: c.Where.Inside, CanCast: c.Selected >= 0 && c.Selected < len(s.Party) && s.Party[c.Selected].CanCast,
 		IconDrop: c.IconEditor != nil, Day: c.Day, NoSave: c.NoSave, NoLoad: c.NoLoad}
-	if c.Picture != nil || len(c.Layers) > 0 {
+	if c.Picture != nil || len(c.Layers) > 0 || c.Portrait != nil {
 		s.Window = game.WindowPicture
 	}
 	s.PowerPick, s.Picker, s.IconEditor = c.PowerPick, c.Picker, c.IconEditor
@@ -605,6 +608,9 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 	}
 	t := &game.Turn{Unit: b.Turn, Aim: r.aim != nil, Moves: b.Moves, Casting: b.Casting, Weapon: b.Weapon, Missile: b.Missile}
 	c.Turn, c.Panel, c.Log, c.CursorOn, c.Cursor = t, b.Turn, r.log, r.aim != nil, r.cursor
+	if len(f.Text) > 0 { // the rules' message pane is the fight's log
+		c.Log = f.Text
+	}
 	if r.aim != nil {
 		c.Marks = r.aim.ats
 		if cs, ok := r.aim.Action.(play.Cast); ok {
@@ -636,6 +642,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 			t.Options = append(t.Options, game.Option{Label: v.label, Key: k, Do: game.Answer{N: int(k)}})
 		}
 	}
+	t.Options = append(t.Options, game.Option{Label: "Aim", Do: game.Aim{}}) // the free cursor, gobox's own
 	named := map[int]game.TurnManeuver{}
 	for _, m := range b.Maneuvers {
 		named[m.ID] = m
@@ -786,6 +793,16 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		return r.aimOrDo(commonOf(ps).Allowed, play.UseItem{Member: d.Member, Item: d.Item, Target: d.Target, Ats: d.Ats, Spell: d.Spell})
 	case game.Aim:
 		return r.aimAt(d.At)
+	case game.Attack:
+		al := commonOf(ps).Allowed
+		if !slices.Contains(al.Plain, play.Action(play.Attack{Target: d.Target})) {
+			for _, x := range al.Aimed {
+				if _, ok := x.Action.(play.Attack); ok { // no foe to hit by id: gobox asks for the square
+					r.aim = &aiming{Aimed: x}
+					return game.Result{}
+				}
+			}
+		}
 	case game.Save:
 		if commonOf(ps).NoSave {
 			return game.Result{Err: errors.New("cannot save here")}
@@ -1113,6 +1130,10 @@ func ats(a play.Action) []image.Point {
 		return a.Ats
 	case play.DoManeuver:
 		return a.Ats
+	case play.Attack:
+		if a.At != nil {
+			return []image.Point{*a.At}
+		}
 	}
 	return nil
 }
@@ -1130,6 +1151,12 @@ func withAts(a play.Action, at []image.Point) play.Action {
 		return x
 	case play.DoManeuver:
 		x.Ats = at
+		return x
+	case play.Attack:
+		x.At = nil
+		if len(at) > 0 {
+			x.At = &at[0]
+		}
 		return x
 	}
 	return a
