@@ -530,11 +530,23 @@ func (p *Presenter) sync(b *Board) {
 		}
 		empty := func(t int) bool { return t < 0 || t >= len(p.empty) || p.empty[t] }
 		cut := func(t int) bool { return t >= 0 && t < len(p.cut) && p.cut[t] }
-		g := p.ground // a square with a model is bare floor
+		// a square with a model gets the floor its neighbours do: the tile most
+		// walkable squares show (the floor is a tile on the board's bare ground)
+		g, count, under := p.ground, map[int]int{}, -1
+		for z := range g {
+			for _, s := range g[z] {
+				if p.modelAt(s) == nil && !s.Wall && kindOf(s, p.walls, empty, cut) == flat {
+					count[s.Tile]++
+					if under < 0 || count[s.Tile] > count[under] {
+						under = s.Tile
+					}
+				}
+			}
+		}
 		for z := range g {
 			for x, s := range g[z] {
 				if p.modelAt(s) != nil {
-					g[z][x] = Square{Tile: -1}
+					g[z][x] = Square{Tile: under}
 				}
 			}
 		}

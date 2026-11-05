@@ -13,7 +13,7 @@ import (
 // The pilots stay inside their square: 16 units wide and deep, standing on the floor.
 func TestReadMeshPilots(t *testing.T) {
 	dir := os.DirFS("../sprites/series/buck-rogers/combat/meshes")
-	for _, n := range []string{"hitek_tile_019", "hitek_tile_044", "lotek_tile_042"} {
+	for _, n := range []string{"hitek_tile_019", "hitek_tile_035", "hitek_tile_036", "hitek_tile_037", "hitek_tile_038", "hitek_tile_039", "hitek_tile_040", "hitek_tile_041", "hitek_tile_042", "hitek_tile_043", "hitek_tile_044", "lotek_tile_042"} {
 		vs, img, err := readMesh(dir, n)
 		if err != nil || img == nil || len(vs) == 0 || len(vs)%3 != 0 {
 			t.Fatalf("%s: %d vertices, texture %v, %v", n, len(vs), img != nil, err)
