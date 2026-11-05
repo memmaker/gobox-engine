@@ -536,8 +536,11 @@ func wholeScale(sw, sh, tw, th int) int {
 	return 0
 }
 
-// face is the card art for a head: its lit pixels (the face, hair and
-// shoulders) scaled to fill a PortraitSize square (nil without a head).
+// face is the card art for a head: the square of the head's height at its
+// middle (the face, hair and shoulders: a Gold Box head is a wide strip, the
+// face centred over the body) scaled to fill a PortraitSize square, every
+// head at the one scale (nil without a head). Not the lit pixels' bounds: a
+// stray pixel at a strip's edge (a staff's tip) shrank the face to a sliver.
 func (p *Presenter) face(head image.Image) image.Image {
 	if head == nil {
 		return nil
@@ -546,20 +549,12 @@ func (p *Presenter) face(head image.Image) image.Image {
 		return f
 	}
 	const n = portraitSize
-	lit := image.Rectangle{}
 	b := head.Bounds()
-	for y := b.Min.Y; y < b.Max.Y; y++ {
-		for x := b.Min.X; x < b.Max.X; x++ {
-			if r, g, bl, a := head.At(x, y).RGBA(); a > 0 && r|g|bl != 0 {
-				lit = lit.Union(image.Rect(x, y, x+1, y+1))
-			}
-		}
-	}
+	side := min(b.Dx(), b.Dy())
+	x := b.Min.X + (b.Dx()-side)/2
 	f := image.NewRGBA(image.Rect(0, 0, n, n))
 	draw.Draw(f, f.Bounds(), image.Black, image.Point{}, draw.Src)
-	if !lit.Empty() { // the lit part fills the square, its shape kept (fitSquare)
-		draw.Draw(f, f.Bounds(), fitSquare(crop(head, lit), n), image.Point{}, draw.Over)
-	}
+	draw.Draw(f, f.Bounds(), fitSquare(crop(head, image.Rect(x, b.Max.Y-side, x+side, b.Max.Y)), n), image.Point{}, draw.Over)
 	p.faces[head] = f
 	return f
 }
