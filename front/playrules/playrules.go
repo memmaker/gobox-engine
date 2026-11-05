@@ -56,16 +56,10 @@ type aiming struct {
 	ats []image.Point
 }
 
-// New is g as the old front's Rules; d, when given, is the game's Data
+// New is g as the old front's Rules; d is the game's Data
 // (its series' verb keys and texts).
-func New(g play.Game, d ...game.Data) game.Rules {
-	r := &rules{g: g, dir: Dir, sheet: -1}
-	if len(d) > 0 {
-		r.data = d[0]
-		if d[0].SaveDir != "" {
-			r.dir = d[0].SaveDir
-		}
-	}
+func New(g play.Game, d game.Data) game.Rules {
+	r := &rules{g: g, dir: cmp.Or(d.SaveDir, Dir), sheet: -1, data: d}
 	return r
 }
 
@@ -587,9 +581,9 @@ var tones = map[game.Tone]color.RGBA{game.ToneText: ink, game.ToneOwn: {85, 255,
 	game.TonePrompt: {255, 255, 85, 255}, game.ToneWarn: {255, 85, 255, 255}, game.ToneLoud: ink}
 
 // run is a line of the rules' text: its colour unset, so the front gives
-// it gobox's body text colour, in capitals where the game writes so.
+// it gobox's body text colour, in capitals unless Data.Lowercase.
 func (r *rules) run(t string) []game.TextRun {
-	return []game.TextRun{{Text: t, Upcase: r.data.Upcase}}
+	return []game.TextRun{{Text: t, Upcase: !r.data.Lowercase}}
 }
 
 func walls(w play.Walls) *game.Walls {

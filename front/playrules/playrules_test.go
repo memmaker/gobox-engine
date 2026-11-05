@@ -94,7 +94,7 @@ func TestAdapter(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			r := New(c.f)
+			r := New(c.f, game.Data{})
 			c.check(t, c.f, r, r.Apply(c.d))
 		})
 	}
@@ -104,7 +104,7 @@ func TestAimAndSlots(t *testing.T) {
 	cast := play.Cast{Spell: 7}
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{
 		Aimed: []play.Aimed{{Action: cast, Squares: []image.Point{{2, 2}}, Targets: 1}}}}}}
-	r := New(f).(*rules)
+	r := New(f, game.Data{}).(*rules)
 	r.dir = t.TempDir()
 	if res := r.Apply(game.Cast{Spell: 7}); res.Err != nil || len(f.sent) != 0 || !r.State().Combat.Turn.Aim {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)

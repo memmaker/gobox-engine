@@ -270,7 +270,7 @@ func TestParity(t *testing.T) {
 // TestRestChunkCap: a chunk is no longer than the allowed rest.
 func TestRestChunkCap(t *testing.T) {
 	f := &fake{st: play.Camping{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.AdvanceTimeBy{D: 5 * time.Minute}}}}}}
-	r := New(f)
+	r := New(f, game.Data{})
 	r.Apply(game.Rest{Minutes: 60})
 	r.Step()
 	if f.sent[0] != (play.AdvanceTimeBy{D: 5 * time.Minute}) {
@@ -281,7 +281,7 @@ func TestRestChunkCap(t *testing.T) {
 // TestCombatLogNote: the fight's text builds the log; a refusal is the toast.
 func TestCombatLogNote(t *testing.T) {
 	f := &fake{st: play.Fighting{}, out: play.Outcome{Events: []play.Event{play.Narrated{Text: "Hits!"}, play.Refused{Why: "no"}}}}
-	r := New(f)
+	r := New(f, game.Data{})
 	r.Apply(game.EndTurn{})
 	if s := r.State(); !slices.Equal(s.Combat.Log, []string{"Hits!"}) || s.Note.Text != "no" {
 		t.Fatalf("log %v note %v", s.Combat.Log, s.Note)
@@ -291,7 +291,7 @@ func TestCombatLogNote(t *testing.T) {
 // TestGameSlots: the game's own slots list after gobox's and load by index.
 func TestGameSlots(t *testing.T) {
 	g := &slotted{fake: fake{st: play.Assembling{}}}
-	r := New(g).(*rules)
+	r := New(g, game.Data{}).(*rules)
 	r.dir = t.TempDir()
 	s := r.State()
 	if len(s.Saves) != 1 || s.Saves[0].Info != "old" {

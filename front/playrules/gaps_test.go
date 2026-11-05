@@ -140,7 +140,7 @@ func TestGaps(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			f := &fake{st: c.st}
-			r := New(f)
+			r := New(f, game.Data{})
 			if res := r.Apply(c.d); res.Err != nil {
 				t.Fatal(res.Err)
 			}
@@ -167,7 +167,7 @@ func TestEvents(t *testing.T) {
 // TestRestPaced: camp's rest goes in chunks by Step and stops on StopRest.
 func TestRestPaced(t *testing.T) {
 	f := &fake{st: play.Camping{Common: allow(play.AdvanceTimeBy{})}}
-	r := New(f)
+	r := New(f, game.Data{})
 	r.Apply(game.Rest{Minutes: 30})
 	if p := r.State().Pacing; p.Pace != game.PaceRest || !p.Resting {
 		t.Fatalf("pacing %+v", p)
@@ -183,7 +183,7 @@ func TestRestPaced(t *testing.T) {
 // TestWalkTo: the auto-walk goes round the wall a square a Step.
 func TestWalkTo(t *testing.T) {
 	f := &fake{st: play.Exploring{Map: play.ExploreMap{Walk: walker{}}}}
-	r := New(f)
+	r := New(f, game.Data{})
 	if res := r.Apply(game.WalkTo{At: image.Pt(1, 0)}); res.Err != nil {
 		t.Fatal(res.Err)
 	}
