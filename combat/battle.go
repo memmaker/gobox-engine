@@ -10,6 +10,8 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"io/fs"
+	"log"
 	"math"
 	"math/rand/v2"
 	"slices"
@@ -24,13 +26,17 @@ type Presenter struct {
 	Shift                      bool                 // Shift is held (the host sets it each frame): the health bars show
 	Icons                      map[Kind]image.Image // a button's icon by action (the game's art; without one the hotkey letter shows); the weapon in hand on Attack, what Ranged shoots
 	IconKey                    string               // names them, so the bar redraws when they change
+	Meshes                     fs.FS                // <name>.gltf and its PNG for the tiles that have a 3D model (nil: none)
 	white, atlas, shadow, wood *gpu.Image
 	tiles                      [256]image.Image // the tiles the atlas holds
 	empty                      [256]bool        // tiles with nothing on the ground
 	cut                        [256]bool        // tiles with see-through texels: sprites, not ground cover
 	floor                      color.RGBA
-	ground                     [25][50]Square // the squares the meshes show
-	walls                      int            // wall tiles when a dungeon, else 0
+	names                      []string             // the tile names the meshes were looked up for
+	meshOf                     [256]*tileMesh       // the tiles that draw a model
+	meshes                     map[string]*tileMesh // by name; nil: none (looked up once)
+	ground                     [25][50]Square       // the squares the meshes show
+	walls                      int                  // wall tiles when a dungeon, else 0
 	board, shadows, table      *gpu.Mesh
 	box, base, flatQuad        *gpu.Mesh
 	figs                       map[image.Image]*figure // ponytail: never evicted; a few dozen pictures a game
@@ -70,6 +76,12 @@ type Presenter struct {
 	Glyph  func(byte) [8]byte // the game's font, for the damage numbers
 	tops   map[int]vec        // over each unit's head, as last drawn (where its numbers start)
 	floats []floater
+}
+
+// tileMesh is a tile's model on the GPU.
+type tileMesh struct {
+	mesh *gpu.Mesh
+	tex  *gpu.Image
 }
 
 type figure struct {
@@ -211,6 +223,19 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	}
 	if !gpu.Skip("board") {
 		dst.DrawMesh(p.board, p.atlas, vp, opts(gpu.Ident, [4]float32{1, 1, 1, 1}, 0.04))
+	}
+
+	// the tiles that have a model, on their squares (the floor shows under them)
+	if !gpu.Skip("board") {
+		for z := range p.ground {
+			for x, s := range p.ground[z] {
+				if m := p.modelAt(s); m != nil {
+					o := opts(place(float32(x)+.5, 0, float32(z)+.5, 0, 1.0/meshUnits, 1.0/meshUnits, 1.0/meshUnits), [4]float32{1, 1, 1, 1}, 0.12)
+					o.Ambient = 0.85                   // lit as the figurines are
+					dst.DrawMesh(m.mesh, m.tex, vp, o) // ponytail: a draw per square; batch if a map shows hundreds
+				}
+			}
+		}
 	}
 
 	// shadows under what stands: the map's things, then the figurines
@@ -483,6 +508,15 @@ func (p *Presenter) sync(b *Board) {
 		put(floorSlot, floorTile(b.Floor))
 		p.atlas.WritePixels(a.Pix)
 	}
+	if !slices.Equal(b.TileNames, p.names) {
+		p.names, changed = slices.Clone(b.TileNames), true
+		p.meshOf = [256]*tileMesh{}
+		for i, n := range p.names {
+			if i < len(p.meshOf) {
+				p.meshOf[i] = p.tileMesh(n)
+			}
+		}
+	}
 	walls := 0
 	if b.Dungeon {
 		walls = b.WallTiles
@@ -496,9 +530,50 @@ func (p *Presenter) sync(b *Board) {
 		}
 		empty := func(t int) bool { return t < 0 || t >= len(p.empty) || p.empty[t] }
 		cut := func(t int) bool { return t >= 0 && t < len(p.cut) && p.cut[t] }
-		p.board = gpu.NewMesh(append(mapMesh(&p.ground, p.walls, empty, cut, p.tiles[:]), boardSides()...))
-		p.shadows = gpu.NewMesh(standShadows(&p.ground, p.walls, empty, cut))
+		g := p.ground // a square with a model is bare floor
+		for z := range g {
+			for x, s := range g[z] {
+				if p.modelAt(s) != nil {
+					g[z][x] = Square{Tile: -1}
+				}
+			}
+		}
+		p.board = gpu.NewMesh(append(mapMesh(&g, p.walls, empty, cut, p.tiles[:]), boardSides()...))
+		p.shadows = gpu.NewMesh(standShadows(&g, p.walls, empty, cut))
 	}
+}
+
+// modelAt is the model that stands on square s, nil if none. A dungeon
+// piece on a walkable square is no wall: nothing stands there.
+func (p *Presenter) modelAt(s Square) *tileMesh {
+	if s.Tile < 0 || s.Tile >= len(p.meshOf) || p.walls > 0 && s.Tile < p.walls && !s.Wall {
+		return nil
+	}
+	return p.meshOf[s.Tile]
+}
+
+// tileMesh is the model of the tile named n (cached; nil: it has none).
+func (p *Presenter) tileMesh(n string) *tileMesh {
+	if n == "" || p.Meshes == nil {
+		return nil
+	}
+	if m, ok := p.meshes[n]; ok {
+		return m
+	}
+	if p.meshes == nil {
+		p.meshes = map[string]*tileMesh{}
+	}
+	var m *tileMesh
+	if _, err := fs.Stat(p.Meshes, n+".gltf"); err == nil {
+		vs, img, err := readMesh(p.Meshes, n)
+		if err != nil || img == nil {
+			log.Printf("combat: mesh %s: %v (texture %v)", n, err, img != nil)
+		} else {
+			m = &tileMesh{gpu.NewMesh(vs), gpu.NewImageFromImage(img)}
+		}
+	}
+	p.meshes[n] = m
+	return m
 }
 
 // figure is the extruded mesh for a picture (cached).

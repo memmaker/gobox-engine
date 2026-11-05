@@ -7,6 +7,7 @@ import (
 
 	"gobox/combat"
 	"gobox/gpu"
+	"gobox/sprites"
 )
 
 // The adapter between the engine's combat snapshot and gobox/combat.
@@ -32,6 +33,7 @@ var engineKinds = func() map[combat.Kind]front.ActKind {
 func (p *Presenter) syncBattle() {
 	p.battle.Theme, p.battle.Shift = combat.DefaultTheme, gpu.IsKeyPressed(gpu.KeyShift)
 	p.battle.Theme.Series = series
+	p.battle.Meshes = sprites.Meshes(series)
 }
 
 // toAction is what the player chose as the engine's action.
@@ -45,7 +47,7 @@ func toBoard(b *front.Battle) *combat.Board {
 		return nil
 	}
 	o := &combat.Board{
-		Tiles: b.Tiles, WallTiles: dungeonTiles, StoneTile: 3, Floor: b.Floor, Dungeon: b.Dungeon,
+		Tiles: b.Tiles, TileNames: b.TileNames, WallTiles: dungeonTiles, StoneTile: 3, Floor: b.Floor, Dungeon: b.Dungeon,
 		Cursor: b.Cursor, CursorOn: b.CursorOn, CursorAt: b.CursorAt, Marks: b.Marks, Reach: b.Reach,
 		Targets: b.Targets, Panel: b.Panel, Log: b.Log, Area: b.Area, AreaAt: b.AreaAt, AimArea: b.AimArea, Skipped: b.Skipped,
 		AimWhy: b.AimWhy, View: b.View, Strike: combat.Strike(b.Strike),

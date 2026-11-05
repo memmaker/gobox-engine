@@ -22,6 +22,7 @@ require (
 	github.com/jfreymuth/pulse v0.1.3 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
 	github.com/memmaker/opl2 v0.1.0 // indirect
+	github.com/qmuntal/gltf v0.29.0 // indirect
 	gobox/amiga v0.0.0 // indirect
 	gobox/app v0.0.0 // indirect
 	gobox/audio v0.0.0 // indirect
@@ -91,4 +92,3 @@ replace github.com/gogpu/wgpu => ../../gogpu-wgpu
 replace github.com/go-webgpu/goffi => ../../goffi
 
 replace github.com/gogpu/gogpu => ../../goplay/third_party/gogpu
-

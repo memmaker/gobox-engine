@@ -44,6 +44,12 @@ func decode(path string) image.Image {
 	return img
 }
 
+// Meshes is the series' combat tile models: <name>.gltf with its PNG (see combat.Presenter.Meshes).
+func Meshes(series string) fs.FS {
+	f, _ := fs.Sub(fsys, "series/"+series+"/combat/meshes")
+	return f
+}
+
 // Names lists the sprite names of a series' kind, sorted.
 func Names(series, kind string) []string {
 	es, _ := fsys.ReadDir("series/" + series + "/" + kind)

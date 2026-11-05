@@ -10,6 +10,7 @@ import (
 type Board struct {
 	Ground    [25][50]Square
 	Tiles     []image.Image // the tile set by tile number
+	TileNames []string      // Tiles' names ("": none); a tile named so may have a mesh in the presenter's Meshes
 	WallTiles int           // tiles 0..WallTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
 	StoneTile int           // the wall tile whose face is the stone texture (a plain one)
 	Floor     color.RGBA    // the ground's colour
