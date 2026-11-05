@@ -57,6 +57,7 @@ func Refs(refs []Ref, text string) []string {
 type Book struct {
 	fsys  fs.FS
 	texts map[string][]string
+	order []string // the titles in file order
 	mu    sync.Mutex
 	pics  map[string]image.Image
 	sizes map[string]image.Rectangle
@@ -77,6 +78,9 @@ func Load(fsys fs.FS, files ...string) (*Book, error) {
 			case strings.HasPrefix(l, "#"):
 			case strings.HasPrefix(l, "[") && strings.HasSuffix(l, "]"):
 				title = l[1 : len(l)-1]
+				if _, ok := b.texts[title]; !ok {
+					b.order = append(b.order, title)
+				}
 				b.texts[title] = nil
 			case title != "":
 				b.texts[title] = append(b.texts[title], l)
@@ -88,6 +92,12 @@ func Load(fsys fs.FS, files ...string) (*Book, error) {
 
 // Has reports whether the book holds title.
 func (b *Book) Has(title string) bool { _, ok := b.texts[title]; return ok }
+
+// Titles is the book's titles in file order.
+func (b *Book) Titles() []string { return b.order }
+
+// Text is title's lines as written: "" between paragraphs, "<FILE.PNG>" a picture.
+func (b *Book) Text(title string) []string { return b.texts[title] }
 
 // Picture is the picture name, decoded once (nil: missing). It fits Data.Scans.
 func (b *Book) Picture(name string) image.Image {
