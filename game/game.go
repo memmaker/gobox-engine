@@ -428,7 +428,7 @@ type Member struct {
 	Levels                               []int
 	Stats                                map[string]int // "str", "int", ...
 	Str00                                int            // exceptional strength: 0 none, 1..100 for 18/01..18/00
-	HP, MaxHP, AC, THAC0, Move           int
+	HP, MaxHP, AC, THAC0, Move, Age      int            // Age: years (the sheet's)
 	Exp                                  uint32
 	Items                                []Item // in the rules' order; gobox keeps it
 	Spells                               []SpellRef

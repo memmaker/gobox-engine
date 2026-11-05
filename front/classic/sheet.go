@@ -54,7 +54,7 @@ func Sheet(v front.View, s game.State) front.View {
 func draftPage(c *game.Creation) *game.SheetPage {
 	d := c.Draft
 	p := &game.SheetPage{Name: d.Name, Race: d.Race, Alignment: d.Alignment, Class: d.Class, Creating: true,
-		AC: d.AC, HP: d.HP, MaxHP: d.MaxHP, THAC0: d.THAC0, Move: d.Move, Status: d.Status}
+		AC: d.AC, HP: d.HP, MaxHP: d.MaxHP, THAC0: d.THAC0, Move: d.Move, Status: d.Status, Age: d.Age}
 	if d.ClassText != "" {
 		p.Class = d.ClassText
 	}

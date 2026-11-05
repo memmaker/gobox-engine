@@ -125,7 +125,7 @@ type Member struct {
 	Levels                               []int
 	Stats, BaseStats                     map[string]int // "str", "int", ...
 	Str00                                int            // exceptional strength: 0 none, 1..100
-	HP, MaxHP, AC, THAC0, Move           int
+	HP, MaxHP, AC, THAC0, Move, Age      int
 	Exp, LevelExp, NextExp               int
 	Items                                []game.Item
 	ItemCap                              int // 0 no limit

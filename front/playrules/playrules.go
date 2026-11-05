@@ -569,7 +569,7 @@ func member(m play.Member, chosen, cast bool) game.Member {
 		Items: m.Items, ItemCap: m.ItemCap, Spells: m.Spells, Slots: m.Slots, SlotsMax: m.SlotsMax,
 		PortraitHeadID: m.PortraitHeadID, PortraitBodyID: m.PortraitBodyID, IconHeadID: m.IconHeadID,
 		IconBodyID: m.IconBodyID, IconColors: m.IconColours, Okay: m.Okay, Foe: m.Foe, Chosen: chosen, CanCast: cast,
-		ClassText: m.ClassText, LevelText: m.LevelText, SpellsReady: m.SpellsReady, Memo: m.Memo, Icon: m.Icon, Portrait: m.Portrait}
+		ClassText: m.ClassText, LevelText: m.LevelText, SpellsReady: m.SpellsReady, Memo: m.Memo, Icon: m.Icon, Portrait: m.Portrait, Age: m.Age}
 	for _, e := range m.Effects {
 		g.Effects = append(g.Effects, game.Line{Text: e})
 	}
