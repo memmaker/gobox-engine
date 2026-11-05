@@ -1208,7 +1208,7 @@ type Event struct {
 type Data struct {
 	Unmarked     bool   // the selected member's card is not marked (the game's look; Selected still says who is)
 	NoFreeAim    bool   // the series' combat menu has no free Aim (Buck Rogers)
-	SaveDir      string // where gobox writes slot files ("": saves)
+	SaveDir      string // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
 	Series       string
 	ID           string          // game id
 	CreationFlow CreationFlow    // the creation sheet's layout and steps

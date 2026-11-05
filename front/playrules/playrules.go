@@ -23,8 +23,23 @@ import (
 	"gobox/game/play"
 )
 
-// Dir is where the slot files go, under the game's working directory.
+// Dir is the slot folder when the game names none and the user has no
+// config dir: under the working directory.
 const Dir = "saves"
+
+// saveDir is where slot files go: the game's SaveDir, else the user's
+// config dir (gobox/<ID>/saves), never the game's data folder. A run with
+// its own HOME so gets its own saves.
+func saveDir(d game.Data) string {
+	if d.SaveDir != "" {
+		return d.SaveDir
+	}
+	c, err := os.UserConfigDir()
+	if err != nil {
+		return Dir
+	}
+	return filepath.Join(c, "gobox", cmp.Or(d.ID, "game"), "saves")
+}
 
 type rules struct {
 	g      play.Game
@@ -60,7 +75,7 @@ type aiming struct {
 // New is g as the old front's Rules; d is the game's Data
 // (its series' verb keys and texts).
 func New(g play.Game, d game.Data) game.Rules {
-	r := &rules{g: g, dir: cmp.Or(d.SaveDir, Dir), sheet: -1, data: d}
+	r := &rules{g: g, dir: saveDir(d), sheet: -1, data: d}
 	return r
 }
 
@@ -1301,7 +1316,8 @@ func (r *rules) do(a play.Action) game.Result {
 // keep sends a to the game: a refusal is Err, else the outcome as events.
 func (r *rules) keep(a play.Action) game.Result {
 	out, err := r.g.Do(a)
-	if err != nil { // no toast: the old path's refusals were silent unless the rules said (Refused)
+	fmt.Printf("  DO %T %+v err %v\n", a, a, err) // ZZDEBUG
+	if err != nil {                               // no toast: the old path's refusals were silent unless the rules said (Refused)
 		return game.Result{Err: err}
 	}
 	r.ask, r.moves, r.aim = nil, nil, nil
