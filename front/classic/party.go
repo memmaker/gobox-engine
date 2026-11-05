@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"cmp"
 	"gobox/front"
 	"gobox/game"
 	"image"
@@ -33,6 +34,9 @@ func Party(s game.State, art map[string]game.Picture) []front.Member {
 		var head image.Image
 		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
 			head = poolImage("portraits", m.PortraitHeadID)
+		}
+		if h := art[m.Head]; head == nil && m.Dropped == nil && h.Pixels == nil && h.File == "" && h.Name == "" { // no portrait: the combat icon (Buck Rogers' members have only that), else the card names the member
+			head = poolImage("combat", cmp.Or(m.IconBodyID, m.IconHeadID))
 		}
 		out = append(out, front.Member{Head: head, Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
 			Selected: m.Chosen, Colour: nameColour(m), HeadPix: pix(art[m.Head]), Portrait: m.Dropped, Powers: powers(m.Card),
