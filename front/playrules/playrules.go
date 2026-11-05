@@ -252,13 +252,14 @@ func key(s string, used map[rune]bool) rune {
 }
 
 // options are labels as options with invented keys; a vertical list
-// (list) has none where the series' lists have none (Data.NoHotkeys).
+// (list) has none where the series' lists have none (Data.NoHotkeys), but
+// its way out ("Done", "Exit", "Leave") keeps one.
 func (r *rules) options(labels []string, list bool) []game.Option {
 	used := map[rune]bool{}
 	var o []game.Option
 	for _, t := range labels {
 		k := rune(0)
-		if !list || !r.data.NoHotkeys {
+		if !list || !r.data.NoHotkeys || exitLabel[strings.ToLower(t)] {
 			k = key(t, used)
 		}
 		o = append(o, game.Option{Label: t, Key: k})
@@ -1399,3 +1400,6 @@ func (r *rules) ownSaves() []game.SaveSlot {
 	}
 	return out
 }
+
+// exitLabel are the list entries that leave a pick; they keep a key under NoHotkeys.
+var exitLabel = map[string]bool{"done": true, "exit": true, "leave": true}
