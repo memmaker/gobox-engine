@@ -296,7 +296,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 		p.slotList(dst, lines, keys, off)
 		return
 	}
-	s.top = min(max(s.top, s.sel-scrRows+1), s.sel, max(0, len(lines)-scrRows))
+	s.top = max(0, min(max(s.top, s.sel-scrRows+1), s.sel, len(lines)-scrRows)) // 0 on an empty list (sel -1: lines[-1:] panicked)
 	end := min(len(lines), s.top+scrRows)
 	sel := s.sel - s.top
 	if s.sub == scrType {
