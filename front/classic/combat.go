@@ -6,6 +6,7 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/sprites"
 )
 
 // turnAct is the combat menu's action a Decision does (false: not a menu entry).
@@ -119,6 +120,9 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 	for i, n := range c.Tiles {
 		if n != "" && i < len(b.TilePix) {
 			b.TilePix[i] = pix(art[n])
+			if im := sprites.Image(Series, "combat", n); art[n].File == "" && b.TilePix[i].Pix == nil && im != nil { // a series sprite
+				b.TilePix[i].Img = im
+			}
 		}
 	}
 	for _, f := range c.Effects {

@@ -107,10 +107,10 @@ func Map(m *front.MapSquares, s game.State) *front.MapSquares {
 	return &c
 }
 
-// pix is p (the game's) as the front's pixels.
+// pix is p (the game's) as the front's pixels, or as its reference without any.
 func pix(p game.Picture) front.Picture {
-	if p.W == 0 || p.Pixels == nil {
-		return front.Picture{}
+	if p.W == 0 || p.Pixels == nil { // a ref (DAX File, Block, Frame, or a pool Name) the presenter resolves
+		return front.Picture{File: p.File, Block: p.Block, Frame: p.Frame, Name: p.Name}
 	}
 	f := front.Picture{Pix: p.Pixels, PixW: p.W}
 	if p.Clear >= 0 {

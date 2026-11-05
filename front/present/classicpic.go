@@ -59,6 +59,9 @@ func pixImage(pc front.Picture, ink [16]color.RGBA) image.Image {
 // picImage is pc as an image: its pixels in ink, else the DAX picture its
 // File, Block and Frame name (EGA colours), else nil.
 func picImage(pc front.Picture, ink [16]color.RGBA) image.Image {
+	if pc.Img != nil {
+		return pc.Img
+	}
 	if ink == egaInk && pc.Palette == nil {
 		if m := poolImage(pc); m != nil {
 			return m
