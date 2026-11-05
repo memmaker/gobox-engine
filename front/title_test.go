@@ -35,3 +35,22 @@ func TestIntroCreditPages(t *testing.T) {
 		t.Fatalf("got %s, want %s", got, want)
 	}
 }
+
+// A game without a credits page (NoCredits) goes from its last picture to
+// the backdrop: never an empty credits pane (PoD's credits are picture 3).
+func TestIntroNoCredits(t *testing.T) {
+	var log []string
+	h := titleHost{g: titleGame{log: &log}}
+	in := IntroUI{NoCredits: true, Backdrop: 2}
+	intro := &Intro{Pictures: []int{3, 1, 2}}
+	for range 5 {
+		if len(log) > 0 && log[len(log)-1] == "done" {
+			break
+		}
+		IntroStep(h, &in, intro, true)
+		IntroStep(h, &in, intro, false)
+	}
+	if got, want := fmt.Sprint(log), "[pic3 pic1 pic2 pic2 done]"; got != want {
+		t.Fatalf("got %s, want %s", got, want)
+	}
+}

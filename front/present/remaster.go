@@ -204,7 +204,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 		}
 		return Rect{}
 	}
-	p.intro.Backdrop, p.intro.Hold = titleBackdrop, p.mm.title == nil
+	p.intro.Backdrop, p.intro.Hold, p.intro.NoCredits = titleBackdrop, p.mm.title == nil, len(credits) == 0
 	front.IntroStep(p, &p.intro, v.Intro, false)
 	if ev := p.playing(); ev != nil && ev.Scene != nil { // the page as it stood at the pause played
 		v = *ev.Scene
