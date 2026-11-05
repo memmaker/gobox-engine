@@ -57,16 +57,11 @@ type Data struct {
 	IconParts      []string
 	SpellRules     []string // what each spell does, by spell id (the camp's spell tips; "" none)
 
-	DollBoxes []image.Rectangle // the doll's slot boxes in doll pixels, by doll slot
-	SlotNames []string          // their names
-	ReadyMark string            // shown before a readied item's name (InvItem.Readied), for a game without a doll ("": none)
+	ReadyMark string // shown before a readied item's name (InvItem.Readied), for a game without a doll ("": none)
 
 	AreaMaps map[front.AreaID]string // the 3D map (Art maps/NAME.map) of each area
 	Art      fs.FS                   // maps/NAME.map and assets/walls/walls.txt
 	OpenAt   string                  // map:NAME:X:Y:D shows map NAME from that square alone (drawOpen); "" none
-
-	DollPNG, AtlasPNG []byte // the paper doll, the item icons
-	ItemsRec          string // the icons' records
 
 	DAX *dax.Loader // the game's own DAX loader, over its own files: it decodes the pictures named by File and Block with Img nil and Theme.Border (nil: they stay undrawn)
 
@@ -129,9 +124,9 @@ func SetData(d Data) {
 	if creditGaps = d.CreditGaps; creditGaps == nil {
 		creditGaps = []int{4, 5, 6}
 	}
-	dollBoxes, slotNames, readiedMark = d.DollBoxes, d.SlotNames, d.ReadyMark
+	dollBoxes, slotNames, readiedMark = defaultDollBoxes, defaultSlotNames, d.ReadyMark
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
-	dollPNG, atlasPNG, itemsRec = d.DollPNG, d.AtlasPNG, d.ItemsRec
+	dollPNG, atlasPNG, itemsRec = defaultDoll, defaultAtlas, defaultItemsRec
 	daxLoader = d.DAX
 	if daxLoader != nil && !daxLoader.HasAmiga() { // the Amiga art beside the DOS files (data/amiga), shown on F12
 		daxLoader.UseAmiga(filepath.Join(filepath.Dir(daxLoader.Dir), "amiga"))
@@ -316,9 +311,6 @@ func gameData(g game.Data) {
 	if g.RemasterCredit != ([2]string{}) {
 		remasterCredit = g.RemasterCredit
 	}
-	if g.DollBoxes != nil {
-		dollBoxes, slotNames = g.DollBoxes, g.SlotNames
-	}
 	if g.AreaMaps != nil {
 		areaMaps = map[front.AreaID]string{}
 		for id, n := range g.AreaMaps {
@@ -330,9 +322,6 @@ func gameData(g game.Data) {
 	}
 	if g.OpenAt != "" {
 		openAt = g.OpenAt
-	}
-	if g.Doll != nil {
-		dollPNG, atlasPNG, itemsRec = g.Doll, g.ItemAtlas, g.ItemRecs
 	}
 	if g.Bindings != nil {
 		var own []ui.Binding
