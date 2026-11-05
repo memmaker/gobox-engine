@@ -4,6 +4,7 @@ import (
 	"gobox/front"
 	"gobox/game"
 	"gobox/sprites"
+	"image"
 )
 
 // kinds are the actions the menu verbs of game.Entry stand for.
@@ -30,10 +31,11 @@ func Party(s game.State, art map[string]game.Picture) []front.Member {
 	var out []front.Member
 	for _, m := range s.Party {
 		m = defaultPortrait(m)
-		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone
-			m.Dropped = sprites.Image(Series, "portraits", m.PortraitHeadID)
+		var head image.Image
+		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
+			head = sprites.Image(Series, "portraits", m.PortraitHeadID)
 		}
-		out = append(out, front.Member{Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
+		out = append(out, front.Member{Head: head, Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
 			Selected: m.Chosen, Colour: nameColour(m), HeadPix: pix(art[m.Head]), Portrait: m.Dropped, Powers: powers(m.Card),
 			Exp: int(int32(m.Exp)), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
 	}
