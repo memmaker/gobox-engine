@@ -54,8 +54,13 @@ func (g classicGame) View() front.View {
 	return v
 }
 
-// art is the game's art as loaded now: it comes after NewFront, and the art set can change.
+// art is the game's art as loaded now: the rules' live Art (the 3D view's
+// wall fronts, the fight's tiles), else the Data's; it comes after NewFront,
+// and the art set can change.
 func (g classicGame) art() map[string]game.Picture {
+	if r, ok := g.r.(interface{ Art() map[string]game.Picture }); ok {
+		return r.Art()
+	}
 	if d, ok := g.Game.(interface{ Data() game.Data }); ok {
 		return d.Data().Art
 	}
