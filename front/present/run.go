@@ -152,8 +152,22 @@ func (f *Front) InventoryMouse(x, y int, down, right bool, wheel float64) {
 	f.P.InventoryMouse(x, y, down, right, wheel)
 }
 func (f *Front) Hover(x, y int, down bool) { f.stale(); f.P.Hover(x, y, down) }
-func (f *Front) Click(x, y int) bool       { f.stale(); return f.P.Click(x, y) }
-func (f *Front) ViewClick(x, y int)        { f.stale(); f.P.ViewClick(x, y) }
+
+// Click is a left click at window pixel x, y. On the title or a sequence it
+// is the key Enter is, on the view the front has now (the presenter's
+// shownView lags before the first draw, so early clicks were lost).
+func (f *Front) Click(x, y int) bool {
+	if !f.started {
+		f.Act()
+	}
+	if v := f.P.own(f.view()); v.Intro != nil || v.Sequence != nil {
+		f.Key('\r')
+		return true
+	}
+	f.stale()
+	return f.P.Click(x, y)
+}
+func (f *Front) ViewClick(x, y int) { f.stale(); f.P.ViewClick(x, y) }
 func (f *Front) Mouse(cx, cy int, in, left, right bool, wheel int) {
 	defer f.stale()
 	f.P.Mouse(cx, cy, in, left, right, wheel, f.view())

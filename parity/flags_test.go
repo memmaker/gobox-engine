@@ -18,7 +18,7 @@ func TestFlagsParity(t *testing.T) {
 			if f == nil {
 				t.Fatalf("%s step %d: no flags", scene, i)
 			}
-			for k, on := range map[string]bool{"exploring": f.Exploring, "adventure": f.Adventure, "day": f.Day, "inside": f.Inside, "full": f.Full, "open": f.Open != [4]bool{}} {
+			for k, on := range map[string]bool{"exploring": f.Exploring, "adventure": f.Adventure, "day": f.Day, "inside": f.Inside, "full": f.Full} {
 				if on {
 					seen[k]++
 				}

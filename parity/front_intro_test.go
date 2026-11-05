@@ -1,8 +1,10 @@
 package parity
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"gobox/front"
@@ -45,5 +47,42 @@ func TestFrontIntro(t *testing.T) {
 	}
 	if len(pics) != 2 || pics[0] != 1 || pics[1] != 2 || !credits || !menu {
 		t.Errorf("title pictures %v, credits %v, party menu %v; want [1 2], credits, menu", pics, credits, menu)
+	}
+}
+
+// TestFrontIntroClick: a left click on the title steps it as Enter does,
+// from the first one (shownView lagged before the first draw, so the
+// first clicks were lost).
+func TestFrontIntroClick(t *testing.T) {
+	dir := filepath.Join(porDir(t), "data")
+	if _, err := os.Stat(filepath.Join(dir, "dos", "TITLE.DAX")); err != nil {
+		t.Skip("no game files")
+	}
+	run := func(click bool) []string {
+		e, err := rules.New(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		e.Cfg.SaveDir, e.Cfg.FullIntro = t.TempDir(), true
+		f := present.NewFront(classic.NewGame(e.Rules(), e.Data()), e.Data())
+		var seen []string
+		for range 6 {
+			if click {
+				f.Click(10, 10)
+			} else {
+				f.Key('\r')
+			}
+			f.Act()
+			v := f.Game.View()
+			s := fmt.Sprint(v.Intro != nil, v.Credits, v.MainMenu != nil)
+			if len(v.Pictures) > 0 {
+				s += fmt.Sprint(v.Pictures[0].Block)
+			}
+			seen = append(seen, s)
+		}
+		return seen
+	}
+	if k, c := run(false), run(true); !slices.Equal(k, c) {
+		t.Errorf("clicks %v, want as Enter %v", c, k)
 	}
 }
