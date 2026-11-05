@@ -170,3 +170,5 @@ action, gobox asks Continue.
 
 Numeric sound/song names ("10") resolve as on the old path (front/classic turns them into
 numbers). A free combat cursor (Aim with nothing pending) is gobox's; the game is not told.
+
+NoHotkeys covers vertical list picks only (creation choices, the roster); bar menus keep their keys. gobox never invents a key twice in one menu (the later one gets none). A Scene list pick shows Common.Status as its prompt.

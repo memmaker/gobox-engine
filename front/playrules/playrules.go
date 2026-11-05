@@ -134,7 +134,7 @@ func (r *rules) asked(ps play.State) *game.Ask {
 	}
 	c := commonOf(ps)
 	if q := c.Ask; q != nil {
-		return r.question(q)
+		return r.question(q, false)
 	}
 	if a, ok := ps.(play.Assembling); ok {
 		if d := a.Draft; d != nil {
@@ -143,11 +143,7 @@ func (r *rules) asked(ps play.State) *game.Ask {
 		return r.partyMenu(a)
 	}
 	if f, ok := ps.(play.ShipFight); ok && len(f.Menu) > 0 {
-		a := &game.Ask{Kind: game.Choice}
-		for _, t := range f.Menu {
-			a.Options = append(a.Options, game.Option{Label: t, Key: r.key(t)})
-		}
-		return a
+		return &game.Ask{Kind: game.Choice, Options: r.options(f.Menu, false)}
 	}
 	sc, ok := ps.(play.Scene)
 	switch {
@@ -162,17 +158,13 @@ func (r *rules) asked(ps play.State) *game.Ask {
 	case sc.Typed:
 		return &game.Ask{Kind: game.Name, Max: cmp.Or(sc.Max, 40), Default: sc.Default}
 	case len(sc.Replies) > 0:
-		a := &game.Ask{Kind: game.Choice}
-		for _, t := range sc.Replies {
-			a.Options = append(a.Options, game.Option{Label: t, Key: r.key(t)})
-		}
-		return a
+		return &game.Ask{Kind: game.Choice, Prompt: c.Status, Options: r.options(sc.Replies, true)} // a list pick (the roster), under the rules' prompt
 	}
 	return &game.Ask{Kind: game.Continue}
 }
 
 // question is the rules' question as the old Ask.
-func (r *rules) question(q *play.Question) *game.Ask {
+func (r *rules) question(q *play.Question, list bool) *game.Ask {
 	a := &game.Ask{Kind: game.Choice, Prompt: q.Text, Default: q.Default, Max: q.Max}
 	switch {
 	case q.Continue:
@@ -187,9 +179,7 @@ func (r *rules) question(q *play.Question) *game.Ask {
 	case q.Number:
 		a.Kind = game.Number
 	}
-	for _, t := range q.Replies {
-		a.Options = append(a.Options, game.Option{Label: t, Key: r.key(t)})
-	}
+	a.Options = r.options(q.Replies, list)
 	return a
 }
 
@@ -198,7 +188,7 @@ func (r *rules) draftAsk(d *play.Draft) *game.Ask {
 	if d.Step == "" && !d.YesNo {
 		return nil
 	}
-	return r.question(&play.Question{Text: d.Prompt, Replies: d.Choices, YesNo: d.YesNo, Typed: d.Typed, Number: d.Number, Default: d.Default, Max: d.Max})
+	return r.question(&play.Question{Text: d.Prompt, Replies: d.Choices, YesNo: d.YesNo, Typed: d.Typed, Number: d.Number, Default: d.Default, Max: d.Max}, true)
 }
 
 // partyFuncs are the party menu's functions: label, hotkey and the action
@@ -242,26 +232,38 @@ func (r *rules) partyMenu(a play.Assembling) *game.Ask {
 			on = !a.NoLoad // gobox's slot screen, empty or not
 		}
 		if on {
-			k := f.Key
-			if r.data.NoHotkeys {
-				k = 0
-			}
-			q.Options = append(q.Options, game.Option{Label: cmp.Or(r.data.Texts[f.Label], f.Label), Key: k})
+			q.Options = append(q.Options, game.Option{Label: cmp.Or(r.data.Texts[f.Label], f.Label), Key: f.Key})
 		}
 	}
 	return q
 }
 
-// key is the hotkey gobox gives a label: its first letter, none where the
-// series' menus have none (Data.NoHotkeys).
-func (r *rules) key(s string) rune {
-	if r.data.NoHotkeys {
-		return 0
-	}
+// key is the hotkey gobox invents for a label: its first letter, none
+// when used already (a clash never happens).
+func key(s string, used map[rune]bool) rune {
 	for _, c := range strings.ToUpper(s) {
+		if used[c] {
+			return 0
+		}
+		used[c] = true
 		return c
 	}
 	return 0
+}
+
+// options are labels as options with invented keys; a vertical list
+// (list) has none where the series' lists have none (Data.NoHotkeys).
+func (r *rules) options(labels []string, list bool) []game.Option {
+	used := map[rune]bool{}
+	var o []game.Option
+	for _, t := range labels {
+		k := rune(0)
+		if !list || !r.data.NoHotkeys {
+			k = key(t, used)
+		}
+		o = append(o, game.Option{Label: t, Key: k})
+	}
+	return o
 }
 
 // State is the typed state as the old State.
@@ -609,10 +611,23 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 		}
 	}
 	allowed := allowedNames(al)
+	used := map[rune]bool{} // the series' keys first; gobox's own invented around them
+	for _, k := range r.data.VerbKeys {
+		used[k] = true
+	}
+	for _, v := range brVerbs {
+		if allowed[name(v.a)] {
+			used[r.verbKey(v.label, v.key)] = true
+		}
+	}
 	for _, o := range turnOptions {
 		if allowed[o.new] || o.new == "MoveTo" && len(al.Moves) > 0 {
 			l := cmp.Or(r.data.Texts[o.label], o.label)
-			t.Options = append(t.Options, game.Option{Label: l, Key: r.verbKey(o.label, r.key(l)), Do: o.do})
+			k, ok := r.data.VerbKeys[o.label]
+			if !ok {
+				k = key(l, used)
+			}
+			t.Options = append(t.Options, game.Option{Label: l, Key: k, Do: o.do})
 		}
 	}
 	for _, v := range brVerbs { // as Buck Rogers' rules put them: an answer by hotkey

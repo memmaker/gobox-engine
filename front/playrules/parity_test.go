@@ -129,6 +129,21 @@ func TestParity(t *testing.T) {
 			}},
 		{"free aim is gobox's", play.Fighting{}, game.Data{}, []game.Decision{game.Aim{At: image.Pt(3, 4)}}, nil,
 			func(s game.State, res game.Result) bool { return res.Err == nil }},
+		{"no clashing keys", play.Assembling{Draft: &play.Draft{Step: "race", Choices: []string{"Martian", "Mercurian"}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'M' && s.Pending.Options[1].Key == 0 }},
+		{"bars keep keys under NoHotkeys", play.ShipFight{Menu: []string{"Quit", "View"}}, game.Data{NoHotkeys: true}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'Q' && s.Pending.Options[1].Key == 'V' }},
+		{"team menu keys under NoHotkeys", play.Assembling{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.NewCharacter{}}}}}, game.Data{NoHotkeys: true}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'C' }},
+		{"roster pick prompt", play.Scene{Replies: []string{"Wilma", "Buck"}, Common: play.Common{Status: "Add a character: "}}, game.Data{NoHotkeys: true}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				return s.Pending.Prompt == "Add a character: " && s.Pending.Options[0].Key == 0
+			}},
+		{"turn keys unique", play.Fighting{Common: play.Common{Allowed: play.Allowed{Moves: []game.Reach{{}}, Plain: []play.Action{play.DoManeuver{}}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				o := s.Combat.Turn.Options
+				return len(o) == 2 && o[0].Key == 'M' && o[1].Key == 0
+			}},
 		{"camp layers and day", play.Camping{Common: play.Common{Day: true, Layers: []game.Layer{{FrameMs: 100}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Window == game.WindowPicture && len(s.Page.Layers) == 1 && s.Flags.Day
