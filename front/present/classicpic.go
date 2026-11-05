@@ -193,14 +193,56 @@ func pixBattle(b *front.Battle, ink [16]color.RGBA) *front.Battle {
 	c.Units = append([]front.Unit(nil), b.Units...)
 	for i := range c.Units {
 		if u := &c.Units[i]; u.Icon == nil && i < len(b.IconPix) {
-			u.Icon = picImage(b.IconPix[i], ink)
+			u.Icon = keyBackdrop(picImage(b.IconPix[i], ink))
 		}
 	}
 	c.Effects = append([]front.Effect(nil), b.Effects...)
 	for i := range c.Effects {
 		if f := &c.Effects[i]; f.Pic == nil && i < len(b.EffectPix) {
-			f.Pic = picImage(b.EffectPix[i], ink)
+			f.Pic = keyBackdrop(picImage(b.EffectPix[i], ink))
 		}
 	}
 	return &c
+}
+
+var keyed = map[image.Image]image.Image{} // keyBackdrop's results: one image a source, for the GPU's copies
+
+// keyBackdrop is a sprite m with its backdrop transparent: the corner's
+// colour, where it reaches the picture's edge (a DAX sprite carries no mask,
+// its figure stands on one flat colour). m itself when it has none to key
+// (nil, a corner already clear, or no RGBA).
+func keyBackdrop(m image.Image) image.Image {
+	src, ok := m.(*image.RGBA)
+	if !ok || src.Bounds().Empty() {
+		return m
+	}
+	if k, ok := keyed[m]; ok {
+		return k
+	}
+	b := src.Bounds()
+	bg := src.RGBAAt(b.Min.X, b.Min.Y)
+	out := m
+	if bg.A != 0 {
+		c := image.NewRGBA(b)
+		copy(c.Pix, src.Pix)
+		var todo []image.Point
+		for x := b.Min.X; x < b.Max.X; x++ {
+			todo = append(todo, image.Pt(x, b.Min.Y), image.Pt(x, b.Max.Y-1))
+		}
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			todo = append(todo, image.Pt(b.Min.X, y), image.Pt(b.Max.X-1, y))
+		}
+		for len(todo) > 0 {
+			p := todo[len(todo)-1]
+			todo = todo[:len(todo)-1]
+			if !p.In(b) || c.RGBAAt(p.X, p.Y) != bg {
+				continue
+			}
+			c.SetRGBA(p.X, p.Y, color.RGBA{})
+			todo = append(todo, image.Pt(p.X+1, p.Y), image.Pt(p.X-1, p.Y), image.Pt(p.X, p.Y+1), image.Pt(p.X, p.Y-1))
+		}
+		out = c
+	}
+	keyed[m] = out
+	return out
 }
