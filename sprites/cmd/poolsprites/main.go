@@ -131,7 +131,7 @@ func main() {
 							seen[key] = en
 							byDir[s.dir] = append(byDir[s.dir], en)
 							if s.masked { // combat art keeps its palette indices (gobox recolours the icon parts by them)
-								write(filepath.Join(pool, s.dir, en.name+".png"), indexed(im, fr))
+								write(filepath.Join(pool, s.dir, en.name+".png"), indexed(im, fr, nil))
 							} else {
 								write(filepath.Join(pool, s.dir, en.name+".png"), pix)
 							}
@@ -191,7 +191,7 @@ func main() {
 						seen[key] = en
 						byDir[s.dir] = append(byDir[s.dir], en)
 						if s.masked { // combat art keeps its values (Amiga ones from ega.AmigaBase) for gobox's recolouring
-							write(filepath.Join(pool, s.dir, en.name+".png"), indexed(im, fr))
+							write(filepath.Join(pool, s.dir, en.name+".png"), indexed(im, fr, pal))
 						} else {
 							write(filepath.Join(pool, s.dir, en.name+".png"), pix)
 						}
@@ -284,7 +284,7 @@ func renderAmiga(im *dax.Image, fr int, pal []byte) *image.NRGBA {
 // has 17 palette entries (the 16 colours, then transparent for Clear), VGA
 // art its own palette, Amiga art (values from ega.AmigaBase) those 17 padded
 // with transparent up to the Amiga colours, so it keeps its values too.
-func indexed(im *dax.Image, fr int) *image.Paletted {
+func indexed(im *dax.Image, fr int, apal []byte) *image.Paletted {
 	w := im.Width * 8
 	var pal color.Palette
 	amiga := false
@@ -298,6 +298,9 @@ func indexed(im *dax.Image, fr int) *image.Paletted {
 				pal = append(pal, color.NRGBA(ega.RGBA(i)))
 			case i < ega.AmigaBase:
 				pal = append(pal, color.NRGBA{})
+			case len(apal) >= 3: // the game's own palette (its *PAL.DAX), as renderAmiga
+				j := (i - ega.AmigaBase) % (len(apal) / 3) * 3
+				pal = append(pal, color.NRGBA{apal[j], apal[j+1], apal[j+2], 255})
 			default:
 				pal = append(pal, color.NRGBA(ega.AmigaRGBA(uint8(i))))
 			}
