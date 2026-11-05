@@ -906,6 +906,13 @@ type (
 		Stat int    // 0..5: STR .. CHA
 		Text string // the value as typed ("18/50" for an exceptional strength)
 	} // creation: set an ability by hand
+	// PointBuy: creation: the abilities bought on points (pointbuy.go),
+	// offered only when Data.PointBuy. Scores are the base values in
+	// Creation.Stats' order (Stats nil: STR .. CHA, StatKeys 0..5), each
+	// PointBuyMin..PointBuyMax and within PointBuyBudget; the game applies
+	// its rules to them (race, class minimums, exceptional strength) as
+	// after a roll, or refuses.
+	PointBuy  struct{ Scores []int }
 	KeepDraft struct{} // creation and Modify: keep the draft (save the new character, apply the changes)
 	AddChar   struct {
 		Roster int
@@ -1002,6 +1009,7 @@ func (Train) decision()     {}
 func (Heal) decision()      {}
 func (Create) decision()    {}
 func (SetStat) decision()   {}
+func (PointBuy) decision()  {}
 func (KeepDraft) decision() {}
 func (AddChar) decision()   {}
 func (DropChar) decision()  {}
@@ -1102,6 +1110,7 @@ type Data struct {
 	Series       string
 	ID           string       // game id
 	CreationFlow CreationFlow // the creation sheet's layout and steps
+	PointBuy     bool         `json:",omitempty"` // the game takes PointBuy: creation asks Roll or Point Buy for each new character
 	Texts        map[string]string
 	Credits      []string
 	SpellRules   map[int]string // what each spell does, by spell id (the spell tip text)

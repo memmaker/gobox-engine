@@ -141,6 +141,9 @@ func (p *Presenter) own(v front.View) front.View {
 // engine.
 func (p *Presenter) slotAct(a front.Action) bool {
 	sl := p.slots
+	if a.Kind == front.ActCreate || a.Kind == front.ActModify { // only a new character is asked Roll or Point Buy
+		p.scr.newChar = a.Kind == front.ActCreate
+	}
 	if sl == nil {
 		return p.questionAct(a) || front.PickAct(p, &p.gridPick, a) || front.IconAct(p, &p.icon, a) || front.CreateAct(p, &p.creating, a) || p.serviceAct(a)
 	}

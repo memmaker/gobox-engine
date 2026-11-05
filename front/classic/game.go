@@ -253,6 +253,7 @@ func (g *Game) Rename(name string) error      { return g.do(game.Rename{Name: na
 func (g *Game) SetField(f, o int) error       { return g.do(game.SetField{Field: f, Option: o}) }
 func (g *Game) EndCreation(keep bool) error   { return g.do(game.EndCreation{Keep: keep}) }
 func (g *Game) CreationView() *front.Creation { return Creation(g.R.State(), g.grid.X, g.grid.Y) }
+func (g *Game) PointBuy(scores []int) error   { return g.do(game.PointBuy{Scores: scores}) }
 func (g *Game) Roll(minimal bool, minimums string) error {
 	return g.do(game.Roll{Minimal: minimal, Minimums: minimums})
 }

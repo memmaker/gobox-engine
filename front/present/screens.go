@@ -29,6 +29,8 @@ const (
 	scrType   // a line being typed
 	scrAsk    // a yes/no question
 	scrPowers // the creation's power picks (Creation.Powers)
+	scrHow    // a new character: Roll or Point Buy (Creation.PointBuy)
+	scrBuy    // the point buy (pointbuy.go)
 )
 
 const scrRows = 14 // the lines a page screen's menu shows at a time
@@ -56,6 +58,9 @@ type screenUI struct {
 	at      Rect            // where the page went on the window ...
 	pw, ph  int             // ... and its size in pixels
 	anchor  *front.CellRect // the drop-down's field: the menu opens on it
+	newChar bool            // ActCreate sent: the creation sheet coming up asks Roll or Point Buy
+	buy     []int           // scrBuy: the scores bought ...
+	buyStat int             // ... and the one Raise and Lower change
 }
 
 func screenName(v front.View) string {
@@ -119,6 +124,10 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 				it = append(it, ui.MenuRow{Text: upFirst(fl.Name) + ": " + t, Key: 0, Do: func() { p.openField(cr, len(cr.Fields)+i); s.anchor = nil }})
 			}
 			return "Powers", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: func() { s.open(scrMain) }})
+		case scrHow:
+			return "Abilities", []ui.MenuRow{{Text: "Roll", Key: 'R', Do: func() { s.open(scrMain) }}, {Text: "Point Buy", Key: 'P', Do: func() { p.openBuy(cr) }}}
+		case scrBuy:
+			return p.buyItems(cr)
 		}
 	case "slots":
 		sl := v.Slots
@@ -235,6 +244,10 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 	s := &p.scr
 	if n := screenName(v); n != s.up {
 		s.up, s.sub, s.sel, s.top, s.anchor = n, scrMain, 0, 0, nil
+		if n == "creation" && s.newChar && v.Creation.PointBuy {
+			s.sub, s.mainSel = scrHow, 0
+		}
+		s.newChar = false
 		if v.Picker != nil {
 			s.cur = v.Picker.Cur
 		}
@@ -485,6 +498,9 @@ func (p *Presenter) screenKey(k uint16, v front.View) bool {
 			p.slotKey(v, h)
 			return true
 		}
+	}
+	if s.sub == scrBuy && p.buyKey(k) {
+		return true
 	}
 	_, items := p.screenItems(v)
 	n := len(items)
