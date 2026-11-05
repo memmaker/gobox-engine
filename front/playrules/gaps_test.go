@@ -1,6 +1,7 @@
 package playrules
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"reflect"
@@ -216,3 +217,15 @@ func TestWalkTo(t *testing.T) {
 }
 
 func reflectEqual(a, b play.Action) bool { return reflect.DeepEqual(a, b) }
+
+// TestCampCard: each member's card menu comes from what Allowed lets that
+// member do, so no game builds a menu.
+func TestCampCard(t *testing.T) {
+	c := allow(play.Memorize{Member: 1, Spell: 2}, play.DropMember{Member: 0}, play.DropMember{Member: 1})
+	c.Party = []play.Member{{Name: "A"}, {Name: "B", Items: []game.Item{{Name: "Sword"}}}}
+	s := New(&fake{st: play.Camping{Common: c}}, game.Data{}).State()
+	got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card)
+	if want := "[{View view} {Drop drop}] [{View view} {Items items} {Memorize memorize} {Drop drop}]"; got != want {
+		t.Fatalf("cards %s, want %s", got, want)
+	}
+}

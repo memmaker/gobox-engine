@@ -369,8 +369,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		return Rect{}
 	}
 	sc := p.scene(v)
-	area := v.AreaMap != nil                                                                                                                                                                                                                                           // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
-	if sc == nil && !area || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure { // a member pick (Choosing) shows the view and the cards whatever page asked
+	area := v.AreaMap != nil                                                                                                                                                                                                                                                            // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
+	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure { // a member pick (Choosing) shows the view and the cards whatever page asked
 		if screenUp(v) { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			if sc != nil {
@@ -408,8 +408,11 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if area {
 		p.shown = ""
 		p.drawAreaMap(dst, v.AreaMap)
-	} else {
+	} else if sc != nil {
 		p.draw3D(dst, v, sc, note)
+	} else { // camp with no 3D view (the original shows none there): black under the cards, the picture and the menus
+		p.shown = ""
+		dst.Fill(color.Black)
 	}
 	p.labelAt = p.labelAt[:0]
 	if v.Sweeping { // the reminder: under the minimap, else in its corner

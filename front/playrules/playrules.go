@@ -281,6 +281,7 @@ func (r *rules) State() game.State {
 		Allowed: allowedNames(c.Allowed), Items: r.items, Saves: r.saves()}
 	for i, m := range c.Party {
 		s.Party = append(s.Party, member(m, i == c.Selected && !r.data.Unmarked, m.CanCast || canCast(c.Allowed, i)))
+		s.Party[i].Card = card(m, c.Allowed, i)
 	}
 	s.Map = c.Automap
 	if x, ok := ps.(play.Exploring); ok && c.Automap.Size == (image.Point{}) {
@@ -545,6 +546,50 @@ func allowedNames(al play.Allowed) map[string]bool {
 		add(a.Action)
 	}
 	return m
+}
+
+// card is member n's context menu from what al lets n do, as POR's:
+// View, Items, then the allowed member actions in a fixed order. No game
+// builds it, so every game's cards get the same menu.
+func card(m play.Member, al play.Allowed, n int) []game.Entry {
+	es := []game.Entry{{Name: "View", Verb: "view"}}
+	if len(m.Items) > 0 {
+		es = append(es, game.Entry{Name: "Items", Verb: "items"})
+	}
+	has := map[string]bool{}
+	for _, a := range append(slices.Clone(al.Plain), aimedActions(al)...) {
+		switch t := a.(type) {
+		case play.Cast:
+			has["cast"] = has["cast"] || t.Member == n
+		case play.Memorize:
+			has["memorize"] = has["memorize"] || t.Member == n
+		case play.Plan:
+			has["memorize"] = has["memorize"] || t.Member == n
+		case play.Scribe:
+			has["scribe"] = has["scribe"] || t.Member == n
+		case play.LayOnHands:
+			has["heal"] = has["heal"] || t.Member == n
+		case play.EditIcon:
+			has["icon"] = has["icon"] || t.Member == n
+		case play.DropMember:
+			has["drop"] = has["drop"] || t.Member == n
+		}
+	}
+	for _, e := range []game.Entry{{Name: "Cast", Verb: "cast"}, {Name: "Heal", Verb: "heal"}, {Name: "Memorize", Verb: "memorize"},
+		{Name: "Scribe", Verb: "scribe"}, {Name: "Icon", Verb: "icon"}, {Name: "Drop", Verb: "drop"}} {
+		if has[e.Verb] {
+			es = append(es, e)
+		}
+	}
+	return es
+}
+
+func aimedActions(al play.Allowed) []play.Action {
+	var out []play.Action
+	for _, a := range al.Aimed {
+		out = append(out, a.Action)
+	}
+	return out
 }
 
 func canCast(al play.Allowed, n int) bool {
