@@ -47,3 +47,11 @@ func TestDraftFigures(t *testing.T) {
 		t.Fatalf("%+v", k)
 	}
 }
+
+// The sheet's name colour is gobox's: a draft's name is never black.
+func TestDraftNameColour(t *testing.T) {
+	s := game.State{Mode: game.ModeCreate, Creation: &game.Creation{Draft: game.Member{Name: "Doc"}}}
+	if k := Sheet(front.View{}, s).SheetPage; k.NameColour == 0 {
+		t.Fatal("black name")
+	}
+}

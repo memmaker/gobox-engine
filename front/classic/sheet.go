@@ -29,7 +29,7 @@ func Sheet(v front.View, s game.State) front.View {
 		p = draftPage(s.Creation, s.SheetPage)
 	}
 	if p != nil {
-		k := &front.SheetPage{Name: p.Name, NameColour: p.NameColour, NPC: p.NPC, Spells: p.Spells, Sex: p.Sex, Race: p.Race, Age: p.Age,
+		k := &front.SheetPage{Name: p.Name, NameColour: nameColour(ownSubject(s)), NPC: p.NPC, Spells: p.Spells, Sex: p.Sex, Race: p.Race, Age: p.Age,
 			Alignment: p.Alignment, Class: p.Class, Stats: p.Stats, Str00: p.Str00, Creating: p.Creating, Levels: p.Levels,
 			Exp: p.Exp, Next: p.Next, AC: p.AC, HP: p.HP, MaxHP: p.MaxHP, THAC0: p.THAC0, Damage: p.Damage, Move: p.Move,
 			Saves: p.Saves, Mods: p.Mods, Status: p.Status, Weapon: p.Weapon, Armour: p.Armour, Encumbrance: p.Encumbrance,
@@ -42,6 +42,7 @@ func Sheet(v front.View, s game.State) front.View {
 			k.Portrait = poolID("portraits", m.PortraitHeadID, m.PortraitBodyID)
 		}
 		if drafted {
+			k.NameColour = 11 // the member being made: as a well one's
 			draftRows(k, s.Creation)
 		}
 		v.SheetPage = k

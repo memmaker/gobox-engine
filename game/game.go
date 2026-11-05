@@ -290,7 +290,6 @@ type Stat struct {
 // SheetPage is what the character sheet's page shows.
 type SheetPage struct {
 	Name                        string
-	NameColour                  int
 	NPC                         bool
 	Spells                      string
 	Sex, Race                   string
