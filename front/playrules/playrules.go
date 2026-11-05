@@ -41,6 +41,15 @@ type aiming struct {
 // New is g as the old front's Rules.
 func New(g play.Game) game.Rules { return &rules{g: g, dir: Dir} }
 
+// Map is the game's walkable map while the party explores and no question
+// is up (game.Mapped): gobox walks on it.
+func (r *rules) Map() game.Map {
+	if t, ok := r.g.State().(play.Exploring); ok && r.ask == nil && t.Map.Walk != nil {
+		return t.Map.Walk
+	}
+	return nil
+}
+
 func (r *rules) Step() game.Result { return game.Result{} } // the game never acts alone
 
 func (r *rules) Pending() *game.Ask { return r.pending(r.g.State()) }
@@ -177,7 +186,7 @@ func commonOf(ps play.State) play.Common {
 }
 
 // oldNames are the old Allowed keys of the renamed actions.
-var oldNames = map[string]string{"Give": "Trade", "Take": "TakeLoot", "Step": "Arrive", "AdvanceTimeBy": "Rest",
+var oldNames = map[string]string{"Give": "Trade", "Take": "TakeLoot", "AdvanceTimeBy": "Rest",
 	"MakeCamp": "Camp", "BreakCamp": "LeaveCamp", "SetChoice": "SetIcon", "KeepCharacter": "KeepDraft",
 	"AddCharacter": "AddChar", "MoveTo": "Move", "Shoot": "Ranged", "DoManeuver": "Maneuver", "Delay": "Wait"}
 
@@ -331,8 +340,8 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	case game.CloseItems:
 		r.items = game.ItemsNone
 		return game.Result{}
-	case game.OpenSheet, game.CloseSheet, game.SetSpeed, game.RunEvent:
-		return game.Result{} // the screen's, or the game ran it in Step's outcome
+	case game.OpenSheet, game.CloseSheet, game.SetSpeed:
+		return game.Result{} // the screen's
 	case game.Select:
 		return r.do(play.SelectMember{Member: d.N})
 	case game.ShowMember:
@@ -378,7 +387,9 @@ func (r *rules) Apply(d game.Decision) game.Result {
 func action(ps play.State, d game.Decision) play.Action {
 	switch d := d.(type) {
 	case game.Arrive:
-		return play.Step{Facing: facing(d.From, d.To, d.Facing)}
+		return play.Arrive{From: d.From, To: d.To, Facing: d.Facing}
+	case game.RunEvent:
+		return play.RunEvent{Before: d.Before, Side: d.Side}
 	case game.Face:
 		return play.Face{Facing: d.Facing}
 	case game.Search:
@@ -506,19 +517,6 @@ func action(ps play.State, d game.Decision) play.Action {
 }
 
 // facing is the step from a to b as a facing, else f (a step off the map).
-func facing(a, b image.Point, f int) int {
-	switch b.Sub(a) {
-	case image.Pt(0, -1):
-		return 0
-	case image.Pt(1, 0):
-		return 2
-	case image.Pt(0, 1):
-		return 4
-	case image.Pt(-1, 0):
-		return 6
-	}
-	return f
-}
 
 // answer answers gobox's own ask, or the scene's.
 func (r *rules) answer(ps play.State, d game.Answer) game.Result {

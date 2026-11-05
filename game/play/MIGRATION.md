@@ -13,12 +13,11 @@ switches over its type, offers the state's `Choices`, sends one `Action` to
 | `Refusal{Ask}` (door question, LootLeave "sure?") | plain error from `Do`; the follow-up actions are in `Choices` |
 | `Mode`, `Window`, `Holding`, `Screen`, `Pacing`, `Flags` | the State's type (gobox picks screen and pacing) |
 | `Read`, `Page.Prompt`, `PaneRows`, `Intro`, `Sequence` | `Reading` / `Talking` states; paging and timing are gobox's |
-| `Map.Edge` walls checked in gobox walk.go | gobox sends `Step`; `Do` refuses at a wall |
+| walking | unchanged (user, 2026-11-05: gobox walks): `ExploreMap.Walk` is the game's `game.Map`; gobox sends `RunEvent{Before}`, `Arrive`, `RunEvent` and `Face` |
 
 Old decisions with no action, because the choice is gobox's: `Answer`,
 `Cancel`, `Select` (menus), `Items`, `Maneuver` (open a menu), `Wait`,
-`Ranged`, `Aim` (now `Shoot`/`Cast` with the square), `RunEvent`, `Arrive`
-(now `Step`), `Rest`/`Camp`/`LeaveCamp` (now `AdvanceTimeBy`, `MakeCamp`,
+`Ranged`, `Aim` (now `Shoot`/`Cast` with the square), `Rest`/`Camp`/`LeaveCamp` (now `AdvanceTimeBy`, `MakeCamp`,
 `BreakCamp`), `Save`/`Load` (now `Game.Save`/`Load`), `SetSpeed` (pacing is
 gobox's), `SetIcon`/`Create` (now `SetChoice`), `KeepDraft` (`KeepCharacter`),
 `AddChar`/`DropChar` (`AddCharacter`/`DropMember`), `Trade` (`Give`),

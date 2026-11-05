@@ -116,9 +116,11 @@ type Exploring struct {
 	Map ExploreMap
 }
 
-// ExploreMap is what gobox needs to draw the 3D view and the automap.
-// Whether a step goes through is the rules' call (Do(Step)).
+// ExploreMap is what gobox needs to walk, draw the 3D view and the
+// automap. gobox walks: it asks Walk whether a side lets a step through and
+// where a script waits, then sends RunEvent{Before}, Arrive and RunEvent.
 type ExploreMap struct {
+	Walk    game.Map // the game's answers about its map
 	Walls   Walls
 	Automap game.Automap
 }
@@ -353,7 +355,14 @@ type (
 	Begin            struct{}
 
 	// Exploring.
-	Step          struct{ Facing int } // one square; refused at a wall
+	Arrive struct {
+		From, To image.Point
+		Facing   int
+	} // the party steps from From to To; the game may refuse (a locked door) and runs no event
+	RunEvent struct {
+		Before bool // the script ahead of a step through Side, before the party moves
+		Side   int
+	} // run the square's event (Walk.Event, Walk.Departure said one waits)
 	Face          struct{ Facing int }
 	Search        struct{}
 	Look          struct{}
@@ -446,7 +455,8 @@ func (DiscardCharacter) action() {}
 func (ChangeClass) action()      {}
 func (SetDifficulty) action()    {}
 func (Begin) action()            {}
-func (Step) action()             {}
+func (Arrive) action()           {}
+func (RunEvent) action()         {}
 func (Face) action()             {}
 func (Search) action()           {}
 func (Look) action()             {}

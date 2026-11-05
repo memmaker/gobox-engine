@@ -42,7 +42,7 @@ func TestAdapter(t *testing.T) {
 		{"wall refused", &fake{st: play.Exploring{}, err: wall},
 			game.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)},
 			func(t *testing.T, f *fake, r game.Rules, res game.Result) {
-				if res.Err != wall || !slices.Equal(f.sent, []play.Action{play.Step{Facing: 0}}) {
+				if res.Err != wall || !slices.Equal(f.sent, []play.Action{play.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)}}) {
 					t.Fatalf("err %v sent %v", res.Err, f.sent)
 				}
 			}},
