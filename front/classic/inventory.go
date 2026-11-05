@@ -85,10 +85,10 @@ func Inventory(v *front.Inventory, s game.State) *front.Inventory {
 		x.Slot, x.Wrong, x.Use, x.Look, x.Scribe = slotted(it), it.Wrong, it.Usable, lines(it.Text), slices.ContainsFunc(it.Scroll, func(s game.ScrollSpell) bool { return s.Scribing })
 		x.Price = front.Money{Gold: it.Sale[game.Gold], Copper: it.Sale[game.Copper]}
 		if d := dollSlot(it, n.Doll); it.Readied && d >= 0 && n.Doll[d] == nil {
-			n.Doll[d] = &x
-			continue
+			y := x
+			n.Doll[d] = &y
 		}
-		x.Readied = it.Readied && it.Slot == "" // readied with no doll slot: the list marks it
+		x.Readied = it.Readied // on the doll too: the list keeps every item, marked readied, so the keys reach it (Ready toggles)
 		n.Pool = append(n.Pool, x)
 	}
 	if v.Wares == nil {

@@ -3,6 +3,7 @@ package classic
 import (
 	"testing"
 
+	"gobox/front"
 	"gobox/game"
 )
 
@@ -16,5 +17,15 @@ func TestPartyIconHead(t *testing.T) {
 	ms := Party(game.State{Party: []game.Member{{Name: "Buck", IconBodyID: "combat_icon_000"}}}, nil)
 	if len(ms) != 1 || ms[0].Head == nil {
 		t.Fatal("no face for an icon-only member")
+	}
+}
+
+// TestInventoryListsReadied: a readied item is on the doll and in the
+// list, marked readied, so the keys reach it.
+func TestInventoryListsReadied(t *testing.T) {
+	s := game.State{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Kind: "weapon", Slot: "weapon", Readied: true}}}}}
+	in := Inventory(&front.Inventory{}, s)
+	if in.Doll[0] == nil || len(in.Pool) != 1 || !in.Pool[0].Readied {
+		t.Fatalf("doll %v pool %+v", in.Doll[0], in.Pool)
 	}
 }
