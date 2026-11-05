@@ -159,6 +159,7 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 	if len(cp.Bestiary) > 0 {
 		it = append(it, ui.MenuRow{Text: "Bestiary", Key: 'B', Do: c.to(campBestiary, 0)})
 	}
+	it = append(it, ui.MenuRow{Text: "Save", Key: 'S', Do: act(front.ActSaveGame, 0)}) // the slot screen says whether the rules let it save
 	return "Camp", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: act(front.ActClose, 0)})
 }
 

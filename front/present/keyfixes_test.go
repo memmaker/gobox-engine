@@ -2,10 +2,12 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/ui"
 	"image"
 	"image/png"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 )
@@ -121,5 +123,14 @@ func TestTypedLineOnce(t *testing.T) {
 	}
 	if len(p.inv.acts) != 1 || p.inv.acts[0].Kind != front.ActText || p.inv.acts[0].Text != "Bob" {
 		t.Fatalf("acts %+v", p.inv.acts)
+	}
+}
+
+// Camp offers Save beside the rests, as the original's camp does.
+func TestCampSave(t *testing.T) {
+	p := &Presenter{}
+	_, it := p.campItems(front.View{Camp: &front.Camp{}})
+	if !slices.ContainsFunc(it, func(r ui.MenuRow) bool { return r.Text == "Save" }) {
+		t.Fatal("no Save in camp")
 	}
 }
