@@ -341,7 +341,7 @@ func (r *rules) State() game.State {
 		}
 	case play.Exploring:
 		s.Mode, s.Window = game.ModeExplore, game.WindowScene
-		if c.Ask != nil || t.Door != nil { // a question (or the door menu) over the view, as the old path asks it
+		if c.Ask != nil && !(c.Ask.Continue && len(c.Ask.Replies) == 0) || t.Door != nil { // a question (or the door menu) over the view, as the old path asks it; a bare Continue (no reply to show) stays ModeExplore, where any key goes on (ModeAsk drew an empty menu that took no Enter)
 			s.Mode = game.ModeAsk
 		}
 		switch {
@@ -387,7 +387,7 @@ func (r *rules) State() game.State {
 			s.Screen = t.Screen
 		}
 		pg := r.page(t)
-		if t.Kind == play.SceneTitle {
+		if t.Kind == play.SceneTitle && !r.title.credits {
 			pg.Layers = append(pg.Layers, t.Steps[r.title.n].Layers...)
 		}
 		s.Page.Pane, s.Page.View, s.Page.Layers = append(s.Page.Pane, pg.Pane...), pg.View, append(s.Page.Layers, pg.Layers...)
@@ -802,7 +802,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		}
 		return game.Result{}
 	case game.TitleCredits:
-		r.title.credits, r.title.page = true, d.Page // the last picture stays under the credits
+		r.title.n, r.title.credits, r.title.page = 0, true, d.Page
 		r.seq++
 		return game.Result{}
 	case game.TitleDone:

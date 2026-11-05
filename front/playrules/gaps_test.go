@@ -69,6 +69,8 @@ func TestGaps(t *testing.T) {
 			func(s game.State) bool { return s.RestHeals && !s.RestStudies }},
 		{"speaker over view", play.Exploring{Common: play.Common{Portrait: &play.Portrait{}}}, game.Search{}, play.Search{},
 			func(s game.State) bool { return s.Window == game.WindowPicture }},
+		{"continue over the view", play.Exploring{Common: play.Common{Ask: &play.Question{Continue: true}, Allowed: play.Allowed{Plain: []play.Action{play.Continue{}}}}}, game.Answer{}, play.Continue{},
+			func(s game.State) bool { return s.Mode == game.ModeExplore && s.Pending.Kind == game.Continue }},
 		{"open training", play.Exploring{}, game.OpenTraining{Member: 1}, play.OpenTraining{Member: 1}, nil},
 		{"loot detect", play.Looting{Status: true, Common: allow(play.LootDetect{}, play.LootShare{})}, game.LootDetect{}, play.LootDetect{},
 			func(s game.State) bool { return s.Loot.Status && s.Allowed["LootDetect"] && s.Allowed["LootShare"] }},
