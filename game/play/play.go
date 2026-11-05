@@ -21,6 +21,8 @@ import (
 type Game interface {
 	State() State               // what is true now; a copy
 	Do(Action) (Outcome, error) // the only way anything changes; error: refused, nothing changed
+	Save() ([]byte, error)      // the whole game, for a slot file gobox keeps
+	Load([]byte) error          // back to what Save gave; error: refused, nothing changed
 }
 
 // State is one situation the party is in. The set is closed: gobox handles
