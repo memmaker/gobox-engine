@@ -1204,9 +1204,10 @@ type Event struct {
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
 	Series       string
-	ID           string       // game id
-	CreationFlow CreationFlow // the creation sheet's layout and steps
-	PointBuy     bool         `json:",omitempty"` // the game takes PointBuy: creation asks Roll or Point Buy for each new character
+	ID           string          // game id
+	CreationFlow CreationFlow    // the creation sheet's layout and steps
+	PointBuy     bool            `json:",omitempty"` // the game takes PointBuy: creation asks Roll or Point Buy for each new character
+	VerbKeys     map[string]rune `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
 	Texts        map[string]string
 	Credits      []string
 	SpellRules   map[int]string // what each spell does, by spell id (the spell tip text)

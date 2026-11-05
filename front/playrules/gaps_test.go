@@ -41,10 +41,10 @@ func TestGaps(t *testing.T) {
 		sent play.Action // nil: nothing reaches Do
 		ok   func(s game.State) bool
 	}{
-		{"door", play.Exploring{Door: door, Day: true, Map: play.ExploreMap{Walls: play.Walls{Outside: true, Mountains: true}}},
-			game.TryDoor{Way: 0}, play.TryDoor{Way: 0},
+		{"door", play.Exploring{Door: door, Day: true, Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{}}}, Outside: true, Sun: true, Mountains: true}}},
+			game.TryDoor{Way: 1}, play.TryDoor{Way: play.DoorBash},
 			func(s game.State) bool { return s.Door == door && s.Walls.Sun && s.Walls.Mountains && s.Flags.Day }},
-		{"night sky", play.Exploring{Map: play.ExploreMap{Walls: play.Walls{Outside: true}}}, game.Search{}, play.Search{},
+		{"night sky", play.Exploring{Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{}}}, Outside: true}}}, game.Search{}, play.Search{},
 			func(s game.State) bool { return !s.Walls.Sun && !s.Flags.Day }},
 		{"vault", play.Trading{Kind: play.TradeVault, Vault: &game.Vault{Money: map[string]int{"gold": 5}}}, game.Leave{}, play.Leave{},
 			func(s game.State) bool { return s.Mode == game.ModeVault && s.Vault.Money["gold"] == 5 }},
@@ -166,7 +166,7 @@ func TestEvents(t *testing.T) {
 
 // TestRestPaced: camp's rest goes in chunks by Step and stops on StopRest.
 func TestRestPaced(t *testing.T) {
-	f := &fake{st: play.Camping{}}
+	f := &fake{st: play.Camping{Common: allow(play.AdvanceTimeBy{})}}
 	r := New(f)
 	r.Apply(game.Rest{Minutes: 30})
 	if p := r.State().Pacing; p.Pace != game.PaceRest || !p.Resting {

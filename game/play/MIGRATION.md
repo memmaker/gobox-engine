@@ -114,3 +114,29 @@ What front/playrules maps each to, so a game on play loses nothing.
 | `LootTake`, `Value`, `KeepAppraised` | none: `Take` and `Appraise{Keep}` say it |
 
 New events: `SaveOffered` (old `EvSaves`), `ShipShown` (a ship fight moment, old `Event{Screen, Ms}`).
+
+## Parity pass (COTAB, BR1, BR2, SOTSB diffs, 2026-11-05)
+
+Which play field a game fills for each old State field, and what is gobox's.
+
+| Old field | the game fills | gobox's |
+|---|---|---|
+| `Pending` over explore/combat/loot | `Common.Ask` (`Question`: text, replies, yes/no, typed, number with `Default`/`Max`); answered by `Reply` | the Ask's kind, keys |
+| `Pending` party menu | `Assembling` with its `Allowed` (`NewCharacter`, `AddCharacter`, `RemoveCharacter`, `Modify`, `OpenTraining`, `ChangeClass`, `DropMember`, `QuickStart`, `Begin`, `Quit`) | the menu, labels (a series renames one in `Data.Texts`, e.g. "Remove Character": "Purge Character"), View Character, Load Saved Game |
+| `Pending` creation steps | `Draft.Step` with `Choices`, or `Typed`/`Number` and `Default`/`Max`; answered by `SetChoice{Field: Step}` | the ask |
+| `Picture` | `Common.Picture` (any state; exploring: `WindowPicture`) | the window |
+| `Page.Pane`, `LastText` | `Common.Text` (the message lines; the last is LastText); Scene's `Text` adds to it | paging, colours |
+| `Page.Prompt` | `Common.Status` (plain text) | colours |
+| `Note` | nothing | the toast: refusals and `Refused` |
+| `Map` (automap) | `Common.Automap` in every state (`ExploreMap.Automap` still taken while exploring) | |
+| `Walls` | `ExploreMap.Walls` with `Side` set; no `Side`: no 3D view | `Key` |
+| `Walls.Sun/Mountains`, `Flags.Day` | `Walls.Sun`, `Walls.Mountains`, `Exploring.Day` | |
+| `Window` | `Common.Picture`, `ExploreMap.Overland` | the rest |
+| `Flags` | `Where.Searching` (Sweeping), `Member.CanCast` | Adventure, Ordering (camp with `Order` allowed), IconDrop, Credits |
+| `Holding` | nothing | from the state (door, shop, temple, loot, fight, story) |
+| `Intro` steps, credits | `Scene{SceneTitle, Intro, Steps}` (each step's layers and tune) | stepping, the credits pages (Data), the flash |
+| `Combat.Log`, `CursorOn`, `View` | the fight's `Narrated`/`Said` events | the log, cursor, view |
+| BR turn verb keys | nothing | `Data.VerbKeys` ("Aid": 'H') |
+| `Saves` | optionally `play.Slots` (the original's slots, listed after gobox's) | gobox's slot files |
+| door ways | `TryDoor{Way: DoorExit/DoorBash/DoorPick/DoorKnock}` | |
+| rest | allow `AdvanceTimeBy{D}`: any rest up to D (0: any) | the chunks |

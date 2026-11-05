@@ -25,6 +25,13 @@ type Game interface {
 	Load([]byte) error          // back to what Save gave; error: refused, nothing changed
 }
 
+// Slots is what a game with save slots of its own (the original's) may
+// also implement: gobox lists them after its own and loads one by index.
+type Slots interface {
+	Slots() []game.SaveSlot
+	LoadSlot(n int) error
+}
+
 // State is one situation the party is in. The set is closed: gobox handles
 // every type, and a new situation means a new type here first.
 type State interface{ state() }
@@ -44,7 +51,8 @@ type Outcome struct {
 // that needs nothing picked on the map, with its parameters filled in (one
 // Attack per target, one Buy per member and good, ...). Aimed are those that
 // take squares; Moves the squares a combatant may walk to. gobox offers
-// exactly these; Do checks again.
+// exactly these; Do checks again. An allowed AdvanceTimeBy{D} allows any
+// duration up to D (D zero: any), so gobox may rest in steps.
 type Allowed struct {
 	Plain []Action
 	Aimed []Aimed
@@ -70,6 +78,11 @@ type Common struct {
 	Lore     []game.Lore // the journal, newest first
 	Quests   []game.Quest
 	Allowed  Allowed
+	Status   string        // the rules' status line (plain text; "" none)
+	Text     []string      // the rules' message lines in the text pane, oldest first
+	Picture  *game.Picture // the picture or portrait up (in the view while exploring); nil none
+	Automap  game.Automap  // the map of where the party is (the overland, the starmap, ...), any state
+	Ask      *Question     // a question over this state (the view stays); Reply answers it
 
 	// Overlays any state may carry: a question only the rules can put
 	// (a power to choose), the grid picker and the icon designer the
@@ -77,6 +90,17 @@ type Common struct {
 	PowerPick  *game.PowerPick  // PickPower answers
 	Picker     *game.Picker     // Pick, ClosePicker answer
 	IconEditor *game.IconEditor // IconSize, IconColour, IconRemove, IconPNG, EndIcon act on it
+}
+
+// Question is what the rules ask over a state: the text and the answers
+// (Reply{N}), or a typed answer (Reply{Text}) or number (Reply{N}).
+type Question struct {
+	Text         string
+	Replies      []string
+	YesNo        bool // Replies are no, yes: Reply{N: 1} is yes
+	Typed        bool
+	Number       bool
+	Default, Max int // Typed: the longest; Number: the default and the largest
 }
 
 // Member is one character as the rules know it.
@@ -96,6 +120,7 @@ type Member struct {
 	IconHeadID, IconBodyID               string
 	IconColours                          []byte
 	NPC, Okay, Foe                       bool
+	CanCast                              bool            // has a spell to cast now (status, memorized, no-magic area)
 	ClassText, LevelText                 string          // "old/new", "3/3"
 	SpellsReady, Memo                    string          // "0/3" over the slots
 	Powers                               []game.Entry    // the sheet's power offers (UsePower)
@@ -121,7 +146,10 @@ type Draft struct {
 	MinHP, MaxHP int
 	Minimums     string   // the rules' text on stat minimums for the class
 	Step         string   // the creation step the rules are on ("race", "skills", ...), "" any
-	Choices      []string // that step's options
+	Choices      []string // that step's options: SetChoice{Field: Step, N}
+	Typed        bool     // the step takes typed text (a name): SetChoice{Field: Step, Text}
+	Number       bool     // the step takes a number: SetChoice{Field: Step, N}
+	Default, Max int      // Typed: the longest; Number: the default and the largest
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).
@@ -136,9 +164,10 @@ type Exploring struct {
 // automap. gobox walks: it asks Walk whether a side lets a step through and
 // where a script waits, then sends RunEvent{Before}, Arrive and RunEvent.
 type ExploreMap struct {
-	Walk    game.Map // the game's answers about its map
-	Walls   Walls
-	Automap game.Automap
+	Walk     game.Map // the game's answers about its map
+	Overland bool     // the wilderness or city map, not the 3D view
+	Walls    Walls
+	Automap  game.Automap
 }
 
 // Walls is the map's walls by square and side and what they look like.
@@ -149,7 +178,8 @@ type Walls struct {
 	Floor, Sky          string
 	FloorRGBA, CeilRGBA *color.RGBA
 	Backdrop            *game.Picture
-	Outside             bool    // under the sky: gobox draws the sun by Exploring.Day
+	Outside             bool    // under the sky
+	Sun                 bool    // the sun is up in the sky the rules paint
 	Mountains           bool    // the mountain range on the horizon, by day outside
 	SunAz, SunEl        float64 // the sun's bearing and height
 }
@@ -220,22 +250,40 @@ type Placed struct {
 // place is the game's state; Continue or a Reply moves it on.
 type Scene struct {
 	Common
-	Kind     SceneKind
-	Speaker  string
-	Pictures []game.Picture
-	Text     []string      // plain paragraphs; colours are gobox's
-	Replies  []string      // SceneTalk: the answers, Reply{N}
-	Typed    bool          // the reply is typed text (Reply{Text})
-	Handout  string        // SceneHandout: the title
-	Lines    []string      // SceneHandout: journal.Layout's
-	Layers   []game.Layer  // pictures with their place and frames (Pictures: gobox places them)
-	Placed   []Placed      // text at cells over the window (Text: the message lines)
-	Intro    *game.Intro   // SceneTitle
-	Sequence string        // SceneSequence: the Data.Sequences name
-	Results  *game.Results // SceneResults
-	Screen   *game.Screen  // SceneScreen
-	Full     bool          // the pictures are one whole-screen picture
+	Kind         SceneKind
+	Speaker      string
+	Pictures     []game.Picture
+	Text         []string          // plain paragraphs; colours are gobox's
+	Replies      []string          // SceneTalk: the answers, Reply{N}
+	Typed        bool              // the reply is typed text (Reply{Text})
+	Handout      string            // SceneHandout: the title
+	Lines        []string          // SceneHandout: journal.Layout's
+	Layers       []game.Layer      // pictures with their place and frames (Pictures: gobox places them)
+	Placed       []Placed          // text at cells over the window (Text: the message lines)
+	Intro        *game.Intro       // SceneTitle
+	Sequence     string            // SceneSequence: the Data.Sequences name
+	Results      *game.Results     // SceneResults
+	Screen       *game.Screen      // SceneScreen
+	Full         bool              // the pictures are one whole-screen picture
+	Default, Max int               // Typed: the longest answer; a number's default and largest
+	Steps        map[int]TitleStep // SceneTitle: Intro.Pictures' step N's pictures and tune; gobox steps through them
 }
+
+// TitleStep is one title picture step: its layers and the tune it starts.
+type TitleStep struct {
+	Layers []game.Layer
+	Song   string
+}
+
+// DoorWay is a way to try a door.
+type DoorWay int
+
+const (
+	DoorExit  DoorWay = iota // leave it
+	DoorBash                 // force it
+	DoorPick                 // pick the lock
+	DoorKnock                // cast Knock
+)
 
 // TradeKind says which place Trading is.
 type TradeKind int
@@ -458,7 +506,7 @@ type (
 		Side   int
 	} // run the square's event (Walk.Event, Walk.Departure said one waits)
 	Face    struct{ Facing int }
-	TryDoor struct{ Way int } // Exploring.Door's way: 0 bash, 1 pick, 2 knock
+	TryDoor struct{ Way DoorWay } // a way through Exploring.Door
 	Mark    struct {
 		At   image.Point
 		Text string

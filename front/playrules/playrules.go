@@ -4,14 +4,17 @@
 package playrules
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"image"
 	"image/color"
 	"os"
 	"path/filepath"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,6 +37,14 @@ type rules struct {
 	rest  time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
 	walk  []image.Point // the auto-walk's squares still to go, one per Step (PaceWalk)
 	seq   uint64        // counts the changes: the front redraws on a new one
+	data  game.Data     // the series' data (verb keys, texts)
+	log   []string      // the fight's message log, from the outcomes' text
+	note  game.Note     // the status line's toast: the last refusal
+	title struct {      // the title as gobox steps it
+		n       int
+		credits bool
+		page    int
+	}
 }
 
 // aiming is an Aimed action whose squares the player is picking.
@@ -42,8 +53,25 @@ type aiming struct {
 	ats []image.Point
 }
 
-// New is g as the old front's Rules.
-func New(g play.Game) game.Rules { return &rules{g: g, dir: Dir, sheet: -1} }
+// New is g as the old front's Rules; d, when given, is the game's Data
+// (its series' verb keys and texts).
+func New(g play.Game, d ...game.Data) game.Rules {
+	r := &rules{g: g, dir: Dir, sheet: -1}
+	if len(d) > 0 {
+		r.data = d[0]
+	}
+	return r
+}
+
+// restCap is the longest rest al allows at once (0: any), false none.
+func restCap(al play.Allowed) (time.Duration, bool) {
+	for _, a := range al.Plain {
+		if t, ok := a.(play.AdvanceTimeBy); ok {
+			return t.D, true
+		}
+	}
+	return 0, false
+}
 
 // Map is the game's walkable map while the party explores and no question
 // is up (game.Mapped): gobox walks on it.
@@ -60,6 +88,9 @@ func (r *rules) Step() game.Result {
 	switch {
 	case r.rest > 0:
 		d := min(r.rest, restChunk)
+		if m, _ := restCap(commonOf(r.g.State()).Allowed); m > 0 {
+			d = min(d, m)
+		}
 		r.rest -= d
 		res := r.keep(play.AdvanceTimeBy{D: d})
 		if res.Err != nil || len(res.Events) > 0 { // something happened meanwhile: the rest stops
@@ -81,6 +112,16 @@ func (r *rules) pending(ps play.State) *game.Ask {
 	if r.ask != nil {
 		return r.ask
 	}
+	c := commonOf(ps)
+	if q := c.Ask; q != nil {
+		return question(q)
+	}
+	if a, ok := ps.(play.Assembling); ok {
+		if d := a.Draft; d != nil {
+			return draftAsk(d)
+		}
+		return r.partyMenu(a)
+	}
 	if f, ok := ps.(play.ShipFight); ok && len(f.Menu) > 0 {
 		a := &game.Ask{Kind: game.Choice}
 		for _, t := range f.Menu {
@@ -99,7 +140,7 @@ func (r *rules) pending(ps play.State) *game.Ask {
 		}
 		return &game.Ask{Kind: game.Direction, Prompt: p, Options: []game.Option{{Label: "Done", Key: 'D', Do: game.Leave{}}}}
 	case sc.Typed:
-		return &game.Ask{Kind: game.Name, Max: 40}
+		return &game.Ask{Kind: game.Name, Max: cmp.Or(sc.Max, 40), Default: sc.Default}
 	case len(sc.Replies) > 0:
 		a := &game.Ask{Kind: game.Choice}
 		for _, t := range sc.Replies {
@@ -108,6 +149,66 @@ func (r *rules) pending(ps play.State) *game.Ask {
 		return a
 	}
 	return &game.Ask{Kind: game.Continue}
+}
+
+// question is the rules' question as the old Ask.
+func question(q *play.Question) *game.Ask {
+	a := &game.Ask{Kind: game.Choice, Prompt: q.Text, Default: q.Default, Max: q.Max}
+	switch {
+	case q.YesNo:
+		a.Kind = game.YesNo
+	case q.Typed:
+		a.Kind = game.Name
+	case q.Number:
+		a.Kind = game.Number
+	}
+	for _, t := range q.Replies {
+		a.Options = append(a.Options, game.Option{Label: t, Key: firstKey(t)})
+	}
+	return a
+}
+
+// draftAsk is the creation step's question (nil: the sheet's fields).
+func draftAsk(d *play.Draft) *game.Ask {
+	if d.Step == "" {
+		return nil
+	}
+	return question(&play.Question{Replies: d.Choices, Typed: d.Typed, Number: d.Number, Default: d.Default, Max: d.Max})
+}
+
+// partyFuncs are the party menu's functions: label, hotkey and the action
+// that opens it ("": gobox's own).
+var partyFuncs = []struct {
+	label string
+	key   rune
+	act   string
+}{
+	{"Create Character", 'C', "NewCharacter"}, {"Add Character", 'A', "AddCharacter"},
+	{"Remove Character", 'R', "RemoveCharacter"}, {"Modify Character", 'M', "Modify"},
+	{"Train Character", 'T', "OpenTraining"}, {"Human Change Class", 'H', "ChangeClass"},
+	{"View Character", 'V', ""}, {"Drop Character", 'D', "DropMember"}, {"Load Saved Game", 'L', ""},
+	{"Quick Start", 'Q', "QuickStart"}, {"Begin Adventuring", 'B', "Begin"}, {"Exit to DOS", 'E', "Quit"},
+}
+
+// partyMenu is the party menu gobox builds from what a allows; the labels
+// are gobox's, a series renames one in Data.Texts ("Remove Character":
+// "Purge Character").
+func (r *rules) partyMenu(a play.Assembling) *game.Ask {
+	al := allowedNames(a.Allowed)
+	q := &game.Ask{Kind: game.Choice}
+	for _, f := range partyFuncs {
+		on := al[f.act]
+		switch f.label {
+		case "View Character":
+			on = len(a.Party) > 0
+		case "Load Saved Game":
+			on = len(r.saves()) > 0
+		}
+		if on {
+			q.Options = append(q.Options, game.Option{Label: cmp.Or(r.data.Texts[f.label], f.label), Key: f.key})
+		}
+	}
+	return q
 }
 
 func firstKey(s string) rune {
@@ -124,9 +225,32 @@ func (r *rules) State() game.State {
 	s := game.State{Selected: c.Selected, Purse: c.Purse, Where: c.Where, Quests: c.Quests, Lore: c.Lore,
 		Allowed: allowedNames(c.Allowed), Items: r.items, Saves: r.saves()}
 	for i, m := range c.Party {
-		s.Party = append(s.Party, member(m, i == c.Selected, canCast(c.Allowed, i)))
+		s.Party = append(s.Party, member(m, i == c.Selected, m.CanCast || canCast(c.Allowed, i)))
 	}
-	s.Map.Area = c.Area
+	s.Map = c.Automap
+	if x, ok := ps.(play.Exploring); ok && c.Automap.Size == (image.Point{}) {
+		s.Map = x.Map.Automap
+	}
+	if s.Map.Area == "" {
+		s.Map.Area = c.Area
+	}
+	if c.Picture != nil {
+		s.Picture = *c.Picture
+	}
+	s.Page = &game.Page{}
+	for _, t := range c.Text {
+		s.Page.Pane = append(s.Page.Pane, []game.TextRun{{Text: t, Fg: ink}})
+		s.LastText = t
+	}
+	if c.Status != "" {
+		s.Page.Prompt = []game.TextRun{{Text: c.Status, Fg: ink}}
+	}
+	s.Note = r.note
+	_, camp := ps.(play.Camping)
+	_, explore := ps.(play.Exploring)
+	s.Flags = &game.Flags{Adventure: camp || explore, Ordering: camp && s.Allowed["Order"], Sweeping: c.Where.Searching,
+		Inside: c.Where.Inside, CanCast: c.Selected >= 0 && c.Selected < len(s.Party) && s.Party[c.Selected].CanCast,
+		IconDrop: c.IconEditor != nil}
 	s.PowerPick, s.Picker, s.IconEditor = c.PowerPick, c.Picker, c.IconEditor
 	if n := c.Selected; n >= 0 && n < len(c.Party) && (len(c.Party[n].Powers) > 0 || len(c.Party[n].Reactions) > 0) {
 		s.Sheet = &game.Sheet{Powers: c.Party[n].Powers, Reactions: c.Party[n].Reactions}
@@ -152,18 +276,20 @@ func (r *rules) State() game.State {
 				MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step, Choices: d.Choices}
 		}
 	case play.Exploring:
-		s.Mode, s.Window, s.Map = game.ModeExplore, game.WindowScene, t.Map.Automap
-		if s.Map.Area == "" {
-			s.Map.Area = c.Area
+		s.Mode, s.Window = game.ModeExplore, game.WindowScene
+		switch {
+		case c.Picture != nil:
+			s.Window = game.WindowPicture
+		case t.Map.Overland:
+			s.Window = game.WindowMap
 		}
-		day := t.Day // the game's say, never the hour guessed
-		s.Flags = &game.Flags{Exploring: true, Adventure: true, Day: day, Inside: c.Where.Inside, CanCast: canCast(c.Allowed, c.Selected),
-			IconDrop: c.IconEditor != nil}
+		s.Flags.Exploring, s.Flags.Day = true, t.Day // the game's say, never the hour guessed
 		s.Door = t.Door
-		w := t.Map.Walls
-		s.Walls = &game.Walls{Key: c.Area, Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
-			FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA, Sun: w.Outside && day, Mountains: w.Outside && day && w.Mountains,
-			SunAz: w.SunAz, SunEl: w.SunEl, Backdrop: w.Backdrop}
+		if w := t.Map.Walls; w.Side != nil { // no squares: no 3D view (the overland)
+			s.Walls = &game.Walls{Key: wallsKey(w), Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
+				FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA, Sun: w.Sun, Mountains: w.Mountains,
+				SunAz: w.SunAz, SunEl: w.SunEl, Backdrop: w.Backdrop}
+		}
 	case play.Camping:
 		s.Mode = game.ModeCamp
 		s.RestHeals = s.Allowed["AdvanceTimeBy"]
@@ -172,6 +298,9 @@ func (r *rules) State() game.State {
 		s.Mode, s.Combat = game.ModeCombat, r.combat(t)
 	case play.Scene:
 		s.Mode, s.Window = game.ModeStory, game.WindowText
+		if len(t.Pictures)+len(t.Layers) > 0 {
+			s.Window = game.WindowPicture
+		}
 		if t.Kind == play.SceneHandout {
 			if r.read == nil || r.read.Title != t.Handout || !slices.Equal(r.read.Lines, t.Lines) {
 				r.read = &game.Read{Title: t.Handout, Lines: t.Lines}
@@ -182,6 +311,7 @@ func (r *rules) State() game.State {
 		switch t.Kind {
 		case play.SceneTitle:
 			s.Mode, s.Intro = game.ModeTitle, t.Intro
+			s.Flags.Credits, s.Flags.CreditPage = r.title.credits, r.title.page
 		case play.SceneSequence:
 			s.Sequence = t.Sequence
 		case play.SceneResults:
@@ -189,10 +319,12 @@ func (r *rules) State() game.State {
 		case play.SceneScreen:
 			s.Screen = t.Screen
 		}
-		s.Page = page(t)
-		if t.Full {
-			s.Flags = &game.Flags{Full: true}
+		pg := page(t)
+		if t.Kind == play.SceneTitle && !r.title.credits {
+			pg.Layers = append(pg.Layers, t.Steps[r.title.n].Layers...)
 		}
+		s.Page.Pane, s.Page.View, s.Page.Layers = append(s.Page.Pane, pg.Pane...), pg.View, pg.Layers
+		s.Flags.Full = t.Full
 		for _, l := range t.Layers {
 			if l.FrameMs > 0 && s.Pacing == nil {
 				s.Pacing = &game.Pacing{Pace: game.PaceAnim}
@@ -231,12 +363,46 @@ func (r *rules) State() game.State {
 		f := t.Fight
 		s.Mode, s.Screen = game.ModeStory, &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: &f, ShipSheet: t.Sheet}
 	}
+	s.Holding = holding(ps)
 	if s.Pacing == nil {
 		s.Pacing = &game.Pacing{}
 	}
 	s.Pacing.Seq = r.seq
 	s.Pending = r.pending(ps)
 	return s
+}
+
+// holding is what the old front waits on in ps.
+func holding(ps play.State) game.Hold {
+	switch t := ps.(type) {
+	case play.Exploring:
+		if t.Door != nil {
+			return game.HoldDoor
+		}
+	case play.Trading:
+		if t.Kind == play.TradeTemple || t.Kind == play.TradeShop && len(t.Services) > 0 {
+			return game.HoldTemple
+		}
+		if t.Kind == play.TradeShop || t.Kind == play.TradeVault {
+			return game.HoldShop
+		}
+	case play.Looting:
+		return game.HoldLoot
+	case play.Fighting:
+		return game.HoldFight
+	case play.Scene:
+		if t.Kind == play.SceneText || t.Kind == play.SceneTalk {
+			return game.HoldStory
+		}
+	}
+	return game.HoldNone
+}
+
+// wallsKey names w's look: a new one has the 3D view built again.
+func wallsKey(w play.Walls) string {
+	h := fnv.New64a()
+	fmt.Fprint(h, w.Side, w.Fronts, w.Pool, w.Floor, w.Sky, w.FloorRGBA, w.CeilRGBA, w.Backdrop)
+	return strconv.FormatUint(h.Sum64(), 36)
 }
 
 func isHandout(ps play.State) bool {
@@ -376,7 +542,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 		}
 	}
 	t := &game.Turn{Unit: b.Turn, Aim: r.aim != nil, Moves: b.Moves, Casting: b.Casting, Weapon: b.Weapon, Missile: b.Missile}
-	c.Turn, c.Panel = t, b.Turn
+	c.Turn, c.Panel, c.Log, c.CursorOn = t, b.Turn, r.log, r.aim != nil
 	if r.aim != nil {
 		c.Marks = r.aim.ats
 		if cs, ok := r.aim.Action.(play.Cast); ok {
@@ -390,8 +556,8 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 		}
 	}
 	for _, v := range brVerbs { // as Buck Rogers' rules put them: an answer by hotkey
-		if allowed[name(v.a)] {
-			t.Options = append(t.Options, game.Option{Label: v.label, Key: v.key, Do: game.Answer{N: int(v.key)}})
+		if k := r.verbKey(v.label, v.key); allowed[name(v.a)] {
+			t.Options = append(t.Options, game.Option{Label: v.label, Key: k, Do: game.Answer{N: int(k)}})
 		}
 	}
 	named := map[int]game.TurnManeuver{}
@@ -419,6 +585,14 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 		}
 	}
 	return c
+}
+
+// verbKey is the series' hotkey for a combat verb (Data.VerbKeys), else k.
+func (r *rules) verbKey(label string, k rune) rune {
+	if x, ok := r.data.VerbKeys[label]; ok {
+		return x
+	}
+	return k
 }
 
 // maneuver is the rules' maneuver id, named as they name it.
@@ -454,9 +628,9 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	ps := r.g.State()
 	switch d := d.(type) {
 	case game.Answer:
-		if f, ok := ps.(play.Fighting); ok && r.ask == nil {
+		if f, ok := ps.(play.Fighting); ok && r.ask == nil && f.Ask == nil {
 			for _, v := range brVerbs {
-				if d.N == int(v.key) && allowedNames(f.Allowed)[name(v.a)] {
+				if d.N == int(r.verbKey(v.label, v.key)) && allowedNames(f.Allowed)[name(v.a)] {
 					return r.do(v.a)
 				}
 			}
@@ -477,9 +651,23 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	case game.CloseSheet:
 		r.sheet = -1
 		return game.Result{}
-	case game.SetSpeed, game.Resize, game.Browse, game.ViewMember, game.TitlePicture, game.TitleCredits, game.TitleFlash, game.LootLook:
-		return game.Result{} // the screen's
-	case game.TitleDone, game.SequenceDone:
+	case game.SetSpeed, game.Resize, game.Browse, game.ViewMember, game.TitleFlash, game.LootLook:
+		return game.Result{} // the screen's (the title's flash is the front's palette)
+	case game.TitlePicture: // gobox steps the title over the scene's Steps
+		r.title.n, r.title.credits = d.N, false
+		r.seq++
+		if sc, ok := ps.(play.Scene); ok && sc.Steps[d.N].Song != "" {
+			return game.Result{Events: []game.Event{{Kind: game.EvSong, Sound: sc.Steps[d.N].Song}}}
+		}
+		return game.Result{}
+	case game.TitleCredits:
+		r.title.n, r.title.credits, r.title.page = 0, true, d.Page
+		r.seq++
+		return game.Result{}
+	case game.TitleDone:
+		r.title.n, r.title.credits, r.title.page = 0, false, 0
+		return r.do(play.Continue{})
+	case game.SequenceDone:
 		return r.do(play.Continue{})
 	case game.Speak: // gobox voices the page itself
 		var res game.Result
@@ -491,7 +679,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		r.rest = 0
 		return game.Result{}
 	case game.Rest:
-		if _, ok := ps.(play.Camping); ok { // gobox paces the rest in chunks, Step by Step
+		if _, ok := restCap(commonOf(ps).Allowed); ok { // gobox paces the rest in chunks, Step by Step
 			r.rest = time.Duration(d.Minutes) * time.Minute
 			if r.rest == 0 {
 				r.rest = 8 * time.Hour
@@ -624,7 +812,7 @@ func action(ps play.State, d game.Decision) play.Action {
 	case game.SetPolicy:
 		return play.SetPolicy{ID: d.ID, Policy: d.Policy}
 	case game.TryDoor:
-		return play.TryDoor{Way: d.Way}
+		return play.TryDoor{Way: doorWays[d.Way]}
 	case game.Mark:
 		return play.Mark{At: d.At, Text: d.Text}
 	case game.Unmark:
@@ -731,6 +919,9 @@ func action(ps play.State, d game.Decision) play.Action {
 	return nil
 }
 
+// doorWays are the front's door ways (front.DoorExit ..) as play's.
+var doorWays = map[int]play.DoorWay{0: play.DoorExit, 1: play.DoorBash, 2: play.DoorPick, 3: play.DoorKnock}
+
 // facing is the step from a to b as a facing, else f (a step off the map).
 
 // answer answers gobox's own ask, or the scene's.
@@ -742,6 +933,12 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 			return game.Result{Err: errors.New("no such choice")}
 		}
 		return r.aimOrDo(commonOf(ps).Allowed, moves[d.N])
+	}
+	if q := commonOf(ps).Ask; q != nil {
+		return r.do(play.Reply{N: d.N, Text: d.Text})
+	}
+	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && a.Draft.Step != "" {
+		return r.do(play.SetChoice{Field: a.Draft.Step, N: d.N, Text: d.Text})
 	}
 	if _, ok := ps.(play.ShipFight); ok {
 		return r.do(play.Crew{N: d.N})
@@ -857,10 +1054,29 @@ func (r *rules) do(a play.Action) game.Result {
 func (r *rules) keep(a play.Action) game.Result {
 	out, err := r.g.Do(a)
 	if err != nil {
+		r.note = game.Note{Text: err.Error(), At: time.Now()}
 		return game.Result{Err: err}
 	}
 	r.ask, r.moves, r.aim = nil, nil, nil
 	r.seq++
+	_, fight := r.g.State().(play.Fighting)
+	if !fight {
+		r.log = nil
+	}
+	for _, e := range out.Events {
+		switch e := e.(type) {
+		case play.Refused:
+			r.note = game.Note{Text: e.Why, At: time.Now()}
+		case play.Narrated:
+			if fight {
+				r.log = append(r.log, e.Text)
+			}
+		case play.Said:
+			if fight {
+				r.log = append(r.log, e.Who+": "+e.Text)
+			}
+		}
+	}
 	return game.Result{Events: events(out.Events)}
 }
 
@@ -1034,17 +1250,21 @@ func (r *rules) remove(name string) error {
 }
 
 func (r *rules) load(slot int) game.Result {
-	sl := r.saves()
-	if slot < 0 || slot >= len(sl) {
-		return game.Result{Err: errors.New("no such slot")}
-	}
-	p, err := r.path(sl[slot].Name)
-	if err != nil {
-		return game.Result{Err: err}
-	}
-	b, err := os.ReadFile(p)
-	if err == nil {
-		err = r.g.Load(b)
+	own := r.ownSaves()
+	var err error
+	switch gs, ok := r.g.(play.Slots); {
+	case slot >= 0 && slot < len(own):
+		var p string
+		var b []byte
+		if p, err = r.path(own[slot].Name); err == nil {
+			if b, err = os.ReadFile(p); err == nil {
+				err = r.g.Load(b)
+			}
+		}
+	case ok && slot >= len(own) && slot < len(own)+len(gs.Slots()):
+		err = gs.LoadSlot(slot - len(own))
+	default:
+		err = errors.New("no such slot")
 	}
 	if err != nil {
 		return game.Result{Err: err}
@@ -1053,8 +1273,17 @@ func (r *rules) load(slot int) game.Result {
 	return game.Result{Events: []game.Event{{Kind: game.EvReset}}}
 }
 
-// saves are the slot files, newest first.
+// saves are gobox's slot files, newest first, then the game's own slots
+// (play.Slots).
 func (r *rules) saves() []game.SaveSlot {
+	sl := r.ownSaves()
+	if gs, ok := r.g.(play.Slots); ok {
+		sl = append(sl, gs.Slots()...)
+	}
+	return sl
+}
+
+func (r *rules) ownSaves() []game.SaveSlot {
 	es, _ := os.ReadDir(r.dir)
 	type slot struct {
 		game.SaveSlot
