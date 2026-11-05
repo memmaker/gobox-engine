@@ -662,7 +662,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 			t.Options = append(t.Options, game.Option{Label: v.label, Key: k, Do: game.Answer{N: int(k)}})
 		}
 	}
-	if !r.data.NoFreeAim {
+	if !r.data.NoFreeAim && len(t.Options) > 0 { // no menu ("Continue battle?"): no Aim either
 		t.Options = append(t.Options, game.Option{Label: "Aim", Do: game.Aim{}}) // the free cursor, gobox's own
 	}
 	named := map[int]game.TurnManeuver{}

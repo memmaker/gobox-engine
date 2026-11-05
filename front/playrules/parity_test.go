@@ -159,6 +159,15 @@ func TestParity(t *testing.T) {
 			func(s game.State, _ game.Result) bool {
 				return s.Pending != nil && s.Pending.Kind == game.Square && s.Pending.Prompt == "Aim:" && s.Combat.Turn.Aim
 			}},
+		{"no Aim on a turn without a menu", play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Continue{}}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				for _, o := range s.Combat.Turn.Options {
+					if o.Label == "Aim" {
+						return false
+					}
+				}
+				return true
+			}},
 		{"marks are no key", play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"* BAR"}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'B' }},
 		{"roster pick prompt", play.Scene{Replies: []string{"Wilma", "Buck"}, Common: play.Common{Status: "Add a character: "}}, game.Data{NoHotkeys: true}, nil, nil,

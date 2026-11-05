@@ -464,7 +464,7 @@ type (
 	Give    struct{ From, To, Item int }
 	Halve   struct{ Member, Item int }
 	Join    struct{ Member, Item int }
-	UseItem struct {
+	UseItem struct { // Item -1 in a fight's Allowed: the pack is open to the turn (gobox offers Items) though nothing in it is usable
 		Member, Item, Target int
 		Ats                  []image.Point
 		Spell                int // a scroll's spell, 0 the first
