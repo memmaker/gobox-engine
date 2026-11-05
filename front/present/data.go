@@ -94,7 +94,8 @@ var (
 	areaMaps                         map[front.AreaID]string
 	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
 	openAt                           string
-	dollPNG []byte
+	dollPNG, atlasPNG                []byte
+	itemsRec                         string
 	daxLoader                        *dax.Loader
 	mapSide                          int // View.Map's side in pixels
 	sounds                           []byte
@@ -125,7 +126,7 @@ func SetData(d Data) {
 	}
 	dollBoxes, slotNames, readiedMark = defaultDollBoxes, defaultSlotNames, d.ReadyMark
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
-	dollPNG = defaultDoll
+	dollPNG, atlasPNG, itemsRec = defaultDoll, defaultAtlas, defaultItemsRec
 	daxLoader = d.DAX
 	if daxLoader != nil && !daxLoader.HasAmiga() { // the Amiga art beside the DOS files (data/amiga), shown on F12
 		daxLoader.UseAmiga(filepath.Join(filepath.Dir(daxLoader.Dir), "amiga"))

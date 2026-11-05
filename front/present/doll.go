@@ -5,11 +5,16 @@ import (
 	"image"
 )
 
-// The paper doll every game's inventory shows: the doll and the slot boxes
-// (item pictures: the shared pool's items, by origins.json ITEMS), by classic.DollSlots (Inventory.Doll's order).
+// The paper doll every game's inventory shows: the doll, the item icons
+// (atlas.png, 20x20 cells; items.rec maps item types to cells) and the slot
+// boxes, by classic.DollSlots (Inventory.Doll's order).
 var (
 	//go:embed dollart/doll.png
 	defaultDoll []byte
+	//go:embed dollart/atlas.png
+	defaultAtlas []byte
+	//go:embed dollart/items.rec
+	defaultItemsRec string
 )
 
 // defaultDollBoxes are the doll's slot boxes (18x18 with the frame, the

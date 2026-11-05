@@ -59,12 +59,15 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 			if it == nil {
 				continue
 			}
-			if im := p.inv.iconImage(it); im != nil {
+			if n := p.inv.icon(it); n >= 0 {
+				at := image.Pt(n%atlasCols*atlasCell, n/atlasCols*atlasCell)
 				if p.battle.Icons == nil {
 					p.battle.Icons = map[combat.Kind]image.Image{}
 				}
-				p.battle.Icons[combatKinds[kind]] = im
-				p.battle.IconKey += strconv.Itoa(int(kind)) + ":" + p.inv.icon(it) + " "
+				p.battle.Icons[combatKinds[kind]] = p.inv.atlas.(interface {
+					SubImage(image.Rectangle) image.Image
+				}).SubImage(image.Rectangle{at, at.Add(image.Pt(atlasCell, atlasCell))})
+				p.battle.IconKey += strconv.Itoa(int(kind)) + ":" + strconv.Itoa(n) + " "
 			}
 		}
 	}
