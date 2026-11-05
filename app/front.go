@@ -88,7 +88,7 @@ func (g *frontGame) scripted() bool { return g.cfg.Capture.Scripted() }
 
 func (g *frontGame) Update() {
 	if g.scripted() { // the user's input never reaches a capture or a measurement, only the scripted keys (Step)
-		if len(g.cfg.Capture.Pointer) > 0 {
+		if len(g.cfg.Capture.Pointer) > 0 || g.leftOnce || g.rightOnce { // a scripted click needs no -pointer: on the title any spot steps it
 			g.mouse()
 		}
 		return
