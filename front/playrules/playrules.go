@@ -299,8 +299,7 @@ func (r *rules) State() game.State {
 	}
 	s.Note = r.note
 	_, camp := ps.(play.Camping)
-	m := c.Where.Mode // out in the world: the game's own travel mode, or camp (shop, temple, combat are not)
-	s.Flags = &game.Flags{Adventure: camp || m == "dungeon" || m == "town" || m == "wilderness", Ordering: camp && s.Allowed["Order"], Sweeping: c.Where.Searching,
+	s.Flags = &game.Flags{Adventure: c.Adventure, Ordering: camp && s.Allowed["Order"], Sweeping: c.Where.Searching,
 		Inside: c.Where.Inside, CanCast: c.Selected >= 0 && c.Selected < len(s.Party) && s.Party[c.Selected].CanCast,
 		IconDrop: c.IconEditor != nil, Day: c.Day, NoSave: c.NoSave, NoLoad: c.NoLoad}
 	if c.Picture != nil || len(c.Layers) > 0 || c.Portrait != nil {
@@ -642,7 +641,9 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 			t.Options = append(t.Options, game.Option{Label: v.label, Key: k, Do: game.Answer{N: int(k)}})
 		}
 	}
-	t.Options = append(t.Options, game.Option{Label: "Aim", Do: game.Aim{}}) // the free cursor, gobox's own
+	if !r.data.NoFreeAim {
+		t.Options = append(t.Options, game.Option{Label: "Aim", Do: game.Aim{}}) // the free cursor, gobox's own
+	}
 	named := map[int]game.TurnManeuver{}
 	for _, m := range b.Maneuvers {
 		named[m.ID] = m

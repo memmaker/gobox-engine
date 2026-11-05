@@ -70,24 +70,25 @@ type Aimed struct {
 
 // Common is what every state shows besides its own view.
 type Common struct {
-	Portrait *Portrait // a speaker's portrait up (a shopkeeper), nil none; gobox composes it
-	NoSave   bool      // saving is refused here (the rules say where the party may save)
-	NoLoad   bool      // loading is refused here
-	Party    []Member
-	Selected int
-	Purse    map[string]int
-	Where    game.Where
-	Area     string      // the area's name as the player knows it
-	Lore     []game.Lore // the journal, newest first
-	Quests   []game.Quest
-	Allowed  Allowed
-	Status   string        // the rules' status line (plain text; "" none)
-	Text     []string      // the rules' message lines in the text pane, oldest first
-	Picture  *game.Picture // the picture or portrait up (in the view while exploring); nil none
-	Layers   []game.Layer  // a picture built of layers (with frames), as Picture
-	Day      bool          // daylight as the rules see it, in every state
-	Automap  game.Automap  // the map of where the party is (the overland, the starmap, ...), any state
-	Ask      *Question     // a question over this state (the view stays); Reply answers it
+	Adventure bool      // the party is out in the world (the game's own rule); gobox takes it as given
+	Portrait  *Portrait // a speaker's portrait up (a shopkeeper), nil none; gobox composes it
+	NoSave    bool      // saving is refused here (the rules say where the party may save)
+	NoLoad    bool      // loading is refused here
+	Party     []Member
+	Selected  int
+	Purse     map[string]int
+	Where     game.Where
+	Area      string      // the area's name as the player knows it
+	Lore      []game.Lore // the journal, newest first
+	Quests    []game.Quest
+	Allowed   Allowed
+	Status    string        // the rules' status line (plain text; "" none)
+	Text      []string      // the rules' message lines in the text pane, oldest first
+	Picture   *game.Picture // the picture or portrait up (in the view while exploring); nil none
+	Layers    []game.Layer  // a picture built of layers (with frames), as Picture
+	Day       bool          // daylight as the rules see it, in every state
+	Automap   game.Automap  // the map of where the party is (the overland, the starmap, ...), any state
+	Ask       *Question     // a question over this state (the view stays); Reply answers it
 
 	// Overlays any state may carry: a question only the rules can put
 	// (a power to choose), the grid picker and the icon designer the

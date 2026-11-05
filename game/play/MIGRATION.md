@@ -182,5 +182,7 @@ NoHotkeys covers vertical list picks only (creation choices, the roster); bar me
 | the combat menu's free Aim | gobox's own: Turn.Options always carries `Aim`, the game is not told |
 | Pending = the combat menu | not needed: gobox's front builds the menu from Turn.Options; Pending stays nil |
 | the fight's message pane | `Common.Text` (when set, it is Combat.Log; else the Narrated lines since the fight began) |
-| Flags.Adventure | camp, or the game's `Where.Mode` is dungeon, town or wilderness (shop, temple, combat: false) |
+| Flags.Adventure | `Common.Adventure`, taken as given. Each game sets it by its old rule: COTAB Where.Mode in dungeon/town/wilderness or camp; POD explore, ask or camp; Buck Rogers every exploring state (space, overland too) and camp |
 | door menu over the view | `Exploring.Door` gives ModeAsk + HoldDoor |
+| no free Aim in combat (Buck Rogers) | `game.Data.NoFreeAim` |
+| fight log line count (BR1) | game side: Fighting's `Common.Text` is taken as the fight log, so BR1 must send its fight log there (f.log), not the whole text window (e.lines carries lines said with say, not say2) |
