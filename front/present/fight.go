@@ -419,7 +419,7 @@ func (p *Presenter) pickList() []front.Spell {
 	case p.pick != nil:
 		return p.pick
 	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil && p.battle.PickKind == combat.ActManeuver:
-		var out []front.Spell
+		out := []front.Spell{} // never nil: an empty list still takes Esc
 		for _, m := range p.fightView.Turn.Maneuvers {
 			out = append(out, front.Spell{ID: m.ID, Name: m.Name})
 		}

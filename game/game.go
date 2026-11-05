@@ -627,21 +627,42 @@ type Unit struct {
 	Squares    []image.Point // squares covered
 	AC         int
 	Status     string
-	Dmg        string // the unit's damage, e.g. "1d8+6"
-	Member     int    // party index of a party unit, -1 for a monster
-	Active     bool   // it is the unit the player acts for
-	Hit        int    // the active unit's chance in percent to hit it with one blow, 0 not a target
-	Pose       int    // its icon's pose: 0 ready, 1 action
+	Dmg        string      // the unit's damage, e.g. "1d8+6"
+	Member     int         // party index of a party unit, -1 for a monster
+	Active     bool        // it is the unit the player acts for
+	Hit        int         // the active unit's chance in percent to hit it with one blow, 0 not a target
+	Pose       int         // its icon's pose: 0 ready, 1 action
+	Icon       image.Image // a member's own PNG icon, in its pose and facing (nil: composed from its icon picks)
 }
 
 // Turn is whose turn it is and what they may do.
 type Turn struct {
-	Unit    int
-	Moves   int
-	Casting int    // the spell the unit is casting over rounds, 0 none
-	Aim     bool   // aiming: Aim takes a square (Cast: Ats), Cancel gives up
-	Spell   string // aiming a spell, its name
-	Options []Option
+	Unit      int
+	Moves     int
+	Casting   int    // the spell the unit is casting over rounds, 0 none
+	Aim       bool   // aiming: Aim takes a square (Cast: Ats), Cancel gives up
+	Spell     string // aiming a spell, its name
+	Options   []Option
+	Weapon    *Weapon        // the weapon in hand (its icon on Attack), nil none
+	Missile   *Weapon        // the ranged weapon readied (its icon on Ranged), nil none
+	Maneuvers []TurnManeuver // the rule set's maneuvers (Maneuver picks one); none: no Maneuver
+}
+
+// Weapon is a Turn's weapon: its icon (Type, Words) and tooltip.
+type Weapon struct {
+	Name        string
+	Type        int
+	Words       []string
+	Look, Rules []string // what it is, how it attacks
+}
+
+// TurnManeuver is one of a Turn's maneuvers.
+type TurnManeuver struct {
+	ID          int
+	Name, Tip   string
+	Aim         int // front.Aim
+	Range, Area int
+	Shift       int // AimWeapon: squares the member may move first
 }
 
 // Option is a rule verb the player may pick, with its original hotkey.

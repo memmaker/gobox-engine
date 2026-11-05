@@ -58,7 +58,9 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 			o.Units[i].Party, o.Units[i].Active, o.Units[i].Name = !g.Foe, g.Active, g.Name
 			o.Units[i].HP, o.Units[i].MaxHP, o.Units[i].AC = g.HP, g.MaxHP, g.AC
 			o.Units[i].Hit, o.Units[i].Dmg, o.Units[i].Status = g.Hit, g.Dmg, g.Status
-			if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
+			if g.Icon != nil {
+				o.Units[i].Icon, o.Units[i].IconSize = g.Icon, image.Pt(24, 24)
+			} else if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
 				pm := defaultIcon(s.Party[m])
 				head, body := memberIcon(pm)
 				if pic, ok := poolIcon(head, body, pm.IconColors, 0, g.Facing > 3); ok {
@@ -93,9 +95,7 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 	o.Turn = nil
 	if t := c.Turn; t != nil {
 		o.Turn = &front.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves}
-		if b.Turn != nil { // the weapon icons and the rule set's maneuvers are the game's
-			o.Turn.Weapon, o.Turn.Missile, o.Turn.Maneuvers = b.Turn.Weapon, b.Turn.Missile, b.Turn.Maneuvers
-		}
+		turnExtras(o.Turn, t)
 		for _, op := range t.Options {
 			if act, ok := turnAct(op.Do); ok {
 				o.Turn.Can = append(o.Turn.Can, act)
@@ -167,7 +167,9 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		if g.Art.W > 0 {
 			u.IconSize = image.Pt(g.Art.W, g.Art.H)
 		}
-		if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
+		if g.Icon != nil {
+			u.Icon = g.Icon
+		} else if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
 			head, body := memberIcon(s.Party[m])
 			if pic, ok := poolIcon(head, body, s.Party[m].IconColors, g.Pose, g.Facing > 3); ok {
 				icon, u.IconSize = pic, image.Pt(pic.PixW, len(pic.Pix)/pic.PixW)
@@ -178,6 +180,7 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 	}
 	if t := c.Turn; t != nil {
 		b.Turn = &front.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves}
+		turnExtras(b.Turn, t)
 		for _, op := range t.Options {
 			if act, ok := turnAct(op.Do); ok {
 				b.Turn.Can = append(b.Turn.Can, act)
@@ -188,4 +191,20 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		}
 	}
 	return b
+}
+
+// turnExtras gives o the Turn's weapons and maneuvers.
+func turnExtras(o *front.Turn, t *game.Turn) {
+	o.Weapon, o.Missile, o.Maneuvers = weapon(t.Weapon), weapon(t.Missile), nil
+	for _, m := range t.Maneuvers {
+		o.Maneuvers = append(o.Maneuvers, front.Maneuver{ID: m.ID, Name: m.Name, Tip: m.Tip, Aim: front.Aim(m.Aim), Range: m.Range, Area: m.Area, Move: m.Shift})
+	}
+}
+
+// weapon is w as the bar shows it (nil: none).
+func weapon(w *game.Weapon) *front.InvItem {
+	if w == nil {
+		return nil
+	}
+	return &front.InvItem{Name: w.Name, Type: byte(w.Type), Words: w.Words, Look: w.Look, Rules: w.Rules}
 }
