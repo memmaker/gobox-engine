@@ -43,9 +43,15 @@ func (t *texture) ensure() {
 	}
 	t.make()
 	if t.px != nil {
-		px := t.px
+		// straight through the queue: a texture born now has no draws recorded against
+		// it, so nothing to submit or settle, and an open frame (or pass) stays open
+		Stats.Uploads++
+		if err := dev.queue.WriteTexture(&wgpu.ImageCopyTexture{Texture: t.tex}, t.px,
+			&wgpu.ImageDataLayout{BytesPerRow: uint32(t.w * 4), RowsPerImage: uint32(t.h)},
+			&wgpu.Extent3D{Width: uint32(t.w), Height: uint32(t.h), DepthOrArrayLayers: 1}); err != nil {
+			panic(err)
+		}
 		t.px = nil
-		(&Image{t, image.Rect(0, 0, t.w, t.h)}).WritePixels(px)
 	}
 }
 
