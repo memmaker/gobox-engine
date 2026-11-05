@@ -1116,20 +1116,21 @@ type Data struct {
 	Fonts        []Typeface                    // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
 	Border       *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
-	Sequences    []Sequence  // the full-screen animations State.Sequence names (nil: none)
-	Files        string      // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
-	SoundTables  []byte      // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
-	AdLib        *AdLib      // the AdLib music and effects (nil: none)
-	AmigaMusic   *AmigaMusic // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)
-	DungeonTiles int         // the tiles at the start of the combat set
-	Rests        []RestKind  // camp's rests, in the menu's order (nil: none)
-	CreditLines  []Credit    // the title's credits page, placed (nil: Credits as plain lines)
-	CreditGaps   []int       // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
-	CreditFrame  string      // the credits' frame: "" two boxes (title, lines) with CreditGaps and the remaster's lines; "edges" one frame on the page's edges, the lines at their cells
-	IconParts    []string    // the combat icon designer's parts
-	ReadyMark    string      // shown before a readied item's name ("": none)
-	LabelInks    []int       // a map label's EGA colour by its kind
-	MapCell      int         // pixels a square of the area map (0: gobox's)
+	Sequences    []Sequence     // the full-screen animations State.Sequence names (nil: none)
+	DaxMask      map[string]int `json:",omitempty"` // a DAX file's transparent colour index, as the original's loader takes it (File, e.g. "CHARS", "CPIC3"; no entry: none)
+	Files        string         // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
+	SoundTables  []byte         // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
+	AdLib        *AdLib         // the AdLib music and effects (nil: none)
+	AmigaMusic   *AmigaMusic    // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)
+	DungeonTiles int            // the tiles at the start of the combat set
+	Rests        []RestKind     // camp's rests, in the menu's order (nil: none)
+	CreditLines  []Credit       // the title's credits page, placed (nil: Credits as plain lines)
+	CreditGaps   []int          // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
+	CreditFrame  string         // the credits' frame: "" two boxes (title, lines) with CreditGaps and the remaster's lines; "edges" one frame on the page's edges, the lines at their cells
+	IconParts    []string       // the combat icon designer's parts
+	ReadyMark    string         // shown before a readied item's name ("": none)
+	LabelInks    []int          // a map label's EGA colour by its kind
+	MapCell      int            // pixels a square of the area map (0: gobox's)
 
 	DoorInk, SelectInk color.RGBA        // a door's colour on the maps; the frame round the selected box (zero: gobox's)
 	Logo               *Logo             // how the main menu's lettering is cut from the title picture (nil: none)

@@ -214,10 +214,12 @@ var (
 // gameArt is the game's Data.Art (the overland's terrain and marker).
 var gameArt map[string]game.Picture
 
+var daxMask map[string]int // Data.DaxMask
+
 // gameData overlays the game's declarative game.Data (NewFront's) on what
 // SetData handed in: its series and its spell tips (by spell id).
 func gameData(g game.Data) {
-	gameArt, gameID = g.Art, g.ID
+	gameArt, gameID, daxMask = g.Art, g.ID, g.DaxMask
 	sequences, filesDir = g.Sequences, g.Files
 	classic.GameID = g.ID
 	if g.Series != "" {

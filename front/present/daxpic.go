@@ -71,6 +71,18 @@ func daxMasked(file string, block, frame, mask int) image.Image {
 	return m
 }
 
+// refMask is the colour index of pc's DAX picture left transparent: its own
+// Mask, else Data.DaxMask's for its file, else -1 (none).
+func refMask(pc front.Picture) int {
+	if pc.Mask != nil {
+		return int(*pc.Mask)
+	}
+	if m, ok := daxMask[pc.File]; ok {
+		return m
+	}
+	return -1
+}
+
 // daxPictures is ps with the pictures named by file and block decoded.
 func daxPictures(ps []front.Picture) []front.Picture {
 	out := ps
@@ -78,13 +90,9 @@ func daxPictures(ps []front.Picture) []front.Picture {
 		if pc.Img != nil || pc.Fill || pc.File == "" && pc.Name == "" {
 			continue
 		}
-		mask := -1
-		if pc.Mask != nil {
-			mask = int(*pc.Mask)
-		}
 		m := poolImage(pc)
 		if m == nil && pc.File != "" {
-			m = daxMasked(pc.File, pc.Block, pc.Frame, mask)
+			m = daxMasked(pc.File, pc.Block, pc.Frame, refMask(pc))
 		}
 		if m != nil {
 			if &out[0] == &ps[0] {
