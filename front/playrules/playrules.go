@@ -1012,7 +1012,10 @@ func action(ps play.State, d game.Decision) play.Action {
 		return play.MoveTo{To: d.To}
 	case game.Attack:
 		return play.Attack{Target: d.Target}
-	case game.Ready:
+	case game.Ready: // on a readied item it unreadies it, as the originals' Ready toggles
+		if pt := commonOf(ps).Party; d.Member >= 0 && d.Member < len(pt) && d.Item >= 0 && d.Item < len(pt[d.Member].Items) && pt[d.Member].Items[d.Item].Readied {
+			return play.Unready{Member: d.Member, Item: d.Item}
+		}
 		return play.Ready{Member: d.Member, Item: d.Item, Count: d.Count}
 	case game.Unready:
 		return play.Unready{Member: d.Member, Item: d.Item}

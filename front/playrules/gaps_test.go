@@ -350,3 +350,13 @@ func TestShopBrowse(t *testing.T) {
 		t.Fatal("Browse opened nothing")
 	}
 }
+
+// TestReadyToggles: Ready on a readied item unreadies it.
+func TestReadyToggles(t *testing.T) {
+	c := play.Common{Party: []play.Member{{Items: []game.Item{{Name: "Gun", Readied: true}}}}}
+	f := &fake{st: play.Exploring{Common: c}}
+	New(f, game.Data{}).Apply(game.Ready{Member: 0, Item: 0})
+	if len(f.sent) != 1 || f.sent[0] != (play.Unready{}) {
+		t.Fatalf("sent %v", f.sent)
+	}
+}
