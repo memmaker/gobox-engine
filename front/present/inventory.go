@@ -143,7 +143,7 @@ func (inv *inventory) put(n int) {
 		return
 	}
 	n = max(1, min(n, c.n))
-	if onDoll := inv.hover.In(inv.dollAt); onDoll != c.doll {
+	if onDoll := inv.hover.In(inv.dollAt); onDoll != (c.doll || it.Readied) { // a readied item from the list is on the doll already
 		x := n
 		if n >= max(it.Count, 1) {
 			x = 0 // the whole stack

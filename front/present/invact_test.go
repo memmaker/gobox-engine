@@ -1,6 +1,7 @@
 package present
 
 import (
+	"image"
 	"testing"
 
 	"gobox/front"
@@ -58,5 +59,31 @@ func TestShopKeys(t *testing.T) {
 	}
 	if a, b := wrapName("1 POISON ANTIDOTE", 12); a != "1 POISON" || b != "ANTIDOTE" {
 		t.Fatalf("%q %q", a, b)
+	}
+}
+
+// A drag off the doll unreadies, as a click there and a click on the list do;
+// a readied item dragged from the list onto the doll stays as it is.
+func TestInventoryDrag(t *testing.T) {
+	gun := front.InvItem{Index: 1, Name: "Gun", Type: 7, Readied: true}
+	in := &front.Inventory{Doll: []*front.InvItem{&gun}, Pool: []front.InvItem{gun}}
+	var p Presenter
+	inv := &p.inv
+	inv.k, inv.kx, inv.ky, inv.view, inv.sel, inv.ware = 1, 1, 1, in, -1, -1
+	inv.dollAt = image.Rect(0, 0, 100, 100)
+	drag := func(from hit, x, y int) []front.Action {
+		inv.lines = []hit{from}
+		p.InventoryMouse(from.r.Min.X+5, from.r.Min.Y+5, true, false, 0)
+		p.InventoryMouse(x, y, true, false, 0)
+		p.InventoryMouse(x, y, false, false, 0)
+		as := inv.acts
+		inv.acts = nil
+		return as
+	}
+	if as := drag(hit{r: image.Rect(0, 0, 20, 20), item: gun, doll: true}, 200, 200); len(as) != 1 || as[0].Kind != front.ActReady {
+		t.Fatalf("off the doll: %v", as)
+	}
+	if as := drag(hit{r: image.Rect(150, 150, 300, 170), item: gun}, 50, 50); len(as) != 0 {
+		t.Fatalf("readied onto the doll: %v", as)
 	}
 }

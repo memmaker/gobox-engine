@@ -309,11 +309,8 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 		}
 		return
 	}
-	switch {
-	case !drag: // a click picks the whole stack up on the cursor (the next click drops it)
-		inv.pickUp(h, 0)
-	case h.doll && !inv.hover.In(inv.dollAt), // dragged off the doll
-		!h.doll && inv.hover.In(inv.dollAt): // or onto it: the whole stack
-		inv.do(front.ActReady)
+	inv.pickUp(h, 0) // a click picks the whole stack up on the cursor (the next click drops it)
+	if drag {        // a drag is a click here and a click where it ends: one path
+		inv.put(inv.carry.n)
 	}
 }
