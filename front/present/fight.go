@@ -35,6 +35,16 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 	if b.Turn != nil {
 		for _, m := range v.Party { // whose turn: the portrait card, bottom left
 			if m.Selected {
+				if m.Portrait == nil && m.Head == nil { // no portrait: the member's combat icon, else no box
+					for _, u := range b.Units {
+						if u.ID == b.Turn.Unit {
+							m.Portrait = u.Icon
+						}
+					}
+					if m.Portrait == nil {
+						continue
+					}
+				}
 				ck := max(1, int(k)/2) // as the bar
 				y := p.mapBottom - (cardH+cardGap)*ck + cardFoot*ck
 				p.fightCard = image.Rect(cardGap*ck, y, cardGap*ck+cardW*ck, y+cardH*ck)

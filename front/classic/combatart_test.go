@@ -23,3 +23,15 @@ func TestBattleOfRefs(t *testing.T) {
 		t.Errorf("icon ref lost: %+v", p)
 	}
 }
+
+// A Gone unit is not on the board; a Dead one stays.
+func TestBattleOfGone(t *testing.T) {
+	s := game.State{Combat: &game.Combat{Units: []game.Unit{{ID: 1}, {ID: 2, Gone: true}, {ID: 3, Dead: true}}}}
+	b := BattleOf(s, nil)
+	if len(b.Units) != 2 || len(b.IconPix) != 2 || b.Units[1].ID != 3 {
+		t.Errorf("units %+v", b.Units)
+	}
+	if o := Battle(b, game.State{Combat: &game.Combat{Units: []game.Unit{{ID: 1}, {ID: 2}, {ID: 3, Gone: true}}}}); len(o.Units) != 1 || len(o.IconPix) != 1 {
+		t.Errorf("Battle kept a gone unit: %+v", o.Units)
+	}
+}

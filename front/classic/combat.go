@@ -72,6 +72,18 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 			}
 		}
 	}
+	gone := func(i int) bool { // a unit the combat has off the map is not drawn
+		k := slices.IndexFunc(c.Units, func(g game.Unit) bool { return g.ID == o.Units[i].ID })
+		return k >= 0 && c.Units[k].Gone
+	}
+	for i := len(o.Units) - 1; i >= 0; i-- {
+		if gone(i) {
+			if i < len(o.IconPix) {
+				o.IconPix = slices.Delete(slices.Clone(o.IconPix), i, i+1)
+			}
+			o.Units = slices.Delete(o.Units, i, i+1)
+		}
+	}
 	o.Reach = nil
 	for _, r := range c.Reach {
 		o.Reach = append(o.Reach, r.At)
@@ -141,6 +153,9 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		b.Paths[r.At] = path
 	}
 	for _, g := range c.Units {
+		if g.Gone {
+			continue
+		}
 		u := front.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
 			Active: g.Active, Name: g.Name, HP: g.HP, MaxHP: g.MaxHP, AC: g.AC, Hit: g.Hit, Dmg: g.Dmg, Status: g.Status}
 		icon := pix(g.Art)
