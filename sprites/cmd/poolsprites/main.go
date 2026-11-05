@@ -32,11 +32,6 @@ type source struct {
 var (
 	games = []string{"por", "cotab", "sotsb", "pod"}
 	vga   = map[string]bool{"pod": true, "buckrogers": true} // games whose pictures are VGA (dax.ParseVGA) not EGA
-	// amigaGames have data/amiga archives drawn in the fixed ega.Amiga
-	// palettes; they go in after every DOS picture (so DOS names stay put),
-	// under origins key <game>-amiga, from one file a kind (HEAD, not HEAD1..8).
-	// ponytail: cotab and sotsb Amiga art carries its own *PAL.DAX palettes, not decoded here yet.
-	amigaGames = []string{"por"}
 	// The per-game file lists: the only game knowledge here.
 	sources = []source{
 		{"portraits", "head", false, []string{"HEAD1", "HEAD2", "HEAD3", "HEAD4", "HEAD5", "HEAD6", "HEAD7", "HEAD8"}, false},
@@ -60,6 +55,8 @@ var (
 		{"combat", "venuscom_tile", false, []string{"VENUSCOM"}, true},
 	}
 )
+
+var games2 []string // the <game>-amiga sets found
 
 type origin struct{ game, file, index string }
 
@@ -92,11 +89,6 @@ func main() {
 	var runs []run
 	for _, g := range games {
 		runs = append(runs, run{g, g, "dos"})
-	}
-	if *series == "pool" {
-		for _, g := range amigaGames {
-			runs = append(runs, run{g, g + "-amiga", "amiga"})
-		}
 	}
 	for _, r := range runs {
 		g := r.key
@@ -157,6 +149,62 @@ func main() {
 			}
 		}
 	}
+	// The Amiga art (data/amiga, the game's -import-disk2 of its .adf disks): its own
+	// amiga_-prefixed names under origins key <game>-amiga, never deduplicated
+	// against the DOS art, so the F12 toggle keeps the two sets apart.
+	for _, g := range games {
+		dos, err := dax.NewLoader(filepath.Join(*root, g+"-go", "data", "dos"))
+		if err != nil {
+			continue
+		}
+		dos.UseAmiga(filepath.Join(*root, g+"-go", "data", "amiga"))
+		if !dos.HasAmiga() {
+			continue
+		}
+		ag := g + "-amiga"
+		before[ag], after[ag], origins[ag] = map[string]int{}, map[string]int{}, map[string]map[string]string{}
+		games2 = append(games2, ag)
+		for _, s := range sources {
+			base := strings.TrimRight(s.files[0], "0123456789") // the Amiga keeps one archive per kind
+			d, err := dax.Open(filepath.Join(*root, g+"-go", "data", "amiga", base+".DAX"))
+			if err != nil || s.byFrame {
+				continue
+			}
+			prefix := "amiga_" + s.prefix
+			for _, e := range d.Entries {
+				im := dax.ParseImage(dos.BlockShared(base, e.ID), s.masked, 0) // the loader's block: HEAD centred as drawn
+				if im == nil || im.Count == 0 || im.Width == 0 || im.Height == 0 || len(im.Data) < im.Count*im.BPP {
+					continue
+				}
+				pal := dos.AmigaPalette(base, e.ID)
+				for fr := 0; fr < im.Count; fr++ {
+					idx := fmt.Sprint(e.ID)
+					if im.Count > 1 {
+						idx += fmt.Sprintf(".%d", fr)
+					}
+					pix := renderAmiga(im, fr, pal)
+					key := s.dir + fmt.Sprint(im.Width, im.Height) + prefix + string(pix.Pix)
+					en := seen[key]
+					if en == nil {
+						en = &entry{name: fmt.Sprintf("%s_%03d", prefix, count[prefix]), w: im.Width * 8, h: im.Height}
+						count[prefix]++
+						seen[key] = en
+						byDir[s.dir] = append(byDir[s.dir], en)
+						write(filepath.Join(pool, s.dir, en.name+".png"), pix) // ponytail: RGBA, not indexed: Amiga combat art is not recoloured by EGA index
+						after[ag][s.dir]++
+					}
+					before[ag][s.dir]++
+					en.origins = append(en.origins, origin{ag, base + ".DAX", idx})
+					if origins[ag][base+".DAX"] == nil {
+						origins[ag][base+".DAX"] = map[string]string{}
+					}
+					origins[ag][base+".DAX"][idx] = en.name
+				}
+			}
+			fmt.Println("decoded", ag, base)
+		}
+	}
+	games = append(games, games2...)
 	b, _ := json.MarshalIndent(origins, "", " ")
 	check(os.WriteFile(filepath.Join(pool, "origins.json"), append(b, '\n'), 0o644))
 	poses := map[string]string{} // combat head/body frame 0 -> its pose-1 frame (the first origin's)
@@ -201,6 +249,29 @@ func render(im *dax.Image, fr int) *image.NRGBA {
 		default:
 			out.SetNRGBA(i%w, i/w, color.NRGBA(ega.RGBA(int(v))))
 		}
+	}
+	return out
+}
+
+// renderAmiga is an Amiga frame in RGBA as gobox draws it (present.pixelRGBA):
+// EGA below ega.AmigaBase, above it the picture's own palette pal, else ega.Amiga.
+func renderAmiga(im *dax.Image, fr int, pal []byte) *image.NRGBA {
+	w := im.Width * 8
+	out := image.NewNRGBA(image.Rect(0, 0, w, im.Height))
+	for i, v := range im.Frame(fr)[:w*im.Height] {
+		var c color.RGBA
+		switch n := len(pal) / 3; {
+		case v == dax.Clear:
+			continue
+		case v < ega.AmigaBase:
+			c = ega.RGBA(int(v))
+		case n > 0:
+			j := int(v-ega.AmigaBase) % n * 3
+			c = color.RGBA{pal[j], pal[j+1], pal[j+2], 255}
+		default:
+			c = ega.AmigaRGBA(v)
+		}
+		out.SetNRGBA(i%w, i/w, color.NRGBA(c))
 	}
 	return out
 }

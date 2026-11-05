@@ -47,8 +47,12 @@ func (g classicGame) OpenPicker(kind int) bool {
 		g.p.pool = &pp
 		return true
 	}
+	prefix := poolPrefix[pp.field]
+	if daxLoader.Amiga() { // F12: the Amiga set's own list, never mixed with the DOS one
+		prefix = "amiga_" + prefix
+	}
 	for _, n := range sprites.Names(series, pp.kind) {
-		if len(n) > len(poolPrefix[pp.field]) && n[:len(poolPrefix[pp.field])] == poolPrefix[pp.field] {
+		if len(n) > len(prefix) && n[:len(prefix)] == prefix {
 			pp.names = append(pp.names, n)
 		}
 	}

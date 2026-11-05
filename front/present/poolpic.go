@@ -24,16 +24,16 @@ var (
 func poolImage(pc front.Picture) image.Image {
 	name := pc.Name
 	if name == "" && pc.File != "" {
-		if daxLoader.Amiga() { // the pool holds the DOS art: an Amiga block decodes as itself, never mixed with it
-			return nil
-		}
 		originsOnce.Do(func() { origins = sprites.Origins() })
 		f := origins[gameID][pc.File]
+		if daxLoader.Amiga() { // the Amiga set only (<game>-amiga, one archive per kind): never the DOS art
+			f = origins[gameID+"-amiga"][strings.TrimRight(strings.TrimSuffix(strings.ToUpper(pc.File), ".DAX"), "0123456789")+".DAX"]
+		}
 		if name = f[strconv.Itoa(pc.Block)+"."+strconv.Itoa(pc.Frame)]; name == "" {
 			name = f[strconv.Itoa(pc.Block)]
 		}
 	}
-	if !strings.HasPrefix(name, "head_") && !strings.HasPrefix(name, "body_") {
+	if n := strings.TrimPrefix(name, "amiga_"); !strings.HasPrefix(n, "head_") && !strings.HasPrefix(n, "body_") {
 		return nil
 	}
 	return sprites.Image(series, "portraits", name)

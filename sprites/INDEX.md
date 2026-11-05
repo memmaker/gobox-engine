@@ -1,6 +1,6 @@
 # Sprites index
 
-Pools: portraits (177), combat (566), items (111). Items: only origin por-go. Portraits and combat: shared pool of all four Pool games, built by sprites/cmd/poolsprites from their DAX data.
+Pools: portraits (234), combat (944), items (111). Items: only origin por-go. Portraits and combat: shared pool of all four Pool games, built by sprites/cmd/poolsprites from their DAX data.
 
 Source: por-go/present/remaster/items/atlas.png (20x20 cells, 24 per row) cut by items.rec; only the cells items.rec references are included (the other ~1170 atlas icons are unnamed). No renames.
 
@@ -257,62 +257,119 @@ Shared by por, cotab, sotsb, pod; deduplicated by exact pixels, numbered in firs
 | body_043 | 88x48 | cotab | cotab/BODY5.DAX 58 |
 | body_044 | 88x48 | cotab | cotab/BODY5.DAX 59 |
 | body_045 | 88x48 | cotab | cotab/BODY6.DAX 64 |
-| head_075 | 56x40 | por-amiga | por-amiga/HEAD.DAX 0 |
-| head_076 | 56x40 | por-amiga | por-amiga/HEAD.DAX 5 |
-| head_077 | 56x40 | por-amiga | por-amiga/HEAD.DAX 6 |
-| head_078 | 56x40 | por-amiga | por-amiga/HEAD.DAX 8 |
-| head_079 | 56x40 | por-amiga | por-amiga/HEAD.DAX 9 |
-| head_080 | 56x40 | por-amiga | por-amiga/HEAD.DAX 10 |
-| head_081 | 56x40 | por-amiga | por-amiga/HEAD.DAX 11 |
-| head_082 | 56x40 | por-amiga | por-amiga/HEAD.DAX 12 |
-| head_083 | 56x40 | por-amiga | por-amiga/HEAD.DAX 13 |
-| head_084 | 56x40 | por-amiga | por-amiga/HEAD.DAX 14 |
-| head_085 | 56x40 | por-amiga | por-amiga/HEAD.DAX 16 |
-| head_086 | 56x40 | por-amiga | por-amiga/HEAD.DAX 18 |
-| head_087 | 56x40 | por-amiga | por-amiga/HEAD.DAX 22 |
-| head_088 | 56x40 | por-amiga | por-amiga/HEAD.DAX 24 |
-| head_089 | 56x40 | por-amiga | por-amiga/HEAD.DAX 25 |
-| head_090 | 56x40 | por-amiga | por-amiga/HEAD.DAX 32 |
-| head_091 | 56x40 | por-amiga | por-amiga/HEAD.DAX 34 |
-| head_092 | 56x40 | por-amiga | por-amiga/HEAD.DAX 42; por-amiga/HEAD.DAX 70 |
-| head_093 | 56x40 | por-amiga | por-amiga/HEAD.DAX 44 |
-| head_094 | 56x40 | por-amiga | por-amiga/HEAD.DAX 45 |
-| head_095 | 56x40 | por-amiga | por-amiga/HEAD.DAX 48 |
-| head_096 | 56x40 | por-amiga | por-amiga/HEAD.DAX 51 |
-| head_097 | 56x40 | por-amiga | por-amiga/HEAD.DAX 52 |
-| head_098 | 56x40 | por-amiga | por-amiga/HEAD.DAX 53; por-amiga/HEAD.DAX 71 |
-| head_099 | 56x40 | por-amiga | por-amiga/HEAD.DAX 54 |
-| head_100 | 56x40 | por-amiga | por-amiga/HEAD.DAX 55 |
-| head_101 | 56x40 | por-amiga | por-amiga/HEAD.DAX 56 |
-| head_102 | 56x40 | por-amiga | por-amiga/HEAD.DAX 57 |
-| head_103 | 56x40 | por-amiga | por-amiga/HEAD.DAX 59 |
-| head_104 | 56x40 | por-amiga | por-amiga/HEAD.DAX 61 |
-| head_105 | 56x40 | por-amiga | por-amiga/HEAD.DAX 62 |
-| head_106 | 56x40 | por-amiga | por-amiga/HEAD.DAX 63 |
-| head_107 | 56x40 | por-amiga | por-amiga/HEAD.DAX 67 |
-| head_108 | 56x40 | por-amiga | por-amiga/HEAD.DAX 68 |
-| head_109 | 56x40 | por-amiga | por-amiga/HEAD.DAX 69 |
-| head_110 | 56x40 | por-amiga | por-amiga/HEAD.DAX 72 |
-| head_111 | 56x40 | por-amiga | por-amiga/HEAD.DAX 74 |
-| body_046 | 88x48 | por-amiga | por-amiga/BODY.DAX 1 |
-| body_047 | 88x48 | por-amiga | por-amiga/BODY.DAX 2 |
-| body_048 | 88x48 | por-amiga | por-amiga/BODY.DAX 3 |
-| body_049 | 88x48 | por-amiga | por-amiga/BODY.DAX 4 |
-| body_050 | 88x48 | por-amiga | por-amiga/BODY.DAX 5 |
-| body_051 | 88x48 | por-amiga | por-amiga/BODY.DAX 6 |
-| body_052 | 88x48 | por-amiga | por-amiga/BODY.DAX 7 |
-| body_053 | 88x48 | por-amiga | por-amiga/BODY.DAX 8 |
-| body_054 | 88x48 | por-amiga | por-amiga/BODY.DAX 9 |
-| body_055 | 88x48 | por-amiga | por-amiga/BODY.DAX 13; por-amiga/BODY.DAX 24; por-amiga/BODY.DAX 34 |
-| body_056 | 88x48 | por-amiga | por-amiga/BODY.DAX 18 |
-| body_057 | 88x48 | por-amiga | por-amiga/BODY.DAX 25 |
-| body_058 | 88x48 | por-amiga | por-amiga/BODY.DAX 26 |
-| body_059 | 88x48 | por-amiga | por-amiga/BODY.DAX 30 |
-| body_060 | 88x48 | por-amiga | por-amiga/BODY.DAX 31 |
-| body_061 | 88x48 | por-amiga | por-amiga/BODY.DAX 32 |
-| body_062 | 88x48 | por-amiga | por-amiga/BODY.DAX 33 |
-| body_063 | 88x48 | por-amiga | por-amiga/BODY.DAX 35 |
-| body_064 | 88x48 | por-amiga | por-amiga/BODY.DAX 37 |
+| amiga_head_000 | 88x40 | por-amiga | por-amiga/HEAD.DAX 0 |
+| amiga_head_001 | 88x40 | por-amiga | por-amiga/HEAD.DAX 5 |
+| amiga_head_002 | 88x40 | por-amiga | por-amiga/HEAD.DAX 6 |
+| amiga_head_003 | 88x40 | por-amiga | por-amiga/HEAD.DAX 8 |
+| amiga_head_004 | 88x40 | por-amiga | por-amiga/HEAD.DAX 9 |
+| amiga_head_005 | 88x40 | por-amiga | por-amiga/HEAD.DAX 10 |
+| amiga_head_006 | 88x40 | por-amiga | por-amiga/HEAD.DAX 11 |
+| amiga_head_007 | 88x40 | por-amiga | por-amiga/HEAD.DAX 12 |
+| amiga_head_008 | 88x40 | por-amiga | por-amiga/HEAD.DAX 13 |
+| amiga_head_009 | 88x40 | por-amiga | por-amiga/HEAD.DAX 14 |
+| amiga_head_010 | 88x40 | por-amiga | por-amiga/HEAD.DAX 16 |
+| amiga_head_011 | 88x40 | por-amiga | por-amiga/HEAD.DAX 18 |
+| amiga_head_012 | 88x40 | por-amiga | por-amiga/HEAD.DAX 22 |
+| amiga_head_013 | 88x40 | por-amiga | por-amiga/HEAD.DAX 24 |
+| amiga_head_014 | 88x40 | por-amiga | por-amiga/HEAD.DAX 25 |
+| amiga_head_015 | 88x40 | por-amiga | por-amiga/HEAD.DAX 32 |
+| amiga_head_016 | 88x40 | por-amiga | por-amiga/HEAD.DAX 34 |
+| amiga_head_017 | 88x40 | por-amiga | por-amiga/HEAD.DAX 42; por-amiga/HEAD.DAX 70 |
+| amiga_head_018 | 88x40 | por-amiga | por-amiga/HEAD.DAX 44 |
+| amiga_head_019 | 88x40 | por-amiga | por-amiga/HEAD.DAX 45 |
+| amiga_head_020 | 88x40 | por-amiga | por-amiga/HEAD.DAX 48 |
+| amiga_head_021 | 88x40 | por-amiga | por-amiga/HEAD.DAX 51 |
+| amiga_head_022 | 88x40 | por-amiga | por-amiga/HEAD.DAX 52 |
+| amiga_head_023 | 88x40 | por-amiga | por-amiga/HEAD.DAX 53; por-amiga/HEAD.DAX 71 |
+| amiga_head_024 | 88x40 | por-amiga | por-amiga/HEAD.DAX 54 |
+| amiga_head_025 | 88x40 | por-amiga | por-amiga/HEAD.DAX 55 |
+| amiga_head_026 | 88x40 | por-amiga | por-amiga/HEAD.DAX 56 |
+| amiga_head_027 | 88x40 | por-amiga | por-amiga/HEAD.DAX 57 |
+| amiga_head_028 | 88x40 | por-amiga | por-amiga/HEAD.DAX 59 |
+| amiga_head_029 | 88x40 | por-amiga | por-amiga/HEAD.DAX 61 |
+| amiga_head_030 | 88x40 | por-amiga | por-amiga/HEAD.DAX 62 |
+| amiga_head_031 | 88x40 | por-amiga | por-amiga/HEAD.DAX 63 |
+| amiga_head_032 | 88x40 | por-amiga | por-amiga/HEAD.DAX 67 |
+| amiga_head_033 | 88x40 | por-amiga | por-amiga/HEAD.DAX 68 |
+| amiga_head_034 | 88x40 | por-amiga | por-amiga/HEAD.DAX 69 |
+| amiga_head_035 | 88x40 | por-amiga | por-amiga/HEAD.DAX 72 |
+| amiga_head_036 | 88x40 | por-amiga | por-amiga/HEAD.DAX 74 |
+| amiga_body_000 | 88x48 | por-amiga | por-amiga/BODY.DAX 1 |
+| amiga_body_001 | 88x48 | por-amiga | por-amiga/BODY.DAX 2 |
+| amiga_body_002 | 88x48 | por-amiga | por-amiga/BODY.DAX 3 |
+| amiga_body_003 | 88x48 | por-amiga | por-amiga/BODY.DAX 4 |
+| amiga_body_004 | 88x48 | por-amiga | por-amiga/BODY.DAX 5 |
+| amiga_body_005 | 88x48 | por-amiga | por-amiga/BODY.DAX 6 |
+| amiga_body_006 | 88x48 | por-amiga | por-amiga/BODY.DAX 7 |
+| amiga_body_007 | 88x48 | por-amiga | por-amiga/BODY.DAX 8 |
+| amiga_body_008 | 88x48 | por-amiga | por-amiga/BODY.DAX 9 |
+| amiga_body_009 | 88x48 | por-amiga | por-amiga/BODY.DAX 13; por-amiga/BODY.DAX 24; por-amiga/BODY.DAX 34 |
+| amiga_body_010 | 88x48 | por-amiga | por-amiga/BODY.DAX 18 |
+| amiga_body_011 | 88x48 | por-amiga | por-amiga/BODY.DAX 25 |
+| amiga_body_012 | 88x48 | por-amiga | por-amiga/BODY.DAX 26 |
+| amiga_body_013 | 88x48 | por-amiga | por-amiga/BODY.DAX 30 |
+| amiga_body_014 | 88x48 | por-amiga | por-amiga/BODY.DAX 31 |
+| amiga_body_015 | 88x48 | por-amiga | por-amiga/BODY.DAX 32 |
+| amiga_body_016 | 88x48 | por-amiga | por-amiga/BODY.DAX 33 |
+| amiga_body_017 | 88x48 | por-amiga | por-amiga/BODY.DAX 35 |
+| amiga_body_018 | 88x48 | por-amiga | por-amiga/BODY.DAX 37 |
+| amiga_head_037 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 0 |
+| amiga_head_038 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 1 |
+| amiga_head_039 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 2 |
+| amiga_head_040 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 3 |
+| amiga_head_041 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 4 |
+| amiga_head_042 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 5 |
+| amiga_head_043 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 6 |
+| amiga_head_044 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 8 |
+| amiga_head_045 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 9 |
+| amiga_head_046 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 16 |
+| amiga_head_047 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 17 |
+| amiga_head_048 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 18 |
+| amiga_head_049 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 19 |
+| amiga_head_050 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 20 |
+| amiga_head_051 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 21 |
+| amiga_head_052 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 22 |
+| amiga_head_053 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 24 |
+| amiga_head_054 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 32 |
+| amiga_head_055 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 33 |
+| amiga_head_056 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 34 |
+| amiga_head_057 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 35 |
+| amiga_head_058 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 36 |
+| amiga_head_059 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 37 |
+| amiga_head_060 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 38 |
+| amiga_head_061 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 42 |
+| amiga_head_062 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 50 |
+| amiga_head_063 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 51 |
+| amiga_head_064 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 58 |
+| amiga_head_065 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 59 |
+| amiga_head_066 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 64 |
+| amiga_head_067 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 65 |
+| amiga_head_068 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 67 |
+| amiga_head_069 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 70 |
+| amiga_body_019 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 0 |
+| amiga_body_020 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 1 |
+| amiga_body_021 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 2 |
+| amiga_body_022 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 3 |
+| amiga_body_023 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 4 |
+| amiga_body_024 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 5 |
+| amiga_body_025 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 6 |
+| amiga_body_026 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 16 |
+| amiga_body_027 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 17 |
+| amiga_body_028 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 18 |
+| amiga_body_029 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 19 |
+| amiga_body_030 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 22 |
+| amiga_body_031 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 32 |
+| amiga_body_032 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 33 |
+| amiga_body_033 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 34 |
+| amiga_body_034 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 35 |
+| amiga_body_035 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 42 |
+| amiga_body_036 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 50 |
+| amiga_body_037 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 51 |
+| amiga_body_038 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 58 |
+| amiga_body_039 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 59 |
+| amiga_body_040 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 64 |
+| amiga_body_041 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 65 |
+| amiga_body_042 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 70 |
 
 ## combat
 
@@ -699,190 +756,568 @@ Shared by por, cotab, sotsb, pod; deduplicated by exact pixels, numbered in firs
 | combat_sprite_061 | 24x24 | pod | pod/COMSPR.DAX 147 |
 | combat_sprite_062 | 24x24 | pod | pod/COMSPR.DAX 20; pod/COMSPR.DAX 148 |
 | combat_sprite_063 | 24x24 | pod | pod/COMSPR.DAX 21; pod/COMSPR.DAX 149 |
-| combat_head_051 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 0 |
-| combat_head_052 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 1 |
-| combat_head_053 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 2 |
-| combat_head_054 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 3 |
-| combat_head_055 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 4 |
-| combat_head_056 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 5 |
-| combat_head_057 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 6 |
-| combat_head_058 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 7 |
-| combat_head_059 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 8 |
-| combat_head_060 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 9 |
-| combat_head_061 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 10 |
-| combat_head_062 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 11 |
-| combat_head_063 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 12 |
-| combat_head_064 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 13 |
-| combat_head_065 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 64 |
-| combat_head_066 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 65 |
-| combat_head_067 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 66 |
-| combat_head_068 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 67 |
-| combat_head_069 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 68 |
-| combat_head_070 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 69 |
-| combat_head_071 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 70 |
-| combat_head_072 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 71 |
-| combat_head_073 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 72 |
-| combat_head_074 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 73 |
-| combat_head_075 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 74 |
-| combat_head_076 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 75 |
-| combat_head_077 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 76 |
-| combat_head_078 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 77 |
-| combat_body_258 | 24x24 | por-amiga | por-amiga/CBODY.DAX 0 |
-| combat_body_259 | 24x24 | por-amiga | por-amiga/CBODY.DAX 1 |
-| combat_body_260 | 24x24 | por-amiga | por-amiga/CBODY.DAX 2 |
-| combat_body_261 | 24x24 | por-amiga | por-amiga/CBODY.DAX 3 |
-| combat_body_262 | 24x24 | por-amiga | por-amiga/CBODY.DAX 4 |
-| combat_body_263 | 24x24 | por-amiga | por-amiga/CBODY.DAX 5 |
-| combat_body_264 | 24x24 | por-amiga | por-amiga/CBODY.DAX 6 |
-| combat_body_265 | 24x24 | por-amiga | por-amiga/CBODY.DAX 7 |
-| combat_body_266 | 24x24 | por-amiga | por-amiga/CBODY.DAX 8 |
-| combat_body_267 | 24x24 | por-amiga | por-amiga/CBODY.DAX 9 |
-| combat_body_268 | 24x24 | por-amiga | por-amiga/CBODY.DAX 10 |
-| combat_body_269 | 24x24 | por-amiga | por-amiga/CBODY.DAX 11 |
-| combat_body_270 | 24x24 | por-amiga | por-amiga/CBODY.DAX 12 |
-| combat_body_271 | 24x24 | por-amiga | por-amiga/CBODY.DAX 13 |
-| combat_body_272 | 24x24 | por-amiga | por-amiga/CBODY.DAX 14 |
-| combat_body_273 | 24x24 | por-amiga | por-amiga/CBODY.DAX 15 |
-| combat_body_274 | 24x24 | por-amiga | por-amiga/CBODY.DAX 16 |
-| combat_body_275 | 24x24 | por-amiga | por-amiga/CBODY.DAX 17 |
-| combat_body_276 | 24x24 | por-amiga | por-amiga/CBODY.DAX 18 |
-| combat_body_277 | 24x24 | por-amiga | por-amiga/CBODY.DAX 19 |
-| combat_body_278 | 24x24 | por-amiga | por-amiga/CBODY.DAX 20 |
-| combat_body_279 | 24x24 | por-amiga | por-amiga/CBODY.DAX 21 |
-| combat_body_280 | 24x24 | por-amiga | por-amiga/CBODY.DAX 22 |
-| combat_body_281 | 24x24 | por-amiga | por-amiga/CBODY.DAX 23 |
-| combat_body_282 | 24x24 | por-amiga | por-amiga/CBODY.DAX 24 |
-| combat_body_283 | 24x24 | por-amiga | por-amiga/CBODY.DAX 25 |
-| combat_body_284 | 24x24 | por-amiga | por-amiga/CBODY.DAX 26 |
-| combat_body_285 | 24x24 | por-amiga | por-amiga/CBODY.DAX 27 |
-| combat_body_286 | 24x24 | por-amiga | por-amiga/CBODY.DAX 28 |
-| combat_body_287 | 24x24 | por-amiga | por-amiga/CBODY.DAX 29 |
-| combat_body_288 | 24x24 | por-amiga | por-amiga/CBODY.DAX 30 |
-| combat_body_289 | 24x24 | por-amiga | por-amiga/CBODY.DAX 31 |
-| combat_body_290 | 24x24 | por-amiga | por-amiga/CBODY.DAX 64 |
-| combat_body_291 | 24x24 | por-amiga | por-amiga/CBODY.DAX 65 |
-| combat_body_292 | 24x24 | por-amiga | por-amiga/CBODY.DAX 66 |
-| combat_body_293 | 24x24 | por-amiga | por-amiga/CBODY.DAX 67 |
-| combat_body_294 | 24x24 | por-amiga | por-amiga/CBODY.DAX 68 |
-| combat_body_295 | 24x24 | por-amiga | por-amiga/CBODY.DAX 69 |
-| combat_body_296 | 24x24 | por-amiga | por-amiga/CBODY.DAX 70 |
-| combat_body_297 | 24x24 | por-amiga | por-amiga/CBODY.DAX 71 |
-| combat_body_298 | 24x24 | por-amiga | por-amiga/CBODY.DAX 72 |
-| combat_body_299 | 24x24 | por-amiga | por-amiga/CBODY.DAX 73 |
-| combat_body_300 | 24x24 | por-amiga | por-amiga/CBODY.DAX 74 |
-| combat_body_301 | 24x24 | por-amiga | por-amiga/CBODY.DAX 75 |
-| combat_body_302 | 24x24 | por-amiga | por-amiga/CBODY.DAX 76 |
-| combat_body_303 | 24x24 | por-amiga | por-amiga/CBODY.DAX 77 |
-| combat_body_304 | 24x24 | por-amiga | por-amiga/CBODY.DAX 78 |
-| combat_body_305 | 24x24 | por-amiga | por-amiga/CBODY.DAX 79 |
-| combat_body_306 | 24x24 | por-amiga | por-amiga/CBODY.DAX 80 |
-| combat_body_307 | 24x24 | por-amiga | por-amiga/CBODY.DAX 81 |
-| combat_body_308 | 24x24 | por-amiga | por-amiga/CBODY.DAX 82 |
-| combat_body_309 | 24x24 | por-amiga | por-amiga/CBODY.DAX 83 |
-| combat_body_310 | 24x24 | por-amiga | por-amiga/CBODY.DAX 84 |
-| combat_body_311 | 24x24 | por-amiga | por-amiga/CBODY.DAX 85 |
-| combat_body_312 | 24x24 | por-amiga | por-amiga/CBODY.DAX 86 |
-| combat_body_313 | 24x24 | por-amiga | por-amiga/CBODY.DAX 87 |
-| combat_body_314 | 24x24 | por-amiga | por-amiga/CBODY.DAX 88 |
-| combat_body_315 | 24x24 | por-amiga | por-amiga/CBODY.DAX 89 |
-| combat_body_316 | 24x24 | por-amiga | por-amiga/CBODY.DAX 90 |
-| combat_body_317 | 24x24 | por-amiga | por-amiga/CBODY.DAX 91 |
-| combat_body_318 | 24x24 | por-amiga | por-amiga/CBODY.DAX 92 |
-| combat_body_319 | 24x24 | por-amiga | por-amiga/CBODY.DAX 93 |
-| combat_body_320 | 24x24 | por-amiga | por-amiga/CBODY.DAX 94 |
-| combat_body_321 | 24x24 | por-amiga | por-amiga/CBODY.DAX 95 |
-| combat_body_322 | 24x24 | por-amiga | por-amiga/CBODY.DAX 128 |
-| combat_body_323 | 24x24 | por-amiga | por-amiga/CBODY.DAX 129 |
-| combat_body_324 | 24x24 | por-amiga | por-amiga/CBODY.DAX 130 |
-| combat_body_325 | 24x24 | por-amiga | por-amiga/CBODY.DAX 131 |
-| combat_body_326 | 24x24 | por-amiga | por-amiga/CBODY.DAX 132 |
-| combat_body_327 | 24x24 | por-amiga | por-amiga/CBODY.DAX 133 |
-| combat_body_328 | 24x24 | por-amiga | por-amiga/CBODY.DAX 134 |
-| combat_body_329 | 24x24 | por-amiga | por-amiga/CBODY.DAX 135 |
-| combat_body_330 | 24x24 | por-amiga | por-amiga/CBODY.DAX 136 |
-| combat_body_331 | 24x24 | por-amiga | por-amiga/CBODY.DAX 137 |
-| combat_body_332 | 24x24 | por-amiga | por-amiga/CBODY.DAX 138 |
-| combat_body_333 | 24x24 | por-amiga | por-amiga/CBODY.DAX 139 |
-| combat_body_334 | 24x24 | por-amiga | por-amiga/CBODY.DAX 140 |
-| combat_body_335 | 24x24 | por-amiga | por-amiga/CBODY.DAX 141 |
-| combat_body_336 | 24x24 | por-amiga | por-amiga/CBODY.DAX 142 |
-| combat_body_337 | 24x24 | por-amiga | por-amiga/CBODY.DAX 143 |
-| combat_body_338 | 24x24 | por-amiga | por-amiga/CBODY.DAX 144 |
-| combat_body_339 | 24x24 | por-amiga | por-amiga/CBODY.DAX 145 |
-| combat_body_340 | 24x24 | por-amiga | por-amiga/CBODY.DAX 146 |
-| combat_body_341 | 24x24 | por-amiga | por-amiga/CBODY.DAX 147 |
-| combat_body_342 | 24x24 | por-amiga | por-amiga/CBODY.DAX 148 |
-| combat_body_343 | 24x24 | por-amiga | por-amiga/CBODY.DAX 149 |
-| combat_body_344 | 24x24 | por-amiga | por-amiga/CBODY.DAX 150 |
-| combat_body_345 | 24x24 | por-amiga | por-amiga/CBODY.DAX 151 |
-| combat_body_346 | 24x24 | por-amiga | por-amiga/CBODY.DAX 152 |
-| combat_body_347 | 24x24 | por-amiga | por-amiga/CBODY.DAX 153 |
-| combat_body_348 | 24x24 | por-amiga | por-amiga/CBODY.DAX 154 |
-| combat_body_349 | 24x24 | por-amiga | por-amiga/CBODY.DAX 155 |
-| combat_body_350 | 24x24 | por-amiga | por-amiga/CBODY.DAX 156 |
-| combat_body_351 | 24x24 | por-amiga | por-amiga/CBODY.DAX 157 |
-| combat_body_352 | 24x24 | por-amiga | por-amiga/CBODY.DAX 158 |
-| combat_body_353 | 24x24 | por-amiga | por-amiga/CBODY.DAX 159 |
-| combat_body_354 | 24x24 | por-amiga | por-amiga/CBODY.DAX 192 |
-| combat_body_355 | 24x24 | por-amiga | por-amiga/CBODY.DAX 193 |
-| combat_body_356 | 24x24 | por-amiga | por-amiga/CBODY.DAX 194 |
-| combat_body_357 | 24x24 | por-amiga | por-amiga/CBODY.DAX 195 |
-| combat_body_358 | 24x24 | por-amiga | por-amiga/CBODY.DAX 196 |
-| combat_body_359 | 24x24 | por-amiga | por-amiga/CBODY.DAX 197 |
-| combat_body_360 | 24x24 | por-amiga | por-amiga/CBODY.DAX 198 |
-| combat_body_361 | 24x24 | por-amiga | por-amiga/CBODY.DAX 199 |
-| combat_body_362 | 24x24 | por-amiga | por-amiga/CBODY.DAX 200 |
-| combat_body_363 | 24x24 | por-amiga | por-amiga/CBODY.DAX 201 |
-| combat_body_364 | 24x24 | por-amiga | por-amiga/CBODY.DAX 202 |
-| combat_body_365 | 24x24 | por-amiga | por-amiga/CBODY.DAX 203 |
-| combat_body_366 | 24x24 | por-amiga | por-amiga/CBODY.DAX 204 |
-| combat_body_367 | 24x24 | por-amiga | por-amiga/CBODY.DAX 205 |
-| combat_body_368 | 24x24 | por-amiga | por-amiga/CBODY.DAX 206 |
-| combat_body_369 | 24x24 | por-amiga | por-amiga/CBODY.DAX 207 |
-| combat_body_370 | 24x24 | por-amiga | por-amiga/CBODY.DAX 208 |
-| combat_body_371 | 24x24 | por-amiga | por-amiga/CBODY.DAX 209 |
-| combat_body_372 | 24x24 | por-amiga | por-amiga/CBODY.DAX 210 |
-| combat_body_373 | 24x24 | por-amiga | por-amiga/CBODY.DAX 211 |
-| combat_body_374 | 24x24 | por-amiga | por-amiga/CBODY.DAX 212 |
-| combat_body_375 | 24x24 | por-amiga | por-amiga/CBODY.DAX 213 |
-| combat_body_376 | 24x24 | por-amiga | por-amiga/CBODY.DAX 214 |
-| combat_body_377 | 24x24 | por-amiga | por-amiga/CBODY.DAX 215 |
-| combat_body_378 | 24x24 | por-amiga | por-amiga/CBODY.DAX 216 |
-| combat_body_379 | 24x24 | por-amiga | por-amiga/CBODY.DAX 217 |
-| combat_body_380 | 24x24 | por-amiga | por-amiga/CBODY.DAX 218 |
-| combat_body_381 | 24x24 | por-amiga | por-amiga/CBODY.DAX 219 |
-| combat_body_382 | 24x24 | por-amiga | por-amiga/CBODY.DAX 220 |
-| combat_body_383 | 24x24 | por-amiga | por-amiga/CBODY.DAX 221 |
-| combat_body_384 | 24x24 | por-amiga | por-amiga/CBODY.DAX 222 |
-| combat_body_385 | 24x24 | por-amiga | por-amiga/CBODY.DAX 223 |
-| combat_sprite_064 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 0 |
-| combat_sprite_065 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 1 |
-| combat_sprite_066 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 2 |
-| combat_sprite_067 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 3 |
-| combat_sprite_068 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 4 |
-| combat_sprite_069 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 5 |
-| combat_sprite_070 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 6 |
-| combat_sprite_071 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 7 |
-| combat_sprite_072 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 8 |
-| combat_sprite_073 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 9 |
-| combat_sprite_074 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 10 |
-| combat_sprite_075 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 11 |
-| combat_sprite_076 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 12 |
-| combat_sprite_077 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 128 |
-| combat_sprite_078 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 129 |
-| combat_sprite_079 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 130 |
-| combat_sprite_080 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 131 |
-| combat_sprite_081 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 132 |
-| combat_sprite_082 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 133 |
-| combat_sprite_083 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 134 |
-| combat_sprite_084 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 135 |
-| combat_sprite_085 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 136 |
-| combat_sprite_086 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 137 |
-| combat_sprite_087 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 138 |
-| combat_sprite_088 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 140 |
-| combat_icon_006 | 24x24 | por-amiga | por-amiga/ICON.DAX 0 |
-| combat_icon_007 | 24x24 | por-amiga | por-amiga/ICON.DAX 1 |
-| combat_icon_008 | 24x24 | por-amiga | por-amiga/ICON.DAX 2 |
-| combat_icon_009 | 24x24 | por-amiga | por-amiga/ICON.DAX 128 |
-| combat_icon_010 | 24x24 | por-amiga | por-amiga/ICON.DAX 129 |
-| combat_icon_011 | 24x24 | por-amiga | por-amiga/ICON.DAX 130 |
+| amiga_combat_head_000 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 0 |
+| amiga_combat_head_001 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 1 |
+| amiga_combat_head_002 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 2 |
+| amiga_combat_head_003 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 3 |
+| amiga_combat_head_004 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 4 |
+| amiga_combat_head_005 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 5 |
+| amiga_combat_head_006 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 6 |
+| amiga_combat_head_007 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 7 |
+| amiga_combat_head_008 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 8 |
+| amiga_combat_head_009 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 9 |
+| amiga_combat_head_010 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 10 |
+| amiga_combat_head_011 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 11 |
+| amiga_combat_head_012 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 12 |
+| amiga_combat_head_013 | 24x10 | por-amiga | por-amiga/CHEAD.DAX 13 |
+| amiga_combat_head_014 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 64 |
+| amiga_combat_head_015 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 65 |
+| amiga_combat_head_016 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 66 |
+| amiga_combat_head_017 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 67 |
+| amiga_combat_head_018 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 68 |
+| amiga_combat_head_019 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 69 |
+| amiga_combat_head_020 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 70 |
+| amiga_combat_head_021 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 71 |
+| amiga_combat_head_022 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 72 |
+| amiga_combat_head_023 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 73 |
+| amiga_combat_head_024 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 74 |
+| amiga_combat_head_025 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 75 |
+| amiga_combat_head_026 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 76 |
+| amiga_combat_head_027 | 24x8 | por-amiga | por-amiga/CHEAD.DAX 77 |
+| amiga_combat_body_000 | 24x24 | por-amiga | por-amiga/CBODY.DAX 0 |
+| amiga_combat_body_001 | 24x24 | por-amiga | por-amiga/CBODY.DAX 1 |
+| amiga_combat_body_002 | 24x24 | por-amiga | por-amiga/CBODY.DAX 2 |
+| amiga_combat_body_003 | 24x24 | por-amiga | por-amiga/CBODY.DAX 3 |
+| amiga_combat_body_004 | 24x24 | por-amiga | por-amiga/CBODY.DAX 4 |
+| amiga_combat_body_005 | 24x24 | por-amiga | por-amiga/CBODY.DAX 5 |
+| amiga_combat_body_006 | 24x24 | por-amiga | por-amiga/CBODY.DAX 6 |
+| amiga_combat_body_007 | 24x24 | por-amiga | por-amiga/CBODY.DAX 7 |
+| amiga_combat_body_008 | 24x24 | por-amiga | por-amiga/CBODY.DAX 8 |
+| amiga_combat_body_009 | 24x24 | por-amiga | por-amiga/CBODY.DAX 9 |
+| amiga_combat_body_010 | 24x24 | por-amiga | por-amiga/CBODY.DAX 10 |
+| amiga_combat_body_011 | 24x24 | por-amiga | por-amiga/CBODY.DAX 11 |
+| amiga_combat_body_012 | 24x24 | por-amiga | por-amiga/CBODY.DAX 12 |
+| amiga_combat_body_013 | 24x24 | por-amiga | por-amiga/CBODY.DAX 13 |
+| amiga_combat_body_014 | 24x24 | por-amiga | por-amiga/CBODY.DAX 14 |
+| amiga_combat_body_015 | 24x24 | por-amiga | por-amiga/CBODY.DAX 15 |
+| amiga_combat_body_016 | 24x24 | por-amiga | por-amiga/CBODY.DAX 16 |
+| amiga_combat_body_017 | 24x24 | por-amiga | por-amiga/CBODY.DAX 17 |
+| amiga_combat_body_018 | 24x24 | por-amiga | por-amiga/CBODY.DAX 18 |
+| amiga_combat_body_019 | 24x24 | por-amiga | por-amiga/CBODY.DAX 19 |
+| amiga_combat_body_020 | 24x24 | por-amiga | por-amiga/CBODY.DAX 20 |
+| amiga_combat_body_021 | 24x24 | por-amiga | por-amiga/CBODY.DAX 21 |
+| amiga_combat_body_022 | 24x24 | por-amiga | por-amiga/CBODY.DAX 22 |
+| amiga_combat_body_023 | 24x24 | por-amiga | por-amiga/CBODY.DAX 23 |
+| amiga_combat_body_024 | 24x24 | por-amiga | por-amiga/CBODY.DAX 24 |
+| amiga_combat_body_025 | 24x24 | por-amiga | por-amiga/CBODY.DAX 25 |
+| amiga_combat_body_026 | 24x24 | por-amiga | por-amiga/CBODY.DAX 26 |
+| amiga_combat_body_027 | 24x24 | por-amiga | por-amiga/CBODY.DAX 27 |
+| amiga_combat_body_028 | 24x24 | por-amiga | por-amiga/CBODY.DAX 28 |
+| amiga_combat_body_029 | 24x24 | por-amiga | por-amiga/CBODY.DAX 29 |
+| amiga_combat_body_030 | 24x24 | por-amiga | por-amiga/CBODY.DAX 30 |
+| amiga_combat_body_031 | 24x24 | por-amiga | por-amiga/CBODY.DAX 31 |
+| amiga_combat_body_032 | 24x24 | por-amiga | por-amiga/CBODY.DAX 64 |
+| amiga_combat_body_033 | 24x24 | por-amiga | por-amiga/CBODY.DAX 65 |
+| amiga_combat_body_034 | 24x24 | por-amiga | por-amiga/CBODY.DAX 66 |
+| amiga_combat_body_035 | 24x24 | por-amiga | por-amiga/CBODY.DAX 67 |
+| amiga_combat_body_036 | 24x24 | por-amiga | por-amiga/CBODY.DAX 68 |
+| amiga_combat_body_037 | 24x24 | por-amiga | por-amiga/CBODY.DAX 69 |
+| amiga_combat_body_038 | 24x24 | por-amiga | por-amiga/CBODY.DAX 70 |
+| amiga_combat_body_039 | 24x24 | por-amiga | por-amiga/CBODY.DAX 71 |
+| amiga_combat_body_040 | 24x24 | por-amiga | por-amiga/CBODY.DAX 72 |
+| amiga_combat_body_041 | 24x24 | por-amiga | por-amiga/CBODY.DAX 73 |
+| amiga_combat_body_042 | 24x24 | por-amiga | por-amiga/CBODY.DAX 74 |
+| amiga_combat_body_043 | 24x24 | por-amiga | por-amiga/CBODY.DAX 75 |
+| amiga_combat_body_044 | 24x24 | por-amiga | por-amiga/CBODY.DAX 76 |
+| amiga_combat_body_045 | 24x24 | por-amiga | por-amiga/CBODY.DAX 77 |
+| amiga_combat_body_046 | 24x24 | por-amiga | por-amiga/CBODY.DAX 78 |
+| amiga_combat_body_047 | 24x24 | por-amiga | por-amiga/CBODY.DAX 79 |
+| amiga_combat_body_048 | 24x24 | por-amiga | por-amiga/CBODY.DAX 80 |
+| amiga_combat_body_049 | 24x24 | por-amiga | por-amiga/CBODY.DAX 81 |
+| amiga_combat_body_050 | 24x24 | por-amiga | por-amiga/CBODY.DAX 82 |
+| amiga_combat_body_051 | 24x24 | por-amiga | por-amiga/CBODY.DAX 83 |
+| amiga_combat_body_052 | 24x24 | por-amiga | por-amiga/CBODY.DAX 84 |
+| amiga_combat_body_053 | 24x24 | por-amiga | por-amiga/CBODY.DAX 85 |
+| amiga_combat_body_054 | 24x24 | por-amiga | por-amiga/CBODY.DAX 86 |
+| amiga_combat_body_055 | 24x24 | por-amiga | por-amiga/CBODY.DAX 87 |
+| amiga_combat_body_056 | 24x24 | por-amiga | por-amiga/CBODY.DAX 88 |
+| amiga_combat_body_057 | 24x24 | por-amiga | por-amiga/CBODY.DAX 89 |
+| amiga_combat_body_058 | 24x24 | por-amiga | por-amiga/CBODY.DAX 90 |
+| amiga_combat_body_059 | 24x24 | por-amiga | por-amiga/CBODY.DAX 91 |
+| amiga_combat_body_060 | 24x24 | por-amiga | por-amiga/CBODY.DAX 92 |
+| amiga_combat_body_061 | 24x24 | por-amiga | por-amiga/CBODY.DAX 93 |
+| amiga_combat_body_062 | 24x24 | por-amiga | por-amiga/CBODY.DAX 94 |
+| amiga_combat_body_063 | 24x24 | por-amiga | por-amiga/CBODY.DAX 95 |
+| amiga_combat_body_064 | 24x24 | por-amiga | por-amiga/CBODY.DAX 128 |
+| amiga_combat_body_065 | 24x24 | por-amiga | por-amiga/CBODY.DAX 129 |
+| amiga_combat_body_066 | 24x24 | por-amiga | por-amiga/CBODY.DAX 130 |
+| amiga_combat_body_067 | 24x24 | por-amiga | por-amiga/CBODY.DAX 131 |
+| amiga_combat_body_068 | 24x24 | por-amiga | por-amiga/CBODY.DAX 132 |
+| amiga_combat_body_069 | 24x24 | por-amiga | por-amiga/CBODY.DAX 133 |
+| amiga_combat_body_070 | 24x24 | por-amiga | por-amiga/CBODY.DAX 134 |
+| amiga_combat_body_071 | 24x24 | por-amiga | por-amiga/CBODY.DAX 135 |
+| amiga_combat_body_072 | 24x24 | por-amiga | por-amiga/CBODY.DAX 136 |
+| amiga_combat_body_073 | 24x24 | por-amiga | por-amiga/CBODY.DAX 137 |
+| amiga_combat_body_074 | 24x24 | por-amiga | por-amiga/CBODY.DAX 138 |
+| amiga_combat_body_075 | 24x24 | por-amiga | por-amiga/CBODY.DAX 139 |
+| amiga_combat_body_076 | 24x24 | por-amiga | por-amiga/CBODY.DAX 140 |
+| amiga_combat_body_077 | 24x24 | por-amiga | por-amiga/CBODY.DAX 141 |
+| amiga_combat_body_078 | 24x24 | por-amiga | por-amiga/CBODY.DAX 142 |
+| amiga_combat_body_079 | 24x24 | por-amiga | por-amiga/CBODY.DAX 143 |
+| amiga_combat_body_080 | 24x24 | por-amiga | por-amiga/CBODY.DAX 144 |
+| amiga_combat_body_081 | 24x24 | por-amiga | por-amiga/CBODY.DAX 145 |
+| amiga_combat_body_082 | 24x24 | por-amiga | por-amiga/CBODY.DAX 146 |
+| amiga_combat_body_083 | 24x24 | por-amiga | por-amiga/CBODY.DAX 147 |
+| amiga_combat_body_084 | 24x24 | por-amiga | por-amiga/CBODY.DAX 148 |
+| amiga_combat_body_085 | 24x24 | por-amiga | por-amiga/CBODY.DAX 149 |
+| amiga_combat_body_086 | 24x24 | por-amiga | por-amiga/CBODY.DAX 150 |
+| amiga_combat_body_087 | 24x24 | por-amiga | por-amiga/CBODY.DAX 151 |
+| amiga_combat_body_088 | 24x24 | por-amiga | por-amiga/CBODY.DAX 152 |
+| amiga_combat_body_089 | 24x24 | por-amiga | por-amiga/CBODY.DAX 153 |
+| amiga_combat_body_090 | 24x24 | por-amiga | por-amiga/CBODY.DAX 154 |
+| amiga_combat_body_091 | 24x24 | por-amiga | por-amiga/CBODY.DAX 155 |
+| amiga_combat_body_092 | 24x24 | por-amiga | por-amiga/CBODY.DAX 156 |
+| amiga_combat_body_093 | 24x24 | por-amiga | por-amiga/CBODY.DAX 157 |
+| amiga_combat_body_094 | 24x24 | por-amiga | por-amiga/CBODY.DAX 158 |
+| amiga_combat_body_095 | 24x24 | por-amiga | por-amiga/CBODY.DAX 159 |
+| amiga_combat_body_096 | 24x24 | por-amiga | por-amiga/CBODY.DAX 192 |
+| amiga_combat_body_097 | 24x24 | por-amiga | por-amiga/CBODY.DAX 193 |
+| amiga_combat_body_098 | 24x24 | por-amiga | por-amiga/CBODY.DAX 194 |
+| amiga_combat_body_099 | 24x24 | por-amiga | por-amiga/CBODY.DAX 195 |
+| amiga_combat_body_100 | 24x24 | por-amiga | por-amiga/CBODY.DAX 196 |
+| amiga_combat_body_101 | 24x24 | por-amiga | por-amiga/CBODY.DAX 197 |
+| amiga_combat_body_102 | 24x24 | por-amiga | por-amiga/CBODY.DAX 198 |
+| amiga_combat_body_103 | 24x24 | por-amiga | por-amiga/CBODY.DAX 199 |
+| amiga_combat_body_104 | 24x24 | por-amiga | por-amiga/CBODY.DAX 200 |
+| amiga_combat_body_105 | 24x24 | por-amiga | por-amiga/CBODY.DAX 201 |
+| amiga_combat_body_106 | 24x24 | por-amiga | por-amiga/CBODY.DAX 202 |
+| amiga_combat_body_107 | 24x24 | por-amiga | por-amiga/CBODY.DAX 203 |
+| amiga_combat_body_108 | 24x24 | por-amiga | por-amiga/CBODY.DAX 204 |
+| amiga_combat_body_109 | 24x24 | por-amiga | por-amiga/CBODY.DAX 205 |
+| amiga_combat_body_110 | 24x24 | por-amiga | por-amiga/CBODY.DAX 206 |
+| amiga_combat_body_111 | 24x24 | por-amiga | por-amiga/CBODY.DAX 207 |
+| amiga_combat_body_112 | 24x24 | por-amiga | por-amiga/CBODY.DAX 208 |
+| amiga_combat_body_113 | 24x24 | por-amiga | por-amiga/CBODY.DAX 209 |
+| amiga_combat_body_114 | 24x24 | por-amiga | por-amiga/CBODY.DAX 210 |
+| amiga_combat_body_115 | 24x24 | por-amiga | por-amiga/CBODY.DAX 211 |
+| amiga_combat_body_116 | 24x24 | por-amiga | por-amiga/CBODY.DAX 212 |
+| amiga_combat_body_117 | 24x24 | por-amiga | por-amiga/CBODY.DAX 213 |
+| amiga_combat_body_118 | 24x24 | por-amiga | por-amiga/CBODY.DAX 214 |
+| amiga_combat_body_119 | 24x24 | por-amiga | por-amiga/CBODY.DAX 215 |
+| amiga_combat_body_120 | 24x24 | por-amiga | por-amiga/CBODY.DAX 216 |
+| amiga_combat_body_121 | 24x24 | por-amiga | por-amiga/CBODY.DAX 217 |
+| amiga_combat_body_122 | 24x24 | por-amiga | por-amiga/CBODY.DAX 218 |
+| amiga_combat_body_123 | 24x24 | por-amiga | por-amiga/CBODY.DAX 219 |
+| amiga_combat_body_124 | 24x24 | por-amiga | por-amiga/CBODY.DAX 220 |
+| amiga_combat_body_125 | 24x24 | por-amiga | por-amiga/CBODY.DAX 221 |
+| amiga_combat_body_126 | 24x24 | por-amiga | por-amiga/CBODY.DAX 222 |
+| amiga_combat_body_127 | 24x24 | por-amiga | por-amiga/CBODY.DAX 223 |
+| amiga_combat_sprite_000 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 0 |
+| amiga_combat_sprite_001 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 1 |
+| amiga_combat_sprite_002 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 2 |
+| amiga_combat_sprite_003 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 3 |
+| amiga_combat_sprite_004 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 4 |
+| amiga_combat_sprite_005 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 5 |
+| amiga_combat_sprite_006 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 6 |
+| amiga_combat_sprite_007 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 7 |
+| amiga_combat_sprite_008 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 8 |
+| amiga_combat_sprite_009 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 9 |
+| amiga_combat_sprite_010 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 10 |
+| amiga_combat_sprite_011 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 11 |
+| amiga_combat_sprite_012 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 12 |
+| amiga_combat_sprite_013 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 128 |
+| amiga_combat_sprite_014 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 129 |
+| amiga_combat_sprite_015 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 130 |
+| amiga_combat_sprite_016 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 131 |
+| amiga_combat_sprite_017 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 132 |
+| amiga_combat_sprite_018 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 133 |
+| amiga_combat_sprite_019 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 134 |
+| amiga_combat_sprite_020 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 135 |
+| amiga_combat_sprite_021 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 136 |
+| amiga_combat_sprite_022 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 137 |
+| amiga_combat_sprite_023 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 138 |
+| amiga_combat_sprite_024 | 24x24 | por-amiga | por-amiga/COMSPR.DAX 140 |
+| amiga_combat_icon_000 | 24x24 | por-amiga | por-amiga/ICON.DAX 0 |
+| amiga_combat_icon_001 | 24x24 | por-amiga | por-amiga/ICON.DAX 1 |
+| amiga_combat_icon_002 | 24x24 | por-amiga | por-amiga/ICON.DAX 2 |
+| amiga_combat_icon_003 | 24x24 | por-amiga | por-amiga/ICON.DAX 128 |
+| amiga_combat_icon_004 | 24x24 | por-amiga | por-amiga/ICON.DAX 129 |
+| amiga_combat_icon_005 | 24x24 | por-amiga | por-amiga/ICON.DAX 130 |
+| amiga_combat_head_028 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 0; cotab-amiga/CHEAD.DAX 11; cotab-amiga/CHEAD.DAX 128; cotab-amiga/CHEAD.DAX 139; sotsb-amiga/CHEAD.DAX 0; sotsb-amiga/CHEAD.DAX 11; sotsb-amiga/CHEAD.DAX 128; sotsb-amiga/CHEAD.DAX 139 |
+| amiga_combat_head_029 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 1; cotab-amiga/CHEAD.DAX 12; cotab-amiga/CHEAD.DAX 129; cotab-amiga/CHEAD.DAX 140; sotsb-amiga/CHEAD.DAX 1; sotsb-amiga/CHEAD.DAX 12; sotsb-amiga/CHEAD.DAX 129; sotsb-amiga/CHEAD.DAX 140 |
+| amiga_combat_head_030 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 2; cotab-amiga/CHEAD.DAX 13; cotab-amiga/CHEAD.DAX 130; cotab-amiga/CHEAD.DAX 141; sotsb-amiga/CHEAD.DAX 2; sotsb-amiga/CHEAD.DAX 13; sotsb-amiga/CHEAD.DAX 130; sotsb-amiga/CHEAD.DAX 141 |
+| amiga_combat_head_031 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 3; cotab-amiga/CHEAD.DAX 131; sotsb-amiga/CHEAD.DAX 3; sotsb-amiga/CHEAD.DAX 131 |
+| amiga_combat_head_032 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 4; cotab-amiga/CHEAD.DAX 132; sotsb-amiga/CHEAD.DAX 4; sotsb-amiga/CHEAD.DAX 132 |
+| amiga_combat_head_033 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 5; cotab-amiga/CHEAD.DAX 133; sotsb-amiga/CHEAD.DAX 5; sotsb-amiga/CHEAD.DAX 133 |
+| amiga_combat_head_034 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 6; cotab-amiga/CHEAD.DAX 134; sotsb-amiga/CHEAD.DAX 6; sotsb-amiga/CHEAD.DAX 134 |
+| amiga_combat_head_035 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 7; cotab-amiga/CHEAD.DAX 135; sotsb-amiga/CHEAD.DAX 7; sotsb-amiga/CHEAD.DAX 135 |
+| amiga_combat_head_036 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 8; cotab-amiga/CHEAD.DAX 136; sotsb-amiga/CHEAD.DAX 8; sotsb-amiga/CHEAD.DAX 136 |
+| amiga_combat_head_037 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 9; cotab-amiga/CHEAD.DAX 137; sotsb-amiga/CHEAD.DAX 9; sotsb-amiga/CHEAD.DAX 137 |
+| amiga_combat_head_038 | 24x10 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 10; cotab-amiga/CHEAD.DAX 138; sotsb-amiga/CHEAD.DAX 10; sotsb-amiga/CHEAD.DAX 138 |
+| amiga_combat_head_039 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 64; cotab-amiga/CHEAD.DAX 192; sotsb-amiga/CHEAD.DAX 64; sotsb-amiga/CHEAD.DAX 192 |
+| amiga_combat_head_040 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 65; cotab-amiga/CHEAD.DAX 193; sotsb-amiga/CHEAD.DAX 65; sotsb-amiga/CHEAD.DAX 193 |
+| amiga_combat_head_041 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 66; cotab-amiga/CHEAD.DAX 194; sotsb-amiga/CHEAD.DAX 66; sotsb-amiga/CHEAD.DAX 194 |
+| amiga_combat_head_042 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 67; cotab-amiga/CHEAD.DAX 195; sotsb-amiga/CHEAD.DAX 67; sotsb-amiga/CHEAD.DAX 195 |
+| amiga_combat_head_043 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 68; cotab-amiga/CHEAD.DAX 196; sotsb-amiga/CHEAD.DAX 68; sotsb-amiga/CHEAD.DAX 196 |
+| amiga_combat_head_044 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 69; cotab-amiga/CHEAD.DAX 197; sotsb-amiga/CHEAD.DAX 69; sotsb-amiga/CHEAD.DAX 197 |
+| amiga_combat_head_045 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 70; cotab-amiga/CHEAD.DAX 198; sotsb-amiga/CHEAD.DAX 70; sotsb-amiga/CHEAD.DAX 198 |
+| amiga_combat_head_046 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 71; cotab-amiga/CHEAD.DAX 199; sotsb-amiga/CHEAD.DAX 71; sotsb-amiga/CHEAD.DAX 199 |
+| amiga_combat_head_047 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 72; cotab-amiga/CHEAD.DAX 200; sotsb-amiga/CHEAD.DAX 72; sotsb-amiga/CHEAD.DAX 200 |
+| amiga_combat_head_048 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 73; cotab-amiga/CHEAD.DAX 201; sotsb-amiga/CHEAD.DAX 73; sotsb-amiga/CHEAD.DAX 201 |
+| amiga_combat_head_049 | 24x8 | cotab-amiga | cotab-amiga/CHEAD.DAX 74; cotab-amiga/CHEAD.DAX 202 |
+| amiga_combat_head_050 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 75; cotab-amiga/CHEAD.DAX 203; sotsb-amiga/CHEAD.DAX 75; sotsb-amiga/CHEAD.DAX 203 |
+| amiga_combat_head_051 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 76; cotab-amiga/CHEAD.DAX 204; sotsb-amiga/CHEAD.DAX 76; sotsb-amiga/CHEAD.DAX 204 |
+| amiga_combat_head_052 | 24x8 | cotab-amiga, sotsb-amiga | cotab-amiga/CHEAD.DAX 77; cotab-amiga/CHEAD.DAX 205; sotsb-amiga/CHEAD.DAX 77; sotsb-amiga/CHEAD.DAX 205 |
+| amiga_combat_body_128 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 0; sotsb-amiga/CBODY.DAX 0 |
+| amiga_combat_body_129 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 1; sotsb-amiga/CBODY.DAX 1 |
+| amiga_combat_body_130 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 2; sotsb-amiga/CBODY.DAX 2 |
+| amiga_combat_body_131 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 3; sotsb-amiga/CBODY.DAX 3 |
+| amiga_combat_body_132 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 4; sotsb-amiga/CBODY.DAX 4 |
+| amiga_combat_body_133 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 5; sotsb-amiga/CBODY.DAX 5 |
+| amiga_combat_body_134 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 6; sotsb-amiga/CBODY.DAX 6 |
+| amiga_combat_body_135 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 7; sotsb-amiga/CBODY.DAX 7 |
+| amiga_combat_body_136 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 8; sotsb-amiga/CBODY.DAX 8 |
+| amiga_combat_body_137 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 9; sotsb-amiga/CBODY.DAX 9 |
+| amiga_combat_body_138 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 10; sotsb-amiga/CBODY.DAX 10 |
+| amiga_combat_body_139 | 24x24 | cotab-amiga | cotab-amiga/CBODY.DAX 11 |
+| amiga_combat_body_140 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 12; sotsb-amiga/CBODY.DAX 12 |
+| amiga_combat_body_141 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 13; sotsb-amiga/CBODY.DAX 13 |
+| amiga_combat_body_142 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 14; sotsb-amiga/CBODY.DAX 14 |
+| amiga_combat_body_143 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 15; sotsb-amiga/CBODY.DAX 15 |
+| amiga_combat_body_144 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 16; sotsb-amiga/CBODY.DAX 16 |
+| amiga_combat_body_145 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 17; sotsb-amiga/CBODY.DAX 17 |
+| amiga_combat_body_146 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 18; sotsb-amiga/CBODY.DAX 18 |
+| amiga_combat_body_147 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 19; sotsb-amiga/CBODY.DAX 19 |
+| amiga_combat_body_148 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 20; sotsb-amiga/CBODY.DAX 20 |
+| amiga_combat_body_149 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 21; sotsb-amiga/CBODY.DAX 21 |
+| amiga_combat_body_150 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 22; sotsb-amiga/CBODY.DAX 22 |
+| amiga_combat_body_151 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 23; sotsb-amiga/CBODY.DAX 23 |
+| amiga_combat_body_152 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 24; sotsb-amiga/CBODY.DAX 24 |
+| amiga_combat_body_153 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 25; sotsb-amiga/CBODY.DAX 25 |
+| amiga_combat_body_154 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 26; sotsb-amiga/CBODY.DAX 26 |
+| amiga_combat_body_155 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 27; sotsb-amiga/CBODY.DAX 27 |
+| amiga_combat_body_156 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 28; sotsb-amiga/CBODY.DAX 28 |
+| amiga_combat_body_157 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 29; sotsb-amiga/CBODY.DAX 29 |
+| amiga_combat_body_158 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 30; sotsb-amiga/CBODY.DAX 30 |
+| amiga_combat_body_159 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 31; sotsb-amiga/CBODY.DAX 31 |
+| amiga_combat_body_160 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 64; sotsb-amiga/CBODY.DAX 64 |
+| amiga_combat_body_161 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 65; sotsb-amiga/CBODY.DAX 65 |
+| amiga_combat_body_162 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 66; sotsb-amiga/CBODY.DAX 66 |
+| amiga_combat_body_163 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 67; sotsb-amiga/CBODY.DAX 67 |
+| amiga_combat_body_164 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 68; sotsb-amiga/CBODY.DAX 68 |
+| amiga_combat_body_165 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 69; sotsb-amiga/CBODY.DAX 69 |
+| amiga_combat_body_166 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 70; sotsb-amiga/CBODY.DAX 70 |
+| amiga_combat_body_167 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 71; sotsb-amiga/CBODY.DAX 71 |
+| amiga_combat_body_168 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 72; sotsb-amiga/CBODY.DAX 72 |
+| amiga_combat_body_169 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 73; sotsb-amiga/CBODY.DAX 73 |
+| amiga_combat_body_170 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 74; sotsb-amiga/CBODY.DAX 74 |
+| amiga_combat_body_171 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 75; sotsb-amiga/CBODY.DAX 75 |
+| amiga_combat_body_172 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 76; sotsb-amiga/CBODY.DAX 76 |
+| amiga_combat_body_173 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 77; sotsb-amiga/CBODY.DAX 77 |
+| amiga_combat_body_174 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 78; sotsb-amiga/CBODY.DAX 78 |
+| amiga_combat_body_175 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 79; sotsb-amiga/CBODY.DAX 79 |
+| amiga_combat_body_176 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 80; sotsb-amiga/CBODY.DAX 80 |
+| amiga_combat_body_177 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 81; sotsb-amiga/CBODY.DAX 81 |
+| amiga_combat_body_178 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 82; sotsb-amiga/CBODY.DAX 82 |
+| amiga_combat_body_179 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 83; sotsb-amiga/CBODY.DAX 83 |
+| amiga_combat_body_180 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 84; sotsb-amiga/CBODY.DAX 84 |
+| amiga_combat_body_181 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 85; sotsb-amiga/CBODY.DAX 85 |
+| amiga_combat_body_182 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 86; sotsb-amiga/CBODY.DAX 86 |
+| amiga_combat_body_183 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 87; sotsb-amiga/CBODY.DAX 87 |
+| amiga_combat_body_184 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 88; sotsb-amiga/CBODY.DAX 88 |
+| amiga_combat_body_185 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 89; sotsb-amiga/CBODY.DAX 89 |
+| amiga_combat_body_186 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 90; sotsb-amiga/CBODY.DAX 90 |
+| amiga_combat_body_187 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 91; sotsb-amiga/CBODY.DAX 91 |
+| amiga_combat_body_188 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 92; sotsb-amiga/CBODY.DAX 92 |
+| amiga_combat_body_189 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 93; sotsb-amiga/CBODY.DAX 93 |
+| amiga_combat_body_190 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 94; sotsb-amiga/CBODY.DAX 94 |
+| amiga_combat_body_191 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 95; sotsb-amiga/CBODY.DAX 95 |
+| amiga_combat_body_192 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 128; sotsb-amiga/CBODY.DAX 128 |
+| amiga_combat_body_193 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 129; sotsb-amiga/CBODY.DAX 129 |
+| amiga_combat_body_194 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 130; sotsb-amiga/CBODY.DAX 130 |
+| amiga_combat_body_195 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 131; sotsb-amiga/CBODY.DAX 131 |
+| amiga_combat_body_196 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 132; sotsb-amiga/CBODY.DAX 132 |
+| amiga_combat_body_197 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 133; sotsb-amiga/CBODY.DAX 133 |
+| amiga_combat_body_198 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 134; sotsb-amiga/CBODY.DAX 134 |
+| amiga_combat_body_199 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 135; sotsb-amiga/CBODY.DAX 135 |
+| amiga_combat_body_200 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 136; sotsb-amiga/CBODY.DAX 136 |
+| amiga_combat_body_201 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 137; sotsb-amiga/CBODY.DAX 137 |
+| amiga_combat_body_202 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 138; sotsb-amiga/CBODY.DAX 138 |
+| amiga_combat_body_203 | 24x24 | cotab-amiga | cotab-amiga/CBODY.DAX 139 |
+| amiga_combat_body_204 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 140; sotsb-amiga/CBODY.DAX 140 |
+| amiga_combat_body_205 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 141; sotsb-amiga/CBODY.DAX 141 |
+| amiga_combat_body_206 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 142; sotsb-amiga/CBODY.DAX 142 |
+| amiga_combat_body_207 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 143; sotsb-amiga/CBODY.DAX 143 |
+| amiga_combat_body_208 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 144; sotsb-amiga/CBODY.DAX 144 |
+| amiga_combat_body_209 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 145; sotsb-amiga/CBODY.DAX 145 |
+| amiga_combat_body_210 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 146; sotsb-amiga/CBODY.DAX 146 |
+| amiga_combat_body_211 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 147; sotsb-amiga/CBODY.DAX 147 |
+| amiga_combat_body_212 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 148; sotsb-amiga/CBODY.DAX 148 |
+| amiga_combat_body_213 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 149; sotsb-amiga/CBODY.DAX 149 |
+| amiga_combat_body_214 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 150; sotsb-amiga/CBODY.DAX 150 |
+| amiga_combat_body_215 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 151; sotsb-amiga/CBODY.DAX 151 |
+| amiga_combat_body_216 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 152; sotsb-amiga/CBODY.DAX 152 |
+| amiga_combat_body_217 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 153; sotsb-amiga/CBODY.DAX 153 |
+| amiga_combat_body_218 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 154; sotsb-amiga/CBODY.DAX 154 |
+| amiga_combat_body_219 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 155; sotsb-amiga/CBODY.DAX 155 |
+| amiga_combat_body_220 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 156; sotsb-amiga/CBODY.DAX 156 |
+| amiga_combat_body_221 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 157; sotsb-amiga/CBODY.DAX 157 |
+| amiga_combat_body_222 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 158; sotsb-amiga/CBODY.DAX 158 |
+| amiga_combat_body_223 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 159; sotsb-amiga/CBODY.DAX 159 |
+| amiga_combat_body_224 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 192; sotsb-amiga/CBODY.DAX 192 |
+| amiga_combat_body_225 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 193; sotsb-amiga/CBODY.DAX 193 |
+| amiga_combat_body_226 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 194; sotsb-amiga/CBODY.DAX 194 |
+| amiga_combat_body_227 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 195; sotsb-amiga/CBODY.DAX 195 |
+| amiga_combat_body_228 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 196; sotsb-amiga/CBODY.DAX 196 |
+| amiga_combat_body_229 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 197; sotsb-amiga/CBODY.DAX 197 |
+| amiga_combat_body_230 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 198; sotsb-amiga/CBODY.DAX 198 |
+| amiga_combat_body_231 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 199; sotsb-amiga/CBODY.DAX 199 |
+| amiga_combat_body_232 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 200; sotsb-amiga/CBODY.DAX 200 |
+| amiga_combat_body_233 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 201; sotsb-amiga/CBODY.DAX 201 |
+| amiga_combat_body_234 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 202; sotsb-amiga/CBODY.DAX 202 |
+| amiga_combat_body_235 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 203; sotsb-amiga/CBODY.DAX 203 |
+| amiga_combat_body_236 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 204; sotsb-amiga/CBODY.DAX 204 |
+| amiga_combat_body_237 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 205; sotsb-amiga/CBODY.DAX 205 |
+| amiga_combat_body_238 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 206; sotsb-amiga/CBODY.DAX 206 |
+| amiga_combat_body_239 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 207; sotsb-amiga/CBODY.DAX 207 |
+| amiga_combat_body_240 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 208; sotsb-amiga/CBODY.DAX 208 |
+| amiga_combat_body_241 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 209; sotsb-amiga/CBODY.DAX 209 |
+| amiga_combat_body_242 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 210; sotsb-amiga/CBODY.DAX 210 |
+| amiga_combat_body_243 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 211; sotsb-amiga/CBODY.DAX 211 |
+| amiga_combat_body_244 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 212; sotsb-amiga/CBODY.DAX 212 |
+| amiga_combat_body_245 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 213; sotsb-amiga/CBODY.DAX 213 |
+| amiga_combat_body_246 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 214; sotsb-amiga/CBODY.DAX 214 |
+| amiga_combat_body_247 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 215; sotsb-amiga/CBODY.DAX 215 |
+| amiga_combat_body_248 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 216; sotsb-amiga/CBODY.DAX 216 |
+| amiga_combat_body_249 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 217; sotsb-amiga/CBODY.DAX 217 |
+| amiga_combat_body_250 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 218; sotsb-amiga/CBODY.DAX 218 |
+| amiga_combat_body_251 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 219; sotsb-amiga/CBODY.DAX 219 |
+| amiga_combat_body_252 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 220; sotsb-amiga/CBODY.DAX 220 |
+| amiga_combat_body_253 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 221; sotsb-amiga/CBODY.DAX 221 |
+| amiga_combat_body_254 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 222; sotsb-amiga/CBODY.DAX 222 |
+| amiga_combat_body_255 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/CBODY.DAX 223; sotsb-amiga/CBODY.DAX 223 |
+| amiga_combat_sprite_025 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 0; sotsb-amiga/COMSPR.DAX 0 |
+| amiga_combat_sprite_026 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 1; sotsb-amiga/COMSPR.DAX 1 |
+| amiga_combat_sprite_027 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 2; sotsb-amiga/COMSPR.DAX 2 |
+| amiga_combat_sprite_028 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 3; sotsb-amiga/COMSPR.DAX 3 |
+| amiga_combat_sprite_029 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 4; sotsb-amiga/COMSPR.DAX 4 |
+| amiga_combat_sprite_030 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 5; sotsb-amiga/COMSPR.DAX 5 |
+| amiga_combat_sprite_031 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 6; sotsb-amiga/COMSPR.DAX 6 |
+| amiga_combat_sprite_032 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 7; sotsb-amiga/COMSPR.DAX 7 |
+| amiga_combat_sprite_033 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 8; sotsb-amiga/COMSPR.DAX 8 |
+| amiga_combat_sprite_034 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 9; sotsb-amiga/COMSPR.DAX 9 |
+| amiga_combat_sprite_035 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 10; sotsb-amiga/COMSPR.DAX 10 |
+| amiga_combat_sprite_036 | 24x24 | cotab-amiga | cotab-amiga/COMSPR.DAX 11 |
+| amiga_combat_sprite_037 | 24x24 | cotab-amiga | cotab-amiga/COMSPR.DAX 25 |
+| amiga_combat_sprite_038 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 128; sotsb-amiga/COMSPR.DAX 128 |
+| amiga_combat_sprite_039 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 129; sotsb-amiga/COMSPR.DAX 129 |
+| amiga_combat_sprite_040 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 130; sotsb-amiga/COMSPR.DAX 130 |
+| amiga_combat_sprite_041 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 131; sotsb-amiga/COMSPR.DAX 131 |
+| amiga_combat_sprite_042 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 132; sotsb-amiga/COMSPR.DAX 132 |
+| amiga_combat_sprite_043 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 133; sotsb-amiga/COMSPR.DAX 133 |
+| amiga_combat_sprite_044 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 134; sotsb-amiga/COMSPR.DAX 134 |
+| amiga_combat_sprite_045 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 135; sotsb-amiga/COMSPR.DAX 135 |
+| amiga_combat_sprite_046 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 136; sotsb-amiga/COMSPR.DAX 136 |
+| amiga_combat_sprite_047 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 137; sotsb-amiga/COMSPR.DAX 137 |
+| amiga_combat_sprite_048 | 24x24 | cotab-amiga, sotsb-amiga | cotab-amiga/COMSPR.DAX 138; sotsb-amiga/COMSPR.DAX 138 |
+| amiga_combat_sprite_049 | 24x24 | cotab-amiga | cotab-amiga/COMSPR.DAX 139 |
+| amiga_combat_sprite_050 | 24x24 | cotab-amiga | cotab-amiga/COMSPR.DAX 153 |
+| amiga_combat_head_053 | 24x9 | sotsb-amiga | sotsb-amiga/CHEAD.DAX 74; sotsb-amiga/CHEAD.DAX 202 |
+| amiga_combat_body_256 | 24x24 | sotsb-amiga | sotsb-amiga/CBODY.DAX 11 |
+| amiga_combat_body_257 | 24x24 | sotsb-amiga | sotsb-amiga/CBODY.DAX 139 |
+| amiga_combat_sprite_051 | 24x24 | sotsb-amiga | sotsb-amiga/COMSPR.DAX 11 |
+| amiga_combat_sprite_052 | 24x24 | sotsb-amiga | sotsb-amiga/COMSPR.DAX 25 |
+| amiga_combat_sprite_053 | 24x24 | sotsb-amiga | sotsb-amiga/COMSPR.DAX 139 |
+| amiga_combat_sprite_054 | 24x24 | sotsb-amiga | sotsb-amiga/COMSPR.DAX 153 |
+| amiga_combat_head_054 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 0; pod-amiga/CHEAD.DAX 11; pod-amiga/CHEAD.DAX 13 |
+| amiga_combat_head_055 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 1 |
+| amiga_combat_head_056 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 2 |
+| amiga_combat_head_057 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 3 |
+| amiga_combat_head_058 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 4 |
+| amiga_combat_head_059 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 5 |
+| amiga_combat_head_060 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 6 |
+| amiga_combat_head_061 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 7 |
+| amiga_combat_head_062 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 8 |
+| amiga_combat_head_063 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 9 |
+| amiga_combat_head_064 | 24x10 | pod-amiga | pod-amiga/CHEAD.DAX 10; pod-amiga/CHEAD.DAX 12 |
+| amiga_combat_head_065 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 64 |
+| amiga_combat_head_066 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 65 |
+| amiga_combat_head_067 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 66 |
+| amiga_combat_head_068 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 67 |
+| amiga_combat_head_069 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 68 |
+| amiga_combat_head_070 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 69 |
+| amiga_combat_head_071 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 70 |
+| amiga_combat_head_072 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 71 |
+| amiga_combat_head_073 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 72 |
+| amiga_combat_head_074 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 73 |
+| amiga_combat_head_075 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 74 |
+| amiga_combat_head_076 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 75 |
+| amiga_combat_head_077 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 76 |
+| amiga_combat_head_078 | 24x8 | pod-amiga | pod-amiga/CHEAD.DAX 77 |
+| amiga_combat_body_258 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 0 |
+| amiga_combat_body_259 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 1 |
+| amiga_combat_body_260 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 2 |
+| amiga_combat_body_261 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 3 |
+| amiga_combat_body_262 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 4 |
+| amiga_combat_body_263 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 5 |
+| amiga_combat_body_264 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 6 |
+| amiga_combat_body_265 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 7 |
+| amiga_combat_body_266 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 8 |
+| amiga_combat_body_267 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 9 |
+| amiga_combat_body_268 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 10 |
+| amiga_combat_body_269 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 11 |
+| amiga_combat_body_270 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 12 |
+| amiga_combat_body_271 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 13 |
+| amiga_combat_body_272 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 14 |
+| amiga_combat_body_273 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 15 |
+| amiga_combat_body_274 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 16 |
+| amiga_combat_body_275 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 17 |
+| amiga_combat_body_276 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 18 |
+| amiga_combat_body_277 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 19 |
+| amiga_combat_body_278 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 20 |
+| amiga_combat_body_279 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 21 |
+| amiga_combat_body_280 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 22 |
+| amiga_combat_body_281 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 23 |
+| amiga_combat_body_282 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 24 |
+| amiga_combat_body_283 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 25 |
+| amiga_combat_body_284 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 26 |
+| amiga_combat_body_285 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 27 |
+| amiga_combat_body_286 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 28 |
+| amiga_combat_body_287 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 29 |
+| amiga_combat_body_288 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 30 |
+| amiga_combat_body_289 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 31 |
+| amiga_combat_body_290 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 64 |
+| amiga_combat_body_291 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 65 |
+| amiga_combat_body_292 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 66 |
+| amiga_combat_body_293 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 67 |
+| amiga_combat_body_294 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 68 |
+| amiga_combat_body_295 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 69 |
+| amiga_combat_body_296 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 70 |
+| amiga_combat_body_297 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 71 |
+| amiga_combat_body_298 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 72 |
+| amiga_combat_body_299 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 73 |
+| amiga_combat_body_300 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 74 |
+| amiga_combat_body_301 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 75 |
+| amiga_combat_body_302 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 76 |
+| amiga_combat_body_303 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 77 |
+| amiga_combat_body_304 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 78 |
+| amiga_combat_body_305 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 79 |
+| amiga_combat_body_306 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 80 |
+| amiga_combat_body_307 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 81 |
+| amiga_combat_body_308 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 82 |
+| amiga_combat_body_309 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 83 |
+| amiga_combat_body_310 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 84 |
+| amiga_combat_body_311 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 85 |
+| amiga_combat_body_312 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 86 |
+| amiga_combat_body_313 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 87 |
+| amiga_combat_body_314 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 88 |
+| amiga_combat_body_315 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 89 |
+| amiga_combat_body_316 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 90 |
+| amiga_combat_body_317 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 91 |
+| amiga_combat_body_318 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 92 |
+| amiga_combat_body_319 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 93 |
+| amiga_combat_body_320 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 94 |
+| amiga_combat_body_321 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 95 |
+| amiga_combat_body_322 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 128 |
+| amiga_combat_body_323 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 129 |
+| amiga_combat_body_324 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 130 |
+| amiga_combat_body_325 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 131 |
+| amiga_combat_body_326 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 132 |
+| amiga_combat_body_327 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 133 |
+| amiga_combat_body_328 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 134 |
+| amiga_combat_body_329 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 135 |
+| amiga_combat_body_330 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 136 |
+| amiga_combat_body_331 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 137 |
+| amiga_combat_body_332 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 138 |
+| amiga_combat_body_333 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 139 |
+| amiga_combat_body_334 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 140 |
+| amiga_combat_body_335 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 141 |
+| amiga_combat_body_336 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 142 |
+| amiga_combat_body_337 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 143 |
+| amiga_combat_body_338 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 144 |
+| amiga_combat_body_339 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 145 |
+| amiga_combat_body_340 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 146 |
+| amiga_combat_body_341 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 147 |
+| amiga_combat_body_342 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 148 |
+| amiga_combat_body_343 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 149 |
+| amiga_combat_body_344 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 150 |
+| amiga_combat_body_345 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 151 |
+| amiga_combat_body_346 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 152 |
+| amiga_combat_body_347 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 153 |
+| amiga_combat_body_348 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 154 |
+| amiga_combat_body_349 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 155 |
+| amiga_combat_body_350 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 156 |
+| amiga_combat_body_351 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 157 |
+| amiga_combat_body_352 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 158 |
+| amiga_combat_body_353 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 159 |
+| amiga_combat_body_354 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 192 |
+| amiga_combat_body_355 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 193 |
+| amiga_combat_body_356 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 194 |
+| amiga_combat_body_357 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 195 |
+| amiga_combat_body_358 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 196 |
+| amiga_combat_body_359 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 197 |
+| amiga_combat_body_360 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 198 |
+| amiga_combat_body_361 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 199 |
+| amiga_combat_body_362 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 200 |
+| amiga_combat_body_363 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 201 |
+| amiga_combat_body_364 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 202 |
+| amiga_combat_body_365 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 203 |
+| amiga_combat_body_366 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 204 |
+| amiga_combat_body_367 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 205 |
+| amiga_combat_body_368 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 206 |
+| amiga_combat_body_369 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 207 |
+| amiga_combat_body_370 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 208 |
+| amiga_combat_body_371 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 209 |
+| amiga_combat_body_372 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 210 |
+| amiga_combat_body_373 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 211 |
+| amiga_combat_body_374 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 212 |
+| amiga_combat_body_375 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 213 |
+| amiga_combat_body_376 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 214 |
+| amiga_combat_body_377 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 215 |
+| amiga_combat_body_378 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 216 |
+| amiga_combat_body_379 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 217 |
+| amiga_combat_body_380 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 218 |
+| amiga_combat_body_381 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 219 |
+| amiga_combat_body_382 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 220 |
+| amiga_combat_body_383 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 221 |
+| amiga_combat_body_384 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 222 |
+| amiga_combat_body_385 | 24x24 | pod-amiga | pod-amiga/CBODY.DAX 223 |
+| amiga_combat_sprite_055 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 0 |
+| amiga_combat_sprite_056 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 1 |
+| amiga_combat_sprite_057 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 2 |
+| amiga_combat_sprite_058 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 3 |
+| amiga_combat_sprite_059 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 4 |
+| amiga_combat_sprite_060 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 5 |
+| amiga_combat_sprite_061 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 6 |
+| amiga_combat_sprite_062 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 7 |
+| amiga_combat_sprite_063 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 8 |
+| amiga_combat_sprite_064 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 9 |
+| amiga_combat_sprite_065 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 10 |
+| amiga_combat_sprite_066 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 11 |
+| amiga_combat_sprite_067 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 12; pod-amiga/COMSPR.DAX 140 |
+| amiga_combat_sprite_068 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 13; pod-amiga/COMSPR.DAX 141 |
+| amiga_combat_sprite_069 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 14 |
+| amiga_combat_sprite_070 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 15; pod-amiga/COMSPR.DAX 143 |
+| amiga_combat_sprite_071 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 16; pod-amiga/COMSPR.DAX 144 |
+| amiga_combat_sprite_072 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 17 |
+| amiga_combat_sprite_073 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 18 |
+| amiga_combat_sprite_074 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 19 |
+| amiga_combat_sprite_075 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 20; pod-amiga/COMSPR.DAX 148 |
+| amiga_combat_sprite_076 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 21 |
+| amiga_combat_sprite_077 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 128 |
+| amiga_combat_sprite_078 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 129 |
+| amiga_combat_sprite_079 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 130 |
+| amiga_combat_sprite_080 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 131 |
+| amiga_combat_sprite_081 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 132 |
+| amiga_combat_sprite_082 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 133 |
+| amiga_combat_sprite_083 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 134 |
+| amiga_combat_sprite_084 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 135 |
+| amiga_combat_sprite_085 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 136 |
+| amiga_combat_sprite_086 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 137 |
+| amiga_combat_sprite_087 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 138 |
+| amiga_combat_sprite_088 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 139 |
+| amiga_combat_sprite_089 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 142 |
+| amiga_combat_sprite_090 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 145 |
+| amiga_combat_sprite_091 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 146 |
+| amiga_combat_sprite_092 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 147 |
+| amiga_combat_sprite_093 | 24x24 | pod-amiga | pod-amiga/COMSPR.DAX 149 |
