@@ -3,8 +3,14 @@ module gobox/parity
 go 1.26.2
 
 require (
+	gobox/blobber v0.0.0
+	gobox/dax v0.0.0
+	gobox/ega v0.0.0
 	gobox/front v0.0.0
 	gobox/game v0.0.0
+	gobox/gpu v0.0.0
+	gobox/sprites v0.0.0
+	gobox/walls v0.0.0
 	por v0.0.0
 )
 
@@ -18,6 +24,7 @@ require (
 	github.com/gogpu/gputypes v0.8.0 // indirect
 	github.com/gogpu/naga v0.19.0 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
+	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
 	github.com/jfreymuth/pulse v0.1.3 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
@@ -26,18 +33,12 @@ require (
 	gobox/amiga v0.0.0 // indirect
 	gobox/app v0.0.0 // indirect
 	gobox/audio v0.0.0 // indirect
-	gobox/blobber v0.0.0 // indirect
 	gobox/char v0.0.0 // indirect
 	gobox/combat v0.0.0 // indirect
-	gobox/dax v0.0.0 // indirect
-	gobox/ega v0.0.0 // indirect
 	gobox/geo v0.0.0 // indirect
-	gobox/gpu v0.0.0 // indirect
 	gobox/input v0.0.0 // indirect
 	gobox/rules v0.0.0 // indirect
-	gobox/sprites v0.0.0 // indirect
 	gobox/ui v0.0.0 // indirect
-	gobox/walls v0.0.0 // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
