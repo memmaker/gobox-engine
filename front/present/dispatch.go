@@ -80,7 +80,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		return true
 	}
 	if p.main {
-		if p.mm.skip(p.shownView.Hall, p.shownView.Backdrop) { // the key ends the title's fade and is used up: the menu shows, nothing is picked
+		if p.mm.skip(p.shownView.Hall, p.shownView.Backdrop) && (k == '\r' || k == ' ') { // a key ends the title's fade and still acts (an arrow or a hotkey right as the menu appears is not lost); Enter and Space, the title's own skip keys, only end it, so one held through the intro picks nothing
 			return true
 		}
 		if p.mm.key(p, k, mainView(v)) {

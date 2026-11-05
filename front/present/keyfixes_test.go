@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// On the party menu the first key only ends the title's fade (used up);
-// the next acts; a key with no row is ignored (it was sent as Enter).
+// On the party menu a key during the title's fade ends it and acts; a key
+// with no row is ignored (it was sent as Enter).
 func TestMainMenuKeys(t *testing.T) {
 	f := filepath.Join(t.TempDir(), "title.png")
 	w, _ := os.Create(f)
@@ -21,11 +21,7 @@ func TestMainMenuKeys(t *testing.T) {
 	p.shownView.Backdrop = &front.Picture{File: f}
 	v := front.View{MainMenu: []front.ActKind{front.ActBegin, front.ActQuit}}
 	p.Key('B', v)
-	if p.mm.fade() < 1 || len(p.inv.acts) != 0 {
-		t.Fatalf("the key ending the fade fell through: fade %v, acts %v", p.mm.fade(), p.inv.acts)
-	}
-	p.Key('B', v)
-	if len(p.inv.acts) != 1 || p.inv.acts[0].Kind != front.ActBegin {
+	if p.mm.fade() < 1 || len(p.inv.acts) != 1 || p.inv.acts[0].Kind != front.ActBegin {
 		t.Fatalf("first key: fade %v, acts %v", p.mm.fade(), p.inv.acts)
 	}
 	p.inv.acts = nil

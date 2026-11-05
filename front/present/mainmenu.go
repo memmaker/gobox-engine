@@ -92,8 +92,9 @@ func (m *mainUI) fade() float32 {
 }
 
 // mainSkip ends the title's hold and fade on a key or click while they
-// run, so the menu shows at once; it reports whether it did. The key or
-// click that did is used up: the menu takes input only once it shows.
+// run, so the menu shows at once; it reports whether it did. A click that
+// did is used up (its target was not visible yet); a key but Enter
+// and Space goes on to the menu (Key).
 func (m *mainUI) skip(hall bool, bd *front.Picture) bool {
 	if hall || backdropImage(bd) == nil && m.title == nil || m.fade() >= 1 { // the hall's menu, and a game without a title picture, have no title to wait for
 		return false
