@@ -1,6 +1,6 @@
 # Sprites index
 
-Pools: portraits (234), combat (944), items (111). Items: only origin por-go. Portraits and combat: shared pool of all four Pool games, built by sprites/cmd/poolsprites from their DAX data.
+Pools: portraits (237), combat (944), items (111). Items: only origin por-go. Portraits and combat: shared pool of all four Pool games, built by sprites/cmd/poolsprites from their DAX data.
 
 Source: por-go/present/remaster/items/atlas.png (20x20 cells, 24 per row) cut by items.rec; only the cells items.rec references are included (the other ~1170 atlas icons are unnamed). No renames.
 
@@ -338,7 +338,7 @@ Shared by por, cotab, sotsb, pod; deduplicated by exact pixels, numbered in firs
 | amiga_head_059 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 37 |
 | amiga_head_060 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 38 |
 | amiga_head_061 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 42 |
-| amiga_head_062 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 50 |
+| amiga_head_062 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 50; cotab-amiga/HEAD4.DAX 49 |
 | amiga_head_063 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 51 |
 | amiga_head_064 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 58 |
 | amiga_head_065 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 59 |
@@ -346,6 +346,7 @@ Shared by por, cotab, sotsb, pod; deduplicated by exact pixels, numbered in firs
 | amiga_head_067 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 65 |
 | amiga_head_068 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 67 |
 | amiga_head_069 | 88x40 | cotab-amiga | cotab-amiga/HEAD.DAX 70 |
+| amiga_head_070 | 88x40 | cotab-amiga | cotab-amiga/HEAD5.DAX 49 |
 | amiga_body_019 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 0 |
 | amiga_body_020 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 1 |
 | amiga_body_021 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 2 |
@@ -370,6 +371,8 @@ Shared by por, cotab, sotsb, pod; deduplicated by exact pixels, numbered in firs
 | amiga_body_040 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 64 |
 | amiga_body_041 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 65 |
 | amiga_body_042 | 88x48 | cotab-amiga | cotab-amiga/BODY.DAX 70 |
+| amiga_body_043 | 88x48 | cotab-amiga | cotab-amiga/BODY4.DAX 49 |
+| amiga_body_044 | 88x48 | cotab-amiga | cotab-amiga/BODY5.DAX 49 |
 
 ## combat
 

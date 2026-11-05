@@ -16,6 +16,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"gobox/adf"
@@ -180,8 +181,9 @@ func Import(src, out string, s Spec) error {
 			tlbBlocks(f.Data, g, blocks[name], pals[name])
 		}
 	}
+	setArchives(blocks, pals)
 	for name, b := range blocks {
-		if p := s.Gfx[name].Pal; p > 0 && p+32 <= len(exe) {
+		if p := s.Gfx[strings.TrimRight(name, "0123456789")].Pal; p > 0 && p+32 <= len(exe) {
 			rgb := make([]byte, 48)
 			for i := range rgb {
 				w := int(exe[p+i/3*2])<<8 | int(exe[p+i/3*2+1])
@@ -232,6 +234,30 @@ func daxBlocks(data []byte, g Gfx, blocks map[int][]byte) {
 			blocks[e.ID] = dax.AmigaSprite(b, g.XOR, g.Slot)
 		} else {
 			blocks[e.ID] = dax.AmigaImage(b, g.Split, g.Slot)
+		}
+	}
+}
+
+// setArchives moves the ids past 255 of each archive (Curse HEAD 549: disk
+// 5's own block 49) to the set's own one, name+set (HEAD5, block 49), which
+// dax.Loader reads before the shared archive: a DOS archive keys a block
+// by one byte.
+func setArchives(blocks, pals map[string]map[int][]byte) {
+	for name, b := range blocks {
+		for id, blk := range b {
+			if id < 256 {
+				continue
+			}
+			set := name + strconv.Itoa(id/100)
+			if blocks[set] == nil {
+				blocks[set], pals[set] = map[int][]byte{}, map[int][]byte{}
+			}
+			blocks[set][id%100] = blk
+			if p := pals[name][id]; p != nil {
+				pals[set][id%100] = p
+			}
+			delete(b, id)
+			delete(pals[name], id)
 		}
 	}
 }

@@ -335,6 +335,12 @@
    "65": "amiga_body_041",
    "70": "amiga_body_042"
   },
+  "BODY4.DAX": {
+   "49": "amiga_body_043"
+  },
+  "BODY5.DAX": {
+   "49": "amiga_body_044"
+  },
   "CBODY.DAX": {
    "0": "amiga_combat_body_128",
    "1": "amiga_combat_body_129",
@@ -585,6 +591,12 @@
    "70": "amiga_head_069",
    "8": "amiga_head_044",
    "9": "amiga_head_045"
+  },
+  "HEAD4.DAX": {
+   "49": "amiga_head_062"
+  },
+  "HEAD5.DAX": {
+   "49": "amiga_head_070"
   }
  },
  "pod": {

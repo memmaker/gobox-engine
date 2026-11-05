@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 
 	"gobox/dax"
@@ -165,47 +166,48 @@ func main() {
 		before[ag], after[ag], origins[ag] = map[string]int{}, map[string]int{}, map[string]map[string]string{}
 		games2 = append(games2, ag)
 		for _, s := range sources {
-			base := strings.TrimRight(s.files[0], "0123456789") // the Amiga keeps one archive per kind
-			d, err := dax.Open(filepath.Join(*root, g+"-go", "data", "amiga", base+".DAX"))
-			if err != nil || s.byFrame {
-				continue
-			}
-			prefix := "amiga_" + s.prefix
-			for _, e := range d.Entries {
-				im := dax.ParseImage(dos.BlockShared(base, e.ID), s.masked, 0) // the loader's block: HEAD centred as drawn
-				if im == nil || im.Count == 0 || im.Width == 0 || im.Height == 0 || len(im.Data) < im.Count*im.BPP {
+			for _, base := range slices.Compact(append([]string{strings.TrimRight(s.files[0], "0123456789")}, s.files...)) { // the Amiga keeps one archive per kind, plus a set's own (HEAD5: Curse's 549)
+				d, err := dax.Open(filepath.Join(*root, g+"-go", "data", "amiga", base+".DAX"))
+				if err != nil || s.byFrame {
 					continue
 				}
-				pal := dos.AmigaPalette(base, e.ID)
-				for fr := 0; fr < im.Count; fr++ {
-					idx := fmt.Sprint(e.ID)
-					if im.Count > 1 {
-						idx += fmt.Sprintf(".%d", fr)
+				prefix := "amiga_" + s.prefix
+				for _, e := range d.Entries {
+					im := dax.ParseImage(dos.BlockShared(base, e.ID), s.masked, 0) // the loader's block: HEAD centred as drawn
+					if im == nil || im.Count == 0 || im.Width == 0 || im.Height == 0 || len(im.Data) < im.Count*im.BPP {
+						continue
 					}
-					pix := renderAmiga(im, fr, pal)
-					key := s.dir + fmt.Sprint(im.Width, im.Height) + prefix + string(pix.Pix)
-					en := seen[key]
-					if en == nil {
-						en = &entry{name: fmt.Sprintf("%s_%03d", prefix, count[prefix]), w: im.Width * 8, h: im.Height}
-						count[prefix]++
-						seen[key] = en
-						byDir[s.dir] = append(byDir[s.dir], en)
-						if s.masked { // combat art keeps its values (Amiga ones from ega.AmigaBase) for gobox's recolouring
-							write(filepath.Join(pool, s.dir, en.name+".png"), indexed(im, fr, pal))
-						} else {
-							write(filepath.Join(pool, s.dir, en.name+".png"), pix)
+					pal := dos.AmigaPalette(base, e.ID)
+					for fr := 0; fr < im.Count; fr++ {
+						idx := fmt.Sprint(e.ID)
+						if im.Count > 1 {
+							idx += fmt.Sprintf(".%d", fr)
 						}
-						after[ag][s.dir]++
+						pix := renderAmiga(im, fr, pal)
+						key := s.dir + fmt.Sprint(im.Width, im.Height) + prefix + string(pix.Pix)
+						en := seen[key]
+						if en == nil {
+							en = &entry{name: fmt.Sprintf("%s_%03d", prefix, count[prefix]), w: im.Width * 8, h: im.Height}
+							count[prefix]++
+							seen[key] = en
+							byDir[s.dir] = append(byDir[s.dir], en)
+							if s.masked { // combat art keeps its values (Amiga ones from ega.AmigaBase) for gobox's recolouring
+								write(filepath.Join(pool, s.dir, en.name+".png"), indexed(im, fr, pal))
+							} else {
+								write(filepath.Join(pool, s.dir, en.name+".png"), pix)
+							}
+							after[ag][s.dir]++
+						}
+						before[ag][s.dir]++
+						en.origins = append(en.origins, origin{ag, base + ".DAX", idx})
+						if origins[ag][base+".DAX"] == nil {
+							origins[ag][base+".DAX"] = map[string]string{}
+						}
+						origins[ag][base+".DAX"][idx] = en.name
 					}
-					before[ag][s.dir]++
-					en.origins = append(en.origins, origin{ag, base + ".DAX", idx})
-					if origins[ag][base+".DAX"] == nil {
-						origins[ag][base+".DAX"] = map[string]string{}
-					}
-					origins[ag][base+".DAX"][idx] = en.name
 				}
+				fmt.Println("decoded", ag, base)
 			}
-			fmt.Println("decoded", ag, base)
 		}
 	}
 	games = append(games, games2...)

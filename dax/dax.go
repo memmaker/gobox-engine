@@ -145,6 +145,9 @@ func NewLoader(dir string) (*Loader, error) {
 // for the DOS ones of the same base name; a missing dir changes nothing.
 func (l *Loader) UseAmiga(dir string) {
 	l.amiga, _ = NewLoader(dir)
+	if l.amiga != nil {
+		l.amiga.OneDisk = true // a set's own archive (HEAD5) never stands in for another set's block
+	}
 }
 
 // HasAmiga reports whether Amiga archives stand in for DOS ones.
@@ -207,7 +210,10 @@ func (l *Loader) BlockShared(name string, id int) []byte {
 			return b
 		}
 		base := strings.TrimRight(strings.TrimSuffix(strings.ToUpper(name), ".DAX"), "0123456789")
-		b = l.amiga.BlockShared(base, id)
+		b = l.amiga.BlockShared(strings.TrimSuffix(strings.ToUpper(name), ".DAX"), id) // the set's own archive (HEAD5: Curse's 549), else the shared one
+		if b == nil {
+			b = l.amiga.BlockShared(base, id)
+		}
 		if b == nil && base == "CHEAD" && id >= 0x80 {
 			b = l.amiga.BlockShared(base, id-0x80) // one Amiga head for both poses, not the DOS action head
 		}
@@ -235,6 +241,11 @@ func (l *Loader) AmigaPalette(name string, id int) []byte {
 		return nil
 	}
 	base := strings.TrimRight(strings.TrimSuffix(strings.ToUpper(name), ".DAX"), "0123456789")
+	if f := l.amiga.File(strings.TrimSuffix(strings.ToUpper(name), ".DAX") + "PAL"); f != nil && name != base { // the set's own (setArchives)
+		if b := f.BlockShared(id); b != nil {
+			return b
+		}
+	}
 	if f := l.amiga.File(base + "PAL"); f != nil {
 		return f.BlockShared(id)
 	}

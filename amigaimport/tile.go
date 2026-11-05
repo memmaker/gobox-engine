@@ -179,8 +179,8 @@ func tlbBlocks(data []byte, g Gfx, blocks, pals map[int][]byte) {
 	}
 	add := func(m map[int][]byte, id int, b []byte) {
 		// ids past 255 (Curse HEAD 449, 549: disk 4's and 5's own block 49)
-		// have no place in one DOS archive and are left out.
-		if _, ok := m[id]; !ok && b != nil && id >= 0 && id < 256 {
+		// go to the set's own archive at write time (setArchives)
+		if _, ok := m[id]; !ok && b != nil && id >= 0 && id < 1000 {
 			m[id] = b
 		}
 	}
