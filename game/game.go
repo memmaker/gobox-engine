@@ -1206,7 +1206,6 @@ type Event struct {
 // rules package exports it as func Data() Data, and its cmd hands gobox
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
-	Lowercase    bool   // the game writes its text as it is (POD); else in capitals, the pane and prompt in its upper-case glyphs (a charset with graphics in the lower-case slots)
 	Unmarked     bool   // the selected member's card is not marked (the game's look; Selected still says who is)
 	NoFreeAim    bool   // the series' combat menu has no free Aim (Buck Rogers)
 	SaveDir      string // where gobox writes slot files ("": saves)

@@ -161,11 +161,3 @@ func TestShowMemberOpensSheet(t *testing.T) {
 	}
 }
 
-// A Lowercase game's text keeps its case and uses the text glyphs
-// (Upcase): PoD's lower-case letters showed as the charset's graphics.
-func TestRunLowercaseKeepsTextGlyphs(t *testing.T) {
-	r := New(&fake{}, game.Data{Lowercase: true}).(*rules)
-	if got := r.run("Hello")[0]; got.Text != "Hello" || !got.Upcase {
-		t.Fatalf("%+v", got)
-	}
-}
