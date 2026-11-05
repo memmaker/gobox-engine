@@ -1496,3 +1496,12 @@ func onward(al play.Allowed) play.Action {
 	}
 	return play.Continue{}
 }
+
+// Art is the game's art read live: what the game's own Art gives (its art
+// changes as the party moves), else Data.Art.
+func (r *rules) Art() map[string]game.Picture {
+	if a, ok := r.g.(interface{ Art() map[string]game.Picture }); ok {
+		return a.Art()
+	}
+	return r.data.Art
+}
