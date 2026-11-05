@@ -76,8 +76,13 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if confirm(v) != "" {
 		return p.confirmKey(k)
 	}
+	if v.MainMenu != nil && !p.main { // the menu is not drawn yet: no key picks from it
+		return true
+	}
 	if p.main {
-		p.mm.skip(p.shownView.Hall, p.shownView.Backdrop) // the key ends the title's fade and acts on the menu too
+		if p.mm.skip(p.shownView.Hall, p.shownView.Backdrop) { // the key ends the title's fade and is used up: the menu shows, nothing is picked
+			return true
+		}
 		if p.mm.key(p, k, mainView(v)) {
 			return true
 		}
