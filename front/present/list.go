@@ -24,6 +24,7 @@ type listUI struct {
 	top  int         // the first line shown
 	opts []int       // the options shown (Menu.Items indices), as last laid out
 	at   image.Point // the pointer, as last seen: only a moved one takes the highlight
+	of   string      // the list's prompt: the same list asked again (after an act on a line) keeps its highlight
 }
 
 // listOpts are the options offered with line i: those it does not leave out.
@@ -314,4 +315,12 @@ func itemRows(m *front.Menu) []ui.MenuRow {
 		rows[i] = ui.MenuRow{Text: it.Text, Key: it.Key, Do: func() {}}
 	}
 	return rows
+}
+
+// openList: a list opens at its first line; the same list asked again (after
+// an act on a line: Ready, Drop) stays on the line acted on.
+func (p *Presenter) openList(v front.View) {
+	if askList(v) != nil && askList(p.shownView) == nil && v.Ask.Prompt != p.list.of {
+		p.list = listUI{sel: max(0, slices.IndexFunc(askList(v), func(l front.ListLine) bool { return !l.Off })), of: v.Ask.Prompt}
+	}
 }

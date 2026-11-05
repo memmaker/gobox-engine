@@ -278,9 +278,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			p.camp.sel = 1
 		}
 	}
-	if askList(v) != nil && askList(p.shownView) == nil { // a list opens at its first line
-		p.list = listUI{sel: max(0, slices.IndexFunc(askList(v), func(l front.ListLine) bool { return !l.Off }))}
-	}
+	p.openList(v)
 	p.shownView = v
 	p.main = v.MainMenu != nil // before the pages, which return early: a stale main menu would take their keys
 	p.pace(v)
