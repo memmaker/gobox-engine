@@ -39,3 +39,24 @@ func TestInventoryActs(t *testing.T) {
 		t.Fatalf("passed %v", as)
 	}
 }
+
+// Left highlights the shop's first ware, Enter buys it; a long name wraps.
+func TestShopKeys(t *testing.T) {
+	in := &front.Inventory{Wares: []front.InvItem{{Index: 2, Name: "Rope"}}, Pool: []front.InvItem{{Index: 0, Name: "Gun"}}, Sell: true}
+	var p Presenter
+	p.inv.view, p.inv.ware, p.inv.sel = in, -1, 0
+	p.shownView = front.View{Inventory: in}
+	p.inventoryKey(keyOf(input.Left))
+	p.inventoryKey(keyOf(input.Enter))
+	p.Actions()
+	g := &buyGame{}
+	for _, c := range p.Calls() {
+		c(g)
+	}
+	if g.bought != 3 {
+		t.Fatalf("bought %d", g.bought)
+	}
+	if a, b := wrapName("1 POISON ANTIDOTE", 12); a != "1 POISON" || b != "ANTIDOTE" {
+		t.Fatalf("%q %q", a, b)
+	}
+}

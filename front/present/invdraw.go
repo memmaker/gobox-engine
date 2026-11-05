@@ -129,6 +129,9 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	if wareAt(in, inv.ware) == nil {
 		inv.ware = -1
 	}
+	if o := inv.order(); inv.ware < 0 && inv.sel < 0 && len(o) > 0 { // something is always highlighted: the keys reach every item
+		inv.choose(o[0].ware, o[0].i)
+	}
 	shop := in.Wares != nil
 	split := leftCells // the left box's width in cells, with its border
 	busy := inv.ask != nil
@@ -264,7 +267,11 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	if !shop && in.Member >= 0 && in.Member < len(v.Party) {
 		paneName(inv.img, inv.glyph, v.Party[in.Member].Name)
 	}
-	onBorder(inv.img, inv.glyph, rx, 0, true, []string{"Party Items"}, []color.RGBA{white})
+	head := "Party Items"
+	if shop && in.Member >= 0 && in.Member < len(v.Party) { // the shop shows the shopper's items only
+		head = v.Party[in.Member].Name
+	}
+	onBorder(inv.img, inv.glyph, rx, 0, true, []string{head}, []color.RGBA{white})
 	onBorder(inv.img, inv.glyph, rr, 0, false, []string{fill}, []color.RGBA{fillc})
 	if box == nil && !inv.dragging {
 		inv.tooltip(t, in)

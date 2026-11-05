@@ -28,22 +28,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		}
 		return true
 	}
-	type pick struct {
-		ware bool
-		i    int
-	}
-	var order []pick // the items as the screen shows them: the goods or the doll, then the list
-	for _, it := range inv.wares.shown(inv.view.Wares) {
-		order = append(order, pick{true, it.Index})
-	}
-	for _, it := range inv.view.Doll {
-		if it != nil {
-			order = append(order, pick{false, it.Index})
-		}
-	}
-	for _, it := range inv.list.shown(inv.view.Pool) {
-		order = append(order, pick{false, it.Index})
-	}
+	order := inv.order()
 	step := func(d int) {
 		if len(order) == 0 {
 			return
@@ -73,6 +58,13 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 			pn = &inv.wares
 		}
 		pn.tab, pn.top = (pn.tab+1)%len(tabNames), 0
+	case (a == input.Left || a == input.Right) && inv.view.Wares != nil: // the shop: Left the goods, Right the member's items
+		for _, o := range order {
+			if o.ware == (a == input.Left) {
+				inv.choose(o.ware, o.i)
+				break
+			}
+		}
 	case a == input.Up:
 		step(-1)
 	case a == input.Down:
@@ -97,7 +89,9 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		}
 	case a == input.Enter && inv.ware >= 0:
 		inv.do(front.ActBuy)
-	case a == input.Enter:
+	case a == input.Enter && inv.view.Wares != nil && inv.view.Sell:
+		inv.do(front.ActSell)
+	case a == input.Enter && inv.view.Wares == nil:
 		inv.do(front.ActReady)
 	case member:
 		if inv.view.Switch {
@@ -113,6 +107,29 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		return false
 	}
 	return true
+}
+
+// pick is an item on the inventory screen: a ware of the shop or the member's.
+type pick struct {
+	ware bool
+	i    int
+}
+
+// order is the items as the screen shows them: the goods or the doll, then the list.
+func (inv *inventory) order() []pick {
+	var order []pick
+	for _, it := range inv.wares.shown(inv.view.Wares) {
+		order = append(order, pick{true, it.Index})
+	}
+	for _, it := range inv.view.Doll {
+		if it != nil {
+			order = append(order, pick{false, it.Index})
+		}
+	}
+	for _, it := range inv.list.shown(inv.view.Pool) {
+		order = append(order, pick{false, it.Index})
+	}
+	return order
 }
 
 // InventoryMouse handles the pointer at screen pixel (x, y) with the left

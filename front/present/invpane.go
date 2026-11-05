@@ -102,7 +102,12 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel int, ware, p
 		if it.Wrong {
 			tc = red
 		}
-		inv.text(upTo(readyMark(it)+it.Name, chars), x0+rowH+4, y+(rowH-8)/2, tc)
+		if a, b := wrapName(readyMark(it)+strings.TrimSpace(it.Name), chars); b == "" {
+			inv.text(a, x0+rowH+4, y+(rowH-8)/2, tc)
+		} else { // too long for the line: two lines of the row
+			inv.text(a, x0+rowH+4, y+(rowH-16)/2, tc)
+			inv.text(b, x0+rowH+4, y+(rowH-16)/2+8, tc)
+		}
 		if priced {
 			m := price(it.Price)
 			inv.text(m, tr-4-8*len(m), y+(rowH-8)/2, col(inkYellow))
@@ -230,6 +235,19 @@ func (inv *inventory) text(s string, x, y int, c color.RGBA) {
 
 func (inv *inventory) fill(r image.Rectangle, c color.RGBA) {
 	draw.Draw(inv.px, r, image.NewUniform(c), image.Point{}, draw.Src)
+}
+
+// wrapName splits a name too long for n characters at a space into two
+// lines of at most n ("": it fits on one).
+func wrapName(s string, n int) (string, string) {
+	if len(s) <= n {
+		return s, ""
+	}
+	i := strings.LastIndex(upTo(s, n+1), " ")
+	if i <= 0 {
+		return upTo(s, n), upTo(s[min(len(s), n):], n)
+	}
+	return s[:i], upTo(s[i+1:], n)
 }
 
 // upTo is s in at most n characters.
