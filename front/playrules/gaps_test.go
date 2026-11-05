@@ -252,3 +252,13 @@ func TestDraftAsks(t *testing.T) {
 		t.Fatalf("the sheet asks %+v", a)
 	}
 }
+
+// TestPictureIsLayer: Common.Picture reaches the front as the page's layer
+// (the front draws layers only).
+func TestPictureIsLayer(t *testing.T) {
+	pic := game.Picture{File: "PIC1", Block: 57}
+	s := New(&fake{st: play.Exploring{Common: play.Common{Picture: &pic}}}, game.Data{}).State()
+	if len(s.Page.Layers) != 1 || s.Page.Layers[0].Block != 57 {
+		t.Fatalf("layers %+v", s.Page.Layers)
+	}
+}

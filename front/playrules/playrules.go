@@ -301,6 +301,9 @@ func (r *rules) State() game.State {
 		s.Story = []game.Picture{pt.Head, pt.Body}
 	}
 	s.Page = &game.Page{Layers: c.Layers}
+	if c.Picture != nil && len(c.Layers) == 0 { // the front draws a page's layers, never State.Picture: the picture is the page's one layer
+		s.Page.Layers = []game.Layer{{Picture: *c.Picture}}
+	}
 	for _, t := range c.Text {
 		s.Page.Pane = append(s.Page.Pane, r.run(t))
 		s.LastText = t
