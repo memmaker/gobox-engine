@@ -190,7 +190,11 @@ func main() {
 						count[prefix]++
 						seen[key] = en
 						byDir[s.dir] = append(byDir[s.dir], en)
-						write(filepath.Join(pool, s.dir, en.name+".png"), pix) // ponytail: RGBA, not indexed: Amiga combat art is not recoloured by EGA index
+						if s.masked { // combat art keeps its values (Amiga ones from ega.AmigaBase) for gobox's recolouring
+							write(filepath.Join(pool, s.dir, en.name+".png"), indexed(im, fr))
+						} else {
+							write(filepath.Join(pool, s.dir, en.name+".png"), pix)
+						}
 						after[ag][s.dir]++
 					}
 					before[ag][s.dir]++
