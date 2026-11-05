@@ -262,3 +262,14 @@ func TestPictureIsLayer(t *testing.T) {
 		t.Fatalf("layers %+v", s.Page.Layers)
 	}
 }
+
+// TestCardItems: a member's card has Items when Allowed lets that member
+// handle an item, though their items are not in the state.
+func TestCardItems(t *testing.T) {
+	c := allow(play.Ready{Member: 1}, play.Drop{Member: 2})
+	c.Party = []play.Member{{Name: "A"}, {Name: "B"}, {Name: "C"}}
+	s := New(&fake{st: play.Camping{Common: c}}, game.Data{}).State()
+	if got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card, s.Party[2].Card); got != "[{View view}] [{View view} {Items items}] [{View view} {Items items}]" {
+		t.Fatal(got)
+	}
+}

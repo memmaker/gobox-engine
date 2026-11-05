@@ -564,12 +564,15 @@ func allowedNames(al play.Allowed) map[string]bool {
 // builds it, so every game's cards get the same menu.
 func card(m play.Member, al play.Allowed, n int) []game.Entry {
 	es := []game.Entry{{Name: "View", Verb: "view"}}
-	if len(m.Items) > 0 {
-		es = append(es, game.Entry{Name: "Items", Verb: "items"})
-	}
-	has := map[string]bool{}
+	has := map[string]bool{"items": len(m.Items) > 0}
 	for _, a := range append(slices.Clone(al.Plain), aimedActions(al)...) {
 		switch t := a.(type) {
+		case play.Ready:
+			has["items"] = has["items"] || t.Member == n
+		case play.Drop:
+			has["items"] = has["items"] || t.Member == n
+		case play.UseItem:
+			has["items"] = has["items"] || t.Member == n
 		case play.Cast:
 			has["cast"] = has["cast"] || t.Member == n
 		case play.Memorize:
@@ -586,7 +589,7 @@ func card(m play.Member, al play.Allowed, n int) []game.Entry {
 			has["drop"] = has["drop"] || t.Member == n
 		}
 	}
-	for _, e := range []game.Entry{{Name: "Cast", Verb: "cast"}, {Name: "Heal", Verb: "heal"}, {Name: "Memorize", Verb: "memorize"},
+	for _, e := range []game.Entry{{Name: "Items", Verb: "items"}, {Name: "Cast", Verb: "cast"}, {Name: "Heal", Verb: "heal"}, {Name: "Memorize", Verb: "memorize"},
 		{Name: "Scribe", Verb: "scribe"}, {Name: "Icon", Verb: "icon"}, {Name: "Drop", Verb: "drop"}} {
 		if has[e.Verb] {
 			es = append(es, e)
