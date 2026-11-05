@@ -240,3 +240,15 @@ func TestCampKeepsView(t *testing.T) {
 		t.Fatal("camp lost the 3D view")
 	}
 }
+
+// TestDraftAsks: a draft asks only what it has to ask: a typed name with
+// no Step still asks, a bare Step (the sheet) does not.
+func TestDraftAsks(t *testing.T) {
+	r := New(&fake{st: play.Assembling{Draft: &play.Draft{Typed: true}}}, game.Data{})
+	if a := r.Pending(); a == nil || a.Kind != game.Name {
+		t.Fatalf("typed draft asks %+v", a)
+	}
+	if a := New(&fake{st: play.Assembling{Draft: &play.Draft{Step: "sheet"}}}, game.Data{}).Pending(); a != nil {
+		t.Fatalf("the sheet asks %+v", a)
+	}
+}

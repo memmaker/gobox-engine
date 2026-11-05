@@ -186,11 +186,15 @@ func (r *rules) question(q *play.Question, list bool) *game.Ask {
 
 // draftAsk is the creation step's question (nil: the sheet's fields).
 func (r *rules) draftAsk(d *play.Draft) *game.Ask {
-	if d.Step == "" && !d.YesNo {
+	if !asks(d) {
 		return nil
 	}
 	return r.question(&play.Question{Text: d.Prompt, Replies: d.Choices, YesNo: d.YesNo, Typed: d.Typed, Number: d.Number, Default: d.Default, Max: d.Max}, true)
 }
+
+// asks says whether d puts a question (else the sheet's fields are up):
+// a pick, a yes/no, a typed line or a number.
+func asks(d *play.Draft) bool { return len(d.Choices) > 0 || d.YesNo || d.Typed || d.Number }
 
 // partyFuncs are the party menu's functions: label, hotkey and the action
 // that opens it ("": gobox's own).
@@ -1147,7 +1151,7 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 		}
 		return r.do(play.Reply{N: d.N, Text: d.Text})
 	}
-	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && (a.Draft.Step != "" || a.Draft.YesNo) {
+	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && asks(a.Draft) {
 		return r.do(play.SetChoice{Field: a.Draft.Step, N: d.N, Text: d.Text})
 	}
 	if _, ok := ps.(play.ShipFight); ok {
