@@ -16,6 +16,7 @@ type adTrack struct {
 
 type sequencer struct {
 	w     func(reg int, val byte)
+	sid   *sidDev // the Innovation SSI-2001's SID in the OPL's place (nil: AdLib)
 	inst  [8][]byte
 	tr    []adTrack
 	div   int
@@ -28,7 +29,7 @@ type sequencer struct {
 // newSequencer parses a song block (song 0) and writes the init registers; nil if malformed.
 // The SLBR starts where the GLBR header's u32 says (PoD 0x1BC, SotSB 0x1B2). div is the
 // tempo divisor (SotSB's driver: 0x76); 0 takes the song header's tempo word / 84 (PoD).
-func newSequencer(b []byte, div int, w func(int, byte)) *sequencer {
+func newSequencer(b []byte, div int, w func(int, byte), sid bool) *sequencer {
 	if len(b) < 12 || string(b[:4]) != "GLBR" {
 		return nil
 	}
@@ -75,6 +76,13 @@ func newSequencer(b []byte, div int, w func(int, byte)) *sequencer {
 		}
 		s.tr = append(s.tr, adTrack{next: 1, vel: vel, st: 3, ev: h[o:]})
 	}
+	if sid {
+		if s.sid = newSIDDev(b, cnt); s.sid == nil {
+			return nil
+		}
+		s.sid.init(w)
+		return s
+	}
 	s.w(0xBD, 0x20)
 	s.w(0x08, 0x40)
 	for k := 1; k < 19; k++ {
@@ -114,6 +122,10 @@ func (s *sequencer) program(ch, i int) {
 }
 
 func (s *sequencer) setInst(t, i int) {
+	if s.sid != nil {
+		s.sid.setInst(s.w, t, i)
+		return
+	}
 	s.mask &^= 1 << s.oplch[t]
 	c := s.alloc(i)
 	if c > 6 {
@@ -125,6 +137,10 @@ func (s *sequencer) setInst(t, i int) {
 
 // note sounds (vel >= 0) or releases (vel < 0) slot t.
 func (s *sequencer) note(t, note, vel int) {
+	if s.sid != nil {
+		s.sid.note(s.w, t, note, vel)
+		return
+	}
 	if vel >= 0 && t >= 3 {
 		vel = vel * 100 >> 7
 	}
@@ -155,6 +171,10 @@ func dur(code int) int {
 }
 
 func (s *sequencer) silence() {
+	if s.sid != nil {
+		s.sid.silence(s.w)
+		return
+	}
 	for c := 0; c < 9; c++ {
 		s.w(0xB0+c, 0x0E)
 	}

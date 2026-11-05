@@ -29,7 +29,7 @@ func TestAdLibRegs(t *testing.T) {
 	a := adlibData(t)
 	var got []string
 	now := 0
-	s := newSequencer(a.music[1], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) })
+	s := newSequencer(a.music[1], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, false)
 	for now < 300 {
 		now = s.now + 1
 		if !s.tick() {
@@ -115,7 +115,7 @@ func TestAdLibNamedSMS(t *testing.T) {
 		if n == 0 {
 			t.Fatalf("%s: not a song", c.name)
 		}
-		s := newSequencer(named[c.name], 0, func(int, byte) {})
+		s := newSequencer(named[c.name], 0, func(int, byte) {}, false)
 		var ev []int
 		for _, tr := range s.tr {
 			k := 0
@@ -172,5 +172,38 @@ func TestSotSBTitle(t *testing.T) {
 	}
 	if _, _, m2 := render(); !bytes.Equal(m, m2) {
 		t.Error("not deterministic")
+	}
+}
+
+// The SID sequencer's writes on MUSIC blocks 1..8 equal podmusic.py sidregs for 600 ticks.
+func TestSIDRegs(t *testing.T) {
+	a := adlibData(t)
+	for blk := 1; blk <= 8; blk++ {
+		var got []string
+		now := 0
+		s := newSequencer(a.music[blk], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, true)
+		if s == nil {
+			t.Fatalf("block %d: no SID song", blk)
+		}
+		for now < 600 {
+			now = s.now + 1
+			if !s.tick() {
+				s.silence()
+				break
+			}
+		}
+		b, _ := os.ReadFile(fmt.Sprintf("testdata/pod_sid%d.txt", blk))
+		var w []string
+		for _, l := range strings.Split(strings.TrimSpace(string(b)), "\n") {
+			w = append(w, strings.Join(strings.Fields(l), " "))
+		}
+		if len(got) != len(w) {
+			t.Fatalf("block %d: %d writes, want %d", blk, len(got), len(w))
+		}
+		for i := range w {
+			if got[i] != w[i] {
+				t.Fatalf("block %d write %d: %s, want %s", blk, i, got[i], w[i])
+			}
+		}
 	}
 }

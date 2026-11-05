@@ -7,6 +7,8 @@ import (
 	"slices"
 
 	"github.com/memmaker/opl2"
+
+	"gobox/audio/sid"
 )
 
 // AdLib plays the GLBR/SLBR song blocks of SOUND.COM's AdLib driver (pod-go docs/MUSIC.md)
@@ -18,6 +20,8 @@ type AdLib struct {
 	rate          int // effect sample rate (Hz)
 
 	chip  *opl2.Chip
+	sidOn bool      // the songs on the Innovation SSI-2001's SID (SetSID), not the OPL2
+	sc    *sid.Chip // ... that chip
 	rs    *opl2.Resampler
 	song  int            // block playing, 0 none
 	named map[string]int // AdLibData.Named: name -> block
@@ -40,6 +44,27 @@ type AdLibData struct {
 }
 
 const adlibRate = 44100
+
+// The SSI-2001's SID clock (14.31818 MHz / 14) and its level next to the OPL2's.
+const (
+	sidClock = 14318180.0 / 14
+	sidGain  = 6700 // the OPL2's loudness (RMS) on PoD's title song
+)
+
+// SetSID plays the songs on the Innovation SSI-2001's SID (on) or the AdLib's OPL2; a
+// song playing restarts on the other chip.
+func (a *AdLib) SetSID(on bool) {
+	if a.sidOn == on {
+		return
+	}
+	a.sidOn = on
+	if n := a.song; a.seq != nil {
+		a.Start(n)
+	}
+}
+
+// SID: the songs play on the SID.
+func (a *AdLib) SID() bool { return a.sidOn }
 
 // NewAdLib parses the DAX containers.
 func NewAdLib(d AdLibData) (*AdLib, error) {
@@ -127,7 +152,7 @@ func (a *AdLib) Len() int { return len(a.music) }
 
 // Has: block n holds a song.
 func (a *AdLib) Has(n int) bool {
-	return n > 0 && n < len(a.music) && newSequencer(a.music[n], a.tempo, func(int, byte) {}) != nil
+	return n > 0 && n < len(a.music) && newSequencer(a.music[n], a.tempo, func(int, byte) {}, false) != nil
 }
 func (a *AdLib) Song() int     { return a.song }
 func (a *AdLib) Playing() bool { return a.seq != nil || a.fx != nil }
@@ -148,7 +173,14 @@ func (a *AdLib) Start(n int) {
 	}
 	a.chip = opl2.New()
 	a.rs = opl2.NewResampler(a.chip, adlibRate)
-	a.seq = newSequencer(a.music[n], a.tempo, func(r int, v byte) { a.chip.Write(r, v) })
+	w := func(r int, v byte) { a.chip.Write(r, v) }
+	if a.sidOn {
+		a.sc = sid.New(sid.MOS6581, sidClock, adlibRate)
+		w = func(r int, v byte) { a.sc.Write(byte(r), v) }
+	}
+	if a.seq = newSequencer(a.music[n], a.tempo, w, a.sidOn); a.seq == nil { // a song without SID instruments: the OPL2
+		a.seq = newSequencer(a.music[n], a.tempo, func(r int, v byte) { a.chip.Write(r, v) }, false)
+	}
 	a.song, a.acc = n, 0
 }
 
@@ -173,14 +205,17 @@ func (a *AdLib) Mix(m []byte, loop bool) {
 				if !a.seq.tick() {
 					a.seq.silence()
 					if loop {
-						a.seq = newSequencer(a.music[a.song], a.tempo, a.seq.w)
+						a.seq = newSequencer(a.music[a.song], a.tempo, a.seq.w, a.seq.sid != nil)
 					} else {
 						a.seq = nil
 					}
 					break
 				}
 			}
-			if a.seq != nil {
+			switch {
+			case a.seq != nil && a.seq.sid != nil:
+				v = int(a.sc.ClockSample() * sidGain)
+			case a.seq != nil:
 				v = a.rs.Next()
 			}
 		}

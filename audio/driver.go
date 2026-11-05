@@ -269,6 +269,13 @@ func (d *Driver) SetCard(c int) {
 // Song plays soundtrack song n (0 stops), then song next when n is a
 // one-shot that ends; again restarts n when it is the song playing. False
 // without the soundtrack: the caller falls back to AmigaSong.
+// Do runs f under the driver's lock (a soundtrack change the mixer must not see half done).
+func (d *Driver) Do(f func()) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	f()
+}
+
 func (d *Driver) Song(n, next int, again bool) bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()

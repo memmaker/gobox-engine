@@ -137,6 +137,9 @@ func HostRows(o *Options, rows ...HostRow) map[string][]blobber.Row {
 		}
 		out[r.Page] = append(out[r.Page], b)
 	}
+	if adLib != nil { // the game's AdLib songs: on the AdLib or the SSI-2001's SID
+		out["Audio"] = append(out["Audio"], FlipRow("Music card", 0, &o.SIDMusic, func() string { return Choice(o.SIDMusic, "AdLib", "SSI-2001 (SID)") }))
+	}
 	for page, rs := range OptionRows(o) {
 		out[page] = append(out[page], rs...)
 	}

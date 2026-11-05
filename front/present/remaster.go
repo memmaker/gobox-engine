@@ -187,6 +187,9 @@ type Presenter struct {
 // (zero when it is not on screen: the mouse then points at nothing).
 func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	v = p.own(v)
+	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && p.AdLib.SID() != Host.SIDMusic { // the Music card option
+		d.Do(func() { p.AdLib.SetSID(Host.SIDMusic) })
+	}
 	if f := front.SequenceStep(p, &p.seq, v.Sequence, false); v.Sequence != nil { // the animation: full screen, over everything
 		p.seqMusic(p.seq.Cues)
 		p.shownView = v

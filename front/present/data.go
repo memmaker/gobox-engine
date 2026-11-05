@@ -165,6 +165,7 @@ type Options struct {
 	Zoom          float64 // the battle camera: how far one wheel step zooms, 0.25 to 2 times 15 percent
 	DamageNumbers bool    // the battle: hit points lost float over the heads
 	NoMapZones    bool    // a game may take the minimap and full map away in areas it marks (game.Automap.NoMap)
+	SIDMusic      bool    // the AdLib songs on the Innovation SSI-2001's SID (audio.AdLib.SetSID), where they have its instruments
 	PixelWalls    bool    // the 3D view: the pixel-art walls instead of the hi-def ones (Shift-F12)
 }
 
