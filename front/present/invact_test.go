@@ -101,3 +101,29 @@ func TestTradeAsksOverItems(t *testing.T) {
 		t.Fatal("no member pick over the items")
 	}
 }
+
+// Down walks every item once, readied ones too (they are on the doll and
+// in the list); PgDn moves a page.
+func TestInventoryKeysReachAll(t *testing.T) {
+	gun := front.InvItem{Index: 0, Name: "Gun", Readied: true}
+	pool := []front.InvItem{gun}
+	for i := 1; i < 16; i++ {
+		pool = append(pool, front.InvItem{Index: i, Name: "Knife"})
+	}
+	in := &front.Inventory{Doll: []*front.InvItem{&gun}, Pool: pool}
+	var p Presenter
+	p.inv.view, p.inv.ware, p.inv.sel, p.inv.list.rows = in, -1, 0, 10
+	seen := map[int]bool{}
+	for range 16 {
+		p.inventoryKey(keyOf(input.Down))
+		seen[p.inv.sel] = true
+	}
+	if len(seen) != 16 {
+		t.Fatalf("Down reached %d of 16", len(seen))
+	}
+	p.inv.sel = 0
+	p.inventoryKey(keyOf(input.PgDn))
+	if p.inv.sel != 10 {
+		t.Fatalf("PgDn to %d", p.inv.sel)
+	}
+}

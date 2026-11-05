@@ -15,7 +15,7 @@ import (
 
 // inventoryKey handles a key on the inventory screen: Up/Down, Home/End the
 // items, the member keys the member, Tab (pad Y) the tab, PgUp/PgDn (the
-// shoulders) the menu row's focus, Enter (pad A) the focused word or the
+// shoulders) a page, Enter (pad A) the focused word or the
 // item; false leaves it to the game (F10, ?, Ctrl-F).
 func (p *Presenter) inventoryKey(k uint16) bool {
 	inv := &p.inv
@@ -73,16 +73,22 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		inv.choose(order[0].ware, order[0].i)
 	case a == input.End && len(order) > 0:
 		inv.choose(order[len(order)-1].ware, order[len(order)-1].i)
-	case (a == input.PgUp || a == input.PgDn) && len(inv.words) > 0: // PgUp/PgDn, the pad's shoulders: the menu row's focus, as the battle bar's
-		d, n := 1, len(inv.words)
+	case (a == input.PgUp || a == input.PgDn) && len(order) > 0: // PgUp/PgDn, the pad's shoulders: a page of the highlighted pane
+		pn := &inv.list
+		if inv.ware >= 0 {
+			pn = &inv.wares
+		}
+		sign := 1
 		if a == input.PgUp {
-			d = -1
+			sign = -1
 		}
-		if inv.focus == 0 && d < 0 {
-			inv.focus = n
-		} else {
-			inv.focus = (inv.focus-1+d+n)%n + 1
+		d := sign * max(1, pn.rows)
+		i := max(0, slices.Index(order, pick{inv.ware >= 0, max(inv.ware, inv.sel)}))
+		j := min(max(i+d, 0), len(order)-1)
+		for order[j].ware != order[i].ware { // within the pane
+			j -= sign
 		}
+		inv.choose(order[j].ware, order[j].i)
 	case a == input.Enter && inv.focus > 0:
 		if w := inv.words[inv.focus-1]; w.on {
 			inv.do(w.act)
@@ -122,7 +128,7 @@ func (inv *inventory) order() []pick {
 		order = append(order, pick{true, it.Index})
 	}
 	for _, it := range inv.view.Doll {
-		if it != nil {
+		if it != nil && !slices.ContainsFunc(inv.view.Pool, func(x front.InvItem) bool { return x.Index == it.Index }) { // a readied item in the list is stepped to there, once
 			order = append(order, pick{false, it.Index})
 		}
 	}
