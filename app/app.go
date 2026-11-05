@@ -24,6 +24,9 @@ type Game interface {
 	// key due this frame, 0 for none (ScriptRight, ScriptLeft, ScriptNext,
 	// ScriptWait or a game key code from Capture.Keys).
 	Step(k Key)
+	// Idle: the game waits for input (no fade, pause, walk or rest going
+	// on). A script's next key goes in only then.
+	Idle() bool
 	// Draw draws a frame into dst (device pixels, the whole window).
 	Draw(dst *gpu.Image)
 }
@@ -37,8 +40,9 @@ type Key = uint16
 // nothing.
 const Right, Left, Next, Wait, Hold Key = 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05
 
-// Ticks is the frames between a script's keys: a quarter second at 60 Hz.
-const Ticks = 15
+// Ticks is the least frames between a script's keys: a quarter second at
+// 60 Hz. A key waits on past it until the game is Idle, at most MaxWait.
+const Ticks, MaxWait = 15, 40 * Ticks
 
 // Theme is the game's look of the window.
 type Theme struct {
@@ -119,6 +123,8 @@ func ParseSize(s string) (w, h int, err error) {
 type shell struct {
 	cfg    Config
 	ticks  int // scripted frames
+	fed    int // the script's keys given so far
+	gap    int // frames since the last key
 	frames int // frames saved, Shot with %d
 }
 
@@ -185,21 +191,25 @@ func (s *shell) Update() error {
 }
 
 // done says whether the script's keys have played and settled.
-func (s *shell) done() bool { return s.ticks > Ticks*(len(s.cfg.Capture.Keys)+4) }
+func (s *shell) done() bool {
+	return s.fed == len(s.cfg.Capture.Keys) && s.gap > 4*Ticks && (s.cfg.Game.Idle() || s.gap > MaxWait)
+}
 
 // step is a scripted run's clock, run by Draw once a frame, so a capture is
-// the same frame for frame run to run (ticks and frames interleave
-// differently each run): the game steps once a frame, a key goes in every
-// Ticks frames, and with Freeze time stands still after the keys.
+// the same run to run: the game steps once a frame, and the next key goes
+// in once Ticks frames have passed and the game is Idle (MaxWait at most:
+// a screen that never settles still gets its keys). \w is Ticks frames
+// more. With Freeze time stands still after the keys.
 func (s *shell) step() {
 	c := s.cfg.Capture
 	if c.Freeze && s.done() {
 		return
 	}
 	s.ticks++
+	s.gap++
 	var k Key
-	if n := s.ticks / Ticks; s.ticks%Ticks == 0 && n <= len(c.Keys) {
-		k = c.Keys[n-1]
+	if s.fed < len(c.Keys) && s.gap >= Ticks && (c.Keys[s.fed] == Wait || s.cfg.Game.Idle() || s.gap >= MaxWait) {
+		k, s.fed, s.gap = c.Keys[s.fed], s.fed+1, 0
 	}
 	s.cfg.Game.Step(k)
 }
@@ -217,7 +227,7 @@ func (s *shell) Draw(dst *gpu.Image) {
 		return
 	}
 	if strings.Contains(c.Shot, "%d") { // every frame while the keys play, numbered (to catch a glitch of one frame)
-		if s.ticks > Ticks && s.ticks <= Ticks*(len(c.Keys)+1) {
+		if s.fed > 0 && !s.done() {
 			saveShot(dst, fmt.Sprintf(c.Shot, s.frames))
 			s.frames++
 		}

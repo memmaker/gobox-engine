@@ -139,6 +139,17 @@ func (f *Front) OptionsMouse(x, y int, left, right bool, wheel float64) {
 func (f *Front) PadKeys() []ui.PadKey  { return PadKeys(f.P.CombatPad()) } // the binding table's buttons (bindings.go)
 func (f *Front) PadStick(x, y float64) { f.stale(); f.P.PadStick(x, y) }
 
+// Idle: the front waits for input; nothing goes on with time (a paced
+// fight, rest, story or walk, a timed pause) and the 3D view stands still.
+// A scripted run (-keys) gives its next key only then.
+func (f *Front) Idle() bool {
+	v := f.view()
+	if v.Pace != front.PaceNone && v.Pace != front.PaceAnim || v.Ask != nil && v.Ask.Kind == front.AskPause {
+		return false
+	}
+	return f.P.view == nil || !f.P.view.Moving()
+}
+
 func (f *Front) Free() bool { return f.P.Free(f.view()) }
 func (f *Front) Flow(held uint16, ready bool) (bool, bool) {
 	defer f.stale()

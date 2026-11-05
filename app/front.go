@@ -22,6 +22,7 @@ type Front interface {
 	Key(k Key)      // a key code for the screens
 	Act()           // a tick's end: the game runs on the screens' decisions
 	Tick()          // a scripted frame: the screens' own clock
+	Idle() bool     // the screens wait for input (a script's next key goes in)
 	Draw(dst *gpu.Image)
 
 	// the options page (the renderer's): it has the keyboard and the pads while open
@@ -127,6 +128,8 @@ func (g *frontGame) Update() {
 }
 
 // Step is a scripted frame: the screens tick once a frame, and k is the script's key due now.
+func (g *frontGame) Idle() bool { return g.f.Idle() }
+
 func (g *frontGame) Step(k Key) {
 	g.f.Tick()
 	switch k {

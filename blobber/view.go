@@ -163,6 +163,10 @@ func (v *View) Flow(held, ready bool) bool {
 	return true
 }
 
+// Moving reports whether the view is still stepping or turning (or has
+// moves queued).
+func (v *View) Moving() bool { return v.g != nil && (v.g.moving || len(v.g.next) > 0) }
+
 // Fluid reports whether held keys are paced by Flow.
 func (v *View) Fluid() bool { return Settings.Fluid && v.g.smooth }
 

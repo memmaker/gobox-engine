@@ -30,7 +30,7 @@ import (
 // and starts the profile and the stack dumps.
 func Flags(esc map[byte]Key) func() Capture {
 	shot := flag.String("shot", "", "capture: write the window to FILE.png after -keys and exit (%d: every frame)")
-	keys := flag.String("keys", "", `capture: the keys to play, one every quarter second (\r Enter, \e Escape, \M \C right/left click, \P next -pointer, \w wait ...)`)
+	keys := flag.String("keys", "", `capture: the keys to play, each once the game is idle, a quarter second apart at least (\r Enter, \e Escape, \M \C right/left click, \P next -pointer, \w wait ...)`)
 	freeze := flag.Bool("freeze", false, "capture: time stands still after the keys")
 	quit := flag.Bool("quit", false, "capture: end the run after the keys")
 	slot := flag.String("slot", "", "start from this save slot")
