@@ -324,7 +324,7 @@ func (g *Game) LootStatus() error    { return g.do(game.LootStatus{}) }
 func (g *Game) LootPool() error      { return g.do(game.PoolCoins{Member: g.sel(-1)}) }
 func (g *Game) LootLeave(sure bool) error {
 	err := g.do(game.LootLeave{Sure: sure})
-	if a := g.asked; a != nil && a.Kind == game.YesNo { // the presenter asks it as a Confirm
+	if a := g.asked; a != nil && (a.Kind == game.YesNo || a.Kind == game.Choice) { // the presenter asks it as a Confirm (Silver Blades and Pools of Darkness state it as a Yes/No Choice)
 		g.asked = nil
 		return front.Confirm(a.Prompt)
 	}
