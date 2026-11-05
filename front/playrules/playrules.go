@@ -357,7 +357,7 @@ func (r *rules) State() game.State {
 		}
 		r.walls = s.Walls
 	case play.Camping:
-		s.Mode = game.ModeCamp
+		s.Mode, s.Walls = game.ModeCamp, r.walls // camp is a menu over the 3D view last explored
 		s.RestHeals, s.RestStudies = t.Heals, t.Study > 0 // the rules' say, not whether resting is allowed
 	case play.Fighting:
 		s.Mode, s.Combat = game.ModeCombat, r.combat(t)
@@ -431,9 +431,9 @@ func (r *rules) State() game.State {
 		s.Mode, s.Screen = game.ModeStory, &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: &f, ShipSheet: t.Sheet}
 	}
 	switch ps.(type) {
-	case play.Exploring, play.Scene:
+	case play.Exploring, play.Scene, play.Camping:
 	default:
-		r.walls = nil // a fight, camp, the party menu: no 3D view to go back to
+		r.walls = nil // a fight, the party menu: no 3D view to go back to
 	}
 	s.Holding = holding(ps)
 	if s.Pacing == nil {

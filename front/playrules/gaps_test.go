@@ -229,3 +229,14 @@ func TestCampCard(t *testing.T) {
 		t.Fatalf("cards %s, want %s", got, want)
 	}
 }
+
+// TestCampKeepsView: camp is a menu over the 3D view last explored.
+func TestCampKeepsView(t *testing.T) {
+	f := &fake{st: play.Exploring{Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{}}}}}}}
+	r := New(f, game.Data{})
+	r.State()
+	f.st = play.Camping{}
+	if r.State().Walls == nil {
+		t.Fatal("camp lost the 3D view")
+	}
+}
