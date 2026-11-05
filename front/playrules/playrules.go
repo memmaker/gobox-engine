@@ -156,7 +156,7 @@ func (r *rules) asked(ps play.State) *game.Ask {
 		}
 		return &game.Ask{Kind: game.Direction, Prompt: p, Options: []game.Option{{Label: "Done", Key: 'D', Do: game.Leave{}}}}
 	case sc.Typed:
-		return &game.Ask{Kind: game.Name, Max: cmp.Or(sc.Max, 40), Default: sc.Default}
+		return &game.Ask{Kind: game.Name, Prompt: c.Status, Max: cmp.Or(sc.Max, 40), Default: sc.Default}
 	case len(sc.Replies) > 0:
 		return &game.Ask{Kind: game.Choice, Prompt: c.Status, Default: sc.Default, Options: r.options(sc.Replies, c.Status != "" || sc.Kind == play.SceneScreen)} // a screen's or the roster's pick is a list; a menu over the view keeps its keys
 	}
