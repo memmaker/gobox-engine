@@ -1401,5 +1401,5 @@ func (r *rules) ownSaves() []game.SaveSlot {
 	return out
 }
 
-// exitLabel are the list entries that leave a pick; they keep a key under NoHotkeys.
-var exitLabel = map[string]bool{"done": true, "exit": true, "leave": true}
+// exitLabel are the list entries that leave or page a pick; they keep a key under NoHotkeys.
+var exitLabel = map[string]bool{"done": true, "exit": true, "leave": true, "prev": true, "next": true}

@@ -139,9 +139,9 @@ func TestParity(t *testing.T) {
 			}},
 		{"team menu keys under NoHotkeys", play.Assembling{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.NewCharacter{}}}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'C' }},
-		{"list Done keeps its key", play.Scene{Replies: []string{"Agility", "Done"}}, game.Data{NoHotkeys: true}, nil, nil,
+		{"list Done keeps its key", play.Scene{Replies: []string{"Agility", "Next", "Done"}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool {
-				return s.Pending.Options[0].Key == 0 && s.Pending.Options[1].Key == 'D'
+				return s.Pending.Options[0].Key == 0 && s.Pending.Options[1].Key == 'N' && s.Pending.Options[2].Key == 'D'
 			}},
 		{"roster pick prompt", play.Scene{Replies: []string{"Wilma", "Buck"}, Common: play.Common{Status: "Add a character: "}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool {
