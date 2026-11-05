@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"cmp"
 	"gobox/front"
 	"gobox/game"
 )
@@ -24,6 +25,9 @@ func Ask(s game.State) (*front.Ask, bool) {
 		return nil, false
 	}
 	q := &front.Ask{Kind: k, Menu: front.Menu{Prompt: a.Prompt}, Max: a.Max, Default: a.Default, Break: a.Break, Yes: a.Yes, Text: a.Typed, View: a.View}
+	if k == front.AskConfirm && q.Prompt == "" { // the question is in the message: the yes/no still needs a line to be drawn (present.confirm)
+		q.Prompt = cmp.Or(a.Text, "Yes or no?")
+	}
 	if a.Kind == game.Continue && a.Ms > 0 { // a timed pause; Ms 0: a message to acknowledge
 		q.Kind, q.Ms = front.AskPause, a.Ms
 	}
@@ -42,8 +46,8 @@ func Ask(s game.State) (*front.Ask, bool) {
 	return q, true
 }
 
-// overMenu: the game keeps ModeExplore under a menu it opens over the 3D
+// overMenu: the game keeps ModeExplore under a menu or yes/no it opens over the 3D
 // view (camp's): the menu is up, not the exploring.
 func overMenu(s game.State) bool {
-	return s.Mode == game.ModeExplore && s.Pending != nil && s.Pending.Kind == game.Choice
+	return s.Mode == game.ModeExplore && s.Pending != nil && (s.Pending.Kind == game.Choice || s.Pending.Kind == game.YesNo)
 }

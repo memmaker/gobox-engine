@@ -29,3 +29,11 @@ func TestInventoryListsReadied(t *testing.T) {
 		t.Fatalf("doll %v pool %+v", in.Doll[0], in.Pool)
 	}
 }
+
+// A yes/no over the 3D view with its question in the message is still asked.
+func TestYesNoOverExplore(t *testing.T) {
+	q, ok := Ask(game.State{Mode: game.ModeExplore, Pending: &game.Ask{Kind: game.YesNo}})
+	if !ok || q == nil || q.Kind != front.AskConfirm || q.Prompt == "" {
+		t.Fatalf("%+v", q)
+	}
+}
