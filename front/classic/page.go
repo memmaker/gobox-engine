@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"image"
 	"image/color"
 
 	"gobox/ega"
@@ -50,5 +51,24 @@ func Page(v front.View, s game.State) front.View {
 		f.Frames, f.FrameMs = l.Frames, l.FrameMs
 		v.Pictures = append(v.Pictures, f)
 	}
+	if len(p.Layers) == 0 {
+		v.Pictures = append(v.Pictures, story(s.Story)...)
+	}
 	return v
+}
+
+// story is a script portrait in the view window: the HEAD at cells 3,3, the
+// BODY five rows below (the Gold Box's ShowPortrait); other pictures stack on.
+func story(pics []game.Picture) []front.Picture {
+	var r []front.Picture
+	y := 24
+	for i, pc := range pics {
+		h := []int{40, 48}[min(i, 1)]
+		f := pix(pc)
+		f.File, f.Block, f.Frame = pc.File, pc.Block, pc.Frame
+		f.At = image.Rect(24, y, 24+88, y+h)
+		r = append(r, f)
+		y += h
+	}
+	return r
 }
