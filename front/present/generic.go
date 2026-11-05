@@ -78,7 +78,7 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 		defer func() { p.menuFloor = 0 }()
 	}
 	p.drawPageMenu(dst, note, v)
-	if m := askMenu(v); m != nil && len(m.Items) == 1 && !choosing(v) && typing(v) == nil && askList(v) == nil { // "press Enter": nothing to pick, the prompt alone above the text
+	if m := askMenu(v); m != nil && len(m.Items) == 1 && !choosing(v) && typing(v) == nil && askList(v) == nil && (strings.TrimSpace(m.Prompt) != "" || len(art) == 0 && th == 0) { // "press Enter": nothing to pick, the prompt alone above the text; a bare "press Enter" not over a page's picture or text (as over the 3D view)
 		mk := math.Max(1, math.Floor(k))
 		text := strings.TrimSpace(m.Prompt)
 		if text == "" {
