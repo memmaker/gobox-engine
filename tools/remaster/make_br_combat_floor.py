@@ -6,7 +6,11 @@ Reads the original DOS tiles from git (commit ORIG, so reruns are idempotent) an
   -> the panel;
 - separable object (lotek walls/props on flat grey, hitek props on hatch): its contiguous blobs
   (8-connected, >= MIN_BLOB px, holes filled) are pasted whole over the panel, stray pixels dropped;
-- everything else (hitek walls, the hitek floor grates 45-48) -> the original tile untouched.
+- hitek 45 (the port's plain floor, hatch plus a small grate) -> the panel;
+- hitek floor grates 46-48 -> the panel plus every pixel that differs from the bare hatch;
+- hitek walls -> each pixel equal to the bare hatch at the same (x, y) (tile 45's pattern and phase,
+  minus its small grate patch, whose black would otherwise eat wall black) becomes the panel pixel;
+  hatch-line black touching off-line black (inside wall black) and all other pixels stay original.
 
     python3 tools/remaster/make_br_combat_floor.py
 """
@@ -18,7 +22,8 @@ DIR = 'sprites/series/buck-rogers/combat'
 ORIG = '7a6aa23'
 PANEL = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'br_combat_floor_panel.png')
 SETS = {'hitek': 53, 'lotek': 52}
-HITEK_PROPS = range(35, 45)  # consoles, chairs, machines standing on the hatch
+HITEK_PROPS = range(35, 45)
+HITEK_FLOOR, HITEK_GRATES = 45, range(46, 49)  # consoles, chairs, machines standing on the hatch
 GREY = (82, 82, 82)
 MIN_BLOB = 12
 N8 = [(dx, dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1) if dx or dy]
@@ -60,11 +65,32 @@ def object_mask(s, im):
     return keep
 
 
+def in_black(s, im, p):
+    """Whether a 4-neighbour off the hatch lines is black (only wall art is black there)."""
+    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        x, y = p[0] + dx, p[1] + dy
+        if 0 <= x < 24 and 0 <= y < 24 and old_floor(s, x, y) != (0, 0, 0) and im.getpixel((x, y)) == (0, 0, 0):
+            return True
+    return False
+
+
 def tile(s, t, im, panel):
+    if (s, t) == ('hitek', HITEK_FLOOR):
+        return panel.copy(), 'floor'
     if all(im.getpixel((x, y)) == old_floor(s, x, y) for y in range(24) for x in range(24)):
         return panel.copy(), 'floor'
+    if s == 'hitek' and t in HITEK_GRATES:
+        out = panel.copy()
+        for p in [(x, y) for y in range(24) for x in range(24) if im.getpixel((x, y)) != old_floor(s, x, y)]:
+            out.putpixel(p, im.getpixel(p))
+        return out, 'grate'
     if s == 'hitek' and t not in HITEK_PROPS:
-        return im, 'original'
+        out = im.copy()
+        for p in [(x, y) for y in range(24) for x in range(24) if im.getpixel((x, y)) == old_floor(s, x, y)]:
+            if im.getpixel(p) == (0, 0, 0) and in_black(s, im, p):
+                continue  # a hatch-line pixel inside a black wall area is wall black
+            out.putpixel(p, panel.getpixel(p))
+        return out, 'wall'
     out = panel.copy()
     for p in object_mask(s, im):
         out.putpixel(p, im.getpixel(p))
