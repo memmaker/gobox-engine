@@ -154,7 +154,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	inv.facePNG = nil
 	if shop {
 		inv.drawTabs(&inv.wares, lx, busy)
-		inv.drawPane(&inv.wares, inv.wares.shown(in.Wares), inv.ware, true, true, busy, lx, (split-1)*8, bottom)
+		inv.drawPane(&inv.wares, inv.wares.shown(in.Wares), inv.ware, true, !in.Loot, busy, lx, (split-1)*8, bottom) // the loot has no prices; a shop's goods do
 	} else {
 		inv.wares.tabs = [len(tabNames)]image.Rectangle{} // no shop: no tabs to click
 		p.drawMember(in, v, lx, lw, bottom, busy)
