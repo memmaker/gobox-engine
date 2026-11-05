@@ -221,7 +221,7 @@ var daxMask map[string]int // Data.DaxMask
 func gameData(g game.Data) {
 	gameArt, gameID, daxMask = g.Art, g.ID, g.DaxMask
 	sequences, filesDir = g.Sequences, g.Files
-	classic.GameID = g.ID
+	classic.GameID, classic.Amiga = g.ID, func() bool { return daxLoader.Amiga() }
 	if g.Series != "" {
 		series = g.Series
 	}

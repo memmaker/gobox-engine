@@ -15,7 +15,7 @@ import (
 // or no original numbers.
 func BodyTiles(s game.State) (names []string, blocks []int) {
 	m := subject(s)
-	o := iconOrigins()[GameID]
+	o := gameOrigins()
 	if m.IconHeadID != "" || m.Icon == nil || o == nil {
 		return nil, nil
 	}

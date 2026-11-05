@@ -99,10 +99,21 @@ func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front
 // icon numbers to pool names when it has no pool ids (old saves, imports).
 var GameID string
 
+// Amiga reports whether the Amiga art shows now (F12): icons then come from <GameID>-amiga only.
+var Amiga = func() bool { return false }
+
 // Series is game.Data.Series, the asset series whose shared pool the members' ids name ("pool" when unset).
 var Series = "pool"
 
 var iconOrigins = sync.OnceValue(sprites.Origins)
+
+// gameOrigins is the shown art's origins: <GameID>-amiga under F12's Amiga art, never the DOS set.
+func gameOrigins() map[string]map[string]string {
+	if Amiga() {
+		return iconOrigins()[GameID+"-amiga"]
+	}
+	return iconOrigins()[GameID]
+}
 
 // memberIcon is m's combat icon head and body pool names: its pool ids, else
 // its original CHEAD and CBODY numbers (Icon "head", "body") through origins.json.
@@ -110,7 +121,7 @@ func memberIcon(m game.Member) (head, body string) {
 	if m.IconHeadID != "" {
 		return m.IconHeadID, m.IconBodyID
 	}
-	o := iconOrigins()[GameID]
+	o := gameOrigins()
 	if o == nil || m.Icon == nil {
 		return "", ""
 	}
