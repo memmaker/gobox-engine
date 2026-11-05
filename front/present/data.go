@@ -137,6 +137,7 @@ func SetData(d Data) {
 		daxLoader.UseAmiga(filepath.Join(filepath.Dir(daxLoader.Dir), "amiga"))
 		daxLoader.SetDOS(true)
 	}
+	classic.AmigaArt = daxLoader.Amiga // the members' pool portraits and icons follow F12 too
 	if art == nil {
 		art = fstest.MapFS{} // no remastered maps: every area falls back to its original view
 	}

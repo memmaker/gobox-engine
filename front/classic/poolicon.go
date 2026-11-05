@@ -33,7 +33,7 @@ func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front
 				name = p
 			}
 		}
-		im, _ := sprites.Image(Series, "combat", name).(*image.Paletted)
+		im, _ := poolImage("combat", name).(*image.Paletted)
 		return im
 	}
 	h, b := load(head), load(body)

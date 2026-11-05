@@ -6,14 +6,13 @@ import (
 
 	"gobox/front"
 	"gobox/game"
-	"gobox/sprites"
 )
 
 // poolID is the pool portrait of head and body names (nil if either is
 // missing): the head over the body, as the creation sheet stacks its Head
 // and Body boxes (88x40 over 88x48).
 func poolID(kind, head, body string) image.Image {
-	hi, bi := sprites.Image(Series, kind, head), sprites.Image(Series, kind, body)
+	hi, bi := poolImage(kind, head), poolImage(kind, body)
 	if hi == nil || bi == nil {
 		return nil
 	}
@@ -31,7 +30,7 @@ func PoolPortrait(v front.View, s game.State) front.View {
 	if cr == nil || m.PortraitHeadID == "" || m.PortraitBodyID == "" {
 		return v
 	}
-	head, body := sprites.Image(Series, "portraits", m.PortraitHeadID), sprites.Image(Series, "portraits", m.PortraitBodyID)
+	head, body := poolImage("portraits", m.PortraitHeadID), poolImage("portraits", m.PortraitBodyID)
 	if head == nil || body == nil {
 		return v
 	}
