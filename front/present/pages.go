@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"math"
 	"slices"
 	"strconv"
 )
@@ -278,12 +277,33 @@ func (c *cellPage) texts(v front.View) {
 			}
 		}
 		// The rows spread from the original's 1..y2 over 1..rows-6 (a blank
-		// row, the remaster's two, the frame below), never closer than its
-		// own; the block centred across.
-		f := max(1, float64(c.rows-7)/float64(max(1, y2-1)))
+		// row, the remaster's two, the frame below): only its blank rows
+		// grow, so lines under one another stay together (a spread of every
+		// row tore groups apart); the block centred across.
+		used := map[int]bool{}
+		for _, l := range page {
+			used[l.Y] = true
+		}
+		var blanks []int
+		for y := 1; y < y2; y++ {
+			if !used[y] {
+				blanks = append(blanks, y)
+			}
+		}
+		extra := max(0, c.rows-7-(y2-1))
+		grow := map[int]int{} // the rows each blank row adds, the extra shared out evenly
+		for i, y := range blanks {
+			grow[y] = extra*(i+1)/len(blanks) - extra*i/len(blanks)
+		}
 		dx := max(0, (c.cols-(x2-x1))/2) - x1
 		for _, l := range page {
-			c.str(l.X+dx, 1+int(math.Round(float64(l.Y-1)*f)), l.Colour, l.Text)
+			y := l.Y
+			for _, b := range blanks {
+				if b < l.Y {
+					y += grow[b]
+				}
+			}
+			c.str(l.X+dx, y, l.Colour, l.Text) // a row above 1 (a title on the frame's top edge) stays where it is
 		}
 		if c.rows-6 > y2 { // on a page taller than the original's
 			for i, s := range remasterCredit {
