@@ -33,7 +33,7 @@ var engineKinds = func() map[combat.Kind]front.ActKind {
 func (p *Presenter) syncBattle() {
 	p.battle.Theme, p.battle.Shift = combat.DefaultTheme, gpu.IsKeyPressed(gpu.KeyShift)
 	p.battle.Theme.Series = series
-	p.battle.Meshes = sprites.Meshes(series)
+	p.battle.Meshes, p.battle.Props = sprites.Meshes(series), sprites.Combat(series)
 }
 
 // toAction is what the player chose as the engine's action.

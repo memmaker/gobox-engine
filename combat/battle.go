@@ -27,6 +27,8 @@ type Presenter struct {
 	Icons                      map[Kind]image.Image // a button's icon by action (the game's art; without one the hotkey letter shows); the weapon in hand on Attack, what Ranged shoots
 	IconKey                    string               // names them, so the bar redraws when they change
 	Meshes                     fs.FS                // <name>.gltf and its PNG for the tiles that have a 3D model (nil: none)
+	Props                      fs.FS                // the series' combat directory: props.json says how its tiles draw (nil: all inferred)
+	props                      *propSet             // from Props, for the names
 	white, atlas, shadow, wood *gpu.Image
 	tiles                      [256]image.Image // the tiles the atlas holds
 	empty                      [256]bool        // tiles with nothing on the ground
@@ -516,6 +518,7 @@ func (p *Presenter) sync(b *Board) {
 	if !slices.Equal(b.TileNames, p.names) {
 		p.names, changed = slices.Clone(b.TileNames), true
 		p.meshOf = [256]*tileMesh{}
+		p.props = readProps(p.Props, p.names)
 		for i, n := range p.names {
 			if i < len(p.meshOf) {
 				p.meshOf[i] = p.tileMesh(n)
@@ -541,7 +544,7 @@ func (p *Presenter) sync(b *Board) {
 		g, count, under := p.ground, map[int]int{}, -1
 		for z := range g {
 			for _, s := range g[z] {
-				if b.FloorTile == nil && p.modelAt(s) == nil && !s.Wall && kindOf(s, p.walls, empty, cut) == flat {
+				if b.FloorTile == nil && p.modelAt(s) == nil && !s.Wall && kindOf(s, p.walls, empty, cut, p.props) == flat {
 					count[s.Tile]++
 					if under < 0 || count[s.Tile] > count[under] {
 						under = s.Tile
@@ -556,8 +559,8 @@ func (p *Presenter) sync(b *Board) {
 				}
 			}
 		}
-		p.board = gpu.NewMesh(append(mapMesh(&g, p.walls, empty, cut, p.tiles[:]), boardSides()...))
-		p.shadows = gpu.NewMesh(standShadows(&g, p.walls, empty, cut))
+		p.board = gpu.NewMesh(append(mapMesh(&g, p.walls, empty, cut, p.tiles[:], p.props), boardSides()...))
+		p.shadows = gpu.NewMesh(standShadows(&g, p.walls, empty, cut, p.props))
 	}
 }
 

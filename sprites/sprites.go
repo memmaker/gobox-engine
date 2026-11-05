@@ -50,6 +50,12 @@ func Meshes(series string) fs.FS {
 	return f
 }
 
+// Combat is the series' combat directory: props.json says how its tiles draw (see combat.Presenter.Props).
+func Combat(series string) fs.FS {
+	f, _ := fs.Sub(fsys, "series/"+series+"/combat")
+	return f
+}
+
 // Names lists the sprite names of a series' kind, sorted.
 func Names(series, kind string) []string {
 	es, _ := fsys.ReadDir("series/" + series + "/" + kind)

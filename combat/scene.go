@@ -3,7 +3,9 @@ package combat
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"math"
+	"slices"
 
 	"gobox/gpu"
 )
@@ -33,8 +35,9 @@ const (
 // blocks (their pieces only draw the block in the original's perspective,
 // so other dungeon squares are floor); outdoors, what blocks sight stands
 // up, so does a sprite that blocks movement (a log: a tile with see-through
-// texels, unlike water), and the rest lies flat.
-func kindOf(s Square, walls int, empty, cut func(int) bool) kind {
+// texels, unlike water), and the rest lies flat. A tile props.json lists
+// says which itself: extrude stands, flat lies.
+func kindOf(s Square, walls int, empty, cut func(int) bool, ps *propSet) kind {
 	switch {
 	case walls > 0 && s.Tile < walls:
 		if s.Wall {
@@ -43,31 +46,44 @@ func kindOf(s Square, walls int, empty, cut func(int) bool) kind {
 		return plain
 	case empty(s.Tile):
 		return plain
+	case ps.modeOf(s.Tile) == "extrude":
+		return stand
+	case ps.modeOf(s.Tile) == "flat":
+		return flat
 	case s.Wall && (s.Height > 0 || cut(s.Tile)):
 		return stand
 	}
 	return flat
 }
 
-// mapMesh builds the whole map as one mesh over the atlas: the floor with
-// corner occlusion, the blocks, and the outdoor things. A thing two tiles
-// tall in the original's perspective (a tree: crown over trunk) stands as
-// one on the blocked square, the crown on top of the trunk.
-func mapMesh(g *[25][50]Square, walls int, empty, cut func(int) bool, tiles []image.Image) []gpu.MeshVertex {
-	kinds := [25][50]kind{}
+// layout is every square's kind, and the trunk tile under each standing
+// crown, +1 (0: none); a trunk's square is plain floor. A crown with listed
+// trunks takes whichever is south of it; any other stands on a trunk only
+// when it is tall (Height > 0) and a flat sprite lies south.
+func layout(g *[25][50]Square, walls int, empty, cut func(int) bool, ps *propSet) (kinds [25][50]kind, foot [25][50]int) {
 	for z := range g {
 		for x := range g[z] {
-			kinds[z][x] = kindOf(g[z][x], walls, empty, cut)
+			kinds[z][x] = kindOf(g[z][x], walls, empty, cut, ps)
 		}
 	}
-	foot := [25][50]int{} // the trunk tile under a standing crown, +1 (0: none)
 	for z := range 24 {
 		for x := range 50 {
-			if t := g[z+1][x].Tile; kinds[z][x] == stand && g[z][x].Height > 0 && kinds[z+1][x] == flat && cut(t) {
+			t, tr := g[z+1][x].Tile, ps.trunkOf(g[z][x].Tile)
+			if kinds[z][x] == stand && (tr != nil && slices.Contains(tr, t) ||
+				tr == nil && g[z][x].Height > 0 && kinds[z+1][x] == flat && cut(t)) {
 				foot[z][x], kinds[z+1][x] = t+1, plain
 			}
 		}
 	}
+	return
+}
+
+// mapMesh builds the whole map as one mesh over the atlas: the floor with
+// corner occlusion, the blocks, and the outdoor things. A thing two tiles
+// tall in the original's perspective (a tree: crown over trunk) stands as
+// one on the blocked square, the crown on top of the trunk.
+func mapMesh(g *[25][50]Square, walls int, empty, cut func(int) bool, tiles []image.Image, ps *propSet) []gpu.MeshVertex {
+	kinds, foot := layout(g, walls, empty, cut, ps)
 	upright := func(vs []gpu.MeshVertex, t int, fx, fy, fz float32) []gpu.MeshVertex {
 		uv := tileUV(t)
 		u0, v0, du, dv := uv[3][0], uv[3][1], uv[1][0]-uv[3][0], uv[1][1]-uv[3][1]
@@ -106,8 +122,7 @@ func mapMesh(g *[25][50]Square, walls int, empty, cut func(int) bool, tiles []im
 			case stand:
 				// sunk by the clear rows under the lowest opaque texel, so it stands on the floor
 				if f := foot[z][x]; f > 0 {
-					d := -gap(tiles[f-1])
-					vs = upright(upright(vs, f-1, fx, d, fz), g[z][x].Tile, fx, 1+d, fz)
+					vs = append(vs, stacked(tiles[g[z][x].Tile], tiles[f-1], tileUV(g[z][x].Tile), tileUV(f-1), fx, fz)...)
 				} else {
 					vs = upright(vs, g[z][x].Tile, fx, -gap(tiles[g[z][x].Tile]), fz)
 				}
@@ -131,6 +146,43 @@ func mapMesh(g *[25][50]Square, walls int, empty, cut func(int) bool, tiles []im
 		}
 	}
 	return vs
+}
+
+// stacked is a crown over its trunk as one picture (24x48), extruded once
+// and standing on the square at (fx, fz), sunk by the trunk's clear rows.
+// The picture is not in the atlas as one, so each half takes its own tile's
+// texels (crown and trunk uv: tileUV): the front and back quads are cut at
+// the seam (Y = 0 of the slab); the side faces sample one texel, in a half.
+func stacked(crown, trunk image.Image, cuv, tuv [4][2]float32, fx, fz float32) []gpu.MeshVertex {
+	pic := image.NewRGBA(image.Rect(0, 0, tilePx, 2*tilePx))
+	draw.Draw(pic, image.Rect(0, 0, tilePx, tilePx), crown, crown.Bounds().Min, draw.Src)
+	draw.Draw(pic, image.Rect(0, tilePx, tilePx, 2*tilePx), trunk, trunk.Bounds().Min, draw.Src)
+	vs := extrude(pic, 2*tilePx) // twice as thick a texel's worth: scaled by 2 below it is the single sprite's
+	d := -gap(trunk)
+	put := func(v gpu.MeshVertex, top bool) gpu.MeshVertex { // into its half's tile, onto the square
+		uv, w := tuv, v.V*2-1
+		if top {
+			uv, w = cuv, v.V*2
+		}
+		v.U, v.V = uv[3][0]+v.U*(uv[1][0]-uv[3][0]), uv[3][1]+w*(uv[1][1]-uv[3][1])
+		v.X, v.Y, v.Z = 2*v.X+fx+.5, 2*v.Y+1+d, 2*v.Z+fz+.5
+		return v
+	}
+	var out []gpu.MeshVertex
+	for _, q := range [2][]gpu.MeshVertex{vs[:6], vs[6:12]} { // front, back: cut at the seam
+		a, b, c, e := q[0], q[1], q[2], q[5]
+		m, n := a, b
+		m.Y, m.V, n.Y, n.V = 0, .5, 0, .5
+		for k, h := range [2][4]gpu.MeshVertex{{a, b, n, m}, {m, n, c, e}} {
+			for _, i := range [6]int{0, 1, 2, 0, 2, 3} {
+				out = append(out, put(h[i], k == 1))
+			}
+		}
+	}
+	for _, v := range vs[12:] {
+		out = append(out, put(v, v.V < .5))
+	}
+	return out
 }
 
 // gap is the height of the clear rows under a sprite's lowest opaque

@@ -14,19 +14,19 @@ func TestMapMesh(t *testing.T) {
 	g[5][5], g[5][6] = Square{Tile: 1, Wall: true}, Square{Tile: 2, Wall: true}
 	g[9][9].Tile = 4 // a dungeon piece on a walkable square: floor
 	none := func(int) bool { return false }
-	vs := mapMesh(&g, 25, none, none, nil)
+	vs := mapMesh(&g, 25, none, none, nil, nil)
 	// 1248 floors + two blocks: 2 tops, 6 outer sides (the shared side is gone)
 	if got, want := len(vs), (1248+2+6)*6; got != want {
 		t.Fatalf("%d vertices, want %d", got, want)
 	}
-	if k := kindOf(Square{Tile: 30, Wall: true, Height: 2}, 0, none, none); k != stand {
+	if k := kindOf(Square{Tile: 30, Wall: true, Height: 2}, 0, none, none, nil); k != stand {
 		t.Errorf("outdoor sight blocker is %v, want stand", k)
 	}
-	if k := kindOf(Square{Tile: 30, Wall: true}, 0, none, none); k != flat {
+	if k := kindOf(Square{Tile: 30, Wall: true}, 0, none, none, nil); k != flat {
 		t.Errorf("water is %v, want flat", k)
 	}
 	all := func(int) bool { return true }
-	if k := kindOf(Square{Tile: 30, Wall: true}, 0, none, all); k != stand {
+	if k := kindOf(Square{Tile: 30, Wall: true}, 0, none, all, nil); k != stand {
 		t.Errorf("a log is %v, want stand", k)
 	}
 	// a tree: the crown stands on the blocked square, the trunk below it joins it
@@ -39,7 +39,7 @@ func TestMapMesh(t *testing.T) {
 	tiles[1].(*image.RGBA).Pix[3] = 255                                          // one opaque texel at the crown's top
 	tiles[2].(*image.RGBA).Pix[(tilePx-1)*tiles[2].(*image.RGBA).Stride+3] = 255 // and the trunk's foot
 	top := float32(0)
-	for _, v := range mapMesh(&o, 0, none, all, tiles) {
+	for _, v := range mapMesh(&o, 0, none, all, tiles, nil) {
 		top = max(top, v.Y)
 	}
 	if top < 1.5 {
