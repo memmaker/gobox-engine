@@ -75,9 +75,9 @@ type (
 	}
 	Unmark struct{ At image.Point }
 	WalkTo struct{ At image.Point }
-	// Speak voices the speech clip Key (a journal page's paragraph); no Key
-	// silences the voice.
-	Speak struct{ Key string }
+	// Speak voices a journal page: its speech clips Keys, in order, in place
+	// of what is being voiced (none: silence).
+	Speak struct{ Keys []string }
 	// The title sequence (State.Intro): picture step N, the credits, the
 	// lightning's palette colour C, and its end.
 	TitlePicture struct{ N int }

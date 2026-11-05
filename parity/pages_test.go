@@ -66,7 +66,7 @@ type speakSpy struct {
 
 func (s *speakSpy) Apply(d game.Decision) game.Result {
 	if k, ok := d.(game.Speak); ok {
-		s.keys = append(s.keys, k.Key)
+		s.keys = append(s.keys, k.Keys...)
 	}
 	return s.Rules.Apply(d)
 }
