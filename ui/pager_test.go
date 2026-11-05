@@ -45,3 +45,15 @@ func TestHelpPages(t *testing.T) {
 		t.Fatal("no page")
 	}
 }
+
+type tinyScroll struct{}
+
+func (tinyScroll) Page(p, off int) (int, int, int, bool) { return p, 2, 2, true }
+
+func TestPagerTinyScrollTurns(t *testing.T) {
+	var pg Pager
+	pg.Turn(tinyScroll{}, 1)
+	if pg.P != 1 || pg.Off != 0 {
+		t.Fatalf("pager %+v", pg)
+	}
+}

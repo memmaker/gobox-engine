@@ -25,6 +25,9 @@ func (pg *Pager) Turn(src PageSource, d int) (closed bool) {
 	if !ok {
 		return false
 	}
+	if maxOff < ScrollStep { // a picture a few pixels too tall pages like a short one
+		maxOff = 0
+	}
 	switch {
 	case maxOff > 0 && d < 0 && pg.Off > 0: // at the top, Up pages back
 		pg.Off = max(pg.Off-ScrollStep, 0)
