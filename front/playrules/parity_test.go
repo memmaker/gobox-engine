@@ -144,7 +144,15 @@ func TestParity(t *testing.T) {
 				return s.Pending.Options[0].Key == 0 && s.Pending.Options[1].Key == 'N' && s.Pending.Options[2].Key == 'D'
 			}},
 		{"menu over the view keeps keys", play.Scene{Kind: play.SceneTalk, Replies: []string{"Move", "Save"}}, game.Data{NoHotkeys: true}, nil, nil,
-			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'M' && s.Pending.Options[1].Key == 'S' }},
+			func(s game.State, _ game.Result) bool {
+				return s.Pending.Options[0].Key == 'M' && s.Pending.Options[1].Key == 'S'
+			}},
+		{"question pick is a list under NoHotkeys", play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"* BAR", "CLINIC"}}}}, game.Data{NoHotkeys: true}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				return s.Pending.Options[0].Key == 0 && s.Pending.Options[1].Key == 0
+			}},
+		{"marks are no key", play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"* BAR"}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'B' }},
 		{"roster pick prompt", play.Scene{Replies: []string{"Wilma", "Buck"}, Common: play.Common{Status: "Add a character: "}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Prompt == "Add a character: " && s.Pending.Options[0].Key == 0

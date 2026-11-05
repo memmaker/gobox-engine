@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"gobox/game"
 	"gobox/game/play"
@@ -134,7 +135,7 @@ func (r *rules) asked(ps play.State) *game.Ask {
 	}
 	c := commonOf(ps)
 	if q := c.Ask; q != nil {
-		return r.question(q, false)
+		return r.question(q, !q.YesNo) // a pick over the view is a list where the series' lists are (NoHotkeys)
 	}
 	if a, ok := ps.(play.Assembling); ok {
 		if d := a.Draft; d != nil {
@@ -242,6 +243,9 @@ func (r *rules) partyMenu(a play.Assembling) *game.Ask {
 // when used already (a clash never happens).
 func key(s string, used map[rune]bool) rune {
 	for _, c := range strings.ToUpper(s) {
+		if !unicode.IsLetter(c) && !unicode.IsDigit(c) {
+			continue // a mark such as "* FLAVIUS" is no key
+		}
 		if used[c] {
 			return 0
 		}
