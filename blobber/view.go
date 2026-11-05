@@ -156,7 +156,7 @@ func (v *View) Flow(held, ready bool) bool {
 		g.asked = false
 		return false
 	}
-	if !ready || !Settings.Fluid || !g.smooth || g.asked || len(g.next) > 0 || !g.moving || g.t < 0.5 {
+	if !ready || !Settings.Fluid || !g.smooth || g.asked || len(g.next) > 0 || g.moving && g.t < 0.5 { // idle (a fast step ended before the key counted as held): ask now
 		return false
 	}
 	g.asked = true
