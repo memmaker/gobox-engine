@@ -44,6 +44,7 @@ type AreaMap struct {
 type Battle struct {
 	Ground    [25][50]Square
 	Tiles     []image.Image // the tile set by tile number, in combat's colours
+	FloorImg  image.Image   // the plain floor's picture, tiled on every floor square (nil: Floor's colour)
 	TileNames []string      // Tiles' sprite names ("": none); a tile named so may have a 3D model
 	TilePix   []Picture     // Tiles as the game's pixels in View.Ink, or DAX refs (File, Block, Frame), the presenter's to make into Tiles
 	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here); used where Icon is nil

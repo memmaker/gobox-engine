@@ -19,6 +19,9 @@ func TestBattleOfRefs(t *testing.T) {
 	if b.TilePix[1].Img == nil {
 		t.Error("tile not read from the series sprites")
 	}
+	if b.FloorImg != nil {
+		t.Error("a floor image with no FloorTile")
+	}
 	if p := b.IconPix[0]; p.File != "CPIC1" || p.Block != 23 {
 		t.Errorf("icon ref lost: %+v", p)
 	}
@@ -33,5 +36,14 @@ func TestBattleOfGone(t *testing.T) {
 	}
 	if o := Battle(b, game.State{Combat: &game.Combat{Units: []game.Unit{{ID: 1}, {ID: 2}, {ID: 3, Gone: true}}}}); len(o.Units) != 1 || len(o.IconPix) != 1 {
 		t.Errorf("Battle kept a gone unit: %+v", o.Units)
+	}
+}
+
+// FloorTile names a series combat sprite, which the board tiles as its floor.
+func TestBattleOfFloorTile(t *testing.T) {
+	Series = "buck-rogers"
+	defer func() { Series = "pool" }()
+	if b := BattleOf(game.State{Combat: &game.Combat{FloorTile: "hitek_tile_034"}}, nil); b.FloorImg == nil {
+		t.Error("floor tile not read from the series sprites")
 	}
 }

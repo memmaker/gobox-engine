@@ -32,6 +32,7 @@ type Presenter struct {
 	empty                      [256]bool        // tiles with nothing on the ground
 	cut                        [256]bool        // tiles with see-through texels: sprites, not ground cover
 	floor                      color.RGBA
+	floorTile                  image.Image
 	names                      []string             // the tile names the meshes were looked up for
 	meshOf                     [256]*tileMesh       // the tiles that draw a model
 	meshes                     map[string]*tileMesh // by name; nil: none (looked up once)
@@ -481,7 +482,7 @@ func (p *Presenter) sync(b *Board) {
 		p.wood = gpu.NewImageFromImage(woodTexture(64, p.Theme.Wood))
 		p.table = gpu.NewMesh(tableMesh())
 	}
-	changed := b.Floor != p.floor
+	changed := b.Floor != p.floor || b.FloorTile != p.floorTile
 	for i := range p.tiles {
 		var t image.Image
 		if i < len(b.Tiles) {
@@ -493,7 +494,7 @@ func (p *Presenter) sync(b *Board) {
 		}
 	}
 	if changed {
-		p.floor = b.Floor
+		p.floor, p.floorTile = b.Floor, b.FloorTile
 		a := image.NewRGBA(p.atlas.Bounds())
 		put := func(slot int, t image.Image) {
 			o := image.Pt(slot%atlasCols*tilePx, slot/atlasCols*tilePx)
@@ -505,7 +506,11 @@ func (p *Presenter) sync(b *Board) {
 			}
 		}
 		put(wallSlot, stoneTexture(p.tiles[:b.WallTiles], b.StoneTile, b.Floor))
-		put(floorSlot, floorTile(b.Floor))
+		if b.FloorTile != nil {
+			put(floorSlot, b.FloorTile)
+		} else {
+			put(floorSlot, floorTile(b.Floor))
+		}
 		p.atlas.WritePixels(a.Pix)
 	}
 	if !slices.Equal(b.TileNames, p.names) {
@@ -530,12 +535,13 @@ func (p *Presenter) sync(b *Board) {
 		}
 		empty := func(t int) bool { return t < 0 || t >= len(p.empty) || p.empty[t] }
 		cut := func(t int) bool { return t >= 0 && t < len(p.cut) && p.cut[t] }
-		// a square with a model gets the floor its neighbours do: the tile most
-		// walkable squares show (the floor is a tile on the board's bare ground)
+		// a square with a model gets the floor its neighbours do. Floor tile
+		// given: the floor quad shows it. Else the tile most walkable squares
+		// show (the floor is a tile on the board's bare ground)
 		g, count, under := p.ground, map[int]int{}, -1
 		for z := range g {
 			for _, s := range g[z] {
-				if p.modelAt(s) == nil && !s.Wall && kindOf(s, p.walls, empty, cut) == flat {
+				if b.FloorTile == nil && p.modelAt(s) == nil && !s.Wall && kindOf(s, p.walls, empty, cut) == flat {
 					count[s.Tile]++
 					if under < 0 || count[s.Tile] > count[under] {
 						under = s.Tile

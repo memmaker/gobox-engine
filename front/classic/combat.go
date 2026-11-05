@@ -130,6 +130,9 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 	}
 	b.TilePix = make([]front.Picture, 0x100)
 	b.TileNames = slices.Clone(c.Tiles)
+	if c.FloorTile != "" {
+		b.FloorImg = sprites.Image(Series, "combat", c.FloorTile)
+	}
 	for i, n := range c.Tiles {
 		if n != "" && i < len(b.TilePix) {
 			b.TilePix[i] = pix(art[n])
