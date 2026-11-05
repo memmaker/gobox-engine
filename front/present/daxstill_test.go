@@ -55,3 +55,18 @@ func TestSpriteNotAutoPlayed(t *testing.T) {
 		t.Fatal("SPRIT played")
 	}
 }
+
+// A VGA still (PoD's TITLE pictures) is not an animation: never a frame
+// past its one, which decodes as nothing (the title went black).
+func TestVGAStillNotAnimated(t *testing.T) {
+	l, err := dax.NewLoader("../../../pod-go/data/dos")
+	if err != nil || l.BlockShared("TITLE", 2) == nil {
+		t.Skip("no PoD data")
+	}
+	old := daxLoader
+	daxLoader = l
+	defer func() { daxLoader = old; delete(spriteAnims, daxKey{file: "TITLE", block: 2}) }()
+	if f, ok := spriteFrame(front.Picture{File: "TITLE", Block: 2}, time.Now()); ok {
+		t.Fatalf("a VGA still plays as an animation (frame %d)", f)
+	}
+}

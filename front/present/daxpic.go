@@ -177,7 +177,7 @@ func spriteFrame(pc front.Picture, now time.Time) (int, bool) {
 		a = &spriteAnim{start: now}
 		b := daxLoader.BlockShared(pc.File, pc.Block)
 		fs, loop := dax.ParseVGAAnim(b)
-		if fs == nil {
+		if fs == nil && dax.ParseVGA(b, false, 0) == nil { // a VGA still (PoD's TITLE) is no EGA animation, as daxMasked reads it
 			if im := dax.ParseImage(b, false, 0); im == nil || im.Width == 0 { // not a plain image: an EGA animation block
 				fs = dax.ParseSprite(b, false, 0, false)
 			}
