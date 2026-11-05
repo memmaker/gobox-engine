@@ -158,7 +158,7 @@ func (r *rules) asked(ps play.State) *game.Ask {
 	case sc.Typed:
 		return &game.Ask{Kind: game.Name, Max: cmp.Or(sc.Max, 40), Default: sc.Default}
 	case len(sc.Replies) > 0:
-		return &game.Ask{Kind: game.Choice, Prompt: c.Status, Options: r.options(sc.Replies, true)} // a list pick (the roster), under the rules' prompt
+		return &game.Ask{Kind: game.Choice, Prompt: c.Status, Options: r.options(sc.Replies, c.Status != "" || sc.Kind == play.SceneScreen)} // a screen's or the roster's pick is a list; a menu over the view keeps its keys
 	}
 	return &game.Ask{Kind: game.Continue}
 }
