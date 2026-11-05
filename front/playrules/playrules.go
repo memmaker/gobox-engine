@@ -19,7 +19,6 @@ import (
 	"time"
 	"unicode"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -227,7 +226,7 @@ func (r *rules) partyMenu(a play.Assembling) *game.Ask {
 		on := known && al[act]
 		switch f.Label {
 		case "Forget Character": // gobox's roster picker over OpenPicker{PickForget}
-			on = slices.Contains(a.Allowed.Plain, play.Action(play.OpenPicker{Kind: front.PickForget}))
+			on = slices.Contains(a.Allowed.Plain, play.Action(play.OpenPicker{Kind: game.PickForget}))
 		case "View Character":
 			on = len(a.Party) > 0
 		case "Save Current Game":
@@ -1500,7 +1499,9 @@ func onward(al play.Allowed) play.Action {
 // Art is the game's art read live: what the game's own Art gives (its art
 // changes as the party moves), else Data.Art.
 func (r *rules) Art() map[string]game.Picture {
-	if a, ok := r.g.(interface{ Art() map[string]game.Picture }); ok {
+	if a, ok := r.g.(interface {
+		Art() map[string]game.Picture
+	}); ok {
 		return a.Art()
 	}
 	return r.data.Art

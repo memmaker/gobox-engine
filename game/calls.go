@@ -151,3 +151,13 @@ const (
 	PowerHeal    = 38
 	PowerCure    = 39
 )
+
+// PickHead .. PickForget are the pickers OpenPicker readies.
+const (
+	PickHead     = iota // the portrait's head (creation sheet)
+	PickBody            // its body
+	PickIconHead        // the combat icon's head (icon editor)
+	PickWeapon          // its weapon: the icon's body (CBODY)
+	PickAdd             // the saved characters to add to the party (party menu)
+	PickForget          // the saved characters to forget (party menu)
+)
