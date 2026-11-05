@@ -178,6 +178,9 @@ func (f *Front) Act() {
 	}
 	if len(as) > 0 || len(calls) > 0 || f.ArtNew {
 		f.stale() // the game runs: Draw builds the View again
+		if f.ArtNew {
+			f.P.ran++ // the picker and icon editor lay their pages out again, in the new art
+		}
 		f.ArtNew = false
 		for _, a := range as {
 			g.Answer(a)
