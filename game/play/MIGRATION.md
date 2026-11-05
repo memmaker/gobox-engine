@@ -24,6 +24,25 @@ gobox's), `SetIcon`/`Create` (now `SetChoice`), `KeepDraft` (`KeepCharacter`),
 `AddChar`/`DropChar` (`AddCharacter`/`DropMember`), `Trade` (`Give`),
 `TakeLoot` (`Take`), `Cure` (`Heal`).
 
+## Built into the contract (2026-11-05 review)
+
+1. **Own view types.** `play` has its own `Member`, `Battlefield`, `Unit`,
+   `Walls`, `Draft` and the trading and looting fields, trimmed of
+   everything that steered the screen (`Panel`, `Marks`, `Cursor`, `View`,
+   `Log`, `Turn.Options`, `Member.Card`/`Powers`/`Chosen`/`Colour`,
+   `Walls.Key`, dropped PNGs, ...). Only pure data types are reused from
+   `game` (Picture, Item, SpellRef, Lore, Quest, Automap, Ground, Reach,
+   Offer, Service, Training, Field, Where).
+2. **Allowed per action.** `Common.Allowed` replaces the flat choice list:
+   `Plain` holds every action with its parameters filled in, `Aimed` the
+   square-taking ones with the squares, target count and area, `Moves` the
+   reachable squares. No labels or hotkeys: those are gobox's.
+3. **Scene kind.** `Scene.Kind` says text, talk or handout; text is plain
+   strings (colours are gobox's).
+4. **Fact-only outcomes.** `Outcome.Events` are `play.Event` types
+   (`Attacked`, `Walked`, `Said`, `TimePassed`, `Refused`, ...) with no
+   `Wait`, `Ms`, `Page`, `Pose` or `Screen`: gobox paces and shows them.
+
 ## Order
 
 There is no bridge: every action and state is one explicit type in `play`,

@@ -11,6 +11,7 @@ package play
 
 import (
 	"image"
+	"image/color"
 	"time"
 
 	"gobox/game"
@@ -30,29 +31,62 @@ type State interface{ state() }
 // now; Do still checks.
 type Action interface{ action() }
 
-// Outcome is what an action did, in order: gobox plays the events, then
-// shows the new State.
+// Outcome is what an action did: the facts, in the order they happened.
+// gobox decides how to show them, how long each takes and what waits for a
+// key; nothing here says.
 type Outcome struct {
-	Events []game.Event
+	Events []Event
 }
 
-// Choice is an allowed action as gobox offers it: the rules' words and the
-// original's hotkey. gobox builds its menus and dialogs from these.
-type Choice struct {
-	Label string
-	Key   rune
-	Do    Action
+// Allowed is what a state lets the player do now. Plain is every action
+// that needs nothing picked on the map, with its parameters filled in (one
+// Attack per target, one Buy per member and good, ...). Aimed are those that
+// take squares; Moves the squares a combatant may walk to. gobox offers
+// exactly these; Do checks again.
+type Allowed struct {
+	Plain []Action
+	Aimed []Aimed
+	Moves []game.Reach
+}
+
+// Aimed is an action that takes squares: gobox lets the player pick Targets
+// of Squares (each Area squares round), then sends Action with Ats filled.
+type Aimed struct {
+	Action  Action // Cast, UseItem, Shoot or DoManeuver with Ats empty
+	Squares []image.Point
+	Targets int // squares to pick, 1 for one
+	Area    int // radius hit round each, 0 the square alone
 }
 
 // Common is what every state shows besides its own view.
 type Common struct {
-	Party    []game.Member
+	Party    []Member
 	Selected int
 	Purse    map[string]int
 	Where    game.Where
 	Area     string      // the area's name as the player knows it
 	Lore     []game.Lore // the journal, newest first
-	Choices  []Choice    // the actions allowed now
+	Quests   []game.Quest
+	Allowed  Allowed
+}
+
+// Member is one character as the rules know it.
+type Member struct {
+	Name, Race, Class, Alignment, Status string
+	Levels                               []int
+	Stats, BaseStats                     map[string]int // "str", "int", ...
+	Str00                                int            // exceptional strength: 0 none, 1..100
+	HP, MaxHP, AC, THAC0, Move           int
+	Exp, LevelExp, NextExp               int
+	Items                                []game.Item
+	ItemCap                              int // 0 no limit
+	Spells                               []game.SpellRef
+	Slots, SlotsMax                      map[string]int // by kind/level
+	Effects                              []string       // spells on the member, as the rules word them
+	PortraitHeadID, PortraitBodyID       string         // gobox's pool picks, stored back as given
+	IconHeadID, IconBodyID               string
+	IconColours                          []byte
+	NPC, Okay, Foe                       bool
 }
 
 // The states. Each situation is one explicit type; similar screens share one.
@@ -61,8 +95,17 @@ type Common struct {
 // made (Draft set) or changed.
 type Assembling struct {
 	Common
-	Roster []string        // saved characters
-	Draft  *game.SheetPage // a character being made or changed; nil none
+	Roster []string // saved characters
+	Draft  *Draft   // a character being made or changed; nil none
+}
+
+// Draft is a character being made or changed: the member so far, the
+// fields still to choose and their options.
+type Draft struct {
+	Member
+	Fields       []game.Field
+	MinHP, MaxHP int
+	Minimums     string // the rules' text on stat minimums for the class
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).
@@ -71,46 +114,104 @@ type Exploring struct {
 	Map ExploreMap
 }
 
-// ExploreMap is what gobox needs to draw and walk the 3D view and the
-// automap. Whether a step goes through is the game's call (Do(Step)).
+// ExploreMap is what gobox needs to draw the 3D view and the automap.
+// Whether a step goes through is the rules' call (Do(Step)).
 type ExploreMap struct {
-	Size    image.Point
-	Walls   *game.Walls
+	Walls   Walls
 	Automap game.Automap
 }
 
-// Camping: the party has made camp (rest, memorize, scribe, fix, order).
-type Camping struct{ Common }
+// Walls is the map's walls by square and side and what they look like.
+type Walls struct {
+	Side                [][][4]int     // a square's wall value by side (N E S W), rows from the top (0: open)
+	Fronts              map[int]string // a wall value's art name in Data.Art
+	Pool                map[int]string // a wall value's remastered texture, in place of Fronts
+	Floor, Sky          string
+	FloorRGBA, CeilRGBA *color.RGBA
+	Backdrop            *game.Picture
+	Outside             bool    // under the sky: gobox draws sun and mountains by Where's hour
+	SunAz, SunEl        float64 // the sun's bearing and height
+}
 
 // Fighting: a battle is on.
 type Fighting struct {
 	Common
-	Combat game.Combat // the field, the units and whose turn it is
+	Field Battlefield
 }
 
-// Scene: a script shows text and pictures, someone speaks, or a handout is
-// read. The script's place is the game's state; Continue or a Reply moves it.
+// Battlefield is the battle as the rules hold it.
+type Battlefield struct {
+	Size      image.Point
+	Squares   []game.Ground
+	Tiles     []string // Ground.Tile's Data.Art names
+	FloorTile string
+	Floor     color.RGBA
+	Units     []Unit
+	Clouds    []game.Effect // lasting spell effects on squares
+	Round     int
+	Turn      int // the unit ID whose turn it is
+	Dungeon   bool
+}
+
+// Unit is a combatant.
+type Unit struct {
+	ID, Member      int // Member: party index, -1 a monster
+	Name            string
+	At              image.Point
+	Squares         []image.Point
+	Size, Facing    int
+	Foe, Dead, Gone bool
+	HP, MaxHP, AC   int
+	Status, Dmg     string
+	Hit             int // the turn's unit's chance in percent to hit it, 0 not a target
+	Art             game.Picture
+}
+
+// SceneKind says what a Scene is.
+type SceneKind int
+
+const (
+	SceneText    SceneKind = iota // the script's text and pictures
+	SceneTalk                     // someone speaks; Replies are the answers
+	SceneHandout                  // a journal handout to read; Continue leaves
+)
+
+// Scene: a script shows something and waits for the player. The script's
+// place is the game's state; Continue or a Reply moves it on.
 type Scene struct {
 	Common
-	Speaker game.Picture
-	Text    []game.TextRun
-	Picture []game.Picture
-	Handout string   // a journal handout's title; Lines is its layout
-	Lines   []string // journal.Layout's
+	Kind     SceneKind
+	Speaker  string
+	Pictures []game.Picture
+	Text     []string // plain paragraphs; colours are gobox's
+	Replies  []string // SceneTalk: the answers, Reply{N}
+	Typed    bool     // the reply is typed text (Reply{Text})
+	Handout  string   // SceneHandout: the title
+	Lines    []string // SceneHandout: journal.Layout's
 }
 
 // Trading: a shop, temple, trainer or vault is open.
 type Trading struct {
 	Common
-	Shop   game.Shop
-	Offers []game.Offer // the appraisals of gems and jewels
+	Name     string
+	Goods    []game.Item
+	Prices   []int
+	Buys     bool
+	Offers   []game.Offer // the appraisals of gems and jewels
+	Services []game.Service
+	Training *game.Training
+	Pooled   map[string]int
 }
 
 // Looting: treasure lies before the party.
 type Looting struct {
 	Common
-	Loot game.Loot
+	Items []game.Item
+	Money map[string]int
 }
+
+// Camping: the party has made camp (rest, memorize, scribe, fix, order).
+type Camping struct{ Common }
 
 // Over: the game has ended.
 type Over struct {
@@ -127,8 +228,80 @@ func (Trading) state()    {}
 func (Looting) state()    {}
 func (Over) state()       {}
 
+// Event is one fact in an Outcome. The set is closed like State's.
+type Event interface{ event() }
+
+type (
+	Narrated    struct{ Text string }          // a line of the rules' text
+	Said        struct{ Who, Text string }     // someone speaks
+	Shown       struct{ Picture game.Picture } // a picture comes up
+	Sounded     struct{ Sound string }         // a sound plays
+	MusicChange struct{ Song string }          // the music changes
+	Walked      struct {
+		Unit int
+		Path []game.Step
+	} // a unit walks (combat)
+	Turned   struct{ Unit, Facing int }
+	Attacked struct {
+		From, To int
+		Hit      bool
+		Damage   int
+	}
+	Shot struct {
+		From int
+		To   image.Point
+		Art  game.Picture
+	}
+	CastSpell struct {
+		From, Spell int
+		Ats         []image.Point
+	}
+	Struck struct{ Unit, Damage int } // harm without an attack (a spell, a trap)
+	Healed struct{ Unit, HP int }
+	Fell   struct{ Unit int } // down or dead
+	Fled   struct{ Unit int }
+	Moved  struct {
+		To     image.Point
+		Facing int
+	} // the party, exploring
+	TimePassed struct{ D time.Duration }
+	Gained     struct {
+		Member int
+		What   string
+	} // an item, money, experience, a level
+	Lost struct {
+		Member int
+		What   string
+	}
+	JournalNote struct{ ID int }     // a Lore entry was added
+	Refused     struct{ Why string } // a step blocked by the rules (a wall, a locked door)
+	Ended       struct{ Won bool }
+)
+
+func (Narrated) event()    {}
+func (Said) event()        {}
+func (Shown) event()       {}
+func (Sounded) event()     {}
+func (MusicChange) event() {}
+func (Walked) event()      {}
+func (Turned) event()      {}
+func (Attacked) event()    {}
+func (Shot) event()        {}
+func (CastSpell) event()   {}
+func (Struck) event()      {}
+func (Healed) event()      {}
+func (Fell) event()        {}
+func (Fled) event()        {}
+func (Moved) event()       {}
+func (TimePassed) event()  {}
+func (Gained) event()      {}
+func (Lost) event()        {}
+func (JournalNote) event() {}
+func (Refused) event()     {}
+func (Ended) event()       {}
+
 // The actions. Every game uses these; a game-specific verb gets its own
-// type here. Which ones apply now is the state's Choices.
+// type here. Which apply now is the state's Allowed.
 type (
 	// Anywhere a member's goods are shown.
 	Ready   struct{ Member, Item, Count int } // Count of a stack (0: all)
@@ -199,10 +372,10 @@ type (
 	// next member's turn.
 	MoveTo     struct{ To image.Point }
 	Attack     struct{ Target int }
-	Shoot      struct{ At image.Point }
+	Shoot      struct{ Ats []image.Point }
 	DoManeuver struct {
-		ID int
-		At image.Point
+		ID  int
+		Ats []image.Point
 	}
 	TurnUndead struct{}
 	Guard      struct{}
