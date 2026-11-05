@@ -333,12 +333,12 @@ func TestWhoSelected(t *testing.T) {
 // TestItemsTabSheet: Tab on the items (CloseItems, not All) shows the
 // selected member's sheet; Esc (All) closes both.
 func TestItemsTabSheet(t *testing.T) {
-	c := play.Common{Party: []play.Member{{Name: "A"}}} // no page from the rules: gobox makes its own
+	c := play.Common{Party: []play.Member{{Name: "A", Levels: []int{3, 2}}}} // no page from the rules: gobox makes its own
 	r := New(&fake{st: play.Exploring{Common: c}}, game.Data{})
 	r.Apply(game.OpenItems{})
 	r.Apply(game.CloseItems{})
-	if st := r.State(); st.SheetPage == nil || st.Sheet == nil {
-		t.Fatal("Tab closed the items without the sheet")
+	if st := r.State(); st.SheetPage == nil || st.Sheet == nil || st.SheetPage.Levels != "3/2" {
+		t.Fatal("Tab closed the items without the sheet, or its levels")
 	}
 }
 
