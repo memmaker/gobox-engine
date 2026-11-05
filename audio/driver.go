@@ -48,6 +48,8 @@ const soundtrackLevel = 0.33
 // into one Read. It implements front.Sound. Nothing sounds and nothing is
 // cut until Attach, so headless tools stay silent.
 type Driver struct {
+	under    bool   // the synth plays under the Amiga players: a sound with no Amiga effect (Curse's title tune)
+	synBuf   []byte // its output, mixed in
 	mu       sync.Mutex
 	on       bool // attached
 	typ      int  // Tandy, Speaker or None
@@ -156,12 +158,31 @@ func (d *Driver) render(p []byte) int {
 			default:
 				scale(p[:n], d.vol("music"))
 			}
+			if d.under {
+				d.mixSynth(p[:n])
+			}
 		}
 		return n
 	}
 	n = d.syn.Render(p[:n])
 	scale(p[:n], d.vol("sfx")) // the DOS game has no music
 	return n
+}
+
+// mixSynth adds the synth's output (at the effects volume) to the Amiga
+// players' in p.
+func (d *Driver) mixSynth(p []byte) {
+	if cap(d.synBuf) < len(p) {
+		d.synBuf = make([]byte, len(p))
+	}
+	m := d.synBuf[:len(p)]
+	clear(m)
+	d.syn.Render(m)
+	scale(m, d.vol("sfx"))
+	for i := 0; i+1 < len(p); i += 2 {
+		v := int(int16(binary.LittleEndian.Uint16(p[i:]))) + int(int16(binary.LittleEndian.Uint16(m[i:])))
+		binary.LittleEndian.PutUint16(p[i:], uint16(int16(max(-32768, min(32767, v)))))
+	}
 }
 
 // mixSoundtrack adds the soundtrack to p at the music volume; the song
@@ -218,6 +239,7 @@ func (d *Driver) Effect(n int, quiet bool) {
 			d.am.Effect(d.fx[n-2])
 		} else {
 			d.syn.Start(n - 1)
+			d.under = d.am != nil
 		}
 	}
 }
