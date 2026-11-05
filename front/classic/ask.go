@@ -16,7 +16,7 @@ var askKinds = map[game.AskKind]front.AskKind{
 // cannot rebuild it from game.Ask: the game's stays.
 func Ask(s game.State) (*front.Ask, bool) {
 	a := s.Pending
-	if s.Mode != game.ModeAsk || a == nil {
+	if a == nil || s.Mode != game.ModeAsk && !overMenu(s) {
 		return nil, true
 	}
 	k, ok := askKinds[a.Kind]
@@ -40,4 +40,10 @@ func Ask(s game.State) (*front.Ask, bool) {
 		q.List = append(q.List, ll)
 	}
 	return q, true
+}
+
+// overMenu: the game keeps ModeExplore under a menu it opens over the 3D
+// view (camp's): the menu is up, not the exploring.
+func overMenu(s game.State) bool {
+	return s.Mode == game.ModeExplore && s.Pending != nil && s.Pending.Kind == game.Choice
 }
