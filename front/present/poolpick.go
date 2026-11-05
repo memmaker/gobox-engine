@@ -20,13 +20,14 @@ type poolPick struct {
 	names       []string
 	cell        image.Point
 	tiles       bool // the bodies by original ref (classic.TilePicker)
+	amiga       bool // names lists the Amiga set (F12 when it was listed)
 }
 
 var poolPicks = map[int]poolPick{
-	front.PickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5), false},
-	front.PickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6), false},
-	front.PickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5), false},
-	front.PickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6), false},
+	front.PickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5), false, false},
+	front.PickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6), false, false},
+	front.PickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5), false, false},
+	front.PickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6), false, false},
 }
 
 // poolPrefix is what the names of a field start with.
@@ -35,11 +36,8 @@ var poolPrefix = map[string]string{"portraithead": "head_", "portraitbody": "bod
 func (g classicGame) OpenPicker(kind int) bool {
 	g.p.pool = nil
 	ok := g.Game.OpenPicker(kind)
-	if k := g.r.State().Picker; k != nil && len(k.Pics) > 0 { // the game's own pictures
-		return ok
-	}
 	pp, has := poolPicks[kind]
-	if !has {
+	if !has { // the game's own pictures; a portrait or icon part comes from the shared pool, whatever the game offers
 		return ok
 	}
 	if names, _ := classic.BodyTiles(g.r.State()); kind == front.PickWeapon && len(names) > 0 {
@@ -47,15 +45,7 @@ func (g classicGame) OpenPicker(kind int) bool {
 		g.p.pool = &pp
 		return true
 	}
-	prefix := poolPrefix[pp.field]
-	if daxLoader.Amiga() { // F12: the Amiga set's own list, never mixed with the DOS one
-		prefix = "amiga_" + prefix
-	}
-	for _, n := range sprites.Names(series, pp.kind) {
-		if len(n) > len(prefix) && n[:len(prefix)] == prefix {
-			pp.names = append(pp.names, n)
-		}
-	}
+	pp.list()
 	if len(pp.names) == 0 {
 		return ok
 	}
@@ -63,8 +53,26 @@ func (g classicGame) OpenPicker(kind int) bool {
 	return true
 }
 
+// list fills names with the pool's pictures of pp's field in the art shown:
+// F12's Amiga set alone, never mixed with the DOS one.
+func (pp *poolPick) list() {
+	prefix := poolPrefix[pp.field]
+	if pp.amiga = daxLoader.Amiga(); pp.amiga {
+		prefix = "amiga_" + prefix
+	}
+	pp.names = pp.names[:0]
+	for _, n := range sprites.Names(series, pp.kind) {
+		if len(n) > len(prefix) && n[:len(prefix)] == prefix {
+			pp.names = append(pp.names, n)
+		}
+	}
+}
+
 func (g classicGame) PickerView(page int) *front.Picker {
 	if pp := g.p.pool; pp != nil {
+		if !pp.tiles && pp.amiga != daxLoader.Amiga() { // F12 while it is up: the other set's list
+			pp.list()
+		}
 		s := g.r.State()
 		if pp.tiles {
 			return classic.TilePicker(s, page, g.p.grid[0], g.p.grid[1])
