@@ -19,6 +19,7 @@ import (
 	"time"
 	"unicode"
 
+	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -198,7 +199,7 @@ var partyFuncs = []struct {
 	act   string
 }{
 	{"Create Character", 'C', "NewCharacter"}, {"Add Character", 'A', "AddCharacter"},
-	{"Remove Character", 'R', "RemoveCharacter"}, {"Modify Character", 'M', "Modify"},
+	{"Remove Character", 'R', "RemoveCharacter"}, {"Forget Character", 'F', "Forget"}, {"Modify Character", 'M', "Modify"},
 	{"Train Character", 'T', "OpenTraining"}, {"Human Change Class", 'H', "ChangeClass"},
 	{"View Character", 'V', ""}, {"Icon Select", 'I', "EditIcon"}, {"Drop Character", 'D', "DropMember"},
 	{"Load Saved Game", 'L', ""}, {"Save Current Game", 'S', ""},
@@ -223,6 +224,8 @@ func (r *rules) partyMenu(a play.Assembling) *game.Ask {
 		act, known := acts[f.Label]
 		on := known && al[act]
 		switch f.Label {
+		case "Forget Character": // gobox's roster picker over OpenPicker{PickForget}
+			on = slices.Contains(a.Allowed.Plain, play.Action(play.OpenPicker{Kind: front.PickForget}))
 		case "View Character":
 			on = len(a.Party) > 0
 		case "Save Current Game":
@@ -340,7 +343,7 @@ func (r *rules) State() game.State {
 			s.Mode = game.ModeAsk
 		}
 		switch {
-		case c.Picture != nil || len(c.Layers) > 0:
+		case c.Picture != nil || len(c.Layers) > 0 || c.Portrait != nil: // a speaker's portrait over the view too
 			s.Window = game.WindowPicture
 		case t.Map.Overland:
 			s.Window = game.WindowMap
@@ -353,8 +356,7 @@ func (r *rules) State() game.State {
 		r.walls = s.Walls
 	case play.Camping:
 		s.Mode = game.ModeCamp
-		s.RestHeals = s.Allowed["AdvanceTimeBy"]
-		s.RestStudies = s.RestHeals
+		s.RestHeals, s.RestStudies = t.Heals, t.Study > 0 // the rules' say, not whether resting is allowed
 	case play.Fighting:
 		s.Mode, s.Combat = game.ModeCombat, r.combat(t)
 	case play.Scene:

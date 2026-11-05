@@ -61,6 +61,14 @@ func TestGaps(t *testing.T) {
 				r := s.Page.Pane[0][0]
 				return s.Holding == game.HoldNone && r.Upcase && r.Fg == (color.RGBA{})
 			}},
+		{"forget entry", play.Assembling{Common: allow(play.OpenPicker{Kind: 5})}, game.OpenPicker{Kind: 5}, play.OpenPicker{Kind: 5},
+			func(s game.State) bool {
+				return slices.ContainsFunc(s.Pending.Options, func(o game.Option) bool { return o.Label == "Forget Character" })
+			}},
+		{"rest heals", play.Camping{Heals: true, Common: allow(play.AdvanceTimeBy{})}, game.LeaveCamp{}, play.BreakCamp{},
+			func(s game.State) bool { return s.RestHeals && !s.RestStudies }},
+		{"speaker over view", play.Exploring{Common: play.Common{Portrait: &play.Portrait{}}}, game.Search{}, play.Search{},
+			func(s game.State) bool { return s.Window == game.WindowPicture }},
 		{"open training", play.Exploring{}, game.OpenTraining{Member: 1}, play.OpenTraining{Member: 1}, nil},
 		{"loot detect", play.Looting{Status: true, Common: allow(play.LootDetect{}, play.LootShare{})}, game.LootDetect{}, play.LootDetect{},
 			func(s game.State) bool { return s.Loot.Status && s.Allowed["LootDetect"] && s.Allowed["LootShare"] }},

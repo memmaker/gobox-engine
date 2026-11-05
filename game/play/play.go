@@ -351,6 +351,7 @@ type Looting struct {
 type Camping struct {
 	Common
 	Study time.Duration
+	Heals bool // a rest would heal someone (the rest's question asks only then)
 }
 
 // Over: the game has ended.
