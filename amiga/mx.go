@@ -53,9 +53,17 @@ type mxVoice struct {
 	per, vol   int
 }
 
-// NewMX parses the song file (mx) and the effects library (glb; may be nil).
+// NewMX parses the song file (mx; nil: no songs, effects only, as Curse's
+// Amiga release) and the effects library (glb; may be nil).
 func NewMX(mx, glb []byte) (*MX, error) {
 	m := &MX{}
+	for i := range m.ch {
+		m.ch[i] = i
+	}
+	if len(mx) == 0 {
+		m.effects(glb)
+		return m, nil
+	}
 	r := 0
 	bad := errors.New("amiga: bad MXTX file")
 	u16 := func() int {
@@ -119,9 +127,12 @@ func NewMX(mx, glb []byte) (*MX, error) {
 	if r > len(mx) {
 		return nil, bad
 	}
-	for i := range m.ch {
-		m.ch[i] = i
-	}
+	m.effects(glb)
+	return m, nil
+}
+
+// effects reads the GLIB library's DIG8 samples (glb; nil: none).
+func (m *MX) effects(glb []byte) {
 	if len(glb) >= 0x10 && string(glb[:4]) == "GLIB" {
 		n := int(binary.BigEndian.Uint16(glb[8:]))
 		for i := 0; i < n && 0x10+4*i+4 <= len(glb); i++ {
@@ -138,7 +149,6 @@ func NewMX(mx, glb []byte) (*MX, error) {
 			m.fxPer = append(m.fxPer, (3579545+rate/2)/rate)
 		}
 	}
-	return m, nil
 }
 
 // Len is the number of songs in the file.
