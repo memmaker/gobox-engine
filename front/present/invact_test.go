@@ -33,9 +33,10 @@ func TestInventoryActs(t *testing.T) {
 	if g.bought != 4 || len(as) != 0 {
 		t.Fatalf("bought %d, passed %v", g.bought, as)
 	}
-	for _, k := range []front.ActKind{front.ActTrade, front.ActHalve, front.ActJoin} {
+	for _, k := range []front.ActKind{front.ActHalve, front.ActJoin} {
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: k, N: 1})
 	}
+	p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, N: 1, X: 2, Y: 1}) // Trade, its member asked
 	if as := p.Actions(); len(as) != 3 {
 		t.Fatalf("passed %v", as)
 	}

@@ -116,7 +116,7 @@ const (
 
 	ActAlter // camp: setting N (Camp.Settings) takes the value X; the game answers it
 
-	ActTrade      // inventory: trade item N to another member (offered with Inventory.Trade; the game asks whom, or refuses)
+	ActTrade      // inventory: trade item N to member X (offered with Inventory.Trade; gobox asks whom, Y 1 once asked)
 	ActHalve      // inventory: split item N's stack in two (Inventory.Halve; the game answers or refuses)
 	ActJoin       // inventory: join item N with the same items of the member (Inventory.Join; the game answers or refuses)
 	ActCommand    // the party menu: game.Data.Commands[N]'s Do

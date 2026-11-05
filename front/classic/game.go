@@ -609,6 +609,12 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.OpenItems{Member: a.N}, true
 	case front.ActSheet:
 		return game.CloseItems{}, true
+	case front.ActTrade:
+		return game.Trade{From: g.sel(-1), To: a.X, Item: a.N}, true
+	case front.ActHalve:
+		return game.Halve{Member: g.sel(-1), Item: a.N}, true
+	case front.ActJoin:
+		return game.Join{Member: g.sel(-1), Item: a.N}, true
 	case front.ActReady:
 		return game.Ready{Member: g.sel(-1), Item: a.N, Count: a.X}, true
 	case front.ActUse:

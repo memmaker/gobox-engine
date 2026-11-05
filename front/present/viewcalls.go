@@ -48,6 +48,14 @@ func (p *Presenter) viewAct(a front.Action) bool {
 			do(func(e front.Game) error { return e.Buy(n) })
 		case front.ActTakeAll:
 			do(func(e front.Game) error { return e.TakeAll() })
+		case front.ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
+			if a.Y == 1 {
+				return false
+			}
+			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
+			front.AskForMember(p, "Trade to whom?", sel, func(t int) {
+				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, N: n, X: t, Y: 1})
+			})
 		case front.ActSpells:
 			p.combatCast()
 		default:
@@ -64,6 +72,14 @@ func (p *Presenter) viewAct(a front.Action) bool {
 				n = -1
 			}
 			do(func(e front.Game) error { return e.OpenItems(n, false) })
+		case front.ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
+			if a.Y == 1 {
+				return false
+			}
+			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
+			front.AskForMember(p, "Trade to whom?", sel, func(t int) {
+				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, N: n, X: t, Y: 1})
+			})
 		case front.ActSpells:
 			p.combatCast()
 		default:
