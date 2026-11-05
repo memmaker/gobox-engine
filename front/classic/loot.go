@@ -36,5 +36,8 @@ func Loot(s game.State) *front.Loot {
 			v.Detect = v.Detect || sp.Memorized && sp.Name == detectMagic
 		}
 	}
+	if on, set := s.Allowed["LootDetect"]; set { // the game's own say wins (Curse's three detects, Pools' none)
+		v.Detect = v.Take && on
+	}
 	return v
 }

@@ -13,6 +13,15 @@ func TestLoot(t *testing.T) {
 	if l := Loot(s); l == nil || !l.Take || !l.Detect {
 		t.Errorf("loot %+v", l)
 	}
+	s.Allowed = map[string]bool{"LootDetect": false}
+	if l := Loot(s); l.Detect {
+		t.Error("Detect offered against Allowed")
+	}
+	s.Allowed["LootDetect"], s.Party[1].Spells = true, nil
+	if l := Loot(s); !l.Detect {
+		t.Error("Detect not offered by Allowed")
+	}
+	s.Allowed = nil
 	s.Loot.Items = nil
 	if l := Loot(s); l == nil || l.Take || l.Detect {
 		t.Errorf("no treasure: %+v", l)
