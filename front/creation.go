@@ -28,9 +28,8 @@ func CreateAct(h Host, creating *bool, a Action) bool {
 		h.Edit(func(e Game) { refused(e, e.SetStat(a.N, a.Text)) })
 	case ActSetField:
 		h.Edit(func(e Game) { refused(e, e.SetField(a.N, a.X)) })
-	case ActKeep, ActClose:
-		*creating = false
-		h.Edit(func(e Game) { refused(e, e.EndCreation(a.Kind == ActKeep)) })
+	case ActKeep, ActClose: // a refused Keep leaves the sheet up, so Esc still discards
+		h.Edit(func(e Game) { refused(e, e.EndCreation(a.Kind == ActKeep)); *creating = e.CreationView() != nil })
 	default:
 		return false
 	}
