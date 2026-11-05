@@ -41,7 +41,7 @@ func crewMenu() *front.Ask {
 
 func fightPage(p *Presenter, v front.View) *cellPage {
 	c := newCellPage(v)
-	c.spaceFight(sfOf(v), p.sfState(v, sfOf(v)), v.Ask)
+	c.spaceFight(sfOf(v), p.sfState(v, sfOf(v)), v.Ask, v.Screen)
 	return c
 }
 
@@ -100,8 +100,8 @@ func TestSpaceFightLayout(t *testing.T) {
 	at(t, c, 0, 24, "Command", 0, 15)
 	p.sfKey(keyOf(input.Esc), v)
 	p.sfKey('a', v)
-	if n := len(p.inv.acts); n != 1 || p.inv.acts[0] != (front.Action{Kind: front.ActChoose, N: 6}) {
-		t.Fatalf("acts %v, want Esc nothing and A ActChoose 6", p.inv.acts)
+	if n := len(p.inv.acts); n != 2 || p.inv.acts[0] != (front.Action{Kind: front.ActClose}) || p.inv.acts[1] != (front.Action{Kind: front.ActChoose, N: 6}) {
+		t.Fatalf("acts %v, want Esc ActClose and A ActChoose 6", p.inv.acts)
 	}
 	// a page that grows with the same lines keeps its page; the next overflow pauses again
 	f := testFight()

@@ -1272,7 +1272,8 @@ const (
 // Screen is the typed screen up: Kind says which pointer is set.
 type Screen struct {
 	Kind       ScreenKind
-	SpaceFight *SpaceFight // Kind ScreenSpaceFight
+	SpaceFight *SpaceFight // Kind ScreenSpaceFight; with Kind ScreenShipSheet: the own panel and compact weapons beside the sheet
+	ShipSheet  *ShipSheet  `json:",omitempty"` // Kind ScreenShipSheet: the sheet in place of the fight's left half; with Kind ScreenSpaceFight: drawn over it (Sensors, View Ship)
 }
 
 // SpaceFight is the ship fight's screen. gobox holds the layout: where the
@@ -1287,7 +1288,41 @@ type SpaceFight struct {
 	Blink      Blink        // what blinks in this snapshot (zero: nothing)
 	Blast      *Blast       // a blast frame drawn over the view (nil: none)
 	Log        []Message    // the message window's lines since the game last cleared it
+	Pause      string       `json:",omitempty"` // the overflow / key pause's text on row 24 ("": "Press button or enter to continue.")
+	StatusLine string       `json:",omitempty"` // a status line on row 24 col 0 in ToneText in place of the bar (pO0F6_0A18 / string_print01: the dying and coma notices); the game shows it as an Event for its pause
 }
+
+// ShipSheet is one ship's record (BR1 pO0F6_3346, BR2 pO099_3472) on
+// cells (1,1)-(24,17). Ask Continue on it for the key.
+type ShipSheet struct {
+	Own         bool         `json:",omitempty"` // the own ship: labels ToneOwn, medical supplies on row 11 (else the foe: ToneWarn, the range)
+	Known       bool         `json:",omitempty"` // the foe's AC, crew, speed, react, ammo and reloads are shown (false: '?' in ToneBad); the game sets it from the sensor roll and own Sensors > 0
+	Name        string       `json:",omitempty"` // the ship's name
+	Type        string       `json:",omitempty"` // the ship type's text
+	Race        string       `json:",omitempty"` // the race's text
+	Tonnage     int          `json:",omitempty"` // shown with " tons"
+	Length      int          `json:",omitempty"` // shown with " feet"
+	Width       int          `json:",omitempty"` // shown with " feet"
+	Cargo       int          `json:",omitempty"` // shown with " tons"
+	AC          int          `json:",omitempty"` // armour class
+	Crew        int          `json:",omitempty"` // crew figure
+	Speed       int          `json:",omitempty"` // the effective speed (pO0F6_321B / pO099_3348)
+	React       int          `json:",omitempty"` // reaction figure
+	Range       RangeBand    `json:",omitempty"` // the foe only: the range band
+	MedSupplies int          `json:",omitempty"` // the own ship only: the party's medical supplies
+	Weapons     []WeaponSlot `json:",omitempty"` // mounts 0..3; the count shown is Working only
+}
+
+// RangeBand is the foe's range as the sheet names it.
+type RangeBand int
+
+const (
+	RangeRamming RangeBand = iota // range < 1
+	RangeShort                    // < 3
+	RangeMedium                   // < 5
+	RangeLong                     // < 7
+	RangeExtreme                  // else
+)
 
 // ShipSystems are a ship's Hull Sens Ctrl Life Fuel Engn figures.
 type ShipSystems struct {

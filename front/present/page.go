@@ -116,7 +116,7 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 	sf := sfOf(v)
 	if sf != nil && !p.modal(v) {
 		sh = p.sfState(v, sf)
-		own += fmt.Sprintf("%v%+v", *sf, sh)
+		own += fmt.Sprintf("%v%+v%+v", *sf, sh, v.Screen.ShipSheet)
 	}
 	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(v.IconEditor) && (v.Seq == pg.seq || !p.modal(v) && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
 		pg.seq = v.Seq
@@ -131,7 +131,7 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 	} else {
 		c := screenPage(v)
 		if sf != nil {
-			c.spaceFight(sf, sh, v.Ask)
+			c.spaceFight(sf, sh, v.Ask, v.Screen)
 		}
 		c.draw(m, v, note)
 		pg.overs = c.overs

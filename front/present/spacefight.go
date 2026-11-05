@@ -37,7 +37,8 @@ var (
 // toneInk is each game.Tone's EGA colour.
 var toneInk = [...]int{game.ToneText: 10, game.ToneOwn: 11, game.ToneBad: 12, game.TonePrompt: 13, game.ToneWarn: 14, game.ToneLoud: 15}
 
-// sfPause is the overflow pause's text (BR1 pR653_1291, DS 0EDE).
+// sfPause is the overflow pause's text when the game names none
+// (BR1 pR653_1291, DS 0EDE; BR2's s1014 lacks the full stop: SpaceFight.Pause).
 const sfPause = "Press button or enter to continue."
 
 const (
@@ -123,9 +124,19 @@ type sfShown struct {
 	Sel   int
 }
 
+// sfOf is v's fight screen: the fight, or the ship sheet's (the fight's
+// right side beside it, empty when the game gives none).
 func sfOf(v front.View) *game.SpaceFight {
-	if s := v.Screen; s != nil && s.Kind == game.ScreenSpaceFight {
+	s := v.Screen
+	switch {
+	case s == nil:
+	case s.Kind == game.ScreenSpaceFight:
 		return s.SpaceFight
+	case s.Kind == game.ScreenShipSheet && s.ShipSheet != nil:
+		if s.SpaceFight != nil {
+			return s.SpaceFight
+		}
+		return &game.SpaceFight{}
 	}
 	return nil
 }
@@ -182,7 +193,7 @@ func (p *Presenter) sfState(v front.View, sf *game.SpaceFight) sfShown {
 
 // sfKey takes key k on the fight's screen: the window's pause, the bar
 // (10CD: Left/Right move, Up/Down switch rows, Enter takes the highlight,
-// a hotkey its item, Esc nothing), Yes/No (2137: Esc ignored) and the
+// a hotkey its item, Esc ActClose: the game's Answer N -1), Yes/No (2137: Esc ignored) and the
 // explicit pause. false: not the screen's key.
 func (p *Presenter) sfKey(k uint16, v front.View) bool {
 	sf := sfOf(v)
@@ -240,7 +251,8 @@ func (p *Presenter) sfKey(k uint16, v front.View) bool {
 		case input.Enter:
 			p.send(front.ActChoose, u.sel)
 			return true
-		case input.Esc: // 0: the game asks again
+		case input.Esc: // 0 (10CD): what it means is the game's (BR1's Target fires untargeted, BR2's cancels, the crew menu asks again)
+			p.send(front.ActClose, 0)
 			return true
 		}
 		if k < 256 {
@@ -331,13 +343,30 @@ func rjust(n, w int) string {
 }
 
 // spaceFight lays the fight's screen out on c.
-func (c *cellPage) spaceFight(sf *game.SpaceFight, sh sfShown, ask *front.Ask) {
+// With scr's Kind ScreenShipSheet the left half (the view, the foe, the
+// status, the range, the foe's panel) is the sheet (BR1 2358 / BR2 2461
+// with no foe); with a ShipSheet on the fight it goes over the fight.
+func (c *cellPage) spaceFight(sf *game.SpaceFight, sh sfShown, ask *front.Ask, scr *game.Screen) {
+	left := scr == nil || scr.Kind != game.ScreenShipSheet
 	alt := func(on bool, fg, other int) int {
 		if on && sh.Blink%2 == 1 && sh.Blink < sfBlinkSteps {
 			return other
 		}
 		return fg
 	}
+	if left {
+		c.fightLeft(sf, alt)
+	}
+	c.ownPanel(sf, alt)
+	if scr != nil && scr.ShipSheet != nil {
+		c.shipSheet(scr.ShipSheet)
+	}
+	c.fightBottom(sf, sh, ask)
+}
+
+// fightLeft is the view, the foe's picture, a blast, the status, the
+// range and the foe's panel.
+func (c *cellPage) fightLeft(sf *game.SpaceFight, alt func(bool, int, int) int) {
 	// 2358 / 2461: the view at its cell, the foe in the picture window
 	c.shipsPic(0, image.Point{})
 	if m := gamePic(sf.Foe, c.ink); m != nil {
@@ -349,64 +378,12 @@ func (c *cellPage) spaceFight(sf *game.SpaceFight, sh sfShown, ask *front.Ask) {
 	// 22E2 / 23EB
 	c.put(1, 1, 12, 0, sf.Status)
 	c.put(1, 2, 12, 0, "Range: "+strconv.Itoa(max(sf.Range, 0)))
-	for _, own := range []bool{false, true} {
-		sys, k0 := sf.Enemy, 23
-		if own {
-			sys, k0 = sf.Own, 17
-			for i := range 6 { // 2144 / 2252: the rows cleared, the ticks
-				c.fillCells(29, 2*i+1, 38, 2*i+1, 8)
-				c.fillCells(29, 2*i+2, 38, 2*i+2, 0)
-				for k := range 10 {
-					c.fillPx(image.Rect(232+8*k, (2*i+2)*8, 233+8*k, (2*i+2)*8+8), 8)
-				}
-			}
-		} else if sf.SensorsOut {
-			c.fillCells(1, 12, 24, 17, 8)
-			c.put(4, 14, 12, 8, "Sensors Destroyed")
-			continue
-		}
-		for i := range 6 {
-			c.shipsPic(k0+i, image.Point{})
-		}
-		for i := range 6 { // 1E60 / 1F82
-			now, mx := sys.Now[i], sys.Max[i]
-			fg, other, bg, col, row := 10, 12, 0, 10, i+12
-			if own {
-				fg, bg, col, row = 11, 8, 34, 2*i+1
-			}
-			if now == 0 {
-				fg, other = 12, 0
-			}
-			if own {
-				c.put(29, row, fg, bg, sfLabels[i]+":")
-			}
-			b := sf.Blink
-			c.put(col, row, alt(b.System == i+1 && b.Own == own, fg, other), bg, rjust(now, 5))
-			n := 0
-			if mx >= 100 {
-				n = (now + 15) >> 4 * 80 / (mx >> 4)
-			} else if mx != 0 {
-				n = now * 80 / mx
-			}
-			fill := n
-			n = min(max(n, 0), 79)
-			bx, by := 120, 8*i+96
-			if own {
-				bx, by = 232, 16*i+16
-			}
-			if fill > 0 {
-				c.fillPx(image.Rect(bx, by+3, bx+n, by+4), sfBarHi[i])
-				c.fillPx(image.Rect(bx, by+4, bx+n, by+5), sfBarLo[i])
-			}
-			for x := n; x < 80; x++ {
-				e := 0
-				if x&7 == 0 {
-					e = 8
-				}
-				c.fillPx(image.Rect(bx+x, by+3, bx+x+1, by+5), e)
-			}
-		}
-	}
+	c.panel(sf, false, alt)
+}
+
+// ownPanel is the own ship's panel, the compact weapons and the piece.
+func (c *cellPage) ownPanel(sf *game.SpaceFight, alt func(bool, int, int) int) {
+	c.panel(sf, true, alt)
 	// 23F4 / 2508: the compact weapons, then the piece
 	c.fillCells(29, 14, 38, 17, 8)
 	c.put(29, 14, 10, 8, "Weapons:")
@@ -419,14 +396,81 @@ func (c *cellPage) spaceFight(sf *game.SpaceFight, sh sfShown, ask *front.Ask) {
 			fg = 14
 		}
 		fg = alt(sf.Blink.Slot == i+1, fg, 12)
-		name := w.Short
-		if len(name) > 8 {
-			name = name[:8]
-		}
-		c.put(29, 15+i, fg, 8, name)
+		c.put(29, 15+i, fg, 8, short8(w.Short))
 		c.put(37, 15+i, fg, 8, rjust(w.Working, 2))
 	}
 	c.shipsPic(16, image.Point{})
+}
+
+func short8(s string) string {
+	if len(s) > 8 {
+		return s[:8]
+	}
+	return s
+}
+
+// panel is one ship's systems (2144 / 2252, 1E60 / 1F82).
+func (c *cellPage) panel(sf *game.SpaceFight, own bool, alt func(bool, int, int) int) {
+	sys, k0 := sf.Enemy, 23
+	if own {
+		sys, k0 = sf.Own, 17
+		for i := range 6 { // 2144 / 2252: the rows cleared, the ticks
+			c.fillCells(29, 2*i+1, 38, 2*i+1, 8)
+			c.fillCells(29, 2*i+2, 38, 2*i+2, 0)
+			for k := range 10 {
+				c.fillPx(image.Rect(232+8*k, (2*i+2)*8, 233+8*k, (2*i+2)*8+8), 8)
+			}
+		}
+	} else if sf.SensorsOut {
+		c.fillCells(1, 12, 24, 17, 8)
+		c.put(4, 14, 12, 8, "Sensors Destroyed")
+		return
+	}
+	for i := range 6 {
+		c.shipsPic(k0+i, image.Point{})
+	}
+	for i := range 6 { // 1E60 / 1F82
+		now, mx := sys.Now[i], sys.Max[i]
+		fg, other, bg, col, row := 10, 12, 0, 10, i+12
+		if own {
+			fg, bg, col, row = 11, 8, 34, 2*i+1
+		}
+		if now == 0 {
+			fg, other = 12, 0
+		}
+		if own {
+			c.put(29, row, fg, bg, sfLabels[i]+":")
+		}
+		b := sf.Blink
+		c.put(col, row, alt(b.System == i+1 && b.Own == own, fg, other), bg, rjust(now, 5))
+		n := 0
+		if mx >= 100 {
+			n = (now + 15) >> 4 * 80 / (mx >> 4)
+		} else if mx != 0 {
+			n = now * 80 / mx
+		}
+		fill := n
+		n = min(max(n, 0), 79)
+		bx, by := 120, 8*i+96
+		if own {
+			bx, by = 232, 16*i+16
+		}
+		if fill > 0 {
+			c.fillPx(image.Rect(bx, by+3, bx+n, by+4), sfBarHi[i])
+			c.fillPx(image.Rect(bx, by+4, bx+n, by+5), sfBarLo[i])
+		}
+		for x := n; x < 80; x++ {
+			e := 0
+			if x&7 == 0 {
+				e = 8
+			}
+			c.fillPx(image.Rect(bx+x, by+3, bx+x+1, by+5), e)
+		}
+	}
+}
+
+// fightBottom is the message window and the prompt rows.
+func (c *cellPage) fightBottom(sf *game.SpaceFight, sh sfShown, ask *front.Ask) {
 	// the message window (1,19)-(38,21)
 	c.fillCells(1, 19, 38, 21, 0)
 	for i, r := range sh.Pages[sh.Page] {
@@ -434,9 +478,15 @@ func (c *cellPage) spaceFight(sf *game.SpaceFight, sh sfShown, ask *front.Ask) {
 	}
 	// the prompt rows
 	c.fillCells(0, 23, 39, 24, 0)
+	pause := sf.Pause
+	if pause == "" {
+		pause = sfPause
+	}
 	switch {
+	case sf.StatusLine != "": // 0A18 / string_print01: the row cleared, the line in fg10
+		c.put(0, 24, toneInk[game.ToneText], 0, sf.StatusLine)
 	case sh.More, ask != nil && (ask.Kind == front.AskMenu && len(ask.Items) == 0 || ask.Kind == front.AskKey):
-		c.put(0, 24, 15, 0, sfPause)
+		c.put(0, 24, 15, 0, pause)
 	case ask != nil && ask.Kind == front.AskConfirm:
 		c.bar(ask.Prompt, "Yes No", sh.Sel)
 	case ask != nil && ask.Kind == front.AskMenu:
