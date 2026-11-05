@@ -325,7 +325,6 @@ type Trading struct {
 	Kind     TradeKind
 	Name     string
 	Goods    []game.Item
-	Prices   []int
 	Buys     bool
 	Offers   []game.Offer // the appraisals of gems and jewels
 	Services []game.Service

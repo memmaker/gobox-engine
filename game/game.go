@@ -732,7 +732,6 @@ type Shop struct {
 	Offers        []Offer
 	Name          string
 	Goods         []Item
-	Prices        []int
 	Buys          bool           // the shop buys from the party
 	Reloads       bool           // the shop refills clips (Reload)
 	Pooled        map[string]int // money pooled with the shop, by coin (nil: none)

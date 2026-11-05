@@ -456,7 +456,7 @@ func (r *rules) State() game.State {
 			s.Mode, s.Temple, s.TempleName, s.TempleOffers = game.ModeTemple, t.Services, t.Name, t.Offers
 		default:
 			s.Mode = game.ModeShop
-			s.Shop = &game.Shop{Name: t.Name, Goods: t.Goods, Prices: t.Prices, Buys: t.Buys, Offers: t.Offers,
+			s.Shop = &game.Shop{Name: t.Name, Goods: t.Goods, Buys: t.Buys, Offers: t.Offers,
 				Pooled: t.Pooled, Reloads: s.Allowed["Reload"], IdentifyPrice: t.Identify, Unknown: t.Unknown, Identified: t.Known}
 		}
 		if r.items != game.ItemsNone {
