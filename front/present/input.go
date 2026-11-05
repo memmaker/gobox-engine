@@ -65,6 +65,7 @@ func (p *Presenter) arrow(a input.Act, v front.View) {
 		return
 	}
 	switch {
+	case v.Picker != nil: // a picker pages to an absolute page (pickerKey), never by -1 and +1
 	case back:
 		p.send(front.ActPage, -1)
 	case on:
@@ -275,7 +276,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			p.key(k, v)
 		}
 	}
-	if pageScreen(v) && p.pageMenu { // the page screens' own pointer (screens.go): the right button is Esc
+	if pageScreen(v) && (p.pageMenu || v.Picker != nil) { // the page screens' own pointer (screens.go): the right button is Esc
 		if right {
 			p.screenKey(keyOf(input.Esc), v)
 			right = false

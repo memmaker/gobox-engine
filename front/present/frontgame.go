@@ -145,6 +145,9 @@ func (p *Presenter) slotAct(a front.Action) bool {
 		p.scr.newChar = a.Kind == front.ActCreate
 	}
 	if sl == nil {
+		if p.gridPick != nil && front.PickAct(p, &p.gridPick, a) { // a picker up takes its own actions first: none of the screens under it pages or picks for it
+			return true
+		}
 		return p.questionAct(a) || front.PickAct(p, &p.gridPick, a) || front.IconAct(p, &p.icon, a) || front.CreateAct(p, &p.creating, a) || p.serviceAct(a)
 	}
 	return front.SlotsAct(p, &p.slots, a)
