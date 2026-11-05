@@ -535,3 +535,28 @@ icon: -1
 internal_name: Stone of Good Luck
 name: Stone of Good Luck
 icon: -1
+
+# Silver Blades names no record above matched:
+internal_name: Banded Armor
+name: Banded Armor
+icon: 54
+
+internal_name: Cler Scroll
+name: Cler Scroll
+icon: 527
+
+internal_name: Elixer of Youth
+name: Elixer of Youth
+icon: 450
+
+internal_name: Necklace
+name: Necklace
+icon: 392
+
+internal_name: Gauntlets
+name: Gauntlets
+icon: 228
+
+internal_name: Cute Yellow Canary
+name: Cute Yellow Canary
+icon: -1
