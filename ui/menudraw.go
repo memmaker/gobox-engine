@@ -63,6 +63,7 @@ func (m *MenuCanvas) Draw(dst *gpu.Image, st MenuStyle, title string, items []st
 		}
 		items[i], hk[i] = HotText(items[i], key)
 	}
+	digitPad(items, keys, off)
 	title, foot, _ := strings.Cut(title, string(rune(InkFoot)))
 	rows, hot, icon := items, hk, make([]image.Image, len(items))
 	first := 0 // the first item's row
@@ -215,4 +216,17 @@ func (m *MenuCanvas) Draw(dst *gpu.Image, st MenuStyle, title string, items []st
 		rects = append(rects, image.Rect(int(x0+k*8), int(y0), int(x0+k*float64((cw-1)*8)), int(y0+k*float64(rh(r)*8))))
 	}
 	return rects
+}
+
+// digitPad indents the rows past the digits ("[1] " ...) under them, so a
+// long list (the temple's 11 cures) keeps one column.
+func digitPad(items []string, keys []byte, off []bool) {
+	if !slices.ContainsFunc(keys, func(k byte) bool { return k >= '0' && k <= '9' }) {
+		return
+	}
+	for i := range items {
+		if i < len(keys) && keys[i] == 0 && (i >= len(off) || !off[i]) {
+			items[i] = "    " + items[i]
+		}
+	}
 }
