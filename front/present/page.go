@@ -356,7 +356,7 @@ func noteLine(m *image.RGBA, note Note, y int) {
 // paneImage draws the text pane's runs on black in *img (made or remade
 // at the pane's size): what drawBox shows inside the pane's border.
 func paneImage(img **gpu.Image, pn *front.Pane, note Note) *gpu.Image {
-	r := paneBox.Pixels()
+	r := paneCells(pn).Pixels()
 	m := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
 	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
 	for y, l := range pn.Lines {
@@ -365,6 +365,9 @@ func paneImage(img **gpu.Image, pn *front.Pane, note Note) *gpu.Image {
 				glyphAt(m, note.Font(run.Text[i], run.Upcase), (run.X+i)*8, y*8, run.Fg, run.Bg)
 			}
 		}
+	}
+	for i := 3; i < len(m.Pix); i += 4 { // opaque: a run's transparent background must not show the 3D view through
+		m.Pix[i] = 255
 	}
 	return upload(img, m)
 }
@@ -559,7 +562,7 @@ func sameImage(a, b image.Image) bool {
 // its bottom border, right, the "> Notes" that puts the text into the
 // journal (ActNote; Ctrl-N, the pad's Back).
 func (p *Presenter) paneBox(dst *gpu.Image, note Note, v front.View, k float64, cx, cy int) {
-	txt := paneBox.Framed()
+	txt := paneCells(v.Pane).Framed()
 	drawBox(dst, paneImage(&p.pg.pane, v.Pane, note), p.border.tiles, txt, k, cx, cy)
 	const label = " > Notes "
 	m := image.NewRGBA(image.Rect(0, 0, 8*len(label), 8))

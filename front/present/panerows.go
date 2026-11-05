@@ -12,6 +12,9 @@ import (
 // through their Frames at the frame the clock is on.
 func (p *Presenter) paged(v front.View) front.View {
 	p.paneMore = false
+	if v.Pane != nil {
+		v.Pane = wrapPane(v.Pane)
+	}
 	if pn := v.Pane; pn != nil && pn.Rows > 0 && len(pn.Lines) > pn.Rows {
 		if sig := fmt.Sprint(pn.Lines); sig != p.paneSig {
 			p.paneSig, p.paneFrom = sig, 0

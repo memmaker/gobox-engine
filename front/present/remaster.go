@@ -460,7 +460,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		}
 	}
 	// the picture at the top, the text in the middle, an answer's menu right under it
-	pic, txt := innerWindow.Framed(), paneBox.Framed()
+	pic, txt := innerWindow.Framed(), paneCells(v.Pane).Framed()
 	ph, th := float64(pic.Pixels().Dy()), float64(txt.Pixels().Dy())
 	pk := min(k, max(1, float64(min(int(float64(b.Dy())/2/(ph+th/2)), b.Dx()/ega.W))))
 	// the text box and the menus at their sizes (Esc, Graphics), as far as they fit between the cards
