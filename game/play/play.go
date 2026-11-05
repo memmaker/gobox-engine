@@ -70,6 +70,13 @@ type Common struct {
 	Lore     []game.Lore // the journal, newest first
 	Quests   []game.Quest
 	Allowed  Allowed
+
+	// Overlays any state may carry: a question only the rules can put
+	// (a power to choose), the grid picker and the icon designer the
+	// rules fill from their art (nil: none up).
+	PowerPick  *game.PowerPick  // PickPower answers
+	Picker     *game.Picker     // Pick, ClosePicker answer
+	IconEditor *game.IconEditor // IconSize, IconColour, IconRemove, IconPNG, EndIcon act on it
 }
 
 // Member is one character as the rules know it.
@@ -89,6 +96,11 @@ type Member struct {
 	IconHeadID, IconBodyID               string
 	IconColours                          []byte
 	NPC, Okay, Foe                       bool
+	ClassText, LevelText                 string          // "old/new", "3/3"
+	SpellsReady, Memo                    string          // "0/3" over the slots
+	Powers                               []game.Entry    // the sheet's power offers (UsePower)
+	Reactions                            []game.Reaction // the sheet's reactions (SetPolicy)
+	Sheet                                *game.SheetPage // the rules' figures for the sheet (nil: gobox's own from the rest)
 }
 
 // The states. Each situation is one explicit type; similar screens share one.
@@ -107,13 +119,17 @@ type Draft struct {
 	Member
 	Fields       []game.Field
 	MinHP, MaxHP int
-	Minimums     string // the rules' text on stat minimums for the class
+	Minimums     string   // the rules' text on stat minimums for the class
+	Step         string   // the creation step the rules are on ("race", "skills", ...), "" any
+	Choices      []string // that step's options
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).
 type Exploring struct {
 	Common
-	Map ExploreMap
+	Map  ExploreMap
+	Day  bool       // daylight as the rules see it (the sky they paint)
+	Door *game.Door // a door the party stands at, with the ways through (TryDoor); nil none
 }
 
 // ExploreMap is what gobox needs to walk, draw the 3D view and the
@@ -133,7 +149,8 @@ type Walls struct {
 	Floor, Sky          string
 	FloorRGBA, CeilRGBA *color.RGBA
 	Backdrop            *game.Picture
-	Outside             bool    // under the sky: gobox draws sun and mountains by Where's hour
+	Outside             bool    // under the sky: gobox draws the sun by Exploring.Day
+	Mountains           bool    // the mountain range on the horizon, by day outside
 	SunAz, SunEl        float64 // the sun's bearing and height
 }
 
@@ -155,6 +172,11 @@ type Battlefield struct {
 	Round     int
 	Turn      int // the unit ID whose turn it is
 	Dungeon   bool
+	Moves     int                 // the turn's unit's moves left
+	Casting   int                 // the spell the turn's unit casts over rounds, 0 none
+	Weapon    *game.Weapon        // the turn's weapon in hand (its icon on Attack), nil none
+	Missile   *game.Weapon        // its ranged weapon readied, nil none
+	Maneuvers []game.TurnManeuver // the rule set's maneuvers, by DoManeuver ID
 }
 
 // Unit is a combatant.
@@ -168,6 +190,7 @@ type Unit struct {
 	HP, MaxHP, AC   int
 	Status, Dmg     string
 	Hit             int // the turn's unit's chance in percent to hit it, 0 not a target
+	Pose            int // its icon's pose: 0 ready, 1 action
 	Art             game.Picture
 }
 
@@ -175,10 +198,23 @@ type Unit struct {
 type SceneKind int
 
 const (
-	SceneText    SceneKind = iota // the script's text and pictures
-	SceneTalk                     // someone speaks; Replies are the answers
-	SceneHandout                  // a journal handout to read; Continue leaves
+	SceneText     SceneKind = iota // the script's text and pictures
+	SceneTalk                      // someone speaks; Replies are the answers
+	SceneHandout                   // a journal handout to read; Continue leaves
+	SceneTitle                     // the title (Intro); Continue ends it
+	SceneSequence                  // a Data.Sequences entry full screen; Continue at its end
+	SceneResults                   // the after-combat page (Results); Continue leaves
+	SceneScreen                    // a typed screen (Screen: a ship sheet, a table, ...)
+	SceneHeading                   // a heading to pick (overland, rocket): Heading, Leave for Done
 )
+
+// Placed is a line of text at a text cell; Tone says what it means, gobox
+// picks the colour.
+type Placed struct {
+	At   image.Point // column, row from 1
+	Text string
+	Tone game.Tone
+}
 
 // Scene: a script shows something and waits for the player. The script's
 // place is the game's state; Continue or a Reply moves it on.
@@ -187,16 +223,34 @@ type Scene struct {
 	Kind     SceneKind
 	Speaker  string
 	Pictures []game.Picture
-	Text     []string // plain paragraphs; colours are gobox's
-	Replies  []string // SceneTalk: the answers, Reply{N}
-	Typed    bool     // the reply is typed text (Reply{Text})
-	Handout  string   // SceneHandout: the title
-	Lines    []string // SceneHandout: journal.Layout's
+	Text     []string      // plain paragraphs; colours are gobox's
+	Replies  []string      // SceneTalk: the answers, Reply{N}
+	Typed    bool          // the reply is typed text (Reply{Text})
+	Handout  string        // SceneHandout: the title
+	Lines    []string      // SceneHandout: journal.Layout's
+	Layers   []game.Layer  // pictures with their place and frames (Pictures: gobox places them)
+	Placed   []Placed      // text at cells over the window (Text: the message lines)
+	Intro    *game.Intro   // SceneTitle
+	Sequence string        // SceneSequence: the Data.Sequences name
+	Results  *game.Results // SceneResults
+	Screen   *game.Screen  // SceneScreen
+	Full     bool          // the pictures are one whole-screen picture
 }
+
+// TradeKind says which place Trading is.
+type TradeKind int
+
+const (
+	TradeShop TradeKind = iota
+	TradeTemple
+	TradeTraining
+	TradeVault
+)
 
 // Trading: a shop, temple, trainer or vault is open.
 type Trading struct {
 	Common
+	Kind     TradeKind
 	Name     string
 	Goods    []game.Item
 	Prices   []int
@@ -205,13 +259,18 @@ type Trading struct {
 	Services []game.Service
 	Training *game.Training
 	Pooled   map[string]int
+	Vault    *game.Vault    // TradeVault: what is stored
+	Identify int            // the price to identify, 0 none
+	Unknown  []game.ItemRef // the party's items the shop can identify
+	Known    *game.ItemRef  // the item last identified here, nil none
 }
 
 // Looting: treasure lies before the party.
 type Looting struct {
 	Common
-	Items []game.Item
-	Money map[string]int
+	Items  []game.Item
+	Money  map[string]int
+	Status bool // LootStatus is offered (the ship sheet over the fight)
 }
 
 // Camping: the party has made camp (rest, memorize, scribe, fix, order).
@@ -220,7 +279,17 @@ type Camping struct{ Common }
 // Over: the game has ended.
 type Over struct {
 	Common
-	Won bool
+	Won  bool
+	Text string // the rules' last words
+}
+
+// ShipFight: a ship battle is on (Buck Rogers). The crew menu up is Menu,
+// answered with Crew{N}; Sheet a ship's record shown over the fight.
+type ShipFight struct {
+	Common
+	Fight game.SpaceFight
+	Sheet *game.ShipSheet
+	Menu  []string
 }
 
 func (Assembling) state() {}
@@ -231,6 +300,7 @@ func (Scene) state()      {}
 func (Trading) state()    {}
 func (Looting) state()    {}
 func (Over) state()       {}
+func (ShipFight) state()  {}
 
 // Event is one fact in an Outcome. The set is closed like State's.
 type Event interface{ event() }
@@ -280,6 +350,10 @@ type (
 	JournalNote struct{ ID int }     // a Lore entry was added
 	Refused     struct{ Why string } // a step blocked by the rules (a wall, a locked door)
 	Ended       struct{ Won bool }
+	SaveOffered struct{} // a script offers to save the game
+	ShipShown   struct {
+		Fight game.SpaceFight // a moment of the ship fight (a blink, a blast frame)
+	}
 )
 
 func (Narrated) event()    {}
@@ -303,6 +377,8 @@ func (Lost) event()        {}
 func (JournalNote) event() {}
 func (Refused) event()     {}
 func (Ended) event()       {}
+func (SaveOffered) event() {}
+func (ShipShown) event()   {}
 
 // The actions. Every game uses these; a game-specific verb gets its own
 // type here. Which apply now is the state's Allowed.
@@ -347,12 +423,30 @@ type (
 	}
 	Adjust           struct{ Stat, By int }
 	PointBuy         struct{ Scores []int }
-	Reroll           struct{}
+	Reroll           struct{ Minimal bool } // Minimal: the lowest roll the class allows
 	KeepCharacter    struct{}
 	DiscardCharacter struct{}
 	ChangeClass      struct{ Member, Class int }
 	SetDifficulty    struct{ N int }
 	Begin            struct{}
+	QuickStart       struct{}
+	Quit             struct{}
+	Modify           struct{ Member int } // change a member (Draft set)
+	Rename           struct{ Name string }
+	// The picker and the icon designer (Common's overlays).
+	OpenPicker  struct{ Kind int }
+	Pick        struct{ N int }
+	ClosePicker struct{}
+	EditIcon    struct{ Member int }
+	IconSize    struct{}
+	IconColour  struct{ Part, Shade, Value int }
+	IconRemove  struct{}
+	IconPNG     struct{ Path string }
+	EndIcon     struct{ Keep bool }
+	// The sheet.
+	UsePower  struct{ Member, Kind, Spell, Target int }
+	PickPower struct{ ID int }
+	SetPolicy struct{ ID, Policy int }
 
 	// Exploring.
 	Arrive struct {
@@ -363,7 +457,13 @@ type (
 		Before bool // the script ahead of a step through Side, before the party moves
 		Side   int
 	} // run the square's event (Walk.Event, Walk.Departure said one waits)
-	Face          struct{ Facing int }
+	Face    struct{ Facing int }
+	TryDoor struct{ Way int } // Exploring.Door's way: 0 bash, 1 pick, 2 knock
+	Mark    struct {
+		At   image.Point
+		Text string
+	} // a note on the automap
+	Unmark        struct{ At image.Point }
 	Search        struct{}
 	Look          struct{}
 	MakeCamp      struct{}
@@ -378,6 +478,8 @@ type (
 	Bandage    struct{ Member int }
 	LayOnHands struct{ Member int }
 	BreakCamp  struct{}
+	Plan       struct{ Member, Spell, Count int } // copies to memorize at the next rest
+	CampRest   struct{ Kind int }                 // one of Data.Rests
 
 	// Fighting. EndTurn's outcome carries the monsters' moves up to the
 	// next member's turn.
@@ -394,10 +496,22 @@ type (
 	Quick      struct{ All bool }
 	Flee       struct{}
 	EndTurn    struct{}
+	// Buck Rogers' turn menu.
+	Target     struct{} // pick a target to fire at (the rules ask on)
+	ViewTarget struct{} // look over the targets
+	Intimidate struct{}
+	Aid        struct{} // help a downed member next to the unit
+	Sprint     struct{}
+	Dodge      struct{}
+	Jetpack    struct{}
 
 	// Scene.
 	Continue struct{}
-	Reply    struct {
+	Heading  struct{ Dir int } // SceneHeading: 0 N, 2 E, ... odd diagonals
+
+	// ShipFight.
+	Crew  struct{ N int } // the crew menu's N
+	Reply struct {
 		N    int
 		Text string
 	} // Text: a typed answer
@@ -410,17 +524,24 @@ type (
 		Member, Item int
 		Keep         bool
 	}
-	Repair    struct{ Member, Item int }
-	Reload    struct{ Member, Item int }
-	Train     struct{ Member int }
-	Heal      struct{ Service, Member int }
-	PoolCoins struct{ Member int }
+	Repair        struct{ Member, Item int }
+	Reload        struct{ Member, Item int }
+	Train         struct{ Member int }
+	Heal          struct{ Service, Member int }
+	PoolCoins     struct{ Member int }
+	OpenTraining  struct{ Member int }
+	CloseTraining struct{}
+	Learn         struct{ Spell int }
 
 	// Looting.
 	Take struct {
 		Item int  // -1: the money only
 		All  bool // the money and every item
 	}
+
+	LootDetect struct{}
+	LootShare  struct{} // divide the money among the party
+	LootStatus struct{}
 
 	// Trading, Looting, Scene's handout.
 	Leave struct{}
@@ -494,3 +615,32 @@ func (PoolCoins) action()        {}
 func (Take) action()             {}
 func (Leave) action()            {}
 func (EndGame) action()          {}
+func (QuickStart) action()       {}
+func (Quit) action()             {}
+func (Modify) action()           {}
+func (Rename) action()           {}
+func (OpenPicker) action()       {}
+func (Pick) action()             {}
+func (ClosePicker) action()      {}
+func (EditIcon) action()         {}
+func (IconSize) action()         {}
+func (IconColour) action()       {}
+func (IconRemove) action()       {}
+func (IconPNG) action()          {}
+func (EndIcon) action()          {}
+func (UsePower) action()         {}
+func (PickPower) action()        {}
+func (SetPolicy) action()        {}
+func (TryDoor) action()          {}
+func (Mark) action()             {}
+func (Unmark) action()           {}
+func (Plan) action()             {}
+func (CampRest) action()         {}
+func (Heading) action()          {}
+func (Crew) action()             {}
+func (OpenTraining) action()     {}
+func (CloseTraining) action()    {}
+func (Learn) action()            {}
+func (LootDetect) action()       {}
+func (LootShare) action()        {}
+func (LootStatus) action()       {}
