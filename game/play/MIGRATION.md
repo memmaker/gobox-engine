@@ -62,3 +62,55 @@ and a game moves over whole.
 - A verb only one game has still gets its own type in `play`.
 - Sound and music cues ride in `Outcome.Events`; where the music is set by
   the place, `Where.Music` stays state.
+
+## Old fields and decisions, one by one (2026-11-05 gap pass)
+
+What front/playrules maps each to, so a game on play loses nothing.
+
+| Old State field | play |
+|---|---|
+| `Mode` | the state's type; Trading by `Kind` (shop, temple, training, vault) |
+| `Pending` | built by gobox: Scene replies / typed / Continue, `SceneHeading` → Direction with Done (`Leave`), `ShipFight.Menu` → Choice, maneuver pick |
+| `Door` | `Exploring.Door`; `TryDoor{Way}` |
+| `Vault` | `Trading{Kind: TradeVault, Vault}` |
+| `Shop.IdentifyPrice/Unknown/Identified` | `Trading.Identify/Unknown/Known`; `Reloads` from Allowed `Reload` |
+| `Loot.Status` | `Looting.Status`; `LootDetect`, `LootShare`, `LootStatus` actions |
+| `Intro` | `Scene{Kind: SceneTitle, Intro}` (the Amiga card is one of its Pictures steps) |
+| `Sequence` | `Scene{Kind: SceneSequence, Sequence}` |
+| `Results` | `Scene{Kind: SceneResults, Results}` |
+| `Screen` | `Scene{Kind: SceneScreen, Screen}`; the space fight is the `ShipFight` state (`Fight`, `Sheet`, `Menu`) |
+| `Page.Layers`, `Page.View` | `Scene.Layers`, `Scene.Placed` (Tone, gobox colours) |
+| `Flags.Full` | `Scene.Full` |
+| `Flags.Day`, `Walls.Sun/Mountains` | `Exploring.Day` (the game's say), `Walls.Outside`, `Walls.Mountains` |
+| `Flags.IconDrop`, `IconEditor`, `Picker`, `PowerPick` | `Common.IconEditor/Picker/PowerPick` |
+| `Sheet`, `SheetPage` | `Member.Powers/Reactions/Sheet`; which sheet is up is gobox's |
+| `Creation.Step/Choices` | `Draft.Step/Choices` |
+| `Member.ClassText/LevelText/SpellsReady/Memo` | the same on `play.Member` |
+| `Combat.Turn.Moves/Casting/Weapon/Missile/Maneuvers`, `Unit.Pose` | `Battlefield.Moves/Casting/Weapon/Missile/Maneuvers`, `Unit.Pose` |
+| `LastText` (Over) | `Over.Text` |
+| `Where.Music`, `Map.NoMap` | unchanged (Common.Where, ExploreMap.Automap) |
+| `Pacing` | gobox's: rest chunks (`AdvanceTimeBy` per Step, stopped by `StopRest` or anything happening), the auto-walk a square per Step, anim when a layer has frames; fight moments by the events' Ms/Pose |
+| `Ink` | dropped: text colours are gobox's only |
+| `Saves` | gobox's slot files over `Game.Save/Load` |
+
+| Old decision | play action |
+|---|---|
+| `QuickStart`, `Quit`, `Modify`, `Rename` | the same |
+| `Roll{Minimal}` | `Reroll{Minimal}` |
+| `OpenPicker`, `Pick`, `ClosePicker`, `EditIcon`, `IconSize`, `IconColour`, `IconRemove`, `IconPNG`, `EndIcon` | the same |
+| `UsePower` (`Sure` is gobox's ask), `PickPower`, `SetPolicy` | the same |
+| `TryDoor`, `Mark`, `Unmark` | the same |
+| `Plan`, `CampRest` | the same |
+| `OpenTraining`, `CloseTraining`, `Learn` | the same |
+| `LootDetect`, `LootShare`, `LootStatus` | the same |
+| BR turn menu `Answer{N: 'T' 'V' 'I' 'A' 'S' 'D' 'J'}` | `Target`, `ViewTarget`, `Intimidate`, `Aid`, `Sprint`, `Dodge`, `Jetpack` |
+| space fight crew menu `Answer{N}` | `Crew{N}` |
+| overland/rocket Direction `Answer{N}`, Done | `Heading{Dir}`, `Leave` |
+| `TitleDone`, `SequenceDone` | `Continue` |
+| `WalkTo` | none: gobox walks the path (RunEvent{Before}, Arrive, RunEvent) |
+| `StopRest`, `Rest` in camp | none: gobox's rest chunks |
+| `Speak` | none: gobox plays the clips |
+| `OpenSheet`, `CloseSheet`, `ShowMember`, `OpenItems`, `CloseItems`, `Items`, `Select`, `Browse`, `ViewMember`, `Resize`, `SetSpeed`, `TitlePicture/Credits/Flash`, `LootLook` | none: the screen's |
+| `LootTake`, `Value`, `KeepAppraised` | none: `Take` and `Appraise{Keep}` say it |
+
+New events: `SaveOffered` (old `EvSaves`), `ShipShown` (a ship fight moment, old `Event{Screen, Ms}`).

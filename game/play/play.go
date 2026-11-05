@@ -644,3 +644,10 @@ func (Learn) action()            {}
 func (LootDetect) action()       {}
 func (LootShare) action()        {}
 func (LootStatus) action()       {}
+func (Target) action()           {}
+func (ViewTarget) action()       {}
+func (Intimidate) action()       {}
+func (Aid) action()              {}
+func (Sprint) action()           {}
+func (Dodge) action()            {}
+func (Jetpack) action()          {}
