@@ -182,7 +182,7 @@ func screenPage(v front.View) *cellPage {
 	if v.Slots != nil {
 		v.SheetPage, v.Picker, v.IconEditor = nil, nil, nil
 	}
-	if v.IconEditor != nil && v.Picker == nil {
+	if v.IconEditor != nil || v.Picker != nil { // also a picker over the icon editor, in its palette: no grey cells
 		v.Ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
 	}
 	if cr := v.Creation; cr != nil && v.Picker == nil && v.Slots == nil { // the combat icon on grey, as in the icon editor: its black parts show
@@ -607,7 +607,7 @@ func (c *cellPage) picker(pk *front.Picker) {
 	for k, r := range pk.Cells {
 		i := pk.Page*pk.PerPage + k
 		if i < len(pk.Portraits) && pk.Portraits[i] != nil {
-			c.overs = append(c.overs, overlay{Img: pk.Portraits[i], At: fit(pk.Portraits[i].Bounds(), front.CellRect{X1: r.X1, Y1: r.Y1, X2: r.X1 + 10, Y2: r.Y1 + 4}.Pixels())})
+			c.overs = append(c.overs, overlay{Img: pk.Portraits[i], At: fit(pk.Portraits[i].Bounds(), front.CellRect{X1: r.X1, Y1: r.Y1, X2: r.X1 + 10, Y2: r.Y1 + 4}.Pixels()), Crisp: true}) // nearest neighbour
 		}
 		if i < len(pk.Labels) {
 			c.str(r.X1+12, r.Y1+1, inkWhite, pk.Labels[i])

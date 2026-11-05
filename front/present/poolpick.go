@@ -73,7 +73,14 @@ func (g classicGame) PickerView(page int) *front.Picker {
 		if v != nil {
 			v.Portraits = make([]image.Image, len(pp.names))
 			for i, n := range pp.names {
-				v.Portraits[i] = sprites.Image(series, pp.kind, n)
+				switch pp.field { // a combat icon shows whole: the picked part over the member's other one
+				case "iconhead":
+					v.Portraits[i] = classic.PickIcon(s, n, "")
+				case "iconbody":
+					v.Portraits[i] = classic.PickIcon(s, "", n)
+				default:
+					v.Portraits[i] = sprites.Image(series, pp.kind, n)
+				}
 			}
 		}
 		return v

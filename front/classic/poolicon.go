@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"sync"
 
+	"gobox/ega"
 	"gobox/front"
 	"gobox/game"
 	"gobox/sprites"
@@ -42,7 +43,7 @@ func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front
 	ega := len(b.Palette) == 17 // the 16 EGA colours, then transparent
 	clear := func(im *image.Paletted, v uint8) bool {
 		_, _, _, a := im.Palette[v].RGBA()
-		return a == 0
+		return a == 0 || len(im.Palette) != 17 && len(im.Pix) > 0 && v == im.Pix[0] // VGA art (PoD) keys its opaque background, the corner's colour
 	}
 	w := b.Bounds().Dx()
 	d := append([]uint8(nil), b.Pix...)
@@ -61,6 +62,13 @@ func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front
 			to[pos], to[pos+8] = colours[i]&15, colours[i]>>4
 		}
 	}
+	var hole uint8 // VGA art: the keyed background drawn as the palette's transparent entry
+	for i, c := range b.Palette {
+		if _, _, _, a := c.RGBA(); a == 0 {
+			hole = uint8(i)
+			break
+		}
+	}
 	out := make([]uint8, len(d))
 	for i, v := range d {
 		x, y := i%w, i/w
@@ -70,6 +78,8 @@ func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front
 		switch {
 		case ega && v >= 16:
 			v = clearPix
+		case !ega && clear(b, v):
+			v = hole
 		case ega, v < 16 && !clear(b, v): // VGA art (PoD) recolours the same sixteen indices, its transparent colour aside (R1C3)
 			v = to[v]
 		} // other art keeps its other indices: its palette has the alpha
@@ -148,4 +158,31 @@ func PoolIcon(v front.View, s game.State) front.View {
 	}
 	v.Pictures = keep
 	return v
+}
+
+// PickIcon is the subject's combat icon (ready pose) with head or body swapped
+// for the named one ("": its own), for a picker cell.
+func PickIcon(s game.State, head, body string) image.Image {
+	h, b := memberIcon(subject(s))
+	if h == "" || b == "" {
+		h, b = "combat_head_000", "combat_body_000"
+	}
+	if head != "" {
+		h = head
+	}
+	if body != "" {
+		b = body
+	}
+	pic, ok := poolIcon(h, b, subject(s).IconColors, 0, false)
+	if !ok {
+		return nil
+	}
+	if pic.Palette != nil {
+		return front.PalettedRGBA(pic.Pix, pic.PixW, pic.Palette)
+	}
+	var ink [16]color.RGBA
+	for i := range ink {
+		ink[i] = ega.RGBA(i)
+	}
+	return front.IndexedRGBA(pic.Pix, pic.PixW, -1, &ink)
 }
