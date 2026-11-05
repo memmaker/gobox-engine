@@ -471,3 +471,67 @@ icon: 530
 internal_name: Ring of Protection
 name: Ring of Protection
 icon: 481
+
+internal_name: Bolt
+name: Bolt
+icon: 41
+
+internal_name: Blessed Bolt
+name: Blessed Bolt
+icon: 41
+
+internal_name: Scroll Of Prot
+name: Scroll Of Prot
+icon: 525
+
+internal_name: Mage Scroll
+name: Mage Scroll
+icon: 525
+
+internal_name: Cleric Scroll
+name: Cleric Scroll
+icon: 527
+
+internal_name: Girdle of Giant Strength
+name: Girdle of Giant Strength
+icon: 257
+
+internal_name: Boots
+name: Boots
+icon: 84
+
+internal_name: Mirror
+name: Mirror
+icon: 384
+
+internal_name: Elfin Chain
+name: Elfin Chain
+icon: 112
+
+internal_name: Drow Chain
+name: Drow Chain
+icon: 112
+
+internal_name: Necklace of Missiles
+name: Necklace of Missiles
+icon: 392
+
+internal_name: Periapt of Health
+name: Periapt of Health
+icon: 22
+
+internal_name: Ring Of Prot
+name: Ring Of Prot
+icon: 481
+
+internal_name: Elixir of Youth
+name: Elixir of Youth
+icon: 450
+
+internal_name: Eyes of Charming
+name: Eyes of Charming
+icon: -1
+
+internal_name: Stone of Good Luck
+name: Stone of Good Luck
+icon: -1
