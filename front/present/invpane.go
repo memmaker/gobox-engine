@@ -108,7 +108,7 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel int, ware, p
 			inv.text(a, x0+rowH+4, y+(rowH-16)/2, tc)
 			inv.text(b, x0+rowH+4, y+(rowH-16)/2+8, tc)
 		}
-		if priced {
+		if priced && it.Price != (front.Money{}) { // no price given: none shown, not 0g
 			m := price(it.Price)
 			inv.text(m, tr-4-8*len(m), y+(rowH-8)/2, col(inkYellow))
 		}
