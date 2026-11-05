@@ -5,8 +5,8 @@ package present
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"gobox/front"
+	"gobox/sprites"
 	"gobox/ui"
 	"image"
 	"image/color"
@@ -166,7 +166,7 @@ func readIcons(rec string) map[string]int {
 		switch {
 		case !ok || strings.HasPrefix(k, "#"):
 		case k == "internal_name":
-			name = v
+			name = strings.ToLower(v)
 		case k == "icon":
 			if n, err := strconv.Atoi(v); err == nil && name != "" {
 				m[name] = n
@@ -180,28 +180,22 @@ func (inv *inventory) load() {
 	if inv.doll != nil {
 		return
 	}
-	inv.doll, inv.atlas = decodePNG(dollPNG), decodePNG(atlasPNG)
-	inv.icons = readIcons(itemsRec)
+	atlas, rec := sprites.ItemIcons(series)
+	inv.doll, inv.atlas = decodePNG(dollPNG), decodePNG(atlas)
+	inv.icons = readIcons(rec)
 }
 
-// icon is the atlas cell of an item: the key "TT:word" for one of its
-// name words (or a word of one), else "TT" for its type; -1 for none.
+// icon is the atlas cell of an item: the longest items.rec name its name
+// (or one of its words) contains, ignoring case; -1 for none.
 func (inv *inventory) icon(it *front.InvItem) int {
-	t := fmt.Sprintf("%02X", it.Type)
-	for _, w := range it.Words {
-		if n, ok := inv.icons[t+":"+w]; ok {
-			return n
-		}
-		for _, f := range strings.Fields(w) {
-			if n, ok := inv.icons[t+":"+f]; ok {
-				return n
-			}
+	name := strings.ToLower(it.Name + "\n" + strings.Join(it.Words, " "))
+	n, best := -1, 0
+	for k, c := range inv.icons {
+		if len(k) > best && strings.Contains(name, k) {
+			n, best = c, len(k)
 		}
 	}
-	if n, ok := inv.icons[t]; ok {
-		return n
-	}
-	return -1
+	return n
 }
 
 // iconImage is the item's atlas cell (nil: none).

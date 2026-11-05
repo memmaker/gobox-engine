@@ -95,3 +95,11 @@ func Pose(series, name string) string {
 	json.Unmarshal(b, &m)
 	return m[name]
 }
+
+// ItemIcons is a series' item icon sheet (itemicons/atlas.png) and its
+// records (itemicons/items.rec: item name -> cell), one for every game of the series.
+func ItemIcons(series string) (atlas []byte, rec string) {
+	atlas, _ = fsys.ReadFile("series/" + series + "/itemicons/atlas.png")
+	b, _ := fsys.ReadFile("series/" + series + "/itemicons/items.rec")
+	return atlas, string(b)
+}
