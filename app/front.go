@@ -255,7 +255,7 @@ func (g *frontGame) mouse() {
 	mx, my := gpu.CursorPosition()
 	if pts := g.cfg.Capture.Pointer; g.cfg.Capture.Shot != "" && len(pts) > 0 { // a capture's pointer (window pixels)
 		p := pts[min(g.pointer, len(pts)-1)]
-		mx, my = p[0], p[1]
+		mx, my = gpu.ScreenPos(p[0], p[1]) // as the cursor's: a HiDPI window's screen has more pixels than its points
 	}
 	leftHeld := g.latch.Down(gpu.MouseButtonLeft, gpu.IsMouseButtonPressed(gpu.MouseButtonLeft)) || g.leftHold
 	if g.f.InventoryShown() { // its own clicks and wheel; keys still go to the game (a capture's \C is down for one tick: a click)

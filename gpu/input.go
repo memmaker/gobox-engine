@@ -325,6 +325,14 @@ func CursorPosition() (int, int) {
 	return screenPos(in.cursor[0], in.cursor[1])
 }
 
+// ScreenPos is the screen pixel under window point (x, y), as the cursor's.
+func ScreenPos(x, y int) (int, int) {
+	if win.app == nil || win.k == 0 {
+		return x, y
+	}
+	return screenPos(float64(x), float64(y))
+}
+
 // screenPos is the screen pixel under window point (x, y).
 func screenPos(x, y float64) (int, int) {
 	s := DeviceScaleFactor()
