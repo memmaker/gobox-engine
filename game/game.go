@@ -695,8 +695,9 @@ type Training struct {
 }
 
 type Loot struct {
-	Items []Item
-	Money map[string]int
+	Items  []Item
+	Money  map[string]int
+	Status bool `json:",omitempty"` // the menu offers Status (LootStatus); the game answers by publishing a screen (the ship sheet over the fight)
 }
 
 type Door struct {

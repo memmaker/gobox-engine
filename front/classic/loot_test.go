@@ -16,4 +16,11 @@ func TestLoot(t *testing.T) {
 	if l := Loot(s); l == nil || l.Take || l.Detect {
 		t.Errorf("no treasure: %+v", l)
 	}
+	if l := Loot(s); l.Status {
+		t.Error("Status offered unasked")
+	}
+	s.Loot.Status = true
+	if l := Loot(s); !l.Status {
+		t.Error("Status not offered")
+	}
 }

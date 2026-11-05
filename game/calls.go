@@ -33,6 +33,7 @@ type (
 	LootDetect struct{}
 	LootLeave  struct{ Sure bool }
 	LootShare  struct{} // divide the money among the party
+	LootStatus struct{} // the treasure menu's Status (Loot.Status)
 	TryDoor    struct{ Way int }
 	// Pickers and the icon designer.
 	OpenPicker  struct{ Kind int }
@@ -103,6 +104,7 @@ func (LootTake) decision()      {}
 func (LootDetect) decision()    {}
 func (LootLeave) decision()     {}
 func (LootShare) decision()     {}
+func (LootStatus) decision()    {}
 func (TryDoor) decision()       {}
 func (OpenPicker) decision()    {}
 func (Pick) decision()          {}

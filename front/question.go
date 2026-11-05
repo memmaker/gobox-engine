@@ -188,6 +188,11 @@ func Gate(h Host, l *Loot, d *DoorOpts) (string, []GateItem) {
 				p.LootPool()
 			}
 		}) // only a game that offers it sets Pool
+		add(l.Status, "Status", func(e Game) {
+			if s, ok := e.(interface{ LootStatus() error }); ok {
+				s.LootStatus()
+			}
+		}) // only a game that offers it sets Status
 		add(true, "Exit", func(e Game) {
 			AskSure(h, e.LootLeave(false), func() { h.Call(func(e Game) { e.LootLeave(true) }) })
 		})

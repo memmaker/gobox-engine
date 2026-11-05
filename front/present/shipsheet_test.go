@@ -103,6 +103,19 @@ func TestSpaceFightStatusLineAndPad(t *testing.T) {
 	at(t, c, 0, 24, "Hull", 0, 15)
 }
 
+// The after-combat message: one Loud line in the window (row 19) over the fight, the key pause on row 24.
+func TestSpaceFightDestroyedPause(t *testing.T) {
+	f := testFight()
+	f.Log = []game.Message{{Tone: game.ToneLoud, Text: "Enemy ship destroyed."}}
+	f.Pause = "Press button or enter to continue"
+	v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: &front.Ask{Kind: front.AskMenu}}
+	c := fightPage(&Presenter{}, v)
+	at(t, c, 1, 19, "Enemy ship destroyed.", 15, 0)
+	at(t, c, 0, 24, f.Pause, 15, 0)
+	at(t, c, 29, 1, "Hull:  100", 11, 8)
+	saveSheetPNG(t, v)
+}
+
 // saveSheetPNG renders v with BR2's art to SHIPSHEET_PNG.
 func saveSheetPNG(t *testing.T, v front.View) {
 	out := os.Getenv("SHIPSHEET_PNG")

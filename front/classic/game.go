@@ -319,6 +319,7 @@ func (g *Game) LootView(n int) error { return g.do(game.LootLook{Member: n}) }
 func (g *Game) LootTake(n int) error { return g.do(game.LootTake{Member: n}) }
 func (g *Game) LootDetect() error    { return g.do(game.LootDetect{}) }
 func (g *Game) LootShare() error     { return g.do(game.LootShare{}) }
+func (g *Game) LootStatus() error    { return g.do(game.LootStatus{}) }
 func (g *Game) LootPool() error      { return g.do(game.PoolCoins{Member: g.sel(-1)}) }
 func (g *Game) LootLeave(sure bool) error {
 	err := g.do(game.LootLeave{Sure: sure})
