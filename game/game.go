@@ -497,7 +497,7 @@ type Quest struct {
 
 // Automap is what the party knows of the map.
 type Automap struct {
-	Area      string
+	Area      string // the area's name as the player knows it ("New Phlan", "Valjevo Castle 3"): the map shows it top left
 	Size      image.Point
 	Known     []image.Point // squares seen; empty: nothing is known
 	Marked    []image.Point
