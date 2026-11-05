@@ -560,3 +560,283 @@ icon: 228
 internal_name: Cute Yellow Canary
 name: Cute Yellow Canary
 icon: -1
+
+internal_name: Leather
+name: Leather (Curse)
+icon: 337
+
+internal_name: Padded
+name: Padded (Curse)
+icon: 98
+
+internal_name: Studded
+name: Studded (Curse)
+icon: 336
+
+internal_name: Scale
+name: Scale (Curse)
+icon: 518
+
+internal_name: Chain
+name: Chain (Curse)
+icon: 112
+
+internal_name: Splint
+name: Splint (Curse)
+icon: 53
+
+internal_name: Banded
+name: Banded (Curse)
+icon: 54
+
+internal_name: Plate
+name: Plate (Curse)
+icon: 432
+
+internal_name: Scroll
+name: Scroll (Curse)
+icon: 525
+
+internal_name: MU Scroll
+name: MU Scroll (Curse)
+icon: 525
+
+internal_name: Prot. Scroll
+name: Prot. Scroll (Curse)
+icon: 525
+
+internal_name: Clrc Scroll
+name: Clrc Scroll (Curse)
+icon: 527
+
+internal_name: Gloves
+name: Gloves (Curse)
+icon: 228
+
+internal_name: Girdle
+name: Girdle (Curse)
+icon: 257
+
+internal_name: Hat
+name: Hat (Curse)
+icon: 270
+
+internal_name: Amulet
+name: Amulet (Curse)
+icon: 22
+
+internal_name: Talisman
+name: Talisman (Curse)
+icon: 22
+
+internal_name: Pendant
+name: Pendant (Curse)
+icon: 22
+
+internal_name: Brooch
+name: Brooch (Curse)
+icon: 383
+
+internal_name: Broach
+name: Broach (Curse)
+icon: 383
+
+internal_name: Decanter
+name: Decanter (Curse)
+icon: 404
+
+internal_name: Jug
+name: Jug (Curse)
+icon: 404
+
+internal_name: Dust
+name: Dust (Curse)
+icon: 366
+
+internal_name: Incense
+name: Incense (Curse)
+icon: 1166
+
+internal_name: Bag
+name: Bag (Curse)
+icon: 1166
+
+internal_name: Manual
+name: Manual (Curse)
+icon: 0
+
+internal_name: Book
+name: Book (Curse)
+icon: 0
+
+internal_name: Tome
+name: Tome (Curse)
+icon: 0
+
+internal_name: Grimoire
+name: Grimoire (Curse)
+icon: 0
+
+internal_name: Scarab
+name: Scarab (Curse)
+icon: 1231
+
+internal_name: Sphere
+name: Sphere (Curse)
+icon: 620
+
+internal_name: Wings
+name: Wings (Curse)
+icon: 1234
+
+internal_name: Ointment
+name: Ointment (Curse)
+icon: 73
+
+internal_name: Tapestry
+name: Tapestry (Curse)
+icon: 556
+
+internal_name: Statuette
+name: Statuette (Curse)
+icon: 1214
+
+internal_name: Sheet
+name: Sheet (Curse)
+icon: 242
+
+internal_name: Holy Symbol
+name: Holy Symbol (Curse)
+icon: 610
+
+internal_name: Vial
+name: Vial (Curse)
+icon: 125
+
+internal_name: Flask
+name: Flask (Curse)
+icon: 400
+
+internal_name: Bottle
+name: Bottle (Curse)
+icon: 246
+
+internal_name: Saddle
+name: Saddle (Curse)
+icon: 1250
+
+internal_name: Key
+name: Key (Curse)
+icon: 94
+
+internal_name: Rod
+name: Rod (Curse)
+icon: 660
+
+internal_name: Staff
+name: Staff (Curse)
+icon: 604
+
+internal_name: Stave
+name: Stave (Curse)
+icon: 604
+
+internal_name: Gem
+name: Gem (Curse)
+icon: 231
+
+internal_name: Jewel
+name: Jewel (Curse)
+icon: 231
+
+internal_name: Jewelry
+name: Jewelry (Curse)
+icon: 391
+
+internal_name: Diamond
+name: Diamond (Curse)
+icon: 231
+
+internal_name: Emerald
+name: Emerald (Curse)
+icon: 231
+
+internal_name: Opal
+name: Opal (Curse)
+icon: 231
+
+internal_name: Saphire
+name: Saphire (Curse)
+icon: 231
+
+internal_name: Pearl
+name: Pearl (Curse)
+icon: 231
+
+internal_name: Crystal
+name: Crystal (Curse)
+icon: 231
+
+internal_name: Chime
+name: Chime (Curse)
+icon: -1
+
+internal_name: Cube
+name: Cube (Curse)
+icon: -1
+
+internal_name: Drums
+name: Drums (Curse)
+icon: -1
+
+internal_name: Horn
+name: Horn (Curse)
+icon: -1
+
+internal_name: Pipes
+name: Pipes (Curse)
+icon: -1
+
+internal_name: Rope
+name: Rope (Curse)
+icon: -1
+
+internal_name: 10 ft. Pole
+name: 10 ft. Pole (Curse)
+icon: -1
+
+internal_name: Spade
+name: Spade (Curse)
+icon: -1
+
+internal_name: Lantern
+name: Lantern (Curse)
+icon: -1
+
+internal_name: Thf Prickly Tools
+name: Thf Prickly Tools (Curse)
+icon: -1
+
+internal_name: Iron Rations
+name: Iron Rations (Curse)
+icon: -1
+
+internal_name: Standard Rations
+name: Standard Rations (Curse)
+icon: -1
+
+internal_name: Barding
+name: Barding (Curse)
+icon: -1
+
+internal_name: Wagon
+name: Wagon (Curse)
+icon: -1
+
+internal_name: Torches
+name: Torches (Curse)
+icon: -1
+
+internal_name: Ioun Stone
+name: Ioun Stone (Curse)
+icon: -1
