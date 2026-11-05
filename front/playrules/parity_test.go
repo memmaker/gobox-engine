@@ -227,7 +227,10 @@ func TestStudyRestAndSaveDir(t *testing.T) {
 	if r.rest != 3*time.Hour || r.dir != dir {
 		t.Fatalf("rest %v dir %q", r.rest, r.dir)
 	}
-	g.st = play.Camping{Common: play.Common{NoSave: true}}
+	g.st = play.Camping{Common: play.Common{NoSave: true, NoLoad: true}}
+	if f := r.State().Flags; f == nil || !f.NoSave || !f.NoLoad {
+		t.Fatal("NoSave/NoLoad not published")
+	}
 	if r.Apply(game.Save{Name: "x"}).Err == nil {
 		t.Fatal("saved where the rules refuse it")
 	}

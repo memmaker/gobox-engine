@@ -318,6 +318,8 @@ type SheetPage struct {
 // Flags are the plain yes/no facts of the screen the front shows or takes
 // decisions by.
 type Flags struct {
+	NoSave     bool // the rules refuse saving here (gobox's menus offer no Save)
+	NoLoad     bool // ... and loading
 	Exploring  bool // the party explores: the adventuring decisions are taken
 	Sweeping   bool // ... at the slow, searching pace
 	Interact   bool // ... on a square whose event waits for an interaction

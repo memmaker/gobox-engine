@@ -165,7 +165,7 @@ action, gobox asks Continue.
 |---|---|
 | creation sheet figures (Age, ...) | `Draft.Member.Sheet` (adapter publishes it as SheetPage) |
 | default rest "until study is done" | `Camping.Study` (gobox's default rest; 8h when 0) |
-| save/load only where the rules allow | `Common.NoSave`, `Common.NoLoad` (zero: allowed, so other games are unchanged) |
+| save/load only where the rules allow | `Common.NoSave`, `Common.NoLoad` (zero: allowed); published as `Flags.NoSave/NoLoad`, honoured by the party menu and the slot screen (camp, F10) |
 | save directory | `game.Data.SaveDir` (gobox still owns the files) |
 
 Numeric sound/song names ("10") resolve as on the old path (front/classic turns them into

@@ -406,8 +406,12 @@ func (g *Game) SlotsView(loadOnly bool) *front.Slots {
 	if st.Intro != nil {
 		return nil
 	}
-	inGame := len(st.Party) > 0 && st.Mode != game.ModeTitle && st.Mode != game.ModeParty && st.Mode != game.ModeCreate && st.Mode != game.ModeCombat
-	v := &front.Slots{CanSave: !loadOnly && inGame, LoadOnly: loadOnly}
+	inGame := len(st.Party) > 0 && st.Mode != game.ModeTitle && st.Mode != game.ModeCreate && st.Mode != game.ModeCombat
+	canSave := !loadOnly && inGame && (st.Flags == nil || !st.Flags.NoSave)
+	if !canSave && st.Flags != nil && st.Flags.NoLoad { // neither offered here: no slot screen
+		return nil
+	}
+	v := &front.Slots{CanSave: canSave, LoadOnly: loadOnly}
 	for _, sl := range st.Saves {
 		v.Names, v.Times, v.Levels = append(v.Names, sl.Name), append(v.Times, sl.Time), append(v.Levels, sl.Level)
 	}

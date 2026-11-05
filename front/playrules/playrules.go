@@ -296,7 +296,7 @@ func (r *rules) State() game.State {
 	_, explore := ps.(play.Exploring)
 	s.Flags = &game.Flags{Adventure: camp || explore, Ordering: camp && s.Allowed["Order"], Sweeping: c.Where.Searching,
 		Inside: c.Where.Inside, CanCast: c.Selected >= 0 && c.Selected < len(s.Party) && s.Party[c.Selected].CanCast,
-		IconDrop: c.IconEditor != nil, Day: c.Day}
+		IconDrop: c.IconEditor != nil, Day: c.Day, NoSave: c.NoSave, NoLoad: c.NoLoad}
 	if c.Picture != nil || len(c.Layers) > 0 {
 		s.Window = game.WindowPicture
 	}
