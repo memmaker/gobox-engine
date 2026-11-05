@@ -29,7 +29,7 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 			art, box = append(art, pc), box.Union(pc.At)
 		}
 	}
-	if (v.Full || v.Intro != nil) && len(art) > 0 { // a whole-screen picture, a title's: fitted, its aspect kept, centred, sharp (bars only on a screen of another shape)
+	if (v.Full && (v.Pane == nil || !v.Pane.Shown()) || v.Intro != nil) && len(art) > 0 { // a whole-screen picture, a title's: fitted, its aspect kept, centred, sharp (bars only on a screen of another shape)
 		if in := v.Intro; in != nil && titleBackdrop > 0 && p.mm.title == nil { // the picture the main menu comes in over
 			key := picturesKey(art)
 			if p.intro.Phase != front.IntroBackdrop {
@@ -59,6 +59,11 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 		r := vw.Pixels()
 		vk := math.Max(1, math.Min(k, math.Floor((float64(b.Dy())-th-3*float64(gap))/float64(r.Dy()))))
 		drawBox(dst, viewTextImage(&p.pg.pic, v.ViewText, r.Inset(8), note), p.border.tiles, vw, vk, cx, gap+int(vk*float64(r.Dy())/2))
+	} else if pic := innerWindow.Framed(); len(art) > 0 && box.In(pic.Pixels().Inset(8)) { // a view-window picture (a treasure, a face): in the view window's frame, as over the 3D view
+		r := pic.Pixels()
+		s := math.Max(1, math.Floor(math.Min(float64(b.Dx()-2*gap)/float64(r.Dx()), (float64(b.Dy())-th-3*float64(gap))/float64(r.Dy()))))
+		s = math.Min(s, math.Max(1, math.Floor(k)))
+		drawBox(dst, pictureBox(&p.pg.pic, art, r.Inset(8)), p.border.tiles, pic, s, cx, gap+int(s*float64(r.Dy())/2))
 	} else if len(art) > 0 {
 		s := math.Max(1, math.Floor(math.Min(float64(b.Dx()-2*gap)/float64(box.Dx()), (float64(b.Dy())-th-3*float64(gap))/float64(box.Dy()))))
 		img := pictureBox(&p.pg.pic, art, box)

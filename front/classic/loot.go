@@ -20,6 +20,9 @@ func Loot(s game.State) *front.Loot {
 	for _, n := range l.Money { // Share: only classic.Game has LootShare (front.Game's other makers lack it)
 		v.Share = v.Share || n > 0
 	}
+	if on, set := s.Allowed["LootShare"]; set { // a game that has no Share says so (Silver Blades)
+		v.Share = v.Share && on
+	}
 	v.Pool = s.Allowed["PoolCoins"]
 	v.Status = l.Status
 	if v.Take && s.Selected >= 0 && s.Selected < len(s.Party) {

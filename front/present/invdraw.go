@@ -150,10 +150,13 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	rx, rr := split*8, (cw-1)*8 // a cell inside the shared divider
 	inv.drawTabs(&inv.list, rx, busy)
 	fillc := green
-	if len(in.Pool) >= in.Cap {
+	if in.Cap > 0 && len(in.Pool) >= in.Cap {
 		fillc = red
 	}
-	fill := strconv.Itoa(len(in.Pool)) + "/" + strconv.Itoa(in.Cap)
+	fill := strconv.Itoa(len(in.Pool))
+	if in.Cap > 0 { // 0: no limit (game.State.PartyCap), the count alone
+		fill += "/" + strconv.Itoa(in.Cap)
+	}
 	inv.drawPane(&inv.list, inv.list.shown(in.Pool), inv.sel, false, shop && !in.Loot, busy, rx, rr, bottom) // the shop prices the party's items (it buys them); the loot does not
 
 	// an item dragged, or the stack picked up, under the pointer
