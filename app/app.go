@@ -161,6 +161,10 @@ func Run(cfg Config) error {
 	}
 	gpu.SetWindowTitle(t.Title)
 	gpu.SetTPS(cfg.TPS)
+	if len(cfg.Capture.Keys) > 0 { // a scripted run is never heard and never takes focus, however it was launched
+		os.Setenv("GOBOX_NOSOUND", "1")
+		os.Setenv("GOBOX_BACKGROUND", "1")
+	}
 	gpu.SetFullscreen(cfg.Settings.Fullscreen && !cfg.Settings.Window && len(cfg.Capture.Keys) == 0) // a scripted run (-keys) stays a window
 	gpu.SetConfig(cfg.Capture.GPU)
 	if st, ok := cfg.Game.(Starter); ok {
