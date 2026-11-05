@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"testing"
 
 	"github.com/ebitengine/oto/v3"
 )
@@ -20,7 +21,7 @@ var (
 // device is ready (in the browser: after the first click or key). All readers share
 // one context. Without a device it does nothing.
 func Output(r io.Reader) {
-	if os.Getenv("GOBOX_NOSOUND") != "" { // scripted runs: no device opened, nothing heard
+	if os.Getenv("GOBOX_NOSOUND") != "" || testing.Testing() { // scripted runs and go test: no device opened, nothing heard
 		return
 	}
 	otoOnce.Do(func() {
