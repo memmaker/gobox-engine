@@ -459,8 +459,10 @@ func (g *Game) JournalPage(title string, lines []string, p, off int) (*front.Pag
 	return JournalPage(title, lines, p, off, g.grid.X, g.grid.Y, g.R.State().Ink, g.D.Scans)
 }
 
-// SpeakPage has the game voice the page's clips.
+// SpeakPage has the game voice the page's clips, the page voiced before
+// silenced first (Speak with no Key).
 func (g *Game) SpeakPage(lines []string, p int) {
+	g.do(game.Speak{})
 	for _, k := range SpeakKeys(lines, p, g.grid.X, g.grid.Y) {
 		g.do(game.Speak{Key: k})
 	}
