@@ -354,6 +354,9 @@ func (r *rules) State() game.State {
 	}
 	if n := r.sheet; n >= 0 && n < len(c.Party) {
 		s.SheetPage = c.Party[n].Sheet
+		if s.Sheet == nil && s.SheetPage != nil { // the sheet is up though the member has no powers: the front shows a sheet only with one
+			s.Sheet = &game.Sheet{}
+		}
 	}
 	switch {
 	case r.rest > 0:

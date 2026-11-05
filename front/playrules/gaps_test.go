@@ -337,7 +337,7 @@ func TestItemsTabSheet(t *testing.T) {
 	r := New(&fake{st: play.Exploring{Common: c}}, game.Data{})
 	r.Apply(game.OpenItems{})
 	r.Apply(game.CloseItems{})
-	if r.State().SheetPage == nil {
+	if st := r.State(); st.SheetPage == nil || st.Sheet == nil {
 		t.Fatal("Tab closed the items without the sheet")
 	}
 }
