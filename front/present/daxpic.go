@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"slices"
+	"strings"
 
 	"gobox/dax"
 	"gobox/ega"
@@ -53,10 +54,10 @@ func daxMasked(file string, block, frame, mask int) image.Image {
 					m.Set(i%(im.Width*8), i/(im.Width*8), im.Palette[c])
 				}
 			}
-		} else if im := dax.ParseImage(b, false, 0); im != nil && frame < im.Count {
+		} else if im := daxStill(file, b, frame); im != nil {
 			m = image.NewRGBA(image.Rect(0, 0, im.Width*8, im.Height))
 			pal := daxLoader.AmigaPalette(file, block)
-			for i, c := range im.Frame(frame) {
+			for i, c := range im.Frame(min(frame, im.Count-1)) {
 				if c < dax.Clear && int(c) != mask {
 					m.Set(i%(im.Width*8), i/(im.Width*8), pixelRGBA(c, pal))
 				}
@@ -117,4 +118,19 @@ func pixelRGBA(c uint8, pal []byte) color.RGBA {
 		return color.RGBA{pal[i], pal[i+1], pal[i+2], 255}
 	}
 	return ega.AmigaRGBA(c)
+}
+
+// daxStill is frame of an EGA picture block: a plain image, else frame of an
+// animation block (PIC*, FINAL*: frames XORed on the first; SPRIT*), so a
+// view picture such as Silver Blades' PIC1 80 shows; nil if neither.
+func daxStill(file string, b []byte, frame int) *dax.Image {
+	if im := dax.ParseImage(b, false, 0); im != nil && im.Width > 0 && frame < im.Count {
+		return im
+	}
+	up := strings.ToUpper(file)
+	fs := dax.ParseSprite(b, false, 0, strings.HasPrefix(up, "PIC") || strings.HasPrefix(up, "FINAL"))
+	if frame >= len(fs) || fs[frame].Image.Width == 0 {
+		return nil
+	}
+	return fs[frame].Image
 }
