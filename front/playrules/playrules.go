@@ -1428,7 +1428,11 @@ func (r *rules) walkStep() game.Result {
 		st := r.keep(a)
 		res.Events, res.Err = append(res.Events, st.Events...), st.Err
 		_, arrived := a.(play.Arrive) // what the step itself says, the square's event still runs, as a manual step's does
-		if _, still := r.g.State().(play.Exploring); st.Err != nil || !still || !arrived && len(st.Events) > 0 && !onlyMoved(st.Events) {
+		before := false
+		if e, ok := a.(play.RunEvent); ok && e.Before {
+			before = true // the script ahead said something: the step it holds is still made, never left waiting on an Arrive
+		}
+		if _, still := r.g.State().(play.Exploring); st.Err != nil || !still || !arrived && !before && len(st.Events) > 0 && !onlyMoved(st.Events) {
 			r.walk = nil
 			break
 		}

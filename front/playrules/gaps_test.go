@@ -360,3 +360,26 @@ func TestReadyToggles(t *testing.T) {
 		t.Fatalf("sent %v", f.sent)
 	}
 }
+
+// beforeSays is a fake whose script ahead of a step says something.
+type beforeSays struct{ fake }
+
+func (b *beforeSays) Do(x play.Action) (play.Outcome, error) {
+	b.sent = append(b.sent, x)
+	if e, ok := x.(play.RunEvent); ok && e.Before {
+		return play.Outcome{Events: []play.Event{play.Narrated{Text: "You approach the gate."}}}, nil
+	}
+	return play.Outcome{}, nil
+}
+
+// TestWalkFinishesHeldStep: the script ahead says something; the walk
+// still makes the step it holds (Arrive), never leaving the game waiting.
+func TestWalkFinishesHeldStep(t *testing.T) {
+	f := &beforeSays{fake{st: play.Exploring{Map: play.ExploreMap{Walk: walker{}}}}}
+	r := New(f, game.Data{})
+	r.Apply(game.WalkTo{At: image.Pt(0, 1)})
+	r.Step()
+	if !slices.ContainsFunc(f.sent, func(a play.Action) bool { _, ok := a.(play.Arrive); return ok }) {
+		t.Fatalf("held step never made: sent %v", f.sent)
+	}
+}
