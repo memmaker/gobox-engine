@@ -26,11 +26,11 @@ import (
 // takes what the window gives beyond that.
 const (
 	invW, invH = 400, 250
-	leftCells  = 22 // the doll box's width in cells, with its border
-	rowH       = 20 // a party inventory line: a whole icon high
-	listTop    = 24 // the first line, under the box's title
-	atlasCell  = 20
-	atlasCols  = 24
+	leftCells  = 22                    // the doll box's width in cells, with its border
+	rowH       = 20                    // a party inventory line: a whole icon high
+	listTop    = 24                    // the first line, under the box's title
+	atlasCols  = 24                    // the item atlas's cells a row; a cell is the atlas's width / atlasCols
+	iconSlot   = 20                    // an item icon's slot on the 2D screens
 	wheelPause = 60 * time.Millisecond // the quickest the wheel scrolls a line
 )
 

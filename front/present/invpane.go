@@ -10,6 +10,7 @@ import (
 	"gobox/game"
 	"gobox/sprites"
 	"gobox/ui"
+	xdraw "golang.org/x/image/draw"
 	"image"
 	"image/color"
 	"image/draw"
@@ -208,29 +209,33 @@ func (inv *inventory) icon(it *front.InvItem) int {
 	return n
 }
 
-// iconImage is the item's atlas cell (nil: none).
+// iconImage is the item's atlas cell (nil: none), at the atlas's size:
+// a cell is the atlas's width / atlasCols, whatever the series draws.
 func (inv *inventory) iconImage(it *front.InvItem) image.Image {
 	inv.load()
 	n := inv.icon(it)
-	if n < 0 {
+	if n < 0 || inv.atlas == nil {
 		return nil
 	}
-	at := image.Pt(n%atlasCols*atlasCell, n/atlasCols*atlasCell)
+	c := inv.atlas.Bounds().Dx() / atlasCols
+	at := image.Pt(n%atlasCols*c, n/atlasCols*c)
 	return inv.atlas.(interface {
 		SubImage(image.Rectangle) image.Image
-	}).SubImage(image.Rectangle{at, at.Add(image.Pt(atlasCell, atlasCell))})
+	}).SubImage(image.Rectangle{at, at.Add(image.Pt(c, c))})
 }
 
-// drawIcon draws the item's atlas cell, unscaled, in the middle of r (cut to r).
+// drawIcon draws the item's atlas cell scaled to iconSlot, in the middle of r (cut to r).
 func (inv *inventory) drawIcon(it *front.InvItem, r image.Rectangle) {
-	n := inv.icon(it)
-	if n < 0 {
+	ic := inv.iconImage(it)
+	if ic == nil {
 		inv.text("?", r.Min.X+r.Dx()/2-4, r.Min.Y+r.Dy()/2-4, gray)
 		return
 	}
-	at := r.Min.Add(image.Pt(r.Dx()-atlasCell, r.Dy()-atlasCell).Div(2))
-	cell := image.Rectangle{at, at.Add(image.Pt(atlasCell, atlasCell))}.Intersect(r)
-	draw.Draw(inv.px, cell, inv.atlas, image.Pt(n%atlasCols*atlasCell, n/atlasCols*atlasCell).Add(cell.Min.Sub(at)), draw.Over)
+	at := r.Min.Add(image.Pt(r.Dx()-iconSlot, r.Dy()-iconSlot).Div(2))
+	cell := image.Rectangle{at, at.Add(image.Pt(iconSlot, iconSlot))}
+	m := image.NewRGBA(cell)
+	xdraw.NearestNeighbor.Scale(m, cell, ic, ic.Bounds(), xdraw.Src, nil)
+	draw.Draw(inv.px, cell.Intersect(r), m, cell.Intersect(r).Min, draw.Over)
 }
 
 // text draws s in the game's font at (x, y).

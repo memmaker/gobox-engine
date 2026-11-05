@@ -35,7 +35,7 @@ func (p *Presenter) identDone(v front.View) bool {
 
 // drawIdentified draws the reveal's pop-up over dst.
 func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it *front.InvItem) {
-	const title, hint, iconH = "* Identified! *", "Splendid!", 2 * atlasCell // the icon at a whole 2x, so every atlas pixel stays square and even
+	const title, hint, iconH = "* Identified! *", "Splendid!", 2 * iconSlot // the icon at a whole 2x, so every atlas pixel stays square and even
 	w := max(len(title), len(it.Name), len(hint))
 	for _, l := range it.Look {
 		w = max(w, len(l)+2)
@@ -51,10 +51,9 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 		ui.DrawText(m, glyph, title[i:i+1], x0+8*i, 8, ega.RGBA(sparkle[i%len(sparkle)]))
 	}
 	y := 24
-	if ic := p.inv.iconImage(it); ic != nil { // the icon on the pop-up's black, a whole multiple of its cell
+	if ic := p.inv.iconImage(it); ic != nil { // the icon on the pop-up's black
 		b := ic.Bounds()
-		f := max(1, iconH/max(b.Dx(), b.Dy()))
-		iw, ih := f*b.Dx(), f*b.Dy()
+		iw, ih := iconH, iconH // any atlas cell, scaled to the box
 		at := image.Rect((cw*8-iw)/2, y, (cw*8+iw)/2, y+ih)
 		for py := range ih {
 			for px := range iw {
