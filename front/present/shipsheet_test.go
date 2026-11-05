@@ -115,14 +115,8 @@ func saveSheetPNG(t *testing.T, v front.View) {
 		daxLoader = l
 		clear(daxPics)
 	}
-	bits := fonts.Get("IBM_BIOS.f8")
-	font := func(ch byte, up bool) [8]byte {
-		if up && ch >= 'a' && ch <= 'z' {
-			ch -= 32
-		}
-		g, _ := fonts.Glyph(bits, ch, true)
-		return g
-	}
+	bits := brFont(daxLoader)
+	font := func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(bits, ch, text); return g } // as fontmenu.go hands the page the game's font
 	for i, sc := range []*game.Screen{v.Screen, {Kind: game.ScreenSpaceFight, SpaceFight: testFight(), ShipSheet: testSheet(false)}} {
 		w := v
 		w.Screen = sc
@@ -133,4 +127,29 @@ func saveSheetPNG(t *testing.T, v front.View) {
 		png.Encode(fh, m)
 		fh.Close()
 	}
+}
+
+// brFont is BR2's own text font as its port hands it to gobox (Data.Fonts,
+// buckrogers2-go rules/data.go ownFont): 8X8D1 block 201, a character c at
+// c mod 64 for 0x20..0x7F (a-z the capitals), the symbols from 0x80.
+func brFont(l *dax.Loader) []byte {
+	if l == nil {
+		return nil
+	}
+	b := l.BlockShared("8X8D1", 201)
+	if len(b) < 64*8 {
+		return nil
+	}
+	out := make([]byte, 256*8)
+	for ch := 0x20; ch < 0x80; ch++ {
+		c := ch
+		if c >= 'a' && c <= 'z' {
+			c -= 0x20
+		}
+		copy(out[ch*8:ch*8+8], b[c%64*8:])
+	}
+	for k := 64; k*8+8 <= len(b) && 0x80+k-64 < 256; k++ {
+		copy(out[(0x80+k-64)*8:], b[k*8:k*8+8])
+	}
+	return out
 }

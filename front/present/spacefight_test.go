@@ -150,14 +150,8 @@ func savePNG(t *testing.T, _ *cellPage, v front.View) {
 		daxLoader = l
 		clear(daxPics)
 	}
-	bits := fonts.Get("IBM_BIOS.f8")
-	font := func(ch byte, up bool) [8]byte {
-		if up && ch >= 'a' && ch <= 'z' {
-			ch -= 32
-		}
-		g, _ := fonts.Glyph(bits, ch, true)
-		return g
-	}
+	bits := brFont(daxLoader)
+	font := func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(bits, ch, text); return g } // as fontmenu.go hands the page the game's font
 	for i, f := range []*game.SpaceFight{testFight(), v.Screen.SpaceFight} {
 		f.Blink = game.Blink{}
 		v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: crewMenu()}
