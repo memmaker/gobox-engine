@@ -173,7 +173,7 @@ func (r *rules) question(q *play.Question, list bool) *game.Ask {
 		a.Kind, a.Options = game.Direction, []game.Option{{Label: "Done", Key: 'D', Do: game.Leave{}}}
 		return a
 	case q.YesNo:
-		a.Kind = game.YesNo
+		a.Kind, a.Yes = game.YesNo, q.Default == 1
 	case q.Typed:
 		a.Kind = game.Name
 	case q.Number:

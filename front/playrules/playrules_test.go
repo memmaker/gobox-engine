@@ -134,3 +134,10 @@ func TestArtIsLive(t *testing.T) {
 		t.Fatal("game art not read live")
 	}
 }
+
+func TestYesNoDefault(t *testing.T) {
+	r := New(&fake{}, game.Data{}).(*rules)
+	if a := r.question(&play.Question{YesNo: true, Default: 1}, false); !a.Yes {
+		t.Fatal("yes default lost")
+	}
+}
