@@ -387,7 +387,7 @@ func (r *rules) State() game.State {
 			s.Screen = t.Screen
 		}
 		pg := r.page(t)
-		if t.Kind == play.SceneTitle && !r.title.credits {
+		if t.Kind == play.SceneTitle {
 			pg.Layers = append(pg.Layers, t.Steps[r.title.n].Layers...)
 		}
 		s.Page.Pane, s.Page.View, s.Page.Layers = append(s.Page.Pane, pg.Pane...), pg.View, append(s.Page.Layers, pg.Layers...)
@@ -802,7 +802,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		}
 		return game.Result{}
 	case game.TitleCredits:
-		r.title.n, r.title.credits, r.title.page = 0, true, d.Page
+		r.title.credits, r.title.page = true, d.Page // the last picture stays under the credits
 		r.seq++
 		return game.Result{}
 	case game.TitleDone:
