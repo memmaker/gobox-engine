@@ -185,7 +185,7 @@ No same-name/different-image collisions were found. sotsb ships no wall PNGs (it
 
 ## buck-rogers floors and skies
 
-BR1's remastered ground and sky, one floor and one ceiling (sky_*: an outdoor sky that pans) per distinct BACK<disk>.DAX picture (origin: file-block); buckrogers-go rules/gamewalls.go backFlats maps every block to them. Made by tools/remaster/make_floor.py (buckrogers-go remaster.json "floor").
+BR1's remastered ground and sky, one floor and one ceiling (sky_*: an outdoor sky that pans) per distinct BACK<disk>.DAX picture (origin: file-block); buckrogers-go rules/gamewalls.go backFlats maps every block to them. Made by tools/remaster/make_floor.py (buckrogers-go remaster.json "floor"). The pixel variants are PixelLab-made (tools/remaster/make_pixel.py: /image-to-pixelart of the twin, strength 200, seed 7), never shrunk from the twin.
 
 name | size | origin
 --- | --- | ---
