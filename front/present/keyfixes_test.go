@@ -111,3 +111,15 @@ func TestPictureNoAt(t *testing.T) {
 		t.Fatal("the picture was not drawn")
 	}
 }
+
+// A typed line reaches the game whole, once, on Enter: never a line half typed.
+func TestTypedLineOnce(t *testing.T) {
+	p := &Presenter{}
+	v := front.View{Ask: &front.Ask{Kind: front.AskText, Max: 15}}
+	for _, k := range []uint16{'B', 'o', 'b', '\r'} {
+		p.keyAct(k, v)
+	}
+	if len(p.inv.acts) != 1 || p.inv.acts[0].Kind != front.ActText || p.inv.acts[0].Text != "Bob" {
+		t.Fatalf("acts %+v", p.inv.acts)
+	}
+}

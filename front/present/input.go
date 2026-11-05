@@ -97,18 +97,13 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		if !p.typing {
 			p.typed, p.typedCur, p.typing = t.Text, len(t.Text), true
 		}
-		switch done, cancel, ok := editKey(k, &p.typed, &p.typedCur, t.Max, t.Kind == front.AskNumber); {
-		case done:
-			p.send(front.ActOK, 0)
+		switch done, cancel, _ := editKey(k, &p.typed, &p.typedCur, t.Max, t.Kind == front.AskNumber); {
+		case done: // the whole line, once: the game never sees a line half typed
+			p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActText, Text: p.typed})
 			p.typing = false
 		case cancel:
 			p.send(front.ActClose, 0)
 			p.typing = false
-		case !ok:
-			return
-		}
-		if p.typing {
-			p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActText, Text: p.typed})
 		}
 		return
 	}
