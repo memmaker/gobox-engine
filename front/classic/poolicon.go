@@ -3,6 +3,7 @@ package classic
 import (
 	"image"
 	"image/color"
+	"slices"
 	"strconv"
 	"sync"
 
@@ -116,11 +117,15 @@ func PoolIcon(v front.View, s game.State) front.View {
 	if p := s.SheetPage; p != nil && p.Icons[0] != nil { // a dropped PNG: the sheet draws it
 		return v
 	}
-	head, body := memberIcon(m)
-	if head == "" {
-		return v
-	}
 	box := cr.Icon.Pixels()
+	head, body := memberIcon(m)
+	composed := m.IconHeadID == "" && head != ""
+	if head == "" || body == "" {
+		if slices.ContainsFunc(v.Pictures, func(pc front.Picture) bool { return !pc.Fill && pc.At.Overlaps(box) }) {
+			return v // the game's own icon
+		}
+		head, body = "combat_head_000", "combat_body_000" // nothing picked yet: the box still shows an icon, the pool's first
+	}
 	var keep []front.Picture
 	for _, pc := range v.Pictures {
 		if !pc.Fill && pc.At.Overlaps(box) {
@@ -133,7 +138,7 @@ func PoolIcon(v front.View, s game.State) front.View {
 		if !ok {
 			return v
 		}
-		if m.IconHeadID == "" { // composed from the original numbers: drawn from CBODY's block (+128: the action pose)
+		if composed { // composed from the original numbers: drawn from CBODY's block (+128: the action pose)
 			pic.File, pic.Block = "CBODY", m.Icon["body"]+128*pose
 		}
 		x := box.Min.X + 40*max(1, cr.Scale)*pose // the poses 5 cells apart

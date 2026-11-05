@@ -63,7 +63,8 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 	if pager > 0 {
 		t := "< page " + strconv.Itoa(page+1) + "/" + strconv.Itoa(pages) + " >"
 		x := (textCols - len(t)) / 2
-		v.Prev, v.Next = front.CellRect{X1: x, Y1: pager, X2: x, Y2: pager}, front.CellRect{X1: x + len(t) - 1, Y1: pager, X2: x + len(t) - 1, Y2: pager}
+		h := len(t) / 2 // each half of the pager line pages, not only its < and > cells
+		v.Prev, v.Next = front.CellRect{X1: x, Y1: pager, X2: x + h - 1, Y2: pager}, front.CellRect{X1: x + h, Y1: pager, X2: x + len(t) - 1, Y2: pager}
 	}
 	return v
 }

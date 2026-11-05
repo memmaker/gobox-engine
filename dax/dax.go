@@ -154,6 +154,9 @@ func (l *Loader) HasAmiga() bool { return l != nil && l.amiga != nil }
 // where there are any (false, the default).
 func (l *Loader) SetDOS(dos bool) { l.dos.Store(dos) }
 
+// Amiga reports whether BlockShared gives the Amiga blocks now.
+func (l *Loader) Amiga() bool { return l.HasAmiga() && !l.dos.Load() }
+
 // Path returns the real path for a case-insensitive file name, or "".
 func (l *Loader) Path(name string) string {
 	if real, ok := l.names[strings.ToLower(name)]; ok {

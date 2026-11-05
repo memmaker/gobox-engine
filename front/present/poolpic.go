@@ -24,6 +24,9 @@ var (
 func poolImage(pc front.Picture) image.Image {
 	name := pc.Name
 	if name == "" && pc.File != "" {
+		if daxLoader.Amiga() { // the pool holds the DOS art: an Amiga block decodes as itself, never mixed with it
+			return nil
+		}
 		originsOnce.Do(func() { origins = sprites.Origins() })
 		f := origins[gameID][pc.File]
 		if name = f[strconv.Itoa(pc.Block)+"."+strconv.Itoa(pc.Frame)]; name == "" {
