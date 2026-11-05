@@ -72,3 +72,19 @@ func TestCreationEndedByGame(t *testing.T) {
 		t.Fatalf("creating %v, menu %v", p.creating, v.MainMenu)
 	}
 }
+
+// A menu the game changes starts on its first row, not where the old one's highlight was.
+func TestMainMenuNewRows(t *testing.T) {
+	var m mainUI
+	m.newRows([]string{"Load", "Party", "Quit"})
+	m.sel = 2
+	m.newRows([]string{"Begin", "Party", "Quit"})
+	if m.sel != 0 {
+		t.Fatalf("sel %d", m.sel)
+	}
+	m.sel, m.sub = 1, true // the submenu opened by the player keeps its own highlight
+	m.newRows([]string{"Create", "Exit"})
+	if m.sel != 1 {
+		t.Fatalf("submenu sel %d", m.sel)
+	}
+}

@@ -6,6 +6,7 @@ import (
 	"image/png"
 	"os"
 	"slices"
+	"strings"
 	"time"
 
 	"gobox/gpu"
@@ -42,6 +43,8 @@ type mainUI struct {
 	titleWas string            // the title step's pictures before the backdrop's (picturesKey): the backdrop is taken once they change
 	titleN   int               // frames the backdrop phase waited on a change
 	cards    []image.Rectangle // the party's cards drawn
+	rows     string            // the rows last drawn, and whether in the submenu: rows the game changed start the highlight on the first
+	rowsSub  bool
 }
 
 // drawMain draws the main menu.
@@ -202,6 +205,18 @@ func (m *mainUI) entries(h MainHost, it []ui.MenuRow, party bool) []ui.MenuRow {
 	return it
 }
 
+// newRows starts the highlight on the first row when the game put up new
+// rows (not the submenu's own open or Exit, which set it): the old
+// highlight means nothing on them.
+func (m *mainUI) newRows(lines []string) {
+	if r := strings.Join(lines, "\n"); r != m.rows {
+		if m.rows != "" && m.sub == m.rowsSub {
+			m.sel = 0
+		}
+		m.rows, m.rowsSub = r, m.sub
+	}
+}
+
 // drawMainUI draws the main menu's lettering, functions and cards.
 func (m *mainUI) drawMainUI(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	up, sel := h.PopUp()
@@ -231,6 +246,7 @@ func (m *mainUI) drawMainUI(h MainHost, dst *gpu.Image, v front.MainMenu) {
 		op.GeoM.Translate(float64((b.Dx()-logo.Bounds().Dx()*lk)/2), float64(top))
 		dst.DrawImage(m.logo.of(logo), op)
 	}
+	m.newRows(lines)
 	m.sel = min(max(m.sel, 0), len(lines)-1)
 	h.DrawMenu(dst, lines, keys, m.sel, mk, b.Dx()/2, top+lh+gap)
 	m.cards = h.DrawCards(dst, v.Hall) // the hall: the way to the next level under every portrait
