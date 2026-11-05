@@ -135,7 +135,7 @@ func (r *rules) asked(ps play.State) *game.Ask {
 	}
 	c := commonOf(ps)
 	if q := c.Ask; q != nil {
-		return r.question(q, !q.YesNo) // a pick over the view is a list where the series' lists are (NoHotkeys)
+		return r.question(q, r.data.AskLists && !q.YesNo) // a pick over the view is a key-less list where the game's are (Data.AskLists)
 	}
 	if a, ok := ps.(play.Assembling); ok {
 		if d := a.Draft; d != nil {
