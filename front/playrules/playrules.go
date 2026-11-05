@@ -79,6 +79,14 @@ func New(g play.Game, d game.Data) game.Rules {
 	return r
 }
 
+// who is n, or the selected member when n is -1.
+func who(n int, ps play.State) int {
+	if n < 0 {
+		return commonOf(ps).Selected
+	}
+	return n
+}
+
 // restCap is the longest rest al allows at once (0: any), false none.
 func restCap(al play.Allowed) (time.Duration, bool) {
 	for _, a := range al.Plain {
@@ -862,6 +870,13 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		}
 		r.ask, r.moves, r.aim = nil, nil, nil
 		return game.Result{}
+	case game.Arrive: // the step the rules allow from and to there, with their facing: gobox's guess of it (kept on a step back) is not the rules' say
+		for _, a := range commonOf(ps).Allowed.Plain {
+			if s, ok := a.(play.Arrive); ok && s.From == d.From && s.To == d.To {
+				return r.do(s)
+			}
+		}
+		return r.do(play.Arrive{From: d.From, To: d.To, Facing: d.Facing})
 	case game.Items, game.OpenItems:
 		r.items = game.ItemsOwn
 		return game.Result{}
@@ -869,7 +884,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		r.items = game.ItemsNone
 		return game.Result{}
 	case game.OpenSheet:
-		r.sheet = d.Member
+		r.sheet = who(d.Member, ps)
 		return game.Result{}
 	case game.CloseSheet:
 		r.sheet = -1
@@ -918,9 +933,10 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	case game.Select:
 		return r.do(play.SelectMember{Member: d.N})
 	case game.ShowMember: // select the member and open their sheet, as the old path's View
-		res := r.do(play.SelectMember{Member: d.Member})
+		n := who(d.Member, ps)
+		res := r.do(play.SelectMember{Member: n})
 		if res.Err == nil {
-			r.sheet = d.Member
+			r.sheet = n
 		}
 		return res
 	case game.Maneuver:
@@ -1316,7 +1332,6 @@ func (r *rules) do(a play.Action) game.Result {
 // keep sends a to the game: a refusal is Err, else the outcome as events.
 func (r *rules) keep(a play.Action) game.Result {
 	out, err := r.g.Do(a)
-	fmt.Printf("  DO %T %+v err %v\n", a, a, err) // ZZDEBUG
 	if err != nil {                               // no toast: the old path's refusals were silent unless the rules said (Refused)
 		return game.Result{Err: err}
 	}

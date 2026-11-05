@@ -310,3 +310,22 @@ func TestWalkRunsEvent(t *testing.T) {
 		t.Fatalf("sent %v", f.sent)
 	}
 }
+
+// TestArriveAsAllowed: a step goes as the rules allow it, with their
+// facing (a step back that turns the party), never refused for gobox's.
+func TestArriveAsAllowed(t *testing.T) {
+	step := play.Arrive{From: image.Pt(0, 6), To: image.Pt(0, 7), Facing: 4}
+	f := &fake{st: play.Exploring{Common: allow(step)}}
+	New(f, game.Data{}).Apply(game.Arrive{From: step.From, To: step.To})
+	if len(f.sent) != 1 || f.sent[0] != step {
+		t.Fatalf("sent %v", f.sent)
+	}
+}
+
+// -1 means the selected member, so OpenSheet{-1} (the View key) opens a sheet.
+func TestWhoSelected(t *testing.T) {
+	ps := play.Exploring{Common: play.Common{Selected: 2}}
+	if who(-1, ps) != 2 || who(1, ps) != 1 {
+		t.Fatal("who(-1) must be the selected member")
+	}
+}
