@@ -40,3 +40,17 @@ func TestWallsBackdrop(t *testing.T) {
 		t.Fatalf("nil backdrop: top %v, want the fill", dst.At(blobber.W/2, 2))
 	}
 }
+
+// The remastered view drops Walls.Backdrop where the series paints both
+// flats Walls names, and keeps it where one is missing.
+func TestWallsBackdropFlats(t *testing.T) {
+	bd := &front.Picture{Img: image.NewRGBA(image.Rect(0, 0, 2, 2))}
+	open := [][][4]int{{{0, 0, 0, 0}}}
+	var p Presenter
+	if sc := p.wallScene(&front.Walls{Key: "flats", Side: open, Floor: "cobble", Sky: "sky_phlan", Backdrop: bd}); sc.Backdrop != nil {
+		t.Error("painted flats: backdrop kept")
+	}
+	if sc := p.wallScene(&front.Walls{Key: "noflat", Side: open, Floor: "nosuch", Sky: "sky_phlan", Backdrop: bd}); sc.Backdrop == nil {
+		t.Error("missing floor: backdrop dropped")
+	}
+}

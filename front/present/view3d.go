@@ -108,7 +108,7 @@ func (p *Presenter) wallScene(w *front.Walls) *blobber.Scene {
 	}
 	sc := &blobber.Scene{Rows: rows, Faces: map[[3]int][]blobber.FacePart{}, Edges: map[[3]int]bool{},
 		NoMap: map[[3]int]bool{}, Water: map[[2]int]bool{}, Pond: map[[2]int]bool{}, Floor: w.Floor, Ceiling: w.Sky, FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA}
-	if w.Backdrop != nil {
+	if w.Backdrop != nil && !flatsPainted(w) { // the classic picture only where the series lacks the flats
 		sc.Backdrop = w.Backdrop.Img
 	}
 	for y, row := range w.Side {
@@ -126,6 +126,12 @@ func (p *Presenter) wallScene(w *front.Walls) *blobber.Scene {
 	}
 	p.scenes[name] = sc
 	return sc
+}
+
+// flatsPainted says whether the series has both of w's named flats
+// (floor_NAME, ceiling_NAME), so the remastered view draws them over Backdrop.
+func flatsPainted(w *front.Walls) bool {
+	return w.Floor != "" && w.Sky != "" && walls.Has(series, "floor_"+w.Floor) && walls.Has(series, "ceiling_"+w.Sky)
 }
 
 // wallTexture is the texture of wall value n of w: its remastered one from
