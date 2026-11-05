@@ -79,6 +79,7 @@ func SetTPS(n int)       { win.tps = n }
 func IsFullscreen() bool { return win.full }
 
 func SetFullscreen(on bool) {
+	on = on && os.Getenv("GOBOX_BACKGROUND") == "" // a scripted background run never goes fullscreen
 	win.full = on
 	if win.app != nil { // AppKit wants it on the main thread: OnUpdate applies it
 		win.toFull.Store(map[bool]int32{false: 1, true: 2}[on])

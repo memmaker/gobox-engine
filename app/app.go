@@ -161,7 +161,7 @@ func Run(cfg Config) error {
 	}
 	gpu.SetWindowTitle(t.Title)
 	gpu.SetTPS(cfg.TPS)
-	gpu.SetFullscreen(cfg.Settings.Fullscreen && !cfg.Settings.Window)
+	gpu.SetFullscreen(cfg.Settings.Fullscreen && !cfg.Settings.Window && len(cfg.Capture.Keys) == 0) // a scripted run (-keys) stays a window
 	gpu.SetConfig(cfg.Capture.GPU)
 	if st, ok := cfg.Game.(Starter); ok {
 		st.Start(cfg.Capture.Slot)
