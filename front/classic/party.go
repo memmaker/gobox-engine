@@ -5,6 +5,7 @@ import (
 	"gobox/front"
 	"gobox/game"
 	"image"
+	"slices"
 )
 
 // kinds are the actions the menu verbs of game.Entry stand for.
@@ -29,7 +30,8 @@ func powers(es []game.Entry) []front.Power {
 // (Data.Art).
 func Party(s game.State, art map[string]game.Picture) []front.Member {
 	var out []front.Member
-	for _, m := range s.Party {
+	marked := slices.ContainsFunc(s.Party, func(m game.Member) bool { return m.Chosen })
+	for i, m := range s.Party {
 		m = defaultPortrait(m)
 		var head image.Image
 		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
@@ -39,7 +41,7 @@ func Party(s game.State, art map[string]game.Picture) []front.Member {
 			head = poolImage("combat", cmp.Or(m.IconBodyID, m.IconHeadID))
 		}
 		out = append(out, front.Member{Head: head, Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
-			Selected: m.Chosen, Colour: nameColour(m), HeadPix: pix(art[m.Head]), Portrait: m.Dropped, Powers: powers(m.Card),
+			Selected: m.Chosen || !marked && i == s.Selected, Colour: nameColour(m), HeadPix: pix(art[m.Head]), Portrait: m.Dropped, Powers: powers(m.Card),
 			Exp: int(int32(m.Exp)), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
 	}
 	return out
