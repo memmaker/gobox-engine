@@ -1203,6 +1203,7 @@ type Event struct {
 // rules package exports it as func Data() Data, and its cmd hands gobox
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
+	SaveDir      string // where gobox writes slot files ("": saves)
 	Series       string
 	ID           string          // game id
 	CreationFlow CreationFlow    // the creation sheet's layout and steps

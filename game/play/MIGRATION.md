@@ -158,3 +158,15 @@ gobox owns combat labels (Move from `Allowed.Moves`, Attack, Cast, ...), relabel
 `Data.Texts`, keys via `Data.VerbKeys`. A question over exploring is ModeAsk with
 WindowScene, HoldNone, Adventure, and walls kept. When Continue is the only allowed
 action, gobox asks Continue.
+
+## POD pass
+
+| Old | play |
+|---|---|
+| creation sheet figures (Age, ...) | `Draft.Member.Sheet` (adapter publishes it as SheetPage) |
+| default rest "until study is done" | `Camping.Study` (gobox's default rest; 8h when 0) |
+| save/load only where the rules allow | `Common.NoSave`, `Common.NoLoad` (zero: allowed, so other games are unchanged) |
+| save directory | `game.Data.SaveDir` (gobox still owns the files) |
+
+Numeric sound/song names ("10") resolve as on the old path (front/classic turns them into
+numbers). A free combat cursor (Aim with nothing pending) is gobox's; the game is not told.

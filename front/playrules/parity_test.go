@@ -115,6 +115,20 @@ func TestParity(t *testing.T) {
 			func(s game.State, _ game.Result) bool {
 				return s.Mode == game.ModeAsk && s.Pending.Kind == game.Direction && s.Pending.Options[0].Do == game.Leave{}
 			}},
+		{"draft sheet figures", play.Assembling{Draft: &play.Draft{Member: play.Member{Sheet: &game.SheetPage{Age: 23}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.SheetPage != nil && s.SheetPage.Age == 23 }},
+		{"no save at party menu", play.Assembling{Common: play.Common{NoSave: true, NoLoad: true, Party: []play.Member{{Name: "A"}}}}, game.Data{},
+			nil, nil,
+			func(s game.State, res game.Result) bool {
+				for _, o := range s.Pending.Options {
+					if o.Label == "Save Current Game" || o.Label == "Load Saved Game" {
+						return false
+					}
+				}
+				return true
+			}},
+		{"free aim is gobox's", play.Fighting{}, game.Data{}, []game.Decision{game.Aim{At: image.Pt(3, 4)}}, nil,
+			func(s game.State, res game.Result) bool { return res.Err == nil }},
 		{"camp layers and day", play.Camping{Common: play.Common{Day: true, Layers: []game.Layer{{FrameMs: 100}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Window == game.WindowPicture && len(s.Page.Layers) == 1 && s.Flags.Day
@@ -202,5 +216,19 @@ func TestGameSlots(t *testing.T) {
 	}
 	if res := r.Apply(game.Load{Slot: 0}); res.Err != nil || g.loaded != 1 {
 		t.Fatalf("load %+v %d", res, g.loaded)
+	}
+}
+
+func TestStudyRestAndSaveDir(t *testing.T) {
+	dir := t.TempDir()
+	g := &fake{st: play.Camping{Study: 3 * time.Hour, Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.AdvanceTimeBy{}}}}}}
+	r := New(g, game.Data{SaveDir: dir}).(*rules)
+	r.Apply(game.Rest{})
+	if r.rest != 3*time.Hour || r.dir != dir {
+		t.Fatalf("rest %v dir %q", r.rest, r.dir)
+	}
+	g.st = play.Camping{Common: play.Common{NoSave: true}}
+	if r.Apply(game.Save{Name: "x"}).Err == nil {
+		t.Fatal("saved where the rules refuse it")
 	}
 }

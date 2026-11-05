@@ -26,21 +26,22 @@ import (
 const Dir = "saves"
 
 type rules struct {
-	g     play.Game
-	dir   string
-	items game.ItemsUp
-	ask   *game.Ask     // gobox's own question up (a maneuver pick), nil none
-	moves []play.Action // the actions ask's options stand for
-	aim   *aiming
-	read  *game.Read    // the handout up, kept so the pointer holds while it does
-	sheet int           // the member whose sheet is up, -1 none
-	rest  time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
-	walk  []image.Point // the auto-walk's squares still to go, one per Step (PaceWalk)
-	seq   uint64        // counts the changes: the front redraws on a new one
-	data  game.Data     // the series' data (verb keys, texts)
-	log   []string      // the fight's message log, from the outcomes' text
-	note  game.Note     // the status line's toast: the last refusal
-	title struct {      // the title as gobox steps it
+	g      play.Game
+	dir    string
+	items  game.ItemsUp
+	ask    *game.Ask     // gobox's own question up (a maneuver pick), nil none
+	moves  []play.Action // the actions ask's options stand for
+	aim    *aiming
+	cursor image.Point   // the free cursor's square
+	read   *game.Read    // the handout up, kept so the pointer holds while it does
+	sheet  int           // the member whose sheet is up, -1 none
+	rest   time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
+	walk   []image.Point // the auto-walk's squares still to go, one per Step (PaceWalk)
+	seq    uint64        // counts the changes: the front redraws on a new one
+	data   game.Data     // the series' data (verb keys, texts)
+	log    []string      // the fight's message log, from the outcomes' text
+	note   game.Note     // the status line's toast: the last refusal
+	title  struct {      // the title as gobox steps it
 		n       int
 		credits bool
 		page    int
@@ -59,6 +60,9 @@ func New(g play.Game, d ...game.Data) game.Rules {
 	r := &rules{g: g, dir: Dir, sheet: -1}
 	if len(d) > 0 {
 		r.data = d[0]
+		if d[0].SaveDir != "" {
+			r.dir = d[0].SaveDir
+		}
 	}
 	return r
 }
@@ -230,10 +234,12 @@ func (r *rules) partyMenu(a play.Assembling) *game.Ask {
 		act, known := acts[f.Label]
 		on := known && al[act]
 		switch f.Label {
-		case "View Character", "Save Current Game":
+		case "View Character":
 			on = len(a.Party) > 0
+		case "Save Current Game":
+			on = len(a.Party) > 0 && !a.NoSave
 		case "Load Saved Game":
-			on = true // gobox's slot screen, empty or not
+			on = !a.NoLoad // gobox's slot screen, empty or not
 		}
 		if on {
 			k := f.Key
@@ -317,6 +323,9 @@ func (r *rules) State() game.State {
 			s.Mode = game.ModeCreate
 			s.Creation = &game.Creation{Draft: member(d.Member, true, false), Fields: d.Fields, Roster: t.Roster,
 				MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step, Choices: d.Choices}
+			if d.Member.Sheet != nil {
+				s.SheetPage = d.Member.Sheet // the rules' figures (age, ...) for the sheet being made
+			}
 		}
 	case play.Exploring:
 		s.Mode, s.Window = game.ModeExplore, game.WindowScene
@@ -591,7 +600,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 		}
 	}
 	t := &game.Turn{Unit: b.Turn, Aim: r.aim != nil, Moves: b.Moves, Casting: b.Casting, Weapon: b.Weapon, Missile: b.Missile}
-	c.Turn, c.Panel, c.Log, c.CursorOn = t, b.Turn, r.log, r.aim != nil
+	c.Turn, c.Panel, c.Log, c.CursorOn, c.Cursor = t, b.Turn, r.log, r.aim != nil, r.cursor
 	if r.aim != nil {
 		c.Marks = r.aim.ats
 		if cs, ok := r.aim.Action.(play.Cast); ok {
@@ -731,6 +740,9 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	case game.Rest:
 		if _, ok := restCap(commonOf(ps).Allowed); ok { // gobox paces the rest in chunks, Step by Step
 			r.rest = time.Duration(d.Minutes) * time.Minute
+			if c, ok := ps.(play.Camping); ok && r.rest == 0 {
+				r.rest = c.Study
+			}
 			if r.rest == 0 {
 				r.rest = 8 * time.Hour
 			}
@@ -758,8 +770,14 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	case game.Aim:
 		return r.aimAt(d.At)
 	case game.Save:
+		if commonOf(ps).NoSave {
+			return game.Result{Err: errors.New("cannot save here")}
+		}
 		return game.Result{Err: r.save(d.Name)}
 	case game.Load:
+		if commonOf(ps).NoLoad {
+			return game.Result{Err: errors.New("cannot load here")}
+		}
 		return r.load(d.Slot)
 	case game.DeleteSlot:
 		return game.Result{Err: r.remove(d.Name)}
@@ -1053,8 +1071,9 @@ func (r *rules) aimOrDo(al play.Allowed, a play.Action) game.Result {
 
 func (r *rules) aimAt(at image.Point) game.Result {
 	m := r.aim
-	if m == nil {
-		return game.Result{Err: errors.New("not aiming")}
+	if m == nil { // free cursor (looking): gobox's own, the game is not told
+		r.cursor = at
+		return game.Result{}
 	}
 	if !slices.Contains(m.Squares, at) {
 		return game.Result{Err: errors.New("out of range")}

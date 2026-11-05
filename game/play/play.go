@@ -70,6 +70,8 @@ type Aimed struct {
 
 // Common is what every state shows besides its own view.
 type Common struct {
+	NoSave   bool // saving is refused here (the rules say where the party may save)
+	NoLoad   bool // loading is refused here
 	Party    []Member
 	Selected int
 	Purse    map[string]int
@@ -331,7 +333,12 @@ type Looting struct {
 }
 
 // Camping: the party has made camp (rest, memorize, scribe, fix, order).
-type Camping struct{ Common }
+// Study is the rest the party needs to finish studying its spells (0:
+// none); gobox's default rest is this long when set.
+type Camping struct {
+	Common
+	Study time.Duration
+}
 
 // Over: the game has ended.
 type Over struct {
