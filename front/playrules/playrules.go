@@ -329,9 +329,10 @@ func (r *rules) State() game.State {
 		}
 	case play.Exploring:
 		s.Mode, s.Window = game.ModeExplore, game.WindowScene
-		switch {
-		case c.Ask != nil: // a question over the 3D view, as the old path asks it
+		if c.Ask != nil { // a question over the view (3D or picture), as the old path asks it
 			s.Mode = game.ModeAsk
+		}
+		switch {
 		case c.Picture != nil || len(c.Layers) > 0:
 			s.Window = game.WindowPicture
 		case t.Map.Overland:
