@@ -1332,7 +1332,7 @@ func (r *rules) do(a play.Action) game.Result {
 // keep sends a to the game: a refusal is Err, else the outcome as events.
 func (r *rules) keep(a play.Action) game.Result {
 	out, err := r.g.Do(a)
-	if err != nil {                               // no toast: the old path's refusals were silent unless the rules said (Refused)
+	if err != nil { // no toast: the old path's refusals were silent unless the rules said (Refused)
 		return game.Result{Err: err}
 	}
 	r.ask, r.moves, r.aim = nil, nil, nil
