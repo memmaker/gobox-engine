@@ -284,3 +284,26 @@ func TestCampKeepsMap(t *testing.T) {
 		t.Fatal("camp lost the map")
 	}
 }
+
+// arriveSays is a fake whose step itself says something (time passes).
+type arriveSays struct{ fake }
+
+func (a *arriveSays) Do(x play.Action) (play.Outcome, error) {
+	a.sent = append(a.sent, x)
+	if _, ok := x.(play.Arrive); ok {
+		return play.Outcome{Events: []play.Event{play.Sounded{Sound: "step"}}}, nil
+	}
+	return play.Outcome{}, nil
+}
+
+// TestWalkRunsEvent: a walk's step runs the square's event though the
+// step itself said something, as a manual step does.
+func TestWalkRunsEvent(t *testing.T) {
+	f := &arriveSays{fake{st: play.Exploring{Map: play.ExploreMap{Walk: walker{}}}}}
+	r := New(f, game.Data{})
+	r.Apply(game.WalkTo{At: image.Pt(0, 2)})
+	r.Step()
+	if len(f.sent) != 3 || f.sent[2] != (play.RunEvent{}) {
+		t.Fatalf("sent %v", f.sent)
+	}
+}

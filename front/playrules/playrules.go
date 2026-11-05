@@ -1378,10 +1378,11 @@ func (r *rules) walkStep() game.Result {
 		return game.Result{Err: errors.New("off the walk")}
 	}
 	var res game.Result
-	for _, a := range []play.Action{play.RunEvent{Before: true, Side: side}, play.Arrive{From: from, To: to, Facing: side}, play.RunEvent{}} {
+	for i, a := range []play.Action{play.RunEvent{Before: true, Side: side}, play.Arrive{From: from, To: to, Facing: side}, play.RunEvent{}} {
 		st := r.keep(a)
 		res.Events, res.Err = append(res.Events, st.Events...), st.Err
-		if _, still := r.g.State().(play.Exploring); st.Err != nil || !still || len(st.Events) > 0 && !onlyMoved(st.Events) {
+		arrived := i == 1 // what the step itself says, the square's event still runs, as a manual step's does
+		if _, still := r.g.State().(play.Exploring); st.Err != nil || !still || !arrived && len(st.Events) > 0 && !onlyMoved(st.Events) {
 			r.walk = nil
 			break
 		}
