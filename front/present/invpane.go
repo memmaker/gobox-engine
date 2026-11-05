@@ -3,15 +3,17 @@
 package present
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"gobox/front"
+	"gobox/front/classic"
+	"gobox/sprites"
 	"gobox/ui"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/png"
+	"maps"
 	"strconv"
 	"strings"
 )
@@ -154,39 +156,24 @@ func decodePNG(b []byte) image.Image {
 	return im
 }
 
-// readIcons parses items.rec: records of "field: value" lines between
-// blank lines, comments starting with #.
-func readIcons(rec string) map[string]int {
-	m := map[string]int{}
-	name := ""
-	s := bufio.NewScanner(strings.NewReader(rec))
-	for s.Scan() {
-		k, v, ok := strings.Cut(s.Text(), ":")
-		v = strings.TrimSpace(v)
-		switch {
-		case !ok || strings.HasPrefix(k, "#"):
-		case k == "internal_name":
-			name = v
-		case k == "icon":
-			if n, err := strconv.Atoi(v); err == nil && name != "" {
-				m[name] = n
-			}
-		}
-	}
-	return m
-}
-
 func (inv *inventory) load() {
 	if inv.doll != nil {
 		return
 	}
-	inv.doll, inv.atlas = decodePNG(dollPNG), decodePNG(atlasPNG)
-	inv.icons = readIcons(itemsRec)
+	inv.doll = decodePNG(dollPNG)
+	o := sprites.Origins()
+	inv.icons = o["por"]["ITEMS"] // the pool's pictures were imported from POR: its types are the default
+	if own := o[classic.GameID]["ITEMS"]; own != nil && classic.GameID != "por" {
+		inv.icons = maps.Clone(inv.icons)
+		maps.Copy(inv.icons, own)
+	}
 }
 
-// icon is the atlas cell of an item: the key "TT:word" for one of its
-// name words (or a word of one), else "TT" for its type; -1 for none.
-func (inv *inventory) icon(it *front.InvItem) int {
+// icon is the pool item picture of an item ("": none): origins.json's ITEMS
+// key "TT:word" for one of its name words (or a word of one), else "TT" for
+// its type, the game's own entries over POR's.
+func (inv *inventory) icon(it *front.InvItem) string {
+	inv.load()
 	t := fmt.Sprintf("%02X", it.Type)
 	for _, w := range it.Words {
 		if n, ok := inv.icons[t+":"+w]; ok {
@@ -198,35 +185,28 @@ func (inv *inventory) icon(it *front.InvItem) int {
 			}
 		}
 	}
-	if n, ok := inv.icons[t]; ok {
-		return n
-	}
-	return -1
+	return inv.icons[t]
 }
 
-// iconImage is the item's atlas cell (nil: none).
+// iconImage is the item's pool picture (nil: none).
 func (inv *inventory) iconImage(it *front.InvItem) image.Image {
-	inv.load()
-	n := inv.icon(it)
-	if n < 0 {
-		return nil
+	if n := inv.icon(it); n != "" {
+		return sprites.Image(series, "items", n)
 	}
-	at := image.Pt(n%atlasCols*atlasCell, n/atlasCols*atlasCell)
-	return inv.atlas.(interface {
-		SubImage(image.Rectangle) image.Image
-	}).SubImage(image.Rectangle{at, at.Add(image.Pt(atlasCell, atlasCell))})
+	return nil
 }
 
-// drawIcon draws the item's atlas cell, unscaled, in the middle of r (cut to r).
+// drawIcon draws the item's picture, unscaled, in the middle of r (cut to r).
 func (inv *inventory) drawIcon(it *front.InvItem, r image.Rectangle) {
-	n := inv.icon(it)
-	if n < 0 {
+	im := inv.iconImage(it)
+	if im == nil {
 		inv.text("?", r.Min.X+r.Dx()/2-4, r.Min.Y+r.Dy()/2-4, gray)
 		return
 	}
-	at := r.Min.Add(image.Pt(r.Dx()-atlasCell, r.Dy()-atlasCell).Div(2))
-	cell := image.Rectangle{at, at.Add(image.Pt(atlasCell, atlasCell))}.Intersect(r)
-	draw.Draw(inv.px, cell, inv.atlas, image.Pt(n%atlasCols*atlasCell, n/atlasCols*atlasCell).Add(cell.Min.Sub(at)), draw.Over)
+	sz := im.Bounds().Size()
+	at := r.Min.Add(r.Size().Sub(sz).Div(2))
+	cell := image.Rectangle{at, at.Add(sz)}.Intersect(r)
+	draw.Draw(inv.px, cell, im, im.Bounds().Min.Add(cell.Min.Sub(at)), draw.Over)
 }
 
 // text draws s in the game's font at (x, y).

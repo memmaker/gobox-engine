@@ -7,12 +7,12 @@ import (
 
 // Without doll or atlas art the inventory loads and answers, no panic.
 func TestNoArt(t *testing.T) {
-	d, a := dollPNG, atlasPNG
-	defer func() { dollPNG, atlasPNG = d, a }()
-	dollPNG, atlasPNG = nil, nil
+	d := dollPNG
+	defer func() { dollPNG = d }()
+	dollPNG = nil
 	var inv inventory
 	inv.load()
-	if inv.doll.Bounds().Empty() || inv.icon(&front.InvItem{}) >= 0 && inv.atlas == nil {
+	if inv.doll.Bounds().Empty() || inv.iconImage(&front.InvItem{Type: 0xFF}) != nil {
 		t.Fatal("no-art images should be a clear pixel")
 	}
 }
