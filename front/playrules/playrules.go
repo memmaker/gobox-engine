@@ -282,7 +282,7 @@ func (r *rules) State() game.State {
 	s := game.State{Selected: c.Selected, Purse: c.Purse, Where: c.Where, Quests: c.Quests, Lore: c.Lore,
 		Allowed: allowedNames(c.Allowed), Items: r.items, Saves: r.saves()}
 	for i, m := range c.Party {
-		s.Party = append(s.Party, member(m, false, m.CanCast || canCast(c.Allowed, i))) // no card marked: the old path marked none (Selected says who is)
+		s.Party = append(s.Party, member(m, i == c.Selected && !r.data.Unmarked, m.CanCast || canCast(c.Allowed, i)))
 	}
 	s.Map = c.Automap
 	if x, ok := ps.(play.Exploring); ok && c.Automap.Size == (image.Point{}) {

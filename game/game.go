@@ -348,11 +348,12 @@ type Page struct {
 // TextRun is text in one colour on a line from column X (Upcase: the
 // glyphs of a game that upcases what it writes).
 type TextRun struct {
-	X      int
-	Text   string
-	Fg, Bg color.RGBA
-	Upcase bool
-	Blink  bool // the front alternates the run's ink with its highlight colour a few times, ending on normal
+	X        int
+	Text     string
+	Fg, Bg   color.RGBA
+	Upcase   bool
+	Unmarked bool // the selected member's card is not marked (the game's look: Selected still says who is)
+	Blink    bool // the front alternates the run's ink with its highlight colour a few times, ending on normal
 }
 
 // Layer is a picture placed on the page: At in pixels of the page.
@@ -1206,6 +1207,7 @@ type Event struct {
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
 	Upcase       bool   // the game writes its text in capitals (the pane and prompt in its upper-case glyphs)
+	Unmarked     bool   // the selected member's card is not marked (the game's look; Selected still says who is)
 	NoFreeAim    bool   // the series' combat menu has no free Aim (Buck Rogers)
 	SaveDir      string // where gobox writes slot files ("": saves)
 	Series       string
