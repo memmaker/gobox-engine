@@ -21,6 +21,7 @@ type Game struct {
 	grid   image.Point  // the page's size in cells (ActResize); 40x25 at least
 	events []game.Event // the fight's events since the last Settle
 	note   front.Note   // the front's own refusal toast
+	lore   int          // journal notes seen (State.Lore), +1; 0: none counted yet
 	resets int
 	tiles  bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
 	asked  *game.Ask // a Refusal's question put instead (answered by its options' Do)
@@ -144,6 +145,12 @@ func (g *Game) ViewOf(s game.State) front.View {
 	v = Screen(v, s)
 	v = Read(v, s)
 	v = Pacing(v, s)
+	if n := len(s.Lore) + 1; g.lore > 0 && n > g.lore { // the journal gained a note: gobox says so, the game prints nothing
+		g.note = front.Note{Text: "Added to journal", At: time.Now()}
+		g.lore = n
+	} else if g.lore == 0 || n < g.lore { // the first look, a load or a new game: no news
+		g.lore = n
+	}
 	if v.Note.Text == "" {
 		v.Note = g.note
 	}
