@@ -1213,7 +1213,6 @@ type Data struct {
 	PointBuy     bool            `json:",omitempty"` // the game takes PointBuy: creation asks Roll or Point Buy for each new character
 	VerbKeys     map[string]rune `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
 	NoHotkeys    bool            `json:",omitempty"` // the series' menus are picked by arrows only: gobox gives its menus no hotkeys
-	AskLists     bool            `json:",omitempty"` // with NoHotkeys: picks over the view are lists too (no keys), not bar menus
 	PartyMenu    []MenuKey       `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
 	Texts        map[string]string
 	Credits      []string

@@ -147,13 +147,17 @@ func TestParity(t *testing.T) {
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Options[0].Key == 'M' && s.Pending.Options[1].Key == 'S'
 			}},
-		{"question pick is a list under NoHotkeys", play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"* BAR", "CLINIC"}}}}, game.Data{NoHotkeys: true, AskLists: true}, nil, nil,
+		{"question pick is a list under NoHotkeys", play.Exploring{Common: play.Common{Ask: &play.Question{List: true, Replies: []string{"* BAR", "CLINIC"}}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Options[0].Key == 0 && s.Pending.Options[1].Key == 0
 			}},
-		{"question pick is a bar without AskLists", play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"Rest", "Save"}}}}, game.Data{NoHotkeys: true}, nil, nil,
+		{"question menu keeps keys", play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"Rest", "Save"}}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Options[0].Key == 'R' && s.Pending.Options[1].Key == 'S'
+			}},
+		{"lone aim asks for the square", play.Fighting{Common: play.Common{Status: "Aim:", Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Shoot{}, Targets: 1}}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				return s.Pending != nil && s.Pending.Kind == game.Square && s.Pending.Prompt == "Aim:" && s.Combat.Turn.Aim
 			}},
 		{"marks are no key", play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"* BAR"}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'B' }},

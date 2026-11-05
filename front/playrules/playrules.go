@@ -123,6 +123,9 @@ func (r *rules) pending(ps play.State) *game.Ask {
 		return nil
 	}
 	al := commonOf(ps).Allowed
+	if f, ok := ps.(play.Fighting); ok && r.loneAim(f) {
+		return &game.Ask{Kind: game.Square, Prompt: f.Status}
+	}
 	if len(al.Plain) == 1 && len(al.Aimed) == 0 && al.Plain[0] == (play.Continue{}) {
 		return &game.Ask{Kind: game.Continue}
 	}
@@ -135,7 +138,7 @@ func (r *rules) asked(ps play.State) *game.Ask {
 	}
 	c := commonOf(ps)
 	if q := c.Ask; q != nil {
-		return r.question(q, r.data.AskLists && !q.YesNo) // a pick over the view is a key-less list where the game's are (Data.AskLists)
+		return r.question(q, q.List)
 	}
 	if a, ok := ps.(play.Assembling); ok {
 		if d := a.Draft; d != nil {
@@ -596,7 +599,21 @@ var turnOptions = []struct {
 	{"Flee", "Flee", game.Flee{}}, {"EndTurn", "End", game.EndTurn{}},
 }
 
+// loneAim starts the pick of squares when an Aimed action is all the turn
+// allows (a jetpack's flight, a throw): gobox asks for the square at once.
+func (r *rules) loneAim(f play.Fighting) bool {
+	al := f.Allowed
+	if len(al.Aimed) != 1 || len(al.Plain) > 0 || len(al.Moves) > 0 {
+		return false
+	}
+	if r.aim == nil {
+		r.aim = &aiming{Aimed: al.Aimed[0]}
+	}
+	return true
+}
+
 func (r *rules) combat(f play.Fighting) *game.Combat {
+	r.loneAim(f)
 	b, al := f.Field, f.Allowed
 	c := &game.Combat{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile, Floor: b.Floor,
 		Round: b.Round, Dungeon: b.Dungeon, Reach: al.Moves, Effects: b.Clouds}
