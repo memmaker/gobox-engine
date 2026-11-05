@@ -37,3 +37,13 @@ func TestYesNoOverExplore(t *testing.T) {
 		t.Fatalf("%+v", q)
 	}
 }
+
+// The creation sheet keeps its draft layout and shows the rules' figures.
+func TestDraftFigures(t *testing.T) {
+	s := game.State{Mode: game.ModeCreate, Creation: &game.Creation{Draft: game.Member{Name: "Doc", Stats: map[string]int{"str": 12}}},
+		SheetPage: &game.SheetPage{AC: 4, THAC0: 17, Damage: "1d8"}}
+	k := Sheet(front.View{}, s).SheetPage
+	if k == nil || k.Damage != "1d8" || k.THAC0 != 17 || k.AC != 4 || k.Name != "Doc" || k.Stats[0] != 12 {
+		t.Fatalf("%+v", k)
+	}
+}

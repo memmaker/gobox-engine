@@ -24,9 +24,9 @@ func Sheet(v front.View, s game.State) front.View {
 	}
 	v.Portrait, v.IconBox = cells(s.Portrait), cells(s.IconBox)
 	p := s.SheetPage
-	drafted := p == nil && Drafting(s)
-	if drafted { // the creation sheet: gobox lays it out from the draft
-		p = draftPage(s.Creation)
+	drafted := Drafting(s)
+	if drafted { // the creation sheet: gobox lays it out from the draft, with the rules' figures when they give a page
+		p = draftPage(s.Creation, s.SheetPage)
 	}
 	if p != nil {
 		k := &front.SheetPage{Name: p.Name, NameColour: p.NameColour, NPC: p.NPC, Spells: p.Spells, Sex: p.Sex, Race: p.Race, Age: p.Age,
@@ -51,10 +51,14 @@ func Sheet(v front.View, s game.State) front.View {
 
 // draftPage is the creation sheet's page from c's draft (the rules publish
 // no page while creating).
-func draftPage(c *game.Creation) *game.SheetPage {
+func draftPage(c *game.Creation, rules *game.SheetPage) *game.SheetPage {
 	d := c.Draft
 	p := &game.SheetPage{Name: d.Name, Race: d.Race, Alignment: d.Alignment, Class: d.Class, Creating: true,
 		AC: d.AC, HP: d.HP, MaxHP: d.MaxHP, THAC0: d.THAC0, Move: d.Move, Status: d.Status, Age: d.Age}
+	if r := rules; r != nil { // the rules' own figures: one source, never a 0 the game did figure
+		p.Age, p.AC, p.HP, p.MaxHP, p.THAC0, p.Damage, p.Move = r.Age, r.AC, r.HP, r.MaxHP, r.THAC0, r.Damage, r.Move
+		p.Saves, p.Mods, p.Rules, p.Levels, p.Exp, p.Next, p.Portrait = r.Saves, r.Mods, r.Rules, r.Levels, r.Exp, r.Next, r.Portrait
+	}
 	if d.ClassText != "" {
 		p.Class = d.ClassText
 	}
