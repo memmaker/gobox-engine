@@ -25,12 +25,7 @@ func TestLootParity(t *testing.T) {
 	if s := e.Rules().State(); s.Mode != game.ModeLoot || len(s.Loot.Items) != 3 {
 		t.Fatalf("loot state %v %+v", s.Mode, s.Loot)
 	}
-	e.LootView(-1) // the treasure's inventory over it
-	settled(e, front.Action{})
-	sameLoot(t, "loot view", e)
-	settled(e, front.Action{Kind: front.ActClose})
-	sameLoot(t, "loot back", e)
-	e.LootTake(-1)
+	e.Rules().Apply(game.TakeLoot{Item: -1, All: true})
 	settled(e, front.Action{})
 	sameLoot(t, "loot taken", e)
 	for i := range e.Rules().State().Party { // who has Detect Magic memorized

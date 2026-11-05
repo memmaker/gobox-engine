@@ -84,12 +84,8 @@ func TestInventoryParity(t *testing.T) {
 
 	l := engine(t, true, "loot")
 	settled(l, front.Action{})
-	if err := l.LootTake(-1); err != nil {
-		t.Fatal(err)
-	}
-	settled(l, front.Action{})
-	if l.Rules().State().Items != game.ItemsLoot {
-		t.Fatal("no treasure over the inventory")
+	if s := l.Rules().State(); s.Loot == nil || s.Items != game.ItemsNone { // gobox's loot screen: the game opens no inventory of its own
+		t.Fatalf("treasure %v items %v", s.Loot != nil, s.Items)
 	}
 	samePlace(t, "loot", l)
 

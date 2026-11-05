@@ -224,8 +224,6 @@ var wantState = map[string]string{
 	"TestCalls/LeaveCamp":                  "m2 p0 f268bd",
 	"TestCalls/LootDetect":                 "m11 p5 0e5d6d",
 	"TestCalls/LootLeave":                  "m2 p0 6f654e",
-	"TestCalls/LootTake":                   "m11 p5 624a30",
-	"TestCalls/LootView":                   "m11 p5 677e07",
 	"TestCalls/Mark":                       "m2 p0 e9da07",
 	"TestCalls/ModifyCharacter":            "m5 p0 48be9e",
 	"TestCalls/NewClass":                   "m4 p0 6f2c59",

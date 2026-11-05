@@ -139,8 +139,6 @@ func TestCalls(t *testing.T) {
 		{"CampRest", scene("camp"), func(e *rules.Engine) error { return e.CampRest(0) }, game.CampRest{}},
 		{"StopRest", raw("resting"), (*rules.Engine).StopRest, game.StopRest{}},
 		{"UsePower", scene("paladin"), func(e *rules.Engine) error { return e.UsePower(0, rules.ActHeal, 0, 0, true) }, game.UsePower{Kind: int(rules.ActHeal), Sure: true}},
-		{"LootView", scene("loot"), func(e *rules.Engine) error { return e.LootView(0) }, game.LootLook{}},
-		{"LootTake", scene("loot"), func(e *rules.Engine) error { return e.LootTake(0) }, game.LootTake{}},
 		{"LootDetect", scene("lootdetect"), (*rules.Engine).LootDetect, game.LootDetect{}},
 		{"LootLeave", scene("loot"), func(e *rules.Engine) error { return e.LootLeave(true) }, game.LootLeave{Sure: true}},
 		{"TryDoor", then(scene("lockeddoor"), func(e *rules.Engine) { e.Apply(rules.Action{Kind: rules.ActForward}) }), func(e *rules.Engine) error { return e.TryDoor(rules.DoorBash) }, game.TryDoor{Way: int(rules.DoorBash)}},
