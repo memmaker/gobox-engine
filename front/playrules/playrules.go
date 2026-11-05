@@ -1378,10 +1378,14 @@ func (r *rules) walkStep() game.Result {
 		return game.Result{Err: errors.New("off the walk")}
 	}
 	var res game.Result
-	for i, a := range []play.Action{play.RunEvent{Before: true, Side: side}, play.Arrive{From: from, To: to, Facing: side}, play.RunEvent{}} {
+	steps := []play.Action{play.RunEvent{Before: true, Side: side}, play.Arrive{From: from, To: to, Facing: side}, play.RunEvent{}}
+	if x.Where.Facing != side { // the party turns the way it walks first, as a player would: games allow Arrive facing the way it goes
+		steps = append([]play.Action{play.Face{Facing: side}}, steps...)
+	}
+	for _, a := range steps {
 		st := r.keep(a)
 		res.Events, res.Err = append(res.Events, st.Events...), st.Err
-		arrived := i == 1 // what the step itself says, the square's event still runs, as a manual step's does
+		_, arrived := a.(play.Arrive) // what the step itself says, the square's event still runs, as a manual step's does
 		if _, still := r.g.State().(play.Exploring); st.Err != nil || !still || !arrived && len(st.Events) > 0 && !onlyMoved(st.Events) {
 			r.walk = nil
 			break

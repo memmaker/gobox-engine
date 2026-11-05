@@ -210,8 +210,11 @@ func TestWalkTo(t *testing.T) {
 	if r.State().Pacing.Pace != game.PaceWalk {
 		t.Fatal("not walking")
 	}
-	r.Step() // (0,0) -> (0,1): south, the wall east
-	if a, ok := f.sent[1].(play.Arrive); !ok || a.To != image.Pt(0, 1) || len(f.sent) != 3 {
+	r.Step() // (0,0) -> (0,1): south, the wall east; the party faces north, so it turns first
+	if _, ok := f.sent[0].(play.Face); !ok || len(f.sent) != 4 {
+		t.Fatalf("sent %v", f.sent)
+	}
+	if a, ok := f.sent[2].(play.Arrive); !ok || a.To != image.Pt(0, 1) {
 		t.Fatalf("sent %v", f.sent)
 	}
 }
@@ -303,7 +306,7 @@ func TestWalkRunsEvent(t *testing.T) {
 	r := New(f, game.Data{})
 	r.Apply(game.WalkTo{At: image.Pt(0, 2)})
 	r.Step()
-	if len(f.sent) != 3 || f.sent[2] != (play.RunEvent{}) {
+	if len(f.sent) != 4 || f.sent[3] != (play.RunEvent{}) { // a turn, the script ahead, the step, the square's event
 		t.Fatalf("sent %v", f.sent)
 	}
 }
