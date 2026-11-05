@@ -25,6 +25,9 @@ func (p *Presenter) Edit(f func(front.Game)) { p.edit(func(e front.Game) { f(e) 
 func (p *Presenter) ownCreation(v front.View) front.View {
 	if p.creating && p.eng != nil {
 		v.Creation = p.eng.CreationView()
+		if p.creating = v.Creation != nil; !p.creating { // the game ended it itself (a step after Keep, a save): the party menu is back
+			return v
+		}
 		if g, ok := p.eng.(interface{ State() game.State }); ok { // its icon boxes take the draft's combat icon
 			v = classic.PoolIcon(v, g.State())
 		}

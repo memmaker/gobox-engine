@@ -56,3 +56,19 @@ func TestIntroEnterNoFallThrough(t *testing.T) {
 		t.Fatal("the click ending the fade picked")
 	}
 }
+
+// creationGone is a game whose creation has ended.
+type creationGone struct{ front.Game }
+
+func (creationGone) CreationView() *front.Creation { return nil }
+func (creationGone) Resets() int                   { return 0 }
+
+// A creation the game ends itself (a save after Keep) gives the party
+// menu back: the presenter's sheet does not stay over it, eating its keys.
+func TestCreationEndedByGame(t *testing.T) {
+	p := &Presenter{creating: true, eng: creationGone{}}
+	v := p.own(front.View{MainMenu: []front.ActKind{front.ActCreate}})
+	if p.creating || v.MainMenu == nil {
+		t.Fatalf("creating %v, menu %v", p.creating, v.MainMenu)
+	}
+}
