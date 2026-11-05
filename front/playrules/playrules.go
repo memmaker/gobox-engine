@@ -42,6 +42,7 @@ type rules struct {
 	data   game.Data     // the series' data (verb keys, texts)
 	log    []string      // the fight's message log, from the outcomes' text
 	note   game.Note     // the status line's toast: the last refusal
+	walls  *game.Walls   // the 3D view last explored: a scene over it keeps it
 	title  struct {      // the title as gobox steps it
 		n       int
 		credits bool
@@ -281,7 +282,7 @@ func (r *rules) State() game.State {
 	s := game.State{Selected: c.Selected, Purse: c.Purse, Where: c.Where, Quests: c.Quests, Lore: c.Lore,
 		Allowed: allowedNames(c.Allowed), Items: r.items, Saves: r.saves()}
 	for i, m := range c.Party {
-		s.Party = append(s.Party, member(m, i == c.Selected, m.CanCast || canCast(c.Allowed, i)))
+		s.Party = append(s.Party, member(m, false, m.CanCast || canCast(c.Allowed, i))) // no card marked: the old path marked none (Selected says who is)
 	}
 	s.Map = c.Automap
 	if x, ok := ps.(play.Exploring); ok && c.Automap.Size == (image.Point{}) {
@@ -298,11 +299,11 @@ func (r *rules) State() game.State {
 	}
 	s.Page = &game.Page{Layers: c.Layers}
 	for _, t := range c.Text {
-		s.Page.Pane = append(s.Page.Pane, []game.TextRun{{Text: t, Fg: ink}})
+		s.Page.Pane = append(s.Page.Pane, r.run(t))
 		s.LastText = t
 	}
 	if c.Status != "" {
-		s.Page.Prompt = []game.TextRun{{Text: c.Status, Fg: ink}}
+		s.Page.Prompt = r.run(c.Status)
 	}
 	s.Note = r.note
 	_, camp := ps.(play.Camping)
@@ -353,10 +354,9 @@ func (r *rules) State() game.State {
 		s.Flags.Exploring, s.Flags.Day = c.Ask == nil, t.Day || c.Day // the game's say, never the hour guessed
 		s.Door = t.Door
 		if w := t.Map.Walls; w.Side != nil { // no squares: no 3D view (the overland)
-			s.Walls = &game.Walls{Key: wallsKey(w), Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
-				FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA, Sun: w.Sun, Mountains: w.Mountains,
-				SunAz: w.SunAz, SunEl: w.SunEl, Backdrop: w.Backdrop}
+			s.Walls = walls(w)
 		}
+		r.walls = s.Walls
 	case play.Camping:
 		s.Mode = game.ModeCamp
 		s.RestHeals = s.Allowed["AdvanceTimeBy"]
@@ -368,14 +368,16 @@ func (r *rules) State() game.State {
 		if len(t.Pictures)+len(t.Layers) > 0 {
 			s.Window = game.WindowPicture
 		}
-		if t.Kind == play.SceneHandout {
+		s.Walls = r.walls // the 3D view stays under the page, as on the old path
+		if t.Walls != nil && t.Walls.Side != nil {
+			s.Walls = walls(*t.Walls)
+		}
+		switch t.Kind {
+		case play.SceneHandout: // read over the page: its pictures and layers stay
 			if r.read == nil || r.read.Title != t.Handout || !slices.Equal(r.read.Lines, t.Lines) {
 				r.read = &game.Read{Title: t.Handout, Lines: t.Lines}
 			}
 			s.Read = r.read
-			break
-		}
-		switch t.Kind {
 		case play.SceneTitle:
 			s.Mode, s.Intro, s.Window = game.ModeTitle, t.Intro, game.WindowScene
 			s.Flags.Credits, s.Flags.CreditPage = r.title.credits, r.title.page
@@ -386,7 +388,7 @@ func (r *rules) State() game.State {
 		case play.SceneScreen:
 			s.Screen = t.Screen
 		}
-		pg := page(t)
+		pg := r.page(t)
 		if t.Kind == play.SceneTitle && !r.title.credits {
 			pg.Layers = append(pg.Layers, t.Steps[r.title.n].Layers...)
 		}
@@ -429,6 +431,11 @@ func (r *rules) State() game.State {
 	case play.ShipFight:
 		f := t.Fight
 		s.Mode, s.Screen = game.ModeStory, &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: &f, ShipSheet: t.Sheet}
+	}
+	switch ps.(type) {
+	case play.Exploring, play.Scene:
+	default:
+		r.walls = nil // a fight, camp, the party menu: no 3D view to go back to
 	}
 	s.Holding = holding(ps)
 	if s.Pacing == nil {
@@ -477,12 +484,8 @@ func holding(ps play.State) game.Hold {
 		return game.HoldLoot
 	case play.Fighting:
 		return game.HoldFight
-	case play.Scene:
-		if t.Kind == play.SceneText || t.Kind == play.SceneTalk {
-			return game.HoldStory
-		}
 	}
-	return game.HoldNone
+	return game.HoldNone // a story page waits on its question, not a hold (HoldStory is the finale's pictures)
 }
 
 // wallsKey names w's look: a new one has the 3D view built again.
@@ -568,7 +571,7 @@ func member(m play.Member, chosen, cast bool) game.Member {
 		Items: m.Items, ItemCap: m.ItemCap, Spells: m.Spells, Slots: m.Slots, SlotsMax: m.SlotsMax,
 		PortraitHeadID: m.PortraitHeadID, PortraitBodyID: m.PortraitBodyID, IconHeadID: m.IconHeadID,
 		IconBodyID: m.IconBodyID, IconColors: m.IconColours, Okay: m.Okay, Foe: m.Foe, Chosen: chosen, CanCast: cast,
-		ClassText: m.ClassText, LevelText: m.LevelText, SpellsReady: m.SpellsReady, Memo: m.Memo}
+		ClassText: m.ClassText, LevelText: m.LevelText, SpellsReady: m.SpellsReady, Memo: m.Memo, Icon: m.Icon, Portrait: m.Portrait}
 	for _, e := range m.Effects {
 		g.Effects = append(g.Effects, game.Line{Text: e})
 	}
@@ -583,13 +586,25 @@ var ink = color.RGBA{255, 255, 255, 255}
 var tones = map[game.Tone]color.RGBA{game.ToneText: ink, game.ToneOwn: {85, 255, 255, 255}, game.ToneBad: {255, 85, 85, 255},
 	game.TonePrompt: {255, 255, 85, 255}, game.ToneWarn: {255, 85, 255, 255}, game.ToneLoud: ink}
 
-func page(sc play.Scene) *game.Page {
+// run is a line of the rules' text: its colour unset, so the front gives
+// it gobox's body text colour, in capitals where the game writes so.
+func (r *rules) run(t string) []game.TextRun {
+	return []game.TextRun{{Text: t, Upcase: r.data.Upcase}}
+}
+
+func walls(w play.Walls) *game.Walls {
+	return &game.Walls{Key: wallsKey(w), Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
+		FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA, Sun: w.Sun, Mountains: w.Mountains,
+		SunAz: w.SunAz, SunEl: w.SunEl, Backdrop: w.Backdrop}
+}
+
+func (r *rules) page(sc play.Scene) *game.Page {
 	p := &game.Page{}
 	if sc.Speaker != "" {
-		p.Pane = append(p.Pane, []game.TextRun{{Text: sc.Speaker + ":", Fg: ink}})
+		p.Pane = append(p.Pane, r.run(sc.Speaker+":"))
 	}
 	for _, t := range sc.Text {
-		p.Pane = append(p.Pane, []game.TextRun{{Text: t, Fg: ink}})
+		p.Pane = append(p.Pane, r.run(t))
 	}
 	for _, pic := range sc.Pictures {
 		p.Layers = append(p.Layers, game.Layer{Picture: pic})
@@ -793,7 +808,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		r.title.n, r.title.credits, r.title.page = 0, false, 0
 		return r.do(play.Continue{})
 	case game.SequenceDone:
-		return r.do(play.Continue{})
+		return r.do(onward(commonOf(ps).Allowed))
 	case game.Speak: // gobox voices the page itself
 		var res game.Result
 		for _, k := range d.Keys {
@@ -1100,7 +1115,7 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 	case sc.Kind == play.SceneHeading:
 		return r.do(play.Heading{Dir: d.N})
 	case sc.Kind == play.SceneHandout:
-		return r.do(play.Continue{})
+		return r.do(onward(sc.Allowed))
 	case sc.Typed:
 		return r.do(play.Reply{Text: d.Text})
 	case len(sc.Replies) > 0:
@@ -1472,3 +1487,12 @@ func (r *rules) ownSaves() []game.SaveSlot {
 
 // exitLabel are the list entries that leave or page a pick; they keep a key under NoHotkeys.
 var exitLabel = map[string]bool{"done": true, "exit": true, "leave": true, "prev": true, "next": true}
+
+// onward is how a page is left: Continue, or Leave where the state allows
+// that and not Continue (a handout).
+func onward(al play.Allowed) play.Action {
+	if !slices.Contains(al.Plain, play.Action(play.Continue{})) && slices.Contains(al.Plain, play.Action(play.Leave{})) {
+		return play.Leave{}
+	}
+	return play.Continue{}
+}

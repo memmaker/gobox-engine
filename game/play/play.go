@@ -135,6 +135,8 @@ type Member struct {
 	PortraitHeadID, PortraitBodyID       string         // gobox's pool picks, stored back as given
 	IconHeadID, IconBodyID               string
 	IconColours                          []byte
+	Icon                                 map[string]int // the original's icon parts as numbers ("head", "body", "size"); gobox draws them where IconHeadID is ""
+	Portrait                             game.Picture   // the original's portrait picture, where PortraitHeadID is ""
 	NPC, Okay, Foe                       bool
 	CanCast                              bool            // has a spell to cast now (status, memorized, no-magic area)
 	ClassText, LevelText                 string          // "old/new", "3/3"
@@ -288,12 +290,13 @@ type Scene struct {
 	Full         bool              // the pictures are one whole-screen picture
 	Default, Max int               // Typed: the longest answer; a number's default and largest
 	Steps        map[int]TitleStep // SceneTitle: Intro.Pictures' step N's pictures and tune; gobox steps through them
+	Walls        *Walls            // the 3D view the scene is over (nil: the one last explored, if any)
 }
 
 // TitleStep is one title picture step: its layers and the tune it starts.
 type TitleStep struct {
 	Layers []game.Layer
-	Song   string
+	Song   string // the song's name, or its number as text ("3": the game's song 3, as EvSong N)
 }
 
 // DoorWay is a way to try a door.
