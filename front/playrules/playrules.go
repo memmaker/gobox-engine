@@ -882,6 +882,9 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		return game.Result{}
 	case game.CloseItems:
 		r.items = game.ItemsNone
+		if !d.All { // Tab: from the items to the member's sheet, as the old path's
+			r.sheet = who(-1, ps)
+		}
 		return game.Result{}
 	case game.OpenSheet:
 		r.sheet = who(d.Member, ps)
