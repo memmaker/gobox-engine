@@ -74,6 +74,7 @@ type frontGame struct {
 	wheel     float64     // wheel movement not yet sent as a step
 	rightOnce bool        // \M: the right button pressed this tick
 	leftOnce  bool        // \C: the left button
+	leftHold  bool        // \B: the left button held (a drag)
 	pointer   int         // Capture.Pointer's position in use
 	latch     front.Latch // the inputs held through a screen change: ignored until let go
 	look      [2]float64  // No Grid: the turn and pitch the mouse and the right stick gave this tick
@@ -88,7 +89,7 @@ func (g *frontGame) scripted() bool { return g.cfg.Capture.Scripted() }
 
 func (g *frontGame) Update() {
 	if g.scripted() { // the user's input never reaches a capture or a measurement, only the scripted keys (Step)
-		if len(g.cfg.Capture.Pointer) > 0 || g.leftOnce || g.rightOnce { // a scripted click needs no -pointer: on the title any spot steps it
+		if len(g.cfg.Capture.Pointer) > 0 || g.leftOnce || g.rightOnce || g.leftHold { // a scripted click needs no -pointer: on the title any spot steps it
 			g.mouse()
 		}
 		return
@@ -134,6 +135,8 @@ func (g *frontGame) Step(k Key) {
 		g.rightOnce, g.leftOnce = k == Right, k == Left
 	case Next: // \P: the pointer moves on to the next of Capture.Pointer
 		g.pointer++
+	case Hold: // \B: the left button down, or up again (\B\P\B drags)
+		g.leftHold = !g.leftHold
 	case Wait: // \w
 	default:
 		g.f.Key(k)
@@ -254,7 +257,7 @@ func (g *frontGame) mouse() {
 		p := pts[min(g.pointer, len(pts)-1)]
 		mx, my = p[0], p[1]
 	}
-	leftHeld := g.latch.Down(gpu.MouseButtonLeft, gpu.IsMouseButtonPressed(gpu.MouseButtonLeft))
+	leftHeld := g.latch.Down(gpu.MouseButtonLeft, gpu.IsMouseButtonPressed(gpu.MouseButtonLeft)) || g.leftHold
 	if g.f.InventoryShown() { // its own clicks and wheel; keys still go to the game (a capture's \C is down for one tick: a click)
 		_, dy := gpu.Wheel()
 		g.f.InventoryMouse(mx, my, leftHeld || g.leftOnce, gpu.IsMouseButtonJustPressed(gpu.MouseButtonRight) || g.rightOnce, dy)

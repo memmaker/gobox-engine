@@ -35,7 +35,7 @@ type Key = uint16
 // The script's own keys: \M and \C a right and a left click at the
 // pointer, \P the pointer on to the next position, \w a quarter second of
 // nothing.
-const Right, Left, Next, Wait Key = 0xFF01, 0xFF02, 0xFF03, 0xFF04
+const Right, Left, Next, Wait, Hold Key = 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05
 
 // Ticks is the frames between a script's keys: a quarter second at 60 Hz.
 const Ticks = 15
@@ -86,11 +86,14 @@ type Config struct {
 	TPS      int // Update calls a second; 0: 60
 }
 
-// ParseKeys reads a script: \M \C \P \w are the shell's (Right ...),
-// esc maps the game's escapes (e.g. 'r' to Enter's code), any other byte
-// is its own code.
+// ParseKeys reads a script: \M \C \P \w \B are the shell's (Right,
+// Left, Next, Wait, Hold: the left button down until the next \B, so
+// \B\P\B drags), and gobox's own keys are \r Enter, \e Esc, \t Tab,
+// \U \D \L \R the arrows, \G \H PgDn PgUp, \F F10; esc may add a
+// game's own, and any other byte is its own code.
 func ParseKeys(s string, esc map[byte]Key) []Key {
-	all := map[byte]Key{'M': Right, 'C': Left, 'P': Next, 'w': Wait}
+	all := map[byte]Key{'M': Right, 'C': Left, 'P': Next, 'w': Wait, 'B': Hold,
+		'r': 13, 'e': 27, 't': 9, 'U': 0x4800, 'D': 0x5000, 'L': 0x4B00, 'R': 0x4D00, 'G': 0x5100, 'H': 0x4900, 'F': 0x4400}
 	for b, k := range esc {
 		all[b] = k
 	}
