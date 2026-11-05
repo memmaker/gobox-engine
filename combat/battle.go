@@ -10,6 +10,8 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+
+	xdraw "golang.org/x/image/draw"
 	"io/fs"
 	"log"
 	"math"
@@ -29,6 +31,7 @@ type Presenter struct {
 	Meshes                     fs.FS                // <name>.gltf and its PNG for the tiles that have a 3D model (nil: none)
 	Props                      fs.FS                // the series' combat directory: props.json says how its tiles draw (nil: all inferred)
 	props                      *propSet             // from Props, for the names
+	blocks                     map[int]image.Image  // block tiles' own cube pictures by atlas slot (readBlocks)
 	white, atlas, shadow, wood *gpu.Image
 	tiles                      [256]image.Image // the tiles the atlas holds
 	empty                      [256]bool        // tiles with nothing on the ground
@@ -479,7 +482,7 @@ func (p *Presenter) sync(b *Board) {
 		p.base = gpu.NewMesh(disc(24))
 		p.flatQuad = gpu.NewMesh(quad(nil, [4][3]float32{{-.5, 0, .5}, {.5, 0, .5}, {.5, 0, -.5}, {-.5, 0, -.5}},
 			[4][2]float32{{0, 1}, {1, 1}, {1, 0}, {0, 0}}, [3]float32{0, 1, 0}))
-		p.atlas = gpu.NewImage(atlasCols*tilePx, atlasRows*tilePx)
+		p.atlas = gpu.NewImage(atlasCols*atlasPx, atlasRows*atlasPx)
 		p.shadow = gpu.NewImageFromImage(blob(32))
 		p.wood = gpu.NewImageFromImage(woodTexture(64, p.Theme.Wood))
 		p.table = gpu.NewMesh(tableMesh())
@@ -495,12 +498,23 @@ func (p *Presenter) sync(b *Board) {
 			p.empty[i], p.cut[i] = isEmpty(t), hasHoles(t)
 		}
 	}
+	if !slices.Equal(b.TileNames, p.names) {
+		p.names, changed = slices.Clone(b.TileNames), true
+		p.meshOf = [256]*tileMesh{}
+		p.props = readProps(p.Props, p.names)
+		p.blocks = readBlocks(p.Props, p.names, p.props)
+		for i, n := range p.names {
+			if i < len(p.meshOf) {
+				p.meshOf[i] = p.tileMesh(n)
+			}
+		}
+	}
 	if changed {
 		p.floor, p.floorTile = b.Floor, b.FloorTile
 		a := image.NewRGBA(p.atlas.Bounds())
 		put := func(slot int, t image.Image) {
-			o := image.Pt(slot%atlasCols*tilePx, slot/atlasCols*tilePx)
-			draw.Draw(a, image.Rectangle{o, o.Add(t.Bounds().Size())}, t, t.Bounds().Min, draw.Src)
+			o := image.Pt(slot%atlasCols*atlasPx, slot/atlasCols*atlasPx)
+			xdraw.NearestNeighbor.Scale(a, image.Rectangle{o, o.Add(image.Pt(atlasPx, atlasPx))}, t, t.Bounds(), draw.Src, nil)
 		}
 		for i, t := range p.tiles {
 			if t != nil {
@@ -513,17 +527,10 @@ func (p *Presenter) sync(b *Board) {
 		} else {
 			put(floorSlot, floorTile(b.Floor))
 		}
-		p.atlas.WritePixels(a.Pix)
-	}
-	if !slices.Equal(b.TileNames, p.names) {
-		p.names, changed = slices.Clone(b.TileNames), true
-		p.meshOf = [256]*tileMesh{}
-		p.props = readProps(p.Props, p.names)
-		for i, n := range p.names {
-			if i < len(p.meshOf) {
-				p.meshOf[i] = p.tileMesh(n)
-			}
+		for slot, t := range p.blocks {
+			put(slot, t)
 		}
+		p.atlas.WritePixels(a.Pix)
 	}
 	walls := 0
 	if b.Dungeon {

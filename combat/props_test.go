@@ -1,7 +1,9 @@
 package combat
 
 import (
+	"bytes"
 	"image"
+	"image/png"
 	"testing"
 	"testing/fstest"
 )
@@ -44,5 +46,24 @@ func TestProps(t *testing.T) {
 	}
 	if lo != 0 || hi != 2 {
 		t.Errorf("stack spans %v..%v, want 0..2 (whole tree on the crown's square)", lo, hi)
+	}
+}
+
+// A block tile's cube pictures come from blocks/: the side into its own
+// slot, the top into a slot of its own after floorSlot; others get none.
+func TestReadBlocks(t *testing.T) {
+	var buf bytes.Buffer
+	png.Encode(&buf, image.NewRGBA(image.Rect(0, 0, tilePx, tilePx)))
+	fsys := fstest.MapFS{
+		"props.json":       {Data: []byte(`{"w":{"mode":"block"},"v":{"mode":"block"},"f":{"mode":"flat"}}`)},
+		"blocks/w.png":     {Data: buf.Bytes()},
+		"blocks/w_top.png": {Data: buf.Bytes()},
+		"blocks/f.png":     {Data: buf.Bytes()},
+	}
+	names := []string{"f", "w", "v"}
+	ps := readProps(fsys, names)
+	got := readBlocks(fsys, names, ps)
+	if len(got) != 2 || got[1] == nil || got[floorSlot+1] == nil || ps.top[1] != floorSlot+1 || ps.top[2] != 0 {
+		t.Fatalf("slots %v, tops %v", got, ps.top[:3])
 	}
 }

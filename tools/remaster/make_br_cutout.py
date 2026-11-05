@@ -16,8 +16,8 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DIR = 'sprites/series/buck-rogers/combat'
 ORIG = '7a6aa23'
-GROUND = {'marscom': (20, 21), 'venuscom': (6, 7), 'lotek': (0,)}  # bare-ground frames (marscom 004 is rock art)
-EXTRUDE = {'lotek': [38], 'marscom': [13, 14, 15, 16, 17, 18, 19, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40], 'venuscom': [0, 1, 2, 3, 4, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 37, 38, 39, 40, 41, 42]}
+GROUND = {'marscom': (20, 21), 'venuscom': (6, 7), 'lotek': (0,)}  # bare-ground frames (marscom 004, one terrain's rocky ground, is left out: its colours are in the rocks)
+EXTRUDE = {'lotek': [38, 42], 'marscom': [0, 1, 2, 3, 5, 9, 10, 12, 6, 7, 8, 11, 25, 13, 14, 15, 16, 17, 18, 19, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40], 'venuscom': [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 37, 38, 39, 40, 41, 42]}
 BLACK = (0, 0, 0, 255)
 
 

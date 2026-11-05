@@ -14,9 +14,10 @@ import (
 // rows, Y up. Walls are one square tall.
 
 const (
-	atlasCols = 16 // tiles per atlas row
-	atlasRows = 17 // the game's 256 tiles, then a row of our own
-	tilePx    = 24 // a tile's side in pixels
+	atlasCols = 16  // tiles per atlas row
+	atlasRows = 17  // the game's 256 tiles, then a row of our own
+	tilePx    = 24  // a tile's side in pixels
+	atlasPx   = 128 // an atlas slot's side: tiles scale up to it by whole texels, block pictures fit it
 	wallSlot  = 256
 	floorSlot = 257
 )
@@ -29,16 +30,28 @@ const (
 	block             // a stone wall block
 	stand             // a tree, a cactus, a boulder: its tile extruded upright
 	flat              // water, a body, grass: its tile lying on the floor
+	slab              // a thin wall: a post with arms toward the walls beside it
 )
+
+// slabT is a slab wall's half thickness, in squares.
+const slabT = 0.125
+
+// slabH is a slab wall's height, in squares: the original's thin walls stand
+// about one and a half times a figure's height.
+const slabH = 1.5
 
 // kindOf decides from the square and its tile set: dungeon walls are
 // blocks (their pieces only draw the block in the original's perspective,
 // so other dungeon squares are floor); outdoors, what blocks sight stands
 // up, so does a sprite that blocks movement (a log: a tile with see-through
 // texels, unlike water), and the rest lies flat. A tile props.json lists
-// says which itself: extrude stands, flat lies.
+// says which itself: extrude stands, flat lies, block is a cube in its own picture.
 func kindOf(s Square, walls int, empty, cut func(int) bool, ps *propSet) kind {
 	switch {
+	case ps.modeOf(s.Tile) == "block":
+		return block
+	case ps.modeOf(s.Tile) == "slab":
+		return slab
 	case walls > 0 && s.Tile < walls:
 		if s.Wall {
 			return block
@@ -111,7 +124,7 @@ func mapMesh(g *[25][50]Square, walls int, empty, cut func(int) bool, tiles []im
 		for x := range 50 {
 			fx, fz := float32(x), float32(z)
 			k := kinds[z][x]
-			if k != block {
+			if k != block { // a slab stands on the floor too
 				vs = shade(quad(vs, [4][3]float32{{fx, 0, fz + 1}, {fx + 1, 0, fz + 1}, {fx + 1, 0, fz}, {fx, 0, fz}}, tileUV(floorSlot), up),
 					ao(x, z+1), ao(x+1, z+1), ao(x+1, z), ao(x, z))
 			}
@@ -126,9 +139,44 @@ func mapMesh(g *[25][50]Square, walls int, empty, cut func(int) bool, tiles []im
 				} else {
 					vs = upright(vs, g[z][x].Tile, fx, -gap(tiles[g[z][x].Tile]), fz)
 				}
+			case slab:
+				t := g[z][x].Tile
+				side, top := tileUV(t), tileUV(t)
+				if ps.top[t] > 0 {
+					top = tileUV(ps.top[t])
+				}
+				wall := func(x, z int) bool {
+					return x >= 0 && z >= 0 && x < 50 && z < 25 && (kinds[z][x] == block || kinds[z][x] == slab)
+				}
+				e, w, s, n := wall(x+1, z), wall(x-1, z), wall(x, z+1), wall(x, z-1)
+				if !e && !w && !s && !n {
+					e, w = true, true // alone: a short wall along x
+				}
+				const a, b = .5 - slabT, .5 + slabT
+				// the post, open toward its arms; each arm open at both ends
+				vs = slabBox(vs, fx, fz, a, a, b, b, side, top, !n, !s, !w, !e)
+				if e {
+					vs = slabBox(vs, fx, fz, b, a, 1, b, side, top, true, true, false, false)
+				}
+				if w {
+					vs = slabBox(vs, fx, fz, 0, a, a, b, side, top, true, true, false, false)
+				}
+				if s {
+					vs = slabBox(vs, fx, fz, a, b, b, 1, side, top, false, false, true, true)
+				}
+				if n {
+					vs = slabBox(vs, fx, fz, a, 0, b, a, side, top, false, false, true, true)
+				}
 			case block:
 				side := tileUV(wallSlot)
-				vs = quad(vs, [4][3]float32{{fx, 1, fz + 1}, {fx + 1, 1, fz + 1}, {fx + 1, 1, fz}, {fx, 1, fz}}, side, up)
+				top := side
+				if t := g[z][x].Tile; ps.modeOf(t) == "block" { // a voxel in its own tile's pictures
+					side, top = tileUV(t), tileUV(t)
+					if ps.top[t] > 0 {
+						top = tileUV(ps.top[t])
+					}
+				}
+				vs = quad(vs, [4][3]float32{{fx, 1, fz + 1}, {fx + 1, 1, fz + 1}, {fx + 1, 1, fz}, {fx, 1, fz}}, top, up)
 				// sides: darker toward the floor (occlusion where wall meets ground)
 				if !solid(x, z+1) {
 					vs = shade(quad(vs, [4][3]float32{{fx, 0, fz + 1}, {fx + 1, 0, fz + 1}, {fx + 1, 1, fz + 1}, {fx, 1, fz + 1}}, side, [3]float32{0, 0, 1}), .65, .65, 1, 1)
@@ -144,6 +192,34 @@ func mapMesh(g *[25][50]Square, walls int, empty, cut func(int) bool, tiles []im
 				}
 			}
 		}
+	}
+	return vs
+}
+
+// slabBox is the box (x0, z0)-(x1, z1) of the square at (fx, fz), one
+// slabH high, with the faces facing -z, +z, -x, +x as asked; each side
+// face takes the part of the side picture its span covers, so a wall
+// reads as one picture per two squares whatever pieces build it.
+func slabBox(vs []gpu.MeshVertex, fx, fz, x0, z0, x1, z1 float32, side, top [4][2]float32, nz, pz, nx, px bool) []gpu.MeshVertex {
+	part := func(a, b float32) [4][2]float32 { // u from a to b of the picture
+		u0, du := side[0][0], side[1][0]-side[0][0]
+		return [4][2]float32{{u0 + a*du, side[0][1]}, {u0 + b*du, side[1][1]}, {u0 + b*du, side[2][1]}, {u0 + a*du, side[3][1]}}
+	}
+	X0, X1, Z0, Z1 := fx+x0, fx+x1, fz+z0, fz+z1
+	// one picture spans two squares, so its panes come out wider than tall
+	h := func(sq, a float32) float32 { return (float32(int(sq)%2) + a) / 2 }
+	vs = quad(vs, [4][3]float32{{X0, slabH, Z1}, {X1, slabH, Z1}, {X1, slabH, Z0}, {X0, slabH, Z0}}, top, [3]float32{0, 1, 0})
+	if pz {
+		vs = shade(quad(vs, [4][3]float32{{X0, 0, Z1}, {X1, 0, Z1}, {X1, slabH, Z1}, {X0, slabH, Z1}}, part(h(fx, x0), h(fx, x1)), [3]float32{0, 0, 1}), .65, .65, 1, 1)
+	}
+	if nz {
+		vs = shade(quad(vs, [4][3]float32{{X1, 0, Z0}, {X0, 0, Z0}, {X0, slabH, Z0}, {X1, slabH, Z0}}, part(1-h(fx, x1), 1-h(fx, x0)), [3]float32{0, 0, -1}), .65, .65, 1, 1)
+	}
+	if px {
+		vs = shade(quad(vs, [4][3]float32{{X1, 0, Z1}, {X1, 0, Z0}, {X1, slabH, Z0}, {X1, slabH, Z1}}, part(1-h(fz, z1), 1-h(fz, z0)), [3]float32{1, 0, 0}), .65, .65, 1, 1)
+	}
+	if nx {
+		vs = shade(quad(vs, [4][3]float32{{X0, 0, Z0}, {X0, 0, Z1}, {X0, slabH, Z1}, {X0, slabH, Z0}}, part(h(fz, z0), h(fz, z1)), [3]float32{-1, 0, 0}), .65, .65, 1, 1)
 	}
 	return vs
 }
@@ -212,10 +288,10 @@ func shade(vs []gpu.MeshVertex, a, b, c, d float32) []gpu.MeshVertex {
 // right, top right, top left (a hair inside, so nearest sampling never
 // reaches the neighbour).
 func tileUV(t int) [4][2]float32 {
-	const w, h = atlasCols * tilePx, atlasRows * tilePx
+	const w, h = atlasCols * atlasPx, atlasRows * atlasPx
 	const in = 0.01
-	u0, v0 := (float32(t%atlasCols*tilePx)+in)/w, (float32(t/atlasCols*tilePx)+in)/h
-	u1, v1 := u0+(tilePx-2*in)/w, v0+(tilePx-2*in)/h
+	u0, v0 := (float32(t%atlasCols*atlasPx)+in)/w, (float32(t/atlasCols*atlasPx)+in)/h
+	u1, v1 := u0+(atlasPx-2*in)/w, v0+(atlasPx-2*in)/h
 	return [4][2]float32{{u0, v1}, {u1, v1}, {u1, v0}, {u0, v0}}
 }
 
