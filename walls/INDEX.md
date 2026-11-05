@@ -182,3 +182,36 @@ Origin 'por+cotab' = byte-identical in both (deduped).
 - cotab: ceiling_phlan_clouds -> ceiling_clouds (same image as por's)
 
 No same-name/different-image collisions were found. sotsb ships no wall PNGs (it decodes its walls at run time).
+
+## buck-rogers floors and skies
+
+BR1's remastered ground and sky, one floor and one ceiling (sky_*: an outdoor sky that pans) per distinct BACK<disk>.DAX picture (origin: file-block); buckrogers-go rules/gamewalls.go backFlats maps every block to them. Made by tools/remaster/make_floor.py (buckrogers-go remaster.json "floor").
+
+name | size | origin
+--- | --- | ---
+ceiling_br1_purple | 256x256 (pixel 256x256) | BACK1-007
+floor_br1_purple | 256x256 (pixel 256x256) | BACK1-007
+ceiling_sky_br1_city | 1024x384 (pixel 256x96) | BACK1-135
+floor_br1_city | 256x256 (pixel 256x256) | BACK1-135
+ceiling_br1_redtile | 256x256 (pixel 256x256) | BACK2-001
+floor_br1_redtile | 256x256 (pixel 256x256) | BACK2-001
+ceiling_br1_reddome | 256x256 (pixel 256x256) | BACK2-129
+floor_br1_reddome | 256x256 (pixel 256x256) | BACK2-129
+ceiling_br1_greyred | 256x256 (pixel 256x256) | BACK3-004
+floor_br1_greyred | 256x256 (pixel 256x256) | BACK3-004
+ceiling_br1_rock | 256x256 (pixel 256x256) | BACK3-132
+floor_br1_rock | 256x256 (pixel 256x256) | BACK3-132
+ceiling_sky_br1_mars_haze | 1024x384 (pixel 256x96) | BACK4-010
+floor_br1_mars_haze | 256x256 (pixel 256x256) | BACK4-010
+ceiling_sky_br1_mars_clouds | 1024x384 (pixel 256x96) | BACK4-138
+floor_br1_mars_clouds | 256x256 (pixel 256x256) | BACK4-138
+ceiling_br1_greenstrut | 256x256 (pixel 256x256) | BACK5-013
+floor_br1_greenstrut | 256x256 (pixel 256x256) | BACK5-013
+ceiling_sky_br1_venus | 1024x384 (pixel 256x96) | BACK5-016
+floor_br1_venus | 256x256 (pixel 256x256) | BACK5-016
+ceiling_br1_greendome | 256x256 (pixel 256x256) | BACK5-141
+floor_br1_greendome | 256x256 (pixel 256x256) | BACK5-141
+ceiling_sky_br1_sunset | 1024x384 (pixel 256x96) | BACK5-144
+floor_br1_sunset | 256x256 (pixel 256x256) | BACK5-144
+ceiling_br1_yellow | 256x256 (pixel 256x256) | BACK6-019
+floor_br1_yellow | 256x256 (pixel 256x256) | BACK6-019
