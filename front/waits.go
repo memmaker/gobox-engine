@@ -5,11 +5,12 @@ package front
 
 // Loot is the treasure screen's options besides View and Exit (View.Loot).
 type Loot struct {
-	Take   bool // there is treasure to take (LootTake)
-	Detect bool // the selected member has Detect Magic memorized (LootDetect)
-	Share  bool // there is money to divide among the party (LootShare)
-	Pool   bool // the party can pool its money (LootPool)
-	Status bool // the game offers Status (LootStatus)
+	Take   bool     // there is treasure to take (LootTake)
+	Detect bool     // the selected member has Detect Magic memorized (LootDetect)
+	Share  bool     // there is money to divide among the party (LootShare)
+	Pool   bool     // the party can pool its money (LootPool)
+	Status bool     // the game offers Status (LootStatus)
+	Money  []string // the treasure's money, "120 gold" (the loot inventory's border; ActTakeMoney)
 }
 
 // DoorOpts is a locked door's options besides Exit (View.Door).

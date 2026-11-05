@@ -38,9 +38,6 @@ func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
 // The title's Logo and Backdrop stay the game's while the menu is up.
 func View(v front.View, s game.State) front.View {
 	v.MainMenu, v.Hall = PartyMenu(s)
-	if v.Inventory == nil && v.Sheet == nil {
-		v.Loot = Loot(s)
-	}
 	v.Map, v.Camp = Map(v.Map, s), Camp(v.Camp, s)
 	v.Temple, v.Shop, v.Inventory = Temple(v.Temple, s), Shop(v.Shop, s), Inventory(v.Inventory, s)
 	if q, ok := Ask(s); ok {

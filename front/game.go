@@ -187,6 +187,7 @@ type Shown struct {
 	Ask, Powers, Sheet, Inventory, Battle bool // up
 	Camp, MainMenu                        bool // up
 	Loot                                  *Loot
+	Treasure                              *Loot // the loot inventory's (Inventory.Treasure)
 	Door                                  *DoorOpts
 	Resting                               bool // camp's rest goes on
 	Party                                 int  // the members

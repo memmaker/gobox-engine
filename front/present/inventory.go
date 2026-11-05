@@ -197,7 +197,7 @@ func (inv *inventory) do(k front.ActKind) {
 	it := itemAt(inv.view, inv.sel)
 	switch {
 	case k == front.ActNone:
-	case k == front.ActClose, k == front.ActSheet, k == front.ActTakeAll, k >= front.ActSpells && k <= front.ActCure:
+	case k == front.ActClose, k == front.ActSheet, k == front.ActTakeAll, k >= front.ActSpells && k <= front.ActCure, k >= front.ActTakeMoney && k <= front.ActLootStatus:
 		inv.acts = append(inv.acts, front.Action{Kind: k})
 	case k == front.ActBuy:
 		if w := wareAt(inv.view, inv.ware); w != nil {

@@ -45,7 +45,21 @@ func (inv *inventory) menu(in *front.Inventory) []word {
 		return nil
 	}
 	if in.Loot { // the loot: take a piece of treasure
-		return []word{{text: "Take", act: front.ActBuy, on: wareAt(in, inv.ware) != nil}, {text: "All", act: front.ActTakeAll, on: len(in.Wares) > 0}, {text: "Exit", act: front.ActClose, on: true}}
+		t := in.Treasure
+		if t == nil {
+			t = &front.Loot{}
+		}
+		w := []word{{text: "Take", act: front.ActBuy, on: wareAt(in, inv.ware) != nil}, {text: "All", act: front.ActTakeAll, on: len(in.Wares) > 0 || len(t.Money) > 0}}
+		for _, o := range []struct {
+			on   bool
+			text string
+			act  front.ActKind
+		}{{len(t.Money) > 0, "Money", front.ActTakeMoney}, {t.Detect, "Detect", front.ActLootDetect}, {t.Share, "Share", front.ActLootShare}, {t.Pool, "Pool", front.ActLootPool}, {t.Status, "Status", front.ActLootStatus}} {
+			if o.on {
+				w = append(w, word{text: o.text, act: o.act, on: true})
+			}
+		}
+		return append(w, word{text: "Exit", act: front.ActClose, on: true})
 	}
 	if in.Wares != nil { // the shop: buy a ware, sell an item
 		w := []word{{text: "Buy", act: front.ActBuy, on: wareAt(in, inv.ware) != nil}, {text: "Sell", act: front.ActSell, on: it != nil && in.Sell}}
@@ -240,6 +254,9 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	switch { // the headings on the top border, the party's money on the shop's bottom one
 	case in.Loot:
 		onBorder(inv.img, inv.glyph, lx, 0, true, []string{"Loot"}, []color.RGBA{white})
+		if t := in.Treasure; t != nil && len(t.Money) > 0 {
+			onBorder(inv.img, inv.glyph, rr, (ch-1)*8-8, false, []string{strings.Join(t.Money, ", ")}, []color.RGBA{col(inkYellow)})
+		}
 	case shop:
 		onBorder(inv.img, inv.glyph, lx, 0, true, []string{"Shop"}, []color.RGBA{white})
 		onBorder(inv.img, inv.glyph, rr, (ch-1)*8-8, false, []string{"party " + price(front.Money{Gold: in.Gold, Copper: in.Copper})}, []color.RGBA{col(inkYellow)})

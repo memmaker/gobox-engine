@@ -717,6 +717,21 @@ type Training struct {
 	Learn    []SpellRef       // the spells the member may learn now
 }
 
+// Loot is the treasure up (Mode ModeLoot). The contract, the same in every
+// game: while Loot is set and Items is ItemsNone, gobox shows its one loot
+// screen (the member's inventory beside the treasure: Money and Items) and
+// draws and reads it all; the game publishes Loot and answers:
+//   - TakeLoot{Item: i}: take Items[i] for the selected member;
+//   - TakeLoot{Item: -1}: take the money; TakeLoot{Item: -1, All: true}: all;
+//   - LootDetect{} (offered while the selected member has Detect Magic
+//     memorized), LootShare{}, PoolCoins{}, LootStatus{} (Status set);
+//   - LootLeave{Sure: false}: leave; while treasure is left, refuse it with
+//     a Refusal whose Ask is YesNo (Prompt the question): gobox asks it and
+//     sends LootLeave{Sure: true} on Yes.
+//
+// Select and ShowMember pick whose inventory it shows. A game needs no View
+// or Take of its own (LootLook, LootTake are not sent by this screen) and
+// clears Loot when the party leaves.
 type Loot struct {
 	Items  []Item
 	Money  map[string]int

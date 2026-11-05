@@ -227,22 +227,23 @@ const (
 // Inventory is the inventory screen (ItemsMenu) as the remastered one
 // draws it. Its items' Index is what an Action's N names.
 type Inventory struct {
-	Member int        // index into View.Party
-	Doll   []*InvItem // the readied items by doll slot (the game's slots, nil: empty)
-	Pool   []InvItem  // the party inventory
-	Cap    int        // the party inventory's slots
-	Use    bool       // items can be used here (ActUse)
-	Sell   bool       // a shop buys them (ActSell)
-	Reload bool       // the shop refills clips (ActReload)
-	Switch bool       // ActMember shows another member (not in combat)
-	Powers []Power    // what the member can do besides items (the View menu's)
-	Wares  []InvItem  // the shop's goods (Browse; nil elsewhere): Index is ActBuy's N, Price what it costs
-	Loot   bool       // Wares are a fight's treasure (the Loot screen): ActBuy takes one for nothing
-	Gold   int        // the party's money, with Wares
-	Copper int
-	Trade  bool // the menu offers ActTrade
-	Halve  bool // ... ActHalve
-	Join   bool // ... ActJoin
+	Member   int        // index into View.Party
+	Doll     []*InvItem // the readied items by doll slot (the game's slots, nil: empty)
+	Pool     []InvItem  // the party inventory
+	Cap      int        // the party inventory's slots
+	Use      bool       // items can be used here (ActUse)
+	Sell     bool       // a shop buys them (ActSell)
+	Reload   bool       // the shop refills clips (ActReload)
+	Switch   bool       // ActMember shows another member (not in combat)
+	Powers   []Power    // what the member can do besides items (the View menu's)
+	Wares    []InvItem  // the shop's goods (Browse; nil elsewhere): Index is ActBuy's N, Price what it costs
+	Loot     bool       // Wares are a fight's treasure (the Loot screen): ActBuy takes one for nothing
+	Treasure *Loot      // with Loot: the treasure's money and its other options (Detect, Share, Pool, Status)
+	Gold     int        // the party's money, with Wares
+	Copper   int
+	Trade    bool // the menu offers ActTrade
+	Halve    bool // ... ActHalve
+	Join     bool // ... ActJoin
 }
 
 // Power is a member's action of the View menu the inventory offers too.

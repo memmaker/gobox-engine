@@ -98,7 +98,7 @@ func Inventory(v *front.Inventory, s game.State) *front.Inventory {
 	var goods []game.Item
 	switch {
 	case s.Loot != nil:
-		goods, n.Loot = s.Loot.Items, true
+		goods, n.Loot, n.Treasure = s.Loot.Items, true, Loot(s)
 	case s.Shop != nil:
 		goods = s.Shop.Goods
 	}

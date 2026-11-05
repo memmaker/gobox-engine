@@ -42,7 +42,11 @@ func (p *Presenter) Asking() *front.Question { return p.q }
 // Shown is what the last frame showed, as the screens see it.
 func (p *Presenter) Shown() front.Shown {
 	v := p.shownView
-	return front.Shown{Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: v.Battle != nil,
+	var t *front.Loot
+	if v.Inventory != nil {
+		t = v.Inventory.Treasure
+	}
+	return front.Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: v.Battle != nil,
 		Camp: v.Camp != nil, MainMenu: v.MainMenu != nil, Loot: v.Loot, Door: v.Door, Resting: v.Resting, Party: len(v.Party)}
 }
 

@@ -9,39 +9,32 @@ import (
 	"gobox/game"
 )
 
-// TestLootGate: the treasure screen is the presenter's menu over rule calls
-// (moved from por's presentdata, now over classic.Game): Take opens the
-// treasure beside the inventory, Exit there comes back to it, and leaving
-// with treasure left asks first.
+// TestLootGate: the treasure up is gobox's one loot screen (the inventory
+// beside the treasure) with no View of the game's; Exit there asks first
+// while treasure is left, No stays, Yes leaves.
 func TestLootGate(t *testing.T) {
 	e := engine(t, true, "loot")
 	g := gameOf(e)
 	v := g.Settle()
-	for i := 0; v.Loot == nil && i < 40; i++ {
+	for i := 0; v.Inventory == nil && i < 40; i++ { // through the fight and "You found some loot!"
 		v = settled(e, front.Action{Kind: front.ActOK})
 	}
-	if v.Loot == nil || !v.Loot.Take {
-		t.Fatalf("no treasure screen: pending %d ask %+v", v.Pending, v.Ask)
-	}
-	p := &present.Presenter{}
-	p.SetEngine(g)
-	if v = shownBy(g, p, front.Action{Kind: front.ActChoose, N: 1}); v.Inventory == nil {
-		t.Fatal("Take opened no inventory")
-	}
-	if v = shownBy(g, p, front.Action{Kind: front.ActClose}); v.Inventory != nil || v.Loot == nil {
-		t.Fatalf("Exit from the treasure: inventory %v loot %v", v.Inventory != nil, v.Loot)
+	if v.Inventory == nil || !v.Inventory.Loot || v.Inventory.Treasure == nil || len(v.Inventory.Wares) == 0 || v.Loot != nil {
+		t.Fatalf("no loot screen: pending %d ask %+v", v.Pending, v.Ask)
 	}
 	if err := e.Rules().Apply(game.LootLeave{Sure: false}).Err; err == nil || err.Error() != "There is still treasure left. Leave it?" {
 		t.Fatalf("leaving with treasure left: %v", err)
 	}
+	p := &present.Presenter{}
+	p.SetEngine(g)
 	if v = shownBy(g, p, front.Action{Kind: front.ActClose}); v.Ask == nil || len(v.Ask.Items) != 0 {
 		t.Fatal("leaving with treasure left put no Confirm to the presenter")
 	}
-	if v = shownBy(g, p, front.Action{Kind: front.ActNo}); v.Loot == nil || v.Ask == nil || len(v.Ask.Items) != 3 {
+	if v = shownBy(g, p, front.Action{Kind: front.ActNo}); v.Inventory == nil || v.Ask != nil {
 		t.Fatal("No did not stay on the treasure")
 	}
 	shownBy(g, p, front.Action{Kind: front.ActClose}, front.Action{Kind: front.ActYes})
-	if g.View().Loot != nil {
+	if g.R.State().Loot != nil {
 		t.Fatal("Yes did not leave the treasure")
 	}
 }

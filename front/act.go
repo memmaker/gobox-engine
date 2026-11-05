@@ -116,11 +116,16 @@ const (
 
 	ActAlter // camp: setting N (Camp.Settings) takes the value X; the game answers it
 
-	ActTrade   // inventory: trade item N to another member (offered with Inventory.Trade; the game asks whom, or refuses)
-	ActHalve   // inventory: split item N's stack in two (Inventory.Halve; the game answers or refuses)
-	ActJoin    // inventory: join item N with the same items of the member (Inventory.Join; the game answers or refuses)
-	ActCommand // the party menu: game.Data.Commands[N]'s Do
-	ActReload  // inventory: the shop refills item N's clip (Inventory.Reload)
+	ActTrade      // inventory: trade item N to another member (offered with Inventory.Trade; the game asks whom, or refuses)
+	ActHalve      // inventory: split item N's stack in two (Inventory.Halve; the game answers or refuses)
+	ActJoin       // inventory: join item N with the same items of the member (Inventory.Join; the game answers or refuses)
+	ActCommand    // the party menu: game.Data.Commands[N]'s Do
+	ActReload     // inventory: the shop refills item N's clip (Inventory.Reload)
+	ActTakeMoney  // loot inventory: take the treasure's money (Loot.Money)
+	ActLootDetect // loot inventory: Detect (Loot.Detect)
+	ActLootShare  // loot inventory: Share (Loot.Share)
+	ActLootPool   // loot inventory: Pool (Loot.Pool)
+	ActLootStatus // loot inventory: Status (Loot.Status)
 
 )
 

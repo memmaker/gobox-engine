@@ -3,6 +3,7 @@ package classic
 import (
 	"gobox/front"
 	"gobox/game"
+	"strconv"
 )
 
 // detectMagic is the spell the treasure screen offers to cast on the treasure.
@@ -25,6 +26,11 @@ func Loot(s game.State) *front.Loot {
 	}
 	v.Pool = s.Allowed["PoolCoins"]
 	v.Status = l.Status
+	for _, k := range []string{game.Platinum, game.Gold, game.Electrum, game.Silver, game.Copper, game.Credits, game.Gems, game.Jewelry} {
+		if n := l.Money[k]; n > 0 {
+			v.Money = append(v.Money, strconv.Itoa(n)+" "+k)
+		}
+	}
 	if v.Take && s.Selected >= 0 && s.Selected < len(s.Party) {
 		for _, sp := range s.Party[s.Selected].Spells {
 			v.Detect = v.Detect || sp.Memorized && sp.Name == detectMagic

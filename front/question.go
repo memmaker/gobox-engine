@@ -99,6 +99,10 @@ func AskAct(h Host, a Action) (taken, done bool) {
 		return true, true
 	case s.Loot != nil || s.Door != nil:
 		return GateAct(h, a), true
+	case s.Treasure != nil:
+		if lootAct(h, s.Treasure, a) {
+			return true, true
+		}
 	case s.Resting && a.Kind != ActPoint && a.Kind != ActResize && a.Kind != ActMainMenu:
 		AskYes(h, "Stop resting?", func() { h.Call(func(e Game) { e.StopRest() }) })
 		return true, true
@@ -205,6 +209,22 @@ func Gate(h Host, l *Loot, d *DoorOpts) (string, []GateItem) {
 		return "Locked.", items
 	}
 	return "", nil
+}
+
+// lootActs are the loot inventory's acts that make a Gate call.
+var lootActs = map[ActKind]string{ActLootDetect: "Detect", ActLootShare: "Share", ActLootPool: "Pool", ActLootStatus: "Status", ActClose: "Exit"}
+
+// lootAct makes a's Gate call on the loot inventory (Exit asks first while
+// treasure is left); false: a is not one.
+func lootAct(h Host, l *Loot, a Action) bool {
+	_, items := Gate(h, l, nil)
+	for _, it := range items {
+		if lootActs[a.Kind] == it.text {
+			h.Call(it.do)
+			return true
+		}
+	}
+	return false
 }
 
 // GateQuestion is the treasure screen's or the locked door's menu as a

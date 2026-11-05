@@ -26,6 +26,7 @@ type Game struct {
 	tiles  bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
 	asked  *game.Ask // a Refusal's question put instead (answered by its options' Do)
 	aim    *aiming   // a combat spell's squares being picked (Combat.Aims)
+	found  bool      // the treasure's "You found some loot!" was acknowledged (cleared when it goes)
 }
 
 // aiming is the squares picked so far for spell, up to n.
@@ -101,6 +102,10 @@ func (g *Game) ViewOf(s game.State) front.View {
 		v.Inventory = &front.Inventory{}
 	case game.ItemsShop, game.ItemsLoot:
 		v.Inventory = &front.Inventory{Wares: []front.InvItem{}}
+	case game.ItemsNone: // the treasure is up: its screen is the loot inventory, whatever the game's own View/Take did
+		if s.Mode == game.ModeLoot && s.Loot != nil && s.Sheet == nil && g.found {
+			v.Inventory = &front.Inventory{Wares: []front.InvItem{}}
+		}
 	}
 	if len(s.Map.Terrain) > 0 {
 		v.AreaMap = &front.AreaMap{}
@@ -115,6 +120,10 @@ func (g *Game) ViewOf(s game.State) front.View {
 		v.Camp = &front.Camp{}
 	}
 	v = View(v, s)
+	g.found = g.found && s.Mode == game.ModeLoot && s.Loot != nil // a new treasure is announced again
+	if s.Mode == game.ModeLoot && s.Loot != nil && !g.found { // the treasure's picture under a message; Enter or Space opens the loot screen
+		v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}
+	}
 	if v.AreaMap != nil {
 		v.AreaMap = AreaMap(v.AreaMap, s, art)
 	}
@@ -512,6 +521,10 @@ func (g *Game) Answer(a front.Action) error {
 		g.aim, g.asked = nil, nil
 		return g.do(game.Cast{Member: -1, Spell: m.spell, At: m.ats[0], Ats: m.ats})
 	}
+	if s := g.R.State(); s.Mode == game.ModeLoot && s.Loot != nil && !g.found && g.asked == nil {
+		g.found = a.Kind == front.ActOK
+		return nil
+	}
 	if a.Kind == front.ActCast {
 		if c := g.R.State().Combat; c != nil {
 			for _, sp := range c.Aims {
@@ -609,9 +622,14 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActReload:
 		return game.Reload{Member: g.sel(-1), Item: a.N}, true
 	case front.ActBuy:
+		if g.state().Loot != nil {
+			return game.TakeLoot{Item: a.N}, true
+		}
 		return game.Buy{Member: g.sel(-1), Item: a.N}, true
 	case front.ActTakeAll:
 		return game.TakeLoot{Item: -1, All: true}, true
+	case front.ActTakeMoney:
+		return game.TakeLoot{Item: -1}, true
 	case front.ActWalk:
 		return game.Move{To: at}, true
 	case front.ActAttack:
