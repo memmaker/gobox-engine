@@ -116,3 +116,6 @@ func minimums(m map[string]int) string {
 	}
 	return strings.Join(f, " ")
 }
+
+// Coin is game.Data.Coin: the money Purse, Sale and Pooled count in.
+var Coin = game.Gold

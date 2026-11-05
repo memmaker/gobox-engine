@@ -51,7 +51,7 @@ func Purse(s game.State) *front.Purse {
 	if p == nil {
 		return nil
 	}
-	return &front.Purse{Gold: p[game.Gold], Copper: p[game.Copper], Gems: p[game.Gems], Jewelry: p[game.Jewelry], Items: s.PoolItems, Slots: s.PartyCap}
+	return &front.Purse{Gold: p[Coin], Copper: p[game.Copper], Gems: p[game.Gems], Jewelry: p[game.Jewelry], Items: s.PoolItems, Slots: s.PartyCap}
 }
 
 // nameColour is the roster colour of m's name (EGA number) when not

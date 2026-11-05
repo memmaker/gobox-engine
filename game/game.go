@@ -1208,6 +1208,7 @@ type Data struct {
 	NoFreeAim    bool   // the series' combat menu has no free Aim (Buck Rogers)
 	SaveDir      string // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
 	Series       string
+	Coin         string          `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
 	ID           string          // game id
 	CreationFlow CreationFlow    // the creation sheet's layout and steps
 	PointBuy     bool            `json:",omitempty"` // the game takes PointBuy: creation asks Roll or Point Buy for each new character

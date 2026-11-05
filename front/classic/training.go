@@ -19,7 +19,7 @@ func Training(s game.State) *front.Training {
 	if n < 0 || n >= len(s.Party) {
 		return &front.Training{Why: "No one to train"}
 	}
-	v := &front.Training{Name: s.Party[n].Name, Price: t.Cost, Gold: s.Purse[game.Gold]}
+	v := &front.Training{Name: s.Party[n].Name, Price: t.Cost, Gold: s.Purse[Coin]}
 	if t.Learning {
 		for _, sp := range t.Learn {
 			v.Learn = append(v.Learn, front.BookSpell{ID: sp.ID, Name: sp.Name, Level: levelName(sp.Level)})

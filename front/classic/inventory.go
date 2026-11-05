@@ -83,7 +83,7 @@ func Inventory(v *front.Inventory, s game.State) *front.Inventory {
 	for i, it := range m.Items {
 		x := invItem(i, it)
 		x.Slot, x.Wrong, x.Use, x.Look, x.Scribe = slotted(it), it.Wrong, it.Usable, lines(it.Text), slices.ContainsFunc(it.Scroll, func(s game.ScrollSpell) bool { return s.Scribing })
-		x.Price = front.Money{Gold: it.Sale[game.Gold], Copper: it.Sale[game.Copper]}
+		x.Price = front.Money{Gold: it.Sale[Coin], Copper: it.Sale[game.Copper]}
 		if d := dollSlot(it, n.Doll); it.Readied && d >= 0 && n.Doll[d] == nil {
 			y := x
 			n.Doll[d] = &y
@@ -94,7 +94,7 @@ func Inventory(v *front.Inventory, s game.State) *front.Inventory {
 	if v.Wares == nil {
 		return n
 	}
-	n.Gold, n.Copper, n.Wares = s.Purse[game.Gold], s.Purse[game.Copper], []front.InvItem{}
+	n.Gold, n.Copper, n.Wares = s.Purse[Coin], s.Purse[game.Copper], []front.InvItem{}
 	var goods []game.Item
 	switch {
 	case s.Loot != nil:
@@ -125,7 +125,7 @@ func Temple(t *front.Temple, s game.State) *front.Temple {
 	if t == nil || s.Temple == nil {
 		return t
 	}
-	v := &front.Temple{Gold: s.Purse[game.Gold], Appraise: appraise(s, s.TempleOffers)}
+	v := &front.Temple{Gold: s.Purse[Coin], Appraise: appraise(s, s.TempleOffers)}
 	for _, sv := range s.Temple {
 		v.Cures = append(v.Cures, front.Cure{Name: sv.Name, Price: sv.Price, Not: sv.Not[s.Selected],
 			Needed: s.Selected < 0 || s.Selected >= len(s.Party) || slices.Contains(sv.Needs, s.Selected)})
@@ -140,7 +140,7 @@ func Shop(h *front.Shop, s game.State) *front.Shop {
 	if h == nil || sh == nil {
 		return h
 	}
-	v := &front.Shop{IDPrice: sh.IdentifyPrice, Gold: s.Purse[game.Gold], Pooled: sh.Pooled[game.Gold], Appraise: appraise(s, sh.Offers), IdentifiedN: sh.Identifies}
+	v := &front.Shop{IDPrice: sh.IdentifyPrice, Gold: s.Purse[Coin], Pooled: sh.Pooled[Coin], Appraise: appraise(s, sh.Offers), IdentifiedN: sh.Identifies}
 	item := func(r game.ItemRef) *game.Item {
 		if r.Member >= 0 && r.Member < len(s.Party) && r.Item >= 0 && r.Item < len(s.Party[r.Member].Items) {
 			return &s.Party[r.Member].Items[r.Item]
