@@ -299,8 +299,8 @@ func (r *rules) State() game.State {
 	}
 	s.Note = r.note
 	_, camp := ps.(play.Camping)
-	_, explore := ps.(play.Exploring)
-	s.Flags = &game.Flags{Adventure: camp || explore || c.Where.Mode != "", Ordering: camp && s.Allowed["Order"], Sweeping: c.Where.Searching,
+	m := c.Where.Mode // out in the world: the game's own travel mode, or camp (shop, temple, combat are not)
+	s.Flags = &game.Flags{Adventure: camp || m == "dungeon" || m == "town" || m == "wilderness", Ordering: camp && s.Allowed["Order"], Sweeping: c.Where.Searching,
 		Inside: c.Where.Inside, CanCast: c.Selected >= 0 && c.Selected < len(s.Party) && s.Party[c.Selected].CanCast,
 		IconDrop: c.IconEditor != nil, Day: c.Day, NoSave: c.NoSave, NoLoad: c.NoLoad}
 	if c.Picture != nil || len(c.Layers) > 0 || c.Portrait != nil {
@@ -335,7 +335,7 @@ func (r *rules) State() game.State {
 		}
 	case play.Exploring:
 		s.Mode, s.Window = game.ModeExplore, game.WindowScene
-		if c.Ask != nil { // a question over the view (3D or picture), as the old path asks it
+		if c.Ask != nil || t.Door != nil { // a question (or the door menu) over the view, as the old path asks it
 			s.Mode = game.ModeAsk
 		}
 		switch {

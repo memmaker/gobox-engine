@@ -182,4 +182,5 @@ NoHotkeys covers vertical list picks only (creation choices, the roster); bar me
 | the combat menu's free Aim | gobox's own: Turn.Options always carries `Aim`, the game is not told |
 | Pending = the combat menu | not needed: gobox's front builds the menu from Turn.Options; Pending stays nil |
 | the fight's message pane | `Common.Text` (when set, it is Combat.Log; else the Narrated lines since the fight began) |
-| Flags.Adventure | camp, exploring, or any state with `Where.Mode` set |
+| Flags.Adventure | camp, or the game's `Where.Mode` is dungeon, town or wilderness (shop, temple, combat: false) |
+| door menu over the view | `Exploring.Door` gives ModeAsk + HoldDoor |

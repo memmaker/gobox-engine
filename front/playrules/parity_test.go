@@ -89,7 +89,7 @@ func TestParity(t *testing.T) {
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Kind == game.Number && s.Pending.Default == 9 && s.Pending.Max == 18
 			}},
-		{"question over exploring", play.Exploring{Common: play.Common{Ask: &play.Question{Text: "Bash it?", YesNo: true}},
+		{"question over exploring", play.Exploring{Common: play.Common{Where: game.Where{Mode: "dungeon"}, Ask: &play.Question{Text: "Bash it?", YesNo: true}},
 			Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{}}}}}}, game.Data{},
 			[]game.Decision{game.Answer{N: 1}}, []play.Action{play.Reply{N: 1}},
 			func(s game.State, _ game.Result) bool {
@@ -173,6 +173,12 @@ func TestParity(t *testing.T) {
 				}
 				return att && aim
 			}},
+		{"door over exploring", play.Exploring{Door: &game.Door{}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Mode == game.ModeAsk && s.Holding == game.HoldDoor }},
+		{"no adventure in shop", play.Trading{Common: play.Common{Where: game.Where{Mode: "shop"}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return !s.Flags.Adventure }},
+		{"temple keeper portrait", play.Trading{Kind: play.TradeTemple, Common: play.Common{Portrait: &play.Portrait{Head: game.Picture{File: "HEAD2", Block: 3}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Window == game.WindowPicture && len(s.Story) == 2 }},
 		{"camp layers and day", play.Camping{Common: play.Common{Day: true, Layers: []game.Layer{{FrameMs: 100}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Window == game.WindowPicture && len(s.Page.Layers) == 1 && s.Flags.Day
