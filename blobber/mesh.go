@@ -472,7 +472,7 @@ func (g *Game) draw3D(screen *gpu.Image, c cam) {
 		dst.Fill(fogCol)
 	}
 	if texWater == nil {
-		texWater, texClouds = FlatTexture("floor", "water"), FlatTexture("ceiling", "clouds")
+		texWater, texClouds = FlatTexture("floor", "water"), wallTexture("ceiling_clouds") // no clouds: drawSky pans the sky texture
 		texNightSky, texStars = FlatTexture("ceiling", "sky_night"), FlatTexture("ceiling", "night_stars")
 	}
 	if backdrop != nil { // the scene's picture in place of sky and flats
@@ -675,14 +675,16 @@ func (g *Game) draw3D(screen *gpu.Image, c cam) {
 	}
 	if openSky && backdrop == nil && !gpu.Skip("planes") {
 		ct := texClouds
-		if night() {
+		if night() && ct != nil { // no clouds, no night layer either
 			ct = texStars
 		}
 		back := gpu.BlendSourceOverBack
 		if gpu.Skip("back") {
 			back = gpu.BlendSourceOver
 		}
-		draw(g.dyn2, clouds, ct, nil, modeUnlit, 0, 0, 0, g.time*0.03, back)
+		if ct != nil {
+			draw(g.dyn2, clouds, ct, nil, modeUnlit, 0, 0, 0, g.time*0.03, back)
+		}
 		gt, gw := texFloor, 0.0
 		if groundK < 1 {
 			gt, gw = texWater, wind
