@@ -877,7 +877,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 			}
 		}
 		return r.do(play.Arrive{From: d.From, To: d.To, Facing: d.Facing})
-	case game.Items, game.OpenItems:
+	case game.Items, game.OpenItems, game.Browse: // Browse: a shop's goods beside the member's items (State.Items = ItemsShop)
 		r.items = game.ItemsOwn
 		return game.Result{}
 	case game.CloseItems:
@@ -892,7 +892,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	case game.CloseSheet:
 		r.sheet = -1
 		return game.Result{}
-	case game.SetSpeed, game.Resize, game.Browse, game.ViewMember, game.TitleFlash, game.LootLook:
+	case game.SetSpeed, game.Resize, game.ViewMember, game.TitleFlash, game.LootLook:
 		return game.Result{} // the screen's (the title's flash is the front's palette)
 	case game.TitlePicture: // gobox steps the title over the scene's Steps
 		r.title.n, r.title.credits = d.N, false

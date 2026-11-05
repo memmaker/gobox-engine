@@ -341,3 +341,12 @@ func TestItemsTabSheet(t *testing.T) {
 		t.Fatal("Tab closed the items without the sheet")
 	}
 }
+
+// TestShopBrowse: Browse opens the shop's goods pane.
+func TestShopBrowse(t *testing.T) {
+	r := New(&fake{st: play.Trading{Goods: []game.Item{{Name: "Sword"}}}}, game.Data{})
+	r.Apply(game.Browse{Member: -1})
+	if r.State().Items != game.ItemsShop {
+		t.Fatal("Browse opened nothing")
+	}
+}
