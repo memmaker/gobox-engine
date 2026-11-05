@@ -43,6 +43,7 @@ type rules struct {
 	log    []string      // the fight's message log, from the outcomes' text
 	note   game.Note     // the status line's toast: the last refusal
 	walls  *game.Walls   // the 3D view last explored: a scene over it keeps it
+	camMap game.Automap  // the map last explored: camp keeps it
 	title  struct {      // the title as gobox steps it
 		n       int
 		credits bool
@@ -291,6 +292,11 @@ func (r *rules) State() game.State {
 	if x, ok := ps.(play.Exploring); ok && c.Automap.Size == (image.Point{}) {
 		s.Map = x.Map.Automap
 	}
+	if _, ok := ps.(play.Exploring); ok {
+		r.camMap = s.Map
+	} else if _, ok := ps.(play.Camping); ok && s.Map.Size == (image.Point{}) {
+		s.Map = r.camMap
+	}
 	if s.Map.Area == "" {
 		s.Map.Area = c.Area
 	}
@@ -364,7 +370,7 @@ func (r *rules) State() game.State {
 		}
 		r.walls = s.Walls
 	case play.Camping:
-		s.Mode, s.Walls = game.ModeCamp, r.walls // camp is a menu over the 3D view last explored
+		s.Mode, s.Walls = game.ModeCamp, r.walls          // camp is a menu over the 3D view last explored
 		s.RestHeals, s.RestStudies = t.Heals, t.Study > 0 // the rules' say, not whether resting is allowed
 	case play.Fighting:
 		s.Mode, s.Combat = game.ModeCombat, r.combat(t)

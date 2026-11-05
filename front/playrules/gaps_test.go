@@ -273,3 +273,14 @@ func TestCardItems(t *testing.T) {
 		t.Fatal(got)
 	}
 }
+
+// TestCampKeepsMap: camp keeps the map last explored.
+func TestCampKeepsMap(t *testing.T) {
+	f := &fake{st: play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(2, 2)}}}}
+	r := New(f, game.Data{})
+	r.State()
+	f.st = play.Camping{}
+	if r.State().Map.Size != image.Pt(2, 2) {
+		t.Fatal("camp lost the map")
+	}
+}
