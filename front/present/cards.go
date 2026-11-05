@@ -537,7 +537,7 @@ func wholeScale(sw, sh, tw, th int) int {
 }
 
 // face is the card art for a head: its lit pixels (the face, hair and
-// shoulders) centred in a PortraitSize square, unscaled (nil without a head).
+// shoulders) scaled to fill a PortraitSize square (nil without a head).
 func (p *Presenter) face(head image.Image) image.Image {
 	if head == nil {
 		return nil
@@ -557,8 +557,9 @@ func (p *Presenter) face(head image.Image) image.Image {
 	}
 	f := image.NewRGBA(image.Rect(0, 0, n, n))
 	draw.Draw(f, f.Bounds(), image.Black, image.Point{}, draw.Src)
-	c := lit.Min.Add(lit.Max).Div(2) // centre on centre; a part wider than the square is cut evenly
-	draw.Draw(f, f.Bounds(), head, c.Sub(image.Pt(n/2, n/2)), draw.Over)
+	if !lit.Empty() { // the lit part fills the square, its shape kept (fitSquare)
+		draw.Draw(f, f.Bounds(), fitSquare(crop(head, lit), n), image.Point{}, draw.Over)
+	}
 	p.faces[head] = f
 	return f
 }
@@ -571,3 +572,10 @@ var barsPNG []byte
 
 // barArt is the cards' bar art.
 func barArt() image.Image { return decodePNG(barsPNG) }
+
+// crop is the part r of img, at its own origin.
+func crop(img image.Image, r image.Rectangle) image.Image {
+	c := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
+	draw.Draw(c, c.Rect, img, r.Min, draw.Src)
+	return c
+}
