@@ -219,6 +219,7 @@ func gameData(g game.Data) {
 	gameArt, gameID, daxMask = g.Art, g.ID, g.DaxMask
 	sequences, filesDir = g.Sequences, g.Files
 	classic.GameID, classic.Amiga = g.ID, func() bool { return daxLoader.Amiga() }
+	classic.AmigaArt = classic.Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
 	if g.Series != "" {
 		series = g.Series
 	}
