@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/png"
+	"math"
 	"testing"
 	"testing/fstest"
 )
@@ -65,5 +66,28 @@ func TestReadBlocks(t *testing.T) {
 	got := readBlocks(fsys, names, ps)
 	if len(got) != 2 || got[1] == nil || got[floorSlot+1] == nil || ps.top[1] != floorSlot+1 || ps.top[2] != 0 {
 		t.Fatalf("slots %v, tops %v", got, ps.top[:3])
+	}
+}
+
+// A chair whose backrest is north in its model turns its back to the wall beside it.
+func TestBackYaw(t *testing.T) {
+	ps := &propSet{}
+	ps.mode[1], ps.back[2] = "block", "n"
+	var g [25][50]Square
+	for z := range g {
+		for x := range g[z] {
+			g[z][x].Tile = -1
+		}
+	}
+	g[5][5].Tile, g[5][6].Tile = 2, 1 // wall east of the chair
+	g[9][9].Tile = 2                  // no wall: keeps its heading
+	no := func(int) bool { return false }
+	y := backYaw(&g, 0, no, no, ps)
+	// place's yaw takes the model's north (0, -1) to (-sin, -cos): east is (1, 0)
+	if s, c := math.Sin(float64(y[5][5])), math.Cos(float64(y[5][5])); math.Abs(-s-1) > 1e-6 || math.Abs(-c) > 1e-6 {
+		t.Errorf("yaw %v does not turn north to east", y[5][5])
+	}
+	if y[9][9] != 0 {
+		t.Errorf("lone chair turned %v", y[9][9])
 	}
 }

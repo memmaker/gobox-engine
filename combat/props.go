@@ -17,6 +17,7 @@ import (
 type propJSON struct {
 	Mode  string   `json:"mode"`
 	Trunk []string `json:"trunk"`
+	Back  string   `json:"back"` // a model's backrest side in its own frame (n, e, s, w): it turns that side to a wall beside it
 }
 
 // propSet is props.json by tile index.
@@ -24,6 +25,7 @@ type propSet struct {
 	mode  [256]string // "flat" or "extrude"; "": inferred
 	trunk [256][]int  // the tiles a crown stands on (nil: the inferred rule)
 	top   [256]int    // a block's top atlas slot (0: its side picture)
+	back  [256]string // a model's backrest side (props.json "back"); "": it keeps its heading
 }
 
 func (ps *propSet) modeOf(t int) string {
@@ -65,6 +67,7 @@ func readProps(fsys fs.FS, names []string) *propSet {
 			if p.Mode == "flat" || p.Mode == "extrude" || p.Mode == "block" || p.Mode == "slab" {
 				ps.mode[i] = p.Mode
 			}
+			ps.back[i] = p.Back
 			if p.Mode == "extrude" {
 				for _, tn := range p.Trunk {
 					ps.trunk[i] = append(ps.trunk[i], byName[tn]...)

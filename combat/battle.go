@@ -42,6 +42,7 @@ type Presenter struct {
 	meshOf                     [256]*tileMesh       // the tiles that draw a model
 	meshes                     map[string]*tileMesh // by name; nil: none (looked up once)
 	ground                     [25][50]Square       // the squares the meshes show
+	yawOf                      [25][50]float32      // a model's turn on its square (backYaw)
 	walls                      int                  // wall tiles when a dungeon, else 0
 	board, shadows, table      *gpu.Mesh
 	box, base, flatQuad        *gpu.Mesh
@@ -236,7 +237,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		for z := range p.ground {
 			for x, s := range p.ground[z] {
 				if m := p.modelAt(s); m != nil {
-					o := opts(place(float32(x)+.5, 0, float32(z)+.5, 0, 1.0/meshUnits, 1.0/meshUnits, 1.0/meshUnits), [4]float32{1, 1, 1, 1}, 0.12)
+					o := opts(place(float32(x)+.5, 0, float32(z)+.5, p.yawOf[z][x], 1.0/meshUnits, 1.0/meshUnits, 1.0/meshUnits), [4]float32{1, 1, 1, 1}, 0.12)
 					o.Ambient = 0.85                   // lit as the figurines are
 					dst.DrawMesh(m.mesh, m.tex, vp, o) // ponytail: a draw per square; batch if a map shows hundreds
 				}
@@ -566,6 +567,7 @@ func (p *Presenter) sync(b *Board) {
 				}
 			}
 		}
+		p.yawOf = backYaw(&p.ground, p.walls, empty, cut, p.props)
 		p.board = gpu.NewMesh(append(mapMesh(&g, p.walls, empty, cut, p.tiles[:], p.props), boardSides()...))
 		p.shadows = gpu.NewMesh(standShadows(&g, p.walls, empty, cut, p.props))
 	}
@@ -688,4 +690,36 @@ func areaRound(c image.Point, r int) (out []image.Point) {
 		}
 	}
 	return out
+}
+
+// dirs are the sides n, e, s, w as (dx, dz).
+var dirs = map[string][2]int{"n": {0, -1}, "e": {1, 0}, "s": {0, 1}, "w": {-1, 0}}
+
+// backYaw turns each model with a backrest (props "back") so the backrest
+// faces a wall beside it, the first of n, e, s, w; with none it keeps its
+// heading. place's yaw takes (x, z) to (x cos + z sin, -x sin + z cos).
+func backYaw(g *[25][50]Square, walls int, empty, cut func(int) bool, ps *propSet) (yaw [25][50]float32) {
+	if ps == nil {
+		return yaw
+	}
+	ang := func(d [2]int) float64 { return math.Atan2(float64(-d[1]), float64(d[0])) }
+	for z := range g {
+		for x, s := range g[z] {
+			if s.Tile < 0 || s.Tile >= len(ps.back) || ps.back[s.Tile] == "" {
+				continue
+			}
+			for _, k := range []string{"n", "e", "s", "w"} {
+				d := dirs[k]
+				nx, nz := x+d[0], z+d[1]
+				if nx < 0 || nz < 0 || nx >= 50 || nz >= 25 {
+					continue
+				}
+				if w := kindOf(g[nz][nx], walls, empty, cut, ps); w == block || w == slab {
+					yaw[z][x] = float32(ang(d) - ang(dirs[ps.back[s.Tile]]))
+					break
+				}
+			}
+		}
+	}
+	return yaw
 }
