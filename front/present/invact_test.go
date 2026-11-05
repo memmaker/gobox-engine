@@ -88,3 +88,16 @@ func TestInventoryDrag(t *testing.T) {
 		t.Fatalf("readied onto the doll: %v", as)
 	}
 }
+
+// Trade asks the member over the items: the pick, not the items, is drawn.
+func TestTradeAsksOverItems(t *testing.T) {
+	in := &front.Inventory{Pool: []front.InvItem{{Index: 1, Name: "Gun"}}, Trade: true}
+	v := front.View{Inventory: in, Party: []front.Member{{Selected: true}, {}}}
+	var p Presenter
+	p.shownView = v
+	p.inv.acts = []front.Action{{Kind: front.ActTrade, N: 1}}
+	p.Actions()
+	if p.q == nil || p.Inventory(nil, Note{}, v) {
+		t.Fatal("no member pick over the items")
+	}
+}

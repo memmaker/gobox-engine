@@ -97,7 +97,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	inv := &p.inv
 	inv.shown = false
 	in := v.Inventory
-	if choosing(v) { // a member pick (Heal whom?): the view and the cards instead (Draw)
+	if choosing(p.own(v)) { // a member pick (Heal whom? Trade to whom?), the game's or the presenter's own: the view and the cards instead (Draw)
 		return false
 	}
 	if p.playing() != nil { // an event to show (Draw plays it); this also drops the played ones, else Playing holds every key
