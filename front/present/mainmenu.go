@@ -39,6 +39,8 @@ type mainUI struct {
 	logo     srcImage          // MainMenu.Logo on the GPU
 	backdrop srcImage          // MainMenu.Backdrop on the GPU
 	title    image.Image       // the title's picture kept under the menu (Data.TitleBackdrop; nil: none)
+	titleWas string            // the title step's pictures before the backdrop's (picturesKey): the backdrop is taken once they change
+	titleN   int               // frames the backdrop phase waited on a change
 	cards    []image.Rectangle // the party's cards drawn
 }
 
