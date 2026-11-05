@@ -318,19 +318,18 @@ type SheetPage struct {
 // Flags are the plain yes/no facts of the screen the front shows or takes
 // decisions by.
 type Flags struct {
-	Exploring  bool    // the party explores: the adventuring decisions are taken
-	Sweeping   bool    // ... at the slow, searching pace
-	Interact   bool    // ... on a square whose event waits for an interaction
-	CanCast    bool    // ... and the selected member has a spell to cast
-	Open       [4]bool // the party's square's sides (N E S W) a step may go through
-	Adventure  bool    // the party is out in the world
-	Day        bool    // 6:00 to 20:00
-	Inside     bool    // the party stands on an inside square
-	Ordering   bool    // the camp's party order bar is up
-	Credits    bool    // the title's credits page
-	CreditPage int     `json:",omitempty"` // which one (Credit.Page) while Credits
-	Full       bool    // the pictures are one whole-screen picture
-	IconDrop   bool    // the combat icon designer is up
+	Exploring  bool // the party explores: the adventuring decisions are taken
+	Sweeping   bool // ... at the slow, searching pace
+	Interact   bool // ... on a square whose event waits for an interaction
+	CanCast    bool // ... and the selected member has a spell to cast
+	Adventure  bool // the party is out in the world
+	Day        bool // 6:00 to 20:00
+	Inside     bool // the party stands on an inside square
+	Ordering   bool // the camp's party order bar is up
+	Credits    bool // the title's credits page
+	CreditPage int  `json:",omitempty"` // which one (Credit.Page) while Credits
+	Full       bool // the pictures are one whole-screen picture
+	IconDrop   bool // the combat icon designer is up
 }
 
 // Page is the text a game wrote and the pictures it showed: scripted text,
@@ -525,6 +524,46 @@ type Label struct {
 	Text string
 	Kind string // "shop", "temple", "inn", "civic", ...
 }
+
+// Map is the area the party walks, as the game knows it; gobox moves the
+// party on it and tells the game with Arrive and Face. A game whose Rules
+// also implement Mapped gives it.
+type Map interface {
+	Name() string      // the area's name as the player knows it (the map screen's title)
+	Size() image.Point // in squares
+	// Edge is side (as Where.Facing: 0 N, 2 E, 4 S, 6 W) of square at: whether
+	// a step goes through it.
+	Edge(at image.Point, side int) Edge // at in Where.X, Y (the overland's too)
+	// Departure reports whether a script would run ahead of a step through
+	// side of square at (before the party moves); gobox runs it with
+	// RunEvent{Before: true, Side: side}, then takes the step only if the
+	// party still stands there, facing as it did, with no question up.
+	Departure(at image.Point, side int) bool
+	// Event reports whether an event would run by itself on square at now
+	// (a step script, an encounter); gobox runs it with RunEvent.
+	Event(at image.Point) bool
+}
+
+// Mapped is Rules with a walkable map: Map is nil while the party walks
+// none (a menu, a shop, combat) or may not walk now (a question is up).
+type Mapped interface {
+	Map() Map
+}
+
+// Edge is one side of a square to a step.
+type Edge struct {
+	Kind  EdgeKind
+	State DoorState // a door's (EdgeDoor)
+}
+
+// EdgeKind is what stands on a side of a square.
+type EdgeKind int
+
+const (
+	EdgeOpen EdgeKind = iota // nothing: a step goes through
+	EdgeWall                 // a step does not
+	EdgeDoor                 // a door: gobox sends the step and the game opens it, or refuses (Refusal.Ask)
+)
 
 // Wall is a wall or door on one side of a square. Side as Facing; Kind is the game's wall/door kind.
 type Wall struct {
@@ -904,15 +943,34 @@ const (
 )
 
 type (
-	Forward  struct{}
-	TurnBy   struct{ By int } // 2 right, 6 left, 4 about
-	Sidestep struct{ By int } // a step with the facing kept: 4 back, 6 left, 2 right (rules that have none refuse it)
-	Search   struct{}
-	Look     struct{}
-	Select   struct{ N int }
-	Move     struct{ To image.Point } // combat
-	Attack   struct{ Target int }
-	Cast     struct {
+	// Arrive: gobox moved the party from From onto the next square To
+	// (Map.Edge let it through), facing Facing (a step back or aside keeps
+	// it). To may lie off the map (Map.Size): the game wraps or leaves the
+	// area. The game only moves the party (and the step's time): it runs no
+	// event. A Refusal's Ask is the question put instead (a locked door's
+	// Bash / Pick / Knock). Then gobox asks Map.Event of the square and
+	// sends RunEvent when it says one waits.
+	Arrive struct {
+		From, To image.Point
+		Facing   int // as Where.Facing
+	}
+	// RunEvent: run an event Map says waits: Before, the script the game
+	// runs ahead of a step through Side (as Where.Facing) from the party's
+	// square, before gobox moves it (Map.Departure: it may hold the step,
+	// turn or move the party, or ask); else the event on the party's square
+	// after Arrive (Map.Event: a step script, an encounter). gobox's call.
+	RunEvent struct {
+		Before bool
+		Side   int
+	}
+	// Face: gobox turned the party to Facing (as Where.Facing) on its square.
+	Face   struct{ Facing int }
+	Search struct{}
+	Look   struct{}
+	Select struct{ N int }
+	Move   struct{ To image.Point } // combat
+	Attack struct{ Target int }
+	Cast   struct {
 		Member, Spell, Target int // Member: outside combat, who casts
 		At                    image.Point
 		Ats                   []image.Point // one square per target, when the spell takes several
@@ -1025,9 +1083,9 @@ type (
 func (Answer) decision()    {}
 func (Cancel) decision()    {}
 func (Adjust) decision()    {}
-func (Forward) decision()   {}
-func (Sidestep) decision()  {}
-func (TurnBy) decision()    {}
+func (Arrive) decision()    {}
+func (Face) decision()      {}
+func (RunEvent) decision()  {}
 func (Search) decision()    {}
 func (Look) decision()      {}
 func (Select) decision()    {}

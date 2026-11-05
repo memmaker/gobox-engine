@@ -120,7 +120,7 @@ func (g *Game) ViewOf(s game.State) front.View {
 		v.Camp = &front.Camp{}
 	}
 	v = View(v, s)
-	g.found = g.found && s.Loot != nil // a new treasure is announced again (a question over this one keeps it)
+	g.found = g.found && s.Loot != nil                        // a new treasure is announced again (a question over this one keeps it)
 	if s.Mode == game.ModeLoot && s.Loot != nil && !g.found { // the treasure's picture under a message; Enter or Space opens the loot screen
 		v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}
 	}
@@ -140,6 +140,9 @@ func (g *Game) ViewOf(s game.State) front.View {
 	}
 	v = Page(v, s)
 	v = Flags(v, s)
+	if m := g.walkMap(); m != nil {
+		v.Open = openSides(m, s.Where)
+	}
 	v = Place(v, s)
 	v.Quests, v.Lore = Quests(s), Lore(s)
 	v = Waits(v, s)
@@ -546,6 +549,9 @@ func (g *Game) Answer(a front.Action) error {
 			return nil
 		}
 	}
+	if _, ok := walks[a.Kind]; ok { // gobox moves the party on the game's Map
+		return g.walk(a.Kind)
+	}
 	d, ok := g.decision(a)
 	if !ok {
 		front.Unhandled(a)
@@ -587,18 +593,6 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.Answer{N: 0}, true
 	case front.ActText:
 		return game.Answer{Text: a.Text}, true
-	case front.ActForward:
-		return game.Forward{}, true
-	case front.ActBackward:
-		return game.Sidestep{By: 4}, true
-	case front.ActStrafeLeft:
-		return game.Sidestep{By: 6}, true
-	case front.ActStrafeRight:
-		return game.Sidestep{By: 2}, true
-	case front.ActTurnRight:
-		return game.TurnBy{By: 2}, true
-	case front.ActTurnLeft:
-		return game.TurnBy{By: 6}, true
 	case front.ActSearch:
 		return game.Search{}, true
 	case front.ActCamp:

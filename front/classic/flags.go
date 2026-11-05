@@ -11,7 +11,7 @@ func Flags(v front.View, s game.State) front.View {
 	if f == nil {
 		return v
 	}
-	v.Exploring, v.Sweeping, v.Interact, v.CanCast, v.Open = f.Exploring, f.Sweeping, f.Interact, f.CanCast, f.Open
+	v.Exploring, v.Sweeping, v.Interact, v.CanCast = f.Exploring, f.Sweeping, f.Interact, f.CanCast
 	v.Adventure, v.Day, v.Inside, v.Ordering = f.Adventure, f.Day, f.Inside, f.Ordering
 	v.Exploring = v.Exploring && !overMenu(s)
 	v.Credits, v.CreditPage, v.Full, v.IconDrop = f.Credits, f.CreditPage, f.Full, f.IconDrop
