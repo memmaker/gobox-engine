@@ -98,3 +98,16 @@ func TestNameLines(t *testing.T) {
 		t.Fatalf("%q", got)
 	}
 }
+
+// A picture with no At fills the area (the picture window), not nothing.
+func TestPictureNoAt(t *testing.T) {
+	src := image.NewRGBA(image.Rect(0, 0, 4, 4))
+	for i := range src.Pix {
+		src.Pix[i] = 255
+	}
+	m := image.NewRGBA(image.Rect(0, 0, 8, 8))
+	drawPictures(m, []front.Picture{{Img: src}}, image.Pt(8, 8))
+	if m.RGBAAt(4, 4).R != 255 {
+		t.Fatal("the picture was not drawn")
+	}
+}

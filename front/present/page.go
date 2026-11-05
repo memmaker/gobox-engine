@@ -316,6 +316,9 @@ func drawPictures(m *image.RGBA, pics []front.Picture, at image.Point) {
 	draw.Draw(m, m.Bounds(), image.Black, image.Point{}, draw.Src)
 	for _, s := range pics {
 		r := s.At.Sub(at).Add(m.Rect.Min)
+		if s.At.Empty() { // no place given (a game's Common.Picture): the whole area
+			r = m.Rect
+		}
 		switch {
 		case s.Fill:
 			draw.Draw(m, r, image.NewUniform(s.Colour), image.Point{}, draw.Src)
