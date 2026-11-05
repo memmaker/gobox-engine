@@ -120,6 +120,7 @@ func (i *Image) DrawMesh(m *Mesh, tex *Image, viewProj Mat4, op *MeshOptions) {
 	if tint == ([4]float32{}) {
 		tint = [4]float32{1, 1, 1, 1}
 	}
+	tex.t.ensure() // its pending pixels upload (and submit) before the pass opens, not inside it
 	settle(tex.t)
 	tw, th := float32(tex.t.w), float32(tex.t.h)
 	b := appendF32(nil, viewProj[:]...)
@@ -227,6 +228,7 @@ func (i *Image) DrawMeshShader(m *Mesh, s *MeshShader, imgs [4]*Image, uniforms 
 			im = white()
 		}
 		ts[j] = im.t
+		im.t.ensure() // its pending pixels upload (and submit) before the pass opens, not inside it
 		settle(im.t)
 		tw, th := float32(im.t.w), float32(im.t.h)
 		b = appendF32(b, float32(im.r.Min.X)/tw, float32(im.r.Min.Y)/th, float32(im.r.Dx())/tw, float32(im.r.Dy())/th)

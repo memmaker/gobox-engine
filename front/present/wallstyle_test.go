@@ -70,3 +70,32 @@ func TestWallStyleSwapsTextures(t *testing.T) {
 		t.Fatalf("back to hi-def: %d red, %d blue pixels, want the red wall", r, b)
 	}
 }
+
+// A walls scene's very first frame (textures still held in memory, no device
+// yet) already draws its floor and ceiling over the fog.
+func TestWallSceneFirstFrameFlats(t *testing.T) {
+	old, oldHost := series, Host
+	series, art = "buck-rogers", fstest.MapFS{}
+	h := DefaultOptions
+	Host = &h
+	defer func() { series, Host = old, oldHost }()
+
+	var p Presenter
+	w := &front.Walls{Key: "firstframe", Side: openGrid(), Floor: "br1_venus", Sky: "br1_greendome"}
+	p.view.Show(p.wallScene(w), blobber.Camera{X: 2, Y: 4})
+	dst := gpu.NewImage(blobber.W, blobber.H)
+	p.view.Draw(dst)
+	for _, y := range []int{blobber.H / 8, blobber.H * 7 / 8} { // ceiling, floor
+		if r, g, _, _ := dst.At(blobber.W/2, y).RGBA(); r|g == 0 { // the fog is blue only
+			t.Errorf("first frame: row %d is the fog, not a flat", y)
+		}
+	}
+}
+
+func openGrid() [][][4]int {
+	g := make([][][4]int, 5)
+	for y := range g {
+		g[y] = make([][4]int, 5)
+	}
+	return g
+}
