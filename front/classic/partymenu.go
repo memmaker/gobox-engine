@@ -14,6 +14,7 @@ var partyFunctions = map[string]front.ActKind{
 	"Load Saved Game": front.ActLoad, "Begin Adventuring": front.ActBegin, "Exit to DOS": front.ActQuit,
 	"Drop Character": front.ActDropMember, "Human Change Class": front.ActNewClass, "Quick Start": front.ActQuickStart,
 	"Forget Character": front.ActForget, "Purge Character": front.ActRemove,
+	"Icon Select": front.ActIconEdit, "Save Current Game": front.ActSaveGame,
 }
 
 // PartyMenu is the party menu's open functions (nil: not up) and whether it

@@ -46,7 +46,9 @@ func TestParity(t *testing.T) {
 				return len(s.Page.Layers) == 1 && s.Page.Layers[0].Picture.File == "TITLE" && res.Events[0].Kind == game.EvSong
 			}},
 		{"title credits", title, game.Data{}, []game.Decision{game.TitleCredits{Page: 1}}, nil,
-			func(s game.State, _ game.Result) bool { return s.Flags.Credits && s.Flags.CreditPage == 1 && len(s.Page.Layers) == 0 }},
+			func(s game.State, _ game.Result) bool {
+				return s.Flags.Credits && s.Flags.CreditPage == 1 && len(s.Page.Layers) == 0
+			}},
 		{"title flash", title, game.Data{}, []game.Decision{game.TitleFlash{C: 9}}, nil, nil},
 		{"holding door", play.Exploring{Door: &game.Door{}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Holding == game.HoldDoor }},
@@ -55,7 +57,9 @@ func TestParity(t *testing.T) {
 		{"holding temple", play.Trading{Kind: play.TradeTemple}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Holding == game.HoldTemple }},
 		{"window picture", play.Exploring{Common: play.Common{Picture: pic}}, game.Data{}, nil, nil,
-			func(s game.State, _ game.Result) bool { return s.Window == game.WindowPicture && s.Picture.File == pic.File }},
+			func(s game.State, _ game.Result) bool {
+				return s.Window == game.WindowPicture && s.Picture.File == pic.File
+			}},
 		{"window map, no walls", play.Exploring{Map: play.ExploreMap{Overland: true}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Window == game.WindowMap && s.Walls == nil }},
 		{"status line and pane", play.Fighting{Common: play.Common{Status: "Searching", Text: []string{"a", "b"}, Picture: pic}}, game.Data{}, nil, nil,
@@ -74,23 +78,71 @@ func TestParity(t *testing.T) {
 			game.Data{Texts: map[string]string{"Remove Character": "Purge Character"}}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Mode == game.ModeParty && slices.Equal(labels(s.Pending),
-					[]string{"Create Character", "Purge Character", "View Character", "Quick Start", "Begin Adventuring"})
+					[]string{"Create Character", "Purge Character", "View Character", "Load Saved Game", "Save Current Game", "Quick Start", "Begin Adventuring"})
 			}},
 		{"creation step", play.Assembling{Draft: &play.Draft{Step: "career", Choices: []string{"Rogue", "Medic"}}}, game.Data{},
 			[]game.Decision{game.Answer{N: 1}}, []play.Action{play.SetChoice{Field: "career", N: 1}},
-			func(s game.State, _ game.Result) bool { return s.Pending.Kind == game.Choice && labels(s.Pending)[1] == "Medic" }},
+			func(s game.State, _ game.Result) bool {
+				return s.Pending.Kind == game.Choice && labels(s.Pending)[1] == "Medic"
+			}},
 		{"creation number", play.Assembling{Draft: &play.Draft{Step: "str", Number: true, Default: 9, Max: 18}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Kind == game.Number && s.Pending.Default == 9 && s.Pending.Max == 18
 			}},
-		{"question over exploring", play.Exploring{Common: play.Common{Ask: &play.Question{Text: "Bash it?", YesNo: true}}}, game.Data{},
+		{"question over exploring", play.Exploring{Common: play.Common{Ask: &play.Question{Text: "Bash it?", YesNo: true}},
+			Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{}}}}}}, game.Data{},
 			[]game.Decision{game.Answer{N: 1}}, []play.Action{play.Reply{N: 1}},
 			func(s game.State, _ game.Result) bool {
-				return s.Mode == game.ModeExplore && s.Pending.Kind == game.YesNo && s.Pending.Prompt == "Bash it?"
+				return s.Mode == game.ModeAsk && s.Walls != nil && s.Window == game.WindowScene && s.Holding == game.HoldNone && s.Flags.Adventure && s.Pending.Kind == game.YesNo && s.Pending.Prompt == "Bash it?"
 			}},
 		{"question over fighting", play.Fighting{Common: play.Common{Ask: &play.Question{Replies: []string{"a"}}}}, game.Data{},
 			[]game.Decision{game.Answer{N: 'A'}}, []play.Action{play.Reply{N: 'A'}},
 			func(s game.State, _ game.Result) bool { return s.Combat != nil && s.Pending != nil }},
+		{"series party menu", play.Assembling{Common: play.Common{Party: []play.Member{{}},
+			Allowed: play.Allowed{Plain: []play.Action{play.RemoveCharacter{}, play.EditIcon{}, play.Begin{}}}}},
+			game.Data{PartyMenu: []game.MenuKey{{Label: "Begin Adventuring", Key: 'B'}, {Label: "Remove Character", Key: 'P'}, {Label: "Icon Select", Key: 'I'}}}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				o := s.Pending.Options
+				return slices.Equal(labels(s.Pending), []string{"Begin Adventuring", "Remove Character", "Icon Select"}) && o[1].Key == 'P'
+			}},
+		{"continue over fighting", play.Fighting{Common: play.Common{Status: "Press button or enter to continue.", Ask: &play.Question{Continue: true}}},
+			game.Data{}, []game.Decision{game.Answer{}}, []play.Action{play.Continue{}},
+			func(s game.State, _ game.Result) bool {
+				return s.Combat != nil && s.Pending.Kind == game.Continue && s.Page.Prompt[0].Text != ""
+			}},
+		{"heading over exploring", play.Exploring{Common: play.Common{Ask: &play.Question{Heading: true}}},
+			game.Data{}, []game.Decision{game.Answer{N: 2}}, []play.Action{play.Heading{Dir: 2}},
+			func(s game.State, _ game.Result) bool {
+				return s.Mode == game.ModeAsk && s.Pending.Kind == game.Direction && s.Pending.Options[0].Do == game.Leave{}
+			}},
+		{"camp layers and day", play.Camping{Common: play.Common{Day: true, Layers: []game.Layer{{FrameMs: 100}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				return s.Window == game.WindowPicture && len(s.Page.Layers) == 1 && s.Flags.Day
+			}},
+		{"camp picture", play.Camping{Common: play.Common{Picture: pic}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Window == game.WindowPicture }},
+		{"reroll yes/no", play.Assembling{Draft: &play.Draft{Step: "roll", YesNo: true, Prompt: "Reroll stats?"}}, game.Data{},
+			[]game.Decision{game.Answer{N: 1}}, []play.Action{play.SetChoice{Field: "roll", N: 1}},
+			func(s game.State, _ game.Result) bool {
+				return s.Pending.Kind == game.YesNo && s.Pending.Prompt == "Reroll stats?"
+			}},
+		{"no hotkeys", play.Assembling{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Begin{}}}},
+			Draft: &play.Draft{Step: "race", Choices: []string{"Terran"}}}, game.Data{NoHotkeys: true}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 0 }},
+		{"continue only", play.Scene{Kind: play.SceneScreen, Screen: &game.Screen{Kind: game.ScreenShipSheet},
+			Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Continue{}}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Pending != nil && s.Pending.Kind == game.Continue }},
+		{"ship fight continue", play.ShipFight{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Continue{}}}}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool { return s.Pending != nil && s.Pending.Kind == game.Continue }},
+		{"move verb", play.Fighting{Common: play.Common{Allowed: play.Allowed{Moves: []game.Reach{{}}, Plain: []play.Action{play.Delay{}, play.EndTurn{}}}}},
+			game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				var l []string
+				for _, o := range s.Combat.Turn.Options {
+					l = append(l, o.Label)
+				}
+				return slices.Equal(l, []string{"Move", "Wait", "End"})
+			}},
 		{"verb keys from data", play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Aid{}}}}},
 			game.Data{VerbKeys: map[string]rune{"Aid": 'H'}}, []game.Decision{game.Answer{N: 'H'}}, []play.Action{play.Aid{}},
 			func(s game.State, _ game.Result) bool { return s.Combat.Turn.Options[0].Key == 'H' }},

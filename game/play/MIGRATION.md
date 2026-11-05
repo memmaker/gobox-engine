@@ -140,3 +140,21 @@ Which play field a game fills for each old State field, and what is gobox's.
 | `Saves` | optionally `play.Slots` (the original's slots, listed after gobox's) | gobox's slot files |
 | door ways | `TryDoor{Way: DoorExit/DoorBash/DoorPick/DoorKnock}` | |
 | rest | allow `AdvanceTimeBy{D}`: any rest up to D (0: any) | the chunks |
+
+## Round 4
+
+| Need | play |
+|---|---|
+| Continue-only ask with Status shown | `Question.Continue` |
+| Facing ask | `Question.Heading` (answer is `Heading{Dir}`) |
+| Reroll yes/no with prompt | `Draft.YesNo`, `Draft.Prompt` |
+| Team menu order and keys | `game.Data.PartyMenu` (default unchanged) |
+| No hotkeys | `game.Data.NoHotkeys` (creation, reply, party menus) |
+| Layered picture | `Common.Layers` (Window from Picture or Layers in every state) |
+| Day sky outside exploring | `Common.Day` (`Exploring.Day` still read) |
+| Add Character with empty roster | `AddCharacter{Roster: -1}`; gobox opens the roster and sends the pick |
+
+gobox owns combat labels (Move from `Allowed.Moves`, Attack, Cast, ...), relabels via
+`Data.Texts`, keys via `Data.VerbKeys`. A question over exploring is ModeAsk with
+WindowScene, HoldNone, Adventure, and walls kept. When Continue is the only allowed
+action, gobox asks Continue.

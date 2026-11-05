@@ -81,6 +81,8 @@ type Common struct {
 	Status   string        // the rules' status line (plain text; "" none)
 	Text     []string      // the rules' message lines in the text pane, oldest first
 	Picture  *game.Picture // the picture or portrait up (in the view while exploring); nil none
+	Layers   []game.Layer  // a picture built of layers (with frames), as Picture
+	Day      bool          // daylight as the rules see it, in every state
 	Automap  game.Automap  // the map of where the party is (the overland, the starmap, ...), any state
 	Ask      *Question     // a question over this state (the view stays); Reply answers it
 
@@ -100,7 +102,9 @@ type Question struct {
 	YesNo        bool // Replies are no, yes: Reply{N: 1} is yes
 	Typed        bool
 	Number       bool
-	Default, Max int // Typed: the longest; Number: the default and the largest
+	Default, Max int  // Typed: the longest; Number: the default and the largest
+	Continue     bool // a key to go on (Continue answers it); Common.Status may say so
+	Heading      bool // a heading to pick (the overland): Heading{Dir}, Leave for Done
 }
 
 // Member is one character as the rules know it.
@@ -131,7 +135,10 @@ type Member struct {
 // The states. Each situation is one explicit type; similar screens share one.
 
 // Assembling: the party is put together before play, and characters are
-// made (Draft set) or changed.
+// made (Draft set) or changed. gobox builds the party menu from Allowed:
+// one action of a kind is its entry. AddCharacter{Roster: -1} is the Add
+// Character entry while the roster may be empty: gobox opens the roster
+// and sends AddCharacter with the one picked.
 type Assembling struct {
 	Common
 	Roster []string // saved characters
@@ -150,6 +157,8 @@ type Draft struct {
 	Typed        bool     // the step takes typed text (a name): SetChoice{Field: Step, Text}
 	Number       bool     // the step takes a number: SetChoice{Field: Step, N}
 	Default, Max int      // Typed: the longest; Number: the default and the largest
+	YesNo        bool     // the step asks yes or no ("Reroll stats?"): SetChoice{Field: Step, N: 1} is yes
+	Prompt       string   // the step's question text
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).

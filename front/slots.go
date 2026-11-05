@@ -8,6 +8,9 @@ package front
 // made calls by slotAct.
 const ActSaveSlot, ActDeleteSlot ActKind = -3, -4
 
+// ActSaveGame puts the slot screen up to save (the party menu's Save Current Game).
+const ActSaveGame ActKind = -11
+
 // SlotsUI is the slot screen up.
 type SlotsUI struct{ LoadOnly bool }
 

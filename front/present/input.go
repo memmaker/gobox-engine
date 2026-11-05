@@ -81,6 +81,10 @@ func (p *Presenter) send(kind front.ActKind, n int) {
 		p.openSlots(p.shownView, true)
 		return
 	}
+	if kind == front.ActSaveGame && p.slots == nil { // the party menu's Save
+		p.openSlots(p.shownView, false)
+		return
+	}
 	if p.slotAct(front.Action{Kind: kind, N: n}) {
 		return
 	}

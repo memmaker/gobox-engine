@@ -1208,6 +1208,8 @@ type Data struct {
 	CreationFlow CreationFlow    // the creation sheet's layout and steps
 	PointBuy     bool            `json:",omitempty"` // the game takes PointBuy: creation asks Roll or Point Buy for each new character
 	VerbKeys     map[string]rune `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
+	NoHotkeys    bool            `json:",omitempty"` // the series' menus are picked by arrows only: gobox gives its menus no hotkeys
+	PartyMenu    []MenuKey       `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
 	Texts        map[string]string
 	Credits      []string
 	SpellRules   map[int]string // what each spell does, by spell id (the spell tip text)
@@ -1463,6 +1465,13 @@ type Message struct {
 	Tone  Tone
 	Text  string
 	Clear bool // the window is cleared first, after a key pause when it holds text (the original's pause-and-clear)
+}
+
+// MenuKey is a menu function by gobox's label, with the hotkey the series
+// gives it.
+type MenuKey struct {
+	Label string
+	Key   rune
 }
 
 // MenuItem is a main menu line of the game's: gobox plays Sequence (a

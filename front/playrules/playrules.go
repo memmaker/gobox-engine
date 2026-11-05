@@ -108,24 +108,40 @@ const restChunk = 10 * time.Minute
 
 func (r *rules) Pending() *game.Ask { return r.pending(r.g.State()) }
 
+// pending is the question up; where none is built and Continue is the
+// only way on, a Continue ask, so the player is never stuck.
 func (r *rules) pending(ps play.State) *game.Ask {
+	if a := r.asked(ps); a != nil {
+		return a
+	}
+	if sc, ok := ps.(play.Scene); ok && (sc.Kind == play.SceneHandout || sc.Kind == play.SceneTitle || sc.Kind == play.SceneSequence) {
+		return nil
+	}
+	al := commonOf(ps).Allowed
+	if len(al.Plain) == 1 && len(al.Aimed) == 0 && al.Plain[0] == (play.Continue{}) {
+		return &game.Ask{Kind: game.Continue}
+	}
+	return nil
+}
+
+func (r *rules) asked(ps play.State) *game.Ask {
 	if r.ask != nil {
 		return r.ask
 	}
 	c := commonOf(ps)
 	if q := c.Ask; q != nil {
-		return question(q)
+		return r.question(q)
 	}
 	if a, ok := ps.(play.Assembling); ok {
 		if d := a.Draft; d != nil {
-			return draftAsk(d)
+			return r.draftAsk(d)
 		}
 		return r.partyMenu(a)
 	}
 	if f, ok := ps.(play.ShipFight); ok && len(f.Menu) > 0 {
 		a := &game.Ask{Kind: game.Choice}
 		for _, t := range f.Menu {
-			a.Options = append(a.Options, game.Option{Label: t, Key: firstKey(t)})
+			a.Options = append(a.Options, game.Option{Label: t, Key: r.key(t)})
 		}
 		return a
 	}
@@ -144,7 +160,7 @@ func (r *rules) pending(ps play.State) *game.Ask {
 	case len(sc.Replies) > 0:
 		a := &game.Ask{Kind: game.Choice}
 		for _, t := range sc.Replies {
-			a.Options = append(a.Options, game.Option{Label: t, Key: firstKey(t)})
+			a.Options = append(a.Options, game.Option{Label: t, Key: r.key(t)})
 		}
 		return a
 	}
@@ -152,9 +168,14 @@ func (r *rules) pending(ps play.State) *game.Ask {
 }
 
 // question is the rules' question as the old Ask.
-func question(q *play.Question) *game.Ask {
+func (r *rules) question(q *play.Question) *game.Ask {
 	a := &game.Ask{Kind: game.Choice, Prompt: q.Text, Default: q.Default, Max: q.Max}
 	switch {
+	case q.Continue:
+		a.Kind = game.Continue
+	case q.Heading:
+		a.Kind, a.Options = game.Direction, []game.Option{{Label: "Done", Key: 'D', Do: game.Leave{}}}
+		return a
 	case q.YesNo:
 		a.Kind = game.YesNo
 	case q.Typed:
@@ -163,17 +184,17 @@ func question(q *play.Question) *game.Ask {
 		a.Kind = game.Number
 	}
 	for _, t := range q.Replies {
-		a.Options = append(a.Options, game.Option{Label: t, Key: firstKey(t)})
+		a.Options = append(a.Options, game.Option{Label: t, Key: r.key(t)})
 	}
 	return a
 }
 
 // draftAsk is the creation step's question (nil: the sheet's fields).
-func draftAsk(d *play.Draft) *game.Ask {
-	if d.Step == "" {
+func (r *rules) draftAsk(d *play.Draft) *game.Ask {
+	if d.Step == "" && !d.YesNo {
 		return nil
 	}
-	return question(&play.Question{Replies: d.Choices, Typed: d.Typed, Number: d.Number, Default: d.Default, Max: d.Max})
+	return r.question(&play.Question{Text: d.Prompt, Replies: d.Choices, YesNo: d.YesNo, Typed: d.Typed, Number: d.Number, Default: d.Default, Max: d.Max})
 }
 
 // partyFuncs are the party menu's functions: label, hotkey and the action
@@ -186,7 +207,8 @@ var partyFuncs = []struct {
 	{"Create Character", 'C', "NewCharacter"}, {"Add Character", 'A', "AddCharacter"},
 	{"Remove Character", 'R', "RemoveCharacter"}, {"Modify Character", 'M', "Modify"},
 	{"Train Character", 'T', "OpenTraining"}, {"Human Change Class", 'H', "ChangeClass"},
-	{"View Character", 'V', ""}, {"Drop Character", 'D', "DropMember"}, {"Load Saved Game", 'L', ""},
+	{"View Character", 'V', ""}, {"Icon Select", 'I', "EditIcon"}, {"Drop Character", 'D', "DropMember"},
+	{"Load Saved Game", 'L', ""}, {"Save Current Game", 'S', ""},
 	{"Quick Start", 'Q', "QuickStart"}, {"Begin Adventuring", 'B', "Begin"}, {"Exit to DOS", 'E', "Quit"},
 }
 
@@ -195,23 +217,41 @@ var partyFuncs = []struct {
 // "Purge Character").
 func (r *rules) partyMenu(a play.Assembling) *game.Ask {
 	al := allowedNames(a.Allowed)
-	q := &game.Ask{Kind: game.Choice}
+	acts := map[string]string{}
+	order := r.data.PartyMenu
 	for _, f := range partyFuncs {
-		on := al[f.act]
-		switch f.label {
-		case "View Character":
+		acts[f.label] = f.act
+		if r.data.PartyMenu == nil {
+			order = append(order, game.MenuKey{Label: f.label, Key: f.key})
+		}
+	}
+	q := &game.Ask{Kind: game.Choice}
+	for _, f := range order {
+		act, known := acts[f.Label]
+		on := known && al[act]
+		switch f.Label {
+		case "View Character", "Save Current Game":
 			on = len(a.Party) > 0
 		case "Load Saved Game":
-			on = len(r.saves()) > 0
+			on = true // gobox's slot screen, empty or not
 		}
 		if on {
-			q.Options = append(q.Options, game.Option{Label: cmp.Or(r.data.Texts[f.label], f.label), Key: f.key})
+			k := f.Key
+			if r.data.NoHotkeys {
+				k = 0
+			}
+			q.Options = append(q.Options, game.Option{Label: cmp.Or(r.data.Texts[f.Label], f.Label), Key: k})
 		}
 	}
 	return q
 }
 
-func firstKey(s string) rune {
+// key is the hotkey gobox gives a label: its first letter, none where the
+// series' menus have none (Data.NoHotkeys).
+func (r *rules) key(s string) rune {
+	if r.data.NoHotkeys {
+		return 0
+	}
 	for _, c := range strings.ToUpper(s) {
 		return c
 	}
@@ -237,7 +277,7 @@ func (r *rules) State() game.State {
 	if c.Picture != nil {
 		s.Picture = *c.Picture
 	}
-	s.Page = &game.Page{}
+	s.Page = &game.Page{Layers: c.Layers}
 	for _, t := range c.Text {
 		s.Page.Pane = append(s.Page.Pane, []game.TextRun{{Text: t, Fg: ink}})
 		s.LastText = t
@@ -250,7 +290,10 @@ func (r *rules) State() game.State {
 	_, explore := ps.(play.Exploring)
 	s.Flags = &game.Flags{Adventure: camp || explore, Ordering: camp && s.Allowed["Order"], Sweeping: c.Where.Searching,
 		Inside: c.Where.Inside, CanCast: c.Selected >= 0 && c.Selected < len(s.Party) && s.Party[c.Selected].CanCast,
-		IconDrop: c.IconEditor != nil}
+		IconDrop: c.IconEditor != nil, Day: c.Day}
+	if c.Picture != nil || len(c.Layers) > 0 {
+		s.Window = game.WindowPicture
+	}
 	s.PowerPick, s.Picker, s.IconEditor = c.PowerPick, c.Picker, c.IconEditor
 	if n := c.Selected; n >= 0 && n < len(c.Party) && (len(c.Party[n].Powers) > 0 || len(c.Party[n].Reactions) > 0) {
 		s.Sheet = &game.Sheet{Powers: c.Party[n].Powers, Reactions: c.Party[n].Reactions}
@@ -278,12 +321,14 @@ func (r *rules) State() game.State {
 	case play.Exploring:
 		s.Mode, s.Window = game.ModeExplore, game.WindowScene
 		switch {
-		case c.Picture != nil:
+		case c.Ask != nil: // a question over the 3D view, as the old path asks it
+			s.Mode = game.ModeAsk
+		case c.Picture != nil || len(c.Layers) > 0:
 			s.Window = game.WindowPicture
 		case t.Map.Overland:
 			s.Window = game.WindowMap
 		}
-		s.Flags.Exploring, s.Flags.Day = true, t.Day // the game's say, never the hour guessed
+		s.Flags.Exploring, s.Flags.Day = c.Ask == nil, t.Day || c.Day // the game's say, never the hour guessed
 		s.Door = t.Door
 		if w := t.Map.Walls; w.Side != nil { // no squares: no 3D view (the overland)
 			s.Walls = &game.Walls{Key: wallsKey(w), Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
@@ -323,7 +368,7 @@ func (r *rules) State() game.State {
 		if t.Kind == play.SceneTitle && !r.title.credits {
 			pg.Layers = append(pg.Layers, t.Steps[r.title.n].Layers...)
 		}
-		s.Page.Pane, s.Page.View, s.Page.Layers = append(s.Page.Pane, pg.Pane...), pg.View, pg.Layers
+		s.Page.Pane, s.Page.View, s.Page.Layers = append(s.Page.Pane, pg.Pane...), pg.View, append(s.Page.Layers, pg.Layers...)
 		s.Flags.Full = t.Full
 		for _, l := range t.Layers {
 			if l.FrameMs > 0 && s.Pacing == nil {
@@ -376,7 +421,7 @@ func (r *rules) State() game.State {
 func holding(ps play.State) game.Hold {
 	switch t := ps.(type) {
 	case play.Exploring:
-		if t.Door != nil {
+		if t.Door != nil && t.Ask == nil {
 			return game.HoldDoor
 		}
 	case play.Trading:
@@ -518,14 +563,18 @@ func page(sc play.Scene) *game.Page {
 }
 
 // turnOptions are the old combat menu's decisions for the new actions.
+// turnOptions are the combat menu's verbs: the action, gobox's label and
+// the old decision (a series relabels one in Data.Texts, keys it in
+// Data.VerbKeys).
 var turnOptions = []struct {
-	new string
-	do  game.Decision
+	new, label string
+	do         game.Decision
 }{
-	{"MoveTo", game.Move{}}, {"Attack", game.Attack{}}, {"Shoot", game.Ranged{}}, {"Guard", game.Guard{}},
-	{"Cast", game.Cast{}}, {"UseItem", game.Items{}}, {"DoManeuver", game.Maneuver{}},
-	{"TurnUndead", game.TurnUndead{}}, {"Bandage", game.Bandage{}}, {"Delay", game.Wait{}},
-	{"Quick", game.Quick{}}, {"Flee", game.Flee{}}, {"EndTurn", game.EndTurn{}},
+	{"MoveTo", "Move", game.Move{}}, {"Attack", "Attack", game.Attack{}}, {"Shoot", "Ranged", game.Ranged{}},
+	{"Guard", "Guard", game.Guard{}}, {"Cast", "Cast", game.Cast{}}, {"UseItem", "Items", game.Items{}},
+	{"DoManeuver", "Maneuver", game.Maneuver{}}, {"TurnUndead", "Turn", game.TurnUndead{}},
+	{"Bandage", "Bandage", game.Bandage{}}, {"Delay", "Wait", game.Wait{}}, {"Quick", "Quick", game.Quick{}},
+	{"Flee", "Flee", game.Flee{}}, {"EndTurn", "End", game.EndTurn{}},
 }
 
 func (r *rules) combat(f play.Fighting) *game.Combat {
@@ -551,8 +600,9 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 	}
 	allowed := allowedNames(al)
 	for _, o := range turnOptions {
-		if allowed[o.new] && o.new != "MoveTo" {
-			t.Options = append(t.Options, game.Option{Label: o.new, Key: firstKey(o.new), Do: o.do})
+		if allowed[o.new] || o.new == "MoveTo" && len(al.Moves) > 0 {
+			l := cmp.Or(r.data.Texts[o.label], o.label)
+			t.Options = append(t.Options, game.Option{Label: l, Key: r.verbKey(o.label, r.key(l)), Do: o.do})
 		}
 	}
 	for _, v := range brVerbs { // as Buck Rogers' rules put them: an answer by hotkey
@@ -935,9 +985,15 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 		return r.aimOrDo(commonOf(ps).Allowed, moves[d.N])
 	}
 	if q := commonOf(ps).Ask; q != nil {
+		switch {
+		case q.Continue:
+			return r.do(play.Continue{})
+		case q.Heading:
+			return r.do(play.Heading{Dir: d.N})
+		}
 		return r.do(play.Reply{N: d.N, Text: d.Text})
 	}
-	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && a.Draft.Step != "" {
+	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && (a.Draft.Step != "" || a.Draft.YesNo) {
 		return r.do(play.SetChoice{Field: a.Draft.Step, N: d.N, Text: d.Text})
 	}
 	if _, ok := ps.(play.ShipFight); ok {
