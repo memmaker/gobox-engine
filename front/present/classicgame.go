@@ -17,6 +17,18 @@ type classicGame struct {
 	p *Presenter
 }
 
+// playSeq is the game.MenuItem sequence playing ("": none); its end comes back here, not to the game.
+var playSeq string
+
+// SequenceDone ends a menu item's animation here; the game's own go on to it.
+func (g classicGame) SequenceDone(name string) {
+	if playSeq != "" && name == playSeq {
+		playSeq = ""
+		return
+	}
+	g.Game.SequenceDone(name)
+}
+
 func (g classicGame) View() front.View {
 	s := g.r.State()
 	var gv front.View
@@ -46,6 +58,12 @@ func (g classicGame) View() front.View {
 	v = classic.Walls(v, s, g.art())
 	v = classic.Intro(v, s)
 	v = classic.Sequence(v, s, sequences, filesDir)
+	if playSeq != "" && v.Sequence == nil { // a game.MenuItem's animation, gobox's own: the game's state never knows
+		s.Sequence = playSeq
+		if v = classic.Sequence(v, s, sequences, filesDir); v.Sequence == nil {
+			playSeq = "" // no such sequence
+		}
+	}
 	v = classic.Note(v, s)
 	v = classic.Results(v, s)
 	v = classic.Screen(v, s)

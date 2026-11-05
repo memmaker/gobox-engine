@@ -94,7 +94,7 @@ var (
 	areaMaps                         map[front.AreaID]string
 	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
 	openAt                           string
-	dollPNG []byte
+	dollPNG                          []byte
 	daxLoader                        *dax.Loader
 	mapSide                          int // View.Map's side in pixels
 	sounds                           []byte
@@ -184,7 +184,8 @@ type Entry struct {
 	Text  string
 	Key   byte
 	Act   front.ActKind
-	N     int // ActCommand's: the index into game.Data.Commands
+	N     int    // ActCommand's: the index into game.Data.Commands
+	Seq   string // a game.MenuItem's: the sequence it plays (playSeq), no Act sent
 	Party bool
 }
 
@@ -330,6 +331,10 @@ func gameData(g game.Data) {
 		setBindings(own)
 	}
 	menuEntries = slices.DeleteFunc(menuEntries, func(e Entry) bool { return e.Act == front.ActCommand })
+	menuEntries = slices.DeleteFunc(menuEntries, func(e Entry) bool { return e.Seq != "" })
+	for _, m := range g.MenuItems {
+		menuEntries = append(menuEntries, Entry{Text: m.Label, Key: byte(m.Key), Seq: m.Sequence})
+	}
 	for i, c := range g.Commands {
 		menuEntries = append(menuEntries, Entry{Text: c.Label, Key: byte(c.Key), Act: front.ActCommand, N: i, Party: true})
 	}

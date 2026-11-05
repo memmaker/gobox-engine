@@ -191,7 +191,11 @@ func (m *mainUI) entries(h MainHost, it []ui.MenuRow, party bool) []ui.MenuRow {
 			if e.Act == front.ActCommand {
 				n = e.N
 			}
-			it = append(it, ui.MenuRow{Text: e.Text, Key: e.Key, Do: func() { h.Send(e.Act, n) }})
+			do := func() { h.Send(e.Act, n) }
+			if e.Seq != "" {
+				do = func() { playSeq = e.Seq }
+			}
+			it = append(it, ui.MenuRow{Text: e.Text, Key: e.Key, Do: do})
 		}
 	}
 	return it

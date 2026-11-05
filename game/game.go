@@ -1139,6 +1139,7 @@ type Data struct {
 	Sounds       map[string]string
 	Palette      []byte                        // palette bytes
 	Commands     []Option                      // extra party commands: Decisions with labels
+	MenuItems    []MenuItem                    // the game's own main menu lines, after gobox's
 	Imports      []string                      // other games' rosters and saves this game reads, by game id
 	QuickParty   []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
 	Clues        []Clue                        // the clue book's chapters (nil: the game has none)
@@ -1385,4 +1386,12 @@ type Message struct {
 	Tone  Tone
 	Text  string
 	Clear bool // the window is cleared first, after a key pause when it holds text (the original's pause-and-clear)
+}
+
+// MenuItem is a main menu line of the game's: gobox plays Sequence (a
+// Data.Sequences name) full screen and comes back to the menu; no game code runs.
+type MenuItem struct {
+	Label    string
+	Key      rune
+	Sequence string
 }
