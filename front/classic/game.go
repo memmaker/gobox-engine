@@ -120,7 +120,7 @@ func (g *Game) ViewOf(s game.State) front.View {
 		v.Camp = &front.Camp{}
 	}
 	v = View(v, s)
-	g.found = g.found && s.Mode == game.ModeLoot && s.Loot != nil // a new treasure is announced again
+	g.found = g.found && s.Loot != nil // a new treasure is announced again (a question over this one keeps it)
 	if s.Mode == game.ModeLoot && s.Loot != nil && !g.found { // the treasure's picture under a message; Enter or Space opens the loot screen
 		v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}
 	}

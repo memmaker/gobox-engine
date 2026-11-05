@@ -45,12 +45,19 @@ func TestLootScreen(t *testing.T) {
 	if m := in.Treasure.Money; len(m) != 2 || m[0] != "120 gold" || m[1] != "2 gems" {
 		t.Errorf("money %q", m)
 	}
+	s.Mode = game.ModeAsk // a question over the treasure (Buck 2's credits) does not announce it again
+	g.ViewOf(s)
+	s.Mode = game.ModeLoot
+	if g.ViewOf(s).Inventory == nil {
+		t.Error("a question over the treasure announced it again")
+	}
 	s.Sheet = &game.Sheet{}
 	if g.ViewOf(s).Inventory != nil {
 		t.Error("loot screen over the sheet")
 	}
-	s.Mode = game.ModeExplore
+	s.Mode, s.Loot = game.ModeExplore, nil
 	g.ViewOf(s)
+	s.Loot = &game.Loot{Items: []game.Item{{Name: "Gauntlets"}}}
 	s.Mode, s.Sheet = game.ModeLoot, nil
 	if g.ViewOf(s).Inventory != nil {
 		t.Error("the next treasure was not announced")
