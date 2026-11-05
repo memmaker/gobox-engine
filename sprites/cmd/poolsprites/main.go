@@ -32,6 +32,11 @@ type source struct {
 var (
 	games = []string{"por", "cotab", "sotsb", "pod"}
 	vga   = map[string]bool{"pod": true, "buckrogers": true} // games whose pictures are VGA (dax.ParseVGA) not EGA
+	// amigaGames have data/amiga archives drawn in the fixed ega.Amiga
+	// palettes; they go in after every DOS picture (so DOS names stay put),
+	// under origins key <game>-amiga, from one file a kind (HEAD, not HEAD1..8).
+	// ponytail: cotab and sotsb Amiga art carries its own *PAL.DAX palettes, not decoded here yet.
+	amigaGames = []string{"por"}
 	// The per-game file lists: the only game knowledge here.
 	sources = []source{
 		{"portraits", "head", false, []string{"HEAD1", "HEAD2", "HEAD3", "HEAD4", "HEAD5", "HEAD6", "HEAD7", "HEAD8"}, false},
@@ -83,11 +88,26 @@ func main() {
 	seen := map[string]*entry{}           // kind dir + pixels -> entry
 	before := map[string]map[string]int{} // game -> dir -> pictures decoded
 	after := map[string]map[string]int{}  // game -> dir -> pictures first seen there
+	type run struct{ game, key, dir string }
+	var runs []run
 	for _, g := range games {
+		runs = append(runs, run{g, g, "dos"})
+	}
+	if *series == "pool" {
+		for _, g := range amigaGames {
+			runs = append(runs, run{g, g + "-amiga", "amiga"})
+		}
+	}
+	for _, r := range runs {
+		g := r.key
 		before[g], after[g], origins[g] = map[string]int{}, map[string]int{}, map[string]map[string]string{}
 		for _, s := range sources {
-			for _, f := range s.files {
-				path := filepath.Join(*root, g+"-go", "data", "dos", f+".DAX")
+			files := s.files
+			if r.dir == "amiga" {
+				files = []string{strings.TrimRight(s.files[0], "12345678")}
+			}
+			for _, f := range files {
+				path := filepath.Join(*root, r.game+"-go", "data", r.dir, f+".DAX")
 				d, err := dax.Open(path)
 				if err != nil {
 					continue
@@ -95,7 +115,7 @@ func main() {
 				for _, e := range d.Entries {
 					blk := d.BlockShared(e.ID)
 					im := dax.ParseImage(blk, s.masked, 0)
-					if vga[g] {
+					if vga[r.game] {
 						im = dax.ParseVGA(blk, s.masked, 0)
 					}
 					if im == nil || im.Count == 0 || im.Width == 0 || im.Height == 0 || len(im.Data) < im.Count*im.BPP {
@@ -156,7 +176,8 @@ func main() {
 		check(os.WriteFile(filepath.Join(pool, "combat", "poses.json"), append(b, '\n'), 0o644))
 		index(filepath.Join(*out, "INDEX.md"), byDir)
 	}
-	for _, g := range games {
+	for _, r := range runs {
+		g := r.key
 		for _, k := range []string{"portraits", "combat"} {
 			fmt.Printf("%s %s: %d decoded, %d new\n", g, k, before[g][k], after[g][k])
 		}
@@ -171,6 +192,8 @@ func render(im *dax.Image, fr int) *image.NRGBA {
 	for i, v := range im.Frame(fr)[:w*im.Height] {
 		switch {
 		case v == dax.Clear && im.Palette == nil:
+		case v >= ega.AmigaBase && im.Palette == nil:
+			out.SetNRGBA(i%w, i/w, color.NRGBA(ega.AmigaRGBA(v)))
 		case im.Palette != nil:
 			if c := im.Palette[v]; c.A != 0 {
 				out.SetNRGBA(i%w, i/w, color.NRGBA(c))
@@ -184,10 +207,30 @@ func render(im *dax.Image, fr int) *image.NRGBA {
 
 // indexed is frame fr as a paletted image keeping the DAX indices: EGA art
 // has 17 palette entries (the 16 colours, then transparent for Clear), VGA
-// art its own palette.
+// art its own palette, Amiga art (values from ega.AmigaBase) those 17 padded
+// with transparent up to the Amiga colours, so it keeps its values too.
 func indexed(im *dax.Image, fr int) *image.Paletted {
 	w := im.Width * 8
 	var pal color.Palette
+	amiga := false
+	for _, v := range im.Frame(fr)[:w*im.Height] {
+		amiga = amiga || im.Palette == nil && v >= ega.AmigaBase && v != dax.Clear
+	}
+	if amiga {
+		for i := 0; i < ega.AmigaBase+16*len(ega.Amiga); i++ {
+			switch {
+			case i < 16:
+				pal = append(pal, color.NRGBA(ega.RGBA(i)))
+			case i < ega.AmigaBase:
+				pal = append(pal, color.NRGBA{})
+			default:
+				pal = append(pal, color.NRGBA(ega.AmigaRGBA(uint8(i))))
+			}
+		}
+		out := image.NewPaletted(image.Rect(0, 0, w, im.Height), pal)
+		copy(out.Pix, im.Frame(fr)[:w*im.Height])
+		return out
+	}
 	if im.Palette != nil {
 		for _, c := range im.Palette {
 			pal = append(pal, color.NRGBA(c))
