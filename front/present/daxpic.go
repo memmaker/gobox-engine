@@ -56,6 +56,19 @@ func daxMasked(file string, block, frame, mask int) image.Image {
 					m.Set(i%(im.Width*8), i/(im.Width*8), im.Palette[c])
 				}
 			}
+		} else if fs, _ := dax.ParseVGAAnim(b); frame < len(fs) { // a VGA animation (Buck Rogers, PoD PIC/SPRIT)
+			im := fs[frame].Image
+			sprite := strings.HasPrefix(strings.ToUpper(file), "SPRIT") // O124:0981: a sprite's 0 and 13 swap, 13 is clear
+			m = image.NewRGBA(image.Rect(0, 0, im.Width*8, im.Height))
+			for i, c := range im.Data {
+				switch {
+				case sprite && c == 0, int(c) == mask:
+				case sprite && c == 13:
+					m.Set(i%(im.Width*8), i/(im.Width*8), im.Palette[0])
+				default:
+					m.Set(i%(im.Width*8), i/(im.Width*8), im.Palette[c])
+				}
+			}
 		} else if im := daxStill(file, b, frame); im != nil {
 			m = image.NewRGBA(image.Rect(0, 0, im.Width*8, im.Height))
 			pal := daxLoader.AmigaPalette(file, block)
@@ -140,6 +153,7 @@ func daxStill(file string, b []byte, frame int) *dax.Image {
 // spriteAnim is an animation block's frame delays and when it came up.
 type spriteAnim struct {
 	delays      []time.Duration
+	loop        int // the frame play goes back to after the last
 	start, seen time.Time
 }
 
@@ -147,11 +161,13 @@ var spriteAnims = map[daxKey]*spriteAnim{} // by file and block (frame 0)
 
 // spriteFrame is the frame of pc's DAX animation block shown at now, as the
 // originals' view window plays it (por-go anim.go, ovr26 DisplayInput): each
-// frame for its delay in tenths of a second, then the next, looping. ok is
-// false for a still picture, one the game cycles itself (Frames) or names
-// by pixels or pool name.
+// frame for its delay in tenths of a second, then the next, after the last
+// back to its loop frame (a VGA block's own, BR O10F:109E; else the first).
+// ok is false for a still picture, a sprite (SPRIT*: the game picks its
+// frame, O10F:102E), one the game cycles itself (Frames) or names by
+// pixels or pool name.
 func spriteFrame(pc front.Picture, now time.Time) (int, bool) {
-	if pc.File == "" || pc.Img != nil || pc.Pix != nil || pc.Name != "" || len(pc.Frames) > 0 || daxLoader == nil {
+	if pc.File == "" || pc.Img != nil || pc.Pix != nil || pc.Name != "" || len(pc.Frames) > 0 || daxLoader == nil || strings.HasPrefix(strings.ToUpper(pc.File), "SPRIT") {
 		return 0, false
 	}
 	k := daxKey{file: pc.File, block: pc.Block}
@@ -159,10 +175,15 @@ func spriteFrame(pc front.Picture, now time.Time) (int, bool) {
 	if !ok {
 		a = &spriteAnim{start: now}
 		b := daxLoader.BlockShared(pc.File, pc.Block)
-		if im := dax.ParseImage(b, false, 0); im == nil || im.Width == 0 { // not a plain image: an animation block
-			for _, f := range dax.ParseSprite(b, false, 0, false) {
-				a.delays = append(a.delays, max(time.Duration(f.Delay)*100*time.Millisecond, 10*time.Millisecond)) // a 0 delay: the next tick (10 ms)
+		fs, loop := dax.ParseVGAAnim(b)
+		if fs == nil {
+			if im := dax.ParseImage(b, false, 0); im == nil || im.Width == 0 { // not a plain image: an EGA animation block
+				fs = dax.ParseSprite(b, false, 0, false)
 			}
+		}
+		a.loop = loop
+		for _, f := range fs {
+			a.delays = append(a.delays, max(time.Duration(f.Delay)*100*time.Millisecond, 10*time.Millisecond)) // a 0 delay: the next tick (10 ms)
 		}
 		spriteAnims[k] = a
 	} else if now.Sub(a.seen) > 250*time.Millisecond { // shown again after a while: from its first frame
@@ -172,16 +193,28 @@ func spriteFrame(pc front.Picture, now time.Time) (int, bool) {
 	if len(a.delays) < 2 {
 		return 0, false
 	}
-	var loop time.Duration
-	for _, d := range a.delays {
-		loop += d
+	return animFrame(a.delays, a.loop, now.Sub(a.start)), true
+}
+
+// animFrame is the frame shown t into playing delays once from the first,
+// then over and over from loop.
+func animFrame(delays []time.Duration, loop int, t time.Duration) int {
+	var intro, cycle time.Duration
+	for i, d := range delays {
+		if i < loop {
+			intro += d
+		} else {
+			cycle += d
+		}
 	}
-	t := now.Sub(a.start) % loop
-	for i, d := range a.delays {
+	if t >= intro {
+		t = intro + (t-intro)%cycle
+	}
+	for i, d := range delays {
 		if t < d {
-			return i, true
+			return i
 		}
 		t -= d
 	}
-	return 0, true
+	return loop
 }

@@ -35,3 +35,23 @@ func TestSpriteFrameDelays(t *testing.T) {
 		}
 	}
 }
+
+// animFrame plays the frames once from the first, then over from loop.
+func TestAnimFrameLoop(t *testing.T) {
+	d := []time.Duration{100, 100, 100, 100} // ns
+	for _, c := range []struct {
+		t          time.Duration
+		loop, want int
+	}{{0, 0, 0}, {350, 0, 3}, {450, 0, 0}, {250, 2, 2}, {450, 2, 2}, {550, 2, 3}, {650, 2, 2}} {
+		if f := animFrame(d, c.loop, c.t); f != c.want {
+			t.Errorf("t %d loop %d: frame %d, want %d", c.t, c.loop, f, c.want)
+		}
+	}
+}
+
+// A sprite (SPRIT*) block never plays itself: the game picks its frame.
+func TestSpriteNotAutoPlayed(t *testing.T) {
+	if _, ok := spriteFrame(front.Picture{File: "SPRIT1", Block: 1}, time.Now()); ok {
+		t.Fatal("SPRIT played")
+	}
+}
