@@ -66,6 +66,7 @@ type Driver struct {
 	t        Tracks
 	pack     Pack
 	speaking func() bool // a voice-over speaks: the music is silent
+	own      func() bool // the player's own music plays (SetOwnMusic): the game's is silent
 	vol      func(kind string) float64
 }
 
@@ -153,7 +154,7 @@ func (d *Driver) render(p []byte) int {
 			switch {
 			case !d.am.Playing():
 				scale(p[:n], d.vol("sfx"))
-			case d.speaking(): // extra: the song plays on unheard
+			case d.quiet(): // extra: the song plays on unheard
 				clear(p[:n])
 			default:
 				scale(p[:n], d.vol("music"))
@@ -201,7 +202,7 @@ func (d *Driver) mixSoundtrack(p []byte) {
 	} else {
 		clear(m)
 	}
-	if d.speaking() {
+	if d.quiet() {
 		return
 	}
 	g := d.vol("music") * soundtrackLevel
@@ -373,3 +374,14 @@ func (d *Driver) Sounding() bool {
 	defer d.mu.Unlock()
 	return d.am != nil && d.am.Sounding()
 }
+
+// SetOwnMusic silences the game's songs while playing reports true (the
+// player's own music plays over them; nil: never).
+func (d *Driver) SetOwnMusic(playing func() bool) {
+	d.mu.Lock()
+	d.own = playing
+	d.mu.Unlock()
+}
+
+// quiet: the game's songs play on unheard (a voice-over, the player's own music).
+func (d *Driver) quiet() bool { return d.speaking() || d.own != nil && d.own() }

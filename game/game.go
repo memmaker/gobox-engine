@@ -416,6 +416,7 @@ type Where struct {
 	Mode      string // travel mode: "dungeon", "wilderness", "town", ...
 	Searching bool
 	Hall      bool           // the party is where characters may join or leave it (a guild hall, an inn)
+	Music     string         // the place's own music trigger ("new-phlan": data/music/new-phlan), over gobox's generic ones; "" none
 	Detail    map[string]int // game-specific domain numbers (block ids, wall sets)
 }
 
@@ -1140,6 +1141,7 @@ type Data struct {
 	Palette      []byte                        // palette bytes
 	Commands     []Option                      // extra party commands: Decisions with labels
 	MenuItems    []MenuItem                    // the game's own main menu lines, after gobox's
+	MusicPlaces  []string                      // every Where.Music trigger the game sets (gobox makes their data/music folders)
 	Imports      []string                      // other games' rosters and saves this game reads, by game id
 	QuickParty   []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
 	Clues        []Clue                        // the clue book's chapters (nil: the game has none)

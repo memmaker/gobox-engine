@@ -48,6 +48,7 @@ replace gobox/dax => ../dax
 require gobox/audio v0.0.0
 
 require (
+	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/memmaker/opl2 v0.1.0 // indirect
 	github.com/qmuntal/gltf v0.29.0 // indirect
 )

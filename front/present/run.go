@@ -7,6 +7,7 @@ package present
 import (
 	"fmt"
 	"gobox/ui/fonts"
+	"path/filepath"
 	"time"
 
 	"gobox/amiga"
@@ -69,6 +70,13 @@ func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
 			f.P.AdLib = a
 			d.Attach(nil, nil, a, nil, nil, nil)
 			d.SetSoundtrack(true, 0, 0)
+		}
+	}
+	if daxLoader != nil && len(snd) == 0 { // the player's own music: data/music/<trigger>
+		ownMus = newOwnMusic(filepath.Join(filepath.Dir(daxLoader.Dir), "music"), data.MusicPlaces)
+		audio.Output(ownMus)
+		if d, ok := f.P.Snd.(*audio.Driver); ok {
+			d.SetOwnMusic(ownMus.Playing)
 		}
 	}
 	f.P.SetEngine(f.Game)

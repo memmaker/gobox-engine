@@ -58,6 +58,9 @@ func (g classicGame) View() front.View {
 	v = classic.Walls(v, s, g.art())
 	v = classic.Intro(v, s)
 	v = classic.Sequence(v, s, sequences, filesDir)
+	if ownMus != nil {
+		ownMus.Want(musicChain(s))
+	}
 	if playSeq != "" && v.Sequence == nil { // a game.MenuItem's animation, gobox's own: the game's state never knows
 		s.Sequence = playSeq
 		if v = classic.Sequence(v, s, sequences, filesDir); v.Sequence == nil {
