@@ -640,9 +640,12 @@ var tones = map[game.Tone]color.RGBA{game.ToneText: ink, game.ToneOwn: {85, 255,
 	game.TonePrompt: {255, 255, 85, 255}, game.ToneWarn: {255, 85, 255, 255}, game.ToneLoud: ink}
 
 // run is a line of the rules' text: its colour unset, so the front gives
-// it gobox's body text colour, in capitals unless Data.Lowercase.
+// it gobox's body text colour, in the text glyphs (Upcase: fonts.Glyph
+// keeps a font's own lower case, else capitals). Upcase is not the case: a
+// false one (once set for Data.Lowercase) drew PoD's lower-case letters as
+// the charset's graphics.
 func (r *rules) run(t string) []game.TextRun {
-	return []game.TextRun{{Text: t, Upcase: !r.data.Lowercase}}
+	return []game.TextRun{{Text: t, Upcase: true}}
 }
 
 func walls(w play.Walls) *game.Walls {
