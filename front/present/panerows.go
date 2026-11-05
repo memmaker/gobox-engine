@@ -26,6 +26,11 @@ func (p *Presenter) paged(v front.View) front.View {
 		v.Pane = &c
 	}
 	for i, pc := range v.Pictures {
+		if f, ok := spriteFrame(pc, time.Now()); ok { // a DAX animation block (PIC, SPRIT, FINAL): its frames at their own delays
+			v.Pictures = append(v.Pictures[:i:i], v.Pictures[i:]...)
+			v.Pictures[i].Frame = f
+			pc = v.Pictures[i]
+		}
 		if len(pc.Frames) > 0 && pc.FrameMs > 0 {
 			v.Pictures = append(v.Pictures[:i:i], v.Pictures[i:]...) // not the game's slice
 			for j := i; j < len(v.Pictures); j++ {

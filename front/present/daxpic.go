@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"slices"
 	"strings"
+	"time"
 
 	"gobox/dax"
 	"gobox/ega"
@@ -31,6 +32,7 @@ func (f *Front) Arts() (dos bool, set func(bool)) {
 	return true, func(dos bool) {
 		daxLoader.SetDOS(dos)
 		clear(daxPics)
+		clear(spriteAnims) // the other art's frames and delays
 		f.ArtNew = true
 	}
 }
@@ -133,4 +135,53 @@ func daxStill(file string, b []byte, frame int) *dax.Image {
 		return nil
 	}
 	return fs[frame].Image
+}
+
+// spriteAnim is an animation block's frame delays and when it came up.
+type spriteAnim struct {
+	delays      []time.Duration
+	start, seen time.Time
+}
+
+var spriteAnims = map[daxKey]*spriteAnim{} // by file and block (frame 0)
+
+// spriteFrame is the frame of pc's DAX animation block shown at now, as the
+// originals' view window plays it (por-go anim.go, ovr26 DisplayInput): each
+// frame for its delay in tenths of a second, then the next, looping. ok is
+// false for a still picture, one the game cycles itself (Frames) or names
+// by pixels or pool name.
+func spriteFrame(pc front.Picture, now time.Time) (int, bool) {
+	if pc.File == "" || pc.Img != nil || pc.Pix != nil || pc.Name != "" || len(pc.Frames) > 0 || daxLoader == nil {
+		return 0, false
+	}
+	k := daxKey{file: pc.File, block: pc.Block}
+	a, ok := spriteAnims[k]
+	if !ok {
+		a = &spriteAnim{start: now}
+		b := daxLoader.BlockShared(pc.File, pc.Block)
+		if im := dax.ParseImage(b, false, 0); im == nil || im.Width == 0 { // not a plain image: an animation block
+			for _, f := range dax.ParseSprite(b, false, 0, false) {
+				a.delays = append(a.delays, max(time.Duration(f.Delay)*100*time.Millisecond, 10*time.Millisecond)) // a 0 delay: the next tick (10 ms)
+			}
+		}
+		spriteAnims[k] = a
+	} else if now.Sub(a.seen) > 250*time.Millisecond { // shown again after a while: from its first frame
+		a.start = now
+	}
+	a.seen = now
+	if len(a.delays) < 2 {
+		return 0, false
+	}
+	var loop time.Duration
+	for _, d := range a.delays {
+		loop += d
+	}
+	t := now.Sub(a.start) % loop
+	for i, d := range a.delays {
+		if t < d {
+			return i, true
+		}
+		t -= d
+	}
+	return 0, true
 }
