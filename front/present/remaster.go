@@ -374,6 +374,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			if sc != nil {
 				p.draw3D(dst, v, sc, note)
+			} else if len(v.Pictures) > 0 { // the page's own picture (a shop's): framed, as the original keeps it
+				p.drawGeneric(dst, v, note)
 			} else if p.behind != nil { // a page that publishes no map (a shop, a temple): the view last shown, as it stood
 				p.view.Draw(dst)
 			} else {
