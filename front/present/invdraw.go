@@ -97,7 +97,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	inv := &p.inv
 	inv.shown = false
 	in := v.Inventory
-	if choosing(p.own(v)) { // a member pick (Heal whom? Trade to whom?), the game's or the presenter's own: the view and the cards instead (Draw)
+	if choosing(p.own(v)) && p.q == nil { // the game's member pick (Heal whom?): the view and the cards instead (Draw); the presenter's own (Trade to whom?) is asked over the items
 		return false
 	}
 	if p.playing() != nil { // an event to show (Draw plays it); this also drops the played ones, else Playing holds every key
@@ -294,6 +294,14 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	if box != nil { // the question: the standard menu, over everything
 		p.keyWindow(dst, strings.Join(box, " "), []string{"Yes", "No"}, []byte{'Y', 'N'}, nil, inv.askSel, false)
 		inv.askAt = slices.Clone(p.winRects)
+	}
+	if q := p.q; q != nil && q.Ask.Kind == front.AskMember { // the presenter's member pick over the items: the members by their number keys
+		var names []string
+		var keys []byte
+		for i, m := range v.Party {
+			names, keys = append(names, m.Name), append(keys, byte('1'+i))
+		}
+		p.keyWindow(dst, q.Ask.Prompt, names, keys, nil, q.Cand, false)
 	}
 	return true
 }

@@ -150,7 +150,7 @@ func (inv *inventory) order() []pick {
 // item; the wheel and the scroll bar scroll.
 func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 	inv := &p.inv
-	if inv.k == 0 || inv.view == nil {
+	if inv.k == 0 || inv.view == nil || p.q != nil { // a question over the items takes the keys, not the pointer
 		return
 	}
 	moved := image.Pt(x, y) != inv.mouseAt // only a moved pointer takes the question's highlight
