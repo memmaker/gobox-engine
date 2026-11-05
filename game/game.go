@@ -798,7 +798,7 @@ type Creation struct {
 	Fields       []Field  // the draft's fields with their options (race, gender, class, alignment ...)
 	Roster       []string // saved characters that can be added
 	MinHP, MaxHP int
-	Minimums     string // the rules' text on stat minimums for the chosen class
+	Minimums     map[string]int // the chosen class's lowest ability scores, by Member.Stats key ("str", ...)
 	// Stats are the abilities the sheet shows, in the game's order and
 	// count (nil: STR INT WIS DEX CON CHA from Draft.Stats, with 18/xx).
 	Stats []StatDef `json:",omitempty"`

@@ -3,6 +3,8 @@ package classic
 import (
 	"gobox/front"
 	"gobox/game"
+	"strconv"
+	"strings"
 )
 
 // Creation is the creation sheet's parts from s (nil: none up) on a page
@@ -16,7 +18,7 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 	}
 	d := c.Draft
 	winRight, winBottom := max(cols, 40)-2, max(rows, 25)-3
-	v := &front.Creation{Minimums: c.Minimums, Abandon: "Abandon this character?", PointBuy: PointBuy}
+	v := &front.Creation{Minimums: minimums(c.Minimums), Abandon: "Abandon this character?", PointBuy: PointBuy}
 	if a := s.Pending; a != nil && a.Kind == game.YesNo {
 		v.Abandon = a.Prompt
 	}
@@ -99,4 +101,18 @@ func picked(f game.Field) string {
 		return f.Options[f.Pick]
 	}
 	return ""
+}
+
+// minimums is the six abilities' minimums as Minimal shows them, STR
+// first ("-": none).
+func minimums(m map[string]int) string {
+	var f []string
+	for _, k := range []string{"str", "int", "wis", "dex", "con", "cha"} {
+		if v, ok := m[k]; ok {
+			f = append(f, strconv.Itoa(v))
+		} else {
+			f = append(f, "-")
+		}
+	}
+	return strings.Join(f, " ")
 }

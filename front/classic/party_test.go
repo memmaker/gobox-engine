@@ -55,3 +55,9 @@ func TestDraftNameColour(t *testing.T) {
 		t.Fatal("black name")
 	}
 }
+
+func TestMinimums(t *testing.T) {
+	if s := minimums(map[string]int{"str": 9, "int": 12}); s != "9 12 - - - -" {
+		t.Fatal(s)
+	}
+}

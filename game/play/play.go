@@ -165,14 +165,14 @@ type Draft struct {
 	Member
 	Fields       []game.Field
 	MinHP, MaxHP int
-	Minimums     string   // the rules' text on stat minimums for the class
-	Step         string   // the creation step the rules are on ("race", "skills", ...), "" any
-	Choices      []string // that step's options: SetChoice{Field: Step, N}
-	Typed        bool     // the step takes typed text (a name): SetChoice{Field: Step, Text}
-	Number       bool     // the step takes a number: SetChoice{Field: Step, N}
-	Default, Max int      // Typed: the longest; Number: the default and the largest
-	YesNo        bool     // the step asks yes or no ("Reroll stats?"): SetChoice{Field: Step, N: 1} is yes
-	Prompt       string   // the step's question text
+	Minimums     map[string]int // the class's lowest ability scores, by Member.Stats key ("str", ...)
+	Step         string         // the creation step the rules are on ("race", "skills", ...), "" any
+	Choices      []string       // that step's options: SetChoice{Field: Step, N}
+	Typed        bool           // the step takes typed text (a name): SetChoice{Field: Step, Text}
+	Number       bool           // the step takes a number: SetChoice{Field: Step, N}
+	Default, Max int            // Typed: the longest; Number: the default and the largest
+	YesNo        bool           // the step asks yes or no ("Reroll stats?"): SetChoice{Field: Step, N: 1} is yes
+	Prompt       string         // the step's question text
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).
