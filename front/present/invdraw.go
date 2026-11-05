@@ -285,6 +285,9 @@ func (p *Presenter) drawMember(in *front.Inventory, v front.View, lx, lw, bottom
 	inv.dollAt = db.Add(image.Pt(lx+(lw-db.Dx())/2, bottom-db.Dy()-4)) // on the box's bottom, under the portrait
 	draw.Draw(inv.px, inv.dollAt, inv.doll, db.Min, draw.Src)
 	for s, it := range in.Doll {
+		if s >= len(dollBoxes) { // a game without a paper doll (no DollBoxes: Silver Blades, Curse) draws no slots; its readied items are on the list
+			break
+		}
 		box := dollBoxes[s].Add(inv.dollAt.Min)
 		if it != nil {
 			inv.drawIcon(it, box.Inset(1))
