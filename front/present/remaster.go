@@ -527,18 +527,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.drawMenu(dst, note.Glyph, "", []string{strings.TrimSpace(askMenu(v).Prompt)}, nil, nil, -1, mk, cx, b.Dy()/2-int(mk*12))
 		p.menuRects = p.menuRects[:0]
 	} else if ask { // the question over the line being typed, its cursor blinking
-		p.menu = false
-		t, w := typing(v).Text, min(typing(v).Max, 24)
-		c := len(t)
-		if p.typing {
-			t, c = p.typed, p.typedCur
-		}
-		top := b.Dy()/2 - int(mk*float64(len(ui.WrapWords(typing(v).Prompt, 24))+5)*4)
-		if picBottom > 0 { // never over the picture: right under it
-			top = max(top, picBottom+int(pk*4))
-		}
-		p.drawMenu(dst, note.Glyph, typing(v).Prompt, []string{caretLine(t, c, w, p.blink())}, nil, nil, 0, mk, cx, top)
-		p.menuRects = p.menuRects[:0]
+		p.drawTyping(dst, note, v, mk, cx, picBottom+int(pk*4))
 	} else if askList(v) != nil && askMenu(v) != nil { // a list and its question (list.go)
 		p.menu = false
 		rows := len(ui.TitleLines(askMenu(v).Prompt)) + min(len(askList(v)), listRows) + len(askMenu(v).Items) + 4 // drawMenu's: the title, a blank, the lines, a blank, the options, the border
@@ -869,4 +858,18 @@ func (p *Presenter) seqMusic(cues []vace.Cue) {
 			}
 		}
 	}
+}
+
+// drawTyping draws the question over the line being typed, its cursor
+// blinking, in the middle of dst, never above floor (under a picture).
+func (p *Presenter) drawTyping(dst *gpu.Image, note Note, v front.View, mk float64, cx, floor int) {
+	p.menu = false
+	t, w := typing(v).Text, min(typing(v).Max, 24)
+	c := len(t)
+	if p.typing {
+		t, c = p.typed, p.typedCur
+	}
+	top := max(dst.Bounds().Dy()/2-int(mk*float64(len(ui.WrapWords(typing(v).Prompt, 24))+5)*4), floor)
+	p.drawMenu(dst, note.Glyph, typing(v).Prompt, []string{caretLine(t, c, w, p.blink())}, nil, nil, 0, mk, cx, top)
+	p.menuRects = p.menuRects[:0]
 }

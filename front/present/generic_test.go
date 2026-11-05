@@ -42,3 +42,17 @@ func TestGenericPaneAndPrompt(t *testing.T) {
 		t.Fatalf("the prompt is not drawn: %d lit with it, %d without", both, textOnly)
 	}
 }
+
+// A typed answer with nothing else up (BR2's name after the sheet) is
+// drawn: its question and line, never a black screen.
+func TestGenericTyping(t *testing.T) {
+	dst := gpu.NewImage(1280, 800)
+	defer dst.Deallocate()
+	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
+	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
+	p := &Presenter{}
+	p.Draw(dst, note, front.View{Ask: &front.Ask{Kind: front.AskText, Menu: front.Menu{Prompt: "Character name:"}, Max: 15}})
+	if lit(dst) == 0 {
+		t.Fatal("the name question is not drawn")
+	}
+}
