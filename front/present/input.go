@@ -75,7 +75,7 @@ func (p *Presenter) arrow(a input.Act, v front.View) {
 
 func (p *Presenter) send(kind front.ActKind, n int) {
 	if kind == front.ActChoose || kind == front.ActOK { // a question answered: the next menu pops up, the same one again too
-		p.asked = ""
+		p.asked, p.pageAsked = "", ""
 	}
 	if kind == front.ActLoad && p.slots == nil { // the party menu's Load
 		p.openSlots(p.shownView, true)

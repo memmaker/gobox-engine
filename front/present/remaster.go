@@ -76,6 +76,7 @@ type Presenter struct {
 	menuFor     string                      // the menu it opened for (menuID): another menu arriving closes it, so one key never answers two menus
 	sel         int                         // its highlighted item
 	asked       string                      // the question menu last opened by itself (menuID); send clears it on a pick, so the same menu back after one (a refusal, back from Browse) opens again
+	pageAsked   string                      // the page question menu last opened (drawPageMenu)
 	answered    string                      // the text pane under the last question: once it is answered, that text is done
 	mapImg      *gpu.Image                  // View.Map on the GPU
 	mapAt       image.Rectangle             // where drawMap last put the minimap (a click there opens the full map)

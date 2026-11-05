@@ -247,8 +247,8 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 	if len(m.Items) < 2 { // "press Enter": nothing to pick
 		return
 	}
-	if id := menuID(m); id != p.asked {
-		p.asked, p.sel = id, askDefault(v)
+	if id := menuID(m); id != p.pageAsked { // its own: the page clears p.asked every frame, which put the highlight back on the default after every arrow
+		p.pageAsked, p.sel = id, askDefault(v)
 	}
 	p.pageMenu = true
 	rows := itemRows(m)
