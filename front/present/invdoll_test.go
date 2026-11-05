@@ -18,3 +18,11 @@ func TestDrawMemberNoDoll(t *testing.T) {
 	in := &front.Inventory{Member: -1, Doll: []*front.InvItem{{Index: 1, Name: "Sword"}}}
 	p.drawMember(in, front.View{Inventory: in}, 0, 100, 150, false)
 }
+
+// The paper doll is there without SetData: NewFront (gameData) is the
+// only data path most games take, and the doll pane was blank.
+func TestDollDefaults(t *testing.T) {
+	if len(dollBoxes) == 0 || len(dollPNG) == 0 || len(slotNames) == 0 {
+		t.Fatal("no default doll")
+	}
+}

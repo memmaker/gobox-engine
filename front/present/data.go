@@ -6,7 +6,6 @@ package present
 
 import (
 	"gobox/front/classic"
-	"image"
 	"image/color"
 	"io/fs"
 	"os"
@@ -88,13 +87,13 @@ var (
 	titleBackdrop                    int    // game.Data.TitleBackdrop
 	iconParts                        []string
 	spellRules                       []string
-	dollBoxes                        []image.Rectangle
+	dollBoxes                        = defaultDollBoxes // the doll is every game's, whichever way its data came (SetData or NewFront)
 	readiedMark                      string
-	slotNames                        []string
+	slotNames                        = defaultSlotNames
 	areaMaps                         map[front.AreaID]string
 	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
 	openAt                           string
-	dollPNG                          []byte
+	dollPNG                          = defaultDoll
 	daxLoader                        *dax.Loader
 	mapSide                          int // View.Map's side in pixels
 	sounds                           []byte
