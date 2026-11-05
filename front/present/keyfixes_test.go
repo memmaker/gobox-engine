@@ -88,3 +88,13 @@ func TestMainMenuNewRows(t *testing.T) {
 		t.Fatalf("submenu sel %d", m.sel)
 	}
 }
+
+// A card with no portrait shows the member's name, wrapped to its window.
+func TestNameLines(t *testing.T) {
+	if got := nameLines("Buck Rogers Junior", 6, 5); len(got) != 3 || got[0] != "Buck" || got[1] != "Rogers" || got[2] != "Junior" {
+		t.Fatalf("%q", got)
+	}
+	if got := nameLines("Al Bo Cyrillic", 6, 1); len(got) != 1 || got[0] != "Al Bo" {
+		t.Fatalf("%q", got)
+	}
+}

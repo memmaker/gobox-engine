@@ -361,6 +361,10 @@ func (p *Presenter) drawCard(d *gpu.Image, m front.Member, key cardKey) {
 			op.ColorScale.Scale(0.35, 0.35, 0.35, 1)
 		}
 		d.DrawImage(g, op)
+	} else if m.Portrait == nil { // no face yet: the name, so a member pick works before portraits exist
+		for i, l := range nameLines(m.Name, portraitSize/8, portraitSize/10) {
+			p.label(d, l, cardFace, cardFace+10*i, 1)
+		}
 	}
 	if s := cardLabels[m.Status]; s != "" && m.Portrait == nil {
 		p.label(d, s, cardFace+1, cardFace+portraitSize-9, 1)
@@ -573,4 +577,19 @@ func crop(img image.Image, r image.Rectangle) image.Image {
 	c := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
 	draw.Draw(c, c.Rect, img, r.Min, draw.Src)
 	return c
+}
+
+// nameLines is name wrapped at word breaks into at most rows lines of w
+// characters (a longer word cut).
+func nameLines(name string, w, rows int) []string {
+	var out []string
+	for _, word := range strings.Fields(name) {
+		word = word[:min(len(word), w)]
+		if n := len(out); n > 0 && len(out[n-1])+1+len(word) <= w {
+			out[n-1] += " " + word
+		} else {
+			out = append(out, word)
+		}
+	}
+	return out[:min(len(out), rows)]
 }
