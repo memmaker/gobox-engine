@@ -74,12 +74,14 @@ func (p *Presenter) drawMap(dst *gpu.Image, v front.View, font func(byte, bool) 
 // without one (logged once: there is no other view of it).
 func (p *Presenter) scene(v front.View) *blobber.Scene {
 	if v.Walls != nil {
-		return p.wallScene(v.Walls)
+		p.behind = p.wallScene(v.Walls)
+		return p.behind
 	}
 	if _, ok := areaMaps[v.Area]; !ok && v.Walls == nil && !v.Exploring { // no 3D view: no map to look up
 		return nil
 	}
-	return p.sceneNamed(sceneName(v))
+	p.behind = p.sceneNamed(sceneName(v))
+	return p.behind
 }
 
 // sceneName names the scene v shows: the rules' map's (View.Walls), or the remastered map's.

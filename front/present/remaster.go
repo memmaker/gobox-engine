@@ -125,6 +125,7 @@ type Presenter struct {
 	ctx         int                         // 1 + the card whose context menu a right click opened (0 none): drawCardTip
 	ctxSel      int                         // its highlighted line
 	ctxActs     []front.ActKind             // its lines' actions, for the member
+	behind      *blobber.Scene              // the last 3D scene shown: what a shop's or temple's menu draws over
 	ctxKeys     []byte                      // its lines' hotkeys (the first letters)
 	campCtx     [][]image.Rectangle         // in camp every member's context menu lines (drawCampMenus)
 	campImg     []*gpu.Image                // drawCampMenus: each member's menu image
@@ -373,6 +374,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			if sc != nil {
 				p.draw3D(dst, v, sc, note)
+			} else if p.behind != nil { // a page that publishes no map (a shop, a temple): the view last shown, as it stood
+				p.view.Draw(dst)
 			} else {
 				dst.Fill(color.Black)
 			}
