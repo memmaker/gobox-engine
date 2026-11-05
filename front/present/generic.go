@@ -66,7 +66,7 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 		drawBox(dst, pictureBox(&p.pg.pic, art, r.Inset(8)), p.border.tiles, pic, s, cx, gap+int(s*float64(r.Dy())/2))
 	} else if fr := (front.CellRect{X1: box.Min.X / 8, Y1: box.Min.Y / 8, X2: (box.Max.X - 1) / 8, Y2: (box.Max.Y - 1) / 8}).Framed(); len(art) > 0 && fr.Pixels().Inset(8) == box { // a cell-aligned picture (SotSB's big pictures): in a frame, as the original's screen
 		r := fr.Pixels()
-		s := math.Max(1, math.Floor(math.Min(float64(b.Dx()-2*gap)/float64(r.Dx()), (float64(b.Dy())-th-3*float64(gap))/float64(r.Dy()))))
+		s := math.Min(float64(b.Dx()-2*gap)/float64(r.Dx()), (float64(b.Dy())-th-2*float64(gap))/float64(r.Dy())) // as big as it fits over the text, its aspect kept
 		drawBox(dst, pictureBox(&p.pg.pic, art, box), p.border.tiles, fr, s, cx, gap+int(s*float64(r.Dy())/2))
 	} else if len(art) > 0 {
 		s := math.Max(1, math.Floor(math.Min(float64(b.Dx()-2*gap)/float64(box.Dx()), (float64(b.Dy())-th-3*float64(gap))/float64(box.Dy()))))
@@ -77,8 +77,8 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 		dst.DrawImage(img, op)
 	}
 	if th > 0 { // the text along the bottom
-		p.paneBox(dst, note, v, k, cx, b.Dy()-gap-int(th/2))
-		p.menuFloor = b.Dy() - gap - int(th) // its question goes above the text, not over it
+		p.paneBox(dst, note, v, k, cx, b.Dy()-int(th/2)) // on the bottom edge
+		p.menuFloor = b.Dy() - int(th) // its question goes above the text, not over it
 		defer func() { p.menuFloor = 0 }()
 	}
 	p.drawPageMenu(dst, note, v)
