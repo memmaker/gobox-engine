@@ -26,3 +26,9 @@ func TestDollDefaults(t *testing.T) {
 		t.Fatal("no default doll")
 	}
 }
+
+func TestReadyMarkDefault(t *testing.T) {
+	if readyMark(&front.InvItem{Readied: true}) == "" {
+		t.Fatal("a readied item has no mark")
+	}
+}

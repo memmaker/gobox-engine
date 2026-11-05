@@ -5,6 +5,7 @@
 package present
 
 import (
+	"cmp"
 	"gobox/front/classic"
 	"image/color"
 	"io/fs"
@@ -56,7 +57,7 @@ type Data struct {
 	IconParts      []string
 	SpellRules     []string // what each spell does, by spell id (the camp's spell tips; "" none)
 
-	ReadyMark string // shown before a readied item's name (InvItem.Readied), for a game without a doll ("": none)
+	ReadyMark string // shown before a readied item's name (InvItem.Readied), "": "*")
 
 	AreaMaps map[front.AreaID]string // the 3D map (Art maps/NAME.map) of each area
 	Art      fs.FS                   // maps/NAME.map and assets/walls/walls.txt
@@ -88,7 +89,7 @@ var (
 	iconParts                        []string
 	spellRules                       []string
 	dollBoxes                        = defaultDollBoxes // the doll is every game's, whichever way its data came (SetData or NewFront)
-	readiedMark                      string
+	readiedMark                      = "*"
 	slotNames                        = defaultSlotNames
 	areaMaps                         map[front.AreaID]string
 	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
@@ -122,7 +123,7 @@ func SetData(d Data) {
 	if creditGaps = d.CreditGaps; creditGaps == nil {
 		creditGaps = []int{4, 5, 6}
 	}
-	dollBoxes, slotNames, readiedMark = defaultDollBoxes, defaultSlotNames, d.ReadyMark
+	dollBoxes, slotNames, readiedMark = defaultDollBoxes, defaultSlotNames, cmp.Or(d.ReadyMark, "*")
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
 	dollPNG = defaultDoll
 	daxLoader = d.DAX

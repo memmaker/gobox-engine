@@ -259,7 +259,7 @@ type InvItem struct {
 	Type    byte     // base item type
 	Words   []string // the item's name words, known or not (for its icon)
 	Count   int
-	Readied bool     // it is readied (shown with present.Data.ReadyMark, for a game without a doll)
+	Readied bool     // it is readied (shown with present.Data.ReadyMark)
 	Slot    bool     // it has a doll slot (it can be readied)
 	Wrong   bool     // the member's class cannot ready it
 	Use     bool     // it has a use (a scroll, a spell of its own)
