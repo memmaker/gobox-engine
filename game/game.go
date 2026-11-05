@@ -184,6 +184,7 @@ type Read struct {
 	Title string   // the box's title
 	Lines []string // journalLayout's: "\x00" a title, "\x01" a picture, "\x02" its rows, "\x03key\x03" a voiced paragraph
 	Page  int      // the page to start on
+	Seq   int      // up by one for each new text: the front shows a new Seq once, owns its paging and closing, and never reports back
 }
 
 // Pace is the loop that goes on with time while the game waits.
