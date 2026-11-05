@@ -604,6 +604,9 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActLead:
 		return game.Select{N: a.N}, true
 	case front.ActMember:
+		if md := g.state().Mode; md == game.ModeTemple || md == game.ModeShop { // the shop's and the temple's View
+			return game.ViewMember{Member: m}, true
+		}
 		return game.ShowMember{Member: a.N}, true
 	case front.ActInventory:
 		return game.OpenItems{Member: a.N}, true

@@ -18,3 +18,13 @@ func TestAskView(t *testing.T) {
 		}
 	}
 }
+
+// TestTempleView: View in a temple or shop is ViewMember on the selected member.
+func TestTempleView(t *testing.T) {
+	for _, md := range []game.Mode{game.ModeTemple, game.ModeShop} {
+		g := &Game{R: &loreRules{s: game.State{Mode: md, Selected: 1}}}
+		if d, _ := g.decision(front.Action{Kind: front.ActMember, N: -1}); d != (game.ViewMember{Member: 1}) {
+			t.Fatalf("mode %d: %#v", md, d)
+		}
+	}
+}
