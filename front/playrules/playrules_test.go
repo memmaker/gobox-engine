@@ -153,3 +153,10 @@ func TestTitleFirstStepBeforeStepping(t *testing.T) {
 		t.Fatalf("no first step picture: %+v", s.Page)
 	}
 }
+
+func TestShowMemberOpensSheet(t *testing.T) {
+	r := New(&fake{st: play.Exploring{}}, game.Data{}).(*rules)
+	if r.Apply(game.ShowMember{Member: 2}); r.sheet != 2 {
+		t.Fatalf("sheet %d", r.sheet)
+	}
+}

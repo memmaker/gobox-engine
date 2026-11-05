@@ -890,8 +890,12 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		return r.walkTo(ps, d.At)
 	case game.Select:
 		return r.do(play.SelectMember{Member: d.N})
-	case game.ShowMember:
-		return r.do(play.SelectMember{Member: d.Member})
+	case game.ShowMember: // select the member and open their sheet, as the old path's View
+		res := r.do(play.SelectMember{Member: d.Member})
+		if res.Err == nil {
+			r.sheet = d.Member
+		}
+		return res
 	case game.Maneuver:
 		return r.maneuvers(commonOf(ps).Allowed)
 	case game.Ranged:
