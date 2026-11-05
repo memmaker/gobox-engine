@@ -47,19 +47,13 @@ func (p *Presenter) openHelp(v front.View) {
 // syncRead opens the pager on a Read the engine waits for, and drops one
 // the engine no longer waits for.
 func (p *Presenter) syncRead(v front.View) {
-	if pg := p.pager; pg != nil && pg.read != nil && pg.left == nil && !sameRead(pg.read, v.Read) {
+	if pg := p.pager; pg != nil && pg.read != nil && pg.left == nil && pg.read != v.Read {
 		p.pager = nil
 	}
-	if r := v.Read; r != nil && (p.pager == nil || !sameRead(p.pager.read, r)) {
+	if r := v.Read; r != nil && (p.pager == nil || p.pager.read != r) {
 		p.pager = &pager{Pager: ui.Pager{P: r.Page}, read: r}
 		p.speak()
 	}
-}
-
-// sameRead: a and b are the same text (each View builds its Read anew).
-func sameRead(a, b *front.Read) bool {
-	return a != nil && b != nil && a.Title == b.Title && len(a.Lines) == len(b.Lines) &&
-		(len(a.Lines) == 0 || &a.Lines[0] == &b.Lines[0])
 }
 
 // speak voices the journal page up (the engine's SpeakPage).

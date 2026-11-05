@@ -181,9 +181,9 @@ type Harm struct{ Name, What string }
 
 // Read is journal text the game shows for the player to read.
 type Read struct {
-	Title string
-	Lines []string
-	Page  int // the page to start on
+	Title string   // the box's title
+	Lines []string // journalLayout's: "\x00" a title, "\x01" a picture, "\x02" its rows, "\x03key\x03" a voiced paragraph
+	Page  int      // the page to start on
 }
 
 // Pace is the loop that goes on with time while the game waits.

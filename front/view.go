@@ -81,7 +81,7 @@ type Turn struct {
 	Aim       bool       // aiming: ActAim takes a square, ActPoint previews one, ActClose gives up
 	Casting   string     // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
 	Weapon    *InvItem   // extra: the weapon in hand (its icon on the Attack button), or nil
-	Missile   *InvItem   // extra: what ActRanged shoots (its icon on the Ranged button), or nil
+	Missile   *InvItem   // extra: the ranged weapon readied (its icon on the Ranged button), or nil
 	Moves     int        // squares of move left
 }
 
@@ -193,12 +193,9 @@ type Maneuver struct {
 
 // Read is journal text the game shows for the player to read (View.Read):
 // the presenter pages it (JournalPage) and answers ActOK, N the page it was
-// left on; the script waits until then.
-type Read struct {
-	Title string   // the box's title
-	Lines []string // journalLayout's: "\x00" a title, "\x01" a picture, "\x02" its rows, "\x03key\x03" a voiced paragraph
-	Page  int      // the page to start on
-}
+// left on; the script waits until then. It is the game's own (State.Read),
+// the same pointer every View while the same text is up.
+type Read = game.Read
 
 // Lore is a note in the journal: ID is its number for ActNoteRemove (-1: not
 // removable), Place where the player read it ("" a journal text).

@@ -6,13 +6,14 @@ import (
 	"gobox/front"
 )
 
-// A View's Read is built anew each frame: the pager stays on its page.
+// The pager stays on its page while the game's Read is up (the same pointer
+// every View), and closes once it is gone.
 func TestSyncReadKeepsPage(t *testing.T) {
-	lines := []string{"a", "b"}
+	r := &front.Read{Title: "J", Lines: []string{"a", "b"}}
 	p := &Presenter{}
-	p.syncRead(front.View{Read: &front.Read{Title: "J", Lines: lines}})
+	p.syncRead(front.View{Read: r})
 	p.pager.P = 1
-	p.syncRead(front.View{Read: &front.Read{Title: "J", Lines: lines}})
+	p.syncRead(front.View{Read: r})
 	if p.pager == nil || p.pager.P != 1 {
 		t.Fatalf("pager reset: %+v", p.pager)
 	}

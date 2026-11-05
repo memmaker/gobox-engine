@@ -22,8 +22,6 @@ func Screen(v front.View, s game.State) front.View {
 
 // Read is v with the journal text s.Read holds. v where s has none.
 func Read(v front.View, s game.State) front.View {
-	if r := s.Read; r != nil {
-		v.Read = &front.Read{Title: r.Title, Lines: r.Lines, Page: r.Page}
-	}
+	v.Read = s.Read
 	return v
 }
