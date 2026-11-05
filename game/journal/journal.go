@@ -1,0 +1,225 @@
+// Package journal is the printed handouts a game only names ("SEE JOURNAL
+// ENTRY 26"): their texts, found by each game's reference patterns and laid
+// out for the Read pager (State.Read).
+//
+// Text files: "[Title]" starts a text (the title is the reference's name),
+// a blank line a paragraph, a line "<FILE.PNG>" a picture from the same
+// directory, "#" lines are comments.
+package journal
+
+import (
+	"image"
+	_ "image/png"
+	"io/fs"
+	"regexp"
+	"strings"
+	"sync"
+)
+
+// Ref is one kind of handout reference: Titles turns Re's submatches into
+// the titles it names.
+type Ref struct {
+	Re     *regexp.Regexp
+	Titles func(m []string) []string
+}
+
+// Refs is the titles text names, in order.
+func Refs(refs []Ref, text string) []string {
+	type hit struct {
+		at     int
+		titles []string
+	}
+	var hits []hit
+	for _, r := range refs {
+		for _, ix := range r.Re.FindAllStringSubmatchIndex(text, -1) {
+			m := make([]string, len(ix)/2)
+			for i := range m {
+				if ix[2*i] >= 0 {
+					m[i] = text[ix[2*i]:ix[2*i+1]]
+				}
+			}
+			hits = append(hits, hit{ix[0], r.Titles(m)})
+		}
+	}
+	for i := 1; i < len(hits); i++ { // by position: few hits, insertion sort
+		for j := i; j > 0 && hits[j].at < hits[j-1].at; j-- {
+			hits[j], hits[j-1] = hits[j-1], hits[j]
+		}
+	}
+	var t []string
+	for _, h := range hits {
+		t = append(t, h.titles...)
+	}
+	return t
+}
+
+// Book is the handout texts and their pictures.
+type Book struct {
+	fsys  fs.FS
+	texts map[string][]string
+	mu    sync.Mutex
+	pics  map[string]image.Image
+	sizes map[string]image.Rectangle
+}
+
+// Load reads files of fsys into a Book.
+func Load(fsys fs.FS, files ...string) (*Book, error) {
+	b := &Book{fsys: fsys, texts: map[string][]string{}, pics: map[string]image.Image{}, sizes: map[string]image.Rectangle{}}
+	for _, f := range files {
+		data, err := fs.ReadFile(fsys, f)
+		if err != nil {
+			return nil, err
+		}
+		var title string
+		for _, l := range strings.Split(strings.ReplaceAll(string(data), "\r", ""), "\n") {
+			l = strings.TrimSpace(l)
+			switch {
+			case strings.HasPrefix(l, "#"):
+			case strings.HasPrefix(l, "[") && strings.HasSuffix(l, "]"):
+				title = l[1 : len(l)-1]
+				b.texts[title] = nil
+			case title != "":
+				b.texts[title] = append(b.texts[title], l)
+			}
+		}
+	}
+	return b, nil
+}
+
+// Has reports whether the book holds title.
+func (b *Book) Has(title string) bool { _, ok := b.texts[title]; return ok }
+
+// Picture is the picture name, decoded once (nil: missing). It fits Data.Scans.
+func (b *Book) Picture(name string) image.Image {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if im, ok := b.pics[name]; ok {
+		return im
+	}
+	var im image.Image
+	if f, err := b.fsys.Open(name); err == nil {
+		im, _, _ = image.Decode(f)
+		f.Close()
+	}
+	b.pics[name] = im
+	return im
+}
+
+// bounds is a picture's size from its header alone (the layout needs no pixels).
+func (b *Book) bounds(name string) image.Rectangle {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if r, ok := b.sizes[name]; ok {
+		return r
+	}
+	var r image.Rectangle
+	if f, err := b.fsys.Open(name); err == nil {
+		if c, _, err := image.DecodeConfig(f); err == nil {
+			r = image.Rect(0, 0, c.Width, c.Height)
+		}
+		f.Close()
+	}
+	b.sizes[name] = r
+	return r
+}
+
+// PictureSize is the screen area a picture of size r covers on a page width
+// characters wide: the scans are 300 dpi, shown at about 90 pixels an inch,
+// at most the text width wide and, unless taller than wide (those scroll),
+// 17 rows high.
+func PictureSize(r image.Rectangle, width int) (w, h int) {
+	s := min(0.3, float64(width*8)/float64(r.Dx()))
+	if r.Dy() <= r.Dx() {
+		s = min(s, 136/float64(r.Dy()))
+	}
+	return int(float64(r.Dx()) * s), int(float64(r.Dy()) * s)
+}
+
+// Layout lays out the texts titled titles for the pager, width characters
+// wide and rows lines a page: "\x00" marks a title (a blank line under it),
+// "\x01" a picture and "\x02" the rows it covers; voice (nil: none) gives
+// each paragraph's recording key, marked "\x03key\x03" on its first line.
+func (b *Book) Layout(titles []string, width, rows int, voice func(para string) string) []string {
+	var lines []string
+	for _, t := range titles {
+		paras, ok := b.texts[t]
+		if !ok {
+			continue
+		}
+		if len(lines) > 0 {
+			lines = append(lines, "")
+		}
+		lines = append(lines, "\x00"+t, "")
+		for _, p := range paras {
+			switch {
+			case p == "":
+				lines = append(lines, "")
+			case strings.HasPrefix(p, "<") && strings.HasSuffix(p, ">"):
+				if r := b.bounds(p[1 : len(p)-1]); r != (image.Rectangle{}) {
+					lines = append(lines, "\x01"+p[1:len(p)-1])
+					_, h := PictureSize(r, width)
+					for range min((h+7)/8, rows) - 1 {
+						lines = append(lines, "\x02")
+					}
+				}
+			case len(p) <= width: // as written: keeps the spacing of tables
+				lines = append(lines, p)
+			default:
+				lines = append(lines, Wrap(p, width)...)
+			}
+			if voice != nil && p != "" {
+				for i := len(lines) - 1; i >= 0 && lines[i] != ""; i-- {
+					if i == 0 || lines[i-1] == "" {
+						lines[i] = "\x03" + voice(p) + "\x03" + lines[i]
+					}
+				}
+			}
+		}
+	}
+	return lines
+}
+
+// Wrap breaks s into lines of at most w characters at spaces.
+func Wrap(s string, w int) []string {
+	var out []string
+	line := ""
+	for _, word := range strings.Fields(s) {
+		for len(word) > w {
+			out = append(out, word[:w])
+			word = word[w:]
+		}
+		switch {
+		case line == "":
+			line = word
+		case len(line)+1+len(word) <= w:
+			line += " " + word
+		default:
+			out = append(out, line)
+			line = word
+		}
+	}
+	return append(out, line)
+}
+
+// Printed follows a text window: it adds what was printed (clear: the
+// window started over) and returns the titles named for the first time
+// since the window was last cleared.
+type Printed struct {
+	text  string
+	shown int
+}
+
+// Add is the titles refs finds newly named once s is printed.
+func (p *Printed) Add(refs []Ref, s string, clear bool) []string {
+	if clear {
+		*p = Printed{}
+	}
+	p.text += s
+	t := Refs(refs, strings.ToUpper(p.text))
+	if len(t) <= p.shown {
+		return nil
+	}
+	n := t[p.shown:]
+	p.shown = len(t)
+	return n
+}
