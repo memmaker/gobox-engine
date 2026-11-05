@@ -159,7 +159,9 @@ func TestParity(t *testing.T) {
 		{"adventure on town loot", play.Looting{Common: play.Common{Where: game.Where{Mode: "town"}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Flags.Adventure }},
 		{"fight log from text", play.Fighting{Common: play.Common{Text: []string{"YOU GET INTO A BRAWL."}}}, game.Data{}, nil, nil,
-			func(s game.State, _ game.Result) bool { return slices.Equal(s.Combat.Log, []string{"YOU GET INTO A BRAWL."}) }},
+			func(s game.State, _ game.Result) bool {
+				return slices.Equal(s.Combat.Log, []string{"YOU GET INTO A BRAWL."})
+			}},
 		{"aimed attack", play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{},
 			[]game.Decision{game.Attack{}, game.Aim{At: image.Pt(2, 3)}}, []play.Action{play.Attack{At: &image.Point{2, 3}}},
 			func(s game.State, _ game.Result) bool {

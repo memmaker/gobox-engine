@@ -71,8 +71,8 @@ type Aimed struct {
 // Common is what every state shows besides its own view.
 type Common struct {
 	Portrait *Portrait // a speaker's portrait up (a shopkeeper), nil none; gobox composes it
-	NoSave   bool // saving is refused here (the rules say where the party may save)
-	NoLoad   bool // loading is refused here
+	NoSave   bool      // saving is refused here (the rules say where the party may save)
+	NoLoad   bool      // loading is refused here
 	Party    []Member
 	Selected int
 	Purse    map[string]int
@@ -555,8 +555,8 @@ type (
 
 	// Fighting. EndTurn's outcome carries the monsters' moves up to the
 	// next member's turn.
-	MoveTo     struct{ To image.Point }
-	Attack     struct {
+	MoveTo struct{ To image.Point }
+	Attack struct {
 		Target int
 		At     *image.Point // aimed (Allowed.Aimed, squares): the square picked, nil by Target
 	}
