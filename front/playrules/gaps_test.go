@@ -2,6 +2,7 @@ package playrules
 
 import (
 	"image"
+	"image/color"
 	"reflect"
 	"slices"
 	"testing"
@@ -52,6 +53,14 @@ func TestGaps(t *testing.T) {
 			func(s game.State) bool { return s.Shop.IdentifyPrice == 20 && len(s.Shop.Unknown) == 1 }},
 		{"training learn", play.Trading{Kind: play.TradeTraining, Training: &game.Training{Learning: true}}, game.Learn{Spell: 4}, play.Learn{Spell: 4},
 			func(s game.State) bool { return s.Mode == game.ModeTraining && s.Training.Learning }},
+		{"handout esc leaves", play.Scene{Kind: play.SceneHandout, Handout: "Journal", Layers: []game.Layer{{}}, Common: allow(play.Leave{})}, game.Cancel{}, play.Leave{},
+			func(s game.State) bool { return s.Read != nil && len(s.Page.Layers) == 1 && s.Holding == game.HoldNone }},
+		{"handout read out", play.Scene{Kind: play.SceneHandout, Common: allow(play.Leave{})}, game.Answer{N: 2}, play.Leave{}, nil},
+		{"story page", play.Scene{Text: []string{"hi"}, Common: allow(play.Continue{})}, game.Answer{}, play.Continue{},
+			func(s game.State) bool {
+				r := s.Page.Pane[0][0]
+				return s.Holding == game.HoldNone && r.Upcase && r.Fg == (color.RGBA{})
+			}},
 		{"open training", play.Exploring{}, game.OpenTraining{Member: 1}, play.OpenTraining{Member: 1}, nil},
 		{"loot detect", play.Looting{Status: true, Common: allow(play.LootDetect{}, play.LootShare{})}, game.LootDetect{}, play.LootDetect{},
 			func(s game.State) bool { return s.Loot.Status && s.Allowed["LootDetect"] && s.Allowed["LootShare"] }},

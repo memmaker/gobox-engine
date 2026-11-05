@@ -771,6 +771,9 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		}
 		return r.answer(ps, d)
 	case game.Cancel:
+		if r.ask == nil && r.aim == nil && isHandout(ps) { // Esc on a handout leaves it, as reading to its end does
+			return r.do(onward(commonOf(ps).Allowed))
+		}
 		r.ask, r.moves, r.aim = nil, nil, nil
 		return game.Result{}
 	case game.Items, game.OpenItems:
