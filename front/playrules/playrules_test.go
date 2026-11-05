@@ -141,3 +141,15 @@ func TestYesNoDefault(t *testing.T) {
 		t.Fatal("yes default lost")
 	}
 }
+
+// Before gobox's first title step the page already has that step's
+// picture: no black frame between the intro and the title.
+func TestTitleFirstStepBeforeStepping(t *testing.T) {
+	pic := game.Layer{Picture: game.Picture{File: "TITLE", Block: 3}} // the first step
+	f := &fake{st: play.Scene{Kind: play.SceneTitle, Intro: &game.Intro{Pictures: []int{3, 1}},
+		Steps: map[int]play.TitleStep{3: {Layers: []game.Layer{pic}}}}}
+	s := New(f, game.Data{}).State()
+	if s.Page == nil || len(s.Page.Layers) == 0 || s.Page.Layers[len(s.Page.Layers)-1].Picture.Block != 3 {
+		t.Fatalf("no first step picture: %+v", s.Page)
+	}
+}

@@ -392,7 +392,11 @@ func (r *rules) State() game.State {
 		}
 		pg := r.page(t)
 		if t.Kind == play.SceneTitle && !r.title.credits {
-			pg.Layers = append(pg.Layers, t.Steps[r.title.n].Layers...)
+			n := r.title.n
+			if n == 0 && t.Intro != nil && len(t.Intro.Pictures) > 0 { // before gobox's first step: that step's picture already, no black frame
+				n = t.Intro.Pictures[0]
+			}
+			pg.Layers = append(pg.Layers, t.Steps[n].Layers...)
 		}
 		s.Page.Pane, s.Page.View, s.Page.Layers = append(s.Page.Pane, pg.Pane...), pg.View, append(s.Page.Layers, pg.Layers...)
 		s.Flags.Full = t.Full
