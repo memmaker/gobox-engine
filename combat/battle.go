@@ -57,6 +57,7 @@ type Presenter struct {
 	Asking        bool         // a yes/no question (View.Ask, AskConfirm) waits: the bar shows Yes and No
 	Pointer       image.Point  // the mouse on the screen, as the host last saw it (the bar's hover; captures script it)
 	pointed       image.Point  // the square the aim was last pointed at
+	aimAt         *image.Point // the aim cursor (front state, aimTo; nil: the game's Cursor)
 	free          *image.Point // the keys' and pad's square cursor while not aiming (nil: the mouse points)
 	mouseAt       image.Point  // the pointer as Point last saw it: a moved mouse takes over from free
 	Stick         [2]float64   // the pad's right stick (x right, y down, -1..1): pans the camera
@@ -136,6 +137,14 @@ var (
 // Draw shows b on dst.
 func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	p.initCamera()
+	if b.Turn == nil || !b.Turn.Aim {
+		p.aimAt = nil
+	} else if p.aimAt != nil { // the aim cursor is the front's (aimTo), over the game's
+		c := *b
+		b = &c
+		p.b = b
+		p.aimTo(*p.aimAt)
+	}
 	p.b = b
 	if b.Turn == nil || b.Turn.Aim || !slices.Contains(b.Turn.Can, p.PickKind) {
 		p.Picking = false

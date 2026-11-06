@@ -107,7 +107,7 @@ func (p *Presenter) cycleTarget(back bool) {
 		if u.ID == b.Targets[i%len(b.Targets)] {
 			c := p.cursor
 			p.tabFrom = &c
-			p.act(Decision{Kind: ActPoint, X: u.X, Y: u.Y})
+			p.aimTo(image.Pt(u.X, u.Y))
 		}
 	}
 }
@@ -137,7 +137,7 @@ func (p *Presenter) moveCursor(d [2]float64) {
 	at = at.Add(step)
 	at = image.Pt(min(max(at.X, 0), len(p.ground[0])-1), min(max(at.Y, 0), len(p.ground)-1))
 	if b.Turn.Aim {
-		p.act(Decision{Kind: ActPoint, X: at.X, Y: at.Y})
+		p.aimTo(at)
 		return
 	}
 	*p.free = at
@@ -262,4 +262,18 @@ func iconSize(u Unit) image.Point {
 		return u.IconSize
 	}
 	return u.Icon.Bounds().Size()
+}
+
+// aimTo puts the aim cursor on square at: front state, the game is not
+// told (Enter or a click sends the ActAim).
+func (p *Presenter) aimTo(at image.Point) {
+	p.aimAt = &at
+	if p.b != nil {
+		p.b.Cursor, p.b.CursorOn, p.b.CursorAt = at, true, []image.Point{at}
+		for _, u := range p.b.Units {
+			if slices.Contains(u.Squares, at) {
+				p.b.CursorAt = u.Squares
+			}
+		}
+	}
 }

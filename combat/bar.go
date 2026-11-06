@@ -371,7 +371,7 @@ func (p *Presenter) Point(x, y int) {
 	}
 	if sx, sy, ok := p.Pick(x, y); ok && image.Pt(sx, sy) != p.pointed {
 		p.pointed = image.Pt(sx, sy)
-		p.act(Decision{Kind: ActPoint, X: sx, Y: sy})
+		p.aimTo(p.pointed)
 	}
 }
 

@@ -98,10 +98,10 @@ func TestKeys(t *testing.T) {
 	if len(p.bar.items) != 1 || p.bar.items[0].Text != "Cancel" {
 		t.Errorf("aim bar: %+v", p.bar.items)
 	}
-	if got := took(key{input.Tab, 9}); len(got) != 1 || got[0] != (Decision{Kind: ActPoint, X: 4, Y: 2}) {
-		t.Errorf("Tab aiming: %+v, want the next target", got)
+	if got := took(key{input.Tab, 9}); len(got) != 0 || b.Cursor != image.Pt(4, 2) { // the aim cursor is front state: no game action
+		t.Errorf("Tab aiming: %+v at %v, want the next target", got, b.Cursor)
 	}
-	if got := took(key{input.Enter, 13}); len(got) != 1 || got[0] != (Decision{Kind: ActAim, X: 1, Y: 1}) {
+	if got := took(key{input.Enter, 13}); len(got) != 1 || got[0] != (Decision{Kind: ActAim, X: 4, Y: 2}) {
 		t.Errorf("Enter aiming: %+v", got)
 	}
 	if got := took(key{input.Esc, 27}); len(got) != 1 || got[0].Kind != ActClose {
@@ -189,10 +189,10 @@ func TestCursor(t *testing.T) {
 		t.Error("the mouse did not take over from the cursor")
 	}
 	b.Turn.Aim, b.Cursor, b.Targets = true, image.Pt(9, 9), []int{2, 3}
-	if p.Key(input.CursorRight, 'd'); !slices.Equal(p.Actions(), []Decision{{Kind: ActPoint, X: 10, Y: 9}}) {
+	if p.Key(input.CursorRight, 'd'); len(p.Actions()) != 0 || p.b.Cursor != image.Pt(10, 9) {
 		t.Error("D did not move the aim east")
 	}
-	if p.Key(input.PgDn, 0); !slices.Equal(p.Actions(), []Decision{{Kind: ActPoint, X: 2, Y: 2}}) {
+	if p.Key(input.PgDn, 0); len(p.Actions()) != 0 || p.b.Cursor != image.Pt(9, 9) { // off every target: the first
 		t.Error("RB did not aim at the next target")
 	}
 }
