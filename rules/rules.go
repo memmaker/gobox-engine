@@ -1,7 +1,8 @@
 // Package rules holds the rules the Gold Box games share, copied from the
 // games' engines and kept behaviour-identical, including the exact order of
-// RNG calls. What differs per game is a Config flag, a Hooks func or a table
-// the game passes in. The package never knows which game runs.
+// RNG calls. The games pass in their side effects (Hooks) and tables; what an
+// original does differently stays in that game. The package never knows which
+// game runs.
 package rules
 
 import "gobox/char"
@@ -27,12 +28,6 @@ type Hooks struct {
 	Groups func()              // AttackHits: after a roll that is not a miss (attacker then defender affects)
 	Group  func()              // SavingThrow, TrapHits: the save / defender affect group
 	Hit    func(over int) bool // AttackHits: extra rule-set veto (an alternative rule set's hit test); nil accepts
-}
-
-// Config is what differs per game.
-type Config struct {
-	TrapSkipStoned bool // sotsb: a stoned member takes no trap damage (damage.go:36)
-	TrapRollEach   bool // sotsb: each member rolls their own trap damage (damage.go:154)
 }
 
 // Status values shared by the games' status tables.
@@ -241,19 +236,4 @@ func DamagePlayer(c char.Stats, dmg byte) (over byte, dying, down bool) {
 	c.SetOkay(0)
 	c.SetHP(0)
 	return over, dying, true
-}
-
-// TrapSkips: a member who takes no trap damage message or damage.
-func (cfg Config) TrapSkips(status int) bool {
-	return status == StatusDead || cfg.TrapSkipStoned && status == StatusStoned
-}
-
-// TrapNextDamage is the damage after one member of an "everyone" trap:
-// with TrapRollEach the game's roll is called again (at that point of the
-// RNG sequence), otherwise the damage stays.
-func (cfg Config) TrapNextDamage(dmg byte, roll func() byte) byte {
-	if cfg.TrapRollEach {
-		return roll()
-	}
-	return dmg
 }

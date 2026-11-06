@@ -431,14 +431,3 @@ func TestDamagePlayer(t *testing.T) {
 		o.same(t, r, "damage")
 	}
 }
-
-func TestTrapConfig(t *testing.T) {
-	var cotab, sotsb Config
-	sotsb.TrapSkipStoned, sotsb.TrapRollEach = true, true
-	if cotab.TrapSkips(StatusStoned) || !cotab.TrapSkips(StatusDead) || !sotsb.TrapSkips(StatusStoned) || sotsb.TrapSkips(StatusOkay) {
-		t.Fatal("skips")
-	}
-	if cotab.TrapNextDamage(5, func() byte { return 9 }) != 5 || sotsb.TrapNextDamage(5, func() byte { return 9 }) != 9 {
-		t.Fatal("roll each")
-	}
-}
