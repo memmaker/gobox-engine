@@ -75,6 +75,7 @@ func TestGaps(t *testing.T) {
 		{"open training", play.Exploring{}, game.OpenTraining{Member: 1}, play.OpenTraining{Member: 1}, nil},
 		{"loot detect", play.Looting{Status: true, Common: allow(play.LootDetect{}, play.LootShare{})}, game.LootDetect{}, play.LootDetect{},
 			func(s game.State) bool { return s.Loot.Status && s.Allowed["LootDetect"] && s.Allowed["LootShare"] }},
+		{"loot esc leaves", play.Looting{Common: allow(play.Leave{})}, game.Cancel{}, play.Leave{}, nil},
 		{"loot share", play.Looting{}, game.LootShare{}, play.LootShare{}, nil},
 		{"loot status", play.Looting{}, game.LootStatus{}, play.LootStatus{}, nil},
 		{"power pick", play.Camping{Common: play.Common{PowerPick: &game.PowerPick{Name: "Bob"}}}, game.PickPower{ID: 2}, play.PickPower{ID: 2},

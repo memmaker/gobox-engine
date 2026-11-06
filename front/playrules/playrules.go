@@ -982,8 +982,12 @@ func (r *rules) Apply(d game.Decision) game.Result {
 				return r.answer(ps, game.Answer{N: i})
 			}
 		}
+		bare := r.ask == nil && r.aim == nil
 		r.ask, r.moves, r.aim = nil, nil, nil
 		if _, fight := ps.(play.Fighting); fight && lone { // Esc on the aim the game asks: its Leave
+			return r.do(play.Leave{})
+		}
+		if _, loot := ps.(play.Looting); loot && bare && slices.Contains(commonOf(ps).Allowed.Plain, play.Action(play.Leave{})) { // Esc on the treasure list is its Exit, as the originals' (SOTSB O072:11A5)
 			return r.do(play.Leave{})
 		}
 		return game.Result{}
