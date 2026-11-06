@@ -79,7 +79,7 @@ func TestNoPrivatePlumbing(t *testing.T) {
 // stored func is a continuation (the game paused mid-routine), and games
 // are passive (MIGRATION.md, order 2). The caps only shrink.
 var funcFields = map[string]int{"cotab-go": 3, "sotsb-go": 2, "pod-go": 2, "por-go": 8,
-	"buckrogers-go": 8, "buckrogers2-go": 9}
+	"buckrogers-go": 6, "buckrogers2-go": 7}
 
 // TestPassive: no game gains a stored callback; lower a cap when one goes.
 func TestPassive(t *testing.T) {
