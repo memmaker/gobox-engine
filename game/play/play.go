@@ -613,7 +613,7 @@ type (
 	CloseTraining struct{}
 	Learn         struct{ Spell int }
 
-	// Looting.
+	// Looting, and Trading where the shop holds pooled coins (Take, LootShare).
 	Take struct {
 		Item int  // -1: the money only
 		All  bool // the money and every item

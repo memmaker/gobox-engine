@@ -32,7 +32,17 @@ func (p *Presenter) shopItems(v front.View) (string, []ui.MenuRow) {
 	case appraise:
 		return p.appraiseItems(s.Appraise, c.back(campMain))
 	}
-	it := []ui.MenuRow{{Text: "Browse", Key: 'B', Do: func() { p.send(front.ActInventory, -1) }}}
+	it := []ui.MenuRow{{Text: "Browse", Key: 'B', Do: func() { p.send(front.ActInventory, -1) }},
+		{Text: "View", Key: 'V', Do: func() { p.send(front.ActMember, -1) }}} // look-only: the selected member's sheet
+	for _, o := range []struct {
+		on   bool
+		text string
+		act  front.ActKind
+	}{{s.Take, "Take", front.ActTakeMoney}, {s.Pool, "Pool", front.ActLootPool}, {s.Share, "Share", front.ActLootShare}} {
+		if o.on {
+			it = append(it, ui.MenuRow{Text: o.text, Key: o.text[0], Do: func() { p.send(o.act, 0) }})
+		}
+	}
 	if appraisable(s.Appraise) {
 		it = append(it, ui.MenuRow{Text: "Appraise", Key: 'A', Do: c.to(appraise, 0)})
 	}
@@ -64,7 +74,7 @@ func (p *Presenter) serviceAct(a front.Action) bool {
 		p.call(func(e front.Game) { e.OpenTraining(a.N); p.training = e.TrainingView() != nil })
 	case v.Shop != nil && a.Kind == front.ActInventory:
 		p.call(func(e front.Game) { e.Browse(a.N) })
-	case v.Temple != nil && a.Kind == front.ActMember:
+	case (v.Temple != nil || v.Shop != nil) && a.Kind == front.ActMember:
 		p.call(func(e front.Game) { e.ViewMember(a.N) })
 	case (v.Shop != nil || v.Temple != nil) && a.Kind == front.ActClose:
 		p.call(func(e front.Game) { e.Leave() })

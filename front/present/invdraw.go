@@ -66,6 +66,10 @@ func (inv *inventory) menu(in *front.Inventory) []word {
 		if in.Reload {
 			w = append(w, word{text: "Reload", act: front.ActReload, on: it != nil})
 		}
+		w = append(w, word{text: "View", act: front.ActSheet, on: true}) // look-only: the member's sheet
+		if in.PoolCoins {
+			w = append(w, word{text: "Pool", act: front.ActLootPool, on: true})
+		}
 		return append(w, word{text: "Exit", act: front.ActClose, on: true})
 	}
 	w := []word{{text: "Ready", act: front.ActReady, on: it != nil && it.Slot}}

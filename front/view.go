@@ -237,23 +237,24 @@ const (
 // Inventory is the inventory screen (ItemsMenu) as the remastered one
 // draws it. Its items' Index is what an Action's N names.
 type Inventory struct {
-	Member   int        // index into View.Party
-	Doll     []*InvItem // the readied items by doll slot (the game's slots, nil: empty)
-	Pool     []InvItem  // the party inventory
-	Cap      int        // the party inventory's slots
-	Use      bool       // items can be used here (ActUse)
-	Sell     bool       // a shop buys them (ActSell)
-	Reload   bool       // the shop refills clips (ActReload)
-	Switch   bool       // ActMember shows another member (not in combat)
-	Powers   []Power    // what the member can do besides items (the View menu's)
-	Wares    []InvItem  // the shop's goods (Browse; nil elsewhere): Index is ActBuy's N, Price what it costs
-	Loot     bool       // Wares are a fight's treasure (the Loot screen): ActBuy takes one for nothing
-	Treasure *Loot      // with Loot: the treasure's money and its other options (Detect, Share, Pool, Status)
-	Gold     int        // the party's money, with Wares
-	Copper   int
-	Trade    bool // the menu offers ActTrade
-	Halve    bool // ... ActHalve
-	Join     bool // ... ActJoin
+	Member    int        // index into View.Party
+	Doll      []*InvItem // the readied items by doll slot (the game's slots, nil: empty)
+	Pool      []InvItem  // the party inventory
+	Cap       int        // the party inventory's slots
+	Use       bool       // items can be used here (ActUse)
+	Sell      bool       // a shop buys them (ActSell)
+	Reload    bool       // the shop refills clips (ActReload)
+	Switch    bool       // ActMember shows another member (not in combat)
+	Powers    []Power    // what the member can do besides items (the View menu's)
+	Wares     []InvItem  // the shop's goods (Browse; nil elsewhere): Index is ActBuy's N, Price what it costs
+	Loot      bool       // Wares are a fight's treasure (the Loot screen): ActBuy takes one for nothing
+	Treasure  *Loot      // with Loot: the treasure's money and its other options (Detect, Share, Pool, Status)
+	Gold      int        // the party's money, with Wares
+	Copper    int
+	Trade     bool // the menu offers ActTrade
+	Halve     bool // ... ActHalve
+	Join      bool // ... ActJoin
+	PoolCoins bool // the shop pools the party's coins (ActLootPool; Allowed PoolCoins)
 }
 
 // Power is a member's action of the View menu the inventory offers too.
@@ -633,7 +634,10 @@ type Shop struct {
 	Unknown     []Unknown // the party's items Id tells something about
 	IDPrice     int       // gold an Id costs
 	Gold        int
-	Pooled      int // gold pooled with the shop (0: none)
+	Pooled      int  // gold pooled with the shop (0: none)
+	Pool        bool // the game lets the party pool its coins here (ActLootPool; Allowed PoolCoins)
+	Take        bool // ... take the pooled coins back (ActTakeMoney; Allowed Take)
+	Share       bool // ... share the pooled coins out (ActLootShare; Allowed LootShare)
 	Appraise    Appraise
 	Identified  *InvItem // (extra) the item Id last revealed, its Look lines what it does
 	IdentifiedN int      // counts the reveals: the presenter shows a new number once
