@@ -82,9 +82,10 @@ type Presenter struct {
 	last          time.Time
 	clock         float64 // seconds shown, for pulses
 
-	Glyph  func(byte) [8]byte // the game's font, for the damage numbers
-	tops   map[int]vec        // over each unit's head, as last drawn (where its numbers start)
-	floats []floater
+	Glyph    func(byte) [8]byte // the game's font, for the damage numbers
+	tops     map[int]vec        // over each unit's head, as last drawn (where its numbers start); kept a frame for one gone
+	drawnIDs []int              // the units drawn last frame
+	floats   []floater
 }
 
 // tileMesh is a tile's model on the GPU.
@@ -169,7 +170,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	if b.Turn == nil || b.Turn.Aim { // the free cursor lives for one turn's choice
 		p.free = nil
 	}
-	focus := vec{float64(b.View.X) + 6, 0, float64(b.View.Y) + 3.5}
+	focus := restFocus(p.focus, b)
 	for _, u := range b.Units {
 		if u.Active {
 			c := unitCentre(u)
@@ -432,8 +433,10 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	if p.Shift {
 		p.drawHealth(dst, vp, heads)
 	}
+	p.tops = nextTops(p.tops, p.drawnIDs, heads)
+	p.drawnIDs = p.drawnIDs[:0]
 	for _, hd := range heads {
-		p.tops[hd.u.ID] = hd.top
+		p.drawnIDs = append(p.drawnIDs, hd.u.ID)
 	}
 	p.drawDamage(dst, vp, dt)
 }
@@ -765,4 +768,38 @@ func baseFloor(g *[25][50]Square, tiles []image.Image) int {
 		}
 	}
 	return best
+}
+
+// nextTops are the heads drawn now over those drawn before (was: the ids
+// drawn last frame): a unit that fell keeps its last place for its number,
+// until a new fight (no id drawn last frame drawn now) clears the old ones.
+func nextTops(tops map[int]vec, was []int, heads []head) map[int]vec {
+	same := len(was) == 0
+	for _, hd := range heads {
+		same = same || slices.Contains(was, hd.u.ID)
+	}
+	if !same || tops == nil {
+		tops = map[int]vec{}
+	}
+	for _, hd := range heads {
+		tops[hd.u.ID] = hd.top
+	}
+	return tops
+}
+
+// restFocus is where the eye rests with no unit active (a Turn 0 tick): the
+// last focus, else the middle of the units, else the View's corner.
+func restFocus(last vec, b *Board) vec {
+	if last != (vec{}) {
+		return last
+	}
+	var sum vec
+	for _, u := range b.Units {
+		c := unitCentre(u)
+		sum = sum.add(vec{c[0], 0, c[1]})
+	}
+	if n := float64(len(b.Units)); n > 0 {
+		return vec{sum[0] / n, 0, sum[2] / n}
+	}
+	return vec{float64(b.View.X) + 6, 0, float64(b.View.Y) + 3.5}
 }
