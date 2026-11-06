@@ -79,3 +79,27 @@ func TestFlatTileTextured(t *testing.T) {
 		t.Fatal("still a flat fill")
 	}
 }
+
+// Class 20b: a blow floats once. The classic path's events for POR seed 3
+// (attack+hit+damage, attack+miss, a heal): the swing is no MISS, EvHit and
+// EvDamage make one number.
+func TestBlowFloatsOnce(t *testing.T) {
+	es := []front.CombatEvent{
+		{Kind: front.EvAttack, Unit: 1, Target: 2}, {Kind: front.EvHit, Unit: 1, Target: 2, Amount: 5}, {Kind: front.EvDamage, Unit: 2, Target: 2, Amount: 5},
+		{Kind: front.EvAttack, Unit: 2, Target: 1}, {Kind: front.EvMiss, Unit: 2, Target: 1},
+		{Kind: front.EvHeal, Unit: 1, Amount: 3},
+	}
+	var nums, misses int
+	for _, ev := range es {
+		_, n, w := blowFloat(ev)
+		if n > 0 {
+			nums++
+		}
+		if w == "MISS" {
+			misses++
+		}
+	}
+	if nums != 2 || misses != 1 {
+		t.Fatalf("numbers %d misses %d, want 2 and 1", nums, misses)
+	}
+}

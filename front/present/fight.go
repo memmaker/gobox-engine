@@ -378,15 +378,15 @@ func (p *Presenter) playing() *front.CombatEvent {
 			}
 		}
 		if ev := &r.q[0]; r.from.IsZero() {
-			switch {
-			case ev.Kind == front.EvMessage && strings.TrimSpace(ev.Text) != "":
+			if ev.Kind == front.EvMessage && strings.TrimSpace(ev.Text) != "" {
 				p.blowLine, p.blowAt = ev.Text, now()
-			case ev.Kind == front.EvMiss:
-				p.battle.FloatText(ev.Target, "MISS")
 			}
-		}
-		if ev := &r.q[0]; (ev.Kind == front.EvDamage || ev.Kind == front.EvHeal) && r.from.IsZero() && Host.DamageNumbers {
-			p.battle.Float(ev.Unit, ev.Amount, ev.Kind == front.EvHeal)
+			switch id, n, word := blowFloat(*ev); {
+			case word != "":
+				p.battle.FloatText(id, word)
+			case n > 0 && Host.DamageNumbers:
+				p.battle.Float(id, n, ev.Kind == front.EvHeal)
+			}
 		}
 		if ev := &r.q[0]; (ev.Key || ev.Ms > 0 && !r.fast) && (ev.Battle != nil || ev.Scene != nil) && !r.skip {
 			if r.from.IsZero() {
@@ -557,3 +557,16 @@ func (p *Presenter) adLibEffect(n int) bool {
 
 // blowLineFor is how long a blow's line stays on the pane.
 const blowLineFor = 2500 * time.Millisecond
+
+// blowFloat is what ev floats over unit id: number n or word (none: n 0,
+// word ""). One blow floats once: only EvMiss says MISS (not the EvAttack
+// swing), only EvDamage/EvHeal carry the number (not EvHit, not Strike).
+func blowFloat(ev front.CombatEvent) (id, n int, word string) {
+	switch ev.Kind {
+	case front.EvMiss:
+		return ev.Target, 0, "MISS"
+	case front.EvDamage, front.EvHeal:
+		return ev.Unit, ev.Amount, ""
+	}
+	return 0, 0, ""
+}
