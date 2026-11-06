@@ -106,3 +106,13 @@ The builder skips files the passive-rebuild builders are editing. Progress: `.cl
 
 Extraction items 1-4 done (gobox d4da8dc, 092f785, fbcb576, 96f41d5, 61509da; per-game commits in .claude-progress-extract.txt): about 430 lines removed per game. Four divergences (nearSort tie order, directionTo strictness, POD StrBonus guard, COTAB Dice byte cast) are being checked against the originals. SOTSB TestJoinedName flake predates the extraction (7/30 at e8ec163), suspected `selected()` state in the join flow.
 Divergences settled against the originals: nearSort tie order was a SOTSB/POD port bug (fixed, gobox c8203d4, lowDirFirst removed); Dice takes bytes in all four originals (gobox rules.Dice casts, TestDiceByteArgs); directionTo strictness is a genuine difference: gobox's grid.DirectionTo has no flag (SOTSB/POD rule) and COTAB keeps its own in its game code (a13b3aa, cotab 106b6c7). POD's StrBonus guard: POD's own. Audit of gobox for other per-game switches: per-game-settings-audit.md (running). Bug class: a per-game switch in shared code must trace to each original's routine, never to how ports happen to differ.
+
+## Must move into gobox (user, 2026-11-06)
+
+ECL VM · combat AI · spell tables and effects, memorizing, scribing · character records · items, purse, treasure split · affect engine keyed by affect ids · combat · derived stats.
+
+Under the hard rule: what the originals do the same way is unified; where an original genuinely differs, the difference must be expressed as game data (tables, ids, records the game loads), never as a flag. If it can't be expressed as data, that piece stays in the game. Check every apparent difference against the -re projects or the decomp first, since many are port bugs.
+
+Order (to avoid colliding with the passive rebuild):
+1. Now, untouched by the rebuild: derived stats (rest: saves, thief skills, HP, XP, levels), spell tables, memorizing and scribing data, character records (gobox/char).
+2. After SOTSB/POD collapse step 5 and POR step 4: the ECL VM (POD's passive VM as the base), the affect engine, items/purse/treasure (coordinate with the shared-inventory work), combat and combat AI.
