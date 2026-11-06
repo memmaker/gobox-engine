@@ -359,7 +359,7 @@ func (r *rules) State() game.State {
 	}
 	if n := r.sheet; n >= 0 && n < len(c.Party) {
 		if s.SheetPage = c.Party[n].Sheet; s.SheetPage == nil { // no page from the rules: gobox's own from the member
-			s.SheetPage = ownPage(s.Party[n])
+			s.SheetPage = game.MemberPage(s.Party[n])
 		}
 		if s.Sheet == nil && s.SheetPage != nil { // the sheet is up though the member has no powers: the front shows a sheet only with one
 			s.Sheet = &game.Sheet{}
@@ -1762,23 +1762,4 @@ func (r *rules) Art() map[string]game.Picture {
 		return a.Art()
 	}
 	return r.data.Art
-}
-
-// ownPage is the sheet's page from m alone, for rules that publish none.
-func ownPage(m game.Member) *game.SheetPage {
-	p := &game.SheetPage{Name: m.Name, Race: m.Race, Alignment: m.Alignment, Class: m.Class, Status: m.Status,
-		AC: m.AC, HP: m.HP, MaxHP: m.MaxHP, THAC0: m.THAC0, Move: m.Move, Age: m.Age, Exp: int(m.Exp), Next: m.NextExp,
-		Levels: m.LevelText}
-	if p.Levels == "" { // "3/2": every class's level
-		var l []string
-		for _, n := range m.Levels {
-			l = append(l, strconv.Itoa(n))
-		}
-		p.Levels = strings.Join(l, "/")
-	}
-	p.Class = cmp.Or(m.ClassText, m.Class)
-	for i, k := range []string{"str", "int", "wis", "dex", "con", "cha"} {
-		p.Stats[i] = m.Stats[k]
-	}
-	return p
 }

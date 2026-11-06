@@ -453,6 +453,7 @@ type Member struct {
 	LevelExp, NextExp                    int            // the experience the level took and the next takes (0: none)
 	SpellsReady, Memo                    string         // spells ready over the slots ("0/3"), in camp too
 	Effects                              []Line         // the sheet's list of spell effects on the member, as the game words it
+	Page                                 *SheetPage     // the member's sheet as the game's own sheet mode shows it, kept current in every state; gobox's look-only sheet (a fight's or shop's View) draws it, nil: built from the Member (MemberPage)
 	Foe                                  bool           // on the monsters' side (gobox colours its name as such); last, for parity's unsetLate
 }
 

@@ -32,6 +32,7 @@ type Game struct {
 	tiles      bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
 	asked      *game.Ask // a Refusal's question put instead (answered by its options' Do)
 	aim        *aiming   // a combat spell's squares being picked (Combat.Aims)
+	sheet      int       // the look-only sheet up (a fight's View): member+1, 0 none
 	found      bool      // the treasure's "You found some loot!" was acknowledged (cleared when it goes)
 }
 
@@ -100,7 +101,7 @@ func (g *Game) art() map[string]game.Picture {
 	return g.D.Art
 }
 
-func (g *Game) View() front.View { return g.ViewOf(g.R.State()) }
+func (g *Game) View() front.View { return g.ViewOf(g.state()) }
 
 // ViewOf is View over s, the rules' State already read (a builder that
 // reads it too need not build it twice).
@@ -544,9 +545,44 @@ func (g *Game) Load(name string, loadOnly bool) bool {
 func (g *Game) TurnChoice(a front.Action, sure bool) error { return g.Answer(a) }
 
 // Sheet and inventory.
-func (g *Game) OpenSheet(n int) error  { return g.do(game.OpenSheet{Member: n}) }
-func (g *Game) CloseSheet() error      { return g.do(game.CloseSheet{}) }
-func (g *Game) ShowMember(n int) error { return g.do(game.ShowMember{Member: n}) }
+// OpenSheet: in a fight the sheet is look-only, gobox's from Member.Page
+// (n < 0: the turn's member); the game is not called. Else the game's own.
+func (g *Game) OpenSheet(n int) error {
+	s := g.R.State()
+	if s.Combat == nil {
+		return g.do(game.OpenSheet{Member: n})
+	}
+	if n < 0 {
+		n = s.Selected
+		if t := s.Combat.Turn; t != nil {
+			for _, u := range s.Combat.Units {
+				if u.ID == t.Unit && u.Member >= 0 {
+					n = u.Member
+				}
+			}
+		}
+	}
+	if n < 0 || n >= len(s.Party) {
+		return nil
+	}
+	g.sheet = n + 1
+	return nil
+}
+
+func (g *Game) CloseSheet() error {
+	if g.sheet > 0 {
+		g.sheet = 0
+		return nil
+	}
+	return g.do(game.CloseSheet{})
+}
+func (g *Game) ShowMember(n int) error {
+	if g.sheet > 0 && n >= 0 && n < len(g.R.State().Party) { // another member's look-only sheet
+		g.sheet = n + 1
+		return nil
+	}
+	return g.do(game.ShowMember{Member: n})
+}
 func (g *Game) OpenItems(n int, direct bool) error {
 	return g.do(game.OpenItems{Member: n, Direct: direct})
 }
@@ -874,6 +910,11 @@ func (g *Game) state() game.State {
 	s := g.R.State()
 	if g.asked != nil {
 		s.Pending, s.Mode = g.asked, game.ModeAsk
+	}
+	if n := g.sheet - 1; n >= 0 && n < len(s.Party) && s.Combat != nil { // the look-only sheet: the member's page, no powers (the game's sheet menu is not up)
+		s.Selected, s.Sheet, s.SheetPage = n, &game.Sheet{}, cmp.Or(s.Party[n].Page, game.MemberPage(s.Party[n]))
+	} else {
+		g.sheet = 0
 	}
 	return s
 }
