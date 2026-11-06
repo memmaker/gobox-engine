@@ -324,9 +324,11 @@ func (p *Presenter) Click(x, y int) bool {
 	}
 	if v := p.shownView; p.campHome(v) && p.active { // camp: a line of any member's menu
 		for i, rs := range p.campCtx {
-			if j := slices.IndexFunc(rs, image.Pt(x, y).In); j >= 0 && i < len(v.Party) && j < len(v.Party[i].Powers) {
-				p.ctx = 0
-				p.memberAct(v.Party[i].Powers[j].Kind, i)
+			if j := slices.IndexFunc(rs, image.Pt(x, y).In); j >= 0 && i < len(v.Party) {
+				if _, acts, _ := powerLines(v.Party[i].Powers); j < len(acts) { // the lines as drawn (powerLines leaves Icon out), not Powers' indexes
+					p.ctx = 0
+					p.memberAct(acts[j], i)
+				}
 				return true
 			}
 		}
