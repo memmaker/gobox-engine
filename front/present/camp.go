@@ -143,7 +143,7 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 	}
 	var it []ui.MenuRow // the party's, the rests first: each member's own are on their card's menu (drawCampMenus)
 	for _, r := range rests {
-		if r.Fix && !cp.Healing && !cp.Studying {
+		if r.Fix && !cp.Healing && !cp.Studying || r.Duration && cp.NoRest {
 			continue
 		}
 		text, key := r.Text, r.Key

@@ -16,6 +16,7 @@ func Camp(c *front.Camp, s game.State) *front.Camp {
 	v := *c
 	m := s.Party[s.Selected]
 	v.CanCast, v.Healing, v.Studying, v.Book = m.CanCast, s.RestHeals, s.RestStudies, nil
+	v.NoRest = s.Allowed["NoRest"] // playrules: camp with no AdvanceTimeBy
 	planned := map[string]int{}
 	for _, sp := range m.Spells {
 		if !sp.Memorized {

@@ -670,6 +670,7 @@ type Camp struct {
 	Book     []BookSpell // the selected member's spell book: how often each is memorized on a rest (ActPlan)
 	Scrolls  []BookSpell // the spells on their scrolls: Count 1 while being scribed (ActScribe)
 	Healing  bool        // someone resting can heal (RestFix)
+	NoRest   bool        // the game allows no timed rest here (Allowed has no Rest): the Duration rests are not offered
 	Studying bool        // someone resting would memorize or scribe a spell (RestFix)
 	Bestiary []Beast     // the monster kinds met
 	Settings []Setting   // the game's numeric options, a row each that steps the value on (ActAlter)

@@ -21,3 +21,16 @@ func TestViewMemberOpensSheet(t *testing.T) {
 		t.Fatal("sheet still up")
 	}
 }
+
+// Camp with no AdvanceTimeBy allowed offers no timed rest (Camp.NoRest).
+func TestCampNoRest(t *testing.T) {
+	for _, allow := range []bool{false, true} {
+		st := play.Camping{}
+		if allow {
+			st.Allowed.Plain = []play.Action{play.AdvanceTimeBy{}}
+		}
+		if got := New(&fake{st: st}, game.Data{}).State().Allowed["NoRest"]; got == allow {
+			t.Errorf("AdvanceTimeBy allowed %v: NoRest %v", allow, got)
+		}
+	}
+}

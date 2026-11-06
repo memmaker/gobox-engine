@@ -308,6 +308,9 @@ func (r *rules) State() game.State {
 	c := commonOf(ps)
 	s := game.State{Selected: c.Selected, Purse: c.Purse, Where: c.Where, Quests: c.Quests, Lore: c.Lore,
 		Allowed: allowedNames(c.Allowed), Items: r.items, Saves: r.saves()}
+	if _, camp := ps.(play.Camping); camp && !s.Allowed["Rest"] {
+		s.Allowed["NoRest"] = true // no timed rest here: camp offers none (classic Camp.NoRest)
+	}
 	for i, m := range c.Party {
 		s.Party = append(s.Party, member(m, i == c.Selected && !r.data.Unmarked, m.CanCast || canCast(c.Allowed, i)))
 		s.Party[i].Card = card(m, c.Allowed, i)
