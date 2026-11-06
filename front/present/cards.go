@@ -317,12 +317,22 @@ func (p *Presenter) keyWindow(screen *gpu.Image, title string, lines []string, k
 	if bottom && p.menuFloor > 0 {
 		b.Max.Y = p.menuFloor
 	}
-	k, top := ui.KeyWindowFit(b, scale(screen), title, lines, bottom)
+	k, top := yesNoFit(b, p.picBottom, yesNo(keys), scale(screen), title, lines, bottom)
 	rects := slices.Clone(p.menuRects) // not the game's menu: its clicks stay
 	defer func() { p.menuRects = rects }()
 	p.drawMenu(screen, p.glyph, title, lines, keys, off, sel, k, b.Dx()/2, top)
 	p.winRects = slices.Clone(p.menuRects) // its lines, for the Esc menu's mouse
 	return k
+}
+
+// yesNoFit is KeyWindowFit, but a yes/no with a picture up (its bottom
+// at picBottom) goes on the lines under the picture, not over it.
+func yesNoFit(b image.Rectangle, picBottom int, yn bool, K float64, title string, lines []string, bottom bool) (float64, int) {
+	if !yn || picBottom <= 0 || picBottom >= b.Max.Y {
+		return ui.KeyWindowFit(b, K, title, lines, bottom)
+	}
+	k, top := ui.KeyWindowFit(image.Rect(0, 0, b.Dx(), b.Max.Y-picBottom), K, title, lines, false)
+	return k, picBottom + top
 }
 
 // yesNo: a menu's rows are a Yes/No question's.
