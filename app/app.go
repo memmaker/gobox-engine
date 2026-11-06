@@ -44,6 +44,9 @@ const Right, Left, Next, Wait, Hold, Snap Key = 0xFF01, 0xFF02, 0xFF03, 0xFF04, 
 // and counted whether or not the game is idle, so a blow can be shot mid-air.
 const Timed Key = 0xE000
 
+// AltKey is a \A<c> chord: the low byte c typed with Alt held.
+const AltKey Key = 0xD000
+
 // Ticks is the least frames between a script's keys: a quarter second at
 // 60 Hz. A key waits on past it until the game is Idle, at most MaxWait.
 const Ticks, MaxWait = 15, 40 * Ticks
@@ -97,7 +100,8 @@ type Config struct {
 // ParseKeys reads a script: \M \C \P \w \B are the shell's (Right,
 // Left, Next, Wait, Hold: the left button down until the next \B, so
 // \B\P\B drags), and gobox's own keys are \r Enter, \e Esc, \t Tab,
-// \U \D \L \R the arrows, \G \H PgDn PgUp, \F F10; esc may add a
+// \U \D \L \R the arrows, \G \H PgDn PgUp, \F F10, \A<c> c with Alt
+// held (\Aq\Aa: alt+q, alt+a); esc may add a
 // game's own, and any other byte is its own code.
 func ParseKeys(s string, esc map[byte]Key) []Key {
 	all := map[byte]Key{'M': Right, 'C': Left, 'P': Next, 'w': Wait, 'B': Hold, 'S': Snap,
@@ -114,6 +118,11 @@ func ParseKeys(s string, esc map[byte]Key) []Key {
 			}
 			out = append(out, Timed|Key(min(0xFFF, max(1, ms*60/1000))))
 			i = j - 1
+			continue
+		}
+		if s[i] == '\\' && i+2 < len(s) && s[i+1] == 'A' { // \A<c>: c with Alt held
+			out = append(out, AltKey|Key(s[i+2]))
+			i += 2
 			continue
 		}
 		if c, ok := all[s[min(i+1, len(s)-1)]]; s[i] == '\\' && i+1 < len(s) && ok {
@@ -236,6 +245,11 @@ func (s *shell) step() {
 			k, s.fed, s.gap = next, s.fed+1, 0
 		}
 	}
+	alt := k&0xF000 == AltKey
+	if alt {
+		k &= 0xFF
+	}
+	gpu.Hold(gpu.KeyAlt, alt)
 	s.cfg.Game.Step(k)
 }
 

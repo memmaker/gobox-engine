@@ -45,3 +45,28 @@ func TestScriptWaitsIdle(t *testing.T) {
 		}
 	}
 }
+
+// altGame records each key with whether Alt was held as it came.
+type altGame struct {
+	busyGame
+	alts []bool
+}
+
+func (g *altGame) Step(k Key) {
+	if k != 0 {
+		g.keys = append(g.keys, k)
+		g.alts = append(g.alts, gpu.IsKeyPressed(gpu.KeyAlt))
+	}
+}
+
+// \A<c> types c with Alt held, and only c.
+func TestAltEscape(t *testing.T) {
+	g := &altGame{busyGame: busyGame{busy: []int{0}}}
+	s := &shell{cfg: Config{Game: g, Capture: Capture{Keys: ParseKeys(`\Aqx\Aa`, nil)}}}
+	for i := 0; i < 1000 && !s.done(); i++ {
+		s.step()
+	}
+	if string(rune(g.keys[0]))+string(rune(g.keys[1]))+string(rune(g.keys[2])) != "qxa" || !g.alts[0] || g.alts[1] || !g.alts[2] {
+		t.Fatalf("keys %v alts %v", g.keys, g.alts)
+	}
+}

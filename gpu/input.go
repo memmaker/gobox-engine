@@ -280,7 +280,13 @@ type Drop struct {
 // AppendDroppedFiles appends the files dropped on the window this tick.
 func AppendDroppedFiles(ps []Drop) []Drop { return append(ps, in.tickDrops...) }
 
-func IsKeyPressed(k Key) bool     { return k >= 0 && k < keyAll && in.dur[k] > 0 }
+func IsKeyPressed(k Key) bool     { return k >= 0 && k < keyAll && (in.dur[k] > 0 || held[k]) }
+
+// held are keys a script holds down (Hold), whatever the keyboard does.
+var held = map[Key]bool{}
+
+// Hold holds key k down for a script (a -keys \A chord's Alt) until released.
+func Hold(k Key, on bool) { held[k] = on }
 func IsKeyJustPressed(k Key) bool { return KeyPressDuration(k) == 1 }
 func KeyPressDuration(k Key) int {
 	if k < 0 || k >= keyAll {
