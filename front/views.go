@@ -83,6 +83,7 @@ type Picker struct {
 	Classes                       []string      // ... their classes ("": the files are gone)
 	Portraits                     []image.Image // ... their PNG portraits, fitted into the head's place (nil: none; the DAX head is among the pictures)
 	Ask                           string        // the question before a pick (%s: the label), "" none
+	Title                         string        // what is being picked, on the box's top edge ("" none)
 }
 
 // Slots is the save slot screen: the saves, newest first.

@@ -629,6 +629,9 @@ func (c *cellPage) scaled(cr *front.Creation) []front.Picture {
 // the saved characters' names, classes and PNG portraits.
 func (c *cellPage) picker(pk *front.Picker) {
 	c.border(1, 1, c.cols-2, pk.Bottom)
+	if pk.Title != "" { // centred on the box's top edge
+		c.str((c.cols-len(pk.Title))/2, 1, inkWhite, pk.Title)
+	}
 	if pk.Pages > 1 {
 		c.str(pk.Prev.X1, pk.Prev.Y1, inkWhite, "< page "+strconv.Itoa(pk.Page+1)+"/"+strconv.Itoa(pk.Pages)+" >")
 	}

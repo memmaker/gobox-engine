@@ -29,6 +29,12 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 	textCols, textRows := max(cols, 40), max(rows, 25)
 	winRight, bot := textCols-2, textRows-2 // bot: the box's inner bottom, the page's last row holds its border
 	cw, ch := k.Cell.X, k.Cell.Y
+	if len(k.Labels) > 0 { // a roster: the portrait (11 by 5 cells) and the name beside it fit the cell (present's picker)
+		ch = max(ch, 5)
+		for _, l := range k.Labels {
+			cw = max(cw, 12+len(l))
+		}
+	}
 	gap, nc := 1, winRight/(cw+1)
 	if winRight/cw > nc { // a blank between the columns only when it costs none
 		gap, nc = 0, winRight/cw
@@ -49,6 +55,12 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 	page = min(max(page, 0), pages-1)
 	v := &front.Picker{N: n, Page: page, Pages: pages, PerPage: per, Cols: nc, Cur: cur, Bottom: bot, Labels: k.Labels, Ask: k.Ask,
 		Classes: k.Classes, Portraits: k.Portraits}
+	if len(k.Labels) > 0 && len(k.Portraits) == 0 { // the game shows no faces: gobox's default by name, as a member without one
+		v.Portraits = make([]image.Image, len(k.Labels))
+		for i, l := range k.Labels {
+			v.Portraits[i] = poolImage("portraits", poolPick(game.Member{Name: l}, "portraits", "head_"))
+		}
+	}
 	first := page * per
 	for i := first; i < n && i < first+per; i++ {
 		x, y := x0+i%nc*(cw+gap), y0+(i/nc-page*nr)*ch
@@ -65,6 +77,18 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 		x := (textCols - len(t)) / 2
 		h := len(t) / 2 // each half of the pager line pages, not only its < and > cells
 		v.Prev, v.Next = front.CellRect{X1: x, Y1: pager, X2: x + h - 1, Y2: pager}, front.CellRect{X1: x + h, Y1: pager, X2: x + len(t) - 1, Y2: pager}
+	}
+	return v
+}
+
+// pickTitles name what each picker (OpenPicker's kind) picks.
+var pickTitles = map[int]string{front.PickHead: "Choose a Head", front.PickBody: "Choose a Body", front.PickIconHead: "Choose a Head",
+	front.PickWeapon: "Choose a Weapon", front.PickAdd: "Add a Character", front.PickForget: "Forget a Character"}
+
+// titled is v with picker kind's title (v nil: nil).
+func titled(v *front.Picker, kind int) *front.Picker {
+	if v != nil {
+		v.Title = pickTitles[kind]
 	}
 	return v
 }
@@ -207,6 +231,9 @@ func defaultIcon(m game.Member) game.Member {
 func poolPick(m game.Member, kind, prefix string) string {
 	h := fnv.New32a()
 	h.Write([]byte(m.Race + "/" + m.Class))
+	if m.Race == "" && m.Class == "" { // nothing known but the name (a saved character's): by name
+		h.Write([]byte(m.Name))
+	}
 	var ns []string
 	for _, n := range sprites.Names(Series, kind) {
 		if strings.HasPrefix(n, prefix) {

@@ -30,6 +30,7 @@ type Game struct {
 	lore       int          // journal notes seen (State.Lore), +1; 0: none counted yet
 	resets     int
 	traceMode  game.Mode // the mode last traced
+	pickKind   int       // the picker last opened (OpenPicker's kind): its title
 	tiles      bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
 	asked      *game.Ask // a Refusal's question put instead (answered by its options' Do)
 	aim        *aiming   // a combat spell's squares being picked (Combat.Aims)
@@ -195,7 +196,7 @@ func (g *Game) ViewOf(s game.State) front.View {
 	v.Creation = Creation(s, g.grid.X, g.grid.Y)
 	v = PoolIcon(v, s)
 	v.Training = Training(s)
-	v.Picker = Picker(s, 0, g.grid.X, g.grid.Y)
+	v.Picker = titled(Picker(s, 0, g.grid.X, g.grid.Y), g.pickKind)
 	v.IconEditor = IconEditor(s, &v.Ink, g.grid.X, g.grid.Y)
 	return v
 }
@@ -533,6 +534,7 @@ func (g *Game) TryDoor(k front.DoorWay) error {
 // Pickers and the icon designer.
 func (g *Game) OpenPicker(kind int) bool {
 	ok := g.do(game.OpenPicker{Kind: kind}) == nil
+	g.pickKind = kind
 	if s := g.R.State(); kind == front.PickWeapon && s.Picker == nil {
 		if n, _ := BodyTiles(s); len(n) > 0 { // no pictures from the game: the pool's, by original ref
 			g.tiles = true
@@ -545,7 +547,7 @@ func (g *Game) PickerView(page int) *front.Picker {
 	if g.tiles {
 		return TilePicker(g.R.State(), page, g.grid.X, g.grid.Y)
 	}
-	return Picker(g.R.State(), page, g.grid.X, g.grid.Y)
+	return titled(Picker(g.R.State(), page, g.grid.X, g.grid.Y), g.pickKind)
 }
 func (g *Game) Pick(i int) bool {
 	if g.tiles {
