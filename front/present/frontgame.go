@@ -57,7 +57,11 @@ func (p *Presenter) Shown() front.Shown {
 func (p *Presenter) ownQuestion(v front.View) front.View {
 	q := p.q
 	if q == nil && v.Ask == nil {
-		q = front.GateQuestion(p, v.Loot, v.Door)
+		l := v.Loot
+		if v.Inventory != nil { // the loot screen's item list is the treasure: its Take, All, Exit, not the gate menu over it
+			l = nil
+		}
+		q = front.GateQuestion(p, l, v.Door)
 	}
 	if q != nil {
 		a := q.Ask

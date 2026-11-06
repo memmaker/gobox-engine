@@ -97,7 +97,7 @@ func AskAct(h Host, a Action) (taken, done bool) {
 			h.Ask(nil)
 		}
 		return true, true
-	case s.Loot != nil || s.Door != nil:
+	case s.Loot != nil && !s.Inventory || s.Door != nil: // the loot screen's item list (Inventory) takes its own keys
 		return GateAct(h, a), true
 	case s.Treasure != nil:
 		if lootAct(h, s.Treasure, a) {
