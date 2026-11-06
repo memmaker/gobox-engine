@@ -62,7 +62,7 @@ func (p *Presenter) shopItems(v front.View) (string, []ui.MenuRow) {
 func (p *Presenter) serviceAct(a front.Action) bool {
 	v := p.shownView
 	switch {
-	case p.training:
+	case p.training || v.Training != nil: // the hall up, from Train or the game's own (ModeTraining)
 		switch a.Kind {
 		case front.ActClose:
 			p.call(func(e front.Game) { e.CloseTraining(); p.training = e.TrainingView() != nil })

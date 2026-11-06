@@ -33,3 +33,20 @@ func TestTrainingSwitch(t *testing.T) {
 		t.Fatalf("%v", g.calls)
 	}
 }
+
+// TestTrainingSwitchGameHall: the switch works in a hall the game opened
+// (ModeTraining: the View has Training, the front's Train never ran).
+func TestTrainingSwitchGameHall(t *testing.T) {
+	p := &Presenter{}
+	p.shownView.Training = &front.Training{Why: "NOT ENOUGH EXPERIENCE"}
+	if !p.serviceAct(front.Action{Kind: front.ActLead, N: 1}) {
+		t.Fatal("not taken")
+	}
+	g := &trainGame{}
+	for _, c := range p.Calls() {
+		c(g)
+	}
+	if len(g.calls) != 2 || g.calls[1] != "open1" {
+		t.Fatalf("%v", g.calls)
+	}
+}
