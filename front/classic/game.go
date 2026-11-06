@@ -310,6 +310,9 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 			} else if e.Text != "" && e.Ms == 0 && v.Battle != nil && posed != nil { // a fight's message stays up the game-speed delay before what follows, as the originals'
 				ce.Ms, ce.Battle = holdMs, posed(e)
 			}
+			if k == front.EvMissile && len(e.Sprite) > 0 && ce.Battle == nil && v.Battle != nil && posed != nil { // a shot the game gave no moment of its own: it flies on the board as it stands
+				ce.Ms, ce.Battle = cmp.Or(e.Ms, flightMs), posed(e)
+			}
 			if k == front.EvMissile && len(e.Sprite) > 0 && ce.Battle != nil { // the shot flies: its sprite square by square from the shooter, in thirds, over the moment
 				out = append(out, missileFlight(ce, e.Sprite[0], e.StepMs)...)
 				continue
@@ -1002,3 +1005,6 @@ func yesNoOption(q *game.Ask, k front.ActKind) int {
 	want := map[front.ActKind]string{front.ActYes: "yes", front.ActNo: "no"}[k]
 	return slices.IndexFunc(q.Options, func(o game.Option) bool { return strings.EqualFold(strings.TrimSpace(o.Label), want) })
 }
+
+// flightMs is a shot's flight when the game sets no time (Ms, StepMs).
+const flightMs = 300

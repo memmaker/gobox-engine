@@ -34,3 +34,14 @@ func TestMissileStepMs(t *testing.T) {
 		}
 	}
 }
+
+// TestMissileNoMoment: a shot with a sprite but no time or pose of its
+// own (POR's) still flies, over flightMs.
+func TestMissileNoMoment(t *testing.T) {
+	b := &front.Battle{Units: []front.Unit{{ID: 1, X: 27, Y: 14}}}
+	es := []game.Event{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
+	out := combatEvents(es, front.View{Battle: b}, func(game.Event) *front.Battle { return b }, 0)
+	if len(out) != 7 || out[0].Battle == nil || len(out[0].Battle.Effects) != 1 {
+		t.Fatalf("%d frames", len(out))
+	}
+}
