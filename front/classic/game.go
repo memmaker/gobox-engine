@@ -231,7 +231,7 @@ func (g *Game) Settle() front.View {
 	posed := g.posedBattle
 	if v.Battle == nil && g.lastCombat != nil { // the events ended the fight: they play on it, each on the board the ones before it left, the page after them
 		c := *g.lastCombat
-		c.Units = slices.Clone(c.Units)
+		c.Units, c.Squares = slices.Clone(c.Units), slices.Clone(c.Squares)
 		g.ended = &c
 		posed = g.endedBattle
 	}
@@ -255,6 +255,18 @@ func (g *Game) messageMs() int {
 // (a walk moved, a fall dropped), with its unit in its pose.
 func (g *Game) endedBattle(e game.Event) *front.Battle {
 	s := g.state()
+	if b := e.Picture; e.Kind == game.EvDown && (b.File != "" || b.Name != "" || b.Pixels != nil) { // the body the game leaves (Event.Picture): the fight's Combat is gone with the last blow
+		for _, u := range g.ended.Units {
+			if u.ID != e.Unit {
+				continue
+			}
+			if i := slices.IndexFunc(g.ended.Squares, func(q game.Ground) bool { return q.At == u.At }); i >= 0 {
+				g.ended.Squares[i].Overlay = b
+			} else {
+				g.ended.Squares = append(g.ended.Squares, game.Ground{At: u.At, Overlay: b})
+			}
+		}
+	}
 	c := *g.ended
 	c.Units = slices.Clone(c.Units)
 	for k := range c.Units {

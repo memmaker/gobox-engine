@@ -1207,8 +1207,8 @@ type Event struct {
 	N            int
 	Wait         bool
 	Clear        bool
-	Picture      Picture
-	Sound        string // sound ref for EvSound / song ref for EvSong
+	Picture      Picture // EvDown: the body the unit leaves on its square (a ground Overlay), for the fight's last blow, when no Combat follows
+	Sound        string  // sound ref for EvSound / song ref for EvSong
 	Unit, Target int
 	At, To       image.Point
 	Sprite       []Picture
