@@ -224,6 +224,9 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 	if pageScreen(v) {
 		p.pageMenu = true
 		p.drawScreen(dst, v)
+		if t := typing(v); t != nil && t.Prompt != "" { // the game's typed line (the name after creation's Keep): over the screen, never under it
+			p.drawTyping(dst, note, v, math.Max(1, math.Floor(scale(dst))), dst.Bounds().Dx()/2, 0)
+		}
 		return
 	}
 	if p.fullMap != nil { // no bar: the cursor cell's context menu, once opened
