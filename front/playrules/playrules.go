@@ -1421,8 +1421,14 @@ func (r *rules) do(a play.Action) game.Result {
 }
 
 // keep sends a to the game: a refusal is Err, else the outcome as events.
+// traceOn (GOBOX_TRACE=1) logs every play action sent to the game.
+var traceOn = os.Getenv("GOBOX_TRACE") != ""
+
 func (r *rules) keep(a play.Action) game.Result {
 	out, err := r.g.Do(a)
+	if traceOn {
+		fmt.Fprintf(os.Stderr, "trace play.Do %T%+v err=%v events=%d\n", a, a, err, len(out.Events))
+	}
 	if err != nil { // no toast: the old path's refusals were silent unless the rules said (Refused)
 		return game.Result{Err: err}
 	}
