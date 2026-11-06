@@ -167,6 +167,13 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 		line(st.Name, st.Value, r, st.Help)
 		r++
 	}
+	for _, f := range extraFields(sp) { // the game's extra fields (POD fills them), after a blank line
+		if f[1] != "" && fits(r+1) {
+			text(f[0], rx, row(r+1), white)
+			text(f[1], rr-8*len(f[1]), row(r+1), green)
+			r++
+		}
+	}
 	if sp.Effects != "" && fits(r+2) {
 		text("Effects", rx, row(r+1), white)
 		for j, l := range ui.WrapWords(sp.Effects, cw-leftCells-2) {

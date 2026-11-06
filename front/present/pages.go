@@ -559,13 +559,11 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 			c.str(9, 0x13, inkGreen, s.Effects)
 		}
 	}
-	for _, f := range []struct { // extra: the readied weapon and armour, the load and the coins
-		x, y int
-		l, v string
-	}{{1, 13, "Weapon", s.Weapon}, {1, 14, "Armour", s.Armour}, {1, 21, "Load", s.Encumbrance}, {17, 21, "Coins", s.Coins}} {
-		if f.v != "" {
-			c.str(f.x, f.y, inkWhite, f.l)
-			c.str(f.x+len(f.l)+1, f.y, inkGreen, f.v)
+	for j, f := range extraFields(s) { // the cells of each: Weapon, Armour, Load, Coins
+		at := [...][2]int{{1, 13}, {1, 14}, {1, 21}, {17, 21}}[j]
+		if f[1] != "" {
+			c.str(at[0], at[1], inkWhite, f[0])
+			c.str(at[0]+len(f[0])+1, at[1], inkGreen, f[1])
 		}
 	}
 	if b := s.PortraitAt; b != (front.CellRect{}) {
@@ -733,4 +731,11 @@ func iconClick(ed *front.IconEditor, cx, cy int) (front.Action, bool) {
 		}
 	}
 	return front.Action{}, false
+}
+
+// extraFields: the sheet's extra fields, label and value (empty: not
+// drawn), which both sheet layouts draw: the readied weapon and armour, the
+// load and the coins.
+func extraFields(s *front.SheetPage) [4][2]string {
+	return [4][2]string{{"Weapon", s.Weapon}, {"Armour", s.Armour}, {"Load", s.Encumbrance}, {"Coins", s.Coins}}
 }
