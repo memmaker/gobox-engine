@@ -804,13 +804,47 @@ func (p *Presenter) aimBoard(b *Board) *Board {
 		p.aimAt = nil
 		return b
 	}
-	if p.aimAt == nil && (!b.CursorOn || len(b.CursorAt) > 0) {
+	if p.aimAt == nil && len(b.CursorAt) > 0 { // the game draws its own aim
 		return b
 	}
 	c := *b
 	p.b = &c
-	if p.aimAt == nil {
-		p.aimAt = &c.Cursor
+	var at image.Point
+	for _, u := range c.Units {
+		if u.Active {
+			at = image.Pt(u.X, u.Y)
+		}
+	}
+	if len(c.Targets) == 0 { // none published: Tab cycles the foes, the nearest first
+		// ponytail: every foe on the map, not only those in the spell's range (the board has no range)
+		for _, u := range c.Units {
+			if !u.Party {
+				c.Targets = append(c.Targets, u.ID)
+			}
+		}
+		dist := func(id int) int {
+			for _, u := range c.Units {
+				if u.ID == id {
+					d := image.Pt(u.X, u.Y).Sub(at)
+					return max(d.X, -d.X, d.Y, -d.Y)
+				}
+			}
+			return 1 << 30
+		}
+		slices.SortStableFunc(c.Targets, func(a, b int) int { return dist(a) - dist(b) })
+	}
+	if p.aimAt == nil { // the game's Cursor, else the nearest target, else the actor: never a square nobody chose
+		switch {
+		case c.CursorOn:
+			at = c.Cursor
+		case len(c.Targets) > 0:
+			for _, u := range c.Units {
+				if u.ID == c.Targets[0] {
+					at = image.Pt(u.X, u.Y)
+				}
+			}
+		}
+		p.aimAt = &at
 	}
 	p.aimTo(*p.aimAt)
 	return p.b

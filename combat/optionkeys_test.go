@@ -146,3 +146,19 @@ func TestArrowsStepUnit(t *testing.T) {
 		t.Fatalf("blocked right: %+v, cursor %v", got, p.free)
 	}
 }
+
+// TestAimStartsOnNearestFoe: an aim the game gives no cursor starts on the
+// nearest foe, drawn, and Tab goes on to the next one: never (0,0).
+func TestAimStartsOnNearestFoe(t *testing.T) {
+	b := &Board{Turn: &Turn{Aim: true}, Units: []Unit{{ID: 1, X: 2, Y: 2, Party: true, Active: true},
+		{ID: 8, X: 7, Y: 2, Squares: []image.Point{{7, 2}}}, {ID: 9, X: 3, Y: 3, Squares: []image.Point{{3, 3}}}}}
+	var p Presenter
+	got := p.aimBoard(b)
+	if !got.CursorOn || got.Cursor != image.Pt(3, 3) || !slices.Equal(got.Targets, []int{9, 8}) {
+		t.Fatalf("cursor %v on %v, targets %v", got.Cursor, got.CursorOn, got.Targets)
+	}
+	p.cycleTarget(false)
+	if p.b.Cursor != image.Pt(7, 2) {
+		t.Fatalf("Tab: cursor %v, want the next foe", p.b.Cursor)
+	}
+}
