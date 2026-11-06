@@ -52,6 +52,7 @@ type rules struct {
 	read    *game.Read    // the handout up, kept so the pointer holds while it does
 	sheet   int           // the member whose sheet is up, -1 none
 	itemsOf int           // the member whose items are up (OpenItems), -1: the acting or selected one
+	speedUp bool          // the Speed menu is up (SpeedMenu)
 	speed   int           // the game speed (SetSpeed, 0-9): a fight's moment holds speed × 100 ms, as the originals' message delay
 	rest    time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
 	walk    []image.Point // the auto-walk's squares still to go, one per Step (PaceWalk)
@@ -138,6 +139,10 @@ func (r *rules) Pending() *game.Ask { return r.pending(r.g.State()) }
 // pending is the question up; where none is built and Continue is the
 // only way on, a Continue ask, so the player is never stuck.
 func (r *rules) pending(ps play.State) *game.Ask {
+	if r.speedUp {
+		return &game.Ask{Kind: game.Choice, Prompt: "Speed " + strconv.Itoa(r.speed),
+			Options: []game.Option{{Label: "Faster", Key: 'F'}, {Label: "Slower", Key: 'S'}, {Label: "Exit", Key: 'E'}}}
+	}
 	if a := r.asked(ps); a != nil {
 		return a
 	}
@@ -947,6 +952,11 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		}
 		return r.answer(ps, d)
 	case game.Cancel:
+		if r.speedUp {
+			r.speedUp = false
+			r.seq++
+			return game.Result{}
+		}
 		if r.ask == nil && r.aim == nil && isHandout(ps) { // Esc on a handout leaves it, as reading to its end does
 			return r.do(onward(commonOf(ps).Allowed))
 		}
@@ -985,7 +995,11 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		r.sheet = who(d.Member, ps)
 		return game.Result{}
 	case game.SetSpeed:
-		r.speed = min(max(d.N, 0), 9)
+		r.setSpeed(d.N)
+		return game.Result{}
+	case game.SpeedMenu:
+		r.speedUp = true
+		r.seq++
 		return game.Result{}
 	case game.Resize, game.TitleFlash, game.LootLook:
 		return game.Result{} // the screen's (the title's flash is the front's palette)
@@ -1293,6 +1307,18 @@ var doorWays = map[int]play.DoorWay{0: play.DoorExit, 1: play.DoorBash, 2: play.
 
 // answer answers gobox's own ask, or the scene's.
 func (r *rules) answer(ps play.State, d game.Answer) game.Result {
+	if r.speedUp { // Faster, Slower (one step, the menu stays), Exit
+		switch d.N {
+		case 0:
+			r.setSpeed(r.speed - 1)
+		case 1:
+			r.setSpeed(r.speed + 1)
+		default:
+			r.speedUp = false
+		}
+		r.seq++
+		return game.Result{}
+	}
 	if r.aim != nil && r.ask == nil { // the square ask: the square answers the aim
 		return r.aimAt(d.At)
 	}
@@ -1774,4 +1800,13 @@ func (r *rules) Art() map[string]game.Picture {
 		return a.Art()
 	}
 	return r.data.Art
+}
+
+// setSpeed sets the one game speed, 0 fastest .. 9 slowest: gobox's
+// replay delay, and the rules' own where they take it.
+func (r *rules) setSpeed(n int) {
+	r.speed = min(max(n, 0), 9)
+	if g, ok := r.g.(interface{ SetSpeed(int) }); ok {
+		g.SetSpeed(r.speed)
+	}
 }

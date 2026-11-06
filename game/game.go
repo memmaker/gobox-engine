@@ -1074,6 +1074,7 @@ type (
 	ChangeClass      struct{ Member, Class int }
 	DropMember       struct{ Member int }
 	SetSpeed         struct{ N int }
+	SpeedMenu        struct{} // gobox's Speed menu (Faster, Slower, Exit), front state; a game places it as a reply (play.Question.Do) in its Done menu
 	SetDifficulty    struct{ N int }
 	SetIcon          struct {
 		Member int
@@ -1154,6 +1155,7 @@ func (RemoveCharacter) decision()  {}
 func (ChangeClass) decision()      {}
 func (DropMember) decision()       {}
 func (SetSpeed) decision()         {}
+func (SpeedMenu) decision()        {}
 func (SetDifficulty) decision()    {}
 func (SetIcon) decision()          {}
 func (Call) decision()             {}

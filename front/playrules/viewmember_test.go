@@ -120,3 +120,26 @@ func TestViewGearOpensItems(t *testing.T) {
 		t.Fatalf("items %v selected %d sent %v", s.Items, s.Selected, f.sent)
 	}
 }
+
+// TestSpeedMenu: a Done menu's Speed (Question.Do SpeedMenu) is gobox's
+// menu: Slower and Faster step the one speed (0..9), Exit closes it; the
+// game is never sent a Reply.
+func TestSpeedMenu(t *testing.T) {
+	f := &fake{st: play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}},
+		Ask: &play.Question{Replies: []string{"Guard", "Speed", "Exit"}, Do: []game.Decision{nil, game.SpeedMenu{}}}}}}
+	r := New(f, game.Data{}).(*rules)
+	r.Apply(game.Answer{N: 1})
+	if a := r.State().Pending; a == nil || len(a.Options) != 3 || a.Options[0].Label != "Faster" {
+		t.Fatalf("menu %+v", a)
+	}
+	r.Apply(game.Answer{N: 1})
+	r.Apply(game.Answer{N: 1})
+	r.Apply(game.Answer{N: 0})
+	if r.speed != 5 || len(f.sent) != 0 {
+		t.Fatalf("speed %d sent %v", r.speed, f.sent)
+	}
+	r.Apply(game.Answer{N: 2})
+	if r.speedUp {
+		t.Fatal("still up")
+	}
+}
