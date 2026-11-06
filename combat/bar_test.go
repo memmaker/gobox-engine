@@ -1,6 +1,9 @@
 package combat
 
-import "testing"
+import (
+	"image"
+	"testing"
+)
 
 func TestShownItemsLabels(t *testing.T) {
 	b := &Board{Turn: &Turn{Can: []Kind{ActStep, ActView, ActAim, ActTurn, ActQuick, ActEnd, Kind(999)},
@@ -31,5 +34,17 @@ func TestHotkeysUnique(t *testing.T) {
 	hs := hotkeysOf([]barItem{{'U', "Use", ActItems, 0, 0, ""}, {'Q', "Quick", ActQuick, 0, 0, ""}, {'V', "Vow", ActWait, 0, 0, ""}})
 	if hs[0].key != 0 || hs[1].key != 'u' || hs[1].label != "U" || hs[2].key != 'v' {
 		t.Errorf("hotkeys %+v", hs)
+	}
+}
+
+// The game's letters only: Attack keyed A by the game is not also F (COTAB's
+// arena, where F is no button: Flee is not allowed).
+func TestTableKeyOnlyUnkeyed(t *testing.T) {
+	b := bar{items: []barItem{{Text: "Attack", Kind: ActAttack, Hot: 'A'}, {Text: "Quick", Kind: ActQuick}}, rects: make([]image.Rectangle, 2)}
+	if it := b.tableKey('f'); it != nil {
+		t.Errorf("F pressed %q", it.Text)
+	}
+	if it := b.tableKey('u'); it == nil || it.Text != "Quick" {
+		t.Errorf("U on an unkeyed Quick: %v", it)
 	}
 }

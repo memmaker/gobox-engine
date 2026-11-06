@@ -171,10 +171,11 @@ func (b *bar) chordKey(k uint16, alt, shift bool) *barItem {
 }
 
 // tableKey is the button whose act's remaster letter (hotkeys) is k, by its
-// act's word whatever the game calls it (nil: none).
+// act's word whatever the game calls it, for a button the game gave no
+// letter of its own (nil: none).
 func (b *bar) tableKey(k uint16) *barItem {
 	for i, it := range b.items {
-		if h, ok := hotkeys[actWords[it.Kind]]; ok && h.key != 0 && h.key == k && i < len(b.rects) {
+		if h, ok := hotkeys[actWords[it.Kind]]; ok && it.Hot == 0 && h.key != 0 && h.key == k && i < len(b.rects) { // only a button the game gave no letter: its letters are the game's
 			return &b.items[i]
 		}
 	}

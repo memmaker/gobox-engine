@@ -9,8 +9,8 @@ import (
 )
 
 // TestOptionKeys: the bar is the game's options; its own letters win over the
-// camera's (Q turns the view otherwise), the remaster's (F, U) reach the same
-// acts, and an option the front has no act for is sent by its index.
+// camera's (Q turns the view otherwise), no remaster letter (F, U) doubles
+// them, and an option the front has no act for is sent by its index.
 func TestOptionKeys(t *testing.T) {
 	b := &Board{Turn: &Turn{Options: []Option{{"Attack", 'A', ActAttack, ""}, {"Quick", 'Q', ActQuick, ""}, {"Target", 'T', ActOption, ""}, {"Dodge", 'D', ActOption, ""}}}}
 	for _, c := range []struct {
@@ -19,8 +19,6 @@ func TestOptionKeys(t *testing.T) {
 		want Decision
 	}{
 		{input.TurnLeft, 'q', Decision{Kind: ActQuick}},
-		{input.None, 'u', Decision{Kind: ActQuick}},
-		{input.None, 'f', Decision{Kind: ActAttack}},
 		{input.None, 'a', Decision{Kind: ActAttack}},
 		{input.None, 't', Decision{Kind: ActOption, N: 2}},
 		{input.None, 'D', Decision{Kind: ActOption, N: 3}},
@@ -34,6 +32,15 @@ func TestOptionKeys(t *testing.T) {
 		}
 		if got := p.Actions(); len(got) != 1 || got[0] != c.want {
 			t.Errorf("%c: %+v, want %+v", c.k, got, c.want)
+		}
+	}
+	for _, k := range []uint16{'f', 'u'} { // the game keyed Attack A and Quick Q: F and U are no buttons
+		p := &Presenter{b: b}
+		p.bar.items = shownItems(b, false)
+		p.bar.rects = make([]image.Rectangle, len(p.bar.items))
+		p.Key(input.None, k)
+		if got := p.Actions(); len(got) != 0 {
+			t.Errorf("%c: %+v", k, got)
 		}
 	}
 }
