@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"fmt"
 	"image"
 	"slices"
 
@@ -133,6 +134,22 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 	b.TileNames = slices.Clone(c.Tiles)
 	if c.FloorTile != "" {
 		b.FloorImg = sprites.Image(Series, "combat", c.FloorTile)
+	}
+	slot, slots := len(c.Tiles), map[string]int{} // a square's own Art: a tile slot of its own past the named tiles, one per picture
+	for _, g := range c.Squares {
+		if g.Art.File == "" && g.Art.Pixels == nil || !g.At.In(image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))) {
+			continue
+		}
+		k := fmt.Sprint(g.Art.File, g.Art.Block, g.Art.Frame, g.Art.Name, len(g.Art.Pixels))
+		t, ok := slots[k]
+		if !ok && slot < len(b.TilePix) {
+			t, ok, slots[k] = slot, true, slot
+			b.TilePix[slot] = pix(g.Art)
+			slot++
+		}
+		if ok {
+			b.Ground[g.At.Y][g.At.X].Tile = t
+		}
 	}
 	for i, n := range c.Tiles {
 		if n != "" && i < len(b.TilePix) {
