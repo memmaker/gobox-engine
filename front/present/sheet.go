@@ -120,7 +120,9 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	// strength and the rule set's modifier after it. Each line has a
 	// tooltip (tips).
 	rx, rr := leftCells*8, (cw-1)*8
-	row := func(r int) int { return 12 + 12*r }
+	last := 10 + len(sp.Rules) // the last figure's row: Movement, then the rule set's (BR2: tech and 8 career skills)
+	rh := max(9, min(12, ((ch-2)*8-10-14-10-12)/max(last, 1))) // rows close up for a long list, so it all fits above AC/THAC0/Damage
+	row := func(r int) int { return 12 + rh*r }
 	num := rx + 19*8 // the numbers' right edge ("Healing Surges" and a 5-wide value clear)
 	type tip struct {
 		r     image.Rectangle
@@ -131,7 +133,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	line := func(name, v string, r int, help []string) {
 		text(name, rx, row(r), white)
 		text(v, num-8*len(v), row(r), green)
-		tips = append(tips, tip{image.Rect(rx, row(r)-2, rr, row(r)+10), name, help})
+		tips = append(tips, tip{image.Rect(rx, row(r)-(rh-8)/2, rr, row(r)+8+(rh-8)/2), name, help})
 	}
 	text(sp.Sex+" "+sp.Race+", age "+strconv.Itoa(sp.Age), rx, row(0), white)
 	text(sp.Alignment, rx, row(1), white)
