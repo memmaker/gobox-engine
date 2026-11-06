@@ -13,9 +13,9 @@ import (
 // rows spread over the taller page, the block centred, the remaster's lines
 // in the two rows above the bottom frame.
 func TestCreditEdges(t *testing.T) {
-	old, oldFrame, oldRC := credits, creditFrame, remasterCredit
-	defer func() { credits, creditFrame, remasterCredit = old, oldFrame, oldRC }()
-	credits, creditFrame = []Credit{{X: 2, Y: 1, Colour: 14, Text: "TITLE"}, {X: 2, Y: 3, Colour: 15, Text: "LEFT"}, {X: 21, Y: 3, Colour: 15, Text: "RIGHT COLUMN"}, {X: 2, Y: 23, Colour: 10, Text: "LAST"}}, "edges"
+	old, oldBoxes, oldRC := credits, creditBoxes, remasterCredit
+	defer func() { credits, creditBoxes, remasterCredit = old, oldBoxes, oldRC }()
+	credits, creditBoxes = []Credit{{X: 2, Y: 1, Colour: 14, Text: "TITLE"}, {X: 2, Y: 3, Colour: 15, Text: "LEFT"}, {X: 21, Y: 3, Colour: 15, Text: "RIGHT COLUMN"}, {X: 2, Y: 23, Colour: 10, Text: "LAST"}}, nil
 	remasterCredit = [2]string{"Opinionated Remaster", "directed by"}
 	c := screenPage(front.View{Cells: image.Pt(60, 40), Credits: true})
 	if !slices.Contains(c.boxes, front.CellRect{X1: 1, Y1: 1, X2: 58, Y2: 38}) {

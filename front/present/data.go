@@ -7,6 +7,7 @@ package present
 import (
 	"cmp"
 	"gobox/front/classic"
+	"image"
 	"image/color"
 	"io/fs"
 	"os"
@@ -85,8 +86,8 @@ var (
 	credits                          []Credit
 	remasterCredit                   [2]string
 	creditGaps                       []int
-	creditFrame                      string // game.Data.CreditFrame
-	titleBackdrop                    int    // game.Data.TitleBackdrop
+	creditBoxes                      []image.Rectangle // game.Data.CreditBoxes
+	titleBackdrop                    int               // game.Data.TitleBackdrop
 	iconParts                        []string
 	spellRules                       []string
 	dollBoxes                        = defaultDollBoxes // the doll is every game's, whichever way its data came (SetData or NewFront)
@@ -339,7 +340,7 @@ func gameData(g game.Data) {
 			credits = append(credits, Credit(c))
 		}
 	}
-	creditFrame, titleBackdrop = g.CreditFrame, g.TitleBackdrop
+	creditBoxes, titleBackdrop = g.CreditBoxes, g.TitleBackdrop
 	if g.CreditGaps != nil {
 		creditGaps = g.CreditGaps
 	}

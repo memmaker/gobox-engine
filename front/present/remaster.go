@@ -416,7 +416,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		if v.Results != nil {
 			return p.drawResults(dst, v, note)
 		}
-		if v.Credits && creditFrame == "edges" { // the credits at the in-game page's size, whatever page the game keeps
+		if v.Credits && creditBoxes == nil { // the credits at the in-game page's size, whatever page the game keeps
 			v.Cells.X, v.Cells.Y = grid(dst)
 		}
 		if !p.ownLayout(v) { // nothing of the engine's page: the page's pictures and text in the remaster's layout

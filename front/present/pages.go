@@ -276,7 +276,7 @@ func (c *cellPage) texts(v front.View) {
 		}
 		c.run(r, c.rows-1)
 	}
-	if v.Credits && creditFrame == "edges" { // one frame on the page's edges, the lines laid out over the page inside it
+	if v.Credits && creditBoxes == nil { // one frame on the page's edges, the lines laid out over the page inside it
 		c.border(1, 1, c.cols-2, c.rows-2)
 		var page []Credit
 		x1, x2, y2 := c.cols, 0, 1
@@ -322,9 +322,17 @@ func (c *cellPage) texts(v front.View) {
 		}
 		return
 	}
-	if v.Credits { // drawCredits' two boxes: the title's, the lines'
-		c.border(1, 1, c.cols-2, 3)
-		c.border(1, 5, c.cols-2, c.rows-2)
+	if v.Credits { // the original's boxes, an edge on its page's following this page's
+		for _, b := range creditBoxes {
+			x2, y2 := b.Max.X, b.Max.Y
+			if x2 >= 38 {
+				x2 = c.cols - 2
+			}
+			if y2 >= 23 {
+				y2 = c.rows - 2
+			}
+			c.border(b.Min.X, b.Min.Y, x2, y2)
+		}
 		// Centred on wider pages; on pages tall enough, a blank row after
 		// each of creditGaps' rows (Pool: before "game created by", after it
 		// and after the version).
