@@ -425,9 +425,12 @@ type (
 	}
 	Struck struct{ Unit, Damage int } // harm without an attack (a spell, a trap)
 	Healed struct{ Unit, HP int }
-	Fell   struct{ Unit int } // down or dead
-	Fled   struct{ Unit int }
-	Moved  struct {
+	Fell   struct {
+		Unit int
+		Body game.Picture // what it leaves on its square, as game.Event.Picture on EvDown (empty: nothing)
+	} // down or dead
+	Fled  struct{ Unit int }
+	Moved struct {
 		To     image.Point
 		Facing int
 	} // the party, exploring
