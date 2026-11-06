@@ -56,3 +56,15 @@ func TestGenericTyping(t *testing.T) {
 		t.Fatal("the name question is not drawn")
 	}
 }
+
+// TestInventoryGameAsk: a question the game asks while its items are up
+// (COTAB's "Use it?") is drawn by Draw, not hidden under the inventory.
+func TestInventoryGameAsk(t *testing.T) {
+	dst := gpu.NewImage(1280, 800)
+	defer dst.Deallocate()
+	p := &Presenter{}
+	ask := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "Use it? ", Items: []front.MenuItem{{Text: "Yes"}, {Text: "No"}}}}
+	if p.Inventory(dst, Note{}, front.View{Inventory: &front.Inventory{}, Ask: ask}) {
+		t.Fatal("the items hide the game's question")
+	}
+}
