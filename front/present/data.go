@@ -281,7 +281,7 @@ func gameData(g game.Data) {
 	}
 	classic.Series = series
 	classic.Coin = cmp.Or(g.Coin, game.Gold)
-	classic.Flow, classic.PointBuy = g.CreationFlow, g.PointBuy
+	classic.Flow = g.CreationFlow
 	if g.Font != "" || g.Border != nil { // the game's look, as plain data
 		t := theme
 		if g.Font != "" {

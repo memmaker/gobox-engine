@@ -29,7 +29,6 @@ type Creation struct {
 	Scale     int        // the portrait's and the icon's whole scale: the engine draws them at 1x from Head's and Icon's corners
 	Abandon   string     // what Esc asks before ActClose
 	Minimums  string     // the minimums Minimal last rolled to (ActRoll N 1)
-	PointBuy  bool       // the game takes bought abilities (Game.PointBuy, game.Data.PointBuy): a new character is asked Roll or Point Buy
 }
 
 // StatCol is the column an ability's value starts at after its label

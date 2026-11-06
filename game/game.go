@@ -1021,7 +1021,7 @@ type (
 		Text string // the value as typed ("18/50" for an exceptional strength)
 	} // creation: set an ability by hand
 	// PointBuy: creation: the abilities bought on points (pointbuy.go),
-	// offered only when Data.PointBuy. Scores are the base values in
+	// offered for every new character. Scores are the base values in
 	// Creation.Stats' order (Stats nil: STR .. CHA, StatKeys 0..5), each
 	// PointBuyMin..PointBuyMax and within PointBuyBudget; the game applies
 	// its rules to them (race, class minimums, exceptional strength) as
@@ -1231,7 +1231,6 @@ type Data struct {
 	Coin          string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
 	ID            string            // game id
 	CreationFlow  CreationFlow      // the creation sheet's layout and steps
-	PointBuy      bool              `json:",omitempty"` // the game takes PointBuy: creation asks Roll or Point Buy for each new character
 	VerbKeys      map[string]rune   `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
 	VerbChords    map[string]string `json:",omitempty"` // more keys of a combat verb by label, comma-separated chords such as alt+q,alt+a or space or shift+u
 	VerbOrder     []string          `json:",omitempty"` // the series' order of the turn's verbs by label (POR: Move View Aim Use Cast Turn Quick Done); those it leaves out follow in gobox's

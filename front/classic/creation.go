@@ -18,7 +18,7 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 	}
 	d := c.Draft
 	winRight, winBottom := max(cols, 40)-2, max(rows, 25)-3
-	v := &front.Creation{Minimums: minimums(c.Minimums), Abandon: "Abandon this character?", PointBuy: PointBuy}
+	v := &front.Creation{Minimums: minimums(c.Minimums), Abandon: "Abandon this character?"}
 	if a := s.Pending; a != nil && a.Kind == game.YesNo {
 		v.Abandon = a.Prompt
 	}
@@ -88,9 +88,6 @@ func Drafting(s game.State) bool { return s.Creation != nil && s.Mode == game.Mo
 
 // Flow is game.Data.CreationFlow.
 var Flow game.CreationFlow
-
-// PointBuy is game.Data.PointBuy.
-var PointBuy bool
 
 // fieldRow is the first row of the adnd2-br sheet's fields.
 const fieldRow = 3

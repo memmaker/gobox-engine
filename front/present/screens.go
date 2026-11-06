@@ -28,7 +28,7 @@ const (
 	scrType   // a line being typed
 	scrAsk    // a yes/no question
 	scrPowers // the creation's power picks (Creation.Powers)
-	scrHow    // a new character: Roll or Point Buy (Creation.PointBuy)
+	scrHow    // a new character: Roll or Point Buy (every game takes bought abilities)
 	scrBuy    // the point buy (pointbuy.go)
 )
 
@@ -260,7 +260,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 	s := &p.scr
 	if n := screenName(v); n != s.up {
 		s.up, s.sub, s.sel, s.top, s.anchor = n, scrMain, 0, 0, nil
-		if n == "creation" && s.newChar && v.Creation.PointBuy {
+		if n == "creation" && s.newChar {
 			s.sub, s.mainSel = scrHow, 0
 		}
 		s.newChar = false

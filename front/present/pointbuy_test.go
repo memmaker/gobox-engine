@@ -30,7 +30,7 @@ func (g *pointsGame) CreationView() *front.Creation { return g.cr }
 func (g *pointsGame) Resets() int                   { return 0 }
 
 func buyView(names []string) front.View {
-	cr := &front.Creation{PointBuy: true, StatNames: names, Name: front.CellRect{X1: 1, Y1: 1, X2: 4, Y2: 1}}
+	cr := &front.Creation{StatNames: names, Name: front.CellRect{X1: 1, Y1: 1, X2: 4, Y2: 1}}
 	for i := range names {
 		cr.Stats = append(cr.Stats, front.CellRect{X1: 1, Y1: 7 + i, X2: 8, Y2: 7 + i})
 	}
@@ -100,23 +100,6 @@ func TestPointBuy(t *testing.T) {
 				t.Fatalf("game got %v (%q), want %v", g.scores, g.refused, want)
 			}
 		})
-	}
-}
-
-// Without the game's PointBuy no question is asked.
-func TestPointBuyNotOffered(t *testing.T) {
-	p := &Presenter{}
-	g := &pointsGame{}
-	p.SetEngine(g)
-	dst := gpu.NewImage(640, 400)
-	defer dst.Deallocate()
-	v := buyView([]string{"STR"})
-	v.Creation.PointBuy = false
-	g.cr = v.Creation
-	p.send(front.ActCreate, 0)
-	p.Draw(dst, Note{Glyph: func(byte) [8]byte { return [8]byte{} }, Font: func(byte, bool) [8]byte { return [8]byte{} }}, v)
-	if p.scr.sub != scrMain {
-		t.Fatalf("sub %d without the capability", p.scr.sub)
 	}
 }
 
