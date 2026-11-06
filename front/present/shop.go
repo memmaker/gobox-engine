@@ -66,7 +66,8 @@ func (p *Presenter) serviceAct(a front.Action) bool {
 		switch a.Kind {
 		case front.ActClose:
 			p.call(func(e front.Game) { e.CloseTraining(); p.training = e.TrainingView() != nil })
-		case front.ActLead: // the hall is for the member it opened on
+		case front.ActLead: // another member: the hall closes and opens again for them (the game's training is per member)
+			p.call(func(e front.Game) { e.CloseTraining(); e.OpenTraining(a.N); p.training = e.TrainingView() != nil })
 		default:
 			return false
 		}
