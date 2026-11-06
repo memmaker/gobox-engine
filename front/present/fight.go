@@ -347,6 +347,17 @@ type replay struct {
 	fast bool      // Space: the rest of the queued timed events pass at once (the computer's turn sped up)
 }
 
+// lastBoard: the shown event is the last held one queued (the board the
+// rest leave): Space never skips it, so the fight reaches its end state.
+func (r *replay) lastBoard() bool {
+	for _, e := range r.q[1:] {
+		if (e.Key || e.Ms > 0) && (e.Battle != nil || e.Scene != nil) {
+			return false
+		}
+	}
+	return true
+}
+
 // Play queues the fight's events Apply handed out.
 // Their snapshots' pictures are made here, as View.Battle's are (pixView).
 func (p *Presenter) Play(evs []front.CombatEvent) {
@@ -388,7 +399,7 @@ func (p *Presenter) playing() *front.CombatEvent {
 				p.battle.Float(id, n, ev.Kind == front.EvHeal)
 			}
 		}
-		if ev := &r.q[0]; (ev.Key || ev.Ms > 0 && !r.fast) && (ev.Battle != nil || ev.Scene != nil) && !r.skip {
+		if ev := &r.q[0]; (ev.Key || ev.Ms > 0 && (!r.fast || r.lastBoard())) && (ev.Battle != nil || ev.Scene != nil) && !r.skip {
 			if r.from.IsZero() {
 				r.from = now()
 			}

@@ -34,7 +34,8 @@ func TestSpaceFastForward(t *testing.T) {
 	}
 }
 
-// A 5-frame blast (5 timed scenes of 60 ms) plays, and Space passes it.
+// A 5-frame blast (5 timed scenes of 60 ms) plays, and Space passes it to
+// its last frame (the state the rest leave).
 func TestBlastPlaysAndSpacePasses(t *testing.T) {
 	var p Presenter
 	var evs []front.CombatEvent
@@ -46,8 +47,20 @@ func TestBlastPlaysAndSpacePasses(t *testing.T) {
 		t.Fatal("blast not shown")
 	}
 	p.Key(' ', front.View{})
-	if ev := p.playing(); ev != nil || p.Playing() {
-		t.Fatalf("after Space: %+v", ev)
+	if ev := p.playing(); ev == nil || len(p.replay.q) != 1 {
+		t.Fatalf("after Space: %+v, %d left", ev, len(p.replay.q))
+	}
+}
+
+// Space passes the ending fight's moments but its last board (the party
+// fallen, the foes walked) is still shown before the page.
+func TestSpaceKeepsEndBoard(t *testing.T) {
+	var p Presenter
+	walk, end := &front.Battle{}, &front.Battle{}
+	p.Play([]front.CombatEvent{{Kind: front.EvMoved, Ms: 300, Battle: walk}, {Kind: front.EvDied, Ms: 300, Battle: end}, {Kind: front.EvMessage, Text: "x"}})
+	p.Key(' ', front.View{})
+	if ev := p.playing(); ev == nil || ev.Battle != end {
+		t.Fatalf("after Space: %+v, want the end board", ev)
 	}
 }
 
