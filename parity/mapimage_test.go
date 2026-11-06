@@ -31,6 +31,7 @@ func TestMapImage(t *testing.T) {
 		t.Skip("no game files")
 	}
 	e.Init() // the font
+	present.UseGameData(e.Data()) // the label inks
 	files, _ := filepath.Glob(filepath.Join(porDir(t), "presentdata", "testdata", "map_*.json"))
 	if len(files) == 0 {
 		t.Fatal("no recorded maps")
