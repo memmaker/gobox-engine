@@ -95,10 +95,12 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel int, ware, p
 		it := &items[i]
 		y := listTop + (i-pn.top)*rowH
 		r := image.Rect(x0, y, tr, y+rowH)
-		if it.Index == sel || inv.hover.In(r) && !busy {
-			if inkBlue >= 0 {
-				inv.fill(r, col(inkBlue)) // the text selection
-			}
+		switch {
+		case inkBlue < 0:
+		case it.Index == sel:
+			inv.fill(r, col(inkBlue)) // the text selection
+		case inv.hover.In(r) && !busy: // the row under the pointer: the selection's ink as an outline, never a second selection
+			selectOutline(r, 1, func(r image.Rectangle, _ color.RGBA) { inv.fill(r, col(inkBlue)) })
 		}
 		inv.drawIcon(it, image.Rect(x0, y, x0+rowH, y+rowH))
 		tc := green
