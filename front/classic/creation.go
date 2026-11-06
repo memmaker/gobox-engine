@@ -3,6 +3,7 @@ package classic
 import (
 	"gobox/front"
 	"gobox/game"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -23,9 +24,9 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 		v.Abandon = a.Prompt
 	}
 	v.Name = front.CellRect{X1: 1, Y1: 1, X2: max(1, len(d.Name)), Y2: 1}
-	main := min(len(c.Fields), 4) // adnd1: the four sheet fields, then the power picks
-	if Flow == game.CreationADnD2BR {
-		main = len(c.Fields) // ponytail: no power picks in this flow; add a count to the contract if one needs them
+	main := min(len(c.Fields), 4) // the four sheet fields, then the power picks
+	if rowFields(c) {
+		main = len(c.Fields)
 	}
 	for i, cf := range c.Fields {
 		fl := front.Field{Name: cf.Name, Cur: cf.Pick}
@@ -38,7 +39,7 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 			v.Powers = append(v.Powers, fl)
 		}
 	}
-	if Flow == game.CreationADnD2BR { // one field per row, as draftRows draws them
+	if rowFields(c) { // one field per row, as draftRows draws them
 		for i := range v.Fields {
 			v.Fields[i].At = front.CellRect{X1: 1, Y1: fieldRow + i, X2: max(1, len(picked(c.Fields[i]))), Y2: fieldRow + i}
 		}
@@ -86,8 +87,13 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 // character's first step, the roster) on the party menu too; that is no sheet.
 func Drafting(s game.State) bool { return s.Creation != nil && s.Mode == game.ModeCreate }
 
-// Flow is game.Data.CreationFlow.
-var Flow game.CreationFlow
+// rowFields says whether c's sheet puts its fields one per row in the game's
+// order, with no power picks: a sheet without an alignment (the Buck Rogers
+// sheets, BR1 O0D2:00E3, BR2 O07E:00EA). A sheet with one has the four fields
+// at their places (sex and race, alignment, class), the power picks after.
+func rowFields(c *game.Creation) bool {
+	return !slices.ContainsFunc(c.Fields, func(f game.Field) bool { return strings.EqualFold(f.Name, "alignment") })
+}
 
 // fieldRow is the first row of the adnd2-br sheet's fields.
 const fieldRow = 3

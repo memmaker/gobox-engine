@@ -48,7 +48,7 @@ var _ front.Game = (*Game)(nil)
 
 // NewGame is the front.Game over r and d.
 func NewGame(r game.Rules, d game.Data) *Game {
-	GameID, Flow = d.ID, d.CreationFlow
+	GameID = d.ID
 	return &Game{R: r, D: d, grid: image.Pt(40, 25), speed: 4}
 }
 

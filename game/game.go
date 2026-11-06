@@ -813,20 +813,6 @@ type Creation struct {
 	Derived []Derived `json:",omitempty"`
 }
 
-// CreationFlow picks gobox's generic creation sheet layout and step
-// sequence; the game's Fields, Stats and Derived carry the meaning.
-type CreationFlow int
-
-const (
-	// CreationADnD1 is the Pool games' sheet (the default): four fields at
-	// fixed places, six abilities with 18/xx, the Minimal roll and the
-	// power picks after the fourth field.
-	CreationADnD1 CreationFlow = iota
-	// CreationADnD2BR is Buck Rogers' sheet: every field one per row in the
-	// game's order (no power picks), Stats and Derived drawn as given.
-	CreationADnD2BR
-)
-
 // StatDef is one ability on the creation sheet.
 type StatDef struct {
 	Key      string // the Member.Stats key ("str", "tech", ...), for the game
@@ -1228,7 +1214,6 @@ type Data struct {
 	Series        string
 	Coin          string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
 	ID            string            // game id
-	CreationFlow  CreationFlow      // the creation sheet's layout and steps
 	VerbKeys      map[string]rune   `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
 	VerbChords    map[string]string `json:",omitempty"` // more keys of a combat verb by label, comma-separated chords such as alt+q,alt+a or space or shift+u
 	VerbOrder     []string          `json:",omitempty"` // the series' order of the turn's verbs by label (POR: Move View Aim Use Cast Turn Quick Done); those it leaves out follow in gobox's

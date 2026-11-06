@@ -78,7 +78,7 @@ func draftPage(c *game.Creation, rules *game.SheetPage) *game.SheetPage {
 // draftRows puts c's own fields, abilities and figures on k as given:
 // adnd2-br the fields one per row, the figures in order.
 func draftRows(k *front.SheetPage, c *game.Creation) {
-	if Flow == game.CreationADnD2BR {
+	if rowFields(c) {
 		k.FieldRows = []string{}
 		for _, f := range c.Fields {
 			k.FieldRows = append(k.FieldRows, picked(f))
