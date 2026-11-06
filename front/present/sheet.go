@@ -85,6 +85,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 
 	// the member: the pane the inventory shares, then HP and experience under the portrait
 	lx, lw := 8, (leftCells-2)*8
+	vr := lx + lw - 8 // the values' right edge: a cell clear of the pane's border (a thick one, COTAB's, overhangs it)
 	face, png := p.memberPane(sc.px, note.Glyph, m, (ch-2)*8)
 	y := face.Max.Y + 6
 	hpY, expY := y+10, y+36
@@ -94,24 +95,24 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 	text("HP", lx, y, white)
 	hp := strconv.Itoa(m.HP) + "/" + strconv.Itoa(m.MaxHP)
-	text(hp, lx+lw-8*len(hp), y, hpc)
+	text(hp, vr-8*len(hp), y, hpc)
 	if !sp.Creating && (sp.Exp > 0 || sp.Next > 0) { // a game without experience leaves both zero
 		text("Exp", lx, y+26, white)
 		e := strconv.Itoa(sp.Exp)
 		if sp.Next > 0 {
 			e += "/" + strconv.Itoa(sp.Next)
 		}
-		text(e, lx+lw-8*len(e), y+26, green)
+		text(e, vr-8*len(e), y+26, green)
 	}
 	ly := y + 52 // under the bars: a key left, its value right
 	if !sp.Creating && sp.Levels != "" {
 		text("Level", lx, ly, white)
-		text(sp.Levels, lx+lw-8*len(sp.Levels), ly, green)
+		text(sp.Levels, vr-8*len(sp.Levels), ly, green)
 	}
 	if sp.Status != "" { // the pane's last line, level with the AC/THAC0/Damage values
 		sy := (ch-2)*8 - 10
 		text("Status", lx, sy, white)
-		text(sp.Status, lx+lw-8*len(sp.Status), sy, green)
+		text(sp.Status, vr-8*len(sp.Status), sy, green)
 	}
 
 	// the figures: who, a blank line, the abilities, Move, the rule set's
