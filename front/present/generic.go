@@ -78,18 +78,18 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 	}
 	if th > 0 { // the text along the bottom
 		p.paneBox(dst, note, v, k, cx, b.Dy()-int(th/2)) // on the bottom edge
-		p.menuFloor = b.Dy() - int(th) // its question goes above the text, not over it
+		p.menuFloor = b.Dy() - int(th)                   // its question goes above the text, not over it
 		defer func() { p.menuFloor = 0 }()
 	}
 	p.drawPageMenu(dst, note, v)
 	if t := typing(v); t != nil && t.Prompt != "" { // a typed answer (a name after the sheet): its question and line, never an invisible question
 		p.drawTyping(dst, note, v, math.Max(1, math.Floor(k)), cx, 0)
 	}
-	if m := askMenu(v); m != nil && len(m.Items) == 1 && !choosing(v) && typing(v) == nil && askList(v) == nil && (strings.TrimSpace(m.Prompt) != "" || len(art) == 0 && th == 0) { // "press Enter": nothing to pick, the prompt alone above the text; a bare "press Enter" not over a page's picture or text (as over the 3D view)
+	if m := askMenu(v); m != nil && len(m.Commands) == 1 && !choosing(v) && typing(v) == nil && askList(v) == nil && (strings.TrimSpace(m.Prompt) != "" || len(art) == 0 && th == 0) { // "press Enter": nothing to pick, the prompt alone above the text; a bare "press Enter" not over a page's picture or text (as over the 3D view)
 		mk := math.Max(1, math.Floor(k))
 		text := strings.TrimSpace(m.Prompt)
 		if text == "" {
-			text = m.Items[0].Text
+			text = m.Commands[0].Text
 		}
 		p.drawMenu(dst, note.Glyph, "", []string{text}, nil, nil, -1, mk, cx, int(float64(b.Dy()-int(th))/2)-int(mk*12))
 	}

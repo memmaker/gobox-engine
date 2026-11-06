@@ -307,7 +307,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.ctx = 0
 	}
 	p.fight = v.Battle != nil && !(sheetUp(v) && v.SheetPage != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
-	p.noMenu = askMenu(v) == nil || len(askMenu(v).Items) == 1       // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
+	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1    // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
 	p.resize(dst, v)
 	p.syncRead(v)
 	p.overview = p.overview && v.Exploring
@@ -557,7 +557,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.drawTyping(dst, note, v, mk, cx, picBottom+int(pk*4))
 	} else if askList(v) != nil && askMenu(v) != nil { // a list and its question (list.go)
 		p.menu = false
-		rows := len(ui.TitleLines(askMenu(v).Prompt)) + min(len(askList(v)), listRows) + len(askMenu(v).Items) + 4 // drawMenu's: the title, a blank, the lines, a blank, the options, the border
+		rows := len(ui.TitleLines(askMenu(v).Prompt)) + min(len(askList(v)), listRows) + len(askMenu(v).Commands) + 4 // drawMenu's: the title, a blank, the lines, a blank, the options, the border
 		top := max(b.Dy()/2-int(mk*float64(rows)*4), picBottom+int(pk*4))
 		p.asking(v, func() { p.drawList(dst, note.Glyph, v, mk, cx, max(0, min(top, b.Max.Y-int(mk*float64(rows)*8)))) }) // all of it on screen, over the picture's edge if it must
 	} else if screenUp(v) && spellPick(v) == nil { // camp (camp.go), the temple, the shop, training
@@ -578,7 +578,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			top = max(top, picBottom+int(pk*4))
 		}
 		p.drawMenu(dst, note.Glyph, "", lines, keys, nil, p.sel, mk, cx, top)
-	} else if m := askMenu(v); m != nil && len(m.Items) == 0 && strings.TrimSpace(m.Prompt) != "" && !shown { // a message with no choice ("You found some loot!"), no text box to hold it: the prompt alone until a key, under the picture
+	} else if m := askMenu(v); m != nil && len(m.Commands) == 0 && strings.TrimSpace(m.Prompt) != "" && !shown { // a message with no choice ("You found some loot!"), no text box to hold it: the prompt alone until a key, under the picture
 		p.menu = false
 		top := b.Dy()/2 - int(mk*12)
 		if picBottom > 0 {
@@ -590,8 +590,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	} else if p.menu && menuID(askMenu(v)) != p.menuFor { // the menu the popup was opened for is gone (answered): the next one opens on its own key
 		p.menu = false
 	} else if p.menu {
-		lines, keys := make([]string, len(askMenu(v).Items)), make([]byte, len(askMenu(v).Items))
-		for i, it := range askMenu(v).Items {
+		lines, keys := make([]string, len(askMenu(v).Commands)), make([]byte, len(askMenu(v).Commands))
+		for i, it := range askMenu(v).Commands {
 			lines[i], keys[i] = it.Text, it.Key
 		}
 		p.sel = min(p.sel, len(lines)-1)
@@ -686,7 +686,7 @@ func (p *Presenter) OptionsMouse(x, y int, left, right bool, wheel float64) {
 // noChoice reports a question with one answer ("press enter to continue"):
 // a message, not a choice.
 func noChoice(v front.View) bool {
-	return askMenu(v) != nil && !v.Exploring && len(askMenu(v).Items) <= 1 && !choosing(v) // a member pick's lone Select is still a choice: whom
+	return askMenu(v) != nil && !v.Exploring && len(askMenu(v).Commands) <= 1 && !choosing(v) // a member pick's lone Select is still a choice: whom
 }
 
 // Tick advances the renderer's animation one tick (1/60 s) under a script.

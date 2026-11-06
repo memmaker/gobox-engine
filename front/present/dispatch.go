@@ -200,8 +200,8 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		p.send(front.ActLead, n)
 		return true
 	}
-	keys := make([]byte, len(m.Items))
-	for i, it := range m.Items {
+	keys := make([]byte, len(m.Commands))
+	for i, it := range m.Commands {
 		keys[i] = it.Key
 	}
 	if askHeld(v, k) {
@@ -519,7 +519,7 @@ func cardUnder(cards []image.Rectangle, x, y int) int {
 // menuID tells menus apart: prompt and items.
 func menuID(m *front.Menu) string {
 	id := m.Prompt
-	for _, it := range m.Items {
+	for _, it := range m.Commands {
 		id += "|" + it.Text
 	}
 	return id

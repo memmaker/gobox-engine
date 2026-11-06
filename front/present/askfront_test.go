@@ -17,4 +17,3 @@ func TestNoFrontScreenOverAsk(t *testing.T) {
 		t.Fatalf("F10 over the ask: slots %v acts %v", p.slots, p.inv.acts)
 	}
 }
-

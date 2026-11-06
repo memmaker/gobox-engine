@@ -121,7 +121,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	// strength and the rule set's modifier after it. Each line has a
 	// tooltip (tips).
 	rx, rr := leftCells*8, (cw-1)*8
-	last := 10 + len(sp.Rules) // the last figure's row: Movement, then the rule set's (BR2: tech and 8 career skills)
+	last := 10 + len(sp.Rules)                                 // the last figure's row: Movement, then the rule set's (BR2: tech and 8 career skills)
 	rh := max(9, min(12, ((ch-2)*8-10-14-10-12)/max(last, 1))) // rows close up for a long list, so it all fits above AC/THAC0/Damage
 	row := func(r int) int { return 12 + rh*r }
 	num := rx + 19*8 // the numbers' right edge ("Healing Surges" and a 5-wide value clear), further right for a longer name (BR2's "Treat Light Wounds")

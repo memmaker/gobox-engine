@@ -240,7 +240,7 @@ func TestKeyDispatch(t *testing.T) {
 // "YOUR COVER IS BLOWN."): a card's click continues it, as a click elsewhere,
 // instead of asking for the inventory the engine refuses.
 func TestCardClickContinues(t *testing.T) {
-	p := &Presenter{shownView: front.View{Ask: &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Items: []front.MenuItem{{Text: "PRESS <ENTER>"}}}}}}
+	p := &Presenter{shownView: front.View{Ask: &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Commands: []front.Command{{Text: "PRESS <ENTER>"}}}}}}
 	p.cardClick(2)
 	if a := p.Actions(); len(a) != 1 || a[0].Kind != front.ActOK {
 		t.Errorf("card click on a press-Enter wait: %v", a)
@@ -274,7 +274,7 @@ func TestDirsAskTakesArrows(t *testing.T) {
 // its keys and Esc, not left hanging.
 func TestFightMenuKeys(t *testing.T) {
 	v := front.View{Ask: &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "Continue Battle:",
-		Items: []front.MenuItem{{Text: "Yes", Key: 'Y'}, {Text: "No", Key: 'N'}}}}}
+		Commands: []front.Command{{Text: "Yes", Key: 'Y'}, {Text: "No", Key: 'N'}}}}}
 	for _, c := range []struct {
 		k    uint16
 		want front.ActKind
@@ -290,8 +290,8 @@ func TestFightMenuKeys(t *testing.T) {
 // TestConfirmStart: the yes/no starts on the game's default by its option,
 // Yes drawn first whatever order the game lists them in.
 func TestConfirmStart(t *testing.T) {
-	yn := front.Menu{Items: []front.MenuItem{{Text: "Yes"}, {Text: "No"}}}
-	ny := front.Menu{Items: []front.MenuItem{{Text: "No"}, {Text: "Yes"}}}
+	yn := front.Menu{Commands: []front.Command{{Text: "Yes"}, {Text: "No"}}}
+	ny := front.Menu{Commands: []front.Command{{Text: "No"}, {Text: "Yes"}}}
 	for _, c := range []struct {
 		a    front.Ask
 		want int

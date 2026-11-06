@@ -84,9 +84,9 @@ func NewClass(h Host, n, class int) {
 func AskChoice(h Host, prompt string, items []Spell, then func(id int)) {
 	m := Menu{Prompt: prompt}
 	for _, it := range items {
-		m.Items = append(m.Items, MenuItem{Text: it.Name, Key: it.Name[0]})
+		m.Commands = append(m.Commands, Command{Text: it.Name, Key: it.Name[0]})
 	}
-	m.Items = append(m.Items, MenuItem{Text: "Exit", Key: 'E'})
+	m.Commands = append(m.Commands, Command{Text: "Exit", Key: 'E'})
 	h.Ask(&Question{Ask: Ask{Kind: AskMenu, Menu: m}, Answer: func(a Action) bool {
 		switch a.Kind {
 		case ActChoose:

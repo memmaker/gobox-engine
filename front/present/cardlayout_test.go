@@ -46,9 +46,9 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 				}
 				if row { // a spell list from the first card's menu: above the cards, on screen
 					w := v
-					w.Camp, w.Ask = nil, &front.Ask{Kind: front.AskSpell, Spells: make([]front.Spell, 9)}
-					for i := range w.Ask.Spells {
-						w.Ask.Spells[i] = front.Spell{Name: fmt.Sprint("Spell ", i), ID: 1 + i}
+					w.Camp, w.Ask = nil, &front.Ask{Kind: front.AskSpell, Entries: make([]front.Entry, 9)}
+					for i := range w.Ask.Entries {
+						w.Ask.Entries[i] = front.Entry{Text: fmt.Sprint("Spell ", i), Spell: 1 + i}
 					}
 					q := &Presenter{}
 					q.Draw(dst, note, w)

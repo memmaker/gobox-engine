@@ -11,7 +11,7 @@ import (
 // Enter and Esc do nothing, the hotkey answers.
 func TestNoPickChoice(t *testing.T) {
 	v := front.View{Ask: &front.Ask{Kind: front.AskMenu, NoPick: true, NoEsc: true,
-		Menu: front.Menu{Items: []front.MenuItem{{Text: "Yes", Key: 'Y'}, {Text: "No", Key: 'N'}}}}}
+		Menu: front.Menu{Commands: []front.Command{{Text: "Yes", Key: 'Y'}, {Text: "No", Key: 'N'}}}}}
 	p := &Presenter{}
 	for _, k := range []uint16{keyOf(input.Enter), keyOf(input.Esc), keyOf(input.Down)} {
 		if !p.pageMenuKey(k, v) || len(p.inv.acts) != 0 {

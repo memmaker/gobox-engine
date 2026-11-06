@@ -27,7 +27,7 @@ func TestLootGate(t *testing.T) {
 	}
 	p := &present.Presenter{}
 	p.SetEngine(g)
-	if v = shownBy(g, p, front.Action{Kind: front.ActClose}); v.Ask == nil || len(v.Ask.Items) != 0 {
+	if v = shownBy(g, p, front.Action{Kind: front.ActClose}); v.Ask == nil || len(v.Ask.Commands) != 0 {
 		t.Fatal("leaving with treasure left put no Confirm to the presenter")
 	}
 	if v = shownBy(g, p, front.Action{Kind: front.ActNo}); v.Inventory == nil || v.Ask != nil {

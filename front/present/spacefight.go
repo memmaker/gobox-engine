@@ -148,7 +148,7 @@ func sfOf(v front.View) *game.SpaceFight {
 // blank, '@' after the first row's last.
 func sfBar(a *front.Ask) string {
 	var b strings.Builder
-	for i, it := range a.Items {
+	for i, it := range a.Commands {
 		b.WriteString(it.Text)
 		if i == a.Break-1 {
 			b.WriteByte('@')
@@ -228,11 +228,11 @@ func (p *Presenter) sfKey(k uint16, v front.View) bool {
 			p.send(front.ActNo, 0)
 		}
 		return true
-	case a.Kind == front.AskMenu && len(a.Items) == 0, a.Kind == front.AskKey:
+	case a.Kind == front.AskMenu && len(a.Commands) == 0, a.Kind == front.AskKey:
 		p.send(front.ActOK, 0)
 		return true
 	case a.Kind == front.AskMenu:
-		n := len(a.Items)
+		n := len(a.Commands)
 		switch act {
 		case input.Left:
 			u.sel = (u.sel + n - 1) % n
@@ -259,7 +259,7 @@ func (p *Presenter) sfKey(k uint16, v front.View) bool {
 			return true
 		}
 		if k < 256 {
-			for i, it := range a.Items {
+			for i, it := range a.Commands {
 				if sfHotkey(it) == upper {
 					p.send(front.ActChoose, i)
 					return true
@@ -272,7 +272,7 @@ func (p *Presenter) sfKey(k uint16, v front.View) bool {
 }
 
 // sfHotkey is the item's key: its own, else its first capital (10CD).
-func sfHotkey(it front.MenuItem) byte {
+func sfHotkey(it front.Command) byte {
 	if k := it.Key; k != 0 {
 		if k >= 'a' && k <= 'z' {
 			k -= 32
@@ -488,7 +488,7 @@ func (c *cellPage) fightBottom(sf *game.SpaceFight, sh sfShown, ask *front.Ask) 
 	switch {
 	case sf.StatusLine != "": // 0A18 / string_print01: the row cleared, the line in fg10
 		c.put(0, 24, toneInk[game.ToneText], 0, sf.StatusLine)
-	case sh.More, ask != nil && (ask.Kind == front.AskMenu && len(ask.Items) == 0 || ask.Kind == front.AskKey):
+	case sh.More, ask != nil && (ask.Kind == front.AskMenu && len(ask.Commands) == 0 || ask.Kind == front.AskKey):
 		c.put(0, 24, 15, 0, pause)
 	case ask != nil && ask.Kind == front.AskConfirm:
 		c.bar(ask.Prompt, "Yes No", sh.Sel)

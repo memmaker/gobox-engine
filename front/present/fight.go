@@ -92,9 +92,9 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 	p.drawFightRows(dst, note, b, k)
 	cx := dst.Bounds().Dx() / 2
 	p.fightAskAt = nil
-	if m := askMenu(v); m != nil && len(m.Items) > 0 {
-		lines, keys := make([]string, len(m.Items)), make([]byte, len(m.Items))
-		for i, it := range m.Items {
+	if m := askMenu(v); m != nil && len(m.Commands) > 0 {
+		lines, keys := make([]string, len(m.Commands)), make([]byte, len(m.Commands))
+		for i, it := range m.Commands {
 			lines[i], keys[i] = it.Text, it.Key
 		}
 		if id := menuID(m); id != p.menuFor {
@@ -253,9 +253,9 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *front.Battle, k 
 // fightKey takes key k on the combat screen: the spell list's, L for the
 // Log, else the 3D map's and bar's.
 func (p *Presenter) fightKey(k uint16) bool {
-	if m := askMenu(p.shownView); m != nil && len(m.Items) > 0 { // the game's own menu (Continue Battle: Yes/No ...), over the board
-		keys := make([]byte, len(m.Items))
-		for i, it := range m.Items {
+	if m := askMenu(p.shownView); m != nil && len(m.Commands) > 0 { // the game's own menu (Continue Battle: Yes/No ...), over the board
+		keys := make([]byte, len(m.Commands))
+		for i, it := range m.Commands {
 			keys[i] = it.Key
 		}
 		switch i, back, ok := ui.MenuNav(actOf(k), k, &p.sel, keys); {
@@ -321,7 +321,7 @@ func (p *Presenter) fightKey(k uint16) bool {
 
 // fightClick takes a click at (x, y) on the combat screen.
 func (p *Presenter) fightClick(x, y int) bool {
-	if askMenu(p.shownView) != nil && len(askMenu(p.shownView).Items) > 0 {
+	if askMenu(p.shownView) != nil && len(askMenu(p.shownView).Commands) > 0 {
 		if i := slices.IndexFunc(p.fightAskAt, image.Pt(x, y).In); i >= 0 {
 			p.send(front.ActChoose, i)
 		}

@@ -67,12 +67,12 @@ func layFullMap(fm *front.FullMap, cells image.Point) *front.FullMap {
 // mapItems is the cursor cell's menu: Walk, Mark where it has no label,
 // Remove where the label is the player's.
 func (p *Presenter) mapItems() *front.Menu {
-	m := &front.Menu{Items: []front.MenuItem{{Text: "Walk", Key: 'W'}}}
+	m := &front.Menu{Commands: []front.Command{{Text: "Walk", Key: 'W'}}}
 	if fm := p.fm(); fm != nil && !fm.Labelled {
-		m.Items = append(m.Items, front.MenuItem{Text: "Mark", Key: 'M'})
+		m.Commands = append(m.Commands, front.Command{Text: "Mark", Key: 'M'})
 	}
 	if fm := p.fm(); fm != nil && fm.Mine {
-		m.Items = append(m.Items, front.MenuItem{Text: "Remove", Key: 'R'})
+		m.Commands = append(m.Commands, front.Command{Text: "Remove", Key: 'R'})
 	}
 	return m
 }
@@ -82,11 +82,11 @@ func (p *Presenter) mapPick(i int) {
 	f := p.fullMap
 	f.menu = false
 	m := p.mapItems()
-	if i < 0 || i >= len(m.Items) {
+	if i < 0 || i >= len(m.Commands) {
 		return
 	}
 	c := f.cursor
-	switch m.Items[i].Key {
+	switch m.Commands[i].Key {
 	case 'W':
 		p.call(func(e front.Game) {
 			if e.WalkTo(c.X, c.Y) {

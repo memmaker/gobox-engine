@@ -11,13 +11,13 @@ type AskKind int
 
 const (
 	AskMenu    AskKind = iota + 1 // options (a menu bar, the scripts' HMENU, Parlay, a yes/no): ActChoose N; ActOK where Enter takes the first; no options: a message to acknowledge (ActOK)
-	AskList                       // a list and its options (ListMenu, VMENU): ActChoose N with X the line (N -1: the line itself); ActClose takes a last LEAVE
+	AskList                       // entries and the commands acting on them (ListMenu, VMENU): ActChoose N with X the entry (N -1: the line itself); ActClose takes a last LEAVE
 	AskText                       // a typed line (Text, at most Max): Enter sends it whole as one ActText; ActClose gives up
 	AskNumber                     // AskText for a number 0..65536
 	AskMember                     // a party member (SelectCharacter, WHO): Party's Selected is the candidate; ActMember N takes one, ActLead N makes it the candidate, ActOK takes it
 	AskPause                      // a pause (DELAY, MsgDelay, the title's waits): the presenter waits Ms, then sends ActOK (Enter cuts it short)
 	AskKey                        // "press any key" (the pagers, PromptRow24): any key answers (ActOK, ActPage ...)
-	AskSpell                      // a memorized spell (Spells): ActCast N, ActClose backs out
+	AskSpell                      // a memorized spell (Entries, each with its Spell): ActCast N, ActClose backs out
 	AskConfirm                    // a yes/no question (Menu.Prompt, no Items): ActYes, or ActNo / ActClose; the presenter asks it, starting on No
 	AskSquare                     // a combat map square (aiming a spell, a throw): ActAim X, Y; ActPoint follows the cursor; ActClose gives up
 	AskMove                       // a step-by-step move: each step ActDir N (the keypad's direction); ActOK ends it, ActClose undoes
@@ -46,18 +46,17 @@ const (
 // published the same way, whoever asks (the engine's prompts, a script
 // instruction).
 type Ask struct {
-	Kind   AskKind
-	Menu              // the prompt and the options (ActChoose N)
-	List   []ListLine // AskList: the lines
-	Text   string     // AskText, AskNumber: the line as typed so far
-	NoEsc  bool       // Esc does not answer it: the question stays up (the game's say)
-	NoPick bool       // no highlight: Enter and the arrows do nothing, only the hotkeys (Y and N) answer
-	Max    int        // AskText, AskNumber: the longest line
-	Ms     int        // AskPause
-	Spells []Spell    // AskSpell: the spells to pick from (ActCast ID)
+	Kind    AskKind
+	Menu            // the prompt and the options (ActChoose N)
+	Entries []Entry // AskList, AskSpell: the entries the commands act on
+	Text    string  // AskText, AskNumber: the line as typed so far
+	NoEsc   bool    // Esc does not answer it: the question stays up (the game's say)
+	NoPick  bool    // no highlight: Enter and the arrows do nothing, only the hotkeys (Y and N) answer
+	Max     int     // AskText, AskNumber: the longest line
+	Ms      int     // AskPause
 
-	Default  int  // the option (or List line) highlighted first
-	Break    int  // >0: Items[Break:] go on the bar's second row (game.Ask.Break)
+	Default  int  // the option (or entry) highlighted first
+	Break    int  // >0: Commands[Break:] go on the bar's second row (game.Ask.Break)
 	Yes      bool // AskConfirm: the highlight starts on Yes (false: on No)
 	Dirs     bool // the direction keys answer too (ActDir N, the keypad's 1..9), as a one-option menu's keypad
 	Reselect bool // ActLead N selects another member while the question stays up
@@ -124,22 +123,22 @@ func (q PickSpell) Error() string { return "pick a spell" }
 
 // Menu is a question waiting for the player: a prompt and its options.
 type Menu struct {
-	Prompt string
-	Items  []MenuItem // the options (ActChoose N); none: a message to acknowledge (ActOK)
+	Prompt   string
+	Commands []Command // the options (ActChoose N); none: a message to acknowledge (ActOK)
 }
 
-// ListLine is a line of View.Ask (AskList).
-type ListLine struct {
+// Entry is a line of View.Ask (AskList, AskSpell): what its commands act on.
+type Entry struct {
 	Text    string
 	Header  bool     // a heading
 	Dim     bool     // greyed out
 	Off     bool     // not chosen (headings, some greyed lines)
-	Without []string // options (MenuItem.Text) left out while this line is chosen
+	Without []string // commands (Command.Text) left out while this entry is chosen
 	Spell   int      // the line's spell (its rules shown beside), 0 for none
 }
 
-// MenuItem is one option: its text and its hotkey.
-type MenuItem struct {
+// Command is one option of a menu (acting on the chosen entry, if any): its text and its hotkey.
+type Command struct {
 	Text string
 	Key  byte
 }

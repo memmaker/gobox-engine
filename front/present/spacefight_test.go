@@ -34,7 +34,7 @@ func testFight() *game.SpaceFight {
 func crewMenu() *front.Ask {
 	a := &front.Ask{Kind: front.AskMenu, Break: 5}
 	for _, s := range []string{"Fire", "Target", "Load", "Quit", "View", "Command", "Aid", "Sensors"} {
-		a.Items = append(a.Items, front.MenuItem{Text: s, Key: s[0]})
+		a.Commands = append(a.Commands, front.Command{Text: s, Key: s[0]})
 	}
 	return a
 }

@@ -96,7 +96,7 @@ func TestSpaceFightStatusLineAndPad(t *testing.T) {
 	}
 	// the crew menu's padding comes with Break only
 	f.StatusLine = ""
-	v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Items: []front.MenuItem{{Text: "Hull"}, {Text: "Sens"}}}}
+	v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Commands: []front.Command{{Text: "Hull"}, {Text: "Sens"}}}}
 	c = fightPage(&Presenter{}, v)
 	at(t, c, 1, 19, "one", 10, 0)
 	at(t, c, 1, 20, "two", 10, 0)

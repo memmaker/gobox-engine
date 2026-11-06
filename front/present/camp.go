@@ -580,7 +580,7 @@ func (p *Presenter) appraiseItems(a front.Appraise, back func()) (string, []ui.M
 func (p *Presenter) askRest(n int) {
 	t, field := [3]int{}, 2 // days, hours, minutes
 	most, step := [3]int{99, 23, 55}, [3]int{1, 1, 5}
-	q := &front.Question{Ask: front.Ask{Kind: front.AskMenu, Menu: front.Menu{Items: restItems}, Default: 3}}
+	q := &front.Question{Ask: front.Ask{Kind: front.AskMenu, Menu: front.Menu{Commands: restItems}, Default: 3}}
 	set := func() {
 		q.Ask.Prompt = fmt.Sprintf("Rest Time: %d Days %d Hours %d Mins", t[0], t[1], t[2])
 	}
@@ -611,17 +611,17 @@ func (p *Presenter) askRest(n int) {
 }
 
 // restItems are the rest picker's options.
-var restItems = []front.MenuItem{{Text: "Days", Key: 'D'}, {Text: "Hours", Key: 'H'}, {Text: "Mins", Key: 'M'},
+var restItems = []front.Command{{Text: "Days", Key: 'D'}, {Text: "Hours", Key: 'H'}, {Text: "Mins", Key: 'M'},
 	{Text: "Add", Key: 'A'}, {Text: "Subtract", Key: 'S'}, {Text: "Rest", Key: 'R'}, {Text: "Exit", Key: 'E'}}
 
 // countItems are a number picker's options: down, up, done.
-var countItems = []front.MenuItem{{Text: "Less", Key: 'L'}, {Text: "More", Key: 'M'}, {Text: "Done", Key: 'D'}}
+var countItems = []front.Command{{Text: "Less", Key: 'L'}, {Text: "More", Key: 'M'}, {Text: "Done", Key: 'D'}}
 
 // askCount asks for a number 0..most with a picker every device works
 // (Less, More, Done: keys, clicks, the pad's rows), then hands it to then.
 func (p *Presenter) askCount(what string, most int, then func(int)) {
 	n := 0
-	q := &front.Question{Ask: front.Ask{Kind: front.AskMenu, Menu: front.Menu{Items: countItems}, Default: 1}}
+	q := &front.Question{Ask: front.Ask{Kind: front.AskMenu, Menu: front.Menu{Commands: countItems}, Default: 1}}
 	set := func() { q.Ask.Prompt = what + ": " + strconv.Itoa(n) }
 	set()
 	q.Answer = func(a front.Action) bool {

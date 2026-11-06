@@ -11,7 +11,7 @@ import (
 // answer a NoPick/NoEsc choice, over a scene's text too; the hotkey does.
 func TestNoPickEnterAnyPath(t *testing.T) {
 	ask := &front.Ask{Kind: front.AskMenu, NoPick: true, NoEsc: true,
-		Menu: front.Menu{Items: []front.MenuItem{{Text: "Yes", Key: 'Y'}, {Text: "No", Key: 'N'}}}}
+		Menu: front.Menu{Commands: []front.Command{{Text: "Yes", Key: 'Y'}, {Text: "No", Key: 'N'}}}}
 	pane := &front.Pane{Lines: [][]front.PaneRun{{{Text: "A CHEST."}}}}
 	for i, v := range []front.View{{Ask: ask}, {Ask: ask, Pane: pane}, {Ask: ask, Pane: pane, Exploring: true}} {
 		p := &Presenter{}

@@ -29,7 +29,7 @@ func AskYes(h Host, q string, yes func()) {
 // on member who; then gets the one picked (Exit: nothing).
 func AskForMember(h Host, prompt string, who int, then func(n int)) {
 	q := &Question{Ask: Ask{Kind: AskMember, Menu: Menu{Prompt: prompt,
-		Items: []MenuItem{{Text: "Select", Key: 'S'}, {Text: "Exit", Key: 'E'}}}}, Cand: max(who, 0)}
+		Commands: []Command{{Text: "Select", Key: 'S'}, {Text: "Exit", Key: 'E'}}}}, Cand: max(who, 0)}
 	q.Answer = func(a Action) bool {
 		n := h.Shown().Party
 		switch a.Kind {
@@ -58,10 +58,19 @@ func AskForMember(h Host, prompt string, who int, then func(n int)) {
 	h.Ask(q)
 }
 
+// spellEntries is spells as AskSpell's entries: the name, the ID as Spell.
+func spellEntries(spells []Spell) []Entry {
+	out := make([]Entry, len(spells))
+	for i, s := range spells {
+		out[i] = Entry{Text: s.Name, Spell: s.ID}
+	}
+	return out
+}
+
 // AskForSpell asks for one of spells (AskSpell); then gets its ID (Close:
 // nothing).
 func AskForSpell(h Host, spells []Spell, then func(id int)) {
-	h.Ask(&Question{Ask: Ask{Kind: AskSpell, Spells: spells}, Answer: func(a Action) bool {
+	h.Ask(&Question{Ask: Ask{Kind: AskSpell, Entries: spellEntries(spells)}, Answer: func(a Action) bool {
 		switch a.Kind {
 		case ActCast:
 			if slices.ContainsFunc(spells, func(s Spell) bool { return s.ID == a.N }) {
@@ -76,8 +85,8 @@ func AskForSpell(h Host, spells []Spell, then func(id int)) {
 }
 
 // ShowList shows lines (AskList) until Exit.
-func ShowList(h Host, lines []ListLine) {
-	h.Ask(&Question{Ask: Ask{Kind: AskList, List: lines, Menu: Menu{Items: []MenuItem{{Text: "Exit", Key: 'E'}}}},
+func ShowList(h Host, lines []Entry) {
+	h.Ask(&Question{Ask: Ask{Kind: AskList, Entries: lines, Menu: Menu{Commands: []Command{{Text: "Exit", Key: 'E'}}}},
 		Answer: func(a Action) bool {
 			return a.Kind == ActChoose || a.Kind == ActClose || a.Kind == ActOK
 		}})
@@ -236,7 +245,7 @@ func GateQuestion(h Host, l *Loot, d *DoorOpts) *Question {
 	}
 	q := &Question{Ask: Ask{Kind: AskMenu, Menu: Menu{Prompt: prompt}}}
 	for _, it := range items {
-		q.Ask.Items = append(q.Ask.Items, MenuItem{Text: it.text, Key: it.text[0]})
+		q.Ask.Commands = append(q.Ask.Commands, Command{Text: it.text, Key: it.text[0]})
 	}
 	return q
 }

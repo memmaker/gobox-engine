@@ -47,7 +47,7 @@ type Game interface {
 
 	// Powers out of combat: refused with Confirm, PickMember or PickSpell.
 	UsePower(n int, k ActKind, spell, target int, sure bool) error
-	EffectsList(n int) []ListLine
+	EffectsList(n int) []Entry
 	SelectedMember() int // the selected member (-1: none)
 
 	// Waits (Loot, DoorOpts).

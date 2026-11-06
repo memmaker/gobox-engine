@@ -30,7 +30,7 @@ func TestGenericPaneAndPrompt(t *testing.T) {
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
 	white := color.RGBA{255, 255, 255, 255}
 	pane := &front.Pane{Lines: [][]front.PaneRun{{{Text: "THE PARTY HAS WON.", Fg: white, Bg: color.RGBA{A: 255}}}}}
-	ask := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "PRESS ENTER", Items: []front.MenuItem{{Text: "CONTINUE"}}}}
+	ask := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "PRESS ENTER", Commands: []front.Command{{Text: "CONTINUE"}}}}
 	p := &Presenter{}
 	p.Draw(dst, note, front.View{Pane: pane})
 	textOnly := lit(dst)
@@ -63,7 +63,7 @@ func TestInventoryGameAsk(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
 	p := &Presenter{}
-	ask := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "Use it? ", Items: []front.MenuItem{{Text: "Yes"}, {Text: "No"}}}}
+	ask := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "Use it? ", Commands: []front.Command{{Text: "Yes"}, {Text: "No"}}}}
 	if p.Inventory(dst, Note{}, front.View{Inventory: &front.Inventory{}, Ask: ask}) {
 		t.Fatal("the items hide the game's question")
 	}

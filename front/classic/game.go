@@ -503,13 +503,13 @@ func (g *Game) UsePower(n int, k front.ActKind, spell, target int, sure bool) er
 func (g *Game) SelectedMember() int { return g.R.State().Selected }
 
 // EffectsList is member n's Effects lines from State.
-func (g *Game) EffectsList(n int) (out []front.ListLine) {
+func (g *Game) EffectsList(n int) (out []front.Entry) {
 	s := g.R.State()
 	if n = g.sel(n); n < 0 || n >= len(s.Party) {
 		return nil
 	}
 	for _, l := range s.Party[n].Effects {
-		out = append(out, front.ListLine{Text: l.Text, Header: l.Header, Dim: l.Dim, Off: l.Off, Spell: l.Spell})
+		out = append(out, front.Entry{Text: l.Text, Header: l.Header, Dim: l.Dim, Off: l.Off, Spell: l.Spell})
 	}
 	return out
 }

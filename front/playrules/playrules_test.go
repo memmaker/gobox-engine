@@ -129,7 +129,9 @@ type artGame struct{ fake }
 func (artGame) Art() map[string]game.Picture { return map[string]game.Picture{"w": {File: "live"}} }
 
 func TestArtIsLive(t *testing.T) {
-	r := New(&artGame{}, game.Data{}).(interface{ Art() map[string]game.Picture })
+	r := New(&artGame{}, game.Data{}).(interface {
+		Art() map[string]game.Picture
+	})
 	if r.Art()["w"].File != "live" {
 		t.Fatal("game art not read live")
 	}
@@ -160,4 +162,3 @@ func TestShowMemberOpensSheet(t *testing.T) {
 		t.Fatalf("sheet %d", r.sheet)
 	}
 }
-

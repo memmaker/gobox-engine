@@ -210,7 +210,7 @@ func (p *Presenter) Drop(path string, cx, cy int, in bool, v front.View) {
 // menuIndex is the item of m that hotkey c picks, or -1.
 func menuIndex(m *front.Menu, c byte) int {
 	if m != nil {
-		for i, it := range m.Items {
+		for i, it := range m.Commands {
 			if it.Key == c {
 				return i
 			}
@@ -309,7 +309,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 		p.fightKey(keyOf(input.Esc))
 	case p.ctx > 0:
 		p.ctx = 0
-	case askMenu(v) != nil && len(askMenu(v).Items) == 1 && typing(v) == nil: // "PRESS <ENTER> TO CONTINUE" takes no Esc: the right button continues too
+	case askMenu(v) != nil && len(askMenu(v).Commands) == 1 && typing(v) == nil: // "PRESS <ENTER> TO CONTINUE" takes no Esc: the right button continues too
 		p.menu = false
 		p.send(front.ActOK, 0)
 	case p.menu && v.Exploring: // the command bar's popup: it alone closes (key)
@@ -327,7 +327,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 	}
 	switch {
 	case !left || !in:
-	case typing(v) == nil && (askMenu(v) == nil || len(askMenu(v).Items) == 1): // no bar, or one with nothing to choose (the scripts' "PRESS <ENTER> TO CONTINUE")
+	case typing(v) == nil && (askMenu(v) == nil || len(askMenu(v).Commands) == 1): // no bar, or one with nothing to choose (the scripts' "PRESS <ENTER> TO CONTINUE")
 		p.send(front.ActOK, 0)
 	}
 }
@@ -344,7 +344,7 @@ func unit(n int) int {
 // a line of a list or a member (nil otherwise).
 func askMenu(v front.View) *front.Menu {
 	if a := v.Ask; a != nil && a.Kind == front.AskModify { // the options, then the presenter's Raise and Lower (modifyItems) on the line highlighted
-		return &front.Menu{Prompt: a.Prompt, Items: append(slices.Clone(a.Items), modifyItems...)}
+		return &front.Menu{Prompt: a.Prompt, Commands: append(slices.Clone(a.Commands), modifyItems...)}
 	}
 	if a := v.Ask; a != nil && (a.Kind == front.AskMenu || a.Kind == front.AskList || a.Kind == front.AskMember) {
 		return &a.Menu
@@ -355,7 +355,7 @@ func askMenu(v front.View) *front.Menu {
 // modifyItems are the options AskModify adds to the game's: they raise
 // and lower the line highlighted (ActRaise X +1, -1), as Right and Left,
 // + and - and a click on the line (+1) do.
-var modifyItems = []front.MenuItem{{Text: "Raise", Key: '+'}, {Text: "Lower", Key: '-'}}
+var modifyItems = []front.Command{{Text: "Raise", Key: '+'}, {Text: "Lower", Key: '-'}}
 
 // modifying: v asks for a stat raised or lowered (AskModify).
 func modifying(v front.View) bool { return v.Ask != nil && v.Ask.Kind == front.AskModify }
@@ -369,9 +369,9 @@ func askDefault(v front.View) int {
 }
 
 // askList is the list v asks a line of (nil: none).
-func askList(v front.View) []front.ListLine {
+func askList(v front.View) []front.Entry {
 	if a := v.Ask; a != nil && (a.Kind == front.AskList || a.Kind == front.AskModify) {
-		return a.List
+		return a.Entries
 	}
 	return nil
 }
@@ -445,7 +445,11 @@ func choosing(v front.View) bool { return v.Ask != nil && v.Ask.Kind == front.As
 // spellPick is the spells v asks to pick from (nil: none).
 func spellPick(v front.View) []front.Spell {
 	if a := v.Ask; a != nil && a.Kind == front.AskSpell {
-		return a.Spells
+		out := make([]front.Spell, len(a.Entries)) // never nil: an empty list still takes Esc
+		for i, e := range a.Entries {
+			out[i] = front.Spell{ID: e.Spell, Name: e.Text}
+		}
+		return out
 	}
 	return nil
 }
@@ -465,7 +469,7 @@ func confirmStart(a *front.Ask) int {
 	if a != nil && a.NoPick {
 		return -1 // no row lit
 	}
-	if a != nil && (a.Yes || a.Default >= 0 && a.Default < len(a.Items) && strings.EqualFold(a.Items[a.Default].Text, "Yes")) {
+	if a != nil && (a.Yes || a.Default >= 0 && a.Default < len(a.Commands) && strings.EqualFold(a.Commands[a.Default].Text, "Yes")) {
 		return 0
 	}
 	return 1

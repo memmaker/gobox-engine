@@ -7,7 +7,6 @@ import (
 	"gobox/game"
 )
 
-
 // TestPartyIconHead: a member with no portrait (Buck Rogers) shows their
 // combat icon on the card, never an empty frame.
 func TestPartyIconHead(t *testing.T) {

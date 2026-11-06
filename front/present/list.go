@@ -31,7 +31,7 @@ type listUI struct {
 func listOpts(v front.View, i int) []int {
 	var out []int
 outer:
-	for n, it := range askMenu(v).Items {
+	for n, it := range askMenu(v).Commands {
 		if i >= 0 && i < len(askList(v)) {
 			for _, w := range askList(v)[i].Without {
 				if w == it.Text {
@@ -71,7 +71,7 @@ func (p *Presenter) drawList(dst *gpu.Image, glyph func(byte) [8]byte, v front.V
 	}
 	lines, keys = append(lines, strings.Repeat(" ", w)), append(keys, 0)
 	for _, o := range l.opts {
-		lines, keys = append(lines, askMenu(v).Items[o].Text), append(keys, askMenu(v).Items[o].Key)
+		lines, keys = append(lines, askMenu(v).Commands[o].Text), append(keys, askMenu(v).Commands[o].Key)
 	}
 	p.drawMenu(dst, glyph, askMenu(v).Prompt, lines, keys, off, p.listRow(n), k, cx, top)
 	var sel *int
@@ -91,7 +91,7 @@ func (p *Presenter) listKeys(v front.View) []byte {
 	n := len(askList(v))
 	keys := make([]byte, n, n+len(p.list.opts))
 	for _, o := range p.list.opts {
-		keys = append(keys, askMenu(v).Items[o].Key)
+		keys = append(keys, askMenu(v).Commands[o].Key)
 	}
 	on := 0
 	for _, l := range askList(v) {
@@ -121,8 +121,8 @@ func (p *Presenter) listPick(v front.View, sel int) {
 		case sel < n && !askList(v)[sel].Off:
 			p.raise(sel, 1)
 			return
-		case o >= 0 && o < len(p.list.opts) && p.list.opts[o] >= len(v.Ask.Items):
-			p.raise(p.listLine(v), 1-2*(p.list.opts[o]-len(v.Ask.Items)))
+		case o >= 0 && o < len(p.list.opts) && p.list.opts[o] >= len(v.Ask.Commands):
+			p.raise(p.listLine(v), 1-2*(p.list.opts[o]-len(v.Ask.Commands)))
 			return
 		}
 	}
@@ -247,17 +247,17 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 		b := dst.Bounds()
 		k := math.Max(1, math.Floor(scale(dst)))
 		p.asking(v, func() {
-			p.drawList(dst, note.Glyph, v, k, b.Dx()/2, b.Dy()/2-int(k*float64(min(len(askList(v)), listRows)+len(m.Items)+6)*4))
+			p.drawList(dst, note.Glyph, v, k, b.Dx()/2, b.Dy()/2-int(k*float64(min(len(askList(v)), listRows)+len(m.Commands)+6)*4))
 		})
 		return
 	}
-	if t := strings.TrimSpace(m.Prompt); len(m.Items) == 0 && t != "" { // a message with no choice ("You found some loot!"): the prompt alone until a key, never invisible
+	if t := strings.TrimSpace(m.Prompt); len(m.Commands) == 0 && t != "" { // a message with no choice ("You found some loot!"): the prompt alone until a key, never invisible
 		b := dst.Bounds()
 		k := math.Max(1, math.Floor(scale(dst)))
 		p.drawMenu(dst, note.Glyph, "", []string{t}, nil, nil, -1, k, b.Dx()/2, b.Dy()/2-int(k*12))
 		return
 	}
-	if len(m.Items) < 2 { // "press Enter": nothing to pick
+	if len(m.Commands) < 2 { // "press Enter": nothing to pick
 		return
 	}
 	if id := menuID(m); id != p.pageAsked { // its own: the page clears p.asked every frame, which put the highlight back on the default after every arrow
@@ -325,8 +325,8 @@ func itemRows(m *front.Menu) []ui.MenuRow {
 	if m == nil { // the question went since the last frame (a key between them)
 		return nil
 	}
-	rows := make([]ui.MenuRow, len(m.Items))
-	for i, it := range m.Items {
+	rows := make([]ui.MenuRow, len(m.Commands))
+	for i, it := range m.Commands {
 		rows[i] = ui.MenuRow{Text: it.Text, Key: it.Key, Do: func() {}}
 	}
 	return rows
@@ -336,6 +336,6 @@ func itemRows(m *front.Menu) []ui.MenuRow {
 // an act on a line: Ready, Drop) stays on the line acted on.
 func (p *Presenter) openList(v front.View) {
 	if askList(v) != nil && askList(p.shownView) == nil && v.Ask.Prompt != p.list.of {
-		p.list = listUI{sel: max(0, slices.IndexFunc(askList(v), func(l front.ListLine) bool { return !l.Off })), of: v.Ask.Prompt}
+		p.list = listUI{sel: max(0, slices.IndexFunc(askList(v), func(l front.Entry) bool { return !l.Off })), of: v.Ask.Prompt}
 	}
 }

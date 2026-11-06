@@ -19,9 +19,9 @@ func TestEffectsClues(t *testing.T) {
 			g := classic.NewGame(a.Rules(), a.Data())
 			for n := range 6 {
 				got := g.EffectsList(n)
-				var want []front.ListLine
+				var want []front.Entry
 				for _, l := range a.EffectsList(n) {
-					want = append(want, front.ListLine(l))
+					want = append(want, front.Entry(l))
 				}
 				seen = seen || len(want) > 0
 				if !reflect.DeepEqual(got, want) {

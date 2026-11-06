@@ -141,7 +141,7 @@ func TestCredits(t *testing.T) {
 
 // After an act the same list comes back on the line acted on.
 func TestListKeepsLine(t *testing.T) {
-	v := front.View{Ask: &front.Ask{Kind: front.AskList, Menu: front.Menu{Prompt: "Items"}, List: []front.ListLine{{Text: "a"}, {Text: "b"}}}}
+	v := front.View{Ask: &front.Ask{Kind: front.AskList, Menu: front.Menu{Prompt: "Items"}, Entries: []front.Entry{{Text: "a"}, {Text: "b"}}}}
 	var p Presenter
 	p.openList(v)
 	p.list.sel = 1
