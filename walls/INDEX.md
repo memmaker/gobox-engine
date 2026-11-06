@@ -5,12 +5,14 @@ name | size | origin
 ceiling | 256x256 | por
 ceiling_clouds | 512x512 | por+cotab
 ceiling_night_stars | 512x512 | por
+ceiling_pod_rock | 256x256 | pod
 ceiling_sky_night | 4x256 | por
 ceiling_sky_phlan | 4x256 | por+cotab
 floor | 256x256 | por
 floor_cobble | 256x256 | cotab
 floor_kuto_rim | 636x231 | por
 floor_phlan_dirt | 256x256 | por
+floor_pod_rock | 256x256 | pod
 floor_water | 512x512 | por
 prop_grass1 | 512x201 | por
 prop_grass2 | 512x157 | por
