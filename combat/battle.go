@@ -255,6 +255,17 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		}
 	}
 
+	// the ground's overlays (a cloud, a body): flat over their squares, under what stands
+	for y, row := range b.Ground {
+		for x, s := range row {
+			if s.Overlay <= 0 || s.Overlay > len(b.Tiles) || b.Tiles[s.Overlay-1] == nil {
+				continue
+			}
+			o := gpu.MeshOptions{Blend: gpu.MeshAlpha, Tint: [4]float32{1, 1, 1, 1}, Light: sunDir, Ambient: 1}
+			o.Model = place(float32(x)+.5, 0.002, float32(y)+.5, 0, 1, 1, 1)
+			dst.DrawMesh(p.flatQuad, p.figure(b.Tiles[s.Overlay-1], 0).tex, vp, &o)
+		}
+	}
 	// shadows under what stands: the map's things, then the figurines
 	shade := gpu.MeshOptions{Blend: gpu.MeshAlpha, Tint: [4]float32{0, 0, 0, 0.7}}
 	if !gpu.Skip("shadows") {

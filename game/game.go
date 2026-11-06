@@ -650,11 +650,12 @@ type Reach struct {
 
 // Ground is one battlefield square.
 type Ground struct {
-	At     image.Point
-	Art    Picture
-	Block  bool
-	Height int // the square's height (a wall, a tree)
-	Tile   int // the tile number (Combat.Tiles)
+	At      image.Point
+	Art     Picture
+	Block   bool
+	Height  int     // the square's height (a wall, a tree)
+	Tile    int     // the tile number (Combat.Tiles)
+	Overlay Picture // drawn on the ground over the tile, under the units (a cloud, a body); none: no File, Name or Pixels
 }
 
 // Unit is a combatant.

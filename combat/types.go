@@ -82,9 +82,10 @@ type Strike struct {
 
 // Square is one map square.
 type Square struct {
-	Tile   int
-	Wall   bool
-	Height int
+	Tile    int
+	Wall    bool
+	Height  int
+	Overlay int // Tiles[Overlay-1] lies flat over the square, under the units (0 none)
 }
 
 // Unit is one combatant on the map.

@@ -136,19 +136,30 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		b.FloorImg = sprites.Image(Series, "combat", c.FloorTile)
 	}
 	slot, slots := len(c.Tiles), map[string]int{} // a square's own Art: a tile slot of its own past the named tiles, one per picture
-	for _, g := range c.Squares {
-		if g.Art.File == "" && g.Art.Pixels == nil || !g.At.In(image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))) {
-			continue
+	slotOf := func(a game.Picture) (int, bool) {  // a's tile slot, made on first use
+		if a.File == "" && a.Pixels == nil && a.Name == "" {
+			return 0, false
 		}
-		k := fmt.Sprint(g.Art.File, g.Art.Block, g.Art.Frame, g.Art.Name, len(g.Art.Pixels))
+		k := fmt.Sprint(a.File, a.Block, a.Frame, a.Name, len(a.Pixels))
 		t, ok := slots[k]
 		if !ok && slot < len(b.TilePix) {
 			t, ok, slots[k] = slot, true, slot
-			b.TilePix[slot] = pix(g.Art)
+			b.TilePix[slot] = pix(a)
 			slot++
 		}
-		if ok {
-			b.Ground[g.At.Y][g.At.X].Tile = t
+		return t, ok
+	}
+	for _, g := range c.Squares {
+		if !g.At.In(image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))) {
+			continue
+		}
+		if g.Art.File != "" || g.Art.Pixels != nil {
+			if t, ok := slotOf(g.Art); ok {
+				b.Ground[g.At.Y][g.At.X].Tile = t
+			}
+		}
+		if t, ok := slotOf(g.Overlay); ok {
+			b.Ground[g.At.Y][g.At.X].Overlay = t + 1
 		}
 	}
 	for i, n := range c.Tiles {
