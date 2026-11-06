@@ -15,12 +15,13 @@ func TestGroundUnderProps(t *testing.T) {
 	for i := range grass.Pix {
 		grass.Pix[i] = 200
 	}
+	grass.Pix[3] = 0 // a keyed-clear dark texel: still the ground
 	tree.Set(8, 8, color.RGBA{90, 50, 20, 255})
 	var g [25][50]Square
 	g[3][4].Tile = 1
 	g[5][6].Tile = 1
 	tiles := []image.Image{grass, tree}
-	if got := baseFloor(&g, tiles, []bool{hasHoles(grass), hasHoles(tree)}); got != 0 {
+	if got := baseFloor(&g, tiles); got != 0 {
 		t.Fatalf("base floor %d, want the grass", got)
 	}
 }

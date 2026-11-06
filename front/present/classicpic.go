@@ -183,7 +183,7 @@ func pixBattle(b *front.Battle, ink [16]color.RGBA) *front.Battle {
 	if b.Tiles == nil && b.TilePix != nil {
 		c.Tiles = make([]image.Image, len(b.TilePix))
 		for i, pc := range b.TilePix {
-			c.Tiles[i] = picImage(pc, ink)
+			c.Tiles[i] = textured(picImage(pc, ink))
 		}
 	}
 	c.Units = append([]front.Unit(nil), b.Units...)
@@ -199,4 +199,63 @@ func pixBattle(b *front.Battle, ink [16]color.RGBA) *front.Battle {
 		}
 	}
 	return &c
+}
+
+// textured is t, or where t is one flat colour (a Pool floor tile is a
+// plain fill) the series' floor texture tinted to that colour: no combat
+// square is ever a flat fill.
+func textured(t image.Image) image.Image {
+	c, ok := flatColour(t)
+	if !ok {
+		return t
+	}
+	tex := wallImage("floor")
+	if tex == nil {
+		return t
+	}
+	if m, ok := flatTiles[c]; ok {
+		return m
+	}
+	b := tex.Bounds()
+	var sum float64
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			sum += lum(tex.At(x, y))
+		}
+	}
+	mean := sum / float64(b.Dx()*b.Dy())
+	m := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			k := lum(tex.At(x, y)) / mean // the texture's light and shade, around 1, on the tile's colour
+			f := func(v uint8) uint8 { return uint8(min(255, float64(v)*k)) }
+			m.SetRGBA(x-b.Min.X, y-b.Min.Y, color.RGBA{f(c.R), f(c.G), f(c.B), 255})
+		}
+	}
+	flatTiles[c] = m
+	return m
+}
+
+var flatTiles = map[color.RGBA]image.Image{}
+
+func lum(c color.Color) float64 {
+	r, g, b, _ := c.RGBA()
+	return (0.3*float64(r)+0.59*float64(g)+0.11*float64(b))/65535 + 1e-3
+}
+
+// flatColour is t's one colour when every texel is that colour, opaque.
+func flatColour(t image.Image) (color.RGBA, bool) {
+	if t == nil {
+		return color.RGBA{}, false
+	}
+	b := t.Bounds()
+	first := color.RGBAModel.Convert(t.At(b.Min.X, b.Min.Y)).(color.RGBA)
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			if color.RGBAModel.Convert(t.At(x, y)).(color.RGBA) != first {
+				return first, false
+			}
+		}
+	}
+	return first, first.A == 255
 }

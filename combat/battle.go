@@ -526,7 +526,7 @@ func (p *Presenter) sync(b *Board) {
 		put(wallSlot, stoneTexture(p.tiles[:b.WallTiles], b.StoneTile, b.Floor))
 		if b.FloorTile != nil {
 			put(floorSlot, b.FloorTile)
-		} else if t := baseFloor(&b.Ground, p.tiles[:], p.cut[:]); t >= 0 {
+		} else if t := baseFloor(&b.Ground, p.tiles[:]); t >= 0 {
 			put(floorSlot, p.tiles[t]) // the area's own ground: no square under a prop is ever a hole
 		} else {
 			put(floorSlot, floorTile(b.Floor))
@@ -727,14 +727,27 @@ func backYaw(g *[25][50]Square, walls int, empty, cut func(int) bool, ps *propSe
 	return yaw
 }
 
+// mostlySolid: at least half of t's texels are opaque.
+func mostlySolid(t image.Image) bool {
+	b, n := t.Bounds(), 0
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			if _, _, _, a := t.At(x, y).RGBA(); a>>8 >= alphaCut {
+				n++
+			}
+		}
+	}
+	return 2*n >= b.Dx()*b.Dy()
+}
+
 // baseFloor is the area's base floor: the opaque tile most open squares
 // show, -1 if none. It is the ground under every prop and model.
-func baseFloor(g *[25][50]Square, tiles []image.Image, cut []bool) int {
+func baseFloor(g *[25][50]Square, tiles []image.Image) int {
 	count, best := map[int]int{}, -1
 	for z := range g {
 		for _, s := range g[z] {
 			t := s.Tile
-			if s.Wall || t < 0 || t >= len(tiles) || tiles[t] == nil || cut[t] {
+			if s.Wall || t < 0 || t >= len(tiles) || tiles[t] == nil || !mostlySolid(tiles[t]) { // a ground (its dark texels may be keyed clear), not a prop
 				continue
 			}
 			if count[t]++; best < 0 || count[t] > count[best] {

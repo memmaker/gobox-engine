@@ -1,6 +1,9 @@
 package present
 
 import (
+	"image"
+	"image/color"
+	"image/draw"
 	"testing"
 
 	"gobox/front"
@@ -63,5 +66,16 @@ func TestBlowPlays(t *testing.T) {
 	}
 	if p.Playing() || p.blowLine != "ARIN HITS FOR 5" {
 		t.Fatalf("line %q", p.blowLine)
+	}
+}
+
+// A flat-colour combat tile (a Pool floor) draws textured, in its colour.
+func TestFlatTileTextured(t *testing.T) {
+	pc := front.Picture{Img: image.NewUniform(color.RGBA{130, 65, 45, 255})}
+	flat := image.NewRGBA(image.Rect(0, 0, 24, 24))
+	draw.Draw(flat, flat.Bounds(), pc.Img, image.Point{}, draw.Src)
+	b := pixBattle(&front.Battle{TilePix: []front.Picture{{Img: flat}}}, egaInk)
+	if _, still := flatColour(b.Tiles[0]); still || wallImage("floor") == nil {
+		t.Fatal("still a flat fill")
 	}
 }
