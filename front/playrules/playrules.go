@@ -315,6 +315,7 @@ func (r *rules) State() game.State {
 	for i, m := range c.Party {
 		s.Party = append(s.Party, member(m, i == c.Selected && !r.data.Unmarked, m.CanCast || canCast(c.Allowed, i)))
 		s.Party[i].Card = card(m, c.Allowed, i)
+		s.Party[i].Page = m.Sheet // the rules' page, for gobox's look-only sheet (a fight's View)
 	}
 	s.Map = c.Automap
 	if x, ok := ps.(play.Exploring); ok && c.Automap.Size == (image.Point{}) {

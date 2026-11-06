@@ -80,3 +80,14 @@ func TestFightView(t *testing.T) {
 		t.Fatalf("%d Views beside the rules' ViewTarget", views)
 	}
 }
+
+// TestFightSheetPage: the rules' page (Member.Sheet) reaches classic's
+// look-only fight sheet through game.Member.Page, not the bare fallback.
+func TestFightSheetPage(t *testing.T) {
+	fight := play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN", Sheet: &game.SheetPage{Name: "ARIN", Damage: "1d8", Sex: "Male", Age: 20}}}}}
+	g := classic.NewGame(New(&fake{st: fight}, game.Data{}), game.Data{})
+	g.OpenSheet(0)
+	if sp := g.View().SheetPage; sp == nil || sp.Damage != "1d8" || sp.Sex != "Male" || sp.Age != 20 {
+		t.Fatalf("page %+v", sp)
+	}
+}
