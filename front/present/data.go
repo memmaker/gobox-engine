@@ -266,6 +266,12 @@ var daxMask map[string]int // Data.DaxMask
 func gameData(g game.Data) {
 	gameArt, gameID, daxMask = g.Art, g.ID, g.DaxMask
 	confirms = g.Confirms
+	for k, v := range g.Texts { // NewFront's games name their texts here (SetData's Data.Texts too)
+		if texts == nil {
+			texts = map[string]string{}
+		}
+		texts[k] = v
+	}
 	saveNoConfirm, saveUnnamed = g.SaveNoConfirm, g.SaveUnnamed
 	sequences, filesDir = g.Sequences, g.Files
 	classic.GameID, classic.Amiga = g.ID, func() bool { return daxLoader.Amiga() }
