@@ -1048,6 +1048,9 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		return res
 	case game.StopRest:
 		r.rest = 0
+		if slices.ContainsFunc(commonOf(ps).Allowed.Plain, func(a play.Action) bool { _, ok := a.(play.StopRest); return ok }) {
+			return r.do(play.StopRest{}) // the game lists it: it hears of the stop
+		}
 		return game.Result{}
 	case game.Rest:
 		if _, ok := restCap(commonOf(ps).Allowed); ok { // gobox paces the rest in chunks, Step by Step

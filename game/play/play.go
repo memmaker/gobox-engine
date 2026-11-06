@@ -562,6 +562,7 @@ type (
 	AdvanceTimeBy struct{ D time.Duration } // also in Camping: rest; the outcome tells what happened meanwhile
 
 	// Camping.
+	StopRest   struct{} // the player stops a rest gobox paces (listed: the game hears of it, e.g. to end its own rest)
 	Memorize   struct{ Member, Spell int }
 	Forget     struct{ Member, Spell int }
 	Scribe     struct{ Member, Spell int }
@@ -678,6 +679,7 @@ func (Look) action()             {}
 func (MakeCamp) action()         {}
 func (Call) action()             {}
 func (AdvanceTimeBy) action()    {}
+func (StopRest) action()         {}
 func (Memorize) action()         {}
 func (Forget) action()           {}
 func (Scribe) action()           {}
