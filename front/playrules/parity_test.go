@@ -195,7 +195,7 @@ func TestParity(t *testing.T) {
 			func(s game.State, _ game.Result) bool {
 				return slices.Equal(s.Combat.Log, []string{"YOU GET INTO A BRAWL."})
 			}},
-		{"aimed attack", play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}}, // the series places Aim: gobox's free cursor
+		{"aimed attack", play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}, FreeAim: true}, // the series has Aim: gobox's free cursor
 			[]game.Decision{game.Attack{}, game.Aim{At: image.Pt(2, 3)}}, []play.Action{play.Attack{At: &image.Point{2, 3}}},
 			func(s game.State, _ game.Result) bool {
 				var att, aim bool

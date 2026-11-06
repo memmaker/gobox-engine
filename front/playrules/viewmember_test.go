@@ -156,7 +156,7 @@ func TestSpeedMenu(t *testing.T) {
 func TestVerbOrderWords(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}, Allowed: allow(play.EndTurn{}, play.UseItem{}, play.Delay{}).Allowed},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}}}}
-	o := classic.NewGame(New(&fake{st: fight}, game.Data{VerbOrder: []string{"Done", "Delay", "Use"}}), game.Data{}).View().Battle.Turn.Options
+	o := classic.NewGame(New(&fake{st: fight}, game.Data{VerbOrder: []string{"Aim", "Done", "Delay", "Use"}}), game.Data{}).View().Battle.Turn.Options
 	var ls []string
 	for _, x := range o {
 		ls = append(ls, x.Label)

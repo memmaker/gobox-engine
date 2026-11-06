@@ -1211,6 +1211,7 @@ type Event struct {
 type Data struct {
 	Unmarked     bool   // the selected member's card is not marked (the game's look; Selected still says who is)
 	NoFreeAim    bool   // the series' combat menu has no free Aim (Buck Rogers)
+	FreeAim      bool   // the bar has gobox's free Aim cursor though no VerbKeys key names Aim (VerbOrder only orders)
 	SaveDir      string // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
 	Series       string
 	Coin         string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)

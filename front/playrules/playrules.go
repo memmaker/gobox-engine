@@ -849,7 +849,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 		t.Options[i].Chords = r.data.VerbChords[o.Label]
 	}
 	called := slices.ContainsFunc(t.Options, func(o game.Option) bool { return o.Label == "Aim" })                           // a verb the series calls Aim (SotSB's Ranged)
-	if _, keyed := r.data.VerbKeys["Aim"]; !r.data.NoFreeAim && len(t.Options) > 0 && !called && (keyed || slices.Contains(r.data.VerbOrder, "Aim")) { // the series' Aim (keyed or placed), gobox's free cursor; no menu ("Continue battle?"): no Aim either
+	if _, keyed := r.data.VerbKeys["Aim"]; !r.data.NoFreeAim && len(t.Options) > 0 && !called && (keyed || r.data.FreeAim) { // the series' Aim (keyed or placed), gobox's free cursor; no menu ("Continue battle?"): no Aim either
 		t.Options = append(t.Options, game.Option{Label: "Aim", Do: game.Aim{}}) // the free cursor, gobox's own
 	}
 	named := map[int]game.TurnManeuver{}
