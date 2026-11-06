@@ -17,6 +17,9 @@ import (
 // menu bar and Esc on the command bar the renderer's options.
 func (p *Presenter) Key(k uint16, v front.View) {
 	v = p.own(v)
+	if askHeld(v, k) { // NoPick/NoEsc: no path answers the question with Enter, the arrows or Esc
+		defer p.dropAnswers(len(p.inv.acts))
+	}
 	if p.paneMore { // a key brings the pane's next lot of lines
 		p.paneFrom += v.Pane.Rows
 		return
@@ -548,4 +551,16 @@ func (p *Presenter) cardClick(i int) {
 	default:
 		p.send(front.ActInventory, i)
 	}
+}
+
+// dropAnswers drops the answers to the question sent since the acts were n
+// long (Key under NoPick/NoEsc).
+func (p *Presenter) dropAnswers(n int) {
+	p.inv.acts = append(p.inv.acts[:n], slices.DeleteFunc(p.inv.acts[n:], func(a front.Action) bool {
+		switch a.Kind {
+		case front.ActChoose, front.ActOK, front.ActYes, front.ActNo, front.ActClose:
+			return true
+		}
+		return false
+	})...)
 }
