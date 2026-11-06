@@ -493,7 +493,7 @@ func (p *Presenter) screenKey(k uint16, v front.View) bool {
 		case input.Minimap:
 			h, k = 'D', 'D'
 		}
-		if (h == 'L' && !sl.LoadOnly || h == 'D') && k < 128 {
+		if (h == 'L' && !sl.LoadOnly && !sl.NoLoad || h == 'D') && k < 128 {
 			p.slotKey(v, h)
 			return true
 		}

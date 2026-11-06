@@ -246,6 +246,8 @@ func slotFooter(sl *front.Slots, cols int) []footWord {
 		ws = append([]footWord{{"Enter=load", footPick, 0}}, ws[2:]...)
 	case !sl.CanSave:
 		ws = ws[1:]
+	case sl.NoLoad: // a hint key only for an act allowed
+		ws = append(ws[:1:1], ws[2:]...)
 	}
 	gap := cols - 4
 	for _, w := range ws {
