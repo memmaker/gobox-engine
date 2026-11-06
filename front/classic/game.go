@@ -565,6 +565,9 @@ func (g *Game) Answer(a front.Action) error {
 		if (a.Kind == front.ActChoose || a.Kind == front.ActOK) && a.N >= 0 && a.N < len(q.Options) && q.Options[a.N].Do != nil {
 			return g.do(q.Options[a.N].Do)
 		}
+		if i := yesNoOption(q, a.Kind); i >= 0 && q.Options[i].Do != nil { // a Yes/No with its own options: the one labelled so
+			return g.do(q.Options[i].Do)
+		}
 		if a.Kind == front.ActClose {
 			return nil
 		}
@@ -613,10 +616,11 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		return game.Order{From: a.N, To: a.X}, true
 	case front.ActOK, front.ActChoose:
 		return game.Answer{N: a.N}, true
-	case front.ActYes:
-		return game.Answer{N: 1}, true
-	case front.ActNo:
-		return game.Answer{N: 0}, true
+	case front.ActYes, front.ActNo:
+		if i := yesNoOption(g.state().Pending, a.Kind); i >= 0 { // the ask's own Yes and No options: their indexes
+			return game.Answer{N: i}, true
+		}
+		return game.Answer{N: map[front.ActKind]int{front.ActYes: 1}[a.Kind]}, true // no options: Yes 1, No 0
 	case front.ActText:
 		return game.Answer{Text: a.Text}, true
 	case front.ActSearch:
@@ -801,4 +805,14 @@ func (g *Game) asking(err error) error {
 		return front.Confirm(a.Prompt)
 	}
 	return err
+}
+
+// yesNoOption is the index of q's option labelled Yes (for ActYes) or No
+// (ActNo); -1 when q has none so labelled.
+func yesNoOption(q *game.Ask, k front.ActKind) int {
+	if q == nil || k != front.ActYes && k != front.ActNo {
+		return -1
+	}
+	want := map[front.ActKind]string{front.ActYes: "yes", front.ActNo: "no"}[k]
+	return slices.IndexFunc(q.Options, func(o game.Option) bool { return strings.EqualFold(strings.TrimSpace(o.Label), want) })
 }
