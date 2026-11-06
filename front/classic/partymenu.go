@@ -20,7 +20,8 @@ var partyFunctions = map[string]front.ActKind{
 // PartyMenu is the party menu's open functions (nil: not up) and whether it
 // is the training hall's.
 func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
-	if s.Mode != game.ModeParty || s.Pending == nil {
+	inHall := s.Mode == game.ModeTraining && s.Training == nil // the hall's party menu before OpenTraining (SotSB publishes the same Question)
+	if s.Mode != game.ModeParty && !inHall || s.Pending == nil {
 		return nil, false
 	}
 	for _, o := range s.Pending.Options {
@@ -28,7 +29,7 @@ func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
 			open = append(open, k)
 		}
 	}
-	return open, s.Where.Hall
+	return open, s.Where.Hall || inHall
 }
 
 // View is v with the screens classic builds from s in place of the game's:
@@ -43,6 +44,14 @@ func View(v front.View, s game.State) front.View {
 	v.Temple, v.Shop, v.Inventory = Temple(v.Temple, s), Shop(v.Shop, s), Inventory(v.Inventory, s)
 	if q, ok := Ask(s); ok {
 		v.Ask = q
+	}
+	if v.MainMenu == nil && v.Ask == nil && v.Camp == nil && v.Temple == nil && v.Shop == nil && v.Inventory == nil && s.Loot == nil && s.Training == nil &&
+		s.Pending != nil && s.Mode >= game.ModeCamp && s.Mode <= game.ModeLoot { // a place's mode with no screen of its own yet: its question, never a blank frame
+		as := s
+		as.Mode = game.ModeAsk
+		if q, ok := Ask(as); ok {
+			v.Ask = q
+		}
 	}
 	if v.MainMenu == nil {
 		v.Logo, v.Backdrop = nil, nil
