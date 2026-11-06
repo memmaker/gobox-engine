@@ -155,21 +155,29 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 	line("Movement", strconv.Itoa(sp.Move), 10, // a blank line after the abilities
 		[]string{"Squares walked in one", "combat round.", "", "Set by race; heavy armour", "and load slow it down."})
+	vy := (ch-2)*8 - 10 // the last row inside the border
+	fits := func(r int) bool { return row(r)+10 <= vy-14 } // a row clear of the AC/THAC0/Damage labels
 	r := 11
-	for _, st := range sp.Rules {
+	for j, st := range sp.Rules {
+		if !fits(r + 1) && j < len(sp.Rules)-1 { // a long list (BR2's skills) stops above the footer, the rest counted
+			text("+"+strconv.Itoa(len(sp.Rules)-j)+" more", rx, row(r), white)
+			r++
+			break
+		}
 		line(st.Name, st.Value, r, st.Help)
 		r++
 	}
-	if sp.Effects != "" {
+	if sp.Effects != "" && fits(r+2) {
 		text("Effects", rx, row(r+1), white)
 		for j, l := range ui.WrapWords(sp.Effects, cw-leftCells-2) {
-			text(l, rx, row(r+2+j), green)
+			if fits(r + 2 + j) {
+				text(l, rx, row(r+2+j), green)
+			}
 		}
 	}
 
 	// AC, THAC0 and Damage on the pane's bottom: three columns, each label
 	// over its value, centred in its column
-	vy := (ch-2)*8 - 10 // the last row inside the border
 	colW := (rr - rx) / 3
 	for j, f := range [][2]string{{"AC", strconv.Itoa(sp.AC)}, {"THAC0", strconv.Itoa(sp.THAC0)}, {"Damage", sp.Damage}} {
 		if f[1] == "" {
