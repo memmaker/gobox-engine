@@ -72,7 +72,7 @@ func Inventory(v *front.Inventory, s game.State) *front.Inventory {
 		return v
 	}
 	m := s.Party[s.Selected]
-	n := &front.Inventory{Member: s.Selected, Cap: s.PartyCap, Doll: make([]*front.InvItem, len(DollSlots)),
+	n := &front.Inventory{Member: s.Selected, Cap: s.PartyCap, Used: s.PoolItems, Doll: make([]*front.InvItem, len(DollSlots)),
 		Use: s.Allowed["UseItem"], Sell: s.Allowed["Sell"], Reload: s.Shop != nil && s.Shop.Reloads, Switch: s.Allowed["Select"],
 		Trade: s.Allowed["Trade"], Halve: s.Allowed["Halve"], Join: s.Allowed["Join"], PoolCoins: s.Shop != nil && s.Allowed["PoolCoins"]}
 	n.AC, n.THAC0, n.Stats = m.AC, m.THAC0, m.THAC0 != 0

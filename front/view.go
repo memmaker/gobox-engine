@@ -244,6 +244,7 @@ type Inventory struct {
 	Doll      []*InvItem // the readied items by doll slot (the game's slots, nil: empty)
 	Pool      []InvItem  // the party inventory
 	Cap       int        // the party inventory's slots
+	Used      int        // the slots the party pack fills (game.State.PoolItems; readied gear is not counted)
 	Use       bool       // items can be used here (ActUse)
 	Sell      bool       // a shop buys them (ActSell)
 	Reload    bool       // the shop refills clips (ActReload)
