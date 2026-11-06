@@ -78,7 +78,7 @@ func TestNoPrivatePlumbing(t *testing.T) {
 // funcFields caps each game's function-typed struct fields in rules: a
 // stored func is a continuation (the game paused mid-routine), and games
 // are passive (MIGRATION.md, order 2). The caps only shrink.
-var funcFields = map[string]int{"cotab-go": 3, "sotsb-go": 2, "pod-go": 2, "por-go": 10,
+var funcFields = map[string]int{"cotab-go": 3, "sotsb-go": 2, "pod-go": 2, "por-go": 8,
 	"buckrogers-go": 9, "buckrogers2-go": 10}
 
 // TestPassive: no game gains a stored callback; lower a cap when one goes.
