@@ -317,6 +317,9 @@ func (g *Game) PlanSpell(n, spell, count int) error {
 }
 func (g *Game) Scribe(n, spell int) error { return g.do(game.Scribe{Member: n, Spell: spell}) }
 func (g *Game) CampRest(kind int) error   { return g.do(game.CampRest{Kind: kind}) }
+
+// RestFor rests minutes long (a RestKind.Duration rest's picked time).
+func (g *Game) RestFor(minutes int) error { return g.do(game.Rest{Minutes: minutes}) }
 func (g *Game) StopRest() error           { return g.do(game.StopRest{}) }
 
 // Powers.
@@ -673,6 +676,9 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActManeuver:
 		return game.Maneuver{}, true
 	case front.ActRest:
+		if a.X > 0 { // a set duration (RestKind.Duration): X minutes
+			return game.Rest{Minutes: a.X}, true
+		}
 		return game.CampRest{Kind: a.N}, true
 	case front.ActPlan:
 		return game.Plan{Member: m, Spell: a.X, Count: a.Y}, true

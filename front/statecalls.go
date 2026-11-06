@@ -32,7 +32,12 @@ func StateAct(h Host, a Action) bool {
 		case ActDropMember:
 			do(func(e Game) error { return e.DropMember(n) })
 		case ActRest:
-			do(func(e Game) error { return e.CampRest(n) })
+			do(func(e Game) error {
+				if r, ok := e.(interface{ RestFor(int) error }); ok && a.X > 0 { // a picked duration, X minutes
+					return r.RestFor(a.X)
+				}
+				return e.CampRest(n)
+			})
 		default:
 			return false
 		}

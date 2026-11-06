@@ -524,16 +524,42 @@ func (p *Presenter) appraiseItems(a front.Appraise, back func()) (string, []ui.M
 	return title, append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: back})
 }
 
-// askRest asks how many days, then hours, rest N goes on, and rests so
-// long: ActRest N, X days, Y hours, handed to the game itself (Answer;
-// CampRest takes no duration); Esc gives up.
+// askRest asks how long rest N goes on, as the original's one "Rest Time:"
+// picker: Days, Hours or Mins picks the field (Mins first, by 5), Add and
+// Subtract (Up, Down) change it, Rest rests so long (ActRest N, X minutes),
+// Exit gives up.
 func (p *Presenter) askRest(n int) {
-	p.askCount("Days", 99, func(days int) {
-		p.askCount("Hours", 23, func(hours int) {
-			p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActRest, N: n, X: days, Y: hours})
-		})
-	})
+	t, field := [3]int{}, 2 // days, hours, minutes
+	most, step := [3]int{99, 23, 55}, [3]int{1, 1, 5}
+	q := &front.Question{Ask: front.Ask{Kind: front.AskMenu, Menu: front.Menu{Items: restItems}, Default: 3}}
+	set := func() {
+		q.Ask.Prompt = fmt.Sprintf("Rest Time: %d Days %d Hours %d Mins", t[0], t[1], t[2])
+	}
+	set()
+	q.Answer = func(a front.Action) bool {
+		switch {
+		case a.Kind == front.ActChoose && a.N < 3:
+			field = a.N
+		case a.Kind == front.ActChoose && a.N < 5:
+			t[field] = min(most[field], max(0, t[field]+step[field]*(7-2*a.N)))
+		case a.Kind == front.ActChoose && a.N == 5, a.Kind == front.ActOK:
+			p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActRest, N: n, X: t[0]*1440 + t[1]*60 + t[2]})
+			return true
+		case a.Kind == front.ActChoose, a.Kind == front.ActClose:
+			return true
+		default:
+			return false
+		}
+		q.Ask.Default = a.N
+		set()
+		return false
+	}
+	p.Ask(q)
 }
+
+// restItems are the rest picker's options.
+var restItems = []front.MenuItem{{Text: "Days", Key: 'D'}, {Text: "Hours", Key: 'H'}, {Text: "Mins", Key: 'M'},
+	{Text: "Add", Key: 'A'}, {Text: "Subtract", Key: 'S'}, {Text: "Rest", Key: 'R'}, {Text: "Exit", Key: 'E'}}
 
 // countItems are a number picker's options: down, up, done.
 var countItems = []front.MenuItem{{Text: "Less", Key: 'L'}, {Text: "More", Key: 'M'}, {Text: "Done", Key: 'D'}}

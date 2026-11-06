@@ -48,3 +48,11 @@ func TestAimAnswersInFight(t *testing.T) {
 		t.Fatalf("%#v", d)
 	}
 }
+
+// A picked rest time reaches the game as Rest{Minutes}.
+func TestRestMinutes(t *testing.T) {
+	g := &Game{R: &loreRules{}}
+	if d, _ := g.decision(front.Action{Kind: front.ActRest, N: 2, X: 300}); d != (game.Rest{Minutes: 300}) {
+		t.Fatalf("%#v", d)
+	}
+}
