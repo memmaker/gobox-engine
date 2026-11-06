@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"gobox/ega"
+	"gobox/game"
 	"gobox/gpu"
 	"gobox/ui"
 
@@ -53,6 +54,7 @@ type campUI struct {
 	ids       []int           // the spell lists' lines: each one's spell (0: a level, Exit)
 	unset     []bool          // the spell lists' lines with none memorized (grey)
 	level     string          // the level campLevel lists; the power pick's member and pick (powerItems)
+	dropAsk   int             // the drop's question asked (Data.Confirms["DropMember"].Asks)
 	rows      map[int][2]int  // each screen left for a submenu: its highlighted row and first line shown, for back
 }
 
@@ -137,9 +139,19 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 		}
 		return "Bestiary", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: c.back(campMain)})
 	case campDrop:
-		return "Drop " + selectedName(v) + " from the party?", []ui.MenuRow{
-			{Text: "Yes", Key: 'Y', Do: func() { p.send(front.ActDropMember, selectedIndex(v)); c.back(campMain)() }},
-			{Text: "No", Key: 'N', Do: c.back(campMain)}}
+		cf := confirmOf("DropMember", game.Confirm{Asks: []string{"Drop %s from the party?"}})
+		n := min(c.dropAsk, len(cf.Asks)-1)
+		yes := func() { // the next question, else the drop
+			if c.dropAsk = n + 1; c.dropAsk < len(cf.Asks) {
+				c.sel = map[bool]int{false: 1}[cf.Yes]
+				return
+			}
+			c.dropAsk = 0
+			p.send(front.ActDropMember, selectedIndex(v))
+			c.back(campMain)()
+		}
+		no := func() { c.dropAsk = 0; c.back(campMain)() }
+		return confirmText(cf.Asks[n], selectedName(v), ""), []ui.MenuRow{{Text: "Yes", Key: 'Y', Do: yes}, {Text: "No", Key: 'N', Do: no}}
 	}
 	var it []ui.MenuRow // the party's, the rests first: each member's own are on their card's menu (drawCampMenus)
 	for _, r := range rests {
@@ -256,7 +268,8 @@ func (p *Presenter) memberAct(k front.ActKind, n int) {
 	screen := map[front.ActKind]int{front.ActPlan: campMemorize, front.ActScribe: campScribe, front.ActDropMember: campDrop}
 	if s, ok := screen[k]; ok {
 		p.send(front.ActLead, n)
-		p.camp.to(s, map[bool]int{true: 1}[s == campDrop])() // the drop's question on No
+		p.camp.to(s, map[bool]int{true: 1}[s == campDrop && !confirmOf("DropMember", game.Confirm{}).Yes])() // the drop's question on No, unless the game starts it on Yes
+		p.camp.dropAsk = 0
 		return
 	}
 	p.send(k, n)

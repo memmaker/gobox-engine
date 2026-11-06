@@ -4,6 +4,7 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 	"gobox/ui"
 	"image"
@@ -238,15 +239,19 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	var box []string
 	switch it := itemAt(in, inv.sel); {
 	case inv.ask != nil && it != nil && inv.ask.Kind == front.ActDrop:
-		box = []string{"Your " + strings.TrimSpace(it.Name), "will be gone forever.", "", "Drop it?"}
+		act := "Drop"
+		if it.Scribe {
+			act = "DropScribe"
+		}
+		box = strings.Split(confirmText(confirmOf(act, game.Confirm{Asks: []string{"Your %s\nwill be gone forever.\n\nDrop it?"}}).Asks[0], strings.TrimSpace(it.Name), ""), "\n")
 	case inv.ask != nil && inv.ask.Kind == front.ActBuy:
 		if w := wareAt(in, inv.ware); w != nil {
 			box = []string{strings.TrimSpace(w.Name), "costs " + price(w.Price) + ".", "", "Buy it?"}
 		}
 	case inv.ask != nil && it != nil:
-		box = []string{"I'll give you " + price(it.Price), "for your " + strings.TrimSpace(it.Name) + ".", "", "Is it a deal?"}
+		box = strings.Split(confirmText(confirmOf("Sell", game.Confirm{Asks: []string{"I'll give you %p\nfor your %s.\n\nIs it a deal?"}}).Asks[0], strings.TrimSpace(it.Name), price(it.Price)), "\n")
 	}
-	if it := itemAt(in, inv.sel); box != nil && it != nil && it.Scribe && inv.ask.Kind != front.ActBuy { // ovr20:0D70's question
+	if it := itemAt(in, inv.sel); box != nil && it != nil && it.Scribe && inv.ask.Kind != front.ActBuy && (inv.ask.Kind != front.ActDrop || confirms["DropScribe"].Asks == nil) { // ovr20:0D70's question (a game's own DropScribe words it whole)
 		box = append([]string{"Someone was going to", "scribe from it.", ""}, box...)
 	}
 

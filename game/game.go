@@ -861,6 +861,15 @@ type SaveSlot struct {
 	Overwrite  string // the game's own words for saving over it ("": "Overwrite NAME?")
 }
 
+// Confirm is one of gobox's yes/no confirms as the game words it: Asks
+// are asked one after another (each Yes goes on, any No stops), each
+// line a "\n"-split text with %s the item's or member's name; Yes: they
+// start on Yes (else No).
+type Confirm struct {
+	Asks []string
+	Yes  bool
+}
+
 // AskKind says what an Ask wants.
 type AskKind int
 
@@ -1229,6 +1238,7 @@ type Data struct {
 	NoHotkeys    bool              `json:",omitempty"` // the series' menus are picked by arrows only: gobox gives its menus no hotkeys
 	PartyMenu    []MenuKey         `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
 	Texts        map[string]string
+	Confirms     map[string]Confirm `json:",omitempty"` // gobox's own confirms in the original's words, by act: "Drop", "DropScribe", "Sell", "DropMember" (nil: gobox's)
 	Credits      []string
 	SpellRules   map[int]string // what each spell does, by spell id (the spell tip text)
 	Art          map[string]Picture

@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing/fstest"
 
 	"gobox/amiga"
@@ -199,6 +200,22 @@ var (
 // Sounds is the game's sound tables (Data.Sounds), for audio.NewSynth.
 func Sounds() []byte { return sounds }
 
+// confirms is the game's Data.Confirms.
+var confirms map[string]game.Confirm
+
+// confirmOf is the game's confirm for act (Data.Confirms), else def.
+func confirmOf(act string, def game.Confirm) game.Confirm {
+	if c, ok := confirms[act]; ok && len(c.Asks) > 0 {
+		return c
+	}
+	return def
+}
+
+// confirmText is a Confirm's ask with %s the name and %p the price.
+func confirmText(ask, name, price string) string {
+	return strings.NewReplacer("%s", name, "%p", price).Replace(ask)
+}
+
 // Text is the game's named text (Data.Texts; "": none).
 func Text(name string) string { return texts[name] }
 
@@ -217,6 +234,7 @@ var daxMask map[string]int // Data.DaxMask
 // SetData handed in: its series and its spell tips (by spell id).
 func gameData(g game.Data) {
 	gameArt, gameID, daxMask = g.Art, g.ID, g.DaxMask
+	confirms = g.Confirms
 	sequences, filesDir = g.Sequences, g.Files
 	classic.GameID, classic.Amiga = g.ID, func() bool { return daxLoader.Amiga() }
 	classic.AmigaArt = classic.Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
