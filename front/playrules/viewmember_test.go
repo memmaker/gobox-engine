@@ -1,8 +1,11 @@
 package playrules
 
 import (
+	"slices"
 	"testing"
 
+	"gobox/front"
+	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -32,5 +35,45 @@ func TestCampNoRest(t *testing.T) {
 		if got := New(&fake{st: st}, game.Data{}).State().Allowed["NoRest"]; got == allow {
 			t.Errorf("AdvanceTimeBy allowed %v: NoRest %v", allow, got)
 		}
+	}
+}
+
+// TestFightView: a fight's turn offers View where the series keys it
+// (VerbKeys["View"]) and the rules have no ViewTarget of their own; it opens the active member's sheet over the fight, with no
+// call to the game, and CloseSheet returns to the same turn.
+func TestFightView(t *testing.T) {
+	fight := play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}, {Name: "MAREN"}}, Allowed: allow(play.EndTurn{}).Allowed},
+		Field: play.Battlefield{Turn: 2, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: 1}}}}
+	f := &fake{st: fight}
+	if v := classic.NewGame(New(f, game.Data{}), game.Data{}).View(); slices.ContainsFunc(v.Battle.Turn.Options, func(o front.TurnOption) bool { return o.Label == "View" }) {
+		t.Fatal("View the series doesn't key")
+	}
+	g := classic.NewGame(New(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}}), game.Data{})
+	n := -1
+	for i, o := range g.View().Battle.Turn.Options {
+		if o.Label == "View" {
+			n = i
+		}
+	}
+	if n < 0 {
+		t.Fatalf("no View in %+v", g.View().Battle.Turn.Options)
+	}
+	g.Answer(front.Action{Kind: front.ActOption, N: n})
+	if v := g.View(); v.SheetPage == nil || v.Sheet == nil || v.Battle == nil || v.Battle.Turn == nil || len(f.sent) != 0 {
+		t.Fatalf("sheet %v, battle %v, sent %v", v.SheetPage != nil, v.Battle != nil, f.sent)
+	}
+	g.CloseSheet()
+	if v := g.View(); v.SheetPage != nil || v.Battle == nil || v.Battle.Turn == nil || v.Battle.Turn.Unit != 2 {
+		t.Fatal("not back on the turn")
+	}
+	f.st = play.Fighting{Common: play.Common{Party: fight.Party, Allowed: allow(play.ViewTarget{}).Allowed}, Field: fight.Field}
+	views := 0
+	for _, o := range g.View().Battle.Turn.Options {
+		if o.Label == "View" {
+			views++
+		}
+	}
+	if views != 1 { // the rules' ViewTarget alone
+		t.Fatalf("%d Views beside the rules' ViewTarget", views)
 	}
 }

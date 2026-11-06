@@ -731,6 +731,16 @@ var turnOptions = []struct {
 	{"Flee", "Flee", game.Flee{}}, {"EndTurn", "End", game.EndTurn{}},
 }
 
+// activeMember is the party index of the unit whose turn it is, -1 none.
+func activeMember(b play.Battlefield) int {
+	for _, u := range b.Units {
+		if u.ID == b.Turn {
+			return u.Member
+		}
+	}
+	return -1
+}
+
 // loneAim starts the pick of squares when an Aimed action is all the turn
 // allows (a jetpack's flight, a throw): gobox asks for the square at once.
 func (r *rules) loneAim(f play.Fighting) bool {
@@ -799,6 +809,10 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 		if k := r.verbKey(v.label, v.key); allowed[name(v.a)] {
 			t.Options = append(t.Options, game.Option{Label: v.label, Key: k, Do: game.Answer{N: int(k)}})
 		}
+	}
+	if k, ok := r.data.VerbKeys["View"]; ok && activeMember(b) >= 0 && len(t.Options) > 0 && !allowed["ViewTarget"] { // the series' View (keyed in VerbKeys): the active member's sheet, front state (BR's View is its rules' ViewTarget)
+		l, m := cmp.Or(r.data.Texts["View"], "View"), activeMember(b)
+		t.Options = append(t.Options, game.Option{Label: l, Key: k, Do: game.ViewMember{Member: m}})
 	}
 	for i, o := range t.Options {
 		t.Options[i].Chords = r.data.VerbChords[o.Label]
