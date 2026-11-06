@@ -735,6 +735,10 @@ func (r *rules) page(sc play.Scene) *game.Page {
 // turnOptions are the combat menu's verbs: the action, gobox's label and
 // the old decision (a series relabels one in Data.Texts, keys it in
 // Data.VerbKeys).
+// verbWord is the Gold Box combat menus' word for a gobox verb label, so
+// a VerbOrder in the original's words (Use, Delay, Done) places them.
+var verbWord = map[string]string{"Items": "Use", "Wait": "Delay", "End": "Done"}
+
 var turnOptions = []struct {
 	new, label string
 	do         game.Decision
@@ -834,6 +838,9 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 			if i := slices.Index(ord, o.Label); i >= 0 {
 				return i
 			}
+			if i := slices.Index(ord, verbWord[o.Label]); i >= 0 { // gobox's label, the Gold Box menus' word for it
+				return i
+			}
 			return len(ord)
 		}
 		slices.SortStableFunc(t.Options, func(a, b game.Option) int { return at(a) - at(b) })
@@ -841,7 +848,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 	for i, o := range t.Options {
 		t.Options[i].Chords = r.data.VerbChords[o.Label]
 	}
-	called := slices.ContainsFunc(t.Options, func(o game.Option) bool { return o.Label == "Aim" })                                                     // a verb the series calls Aim (SotSB's Ranged)
+	called := slices.ContainsFunc(t.Options, func(o game.Option) bool { return o.Label == "Aim" })                           // a verb the series calls Aim (SotSB's Ranged)
 	if _, keyed := r.data.VerbKeys["Aim"]; !r.data.NoFreeAim && len(t.Options) > 0 && !called && (keyed || slices.Contains(r.data.VerbOrder, "Aim")) { // the series' Aim (keyed or placed), gobox's free cursor; no menu ("Continue battle?"): no Aim either
 		t.Options = append(t.Options, game.Option{Label: "Aim", Do: game.Aim{}}) // the free cursor, gobox's own
 	}
