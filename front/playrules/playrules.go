@@ -504,7 +504,7 @@ func askMode(m game.Mode, a *game.Ask, ps play.State) game.Mode {
 			return m // a typed screen answers by its own keys
 		}
 		return game.ModeAsk
-	case (m == game.ModeCreate || m == game.ModeCombat) && commonOf(ps).Ask != nil: // the fight's own question (a target, a member's View) over the map
+	case m == game.ModeCreate && commonOf(ps).Ask != nil:
 		return game.ModeAsk
 	}
 	return m
