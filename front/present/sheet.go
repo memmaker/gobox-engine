@@ -155,11 +155,11 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 	line("Movement", strconv.Itoa(sp.Move), 10, // a blank line after the abilities
 		[]string{"Squares walked in one", "combat round.", "", "Set by race; heavy armour", "and load slow it down."})
-	vy := (ch-2)*8 - 10 // the last row inside the border
+	vy := (ch-2)*8 - 10                                    // the last row inside the border
 	fits := func(r int) bool { return row(r)+10 <= vy-14 } // a row clear of the AC/THAC0/Damage labels
 	r := 11
 	for j, st := range sp.Rules {
-		if !fits(r + 1) && j < len(sp.Rules)-1 { // a long list (BR2's skills) stops above the footer, the rest counted
+		if !fits(r+1) && j < len(sp.Rules)-1 { // a long list (BR2's skills) stops above the footer, the rest counted
 			text("+"+strconv.Itoa(len(sp.Rules)-j)+" more", rx, row(r), white)
 			r++
 			break

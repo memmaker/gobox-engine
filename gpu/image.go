@@ -512,7 +512,7 @@ func flushBatch() {
 	}
 	k := batch.key
 	clip := k.clip.Intersect(image.Rect(0, 0, k.dst.w, k.dst.h))
-	if !clip.Empty() {
+	if !clip.Empty() && !k.dst.gone { // a batch into an image since deallocated (before it ever had a texture) draws nothing
 		p := passOn(k.dst, false)
 		p.SetPipeline(k.pipe)
 		p.SetScissorRect(gputypes.ScissorRect{X: uint32(clip.Min.X), Y: uint32(clip.Min.Y), Width: uint32(clip.Dx()), Height: uint32(clip.Dy())})

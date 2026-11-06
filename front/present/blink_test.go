@@ -2,7 +2,6 @@ package present
 
 import (
 	"testing"
-	"time"
 
 	"gobox/front"
 )
@@ -16,7 +15,7 @@ func TestBlink(t *testing.T) {
 	if got := p.blinked(view()).ViewText[0][0].Fg; got != col(inkWhite) {
 		t.Fatalf("first %v", got)
 	}
-	p.blinkAt = time.Now().Add(-(blinkSwaps + 1) * blinkMs)
+	p.blinkAt = now().Add(-(blinkSwaps + 1) * blinkMs)
 	if got := p.blinked(view()).ViewText[0][0].Fg; got != col(inkGreen) {
 		t.Fatalf("last %v", got)
 	}
