@@ -1,6 +1,7 @@
 package present
 
 import (
+	"strings"
 	"testing"
 
 	"gobox/front"
@@ -59,5 +60,20 @@ func TestItemConfirm(t *testing.T) {
 	inv.do(front.ActDrop)
 	if inv.ask == nil || inv.askSel != 0 {
 		t.Fatalf("drop asks on row %d, want Yes", inv.askSel)
+	}
+}
+
+// TestSellAskOffer: a game's sell ask that is the question alone still has
+// the offer before it; a free item has none.
+func TestSellAskOffer(t *testing.T) {
+	old := confirms
+	defer func() { confirms = old }()
+	confirms = map[string]game.Confirm{"SellMany": {Asks: []string{"Will you sell them? "}}, "SellFree": {Asks: []string{"Shall I dispose of it? "}}}
+	got := sellAsk(&front.InvItem{Name: "Arrows", Count: 50, Price: front.Money{Gold: 7}})
+	if !strings.HasPrefix(got, "I'll give you") || !strings.Contains(got, "Arrows") || !strings.HasSuffix(got, "Will you sell them? ") {
+		t.Fatalf("%q", got)
+	}
+	if got := sellAsk(&front.InvItem{Name: "Rock"}); got != "Shall I dispose of it? " {
+		t.Fatalf("free: %q", got)
 	}
 }

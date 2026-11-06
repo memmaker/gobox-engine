@@ -245,7 +245,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 			box = []string{strings.TrimSpace(w.Name), "costs " + price(w.Price) + ".", "", "Buy it?"}
 		}
 	case inv.ask != nil && it != nil:
-		box = strings.Split(confirmText(confirmOf(itemConfirm(front.ActSell, it), game.Confirm{Asks: []string{"I'll give you %p\nfor your %s.\n\nIs it a deal?"}}).Asks[0], strings.TrimSpace(it.Name), price(it.Price)), "\n")
+		box = strings.Split(sellAsk(it), "\n")
 	}
 	if it := itemAt(in, inv.sel); box != nil && it != nil && it.Scribe && inv.ask.Kind != front.ActBuy && (inv.ask.Kind != front.ActDrop || confirms["DropScribe"].Asks == nil) { // ovr20:0D70's question (a game's own DropScribe words it whole)
 		box = append([]string{"Someone was going to", "scribe from it.", ""}, box...)
@@ -463,4 +463,14 @@ func (inv *inventory) panel(t ui.Ribbon, lines []string, at func(w, h int) image
 // invStats is the items page's AC and THAC0 line.
 func invStats(in *front.Inventory) string {
 	return "AC " + strconv.Itoa(in.AC) + "  THAC0 " + strconv.Itoa(in.THAC0)
+}
+
+// sellAsk is the shop's sale question for it: the offer, then the game's
+// ask (Data.Confirms), a game's ask that is the question alone too.
+func sellAsk(it *front.InvItem) string {
+	ask := confirmOf(itemConfirm(front.ActSell, it), game.Confirm{Asks: []string{"I'll give you %p\nfor your %s.\n\nIs it a deal?"}}).Asks[0]
+	if it.Price != (front.Money{}) && !strings.Contains(ask, "%p") {
+		ask = "I'll give you %p\nfor your %s.\n\n" + ask
+	}
+	return confirmText(ask, strings.TrimSpace(it.Name), price(it.Price))
 }
