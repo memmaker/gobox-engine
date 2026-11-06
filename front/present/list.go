@@ -294,6 +294,9 @@ func (p *Presenter) pageMenuKey(k uint16, v front.View) bool {
 	if sheetUp(v) {
 		return p.sheetKey(k, v)
 	}
+	if askHeld(v, k) {
+		return true
+	}
 	switch i, back, ok := ui.MenuNav(actOf(k), k, &p.sel, ui.RowKeys(itemRows(askMenu(v)))); {
 	case back:
 		return false // ActClose (keyAct)

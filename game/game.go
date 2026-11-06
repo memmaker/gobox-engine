@@ -897,7 +897,7 @@ type Ask struct {
 	Default int      // default option or number
 	Yes     bool     `json:",omitempty"` // YesNo: the highlight starts on Yes (false: on No)
 	NoEsc   bool     `json:",omitempty"` // Esc does not answer it: the question stays up
-	NoPick  bool     `json:",omitempty"` // YesNo: no highlight, Enter does not answer it (only Y and N)
+	NoPick  bool     `json:",omitempty"` // no highlight, Enter does not answer it (only the hotkeys; YesNo: Y and N)
 	Max     int      // Name length, Number upper bound
 	Lines   []Line   // PickItem: the list's rows
 	Typed   string   // Name, Number: what is typed so far

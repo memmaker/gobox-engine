@@ -122,7 +122,7 @@ type Question struct {
 	Typed        bool
 	Number       bool
 	Default, Max int             // Typed: the longest; Number: the default and the largest; YesNo: 1 starts on yes
-	NoPick       bool            // YesNo: no highlight, Enter does not answer it; only Y and N do
+	NoPick       bool            // no highlight, Enter and the arrows do not answer it; only the hotkeys (a YesNo: Y and N) do
 	NoEsc        bool            // Esc does not answer it (the question stays up), as the original's ask that ignores Esc
 	Continue     bool            // a key to go on (Continue answers it); Common.Status may say so
 	Heading      bool            // a heading to pick (the overland): Heading{Dir}, Leave for Done

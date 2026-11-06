@@ -461,6 +461,22 @@ func confirmStart(a *front.Ask) int {
 	return 1
 }
 
+// askHeld: k does nothing on v's question, a choice as a yes/no: Esc
+// under NoEsc, Enter and the arrows under NoPick (only its hotkeys answer).
+func askHeld(v front.View, k uint16) bool {
+	a := v.Ask
+	if a == nil {
+		return false
+	}
+	switch actOf(k) {
+	case input.Esc:
+		return a.NoEsc
+	case input.Enter, input.Up, input.Down, input.Left, input.Right, input.Space, input.PadA:
+		return a.NoPick
+	}
+	return false
+}
+
 // yesNoKeys are every yes/no question's hotkeys.
 var yesNoKeys = []byte{'Y', 'N'}
 

@@ -194,6 +194,9 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	for i, it := range m.Items {
 		keys[i] = it.Key
 	}
+	if askHeld(v, k) {
+		return true
+	}
 	switch i, back, ok := ui.MenuNav(actOf(k), k, &p.sel, keys); {
 	case back && v.Exploring: // the command bar has no Exit item: the popup alone closes
 		p.menu = false
