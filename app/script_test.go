@@ -70,3 +70,16 @@ func TestAltEscape(t *testing.T) {
 		t.Fatalf("keys %v alts %v", g.keys, g.alts)
 	}
 }
+
+// A script ending on \t<ms> runs that long before it is done (its shot).
+func TestTimedEndWaits(t *testing.T) {
+	g := &busyGame{busy: []int{0}}
+	s := &shell{cfg: Config{Game: g, Capture: Capture{Keys: ParseKeys(`\t2000`, nil)}}}
+	n := 0
+	for ; n < 10000 && !s.done(); n++ {
+		s.step()
+	}
+	if n < 120 {
+		t.Fatalf("done after %d frames, want 2 s (120)", n)
+	}
+}

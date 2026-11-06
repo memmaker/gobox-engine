@@ -217,7 +217,7 @@ func (s *shell) Update() error {
 
 // done says whether the script's keys have played and settled.
 func (s *shell) done() bool {
-	return s.fed == len(s.cfg.Capture.Keys) && s.gap > 4*Ticks && (s.cfg.Game.Idle() || s.gap > MaxWait)
+	return s.fed == len(s.cfg.Capture.Keys) && s.ticks >= s.until && s.gap > 4*Ticks && (s.cfg.Game.Idle() || s.gap > MaxWait)
 }
 
 // step is a scripted run's clock, run by Draw once a frame, so a capture is

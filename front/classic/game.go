@@ -49,6 +49,9 @@ func NewGame(r game.Rules, d game.Data) *Game {
 
 // do hands d to the rules, keeping its events; the refusal is the error.
 func (g *Game) do(d game.Decision) error {
+	if c := g.R.State().Combat; c != nil { // the fight as the decision found it: a Result that ends it plays on it (Settle)
+		g.lastCombat = c
+	}
 	res := g.R.Apply(d)
 	g.trace(fmt.Sprintf("%T%+v", d, d), res)
 	g.events = append(g.events, res.Events...)

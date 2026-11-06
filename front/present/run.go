@@ -164,6 +164,9 @@ func (f *Front) PadStick(x, y float64) { f.stale(); f.P.PadStick(x, y) }
 // fight, rest, story or walk, a timed pause) and the 3D view stands still.
 // A scripted run (-keys) gives its next key only then.
 func (f *Front) Idle() bool {
+	if f.P.Playing() { // the fight's events still play: a script's next key (or its end) waits for them
+		return false
+	}
 	v := f.view()
 	if v.Pace != front.PaceNone && v.Pace != front.PaceAnim || v.Ask != nil && v.Ask.Kind == front.AskPause {
 		return false
