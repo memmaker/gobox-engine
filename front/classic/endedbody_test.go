@@ -73,3 +73,28 @@ func TestEndedFightBeastStays(t *testing.T) {
 		}
 	}
 }
+
+// TestLiveFallBody: a fall with a body (Ms 0) in a fight still up is held
+// with the body on the unit's square and the unit off the board (POR's
+// last blow: the page came straight after, Mirelle standing to the end).
+func TestLiveFallBody(t *testing.T) {
+	r := &fightRules{}
+	r.s = game.State{Mode: game.ModeCombat, Combat: &game.Combat{Size: image.Pt(8, 8), Units: []game.Unit{{ID: 9, At: image.Pt(5, 5), HP: 9, Foe: true}}}}
+	g := NewGame(r, game.Data{})
+	g.lastCombat = &game.Combat{Size: image.Pt(8, 8), Units: []game.Unit{{ID: 2, At: image.Pt(3, 2), HP: 1}, {ID: 9, At: image.Pt(5, 5), HP: 9, Foe: true}}}
+	body := game.Picture{W: 1, H: 1, Pixels: []byte{5}, Clear: -1}
+	g.events = []game.Event{{Kind: game.EvDown, Unit: 2, Picture: body}}
+	v := g.Settle()
+	if len(v.Events) != 1 || v.Events[0].Ms == 0 || v.Events[0].Battle == nil {
+		t.Fatalf("the fall has no moment: %+v", v.Events)
+	}
+	b := v.Events[0].Battle
+	for _, u := range b.Units {
+		if u.ID == 2 {
+			t.Fatal("the fallen unit still stands")
+		}
+	}
+	if b.Ground[2][3].Overlay == 0 {
+		t.Fatal("no body on the square")
+	}
+}

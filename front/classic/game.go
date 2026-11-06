@@ -255,17 +255,13 @@ func (g *Game) messageMs() int {
 // (a walk moved, a fall dropped), with its unit in its pose.
 func (g *Game) endedBattle(e game.Event) *front.Battle {
 	s := g.state()
-	if b := e.Picture; e.Kind == game.EvDown && (b.File != "" || b.Name != "" || b.Pixels != nil) { // the body the game leaves (Event.Picture): the fall's moment shows it in the unit's place (standing on it, the figure hid it)
+	if b := e.Picture; e.Kind == game.EvDown && hasPic(b) { // the body the game leaves (Event.Picture): the fall's moment shows it in the unit's place (standing on it, the figure hid it)
 		for k := range g.ended.Units {
 			u := &g.ended.Units[k]
 			if u.ID != e.Unit {
 				continue
 			}
-			if i := slices.IndexFunc(g.ended.Squares, func(q game.Ground) bool { return q.At == u.At }); i >= 0 {
-				g.ended.Squares[i].Overlay = b
-			} else {
-				g.ended.Squares = append(g.ended.Squares, game.Ground{At: u.At, Overlay: b})
-			}
+			g.ended.Squares = withOverlay(g.ended.Squares, u.At, b)
 			u.Dead, u.Gone, u.HP = true, true, 0
 		}
 	}
@@ -289,6 +285,18 @@ func (g *Game) endedBattle(e game.Event) *front.Battle {
 		}
 	}
 	return b
+}
+
+// hasPic is whether p is a picture at all.
+func hasPic(p game.Picture) bool { return p.File != "" || p.Name != "" || p.Pixels != nil }
+
+// withOverlay is sq with o lying on the square at.
+func withOverlay(sq []game.Ground, at image.Point, o game.Picture) []game.Ground {
+	if i := slices.IndexFunc(sq, func(q game.Ground) bool { return q.At == at }); i >= 0 {
+		sq[i].Overlay = o
+		return sq
+	}
+	return append(sq, game.Ground{At: at, Overlay: o})
 }
 
 // combatEvents are the fight's events as the presenter plays them; the
@@ -321,6 +329,8 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 				if b := posed(e); e.Ms > 0 {
 					ce.Ms, ce.Battle = e.Ms, b
 				}
+			} else if e.Kind == game.EvDown && hasPic(e.Picture) && posed != nil { // a fall that leaves a body is held with the body down (with no moment, the shot before it kept the figure standing up to the page)
+				ce.Ms, ce.Battle = cmp.Or(e.Ms, holdMs), posed(e)
 			} else if e.Pose > 0 && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose
 				ce.Ms, ce.Battle = e.Ms, posed(e)
 			} else if e.Text != "" && e.Ms == 0 && v.Battle != nil && posed != nil { // a fight's message stays up the game-speed delay before what follows, as the originals'
@@ -377,11 +387,19 @@ func (g *Game) posedBattle(e game.Event) *front.Battle {
 		return nil
 	}
 	c := *s.Combat
-	c.Units = slices.Clone(c.Units)
+	c.Units, c.Squares = slices.Clone(c.Units), slices.Clone(c.Squares)
 	for k := range c.Units {
 		if c.Units[k].ID == e.Unit {
 			c.Units[k].Pose = e.Pose
 		}
+	}
+	if e.Kind == game.EvDown && hasPic(e.Picture) && g.lastCombat != nil { // the body on the square the unit fell on, it off the board
+		for _, u := range g.lastCombat.Units {
+			if u.ID == e.Unit {
+				c.Squares = withOverlay(c.Squares, u.At, e.Picture)
+			}
+		}
+		c.Units = slices.DeleteFunc(c.Units, func(u game.Unit) bool { return u.ID == e.Unit })
 	}
 	s.Combat = &c
 	return BattleOf(s, g.art())
