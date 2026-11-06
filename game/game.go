@@ -716,6 +716,7 @@ type Option struct {
 	Key    rune
 	Do     Decision
 	Chords string // more keys that pick it (alt+q,space; Data.VerbChords)
+	Func   string // the function's gobox name when Label is the series' (Data.Texts: "Drop Character" shown as "Remove Character")
 }
 
 // Shop, Service, Training, Loot, Door, Vault: the place an area script has

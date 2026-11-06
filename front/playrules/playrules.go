@@ -280,7 +280,7 @@ func (r *rules) partyMenu(a play.Assembling) *game.Ask {
 			on = !a.NoLoad // gobox's slot screen, empty or not
 		}
 		if on {
-			q.Options = append(q.Options, game.Option{Label: cmp.Or(r.data.Texts[f.Label], f.Label), Key: f.Key})
+			q.Options = append(q.Options, game.Option{Label: cmp.Or(r.data.Texts[f.Label], f.Label), Key: f.Key, Func: f.Label})
 		}
 	}
 	return q

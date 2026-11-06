@@ -3,6 +3,7 @@
 package classic
 
 import (
+	"cmp"
 	"gobox/front"
 	"gobox/game"
 )
@@ -25,7 +26,7 @@ func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
 		return nil, false
 	}
 	for _, o := range s.Pending.Options {
-		if k, ok := partyFunctions[o.Label]; ok {
+		if k, ok := partyFunctions[cmp.Or(o.Func, o.Label)]; ok { // by its function, never its series name (BR2's Drop is labelled Remove)
 			open = append(open, k)
 		}
 	}
