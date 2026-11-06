@@ -28,9 +28,25 @@ func (g *Game) trace(what string, res game.Result) {
 	if s.Pacing != nil {
 		pace = fmt.Sprintf(" pace=%v", s.Pacing.Pace)
 	}
-	fmt.Fprintf(os.Stderr, "trace %s err=%v events=%d mode=%v%s%s\n", what, res.Err, len(res.Events), m, turn, pace)
+	fmt.Fprintf(os.Stderr, "trace %s err=%v events=%d mode=%v%s%s%s\n", what, res.Err, len(res.Events), m, turn, pace, traceParty(s.Party))
+	for _, e := range res.Events {
+		if e.Text != "" {
+			fmt.Fprintf(os.Stderr, "trace   event %v %q\n", e.Kind, e.Text)
+		}
+	}
 	if m != g.traceMode {
 		fmt.Fprintf(os.Stderr, "trace mode %v -> %v\n", g.traceMode, m)
 		g.traceMode = m
 	}
+}
+
+// traceParty is each member's name, HP and status, as a trace line's tail.
+func traceParty(p []game.Member) (out string) {
+	for _, m := range p {
+		out += fmt.Sprintf(" [%s %d/%d %s]", m.Name, m.HP, m.MaxHP, m.Status)
+	}
+	if out != "" {
+		out = " party=" + out[1:]
+	}
+	return out
 }
