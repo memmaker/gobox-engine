@@ -54,10 +54,13 @@ private Ask/Question/Decision/Event/Mode/State types and its play.go.
    Common.Ask, Draft.Ask, ShipFight.Menu with the game's Keys); dead front
    code gone; parity/nocopies_test.go fails on any new private copy of a
    plumbing type in a game's rules (its knownCopies list only shrinks).
-2. COTAB: first decide how the game waits for the player (callbacks, as
-   BR/POR/SOTSB/POD, or one gobox coroutine helper) from how deep its
-   waits sit; the choice is then the one way for every game. Then COTAB
-   implements play.Game natively.
+2. The game is passive (user, 2026-11-06): its resting state is always
+   "waiting for player input", never in the middle of something. Do(action)
+   changes state and returns. No callbacks, continuations, coroutines or
+   replay: a pending decision is data in the state (a screen, the ECL VM's
+   pc and variables, a routine's explicit step), its answer the next action.
+   Every game drops its wait plumbing as it moves; COTAB's replay engine
+   goes when its last asking routine has an explicit step.
 3. SOTSB, POD (near-twins), then BR1 + BR2 (their shared code one package
    first), one game per change.
 4. POR (the freeze is lifted: user, 2026-11-06).

@@ -75,3 +75,54 @@ func TestNoPrivatePlumbing(t *testing.T) {
 		}
 	}
 }
+
+// funcFields caps each game's function-typed struct fields in rules: a
+// stored func is a continuation (the game paused mid-routine), and games
+// are passive (MIGRATION.md, order 2). The caps only shrink.
+var funcFields = map[string]int{"cotab-go": 3, "sotsb-go": 9, "pod-go": 7, "por-go": 31,
+	"buckrogers-go": 9, "buckrogers2-go": 10}
+
+// TestPassive: no game gains a stored callback; lower a cap when one goes.
+func TestPassive(t *testing.T) {
+	for g, max := range funcFields {
+		dir := filepath.Join("..", "..", g, "rules")
+		files, err := os.ReadDir(dir)
+		if err != nil {
+			t.Logf("%s: %v (not checked)", g, err)
+			continue
+		}
+		n := 0
+		for _, f := range files {
+			if nm := f.Name(); !strings.HasSuffix(nm, ".go") || strings.HasSuffix(nm, "_test.go") {
+				continue
+			}
+			af, err := parser.ParseFile(token.NewFileSet(), filepath.Join(dir, f.Name()), nil, parser.SkipObjectResolution)
+			if err != nil {
+				t.Fatal(err)
+			}
+			ast.Inspect(af, func(x ast.Node) bool {
+				if st, ok := x.(*ast.StructType); ok {
+					for _, fl := range st.Fields.List {
+						ty := fl.Type
+						if s, ok := ty.(*ast.StarExpr); ok {
+							ty = s.X
+						}
+						if a, ok := ty.(*ast.ArrayType); ok {
+							ty = a.Elt
+						}
+						if _, ok := ty.(*ast.FuncType); ok {
+							n += len(fl.Names) + min(1, 1-len(fl.Names)) // unnamed counts 1
+						}
+					}
+				}
+				return true
+			})
+		}
+		switch {
+		case n > max:
+			t.Errorf("%s/rules stores %d funcs (cap %d): make the pending decision state, not a callback", g, n, max)
+		case n < max:
+			t.Errorf("%s/rules stores %d funcs: lower its funcFields cap from %d", g, n, max)
+		}
+	}
+}
