@@ -270,6 +270,9 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	}
 	if !shop && in.Member >= 0 && in.Member < len(v.Party) {
 		paneName(inv.img, inv.glyph, v.Party[in.Member].Name)
+		if in.Stats && !in.Loot { // the member's AC and THAC0 under its items, as the sheet's
+			onBorder(inv.img, inv.glyph, lx, (ch-1)*8-8, true, []string{invStats(in)}, []color.RGBA{col(inkYellow)})
+		}
 	}
 	head := "Party Items"
 	if shop && in.Member >= 0 && in.Member < len(v.Party) { // the shop shows the shopper's items only
@@ -451,4 +454,9 @@ func (inv *inventory) panel(t ui.Ribbon, lines []string, at func(w, h int) image
 	op.GeoM.Translate(float64(p.X), float64(p.Y))
 	inv.img.DrawImage(inv.tip, op)
 	inv.panelAt = image.Rectangle{Min: p, Max: p.Add(image.Pt(w, h))}
+}
+
+// invStats is the items page's AC and THAC0 line.
+func invStats(in *front.Inventory) string {
+	return "AC " + strconv.Itoa(in.AC) + "  THAC0 " + strconv.Itoa(in.THAC0)
 }

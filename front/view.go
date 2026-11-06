@@ -254,6 +254,8 @@ type Inventory struct {
 	Trade     bool // the menu offers ActTrade
 	Halve     bool // ... ActHalve
 	Join      bool // ... ActJoin
+	AC, THAC0 int  // the member's, as its sheet shows them (the items page's bottom border; Stats)
+	Stats     bool // the game publishes AC and THAC0 (a member with a THAC0)
 	PoolCoins bool // the shop pools the party's coins (ActLootPool; Allowed PoolCoins)
 }
 
