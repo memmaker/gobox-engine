@@ -33,7 +33,7 @@ func (p *Presenter) Pace(v front.View) {
 // turnActs are the decisions of a member's combat turn (TurnChoice).
 var turnActs = []front.ActKind{front.ActWalk, front.ActAttack, front.ActItems, front.ActMember, front.ActRanged,
 	front.ActManeuver, front.ActCast, front.ActTurn, front.ActQuick, front.ActGuard, front.ActBandage,
-	front.ActWait, front.ActEnd, front.ActFlee, front.ActPoint, front.ActAim, front.ActClose}
+	front.ActWait, front.ActEnd, front.ActFlee, front.ActPoint, front.ActAim, front.ActClose, front.ActOption}
 
 // turnAct makes a decision of the turn up a rule call; false: no turn waits.
 func (p *Presenter) turnAct(a front.Action) bool {

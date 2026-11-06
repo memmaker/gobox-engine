@@ -582,6 +582,11 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 		}
 	}
 	switch a.Kind {
+	case front.ActOption: // the turn's option N, as the game offers it
+		if c := g.state().Combat; c != nil && c.Turn != nil && a.N >= 0 && a.N < len(c.Turn.Options) && c.Turn.Options[a.N].Do != nil {
+			return c.Turn.Options[a.N].Do, true
+		}
+		return nil, false
 	case front.ActClose:
 		return game.Cancel{}, true
 	case front.ActMainMenu:

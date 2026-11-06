@@ -74,15 +74,24 @@ type Battle struct {
 
 // Turn is what the acting member may do (the original's combat menu).
 type Turn struct {
-	Unit      int        // whose turn
-	Can       []ActKind  // the actions offered, in the menu's order
-	Spells    []Spell    // what ActCast casts
-	Maneuvers []Maneuver // extra: what ActManeuver does (the rule set's; empty under the original's)
-	Aim       bool       // aiming: ActAim takes a square, ActPoint previews one, ActClose gives up
-	Casting   string     // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
-	Weapon    *InvItem   // extra: the weapon in hand (its icon on the Attack button), or nil
-	Missile   *InvItem   // extra: the ranged weapon readied (its icon on the Ranged button), or nil
-	Moves     int        // squares of move left
+	Unit      int          // whose turn
+	Can       []ActKind    // the actions offered, in the menu's order
+	Spells    []Spell      // what ActCast casts
+	Maneuvers []Maneuver   // extra: what ActManeuver does (the rule set's; empty under the original's)
+	Aim       bool         // aiming: ActAim takes a square, ActPoint previews one, ActClose gives up
+	Casting   string       // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
+	Weapon    *InvItem     // extra: the weapon in hand (its icon on the Attack button), or nil
+	Missile   *InvItem     // extra: the ranged weapon readied (its icon on the Ranged button), or nil
+	Moves     int          // squares of move left
+	Options   []TurnOption // the game's options in its order: the bar is built from these (none: from Can)
+}
+
+// TurnOption is one of the game's turn options: its word, hotkey and the
+// action it is (Kind 0: ActOption N, the game's own).
+type TurnOption struct {
+	Label string
+	Key   byte
+	Kind  ActKind
 }
 
 // Effect is a sprite the original draws over the map for a moment.

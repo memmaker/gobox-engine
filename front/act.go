@@ -57,6 +57,7 @@ const (
 	ActOrder              // member N takes place X in the party (View.Ordering): a card dragged onto another's
 	ActNote               // the text pane's text goes into the journal's notes (the text box's "> Notes")
 	ActNoteRemove         // the journal's note N (Lore.ID) is removed
+	ActOption             // combat: the turn's option N (Turn.Options), as the game offers it
 
 	// Adventuring decisions (View.Exploring)
 	ActForward     // a step ahead (3D view)

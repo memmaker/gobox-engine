@@ -12,6 +12,8 @@ import (
 // turnAct is the combat menu's action a Decision does (false: not a menu entry).
 func turnAct(d game.Decision) (front.ActKind, bool) {
 	switch d.(type) {
+	case game.Move: // the turn's Move: the tabletop's walk (a square picked), never Move{} as it stands
+		return front.ActWalk, true
 	case game.Attack:
 		return front.ActAttack, true
 	case game.Ranged:
@@ -96,11 +98,7 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 	if t := c.Turn; t != nil {
 		o.Turn = &front.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves}
 		turnExtras(o.Turn, t)
-		for _, op := range t.Options {
-			if act, ok := turnAct(op.Do); ok {
-				o.Turn.Can = append(o.Turn.Can, act)
-			}
-		}
+		o.Turn.Can, o.Turn.Options = turnOptions(t)
 		for _, sp := range c.Spells {
 			o.Turn.Spells = append(o.Turn.Spells, front.Spell{ID: sp.ID, Name: sp.Name})
 		}
@@ -181,16 +179,29 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 	if t := c.Turn; t != nil {
 		b.Turn = &front.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves}
 		turnExtras(b.Turn, t)
-		for _, op := range t.Options {
-			if act, ok := turnAct(op.Do); ok {
-				b.Turn.Can = append(b.Turn.Can, act)
-			}
-		}
+		b.Turn.Can, b.Turn.Options = turnOptions(t)
 		for _, sp := range c.Spells {
 			b.Turn.Spells = append(b.Turn.Spells, front.Spell{ID: sp.ID, Name: sp.Name})
 		}
 	}
 	return b
+}
+
+// turnOptions are t's options as the front's acts (Can) and as the bar's
+// buttons, every one the game offers: one without a front act is ActOption.
+func turnOptions(t *game.Turn) (can []front.ActKind, ops []front.TurnOption) {
+	for _, op := range t.Options {
+		act, ok := turnAct(op.Do)
+		if ok {
+			can = append(can, act)
+		}
+		key := byte(0)
+		if op.Key > 0 && op.Key < 128 {
+			key = byte(op.Key)
+		}
+		ops = append(ops, front.TurnOption{Label: op.Label, Key: key, Kind: act})
+	}
+	return can, ops
 }
 
 // turnExtras gives o the Turn's weapons and maneuvers.

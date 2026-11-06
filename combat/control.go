@@ -41,6 +41,12 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 	cycle := a == input.Tab || a == input.PgUp || a == input.PgDn
 	back := a == input.PgUp || a == input.Tab && p.Shift
 	switch {
+	case k == 'u' && p.Shift && p.bar.hotkey(a, k) != nil: // Shift-U: Quick for the whole party
+		p.act(Decision{Kind: ActQuick, N: 1})
+	case p.bar.gameKey(k) != nil: // the game's own hotkey wins over the camera's (Q, E, W ...)
+		p.press(*p.bar.gameKey(k))
+	case p.bar.tableKey(k) != nil: // the remaster's letter for the same act (F Attack, U Quick), where the game gave its own
+		p.press(*p.bar.tableKey(k))
 	case a == input.TurnLeft:
 		p.yawTo -= math.Pi / 4
 	case a == input.TurnRight:
@@ -54,8 +60,6 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 		if i := (int(k) - '0' + 9) % 10; i < len(p.bar.rects) { // 1 is the first button, 0 the tenth
 			p.press(p.bar.items[i])
 		}
-	case k == 'u' && p.Shift && p.bar.hotkey(a, k) != nil: // Shift-U: Quick for the whole party
-		p.act(Decision{Kind: ActQuick, N: 1})
 	case p.bar.hotkey(a, k) != nil:
 		p.press(*p.bar.hotkey(a, k))
 	case cycle && aiming && len(b.Targets) > 0: // Tab, Shift-Tab, the pad's shoulders: the next, previous target

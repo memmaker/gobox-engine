@@ -11,7 +11,7 @@ func glyphT(c byte) [8]byte { return [8]byte{c, 0xFF, c ^ 0x55, 0x81, c, 0xAA, 0
 // TestDefaultThemeIsPor: the hashes were taken from the code before Theme existed (embedded icons included).
 func TestDefaultThemeIsPor(t *testing.T) {
 	th := DefaultTheme
-	items := []barItem{{'F', "Attack", ActAttack, 0}, {'C', "Cast", ActCast, 0}, {'E', "Cancel", ActClose, 0}, {'W', "Wait", ActWait, 0}, {'Y', "Yes", ActYes, 0}}
+	items := []barItem{{'F', "Attack", ActAttack, 0, 0}, {'C', "Cast", ActCast, 0, 0}, {'E', "Cancel", ActClose, 0, 0}, {'W', "Wait", ActWait, 0, 0}, {'Y', "Yes", ActYes, 0, 0}}
 	h := func(b []byte) string { return fmt.Sprintf("%x", sha256.Sum256(b)) }
 	for got, want := range map[string]string{
 		h(barPixels(glyphT, items, 1, 600, 120, 2, nil, "", th).Pix):          "9267a69e862b55ed55abf02246ce4f6ac43e8c42f39c4a02b5e43357f448e022",

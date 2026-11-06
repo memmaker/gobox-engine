@@ -58,6 +58,7 @@ type barItem struct {
 	Text string
 	Kind Kind
 	Hot  int // the game's hotkey letter (0: derived, -1: none)
+	N    int // ActOption: the option's index
 }
 
 // hotkeys are the remaster's letters for the bar's buttons, by word, and
@@ -119,12 +120,33 @@ var leftArrow = [8]byte{0x00, 0x10, 0x30, 0x7E, 0x30, 0x10, 0x00, 0x00}
 // actWords are the bar's words for the turn's actions.
 var actWords = map[Kind]string{ActAttack: "Attack", ActRanged: "Ranged", ActGuard: "Guard", ActItems: "Items",
 	ActCast: "Cast", ActTurn: "Turn", ActBandage: "Bandage", ActWait: "Wait", ActEnd: "End", ActQuick: "Quick", ActFlee: "Flee", ActManeuver: "Maneuver",
-	ActStep: "Move", ActView: "View", ActAim: "Aim"}
+	ActStep: "Move", ActWalk: "Move", ActView: "View", ActAim: "Aim"}
 
 // hotkey is the button whose hotkey is letter k or the table's key a (nil: none).
 func (b *bar) hotkey(a input.Act, k uint16) *barItem {
 	for i, h := range hotkeysOf(b.items) {
 		if (h.key != 0 && h.key == k || h.act != input.None && h.act == a) && i < len(b.rects) {
+			return &b.items[i]
+		}
+	}
+	return nil
+}
+
+// gameKey is the button the game gave hotkey k (lower case; nil: none).
+func (b *bar) gameKey(k uint16) *barItem {
+	for i, it := range b.items {
+		if it.Hot > 0 && uint16(byte(it.Hot)|0x20) == k && i < len(b.rects) {
+			return &b.items[i]
+		}
+	}
+	return nil
+}
+
+// tableKey is the button whose act's remaster letter (hotkeys) is k, by its
+// act's word whatever the game calls it (nil: none).
+func (b *bar) tableKey(k uint16) *barItem {
+	for i, it := range b.items {
+		if h, ok := hotkeys[actWords[it.Kind]]; ok && h.key != 0 && h.key == k && i < len(b.rects) {
 			return &b.items[i]
 		}
 	}
@@ -148,10 +170,25 @@ func (p *Presenter) overBar(x, y int) bool {
 func shownItems(b *Board, asking bool) (items []barItem) {
 	switch t := b.Turn; {
 	case asking:
-		return []barItem{{'Y', "Yes", ActYes, 0}, {'N', "No", ActNo, 0}}
+		return []barItem{{'Y', "Yes", ActYes, 0, 0}, {'N', "No", ActNo, 0, 0}}
 	case t == nil:
 	case t.Aim:
-		return []barItem{{'E', "Cancel", ActClose, 0}}
+		return []barItem{{'E', "Cancel", ActClose, 0, 0}}
+	case len(t.Options) > 0: // the game's own options, every one, in its order
+		for i, o := range t.Options {
+			w := o.Label
+			if w == "" {
+				w = actWords[o.Kind]
+			}
+			if w == "" {
+				continue
+			}
+			n := 0
+			if o.Kind == ActOption {
+				n = i
+			}
+			items = append(items, barItem{w[0], w, o.Kind, int(o.Key), n})
+		}
 	default:
 		for _, k := range t.Can {
 			w := t.Labels[k] // the game's own word, else the bar's
@@ -161,7 +198,7 @@ func shownItems(b *Board, asking bool) (items []barItem) {
 			if w == "" { // a kind the bar has no word for
 				continue
 			}
-			items = append(items, barItem{w[0], w, k, t.Keys[k]})
+			items = append(items, barItem{w[0], w, k, t.Keys[k], 0})
 		}
 	}
 	return items
@@ -284,11 +321,20 @@ func (p *Presenter) Point(x, y int) {
 // press takes button it: Cast opens the spell list (acts at once with Turn.CastDirect), Maneuver the
 // maneuvers', the others act.
 func (p *Presenter) press(it barItem) {
+	if it.Kind == ActWalk || it.Kind == ActStep { // Move: the square cursor on the active unit; the keys move it, Enter walks there
+		p.free = &image.Point{}
+		for _, u := range p.b.Units {
+			if u.Active {
+				*p.free = image.Pt(u.X, u.Y)
+			}
+		}
+		return
+	}
 	if it.Kind == ActManeuver || it.Kind == ActCast && (p.b == nil || p.b.Turn == nil || !p.b.Turn.CastDirect) {
 		p.Picking, p.PickKind = true, it.Kind
 		return
 	}
-	p.act(Decision{Kind: it.Kind})
+	p.act(Decision{Kind: it.Kind, N: it.N})
 }
 
 // act queues a for Actions.

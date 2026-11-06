@@ -18,7 +18,7 @@ var combatKinds = map[front.ActKind]combat.Kind{
 	front.ActEnd: combat.ActEnd, front.ActQuick: combat.ActQuick, front.ActGuard: combat.ActGuard, front.ActBandage: combat.ActBandage,
 	front.ActFlee: combat.ActFlee, front.ActTurn: combat.ActTurn, front.ActCast: combat.ActCast, front.ActItems: combat.ActItems,
 	front.ActRanged: combat.ActRanged, front.ActManeuver: combat.ActManeuver,
-	front.ActStep: combat.ActStep, front.ActView: combat.ActView,
+	front.ActStep: combat.ActStep, front.ActView: combat.ActView, front.ActOption: combat.ActOption,
 }
 
 var engineKinds = func() map[combat.Kind]front.ActKind {
@@ -85,6 +85,13 @@ func toBoard(b *front.Battle) *combat.Board {
 			if c, ok := combatKinds[k]; ok {
 				o.Turn.Can = append(o.Turn.Can, c)
 			}
+		}
+		for _, op := range t.Options { // the game's own: its acts as the tabletop's, the rest by index
+			k, ok := combatKinds[op.Kind]
+			if !ok || op.Kind == 0 {
+				k = combat.ActOption
+			}
+			o.Turn.Options = append(o.Turn.Options, combat.Option{Label: op.Label, Key: op.Key, Kind: k})
 		}
 	}
 	return o

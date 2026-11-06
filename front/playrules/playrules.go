@@ -69,7 +69,8 @@ type rules struct {
 // aiming is an Aimed action whose squares the player is picking.
 type aiming struct {
 	play.Aimed
-	ats []image.Point
+	ats    []image.Point
+	byUnit map[image.Point]int // an Attack aimed at a unit the game offers by id: its squares' ids
 }
 
 // New is g as the old front's Rules; d is the game's Data
@@ -807,6 +808,30 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 			t.Maneuvers = append(t.Maneuvers, maneuver(named, a.ID, 0))
 		}
 	}
+	if r.aim != nil { // aiming: the foes on the aim's squares are what Tab cycles, the cursor on the nearest
+		c.Targets = nil
+		var from image.Point
+		for _, u := range c.Units {
+			if u.Active {
+				from = u.At
+			}
+		}
+		best := -1
+		for _, u := range c.Units {
+			if u.Foe && !u.Dead && !u.Gone && slices.Contains(r.aim.Squares, u.At) {
+				c.Targets = append(c.Targets, u.ID)
+				if d := u.At.Sub(from); best < 0 || d.X*d.X+d.Y*d.Y < best {
+					best = d.X*d.X + d.Y*d.Y
+					if !slices.Contains(r.aim.Squares, r.cursor) || len(r.aim.ats) == 0 && r.cursor == (image.Point{}) {
+						c.Cursor = u.At
+					}
+				}
+			}
+		}
+		if c.Cursor != r.cursor && !slices.Contains(r.aim.Squares, r.cursor) {
+			r.cursor = c.Cursor
+		}
+	}
 	for _, a := range al.Aimed {
 		switch x := a.Action.(type) {
 		case play.Cast:
@@ -969,6 +994,10 @@ func (r *rules) Apply(d game.Decision) game.Result {
 					r.aim = &aiming{Aimed: x}
 					return game.Result{}
 				}
+			}
+			if m := r.attackAim(al.Plain); m != nil { // Attack before a target (the bar's, F): gobox aims at the foes the game offers
+				r.aim, r.cursor = m, m.Squares[0] // the cursor on the first foe: Enter takes it, Tab cycles
+				return game.Result{}
 			}
 		}
 	case game.Save:
@@ -1283,12 +1312,44 @@ func (r *rules) aimAt(at image.Point) game.Result {
 	if !slices.Contains(m.Squares, at) {
 		return game.Result{Err: errors.New("out of range")}
 	}
+	if m.byUnit != nil {
+		r.aim = nil
+		return r.do(play.Attack{Target: m.byUnit[at]})
+	}
 	m.ats = append(m.ats, at)
 	if len(m.ats) < max(m.Targets, 1) {
 		return game.Result{}
 	}
 	r.aim = nil
 	return r.do(withAts(m.Action, m.ats))
+}
+
+// attackAim is the aim over the units plain's Attacks name (nil: none).
+func (r *rules) attackAim(plain []play.Action) *aiming {
+	var c *game.Combat
+	if s := r.State(); s.Combat != nil {
+		c = s.Combat
+	}
+	if c == nil {
+		return nil
+	}
+	m := &aiming{Aimed: play.Aimed{Action: play.Attack{}, Targets: 1}, byUnit: map[image.Point]int{}}
+	for _, a := range plain {
+		if at, ok := a.(play.Attack); ok {
+			for _, u := range c.Units {
+				if u.ID == at.Target {
+					for _, sq := range append([]image.Point{u.At}, u.Squares...) {
+						m.byUnit[sq] = u.ID
+						m.Squares = append(m.Squares, sq)
+					}
+				}
+			}
+		}
+	}
+	if len(m.Squares) == 0 {
+		return nil
+	}
+	return m
 }
 
 func ats(a play.Action) []image.Point {
@@ -1494,6 +1555,8 @@ func events(es []play.Event) (out []game.Event) {
 			out = append(out, game.Event{Kind: game.EvDamage, Target: e.Unit, N: -e.HP})
 		case play.Fell:
 			out = append(out, game.Event{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit})
+		case play.Fled: // a unit that flees or surrenders leaves the field as one that falls does
+			out = append(out, game.Event{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit})
 		case play.Moved:
 			out = append(out, game.Event{Kind: game.EvMove, Unit: -1, To: e.To, N: e.Facing})
 		case play.Refused:
@@ -1506,7 +1569,7 @@ func events(es []play.Event) (out []game.Event) {
 			f := e.Fight
 			out = append(out, game.Event{Kind: game.EvPicture, Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: &f}, Ms: shipMs})
 		}
-		// Fled, TimePassed, Gained, Lost, JournalNote: the state shows them.
+		// TimePassed, Gained, Lost, JournalNote: the state shows them.
 	}
 	return out
 }

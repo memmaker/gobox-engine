@@ -39,6 +39,8 @@ type Front struct {
 	off     *gpu.Image // Frame's offscreen picture
 	v       front.View // the Game's View, kept while fresh (view)
 	fresh   bool
+	drawn   string   // screenSig of the View last drawn
+	held    []uint16 // keys pressed on a screen not drawn yet: they act once it is (Draw)
 
 	viewed     bool   // GOBOX_TIMING: a View was logged
 	lastScreen string // and what it showed
@@ -124,7 +126,21 @@ func (f *Front) Key(k uint16) {
 		f.Act()
 	}
 	defer f.stale()
+	if v := f.view(); f.drawn != "" && screenSig(v) != f.drawn { // the screen changed and is not on show yet: the key waits for it, never acting on the one before
+		f.held = append(f.held, k)
+		return
+	}
 	f.P.Key(k, f.view())
+}
+
+// screenSig is what screen v is, as far as keys go: a key acts on the one drawn.
+func screenSig(v front.View) string {
+	ask := front.AskKind(-1)
+	if v.Ask != nil {
+		ask = v.Ask.Kind
+	}
+	turn := v.Battle != nil && v.Battle.Turn != nil
+	return fmt.Sprint(v.Battle != nil, turn, ask, v.Inventory != nil, v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, v.MainMenu != nil, v.Exploring, v.Training != nil)
 }
 func (f *Front) Tick() { Scripted = true; f.stale(); f.P.Tick() } // only a script ticks: its clock is the frames
 
@@ -252,6 +268,13 @@ func (f *Front) Draw(dst *gpu.Image) {
 		f.pic = Rect{}
 	} else {
 		f.pic = f.P.Draw(dst, note, v)
+	}
+	f.drawn = screenSig(v)
+	if held := f.held; len(held) > 0 { // the keys pressed before this screen showed, now on it
+		f.held = nil
+		for _, k := range held {
+			f.Key(k)
+		}
 	}
 }
 

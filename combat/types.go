@@ -48,6 +48,15 @@ type Turn struct {
 	Labels     map[Kind]string // optional button words
 	Keys       map[Kind]int    // optional hotkey letters by button (0 or missing: derived from the word; -1: none)
 	CastDirect bool            // Cast acts at once instead of opening the spell list (no spells to list)
+	Options    []Option        // the game's options in its order: the bar's buttons (none: Can)
+}
+
+// Option is a button the game offers: its word, hotkey (0: derived) and
+// action (ActOption: the game's own, Decision.N its index).
+type Option struct {
+	Label string
+	Key   byte
+	Kind  Kind
 }
 
 // Effect is a sprite over the map for a moment.
@@ -120,6 +129,7 @@ const (
 	ActRanged
 	ActManeuver
 	ActView
+	ActOption // the turn's option N (Turn.Options)
 )
 
 // Decision is what the player chose.
