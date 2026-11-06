@@ -149,6 +149,11 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		if a.File == "" && a.Pixels == nil && a.Name == "" {
 			return 0, false
 		}
+		if a.File == "" && a.Pixels == nil { // a name only: a Combat.Tiles tile is its own slot
+			if i := slices.Index(c.Tiles, a.Name); i >= 0 {
+				return i, true
+			}
+		}
 		k := fmt.Sprint(a.File, a.Block, a.Frame, a.Name, len(a.Pixels))
 		t, ok := slots[k]
 		if !ok {
@@ -157,6 +162,9 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 			}
 			t, ok, slots[k] = slot, true, slot
 			b.TilePix[slot] = pix(a)
+			if im := sprites.Image(Series, "combat", a.Name); a.File == "" && a.Pixels == nil && im != nil { // a series sprite by name, as Combat.Tiles' are
+				b.TilePix[slot].Img = im
+			}
 			slot++
 		}
 		return t, ok
