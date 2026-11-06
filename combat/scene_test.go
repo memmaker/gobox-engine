@@ -221,3 +221,18 @@ func TestMapMeshPartial(t *testing.T) {
 	var empty [25][50]Square
 	mapMesh(&empty, 0, all, all, nil, nil)
 }
+
+// TestAimEnterCentres: Enter while aiming hands the square over and turns
+// the view to the cursor: a square the game doesn't take leaves the aim up,
+// looked at (the original's Center).
+func TestAimEnterCentres(t *testing.T) {
+	b := &Board{Units: []Unit{{ID: 1, X: 2, Y: 2, Active: true}}, Cursor: image.Pt(9, 4), CursorOn: true, Turn: &Turn{Aim: true}}
+	p := &Presenter{b: b}
+	p.Key(input.Enter, 0)
+	if p.tabTo == nil || *p.tabTo != (vec{9.5, 0, 4.5}) {
+		t.Fatalf("view on %v", p.tabTo)
+	}
+	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: ActAim, X: 9, Y: 4}) {
+		t.Fatalf("%+v", got)
+	}
+}

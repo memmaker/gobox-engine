@@ -1364,8 +1364,8 @@ func (r *rules) aimAt(at image.Point) game.Result {
 		r.cursor = at
 		return game.Result{}
 	}
-	if !slices.Contains(m.Squares, at) {
-		return game.Result{Err: errors.New("out of range")}
+	if !slices.Contains(m.Squares, at) { // not offered: the aim stays, no word (the original's Center)
+		return game.Result{}
 	}
 	if m.byUnit != nil {
 		r.aim = nil

@@ -69,7 +69,9 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 		p.cycleTarget(back)
 	case a == input.Space:
 		return p.Key(input.Enter, k) // Space picks, as Enter
-	case a == input.Enter && aiming:
+	case a == input.Enter && aiming: // a square the game doesn't take leaves the aim up, the view centred on the cursor (the original's Center)
+		t := vec{float64(b.Cursor.X) + .5, 0, float64(b.Cursor.Y) + .5}
+		p.tabTo = &t
 		p.act(Decision{Kind: ActAim, X: b.Cursor.X, Y: b.Cursor.Y})
 	case cycle && len(p.bar.rects) > 0: // Tab, Shift-Tab, the pad's shoulders (PgUp, PgDn): the focus
 		d := 1

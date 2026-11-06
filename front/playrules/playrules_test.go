@@ -109,8 +109,8 @@ func TestAimAndSlots(t *testing.T) {
 	if res := r.Apply(game.Cast{Spell: 7}); res.Err != nil || len(f.sent) != 0 || !r.State().Combat.Turn.Aim {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
 	}
-	if res := r.Apply(game.Aim{At: image.Pt(5, 5)}); res.Err == nil {
-		t.Fatal("aim out of range taken")
+	if res := r.Apply(game.Aim{At: image.Pt(5, 5)}); res.Err != nil || len(f.sent) != 0 || !r.State().Combat.Turn.Aim { // not offered: no word, the aim stays (the original's Center)
+		t.Fatalf("aim out of range: %+v sent %v", res, f.sent)
 	}
 	r.Apply(game.Aim{At: image.Pt(2, 2)})
 	if len(f.sent) != 1 || f.sent[0].(play.Cast).Ats[0] != image.Pt(2, 2) {
