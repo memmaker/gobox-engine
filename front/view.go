@@ -138,6 +138,7 @@ type Unit struct {
 	MaxHP      int
 	Hit        int    // the active member's chance in percent to hit it with one blow (0: not a target)
 	Dmg        string // the readied attack's damage ("1d8+1")
+	Weapon     string // a member's readied weapon, shown in place of Dmg as the originals do ("": Dmg)
 	Status     string // "" when it can act, else why not ("Helpless", "Unconscious" ...)
 }
 

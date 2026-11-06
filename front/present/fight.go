@@ -214,9 +214,13 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *front.Battle, k 
 				put(u.Status, inkWhite, 0)
 				break
 			}
-			put("Dmg", inkWhite, 0)
-			x -= 8
-			put(" "+u.Dmg, inkGreen, 0)
+			if u.Weapon != "" { // the readied weapon's name, as the originals' panel
+				put(u.Weapon, inkGreen, 0)
+			} else if u.Dmg != "" { // no label for an empty value
+				put("Dmg", inkWhite, 0)
+				x -= 8
+				put(" "+u.Dmg, inkGreen, 0)
+			}
 			if u.Hit > 0 {
 				put("CtH", inkWhite, 0)
 				x -= 8

@@ -102,6 +102,7 @@ type Unit struct {
 	MaxHP      int
 	Hit        int
 	Dmg        string
+	Weapon     string
 	Status     string
 }
 

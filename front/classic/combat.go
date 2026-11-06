@@ -180,6 +180,16 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		}
 		u := front.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
 			Active: g.Active, Name: g.Name, HP: g.HP, MaxHP: g.MaxHP, AC: g.AC, Hit: g.Hit, Dmg: g.Dmg, Status: g.Status}
+		if g.Member >= 0 && g.Member < len(s.Party) {
+			for _, it := range s.Party[g.Member].Items {
+				if it.Readied && it.Kind == "weapon" {
+					u.Weapon = it.Name
+				}
+			}
+		}
+		if t := c.Turn; t != nil && t.Weapon != nil && t.Weapon.Name != "" && (g.ID == t.Unit || g.Active) { // the turn's own say for the unit acting
+			u.Weapon = t.Weapon.Name
+		}
 		icon := pix(g.Art)
 		if g.Art.W > 0 { // a DAX ref's size is the decoded picture's (the presenter's nativeSize)
 			u.IconSize = image.Pt(g.Art.W, g.Art.H)
