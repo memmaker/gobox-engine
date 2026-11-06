@@ -165,3 +165,14 @@ func TestVerbOrderWords(t *testing.T) {
 		t.Errorf("bar %v, want End Wait Items (and no Aim)", ls)
 	}
 }
+
+// TestFreeAimInOrder: gobox's free Aim takes its VerbOrder place (COTAB's
+// third), not the bar's end.
+func TestFreeAimInOrder(t *testing.T) {
+	fight := play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}, Allowed: allow(play.EndTurn{}, play.UseItem{}).Allowed},
+		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}}}}
+	o := classic.NewGame(New(&fake{st: fight}, game.Data{VerbKeys: map[string]rune{"Aim": 'A'}, VerbOrder: []string{"Aim", "Use", "Done"}}), game.Data{}).View().Battle.Turn.Options
+	if len(o) == 0 || o[0].Label != "Aim" {
+		t.Errorf("bar %+v, want Aim first", o)
+	}
+}
