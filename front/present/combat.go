@@ -155,3 +155,30 @@ func askAction(v front.View, d combat.Decision) front.Action {
 	}
 	return toAction(d)
 }
+
+// keepFallen is b with the units of the board drawn before the events now
+// playing that b has dropped, each kept until its own fall (EvDied) plays:
+// the blows land on figures, not on empty squares. Outside the replay b is
+// the board kept for the next one.
+func (p *Presenter) keepFallen(b *front.Battle) *front.Battle {
+	if b == nil || !p.Playing() {
+		p.lastBattle = b
+		return b
+	}
+	last := p.lastBattle
+	if last == nil {
+		return b
+	}
+	o := *b
+	for i, u := range last.Units {
+		if slices.ContainsFunc(o.Units, func(x front.Unit) bool { return x.ID == u.ID }) ||
+			!slices.ContainsFunc(p.replay.q, func(e front.CombatEvent) bool { return e.Kind == front.EvDied && e.Unit == u.ID }) {
+			continue
+		}
+		if len(o.IconPix) == len(o.Units) && i < len(last.IconPix) {
+			o.IconPix = append(slices.Clone(o.IconPix), last.IconPix[i])
+		}
+		o.Units = append(slices.Clone(o.Units), u)
+	}
+	return &o
+}

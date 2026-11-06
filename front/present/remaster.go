@@ -102,6 +102,7 @@ type Presenter struct {
 	fight       bool                        // the last frame was the 3D combat map
 	inv         inventory                   // the inventory screen (inventory.go)
 	fightView   *front.Battle               // the combat map last drawn
+	lastBattle  *front.Battle               // the board before the events now playing (keepFallen)
 	inkAsk      *front.Ask                  // the question whose menu is being drawn: its colours (asking)
 	replay      replay                      // the fight's events still to play
 	logGrey     bool                        // drawMenu's plain text light grey, not green (the battle Log)
@@ -317,7 +318,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if p.fight {
 		p.shown, p.active, p.menu = "", false, false
-		p.fightView = askedBattle(v)
+		p.fightView = p.keepFallen(askedBattle(v))
 		p.battle.Glyph = note.Glyph
 		p.syncBattle()
 		p.battle.Draw(dst, toBoard(p.fightView))
