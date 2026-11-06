@@ -136,9 +136,6 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 		var it []ui.MenuRow
 		if sl.CanSave {
 			do := func() { p.typeLine("Save as", "", 20, front.ActSaveSlot, 0) }
-			if saveUnnamed { // the game names its slots: straight to the next one
-				do = named(front.ActSaveSlot, "")
-			}
 			it = append(it, ui.MenuRow{Text: "New Slot", Key: 'N', Do: do})
 		}
 		w, lc := slotCols(max(v.Cells.X, 40))
@@ -156,10 +153,6 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 			it = append(it, ui.MenuRow{Text: row, Key: 0, Do: func() {
 				if !sl.CanSave {
 					named(front.ActLoad, name)()
-					return
-				}
-				if saveNoConfirm { // the original never asks
-					named(front.ActSaveSlot, name)()
 					return
 				}
 				q := "Overwrite " + name + "?"

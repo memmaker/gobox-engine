@@ -1721,10 +1721,6 @@ func (r *rules) path(name string) (string, error) {
 }
 
 func (r *rules) save(name string) error {
-	if gs, ok := r.g.(play.SlotSaver); ok { // the game's slots are the store
-		sl := gs.Slots()
-		return gs.SaveSlot(cmp.Or(slices.IndexFunc(sl, func(s game.SaveSlot) bool { return s.Name == name })+1, len(sl)+1) - 1)
-	}
 	p, err := r.path(name)
 	if err != nil {
 		return err
@@ -1744,9 +1740,6 @@ func (r *rules) save(name string) error {
 }
 
 func (r *rules) remove(name string) error {
-	if _, ok := r.g.(play.SlotSaver); ok {
-		return errors.New("the game's slots are not removed")
-	}
 	p, err := r.path(name)
 	if err != nil {
 		return err
@@ -1789,9 +1782,6 @@ func (r *rules) saves() []game.SaveSlot {
 }
 
 func (r *rules) ownSaves() []game.SaveSlot {
-	if _, ok := r.g.(play.SlotSaver); ok {
-		return nil // one store: the game's
-	}
 	es, _ := os.ReadDir(r.dir)
 	type slot struct {
 		game.SaveSlot

@@ -204,9 +204,6 @@ func Sounds() []byte { return sounds }
 // confirms is the game's Data.Confirms.
 var confirms map[string]game.Confirm
 
-// saveNoConfirm, saveUnnamed are the game's Data.SaveNoConfirm and SaveUnnamed.
-var saveNoConfirm, saveUnnamed bool
-
 // confirmOf is the game's confirm for act (Data.Confirms), else def.
 func confirmOf(act string, def game.Confirm) game.Confirm {
 	if c, ok := confirms[act]; ok && len(c.Asks) > 0 {
@@ -273,7 +270,6 @@ func gameData(g game.Data) {
 		}
 		texts[k] = v
 	}
-	saveNoConfirm, saveUnnamed = g.SaveNoConfirm, g.SaveUnnamed
 	sequences, filesDir = g.Sequences, g.Files
 	classic.GameID, classic.Amiga = g.ID, func() bool { return daxLoader.Amiga() }
 	classic.AmigaArt = classic.Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)

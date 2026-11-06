@@ -1210,33 +1210,31 @@ type Event struct {
 // rules package exports it as func Data() Data, and its cmd hands gobox
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
-	SaveDir       string // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
-	Series        string
-	Coin          string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
-	ID            string            // game id
-	VerbKeys      map[string]rune   `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
-	VerbChords    map[string]string `json:",omitempty"` // more keys of a combat verb by label, comma-separated chords such as alt+q,alt+a or space or shift+u
-	VerbOrder     []string          `json:",omitempty"` // the series' order of the turn's verbs by label (POR: Move View Aim Use Cast Turn Quick Done); those it leaves out follow in gobox's
-	PartyMenu     []MenuKey         `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
-	Texts         map[string]string
-	SaveNoConfirm bool               `json:",omitempty"` // saving over a slot asks nothing (the original never confirms an overwrite)
-	SaveUnnamed   bool               `json:",omitempty"` // a new save asks no name: the game names its own slots (letters A-J): Save{Name: ""} is the next slot
-	Confirms      map[string]Confirm `json:",omitempty"` // gobox's own confirms in the original's words, by act: "Drop", "DropScribe", "Sell", "SellMany", "SellFree", "SellFreeMany", "DropMember" (nil: gobox's)
-	Credits       []string
-	SpellRules    map[int]string // what each spell does, by spell id (the spell tip text)
-	Art           map[string]Picture
-	Sounds        map[string]string
-	Palette       []byte                        // palette bytes
-	Commands      []Option                      // extra party commands: Decisions with labels
-	MenuItems     []MenuItem                    // the game's own main menu lines, after gobox's
-	MusicPlaces   []string                      // every Where.Music trigger the game sets (gobox makes their data/music folders)
-	Imports       []string                      // other games' rosters and saves this game reads, by game id
-	QuickParty    []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
-	Clues         []Clue                        // the clue book's chapters (nil: the game has none)
-	Scans         func(name string) image.Image // the picture a Read's line "\x01name" shows (nil: none)
-	Font          string                        // the ui/fonts pool name of the game's font ("": gobox's default)
-	Fonts         []Typeface                    // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
-	Border        *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
+	SaveDir     string // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
+	Series      string
+	Coin        string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
+	ID          string            // game id
+	VerbKeys    map[string]rune   `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
+	VerbChords  map[string]string `json:",omitempty"` // more keys of a combat verb by label, comma-separated chords such as alt+q,alt+a or space or shift+u
+	VerbOrder   []string          `json:",omitempty"` // the series' order of the turn's verbs by label (POR: Move View Aim Use Cast Turn Quick Done); those it leaves out follow in gobox's
+	PartyMenu   []MenuKey         `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
+	Texts       map[string]string
+	Confirms    map[string]Confirm `json:",omitempty"` // gobox's own confirms in the original's words, by act: "Drop", "DropScribe", "Sell", "SellMany", "SellFree", "SellFreeMany", "DropMember" (nil: gobox's)
+	Credits     []string
+	SpellRules  map[int]string // what each spell does, by spell id (the spell tip text)
+	Art         map[string]Picture
+	Sounds      map[string]string
+	Palette     []byte                        // palette bytes
+	Commands    []Option                      // extra party commands: Decisions with labels
+	MenuItems   []MenuItem                    // the game's own main menu lines, after gobox's
+	MusicPlaces []string                      // every Where.Music trigger the game sets (gobox makes their data/music folders)
+	Imports     []string                      // other games' rosters and saves this game reads, by game id
+	QuickParty  []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
+	Clues       []Clue                        // the clue book's chapters (nil: the game has none)
+	Scans       func(name string) image.Image // the picture a Read's line "\x01name" shows (nil: none)
+	Font        string                        // the ui/fonts pool name of the game's font ("": gobox's default)
+	Fonts       []Typeface                    // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
+	Border      *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
 	Sequences    []Sequence        // the full-screen animations State.Sequence names (nil: none)
 	DaxMask      map[string]int    `json:",omitempty"` // a DAX file's transparent colour index, as the original's loader takes it (File, e.g. "CHARS", "CPIC3"; no entry: none)
