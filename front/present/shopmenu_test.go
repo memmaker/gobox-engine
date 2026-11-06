@@ -14,8 +14,8 @@ func TestShopMenuFromAllowed(t *testing.T) {
 		shop front.Shop
 		want []string
 	}{
-		{front.Shop{}, []string{"Browse", "View", "Exit"}},
-		{front.Shop{Take: true, Pool: true, Share: true}, []string{"Browse", "View", "Take", "Pool", "Share", "Exit"}},
+		{front.Shop{}, []string{"Buy", "View", "Exit"}},
+		{front.Shop{Take: true, Pool: true, Share: true}, []string{"Buy", "View", "Take", "Pool", "Share", "Exit"}},
 	} {
 		var p Presenter
 		_, rows := p.shopItems(front.View{Shop: &c.shop})

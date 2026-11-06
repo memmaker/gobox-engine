@@ -32,7 +32,7 @@ func (p *Presenter) shopItems(v front.View) (string, []ui.MenuRow) {
 	case appraise:
 		return p.appraiseItems(s.Appraise, c.back(campMain))
 	}
-	it := []ui.MenuRow{{Text: "Browse", Key: 'B', Do: func() { p.send(front.ActInventory, -1) }},
+	it := []ui.MenuRow{{Text: "Buy", Key: 'B', Do: func() { p.send(front.ActInventory, -1) }},
 		{Text: "View", Key: 'V', Do: func() { p.send(front.ActMember, -1) }}} // look-only: the selected member's sheet
 	for _, o := range []struct {
 		on   bool
