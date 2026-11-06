@@ -236,6 +236,9 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 		}
 		return
 	}
+	if t := typing(v); t != nil && t.Prompt == "" && !p.pageMenu { // a line whose question is the text box's own: the line alone, never invisible (a prompted one is drawn by the screen's own path)
+		p.drawTyping(dst, note, v, math.Max(1, math.Floor(scale(dst))), dst.Bounds().Dx()/2, 0)
+	}
 	m := askMenu(v)
 	if m == nil || typing(v) != nil || choosing(v) {
 		return
