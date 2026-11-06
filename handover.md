@@ -101,6 +101,7 @@ gobox commits:
   drop by it; a Fell unit must be dead or gone (POR fightevents_test).
 - **Pending question missing from the play state:** a question the core waits on must show in State() (an Ask, Draft.Ask or Continue in Allowed) and its answer must be allowed, or gobox shows the screen under it and the player can't answer (COTAB: Keep's name after the sheet closed). Detect: at every stop where the old Pending is non-nil, require the play state to carry an Ask/Draft.Ask or Continue, and Do(Reply) of a valid answer to succeed (cotab TestBugClass59).
 - **Hand-copied data-segment tables:** a table typed into the port can stop at the array's declared bounds where the original reads past them (BR1 a0C41[gender, career], rows of 5, read at career 5). Detect: for every literal table whose comment names a DS address (`// d[0-9A-F]{4}`, `a[0-9A-F]{4}[`), compare it with the data segment at that address over the indices the code uses, or read it from the data segment as brcore.LoadTables does.
+- **Mode set only on the old entry point:** state a game's old Apply/decide entry set (COTAB `c.gobox = true`) must also be set by Do, or the play path runs the old front's flow (the core asking its own aim menu). Detect: grep the old entry (Apply, call, result) for assignments to engine fields and check Do does the same; drive one aimed Cast through Do on a fresh engine and require no rules-side square/aim question (cotab TestGameFight).
 - **Failing before this work (don't chase):**
   - 29 of 48 parity tests.
   - sotsb `cmd/blades` `TestFlowOldNew`.
