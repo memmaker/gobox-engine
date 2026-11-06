@@ -650,7 +650,7 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActTakeMoney:
 		return game.TakeLoot{Item: -1}, true
 	case front.ActLootPool: // a shop's Pool (the treasure's goes through Gate)
-		return game.PoolCoins{Member: m}, true
+		return game.PoolCoins{Member: g.sel(-1)}, true // the selected member's coins
 	case front.ActLootShare:
 		return game.LootShare{}, true
 	case front.ActWalk:
