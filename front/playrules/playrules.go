@@ -971,6 +971,11 @@ func (r *rules) Apply(d game.Decision) game.Result {
 			return r.do(onward(commonOf(ps).Allowed))
 		}
 		lone := r.aim != nil && r.ask == nil && slices.Contains(commonOf(ps).Allowed.Plain, play.Action(play.Leave{}))
+		if q := commonOf(ps).Ask; q != nil && r.ask == nil && r.aim == nil { // Esc on the rules' menu is its Exit, as the originals' (BR2's View menu)
+			if i := slices.IndexFunc(q.Replies, func(l string) bool { return strings.EqualFold(strings.TrimSpace(l), "Exit") }); i >= 0 {
+				return r.answer(ps, game.Answer{N: i})
+			}
+		}
 		r.ask, r.moves, r.aim = nil, nil, nil
 		if _, fight := ps.(play.Fighting); fight && lone { // Esc on the aim the game asks: its Leave
 			return r.do(play.Leave{})
