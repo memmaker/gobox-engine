@@ -1386,7 +1386,7 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 	case sc.Kind == play.SceneHandout:
 		return r.do(onward(sc.Allowed))
 	case sc.Typed:
-		return r.do(play.Reply{Text: d.Text})
+		return r.do(play.Reply{N: d.N, Text: d.Text})
 	case len(sc.Replies) > 0:
 		return r.do(play.Reply{N: d.N})
 	}

@@ -802,8 +802,9 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 			return game.Answer{N: i}, true
 		}
 		return game.Answer{N: map[front.ActKind]int{front.ActYes: 1}[a.Kind]}, true // no options: Yes 1, No 0
-	case front.ActText:
-		return game.Answer{Text: a.Text}, true
+	case front.ActText: // a number typed is N as well (a Number ask's amount), the Text kept
+		n, _ := strconv.Atoi(strings.TrimSpace(a.Text))
+		return game.Answer{N: n, Text: a.Text}, true
 	case front.ActSearch:
 		return game.Search{}, true
 	case front.ActCamp:
