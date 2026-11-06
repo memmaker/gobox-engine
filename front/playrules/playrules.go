@@ -1666,7 +1666,11 @@ func eventsAt(es []play.Event, ms int) (out []game.Event) {
 			out = append(out, game.Event{Kind: game.EvHit, Unit: e.From, Target: e.To},
 				game.Event{Kind: game.EvDamage, Unit: e.To, Target: e.To, N: e.Damage}) // Unit: who takes it (its number floats there)
 		case play.Shot:
-			out = append(out, game.Event{Kind: game.EvMissile, Unit: e.From, To: e.To, Sprite: []game.Picture{e.Art}, Pose: 1, Ms: strikeMs})
+			ev := game.Event{Kind: game.EvMissile, Unit: e.From, To: e.To, Pose: 1, Ms: strikeMs}
+			if e.Art.File != "" || e.Art.Pixels != nil || e.Art.Name != "" { // a shot with no art flies nothing
+				ev.Sprite = []game.Picture{e.Art}
+			}
+			out = append(out, ev)
 		case play.CastSpell:
 			ev := game.Event{Kind: game.EvSpell, Unit: e.From, N: e.Spell, Pose: 1, Ms: castMs}
 			if len(e.Ats) > 0 {
