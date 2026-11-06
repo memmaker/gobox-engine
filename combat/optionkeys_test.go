@@ -86,3 +86,22 @@ func TestOptionChords(t *testing.T) {
 		t.Fatalf("%+v", got)
 	}
 }
+
+// TestAimClickFoe: aiming, a click on a foe's figure answers the foe's square
+// (not the cursor's, which starts on the shooter).
+func TestAimClickFoe(t *testing.T) {
+	foe := Unit{ID: 7, X: 14, Y: 8, Squares: []image.Point{{14, 8}}}
+	b := &Board{Units: []Unit{{ID: 1, X: 18, Y: 14, Active: true}, foe}, Cursor: image.Pt(18, 14), Turn: &Turn{Aim: true, Can: []Kind{ActAim}}}
+	p := &Presenter{b: b, screen: image.Rect(0, 0, 800, 600)}
+	p.cam = camera{eye: vec{20, 9, 20}, at: vec{14, 0, 8}, fovy: 0.8, aspect: 4.0 / 3}
+	nx, ny, _ := p.cam.ndc(vec{14.5, 0.8, 8.5})
+	x, y := int((nx+1)/2*800), int((1-ny)/2*600)
+	p.Point(x, y)
+	if !p.Click(x, y) {
+		t.Fatal("click not taken")
+	}
+	got := p.Actions()
+	if len(got) == 0 || got[len(got)-1] != (Decision{Kind: ActAim, X: 14, Y: 8}) {
+		t.Fatalf("%+v", got)
+	}
+}

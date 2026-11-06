@@ -571,10 +571,11 @@ func (g *Game) Answer(a front.Action) error {
 func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	at := image.Pt(a.X, a.Y)
 	m := g.sel(a.N)
-	if q := g.state().Pending; q != nil && g.state().Mode == game.ModeAsk { // a square or a direction answers the question
+	if q := g.state().Pending; q != nil && q.Kind == game.Square && a.Kind == front.ActAim { // the square answers the square question, in any mode (a fight's Target asks in ModeCombat)
+		return game.Answer{At: at}, true
+	}
+	if q := g.state().Pending; q != nil && g.state().Mode == game.ModeAsk { // a direction answers the question
 		switch {
-		case q.Kind == game.Square && a.Kind == front.ActAim:
-			return game.Answer{At: at}, true
 		case q.View && a.Kind == front.ActView: // the highlighted member (N, or the selected) is viewed; the ask stays
 			return game.ViewMember{Member: m}, true
 		case q.Kind == game.Direction && a.Kind == front.ActDir && a.N >= 1 && a.N <= 9 && a.N != 5:

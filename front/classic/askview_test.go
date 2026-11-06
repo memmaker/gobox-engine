@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"image"
 	"testing"
 
 	"gobox/front"
@@ -36,5 +37,14 @@ func TestViewMemberSelected(t *testing.T) {
 	g.ViewMember(-1)
 	if len(r.got) != 1 || r.got[0] != (game.ViewMember{Member: r.State().Selected}) {
 		t.Fatalf("%#v", r.got)
+	}
+}
+
+// TestAimAnswersInFight: a Square ask in a fight (ModeCombat, BR1's Target)
+// takes the clicked square as its Answer, not as an Aim the ask refuses.
+func TestAimAnswersInFight(t *testing.T) {
+	g := &Game{R: &loreRules{s: game.State{Mode: game.ModeCombat, Pending: &game.Ask{Kind: game.Square}}}}
+	if d, _ := g.decision(front.Action{Kind: front.ActAim, X: 14, Y: 8}); d != (game.Answer{At: image.Pt(14, 8)}) {
+		t.Fatalf("%#v", d)
 	}
 }
