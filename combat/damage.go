@@ -34,6 +34,13 @@ func (p *Presenter) Float(id, n int, heal bool) {
 	p.floats = append(p.floats, floater{at: at, img: gpu.NewImageFromImage(textImage(p.Glyph, strconv.Itoa(n), c, p.Theme.TextOutline))})
 }
 
+// FloatText starts word s (MISS) over unit id's head, in the text colour.
+func (p *Presenter) FloatText(id int, s string) {
+	if at, ok := p.tops[id]; ok && p.Glyph != nil {
+		p.floats = append(p.floats, floater{at: at, img: gpu.NewImageFromImage(textImage(p.Glyph, s, p.Theme.Letter, p.Theme.TextOutline))})
+	}
+}
+
 // textImage is s in the game's font, in c on a dark outline.
 func textImage(glyph func(byte) [8]byte, s string, c, outline color.RGBA) *image.RGBA {
 	im := image.NewRGBA(image.Rect(0, 0, len(s)*8+2, 10))

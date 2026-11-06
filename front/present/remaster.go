@@ -106,6 +106,8 @@ type Presenter struct {
 	replay      replay                      // the fight's events still to play
 	logGrey     bool                        // drawMenu's plain text light grey, not green (the battle Log)
 	fightLog    bool                        // the battle Log is up (fight.go)
+	blowLine    string                      // the last line a blow's replay said, shown on the pane a while
+	blowAt      time.Time
 	fightCard   image.Rectangle             // the active member's card (fight.go): left click the inventory, right click the sheet
 	rowsImg     *gpu.Image                  // the combat rows, drawn at scale 1
 	rowsKey     string                      // what they show

@@ -757,7 +757,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 	}
 	t := &game.Turn{Unit: b.Turn, Aim: r.aim != nil, Moves: b.Moves, Casting: b.Casting, Weapon: b.Weapon, Missile: b.Missile}
 	c.Turn, c.Panel, c.Log, c.CursorOn, c.Cursor = t, b.Turn, r.log, r.aim != nil, r.cursor
-	if len(f.Text) > 0 { // the rules' message pane is the fight's log
+	if slices.ContainsFunc(f.Text, func(l string) bool { return strings.TrimSpace(l) != "" }) { // the rules' message pane is the fight's log; a blank one never hides the blows
 		c.Log = f.Text
 	}
 	if r.aim != nil {
@@ -1551,7 +1551,7 @@ func events(es []play.Event) (out []game.Event) {
 				break
 			}
 			out = append(out, game.Event{Kind: game.EvHit, Unit: e.From, Target: e.To},
-				game.Event{Kind: game.EvDamage, Unit: e.From, Target: e.To, N: e.Damage})
+				game.Event{Kind: game.EvDamage, Unit: e.To, Target: e.To, N: e.Damage}) // Unit: who takes it (its number floats there)
 		case play.Shot:
 			out = append(out, game.Event{Kind: game.EvMissile, Unit: e.From, To: e.To, Sprite: []game.Picture{e.Art}, Pose: 1, Ms: strikeMs})
 		case play.CastSpell:
@@ -1561,9 +1561,9 @@ func events(es []play.Event) (out []game.Event) {
 			}
 			out = append(out, ev)
 		case play.Struck:
-			out = append(out, game.Event{Kind: game.EvDamage, Target: e.Unit, N: e.Damage})
+			out = append(out, game.Event{Kind: game.EvDamage, Unit: e.Unit, Target: e.Unit, N: e.Damage})
 		case play.Healed:
-			out = append(out, game.Event{Kind: game.EvDamage, Target: e.Unit, N: -e.HP})
+			out = append(out, game.Event{Kind: game.EvDamage, Unit: e.Unit, Target: e.Unit, N: -e.HP})
 		case play.Fell:
 			out = append(out, game.Event{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit})
 		case play.Fled: // a unit that flees or surrenders leaves the field as one that falls does

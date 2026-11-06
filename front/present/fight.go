@@ -189,6 +189,8 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *front.Battle, k 
 		put(b.Turn.Casting+": W A S D, Tab; Enter, click; Esc", inkGreen, 0)
 	case b.Turn != nil && b.Turn.Aim:
 		put("Aim: W A S D, Tab; Enter, click; Esc", inkGreen, 0)
+	case p.blowLine != "" && !hover && now().Sub(p.blowAt) < blowLineFor: // a blow just played: what it said
+		put(p.blowLine, inkGreen, 0)
 	case b.Turn == nil && b.Panel == 0 && !hover && len(b.Log) > 0: // between the player's turns: what happens
 		put(b.Log[len(b.Log)-1], inkGreen, 0)
 	default:
@@ -375,6 +377,14 @@ func (p *Presenter) playing() *front.CombatEvent {
 				p.openSlots(p.shownView, false)
 			}
 		}
+		if ev := &r.q[0]; r.from.IsZero() {
+			switch {
+			case ev.Kind == front.EvMessage && strings.TrimSpace(ev.Text) != "":
+				p.blowLine, p.blowAt = ev.Text, now()
+			case ev.Kind == front.EvMiss:
+				p.battle.FloatText(ev.Target, "MISS")
+			}
+		}
 		if ev := &r.q[0]; (ev.Kind == front.EvDamage || ev.Kind == front.EvHeal) && r.from.IsZero() && Host.DamageNumbers {
 			p.battle.Float(ev.Unit, ev.Amount, ev.Kind == front.EvHeal)
 		}
@@ -544,3 +554,6 @@ func (p *Presenter) adLibEffect(n int) bool {
 	p.AdLib.Reset()
 	return p.AdLib.Effect(n)
 }
+
+// blowLineFor is how long a blow's line stays on the pane.
+const blowLineFor = 2500 * time.Millisecond

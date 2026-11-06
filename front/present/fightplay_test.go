@@ -46,3 +46,22 @@ func TestBlastPlaysAndSpacePasses(t *testing.T) {
 		t.Fatalf("after Space: %+v", ev)
 	}
 }
+
+// A blow plays as a held swing (the attacker posed), then its line shows on
+// the pane: what the game said is seen, not only logged.
+func TestBlowPlays(t *testing.T) {
+	var p Presenter
+	posed := &front.Battle{Units: []front.Unit{{ID: 1, Active: true}}}
+	p.Play([]front.CombatEvent{{Kind: front.EvAttack, Unit: 1, Target: 2, Ms: 300, Battle: posed},
+		{Kind: front.EvHit, Unit: 1, Target: 2}, {Kind: front.EvDamage, Unit: 2, Amount: 5},
+		{Kind: front.EvMessage, Text: "ARIN HITS FOR 5"}})
+	if ev := p.playing(); ev == nil || ev.Kind != front.EvAttack || ev.Battle != posed {
+		t.Fatalf("swing not held: %+v", ev)
+	}
+	p.replay.skip = true
+	for p.playing() != nil {
+	}
+	if p.Playing() || p.blowLine != "ARIN HITS FOR 5" {
+		t.Fatalf("line %q", p.blowLine)
+	}
+}
