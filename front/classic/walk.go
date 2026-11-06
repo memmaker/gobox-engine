@@ -33,7 +33,7 @@ func (g *Game) walkMap() game.Map {
 func at(w game.Where) image.Point { return image.Pt(w.X, w.Y) }
 
 // walk makes move k on the game's Map: a turn is Face; a step through an
-// open side or a door is Arrive, a wall stops it (nothing is sent). Around
+// open side or a door is Arrive, a wall stops it after any script ahead. Around
 // the step, RunEvent: Before when Map.Departure says a script runs ahead
 // of it, after when Map.Event says one waits where the party stands.
 func (g *Game) walk(k front.ActKind) error {
@@ -47,10 +47,10 @@ func (g *Game) walk(k front.ActKind) error {
 		return g.do(game.Face{Facing: (where.Facing + w.side) % 8})
 	}
 	from, side := at(where), (where.Facing+w.side)%8
-	if m.Edge(from, side).Kind == game.EdgeWall {
-		return nil
-	}
-	if m.Departure(from, side) { // the script ahead of the step: it may hold it
+	// The script ahead of the step runs even facing a wall, as the
+	// originals run the square's pre-step script on every step (SOTSB
+	// O050:3DB9): it may move the party through that wall.
+	if m.Departure(from, side) {
 		if err := g.do(game.RunEvent{Before: true, Side: side}); err != nil || g.asked != nil {
 			return err
 		}
@@ -58,6 +58,9 @@ func (g *Game) walk(k front.ActKind) error {
 		if m = g.walkMap(); m == nil || at(now) != from || now.Facing != where.Facing || now.Area != where.Area {
 			return nil
 		}
+	}
+	if m.Edge(from, side).Kind == game.EdgeWall {
+		return nil
 	}
 	if err := g.do(game.Arrive{From: from, To: from.Add(steps[side]), Facing: where.Facing}); err != nil || g.asked != nil {
 		return err
