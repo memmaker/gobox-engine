@@ -786,16 +786,8 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 			t.Options = append(t.Options, game.Option{Label: l, Key: k, Do: o.do})
 		}
 	}
-	if slices.Contains(al.Plain, play.Action(play.Quick{All: true})) { // the original's Quick for the whole party
-		l := cmp.Or(r.data.Texts["Quick All"], "Quick All")
-		k, ok := r.data.VerbKeys["Quick All"]
-		for i := range l { // Q is Quick's: the label's first free letter
-			if ok || k != 0 {
-				break
-			}
-			k = key(l[i:], used)
-		}
-		t.Options = append(t.Options, game.Option{Label: l, Key: k, Do: game.Quick{All: true}})
+	if k, ok := r.data.VerbKeys["Quick All"]; ok && slices.Contains(al.Plain, play.Action(play.Quick{All: true})) { // the original's Quick for the whole party, where the series' bar has it
+		t.Options = append(t.Options, game.Option{Label: cmp.Or(r.data.Texts["Quick All"], "Quick All"), Key: k, Do: game.Quick{All: true}})
 	}
 	for _, v := range brVerbs { // as Buck Rogers' rules put them: an answer by hotkey
 		if k := r.verbKey(v.label, v.key); allowed[name(v.a)] {
