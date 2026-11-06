@@ -21,7 +21,7 @@ func TestGridPinned(t *testing.T) {
 	if !InArc(50, 25, 5, 5, 5, 3, 0) || InArc(50, 25, 5, 5, 5, 8, 0) || InArc(50, 25, -1, 5, 5, 3, 8) {
 		t.Error("InArc")
 	}
-	if DirectionTo(0, 0, 10, 0, 618, 106, 256, true) != 2 || DirectionTo(0, 0, 0, 5, 618, 106, 256, true) != 4 || DirectionTo(0, 0, 4, 4, 618, 106, 256, true) != 3 {
+	if DirectionTo(0, 0, 10, 0) != 2 || DirectionTo(0, 0, 0, 5) != 4 || DirectionTo(0, 0, 4, 4) != 3 {
 		t.Error("DirectionTo")
 	}
 	if !FormationEdge(-1, -1, 11, 6) || FormationEdge(3, -1, 11, 6) {

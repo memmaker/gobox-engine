@@ -172,36 +172,24 @@ func FormationEdge(x, y, w, h int) bool {
 	return (x < 0 || x >= w) && (y < 0 || y >= h)
 }
 
-// DirectionTo is the direction 0..7 from (x1,y1) to (x2,y2): the plane is
-// cut into eight sectors by two slopes (steep and shallow, in 1/scale). On a
-// square level with the origin on one axis the games differ: SOTSB and POD
-// leave it to the straight sectors (strict), COTAB gives it to the diagonal.
-func DirectionTo(x1, y1, x2, y2, steepSlope, shallowSlope, scale int, strict bool) int {
+// DirectionTo is the direction 0..7 from (x1,y1) to (x2,y2), north first,
+// clockwise: the plane is cut into eight sectors by tan 67.5 and tan 22.5
+// (618 and 106 in 1/256); a square level with the origin on an axis is a
+// straight direction.
+func DirectionTo(x1, y1, x2, y2 int) int {
 	dx, dy := abs(x2-x1), abs(y2-y1)
-	steep := steepSlope * dx / scale
-	shallow := shallowSlope * dx / scale
+	steep, shallow := 618*dx/256, 106*dx/256
 	diagonal := steep >= dy && shallow <= dy
-	before := func(a, b int) bool { return a < b || !strict && a == b }
-	for dir := 0; dir < 8; dir++ {
-		var fits bool
-		switch dir {
-		case 0:
-			fits = y2 <= y1 && steep <= dy
-		case 1:
-			fits = before(y2, y1) && before(x1, x2) && diagonal
-		case 2:
-			fits = x2 >= x1 && shallow >= dy
-		case 3:
-			fits = before(y1, y2) && before(x1, x2) && diagonal
-		case 4:
-			fits = y2 >= y1 && steep <= dy
-		case 5:
-			fits = before(y1, y2) && before(x2, x1) && diagonal
-		case 6:
-			fits = x2 <= x1 && shallow >= dy
-		case 7:
-			fits = before(y2, y1) && before(x2, x1) && diagonal
-		}
+	for dir, fits := range [8]bool{
+		y2 <= y1 && steep <= dy,
+		y2 < y1 && x1 < x2 && diagonal,
+		x2 >= x1 && shallow >= dy,
+		y1 < y2 && x1 < x2 && diagonal,
+		y2 >= y1 && steep <= dy,
+		y1 < y2 && x2 < x1 && diagonal,
+		x2 <= x1 && shallow >= dy,
+		y2 < y1 && x2 < x1 && diagonal,
+	} {
 		if fits {
 			return dir
 		}
