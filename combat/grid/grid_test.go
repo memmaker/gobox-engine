@@ -44,7 +44,7 @@ func TestGridPinned(t *testing.T) {
 	}
 	type e struct{ dist, dir byte }
 	l2 := []e{{5, 1}, {2, 3}, {2, 1}}
-	NearSort(l2, func(x e) (byte, byte) { return x.dist, x.dir }, true)
+	NearSort(l2, func(x e) (byte, byte) { return x.dist, x.dir })
 	if l2[0] != (e{2, 1}) {
 		t.Errorf("NearSort low first: %v", l2)
 	}

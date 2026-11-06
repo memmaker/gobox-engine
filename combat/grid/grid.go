@@ -149,24 +149,18 @@ func InArc(w, h, x1, y1, x2, y2, dir int) bool {
 	return true
 }
 
-// NearSort orders a near list by distance. On a tie the games differ: POR
-// and COTAB put the lower direction first, SOTSB and POD the higher
-// (lowDirFirst). key gives an entry's distance and direction.
-func NearSort[T any](l []T, key func(T) (dist, dir byte), lowDirFirst bool) {
+// NearSort orders a near list by distance; on a tie the lower direction
+// goes first unless that would put an odd (diagonal) direction before an
+// even one. All four Pool games agree (POR ovr31:002E, COTAB O11C:0033,
+// SOTSB O186:002E, POD O130:002E). key gives an entry's distance and
+// direction.
+func NearSort[T any](l []T, key func(T) (dist, dir byte)) {
 	for i := 0; i < len(l)-1; i++ {
 		for j := i + 1; j < len(l); j++ {
 			a, b := l[i], l[j]
 			ad, adir := key(a)
 			bd, bdir := key(b)
-			swap := bd < ad
-			if bd == ad {
-				if lowDirFirst {
-					swap = bdir < adir && bdir%2 <= adir%2
-				} else {
-					swap = adir < bdir && adir%2 <= bdir%2
-				}
-			}
-			if swap {
+			if bd < ad || bd == ad && bdir < adir && bdir%2 <= adir%2 {
 				l[i], l[j] = b, a
 			}
 		}
