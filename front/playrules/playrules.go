@@ -198,7 +198,7 @@ func (r *rules) asked(ps play.State) *game.Ask {
 	case sc.Typed:
 		return &game.Ask{Kind: game.Name, Prompt: c.Status, Max: cmp.Or(sc.Max, 40), Default: sc.Default}
 	case len(sc.Replies) > 0:
-		return &game.Ask{Kind: game.Choice, Prompt: c.Status, Default: sc.Default, Options: r.options(sc.Replies, c.Status != "" || sc.Kind == play.SceneScreen)} // a screen's or the roster's pick is a list; a menu over the view keeps its keys
+		return &game.Ask{Kind: game.Choice, Prompt: c.Status, Default: sc.Default, NoPick: sc.NoPick, NoEsc: sc.NoEsc, Options: r.options(sc.Replies, c.Status != "" || sc.Kind == play.SceneScreen)} // a screen's or the roster's pick is a list; a menu over the view keeps its keys
 	}
 	return &game.Ask{Kind: game.Continue}
 }
@@ -1363,6 +1363,11 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 			return r.do(play.Continue{})
 		case q.Heading:
 			return r.do(play.Heading{Dir: d.N})
+		case q.YesNo: // the front's yes (1) or no (0): the reply so labelled, whatever its index; unlabelled: the play convention (no, yes)
+			want := map[bool]string{true: "yes", false: "no"}[d.N == 1]
+			if i := slices.IndexFunc(q.Replies, func(l string) bool { return strings.EqualFold(strings.TrimSpace(l), want) }); i >= 0 {
+				return r.do(play.Reply{N: i})
+			}
 		}
 		return r.do(play.Reply{N: d.N, Text: d.Text})
 	}

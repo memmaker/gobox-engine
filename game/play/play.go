@@ -290,6 +290,8 @@ type Scene struct {
 	Text         []string          // plain paragraphs; colours are gobox's
 	Replies      []string          // SceneTalk: the answers, Reply{N}
 	Typed        bool              // the reply is typed text (Reply{Text})
+	NoPick       bool              // Replies: no highlight, Enter and the arrows do not answer; only the hotkeys do (as Question.NoPick)
+	NoEsc        bool              // Esc does not answer it (as Question.NoEsc)
 	Handout      string            // SceneHandout: the title
 	Lines        []string          // SceneHandout: journal.Layout's
 	Layers       []game.Layer      // pictures with their place and frames (Pictures: gobox places them)

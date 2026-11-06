@@ -50,7 +50,10 @@ func (g *newestFirst) Slots() []game.SaveSlot {
 	}
 	return s
 }
-func (g *newestFirst) LoadSlot(n int) error { g.names = append(g.names, "loaded:"+g.names[n]); return nil }
+func (g *newestFirst) LoadSlot(n int) error {
+	g.names = append(g.names, "loaded:"+g.names[n])
+	return nil
+}
 func (g *newestFirst) SaveSlot(n int) error {
 	name := "new"
 	if n < len(g.names) {
