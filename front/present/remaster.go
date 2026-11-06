@@ -126,7 +126,7 @@ type Presenter struct {
 	ctxSel      int                         // its highlighted line
 	ctxActs     []front.ActKind             // its lines' actions, for the member
 	behind      *blobber.Scene              // the last 3D scene shown
-	backdrop    *gpu.Image                  // the last frame of the location (its picture, the cards): what a shop's or temple's menu draws over
+	backView    *front.View                 // the location as last shown, its question and text left out: what a shop's or temple's menu draws over
 	ctxKeys     []byte                      // its lines' hotkeys (the first letters)
 	campCtx     [][]image.Rectangle         // in camp every member's context menu lines (drawCampMenus)
 	campImg     []*gpu.Image                // drawCampMenus: each member's menu image
@@ -369,13 +369,14 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		return Rect{}
 	}
 	sc := p.scene(v)
-	area := v.AreaMap != nil                                                                                                                                                                                                                                                            // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
+	area := v.AreaMap != nil                                                                                                                                                                                                                                                                                                // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
 	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure || sheetUp(v) && v.SheetPage != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
 		if screenUp(v) { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
-			switch { // over the location as it stands, never black
-			case p.backdrop != nil: // the last frame of it: its picture, the 3D view, the cards
-				dst.DrawImage(p.backdrop, nil)
+			switch {                      // over the location as it stands, never black
+			case p.backView != nil: // as last shown: its picture, the 3D view, the cards; the menu takes the text's place
+				q := *p // ponytail: a copy draws it, so the menu's own state (shownView, camp, pace) stays; its caches are shared, a resize reallocates on the copy each frame
+				q.draw(dst, note, *p.backView)
 			case sc != nil:
 				p.draw3D(dst, v, sc, note)
 			case len(v.Pictures) > 0:

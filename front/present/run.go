@@ -253,11 +253,10 @@ func (f *Front) Draw(dst *gpu.Image) {
 	} else {
 		f.pic = f.P.Draw(dst, note, v)
 	}
-	if !screenUp(v) && v.Ask == nil && v.Inventory == nil && v.Shop == nil && v.Temple == nil { // the location as it stands: what a shop's or temple's menu draws over
-		b := dst.Bounds()
-		gpu.Sized(&f.P.backdrop, b.Dx(), b.Dy())
-		f.P.backdrop.Clear()
-		f.P.backdrop.DrawImage(dst, nil)
+	if !screenUp(v) && v.Inventory == nil && v.Shop == nil && v.Temple == nil { // the location as last shown, without its question and text: what a shop's or temple's menu draws over
+		b := v
+		b.Ask, b.Pane = nil, nil
+		f.P.backView = &b
 	}
 }
 

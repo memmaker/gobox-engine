@@ -21,19 +21,22 @@ func TestMenuOverLastScene(t *testing.T) {
 }
 
 // TestMenuOverBackdrop: a shop's or temple's menu (no map, no picture of its
-// own) draws over the last frame of the location, never over black.
+// own) draws over the location as last shown, never over black.
 func TestMenuOverBackdrop(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
 	red := color.RGBA{200, 0, 0, 255}
+	loc := &front.View{Pane: &front.Pane{Lines: [][]front.PaneRun{{{Text: "THE TOWN SQUARE.", Fg: red, Bg: color.RGBA{A: 255}}}}}} // a drawn location (the front leaves its text out; any lit frame will do)
 	for _, v := range []front.View{{Temple: &front.Temple{}}, {Shop: &front.Shop{}}} {
-		p := &Presenter{backdrop: gpu.NewImage(1280, 800)}
-		p.backdrop.Fill(red)
+		p := &Presenter{}
 		p.Draw(dst, note, v)
-		if r, g, b, _ := dst.At(2, 2).RGBA(); r>>8 != 200 || g|b != 0 {
-			t.Fatalf("%+v: the menu's corner is %v, not the location behind it", v, dst.At(2, 2))
+		alone := lit(dst)
+		p = &Presenter{backView: loc}
+		p.Draw(dst, note, v)
+		if over := lit(dst); over <= alone {
+			t.Fatalf("%+v: %d lit over the location, %d alone", v, over, alone)
 		}
 	}
 }
