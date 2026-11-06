@@ -91,3 +91,18 @@ func TestFightSheetPage(t *testing.T) {
 		t.Fatalf("page %+v", sp)
 	}
 }
+
+// TestFightItems: Gear in a fight opens the turn member's items over the
+// fight, with no call to the game; closing them returns to the same turn.
+func TestFightItems(t *testing.T) {
+	f := &fake{st: play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}}}}
+	r := New(f, game.Data{})
+	r.Apply(game.OpenItems{Member: 0})
+	if s := r.State(); s.Items != game.ItemsOwn || s.Combat == nil || len(f.sent) != 0 {
+		t.Fatalf("items %v combat %v sent %v", s.Items, s.Combat != nil, f.sent)
+	}
+	r.Apply(game.CloseItems{})
+	if s := r.State(); s.Items != game.ItemsNone || s.SheetPage != nil || s.Combat == nil {
+		t.Fatalf("after close: items %v sheet %v", s.Items, s.SheetPage != nil)
+	}
+}

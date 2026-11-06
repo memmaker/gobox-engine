@@ -408,6 +408,7 @@ func (r *rules) State() game.State {
 		s.RestHeals, s.RestStudies = t.Heals, t.Study > 0 // the rules' say, not whether resting is allowed
 	case play.Fighting:
 		s.Mode, s.Combat = game.ModeCombat, r.combat(t)
+		s.Items = r.items // the turn member's items (Gear), front state over the fight; their actions are Allowed's
 	case play.Scene:
 		s.Mode, s.Window = game.ModeStory, game.WindowText
 		if len(t.Pictures)+len(t.Layers) > 0 {
@@ -963,7 +964,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		return game.Result{}
 	case game.CloseItems:
 		r.items = game.ItemsNone
-		if !d.All { // Tab: from the items to the member's sheet, as the old path's
+		if _, fight := ps.(play.Fighting); !d.All && !fight { // Tab: from the items to the member's sheet, as the old path's
 			r.sheet = who(-1, ps)
 		}
 		return game.Result{}
