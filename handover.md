@@ -101,3 +101,5 @@ Plan: pool-shared-analysis.md (committed 6d8058e). Items 1-4 are running in one 
 - POR on the shared AttackHits/SavingThrow (POD's switch and its unsigned save bug go to the POD builder)
 
 The builder skips files the passive-rebuild builders are editing. Progress: `.claude-progress-extract.txt`. Items 5-10 (affects, ECL VM into gobox/ecl, AI, spells, records, items) wait for the passive flows.
+
+Extraction items 1-4 done (gobox d4da8dc, 092f785, fbcb576, 96f41d5, 61509da; per-game commits in .claude-progress-extract.txt): about 430 lines removed per game. Four divergences (nearSort tie order, directionTo strictness, POD StrBonus guard, COTAB Dice byte cast) are being checked against the originals. SOTSB TestJoinedName flake predates the extraction (7/30 at e8ec163), suspected `selected()` state in the join flow.
