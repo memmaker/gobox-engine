@@ -216,7 +216,12 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	light := gpu.MeshOptions{Light: sunDir, Ambient: 0.5, Eye: eye}
 	// an effect lights its surroundings in its own colour
 	var glows []*figure
+	var effects []Effect // a pictureless effect (no art resolved) has nothing to draw
 	for _, f := range b.Effects {
+		if f.Pic == nil {
+			continue
+		}
+		effects = append(effects, f)
 		g := p.figure(f.Pic, 0)
 		glows = append(glows, g)
 		light.Point = [4]float32{float32(f.X) + .5, 1.1, float32(f.Y) + .5, 3.5}
@@ -409,7 +414,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	}
 
 	// effects: the sprite hangs over its square, glowing, shedding sparks
-	for i, f := range b.Effects {
+	for i, f := range effects {
 		g := glows[i]
 		ib := f.Pic.Bounds()
 		sq := float32(max(ib.Dx(), ib.Dy())) / tilePx
