@@ -123,7 +123,11 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	last := 10 + len(sp.Rules) // the last figure's row: Movement, then the rule set's (BR2: tech and 8 career skills)
 	rh := max(9, min(12, ((ch-2)*8-10-14-10-12)/max(last, 1))) // rows close up for a long list, so it all fits above AC/THAC0/Damage
 	row := func(r int) int { return 12 + rh*r }
-	num := rx + 19*8 // the numbers' right edge ("Healing Surges" and a 5-wide value clear)
+	num := rx + 19*8 // the numbers' right edge ("Healing Surges" and a 5-wide value clear), further right for a longer name (BR2's "Treat Light Wounds")
+	for _, st := range sp.Rules {
+		num = max(num, rx+8*(len(st.Name)+1+max(len(st.Value), 2)))
+	}
+	num = min(num, rr-8*len(" (+0)")-8*len("(00)")) // the modifiers' column still inside the border
 	type tip struct {
 		r     image.Rectangle
 		title string
@@ -131,7 +135,11 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 	var tips []tip
 	line := func(name, v string, r int, help []string) {
-		text(name, rx, row(r), white)
+		shown := name
+		if n := (num - 8*len(v) - 8 - rx) / 8; len(shown) > n { // a name too long for the column is cut, never written under its value
+			shown = shown[:max(n, 0)]
+		}
+		text(shown, rx, row(r), white)
 		text(v, num-8*len(v), row(r), green)
 		tips = append(tips, tip{image.Rect(rx, row(r)-(rh-8)/2, rr, row(r)+8+(rh-8)/2), name, help})
 	}
