@@ -147,7 +147,12 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 			if sl.Levels[i] > 0 {
 				lv = fmt.Sprintf("%3d", sl.Levels[i])
 			}
-			row := fmt.Sprintf("%-*s%-*s%*s", lc, upTo(name, lc-1), w-lc-len(sl.Times[i]), lv, len(sl.Times[i]), sl.Times[i])
+			right := sl.Times[i]
+			if lv != "" {
+				right = lv + " " + right // a space always: a long date ran into the level ("5NOV 6 2026")
+			}
+			nw := max(min(lc, w-len(right)-1), 1) // the name gives way to what is right of it
+			row := fmt.Sprintf("%-*s%*s", nw, upTo(name, nw-1), w-nw, right)
 			it = append(it, ui.MenuRow{Text: row, Key: 0, Do: func() {
 				if !sl.CanSave {
 					named(front.ActLoad, name)()
