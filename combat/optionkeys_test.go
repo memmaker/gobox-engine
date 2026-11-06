@@ -8,9 +8,10 @@ import (
 	"gobox/input"
 )
 
-// TestOptionKeys: the bar is the game's options; its own letters win over the
-// camera's (Q turns the view otherwise), no remaster letter (F, U) doubles
-// them, and an option the front has no act for is sent by its index.
+// TestOptionKeys: the bar is the game's options and its letters, except a
+// camera key (W A S D Q E): there the camera keeps it and the button takes the
+// remaster's letter (Attack F, Quick U, as POR before gobox); an option the
+// front has no act for is sent by its index.
 func TestOptionKeys(t *testing.T) {
 	b := &Board{Turn: &Turn{Options: []Option{{"Attack", 'A', ActAttack, ""}, {"Quick", 'Q', ActQuick, ""}, {"Target", 'T', ActOption, ""}, {"Dodge", 'D', ActOption, ""}}}}
 	for _, c := range []struct {
@@ -18,10 +19,9 @@ func TestOptionKeys(t *testing.T) {
 		k    uint16
 		want Decision
 	}{
-		{input.TurnLeft, 'q', Decision{Kind: ActQuick}},
-		{input.None, 'a', Decision{Kind: ActAttack}},
+		{input.None, 'u', Decision{Kind: ActQuick}},
+		{input.None, 'f', Decision{Kind: ActAttack}},
 		{input.None, 't', Decision{Kind: ActOption, N: 2}},
-		{input.None, 'D', Decision{Kind: ActOption, N: 3}},
 	} {
 		p := &Presenter{b: b}
 		p.bar.items = shownItems(b, false)
@@ -34,7 +34,7 @@ func TestOptionKeys(t *testing.T) {
 			t.Errorf("%c: %+v, want %+v", c.k, got, c.want)
 		}
 	}
-	for _, k := range []uint16{'f', 'u'} { // the game keyed Attack A and Quick Q: F and U are no buttons
+	for _, k := range []uint16{'a', 'q', 'd'} { // the game keyed Attack A, Quick Q, Dodge D: the camera keeps them (Dodge: its number)
 		p := &Presenter{b: b}
 		p.bar.items = shownItems(b, false)
 		p.bar.rects = make([]image.Rectangle, len(p.bar.items))
@@ -77,7 +77,7 @@ func TestClickHitsUnit(t *testing.T) {
 	}
 }
 
-// TestOptionChords: a game's chords (Alt-Q, Space) pick its option.
+// TestOptionChords: a game's chords (Alt-Q, Space) pick its option; its Quick (Q) is on U.
 func TestOptionChords(t *testing.T) {
 	b := &Board{Turn: &Turn{Options: []Option{{"Quick", 'Q', ActQuick, ""}, {"Quick All", 0, ActOption, "alt+q, alt+a"}, {"Quick Off", 0, ActOption, "space"}}}}
 	p := &Presenter{b: b}
@@ -87,7 +87,7 @@ func TestOptionChords(t *testing.T) {
 	p.Key(input.None, 'a')
 	p.Alt = false
 	p.Key(input.Space, ' ')
-	p.Key(input.None, 'q')
+	p.Key(input.None, 'u')
 	want := []Decision{{Kind: ActOption, N: 1}, {Kind: ActOption, N: 2}, {Kind: ActQuick}}
 	if got := p.Actions(); !slices.Equal(got, want) {
 		t.Fatalf("%+v", got)

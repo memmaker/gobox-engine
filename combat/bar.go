@@ -112,7 +112,7 @@ func hotkeysOf(items []barItem) []hotkey {
 		}
 	}
 	for i, it := range items {
-		if it.Hot < 0 || hs[i] != (hotkey{}) || preferred(it) != (hotkey{}) || it.Text == "" || strings.IndexByte("wasdqe", it.Text[0]|0x20) >= 0 {
+		if it.Hot < 0 || hs[i] != (hotkey{}) || preferred(it) != (hotkey{}) || it.Text == "" || cameraKey(it.Text[0]) {
 			continue
 		}
 		if c := uint16(it.Text[0] | 0x20); !used[c] {
@@ -222,7 +222,7 @@ func shownItems(b *Board, asking bool) (items []barItem) {
 			if o.Kind == ActOption {
 				n = i
 			}
-			items = append(items, barItem{w[0], w, o.Kind, int(o.Key), n, o.Chords})
+			items = append(items, barItem{w[0], w, o.Kind, gameHot(int(o.Key)), n, o.Chords})
 		}
 	default:
 		for _, k := range t.Can {
@@ -233,7 +233,7 @@ func shownItems(b *Board, asking bool) (items []barItem) {
 			if w == "" { // a kind the bar has no word for
 				continue
 			}
-			items = append(items, barItem{w[0], w, k, t.Keys[k], 0, ""})
+			items = append(items, barItem{w[0], w, k, gameHot(t.Keys[k]), 0, ""})
 		}
 	}
 	return items
@@ -514,4 +514,17 @@ func (p *Presenter) hoverSquare() (int, int, bool) {
 		return p.Pick(x, y)
 	}
 	return 0, 0, false
+}
+
+// cameraKey is whether letter c is one of the camera's keys (W A S D Q E).
+func cameraKey(c byte) bool { return strings.IndexByte("wasdqe", c|0x20) >= 0 }
+
+// gameHot is a game's hotkey k for a button, unless it is a camera key: the
+// camera keeps W A S D Q E and the button takes the table's letter (POR's
+// Quick, Q in the original, is U).
+func gameHot(k int) int {
+	if k > 0 && k < 0x80 && cameraKey(byte(k)) {
+		return 0
+	}
+	return k
 }
