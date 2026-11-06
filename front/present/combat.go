@@ -101,9 +101,10 @@ func toBoard(b *front.Battle) *combat.Board {
 var keypadSteps = map[image.Point]int{{0, -1}: 8, {1, -1}: 9, {1, 0}: 6, {1, 1}: 3, {0, 1}: 2, {-1, 1}: 1, {-1, 0}: 4, {-1, -1}: 7}
 
 // askedTurn: v's question is a turn the tabletop answers (AskSquare: an
-// aim, AskMove: a step at a time) where the rules publish no Battle.Turn.
+// aim, whatever Turn the rules publish; AskMove: a step at a time, where they
+// publish none).
 func askedTurn(v front.View) bool {
-	return v.Battle != nil && v.Battle.Turn == nil && v.Ask != nil && (v.Ask.Kind == front.AskSquare || v.Ask.Kind == front.AskMove)
+	return v.Battle != nil && v.Ask != nil && (v.Ask.Kind == front.AskSquare || v.Ask.Kind == front.AskMove && v.Battle.Turn == nil)
 }
 
 // askedBattle is v's battle, with the active unit's turn its question asks
@@ -115,6 +116,9 @@ func askedBattle(v front.View) *front.Battle {
 	}
 	b := *v.Battle
 	t := &front.Turn{Aim: v.Ask.Kind == front.AskSquare, Can: []front.ActKind{front.ActAim}}
+	if pt := v.Battle.Turn; pt != nil { // the game's turn, now aiming (a spell's square): its unit and casting, the aim's acts only
+		t.Casting, t.Weapon, t.Missile = pt.Casting, pt.Weapon, pt.Missile
+	}
 	var at image.Point
 	for _, u := range b.Units {
 		if u.Active {
