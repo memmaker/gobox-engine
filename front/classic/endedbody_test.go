@@ -45,7 +45,8 @@ func TestEndedFightTileBody(t *testing.T) {
 
 // TestEndedFightBeastStays: a 2x2 beast turning (EvMove Turn, To unset)
 // then struck stays on its square until its EvDown, then its body does
-// (a turn moved it to 0,0: BR2's beast vanished before its fall).
+// (a turn moved it to 0,0: BR2's beast vanished before its fall); the
+// fall's moment shows the body, not the figure standing on it.
 func TestEndedFightBeastStays(t *testing.T) {
 	r := &fightRules{}
 	g := NewGame(r, game.Data{})
@@ -63,10 +64,12 @@ func TestEndedFightBeastStays(t *testing.T) {
 		}
 		return false
 	}
-	if len(v.Events) != 5 || v.Events[1].Battle == nil || !beast(1) || !beast(3) {
-		t.Fatal("the beast is not on its square for the blow and its fall")
+	if len(v.Events) != 5 || v.Events[1].Battle == nil || !beast(1) {
+		t.Fatal("the beast is not on its square for the blow")
 	}
-	if b := v.Events[4].Battle; beast(4) || b.Ground[2][3].Overlay != 2 {
-		t.Fatalf("after the fall: beast %v, overlay %d", beast(4), b.Ground[2][3].Overlay)
+	for _, i := range []int{3, 4} { // the fall's own moment shows the body in its place (a figure on it hid it), and after
+		if b := v.Events[i].Battle; beast(i) || b.Ground[2][3].Overlay != 2 {
+			t.Fatalf("event %d: beast %v, overlay %d", i, beast(i), b.Ground[2][3].Overlay)
+		}
 	}
 }

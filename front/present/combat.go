@@ -176,7 +176,7 @@ func (p *Presenter) keepFallen(b *front.Battle) *front.Battle {
 	o := *b
 	for i, u := range last.Units {
 		if slices.ContainsFunc(o.Units, func(x front.Unit) bool { return x.ID == u.ID }) ||
-			!slices.ContainsFunc(p.replay.q, func(e front.CombatEvent) bool { return e.Kind == front.EvDied && e.Unit == u.ID }) {
+			!slices.ContainsFunc(p.replay.q[1:], func(e front.CombatEvent) bool { return e.Kind == front.EvDied && e.Unit == u.ID }) { // the fall showing now (q[0]) is played: the unit is down
 			continue
 		}
 		if len(o.IconPix) == len(o.Units) && i < len(last.IconPix) {

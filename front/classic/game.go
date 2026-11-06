@@ -255,8 +255,9 @@ func (g *Game) messageMs() int {
 // (a walk moved, a fall dropped), with its unit in its pose.
 func (g *Game) endedBattle(e game.Event) *front.Battle {
 	s := g.state()
-	if b := e.Picture; e.Kind == game.EvDown && (b.File != "" || b.Name != "" || b.Pixels != nil) { // the body the game leaves (Event.Picture): the fight's Combat is gone with the last blow
-		for _, u := range g.ended.Units {
+	if b := e.Picture; e.Kind == game.EvDown && (b.File != "" || b.Name != "" || b.Pixels != nil) { // the body the game leaves (Event.Picture): the fall's moment shows it in the unit's place (standing on it, the figure hid it)
+		for k := range g.ended.Units {
+			u := &g.ended.Units[k]
 			if u.ID != e.Unit {
 				continue
 			}
@@ -265,6 +266,7 @@ func (g *Game) endedBattle(e game.Event) *front.Battle {
 			} else {
 				g.ended.Squares = append(g.ended.Squares, game.Ground{At: u.At, Overlay: b})
 			}
+			u.Dead, u.Gone, u.HP = true, true, 0
 		}
 	}
 	c := *g.ended
