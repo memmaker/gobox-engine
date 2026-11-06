@@ -56,3 +56,17 @@ func TestQuickAllOption(t *testing.T) {
 		t.Fatalf("%+v", c.Turn.Options)
 	}
 }
+
+// TestAimNoFoeInReach: aiming with no foe on the aim's squares, Tab still
+// cycles every foe and the cursor is drawn on the nearest, not lost.
+func TestAimNoFoeInReach(t *testing.T) {
+	shoot := play.Shoot{}
+	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: shoot, Squares: []image.Point{{2, 1}}, Targets: 1}}}},
+		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(4, 3), Foe: true}}}}}
+	r := New(f, game.Data{}).(*rules)
+	r.Apply(game.Ranged{})
+	c := r.State().Combat
+	if c == nil || !c.Turn.Aim || !c.CursorOn || len(c.Targets) != 2 || c.Cursor != image.Pt(4, 3) {
+		t.Fatalf("%+v", c)
+	}
+}

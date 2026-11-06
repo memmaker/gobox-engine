@@ -844,7 +844,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 			t.Maneuvers = append(t.Maneuvers, maneuver(named, a.ID, 0))
 		}
 	}
-	if r.aim != nil { // aiming: the foes on the aim's squares are what Tab cycles, the cursor on the nearest
+	if r.aim != nil { // aiming: the foes on the aim's squares are what Tab cycles (none in reach: every foe), the cursor on the nearest
 		c.Targets = nil
 		var from image.Point
 		for _, u := range c.Units {
@@ -852,21 +852,30 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 				from = u.At
 			}
 		}
-		best := -1
+		covers := func(u game.Unit, sq []image.Point) bool { // any square it covers (a big foe's At may lie outside the reach)
+			return slices.ContainsFunc(append([]image.Point{u.At}, u.Squares...), func(q image.Point) bool { return slices.Contains(sq, q) })
+		}
+		var live []game.Unit
 		for _, u := range c.Units {
-			if u.Foe && !u.Dead && !u.Gone && slices.ContainsFunc(append([]image.Point{u.At}, u.Squares...), func(q image.Point) bool { return slices.Contains(r.aim.Squares, q) }) { // any square it covers (a big foe's At may lie outside the reach)
-				c.Targets = append(c.Targets, u.ID)
-				if d := u.At.Sub(from); best < 0 || d.X*d.X+d.Y*d.Y < best {
-					best = d.X*d.X + d.Y*d.Y
-					if !slices.Contains(r.aim.Squares, r.cursor) || len(r.aim.ats) == 0 && r.cursor == (image.Point{}) {
-						c.Cursor = u.At
-					}
-				}
+			if u.Foe && !u.Dead && !u.Gone {
+				live = append(live, u)
 			}
 		}
-		if c.Cursor != r.cursor && !slices.Contains(r.aim.Squares, r.cursor) {
-			r.cursor = c.Cursor
+		if inReach := slices.DeleteFunc(slices.Clone(live), func(u game.Unit) bool { return !covers(u, r.aim.Squares) }); len(inReach) > 0 {
+			live = inReach
 		}
+		best, kept := -1, len(r.aim.ats) > 0 || slices.Contains(r.aim.Squares, r.cursor)
+		for _, u := range live {
+			c.Targets = append(c.Targets, u.ID)
+			kept = kept || covers(u, []image.Point{r.cursor})
+			if d := u.At.Sub(from); best < 0 || d.X*d.X+d.Y*d.Y < best {
+				best, c.Cursor = d.X*d.X+d.Y*d.Y, u.At
+			}
+		}
+		if kept || best < 0 {
+			c.Cursor = r.cursor
+		}
+		r.cursor = c.Cursor
 	}
 	for _, a := range al.Aimed {
 		switch x := a.Action.(type) {
