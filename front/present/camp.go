@@ -540,6 +540,10 @@ func (p *Presenter) askRest(n int) {
 		switch {
 		case a.Kind == front.ActChoose && a.N < 3:
 			field = a.N
+		case a.Kind == front.ActPage: // Up (-1) adds, Down subtracts
+			t[field] = min(most[field], max(0, t[field]-step[field]*a.N))
+			set()
+			return false
 		case a.Kind == front.ActChoose && a.N < 5:
 			t[field] = min(most[field], max(0, t[field]+step[field]*(7-2*a.N)))
 		case a.Kind == front.ActChoose && a.N == 5, a.Kind == front.ActOK:
