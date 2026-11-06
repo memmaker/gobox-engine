@@ -126,6 +126,7 @@ type Presenter struct {
 	ctxSel      int                         // its highlighted line
 	ctxActs     []front.ActKind             // its lines' actions, for the member
 	behind      *blobber.Scene              // the last 3D scene shown
+	backP       *Presenter                  // draws backView
 	backView    *front.View                 // the location as last shown, its question and text left out: what a shop's or temple's menu draws over
 	ctxKeys     []byte                      // its lines' hotkeys (the first letters)
 	campCtx     [][]image.Rectangle         // in camp every member's context menu lines (drawCampMenus)
@@ -282,6 +283,11 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	p.openList(v)
 	p.shownView = v
+	if !screenUp(v) && v.Inventory == nil && v.Shop == nil && v.Temple == nil { // the location as last shown, without its question and text: what a shop's or temple's menu draws over
+		b := v
+		b.Ask, b.Pane = nil, nil
+		p.backView = &b
+	}
 	p.main = v.MainMenu != nil // before the pages, which return early: a stale main menu would take their keys
 	p.pace(v)
 	p.pageMenu = false
@@ -375,8 +381,12 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			switch {                      // over the location as it stands, never black
 			case p.backView != nil: // as last shown: its picture, the 3D view, the cards; the menu takes the text's place
-				q := *p // ponytail: a copy draws it, so the menu's own state (shownView, camp, pace) stays; its caches are shared, a resize reallocates on the copy each frame
-				q.draw(dst, note, *p.backView)
+				if p.backP == nil { // a presenter of its own draws it, so the menu's state (shownView, camp, pace) stays, and its picture and minimap images are not the menu's
+					c := *p
+					c.pg, c.mapImg, c.mapSrc, c.backP = page{}, nil, nil, nil
+					p.backP = &c
+				}
+				p.backP.draw(dst, note, *p.backView)
 			case sc != nil:
 				p.draw3D(dst, v, sc, note)
 			case len(v.Pictures) > 0:
