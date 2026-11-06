@@ -409,6 +409,9 @@ func (r *rules) State() game.State {
 	case play.Fighting:
 		s.Mode, s.Combat = game.ModeCombat, r.combat(t)
 		s.Items = r.items // the turn member's items (Gear), front state over the fight; their actions are Allowed's
+		if m := activeMember(t.Field); r.items != game.ItemsNone && m >= 0 && m < len(s.Party) { // the acting member's own, never another's (OpenItems{-1})
+			s.Selected = m
+		}
 	case play.Scene:
 		s.Mode, s.Window = game.ModeStory, game.WindowText
 		if len(t.Pictures)+len(t.Layers) > 0 {
