@@ -199,7 +199,7 @@ func TestParity(t *testing.T) {
 			func(s game.State, _ game.Result) bool {
 				return slices.Equal(s.Combat.Log, []string{"YOU GET INTO A BRAWL."})
 			}},
-		{"aimed attack", play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}, FreeAim: true}, // the series has Aim: gobox's free cursor
+		{"aimed attack", play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}}, // the series has Aim: gobox's free cursor
 			[]game.Decision{game.Attack{}, game.Aim{At: image.Pt(2, 3)}}, []play.Action{play.Attack{At: &image.Point{2, 3}}},
 			func(s game.State, _ game.Result) bool {
 				var att, aim bool
@@ -216,7 +216,7 @@ func TestParity(t *testing.T) {
 			func(s game.State, _ game.Result) bool { return !s.Flags.Adventure }},
 		{"temple keeper portrait", play.Trading{Kind: play.TradeTemple, Common: play.Common{Portrait: &play.Portrait{Head: game.Picture{File: "HEAD2", Block: 3}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Window == game.WindowPicture && len(s.Story) == 2 }},
-		{"no free aim", play.Fighting{}, game.Data{NoFreeAim: true}, nil, nil,
+		{"no free aim", play.Fighting{}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return len(s.Combat.Turn.Options) == 0 }},
 		{"camp layers and day", play.Camping{Common: play.Common{Day: true, Layers: []game.Layer{{FrameMs: 100}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {

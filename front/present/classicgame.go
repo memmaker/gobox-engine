@@ -85,7 +85,9 @@ func (g classicGame) View() front.View {
 // wall fronts, the fight's tiles), else the Data's; it comes after NewFront,
 // and the art set can change.
 func (g classicGame) art() map[string]game.Picture {
-	if r, ok := g.r.(interface{ Art() map[string]game.Picture }); ok {
+	if r, ok := g.r.(interface {
+		Art() map[string]game.Picture
+	}); ok {
 		return r.Art()
 	}
 	if d, ok := g.Game.(interface{ Data() game.Data }); ok {
