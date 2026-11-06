@@ -201,7 +201,7 @@ func screenPage(v front.View) *cellPage {
 	if ed := v.IconEditor; ed != nil {
 		c.iconEditor(ed)
 	}
-	if (v.Creation != nil || v.IconEditor != nil) && v.Picker == nil && v.Slots == nil { // the bar on the prompt row
+	if barShown(v) { // the bar on the prompt row
 		for _, w := range barWords(v) {
 			c.str(w.x, c.rows-1, inkWhite, w.label[:1])
 			c.str(w.x+1, c.rows-1, inkGreen, w.label[1:])
@@ -224,6 +224,11 @@ func screenPage(v front.View) *cellPage {
 		}
 	}
 	return c
+}
+
+// barShown is whether the special screen's bar is on the prompt row.
+func barShown(v front.View) bool {
+	return (v.Creation != nil || v.IconEditor != nil) && v.Picker == nil && v.Slots == nil
 }
 
 // footWord is a word of the slot page's footer: its text, the key it
@@ -266,6 +271,9 @@ func slotFooter(sl *front.Slots, cols int) []footWord {
 // the credits.
 func (c *cellPage) texts(v front.View) {
 	for _, r := range v.Prompt {
+		if barShown(v) { // the bar owns the row: a prompt under it shows through its gaps
+			break
+		}
 		c.run(r, c.rows-1)
 	}
 	if v.Credits && creditFrame == "edges" { // one frame on the page's edges, the lines laid out over the page inside it
