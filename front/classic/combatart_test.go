@@ -3,6 +3,7 @@ package classic
 import (
 	"testing"
 
+	"gobox/front"
 	"gobox/game"
 )
 
@@ -45,5 +46,17 @@ func TestBattleOfFloorTile(t *testing.T) {
 	defer func() { Series = "pool" }()
 	if b := BattleOf(game.State{Combat: &game.Combat{FloorTile: "hitek_tile_034"}}, nil); b.FloorImg == nil {
 		t.Error("floor tile not read from the series sprites")
+	}
+}
+
+// TestBattleMemberArt: a party unit with no icon to compose (COTAB's NPC
+// members) is drawn from its Art, as a foe is, not as an empty disc.
+func TestBattleMemberArt(t *testing.T) {
+	s := game.State{Party: []game.Member{{Name: "NPC"}}, Combat: &game.Combat{
+		Units: []game.Unit{{ID: 1, Member: 0, Art: game.Picture{File: "CPIC1", Block: 85, Clear: -1}}},
+	}}
+	b := Battle(&front.Battle{Units: []front.Unit{{ID: 1}}, IconPix: []front.Picture{{}}}, s)
+	if p := b.IconPix[0]; p.File != "CPIC1" || p.Block != 85 {
+		t.Fatalf("member drawn from %+v, want its Art", p)
 	}
 }

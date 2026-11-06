@@ -67,15 +67,24 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 			if g.Icon != nil {
 				o.Units[i].Icon, o.Units[i].IconSize = g.Icon, image.Pt(24, 24)
 			} else if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
-				pm := defaultIcon(s.Party[m])
-				head, body := memberIcon(pm)
-				if pic, ok := poolIcon(head, body, pm.IconColors, 0, g.Facing > 3); ok {
+				var pic front.Picture
+				var ok bool
+				var size image.Point
+				if own := s.Party[m].IconHeadID != "" || s.Party[m].Icon != nil; !own && (g.Art.File != "" || g.Art.Name != "" || g.Art.Pixels != nil) {
+					pic, ok, size = pix(g.Art), true, image.Pt(g.Art.W, g.Art.H) // no icon of its own (COTAB's NPC members): the unit's Art, as a foe's; a ref without W: the presenter's native size
+				} else {
+					pm := defaultIcon(s.Party[m])
+					head, body := memberIcon(pm)
+					pic, ok = poolIcon(head, body, pm.IconColors, 0, g.Facing > 3)
+					size = image.Pt(pic.PixW, len(pic.Pix)/max(1, pic.PixW))
+				}
+				if ok {
 					if !cloned { // the game's IconPix by unit, so far
 						o.IconPix, cloned = append(make([]front.Picture, 0, len(o.Units)), b.IconPix...), true
 						o.IconPix = append(o.IconPix, make([]front.Picture, max(0, len(o.Units)-len(o.IconPix)))...)
 					}
 					o.Units[i].Icon, o.IconPix[i] = nil, pic
-					o.Units[i].IconSize = image.Pt(pic.PixW, len(pic.Pix)/pic.PixW)
+					o.Units[i].IconSize = size
 				}
 			}
 		}
