@@ -1,0 +1,163 @@
+# Buck Rogers series (BR1 and BR2) item icons, 64x64 cells, 24 a row: 3 variants per item
+# side by side; icon is the chosen one. Edit with ../../remap_items.sh
+
+internal_name: Knife
+name: Knife
+icon: 0
+
+internal_name: Mono Knife
+name: Mono Knife
+icon: 3
+
+internal_name: Cutlass
+name: Cutlass
+icon: 6
+
+internal_name: Sword
+name: Sword
+icon: 9
+
+internal_name: Mono Sword
+name: Mono Sword
+icon: 12
+
+internal_name: Polearm
+name: Polearm
+icon: 15
+
+internal_name: X-bow
+name: X-bow
+icon: 18
+
+internal_name: Needle Gun
+name: Needle Gun
+icon: 21
+
+internal_name: Bolt Gun
+name: Bolt Gun
+icon: 24
+
+internal_name: Laser Pistol
+name: Laser Pistol
+icon: 27
+
+internal_name: Laser Rifle
+name: Laser Rifle
+icon: 30
+
+internal_name: Rocket Pistol
+name: Rocket Pistol
+icon: 33
+
+internal_name: Rocket Rifle
+name: Rocket Rifle
+icon: 36
+
+internal_name: Microwave Gun
+name: Microwave Gun
+icon: 39
+
+internal_name: Heat Gun
+name: Heat Gun
+icon: 42
+
+internal_name: Sonic Stunner
+name: Sonic Stunner
+icon: 45
+
+internal_name: Grenade Lnchr
+name: Grenade Lnchr
+icon: 48
+
+internal_name: Plasma Thrwr
+name: Plasma Thrwr
+icon: 51
+
+internal_name: Rocket Lnchr
+name: Rocket Lnchr
+icon: 54
+
+internal_name: Sword Gun
+name: Sword Gun
+icon: 57
+
+internal_name: Mono Bolt
+name: Mono Bolt
+icon: 60
+
+internal_name: Spacesuit
+name: Spacesuit
+icon: 63
+
+internal_name: Smartsuit
+name: Smartsuit
+icon: 66
+
+internal_name: Heavy Body Armor
+name: Heavy Body Armor
+icon: 69
+
+internal_name: Battle armor
+name: Battle armor
+icon: 72
+
+internal_name: Battle armor w/fields
+name: Battle armor w/fields
+icon: 75
+
+internal_name: Explosive Grenade
+name: Explosive Grenade
+icon: 78
+
+internal_name: mini Explosive Grenade
+name: mini Explosive Grenade
+icon: 81
+
+internal_name: Gas Grenade
+name: Gas Grenade
+icon: 84
+
+internal_name: Stun Grenade
+name: Stun Grenade
+icon: 87
+
+internal_name: Dazzle Grenade
+name: Dazzle Grenade
+icon: 90
+
+internal_name: Chaff Grenade
+name: Chaff Grenade
+icon: 93
+
+internal_name: Aerosol Mist Grenade
+name: Aerosol Mist Grenade
+icon: 96
+
+internal_name: Demo Charge
+name: Demo Charge
+icon: 99
+
+internal_name: ECM package
+name: ECM package
+icon: 102
+
+internal_name: Goggles
+name: Goggles
+icon: 105
+
+internal_name: Breathing Mask
+name: Breathing Mask
+icon: 108
+
+internal_name: Rope
+name: Rope
+icon: 111
+
+internal_name: Jetpack
+name: Jetpack
+icon: 114
+
+internal_name: Poison Antidote
+name: Poison Antidote
+icon: 117
+
