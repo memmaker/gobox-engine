@@ -21,9 +21,12 @@ import (
 // sfCells is the SHIPS picture table (BR1 DS 23EC, BR2 d253E: the same
 // cells): entry k is SHIPS block 10+k at its cell; 1..15 are the blast
 // frames (relative), 16 the weapons piece, 17..22 the own system icons,
-// 23..28 the foe's.
+// 23..28 the foe's. Entry 0, the foe panel's backdrop (its labels and grid), starts
+// on the foe icons' cell (1, 12): its labels then sit right of the icons, on
+// the rows of the figures and bars (at 0, 11 the icons covered each label's
+// first letter, the labels a row above their figures).
 var sfCells = [29]image.Point{
-	{0, 11}, {0, 0}, {2, 0}, {1, 0}, {0, 2}, {0, 1}, {0, 2}, {1, 2}, {0, 3}, {0, 3}, {1, 3}, {0, 3}, {0, 4}, {2, 4}, {0, 3}, {1, 4},
+	{1, 12}, {0, 0}, {2, 0}, {1, 0}, {0, 2}, {0, 1}, {0, 2}, {1, 2}, {0, 3}, {0, 3}, {1, 3}, {0, 3}, {0, 4}, {2, 4}, {0, 3}, {1, 4},
 	{26, 14}, {26, 1}, {26, 3}, {26, 5}, {26, 7}, {26, 9}, {26, 11}, {1, 12}, {1, 13}, {1, 14}, {1, 15}, {1, 16}, {1, 17},
 }
 
