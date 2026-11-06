@@ -201,7 +201,7 @@ func NewImage(w, h int) *Image {
 // Sized makes *img a w x h image: it reports true when it had to make a new
 // one (none yet, or another size; the old one is deallocated).
 func Sized(img **Image, w, h int) bool {
-	if *img != nil && (*img).r == image.Rect(0, 0, w, h) {
+	if *img != nil && (*img).r == image.Rect(0, 0, w, h) && !(*img).t.gone { // a deallocated one (a shared canvas freed by its other holder) is made again
 		return false
 	}
 	if *img != nil {
@@ -251,7 +251,7 @@ func (i *Image) SubImage(r image.Rectangle) image.Image {
 // WritePixels replaces the image's pixels with px (premultiplied RGBA,
 // Dx*Dy*4 bytes).
 func (i *Image) WritePixels(px []byte) {
-	if i.r.Empty() {
+	if i.r.Empty() || gone(i.t) {
 		return
 	}
 	if i.t.tex == nil && dev.device == nil { // no device yet: kept until there is one
