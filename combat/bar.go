@@ -389,7 +389,7 @@ func (p *Presenter) press(it barItem) {
 		p.free = &image.Point{}
 		for _, u := range p.b.Units {
 			if u.Active {
-				*p.free = image.Pt(u.X, u.Y)
+				*p.free, p.moving = image.Pt(u.X, u.Y), u.ID
 			}
 		}
 		return
@@ -402,7 +402,12 @@ func (p *Presenter) press(it barItem) {
 }
 
 // act queues a for Actions.
-func (p *Presenter) act(a Decision) { p.out = append(p.out, a) }
+func (p *Presenter) act(a Decision) {
+	if a.Kind != ActWalk {
+		p.moving = 0
+	}
+	p.out = append(p.out, a)
+}
 
 // Actions hands over the actions queued since the last call.
 func (p *Presenter) Actions() []Decision {

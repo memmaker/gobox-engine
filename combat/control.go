@@ -159,12 +159,16 @@ func (p *Presenter) screenStep(d [2]float64) image.Point {
 // cursor instead, which the arrows then move (Enter walks there).
 func (p *Presenter) stepUnit(d [2]float64) bool {
 	b := p.b
-	if b == nil || b.Turn == nil || b.Turn.Aim || p.free != nil || p.Asking || p.Picking {
+	if b == nil || b.Turn == nil || b.Turn.Aim || p.Asking || p.Picking {
 		return false
 	}
 	for _, u := range b.Units {
 		if u.Active {
-			if to := image.Pt(u.X, u.Y).Add(p.screenStep(d)); slices.Contains(b.Reach, to) {
+			if p.free != nil && *p.free != image.Pt(u.X, u.Y) { // the cursor moved off the unit: the arrows move it
+				return false
+			}
+			if to := image.Pt(u.X, u.Y).Add(p.screenStep(d)); p.moving == u.ID || slices.Contains(b.Reach, to) {
+				p.free = nil // Move's cursor, still on the unit: the arrows step it, as the original's
 				p.act(Decision{Kind: ActWalk, X: to.X, Y: to.Y})
 				return true
 			}

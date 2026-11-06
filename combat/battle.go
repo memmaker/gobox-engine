@@ -58,6 +58,7 @@ type Presenter struct {
 	Pointer       image.Point  // the mouse on the screen, as the host last saw it (the bar's hover; captures script it)
 	pointed       image.Point  // the square the aim was last pointed at
 	aimAt         *image.Point // the aim cursor (front state, aimTo; nil: the game's Cursor)
+	moving        int          // Move's unit ID: its arrows send each step, Reach or not (an off-map step is the game's to answer: flee)
 	free          *image.Point // the keys' and pad's square cursor while not aiming (nil: the mouse points)
 	mouseAt       image.Point  // the pointer as Point last saw it: a moved mouse takes over from free
 	Stick         [2]float64   // the pad's right stick (x right, y down, -1..1): pans the camera

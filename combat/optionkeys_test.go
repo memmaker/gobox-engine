@@ -169,3 +169,20 @@ func TestChordLabel(t *testing.T) {
 		t.Fatalf("%+v", h[0])
 	}
 }
+
+// TestMoveThenArrowSteps: Move (M) puts the cursor on the unit; an arrow then
+// steps the unit, not the cursor (POR castfight).
+func TestMoveThenArrowSteps(t *testing.T) {
+	u := Unit{ID: 1, X: 2, Y: 2, Active: true}
+	b := &Board{Units: []Unit{u}, Reach: []image.Point{{1, 2}}, Turn: &Turn{}}
+	p := &Presenter{b: b}
+	p.press(barItem{Kind: ActWalk})
+	p.Key(input.CursorLeft, 0x4B00)
+	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: ActWalk, X: 1, Y: 2}) {
+		t.Fatalf("M, left: %+v, want a walk to 1,2", got)
+	}
+	p.Key(input.CursorUp, 0x4800) // not in Reach (off the map): still sent, the game answers (POR: Flee?)
+	if got := p.Actions(); len(got) != 1 || got[0].Kind != ActWalk {
+		t.Fatalf("M, off-Reach step: %+v, want a walk", got)
+	}
+}
