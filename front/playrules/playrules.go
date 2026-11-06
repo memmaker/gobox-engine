@@ -732,11 +732,14 @@ var turnOptions = []struct {
 // allows (a jetpack's flight, a throw): gobox asks for the square at once.
 func (r *rules) loneAim(f play.Fighting) bool {
 	al := f.Allowed
-	if len(al.Aimed) != 1 || len(al.Plain) > 0 || len(al.Moves) > 0 {
-		return false
+	if len(al.Aimed) != 1 || slices.ContainsFunc(al.Plain, func(a play.Action) bool { return a != play.Action(play.Leave{}) }) || len(al.Moves) > 0 {
+		return false // Leave beside it is Esc (BR2's T)
 	}
 	if r.aim == nil {
 		r.aim = &aiming{Aimed: al.Aimed[0]}
+		if sq := al.Aimed[0].Squares; len(sq) > 0 {
+			r.cursor = sq[0] // the cursor on the first target
+		}
 	}
 	return true
 }
@@ -904,7 +907,11 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		if r.ask == nil && r.aim == nil && isHandout(ps) { // Esc on a handout leaves it, as reading to its end does
 			return r.do(onward(commonOf(ps).Allowed))
 		}
+		lone := r.aim != nil && r.ask == nil && slices.Contains(commonOf(ps).Allowed.Plain, play.Action(play.Leave{}))
 		r.ask, r.moves, r.aim = nil, nil, nil
+		if _, fight := ps.(play.Fighting); fight && lone { // Esc on the aim the game asks: its Leave
+			return r.do(play.Leave{})
+		}
 		return game.Result{}
 	case game.Arrive: // the step the rules allow from and to there, with their facing: gobox's guess of it (kept on a step back) is not the rules' say
 		for _, a := range commonOf(ps).Allowed.Plain {
@@ -1237,6 +1244,9 @@ var doorWays = map[int]play.DoorWay{0: play.DoorExit, 1: play.DoorBash, 2: play.
 
 // answer answers gobox's own ask, or the scene's.
 func (r *rules) answer(ps play.State, d game.Answer) game.Result {
+	if r.aim != nil && r.ask == nil { // the square ask: the square answers the aim
+		return r.aimAt(d.At)
+	}
 	if r.ask != nil {
 		moves := r.moves
 		r.ask, r.moves = nil, nil
