@@ -51,6 +51,7 @@ type Ask struct {
 	List   []ListLine // AskList: the lines
 	Text   string     // AskText, AskNumber: the line as typed so far
 	NoEsc  bool       // Esc does not answer it: the question stays up (the game's say)
+	NoPick bool       // a yes/no with no highlight: Enter and the arrows do nothing, only Y and N answer
 	Max    int        // AskText, AskNumber: the longest line
 	Ms     int        // AskPause
 	Spells []Spell    // AskSpell: the spells to pick from (ActCast ID)

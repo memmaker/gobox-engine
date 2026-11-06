@@ -199,7 +199,7 @@ func (r *rules) asked(ps play.State) *game.Ask {
 
 // question is the rules' question as the old Ask.
 func (r *rules) question(q *play.Question, list bool) *game.Ask {
-	a := &game.Ask{Kind: game.Choice, Prompt: q.Text, Default: q.Default, Max: q.Max, NoEsc: q.NoEsc}
+	a := &game.Ask{Kind: game.Choice, Prompt: q.Text, Default: q.Default, Max: q.Max, NoEsc: q.NoEsc, NoPick: q.NoPick}
 	switch {
 	case q.Continue:
 		a.Kind = game.Continue

@@ -452,6 +452,9 @@ func confirm(v front.View) string {
 // the game starts on Yes (Yes, or Default naming its Yes option, whatever
 // the options' order).
 func confirmStart(a *front.Ask) int {
+	if a != nil && a.NoPick {
+		return -1 // no row lit
+	}
 	if a != nil && (a.Yes || a.Default >= 0 && a.Default < len(a.Items) && strings.EqualFold(a.Items[a.Default].Text, "Yes")) {
 		return 0
 	}
@@ -465,6 +468,19 @@ var yesNoKeys = []byte{'Y', 'N'}
 // the arrows, Enter, Space, pad A, Y and N; Esc (pad B) is No. Only the
 // global keys go on.
 func (p *Presenter) confirmKey(k uint16) bool {
+	if a := p.shownView.Ask; a != nil && a.NoPick { // no highlight: only Y and N answer (Esc as the game says)
+		switch {
+		case k == 'y' || k == 'Y':
+			p.confirmPick(0)
+		case k == 'n' || k == 'N':
+			p.confirmPick(1)
+		case actOf(k) == input.Esc && !a.NoEsc:
+			p.confirmPick(1)
+		case !slices.Contains([]input.Act{input.Enter, input.Up, input.Down, input.Esc, input.Left, input.Right}, actOf(k)):
+			return !globalKey(k)
+		}
+		return true
+	}
 	switch i, back, ok := ui.MenuNav(actOf(k), k, &p.confirmSel, yesNoKeys); {
 	case back && p.shownView.Ask != nil && p.shownView.Ask.NoEsc: // the game keeps it up on Esc
 	case back:

@@ -314,3 +314,28 @@ func TestConfirmNoEsc(t *testing.T) {
 		}
 	}
 }
+
+// TestConfirmNoPick: a yes/no with no highlight (Ask.NoPick, SotSB's place
+// asks) lights no row; Enter and the arrows answer nothing, Y and N do,
+// Esc as NoEsc says.
+func TestConfirmNoPick(t *testing.T) {
+	a := &front.Ask{Kind: front.AskConfirm, Menu: front.Menu{Prompt: "Pay?"}, NoPick: true, NoEsc: true}
+	if confirmStart(a) != -1 {
+		t.Error("a row is lit")
+	}
+	v := front.View{Ask: a}
+	for _, c := range []struct {
+		k    uint16
+		want []front.ActKind
+	}{{13, nil}, {0x4800, nil}, {27, nil}, {'y', []front.ActKind{front.ActYes}}, {'N', []front.ActKind{front.ActNo}}} {
+		p := &Presenter{confirmSel: -1, shownView: v}
+		p.key(c.k, v)
+		var got []front.ActKind
+		for _, x := range p.Actions() {
+			got = append(got, x.Kind)
+		}
+		if !slices.Equal(got, c.want) {
+			t.Errorf("key %#x: %v, want %v", c.k, got, c.want)
+		}
+	}
+}
