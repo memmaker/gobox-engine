@@ -18,8 +18,8 @@ func (g *trainGame) OpenTraining(n int) error {
 }
 func (g *trainGame) TrainingView() *front.Training { return &front.Training{} }
 
-// TestTrainingSwitch: another member in the training hall closes it and
-// opens it again for them (CloseTraining before OpenTraining).
+// TestTrainingSwitch: another member in the training hall is OpenTraining
+// for them alone, no CloseTraining (that leaves a hall the game opened).
 func TestTrainingSwitch(t *testing.T) {
 	p := &Presenter{training: true}
 	if !p.serviceAct(front.Action{Kind: front.ActLead, N: 2}) {
@@ -29,7 +29,7 @@ func TestTrainingSwitch(t *testing.T) {
 	for _, c := range p.Calls() {
 		c(g)
 	}
-	if len(g.calls) != 2 || g.calls[0] != "close" || g.calls[1] != "open2" {
+	if len(g.calls) != 1 || g.calls[0] != "open2" {
 		t.Fatalf("%v", g.calls)
 	}
 }
@@ -46,7 +46,7 @@ func TestTrainingSwitchGameHall(t *testing.T) {
 	for _, c := range p.Calls() {
 		c(g)
 	}
-	if len(g.calls) != 2 || g.calls[1] != "open1" {
+	if len(g.calls) != 1 || g.calls[0] != "open1" {
 		t.Fatalf("%v", g.calls)
 	}
 }
