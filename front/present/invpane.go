@@ -197,13 +197,15 @@ func (inv *inventory) load() {
 }
 
 // icon is the atlas cell of an item: the longest items.rec name its name
-// (or one of its words) contains, ignoring case; -1 for none.
+// (or one of its words) contains, ignoring case; -1 for none. Of two as
+// long, the later in the name (the noun: a Staff Sling is a sling).
 func (inv *inventory) icon(it *front.InvItem) int {
 	name := strings.ToLower(it.Name + "\n" + strings.Join(it.Words, " "))
-	n, best := -1, 0
-	for k, c := range inv.icons {
-		if len(k) > best && strings.Contains(name, k) {
-			n, best = c, len(k)
+	n, best, at, bk := -1, 0, -1, ""
+	for k, c := range inv.icons { // the longest; of two as long the later in the name (a Staff Sling is a sling), then the first in order: never the map's order
+		i := strings.LastIndex(name, k)
+		if i >= 0 && (len(k) > best || len(k) == best && (i > at || i == at && k < bk)) {
+			n, best, at, bk = c, len(k), i, k
 		}
 	}
 	return n
