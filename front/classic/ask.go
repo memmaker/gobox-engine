@@ -25,6 +25,9 @@ func Ask(s game.State) (*front.Ask, bool) {
 		return nil, false
 	}
 	q := &front.Ask{Kind: k, Menu: front.Menu{Prompt: a.Prompt}, Max: a.Max, Default: a.Default, Break: a.Break, Yes: a.Yes, Text: a.Typed, View: a.View, NoEsc: a.NoEsc, NoPick: a.NoPick}
+	if a.Kind == game.Name && q.Max <= 0 { // no length given (0): the Gold Box name's 15, never a line that takes no letter
+		q.Max = 15
+	}
 	if k == front.AskConfirm && q.Prompt == "" { // the question is in the message: the yes/no still needs a line to be drawn (present.confirm)
 		q.Prompt = cmp.Or(a.Text, "Yes or no?")
 	}
