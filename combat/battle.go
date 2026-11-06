@@ -262,7 +262,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 				continue
 			}
 			o := gpu.MeshOptions{Blend: gpu.MeshAlpha, Tint: [4]float32{1, 1, 1, 1}, Light: sunDir, Ambient: 1}
-			o.Model = place(float32(x)+.5, 0.002, float32(y)+.5, 0, 1, 1, 1)
+			o.Model = place(float32(x)+.5, 0.01, float32(y)+.5, 0, 1, 1, 1) // over the floor's top (at 0.002 the floor hid it)
 			dst.DrawMesh(p.flatQuad, p.figure(b.Tiles[s.Overlay-1], 0).tex, vp, &o)
 		}
 	}
