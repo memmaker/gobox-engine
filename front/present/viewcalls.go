@@ -6,6 +6,7 @@
 package present
 
 import (
+	"cmp"
 	"errors"
 	"gobox/front"
 	"slices"
@@ -53,7 +54,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 				return false
 			}
 			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
-			front.AskForMember(p, "Trade to whom?", sel, func(t int) {
+			front.AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
 				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, N: n, X: t, Y: 1})
 			})
 		case front.ActSpells:
@@ -77,7 +78,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 				return false
 			}
 			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
-			front.AskForMember(p, "Trade to whom?", sel, func(t int) {
+			front.AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
 				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, N: n, X: t, Y: 1})
 			})
 		case front.ActSpells:

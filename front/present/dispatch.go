@@ -108,7 +108,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if askList(v) != nil && askMenu(v) != nil && !choosing(v) {
 		return p.listKey(k, v)
 	}
-	if (p.pageMenu || v.Picker != nil) && typing(v) == nil && p.pageMenuKey(k, v) { // a picker's keys never wait on the frame that sets pageMenu // a line being typed (a map label) takes its keys in keyAct
+	if (p.pageMenu || v.Picker != nil) && typing(v) == nil && !(p.q != nil && choosing(v)) && p.pageMenuKey(k, v) { // a picker's keys never wait on the frame that sets pageMenu // a line being typed (a map label) takes its keys in keyAct // the presenter's own member pick over a page (Trade to whom?) takes the arrows and Enter in keyAct
 		return true
 	}
 	if v.Inventory != nil && p.inv.view != nil && !choosing(v) {
