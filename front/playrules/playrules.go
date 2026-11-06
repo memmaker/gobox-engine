@@ -177,7 +177,13 @@ func (r *rules) asked(ps play.State) *game.Ask {
 		return r.partyMenu(a)
 	}
 	if f, ok := ps.(play.ShipFight); ok && len(f.Menu) > 0 {
-		return &game.Ask{Kind: game.Choice, Options: r.options(f.Menu, false)}
+		o := r.options(f.Menu, false)
+		for i := range o {
+			if i < len(f.Keys) && f.Keys[i] != 0 {
+				o[i].Key = f.Keys[i] // the game's key (BR2's C for Character), not the label's
+			}
+		}
+		return &game.Ask{Kind: game.Choice, Options: o}
 	}
 	sc, ok := ps.(play.Scene)
 	switch {

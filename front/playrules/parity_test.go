@@ -137,6 +137,10 @@ func TestParity(t *testing.T) {
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Options[0].Key == 'Q' && s.Pending.Options[1].Key == 'V'
 			}},
+		{"ship bar keeps the game's keys", play.ShipFight{Menu: []string{"Close In", "Character"}, Keys: []rune{0, 'C'}}, game.Data{}, nil, nil,
+			func(s game.State, _ game.Result) bool {
+				return s.Pending.Options[0].Key == 'C' && s.Pending.Options[1].Key == 'C' // the game's own (BR2 space: C Character)
+			}},
 		{"team menu keys under NoHotkeys", play.Assembling{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.NewCharacter{}}}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'C' }},
 		{"list Done keeps its key", play.Scene{Kind: play.SceneScreen, Replies: []string{"Agility", "Next", "Done"}}, game.Data{NoHotkeys: true}, nil, nil,

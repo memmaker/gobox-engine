@@ -370,6 +370,7 @@ type ShipFight struct {
 	Fight game.SpaceFight
 	Sheet *game.ShipSheet
 	Menu  []string
+	Keys  []rune // the game's own hotkey per Menu line (0: from the label); nil: all from the labels
 }
 
 func (Assembling) state() {}
