@@ -3,6 +3,9 @@ package ui
 // Results is the after-combat page's data: the outcome and experience, the
 // hirelings' shares, what the party takes, the members harmed and, when
 // the party is destroyed, the end.
+//
+// Exp is the game's own lead-in ending in the number ("Each character
+// receives 50"); the page appends only " experience points.".
 type Results struct {
 	Outcome, Exp string
 	Shares       []string
