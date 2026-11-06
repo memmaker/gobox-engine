@@ -67,6 +67,9 @@ func (g *Game) do(d game.Decision) error {
 		if e.Kind == game.EvReset {
 			g.resets++
 		}
+		if s := g.R.State(); e.Kind == game.EvMessage && strings.TrimSpace(e.Text) != "" && s.Combat == nil && s.Items != game.ItemsNone { // over the items (the shop's "Brann buys a Broad Sword"): the toast on its bottom row, as a refusal's; the inventory plays no message
+			g.note = front.Note{Text: strings.TrimSpace(e.Text), At: time.Now()}
+		}
 	}
 	if r, ok := res.Err.(*game.Refusal); ok && r.Ask != nil { // the question to put instead
 		g.asked = r.Ask

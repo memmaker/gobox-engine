@@ -5,8 +5,12 @@ import (
 	"gobox/game"
 )
 
-// Note is v with the status line's toast s.Note holds.
+// Note is v with the status line's toast s.Note holds; v's own (a
+// Refusal's, a shop's message) stays when the State has none.
 func Note(v front.View, s game.State) front.View {
+	if s.Note.Text == "" {
+		return v
+	}
 	v.Note = front.Note{Text: s.Note.Text, At: s.Note.At}
 	return v
 }
