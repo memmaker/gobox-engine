@@ -114,6 +114,7 @@ type Question struct {
 	Typed        bool
 	Number       bool
 	Default, Max int             // Typed: the longest; Number: the default and the largest; YesNo: 1 starts on yes
+	NoEsc        bool            // Esc does not answer it (the question stays up), as the original's ask that ignores Esc
 	Continue     bool            // a key to go on (Continue answers it); Common.Status may say so
 	Heading      bool            // a heading to pick (the overland): Heading{Dir}, Leave for Done
 	List         bool            // Replies are a pick from a list (a roster, a town's places), not a command menu

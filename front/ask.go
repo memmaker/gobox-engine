@@ -50,6 +50,7 @@ type Ask struct {
 	Menu              // the prompt and the options (ActChoose N)
 	List   []ListLine // AskList: the lines
 	Text   string     // AskText, AskNumber: the line as typed so far
+	NoEsc  bool       // Esc does not answer it: the question stays up (the game's say)
 	Max    int        // AskText, AskNumber: the longest line
 	Ms     int        // AskPause
 	Spells []Spell    // AskSpell: the spells to pick from (ActCast ID)

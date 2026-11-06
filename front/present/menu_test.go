@@ -301,3 +301,16 @@ func TestConfirmStart(t *testing.T) {
 		}
 	}
 }
+
+// TestConfirmNoEsc: Esc on a yes/no the game keeps up on Esc (Ask.NoEsc)
+// answers nothing; on others it is No.
+func TestConfirmNoEsc(t *testing.T) {
+	for _, keep := range []bool{true, false} {
+		v := front.View{Ask: &front.Ask{Kind: front.AskConfirm, Menu: front.Menu{Prompt: "Claim it?"}, NoEsc: keep}}
+		p := &Presenter{confirmSel: 0, shownView: v}
+		p.key(27, v)
+		if a := p.Actions(); keep && len(a) != 0 || !keep && (len(a) != 1 || a[0].Kind != front.ActNo) {
+			t.Errorf("NoEsc %v: %v", keep, a)
+		}
+	}
+}

@@ -466,6 +466,7 @@ var yesNoKeys = []byte{'Y', 'N'}
 // global keys go on.
 func (p *Presenter) confirmKey(k uint16) bool {
 	switch i, back, ok := ui.MenuNav(actOf(k), k, &p.confirmSel, yesNoKeys); {
+	case back && p.shownView.Ask != nil && p.shownView.Ask.NoEsc: // the game keeps it up on Esc
 	case back:
 		p.confirmPick(1)
 	case i >= 0:
