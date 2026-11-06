@@ -9,6 +9,7 @@ import (
 	"image"
 	"image/color"
 	"slices"
+	"strings"
 	"time"
 
 	"gobox/ega"
@@ -53,12 +54,15 @@ type inventory struct {
 	img, tip    *gpu.Image     // the canvas and the tooltip on the GPU
 	glyph       func(byte) [8]byte
 
-	shown   bool                    // the last frame was the inventory
-	sel     int                     // the highlighted item (InvItem.Index), -1 for none
-	keep    struct{ row, n, i int } // a sold, dropped or readied item's line, the list's length and its Index then: the line after it is highlighted once it is gone (row -1 none)
-	ask     *front.Action           // a Drop or Sell waits for Yes
-	askSel  int                     // the question's highlighted answer: 0 Yes, 1 No
-	askAt   []image.Rectangle       // the question's Yes and No on the screen, as last drawn
+	shown bool // the last frame was the inventory
+	sel   int  // the highlighted item (InvItem.Index), -1 for none
+	keep  struct {
+		row, n, i int
+		id        string
+	} // a sold, dropped or readied item's line, the list's length and its Index then: the line after it is highlighted once it is gone (row -1 none)
+	ask     *front.Action     // a Drop or Sell waits for Yes
+	askSel  int               // the question's highlighted answer: 0 Yes, 1 No
+	askAt   []image.Rectangle // the question's Yes and No on the screen, as last drawn
 	view    *front.Inventory
 	acts    []front.Action // to send (Presenter.Actions)
 	words   []word         // the menu row's words
@@ -231,6 +235,15 @@ func (inv *inventory) removeX(k front.ActKind, i, x int) {
 	}
 	shown := inv.list.shown(inv.view.Pool) // a readied item on the doll is not in it: row -1
 	inv.keep.row, inv.keep.n, inv.keep.i = slices.IndexFunc(shown, func(it front.InvItem) bool { return it.Index == i }), len(shown), i
+	inv.keep.id = ""
+	if k == front.ActReady && inv.keep.row >= 0 { // readying keeps the item in the list, moved (readied gear first): the highlight follows it
+		inv.keep.id = itemID(shown[inv.keep.row])
+	}
+}
+
+// itemID is what tells an item from the others whatever its row or Index.
+func itemID(it front.InvItem) string {
+	return fmt.Sprint(it.Type, it.Words, strings.TrimSpace(it.Name))
 }
 
 // choose highlights ware i of the shop or item i of the member's.
