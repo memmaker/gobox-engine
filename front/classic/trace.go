@@ -21,6 +21,9 @@ func (g *Game) trace(what string, res game.Result) {
 	turn, pace := "", ""
 	if c := s.Combat; c != nil && c.Turn != nil {
 		turn = fmt.Sprintf(" turn=unit%d", c.Turn.Unit)
+		for _, o := range c.Turn.Options {
+			turn += fmt.Sprintf(" %s/%c", o.Label, o.Key)
+		}
 	}
 	if s.Pacing != nil {
 		pace = fmt.Sprintf(" pace=%v", s.Pacing.Pace)
