@@ -97,6 +97,14 @@ func layout(g *[25][50]Square, walls int, empty, cut func(int) bool, ps *propSet
 // one on the blocked square, the crown on top of the trunk.
 func mapMesh(g *[25][50]Square, walls int, empty, cut func(int) bool, tiles []image.Image, ps *propSet) []gpu.MeshVertex {
 	kinds, foot := layout(g, walls, empty, cut, ps)
+	have := func(t int) bool { return t >= 0 && t < len(tiles) && tiles[t] != nil }
+	for z := range kinds { // a standing sprite whose tile has no picture (a partial map) is plain floor: nothing the game sends ever panics
+		for x := range kinds[z] {
+			if kinds[z][x] == stand && (!have(g[z][x].Tile) || foot[z][x] > 0 && !have(foot[z][x]-1)) {
+				kinds[z][x], foot[z][x] = plain, 0
+			}
+		}
+	}
 	upright := func(vs []gpu.MeshVertex, t int, fx, fy, fz float32) []gpu.MeshVertex {
 		uv := tileUV(t)
 		u0, v0, du, dv := uv[3][0], uv[3][1], uv[1][0]-uv[3][0], uv[1][1]-uv[3][1]

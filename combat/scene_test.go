@@ -204,3 +204,17 @@ func TestClickReach(t *testing.T) {
 		t.Error("a click on a Reach square did not return Walk")
 	}
 }
+
+// TestMapMeshPartial: a map whose standing sprites have no tile pictures
+// (nil, missing, out of range) builds without a panic.
+func TestMapMeshPartial(t *testing.T) {
+	var g [25][50]Square
+	g[3][4] = Square{Tile: 1, Wall: true, Height: 2}
+	g[6][6] = Square{Tile: 99, Wall: true, Height: 2}
+	all := func(int) bool { return true }
+	for _, tiles := range [][]image.Image{nil, {}, make([]image.Image, 3)} {
+		mapMesh(&g, 0, func(int) bool { return false }, all, tiles, nil)
+	}
+	var empty [25][50]Square
+	mapMesh(&empty, 0, all, all, nil, nil)
+}
