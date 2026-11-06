@@ -195,9 +195,10 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 func turnOptions(t *game.Turn) (can []front.ActKind, ops []front.TurnOption) {
 	for _, op := range t.Options {
 		act, ok := turnAct(op.Do)
-		if ok {
-			can = append(can, act)
+		if !ok { // a decision with no act of its own (an Answer by hotkey): the bar sends the option itself
+			act = front.ActOption
 		}
+		can = append(can, act)
 		key := byte(0)
 		if op.Key > 0 && op.Key < 128 {
 			key = byte(op.Key)
