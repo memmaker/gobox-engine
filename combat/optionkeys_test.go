@@ -48,3 +48,23 @@ func TestMoveOption(t *testing.T) {
 		t.Fatalf("free %v", p.free)
 	}
 }
+
+// TestClickHitsUnit: a click on a foe's figure (above its square, where the
+// floor ray lands on the square behind) is on the foe.
+func TestClickHitsUnit(t *testing.T) {
+	foe := Unit{ID: 7, X: 14, Y: 8, Squares: []image.Point{{14, 8}}}
+	b := &Board{Units: []Unit{{ID: 1, X: 18, Y: 14, Active: true}, foe}, Targets: []int{7}, Turn: &Turn{Can: []Kind{ActAttack}}}
+	p := &Presenter{b: b, screen: image.Rect(0, 0, 800, 600)}
+	p.cam = camera{eye: vec{20, 9, 20}, at: vec{14, 0, 8}, fovy: 0.8, aspect: 4.0 / 3}
+	nx, ny, _ := p.cam.ndc(vec{14.5, 0.8, 8.5}) // the figure's head
+	x, y := int((nx+1)/2*800), int((1-ny)/2*600)
+	if sx, sy, _ := p.Pick(x, y); sx == 14 && sy == 8 {
+		t.Fatal("the floor ray already lands on the foe's square: no test")
+	}
+	if !p.Click(x, y) {
+		t.Fatal("click not taken")
+	}
+	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: ActAttack, N: 7}) {
+		t.Fatalf("%+v", got)
+	}
+}

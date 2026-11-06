@@ -4,6 +4,7 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -272,8 +273,37 @@ func (p *Presenter) Click(x, y int) bool {
 			return true
 		}
 	}
+	if u, ok := p.unitUnder(x, y); ok { // a unit stands in front of the floor behind it: the click is on the unit
+		return p.clickSquare(image.Pt(u.X, u.Y))
+	}
 	sx, sy, ok := p.Pick(x, y)
 	return ok && p.clickSquare(image.Pt(sx, sy))
+}
+
+// unitUnder is the unit whose standing figure (a square wide, a square tall,
+// over its footprint) is under screen pixel (x, y), the nearest one first.
+func (p *Presenter) unitUnder(x, y int) (Unit, bool) {
+	r := p.screen
+	if p.b == nil || r.Empty() || !image.Pt(x, y).In(r) {
+		return Unit{}, false
+	}
+	nx, ny := 2*float64(x-r.Min.X)/float64(r.Dx())-1, 1-2*float64(y-r.Min.Y)/float64(r.Dy())
+	var best Unit
+	bestY, found := 2.0, false
+	for _, u := range p.b.Units {
+		c := unitCentre(u)
+		bx, by, ok1 := p.cam.ndc(vec{c[0], 0, c[1]})
+		ex, _, ok2 := p.cam.ndc(vec{c[0] + .4, 0, c[1]})
+		_, ty, ok3 := p.cam.ndc(vec{c[0], float64(max(u.Size, 1)), c[1]})
+		if !ok1 || !ok2 || !ok3 {
+			continue
+		}
+		hw := math.Hypot(ex-bx, 0) + 1e-9
+		if nx >= bx-hw && nx <= bx+hw && ny >= by && ny <= ty && by < bestY { // the lowest base on screen is the nearest
+			best, bestY, found = u, by, true
+		}
+	}
+	return best, found
 }
 
 // clickSquare takes a click (or the keys' cursor's Enter) on square sq:
