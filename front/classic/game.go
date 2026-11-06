@@ -1,7 +1,9 @@
 package classic
 
 import (
+	"fmt"
 	"image"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -18,15 +20,16 @@ type Game struct {
 	R game.Rules
 	D game.Data
 
-	grid   image.Point  // the page's size in cells (ActResize); 40x25 at least
-	events []game.Event // the fight's events since the last Settle
-	note   front.Note   // the front's own refusal toast
-	lore   int          // journal notes seen (State.Lore), +1; 0: none counted yet
-	resets int
-	tiles  bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
-	asked  *game.Ask // a Refusal's question put instead (answered by its options' Do)
-	aim    *aiming   // a combat spell's squares being picked (Combat.Aims)
-	found  bool      // the treasure's "You found some loot!" was acknowledged (cleared when it goes)
+	grid      image.Point  // the page's size in cells (ActResize); 40x25 at least
+	events    []game.Event // the fight's events since the last Settle
+	note      front.Note   // the front's own refusal toast
+	lore      int          // journal notes seen (State.Lore), +1; 0: none counted yet
+	resets    int
+	traceMode game.Mode // the mode last traced
+	tiles     bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
+	asked     *game.Ask // a Refusal's question put instead (answered by its options' Do)
+	aim       *aiming   // a combat spell's squares being picked (Combat.Aims)
+	found     bool      // the treasure's "You found some loot!" was acknowledged (cleared when it goes)
 }
 
 // aiming is the squares picked so far for spell, up to n.
@@ -46,6 +49,7 @@ func NewGame(r game.Rules, d game.Data) *Game {
 // do hands d to the rules, keeping its events; the refusal is the error.
 func (g *Game) do(d game.Decision) error {
 	res := g.R.Apply(d)
+	g.trace(fmt.Sprintf("%T%+v", d, d), res)
 	g.events = append(g.events, res.Events...)
 	for _, e := range res.Events {
 		if e.Kind == game.EvReset {
@@ -72,6 +76,9 @@ func (g *Game) sel(n int) int {
 
 func (g *Game) step() error {
 	res := g.R.Step()
+	if len(res.Events) > 0 || res.Err != nil {
+		g.trace("step", res)
+	}
 	g.events = append(g.events, res.Events...)
 	return res.Err
 }
@@ -510,6 +517,9 @@ func (g *Game) ClueRead(i int) *front.Read {
 
 // Answer does the Decision a names; ActResize is the front's own (the page's size).
 func (g *Game) Answer(a front.Action) error {
+	if traceOn {
+		fmt.Fprintf(os.Stderr, "trace act %+v\n", a)
+	}
 	if a.Kind == front.ActResize {
 		err := g.do(game.Resize{Cols: a.X, Rows: a.Y})
 		g.grid = image.Pt(40, 25) // the page the game shows: its Cells, else the original's (a game that keeps its page lays nothing out wider)
