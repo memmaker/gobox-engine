@@ -20,7 +20,7 @@ func TestPageRowsFrames(t *testing.T) {
 // A game event with a Page becomes a timed EvFrame whose Scene is that page.
 func TestCombatEventsPage(t *testing.T) {
 	pg := &game.Page{Layers: []game.Layer{{FrameMs: 1}}}
-	out := combatEvents([]game.Event{{Ms: 60, Page: pg}}, front.View{}, nil)
+	out := combatEvents([]game.Event{{Ms: 60, Page: pg}}, front.View{}, nil, 0)
 	if len(out) != 1 || out[0].Ms != 60 || out[0].Scene == nil || len(out[0].Scene.Pictures) != 1 {
 		t.Fatalf("%+v", out)
 	}

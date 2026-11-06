@@ -1813,3 +1813,7 @@ func (r *rules) setSpeed(n int) {
 		g.SetSpeed(r.speed)
 	}
 }
+
+// Speed is the game speed, 0 fastest .. 9 slowest (classic holds a fight's
+// messages by it).
+func (r *rules) Speed() int { return r.speed }

@@ -32,6 +32,7 @@ type Game struct {
 	tiles      bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
 	asked      *game.Ask // a Refusal's question put instead (answered by its options' Do)
 	aim        *aiming   // a combat spell's squares being picked (Combat.Aims)
+	speed      int       // the game speed (SetSpeed), 0 fastest .. 9 slowest: a fight message's hold
 	sheet      int       // the look-only sheet up (a fight's View): member+1, 0 none
 	found      bool      // the treasure's "You found some loot!" was acknowledged (cleared when it goes)
 }
@@ -47,11 +48,14 @@ var _ front.Game = (*Game)(nil)
 // NewGame is the front.Game over r and d.
 func NewGame(r game.Rules, d game.Data) *Game {
 	GameID, Flow = d.ID, d.CreationFlow
-	return &Game{R: r, D: d, grid: image.Pt(40, 25)}
+	return &Game{R: r, D: d, grid: image.Pt(40, 25), speed: 4}
 }
 
 // do hands d to the rules, keeping its events; the refusal is the error.
 func (g *Game) do(d game.Decision) error {
+	if s, ok := d.(game.SetSpeed); ok {
+		g.speed = min(max(s.N, 0), 9)
+	}
 	if c := g.R.State().Combat; c != nil { // the fight as the decision found it: a Result that ends it plays on it (Settle)
 		g.lastCombat = c
 	}
@@ -227,9 +231,19 @@ func (g *Game) Settle() front.View {
 		g.ended = &c
 		posed = g.endedBattle
 	}
-	v.Events = combatEvents(g.events, v, posed)
+	v.Events = combatEvents(g.events, v, posed, g.messageMs())
 	g.events, g.lastCombat = nil, g.R.State().Combat
 	return v
+}
+
+// messageMs is how long a fight's message holds: the game speed × 100 ms,
+// the rules' speed where they keep one (Speed), else g.speed (SetSpeed).
+func (g *Game) messageMs() int {
+	n := g.speed
+	if r, ok := g.R.(interface{ Speed() int }); ok {
+		n = r.Speed()
+	}
+	return n * 100
 }
 
 // endedBattle is the fight the Result ended (g.ended), for each of its
@@ -260,7 +274,7 @@ func (g *Game) endedBattle(e game.Event) *front.Battle {
 // combatEvents are the fight's events as the presenter plays them; the
 // kinds with no moment to play (pictures) are left out. Outside fights too:
 // every step's events come through here (songs, sounds).
-func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.Battle) (out []front.CombatEvent) {
+func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.Battle, holdMs int) (out []front.CombatEvent) {
 	kinds := map[game.EventKind]front.EventKind{
 		game.EvAttack: front.EvAttack, game.EvHit: front.EvHit, game.EvMiss: front.EvMiss, game.EvDamage: front.EvDamage,
 		game.EvDown: front.EvDied, game.EvSpell: front.EvSpell, game.EvMove: front.EvMoved, game.EvMissile: front.EvMissile,
@@ -289,6 +303,8 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 				}
 			} else if e.Pose > 0 && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose
 				ce.Ms, ce.Battle = e.Ms, posed(e)
+			} else if e.Text != "" && e.Ms == 0 && v.Battle != nil && posed != nil { // a fight's message stays up the game-speed delay before what follows, as the originals'
+				ce.Ms, ce.Battle = holdMs, posed(e)
 			}
 			if k == front.EvMissile && len(e.Sprite) > 0 && ce.Battle != nil { // the shot flies: its sprite square by square from the shooter, in thirds, over the moment
 				out = append(out, missileFlight(ce, e.Sprite[0])...)

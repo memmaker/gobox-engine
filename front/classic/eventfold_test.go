@@ -13,7 +13,7 @@ func TestEventsFold(t *testing.T) {
 	es := []game.Event{{Kind: game.EvAttack, Unit: 1, Target: 2}, {Kind: game.EvHit, Unit: 1, Target: 2},
 		{Kind: game.EvDamage, Unit: 2, Target: 2, N: 5}, {Kind: game.EvAttack, Unit: 2, Target: 1}, {Kind: game.EvMiss, Unit: 2, Target: 1}}
 	want := []front.EventKind{front.EvAttack, front.EvHit, front.EvDamage, front.EvAttack, front.EvMiss}
-	out := combatEvents(es, front.View{}, nil)
+	out := combatEvents(es, front.View{}, nil, 0)
 	if len(out) != len(want) {
 		t.Fatalf("%d events, want %d", len(out), len(want))
 	}

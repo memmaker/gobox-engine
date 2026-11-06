@@ -13,7 +13,7 @@ import (
 func TestMissileFlies(t *testing.T) {
 	b := &front.Battle{Units: []front.Unit{{ID: 1, X: 27, Y: 14}}}
 	es := []game.Event{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Pose: 1, Ms: 300, Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
-	out := combatEvents(es, front.View{Battle: b}, func(game.Event) *front.Battle { return b })
+	out := combatEvents(es, front.View{Battle: b}, func(game.Event) *front.Battle { return b }, 0)
 	if len(out) != 7 || out[0].Kind != front.EvMissile {
 		t.Fatalf("%d frames", len(out))
 	}
