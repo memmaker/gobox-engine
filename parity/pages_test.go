@@ -96,8 +96,8 @@ func TestSlotsAdapter(t *testing.T) {
 			a, b := engine(t, true, scene), engine(t, true, scene)
 			b.Cfg.SaveDir = a.Cfg.SaveDir // one set of slots for both
 			if scene != "combat" {
-				a.Save("one")
-				a.Save("two")
+				a.SaveNamed("one")
+				a.SaveNamed("two")
 			}
 			g := classic.NewGame(b.Rules(), b.Data())
 			for _, loadOnly := range []bool{false, true} {

@@ -65,7 +65,7 @@ func capture(t *testing.T) *rules.Engine {
 	if err := os.CopyFS(filepath.Join(c.Cfg.SaveDir, "saves", "CAPTURE"), os.DirFS(src)); err != nil {
 		t.Skip("no CAPTURE save:", err)
 	}
-	if !c.Load("CAPTURE", false) {
+	if !c.LoadNamed("CAPTURE", false) {
 		t.Fatal("CAPTURE does not load")
 	}
 	settled(c, front.Action{})
