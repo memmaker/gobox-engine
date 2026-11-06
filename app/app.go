@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"gobox/blobber"
 	"gobox/gpu"
@@ -243,6 +244,7 @@ func (s *shell) step() {
 			s.snap, s.fed, s.gap = true, s.fed+1, 0
 		case s.gap >= Ticks && (next == Wait || s.cfg.Game.Idle() || s.gap >= MaxWait):
 			k, s.fed, s.gap = next, s.fed+1, 0
+			fmt.Fprintf(os.Stderr, "%s key %d/%d %#x tick %d\n", time.Now().Format("15:04:05.000"), s.fed, len(c.Keys), next, s.ticks) // each scripted key in the run's log, to tie the trace's acts to keys
 		}
 	}
 	alt := k&0xF000 == AltKey
