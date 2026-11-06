@@ -807,9 +807,9 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 	for _, k := range r.data.VerbKeys {
 		used[k] = true
 	}
-	for _, v := range brVerbs {
+	for _, v := range answerVerbs {
 		if allowed[name(v.a)] {
-			used[r.verbKey(v.label, v.key)] = true
+			used[r.verbKey(v.label)] = true
 		}
 	}
 	for _, o := range turnOptions {
@@ -825,8 +825,8 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 	if slices.Contains(al.Plain, play.Action(play.Quick{All: true})) { // the original's Quick for the whole party: its own entry, keyed by the series (VerbKeys, VerbChords) or clicked
 		t.Options = append(t.Options, game.Option{Label: cmp.Or(r.data.Texts["Quick All"], "Quick All"), Key: r.data.VerbKeys["Quick All"], Do: game.Quick{All: true}})
 	}
-	for _, v := range brVerbs { // as Buck Rogers' rules put them: an answer by hotkey
-		if k := r.verbKey(v.label, v.key); allowed[name(v.a)] {
+	for _, v := range answerVerbs { // the rules take these as an answer by hotkey
+		if k := r.verbKey(v.label); allowed[name(v.a)] {
 			t.Options = append(t.Options, game.Option{Label: v.label, Key: k, Do: game.Answer{N: int(k)}})
 		}
 	}
@@ -914,11 +914,11 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 }
 
 // verbKey is the series' hotkey for a combat verb (Data.VerbKeys), else k.
-func (r *rules) verbKey(label string, k rune) rune {
+func (r *rules) verbKey(label string) rune {
 	if x, ok := r.data.VerbKeys[label]; ok {
 		return x
 	}
-	return k
+	return rune(label[0]) // the label's first letter
 }
 
 // maneuver is the rules' maneuver id, named as they name it.
@@ -929,14 +929,14 @@ func maneuver(named map[int]game.TurnManeuver, id, area int) game.TurnManeuver {
 	return game.TurnManeuver{ID: id, Name: fmt.Sprint("Maneuver ", id), Area: area}
 }
 
-// brVerbs are Buck Rogers' turn verbs with the hotkeys its menu answers by.
-var brVerbs = []struct {
+// answerVerbs are turn verbs the rules answer by hotkey: the key is the
+// game's VerbKeys entry, else the label's first letter.
+var answerVerbs = []struct {
 	label string
-	key   rune
 	a     play.Action
 }{
-	{"Target", 'T', play.Target{}}, {"View", 'V', play.ViewTarget{}}, {"Intimidate", 'I', play.Intimidate{}},
-	{"Aid", 'A', play.Aid{}}, {"Sprint", 'S', play.Sprint{}}, {"Dodge", 'D', play.Dodge{}}, {"Jetpack", 'J', play.Jetpack{}},
+	{"Target", play.Target{}}, {"View", play.ViewTarget{}}, {"Intimidate", play.Intimidate{}},
+	{"Aid", play.Aid{}}, {"Sprint", play.Sprint{}}, {"Dodge", play.Dodge{}}, {"Jetpack", play.Jetpack{}},
 }
 
 func spellRef(sp []game.SpellRef, id int) game.SpellRef {
@@ -955,8 +955,8 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	switch d := d.(type) {
 	case game.Answer:
 		if f, ok := ps.(play.Fighting); ok && r.ask == nil && f.Ask == nil {
-			for _, v := range brVerbs {
-				if d.N == int(r.verbKey(v.label, v.key)) && allowedNames(f.Allowed)[name(v.a)] {
+			for _, v := range answerVerbs {
+				if d.N == int(r.verbKey(v.label)) && allowedNames(f.Allowed)[name(v.a)] {
 					return r.do(v.a)
 				}
 			}

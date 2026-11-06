@@ -591,7 +591,7 @@ type (
 	Quick      struct{ All bool }
 	Flee       struct{}
 	EndTurn    struct{}
-	// Buck Rogers' turn menu.
+	// Turn verbs the rules answer by hotkey (front/playrules answerVerbs).
 	Target     struct{} // pick a target to fire at (the rules ask on)
 	ViewTarget struct{} // look over the targets
 	Intimidate struct{}
