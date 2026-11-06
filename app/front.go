@@ -142,6 +142,11 @@ func (g *frontGame) Step(k Key) {
 		g.leftHold = !g.leftHold
 	case Wait: // \w
 	default:
+		if g.f.Options() { // the Esc menu reads its keys as the pad's, as Update hands them
+			g.f.OptionsPad(k)
+			g.f.UpdateOptions()
+			break
+		}
 		g.f.Key(k)
 	}
 	g.f.Act() // the screens' own decisions too: a paced pause ends
