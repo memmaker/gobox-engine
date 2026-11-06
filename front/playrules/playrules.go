@@ -51,6 +51,7 @@ type rules struct {
 	cursor image.Point   // the free cursor's square
 	read   *game.Read    // the handout up, kept so the pointer holds while it does
 	sheet  int           // the member whose sheet is up, -1 none
+	speed  int           // the game speed (SetSpeed, 0-9): a fight's moment holds speed × 100 ms, as the originals' message delay
 	rest   time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
 	walk   []image.Point // the auto-walk's squares still to go, one per Step (PaceWalk)
 	seq    uint64        // counts the changes: the front redraws on a new one
@@ -76,7 +77,7 @@ type aiming struct {
 // New is g as the old front's Rules; d is the game's Data
 // (its series' verb keys and texts).
 func New(g play.Game, d game.Data) game.Rules {
-	r := &rules{g: g, dir: saveDir(d), sheet: -1, data: d}
+	r := &rules{g: g, dir: saveDir(d), sheet: -1, data: d, speed: defaultSpeed}
 	return r
 }
 
@@ -974,7 +975,10 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	case game.ViewMember: // a shop's, temple's or pool's View: the member's sheet, front state; CloseSheet goes back to the screen under it
 		r.sheet = who(d.Member, ps)
 		return game.Result{}
-	case game.SetSpeed, game.Resize, game.TitleFlash, game.LootLook:
+	case game.SetSpeed:
+		r.speed = min(max(d.N, 0), 9)
+		return game.Result{}
+	case game.Resize, game.TitleFlash, game.LootLook:
 		return game.Result{} // the screen's (the title's flash is the front's palette)
 	case game.TitlePicture: // gobox steps the title over the scene's Steps
 		r.title.n, r.title.credits = d.N, false
@@ -1488,7 +1492,7 @@ func (r *rules) keep(a play.Action) game.Result {
 			}
 		}
 	}
-	return game.Result{Events: events(out.Events)}
+	return game.Result{Events: eventsAt(out.Events, r.speed*speedStepMs)}
 }
 
 // sides are the facings of the four steps.
@@ -1571,11 +1575,17 @@ func onlyMoved(es []game.Event) bool {
 	return true
 }
 
-// The pacing gobox gives a fight's moments.
-const strikeMs, castMs, shipMs = 300, 500, 350 // shipMs: ten 35 ms half-steps of a blink
+// The pacing gobox gives a fight's moments: a blow or a cast holds the
+// game speed's delay (speed × speedStepMs, the originals' pauseForMessage,
+// SotSB R540:0BF7); a ship's blink is the hardware's ten 35 ms half-steps.
+const speedStepMs, defaultSpeed, shipMs = 100, 4, 350
 
-// events are the outcome's facts as the old events, paced by gobox.
-func events(es []play.Event) (out []game.Event) {
+// events are the outcome's facts as the old events, at the default speed.
+func events(es []play.Event) []game.Event { return eventsAt(es, defaultSpeed*speedStepMs) }
+
+// eventsAt are the outcome's facts as the old events, a blow or a cast held ms.
+func eventsAt(es []play.Event, ms int) (out []game.Event) {
+	strikeMs, castMs := ms, ms
 	for _, e := range es {
 		switch e := e.(type) {
 		case play.Narrated:

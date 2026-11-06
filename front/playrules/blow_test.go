@@ -38,3 +38,27 @@ func TestBlowShows(t *testing.T) {
 		t.Fatalf("log %v", v.Battle != nil)
 	}
 }
+
+// TestBlowHoldsSpeedDelay: a blow is held the game speed's delay (speed ×
+// 100 ms, the originals'), and SetSpeed changes it.
+func TestBlowHoldsSpeedDelay(t *testing.T) {
+	fight := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}}}},
+		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
+	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Attacked{From: 1, To: 2}}}}
+	r := New(f, game.Data{})
+	held := func() int {
+		for _, e := range r.Apply(game.Attack{Target: 2}).Events {
+			if e.Kind == game.EvAttack {
+				return e.Ms
+			}
+		}
+		return -1
+	}
+	if ms := held(); ms != 400 {
+		t.Fatalf("default speed: %d ms", ms)
+	}
+	r.Apply(game.SetSpeed{N: 2})
+	if ms := held(); ms != 200 {
+		t.Fatalf("speed 2: %d ms", ms)
+	}
+}
