@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/ui"
 )
 
 // The shop menu is built from what the game allows: View always, Take,
@@ -26,5 +27,20 @@ func TestShopMenuFromAllowed(t *testing.T) {
 		if !slices.Equal(got, c.want) {
 			t.Errorf("%+v: %v, want %v", c.shop, got, c.want)
 		}
+	}
+}
+
+// TestTempleMenuFromAllowed: the temple offers the money acts its game
+// allows (SotSB's Pool), each with its key.
+func TestTempleMenuFromAllowed(t *testing.T) {
+	var p Presenter
+	_, rows := p.templeItems(front.View{Temple: &front.Temple{Money: front.Money3{Pool: true}}})
+	i := slices.IndexFunc(rows, func(r ui.MenuRow) bool { return r.Text == "Pool" })
+	if i < 0 || rows[i].Key != 'P' {
+		t.Fatalf("rows %v", rows)
+	}
+	rows[i].Do()
+	if a := p.Actions(); len(a) != 1 || a[0].Kind != front.ActLootPool {
+		t.Errorf("Pool sends %v", a)
 	}
 }

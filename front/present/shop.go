@@ -34,15 +34,7 @@ func (p *Presenter) shopItems(v front.View) (string, []ui.MenuRow) {
 	}
 	it := []ui.MenuRow{{Text: "Buy", Key: 'B', Do: func() { p.send(front.ActInventory, -1) }},
 		{Text: "View", Key: 'V', Do: func() { p.send(front.ActMember, -1) }}} // look-only: the selected member's sheet
-	for _, o := range []struct {
-		on   bool
-		text string
-		act  front.ActKind
-	}{{s.Take, "Take", front.ActTakeMoney}, {s.Pool, "Pool", front.ActLootPool}, {s.Share, "Share", front.ActLootShare}} {
-		if o.on {
-			it = append(it, ui.MenuRow{Text: o.text, Key: o.text[0], Do: func() { p.send(o.act, 0) }})
-		}
-	}
+	it = append(it, p.moneyRows(front.Money3{Take: s.Take, Pool: s.Pool, Share: s.Share})...)
 	if appraisable(s.Appraise) {
 		it = append(it, ui.MenuRow{Text: "Appraise", Key: 'A', Do: c.to(appraise, 0)})
 	}
@@ -95,4 +87,18 @@ func (p *Presenter) ownTraining(v front.View) front.View {
 		v.MainMenu, v.Hall, v.Logo, v.Backdrop, v.Powers = nil, false, nil, nil, nil
 	}
 	return v
+}
+
+// moneyRows are the money acts a place offers (m): Take, Pool, Share.
+func (p *Presenter) moneyRows(m front.Money3) (it []ui.MenuRow) {
+	for _, o := range []struct {
+		on   bool
+		text string
+		act  front.ActKind
+	}{{m.Take, "Take", front.ActTakeMoney}, {m.Pool, "Pool", front.ActLootPool}, {m.Share, "Share", front.ActLootShare}} {
+		if o.on {
+			it = append(it, ui.MenuRow{Text: o.text, Key: o.text[0], Do: func() { p.send(o.act, 0) }})
+		}
+	}
+	return it
 }

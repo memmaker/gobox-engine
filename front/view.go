@@ -615,7 +615,11 @@ type Temple struct {
 	Cures    []Cure // Cure X is the index
 	Gold     int    // the party's gold
 	Appraise Appraise
+	Money    Money3 // the money acts the game allows here (Allowed Take, PoolCoins, LootShare)
 }
+
+// Money3 is the money acts a place's game allows: take, pool, share.
+type Money3 struct{ Take, Pool, Share bool }
 
 // Cure is a temple service.
 type Cure struct {

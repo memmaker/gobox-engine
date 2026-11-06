@@ -126,7 +126,8 @@ func Temple(t *front.Temple, s game.State) *front.Temple {
 	if t == nil || s.Temple == nil {
 		return t
 	}
-	v := &front.Temple{Gold: s.Purse[Coin], Appraise: appraise(s, s.TempleOffers)}
+	v := &front.Temple{Gold: s.Purse[Coin], Appraise: appraise(s, s.TempleOffers),
+		Money: front.Money3{Take: s.Allowed["Take"], Pool: s.Allowed["PoolCoins"], Share: s.Allowed["LootShare"]}}
 	for _, sv := range s.Temple {
 		v.Cures = append(v.Cures, front.Cure{Name: sv.Name, Price: sv.Price, Not: sv.Not[s.Selected],
 			Needed: s.Selected < 0 || s.Selected >= len(s.Party) || slices.Contains(sv.Needs, s.Selected)})
