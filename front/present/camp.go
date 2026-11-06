@@ -52,6 +52,8 @@ type campUI struct {
 	pointer   image.Point     // the pointer on the window (Hover), for the wheel
 	wheeled   time.Time       // the last line the wheel moved the bestiary's list
 	pick      int             // the temple's cure or the shop's item asked about
+	rowsWere  []string        // the rows' texts as last shown (follow)
+	rowsOf    int             // ... and their screen
 	ids       []int           // the spell lists' lines: each one's spell (0: a level, Exit)
 	unset     []bool          // the spell lists' lines with none memorized (grey)
 	level     string          // the level campLevel lists; the power pick's member and pick (powerItems)
@@ -74,6 +76,21 @@ func (c *campUI) to(n, sel int) func() {
 // back returns to screen n on the row that opened the submenu left.
 func (c *campUI) back(n int) func() {
 	return func() { c.screen, c.sel, c.top = n, c.rows[n][0], c.rows[n][1] }
+}
+
+// follow keeps the highlight on its row when rows come or go above it
+// (the shop's Take once credits are pooled): the same text, not the same
+// index.
+func (c *campUI) follow(items []ui.MenuRow) {
+	if c.rowsOf == c.screen && c.sel >= 0 && c.sel < len(c.rowsWere) && (c.sel >= len(items) || items[c.sel].Text != c.rowsWere[c.sel]) {
+		if i := slices.IndexFunc(items, func(r ui.MenuRow) bool { return r.Text == c.rowsWere[c.sel] }); i >= 0 {
+			c.sel = i
+		}
+	}
+	c.rowsWere, c.rowsOf = c.rowsWere[:0], c.screen
+	for _, r := range items {
+		c.rowsWere = append(c.rowsWere, r.Text)
+	}
 }
 
 // campItems are the lines of the camp screen up, and its title.
@@ -319,6 +336,7 @@ func selectedName(v front.View) string {
 // top; a bestiary entry's icon goes over its box.
 func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, v front.View, k float64, cx, top, bottom int) {
 	title, items := p.campItems(v)
+	p.camp.follow(items)
 	lines, keys, off := make([]string, len(items)), p.campKeys(items), ui.RowsOff(items)
 	for i, it := range items {
 		lines[i] = it.Text
@@ -434,6 +452,7 @@ func (p *Presenter) spellList(v front.View) bool {
 func (p *Presenter) campKey(k uint16, v front.View) bool {
 	c := &p.camp
 	_, items := p.campItems(v)
+	c.follow(items)
 	n := len(items)
 	spells := p.spellList(v)
 	m, member := memberKey(k, selectedIndex(v), len(v.Party), true)
