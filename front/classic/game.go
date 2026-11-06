@@ -56,6 +56,9 @@ func (g *Game) do(d game.Decision) error {
 		g.asked = r.Ask
 		return nil
 	}
+	if res.Err != nil && res.Err.Error() != "" { // a refusal always says why, whichever screen asked
+		g.Refuse(res.Err.Error())
+	}
 	return res.Err
 }
 
