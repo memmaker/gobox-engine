@@ -165,7 +165,7 @@ func (v *View) Flow(held, ready bool) bool {
 
 // Moving reports whether the view is still stepping or turning (or has
 // moves queued).
-func (v *View) Moving() bool { return v.g != nil && (v.g.moving || len(v.g.next) > 0) }
+func (v *View) Moving() bool { return v != nil && v.g != nil && (v.g.moving || len(v.g.next) > 0) }
 
 // Fluid reports whether held keys are paced by Flow.
 func (v *View) Fluid() bool { return Settings.Fluid && v.g.smooth }
@@ -181,7 +181,7 @@ func (v *View) OpenOptions() {
 func (v *View) PadKey(k gpu.Key) { padKeys[k] = true }
 
 // OptionsOpen reports whether the Esc menu is up.
-func (v *View) OptionsOpen() bool { return v.g != nil && v.g.menu }
+func (v *View) OptionsOpen() bool { return v != nil && v.g != nil && v.g.menu } // no view (a picture scene): no menu
 
 // UpdateOptions runs the Esc menu for one frame: arrows and Enter pick and
 // change, Esc goes back to the root or closes it. Quit exits the program.
