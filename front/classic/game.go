@@ -73,6 +73,9 @@ func (g *Game) do(d game.Decision) error {
 	}
 	if res.Err != nil && res.Err.Error() != "" { // a refusal always says why, whichever screen asked
 		g.Refuse(res.Err.Error())
+		if _, ok := res.Err.(*game.Refusal); ok && g.R.State().Combat != nil { // in a fight also the message row's, held as a message (POR's "Blocked")
+			g.events = append(g.events, game.Event{Kind: game.EvMessage, Text: res.Err.Error()})
+		}
 	}
 	return res.Err
 }
