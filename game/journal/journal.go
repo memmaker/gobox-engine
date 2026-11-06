@@ -64,6 +64,10 @@ type Book struct {
 }
 
 // Load reads files of fsys into a Book.
+// softBreak is a word the printed book broke at its line end ("men- ace"),
+// kept in the transcription: the text is reflowed, so the halves join.
+var softBreak = regexp.MustCompile(`([a-z])- ([a-z])`)
+
 func Load(fsys fs.FS, files ...string) (*Book, error) {
 	b := &Book{fsys: fsys, texts: map[string][]string{}, pics: map[string]image.Image{}, sizes: map[string]image.Rectangle{}}
 	for _, f := range files {
@@ -83,7 +87,7 @@ func Load(fsys fs.FS, files ...string) (*Book, error) {
 				}
 				b.texts[title] = nil
 			case title != "":
-				b.texts[title] = append(b.texts[title], l)
+				b.texts[title] = append(b.texts[title], softBreak.ReplaceAllString(l, "$1$2"))
 			}
 		}
 	}
