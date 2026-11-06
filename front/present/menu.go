@@ -35,6 +35,9 @@ func (p *Presenter) drawMenuIcons(dst *gpu.Image, glyph func(byte) [8]byte, titl
 	if p.logGrey {
 		st.Theme.Text = col(inkGrey) // the battle Log's light grey
 	}
+	if a := p.inkAsk; a != nil && a.NoPick { // no highlight: only the hotkeys answer
+		sel = -1
+	}
 	if a := p.inkAsk; a != nil { // the question's own colours (Ask's roles)
 		for c, r := range map[*color.RGBA]front.Role{&st.Theme.Title: a.PromptInk, &st.Theme.Text: a.Ink, &st.Theme.Hot: a.HotInk} {
 			if i, ok := roleInk(r); ok {
