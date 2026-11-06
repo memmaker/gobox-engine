@@ -60,8 +60,15 @@ func (g *Game) do(d game.Decision) error {
 	if c := g.R.State().Combat; c != nil { // the fight as the decision found it: a Result that ends it plays on it (Settle)
 		g.lastCombat = c
 	}
+	was := g.R.State()
+	paneWas, linesWere := paneTail(was), paneCount(was)
 	res := g.R.Apply(d)
 	g.trace(fmt.Sprintf("%T%+v", d, d), res)
+	if s := g.R.State(); s.Combat == nil && s.Items != game.ItemsNone { // over the items the text pane is hidden: its new line (BR2's "Doc buys a ...", "not enough credits") is the toast
+		if t := paneTail(s); t != "" && (t != paneWas || paneCount(s) != linesWere) { // a new line, or the same one said again
+			g.note = front.Note{Text: t, At: time.Now()}
+		}
+	}
 	g.events = append(g.events, res.Events...)
 	for _, e := range res.Events {
 		if e.Kind == game.EvReset {
@@ -1049,3 +1056,27 @@ func yesNoOption(q *game.Ask, k front.ActKind) int {
 
 // flightMs is a shot's flight when the game sets no time (Ms, StepMs).
 const flightMs = 300
+
+// paneTail is the text pane's last non-empty line (the game's latest message), "" with none.
+func paneTail(s game.State) string {
+	if s.Page == nil {
+		return ""
+	}
+	for i := len(s.Page.Pane) - 1; i >= 0; i-- {
+		var b strings.Builder
+		for _, r := range s.Page.Pane[i] {
+			b.WriteString(r.Text)
+		}
+		if t := strings.TrimSpace(b.String()); t != "" {
+			return t
+		}
+	}
+	return ""
+}
+
+func paneCount(s game.State) int {
+	if s.Page == nil {
+		return 0
+	}
+	return len(s.Page.Pane)
+}
