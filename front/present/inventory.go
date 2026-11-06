@@ -205,7 +205,7 @@ func (inv *inventory) do(k front.ActKind) {
 		}
 	case it == nil:
 	case inv.ask == nil && (k == front.ActDrop || k == front.ActSell):
-		inv.ask, inv.askSel = &front.Action{Kind: k, N: it.Index}, 1 // No first, as every question
+		inv.ask, inv.askSel = &front.Action{Kind: k, N: it.Index}, map[bool]int{true: 0, false: 1}[k == front.ActSell] // a sale starts on Yes, as the Gold Box's; a drop (gone forever) on No
 		return
 	default:
 		inv.remove(k, it.Index)

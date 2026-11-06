@@ -230,7 +230,7 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 					if l.ware && inv.view.Loot {
 						inv.do(front.ActBuy)
 					} else if l.ware {
-						inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, N: l.item.Index}, 1
+						inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, N: l.item.Index}, 0
 					} else if inv.view.Sell {
 						inv.do(front.ActSell)
 					}
@@ -301,7 +301,7 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 		inv.choose(true, h.item.Index)
 		switch {
 		case drag && partySide && !inv.view.Loot:
-			inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, N: h.item.Index}, 1 // a drag asks first (loot is free: no question)
+			inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, N: h.item.Index}, 0 // Yes first; a drag asks first (loot is free: no question)
 		case drag && partySide, !drag && was == h.item.Index:
 			inv.do(front.ActBuy)
 		}
