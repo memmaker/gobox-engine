@@ -23,6 +23,7 @@ type Game struct {
 	grid       image.Point  // the page's size in cells (ActResize); 40x25 at least
 	events     []game.Event // the fight's events since the last Settle
 	lastCombat *game.Combat // the fight the last Settle left up (a Result that ends it plays its events on it)
+	ended      *game.Combat // that fight as the ending events so far left it
 	note       front.Note   // the front's own refusal toast
 	lore       int          // journal notes seen (State.Lore), +1; 0: none counted yet
 	resets     int
@@ -195,7 +196,10 @@ func (g *Game) Settle() front.View {
 	}
 	v := g.View()
 	posed := g.posedBattle
-	if v.Battle == nil && g.lastCombat != nil { // the events ended the fight: they play on it as it stood, the page after them
+	if v.Battle == nil && g.lastCombat != nil { // the events ended the fight: they play on it, each on the board the ones before it left, the page after them
+		c := *g.lastCombat
+		c.Units = slices.Clone(c.Units)
+		g.ended = &c
 		posed = g.endedBattle
 	}
 	v.Events = combatEvents(g.events, v, posed)
@@ -203,11 +207,12 @@ func (g *Game) Settle() front.View {
 	return v
 }
 
-// endedBattle is the fight the last Settle showed, for an event of the
-// Result that ended it: every timed one is held on it, posed or not.
+// endedBattle is the fight the Result ended (g.ended), for each of its
+// events in turn: every one is held on the board the events before it left
+// (a walk moved, a fall dropped), with its unit in its pose.
 func (g *Game) endedBattle(e game.Event) *front.Battle {
 	s := g.state()
-	c := *g.lastCombat
+	c := *g.ended
 	c.Units = slices.Clone(c.Units)
 	for k := range c.Units {
 		if c.Units[k].ID == e.Unit && e.Pose > 0 {
@@ -215,7 +220,16 @@ func (g *Game) endedBattle(e game.Event) *front.Battle {
 		}
 	}
 	s.Combat = &c
-	return BattleOf(s, g.art())
+	b := BattleOf(s, g.art())
+	for k := range g.ended.Units { // the board after e, for the events that follow
+		switch u := &g.ended.Units[k]; {
+		case u.ID == e.Unit && e.Kind == game.EvMove:
+			u.At = e.To
+		case u.ID == e.Unit && e.Kind == game.EvDown:
+			u.Dead, u.Gone, u.HP = true, true, 0 // off the map, as EvDied plays it
+		}
+	}
+	return b
 }
 
 // combatEvents are the fight's events as the presenter plays them; the
@@ -244,7 +258,11 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 			if n, err := strconv.Atoi(e.Sound); err == nil && ce.Amount == 0 && (k == front.EvSound || k == front.EvSong) { // the sound or song ref as a number
 				ce.Amount = n
 			}
-			if (e.Pose > 0 || v.Battle == nil) && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose (the fight over: on the fight)
+			if v.Battle == nil && posed != nil { // the fight over: every event on the board the ones before it left
+				if b := posed(e); e.Ms > 0 {
+					ce.Ms, ce.Battle = e.Ms, b
+				}
+			} else if e.Pose > 0 && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose
 				ce.Ms, ce.Battle = e.Ms, posed(e)
 			}
 			out = append(out, ce)
