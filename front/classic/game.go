@@ -682,8 +682,13 @@ func (g *Game) UseItem(i, spell, target int, sure bool) error {
 }
 func (g *Game) Drop(i int) error { return g.do(game.Drop{Member: g.sel(-1), Item: i}) }
 func (g *Game) Sell(i int) error { return g.do(game.Sell{Member: g.sel(-1), Item: i}) }
-func (g *Game) Buy(w int) error  { return g.do(game.Buy{Member: g.sel(-1), Item: w}) }
-func (g *Game) TakeAll() error   { return g.do(game.TakeLoot{Item: -1, All: true}) }
+func (g *Game) Buy(w int) error {
+	if g.state().Loot != nil { // the loot screen's Take, as the act mapping does
+		return g.do(game.TakeLoot{Item: w})
+	}
+	return g.do(game.Buy{Member: g.sel(-1), Item: w})
+}
+func (g *Game) TakeAll() error { return g.do(game.TakeLoot{Item: -1, All: true}) }
 func (g *Game) SetPolicy(id int, p front.Policy) error {
 	return g.do(game.SetPolicy{ID: id, Policy: int(p)})
 }
