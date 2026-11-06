@@ -120,5 +120,8 @@ Order (to avoid colliding with the passive rebuild):
 ## Resumed 2026-11-06 (new session, after the usage limit)
 
 The previous session's builders (audit fixes, passive rebuild) are gone. Their uncommitted work is still in sotsb-go and pod-go (rules/*, see `git status`); check whether it builds before continuing it.
-Audit: #2 done (gobox bd6f47c, por 2460a64, sotsb 28fb967, pod 122635c, br1 68d568b): free Aim when VerbOrder/VerbKeys names Aim. Next: #10 PointBuy, #9 OneDisk, #7 NoHotkeys, #3 brVerbs, then #4/#5/#6/#8/#1 (need the originals checked).
+Audit (per-game-settings-audit.md), checked against the originals (notes: this session's originals-progress.txt):
+- Done: #2 FreeAim (bd6f47c), #10 PointBuy (bae1a3c), #7 NoHotkeys (8f54636: lists get no invented keys in any game), #3 brVerbs (a7588ba), #11/#14 comments (00a3e95), #8 Unmarked (4350b18: every original marks the selected member), #4 rules.Config (ae4e4b0: the stoned skip and per-member roll stay in sotsb, O07D:210D, O050 @2E43), #5 CreditFrame (260eb02: Data.CreditBoxes, POR passes ovr02:0206's two), #1 CreationFlow (971efe4: no alignment field means one field per row; BR2 drops its dummy Alignment), #9 OneDisk (61a6b5a: no sibling fallback; POR's hits were tests reading with set 1).
+- Open: #6 SaveNoConfirm/SaveUnnamed: all six originals save to letters A-J unasked; the user picks original letter slots or named slots with overwrite confirm for all. #12 GameID keys the portrait origins (optional: pass the origins as data).
+- Port bugs found, not fixed: POR's trap damage skips stoned/gone members as a "fix" (original ovr08:20CC skips only dead); BR1 and BR2 list Gender before Race, the originals draw race above gender.
 pod-go rules tests compile and pass again (fc28a16).
