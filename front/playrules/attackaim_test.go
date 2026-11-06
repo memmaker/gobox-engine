@@ -2,6 +2,7 @@ package playrules
 
 import (
 	"image"
+	"slices"
 	"testing"
 
 	"gobox/game"
@@ -41,5 +42,17 @@ func TestShootTargets(t *testing.T) {
 	c := r.State().Combat
 	if c == nil || !c.Turn.Aim || len(c.Targets) != 2 || c.Cursor != image.Pt(6, 6) {
 		t.Fatalf("%+v", c)
+	}
+}
+
+// TestQuickAllOption: Quick for the whole party, when Allowed has it, is a
+// bar entry of its own that sends Quick{All: true}.
+func TestQuickAllOption(t *testing.T) {
+	var r rules
+	f := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Quick{}, play.Quick{All: true}}}}}
+	c := r.combat(f)
+	i := slices.IndexFunc(c.Turn.Options, func(o game.Option) bool { return o.Do == game.Decision(game.Quick{All: true}) })
+	if i < 0 || c.Turn.Options[i].Key == 0 {
+		t.Fatalf("%+v", c.Turn.Options)
 	}
 }

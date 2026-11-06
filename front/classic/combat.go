@@ -11,7 +11,7 @@ import (
 
 // turnAct is the combat menu's action a Decision does (false: not a menu entry).
 func turnAct(d game.Decision) (front.ActKind, bool) {
-	switch d.(type) {
+	switch d := d.(type) {
 	case game.Move: // the turn's Move: the tabletop's walk (a square picked), never Move{} as it stands
 		return front.ActWalk, true
 	case game.Attack:
@@ -35,6 +35,9 @@ func turnAct(d game.Decision) (front.ActKind, bool) {
 	case game.EndTurn:
 		return front.ActEnd, true
 	case game.Quick:
+		if d.All { // its own entry: the bar sends the option itself
+			return front.ActOption, true
+		}
 		return front.ActQuick, true
 	case game.Flee:
 		return front.ActFlee, true
