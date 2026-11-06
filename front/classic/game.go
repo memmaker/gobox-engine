@@ -602,7 +602,17 @@ func (g *Game) ShowMember(n int) error {
 func (g *Game) OpenItems(n int, direct bool) error {
 	return g.do(game.OpenItems{Member: n, Direct: direct})
 }
-func (g *Game) CloseItems(all bool) error { return g.do(game.CloseItems{All: all}) }
+// CloseItems: Tab (all false) is the sheet, as out of a fight; in a fight
+// that is the look-only sheet of the member whose items were up.
+func (g *Game) CloseItems(all bool) error {
+	if s := g.R.State(); s.Combat != nil && !all {
+		if err := g.do(game.CloseItems{All: true}); err != nil {
+			return err
+		}
+		return g.OpenSheet(s.Selected)
+	}
+	return g.do(game.CloseItems{All: all})
+}
 func (g *Game) Ready(i, x int) error      { return g.do(game.Ready{Member: g.sel(-1), Item: i, Count: x}) }
 func (g *Game) UseItem(i, spell, target int, sure bool) error {
 	return g.asking(g.do(game.UseItem{Member: g.sel(-1), Item: i, Spell: spell, Target: target}))

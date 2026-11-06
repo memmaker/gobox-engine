@@ -35,3 +35,20 @@ func TestFightSheetLookOnly(t *testing.T) {
 		t.Fatalf("close: %v", r.got)
 	}
 }
+
+// TestFightItemsTabSheet: Tab on a fight's items (CloseItems false) closes
+// them and opens the look-only sheet of the member they were, as Tab opens
+// the sheet out of a fight.
+func TestFightItemsTabSheet(t *testing.T) {
+	r := &fightRules{}
+	r.s = game.State{Selected: 1, Party: []game.Member{{Name: "A"}, {Name: "B"}},
+		Combat: &game.Combat{Turn: &game.Turn{Unit: 3}, Units: []game.Unit{{ID: 3, Member: 0}}}}
+	g := NewGame(r, game.Data{})
+	g.CloseItems(false)
+	if len(r.got) != 1 || r.got[0] != (game.CloseItems{All: true}) {
+		t.Fatalf("sent %v", r.got)
+	}
+	if sp := g.View().SheetPage; sp == nil || sp.Name != "B" {
+		t.Fatalf("sheet %+v", sp)
+	}
+}
