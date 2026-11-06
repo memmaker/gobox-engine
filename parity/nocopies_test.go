@@ -23,7 +23,7 @@ var plumbing = []string{"Ask", "AskKind", "Question", "QKind", "Answer", "Decisi
 // is gone (delete it here in the same change).
 var knownCopies = map[string][]string{
 	"cotab-go": {"Decision", "EvKind", "Event", "Option", "QKind", "Question", "Row"},
-	"pod-go":   {"Decision", "Event", "EventKind", "Mode", "Result"},
+	"pod-go":   {"Decision", "Mode"},
 	"sotsb-go": {"Decision", "Mode"},
 }
 
