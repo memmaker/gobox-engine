@@ -116,8 +116,15 @@ func TestViewGearOpensItems(t *testing.T) {
 		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
 	r := New(f, game.Data{})
 	r.Apply(game.Answer{N: 0})
-	if s := r.State(); s.Items != game.ItemsOwn || s.Selected != 2 || len(f.sent) != 0 {
-		t.Fatalf("items %v selected %d sent %v", s.Items, s.Selected, f.sent)
+	if s := r.State(); s.Items != game.ItemsOwn || s.Selected != 2 || len(f.sent) != 0 || s.Pending != nil {
+		t.Fatalf("items %v selected %d sent %v pending %v", s.Items, s.Selected, f.sent, s.Pending)
+	}
+	if v := classic.NewGame(r, game.Data{}).View(); v.Inventory == nil || v.Ask != nil { // the items draw, over the question
+		t.Fatalf("inventory %v ask %v", v.Inventory != nil, v.Ask != nil)
+	}
+	r.Apply(game.CloseItems{})
+	if r.State().Pending == nil {
+		t.Fatal("the View menu is gone")
 	}
 }
 

@@ -139,6 +139,9 @@ func (r *rules) Pending() *game.Ask { return r.pending(r.g.State()) }
 // pending is the question up; where none is built and Continue is the
 // only way on, a Continue ask, so the player is never stuck.
 func (r *rules) pending(ps play.State) *game.Ask {
+	if _, fight := ps.(play.Fighting); fight && r.items != game.ItemsNone { // the items opened over a question (a View's Gear) are the top layer; closing them shows it again
+		return nil
+	}
 	if r.speedUp {
 		return &game.Ask{Kind: game.Choice, Prompt: "Speed " + strconv.Itoa(r.speed),
 			Options: []game.Option{{Label: "Faster", Key: 'F'}, {Label: "Slower", Key: 'S'}, {Label: "Exit", Key: 'E'}}}
