@@ -309,8 +309,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if !p.active {
 		p.ctx = 0
 	}
-	p.fight = v.Battle != nil                                  // the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
-	p.noMenu = askMenu(v) == nil || len(askMenu(v).Items) == 1 // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
+	p.fight = v.Battle != nil && !(sheetUp(v) && v.SheetPage != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
+	p.noMenu = askMenu(v) == nil || len(askMenu(v).Items) == 1       // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
 	p.resize(dst, v)
 	p.syncRead(v)
 	p.overview = p.overview && v.Exploring
