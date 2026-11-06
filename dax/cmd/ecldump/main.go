@@ -24,7 +24,6 @@ var operands = map[byte]int{
 }
 
 func main() {
-	oneDisk := flag.Bool("onedisk", false, "a missing block stays missing (no other-disk fallback)")
 	flag.Parse()
 	args := flag.Args()
 	if len(args) < 1 {
@@ -34,7 +33,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	l.OneDisk = *oneDisk
 	area := "2"
 	if len(args) > 1 {
 		area = args[1]
