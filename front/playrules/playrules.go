@@ -1384,7 +1384,7 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 	sc, ok := ps.(play.Scene)
 	switch {
 	case !ok:
-		return game.Result{} // Enter with nothing asked: a quiet no-op, not an error toast
+		return game.Result{Err: &game.Refusal{}} // nothing is asked: still refused, but silently (an empty Refusal raises no toast)
 	case sc.Kind == play.SceneHeading:
 		return r.do(play.Heading{Dir: d.N})
 	case sc.Kind == play.SceneHandout:

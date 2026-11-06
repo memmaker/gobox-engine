@@ -7,10 +7,15 @@ import (
 	"gobox/game/play"
 )
 
-// Enter with nothing asked (no Scene pending) must be a quiet no-op, not an error toast.
+// Enter with nothing asked (no Scene pending) is refused, but with no text,
+// so no toast is raised (classic shows only a refusal that says why).
 func TestAnswerNothingAskedIsQuiet(t *testing.T) {
 	r := &rules{}
-	if res := r.answer(play.Exploring{}, game.Answer{}); res.Err != nil {
-		t.Fatalf("answer with nothing asked returned %v", res.Err)
+	res := r.answer(play.Exploring{}, game.Answer{})
+	if res.Err == nil {
+		t.Fatal("answer with nothing asked was not refused")
+	}
+	if res.Err.Error() != "" {
+		t.Fatalf("refusal says %q: it would be toasted", res.Err.Error())
 	}
 }
