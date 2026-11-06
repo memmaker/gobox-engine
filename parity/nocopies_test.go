@@ -22,10 +22,9 @@ var plumbing = []string{"Ask", "AskKind", "Question", "QKind", "Answer", "Decisi
 // The list only shrinks: a new copy fails, and so does an entry whose copy
 // is gone (delete it here in the same change).
 var knownCopies = map[string][]string{
-	"por-go":   {"Bar", "Choice", "Entry", "EventKind", "Pick"},
 	"cotab-go": {"Decision", "EvKind", "Event", "Option", "QKind", "Question", "Row"},
-	"sotsb-go": {"Decision", "Event", "EventKind", "Mode", "Result"},
 	"pod-go":   {"Decision", "Event", "EventKind", "Mode", "Result"},
+	"sotsb-go": {"Decision", "Event", "EventKind", "Mode", "Result"},
 }
 
 // TestNoPrivatePlumbing: no game declares its own copy of gobox's game↔UI

@@ -209,6 +209,7 @@ func (r *rules) question(q *play.Question, list bool) *game.Ask {
 	case q.Number:
 		a.Kind = game.Number
 	}
+	a.Lines = q.Rows
 	if a.Kind != game.YesNo { // a yes/no is the front's confirm: Options on it would be extra moves (game.Ask), as the old path had none
 		a.Options = r.options(q.Replies, list)
 		for i := range a.Options {

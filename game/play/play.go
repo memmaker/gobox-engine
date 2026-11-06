@@ -130,6 +130,7 @@ type Question struct {
 	Heading      bool            // a heading to pick (the overland): Heading{Dir}, Leave for Done
 	List         bool            // Replies are a pick from a list (a roster, a town's places), not a command menu
 	Keys         []rune          // the game's own hotkey per reply (0: from the label); nil: all from the labels
+	Rows         []game.Line     // List: per reply, its flags (a heading, dimmed, off, the spell it names); nil: plain rows
 	Do           []game.Decision // per reply, a front-state decision gobox runs in place of Reply (a View's Gear: game.OpenItems{Member}); nil: Reply
 }
 
