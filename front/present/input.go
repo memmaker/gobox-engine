@@ -448,6 +448,16 @@ func confirm(v front.View) string {
 	return ""
 }
 
+// confirmStart is the row (0 Yes, 1 No) a's yes/no starts on: No, unless
+// the game starts on Yes (Yes, or Default naming its Yes option, whatever
+// the options' order).
+func confirmStart(a *front.Ask) int {
+	if a != nil && (a.Yes || a.Default >= 0 && a.Default < len(a.Items) && strings.EqualFold(a.Items[a.Default].Text, "Yes")) {
+		return 0
+	}
+	return 1
+}
+
 // yesNoKeys are every yes/no question's hotkeys.
 var yesNoKeys = []byte{'Y', 'N'}
 

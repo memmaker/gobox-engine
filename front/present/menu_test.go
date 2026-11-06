@@ -286,3 +286,18 @@ func TestFightMenuKeys(t *testing.T) {
 		}
 	}
 }
+
+// TestConfirmStart: the yes/no starts on the game's default by its option,
+// Yes drawn first whatever order the game lists them in.
+func TestConfirmStart(t *testing.T) {
+	yn := front.Menu{Items: []front.MenuItem{{Text: "Yes"}, {Text: "No"}}}
+	ny := front.Menu{Items: []front.MenuItem{{Text: "No"}, {Text: "Yes"}}}
+	for _, c := range []struct {
+		a    front.Ask
+		want int
+	}{{front.Ask{Menu: yn}, 0}, {front.Ask{Menu: yn, Default: 1}, 1}, {front.Ask{Menu: ny}, 1}, {front.Ask{Menu: ny, Default: 1}, 0}, {front.Ask{Yes: true}, 0}, {front.Ask{}, 1}} {
+		if got := confirmStart(&c.a); got != c.want {
+			t.Errorf("%+v: row %d, want %d", c.a, got, c.want)
+		}
+	}
+}

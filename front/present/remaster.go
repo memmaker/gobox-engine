@@ -236,10 +236,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	r := p.draw(dst, note, v)
 	if q := confirm(v); q != "" { // the engine's yes/no question: over everything, starting on No
 		if q != p.confirmFor {
-			p.confirmFor, p.confirmSel = q, 1 // No, unless the game starts on Yes
-			if v.Ask != nil && v.Ask.Yes {
-				p.confirmSel = 0
-			}
+			p.confirmFor, p.confirmSel = q, confirmStart(v.Ask)
 		}
 		p.keyWindow(dst, q, []string{"Yes", "No"}, yesNoKeys, nil, p.confirmSel, false)
 		p.confirmAt = slices.Clone(p.winRects)
