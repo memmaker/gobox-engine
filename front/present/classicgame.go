@@ -48,6 +48,9 @@ func (g classicGame) View() front.View {
 		v.Logo, v.Backdrop = classic.Title(v.Logo, v.Backdrop, g.art())
 	}
 	v.Battle = classic.Battle(v.Battle, s)
+	if c, ok := g.Game.(*classic.Game); ok {
+		v.Battle = classic.ViewVerb(v.Battle, c.D)
+	}
 	v = classic.Page(v, s)
 	v = classic.Flags(v, s)
 	v = classic.Place(v, s)

@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"cmp"
 	"fmt"
 	"image"
 	"os"
@@ -153,6 +154,7 @@ func (g *Game) ViewOf(s game.State) front.View {
 			}
 		}
 	}
+	v.Battle = ViewVerb(v.Battle, g.D)
 	v = Page(v, s)
 	v = Flags(v, s)
 	if m := g.walkMap(); m != nil {
@@ -187,6 +189,28 @@ func (g *Game) ViewOf(s game.State) front.View {
 	v.Picker = Picker(s, 0, g.grid.X, g.grid.Y)
 	v.IconEditor = IconEditor(s, &v.Ink, g.grid.X, g.grid.Y)
 	return v
+}
+
+// ViewVerb is b with the series' View (Data.VerbKeys) on the turn's bar,
+// at its VerbOrder place, when the game offers none: the active member's
+// sheet (ActView, as a portrait's ActMember in a turn).
+func ViewVerb(b *front.Battle, d game.Data) *front.Battle {
+	k, ok := d.VerbKeys["View"]
+	if b == nil || b.Turn == nil || !ok || len(b.Turn.Options) == 0 || b.Turn.Aim || slices.ContainsFunc(b.Turn.Options, func(o front.TurnOption) bool { return o.Label == "View" || o.Kind == front.ActView }) {
+		return b
+	}
+	c, t := *b, *b.Turn
+	at := len(t.Options)
+	if vi := slices.Index(d.VerbOrder, "View"); vi >= 0 {
+		at = slices.IndexFunc(t.Options, func(o front.TurnOption) bool { i := slices.Index(d.VerbOrder, o.Label); return i > vi })
+		if at < 0 {
+			at = len(t.Options)
+		}
+	}
+	t.Options = slices.Insert(slices.Clone(t.Options), at, front.TurnOption{Label: cmp.Or(d.Texts["View"], "View"), Key: byte(k), Kind: front.ActView})
+	t.Can = slices.Insert(slices.Clone(t.Can), min(at, len(t.Can)), front.ActView)
+	c.Turn = &t
+	return &c
 }
 
 // Settle goes on to the next wait; the View carries the fight's events since.
