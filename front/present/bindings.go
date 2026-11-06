@@ -129,7 +129,7 @@ var bindings = []ui.Binding{
 	{Ctx: ctxAdv, Keys: "Esc", Desc: "options", Mouse: "right click", Pad: "B"},                           // the Menus row's Esc
 	{Ctx: ctxAdv, Keys: "W A S D", Desc: "No Grid: walk, look", Mouse: "right click", Pad: "right stick"}, // the free walk (free.go); its right click is mouselook on/off, the command menu has Options
 
-	{Ctx: ctxCombat, Keys: "Arrows", Desc: "move the cursor", Mouse: "point", Pad: "D-pad, stick",
+	{Ctx: ctxCombat, Keys: "Arrows", Desc: "step, else the cursor", Mouse: "point", Pad: "D-pad, stick",
 		Codes:   []ui.Code{{K: keyUp, A: input.CursorUp}, {K: keyDown, A: input.CursorDown}, {K: keyLeft, A: input.CursorLeft}, {K: keyRight, A: input.CursorRight}},
 		PadKeys: []ui.PadKey{{B: dUp, Key: keyUp, Repeat: true}, {B: dDown, Key: keyDown, Repeat: true}, {B: dLeft, Key: keyLeft, Repeat: true}, {B: dRight, Key: keyRight, Repeat: true}}},
 	{Ctx: ctxCombat, Keys: "Enter", Desc: "go, attack, press", Mouse: "click", Pad: "A",

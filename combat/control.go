@@ -53,8 +53,9 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 		p.yawTo -= math.Pi / 4
 	case a == input.TurnRight:
 		p.yawTo += math.Pi / 4
+	case a >= input.CursorUp && a <= input.CursorRight && p.stepUnit(cursorDirs[a]): // the arrows step the turn's unit, as the original's
 	case a >= input.CursorUp && a <= input.CursorRight: // the square cursor (the pad's d-pad and left stick send these too)
-		p.moveCursor(map[input.Act][2]float64{input.CursorUp: {1, 0}, input.CursorDown: {-1, 0}, input.CursorRight: {0, 1}, input.CursorLeft: {0, -1}}[a])
+		p.moveCursor(cursorDirs[a])
 	case a == input.Up || a == input.Down || a == input.Left || a == input.Right: // W A S D pan
 	case a == input.Home:
 		p.offset = vec{}
@@ -120,8 +121,7 @@ func (p *Presenter) moveCursor(d [2]float64) {
 	if b == nil || b.Turn == nil {
 		return
 	}
-	sin, cos := math.Sin(p.yaw), math.Cos(p.yaw)
-	step := image.Pt(int(math.Round(-sin*d[0]+cos*d[1])), int(math.Round(-cos*d[0]-sin*d[1])))
+	step := p.screenStep(d)
 	at := b.Cursor
 	if !b.Turn.Aim {
 		if p.free == nil {
@@ -141,6 +141,34 @@ func (p *Presenter) moveCursor(d [2]float64) {
 		return
 	}
 	*p.free = at
+}
+
+// cursorDirs are the arrows' square offsets on screen (moveCursor's d).
+var cursorDirs = map[input.Act][2]float64{input.CursorUp: {1, 0}, input.CursorDown: {-1, 0}, input.CursorRight: {0, 1}, input.CursorLeft: {0, -1}}
+
+// screenStep is the board offset of screen direction d as the camera turns.
+func (p *Presenter) screenStep(d [2]float64) image.Point {
+	sin, cos := math.Sin(p.yaw), math.Cos(p.yaw)
+	return image.Pt(int(math.Round(-sin*d[0]+cos*d[1])), int(math.Round(-cos*d[0]-sin*d[1])))
+}
+
+// stepUnit walks the turn's unit one square in screen direction d when the
+// game lets it go there (Reach), outside an aim; it reports whether it did. A blocked step starts the look
+// cursor instead, which the arrows then move (Enter walks there).
+func (p *Presenter) stepUnit(d [2]float64) bool {
+	b := p.b
+	if b == nil || b.Turn == nil || b.Turn.Aim || p.free != nil || p.Asking || p.Picking {
+		return false
+	}
+	for _, u := range b.Units {
+		if u.Active {
+			if to := image.Pt(u.X, u.Y).Add(p.screenStep(d)); slices.Contains(b.Reach, to) {
+				p.act(Decision{Kind: ActWalk, X: to.X, Y: to.Y})
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // targetAt: a foe a click attacks stands on sq.

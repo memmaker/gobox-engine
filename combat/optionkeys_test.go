@@ -127,3 +127,22 @@ func TestAimCursorStarts(t *testing.T) {
 		t.Fatal("the aim cursor outlived the aim")
 	}
 }
+
+// TestArrowsStepUnit: on its turn the arrows walk the unit one square where
+// the game lets it (Reach), as the original's; a blocked step moves the look
+// cursor, and aiming they move the aim.
+func TestArrowsStepUnit(t *testing.T) {
+	u := Unit{ID: 1, X: 2, Y: 2, Active: true}
+	b := &Board{Units: []Unit{u}, Reach: []image.Point{{1, 2}}, Turn: &Turn{}}
+	p := &Presenter{b: b}
+	if !p.Key(input.CursorLeft, 0x4B00) {
+		t.Fatal("left not taken")
+	}
+	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: ActWalk, X: 1, Y: 2}) {
+		t.Fatalf("left: %+v, want a walk to 1,2", got)
+	}
+	p.Key(input.CursorRight, 0x4D00) // 3,2 is not in Reach: the cursor starts
+	if got := p.Actions(); len(got) != 0 || p.free == nil {
+		t.Fatalf("blocked right: %+v, cursor %v", got, p.free)
+	}
+}

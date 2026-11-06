@@ -176,12 +176,15 @@ func TestBarFocus(t *testing.T) {
 func TestCursor(t *testing.T) {
 	p := &Presenter{}
 	b := &Board{Turn: &Turn{}, Units: []Unit{{ID: 1, X: 5, Y: 5, Active: true, Party: true}, {ID: 2, X: 9, Y: 9}, {ID: 3, X: 2, Y: 2}},
-		Reach: []image.Point{{5, 4}}}
+		Reach: []image.Point{{5, 3}}}
 	p.b = b
-	if p.Key(input.CursorUp, 'w'); p.free == nil || *p.free != image.Pt(5, 4) {
+	if p.Key(input.CursorUp, 'w'); p.free == nil || *p.free != image.Pt(5, 4) { // 5,4 is no step: the cursor starts
 		t.Fatalf("W: cursor %v, want 5,4 (north of the active unit)", p.free)
 	}
-	if p.Key(input.Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: ActWalk, X: 5, Y: 4}}) {
+	if p.Key(input.CursorUp, 'w'); p.free == nil || *p.free != image.Pt(5, 3) {
+		t.Fatalf("W again: cursor %v, want 5,3", p.free)
+	}
+	if p.Key(input.Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: ActWalk, X: 5, Y: 3}}) {
 		t.Error("Enter on a reach square did not walk there")
 	}
 	p.Point(100, 100) // a moved mouse takes over

@@ -144,13 +144,13 @@ func ParseSize(s string) (w, h int, err error) {
 // shell runs a game on gpu.
 type shell struct {
 	cfg    Config
-	ticks  int // scripted frames
-	fed    int // the script's keys given so far
-	gap    int // frames since the last key
-	frames int // frames saved, Shot with %d
+	ticks  int  // scripted frames
+	fed    int  // the script's keys given so far
+	gap    int  // frames since the last key
+	frames int  // frames saved, Shot with %d
 	snap   bool // a \S is due: this frame is saved
-	until  int // ticks: a \t<ms> wait runs until then
-	snaps  int // \S shots taken
+	until  int  // ticks: a \t<ms> wait runs until then
+	snaps  int  // \S shots taken
 }
 
 // Run opens the window and runs the game until it ends.
