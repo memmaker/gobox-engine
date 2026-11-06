@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strconv"
 	"time"
+	"unicode"
 
 	"gobox/ega"
 	"gobox/game"
@@ -458,11 +459,27 @@ func (p *Presenter) campKey(k uint16, v front.View) bool {
 			p.campBack(v)
 		case i >= 0:
 			p.campPick(v, i)
+		case !ok && p.campHome(v) && p.cardKey(v, k):
 		case !ok:
 			return !globalKey(k) // help, the minimap, save/load ... go on (keyAct); other keys would act on the view under the screen
 		}
 	}
 	return true
+}
+
+// cardKey acts the selected member's card line whose hotkey is k (camp:
+// a card's verbs answer their keys without Tab to its menu first).
+func (p *Presenter) cardKey(v front.View, k uint16) bool {
+	n := selectedIndex(v)
+	if n < 0 || n >= len(v.Party) || k >= 128 {
+		return false
+	}
+	_, acts, keys := powerLines(v.Party[n].Powers)
+	if j := slices.Index(keys, byte(unicode.ToUpper(rune(k)))); j >= 0 && keys[j] != 0 {
+		p.memberAct(acts[j], n)
+		return true
+	}
+	return false
 }
 
 // campBack goes back one level: the screen's Exit or No row, else the
