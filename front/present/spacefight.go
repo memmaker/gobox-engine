@@ -169,9 +169,9 @@ func (p *Presenter) sfState(v front.View, sf *game.SpaceFight) sfShown {
 	sh.Page, sh.More = u.page, u.page < len(sh.Pages)-1
 	if b := sf.Blink; b.System > 0 || b.Slot > 0 {
 		if sig := fmt.Sprint(*sf); sig != u.blinkSig {
-			u.blinkSig, u.blinkAt = sig, time.Now()
+			u.blinkSig, u.blinkAt = sig, now()
 		}
-		sh.Blink = min(int(time.Since(u.blinkAt).Milliseconds()/sfBlinkMs), sfBlinkSteps)
+		sh.Blink = min(int(now().Sub(u.blinkAt).Milliseconds()/sfBlinkMs), sfBlinkSteps)
 	} else {
 		u.blinkSig, sh.Blink = "", sfBlinkSteps
 	}

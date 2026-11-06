@@ -660,6 +660,7 @@ func noChoice(v front.View) bool {
 
 // Tick advances the renderer's animation one tick (1/60 s) under a script.
 func (p *Presenter) Tick() {
+	frames++
 	if p.view != nil {
 		p.view.Update()
 	}
@@ -781,8 +782,8 @@ func (p *Presenter) pace(v front.View) {
 	}
 	switch {
 	case p.pauseFrom.IsZero():
-		p.pauseFrom = time.Now()
-	case time.Since(p.pauseFrom) >= time.Duration(v.Ask.Ms)*time.Millisecond:
+		p.pauseFrom = now()
+	case now().Sub(p.pauseFrom) >= time.Duration(v.Ask.Ms)*time.Millisecond:
 		p.send(front.ActOK, 0)
 		p.pauseFrom = time.Time{}
 	}

@@ -8,7 +8,6 @@ import (
 	"math"
 	"slices"
 	"strings"
-	"time"
 
 	"gobox/gpu"
 	"gobox/ui"
@@ -161,7 +160,7 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 	return "", nil
 }
 
-func (p *Presenter) blink() bool { return time.Now().UnixMilli()/400%2 == 0 }
+func (p *Presenter) blink() bool { return now().UnixMilli()/400%2 == 0 }
 
 // typeLine starts a typed line: prompt, starting as text, sending act N
 // with the line on Enter.

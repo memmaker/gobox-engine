@@ -39,9 +39,9 @@ func (p *Presenter) blinked(v front.View) front.View {
 		return v
 	}
 	if sig.String() != p.blinkSig {
-		p.blinkSig, p.blinkAt = sig.String(), time.Now()
+		p.blinkSig, p.blinkAt = sig.String(), now()
 	}
-	n := int(time.Since(p.blinkAt) / blinkMs)
+	n := int(now().Sub(p.blinkAt) / blinkMs)
 	if n >= blinkSwaps || n%2 == 1 {
 		return v
 	}

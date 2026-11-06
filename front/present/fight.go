@@ -380,9 +380,9 @@ func (p *Presenter) playing() *front.CombatEvent {
 		}
 		if ev := &r.q[0]; (ev.Key || ev.Ms > 0 && !r.fast) && (ev.Battle != nil || ev.Scene != nil) && !r.skip {
 			if r.from.IsZero() {
-				r.from = time.Now()
+				r.from = now()
 			}
-			if ev.Key || time.Since(r.from) < time.Duration(ev.Ms)*time.Millisecond {
+			if ev.Key || now().Sub(r.from) < time.Duration(ev.Ms)*time.Millisecond {
 				return ev
 			}
 		}

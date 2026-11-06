@@ -126,7 +126,7 @@ func (f *Front) Key(k uint16) {
 	defer f.stale()
 	f.P.Key(k, f.view())
 }
-func (f *Front) Tick() { f.stale(); f.P.Tick() }
+func (f *Front) Tick() { Scripted = true; f.stale(); f.P.Tick() } // only a script ticks: its clock is the frames
 
 func (f *Front) Options() bool       { return f.P.Options() }
 func (f *Front) UpdateOptions()      { f.stale(); f.P.UpdateOptions() }

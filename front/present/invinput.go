@@ -10,7 +10,6 @@ import (
 	"image"
 	"slices"
 	"strings"
-	"time"
 )
 
 // inventoryKey handles a key on the inventory screen: Up/Down, Home/End the
@@ -164,15 +163,15 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 	if inv.view.Wares != nil && inv.hover.X < inv.list.at.Min.X {
 		pn = &inv.wares
 	}
-	if inv.wheel += wheel; (inv.wheel >= 1 || inv.wheel <= -1) && time.Since(inv.wheeled) >= wheelPause {
+	if inv.wheel += wheel; (inv.wheel >= 1 || inv.wheel <= -1) && now().Sub(inv.wheeled) >= wheelPause {
 		if inv.wheel > 0 { // wheel up: up, as every list
 			pn.top--
 		} else {
 			pn.top++
 		}
 		pn.clamp()
-		inv.wheel, inv.wheeled = 0, time.Now()
-	} else if time.Since(inv.wheeled) < wheelPause {
+		inv.wheel, inv.wheeled = 0, now()
+	} else if now().Sub(inv.wheeled) < wheelPause {
 		inv.wheel = 0
 	}
 

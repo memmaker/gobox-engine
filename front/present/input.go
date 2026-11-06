@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"time"
 
 	"gobox/gpu"
 	"gobox/ui"
@@ -264,10 +263,10 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			continue
 		}
 		if screenUp(v) || askList(v) != nil || p.pageMenu { // over a list: a line at most a pause, the rest of a fling dropped
-			if c := &p.camp; time.Since(c.wheeled) < 2*wheelPause {
+			if c := &p.camp; now().Sub(c.wheeled) < 2*wheelPause {
 				break
 			}
-			p.camp.wheeled = time.Now() // a list or menu (camp-style, the list popup, the page's: save slots, drop-downs, the sheet): the wheel moves the highlight, a line a step, up for up
+			p.camp.wheeled = now() // a list or menu (camp-style, the list popup, the page's: save slots, drop-downs, the sheet): the wheel moves the highlight, a line a step, up for up
 			k := keyOf(input.Down)
 			if wheel > 0 {
 				k = keyOf(input.Up)

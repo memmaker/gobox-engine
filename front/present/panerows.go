@@ -2,7 +2,6 @@ package present
 
 import (
 	"fmt"
-	"time"
 
 	"gobox/front"
 )
@@ -26,7 +25,7 @@ func (p *Presenter) paged(v front.View) front.View {
 		v.Pane = &c
 	}
 	for i, pc := range v.Pictures {
-		if f, ok := spriteFrame(pc, time.Now()); ok { // a DAX animation block (PIC, SPRIT, FINAL): its frames at their own delays
+		if f, ok := spriteFrame(pc, now()); ok { // a DAX animation block (PIC, SPRIT, FINAL): its frames at their own delays
 			v.Pictures = append(v.Pictures[:i:i], v.Pictures[i:]...)
 			v.Pictures[i].Frame = f
 			pc = v.Pictures[i]
@@ -35,7 +34,7 @@ func (p *Presenter) paged(v front.View) front.View {
 			v.Pictures = append(v.Pictures[:i:i], v.Pictures[i:]...) // not the game's slice
 			for j := i; j < len(v.Pictures); j++ {
 				if q := v.Pictures[j]; len(q.Frames) > 0 && q.FrameMs > 0 {
-					v.Pictures[j].Frame = q.Frames[int(time.Now().UnixMilli()/int64(q.FrameMs))%len(q.Frames)]
+					v.Pictures[j].Frame = q.Frames[int(now().UnixMilli()/int64(q.FrameMs))%len(q.Frames)]
 				}
 			}
 			break

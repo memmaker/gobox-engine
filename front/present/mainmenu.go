@@ -89,9 +89,9 @@ func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
 // fully); the first call starts the clock.
 func (m *mainUI) fade() float32 {
 	if m.at.IsZero() {
-		m.at = time.Now()
+		m.at = now()
 	}
-	return float32(time.Since(m.at)-titleHold) / float32(titleFade)
+	return float32(now().Sub(m.at)-titleHold) / float32(titleFade)
 }
 
 // mainSkip ends the title's hold and fade on a key or click while they
@@ -102,7 +102,7 @@ func (m *mainUI) skip(hall bool, bd *front.Picture) bool {
 	if hall || backdropImage(bd) == nil && m.title == nil || m.fade() >= 1 { // the hall's menu, and a game without a title picture, have no title to wait for
 		return false
 	}
-	m.at = time.Now().Add(-titleHold - titleFade)
+	m.at = now().Add(-titleHold - titleFade)
 	return true
 }
 

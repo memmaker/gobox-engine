@@ -16,6 +16,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // mapRect is where the map goes: a square in the top right corner, a card
@@ -258,6 +259,18 @@ func (p *Presenter) newView() {
 // Scripted stops animate's clock: a capture script ticks the renderer itself (Tick), so
 // every frame of a scripted run is the same run to run.
 var Scripted bool
+
+// frames are the frames a script has ticked (Tick).
+var frames int64
+
+// now is the presenter's clock: the wall clock, or a script's frames at
+// 60 a second, so a scripted run paces the same whatever the machine's load.
+func now() time.Time {
+	if Scripted {
+		return time.Unix(0, 0).Add(time.Duration(frames) * time.Second / 60)
+	}
+	return time.Now()
+}
 
 // drawBox copies box r of the classic frame onto dst at scale k, centred
 // on cx, cy: its inside, in a plain window of tiles' cells.
