@@ -77,6 +77,7 @@ type frontGame struct {
 	leftOnce  bool        // \C: the left button
 	leftHold  bool        // \B: the left button held (a drag)
 	pointer   int         // Capture.Pointer's position in use
+	hoverAt   [3]int      // the pointer as Hover last had it (x, y, 1 once seen): a pointer that never moved moves no highlight
 	latch     front.Latch // the inputs held through a screen change: ignored until let go
 	look      [2]float64  // No Grid: the turn and pitch the mouse and the right stick gave this tick
 	drag      *drag       // No Grid: the left button held to look, nil while up
@@ -272,7 +273,11 @@ func (g *frontGame) mouse() {
 		g.leftOnce, g.rightOnce = false, false
 		return
 	}
-	g.f.Hover(mx, my, leftHeld)
+	moved := leftHeld || g.hoverAt[2] == 1 && [3]int{mx, my, 1} != g.hoverAt // only a moved (or dragging) pointer moves a highlight or cursor: one resting where it started never picks the row or square under it
+	g.hoverAt = [3]int{mx, my, 1}
+	if moved {
+		g.f.Hover(mx, my, leftHeld)
+	}
 	left := gpu.IsMouseButtonJustPressed(gpu.MouseButtonLeft) || g.leftOnce
 	g.leftOnce = false
 	if left && g.f.Click(mx, my) { // an action bar button, a menu item, the combat map
@@ -334,7 +339,9 @@ func (g *frontGame) mouse() {
 			g.drag = nil
 		}
 	}
-	g.f.Mouse(cx, cy, in, left, right, steps)
+	if moved || left || right || steps != 0 {
+		g.f.Mouse(cx, cy, in, left, right, steps)
+	}
 }
 
 // gamepad sends the pad's keys (the binding table's, with repeat) to send.
