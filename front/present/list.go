@@ -251,6 +251,12 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 		})
 		return
 	}
+	if t := strings.TrimSpace(m.Prompt); len(m.Items) == 0 && t != "" { // a message with no choice ("You found some loot!"): the prompt alone until a key, never invisible
+		b := dst.Bounds()
+		k := math.Max(1, math.Floor(scale(dst)))
+		p.drawMenu(dst, note.Glyph, "", []string{t}, nil, nil, -1, k, b.Dx()/2, b.Dy()/2-int(k*12))
+		return
+	}
 	if len(m.Items) < 2 { // "press Enter": nothing to pick
 		return
 	}

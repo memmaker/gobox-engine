@@ -43,7 +43,7 @@ func View(v front.View, s game.State) front.View {
 	v.MainMenu, v.Hall = PartyMenu(s)
 	v.Map, v.Camp = Map(v.Map, s), Camp(v.Camp, s)
 	v.Temple, v.Shop, v.Inventory = Temple(v.Temple, s), Shop(v.Shop, s), Inventory(v.Inventory, s)
-	if q, ok := Ask(s); ok {
+	if q, ok := Ask(s); ok && q != nil { // none pending keeps v's own (the Game's "You found some loot!"): View lays over a Game's View
 		v.Ask = q
 	}
 	if v.MainMenu == nil && v.Ask == nil && v.Camp == nil && v.Temple == nil && v.Shop == nil && v.Inventory == nil && s.Loot == nil && s.Training == nil &&

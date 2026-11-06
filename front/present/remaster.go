@@ -578,6 +578,13 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			top = max(top, picBottom+int(pk*4))
 		}
 		p.drawMenu(dst, note.Glyph, "", lines, keys, nil, p.sel, mk, cx, top)
+	} else if m := askMenu(v); m != nil && len(m.Items) == 0 && strings.TrimSpace(m.Prompt) != "" && !shown { // a message with no choice ("You found some loot!"), no text box to hold it: the prompt alone until a key, under the picture
+		p.menu = false
+		top := b.Dy()/2 - int(mk*12)
+		if picBottom > 0 {
+			top = max(top, picBottom+int(pk*4))
+		}
+		p.drawMenu(dst, note.Glyph, "", []string{strings.TrimSpace(m.Prompt)}, nil, nil, -1, mk, cx, top)
 	} else if askMenu(v) == nil { // "press a key" prompts: nothing to show (the original's prompt line stays off the remastered screens)
 		p.menu = false
 	} else if p.menu && menuID(askMenu(v)) != p.menuFor { // the menu the popup was opened for is gone (answered): the next one opens on its own key
@@ -679,7 +686,7 @@ func (p *Presenter) OptionsMouse(x, y int, left, right bool, wheel float64) {
 // noChoice reports a question with one answer ("press enter to continue"):
 // a message, not a choice.
 func noChoice(v front.View) bool {
-	return askMenu(v) != nil && !v.Exploring && len(askMenu(v).Items) == 1 && !choosing(v) // a member pick's lone Select is still a choice: whom
+	return askMenu(v) != nil && !v.Exploring && len(askMenu(v).Items) <= 1 && !choosing(v) // a member pick's lone Select is still a choice: whom
 }
 
 // Tick advances the renderer's animation one tick (1/60 s) under a script.
