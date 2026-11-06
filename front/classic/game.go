@@ -612,7 +612,7 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActLead:
 		return game.Select{N: a.N}, true
 	case front.ActMember:
-		if md := g.state().Mode; md == game.ModeTemple || md == game.ModeShop { // the shop's and the temple's View
+		if s := g.state(); s.Mode == game.ModeTemple || s.Mode == game.ModeShop || s.Temple != nil || s.Shop != nil { // the shop's and the temple's View (up whatever the mode)
 			return game.ViewMember{Member: m}, true
 		}
 		return game.ShowMember{Member: a.N}, true

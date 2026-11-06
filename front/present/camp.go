@@ -489,7 +489,7 @@ func (p *Presenter) campPick(v front.View, i int) {
 
 // screenUp: one of the camp-style screens is up (camp, temple, shop, training, a power pick).
 func screenUp(v front.View) bool {
-	return (v.Camp != nil || v.Temple != nil || v.Shop != nil || v.Training != nil || v.Powers != nil) && askMenu(v) == nil
+	return (v.Camp != nil || v.Temple != nil || v.Shop != nil || v.Training != nil || v.Powers != nil) && askMenu(v) == nil && v.SheetPage == nil // a member viewed: the sheet over the screen
 }
 
 // sendX sends a decision with an X.
