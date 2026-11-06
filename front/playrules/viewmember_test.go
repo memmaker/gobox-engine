@@ -107,3 +107,16 @@ func TestFightItems(t *testing.T) {
 		t.Fatalf("after close: items %v sheet %v", s.Items, s.SheetPage != nil)
 	}
 }
+
+// TestViewGearOpensItems: a View menu's Gear the rules give as a
+// front-state reply (Question.Do) opens that member's items, not a Reply.
+func TestViewGearOpensItems(t *testing.T) {
+	f := &fake{st: play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}, {Name: "MAREN"}, {Name: "VEX"}},
+		Ask: &play.Question{Replies: []string{"Gear", "Exit"}, Do: []game.Decision{game.OpenItems{Member: 2}}}},
+		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
+	r := New(f, game.Data{})
+	r.Apply(game.Answer{N: 0})
+	if s := r.State(); s.Items != game.ItemsOwn || s.Selected != 2 || len(f.sent) != 0 {
+		t.Fatalf("items %v selected %d sent %v", s.Items, s.Selected, f.sent)
+	}
+}

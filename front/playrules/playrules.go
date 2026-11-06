@@ -42,25 +42,26 @@ func saveDir(d game.Data) string {
 }
 
 type rules struct {
-	g      play.Game
-	dir    string
-	items  game.ItemsUp
-	ask    *game.Ask     // gobox's own question up (a maneuver pick), nil none
-	moves  []play.Action // the actions ask's options stand for
-	aim    *aiming
-	cursor image.Point   // the free cursor's square
-	read   *game.Read    // the handout up, kept so the pointer holds while it does
-	sheet  int           // the member whose sheet is up, -1 none
-	speed  int           // the game speed (SetSpeed, 0-9): a fight's moment holds speed × 100 ms, as the originals' message delay
-	rest   time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
-	walk   []image.Point // the auto-walk's squares still to go, one per Step (PaceWalk)
-	seq    uint64        // counts the changes: the front redraws on a new one
-	data   game.Data     // the series' data (verb keys, texts)
-	log    []string      // the fight's message log, from the outcomes' text
-	note   game.Note     // the status line's toast: the last refusal
-	walls  *game.Walls   // the 3D view last explored: a scene over it keeps it
-	camMap game.Automap  // the map last explored: camp keeps it
-	title  struct {      // the title as gobox steps it
+	g       play.Game
+	dir     string
+	items   game.ItemsUp
+	ask     *game.Ask     // gobox's own question up (a maneuver pick), nil none
+	moves   []play.Action // the actions ask's options stand for
+	aim     *aiming
+	cursor  image.Point   // the free cursor's square
+	read    *game.Read    // the handout up, kept so the pointer holds while it does
+	sheet   int           // the member whose sheet is up, -1 none
+	itemsOf int           // the member whose items are up (OpenItems), -1: the acting or selected one
+	speed   int           // the game speed (SetSpeed, 0-9): a fight's moment holds speed × 100 ms, as the originals' message delay
+	rest    time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
+	walk    []image.Point // the auto-walk's squares still to go, one per Step (PaceWalk)
+	seq     uint64        // counts the changes: the front redraws on a new one
+	data    game.Data     // the series' data (verb keys, texts)
+	log     []string      // the fight's message log, from the outcomes' text
+	note    game.Note     // the status line's toast: the last refusal
+	walls   *game.Walls   // the 3D view last explored: a scene over it keeps it
+	camMap  game.Automap  // the map last explored: camp keeps it
+	title   struct {      // the title as gobox steps it
 		n       int
 		credits bool
 		page    int
@@ -408,8 +409,8 @@ func (r *rules) State() game.State {
 		s.RestHeals, s.RestStudies = t.Heals, t.Study > 0 // the rules' say, not whether resting is allowed
 	case play.Fighting:
 		s.Mode, s.Combat = game.ModeCombat, r.combat(t)
-		s.Items = r.items // the turn member's items (Gear), front state over the fight; their actions are Allowed's
-		if m := activeMember(t.Field); r.items != game.ItemsNone && m >= 0 && m < len(s.Party) { // the acting member's own, never another's (OpenItems{-1})
+		s.Items = r.items                                                                                                   // the turn member's items (Gear), front state over the fight; their actions are Allowed's
+		if m := cmp.Or(r.itemsOf+1, activeMember(t.Field)+1) - 1; r.items != game.ItemsNone && m >= 0 && m < len(s.Party) { // the acting member's own, never another's (OpenItems{-1})
 			s.Selected = m
 		}
 	case play.Scene:
@@ -832,7 +833,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 	for i, o := range t.Options {
 		t.Options[i].Chords = r.data.VerbChords[o.Label]
 	}
-	called := slices.ContainsFunc(t.Options, func(o game.Option) bool { return o.Label == "Aim" }) // a verb the series calls Aim (SotSB's Ranged)
+	called := slices.ContainsFunc(t.Options, func(o game.Option) bool { return o.Label == "Aim" })                                                     // a verb the series calls Aim (SotSB's Ranged)
 	if _, keyed := r.data.VerbKeys["Aim"]; !r.data.NoFreeAim && len(t.Options) > 0 && !called && (keyed || slices.Contains(r.data.VerbOrder, "Aim")) { // the series' Aim (keyed or placed), gobox's free cursor; no menu ("Continue battle?"): no Aim either
 		t.Options = append(t.Options, game.Option{Label: "Aim", Do: game.Aim{}}) // the free cursor, gobox's own
 	}
@@ -963,7 +964,10 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		}
 		return r.do(play.Arrive{From: d.From, To: d.To, Facing: d.Facing})
 	case game.Items, game.OpenItems, game.Browse: // Browse: a shop's goods beside the member's items (State.Items = ItemsShop)
-		r.items = game.ItemsOwn
+		r.items, r.itemsOf = game.ItemsOwn, -1
+		if o, ok := d.(game.OpenItems); ok {
+			r.itemsOf = o.Member
+		}
 		return game.Result{}
 	case game.CloseItems:
 		r.items = game.ItemsNone
@@ -1301,6 +1305,9 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 		return r.aimOrDo(commonOf(ps).Allowed, moves[d.N])
 	}
 	if q := commonOf(ps).Ask; q != nil {
+		if d.N >= 0 && d.N < len(q.Do) && q.Do[d.N] != nil { // the rules' front-state reply (Gear: the items screen)
+			return r.Apply(q.Do[d.N])
+		}
 		switch {
 		case q.Continue:
 			return r.do(play.Continue{})

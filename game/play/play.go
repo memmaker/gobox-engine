@@ -113,10 +113,11 @@ type Question struct {
 	YesNo        bool // Replies are no, yes: Reply{N: 1} is yes
 	Typed        bool
 	Number       bool
-	Default, Max int  // Typed: the longest; Number: the default and the largest; YesNo: 1 starts on yes
-	Continue     bool // a key to go on (Continue answers it); Common.Status may say so
-	Heading      bool // a heading to pick (the overland): Heading{Dir}, Leave for Done
-	List         bool // Replies are a pick from a list (a roster, a town's places), not a command menu
+	Default, Max int             // Typed: the longest; Number: the default and the largest; YesNo: 1 starts on yes
+	Continue     bool            // a key to go on (Continue answers it); Common.Status may say so
+	Heading      bool            // a heading to pick (the overland): Heading{Dir}, Leave for Done
+	List         bool            // Replies are a pick from a list (a roster, a town's places), not a command menu
+	Do           []game.Decision // per reply, a front-state decision gobox runs in place of Reply (a View's Gear: game.OpenItems{Member}); nil: Reply
 }
 
 // Member is one character as the rules know it.
