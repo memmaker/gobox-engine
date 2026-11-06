@@ -88,11 +88,12 @@ type Picker struct {
 // Slots is the save slot screen: the saves, newest first.
 type Slots struct {
 	Names, Times []string
-	Levels       []int  // the highest level of a member of each slot's party (0 unknown)
-	CanSave      bool   // Save is taken (else loading only, or not now)
-	LoadOnly     bool   // the party menu's Load
-	NoLoad       bool   // loading is not allowed here (State.Flags.NoLoad): no L=load
-	Current      string // the last save ("" none): the list starts on it
+	Overwrites   []string // the game's words for saving over each ("": "Overwrite NAME?")
+	Levels       []int    // the highest level of a member of each slot's party (0 unknown)
+	CanSave      bool     // Save is taken (else loading only, or not now)
+	LoadOnly     bool     // the party menu's Load
+	NoLoad       bool     // loading is not allowed here (State.Flags.NoLoad): no L=load
+	Current      string   // the last save ("" none): the list starts on it
 }
 
 // MainMenu is the party menu's page: the functions open now, the title's

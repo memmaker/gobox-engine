@@ -858,6 +858,7 @@ type SaveSlot struct {
 	Name, Info string
 	Time       string
 	Level      int
+	Overwrite  string // the game's own words for saving over it ("": "Overwrite NAME?")
 }
 
 // AskKind says what an Ask wants.

@@ -32,6 +32,14 @@ type Slots interface {
 	LoadSlot(n int) error
 }
 
+// SlotSaver is a Slots game that also saves into its own slots: they are
+// then the only store (gobox keeps no slot files of its own for it).
+// n == len(Slots()) is a new slot.
+type SlotSaver interface {
+	Slots
+	SaveSlot(n int) error
+}
+
 // State is one situation the party is in. The set is closed: gobox handles
 // every type, and a new situation means a new type here first.
 type State interface{ state() }

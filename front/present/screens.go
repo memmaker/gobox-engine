@@ -149,7 +149,11 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 					named(front.ActLoad, name)()
 					return
 				}
-				p.askThen("Overwrite "+name+"?", named(front.ActSaveSlot, name))
+				q := "Overwrite " + name + "?"
+				if i < len(sl.Overwrites) && sl.Overwrites[i] != "" {
+					q = sl.Overwrites[i] // the game's words
+				}
+				p.askThen(q, named(front.ActSaveSlot, name))
 			}})
 		}
 		if len(it) == 0 {

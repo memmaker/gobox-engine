@@ -557,6 +557,7 @@ func (g *Game) SlotsView(loadOnly bool) *front.Slots {
 	v := &front.Slots{CanSave: canSave, LoadOnly: loadOnly, NoLoad: st.Flags != nil && st.Flags.NoLoad}
 	for _, sl := range st.Saves {
 		v.Names, v.Times, v.Levels = append(v.Names, sl.Name), append(v.Times, sl.Time), append(v.Levels, sl.Level)
+		v.Overwrites = append(v.Overwrites, sl.Overwrite)
 	}
 	if len(v.Names) > 0 {
 		v.Current = v.Names[0]
