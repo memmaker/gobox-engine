@@ -34,6 +34,9 @@ func (p *Presenter) Key(k uint16, v front.View) {
 		p.replay.skip, p.replay.fast = true, p.replay.fast || k == ' '
 		return
 	}
+	if frontOnly(k) && (confirm(v) != "" || typing(v) != nil) { // the game's yes/no or typed line is up: as the originals, no other screen opens over it
+		return
+	}
 	if p.sfKey(k, v) { // the ship fight's window and bar
 		return
 	}

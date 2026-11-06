@@ -45,6 +45,16 @@ func globalKey(k uint16) bool {
 	return false
 }
 
+// frontOnly: k opens one of gobox's own screens (the slots, the map, the
+// overview), which the game never asked for.
+func frontOnly(k uint16) bool {
+	switch actOf(k) {
+	case input.SaveLoad, input.Map, input.Overview, input.Party:
+		return true
+	}
+	return false
+}
+
 // arrow turns a cursor key a into its decision on v: the member pick's candidate (ActLead), else a pager's page
 // (ActPage -1 or +1).
 func (p *Presenter) arrow(a input.Act, v front.View) {
