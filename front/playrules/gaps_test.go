@@ -279,12 +279,25 @@ func TestCardItems(t *testing.T) {
 
 // TestCampKeepsMap: camp keeps the map last explored.
 func TestCampKeepsMap(t *testing.T) {
-	f := &fake{st: play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(2, 2)}}}}
+	f := &fake{st: play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(2, 2), Known: []image.Point{{0, 0}}}}}}
 	r := New(f, game.Data{})
 	r.State()
 	f.st = play.Camping{}
 	if r.State().Map.Size != image.Pt(2, 2) {
 		t.Fatal("camp lost the map")
+	}
+}
+
+// TestCampBareMap: a camp map with nothing known (the party's square
+// only) is the map last explored, not a black minimap.
+func TestCampBareMap(t *testing.T) {
+	known := []image.Point{{0, 0}, {1, 0}}
+	f := &fake{st: play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16), Known: known}}}}
+	r := New(f, game.Data{})
+	r.State()
+	f.st = play.Camping{Common: play.Common{Automap: game.Automap{Size: image.Pt(16, 16)}}}
+	if got := r.State().Map.Known; len(got) != 2 {
+		t.Fatalf("camp map knows %v", got)
 	}
 }
 

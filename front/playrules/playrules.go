@@ -338,7 +338,7 @@ func (r *rules) State() game.State {
 	}
 	if _, ok := ps.(play.Exploring); ok {
 		r.camMap = s.Map
-	} else if _, ok := ps.(play.Camping); ok && s.Map.Size == (image.Point{}) {
+	} else if _, ok := ps.(play.Camping); ok && len(s.Map.Known) == 0 && len(r.camMap.Known) > 0 { // none, or a bare one (the party's square): the map explored
 		s.Map = r.camMap
 	}
 	if s.Map.Area == "" {
