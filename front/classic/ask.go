@@ -49,6 +49,6 @@ func Ask(s game.State) (*front.Ask, bool) {
 // overMenu: the game keeps ModeExplore under a menu or yes/no it opens over the 3D
 // view (camp's): the menu is up, not the exploring.
 func overMenu(s game.State) bool {
-	return s.Pending != nil && s.Pending.Kind == game.YesNo || // a yes/no over any screen (the treasure's "claim it?", a shop's drop)
+	return s.Pending != nil && (s.Pending.Kind == game.YesNo || s.Pending.Kind == game.Name || s.Pending.Kind == game.Number) || // a yes/no or a typed line over any screen (the treasure's "claim it?", a shop's drop, the name after creation's Keep)
 		(s.Mode == game.ModeExplore || s.Mode == game.ModeCombat) && s.Pending != nil && (s.Pending.Kind == game.Choice || s.Pending.Kind == game.YesNo) // a fight's own question (a member's View) over the map
 }

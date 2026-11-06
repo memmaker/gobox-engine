@@ -19,3 +19,12 @@ func TestPlaceYesNoDrawn(t *testing.T) {
 		}
 	}
 }
+
+// TestCreateNameAsked: the name the game asks after creation's Keep is the
+// view's typed line over the sheet (BR2: letters went out as picks).
+func TestCreateNameAsked(t *testing.T) {
+	s := game.State{Mode: game.ModeCreate, Creation: &game.Creation{}, Pending: &game.Ask{Kind: game.Name, Prompt: "Character name:", Max: 15}}
+	if v := View(front.View{}, s); v.Ask == nil || v.Ask.Kind != front.AskText {
+		t.Fatalf("no typed line: %+v", v.Ask)
+	}
+}
