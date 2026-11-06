@@ -116,3 +116,9 @@ Under the hard rule: what the originals do the same way is unified; where an ori
 Order (to avoid colliding with the passive rebuild):
 1. Now, untouched by the rebuild: derived stats (rest: saves, thief skills, HP, XP, levels), spell tables, memorizing and scribing data, character records (gobox/char).
 2. After SOTSB/POD collapse step 5 and POR step 4: the ECL VM (POD's passive VM as the base), the affect engine, items/purse/treasure (coordinate with the shared-inventory work), combat and combat AI.
+
+## Resumed 2026-11-06 (new session, after the usage limit)
+
+The previous session's builders (audit fixes, passive rebuild) are gone. Their uncommitted work is still in sotsb-go and pod-go (rules/*, see `git status`); check whether it builds before continuing it.
+Audit: #2 done (gobox bd6f47c, por 2460a64, sotsb 28fb967, pod 122635c, br1 68d568b): free Aim when VerbOrder/VerbKeys names Aim. Next: #10 PointBuy, #9 OneDisk, #7 NoHotkeys, #3 brVerbs, then #4/#5/#6/#8/#1 (need the originals checked).
+Known broken: pod-go rules tests don't compile (`playEvents` undefined since b905fe1).
