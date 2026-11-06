@@ -26,7 +26,7 @@ type Hooks struct {
 	Begin  func()              // AttackHits: before the roll (attacking ends invisibility)
 	Groups func()              // AttackHits: after a roll that is not a miss (attacker then defender affects)
 	Group  func()              // SavingThrow, TrapHits: the save / defender affect group
-	Hit    func(over int) bool // AttackHits: extra rule-set veto (por's rules4e Hits); nil accepts
+	Hit    func(over int) bool // AttackHits: extra rule-set veto (an alternative rule set's hit test); nil accepts
 }
 
 // Config is what differs per game.

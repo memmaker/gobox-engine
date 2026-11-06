@@ -367,7 +367,7 @@ type Over struct {
 	Text string // the rules' last words
 }
 
-// ShipFight: a ship battle is on (Buck Rogers). The crew menu up is Menu
+// ShipFight: a ship battle is on. The crew menu up is Menu
 // (its Replies and Keys), answered with Crew{N}; Sheet a ship's record
 // shown over the fight.
 type ShipFight struct {

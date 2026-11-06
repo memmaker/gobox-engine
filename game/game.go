@@ -1389,7 +1389,7 @@ const (
 	ToneLoud               // headers, values
 )
 
-// ScreenKind is the Buck Rogers-style screen a game asks gobox to put up
+// ScreenKind is a whole screen a game asks gobox to put up
 // (State.Screen). The kind comes from the game's state, never from its id.
 type ScreenKind int
 
