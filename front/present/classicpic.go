@@ -77,6 +77,20 @@ func picImage(pc front.Picture, ink [16]color.RGBA) image.Image {
 	return nil
 }
 
+// nativeSize is pc's size in the original's pixels (24x24 a square), whatever
+// remastered picture stands in for it (zero: unknown).
+func nativeSize(pc front.Picture) image.Point {
+	switch {
+	case pc.PixW > 0:
+		return image.Pt(pc.PixW, len(pc.Pix)/pc.PixW)
+	case pc.File != "":
+		if m := daxMasked(pc.File, pc.Block, pc.Frame, refMask(pc)); m != nil {
+			return m.Bounds().Size()
+		}
+	}
+	return image.Point{}
+}
+
 // indexedPictures is ps with the pictures given as pixels converted in ink.
 func indexedPictures(ps []front.Picture, ink [16]color.RGBA) []front.Picture {
 	var out []front.Picture
@@ -191,6 +205,9 @@ func pixBattle(b *front.Battle, ink [16]color.RGBA) *front.Battle {
 	for i := range c.Units {
 		if u := &c.Units[i]; u.Icon == nil && i < len(b.IconPix) {
 			u.Icon = picImage(b.IconPix[i], ink)
+			if u.IconSize == (image.Point{}) {
+				u.IconSize = nativeSize(b.IconPix[i])
+			}
 		}
 	}
 	c.Effects = append([]front.Effect(nil), b.Effects...)
