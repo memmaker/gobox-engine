@@ -103,6 +103,7 @@ type Presenter struct {
 	inv         inventory                   // the inventory screen (inventory.go)
 	fightView   *front.Battle               // the combat map last drawn
 	lastBattle  *front.Battle               // the board before the events now playing (keepFallen)
+	lastFight   *front.View                 // the fight's view last drawn: a Result's events that end the fight play on it
 	inkAsk      *front.Ask                  // the question whose menu is being drawn: its colours (asking)
 	replay      replay                      // the fight's events still to play
 	logGrey     bool                        // drawMenu's plain text light grey, not green (the battle Log)
@@ -215,8 +216,15 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if ev := p.playing(); ev != nil && ev.Scene != nil { // the page as it stood at the pause played
 		v = *ev.Scene
 	} else if ev != nil { // the fight as it stood at the event played
+		if v.Battle == nil && p.lastFight != nil { // the Result ended the fight: its events play on the fight they happened in, the page after them
+			v = *p.lastFight
+		}
 		v.Battle, v.Party = ev.Battle, ev.Party
 		v.Ask = nil
+	} else if v.Battle != nil {
+		p.lastFight = &v
+	} else {
+		p.lastFight = nil
 	}
 	v = pixView(v) // an event's page or fight as the engine published it
 	p.scrolls.Reset()

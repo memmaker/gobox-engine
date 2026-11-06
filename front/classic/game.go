@@ -20,16 +20,17 @@ type Game struct {
 	R game.Rules
 	D game.Data
 
-	grid      image.Point  // the page's size in cells (ActResize); 40x25 at least
-	events    []game.Event // the fight's events since the last Settle
-	note      front.Note   // the front's own refusal toast
-	lore      int          // journal notes seen (State.Lore), +1; 0: none counted yet
-	resets    int
-	traceMode game.Mode // the mode last traced
-	tiles     bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
-	asked     *game.Ask // a Refusal's question put instead (answered by its options' Do)
-	aim       *aiming   // a combat spell's squares being picked (Combat.Aims)
-	found     bool      // the treasure's "You found some loot!" was acknowledged (cleared when it goes)
+	grid       image.Point  // the page's size in cells (ActResize); 40x25 at least
+	events     []game.Event // the fight's events since the last Settle
+	lastCombat *game.Combat // the fight the last Settle left up (a Result that ends it plays its events on it)
+	note       front.Note   // the front's own refusal toast
+	lore       int          // journal notes seen (State.Lore), +1; 0: none counted yet
+	resets     int
+	traceMode  game.Mode // the mode last traced
+	tiles      bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
+	asked      *game.Ask // a Refusal's question put instead (answered by its options' Do)
+	aim        *aiming   // a combat spell's squares being picked (Combat.Aims)
+	found      bool      // the treasure's "You found some loot!" was acknowledged (cleared when it goes)
 }
 
 // aiming is the squares picked so far for spell, up to n.
@@ -190,9 +191,28 @@ func (g *Game) Settle() front.View {
 		g.step()
 	}
 	v := g.View()
-	v.Events = combatEvents(g.events, v, g.posedBattle)
-	g.events = nil
+	posed := g.posedBattle
+	if v.Battle == nil && g.lastCombat != nil { // the events ended the fight: they play on it as it stood, the page after them
+		posed = g.endedBattle
+	}
+	v.Events = combatEvents(g.events, v, posed)
+	g.events, g.lastCombat = nil, g.R.State().Combat
 	return v
+}
+
+// endedBattle is the fight the last Settle showed, for an event of the
+// Result that ended it: every timed one is held on it, posed or not.
+func (g *Game) endedBattle(e game.Event) *front.Battle {
+	s := g.state()
+	c := *g.lastCombat
+	c.Units = slices.Clone(c.Units)
+	for k := range c.Units {
+		if c.Units[k].ID == e.Unit && e.Pose > 0 {
+			c.Units[k].Pose = e.Pose
+		}
+	}
+	s.Combat = &c
+	return BattleOf(s, g.art())
 }
 
 // combatEvents are the fight's events as the presenter plays them; the
@@ -221,7 +241,7 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 			if n, err := strconv.Atoi(e.Sound); err == nil && ce.Amount == 0 && (k == front.EvSound || k == front.EvSong) { // the sound or song ref as a number
 				ce.Amount = n
 			}
-			if e.Pose > 0 && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose
+			if (e.Pose > 0 || v.Battle == nil) && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose (the fight over: on the fight)
 				ce.Ms, ce.Battle = e.Ms, posed(e)
 			}
 			out = append(out, ce)
