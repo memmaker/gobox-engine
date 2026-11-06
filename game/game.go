@@ -348,12 +348,11 @@ type Page struct {
 // TextRun is text in one colour on a line from column X (Upcase: the
 // glyphs of a game that upcases what it writes).
 type TextRun struct {
-	X        int
-	Text     string
-	Fg, Bg   color.RGBA
-	Upcase   bool
-	Unmarked bool // the selected member's card is not marked (the game's look: Selected still says who is)
-	Blink    bool // the front alternates the run's ink with its highlight colour a few times, ending on normal
+	X      int
+	Text   string
+	Fg, Bg color.RGBA
+	Upcase bool
+	Blink  bool // the front alternates the run's ink with its highlight colour a few times, ending on normal
 }
 
 // Layer is a picture placed on the page: At in pixels of the page.
@@ -1225,7 +1224,6 @@ type Event struct {
 // rules package exports it as func Data() Data, and its cmd hands gobox
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
-	Unmarked      bool   // the selected member's card is not marked (the game's look; Selected still says who is)
 	SaveDir       string // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
 	Series        string
 	Coin          string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)

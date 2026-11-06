@@ -320,7 +320,7 @@ func (r *rules) State() game.State {
 		s.Allowed["NoRest"] = true // no timed rest here: camp offers none (classic Camp.NoRest)
 	}
 	for i, m := range c.Party {
-		s.Party = append(s.Party, member(m, i == c.Selected && !r.data.Unmarked, m.CanCast || canCast(c.Allowed, i)))
+		s.Party = append(s.Party, member(m, i == c.Selected, m.CanCast || canCast(c.Allowed, i)))
 		s.Party[i].Card = card(m, c.Allowed, i)
 		s.Party[i].Page = m.Sheet // the rules' page, for gobox's look-only sheet (a fight's View)
 	}
