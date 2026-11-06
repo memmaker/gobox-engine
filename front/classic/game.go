@@ -2,6 +2,7 @@ package classic
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"image"
 	"os"
@@ -472,9 +473,16 @@ func (g *Game) LootStatus() error    { return g.do(game.LootStatus{}) }
 func (g *Game) LootPool() error      { return g.do(game.PoolCoins{Member: g.sel(-1)}) }
 func (g *Game) LootLeave(sure bool) error {
 	err := g.do(game.LootLeave{Sure: sure})
-	if a := g.asked; a != nil && (a.Kind == game.YesNo || a.Kind == game.Choice) { // the presenter asks it as a Confirm (Silver Blades and Pools of Darkness state it as a Yes/No Choice)
+	if a := g.asked; a != nil && slices.ContainsFunc(a.Options, func(o game.Option) bool { return o.Do != nil }) { // the game's own answers (POR: Yes stays, No leaves Sure): its question as it is
+		return nil
+	}
+	if a := g.asked; a != nil && (a.Kind == game.YesNo || a.Kind == game.Choice) { // no answers of its own: the presenter asks it as a Confirm, Yes leaving (Silver Blades and Pools of Darkness state it as a Yes/No Choice)
 		g.asked = nil
 		return front.Confirm(a.Prompt)
+	}
+	var r *game.Refusal
+	if !sure && errors.As(err, &r) && r.Text != "" { // the game's own question as its text (POR: "...go back and claim your treasure?"): Yes stays, No leaves
+		return front.ConfirmNo(r.Text)
 	}
 	return err
 }
@@ -605,6 +613,7 @@ func (g *Game) ShowMember(n int) error {
 func (g *Game) OpenItems(n int, direct bool) error {
 	return g.do(game.OpenItems{Member: n, Direct: direct})
 }
+
 // CloseItems: Tab (all false) is the sheet, as out of a fight; in a fight
 // that is the look-only sheet of the member whose items were up.
 func (g *Game) CloseItems(all bool) error {
@@ -616,7 +625,7 @@ func (g *Game) CloseItems(all bool) error {
 	}
 	return g.do(game.CloseItems{All: all})
 }
-func (g *Game) Ready(i, x int) error      { return g.do(game.Ready{Member: g.sel(-1), Item: i, Count: x}) }
+func (g *Game) Ready(i, x int) error { return g.do(game.Ready{Member: g.sel(-1), Item: i, Count: x}) }
 func (g *Game) UseItem(i, spell, target int, sure bool) error {
 	return g.asking(g.do(game.UseItem{Member: g.sel(-1), Item: i, Spell: spell, Target: target}))
 }

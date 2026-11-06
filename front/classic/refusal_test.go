@@ -55,3 +55,51 @@ func TestOffMapStepAsks(t *testing.T) {
 		t.Fatalf("answer sent %+v", r.got)
 	}
 }
+
+type lootRules struct {
+	seqRules
+	got []game.Decision
+}
+
+func (r *lootRules) Apply(d game.Decision) game.Result {
+	r.got = append(r.got, d)
+	if l, ok := d.(game.LootLeave); ok && !l.Sure {
+		return game.Result{Err: &game.Refusal{Ask: &game.Ask{Kind: game.YesNo, Prompt: "There is still treasure left.  Do you want to go back and claim your treasure?",
+			Options: []game.Option{{Label: "Yes"}, {Label: "No", Do: game.LootLeave{Sure: true}}}}}}
+	}
+	return game.Result{}
+}
+
+// TestLootLeaveAsksGame: leaving treasure behind puts the game's own
+// question (POR's): Yes stays on the loot, No leaves (its Do), never the
+// reverse; a refusal with text alone is asked so too (ConfirmNo).
+func TestLootLeaveAsksGame(t *testing.T) {
+	r := &lootRules{}
+	g := NewGame(r, game.Data{})
+	if err := g.LootLeave(false); err != nil {
+		t.Fatalf("err %v", err)
+	}
+	if s := g.Shown(); s.Pending == nil || s.Mode != game.ModeAsk {
+		t.Fatal("no question")
+	}
+	g.Answer(front.Action{Kind: front.ActYes})
+	if len(r.got) != 1 {
+		t.Fatalf("Yes sent %v", r.got)
+	}
+	g.LootLeave(false)
+	g.Answer(front.Action{Kind: front.ActNo})
+	if len(r.got) != 3 || r.got[2] != (game.LootLeave{Sure: true}) {
+		t.Fatalf("No sent %v", r.got)
+	}
+	g = NewGame(&textLoot{}, game.Data{})
+	var no front.ConfirmNo
+	if err := g.LootLeave(false); !errors.As(err, &no) {
+		t.Fatalf("text refusal: %v", err)
+	}
+}
+
+type textLoot struct{ seqRules }
+
+func (r *textLoot) Apply(game.Decision) game.Result {
+	return game.Result{Err: &game.Refusal{Text: "Leave the treasure?"}}
+}
