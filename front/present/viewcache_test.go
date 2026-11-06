@@ -62,3 +62,18 @@ func TestMinimapUploadsOnChange(t *testing.T) {
 		t.Error("a changed map was not drawn again")
 	}
 }
+
+// A key pressed while the fight's events play is kept, not dropped: it
+// acts once they are played (Draw hands it on).
+func TestKeyDuringPlayKept(t *testing.T) {
+	f := &Front{Game: &countGame{}, started: true}
+	f.P.Play([]front.CombatEvent{{Ms: 5000, Battle: &front.Battle{}}})
+	f.Key('q')
+	if len(f.held) != 1 || f.held[0] != 'q' || !f.P.Playing() {
+		t.Fatalf("held %v, playing %v", f.held, f.P.Playing())
+	}
+	f.Key(' ') // Space still cuts the moment short
+	if len(f.held) != 1 {
+		t.Fatalf("held %v", f.held)
+	}
+}

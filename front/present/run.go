@@ -126,6 +126,10 @@ func (f *Front) Key(k uint16) {
 		f.Act()
 	}
 	defer f.stale()
+	if f.P.Playing() && k != ' ' && k != '\r' && k != 27 { // a key while the fight's events play: kept for the screen after, never dropped (Space, Enter, Esc cut the moment short)
+		f.held = append(f.held, k)
+		return
+	}
 	if v := f.view(); f.drawn != "" && screenSig(v) != f.drawn { // the screen changed and is not on show yet: the key waits for it, never acting on the one before
 		f.held = append(f.held, k)
 		return
