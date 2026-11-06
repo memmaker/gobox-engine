@@ -42,3 +42,31 @@ func TestEndedFightTileBody(t *testing.T) {
 		t.Fatalf("overlay %d, want the tile's slot 1 (+1)", o)
 	}
 }
+
+// TestEndedFightBeastStays: a 2x2 beast turning (EvMove Turn, To unset)
+// then struck stays on its square until its EvDown, then its body does
+// (a turn moved it to 0,0: BR2's beast vanished before its fall).
+func TestEndedFightBeastStays(t *testing.T) {
+	r := &fightRules{}
+	g := NewGame(r, game.Data{})
+	g.lastCombat = &game.Combat{Size: image.Pt(8, 8), Tiles: []string{"grass", "venuscom_tile_003"},
+		Units: []game.Unit{{ID: 5, At: image.Pt(1, 1), HP: 9}, {ID: 7, At: image.Pt(3, 2), Size: 2, HP: 3, Foe: true}}}
+	g.events = []game.Event{{Kind: game.EvMove, Unit: 7, N: 2, Turn: true},
+		{Kind: game.EvAttack, Unit: 5, Target: 7, Pose: 1, Ms: 400}, {Kind: game.EvDamage, Unit: 7, Target: 7, N: 3},
+		{Kind: game.EvDown, Unit: 7, Target: 7, Picture: game.Picture{Name: "venuscom_tile_003"}, Ms: 500}, {Kind: game.EvMessage, Text: "won", Ms: 100}}
+	v := g.Settle()
+	beast := func(i int) bool {
+		for _, u := range v.Events[i].Battle.Units {
+			if u.ID == 7 {
+				return u.X == 3 && u.Y == 2
+			}
+		}
+		return false
+	}
+	if len(v.Events) != 5 || v.Events[1].Battle == nil || !beast(1) || !beast(3) {
+		t.Fatal("the beast is not on its square for the blow and its fall")
+	}
+	if b := v.Events[4].Battle; beast(4) || b.Ground[2][3].Overlay != 2 {
+		t.Fatalf("after the fall: beast %v, overlay %d", beast(4), b.Ground[2][3].Overlay)
+	}
+}

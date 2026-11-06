@@ -278,6 +278,8 @@ func (g *Game) endedBattle(e game.Event) *front.Battle {
 	b := BattleOf(s, g.art())
 	for k := range g.ended.Units { // the board after e, for the events that follow
 		switch u := &g.ended.Units[k]; {
+		case u.ID == e.Unit && e.Kind == game.EvMove && e.Turn:
+			u.Facing = e.N
 		case u.ID == e.Unit && e.Kind == game.EvMove:
 			u.At = e.To
 		case u.ID == e.Unit && e.Kind == game.EvDown:

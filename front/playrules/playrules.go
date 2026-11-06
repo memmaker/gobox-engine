@@ -1670,7 +1670,7 @@ func eventsAt(es []play.Event, ms int) (out []game.Event) {
 				out = append(out, game.Event{Kind: game.EvMove, Unit: e.Unit, To: st.At})
 			}
 		case play.Turned:
-			out = append(out, game.Event{Kind: game.EvMove, Unit: e.Unit, N: e.Facing})
+			out = append(out, game.Event{Kind: game.EvMove, Unit: e.Unit, N: e.Facing, Turn: true})
 		case play.Attacked:
 			out = append(out, game.Event{Kind: game.EvAttack, Unit: e.From, Target: e.To, Pose: 1, Ms: strikeMs})
 			if !e.Hit {
