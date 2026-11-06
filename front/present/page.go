@@ -229,7 +229,9 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 		lx := fm.LegendAt.X
 		fill(m.Rect, col(inkBlack))
 		str(0, 0, inkWhite, fm.Name[:min(len(fm.Name), lx-1)])
-		str(lx, fm.LegendAt.Y-1, inkWhite, "Labels") // a row below the window's top edge
+		if len(fm.Legend) > 0 { // no labels: no header over nothing
+			str(lx, fm.LegendAt.Y-1, inkWhite, "Labels") // a row below the window's top edge
+		}
 		for i, l := range fm.Legend {
 			str(lx, fm.LegendAt.Y+i, labelInks[l.Kind], string(l.Letter))
 			str(lx+2, fm.LegendAt.Y+i, inkGreen, l.Text[:min(len(l.Text), cols-lx-2)])
