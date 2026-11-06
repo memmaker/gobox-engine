@@ -3,6 +3,7 @@
 package present
 
 import (
+	"gobox/blobber"
 	"image"
 	"image/color"
 
@@ -216,32 +217,12 @@ func textured(t image.Image) image.Image {
 	if m, ok := flatTiles[c]; ok {
 		return m
 	}
-	b := tex.Bounds()
-	var sum float64
-	for y := b.Min.Y; y < b.Max.Y; y++ {
-		for x := b.Min.X; x < b.Max.X; x++ {
-			sum += lum(tex.At(x, y))
-		}
-	}
-	mean := sum / float64(b.Dx()*b.Dy())
-	m := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-	for y := b.Min.Y; y < b.Max.Y; y++ {
-		for x := b.Min.X; x < b.Max.X; x++ {
-			k := lum(tex.At(x, y)) / mean // the texture's light and shade, around 1, on the tile's colour
-			f := func(v uint8) uint8 { return uint8(min(255, float64(v)*k)) }
-			m.SetRGBA(x-b.Min.X, y-b.Min.Y, color.RGBA{f(c.R), f(c.G), f(c.B), 255})
-		}
-	}
+	m := blobber.Tint(tex, c)
 	flatTiles[c] = m
 	return m
 }
 
 var flatTiles = map[color.RGBA]image.Image{}
-
-func lum(c color.Color) float64 {
-	r, g, b, _ := c.RGBA()
-	return (0.3*float64(r)+0.59*float64(g)+0.11*float64(b))/65535 + 1e-3
-}
 
 // flatColour is t's one colour when every texel is that colour, opaque.
 func flatColour(t image.Image) (color.RGBA, bool) {

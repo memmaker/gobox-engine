@@ -41,16 +41,22 @@ func TestWallsBackdrop(t *testing.T) {
 	}
 }
 
-// The remastered view drops Walls.Backdrop where the series paints both
-// flats Walls names, and keeps it where one is missing.
+// The remastered view drops Walls.Backdrop where the series paints either
+// flat Walls names (the other takes the pool's), and keeps a real picture
+// only where neither resolves.
 func TestWallsBackdropFlats(t *testing.T) {
-	bd := &front.Picture{Img: image.NewRGBA(image.Rect(0, 0, 2, 2))}
+	pic := image.NewRGBA(image.Rect(0, 0, 2, 2))
+	pic.Pix[0] = 200
+	bd := &front.Picture{Img: pic}
 	open := [][][4]int{{{0, 0, 0, 0}}}
 	var p Presenter
 	if sc := p.wallScene(&front.Walls{Key: "flats", Side: open, Floor: "cobble", Sky: "sky_phlan", Backdrop: bd}); sc.Backdrop != nil {
 		t.Error("painted flats: backdrop kept")
 	}
-	if sc := p.wallScene(&front.Walls{Key: "noflat", Side: open, Floor: "nosuch", Sky: "sky_phlan", Backdrop: bd}); sc.Backdrop == nil {
-		t.Error("missing floor: backdrop dropped")
+	if sc := p.wallScene(&front.Walls{Key: "oneflat", Side: open, Floor: "nosuch", Sky: "sky_phlan", Backdrop: bd}); sc.Backdrop != nil {
+		t.Error("the sky resolves alone: backdrop kept")
+	}
+	if sc := p.wallScene(&front.Walls{Key: "noflat", Side: open, Floor: "nosuch", Sky: "nosuch", Backdrop: bd}); sc.Backdrop == nil {
+		t.Error("no flat resolves: the picture dropped")
 	}
 }

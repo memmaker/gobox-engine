@@ -1,6 +1,7 @@
 package present
 
 import (
+	"gobox/blobber"
 	"image"
 	"image/color"
 	"image/draw"
@@ -101,5 +102,26 @@ func TestBlowFloatsOnce(t *testing.T) {
 	}
 	if nums != 2 || misses != 1 {
 		t.Fatalf("numbers %d misses %d, want 2 and 1", nums, misses)
+	}
+}
+
+// Class 12: no Walls combination draws a flat-colour floor or sky. A flat
+// Backdrop never shows, and a named flat resolves on its own.
+func TestNoFlatSky(t *testing.T) {
+	cream := image.NewRGBA(image.Rect(0, 0, 8, 8))
+	draw.Draw(cream, cream.Bounds(), image.NewUniform(color.RGBA{230, 220, 180, 255}), image.Point{}, draw.Src)
+	flat := &front.Picture{Img: cream}
+	for _, w := range []front.Walls{{Backdrop: flat}, {Backdrop: flat, Floor: "nosuch", Sky: "clouds"}, {Backdrop: flat, Floor: "nosuch", Sky: "nosuch"}} {
+		if !flatsPainted(&w) {
+			t.Errorf("%q/%q: flat backdrop shown", w.Floor, w.Sky)
+		}
+	}
+	art := image.NewRGBA(image.Rect(0, 0, 4, 1))
+	art.Pix[0] = 9
+	if !flatsPainted(&front.Walls{Backdrop: &front.Picture{Img: art}, Sky: "clouds"}) {
+		t.Error("clouds resolve without a floor name")
+	}
+	if _, still := flatColour(blobber.Tint(wallImage("ceiling"), color.RGBA{230, 220, 180, 255})); still {
+		t.Error("a flat colour stays flat")
 	}
 }

@@ -131,10 +131,14 @@ func (p *Presenter) wallScene(w *front.Walls) *blobber.Scene {
 	return sc
 }
 
-// flatsPainted says whether the series has both of w's named flats
-// (floor_NAME, ceiling_NAME), so the remastered view draws them over Backdrop.
+// flatsPainted says whether the view draws its own floor and sky over
+// Backdrop: when either named flat resolves (the other takes the pool's,
+// each on its own), or Backdrop is a flat fill (never shown flat).
 func flatsPainted(w *front.Walls) bool {
-	return w.Floor != "" && w.Sky != "" && walls.Has(series, "floor_"+w.Floor) && walls.Has(series, "ceiling_"+w.Sky)
+	if _, flat := flatColour(w.Backdrop.Img); flat {
+		return true
+	}
+	return w.Floor != "" && walls.Has(series, "floor_"+w.Floor) || w.Sky != "" && walls.Has(series, "ceiling_"+w.Sky)
 }
 
 // wallTexture is the texture of wall value n of w: its remastered one from

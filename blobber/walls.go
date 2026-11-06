@@ -3,7 +3,6 @@ package blobber
 import (
 	"image"
 	"image/color"
-	"image/draw"
 	"strings"
 
 	"gobox/gpu"
@@ -79,7 +78,7 @@ func setBackdrop(m image.Image) {
 	}
 }
 
-var solidCache = map[color.RGBA]*gpu.Image{}
+var solidCache = map[solidKey]*gpu.Image{}
 
 // SetFlats makes floor and ceiling (names from Flats; "" = the default textures) the current
 // map's. Hosts call it on every map change; it holds across GenTextures.
@@ -102,18 +101,50 @@ func FlatTexture(kind, name string) *gpu.Image {
 			return t
 		}
 	}
-	if c := FlatColors[map[string]int{"floor": 0, "ceiling": 1}[kind]]; c != nil && name == "" { // a game's colour, not the pool's flat
-		t, ok := solidCache[*c]
-		if !ok {
-			im := image.NewRGBA(image.Rect(0, 0, 2, 2))
-			draw.Draw(im, im.Bounds(), image.NewUniform(*c), image.Point{}, draw.Src)
-			t = gpu.NewImageFromImage(im)
-			solidCache[*c] = t
+	if c := FlatColors[map[string]int{"floor": 0, "ceiling": 1}[kind]]; c != nil && name == "" { // a game's colour on the pool's flat, never a flat fill
+		k := solidKey{kind, *c}
+		t, ok := solidCache[k]
+		if src := decodeWall(kind); !ok && src != nil {
+			t = gpu.NewImageFromImage(Tint(src, *c))
+			solidCache[k] = t
 		}
-		return t
+		if t != nil {
+			return t
+		}
 	}
 	if kind == "floor" {
 		return defFloor
 	}
 	return defCeil
+}
+
+type solidKey struct {
+	kind string
+	c    color.RGBA
+}
+
+// Tint is texture tex's light and shade on colour c: a flat colour drawn
+// textured (never a flat fill).
+func Tint(tex image.Image, c color.RGBA) *image.RGBA {
+	lum := func(c color.Color) float64 {
+		r, g, b, _ := c.RGBA()
+		return (0.3*float64(r)+0.59*float64(g)+0.11*float64(b))/65535 + 1e-3
+	}
+	b := tex.Bounds()
+	var sum float64
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			sum += lum(tex.At(x, y))
+		}
+	}
+	mean := sum / float64(b.Dx()*b.Dy())
+	m := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			k := lum(tex.At(x, y)) / mean
+			f := func(v uint8) uint8 { return uint8(min(255, float64(v)*k)) }
+			m.SetRGBA(x-b.Min.X, y-b.Min.Y, color.RGBA{f(c.R), f(c.G), f(c.B), 255})
+		}
+	}
+	return m
 }
