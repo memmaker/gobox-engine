@@ -401,13 +401,15 @@ type (
 		Damage   int
 	}
 	Shot struct {
-		From int
-		To   image.Point
-		Art  game.Picture
+		From   int
+		To     image.Point
+		Art    game.Picture
+		StepMs int // the flight's time per third of a square, the original's (0: gobox's)
 	}
 	CastSpell struct {
 		From, Spell int
 		Ats         []image.Point
+		StepMs      int // a flight's time per third of a square (0: gobox's)
 	}
 	Struck struct{ Unit, Damage int } // harm without an attack (a spell, a trap)
 	Healed struct{ Unit, HP int }

@@ -311,7 +311,7 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 				ce.Ms, ce.Battle = holdMs, posed(e)
 			}
 			if k == front.EvMissile && len(e.Sprite) > 0 && ce.Battle != nil { // the shot flies: its sprite square by square from the shooter, in thirds, over the moment
-				out = append(out, missileFlight(ce, e.Sprite[0])...)
+				out = append(out, missileFlight(ce, e.Sprite[0], e.StepMs)...)
 				continue
 			}
 			out = append(out, ce)
@@ -323,7 +323,7 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 // missileFlight is the moment ce (a missile held on its Battle) as the
 // sprite's flight from ce.Unit's square (else From) to To, a frame a third
 // of a square, the moment's time shared among them.
-func missileFlight(ce front.CombatEvent, art game.Picture) []front.CombatEvent {
+func missileFlight(ce front.CombatEvent, art game.Picture, step int) []front.CombatEvent {
 	from := ce.From
 	for _, u := range ce.Battle.Units {
 		if u.ID == ce.Unit {
@@ -339,6 +339,9 @@ func missileFlight(ce front.CombatEvent, art game.Picture) []front.CombatEvent {
 		b.Effects = append(slices.Clone(b.Effects), front.Effect{X: float64(from.X) + float64(d.X*i)/float64(n), Y: float64(from.Y) + float64(d.Y*i)/float64(n)})
 		b.EffectPix = append(slices.Clone(b.EffectPix), pix(art))
 		f.Battle, f.Ms, f.From = &b, max(ce.Ms/(n+1), 1), from
+		if step > 0 { // the game's own pace, whatever the game speed
+			f.Ms = step
+		}
 		if i > 0 {
 			f.Kind = front.EvFrame
 		}

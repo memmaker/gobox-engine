@@ -22,3 +22,15 @@ func TestMissileFlies(t *testing.T) {
 		t.Fatalf("flight %v .. %v", first, last)
 	}
 }
+
+// TestMissileStepMs: the game's StepMs paces each third of a square,
+// whatever the moment's Ms.
+func TestMissileStepMs(t *testing.T) {
+	b := &front.Battle{Units: []front.Unit{{ID: 1, X: 27, Y: 14}}}
+	es := []game.Event{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Pose: 1, Ms: 300, StepMs: 20, Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
+	for _, f := range combatEvents(es, front.View{Battle: b}, func(game.Event) *front.Battle { return b }, 0) {
+		if f.Ms != 20 {
+			t.Fatalf("frame %d ms, want 20", f.Ms)
+		}
+	}
+}

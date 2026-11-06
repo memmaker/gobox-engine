@@ -5,6 +5,7 @@ import (
 	"gobox/front"
 	"image"
 	"math"
+	"os"
 	"regexp"
 	"slices"
 	"strconv"
@@ -410,6 +411,9 @@ func (p *Presenter) playing() *front.CombatEvent {
 				return ev
 			}
 		}
+		if ev := &r.q[0]; traceOn && !r.from.IsZero() { // a timed moment ended
+			fmt.Fprintf(os.Stderr, "trace %s anim end kind %d unit %d after %dms (Ms %d)\n", time.Now().Format("15:04:05.000"), ev.Kind, ev.Unit, now().Sub(r.from).Milliseconds(), ev.Ms)
+		}
 		r.q, r.from, r.skip = r.q[1:], time.Time{}, false
 	}
 	r.fast = false
@@ -584,3 +588,6 @@ func blowFloat(ev front.CombatEvent) (id, n int, word string) {
 	}
 	return 0, 0, ""
 }
+
+// traceOn (GOBOX_TRACE=1): the fight's timed moments say when they end.
+var traceOn = os.Getenv("GOBOX_TRACE") != ""

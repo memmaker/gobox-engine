@@ -1201,6 +1201,7 @@ type Event struct {
 	Unit, Target int
 	At, To       image.Point
 	Sprite       []Picture
+	StepMs       int     // EvMissile with Sprite: the flight's time per third of a square (0: Ms shared out)
 	Ms           int     // >0 with Page: the front shows Page for Ms milliseconds (a timed moment outside a fight)
 	Page         *Page   // the whole page as it stood for this moment (nil: none)
 	Pose         int     // >0 with Ms in a fight: Unit's icon pose (1 action) while this moment shows
