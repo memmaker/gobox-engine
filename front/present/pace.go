@@ -13,7 +13,7 @@ import (
 // Pace queues the call that goes on with time now; nothing while one of
 // its questions waits.
 func (p *Presenter) Pace(v front.View) {
-	if p.q != nil {
+	if p.q != nil || v.Battle != nil && v.Battle.Turn != nil { // a member's turn waits on TurnChoice: nothing goes on with time (a rest the fight broke into never answers it)
 		return
 	}
 	switch v.Pace {

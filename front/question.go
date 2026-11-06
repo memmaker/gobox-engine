@@ -103,7 +103,7 @@ func AskAct(h Host, a Action) (taken, done bool) {
 		if lootAct(h, s.Treasure, a) {
 			return true, true
 		}
-	case s.Resting && a.Kind != ActPoint && a.Kind != ActResize && a.Kind != ActMainMenu:
+	case s.Resting && !s.Battle && a.Kind != ActPoint && a.Kind != ActResize && a.Kind != ActMainMenu: // a fight's turn takes its own decisions
 		AskYes(h, "Stop resting?", func() { h.Call(func(e Game) { e.StopRest() }) })
 		return true, true
 	}

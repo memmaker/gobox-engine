@@ -27,3 +27,14 @@ func TestRestPick(t *testing.T) {
 		t.Fatalf("%+v", a)
 	}
 }
+
+// The watch: a fight breaks into a rest. While a member's turn waits, the
+// rest is not paced (its step would answer the turn) and the turn's keys
+// are not "Stop resting?".
+func TestRestNotPacedOverTurn(t *testing.T) {
+	var p Presenter
+	p.Pace(front.View{Pace: front.PaceRest, Resting: true, Battle: &front.Battle{Turn: &front.Turn{Unit: 1}}})
+	if len(p.Calls()) != 0 {
+		t.Fatal("the rest stepped over the member's turn")
+	}
+}
