@@ -85,6 +85,8 @@ type Common struct {
 	Party     []Member
 	Selected  int
 	Purse     map[string]int
+	PartyCap  int // most items the party carries in all (a shared inventory's slots), 0 no limit
+	PoolItems int // the party inventory's items held (of PartyCap)
 	Where     game.Where
 	Area      string      // the area's name as the player knows it
 	Lore      []game.Lore // the journal, newest first

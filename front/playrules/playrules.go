@@ -322,7 +322,7 @@ func (r *rules) options(labels []string, list bool) []game.Option {
 func (r *rules) State() game.State {
 	ps := r.g.State()
 	c := commonOf(ps)
-	s := game.State{Selected: c.Selected, Purse: c.Purse, Where: c.Where, Quests: c.Quests, Lore: c.Lore,
+	s := game.State{Selected: c.Selected, Purse: c.Purse, PartyCap: c.PartyCap, PoolItems: c.PoolItems, Where: c.Where, Quests: c.Quests, Lore: c.Lore,
 		Allowed: allowedNames(c.Allowed), Items: r.items, Saves: r.saves()}
 	if _, camp := ps.(play.Camping); camp && !s.Allowed["Rest"] {
 		s.Allowed["NoRest"] = true // no timed rest here: camp offers none (classic Camp.NoRest)
