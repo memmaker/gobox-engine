@@ -91,3 +91,13 @@ gobox commits:
 - Never commit .DS_Store.
 - Run tests when work is complete.
 - Scripted runs stay windowed.
+
+## Shared-code extraction (user: "Yes, start them", 2026-11-06)
+
+Plan: pool-shared-analysis.md (committed 6d8058e). Items 1-4 are running in one builder:
+- dice/RNG and identical helpers
+- combat geometry
+- derived stats
+- POR on the shared AttackHits/SavingThrow (POD's switch and its unsigned save bug go to the POD builder)
+
+The builder skips files the passive-rebuild builders are editing. Progress: `.claude-progress-extract.txt`. Items 5-10 (affects, ECL VM into gobox/ecl, AI, spells, records, items) wait for the passive flows.
