@@ -1210,14 +1210,15 @@ type Data struct {
 	NoFreeAim    bool   // the series' combat menu has no free Aim (Buck Rogers)
 	SaveDir      string // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
 	Series       string
-	Coin         string          `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
-	ID           string          // game id
-	CreationFlow CreationFlow    // the creation sheet's layout and steps
-	PointBuy     bool            `json:",omitempty"` // the game takes PointBuy: creation asks Roll or Point Buy for each new character
-	VerbKeys     map[string]rune `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
+	Coin         string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
+	ID           string            // game id
+	CreationFlow CreationFlow      // the creation sheet's layout and steps
+	PointBuy     bool              `json:",omitempty"` // the game takes PointBuy: creation asks Roll or Point Buy for each new character
+	VerbKeys     map[string]rune   `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
 	VerbChords   map[string]string `json:",omitempty"` // more keys of a combat verb by label, comma-separated chords such as alt+q,alt+a or space or shift+u
-	NoHotkeys    bool            `json:",omitempty"` // the series' menus are picked by arrows only: gobox gives its menus no hotkeys
-	PartyMenu    []MenuKey       `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
+	VerbOrder    []string          `json:",omitempty"` // the series' order of the turn's verbs by label (POR: Move View Aim Use Cast Turn Quick Done); those it leaves out follow in gobox's
+	NoHotkeys    bool              `json:",omitempty"` // the series' menus are picked by arrows only: gobox gives its menus no hotkeys
+	PartyMenu    []MenuKey         `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
 	Texts        map[string]string
 	Credits      []string
 	SpellRules   map[int]string // what each spell does, by spell id (the spell tip text)

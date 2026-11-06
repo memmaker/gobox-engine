@@ -814,6 +814,15 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 		l, m := cmp.Or(r.data.Texts["View"], "View"), activeMember(b)
 		t.Options = append(t.Options, game.Option{Label: l, Key: k, Do: game.ViewMember{Member: m}})
 	}
+	if ord := r.data.VerbOrder; len(ord) > 0 { // the series' order; the verbs it leaves out after, as gobox has them
+		at := func(o game.Option) int {
+			if i := slices.Index(ord, o.Label); i >= 0 {
+				return i
+			}
+			return len(ord)
+		}
+		slices.SortStableFunc(t.Options, func(a, b game.Option) int { return at(a) - at(b) })
+	}
 	for i, o := range t.Options {
 		t.Options[i].Chords = r.data.VerbChords[o.Label]
 	}

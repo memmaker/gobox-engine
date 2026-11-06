@@ -58,6 +58,9 @@ func TestFightView(t *testing.T) {
 	if n < 0 {
 		t.Fatalf("no View in %+v", g.View().Battle.Turn.Options)
 	}
+	if o := classic.NewGame(New(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}, VerbOrder: []string{"View", "End"}}), game.Data{}).View().Battle.Turn.Options; o[0].Label != "View" {
+		t.Errorf("VerbOrder: %+v, want View first", o)
+	}
 	g.Answer(front.Action{Kind: front.ActOption, N: n})
 	if v := g.View(); v.SheetPage == nil || v.Sheet == nil || v.Battle == nil || v.Battle.Turn == nil || len(f.sent) != 0 {
 		t.Fatalf("sheet %v, battle %v, sent %v", v.SheetPage != nil, v.Battle != nil, f.sent)
