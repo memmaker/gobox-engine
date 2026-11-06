@@ -18,7 +18,11 @@ func (p *Presenter) templeItems(v front.View) (string, []ui.MenuRow) {
 	case templeHeal:
 		var it []ui.MenuRow
 		for i, cu := range t.Cures {
-			it = append(it, ui.MenuRow{Text: fmt.Sprintf("%-20s %6s", cu.Name, price(front.Money{Gold: cu.Price})), Key: 0, Do: func() {
+			cost := "" // a free service (Silver Blades' temple) shows no price, not 0g
+			if cu.Price != 0 {
+				cost = price(front.Money{Gold: cu.Price})
+			}
+			it = append(it, ui.MenuRow{Text: fmt.Sprintf("%-20s %6s", cu.Name, cost), Key: 0, Do: func() {
 				c.pick = i
 				if cu.Needed {
 					c.to(templePay, 1)()
