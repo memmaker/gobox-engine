@@ -30,7 +30,7 @@ func (f *fake) Load(b []byte) error   { f.data = b; return nil }
 
 func TestAdapter(t *testing.T) {
 	wall := errors.New("a wall")
-	talk := play.Scene{Kind: play.SceneTalk, Text: []string{"Who goes?"}, Replies: []string{"Friend", "Foe"}}
+	talk := play.Scene{Kind: play.SceneTalk, Text: []string{"Who goes?"}, Common: play.Common{Ask: &play.Question{Replies: []string{"Friend", "Foe"}}}}
 	fight := play.Fighting{Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
 	hand := play.Scene{Kind: play.SceneHandout, Handout: "Journal 1", Lines: []string{"line"}}
 	cases := []struct {

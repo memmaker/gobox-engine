@@ -15,7 +15,7 @@ type Game interface {
 	Lead(n int) error
 	RemoveMember(n int) error
 	DropMember(n int) error
-	NewClass(n, class int) error // refused with a class pick: the error says which classes
+	NewClass(n, class int) error // class < 0: the game asks which
 	QuickStart()
 	QuitGame() error
 

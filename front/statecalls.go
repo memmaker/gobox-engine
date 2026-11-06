@@ -5,7 +5,6 @@
 package front
 
 import (
-	"errors"
 	"os"
 )
 
@@ -70,33 +69,7 @@ func StateAct(h Host, a Action) bool {
 	return true
 }
 
-// NewClass calls NewClass; refused with PickClass, it asks for the class.
+// NewClass calls NewClass (the game asks for the class itself).
 func NewClass(h Host, n, class int) {
-	h.Call(func(e Game) {
-		var pick PickClass
-		if err := e.NewClass(n, class); errors.As(err, &pick) {
-			AskChoice(h, pick.Error(), pick, func(id int) { NewClass(h, n, id) })
-		}
-	})
-}
-
-// AskChoice asks for one of items (AskMenu, with Exit); then gets its ID.
-func AskChoice(h Host, prompt string, items []Spell, then func(id int)) {
-	m := Menu{Prompt: prompt}
-	for _, it := range items {
-		m.Commands = append(m.Commands, Command{Text: it.Name, Key: it.Name[0]})
-	}
-	m.Commands = append(m.Commands, Command{Text: "Exit", Key: 'E'})
-	h.Ask(&Question{Ask: Ask{Kind: AskMenu, Menu: m}, Answer: func(a Action) bool {
-		switch a.Kind {
-		case ActChoose:
-			if a.N >= 0 && a.N < len(items) {
-				then(items[a.N].ID)
-			}
-		case ActClose, ActNo:
-		default:
-			return false
-		}
-		return true
-	}})
+	h.Call(func(e Game) { e.NewClass(n, class) })
 }

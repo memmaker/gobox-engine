@@ -1,8 +1,8 @@
 package front
 
 // Questions: what a screen asks the player (Ask), and the refusals of a
-// rule call that ask for something first (Confirm, PickMember, PickSpell,
-// PickClass): the screen asks, then makes the call again with the answer.
+// rule call that ask for something first (Confirm, PickMember, PickSpell):
+// the screen asks, then makes the call again with the answer.
 
 import "errors"
 
@@ -102,12 +102,6 @@ func AskSure(h Host, err error, again func()) bool {
 	}
 	return true
 }
-
-// PickClass is NewClass's refusal: one of these classes (ID: the class)
-// is to be picked; the call is made again with it.
-type PickClass []Spell
-
-func (q PickClass) Error() string { return "Pick New Class:" }
 
 // PickMember is a rule call's refusal: a party member is to be picked
 // (the prompt); the call is made again with the member.

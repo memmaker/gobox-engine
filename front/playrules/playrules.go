@@ -176,14 +176,8 @@ func (r *rules) asked(ps play.State) *game.Ask {
 		}
 		return r.partyMenu(a)
 	}
-	if f, ok := ps.(play.ShipFight); ok && len(f.Menu) > 0 {
-		o := r.options(f.Menu, false)
-		for i := range o {
-			if i < len(f.Keys) && f.Keys[i] != 0 {
-				o[i].Key = f.Keys[i] // the game's key (BR2's C for Character), not the label's
-			}
-		}
-		return &game.Ask{Kind: game.Choice, Options: o}
+	if f, ok := ps.(play.ShipFight); ok && f.Menu != nil {
+		return r.question(f.Menu, false)
 	}
 	sc, ok := ps.(play.Scene)
 	switch {
@@ -195,10 +189,6 @@ func (r *rules) asked(ps play.State) *game.Ask {
 			p = sc.Text[len(sc.Text)-1]
 		}
 		return &game.Ask{Kind: game.Direction, Prompt: p, Options: []game.Option{{Label: "Done", Key: 'D', Do: game.Leave{}}}}
-	case sc.Typed:
-		return &game.Ask{Kind: game.Name, Prompt: c.Status, Max: cmp.Or(sc.Max, 40), Default: sc.Default}
-	case len(sc.Replies) > 0:
-		return &game.Ask{Kind: game.Choice, Prompt: c.Status, Default: sc.Default, NoPick: sc.NoPick, NoEsc: sc.NoEsc, Options: r.options(sc.Replies, c.Status != "" || sc.Kind == play.SceneScreen)} // a screen's or the roster's pick is a list; a menu over the view keeps its keys
 	}
 	return &game.Ask{Kind: game.Continue}
 }
@@ -221,21 +211,22 @@ func (r *rules) question(q *play.Question, list bool) *game.Ask {
 	}
 	if a.Kind != game.YesNo { // a yes/no is the front's confirm: Options on it would be extra moves (game.Ask), as the old path had none
 		a.Options = r.options(q.Replies, list)
+		for i := range a.Options {
+			if i < len(q.Keys) && q.Keys[i] != 0 {
+				a.Options[i].Key = q.Keys[i] // the game's key (BR2's C for Character), not the label's
+			}
+		}
 	}
 	return a
 }
 
 // draftAsk is the creation step's question (nil: the sheet's fields).
 func (r *rules) draftAsk(d *play.Draft) *game.Ask {
-	if !asks(d) {
+	if d.Ask == nil {
 		return nil
 	}
-	return r.question(&play.Question{Text: d.Prompt, Replies: d.Choices, YesNo: d.YesNo, Typed: d.Typed, Number: d.Number, Default: d.Default, Max: d.Max}, true)
+	return r.question(d.Ask, true)
 }
-
-// asks says whether d puts a question (else the sheet's fields are up):
-// a pick, a yes/no, a typed line or a number.
-func asks(d *play.Draft) bool { return len(d.Choices) > 0 || d.YesNo || d.Typed || d.Number }
 
 // partyFuncs are the party menu's functions: label, hotkey and the action
 // that opens it ("": gobox's own).
@@ -396,7 +387,10 @@ func (r *rules) State() game.State {
 		if d := t.Draft; d != nil {
 			s.Mode = game.ModeCreate
 			s.Creation = &game.Creation{Draft: member(d.Member, true, false), Fields: d.Fields, Roster: t.Roster,
-				MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step, Choices: d.Choices}
+				MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step}
+			if d.Ask != nil {
+				s.Creation.Choices = d.Ask.Replies
+			}
 			if d.Member.Sheet != nil {
 				s.SheetPage = d.Member.Sheet // the rules' figures (age, ...) for the sheet being made
 			}
@@ -1375,7 +1369,7 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 		}
 		return r.do(play.Reply{N: d.N, Text: d.Text})
 	}
-	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && asks(a.Draft) {
+	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && a.Draft.Ask != nil {
 		return r.do(play.SetChoice{Field: a.Draft.Step, N: d.N, Text: d.Text})
 	}
 	if _, ok := ps.(play.ShipFight); ok {
@@ -1389,10 +1383,6 @@ func (r *rules) answer(ps play.State, d game.Answer) game.Result {
 		return r.do(play.Heading{Dir: d.N})
 	case sc.Kind == play.SceneHandout:
 		return r.do(onward(sc.Allowed))
-	case sc.Typed:
-		return r.do(play.Reply{N: d.N, Text: d.Text})
-	case len(sc.Replies) > 0:
-		return r.do(play.Reply{N: d.N})
 	}
 	return r.do(play.Continue{})
 }

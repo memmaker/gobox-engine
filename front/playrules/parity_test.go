@@ -80,12 +80,12 @@ func TestParity(t *testing.T) {
 				return s.Mode == game.ModeParty && slices.Equal(labels(s.Pending),
 					[]string{"Create Character", "Purge Character", "View Character", "Load Saved Game", "Save Current Game", "Quick Start", "Begin Adventuring"})
 			}},
-		{"creation step", play.Assembling{Draft: &play.Draft{Step: "career", Choices: []string{"Rogue", "Medic"}}}, game.Data{},
+		{"creation step", play.Assembling{Draft: &play.Draft{Step: "career", Ask: &play.Question{Replies: []string{"Rogue", "Medic"}}}}, game.Data{},
 			[]game.Decision{game.Answer{N: 1}}, []play.Action{play.SetChoice{Field: "career", N: 1}},
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Kind == game.Choice && labels(s.Pending)[1] == "Medic"
 			}},
-		{"creation number", play.Assembling{Draft: &play.Draft{Step: "str", Number: true, Default: 9, Max: 18}}, game.Data{}, nil, nil,
+		{"creation number", play.Assembling{Draft: &play.Draft{Step: "str", Ask: &play.Question{Number: true, Default: 9, Max: 18}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Kind == game.Number && s.Pending.Default == 9 && s.Pending.Max == 18
 			}},
@@ -129,25 +129,25 @@ func TestParity(t *testing.T) {
 			}},
 		{"free aim is gobox's", play.Fighting{}, game.Data{}, []game.Decision{game.Aim{At: image.Pt(3, 4)}}, nil,
 			func(s game.State, res game.Result) bool { return res.Err == nil }},
-		{"no clashing keys", play.Assembling{Draft: &play.Draft{Step: "race", Choices: []string{"Martian", "Mercurian"}}}, game.Data{}, nil, nil,
+		{"no clashing keys", play.Assembling{Draft: &play.Draft{Step: "race", Ask: &play.Question{Replies: []string{"Martian", "Mercurian"}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Options[0].Key == 'M' && s.Pending.Options[1].Key == 0
 			}},
-		{"bars keep keys under NoHotkeys", play.ShipFight{Menu: []string{"Quit", "View"}}, game.Data{NoHotkeys: true}, nil, nil,
+		{"bars keep keys under NoHotkeys", play.ShipFight{Menu: &play.Question{Replies: []string{"Quit", "View"}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Options[0].Key == 'Q' && s.Pending.Options[1].Key == 'V'
 			}},
-		{"ship bar keeps the game's keys", play.ShipFight{Menu: []string{"Close In", "Character"}, Keys: []rune{0, 'C'}}, game.Data{}, nil, nil,
+		{"ship bar keeps the game's keys", play.ShipFight{Menu: &play.Question{Replies: []string{"Close In", "Character"}, Keys: []rune{0, 'C'}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Options[0].Key == 'C' && s.Pending.Options[1].Key == 'C' // the game's own (BR2 space: C Character)
 			}},
 		{"team menu keys under NoHotkeys", play.Assembling{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.NewCharacter{}}}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'C' }},
-		{"list Done keeps its key", play.Scene{Kind: play.SceneScreen, Replies: []string{"Agility", "Next", "Done"}}, game.Data{NoHotkeys: true}, nil, nil,
+		{"list Done keeps its key", play.Scene{Kind: play.SceneScreen, Common: play.Common{Ask: &play.Question{List: true, Replies: []string{"Agility", "Next", "Done"}}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Options[0].Key == 0 && s.Pending.Options[1].Key == 'N' && s.Pending.Options[2].Key == 'D'
 			}},
-		{"menu over the view keeps keys", play.Scene{Kind: play.SceneTalk, Replies: []string{"Move", "Save"}}, game.Data{NoHotkeys: true}, nil, nil,
+		{"menu over the view keeps keys", play.Scene{Kind: play.SceneTalk, Common: play.Common{Ask: &play.Question{Replies: []string{"Move", "Save"}}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Options[0].Key == 'M' && s.Pending.Options[1].Key == 'S'
 			}},
@@ -172,15 +172,15 @@ func TestParity(t *testing.T) {
 				}
 				return true
 			}},
-		{"scene menu is an ask", play.Scene{Kind: play.SceneTalk, Replies: []string{"Move", "Save"}}, game.Data{}, nil, nil,
+		{"scene menu is an ask", play.Scene{Kind: play.SceneTalk, Common: play.Common{Ask: &play.Question{Replies: []string{"Move", "Save"}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Mode == game.ModeAsk && s.Pending != nil }},
 		{"draft question is an ask", play.Assembling{Common: play.Common{Ask: &play.Question{Replies: []string{"A", "B"}}}, Draft: &play.Draft{Step: "sheet"}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Mode == game.ModeAsk }},
-		{"scene list keeps its default", play.Scene{Kind: play.SceneScreen, Replies: []string{"a", "b", "c"}, Default: 2}, game.Data{}, nil, nil,
+		{"scene list keeps its default", play.Scene{Kind: play.SceneScreen, Common: play.Common{Ask: &play.Question{List: true, Replies: []string{"a", "b", "c"}, Default: 2}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Pending != nil && s.Pending.Default == 2 }},
 		{"marks are no key", play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"* BAR"}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 'B' }},
-		{"roster pick prompt", play.Scene{Replies: []string{"Wilma", "Buck"}, Common: play.Common{Status: "Add a character: "}}, game.Data{NoHotkeys: true}, nil, nil,
+		{"roster pick prompt", play.Scene{Common: play.Common{Status: "Add a character: ", Ask: &play.Question{Text: "Add a character: ", List: true, Replies: []string{"Wilma", "Buck"}}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Prompt == "Add a character: " && s.Pending.Options[0].Key == 0
 			}},
@@ -224,13 +224,13 @@ func TestParity(t *testing.T) {
 			}},
 		{"camp picture", play.Camping{Common: play.Common{Picture: pic}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Window == game.WindowPicture }},
-		{"reroll yes/no", play.Assembling{Draft: &play.Draft{Step: "roll", YesNo: true, Prompt: "Reroll stats?"}}, game.Data{},
+		{"reroll yes/no", play.Assembling{Draft: &play.Draft{Step: "roll", Ask: &play.Question{YesNo: true, Text: "Reroll stats?"}}}, game.Data{},
 			[]game.Decision{game.Answer{N: 1}}, []play.Action{play.SetChoice{Field: "roll", N: 1}},
 			func(s game.State, _ game.Result) bool {
 				return s.Pending.Kind == game.YesNo && s.Pending.Prompt == "Reroll stats?"
 			}},
 		{"no hotkeys", play.Assembling{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Begin{}}}},
-			Draft: &play.Draft{Step: "race", Choices: []string{"Terran"}}}, game.Data{NoHotkeys: true}, nil, nil,
+			Draft: &play.Draft{Step: "race", Ask: &play.Question{Replies: []string{"Terran"}}}}, game.Data{NoHotkeys: true}, nil, nil,
 			func(s game.State, _ game.Result) bool { return s.Pending.Options[0].Key == 0 }},
 		{"continue only", play.Scene{Kind: play.SceneScreen, Screen: &game.Screen{Kind: game.ScreenShipSheet},
 			Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Continue{}}}}}, game.Data{}, nil, nil,

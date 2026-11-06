@@ -129,6 +129,7 @@ type Question struct {
 	Continue     bool            // a key to go on (Continue answers it); Common.Status may say so
 	Heading      bool            // a heading to pick (the overland): Heading{Dir}, Leave for Done
 	List         bool            // Replies are a pick from a list (a roster, a town's places), not a command menu
+	Keys         []rune          // the game's own hotkey per reply (0: from the label); nil: all from the labels
 	Do           []game.Decision // per reply, a front-state decision gobox runs in place of Reply (a View's Gear: game.OpenItems{Member}); nil: Reply
 }
 
@@ -180,12 +181,7 @@ type Draft struct {
 	MinHP, MaxHP int
 	Minimums     map[string]int // the class's lowest ability scores, by Member.Stats key ("str", ...)
 	Step         string         // the creation step the rules are on ("race", "skills", ...), "" any
-	Choices      []string       // that step's options: SetChoice{Field: Step, N}
-	Typed        bool           // the step takes typed text (a name): SetChoice{Field: Step, Text}
-	Number       bool           // the step takes a number: SetChoice{Field: Step, N}
-	Default, Max int            // Typed: the longest; Number: the default and the largest
-	YesNo        bool           // the step asks yes or no ("Reroll stats?"): SetChoice{Field: Step, N: 1} is yes
-	Prompt       string         // the step's question text
+	Ask          *Question      // that step's question (its options, a typed name, a number, a yes/no), answered by SetChoice{Field: Step, N or Text}; nil: the sheet's fields
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).
@@ -265,7 +261,7 @@ type SceneKind int
 
 const (
 	SceneText     SceneKind = iota // the script's text and pictures
-	SceneTalk                      // someone speaks; Replies are the answers
+	SceneTalk                      // someone speaks; Common.Ask holds the answers
 	SceneHandout                   // a journal handout to read; Continue leaves
 	SceneTitle                     // the title (Intro); Continue ends it
 	SceneSequence                  // a Data.Sequences entry full screen; Continue at its end
@@ -286,26 +282,21 @@ type Placed struct {
 // place is the game's state; Continue or a Reply moves it on.
 type Scene struct {
 	Common
-	Kind         SceneKind
-	Speaker      string
-	Pictures     []game.Picture
-	Text         []string          // plain paragraphs; colours are gobox's
-	Replies      []string          // SceneTalk: the answers, Reply{N}
-	Typed        bool              // the reply is typed text (Reply{Text})
-	NoPick       bool              // Replies: no highlight, Enter and the arrows do not answer; only the hotkeys do (as Question.NoPick)
-	NoEsc        bool              // Esc does not answer it (as Question.NoEsc)
-	Handout      string            // SceneHandout: the title
-	Lines        []string          // SceneHandout: journal.Layout's
-	Layers       []game.Layer      // pictures with their place and frames (Pictures: gobox places them)
-	Placed       []Placed          // text at cells over the window (Text: the message lines)
-	Intro        *game.Intro       // SceneTitle
-	Sequence     string            // SceneSequence: the Data.Sequences name
-	Results      *game.Results     // SceneResults
-	Screen       *game.Screen      // SceneScreen
-	Full         bool              // the pictures are one whole-screen picture
-	Default, Max int               // Typed: the longest answer; a number's default and largest
-	Steps        map[int]TitleStep // SceneTitle: Intro.Pictures' step N's pictures and tune; gobox steps through them
-	Walls        *Walls            // the 3D view the scene is over (nil: the one last explored, if any)
+	Kind     SceneKind
+	Speaker  string
+	Pictures []game.Picture
+	Text     []string          // plain paragraphs; colours are gobox's
+	Handout  string            // SceneHandout: the title
+	Lines    []string          // SceneHandout: journal.Layout's
+	Layers   []game.Layer      // pictures with their place and frames (Pictures: gobox places them)
+	Placed   []Placed          // text at cells over the window (Text: the message lines)
+	Intro    *game.Intro       // SceneTitle
+	Sequence string            // SceneSequence: the Data.Sequences name
+	Results  *game.Results     // SceneResults
+	Screen   *game.Screen      // SceneScreen
+	Full     bool              // the pictures are one whole-screen picture
+	Steps    map[int]TitleStep // SceneTitle: Intro.Pictures' step N's pictures and tune; gobox steps through them
+	Walls    *Walls            // the 3D view the scene is over (nil: the one last explored, if any)
 }
 
 // TitleStep is one title picture step: its layers and the tune it starts.
@@ -375,14 +366,14 @@ type Over struct {
 	Text string // the rules' last words
 }
 
-// ShipFight: a ship battle is on (Buck Rogers). The crew menu up is Menu,
-// answered with Crew{N}; Sheet a ship's record shown over the fight.
+// ShipFight: a ship battle is on (Buck Rogers). The crew menu up is Menu
+// (its Replies and Keys), answered with Crew{N}; Sheet a ship's record
+// shown over the fight.
 type ShipFight struct {
 	Common
 	Fight game.SpaceFight
 	Sheet *game.ShipSheet
-	Menu  []string
-	Keys  []rune // the game's own hotkey per Menu line (0: from the label); nil: all from the labels
+	Menu  *Question // nil: no crew menu up
 }
 
 func (Assembling) state() {}

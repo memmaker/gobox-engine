@@ -89,7 +89,7 @@ func TestGaps(t *testing.T) {
 			func(s game.State) bool { return s.LastText == "The end" }},
 		{"modify", play.Assembling{}, game.Modify{Member: 2}, play.Modify{Member: 2}, nil},
 		{"quick start", play.Assembling{}, game.QuickStart{}, play.QuickStart{}, nil},
-		{"roll", play.Assembling{Draft: &play.Draft{Step: "skills", Choices: []string{"a"}}}, game.Roll{Minimal: true}, play.Reroll{Minimal: true},
+		{"roll", play.Assembling{Draft: &play.Draft{Step: "skills", Ask: &play.Question{Replies: []string{"a"}}}}, game.Roll{Minimal: true}, play.Reroll{Minimal: true},
 			func(s game.State) bool { return s.Creation.Step == "skills" && len(s.Creation.Choices) == 1 }},
 		{"plan", play.Camping{}, game.Plan{Member: 1, Spell: 2, Count: 3}, play.Plan{Member: 1, Spell: 2, Count: 3}, nil},
 		{"camp rest", play.Camping{}, game.CampRest{Kind: 1}, play.CampRest{Kind: 1}, nil},
@@ -124,7 +124,7 @@ func TestGaps(t *testing.T) {
 				return s.Pending.Kind == game.Direction && s.Pending.Prompt == "En route" && s.Pending.Options[0].Do == game.Leave{}
 			}},
 		{"heading done", play.Scene{Kind: play.SceneHeading}, game.Leave{}, play.Leave{}, nil},
-		{"ship fight", play.ShipFight{Fight: sf, Menu: []string{"Pilot", "Gunner"}}, game.Answer{N: 1}, play.Crew{N: 1},
+		{"ship fight", play.ShipFight{Fight: sf, Menu: &play.Question{Replies: []string{"Pilot", "Gunner"}}}, game.Answer{N: 1}, play.Crew{N: 1},
 			func(s game.State) bool {
 				return s.Screen.Kind == game.ScreenSpaceFight && s.Screen.SpaceFight.Range == 4 && s.Pending.Options[1].Label == "Gunner"
 			}},
@@ -248,7 +248,7 @@ func TestCampKeepsView(t *testing.T) {
 // TestDraftAsks: a draft asks only what it has to ask: a typed name with
 // no Step still asks, a bare Step (the sheet) does not.
 func TestDraftAsks(t *testing.T) {
-	r := New(&fake{st: play.Assembling{Draft: &play.Draft{Typed: true}}}, game.Data{})
+	r := New(&fake{st: play.Assembling{Draft: &play.Draft{Ask: &play.Question{Typed: true}}}}, game.Data{})
 	if a := r.Pending(); a == nil || a.Kind != game.Name {
 		t.Fatalf("typed draft asks %+v", a)
 	}

@@ -1,7 +1,5 @@
 por-go por/presentdata -> gobox/walls
 cotab-go cotab/rules -> gobox/front/playrules
-sotsb-go sotsb/rules -> gobox/front
-sotsb-go sotsb/rules -> gobox/front/classic
 sotsb-go sotsb/rules -> gobox/front/playrules
 sotsb-go sotsb/rules -> gobox/ui/fonts
 pod-go pod/rules -> gobox/front/playrules

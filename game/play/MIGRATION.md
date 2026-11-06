@@ -42,20 +42,28 @@ gobox's), `SetIcon`/`Create` (now `SetChoice`), `KeepDraft` (`KeepCharacter`),
    (`Attacked`, `Walked`, `Said`, `TimePassed`, `Refused`, ...) with no
    `Wait`, `Ms`, `Page`, `Pose` or `Screen`: gobox paces and shows them.
 
-## Order
+## Order (user, 2026-11-06: one canonical way, no game keeps its own plumbing)
 
 There is no bridge: every action and state is one explicit type in `play`,
-and a game moves over whole.
+and a game moves over whole. Today five games wrap their old game.Rules in
+a play.go of their own and gobox's front/playrules turns play back into
+game.*: each game moves to implementing play.Game natively, dropping its
+private Ask/Question/Decision/Event/Mode/State types and its play.go.
 
-1. gobox: a front path driven by `play.Game`, beside the old one; a game
-   runs on one or the other.
-2. COTAB first: its rules package implements `play.Game` completely, tests
-   pass, its cmd switches to the new path.
-3. SOTSB, POD, BR1, BR2 the same way, one game per change.
-4. POR last and only if the user lifts its freeze; until then gobox keeps the
-   old path for it.
-5. When no game uses the old path, delete game.Rules, Decision and the
-   flow fields from game.go.
+1. gobox (done 2026-11-06): one `play.Question` (Scene's replies are
+   Common.Ask, Draft.Ask, ShipFight.Menu with the game's Keys); dead front
+   code gone; parity/nocopies_test.go fails on any new private copy of a
+   plumbing type in a game's rules (its knownCopies list only shrinks).
+2. COTAB: first decide how the game waits for the player (callbacks, as
+   BR/POR/SOTSB/POD, or one gobox coroutine helper) from how deep its
+   waits sit; the choice is then the one way for every game. Then COTAB
+   implements play.Game natively.
+3. SOTSB, POD (near-twins), then BR1 + BR2 (their shared code one package
+   first), one game per change.
+4. POR (the freeze is lifted: user, 2026-11-06).
+5. When no game uses the old path: delete game.Rules, Decision and the flow
+   fields from game.go, front/playrules, and classic's game.* conversion;
+   gobox reads play straight into front.
 
 ## Open points
 
@@ -84,7 +92,7 @@ What front/playrules maps each to, so a game on play loses nothing.
 | `Flags.Day`, `Walls.Sun/Mountains` | `Exploring.Day` (the game's say), `Walls.Outside`, `Walls.Mountains` |
 | `Flags.IconDrop`, `IconEditor`, `Picker`, `PowerPick` | `Common.IconEditor/Picker/PowerPick` |
 | `Sheet`, `SheetPage` | `Member.Powers/Reactions/Sheet`; which sheet is up is gobox's |
-| `Creation.Step/Choices` | `Draft.Step/Choices` |
+| `Creation.Step/Choices` | `Draft.Step`, `Draft.Ask.Replies` |
 | `Member.ClassText/LevelText/SpellsReady/Memo` | the same on `play.Member` |
 | `Combat.Turn.Moves/Casting/Weapon/Missile/Maneuvers`, `Unit.Pose` | `Battlefield.Moves/Casting/Weapon/Missile/Maneuvers`, `Unit.Pose` |
 | `LastText` (Over) | `Over.Text` |
@@ -123,7 +131,7 @@ Which play field a game fills for each old State field, and what is gobox's.
 |---|---|---|
 | `Pending` over explore/combat/loot | `Common.Ask` (`Question`: text, replies, yes/no, typed, number with `Default`/`Max`); answered by `Reply` | the Ask's kind, keys |
 | `Pending` party menu | `Assembling` with its `Allowed` (`NewCharacter`, `AddCharacter`, `RemoveCharacter`, `Modify`, `OpenTraining`, `ChangeClass`, `DropMember`, `QuickStart`, `Begin`, `Quit`) | the menu, labels (a series renames one in `Data.Texts`, e.g. "Remove Character": "Purge Character"), View Character, Load Saved Game |
-| `Pending` creation steps | `Draft.Step` with `Choices`, or `Typed`/`Number` and `Default`/`Max`; answered by `SetChoice{Field: Step}` | the ask |
+| `Pending` creation steps | `Draft.Step` with `Draft.Ask` (replies, typed, number, yes/no); answered by `SetChoice{Field: Step}` | the ask |
 | `Picture` | `Common.Picture` (any state; exploring: `WindowPicture`) | the window |
 | `Page.Pane`, `LastText` | `Common.Text` (the message lines; the last is LastText); Scene's `Text` adds to it | paging, colours |
 | `Page.Prompt` | `Common.Status` (plain text) | colours |
@@ -147,7 +155,7 @@ Which play field a game fills for each old State field, and what is gobox's.
 |---|---|
 | Continue-only ask with Status shown | `Question.Continue` |
 | Facing ask | `Question.Heading` (answer is `Heading{Dir}`) |
-| Reroll yes/no with prompt | `Draft.YesNo`, `Draft.Prompt` |
+| Reroll yes/no with prompt | `Draft.Ask{YesNo, Text}` |
 | Team menu order and keys | `game.Data.PartyMenu` (default unchanged) |
 | No hotkeys | `game.Data.NoHotkeys` (creation, reply, party menus) |
 | Layered picture | `Common.Layers` (Window from Picture or Layers in every state) |

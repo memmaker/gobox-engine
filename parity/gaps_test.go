@@ -21,7 +21,7 @@ func TestEffectsClues(t *testing.T) {
 				got := g.EffectsList(n)
 				var want []front.Entry
 				for _, l := range a.EffectsList(n) {
-					want = append(want, front.Entry(l))
+					want = append(want, front.Entry{Text: l.Text, Header: l.Header, Dim: l.Dim, Off: l.Off, Spell: l.Spell})
 				}
 				seen = seen || len(want) > 0
 				if !reflect.DeepEqual(got, want) {

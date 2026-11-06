@@ -102,7 +102,11 @@ func TestSlotsAdapter(t *testing.T) {
 			g := classic.NewGame(b.Rules(), b.Data())
 			for _, loadOnly := range []bool{false, true} {
 				want, got := a.SlotsView(loadOnly), g.SlotsView(loadOnly)
-				if !reflect.DeepEqual(got, (*front.Slots)(want)) {
+				var conv *front.Slots // por's Slots has no Overwrites (the game's words for saving over: none)
+				if want != nil {
+					conv = &front.Slots{Names: want.Names, Times: want.Times, Levels: want.Levels, CanSave: want.CanSave, LoadOnly: want.LoadOnly, Current: want.Current}
+				}
+				if !reflect.DeepEqual(got, conv) {
 					t.Errorf("loadOnly %v: adapter %+v, por %+v", loadOnly, got, want)
 				}
 				if scene == "" && (want == nil || len(want.Names) == 0 || want.Levels[0] == 0 || want.Times[0] == "") {

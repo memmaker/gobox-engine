@@ -20,7 +20,7 @@ func TestYesNoByLabel(t *testing.T) {
 
 // TestSceneNoPick: a scene's replies carry NoPick and NoEsc to the ask.
 func TestSceneNoPick(t *testing.T) {
-	g := &fake{st: play.Scene{Kind: play.SceneTalk, Replies: []string{"Yes", "No"}, NoPick: true, NoEsc: true}}
+	g := &fake{st: play.Scene{Kind: play.SceneTalk, Common: play.Common{Ask: &play.Question{Replies: []string{"Yes", "No"}, NoPick: true, NoEsc: true}}}}
 	s := New(g, game.Data{}).State()
 	if s.Pending == nil || !s.Pending.NoPick || !s.Pending.NoEsc {
 		t.Fatalf("ask %+v", s.Pending)
