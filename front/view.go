@@ -140,6 +140,7 @@ type Unit struct {
 	Dmg        string // the readied attack's damage ("1d8+1")
 	Weapon     string // a member's readied weapon, shown in place of Dmg as the originals do ("": Dmg)
 	Status     string // "" when it can act, else why not ("Helpless", "Unconscious" ...)
+	Down       bool   // dead or out, left on the map: drawn as a body lying on its square
 }
 
 // EventKind is what a CombatEvent reports.

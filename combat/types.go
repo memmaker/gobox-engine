@@ -104,6 +104,7 @@ type Unit struct {
 	Dmg        string
 	Weapon     string
 	Status     string
+	Down       bool // a body: lies on its square, no base
 }
 
 // Kind is what a Decision does.

@@ -359,6 +359,13 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 			tint = partyColour
 		}
 		fw, fd := footprint(u) // the base covers the squares it stands on, not the icon's size
+		if u.Down { // a body: its icon lying on the floor, no base, as the original leaves the fallen
+			b := u.Icon.Bounds()
+			o := opts(place(x, 0.015, z, 0, sq*.92*float32(b.Dx())/float32(max(b.Dx(), b.Dy())), 1, sq*.92*float32(b.Dy())/float32(max(b.Dx(), b.Dy()))), [4]float32{.75, .75, .75, 1}, 0)
+			o.Ambient = 0.9
+			dst.DrawMesh(p.flatQuad, p.figure(u.Icon, 0).tex, vp, o)
+			continue
+		}
 		dst.DrawMesh(p.base, p.white, vp, opts(place(x, 0, z, 0, fw-.22, pedestal, fd-.22), tint, 0.25))
 		if u.Active { // whose turn: a gold ring round the base
 			dst.DrawMesh(p.base, p.white, vp, opts(place(x, 0, z, 0, fw-.14, pedestal*.5, fd-.14),

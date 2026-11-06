@@ -179,7 +179,7 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 			continue
 		}
 		u := front.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
-			Active: g.Active, Name: g.Name, HP: g.HP, MaxHP: g.MaxHP, AC: g.AC, Hit: g.Hit, Dmg: g.Dmg, Status: g.Status}
+			Active: g.Active, Name: g.Name, HP: g.HP, MaxHP: g.MaxHP, AC: g.AC, Hit: g.Hit, Dmg: g.Dmg, Status: g.Status, Down: g.Dead}
 		if g.Member >= 0 && g.Member < len(s.Party) {
 			for _, it := range s.Party[g.Member].Items {
 				if it.Readied && it.Kind == "weapon" {
