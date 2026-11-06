@@ -210,15 +210,15 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *front.Battle, k 
 			put("AC", inkWhite, 0)
 			x -= 8
 			put(" "+strconv.Itoa(u.AC), inkGreen, 0)
+			if u.Status != "" { // before the weapon, as BR2's O099:0560: GIZMO HP 43 AC 2 OKAY BOLT GUN
+				put(u.Status, inkWhite, 0)
+			}
 			if u.Weapon != "" { // the readied weapon's name, as the originals' panel
 				put(u.Weapon, inkGreen, 0)
 			} else if u.Dmg != "" { // no label for an empty value
 				put("Dmg", inkWhite, 0)
 				x -= 8
 				put(" "+u.Dmg, inkGreen, 0)
-			}
-			if u.Status != "" { // after the weapon, as the originals' panel: GIZMO HP 43 AC 2 BOLT GUN OKAY
-				put(u.Status, inkWhite, 0)
 			}
 			if u.Hit > 0 {
 				put("CtH", inkWhite, 0)
