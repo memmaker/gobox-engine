@@ -95,7 +95,7 @@ func preferred(it barItem) (h hotkey) {
 		}
 		h.label = c
 	default:
-		h = hotkeys[it.Text]
+		h = hotkeys[it.word()]
 	}
 	return h
 }
@@ -464,7 +464,7 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 		// proportion; then scaled as one to the button (so their relation holds)
 		f := image.NewRGBA(image.Rect(0, 0, face, face))
 		draw.Draw(f, f.Bounds(), image.NewUniform(th.Panel), image.Point{}, draw.Src)
-		if ic, own := iconPicture(th.Series, it.Text), icons[it.Kind]; own != nil { // the item's own icon (the inventory's atlas cell), 3x in the middle
+		if ic, own := iconPicture(th.Series, it.word()), icons[it.Kind]; own != nil { // the item's own icon (the inventory's atlas cell), 3x in the middle
 			b := own.Bounds()
 			s := (face - 3*b.Dx()) / 2
 			xdraw.NearestNeighbor.Scale(f, image.Rect(s, s, s+3*b.Dx(), s+3*b.Dy()), own, b, draw.Over, nil)
@@ -527,4 +527,14 @@ func gameHot(k int) int {
 		return 0
 	}
 	return k
+}
+
+// word is the remaster's word for the button: its action's (actWords), else
+// its label. Its picture and table letter follow it, so a game's own label
+// (POR's Done, Use) keeps the action's (End's picture and Backspace).
+func (it barItem) word() string {
+	if w := actWords[it.Kind]; w != "" {
+		return w
+	}
+	return it.Text
 }

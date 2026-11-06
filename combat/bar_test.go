@@ -29,10 +29,11 @@ func TestShownItemsLabels(t *testing.T) {
 	}
 }
 
-// TestHotkeysUnique: Use and Quick both want U; the table's Quick keeps it, Use has none.
+// TestHotkeysUnique: a button takes its action's table letter whatever the
+// game labels it (Use is Items: I, Vow is Wait: P); Quick keeps U.
 func TestHotkeysUnique(t *testing.T) {
 	hs := hotkeysOf([]barItem{{'U', "Use", ActItems, 0, 0, ""}, {'Q', "Quick", ActQuick, 0, 0, ""}, {'V', "Vow", ActWait, 0, 0, ""}})
-	if hs[0].key != 0 || hs[1].key != 'u' || hs[1].label != "U" || hs[2].key != 'v' {
+	if hs[0].key != 'i' || hs[1].key != 'u' || hs[1].label != "U" || hs[2].key != 'p' {
 		t.Errorf("hotkeys %+v", hs)
 	}
 }
