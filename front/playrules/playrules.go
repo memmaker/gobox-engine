@@ -928,7 +928,10 @@ func (r *rules) Apply(d game.Decision) game.Result {
 	case game.CloseSheet:
 		r.sheet = -1
 		return game.Result{}
-	case game.SetSpeed, game.Resize, game.ViewMember, game.TitleFlash, game.LootLook:
+	case game.ViewMember: // a shop's, temple's or pool's View: the member's sheet, front state; CloseSheet goes back to the screen under it
+		r.sheet = who(d.Member, ps)
+		return game.Result{}
+	case game.SetSpeed, game.Resize, game.TitleFlash, game.LootLook:
 		return game.Result{} // the screen's (the title's flash is the front's palette)
 	case game.TitlePicture: // gobox steps the title over the scene's Steps
 		r.title.n, r.title.credits = d.N, false
