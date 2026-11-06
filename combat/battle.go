@@ -510,7 +510,7 @@ func (p *Presenter) sync(b *Board) {
 			}
 		}
 	}
-	if changed {
+	if changed || b.Ground != p.ground {
 		p.floor, p.floorTile = b.Floor, b.FloorTile
 		a := image.NewRGBA(p.atlas.Bounds())
 		put := func(slot int, t image.Image) {
@@ -525,6 +525,8 @@ func (p *Presenter) sync(b *Board) {
 		put(wallSlot, stoneTexture(p.tiles[:b.WallTiles], b.StoneTile, b.Floor))
 		if b.FloorTile != nil {
 			put(floorSlot, b.FloorTile)
+		} else if t := baseFloor(&b.Ground, p.tiles[:], p.cut[:]); t >= 0 {
+			put(floorSlot, p.tiles[t]) // the area's own ground: no square under a prop is ever a hole
 		} else {
 			put(floorSlot, floorTile(b.Floor))
 		}
@@ -722,4 +724,22 @@ func backYaw(g *[25][50]Square, walls int, empty, cut func(int) bool, ps *propSe
 		}
 	}
 	return yaw
+}
+
+// baseFloor is the area's base floor: the opaque tile most open squares
+// show, -1 if none. It is the ground under every prop and model.
+func baseFloor(g *[25][50]Square, tiles []image.Image, cut []bool) int {
+	count, best := map[int]int{}, -1
+	for z := range g {
+		for _, s := range g[z] {
+			t := s.Tile
+			if s.Wall || t < 0 || t >= len(tiles) || tiles[t] == nil || cut[t] {
+				continue
+			}
+			if count[t]++; best < 0 || count[t] > count[best] {
+				best = t
+			}
+		}
+	}
+	return best
 }
