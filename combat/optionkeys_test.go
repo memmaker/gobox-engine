@@ -162,3 +162,10 @@ func TestAimStartsOnNearestFoe(t *testing.T) {
 		t.Fatalf("Tab: cursor %v, want the next foe", p.b.Cursor)
 	}
 }
+
+// TestChordLabel: a verb picked only by a chord shows the chord, not a blank.
+func TestChordLabel(t *testing.T) {
+	if h := hotkeysOf([]barItem{{Text: "Quick All", Keys: "alt+q,alt+a"}}); h[0].label != "A-Q" || h[0].key != 0 {
+		t.Fatalf("%+v", h[0])
+	}
+}

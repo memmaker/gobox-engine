@@ -183,7 +183,7 @@ func TestParity(t *testing.T) {
 		{"turn keys unique", play.Fighting{Common: play.Common{Allowed: play.Allowed{Moves: []game.Reach{{}}, Plain: []play.Action{play.DoManeuver{}}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				o := s.Combat.Turn.Options
-				return len(o) == 3 && o[0].Key == 'M' && o[1].Key == 0
+				return len(o) == 2 && o[0].Key == 'M' && o[1].Key == 0
 			}},
 		{"keeper portrait", play.Trading{Common: play.Common{Portrait: &play.Portrait{Head: game.Picture{File: "HEAD2", Block: 3}, Body: game.Picture{File: "BODY2", Block: 3}}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
@@ -195,7 +195,7 @@ func TestParity(t *testing.T) {
 			func(s game.State, _ game.Result) bool {
 				return slices.Equal(s.Combat.Log, []string{"YOU GET INTO A BRAWL."})
 			}},
-		{"aimed attack", play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{},
+		{"aimed attack", play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}}, // the series places Aim: gobox's free cursor
 			[]game.Decision{game.Attack{}, game.Aim{At: image.Pt(2, 3)}}, []play.Action{play.Attack{At: &image.Point{2, 3}}},
 			func(s game.State, _ game.Result) bool {
 				var att, aim bool
@@ -240,7 +240,7 @@ func TestParity(t *testing.T) {
 				for _, o := range s.Combat.Turn.Options {
 					l = append(l, o.Label)
 				}
-				return slices.Equal(l, []string{"Move", "Wait", "End", "Aim"})
+				return slices.Equal(l, []string{"Move", "Wait", "End"}) // no Aim the series does not place
 			}},
 		{"verb keys from data", play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Aid{}}}}},
 			game.Data{VerbKeys: map[string]rune{"Aid": 'H'}}, []game.Decision{game.Answer{N: 'H'}}, []play.Action{play.Aid{}},

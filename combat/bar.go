@@ -88,6 +88,12 @@ func preferred(it barItem) (h hotkey) {
 	case it.Hot > 0:
 		c := byte(it.Hot) | 0x20
 		h.key, h.label = uint16(c), string(c&^0x20)
+	case it.Keys != "": // a chord verb (Alt-Q): its first chord is its label, no letter
+		c, _, _ := strings.Cut(strings.ToUpper(strings.TrimSpace(it.Keys)), ",")
+		for _, m := range []string{"ALT", "SHIFT", "CTRL"} { // short, to fit the button's corner: A-Q, S-U
+			c = strings.Replace(c, m+"+", m[:1]+"-", 1)
+		}
+		h.label = c
 	default:
 		h = hotkeys[it.Text]
 	}
