@@ -40,10 +40,20 @@ replace gobox/ega => ../ega
 
 require gobox/dax v0.0.0
 
-require github.com/qmuntal/gltf v0.29.0 // indirect
+require gobox/game v0.0.0 // indirect
 
 replace gobox/dax => ../dax
 
 replace gobox/audio => ../audio
 
 replace gobox/amiga => ../amiga
+
+replace gobox/game => ../game
+
+replace gobox/geo => ../geo
+
+replace gobox/combat => ../combat
+
+replace gobox/walls => ../walls
+
+replace gobox/sprites => ../sprites
