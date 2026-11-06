@@ -58,6 +58,8 @@ func ResultsRuns(r Results, cw, ch int) []Run {
 	}
 	if r.Outcome != "" {
 		para(r.Outcome)
+	}
+	if r.Exp != "" { // a wipe has no award
 		para(r.Exp + " experience points.")
 	}
 	for _, s := range r.Shares {
