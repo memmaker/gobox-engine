@@ -679,7 +679,7 @@ func (g *Game) ClueRead(i int) *front.Read {
 // Answer does the Decision a names; ActResize is the front's own (the page's size).
 func (g *Game) Answer(a front.Action) error {
 	if traceOn {
-		fmt.Fprintf(os.Stderr, "trace act %+v\n", a)
+		fmt.Fprintf(os.Stderr, "trace %s act %+v\n", traceStamp(), a)
 	}
 	if a.Kind == front.ActResize {
 		err := g.do(game.Resize{Cols: a.X, Rows: a.Y})

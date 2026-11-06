@@ -12,3 +12,10 @@ func TestTraceParty(t *testing.T) {
 		t.Fatalf("%q", got)
 	}
 }
+
+// TestTraceStamp: trace lines carry the time to the millisecond.
+func TestTraceStamp(t *testing.T) {
+	if s := traceStamp(); len(s) != len("15:04:05.000") || s[8] != '.' {
+		t.Fatalf("%q", s)
+	}
+}

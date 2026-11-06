@@ -1520,7 +1520,7 @@ var traceOn = os.Getenv("GOBOX_TRACE") != ""
 func (r *rules) keep(a play.Action) game.Result {
 	out, err := r.g.Do(a)
 	if traceOn {
-		fmt.Fprintf(os.Stderr, "trace play.Do %T%+v err=%v events=%d\n", a, a, err, len(out.Events))
+		fmt.Fprintf(os.Stderr, "trace %s play.Do %T%+v err=%v events=%d\n", time.Now().Format("15:04:05.000"), a, a, err, len(out.Events))
 	}
 	if err != nil { // no toast: the old path's refusals were silent unless the rules said (Refused)
 		return game.Result{Err: err}
