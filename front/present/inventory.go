@@ -5,6 +5,7 @@ package present
 import (
 	"fmt"
 	"gobox/front"
+	"gobox/game"
 	"image"
 	"image/color"
 	"slices"
@@ -205,7 +206,8 @@ func (inv *inventory) do(k front.ActKind) {
 		}
 	case it == nil:
 	case inv.ask == nil && (k == front.ActDrop || k == front.ActSell):
-		inv.ask, inv.askSel = &front.Action{Kind: k, N: it.Index}, map[bool]int{true: 0, false: 1}[k == front.ActSell] // a sale starts on Yes, as the Gold Box's; a drop (gone forever) on No
+		yes := confirmOf(itemConfirm(k, it), game.Confirm{Asks: []string{""}, Yes: k == front.ActSell}).Yes // the game's (Data.Confirms), else a sale on Yes, as the Gold Box's, a drop (gone forever) on No
+		inv.ask, inv.askSel = &front.Action{Kind: k, N: it.Index}, map[bool]int{true: 0, false: 1}[yes]
 		return
 	default:
 		inv.remove(k, it.Index)

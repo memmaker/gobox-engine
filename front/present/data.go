@@ -211,6 +211,34 @@ func confirmOf(act string, def game.Confirm) game.Confirm {
 	return def
 }
 
+// itemConfirm is the Data.Confirms key of act k (ActDrop, ActSell) on it:
+// the most specific the game gives, else "Drop" or "Sell". Sell's are
+// SellMany (a stack), SellFree (no price) and SellFreeMany; Drop's
+// DropScribe (a scroll being scribed).
+func itemConfirm(k front.ActKind, it *front.InvItem) string {
+	base, keys := "Drop", []string{}
+	if k == front.ActSell {
+		base = "Sell"
+		free := it.Price == (front.Money{})
+		switch {
+		case free && it.Count > 1:
+			keys = []string{"SellFreeMany", "SellFree"}
+		case free:
+			keys = []string{"SellFree"}
+		case it.Count > 1:
+			keys = []string{"SellMany"}
+		}
+	} else if it.Scribe {
+		keys = []string{"DropScribe"}
+	}
+	for _, c := range keys {
+		if len(confirms[c].Asks) > 0 {
+			return c
+		}
+	}
+	return base
+}
+
 // confirmText is a Confirm's ask with %s the name and %p the price.
 func confirmText(ask, name, price string) string {
 	return strings.NewReplacer("%s", name, "%p", price).Replace(ask)
