@@ -38,3 +38,16 @@ func TestLoneAimWithLeave(t *testing.T) {
 		t.Fatalf("Esc sent %#v", f.sent)
 	}
 }
+
+// A big foe whose At lies outside the aim's reach but one of whose squares
+// is in it is a target Tab cycles, the cursor on it.
+func TestAimTargetsBigFoe(t *testing.T) {
+	in := image.Pt(5, 2)
+	fight := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Leave{}},
+		Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{in}, Targets: 1}}}},
+		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: image.Pt(4, 2), Squares: []image.Point{{4, 2}, in}, Size: 2}}}}
+	g := classic.NewGame(New(&fake{st: fight}, game.Data{}), game.Data{})
+	if v := g.View(); v.Battle == nil || len(v.Battle.Targets) != 1 {
+		t.Fatalf("targets %+v", v.Battle)
+	}
+}

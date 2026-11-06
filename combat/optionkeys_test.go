@@ -105,3 +105,18 @@ func TestAimClickFoe(t *testing.T) {
 		t.Fatalf("%+v", got)
 	}
 }
+
+// TestAimCursorStarts: aiming, the game's Cursor with no CursorAt is drawn
+// on the square it names, a big foe's squares when it is on one.
+func TestAimCursorStarts(t *testing.T) {
+	foe := Unit{ID: 7, X: 4, Y: 2, Squares: []image.Point{{4, 2}, {5, 2}}}
+	b := &Board{Units: []Unit{foe}, Cursor: image.Pt(5, 2), CursorOn: true, Turn: &Turn{Aim: true}}
+	var p Presenter
+	got := p.aimBoard(b)
+	if !slices.Equal(got.CursorAt, foe.Squares) || len(b.CursorAt) != 0 {
+		t.Fatalf("cursor at %v (game's board %v)", got.CursorAt, b.CursorAt)
+	}
+	if p.aimBoard(&Board{}); p.aimAt != nil {
+		t.Fatal("the aim cursor outlived the aim")
+	}
+}

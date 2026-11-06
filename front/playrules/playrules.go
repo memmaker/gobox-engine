@@ -827,7 +827,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 		}
 		best := -1
 		for _, u := range c.Units {
-			if u.Foe && !u.Dead && !u.Gone && slices.Contains(r.aim.Squares, u.At) {
+			if u.Foe && !u.Dead && !u.Gone && slices.ContainsFunc(append([]image.Point{u.At}, u.Squares...), func(q image.Point) bool { return slices.Contains(r.aim.Squares, q) }) { // any square it covers (a big foe's At may lie outside the reach)
 				c.Targets = append(c.Targets, u.ID)
 				if d := u.At.Sub(from); best < 0 || d.X*d.X+d.Y*d.Y < best {
 					best = d.X*d.X + d.Y*d.Y

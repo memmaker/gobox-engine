@@ -138,14 +138,7 @@ var (
 // Draw shows b on dst.
 func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	p.initCamera()
-	if b.Turn == nil || !b.Turn.Aim {
-		p.aimAt = nil
-	} else if p.aimAt != nil { // the aim cursor is the front's (aimTo), over the game's
-		c := *b
-		b = &c
-		p.b = b
-		p.aimTo(*p.aimAt)
-	}
+	b = p.aimBoard(b)
 	p.b = b
 	if b.Turn == nil || b.Turn.Aim || !slices.Contains(b.Turn.Can, p.PickKind) {
 		p.Picking = false
@@ -802,4 +795,23 @@ func restFocus(last vec, b *Board) vec {
 		return vec{sum[0] / n, 0, sum[2] / n}
 	}
 	return vec{float64(b.View.X) + 6, 0, float64(b.View.Y) + 3.5}
+}
+
+// aimBoard is b with the aim cursor, front state (aimTo), over the game's:
+// it starts on the game's Cursor (which names no squares) and ends with the aim.
+func (p *Presenter) aimBoard(b *Board) *Board {
+	if b.Turn == nil || !b.Turn.Aim {
+		p.aimAt = nil
+		return b
+	}
+	if p.aimAt == nil && (!b.CursorOn || len(b.CursorAt) > 0) {
+		return b
+	}
+	c := *b
+	p.b = &c
+	if p.aimAt == nil {
+		p.aimAt = &c.Cursor
+	}
+	p.aimTo(*p.aimAt)
+	return p.b
 }
