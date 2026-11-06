@@ -23,3 +23,16 @@ func TestGroundOverlay(t *testing.T) {
 		t.Error("the overlay's picture is not in its slot")
 	}
 }
+
+// TestGroundOverlayManyTiles: a game naming 0x100 tiles still gets its
+// overlay a slot (POD's bodies showed bare floor).
+func TestGroundOverlayManyTiles(t *testing.T) {
+	names := make([]string, 0x100)
+	body := game.Picture{File: "COMSPR", Block: 21, Clear: -1}
+	s := game.State{Combat: &game.Combat{Tiles: names, Squares: []game.Ground{{At: image.Pt(2, 3), Tile: 31, Overlay: body}}}}
+	b := BattleOf(s, nil)
+	o := b.Ground[3][2].Overlay
+	if o == 0 || b.TilePix[o-1].File != "COMSPR" {
+		t.Fatalf("overlay %d, slots %d", o, len(b.TilePix))
+	}
+}

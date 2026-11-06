@@ -151,7 +151,10 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		}
 		k := fmt.Sprint(a.File, a.Block, a.Frame, a.Name, len(a.Pixels))
 		t, ok := slots[k]
-		if !ok && slot < len(b.TilePix) {
+		if !ok {
+			for len(b.TilePix) <= slot { // past 0x100 (a game naming every tile): more slots, not none
+				b.TilePix = append(b.TilePix, front.Picture{})
+			}
 			t, ok, slots[k] = slot, true, slot
 			b.TilePix[slot] = pix(a)
 			slot++
