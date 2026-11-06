@@ -22,3 +22,16 @@ func TestRosterPickerFits(t *testing.T) {
 		}
 	}
 }
+
+// TestPickerOnShownPage: asked for a wider page than the game shows (it
+// keeps the original's 40 by 25), the picker lays out on the page shown.
+func TestPickerOnShownPage(t *testing.T) {
+	names := []string{"ABC", "ALDRIC", "CORWYN"}
+	s := game.State{Picker: &game.Picker{Pics: make([]game.Picture, len(names)), Labels: names}}
+	s.Picker.Cell.X, s.Picker.Cell.Y = 11, 6
+	for _, r := range Picker(s, 0, 53, 33).Cells {
+		if r.X2 > 40-2 || r.Y2 > 25-2 {
+			t.Fatalf("cell %+v off the 40x25 page", r)
+		}
+	}
+}

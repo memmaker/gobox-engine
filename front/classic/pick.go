@@ -26,6 +26,7 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 	if n == 0 || k.Cell.X < 1 || k.Cell.Y < 1 {
 		return nil
 	}
+	cols, rows = shownPage(s)
 	textCols, textRows := max(cols, 40), max(rows, 25)
 	winRight, bot := textCols-2, textRows-2 // bot: the box's inner bottom, the page's last row holds its border
 	cw, ch := k.Cell.X, k.Cell.Y
@@ -55,6 +56,9 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 	page = min(max(page, 0), pages-1)
 	v := &front.Picker{N: n, Page: page, Pages: pages, PerPage: per, Cols: nc, Cur: cur, Bottom: bot, Labels: k.Labels, Ask: k.Ask,
 		Classes: k.Classes, Portraits: k.Portraits}
+	if len(k.Labels) > 0 {
+		v.Title = "Saved Characters"
+	}
 	if len(k.Labels) > 0 && len(k.Portraits) == 0 { // the game shows no faces: gobox's default by name, as a member without one
 		v.Portraits = make([]image.Image, len(k.Labels))
 		for i, l := range k.Labels {
@@ -81,16 +85,14 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 	return v
 }
 
-// pickTitles name what each picker (OpenPicker's kind) picks.
-var pickTitles = map[int]string{front.PickHead: "Choose a Head", front.PickBody: "Choose a Body", front.PickIconHead: "Choose a Head",
-	front.PickWeapon: "Choose a Weapon", front.PickAdd: "Add a Character", front.PickForget: "Forget a Character"}
-
-// titled is v with picker kind's title (v nil: nil).
-func titled(v *front.Picker, kind int) *front.Picker {
-	if v != nil {
-		v.Title = pickTitles[kind]
+// shownPage is the page the game shows, whatever page was asked for: its Cells,
+// else the original's 40 by 25 when it keeps its own (it never took the
+// resize, so a wider layout runs off the page it draws).
+func shownPage(s game.State) (int, int) {
+	if c := s.Cells; c.X > 0 && c.Y > 0 {
+		return c.X, c.Y
 	}
-	return v
+	return 40, 25
 }
 
 // IconEditor is the combat icon designer's page from s (nil: none up) on a
