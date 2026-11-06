@@ -41,6 +41,8 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 	cycle := a == input.Tab || a == input.PgUp || a == input.PgDn
 	back := a == input.PgUp || a == input.Tab && p.Shift
 	switch {
+	case p.bar.chordKey(k, p.Alt, p.Shift) != nil: // the game's own chords (Alt-Q, Space) first
+		p.press(*p.bar.chordKey(k, p.Alt, p.Shift))
 	case k == 'u' && p.Shift && p.bar.hotkey(a, k) != nil: // Shift-U: Quick for the whole party
 		p.act(Decision{Kind: ActQuick, N: 1})
 	case p.bar.gameKey(k) != nil: // the game's own hotkey wins over the camera's (Q, E, W ...)

@@ -28,7 +28,7 @@ func TestShownItemsLabels(t *testing.T) {
 
 // TestHotkeysUnique: Use and Quick both want U; the table's Quick keeps it, Use has none.
 func TestHotkeysUnique(t *testing.T) {
-	hs := hotkeysOf([]barItem{{'U', "Use", ActItems, 0, 0}, {'Q', "Quick", ActQuick, 0, 0}, {'V', "Vow", ActWait, 0, 0}})
+	hs := hotkeysOf([]barItem{{'U', "Use", ActItems, 0, 0, ""}, {'Q', "Quick", ActQuick, 0, 0, ""}, {'V', "Vow", ActWait, 0, 0, ""}})
 	if hs[0].key != 0 || hs[1].key != 'u' || hs[1].label != "U" || hs[2].key != 'v' {
 		t.Errorf("hotkeys %+v", hs)
 	}

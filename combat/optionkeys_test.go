@@ -2,6 +2,7 @@ package combat
 
 import (
 	"image"
+	"slices"
 	"testing"
 
 	"gobox/input"
@@ -11,7 +12,7 @@ import (
 // camera's (Q turns the view otherwise), the remaster's (F, U) reach the same
 // acts, and an option the front has no act for is sent by its index.
 func TestOptionKeys(t *testing.T) {
-	b := &Board{Turn: &Turn{Options: []Option{{"Attack", 'A', ActAttack}, {"Quick", 'Q', ActQuick}, {"Target", 'T', ActOption}, {"Dodge", 'D', ActOption}}}}
+	b := &Board{Turn: &Turn{Options: []Option{{"Attack", 'A', ActAttack, ""}, {"Quick", 'Q', ActQuick, ""}, {"Target", 'T', ActOption, ""}, {"Dodge", 'D', ActOption, ""}}}}
 	for _, c := range []struct {
 		a    input.Act
 		k    uint16
@@ -40,7 +41,7 @@ func TestOptionKeys(t *testing.T) {
 // TestMoveOption: the game's Move starts the square cursor on the active
 // unit; it never sends a walk to (0,0).
 func TestMoveOption(t *testing.T) {
-	b := &Board{Units: []Unit{{X: 3, Y: 4, Active: true}}, Turn: &Turn{Options: []Option{{"Move", 'M', ActWalk}}}}
+	b := &Board{Units: []Unit{{X: 3, Y: 4, Active: true}}, Turn: &Turn{Options: []Option{{"Move", 'M', ActWalk, ""}}}}
 	p := &Presenter{b: b}
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
@@ -65,6 +66,23 @@ func TestClickHitsUnit(t *testing.T) {
 		t.Fatal("click not taken")
 	}
 	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: ActAttack, N: 7}) {
+		t.Fatalf("%+v", got)
+	}
+}
+
+// TestOptionChords: a game's chords (Alt-Q, Space) pick its option.
+func TestOptionChords(t *testing.T) {
+	b := &Board{Turn: &Turn{Options: []Option{{"Quick", 'Q', ActQuick, ""}, {"Quick All", 0, ActOption, "alt+q, alt+a"}, {"Quick Off", 0, ActOption, "space"}}}}
+	p := &Presenter{b: b}
+	p.bar.items = shownItems(b, false)
+	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
+	p.Alt = true
+	p.Key(input.None, 'a')
+	p.Alt = false
+	p.Key(input.Space, ' ')
+	p.Key(input.None, 'q')
+	want := []Decision{{Kind: ActOption, N: 1}, {Kind: ActOption, N: 2}, {Kind: ActQuick}}
+	if got := p.Actions(); !slices.Equal(got, want) {
 		t.Fatalf("%+v", got)
 	}
 }

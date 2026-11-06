@@ -89,9 +89,10 @@ type Turn struct {
 // TurnOption is one of the game's turn options: its word, hotkey and the
 // action it is (Kind 0: ActOption N, the game's own).
 type TurnOption struct {
-	Label string
-	Key   byte
-	Kind  ActKind
+	Label  string
+	Key    byte
+	Kind   ActKind
+	Chords string // more keys that pick it (alt+q,space)
 }
 
 // Effect is a sprite the original draws over the map for a moment.

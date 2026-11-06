@@ -203,7 +203,7 @@ func turnOptions(t *game.Turn) (can []front.ActKind, ops []front.TurnOption) {
 		if op.Key > 0 && op.Key < 128 {
 			key = byte(op.Key)
 		}
-		ops = append(ops, front.TurnOption{Label: op.Label, Key: key, Kind: act})
+		ops = append(ops, front.TurnOption{Label: op.Label, Key: key, Kind: act, Chords: op.Chords})
 	}
 	return can, ops
 }

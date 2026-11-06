@@ -31,7 +31,7 @@ var engineKinds = func() map[combat.Kind]front.ActKind {
 
 // syncBattle gives the tabletop its theme and Shift before it draws or takes a key.
 func (p *Presenter) syncBattle() {
-	p.battle.Theme, p.battle.Shift = combat.DefaultTheme, gpu.IsKeyPressed(gpu.KeyShift)
+	p.battle.Theme, p.battle.Shift, p.battle.Alt = combat.DefaultTheme, gpu.IsKeyPressed(gpu.KeyShift), gpu.IsKeyPressed(gpu.KeyAlt)
 	p.battle.Theme.Series = series
 	p.battle.Meshes, p.battle.Props = sprites.Meshes(series), sprites.Combat(series)
 }
@@ -91,7 +91,7 @@ func toBoard(b *front.Battle) *combat.Board {
 			if !ok || op.Kind == 0 {
 				k = combat.ActOption
 			}
-			o.Turn.Options = append(o.Turn.Options, combat.Option{Label: op.Label, Key: op.Key, Kind: k})
+			o.Turn.Options = append(o.Turn.Options, combat.Option{Label: op.Label, Key: op.Key, Kind: k, Chords: op.Chords})
 		}
 	}
 	return o

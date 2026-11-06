@@ -54,9 +54,10 @@ type Turn struct {
 // Option is a button the game offers: its word, hotkey (0: derived) and
 // action (ActOption: the game's own, Decision.N its index).
 type Option struct {
-	Label string
-	Key   byte
-	Kind  Kind
+	Label  string
+	Key    byte
+	Kind   Kind
+	Chords string // more keys that pick it, comma-separated: alt+q, shift+u, space, q
 }
 
 // Effect is a sprite over the map for a moment.

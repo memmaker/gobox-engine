@@ -60,6 +60,7 @@ type barItem struct {
 	Kind Kind
 	Hot  int // the game's hotkey letter (0: derived, -1: none)
 	N    int // ActOption: the option's index
+	Keys string // the game's further chords (Option.Chords)
 }
 
 // hotkeys are the remaster's letters for the bar's buttons, by word, and
@@ -143,6 +144,32 @@ func (b *bar) gameKey(k uint16) *barItem {
 	return nil
 }
 
+// chordKey is the button one of whose chords (alt+q, shift+u, space, q) is
+// key k with Alt and Shift as held (nil: none).
+func (b *bar) chordKey(k uint16, alt, shift bool) *barItem {
+	names := map[string]uint16{"space": ' ', "enter": '\r', "tab": '\t', "backspace": 8}
+	for i, it := range b.items {
+		for _, c := range strings.Split(strings.ToLower(it.Keys), ",") {
+			if c = strings.TrimSpace(c); c == "" || i >= len(b.rects) {
+				continue
+			}
+			parts := strings.Split(c, "+")
+			key, a, s := parts[len(parts)-1], false, false
+			for _, m := range parts[:len(parts)-1] {
+				a, s = a || m == "alt", s || m == "shift"
+			}
+			want, ok := names[key]
+			if !ok && len(key) == 1 {
+				want, ok = uint16(key[0]), true
+			}
+			if ok && want == k && a == alt && s == shift {
+				return &b.items[i]
+			}
+		}
+	}
+	return nil
+}
+
 // tableKey is the button whose act's remaster letter (hotkeys) is k, by its
 // act's word whatever the game calls it (nil: none).
 func (b *bar) tableKey(k uint16) *barItem {
@@ -171,10 +198,10 @@ func (p *Presenter) overBar(x, y int) bool {
 func shownItems(b *Board, asking bool) (items []barItem) {
 	switch t := b.Turn; {
 	case asking:
-		return []barItem{{'Y', "Yes", ActYes, 0, 0}, {'N', "No", ActNo, 0, 0}}
+		return []barItem{{'Y', "Yes", ActYes, 0, 0, ""}, {'N', "No", ActNo, 0, 0, ""}}
 	case t == nil:
 	case t.Aim:
-		return []barItem{{'E', "Cancel", ActClose, 0, 0}}
+		return []barItem{{'E', "Cancel", ActClose, 0, 0, ""}}
 	case len(t.Options) > 0: // the game's own options, every one, in its order
 		for i, o := range t.Options {
 			w := o.Label
@@ -188,7 +215,7 @@ func shownItems(b *Board, asking bool) (items []barItem) {
 			if o.Kind == ActOption {
 				n = i
 			}
-			items = append(items, barItem{w[0], w, o.Kind, int(o.Key), n})
+			items = append(items, barItem{w[0], w, o.Kind, int(o.Key), n, o.Chords})
 		}
 	default:
 		for _, k := range t.Can {
@@ -199,7 +226,7 @@ func shownItems(b *Board, asking bool) (items []barItem) {
 			if w == "" { // a kind the bar has no word for
 				continue
 			}
-			items = append(items, barItem{w[0], w, k, t.Keys[k], 0})
+			items = append(items, barItem{w[0], w, k, t.Keys[k], 0, ""})
 		}
 	}
 	return items

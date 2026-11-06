@@ -25,6 +25,7 @@ import (
 // Presenter keeps the GPU side of one combat map.
 type Presenter struct {
 	Theme                      Theme                // the host's colours; set before the first Draw
+	Alt                        bool                 // Alt is held (the host sets it each frame): the game's alt+ chords
 	Shift                      bool                 // Shift is held (the host sets it each frame): the health bars show
 	Icons                      map[Kind]image.Image // a button's icon by action (the game's art; without one the hotkey letter shows); the weapon in hand on Attack, what Ranged shoots
 	IconKey                    string               // names them, so the bar redraws when they change

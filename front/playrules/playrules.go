@@ -786,13 +786,16 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 			t.Options = append(t.Options, game.Option{Label: l, Key: k, Do: o.do})
 		}
 	}
-	if k, ok := r.data.VerbKeys["Quick All"]; ok && slices.Contains(al.Plain, play.Action(play.Quick{All: true})) { // the original's Quick for the whole party, where the series' bar has it
-		t.Options = append(t.Options, game.Option{Label: cmp.Or(r.data.Texts["Quick All"], "Quick All"), Key: k, Do: game.Quick{All: true}})
+	if slices.Contains(al.Plain, play.Action(play.Quick{All: true})) { // the original's Quick for the whole party: its own entry, keyed by the series (VerbKeys, VerbChords) or clicked
+		t.Options = append(t.Options, game.Option{Label: cmp.Or(r.data.Texts["Quick All"], "Quick All"), Key: r.data.VerbKeys["Quick All"], Do: game.Quick{All: true}})
 	}
 	for _, v := range brVerbs { // as Buck Rogers' rules put them: an answer by hotkey
 		if k := r.verbKey(v.label, v.key); allowed[name(v.a)] {
 			t.Options = append(t.Options, game.Option{Label: v.label, Key: k, Do: game.Answer{N: int(k)}})
 		}
+	}
+	for i, o := range t.Options {
+		t.Options[i].Chords = r.data.VerbChords[o.Label]
 	}
 	if !r.data.NoFreeAim && len(t.Options) > 0 { // no menu ("Continue battle?"): no Aim either
 		t.Options = append(t.Options, game.Option{Label: "Aim", Do: game.Aim{}}) // the free cursor, gobox's own
