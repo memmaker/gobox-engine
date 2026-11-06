@@ -463,7 +463,7 @@ func (g *Game) Identify(n, x int) error       { return g.do(game.Identify{Member
 func (g *Game) Appraise(jewelry bool) error   { return g.do(game.Value{Jewelry: jewelry}) }
 func (g *Game) KeepAppraised(keep bool) error { return g.do(game.KeepAppraised{Keep: keep}) }
 func (g *Game) Cure(n, x int) error           { return g.do(game.Cure{Member: n, Service: x}) }
-func (g *Game) ViewMember(n int) error        { return g.do(game.ViewMember{Member: n}) }
+func (g *Game) ViewMember(n int) error        { return g.do(game.ViewMember{Member: g.sel(n)}) } // -1: the selected member
 func (g *Game) Leave() error                  { return g.do(game.Leave{}) }
 func (g *Game) OpenTraining(n int) error      { return g.do(game.OpenTraining{Member: n}) }
 func (g *Game) CloseTraining() error          { return g.do(game.CloseTraining{}) }

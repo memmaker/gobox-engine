@@ -28,3 +28,13 @@ func TestTempleView(t *testing.T) {
 		}
 	}
 }
+
+// TestViewMemberSelected: the temple's View (-1) views the selected member.
+func TestViewMemberSelected(t *testing.T) {
+	r := &seqRules{}
+	g := NewGame(r, game.Data{})
+	g.ViewMember(-1)
+	if len(r.got) != 1 || r.got[0] != (game.ViewMember{Member: r.State().Selected}) {
+		t.Fatalf("%#v", r.got)
+	}
+}
