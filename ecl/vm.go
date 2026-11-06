@@ -51,7 +51,7 @@ const (
 	ArgVarWord   = 3
 	ArgText      = 128 // packed text follows
 	ArgTextVar   = 129 // text read from a variable address
-	MaxArgs      = 64
+	MaxArgs      = 256 // operands are 1-based and an ON GOTO count is a byte (1..255)
 )
 
 // Host is what the interpreter asks of the game.
