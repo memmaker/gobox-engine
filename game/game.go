@@ -1234,7 +1234,6 @@ type Data struct {
 	VerbKeys      map[string]rune   `json:",omitempty"` // the series' hotkeys of combat verbs by label ("Aid": 'H'), over gobox's
 	VerbChords    map[string]string `json:",omitempty"` // more keys of a combat verb by label, comma-separated chords such as alt+q,alt+a or space or shift+u
 	VerbOrder     []string          `json:",omitempty"` // the series' order of the turn's verbs by label (POR: Move View Aim Use Cast Turn Quick Done); those it leaves out follow in gobox's
-	NoHotkeys     bool              `json:",omitempty"` // the series' menus are picked by arrows only: gobox gives its menus no hotkeys
 	PartyMenu     []MenuKey         `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
 	Texts         map[string]string
 	SaveNoConfirm bool               `json:",omitempty"` // saving over a slot asks nothing (the original never confirms an overwrite)

@@ -295,14 +295,14 @@ func key(s string, used map[rune]bool) rune {
 }
 
 // options are labels as options with invented keys; a vertical list
-// (list) has none where the series' lists have none (Data.NoHotkeys), but
-// its way out ("Done", "Exit", "Leave") keeps one.
+// (list) has none, as the Gold Box lists are picked by arrows, but its way
+// out ("Done", "Exit", "Leave") keeps one.
 func (r *rules) options(labels []string, list bool) []game.Option {
 	used := map[rune]bool{}
 	var o []game.Option
 	for _, t := range labels {
 		k := rune(0)
-		if !list || !r.data.NoHotkeys || exitLabel[strings.ToLower(t)] {
+		if !list || exitLabel[strings.ToLower(t)] {
 			k = key(t, used)
 		}
 		o = append(o, game.Option{Label: t, Key: k})
@@ -1817,7 +1817,7 @@ func (r *rules) ownSaves() []game.SaveSlot {
 	return out
 }
 
-// exitLabel are the list entries that leave or page a pick; they keep a key under NoHotkeys.
+// exitLabel are the list entries that leave or page a pick; they keep a key in a list.
 var exitLabel = map[string]bool{"done": true, "exit": true, "leave": true, "prev": true, "next": true}
 
 // onward is how a page is left: Continue, or Leave where the state allows
