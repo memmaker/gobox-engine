@@ -1696,7 +1696,7 @@ func eventsAt(es []play.Event, ms int) (out []game.Event) {
 		case play.Healed:
 			out = append(out, game.Event{Kind: game.EvDamage, Unit: e.Unit, Target: e.Unit, N: -e.HP})
 		case play.Fell:
-			out = append(out, game.Event{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit, Picture: e.Body})
+			out = append(out, game.Event{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit, Picture: e.Body, Ms: e.Ms})
 		case play.Fled: // a unit that flees or surrenders leaves the field as one that falls does
 			out = append(out, game.Event{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit})
 		case play.Moved:

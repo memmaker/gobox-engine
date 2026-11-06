@@ -428,6 +428,7 @@ type (
 	Fell   struct {
 		Unit int
 		Body game.Picture // what it leaves on its square, as game.Event.Picture on EvDown (empty: nothing)
+		Ms   int          // the replay holds this long on the fall (0: it does not stop)
 	} // down or dead
 	Fled  struct{ Unit int }
 	Moved struct {
