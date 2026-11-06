@@ -817,7 +817,7 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 	}
 	if name != p.shown {
 		p.view.Show(sc, cam)
-		p.shown, p.inside = name, false
+		p.shown, p.inside = name, !v.Inside // a new scene: set its flats below, inside or out
 	} else {
 		p.view.Follow(cam)
 	}
