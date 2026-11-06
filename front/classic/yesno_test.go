@@ -41,4 +41,15 @@ func TestYesNoOptions(t *testing.T) {
 	if len(r.got) != 1 || r.got[0] != game.Decision(game.Search{}) {
 		t.Errorf("refusal Yes: %#v", r.got)
 	}
+	// its No without a Do (POR's Attack Ally?) takes nothing, never Answer 0 (Yes)
+	for _, k := range []front.ActKind{front.ActNo, front.ActOK} {
+		r = &askRules{}
+		g = NewGame(r, game.Data{})
+		g.asked = &game.Ask{Kind: game.YesNo, Options: []game.Option{{Label: "Yes", Do: game.Answer{}}, {Label: "No"}}}
+		n := map[front.ActKind]int{front.ActOK: 1}[k]
+		g.Answer(front.Action{Kind: k, N: n})
+		if len(r.got) != 0 || g.Shown().Pending != nil {
+			t.Errorf("refusal %v on No: %#v", k, r.got)
+		}
+	}
 }

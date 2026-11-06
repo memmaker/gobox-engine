@@ -31,6 +31,9 @@ func (g classicGame) SequenceDone(name string) {
 
 func (g classicGame) View() front.View {
 	s := g.r.State()
+	if c, ok := g.Game.(interface{ Shown() game.State }); ok { // a Refusal's question over the rules' State (Attack Ally?)
+		s = c.Shown()
+	}
 	var gv front.View
 	if c, ok := g.Game.(interface{ ViewOf(game.State) front.View }); ok { // one State a View, not two
 		gv = c.ViewOf(s)

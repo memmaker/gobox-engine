@@ -562,11 +562,15 @@ func (g *Game) Answer(a front.Action) error {
 	}
 	if q := g.asked; q != nil { // a Refusal's question: an option's Do, or anything else drops it
 		g.asked = nil
-		if (a.Kind == front.ActChoose || a.Kind == front.ActOK) && a.N >= 0 && a.N < len(q.Options) && q.Options[a.N].Do != nil {
-			return g.do(q.Options[a.N].Do)
+		i := yesNoOption(q, a.Kind) // a Yes/No with its own options: the one labelled so
+		if (a.Kind == front.ActChoose || a.Kind == front.ActOK) && a.N >= 0 && a.N < len(q.Options) {
+			i = a.N
 		}
-		if i := yesNoOption(q, a.Kind); i >= 0 && q.Options[i].Do != nil { // a Yes/No with its own options: the one labelled so
-			return g.do(q.Options[i].Do)
+		if i >= 0 { // an option without a Do (No) takes nothing
+			if d := q.Options[i].Do; d != nil {
+				return g.do(d)
+			}
+			return nil
 		}
 		if a.Kind == front.ActClose {
 			return nil
@@ -764,6 +768,10 @@ func (g *Game) State() game.State { return g.R.State() }
 
 // Rules is the game's rules (present.WithRules wraps the game with gobox's pool pickers).
 func (g *Game) Rules() game.Rules { return g.R }
+
+// Shown is the state the screens show: the rules' with a Refusal's
+// question pending (a View built on the rules' own State loses it).
+func (g *Game) Shown() game.State { return g.state() }
 
 // state is the rules' state with a Refusal's question pending.
 func (g *Game) state() game.State {
