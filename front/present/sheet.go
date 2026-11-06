@@ -95,7 +95,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	text("HP", lx, y, white)
 	hp := strconv.Itoa(m.HP) + "/" + strconv.Itoa(m.MaxHP)
 	text(hp, lx+lw-8*len(hp), y, hpc)
-	if !sp.Creating {
+	if !sp.Creating && (sp.Exp > 0 || sp.Next > 0) { // a game without experience leaves both zero
 		text("Exp", lx, y+26, white)
 		e := strconv.Itoa(sp.Exp)
 		if sp.Next > 0 {
@@ -104,7 +104,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 		text(e, lx+lw-8*len(e), y+26, green)
 	}
 	ly := y + 52 // under the bars: a key left, its value right
-	if !sp.Creating {
+	if !sp.Creating && sp.Levels != "" {
 		text("Level", lx, ly, white)
 		text(sp.Levels, lx+lw-8*len(sp.Levels), ly, green)
 	}
@@ -172,6 +172,9 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	vy := (ch-2)*8 - 10 // the last row inside the border
 	colW := (rr - rx) / 3
 	for j, f := range [][2]string{{"AC", strconv.Itoa(sp.AC)}, {"THAC0", strconv.Itoa(sp.THAC0)}, {"Damage", sp.Damage}} {
+		if f[1] == "" {
+			continue // the game leaves it empty: no label
+		}
 		mid := rx + colW*j + colW/2
 		text(f[0], mid-4*len(f[0]), vy-12, white)
 		text(f[1], mid-4*len(f[1]), vy, green)
