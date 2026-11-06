@@ -38,7 +38,11 @@ type Key = uint16
 // The script's own keys: \M and \C a right and a left click at the
 // pointer, \P the pointer on to the next position, \w a quarter second of
 // nothing.
-const Right, Left, Next, Wait, Hold Key = 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05
+const Right, Left, Next, Wait, Hold, Snap Key = 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05, 0xFF06
+
+// Timed is a \t<ms> wait: the low 12 bits are frames (60 Hz), taken at once
+// and counted whether or not the game is idle, so a blow can be shot mid-air.
+const Timed Key = 0xE000
 
 // Ticks is the least frames between a script's keys: a quarter second at
 // 60 Hz. A key waits on past it until the game is Idle, at most MaxWait.
@@ -96,13 +100,22 @@ type Config struct {
 // \U \D \L \R the arrows, \G \H PgDn PgUp, \F F10; esc may add a
 // game's own, and any other byte is its own code.
 func ParseKeys(s string, esc map[byte]Key) []Key {
-	all := map[byte]Key{'M': Right, 'C': Left, 'P': Next, 'w': Wait, 'B': Hold,
+	all := map[byte]Key{'M': Right, 'C': Left, 'P': Next, 'w': Wait, 'B': Hold, 'S': Snap,
 		'r': 13, 'e': 27, 't': 9, 'U': 0x4800, 'D': 0x5000, 'L': 0x4B00, 'R': 0x4D00, 'G': 0x5100, 'H': 0x4900, 'F': 0x4400}
 	for b, k := range esc {
 		all[b] = k
 	}
 	var out []Key
 	for i := 0; i < len(s); i++ {
+		if j := i + 2; s[i] == '\\' && i+1 < len(s) && s[i+1] == 't' && j < len(s) && s[j] >= '0' && s[j] <= '9' { // \t<ms>: a timed wait (\t alone is Tab)
+			ms := 0
+			for ; j < len(s) && s[j] >= '0' && s[j] <= '9'; j++ {
+				ms = ms*10 + int(s[j]-'0')
+			}
+			out = append(out, Timed|Key(min(0xFFF, max(1, ms*60/1000))))
+			i = j - 1
+			continue
+		}
 		if c, ok := all[s[min(i+1, len(s)-1)]]; s[i] == '\\' && i+1 < len(s) && ok {
 			out = append(out, c)
 			i++
@@ -126,6 +139,9 @@ type shell struct {
 	fed    int // the script's keys given so far
 	gap    int // frames since the last key
 	frames int // frames saved, Shot with %d
+	snap   bool // a \S is due: this frame is saved
+	until  int // ticks: a \t<ms> wait runs until then
+	snaps  int // \S shots taken
 }
 
 // Run opens the window and runs the game until it ends.
@@ -208,8 +224,17 @@ func (s *shell) step() {
 	s.ticks++
 	s.gap++
 	var k Key
-	if s.fed < len(c.Keys) && s.gap >= Ticks && (c.Keys[s.fed] == Wait || s.cfg.Game.Idle() || s.gap >= MaxWait) {
-		k, s.fed, s.gap = c.Keys[s.fed], s.fed+1, 0
+	if s.fed < len(c.Keys) && s.ticks >= s.until {
+		next := c.Keys[s.fed]
+		timed := next&0xF000 == Timed
+		switch {
+		case timed: // at once, idle or not
+			s.until, s.fed, s.gap = s.ticks+int(next&0xFFF), s.fed+1, 0
+		case next == Snap: // at once: the frame as it is now
+			s.snap, s.fed, s.gap = true, s.fed+1, 0
+		case s.gap >= Ticks && (next == Wait || s.cfg.Game.Idle() || s.gap >= MaxWait):
+			k, s.fed, s.gap = next, s.fed+1, 0
+		}
 	}
 	s.cfg.Game.Step(k)
 }
@@ -220,6 +245,10 @@ func (s *shell) Draw(dst *gpu.Image) {
 		s.step()
 	}
 	s.cfg.Game.Draw(dst)
+	if s.snap && c.Shot != "" { // \S: OUT-1.png, OUT-2.png ... mid-run
+		s.snap, s.snaps = false, s.snaps+1
+		saveShot(dst, fmt.Sprintf("%s-%d.png", strings.TrimSuffix(c.Shot, ".png"), s.snaps))
+	}
 	if c.Shot == "" {
 		if c.Quit && s.done() { // the run ends after the keys (measuring)
 			os.Exit(0)
