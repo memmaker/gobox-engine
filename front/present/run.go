@@ -253,6 +253,12 @@ func (f *Front) Draw(dst *gpu.Image) {
 	} else {
 		f.pic = f.P.Draw(dst, note, v)
 	}
+	if !screenUp(v) && v.Ask == nil && v.Inventory == nil && v.Shop == nil && v.Temple == nil { // the location as it stands: what a shop's or temple's menu draws over
+		b := dst.Bounds()
+		gpu.Sized(&f.P.backdrop, b.Dx(), b.Dy())
+		f.P.backdrop.Clear()
+		f.P.backdrop.DrawImage(dst, nil)
+	}
 }
 
 // newDriver is the Driver over Data.Sounds (nil: none), hooked so sounds play on.

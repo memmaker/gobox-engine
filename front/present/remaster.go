@@ -125,7 +125,8 @@ type Presenter struct {
 	ctx         int                         // 1 + the card whose context menu a right click opened (0 none): drawCardTip
 	ctxSel      int                         // its highlighted line
 	ctxActs     []front.ActKind             // its lines' actions, for the member
-	behind      *blobber.Scene              // the last 3D scene shown: what a shop's or temple's menu draws over
+	behind      *blobber.Scene              // the last 3D scene shown
+	backdrop    *gpu.Image                  // the last frame of the location (its picture, the cards): what a shop's or temple's menu draws over
 	ctxKeys     []byte                      // its lines' hotkeys (the first letters)
 	campCtx     [][]image.Rectangle         // in camp every member's context menu lines (drawCampMenus)
 	campImg     []*gpu.Image                // drawCampMenus: each member's menu image
@@ -372,13 +373,14 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure || sheetUp(v) && v.SheetPage != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
 		if screenUp(v) { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
-			if sc != nil {
+			switch { // over the location as it stands, never black
+			case p.backdrop != nil: // the last frame of it: its picture, the 3D view, the cards
+				dst.DrawImage(p.backdrop, nil)
+			case sc != nil:
 				p.draw3D(dst, v, sc, note)
-			} else if len(v.Pictures) > 0 { // the page's own picture (a shop's): framed, as the original keeps it
+			case len(v.Pictures) > 0:
 				p.drawGeneric(dst, v, note)
-			} else if p.behind != nil { // a page that publishes no map (a shop, a temple): the view last shown, as it stood
-				p.view.Draw(dst)
-			} else {
+			default:
 				dst.Fill(color.Black)
 			}
 			b := dst.Bounds()
