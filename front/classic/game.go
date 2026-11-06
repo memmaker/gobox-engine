@@ -734,8 +734,10 @@ func (g *Game) Answer(a front.Action) error {
 		return g.do(game.Cast{Member: -1, Spell: m.spell, At: m.ats[0], Ats: m.ats})
 	}
 	if s := g.R.State(); s.Mode == game.ModeLoot && s.Loot != nil && !g.found && g.asked == nil {
-		g.found = a.Kind == front.ActOK
-		return nil
+		g.found = a.Kind == front.ActOK || a.Kind == front.ActClose
+		if a.Kind != front.ActClose { // Esc passes the found page and leaves at once, as Enter then Esc
+			return nil
+		}
 	}
 	if a.Kind == front.ActCast {
 		if c := g.R.State().Combat; c != nil {
