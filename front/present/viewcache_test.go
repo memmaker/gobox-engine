@@ -68,12 +68,24 @@ func TestMinimapUploadsOnChange(t *testing.T) {
 func TestKeyDuringPlayKept(t *testing.T) {
 	f := &Front{Game: &countGame{}, started: true}
 	f.P.Play([]front.CombatEvent{{Ms: 5000, Battle: &front.Battle{}}})
-	f.Key('q')
-	if len(f.held) != 1 || f.held[0] != 'q' || !f.P.Playing() {
+	f.Key('x')
+	if len(f.held) != 1 || f.held[0] != 'x' || !f.P.Playing() {
 		t.Fatalf("held %v, playing %v", f.held, f.P.Playing())
 	}
 	f.Key(' ') // Space still cuts the moment short
 	if len(f.held) != 1 {
 		t.Fatalf("held %v", f.held)
+	}
+}
+
+// The camera's keys (Q, E, Home) turn it while the fight's events play: not
+// held for after, and the moment plays on.
+func TestCameraKeyDuringPlay(t *testing.T) {
+	f := &Front{Game: &countGame{}, started: true}
+	f.P.fight = true
+	f.P.Play([]front.CombatEvent{{Ms: 5000, Battle: &front.Battle{}}})
+	f.Key('q')
+	if len(f.held) != 0 || !f.P.Playing() || f.P.replay.skip {
+		t.Fatalf("held %v, playing %v, skip %v", f.held, f.P.Playing(), f.P.replay.skip)
 	}
 }

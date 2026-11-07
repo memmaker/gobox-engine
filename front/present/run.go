@@ -127,7 +127,7 @@ func (f *Front) Key(k uint16) {
 		f.Act()
 	}
 	defer f.stale()
-	if a := actOf(k); f.P.Playing() && a != input.Space && a != input.Enter && a != input.Esc { // a key while the fight's events play: kept for the screen after, never dropped (Space, Enter, Esc cut the moment short)
+	if a := actOf(k); f.P.Playing() && a != input.Space && a != input.Enter && a != input.Esc && !f.P.CameraKey(k) { // a key while the fight's events play: kept for the screen after, never dropped (Space, Enter, Esc cut the moment short)
 		f.held = append(f.held, k)
 		return
 	}

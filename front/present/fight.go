@@ -252,6 +252,11 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *front.Battle, k 
 
 // fightKey takes key k on the combat screen: the spell list's, L for the
 // Log, else the 3D map's and bar's.
+// CameraKey is whether k turns the fight's camera (it acts while the fight's events play).
+func (p *Presenter) CameraKey(k uint16) bool {
+	return p.fight && combat.CameraAct(combatAct(k))
+}
+
 func (p *Presenter) fightKey(k uint16) bool {
 	if m := askMenu(p.shownView); m != nil && len(m.Commands) > 0 { // the game's own menu (Continue Battle: Yes/No ...), over the board
 		keys := make([]byte, len(m.Commands))

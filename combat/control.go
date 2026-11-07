@@ -49,16 +49,11 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 		p.press(*p.bar.gameKey(k))
 	case p.bar.tableKey(k) != nil: // the remaster's letter for the same act (F Attack, U Quick), where the game gave its own
 		p.press(*p.bar.tableKey(k))
-	case a == input.TurnLeft:
-		p.yawTo -= math.Pi / 4
-	case a == input.TurnRight:
-		p.yawTo += math.Pi / 4
+	case p.Camera(a):
 	case a >= input.CursorUp && a <= input.CursorRight && p.stepUnit(cursorDirs[a]): // the arrows step the turn's unit, as the original's
 	case a >= input.CursorUp && a <= input.CursorRight: // the square cursor (the pad's d-pad and left stick send these too)
 		p.moveCursor(cursorDirs[a])
 	case a == input.Up || a == input.Down || a == input.Left || a == input.Right: // W A S D pan
-	case a == input.Home:
-		p.offset = vec{}
 	case k >= '0' && k <= '9':
 		if i := (int(k) - '0' + 9) % 10; i < len(p.bar.rects) { // 1 is the first button, 0 the tenth
 			p.press(p.bar.items[i])
@@ -89,6 +84,30 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 		return false
 	}
 	return true
+}
+
+// Camera takes the camera's own acts (Q and E turn, Home brings it back),
+// whatever the fight is doing: its events playing too. It reports whether a
+// was one.
+func (p *Presenter) Camera(a input.Act) bool {
+	if !CameraAct(a) {
+		return false
+	}
+	p.initCamera()
+	switch a {
+	case input.TurnLeft:
+		p.yawTo -= math.Pi / 4
+	case input.TurnRight:
+		p.yawTo += math.Pi / 4
+	case input.Home:
+		p.offset = vec{}
+	}
+	return true
+}
+
+// CameraAct is whether a is one of the camera's own acts (Camera).
+func CameraAct(a input.Act) bool {
+	return a == input.TurnLeft || a == input.TurnRight || a == input.Home
 }
 
 // cycleTarget moves the aim to the next of the turn's targets (back: the

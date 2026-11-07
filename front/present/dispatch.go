@@ -33,6 +33,9 @@ func (p *Presenter) Key(k uint16, v front.View) {
 		front.IntroStep(p, &p.intro, v.Intro, true)
 		return
 	}
+	if p.Playing() && p.fight && p.battle.Camera(combatAct(k)) { // the camera turns while the fight's events play too (only Space, Enter, Esc cut them short)
+		return
+	}
 	if p.Playing() { // a key cuts the fight's moment short; Space the rest of the turn's timed moments too
 		p.replay.skip, p.replay.fast = true, p.replay.fast || k == ' '
 		return
