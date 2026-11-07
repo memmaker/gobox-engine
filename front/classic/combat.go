@@ -46,6 +46,10 @@ func turnAct(d game.Decision) (front.ActKind, bool) {
 	return 0, false
 }
 
+// ownIconSize is the footprint a member's own PNG icon (Unit.Icon) is drawn
+// at, whatever its pixels: a combat icon's square, as the composed ones.
+var ownIconSize = image.Pt(24, 24)
+
 // Battle is b (the game's) with what s.Combat gives in its place: the
 // combat menu (Turn), each combatant's name, hit points, armor class,
 // damage and status, the squares a move reaches, the foes an attack or aim
@@ -65,7 +69,7 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 			o.Units[i].HP, o.Units[i].MaxHP, o.Units[i].AC = g.HP, g.MaxHP, g.AC
 			o.Units[i].Hit, o.Units[i].Dmg, o.Units[i].Status = g.Hit, g.Dmg, g.Status
 			if g.Icon != nil {
-				o.Units[i].Icon, o.Units[i].IconSize = g.Icon, image.Pt(24, 24)
+				o.Units[i].Icon, o.Units[i].IconSize = g.Icon, ownIconSize
 			} else if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
 				if pic, size, ok := memberPicture(s.Party[m], g, 0); ok {
 					if !cloned { // the game's IconPix by unit, so far
@@ -215,7 +219,7 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 			u.IconSize = image.Pt(g.Art.W, g.Art.H)
 		}
 		if g.Icon != nil {
-			u.Icon = g.Icon
+			u.Icon, u.IconSize = g.Icon, ownIconSize
 		} else if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
 			if pic, size, ok := memberPicture(s.Party[m], g, g.Pose); ok {
 				icon, u.IconSize = pic, size
