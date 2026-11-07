@@ -124,7 +124,22 @@ type Question struct {
 	Keys         []rune          // the game's own hotkey per reply (0: from the label); nil: all from the labels
 	Rows         []game.Line     // List: per reply, its flags (a heading, dimmed, off, the spell it names); nil: plain rows
 	Do           []game.Decision // per reply, a front-state decision gobox runs in place of Reply (a View's Gear: game.OpenItems{Member}); nil: Reply
+	Esc          EscReply        // the reply Esc answers (the menu's Exit, as the originals'); zero: none
 }
+
+// EscReply names the reply Esc answers: EscTo(i) is Replies[i]. It is the
+// index plus one so that the zero value, NoEscReply, means Esc answers no
+// reply.
+type EscReply int
+
+// NoEscReply: Esc answers no reply.
+const NoEscReply EscReply = 0
+
+// EscTo is Esc answering Replies[i].
+func EscTo(i int) EscReply { return EscReply(i + 1) }
+
+// Reply is the index into Replies Esc answers; false for NoEscReply.
+func (e EscReply) Reply() (int, bool) { return int(e) - 1, e != NoEscReply }
 
 // Member is one character as the rules know it.
 type Member struct {
