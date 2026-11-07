@@ -1554,7 +1554,7 @@ func (r *rules) keep(a play.Action) game.Result {
 			}
 		}
 	}
-	return game.Result{Events: eventsAt(out.Events, r.speed*speedStepMs)}
+	return game.Result{Events: eventsAt(out.Events, r.speed*speedStepMs, func(f play.Battlefield) *game.Combat { return r.combat(play.Fighting{Field: f}) })}
 }
 
 // sides are the facings of the four steps.
@@ -1643,10 +1643,11 @@ func onlyMoved(es []game.Event) bool {
 const speedStepMs, defaultSpeed, shipMs = 100, 4, 350
 
 // events are the outcome's facts as the old events, at the default speed.
-func events(es []play.Event) []game.Event { return eventsAt(es, defaultSpeed*speedStepMs) }
+func events(es []play.Event) []game.Event { return eventsAt(es, defaultSpeed*speedStepMs, nil) }
 
-// eventsAt are the outcome's facts as the old events, a blow or a cast held ms.
-func eventsAt(es []play.Event, ms int) (out []game.Event) {
+// eventsAt are the outcome's facts as the old events, a blow or a cast held
+// ms; board gives an Engaged field as the old Combat (nil: no EvEngaged).
+func eventsAt(es []play.Event, ms int, board func(play.Battlefield) *game.Combat) (out []game.Event) {
 	strikeMs, castMs := ms, ms
 	for _, e := range es {
 		switch e := e.(type) {
@@ -1686,6 +1687,10 @@ func eventsAt(es []play.Event, ms int) (out []game.Event) {
 				ev.To = e.Ats[0]
 			}
 			out = append(out, ev)
+		case play.Engaged:
+			if board != nil {
+				out = append(out, game.Event{Kind: game.EvEngaged, Combat: board(e.Field)})
+			}
 		case play.Struck:
 			out = append(out, game.Event{Kind: game.EvDamage, Unit: e.Unit, Target: e.Unit, N: e.Damage})
 		case play.Healed:

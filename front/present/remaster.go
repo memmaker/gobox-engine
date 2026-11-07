@@ -6,6 +6,7 @@ package present
 
 import (
 	"fmt"
+	"os"
 	"image"
 	"image/color"
 	"math"
@@ -324,6 +325,40 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if p.fight {
 		p.shown, p.active, p.menu = "", false, false
 		p.fightView = p.keepFallen(askedBattle(v))
+		if fv := p.fightView; fv != nil && os.Getenv("ZZTRACE") != "" { // zz temporary
+			party, icons := 0, 0
+			for zi, u := range fv.Units {
+				if u.Party && party == 0 && zi < len(fv.IconPix) {
+					pc := fv.IconPix[zi]
+					if f, err := os.OpenFile(os.Getenv("ZZTRACE"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644); err == nil {
+						rp := pixBattle(fv, egaInk)
+						fmt.Fprintf(f, "zz repix icon=%v down=%v\n", rp.Units[zi].Icon != nil, u.Down)
+						for zj, zu := range fv.Units {
+							w := -1
+							if zj < len(fv.IconPix) {
+								w = fv.IconPix[zj].PixW
+							}
+							fmt.Fprintf(f, "zz u %d id %d party %v w %d icon %v\n", zj, zu.ID, zu.Party, w, zu.Icon != nil)
+						}
+						zc := pc
+						zc.Pix = nil
+						fmt.Fprintf(f, "zz struct %+v mask=%v pic=%v\n", zc, pc.Mask != nil && true, picImage(pc, egaInk) != nil)
+						fmt.Fprintf(f, "zz pic i=%d n=%d pixw=%d pix=%d img=%v pal=%d file=%q name=%q\n", zi, len(fv.IconPix), pc.PixW, len(pc.Pix), pc.Img != nil, len(pc.Palette), pc.File, pc.Name)
+						f.Close()
+					}
+				}
+				if u.Party {
+					party++
+					if u.Icon != nil {
+						icons++
+					}
+				}
+			}
+			if f, err := os.OpenFile(os.Getenv("ZZTRACE"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644); err == nil {
+				fmt.Fprintf(f, "zz units %d party %d icons %d playing %v\n", len(fv.Units), party, icons, p.playing() != nil)
+				f.Close()
+			}
+		}
 		p.battle.Glyph = note.Glyph
 		p.syncBattle()
 		p.battle.Draw(dst, toBoard(p.fightView))

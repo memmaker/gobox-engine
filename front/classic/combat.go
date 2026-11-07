@@ -2,6 +2,7 @@ package classic
 
 import (
 	"fmt"
+	"os"
 	"image"
 	"slices"
 
@@ -67,18 +68,7 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 			if g.Icon != nil {
 				o.Units[i].Icon, o.Units[i].IconSize = g.Icon, image.Pt(24, 24)
 			} else if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
-				var pic front.Picture
-				var ok bool
-				var size image.Point
-				if own := s.Party[m].IconHeadID != "" || s.Party[m].Icon != nil; !own && (g.Art.File != "" || g.Art.Name != "" || g.Art.Pixels != nil) {
-					pic, ok, size = pix(g.Art), true, image.Pt(g.Art.W, g.Art.H) // no icon of its own (COTAB's NPC members): the unit's Art, as a foe's; a ref without W: the presenter's native size
-				} else {
-					pm := defaultIcon(s.Party[m])
-					head, body := memberIcon(pm)
-					pic, ok = poolIcon(head, body, pm.IconColors, 0, g.Facing > 3)
-					size = image.Pt(pic.PixW, len(pic.Pix)/max(1, pic.PixW))
-				}
-				if ok {
+				if pic, size, ok := memberPicture(s.Party[m], g, 0); ok {
 					if !cloned { // the game's IconPix by unit, so far
 						o.IconPix, cloned = append(make([]front.Picture, 0, len(o.Units)), b.IconPix...), true
 						o.IconPix = append(o.IconPix, make([]front.Picture, max(0, len(o.Units)-len(o.IconPix)))...)
@@ -228,9 +218,8 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		if g.Icon != nil {
 			u.Icon = g.Icon
 		} else if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
-			head, body := memberIcon(s.Party[m])
-			if pic, ok := poolIcon(head, body, s.Party[m].IconColors, g.Pose, g.Facing > 3); ok {
-				icon, u.IconSize = pic, image.Pt(pic.PixW, len(pic.Pix)/pic.PixW)
+			if pic, size, ok := memberPicture(s.Party[m], g, g.Pose); ok {
+				icon, u.IconSize = pic, size
 			}
 		}
 		b.Units = append(b.Units, u)
@@ -279,4 +268,25 @@ func weapon(w *game.Weapon) *front.InvItem {
 		return nil
 	}
 	return &front.InvItem{Name: w.Name, Type: byte(w.Type), Words: w.Words, Look: w.Look, Rules: w.Rules}
+}
+
+// memberPicture is member m's figure as unit g in pose: g's Art for a member
+// with no icon of its own (COTAB's NPC members, a ref without W: the
+// presenter's native size), else its pool icon (defaultIcon's pick when it
+// has neither pool ids nor icon numbers), mirrored when g faces west. The
+// one way a member's figure is made: the live board and every replayed one.
+func memberPicture(m game.Member, g game.Unit, pose int) (pic front.Picture, size image.Point, ok bool) {
+	if own := m.IconHeadID != "" || m.Icon != nil; !own && hasPic(g.Art) {
+		return pix(g.Art), image.Pt(g.Art.W, g.Art.H), true
+	}
+	pm := defaultIcon(m)
+	head, body := memberIcon(pm)
+	if pic, ok = poolIcon(head, body, pm.IconColors, pose, g.Facing > 3); ok {
+		size = image.Pt(pic.PixW, len(pic.Pix)/max(1, pic.PixW))
+	}
+	if zf, err := os.OpenFile(os.Getenv("ZZTRACE"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644); err == nil { // zz temporary
+		fmt.Fprintf(zf, "zz member %s headid=%q icon=%v head=%q body=%q pose=%d ok=%v gameid=%q amiga=%v\n", m.Name, m.IconHeadID, m.Icon, head, body, pose, ok, GameID, Amiga())
+		zf.Close()
+	}
+	return pic, size, ok
 }

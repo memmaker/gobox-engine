@@ -409,9 +409,10 @@ type (
 		Ats         []image.Point
 		StepMs      int // a flight's time per third of a square (0: gobox's)
 	}
-	Struck struct{ Unit, Damage int } // harm without an attack (a spell, a trap)
-	Healed struct{ Unit, HP int }
-	Fell   struct {
+	Engaged struct{ Field Battlefield } // a fight began: its board before the first turn (the step's fight events play from it)
+	Struck  struct{ Unit, Damage int }  // harm without an attack (a spell, a trap)
+	Healed  struct{ Unit, HP int }
+	Fell    struct {
 		Unit int
 		Body game.Picture // what it leaves on its square, as game.Event.Picture on EvDown (empty: nothing)
 		Ms   int          // the replay holds this long on the fall (0: it does not stop)
@@ -449,6 +450,7 @@ func (Turned) event()      {}
 func (Attacked) event()    {}
 func (Shot) event()        {}
 func (CastSpell) event()   {}
+func (Engaged) event()     {}
 func (Struck) event()      {}
 func (Healed) event()      {}
 func (Fell) event()        {}

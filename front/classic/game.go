@@ -24,7 +24,7 @@ type Game struct {
 
 	grid       image.Point  // the page's size in cells (ActResize); 40x25 at least
 	events     []game.Event // the fight's events since the last Settle
-	lastCombat *game.Combat // the fight the last Settle left up (a Result that ends it plays its events on it)
+	lastCombat *game.Combat // the fight before the step: its events play on it (Settle)
 	ended      *game.Combat // that fight as the ending events so far left it
 	note       front.Note   // the front's own refusal toast
 	lore       int          // journal notes seen (State.Lore), +1; 0: none counted yet
@@ -235,15 +235,23 @@ func ViewVerb(b *front.Battle, d game.Data) *front.Battle {
 // Settle goes on to the next wait; the View carries the fight's events since.
 func (g *Game) Settle() front.View {
 	if p := g.R.State().Pacing; p == nil || p.Pace == game.PaceNone { // a paced step is the front's call (CombatStep ..)
+		if c := g.R.State().Combat; c != nil && g.lastCombat == nil { // a fight already up before its first step (a dev start): its events play from it too
+			g.lastCombat = c
+		}
 		g.step()
 	}
 	v := g.View()
 	posed := g.posedBattle
-	if v.Battle == nil && g.lastCombat != nil { // the events ended the fight: they play on it, each on the board the ones before it left, the page after them
+	for _, e := range g.events {
+		if e.Kind == game.EvEngaged && e.Combat != nil { // the fight began in the step: its events play from its first board
+			g.lastCombat = e.Combat
+		}
+	}
+	if g.lastCombat != nil { // the events play from the board before the step, each on the board the ones before it left (one step is many turns: the dead stand until they fall, a walk starts where it starts); a fight they ended: the page after them
 		c := *g.lastCombat
 		c.Units, c.Squares = slices.Clone(c.Units), slices.Clone(c.Squares)
 		g.ended = &c
-		posed = g.endedBattle
+		posed = g.stepBattle
 	}
 	v.Events = combatEvents(g.events, v, posed, g.messageMs())
 	g.events, g.lastCombat = nil, g.R.State().Combat
@@ -260,10 +268,10 @@ func (g *Game) messageMs() int {
 	return n * 100
 }
 
-// endedBattle is the fight the Result ended (g.ended), for each of its
+// stepBattle is the fight as the step found it (g.ended), for each of its
 // events in turn: every one is held on the board the events before it left
 // (a walk moved, a fall dropped), with its unit in its pose.
-func (g *Game) endedBattle(e game.Event) *front.Battle {
+func (g *Game) stepBattle(e game.Event) *front.Battle {
 	s := g.state()
 	if b := e.Picture; e.Kind == game.EvDown && hasPic(b) { // the body the game leaves (Event.Picture): the fall's moment shows it in the unit's place (standing on it, the figure hid it)
 		for k := range g.ended.Units {

@@ -1183,11 +1183,13 @@ const (
 	EvRefused // Text says why
 	EvReset   // the state changed wholesale (load, new game): redraw from State
 	EvSaves   // gobox puts its save screen up (a script's "save the game?" choice)
+	EvEngaged // a fight began: Combat is its board before the first turn (the step's events play from it)
 )
 
 // Event is something that happened.
 type Event struct {
 	Kind         EventKind
+	Combat       *Combat // EvEngaged: the fight's board before its first turn
 	Text         string
 	Role         string // EvSaid: "narrator", an NPC name, ...
 	N            int
