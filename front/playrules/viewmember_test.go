@@ -176,3 +176,19 @@ func TestFreeAimInOrder(t *testing.T) {
 		t.Errorf("bar %+v, want Aim first", o)
 	}
 }
+
+// TestPickViewMember: a pick whose Allowed offers play.ViewMember lets the
+// player look first (Ask.View), and View goes to the rules, not the sheet.
+func TestPickViewMember(t *testing.T) {
+	st := play.Scene{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}, Ask: &play.Question{Text: "Who?", Replies: []string{"ARIN"}, List: true}}}
+	st.Allowed.Plain = []play.Action{play.Reply{N: 0}, play.ViewMember{Member: 0}}
+	f := &fake{st: st}
+	r := New(f, game.Data{})
+	if a := r.State().Pending; a == nil || !a.View {
+		t.Fatalf("pick ask %+v: no View", a)
+	}
+	r.Apply(game.ViewMember{Member: 0})
+	if len(f.sent) != 1 || f.sent[0] != play.Action(play.ViewMember{Member: 0}) || r.State().SheetPage != nil {
+		t.Fatalf("sent %v, sheet %v", f.sent, r.State().SheetPage != nil)
+	}
+}

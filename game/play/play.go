@@ -590,6 +590,10 @@ type (
 	// Turn verbs the rules answer by hotkey (front/playrules answerVerbs).
 	Target     struct{} // pick a target to fire at (the rules ask on)
 	ViewTarget struct{} // look over the targets
+	// ViewMember views member Member over a pick that lets the player look
+	// first (the rules' own View menu; the question stays and comes back).
+	// Allowed offers one per member while it may.
+	ViewMember struct{ Member int }
 	Intimidate struct{}
 	Aid        struct{} // help a downed member next to the unit
 	Sprint     struct{}
@@ -690,6 +694,7 @@ func (DoManeuver) action()       {}
 func (TurnUndead) action()       {}
 func (Guard) action()            {}
 func (Delay) action()            {}
+func (ViewMember) action()       {}
 func (Quick) action()            {}
 func (Flee) action()             {}
 func (EndTurn) action()          {}

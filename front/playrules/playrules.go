@@ -168,7 +168,9 @@ func (r *rules) asked(ps play.State) *game.Ask {
 	}
 	c := commonOf(ps)
 	if q := c.Ask; q != nil {
-		return r.question(q, q.List)
+		a := r.question(q, q.List)
+		a.View = slices.ContainsFunc(c.Allowed.Plain, func(x play.Action) bool { _, ok := x.(play.ViewMember); return ok }) // a pick the rules let the player look over first
+		return a
 	}
 	if a, ok := ps.(play.Assembling); ok {
 		if d := a.Draft; d != nil {
@@ -1012,6 +1014,9 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		r.sheet = -1
 		return game.Result{}
 	case game.ViewMember: // a shop's, temple's or pool's View: the member's sheet, front state; CloseSheet goes back to the screen under it
+		if v := (play.ViewMember{Member: d.Member}); slices.Contains(commonOf(ps).Allowed.Plain, play.Action(v)) { // a pick's View the rules offer: theirs
+			return r.do(v)
+		}
 		r.sheet = who(d.Member, ps)
 		return game.Result{}
 	case game.SetSpeed:
