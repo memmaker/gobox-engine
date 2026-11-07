@@ -175,6 +175,8 @@ type Draft struct {
 	Minimums     map[string]int // the class's lowest ability scores, by Member.Stats key ("str", ...)
 	Step         string         // the creation step the rules are on ("race", "skills", ...), "" any
 	Ask          *Question      // that step's question (its options, a typed name, a number, a yes/no), answered by SetChoice{Field: Step, N or Text}; nil: the sheet's fields
+	Stats        []game.StatDef // the sheet's abilities in the game's order and count (nil: STR .. CHA from Member.Stats)
+	Derived      []game.Derived // the sheet's figures besides the abilities, in the game's order (nil: from Member)
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).

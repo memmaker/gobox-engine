@@ -388,7 +388,7 @@ func (r *rules) State() game.State {
 		if d := t.Draft; d != nil {
 			s.Mode = game.ModeCreate
 			s.Creation = &game.Creation{Draft: member(d.Member, true, false), Fields: d.Fields, Roster: t.Roster,
-				MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step}
+				MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step, Stats: d.Stats, Derived: d.Derived}
 			if d.Ask != nil {
 				s.Creation.Choices = d.Ask.Replies
 			}
