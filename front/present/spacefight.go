@@ -380,7 +380,7 @@ func (c *cellPage) fightLeft(sf *game.SpaceFight, alt func(bool, int, int) int) 
 	}
 	// 22E2 / 23EB
 	c.put(1, 1, 12, 0, sf.Status)
-	c.put(1, 2, 12, 0, "Range: "+strconv.Itoa(max(sf.Range, 0)))
+	c.put(1, 2, 12, 0, "Range: "+strconv.Itoa(sf.Range)) // the game clamps as its original (BR1 22E2, BR2 23EB)
 	c.panel(sf, false, alt)
 }
 
