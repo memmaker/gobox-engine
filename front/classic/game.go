@@ -22,12 +22,13 @@ type Game struct {
 	R game.Rules
 	D game.Data
 
-	grid       image.Point  // the page's size in cells (ActResize); 40x25 at least
-	events     []game.Event // the fight's events since the last Settle
-	lastCombat *game.Combat // the fight before the step: its events play on it (Settle)
-	ended      *game.Combat // that fight as the ending events so far left it
-	note       front.Note   // the front's own refusal toast
-	lore       int          // journal notes seen (State.Lore), +1; 0: none counted yet
+	grid       image.Point   // the page's size in cells (ActResize); 40x25 at least
+	events     []game.Event  // the fight's events since the last Settle
+	lastCombat *game.Combat  // the fight before the step: its events play on it (Settle)
+	ended      *game.Combat  // that fight as the ending events so far left it
+	lastParty  []game.Member // the party before the step: the events' figures are theirs (a fight the party lost leaves none)
+	note       front.Note    // the front's own refusal toast
+	lore       int           // journal notes seen (State.Lore), +1; 0: none counted yet
 	resets     int
 	traceMode  game.Mode // the mode last traced
 	tiles      bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
@@ -61,6 +62,7 @@ func (g *Game) do(d game.Decision) error {
 		g.lastCombat = c
 	}
 	was := g.R.State()
+	g.lastParty = was.Party
 	paneWas, linesWere := paneTail(was), paneCount(was)
 	res := g.R.Apply(d)
 	g.trace(fmt.Sprintf("%T%+v", d, d), res)
@@ -238,13 +240,14 @@ func (g *Game) Settle() front.View {
 		if c := g.R.State().Combat; c != nil && g.lastCombat == nil { // a fight already up before its first step (a dev start): its events play from it too
 			g.lastCombat = c
 		}
+		g.lastParty = g.R.State().Party
 		g.step()
 	}
 	v := g.View()
 	posed := g.posedBattle
 	for _, e := range g.events {
 		if e.Kind == game.EvEngaged && e.Combat != nil { // the fight began in the step: its events play from its first board
-			g.lastCombat = e.Combat
+			g.lastCombat, g.lastParty = e.Combat, e.Party
 		}
 	}
 	if g.lastCombat != nil { // the events play from the board before the step, each on the board the ones before it left (one step is many turns: the dead stand until they fall, a walk starts where it starts); a fight they ended: the page after them
@@ -273,6 +276,7 @@ func (g *Game) messageMs() int {
 // (a walk moved, a fall dropped), with its unit in its pose.
 func (g *Game) stepBattle(e game.Event) *front.Battle {
 	s := g.state()
+	s.Party = g.lastParty
 	if b := e.Picture; e.Kind == game.EvDown && hasPic(b) { // the body the game leaves (Event.Picture): the fall's moment shows it in the unit's place (standing on it, the figure hid it)
 		for k := range g.ended.Units {
 			u := &g.ended.Units[k]

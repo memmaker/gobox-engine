@@ -2,7 +2,6 @@ package classic
 
 import (
 	"fmt"
-	"os"
 	"image"
 	"slices"
 
@@ -283,10 +282,6 @@ func memberPicture(m game.Member, g game.Unit, pose int) (pic front.Picture, siz
 	head, body := memberIcon(pm)
 	if pic, ok = poolIcon(head, body, pm.IconColors, pose, g.Facing > 3); ok {
 		size = image.Pt(pic.PixW, len(pic.Pix)/max(1, pic.PixW))
-	}
-	if zf, err := os.OpenFile(os.Getenv("ZZTRACE"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644); err == nil { // zz temporary
-		fmt.Fprintf(zf, "zz member %s headid=%q icon=%v head=%q body=%q pose=%d ok=%v gameid=%q amiga=%v\n", m.Name, m.IconHeadID, m.Icon, head, body, pose, ok, GameID, Amiga())
-		zf.Close()
 	}
 	return pic, size, ok
 }

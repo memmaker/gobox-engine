@@ -409,8 +409,8 @@ type (
 		Ats         []image.Point
 		StepMs      int // a flight's time per third of a square (0: gobox's)
 	}
-	Engaged struct{ Field Battlefield } // a fight began: its board before the first turn (the step's fight events play from it)
-	Struck  struct{ Unit, Damage int }  // harm without an attack (a spell, a trap)
+	Engaged struct{ At Fighting }      // a fight began: it before the first turn, board and party (the step's fight events play from it)
+	Struck  struct{ Unit, Damage int } // harm without an attack (a spell, a trap)
 	Healed  struct{ Unit, HP int }
 	Fell    struct {
 		Unit int

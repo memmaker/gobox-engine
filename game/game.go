@@ -1189,7 +1189,8 @@ const (
 // Event is something that happened.
 type Event struct {
 	Kind         EventKind
-	Combat       *Combat // EvEngaged: the fight's board before its first turn
+	Combat       *Combat  // EvEngaged: the fight's board before its first turn
+	Party        []Member // EvEngaged: the party as the fight began (its figures; a fight lost leaves none after)
 	Text         string
 	Role         string // EvSaid: "narrator", an NPC name, ...
 	N            int
