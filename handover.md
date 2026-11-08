@@ -75,6 +75,11 @@ gobox commits:
 
 ## Checks
 
+- **Per-game text tables (BR):** a shared text struct (brcore FightTexts,
+  TrapTexts) with a field one game never sets prints "" silently (BR2
+  AidEnd lost the aid lines' '.'). `go test ./rules -run TestTextsFilled`
+  in buckrogers-go and buckrogers2-go; a new table goes into its map, a
+  deliberately empty word into BR1's `none` with the reason.
 - **Guards:**
   `cd parity && GOWORK=off go test -run 'TestNoPrivatePlumbing|TestPassive' .`
 - **When a game deletes plumbing:** remove its names from `knownCopies` and
