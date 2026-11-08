@@ -19,7 +19,7 @@ func TestAsk(t *testing.T) {
 		{game.Ask{Kind: game.PickItem, Lines: []game.Line{{Text: "H", Header: true, Off: true}, {Text: "LEAVE", Spell: 3}}},
 			front.Ask{Kind: front.AskList, Entries: []front.Entry{{Text: "H", Header: true, Off: true}, {Text: "LEAVE", Spell: 3}}}},
 	} {
-		if q, ok := Ask(game.State{Mode: game.ModeAsk, Pending: &c.a}); !ok || !reflect.DeepEqual(*q, c.want) {
+		if q, ok := Ask(game.ModeAsk, &c.a); !ok || !reflect.DeepEqual(*q, c.want) {
 			t.Errorf("%+v: %+v %v", c.a, q, ok)
 		}
 	}
@@ -30,10 +30,10 @@ func TestAsk(t *testing.T) {
 func TestAskOverExplore(t *testing.T) {
 	s := game.State{Mode: game.ModeExplore, Pending: &game.Ask{Kind: game.Choice, Options: []game.Option{{Label: "Exit", Key: 'E'}}},
 		Flags: &game.Flags{Exploring: true}}
-	if q, ok := Ask(s); !ok || q == nil || len(q.Commands) != 1 {
+	if q, ok := Ask(s.Mode, s.Pending); !ok || q == nil || len(q.Commands) != 1 {
 		t.Fatalf("no question over the 3D view: %+v", q)
 	}
-	if Flags(front.View{}, s).Exploring {
+	if Flags(front.View{}, s.Flags, OverMenu(s.Mode, s.Pending)).Exploring {
 		t.Fatal("still exploring under the menu")
 	}
 }

@@ -20,17 +20,17 @@ var partyFunctions = map[string]front.ActKind{
 
 // PartyMenu is the party menu's open functions (nil: not up) and whether it
 // is the training hall's.
-func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
-	inHall := s.Mode == game.ModeTraining && s.Training == nil // the hall's party menu before OpenTraining (SotSB publishes the same Question)
-	if s.Mode != game.ModeParty && !inHall || s.Pending == nil {
+func PartyMenu(mode game.Mode, training *game.Training, pending *game.Ask, hallHere bool) (open []front.ActKind, hall bool) {
+	inHall := mode == game.ModeTraining && training == nil // the hall's party menu before OpenTraining (SotSB publishes the same Question)
+	if mode != game.ModeParty && !inHall || pending == nil {
 		return nil, false
 	}
-	for _, o := range s.Pending.Options {
+	for _, o := range pending.Options {
 		if k, ok := partyFunctions[cmp.Or(o.Func, o.Label)]; ok { // by its function, never its series name (BR2's Drop is labelled Remove)
 			open = append(open, k)
 		}
 	}
-	return open, s.Where.Hall || inHall
+	return open, hallHere || inHall
 }
 
 // View is v with the screens classic builds from s in place of the game's:
@@ -40,17 +40,15 @@ func PartyMenu(s game.State) (open []front.ActKind, hall bool) {
 // inventory (Inventory) over the game's.
 // The title's Logo and Backdrop stay the game's while the menu is up.
 func View(v front.View, s game.State) front.View {
-	v.MainMenu, v.Hall = PartyMenu(s)
-	v.Map, v.Camp = Map(v.Map, s), Camp(v.Camp, s)
-	v.Temple, v.Shop, v.Inventory = Temple(v.Temple, s), Shop(v.Shop, s), Inventory(v.Inventory, s)
-	if q, ok := Ask(s); ok && q != nil { // none pending keeps v's own (the Game's "You found some loot!"): View lays over a Game's View
+	v.MainMenu, v.Hall = PartyMenu(s.Mode, s.Training, s.Pending, s.Where.Hall)
+	v.Map, v.Camp = Map(v.Map, s.Map, s.Where), Camp(v.Camp, s.Party, s.Selected, s.RestHeals, s.RestStudies, s.Allowed["NoRest"], s.Bestiary)
+	v.Temple, v.Shop, v.Inventory = Temple(v.Temple, s.Temple, s.TempleOffers, s.Purse, s.Allowed, s.Party, s.Selected), Shop(v.Shop, s.Shop, s.Purse, s.Allowed, s.Party), Inventory(v.Inventory, s.Mode, s.Party, s.Selected, s.PartyCap, s.PoolItems, s.Purse, s.Allowed, s.Shop, s.Loot)
+	if q, ok := Ask(s.Mode, s.Pending); ok && q != nil { // none pending keeps v's own (the Game's "You found some loot!"): View lays over a Game's View
 		v.Ask = q
 	}
 	if v.MainMenu == nil && v.Ask == nil && v.Camp == nil && v.Temple == nil && v.Shop == nil && v.Inventory == nil && s.Loot == nil && s.Training == nil &&
 		s.Pending != nil && s.Mode >= game.ModeCamp && s.Mode <= game.ModeLoot { // a place's mode with no screen of its own yet: its question, never a blank frame
-		as := s
-		as.Mode = game.ModeAsk
-		if q, ok := Ask(as); ok {
+		if q, ok := Ask(game.ModeAsk, s.Pending); ok {
 			v.Ask = q
 		}
 	}

@@ -117,6 +117,28 @@ func (g *Game) step() error {
 
 // View is the page classic builds from State.
 // art is the rules' art as it is now, else the Data's.
+// Subject is the member whose portrait and icon are on show, as the rules
+// state it: the draft, else the selected one.
+func (g *Game) Subject() game.Member {
+	s := g.r.State()
+	return OwnSubject(s.Mode, s.Creation, s.Party, s.Selected)
+}
+
+// SheetIcon is v with the draft's combat icon in the creation sheet's box.
+func (g *Game) SheetIcon(v front.View) front.View {
+	return PoolIcon(v, g.Subject(), g.r.State().SheetPage)
+}
+
+// PickerOf is the game's grid picker, page page on cols by rows cells.
+func (g *Game) PickerOf(k *game.Picker, page, cols, rows int) *front.Picker {
+	return Picker(k, g.r.State().Cells, page, cols, rows)
+}
+
+// TilesOf is the weapon's pool bodies' picker.
+func (g *Game) TilesOf(page, cols, rows int) *front.Picker {
+	return TilePicker(g.Subject(), g.r.State().Cells, page, cols, rows)
+}
+
 // Art is the game's art as it is now.
 func (g *Game) Art() map[string]game.Picture { return g.art() }
 
@@ -165,12 +187,12 @@ func (g *Game) ViewOf(s game.State) front.View {
 		v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}
 	}
 	if v.AreaMap != nil {
-		v.AreaMap = AreaMap(v.AreaMap, s, art)
+		v.AreaMap = AreaMap(v.AreaMap, s.Map, s.Where, art)
 	}
 	if v.MainMenu != nil && !v.Hall && v.Powers == nil {
 		v.Logo, v.Backdrop = Title(v.Logo, v.Backdrop, art)
 	}
-	v.Battle = BattleOf(s, art)
+	v.Battle = BattleOf(s.Combat, s.Party, art)
 	if m := g.aim; m != nil && v.Battle != nil && s.Combat != nil && len(v.Battle.AreaAt) == 0 { // the aimed spell's area, previewed under the pointer
 		for _, sp := range s.Combat.Aims {
 			if sp.ID == m.spell {
@@ -179,16 +201,16 @@ func (g *Game) ViewOf(s game.State) front.View {
 		}
 	}
 	v.Battle = ViewVerb(v.Battle, g.D)
-	v = Page(v, s)
-	v = Flags(v, s)
+	v = Page(v, s.Page, s.Story)
+	v = Flags(v, s.Flags, OverMenu(s.Mode, s.Pending))
 	if m := g.walkMap(); m != nil {
 		v.Open = openSides(m, s.Where)
 	}
 	v = Place(v, s.Where, s.Window)
 	v.Quests, v.Lore = Quests(s.Quests), Lore(s.Lore)
 	v = Waits(v, s.Holding, s.Door, s.PowerPick)
-	v.Party, v.Purse = Party(s, art), Purse(s)
-	v = Sheet(v, s)
+	v.Party, v.Purse = Party(s.Party, s.Selected, art), Purse(s.Purse, s.PoolItems, s.PartyCap)
+	v = Sheet(v, s.Sheet, s.Portrait, s.IconBox, s.SheetPage, Drafting(s.Mode, s.Creation), s.Creation, OwnSubject(s.Mode, s.Creation, s.Party, s.Selected))
 	v = Border(v, art)
 	v = Walls(v, s.Walls, art)
 	v = Intro(v, s.Intro)
@@ -207,11 +229,11 @@ func (g *Game) ViewOf(s game.State) front.View {
 	if v.Note.Text == "" {
 		v.Note = g.note
 	}
-	v.Creation = Creation(s, g.grid.X, g.grid.Y)
-	v = PoolIcon(v, s)
+	v.Creation = Creation(s.Mode, s.Creation, s.Pending, g.grid.X, g.grid.Y)
+	v = PoolIcon(v, OwnSubject(s.Mode, s.Creation, s.Party, s.Selected), s.SheetPage)
 	v.Training = Training(s.Training, s.Party, s.Selected, s.Purse)
-	v.Picker = Picker(s, 0, g.grid.X, g.grid.Y)
-	v.IconEditor = IconEditor(s, &v.Ink, g.grid.X, g.grid.Y)
+	v.Picker = Picker(s.Picker, s.Cells, 0, g.grid.X, g.grid.Y)
+	v.IconEditor = IconEditor(s.IconEditor, s.IconPalette, OwnSubject(s.Mode, s.Creation, s.Party, s.Selected), &v.Ink, g.grid.X, g.grid.Y)
 	return v
 }
 
@@ -294,7 +316,7 @@ func (g *Game) stepBattle(e game.Event) *front.Battle {
 		}
 	}
 	s.Combat = &c
-	b := BattleOf(s, g.art())
+	b := BattleOf(s.Combat, s.Party, g.art())
 	for k := range g.ended.Units { // the board after e, for the events that follow
 		switch u := &g.ended.Units[k]; {
 		case u.ID == e.Unit && e.Kind == game.EvMove && e.Turn:
@@ -337,7 +359,7 @@ func combatEvents(es []game.Event, v front.View, posed func(game.Event) *front.B
 			continue
 		}
 		if e.Page != nil { // a timed page: the scene as the page stood
-			sc := Page(v, game.State{Page: e.Page})
+			sc := Page(v, e.Page, nil)
 			out = append(out, front.CombatEvent{Kind: front.EvFrame, Ms: e.Ms, Scene: &sc})
 			continue
 		}
@@ -423,7 +445,7 @@ func (g *Game) posedBattle(e game.Event) *front.Battle {
 		c.Units = slices.DeleteFunc(c.Units, func(u game.Unit) bool { return u.ID == e.Unit })
 	}
 	s.Combat = &c
-	return BattleOf(s, g.art())
+	return BattleOf(s.Combat, s.Party, g.art())
 }
 
 // Open starts the rules on save slot slot ("" none) when they take it.
@@ -455,13 +477,16 @@ func (g *Game) QuitGame() error { return g.do(game.Quit{}) }
 func (g *Game) EndGame() error  { return g.do(game.EndGame{}) }
 
 // Creation sheet.
-func (g *Game) CreateCharacter() error        { return g.do(game.NewCharacter{}) }
-func (g *Game) ModifyCharacter(n int) error   { return g.do(game.Modify{Member: n}) }
-func (g *Game) Rename(name string) error      { return g.do(game.Rename{Name: name}) }
-func (g *Game) SetField(f, o int) error       { return g.do(game.SetField{Field: f, Option: o}) }
-func (g *Game) EndCreation(keep bool) error   { return g.do(game.EndCreation{Keep: keep}) }
-func (g *Game) CreationView() *front.Creation { return Creation(g.r.State(), g.grid.X, g.grid.Y) }
-func (g *Game) PointBuy(scores []int) error   { return g.do(game.PointBuy{Scores: scores}) }
+func (g *Game) CreateCharacter() error      { return g.do(game.NewCharacter{}) }
+func (g *Game) ModifyCharacter(n int) error { return g.do(game.Modify{Member: n}) }
+func (g *Game) Rename(name string) error    { return g.do(game.Rename{Name: name}) }
+func (g *Game) SetField(f, o int) error     { return g.do(game.SetField{Field: f, Option: o}) }
+func (g *Game) EndCreation(keep bool) error { return g.do(game.EndCreation{Keep: keep}) }
+func (g *Game) CreationView() *front.Creation {
+	s := g.r.State()
+	return Creation(s.Mode, s.Creation, s.Pending, g.grid.X, g.grid.Y)
+}
+func (g *Game) PointBuy(scores []int) error { return g.do(game.PointBuy{Scores: scores}) }
 func (g *Game) Roll(minimal bool, minimums string) error {
 	return g.do(game.Roll{Minimal: minimal, Minimums: minimums})
 }
@@ -556,7 +581,7 @@ func (g *Game) TryDoor(k front.DoorWay) error {
 func (g *Game) OpenPicker(kind int) bool {
 	ok := g.do(game.OpenPicker{Kind: kind}) == nil
 	if s := g.r.State(); kind == front.PickWeapon && s.Picker == nil {
-		if n, _ := BodyTiles(s); len(n) > 0 { // no pictures from the game: the pool's, by original ref
+		if n, _ := BodyTiles(OwnSubject(s.Mode, s.Creation, s.Party, s.Selected)); len(n) > 0 { // no pictures from the game: the pool's, by original ref
 			g.tiles = true
 			return true
 		}
@@ -564,14 +589,16 @@ func (g *Game) OpenPicker(kind int) bool {
 	return ok
 }
 func (g *Game) PickerView(page int) *front.Picker {
+	s := g.r.State()
 	if g.tiles {
-		return TilePicker(g.r.State(), page, g.grid.X, g.grid.Y)
+		return TilePicker(OwnSubject(s.Mode, s.Creation, s.Party, s.Selected), s.Cells, page, g.grid.X, g.grid.Y)
 	}
-	return Picker(g.r.State(), page, g.grid.X, g.grid.Y)
+	return Picker(s.Picker, s.Cells, page, g.grid.X, g.grid.Y)
 }
 func (g *Game) Pick(i int) bool {
 	if g.tiles {
-		t := PickTile(g.r.State(), i)
+		s := g.r.State()
+		t := PickTile(OwnSubject(s.Mode, s.Creation, s.Party, s.Selected), i)
 		if t == "" || g.SetChoice("iconbody", t) != nil {
 			return false
 		}
@@ -592,7 +619,8 @@ func (g *Game) ClosePicker()   { g.tiles = false; g.do(game.ClosePicker{}) }
 func (g *Game) EditIcon(n int) { g.do(game.EditIcon{Member: n}) }
 func (g *Game) IconEditorView() *front.IconEditor {
 	ink := g.View().Ink
-	return IconEditor(g.r.State(), &ink, g.grid.X, g.grid.Y)
+	s := g.r.State()
+	return IconEditor(s.IconEditor, s.IconPalette, OwnSubject(s.Mode, s.Creation, s.Party, s.Selected), &ink, g.grid.X, g.grid.Y)
 }
 func (g *Game) IconSize() { g.do(game.IconSize{}) }
 func (g *Game) IconColour(part, shade, v int) {
@@ -728,7 +756,8 @@ func (g *Game) PickPower(id int) error { return g.do(game.PickPower{ID: id}) }
 
 // The full map: its cursor and label are the presenter's, classic fills the rest.
 func (g *Game) FullMapView(cursor image.Point, label *string) *front.FullMap {
-	return FullMap(&front.FullMap{Cursor: cursor}, g.r.State())
+	s := g.r.State()
+	return FullMap(&front.FullMap{Cursor: cursor}, s.Map, s.Where)
 }
 func (g *Game) Mark(x, y int, text string) { g.do(game.Mark{At: image.Pt(x, y), Text: text}) }
 func (g *Game) Unmark(x, y int)            { g.do(game.Unmark{At: image.Pt(x, y)}) }
@@ -988,7 +1017,7 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActStat:
 		return game.SetStat{Stat: a.N, Text: a.Text}, true
 	case front.ActKeep:
-		if Drafting(g.r.State()) { // the creation sheet's Keep
+		if s := g.r.State(); Drafting(s.Mode, s.Creation) { // the creation sheet's Keep
 			return game.KeepDraft{}, true
 		}
 		return game.KeepAppraised{Keep: a.N == 1}, true

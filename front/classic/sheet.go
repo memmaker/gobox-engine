@@ -14,22 +14,21 @@ func cells(r image.Rectangle) front.CellRect {
 
 // Sheet is v with the sheet s holds: what it offers (nil: none), the page
 // (nil: none) and the portrait and icon boxes.
-func Sheet(v front.View, s game.State) front.View {
+func Sheet(v front.View, h *game.Sheet, portrait, iconBox image.Rectangle, page *game.SheetPage, drafted bool, draft *game.Creation, own game.Member) front.View {
 	v.Sheet, v.SheetPage = nil, nil
-	if h := s.Sheet; h != nil {
+	if h != nil {
 		v.Sheet = &front.Sheet{Powers: powers(h.Powers)}
 		for _, r := range h.Reactions {
 			v.Sheet.Reactions = append(v.Sheet.Reactions, front.Reaction{ID: r.ID, Name: r.Name, Policy: front.Policy(r.Policy)})
 		}
 	}
-	v.Portrait, v.IconBox = cells(s.Portrait), cells(s.IconBox)
-	p := s.SheetPage
-	drafted := Drafting(s)
+	v.Portrait, v.IconBox = cells(portrait), cells(iconBox)
+	p := page
 	if drafted { // the creation sheet: gobox lays it out from the draft, with the rules' figures when they give a page
-		p = draftPage(s.Creation, s.SheetPage)
+		p = draftPage(draft, page)
 	}
 	if p != nil {
-		k := &front.SheetPage{Name: p.Name, NameColour: nameColour(ownSubject(s)), NPC: p.NPC, Spells: p.Spells, Sex: p.Sex, Race: p.Race, Age: p.Age,
+		k := &front.SheetPage{Name: p.Name, NameColour: nameColour(own), NPC: p.NPC, Spells: p.Spells, Sex: p.Sex, Race: p.Race, Age: p.Age,
 			Alignment: p.Alignment, Class: p.Class, Stats: p.Stats, Str00: p.Str00, Creating: p.Creating, Levels: p.Levels,
 			Exp: p.Exp, Next: p.Next, AC: p.AC, HP: p.HP, MaxHP: p.MaxHP, THAC0: p.THAC0, Damage: p.Damage, Move: p.Move,
 			Saves: p.Saves, Mods: p.Mods, Status: p.Status, Weapon: p.Weapon, Armour: p.Armour, Encumbrance: p.Encumbrance,
@@ -37,13 +36,13 @@ func Sheet(v front.View, s game.State) front.View {
 		for _, r := range p.Rules {
 			k.Rules = append(k.Rules, front.Stat(r))
 		}
-		if k.Portrait == nil && (ownSubject(s).PortraitHeadID != "" || !pictured(v, k.PortraitAt.Pixels())) { // a default fills an empty box only
-			m := subject(s)
+		if k.Portrait == nil && (own.PortraitHeadID != "" || !pictured(v, k.PortraitAt.Pixels())) { // a default fills an empty box only
+			m := subject(own)
 			k.Portrait = poolID("portraits", m.PortraitHeadID, m.PortraitBodyID)
 		}
 		if drafted {
 			k.NameColour = 11 // the member being made: as a well one's
-			draftRows(k, s.Creation)
+			draftRows(k, draft)
 		}
 		v.SheetPage = k
 	}

@@ -6,8 +6,6 @@ package present
 import (
 	"fmt"
 	"gobox/front"
-	"gobox/front/classic"
-	"gobox/game"
 	"gobox/gpu"
 	"image"
 	"slices"
@@ -28,8 +26,8 @@ func (p *Presenter) ownCreation(v front.View) front.View {
 		if p.creating = v.Creation != nil; !p.creating { // the game ended it itself (a step after Keep, a save): the party menu is back
 			return v
 		}
-		if g, ok := p.eng.(interface{ State() game.State }); ok { // its icon boxes take the draft's combat icon
-			v = classic.PoolIcon(v, g.State())
+		if g, ok := p.eng.(interface{ SheetIcon(front.View) front.View }); ok { // its icon boxes take the draft's combat icon
+			v = g.SheetIcon(v)
 		}
 		v.MainMenu, v.Logo, v.Backdrop = nil, nil, nil
 	}

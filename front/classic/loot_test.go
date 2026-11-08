@@ -11,27 +11,27 @@ import (
 func TestLoot(t *testing.T) {
 	s := game.State{Mode: game.ModeLoot, Selected: 1, Loot: &game.Loot{Items: []game.Item{{Name: "Gauntlets"}}},
 		Party: []game.Member{{}, {Spells: []game.SpellRef{{Name: detectMagic, Memorized: true}}}}}
-	if l := Loot(s); l == nil || !l.Take || !l.Detect {
+	if l := Loot(s.Mode, s.Loot, s.Allowed, s.Party, s.Selected); l == nil || !l.Take || !l.Detect {
 		t.Errorf("loot %+v", l)
 	}
 	s.Allowed = map[string]bool{"LootDetect": false}
-	if l := Loot(s); l.Detect {
+	if l := Loot(s.Mode, s.Loot, s.Allowed, s.Party, s.Selected); l.Detect {
 		t.Error("Detect offered against Allowed")
 	}
 	s.Allowed["LootDetect"], s.Party[1].Spells = true, nil
-	if l := Loot(s); !l.Detect {
+	if l := Loot(s.Mode, s.Loot, s.Allowed, s.Party, s.Selected); !l.Detect {
 		t.Error("Detect not offered by Allowed")
 	}
 	s.Allowed = nil
 	s.Loot.Items = nil
-	if l := Loot(s); l == nil || l.Take || l.Detect {
+	if l := Loot(s.Mode, s.Loot, s.Allowed, s.Party, s.Selected); l == nil || l.Take || l.Detect {
 		t.Errorf("no treasure: %+v", l)
 	}
-	if l := Loot(s); l.Status {
+	if l := Loot(s.Mode, s.Loot, s.Allowed, s.Party, s.Selected); l.Status {
 		t.Error("Status offered unasked")
 	}
 	s.Loot.Status = true
-	if l := Loot(s); !l.Status {
+	if l := Loot(s.Mode, s.Loot, s.Allowed, s.Party, s.Selected); !l.Status {
 		t.Error("Status not offered")
 	}
 }

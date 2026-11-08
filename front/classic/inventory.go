@@ -64,17 +64,17 @@ func invItem(i int, it game.Item) front.InvItem {
 // slotted: it has a doll slot (it can be readied).
 func slotted(it game.Item) bool { return it.Kind != "" && it.Kind != "misc" }
 
-// Inventory is v (the game's; nil: not up) built from s: the selected
+// Inventory is v (the game's; nil: not up) built: the selected
 // member's items, readied ones on the doll, what it may do, and with
 // the game's wares up the shop's goods or the treasure beside them.
-func Inventory(v *front.Inventory, s game.State) *front.Inventory {
-	if v == nil || s.Selected < 0 || s.Selected >= len(s.Party) {
+func Inventory(v *front.Inventory, mode game.Mode, party []game.Member, sel, slots, used int, purse map[string]int, allowed map[string]bool, shop *game.Shop, loot *game.Loot) *front.Inventory {
+	if v == nil || sel < 0 || sel >= len(party) {
 		return v
 	}
-	m := s.Party[s.Selected]
-	n := &front.Inventory{Member: s.Selected, Cap: s.PartyCap, Used: s.PoolItems, Doll: make([]*front.InvItem, len(DollSlots)),
-		Use: s.Allowed["UseItem"], Sell: s.Allowed["Sell"], Reload: s.Shop != nil && s.Shop.Reloads, Switch: s.Allowed["Select"],
-		Trade: s.Allowed["Trade"], Halve: s.Allowed["Halve"], Join: s.Allowed["Join"], PoolCoins: s.Shop != nil && s.Allowed["PoolCoins"]}
+	m := party[sel]
+	n := &front.Inventory{Member: sel, Cap: slots, Used: used, Doll: make([]*front.InvItem, len(DollSlots)),
+		Use: allowed["UseItem"], Sell: allowed["Sell"], Reload: shop != nil && shop.Reloads, Switch: allowed["Select"],
+		Trade: allowed["Trade"], Halve: allowed["Halve"], Join: allowed["Join"], PoolCoins: shop != nil && allowed["PoolCoins"]}
 	n.AC, n.THAC0, n.Stats = m.AC, m.THAC0, m.THAC0 != 0
 	for _, p := range m.Powers {
 		if k, ok := powerKind(p.Do); ok && (k != front.ActSpells || !n.Sell) { // no spells in a shop
@@ -95,13 +95,13 @@ func Inventory(v *front.Inventory, s game.State) *front.Inventory {
 	if v.Wares == nil {
 		return n
 	}
-	n.Gold, n.Copper, n.Wares = s.Purse[Coin], s.Purse[game.Copper], []front.InvItem{}
+	n.Gold, n.Copper, n.Wares = purse[Coin], purse[game.Copper], []front.InvItem{}
 	var goods []game.Item
 	switch {
-	case s.Loot != nil:
-		goods, n.Loot, n.Treasure = s.Loot.Items, true, Loot(s)
-	case s.Shop != nil:
-		goods = s.Shop.Goods
+	case loot != nil:
+		goods, n.Loot, n.Treasure = loot.Items, true, Loot(mode, loot, allowed, party, sel)
+	case shop != nil:
+		goods = shop.Goods
 	}
 	for i, it := range goods {
 		x := invItem(i, it)
@@ -112,48 +112,47 @@ func Inventory(v *front.Inventory, s game.State) *front.Inventory {
 }
 
 // appraise is the gems and jewelry to value, with the offer made (o).
-func appraise(s game.State, o []game.Offer) front.Appraise {
-	a := front.Appraise{Gems: s.Purse[game.Gems], Jewelry: s.Purse[game.Jewelry]}
+func appraise(purse map[string]int, o []game.Offer) front.Appraise {
+	a := front.Appraise{Gems: purse[game.Gems], Jewelry: purse[game.Jewelry]}
 	if len(o) > 0 {
 		a.Valued, a.Jewel, a.CanKeep = o[0].Value, o[0].Kind == game.Jewelry, o[0].CanKeep
 	}
 	return a
 }
 
-// Temple is t (the game's; nil: not up) built from s: the services for
+// Temple is t (the game's; nil: not up) built: the services for
 // the selected member, needed or why not.
-func Temple(t *front.Temple, s game.State) *front.Temple {
-	if t == nil || s.Temple == nil {
+func Temple(t *front.Temple, services []game.Service, offers []game.Offer, purse map[string]int, allowed map[string]bool, party []game.Member, sel int) *front.Temple {
+	if t == nil || services == nil {
 		return t
 	}
-	v := &front.Temple{Gold: s.Purse[Coin], Appraise: appraise(s, s.TempleOffers),
-		Money: front.Money3{Take: s.Allowed["Take"], Pool: s.Allowed["PoolCoins"], Share: s.Allowed["LootShare"]}}
-	for _, sv := range s.Temple {
-		v.Cures = append(v.Cures, front.Cure{Name: sv.Name, Price: sv.Price, Not: sv.Not[s.Selected],
-			Needed: s.Selected < 0 || s.Selected >= len(s.Party) || slices.Contains(sv.Needs, s.Selected)})
+	v := &front.Temple{Gold: purse[Coin], Appraise: appraise(purse, offers),
+		Money: front.Money3{Take: allowed["Take"], Pool: allowed["PoolCoins"], Share: allowed["LootShare"]}}
+	for _, sv := range services {
+		v.Cures = append(v.Cures, front.Cure{Name: sv.Name, Price: sv.Price, Not: sv.Not[sel],
+			Needed: sel < 0 || sel >= len(party) || slices.Contains(sv.Needs, sel)})
 	}
 	return v
 }
 
-// Shop is h (the game's; nil: not up) built from s: what Id would tell
+// Shop is h (the game's; nil: not up) built: what Id would tell
 // about, its price, the last reveal.
-func Shop(h *front.Shop, s game.State) *front.Shop {
-	sh := s.Shop
+func Shop(h *front.Shop, sh *game.Shop, purse map[string]int, allowed map[string]bool, party []game.Member) *front.Shop {
 	if h == nil || sh == nil {
 		return h
 	}
-	v := &front.Shop{IDPrice: sh.IdentifyPrice, Gold: s.Purse[Coin], Pooled: sh.Pooled[Coin], Appraise: appraise(s, sh.Offers), IdentifiedN: sh.Identifies,
-		Pool: s.Allowed["PoolCoins"], Take: s.Allowed["Take"], Share: s.Allowed["LootShare"]}
+	v := &front.Shop{IDPrice: sh.IdentifyPrice, Gold: purse[Coin], Pooled: sh.Pooled[Coin], Appraise: appraise(purse, sh.Offers), IdentifiedN: sh.Identifies,
+		Pool: allowed["PoolCoins"], Take: allowed["Take"], Share: allowed["LootShare"]}
 	item := func(r game.ItemRef) *game.Item {
-		if r.Member >= 0 && r.Member < len(s.Party) && r.Item >= 0 && r.Item < len(s.Party[r.Member].Items) {
-			return &s.Party[r.Member].Items[r.Item]
+		if r.Member >= 0 && r.Member < len(party) && r.Item >= 0 && r.Item < len(party[r.Member].Items) {
+			return &party[r.Member].Items[r.Item]
 		}
 		return nil
 	}
 	for _, r := range sh.Unknown {
 		if it := item(r); it != nil {
 			x := invItem(0, *it)
-			v.Unknown = append(v.Unknown, front.Unknown{Member: r.Member, Item: r.Item, Owner: s.Party[r.Member].Name, Name: it.Name, Icon: &x})
+			v.Unknown = append(v.Unknown, front.Unknown{Member: r.Member, Item: r.Item, Owner: party[r.Member].Name, Name: it.Name, Icon: &x})
 		}
 	}
 	if r := sh.Identified; r != nil {

@@ -54,8 +54,7 @@ var ownIconSize = image.Pt(24, 24)
 // combat menu (Turn), each combatant's name, hit points, armor class,
 // damage and status, the squares a move reaches, the foes an attack or aim
 // takes and the aim (marks, area, why not). b's map, icons and effects stay.
-func Battle(b *front.Battle, s game.State) *front.Battle {
-	c := s.Combat
+func Battle(b *front.Battle, c *game.Combat, party []game.Member) *front.Battle {
 	if b == nil || c == nil {
 		return b
 	}
@@ -70,8 +69,8 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 			o.Units[i].Hit, o.Units[i].Dmg, o.Units[i].Status = g.Hit, g.Dmg, g.Status
 			if g.Icon != nil {
 				o.Units[i].Icon, o.Units[i].IconSize = g.Icon, ownIconSize
-			} else if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
-				if pic, size, ok := memberPicture(s.Party[m], g, 0); ok {
+			} else if m := g.Member; !g.Foe && m >= 0 && m < len(party) {
+				if pic, size, ok := memberPicture(party[m], g, 0); ok {
 					if !cloned { // the game's IconPix by unit, so far
 						o.IconPix, cloned = append(make([]front.Picture, 0, len(o.Units)), b.IconPix...), true
 						o.IconPix = append(o.IconPix, make([]front.Picture, max(0, len(o.Units)-len(o.IconPix)))...)
@@ -116,8 +115,7 @@ func Battle(b *front.Battle, s game.State) *front.Battle {
 // tiles (Combat.Tiles, read from art), the units with their icons (a foe's
 // Art, a member's composed from its pool ids or original icon numbers),
 // effects, cursor, walks, aim, strike and log. nil outside a fight.
-func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
-	c := s.Combat
+func BattleOf(c *game.Combat, party []game.Member, art map[string]game.Picture) *front.Battle {
 	if c == nil {
 		return nil
 	}
@@ -204,8 +202,8 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		}
 		u := front.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
 			Active: g.Active, Name: g.Name, HP: g.HP, MaxHP: g.MaxHP, AC: g.AC, Hit: g.Hit, Dmg: g.Dmg, Status: g.Status, Down: g.Dead}
-		if g.Member >= 0 && g.Member < len(s.Party) {
-			for _, it := range s.Party[g.Member].Items {
+		if g.Member >= 0 && g.Member < len(party) {
+			for _, it := range party[g.Member].Items {
 				if it.Readied && it.Kind == "weapon" {
 					u.Weapon = it.Name
 				}
@@ -220,8 +218,8 @@ func BattleOf(s game.State, art map[string]game.Picture) *front.Battle {
 		}
 		if g.Icon != nil {
 			u.Icon, u.IconSize = g.Icon, ownIconSize
-		} else if m := g.Member; !g.Foe && m >= 0 && m < len(s.Party) {
-			if pic, size, ok := memberPicture(s.Party[m], g, g.Pose); ok {
+		} else if m := g.Member; !g.Foe && m >= 0 && m < len(party) {
+			if pic, size, ok := memberPicture(party[m], g, g.Pose); ok {
 				icon, u.IconSize = pic, size
 			}
 		}

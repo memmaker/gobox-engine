@@ -14,7 +14,7 @@ import (
 func TestRenamedPartyRows(t *testing.T) {
 	s := game.State{Mode: game.ModeParty, Pending: &game.Ask{Kind: game.Choice, Options: []game.Option{
 		{Label: "Purge Character", Func: "Remove Character"}, {Label: "Remove Character", Func: "Drop Character"}}}}
-	open, _ := PartyMenu(s)
+	open, _ := PartyMenu(s.Mode, s.Training, s.Pending, s.Where.Hall)
 	if !slices.Contains(open, front.ActRemove) || !slices.Contains(open, front.ActDropMember) {
 		t.Fatalf("open %v, want Remove and Drop", open)
 	}

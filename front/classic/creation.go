@@ -12,15 +12,14 @@ import (
 // of cols by rows cells: the sheet's text from the top left, the portrait
 // against the right border and the combat icon under it, both at the
 // whole scale the page leaves room for.
-func Creation(s game.State, cols, rows int) *front.Creation {
-	c := s.Creation
-	if !Drafting(s) {
+func Creation(mode game.Mode, c *game.Creation, pending *game.Ask, cols, rows int) *front.Creation {
+	if !Drafting(mode, c) {
 		return nil
 	}
 	d := c.Draft
 	winRight, winBottom := max(cols, 40)-2, max(rows, 25)-3
 	v := &front.Creation{Minimums: minimums(c.Minimums), Abandon: "Abandon this character?"}
-	if a := s.Pending; a != nil && a.Kind == game.YesNo {
+	if a := pending; a != nil && a.Kind == game.YesNo {
 		v.Abandon = a.Prompt
 	}
 	v.Name = front.CellRect{X1: 1, Y1: 1, X2: max(1, len(d.Name)), Y2: 1}
@@ -85,7 +84,7 @@ func Creation(s game.State, cols, rows int) *front.Creation {
 // Drafting says whether the creation (or Modify) sheet is up in s: a
 // Creation in ModeCreate. A game may state its Creation (the new
 // character's first step, the roster) on the party menu too; that is no sheet.
-func Drafting(s game.State) bool { return s.Creation != nil && s.Mode == game.ModeCreate }
+func Drafting(mode game.Mode, c *game.Creation) bool { return c != nil && mode == game.ModeCreate }
 
 // rowFields says whether c's sheet puts its fields one per row in the game's
 // order, with no power picks: a sheet without an alignment (the Buck Rogers

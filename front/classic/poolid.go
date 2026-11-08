@@ -25,8 +25,8 @@ func poolID(kind, head, body string) image.Image {
 
 // PoolPortrait is v with the pool head and body of the creation draft in the sheet's Head and Body
 // boxes, in place of the game's pictures there (v itself when the draft names none).
-func PoolPortrait(v front.View, s game.State) front.View {
-	cr, m := v.Creation, subject(s)
+func PoolPortrait(v front.View, own game.Member) front.View {
+	cr, m := v.Creation, subject(own)
 	if cr == nil || m.PortraitHeadID == "" || m.PortraitBodyID == "" {
 		return v
 	}
@@ -36,7 +36,7 @@ func PoolPortrait(v front.View, s game.State) front.View {
 	}
 	var keep []front.Picture
 	port := cr.Head.Pixels().Union(cr.Body.Pixels())
-	if own := ownSubject(s); own.PortraitHeadID == "" && pictured(v, port) { // a default fills an empty box only
+	if own.PortraitHeadID == "" && pictured(v, port) { // a default fills an empty box only
 		return v
 	}
 	for _, pc := range v.Pictures {

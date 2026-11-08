@@ -65,12 +65,11 @@ func letters(ls []label) (texts []string, l map[string]byte) {
 // Map is m (the game's) with what s.Map gives in its place: how far each
 // square is seen, the party's square and step ahead, the walls and doors
 // and the labels' kinds and letters. nil where m is.
-func Map(m *front.MapSquares, s game.State) *front.MapSquares {
-	a := s.Map
+func Map(m *front.MapSquares, a game.Automap, where game.Where) *front.MapSquares {
 	if m == nil || a.Size != image.Pt(16, 16) {
 		return m
 	}
-	c := front.MapSquares{Party: image.Pt(s.Where.X, s.Where.Y), Ahead: ahead[s.Where.Facing/2&3]}
+	c := front.MapSquares{Party: image.Pt(where.X, where.Y), Ahead: ahead[where.Facing/2&3]}
 	on := image.Rect(0, 0, 16, 16)
 	for _, p := range a.Known {
 		if p.In(on) {
@@ -124,8 +123,7 @@ func pix(p game.Picture) front.Picture {
 // s.Map.Terrain and art (Data.Art: "terrain/<id>", "marker/<facing>"), and
 // the squares seen from s.Map.Known. m where it is nil, s has no overland
 // or art has none of it.
-func AreaMap(m *front.AreaMap, s game.State, art map[string]game.Picture) *front.AreaMap {
-	a := s.Map
+func AreaMap(m *front.AreaMap, a game.Automap, where game.Where, art map[string]game.Picture) *front.AreaMap {
 	if m == nil || len(a.Terrain) == 0 || len(art) == 0 || len(a.Terrain) != a.Size.X*a.Size.Y {
 		return m
 	}
@@ -139,12 +137,12 @@ func AreaMap(m *front.AreaMap, s game.State, art map[string]game.Picture) *front
 			c.Tile = max(c.Tile, p.W)
 		}
 	}
-	c.Party = image.Pt(s.Where.X, s.Where.Y)
-	mk := s.Map.Marker
+	c.Party = image.Pt(where.X, where.Y)
+	mk := a.Marker
 	if mk == "" {
 		mk = "marker"
 	}
-	c.MarkerPix = pix(art[mk+"/"+strconv.Itoa(s.Where.Facing)])
+	c.MarkerPix = pix(art[mk+"/"+strconv.Itoa(where.Facing)])
 	c.Seen = nil
 	if len(a.Known) < len(a.Terrain) { // else every square is seen
 		c.Seen = make([][]bool, a.Size.Y)
@@ -162,17 +160,17 @@ func AreaMap(m *front.AreaMap, s game.State, art map[string]game.Picture) *front
 
 // FullMap is f (the game's) with its map (Map), name, legend, and the
 // cursor's square and label from s. nil where f is.
-func FullMap(f *front.FullMap, s game.State) *front.FullMap {
-	if f == nil || s.Map.Size != image.Pt(16, 16) {
+func FullMap(f *front.FullMap, a game.Automap, where game.Where) *front.FullMap {
+	if f == nil || a.Size != image.Pt(16, 16) {
 		return nil // no 16x16 map up: nothing to draw (a FullMap without Map crashed the presenter)
 	}
 	c := *f
 	if c.Map == nil { // the front's own M asks with no squares yet (Map keeps nil as nil)
 		c.Map = &front.MapSquares{}
 	}
-	c.Name, c.Map, c.Labelled, c.Mine, c.Legend = s.Map.Area, Map(c.Map, s), false, false, nil
+	c.Name, c.Map, c.Labelled, c.Mine, c.Legend = a.Area, Map(c.Map, a, where), false, false, nil
 	c.Info = fmt.Sprintf("%d,%d", f.Cursor.X, f.Cursor.Y)
-	ls := labels(s.Map)
+	ls := labels(a)
 	texts, l := letters(ls)
 	for _, b := range ls {
 		if b.At == f.Cursor {

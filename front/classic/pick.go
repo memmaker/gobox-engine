@@ -17,8 +17,7 @@ import (
 // the picture it opened on; nil: none up) on a page of cols by rows cells:
 // as many columns and rows as the box holds, centred, the rest on further
 // pages with a pager line at the bottom.
-func Picker(s game.State, page, cols, rows int) *front.Picker {
-	k := s.Picker
+func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *front.Picker {
 	n := 0
 	if k != nil {
 		n = len(k.Pics)
@@ -26,7 +25,7 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 	if n == 0 || k.Cell.X < 1 || k.Cell.Y < 1 {
 		return nil
 	}
-	cols, rows = shownPage(s)
+	cols, rows = shownPage(cells)
 	textCols, textRows := max(cols, 40), max(rows, 25)
 	winRight, bot := textCols-2, textRows-2 // bot: the box's inner bottom, the page's last row holds its border
 	cw, ch := k.Cell.X, k.Cell.Y
@@ -88,8 +87,8 @@ func Picker(s game.State, page, cols, rows int) *front.Picker {
 // shownPage is the page the game shows, whatever page was asked for: its Cells,
 // else the original's 40 by 25 when it keeps its own (it never took the
 // resize, so a wider layout runs off the page it draws).
-func shownPage(s game.State) (int, int) {
-	if c := s.Cells; c.X > 0 && c.Y > 0 {
+func shownPage(c image.Point) (int, int) {
+	if c.X > 0 && c.Y > 0 {
 		return c.X, c.Y
 	}
 	return 40, 25
@@ -97,8 +96,7 @@ func shownPage(s game.State) (int, int) {
 
 // IconEditor is the combat icon designer's page from s (nil: none up) on a
 // page of cols by rows cells, its poses and swatches in ink.
-func IconEditor(s game.State, ink *[16]color.RGBA, cols, rows int) *front.IconEditor {
-	k := s.IconEditor
+func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *[16]color.RGBA, cols, rows int) *front.IconEditor {
 	if k == nil {
 		return nil
 	}
@@ -120,12 +118,12 @@ func IconEditor(s game.State, ink *[16]color.RGBA, cols, rows int) *front.IconEd
 		ink = &egaInk
 	}
 	look := func(n int) color.RGBA {
-		if len(s.IconPalette) == 16 {
-			return s.IconPalette[n&15]
+		if len(palette) == 16 {
+			return palette[n&15]
 		}
 		return front.IndexedRGBA([]uint8{k.Looks[n&15]}, 1, -1, ink).RGBAAt(0, 0)
 	}
-	m := subject(s)
+	m := subject(own)
 	var cs []byte
 	for _, c := range k.Colour {
 		cs = append(cs, byte(c[0]&15|c[1]<<4))
@@ -180,15 +178,15 @@ func Title(logo, backdrop *front.Picture, art map[string]game.Picture) (*front.P
 
 // subject is the member whose portrait and icon are on show: the creation's
 // draft, else the selected one, with gobox's defaults where it names none.
-func subject(s game.State) game.Member { return defaultIcon(defaultPortrait(ownSubject(s))) }
+func subject(own game.Member) game.Member { return defaultIcon(defaultPortrait(own)) }
 
-// ownSubject is subject as the rules state it, without the defaults.
-func ownSubject(s game.State) game.Member {
+// OwnSubject is subject as the rules state it, without the defaults.
+func OwnSubject(mode game.Mode, c *game.Creation, party []game.Member, sel int) game.Member {
 	switch {
-	case Drafting(s):
-		return s.Creation.Draft
-	case s.Selected >= 0 && s.Selected < len(s.Party):
-		return s.Party[s.Selected]
+	case Drafting(mode, c):
+		return c.Draft
+	case sel >= 0 && sel < len(party):
+		return party[sel]
 	}
 	return game.Member{}
 }

@@ -13,8 +13,8 @@ import (
 // pool ids: the origins.json blocks of CBODY.DAX in the size class of its Icon
 // "body" (32 blocks from the class base), by block. nil when it has pool ids
 // or no original numbers.
-func BodyTiles(s game.State) (names []string, blocks []int) {
-	m := subject(s)
+func BodyTiles(own game.Member) (names []string, blocks []int) {
+	m := subject(own)
 	o := gameOrigins()
 	if m.IconHeadID != "" || m.Icon == nil || o == nil {
 		return nil, nil
@@ -33,9 +33,9 @@ func BodyTiles(s game.State) (names []string, blocks []int) {
 
 // TilePicker is page page of BodyTiles' picker: each tile the member's icon
 // with that body, carrying the original ref (File CBODY, its block, frame 0).
-func TilePicker(s game.State, page, cols, rows int) *front.Picker {
-	names, blocks := BodyTiles(s)
-	m := subject(s)
+func TilePicker(own game.Member, cells image.Point, page, cols, rows int) *front.Picker {
+	names, blocks := BodyTiles(own)
+	m := subject(own)
 	head, _ := memberIcon(m)
 	k := &game.Picker{Cell: image.Pt(3, 3), Pics: make([]game.Picture, len(names))}
 	for i, n := range names {
@@ -48,13 +48,12 @@ func TilePicker(s game.State, page, cols, rows int) *front.Picker {
 			k.Cur = i
 		}
 	}
-	s.Picker = k
-	return Picker(s, page, cols, rows)
+	return Picker(k, cells, page, cols, rows)
 }
 
 // PickTile is tile i's pool body name ("": none).
-func PickTile(s game.State, i int) string {
-	names, _ := BodyTiles(s)
+func PickTile(own game.Member, i int) string {
+	names, _ := BodyTiles(own)
 	if i < 0 || i >= len(names) {
 		return ""
 	}

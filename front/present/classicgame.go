@@ -42,24 +42,24 @@ func (g classicGame) View() front.View {
 	}
 	v := classic.View(gv, s)
 	if v.AreaMap != nil {
-		v.AreaMap = classic.AreaMap(v.AreaMap, s, g.art())
+		v.AreaMap = classic.AreaMap(v.AreaMap, s.Map, s.Where, g.art())
 	}
 	if v.MainMenu != nil && !v.Hall && v.Powers == nil { // the title under the party menu
 		v.Logo, v.Backdrop = classic.Title(v.Logo, v.Backdrop, g.art())
 	}
-	v.Battle = classic.Battle(v.Battle, s)
+	v.Battle = classic.Battle(v.Battle, s.Combat, s.Party)
 	if c, ok := g.Game.(*classic.Game); ok {
 		v.Battle = classic.ViewVerb(v.Battle, c.D)
 	}
-	v = classic.Page(v, s)
-	v = classic.Flags(v, s)
+	v = classic.Page(v, s.Page, s.Story)
+	v = classic.Flags(v, s.Flags, classic.OverMenu(s.Mode, s.Pending))
 	v = classic.Place(v, s.Where, s.Window)
 	v.Quests, v.Lore = classic.Quests(s.Quests), classic.Lore(s.Lore)
 	v = classic.Waits(v, s.Holding, s.Door, s.PowerPick)
-	v.Party, v.Purse = classic.Party(s, g.art()), classic.Purse(s)
-	v = classic.Sheet(v, s)
-	v = classic.PoolPortrait(v, s)
-	v = classic.PoolIcon(v, s)
+	v.Party, v.Purse = classic.Party(s.Party, s.Selected, g.art()), classic.Purse(s.Purse, s.PoolItems, s.PartyCap)
+	v = classic.Sheet(v, s.Sheet, s.Portrait, s.IconBox, s.SheetPage, classic.Drafting(s.Mode, s.Creation), s.Creation, g.r.Subject())
+	v = classic.PoolPortrait(v, g.r.Subject())
+	v = classic.PoolIcon(v, g.r.Subject(), s.SheetPage)
 	v = classic.Border(v, g.art())
 	v = classic.Walls(v, s.Walls, g.art())
 	v = classic.Intro(v, s.Intro)
@@ -90,7 +90,7 @@ func (g classicGame) art() map[string]game.Picture {
 
 // PickerView is page page of the grid picker State holds (the game's where it holds none).
 func (g classicGame) pickerView(page int) *front.Picker {
-	if p := classic.Picker(g.r.State(), page, g.p.grid[0], g.p.grid[1]); p != nil {
+	if p := g.r.PickerOf(g.r.State().Picker, page, g.p.grid[0], g.p.grid[1]); p != nil {
 		return p
 	}
 	return g.Game.PickerView(page)
@@ -99,7 +99,7 @@ func (g classicGame) pickerView(page int) *front.Picker {
 // IconEditorView is the icon designer State holds (the game's where it holds none).
 func (g classicGame) IconEditorView() *front.IconEditor {
 	ink := g.Game.View().Ink
-	if e := classic.IconEditor(g.r.State(), &ink, g.p.grid[0], g.p.grid[1]); e != nil {
+	if e := classic.IconEditor(g.r.State().IconEditor, g.r.State().IconPalette, g.r.Subject(), &ink, g.p.grid[0], g.p.grid[1]); e != nil {
 		return e
 	}
 	return g.Game.IconEditorView()
@@ -107,12 +107,14 @@ func (g classicGame) IconEditorView() *front.IconEditor {
 
 // CreationView is the sheet on the page the presenter last laid out (ActResize).
 func (g classicGame) CreationView() *front.Creation {
-	return classic.Creation(g.r.State(), g.p.grid[0], g.p.grid[1])
+	s := g.r.State()
+	return classic.Creation(s.Mode, s.Creation, s.Pending, g.p.grid[0], g.p.grid[1])
 }
 
 // FullMapView is the game's full map with the parts classic.FullMap takes from State.
 func (g classicGame) FullMapView(cursor image.Point, label *string) *front.FullMap {
-	return classic.FullMap(g.Game.FullMapView(cursor, label), g.r.State())
+	s := g.r.State()
+	return classic.FullMap(g.Game.FullMapView(cursor, label), s.Map, s.Where)
 }
 
 // TrainingView is the hall's offer classic.Training builds from State.
@@ -128,3 +130,6 @@ func WithRules(g front.Game, p *Presenter) front.Game {
 
 // State is the rules' state.
 func (g classicGame) State() game.State { return g.r.State() }
+
+// SheetIcon is the classic game's: the draft's combat icon on the sheet.
+func (g classicGame) SheetIcon(v front.View) front.View { return g.r.SheetIcon(v) }

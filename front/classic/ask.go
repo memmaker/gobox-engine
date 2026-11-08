@@ -15,9 +15,8 @@ var askKinds = map[game.AskKind]front.AskKind{
 
 // Ask is the question from s (nil: none up), and false where classic
 // cannot rebuild it from game.Ask: the game's stays.
-func Ask(s game.State) (*front.Ask, bool) {
-	a := s.Pending
-	if a == nil || s.Mode != game.ModeAsk && !overMenu(s) {
+func Ask(mode game.Mode, a *game.Ask) (*front.Ask, bool) {
+	if a == nil || mode != game.ModeAsk && !OverMenu(mode, a) {
 		return nil, true
 	}
 	k, ok := askKinds[a.Kind]
@@ -51,7 +50,7 @@ func Ask(s game.State) (*front.Ask, bool) {
 
 // overMenu: the game keeps ModeExplore under a menu or yes/no it opens over the 3D
 // view (camp's): the menu is up, not the exploring.
-func overMenu(s game.State) bool {
-	return s.Pending != nil && (s.Pending.Kind == game.YesNo || s.Pending.Kind == game.Name || s.Pending.Kind == game.Number) || // a yes/no or a typed line over any screen (the treasure's "claim it?", a shop's drop, the name after creation's Keep)
-		(s.Mode == game.ModeExplore || s.Mode == game.ModeCombat) && s.Pending != nil && (s.Pending.Kind == game.Choice || s.Pending.Kind == game.YesNo) // a fight's own question (a member's View) over the map
+func OverMenu(mode game.Mode, pending *game.Ask) bool {
+	return pending != nil && (pending.Kind == game.YesNo || pending.Kind == game.Name || pending.Kind == game.Number) || // a yes/no or a typed line over any screen (the treasure's "claim it?", a shop's drop, the name after creation's Keep)
+		(mode == game.ModeExplore || mode == game.ModeCombat) && pending != nil && (pending.Kind == game.Choice || pending.Kind == game.YesNo) // a fight's own question (a member's View) over the map
 }

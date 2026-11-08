@@ -130,12 +130,12 @@ func memberIcon(m game.Member) (head, body string) {
 
 // PoolIcon is v with the creation draft's combat icon (pool ids, else its Icon numbers) in the
 // sheet's Icon box, in place of the game's picture there (v itself when the draft has none).
-func PoolIcon(v front.View, s game.State) front.View {
-	cr, m := v.Creation, subject(s)
+func PoolIcon(v front.View, own game.Member, sheet *game.SheetPage) front.View {
+	cr, m := v.Creation, subject(own)
 	if cr == nil {
 		return v
 	}
-	if p := s.SheetPage; p != nil && p.Icons[0] != nil { // a dropped PNG: the sheet draws it
+	if p := sheet; p != nil && p.Icons[0] != nil { // a dropped PNG: the sheet draws it
 		return v
 	}
 	box := cr.Icon.Pixels()
@@ -173,8 +173,8 @@ func PoolIcon(v front.View, s game.State) front.View {
 
 // PickIcon is the subject's combat icon (ready pose) with head or body swapped
 // for the named one ("": its own), for a picker cell.
-func PickIcon(s game.State, head, body string) image.Image {
-	h, b := memberIcon(subject(s))
+func PickIcon(own game.Member, head, body string) image.Image {
+	h, b := memberIcon(subject(own))
 	if h == "" || b == "" {
 		h, b = "combat_head_000", "combat_body_000"
 	}
@@ -184,7 +184,7 @@ func PickIcon(s game.State, head, body string) image.Image {
 	if body != "" {
 		b = body
 	}
-	pic, ok := poolIcon(h, b, subject(s).IconColors, 0, false)
+	pic, ok := poolIcon(h, b, subject(own).IconColors, 0, false)
 	if !ok {
 		return nil
 	}

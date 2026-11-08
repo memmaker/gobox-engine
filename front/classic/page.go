@@ -31,10 +31,9 @@ func paneLines(ls [][]game.TextRun) [][]front.PaneRun {
 	return r
 }
 
-// Page is v with the text page s.Page holds: the pane, the prompt row, the
-// text over the view window and the pictures. v where s has no page.
-func Page(v front.View, s game.State) front.View {
-	p := s.Page
+// Page is v with the text page p: the pane, the prompt row, the
+// text over the view window and the pictures. v where p is nil.
+func Page(v front.View, p *game.Page, portrait []game.Picture) front.View {
 	if p == nil {
 		return v
 	}
@@ -52,7 +51,7 @@ func Page(v front.View, s game.State) front.View {
 		v.Pictures = append(v.Pictures, f)
 	}
 	if len(p.Layers) == 0 {
-		v.Pictures = append(v.Pictures, story(s.Story)...)
+		v.Pictures = append(v.Pictures, story(portrait)...)
 	}
 	return v
 }

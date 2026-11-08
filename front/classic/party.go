@@ -26,12 +26,12 @@ func powers(es []game.Entry) []front.Power {
 	return out
 }
 
-// Party is the party's cards s holds (nil: none), with the heads from art
+// Party is the party's cards (nil: none), with the heads from art
 // (Data.Art).
-func Party(s game.State, art map[string]game.Picture) []front.Member {
+func Party(party []game.Member, sel int, art map[string]game.Picture) []front.Member {
 	var out []front.Member
-	marked := slices.ContainsFunc(s.Party, func(m game.Member) bool { return m.Chosen })
-	for i, m := range s.Party {
+	marked := slices.ContainsFunc(party, func(m game.Member) bool { return m.Chosen })
+	for i, m := range party {
 		m = defaultPortrait(m)
 		var head image.Image
 		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
@@ -41,19 +41,18 @@ func Party(s game.State, art map[string]game.Picture) []front.Member {
 			head = poolImage("combat", cmp.Or(m.IconBodyID, m.IconHeadID))
 		}
 		out = append(out, front.Member{Head: head, Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
-			Selected: m.Chosen || !marked && i == s.Selected, Colour: nameColour(m), HeadPix: pix(art[m.Head]), Portrait: m.Dropped, Powers: powers(m.Card),
+			Selected: m.Chosen || !marked && i == sel, Colour: nameColour(m), HeadPix: pix(art[m.Head]), Portrait: m.Dropped, Powers: powers(m.Card),
 			Exp: int(int32(m.Exp)), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
 	}
 	return out
 }
 
-// Purse is the party's money and party items s holds (nil: no party).
-func Purse(s game.State) *front.Purse {
-	p := s.Purse
+// Purse is the party's money and party items (nil: no party).
+func Purse(p map[string]int, items, slots int) *front.Purse {
 	if p == nil {
 		return nil
 	}
-	return &front.Purse{Gold: p[Coin], Copper: p[game.Copper], Gems: p[game.Gems], Jewelry: p[game.Jewelry], Items: s.PoolItems, Slots: s.PartyCap}
+	return &front.Purse{Gold: p[Coin], Copper: p[game.Copper], Gems: p[game.Gems], Jewelry: p[game.Jewelry], Items: items, Slots: slots}
 }
 
 // nameColour is the roster colour of m's name (EGA number) when not
