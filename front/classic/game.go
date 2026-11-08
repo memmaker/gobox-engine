@@ -228,7 +228,6 @@ func (g *Game) View() front.View {
 	v = Waits(v, game.Hold(holding(ps)), doorOf(ps), c.PowerPick)
 	v.Party, v.Purse = Party(party, sel, art), Purse(c.Purse, c.PoolItems, c.PartyCap)
 	v = Sheet(v, sheet, image.Rectangle{}, image.Rectangle{}, page, Drafting(mode, draft), draft, own)
-	v = PoolPortrait(v, own)
 	v = Border(v, art)
 	v = Walls(v, r.wallsOf(ps), art)
 	v = Intro(v, introOf(ps))
@@ -248,6 +247,7 @@ func (g *Game) View() front.View {
 		v.Note = g.note
 	}
 	v.Creation = Creation(mode, draft, pending, g.grid.X, g.grid.Y)
+	v = PoolPortrait(v, own)
 	v = PoolIcon(v, own, page)
 	v.Training = Training(training, party, sel, c.Purse)
 	v.Picker = Picker(c.Picker, image.Point{}, 0, g.grid.X, g.grid.Y)
