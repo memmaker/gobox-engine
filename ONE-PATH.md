@@ -10,9 +10,11 @@ Agreed rules:
   (play.Question.Esc); no hint: Esc selects nothing, the choice is forced.
   The script decompiler writes the hint into the scripts by a heuristic; the
   engine reads only the typed hint, never text.
+- gobox has one script decompiler, run at import time for every game; game
+  differences are explicit decompilation/data versions.
 - Vendor menus (shops, temples, training halls, taverns...): the decompiler folds
-  the Yes/No gate and the real menu into one. Backing out gives the state of the
-  cut No branch.
+  the Yes/No gate and the real menu into one. A folded menu's exit always runs the
+  cut No branch (such as MustLeave).
 - Auto-walk uses POR's rules for all games: stops on an unvisited square with a
   script, on any key or click, and locked doors count as walls.
 - Paladin powers are offered wherever spell casting is, as POR does.
