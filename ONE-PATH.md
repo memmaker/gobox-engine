@@ -44,3 +44,4 @@ Agreed rules:
 ## Progress (decompiler)
 - POR fold pass (por-go 8035c30): rules/scriptfold.go, in cmd/eclscript. 4 shops, temple, training hall folded; a vendor's exit runs the cut No. Inn (pays before camp) and tavern gamble (no vendor menu) stay gates. Checked structurally only (TestVendorGatesFolded, TestScriptRoundTrip), not by running gate-No against back-out.
 - Open: the decompiler is still in por-go/rules, POR's hand fixes are not patches yet, the other five games still read ECL*.DAX.
+- a1a93d6: all classic builders take narrow args. 061cb98: play.PowerKind. Next: ViewOf reads play.State directly, rules.State()/Apply gone, Option/Ask/Refusal into play, game.State/Decision deleted (one commit stack). Another agent owns ecl/ and script loading.
