@@ -8,7 +8,8 @@ Agreed rules:
 - Esc on an optional menu always closes it or backs out to the upper UI level.
   Engine-built menus back out. Script menus: a typed hint names the exit row
   (play.Question.Esc); no hint: Esc selects nothing, the choice is forced.
-  The hint lives in the scripts themselves (edit them), never matched by text.
+  The script decompiler writes the hint into the scripts by a heuristic; the
+  engine reads only the typed hint, never text.
 - Auto-walk uses POR's rules for all games: stops on an unvisited square with a
   script, on any key or click, and locked doors count as walls.
 - Paladin powers are offered wherever spell casting is, as POR does.
