@@ -21,8 +21,7 @@ var plumbing = []string{"Ask", "AskKind", "Question", "QKind", "Answer", "Decisi
 // knownCopies are the copies still to remove (MIGRATION.md, phases 2-5).
 // The list only shrinks: a new copy fails, and so does an entry whose copy
 // is gone (delete it here in the same change).
-var knownCopies = map[string][]string{
-}
+var knownCopies = map[string][]string{}
 
 // TestNoPrivatePlumbing: no game declares its own copy of gobox's game↔UI
 // types beyond the known ones still being removed.
