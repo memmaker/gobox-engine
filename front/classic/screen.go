@@ -1,27 +1,22 @@
 package classic
 
 import (
+	"image"
 	"image/color"
 
 	"gobox/front"
 	"gobox/game"
 )
 
-// Screen is v with the page's size in cells and the text colours s holds.
-// v's where s has none.
-func Screen(v front.View, s game.State) front.View {
-	if s.Cells.X > 0 {
-		v.Cells = s.Cells
+// Screen is v with the typed screen up and the page's size in cells and text
+// colours; v's where those are unset.
+func Screen(v front.View, cells image.Point, sc *game.Screen, ink [16]color.RGBA) front.View {
+	if cells.X > 0 {
+		v.Cells = cells
 	}
-	v.Screen = s.Screen
-	if s.Ink != ([16]color.RGBA{}) {
-		v.Ink = s.Ink
+	v.Screen = sc
+	if ink != ([16]color.RGBA{}) {
+		v.Ink = ink
 	}
-	return v
-}
-
-// Read is v with the journal text s.Read holds. v where s has none.
-func Read(v front.View, s game.State) front.View {
-	v.Read = s.Read
 	return v
 }

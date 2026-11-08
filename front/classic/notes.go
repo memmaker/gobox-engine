@@ -5,19 +5,18 @@ import (
 	"gobox/game"
 )
 
-// Note is v with the status line's toast s.Note holds; v's own (a
-// Refusal's, a shop's message) stays when the State has none.
-func Note(v front.View, s game.State) front.View {
-	if s.Note.Text == "" {
+// Note is v with the status line's toast n; v's own (a Refusal's, a shop's
+// message) stays when n is empty.
+func Note(v front.View, n game.Note) front.View {
+	if n.Text == "" {
 		return v
 	}
-	v.Note = front.Note{Text: s.Note.Text, At: s.Note.At}
+	v.Note = front.Note{Text: n.Text, At: n.At}
 	return v
 }
 
-// Results is v with the after-combat page s.Results holds. v where s has none.
-func Results(v front.View, s game.State) front.View {
-	r := s.Results
+// Results is v with the after-combat page r. v where r is nil.
+func Results(v front.View, r *game.Results) front.View {
 	if r == nil {
 		return v
 	}

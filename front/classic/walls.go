@@ -5,11 +5,10 @@ import (
 	"gobox/game"
 )
 
-// Walls is v with the 3D view s.Walls holds: the wall faces, and each wall
+// Walls is v with the 3D view w: the wall faces, and each wall
 // value's picture from art (Data.Art, read live) as View pixels or a DAX
-// ref. v where s has none.
-func Walls(v front.View, s game.State, art map[string]game.Picture) front.View {
-	w := s.Walls
+// ref. v where w is nil.
+func Walls(v front.View, w *game.Walls, art map[string]game.Picture) front.View {
 	if w == nil {
 		return v
 	}

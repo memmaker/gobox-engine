@@ -184,20 +184,20 @@ func (g *Game) ViewOf(s game.State) front.View {
 	if m := g.walkMap(); m != nil {
 		v.Open = openSides(m, s.Where)
 	}
-	v = Place(v, s)
-	v.Quests, v.Lore = Quests(s), Lore(s)
-	v = Waits(v, s)
+	v = Place(v, s.Where, s.Window)
+	v.Quests, v.Lore = Quests(s.Quests), Lore(s.Lore)
+	v = Waits(v, s.Holding, s.Door, s.PowerPick)
 	v.Party, v.Purse = Party(s, art), Purse(s)
 	v = Sheet(v, s)
 	v = Border(v, art)
-	v = Walls(v, s, art)
-	v = Intro(v, s)
-	v = Sequence(v, s, g.D.Sequences, g.D.Files)
-	v = Note(v, s)
-	v = Results(v, s)
-	v = Screen(v, s)
-	v = Read(v, s)
-	v = Pacing(v, s)
+	v = Walls(v, s.Walls, art)
+	v = Intro(v, s.Intro)
+	v = Sequence(v, s.Sequence, g.D.Sequences, g.D.Files)
+	v = Note(v, s.Note)
+	v = Results(v, s.Results)
+	v = Screen(v, s.Cells, s.Screen, s.Ink)
+	v.Read = s.Read
+	v = Pacing(v, s.Pacing)
 	if n := len(s.Lore) + 1; g.lore > 0 && n > g.lore { // the journal gained a note: gobox says so, the game prints nothing
 		g.note = front.Note{Text: "Added to journal", At: time.Now()}
 		g.lore = n
@@ -209,7 +209,7 @@ func (g *Game) ViewOf(s game.State) front.View {
 	}
 	v.Creation = Creation(s, g.grid.X, g.grid.Y)
 	v = PoolIcon(v, s)
-	v.Training = Training(s)
+	v.Training = Training(s.Training, s.Party, s.Selected, s.Purse)
 	v.Picker = Picker(s, 0, g.grid.X, g.grid.Y)
 	v.IconEditor = IconEditor(s, &v.Ink, g.grid.X, g.grid.Y)
 	return v
@@ -718,7 +718,10 @@ func (g *Game) ViewMember(n int) error        { return g.do(game.ViewMember{Memb
 func (g *Game) Leave() error                  { return g.do(game.Leave{}) }
 func (g *Game) OpenTraining(n int) error      { return g.do(game.OpenTraining{Member: n}) }
 func (g *Game) CloseTraining() error          { return g.do(game.CloseTraining{}) }
-func (g *Game) TrainingView() *front.Training { return Training(g.r.State()) }
+func (g *Game) TrainingView() *front.Training {
+	s := g.r.State()
+	return Training(s.Training, s.Party, s.Selected, s.Purse)
+}
 func (g *Game) Train() error                  { return g.do(game.Train{Member: g.sel(-1)}) }
 func (g *Game) Learn(id int) error            { return g.do(game.Learn{Spell: id}) }
 func (g *Game) PickPower(id int) error        { return g.do(game.PickPower{ID: id}) }

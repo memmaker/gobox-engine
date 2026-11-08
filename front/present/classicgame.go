@@ -53,31 +53,31 @@ func (g classicGame) View() front.View {
 	}
 	v = classic.Page(v, s)
 	v = classic.Flags(v, s)
-	v = classic.Place(v, s)
-	v.Quests, v.Lore = classic.Quests(s), classic.Lore(s)
-	v = classic.Waits(v, s)
+	v = classic.Place(v, s.Where, s.Window)
+	v.Quests, v.Lore = classic.Quests(s.Quests), classic.Lore(s.Lore)
+	v = classic.Waits(v, s.Holding, s.Door, s.PowerPick)
 	v.Party, v.Purse = classic.Party(s, g.art()), classic.Purse(s)
 	v = classic.Sheet(v, s)
 	v = classic.PoolPortrait(v, s)
 	v = classic.PoolIcon(v, s)
 	v = classic.Border(v, g.art())
-	v = classic.Walls(v, s, g.art())
-	v = classic.Intro(v, s)
-	v = classic.Sequence(v, s, sequences, filesDir)
+	v = classic.Walls(v, s.Walls, g.art())
+	v = classic.Intro(v, s.Intro)
+	v = classic.Sequence(v, s.Sequence, sequences, filesDir)
 	if ownMus != nil {
 		ownMus.Want(musicChain(s))
 	}
 	if playSeq != "" && v.Sequence == nil { // a game.MenuItem's animation, gobox's own: the game's state never knows
 		s.Sequence = playSeq
-		if v = classic.Sequence(v, s, sequences, filesDir); v.Sequence == nil {
+		if v = classic.Sequence(v, s.Sequence, sequences, filesDir); v.Sequence == nil {
 			playSeq = "" // no such sequence
 		}
 	}
-	v = classic.Note(v, s)
-	v = classic.Results(v, s)
-	v = classic.Screen(v, s)
-	v = classic.Read(v, s)
-	v = classic.Pacing(v, s)
+	v = classic.Note(v, s.Note)
+	v = classic.Results(v, s.Results)
+	v = classic.Screen(v, s.Cells, s.Screen, s.Ink)
+	v.Read = s.Read
+	v = classic.Pacing(v, s.Pacing)
 	return v
 }
 
@@ -116,7 +116,7 @@ func (g classicGame) FullMapView(cursor image.Point, label *string) *front.FullM
 }
 
 // TrainingView is the hall's offer classic.Training builds from State.
-func (g classicGame) TrainingView() *front.Training { return classic.Training(g.r.State()) }
+func (g classicGame) TrainingView() *front.Training { return g.r.TrainingView() }
 
 // WithRules is g as classicGame (p lays out its page) when it is the classic front.
 func WithRules(g front.Game, p *Presenter) front.Game {

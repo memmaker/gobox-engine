@@ -7,19 +7,17 @@ import (
 	"gobox/game"
 )
 
-// Training is the training hall's offer to the selected member from s
+// Training is the training hall's offer t to member n of party
 // (nil: the hall is not open): what it becomes, or why it may not train;
 // while a spell is being learned, the spells to choose from.
-func Training(s game.State) *front.Training {
-	t := s.Training
+func Training(t *game.Training, party []game.Member, n int, purse map[string]int) *front.Training {
 	if t == nil {
 		return nil
 	}
-	n := s.Selected
-	if n < 0 || n >= len(s.Party) {
+	if n < 0 || n >= len(party) {
 		return &front.Training{Why: "No one to train"}
 	}
-	v := &front.Training{Name: s.Party[n].Name, Price: t.Cost, Gold: s.Purse[Coin]}
+	v := &front.Training{Name: party[n].Name, Price: t.Cost, Gold: purse[Coin]}
 	if t.Learning {
 		for _, sp := range t.Learn {
 			v.Learn = append(v.Learn, front.BookSpell{ID: sp.ID, Name: sp.Name, Level: levelName(sp.Level)})
