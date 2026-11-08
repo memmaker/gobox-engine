@@ -18,7 +18,7 @@ Agreed rules:
 - Paladin powers are offered wherever spell casting is, as POR does.
 
 ## A: game side
-- [ ] por-go: exit hints; listAnswered has no string comparison
+- [x] por-go: exit hints; listAnswered has no string comparison
 - [ ] pod-go: exit hints; paladin powers, Cure Disease reachable
 - [ ] cotab-go: exit hints; paladin powers audited
 - [ ] sotsb-go: exit hints; paladin powers audited

@@ -185,3 +185,5 @@ Audit (per-game-settings-audit.md), checked against the originals (notes: this s
 - #12 kept: classic.GameID only picks the game's own section of the one shared origins.json (the shared portrait collection); gobox never branches on it.
 - Port bugs fixed: POR HitMessage skips the dead alone as ovr08:20CC (por ead2bae); BR1/BR2 list race above gender as their sheets (a2cfea5, 0b41cfe).
 pod-go rules tests compile and pass again (fc28a16).
+- **Esc guessed on a script menu:** a script menu answered by Esc from a label or hotkey (POR listAnswered's "LEAVE", SotSB escReply's last E row). A script menu follows only its typed hint (POR `exit=`, Instr.Exit); none: forced. Detect: `grep -n "Esc" */rules/ecl*.go`, and require each script menu op to set NoEsc unless the hint names a row (POR TestScriptExitHints, TestMenuEscForced; SotSB TestScriptMenuForced; COTAB TestEngineMenuEsc).
+- **Action routed but not allowed, or allowed but not routed:** a power listed on the sheet with no path through Do (POD's Cure). Detect: Do the action from `Allowed` at a stop, not the rules' own helper (TestPaladinPowersDo; POD's test helper `apply` skips Do's routing).
