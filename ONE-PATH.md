@@ -12,6 +12,7 @@ Agreed rules:
   engine reads only the typed hint, never text.
 - gobox has one script decompiler, run at import time for every game; game
   differences are explicit decompilation/data versions.
+  Every game interprets the decompiled script directly: no bytecode at runtime.
 - Vendor menus (shops, temples, training halls, taverns...): the decompiler folds
   the Yes/No gate and the real menu into one. A folded menu's exit always runs the
   cut No branch (such as MustLeave).
