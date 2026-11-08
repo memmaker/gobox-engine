@@ -66,7 +66,7 @@ func TestGaps(t *testing.T) {
 		{"loot status", play.Looting{}, game.LootStatus{}, play.LootStatus{}, nil},
 		{"power pick", play.Camping{Common: play.Common{PowerPick: &game.PowerPick{Name: "Bob"}}}, game.PickPower{ID: 2}, play.PickPower{ID: 2},
 			func(s game.State) bool { return s.PowerPick != nil && s.PowerPick.Name == "Bob" }},
-		{"use power", play.Camping{}, game.UsePower{Member: 1, Kind: 2}, play.UsePower{Member: 1, Kind: 2}, nil},
+		{"use power", play.Camping{}, game.UsePower{Member: 1, Kind: int(front.ActMagic)}, play.UsePower{Member: 1, Kind: play.PowerDisplay}, nil},
 		{"policy", play.Camping{}, game.SetPolicy{ID: 1, Policy: 2}, play.SetPolicy{ID: 1, Policy: 2}, nil},
 		{"mark", play.Exploring{}, game.Mark{At: image.Pt(1, 2), Text: "x"}, play.Mark{At: image.Pt(1, 2), Text: "x"}, nil},
 		{"unmark", play.Exploring{}, game.Unmark{At: image.Pt(1, 2)}, play.Unmark{At: image.Pt(1, 2)}, nil},

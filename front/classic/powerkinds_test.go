@@ -5,13 +5,20 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
-// game's UsePower kinds are the front's acts' numbers, as classic passes them.
+// A power picked on the front reaches the game as its PowerKind.
 func TestPowerKinds(t *testing.T) {
-	for g, f := range map[int]front.ActKind{game.PowerCast: front.ActSpells, game.PowerDisplay: front.ActMagic, game.PowerHeal: front.ActHeal, game.PowerCure: front.ActCure} {
-		if g != int(f) {
-			t.Errorf("game kind %d, front act %d", g, f)
+	for k, want := range map[front.ActKind]play.PowerKind{front.ActSpells: play.PowerCast, front.ActMagic: play.PowerDisplay,
+		front.ActHeal: play.PowerHeal, front.ActCure: play.PowerCure} {
+		f := &fake{st: play.Camping{Common: allow(play.UsePower{Member: 0, Kind: want})}}
+		g := NewGame(f, game.Data{})
+		if err := g.UsePower(0, k, 0, 0, true); err != nil {
+			t.Fatal(err)
+		}
+		if len(f.sent) != 1 || f.sent[0].(play.UsePower).Kind != want {
+			t.Errorf("%v sent %+v, want kind %v", k, f.sent, want)
 		}
 	}
 }

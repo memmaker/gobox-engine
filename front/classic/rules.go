@@ -18,6 +18,7 @@ import (
 	"time"
 	"unicode"
 
+	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -1212,7 +1213,7 @@ func action(ps play.State, d game.Decision) play.Action {
 	case game.EndIcon:
 		return play.EndIcon{Keep: d.Keep}
 	case game.UsePower:
-		return play.UsePower{Member: d.Member, Kind: d.Kind, Spell: d.Spell, Target: d.Target}
+		return play.UsePower{Member: d.Member, Kind: frontPower[d.Kind], Spell: d.Spell, Target: d.Target}
 	case game.PickPower:
 		return play.PickPower{ID: d.ID}
 	case game.SetPolicy:
@@ -1970,3 +1971,6 @@ func (r *rules) setSpeed(n int) {
 // Speed is the game speed, 0 fastest .. 9 slowest (classic holds a fight's
 // messages by it).
 func (r *rules) Speed() int { return r.speed }
+
+// frontPower is the inventory's power act as the game's PowerKind.
+var frontPower = map[int]play.PowerKind{int(front.ActSpells): play.PowerCast, int(front.ActMagic): play.PowerDisplay, int(front.ActHeal): play.PowerHeal, int(front.ActCure): play.PowerCure}

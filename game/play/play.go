@@ -545,7 +545,11 @@ type (
 	IconPNG     struct{ Path string }
 	EndIcon     struct{ Keep bool }
 	// The sheet.
-	UsePower  struct{ Member, Kind, Spell, Target int }
+	UsePower struct {
+		Member        int
+		Kind          PowerKind
+		Spell, Target int
+	}
 	PickPower struct{ ID int }
 	SetPolicy struct{ ID, Policy int }
 
@@ -762,3 +766,13 @@ func (Aid) action()              {}
 func (Sprint) action()           {}
 func (Dodge) action()            {}
 func (Jetpack) action()          {}
+
+// PowerKind is what a member's power does (UsePower.Kind).
+type PowerKind int
+
+const (
+	PowerCast    PowerKind = iota + 1 // cast a memorised spell
+	PowerDisplay                      // list the spell effects on the member
+	PowerHeal                         // a paladin lays on hands
+	PowerCure                         // a paladin cures disease
+)
