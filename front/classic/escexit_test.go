@@ -1,4 +1,4 @@
-package playrules
+package classic
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ import (
 // Esc names (BR2's fight View: GEAR SKILLS EXIT), never a silent nothing.
 func TestEscIsExit(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Ask: &play.Question{Replies: []string{"GEAR", "SKILLS", "EXIT"}, Esc: play.EscTo(2)}}}}
-	New(f, game.Data{}).Apply(game.Cancel{})
+	newRules(f, game.Data{}).Apply(game.Cancel{})
 	if len(f.sent) != 1 || f.sent[0] != (play.Reply{N: 2}) {
 		t.Fatalf("sent %+v", f.sent)
 	}
@@ -21,7 +21,7 @@ func TestEscIsExit(t *testing.T) {
 // with an entry labelled Exit (labels drive nothing).
 func TestEscNoReply(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Ask: &play.Question{Replies: []string{"Gear", "Exit"}}}}}
-	New(f, game.Data{}).Apply(game.Cancel{})
+	newRules(f, game.Data{}).Apply(game.Cancel{})
 	if len(f.sent) != 0 {
 		t.Fatalf("sent %+v", f.sent)
 	}

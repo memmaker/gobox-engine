@@ -1,4 +1,4 @@
-package playrules
+package classic
 
 import (
 	"image"
@@ -14,7 +14,7 @@ import (
 func TestAttackAims(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}, play.EndTurn{}}}},
 		Field: play.Battlefield{Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(5, 3), Foe: true}}}}}
-	r := New(f, game.Data{}).(*rules)
+	r := newRules(f, game.Data{})
 	if res := r.Apply(game.Attack{Target: 0}); res.Err != nil || len(f.sent) != 0 || !r.State().Combat.Turn.Aim || r.State().Combat.Cursor != image.Pt(5, 3) {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
 	}
@@ -37,7 +37,7 @@ func TestShootTargets(t *testing.T) {
 	shoot := play.Shoot{}
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: shoot, Squares: []image.Point{{4, 4}, {6, 6}, {9, 9}}, Targets: 1}}}},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(6, 6), Foe: true}}}}}
-	r := New(f, game.Data{}).(*rules)
+	r := newRules(f, game.Data{})
 	r.Apply(game.Ranged{})
 	c := r.State().Combat
 	if c == nil || !c.Turn.Aim || len(c.Targets) != 2 || c.Cursor != image.Pt(6, 6) {
@@ -63,7 +63,7 @@ func TestAimNoFoeInReach(t *testing.T) {
 	shoot := play.Shoot{}
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: shoot, Squares: []image.Point{{2, 1}}, Targets: 1}}}},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(4, 3), Foe: true}}}}}
-	r := New(f, game.Data{}).(*rules)
+	r := newRules(f, game.Data{})
 	r.Apply(game.Ranged{})
 	c := r.State().Combat
 	if c == nil || !c.Turn.Aim || !c.CursorOn || len(c.Targets) != 2 || c.Cursor != image.Pt(4, 3) {

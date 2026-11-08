@@ -8,12 +8,12 @@ import (
 	"gobox/game"
 )
 
-// classicGame is a game that also gives its rules as a game.Rules: the
+// classicGame is a game the classic front runs: the
 // screens front/classic builds from its State stand in for the game's own
 // (classic.View, classic.Creation, classic.Training); everything else is the game's.
 type classicGame struct {
 	front.Game
-	r game.Rules
+	r *classic.Game
 	p *Presenter
 }
 
@@ -85,15 +85,7 @@ func (g classicGame) View() front.View {
 // wall fronts, the fight's tiles), else the Data's; it comes after NewFront,
 // and the art set can change.
 func (g classicGame) art() map[string]game.Picture {
-	if r, ok := g.r.(interface {
-		Art() map[string]game.Picture
-	}); ok {
-		return r.Art()
-	}
-	if d, ok := g.Game.(interface{ Data() game.Data }); ok {
-		return d.Data().Art
-	}
-	return gameArt
+	return g.r.Art()
 }
 
 // PickerView is page page of the grid picker State holds (the game's where it holds none).
@@ -126,10 +118,10 @@ func (g classicGame) FullMapView(cursor image.Point, label *string) *front.FullM
 // TrainingView is the hall's offer classic.Training builds from State.
 func (g classicGame) TrainingView() *front.Training { return classic.Training(g.r.State()) }
 
-// WithRules is g as classicGame (p lays out its page) when it gives its rules (Rules()).
+// WithRules is g as classicGame (p lays out its page) when it is the classic front.
 func WithRules(g front.Game, p *Presenter) front.Game {
-	if r, ok := g.(interface{ Rules() game.Rules }); ok {
-		return classicGame{g, r.Rules(), p}
+	if c, ok := g.(*classic.Game); ok {
+		return classicGame{g, c, p}
 	}
 	return g
 }

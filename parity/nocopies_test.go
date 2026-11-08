@@ -121,3 +121,44 @@ func TestPassive(t *testing.T) {
 		}
 	}
 }
+
+// oldPathImports and oldPathNames are the old path: no Go file of gobox or a
+// game may import or name them.
+var (
+	oldPathImports = []string{"gobox/front/playrules"}
+	oldPathNames   = map[string][]string{"game": {"Rules", "Mapped"}}
+)
+
+// TestNoOldPath fails on any reference to the removed rules path.
+func TestNoOldPath(t *testing.T) {
+	roots := []string{"..", "../../por-go", "../../cotab-go", "../../sotsb-go", "../../pod-go",
+		"../../buckrogers-go", "../../buckrogers2-go"}
+	for _, root := range roots {
+		err := filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
+			if err != nil || d.IsDir() || !strings.HasSuffix(p, ".go") {
+				return err
+			}
+			af, err := parser.ParseFile(token.NewFileSet(), p, nil, parser.SkipObjectResolution)
+			if err != nil {
+				return nil // not this test's to judge: the build's
+			}
+			for _, im := range af.Imports {
+				if slices.Contains(oldPathImports, strings.Trim(im.Path.Value, `"`)) {
+					t.Errorf("%s imports %s", p, im.Path.Value)
+				}
+			}
+			ast.Inspect(af, func(n ast.Node) bool {
+				if s, ok := n.(*ast.SelectorExpr); ok {
+					if x, ok := s.X.(*ast.Ident); ok && slices.Contains(oldPathNames[x.Name], s.Sel.Name) {
+						t.Errorf("%s names %s.%s", p, x.Name, s.Sel.Name)
+					}
+				}
+				return true
+			})
+			return nil
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}

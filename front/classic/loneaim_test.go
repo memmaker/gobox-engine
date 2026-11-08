@@ -1,11 +1,10 @@
-package playrules
+package classic
 
 import (
 	"image"
 	"testing"
 
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -19,7 +18,7 @@ func TestLoneAimWithLeave(t *testing.T) {
 		Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{foe, {5, 2}}, Targets: 1}}}},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: foe}}}}
 	f := &fake{st: fight}
-	g := classic.NewGame(New(f, game.Data{}), game.Data{})
+	g := NewGame(f, game.Data{})
 	v := g.View()
 	if v.Battle == nil || v.Battle.Turn == nil || !v.Battle.Turn.Aim || v.Battle.Cursor != foe {
 		t.Fatalf("not aiming at the first target: %+v", v.Battle)
@@ -46,7 +45,7 @@ func TestAimTargetsBigFoe(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Leave{}},
 		Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{in}, Targets: 1}}}},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: image.Pt(4, 2), Squares: []image.Point{{4, 2}, in}, Size: 2}}}}
-	g := classic.NewGame(New(&fake{st: fight}, game.Data{}), game.Data{})
+	g := NewGame(&fake{st: fight}, game.Data{})
 	if v := g.View(); v.Battle == nil || len(v.Battle.Targets) != 1 {
 		t.Fatalf("targets %+v", v.Battle)
 	}

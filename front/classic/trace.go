@@ -17,7 +17,7 @@ func (g *Game) trace(what string, res game.Result) {
 	if !traceOn {
 		return
 	}
-	s := g.R.State()
+	s := g.r.State()
 	m := s.Mode
 	turn, pace := "", ""
 	if c := s.Combat; c != nil && c.Turn != nil {

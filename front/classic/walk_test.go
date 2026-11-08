@@ -1,4 +1,4 @@
-package playrules
+package classic
 
 import (
 	"image"
@@ -73,7 +73,7 @@ func (g *walkGame) Load([]byte) error     { return nil }
 // walkOn walks g to at, a square a Step, to its end; g's party's square after.
 func walkOn(t *testing.T, g *walkGame, at image.Point) image.Point {
 	t.Helper()
-	r := New(g, game.Data{}).(*rules)
+	r := newRules(g, game.Data{})
 	clock := time.Unix(1000, 0)
 	r.now = func() time.Time { clock = clock.Add(walkPace); return clock }
 	if res := r.Apply(game.WalkTo{At: at}); res.Err != nil {
@@ -159,7 +159,7 @@ func TestWalkScriptAheadMoves(t *testing.T) {
 	g := yardGame(yard{ahead: map[image.Point]bool{{}: true}})
 	g.Do(play.Face{Facing: 2})
 	w := &moveAhead{walkGame: g}
-	r := New(w, game.Data{}).(*rules)
+	r := newRules(w, game.Data{})
 	r.Apply(game.WalkTo{At: image.Pt(3, 0)})
 	r.Step()
 	if r.walk != nil || slices.ContainsFunc(g.sent, func(a play.Action) bool { _, ok := a.(play.Arrive); return ok }) {
@@ -209,7 +209,7 @@ func TestWalkMenu(t *testing.T) {
 func TestWalkLockedDoor(t *testing.T) {
 	for _, st := range []game.DoorState{game.DoorLocked, game.DoorWizardLocked} {
 		g := yardGame(yard{blocked: map[image.Point]game.Edge{{1, 0}: {Kind: game.EdgeDoor, State: st}}})
-		r := New(g, game.Data{})
+		r := newRules(g, game.Data{})
 		if res := r.Apply(game.WalkTo{At: image.Pt(3, 0)}); res.Err == nil {
 			t.Fatalf("state %v: a way through a locked door", st)
 		}
@@ -227,7 +227,7 @@ func TestWalkLockedDoor(t *testing.T) {
 // TestWalkPace: no square before walkPace is up.
 func TestWalkPace(t *testing.T) {
 	g := yardGame(yard{})
-	r := New(g, game.Data{}).(*rules)
+	r := newRules(g, game.Data{})
 	clock := time.Unix(1000, 0)
 	r.now = func() time.Time { return clock }
 	r.Apply(game.WalkTo{At: image.Pt(3, 0)})
@@ -247,7 +247,7 @@ func TestWalkPace(t *testing.T) {
 // action does too.
 func TestStopWalk(t *testing.T) {
 	g := yardGame(yard{})
-	r := New(g, game.Data{})
+	r := newRules(g, game.Data{})
 	r.Apply(game.WalkTo{At: image.Pt(3, 0)})
 	r.Apply(game.StopWalk{})
 	if p := r.State().Pacing; p.Pace == game.PaceWalk || len(g.sent) != 0 {

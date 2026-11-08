@@ -6,7 +6,6 @@ import (
 
 	"gobox/front"
 	"gobox/front/classic"
-	"gobox/front/playrules"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -41,7 +40,7 @@ func TestAnyInputStopsWalk(t *testing.T) {
 		"view":  func(f *Front) { f.ViewClick(10, 10) },
 	} {
 		w := &walkerGame{}
-		f := &Front{Game: classic.NewGame(playrules.New(w, game.Data{}), game.Data{}), started: true}
+		f := &Front{Game: classic.NewGame(w, game.Data{}), started: true}
 		f.P.SetEngine(f.Game)
 		if !f.Game.WalkTo(3, 0) {
 			t.Fatal("no walk")

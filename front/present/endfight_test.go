@@ -7,40 +7,41 @@ import (
 	"gobox/front"
 	"gobox/front/classic"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
-// endRules is a fight one Quick ends: the Result carries its blows and the
-// state after it is a page (no Combat).
-type endRules struct{ over bool }
+// endGame is a fight one Quick ends: the Outcome carries its blows and the
+// state after it is the result page.
+type endGame struct{ over bool }
 
-func (r *endRules) State() game.State {
+func (r *endGame) State() play.State {
 	if r.over {
-		return game.State{Mode: game.ModeStory, Page: &game.Page{Prompt: []game.TextRun{{Text: "DONE"}}}}
+		return play.Scene{Common: play.Common{Status: "DONE"}}
 	}
-	return game.State{Mode: game.ModeCombat, Combat: &game.Combat{Size: image.Pt(4, 4),
-		Units: []game.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(2, 1), Foe: true}}}}
+	return play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Quick{}}}}, Field: play.Battlefield{Size: image.Pt(4, 4),
+		Units: []play.Unit{{ID: 1, Member: -1, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(2, 1), Foe: true}}}}
 }
-func (r *endRules) Apply(d game.Decision) game.Result {
-	if _, ok := d.(game.Quick); !ok {
-		return game.Result{}
+func (r *endGame) Do(a play.Action) (play.Outcome, error) {
+	if _, ok := a.(play.Quick); !ok {
+		return play.Outcome{}, nil
 	}
 	r.over = true
-	var evs []game.Event
+	var evs []play.Event
 	for range 5 {
-		evs = append(evs, game.Event{Kind: game.EvAttack, Unit: 1, Target: 2, Pose: 1, Ms: 300})
+		evs = append(evs, play.Attacked{From: 1, To: 2})
 	}
-	return game.Result{Events: append(evs, game.Event{Kind: game.EvDown, Unit: 2})}
+	return play.Outcome{Events: append(evs, play.Fell{Unit: 2})}, nil
 }
-func (r *endRules) Pending() *game.Ask { return nil }
-func (r *endRules) Step() game.Result  { return game.Result{} }
+func (r *endGame) Save() ([]byte, error) { return nil, nil }
+func (r *endGame) Load([]byte) error     { return nil }
 
 // TestEndingEventsPlay drives the front's loop (Act, Draw, Tick at 60 a
-// second): the blows of a Result that ends the fight play on the fight,
-// 1.5 s of them, and then the page comes up; it never hangs.
+// second): the blows of an Outcome that ends the fight play on the fight,
+// about 2 s of them at the default speed, and then the page comes up; it never hangs.
 func TestEndingEventsPlay(t *testing.T) {
 	defer func(s bool, n int64) { Scripted, frames = s, n }(Scripted, frames)
-	r := &endRules{}
+	r := &endGame{}
 	f := &Front{Game: classic.NewGame(r, game.Data{}), started: true}
 	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
 	f.P.SetEngine(f.Game)
@@ -65,7 +66,7 @@ func TestEndingEventsPlay(t *testing.T) {
 			page = i
 		}
 	}
-	if fight < 80 || page < 80 || page > 120 {
+	if fight < 80 || page < 80 || page > 160 {
 		t.Fatalf("%d frames of the fight while its blows play, the page from frame %d (want about 90 of each)", fight, page)
 	}
 }

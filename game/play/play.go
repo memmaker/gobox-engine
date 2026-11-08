@@ -1,5 +1,4 @@
-// Package play is the typed game contract (draft, 2026-11-05). It replaces
-// game.Rules once every game has moved over; see MIGRATION.md.
+// Package play is the typed game contract : what a game offers gobox.
 //
 // The game is purely reactive. It never does anything by itself: gobox reads
 // State, switches over its type to pick the screen and controls, turns the
@@ -602,7 +601,7 @@ type (
 	Quick      struct{ All bool }
 	Flee       struct{}
 	EndTurn    struct{}
-	// Turn verbs the rules answer by hotkey (front/playrules answerVerbs).
+	// Turn verbs the rules answer by hotkey (classic answerVerbs).
 	Target     struct{} // pick a target to fire at (the rules ask on)
 	ViewTarget struct{} // look over the targets
 	// ViewMember views member Member over a pick that lets the player look

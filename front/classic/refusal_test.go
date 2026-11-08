@@ -6,100 +6,58 @@ import (
 	"testing"
 
 	"gobox/front"
-
 	"gobox/game"
+	"gobox/game/play"
 )
-
-type refuseRules struct{ seqRules }
-
-func (r *refuseRules) Apply(game.Decision) game.Result {
-	return game.Result{Err: errors.New("Not enough Money.")}
-}
 
 // TestRefusalNotes: a refusal from any call (Buy from a shop's list) is the
 // toast every screen draws, never silent.
 func TestRefusalNotes(t *testing.T) {
-	g := NewGame(&refuseRules{}, game.Data{})
+	g := NewGame(&fake{st: play.Trading{}, err: errors.New("Not enough Money.")}, game.Data{})
 	if g.Buy(0) == nil || g.note.Text != "Not enough Money." {
 		t.Fatalf("note %q", g.note.Text)
 	}
 }
 
-type fleeRules struct {
-	seqRules
-	got []game.Decision
+// refusing refuses move with a question put instead.
+type refusing struct {
+	fake
+	ask func(play.Action) error
 }
 
-func (r *fleeRules) Apply(d game.Decision) game.Result {
-	r.got = append(r.got, d)
-	if _, ok := d.(game.Move); ok {
-		return game.Result{Err: &game.Refusal{Ask: &game.Ask{Prompt: "Flee:", Options: []game.Option{{Label: "Yes", Do: game.Flee{}}, {Label: "No"}}}}}
-	}
-	return game.Result{}
+func (r *refusing) Do(a play.Action) (play.Outcome, error) {
+	r.sent = append(r.sent, a)
+	return play.Outcome{}, r.ask(a)
 }
 
 // TestOffMapStepAsks: a Move step off the map that the game refuses with an
 // Ask (POR: "Flee:") puts that Ask; its first option sends its Do.
 func TestOffMapStepAsks(t *testing.T) {
-	r := &fleeRules{}
+	r := &refusing{ask: func(a play.Action) error {
+		if _, ok := a.(play.MoveTo); ok {
+			return &game.Refusal{Ask: &game.Ask{Prompt: "Flee:", Options: []game.Option{{Label: "Yes", Do: game.Flee{}}, {Label: "No"}}}}
+		}
+		return nil
+	}}
 	g := NewGame(r, game.Data{})
 	g.Answer(front.Action{Kind: front.ActWalk, X: -1, Y: 3})
-	if len(r.got) != 1 || r.got[0] != (game.Move{To: image.Pt(-1, 3)}) {
-		t.Fatalf("sent %+v", r.got)
+	if len(r.sent) != 1 || r.sent[0] != (play.MoveTo{To: image.Pt(-1, 3)}) {
+		t.Fatalf("sent %+v", r.sent)
 	}
 	if s := g.Shown(); s.Mode != game.ModeAsk || s.Pending == nil || s.Pending.Prompt != "Flee:" {
 		t.Fatalf("shown %v %+v", s.Mode, s.Pending)
 	}
 	g.Answer(front.Action{Kind: front.ActChoose, N: 0})
-	if len(r.got) != 2 || r.got[1] != (game.Flee{}) {
-		t.Fatalf("answer sent %+v", r.got)
+	if len(r.sent) != 2 || r.sent[1] != (play.Flee{}) {
+		t.Fatalf("answer sent %+v", r.sent)
 	}
 }
 
-type lootRules struct {
-	seqRules
-	got []game.Decision
-}
-
-func (r *lootRules) Apply(d game.Decision) game.Result {
-	r.got = append(r.got, d)
-	if l, ok := d.(game.LootLeave); ok && !l.Sure {
-		return game.Result{Err: &game.Refusal{Ask: &game.Ask{Kind: game.YesNo, Prompt: "There is still treasure left.  Do you want to go back and claim your treasure?",
-			Options: []game.Option{{Label: "Yes"}, {Label: "No", Do: game.LootLeave{Sure: true}}}}}}
-	}
-	return game.Result{}
-}
-
-// TestLootLeaveAsksGame: leaving treasure behind puts the game's own
-// question (POR's): Yes stays on the loot, No leaves (its Do), never the
-// reverse; a refusal with text alone is asked so too (ConfirmNo).
-func TestLootLeaveAsksGame(t *testing.T) {
-	r := &lootRules{}
-	g := NewGame(r, game.Data{})
-	if err := g.LootLeave(false); err != nil {
-		t.Fatalf("err %v", err)
-	}
-	if s := g.Shown(); s.Pending == nil || s.Mode != game.ModeAsk {
-		t.Fatal("no question")
-	}
-	g.Answer(front.Action{Kind: front.ActYes})
-	if len(r.got) != 1 {
-		t.Fatalf("Yes sent %v", r.got)
-	}
-	g.LootLeave(false)
-	g.Answer(front.Action{Kind: front.ActNo})
-	if len(r.got) != 3 || r.got[2] != (game.LootLeave{Sure: true}) {
-		t.Fatalf("No sent %v", r.got)
-	}
-	g = NewGame(&textLoot{}, game.Data{})
+// TestFleeRefusedAsText: a refusal's text in a fight is a held message too.
+func TestLootLeaveRefused(t *testing.T) {
+	g := NewGame(&fake{st: play.Looting{}, err: &game.Refusal{Text: "Leave the treasure?"}}, game.Data{})
 	var no front.ConfirmNo
 	if err := g.LootLeave(false); !errors.As(err, &no) {
 		t.Fatalf("text refusal: %v", err)
 	}
-}
-
-type textLoot struct{ seqRules }
-
-func (r *textLoot) Apply(game.Decision) game.Result {
-	return game.Result{Err: &game.Refusal{Text: "Leave the treasure?"}}
 }

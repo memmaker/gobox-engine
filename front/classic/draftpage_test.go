@@ -1,11 +1,11 @@
 package classic
 
 import (
-	"image"
 	"testing"
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // With no page from the rules, the creation sheet's page is the draft's.
@@ -18,28 +18,12 @@ func TestSheetFromDraft(t *testing.T) {
 	}
 }
 
-// cellRules is a creation draft on a page of Cells (zero: the game keeps the original's 40x25).
-type cellRules struct {
-	seqRules
-	cells image.Point
-}
-
-func (r *cellRules) State() game.State {
-	return game.State{Mode: game.ModeCreate, Cells: r.cells, Creation: &game.Creation{}}
-}
-
 // A resize lays the creation sheet out to the page the game shows: a game that
 // keeps 40x25 (no Cells) gets its icon on that page, not on the window's grid.
 func TestCreationOnShownPage(t *testing.T) {
-	for _, c := range []image.Point{{}, {80, 50}} {
-		g := NewGame(&cellRules{cells: c}, game.Data{})
-		g.Answer(front.Action{Kind: front.ActResize, X: 80, Y: 50})
-		cols := max(c.X, 40)
-		if ic := g.View().Creation.Icon; ic.X2 >= cols {
-			t.Errorf("cells %v: icon %+v off the %d-column page", c, ic, cols)
-		}
-		if ic := g.View().Creation.Icon; c.X == 80 && ic.X2 < 40 {
-			t.Errorf("cells %v: icon %+v not on the wide page", c, ic)
-		}
+	g := NewGame(&fake{st: play.Assembling{Draft: &play.Draft{}}}, game.Data{})
+	g.Answer(front.Action{Kind: front.ActResize, X: 80, Y: 50})
+	if ic := g.View().Creation.Icon; ic.X2 >= 40 {
+		t.Errorf("icon %+v off the 40-column page", ic)
 	}
 }

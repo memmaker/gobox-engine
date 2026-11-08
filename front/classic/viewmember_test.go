@@ -1,11 +1,10 @@
-package playrules
+package classic
 
 import (
 	"slices"
 	"testing"
 
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -14,7 +13,7 @@ import (
 // member's sheet comes up with no call to the game, and CloseSheet ends it.
 func TestViewMemberOpensSheet(t *testing.T) {
 	f := &fake{st: play.Exploring{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}}}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	r.Apply(game.ViewMember{Member: 0})
 	if r.State().SheetPage == nil || len(f.sent) != 0 {
 		t.Fatalf("sheet %v, sent %v", r.State().SheetPage != nil, f.sent)
@@ -32,7 +31,7 @@ func TestCampNoRest(t *testing.T) {
 		if allow {
 			st.Allowed.Plain = []play.Action{play.AdvanceTimeBy{}}
 		}
-		if got := New(&fake{st: st}, game.Data{}).State().Allowed["NoRest"]; got == allow {
+		if got := newRules(&fake{st: st}, game.Data{}).State().Allowed["NoRest"]; got == allow {
 			t.Errorf("AdvanceTimeBy allowed %v: NoRest %v", allow, got)
 		}
 	}
@@ -45,10 +44,10 @@ func TestFightView(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}, {Name: "MAREN"}}, Allowed: allow(play.EndTurn{}).Allowed},
 		Field: play.Battlefield{Turn: 2, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: 1}}}}
 	f := &fake{st: fight}
-	if v := classic.NewGame(New(f, game.Data{}), game.Data{}).View(); slices.ContainsFunc(v.Battle.Turn.Options, func(o front.TurnOption) bool { return o.Label == "View" }) {
+	if v := NewGame(f, game.Data{}).View(); slices.ContainsFunc(v.Battle.Turn.Options, func(o front.TurnOption) bool { return o.Label == "View" }) {
 		t.Fatal("View the series doesn't key")
 	}
-	g := classic.NewGame(New(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}}), game.Data{})
+	g := NewGame(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}})
 	n := -1
 	for i, o := range g.View().Battle.Turn.Options {
 		if o.Label == "View" {
@@ -58,7 +57,7 @@ func TestFightView(t *testing.T) {
 	if n < 0 {
 		t.Fatalf("no View in %+v", g.View().Battle.Turn.Options)
 	}
-	if o := classic.NewGame(New(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}, VerbOrder: []string{"View", "End"}}), game.Data{}).View().Battle.Turn.Options; o[0].Label != "View" {
+	if o := NewGame(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}, VerbOrder: []string{"View", "End"}}).View().Battle.Turn.Options; o[0].Label != "View" {
 		t.Errorf("VerbOrder: %+v, want View first", o)
 	}
 	g.Answer(front.Action{Kind: front.ActOption, N: n})
@@ -85,7 +84,7 @@ func TestFightView(t *testing.T) {
 // look-only fight sheet through game.Member.Page, not the bare fallback.
 func TestFightSheetPage(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN", Sheet: &game.SheetPage{Name: "ARIN", Damage: "1d8", Sex: "Male", Age: 20}}}}}
-	g := classic.NewGame(New(&fake{st: fight}, game.Data{}), game.Data{})
+	g := NewGame(&fake{st: fight}, game.Data{})
 	g.OpenSheet(0)
 	if sp := g.View().SheetPage; sp == nil || sp.Damage != "1d8" || sp.Sex != "Male" || sp.Age != 20 {
 		t.Fatalf("page %+v", sp)
@@ -97,7 +96,7 @@ func TestFightSheetPage(t *testing.T) {
 func TestFightItems(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Selected: 0, Party: []play.Member{{Name: "ARIN"}, {Name: "MAREN"}}},
 		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	r.Apply(game.OpenItems{Member: -1})
 	if s := r.State(); s.Items != game.ItemsOwn || s.Combat == nil || len(f.sent) != 0 || s.Selected != 1 {
 		t.Fatalf("items %v combat %v sent %v", s.Items, s.Combat != nil, f.sent)
@@ -114,12 +113,14 @@ func TestViewGearOpensItems(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}, {Name: "MAREN"}, {Name: "VEX"}},
 		Ask: &play.Question{Replies: []string{"Gear", "Exit"}, Do: []game.Decision{game.OpenItems{Member: 2}}}},
 		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	r.Apply(game.Answer{N: 0})
 	if s := r.State(); s.Items != game.ItemsOwn || s.Selected != 2 || len(f.sent) != 0 || s.Pending != nil {
 		t.Fatalf("items %v selected %d sent %v pending %v", s.Items, s.Selected, f.sent, s.Pending)
 	}
-	if v := classic.NewGame(r, game.Data{}).View(); v.Inventory == nil || v.Ask != nil { // the items draw, over the question
+	g := NewGame(f, game.Data{})
+	g.r = r
+	if v := g.View(); v.Inventory == nil || v.Ask != nil { // the items draw, over the question
 		t.Fatalf("inventory %v ask %v", v.Inventory != nil, v.Ask != nil)
 	}
 	r.Apply(game.CloseItems{})
@@ -134,7 +135,7 @@ func TestViewGearOpensItems(t *testing.T) {
 func TestSpeedMenu(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}},
 		Ask: &play.Question{Replies: []string{"Guard", "Speed", "Exit"}, Do: []game.Decision{nil, game.SpeedMenu{}}}}}}
-	r := New(f, game.Data{}).(*rules)
+	r := newRules(f, game.Data{})
 	r.Apply(game.Answer{N: 1})
 	if a := r.State().Pending; a == nil || len(a.Options) != 3 || a.Options[0].Label != "Faster" {
 		t.Fatalf("menu %+v", a)
@@ -156,7 +157,7 @@ func TestSpeedMenu(t *testing.T) {
 func TestVerbOrderWords(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}, Allowed: allow(play.EndTurn{}, play.UseItem{}, play.Delay{}).Allowed},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}}}}
-	o := classic.NewGame(New(&fake{st: fight}, game.Data{VerbOrder: []string{"Aim", "Done", "Delay", "Use"}}), game.Data{}).View().Battle.Turn.Options
+	o := NewGame(&fake{st: fight}, game.Data{VerbOrder: []string{"Aim", "Done", "Delay", "Use"}}).View().Battle.Turn.Options
 	var ls []string
 	for _, x := range o {
 		ls = append(ls, x.Label)
@@ -171,7 +172,7 @@ func TestVerbOrderWords(t *testing.T) {
 func TestFreeAimInOrder(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}, Allowed: allow(play.EndTurn{}, play.UseItem{}).Allowed},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}}}}
-	o := classic.NewGame(New(&fake{st: fight}, game.Data{VerbKeys: map[string]rune{"Aim": 'A'}, VerbOrder: []string{"Aim", "Use", "Done"}}), game.Data{}).View().Battle.Turn.Options
+	o := NewGame(&fake{st: fight}, game.Data{VerbKeys: map[string]rune{"Aim": 'A'}, VerbOrder: []string{"Aim", "Use", "Done"}}).View().Battle.Turn.Options
 	if len(o) == 0 || o[0].Label != "Aim" {
 		t.Errorf("bar %+v, want Aim first", o)
 	}
@@ -183,7 +184,7 @@ func TestPickViewMember(t *testing.T) {
 	st := play.Scene{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}, Ask: &play.Question{Text: "Who?", Replies: []string{"ARIN"}, List: true}}}
 	st.Allowed.Plain = []play.Action{play.Reply{N: 0}, play.ViewMember{Member: 0}}
 	f := &fake{st: st}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	if a := r.State().Pending; a == nil || !a.View {
 		t.Fatalf("pick ask %+v: no View", a)
 	}

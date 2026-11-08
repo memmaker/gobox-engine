@@ -5,6 +5,7 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
 func TestLoot(t *testing.T) {
@@ -41,7 +42,7 @@ func TestLoot(t *testing.T) {
 func TestLootScreen(t *testing.T) {
 	s := game.State{Mode: game.ModeLoot, Party: []game.Member{{}},
 		Loot: &game.Loot{Items: []game.Item{{Name: "Gauntlets"}}, Money: map[string]int{game.Gold: 120, game.Gems: 2}}}
-	g := &Game{R: &loreRules{s: s}}
+	g := NewGame(&fake{st: play.Looting{}}, game.Data{})
 	if v := g.ViewOf(s); v.Inventory != nil || v.Ask == nil || v.Ask.Menu.Prompt != "You found some loot!" || v.Loot != nil {
 		t.Fatalf("no found message first: %+v", v.Ask)
 	}
@@ -74,7 +75,7 @@ func TestLootScreen(t *testing.T) {
 }
 
 func TestLootDecisions(t *testing.T) {
-	g := &Game{R: &loreRules{s: game.State{Mode: game.ModeLoot, Loot: &game.Loot{}}}}
+	g := NewGame(&fake{st: play.Looting{}}, game.Data{})
 	for a, want := range map[front.Action]game.Decision{
 		{Kind: front.ActBuy, N: 2}: game.TakeLoot{Item: 2},
 		{Kind: front.ActTakeMoney}: game.TakeLoot{Item: -1},

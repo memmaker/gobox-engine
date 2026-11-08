@@ -7,15 +7,11 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
-// seqRules is a game showing the sequence INTRO that keeps its decisions.
-type seqRules struct{ got []game.Decision }
-
-func (r *seqRules) State() game.State                 { return game.State{Sequence: "INTRO"} }
-func (r *seqRules) Apply(d game.Decision) game.Result { r.got = append(r.got, d); return game.Result{} }
-func (r *seqRules) Pending() *game.Ask                { return nil }
-func (r *seqRules) Step() game.Result                 { return game.Result{} }
+// seqRules is a game that keeps its actions.
+type seqRules = fake
 
 // seqHost runs the presenter's calls on the classic game.
 type seqHost struct {
@@ -27,9 +23,9 @@ func (h seqHost) Call(f func(front.Game)) { f(h.g) }
 
 // A skip ends State.Sequence with SequenceDone, once, even with no files to play.
 func TestSequenceSkip(t *testing.T) {
-	r := &seqRules{}
+	r := &fake{st: play.Scene{Kind: play.SceneSequence, Sequence: "INTRO", Common: allow(play.Continue{})}}
 	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: t.TempDir()})
-	sq := Sequence(front.View{}, r.State(), g.D.Sequences, g.D.Files).Sequence
+	sq := Sequence(front.View{}, g.r.State(), g.D.Sequences, g.D.Files).Sequence
 	if sq == nil || sq.Anim != "INTRO" {
 		t.Fatalf("View.Sequence %+v", sq)
 	}
@@ -37,8 +33,8 @@ func TestSequenceSkip(t *testing.T) {
 	h := seqHost{g: g}
 	front.SequenceStep(h, &ui, sq, true)
 	front.SequenceStep(h, &ui, sq, true)
-	if len(r.got) != 1 || r.got[0] != (game.SequenceDone{Name: "INTRO"}) {
-		t.Fatalf("decisions %v, want one SequenceDone{INTRO}", r.got)
+	if len(r.sent) != 1 || r.sent[0] != (play.Continue{}) {
+		t.Fatalf("actions %v, want one Continue", r.sent)
 	}
 }
 
@@ -48,16 +44,16 @@ func TestSequenceSkipPlaying(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dir, "INTRO.BMA")); err != nil {
 		t.Skip("no Pools of Darkness files")
 	}
-	r := &seqRules{}
+	r := &fake{st: play.Scene{Kind: play.SceneSequence, Sequence: "INTRO", Common: allow(play.Continue{})}}
 	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: dir})
-	sq := Sequence(front.View{}, r.State(), g.D.Sequences, g.D.Files).Sequence
+	sq := Sequence(front.View{}, g.r.State(), g.D.Sequences, g.D.Files).Sequence
 	var ui front.SequenceUI
 	h := seqHost{g: g}
-	if f := front.SequenceStep(h, &ui, sq, false); f == nil || len(r.got) != 0 {
-		t.Fatalf("first step: frame %v, decisions %v", f, r.got)
+	if f := front.SequenceStep(h, &ui, sq, false); f == nil || len(r.sent) != 0 {
+		t.Fatalf("first step: frame %v, actions %v", f, r.sent)
 	}
 	front.SequenceStep(h, &ui, sq, true)
-	if len(r.got) != 1 || r.got[0] != (game.SequenceDone{Name: "INTRO"}) {
-		t.Fatalf("decisions %v, want one SequenceDone{INTRO}", r.got)
+	if len(r.sent) != 1 || r.sent[0] != (play.Continue{}) {
+		t.Fatalf("actions %v, want one Continue", r.sent)
 	}
 }

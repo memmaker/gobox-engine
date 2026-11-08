@@ -1,4 +1,4 @@
-package playrules
+package classic
 
 import (
 	"fmt"
@@ -147,7 +147,7 @@ func TestGaps(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			f := &fake{st: c.st}
-			r := New(f, game.Data{})
+			r := newRules(f, game.Data{})
 			if res := r.Apply(c.d); res.Err != nil {
 				t.Fatal(res.Err)
 			}
@@ -174,7 +174,7 @@ func TestEvents(t *testing.T) {
 // TestRestPaced: camp's rest goes in chunks by Step and stops on StopRest.
 func TestRestPaced(t *testing.T) {
 	f := &fake{st: play.Camping{Common: allow(play.AdvanceTimeBy{})}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	r.Apply(game.Rest{Minutes: 30})
 	if p := r.State().Pacing; p.Pace != game.PaceRest || !p.Resting {
 		t.Fatalf("pacing %+v", p)
@@ -194,7 +194,7 @@ func reflectEqual(a, b play.Action) bool { return reflect.DeepEqual(a, b) }
 func TestCampCard(t *testing.T) {
 	c := allow(play.Memorize{Member: 1, Spell: 2}, play.DropMember{Member: 0}, play.DropMember{Member: 1})
 	c.Party = []play.Member{{Name: "A"}, {Name: "B", Items: []game.Item{{Name: "Sword"}}}}
-	s := New(&fake{st: play.Camping{Common: c}}, game.Data{}).State()
+	s := newRules(&fake{st: play.Camping{Common: c}}, game.Data{}).State()
 	got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card)
 	if want := "[{View view} {Drop drop}] [{View view} {Items items} {Memorize memorize} {Drop drop}]"; got != want {
 		t.Fatalf("cards %s, want %s", got, want)
@@ -204,7 +204,7 @@ func TestCampCard(t *testing.T) {
 // TestCampKeepsView: camp is a menu over the 3D view last explored.
 func TestCampKeepsView(t *testing.T) {
 	f := &fake{st: play.Exploring{Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{}}}}}}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	r.State()
 	f.st = play.Camping{}
 	if r.State().Walls == nil {
@@ -215,11 +215,11 @@ func TestCampKeepsView(t *testing.T) {
 // TestDraftAsks: a draft asks only what it has to ask: a typed name with
 // no Step still asks, a bare Step (the sheet) does not.
 func TestDraftAsks(t *testing.T) {
-	r := New(&fake{st: play.Assembling{Draft: &play.Draft{Ask: &play.Question{Typed: true}}}}, game.Data{})
+	r := newRules(&fake{st: play.Assembling{Draft: &play.Draft{Ask: &play.Question{Typed: true}}}}, game.Data{})
 	if a := r.Pending(); a == nil || a.Kind != game.Name {
 		t.Fatalf("typed draft asks %+v", a)
 	}
-	if a := New(&fake{st: play.Assembling{Draft: &play.Draft{Step: "sheet"}}}, game.Data{}).Pending(); a != nil {
+	if a := newRules(&fake{st: play.Assembling{Draft: &play.Draft{Step: "sheet"}}}, game.Data{}).Pending(); a != nil {
 		t.Fatalf("the sheet asks %+v", a)
 	}
 }
@@ -228,7 +228,7 @@ func TestDraftAsks(t *testing.T) {
 // (the front draws layers only).
 func TestPictureIsLayer(t *testing.T) {
 	pic := game.Picture{File: "PIC1", Block: 57}
-	s := New(&fake{st: play.Exploring{Common: play.Common{Picture: &pic}}}, game.Data{}).State()
+	s := newRules(&fake{st: play.Exploring{Common: play.Common{Picture: &pic}}}, game.Data{}).State()
 	if len(s.Page.Layers) != 1 || s.Page.Layers[0].Block != 57 {
 		t.Fatalf("layers %+v", s.Page.Layers)
 	}
@@ -239,7 +239,7 @@ func TestPictureIsLayer(t *testing.T) {
 func TestCardItems(t *testing.T) {
 	c := allow(play.Ready{Member: 1}, play.Drop{Member: 2})
 	c.Party = []play.Member{{Name: "A"}, {Name: "B"}, {Name: "C"}}
-	s := New(&fake{st: play.Camping{Common: c}}, game.Data{}).State()
+	s := newRules(&fake{st: play.Camping{Common: c}}, game.Data{}).State()
 	if got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card, s.Party[2].Card); got != "[{View view}] [{View view} {Items items}] [{View view} {Items items}]" {
 		t.Fatal(got)
 	}
@@ -248,7 +248,7 @@ func TestCardItems(t *testing.T) {
 // TestCampKeepsMap: camp keeps the map last explored.
 func TestCampKeepsMap(t *testing.T) {
 	f := &fake{st: play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(2, 2), Known: []image.Point{{0, 0}}}}}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	r.State()
 	f.st = play.Camping{}
 	if r.State().Map.Size != image.Pt(2, 2) {
@@ -261,7 +261,7 @@ func TestCampKeepsMap(t *testing.T) {
 func TestCampBareMap(t *testing.T) {
 	known := []image.Point{{0, 0}, {1, 0}}
 	f := &fake{st: play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16), Known: known}}}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	r.State()
 	f.st = play.Camping{Common: play.Common{Automap: game.Automap{Size: image.Pt(16, 16)}}}
 	if got := r.State().Map.Known; len(got) != 2 {
@@ -274,7 +274,7 @@ func TestCampBareMap(t *testing.T) {
 func TestArriveAsAllowed(t *testing.T) {
 	step := play.Arrive{From: image.Pt(0, 6), To: image.Pt(0, 7), Facing: 4}
 	f := &fake{st: play.Exploring{Common: allow(step)}}
-	New(f, game.Data{}).Apply(game.Arrive{From: step.From, To: step.To})
+	newRules(f, game.Data{}).Apply(game.Arrive{From: step.From, To: step.To})
 	if len(f.sent) != 1 || f.sent[0] != step {
 		t.Fatalf("sent %v", f.sent)
 	}
@@ -292,7 +292,7 @@ func TestWhoSelected(t *testing.T) {
 // selected member's sheet; Esc (All) closes both.
 func TestItemsTabSheet(t *testing.T) {
 	c := play.Common{Party: []play.Member{{Name: "A", Levels: []int{3, 2}}}} // no page from the rules: gobox makes its own
-	r := New(&fake{st: play.Exploring{Common: c}}, game.Data{})
+	r := newRules(&fake{st: play.Exploring{Common: c}}, game.Data{})
 	r.Apply(game.OpenItems{})
 	r.Apply(game.CloseItems{})
 	if st := r.State(); st.SheetPage == nil || st.Sheet == nil || st.SheetPage.Levels != "3/2" {
@@ -302,7 +302,7 @@ func TestItemsTabSheet(t *testing.T) {
 
 // TestShopBrowse: Browse opens the shop's goods pane.
 func TestShopBrowse(t *testing.T) {
-	r := New(&fake{st: play.Trading{Goods: []game.Item{{Name: "Sword"}}}}, game.Data{})
+	r := newRules(&fake{st: play.Trading{Goods: []game.Item{{Name: "Sword"}}}}, game.Data{})
 	r.Apply(game.Browse{Member: -1})
 	if r.State().Items != game.ItemsShop {
 		t.Fatal("Browse opened nothing")
@@ -313,7 +313,7 @@ func TestShopBrowse(t *testing.T) {
 func TestReadyToggles(t *testing.T) {
 	c := play.Common{Party: []play.Member{{Items: []game.Item{{Name: "Gun", Readied: true}}}}}
 	f := &fake{st: play.Exploring{Common: c}}
-	New(f, game.Data{}).Apply(game.Ready{Member: 0, Item: 0})
+	newRules(f, game.Data{}).Apply(game.Ready{Member: 0, Item: 0})
 	if len(f.sent) != 1 || f.sent[0] != (play.Unready{}) {
 		t.Fatalf("sent %v", f.sent)
 	}

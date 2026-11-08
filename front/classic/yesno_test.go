@@ -5,51 +5,38 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
-// askRules asks q (Pending, in ModeAsk) and keeps the decisions.
-type askRules struct {
-	seqRules
-	q *game.Ask
-}
-
-func (r *askRules) State() game.State                 { return game.State{Mode: game.ModeAsk, Pending: r.q} }
-func (r *askRules) Apply(d game.Decision) game.Result { r.got = append(r.got, d); return game.Result{} }
-
-// Yes and No answer an ask's options labelled so; without options Yes is 1.
-func TestYesNoOptions(t *testing.T) {
-	opts := []game.Option{{Label: "Yes", Do: game.Search{}}, {Label: "No", Do: game.Cancel{}}}
-	for _, c := range []struct {
-		q    *game.Ask
-		k    front.ActKind
-		want game.Answer
-	}{{&game.Ask{Kind: game.YesNo, Options: opts}, front.ActYes, game.Answer{N: 0}},
-		{&game.Ask{Kind: game.YesNo, Options: opts}, front.ActNo, game.Answer{N: 1}},
-		{&game.Ask{Kind: game.YesNo}, front.ActYes, game.Answer{N: 1}},
-		{&game.Ask{Kind: game.YesNo}, front.ActNo, game.Answer{N: 0}}} {
-		r := &askRules{q: c.q}
-		NewGame(r, game.Data{}).Answer(front.Action{Kind: c.k})
-		if len(r.got) != 1 || r.got[0] != c.want {
-			t.Errorf("%v on %d options: %#v, want %#v", c.k, len(c.q.Options), r.got, c.want)
+// Yes and No reach a question's replies as Reply{1}, Reply{0}.
+func TestYesNoReplies(t *testing.T) {
+	for k, want := range map[front.ActKind]int{front.ActYes: 1, front.ActNo: 0} {
+		r := &fake{st: play.Scene{Common: play.Common{Ask: &play.Question{YesNo: true}}}}
+		NewGame(r, game.Data{}).Answer(front.Action{Kind: k})
+		if len(r.sent) != 1 || r.sent[0] != (play.Reply{N: want}) {
+			t.Errorf("%v: %#v", k, r.sent)
 		}
 	}
-	// a Refusal's Yes/No (Attack Ally): Yes does the Yes option's Do
-	r := &askRules{}
+}
+
+// A Refusal's Yes/No (Attack Ally): Yes does the Yes option's Do; its No
+// without a Do takes nothing, never Answer 0.
+func TestRefusalYesNo(t *testing.T) {
+	opts := []game.Option{{Label: "Yes", Do: game.Search{}}, {Label: "No"}}
+	r := &fake{st: play.Exploring{}}
 	g := NewGame(r, game.Data{})
 	g.asked = &game.Ask{Kind: game.YesNo, Options: opts}
 	g.Answer(front.Action{Kind: front.ActYes})
-	if len(r.got) != 1 || r.got[0] != game.Decision(game.Search{}) {
-		t.Errorf("refusal Yes: %#v", r.got)
+	if len(r.sent) != 1 || r.sent[0] != (play.Search{}) {
+		t.Errorf("Yes: %#v", r.sent)
 	}
-	// its No without a Do (POR's Attack Ally?) takes nothing, never Answer 0 (Yes)
 	for _, k := range []front.ActKind{front.ActNo, front.ActOK} {
-		r = &askRules{}
+		r = &fake{st: play.Exploring{}}
 		g = NewGame(r, game.Data{})
-		g.asked = &game.Ask{Kind: game.YesNo, Options: []game.Option{{Label: "Yes", Do: game.Answer{}}, {Label: "No"}}}
-		n := map[front.ActKind]int{front.ActOK: 1}[k]
-		g.Answer(front.Action{Kind: k, N: n})
-		if len(r.got) != 0 || g.Shown().Pending != nil {
-			t.Errorf("refusal %v on No: %#v", k, r.got)
+		g.asked = &game.Ask{Kind: game.YesNo, Options: opts}
+		g.Answer(front.Action{Kind: k, N: map[front.ActKind]int{front.ActOK: 1}[k]})
+		if len(r.sent) != 0 || g.Shown().Pending != nil {
+			t.Errorf("%v on No: %#v", k, r.sent)
 		}
 	}
 }

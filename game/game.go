@@ -12,14 +12,6 @@ import (
 	"time"
 )
 
-// Rules is a game's rules engine. It never blocks and starts no goroutines.
-type Rules interface {
-	State() State          // a copy; changing it changes nothing
-	Apply(Decision) Result // take what the player decided, run on until it waits
-	Pending() *Ask         // the question the game waits on, nil if none
-	Step() Result          // advance time with no decision (animations, AI, scripts)
-}
-
 // Result is what one Apply or Step did. Err refuses the decision; nothing changed.
 type Result struct {
 	Events []Event
@@ -529,8 +521,8 @@ type Label struct {
 }
 
 // Map is the area the party walks, as the game knows it; gobox moves the
-// party on it and tells the game with Arrive and Face. A game whose Rules
-// also implement Mapped gives it.
+// party on it and tells the game with Arrive and Face. A game gives it as
+// play.Game's Map.
 type Map interface {
 	Name() string      // the area's name as the player knows it (the map screen's title)
 	Size() image.Point // in squares
@@ -545,12 +537,6 @@ type Map interface {
 	// Event reports whether an event would run by itself on square at now
 	// (a step script, an encounter); gobox runs it with RunEvent.
 	Event(at image.Point) bool
-}
-
-// Mapped is Rules with a walkable map: Map is nil while the party walks
-// none (a menu, a shop, combat) or may not walk now (a question is up).
-type Mapped interface {
-	Map() Map
 }
 
 // Edge is one side of a square to a step.

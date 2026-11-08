@@ -1,11 +1,10 @@
-package playrules
+package classic
 
 import (
 	"slices"
 	"testing"
 
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -17,7 +16,7 @@ func TestBlowShows(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Text: []string{""}, Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}}}},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
 	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Attacked{From: 1, To: 2, Hit: true, Damage: 5}, play.Narrated{Text: "ARIN HITS FOR 5"}}}}
-	g := classic.NewGame(New(f, game.Data{}), game.Data{})
+	g := NewGame(f, game.Data{})
 	if err := g.Answer(front.Action{Kind: front.ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +44,7 @@ func TestBlowHoldsSpeedDelay(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}}}},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
 	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Attacked{From: 1, To: 2}}}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	held := func() int {
 		for _, e := range r.Apply(game.Attack{Target: 2}).Events {
 			if e.Kind == game.EvAttack {

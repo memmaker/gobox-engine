@@ -4,22 +4,18 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/game/play"
 )
 
-type loreRules struct {
-	game.Rules
-	s game.State
-}
-
-func (r *loreRules) State() game.State { return r.s }
-
 func TestAddedToJournal(t *testing.T) {
-	r := &loreRules{s: game.State{Lore: []game.Lore{{Title: "Old"}}}}
-	g := &Game{R: r}
+	r := play.Exploring{Common: play.Common{Lore: []game.Lore{{Title: "Old"}}}}
+	f := &fake{st: r}
+	g := NewGame(f, game.Data{})
 	if v := g.View(); v.Note.Text != "" {
 		t.Fatalf("a loaded journal flashed %q", v.Note.Text)
 	}
-	r.s.Lore = append([]game.Lore{{Title: "Journal Entry 37"}}, r.s.Lore...)
+	r.Lore = append([]game.Lore{{Title: "Journal Entry 37"}}, r.Lore...)
+	f.st = r
 	if v := g.View(); v.Note.Text != "Added to journal" {
 		t.Fatalf("new note: %q", v.Note.Text)
 	}

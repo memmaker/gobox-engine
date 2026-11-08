@@ -1,4 +1,4 @@
-package playrules
+package classic
 
 import (
 	"image"
@@ -10,16 +10,16 @@ import (
 	"gobox/game/play"
 )
 
-// slotted is fake with the game's own save slots (play.Slots).
-type slotted struct {
+// slottedFake is fake with the game's own save slots (play.Slots).
+type slottedFake struct {
 	fake
 	loaded int
 }
 
-func (s *slotted) Slots() []game.SaveSlot { return []game.SaveSlot{{Name: "A", Info: "old"}} }
-func (s *slotted) LoadSlot(n int) error   { s.loaded = n + 1; return nil }
+func (s *slottedFake) Slots() []game.SaveSlot { return []game.SaveSlot{{Name: "A", Info: "old"}} }
+func (s *slottedFake) LoadSlot(n int) error   { s.loaded = n + 1; return nil }
 
-func labels(a *game.Ask) (l []string) {
+func optionLabels(a *game.Ask) (l []string) {
 	if a != nil {
 		for _, o := range a.Options {
 			l = append(l, o.Label)
@@ -77,13 +77,13 @@ func TestParity(t *testing.T) {
 			Allowed: play.Allowed{Plain: []play.Action{play.NewCharacter{}, play.RemoveCharacter{}, play.QuickStart{}, play.Begin{}}}}},
 			game.Data{Texts: map[string]string{"Remove Character": "Purge Character"}}, nil, nil,
 			func(s game.State, _ game.Result) bool {
-				return s.Mode == game.ModeParty && slices.Equal(labels(s.Pending),
+				return s.Mode == game.ModeParty && slices.Equal(optionLabels(s.Pending),
 					[]string{"Create Character", "Purge Character", "View Character", "Load Saved Game", "Save Current Game", "Quick Start", "Begin Adventuring"})
 			}},
 		{"creation step", play.Assembling{Draft: &play.Draft{Step: "career", Ask: &play.Question{Replies: []string{"Rogue", "Medic"}}}}, game.Data{},
 			[]game.Decision{game.Answer{N: 1}}, []play.Action{play.SetChoice{Field: "career", N: 1}},
 			func(s game.State, _ game.Result) bool {
-				return s.Pending.Kind == game.Choice && labels(s.Pending)[1] == "Medic"
+				return s.Pending.Kind == game.Choice && optionLabels(s.Pending)[1] == "Medic"
 			}},
 		{"creation number", play.Assembling{Draft: &play.Draft{Step: "str", Ask: &play.Question{Number: true, Default: 9, Max: 18}}}, game.Data{}, nil, nil,
 			func(s game.State, _ game.Result) bool {
@@ -103,7 +103,7 @@ func TestParity(t *testing.T) {
 			game.Data{PartyMenu: []game.MenuKey{{Label: "Begin Adventuring", Key: 'B'}, {Label: "Remove Character", Key: 'P'}, {Label: "Icon Select", Key: 'I'}}}, nil, nil,
 			func(s game.State, _ game.Result) bool {
 				o := s.Pending.Options
-				return slices.Equal(labels(s.Pending), []string{"Begin Adventuring", "Remove Character", "Icon Select"}) && o[1].Key == 'P'
+				return slices.Equal(optionLabels(s.Pending), []string{"Begin Adventuring", "Remove Character", "Icon Select"}) && o[1].Key == 'P'
 			}},
 		{"continue over fighting", play.Fighting{Common: play.Common{Status: "Press button or enter to continue.", Ask: &play.Question{Continue: true}}},
 			game.Data{}, []game.Decision{game.Answer{}}, []play.Action{play.Continue{}},
@@ -256,7 +256,7 @@ func TestParity(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			f := &fake{st: c.st}
-			r := New(f, c.data)
+			r := newRules(f, c.data)
 			var res game.Result
 			for _, d := range c.do {
 				if res = r.Apply(d); res.Err != nil {
@@ -276,7 +276,7 @@ func TestParity(t *testing.T) {
 // TestRestChunkCap: a chunk is no longer than the allowed rest.
 func TestRestChunkCap(t *testing.T) {
 	f := &fake{st: play.Camping{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.AdvanceTimeBy{D: 5 * time.Minute}}}}}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	r.Apply(game.Rest{Minutes: 60})
 	r.Step()
 	if f.sent[0] != (play.AdvanceTimeBy{D: 5 * time.Minute}) {
@@ -287,7 +287,7 @@ func TestRestChunkCap(t *testing.T) {
 // TestCombatLogNote: the fight's text builds the log; a refusal is the toast.
 func TestCombatLogNote(t *testing.T) {
 	f := &fake{st: play.Fighting{}, out: play.Outcome{Events: []play.Event{play.Narrated{Text: "Hits!"}, play.Refused{Why: "no"}}}}
-	r := New(f, game.Data{})
+	r := newRules(f, game.Data{})
 	r.Apply(game.EndTurn{})
 	if s := r.State(); !slices.Equal(s.Combat.Log, []string{"Hits!"}) || s.Note.Text != "no" {
 		t.Fatalf("log %v note %v", s.Combat.Log, s.Note)
@@ -296,8 +296,8 @@ func TestCombatLogNote(t *testing.T) {
 
 // TestGameSlots: the game's own slots list after gobox's and load by index.
 func TestGameSlots(t *testing.T) {
-	g := &slotted{fake: fake{st: play.Assembling{}}}
-	r := New(g, game.Data{}).(*rules)
+	g := &slottedFake{fake: fake{st: play.Assembling{}}}
+	r := newRules(g, game.Data{})
 	r.dir = t.TempDir()
 	s := r.State()
 	if len(s.Saves) != 1 || s.Saves[0].Info != "old" {
@@ -311,7 +311,7 @@ func TestGameSlots(t *testing.T) {
 func TestStudyRestAndSaveDir(t *testing.T) {
 	dir := t.TempDir()
 	g := &fake{st: play.Camping{Study: 3 * time.Hour, Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.AdvanceTimeBy{}}}}}}
-	r := New(g, game.Data{SaveDir: dir}).(*rules)
+	r := newRules(g, game.Data{SaveDir: dir})
 	r.Apply(game.Rest{})
 	if r.rest != 3*time.Hour || r.dir != dir {
 		t.Fatalf("rest %v dir %q", r.rest, r.dir)

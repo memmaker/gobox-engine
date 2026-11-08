@@ -1,4 +1,4 @@
-package playrules
+package classic
 
 import (
 	"testing"
@@ -16,7 +16,7 @@ func TestStopRestListed(t *testing.T) {
 			al.Plain = []play.Action{play.StopRest{}}
 		}
 		g := &fake{st: play.Camping{Common: play.Common{Allowed: al}}}
-		r := New(g, game.Data{}).(*rules)
+		r := newRules(g, game.Data{})
 		r.Apply(game.StopRest{})
 		if got := len(g.sent) == 1; got != listed {
 			t.Fatalf("listed %v: sent %v", listed, g.sent)

@@ -4,13 +4,16 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // TestPaneLineToast: over the items the text pane is hidden: a line the
 // decision adds to it (BR2's shop "Doc buys a ...") is the toast.
 func TestPaneLineToast(t *testing.T) {
-	r := &paneRules{s: game.State{Items: game.ItemsShop, Page: &game.Page{}}}
-	g := &Game{R: r}
+	r := &paneGame{}
+	r.st = play.Trading{}
+	g := NewGame(r, game.Data{})
+	g.r.items = game.ItemsOwn
 	if err := g.do(game.Buy{}); err != nil {
 		t.Fatal(err)
 	}
@@ -19,13 +22,9 @@ func TestPaneLineToast(t *testing.T) {
 	}
 }
 
-type paneRules struct {
-	game.Rules
-	s game.State
-}
+type paneGame struct{ fake }
 
-func (r *paneRules) State() game.State { return r.s }
-func (r *paneRules) Apply(game.Decision) game.Result {
-	r.s.Page = &game.Page{Pane: [][]game.TextRun{{{Text: "Doc buys a Rope"}}}}
-	return game.Result{}
+func (r *paneGame) Do(play.Action) (play.Outcome, error) {
+	r.st = play.Trading{Common: play.Common{Text: []string{"Doc buys a Rope"}}}
+	return play.Outcome{}, nil
 }

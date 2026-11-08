@@ -6,39 +6,26 @@ import (
 
 	"gobox/front/classic"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
-// viewRules is a fight whose View opens the active member's sheet (front
-// state, as playrules keeps it) over the turn.
-type viewRules struct{ sheet bool }
+// viewGame is a fight in which the series' View key opens the active
+// member's sheet, front state.
+type viewGame struct{}
 
-func (r *viewRules) State() game.State {
-	s := game.State{Mode: game.ModeCombat, Party: []game.Member{{Name: "MAREN"}}, Combat: &game.Combat{Size: image.Pt(6, 6),
-		Units: []game.Unit{{ID: 1, At: image.Pt(1, 1), Active: true}, {ID: 2, At: image.Pt(3, 1), Foe: true}},
-		Turn:  &game.Turn{Unit: 1, Options: []game.Option{{Label: "View", Key: 'V', Do: game.ViewMember{Member: 0}}}}}}
-	if r.sheet {
-		s.SheetPage, s.Sheet = &game.SheetPage{Name: "MAREN"}, &game.Sheet{}
-	}
-	return s
+func (viewGame) State() play.State {
+	return play.Fighting{Common: play.Common{Party: []play.Member{{Name: "MAREN"}}, Allowed: play.Allowed{Plain: []play.Action{play.EndTurn{}}}}, Field: play.Battlefield{Size: image.Pt(6, 6), Turn: 1,
+		Units: []play.Unit{{ID: 1, Member: 0, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(3, 1), Foe: true}}}}
 }
-func (r *viewRules) Apply(d game.Decision) game.Result {
-	switch d.(type) {
-	case game.ViewMember:
-		r.sheet = true
-	case game.CloseSheet:
-		r.sheet = false
-	}
-	return game.Result{}
-}
-func (r *viewRules) Pending() *game.Ask { return nil }
-func (r *viewRules) Step() game.Result  { return game.Result{} }
+func (viewGame) Do(play.Action) (play.Outcome, error) { return play.Outcome{}, nil }
+func (viewGame) Save() ([]byte, error)                { return nil, nil }
+func (viewGame) Load([]byte) error                    { return nil }
 
 // TestFightViewDrawn: V mid-fight puts the member's sheet on screen, and
 // its keys are the sheet's; Esc goes back to the turn's board.
 func TestFightViewDrawn(t *testing.T) {
-	r := &viewRules{}
-	f := &Front{Game: classic.NewGame(r, game.Data{}), started: true}
+	f := &Front{Game: classic.NewGame(viewGame{}, game.Data{VerbKeys: map[string]rune{"View": 'V'}}), started: true}
 	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
 	f.P.SetEngine(f.Game)
 	dst := gpu.NewImage(640, 400)
@@ -48,13 +35,13 @@ func TestFightViewDrawn(t *testing.T) {
 	f.Key('v')
 	frame()
 	frame()
-	if !r.sheet || f.P.fight || !sheetUp(f.P.shownView) {
-		t.Fatalf("sheet %v, fight drawn %v", r.sheet, f.P.fight)
+	if f.P.fight || !sheetUp(f.P.shownView) {
+		t.Fatalf("sheet %v, fight drawn %v", sheetUp(f.P.shownView), f.P.fight)
 	}
 	f.Key(27)
 	frame()
 	frame()
-	if r.sheet || !f.P.fight {
-		t.Fatalf("after Esc: sheet %v, fight drawn %v", r.sheet, f.P.fight)
+	if sheetUp(f.P.shownView) || !f.P.fight {
+		t.Fatalf("after Esc: sheet %v, fight drawn %v", sheetUp(f.P.shownView), f.P.fight)
 	}
 }

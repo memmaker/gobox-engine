@@ -7,63 +7,62 @@ import (
 	"gobox/front"
 	"gobox/front/classic"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
-// castRules is a fight whose turn the game publishes, with an aimed spell.
-type castRules struct {
-	got      []game.Decision
-	rulesAim bool // the rules run the aim (BR's Target): their Turn.Aim and square question
+// castGame is a fight whose turn offers an aimed spell; lone: the aim is all
+// the turn allows (BR's Target), which gobox asks for at once.
+type castGame struct {
+	sent []play.Action
+	lone bool
 }
 
-func (r *castRules) State() game.State {
-	return game.State{Mode: game.ModeCombat, Combat: &game.Combat{Size: image.Pt(6, 6),
-		Units: []game.Unit{{ID: 1, At: image.Pt(1, 1), Active: true}, {ID: 2, At: image.Pt(3, 1), Foe: true}},
-		Turn:  &game.Turn{Unit: 1, Aim: r.rulesAim, Options: []game.Option{{Label: "Cast", Key: 'C', Do: game.Cast{}}}},
-		Aims:  []game.SpellRef{{ID: 7, Name: "Magic Missile", Range: 6}}}}
-}
-func (r *castRules) Apply(d game.Decision) game.Result {
-	r.got = append(r.got, d)
-	return game.Result{}
-}
-func (r *castRules) Pending() *game.Ask {
-	if r.rulesAim {
-		return &game.Ask{Kind: game.Square}
+func (r *castGame) State() play.State {
+	sq := []image.Point{{1, 1}, {2, 1}, {3, 1}, {4, 1}}
+	al := play.Allowed{Aimed: []play.Aimed{{Action: play.Cast{Spell: 7}, Squares: sq, Targets: 1}}, Plain: []play.Action{play.EndTurn{}}}
+	if r.lone {
+		al = play.Allowed{Aimed: []play.Aimed{{Action: play.Shoot{}, Squares: sq, Targets: 1}}}
 	}
-	return nil
+	return play.Fighting{Common: play.Common{Allowed: al, Party: []play.Member{{Spells: []game.SpellRef{{ID: 7, Name: "Magic Missile", Range: 6}}}}},
+		Field: play.Battlefield{Size: image.Pt(6, 6), Turn: 1, Units: []play.Unit{{ID: 1, Member: 0, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(3, 1), Foe: true}}}}
 }
-func (r *castRules) Step() game.Result { return game.Result{} }
+func (r *castGame) Do(a play.Action) (play.Outcome, error) {
+	r.sent = append(r.sent, a)
+	return play.Outcome{}, nil
+}
+func (r *castGame) Save() ([]byte, error) { return nil, nil }
+func (r *castGame) Load([]byte) error     { return nil }
 
 // TestCastAimWithTurn: an aimed spell's square is picked on the board even
-// though the game publishes a Turn; Enter casts it there.
+// though the game publishes a turn; Enter casts it there.
 func TestCastAimWithTurn(t *testing.T) {
-	r := &castRules{}
+	r := &castGame{}
 	aimKeys(r, true)
-	for _, d := range r.got {
-		if c, ok := d.(game.Cast); ok && c.Spell == 7 {
+	for _, a := range r.sent {
+		if c, ok := a.(play.Cast); ok && c.Spell == 7 {
 			return
 		}
 	}
-	t.Fatalf("decisions %#v, want a Cast of spell 7", r.got)
+	t.Fatalf("actions %#v, want a Cast of spell 7", r.sent)
 }
 
-// TestRulesAimWithTurn: an aim the rules run (BR's Target: Turn.Aim and
-// their square question) is theirs: Enter sends them the square (game.Aim),
-// not the front's own aim's Continue.
+// TestRulesAimWithTurn: an aim the game leaves as the turn's only action (BR's
+// Target) is answered with the square: Enter sends it the shot.
 func TestRulesAimWithTurn(t *testing.T) {
-	r := &castRules{rulesAim: true}
+	r := &castGame{lone: true}
 	aimKeys(r, false)
-	for _, d := range r.got {
-		if _, ok := d.(game.Aim); ok { // the rules' aim gets the square (BR's Target: its aimed Attack)
+	for _, a := range r.sent {
+		if _, ok := a.(play.Shoot); ok {
 			return
 		}
 	}
-	t.Fatalf("decisions %#v, want the square answered", r.got)
+	t.Fatalf("actions %#v, want the square answered", r.sent)
 }
 
 // aimKeys moves the cursor two squares east and presses Enter, after a cast
 // of spell 7 when cast.
-func aimKeys(r *castRules, cast bool) {
+func aimKeys(r *castGame, cast bool) {
 	f := &Front{Game: classic.NewGame(r, game.Data{}), started: true}
 	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
 	f.P.SetEngine(f.Game)

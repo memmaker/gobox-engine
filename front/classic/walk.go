@@ -22,10 +22,7 @@ var steps = map[int]image.Point{0: {0, -1}, 2: {1, 0}, 4: {0, 1}, 6: {-1, 0}}
 
 // walkMap is the map the party walks now, nil none.
 func (g *Game) walkMap() game.Map {
-	if r, ok := g.R.(game.Mapped); ok {
-		return r.Map()
-	}
-	return nil
+	return g.r.Map()
 }
 
 // at is the party's square on the walked map: Where.X, Y (on the overland
@@ -42,7 +39,7 @@ func (g *Game) walk(k front.ActKind) error {
 	if m == nil {
 		return nil // nowhere to walk now
 	}
-	where := g.R.State().Where
+	where := g.r.State().Where
 	if w.turn {
 		return g.do(game.Face{Facing: (where.Facing + w.side) % 8})
 	}
@@ -54,7 +51,7 @@ func (g *Game) walk(k front.ActKind) error {
 		if err := g.do(game.RunEvent{Before: true, Side: side}); err != nil || g.asked != nil {
 			return err
 		}
-		now := g.R.State().Where
+		now := g.r.State().Where
 		if m = g.walkMap(); m == nil || at(now) != from || now.Facing != where.Facing || now.Area != where.Area {
 			return nil
 		}
@@ -65,7 +62,7 @@ func (g *Game) walk(k front.ActKind) error {
 	if err := g.do(game.Arrive{From: from, To: from.Add(steps[side]), Facing: where.Facing}); err != nil || g.asked != nil {
 		return err
 	}
-	if m := g.walkMap(); m != nil && m.Event(at(g.R.State().Where)) { // the square's event: run it
+	if m := g.walkMap(); m != nil && m.Event(at(g.r.State().Where)) { // the square's event: run it
 		return g.do(game.RunEvent{})
 	}
 	return nil

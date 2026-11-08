@@ -5,18 +5,15 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
-
-// aimRules is a fight whose one aimed spell has a burst of radius 2.
-type aimRules struct{ seqRules }
-
-func (r *aimRules) State() game.State {
-	return game.State{Mode: game.ModeCombat, Combat: &game.Combat{Aims: []game.SpellRef{{ID: 7, Name: "Fireball", Range: 9, Area: 2}}}}
-}
 
 // While an area spell is aimed, the battle previews its radius (AimArea is radius+1); before and after, none.
 func TestAimAreaPreview(t *testing.T) {
-	g := NewGame(&aimRules{}, game.Data{})
+	st := play.Fighting{Common: play.Common{Party: []play.Member{{Spells: []game.SpellRef{{ID: 7, Name: "Fireball", Range: 9}}}},
+		Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Cast{Spell: 7}, Area: 2, Targets: 1}}}},
+		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}}}}
+	g := NewGame(&fake{st: st}, game.Data{})
 	if b := g.View().Battle; b == nil || b.AimArea != 0 {
 		t.Fatalf("before aiming: %+v", b)
 	}

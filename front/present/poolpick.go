@@ -108,12 +108,7 @@ func (g classicGame) Pick(i int) bool {
 	if i < 0 || i >= len(pp.names) {
 		return false
 	}
-	s := g.r.State()
-	var d game.Decision = game.SetIcon{Member: s.Selected, Field: pp.field, ID: pp.names[i]}
-	if classic.Drafting(s) {
-		d = game.Create{Field: pp.field, Text: pp.names[i]}
-	}
-	if g.r.Apply(d).Err != nil {
+	if g.r.SetChoice(pp.field, pp.names[i]) != nil {
 		return false
 	}
 	g.p.pool = nil

@@ -1,4 +1,4 @@
-package playrules
+package classic
 
 import (
 	"testing"

@@ -5,19 +5,17 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
-// TestLootFirstEsc: Esc on the found-treasure message leaves (Cancel),
-// as Enter then Esc does; it was swallowed.
+// TestLootFirstEsc: Esc on the found-treasure message leaves, as Enter then
+// Esc does; it was swallowed.
 func TestLootFirstEsc(t *testing.T) {
-	r := &fightRules{s: game.State{Mode: game.ModeLoot, Party: []game.Member{{}}, Loot: &game.Loot{Items: []game.Item{{Name: "Gauntlets"}}}}}
-	g := &Game{R: r}
-	g.ViewOf(r.s)
+	r := &fake{st: play.Looting{Common: allow(play.Leave{}), Items: []game.Item{{Name: "Gauntlets"}}}}
+	g := NewGame(r, game.Data{})
+	g.View()
 	g.Answer(front.Action{Kind: front.ActClose})
-	if len(r.got) != 1 {
-		t.Fatalf("first Esc sent %v", r.got)
-	}
-	if _, ok := r.got[0].(game.Cancel); !ok {
-		t.Fatalf("first Esc sent %T", r.got[0])
+	if len(r.sent) != 1 || r.sent[0] != (play.Leave{}) {
+		t.Fatalf("first Esc sent %v", r.sent)
 	}
 }

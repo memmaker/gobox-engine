@@ -1,7 +1,6 @@
-// Package playrules runs a play.Game on the old front: New wraps it as a
-// game.Rules. Here gobox decides the flow the game no longer has: the asks,
-// the aiming, the inventory up, the paging and the pacing of events.
-package playrules
+// rules.go: the front state over a play.Game: what gobox decides itself (the
+// asks, the aiming, the inventory up, the paging and the pacing).
+package classic
 
 import (
 	"cmp"
@@ -47,7 +46,7 @@ type rules struct {
 	items   game.ItemsUp
 	ask     *game.Ask     // gobox's own question up (a maneuver pick), nil none
 	moves   []play.Action // the actions ask's options stand for
-	aim     *aiming
+	aim     *squareAim
 	cursor  image.Point   // the free cursor's square
 	read    *game.Read    // the handout up, kept so the pointer holds while it does
 	sheet   int           // the member whose sheet is up, -1 none
@@ -70,18 +69,16 @@ type rules struct {
 	}
 }
 
-// aiming is an Aimed action whose squares the player is picking.
-type aiming struct {
+// squareAim is an Aimed action whose squares the player is picking.
+type squareAim struct {
 	play.Aimed
 	ats    []image.Point
 	byUnit map[image.Point]int // an Attack aimed at a unit the game offers by id: its squares' ids
 }
 
-// New is g as the old front's Rules; d is the game's Data
-// (its series' verb keys and texts).
-func New(g play.Game, d game.Data) game.Rules {
-	r := &rules{g: g, dir: saveDir(d), sheet: -1, data: d, speed: defaultSpeed, now: time.Now}
-	return r
+// newRules is the front state over g; d is the game's Data.
+func newRules(g play.Game, d game.Data) *rules {
+	return &rules{g: g, dir: saveDir(d), sheet: -1, data: d, speed: defaultSpeed, now: time.Now}
 }
 
 // who is n, or the selected member when n is -1.
@@ -103,7 +100,7 @@ func restCap(al play.Allowed) (time.Duration, bool) {
 }
 
 // Map is the game's walkable map while the party explores and no question
-// is up (game.Mapped): gobox walks on it.
+// is up  gobox walks on it.
 func (r *rules) Map() game.Map {
 	if t, ok := r.g.State().(play.Exploring); ok && r.ask == nil && t.Map.Walk != nil {
 		return t.Map.Walk
@@ -735,15 +732,15 @@ func (r *rules) page(sc play.Scene) *game.Page {
 	return p
 }
 
-// turnOptions are the old combat menu's decisions for the new actions.
-// turnOptions are the combat menu's verbs: the action, gobox's label and
+// turnVerbs are the old combat menu's decisions for the new actions.
+// turnVerbs are the combat menu's verbs: the action, gobox's label and
 // the old decision (a series relabels one in Data.Texts, keys it in
 // Data.VerbKeys).
 // verbWord is the Gold Box combat menus' word for a gobox verb label, so
 // a VerbOrder in the original's words (Use, Delay, Done) places them.
 var verbWord = map[string]string{"Items": "Use", "Wait": "Delay", "End": "Done"}
 
-var turnOptions = []struct {
+var turnVerbs = []struct {
 	new, label string
 	do         game.Decision
 }{
@@ -772,7 +769,7 @@ func (r *rules) loneAim(f play.Fighting) bool {
 		return false // Leave beside it is Esc (BR2's T)
 	}
 	if r.aim == nil {
-		r.aim = &aiming{Aimed: al.Aimed[0]}
+		r.aim = &squareAim{Aimed: al.Aimed[0]}
 		if sq := al.Aimed[0].Squares; len(sq) > 0 {
 			r.cursor = sq[0] // the cursor on the first target
 		}
@@ -815,7 +812,7 @@ func (r *rules) combat(f play.Fighting) *game.Combat {
 			used[r.verbKey(v.label)] = true
 		}
 	}
-	for _, o := range turnOptions {
+	for _, o := range turnVerbs {
 		if allowed[o.new] || o.new == "MoveTo" && len(al.Moves) > 0 {
 			l := cmp.Or(r.data.Texts[o.label], o.label)
 			k, ok := r.data.VerbKeys[o.label]
@@ -1098,7 +1095,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		if !slices.Contains(al.Plain, play.Action(play.Attack{Target: d.Target})) {
 			for _, x := range al.Aimed {
 				if _, ok := x.Action.(play.Attack); ok { // no foe to hit by id: gobox asks for the square
-					r.aim = &aiming{Aimed: x}
+					r.aim = &squareAim{Aimed: x}
 					return game.Result{}
 				}
 			}
@@ -1421,7 +1418,7 @@ func (r *rules) aimOrDo(al play.Allowed, a play.Action) game.Result {
 	if len(ats(a)) == 0 {
 		for _, x := range al.Aimed {
 			if reflect.DeepEqual(withAts(x.Action, nil), withAts(a, nil)) {
-				r.aim = &aiming{Aimed: x}
+				r.aim = &squareAim{Aimed: x}
 				return game.Result{}
 			}
 		}
@@ -1451,7 +1448,7 @@ func (r *rules) aimAt(at image.Point) game.Result {
 }
 
 // attackAim is the aim over the units plain's Attacks name (nil: none).
-func (r *rules) attackAim(plain []play.Action) *aiming {
+func (r *rules) attackAim(plain []play.Action) *squareAim {
 	var c *game.Combat
 	if s := r.State(); s.Combat != nil {
 		c = s.Combat
@@ -1459,7 +1456,7 @@ func (r *rules) attackAim(plain []play.Action) *aiming {
 	if c == nil {
 		return nil
 	}
-	m := &aiming{Aimed: play.Aimed{Action: play.Attack{}, Targets: 1}, byUnit: map[image.Point]int{}}
+	m := &squareAim{Aimed: play.Aimed{Action: play.Attack{}, Targets: 1}, byUnit: map[image.Point]int{}}
 	for _, a := range plain {
 		if at, ok := a.(play.Attack); ok {
 			for _, u := range c.Units {
@@ -1528,9 +1525,6 @@ func (r *rules) do(a play.Action) game.Result {
 }
 
 // keep sends a to the game: a refusal is Err, else the outcome as events.
-// traceOn (GOBOX_TRACE=1) logs every play action sent to the game.
-var traceOn = os.Getenv("GOBOX_TRACE") != ""
-
 func (r *rules) keep(a play.Action) game.Result {
 	out, err := r.g.Do(a)
 	return r.outcome(a, out, err)

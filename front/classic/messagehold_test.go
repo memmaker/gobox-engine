@@ -5,6 +5,7 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // TestMessagesHold: two fight messages in a row each stay up the
@@ -16,23 +17,16 @@ func TestMessagesHold(t *testing.T) {
 	if len(out) != 2 || out[0].Ms != 400 || out[1].Ms != 400 || out[0].Battle == nil || out[1].Battle == nil {
 		t.Fatalf("%+v", out)
 	}
-	g := NewGame(&seqRules{}, game.Data{})
+	g := NewGame(&fake{st: play.Exploring{}}, game.Data{})
 	if g.do(game.SetSpeed{N: 2}); g.messageMs() != 200 {
 		t.Fatalf("speed 2: %d ms", g.messageMs())
 	}
 }
 
-type blockRules struct{ fightRules }
-
-func (r *blockRules) Apply(game.Decision) game.Result {
-	return game.Result{Err: &game.Refusal{Text: "Blocked"}}
-}
-
 // TestFightRefusalHeld: a refusal in a fight (POR's "Blocked") is a fight
 // message too, held on the message row, not only the toast.
 func TestFightRefusalHeld(t *testing.T) {
-	r := &blockRules{}
-	r.s = game.State{Combat: &game.Combat{}}
+	r := &fake{st: play.Fighting{}, err: &game.Refusal{Text: "Blocked"}}
 	g := NewGame(r, game.Data{})
 	g.Settle()
 	g.Answer(front.Action{Kind: front.ActWalk, X: 1, Y: 1})

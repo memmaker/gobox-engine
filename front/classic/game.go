@@ -13,14 +13,16 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // Game is a front.Game built from a game's rules and data alone: View comes
 // from the classic builders over State, every rule call and Action becomes
 // the Decision the game takes. It holds no game code.
 type Game struct {
-	R game.Rules
+	G play.Game
 	D game.Data
+	r *rules // what gobox holds over G
 
 	grid       image.Point   // the page's size in cells (ActResize); 40x25 at least
 	events     []game.Event  // the fight's events since the last Settle
@@ -34,7 +36,6 @@ type Game struct {
 	tiles      bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
 	asked      *game.Ask // a Refusal's question put instead (answered by its options' Do)
 	aim        *aiming   // a combat spell's squares being picked (Combat.Aims)
-	speed      int       // the game speed (SetSpeed), 0 fastest .. 9 slowest: a fight message's hold
 	sheet      int       // the look-only sheet up (a fight's View): member+1, 0 none
 	found      bool      // the treasure's "You found some loot!" was acknowledged (cleared when it goes)
 }
@@ -47,26 +48,23 @@ type aiming struct {
 
 var _ front.Game = (*Game)(nil)
 
-// NewGame is the front.Game over r and d.
-func NewGame(r game.Rules, d game.Data) *Game {
+// NewGame is the front.Game over p and d.
+func NewGame(p play.Game, d game.Data) *Game {
 	GameID = d.ID
-	return &Game{R: r, D: d, grid: image.Pt(40, 25), speed: 4}
+	return &Game{G: p, r: newRules(p, d), D: d, grid: image.Pt(40, 25)}
 }
 
 // do hands d to the rules, keeping its events; the refusal is the error.
 func (g *Game) do(d game.Decision) error {
-	if s, ok := d.(game.SetSpeed); ok {
-		g.speed = min(max(s.N, 0), 9)
-	}
-	if c := g.R.State().Combat; c != nil { // the fight as the decision found it: a Result that ends it plays on it (Settle)
+	if c := g.r.State().Combat; c != nil { // the fight as the decision found it: a Result that ends it plays on it (Settle)
 		g.lastCombat = c
 	}
-	was := g.R.State()
+	was := g.r.State()
 	g.lastParty = was.Party
 	paneWas, linesWere := paneTail(was), paneCount(was)
-	res := g.R.Apply(d)
+	res := g.r.Apply(d)
 	g.trace(fmt.Sprintf("%T%+v", d, d), res)
-	if s := g.R.State(); s.Combat == nil && s.Items != game.ItemsNone { // over the items the text pane is hidden: its new line (BR2's "Doc buys a ...", "not enough credits") is the toast
+	if s := g.r.State(); s.Combat == nil && s.Items != game.ItemsNone { // over the items the text pane is hidden: its new line (BR2's "Doc buys a ...", "not enough credits") is the toast
 		if t := paneTail(s); t != "" && (t != paneWas || paneCount(s) != linesWere) { // a new line, or the same one said again
 			g.note = front.Note{Text: t, At: time.Now()}
 		}
@@ -76,7 +74,7 @@ func (g *Game) do(d game.Decision) error {
 		if e.Kind == game.EvReset {
 			g.resets++
 		}
-		if s := g.R.State(); e.Kind == game.EvMessage && strings.TrimSpace(e.Text) != "" && s.Combat == nil && s.Items != game.ItemsNone { // over the items (the shop's "Brann buys a Broad Sword"): the toast on its bottom row, as a refusal's; the inventory plays no message
+		if s := g.r.State(); e.Kind == game.EvMessage && strings.TrimSpace(e.Text) != "" && s.Combat == nil && s.Items != game.ItemsNone { // over the items (the shop's "Brann buys a Broad Sword"): the toast on its bottom row, as a refusal's; the inventory plays no message
 			g.note = front.Note{Text: strings.TrimSpace(e.Text), At: time.Now()}
 		}
 	}
@@ -86,7 +84,7 @@ func (g *Game) do(d game.Decision) error {
 	}
 	if res.Err != nil && res.Err.Error() != "" { // a refusal always says why, whichever screen asked
 		g.Refuse(res.Err.Error())
-		if _, ok := res.Err.(*game.Refusal); ok && g.R.State().Combat != nil { // in a fight also the message row's, held as a message (POR's "Blocked")
+		if _, ok := res.Err.(*game.Refusal); ok && g.r.State().Combat != nil { // in a fight also the message row's, held as a message (POR's "Blocked")
 			g.events = append(g.events, game.Event{Kind: game.EvMessage, Text: res.Err.Error()})
 		}
 	}
@@ -96,13 +94,20 @@ func (g *Game) do(d game.Decision) error {
 // sel is the selected member's index for n < 0.
 func (g *Game) sel(n int) int {
 	if n < 0 {
-		return g.R.State().Selected
+		return g.r.State().Selected
 	}
 	return n
 }
 
+// Send applies d to the front state and the game, for scripted drives (cmd
+// tests); the player's path is Answer.
+func (g *Game) Send(d game.Decision) game.Result { return g.r.Apply(d) }
+
+// Step goes on with what gobox paces, for scripted drives.
+func (g *Game) Step() game.Result { return g.r.Step() }
+
 func (g *Game) step() error {
-	res := g.R.Step()
+	res := g.r.Step()
 	if len(res.Events) > 0 || res.Err != nil {
 		g.trace("step", res)
 	}
@@ -112,13 +117,11 @@ func (g *Game) step() error {
 
 // View is the page classic builds from State.
 // art is the rules' art as it is now, else the Data's.
+// Art is the game's art as it is now.
+func (g *Game) Art() map[string]game.Picture { return g.art() }
+
 func (g *Game) art() map[string]game.Picture {
-	if r, ok := g.R.(interface {
-		Art() map[string]game.Picture
-	}); ok {
-		return r.Art()
-	}
-	return g.D.Art
+	return g.r.Art()
 }
 
 func (g *Game) View() front.View { return g.ViewOf(g.state()) }
@@ -236,11 +239,11 @@ func ViewVerb(b *front.Battle, d game.Data) *front.Battle {
 
 // Settle goes on to the next wait; the View carries the fight's events since.
 func (g *Game) Settle() front.View {
-	if p := g.R.State().Pacing; p == nil || p.Pace == game.PaceNone { // a paced step is the front's call (CombatStep ..)
-		if c := g.R.State().Combat; c != nil && g.lastCombat == nil { // a fight already up before its first step (a dev start): its events play from it too
+	if p := g.r.State().Pacing; p == nil || p.Pace == game.PaceNone { // a paced step is the front's call (CombatStep ..)
+		if c := g.r.State().Combat; c != nil && g.lastCombat == nil { // a fight already up before its first step (a dev start): its events play from it too
 			g.lastCombat = c
 		}
-		g.lastParty = g.R.State().Party
+		g.lastParty = g.r.State().Party
 		g.step()
 	}
 	v := g.View()
@@ -257,18 +260,14 @@ func (g *Game) Settle() front.View {
 		posed = g.stepBattle
 	}
 	v.Events = combatEvents(g.events, v, posed, g.messageMs())
-	g.events, g.lastCombat = nil, g.R.State().Combat
+	g.events, g.lastCombat = nil, g.r.State().Combat
 	return v
 }
 
 // messageMs is how long a fight's message holds: the game speed × 100 ms,
 // the rules' speed where they keep one (Speed), else g.speed (SetSpeed).
 func (g *Game) messageMs() int {
-	n := g.speed
-	if r, ok := g.R.(interface{ Speed() int }); ok {
-		n = r.Speed()
-	}
-	return n * 100
+	return g.r.Speed() * 100
 }
 
 // stepBattle is the fight as the step found it (g.ended), for each of its
@@ -429,8 +428,8 @@ func (g *Game) posedBattle(e game.Event) *front.Battle {
 
 // Open starts the rules on save slot slot ("" none) when they take it.
 func (g *Game) Open(slot string) {
-	if r, ok := g.R.(interface{ Open(string) }); ok {
-		r.Open(slot)
+	if o, ok := g.G.(interface{ Open(string) }); ok {
+		o.Open(slot)
 	}
 }
 
@@ -461,7 +460,7 @@ func (g *Game) ModifyCharacter(n int) error   { return g.do(game.Modify{Member: 
 func (g *Game) Rename(name string) error      { return g.do(game.Rename{Name: name}) }
 func (g *Game) SetField(f, o int) error       { return g.do(game.SetField{Field: f, Option: o}) }
 func (g *Game) EndCreation(keep bool) error   { return g.do(game.EndCreation{Keep: keep}) }
-func (g *Game) CreationView() *front.Creation { return Creation(g.R.State(), g.grid.X, g.grid.Y) }
+func (g *Game) CreationView() *front.Creation { return Creation(g.r.State(), g.grid.X, g.grid.Y) }
 func (g *Game) PointBuy(scores []int) error   { return g.do(game.PointBuy{Scores: scores}) }
 func (g *Game) Roll(minimal bool, minimums string) error {
 	return g.do(game.Roll{Minimal: minimal, Minimums: minimums})
@@ -469,7 +468,7 @@ func (g *Game) Roll(minimal bool, minimums string) error {
 
 // SetStat types ability i: "18/50" is strength 18 and exceptional 50.
 func (g *Game) SetStat(i int, typed string) error {
-	c := g.R.State().Creation
+	c := g.r.State().Creation
 	if c == nil || i < 0 || i >= 6 {
 		return g.do(game.Adjust{Stat: i})
 	}
@@ -513,11 +512,11 @@ func (g *Game) StopRest() error           { return g.do(game.StopRest{}) }
 func (g *Game) UsePower(n int, k front.ActKind, spell, target int, sure bool) error {
 	return g.asking(g.do(game.UsePower{Member: n, Kind: int(k), Spell: spell, Target: target, Sure: sure}))
 }
-func (g *Game) SelectedMember() int { return g.R.State().Selected }
+func (g *Game) SelectedMember() int { return g.r.State().Selected }
 
 // EffectsList is member n's Effects lines from State.
 func (g *Game) EffectsList(n int) (out []front.Entry) {
-	s := g.R.State()
+	s := g.r.State()
 	if n = g.sel(n); n < 0 || n >= len(s.Party) {
 		return nil
 	}
@@ -556,7 +555,7 @@ func (g *Game) TryDoor(k front.DoorWay) error {
 // Pickers and the icon designer.
 func (g *Game) OpenPicker(kind int) bool {
 	ok := g.do(game.OpenPicker{Kind: kind}) == nil
-	if s := g.R.State(); kind == front.PickWeapon && s.Picker == nil {
+	if s := g.r.State(); kind == front.PickWeapon && s.Picker == nil {
 		if n, _ := BodyTiles(s); len(n) > 0 { // no pictures from the game: the pool's, by original ref
 			g.tiles = true
 			return true
@@ -566,31 +565,34 @@ func (g *Game) OpenPicker(kind int) bool {
 }
 func (g *Game) PickerView(page int) *front.Picker {
 	if g.tiles {
-		return TilePicker(g.R.State(), page, g.grid.X, g.grid.Y)
+		return TilePicker(g.r.State(), page, g.grid.X, g.grid.Y)
 	}
-	return Picker(g.R.State(), page, g.grid.X, g.grid.Y)
+	return Picker(g.r.State(), page, g.grid.X, g.grid.Y)
 }
 func (g *Game) Pick(i int) bool {
 	if g.tiles {
-		s := g.R.State()
-		var d game.Decision = game.SetIcon{Member: s.Selected, Field: "iconbody", ID: PickTile(s, i)}
-		if Drafting(s) {
-			d = game.Create{Field: "iconbody", Text: PickTile(s, i)}
-		}
-		if PickTile(s, i) == "" || g.R.Apply(d).Err != nil {
+		t := PickTile(g.r.State(), i)
+		if t == "" || g.SetChoice("iconbody", t) != nil {
 			return false
 		}
 		g.tiles = false
 		return true
 	}
 	g.do(game.Pick{N: i})
-	return g.R.State().Picker == nil
+	return g.r.State().Picker == nil
+}
+
+// SetChoice sends gobox's pool pick field (the portrait's or the icon's) to
+// the game: it takes it for the selected member or the draft.
+func (g *Game) SetChoice(field, id string) error {
+	_, err := g.G.Do(play.SetChoice{Field: field, Text: id})
+	return err
 }
 func (g *Game) ClosePicker()   { g.tiles = false; g.do(game.ClosePicker{}) }
 func (g *Game) EditIcon(n int) { g.do(game.EditIcon{Member: n}) }
 func (g *Game) IconEditorView() *front.IconEditor {
 	ink := g.View().Ink
-	return IconEditor(g.R.State(), &ink, g.grid.X, g.grid.Y)
+	return IconEditor(g.r.State(), &ink, g.grid.X, g.grid.Y)
 }
 func (g *Game) IconSize() { g.do(game.IconSize{}) }
 func (g *Game) IconColour(part, shade, v int) {
@@ -602,7 +604,7 @@ func (g *Game) EndIcon(keep bool)   { g.do(game.EndIcon{Keep: keep}) }
 
 // SlotsView is State.Saves as the slot list (nil on the title).
 func (g *Game) SlotsView(loadOnly bool) *front.Slots {
-	st := g.R.State()
+	st := g.r.State()
 	if st.Intro != nil {
 		return nil
 	}
@@ -624,7 +626,7 @@ func (g *Game) SlotsView(loadOnly bool) *front.Slots {
 func (g *Game) Save(name string) error       { return g.do(game.Save{Name: name}) }
 func (g *Game) DeleteSlot(name string) error { return g.do(game.DeleteSlot{Name: name}) }
 func (g *Game) Load(name string, loadOnly bool) bool {
-	for i, sl := range g.R.State().Saves {
+	for i, sl := range g.r.State().Saves {
 		if sl.Name == name {
 			return g.do(game.Load{Slot: i}) == nil
 		}
@@ -639,7 +641,7 @@ func (g *Game) TurnChoice(a front.Action, sure bool) error { return g.Answer(a) 
 // OpenSheet: in a fight the sheet is look-only, gobox's from Member.Page
 // (n < 0: the turn's member); the game is not called. Else the game's own.
 func (g *Game) OpenSheet(n int) error {
-	s := g.R.State()
+	s := g.r.State()
 	if s.Combat == nil {
 		return g.do(game.OpenSheet{Member: n})
 	}
@@ -668,7 +670,7 @@ func (g *Game) CloseSheet() error {
 	return g.do(game.CloseSheet{})
 }
 func (g *Game) ShowMember(n int) error {
-	if g.sheet > 0 && n >= 0 && n < len(g.R.State().Party) { // another member's look-only sheet
+	if g.sheet > 0 && n >= 0 && n < len(g.r.State().Party) { // another member's look-only sheet
 		g.sheet = n + 1
 		return nil
 	}
@@ -681,7 +683,7 @@ func (g *Game) OpenItems(n int, direct bool) error {
 // CloseItems: Tab (all false) is the sheet, as out of a fight; in a fight
 // that is the look-only sheet of the member whose items were up.
 func (g *Game) CloseItems(all bool) error {
-	if s := g.R.State(); s.Combat != nil && !all {
+	if s := g.r.State(); s.Combat != nil && !all {
 		if err := g.do(game.CloseItems{All: true}); err != nil {
 			return err
 		}
@@ -716,14 +718,14 @@ func (g *Game) ViewMember(n int) error        { return g.do(game.ViewMember{Memb
 func (g *Game) Leave() error                  { return g.do(game.Leave{}) }
 func (g *Game) OpenTraining(n int) error      { return g.do(game.OpenTraining{Member: n}) }
 func (g *Game) CloseTraining() error          { return g.do(game.CloseTraining{}) }
-func (g *Game) TrainingView() *front.Training { return Training(g.R.State()) }
+func (g *Game) TrainingView() *front.Training { return Training(g.r.State()) }
 func (g *Game) Train() error                  { return g.do(game.Train{Member: g.sel(-1)}) }
 func (g *Game) Learn(id int) error            { return g.do(game.Learn{Spell: id}) }
 func (g *Game) PickPower(id int) error        { return g.do(game.PickPower{ID: id}) }
 
 // The full map: its cursor and label are the presenter's, classic fills the rest.
 func (g *Game) FullMapView(cursor image.Point, label *string) *front.FullMap {
-	return FullMap(&front.FullMap{Cursor: cursor}, g.R.State())
+	return FullMap(&front.FullMap{Cursor: cursor}, g.r.State())
 }
 func (g *Game) Mark(x, y int, text string) { g.do(game.Mark{At: image.Pt(x, y), Text: text}) }
 func (g *Game) Unmark(x, y int)            { g.do(game.Unmark{At: image.Pt(x, y)}) }
@@ -731,7 +733,7 @@ func (g *Game) WalkTo(x, y int) bool       { return g.do(game.WalkTo{At: image.P
 
 // JournalPage is the journal text laid out on the page (Data.Scans has its pictures).
 func (g *Game) JournalPage(title string, lines []string, p, off int) (*front.Pages, int) {
-	return JournalPage(title, lines, p, off, g.grid.X, g.grid.Y, g.R.State().Ink, g.D.Scans)
+	return JournalPage(title, lines, p, off, g.grid.X, g.grid.Y, g.r.State().Ink, g.D.Scans)
 }
 
 // SpeakPage has the game voice the page, in place of the page voiced before.
@@ -762,7 +764,7 @@ func (g *Game) Answer(a front.Action) error {
 	if a.Kind == front.ActResize {
 		err := g.do(game.Resize{Cols: a.X, Rows: a.Y})
 		g.grid = image.Pt(40, 25) // the page the game shows: its Cells, else the original's (a game that keeps its page lays nothing out wider)
-		if c := g.R.State().Cells; c.X > 0 && c.Y > 0 {
+		if c := g.r.State().Cells; c.X > 0 && c.Y > 0 {
 			g.grid = image.Pt(max(c.X, 40), max(c.Y, 25))
 		}
 		return err
@@ -783,14 +785,14 @@ func (g *Game) Answer(a front.Action) error {
 		g.aim, g.asked = nil, nil
 		return g.do(game.Cast{Member: -1, Spell: m.spell, At: m.ats[0], Ats: m.ats})
 	}
-	if s := g.R.State(); s.Mode == game.ModeLoot && s.Loot != nil && !g.found && g.asked == nil {
+	if s := g.r.State(); s.Mode == game.ModeLoot && s.Loot != nil && !g.found && g.asked == nil {
 		g.found = a.Kind == front.ActOK || a.Kind == front.ActClose
 		if a.Kind != front.ActClose { // Esc passes the found page and leaves at once, as Enter then Esc
 			return nil
 		}
 	}
 	if a.Kind == front.ActCast {
-		if c := g.R.State().Combat; c != nil {
+		if c := g.r.State().Combat; c != nil {
 			for _, sp := range c.Aims {
 				if sp.ID == a.N {
 					g.aim = &aiming{spell: sp.ID, n: max(sp.Targets, 1)}
@@ -854,7 +856,7 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActMainMenu:
 		return game.EndGame{}, true
 	case front.ActNote:
-		return game.AddNote{Text: paneText(g.R.State())}, true
+		return game.AddNote{Text: paneText(g.r.State())}, true
 	case front.ActNoteRemove:
 		return game.RemoveNote{ID: a.N}, true
 	case front.ActOrder:
@@ -983,7 +985,7 @@ func (g *Game) decision(a front.Action) (game.Decision, bool) {
 	case front.ActStat:
 		return game.SetStat{Stat: a.N, Text: a.Text}, true
 	case front.ActKeep:
-		if Drafting(g.R.State()) { // the creation sheet's Keep
+		if Drafting(g.r.State()) { // the creation sheet's Keep
 			return game.KeepDraft{}, true
 		}
 		return game.KeepAppraised{Keep: a.N == 1}, true
@@ -1006,10 +1008,7 @@ func paneText(s game.State) string {
 }
 
 // State is the rules' state.
-func (g *Game) State() game.State { return g.R.State() }
-
-// Rules is the game's rules (present.WithRules wraps the game with gobox's pool pickers).
-func (g *Game) Rules() game.Rules { return g.R }
+func (g *Game) State() game.State { return g.r.State() }
 
 // Shown is the state the screens show: the rules' with a Refusal's
 // question pending (a View built on the rules' own State loses it).
@@ -1017,7 +1016,7 @@ func (g *Game) Shown() game.State { return g.state() }
 
 // state is the rules' state with a Refusal's question pending.
 func (g *Game) state() game.State {
-	s := g.R.State()
+	s := g.r.State()
 	if g.asked != nil {
 		s.Pending, s.Mode = g.asked, game.ModeAsk
 	}

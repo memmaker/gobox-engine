@@ -1,4 +1,4 @@
-package playrules
+package classic
 
 import (
 	"errors"
@@ -37,17 +37,17 @@ func TestAdapter(t *testing.T) {
 		name  string
 		f     *fake
 		d     game.Decision
-		check func(t *testing.T, f *fake, r game.Rules, res game.Result)
+		check func(t *testing.T, f *fake, r *rules, res game.Result)
 	}{
 		{"wall refused", &fake{st: play.Exploring{}, err: wall},
 			game.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)},
-			func(t *testing.T, f *fake, r game.Rules, res game.Result) {
+			func(t *testing.T, f *fake, r *rules, res game.Result) {
 				if res.Err != wall || !slices.Equal(f.sent, []play.Action{play.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)}}) {
 					t.Fatalf("err %v sent %v", res.Err, f.sent)
 				}
 			}},
 		{"scene reply", &fake{st: talk}, game.Answer{N: 1},
-			func(t *testing.T, f *fake, r game.Rules, res game.Result) {
+			func(t *testing.T, f *fake, r *rules, res game.Result) {
 				if a := r.Pending(); a == nil || a.Kind != game.Choice || len(a.Options) != 2 || a.Options[1].Label != "Foe" {
 					t.Fatalf("pending %+v", a)
 				}
@@ -62,7 +62,7 @@ func TestAdapter(t *testing.T) {
 			play.Walked{Unit: 2, Path: []game.Step{{At: image.Pt(1, 1)}}},
 			play.Attacked{From: 2, To: 1, Hit: true, Damage: 4}, play.Fell{Unit: 1}}}},
 			game.EndTurn{},
-			func(t *testing.T, f *fake, r game.Rules, res game.Result) {
+			func(t *testing.T, f *fake, r *rules, res game.Result) {
 				var kinds []game.EventKind
 				for _, e := range res.Events {
 					kinds = append(kinds, e.Kind)
@@ -76,7 +76,7 @@ func TestAdapter(t *testing.T) {
 				}
 			}},
 		{"handout read", &fake{st: hand}, game.Answer{N: 0},
-			func(t *testing.T, f *fake, r game.Rules, res game.Result) {
+			func(t *testing.T, f *fake, r *rules, res game.Result) {
 				s, s2 := r.State(), r.State()
 				if s.Read == nil || s.Read.Title != "Journal 1" || s.Read != s2.Read || s.Pending != nil {
 					t.Fatalf("read %+v pending %+v", s.Read, s.Pending)
@@ -86,7 +86,7 @@ func TestAdapter(t *testing.T) {
 				}
 			}},
 		{"step is empty", &fake{st: play.Exploring{}}, game.SetSpeed{},
-			func(t *testing.T, f *fake, r game.Rules, res game.Result) {
+			func(t *testing.T, f *fake, r *rules, res game.Result) {
 				if st := r.Step(); st.Err != nil || len(st.Events) != 0 || len(f.sent) != 0 {
 					t.Fatalf("step %+v sent %v", st, f.sent)
 				}
@@ -94,7 +94,7 @@ func TestAdapter(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			r := New(c.f, game.Data{})
+			r := newRules(c.f, game.Data{})
 			c.check(t, c.f, r, r.Apply(c.d))
 		})
 	}
@@ -104,7 +104,7 @@ func TestAimAndSlots(t *testing.T) {
 	cast := play.Cast{Spell: 7}
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{
 		Aimed: []play.Aimed{{Action: cast, Squares: []image.Point{{2, 2}}, Targets: 1}}}}}}
-	r := New(f, game.Data{}).(*rules)
+	r := newRules(f, game.Data{})
 	r.dir = t.TempDir()
 	if res := r.Apply(game.Cast{Spell: 7}); res.Err != nil || len(f.sent) != 0 || !r.State().Combat.Turn.Aim {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
@@ -129,16 +129,14 @@ type artGame struct{ fake }
 func (artGame) Art() map[string]game.Picture { return map[string]game.Picture{"w": {File: "live"}} }
 
 func TestArtIsLive(t *testing.T) {
-	r := New(&artGame{}, game.Data{}).(interface {
-		Art() map[string]game.Picture
-	})
+	r := newRules(&artGame{}, game.Data{})
 	if r.Art()["w"].File != "live" {
 		t.Fatal("game art not read live")
 	}
 }
 
 func TestYesNoDefault(t *testing.T) {
-	r := New(&fake{}, game.Data{}).(*rules)
+	r := newRules(&fake{}, game.Data{})
 	if a := r.question(&play.Question{YesNo: true, Default: 1}, false); !a.Yes {
 		t.Fatal("yes default lost")
 	}
@@ -150,14 +148,14 @@ func TestTitleFirstStepBeforeStepping(t *testing.T) {
 	pic := game.Layer{Picture: game.Picture{File: "TITLE", Block: 3}} // the first step
 	f := &fake{st: play.Scene{Kind: play.SceneTitle, Intro: &game.Intro{Pictures: []int{3, 1}},
 		Steps: map[int]play.TitleStep{3: {Layers: []game.Layer{pic}}}}}
-	s := New(f, game.Data{}).State()
+	s := newRules(f, game.Data{}).State()
 	if s.Page == nil || len(s.Page.Layers) == 0 || s.Page.Layers[len(s.Page.Layers)-1].Picture.Block != 3 {
 		t.Fatalf("no first step picture: %+v", s.Page)
 	}
 }
 
 func TestShowMemberOpensSheet(t *testing.T) {
-	r := New(&fake{st: play.Exploring{}}, game.Data{}).(*rules)
+	r := newRules(&fake{st: play.Exploring{}}, game.Data{})
 	if r.Apply(game.ShowMember{Member: 2}); r.sheet != 2 {
 		t.Fatalf("sheet %d", r.sheet)
 	}
