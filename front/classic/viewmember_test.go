@@ -15,11 +15,11 @@ func TestViewMemberOpensSheet(t *testing.T) {
 	f := &fake{st: play.Exploring{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}}}}
 	r := newRules(f, game.Data{})
 	r.Apply(game.ViewMember{Member: 0})
-	if r.State().SheetPage == nil || len(f.sent) != 0 {
-		t.Fatalf("sheet %v, sent %v", r.State().SheetPage != nil, f.sent)
+	if shownOf(r).SheetPage == nil || len(f.sent) != 0 {
+		t.Fatalf("sheet %v, sent %v", shownOf(r).SheetPage != nil, f.sent)
 	}
 	r.Apply(game.CloseSheet{})
-	if r.State().SheetPage != nil {
+	if shownOf(r).SheetPage != nil {
 		t.Fatal("sheet still up")
 	}
 }
@@ -31,7 +31,7 @@ func TestCampNoRest(t *testing.T) {
 		if allow {
 			st.Allowed.Plain = []play.Action{play.AdvanceTimeBy{}}
 		}
-		if got := newRules(&fake{st: st}, game.Data{}).State().Allowed["NoRest"]; got == allow {
+		if got := shownOf(newRules(&fake{st: st}, game.Data{})).Allowed["NoRest"]; got == allow {
 			t.Errorf("AdvanceTimeBy allowed %v: NoRest %v", allow, got)
 		}
 	}
@@ -98,11 +98,11 @@ func TestFightItems(t *testing.T) {
 		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
 	r := newRules(f, game.Data{})
 	r.Apply(game.OpenItems{Member: -1})
-	if s := r.State(); s.Items != game.ItemsOwn || s.Combat == nil || len(f.sent) != 0 || s.Selected != 1 {
+	if s := shownOf(r); s.Items != game.ItemsOwn || s.Combat == nil || len(f.sent) != 0 || s.Selected != 1 {
 		t.Fatalf("items %v combat %v sent %v", s.Items, s.Combat != nil, f.sent)
 	}
 	r.Apply(game.CloseItems{})
-	if s := r.State(); s.Items != game.ItemsNone || s.SheetPage != nil || s.Combat == nil {
+	if s := shownOf(r); s.Items != game.ItemsNone || s.SheetPage != nil || s.Combat == nil {
 		t.Fatalf("after close: items %v sheet %v", s.Items, s.SheetPage != nil)
 	}
 }
@@ -115,7 +115,7 @@ func TestViewGearOpensItems(t *testing.T) {
 		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
 	r := newRules(f, game.Data{})
 	r.Apply(game.Answer{N: 0})
-	if s := r.State(); s.Items != game.ItemsOwn || s.Selected != 2 || len(f.sent) != 0 || s.Pending != nil {
+	if s := shownOf(r); s.Items != game.ItemsOwn || s.Selected != 2 || len(f.sent) != 0 || s.Pending != nil {
 		t.Fatalf("items %v selected %d sent %v pending %v", s.Items, s.Selected, f.sent, s.Pending)
 	}
 	g := NewGame(f, game.Data{})
@@ -124,7 +124,7 @@ func TestViewGearOpensItems(t *testing.T) {
 		t.Fatalf("inventory %v ask %v", v.Inventory != nil, v.Ask != nil)
 	}
 	r.Apply(game.CloseItems{})
-	if r.State().Pending == nil {
+	if shownOf(r).Pending == nil {
 		t.Fatal("the View menu is gone")
 	}
 }
@@ -137,7 +137,7 @@ func TestSpeedMenu(t *testing.T) {
 		Ask: &play.Question{Replies: []string{"Guard", "Speed", "Exit"}, Do: []game.Decision{nil, game.SpeedMenu{}}}}}}
 	r := newRules(f, game.Data{})
 	r.Apply(game.Answer{N: 1})
-	if a := r.State().Pending; a == nil || len(a.Options) != 3 || a.Options[0].Label != "Faster" {
+	if a := shownOf(r).Pending; a == nil || len(a.Options) != 3 || a.Options[0].Label != "Faster" {
 		t.Fatalf("menu %+v", a)
 	}
 	r.Apply(game.Answer{N: 1})
@@ -185,11 +185,11 @@ func TestPickViewMember(t *testing.T) {
 	st.Allowed.Plain = []play.Action{play.Reply{N: 0}, play.ViewMember{Member: 0}}
 	f := &fake{st: st}
 	r := newRules(f, game.Data{})
-	if a := r.State().Pending; a == nil || !a.View {
+	if a := shownOf(r).Pending; a == nil || !a.View {
 		t.Fatalf("pick ask %+v: no View", a)
 	}
 	r.Apply(game.ViewMember{Member: 0})
-	if len(f.sent) != 1 || f.sent[0] != play.Action(play.ViewMember{Member: 0}) || r.State().SheetPage != nil {
-		t.Fatalf("sent %v, sheet %v", f.sent, r.State().SheetPage != nil)
+	if len(f.sent) != 1 || f.sent[0] != play.Action(play.ViewMember{Member: 0}) || shownOf(r).SheetPage != nil {
+		t.Fatalf("sent %v, sheet %v", f.sent, shownOf(r).SheetPage != nil)
 	}
 }

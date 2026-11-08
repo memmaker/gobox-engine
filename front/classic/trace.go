@@ -17,19 +17,16 @@ func (g *Game) trace(what string, res game.Result) {
 	if !traceOn {
 		return
 	}
-	s := g.r.State()
-	m := s.Mode
+	m := g.mode()
 	turn, pace := "", ""
-	if c := s.Combat; c != nil && c.Turn != nil {
+	if c := g.combat(); c != nil && c.Turn != nil {
 		turn = fmt.Sprintf(" turn=unit%d", c.Turn.Unit)
 		for _, o := range c.Turn.Options {
 			turn += fmt.Sprintf(" %s/%c", o.Label, o.Key)
 		}
 	}
-	if s.Pacing != nil {
-		pace = fmt.Sprintf(" pace=%v", s.Pacing.Pace)
-	}
-	fmt.Fprintf(os.Stderr, "trace %s %s err=%v events=%d mode=%v%s%s%s\n", traceStamp(), what, res.Err, len(res.Events), m, turn, pace, traceParty(s.Party))
+	pace = fmt.Sprintf(" pace=%v", g.pace())
+	fmt.Fprintf(os.Stderr, "trace %s %s err=%v events=%d mode=%v%s%s%s\n", traceStamp(), what, res.Err, len(res.Events), m, turn, pace, traceParty(g.party()))
 	for _, e := range res.Events {
 		if e.Text != "" {
 			fmt.Fprintf(os.Stderr, "trace %s   event %v %q\n", traceStamp(), e.Kind, e.Text)

@@ -9,7 +9,7 @@ import (
 )
 
 func TestMap(t *testing.T) {
-	s := game.State{Where: game.Where{X: 2, Y: 3, Facing: 2}, Map: game.Automap{Size: image.Pt(16, 16),
+	s := shown{Where: game.Where{X: 2, Y: 3, Facing: 2}, Map: game.Automap{Size: image.Pt(16, 16),
 		Walls: []game.Wall{{At: image.Pt(1, 1), Side: 6}}, Doors: []game.Wall{{At: image.Pt(1, 1), Side: 0, State: game.DoorLocked}},
 		Marked: []image.Point{{4, 4}, {5, 5}}, Notes: []string{"inn", "Bank"}}}
 	m := Map(&front.MapSquares{}, s.Map, s.Where)
@@ -27,7 +27,7 @@ func TestMap(t *testing.T) {
 // TestFullMapNoSquares: the front's M asks FullMap with no squares yet; a
 // 16x16 map up must still come back with squares (nil crashed present.mapImage).
 func TestFullMapNoSquares(t *testing.T) {
-	s := game.State{Map: game.Automap{Size: image.Pt(16, 16)}}
+	s := shown{Map: game.Automap{Size: image.Pt(16, 16)}}
 	if f := FullMap(&front.FullMap{}, s.Map, s.Where); f == nil || f.Map == nil {
 		t.Fatalf("FullMap: %+v", f)
 	}

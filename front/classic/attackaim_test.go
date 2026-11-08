@@ -15,7 +15,7 @@ func TestAttackAims(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}, play.EndTurn{}}}},
 		Field: play.Battlefield{Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(5, 3), Foe: true}}}}}
 	r := newRules(f, game.Data{})
-	if res := r.Apply(game.Attack{Target: 0}); res.Err != nil || len(f.sent) != 0 || !r.State().Combat.Turn.Aim || r.State().Combat.Cursor != image.Pt(5, 3) {
+	if res := r.Apply(game.Attack{Target: 0}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim || shownOf(r).Combat.Cursor != image.Pt(5, 3) {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
 	}
 	r.Apply(game.Aim{At: image.Pt(5, 3)})
@@ -39,7 +39,7 @@ func TestShootTargets(t *testing.T) {
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(6, 6), Foe: true}}}}}
 	r := newRules(f, game.Data{})
 	r.Apply(game.Ranged{})
-	c := r.State().Combat
+	c := shownOf(r).Combat
 	if c == nil || !c.Turn.Aim || len(c.Targets) != 2 || c.Cursor != image.Pt(6, 6) {
 		t.Fatalf("%+v", c)
 	}
@@ -65,7 +65,7 @@ func TestAimNoFoeInReach(t *testing.T) {
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(4, 3), Foe: true}}}}}
 	r := newRules(f, game.Data{})
 	r.Apply(game.Ranged{})
-	c := r.State().Combat
+	c := shownOf(r).Combat
 	if c == nil || !c.Turn.Aim || !c.CursorOn || len(c.Targets) != 2 || c.Cursor != image.Pt(4, 3) {
 		t.Fatalf("%+v", c)
 	}

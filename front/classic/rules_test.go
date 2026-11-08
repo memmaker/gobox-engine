@@ -48,10 +48,10 @@ func TestAdapter(t *testing.T) {
 			}},
 		{"scene reply", &fake{st: talk}, game.Answer{N: 1},
 			func(t *testing.T, f *fake, r *rules, res game.Result) {
-				if a := r.Pending(); a == nil || a.Kind != game.Choice || len(a.Options) != 2 || a.Options[1].Label != "Foe" {
+				if a := r.pending(r.g.State()); a == nil || a.Kind != game.Choice || len(a.Options) != 2 || a.Options[1].Label != "Foe" {
 					t.Fatalf("pending %+v", a)
 				}
-				if s := r.State(); s.Mode != game.ModeAsk || s.Page == nil || s.Pending == nil {
+				if s := shownOf(r); s.Mode != game.ModeAsk || s.Page == nil || s.Pending == nil {
 					t.Fatalf("state %+v", s)
 				}
 				if res.Err != nil || !slices.Equal(f.sent, []play.Action{play.Reply{N: 1}}) {
@@ -71,13 +71,13 @@ func TestAdapter(t *testing.T) {
 				if !slices.Equal(kinds, want) || res.Events[3].N != 4 || res.Events[1].Ms == 0 {
 					t.Fatalf("events %+v", res.Events)
 				}
-				if s := r.State(); s.Mode != game.ModeCombat || s.Combat.Turn.Unit != 1 {
+				if s := shownOf(r); s.Mode != game.ModeCombat || s.Combat.Turn.Unit != 1 {
 					t.Fatalf("state %+v", s.Combat)
 				}
 			}},
 		{"handout read", &fake{st: hand}, game.Answer{N: 0},
 			func(t *testing.T, f *fake, r *rules, res game.Result) {
-				s, s2 := r.State(), r.State()
+				s, s2 := shownOf(r), shownOf(r)
 				if s.Read == nil || s.Read.Title != "Journal 1" || s.Read != s2.Read || s.Pending != nil {
 					t.Fatalf("read %+v pending %+v", s.Read, s.Pending)
 				}
@@ -106,10 +106,10 @@ func TestAimAndSlots(t *testing.T) {
 		Aimed: []play.Aimed{{Action: cast, Squares: []image.Point{{2, 2}}, Targets: 1}}}}}}
 	r := newRules(f, game.Data{})
 	r.dir = t.TempDir()
-	if res := r.Apply(game.Cast{Spell: 7}); res.Err != nil || len(f.sent) != 0 || !r.State().Combat.Turn.Aim {
+	if res := r.Apply(game.Cast{Spell: 7}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
 	}
-	if res := r.Apply(game.Aim{At: image.Pt(5, 5)}); res.Err != nil || len(f.sent) != 0 || !r.State().Combat.Turn.Aim { // not offered: no word, the aim stays (the original's Center)
+	if res := r.Apply(game.Aim{At: image.Pt(5, 5)}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim { // not offered: no word, the aim stays (the original's Center)
 		t.Fatalf("aim out of range: %+v sent %v", res, f.sent)
 	}
 	r.Apply(game.Aim{At: image.Pt(2, 2)})
@@ -148,7 +148,7 @@ func TestTitleFirstStepBeforeStepping(t *testing.T) {
 	pic := game.Layer{Picture: game.Picture{File: "TITLE", Block: 3}} // the first step
 	f := &fake{st: play.Scene{Kind: play.SceneTitle, Intro: &game.Intro{Pictures: []int{3, 1}},
 		Steps: map[int]play.TitleStep{3: {Layers: []game.Layer{pic}}}}}
-	s := newRules(f, game.Data{}).State()
+	s := shownOf(newRules(f, game.Data{}))
 	if s.Page == nil || len(s.Page.Layers) == 0 || s.Page.Layers[len(s.Page.Layers)-1].Picture.Block != 3 {
 		t.Fatalf("no first step picture: %+v", s.Page)
 	}

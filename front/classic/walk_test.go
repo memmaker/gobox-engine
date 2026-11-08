@@ -250,12 +250,12 @@ func TestStopWalk(t *testing.T) {
 	r := newRules(g, game.Data{})
 	r.Apply(game.WalkTo{At: image.Pt(3, 0)})
 	r.Apply(game.StopWalk{})
-	if p := r.State().Pacing; p.Pace == game.PaceWalk || len(g.sent) != 0 {
+	if p := shownOf(r).Pacing; p.Pace == game.PaceWalk || len(g.sent) != 0 {
 		t.Fatalf("pace %v sent %v", p.Pace, g.sent)
 	}
 	r.Apply(game.WalkTo{At: image.Pt(3, 0)})
 	r.Apply(game.Search{})
-	if r.State().Pacing.Pace == game.PaceWalk {
+	if shownOf(r).Pacing.Pace == game.PaceWalk {
 		t.Fatal("a move did not stop it")
 	}
 }

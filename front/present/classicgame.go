@@ -5,15 +5,12 @@ import (
 
 	"gobox/front"
 	"gobox/front/classic"
-	"gobox/game"
 )
 
-// classicGame is a game the classic front runs: the
-// screens front/classic builds from its State stand in for the game's own
-// (classic.View, classic.Creation, classic.Training); everything else is the game's.
+// classicGame is the classic front with what only the presenter knows: its
+// page's size, the music and a menu item's animation.
 type classicGame struct {
-	front.Game
-	r *classic.Game
+	*classic.Game
 	p *Presenter
 }
 
@@ -30,106 +27,43 @@ func (g classicGame) SequenceDone(name string) {
 }
 
 func (g classicGame) View() front.View {
-	s := g.r.State()
-	if c, ok := g.Game.(interface{ Shown() game.State }); ok { // a Refusal's question over the rules' State (Attack Ally?)
-		s = c.Shown()
-	}
-	var gv front.View
-	if c, ok := g.Game.(interface{ ViewOf(game.State) front.View }); ok { // one State a View, not two
-		gv = c.ViewOf(s)
-	} else {
-		gv = g.Game.View()
-	}
-	v := classic.View(gv, s)
-	if v.AreaMap != nil {
-		v.AreaMap = classic.AreaMap(v.AreaMap, s.Map, s.Where, g.art())
-	}
-	if v.MainMenu != nil && !v.Hall && v.Powers == nil { // the title under the party menu
-		v.Logo, v.Backdrop = classic.Title(v.Logo, v.Backdrop, g.art())
-	}
-	v.Battle = classic.Battle(v.Battle, s.Combat, s.Party)
-	if c, ok := g.Game.(*classic.Game); ok {
-		v.Battle = classic.ViewVerb(v.Battle, c.D)
-	}
-	v = classic.Page(v, s.Page, s.Story)
-	v = classic.Flags(v, s.Flags, classic.OverMenu(s.Mode, s.Pending))
-	v = classic.Place(v, s.Where, s.Window)
-	v.Quests, v.Lore = classic.Quests(s.Quests), classic.Lore(s.Lore)
-	v = classic.Waits(v, s.Holding, s.Door, s.PowerPick)
-	v.Party, v.Purse = classic.Party(s.Party, s.Selected, g.art()), classic.Purse(s.Purse, s.PoolItems, s.PartyCap)
-	v = classic.Sheet(v, s.Sheet, s.Portrait, s.IconBox, s.SheetPage, classic.Drafting(s.Mode, s.Creation), s.Creation, g.r.Subject())
-	v = classic.PoolPortrait(v, g.r.Subject())
-	v = classic.PoolIcon(v, g.r.Subject(), s.SheetPage)
-	v = classic.Border(v, g.art())
-	v = classic.Walls(v, s.Walls, g.art())
-	v = classic.Intro(v, s.Intro)
-	v = classic.Sequence(v, s.Sequence, sequences, filesDir)
+	v := g.Game.View()
 	if ownMus != nil {
-		ownMus.Want(musicChain(s))
+		ownMus.Want(musicChain(g.Game.MusicCue()))
 	}
 	if playSeq != "" && v.Sequence == nil { // a game.MenuItem's animation, gobox's own: the game's state never knows
-		s.Sequence = playSeq
-		if v = classic.Sequence(v, s.Sequence, sequences, filesDir); v.Sequence == nil {
+		if v = classic.Sequence(v, playSeq, sequences, filesDir); v.Sequence == nil {
 			playSeq = "" // no such sequence
 		}
 	}
-	v = classic.Note(v, s.Note)
-	v = classic.Results(v, s.Results)
-	v = classic.Screen(v, s.Cells, s.Screen, s.Ink)
-	v.Read = s.Read
-	v = classic.Pacing(v, s.Pacing)
 	return v
 }
 
-// art is the game's art as loaded now: the rules' live Art (the 3D view's
-// wall fronts, the fight's tiles), else the Data's; it comes after NewFront,
-// and the art set can change.
-func (g classicGame) art() map[string]game.Picture {
-	return g.r.Art()
-}
-
-// PickerView is page page of the grid picker State holds (the game's where it holds none).
+// pickerView is page page of the grid picker the state holds, else the front's.
 func (g classicGame) pickerView(page int) *front.Picker {
-	if p := g.r.PickerOf(g.r.State().Picker, page, g.p.grid[0], g.p.grid[1]); p != nil {
-		return p
-	}
-	return g.Game.PickerView(page)
+	return g.Game.PickerOn(page, g.p.grid[0], g.p.grid[1])
 }
 
-// IconEditorView is the icon designer State holds (the game's where it holds none).
+// IconEditorView is the icon designer on the presenter's page.
 func (g classicGame) IconEditorView() *front.IconEditor {
 	ink := g.Game.View().Ink
-	if e := classic.IconEditor(g.r.State().IconEditor, g.r.State().IconPalette, g.r.Subject(), &ink, g.p.grid[0], g.p.grid[1]); e != nil {
-		return e
-	}
-	return g.Game.IconEditorView()
+	return g.Game.IconEditorOn(&ink, g.p.grid[0], g.p.grid[1])
 }
 
 // CreationView is the sheet on the page the presenter last laid out (ActResize).
 func (g classicGame) CreationView() *front.Creation {
-	s := g.r.State()
-	return classic.Creation(s.Mode, s.Creation, s.Pending, g.p.grid[0], g.p.grid[1])
+	return g.Game.CreationOn(g.p.grid[0], g.p.grid[1])
 }
 
-// FullMapView is the game's full map with the parts classic.FullMap takes from State.
+// FullMapView is the full map under cursor.
 func (g classicGame) FullMapView(cursor image.Point, label *string) *front.FullMap {
-	s := g.r.State()
-	return classic.FullMap(g.Game.FullMapView(cursor, label), s.Map, s.Where)
+	return g.Game.FullMapOf(g.Game.FullMapView(cursor, label))
 }
-
-// TrainingView is the hall's offer classic.Training builds from State.
-func (g classicGame) TrainingView() *front.Training { return g.r.TrainingView() }
 
 // WithRules is g as classicGame (p lays out its page) when it is the classic front.
 func WithRules(g front.Game, p *Presenter) front.Game {
 	if c, ok := g.(*classic.Game); ok {
-		return classicGame{g, c, p}
+		return classicGame{c, p}
 	}
 	return g
 }
-
-// State is the rules' state.
-func (g classicGame) State() game.State { return g.r.State() }
-
-// SheetIcon is the classic game's: the draft's combat icon on the sheet.
-func (g classicGame) SheetIcon(v front.View) front.View { return g.r.SheetIcon(v) }

@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoot(t *testing.T) {
-	s := game.State{Mode: game.ModeLoot, Selected: 1, Loot: &game.Loot{Items: []game.Item{{Name: "Gauntlets"}}},
+	s := shown{Mode: game.ModeLoot, Selected: 1, Loot: &game.Loot{Items: []game.Item{{Name: "Gauntlets"}}},
 		Party: []game.Member{{}, {Spells: []game.SpellRef{{Name: detectMagic, Memorized: true}}}}}
 	if l := Loot(s.Mode, s.Loot, s.Allowed, s.Party, s.Selected); l == nil || !l.Take || !l.Detect {
 		t.Errorf("loot %+v", l)
@@ -40,14 +40,14 @@ func TestLoot(t *testing.T) {
 // with the treasure, its money and options) without the game's View, and
 // its acts are TakeLoot.
 func TestLootScreen(t *testing.T) {
-	s := game.State{Mode: game.ModeLoot, Party: []game.Member{{}},
-		Loot: &game.Loot{Items: []game.Item{{Name: "Gauntlets"}}, Money: map[string]int{game.Gold: 120, game.Gems: 2}}}
-	g := NewGame(&fake{st: play.Looting{}}, game.Data{})
-	if v := g.ViewOf(s); v.Inventory != nil || v.Ask == nil || v.Ask.Menu.Prompt != "You found some loot!" || v.Loot != nil {
+	treasure := play.Looting{Common: play.Common{Party: []play.Member{{}}}, Items: []game.Item{{Name: "Gauntlets"}}, Money: map[string]int{game.Gold: 120, game.Gems: 2}}
+	f := &fake{st: treasure}
+	g := NewGame(f, game.Data{})
+	if v := g.View(); v.Inventory != nil || v.Ask == nil || v.Ask.Menu.Prompt != "You found some loot!" || v.Loot != nil {
 		t.Fatalf("no found message first: %+v", v.Ask)
 	}
 	g.Answer(front.Action{Kind: front.ActOK})
-	v := g.ViewOf(s)
+	v := g.View()
 	in := v.Inventory
 	if in == nil || !in.Loot || len(in.Wares) != 1 || in.Treasure == nil || v.Loot != nil {
 		t.Fatalf("no loot screen: %+v loot %+v", in, v.Loot)
@@ -55,21 +55,24 @@ func TestLootScreen(t *testing.T) {
 	if m := in.Treasure.Money; len(m) != 2 || m[0] != "120 gold" || m[1] != "2 gems" {
 		t.Errorf("money %q", m)
 	}
-	s.Mode = game.ModeAsk // a question over the treasure (Buck 2's credits) does not announce it again
-	g.ViewOf(s)
-	s.Mode = game.ModeLoot
-	if g.ViewOf(s).Inventory == nil {
+	asked := treasure // a question over the treasure (Buck 2's credits) does not announce it again
+	asked.Ask = &play.Question{Text: "Sure?", Replies: []string{"Yes"}}
+	f.st = asked
+	g.View()
+	f.st = treasure
+	if g.View().Inventory == nil {
 		t.Error("a question over the treasure announced it again")
 	}
-	s.Sheet = &game.Sheet{}
-	if g.ViewOf(s).Inventory != nil {
+	sheet := treasure
+	sheet.Party = []play.Member{{Powers: []game.Entry{{Name: "Heal"}}}}
+	f.st = sheet
+	if g.View().Inventory != nil {
 		t.Error("loot screen over the sheet")
 	}
-	s.Mode, s.Loot = game.ModeExplore, nil
-	g.ViewOf(s)
-	s.Loot = &game.Loot{Items: []game.Item{{Name: "Gauntlets"}}}
-	s.Mode, s.Sheet = game.ModeLoot, nil
-	if g.ViewOf(s).Inventory != nil {
+	f.st = play.Exploring{}
+	g.View()
+	f.st = treasure
+	if g.View().Inventory != nil {
 		t.Error("the next treasure was not announced")
 	}
 }

@@ -35,7 +35,7 @@ func TestRefusalYesNo(t *testing.T) {
 		g = NewGame(r, game.Data{})
 		g.asked = &game.Ask{Kind: game.YesNo, Options: opts}
 		g.Answer(front.Action{Kind: k, N: map[front.ActKind]int{front.ActOK: 1}[k]})
-		if len(r.sent) != 0 || g.Shown().Pending != nil {
+		if len(r.sent) != 0 || g.pending() != nil {
 			t.Errorf("%v on No: %#v", k, r.sent)
 		}
 	}

@@ -175,7 +175,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	inv.drawTabs(&inv.list, rx, busy)
 	fillc := green
 	fill := strconv.Itoa(len(in.Pool))
-	if in.Cap > 0 { // 0: no limit (game.State.PartyCap), the count alone; else the pack's slots, readied gear not counted
+	if in.Cap > 0 { // 0: no limit (play.Common.PartyCap), the count alone; else the pack's slots, readied gear not counted
 		fill = strconv.Itoa(in.Used) + "/" + strconv.Itoa(in.Cap)
 		if in.Used >= in.Cap {
 			fillc = red

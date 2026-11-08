@@ -10,7 +10,7 @@ import (
 // lays each name beside its portrait inside the box, every portrait shown.
 func TestRosterPickerFits(t *testing.T) {
 	names := []string{"ABC", "ALDRIC", "CORWYN", "PIP", "SYLVAINE", "THORVALD"}
-	s := game.State{Picker: &game.Picker{Pics: make([]game.Picture, len(names)), Labels: names}}
+	s := shown{Picker: &game.Picker{Pics: make([]game.Picture, len(names)), Labels: names}}
 	s.Picker.Cell.X, s.Picker.Cell.Y = 11, 6
 	v := Picker(s.Picker, s.Cells, 0, 80, 25)
 	for i, r := range v.Cells {
@@ -27,7 +27,7 @@ func TestRosterPickerFits(t *testing.T) {
 // keeps the original's 40 by 25), the picker lays out on the page shown.
 func TestPickerOnShownPage(t *testing.T) {
 	names := []string{"ABC", "ALDRIC", "CORWYN"}
-	s := game.State{Picker: &game.Picker{Pics: make([]game.Picture, len(names)), Labels: names}}
+	s := shown{Picker: &game.Picker{Pics: make([]game.Picture, len(names)), Labels: names}}
 	s.Picker.Cell.X, s.Picker.Cell.Y = 11, 6
 	for _, r := range Picker(s.Picker, s.Cells, 0, 53, 33).Cells {
 		if r.X2 > 40-2 || r.Y2 > 25-2 {

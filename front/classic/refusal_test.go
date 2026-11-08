@@ -44,8 +44,8 @@ func TestOffMapStepAsks(t *testing.T) {
 	if len(r.sent) != 1 || r.sent[0] != (play.MoveTo{To: image.Pt(-1, 3)}) {
 		t.Fatalf("sent %+v", r.sent)
 	}
-	if s := g.Shown(); s.Mode != game.ModeAsk || s.Pending == nil || s.Pending.Prompt != "Flee:" {
-		t.Fatalf("shown %v %+v", s.Mode, s.Pending)
+	if q := g.pending(); g.mode() != game.ModeAsk || q == nil || q.Prompt != "Flee:" {
+		t.Fatalf("shown %v %+v", g.mode(), q)
 	}
 	g.Answer(front.Action{Kind: front.ActChoose, N: 0})
 	if len(r.sent) != 2 || r.sent[1] != (play.Flee{}) {

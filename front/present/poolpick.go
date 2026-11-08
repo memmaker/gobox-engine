@@ -40,7 +40,7 @@ func (g classicGame) OpenPicker(kind int) bool {
 	if !has { // the game's own pictures; a portrait or icon part comes from the shared pool, whatever the game offers
 		return ok
 	}
-	if names, _ := classic.BodyTiles(g.r.Subject()); kind == front.PickWeapon && len(names) > 0 {
+	if names, _ := classic.BodyTiles(g.Game.Subject()); kind == front.PickWeapon && len(names) > 0 {
 		pp.names, pp.tiles = names, true
 		g.p.pool = &pp
 		return true
@@ -74,21 +74,21 @@ func (g classicGame) PickerView(page int) *front.Picker {
 			pp.list()
 		}
 		if pp.tiles {
-			return g.r.TilesOf(page, g.p.grid[0], g.p.grid[1])
+			return g.Game.TilesOf(page, g.p.grid[0], g.p.grid[1])
 		}
 		k := &game.Picker{Cell: pp.cell, Pics: make([]game.Picture, len(pp.names))}
 		for i := range k.Pics {
 			k.Pics[i].W = 1 // present, no pixels: classic.Picker lays the cell out, the PNG fills it
 		}
-		v := g.r.PickerOf(k, page, g.p.grid[0], g.p.grid[1])
+		v := g.Game.PickerOf(k, page, g.p.grid[0], g.p.grid[1])
 		if v != nil {
 			v.Portraits = make([]image.Image, len(pp.names))
 			for i, n := range pp.names {
 				switch pp.field { // a combat icon shows whole: the picked part over the member's other one
 				case "iconhead":
-					v.Portraits[i] = classic.PickIcon(g.r.Subject(), n, "")
+					v.Portraits[i] = classic.PickIcon(g.Game.Subject(), n, "")
 				case "iconbody":
-					v.Portraits[i] = classic.PickIcon(g.r.Subject(), "", n)
+					v.Portraits[i] = classic.PickIcon(g.Game.Subject(), "", n)
 				default:
 					v.Portraits[i] = sprites.Image(series, pp.kind, n)
 				}
@@ -107,7 +107,7 @@ func (g classicGame) Pick(i int) bool {
 	if i < 0 || i >= len(pp.names) {
 		return false
 	}
-	if g.r.SetChoice(pp.field, pp.names[i]) != nil {
+	if g.Game.SetChoice(pp.field, pp.names[i]) != nil {
 		return false
 	}
 	g.p.pool = nil

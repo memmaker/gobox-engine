@@ -39,7 +39,7 @@ func (g *Game) walk(k front.ActKind) error {
 	if m == nil {
 		return nil // nowhere to walk now
 	}
-	where := g.r.State().Where
+	where := g.Where()
 	if w.turn {
 		return g.do(game.Face{Facing: (where.Facing + w.side) % 8})
 	}
@@ -51,7 +51,7 @@ func (g *Game) walk(k front.ActKind) error {
 		if err := g.do(game.RunEvent{Before: true, Side: side}); err != nil || g.asked != nil {
 			return err
 		}
-		now := g.r.State().Where
+		now := g.Where()
 		if m = g.walkMap(); m == nil || at(now) != from || now.Facing != where.Facing || now.Area != where.Area {
 			return nil
 		}
@@ -62,7 +62,7 @@ func (g *Game) walk(k front.ActKind) error {
 	if err := g.do(game.Arrive{From: from, To: from.Add(steps[side]), Facing: where.Facing}); err != nil || g.asked != nil {
 		return err
 	}
-	if m := g.walkMap(); m != nil && m.Event(at(g.r.State().Where)) { // the square's event: run it
+	if m := g.walkMap(); m != nil && m.Event(at(g.Where())) { // the square's event: run it
 		return g.do(game.RunEvent{})
 	}
 	return nil

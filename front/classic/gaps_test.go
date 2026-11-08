@@ -28,105 +28,105 @@ func TestGaps(t *testing.T) {
 		st   play.State
 		d    game.Decision
 		sent play.Action // nil: nothing reaches Do
-		ok   func(s game.State) bool
+		ok   func(s shown) bool
 	}{
 		{"door", play.Exploring{Door: door, Day: true, Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{}}}, Outside: true, Sun: true, Mountains: true}}},
 			game.TryDoor{Way: 1}, play.TryDoor{Way: play.DoorBash},
-			func(s game.State) bool { return s.Door == door && s.Walls.Sun && s.Walls.Mountains && s.Flags.Day }},
+			func(s shown) bool { return s.Door == door && s.Walls.Sun && s.Walls.Mountains && s.Flags.Day }},
 		{"night sky", play.Exploring{Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{}}}, Outside: true}}}, game.Search{}, play.Search{},
-			func(s game.State) bool { return !s.Walls.Sun && !s.Flags.Day }},
+			func(s shown) bool { return !s.Walls.Sun && !s.Flags.Day }},
 		{"vault", play.Trading{Kind: play.TradeVault, Vault: &game.Vault{Money: map[string]int{"gold": 5}}}, game.Leave{}, play.Leave{},
-			func(s game.State) bool { return s.Mode == game.ModeVault && s.Vault.Money["gold"] == 5 }},
+			func(s shown) bool { return s.Mode == game.ModeVault && s.Vault.Money["gold"] == 5 }},
 		{"shop identify", play.Trading{Identify: 20, Unknown: []game.ItemRef{{Member: 0, Item: 1}}}, game.Identify{Item: 1}, play.Identify{Item: 1},
-			func(s game.State) bool { return s.Shop.IdentifyPrice == 20 && len(s.Shop.Unknown) == 1 }},
+			func(s shown) bool { return s.Shop.IdentifyPrice == 20 && len(s.Shop.Unknown) == 1 }},
 		{"training learn", play.Trading{Kind: play.TradeTraining, Training: &game.Training{Learning: true}}, game.Learn{Spell: 4}, play.Learn{Spell: 4},
-			func(s game.State) bool { return s.Mode == game.ModeTraining && s.Training.Learning }},
+			func(s shown) bool { return s.Mode == game.ModeTraining && s.Training.Learning }},
 		{"handout esc leaves", play.Scene{Kind: play.SceneHandout, Handout: "Journal", Layers: []game.Layer{{}}, Common: allow(play.Leave{})}, game.Cancel{}, play.Leave{},
-			func(s game.State) bool { return s.Read != nil && len(s.Page.Layers) == 1 && s.Holding == game.HoldNone }},
+			func(s shown) bool { return s.Read != nil && len(s.Page.Layers) == 1 && s.Holding == game.HoldNone }},
 		{"handout read out", play.Scene{Kind: play.SceneHandout, Common: allow(play.Leave{})}, game.Answer{N: 2}, play.Leave{}, nil},
 		{"story page", play.Scene{Text: []string{"hi"}, Common: allow(play.Continue{})}, game.Answer{}, play.Continue{},
-			func(s game.State) bool {
+			func(s shown) bool {
 				r := s.Page.Pane[0][0]
 				return s.Holding == game.HoldNone && r.Upcase && r.Fg == (color.RGBA{})
 			}},
 		{"forget entry", play.Assembling{Common: allow(play.OpenPicker{Kind: 5})}, game.OpenPicker{Kind: 5}, play.OpenPicker{Kind: 5},
-			func(s game.State) bool {
+			func(s shown) bool {
 				return slices.ContainsFunc(s.Pending.Options, func(o game.Option) bool { return o.Label == "Forget Character" })
 			}},
 		{"rest heals", play.Camping{Heals: true, Common: allow(play.AdvanceTimeBy{})}, game.LeaveCamp{}, play.BreakCamp{},
-			func(s game.State) bool { return s.RestHeals && !s.RestStudies }},
+			func(s shown) bool { return s.RestHeals && !s.RestStudies }},
 		{"speaker over view", play.Exploring{Common: play.Common{Portrait: &play.Portrait{}}}, game.Search{}, play.Search{},
-			func(s game.State) bool { return s.Window == game.WindowPicture }},
+			func(s shown) bool { return s.Window == game.WindowPicture }},
 		{"continue over the view", play.Exploring{Common: play.Common{Ask: &play.Question{Continue: true}, Allowed: play.Allowed{Plain: []play.Action{play.Continue{}}}}}, game.Answer{}, play.Continue{},
-			func(s game.State) bool { return s.Mode == game.ModeExplore && s.Pending.Kind == game.Continue }},
+			func(s shown) bool { return s.Mode == game.ModeExplore && s.Pending.Kind == game.Continue }},
 		{"open training", play.Exploring{}, game.OpenTraining{Member: 1}, play.OpenTraining{Member: 1}, nil},
 		{"loot detect", play.Looting{Status: true, Common: allow(play.LootDetect{}, play.LootShare{})}, game.LootDetect{}, play.LootDetect{},
-			func(s game.State) bool { return s.Loot.Status && s.Allowed["LootDetect"] && s.Allowed["LootShare"] }},
+			func(s shown) bool { return s.Loot.Status && s.Allowed["LootDetect"] && s.Allowed["LootShare"] }},
 		{"loot esc leaves", play.Looting{Common: allow(play.Leave{})}, game.Cancel{}, play.Leave{}, nil},
 		{"loot share", play.Looting{}, game.LootShare{}, play.LootShare{}, nil},
 		{"loot status", play.Looting{}, game.LootStatus{}, play.LootStatus{}, nil},
 		{"power pick", play.Camping{Common: play.Common{PowerPick: &game.PowerPick{Name: "Bob"}}}, game.PickPower{ID: 2}, play.PickPower{ID: 2},
-			func(s game.State) bool { return s.PowerPick != nil && s.PowerPick.Name == "Bob" }},
+			func(s shown) bool { return s.PowerPick != nil && s.PowerPick.Name == "Bob" }},
 		{"use power", play.Camping{}, game.UsePower{Member: 1, Kind: int(front.ActMagic)}, play.UsePower{Member: 1, Kind: play.PowerDisplay}, nil},
 		{"policy", play.Camping{}, game.SetPolicy{ID: 1, Policy: 2}, play.SetPolicy{ID: 1, Policy: 2}, nil},
 		{"mark", play.Exploring{}, game.Mark{At: image.Pt(1, 2), Text: "x"}, play.Mark{At: image.Pt(1, 2), Text: "x"}, nil},
 		{"unmark", play.Exploring{}, game.Unmark{At: image.Pt(1, 2)}, play.Unmark{At: image.Pt(1, 2)}, nil},
 		{"rename", play.Assembling{}, game.Rename{Name: "Al"}, play.Rename{Name: "Al"}, nil},
 		{"quit", play.Over{Text: "The end"}, game.Quit{}, play.Quit{},
-			func(s game.State) bool { return s.LastText == "The end" }},
+			func(s shown) bool { return s.LastText == "The end" }},
 		{"modify", play.Assembling{}, game.Modify{Member: 2}, play.Modify{Member: 2}, nil},
 		{"quick start", play.Assembling{}, game.QuickStart{}, play.QuickStart{}, nil},
 		{"roll", play.Assembling{Draft: &play.Draft{Step: "skills", Ask: &play.Question{Replies: []string{"a"}}}}, game.Roll{Minimal: true}, play.Reroll{Minimal: true},
-			func(s game.State) bool { return s.Creation.Step == "skills" && len(s.Creation.Choices) == 1 }},
+			func(s shown) bool { return s.Creation.Step == "skills" && len(s.Creation.Choices) == 1 }},
 		{"plan", play.Camping{}, game.Plan{Member: 1, Spell: 2, Count: 3}, play.Plan{Member: 1, Spell: 2, Count: 3}, nil},
 		{"camp rest", play.Camping{}, game.CampRest{Kind: 1}, play.CampRest{Kind: 1}, nil},
 		{"picker", play.Assembling{Common: play.Common{Picker: &game.Picker{Cur: 2}}}, game.Pick{N: 2}, play.Pick{N: 2},
-			func(s game.State) bool { return s.Picker != nil && s.Picker.Cur == 2 }},
+			func(s shown) bool { return s.Picker != nil && s.Picker.Cur == 2 }},
 		{"open picker", play.Assembling{}, game.OpenPicker{Kind: 1}, play.OpenPicker{Kind: 1}, nil},
 		{"close picker", play.Assembling{}, game.ClosePicker{}, play.ClosePicker{}, nil},
 		{"icon editor", play.Exploring{Common: play.Common{IconEditor: &game.IconEditor{Large: true}}}, game.IconColour{Part: 1, Value: 3}, play.IconColour{Part: 1, Value: 3},
-			func(s game.State) bool { return s.IconEditor.Large && s.Flags.IconDrop }},
+			func(s shown) bool { return s.IconEditor.Large && s.Flags.IconDrop }},
 		{"edit icon", play.Camping{}, game.EditIcon{Member: 1}, play.EditIcon{Member: 1}, nil},
 		{"icon size", play.Camping{}, game.IconSize{}, play.IconSize{}, nil},
 		{"icon remove", play.Camping{}, game.IconRemove{}, play.IconRemove{}, nil},
 		{"icon png", play.Camping{}, game.IconPNG{Path: "a.png"}, play.IconPNG{Path: "a.png"}, nil},
 		{"end icon", play.Camping{}, game.EndIcon{Keep: true}, play.EndIcon{Keep: true}, nil},
 		{"title", play.Scene{Kind: play.SceneTitle, Intro: intro}, game.TitleDone{}, play.Continue{},
-			func(s game.State) bool { return s.Mode == game.ModeTitle && s.Intro == intro && s.Pending == nil }},
+			func(s shown) bool { return s.Mode == game.ModeTitle && s.Intro == intro && s.Pending == nil }},
 		{"title step", play.Scene{Kind: play.SceneTitle, Intro: intro}, game.TitlePicture{N: 2}, nil, nil},
 		{"sequence", play.Scene{Kind: play.SceneSequence, Sequence: "finale"}, game.SequenceDone{Name: "finale"}, play.Continue{},
-			func(s game.State) bool { return s.Sequence == "finale" && s.Pending == nil }},
+			func(s shown) bool { return s.Sequence == "finale" && s.Pending == nil }},
 		{"results", play.Scene{Kind: play.SceneResults, Results: res}, game.Answer{}, play.Continue{},
-			func(s game.State) bool { return s.Results == res && s.Pending.Kind == game.Continue }},
+			func(s shown) bool { return s.Results == res && s.Pending.Kind == game.Continue }},
 		{"placed text", play.Scene{Placed: []play.Placed{{At: image.Pt(3, 2), Text: "Hull", Tone: game.ToneBad}},
 			Layers: []game.Layer{{At: image.Rect(1, 1, 5, 5), FrameMs: 100}}}, game.Answer{}, play.Continue{},
-			func(s game.State) bool {
+			func(s shown) bool {
 				v := s.Page.View
 				return len(v) == 2 && v[1][0].X == 3 && v[1][0].Fg == tones[game.ToneBad] && s.Page.Layers[0].At.Max.X == 5 && s.Pacing.Pace == game.PaceAnim
 			}},
 		{"screen", play.Scene{Kind: play.SceneScreen, Screen: &game.Screen{Kind: game.ScreenStarmap}}, game.Answer{}, play.Continue{},
-			func(s game.State) bool { return s.Screen.Kind == game.ScreenStarmap }},
+			func(s shown) bool { return s.Screen.Kind == game.ScreenStarmap }},
 		{"heading", play.Scene{Kind: play.SceneHeading, Text: []string{"En route"}}, game.Answer{N: 6}, play.Heading{Dir: 6},
-			func(s game.State) bool {
+			func(s shown) bool {
 				return s.Pending.Kind == game.Direction && s.Pending.Prompt == "En route" && s.Pending.Options[0].Do == game.Leave{}
 			}},
 		{"heading done", play.Scene{Kind: play.SceneHeading}, game.Leave{}, play.Leave{}, nil},
 		{"ship fight", play.ShipFight{Fight: sf, Menu: &play.Question{Replies: []string{"Pilot", "Gunner"}}}, game.Answer{N: 1}, play.Crew{N: 1},
-			func(s game.State) bool {
+			func(s shown) bool {
 				return s.Screen.Kind == game.ScreenSpaceFight && s.Screen.SpaceFight.Range == 4 && s.Pending.Options[1].Label == "Gunner"
 			}},
 		{"ship sheet", play.ShipFight{Sheet: &game.ShipSheet{Name: "Ark"}}, game.Answer{N: 0}, play.Crew{N: 0},
-			func(s game.State) bool { return s.Screen.ShipSheet.Name == "Ark" }},
+			func(s shown) bool { return s.Screen.ShipSheet.Name == "Ark" }},
 		{"maneuver named", play.Fighting{Common: allow(play.DoManeuver{ID: 3}), Field: play.Battlefield{Maneuvers: []game.TurnManeuver{man}}}, game.Guard{}, play.Guard{},
-			func(s game.State) bool { return s.Combat.Turn.Maneuvers[0].Name == "Sweep" }},
+			func(s shown) bool { return s.Combat.Turn.Maneuvers[0].Name == "Sweep" }},
 		{"turn figures", play.Fighting{Field: play.Battlefield{Turn: 1, Moves: 5, Casting: 9, Weapon: &game.Weapon{},
 			Units: []play.Unit{{ID: 1, Pose: 1}}}}, game.EndTurn{}, play.EndTurn{},
-			func(s game.State) bool {
+			func(s shown) bool {
 				t := s.Combat.Turn
 				return t.Moves == 5 && t.Casting == 9 && t.Weapon != nil && s.Combat.Units[0].Pose == 1
 			}},
 		{"br intimidate", play.Fighting{Common: allow(play.Intimidate{}, play.Jetpack{})}, game.Answer{N: 'I'}, play.Intimidate{},
-			func(s game.State) bool {
+			func(s shown) bool {
 				o := s.Combat.Turn.Options
 				return slices.ContainsFunc(o, func(x game.Option) bool { return x.Label == "Jetpack" && x.Do == game.Answer{N: 'J'} })
 			}},
@@ -138,12 +138,12 @@ func TestGaps(t *testing.T) {
 		{"br jetpack", play.Fighting{Common: allow(play.Jetpack{})}, game.Answer{N: 'J'}, play.Jetpack{}, nil},
 		{"member text", play.Camping{Common: play.Common{Party: []play.Member{{ClassText: "a/b", Memo: "0/3",
 			Powers: []game.Entry{{Name: "Heal", Verb: "heal"}}, Sheet: &game.SheetPage{Name: "Al"}}}}}, game.OpenSheet{Member: 0}, nil,
-			func(s game.State) bool {
+			func(s shown) bool {
 				m := s.Party[0]
 				return m.ClassText == "a/b" && m.Memo == "0/3" && s.Sheet.Powers[0].Name == "Heal" && s.SheetPage.Name == "Al"
 			}},
 		{"music", play.Exploring{Common: play.Common{Where: game.Where{Music: "town"}}, Map: play.ExploreMap{Automap: game.Automap{NoMap: true}}},
-			game.Look{}, play.Look{}, func(s game.State) bool { return s.Where.Music == "town" && s.Map.NoMap }},
+			game.Look{}, play.Look{}, func(s shown) bool { return s.Where.Music == "town" && s.Map.NoMap }},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -155,8 +155,8 @@ func TestGaps(t *testing.T) {
 			if c.sent == nil && len(f.sent) != 0 || c.sent != nil && (len(f.sent) != 1 || !same(f.sent[0], c.sent)) {
 				t.Fatalf("sent %#v, want %#v", f.sent, c.sent)
 			}
-			if c.ok != nil && !c.ok(r.State()) {
-				t.Fatalf("state %+v", r.State())
+			if c.ok != nil && !c.ok(shownOf(r)) {
+				t.Fatalf("state %+v", shownOf(r))
 			}
 		})
 	}
@@ -177,13 +177,13 @@ func TestRestPaced(t *testing.T) {
 	f := &fake{st: play.Camping{Common: allow(play.AdvanceTimeBy{})}}
 	r := newRules(f, game.Data{})
 	r.Apply(game.Rest{Minutes: 30})
-	if p := r.State().Pacing; p.Pace != game.PaceRest || !p.Resting {
+	if p := shownOf(r).Pacing; p.Pace != game.PaceRest || !p.Resting {
 		t.Fatalf("pacing %+v", p)
 	}
 	r.Step()
 	r.Apply(game.StopRest{})
 	r.Step()
-	if len(f.sent) != 1 || f.sent[0] != (play.AdvanceTimeBy{D: restChunk}) || r.State().Pacing.Pace != game.PaceNone {
+	if len(f.sent) != 1 || f.sent[0] != (play.AdvanceTimeBy{D: restChunk}) || shownOf(r).Pacing.Pace != game.PaceNone {
 		t.Fatalf("sent %v", f.sent)
 	}
 }
@@ -195,7 +195,7 @@ func reflectEqual(a, b play.Action) bool { return reflect.DeepEqual(a, b) }
 func TestCampCard(t *testing.T) {
 	c := allow(play.Memorize{Member: 1, Spell: 2}, play.DropMember{Member: 0}, play.DropMember{Member: 1})
 	c.Party = []play.Member{{Name: "A"}, {Name: "B", Items: []game.Item{{Name: "Sword"}}}}
-	s := newRules(&fake{st: play.Camping{Common: c}}, game.Data{}).State()
+	s := shownOf(newRules(&fake{st: play.Camping{Common: c}}, game.Data{}))
 	got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card)
 	if want := "[{View view} {Drop drop}] [{View view} {Items items} {Memorize memorize} {Drop drop}]"; got != want {
 		t.Fatalf("cards %s, want %s", got, want)
@@ -206,9 +206,9 @@ func TestCampCard(t *testing.T) {
 func TestCampKeepsView(t *testing.T) {
 	f := &fake{st: play.Exploring{Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{}}}}}}}
 	r := newRules(f, game.Data{})
-	r.State()
+	shownOf(r)
 	f.st = play.Camping{}
-	if r.State().Walls == nil {
+	if shownOf(r).Walls == nil {
 		t.Fatal("camp lost the 3D view")
 	}
 }
@@ -217,10 +217,10 @@ func TestCampKeepsView(t *testing.T) {
 // no Step still asks, a bare Step (the sheet) does not.
 func TestDraftAsks(t *testing.T) {
 	r := newRules(&fake{st: play.Assembling{Draft: &play.Draft{Ask: &play.Question{Typed: true}}}}, game.Data{})
-	if a := r.Pending(); a == nil || a.Kind != game.Name {
+	if a := r.pending(r.g.State()); a == nil || a.Kind != game.Name {
 		t.Fatalf("typed draft asks %+v", a)
 	}
-	if a := newRules(&fake{st: play.Assembling{Draft: &play.Draft{Step: "sheet"}}}, game.Data{}).Pending(); a != nil {
+	if a := func() *game.Ask { r := newRules(&fake{st: play.Assembling{Draft: &play.Draft{Step: "sheet"}}}, game.Data{}); return r.pending(r.g.State()) }(); a != nil {
 		t.Fatalf("the sheet asks %+v", a)
 	}
 }
@@ -229,7 +229,7 @@ func TestDraftAsks(t *testing.T) {
 // (the front draws layers only).
 func TestPictureIsLayer(t *testing.T) {
 	pic := game.Picture{File: "PIC1", Block: 57}
-	s := newRules(&fake{st: play.Exploring{Common: play.Common{Picture: &pic}}}, game.Data{}).State()
+	s := shownOf(newRules(&fake{st: play.Exploring{Common: play.Common{Picture: &pic}}}, game.Data{}))
 	if len(s.Page.Layers) != 1 || s.Page.Layers[0].Block != 57 {
 		t.Fatalf("layers %+v", s.Page.Layers)
 	}
@@ -240,7 +240,7 @@ func TestPictureIsLayer(t *testing.T) {
 func TestCardItems(t *testing.T) {
 	c := allow(play.Ready{Member: 1}, play.Drop{Member: 2})
 	c.Party = []play.Member{{Name: "A"}, {Name: "B"}, {Name: "C"}}
-	s := newRules(&fake{st: play.Camping{Common: c}}, game.Data{}).State()
+	s := shownOf(newRules(&fake{st: play.Camping{Common: c}}, game.Data{}))
 	if got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card, s.Party[2].Card); got != "[{View view}] [{View view} {Items items}] [{View view} {Items items}]" {
 		t.Fatal(got)
 	}
@@ -250,9 +250,9 @@ func TestCardItems(t *testing.T) {
 func TestCampKeepsMap(t *testing.T) {
 	f := &fake{st: play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(2, 2), Known: []image.Point{{0, 0}}}}}}
 	r := newRules(f, game.Data{})
-	r.State()
+	shownOf(r)
 	f.st = play.Camping{}
-	if r.State().Map.Size != image.Pt(2, 2) {
+	if shownOf(r).Map.Size != image.Pt(2, 2) {
 		t.Fatal("camp lost the map")
 	}
 }
@@ -263,9 +263,9 @@ func TestCampBareMap(t *testing.T) {
 	known := []image.Point{{0, 0}, {1, 0}}
 	f := &fake{st: play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16), Known: known}}}}
 	r := newRules(f, game.Data{})
-	r.State()
+	shownOf(r)
 	f.st = play.Camping{Common: play.Common{Automap: game.Automap{Size: image.Pt(16, 16)}}}
-	if got := r.State().Map.Known; len(got) != 2 {
+	if got := shownOf(r).Map.Known; len(got) != 2 {
 		t.Fatalf("camp map knows %v", got)
 	}
 }
@@ -296,7 +296,7 @@ func TestItemsTabSheet(t *testing.T) {
 	r := newRules(&fake{st: play.Exploring{Common: c}}, game.Data{})
 	r.Apply(game.OpenItems{})
 	r.Apply(game.CloseItems{})
-	if st := r.State(); st.SheetPage == nil || st.Sheet == nil || st.SheetPage.Levels != "3/2" {
+	if st := shownOf(r); st.SheetPage == nil || st.Sheet == nil || st.SheetPage.Levels != "3/2" {
 		t.Fatal("Tab closed the items without the sheet, or its levels")
 	}
 }
@@ -305,7 +305,7 @@ func TestItemsTabSheet(t *testing.T) {
 func TestShopBrowse(t *testing.T) {
 	r := newRules(&fake{st: play.Trading{Goods: []game.Item{{Name: "Sword"}}}}, game.Data{})
 	r.Apply(game.Browse{Member: -1})
-	if r.State().Items != game.ItemsShop {
+	if shownOf(r).Items != game.ItemsShop {
 		t.Fatal("Browse opened nothing")
 	}
 }

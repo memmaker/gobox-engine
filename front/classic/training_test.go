@@ -9,7 +9,7 @@ import (
 )
 
 func TestTraining(t *testing.T) {
-	s := game.State{Party: []game.Member{{Name: "Ann"}}, Purse: map[string]int{game.Gold: 900},
+	s := shown{Party: []game.Member{{Name: "Ann"}}, Purse: map[string]int{game.Gold: 900},
 		Training: &game.Training{Cost: 1000, Learning: true, Learn: []game.SpellRef{{ID: 9, Name: "Sleep", Level: 1}, {ID: 30, Name: "Fireball", Level: 3}}}}
 	want := &front.Training{Name: "Ann", Price: 1000, Gold: 900, Learn: []front.BookSpell{{ID: 9, Name: "Sleep", Level: "1st Level"}, {ID: 30, Name: "Fireball", Level: "3rd Level"}}}
 	if got := Training(s.Training, s.Party, s.Selected, s.Purse); !reflect.DeepEqual(got, want) {

@@ -5,6 +5,7 @@
 package present
 
 import (
+	"gobox/front/classic"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
@@ -26,7 +27,7 @@ var musicTriggers = []string{
 
 // musicChain is the triggers for s, most specific first: the place's own
 // (Where.Music) before the generic.
-func musicChain(s game.State) []string {
+func musicChain(s classic.MusicCue) []string {
 	place := s.Where.Music
 	kind := "exploring"
 	switch m := s.Where.Mode; {
@@ -57,15 +58,15 @@ func musicChain(s game.State) []string {
 		add(kind, "exploring")
 	}
 	switch {
-	case s.Sequence != "" || s.Intro != nil || s.Mode == game.ModeTitle:
+	case s.Title:
 		add("title")
-	case s.Creation != nil || s.Mode == game.ModeCreate:
+	case s.Creating:
 		add("party-creation", "title")
-	case s.Results != nil:
+	case s.Results:
 		add("victory")
-	case s.Combat != nil || s.Mode == game.ModeCombat:
+	case s.Fighting:
 		ck := map[string]string{"peaceful-town": "town", "dungeon": "dungeon", "wilderness": "wilderness"}[kind]
-		if s.Combat != nil && s.Combat.Dungeon {
+		if s.Dungeon {
 			ck = "dungeon"
 		}
 		add("combat-"+place, "combat-"+ck, "combat")

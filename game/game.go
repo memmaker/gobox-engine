@@ -57,65 +57,6 @@ const (
 	ModeStory
 )
 
-// State is the domain superset across the games. Fields a game lacks stay zero.
-type State struct {
-	Mode       Mode
-	Pending    *Ask
-	Party      []Member
-	Selected   int // index into Party
-	Where      Where
-	Picture    Picture // story / view picture
-	Story      []Picture
-	LastText   string
-	Purse      map[string]int // money by kind ("gold", "platinum", ...)
-	Quests     []Quest
-	Map        Automap
-	Combat     *Combat
-	Shop       *Shop
-	Temple     []Service
-	TempleName string
-	Training   *Training
-	Loot       *Loot
-	Door       *Door
-	Vault      *Vault
-	Saves      []SaveSlot
-	Creation   *Creation
-	// Allowed lists the item verbs the rules take now, by Decision type
-	// name ("UseItem", "Sell", "Trade", "Halve", "Join", ...); gobox offers
-	// only these.
-	Allowed                map[string]bool
-	RestHeals, RestStudies bool            // what resting now does
-	TempleOffers           []Offer         // the temple\'s appraisals, as Shop.Offers
-	PartyCap               int             // most items the party carries in all, 0 no limit
-	Bestiary               []Beast         // the monsters the party has met
-	Picker                 *Picker         // a grid picker is up
-	IconEditor             *IconEditor     // the combat icon designer is up
-	IconPalette            []color.RGBA    // the colour of each icon colour index 0..15 as the art set shows it (empty: the EGA colours)
-	Page                   *Page           // the text page: the game's scripted text and story pictures
-	Flags                  *Flags          // the plain status flags of the screen
-	Walls                  *Walls          // the 3D view the rules build from their own map (nil: the remastered map)
-	Intro                  *Intro          // the title waits to be played
-	Sequence               string          // the Data.Sequences entry playing full screen ("": none); gobox sends SequenceDone at its end or on a skip
-	Note                   Note            // the status line's toast
-	Results                *Results        // the after-combat page
-	Read                   *Read           // journal text the game waits to have read
-	Cells                  image.Point     // the page's size in text cells
-	Ink                    [16]color.RGBA  // the text colours (EGA 0..15) now (all zero: the EGA's own)
-	Pacing                 *Pacing         // what goes on with time
-	Window                 Window          // what the view window shows
-	Holding                Hold            // what the game waits on out of a question
-	Lore                   []Lore          // the journal's notes, newest first
-	PowerPick              *PowerPick      // a member must choose a power
-	PoolItems              int             // the party items held (Purse's room is PartyCap)
-	Sheet                  *Sheet          // the selected member's sheet offers
-	Items                  ItemsUp         // the inventory screen is up, and whose goods it shows beside the member's
-	SheetPage              *SheetPage      // the character sheet's page is up
-	Portrait               image.Rectangle // the sheet's portrait box in text cells, Max inclusive (zero elsewhere)
-	IconBox                image.Rectangle // the creation sheet's combat icon box, as Portrait
-	Screen                 *Screen         `json:",omitempty"` // a typed screen is up (nil: none); Pending, when set, is asked on its prompt rows
-
-}
-
 // Walls are the facts of a 3D view seen from the party's square: a wall
 // face on every side. Fronts name the wall art (Data.Art), read live.
 type Walls struct {

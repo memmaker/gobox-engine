@@ -25,7 +25,7 @@ func (h seqHost) Call(f func(front.Game)) { f(h.g) }
 func TestSequenceSkip(t *testing.T) {
 	r := &fake{st: play.Scene{Kind: play.SceneSequence, Sequence: "INTRO", Common: allow(play.Continue{})}}
 	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: t.TempDir()})
-	sq := Sequence(front.View{}, g.r.State().Sequence, g.D.Sequences, g.D.Files).Sequence
+	sq := Sequence(front.View{}, shownOf(g.r).Sequence, g.D.Sequences, g.D.Files).Sequence
 	if sq == nil || sq.Anim != "INTRO" {
 		t.Fatalf("View.Sequence %+v", sq)
 	}
@@ -46,7 +46,7 @@ func TestSequenceSkipPlaying(t *testing.T) {
 	}
 	r := &fake{st: play.Scene{Kind: play.SceneSequence, Sequence: "INTRO", Common: allow(play.Continue{})}}
 	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: dir})
-	sq := Sequence(front.View{}, g.r.State().Sequence, g.D.Sequences, g.D.Files).Sequence
+	sq := Sequence(front.View{}, shownOf(g.r).Sequence, g.D.Sequences, g.D.Files).Sequence
 	var ui front.SequenceUI
 	h := seqHost{g: g}
 	if f := front.SequenceStep(h, &ui, sq, false); f == nil || len(r.sent) != 0 {
