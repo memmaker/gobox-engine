@@ -29,9 +29,10 @@ Agreed rules:
 ## B: gobox
 - [x] Walk: POR's stop rules and locked doors, with tests
 - [ ] classic front reads play.State, sends play.Action
-- [ ] playrules, game.Rules, game.State, game.Decision deleted
-- [ ] Game cmd wiring and tests moved; parity guard against the old path
+- [ ] playrules, game.Rules, game.State, game.Decision deleted (playrules, game.Rules, game.Mapped, classic.Game.R, por wrapper done; game.State, game.Decision open)
+- [x] Game cmd wiring and tests moved; parity guard against the old path
 - [ ] Final: full suites and scripted windowed runs of all six games
 
 ## Progress (B)
 - Walk: POR's rules in gobox (walkStep): text stops on a square not in Automap.Walked; a visited square's text does not; blank text never; any other fact (picture, damage, gain) does; questions, doors, off-course steps do. Locked doors are walls. A square per 150 ms. Any key or click stops it (Front.stopWalk, TestAnyInputStopsWalk). Not carried: POR stopped on ECL ops that show nothing (the op table); a silent script keeps walking here.
+- Step 1 (0faee48): playrules folded into classic/rules.go; NewGame takes the play.Game. NOT the goal yet: rules.State() still builds a game.State for the builders, and rules.Apply takes game.Decision. That adapter is what step 2 removes.
