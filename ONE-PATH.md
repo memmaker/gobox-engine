@@ -10,6 +10,9 @@ Agreed rules:
   (play.Question.Esc); no hint: Esc selects nothing, the choice is forced.
   The script decompiler writes the hint into the scripts by a heuristic; the
   engine reads only the typed hint, never text.
+- Vendor menus (shops, temples, training halls, taverns...): the decompiler folds
+  the Yes/No gate and the real menu into one. Backing out gives the state of the
+  cut No branch.
 - Auto-walk uses POR's rules for all games: stops on an unvisited square with a
   script, on any key or click, and locked doors count as walls.
 - Paladin powers are offered wherever spell casting is, as POR does.
@@ -21,6 +24,7 @@ Agreed rules:
 - [ ] sotsb-go: exit hints; paladin powers audited
 - [ ] buckrogers-go: exit hints
 - [ ] buckrogers2-go: exit hints
+- [ ] Decompiler folds vendor gates, per game, with comparison tests
 
 ## B: gobox
 - [x] Walk: POR's stop rules and locked doors, with tests
