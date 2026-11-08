@@ -441,6 +441,7 @@ func (g *Game) CombatStep() error { return g.step() }
 func (g *Game) RestStep() error   { return g.step() }
 func (g *Game) StoryStep() error  { return g.step() }
 func (g *Game) WalkStep() error   { return g.step() }
+func (g *Game) StopWalk() error   { return g.do(game.StopWalk{}) }
 
 // Party menu.
 func (g *Game) Begin() error             { return g.do(game.Begin{}) }

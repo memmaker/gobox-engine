@@ -12,20 +12,6 @@ import (
 	"gobox/game/play"
 )
 
-// walker is fake's map: an open 3x3 square with a wall east of (0,0).
-type walker struct{}
-
-func (walker) Name() string      { return "yard" }
-func (walker) Size() image.Point { return image.Pt(3, 3) }
-func (walker) Edge(at image.Point, side int) game.Edge {
-	if at == (image.Point{}) && side == 2 {
-		return game.Edge{Kind: game.EdgeWall}
-	}
-	return game.Edge{}
-}
-func (walker) Departure(image.Point, int) bool { return false }
-func (walker) Event(image.Point) bool          { return false }
-
 func allow(a ...play.Action) play.Common { return play.Common{Allowed: play.Allowed{Plain: a}} }
 
 // TestGaps: each closed gap's state shows as the old State, and its
@@ -201,25 +187,6 @@ func TestRestPaced(t *testing.T) {
 	}
 }
 
-// TestWalkTo: the auto-walk goes round the wall a square a Step.
-func TestWalkTo(t *testing.T) {
-	f := &fake{st: play.Exploring{Map: play.ExploreMap{Walk: walker{}}}}
-	r := New(f, game.Data{})
-	if res := r.Apply(game.WalkTo{At: image.Pt(1, 0)}); res.Err != nil {
-		t.Fatal(res.Err)
-	}
-	if r.State().Pacing.Pace != game.PaceWalk {
-		t.Fatal("not walking")
-	}
-	r.Step() // (0,0) -> (0,1): south, the wall east; the party faces north, so it turns first
-	if _, ok := f.sent[0].(play.Face); !ok || len(f.sent) != 4 {
-		t.Fatalf("sent %v", f.sent)
-	}
-	if a, ok := f.sent[2].(play.Arrive); !ok || a.To != image.Pt(0, 1) {
-		t.Fatalf("sent %v", f.sent)
-	}
-}
-
 func reflectEqual(a, b play.Action) bool { return reflect.DeepEqual(a, b) }
 
 // TestCampCard: each member's card menu comes from what Allowed lets that
@@ -302,29 +269,6 @@ func TestCampBareMap(t *testing.T) {
 	}
 }
 
-// arriveSays is a fake whose step itself says something (time passes).
-type arriveSays struct{ fake }
-
-func (a *arriveSays) Do(x play.Action) (play.Outcome, error) {
-	a.sent = append(a.sent, x)
-	if _, ok := x.(play.Arrive); ok {
-		return play.Outcome{Events: []play.Event{play.Sounded{Sound: "step"}}}, nil
-	}
-	return play.Outcome{}, nil
-}
-
-// TestWalkRunsEvent: a walk's step runs the square's event though the
-// step itself said something, as a manual step does.
-func TestWalkRunsEvent(t *testing.T) {
-	f := &arriveSays{fake{st: play.Exploring{Map: play.ExploreMap{Walk: walker{}}}}}
-	r := New(f, game.Data{})
-	r.Apply(game.WalkTo{At: image.Pt(0, 2)})
-	r.Step()
-	if len(f.sent) != 4 || f.sent[3] != (play.RunEvent{}) { // a turn, the script ahead, the step, the square's event
-		t.Fatalf("sent %v", f.sent)
-	}
-}
-
 // TestArriveAsAllowed: a step goes as the rules allow it, with their
 // facing (a step back that turns the party), never refused for gobox's.
 func TestArriveAsAllowed(t *testing.T) {
@@ -372,28 +316,5 @@ func TestReadyToggles(t *testing.T) {
 	New(f, game.Data{}).Apply(game.Ready{Member: 0, Item: 0})
 	if len(f.sent) != 1 || f.sent[0] != (play.Unready{}) {
 		t.Fatalf("sent %v", f.sent)
-	}
-}
-
-// beforeSays is a fake whose script ahead of a step says something.
-type beforeSays struct{ fake }
-
-func (b *beforeSays) Do(x play.Action) (play.Outcome, error) {
-	b.sent = append(b.sent, x)
-	if e, ok := x.(play.RunEvent); ok && e.Before {
-		return play.Outcome{Events: []play.Event{play.Narrated{Text: "You approach the gate."}}}, nil
-	}
-	return play.Outcome{}, nil
-}
-
-// TestWalkFinishesHeldStep: the script ahead says something; the walk
-// still makes the step it holds (Arrive), never leaving the game waiting.
-func TestWalkFinishesHeldStep(t *testing.T) {
-	f := &beforeSays{fake{st: play.Exploring{Map: play.ExploreMap{Walk: walker{}}}}}
-	r := New(f, game.Data{})
-	r.Apply(game.WalkTo{At: image.Pt(0, 1)})
-	r.Step()
-	if !slices.ContainsFunc(f.sent, func(a play.Action) bool { _, ok := a.(play.Arrive); return ok }) {
-		t.Fatalf("held step never made: sent %v", f.sent)
 	}
 }

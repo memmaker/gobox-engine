@@ -73,8 +73,9 @@ type (
 		At   image.Point
 		Text string
 	}
-	Unmark struct{ At image.Point }
-	WalkTo struct{ At image.Point }
+	Unmark   struct{ At image.Point }
+	WalkTo   struct{ At image.Point }
+	StopWalk struct{}
 	// Speak voices a journal page: its speech clips Keys, in order, in place
 	// of what is being voiced (none: silence).
 	Speak struct{ Keys []string }
@@ -141,6 +142,7 @@ func (SequenceDone) decision()  {}
 func (Speak) decision()         {}
 func (Unmark) decision()        {}
 func (WalkTo) decision()        {}
+func (StopWalk) decision()      {}
 
 // UsePower's Kinds: cast a memorised spell, list the member's spell
 // effects, the paladin's lay on hands and cure (the front's ActSpells,

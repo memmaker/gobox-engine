@@ -55,14 +55,15 @@ type rules struct {
 	speedUp bool          // the Speed menu is up (SpeedMenu)
 	speed   int           // the game speed (SetSpeed, 0-9): a fight's moment holds speed × 100 ms, as the originals' message delay
 	rest    time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
-	walk    []image.Point // the auto-walk's squares still to go, one per Step (PaceWalk)
-	seq     uint64        // counts the changes: the front redraws on a new one
-	data    game.Data     // the series' data (verb keys, texts)
-	log     []string      // the fight's message log, from the outcomes' text
-	note    game.Note     // the status line's toast: the last refusal
-	walls   *game.Walls   // the 3D view last explored: a scene over it keeps it
-	camMap  game.Automap  // the map last explored: camp keeps it
-	title   struct {      // the title as gobox steps it
+	walk    *walking      // the auto-walk under way, a square per walkPace (PaceWalk)
+	now     func() time.Time
+	seq     uint64       // counts the changes: the front redraws on a new one
+	data    game.Data    // the series' data (verb keys, texts)
+	log     []string     // the fight's message log, from the outcomes' text
+	note    game.Note    // the status line's toast: the last refusal
+	walls   *game.Walls  // the 3D view last explored: a scene over it keeps it
+	camMap  game.Automap // the map last explored: camp keeps it
+	title   struct {     // the title as gobox steps it
 		n       int
 		credits bool
 		page    int
@@ -79,7 +80,7 @@ type aiming struct {
 // New is g as the old front's Rules; d is the game's Data
 // (its series' verb keys and texts).
 func New(g play.Game, d game.Data) game.Rules {
-	r := &rules{g: g, dir: saveDir(d), sheet: -1, data: d, speed: defaultSpeed}
+	r := &rules{g: g, dir: saveDir(d), sheet: -1, data: d, speed: defaultSpeed, now: time.Now}
 	return r
 }
 
@@ -125,7 +126,7 @@ func (r *rules) Step() game.Result {
 			r.rest = 0
 		}
 		return res
-	case len(r.walk) > 0:
+	case r.walk != nil:
 		return r.walkStep()
 	}
 	return game.Result{}
@@ -378,7 +379,7 @@ func (r *rules) State() game.State {
 	switch {
 	case r.rest > 0:
 		s.Pacing = &game.Pacing{Pace: game.PaceRest, Resting: true}
-	case len(r.walk) > 0:
+	case r.walk != nil:
 		s.Pacing = &game.Pacing{Pace: game.PaceWalk}
 	}
 	if r.read != nil && !isHandout(ps) {
@@ -989,12 +990,7 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		}
 		return game.Result{}
 	case game.Arrive: // the step the rules allow from and to there, with their facing: gobox's guess of it (kept on a step back) is not the rules' say
-		for _, a := range commonOf(ps).Allowed.Plain {
-			if s, ok := a.(play.Arrive); ok && s.From == d.From && s.To == d.To {
-				return r.do(s)
-			}
-		}
-		return r.do(play.Arrive{From: d.From, To: d.To, Facing: d.Facing})
+		return r.do(allowedArrive(commonOf(ps).Allowed, d.From, d.To, d.Facing))
 	case game.Items, game.OpenItems, game.Browse: // Browse: a shop's goods beside the member's items (State.Items = ItemsShop)
 		r.items, r.itemsOf = game.ItemsOwn, -1
 		if o, ok := d.(game.OpenItems); ok {
@@ -1070,6 +1066,10 @@ func (r *rules) Apply(d game.Decision) game.Result {
 		}
 	case game.WalkTo:
 		return r.walkTo(ps, d.At)
+	case game.StopWalk:
+		r.walk = nil
+		r.seq++
+		return game.Result{}
 	case game.Select:
 		return r.do(play.SelectMember{Member: d.N})
 	case game.ShowMember: // select the member and open their sheet, as the old path's View
@@ -1533,6 +1533,11 @@ var traceOn = os.Getenv("GOBOX_TRACE") != ""
 
 func (r *rules) keep(a play.Action) game.Result {
 	out, err := r.g.Do(a)
+	return r.outcome(a, out, err)
+}
+
+// outcome is what a's Do gave as the result the front plays.
+func (r *rules) outcome(a play.Action, out play.Outcome, err error) game.Result {
 	if traceOn {
 		fmt.Fprintf(os.Stderr, "trace %s play.Do %T%+v err=%v events=%d\n", time.Now().Format("15:04:05.000"), a, a, err, len(out.Events))
 	}
@@ -1562,84 +1567,194 @@ func (r *rules) keep(a play.Action) game.Result {
 	return game.Result{Events: eventsAt(out.Events, r.speed*speedStepMs, r.engaged)}
 }
 
-// sides are the facings of the four steps.
-var sides = map[image.Point]int{{0, -1}: 0, {1, 0}: 2, {0, 1}: 4, {-1, 0}: 6}
+// walkSides are the four steps as sides (N E S W) with their offsets, in the
+// order the walk's search tries them.
+var walkSides = [4]struct {
+	side int
+	d    image.Point
+}{{0, image.Pt(0, -1)}, {2, image.Pt(1, 0)}, {4, image.Pt(0, 1)}, {6, image.Pt(-1, 0)}}
 
-// walkTo plans the auto-walk to at over the game's map, shortest first;
-// Step walks it a square at a time.
-func (r *rules) walkTo(ps play.State, at image.Point) game.Result {
-	x, ok := ps.(play.Exploring)
-	if !ok || x.Map.Walk == nil {
-		return game.Result{Err: errors.New("not walking")}
-	}
-	m, from := x.Map.Walk, image.Pt(x.Where.X, x.Where.Y)
-	prev := map[image.Point]image.Point{from: from}
+// walkPace is the auto-walk's time per square.
+const walkPace = 150 * time.Millisecond
+
+// walking is the auto-walk under way: where to, in which area, and when the
+// last square was walked (time.Time's zero: none yet, the first goes at once).
+type walking struct {
+	to   image.Point
+	area string
+	last time.Time
+}
+
+// walkBlocked is whether the walk's search counts e as a wall: a locked door
+// does, the map shows every wall and so does the way.
+func walkBlocked(e game.Edge) bool {
+	return e.Kind == game.EdgeWall || e.Kind == game.EdgeDoor && (e.State == game.DoorLocked || e.State == game.DoorWizardLocked)
+}
+
+// walkSide is the side of from the shortest way to goal leaves by, false: none.
+func walkSide(m game.Map, from, goal image.Point) (int, bool) {
+	first := map[image.Point]int{from: -1} // each square reached: the side the way to it left from by
 	for q := []image.Point{from}; len(q) > 0; q = q[1:] {
-		for d, f := range sides {
-			n := q[0].Add(d)
-			if _, seen := prev[n]; seen || !n.In(image.Rectangle{Max: m.Size()}) || m.Edge(q[0], f).Kind == game.EdgeWall {
+		if q[0] == goal {
+			return first[goal], goal != from
+		}
+		for _, s := range walkSides {
+			n := q[0].Add(s.d)
+			if _, seen := first[n]; seen || !n.In(image.Rectangle{Max: m.Size()}) || walkBlocked(m.Edge(q[0], s.side)) {
 				continue
 			}
-			prev[n] = q[0]
+			first[n] = first[q[0]]
+			if q[0] == from {
+				first[n] = s.side
+			}
 			q = append(q, n)
 		}
 	}
-	if _, ok := prev[at]; !ok || at == from {
+	return 0, false
+}
+
+// walkOffset is side's step.
+func walkOffset(side int) image.Point {
+	for _, s := range walkSides {
+		if s.side == side {
+			return s.d
+		}
+	}
+	return image.Point{}
+}
+
+// walkTo sets off for at: there already is done, no known way refuses.
+func (r *rules) walkTo(ps play.State, at image.Point) game.Result {
+	x, ok := ps.(play.Exploring)
+	if !ok || x.Map.Walk == nil || x.Ask != nil {
+		return game.Result{Err: errors.New("not walking")}
+	}
+	from := image.Pt(x.Where.X, x.Where.Y)
+	if at == from {
+		return game.Result{}
+	}
+	if _, ok := walkSide(x.Map.Walk, from, at); !ok {
 		return game.Result{Err: errors.New("no way there")}
 	}
-	var path []image.Point
-	for p := at; p != from; p = prev[p] {
-		path = append([]image.Point{p}, path...)
-	}
-	r.walk = path
+	r.walk = &walking{to: at, area: x.Where.Area}
 	r.seq++
 	return game.Result{}
 }
 
-// walkStep walks the next square: the script ahead, the step, the square's
-// event, as gobox's own walk sends them. It stops where the party does not
-// stand exploring after, or where the game says anything.
+// stands is whether the party still walks after a step's action: exploring,
+// nothing asked, no door up, on square at in the walk's area, facing facing.
+func (w *walking) stands(ps play.State, at image.Point, facing int) bool {
+	x, ok := ps.(play.Exploring)
+	return ok && x.Ask == nil && x.Door == nil && x.Map.Walk != nil && x.Where.Area == w.area && image.Pt(x.Where.X, x.Where.Y) == at && x.Where.Facing == facing
+}
+
+// walked is the map's squares walked on so far.
+func walked(x play.Exploring) []image.Point {
+	if x.Automap.Size != (image.Point{}) {
+		return x.Automap.Walked
+	}
+	return x.Map.Automap.Walked
+}
+
+// walkHalts is whether what a step's scripts did stops the walk. Moving, time
+// and sound do not; plain text does only on a square not visited before (a
+// visited square's text is flavour; blank text only clears the window); any
+// other fact does.
+func walkHalts(es []play.Event, visited bool) bool {
+	text := func(t string) bool { return !visited && strings.TrimSpace(t) != "" }
+	for _, e := range es {
+		switch e := e.(type) {
+		case play.Moved, play.Turned, play.TimePassed, play.Sounded, play.MusicChange:
+		case play.Narrated:
+			if text(e.Text) {
+				return true
+			}
+		case play.Said:
+			if text(e.Text) {
+				return true
+			}
+		default:
+			return true
+		}
+	}
+	return false
+}
+
+// newText is whether the rules' message lines changed to something not blank.
+func newText(was, now []string) bool {
+	return !slices.Equal(was, now) && slices.ContainsFunc(now, func(l string) bool { return strings.TrimSpace(l) != "" })
+}
+
+// hasPicture is whether c holds a picture up.
+func hasPicture(c play.Common) bool {
+	return c.Picture != nil || len(c.Layers) > 0 || c.Portrait != nil
+}
+
+// walkStep walks the next square when it is time: the turn, the script ahead
+// (the step only if the party stands as it did), the step, the square's event.
+// The walk stops at the square, where a step does not land as expected, where
+// a question, door or picture comes up, and where walkHalts says.
 func (r *rules) walkStep() game.Result {
+	w := r.walk
 	x, ok := r.g.State().(play.Exploring)
+	from := image.Pt(x.Where.X, x.Where.Y)
+	if !ok || !w.stands(x, from, x.Where.Facing) || from == w.to {
+		r.walk = nil
+		return game.Result{}
+	}
+	if now := r.now(); now.Sub(w.last) < walkPace {
+		return game.Result{}
+	} else {
+		w.last = now
+	}
+	side, ok := walkSide(x.Map.Walk, from, w.to)
 	if !ok {
 		r.walk = nil
 		return game.Result{}
 	}
-	from, to := image.Pt(x.Where.X, x.Where.Y), r.walk[0]
-	r.walk = r.walk[1:]
-	side, ok := sides[to.Sub(from)]
-	if !ok {
-		r.walk = nil
-		return game.Result{Err: errors.New("off the walk")}
-	}
+	to, visited := from.Add(walkOffset(side)), slices.Contains(walked(x), from.Add(walkOffset(side)))
 	var res game.Result
-	steps := []play.Action{play.RunEvent{Before: true, Side: side}, play.Arrive{From: from, To: to, Facing: side}, play.RunEvent{}}
-	if x.Where.Facing != side { // the party turns the way it walks first, as a player would: games allow Arrive facing the way it goes
-		steps = append([]play.Action{play.Face{Facing: side}}, steps...)
-	}
-	for _, a := range steps {
-		st := r.keep(a)
+	var facts []play.Event
+	act := func(a play.Action) bool {
+		out, err := r.g.Do(a)
+		st := r.outcome(a, out, err)
 		res.Events, res.Err = append(res.Events, st.Events...), st.Err
-		_, arrived := a.(play.Arrive) // what the step itself says, the square's event still runs, as a manual step's does
-		before := false
-		if e, ok := a.(play.RunEvent); ok && e.Before {
-			before = true // the script ahead said something: the step it holds is still made, never left waiting on an Arrive
-		}
-		if _, still := r.g.State().(play.Exploring); st.Err != nil || !still || !arrived && !before && len(st.Events) > 0 && !onlyMoved(st.Events) {
-			r.walk = nil
-			break
-		}
+		facts = append(facts, out.Events...)
+		return err == nil
 	}
+	r.walk = nil // kept only by reaching the end whole
+	if x.Where.Facing != side && (!act(play.Face{Facing: side}) || !w.stands(r.g.State(), from, side)) {
+		return res
+	}
+	if x.Map.Walk.Departure(from, side) && (!act(play.RunEvent{Before: true, Side: side}) || !w.stands(r.g.State(), from, side)) {
+		return res
+	}
+	if !act(allowedArrive(commonOf(r.g.State()).Allowed, from, to, side)) {
+		return res
+	}
+	ps := r.g.State()
+	if n, ok := ps.(play.Exploring); ok && n.Ask == nil && n.Map.Walk != nil && n.Map.Walk.Event(image.Pt(n.Where.X, n.Where.Y)) { // the square's event, as a manual step's
+		if !act(play.RunEvent{}) {
+			return res
+		}
+		ps = r.g.State()
+	}
+	if !w.stands(ps, to, side) || walkHalts(facts, visited) || hasPicture(commonOf(ps)) && !hasPicture(x.Common) || !visited && newText(x.Text, commonOf(ps).Text) {
+		return res
+	}
+	r.walk = w
 	return res
 }
 
-func onlyMoved(es []game.Event) bool {
-	for _, e := range es {
-		if e.Kind != game.EvMove {
-			return false
+// allowedArrive is the step as the rules allow it from and to there, with
+// their facing, else with facing.
+func allowedArrive(al play.Allowed, from, to image.Point, facing int) play.Action {
+	for _, a := range al.Plain {
+		if s, ok := a.(play.Arrive); ok && s.From == from && s.To == to {
+			return s
 		}
 	}
-	return true
+	return play.Arrive{From: from, To: to, Facing: facing}
 }
 
 // The pacing gobox gives a fight's moments: a blow or a cast holds the

@@ -82,6 +82,7 @@ type Game interface {
 	RestStep() error
 	StoryStep() error
 	WalkStep() error
+	StopWalk() error
 	TurnChoice(a Action, sure bool) error
 
 	// Sheet and inventory.

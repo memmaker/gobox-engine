@@ -127,6 +127,9 @@ func (f *Front) Key(k uint16) {
 		f.Act()
 	}
 	defer f.stale()
+	if f.stopWalk() {
+		return
+	}
 	if a := actOf(k); f.P.Playing() && a != input.Space && a != input.Enter && a != input.Esc && !f.P.CameraKey(k) { // a key while the fight's events play: kept for the screen after, never dropped (Space, Enter, Esc cut the moment short)
 		f.held = append(f.held, k)
 		return
@@ -200,9 +203,27 @@ func (f *Front) Click(x, y int) bool {
 		return true
 	}
 	f.stale()
+	if f.stopWalk() {
+		return true
+	}
 	return f.P.Click(x, y)
 }
-func (f *Front) ViewClick(x, y int) { f.stale(); f.P.ViewClick(x, y) }
+func (f *Front) ViewClick(x, y int) {
+	f.stale()
+	if !f.stopWalk() {
+		f.P.ViewClick(x, y)
+	}
+}
+
+// stopWalk stops the auto-walk under way (any key or click does; that input
+// acts on nothing else); false: none is.
+func (f *Front) stopWalk() bool {
+	if f.view().Pace != front.PaceWalk {
+		return false
+	}
+	f.P.call(func(e front.Game) { e.StopWalk() })
+	return true
+}
 func (f *Front) Mouse(cx, cy int, in, left, right bool, wheel int) {
 	defer f.stale()
 	f.P.Mouse(cx, cy, in, left, right, wheel, f.view())
