@@ -722,9 +722,9 @@ func (g *Game) TrainingView() *front.Training {
 	s := g.r.State()
 	return Training(s.Training, s.Party, s.Selected, s.Purse)
 }
-func (g *Game) Train() error                  { return g.do(game.Train{Member: g.sel(-1)}) }
-func (g *Game) Learn(id int) error            { return g.do(game.Learn{Spell: id}) }
-func (g *Game) PickPower(id int) error        { return g.do(game.PickPower{ID: id}) }
+func (g *Game) Train() error           { return g.do(game.Train{Member: g.sel(-1)}) }
+func (g *Game) Learn(id int) error     { return g.do(game.Learn{Spell: id}) }
+func (g *Game) PickPower(id int) error { return g.do(game.PickPower{ID: id}) }
 
 // The full map: its cursor and label are the presenter's, classic fills the rest.
 func (g *Game) FullMapView(cursor image.Point, label *string) *front.FullMap {

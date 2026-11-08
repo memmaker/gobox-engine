@@ -271,3 +271,29 @@ func TestWalkRoundWall(t *testing.T) {
 		t.Fatalf("sent %v", g.sent)
 	}
 }
+
+// TestWalkNoTextStops: with no text at all, what POR's table calls non-quiet
+// stops the walk on an unvisited square: a menu put up, a picture put up, a
+// picture told as an event. A script that only computes does not.
+func TestWalkNoTextStops(t *testing.T) {
+	sq := image.Pt(1, 0)
+	for name, c := range map[string]struct {
+		state func(*play.Exploring)
+		ev    []play.Event
+		want  image.Point
+	}{
+		"menu":    {state: func(x *play.Exploring) { x.Ask = &play.Question{Replies: []string{"Yes"}} }, want: sq},
+		"picture": {state: func(x *play.Exploring) { x.Picture = &game.Picture{Name: "pic"} }, want: sq},
+		"event":   {ev: []play.Event{play.Shown{}}, want: sq},
+		"compute": {want: image.Pt(3, 0)},
+	} {
+		g := yardGame(yard{script: map[image.Point]bool{sq: true}})
+		g.event = map[image.Point][]play.Event{sq: c.ev}
+		if c.state != nil {
+			g.onEv = map[image.Point]func(*play.Exploring){sq: c.state}
+		}
+		if at := walkOn(t, g, image.Pt(3, 0)); at != c.want {
+			t.Errorf("%s: at %v, want %v", name, at, c.want)
+		}
+	}
+}
