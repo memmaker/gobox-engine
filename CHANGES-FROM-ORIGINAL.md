@@ -30,7 +30,6 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Magic resistance against items | POR | GetCasterLevel gives 6 for an item spell, so the chance falls by 25 points | item counts as level 11, no cut. Ruling asked. Verdict: design choice in the original: item level 6 is deliberate, the effect on resistance is its consequence | port earlier; fixed: comment |
 | Acid spit at a fallen target | POR | spits at a fallen target (nil fixed in the Pascal, por-re BUGS.md) | no spit at a fallen target. Verdict: design or oversight, unclear | port earlier; fixed: comment |
 | Damage message length | POR | game cut to 40 characters. Presentation, not in src/pure; from the decomp, unconfirmed there | wrapped whole. Ruling asked. Verdict: real defect: cut text; presentation only | port earlier; fixed: comment |
-| Hold Person save | POR | table saveType: vs spell | vs paralysis. Ruling asked. Verdict: design choice in the original: vs spell is AD&D's rule. The port's change is the odd one out; original not a defect | port earlier; fixed: comment |
 | Computer's approach step | POR | direction toward the target, offset by the AI stance | `aiPathDir` path search, stance reset to straight on (`extra:` comment). Ruling asked. Verdict: design choice in the original; the port's addition, not a defect fix. Moves the walker only in the compared turns | port earlier; `TestDecideAgainstPascal` |
 
 ## Unifications
