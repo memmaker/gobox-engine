@@ -21,6 +21,7 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 ## Port's own, not ruled: Felix to confirm
 
 | What | Games | Original | New | Commit |
+| NPC share of the coins | POR | NpcTreasureShare cuts each of the five coin types and leaves each type's remainder | money is copper (Felix's ruling): one copper pile is cut; equal whenever every pile divides (`TestNpcShareAgainstPascal`) | por-go hiredShare |
 |---|---|---|---|---|
 | Cleric and mage L1 slots | POR | row skipped below L2: record keeps its slots | 1,0,0 plus Wisdom bonus, so a level drain leaves no stale slots | port earlier; rules1e |
 | Cleric, mage slots past L6 | POR | row (zeros) overwrites | record keeps its own (Genheeris) | port earlier; rules1e |
