@@ -1,6 +1,7 @@
 package script
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strconv"
@@ -418,7 +419,10 @@ func (p *parser) stmt() error {
 	return p.assign()
 }
 
-func (p *parser) isVar(name string) bool { _, ok := p.vars[name]; return ok }
+func (p *parser) isVar(name string) bool {
+	_, ok := p.vars[name]
+	return ok || strings.HasPrefix(name, unnamedVar) || strings.HasPrefix(name, unnamedLongVar)
+}
 
 // ret parses what follows return: nothing; A op B (Compare A B, the
 // callers test if Foo() with that operator); X (Compare X N, N from the
@@ -866,7 +870,7 @@ func (p *parser) assign() error {
 	if err != nil {
 		return err
 	}
-	if dest.Type != 1 && dest.Type != 3 && dest.Type != 0x81 {
+	if dest.Type != 1 && dest.Type != 3 && dest.Type != 0x81 && dest.Type != ArgVarLong {
 		return fmt.Errorf("%s is not a variable", d.text())
 	}
 	dn := d.name
@@ -1450,6 +1454,29 @@ func (p *parser) operand() (opnd, error) {
 	return o, nil
 }
 
+// The forms of operands with no name: a byte variable's and a 32-bit
+// variable's address in hex, a 32-bit immediate in decimal.
+const (
+	unnamedVar     = "V_"
+	unnamedLongVar = "D_"
+	longImmediate  = "long_"
+)
+
+// unnamedLong is a 32-bit operand's text form as an Arg.
+func unnamedLong(name string) (Arg, bool) {
+	if s, ok := strings.CutPrefix(name, unnamedLongVar); ok {
+		if v, err := strconv.ParseUint(s, 16, 16); err == nil {
+			return Arg{Type: ArgVarLong, N: int(v)}, true
+		}
+	}
+	if s, ok := strings.CutPrefix(name, longImmediate); ok {
+		if v, err := strconv.ParseUint(s, 10, 32); err == nil {
+			return Arg{Type: ArgLong, N: int(int32(uint32(v)))}, true
+		}
+	}
+	return Arg{}, false
+}
+
 // resolve is operand o as an Arg: a number, a string, a variable, label,
 // table or area by name, a value of kind, or a value or bits of the
 // variable beside under op.
@@ -1473,6 +1500,10 @@ func (p *parser) resolve(o opnd, kind, beside, op string) (Arg, error) {
 		return Arg{N: v}, nil
 	case o.sigil == "$" || o.sigil == "&":
 		a, ok := p.vars[o.name]
+		if !ok && strings.HasPrefix(o.name, "V_") { // an unnamed address
+			v, err := strconv.ParseUint(o.name[2:], 16, 16)
+			a, ok = int(v), err == nil
+		}
 		if !ok {
 			return Arg{}, fmt.Errorf("no variable %s", o.name)
 		}
@@ -1498,6 +1529,9 @@ func (p *parser) resolve(o opnd, kind, beside, op string) (Arg, error) {
 	}
 	if a, ok := p.vars[o.name]; ok {
 		return Arg{Type: 1, N: a}, nil
+	}
+	if a, ok := unnamedLong(o.name); ok {
+		return a, nil
 	}
 	if v, ok := p.names.kindValue(kind, o.name); ok {
 		return Arg{N: v}, nil
@@ -1623,6 +1657,9 @@ func (s *Script) removeInstrs(drop map[int]bool) {
 	s.Code, s.At = code, at
 }
 
+// errNoComparison: a call is tested but its section returns no comparison.
+var errNoComparison = errors.New("returns no comparison (return A op B) to test")
+
 // callTests sets the operator of the Ifs on called sections' results,
 // and the number the sections' return X compare with: if Foo() tests
 // with Foo's return A op B; if Foo() op N with op, N going into Foo's
@@ -1636,7 +1673,7 @@ func (p *parser) callTests() error {
 		if c.op == "" {
 			k := slices.IndexFunc(p.retOp, func(r retOp) bool { return r.cmp == rc })
 			if rc < 0 || k < 0 {
-				return fmt.Errorf("%d: %s() returns no comparison (return A op B) to test", c.line, c.label)
+				return fmt.Errorf("%d: %s() %w", c.line, c.label, errNoComparison)
 			}
 			op = p.retOp[k].op
 			if c.not {

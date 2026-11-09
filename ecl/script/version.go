@@ -39,7 +39,7 @@ func (v *Version) Current(id VersionID, revision int) bool {
 	return id == v.ID && revision == FormatRevision
 }
 
-// fixed makes the commands with n fixed operands of the groups' lists; a
+// commands makes the commands with n fixed operands of the groups' lists; a
 // command's canonical number is its byte value.
 func commands(groups map[int][]byte) (t [256]Cmd) {
 	for n, cs := range groups {
@@ -74,3 +74,67 @@ var V1 = func() *Version {
 	counted(&t, 2, OpOnGoto, OpOnGosub, OpHMenu)
 	return &Version{ID: 1, Base: 0x9900, Cmds: t, Vars: v1Vars, ExitOverrides: v1ExitOverrides}
 }()
+
+// set makes byte-code command b the canonical command op with these operands.
+func set(t *[256]Cmd, b, op byte, fixed, count int) {
+	t[b] = Cmd{Op: op, Fixed: fixed, Count: count, Known: true}
+}
+
+// V2 is the dialect of the second engine (Curse of the Azure Bonds' and
+// Secret of the Silver Blades' ECL*.DAX): the first's, with 65 added.
+var V2 = func() *Version {
+	t := V1.Cmds
+	set(&t, 49, OpSpriteOff, 0, 0)
+	set(&t, 62, OpDump, 0, 0)
+	set(&t, 63, OpFindAffect, 1, 0)
+	set(&t, 64, OpDestroy, 1, 0)
+	set(&t, 65, OpGainExp, 2, 0)
+	set(&t, 52, 0x34, 2, 0)
+	return &Version{ID: 2, Base: 32768, Cmds: t, Vars: map[int]string{0x7F6C: varShop, 0x7EE2: varTemple}}
+}()
+
+// V3 is Pools of Darkness' dialect.
+var V3 = func() *Version {
+	t := V2.Cmds
+	set(&t, 12, 0x0C, 4, 0)
+	set(&t, 29, OpPressKey, 0, 0)
+	set(&t, 31, OpJournal, 1, 0)
+	set(&t, 33, OpLoadArea, 2, 0)
+	set(&t, 34, OpYesNo, 0, 0)
+	set(&t, 35, OpClearExit, 0, 0)
+	set(&t, 39, OpTreasureOf, 4, 4)
+	set(&t, 41, OpNoOp, 0, 0)
+	set(&t, 44, OpSound, 1, 0)
+	set(&t, 49, OpMenuKeys, 2, 2)
+	set(&t, 55, OpFindNPC, 2, 0)
+	set(&t, 58, OpNoOp, 0, 0)
+	set(&t, 60, OpItemSet, 1, 0)
+	return &Version{ID: 3, Base: 32768, Cmds: t, Vars: map[int]string{0x0014: varTemple}}
+}()
+
+// V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).
+var V4 = func() *Version {
+	var t [256]Cmd
+	for b, c := range V1.Cmds {
+		if b < 0x40 {
+			t[b] = c
+		}
+	}
+	for _, c := range []struct {
+		b, op        byte
+		fixed, count int
+	}{
+		{12, 0x0C, 4, 0}, {29, OpShade, 2, 0}, {30, OpPartyStat, 6, 0}, {31, OpSpaceFight, 4, 0}, {34, OpSkill, 3, 0}, {35, OpSkillAll, 3, 0},
+		{39, OpTreasureOf, 2, 2}, {41, OpPressKey, 0, 0}, {44, OpYesNo, 0, 0}, {45, OpCall, 1, 0}, {46, 0x2E, 5, 0}, {49, OpMenuKeys, 2, 2},
+		{50, OpHasItem, 1, 0}, {52, 0x34, 2, 0}, {54, OpNPCJoin, 2, 0}, {55, OpLoadWalls, 3, 0}, {56, OpMenuCall, 1, 0}, {57, OpPickMember, 1, 0},
+		{58, 0x3A, 0, 0}, {59, OpNothing, 0, 0}, {60, OpNothing, 0, 0}, {61, 0x31, 0, 0}, {62, OpDump, 0, 0}, {63, OpLogbook, 2, 0}, {64, OpOp64, 2, 0},
+		{65, OpGainExp, 2, 0}, {66, OpClearExit, 0, 0}, {67, OpSound, 1, 0}, {68, OpNothing, 0, 0}, {69, OpWallDist, 2, 0}, {70, OpFor, 2, 0}, {71, OpNext, 0, 0},
+		{72, OpOp72, 1, 0}, {73, OpDamage6, 6, 0}, {74, OpDuel, 0, 0}, {75, OpShop, 1, 0}, {76, OpAreaKind, 2, 0},
+	} {
+		set(&t, c.b, c.op, c.fixed, c.count)
+	}
+	return &Version{ID: 4, Base: 32768, Cmds: t}
+}()
+
+// Versions are the dialects by ID.
+var Versions = map[VersionID]*Version{V1.ID: V1, V2.ID: V2, V3.ID: V3, V4.ID: V4}

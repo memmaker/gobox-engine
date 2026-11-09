@@ -2,7 +2,7 @@ module gobox/ecl
 
 go 1.26.2
 
-require gobox/dax v0.0.0 // tests only
+require gobox/dax v0.0.0
 
 require gobox/game v0.0.0
 

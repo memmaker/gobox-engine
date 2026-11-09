@@ -9,6 +9,41 @@ const (
 	OpLoadWalls  byte = 0x37
 	OpProtection byte = 0x3C
 	OpClearExit  byte = 0x80 // clear, redraw and stop
+	OpPressKey   byte = 0x81
+	OpJournal    byte = 0x82
+	OpYesNo      byte = 0x83
+	OpNoOp       byte = 0x84
+	OpSound      byte = 0x85
+	OpMenuKeys   byte = 0x86 // HMenu that also takes the key held
+	OpFindNPC    byte = 0x87
+	OpItemSet    byte = 0x88
+	OpSpriteOff  byte = 0x89
+	OpDump       byte = 0x8A
+	OpFindAffect byte = 0x8B
+	OpDestroy    byte = 0x8C
+	OpGainExp    byte = 0x8D
+	OpTreasureOf byte = 0x8E // Treasure with a counted list
+	OpShade      byte = 0x8F
+	OpPartyStat  byte = 0x90
+	OpSpaceFight byte = 0x91
+	OpSkill      byte = 0x92
+	OpSkillAll   byte = 0x93
+	OpHasItem    byte = 0x94
+	OpNPCJoin    byte = 0x95
+	OpMenuCall   byte = 0x96
+	OpPickMember byte = 0x97
+	OpLogbook    byte = 0x98
+	OpOp64       byte = 0x99
+	OpWallDist   byte = 0x9A
+	OpFor        byte = 0x9B
+	OpNext       byte = 0x9C
+	OpOp72       byte = 0x9D
+	OpDuel       byte = 0x9E
+	OpShop       byte = 0x9F
+	OpAreaKind   byte = 0xA0
+	OpDamage6    byte = 0xA1
+	OpNothing    byte = 0xA2
+	OpLoadArea   byte = 0xA3 // LoadMap with no icons
 )
 
 // opNames are the commands' names in script text.
@@ -23,7 +58,13 @@ var opNames = map[byte]string{
 	0x2E: "Damage", OpAnd: "And", OpOr: "Or", 0x31: "RedrawView", OpFindItem: "FindItem", OpNewLine: "NewLine", 0x34: "Clock",
 	OpSaveTable: "SaveTable", 0x36: "AddNPC", OpLoadWalls: "LoadWalls", OpProgram: "Program", 0x39: "Who", 0x3A: "Delay", 0x3B: "Spell",
 	OpProtection: "Protection", 0x3D: "ClearBox",
-	OpClearExit: "ClearExit",
+	OpClearExit: "ClearExit", OpPressKey: "PressKey", OpJournal: "Journal", OpYesNo: "YesNo", OpNoOp: "NoOp", OpSound: "Sound",
+	OpMenuKeys: "MenuKeys", OpFindNPC: "FindNPC", OpItemSet: "ItemSet", OpSpriteOff: "SpriteOff", OpDump: "Dump",
+	OpFindAffect: "FindAffect", OpDestroy: "DestroyItems", OpGainExp: "GainExperience", OpTreasureOf: "TreasureOf", OpShade: "Shade",
+	OpPartyStat: "PartyStat", OpSpaceFight: "SpaceFight", OpSkill: "Skill", OpSkillAll: "SkillAll", OpHasItem: "HasItem",
+	OpNPCJoin: "NPCJoin", OpMenuCall: "MenuCall", OpPickMember: "PickMember", OpLogbook: "Logbook", OpOp64: "Op64",
+	OpWallDist: "WallDistance", OpFor: "For", OpNext: "Next", OpOp72: "Op72", OpDuel: "Duel", OpShop: "Shop", OpAreaKind: "AreaKind",
+	OpDamage6: "Damage6", OpNothing: "Nothing", OpLoadArea: "LoadArea",
 }
 
 // OpName is the command's name in script text.

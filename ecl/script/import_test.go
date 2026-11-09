@@ -25,3 +25,29 @@ func TestHeader(t *testing.T) {
 		}
 	}
 }
+
+// A vendor that falls through into the No branch keeps it: only the gate goes.
+func TestFoldKeepsNoBranch(t *testing.T) {
+	label := func(n int) Arg { return Arg{Type: ArgVar, N: n, Label: true} }
+	row := func(s string) Arg { return Arg{Type: ArgText, S: s} }
+	s := &Script{Labels: map[string]int{"no": 5}, At: map[int]string{5: "no"}, Code: []Instr{
+		{Op: OpHMenu, Args: []Arg{{Type: ArgVar, N: 1}, {N: 2}, row("YES"), row("NO")}},
+		{Op: OpOnGoto, Args: []Arg{{Type: ArgVar, N: 1}, {N: 2}, label(2), label(5)}},
+		{Op: OpSave, Args: []Arg{{N: 1}, {Type: ArgVar, N: 7}}},
+		{Op: OpClearMonsters},
+		{Op: OpCombat},
+		{Op: OpPrint, Args: []Arg{row("BYE")}},
+		{Op: OpExit},
+	}}
+	names := &Names{Version: V1, Vars: map[int]string{7: varTemple}}
+	if f := FoldVendorGates(s, 0, names); len(f) != 1 {
+		t.Fatalf("folds %+v", f)
+	}
+	found := false
+	for _, in := range s.Code {
+		found = found || in.Op == OpPrint
+	}
+	if !found {
+		t.Error("the No branch was cut")
+	}
+}

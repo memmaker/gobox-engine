@@ -26,13 +26,24 @@ type FoldedGate struct {
 
 // vendorAt is the vendor starting at instruction i: its name and instruction count.
 func vendorAt(names *Names, code []Instr, i int) (string, int) {
-	switch in := code[i]; {
-	case in.Op == OpTreasure && i+4 < len(code) && code[i+4].Op == OpCombat:
-		return "shop", 5
-	case in.Op == OpSave && len(in.Args) == 2 && in.Args[0] == (Arg{N: 1}) && names.Vars[in.Args[1].N] == varTemple && i+1 < len(code) && code[i+1].Op == OpCombat:
-		return "temple", 2
-	case in.Op == OpProgram && len(in.Args) == 1 && in.Args[0] == (Arg{N: programParty}):
-		return "training", 1
+	kind := ""
+	for k := i; k < len(code); k++ {
+		in := code[k]
+		switch {
+		case in.Op == OpShop:
+			return "shop", k - i + 1
+		case in.Op == OpProgram && k == i && len(in.Args) == 1 && in.Args[0] == (Arg{N: programParty}):
+			return "training", 1
+		case in.Op == OpCombat:
+			return kind, k - i + 1 // no flag set: a fight, no vendor
+		case in.Op == OpSave && len(in.Args) == 2 && in.Args[0] == (Arg{N: 1}) && names.Vars[in.Args[1].N] == varShop:
+			kind = "shop"
+		case in.Op == OpSave && len(in.Args) == 2 && in.Args[0] == (Arg{N: 1}) && names.Vars[in.Args[1].N] == varTemple:
+			kind = "temple"
+		case in.Op == OpSave, in.Op == OpTreasure, in.Op == OpTreasureOf, setUpOp(in.Op):
+		default:
+			return "", 0
+		}
 	}
 	return "", 0
 }
@@ -42,23 +53,45 @@ func setUpOp(op byte) bool {
 	return op == OpClearMonsters || op == OpPrint || op == OpPrintClear
 }
 
-// yesNoGate: instruction i asks Yes/No (a gosub of a section that is only that
-// menu, or the menu itself) and i+1 branches on it; the two branches.
-func yesNoGate(code []Instr, i int) (yes, no int, ok bool) {
+// yesNoGate: instruction i asks Yes/No and what follows branches on it; the
+// two branches and the gate's length. Either a menu (or a gosub of a section
+// that is only that menu) and an OnGoto, or a gosub of a section returning
+// the comparison with one row, an If and a Goto.
+func yesNoGate(s *Script, i int) (yes, no, length int, ok bool) {
+	code := s.Code
 	in := code[i]
 	menu := in
 	if in.Op == OpGosub && len(in.Args) == 1 && in.Args[0].Label {
 		menu = code[in.Args[0].N]
 	}
-	if !slices.Equal(MenuLabels(menu), []string{"YES", "NO"}) || i+1 >= len(code) {
-		return 0, 0, false
+	if slices.Equal(MenuLabels(menu), yesNoRows) && i+1 < len(code) {
+		b := code[i+1]
+		if b.Op == OpOnGoto && len(b.Args) == 4 && b.Args[2].Label && b.Args[3].Label {
+			return b.Args[2].N, b.Args[3].N, 2, true
+		}
 	}
-	b := code[i+1]
-	if b.Op != OpOnGoto || len(b.Args) != 4 || !b.Args[2].Label || !b.Args[3].Label {
-		return 0, 0, false
+	if in.Op != OpGosub || len(in.Args) != 1 || !in.Args[0].Label || i+3 >= len(code) {
+		return 0, 0, 0, false
 	}
-	return b.Args[2].N, b.Args[3].N, true
+	_, items, k, found := s.menuOf(in.Args[0].N)
+	cond, jump := code[i+1].Op, code[i+2]
+	if !found || !slices.Equal(items, yesNoRows) || cond != OpIfEq && cond != OpIfNe || jump.Op != OpGoto || !jump.Args[0].Label {
+		return 0, 0, 0, false
+	}
+	jumpsOn := k // the row whose answer takes the Goto
+	if cond == OpIfNe {
+		jumpsOn = 1 - k
+	}
+	if jumpsOn == noRow {
+		return i + 3, jump.Args[0].N, 3, true
+	}
+	return jump.Args[0].N, i + 3, 3, true
 }
+
+// yesNoRows are a gate's rows.
+var yesNoRows = []string{"YES", "NO"}
+
+const noRow = 1
 
 // FoldVendorGates cuts area's vendor gates and returns them.
 func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
@@ -79,7 +112,7 @@ func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
 	var folds []FoldedGate
 	drop := map[int]bool{}
 	for i := range s.Code {
-		yes, no, ok := yesNoGate(s.Code, i)
+		yes, no, gate, ok := yesNoGate(s, i)
 		if !ok {
 			continue
 		}
@@ -94,9 +127,29 @@ func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
 		if name == "" {
 			continue
 		}
+		if a := v + n; a == no || a < len(s.Code) && s.Code[a].Op == OpGoto && s.Code[a].Args[0].Label && s.Code[a].Args[0].N == no {
+			// the vendor already goes on to the No branch: only the gate goes
+			goTo := Instr{Op: OpGoto, Args: []Arg{{Type: 1, N: yes, Label: true}}}
+			inside := false
+			for k := i + 1; k < i+gate; k++ {
+				inside = inside || targets[k]
+			}
+			if inside {
+				continue
+			}
+			s.Code[i] = goTo
+			for k := i + 1; k < i+gate; k++ {
+				drop[k] = true
+			}
+			folds = append(folds, FoldedGate{Area: area, Gate: i, Vendor: name, Yes: yes, No: no})
+			continue
+		}
 		end := v + n
 		for end < len(s.Code) && s.Code[end].Op != OpExit {
 			end++
+		}
+		if no > v+n && no <= end {
+			continue // cutting the tail would cut the No branch: left for the report
 		}
 		tail := true // what follows the vendor up to its exit is replaced: nothing may jump in
 		for k := v + n + 1; k <= end && k < len(s.Code); k++ {
@@ -106,8 +159,18 @@ func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
 			continue
 		}
 		goTo := func(to int) Instr { return Instr{Op: OpGoto, Args: []Arg{{Type: 1, N: to, Label: true}}} }
-		s.Code[i], s.Code[i+1] = goTo(yes), Instr{Op: OpExit}
-		drop[i+1] = true
+		inside := false // nothing may jump into the cut gate
+		for k := i + 1; k < i+gate; k++ {
+			inside = inside || targets[k]
+		}
+		if inside {
+			continue
+		}
+		s.Code[i] = goTo(yes)
+		for k := i + 1; k < i+gate; k++ {
+			s.Code[k] = Instr{Op: OpExit}
+			drop[k] = true
+		}
 		s.Code[v+n] = goTo(no)
 		for k := v + n + 1; k <= end; k++ {
 			drop[k] = true

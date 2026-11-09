@@ -1,6 +1,7 @@
 package script
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"sort"
@@ -13,7 +14,17 @@ import (
 // Write writes s as the script text (cmd/eclscript). ParseScript
 // reads it back to the same Script.
 func Write(s *Script, names *Names) (string, error) {
-	w := &scriptWriter{s: s, names: names, taken: map[string]bool{}, table: map[int]string{},
+	text, err := write(s, names, true)
+	if err == nil {
+		if _, perr := Parse(text, names); errors.Is(perr, errNoComparison) {
+			return write(s, names, false) // a comparison the form cannot name: the calls test the flags plainly
+		}
+	}
+	return text, err
+}
+
+func write(s *Script, names *Names, callTests bool) (string, error) {
+	w := &scriptWriter{callTests: callTests, s: s, names: names, taken: map[string]bool{}, table: map[int]string{},
 		labelsAt: map[int][]string{}, refs: map[int][]ref{}, events: map[int]int{}, defs: map[int]bool{}}
 	for _, n := range names.Vars {
 		w.taken[n] = true
@@ -109,6 +120,11 @@ func Write(s *Script, names *Names) (string, error) {
 		}
 		i = end
 	}
+	for i, at := range s.Events { // an event on another event's command jumps to it
+		if e := w.events[at]; e != i {
+			fmt.Fprintf(&w.b, "\non %s {\n%sgoto %s\n}\n", eventNames[i], indent, eventLabel(e))
+		}
+	}
 	if len(s.Tables) > 0 {
 		w.b.WriteString("\n# tables\n")
 		var ats []int
@@ -143,21 +159,22 @@ type ref struct {
 }
 
 type scriptWriter struct {
-	s        *Script
-	names    *Names
-	taken    map[string]bool // the names a value name must not be (variables, labels ...)
-	table    map[int]string  // a table's name by address
-	labelsAt map[int][]string
-	refs     map[int][]ref
-	events   map[int]int  // an event's number by its command
-	defs     map[int]bool // the commands that start a def
-	before   []flagState
-	head     []bool            // whether a portrait head is up at each command
-	callOp   map[int]byte      // by a called label: the If of its first tested call
-	retState map[int]flagState // by a called label: the flags it returns with
-	valueDef map[int]bool      // the called labels whose returns are return X
-	retOp    map[int]byte      // by a return's Compare: the operator its callers test
-	b        strings.Builder
+	callTests bool // write if Foo() where the callee's comparison is its test
+	s         *Script
+	names     *Names
+	taken     map[string]bool // the names a value name must not be (variables, labels ...)
+	table     map[int]string  // a table's name by address
+	labelsAt  map[int][]string
+	refs      map[int][]ref
+	events    map[int]int  // an event's number by its command
+	defs      map[int]bool // the commands that start a def
+	before    []flagState
+	head      []bool            // whether a portrait head is up at each command
+	callOp    map[int]byte      // by a called label: the If of its first tested call
+	retState  map[int]flagState // by a called label: the flags it returns with
+	valueDef  map[int]bool      // the called labels whose returns are return X
+	retOp     map[int]byte      // by a return's Compare: the operator its callers test
+	b         strings.Builder
 }
 
 // returnForms finds how the called sections return their result: return X
@@ -167,6 +184,9 @@ type scriptWriter struct {
 // every return a walk from the called label reaches).
 func (w *scriptWriter) returnForms() {
 	w.callOp, w.retState, w.valueDef, w.retOp = map[int]byte{}, map[int]flagState{}, map[int]bool{}, map[int]byte{}
+	if !w.callTests {
+		return
+	}
 	s := w.s
 	var called []int
 	for i, in := range s.Code {
@@ -263,6 +283,9 @@ func (w *scriptWriter) ret(c int) string {
 // returns: Foo() == "YES" (a menu section), Foo() op N (return X), Foo()
 // or not Foo() (return A op B with that operator); "" when there is none.
 func (w *scriptWriter) callTest(l int, op byte) string {
+	if !w.callTests {
+		return ""
+	}
 	name := w.s.At[l] + "()"
 	if _, items, k, ok := w.s.menuOf(l); ok && (op == OpIfEq || op == OpIfNe) {
 		return fmt.Sprintf("%s %s %q", name, ifOps[op], items[k])
@@ -274,7 +297,7 @@ func (w *scriptWriter) callTest(l int, op byte) string {
 		}
 		return fmt.Sprintf("%s %s 0", name, ifOps[flipIf(op)])
 	}
-	if _, c := w.s.firstReturn(l); c >= 0 && w.s.Code[c].Op == OpCompare && !w.valueRet(c, flagState{OpCompare, w.s.Code[c].Args, c}) {
+	if r, c := w.s.firstReturn(l); c >= 0 && w.s.Code[c].Op == OpCompare && !w.nestedTest(r) && !w.valueRet(c, flagState{OpCompare, w.s.Code[c].Args, c}) {
 		switch w.textOp(c) {
 		case op:
 			return name
@@ -283,6 +306,12 @@ func (w *scriptWriter) callTest(l int, op byte) string {
 		}
 	}
 	return ""
+}
+
+// nestedTest: the return at r is guarded by the test of another call, so no
+// comparison of this section is the one its callers read.
+func (w *scriptWriter) nestedTest(r int) bool {
+	return r >= 2 && IsIf(w.s.Code[r-1].Op) && w.s.Code[r-2].Op == OpGosub
 }
 
 // flagsComment says where the flags an (op) test reads come from.
@@ -690,6 +719,22 @@ func (w *scriptWriter) test(st flagState, op byte) string {
 	return ""
 }
 
+// destIsVar: the operand a command stores into, if it has one, is a variable.
+func destIsVar(in Instr) bool {
+	k := -1
+	switch in.Op {
+	case OpSave:
+		k = 1
+	case OpAdd, OpSub, OpMul, OpDiv, OpAnd, OpOr:
+		k = 2
+	}
+	if k < 0 || k >= len(in.Args) {
+		return true
+	}
+	t := in.Args[k].Type
+	return t == ArgVar || t == ArgVarWord || t == ArgTextVar || t == ArgVarLong
+}
+
 // simple writes command i as one statement.
 func (w *scriptWriter) simple(i int) (string, error) {
 	in := w.s.Code[i]
@@ -697,6 +742,9 @@ func (w *scriptWriter) simple(i int) (string, error) {
 	plain := func(k int) string { return w.arg(a[k], "", Arg{}, "") }
 	beside := func(k, v int, op string) string { return w.arg(a[k], "", a[v], op) }
 	n := len(a)
+	if !destIsVar(in) {
+		n = -1 // the original stores through a number: no assignment form
+	}
 	switch {
 	case in.Op == OpSave && n == 2:
 		if w.varName(a[1]) == varPortrait {
@@ -862,6 +910,12 @@ func wrapArgs(parts []string) string {
 
 // varName is the name of a variable operand (or "" when it is not one).
 func (w *scriptWriter) varName(a Arg) string {
+	if a.Type == ArgVarLong {
+		return fmt.Sprintf("%s%04X", unnamedLongVar, a.N)
+	}
+	if a.Type == ArgLong {
+		return fmt.Sprintf("%s%d", longImmediate, uint32(int32(a.N)))
+	}
 	if a.Type != 1 && a.Type != 3 && a.Type != 0x81 || a.Label {
 		return ""
 	}
@@ -881,6 +935,8 @@ func (w *scriptWriter) arg(a Arg, kind string, other Arg, op string) string {
 		return "$" + w.varName(a)
 	case 3:
 		return "&" + w.varName(a)
+	case ArgLong, ArgVarLong:
+		return w.varName(a)
 	case 2: // a word: in hex when a byte would hold it, to tell it from one
 		if a.N > 0xFF {
 			return strconv.Itoa(a.N)
