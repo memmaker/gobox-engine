@@ -740,3 +740,16 @@ func (Aid) action()              {}
 func (Sprint) action()           {}
 func (Dodge) action()            {}
 func (Jetpack) action()          {}
+
+// AppraiseActions are what the offers allow: valuing each one, and with one
+// valued, selling it and (room for it) keeping it.
+func AppraiseActions(offers []game.Offer) []Action {
+	var l []Action
+	for _, o := range offers {
+		l = append(l, Appraise{Member: o.Member, Item: o.Item})
+		if o.Value > 0 && o.CanKeep {
+			l = append(l, Appraise{Member: o.Member, Item: o.Item, Keep: true})
+		}
+	}
+	return l
+}

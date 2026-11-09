@@ -573,7 +573,8 @@ type TurnManeuver struct {
 
 // Shop, Service, Training, Loot, Door, Vault: the place an area script has
 // opened (Mode says which); nil when none is open.
-// Offer is the shop's price for one member's gem or jewel (Appraise).
+// Offer is a gem or jewel of the purse to appraise (Appraise), by the member:
+// Value 0, not valued yet; else the one valued, to keep or sell.
 type Offer struct {
 	Member, Item int
 	Kind         string // Gems or Jewelry
