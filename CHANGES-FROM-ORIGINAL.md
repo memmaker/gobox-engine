@@ -46,6 +46,7 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Hold Person save | POR | table saveType: vs spell | vs paralysis. Ruling asked. Verdict: design choice in the original: vs spell is AD&D's rule. The port's change is the odd one out; original not a defect | port earlier; fixed: comment |
 | Dispel Magic targets | POR | the game's binary read the first target every pass; src/pure already has spellTargets[i] | spellTargets[i] | no difference from the reference; real defect in the binary, fixed by BUGS.md's pure. No ruling needed |
 | Computer's approach step | POR | direction toward the target, offset by the AI stance | `aiPathDir` path search, stance reset to straight on (`extra:` comment). Ruling asked. Verdict: design choice in the original; the port's addition, not a defect fix. Moves the walker only in the compared turns | port earlier; `TestDecideAgainstPascal` |
+| Surrendering creature's rolls | POR | src/pure CombatAiControl: the removed 'flees in panic' left its `if` on `if done then Exit`, so a surrendered creature goes on through the turn and spends rolls | the turn ends at the surrender, as in por-re src/combatai.pas | defect of the reference, not of the game; asked |
 | Paladin L9 saves | POR | table | table, as the Pascal; the port panicked | rules1e f7797ad |
 
 ## Unifications
