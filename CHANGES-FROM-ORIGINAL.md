@@ -22,7 +22,6 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 
 | What | Games | Original | New | Commit |
 |---|---|---|---|---|
-| NPC share of the coins | POR | NpcTreasureShare cuts each of the five coin types and leaves each type's remainder | money is copper (Felix's ruling): one copper pile is cut; equal whenever every pile divides (`TestNpcShareAgainstPascal`) | por-go hiredShare |
 | Cleric and mage L1 slots | POR | row skipped below L2: record keeps its slots | 1,0,0 plus Wisdom bonus, so a level drain leaves no stale slots | port earlier; rules1e |
 | Cleric, mage slots past L6 | POR | row (zeros) overwrites | record keeps its own (Genheeris) | port earlier; rules1e |
 | Mirror Image | POR | only a spell being cast takes an image; blows never do | blows and spells take one; origin: the port's own fix, ruling asked | port earlier; `TestEffectsAgainstPascal` |
@@ -40,7 +39,9 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Ranger, cleric/ranger alignments | POR | any | good only (COTAB) | 19 | port earlier; rules1e |
 | Paladin XP, L2-8 | POR | -1, no progression | COTAB's 2751 .. 175001 | 19 | port earlier; rules1e |
 | Ranger XP, L2-7 | POR | -1, no progression | COTAB's 2251 .. 90001 | 19 | port earlier; rules1e |
-| Money | all four | coins per character, with weight | one party purse, copper; coin weight **Felix to confirm** | 11 | POR port earlier; others decided |
+| Money | all four | coins per character, with weight | one party purse, copper; no coin weight (decision page 13: a minor unification) | 11, page 13 | POR port earlier; others decided |
+| Money: NPC share of the coins | POR | NpcTreasureShare cuts each of the five coin types and leaves each type's remainder | one copper pile is cut; equal whenever every pile divides (`TestNpcShareAgainstPascal`) | page 1: a minor unification | por-go hiredShare |
+| Money: WHO skips the purse | POR | EclWho may pick by the character's coins | the party purse is no character's, so `purseWho` skips it | page 5 | por-go purseWho |
 | Initiative | all four | POR d100 per pick; POD coin toss on ties | each round: roll, modifiers, deterministic tie-break, sort | 2 | decided |
 | Difficulty | SotSB, POD | setting scales monsters or to-hit | removed; normal values | 3, 5, 6 | decided |
 | XP, campaign and race+class caps | all four | mixed | separate; cap stops training, keeps XP | 9 | decided |
@@ -59,4 +60,4 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 
 ## Options (Felix's additions, not changes to the default)
 
-Critical hits (ruling 4), party inventory (ruling 12).
+Critical hits (ruling 4), party inventory (ruling 12). Rest until healed (page 7, a convenience: camp rests until everyone is healed, `stopHealed`).
