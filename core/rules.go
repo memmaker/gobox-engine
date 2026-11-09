@@ -15,6 +15,9 @@ type Rules interface {
 	CharacterRules
 	CombatRules
 
+	// Begin sets what the adventure and the player chose: at start and at load.
+	Begin(Campaign, Options)
+
 	// Ships is the ship fights, nil without FeatureSpaceCombat.
 	Ships() ShipRules
 
@@ -51,7 +54,11 @@ type CharacterRules interface {
 	// Draft is the character being made, nil none. play.Assembling.Draft.
 	Draft() *Draft
 	// Purse is the party's one purse. play.Common.Purse; por purseCoin.
-	Purse() Purse
+	Purse() Copper
+	// Shared is the one slotted inventory under Options.PartyInventory, else nil.
+	Shared() []Carried
+	// Spell is the registry row: presence does not mean learnable (Campaign).
+	Spell(SpellID) (Spell, error)
 	// Fact and SetFact are a script's typed reads and writes. Neither has a side
 	// effect: a consequence is an Action (ARCHITECTURE.md's table). A Fact the
 	// character lacks is an error. por readSpecialGlobal, writeSpecialGlobal
@@ -77,11 +84,11 @@ type CharacterRules interface {
 type CombatRules interface {
 	// BeginFight: por combatSetup, CombatRules.CombatStart (combatsetup.go:12); BR startFight (combat.go:35).
 	BeginFight(Fight, *RNG) Outcome
-	// BeginRound: initiative. por turnSetup (combatturn1.go:18); pod and sotsb
-	// buildTurnOrder (combat.go:75, :74); BR newRound (combat.go:98).
+	// BeginRound: initiative for all: roll for every eligible, modifiers, a
+	// deterministic tie-break, sort. Replaces por nextCombatant. BR newRound (combat.go:98).
 	BeginRound(Fight, *RNG) Outcome
-	// NextActor is who acts now; false: the round is over. por nextCombatant
-	// (combat.go:32) rolls here, pod walks its sorted order, BR nextTurn (combat.go:313).
+	// NextActor is who acts now, next in the order, delayed spells included;
+	// false: the round is over. pod buildTurnOrder; BR nextTurn (combat.go:313).
 	NextActor(Fight, *RNG) (CharID, bool)
 	// BeginTurn: por takeTurn (combat.go), TurnStart; BR turnStart (combat.go:327).
 	BeginTurn(Fight, CharID, *RNG) Turn

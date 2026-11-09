@@ -196,9 +196,8 @@ type (
 	TakeMoney struct{}
 
 	// Doors (por TryDoor; the engine moves, the rules roll).
-	BashDoor  struct{ Who CharID }
-	PickLock  struct{ Who CharID }
-	KnockDoor struct{ Who CharID }
+	BashDoor struct{ Who CharID }
+	PickLock struct{ Who CharID }
 
 	// What a script does to characters, as commands (por opDamage, sotsb cmdGainExp).
 	ScriptDamage struct {
@@ -218,6 +217,11 @@ type (
 	// RemoveMember: POR off 0 and 0x100 written 0, then the drop bit of
 	// SelectMember (eclops.go:178-194); COTAB nameCleared, activeCleared.
 	RemoveMember struct{ Who CharID }
+	// SpringTrap: a script's trap, as data (por, cotab, sotsb Damage).
+	SpringTrap struct {
+		Whom []CharID
+		Trap TrapDefinition
+	}
 	// SetStatusAction: a script's status with its consequences, 0x87 stones.
 	SetStatusAction struct {
 		Who    CharID
@@ -226,6 +230,7 @@ type (
 )
 
 func (RemoveMember) action()    {}
+func (SpringTrap) action()      {}
 func (SetStatusAction) action() {}
 
 // ItemSlot is an item on a character by its id on that character. CarriedID is
@@ -297,6 +302,5 @@ func (TakeItem) action()      {}
 func (TakeMoney) action()     {}
 func (BashDoor) action()      {}
 func (PickLock) action()      {}
-func (KnockDoor) action()     {}
 func (ScriptDamage) action()  {}
 func (ScriptGainExp) action() {}

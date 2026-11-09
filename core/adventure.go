@@ -17,8 +17,10 @@ type Adventure interface {
 	Script(AreaID) ([]byte, error)
 	// Area is an area's names and set. names/areas.txt; play.Common.Area.
 	Area(AreaID) (AreaInfo, error)
-	// Treasure is a list of placed items. por opTreasure (eclops2.go:34), shop goods.
-	Treasure(TreasureRef) ([]ItemRef, error)
+	// Treasure is a list of placed items. por opTreasure (eclops2.go:34).
+	Treasure(TreasureID) ([]ItemRef, error)
+	// Campaign is what this module's world allows.
+	Campaign() Campaign
 
 	// Assets, decoded: on demand and by typed id.
 	Map(MapID) (Walls, error)           // por geo.go:75
@@ -26,10 +28,18 @@ type Adventure interface {
 	Sound(SoundCue) (Sound, error)      // a rule's cue or a script's
 }
 
-// TreasureRef names a list of placed items (por opTreasure: ITEM<set>, block).
-type TreasureRef struct {
-	Set   DataSet
-	Block int32
+// Campaign is what an adventure says of the rules' choices. Spells nil: all in
+// the registry may be learned. The rules hold class progressions and race caps;
+// MaxLevel stops training and never discards experience.
+type Campaign struct {
+	MaxLevel int32
+	Spells   []SpellID
+}
+
+// Options are the player's. Off by default.
+type Options struct {
+	CriticalHits   bool // POD's rule, all games
+	PartyInventory bool // no encumbrance, one shared slotted inventory: POR's today
 }
 
 // Identity names a module.
@@ -79,14 +89,6 @@ type (
 		Raw  int32
 		Item ItemID
 	}
-	// MonsterTerm: what a script's LoadMonster index means in a data set.
-	// Variable indices (POR 24, POD 69 sites) go through the same table at run
-	// time; an index with no row is an error.
-	MonsterTerm struct {
-		Set     DataSet
-		Index   int32
-		Monster MonsterID
-	}
 )
 
 // ScriptSet is how to read a module's scripts.
@@ -99,7 +101,6 @@ type ScriptSet struct {
 	Conditions []ConditionTerm
 	Spells     []SpellTerm
 	Items      []ItemTerm
-	Monsters   []MonsterTerm
 }
 
 // AreaInfo is what the names files say of an area.

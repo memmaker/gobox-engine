@@ -72,12 +72,13 @@ func (Alignment) value() {}
 func (Status) value()    {}
 func (Side) value()      {}
 
-// Coin is a kind of money. Rulesets hold one purse (gobox/rules.Purse); old
-// scripts see per-member coins as a view of it.
+// Coin is a kind of money. Old scripts see per-member coins as a view of the
+// party's one purse.
 type Coin string
 
-// Purse is the party's money by kind.
-type Purse map[Coin]uint64
+// Copper is money: the rules' one unit. Gold-and-copper is presentation's, and
+// a script's CoinFact is a view that converts.
+type Copper int64
 
 // ScriptAddr is a variable's address in a script's own memory map.
 type ScriptAddr uint16
@@ -110,21 +111,18 @@ type BitBinding struct {
 }
 
 // WorldWord is a script variable the rules depend on. The engine keeps script
-// memory; it passes these on in FightTerms and ShopTerms.
+// memory; it passes these on in FightTerms.
 type WorldWord int
 
 const (
-	WordMorale      WorldWord = iota + 1 // por game.Morale
-	WordSurprise                         // por game.Surprise
-	WordMonsterHit                       // por game.MonsterHit
-	WordPartyHit                         // por game.PartyHit
-	WordPartyMove                        // por game.PartyMove
-	WordNoMagic                          // por area.NoMagic
-	WordNoLoot                           // por game.NoLoot
-	WordDifficulty                       // pod gameDifficulty
-	WordPriceFactor                      // cotab gameWordPriceFactor
-	WordHideExp                          // sotsb HideExperience
-	WordTrainable                        // por game.PartyExp: classes a hall teaches
+	WordMorale     WorldWord = iota + 1 // por game.Morale
+	WordSurprise                        // por game.Surprise
+	WordMonsterHit                      // por game.MonsterHit
+	WordPartyHit                        // por game.PartyHit
+	WordPartyMove                       // por game.PartyMove
+	WordNoMagic                         // por area.NoMagic
+	WordNoLoot                          // por game.NoLoot
+	WordTrainable                       // por game.PartyExp: classes a hall teaches
 )
 
 // WorldBinding names the address of a WorldWord in this adventure's scripts.

@@ -21,7 +21,9 @@ type Sheet struct {
 	Saves     map[Save]int32
 	Skills    map[Skill]int32
 	Items     []Carried
-	Spells    []KnownSpell
+	Known     []SpellID            // can be memorized
+	Memorized []MemorizedSpell     // what is in the head, with castings left
+	Burden    Burden               // zero under Options.PartyInventory
 	Slots     map[string]SlotCount // by level group, as the ruleset words it ("cleric 1")
 	Effects   []string             // the spell effects on it, as the ruleset words them
 	Figures   []Figure             // what a ruleset adds to the sheet (CombatRules.Sheet)
@@ -38,17 +40,46 @@ type Figure struct {
 	Help        []string
 }
 
-// KnownSpell is a spell known or memorized (game.SpellRef).
-type KnownSpell struct {
-	Spell     SpellID
-	Name      string
-	Level     int32
-	Group     string
-	Memorized bool
-	Planned   int32
-	Range     int32
-	Targets   int32
-	Area      int32
+// MemorizedSpell keeps memorized and remaining apart; slots come from class,
+// level and cleric Wisdom, never from a storage size.
+type MemorizedSpell struct {
+	Spell   SpellID
+	Left    int32
+	Planned int32
+}
+
+// Burden is encumbrance: the one concept of the games' default rules.
+type Burden struct{ Weight, Limit int32 }
+
+// School groups a spell.
+type School string
+
+// SpellEffect is what the spell does, in the ruleset's terms; a behaviour
+// variant between games is its own Effect, explicit.
+type SpellEffect string
+
+// SpellSource is where a casting comes from.
+type SpellSource string
+
+const (
+	FromMemory SpellSource = "memorized"
+	FromScroll SpellSource = "scroll"
+	FromWand   SpellSource = "wand"
+	FromItem   SpellSource = "item"
+)
+
+// Spell is a registry row, keyed by a stable id. What the original tables
+// numbered by game ends here.
+type Spell struct {
+	ID      SpellID
+	Name    string
+	School  School
+	Level   int32
+	Classes []Class
+	Effect  SpellEffect
+	Range   int32
+	Targets int32
+	Area    int32
 }
 
 // Carried is an item on a character.
@@ -120,6 +151,54 @@ type Draft struct {
 	Step         string            // por creation's step; "" any, as play.Draft
 	Lows         map[Ability]int32 // the class's minimums (play.Draft.Minimums)
 	MinHP, MaxHP int32
+}
+
+// TrapDefinition is a trap as data: no universal skip of the stoned, the damage
+// kind and target eligibility decide. Replaces TrapSkipStoned, TrapRollEach.
+type (
+	TrapTarget string
+	TrapDamage string
+	TrapSave   string
+)
+
+const (
+	TrapOne      TrapTarget = "one"
+	TrapAll      TrapTarget = "all"
+	TrapOnePer   TrapDamage = "roll-once"
+	TrapRollEach TrapDamage = "roll-each"
+	SaveNegates  TrapSave   = "negates"
+	SaveHalves   TrapSave   = "halves"
+	SaveNone     TrapSave   = ""
+)
+
+type TrapDefinition struct {
+	TargetMode TrapTarget
+	DamageMode TrapDamage
+	Damage     Dice
+	Kind       string // what kind of damage: decides who it can touch
+	SaveType   Save
+	SaveEffect TrapSave
+}
+
+// AttackRequest and AttackResult are one attack roll, for every ruleset: this
+// replaces por's Hits hook (rules.go:230). Natural is the die, kept for 1, 20,
+// and CriticalHits.
+type AttackRequest struct {
+	From, To CharID
+	Bonus    int32
+	Need     int32
+}
+
+type AttackResult struct {
+	Natural  int32
+	Hit      bool
+	Critical bool
+}
+
+// AttackResolver is what a ruleset's swing goes through. Inside a ruleset;
+// the engine sees only Attacked.
+type AttackResolver interface {
+	Attack(AttackRequest, *RNG) AttackResult
 }
 
 // Check is a question a script asks of the rules. Closed.

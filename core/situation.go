@@ -28,36 +28,68 @@ type (
 	// Shopping: a shop is open with the adventure's goods.
 	Shopping struct {
 		Party Party
-		Goods []ItemRef
-		Terms ShopTerms
+		Goods []ShopItem
 	}
 	// AtTemple: services for money.
 	AtTemple struct {
-		Party Party
-		Terms ShopTerms
+		Party    Party
+		Services []ServicePrice
 	}
 	// Training: a hall is open.
 	Training struct {
-		Party  Party
-		Terms  ShopTerms
-		Allows []Class // WordTrainable
+		Party     Party
+		Price     Copper  // per level
+		Allows    []Class // WordTrainable
+		DualClass bool    // the adventure lets a dual-class change start here
 	}
 	// Looting: treasure on the ground.
 	Looting struct {
 		Party Party
 		Items []ItemRef
-		Money Purse
+		Money Copper
 	}
 	// AtDoor: a door to force.
-	AtDoor struct{ Party Party }
+	AtDoor struct {
+		Party Party
+		Door  Door
+	}
 	// Scripted: a script's command, no screen of its own.
 	Scripted struct{ Party Party }
 )
 
-// ShopTerms are the script words a price depends on.
-type ShopTerms struct {
-	PriceFactor int32 // WordPriceFactor: shop pricing stays per ruleset (RULE2.md (e))
+// ShopItem is what the adventure's shop sells, at its prices.
+type ShopItem struct {
+	Item      ItemRef
+	Buy, Sell Copper
 }
+
+// ServicePrice is a temple service at this temple's price.
+type ServicePrice struct {
+	Service ServiceID
+	Price   Copper
+}
+
+// DoorState is a door as the adventure defines it.
+type DoorState string
+
+const (
+	DoorOpen   DoorState = "open"
+	DoorClosed DoorState = "closed"
+	DoorLocked DoorState = "locked"
+	DoorMagic  DoorState = "magically-locked"
+)
+
+// Door: the engine offers Pick, Bash and casting whatever the party can; the
+// rules decide; only the script's Opened and Failed decide what follows. A
+// knock on a door is a script's option on that door, not a door rule.
+type Door struct {
+	State  DoorState
+	Opened AreaEvent // script label on success
+	Failed AreaEvent
+}
+
+// AreaEvent is a label in the current area's script.
+type AreaEvent int32
 
 // FightTerms are the script words a fight depends on.
 type FightTerms struct {
@@ -141,7 +173,7 @@ type FightResult struct {
 	Beaten  int32
 	Exp     int32 // per member
 	Items   []ItemRef
-	Money   Purse
+	Money   Copper
 }
 
 // Turn is what BeginTurn says of the actor.

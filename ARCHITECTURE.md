@@ -1,6 +1,6 @@
 # Architecture: engine, rules, adventure
 
-DRAFT for Felix's review, revision 2 with his 11 rulings. Nothing uses `core/`; no migration. Settled parts: ONE-PATH.md "Next: three components".
+DRAFT for Felix's review, revision 3: his 11 rulings and the 21 variation rulings. Nothing uses `core/`; no migration. Settled parts: ONE-PATH.md "Next: three components".
 
 ## Dependencies
 
@@ -13,7 +13,7 @@ DRAFT for Felix's review, revision 2 with his 11 rulings. Nothing uses `core/`; 
  cmd/<game>: main wires one Rules and one Adventure.   cmd/import: originals to canonical, once.
 ```
 
-Leaves know neither gobox nor each other (`imports_test.go`, list empty until a leaf exists). A rule never calls back: all it needs arrives as a value. Sizes: `Rules` 7 + `CharacterRules` 11 + `CombatRules` 9; optional `ShipRules` 5; `Adventure` 9.
+Leaves know neither gobox nor each other (`imports_test.go`, list empty until a leaf exists). A rule never calls back: all it needs arrives as a value. Sizes: `Rules` 8 + `CharacterRules` 13 + `CombatRules` 9; optional `ShipRules` 5; `Adventure` 10.
 
 **What "any adventure on any ruleset" now means: it does not.** An adventure names `dnd.Hobgoblin` or `xxvc.Terran`; `Mismatches(Needs, Catalog)` fails at load on any id the ruleset lacks. POR runs on any ruleset that fills the `dnd` Catalog (1e, rules4e), never on XXVc. Crossing worlds would take an explicit conversion leaf; none is planned.
 
@@ -82,11 +82,22 @@ Needs: a journal command in the patch vocabulary; the shown coin split (`purseCo
 
 ## 4. Adventures name, rulesets number
 
-"4 hobgoblins" is `LoadMonster` with a table: `ScriptSet.Monsters` maps `(set, index)` to `MonsterID`. Constant indices can also fold at import; variable ones (POR 24, COTAB 8, SotSB 21, POD 69, BR 9, 12 sites) use the table at run time, an index with no row is an error. `Rules.Spawn(MonsterID, *RNG)` supplies every number. Items: `ItemRef{ID, Plus, Charges, Count, Cursed}`, `Rules.Item(ItemRef)`; `FindItem` terms likewise (4, 3, 1, 7, 0, 0 distinct constants). Spells as before by `SpellTerm`.
+Scripts carry typed ids only: "4 hobgoblins" is `LoadMonster dnd.Hobgoblin, 4`. `MonsterID`, `ItemID`, `ShipID`, `TreasureID` are typed enums with numbers assigned once (`SpellID` stays a string). The decompiler resolves `(set, index)` and treasure file and block at import, so no set, index or block survives; `TreasureRef` is gone. `Rules.Spawn(MonsterID, *RNG)` and `Rules.Item(ItemRef)` supply every number. `FindItem` and spell numbers map at import likewise.
 
-Scan of `MON*CHA` (records / names / names with differing stat blocks): POR 172/103/12 (KOBOLD ×2, VAMPIRE ×2), COTAB 81/68/9 (RAKSHASA ×3), SotSB 70/68/2, POD 122/118/2, BR1 54/49/5, BR2 63/55/6. So one id per **distinct block**, not per name: the importer generates rosters, a person names variants. Consequence to accept: `core/dnd` and the 1e tables carry every module's named NPCs (Tyranithraxus), since the ruleset holds all stats. Across games the same name will also differ; each block gets an id, merged only if equal.
+**Computed indices:** the patch names a typed candidate list at the site, for example `LoadMonster pick v {0: Kobold, 1: Goblin}`. A value outside the list is a run-time error. Import fails on a variable site with no list unless its writers bound it automatically.
 
-Rule-scale gates: `Compare(PartyStrength, 70)` (POR 18 sites, COTAB 2; others none) becomes `Check{PartyAtLeast{Tier}}` by patch: the ruleset decides what "strong" means. Three `Tier`s is a guess until the sites are read. `Census` over abilities is world-shared; thresholds in scripts stay scripts' own.
+| Sites | POR | COTAB | SotSB | POD | BR1 | BR2 |
+|---|---|---|---|---|---|---|
+| LoadMonster, all | 330 | 276 | 349 | 979 | 227 | 457 |
+| variable index | 24 | 8 | 21 | 69 | 9 | 12 |
+| of those, auto-bounded (const, Random, And in the block) | 0 | 0 | 0 | 2 | 0 | 0 |
+| Treasure constant / variable block | 74 / 3 | 58 / 5 | 90 / 1 | none found | none found | none found |
+
+So **141 monster sites and 9 treasure sites need a hand-written list**, each from reading the script or a logging trace. Writers often sit in another block, so a whole-script analysis may lower this; not tried. POD and BR show no Treasure op with block operand in this scan: unexplained, check before relying on it.
+
+`MON*CHA` (records / names / names with differing stat blocks): POR 172/103/12, COTAB 81/68/9, SotSB 70/68/2, POD 122/118/2, BR1 54/49/5, BR2 63/55/6. One id per distinct block; a person names the variants. `core/dnd` and the 1e tables carry every module's NPCs.
+
+Rule-scale gates: `Compare(PartyStrength, 70)` (POR 18 sites, COTAB 2) becomes `PartyAtLeast{Tier}` by patch. Three tiers are a guess until the sites are read.
 
 ## 5. Asset data
 
@@ -102,7 +113,7 @@ The importer reads an original save and CHRDATA/.GUY once and writes a canonical
 
 `core.RNG{State}`: **the engine owns it**, seeded at start and saved; every rolling Rules method takes `*RNG` as a parameter, so no callback and no hidden stream. Script RANDOM draws the same. Sequence: Turbo Pascal LCG. Testing: fixed seed, full reproduction.
 
-Trace interaction: POR, POD, COTAB, SotSB keep original traces as long as draws stay in the same order, including for monsters' HP (now Spawn) and scripts. BR1, BR2 use PCG (`e.rng`), so they get new sequences once: re-record their traces at that step, separately from anything else. Anything else drawing outside: `por dasp.go:166` voice picks from global `rand`. See questions.
+Trace interaction: Original traces hold game by game while draw order is unchanged, including monster HP (now Spawn) and scripts; see "Traces and rule changes". BR1, BR2 use PCG (`e.rng`), so they get new sequences once: re-record at that step, separately. Anything else drawing outside: `por dasp.go:166` voice picks from global `rand`. See questions.
 
 ## 8. Ship fights
 
@@ -110,35 +121,96 @@ Trace interaction: POR, POD, COTAB, SotSB keep original traces as long as draws 
 
 `Board` thickened: `Height`, `Ground`, `ZeroG`, `Free`.
 
-## 9. One 1e ruleset: every variation, for Felix
+## 9. One 1e ruleset: Felix's rulings
 
-Ruling: one ruleset, flagged small variations. A flag belongs to the adventure's rules config or a table row. "Rec" is mine.
+"All four" means the Pool games. BR is a separate world with its own ruleset; the last column says how each ruling touches it.
 
-| # | Rule | POR | COTAB | SotSB | POD | Rec |
-|---|---|---|---|---|---|---|
-| 1 | Saving throw compare | signed, rules.go | was unsigned | was unsigned | | done: signed (RULE2 a) |
-| 2 | Initiative | `nextCombatant` d100 per pick combat.go:32 | turnSetup | `buildTurnOrder` :74 | :75 sort, coin toss | decide; flag breaks no trace |
-| 3 | To-hit by difficulty | none rules.go:222 | none rules.go:314 | none rules.go:351 | party ±2 table rules.go:423, 438 | flag |
-| 4 | Critical hits | none | none | none | rules.go:445 | flag |
-| 5 | Monster HP by difficulty | none | none | ×(level+offset)/4 eclcmds2.go:353-363 | none | flag |
-| 6 | Difficulty storage | none | none | area word 500 camp.go:234 | game byte 38 alterflow.go:127 | one `WordDifficulty` |
-| 7 | Hide exp | none | none | area 501 aftercombat.go:124 | game 30 :143 | `WordHideExp` |
-| 8 | Cleric prime exp | aftercombat.go:86 own constants | Wis>15 :129 | Wis>=15 :136 | check | decide; SotSB looks like the original's off-by-one |
-| 9 | Exp table lookup | | train.go:376, runs into the next row | train.go:295, 0 past end | train.go:467 | table; past end = cap |
-| 10 | Trap damage | | base | `TrapSkipStoned`, `TrapRollEach` damage.go:36, :154 | | RULE2 b, flags |
-| 11 | Shop price | fixed item price | factor word shop.go:19 | same shop.go:22 | byte, platinum shop.go:18 | RULE2 e: flag or table |
-| 12 | Encumbrance | none | cut | cut | | RULE2 c |
-| 13 | `armourMove` | charcalc.go:350 | :185 | :230 | :240 | undecided in RULE2; decide |
-| 14 | Charisma percent | ecl.go:156 | eclvars.go:86, <=3 | eclvars.go:107, ==3 | | one; only below-3 differs |
-| 15 | Spell roster, numbers | 56 | 100+ | 100+ | 126, item powers | union by id; `SpellTerm` per module |
-| 16 | Memo slots | 21 | offsets 32..112 | 27..101 | 141 | Ruleset limit: flag or max, decide |
-| 17 | Dual class | extra dualclass.go | | | | flag, or all |
-| 18 | Knock | extra slot ecl.go:201 | door choice adventure.go:233 | :256 | | check |
-| 19 | Rule tables (thac0, saves, exp, str, dex, thief) | 8 classes, saveTable charcalc.go:94 | 480 bytes | 635 | 740 | table per game or merge: decide. Means numeric parity vs. one table: real cost |
-| 20 | Attack hook | rules.go:230 `Hits` (rules4e) | | | | ruleset-private |
-| 21 | Dancing affect | | | | affects.go:140 | condition in 1e; check others have it |
+| # | Ruling | Core and notes | BR (xxvc) |
+|---|---|---|---|
+| 1 | Saves: signed ints, explicit clamping at the right stage, natural-roll rules and special effects kept. A bug fix | rules-internal | same principle, 8 saves |
+| 2 | Initiative: each round roll all eligible, modifiers, deterministic tie-break, sort, execute in order with delayed spells | `BeginRound`, `NextActor`. POD's coin toss on ties and POR's d100 per pick go | has its own d10 + dex + tactics; not changed by this |
+| 3, 5, 6 | Difficulty cut: normal values, standard attack values | removed `WordDifficulty`. Script `PartyHit`, `MonsterHit` words are not difficulty and stay; say if they should go | none |
+| 4 | Critical hits: option, off; on = POD's rule everywhere | `Options.CriticalHits` | not applicable unless asked |
+| 7 | Exp display is presentation | removed `WordHideExp`. **Conflict:** POD aftercombat.go:143 and SotSB :124 also skip the *award* when set. As recorded, the award now always happens; scripts setting the word must be read | none |
+| 8 | Cleric 10% at Wis >= 16, `xp*110/100`. Other classes separate | Verified: for integer xp `xp*110/100` equals today's `g+g/10`. POD also has the off-by-one (`clericPrimeScore` 14, aftercombat.go:39), not only SotSB. Multi-class: `exp/2` or `exp/3` truncated, and **no bonus in any game**, so no order question arises today; the remainder is lost. Paladin needs Str+Wis, ranger Str+Int+Wis, all > 15 | own XP rules |
+| 9 | XP for a level, campaign cap, race+class cap are separate. Progression and race caps in rules, cap from adventure. Cap stops training, keeps XP | `Campaign.MaxLevel` | same split |
+| 10 | Traps as data; no universal stoned skip | `TrapDefinition`, `SpringTrap` | same type, if BR traps fit |
+| 11 | Adventure gives buy and sell per shop; copper internally; gold display is presentation | `Copper`, `ShopItem`, `ServicePrice`; `Purse` map, `ShopTerms`, `WordPriceFactor` gone. Open: scripts set the factor word at run time (cotab word 877), so import must bound it per shop. Gems and jewelry: see questions | credits convert the same way |
+| 12 | One encumbrance from the default rules; option "Party inventory", off: none, one shared slotted inventory | `Options.PartyInventory`, `Burden`, `Rules.Shared`. Note: RULE2 (c) had cut encumbrance; this reverses it, and its code is still in COTAB and SotSB | own |
+| 13 | armourMove: compare | **All four identical**: weight <= 150 base move, <= 399 move 9, else 6; any plus adds 3 when move <= 9. POR 0x96, 0x18F are the same numbers (por charcalc.go:350, cotab :185, sotsb :230, pod :240). Unify | own |
+| 14 | Charisma: one lookup on `max(3, min(cha, maxCharisma))`; score apart from percent | rules-internal; `FactReaction` | none |
+| 15 | Spell registry, stable ids, availability, sources, variants; presence is not learnable | `Spell`, `SpellSource`, `SpellEffect`, `Campaign.Spells` | effects could use the same type |
+| 16 | Slots from class and level tables plus cleric Wisdom; known, memorized, remaining apart | `Known`, `MemorizedSpell`. `MemoFact{Slot}` remains only as a script's view | no slots |
+| 17 | Dual class everywhere; adventure restricts where it starts | `Training.DualClass` | none |
+| 18 | Doors: adventure defines state and outcome; engine offers Pick, Bash, casting; Knock is an ordinary spell | `Door`, `DoorState`; `KnockDoor` removed | same door type |
+| 19 | Canonical shared tables, documented exceptions | report below: **not trivial, flagged** | own tables |
+| 20 | Common attack interface replaces the hook | `AttackRequest`, `AttackResult`, `AttackResolver` | may implement it |
+| 21 | Dancing a shared condition | `dnd.CondDancing`. Verified POD only: AC[0], AC[1] -4 (affects.go:1606); every save fails, die still rolled (rules.go:461); from Otto's Irresistible Dance (spells2.go:1409) on a hit. Other games have no such spell | none |
 
-Gaps left empty were not checked. The census (pool-shared-analysis.md: 238 common of 1166-1716 functions; twins SotSB, POD 85-100%) says more lie in `computeExp`, `giveExp`, `attackSlots`, `thiefSkills`, affects, and AI: a function-by-function diff at step 5 will extend this table. BR's "no 2e game" stands; XXVc has its own ruleset, BR1 and BR2 two tables.
+### Table comparison (ruling 19, read-only)
+
+Values taken from each game's `rules/tables.go`, normalized to class, level. Comparison script: `/private/tmp/claude-501/-Users-felix-Projects-por-go/87588ad1-e12f-483f-a8a6-62667562088c/scratchpad/tb/cmp2.py`. Longer tables in later games are **added levels**: POR stops at 10, COTAB 12, SotSB 18, POD 21; POR rows past their cap hold unrelated bytes and are ignored.
+
+**No conflict:** thief base by level (POR-COTAB to 9, others to 12), hit die sides and max hit dice, Con HP 3..18, cleric and mage slots through 9 where both exist, cleric and mage XP, turn undead POR=COTAB=SotSB.
+
+**Conflicts, stored value (40 = THAC0 20, higher is better):**
+
+| Table | Values | Suggested canonical |
+|---|---|---|
+| Fighter THAC0, levels 2..: paladin, ranger same | POR L2 41, COTAB, SotSB 40 and +1 each level after; POD 40, 42, 42, 44, 44 (two-level steps, 42 at L3 as others, L4 42 not 43), flat 56 from L18 | COTAB-SotSB; **POD is a rule change, decide** |
+| Fighter level 0 | 39 COTAB, SotSB, POD; 40 POR | unused row probably |
+| Mage THAC0 | L1-5: 40 POR, POD; 39 COTAB, SotSB. L11-15: 43 COTAB, SotSB; 44 POD. L16+: 46 SotSB; 47 POD | decide |
+| Paladin saves | POR table higher by 2 (L1 14,15,16,17,17; later 12,13,14,15,15), but POR's `paladinSaves` overrides with COTAB's | later games. L8 9,9,10,10,11 worse than L7 8,9,10,10,11 in all three: data oddity |
+| Paladin XP from L11 | COTAB, SotSB 1050001, 1400001, 1750001, 2100001, 2460001; POD 1050000 .. 2450000 | SotSB. POD's are `expSteps` arithmetic, 1 low, and 10000 off at L15 |
+| Ranger XP from L11 | 650001 .. 1950001; POD 650000 .. 1950000 | same |
+| POD druid XP | row is -1; POD's step formula yields nonsense | no druid progression; POD's is a bug |
+| Thief Dex 10, PP | -10 POR; -19 SotSB, POD | POR: **verify against EXE**, -19 looks corrupt |
+| Thief Dex 16, Open Locks | +5 POR; -5 SotSB, POD | same |
+| First hit dice, cleric | 2 SotSB; 1 COTAB, POD, POR | 1 |
+| Class minimum, paladin | POR Str 13, Wis 12; later Str 12, Wis 13 | later |
+| Class minimum, ranger | POR Str 0; later 13 | later |
+| Class minimum, Cha | POD 6 for every class but paladin (17); others 0 | decide |
+| Alignments | POR cleric and four multi-classes (rows 0, 8, 9, 11, 12): 8 without True Neutral; later 9 | later |
+| Slots | POR has no row above 6 (zero in table): added levels, no conflict | later |
+
+**Spells, 137 names, 91 overlap, 46 in one game.** Byte fields; field 0 (class group, renumbered) and 13 differ widely and are not compared as rules: 13's meaning is unnamed. Other fields, POR/COTAB/SotSB/POD, field meanings besides f1 level unconfirmed:
+
+| Spell | Fields |
+|---|---|
+| Animate Dead | f1 level 3/5/-/-, f12 10/5/-/- |
+| Barkskin | f4 -/-/0/4, f5 -/-/0/1, f7 -/-/3/2 |
+| Bestow Curse | f1 3/4/4/4, f2 255/0/0/3, f5 10/10/10/3, f10 36/0/36/36, f12 6/4/4/4 |
+| Bless, Haste, Invisibility 10' | f7 4/4/3/3 |
+| Blink | f7 1/0/0/0 |
+| Charm Person | f4, f5 0/0/60/60 |
+| Cure Disease | f12 100/100/100/1 |
+| Cure Light Wounds | f1 1/1/2/2, f2 0/0/255/255, f12 5/5/4/4 |
+| Detect Magic | f2 0/3/3/3, f4 0/12/12/12, f5 2/0/0/0, f12 1/3/3/3 |
+| Dimension Door | f3 -/3/12/12 |
+| Dispel Evil, Entangle, Faerie Fire, Fear | f10 -/145/32/32, -/136/0/0, -/7/71/71, -/142/111/111 |
+| Fireball, Lightning Bolt, Slow | f3 1/1/4/4 |
+| Fumble, Ice Storm | f3 -/1/4/4 |
+| Globe of Invulnerability | f6 -/-/4/0 |
+| Heal | f2 -/-/5/0 |
+| Hold Monsters | f3 -/1/2/2 |
+| Minor Globe | f3 -/1/16/16 |
+| Neutralize Poison | f1 -/4/4/3, f12 -/7/7/1 |
+| Prayer | f7 1/4/3/3 |
+| Reduce | f10 13/13/12/12 |
+| Remove Curse | f1 3/4/4/4, f12 6/4/4/4 |
+| Restoration | f6 4/4/-/0, f11 2/2/-/0, f12 6/6/-/1 |
+| Silence 15' | f8 3/3/1/1 |
+| Slow Poison | f11 2/2/0/0 |
+
+**Not compared:** race ability limits and race-class lists (orders differ, SotSB holds two limit tables, POR another layout), ages, COTAB's combined thief race and dex table, paladin, ranger and druid slots, POD turn undead, item and monster tables. Rows above were read from the port's tables, not re-checked against each EXE.
+
+**Flag for Felix:** unification is not trivial. Fighter-line and mage THAC0 and the spell rows are rule choices, not extraction errors. Picking one breaks parity with the other games by design.
+
+### Traces and rule changes
+
+Felix's call: traces match the originals game by game during migration, recorded traces after. Rulings 1, 2, 3/5/6, 8, 9, 10, 11, 14, 15, 16, 19 alter play or draw order, so they conflict with original traces.
+
+Handling: **port first with original behaviour and traces green; each rule change is then a separate commit** that re-records the traces it affects and names the ruling. During the port a game's old behaviour lives in temporary per-game values marked for deletion, never as lasting flags; only the two `Options` stay. BR re-records once at its RNG switch.
 
 ## Scripts' data and today's code
 
@@ -151,17 +223,18 @@ Hard spots left: combat AI one long routine (por `computerTurn`); `game.Data` mi
 
 ## Migration order
 
-Each step keeps all six games on traces, except the named BR RNG step. 1. Settle this. 2. Machine merge (section 2), logging computed window hits. 3. Bindings and patches, POR first, then errors on. 4. Importers and asset ids. 5. POR adventure and rules leaf. 6. Engine loop. 7. SotSB, COTAB, POD on 1e, extending the variation table. 8. XXVc, BR's RNG, ship fights.
+Each step keeps all six games on traces, except the named BR RNG step; rule changes follow as separate commits. 1. Settle this. 2. Machine merge (section 2), logging computed window hits. 3. Bindings and patches, POR first, then errors on. 4. Importers and asset ids. 5. POR adventure and rules leaf. 6. Engine loop. 7. SotSB, COTAB, POD on 1e. Then the rule changes and canonical tables, one commit each. 8. XXVc, BR's RNG, ship fights.
 
 Unverified: nothing here has run on a game. Only core's build, vet, tests. No ruleset or adventure implements these interfaces yet; expect change.
 
 ## Remaining questions
 
-1. Section 9: each row.
-2. "One RNG over everything": presentation draws (voice, `dasp.go:166`) in the stream would make traces depend on frames. Recommend a second `RNG` seeded from the first, engine-owned, for presentation only.
-3. Monster ids per stat block, with module NPCs in the 1e tables: accept? The alternative is an adventure-owned override, which ruling 4 seems to forbid.
-4. `Tier` for gates: read 20 sites, then fix the names?
-5. Do adventures reading originals need a shared decoder leaf (dax, ega outside gobox)? Recommend no: importer only.
-6. Rule tables generated from original EXEs and checked in: private use only?
-7. Glossary: fix "character" (includes monsters), "fact", "patch", "situation", "world"?
-8. Alignment in `dnd`: confirm BR has none (unread).
+1. Table conflicts above: pick fighter-line THAC0, mage THAC0, Dex rows, Cha minimum, spell rows. Recommend COTAB-SotSB as base, with POD's values only as named exceptions.
+2. Exp hidden word: is the award still given (ruling 7 read literally), or does a script need "no exp" as an explicit fact?
+3. Gems and jewelry are `Coin` views today; "everything converts" to copper, or do they become items?
+4. `PartyHit`, `MonsterHit` script words: keep?
+5. Multi-class XP: keep "no prime bonus" and the truncated split?
+6. RNG for presentation (`dasp.go:166`): second engine-owned stream? Recommend yes.
+7. Module NPCs in the 1e tables: accept?
+8. `Tier` names after reading the 20 sites. Rule tables generated from EXEs checked in: private only? Adventures with own decoders: none, importer only?
+9. Glossary: "character" (includes monsters), "fact", "patch", "situation", "world". Alignment `dnd` only: BR unread.

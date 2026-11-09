@@ -68,6 +68,7 @@ const (
 	CondMirrorImage   core.Condition = "mirror-image"     // pod FindAffect 72
 	CondGazeImmune    core.Condition = "gaze-immune"      // pod FindAffect 126
 	CondDetectMagic   core.Condition = "detect-magic"     // pod gameMagicCheck
+	CondDancing       core.Condition = "dancing"          // AC -4, every save fails, die still rolled: pod affects.go:1606, rules.go:461
 	CondFeatherFall   core.Condition = "feather-fall"     // por effectTable 0x4900 (eclops.go)
 )
 
@@ -81,10 +82,10 @@ const (
 	Jewelry  core.Coin = "jewelry"
 )
 
-// A sample of the rosters the importer will generate (MON*CHA names; a name
-// with differing stat blocks gets one id per block: scan in ARCHITECTURE.md).
+// A sample of the rosters the importer generates, numbers assigned once
+// (MON*CHA; a name with differing stat blocks gets one id per block).
 const (
-	Hobgoblin core.MonsterID = "hobgoblin"
-	Kobold    core.MonsterID = "kobold"
-	LongSword core.ItemID    = "long-sword"
+	Hobgoblin core.MonsterID = 1
+	Kobold    core.MonsterID = 2
+	LongSword core.ItemID    = 1
 )

@@ -107,11 +107,14 @@ const NoChar CharID = 0
 type SpellID string
 
 // Things named by the adventure and given numbers by the ruleset. The
-// constants are in core/dnd and core/xxvc, generated at import.
+// constants are in core/dnd and core/xxvc, generated at import. Scripts carry
+// these ids, resolved by the decompiler, no set or index (ARCHITECTURE.md).
+// Their numbers are stable by assignment (saves hold them), never an original's index.
 type (
-	MonsterID string // "hobgoblin"; one per distinct stat block
-	ItemID    string // "long-sword": the base item, plus and charges are ItemRef's
-	ShipID    string // "krait"
+	MonsterID  int32 // one per distinct stat block
+	ItemID     int32 // the base item; plus and charges are ItemRef's
+	ShipID     int32
+	TreasureID int32 // a list of placed items
 )
 
 // Tier is a party's strength in terms that survive a ruleset's scale: a
