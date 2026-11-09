@@ -26,7 +26,6 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Cleric and mage L1 slots | POR | row skipped below L2: record keeps its slots | 1,0,0 plus Wisdom bonus, so a level drain leaves no stale slots | port earlier; rules1e |
 | Cleric, mage slots past L6 | POR | row (zeros) overwrites | record keeps its own (Genheeris) | port earlier; rules1e |
 | Cleric and its multi-class alignments | POR | any | no true neutral; origin unchecked | port earlier; rules1e |
-| THAC0 base at level -1 (monster records) and fighter 11+ | POR | the neighbouring row (F12 base 40; F-1 base 46) | same; the port panicked. Original bug kept, ruling asked | rules1e |
 | Mirror Image | POR | only a spell being cast takes an image; blows never do | blows and spells take one; origin: the port's own fix, ruling asked | port earlier; `TestEffectsAgainstPascal` |
 | Magic resistance against items | POR | GetCasterLevel gives 6 for an item spell, so the chance falls by 25 points | item counts as level 11, no cut. Ruling asked. Verdict: design choice in the original: item level 6 is deliberate, the effect on resistance is its consequence | port earlier; fixed: comment |
 | Acid spit at a fallen target | POR | spits at a fallen target (nil fixed in the Pascal, por-re BUGS.md) | no spit at a fallen target. Verdict: design or oversight, unclear | port earlier; fixed: comment |
