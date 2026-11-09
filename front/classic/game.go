@@ -766,15 +766,46 @@ func (g *Game) SetPolicy(id int, p front.Policy) error {
 }
 
 // Shops, temples, training.
-func (g *Game) Browse(n int) error            { return g.do(play.OpenItems{Member: -1}) }
-func (g *Game) Identify(n, x int) error       { return g.do(play.Identify{Member: n, Item: x}) }
-func (g *Game) Appraise(jewelry bool) error   { return errors.New("no such action") }
-func (g *Game) KeepAppraised(keep bool) error { return errors.New("no such action") }
-func (g *Game) Cure(n, x int) error           { return g.do(play.Heal{Member: n, Service: x}) }
-func (g *Game) ViewMember(n int) error        { return g.do(play.ViewMember{Member: g.sel(n)}) } // -1: the selected member
-func (g *Game) Leave() error                  { return g.do(play.Leave{}) }
-func (g *Game) OpenTraining(n int) error      { return g.do(play.OpenTraining{Member: n}) }
-func (g *Game) CloseTraining() error          { return g.do(play.CloseTraining{}) }
+func (g *Game) Browse(n int) error      { return g.do(play.OpenItems{Member: -1}) }
+func (g *Game) Identify(n, x int) error { return g.do(play.Identify{Member: n, Item: x}) }
+
+// Appraise values the purse's gem or piece of jewelry: the offer of that kind.
+func (g *Game) Appraise(jewelry bool) error {
+	kind := game.Gems
+	if jewelry {
+		kind = game.Jewelry
+	}
+	for _, o := range g.offers() {
+		if o.Kind == kind {
+			return g.do(play.Appraise{Member: o.Member, Item: o.Item})
+		}
+	}
+	return errors.New("no " + kind + " to appraise")
+}
+
+// KeepAppraised keeps or sells the one valued: the offer with a value.
+func (g *Game) KeepAppraised(keep bool) error {
+	for _, o := range g.offers() {
+		if o.Value > 0 {
+			return g.do(play.Appraise{Member: o.Member, Item: o.Item, Keep: keep})
+		}
+	}
+	return errors.New("nothing valued to keep or sell")
+}
+
+// offers are the shop's or temple's appraisals.
+func (g *Game) offers() []game.Offer {
+	if t, ok := g.r.g.State().(play.Trading); ok {
+		return t.Offers
+	}
+	return nil
+}
+
+func (g *Game) Cure(n, x int) error      { return g.do(play.Heal{Member: n, Service: x}) }
+func (g *Game) ViewMember(n int) error   { return g.do(play.ViewMember{Member: g.sel(n)}) } // -1: the selected member
+func (g *Game) Leave() error             { return g.do(play.Leave{}) }
+func (g *Game) OpenTraining(n int) error { return g.do(play.OpenTraining{Member: n}) }
+func (g *Game) CloseTraining() error     { return g.do(play.CloseTraining{}) }
 func (g *Game) TrainingView() *front.Training {
 	ps := g.r.g.State()
 	return Training(trainingOf(ps), partyOf(ps), g.r.selectedOf(ps), commonOf(ps).Purse)
