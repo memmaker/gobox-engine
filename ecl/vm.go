@@ -119,8 +119,12 @@ func (vm *VM) SetVersion(v *script.Version) {
 	}
 }
 
-// fetch starts the command at PC: Command, and its operands from the first.
-func (vm *VM) fetch() {
+// Fetch starts the command at PC: Command, and its operands from the first.
+func (vm *VM) Fetch() {
+	if vm.Script == nil {
+		vm.Command = vm.CodeByte(vm.PC)
+		return
+	}
 	vm.cur, vm.argPos = int(vm.PC), 0
 	vm.Command = 0
 	if vm.cur < len(vm.Script.Code) {
@@ -190,11 +194,7 @@ func (vm *VM) Addr(k int) uint16 { return VarAddr(vm.ArgLo[k], vm.ArgHi[k]) }
 // Step runs the command at PC. Returns false when vm.Stop is set afterwards.
 func (vm *VM) Step(h Host) bool {
 	vm.LastCommand = vm.Command
-	if vm.Script != nil {
-		vm.fetch()
-	} else {
-		vm.Command = vm.CodeByte(vm.PC)
-	}
+	vm.Fetch()
 	if op := vm.Ops[vm.Command]; op != nil {
 		op(vm, h)
 	}
@@ -269,11 +269,7 @@ func ArgsTrace(h Host, print func(string)) func(*VM, int) {
 
 // Skip steps over the command at PC using the Args table.
 func (vm *VM) Skip(h Host) {
-	if vm.Script != nil {
-		vm.fetch()
-	} else {
-		vm.Command = vm.CodeByte(vm.PC)
-	}
+	vm.Fetch()
 	vm.ReadArgs(int(vm.Args[vm.Command]))
 }
 
