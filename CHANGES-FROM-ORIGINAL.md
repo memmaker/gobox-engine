@@ -27,7 +27,6 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Mirror Image | POR | only a spell being cast takes an image; blows never do | blows and spells take one; origin: the port's own fix, ruling asked | port earlier; `TestEffectsAgainstPascal` |
 | Acid spit at a fallen target | POR | spits at a fallen target (nil fixed in the Pascal, por-re BUGS.md) | no spit at a fallen target. Verdict: design or oversight, unclear | port earlier; fixed: comment |
 | Damage message length | POR | game cut to 40 characters. Presentation, not in src/pure; from the decomp, unconfirmed there | wrapped whole. Ruling asked. Verdict: real defect: cut text; presentation only | port earlier; fixed: comment |
-| Computer's approach step | POR | direction toward the target, offset by the AI stance | `aiPathDir` path search, stance reset to straight on (`extra:` comment). Ruling asked. Verdict: design choice in the original; the port's addition, not a defect fix. Moves the walker only in the compared turns | port earlier; `TestDecideAgainstPascal` |
 
 ## Unifications
 
@@ -60,4 +59,4 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 
 ## Options (Felix's additions, not changes to the default)
 
-Critical hits (ruling 4), party inventory (ruling 12). Rest until healed (page 7, a convenience: camp rests until everyone is healed, `stopHealed`).
+Critical hits (ruling 4), party inventory (ruling 12), path search (page 3: Gameplay "Path search", default off, the computer walks by aiPathDir). Rest until healed (page 7, a convenience: camp rests until everyone is healed, `stopHealed`).
