@@ -475,7 +475,7 @@ func canCast(al play.Allowed, n int) bool {
 }
 
 func member(m play.Member, chosen, cast bool) game.Member {
-	g := game.Member{Name: m.Name, Race: m.Race, Class: m.Class, Alignment: m.Alignment, Status: m.Status,
+	g := game.Member{Powers: m.Offers, Name: m.Name, Race: m.Race, Class: m.Class, Alignment: m.Alignment, Status: m.Status,
 		Levels: m.Levels, Stats: m.Stats, BaseStats: m.BaseStats, Str00: m.Str00, HP: m.HP, MaxHP: m.MaxHP,
 		AC: m.AC, THAC0: m.THAC0, Move: m.Move, Exp: uint32(m.Exp), LevelExp: m.LevelExp, NextExp: m.NextExp,
 		Items: m.Items, ItemCap: m.ItemCap, Spells: m.Spells, Slots: m.Slots, SlotsMax: m.SlotsMax,

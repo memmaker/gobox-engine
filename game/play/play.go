@@ -142,6 +142,7 @@ func (e EscReply) Reply() (int, bool) { return int(e) - 1, e != NoEscReply }
 
 // Member is one character as the rules know it.
 type Member struct {
+	Offers []game.PowerOffer // the special powers the inventory shows; UsePower does one
 	Name, Race, Class, Alignment, Status string
 	Levels                               []int
 	Stats, BaseStats                     map[string]int // "str", "int", ...
