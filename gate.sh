@@ -21,6 +21,9 @@ done
 check() { # dir, test packages and flags
   local dir="$1"; shift
   echo "== $dir"
+  local unformatted
+  unformatted="$(cd "$out/$dir" && gofmt -l .)"
+  [ -z "$unformatted" ] || { echo "gofmt needed:"; echo "$unformatted"; return 1; }
   (cd "$out/$dir" && go build ./... && go vet ./... && go test "$@")
 }
 check rules1e ./...
