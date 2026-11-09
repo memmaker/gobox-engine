@@ -250,6 +250,8 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [x] Whole computer turn, morale, flight, walls: `aimorale`, `aiwall` in `vecai`
 - [x] Whole computer turn, spells and items: `aicast` in `vecai`; item cast and combat aim are gaps of the reference
 - [ ] Combat: `Decide` through the seam
+- [x] src/pure additions: temple (`Temple`, `vectmpl`, TestTempleAgainstPascal)
+- [ ] src/pure additions: shop, camp, chargen, item spell casting, combat aiming
 - [ ] Spells, items, training behind `CharacterRules`
 - [ ] `por-go/adventure` leaf: areas, journal, lore, script patches, assets via importers
 - [ ] Scripts through bindings (sections 1, 3), errors on
