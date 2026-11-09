@@ -82,3 +82,9 @@ Settled:
 ## POR on gobox/ecl (done)
 
 POR runs on ecl.VM; its duplicate interpreter is gone. Kept as overrides: Compare (day sky), GetTable (effect table). RETURN without GOSUB goes on (eclHost.Exit is empty), DIVIDE keeps no remainder (ecl.NoRemainder). Code bytes go through vm.CodeByte and SetCodeByte. brcore is now module ecl-br, package eclbr.
+
+Monsters (Felix): a script only asks for a stat block by a typed monster id owned
+by core; rules supply the stats. The adventure supplies the monster's name and
+pictures when the engine asks, for presentation. Disk sets and blocks are legacy
+and absent from the new design, importer aside. POR's Commandant fight gets its
+level 6 magic-user through this after the migrations; the stopgap thief stays until then.
