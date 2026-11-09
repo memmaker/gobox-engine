@@ -6,7 +6,7 @@
 package script
 
 // FormatRevision is the text form's revision; a change makes every import stale.
-const FormatRevision = 1
+const FormatRevision = 2
 
 // VersionID names one byte-code dialect.
 type VersionID int

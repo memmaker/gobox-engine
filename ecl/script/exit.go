@@ -19,7 +19,7 @@ const exitLabel = "exit"
 var exitPriority = []string{
 	"EXIT", "LEAVE", "DONE", "CANCEL", "NONE", "NOTHING", "GO BACK", "BACK OFF",
 	"TRY TO LEAVE", "SEND HIM AWAY", "REJECT IT", "REFUSE", "REFUSE TO GIVE",
-	"LEAVE ", "DON'T ", "DO NOT ", "IGNORE ", "NO",
+	"LEAVE ", "DON'T ", "DO NOT ", "IGNORE ", "NO", "NON",
 }
 
 // guessExit is the row of rows that backs out, by the labels.
