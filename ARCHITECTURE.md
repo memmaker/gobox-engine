@@ -241,6 +241,9 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [x] Advancement tables in rules1e: XP, hit dice, saves, thief skills, con, slots
 - [x] Creation tables as data. Uncompared logic, not in `src/pure`: chargen, shop, temple, camp
 - [x] Combat rolls: attack, trap, save, strength adjustments, turn table, attack rate, seeded
+- [x] One strength and attack rate: por-go on rules1e. grules' copies stay for cotab, pod, sotsb until they migrate
+- [x] Table reads past their end: `vecrange` (levels -1..14), `vecturn` (TurnColumn through CombatTurnUndead), records checked by `TestMonsterRecordsStayInTables`
+- [x] Gate: `gate.sh`, staged trees exported clean; other games when gobox-engine outside core changes
 - [ ] Combat: effects on rolls, `Decide` compared by whole turn, damage, movement
 - [ ] Spells, items, training behind `CharacterRules`
 - [ ] `por-go/adventure` leaf: areas, journal, lore, script patches, assets via importers
