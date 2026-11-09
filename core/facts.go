@@ -122,6 +122,7 @@ const (
 	WordPartyMove                       // por game.PartyMove
 	WordNoMagic                         // por area.NoMagic
 	WordNoLoot                          // por game.NoLoot
+	WordNoExpAward                      // sotsb noXpAward; pod offset 30: this Combat() only hands out loot
 	WordTrainable                       // por game.PartyExp: classes a hall teaches
 )
 

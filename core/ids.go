@@ -116,13 +116,3 @@ type (
 	ShipID     int32
 	TreasureID int32 // a list of placed items
 )
-
-// Tier is a party's strength in terms that survive a ruleset's scale: a
-// script's gate names a Tier, the ruleset says where the party stands.
-type Tier string
-
-const (
-	TierWeak   Tier = "weak"
-	TierFair   Tier = "fair"
-	TierStrong Tier = "strong"
-)

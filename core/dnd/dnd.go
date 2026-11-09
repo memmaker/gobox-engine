@@ -78,8 +78,6 @@ const (
 	Electrum core.Coin = "electrum"
 	Gold     core.Coin = "gold"
 	Platinum core.Coin = "platinum"
-	Gems     core.Coin = "gems"
-	Jewelry  core.Coin = "jewelry"
 )
 
 // A sample of the rosters the importer generates, numbers assigned once

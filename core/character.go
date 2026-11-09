@@ -205,11 +205,9 @@ type AttackResolver interface {
 type Check interface{ check() }
 
 type (
-	// PartyAtLeast: a gate on por opPartyStrength, in the ruleset's own scale.
-	PartyAtLeast struct {
-		Party Party
-		Tier  Tier
-	}
+	// PartyStrength: por, cotab EclPartyStrength, a number scripts divide into
+	// monster counts or compare. Scale fixed for the dnd world (ARCHITECTURE.md).
+	PartyStrength struct{ Party Party }
 	// Census: por opCheckParty's low, high, average over a fact.
 	Census struct {
 		Party Party
@@ -238,16 +236,16 @@ type (
 	}
 )
 
-func (PartyAtLeast) check() {}
-func (Census) check()       {}
-func (HasCondition) check() {}
-func (HasClass) check()     {}
-func (HasItem) check()      {}
-func (SkillRoll) check()    {}
+func (PartyStrength) check() {}
+func (Census) check()        {}
+func (HasCondition) check()  {}
+func (HasClass) check()      {}
+func (HasItem) check()       {}
+func (SkillRoll) check()     {}
 
 // Answer is a Check's result. Which fields mean anything follows from the
-// Check: Low, High, Average for Census; Value for SkillRoll;
-// Yes for PartyAtLeast and the Has ones; Who for who succeeded or was found.
+// Check: Low, High, Average for Census; Value for PartyStrength and SkillRoll;
+// Yes for the Has ones; Who for who succeeded or was found.
 type Answer struct {
 	Yes            bool
 	Value          int32

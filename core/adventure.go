@@ -19,6 +19,8 @@ type Adventure interface {
 	Area(AreaID) (AreaInfo, error)
 	// Treasure is a list of placed items. por opTreasure (eclops2.go:34).
 	Treasure(TreasureID) ([]ItemRef, error)
+	// ShopPrice answers when asked, from a table or computed at run time.
+	ShopPrice(ShopQuery) (ShopPrices, error)
 	// Campaign is what this module's world allows.
 	Campaign() Campaign
 
@@ -27,6 +29,19 @@ type Adventure interface {
 	Picture(PictureID) (Picture, error) // por pic.go:31, anim.go:36, pickgrid.go:67
 	Sound(SoundCue) (Sound, error)      // a rule's cue or a script's
 }
+
+// ShopID names a shop of the adventure. Factor is the script's price word at
+// the moment of asking, where one exists (cotab word 877).
+type ShopID int32
+
+type (
+	ShopQuery struct {
+		Shop   ShopID
+		Item   ItemRef
+		Factor int32
+	}
+	ShopPrices struct{ Buy, Sell Copper }
+)
 
 // Campaign is what an adventure says of the rules' choices. Spells nil: all in
 // the registry may be learned. The rules hold class progressions and race caps;

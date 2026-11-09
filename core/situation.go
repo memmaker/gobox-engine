@@ -100,6 +100,7 @@ type FightTerms struct {
 	PartyMove  int32
 	NoMagic    bool
 	Duel       bool
+	NoExpAward bool // WordNoExpAward
 }
 
 // Fight is a battle as the engine holds it: a snapshot, value by value.
