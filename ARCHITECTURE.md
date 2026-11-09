@@ -238,3 +238,10 @@ Unverified: nothing here has run on a game. Only core's build, vet, tests. No ru
 7. Module NPCs in the 1e tables: accept?
 8. `Tier` names after reading the 20 sites. Rule tables generated from EXEs checked in: private only? Adventures with own decoders: none, importer only?
 9. Glossary: "character" (includes monsters), "fact", "patch", "situation", "world". Alignment `dnd` only: BR unread.
+
+## Felix's later answers
+
+- Presentation has a second, engine-owned RNG. Gameplay keeps one stream.
+- Module NPCs are in the ruleset as special/unique types; their names come from the adventure.
+- A glossary fixes "character", "fact", "patch", "situation" and "world".
+- Alignment is in `dnd` only: BR has none (its creation sheet shows race, sex and career).
