@@ -52,3 +52,20 @@ Agreed rules:
 
 Progress (round trip): full-operand Write/Parse survey of all six games: POR, COTAB, SotSB exact; POD 17, BR1 15, BR2 33 areas differ only by appended event stubs (Gotos landing on the original event commands). Folded gates keep their section's Text("") clear. Plain-test fallback: POD 49; BR1 65; BR2 36, 96, 97, 98, 114.
 - Step 2/3 done (agent): all six games run decompiled text through script.Library (imported on first use; POR's into its scripts dir with names and patches, the others into the user cache); no game reads ECL byte code and gobox/ecl and brcore have no byte path. TestScriptEqualsByteCode holds 121,925 commands to the byte code (unfolded), cotab's TestGateComparedWithFold the folds. Gates fold when the No ends the vendor's tail or the tail jumps to the No (COTAB area 1, SotSB area 16). POR's area texts are no longer checked in.
+
+## Next: three components (Felix)
+gobox (engine) owns the main loop, presentation and UI. Rules hold a ruleset
+(1st edition D&D, 2nd edition, ...). Adventure holds a module's real data
+(scripts, maps, NPCs, assets). Rules and adventure know nothing of the other
+components and are leaves of the dependency tree. The engine ties them together
+through two literal Go interfaces, Rules and Adventure, and knows only those, so
+any adventure runs on any conforming ruleset. Design not yet settled.
+
+## Queued (Felix accepted the recommendations)
+- [ ] Chosen and Card move to a front-only view type
+- [ ] COTAB's private steps become direct calls
+- [ ] COTAB Keep through the front works
+- [ ] SotSB SaveCharacter returns its error, SaveNamed fails on it
+- [ ] Heuristic knows NON, if it behaves as NO in those menus
+- [ ] POR NO hints read and reported: 0:605 2:566 18:453 14:441 29:602
+- [ ] Cleanup: BR1 stray saves, POR TitlePicture, check BR1 flights' StepMs
