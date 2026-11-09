@@ -25,7 +25,7 @@ check() { # dir, test packages and flags
 }
 check rules1e ./...
 check gobox-engine/core ./...
-check por-go ./rules ./rules4e -run 'Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute'
+check por-go ./rules ./rules4e -run 'Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
 
 # Other games only see gobox-engine outside core; they build against it from their own commit.
 if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --name-only | grep -qv '^core/\|\.md$\|^gate.sh$'; then

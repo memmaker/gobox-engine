@@ -244,7 +244,8 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [x] One strength and attack rate: por-go on rules1e. grules' copies stay for cotab, pod, sotsb until they migrate
 - [x] Table reads past their end: `vecrange` (levels -1..14), `vecturn` (TurnColumn through CombatTurnUndead), records checked by `TestMonsterRecordsStayInTables`
 - [x] Gate: `gate.sh`, staged trees exported clean; other games when gobox-engine outside core changes
-- [ ] Combat: effects on rolls, `Decide` compared by whole turn, damage, movement
+- [x] Effects on rolls: `veceff`, `TestEffectsAgainstPascal` in por-go while the handlers live there
+- [ ] Combat: `Decide` compared by whole turn, damage, movement
 - [ ] Spells, items, training behind `CharacterRules`
 - [ ] `por-go/adventure` leaf: areas, journal, lore, script patches, assets via importers
 - [ ] Scripts through bindings (sections 1, 3), errors on
