@@ -58,6 +58,9 @@ const (
 	MaxArgs      = 256 // operands are 1-based and an ON GOTO count is a byte (1..255)
 )
 
+// NoRemainder as a VM's RemainderAddr: its dialect's DIVIDE keeps no remainder.
+const NoRemainder = 0
+
 // Host is what the interpreter asks of the game.
 type Host interface {
 	GetVar(a uint16) uint16
@@ -94,7 +97,7 @@ type VM struct {
 	Args [256]byte
 	// Ops is the opcode table; nil entries do nothing. New starts with Default.
 	Ops [256]Op
-	// RemainderAddr: the address DIVIDE leaves its remainder in.
+	// RemainderAddr: the address DIVIDE leaves its remainder in; NoRemainder: nowhere.
 	RemainderAddr uint16
 	// Trace, if set, is called after each readArgs with the decoded operands.
 	Trace func(vm *VM, n int)
@@ -128,6 +131,10 @@ func (vm *VM) Fetch() {
 	}
 }
 
+// Cur is the number of the command being run (PC has moved on once its
+// operands are read).
+func (vm *VM) Cur() int { return vm.cur }
+
 // ReadArgs gives the command's next n operands as the byte code had them;
 // PC goes to the next command.
 func (vm *VM) ReadArgs(n int) {
@@ -142,17 +149,14 @@ func (vm *VM) ReadArgs(n int) {
 			a = args[vm.argPos]
 		}
 		vm.argPos++
-		vm.ArgType[k], vm.ArgLo[k] = a.Type, byte(a.N)
+		vm.ArgType[k], vm.ArgLo[k], vm.ArgHi[k] = a.Type, byte(a.N), byte(a.N>>8)
 		switch a.Type {
-		case ArgVarByte, ArgAddress, ArgVarWord:
-			vm.ArgHi[k] = byte(a.N >> 8)
 		case ArgText:
 			texts++
 			vm.ArgLo[k] = byte(len(a.S))
 			vm.Text[texts] = a.S
 		case ArgTextVar:
 			texts++
-			vm.ArgHi[k] = byte(a.N >> 8)
 			vm.Text[texts] = vm.Host.TextVar(vm.Addr(k))
 		}
 	}

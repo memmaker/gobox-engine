@@ -69,3 +69,7 @@ any adventure runs on any conforming ruleset. Design not yet settled.
 - [ ] Heuristic knows NON, if it behaves as NO in those menus
 - [ ] POR NO hints read and reported: 0:605 2:566 18:453 14:441 29:602
 - [ ] Cleanup: BR1 stray saves, POR TitlePicture, check BR1 flights' StepMs
+
+## POR on gobox/ecl (done)
+
+POR runs on ecl.VM; its duplicate interpreter is gone. Kept as overrides: Compare (day sky), GetTable (effect table). RETURN without GOSUB goes on (eclHost.Exit is empty), DIVIDE keeps no remainder (ecl.NoRemainder). Code bytes go through vm.CodeByte and SetCodeByte. brcore is now module ecl-br, package eclbr.

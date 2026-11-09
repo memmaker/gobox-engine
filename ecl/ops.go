@@ -86,7 +86,9 @@ func opArithmetic(vm *VM, h Host) {
 	case CmdDivide:
 		if b != 0 {
 			r = a / b
-			h.SetVar(vm.RemainderAddr, a%b)
+			if vm.RemainderAddr != NoRemainder {
+				h.SetVar(vm.RemainderAddr, a%b)
+			}
 		}
 	case CmdMultiply:
 		r = a * b
