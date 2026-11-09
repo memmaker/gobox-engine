@@ -14,7 +14,7 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Druid XP past L11 | POD | -1 + (L-11)*750000 | no progression | table base | decided |
 | First hit dice, cleric | SotSB | 2 | 1, **Felix to confirm** | table base | decided |
 | Party strength sum | POR, COTAB | Byte, wraps | no wrap, **Felix to confirm** | source check | decided |
-| Saves | all four | byte arithmetic | signed, clamped at the right stage | 1 | decided |
+| Saves | all four | byte arithmetic: a total below 0 wraps and saves | signed, clamped at the right stage | 1 | POR port f314dce or earlier, now rules1e `SaveMade`; others decided |
 | Cleric XP bonus threshold | POD, SotSB | off by one | Wis >= 16, `xp*110/100` | 8 | decided |
 | Charisma lookup | all four | per game | `max(3, min(cha, maxCharisma))` | 14 | decided |
 
@@ -25,6 +25,7 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Cleric and mage L1 slots | POR | row skipped below L2: record keeps its slots | 1,0,0 plus Wisdom bonus, so a level drain leaves no stale slots | port earlier; rules1e |
 | Cleric, mage slots past L6 | POR | row (zeros) overwrites | record keeps its own (Genheeris) | port earlier; rules1e |
 | Cleric and its multi-class alignments | POR | any | no true neutral; origin unchecked | port earlier; rules1e |
+| Turn undead at cleric level 14+ | POR | last column | same; the port panicked, reading past its table | rules1e |
 | Paladin L9 saves | POR | table | table, as the Pascal; the port panicked | rules1e f7797ad |
 
 ## Unifications

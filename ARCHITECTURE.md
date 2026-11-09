@@ -235,12 +235,13 @@ Unverified: nothing here has run on a game. Only core's build, vet, tests. No ru
 Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, the leaves importing only core, behind `Rules` and `Adventure`, compared against the pure Pascal. How: move piece by piece; every commit builds, vets and passes `TestAgainstPascal`, which grows with each piece. Core's interfaces are a draft this port corrects; changes touching a ruling are reported. BR's interpreter is not merged here. Changes: CHANGES-FROM-ORIGINAL.md.
 
 - [x] Baseline: rulings and table base stand; options only Felix's additions
-- [x] Differential harness: `vecadv`, `vecstat`, `vectab`, `vecdice`, `vectors-pure.sh`, `TestAgainstPascal`, 4493 cases
+- [x] Differential harness: `vecadv`, `vecstat`, `vectab`, `vecdice`, `veccmb`, `vectors-pure.sh`, `TestAgainstPascal`, 8307 cases
 - [x] Class stats with Wisdom bonus in rules1e (`ClassStats`); seeded dice agree: `core.RNG` is Turbo Pascal's generator (605 cases)
 - [x] rules1e module, leaf guard on, raw-byte guard
 - [x] Advancement tables in rules1e: XP, hit dice, saves, thief skills, con, slots
 - [x] Creation tables as data. Uncompared logic, not in `src/pure`: chargen, shop, temple, camp
-- [ ] Combat rule tables and calculations: to-hit, turn undead, affects
+- [x] Combat rolls: attack, trap, save, strength adjustments, turn table, attack rate, seeded
+- [ ] Combat: effects on rolls, `Decide` compared by whole turn, damage, movement
 - [ ] Spells, items, training behind `CharacterRules`
 - [ ] `por-go/adventure` leaf: areas, journal, lore, script patches, assets via importers
 - [ ] Scripts through bindings (sections 1, 3), errors on
