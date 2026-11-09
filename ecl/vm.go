@@ -7,7 +7,11 @@
 // callbacks) is the game's; the seam is VM.Step, one command per call.
 package ecl
 
-import "fmt"
+import (
+	"fmt"
+
+	"gobox/ecl/script"
+)
 
 // Layout is the game's address map, as data. Addresses outside every range
 // are "special" values the Host handles.
@@ -94,6 +98,68 @@ type VM struct {
 	RemainderAddr uint16
 	// Trace, if set, is called after each readArgs with the decoded operands.
 	Trace func(vm *VM, n int)
+
+	// Script is the running area's decompiled commands; PC is a command
+	// number in it. Code holds its tables and the area's text variables.
+	Script *script.Script
+	// Raw is the game's command number of a canonical op: Ops and Command
+	// keep the game's own numbers.
+	Raw    [256]byte
+	cur    int // the command being run
+	argPos int // its next operand
+}
+
+// SetVersion gives the VM its dialect's command numbers. Where several
+// numbers mean one op the lowest stands for them.
+func (vm *VM) SetVersion(v *script.Version) {
+	for b := 255; b >= 0; b-- {
+		if c := v.Cmds[b]; c.Known {
+			vm.Raw[c.Op] = byte(b)
+		}
+	}
+}
+
+// fetch starts the command at PC: Command, and its operands from the first.
+func (vm *VM) fetch() {
+	vm.cur, vm.argPos = int(vm.PC), 0
+	vm.Command = 0
+	if vm.cur < len(vm.Script.Code) {
+		vm.Command = vm.Raw[vm.Script.Code[vm.cur].Op]
+	}
+}
+
+// readScriptArgs is ReadArgs over the decoded command: the next n operands
+// as the byte code had them; PC goes to the next command.
+func (vm *VM) readScriptArgs(n int) {
+	var args []script.Arg
+	if vm.cur < len(vm.Script.Code) {
+		args = vm.Script.Code[vm.cur].Args
+	}
+	texts := 0
+	for k := 1; k <= n; k++ {
+		var a script.Arg // a missing operand is a 0 byte
+		if vm.argPos < len(args) {
+			a = args[vm.argPos]
+		}
+		vm.argPos++
+		vm.ArgType[k], vm.ArgLo[k] = a.Type, byte(a.N)
+		switch a.Type {
+		case ArgVarByte, ArgAddress, ArgVarWord:
+			vm.ArgHi[k] = byte(a.N >> 8)
+		case ArgText:
+			texts++
+			vm.ArgLo[k] = byte(len(a.S))
+			vm.Text[texts] = a.S
+		case ArgTextVar:
+			texts++
+			vm.ArgHi[k] = byte(a.N >> 8)
+			vm.Text[texts] = vm.Host.TextVar(vm.Addr(k))
+		}
+	}
+	vm.PC = uint16(vm.cur + 1)
+	if vm.Trace != nil {
+		vm.Trace(vm, n)
+	}
 }
 
 // New returns a VM (reading text variables through h) over code with the shared opcodes installed.
@@ -124,7 +190,11 @@ func (vm *VM) Addr(k int) uint16 { return VarAddr(vm.ArgLo[k], vm.ArgHi[k]) }
 // Step runs the command at PC. Returns false when vm.Stop is set afterwards.
 func (vm *VM) Step(h Host) bool {
 	vm.LastCommand = vm.Command
-	vm.Command = vm.CodeByte(vm.PC)
+	if vm.Script != nil {
+		vm.fetch()
+	} else {
+		vm.Command = vm.CodeByte(vm.PC)
+	}
 	if op := vm.Ops[vm.Command]; op != nil {
 		op(vm, h)
 	}
@@ -141,6 +211,10 @@ func (vm *VM) Run(h Host, halt func() bool) {
 
 // ReadArgs decodes the n operands following PC and steps PC past them.
 func (vm *VM) ReadArgs(n int) {
+	if vm.Script != nil {
+		vm.readScriptArgs(n)
+		return
+	}
 	texts := 0
 	for k := 1; k <= n; k++ {
 		vm.ArgType[k] = vm.CodeByte(vm.PC + 1)
@@ -195,7 +269,11 @@ func ArgsTrace(h Host, print func(string)) func(*VM, int) {
 
 // Skip steps over the command at PC using the Args table.
 func (vm *VM) Skip(h Host) {
-	vm.Command = vm.CodeByte(vm.PC)
+	if vm.Script != nil {
+		vm.fetch()
+	} else {
+		vm.Command = vm.CodeByte(vm.PC)
+	}
 	vm.ReadArgs(int(vm.Args[vm.Command]))
 }
 

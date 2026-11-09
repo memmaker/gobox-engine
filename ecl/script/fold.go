@@ -182,11 +182,11 @@ func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
 			continue
 		}
 		end := v + n
-		for end < len(s.Code) && s.Code[end].Op != OpExit {
+		for end < len(s.Code) && s.Code[end].Op != OpExit && !(s.Code[end].Op == OpGoto && s.Code[end].Args[0].Label && s.Code[end].Args[0].N == no) {
 			end++
 		}
 		if no > v+n && no <= end {
-			continue // cutting the tail would cut the No branch: left for the report
+			end = no - 1 // the No branch ends the tail: only the Yes farewell is cut
 		}
 		tail := true // what follows the vendor up to its exit is replaced: nothing may jump in
 		for k := v + n + 1; k <= end && k < len(s.Code); k++ {
