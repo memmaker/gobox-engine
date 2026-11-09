@@ -245,6 +245,7 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [x] Table reads past their end: `vecrange` (levels -1..14), `vecturn` (TurnColumn through CombatTurnUndead), records checked by `TestMonsterRecordsStayInTables`
 - [x] Gate: `gate.sh`, staged trees exported clean; other games when gobox-engine outside core changes
 - [x] Effects on rolls: `veceff`, `TestEffectsAgainstPascal` in por-go while the handlers live there
+- [x] Weapon and plain damage, movement with effects: `vecdmg`, same test. Backstab multiple not yet compared
 - [ ] Combat: `Decide` compared by whole turn, damage, movement
 - [ ] Spells, items, training behind `CharacterRules`
 - [ ] `por-go/adventure` leaf: areas, journal, lore, script patches, assets via importers

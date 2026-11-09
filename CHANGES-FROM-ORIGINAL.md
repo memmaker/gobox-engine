@@ -28,6 +28,8 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Turn undead at cleric level 14+ | POR | last column | same; the port panicked, reading past its table | rules1e |
 | THAC0 base at level -1 (monster records) and fighter 11+ | POR | the neighbouring row (F12 base 40; F-1 base 46) | same; the port panicked. Original bug kept, ruling asked | rules1e |
 | Dwarf's -4 from giants | POR | only if the attacker has race 1, size 2 (so only ogres); name read from the defender's target | any attacker named on the list; origin: the port's own fix, ruling asked | port earlier; `TestEffectsAgainstPascal` |
+| Mirror Image | POR | only a spell being cast takes an image; blows never do | blows and spells take one; origin: the port's own fix, ruling asked | port earlier; `TestEffectsAgainstPascal` |
+| Fire resistance ring, damage under 2 a die | POR | byte wraps: 1 damage becomes 253 | floor of one a die; origin: the port's own fix, ruling asked | port earlier; `TestEffectsAgainstPascal` |
 | Paladin L9 saves | POR | table | table, as the Pascal; the port panicked | rules1e f7797ad |
 
 ## Unifications
