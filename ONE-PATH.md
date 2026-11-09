@@ -59,7 +59,16 @@ gobox (engine) owns the main loop, presentation and UI. Rules hold a ruleset
 (scripts, maps, NPCs, assets). Rules and adventure know nothing of the other
 components and are leaves of the dependency tree. The engine ties them together
 through two literal Go interfaces, Rules and Adventure, and knows only those, so
-any adventure runs on any conforming ruleset. Design not yet settled.
+any adventure runs on any conforming ruleset.
+
+Settled:
+- A `core` module defines the types the other modules need, including the neutral
+  ids. It imports nothing of ours. Rules, adventure and engine import only core.
+- The script interpreter is the engine's. An adventure supplies scripts on demand.
+- The engine runs combat: loop, board, input, presentation. Rules answer who acts
+  when, what actions are allowed and how they resolve. Rules stay passive.
+- An adventure references neutral typed concepts (ids in core). A ruleset handles
+  them as it wants; a mismatch fails clearly at load.
 
 ## Queued (Felix accepted the recommendations)
 - [ ] Chosen and Card move to a front-only view type
