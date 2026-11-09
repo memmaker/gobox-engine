@@ -577,6 +577,10 @@ type (
 	Guard      struct{}
 	Delay      struct{}
 	Quick      struct{ All bool }
+	// Manual takes every member back from the computer while it fights for them (the Gold Box's Space).
+	Manual struct{}
+	// QuickMagic switches whether the computer casts spells for the members it fights for (the Gold Box's Alt-M).
+	QuickMagic struct{}
 	Flee       struct{}
 	EndTurn    struct{}
 	// Turn verbs the rules answer by hotkey (classic answerVerbs).
@@ -688,6 +692,8 @@ func (Guard) action()            {}
 func (Delay) action()            {}
 func (ViewMember) action()       {}
 func (Quick) action()            {}
+func (Manual) action()           {}
+func (QuickMagic) action()       {}
 func (Flee) action()             {}
 func (EndTurn) action()          {}
 func (Continue) action()         {}

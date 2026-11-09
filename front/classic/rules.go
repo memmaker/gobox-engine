@@ -534,6 +534,7 @@ var turnVerbs = []struct {
 	{"Guard", "Guard", play.Guard{}}, {"Cast", "Cast", play.Cast{}}, {"UseItem", "Items", play.OpenItems{Member: -1}},
 	{"DoManeuver", "Maneuver", play.DoManeuver{}}, {"TurnUndead", "Turn", play.TurnUndead{}},
 	{"Bandage", "Bandage", play.Bandage{}}, {"Delay", "Wait", play.Delay{}}, {"Quick", "Quick", play.Quick{}},
+	{"Manual", "Manual", play.Manual{}}, {"QuickMagic", "Magic", play.QuickMagic{}},
 	{"Flee", "Flee", play.Flee{}}, {"EndTurn", "End", play.EndTurn{}},
 }
 
