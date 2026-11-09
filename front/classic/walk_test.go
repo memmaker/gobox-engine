@@ -76,7 +76,7 @@ func walkOn(t *testing.T, g *walkGame, at image.Point) image.Point {
 	r := newRules(g, game.Data{})
 	clock := time.Unix(1000, 0)
 	r.now = func() time.Time { clock = clock.Add(walkPace); return clock }
-	if res := r.Apply(game.WalkTo{At: at}); res.Err != nil {
+	if res := r.send(tWalkTo{At: at}); res.Err != nil {
 		t.Fatal(res.Err)
 	}
 	for i := 0; i < 20 && r.walk != nil; i++ {
@@ -160,7 +160,7 @@ func TestWalkScriptAheadMoves(t *testing.T) {
 	g.Do(play.Face{Facing: 2})
 	w := &moveAhead{walkGame: g}
 	r := newRules(w, game.Data{})
-	r.Apply(game.WalkTo{At: image.Pt(3, 0)})
+	r.send(tWalkTo{At: image.Pt(3, 0)})
 	r.Step()
 	if r.walk != nil || slices.ContainsFunc(g.sent, func(a play.Action) bool { _, ok := a.(play.Arrive); return ok }) {
 		t.Fatalf("sent %v", g.sent)
@@ -210,7 +210,7 @@ func TestWalkLockedDoor(t *testing.T) {
 	for _, st := range []game.DoorState{game.DoorLocked, game.DoorWizardLocked} {
 		g := yardGame(yard{blocked: map[image.Point]game.Edge{{1, 0}: {Kind: game.EdgeDoor, State: st}}})
 		r := newRules(g, game.Data{})
-		if res := r.Apply(game.WalkTo{At: image.Pt(3, 0)}); res.Err == nil {
+		if res := r.send(tWalkTo{At: image.Pt(3, 0)}); res.Err == nil {
 			t.Fatalf("state %v: a way through a locked door", st)
 		}
 	}
@@ -230,7 +230,7 @@ func TestWalkPace(t *testing.T) {
 	r := newRules(g, game.Data{})
 	clock := time.Unix(1000, 0)
 	r.now = func() time.Time { return clock }
-	r.Apply(game.WalkTo{At: image.Pt(3, 0)})
+	r.send(tWalkTo{At: image.Pt(3, 0)})
 	r.Step()
 	r.Step()
 	if len(g.sent) != 1 {
@@ -248,13 +248,13 @@ func TestWalkPace(t *testing.T) {
 func TestStopWalk(t *testing.T) {
 	g := yardGame(yard{})
 	r := newRules(g, game.Data{})
-	r.Apply(game.WalkTo{At: image.Pt(3, 0)})
-	r.Apply(game.StopWalk{})
+	r.send(tWalkTo{At: image.Pt(3, 0)})
+	r.send(tStopWalk{})
 	if p := shownOf(r).Pacing; p.Pace == game.PaceWalk || len(g.sent) != 0 {
 		t.Fatalf("pace %v sent %v", p.Pace, g.sent)
 	}
-	r.Apply(game.WalkTo{At: image.Pt(3, 0)})
-	r.Apply(game.Search{})
+	r.send(tWalkTo{At: image.Pt(3, 0)})
+	r.send(play.Search{})
 	if shownOf(r).Pacing.Pace == game.PaceWalk {
 		t.Fatal("a move did not stop it")
 	}

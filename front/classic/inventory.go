@@ -26,22 +26,8 @@ func dollSlot(it game.Item, doll []*front.InvItem) int {
 	return slices.Index(DollSlots, it.Slot)
 }
 
-// powerKind is the inventory's member power for a Decision: Cast the
-// spells (Spell -1 the spell effects), LayOnHands Heal, Cure Cure.
-func powerKind(d game.Decision) (front.ActKind, bool) {
-	switch d := d.(type) {
-	case game.Cast:
-		if d.Spell < 0 {
-			return front.ActMagic, true
-		}
-		return front.ActSpells, true
-	case game.LayOnHands:
-		return front.ActHeal, true
-	case game.Cure:
-		return front.ActCure, true
-	}
-	return 0, false
-}
+// powerActs are the inventory's member powers by kind.
+var powerActs = map[game.PowerKind]front.ActKind{game.PowerCast: front.ActSpells, game.PowerDisplay: front.ActMagic, game.PowerHeal: front.ActHeal, game.PowerCure: front.ActCure}
 
 // itemKinds are the party inventory's tabs by game.Item.Kind (the rest: misc).
 var itemKinds = map[string]front.ItemKind{"weapon": front.KindWeapon, "armor": front.KindArmor}
@@ -77,7 +63,7 @@ func Inventory(v *front.Inventory, mode game.Mode, party []game.Member, sel, slo
 		Trade: allowed["Trade"], Halve: allowed["Halve"], Join: allowed["Join"], PoolCoins: shop != nil && allowed["PoolCoins"]}
 	n.AC, n.THAC0, n.Stats = m.AC, m.THAC0, m.THAC0 != 0
 	for _, p := range m.Powers {
-		if k, ok := powerKind(p.Do); ok && (k != front.ActSpells || !n.Sell) { // no spells in a shop
+		if k, ok := powerActs[p.Kind]; ok && (k != front.ActSpells || !n.Sell) { // no spells in a shop
 			n.Powers = append(n.Powers, front.Power{Name: p.Label, Kind: k})
 		}
 	}

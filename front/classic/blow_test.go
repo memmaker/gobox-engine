@@ -46,7 +46,7 @@ func TestBlowHoldsSpeedDelay(t *testing.T) {
 	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Attacked{From: 1, To: 2}}}}
 	r := newRules(f, game.Data{})
 	held := func() int {
-		for _, e := range r.Apply(game.Attack{Target: 2}).Events {
+		for _, e := range r.send(play.Attack{Target: 2}).Events {
 			if e.Kind == game.EvAttack {
 				return e.Ms
 			}
@@ -56,7 +56,7 @@ func TestBlowHoldsSpeedDelay(t *testing.T) {
 	if ms := held(); ms != 400 {
 		t.Fatalf("default speed: %d ms", ms)
 	}
-	r.Apply(game.SetSpeed{N: 2})
+	r.send(tSetSpeed{N: 2})
 	if ms := held(); ms != 200 {
 		t.Fatalf("speed 2: %d ms", ms)
 	}

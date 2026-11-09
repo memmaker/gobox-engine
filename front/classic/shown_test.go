@@ -13,7 +13,7 @@ import (
 // view_state.go says, and the builders' arguments in the table tests.
 type shown struct {
 	Mode                   game.Mode
-	Pending                *game.Ask
+	Pending                *play.Ask
 	Party                  []game.Member
 	Selected               int
 	Where                  game.Where
@@ -24,7 +24,7 @@ type shown struct {
 	Purse                  map[string]int
 	Quests                 []game.Quest
 	Map                    game.Automap
-	Combat                 *game.Combat
+	Combat                 *play.Combat
 	Shop                   *game.Shop
 	Temple                 []game.Service
 	Training               *game.Training
@@ -107,4 +107,87 @@ func menusOf(s shown) front.View {
 	var v front.View
 	v.MainMenu, v.Hall = PartyMenu(s.Mode, s.Training, s.Pending, s.Where.Hall)
 	return askOver(v, s.Mode, s.Pending, s.Loot != nil || s.Training != nil)
+}
+
+// A test's names for what the front does of its own, sent as send takes them.
+type (
+	tAnswer struct {
+		N    int
+		Text string
+		At   image.Point
+	}
+	tWalkTo       struct{ At image.Point }
+	tRest         struct{ Minutes int }
+	tSetSpeed     struct{ N int }
+	tCloseItems   struct{ All bool }
+	tOpenSheet    struct{ Member int }
+	tCloseSheet   struct{}
+	tShowMember   struct{ Member int }
+	tTitlePicture struct{ N int }
+	tTitleCredits struct{ Page int }
+	tTitleFlash   struct{ C int }
+	tTitleDone    struct{}
+	tSequenceDone struct{ Name string }
+	tStopWalk     struct{}
+	tSave         struct {
+		Slot int
+		Name string
+	}
+	tLoad struct {
+		Slot int
+		From string
+	}
+	tBrowse struct{ Member int }
+	tRoll   struct {
+		Minimal  bool
+		Minimums string
+	}
+	tItems struct{}
+)
+
+// send is d, a play.Action or one of the above, as the front does it.
+func (r *rules) send(d any) play.Result {
+	switch d := d.(type) {
+	case play.Action:
+		return r.apply(d)
+	case tAnswer:
+		ps := r.g.State()
+		if d.At != (image.Point{}) {
+			return r.answer(ps, play.Reply{N: d.N, Text: d.Text}, d.At)
+		}
+		return r.apply(play.Reply{N: d.N, Text: d.Text})
+	case tWalkTo:
+		return r.walkTo(r.g.State(), d.At)
+	case tRest:
+		return r.restFor(d.Minutes)
+	case tSetSpeed:
+		r.setSpeed(d.N)
+	case tCloseItems:
+		return r.closeItems(d.All)
+	case tOpenSheet:
+		return r.openSheet(d.Member)
+	case tCloseSheet:
+		return r.closeSheet()
+	case tShowMember:
+		return r.showMember(d.Member)
+	case tTitlePicture:
+		return r.titlePicture(d.N)
+	case tTitleCredits:
+		return r.titleCredits(d.Page)
+	case tTitleDone:
+		return r.titleDone()
+	case tSequenceDone:
+		return r.sequenceDone()
+	case tStopWalk:
+		return r.stopWalk()
+	case tSave:
+		return r.saveNamed(d.Name)
+	case tLoad:
+		return r.loadSlot(d.Slot)
+	case tBrowse, tItems:
+		return r.openItems(-1)
+	case tRoll:
+		return r.apply(play.Reroll{Minimal: d.Minimal})
+	}
+	return play.Result{}
 }

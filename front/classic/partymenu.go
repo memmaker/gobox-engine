@@ -6,6 +6,7 @@ import (
 	"cmp"
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // partyFunctions are the party menu's functions by their labels.
@@ -20,7 +21,7 @@ var partyFunctions = map[string]front.ActKind{
 
 // PartyMenu is the party menu's open functions (nil: not up) and whether it
 // is the training hall's.
-func PartyMenu(mode game.Mode, training *game.Training, pending *game.Ask, hallHere bool) (open []front.ActKind, hall bool) {
+func PartyMenu(mode game.Mode, training *game.Training, pending *play.Ask, hallHere bool) (open []front.ActKind, hall bool) {
 	inHall := mode == game.ModeTraining && training == nil // the hall's party menu before OpenTraining (SotSB publishes the same Question)
 	if mode != game.ModeParty && !inHall || pending == nil {
 		return nil, false

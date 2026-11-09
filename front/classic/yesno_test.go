@@ -22,10 +22,10 @@ func TestYesNoReplies(t *testing.T) {
 // A Refusal's Yes/No (Attack Ally): Yes does the Yes option's Do; its No
 // without a Do takes nothing, never Answer 0.
 func TestRefusalYesNo(t *testing.T) {
-	opts := []game.Option{{Label: "Yes", Do: game.Search{}}, {Label: "No"}}
+	opts := []play.Option{{Label: "Yes", Do: play.Search{}}, {Label: "No"}}
 	r := &fake{st: play.Exploring{}}
 	g := NewGame(r, game.Data{})
-	g.asked = &game.Ask{Kind: game.YesNo, Options: opts}
+	g.asked = &play.Ask{Kind: game.YesNo, Options: opts}
 	g.Answer(front.Action{Kind: front.ActYes})
 	if len(r.sent) != 1 || r.sent[0] != (play.Search{}) {
 		t.Errorf("Yes: %#v", r.sent)
@@ -33,7 +33,7 @@ func TestRefusalYesNo(t *testing.T) {
 	for _, k := range []front.ActKind{front.ActNo, front.ActOK} {
 		r = &fake{st: play.Exploring{}}
 		g = NewGame(r, game.Data{})
-		g.asked = &game.Ask{Kind: game.YesNo, Options: opts}
+		g.asked = &play.Ask{Kind: game.YesNo, Options: opts}
 		g.Answer(front.Action{Kind: k, N: map[front.ActKind]int{front.ActOK: 1}[k]})
 		if len(r.sent) != 0 || g.pending() != nil {
 			t.Errorf("%v on No: %#v", k, r.sent)

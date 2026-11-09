@@ -35,7 +35,7 @@ func (r *refusing) Do(a play.Action) (play.Outcome, error) {
 func TestOffMapStepAsks(t *testing.T) {
 	r := &refusing{ask: func(a play.Action) error {
 		if _, ok := a.(play.MoveTo); ok {
-			return &game.Refusal{Ask: &game.Ask{Prompt: "Flee:", Options: []game.Option{{Label: "Yes", Do: game.Flee{}}, {Label: "No"}}}}
+			return &play.Refusal{Ask: &play.Ask{Prompt: "Flee:", Options: []play.Option{{Label: "Yes", Do: play.Flee{}}, {Label: "No"}}}}
 		}
 		return nil
 	}}
@@ -55,7 +55,7 @@ func TestOffMapStepAsks(t *testing.T) {
 
 // TestFleeRefusedAsText: a refusal's text in a fight is a held message too.
 func TestLootLeaveRefused(t *testing.T) {
-	g := NewGame(&fake{st: play.Looting{}, err: &game.Refusal{Text: "Leave the treasure?"}}, game.Data{})
+	g := NewGame(&fake{st: play.Looting{}, err: &play.Refusal{Text: "Leave the treasure?"}}, game.Data{})
 	var no front.ConfirmNo
 	if err := g.LootLeave(false); !errors.As(err, &no) {
 		t.Fatalf("text refusal: %v", err)

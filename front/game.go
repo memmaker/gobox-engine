@@ -26,7 +26,7 @@ type Game interface {
 	Roll(minimal bool, minimums string) error
 	Rename(name string) error
 	SetStat(i int, typed string) error
-	PointBuy(scores []int) error // the abilities bought on points, in Creation.StatNames' order (game.PointBuy)
+	PointBuy(scores []int) error // the abilities bought on points, in Creation.StatNames' order (play.PointBuy)
 	SetField(field, option int) error
 	EndCreation(keep bool) error
 	CreationView() *Creation

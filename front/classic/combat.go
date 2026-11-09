@@ -7,40 +7,41 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/sprites"
 )
 
 // turnAct is the combat menu's action a Decision does (false: not a menu entry).
-func turnAct(d game.Decision) (front.ActKind, bool) {
+func turnAct(d play.Action) (front.ActKind, bool) {
 	switch d := d.(type) {
-	case game.Move: // the turn's Move: the tabletop's walk (a square picked), never Move{} as it stands
+	case play.MoveTo: // the turn's Move: the tabletop's walk (a square picked), never Move{} as it stands
 		return front.ActWalk, true
-	case game.Attack:
+	case play.Attack:
 		return front.ActAttack, true
-	case game.Ranged:
+	case play.Shoot:
 		return front.ActRanged, true
-	case game.Guard:
+	case play.Guard:
 		return front.ActGuard, true
-	case game.Items:
+	case play.OpenItems:
 		return front.ActItems, true
-	case game.Cast:
+	case play.Cast:
 		return front.ActCast, true
-	case game.Maneuver:
+	case play.DoManeuver:
 		return front.ActManeuver, true
-	case game.TurnUndead:
+	case play.TurnUndead:
 		return front.ActTurn, true
-	case game.Bandage:
+	case play.Bandage:
 		return front.ActBandage, true
-	case game.Wait:
+	case play.Delay:
 		return front.ActWait, true
-	case game.EndTurn:
+	case play.EndTurn:
 		return front.ActEnd, true
-	case game.Quick:
+	case play.Quick:
 		if d.All { // its own entry: the bar sends the option itself
 			return front.ActOption, true
 		}
 		return front.ActQuick, true
-	case game.Flee:
+	case play.Flee:
 		return front.ActFlee, true
 	}
 	return 0, false
@@ -54,7 +55,7 @@ var ownIconSize = image.Pt(24, 24)
 // combat menu (Turn), each combatant's name, hit points, armor class,
 // damage and status, the squares a move reaches, the foes an attack or aim
 // takes and the aim (marks, area, why not). b's map, icons and effects stay.
-func Battle(b *front.Battle, c *game.Combat, party []game.Member) *front.Battle {
+func Battle(b *front.Battle, c *play.Combat, party []game.Member) *front.Battle {
 	if b == nil || c == nil {
 		return b
 	}
@@ -115,7 +116,7 @@ func Battle(b *front.Battle, c *game.Combat, party []game.Member) *front.Battle 
 // tiles (Combat.Tiles, read from art), the units with their icons (a foe's
 // Art, a member's composed from its pool ids or original icon numbers),
 // effects, cursor, walks, aim, strike and log. nil outside a fight.
-func BattleOf(c *game.Combat, party []game.Member, art map[string]game.Picture) *front.Battle {
+func BattleOf(c *play.Combat, party []game.Member, art map[string]game.Picture) *front.Battle {
 	if c == nil {
 		return nil
 	}
@@ -239,7 +240,7 @@ func BattleOf(c *game.Combat, party []game.Member, art map[string]game.Picture) 
 
 // turnOptions are t's options as the front's acts (Can) and as the bar's
 // buttons, every one the game offers: one without a front act is ActOption.
-func turnOptions(t *game.Turn) (can []front.ActKind, ops []front.TurnOption) {
+func turnOptions(t *play.Turn) (can []front.ActKind, ops []front.TurnOption) {
 	for _, op := range t.Options {
 		act, ok := turnAct(op.Do)
 		if !ok { // a decision with no act of its own (an Answer by hotkey): the bar sends the option itself
@@ -256,7 +257,7 @@ func turnOptions(t *game.Turn) (can []front.ActKind, ops []front.TurnOption) {
 }
 
 // turnExtras gives o the Turn's weapons and maneuvers.
-func turnExtras(o *front.Turn, t *game.Turn) {
+func turnExtras(o *front.Turn, t *play.Turn) {
 	o.Weapon, o.Missile, o.Maneuvers = weapon(t.Weapon), weapon(t.Missile), nil
 	for _, m := range t.Maneuvers {
 		o.Maneuvers = append(o.Maneuvers, front.Maneuver{ID: m.ID, Name: m.Name, Tip: m.Tip, Aim: front.Aim(m.Aim), Range: m.Range, Area: m.Area, Move: m.Shift})

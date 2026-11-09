@@ -31,8 +31,8 @@ Agreed rules:
 
 ## B: gobox
 - [x] Walk: POR's stop rules and locked doors, with tests
-- [ ] classic front reads play.State, sends play.Action
-- [ ] playrules, game.Rules, game.State, game.Decision deleted (playrules, game.Rules, game.Mapped, classic.Game.R, por wrapper done; game.State, game.Decision open)
+- [x] classic front reads play.State, sends play.Action
+- [x] playrules, game.Rules, game.State, game.Decision deleted
 - [x] Game cmd wiring and tests moved; parity guard against the old path
 - [ ] Final: full suites and scripted windowed runs of all six games
 
@@ -40,6 +40,8 @@ Agreed rules:
 - Walk: POR's rules in gobox (walkStep): text stops on a square not in Automap.Walked; a visited square's text does not; blank text never; any other fact (picture, damage, gain) does; questions, doors, off-course steps do. Locked doors are walls. A square per 150 ms. Any key or click stops it (Front.stopWalk, TestAnyInputStopsWalk). Not carried: POR stopped on ECL ops that show nothing (the op table); a silent script keeps walking here.
 - Step 1 (0faee48): playrules folded into classic/rules.go; NewGame takes the play.Game. NOT the goal yet: rules.State() still builds a game.State for the builders, and rules.Apply takes game.Decision. That adapter is what step 2 removes.
 - Step 2 started: leaf builders take narrow args (98d61ba); walk no-text stops tested (678007d). Remaining: Party, Purse, Loot, Page, Flags, Camp, Sheet, Ask, Battle, Creation, Inventory, Picker, Map; rules.State(), rules.Apply; then game.State, game.Decision and the games.
+
+- Step 3: View reads play.State (view_state.go); game.State, game.Decision and all verbs deleted; Option, Ask, Refusal, Turn, Combat, Result, Report in play (play/shared.go); front-only actions play.Cancel, Aim, OpenItems, SpeedMenu; apply + private rules methods replace Apply and action(); act replaces decision. Guard extended; planted once.
 
 ## Progress (decompiler)
 - POR fold pass (por-go 8035c30): rules/scriptfold.go, in cmd/eclscript. 4 shops, temple, training hall folded; a vendor's exit runs the cut No. Inn (pays before camp) and tavern gamble (no vendor menu) stay gates. Checked structurally only (TestVendorGatesFolded, TestScriptRoundTrip), not by running gate-No against back-out.

@@ -12,7 +12,7 @@ import (
 func TestYesNoByLabel(t *testing.T) {
 	g := &fake{st: play.Exploring{Common: play.Common{Ask: &play.Question{YesNo: true, Replies: []string{"Yes", "No"}}}}}
 	r := newRules(g, game.Data{})
-	r.Apply(game.Answer{N: 1})
+	r.send(tAnswer{N: 1})
 	if len(g.sent) != 1 || g.sent[0] != (play.Reply{N: 0}) {
 		t.Fatalf("yes sent %v", g.sent)
 	}

@@ -56,7 +56,7 @@ type Ask struct {
 	Ms      int     // AskPause
 
 	Default  int  // the option (or entry) highlighted first
-	Break    int  // >0: Commands[Break:] go on the bar's second row (game.Ask.Break)
+	Break    int  // >0: Commands[Break:] go on the bar's second row (play.Ask.Break)
 	Yes      bool // AskConfirm: the highlight starts on Yes (false: on No)
 	Dirs     bool // the direction keys answer too (ActDir N, the keypad's 1..9), as a one-option menu's keypad
 	Reselect bool // ActLead N selects another member while the question stays up

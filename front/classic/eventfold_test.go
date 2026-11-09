@@ -5,12 +5,13 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
-// Class 20b: game.Event → front kinds one to one; an EvAttack swing stays a
+// Class 20b: play.Report → front kinds one to one; an EvAttack swing stays a
 // swing (never a miss) and EvHit + EvDamage stay one hit and one damage.
 func TestEventsFold(t *testing.T) {
-	es := []game.Event{{Kind: game.EvAttack, Unit: 1, Target: 2}, {Kind: game.EvHit, Unit: 1, Target: 2},
+	es := []play.Report{{Kind: game.EvAttack, Unit: 1, Target: 2}, {Kind: game.EvHit, Unit: 1, Target: 2},
 		{Kind: game.EvDamage, Unit: 2, Target: 2, N: 5}, {Kind: game.EvAttack, Unit: 2, Target: 1}, {Kind: game.EvMiss, Unit: 2, Target: 1}}
 	want := []front.EventKind{front.EvAttack, front.EvHit, front.EvDamage, front.EvAttack, front.EvMiss}
 	out := combatEvents(es, front.View{}, nil, 0)

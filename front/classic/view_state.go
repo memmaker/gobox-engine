@@ -328,7 +328,7 @@ func lootOf(ps play.State) *game.Loot {
 }
 
 // combatOf is the fight up (nil: none).
-func (r *rules) combatOf(ps play.State) *game.Combat {
+func (r *rules) combatOf(ps play.State) *play.Combat {
 	if f, ok := ps.(play.Fighting); ok {
 		return r.combat(f)
 	}
@@ -407,7 +407,7 @@ func (g *Game) MusicCue() MusicCue {
 
 // What the sibling screens and a game's front tests read of the state up.
 func (g *Game) Party() []game.Member     { return g.party() }
-func (g *Game) Fight() *game.Combat      { return g.combat() }
+func (g *Game) Fight() *play.Combat      { return g.combat() }
 func (g *Game) Pace() game.Pace          { return g.pace() }
 func (g *Game) Common() play.Common      { return commonOf(g.r.g.State()) }
 func (g *Game) Walls() *game.Walls       { return g.r.wallsOf(g.r.g.State()) }

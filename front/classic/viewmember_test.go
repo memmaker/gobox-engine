@@ -14,11 +14,11 @@ import (
 func TestViewMemberOpensSheet(t *testing.T) {
 	f := &fake{st: play.Exploring{Common: play.Common{Party: []play.Member{{Name: "ARIN"}}}}}
 	r := newRules(f, game.Data{})
-	r.Apply(game.ViewMember{Member: 0})
+	r.send(play.ViewMember{Member: 0})
 	if shownOf(r).SheetPage == nil || len(f.sent) != 0 {
 		t.Fatalf("sheet %v, sent %v", shownOf(r).SheetPage != nil, f.sent)
 	}
-	r.Apply(game.CloseSheet{})
+	r.send(tCloseSheet{})
 	if shownOf(r).SheetPage != nil {
 		t.Fatal("sheet still up")
 	}
@@ -97,11 +97,11 @@ func TestFightItems(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Selected: 0, Party: []play.Member{{Name: "ARIN"}, {Name: "MAREN"}}},
 		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
 	r := newRules(f, game.Data{})
-	r.Apply(game.OpenItems{Member: -1})
+	r.send(play.OpenItems{Member: -1})
 	if s := shownOf(r); s.Items != game.ItemsOwn || s.Combat == nil || len(f.sent) != 0 || s.Selected != 1 {
 		t.Fatalf("items %v combat %v sent %v", s.Items, s.Combat != nil, f.sent)
 	}
-	r.Apply(game.CloseItems{})
+	r.send(tCloseItems{})
 	if s := shownOf(r); s.Items != game.ItemsNone || s.SheetPage != nil || s.Combat == nil {
 		t.Fatalf("after close: items %v sheet %v", s.Items, s.SheetPage != nil)
 	}
@@ -111,10 +111,10 @@ func TestFightItems(t *testing.T) {
 // front-state reply (Question.Do) opens that member's items, not a Reply.
 func TestViewGearOpensItems(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}, {Name: "MAREN"}, {Name: "VEX"}},
-		Ask: &play.Question{Replies: []string{"Gear", "Exit"}, Do: []game.Decision{game.OpenItems{Member: 2}}}},
+		Ask: &play.Question{Replies: []string{"Gear", "Exit"}, Do: []play.Action{play.OpenItems{Member: 2}}}},
 		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
 	r := newRules(f, game.Data{})
-	r.Apply(game.Answer{N: 0})
+	r.send(tAnswer{N: 0})
 	if s := shownOf(r); s.Items != game.ItemsOwn || s.Selected != 2 || len(f.sent) != 0 || s.Pending != nil {
 		t.Fatalf("items %v selected %d sent %v pending %v", s.Items, s.Selected, f.sent, s.Pending)
 	}
@@ -123,7 +123,7 @@ func TestViewGearOpensItems(t *testing.T) {
 	if v := g.View(); v.Inventory == nil || v.Ask != nil { // the items draw, over the question
 		t.Fatalf("inventory %v ask %v", v.Inventory != nil, v.Ask != nil)
 	}
-	r.Apply(game.CloseItems{})
+	r.send(tCloseItems{})
 	if shownOf(r).Pending == nil {
 		t.Fatal("the View menu is gone")
 	}
@@ -134,19 +134,19 @@ func TestViewGearOpensItems(t *testing.T) {
 // game is never sent a Reply.
 func TestSpeedMenu(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Party: []play.Member{{Name: "ARIN"}},
-		Ask: &play.Question{Replies: []string{"Guard", "Speed", "Exit"}, Do: []game.Decision{nil, game.SpeedMenu{}}}}}}
+		Ask: &play.Question{Replies: []string{"Guard", "Speed", "Exit"}, Do: []play.Action{nil, play.SpeedMenu{}}}}}}
 	r := newRules(f, game.Data{})
-	r.Apply(game.Answer{N: 1})
+	r.send(tAnswer{N: 1})
 	if a := shownOf(r).Pending; a == nil || len(a.Options) != 3 || a.Options[0].Label != "Faster" {
 		t.Fatalf("menu %+v", a)
 	}
-	r.Apply(game.Answer{N: 1})
-	r.Apply(game.Answer{N: 1})
-	r.Apply(game.Answer{N: 0})
+	r.send(tAnswer{N: 1})
+	r.send(tAnswer{N: 1})
+	r.send(tAnswer{N: 0})
 	if r.speed != 5 || len(f.sent) != 0 {
 		t.Fatalf("speed %d sent %v", r.speed, f.sent)
 	}
-	r.Apply(game.Answer{N: 2})
+	r.send(tAnswer{N: 2})
 	if r.speedUp {
 		t.Fatal("still up")
 	}
@@ -188,7 +188,7 @@ func TestPickViewMember(t *testing.T) {
 	if a := shownOf(r).Pending; a == nil || !a.View {
 		t.Fatalf("pick ask %+v: no View", a)
 	}
-	r.Apply(game.ViewMember{Member: 0})
+	r.send(play.ViewMember{Member: 0})
 	if len(f.sent) != 1 || f.sent[0] != play.Action(play.ViewMember{Member: 0}) || shownOf(r).SheetPage != nil {
 		t.Fatalf("sent %v, sheet %v", f.sent, shownOf(r).SheetPage != nil)
 	}

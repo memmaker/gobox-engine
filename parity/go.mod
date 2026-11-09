@@ -5,6 +5,7 @@ go 1.26.2
 require (
 	gobox/blobber v0.0.0
 	gobox/dax v0.0.0
+	gobox/ecl v0.0.0
 	gobox/ega v0.0.0
 	gobox/front v0.0.0
 	gobox/game v0.0.0
@@ -93,3 +94,5 @@ replace github.com/gogpu/wgpu => ../../gogpu-wgpu
 replace github.com/go-webgpu/goffi => ../../goffi
 
 replace github.com/gogpu/gogpu => ../../goplay/third_party/gogpu
+
+replace gobox/ecl => ../ecl

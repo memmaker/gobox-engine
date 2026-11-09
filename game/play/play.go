@@ -122,7 +122,7 @@ type Question struct {
 	List         bool            // Replies are a pick from a list (a roster, a town's places), not a command menu
 	Keys         []rune          // the game's own hotkey per reply (0: from the label); nil: all from the labels
 	Rows         []game.Line     // List: per reply, its flags (a heading, dimmed, off, the spell it names); nil: plain rows
-	Do           []game.Decision // per reply, a front-state decision gobox runs in place of Reply (a View's Gear: game.OpenItems{Member}); nil: Reply
+	Do           []Action // per reply, an action gobox runs in place of Reply (a View's Gear: OpenItems{Member}); nil: Reply
 	Esc          EscReply        // the reply Esc answers (the menu's Exit, as the originals'); zero: none
 }
 
@@ -175,6 +175,7 @@ type Member struct {
 // Character entry while the roster may be empty: gobox opens the roster
 // and sends AddCharacter with the one picked.
 type Assembling struct {
+	Commands []Option // the game's own party commands (Do, with a label)
 	Common
 	Roster []string // saved characters
 	Draft  *Draft   // a character being made or changed; nil none
@@ -547,7 +548,7 @@ type (
 	// The sheet.
 	UsePower struct {
 		Member        int
-		Kind          PowerKind
+		Kind          game.PowerKind
 		Spell, Target int
 	}
 	PickPower struct{ ID int }
@@ -767,12 +768,3 @@ func (Sprint) action()           {}
 func (Dodge) action()            {}
 func (Jetpack) action()          {}
 
-// PowerKind is what a member's power does (UsePower.Kind).
-type PowerKind int
-
-const (
-	PowerCast    PowerKind = iota + 1 // cast a memorised spell
-	PowerDisplay                      // list the spell effects on the member
-	PowerHeal                         // a paladin lays on hands
-	PowerCure                         // a paladin cures disease
-)

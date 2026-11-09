@@ -1,9 +1,9 @@
 package classic
 
 import (
+	"image"
 	"testing"
 
-	"gobox/game"
 	"gobox/game/play"
 )
 
@@ -11,7 +11,7 @@ import (
 // so no toast is raised (classic shows only a refusal that says why).
 func TestAnswerNothingAskedIsQuiet(t *testing.T) {
 	r := &rules{}
-	res := r.answer(play.Exploring{}, game.Answer{})
+	res := r.answer(play.Exploring{}, play.Reply{}, image.Point{})
 	if res.Err == nil {
 		t.Fatal("answer with nothing asked was not refused")
 	}

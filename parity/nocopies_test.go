@@ -74,7 +74,7 @@ func TestNoPrivatePlumbing(t *testing.T) {
 // funcFields caps each game's function-typed struct fields in rules: a
 // stored func is a continuation (the game paused mid-routine), and games
 // are passive (MIGRATION.md, order 2). The caps only shrink.
-var funcFields = map[string]int{"cotab-go": 2, "sotsb-go": 2, "pod-go": 1, "por-go": 8,
+var funcFields = map[string]int{"cotab-go": 2, "sotsb-go": 2, "pod-go": 1, "por-go": 7,
 	"buckrogers-go": 1, "buckrogers2-go": 2}
 
 // TestPassive: no game gains a stored callback; lower a cap when one goes.
@@ -126,13 +126,13 @@ func TestPassive(t *testing.T) {
 // game may import or name them.
 var (
 	oldPathImports = []string{"gobox/front/playrules"}
-	oldPathNames   = map[string][]string{"game": {"Rules", "Mapped"}}
+	oldPathNames   = map[string][]string{"game": {"Rules", "Mapped", "State", "Decision", "Option", "Ask", "Refusal", "Turn", "Combat", "Event", "Result"}}
 )
 
 // TestNoOldPath fails on any reference to the removed rules path.
 func TestNoOldPath(t *testing.T) {
 	roots := []string{"..", "../../por-go", "../../cotab-go", "../../sotsb-go", "../../pod-go",
-		"../../buckrogers-go", "../../buckrogers2-go"}
+		"../../buckrogers-go", "../../buckrogers2-go", "../../buckrogers-core"}
 	for _, root := range roots {
 		err := filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
 			if err != nil || d.IsDir() || !strings.HasSuffix(p, ".go") {

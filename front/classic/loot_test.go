@@ -78,14 +78,17 @@ func TestLootScreen(t *testing.T) {
 }
 
 func TestLootDecisions(t *testing.T) {
-	g := NewGame(&fake{st: play.Looting{}}, game.Data{})
-	for a, want := range map[front.Action]game.Decision{
-		{Kind: front.ActBuy, N: 2}: game.TakeLoot{Item: 2},
-		{Kind: front.ActTakeMoney}: game.TakeLoot{Item: -1},
-		{Kind: front.ActTakeAll}:   game.TakeLoot{Item: -1, All: true},
+	for a, want := range map[front.Action]play.Action{
+		{Kind: front.ActBuy, N: 2}: play.Take{Item: 2},
+		{Kind: front.ActTakeMoney}: play.Take{Item: -1},
+		{Kind: front.ActTakeAll}:   play.Take{Item: -1, All: true},
 	} {
-		if d, ok := g.decision(a); !ok || d != want {
-			t.Errorf("%v: %#v", a.Kind, d)
+		f := &fake{st: play.Looting{}}
+		g := NewGame(f, game.Data{})
+		g.found = true
+		g.Answer(a)
+		if len(f.sent) != 1 || f.sent[0] != want {
+			t.Errorf("%v: %#v", a.Kind, f.sent)
 		}
 	}
 }

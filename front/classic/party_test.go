@@ -5,6 +5,7 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // TestPartyIconHead: a member with no portrait (Buck Rogers) shows their
@@ -31,7 +32,7 @@ func TestInventoryListsReadied(t *testing.T) {
 
 // A yes/no over the 3D view with its question in the message is still asked.
 func TestYesNoOverExplore(t *testing.T) {
-	q, ok := Ask(game.ModeExplore, &game.Ask{Kind: game.YesNo})
+	q, ok := Ask(game.ModeExplore, &play.Ask{Kind: game.YesNo})
 	if !ok || q == nil || q.Kind != front.AskConfirm || q.Prompt == "" {
 		t.Fatalf("%+v", q)
 	}

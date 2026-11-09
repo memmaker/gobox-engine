@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // traceOn (GOBOX_TRACE=1) logs to stderr every decision sent to the game,
@@ -13,7 +14,7 @@ import (
 var traceOn = os.Getenv("GOBOX_TRACE") != ""
 
 // trace logs what (a decision, or "step") and the mode it left, when on.
-func (g *Game) trace(what string, res game.Result) {
+func (g *Game) trace(what string, res play.Result) {
 	if !traceOn {
 		return
 	}

@@ -17,7 +17,7 @@ func TestStopRestListed(t *testing.T) {
 		}
 		g := &fake{st: play.Camping{Common: play.Common{Allowed: al}}}
 		r := newRules(g, game.Data{})
-		r.Apply(game.StopRest{})
+		r.send(play.StopRest{})
 		if got := len(g.sent) == 1; got != listed {
 			t.Fatalf("listed %v: sent %v", listed, g.sent)
 		}

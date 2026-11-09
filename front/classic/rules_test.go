@@ -36,18 +36,18 @@ func TestAdapter(t *testing.T) {
 	cases := []struct {
 		name  string
 		f     *fake
-		d     game.Decision
-		check func(t *testing.T, f *fake, r *rules, res game.Result)
+		d     any
+		check func(t *testing.T, f *fake, r *rules, res play.Result)
 	}{
 		{"wall refused", &fake{st: play.Exploring{}, err: wall},
-			game.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)},
-			func(t *testing.T, f *fake, r *rules, res game.Result) {
+			play.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)},
+			func(t *testing.T, f *fake, r *rules, res play.Result) {
 				if res.Err != wall || !slices.Equal(f.sent, []play.Action{play.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)}}) {
 					t.Fatalf("err %v sent %v", res.Err, f.sent)
 				}
 			}},
-		{"scene reply", &fake{st: talk}, game.Answer{N: 1},
-			func(t *testing.T, f *fake, r *rules, res game.Result) {
+		{"scene reply", &fake{st: talk}, tAnswer{N: 1},
+			func(t *testing.T, f *fake, r *rules, res play.Result) {
 				if a := r.pending(r.g.State()); a == nil || a.Kind != game.Choice || len(a.Options) != 2 || a.Options[1].Label != "Foe" {
 					t.Fatalf("pending %+v", a)
 				}
@@ -61,8 +61,8 @@ func TestAdapter(t *testing.T) {
 		{"end turn events", &fake{st: fight, out: play.Outcome{Events: []play.Event{
 			play.Walked{Unit: 2, Path: []game.Step{{At: image.Pt(1, 1)}}},
 			play.Attacked{From: 2, To: 1, Hit: true, Damage: 4}, play.Fell{Unit: 1}}}},
-			game.EndTurn{},
-			func(t *testing.T, f *fake, r *rules, res game.Result) {
+			play.EndTurn{},
+			func(t *testing.T, f *fake, r *rules, res play.Result) {
 				var kinds []game.EventKind
 				for _, e := range res.Events {
 					kinds = append(kinds, e.Kind)
@@ -75,8 +75,8 @@ func TestAdapter(t *testing.T) {
 					t.Fatalf("state %+v", s.Combat)
 				}
 			}},
-		{"handout read", &fake{st: hand}, game.Answer{N: 0},
-			func(t *testing.T, f *fake, r *rules, res game.Result) {
+		{"handout read", &fake{st: hand}, tAnswer{N: 0},
+			func(t *testing.T, f *fake, r *rules, res play.Result) {
 				s, s2 := shownOf(r), shownOf(r)
 				if s.Read == nil || s.Read.Title != "Journal 1" || s.Read != s2.Read || s.Pending != nil {
 					t.Fatalf("read %+v pending %+v", s.Read, s.Pending)
@@ -85,8 +85,8 @@ func TestAdapter(t *testing.T) {
 					t.Fatalf("sent %v", f.sent)
 				}
 			}},
-		{"step is empty", &fake{st: play.Exploring{}}, game.SetSpeed{},
-			func(t *testing.T, f *fake, r *rules, res game.Result) {
+		{"step is empty", &fake{st: play.Exploring{}}, tSetSpeed{},
+			func(t *testing.T, f *fake, r *rules, res play.Result) {
 				if st := r.Step(); st.Err != nil || len(st.Events) != 0 || len(f.sent) != 0 {
 					t.Fatalf("step %+v sent %v", st, f.sent)
 				}
@@ -95,7 +95,7 @@ func TestAdapter(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			r := newRules(c.f, game.Data{})
-			c.check(t, c.f, r, r.Apply(c.d))
+			c.check(t, c.f, r, r.send(c.d))
 		})
 	}
 }
@@ -106,20 +106,20 @@ func TestAimAndSlots(t *testing.T) {
 		Aimed: []play.Aimed{{Action: cast, Squares: []image.Point{{2, 2}}, Targets: 1}}}}}}
 	r := newRules(f, game.Data{})
 	r.dir = t.TempDir()
-	if res := r.Apply(game.Cast{Spell: 7}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim {
+	if res := r.send(play.Cast{Spell: 7}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
 	}
-	if res := r.Apply(game.Aim{At: image.Pt(5, 5)}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim { // not offered: no word, the aim stays (the original's Center)
+	if res := r.send(play.Aim{At: image.Pt(5, 5)}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim { // not offered: no word, the aim stays (the original's Center)
 		t.Fatalf("aim out of range: %+v sent %v", res, f.sent)
 	}
-	r.Apply(game.Aim{At: image.Pt(2, 2)})
+	r.send(play.Aim{At: image.Pt(2, 2)})
 	if len(f.sent) != 1 || f.sent[0].(play.Cast).Ats[0] != image.Pt(2, 2) {
 		t.Fatalf("sent %v", f.sent)
 	}
-	if res := r.Apply(game.Save{Name: "one"}); res.Err != nil {
+	if res := r.send(tSave{Name: "one"}); res.Err != nil {
 		t.Fatal(res.Err)
 	}
-	if res := r.Apply(game.Load{Slot: 0}); res.Err != nil || string(f.data) != "saved" {
+	if res := r.send(tLoad{Slot: 0}); res.Err != nil || string(f.data) != "saved" {
 		t.Fatalf("load %+v %q", res, f.data)
 	}
 }
@@ -156,7 +156,7 @@ func TestTitleFirstStepBeforeStepping(t *testing.T) {
 
 func TestShowMemberOpensSheet(t *testing.T) {
 	r := newRules(&fake{st: play.Exploring{}}, game.Data{})
-	if r.Apply(game.ShowMember{Member: 2}); r.sheet != 2 {
+	if r.send(tShowMember{Member: 2}); r.sheet != 2 {
 		t.Fatalf("sheet %d", r.sheet)
 	}
 }

@@ -15,10 +15,10 @@ func TestAttackAims(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}, play.EndTurn{}}}},
 		Field: play.Battlefield{Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(5, 3), Foe: true}}}}}
 	r := newRules(f, game.Data{})
-	if res := r.Apply(game.Attack{Target: 0}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim || shownOf(r).Combat.Cursor != image.Pt(5, 3) {
+	if res := r.send(play.Attack{Target: 0}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim || shownOf(r).Combat.Cursor != image.Pt(5, 3) {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
 	}
-	r.Apply(game.Aim{At: image.Pt(5, 3)})
+	r.send(play.Aim{At: image.Pt(5, 3)})
 	if len(f.sent) != 1 || f.sent[0] != play.Action(play.Attack{Target: 2}) {
 		t.Fatalf("sent %v", f.sent)
 	}
@@ -38,7 +38,7 @@ func TestShootTargets(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: shoot, Squares: []image.Point{{4, 4}, {6, 6}, {9, 9}}, Targets: 1}}}},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(6, 6), Foe: true}}}}}
 	r := newRules(f, game.Data{})
-	r.Apply(game.Ranged{})
+	r.send(play.Shoot{})
 	c := shownOf(r).Combat
 	if c == nil || !c.Turn.Aim || len(c.Targets) != 2 || c.Cursor != image.Pt(6, 6) {
 		t.Fatalf("%+v", c)
@@ -51,7 +51,7 @@ func TestQuickAllOption(t *testing.T) {
 	r := rules{data: game.Data{VerbKeys: map[string]rune{"Quick All": 'U'}}}
 	f := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Quick{}, play.Quick{All: true}}}}}
 	c := r.combat(f)
-	i := slices.IndexFunc(c.Turn.Options, func(o game.Option) bool { return o.Do == game.Decision(game.Quick{All: true}) })
+	i := slices.IndexFunc(c.Turn.Options, func(o play.Option) bool { return o.Do == any(play.Quick{All: true}) })
 	if i < 0 || c.Turn.Options[i].Key == 0 {
 		t.Fatalf("%+v", c.Turn.Options)
 	}
@@ -64,7 +64,7 @@ func TestAimNoFoeInReach(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: shoot, Squares: []image.Point{{2, 1}}, Targets: 1}}}},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(4, 3), Foe: true}}}}}
 	r := newRules(f, game.Data{})
-	r.Apply(game.Ranged{})
+	r.send(play.Shoot{})
 	c := shownOf(r).Combat
 	if c == nil || !c.Turn.Aim || !c.CursorOn || len(c.Targets) != 2 || c.Cursor != image.Pt(4, 3) {
 		t.Fatalf("%+v", c)

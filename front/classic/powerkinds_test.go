@@ -10,8 +10,8 @@ import (
 
 // A power picked on the front reaches the game as its PowerKind.
 func TestPowerKinds(t *testing.T) {
-	for k, want := range map[front.ActKind]play.PowerKind{front.ActSpells: play.PowerCast, front.ActMagic: play.PowerDisplay,
-		front.ActHeal: play.PowerHeal, front.ActCure: play.PowerCure} {
+	for k, want := range map[front.ActKind]game.PowerKind{front.ActSpells: game.PowerCast, front.ActMagic: game.PowerDisplay,
+		front.ActHeal: game.PowerHeal, front.ActCure: game.PowerCure} {
 		f := &fake{st: play.Camping{Common: allow(play.UsePower{Member: 0, Kind: want})}}
 		g := NewGame(f, game.Data{})
 		if err := g.UsePower(0, k, 0, 0, true); err != nil {

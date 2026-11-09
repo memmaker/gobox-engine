@@ -12,20 +12,6 @@ import (
 	"time"
 )
 
-// Result is what one Apply or Step did. Err refuses the decision; nothing changed.
-type Result struct {
-	Events []Event
-	Err    error
-}
-
-// Refusal is an Err that carries the reason and, if any, the question to put instead.
-type Refusal struct {
-	Text string
-	Ask  *Ask
-}
-
-func (r *Refusal) Error() string { return r.Text }
-
 // Picture is an art ref: a DAX File/Block/Frame (Block -1: none), or a Name,
 // plus optionally raw indexed pixels (Pixels are palette indices, W*H long).
 type Picture struct {
@@ -376,7 +362,7 @@ type Member struct {
 	ItemCap                              int            // most items carried, 0 no limit
 	SlotsMax                             map[string]int // spell slots in all, keys as Slots
 	CanCast                              bool           // may cast now (status, no-magic area)
-	Powers                               []Option       // the member\'s special powers menu (Decisions)
+	Powers                               []PowerOffer   // the member\'s special powers menu
 	Chosen                               bool           // the card is marked: the selected member, or the candidate while one is picked
 	Colour                               int            // the roster colour of the name (EGA number)
 	Head                                 string         // the head the player chose: a Data.Art name, "" none
@@ -512,41 +498,6 @@ const (
 	DoorWizardLocked
 )
 
-// Combat is a fight. Squares hold art refs, not cells.
-type Combat struct {
-	Size    image.Point
-	Squares []Ground
-	Units   []Unit
-	Turn    *Turn
-	Round   int
-	Dungeon bool
-	Reach   []Reach    // squares the turn's unit may walk to
-	Spells  []SpellRef // castable by the turn's unit
-	Aims    []SpellRef // spells that take a square, with their Range, Targets and Area
-	Targets []int      // unit IDs the turn's Attack takes; while aiming, the foes Tab cycles through
-	Panel   int        // the unit ID the status row shows (who acts, or is being hit), 0 none
-	// Marks are the squares framed for a choice: with Area, a spell's area
-	// (AreaAt the squares it covers round the aimed square, Skipped the allies
-	// in it that it passes over), else the units an aim would hit.
-	Marks, AreaAt, Skipped []image.Point
-	Area                   bool
-	Why                    string // aiming: why the aimed square cannot be taken, "" when it can
-
-	// The ground as a view draws it: Squares' Tile numbers index Tiles, the
-	// Data.Art names of the tile set (read live; "" a tile with no picture),
-	// Floor is the bare ground's colour.
-	Tiles     []string
-	FloorTile string `json:",omitempty"` // the Tiles name (a series combat sprite) of the plain floor, tiled on every floor square; "": the bare ground's Floor colour
-	Floor     color.RGBA
-	Effects   []Effect    // sprites over the map
-	Cursor    image.Point // the square the cursor was last drawn on
-	CursorOn  bool        // the cursor icon is up (aiming, looking)
-	CursorAt  []image.Point
-	View      image.Point // top left square of the scrolled view window
-	Strike    Strike      // the last weapon attack
-	Log       []string    // the battle's messages, oldest first
-}
-
 // Effect is a sprite over the combat map: its top left corner in thirds of a
 // square.
 type Effect struct {
@@ -606,19 +557,6 @@ type Unit struct {
 	Icon       image.Image // a member's own PNG icon, in its pose and facing (nil: composed from its icon picks)
 }
 
-// Turn is whose turn it is and what they may do.
-type Turn struct {
-	Unit      int
-	Moves     int
-	Casting   int    // the spell the unit is casting over rounds, 0 none
-	Aim       bool   // aiming: Aim takes a square (Cast: Ats), Cancel gives up
-	Spell     string // aiming a spell, its name
-	Options   []Option
-	Weapon    *Weapon        // the weapon in hand (its icon on Attack), nil none
-	Missile   *Weapon        // the ranged weapon readied (its icon on Ranged), nil none
-	Maneuvers []TurnManeuver // the rule set's maneuvers (Maneuver picks one); none: no Maneuver
-}
-
 // Weapon is a Turn's weapon: its icon (Type, Words) and tooltip.
 type Weapon struct {
 	Name        string
@@ -634,15 +572,6 @@ type TurnManeuver struct {
 	Aim         int // front.Aim
 	Range, Area int
 	Shift       int // AimWeapon: squares the member may move first
-}
-
-// Option is a rule verb the player may pick, with its original hotkey.
-type Option struct {
-	Label  string
-	Key    rune
-	Do     Decision
-	Chords string // more keys that pick it (alt+q,space; Data.VerbChords)
-	Func   string // the function's gobox name when Label is the series' (Data.Texts: "Drop Character" shown as "Remove Character")
 }
 
 // Shop, Service, Training, Loot, Door, Vault: the place an area script has
@@ -799,26 +728,6 @@ const (
 	Continue
 )
 
-// Ask is a domain question. The answer is an Answer decision. Options on an
-// Ask of another kind are extra moves the player may make instead of an
-// answer (a move question's Done): gobox applies the Option's Do as is.
-type Ask struct {
-	Kind    AskKind
-	Prompt  string
-	Text    string   // the question's body text
-	Options []Option // Choice: labels with the original hotkeys
-	Default int      // default option or number
-	Yes     bool     `json:",omitempty"` // YesNo: the highlight starts on Yes (false: on No)
-	NoEsc   bool     `json:",omitempty"` // Esc does not answer it: the question stays up
-	NoPick  bool     `json:",omitempty"` // no highlight, Enter does not answer it (only the hotkeys; YesNo: Y and N)
-	Max     int      // Name length, Number upper bound
-	Lines   []Line   // PickItem: the list's rows
-	Typed   string   // Name, Number: what is typed so far
-	Ms      int      // Continue: a timed pause of Ms milliseconds (0: wait for a key)
-	Break   int      `json:",omitempty"` // Choice: >0 puts Options[Break:] on a second bar row (the original's '@'); the bar takes rows 23-24 and Up/Down switch rows
-	View    bool     // while set, the player may open the View menu on the highlighted option's member (game.ViewMember{N}) and the ask stays up; used by member picks
-}
-
 // Line is one row of a PickItem list.
 type Line struct {
 	Text     string
@@ -827,33 +736,6 @@ type Line struct {
 	Spell    int   // the spell the row names, 0 if none
 	Hides    []int // Ask.Options hidden while this row is chosen
 }
-
-// Decision is a typed rule verb. Screen verbs are not Decisions.
-type Decision interface{ decision() }
-
-// Answer answers the pending Ask, the same way in every game, by its Kind:
-//   - Choice: N is the index into Ask.Options
-//   - YesNo: N is 1 for yes, 0 for no
-//   - PickMember: N is the party index; PickItem: the item's index in its list;
-//     PickSpell: the spell id
-//   - Number: N; Name: Text
-//   - Square: At
-//   - Direction: N is the facing (0 north, 2 east, 4 south, 6 west; odd: diagonals)
-//   - Continue: no fields
-//
-// Backing out of a question is Cancel, never a special N.
-type Answer struct {
-	N    int
-	Text string
-	At   image.Point
-}
-
-// Cancel backs out of the pending Ask (the original's Esc / Exit).
-type Cancel struct{}
-
-// Adjust raises or lowers one of the creation draft's values by By (the
-// original's modify step); Stat indexes StatKeys.
-type Adjust struct{ Stat, By int }
 
 // StatKeys is the order of the values Adjust names: the Member.Stats keys,
 // then hit points, then exceptional strength (Member.Str00).
@@ -871,220 +753,6 @@ const (
 	Jewelry  = "jewelry"
 	Credits  = "credits"
 )
-
-type (
-	// Arrive: gobox moved the party from From onto the next square To
-	// (Map.Edge let it through), facing Facing (a step back or aside keeps
-	// it). To may lie off the map (Map.Size): the game wraps or leaves the
-	// area. The game only moves the party (and the step's time): it runs no
-	// event. A Refusal's Ask is the question put instead (a locked door's
-	// Bash / Pick / Knock). Then gobox asks Map.Event of the square and
-	// sends RunEvent when it says one waits.
-	Arrive struct {
-		From, To image.Point
-		Facing   int // as Where.Facing
-	}
-	// RunEvent: run an event Map says waits: Before, the script the game
-	// runs ahead of a step through Side (as Where.Facing) from the party's
-	// square, before gobox moves it (Map.Departure: it may hold the step,
-	// turn or move the party, or ask); else the event on the party's square
-	// after Arrive (Map.Event: a step script, an encounter). gobox's call.
-	RunEvent struct {
-		Before bool
-		Side   int
-	}
-	// Face: gobox turned the party to Facing (as Where.Facing) on its square.
-	Face   struct{ Facing int }
-	Search struct{}
-	Look   struct{}
-	Select struct{ N int }
-	Move   struct{ To image.Point } // combat
-	Attack struct{ Target int }
-	Cast   struct {
-		Member, Spell, Target int // Member: outside combat, who casts
-		At                    image.Point
-		Ats                   []image.Point // one square per target, when the spell takes several
-	}
-	UseItem struct {
-		Member, Item, Target int
-		Ats                  []image.Point // one square per target
-		Spell                int           // a scroll's spell to read, 0 the first
-	}
-	Ready    struct{ Member, Item, Count int } // Count of a stack to ready (0: all of it)
-	Drop     struct{ Member, Item int }
-	Trade    struct{ From, To, Item int }
-	Buy      struct{ Member, Item int } // Member: who buys and carries it
-	Sell     struct{ Member, Item int }
-	TakeLoot struct {
-		Item int  // -1: the money only
-		All  bool // the money and every item
-	}
-	Rest   struct{ Minutes int } // 0: the default rest
-	Camp   struct{}
-	Train  struct{ Member int }
-	Heal   struct{ Service, Member int }
-	Create struct {
-		Field string // "portraithead", "portraitbody", "iconhead" or "iconbody": Text is gobox's opaque pool name, stored as Member.PortraitHeadID .. IconBodyID
-		N     int
-		Text  string
-	}
-	SetStat struct {
-		Stat int    // 0..5: STR .. CHA
-		Text string // the value as typed ("18/50" for an exceptional strength)
-	} // creation: set an ability by hand
-	// PointBuy: creation: the abilities bought on points (pointbuy.go),
-	// offered for every new character. Scores are the base values in
-	// Creation.Stats' order (Stats nil: STR .. CHA, StatKeys 0..5), each
-	// PointBuyMin..PointBuyMax and within PointBuyBudget; the game applies
-	// its rules to them (race, class minimums, exceptional strength) as
-	// after a roll, or refuses.
-	PointBuy  struct{ Scores []int }
-	KeepDraft struct{} // creation and Modify: keep the draft (save the new character, apply the changes)
-	AddChar   struct {
-		Roster int
-		From   string // a roster the game imports from (Data.Imports), "" its own
-	}
-	DropChar struct{ Member int }
-	Begin    struct{}
-	Wait     struct{} // combat: end turn / hold
-	Flee     struct{}
-	Save     struct {
-		Slot int
-		Name string // the slot's name, gobox's; empty keeps the slot's own
-	}
-	Load struct {
-		Slot int
-		From string // as AddChar.From
-	}
-
-	// Camp.
-	Fix        struct{ Member int }
-	Memorize   struct{ Member, Spell int }
-	Forget     struct{ Member, Spell int }
-	Scribe     struct{ Member, Spell int }
-	Order      struct{ From, To int }
-	EndGame    struct{}              // the main menu: end the game in progress, back to the party menu
-	AddNote    struct{ Text string } // a player journal note of Text (the line gobox shows), with the place; a duplicate is refused
-	RemoveNote struct{ ID int }      // delete player note ID
-	LeaveCamp  struct{}
-	// Combat.
-	Guard      struct{}
-	EndTurn    struct{}
-	Quick      struct{ All bool } // All: the whole party, else the unit whose turn it is
-	Bandage    struct{ Member int }
-	TurnUndead struct{}
-	Aim        struct{ At image.Point }
-	Ranged     struct{} // combat: shoot or throw the missile
-	Items      struct{} // combat: open the inventory
-	Maneuver   struct{} // combat: pick one of the rule set's maneuvers
-	// Items and money.
-	Unready  struct{ Member, Item int }
-	Halve    struct{ Member, Item int } // split a stack
-	Join     struct{ Member, Item int } // merge stacks
-	Identify struct{ Member, Item int }
-	Appraise struct {
-		Member, Item int
-		Keep         bool // keep the gem or jewel rather than sell it at the offer
-	}
-	Repair    struct{ Member, Item int }
-	PoolCoins struct{ Member int }
-	Reload    struct{ Member, Item int } // refill a clip (the shop's Ammo / Fill Clip)
-	Leave     struct{}                   // leave the open shop, vault, loot or temple
-	// Paladin.
-	LayOnHands struct{ Member int }
-	Cure       struct{ Member, Service int }
-	// Party.
-	Reroll           struct{}
-	DiscardCharacter struct{}
-	RemoveCharacter  struct{ Roster int }
-	ChangeClass      struct{ Member, Class int }
-	DropMember       struct{ Member int }
-	SetSpeed         struct{ N int }
-	SpeedMenu        struct{} // gobox's Speed menu (Faster, Slower, Exit), front state; a game places it as a reply (play.Question.Do) in its Done menu
-	SetDifficulty    struct{ N int }
-	SetIcon          struct {
-		Member int
-		Field  string // "portraithead" .. "iconbody" with ID: store that opaque pool name
-		N      int
-		ID     string
-	}
-	Call struct{ Member int }
-)
-
-func (Answer) decision()    {}
-func (Cancel) decision()    {}
-func (Adjust) decision()    {}
-func (Arrive) decision()    {}
-func (Face) decision()      {}
-func (RunEvent) decision()  {}
-func (Search) decision()    {}
-func (Look) decision()      {}
-func (Select) decision()    {}
-func (Move) decision()      {}
-func (Attack) decision()    {}
-func (Cast) decision()      {}
-func (UseItem) decision()   {}
-func (Ready) decision()     {}
-func (Drop) decision()      {}
-func (Trade) decision()     {}
-func (Buy) decision()       {}
-func (Sell) decision()      {}
-func (TakeLoot) decision()  {}
-func (Rest) decision()      {}
-func (Camp) decision()      {}
-func (Train) decision()     {}
-func (Heal) decision()      {}
-func (Create) decision()    {}
-func (SetStat) decision()   {}
-func (PointBuy) decision()  {}
-func (KeepDraft) decision() {}
-func (AddChar) decision()   {}
-func (DropChar) decision()  {}
-func (Begin) decision()     {}
-func (Wait) decision()      {}
-func (Flee) decision()      {}
-func (Save) decision()      {}
-func (Load) decision()      {}
-
-func (Fix) decision()              {}
-func (Memorize) decision()         {}
-func (Forget) decision()           {}
-func (Scribe) decision()           {}
-func (Order) decision()            {}
-func (EndGame) decision()          {}
-func (AddNote) decision()          {}
-func (RemoveNote) decision()       {}
-func (LeaveCamp) decision()        {}
-func (Guard) decision()            {}
-func (EndTurn) decision()          {}
-func (Quick) decision()            {}
-func (Bandage) decision()          {}
-func (TurnUndead) decision()       {}
-func (Aim) decision()              {}
-func (Ranged) decision()           {}
-func (Items) decision()            {}
-func (Maneuver) decision()         {}
-func (Unready) decision()          {}
-func (Halve) decision()            {}
-func (Join) decision()             {}
-func (Identify) decision()         {}
-func (Appraise) decision()         {}
-func (Repair) decision()           {}
-func (PoolCoins) decision()        {}
-func (Reload) decision()           {}
-func (Leave) decision()            {}
-func (LayOnHands) decision()       {}
-func (Cure) decision()             {}
-func (Reroll) decision()           {}
-func (DiscardCharacter) decision() {}
-func (RemoveCharacter) decision()  {}
-func (ChangeClass) decision()      {}
-func (DropMember) decision()       {}
-func (SetSpeed) decision()         {}
-func (SpeedMenu) decision()        {}
-func (SetDifficulty) decision()    {}
-func (SetIcon) decision()          {}
-func (Call) decision()             {}
 
 // EventKind says what an Event reports.
 type EventKind int
@@ -1113,33 +781,11 @@ const (
 	EvEngaged // a fight began: Combat is its board before the first turn (the step's events play from it)
 )
 
-// Event is something that happened.
-type Event struct {
-	Kind         EventKind
-	Combat       *Combat  // EvEngaged: the fight's board before its first turn
-	Party        []Member // EvEngaged: the party as the fight began (its figures; a fight lost leaves none after)
-	Text         string
-	Role         string // EvSaid: "narrator", an NPC name, ...
-	N            int
-	Wait         bool
-	Clear        bool
-	Turn         bool    // EvMove: a turn in place (N the facing), no step (To unset)
-	Picture      Picture // EvDown: the body the unit leaves on its square (a ground Overlay), for the fight's last blow, when no Combat follows
-	Sound        string  // sound ref for EvSound / song ref for EvSong
-	Unit, Target int
-	At, To       image.Point
-	Sprite       []Picture
-	StepMs       int     // EvMissile with Sprite: the flight's time per third of a square (0: Ms shared out)
-	Ms           int     // >0 with Page: the front shows Page for Ms milliseconds (a timed moment outside a fight)
-	Page         *Page   // the whole page as it stood for this moment (nil: none)
-	Pose         int     // >0 with Ms in a fight: Unit's icon pose (1 action) while this moment shows
-	Screen       *Screen // with Ms: the typed screen as it stood for this moment (a blink, a blast frame), shown for Ms milliseconds
-}
-
 // Data is declarative overrides only; no drawing, no positions. A game's
 // rules package exports it as func Data() Data, and its cmd hands gobox
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
+	Commands []PartyCommand // the party menu's extra entries; play.Assembling.Commands[i] does entry i
 	SaveDir     string // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
 	Series      string
 	Coin        string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
@@ -1155,7 +801,6 @@ type Data struct {
 	Art         map[string]Picture
 	Sounds      map[string]string
 	Palette     []byte                        // palette bytes
-	Commands    []Option                      // extra party commands: Decisions with labels
 	MenuItems   []MenuItem                    // the game's own main menu lines, after gobox's
 	MusicPlaces []string                      // every Where.Music trigger the game sets (gobox makes their data/music folders)
 	Imports     []string                      // other games' rosters and saves this game reads, by game id
@@ -1419,4 +1064,36 @@ type MenuItem struct {
 	Label    string
 	Key      rune
 	Sequence string
+}
+
+// PowerOffer is one of a member's special powers on the inventory.
+type PowerOffer struct {
+	Label string
+	Kind  PowerKind
+}
+
+// PowerKind is what a member's power does (UsePower.Kind).
+type PowerKind int
+
+const (
+	PowerCast    PowerKind = iota + 1 // cast a memorised spell
+	PowerDisplay                      // list the spell effects on the member
+	PowerHeal                         // a paladin lays on hands
+	PowerCure                         // a paladin cures disease
+)
+
+// The pickers a game opens (OpenPicker.Kind).
+const (
+	PickHead     = iota // the portrait's head (creation sheet)
+	PickBody            // its body
+	PickIconHead        // the combat icon's head (icon editor)
+	PickWeapon          // its weapon: the icon's body (CBODY)
+	PickAdd             // the saved characters to add to the party (party menu)
+	PickForget          // the saved characters to forget (party menu)
+)
+
+// PartyCommand is a party menu entry of the game's own.
+type PartyCommand struct {
+	Label string
+	Key   rune
 }

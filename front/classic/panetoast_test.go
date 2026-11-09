@@ -14,7 +14,7 @@ func TestPaneLineToast(t *testing.T) {
 	r.st = play.Trading{}
 	g := NewGame(r, game.Data{})
 	g.r.items = game.ItemsOwn
-	if err := g.do(game.Buy{}); err != nil {
+	if err := g.do(play.Buy{}); err != nil {
 		t.Fatal(err)
 	}
 	if g.note.Text != "Doc buys a Rope" {

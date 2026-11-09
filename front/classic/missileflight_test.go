@@ -6,14 +6,15 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // A shot with a sprite plays as its flight: the sprite drawn square by
 // square (in thirds) from the shooter to the target, over the moment.
 func TestMissileFlies(t *testing.T) {
 	b := &front.Battle{Units: []front.Unit{{ID: 1, X: 27, Y: 14}}}
-	es := []game.Event{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Pose: 1, Ms: 300, Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
-	out := combatEvents(es, front.View{Battle: b}, func(game.Event) *front.Battle { return b }, 0)
+	es := []play.Report{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Pose: 1, Ms: 300, Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
+	out := combatEvents(es, front.View{Battle: b}, func(play.Report) *front.Battle { return b }, 0)
 	if len(out) != 7 || out[0].Kind != front.EvMissile {
 		t.Fatalf("%d frames", len(out))
 	}
@@ -27,8 +28,8 @@ func TestMissileFlies(t *testing.T) {
 // whatever the moment's Ms.
 func TestMissileStepMs(t *testing.T) {
 	b := &front.Battle{Units: []front.Unit{{ID: 1, X: 27, Y: 14}}}
-	es := []game.Event{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Pose: 1, Ms: 300, StepMs: 20, Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
-	for _, f := range combatEvents(es, front.View{Battle: b}, func(game.Event) *front.Battle { return b }, 0) {
+	es := []play.Report{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Pose: 1, Ms: 300, StepMs: 20, Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
+	for _, f := range combatEvents(es, front.View{Battle: b}, func(play.Report) *front.Battle { return b }, 0) {
 		if f.Ms != 20 {
 			t.Fatalf("frame %d ms, want 20", f.Ms)
 		}
@@ -39,8 +40,8 @@ func TestMissileStepMs(t *testing.T) {
 // own (POR's) still flies, over flightMs.
 func TestMissileNoMoment(t *testing.T) {
 	b := &front.Battle{Units: []front.Unit{{ID: 1, X: 27, Y: 14}}}
-	es := []game.Event{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
-	out := combatEvents(es, front.View{Battle: b}, func(game.Event) *front.Battle { return b }, 0)
+	es := []play.Report{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
+	out := combatEvents(es, front.View{Battle: b}, func(play.Report) *front.Battle { return b }, 0)
 	if len(out) != 7 || out[0].Battle == nil || len(out[0].Battle.Effects) != 1 {
 		t.Fatalf("%d frames", len(out))
 	}
