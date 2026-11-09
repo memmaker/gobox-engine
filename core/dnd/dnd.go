@@ -13,6 +13,7 @@ const (
 	Halfling core.Race = "halfling"
 	HalfOrc  core.Race = "half-orc"
 	Human    core.Race = "human"
+	Monster  core.Race = "monster" // por Race 0: a record without a player race
 )
 
 const (

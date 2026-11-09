@@ -224,6 +224,22 @@ Each step keeps all six games on traces, except the named BR RNG step; rule chan
 
 Unverified: nothing here has run on a game. Only core's build, vet, tests. No ruleset or adventure implements these interfaces yet; expect change.
 
+## POR migration checklist
+
+Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, the leaves importing only core, behind `Rules` and `Adventure`, with original port behaviour kept until the port is done. How: move piece by piece; every commit builds, vets and passes `TestPortTrace` (por-go `rules/testdata/porttrace.txt`, this port's stand-in for the retired traces: RNG state and party values per fight step, Quick Start, derived values by class, level, race, dex). Core's interfaces are a draft this port corrects; changes touching a ruling are reported. BR's interpreter is not merged here. Changes: CHANGES-FROM-ORIGINAL.md.
+
+- [x] Baseline: rulings and table base stand; options only Felix's additions
+- [x] Port trace pinned
+- [x] rules1e module, leaf guard on, raw-byte guard
+- [x] Advancement tables in rules1e: XP, hit dice, saves, thief skills, con, slots
+- [ ] Creation tables: race limits and classes, class minimums, alignments, ages
+- [ ] Combat rule tables and calculations: to-hit, turn undead, affects
+- [ ] Spells, items, training behind `CharacterRules`
+- [ ] `por-go/adventure` leaf: areas, journal, lore, script patches, assets via importers
+- [ ] Scripts through bindings (sections 1, 3), errors on
+- [ ] Engine loop in gobox: main loop, combat flow, presentation
+- [ ] Rule fixes, one commit each, re-recorded
+
 ## Felix's later answers
 
 - Presentation has a second, engine-owned RNG. Gameplay keeps one stream.

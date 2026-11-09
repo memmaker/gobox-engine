@@ -2,6 +2,10 @@ package core
 
 import (
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,7 +18,7 @@ import (
 // library, directly or not. No leaf exists yet, so leaves is empty: a
 // migrated package adds its module directory here.
 var leaves = []string{
-	// "../../rules1e", "../../por-go/adventure", ...
+	"../../rules1e",
 }
 
 // foreign lists what the packages under dir depend on besides the standard
@@ -45,6 +49,69 @@ func TestLeavesImportOnlyCore(t *testing.T) {
 		if len(bad) > 0 {
 			t.Errorf("%s imports %v", dir, bad)
 		}
+	}
+}
+
+// rawBytes lists what the Go files under dir use to reach raw memory: unsafe,
+// encoding/binary, and any byte slice or array type. Scripts are the one byte
+// passage (Adventure.Script's result), and decoders stay with the importers.
+func rawBytes(dir string) ([]string, error) {
+	var bad []string
+	fset := token.NewFileSet()
+	err := filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() || !strings.HasSuffix(p, ".go") {
+			return err
+		}
+		f, err := parser.ParseFile(fset, p, nil, 0)
+		if err != nil {
+			return err
+		}
+		for _, imp := range f.Imports {
+			if v := strings.Trim(imp.Path.Value, `"`); v == "unsafe" || v == "encoding/binary" {
+				bad = append(bad, fset.Position(imp.Pos()).String()+" imports "+v)
+			}
+		}
+		ast.Inspect(f, func(n ast.Node) bool {
+			if fn, ok := n.(*ast.FuncDecl); ok && fn.Name.Name == "Script" {
+				return false
+			}
+			if a, ok := n.(*ast.ArrayType); ok {
+				if e, ok := a.Elt.(*ast.Ident); ok && (e.Name == "byte" || e.Name == "uint8") {
+					bad = append(bad, fset.Position(a.Pos()).String()+" raw bytes")
+				}
+			}
+			return true
+		})
+		return nil
+	})
+	return bad, err
+}
+
+func TestLeavesNoRawBytes(t *testing.T) {
+	for _, dir := range leaves {
+		bad, err := rawBytes(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, b := range bad {
+			t.Error(b)
+		}
+	}
+}
+
+// TestRawBytesCatches plants each forbidden form.
+func TestRawBytesCatches(t *testing.T) {
+	dir := t.TempDir()
+	src := "package l\n\nimport _ \"unsafe\"\n\nvar a [4]byte\nvar b []uint8\n\nfunc Script() []byte { return nil }\n"
+	if err := os.WriteFile(filepath.Join(dir, "l.go"), []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	bad, err := rawBytes(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(bad) != 3 {
+		t.Fatalf("want the import and two types, got %v", bad)
 	}
 }
 
