@@ -41,6 +41,7 @@ Agreed rules:
 - Step 1 (0faee48): playrules folded into classic/rules.go; NewGame takes the play.Game. NOT the goal yet: rules.State() still builds a game.State for the builders, and rules.Apply takes game.Decision. That adapter is what step 2 removes.
 - Step 2 started: leaf builders take narrow args (98d61ba); walk no-text stops tested (678007d). Remaining: Party, Purse, Loot, Page, Flags, Camp, Sheet, Ask, Battle, Creation, Inventory, Picker, Map; rules.State(), rules.Apply; then game.State, game.Decision and the games.
 
+- One Member: play.Member and the per-game and front member() copies deleted; game.Member is the shared type (member() had dropped Powers for every game, inventory showed none). POR title regression fixed (bb7ab15). Final runs: see report; cotab and sotsb fights not reached in a window.
 - Step 3: View reads play.State (view_state.go); game.State, game.Decision and all verbs deleted; Option, Ask, Refusal, Turn, Combat, Result, Report in play (play/shared.go); front-only actions play.Cancel, Aim, OpenItems, SpeedMenu; apply + private rules methods replace Apply and action(); act replaces decision. Guard extended; planted once.
 
 ## Progress (decompiler)
