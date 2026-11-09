@@ -18,11 +18,23 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Cleric XP bonus threshold | POD, SotSB | off by one | Wis >= 16, `xp*110/100` | 8 | decided |
 | Charisma lookup | all four | per game | `max(3, min(cha, maxCharisma))` | 14 | decided |
 
+## Port's own, not ruled: Felix to confirm
+
+| What | Games | Original | New | Commit |
+|---|---|---|---|---|
+| Cleric and mage L1 slots | POR | row skipped below L2: record keeps its slots | 1,0,0 plus Wisdom bonus, so a level drain leaves no stale slots | port earlier; rules1e |
+| Cleric, mage slots past L6 | POR | row (zeros) overwrites | record keeps its own (Genheeris) | port earlier; rules1e |
+| Cleric and its multi-class alignments | POR | any | no true neutral; origin unchecked | port earlier; rules1e |
+| Paladin L9 saves | POR | table | table, as the Pascal; the port panicked | rules1e f7797ad |
+
 ## Unifications
 
 | What | Games | Original | New | Ruling | Commit |
 |---|---|---|---|---|---|
 | Paladin saves | POR | own rows, L1 14,15,16,17,17 | COTAB's, L1 12,13,14,15,15 (L1-8) | 19 | port earlier; rules1e |
+| Paladin, ranger attacks | POR | fighter only: 3 from L7 | paladin L7, ranger L8 also 3 (COTAB) | 19 | port earlier; rules1e |
+| Races: half-elf ranger, cleric/ranger; human paladin, ranger | POR | not offered | offered; half-elf ranger takes the fighter's age | 19 | port earlier; rules1e |
+| Ranger, cleric/ranger alignments | POR | any | good only (COTAB) | 19 | port earlier; rules1e |
 | Paladin XP, L2-8 | POR | -1, no progression | COTAB's 2751 .. 175001 | 19 | port earlier; rules1e |
 | Ranger XP, L2-7 | POR | -1, no progression | COTAB's 2251 .. 90001 | 19 | port earlier; rules1e |
 | Initiative | all four | POR d100 per pick; POD coin toss on ties | each round: roll, modifiers, deterministic tie-break, sort | 2 | decided |
