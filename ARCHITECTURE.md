@@ -1,6 +1,6 @@
 # Architecture: engine, rules, adventure
 
-DRAFT for Felix's review, revision 4: his 11 rulings, the 21 variation rulings, and a check against the reconstructions `~/Projects/{por,cotab,sotsb,pod}-re/src`, the truth from now on. Nothing uses `core/`; no migration. Settled parts: ONE-PATH.md "Next: three components".
+DRAFT for Felix's review, revision 4: his 11 rulings, the 21 variation rulings, and a check against the reconstructions `~/Projects/{por,cotab,sotsb,pod}-re/src`, the truth from now on. Migration has started: see the checklist at the end. Settled parts: ONE-PATH.md "Next: three components".
 
 ## Dependencies
 
@@ -143,7 +143,7 @@ Trace interaction: Original traces hold game by game while draw order is unchang
 | 16 | Slots from class and level tables plus cleric Wisdom; known, memorized, remaining apart | `Known`, `MemorizedSpell`. `MemoFact{Slot}` remains only as a script's view | no slots |
 | 17 | Dual class everywhere; adventure restricts where it starts | `Training.DualClass` | none |
 | 18 | Doors: adventure defines state and outcome; engine offers Pick, Bash, casting; Knock is an ordinary spell | `Door`, `DoorState`; `KnockDoor` removed | same door type |
-| 19 | Canonical shared tables, documented exceptions | report below: **not trivial, flagged** | own tables |
+| 19 | Canonical shared tables, documented exceptions | report below: baseline COTAB/SotSB, POD as named exceptions | own tables |
 | 20 | Common attack interface replaces the hook | `AttackRequest`, `AttackResult`, `AttackResolver` | may implement it |
 | 21 | Dancing a shared condition | `dnd.CondDancing`. Verified POD only: AC[0], AC[1] -4 (affects.go:1606); every save fails, die still rolled (rules.go:461); from Otto's Irresistible Dance (spells2.go:1409) on a hit. Other games have no such spell | none |
 
@@ -201,13 +201,13 @@ Values taken from each game's `rules/tables.go`, normalized to class, level. Com
 
 **Not compared:** race ability limits and race-class lists (orders differ, SotSB holds two limit tables, POR another layout), ages, COTAB's combined thief race and dex table, paladin, ranger and druid slots, POD turn undead, item and monster tables. Checked in the sources as original data: THAC0 (por gdconsts.pas:1762, cotab :1356, pod :2120), class minimums (por :1872, pod :2278), and the rows marked. Paladin saves, alignment and spell rows still come from the ports' tables.
 
-**Felix's decision:** base COTAB/SotSB, POD only as named exceptions, likely bugs checked against sources and fixed. THAC0 and spell differences are original data, not extraction errors. See the vanilla direction below, which pulls against this.
+**Felix's decision:** base COTAB/SotSB, POD only as named exceptions, likely bugs checked against sources and fixed. THAC0 and spell differences are original data, not extraction errors.
 
 ### Traces and rule changes
 
 Felix's call: traces match the originals game by game during migration, recorded traces after. Rulings 1, 2, 3/5/6, 8, 9, 10, 11, 14, 15, 16, 19 alter play or draw order, so they conflict with original traces.
 
-Handling: **port first with original behaviour and traces green; each rule change is then a separate commit** that re-records the traces it affects and names the ruling. During the port a game's old behaviour lives in temporary per-game values marked for deletion, never as lasting flags; only the two `Options` stay. BR re-records once at its RNG switch.
+Handling: **port first with original behaviour and traces green; bug fixes and unifications then land after each game's port as separate commits** that re-record the traces they affect and name the ruling. During the port a game's old behaviour lives in temporary per-game values marked for deletion, never as lasting flags; only the two `Options` stay. BR re-records once at its RNG switch.
 
 ## Scripts' data and today's code
 
@@ -250,24 +250,11 @@ Proposal: `Check PartyStrength` answers `Value`; scripts keep their arithmetic a
 
 **`PartyHit`, `MonsterHit`: keep.** Scripted modifiers for a fight, independent of difficulty (pod's is separate, fxengine.pas:691-699), reset after combat. COTAB 49, 51, 53 ("gods will not favor you": party -6, monsters +5), 64, 66, 67 (boon or curse 2 or -2, carried), 82 (party +8, monsters -6); POR 3, 13, 16, 17, 25, 26; POD 35, 39.
 
-## Vanilla direction (not yet applied)
+## Baseline and options
 
-Felix: "Keep everything as vanilla and original (with just bugs fixed) by default and add our rulings as options." Rows above stay until he says how this affects them. Implied `Options`, ruling in brackets where one exists:
-
-- Round initiative (2); default per game
-- Difficulty (3, 5, 6): vanilla has it in SotSB and POD, so core's removal conflicts
-- Critical hits: on in POD only, per game
-- Level caps separated from classes (9)
-- Encumbrance, party inventory, armour move: per game
-- Canonical tables: conflicts with the table base decision, as vanilla means per-game tables by default
-- Canonical spell values and registry behaviours; slot derivation
-- Dual class everywhere; unified door options; shared dancing
-- Shop prices: data, probably no option. Traps: data, probably no option
-
-Probably bug fixes, no option: the Dex rows, XP rows, druid row, charisma clamp, signed saves, cleric XP bonus, party strength wrap. Flag: "one 1e ruleset" and vanilla by default cannot both hold without per-game data.
+Felix on the rulings and tables: "These are unifications, and we'll treat them the same way as bugfixes: They are allowed and become our baseline." So the rulings and the table base stand. `Options` hold only his additions: critical hits and party inventory. Bug fixes and unifications land as separate commits after each game's port, with re-recorded traces.
 
 ## Remaining questions
 
-1. How "vanilla by default" changes the earlier rulings (asked).
-2. Fix or keep: SotSB first cleric die 2, paladin L15 2460001, party strength wrap.
-3. Rule tables generated from EXEs checked in: private only? Adventures with own decoders: none, importer only?
+1. Fix or keep: SotSB first cleric die 2, paladin L15 2460001, party strength wrap.
+2. Rule tables generated from EXEs checked in: private only? Adventures with own decoders: none, importer only?
