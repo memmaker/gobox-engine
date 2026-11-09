@@ -194,8 +194,8 @@ func reflectEqual(a, b play.Action) bool { return reflect.DeepEqual(a, b) }
 func TestCampCard(t *testing.T) {
 	c := allow(play.Memorize{Member: 1, Spell: 2}, play.DropMember{Member: 0}, play.DropMember{Member: 1})
 	c.Party = []game.Member{{Name: "A"}, {Name: "B", Items: []game.Item{{Name: "Sword"}}}}
-	s := shownOf(newRules(&fake{st: play.Camping{Common: c}}, game.Data{}))
-	got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card)
+	cards := cardsOf(play.Camping{Common: c})
+	got := fmt.Sprint(cards[0].Menu, cards[1].Menu)
 	if want := "[{View view} {Drop drop}] [{View view} {Items items} {Memorize memorize} {Drop drop}]"; got != want {
 		t.Fatalf("cards %s, want %s", got, want)
 	}
@@ -242,8 +242,8 @@ func TestPictureIsLayer(t *testing.T) {
 func TestCardItems(t *testing.T) {
 	c := allow(play.Ready{Member: 1}, play.Drop{Member: 2})
 	c.Party = []game.Member{{Name: "A"}, {Name: "B"}, {Name: "C"}}
-	s := shownOf(newRules(&fake{st: play.Camping{Common: c}}, game.Data{}))
-	if got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card, s.Party[2].Card); got != "[{View view}] [{View view} {Items items}] [{View view} {Items items}]" {
+	cards := cardsOf(play.Camping{Common: c})
+	if got := fmt.Sprint(cards[0].Menu, cards[1].Menu, cards[2].Menu); got != "[{View view}] [{View view} {Items items}] [{View view} {Items items}]" {
 		t.Fatal(got)
 	}
 }

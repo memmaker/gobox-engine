@@ -363,8 +363,6 @@ type Member struct {
 	SlotsMax                             map[string]int // spell slots in all, keys as Slots
 	CanCast                              bool           // may cast now (status, no-magic area)
 	Powers                               []PowerOffer   // the member\'s special powers menu
-	Chosen                               bool           // the card is marked: the selected member, or the candidate while one is picked
-	Card                                 []Entry        // the card's context menu out of combat
 	LevelExp, NextExp                    int            // the experience the level took and the next takes (0: none)
 	SpellsReady, Memo                    string         // spells ready over the slots ("0/3"), in camp too
 	Effects                              []Line         // the sheet's list of spell effects on the member, as the game words it

@@ -15,9 +15,24 @@ func partyOf(ps play.State) []game.Member {
 	c := commonOf(ps)
 	var out []game.Member
 	for i, m := range c.Party {
-		m.Chosen, m.CanCast = i == c.Selected, m.CanCast || canCast(c.Allowed, i)
-		m.Card = card(m, c.Allowed, i)
+		m.CanCast = m.CanCast || canCast(c.Allowed, i)
 		out = append(out, m)
+	}
+	return out
+}
+
+// memberCard is what only the front knows of a member's card.
+type memberCard struct {
+	Chosen bool         // the card is marked: the selected member
+	Menu   []game.Entry // its context menu out of combat
+}
+
+// cardsOf are ps's party's cards, by member.
+func cardsOf(ps play.State) []memberCard {
+	c := commonOf(ps)
+	var out []memberCard
+	for i, m := range partyOf(ps) {
+		out = append(out, memberCard{Chosen: i == c.Selected, Menu: card(m, c.Allowed, i)})
 	}
 	return out
 }
@@ -178,9 +193,7 @@ func creationOf(ps play.State) *game.Creation {
 		return nil
 	}
 	d := a.Draft
-	draft := d.Member
-	draft.Chosen = true
-	cr := &game.Creation{Draft: draft, Fields: d.Fields, Roster: a.Roster,
+	cr := &game.Creation{Draft: d.Member, Fields: d.Fields, Roster: a.Roster,
 		MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step, Stats: d.Stats, Derived: d.Derived}
 	if d.Ask != nil {
 		cr.Choices = d.Ask.Replies

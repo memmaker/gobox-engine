@@ -27,11 +27,15 @@ func powers(es []game.Entry) []front.Power {
 }
 
 // Party is the party's cards (nil: none).
-func Party(party []game.Member, sel int) []front.Member {
+func Party(party []game.Member, cards []memberCard, sel int) []front.Member {
 	var out []front.Member
-	marked := slices.ContainsFunc(party, func(m game.Member) bool { return m.Chosen })
+	marked := slices.ContainsFunc(cards, func(c memberCard) bool { return c.Chosen })
 	for i, m := range party {
 		m = defaultPortrait(m)
+		var c memberCard
+		if i < len(cards) {
+			c = cards[i]
+		}
 		var head image.Image
 		if m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
 			head = poolImage("portraits", m.PortraitHeadID)
@@ -40,7 +44,7 @@ func Party(party []game.Member, sel int) []front.Member {
 			head = poolImage("combat", cmp.Or(m.IconBodyID, m.IconHeadID))
 		}
 		out = append(out, front.Member{Head: head, Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
-			Selected: m.Chosen || !marked && i == sel, Colour: nameColour(m), Powers: powers(m.Card),
+			Selected: c.Chosen || !marked && i == sel, Colour: nameColour(m), Powers: powers(c.Menu),
 			Exp: int(int32(m.Exp)), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
 	}
 	return out
