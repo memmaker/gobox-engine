@@ -49,7 +49,6 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Memorized spell at or above 0x80 | POR | src/pure SelectSpellToCast takes it into its picks: a roll each pick, and spellTable read past its end | left out, as a spell still to be learned; the turn is the turn with no spell | asked |
 | Team count after turning undead | POR | src/pure CombatTurnUndead: the removed 'Nothing Happens...' left CountTeams under `if not turnedAny`, so a destroyed undead stays counted | counted always, as in por-re src/cbtacts.pas | defect of the reference; asked |
 | Aligned weapon outside combat | POR | src/pure EffAlignedWeapon: the removed redraw left the damage under `if IN_COMBAT` | damage always, as in por-re src/effhndlr.pas | defect of the reference; asked |
-| Computer's item spell | POR | src/pure SelectItemToUse chooses the item and ends the turn; the cast was UI and is gone | the chosen item's spell is cast (`useItem`), as in por-re src/combatai.pas | gap of the reference: the cast's effect and rolls are not compared; asked |
 | Combat aim of a spell | POR | src/pure CastSpell has only NoncombatCastTargetMenu: caster, or the whole list | `chooseSpellTargets` in real combat; the vectors run with it off | gap of the reference: combat aiming is not compared; asked |
 | Paladin L9 saves | POR | table | table, as the Pascal; the port panicked | rules1e f7797ad |
 
