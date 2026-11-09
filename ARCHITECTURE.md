@@ -65,7 +65,7 @@ Merge: meaningful. Both run `script.Instr` with `Arg.N int`; the loops are almos
 | memory | `Layout` struct | constants (Area 19200.., Party 31744.., Aux 31232.., Code 32768..) | `Layout` values per dialect |
 | 30, 31, 34, 35, 50, 54, 57, 58, 62-69, 72, 76 | none | host ops | engine ops on `Facts`, `Check`, `Action`; `SpaceFight` (31) on `ShipRules` |
 
-Plan: (1) widen `gobox/ecl` to int32 and width, all four Pool traces unchanged; (2) add dialect tables for V4 and FOR/NEXT; (3) move BR's ops over with its traces passing; (4) delete `ecl-br`'s VM, leaving ship, record, tables for `rulesxxvc`. POR's overrides `Compare` and `GetTable` go by patches (below), `Exit` empty by patching its scripts, `NoRemainder` by Layout. No Quirk list.
+Plan: (1) widen `gobox/ecl` to int32 and width, all four Pool games unchanged; (2) add dialect tables for V4 and FOR/NEXT; (3) move BR's ops over; (4) delete `ecl-br`'s VM, leaving ship, record, tables for `rulesxxvc`. POR's overrides `Compare` and `GetTable` go by patches (below), `Exit` empty by patching its scripts, `NoRemainder` by Layout. No Quirk list.
 
 ## 3. POR's native scripts become scripts
 
@@ -93,7 +93,7 @@ Scripts carry typed ids only: "4 hobgoblins" is `LoadMonster dnd.Hobgoblin, 4`. 
 | of those, auto-bounded (const, Random, And in the block) | 0 | 0 | 0 | 2 | 0 | 0 |
 | Treasure constant / variable block | 74 / 3 | 58 / 5 | 90 / 1 | none found | none found | none found |
 
-So **141 monster sites and 9 treasure sites need a hand-written list**, each from reading the script or a logging trace. Writers often sit in another block, so a whole-script analysis may lower this; not tried. POD has no block operand: it uses `TreasureOf` with the items inline (op 0x8E, 145 sites). BR is unchecked.
+So **141 monster sites and 9 treasure sites need a hand-written list**, each from reading the script or a logging run. Writers often sit in another block, so a whole-script analysis may lower this; not tried. POD has no block operand: it uses `TreasureOf` with the items inline (op 0x8E, 145 sites). BR is unchecked.
 
 `MON*CHA` (records / names / names with differing stat blocks): POR 172/103/12, COTAB 81/68/9, SotSB 70/68/2, POD 122/118/2, BR1 54/49/5, BR2 63/55/6. One id per distinct block; a person names the variants. `core/dnd` and the 1e tables carry every module's NPCs.
 
@@ -113,7 +113,7 @@ The importer reads an original save and CHRDATA/.GUY once and writes a canonical
 
 `core.RNG{State}`: **the engine owns it**, seeded at start and saved; every rolling Rules method takes `*RNG` as a parameter, so no callback and no hidden stream. Script RANDOM draws the same. Sequence: Turbo Pascal LCG. Testing: fixed seed, full reproduction.
 
-Trace interaction: Original traces hold game by game while draw order is unchanged, including monster HP (now Spawn) and scripts; see "Traces and rule changes". BR1, BR2 use PCG (`e.rng`), so they get new sequences once: re-record at that step, separately. Anything else drawing outside: `por dasp.go:166` voice picks from global `rand`. See questions.
+What is left of RNG compatibility: the differential harness seeds Turbo Pascal's `System.RandSeed` and `core.RNG` alike, so a rule compared against the pure Pascal must draw in the Pascal's order and count, unless CHANGES-FROM-ORIGINAL.md lists the difference. Nothing else binds the sequence: no recorded run exists. BR1, BR2 use PCG (`e.rng`); moving them to `core.RNG` is needed only if they get a pure reference. Anything else drawing outside: `por dasp.go:166` voice picks from global `rand`. See questions.
 
 ## 8. Ship fights
 
@@ -203,11 +203,15 @@ Values taken from each game's `rules/tables.go`, normalized to class, level. Com
 
 **Felix's decision:** base COTAB/SotSB, POD only as named exceptions, likely bugs checked against sources and fixed. THAC0 and spell differences are original data, not extraction errors.
 
-### Traces and rule changes
+### The reference and allowed differences
 
-Felix's call: traces match the originals game by game during migration, recorded traces after. Rulings 1, 2, 3/5/6, 8, 9, 10, 11, 14, 15, 16, 19 alter play or draw order, so they conflict with original traces.
+Felix: "We'll only ever compare rules and adventure behaviour against the originals. Both need to come from the original." **The reference is the pure Pascal** (`~/Projects/por-re` branch `rules-only`, `src/pure`). A port difference from it is a bug, or a documented entry in CHANGES-FROM-ORIGINAL.md, which is the list of allowed differences. A Pascal driver writes vectors from pure functions over generated inputs; the Go side runs the leaf on the same inputs and compares (`rules1e` `TestAgainstPascal`).
 
-Handling: **port first with original behaviour and traces green; bug fixes and unifications then land after each game's port as separate commits** that re-record the traces they affect and name the ruling. During the port a game's old behaviour lives in temporary per-game values marked for deletion, never as lasting flags; only the two `Options` stay. BR re-records once at its RNG switch.
+The reference includes the 17 fixes of `4a28cb6` (por-re `BUGS.md`): `rules-only` is past that commit, so it is SSI's rules plus those fixes, not the shipped bytes.
+
+Vectors are stored as test data with the por-re commit in their header, regenerated by `vectors-pure.sh`: tests then need no DOSBox-X and any change of a vector shows in review. COTAB, SotSB, POD and BR have no pure branch, so those games have no reference to compare against until theirs exist.
+
+Bug fixes and unifications land after each game's port as separate commits naming the ruling and their CHANGES-FROM-ORIGINAL.md row. During the port a game's old behaviour lives in temporary per-game values marked for deletion, never as lasting flags; only the two `Options` stay.
 
 ## Scripts' data and today's code
 
@@ -220,16 +224,16 @@ Hard spots left: combat AI one long routine (por `computerTurn`); `game.Data` mi
 
 ## Migration order
 
-Each step keeps all six games on traces, except the named BR RNG step; rule changes follow as separate commits. 1. Settle this. 2. Machine merge (section 2), logging computed window hits. 3. Bindings and patches, POR first, then errors on. 4. Importers and asset ids. 5. POR adventure and rules leaf. 6. Engine loop. 7. SotSB, COTAB, POD on 1e. Then the rule changes and canonical tables, one commit each. 8. XXVc, BR's RNG, ship fights.
+Each step compares against the pure reference where one exists; rule changes follow as separate commits. 1. Settle this. 2. Machine merge (section 2), logging computed window hits. 3. Bindings and patches, POR first, then errors on. 4. Importers and asset ids. 5. POR adventure and rules leaf. 6. Engine loop. 7. SotSB, COTAB, POD on 1e. Then the rule changes and canonical tables, one commit each. 8. XXVc, BR's RNG, ship fights.
 
 Unverified: nothing here has run on a game. Only core's build, vet, tests. No ruleset or adventure implements these interfaces yet; expect change.
 
 ## POR migration checklist
 
-Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, the leaves importing only core, behind `Rules` and `Adventure`, with original port behaviour kept until the port is done. How: move piece by piece; every commit builds, vets and passes `TestPortTrace` (por-go `rules/testdata/porttrace.txt`, this port's stand-in for the retired traces: RNG state and party values per fight step, Quick Start, derived values by class, level, race, dex). Core's interfaces are a draft this port corrects; changes touching a ruling are reported. BR's interpreter is not merged here. Changes: CHANGES-FROM-ORIGINAL.md.
+Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, the leaves importing only core, behind `Rules` and `Adventure`, compared against the pure Pascal. How: move piece by piece; every commit builds, vets and passes `TestAgainstPascal`, which grows with each piece. Core's interfaces are a draft this port corrects; changes touching a ruling are reported. BR's interpreter is not merged here. Changes: CHANGES-FROM-ORIGINAL.md.
 
 - [x] Baseline: rulings and table base stand; options only Felix's additions
-- [x] Port trace pinned
+- [x] Differential harness: `vecadv.pas`, `vectors-pure.sh`, `TestAgainstPascal`, 1231 cases
 - [x] rules1e module, leaf guard on, raw-byte guard
 - [x] Advancement tables in rules1e: XP, hit dice, saves, thief skills, con, slots
 - [ ] Creation tables: race limits and classes, class minimums, alignments, ages
@@ -238,7 +242,7 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [ ] `por-go/adventure` leaf: areas, journal, lore, script patches, assets via importers
 - [ ] Scripts through bindings (sections 1, 3), errors on
 - [ ] Engine loop in gobox: main loop, combat flow, presentation
-- [ ] Rule fixes, one commit each, re-recorded
+- [ ] Rule fixes, one commit each, listed in CHANGES-FROM-ORIGINAL.md
 
 ## Felix's later answers
 
@@ -246,7 +250,7 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - Module NPCs are in the ruleset as special/unique types; their names come from the adventure.
 - A glossary fixes "character", "fact", "patch", "situation" and "world".
 - Alignment is in `dnd` only: BR has none (its creation sheet shows race, sex and career).
-- Table base as above. Gems and jewelry stay items, converted to copper once appraised and sold; `Coin` constants for them removed. Multi-class truncated split stays. Shop prices: the adventure answers when asked. Traces first, then rule changes as separate commits.
+- Table base as above. Gems and jewelry stay items, converted to copper once appraised and sold; `Coin` constants for them removed. Multi-class truncated split stays. Shop prices: the adventure answers when asked. Rule changes as separate commits.
 
 ## Source check
 
@@ -268,7 +272,7 @@ Proposal: `Check PartyStrength` answers `Value`; scripts keep their arithmetic a
 
 ## Baseline and options
 
-Felix on the rulings and tables: "These are unifications, and we'll treat them the same way as bugfixes: They are allowed and become our baseline." So the rulings and the table base stand. `Options` hold only his additions: critical hits and party inventory. Bug fixes and unifications land as separate commits after each game's port, with re-recorded traces.
+Felix on the rulings and tables: "These are unifications, and we'll treat them the same way as bugfixes: They are allowed and become our baseline." So the rulings and the table base stand. `Options` hold only his additions: critical hits and party inventory. Bug fixes and unifications land as separate commits after each game's port.
 
 ## Remaining questions
 
