@@ -71,13 +71,13 @@ Settled:
   them as it wants; a mismatch fails clearly at load.
 
 ## Queued (Felix accepted the recommendations)
-- [ ] Chosen and Card move to a front-only view type
-- [ ] COTAB's private steps become direct calls
-- [ ] COTAB Keep through the front works
-- [ ] SotSB SaveCharacter returns its error, SaveNamed fails on it
-- [ ] Heuristic knows NON, if it behaves as NO in those menus
-- [ ] POR NO hints read and reported: 0:605 2:566 18:453 14:441 29:602
-- [ ] Cleanup: BR1 stray saves, POR TitlePicture, check BR1 flights' StepMs
+- [x] Chosen and Card move to a front-only view type
+- [x] COTAB's private steps become direct calls
+- [x] COTAB Keep through the front works
+- [x] SotSB SaveCharacter returns its error, SaveNamed fails on it
+- [x] Heuristic knows NON, if it behaves as NO in those menus
+- [x] POR NO hints read and reported: 0:605 2:566 18:453 14:441 29:602 (no fight behind any NO; no hint changed)
+- [x] Cleanup: BR1 stray saves, POR TitlePicture, check BR1 flights' StepMs
 
 ## POR on gobox/ecl (done)
 
