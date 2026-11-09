@@ -22,7 +22,6 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 
 | What | Games | Original | New | Commit |
 | NPC share of the coins | POR | NpcTreasureShare cuts each of the five coin types and leaves each type's remainder | money is copper (Felix's ruling): one copper pile is cut; equal whenever every pile divides (`TestNpcShareAgainstPascal`) | por-go hiredShare |
-| Bashing doors | POR | BashDoor lets every member push, the dead and sleeping too; above 18/00 a normal door has no case and never opens | only okay members push; above 18/00 a normal door opens on 1d6 <= 5; every other case equal on a shared seed (`TestDoorDiceAgainstPascal`) | por-go bashDoor |
 |---|---|---|---|---|
 | Cleric and mage L1 slots | POR | row skipped below L2: record keeps its slots | 1,0,0 plus Wisdom bonus, so a level drain leaves no stale slots | port earlier; rules1e |
 | Cleric, mage slots past L6 | POR | row (zeros) overwrites | record keeps its own (Genheeris) | port earlier; rules1e |
