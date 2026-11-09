@@ -16,6 +16,9 @@ type Catalog struct {
 	Skills     []Skill
 	Saves      []Save
 	Features   []Feature
+	Monsters   []MonsterID
+	Items      []ItemID
+	Ships      []ShipID
 }
 
 // Mismatches is every need the catalog lacks, as text for the load error: the
@@ -31,6 +34,9 @@ func Mismatches(n Needs, c Catalog) []string {
 	out = append(out, lacking("skill", n.Skills, c.Skills)...)
 	out = append(out, lacking("save", n.Saves, c.Saves)...)
 	out = append(out, lacking("feature", n.Features, c.Features)...)
+	out = append(out, lacking("monster", n.Monsters, c.Monsters)...)
+	out = append(out, lacking("item", n.Items, c.Items)...)
+	out = append(out, lacking("ship", n.Ships, c.Ships)...)
 	return out
 }
 

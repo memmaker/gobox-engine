@@ -28,7 +28,7 @@ type (
 	// Shopping: a shop is open with the adventure's goods.
 	Shopping struct {
 		Party Party
-		Goods []Item
+		Goods []ItemRef
 		Terms ShopTerms
 	}
 	// AtTemple: services for money.
@@ -45,7 +45,7 @@ type (
 	// Looting: treasure on the ground.
 	Looting struct {
 		Party Party
-		Items []Item
+		Items []ItemRef
 		Money Purse
 	}
 	// AtDoor: a door to force.
@@ -80,6 +80,7 @@ type Fight struct {
 }
 
 func (Fight) situation()       {}
+func (ShipFight) situation()   {}
 func (Assembling) situation()  {}
 func (Creating) situation()    {}
 func (Adventuring) situation() {}
@@ -95,11 +96,18 @@ func (Scripted) situation()    {}
 // combatmap.go, eclbr combatmap.go) and moves units on it by Effects.
 type Board struct {
 	Size    image.Point
-	Blocked []bool // row by row, Size.X*Size.Y
+	Blocked []bool       // row by row, Size.X*Size.Y
+	Height  []int8       // the same; game.Ground.Height
+	Ground  []GroundKind // the same; BR bareGround
+	ZeroG   bool         // BR
+	Free    int32        // por FreeSteps: steps before the encounter closes
 	Units   []BoardUnit
 	Clouds  []Cloud
 	Dungeon bool
 }
+
+// GroundKind is what a square is made of; a ruleset gives it meaning.
+type GroundKind string
 
 // BoardUnit is a combatant's place.
 type BoardUnit struct {
@@ -132,7 +140,7 @@ type FightResult struct {
 	Effects []Effect
 	Beaten  int32
 	Exp     int32 // per member
-	Items   []Item
+	Items   []ItemRef
 	Money   Purse
 }
 

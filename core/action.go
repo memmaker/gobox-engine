@@ -155,7 +155,7 @@ type (
 	// Trade.
 	Buy struct {
 		Who  CharID
-		Item ItemID
+		Item CarriedID
 	}
 	Sell struct {
 		Who  CharID
@@ -191,7 +191,7 @@ type (
 	// Loot.
 	TakeItem struct {
 		Who  CharID
-		Item ItemID
+		Item CarriedID
 	}
 	TakeMoney struct{}
 
@@ -213,12 +213,27 @@ type (
 	}
 )
 
-// ItemSlot is an item on a character by its id on that character. ItemID is
+// What a script used to cause by writing bytes.
+type (
+	// RemoveMember: POR off 0 and 0x100 written 0, then the drop bit of
+	// SelectMember (eclops.go:178-194); COTAB nameCleared, activeCleared.
+	RemoveMember struct{ Who CharID }
+	// SetStatusAction: a script's status with its consequences, 0x87 stones.
+	SetStatusAction struct {
+		Who    CharID
+		Status Status
+	}
+)
+
+func (RemoveMember) action()    {}
+func (SetStatusAction) action() {}
+
+// ItemSlot is an item on a character by its id on that character. CarriedID is
 // the id of one item the ruleset holds or Situation lists. ManeuverID is a
 // ruleset's own maneuver; ServiceID one of a Temple's services.
 type (
 	ItemSlot   int32
-	ItemID     int32
+	CarriedID  int32
 	ManeuverID int32
 	ServiceID  int32
 )

@@ -1,157 +1,167 @@
 # Architecture: engine, rules, adventure
 
-DRAFT for Felix's review. Nothing uses `core/` yet. Settled parts: ONE-PATH.md "Next: three components". Code: `core/`.
+DRAFT for Felix's review, revision 2 with his 11 rulings. Nothing uses `core/`; no migration. Settled parts: ONE-PATH.md "Next: three components".
 
 ## Dependencies
 
 ```
-            gobox/core            types, Rules, Adventure, neutral ids; imports nothing of ours
-           /    |     \
-       rules  engine  adventure   rules and adventure: leaves, import only core
-       (1e,    |      (POR, COTAB, ...)
-       XXVc)   |
-   gobox: main loop, script machine, combat loop and board, front, saves, dax, geo
-   cmd/<game>: main wires one Rules and one Adventure into the engine
+ gobox/core        Rules, Adventure, neutral types and id types, RNG; imports nothing of ours
+ core/dnd  core/xxvc   the concepts of one world: races, classes, spells, monster and item rosters
+     |          |
+ rules1e    rulesxxvc   adventures: POR, COTAB, SotSB, POD | BR1, BR2     (leaves: core + one world)
+     \________ engine (gobox): main loop, one script machine, combat and ship loops, front, saves ________/
+ cmd/<game>: main wires one Rules and one Adventure.   cmd/import: originals to canonical, once.
 ```
 
-The engine knows only the two interfaces. A rule never calls back: everything it needs from the engine comes in as a value (`Situation`, `Fight`). Guard: `core/imports_test.go` runs `go list -deps` over core and each module in `leaves`, and fails on anything but stdlib, core and own packages (planted once in `TestGuardCatches`).
+Leaves know neither gobox nor each other (`imports_test.go`, list empty until a leaf exists). A rule never calls back: all it needs arrives as a value. Sizes: `Rules` 7 + `CharacterRules` 11 + `CombatRules` 9; optional `ShipRules` 5; `Adventure` 9.
 
-## Interfaces
+**What "any adventure on any ruleset" now means: it does not.** An adventure names `dnd.Hobgoblin` or `xxvc.Terran`; `Mismatches(Needs, Catalog)` fails at load on any id the ruleset lacks. POR runs on any ruleset that fills the `dnd` Catalog (1e, rules4e), never on XXVc. Crossing worlds would take an explicit conversion leaf; none is planned.
 
-`Rules` has 26 methods (7 + `CharacterRules` 10 + `CombatRules` 9). `Adventure` has 11. Each method's doc cites its call in today's code.
+## 1. Scripts see typed facts only
 
-**One fight**, engine's loop (methods all on `CombatRules`):
-```
-BeginFight(f)
-for Verdict(f) == FightOn:
-    BeginRound(f)
-    for id, ok := NextActor(f); ok:
-        t := BeginTurn(f, id)            // Skipped, Computer, Effects
-        loop: Allowed(f) + input, or Decide(f, id)
-              Resolve(f, action)         // Outcome: Effects in order; engine applies board ones, plays all
-        EndTurn(f, id)
-    EndRound(f)
-EndFight(f)                              // Exp, Items, Money, Beaten; engine writes the script words
-```
-`Outcome.Confirm` is a yes/no with nothing done; a yes sends `Confirmed{action}` (por's "sure" call).
+The script machine has **no character memory**. Direct or computed, an address in the character window goes through `CharBinding` to `Rules.Fact`/`SetFact`, which have no side effects. An unbound address is a run-time error, never a byte. Consequences are `Action`s through `Resolve`.
 
-**Everything else** is `Allowed(situation)` and `Resolve(situation, action)`, one path as `play.Game.Do` is: `Assembling`, `Creating`, `Adventuring`, `Camping`, `Shopping`, `AtTemple`, `Training`, `Looting`, `AtDoor`, `Scripted`. A price is `Offer.Price`; goods and script words come in the situation. 62 action types, the rule verbs of `play`; at migration play's become aliases, never a copy.
-
-**Characters**: the ruleset owns them, the engine stores `CharID` and owns party order and selection. `Spawn(Creature)` joins the two leaves: the engine takes a `Creature` from the adventure and hands it to the rules. `Random` keeps one dice stream for scripts and rules, so replays keep their order.
-
-**Adventure**: `Scripts()` (dialect, quirks, exit rows, names, bindings), `ScriptBlock`, `ScriptFile` (names, patches), `TreasureNote`, `Area`, `Map`, `Creature`, `Items`, `Asset`, `Identity`, `Needs`. At load the engine runs `Mismatches(adventure.Needs(), rules.Catalog())` and refuses with the list.
-
-## Where today's code goes
-
-### POR (por-go/rules, 38.9k lines with tests; rules4e 2.5k)
-
-| Files | Goes to |
+| Today | Replacement |
 |---|---|
-| combat.go, combatturn1/2.go, combatrules.go, combatai.go, aoe.go, affects1/2.go, affecttypes.go, spells1/2.go, spellrules.go, charcalc.go, create.go, dualclass.go, train.go, temple.go, shop.go (rules part), money.go, camp.go (rest, memorize), powers.go, powercalls.go, aftercombat.go, items.go, itemtypes.go, randitem.go, tables.go (rule tables) | rules (1e) |
-| rules4e/ | second ruleset, embedding 1e; `CombatRules` hooks become private to it |
-| combatflow.go, combatsetup.go, combatmap.go, cmap.go, anim.go | engine, combat loop and board; the rule calls inside go to rules |
-| ecl.go, eclops.go, eclops2.go, eclask.go, script.go, vars.go | engine, script machine; `ReadVar`/`WriteVar` become bindings |
-| files.go (LoadMonster, item reads), geo.go, scriptvalues.go, areamap.go, gamedata.go, pic.go, set.go, lore.go, journal.go, quests.go, cluebook.go, bestiary.go, beastpics.go | adventure, decoding to neutral |
-| native.go | adventure patches where they can be; see hard spot 3 |
-| savefile.go, slots.go, files.go (saveSlot, loadSlot) | split: hard spot 5 |
-| play.go, playask.go, playfacts.go, pending.go, cont.go, statelive.go, view.go, page.go, menu.go, nav.go, explore.go, party.go, and the rest of the presentation | engine, then deleted where gobox has it. Unread line by line: expect rule fragments in these |
+| COTAB `cvActive` read clears `justJoined` (eclvars.go:156-159, set at eclcmds.go:171-173) | The flag only means SelectMember ran past the party's end. That selects `NoChar`; `FactActive` of `NoChar` reads inactive, purely. A second read then differs: old returns the previous member's state. Confirm no script relies on it |
+| POR off 0 write 0 sets `memberGone`, 0x100 write 0 `memberDied`, then SelectMember's drop bit (eclops.go:178-194); COTAB `nameCleared`, `activeCleared` | Script patch at import: the sequence becomes one `RemoveMember` action |
+| POR status write 0x87 stones | `SetStatusAction` from the patch; `SetFact` only stores |
+| BR 76 reads 128 if the skill byte > 0; 268 packs r[214], r[76], r[215] (ecl.go:98, :109, :193) | `KnownFact` with `Values{128: true}`; 268 is a `CharBinding.Bits`: `FactSide` bit 0, `KnownFact` bit 6, `FactSideLock` bit 7 (r[215]'s name unverified) |
+| BR 16..185 raw and party-memory double write; POD `charRecordBytes()[a-charVarFirst:]` | Gone. Each used offset gets a binding (survey below); others error |
+| POR `effectTable` over 0x4900 (eclops.go:427+) | Patch to `HasCondition{CondFeatherFall}` and its Textile House case |
 
-### Contrast: BR1 (buckrogers-go/rules 19.8k, ecl-br 1.9k)
+**Scan** (all decoded blocks; tool in the scratchpad, not committed). The old count saw only variable operands, so it missed every GetTable/SaveTable base and immediate operands:
 
-| Files | Goes to |
+| Game | Table sites reaching the window | Targets and index source |
+|---|---|---|
+| POR | 5 | block 9: rel 0, 1, index 187..195 plus AND and Random(9): the coin words, so `CoinFact`. Block 14: rel 32, clears memo |
+| COTAB | 2 | blocks 33, 34: rel 32 memo, rel 0 name; index loops |
+| SotSB | 1 + 8 | block 34 rel 27. Eight more with base below the window (rel -112, -62, index member×2, +128 steps seen) |
+| POD | 12 + 42 | rel 30 (memo, write 255, index up to Random 99 + more); 42 below it (rel -124, -24: needs index ≥ 124 or 24) |
+| BR1, BR2 | 0 | |
+
+Also one immediate: POD op 0x8E arg 0, rel 75. Other bases are the code image (POR 260, COTAB 148, SotSB 190, POD 332, BR 102, 122 sites) or plain memory.
+
+Unverified: this is static, listing each index's writers. It does not bound them all and I did not run the games. The real proof is the machine's error: run it first on the current VM as a logging trace through each game's script playthrough (cheap, targeted), and bind what appears.
+
+## 2. One script machine: merge ecl-br into gobox/ecl
+
+Merge: meaningful. Both run `script.Instr` with `Arg.N int`; the loops are almost the same code.
+
+| Command | gobox/ecl | ecl-br | Merged |
+|---|---|---|---|
+| value type | uint16 | int32 | int32; POR-line hosts zero-extend, store truncates. Add, sub, mul, div keep the low 16 bits' results |
+| operands | `GetVar(a)` | `getVar(a, t)`, width from type: 2,3 = 2 bytes; 4,5 = 4; else 1 | `GetVar(a, width)`; types 4, 5 never occur in POR-line |
+| COMPARE | unsigned | signed int32 | signed over zero-extended: same results. **BR word sign extension unverified** |
+| ADD SUB MUL RANDOM SAVE, IFs, ONGOTO, ONGOSUB, GOTO, GOSUB, RETURN, AND, OR | same | same | one |
+| DIV | remainder to `RemainderAddr` by Layout, POR none (`ecl.NoRemainder`) | Party[831:] width 4 | Layout says where, or none: data |
+| RANDOM | byte n, ++ below 255 | same; PCG | one, `core.RNG` |
+| GETTABLE SAVETABLE | word memory | byte-addressed | `GetVar` with width; bindings catch the window |
+| text flags (COMPARE on text) | same | same | one |
+| skip tables | `vm.Args` | `e.skip` switch | `vm.Args` by dialect |
+| shared command numbers | lowest (Raw) | highest; 59, 60, 68 "pc stays" | Version's table, data |
+| FOR, NEXT 70, 71 (Area[502/503], LoopAt) | none | yes | default op, dialect table enables |
+| blocks and waits | passive VM | `Frame`, `NextKind`, `BlockThen`, `EclWait` | **Compare before step 3; unread line by line** |
+| memory | `Layout` struct | constants (Area 19200.., Party 31744.., Aux 31232.., Code 32768..) | `Layout` values per dialect |
+| 30, 31, 34, 35, 50, 54, 57, 58, 62-69, 72, 76 | none | host ops | engine ops on `Facts`, `Check`, `Action`; `SpaceFight` (31) on `ShipRules` |
+
+Plan: (1) widen `gobox/ecl` to int32 and width, all four Pool traces unchanged; (2) add dialect tables for V4 and FOR/NEXT; (3) move BR's ops over with its traces passing; (4) delete `ecl-br`'s VM, leaving ship, record, tables for `rulesxxvc`. POR's overrides `Compare` and `GetTable` go by patches (below), `Exit` empty by patching its scripts, `NoRemainder` by Layout. No Quirk list.
+
+## 3. POR's native scripts become scripts
+
+`nativeScripts` and `purseWhos` (por-go/rules/native.go, eclops.go:83, eclops2.go:553, script.go:36-45) go. Patches in the area text, using typed facts:
+
+| Native | Script |
 |---|---|
-| combat.go, combatturn.go, ai.go, effects.go, skills.go, create.go, rest.go, loot.go (medics), shop.go, items.go, pack.go, throw.go, eclbr: fighter.go, item.go, record.go, tables.go, draft.go | rules (XXVc) |
-| cmap.go, eclbr combatmap.go | engine board |
-| ecl.go, eclops.go, eclbr vm.go, ecl.go | engine: a second machine, hard spot 2 |
-| monster.go, treasure.go, adv.go, journal*.go, *_data.go, dsimg.go | adventure; dsimg is hard spot 9 |
-| ship.go, space*.go, eclbr ship, space* (2.6k+) | **unplaced**: hard spot 8 |
+| TavernGamble | `Okay` text, InputNumber, compare `CoinFact{Gold}` against 5000 and the wager, RANDOM 10: ≥8 double, >2 back, else lose, "WILL YOU GO AGAIN?" |
+| TavernTale | RANDOM 22, a journal command with `Tavern Tale n`, RANDOM 3 to DrunkenBrawl or exit |
+| PhlanHistory1-6 | journal command with the entry |
+| PayPlatinum, TavernGamble purse Who | Who removed; `CoinFact` is the party's whoever is selected |
 
-ecl-br is the XXVc ruleset and half a VM in one module: it splits rather than moves. BR2 keeps its difference as data, so BR1 and BR2 could be one ruleset with two tables.
+Needs: a journal command in the patch vocabulary; the shown coin split (`purseCoin`, money.go:65: Gold%5, Gold/5) stays a view of the same purse. COTAB-style per-member coin writes also land in the purse.
 
-## Neutral ids and the script mapping
+## 4. Adventures name, rulesets number
 
-Ids (`core/ids.go`, `spells.go`, `facts.go`): `Ability`, `Race`, `Class`/`ClassSet`, `Sex`, `Alignment`, `Status`, `Side`, `Skill`, `Save`, `Condition`, `SpellID` (127), `Coin`, `Trait`, `Feature`, typed string constants; `Fact` is a closed set of typed values. Handles: `CharID`, `AreaID`, `CreatureRef`, `ItemSetRef`, `MapRef`.
+"4 hobgoblins" is `LoadMonster` with a table: `ScriptSet.Monsters` maps `(set, index)` to `MonsterID`. Constant indices can also fold at import; variable ones (POR 24, COTAB 8, SotSB 21, POD 69, BR 9, 12 sites) use the table at run time, an index with no row is an error. `Rules.Spawn(MonsterID, *RNG)` supplies every number. Items: `ItemRef{ID, Plus, Charges, Count, Cursed}`, `Rules.Item(ItemRef)`; `FindItem` terms likewise (4, 3, 1, 7, 0, 0 distinct constants). Spells as before by `SpellTerm`.
 
-Raw numbers stop at the adventure, as tables in `ScriptSet`:
-- `CharBinding{Addr, Fact, Values}`: the engine's `GetVar`/`SetVar` looks up the address; a hit goes to `Rules.Fact`/`SetFact`, a miss to its flat memory. `Values` maps numbers: `{0x87, StatusStoned}`.
-- `WorldBinding{Addr, Word}`: script words rules depend on; passed in `FightTerms`, `ShopTerms`.
-- `ConditionTerm`, `SpellTerm`, `ItemTermRow`: operands of FindAffect, CheckParty, FindItem and memory slots.
+Scan of `MON*CHA` (records / names / names with differing stat blocks): POR 172/103/12 (KOBOLD ×2, VAMPIRE ×2), COTAB 81/68/9 (RAKSHASA ×3), SotSB 70/68/2, POD 122/118/2, BR1 54/49/5, BR2 63/55/6. So one id per **distinct block**, not per name: the importer generates rosters, a person names variants. Consequence to accept: `core/dnd` and the 1e tables carry every module's named NPCs (Tyranithraxus), since the ruleset holds all stats. Across games the same name will also differ; each block gets an id, merged only if equal.
 
-**The scripts use little.** Survey: every ECL block of every game decoded, every variable operand in the character window counted (reads/writes, static):
+Rule-scale gates: `Compare(PartyStrength, 70)` (POR 18 sites, COTAB 2; others none) becomes `Check{PartyAtLeast{Tier}}` by patch: the ruleset decides what "strong" means. Three `Tier`s is a guess until the sites are read. `Census` over abilities is world-shared; thresholds in scripts stay scripts' own.
 
-| Game | Commands | Character words | Used |
-|---|---|---|---|
-| POR | 16,025 | 21 | 0 name 15/4, 24 con, 114 12/0, 155 save, 165-171 thief, 184 control 7/4, 187-195 coins, 216 align, 256 status 24/5, 268 side 0/7, 283 move; flat in the port: 1, 32, 50, 114, 242 |
-| COTAB | 14,183 | 18 | 0, 21 int, 32, 114 race, 115 class, 165-171, 184, 195-196, 201 mage level, 214 sex, 216, 228 paladin, 235, 256, 268 |
-| SotSB | 15,322 | 14 | 0, 25 cha, 27, 114, 118 max HP, 158, 167, 195-198, 208 ranger level, 256, 281 HP |
-| POD | 33,721 | 31 | raw record, window 1025: 0, 16-27 stats, 30 memo, 173 race, 174 class, 178 max HP, 316-321 thief, 331-333 coins, 337-349 levels, 358 sex, 493 status 46/2, 508 HP |
-| BR1 | 17,819 | 11 | 0, 38 gender, 40 career, 69 max HP, 76, 161-163, 256, 268, 281 |
-| BR2 | 24,950 | 8 | 0, 19 int, 39 race, 69, 76, 127 skill 51, 256, 268, 281 |
+## 5. Asset data
 
-Conditions queried at all: POR 19 find traps; COTAB 20 resist fire; SotSB 3 sticks to snakes; POD 25, 56, 72, 126, and detect magic through a word. That is why `Condition` has 8 members while the games name 125-142 affects each. Skills: BR1 47 and BR2 119 skill commands.
+**Import, not on-demand decoding, of originals.** `cmd/import` (gobox; may use dax, geo, ega, script) runs once on the user's machine, turning originals into canonical files in the adventure's folder: PNG (animations: frames plus delays), WAV, script text, walls. At run time `Adventure` serves `Picture(PictureID)`, `Sound(SoundCue)`, `Map(MapID)`, `Script(AreaID)`, on demand from those files, returning decoded types only. No file name, block or format reaches the engine. An adventure may read originals itself if it brings its own decoder (a leaf may not import `gobox/dax`).
 
-Spell numbers are nearly common and not the same: 36 is Animate Dead (POR, COTAB), Heal (SotSB, POD); 56 Restoration against Harm. Item powers sit in the same table in POD only (57 Potion of Speed). Hence per-module `SpellTerm`.
+**Rule tables likewise** (ruling 6). One generator, `exe/cmd/tablegen`, already POD, COTAB, SotSB (`tables.json`, `TestTablesMatchEXE`), extended to typed values in the ruleset: thac0, saves, exp, monsters, items, ships. Dropped from run time: BR2 `dsimg.go` `os.ReadFile(START.EXE)`, BR1's `dsImg` bytes, `tab`, `fightData()`, cotab `engine.go`'s `gobox/exe` import, MON*/ITEMS at run time, words (BR's `word()`). Generated Go is checked in; fine for private use, a question if ever published.
 
-## Ruleset differences that stress the interface
+## 6. Saves: one-way
 
-There is **no 2nd edition game here**: the four Forgotten Realms games are the 1e line, BR is XXVc, and POR's 4e plug-in is the only other ruleset. 2e stays untested by this design.
+The importer reads an original save and CHRDATA/.GUY once and writes a canonical save. Nothing writes originals. `Rules.Save` is characters, the engine's part is script memory, board, RNG, and bindings carry the rest. POR's byte-for-byte save stops being a test.
 
-| | POR | COTAB, SotSB, POD | BR1, BR2 (XXVc) |
-|---|---|---|---|
-| Abilities | 6 | 6 | 7 (Tech) |
-| Saves | 5 | 5 | 8 |
-| Classes | 8 + multi | same, dual class | careers, 85 skills, one level |
-| Magic | 56 spells, 21 slots | 100-126 rows, POD 141 slots | none: about 32 effects, no slots, no `Cast` |
-| Initiative | d6 + dex; `nextCombatant` rolls d100 per unit per pick | SotSB, POD sort once, coin toss per insert | d10 + dex + 1, tie roll stored, side tactics roll |
-| Script operands | 16-bit | 16-bit, POD sized and raw record | longint, sized |
-| Money | one purse, gold | purse, platinum in POD | credits, on the record, paid across members |
-| Turn verbs | classic | classic | Aid, Sprint, Dodge, Intimidate, Jetpack, zero-G |
-| Prices | fixed | factor word; POD platinum | clips, repair |
-| Fights | board | board | board and ship fights |
+## 7. One RNG
 
-`NextActor` hides the initiative split; a sequence of `NextActor` calls keeps each game's roll order only if the rules roll at the same moments.
+`core.RNG{State}`: **the engine owns it**, seeded at start and saved; every rolling Rules method takes `*RNG` as a parameter, so no callback and no hidden stream. Script RANDOM draws the same. Sequence: Turbo Pascal LCG. Testing: fixed seed, full reproduction.
 
-## Hard spots: where the split does not fit
+Trace interaction: POR, POD, COTAB, SotSB keep original traces as long as draws stay in the same order, including for monsters' HP (now Spawn) and scripts. BR1, BR2 use PCG (`e.rng`), so they get new sequences once: re-record their traces at that step, separately from anything else. Anything else drawing outside: `por dasp.go:166` voice picks from global `rand`. See questions.
 
-1. **Scripts writing raw character bytes.** Few, per the table, but not clean. POD and BR expose the whole record: BR writes the party memory and the record both, `o` 16..185 passes through (ecl.go setChar), so `Fact` needs a raw mirror or a proof that nothing beyond the table is touched. The count is static operands; a table-driven address was not looked for. Reads have side effects: COTAB `cvActive` clears `justJoined`. Writes set engine flags: POR off 0 `memberGone`. BR 76 is both a skill byte and a side bit. POR leaves 114 flat where COTAB binds race: bug or original, unverified.
-2. **Two machines.** "The interpreter is the engine's", but ecl-br has its own for longint operands. The opcode handlers (cotab eclcmds 1.7k lines, por ecl and eclops 2.4k, BR eclops 0.8k) mix rule calls with text and screens. This is the largest piece of the migration, and core does not reduce it.
-3. **Overrides that are code.** POR's `nativeScripts` (tavern, Phlan history) are Go on the Engine, written for one purse. An adventure holds no engine code, so they become script patches, or quirks in the engine by name. `Quirk` is a typed list of today's four; it is per-game behaviour in gobox, against the "game-agnostic" rule unless it counts as dialect.
-4. **Spell effects scripts depend on.** Knock in POR area 14 writes memory slot directly (the `0x1F` extra); a ruleset without slots fails `Mismatches`, correct but it means POR's adventure does not run on 4e without a patch. "Any adventure on any ruleset" holds only down to these facts. Worse is silent: scripts compare numbers such as `PartyStrength` and thief scores on the 1e scale. A ruleset can pass the load check and misbalance every gate.
-5. **Save files.** POR's save is the original's byte for byte: `saveFile` is area + game + aux words + ECL + position, with CHRDATA files; walls overlaid in the area record. Script memory is the engine's, characters the rules'. So `Rules.Save` is new, and old saves need a converter that knows both (por `SaveEditor`, fixtures, BR savegame.go, POD imports from SotSB). Trace fixtures depend on this format. Not resolved here.
-6. **Combat AI.** It goes to rules, since it needs spell tables, and por's rules4e ai.go overrides it. But `computerTurn` is one long routine mixing rolls, moves and attacks; `Decide` returning one action per call needs state kept across calls and the same RNG order. Reimplementing it risks every combat trace. It reads the board by value, costing a copy per decision.
-7. **Board facts.** `Board` has `Blocked` only. `game.Ground.Height`, BR ground kinds (`bareGround`), zero-G and POR's `FreeSteps` encounter distance are unmapped; `Board` will grow at migration. Setup (combatsetup.go, 773 lines) mixes rule rolls with placement, unsplit.
-8. **BR ship fights** (1.6k lines) are not in this interface: only `FeatureSpaceCombat`, so they cannot yet run through it. Their view types are in `game`.
-9. **Rule data from the game's files.** BR reads rule tables from START.EXE at run time (dsimg.go, `tab`); POR's are checked-in Go. A leaf ruleset may not know the adventure, so who loads them? Only the `cmd` wiring can pass them to the ruleset's constructor.
-10. **Items.** Records carry rule fields; the base table (por DS:5582, BR ITEMS) is rule data in a module's file. `Item` here is an untested proposal, `Trait` is a bare string with no list, and monster SPC blocks (raw affect numbers) need a row each. `randomItemType` rolls treasure in the rules but is fed by a script.
-11. **Script words as rule inputs.** `WorldWord` lists 11 found. More hide in the games: not surveyed completely (POR's `RestEvery`, `Duel`, POD's vault).
-12. **`game.Data`.** Mixes module facts (art, music, credits), series look (verb keys, party menu) and rules (`Rests`, `SpellRules`). No `Manifest` is drafted because splitting it was not traced; until then the engine would still get it per game.
-13. **Narration.** Rules produce words ("flees in panic", BR's `word()` table from the game's files). Same issue as 9.
+## 8. Ship fights
 
-## Migration order (proposal)
+`core/ship.go`: data (`Ship`, `Gauge`, `ShipFight`, `ShipEncounter`), actions (fire, boost, jury-rig, ram, dodge, close, retreat, reload), `ShipRules` (5 methods). Adventure: script's SpaceFight names `ShipEncounter`. Rules: all of spacefight.go's arithmetic. Engine: loop, input, `game.SpaceFight` view; stage constants `Ss*` become its loop. Crew turns are ordinary `Allowed`/`Resolve` with `ShipFight` as situation. `Rules.Ships()` is nil for a ruleset without `FeatureSpaceCombat`, which then cannot load such an adventure.
 
-Each step builds and keeps all six games on their traces.
+`Board` thickened: `Height`, `Ground`, `ZeroG`, `Free`.
 
-1. Review this; settle the open questions; core stays unused.
-2. **POR, read only**: the bindings as data, checked against today's `ReadVar`/`WriteVar` by a test. Cheap, and tests hard spot 1 before anything moves.
-3. **POR adventure**: `Adventure` over dax and scripts, with `Creature` and `Item` decoded and compared to today's records.
-4. **The VM's opcodes to the engine**, for POR: they call a Rules-shaped private interface in por-go.
-5. **POR rules leaf**: the 1e package, combat last; rules4e on it as the proof of a second ruleset.
-6. **POR on the engine loop**: delete the por-go presentation.
-7. **SotSB, COTAB, POD** on 1e, one at a time: their differences decide how many are per-game data. `RULE2.md`'s per-game shop and XP rules test this.
-8. **BR1, BR2**: XXVc leaf, then the second machine, ship fights last.
+## 9. One 1e ruleset: every variation, for Felix
 
-Unverified: nothing here has run against a game; only core's build, vet, tests. No method has been tried by an implementer, so expect changes in step 5.
+Ruling: one ruleset, flagged small variations. A flag belongs to the adventure's rules config or a table row. "Rec" is mine.
 
-## Open questions for Felix
+| # | Rule | POR | COTAB | SotSB | POD | Rec |
+|---|---|---|---|---|---|---|
+| 1 | Saving throw compare | signed, rules.go | was unsigned | was unsigned | | done: signed (RULE2 a) |
+| 2 | Initiative | `nextCombatant` d100 per pick combat.go:32 | turnSetup | `buildTurnOrder` :74 | :75 sort, coin toss | decide; flag breaks no trace |
+| 3 | To-hit by difficulty | none rules.go:222 | none rules.go:314 | none rules.go:351 | party ±2 table rules.go:423, 438 | flag |
+| 4 | Critical hits | none | none | none | rules.go:445 | flag |
+| 5 | Monster HP by difficulty | none | none | ×(level+offset)/4 eclcmds2.go:353-363 | none | flag |
+| 6 | Difficulty storage | none | none | area word 500 camp.go:234 | game byte 38 alterflow.go:127 | one `WordDifficulty` |
+| 7 | Hide exp | none | none | area 501 aftercombat.go:124 | game 30 :143 | `WordHideExp` |
+| 8 | Cleric prime exp | aftercombat.go:86 own constants | Wis>15 :129 | Wis>=15 :136 | check | decide; SotSB looks like the original's off-by-one |
+| 9 | Exp table lookup | | train.go:376, runs into the next row | train.go:295, 0 past end | train.go:467 | table; past end = cap |
+| 10 | Trap damage | | base | `TrapSkipStoned`, `TrapRollEach` damage.go:36, :154 | | RULE2 b, flags |
+| 11 | Shop price | fixed item price | factor word shop.go:19 | same shop.go:22 | byte, platinum shop.go:18 | RULE2 e: flag or table |
+| 12 | Encumbrance | none | cut | cut | | RULE2 c |
+| 13 | `armourMove` | charcalc.go:350 | :185 | :230 | :240 | undecided in RULE2; decide |
+| 14 | Charisma percent | ecl.go:156 | eclvars.go:86, <=3 | eclvars.go:107, ==3 | | one; only below-3 differs |
+| 15 | Spell roster, numbers | 56 | 100+ | 100+ | 126, item powers | union by id; `SpellTerm` per module |
+| 16 | Memo slots | 21 | offsets 32..112 | 27..101 | 141 | Ruleset limit: flag or max, decide |
+| 17 | Dual class | extra dualclass.go | | | | flag, or all |
+| 18 | Knock | extra slot ecl.go:201 | door choice adventure.go:233 | :256 | | check |
+| 19 | Rule tables (thac0, saves, exp, str, dex, thief) | 8 classes, saveTable charcalc.go:94 | 480 bytes | 635 | 740 | table per game or merge: decide. Means numeric parity vs. one table: real cost |
+| 20 | Attack hook | rules.go:230 `Hits` (rules4e) | | | | ruleset-private |
+| 21 | Dancing affect | | | | affects.go:140 | condition in 1e; check others have it |
 
-1. **One ruleset or six?** Do COTAB, SotSB and POD share a 1e ruleset (parameters), given RULE2 keeps shop and XP per game? Recommend one, per-game differences as constructor data.
-2. **"Imports only core"** literally forbids `gobox/rules` (dice, stats, purse, grid) in a ruleset, and `gobox/dax`, `geo` in an adventure. Recommend kits that import only core, allowed by the guard. Otherwise each leaf duplicates them.
-3. **Old saves**: keep byte compatibility with originals, or a one-way import? Recommend import; it frees the formats.
-4. **Numeric parity**: must every game keep byte-exact RNG traces through the migration? It decides whether AI and setup can be restructured or must be ported call for call. Recommend yes until each game has moved.
-5. **Quirks** in the engine, by name, acceptable as dialect? Or must POR's scripts be patched until none remain?
-6. **Ids as typed strings** against numbered enums? Rule 13 reads either way. I chose strings: stable in saves, clear at load errors.
-7. **Who loads rule tables** from game binaries (hard spot 9)? Recommend the ruleset constructor, called from cmd.
-8. **Ship fights**: part of `Rules`, or a separate optional interface? Felix's "two literal interfaces" suggests inside; recommend deferring until step 8.
-9. **Is "any adventure on any ruleset" a load-level promise only?** Numbers in scripts (hard spot 4) cannot be checked.
-10. **Clock**: drafted as engine-owned since scripts hold it (`Clock` words), with `Elapse` for rules. Agree?
-11. **Domain language**: fix "character" (includes monsters), "fact", "term", "situation" in a glossary?
+Gaps left empty were not checked. The census (pool-shared-analysis.md: 238 common of 1166-1716 functions; twins SotSB, POD 85-100%) says more lie in `computeExp`, `giveExp`, `attackSlots`, `thiefSkills`, affects, and AI: a function-by-function diff at step 5 will extend this table. BR's "no 2e game" stands; XXVc has its own ruleset, BR1 and BR2 two tables.
+
+## Scripts' data and today's code
+
+Survey of direct character use, per game (reads through bindings):
+POR 21 words; COTAB 18; SotSB 14; POD 31; BR1 11; BR2 8. Conditions queried: POR 19; COTAB 20; SotSB 3; POD 25, 56, 72, 126 and a word. Which is why `Fact` and `Condition` are small.
+
+Where code goes: rules leaves take combat rules, affects, spells, creation, training, tables. Engine takes combat flow, map, VM, ops, presentation. Adventure takes areas, journal, lore, scripts and patches, assets. Importers take savefile, tablegen, decoders. `ecl-br` splits by section 2.
+
+Hard spots left: combat AI one long routine (por `computerTurn`); `game.Data` mixes module, series look and rules; narration words (rules produce text: table at import); clock owned by the engine with `Elapse`; `WorldWord` list unsurveyed in part.
+
+## Migration order
+
+Each step keeps all six games on traces, except the named BR RNG step. 1. Settle this. 2. Machine merge (section 2), logging computed window hits. 3. Bindings and patches, POR first, then errors on. 4. Importers and asset ids. 5. POR adventure and rules leaf. 6. Engine loop. 7. SotSB, COTAB, POD on 1e, extending the variation table. 8. XXVc, BR's RNG, ship fights.
+
+Unverified: nothing here has run on a game. Only core's build, vet, tests. No ruleset or adventure implements these interfaces yet; expect change.
+
+## Remaining questions
+
+1. Section 9: each row.
+2. "One RNG over everything": presentation draws (voice, `dasp.go:166`) in the stream would make traces depend on frames. Recommend a second `RNG` seeded from the first, engine-owned, for presentation only.
+3. Monster ids per stat block, with module NPCs in the 1e tables: accept? The alternative is an adventure-owned override, which ruling 4 seems to forbid.
+4. `Tier` for gates: read 20 sites, then fix the names?
+5. Do adventures reading originals need a shared decoder leaf (dax, ega outside gobox)? Recommend no: importer only.
+6. Rule tables generated from original EXEs and checked in: private use only?
+7. Glossary: fix "character" (includes monsters), "fact", "patch", "situation", "world"?
+8. Alignment in `dnd`: confirm BR has none (unread).

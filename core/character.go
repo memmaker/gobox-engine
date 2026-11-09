@@ -73,8 +73,8 @@ const (
 // Dice is N d Sides + Bonus.
 type Dice struct{ N, Sides, Bonus int32 }
 
-// Item is one item as an adventure defines it, neutral. Today's records (por
-// Item 0x3F bytes plus base table DS:5582, BR ITEMS) are decoded into this.
+// Item is one item as a ruleset states it. Today's records (por Item 0x3F bytes
+// plus base table DS:5582, BR ITEMS) become ruleset tables at import.
 type Item struct {
 	ID         ItemID
 	NameWords  []string // the words known and unknown make the name (por Words, Hidden)
@@ -103,39 +103,14 @@ type Item struct {
 // the one it does not fails at load.
 type Trait string
 
-// Attack row of a creature.
-type CreatureAttack struct {
-	Count int32
-	Dice  Dice
-}
-
-// Creature is a monster or NPC as an adventure defines it (por charRecord +
-// SPC + ITM blocks, eclbr.Record). A neutral sheet, in the numbers the module
-// was written for; a ruleset converts them as it wants (por rules4e Role, Rank).
-type Creature struct {
-	Name      string
-	Race      Race
-	Classes   ClassSet
-	Levels    map[Class]int32
-	Alignment Alignment
-	Sex       Sex
-	Scores    map[Ability]int32
-	Kind      int32 // por Kind: monster kind, bonuses against it
-	HP, AC    int32
-	THAC0     int32
-	Move      int32
-	Size      int32
-	Attacks   []CreatureAttack
-	Saves     map[Save]int32
-	Skills    map[Skill]int32
-	Spells    []SpellID
-	Traits    []Trait
-	Items     []Item
-	Money     Purse
-	ExpValue  int32
-	ExpPerHP  int32
-	Control   int32 // por Control: 0xB3 charmed, > 0x7F hired
-	Icon      AssetRef
+// ItemRef is an item an adventure places: the ruleset supplies everything else
+// about ID (Rules.Item). Plus and Charges are the placed one's own.
+type ItemRef struct {
+	ID      ItemID
+	Plus    int32
+	Charges int32
+	Count   int32
+	Cursed  bool
 }
 
 // Draft is a character being made: the sheet so far and what is still open.
@@ -151,8 +126,11 @@ type Draft struct {
 type Check interface{ check() }
 
 type (
-	// PartyStrength: por opPartyStrength.
-	PartyStrength struct{ Party Party }
+	// PartyAtLeast: a gate on por opPartyStrength, in the ruleset's own scale.
+	PartyAtLeast struct {
+		Party Party
+		Tier  Tier
+	}
 	// Census: por opCheckParty's low, high, average over a fact.
 	Census struct {
 		Party Party
@@ -171,7 +149,7 @@ type (
 	// HasItem: por opFindItem, BR OpHasItem; the item by what a script numbers.
 	HasItem struct {
 		Whom []CharID
-		Name ItemTerm
+		Item ItemID
 	}
 	// SkillRoll: BR opSkill (skill, all, hardness).
 	SkillRoll struct {
@@ -181,20 +159,16 @@ type (
 	}
 )
 
-// ItemTerm is what a script looks items up by: the item type in the original's
-// numbering, named by the adventure. Open question in ARCHITECTURE.md.
-type ItemTerm string
-
-func (PartyStrength) check() {}
-func (Census) check()        {}
-func (HasCondition) check()  {}
-func (HasClass) check()      {}
-func (HasItem) check()       {}
-func (SkillRoll) check()     {}
+func (PartyAtLeast) check() {}
+func (Census) check()       {}
+func (HasCondition) check() {}
+func (HasClass) check()     {}
+func (HasItem) check()      {}
+func (SkillRoll) check()    {}
 
 // Answer is a Check's result. Which fields mean anything follows from the
-// Check: Low, High, Average for Census; Value for PartyStrength and SkillRoll;
-// Yes for the Has ones; Who for who succeeded or was found.
+// Check: Low, High, Average for Census; Value for SkillRoll;
+// Yes for PartyAtLeast and the Has ones; Who for who succeeded or was found.
 type Answer struct {
 	Yes            bool
 	Value          int32
@@ -202,12 +176,7 @@ type Answer struct {
 	Who            CharID
 }
 
-// CharacterFormat names a file format a ruleset reads.
-type CharacterFormat string
-
-// CharacterFile is one character outside the game: a .GUY, a CHRDATA, por's
-// .cha with trailers (charimport.go, CHRDATAn.SAV).
-type CharacterFile struct {
-	Format CharacterFormat
-	Bytes  []byte
-}
+// CharacterFile is one character in the engine's canonical format, between
+// adventures on the same ruleset. Originals (.GUY, CHRDATA) come in once through
+// the save importer (ARCHITECTURE.md); nothing writes them.
+type CharacterFile []byte

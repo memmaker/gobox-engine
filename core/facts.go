@@ -10,7 +10,8 @@ type (
 	SkillFact   struct{ Skill Skill }     // por 0xA5..0xAC; BR 76+s
 	SaveFact    struct{ Save Save }       // por 0x9B
 	LevelFact   struct{ Class Class }     // cotab cvMageLevel
-	CoinFact    struct{ Coin Coin }       // por 0xBB..0xC3: a view of the one purse
+	CoinFact    struct{ Coin Coin }       // the party's one purse, whoever is selected. por 0xBB..0xC3, also computed (area 9)
+	KnownFact   struct{ Skill Skill }     // has the skill at all: BR 76 reads 128 or 0
 	MemoFact    struct{ Slot int }        // por 0x1F..0x70: Knock in area 14
 	PlainFact   int                       // the rest, one each
 )
@@ -22,8 +23,10 @@ const (
 	FactClasses
 	FactSex
 	FactAlignment
-	FactStatus     // por 0x100 reads Active, writes down it; BR 256
-	FactSide       // 268
+	FactActive     // 256: a pure read; NoChar reads inactive
+	FactStatus     // por 0x100; writing it only stores: consequences are Actions
+	FactSide       // 268 bit 0
+	FactSideLock   // BR 268 bit 7, r[215]; meaning to confirm at migration
 	FactControl    // por 0xB8 (charmed, hired)
 	FactMove       // por 0x11B
 	FactHP         // BR 281
@@ -42,6 +45,7 @@ func (SaveFact) fact()    {}
 func (LevelFact) fact()   {}
 func (CoinFact) fact()    {}
 func (MemoFact) fact()    {}
+func (KnownFact) fact()   {}
 func (PlainFact) fact()   {}
 
 // Value is what a Fact holds.
@@ -50,6 +54,7 @@ type Value interface{ value() }
 type (
 	Number int32 // BR's operands are longints
 	Text   string
+	Yes    bool
 	Memo   struct { // a memory slot: the spell and whether it is still to learn
 		Spell   SpellID
 		Pending bool
@@ -58,6 +63,7 @@ type (
 
 func (Number) value()    {}
 func (Text) value()      {}
+func (Yes) value()       {}
 func (Memo) value()      {}
 func (Race) value()      {}
 func (ClassSet) value()  {}
@@ -69,17 +75,6 @@ func (Side) value()      {}
 // Coin is a kind of money. Rulesets hold one purse (gobox/rules.Purse); old
 // scripts see per-member coins as a view of it.
 type Coin string
-
-const (
-	Copper   Coin = "copper"
-	Silver   Coin = "silver"
-	Electrum Coin = "electrum"
-	Gold     Coin = "gold"
-	Platinum Coin = "platinum"
-	Gems     Coin = "gems"
-	Jewelry  Coin = "jewelry"
-	Credits  Coin = "credits" // BR
-)
 
 // Purse is the party's money by kind.
 type Purse map[Coin]uint64
@@ -96,10 +91,22 @@ type RawValue struct {
 
 // CharBinding says that a script's address reads and writes a Fact of the
 // selected character. Without Values the number is the value.
+//
+// Bits instead splits one address over several facts: BR 268 is FactSide at
+// bit 0, KnownFact at bit 6, FactSideLock at bit 7. The script machine has no
+// character memory: direct or computed (GetTable, SaveTable), an address in the
+// window with no binding is a run-time error, never a byte.
 type CharBinding struct {
 	Addr   ScriptAddr
 	Fact   Fact
 	Values []RawValue
+	Bits   []BitBinding
+}
+
+// BitBinding is one fact in a mask of a packed address.
+type BitBinding struct {
+	Mask int32
+	Fact Fact
 }
 
 // WorldWord is a script variable the rules depend on. The engine keeps script
