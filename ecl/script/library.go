@@ -113,3 +113,17 @@ func CacheDir(game string) (string, error) {
 	}
 	return filepath.Join(d, "gobox", "scripts", game), nil
 }
+
+// Assemble makes a script of raw byte code with no header, one command per
+// command, for a test to run a few commands: command numbers are its jumps.
+func Assemble(v *Version, code []byte) *Script {
+	s := Empty(0)
+	s.Code = nil
+	r := &reader{code: code, base: v.Base}
+	for pc := v.Base; pc < v.Base+len(code); {
+		l := v.decode(r, pc)
+		s.Code = append(s.Code, Instr{Op: l.Cmd.Op, Args: l.Args})
+		pc = l.Next
+	}
+	return s
+}
