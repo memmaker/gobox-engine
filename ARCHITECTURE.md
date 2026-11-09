@@ -205,9 +205,9 @@ Values taken from each game's `rules/tables.go`, normalized to class, level. Com
 
 ### The reference and allowed differences
 
-Felix: "We'll only ever compare rules and adventure behaviour against the originals. Both need to come from the original." **The reference is the pure Pascal** (`~/Projects/por-re` branch `rules-only`, `src/pure`). A port difference from it is a bug, or a documented entry in CHANGES-FROM-ORIGINAL.md, which is the list of allowed differences. A Pascal driver writes vectors from pure functions over generated inputs; the Go side runs the leaf on the same inputs and compares (`rules1e` `TestAgainstPascal`).
+Felix: "We'll only ever compare rules and adventure behaviour against the originals. Both need to come from the original." **The reference is the pure Pascal** (`~/Projects/por-re` branch `bugfixed-rules`, `src/pure`). A port difference from it is a bug, or a documented entry in CHANGES-FROM-ORIGINAL.md, which is the list of allowed differences. A Pascal driver writes vectors from pure functions over generated inputs; the Go side runs the leaf on the same inputs and compares (`rules1e` `TestAgainstPascal`).
 
-The reference includes the 17 fixes of `4a28cb6` (por-re `BUGS.md`): `rules-only` is past that commit, so it is SSI's rules plus those fixes, not the shipped bytes.
+The reference includes the 17 fixes of `4a28cb6` (por-re `BUGS.md`): `bugfixed-rules` contains that commit, so it is SSI's rules plus those fixes, not the shipped bytes.
 
 The engine owns the combat loop and the script interpreter (Felix's rulings), so `CombatMain`, `EndOfRound` and `eclvm` split at that line, and those vectors compare engine plus leaf.
 
