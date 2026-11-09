@@ -273,6 +273,23 @@ Proposal: `Check PartyStrength` answers `Value`; scripts keep their arithmetic a
 
 **`PartyHit`, `MonsterHit`: keep.** Scripted modifiers for a fight, independent of difficulty (pod's is separate, fxengine.pas:691-699), reset after combat. COTAB 49, 51, 53 ("gods will not favor you": party -6, monsters +5), 64, 66, 67 (boon or curse 2 or -2, carried), 82 (party +8, monsters -6); POR 3, 13, 16, 17, 25, 26; POD 35, 39.
 
+## Pascal seams against core
+
+Read: the interfaces of `classcal`, `charhlp`, `fxengine`, `cbtacts`, `combat`, `combatai`, `explore`, `postcbt`, `money`, `gametime`, `eclvm`; bodies only where cited. No core signature changed: nothing read so far is better than what core has.
+
+| Pascal | Core | Result |
+|---|---|---|
+| `allowAlly` consent parameter | `Attack`, then `Outcome.Confirm` and `Confirmed` | same choice, kept |
+| `aimX, aimY, aimAt`, `onWhom` | `Cast.Target`, `Cast.Ats` | fit |
+| `VMenuChoice`, `EncounterChoice`, `InputNumber` ... seam variables | none: the interpreter is the engine's | engine side |
+| `CombatMain`, `EndOfRound`, `eclvm` | engine loop, `EndRound`, `Verdict`, `Fact` | split at that line, vectors compare engine plus leaf |
+| `CombatAiControl` runs a whole turn, drawing as it goes | `Decide` returns one action at a time | fits only if draw order survives: compare at whole turns |
+| `TimeOutEffects(count, unit)`, steps of at most 10 minutes | `Elapse(minutes)` | fits; the leaf takes the steps |
+| `RecalcClassStats` on a record pointer | values; `SetFact` has no side effect | the Pascal writes character bytes without recalculating except at `eclvm.pas:1074`, so purity agrees |
+| Coins per character: `PoolMoney`, `ShareMoney`, `CarryingCapacity`, `EncumbranceAdjust` count coin weight | `Purse()` one purse in copper | **needs a ruling**: see Remaining questions |
+
+Not read: spell and effect handler bodies, `combatst`, `mapdata`.
+
 ## Baseline and options
 
 Felix on the rulings and tables: "These are unifications, and we'll treat them the same way as bugfixes: They are allowed and become our baseline." So the rulings and the table base stand. `Options` hold only his additions: critical hits and party inventory. Bug fixes and unifications land as separate commits after each game's port.
@@ -280,4 +297,5 @@ Felix on the rulings and tables: "These are unifications, and we'll treat them t
 ## Remaining questions
 
 1. Fix or keep: SotSB first cleric die 2, paladin L15 2460001, party strength wrap.
-2. Rule tables generated from EXEs checked in: private only? Adventures with own decoders: none, importer only?
+2. Coin weight: the one party purse has no carrier, while the Pascal slows a character for coins carried. Does coin weight go, as the port has it? It belongs under ruling 12.
+3. Rule tables generated from EXEs checked in: private only? Adventures with own decoders: none, importer only?

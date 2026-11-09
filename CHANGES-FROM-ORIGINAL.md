@@ -37,6 +37,7 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Ranger, cleric/ranger alignments | POR | any | good only (COTAB) | 19 | port earlier; rules1e |
 | Paladin XP, L2-8 | POR | -1, no progression | COTAB's 2751 .. 175001 | 19 | port earlier; rules1e |
 | Ranger XP, L2-7 | POR | -1, no progression | COTAB's 2251 .. 90001 | 19 | port earlier; rules1e |
+| Money | all four | coins per character, with weight | one party purse, copper; coin weight **Felix to confirm** | 11 | POR port earlier; others decided |
 | Initiative | all four | POR d100 per pick; POD coin toss on ties | each round: roll, modifiers, deterministic tie-break, sort | 2 | decided |
 | Difficulty | SotSB, POD | setting scales monsters or to-hit | removed; normal values | 3, 5, 6 | decided |
 | XP, campaign and race+class caps | all four | mixed | separate; cap stops training, keeps XP | 9 | decided |
