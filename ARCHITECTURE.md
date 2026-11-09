@@ -256,6 +256,43 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [ ] Engine loop in gobox: main loop, combat flow, presentation
 - [ ] Rule fixes, one commit each, listed in CHANGES-FROM-ORIGINAL.md
 
+**por-go hashes rewritten.** The por-go history from 1682aff on was rewritten (the `rules4e/powers.go` rename folded in; trees equal). Commit messages in rules1e, por-re and gobox-engine still name the old por-go hashes; this maps them, oldest first (old → new):
+
+- 1682aff → f371700 Character.Thac0Base: was misnamed HitDice, renamed with gopls
+- 459f173 → 0b242af rules: class stats and creation tables come from rules1e
+- 034af50 → e60246c rules: attack, trap and save rolls and turn undead from rules1e; rules
+- fe905fc → 9ba81fc rules: strength and attack rate from rules1e; records stay in the tabl
+- 1c6278d → e443f04 rules: records in the tables test over every MON file and saved charac
+- 6bfbc24 → 1d4855e rules: effects on rolls against the Pascal; 4680 vectors
+- 9d43963 → b28a1ef rules: damage and movement against the Pascal; 13296 vectors
+- 1943e2f → 716eac6 rules: a whole melee computer turn against the Pascal; 272 vectors
+- 9341db1 → ed6637d rules: morale, flight and walls in a computer turn against the Pascal;
+- 0ab9c1c → 0d7c647 rules: spells and items in a computer turn against the Pascal; 5144 ve
+- 0f2091c → b104868 rules: fixture carry-over fixed, name exception gone; 5530 vectors aga
+- f0e9159 → 565bd1c rules: surrender and team count exceptions gone with the reference fix
+- 534ebb7 → a59c626 rules: computer turn offers the item before a readied spell, as the or
+- f41f032 → 91a363d rules: aibreath cases against the Pascal (breath weapon aim and bolt);
+- 4f9802b → 1aa4542 rules: item cases on quick fight against the Pascal, item exception go
+- 7187093 → 3972bbf decomp: disassembly listings, their tools and the ghidra skill gone; t
+- e166e26 → 85ffb7d decomp/emu and the unpacked binaries gone: nothing used them; the byte
+- 8a0e996 → 9a34ddf rules: terrain kinds of the unclassed squares as the reference (por-re
+- 089cc1c → d1b5e49 rules: NPC share cuts the coins as one copper pile; tested against the
+- f5f1706 → 6fe3c8c rules: aiout cases against the Pascal (taken out of play, the cell emp
+- c2c651a → 6a30ffb rules: AddToParty orders against the Pascal's AddCharToParty (por-re 5
+- ac3cd2c → 74643ba rules: the locked door against the Pascal's ResolveMovement (por-re a2
+- 0398203 → 77ca7ad rules: the round's end and Continue Battle against the Pascal's EndOfR
+- 0d3574c → 33298b5 rules: bashDoor and pickLock against the Pascal on a shared seed (por-
+- 2fc077f → 2d7ce55 rules: TREASURE's item block as addTreasureBlock, tested against the P
+- 6c3a4e9 → f4c439c rules: bashDoor matches the fixed Pascal BashDoor on every seeded case
+- 3e13899 → a3059ee rules: TREASURE's random items as addRandomTreasure, equal to the fixe
+- 262a1b1 → cb70b13 rules: opPicture's flags against the Pascal's EclPicture (por-re 42f41
+- af68a79 → 282f548 rules: the camp rest against the Pascal's CampRest on a shared seed (p
+- bba11c7 → 22d0672 rules: the rest tick against the Pascal's CampRest (por-re fa0a199), a
+- b5cb20f → 4dace42 rules: WHO's answer against the Pascal's EclWho (por-re 81660dd), all 
+- d4c1df1 → 33a6f99 rules: aiKeys as the original's poll on a pending aiKey, against the P
+- 3b73456 → a8e592e rules: the ten defect rows now match the fixed Pascal with no exceptio
+- 4288ea6 → 745f0fa rules: documentedMorale's comment: only the walk differs
+
 ## Felix's later answers
 
 - Presentation has a second, engine-owned RNG. Gameplay keeps one stream.
