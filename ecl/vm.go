@@ -121,10 +121,6 @@ func (vm *VM) SetVersion(v *script.Version) {
 
 // Fetch starts the command at PC: Command, and its operands from the first.
 func (vm *VM) Fetch() {
-	if vm.Script == nil {
-		vm.Command = vm.CodeByte(vm.PC)
-		return
-	}
 	vm.cur, vm.argPos = int(vm.PC), 0
 	vm.Command = 0
 	if vm.cur < len(vm.Script.Code) {
@@ -132,9 +128,9 @@ func (vm *VM) Fetch() {
 	}
 }
 
-// readScriptArgs is ReadArgs over the decoded command: the next n operands
-// as the byte code had them; PC goes to the next command.
-func (vm *VM) readScriptArgs(n int) {
+// ReadArgs gives the command's next n operands as the byte code had them;
+// PC goes to the next command.
+func (vm *VM) ReadArgs(n int) {
 	var args []script.Arg
 	if vm.cur < len(vm.Script.Code) {
 		args = vm.Script.Code[vm.cur].Args
@@ -209,41 +205,6 @@ func (vm *VM) Run(h Host, halt func() bool) {
 	vm.Stop = false
 }
 
-// ReadArgs decodes the n operands following PC and steps PC past them.
-func (vm *VM) ReadArgs(n int) {
-	if vm.Script != nil {
-		vm.readScriptArgs(n)
-		return
-	}
-	texts := 0
-	for k := 1; k <= n; k++ {
-		vm.ArgType[k] = vm.CodeByte(vm.PC + 1)
-		vm.ArgLo[k] = vm.CodeByte(vm.PC + 2)
-		vm.PC += 2
-		switch vm.ArgType[k] {
-		case ArgVarByte, ArgAddress, ArgVarWord:
-			vm.PC++
-			vm.ArgHi[k] = vm.CodeByte(vm.PC)
-		case ArgText:
-			texts++
-			if vm.ArgLo[k] > 0 {
-				vm.Text[texts] = vm.unpackText(int(vm.ArgLo[k]))
-			} else {
-				vm.Text[texts] = ""
-			}
-		case ArgTextVar:
-			texts++
-			vm.PC++
-			vm.ArgHi[k] = vm.CodeByte(vm.PC)
-			vm.Text[texts] = vm.Host.TextVar(vm.Addr(k))
-		}
-	}
-	vm.PC++
-	if vm.Trace != nil {
-		vm.Trace(vm, n)
-	}
-}
-
 // Arg is the value of operand k.
 func (vm *VM) Arg(k int, h Host) uint16 {
 	lo, hi := vm.ArgLo[k], vm.ArgHi[k]
@@ -287,50 +248,4 @@ func (vm *VM) SetFlags(a, b uint16) {
 // SetTextFlags is SetFlags for strings.
 func (vm *VM) SetTextFlags(a, b string) {
 	vm.Flags = [6]bool{a == b, a != b, a < b, a > b, a <= b, a >= b}
-}
-
-func letterOf(c byte) byte {
-	if c > 31 {
-		return c
-	}
-	return c + 64
-}
-
-// unpackText reads n bytes after PC, 6 bits per character (PC ends on the last).
-func (vm *VM) unpackText(n int) string {
-	var out []byte
-	var cur, prev, c byte
-	phase := 1
-	for read := 0; read < n; {
-		if phase < 4 {
-			vm.PC++
-			prev = cur
-			cur = vm.CodeByte(vm.PC)
-			read++
-		}
-		switch phase {
-		case 1:
-			c = cur >> 2
-		case 2:
-			c = (prev<<6 + cur>>2) >> 2
-		case 3:
-			c = (prev<<4 + cur>>4) >> 2
-		case 4:
-			c = cur & 63
-		}
-		if phase < 4 {
-			phase++
-		} else {
-			phase = 1
-		}
-		if c != 0 {
-			out = append(out, letterOf(c))
-		}
-	}
-	if phase == 4 {
-		if c = cur & 63; c != 0 {
-			out = append(out, letterOf(c))
-		}
-	}
-	return string(out)
 }
