@@ -42,7 +42,7 @@ The script machine has **no character memory**. Direct or computed, an address i
 
 Other bases are the code image (POR 260, COTAB 148, SotSB 190, POD 332, BR 102, 122 sites) or plain memory.
 
-Unverified: this is static, listing each index's writers. It does not bound them all and I did not run the games. The real proof is the machine's error: run it first on the current VM as a logging trace through each game's script playthrough (cheap, targeted), and bind what appears.
+Unverified: this is static, listing each index's writers. It does not bound them all and I did not run the games. The real proof is the machine's error: run it first on the current VM as a logging run through each game's script playthrough (cheap, targeted), and bind what appears.
 
 ## 2. One script machine: merge ecl-br into gobox/ecl
 
