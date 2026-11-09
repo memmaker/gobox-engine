@@ -9,6 +9,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 
 	"gobox/dax"
@@ -77,6 +78,9 @@ func main() {
 			for _, f := range folds {
 				fmt.Printf("  fold area %d gate %d vendor %s\n", block, f.Gate, f.Vendor)
 			}
+			if script.NeedsPlainTests(s, names) {
+				fmt.Printf("  plain area %d\n", block)
+			}
 			text, err := script.Write(s, names)
 			if err != nil {
 				fmt.Printf("area %d: WRITE %v\n", block, err)
@@ -87,7 +91,7 @@ func main() {
 			if err != nil {
 				fmt.Printf("area %d: PARSE %v\n", block, err)
 				bad++
-			} else if d := differences(s, back); d > 0 {
+			} else if d := differences(v, block, s, back); d > 0 {
 				fmt.Printf("area %d: ROUNDTRIP %d commands differ (%d, %d)\n", block, d, len(s.Code), len(back.Code))
 			}
 			if err := os.WriteFile(filepath.Join(out, fmt.Sprintf("area%d.txt", block)), []byte(text), 0o644); err != nil {
@@ -99,13 +103,35 @@ func main() {
 	fmt.Printf("%d blocks, %d failed\n", len(done), bad)
 }
 
-// differences counts the commands whose byte-code command or operand count
-// changed through Write and Parse.
-func differences(a, b *script.Script) int {
+// differences counts the commands that changed through Write and Parse,
+// operands included, and prints the first few.
+func differences(v *script.Version, block int, a, b *script.Script) int {
 	n := max(len(a.Code), len(b.Code)) - min(len(a.Code), len(b.Code))
+	for _, extra := range b.Code[min(len(a.Code), len(b.Code)):] {
+		if extra.Op != script.OpGoto {
+			fmt.Printf("  notstub area %d: %s\n", block, script.OpName(extra.Op))
+		}
+	}
+	for e, at := range b.Events {
+		if at >= len(a.Code) {
+			at = b.Code[at].Args[0].N // the event shares a command: its stub jumps there
+		}
+		if at != a.Events[e] {
+			fmt.Printf("  notstub area %d: event %d at %d, was %d\n", block, e, at, a.Events[e])
+		}
+	}
+	shown := 0
 	for i := range min(len(a.Code), len(b.Code)) {
-		if a.Code[i].Op != b.Code[i].Op || len(a.Code[i].Args) != len(b.Code[i].Args) {
+		x, y := a.Code[i], b.Code[i]
+		if x.Op == script.OpLoadMap && v.LoadMapSecondUnused && len(x.Args) == 3 && len(y.Args) == 3 {
+			x.Args = []script.Arg{x.Args[0], y.Args[1], x.Args[2]}
+		}
+		if x.Op != y.Op || !slices.Equal(x.Args, y.Args) {
 			n++
+			if shown < 3 && x.Op != y.Op {
+				shown++
+				fmt.Printf("  diff area %d #%d: %s %+v | %s %+v\n", block, i, script.OpName(x.Op), x.Args, script.OpName(y.Op), y.Args)
+			}
 		}
 	}
 	return n

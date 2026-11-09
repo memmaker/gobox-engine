@@ -105,7 +105,7 @@ func elseIf(op byte) byte {
 
 // isTerminator: the command after it is not reached by falling through.
 func isTerminator(op byte) bool {
-	return op == OpGoto || op == OpExit || op == OpReturn || op == OpNewECL
+	return op == OpGoto || op == OpExit || op == OpReturn || op == OpNewECL || op == OpClearExit
 }
 
 // A test (if A == B) reads the comparison flags, which the last comparing

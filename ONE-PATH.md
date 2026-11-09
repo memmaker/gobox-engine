@@ -46,3 +46,5 @@ Agreed rules:
 - Open: the decompiler is still in por-go/rules, POR's hand fixes are not patches yet, the other five games still read ECL*.DAX.
 - a1a93d6: all classic builders take narrow args. 061cb98: play.PowerKind. Next: ViewOf reads play.State directly, rules.State()/Apply gone, Option/Ask/Refusal into play, game.State/Decision deleted (one commit stack). Another agent owns ecl/ and script loading.
 - ecl/script (agent): the decompiler lives in gobox/ecl/script with typed versions V1 (POR), V2 (COTAB, SotSB), V3 (POD), V4 (BR1, BR2); POR hand fixes are import patches, byte-equal by TestImportEqualsCheckedIn; all six games decode and parse. Hints: POR 117, COTAB 65, SotSB 72, POD 13, BR1 45, BR2 49. Folds: POR 7, COTAB 2, SotSB 2, POD 0, BR 0.
+
+Progress (round trip): full-operand Write/Parse survey of all six games: POR, COTAB, SotSB exact; POD 17, BR1 15, BR2 33 areas differ only by appended event stubs (Gotos landing on the original event commands). Folded gates keep their section's Text("") clear. Plain-test fallback: POD 49; BR1 65; BR2 36, 96, 97, 98, 114.

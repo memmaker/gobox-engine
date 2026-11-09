@@ -455,7 +455,8 @@ func (p *parser) ret() error {
 	if x.Type != 1 && x.Type != 3 {
 		return fmt.Errorf("return %s: not a variable", a.text())
 	}
-	if l := len(p.s.Code) - 1; l >= 0 && (p.s.Code[l].Op == OpAnd || p.s.Code[l].Op == OpOr) && len(p.s.Code[l].Args) == 3 && p.s.Code[l].Args[2] == x {
+	// A guarded And or Or may not run, so its flags are not the return's.
+	if l := len(p.s.Code) - 1; l >= 0 && (p.s.Code[l].Op == OpAnd || p.s.Code[l].Op == OpOr) && len(p.s.Code[l].Args) == 3 && p.s.Code[l].Args[2] == x && !(l > 0 && IsIf(p.s.Code[l-1].Op)) {
 		p.rets = append(p.rets, valueRet{-1, p.section})
 	} else {
 		p.rets = append(p.rets, valueRet{p.emit(OpCompare, x, Arg{}), p.section})
@@ -780,10 +781,18 @@ func (p *parser) macro(name string) error {
 			return err
 		}
 		p.emit(OpCompare, x, b)
-	case "LoadMap": // the byte code's second operand is unused
+	case "LoadMap":
+		second := Arg{N: 0xFF}
+		if l := len(pa) - 1; l > 0 && pa[l].label == loadMapSecond {
+			var err error
+			if second, err = v(l, ""); err != nil {
+				return err
+			}
+			pa = pa[:l]
+		}
 		m, err := v(0, "Map")
 		if err != nil || len(pa) > 2 || len(pa) == 2 && pa[1].label != "icons" {
-			return fmt.Errorf("LoadMap(Map, icons=Icons)")
+			return fmt.Errorf("LoadMap(Map, icons=Icons, second=N)")
 		}
 		icons := Arg{N: 0xFF}
 		if len(pa) == 2 {
@@ -791,7 +800,7 @@ func (p *parser) macro(name string) error {
 				return err
 			}
 		}
-		p.emit(OpLoadMap, m, Arg{N: 0xFF}, icons)
+		p.emit(OpLoadMap, m, second, icons)
 	case "Treasure":
 		args := make([]Arg, 8)
 		args[7] = Arg{N: 0xFF}
@@ -1453,6 +1462,9 @@ func (p *parser) operand() (opnd, error) {
 	}
 	return o, nil
 }
+
+// loadMapSecond labels LoadMap's second operand in the dialects that use it.
+const loadMapSecond = "second"
 
 // The forms of operands with no name: a byte variable's and a 32-bit
 // variable's address in hex, a 32-bit immediate in decimal.

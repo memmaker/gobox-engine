@@ -32,6 +32,9 @@ type Version struct {
 	Cmds          [256]Cmd          // by byte-code command
 	Vars          map[int]string    // the words the dialect's engine names
 	ExitOverrides map[ExitPlace]int // corrections of the exit heuristic
+	// LoadMapSecondUnused: the dialect's engine ignores LoadMap's second
+	// operand, so the text leaves it out.
+	LoadMapSecondUnused bool
 }
 
 // Current reports whether a text carrying id and revision is this version's.
@@ -72,7 +75,7 @@ var V1 = func() *Version {
 	})
 	counted(&t, 3, OpVMenu)
 	counted(&t, 2, OpOnGoto, OpOnGosub, OpHMenu)
-	return &Version{ID: 1, Base: 0x9900, Cmds: t, Vars: v1Vars, ExitOverrides: v1ExitOverrides}
+	return &Version{ID: 1, Base: 0x9900, Cmds: t, Vars: v1Vars, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true}
 }()
 
 // set makes byte-code command b the canonical command op with these operands.

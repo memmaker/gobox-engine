@@ -93,6 +93,47 @@ var yesNoRows = []string{"YES", "NO"}
 
 const noRow = 1
 
+// jumpTo is a Goto to command to.
+func jumpTo(to int) Instr {
+	return Instr{Op: OpGoto, Args: []Arg{{Type: 1, N: to, Label: true}}}
+}
+
+// gateClear is the text clear of a gate's asking section, run after the
+// answer on both branches, if it has one.
+func gateClear(s *Script, i int) (Instr, bool) {
+	in := s.Code[i]
+	if in.Op != OpGosub || len(in.Args) != 1 || !in.Args[0].Label {
+		return Instr{}, false
+	}
+	asked := false
+	for _, c := range s.Code[in.Args[0].N:] {
+		switch {
+		case c.Op == OpHMenu:
+			asked = true
+		case asked && c.Op == OpPrintClear:
+			return c, true
+		case isTerminator(c.Op):
+			return Instr{}, false
+		}
+	}
+	return Instr{}, false
+}
+
+// cutGate replaces the gate at i, length commands long, with its asking
+// section's clear (a gate is never shorter than the two commands this
+// takes) and a jump to the Yes branch.
+func cutGate(s *Script, i, length, yes int, drop map[int]bool) {
+	next := i
+	if c, ok := gateClear(s, i); ok {
+		s.Code[next] = c
+		next++
+	}
+	s.Code[next] = jumpTo(yes)
+	for k := next + 1; k < i+length; k++ {
+		drop[k] = true
+	}
+}
+
 // FoldVendorGates cuts area's vendor gates and returns them.
 func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
 	targets := map[int]bool{}
@@ -129,7 +170,6 @@ func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
 		}
 		if a := v + n; a == no || a < len(s.Code) && s.Code[a].Op == OpGoto && s.Code[a].Args[0].Label && s.Code[a].Args[0].N == no {
 			// the vendor already goes on to the No branch: only the gate goes
-			goTo := Instr{Op: OpGoto, Args: []Arg{{Type: 1, N: yes, Label: true}}}
 			inside := false
 			for k := i + 1; k < i+gate; k++ {
 				inside = inside || targets[k]
@@ -137,10 +177,7 @@ func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
 			if inside {
 				continue
 			}
-			s.Code[i] = goTo
-			for k := i + 1; k < i+gate; k++ {
-				drop[k] = true
-			}
+			cutGate(s, i, gate, yes, drop)
 			folds = append(folds, FoldedGate{Area: area, Gate: i, Vendor: name, Yes: yes, No: no})
 			continue
 		}
@@ -158,7 +195,6 @@ func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
 		if !tail || end >= len(s.Code) {
 			continue
 		}
-		goTo := func(to int) Instr { return Instr{Op: OpGoto, Args: []Arg{{Type: 1, N: to, Label: true}}} }
 		inside := false // nothing may jump into the cut gate
 		for k := i + 1; k < i+gate; k++ {
 			inside = inside || targets[k]
@@ -166,12 +202,8 @@ func FoldVendorGates(s *Script, area int, names *Names) []FoldedGate {
 		if inside {
 			continue
 		}
-		s.Code[i] = goTo(yes)
-		for k := i + 1; k < i+gate; k++ {
-			s.Code[k] = Instr{Op: OpExit}
-			drop[k] = true
-		}
-		s.Code[v+n] = goTo(no)
+		cutGate(s, i, gate, yes, drop)
+		s.Code[v+n] = jumpTo(no)
 		for k := v + n + 1; k <= end; k++ {
 			drop[k] = true
 		}
