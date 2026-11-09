@@ -114,16 +114,16 @@ type Question struct {
 	YesNo        bool // Replies are no, yes: Reply{N: 1} is yes
 	Typed        bool
 	Number       bool
-	Default, Max int             // Typed: the longest; Number: the default and the largest; YesNo: 1 starts on yes
-	NoPick       bool            // no highlight, Enter and the arrows do not answer it; only the hotkeys (a YesNo: Y and N) do
-	NoEsc        bool            // Esc does not answer it (the question stays up), as the original's ask that ignores Esc
-	Continue     bool            // a key to go on (Continue answers it); Common.Status may say so
-	Heading      bool            // a heading to pick (the overland): Heading{Dir}, Leave for Done
-	List         bool            // Replies are a pick from a list (a roster, a town's places), not a command menu
-	Keys         []rune          // the game's own hotkey per reply (0: from the label); nil: all from the labels
-	Rows         []game.Line     // List: per reply, its flags (a heading, dimmed, off, the spell it names); nil: plain rows
-	Do           []Action // per reply, an action gobox runs in place of Reply (a View's Gear: OpenItems{Member}); nil: Reply
-	Esc          EscReply        // the reply Esc answers (the menu's Exit, as the originals'); zero: none
+	Default, Max int         // Typed: the longest; Number: the default and the largest; YesNo: 1 starts on yes
+	NoPick       bool        // no highlight, Enter and the arrows do not answer it; only the hotkeys (a YesNo: Y and N) do
+	NoEsc        bool        // Esc does not answer it (the question stays up), as the original's ask that ignores Esc
+	Continue     bool        // a key to go on (Continue answers it); Common.Status may say so
+	Heading      bool        // a heading to pick (the overland): Heading{Dir}, Leave for Done
+	List         bool        // Replies are a pick from a list (a roster, a town's places), not a command menu
+	Keys         []rune      // the game's own hotkey per reply (0: from the label); nil: all from the labels
+	Rows         []game.Line // List: per reply, its flags (a heading, dimmed, off, the spell it names); nil: plain rows
+	Do           []Action    // per reply, an action gobox runs in place of Reply (a View's Gear: OpenItems{Member}); nil: Reply
+	Esc          EscReply    // the reply Esc answers (the menu's Exit, as the originals'); zero: none
 }
 
 // EscReply names the reply Esc answers: EscTo(i) is Replies[i]. It is the
@@ -740,4 +740,3 @@ func (Aid) action()              {}
 func (Sprint) action()           {}
 func (Dodge) action()            {}
 func (Jetpack) action()          {}
-
