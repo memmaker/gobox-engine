@@ -416,7 +416,7 @@ func allowedNames(al play.Allowed) map[string]bool {
 // card is member n's context menu from what al lets n do, as POR's:
 // View, Items, then the allowed member actions in a fixed order. No game
 // builds it, so every game's cards get the same menu.
-func card(m play.Member, al play.Allowed, n int) []game.Entry {
+func card(m game.Member, al play.Allowed, n int) []game.Entry {
 	es := []game.Entry{{Name: "View", Verb: "view"}}
 	has := map[string]bool{"items": len(m.Items) > 0}
 	for _, a := range append(slices.Clone(al.Plain), aimedActions(al)...) {
@@ -472,20 +472,6 @@ func canCast(al play.Allowed, n int) bool {
 		}
 	}
 	return false
-}
-
-func member(m play.Member, chosen, cast bool) game.Member {
-	g := game.Member{Powers: m.Offers, Name: m.Name, Race: m.Race, Class: m.Class, Alignment: m.Alignment, Status: m.Status,
-		Levels: m.Levels, Stats: m.Stats, BaseStats: m.BaseStats, Str00: m.Str00, HP: m.HP, MaxHP: m.MaxHP,
-		AC: m.AC, THAC0: m.THAC0, Move: m.Move, Exp: uint32(m.Exp), LevelExp: m.LevelExp, NextExp: m.NextExp,
-		Items: m.Items, ItemCap: m.ItemCap, Spells: m.Spells, Slots: m.Slots, SlotsMax: m.SlotsMax,
-		PortraitHeadID: m.PortraitHeadID, PortraitBodyID: m.PortraitBodyID, IconHeadID: m.IconHeadID,
-		IconBodyID: m.IconBodyID, IconColors: m.IconColours, Okay: m.Okay, Foe: m.Foe, Chosen: chosen, CanCast: cast,
-		ClassText: m.ClassText, LevelText: m.LevelText, SpellsReady: m.SpellsReady, Memo: m.Memo, Icon: m.Icon, Portrait: m.Portrait, Age: m.Age}
-	for _, e := range m.Effects {
-		g.Effects = append(g.Effects, game.Line{Text: e})
-	}
-	return g
 }
 
 // Text colours are gobox's: plain ink, and one per Tone (EGA white, light
@@ -1397,11 +1383,7 @@ const speedStepMs, defaultSpeed, shipMs = 100, 4, 350
 // events are the outcome's facts as the old events, at the default speed.
 // engaged is f, a fight as it began, as the EvEngaged event: its board and party.
 func (r *rules) engaged(f play.Fighting) play.Report {
-	e := play.Report{Kind: game.EvEngaged, Combat: r.combat(f)}
-	for _, m := range f.Party {
-		e.Party = append(e.Party, member(m, false, false))
-	}
-	return e
+	return play.Report{Kind: game.EvEngaged, Combat: r.combat(f), Party: f.Party}
 }
 
 func events(es []play.Event) []play.Report { return eventsAt(es, defaultSpeed*speedStepMs, nil) }

@@ -24,7 +24,7 @@ func (r *castGame) State() play.State {
 	if r.lone {
 		al = play.Allowed{Aimed: []play.Aimed{{Action: play.Shoot{}, Squares: sq, Targets: 1}}}
 	}
-	return play.Fighting{Common: play.Common{Allowed: al, Party: []play.Member{{Spells: []game.SpellRef{{ID: 7, Name: "Magic Missile", Range: 6}}}}},
+	return play.Fighting{Common: play.Common{Allowed: al, Party: []game.Member{{Spells: []game.SpellRef{{ID: 7, Name: "Magic Missile", Range: 6}}}}},
 		Field: play.Battlefield{Size: image.Pt(6, 6), Turn: 1, Units: []play.Unit{{ID: 1, Member: 0, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(3, 1), Foe: true}}}}
 }
 func (r *castGame) Do(a play.Action) (play.Outcome, error) {

@@ -231,7 +231,7 @@ func (g *Game) View() front.View {
 	v = Place(v, c.Where, windowOf(ps))
 	v.Quests, v.Lore = Quests(c.Quests), Lore(c.Lore)
 	v = Waits(v, game.Hold(holding(ps)), doorOf(ps), c.PowerPick)
-	v.Party, v.Purse = Party(party, sel, art), Purse(c.Purse, c.PoolItems, c.PartyCap)
+	v.Party, v.Purse = Party(party, sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
 	v = Sheet(v, sheet, image.Rectangle{}, image.Rectangle{}, page, Drafting(mode, draft), draft, own)
 	v = Border(v, art)
 	v = Walls(v, r.wallsOf(ps), art)

@@ -10,7 +10,7 @@ import (
 
 // TestPowersShow: the powers a game offers on a member reach the inventory.
 func TestPowersShow(t *testing.T) {
-	st := play.Camping{Common: play.Common{Party: []play.Member{{Offers: []game.PowerOffer{{Label: "Heal", Kind: game.PowerHeal}, {Label: "Cure", Kind: game.PowerCure}}}}}}
+	st := play.Camping{Common: play.Common{Party: []game.Member{{Powers: []game.PowerOffer{{Label: "Heal", Kind: game.PowerHeal}, {Label: "Cure", Kind: game.PowerCure}}}}}}
 	g := NewGame(&fake{st: st}, game.Data{})
 	g.r.openItems(0)
 	in := g.View().Inventory

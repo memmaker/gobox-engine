@@ -15,9 +15,9 @@ func partyOf(ps play.State) []game.Member {
 	c := commonOf(ps)
 	var out []game.Member
 	for i, m := range c.Party {
-		g := member(m, i == c.Selected, m.CanCast || canCast(c.Allowed, i))
-		g.Card, g.Page = card(m, c.Allowed, i), m.Sheet
-		out = append(out, g)
+		m.Chosen, m.CanCast = i == c.Selected, m.CanCast || canCast(c.Allowed, i)
+		m.Card = card(m, c.Allowed, i)
+		out = append(out, m)
 	}
 	return out
 }
@@ -147,8 +147,8 @@ func windowOf(ps play.State) game.Window {
 
 // sheetOf is what the selected member's sheet offers (nil: none up).
 func (r *rules) sheetOf(c play.Common) *game.Sheet {
-	if n := c.Selected; n >= 0 && n < len(c.Party) && (len(c.Party[n].Powers) > 0 || len(c.Party[n].Reactions) > 0) {
-		return &game.Sheet{Powers: c.Party[n].Powers, Reactions: c.Party[n].Reactions}
+	if n := c.Selected; n >= 0 && n < len(c.Party) && (len(c.Party[n].SheetPowers) > 0 || len(c.Party[n].Reactions) > 0) {
+		return &game.Sheet{Powers: c.Party[n].SheetPowers, Reactions: c.Party[n].Reactions}
 	}
 	if n := r.sheet; n >= 0 && n < len(c.Party) {
 		return &game.Sheet{} // up though the member has no powers: the front shows a page only with one
@@ -161,12 +161,12 @@ func (r *rules) sheetPageOf(ps play.State, party []game.Member) *game.SheetPage 
 	c := commonOf(ps)
 	var p *game.SheetPage
 	if n := r.sheet; n >= 0 && n < len(c.Party) {
-		if p = c.Party[n].Sheet; p == nil {
+		if p = c.Party[n].Page; p == nil {
 			p = game.MemberPage(party[n])
 		}
 	}
-	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && a.Draft.Member.Sheet != nil {
-		p = a.Draft.Member.Sheet // the rules' figures for the sheet being made
+	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && a.Draft.Member.Page != nil {
+		p = a.Draft.Member.Page // the rules' figures for the sheet being made
 	}
 	return p
 }
@@ -178,7 +178,9 @@ func creationOf(ps play.State) *game.Creation {
 		return nil
 	}
 	d := a.Draft
-	cr := &game.Creation{Draft: member(d.Member, true, false), Fields: d.Fields, Roster: a.Roster,
+	draft := d.Member
+	draft.Chosen = true
+	cr := &game.Creation{Draft: draft, Fields: d.Fields, Roster: a.Roster,
 		MinHP: d.MinHP, MaxHP: d.MaxHP, Minimums: d.Minimums, Step: d.Step, Stats: d.Stats, Derived: d.Derived}
 	if d.Ask != nil {
 		cr.Choices = d.Ask.Replies

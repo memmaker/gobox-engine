@@ -14,7 +14,7 @@ func TestPartyIconHead(t *testing.T) {
 	old := Series
 	defer func() { Series = old }()
 	Series = "buck-rogers"
-	ms := Party([]game.Member{{Name: "Buck", IconBodyID: "combat_icon_000"}}, 0, nil)
+	ms := Party([]game.Member{{Name: "Buck", IconBodyID: "combat_icon_000"}}, 0)
 	if len(ms) != 1 || ms[0].Head == nil {
 		t.Fatal("no face for an icon-only member")
 	}

@@ -10,7 +10,7 @@ import (
 
 // While an area spell is aimed, the battle previews its radius (AimArea is radius+1); before and after, none.
 func TestAimAreaPreview(t *testing.T) {
-	st := play.Fighting{Common: play.Common{Party: []play.Member{{Spells: []game.SpellRef{{ID: 7, Name: "Fireball", Range: 9}}}},
+	st := play.Fighting{Common: play.Common{Party: []game.Member{{Spells: []game.SpellRef{{ID: 7, Name: "Fireball", Range: 9}}}},
 		Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Cast{Spell: 7}, Area: 2, Targets: 1}}}},
 		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}}}}
 	g := NewGame(&fake{st: st}, game.Data{})

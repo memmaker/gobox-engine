@@ -67,13 +67,13 @@ func TestParity(t *testing.T) {
 				return s.Page.Prompt[0].Text == "Searching" && len(s.Page.Pane) == 2 && s.LastText == "b" && s.Picture.File == pic.File
 			}},
 		{"camp flags and automap", play.Camping{Common: play.Common{Adventure: true, Allowed: play.Allowed{Plain: []play.Action{play.Order{}}},
-			Automap: game.Automap{Size: image.Pt(16, 16)}, Party: []play.Member{{CanCast: true}}}}, game.Data{}, nil, nil,
+			Automap: game.Automap{Size: image.Pt(16, 16)}, Party: []game.Member{{CanCast: true}}}}, game.Data{}, nil, nil,
 			func(s shown, _ play.Result) bool {
 				return s.Flags.Adventure && s.Flags.Ordering && s.Flags.CanCast && s.Map.Size.X == 16
 			}},
 		{"sweeping", play.Exploring{Common: play.Common{Where: game.Where{Searching: true}}}, game.Data{}, nil, nil,
 			func(s shown, _ play.Result) bool { return s.Flags.Sweeping }},
-		{"party menu", play.Assembling{Common: play.Common{Party: []play.Member{{}},
+		{"party menu", play.Assembling{Common: play.Common{Party: []game.Member{{}},
 			Allowed: play.Allowed{Plain: []play.Action{play.NewCharacter{}, play.RemoveCharacter{}, play.QuickStart{}, play.Begin{}}}}},
 			game.Data{Texts: map[string]string{"Remove Character": "Purge Character"}}, nil, nil,
 			func(s shown, _ play.Result) bool {
@@ -98,7 +98,7 @@ func TestParity(t *testing.T) {
 		{"question over fighting", play.Fighting{Common: play.Common{Ask: &play.Question{Replies: []string{"a"}}}}, game.Data{},
 			[]any{tAnswer{N: 'A'}}, []play.Action{play.Reply{N: 'A'}},
 			func(s shown, _ play.Result) bool { return s.Combat != nil && s.Pending != nil }},
-		{"series party menu", play.Assembling{Common: play.Common{Party: []play.Member{{}},
+		{"series party menu", play.Assembling{Common: play.Common{Party: []game.Member{{}},
 			Allowed: play.Allowed{Plain: []play.Action{play.RemoveCharacter{}, play.EditIcon{}, play.Begin{}}}}},
 			game.Data{PartyMenu: []game.MenuKey{{Label: "Begin Adventuring", Key: 'B'}, {Label: "Remove Character", Key: 'P'}, {Label: "Icon Select", Key: 'I'}}}, nil, nil,
 			func(s shown, _ play.Result) bool {
@@ -115,9 +115,9 @@ func TestParity(t *testing.T) {
 			func(s shown, _ play.Result) bool {
 				return s.Mode == game.ModeAsk && s.Pending.Kind == game.Direction && s.Pending.Options[0].Do == play.Leave{}
 			}},
-		{"draft sheet figures", play.Assembling{Draft: &play.Draft{Member: play.Member{Sheet: &game.SheetPage{Age: 23}}}}, game.Data{}, nil, nil,
+		{"draft sheet figures", play.Assembling{Draft: &play.Draft{Member: game.Member{Page: &game.SheetPage{Age: 23}}}}, game.Data{}, nil, nil,
 			func(s shown, _ play.Result) bool { return s.SheetPage != nil && s.SheetPage.Age == 23 }},
-		{"no save at party menu", play.Assembling{Common: play.Common{NoSave: true, NoLoad: true, Party: []play.Member{{Name: "A"}}}}, game.Data{},
+		{"no save at party menu", play.Assembling{Common: play.Common{NoSave: true, NoLoad: true, Party: []game.Member{{Name: "A"}}}}, game.Data{},
 			nil, nil,
 			func(s shown, res play.Result) bool {
 				for _, o := range s.Pending.Options {

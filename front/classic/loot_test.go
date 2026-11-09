@@ -40,7 +40,7 @@ func TestLoot(t *testing.T) {
 // with the treasure, its money and options) without the game's View, and
 // its acts are TakeLoot.
 func TestLootScreen(t *testing.T) {
-	treasure := play.Looting{Common: play.Common{Party: []play.Member{{}}}, Items: []game.Item{{Name: "Gauntlets"}}, Money: map[string]int{game.Gold: 120, game.Gems: 2}}
+	treasure := play.Looting{Common: play.Common{Party: []game.Member{{}}}, Items: []game.Item{{Name: "Gauntlets"}}, Money: map[string]int{game.Gold: 120, game.Gems: 2}}
 	f := &fake{st: treasure}
 	g := NewGame(f, game.Data{})
 	if v := g.View(); v.Inventory != nil || v.Ask == nil || v.Ask.Menu.Prompt != "You found some loot!" || v.Loot != nil {
@@ -64,7 +64,7 @@ func TestLootScreen(t *testing.T) {
 		t.Error("a question over the treasure announced it again")
 	}
 	sheet := treasure
-	sheet.Party = []play.Member{{Powers: []game.Entry{{Name: "Heal"}}}}
+	sheet.Party = []game.Member{{SheetPowers: []game.Entry{{Name: "Heal"}}}}
 	f.st = sheet
 	if g.View().Inventory != nil {
 		t.Error("loot screen over the sheet")

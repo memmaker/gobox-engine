@@ -73,7 +73,7 @@ type Common struct {
 	Portrait  *Portrait // a speaker's portrait up (a shopkeeper), nil none; gobox composes it
 	NoSave    bool      // saving is refused here (the rules say where the party may save)
 	NoLoad    bool      // loading is refused here
-	Party     []Member
+	Party     []game.Member
 	Selected  int
 	Purse     map[string]int
 	PartyCap  int // most items the party carries in all (a shared inventory's slots), 0 no limit
@@ -140,34 +140,6 @@ func EscTo(i int) EscReply { return EscReply(i + 1) }
 // Reply is the index into Replies Esc answers; false for NoEscReply.
 func (e EscReply) Reply() (int, bool) { return int(e) - 1, e != NoEscReply }
 
-// Member is one character as the rules know it.
-type Member struct {
-	Offers []game.PowerOffer // the special powers the inventory shows; UsePower does one
-	Name, Race, Class, Alignment, Status string
-	Levels                               []int
-	Stats, BaseStats                     map[string]int // "str", "int", ...
-	Str00                                int            // exceptional strength: 0 none, 1..100
-	HP, MaxHP, AC, THAC0, Move, Age      int
-	Exp, LevelExp, NextExp               int
-	Items                                []game.Item
-	ItemCap                              int // 0 no limit
-	Spells                               []game.SpellRef
-	Slots, SlotsMax                      map[string]int // by kind/level
-	Effects                              []string       // spells on the member, as the rules word them
-	PortraitHeadID, PortraitBodyID       string         // gobox's pool picks, stored back as given
-	IconHeadID, IconBodyID               string
-	IconColours                          []byte
-	Icon                                 map[string]int // the original's icon parts as numbers ("head", "body", "size"); gobox draws them where IconHeadID is ""
-	Portrait                             game.Picture   // the original's portrait picture, where PortraitHeadID is ""
-	NPC, Okay, Foe                       bool
-	CanCast                              bool            // has a spell to cast now (status, memorized, no-magic area)
-	ClassText, LevelText                 string          // "old/new", "3/3"
-	SpellsReady, Memo                    string          // "0/3" over the slots
-	Powers                               []game.Entry    // the sheet's power offers (UsePower)
-	Reactions                            []game.Reaction // the sheet's reactions (SetPolicy)
-	Sheet                                *game.SheetPage // the rules' figures for the sheet (nil: gobox's own from the rest)
-}
-
 // The states. Each situation is one explicit type; similar screens share one.
 
 // Assembling: the party is put together before play, and characters are
@@ -185,7 +157,7 @@ type Assembling struct {
 // Draft is a character being made or changed: the member so far, the
 // fields still to choose and their options.
 type Draft struct {
-	Member
+	game.Member
 	Fields       []game.Field
 	MinHP, MaxHP int
 	Minimums     map[string]int // the class's lowest ability scores, by Member.Stats key ("str", ...)

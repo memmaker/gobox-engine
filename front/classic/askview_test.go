@@ -13,7 +13,7 @@ import (
 // With Ask.View the View action on a highlighted member reaches the rules' ViewMember; without, it does not.
 func TestAskView(t *testing.T) {
 	for _, view := range []bool{true, false} {
-		st := play.Scene{Common: play.Common{Ask: &play.Question{Replies: []string{"A", "B", "C"}}, Party: []play.Member{{}, {}, {}}}}
+		st := play.Scene{Common: play.Common{Ask: &play.Question{Replies: []string{"A", "B", "C"}}, Party: []game.Member{{}, {}, {}}}}
 		if view {
 			st.Allowed.Plain = []play.Action{play.ViewMember{Member: 2}}
 		}

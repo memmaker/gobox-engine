@@ -23,7 +23,7 @@ func TestNameColour(t *testing.T) {
 		m    game.Member
 		want int
 	}{{game.Member{Okay: true}, 11}, {game.Member{}, 12}, {game.Member{Okay: true, Foe: true}, 14},
-		{game.Member{Okay: true, Exp: 50, NextExp: 40}, 13}, {game.Member{Colour: 5}, 5}} {
+		{game.Member{Okay: true, Exp: 50, NextExp: 40}, 13}} {
 		if g := nameColour(c.m); g != c.want {
 			t.Errorf("%+v: %d, want %d", c.m, g, c.want)
 		}

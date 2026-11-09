@@ -135,8 +135,8 @@ func TestGaps(t *testing.T) {
 		{"br sprint", play.Fighting{Common: allow(play.Sprint{})}, tAnswer{N: 'S'}, play.Sprint{}, nil},
 		{"br dodge", play.Fighting{Common: allow(play.Dodge{})}, tAnswer{N: 'D'}, play.Dodge{}, nil},
 		{"br jetpack", play.Fighting{Common: allow(play.Jetpack{})}, tAnswer{N: 'J'}, play.Jetpack{}, nil},
-		{"member text", play.Camping{Common: play.Common{Party: []play.Member{{ClassText: "a/b", Memo: "0/3",
-			Powers: []game.Entry{{Name: "Heal", Verb: "heal"}}, Sheet: &game.SheetPage{Name: "Al"}}}}}, tOpenSheet{Member: 0}, nil,
+		{"member text", play.Camping{Common: play.Common{Party: []game.Member{{ClassText: "a/b", Memo: "0/3",
+			SheetPowers: []game.Entry{{Name: "Heal", Verb: "heal"}}, Page: &game.SheetPage{Name: "Al"}}}}}, tOpenSheet{Member: 0}, nil,
 			func(s shown) bool {
 				m := s.Party[0]
 				return m.ClassText == "a/b" && m.Memo == "0/3" && s.Sheet.Powers[0].Name == "Heal" && s.SheetPage.Name == "Al"
@@ -193,7 +193,7 @@ func reflectEqual(a, b play.Action) bool { return reflect.DeepEqual(a, b) }
 // member do, so no game builds a menu.
 func TestCampCard(t *testing.T) {
 	c := allow(play.Memorize{Member: 1, Spell: 2}, play.DropMember{Member: 0}, play.DropMember{Member: 1})
-	c.Party = []play.Member{{Name: "A"}, {Name: "B", Items: []game.Item{{Name: "Sword"}}}}
+	c.Party = []game.Member{{Name: "A"}, {Name: "B", Items: []game.Item{{Name: "Sword"}}}}
 	s := shownOf(newRules(&fake{st: play.Camping{Common: c}}, game.Data{}))
 	got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card)
 	if want := "[{View view} {Drop drop}] [{View view} {Items items} {Memorize memorize} {Drop drop}]"; got != want {
@@ -241,7 +241,7 @@ func TestPictureIsLayer(t *testing.T) {
 // handle an item, though their items are not in the state.
 func TestCardItems(t *testing.T) {
 	c := allow(play.Ready{Member: 1}, play.Drop{Member: 2})
-	c.Party = []play.Member{{Name: "A"}, {Name: "B"}, {Name: "C"}}
+	c.Party = []game.Member{{Name: "A"}, {Name: "B"}, {Name: "C"}}
 	s := shownOf(newRules(&fake{st: play.Camping{Common: c}}, game.Data{}))
 	if got := fmt.Sprint(s.Party[0].Card, s.Party[1].Card, s.Party[2].Card); got != "[{View view}] [{View view} {Items items}] [{View view} {Items items}]" {
 		t.Fatal(got)
@@ -294,7 +294,7 @@ func TestWhoSelected(t *testing.T) {
 // TestItemsTabSheet: Tab on the items (CloseItems, not All) shows the
 // selected member's sheet; Esc (All) closes both.
 func TestItemsTabSheet(t *testing.T) {
-	c := play.Common{Party: []play.Member{{Name: "A", Levels: []int{3, 2}}}} // no page from the rules: gobox makes its own
+	c := play.Common{Party: []game.Member{{Name: "A", Levels: []int{3, 2}}}} // no page from the rules: gobox makes its own
 	r := newRules(&fake{st: play.Exploring{Common: c}}, game.Data{})
 	r.send(play.OpenItems{})
 	r.send(tCloseItems{})
@@ -314,7 +314,7 @@ func TestShopBrowse(t *testing.T) {
 
 // TestReadyToggles: Ready on a readied item unreadies it.
 func TestReadyToggles(t *testing.T) {
-	c := play.Common{Party: []play.Member{{Items: []game.Item{{Name: "Gun", Readied: true}}}}}
+	c := play.Common{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Readied: true}}}}}
 	f := &fake{st: play.Exploring{Common: c}}
 	newRules(f, game.Data{}).send(play.Ready{Member: 0, Item: 0})
 	if len(f.sent) != 1 || f.sent[0] != (play.Unready{}) {

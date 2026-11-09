@@ -29,7 +29,7 @@ func TestShopBarReachesGame(t *testing.T) {
 		want play.Action
 	}{{"P", play.PoolCoins{Member: 1}}, {"T", play.Take{Item: -1}}, {"S", play.LootShare{}}, {"E", play.Leave{}},
 		{"BP", play.PoolCoins{Member: 1}}, {"BEE", play.Leave{}}} {
-		sp := &shopPlay{st: play.Trading{Common: play.Common{Party: []play.Member{{Name: "A"}, {Name: "B"}}, Selected: 1,
+		sp := &shopPlay{st: play.Trading{Common: play.Common{Party: []game.Member{{Name: "A"}, {Name: "B"}}, Selected: 1,
 			Allowed: play.Allowed{Plain: []play.Action{play.PoolCoins{Member: 1}, play.Take{}, play.LootShare{}, play.Leave{}}}}}}
 		f := &Front{Game: classic.NewGame(sp, game.Data{}), started: true}
 		f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }

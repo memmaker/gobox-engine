@@ -14,7 +14,7 @@ type fightRules = fake
 // no sheet menu (Cast); Esc closes it without the game.
 func TestFightSheetLookOnly(t *testing.T) {
 	r := &fightRules{}
-	r.st = play.Fighting{Common: play.Common{Party: []play.Member{{Name: "A"}, {Name: "B", Sheet: &game.SheetPage{Name: "B", Damage: "1d8", Sex: "Male"}}}},
+	r.st = play.Fighting{Common: play.Common{Party: []game.Member{{Name: "A"}, {Name: "B", Page: &game.SheetPage{Name: "B", Damage: "1d8", Sex: "Male"}}}},
 		Field: play.Battlefield{Turn: 7, Units: []play.Unit{{ID: 3, Member: 0}, {ID: 7, Member: 1}}}}
 	g := NewGame(r, game.Data{})
 	if g.OpenSheet(-1); len(r.sent) != 0 {
@@ -37,7 +37,7 @@ func TestFightSheetLookOnly(t *testing.T) {
 // the sheet out of a fight.
 func TestFightItemsTabSheet(t *testing.T) {
 	r := &fightRules{}
-	r.st = play.Fighting{Common: play.Common{Selected: 1, Party: []play.Member{{Name: "A"}, {Name: "B"}}},
+	r.st = play.Fighting{Common: play.Common{Selected: 1, Party: []game.Member{{Name: "A"}, {Name: "B"}}},
 		Field: play.Battlefield{Turn: 3, Units: []play.Unit{{ID: 3, Member: 0}}}}
 	g := NewGame(r, game.Data{})
 	g.CloseItems(false)

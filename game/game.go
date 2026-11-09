@@ -364,15 +364,14 @@ type Member struct {
 	CanCast                              bool           // may cast now (status, no-magic area)
 	Powers                               []PowerOffer   // the member\'s special powers menu
 	Chosen                               bool           // the card is marked: the selected member, or the candidate while one is picked
-	Colour                               int            // the roster colour of the name (EGA number)
-	Head                                 string         // the head the player chose: a Data.Art name, "" none
-	Dropped                              image.Image    // the PNG dropped on the sheet in place of the head, nil none
 	Card                                 []Entry        // the card's context menu out of combat
 	LevelExp, NextExp                    int            // the experience the level took and the next takes (0: none)
 	SpellsReady, Memo                    string         // spells ready over the slots ("0/3"), in camp too
 	Effects                              []Line         // the sheet's list of spell effects on the member, as the game words it
 	Page                                 *SheetPage     // the member's sheet as the game's own sheet mode shows it, kept current in every state; gobox's look-only sheet (a fight's or shop's View) draws it, nil: built from the Member (MemberPage)
 	Foe                                  bool           // on the monsters' side (gobox colours its name as such); last, for parity's unsetLate
+	SheetPowers                          []Entry        // the sheet's power offers (UsePower)
+	Reactions                            []Reaction     // the sheet's reactions (SetPolicy)
 }
 
 // SpellRef is a spell a member knows or has memorized.
@@ -785,8 +784,8 @@ const (
 // rules package exports it as func Data() Data, and its cmd hands gobox
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
-	Commands []PartyCommand // the party menu's extra entries; play.Assembling.Commands[i] does entry i
-	SaveDir     string // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
+	Commands    []PartyCommand // the party menu's extra entries; play.Assembling.Commands[i] does entry i
+	SaveDir     string         // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
 	Series      string
 	Coin        string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
 	ID          string            // game id
