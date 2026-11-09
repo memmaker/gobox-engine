@@ -246,7 +246,8 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [x] Gate: `gate.sh`, staged trees exported clean; other games when gobox-engine outside core changes
 - [x] Effects on rolls: `veceff`, `TestEffectsAgainstPascal` in por-go while the handlers live there
 - [x] Weapon and plain damage, movement with effects: `vecdmg`, same test. Backstab multiple not yet compared
-- [ ] Combat: `Decide` compared by whole turn, damage, movement
+- [x] Whole computer turn, melee only: `vecai`, `TestDecideAgainstPascal`; backstab multiple compared
+- [ ] Combat: `Decide` with items, spells, morale, flight; through the seam
 - [ ] Spells, items, training behind `CharacterRules`
 - [ ] `por-go/adventure` leaf: areas, journal, lore, script patches, assets via importers
 - [ ] Scripts through bindings (sections 1, 3), errors on
