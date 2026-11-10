@@ -267,7 +267,7 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
 - [ ] 3. Group C: [x] U2 option, [x] U3 option, [x] U4 kept (whenCast; every listed spell has a combat handler), [ ] U5 Pascal display fix (with viewchar, item 6), [x] U6-U8 rows, [x] U9, [x] U10 (saveimport.go)
 - [ ] 1b. Typed script references (Felix d1-d4): no address ranges in gobox ecl or any game; each gated step builds and passes
   - [x] a. Layout table format in gobox ecl/script: per dialect, data; field, member-field, array (typed index, bounds), local, const-table, engine fact; unknown address fails import
-  - [ ] b. POR layout table from por-re's Pascal record types (TCharRecord, zones, specials)
+  - [x] b. (data in por-go c0e080d; coverage test with c) POR layout table from por-re's Pascal record types (TCharRecord, zones, specials)
   - [ ] c. Importer: every operand resolved to a typed `Ref`; computed addresses to arrays; code-space tables to const tables; text format names refs
   - [ ] d. VM `Host` on `Ref` (Get/Set/Text/SetText); `VarAddr`, `Addr`, `RemainderAddr` go
   - [ ] e. por-go host on `Ref`; `ReadVar`/`WriteVar`, `addrKind`, zones, `SaveEditor.SetVar(addr)` go
