@@ -269,7 +269,7 @@ Track R (rules seam, agent R): rules move into rules1e behind the core interface
 - [ ] R4. `Rules.Allowed`/`Resolve`/`Elapse`/`Save`/`Load` complete in rules1e; por-go calls only the interface
 
 Track A (adventure seam, agent A): scripts and data move into the adventure leaf.
-- [ ] A1. 1b-f: saves by field (typed state by id; canonical save, section 6); old saves through saveimport.go
+- [x] A1 (por-go 5ccd712; cmd/fixture still edits original saves, which load through the import). 1b-f: saves by field (typed state by id; canonical save, section 6); old saves through saveimport.go
 - [ ] A2. Section 1: the character window through `Rules.Fact`/`SetFact` bindings (newEngineFields' `sel()` reads go); side-effect writes (member gone, died, stoned) become `Action`s by patch; an unbound field is an error
 - [ ] A3. Section 3: native scripts become script patches (tavern, histories, PayPlatinum)
 - [ ] A4. Section 4: typed ids in scripts (LoadMonster, treasure, FindItem; candidate lists at POR's 24 + 3 variable sites)
@@ -298,7 +298,7 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
     - [x] four games: hosts map a Ref back with `Layout.Address` (their state is still the original memory); `vm.Remainder` is the layout's field; table bases resolve whatever their type (`Ref.Plus`); a variable operand without a Ref panics; tests resolve their own scripts (`Assemble(v, layout, code)`, por `resolved`); POR's Scratch6 and Hours by `Layout.Named`
     - [x] VM `Arg` of a text (0x80) or text variable (0x81) operand is 0: checked against the four -re Pascals and every shipped script's text operands, none reaches a numeric GetEclVar
   - [ ] e. host on typed fields, zones gone, per game: [x] POR (por-go 1c766dc), [ ] then COTAB, SotSB, POD (Felix: no flat memory behind Ref). After POR's: BR1/BR2 layouts. POR: (then drop patches/area26.patch, CHANGES row: RiverState replaces CouncilMeeting); `ReadVar`/`WriteVar`, `addrKind`, zones, `SaveEditor.SetVar(addr)` go
-  - [ ] f. Saves: typed state by id; old saves through saveimport.go
+  - [x] f. Saves: typed state by id; old saves through saveimport.go (por-go 5ccd712, A1)
   - [x] g. Area 14: Spell/SaveTable pair becomes one typed CastKnock call (native caster choice, slot spent); Spell opcode goes; cabinets stay script events
   - [x] h. Diogenes' camp write read as `RestChance = 1` (d4), CHANGES row with bytes
   - [ ] i. Layout tables for COTAB, SotSB, POD, BR1, BR2 from their -re Pascal; their builds and tests
