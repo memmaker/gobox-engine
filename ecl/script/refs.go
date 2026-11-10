@@ -3,6 +3,9 @@ package script
 import (
 	"errors"
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"maps"
 	"slices"
 )
@@ -51,4 +54,51 @@ func ResolveRefs(s *Script, l *Layout) error {
 		}
 	}
 	return errors.Join(errs...)
+}
+
+// ReadLayout is area's layout in a scripts folder: layout/global.txt with
+// layout/area<N>.txt (if the area has one) over it. A folder with no
+// layout/global.txt has none yet (nil, nil): the games whose layouts are
+// still to be written (ARCHITECTURE.md, reference queue 1b-i).
+func ReadLayout(dir string, area int) (*Layout, error) {
+	read := func(path string) (*Layout, error) {
+		f, err := os.Open(path)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		l, err := ParseLayout(f)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", path, err)
+		}
+		return l, nil
+	}
+	g, err := read(filepath.Join(dir, "layout", "global.txt"))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	a, err := read(filepath.Join(dir, "layout", fmt.Sprintf("area%d.txt", area)))
+	if errors.Is(err, fs.ErrNotExist) {
+		return g, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return g.With(a)
+}
+
+// resolve gives s its Refs in its area's layout of dir, when dir has one.
+func resolve(s *Script, dir string, v *Version) error {
+	l, err := ReadLayout(dir, s.Area)
+	if err != nil || l == nil {
+		return err
+	}
+	full, err := l.With(ConstLayout(s, v))
+	if err != nil {
+		return err
+	}
+	return ResolveRefs(s, full)
 }

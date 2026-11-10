@@ -70,6 +70,9 @@ func (l *Library) Area(area int) (*Script, error) {
 		return nil, fmt.Errorf("%s:%w", path, err)
 	}
 	s.Area = area
+	if err := resolve(s, l.Dir, l.Version); err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
 	return s, nil
 }
 
