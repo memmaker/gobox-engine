@@ -17,9 +17,14 @@ type Outcome struct {
 }
 
 type (
-	Narrated struct{ Text string }
-	Sounded  struct{ Cue SoundCue }
-	Walked   struct {
+	// Narrated is a line of the rules' text; More: it goes on the line before
+	// (the original's message on the same row: "... Hitting for 3 points of damage").
+	Narrated struct {
+		Text string
+		More bool
+	}
+	Sounded struct{ Cue SoundCue }
+	Walked  struct {
 		Unit CharID
 		Path []image.Point
 	}
