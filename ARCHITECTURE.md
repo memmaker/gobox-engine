@@ -262,7 +262,13 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 
 Goal: POR is gobox engine + `rules1e` (implements `core.Rules`) + `por-go/adventure` (implements `core.Adventure`); `cmd/por` wires one of each; both leaves import only `gobox/core` and `core/dnd` (`imports_test.go` lists them); `por-go/rules` is gone. How: two agents in parallel, each step gated and committed, behaviour equal to the pure Pascal where vectors exist (any difference a CHANGES row). Lock: stage only your own paths, and hold `/private/tmp/por-gate.lock` (mkdir; rmdir after) from staging through gate and commit. Core interface changes are reported to Felix, not decided silently. Other games' 1b-e and the BR layouts wait until this is done.
 
-Track R (rules seam, agent R): rules move into rules1e behind the core interfaces.
+**Felix's order (2026-11-10):** "Separate the drawing from the rest first. We need pure functions, like the pascal code. Make sure we only have rules in the engine not in POR. Then do one big refactor and write everything as it should be and then fix the bugs." `Decide` + `Resolve` stay (core). An adventure is data only, read by one small shared piece of code that answers the engine. State the games share becomes a typed engine state variable. A game's own variables become an engine feature (the adventure declares them by name and type, and scripts read and write them). What cannot trivially stay data is to be discussed with Felix before it is built.
+
+- [ ] S. Separation in place (agent R): every drawing, sound, message and wait in `por-go/rules` logic becomes a returned `core.Effect`. The logic becomes pure functions on values (as `src/pure`), with no `Engine` receiver where the Pascal has none. Behaviour is unchanged: the Pascal vectors stay equal. Order: combat AI turn, attacks, spells and effects, items, characters (chargen, training, shop, temple, camp). No move to rules1e yet
+- [ ] B. One big refactor into the target layout (after S, and after the adventure-data discussion): rules to rules1e behind `core.Rules`, the adventure as data plus the shared reader, the engine loop in gobox
+- [ ] F. Then the bugs it shows, one commit each
+
+Track R (rules seam): superseded by S and B above, kept as the list of what B must cover.
 - [ ] R1. Combat `Decide` through the seam: por-go's computer turn calls `CombatRules.Decide` of rules1e, `TestDecideAgainstPascal` equal
 - [ ] R2. Combat handlers into rules1e behind `CombatRules` (BeginFight .. EndFight; spell and effect handlers); engine keeps the loop and presentation (item 7 below)
 - [ ] R3. Characters behind `CharacterRules`: spells, items, training, chargen (`Draft`), shop, temple, camp, purse (`Purse() Copper`); `Fact`/`SetFact` pure; `Check`
