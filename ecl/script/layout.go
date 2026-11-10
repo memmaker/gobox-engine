@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -104,6 +105,9 @@ func (l *Layout) With(over *Layout) (*Layout, error) {
 	return m, m.check()
 }
 
+// elementName is the form ReadNames gives an array's elements (Name_i).
+var elementName = regexp.MustCompile(`_[0-9]+$`)
+
 // check sorts the fields and refuses overlaps and repeated names.
 func (l *Layout) check() error {
 	slices.SortFunc(l.Fields, func(a, b Field) int { return a.From - b.From })
@@ -111,6 +115,9 @@ func (l *Layout) check() error {
 	for i, f := range l.Fields {
 		if names[f.Name] {
 			return fmt.Errorf("layout: %s twice", f.Name)
+		}
+		if elementName.MatchString(f.Name) {
+			return fmt.Errorf("layout: %s ends in _<number>, the form of an array element's name", f.Name)
 		}
 		names[f.Name] = true
 		if i > 0 {

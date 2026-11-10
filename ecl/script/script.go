@@ -6,6 +6,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -54,7 +55,18 @@ func ReadNames(dir string, area int, labels bool, v *Version) (*Names, error) {
 			return nil, err
 		}
 	}
-	var err error
+	l, err := ReadLayout(dir, area)
+	if err != nil {
+		return nil, err
+	}
+	if l != nil { // the layout names the variables: a field its name, element i of an array Name_i
+		for _, f := range l.Fields {
+			n.Vars[f.From] = f.Name
+			for i := 1; i < f.Len && f.Width != WidthText; i++ {
+				n.Vars[f.From+i] = fmt.Sprintf("%s_%d", f.Name, i)
+			}
+		}
+	}
 	if n.Areas, err = ReadAreas(filepath.Join(dir, "names", "areas.txt")); err != nil {
 		return nil, err
 	}
@@ -68,6 +80,7 @@ func ReadNames(dir string, area int, labels bool, v *Version) (*Names, error) {
 			return nil, err
 		}
 	}
+	n.Values = slices.DeleteFunc(n.Values, func(x Value) bool { return x.Area != 0 && x.Area != area })
 	return n, nil
 }
 
@@ -146,6 +159,7 @@ type Value struct {
 	Kind   string
 	Set, N int
 	Name   string
+	Area   int // a value name of one area only (Set written aN: the area's own use of a shared word); 0 every area
 }
 
 // operandKinds are the kinds of the commands' operands, "" a plain number.
@@ -197,12 +211,18 @@ func ReadValues(path string, vals []Value) ([]Value, error) {
 		if len(fs) != 4 {
 			return nil, fmt.Errorf("%s:%d: want \"Kind Set Number Name\"", path, n+1)
 		}
-		set, err1 := strconv.Atoi(fs[1])
+		var set, area int
+		var err1 error
+		if a, ok := strings.CutPrefix(fs[1], "a"); ok {
+			area, err1 = strconv.Atoi(a)
+		} else {
+			set, err1 = strconv.Atoi(fs[1])
+		}
 		v, err2 := strconv.Atoi(fs[2])
 		if err1 != nil || err2 != nil {
-			return nil, fmt.Errorf("%s:%d: want \"Kind Set Number Name\"", path, n+1)
+			return nil, fmt.Errorf("%s:%d: want \"Kind Set Number Name\" (Set aN: area N only)", path, n+1)
 		}
-		vals = append(vals, Value{fs[0], set, v, fs[3]})
+		vals = append(vals, Value{Kind: fs[0], Set: set, N: v, Name: fs[3], Area: area})
 	}
 	return vals, nil
 }

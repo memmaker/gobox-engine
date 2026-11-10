@@ -268,10 +268,10 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
 - [ ] 1b. Typed script references (Felix d1-d4): no address ranges in gobox ecl or any game; each gated step builds and passes
   - [x] a. Layout table format in gobox ecl/script: per dialect, data; field, member-field, array (typed index, bounds), local, const-table, engine fact; unknown address fails import
   - [x] b. (data in por-go c0e080d; coverage test with c) POR layout table from por-re's Pascal record types (TCharRecord, zones, specials)
-  - [ ] c. Importer: every operand resolved to a typed `Ref`; computed addresses to arrays; code-space tables to const tables; text format names refs
+  - [x] c. Importer: every operand resolved to a typed `Ref`; computed addresses to arrays; code-space tables to const tables; text format names refs
     - [x] `ResolveRefs`, `ConstLayout`, `replaces` (an area field over a game field); por-go `TestLayoutCoversScripts` resolves every patched script; area 9 coins are `SelCoins[i]`; area 26 `RiverState` replaces CouncilMeeting (patch and CHANGES row go with d); $6BF2 stays unmapped (`SelWindowF2`)
     - [x] `Library.Area` resolves every script in its layout (`ReadLayout`); a scripts folder without layout/global.txt is the 1b-i games, made mandatory there
-    - [ ] text format names refs (names files vs layout names: shared words' value names, question with Felix)
+    - [x] text format names refs: the layout is the one name source (ReadNames; array elements Name_i), value names scoped per area (Set aN); POR's names files keep only tables and labels
   - [ ] d. VM `Host` on `Ref` (Get/Set/Text/SetText); `VarAddr`, `Addr`, `RemainderAddr` go
   - [ ] e. por-go host on `Ref`; `ReadVar`/`WriteVar`, `addrKind`, zones, `SaveEditor.SetVar(addr)` go
   - [ ] f. Saves: typed state by id; old saves through saveimport.go
