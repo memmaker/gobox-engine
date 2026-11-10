@@ -61,9 +61,9 @@ const (
 // Host is what the interpreter asks of the game: the state a resolved
 // operand (script.Ref, a field of the running script's Layout) names.
 type Host interface {
-	Get(r script.Ref) uint16
-	Set(r script.Ref, v uint16)
-	Text(r script.Ref) string // text kept in r (ArgTextVar operands, via ReadArgs)
+	Get(r script.Ref) int64    // a cell: 64 bits, every value fits (a game's field keeps its own width)
+	Set(r script.Ref, v int64) // the host stores v at the field's width, as the original did
+	Text(r script.Ref) string  // text kept in r (ArgTextVar operands, via ReadArgs)
 	SetText(r script.Ref, s string)
 	Random(n int) int // 0 .. n-1
 	Exit(vm *VM)      // the game's EXIT, used when RETURN has nowhere to go
@@ -83,9 +83,9 @@ type VM struct {
 	ArgType [MaxArgs]byte
 	ArgN    [MaxArgs]int        // an operand's number: an immediate, a label's command, a routine, a text's length; 0 for a variable
 	ArgRef  [MaxArgs]script.Ref // a variable operand's field (the zero Ref for any other operand)
-	Text    [MaxArgs]string // text operands of the current command, 1-based
-	Flags   [6]bool         // equal, not equal, less, greater, less-equal, greater-equal
-	Calls   []uint16        // return addresses
+	Text    [MaxArgs]string     // text operands of the current command, 1-based
+	Flags   [6]bool             // equal, not equal, less, greater, less-equal, greater-equal
+	Calls   []uint16            // return addresses
 
 	Command, LastCommand byte
 	Stop                 bool
@@ -223,14 +223,14 @@ func (vm *VM) Run(h Host, halt func() bool) {
 }
 
 // Arg is the value of operand k.
-func (vm *VM) Arg(k int, h Host) uint16 {
+func (vm *VM) Arg(k int, h Host) int64 {
 	switch vm.ArgType[k] {
 	case ArgImmediate:
-		return uint16(byte(vm.ArgN[k]))
+		return int64(byte(vm.ArgN[k]))
 	case ArgVarByte, ArgVarWord:
 		return h.Get(vm.ArgRef[k])
 	case ArgAddress:
-		return uint16(vm.ArgN[k])
+		return int64(uint16(vm.ArgN[k]))
 	}
 	// A text or text variable has no number. It cannot be asked for: in every
 	// shipped script of POR, COTAB, SotSB and POD a text operand stands only
@@ -262,7 +262,7 @@ func (vm *VM) Call(k int) {
 }
 
 // SetFlags sets the six comparison flags.
-func (vm *VM) SetFlags(a, b uint16) {
+func (vm *VM) SetFlags(a, b int64) {
 	vm.Flags = [6]bool{a == b, a != b, a < b, a > b, a <= b, a >= b}
 }
 

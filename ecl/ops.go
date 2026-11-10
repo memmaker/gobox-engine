@@ -79,7 +79,7 @@ func opArithmetic(vm *VM, h Host) {
 	vm.ReadArgs(3)
 	a, b := vm.Arg(1, h), vm.Arg(2, h)
 	dst := vm.Ref(3)
-	var r uint16
+	var r int64
 	switch vm.Command {
 	case CmdAdd:
 		r = a + b
@@ -105,7 +105,7 @@ func opRandom(vm *VM, h Host) {
 	if n < 255 {
 		n++
 	}
-	h.Set(vm.Ref(2), uint16(h.Random(int(n))))
+	h.Set(vm.Ref(2), int64(h.Random(int(n))))
 }
 
 // opSave stores a value or text.
@@ -178,8 +178,8 @@ func opAndOr(vm *VM, h Host) {
 	} else {
 		r = byte(a | b)
 	}
-	vm.SetFlags(0, uint16(r))
-	h.Set(dst, uint16(r))
+	vm.SetFlags(0, int64(r))
+	h.Set(dst, int64(r))
 }
 
 // opGetTable: dst := [base + index].

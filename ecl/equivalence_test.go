@@ -13,8 +13,8 @@ import (
 // noText answers text variables for both readers alike.
 type noText struct{}
 
-func (noText) Get(script.Ref) uint16      { return 0 }
-func (noText) Set(script.Ref, uint16)     {}
+func (noText) Get(script.Ref) int64       { return 0 }
+func (noText) Set(script.Ref, int64)      {}
 func (noText) Text(script.Ref) string     { return "" }
 func (noText) SetText(script.Ref, string) {}
 func (noText) Random(int) int             { return 0 }

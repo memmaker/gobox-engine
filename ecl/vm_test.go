@@ -15,8 +15,8 @@ type memory struct {
 	m map[int]uint16
 }
 
-func (m memory) Get(r script.Ref) uint16    { return m.m[m.l.Address(r)] }
-func (m memory) Set(r script.Ref, v uint16) { m.m[m.l.Address(r)] = v }
+func (m memory) Get(r script.Ref) int64     { return int64(m.m[m.l.Address(r)]) }
+func (m memory) Set(r script.Ref, v int64)  { m.m[m.l.Address(r)] = uint16(v) }
 func (m memory) Text(script.Ref) string     { return "" }
 func (m memory) SetText(script.Ref, string) {}
 func (m memory) Random(int) int             { return 0 }
