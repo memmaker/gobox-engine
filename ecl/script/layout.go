@@ -58,6 +58,10 @@ type Field struct {
 	From     int
 	Len      int
 	ReadOnly bool // the byte code only reads it (an engine fact, a constant table)
+	// Replaces: an area's field that takes the place of the game's field on
+	// exactly its addresses, for that area only: the area's script used the
+	// game's word for state of its own (one script's reuse of another's word).
+	Replaces bool
 }
 
 // Ref is a resolved operand: element Index of Field.
@@ -79,9 +83,22 @@ func (l *Layout) Resolve(a int) (Ref, error) {
 func (l *Layout) Field(r Ref) *Field { return &l.Fields[r.Field] }
 
 // With is l and over together: an area's layout over the game's. A field of
-// one may not overlap a field of the other, nor share its name.
+// one may not overlap a field of the other, nor share its name, except that
+// an over field marked Replaces takes the place of the l field with exactly
+// its addresses (and must find one).
 func (l *Layout) With(over *Layout) (*Layout, error) {
-	m := &Layout{Fields: append(slices.Clone(l.Fields), over.Fields...)}
+	base := slices.Clone(l.Fields)
+	for _, o := range over.Fields {
+		if !o.Replaces {
+			continue
+		}
+		i := slices.IndexFunc(base, func(f Field) bool { return f.From == o.From && f.Len == o.Len })
+		if i < 0 {
+			return nil, fmt.Errorf("layout: %s replaces no field at %04X", o.Name, o.From)
+		}
+		base = slices.Delete(base, i, i+1)
+	}
+	m := &Layout{Fields: append(base, over.Fields...)}
 	return m, m.check()
 }
 
@@ -104,7 +121,7 @@ func (l *Layout) check() error {
 }
 
 // ParseLayout reads a layout text: one Field a line, "from len width owner
-// name [readonly]", from in hex; '#' starts a comment.
+// name [readonly|replaces]", from in hex; '#' starts a comment.
 func ParseLayout(r io.Reader) (*Layout, error) {
 	l := &Layout{}
 	names := map[string]bool{}
@@ -115,8 +132,8 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 		if len(f) == 0 {
 			continue
 		}
-		if len(f) != 5 && !(len(f) == 6 && f[5] == "readonly") {
-			return nil, fmt.Errorf("layout line %d: want from len width owner name [readonly]", n)
+		if len(f) != 5 && !(len(f) == 6 && (f[5] == "readonly" || f[5] == "replaces")) {
+			return nil, fmt.Errorf("layout line %d: want from len width owner name [readonly|replaces]", n)
 		}
 		from, err := strconv.ParseInt(f[0], 16, 32)
 		if err != nil {
@@ -138,7 +155,7 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 			return nil, fmt.Errorf("layout line %d: %s twice", n, f[4])
 		}
 		names[f[4]] = true
-		l.Fields = append(l.Fields, Field{Name: f[4], Owner: o, Width: w, From: int(from), Len: size, ReadOnly: len(f) == 6})
+		l.Fields = append(l.Fields, Field{Name: f[4], Owner: o, Width: w, From: int(from), Len: size, ReadOnly: len(f) == 6 && f[5] == "readonly", Replaces: len(f) == 6 && f[5] == "replaces"})
 	}
 	if err := sc.Err(); err != nil {
 		return nil, err

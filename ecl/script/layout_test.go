@@ -55,10 +55,47 @@ func TestLayoutWith(t *testing.T) {
 	if err != nil || len(m.Fields) != 3 || m.Fields[0].Name != "Seen" {
 		t.Fatalf("%v %+v", err, m)
 	}
-	for _, bad := range []string{"6DD2 1 byte local X\n", "4A00 1 byte local RestEvery\n"} {
+	r, _ := ParseLayout(strings.NewReader("6DD2 1 byte area RiverState replaces\n"))
+	if m, err := g.With(r); err != nil || len(m.Fields) != 2 || m.Field(must(m.Resolve(0x6DD2))).Name != "RiverState" {
+		t.Errorf("replace: %v %+v", err, m)
+	}
+	for _, bad := range []string{"6DD2 1 byte local X\n", "4A00 1 byte local RestEvery\n", "6DD3 1 byte area Y replaces\n",
+		"6DD2 2 byte area Y replaces\n"} {
 		b, _ := ParseLayout(strings.NewReader(bad))
 		if _, err := g.With(b); err == nil {
 			t.Errorf("%q merged", bad)
 		}
+	}
+}
+
+// ResolveRefs gives each variable operand its Ref, a table read its const
+// field, and reports every address no field covers.
+func TestResolveRefs(t *testing.T) {
+	l, _ := ParseLayout(strings.NewReader("6DD2 1 byte game RestEvery\n"))
+	s := &Script{Area: 3, Data: make([]byte, 8), Tables: map[string]int{"Odds": V1.Base + 4}, Code: []Instr{
+		{Op: OpSave, Args: []Arg{{N: 1}, {Type: ArgVar, N: 0x6DD2}}},
+		{Op: OpGetTable, Args: []Arg{{Type: ArgVar, N: V1.Base + 4}, {N: 2}, {Type: ArgVar, N: 0x6DD2}}},
+		{Op: OpGoto, Args: []Arg{{Type: ArgVar, N: 0, Label: true}}},
+	}}
+	full, err := l.With(ConstLayout(s, V1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ResolveRefs(s, full); err != nil {
+		t.Fatal(err)
+	}
+	if r := s.Code[0].Args[1].Ref; r == nil || full.Field(*r).Name != "RestEvery" {
+		t.Errorf("save: %+v", r)
+	}
+	if r := s.Code[1].Args[0].Ref; r == nil || full.Field(*r).Name != "Odds" || !full.Field(*r).ReadOnly {
+		t.Errorf("table: %+v", r)
+	}
+	if s.Code[2].Args[0].Ref != nil || s.Code[0].Args[0].Ref != nil {
+		t.Error("a label or an immediate got a Ref")
+	}
+	s.Code = append(s.Code, Instr{Op: OpSave, Args: []Arg{{N: 1}, {Type: ArgVar, N: 0x6DD3}}}, Instr{Op: OpSave, Args: []Arg{{N: 1}, {Type: ArgVar, N: 0x6DD4}}})
+	err = ResolveRefs(s, full)
+	if err == nil || !strings.Contains(err.Error(), "6DD3") || !strings.Contains(err.Error(), "6DD4") {
+		t.Errorf("unresolved: %v", err)
 	}
 }
