@@ -40,6 +40,11 @@ if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --nam
     git -C "$projects/$repo" archive HEAD | tar -x -C "$out/$repo"
     echo "== $repo"
     (cd "$out/$repo" && go build ./... && go vet ./...)
+    # A layout name the fold or the parser's macros depend on (Shop, Temple, Portrait) can be overwritten by a
+    # layout change (cotab 8ee0677): each game's script tests run with every gobox change.
+    if [ -d "$out/$repo/rules/scripts/layout" ]; then
+      (cd "$out/$repo" && go test ./rules -run 'Layout|Fold|Gate')
+    fi
   done
 fi
 echo "gate passed"
