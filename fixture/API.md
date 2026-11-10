@@ -3,12 +3,12 @@
 Builds a save fixture (`SAVGAMA.DAT` + party `.SAV/.SPC/.ITM`) for a trace scenario.
 Needs nothing but the stdlib. Never writes to the game's data, only to `-out`.
 
-- `fixture.Run(g Game, args []string) error`: flags `-out -data -slot -block -walls -geo -x -y -dir -set VAR=VAL -strong -decisions FILE`.
+- `fixture.Run(g Game, args []string) error`: flags `-out -data -slot -block -walls -geo -x -y -dir -set FIELD=VAL -strong -decisions FILE`.
 - `Game` callbacks: `Root(data)` data dir; `Open(root, slot)` returns a `State`; `ECL(root, block)` disk + script (no 2-byte header);
   `Member(root, name, ext)` file bytes; `Strong([]byte)`; optional `ParseDecision(line)` (the game's `engine.ParseDecision`,
   used to validate `-decisions`); `NeedSlot`.
-- `State`: `EnterArea`, `SetPos`, `SetVar`, `Bytes`, `Party`. por's `*engine.Save` already fits.
-- `RawSave` / `OpenRawSave(sv, RawLayout)` / `MakeStrong`: the byte-level State; the game passes its SAVGAMA layout (offsets) as a `RawLayout`.
+- `State`: `EnterArea`, `SetPos`, `SetVar`, `Bytes`, `Party`. por's `*rules.SaveEditor` fits; `SetVar` takes a field's layout name.
+- `RawSave` / `OpenRawSave(sv, RawLayout)` / `MakeStrong`: the byte-level State; the game passes its SAVGAMA layout (offsets) as a `RawLayout`, with its script layout (`Vars`) naming the fields `-set` sets.
 
 cotab/sotsb `cmd/fixture/main.go`:
 

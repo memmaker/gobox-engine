@@ -12,11 +12,19 @@ for repo in por-go rules1e gobox-engine; do
   tree="$(git -C "$projects/$repo" write-tree)"
   git -C "$projects/$repo" archive "$tree" | tar -x -C "$out/$repo"
 done
-# Unversioned here: third-party checkouts, and the game data.
+# Unversioned here: third-party checkouts, the -re reconstructions (tests read ../../<game>-re), and the game data.
 for dep in gogpu-wgpu goffi goplay gameimport; do ln -s "$projects/$dep" "$out/$dep"; done
-for d in "$projects"/por-go/data/*; do
-  [ -e "$out/por-go/data/$(basename "$d")" ] || ln -s "$d" "$out/por-go/data/"
-done
+for re in "$projects"/*-re; do ln -s "$re" "$out/$(basename "$re")"; done
+# link_data repo: the repo's unversioned data/ entries into its export.
+link_data() {
+  local d
+  [ -d "$projects/$1/data" ] || return 0
+  mkdir -p "$out/$1/data"
+  for d in "$projects/$1"/data/*; do
+    [ -e "$out/$1/data/$(basename "$d")" ] || ln -s "$d" "$out/$1/data/"
+  done
+}
+link_data por-go
 
 check() { # dir, test packages and flags
   local dir="$1"; shift
@@ -62,6 +70,7 @@ if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --nam
     grep -q 'gobox-engine/' "$mod" || continue
     mkdir "$out/$repo"
     git -C "$projects/$repo" archive "$(git -C "$projects/$repo" write-tree)" | tar -x -C "$out/$repo"
+    link_data "$repo"
     echo "== $repo"
     (cd "$out/$repo" && go build ./... && go vet ./...)
     # A layout name the fold or the parser's macros depend on (Shop, Temple, Portrait) can be overwritten by a

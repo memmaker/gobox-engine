@@ -19,7 +19,7 @@ type State interface {
 	// walls are the WALLDEF blocks of wall slots 1..3 (255 none).
 	EnterArea(disk, block, geo int, ecl []byte, walls [3]int)
 	SetPos(x, y, dir int) // negative keeps the saved value
-	SetVar(addr int, v uint16) error
+	SetVar(name string, v uint16) error // the game's script field name (its layout), element 0
 	Bytes() []byte
 	Party() []string // member file names, without extension
 }
@@ -63,7 +63,7 @@ func Run(g Game, args []string) error {
 	strong := fs.Bool("strong", false, "make the party win fights")
 	dec := fs.String("decisions", "", "decision file to validate with the game's ParseDecision")
 	var vars sets
-	fs.Var(&vars, "set", "VAR=VAL, hex, repeatable")
+	fs.Var(&vars, "set", "FIELD=VAL: a script field by its layout name, VAL hex; repeatable")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -119,12 +119,11 @@ func Run(g Game, args []string) error {
 	s.SetPos(*x, *y, *dir)
 	for _, kv := range vars {
 		k, v, ok := strings.Cut(kv, "=")
-		a, err1 := strconv.ParseUint(k, 16, 16)
-		n, err2 := strconv.ParseUint(v, 16, 16)
-		if !ok || err1 != nil || err2 != nil {
+		n, err := strconv.ParseUint(v, 16, 16)
+		if !ok || k == "" || err != nil {
 			return fmt.Errorf("bad -set %q", kv)
 		}
-		if err := s.SetVar(int(a), uint16(n)); err != nil {
+		if err := s.SetVar(k, uint16(n)); err != nil {
 			return fmt.Errorf("-set %s: %v", k, err)
 		}
 	}

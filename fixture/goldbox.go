@@ -3,6 +3,8 @@ package fixture
 import (
 	"encoding/binary"
 	"fmt"
+
+	"gobox/ecl/script"
 )
 
 // RawLayout describes a game's SAVGAMx.DAT byte layout; the game passes it (offsets are data).
@@ -19,6 +21,7 @@ type RawLayout struct {
 	GameSymSet                  int // in Game: the symbol set byte
 	AreaBlock, AreaGeo          int // in Area: u16 each
 	AreaWallBlock, AreaWallSlot int // in Area: 3 u16 each
+	Vars                        *script.Layout // the game's script fields (layout/global.txt): SetVar's names
 }
 
 // RawSave edits a SAVGAMA.DAT in place; it is a State.
@@ -68,7 +71,14 @@ func (r *RawSave) SetPos(x, y, dir int) {
 	}
 }
 
-func (r *RawSave) SetVar(a int, n uint16) error {
+// SetVar sets the word of field name, which the original kept at its
+// layout address in the area (0x4900..) or game (0x6B00..) record.
+func (r *RawSave) SetVar(name string, n uint16) error {
+	ref, err := r.l.Vars.Named(name)
+	if err != nil {
+		return err
+	}
+	a := r.l.Vars.Address(ref)
 	area, game := r.sv[r.l.Area:r.l.Area+0x800], r.sv[r.l.Game:r.l.Game+0x800]
 	switch {
 	case a >= 0x4900 && a <= 0x4CFF:
@@ -76,7 +86,7 @@ func (r *RawSave) SetVar(a int, n uint16) error {
 	case a >= 0x6B00 && a <= 0x6EFF:
 		binary.LittleEndian.PutUint16(game[2*(a-0x6B00):], n)
 	default:
-		return fmt.Errorf("not an area or game variable")
+		return fmt.Errorf("%s (%04X) is not an area or game variable", name, a)
 	}
 	return nil
 }

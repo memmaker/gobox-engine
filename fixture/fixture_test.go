@@ -3,7 +3,10 @@ package fixture
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+
+	"gobox/ecl/script"
 )
 
 func TestRunRawSave(t *testing.T) {
@@ -24,7 +27,7 @@ func TestRunRawSave(t *testing.T) {
 		ParseDecision: func(l string) error { return nil },
 	}
 	err := Run(g, []string{"-out", out, "-block", "5", "-walls", "1,2,255", "-x", "7", "-y", "8", "-dir", "2",
-		"-set", "4A05=1234", "-strong", "-decisions", dec})
+		"-set", "Flag=1234", "-strong", "-decisions", dec})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +47,16 @@ func TestRunRawSave(t *testing.T) {
 // testLayout is an example layout (a Gold Box game's, passed by that game).
 var testLayout = RawLayout{Size: svSize, Disk: svDisk, Area: svArea, Game: svGame, ECL: svECL, ECLSize: 0x1E00,
 	Pos: svPos, Count: svCount, Names: svNames, NameSize: 0x29, GameSymSet: 0x624,
-	AreaBlock: 0x1E4, AreaGeo: 0x18A, AreaWallBlock: 0x3F4, AreaWallSlot: 0x3FA}
+	AreaBlock: 0x1E4, AreaGeo: 0x18A, AreaWallBlock: 0x3F4, AreaWallSlot: 0x3FA, Vars: testVars}
+
+// testVars is an example script layout: one field at 0x4A05.
+var testVars = func() *script.Layout {
+	l, err := script.ParseLayout(strings.NewReader("4A05 1 word game Flag\n"))
+	if err != nil {
+		panic(err)
+	}
+	return l
+}()
 
 const (
 	svDisk  = 0x0000
