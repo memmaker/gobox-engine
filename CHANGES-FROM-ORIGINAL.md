@@ -59,6 +59,7 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Poison death | POR | "is killed", status Dead | the poison death message, status "Poisoned" for dead-with-poison | U6 | port earlier (affects1.go, extras.go) |
 | Empty treasure screen | POR | shown with nothing on it | skipped; no rule effect | U7 | port earlier (aftercombat.go) |
 | Bracers | POR | own slot; backstab needs no or leather armour | bracers in the armour slot (readySlot) and count as no armour for backstab | U8 | port earlier (combatturn2.go, charcalc.go) |
+| Camp "Rest until fixed" | POR | none | taken from the later Gold Box games' Fix, always offered: clerics cast Cure Light Wounds on the most wounded, memorize it in every first-level slot and rest to learn it while needed, then relearn their planned spells; natural healing does the rest (`healParty`) | Felix, healParty ruling | port earlier (camp.go) |
 | Off-hand weapon | POR | none | 4e rule set only; under 1e ApplyItems takes an off-hand weapon off | U9 | por-go 4b24740 |
 | Heavy items when robbed | POR | RobItems cut the chance for items over 24 and 255 weight | no weight cut: items weigh nothing (ItemSave) | money/encumbrance unification | port earlier |
 
