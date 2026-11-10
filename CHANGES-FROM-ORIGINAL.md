@@ -17,6 +17,8 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Saves | all four | byte arithmetic: a total below 0 wraps and saves | signed, clamped at the right stage | 1 | POR port f314dce or earlier, now rules1e `SaveMade`; others decided |
 | Cleric XP bonus threshold | POD, SotSB | off by one | Wis >= 16, `xp*110/100` | 8 | decided |
 | Charisma lookup | all four | per game | `max(3, min(cha, maxCharisma))` | 14 | decided |
+| ROB's item chance | POR | EclRob read var 2 (the money percent) for each item's chance | var 3, as all 14 script ROBs give it (0 none, 255 all) | U1 | por-re 11eb406, por-go 03178bc |
+| Movement on the sheet under Slow, Haste | POR | shown doubled under Slow, halved under Haste | the real movement; Pascal fix lands with viewchar (src/pure) | U5 | por-go 54c4549 (comment); Pascal pending |
 
 ## Port's own, not ruled: Felix to confirm
 
@@ -53,7 +55,13 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Fighter-line and mage THAC0 | POR, POD | see ARCHITECTURE.md table comparison | COTAB/SotSB | 19 | decided |
 | Attack hook | all four | per game | common interface | 20 | decided |
 | Dancing | POD only | POD spell | shared condition | 21 | decided |
+| Combat spell list | POR | every memorized spell, a noncombat one (whenCast 0: Friends, Read Magic, Find Traps, Knock, Strength, Cure Disease) cast nothing | only spells with whenCast <> 0 | U4 | por-go 54c4549 |
+| Poison death | POR | "is killed", status Dead | the poison death message, status "Poisoned" for dead-with-poison | U6 | port earlier (affects1.go, extras.go) |
+| Empty treasure screen | POR | shown with nothing on it | skipped; no rule effect | U7 | port earlier (aftercombat.go) |
+| Bracers | POR | own slot; backstab needs no or leather armour | bracers in the armour slot (readySlot) and count as no armour for backstab | U8 | port earlier (combatturn2.go, charcalc.go) |
+| Off-hand weapon | POR | none | 4e rule set only; under 1e ApplyItems takes an off-hand weapon off | U9 | por-go 4b24740 |
+| Heavy items when robbed | POR | RobItems cut the chance for items over 24 and 255 weight | no weight cut: items weigh nothing (ItemSave) | money/encumbrance unification | port earlier |
 
 ## Options (Felix's additions, not changes to the default)
 
-Critical hits (ruling 4), party inventory (ruling 12), path search (page 3: Gameplay "Path search", default off, the computer walks by aiPathDir). Rest until healed (page 7, a convenience: camp rests until everyone is healed, `stopHealed`).
+Critical hits (ruling 4), party inventory (ruling 12), path search (page 3: Gameplay "Path search", default off, the computer walks by aiPathDir). Quick search (U2: Gameplay "Quick search", default off: a sweeping step or a Look takes 3 minutes instead of a turn; por-go 3be40ab). Day sky by clock (U3: Gameplay "Day sky by clock", default off: day 6:00-20:00 instead of the scripts' hour < 14; por-go 36339c3). Rest until healed (page 7, a convenience: camp rests until everyone is healed, `stopHealed`).
