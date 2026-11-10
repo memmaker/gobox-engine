@@ -18,9 +18,10 @@ type State interface {
 	// EnterArea replaces the saved script with ecl and loads GEO block geo;
 	// walls are the WALLDEF blocks of wall slots 1..3 (255 none).
 	EnterArea(disk, block, geo int, ecl []byte, walls [3]int)
-	SetPos(x, y, dir int) // negative keeps the saved value
+	SetPos(x, y, dir int)               // negative keeps the saved value
 	SetVar(name string, v uint16) error // the game's script field name (its layout), element 0
 	Bytes() []byte
+	File() string    // the save's file name in a slot (SAVGAMA.DAT, a canonical save's)
 	Party() []string // member file names, without extension
 }
 
@@ -130,7 +131,7 @@ func Run(g Game, args []string) error {
 	if err := os.MkdirAll(*out, 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(*out, "SAVGAMA.DAT"), s.Bytes(), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(*out, s.File()), s.Bytes(), 0o644); err != nil {
 		return err
 	}
 	for _, name := range s.Party() {

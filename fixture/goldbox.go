@@ -18,9 +18,9 @@ type RawLayout struct {
 	Count                       int // party size byte
 	Names                       int // Pascal strings of NameSize bytes
 	NameSize                    int
-	GameSymSet                  int // in Game: the symbol set byte
-	AreaBlock, AreaGeo          int // in Area: u16 each
-	AreaWallBlock, AreaWallSlot int // in Area: 3 u16 each
+	GameSymSet                  int            // in Game: the symbol set byte
+	AreaBlock, AreaGeo          int            // in Area: u16 each
+	AreaWallBlock, AreaWallSlot int            // in Area: 3 u16 each
 	Vars                        *script.Layout // the game's script fields (layout/global.txt): SetVar's names
 }
 
@@ -39,6 +39,8 @@ func OpenRawSave(sv []byte, l RawLayout) (*RawSave, error) {
 }
 
 func (r *RawSave) Bytes() []byte { return r.sv }
+
+func (*RawSave) File() string { return "SAVGAMA.DAT" }
 
 func (r *RawSave) EnterArea(disk, block, geo int, ecl []byte, walls [3]int) {
 	sv, l := r.sv, r.l

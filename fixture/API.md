@@ -1,6 +1,6 @@
 # gobox/fixture
 
-Builds a save fixture (`SAVGAMA.DAT` + party `.SAV/.SPC/.ITM`) for a trace scenario.
+Builds a save fixture (the save, named by `State.File`: `SAVGAMA.DAT` or a canonical save, + party `.SAV/.SPC/.ITM`) for a trace scenario.
 Needs nothing but the stdlib. Never writes to the game's data, only to `-out`.
 
 - `fixture.Run(g Game, args []string) error`: flags `-out -data -slot -block -walls -geo -x -y -dir -set FIELD=VAL -strong -decisions FILE`.
