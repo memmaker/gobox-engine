@@ -264,6 +264,13 @@ Goal: POR is gobox engine + `rules1e` (implements `core.Rules`) + `por-go/advent
 
 **Felix's order (2026-11-10):** "Separate the drawing from the rest first. We need pure functions, like the pascal code. Make sure we only have rules in the engine not in POR. Then do one big refactor and write everything as it should be and then fix the bugs." `Decide` + `Resolve` stay (core). An adventure is data only, read by one small shared piece of code that answers the engine. State the games share becomes a typed engine state variable. A game's own variables become an engine feature (the adventure declares them by name and type, and scripts read and write them). What cannot trivially stay data is to be discussed with Felix before it is built.
 
+**Felix's decisions on state, routines and flow (2026-11-11):**
+- **Shared state:** the state the games share (position, facing, clock, previous position, leaving the map, rest interrupt, surprise, morale, search, sky, temple, shop, party modifiers, combat result, ...) becomes ordinary typed Go variables in the engine's shared state, one name each.
+- **Per-game state** becomes custom fields, an engine feature: the adventure declares each by name and type, and scripts reach it by name. Access is validated: a name must refer to a value declared before it is used, or the import fails.
+- **Engine routines:** every routine a script calls (CALL routines, native scripts, per-dialect commands) is part of one shared collection of engine functions callable from scripts.
+- **Side effects of writes:** every side effect of writing a variable becomes an explicit action; a write only stores.
+- **Game flow:** the hard-coded flows of the four games are replaced by one shared flow that every game uses. Differences are analysed first, and the places where one flow is problematic are reported to Felix.
+
 **Felix's decisions for A3 and A5 (2026-11-11):**
 - **Long text:** the scripts' text commands stay. A pager command shows long passages (journal entries, the Phlan histories, tavern tales) from the adventure's text data; one exists or gets added, one for every game.
 - **Script cells are 64-bit:** this supersedes section 2's int32 widening. Gold and every other value fit, and the purse is read as an ordinary value.
