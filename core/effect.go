@@ -37,9 +37,14 @@ type (
 		Hit      bool
 		Damage   int32
 	}
+	// Shot is something flying from Start to To: a missile (Item) or a
+	// spell or power (Spell); From is who stands at Start (NoChar: a bolt
+	// going on from a square).
 	Shot struct {
-		From CharID
-		To   image.Point
+		From      CharID
+		Start, To image.Point
+		Item      ItemID
+		Spell     SpellID
 	}
 	Casting struct {
 		From  CharID
