@@ -258,6 +258,18 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [ ] Engine loop in gobox: main loop, combat flow, presentation
 - [ ] Rule fixes, one commit each, listed in CHANGES-FROM-ORIGINAL.md
 
+### Reference queue (handover)
+
+Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the reference; por-go `rules` and rules1e equal it with gameplay options off. How, per item: Pascal fix (BUGS.md) → vector driver (`vectors-pure.sh`, `build-pure.sh`) → regenerate rules1e `testdata/por-*.txt` → Go `*_pascal_test.go` equal with no exception → break once, see it fail. Commit order por-re, por-go, rules1e; `gate.sh` before every commit; nothing pushed. Allowed differences are CHANGES-FROM-ORIGINAL.md rows.
+
+- [ ] 1. EclSpell (area 14 Knock): `found` uninitialised, slot 0 never scanned, byte-truncated addresses; check Diogenes' `Save 1 [6B32]` before moving the window base
+- [ ] 2. U1 ROB: `EclRob` reads var 3 for the per-item chance
+- [ ] 3. Group C: U2 search step option, U3 day sky option, U4 combat Use list, U5 Slow/Haste sheet, U6-U8 unification rows, U9 off-hand 4e only, U10 old-save import step
+- [ ] 4. aihigh: spell ids >= 0x80 fixed in the Pascal, tolerance dropped
+- [ ] 5. Review `fix:` / `fixed:` comments in `rules/*.go`
+- [ ] 6. src/pure additions: shop, camp, chargen (conAdj clamp), item spell casting, combat aiming, viewchar, money, postcbt, saveload (B6), manual combat menus, SpellSelection, CombatMain round (B13)
+- [ ] 7. Handler move into rules1e behind CombatRules; por-re refactoring template
+
 **por-go hashes rewritten.** The por-go history from 1682aff on was rewritten (the `rules4e/powers.go` rename folded in; trees equal). Commit messages in rules1e, por-re and gobox-engine still name the old por-go hashes; this maps them, oldest first (old → new):
 
 - 1682aff → f371700 Character.Thac0Base: was misnamed HitDice, renamed with gopls
