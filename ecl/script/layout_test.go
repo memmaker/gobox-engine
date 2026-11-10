@@ -99,3 +99,22 @@ func TestResolveRefs(t *testing.T) {
 		t.Errorf("unresolved: %v", err)
 	}
 }
+
+// TestRoutineSpace: a CALL routine number may equal a memory address (POD's
+// CALL 1 and its bank-0 cell 1); each resolves in its own space, and fields
+// still may not overlap within one.
+func TestRoutineSpace(t *testing.T) {
+	l, err := ParseLayout(strings.NewReader("0001 1 byte game MonsterHitMod\n0001 1 byte call CallUpdateDisplay\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if l.Field(must(l.Resolve(1))).Name != "MonsterHitMod" || l.Field(must(l.ResolveCall(1))).Name != "CallUpdateDisplay" {
+		t.Fatal("spaces mixed")
+	}
+	if _, err := l.ResolveCall(2); err == nil {
+		t.Fatal("routine 2 resolved")
+	}
+	if _, err := ParseLayout(strings.NewReader("0001 2 byte call CallA\n0002 1 byte call CallB\n")); err == nil {
+		t.Fatal("overlapping routines accepted")
+	}
+}

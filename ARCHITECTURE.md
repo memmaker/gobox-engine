@@ -279,7 +279,10 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
   - [x] h. Diogenes' camp write read as `RestChance = 1` (d4), CHANGES row with bytes
   - [ ] i. Layout tables for COTAB, SotSB, POD, BR1, BR2 from their -re Pascal; their builds and tests
     - [x] COTAB, SotSB, POD: rules/scripts/layout/global.txt from cotab-re/sotsb-re/pod-re (zones, specials, TZone arms, TGbvmBank0/TAreaState/TCharRecord), embedded as Library.Data; each game's TestLayoutCoversScripts resolves every DAX script; ReadNames/ReadLayout take an fs.FS
-    - [ ] layout required (no-layout exception goes)
+    - [x] layout required (ReadLayout errors without layout/global.txt); Version.Vars and v1Vars gone (the layout is the one name source; Names.Calls names CALL routines)
+    - [x] CALL routines are their own space in a Layout (ResolveCall), named from each -re's EclCall; COTAB/SotSB Word cells the -re units name by constant (Shop, Temple, PriceScale, ...) named; POD 0014 is Temple (healerRequest)
+    - [x] library texts carry a key of names/, layout/, patches/ and the area's code; another key re-imports
+    - [ ] unnamed script-only cells (WordXXXX; no -re field or constant names them): COTAB 171, SotSB 156, POD 360; meaning to be read from the scripts
 - [x] 4. aihigh: spell ids >= 0x80 fixed in the Pascal, tolerance dropped
 - [x] 5. Review `fix:` / `fixed:` comments in `rules/*.go`
 - [ ] 6. src/pure additions: shop, camp, chargen (conAdj clamp), item spell casting, combat aiming, viewchar, money, postcbt, saveload (B6), manual combat menus, SpellSelection, CombatMain round (B13)

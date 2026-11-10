@@ -22,9 +22,12 @@ func Parse(text string, names *Names) (*Script, error) {
 		return nil, err
 	}
 	p := &parser{names: names, s: &Script{Labels: map[string]int{}, At: map[int]string{}, Tables: map[string]int{}},
-		vars: map[string]int{}, labels: map[string]bool{}, tables: map[string]bool{}}
+		vars: map[string]int{}, routines: map[string]int{}, labels: map[string]bool{}, tables: map[string]bool{}}
 	for a, n := range names.Vars {
 		p.vars[n] = a
+	}
+	for a, n := range names.Calls {
+		p.routines[n] = a
 	}
 	if err := p.lex(text); err != nil {
 		return nil, err
@@ -77,15 +80,16 @@ type tok struct {
 func (t tok) is(op string) bool { return t.k == tOp && t.s == op }
 
 type parser struct {
-	names  *Names
-	s      *Script
-	vars   map[string]int
-	labels map[string]bool
-	tables map[string]bool
-	toks   []tok
-	pos    int
-	fix    []fixup // jump operands to resolve to their labels
-	depth  int     // in an if block: nothing but statements
+	names    *Names
+	s        *Script
+	vars     map[string]int
+	routines map[string]int // routine names (Names.Calls)
+	labels   map[string]bool
+	tables   map[string]bool
+	toks     []tok
+	pos      int
+	fix      []fixup // jump operands to resolve to their labels
+	depth    int     // in an if block: nothing but statements
 	// the returns' comparisons and the tests on called sections, matched
 	// by finish
 	section string  // the section a return belongs to: the def's or event's, else the last label's
@@ -569,8 +573,8 @@ func (p *parser) call(name string) error {
 	}
 	op, ok := commandOp(name)
 	if !ok {
-		a, isVar := p.vars[name]
-		if !isVar {
+		a, isRoutine := p.routines[name]
+		if !isRoutine {
 			return fmt.Errorf("no command, section or routine %s", name)
 		}
 		if err := p.expect(")"); err != nil {
@@ -703,7 +707,13 @@ func (p *parser) args(name string) ([]Arg, error) {
 }
 
 // macro parses the calls that stand for several commands.
-func (p *parser) macro(name string) error {
+func (p *parser) macro(name string) (err error) {
+	var unnamed error // a word the macro writes that the layout does not name
+	defer func() {
+		if err == nil {
+			err = unnamed
+		}
+	}()
 	pa, err := p.callArgs()
 	if err != nil {
 		return err
@@ -714,7 +724,13 @@ func (p *parser) macro(name string) error {
 		}
 		return p.resolve(pa[k].o, kind, "", "")
 	}
-	variable := func(n string) Arg { return Arg{Type: 1, N: p.vars[n]} }
+	variable := func(n string) Arg {
+		a, ok := p.vars[n]
+		if !ok && unnamed == nil {
+			unnamed = fmt.Errorf("%s: the layout names no %s", name, n)
+		}
+		return Arg{Type: 1, N: a}
+	}
 	switch name {
 	case "ShowPortrait":
 		h, err := v(0, "Head")

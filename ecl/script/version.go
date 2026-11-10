@@ -30,7 +30,6 @@ type Version struct {
 	ID            VersionID
 	Base          int               // the address of the code's first byte
 	Cmds          [256]Cmd          // by byte-code command
-	Vars          map[int]string    // the words the dialect's engine names
 	ExitOverrides map[ExitPlace]int // corrections of the exit heuristic
 	// LoadMapSecondUnused: the dialect's engine ignores LoadMap's second
 	// operand, so the text leaves it out.
@@ -75,7 +74,7 @@ var V1 = func() *Version {
 	})
 	counted(&t, 3, OpVMenu)
 	counted(&t, 2, OpOnGoto, OpOnGosub, OpHMenu)
-	return &Version{ID: 1, Base: 0x9900, Cmds: t, Vars: v1Vars, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true}
+	return &Version{ID: 1, Base: 0x9900, Cmds: t, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true}
 }()
 
 // set makes byte-code command b the canonical command op with these operands.
@@ -93,7 +92,7 @@ var V2 = func() *Version {
 	set(&t, 64, OpDestroy, 1, 0)
 	set(&t, 65, OpGainExp, 2, 0)
 	set(&t, 52, 0x34, 2, 0)
-	return &Version{ID: 2, Base: 32768, Cmds: t, Vars: map[int]string{0x7F6C: varShop, 0x7EE2: varTemple}}
+	return &Version{ID: 2, Base: 32768, Cmds: t}
 }()
 
 // V3 is Pools of Darkness' dialect.
@@ -112,7 +111,7 @@ var V3 = func() *Version {
 	set(&t, 55, OpFindNPC, 2, 0)
 	set(&t, 58, OpNoOp, 0, 0)
 	set(&t, 60, OpItemSet, 1, 0)
-	return &Version{ID: 3, Base: 32768, Cmds: t, Vars: map[int]string{0x0014: varTemple}}
+	return &Version{ID: 3, Base: 32768, Cmds: t}
 }()
 
 // V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).

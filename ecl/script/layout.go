@@ -16,7 +16,7 @@ import (
 // fails the import. Each game supplies its layout as data, written from the
 // record types of its Pascal (its -re repo).
 type Layout struct {
-	Fields []Field // ordered by From; none overlap
+	Fields []Field // memory fields by From, then routine fields by From; none overlap within its space
 }
 
 // FieldID is a Field's place in its Layout, from 1; a Ref names its Field by
@@ -73,11 +73,24 @@ type Ref struct {
 	Index int
 }
 
-// Resolve finds the Field holding address a.
-func (l *Layout) Resolve(a int) (Ref, error) {
-	i, _ := slices.BinarySearchFunc(l.Fields, a, func(f Field, a int) int { return f.From + f.Len - 1 - a })
-	if i < len(l.Fields) && a >= l.Fields[i].From {
-		return Ref{Field: FieldID(i + 1), Index: a - l.Fields[i].From}, nil
+// routine: f names an engine routine CALL runs, not memory. Routine numbers
+// are their own space: they may share numbers with memory addresses.
+func (f Field) routine() bool { return f.Owner == OwnerCall }
+
+// Resolve finds the memory Field holding address a.
+func (l *Layout) Resolve(a int) (Ref, error) { return l.find(a, false) }
+
+// ResolveCall finds the routine Field CALL's operand a names.
+func (l *Layout) ResolveCall(a int) (Ref, error) { return l.find(a, true) }
+
+func (l *Layout) find(a int, routine bool) (Ref, error) {
+	for i, f := range l.Fields {
+		if f.routine() == routine && a >= f.From && a < f.From+f.Len {
+			return Ref{Field: FieldID(i + 1), Index: a - f.From}, nil
+		}
+	}
+	if routine {
+		return Ref{}, fmt.Errorf("routine %04X is no call field of the layout", a)
 	}
 	return Ref{}, fmt.Errorf("address %04X is in no field of the layout", a)
 }
@@ -95,7 +108,7 @@ func (l *Layout) With(over *Layout) (*Layout, error) {
 		if !o.Replaces {
 			continue
 		}
-		i := slices.IndexFunc(base, func(f Field) bool { return f.From == o.From && f.Len == o.Len })
+		i := slices.IndexFunc(base, func(f Field) bool { return f.From == o.From && f.Len == o.Len && f.routine() == o.routine() })
 		if i < 0 {
 			return nil, fmt.Errorf("layout: %s replaces no field at %04X", o.Name, o.From)
 		}
@@ -108,9 +121,18 @@ func (l *Layout) With(over *Layout) (*Layout, error) {
 // elementName is the form ReadNames gives an array's elements (Name_i).
 var elementName = regexp.MustCompile(`_[0-9]+$`)
 
-// check sorts the fields and refuses overlaps and repeated names.
+// check sorts the fields (memory, then routines, each by address) and
+// refuses overlaps within a space and repeated names.
 func (l *Layout) check() error {
-	slices.SortFunc(l.Fields, func(a, b Field) int { return a.From - b.From })
+	slices.SortFunc(l.Fields, func(a, b Field) int {
+		if a.routine() != b.routine() {
+			if a.routine() {
+				return 1
+			}
+			return -1
+		}
+		return a.From - b.From
+	})
 	names := map[string]bool{}
 	for i, f := range l.Fields {
 		if names[f.Name] {
@@ -121,7 +143,7 @@ func (l *Layout) check() error {
 		}
 		names[f.Name] = true
 		if i > 0 {
-			if p := l.Fields[i-1]; p.From+p.Len > f.From {
+			if p := l.Fields[i-1]; p.routine() == f.routine() && p.From+p.Len > f.From {
 				return fmt.Errorf("layout: %s overlaps %s", p.Name, f.Name)
 			}
 		}

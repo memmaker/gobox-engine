@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"maps"
 	"path"
 	"slices"
 	"strconv"
@@ -46,7 +45,7 @@ type Arg struct {
 // layout/ folders) over the version's: the variables (with labels, the
 // labels and tables too), the areas and the values.
 func ReadNames(data fs.FS, area int, labels bool, v *Version) (*Names, error) {
-	n := &Names{Version: v, Vars: maps.Clone(v.Vars)}
+	n := &Names{Version: v, Vars: map[int]string{}, Calls: map[int]string{}}
 	files := []string{"global.txt", fmt.Sprintf("area%d.txt", area)}
 	if labels {
 		files = append(files, fmt.Sprintf("labels/area%d.txt", area))
@@ -60,12 +59,14 @@ func ReadNames(data fs.FS, area int, labels bool, v *Version) (*Names, error) {
 	if err != nil {
 		return nil, err
 	}
-	if l != nil { // the layout names the variables: a field its name, element i of an array Name_i
-		for _, f := range l.Fields {
-			n.Vars[f.From] = f.Name
-			for i := 1; i < f.Len && f.Width != WidthText; i++ {
-				n.Vars[f.From+i] = fmt.Sprintf("%s_%d", f.Name, i)
-			}
+	for _, f := range l.Fields { // the layout names the words: a field its name, element i of an array Name_i
+		if f.routine() {
+			n.Calls[f.From] = f.Name
+			continue
+		}
+		n.Vars[f.From] = f.Name
+		for i := 1; i < f.Len && f.Width != WidthText; i++ {
+			n.Vars[f.From+i] = fmt.Sprintf("%s_%d", f.Name, i)
 		}
 	}
 	if n.Areas, err = ReadAreas(data, "names/areas.txt"); err != nil {
@@ -115,6 +116,7 @@ func ReadVarNames(data fs.FS, path string, names map[int]string) error {
 type Names struct {
 	Version  *Version
 	Vars     map[int]string // variables (and, for cmd/eclscript, labels and tables) by address
+	Calls    map[int]string // engine routines by CALL's operand (the layout's call fields)
 	Areas    []Area
 	Values   []Value
 	Set      int                    // the area's data set

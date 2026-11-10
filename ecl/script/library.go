@@ -1,11 +1,15 @@
 package script
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"gobox/dax"
 )
@@ -18,6 +22,44 @@ type Library struct {
 	Source  Source
 	Dir     string // where the texts are written
 	Data    fs.FS  // the game's script data: names/, layout/, patches/
+}
+
+// dataDirs are the parts of a game's script data a text is made from.
+var dataDirs = []string{"names", "layout", "patches"}
+
+// key is what an area's text is made from: the decompiler's version, the
+// game's script data (dataDirs: every file, path and content) and the
+// area's code. A text whose header carries another key is stale.
+func (l *Library) key(code []byte) (string, error) {
+	h := sha256.New()
+	fmt.Fprintf(h, "%s\x00", l.Version.Header())
+	err := fs.WalkDir(l.Data, ".", func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			if p != "." && !slices.Contains(dataDirs, strings.SplitN(p, "/", 2)[0]) {
+				return fs.SkipDir
+			}
+			return nil
+		}
+		if !strings.Contains(p, "/") {
+			return nil // a file beside the data folders: not data (POR's texts share its folder)
+		}
+		b, err := fs.ReadFile(l.Data, p)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(h, "%s\x00%d\x00", p, len(b))
+		h.Write(b)
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+	fmt.Fprintf(h, "code\x00%d\x00", len(code))
+	h.Write(code)
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 // DAXSource reads the blocks of the game's ECL*.DAX.
@@ -43,6 +85,14 @@ func (l *Library) Area(area int) (*Script, error) {
 		return nil, err
 	}
 	path := AreaPath(l.Dir, area)
+	code := l.block(area)
+	if code == nil {
+		return Empty(area), nil
+	}
+	key, err := l.key(code)
+	if err != nil {
+		return nil, err
+	}
 	b, err := os.ReadFile(path)
 	stale := errors.Is(err, fs.ErrNotExist)
 	if err != nil && !stale {
@@ -50,17 +100,14 @@ func (l *Library) Area(area int) (*Script, error) {
 	}
 	if !stale {
 		_, err := l.Version.checkHeader(string(b))
-		stale = errors.Is(err, ErrStale)
+		stale = errors.Is(err, ErrStale) || textKey(string(b)) != key
 	}
 	if stale {
-		code := l.block(area)
-		if code == nil {
-			return Empty(area), nil
-		}
 		text, _, err := importArea(l.Version, l.Source, l.Data, area, code)
 		if err != nil {
 			return nil, fmt.Errorf("area %d: %w", area, err)
 		}
+		text = withKey(text, key)
 		if err := writeAtomic(path, text); err != nil {
 			return nil, err
 		}

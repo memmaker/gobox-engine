@@ -10,7 +10,8 @@ import (
 	"strings"
 )
 
-// headerWord starts a script text's first line: "version <id> <revision>".
+// headerWord starts a script text's first line: "version <id> <revision>
+// [<key>]"; a Library's text carries its key (Library.key).
 const headerWord = "version"
 
 // Header is the first line of the text this version writes.
@@ -27,7 +28,7 @@ var ErrStale = errors.New("script text from another decompiler version")
 func (v *Version) checkHeader(text string) (string, error) {
 	first, rest, _ := strings.Cut(text, "\n")
 	f := strings.Fields(first)
-	if len(f) != 3 || f[0] != headerWord {
+	if (len(f) != 3 && len(f) != 4) || f[0] != headerWord {
 		return "", fmt.Errorf("%w: no version line", ErrStale)
 	}
 	id, err1 := strconv.Atoi(f[1])
@@ -36,6 +37,22 @@ func (v *Version) checkHeader(text string) (string, error) {
 		return "", fmt.Errorf("%w: %q", ErrStale, first)
 	}
 	return "\n" + rest, nil
+}
+
+// textKey is the key on text's first line ("" for none).
+func textKey(text string) string {
+	first, _, _ := strings.Cut(text, "\n")
+	if f := strings.Fields(first); len(f) == 4 && f[0] == headerWord {
+		return f[3]
+	}
+	return ""
+}
+
+// withKey is text with key on its first line.
+func withKey(text, key string) string {
+	first, rest, _ := strings.Cut(text, "\n")
+	f := strings.Fields(first)
+	return strings.Join(append(f[:min(len(f), 3)], key), " ") + "\n" + rest
 }
 
 // Source is the game data an import reads.

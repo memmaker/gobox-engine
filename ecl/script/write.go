@@ -39,6 +39,9 @@ func write(s *Script, names *Names, callTests bool) (string, error) {
 	for _, n := range names.Vars {
 		w.taken[n] = true
 	}
+	for _, n := range names.Calls {
+		w.taken[n] = true
+	}
 	for n, at := range s.Tables {
 		w.table[at] = n
 		w.taken[n] = true
@@ -85,7 +88,7 @@ func write(s *Script, names *Names, callTests bool) (string, error) {
 		}
 	}
 	w.before = scriptFlags(s)
-	w.head = s.headSet(w.names.Version)
+	w.head = s.headSet(w.names)
 	w.returnForms()
 	for i := 0; i < len(s.Code); {
 		end := w.blockEnd(i)
@@ -800,8 +803,8 @@ func (w *scriptWriter) simple(i int) (string, error) {
 	case (in.Op == OpOnGoto || in.Op == OpOnGosub) && n >= 2 && a[1] == (Arg{N: n - 2}):
 		return w.onGoto(in, ""), nil
 	case in.Op == OpCall && n == 1:
-		if a[0].Type == 1 && w.names.Vars[a[0].N] != "" {
-			return plain(0) + "()", nil
+		if n := w.names.Calls[a[0].N]; a[0].Type == 1 && n != "" {
+			return n + "()", nil
 		}
 		return fmt.Sprintf("Call(0x%04X)", a[0].N), nil
 	case in.Op == OpNewECL && n == 1:
@@ -1013,7 +1016,7 @@ func (w *scriptWriter) anyTaken(mask string) bool {
 // headSet is, for each command, whether a portrait head may be up: after
 // Portrait = H (not None) on a way to it, falling through or by a jump.
 // An event starts without one.
-func (s *Script) headSet(v *Version) []bool {
+func (s *Script) headSet(names *Names) []bool {
 	entry := map[int]bool{}
 	out := make([]bool, len(s.Code))
 	events := map[int]bool{}
@@ -1021,7 +1024,7 @@ func (s *Script) headSet(v *Version) []bool {
 		events[e] = true
 	}
 	portrait := -1
-	for a, n := range v.Vars {
+	for a, n := range names.Vars {
 		if n == varPortrait {
 			portrait = a
 		}
