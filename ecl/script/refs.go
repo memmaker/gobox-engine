@@ -13,6 +13,12 @@ func isVarArg(t byte) bool {
 	return t == ArgVar || t == ArgVarWord || t == ArgVarLong || t == ArgTextVar
 }
 
+// tableBase: operand k of op is the base a table command indexes, whatever
+// its operand type.
+func tableBase(op byte, k int) bool {
+	return op == OpGetTable && k == 0 || op == OpSaveTable && k == 1
+}
+
 // ConstLayout is the layout of s's own tables: one read-only constant field
 // a table, from its address to the next table's (or the end of the data).
 func ConstLayout(s *Script, v *Version) *Layout {
@@ -35,12 +41,13 @@ func ConstLayout(s *Script, v *Version) *Layout {
 // (the game's and the area's fields with ConstLayout's): an address no field
 // covers is an error, naming the instruction; all of them are reported.
 func ResolveRefs(s *Script, l *Layout) error {
+	s.Layout = l
 	var errs []error
 	for i := range s.Code {
 		in := &s.Code[i]
 		for k := range in.Args {
 			a := &in.Args[k]
-			if a.Label || !isVarArg(a.Type) {
+			if a.Label || !(isVarArg(a.Type) || tableBase(in.Op, k)) {
 				continue
 			}
 			resolve := l.Resolve
@@ -59,8 +66,10 @@ func ResolveRefs(s *Script, l *Layout) error {
 }
 
 // ReadLayout is area's layout in a game's script data: layout/global.txt
-// with layout/area<N>.txt (if the area has one) over it. Every game has
-// layout/global.txt; data without one is an error.
+// with layout/area<N>.txt (if the area has one) over it. Data with no
+// layout/global.txt has none (nil, nil): only Buck Rogers 1 and 2, whose
+// own VM reads addresses, until their layouts are written (ARCHITECTURE.md,
+// reference queue 1b-i); every other game's VM refuses an unresolved operand.
 func ReadLayout(data fs.FS, area int) (*Layout, error) {
 	read := func(path string) (*Layout, error) {
 		f, err := data.Open(path)
@@ -75,6 +84,9 @@ func ReadLayout(data fs.FS, area int) (*Layout, error) {
 		return l, nil
 	}
 	g, err := read("layout/global.txt")
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -88,10 +100,10 @@ func ReadLayout(data fs.FS, area int) (*Layout, error) {
 	return g.With(a)
 }
 
-// resolve gives s its Refs in its area's layout of data.
+// resolve gives s its Refs in its area's layout of data (none without one).
 func resolve(s *Script, data fs.FS, v *Version) error {
 	l, err := ReadLayout(data, s.Area)
-	if err != nil {
+	if err != nil || l == nil {
 		return err
 	}
 	full, err := l.With(ConstLayout(s, v))

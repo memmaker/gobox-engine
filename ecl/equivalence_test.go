@@ -2,7 +2,6 @@ package ecl
 
 import (
 	"fmt"
-	"maps"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,12 +13,12 @@ import (
 // noText answers text variables for both readers alike.
 type noText struct{}
 
-func (noText) GetVar(uint16) uint16      { return 0 }
-func (noText) SetVar(uint16, uint16)     {}
-func (noText) TextVar(uint16) string     { return "" }
-func (noText) SetTextVar(uint16, string) {}
-func (noText) Random(int) int            { return 0 }
-func (noText) Exit(*VM)                  {}
+func (noText) Get(script.Ref) uint16      { return 0 }
+func (noText) Set(script.Ref, uint16)     {}
+func (noText) Text(script.Ref) string     { return "" }
+func (noText) SetText(script.Ref, string) {}
+func (noText) Random(int) int             { return 0 }
+func (noText) Exit(*VM)                   {}
 
 // TestScriptEqualsByteCode: for every game and every command of its ECL
 // byte code, the command number, the operands and the next command the VM
@@ -63,7 +62,7 @@ func TestScriptEqualsByteCode(t *testing.T) {
 }
 
 func compareBlock(t *testing.T, v *script.Version, block int, code []byte) int {
-	names := &script.Names{Version: v, Vars: maps.Clone(v.Vars)}
+	names := &script.Names{Version: v, Vars: map[int]string{}}
 	d, err := script.Decode(code, names)
 	if err != nil {
 		t.Fatalf("area %d: %v", block, err)

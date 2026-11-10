@@ -262,7 +262,7 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 
 Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the reference; por-go `rules` and rules1e equal it with gameplay options off. How, per item: Pascal fix (BUGS.md) → vector driver (`vectors-pure.sh`, `build-pure.sh`) → regenerate rules1e `testdata/por-*.txt` → Go `*_pascal_test.go` equal with no exception → break once, see it fail. Commit order por-re, por-go, rules1e; `gate.sh` before every commit; nothing pushed. Allowed differences are CHANGES-FROM-ORIGINAL.md rows.
 
-- [ ] 1. EclSpell (area 14 Knock): `found` uninitialised, slot 0 never scanned, byte-truncated addresses; check Diogenes' `Save 1 [6B32]` before moving the window base
+- [x] 1. EclSpell (area 14 Knock; no Pascal fix: the Spell command is gone, d3): `found` uninitialised, slot 0 never scanned, byte-truncated addresses; check Diogenes' `Save 1 [6B32]` before moving the window base
 - [x] 2. U1 ROB: `EclRob` reads var 3 for the per-item chance
 - [ ] 3. Group C: [x] U2 option, [x] U3 option, [x] U4 kept (whenCast; every listed spell has a combat handler), [ ] U5 Pascal display fix (with viewchar, item 6), [x] U6-U8 rows, [x] U9, [x] U10 (saveimport.go)
 - [ ] 1b. Typed script references (Felix d1-d4): no address ranges in gobox ecl or any game; each gated step builds and passes
@@ -272,17 +272,20 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
     - [x] `ResolveRefs`, `ConstLayout`, `replaces` (an area field over a game field); por-go `TestLayoutCoversScripts` resolves every patched script; area 9 coins are `SelCoins[i]`; area 26 `RiverState` replaces CouncilMeeting (patch and CHANGES row go with d); $6BF2 stays unmapped (`SelWindowF2`)
     - [x] `Library.Area` resolves every script in its layout (`ReadLayout`); a scripts folder without layout/global.txt is the 1b-i games, made mandatory there
     - [x] text format names refs: the layout is the one name source (ReadNames; array elements Name_i), value names scoped per area (Set aN); POR's names files keep only tables and labels
-  - [ ] d. VM `Host` on `Ref` (Get/Set/Text/SetText); `VarAddr`, `Addr`, `RemainderAddr` go
-  - [ ] e. por-go host on `Ref`; `ReadVar`/`WriteVar`, `addrKind`, zones, `SaveEditor.SetVar(addr)` go
+  - [x] d. VM `Host` on `Ref` (Get/Set/Text/SetText); `VarAddr`, `Addr`, `RemainderAddr` go
+    - [x] four games: hosts map a Ref back with `Layout.Address` (their state is still the original memory); `vm.Remainder` is the layout's field; table bases resolve whatever their type (`Ref.Plus`); a variable operand without a Ref panics; tests resolve their own scripts (`Assemble(v, layout, code)`, por `resolved`); POR's Scratch6 and Hours by `Layout.Named`
+    - [ ] VM `Arg` of a text (0x80) or text variable (0x81) operand is 0 now; the original read the word at its length (stale high byte) or the address: no game command found to depend on it, unverified
+  - [ ] e. por-go host on `Ref` (then drop patches/area26.patch, CHANGES row: RiverState replaces CouncilMeeting); `ReadVar`/`WriteVar`, `addrKind`, zones, `SaveEditor.SetVar(addr)` go
   - [ ] f. Saves: typed state by id; old saves through saveimport.go
   - [x] g. Area 14: Spell/SaveTable pair becomes one typed CastKnock call (native caster choice, slot spent); Spell opcode goes; cabinets stay script events
   - [x] h. Diogenes' camp write read as `RestChance = 1` (d4), CHANGES row with bytes
   - [ ] i. Layout tables for COTAB, SotSB, POD, BR1, BR2 from their -re Pascal; their builds and tests
     - [x] COTAB, SotSB, POD: rules/scripts/layout/global.txt from cotab-re/sotsb-re/pod-re (zones, specials, TZone arms, TGbvmBank0/TAreaState/TCharRecord), embedded as Library.Data; each game's TestLayoutCoversScripts resolves every DAX script; ReadNames/ReadLayout take an fs.FS
-    - [x] layout required (ReadLayout errors without layout/global.txt); Version.Vars and v1Vars gone (the layout is the one name source; Names.Calls names CALL routines)
+    - [ ] layout required: BR1/BR2 have none yet, so ReadLayout gives nil for them (their own VM reads addresses); the exception goes with their layouts. Done: Version.Vars and v1Vars gone (the layout is the one name source; Names.Calls names CALL routines)
     - [x] CALL routines are their own space in a Layout (ResolveCall), named from each -re's EclCall; COTAB/SotSB Word cells the -re units name by constant (Shop, Temple, PriceScale, ...) named; POD 0014 is Temple (healerRequest)
     - [x] library texts carry a key of names/, layout/, patches/ and the area's code; another key re-imports
     - [ ] unnamed script-only cells (WordXXXX; no -re field or constant names them): COTAB 171, SotSB 156, POD 360; meaning to be read from the scripts
+    - [ ] BR1, BR2 layouts from buckroger-re / buckrogers2-re (five zones, eclmenu.pas ReadGbvm/WriteGbvm); then drop ReadLayout's nil
     - [ ] after d: name the unnamed cells from their script use, per game (COTAB, SotSB, POD)
     - [ ] after d: `WriteGbvm($2CB, …)` in cotab-re and sotsb-re EclCombat writes outside every zone (likely a Pascal bug): investigate
     - [x] bug class (cotab 8ee0677): a layout name overwrote a name the fold depends on; detection: gate.sh runs each game's Layout/Fold/Gate tests on every gobox change, and a macro refuses a word the layout does not name

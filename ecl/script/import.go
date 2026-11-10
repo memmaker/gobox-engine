@@ -87,7 +87,7 @@ func Import(v *Version, src Source, dir string) ([]FoldedGate, error) {
 				continue
 			}
 			done[block] = true
-			text, folds, err := importArea(v, src, os.DirFS(dir), block, b[2:])
+			text, folds, err := importArea(v, src, os.DirFS(dir), block, b[2:], FoldGates)
 			if err != nil {
 				return nil, fmt.Errorf("area %d: %w", block, err)
 			}
@@ -100,7 +100,7 @@ func Import(v *Version, src Source, dir string) ([]FoldedGate, error) {
 	return all, nil
 }
 
-func importArea(v *Version, src Source, data fs.FS, area int, code []byte) (string, []FoldedGate, error) {
+func importArea(v *Version, src Source, data fs.FS, area int, code []byte, fold Folding) (string, []FoldedGate, error) {
 	names, err := ReadNames(data, area, true, v)
 	if err != nil {
 		return "", nil, err
@@ -108,7 +108,7 @@ func importArea(v *Version, src Source, data fs.FS, area int, code []byte) (stri
 	if src.Treasure != nil {
 		names.Treasure = func(block int) string { return src.Treasure(names.Set, block) }
 	}
-	text, folds, err := DecodeBlock(code, area, names)
+	text, folds, err := DecodeBlock(code, area, names, fold)
 	if err != nil {
 		return "", nil, err
 	}

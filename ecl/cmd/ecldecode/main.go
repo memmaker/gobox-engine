@@ -6,7 +6,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -46,7 +45,7 @@ func main() {
 				continue
 			}
 			done[block] = true
-			names := &script.Names{Version: v, Vars: maps.Clone(v.Vars)}
+			names := &script.Names{Version: v, Vars: map[int]string{}}
 			s, err := script.Decode(b[2:], names)
 			if err != nil {
 				fmt.Printf("area %d (ECL%d): DECODE %v\n", block, disk, err)

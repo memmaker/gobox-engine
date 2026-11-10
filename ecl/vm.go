@@ -58,15 +58,13 @@ const (
 	MaxArgs      = 256 // operands are 1-based and an ON GOTO count is a byte (1..255)
 )
 
-// NoRemainder as a VM's RemainderAddr: its dialect's DIVIDE keeps no remainder.
-const NoRemainder = 0
-
-// Host is what the interpreter asks of the game.
+// Host is what the interpreter asks of the game: the state a resolved
+// operand (script.Ref, a field of the running script's Layout) names.
 type Host interface {
-	GetVar(a uint16) uint16
-	SetVar(a, v uint16)
-	TextVar(a uint16) string // text kept at a (ArgTextVar operands, via readArgs)
-	SetTextVar(a uint16, s string)
+	Get(r script.Ref) uint16
+	Set(r script.Ref, v uint16)
+	Text(r script.Ref) string // text kept in r (ArgTextVar operands, via ReadArgs)
+	SetText(r script.Ref, s string)
 	Random(n int) int // 0 .. n-1
 	Exit(vm *VM)      // the game's EXIT, used when RETURN has nowhere to go
 }
@@ -83,8 +81,8 @@ type VM struct {
 	PC     uint16
 
 	ArgType [MaxArgs]byte
-	ArgLo   [MaxArgs]byte
-	ArgHi   [MaxArgs]byte
+	ArgN    [MaxArgs]int        // an operand's number: an immediate, a label's command, a routine, a text's length; 0 for a variable
+	ArgRef  [MaxArgs]script.Ref // a variable operand's field (the zero Ref for any other operand)
 	Text    [MaxArgs]string // text operands of the current command, 1-based
 	Flags   [6]bool         // equal, not equal, less, greater, less-equal, greater-equal
 	Calls   []uint16        // return addresses
@@ -97,8 +95,9 @@ type VM struct {
 	Args [256]byte
 	// Ops is the opcode table; nil entries do nothing. New starts with Default.
 	Ops [256]Op
-	// RemainderAddr: the address DIVIDE leaves its remainder in; NoRemainder: nowhere.
-	RemainderAddr uint16
+	// Remainder is the field DIVIDE leaves its remainder in; the zero Ref:
+	// its dialect's DIVIDE keeps none.
+	Remainder script.Ref
 	// Trace, if set, is called after each readArgs with the decoded operands.
 	Trace func(vm *VM, n int)
 
@@ -139,8 +138,10 @@ func (vm *VM) Cur() int { return vm.cur }
 // PC goes to the next command.
 func (vm *VM) ReadArgs(n int) {
 	var args []script.Arg
+	routine := false // CALL's operand is a routine number (ArgN), its Ref a routine field
 	if vm.cur < len(vm.Script.Code) {
 		args = vm.Script.Code[vm.cur].Args
+		routine = vm.Script.Code[vm.cur].Op == script.OpCall
 	}
 	texts := 0
 	for k := 1; k <= n; k++ {
@@ -149,15 +150,21 @@ func (vm *VM) ReadArgs(n int) {
 			a = args[vm.argPos]
 		}
 		vm.argPos++
-		vm.ArgType[k], vm.ArgLo[k], vm.ArgHi[k] = a.Type, byte(a.N), byte(a.N>>8)
+		vm.ArgType[k], vm.ArgN[k], vm.ArgRef[k] = a.Type, a.N, a.Ref
+		if isVar(a) && !routine {
+			if a.Ref == (script.Ref{}) {
+				panic(fmt.Sprintf("ecl: command %d operand %d (%04X) has no field: the script was not resolved in its layout", vm.cur, k, a.N))
+			}
+			vm.ArgN[k] = 0 // state is named by its field, never by an address
+		}
 		switch a.Type {
 		case ArgText:
 			texts++
-			vm.ArgLo[k] = byte(len(a.S))
+			vm.ArgN[k] = len(a.S)
 			vm.Text[texts] = a.S
 		case ArgTextVar:
 			texts++
-			vm.Text[texts] = vm.Host.TextVar(vm.Addr(k))
+			vm.Text[texts] = vm.Host.Text(a.Ref)
 		}
 	}
 	vm.PC = uint16(vm.cur + 1)
@@ -166,9 +173,15 @@ func (vm *VM) ReadArgs(n int) {
 	}
 }
 
+// isVar: a names state, so it must carry its field (script.ResolveRefs). A
+// label and a CALL's routine are numbers.
+func isVar(a script.Arg) bool {
+	return !a.Label && (a.Type == ArgVarByte || a.Type == ArgVarWord || a.Type == script.ArgVarLong || a.Type == ArgTextVar)
+}
+
 // New returns a VM (reading text variables through h) over code with the shared opcodes installed.
-func New(h Host, l Layout, code []byte, remainder uint16) *VM {
-	vm := &VM{Host: h, Layout: l, Code: code, RemainderAddr: remainder}
+func New(h Host, l Layout, code []byte) *VM {
+	vm := &VM{Host: h, Layout: l, Code: code}
 	vm.Ops = Default()
 	return vm
 }
@@ -185,11 +198,11 @@ func (vm *VM) SetCodeByte(a uint16, v byte) {
 	vm.Code[int(uint16(a-vm.Layout.Code.First))%n] = v
 }
 
-// VarAddr joins an operand's two bytes into an address.
-func VarAddr(lo, hi byte) uint16 { return uint16(hi)<<8 | uint16(lo) }
+// Ref is the field operand k names.
+func (vm *VM) Ref(k int) script.Ref { return vm.ArgRef[k] }
 
-// Addr is the address held by operand k.
-func (vm *VM) Addr(k int) uint16 { return VarAddr(vm.ArgLo[k], vm.ArgHi[k]) }
+// Label is the command operand k jumps to.
+func (vm *VM) Label(k int) uint16 { return uint16(vm.ArgN[k]) }
 
 // Step runs the command at PC. Returns false when vm.Stop is set afterwards.
 func (vm *VM) Step(h Host) bool {
@@ -211,23 +224,22 @@ func (vm *VM) Run(h Host, halt func() bool) {
 
 // Arg is the value of operand k.
 func (vm *VM) Arg(k int, h Host) uint16 {
-	lo, hi := vm.ArgLo[k], vm.ArgHi[k]
 	switch vm.ArgType[k] {
 	case ArgImmediate:
-		return uint16(lo)
-	case ArgVarByte, ArgVarWord, ArgText:
-		return h.GetVar(VarAddr(lo, hi))
-	case ArgAddress, ArgTextVar:
-		return VarAddr(lo, hi)
+		return uint16(byte(vm.ArgN[k]))
+	case ArgVarByte, ArgVarWord:
+		return h.Get(vm.ArgRef[k])
+	case ArgAddress:
+		return uint16(vm.ArgN[k])
 	}
-	return 0
+	return 0 // a text or text variable has no number here (the original read a stray word or the address)
 }
 
 // ArgsTrace is a ready Trace printing operands the way the games' scriptTrace does.
 func ArgsTrace(h Host, print func(string)) func(*VM, int) {
 	return func(vm *VM, n int) {
 		for k := 1; k <= n; k++ {
-			print(fmt.Sprintf("    arg%d type %d %d/%d = %d\n", k, vm.ArgType[k], vm.ArgLo[k], vm.ArgHi[k], vm.Arg(k, h)))
+			print(fmt.Sprintf("    arg%d type %d %d %v = %d\n", k, vm.ArgType[k], vm.ArgN[k], vm.ArgRef[k], vm.Arg(k, h)))
 		}
 	}
 }
@@ -241,7 +253,7 @@ func (vm *VM) Skip(h Host) {
 // Call pushes PC and jumps to the address in operand k.
 func (vm *VM) Call(k int) {
 	vm.Calls = append(vm.Calls, vm.PC)
-	vm.PC = vm.Addr(k)
+	vm.PC = vm.Label(k)
 }
 
 // SetFlags sets the six comparison flags.

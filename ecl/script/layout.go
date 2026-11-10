@@ -77,6 +77,26 @@ type Ref struct {
 // are their own space: they may share numbers with memory addresses.
 func (f Field) routine() bool { return f.Owner == OwnerCall }
 
+// Plus is the element i past r in its field's memory: a table operand's
+// base and the index a command adds (GET TABLE, SAVE TABLE). Like the byte
+// code's address arithmetic it may pass the field's end.
+func (r Ref) Plus(i int) Ref { return Ref{Field: r.Field, Index: r.Index + i} }
+
+// Named is the memory field called name: for the words an engine reads or
+// writes by itself (a native command's answer, DIVIDE's remainder).
+func (l *Layout) Named(name string) (Ref, error) {
+	for i, f := range l.Fields {
+		if f.Name == name && !f.routine() {
+			return Ref{Field: FieldID(i + 1)}, nil
+		}
+	}
+	return Ref{}, fmt.Errorf("layout: no field %s", name)
+}
+
+// Address is r's address in the byte code's memory: for a game whose state
+// is still that memory (its host maps a Ref back to it).
+func (l *Layout) Address(r Ref) int { f := l.Field(r); return f.From + r.Index }
+
 // Resolve finds the memory Field holding address a.
 func (l *Layout) Resolve(a int) (Ref, error) { return l.find(a, false) }
 

@@ -1,5 +1,7 @@
 package ecl
 
+import "gobox/ecl/script"
+
 // Command numbers (the first byte of each command), the same in both games.
 const (
 	CmdExit       = 0
@@ -53,7 +55,7 @@ func Default() (t [256]Op) {
 
 func opGoto(vm *VM, h Host) {
 	vm.ReadArgs(1)
-	vm.PC = vm.Addr(1)
+	vm.PC = vm.Label(1)
 }
 
 func opGosub(vm *VM, h Host) {
@@ -71,12 +73,12 @@ func opCompare(vm *VM, h Host) {
 	vm.SetFlags(vm.Arg(1, h), vm.Arg(2, h))
 }
 
-// opArithmetic: add, subtract (b-a), divide (remainder to RemainderAddr; by
+// opArithmetic: add, subtract (b-a), divide (remainder to vm.Remainder; by
 // zero stores 0), multiply.
 func opArithmetic(vm *VM, h Host) {
 	vm.ReadArgs(3)
 	a, b := vm.Arg(1, h), vm.Arg(2, h)
-	dst := vm.Addr(3)
+	dst := vm.Ref(3)
 	var r uint16
 	switch vm.Command {
 	case CmdAdd:
@@ -86,14 +88,14 @@ func opArithmetic(vm *VM, h Host) {
 	case CmdDivide:
 		if b != 0 {
 			r = a / b
-			if vm.RemainderAddr != NoRemainder {
-				h.SetVar(vm.RemainderAddr, a%b)
+			if vm.Remainder != (script.Ref{}) {
+				h.Set(vm.Remainder, a%b)
 			}
 		}
 	case CmdMultiply:
 		r = a * b
 	}
-	h.SetVar(dst, r)
+	h.Set(dst, r)
 }
 
 // opRandom: 0 .. operand.
@@ -103,18 +105,18 @@ func opRandom(vm *VM, h Host) {
 	if n < 255 {
 		n++
 	}
-	h.SetVar(vm.Addr(2), uint16(h.Random(int(n))))
+	h.Set(vm.Ref(2), uint16(h.Random(int(n))))
 }
 
 // opSave stores a value or text.
 func opSave(vm *VM, h Host) {
 	vm.ReadArgs(2)
-	dst := vm.Addr(2)
+	dst := vm.Ref(2)
 	if vm.ArgType[1] < ArgText {
-		h.SetVar(dst, vm.Arg(1, h))
+		h.Set(dst, vm.Arg(1, h))
 		return
 	}
-	h.SetTextVar(dst, vm.Text[1])
+	h.SetText(dst, vm.Text[1])
 }
 
 // opReturn: back from a GOSUB, or the host's EXIT when there is none.
@@ -157,7 +159,7 @@ func opOnGotoGosub(vm *VM, h Host) {
 	for k := byte(0); k < count; k++ {
 		if k == n {
 			if vm.Command == CmdOnGoto {
-				vm.PC = VarAddr(vm.ArgLo[k+1], vm.ArgHi[k+1])
+				vm.PC = vm.Label(int(k + 1))
 			} else {
 				vm.Call(int(k + 1))
 			}
@@ -169,7 +171,7 @@ func opOnGotoGosub(vm *VM, h Host) {
 func opAndOr(vm *VM, h Host) {
 	vm.ReadArgs(3)
 	a, b := vm.Arg(1, h), vm.Arg(2, h)
-	dst := vm.Addr(3)
+	dst := vm.Ref(3)
 	var r byte
 	if vm.Command == CmdAnd {
 		r = byte(a & b)
@@ -177,21 +179,19 @@ func opAndOr(vm *VM, h Host) {
 		r = byte(a | b)
 	}
 	vm.SetFlags(0, uint16(r))
-	h.SetVar(dst, uint16(r))
+	h.Set(dst, uint16(r))
 }
 
 // opGetTable: dst := [base + index].
 func opGetTable(vm *VM, h Host) {
 	vm.ReadArgs(3)
-	base := vm.Addr(1)
 	i := byte(vm.Arg(2, h))
-	h.SetVar(vm.Addr(3), h.GetVar(uint16(i)+base))
+	h.Set(vm.Ref(3), h.Get(vm.Ref(1).Plus(int(i))))
 }
 
 // opSaveTable: [base + index] := value.
 func opSaveTable(vm *VM, h Host) {
 	vm.ReadArgs(3)
 	v := vm.Arg(1, h)
-	base := vm.Addr(2)
-	h.SetVar(base+vm.Arg(3, h), v)
+	h.Set(vm.Ref(2).Plus(int(vm.Arg(3, h))), v)
 }

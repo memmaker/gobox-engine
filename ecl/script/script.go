@@ -21,6 +21,7 @@ type Script struct {
 	At     map[int]string // an instruction's first label
 	Data   []byte         // the tables, from Version.Base
 	Tables map[string]int // a table's address in Data (Version.Base + its offset)
+	Layout *Layout        // the fields its operands' Refs name (ResolveRefs)
 }
 
 // Instr is one command.
@@ -59,7 +60,7 @@ func ReadNames(data fs.FS, area int, labels bool, v *Version) (*Names, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, f := range l.Fields { // the layout names the words: a field its name, element i of an array Name_i
+	for _, f := range layoutFields(l) { // the layout names the words: a field its name, element i of an array Name_i
 		if f.routine() {
 			n.Calls[f.From] = f.Name
 			continue
@@ -255,4 +256,12 @@ func valueOf(vals []Value, kind string, set int, name string) (int, bool) {
 		}
 	}
 	return 0, false
+}
+
+// layoutFields are l's fields; none for no layout (ReadLayout).
+func layoutFields(l *Layout) []Field {
+	if l == nil {
+		return nil
+	}
+	return l.Fields
 }

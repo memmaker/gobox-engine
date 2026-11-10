@@ -8,16 +8,19 @@ are handed in.
 
 - `Layout{Area, Area2, Aux, Code Range}`, `Layout.KindOf(a)` -> `AddrArea|AddrArea2|AddrAux|AddrCode|AddrSpecial`.
   Both games: Area 19200..20223, Aux 31232..31743, Area2 31744..32767, Code 32768..40447.
-- `Host` (the game implements): `GetVar`, `SetVar`, `TextVar`, `SetTextVar`, `Random(n)`, `Exit(vm)`.
-  The game's getVar/setVar keep the area/char/special logic; `TextVar`/`SetTextVar` are readTextVar/setTextVar.
-- `New(host, layout, code, remainderAddr) *VM`; `vm.Code` is the script bytes (Code[0] is address Code.First),
-  `vm.PC`, `vm.ArgType/ArgLo/ArgHi/Text`, `vm.Flags`, `vm.Calls`, `vm.Command/LastCommand`, `vm.Stop`.
-- `vm.ReadArgs(n)`, `vm.Arg(k, h)`, `vm.Addr(k)`, `vm.Call(k)`, `vm.SetFlags`, `vm.SetTextFlags`,
+- `Host` (the game implements): `Get(ref)`, `Set(ref, v)`, `Text(ref)`, `SetText(ref, s)`, `Random(n)`, `Exit(vm)`.
+  A `script.Ref` is a field of the running script's layout (`vm.Script.Layout`, set by `script.ResolveRefs`); a variable
+  operand without one panics (the script was not resolved). Games whose state is still the original's memory map a Ref
+  back with `Layout.Address`.
+- `New(host, layout, code) *VM`; `vm.Code` is the script bytes (Code[0] is address Code.First),
+  `vm.PC`, `vm.ArgType/ArgN/ArgRef/Text`, `vm.Flags`, `vm.Calls`, `vm.Command/LastCommand`, `vm.Stop`, `vm.Remainder`
+  (DIVIDE's field; the zero Ref keeps none).
+- `vm.ReadArgs(n)`, `vm.Arg(k, h)`, `vm.Ref(k)`, `vm.Label(k)`, `vm.Call(k)`, `vm.SetFlags`, `vm.SetTextFlags`,
   `vm.CodeByte/SetCodeByte`, `vm.Skip(h)` (steps over the command at PC using the data table `vm.Args[cmd]`).
 - `vm.Ops [256]Op` (`func(vm *VM, h Host)`), filled by `Default()` in `New`; the game overrides entries.
 - `vm.Step(h)` runs one command; `vm.Run(h, halt)` loops until Stop or `halt()`.
 - Shared opcodes: GOTO GOSUB COMPARE ADD SUB DIV MUL RANDOM SAVE RETURN COMPARE-AND IF* ON-GOTO ON-GOSUB GET-TABLE AND OR SAVE-TABLE.
-  DIVIDE writes its remainder with `Host.SetVar(remainderAddr, ..)` (cotab/sotsb: 31744+831). Checked in both games: word 831 has no case in charValue/setCharValue (cvPartyCount is 830; memo, coin and wall ranges end below or sit elsewhere), so SetVar(area2 word 831) equals the original raw putWord; no SetRaw needed.
+  DIVIDE writes its remainder with `Host.Set(vm.Remainder, ..)` (cotab/sotsb: the field at 31744+831, DivideRemainder). Checked in both games: word 831 has no case in charValue/setCharValue (cvPartyCount is 830; memo, coin and wall ranges end below or sit elsewhere), so SetVar(area2 word 831) equals the original raw putWord; no SetRaw needed.
 - `vm.Trace` hook (replaces sotsb's scriptTrace; `ArgsTrace` gives the same output).
 
 ## Suspension

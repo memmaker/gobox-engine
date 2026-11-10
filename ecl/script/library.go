@@ -20,19 +20,20 @@ import (
 type Library struct {
 	Version *Version
 	Source  Source
-	Dir     string // where the texts are written
-	Data    fs.FS  // the game's script data: names/, layout/, patches/
+	Dir     string  // where the texts are written
+	Data    fs.FS   // the game's script data: names/, layout/, patches/
+	Fold    Folding // FoldGates, or KeepGates for a test comparing the two
 }
 
 // dataDirs are the parts of a game's script data a text is made from.
 var dataDirs = []string{"names", "layout", "patches"}
 
 // key is what an area's text is made from: the decompiler's version, the
-// game's script data (dataDirs: every file, path and content) and the
-// area's code. A text whose header carries another key is stale.
+// folding, the game's script data (dataDirs: every file, path and content)
+// and the area's code. A text whose header carries another key is stale.
 func (l *Library) key(code []byte) (string, error) {
 	h := sha256.New()
-	fmt.Fprintf(h, "%s\x00", l.Version.Header())
+	fmt.Fprintf(h, "%s\x00fold %d\x00", l.Version.Header(), l.Fold)
 	err := fs.WalkDir(l.Data, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -103,7 +104,7 @@ func (l *Library) Area(area int) (*Script, error) {
 		stale = errors.Is(err, ErrStale) || textKey(string(b)) != key
 	}
 	if stale {
-		text, _, err := importArea(l.Version, l.Source, l.Data, area, code)
+		text, _, err := importArea(l.Version, l.Source, l.Data, area, code, l.Fold)
 		if err != nil {
 			return nil, fmt.Errorf("area %d: %w", area, err)
 		}
@@ -166,8 +167,9 @@ func CacheDir(game string) (string, error) {
 }
 
 // Assemble makes a script of raw byte code with no header, one command per
-// command, for a test to run a few commands: command numbers are its jumps.
-func Assemble(v *Version, code []byte) *Script {
+// command, for a test to run a few commands: command numbers are its jumps;
+// its operands resolve in lay (none for nil: Buck Rogers, ReadLayout).
+func Assemble(v *Version, lay *Layout, code []byte) (*Script, error) {
 	s := Empty(0)
 	s.Code = nil
 	r := &reader{code: code, base: v.Base}
@@ -176,5 +178,8 @@ func Assemble(v *Version, code []byte) *Script {
 		s.Code = append(s.Code, Instr{Op: l.Cmd.Op, Args: l.Args})
 		pc = l.Next
 	}
-	return s
+	if lay == nil {
+		return s, nil
+	}
+	return s, ResolveRefs(s, lay)
 }

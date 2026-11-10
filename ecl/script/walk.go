@@ -260,14 +260,26 @@ func (v *Version) List(code []byte, w io.Writer) {
 }
 
 // DecodeBlock decodes one block and adds the hints and folds; the text form
+
+// Folding is whether an import folds the vendor gates (FoldVendorGates).
+type Folding byte
+
+const (
+	FoldGates Folding = iota // the game's form
+	KeepGates                // the byte code's gates, for a test comparing the two
+)
+
 // the import stores.
-func DecodeBlock(code []byte, area int, names *Names) (string, []FoldedGate, error) {
+func DecodeBlock(code []byte, area int, names *Names, fold Folding) (string, []FoldedGate, error) {
 	s, err := Decode(code, names)
 	if err != nil {
 		return "", nil, err
 	}
 	MarkExits(s, area, names.Version)
-	folds := FoldVendorGates(s, area, names)
+	var folds []FoldedGate
+	if fold == FoldGates {
+		folds = FoldVendorGates(s, area, names)
+	}
 	text, err := Write(s, names)
 	return text, folds, err
 }

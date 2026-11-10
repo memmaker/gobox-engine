@@ -84,12 +84,6 @@ type ExitRow struct {
 // NoExitRow is script.NoExitRow.
 const NoExitRow int32 = -1
 
-// VarName names a word for the decompiled text (script.Version.Vars).
-type VarName struct {
-	Addr ScriptAddr
-	Name string
-}
-
 // ConditionTerm: the number a script's FindAffect or CheckParty gives. SpellTerm likewise.
 type (
 	ConditionTerm struct {
@@ -110,7 +104,6 @@ type (
 type ScriptSet struct {
 	Dialect    Dialect
 	Exits      []ExitRow
-	Vars       []VarName
 	Chars      []CharBinding
 	World      []WorldBinding
 	Conditions []ConditionTerm
