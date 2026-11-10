@@ -84,13 +84,13 @@ func TestResolveRefs(t *testing.T) {
 	if err := ResolveRefs(s, full); err != nil {
 		t.Fatal(err)
 	}
-	if r := s.Code[0].Args[1].Ref; r == nil || full.Field(*r).Name != "RestEvery" {
+	if r := s.Code[0].Args[1].Ref; r == (Ref{}) || full.Field(r).Name != "RestEvery" {
 		t.Errorf("save: %+v", r)
 	}
-	if r := s.Code[1].Args[0].Ref; r == nil || full.Field(*r).Name != "Odds" || !full.Field(*r).ReadOnly {
+	if r := s.Code[1].Args[0].Ref; r == (Ref{}) || full.Field(r).Name != "Odds" || !full.Field(r).ReadOnly {
 		t.Errorf("table: %+v", r)
 	}
-	if s.Code[2].Args[0].Ref != nil || s.Code[0].Args[0].Ref != nil {
+	if s.Code[2].Args[0].Ref != (Ref{}) || s.Code[0].Args[0].Ref != (Ref{}) {
 		t.Error("a label or an immediate got a Ref")
 	}
 	s.Code = append(s.Code, Instr{Op: OpSave, Args: []Arg{{N: 1}, {Type: ArgVar, N: 0x6DD3}}}, Instr{Op: OpSave, Args: []Arg{{N: 1}, {Type: ArgVar, N: 0x6DD4}}})

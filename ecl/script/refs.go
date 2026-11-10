@@ -47,7 +47,7 @@ func ResolveRefs(s *Script, l *Layout) error {
 				errs = append(errs, fmt.Errorf("area %d instruction %d (%s) operand %d: %w", s.Area, i, OpName(in.Op), k, err))
 				continue
 			}
-			a.Ref = &r
+			a.Ref = r
 		}
 	}
 	return errors.Join(errs...)

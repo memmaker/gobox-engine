@@ -18,7 +18,8 @@ type Layout struct {
 	Fields []Field // ordered by From; none overlap
 }
 
-// FieldID is a Field's place in its Layout; a Ref names its Field by it.
+// FieldID is a Field's place in its Layout, from 1; a Ref names its Field by
+// it, and the zero FieldID is no field (an operand not resolved).
 type FieldID int
 
 // Owner is whose state a Field is.
@@ -64,7 +65,8 @@ type Field struct {
 	Replaces bool
 }
 
-// Ref is a resolved operand: element Index of Field.
+// Ref is a resolved operand: element Index of Field. A value: Args compare
+// with ==, Ref and all; the zero Ref is none.
 type Ref struct {
 	Field FieldID
 	Index int
@@ -74,13 +76,13 @@ type Ref struct {
 func (l *Layout) Resolve(a int) (Ref, error) {
 	i, _ := slices.BinarySearchFunc(l.Fields, a, func(f Field, a int) int { return f.From + f.Len - 1 - a })
 	if i < len(l.Fields) && a >= l.Fields[i].From {
-		return Ref{Field: FieldID(i), Index: a - l.Fields[i].From}, nil
+		return Ref{Field: FieldID(i + 1), Index: a - l.Fields[i].From}, nil
 	}
 	return Ref{}, fmt.Errorf("address %04X is in no field of the layout", a)
 }
 
 // Field is the Field r names.
-func (l *Layout) Field(r Ref) *Field { return &l.Fields[r.Field] }
+func (l *Layout) Field(r Ref) *Field { return &l.Fields[r.Field-1] }
 
 // With is l and over together: an area's layout over the game's. A field of
 // one may not overlap a field of the other, nor share its name, except that

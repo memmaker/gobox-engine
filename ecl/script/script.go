@@ -37,7 +37,7 @@ type Arg struct {
 	N     int    // the value or address (a label's instruction number)
 	S     string // a string's text
 	Label bool   // N is a label's instruction number (a jump's operand)
-	Ref   *Ref   // a variable operand's typed reference (ResolveRefs); nil before or for no variable
+	Ref   Ref    // a variable operand's typed reference (ResolveRefs); the zero Ref before or for no variable
 }
 
 // ReadNames reads area's names from the names files in the scripts folder
