@@ -232,7 +232,12 @@ func (vm *VM) Arg(k int, h Host) uint16 {
 	case ArgAddress:
 		return uint16(vm.ArgN[k])
 	}
-	return 0 // a text or text variable has no number here (the original read a stray word or the address)
+	// A text or text variable has no number. It cannot be asked for: in every
+	// shipped script of POR, COTAB, SotSB and POD a text operand stands only
+	// where the -re Pascal reads it as text (Compare, Save and Print test the
+	// type for $80 first; the menus', Who's, InputString's and EncounterMenu's
+	// GetEclVar operands are never texts).
+	return 0
 }
 
 // ArgsTrace is a ready Trace printing operands the way the games' scriptTrace does.

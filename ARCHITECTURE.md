@@ -274,8 +274,8 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
     - [x] text format names refs: the layout is the one name source (ReadNames; array elements Name_i), value names scoped per area (Set aN); POR's names files keep only tables and labels
   - [x] d. VM `Host` on `Ref` (Get/Set/Text/SetText); `VarAddr`, `Addr`, `RemainderAddr` go
     - [x] four games: hosts map a Ref back with `Layout.Address` (their state is still the original memory); `vm.Remainder` is the layout's field; table bases resolve whatever their type (`Ref.Plus`); a variable operand without a Ref panics; tests resolve their own scripts (`Assemble(v, layout, code)`, por `resolved`); POR's Scratch6 and Hours by `Layout.Named`
-    - [ ] VM `Arg` of a text (0x80) or text variable (0x81) operand is 0 now; the original read the word at its length (stale high byte) or the address: no game command found to depend on it, unverified
-  - [ ] e. por-go host on `Ref` (then drop patches/area26.patch, CHANGES row: RiverState replaces CouncilMeeting); `ReadVar`/`WriteVar`, `addrKind`, zones, `SaveEditor.SetVar(addr)` go
+    - [x] VM `Arg` of a text (0x80) or text variable (0x81) operand is 0: checked against the four -re Pascals and every shipped script's text operands, none reaches a numeric GetEclVar
+  - [ ] e. host on typed fields, zones gone, per game: POR, then COTAB, SotSB, POD (Felix: no flat memory behind Ref). After POR's: BR1/BR2 layouts. POR: (then drop patches/area26.patch, CHANGES row: RiverState replaces CouncilMeeting); `ReadVar`/`WriteVar`, `addrKind`, zones, `SaveEditor.SetVar(addr)` go
   - [ ] f. Saves: typed state by id; old saves through saveimport.go
   - [x] g. Area 14: Spell/SaveTable pair becomes one typed CastKnock call (native caster choice, slot spent); Spell opcode goes; cabinets stay script events
   - [x] h. Diogenes' camp write read as `RestChance = 1` (d4), CHANGES row with bytes
