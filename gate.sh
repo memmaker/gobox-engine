@@ -26,18 +26,42 @@ check() { # dir, test packages and flags
   [ -z "$unformatted" ] || { echo "gofmt needed:"; echo "$unformatted"; return 1; }
   (cd "$out/$dir" && go build ./... && go vet ./... && go test "$@")
 }
+# Known slow tests, kept out by name; everything else in a touched package runs.
+slow='^(TestNoSilentDo|TestRefusedCastKeepsTurn)$'
+
+# touched repo: the packages (as module dir and ./relative path) whose .go files the staged change touches.
+# A behaviour commit must not leave a test stale in a package the gate would not run (por-go 6f9b20a).
+touched() {
+  local repo="$1" f d mod
+  git -C "$projects/$repo" diff --cached --name-only HEAD -- '*.go' | while read -r f; do
+    d="$out/$repo/$(dirname "$f")"
+    [ -d "$d" ] || continue
+    mod="$d"
+    while [ ! -e "$mod/go.mod" ] && [ "$mod" != "$out/$repo" ]; do mod="$(dirname "$mod")"; done
+    if [ "$d" = "$mod" ]; then echo "$mod ."; else echo "$mod ./${d#"$mod"/}"; fi
+  done | sort -u
+}
+test_touched() {
+  local repo="$1" mod pkg
+  touched "$repo" | while read -r mod pkg; do
+    echo "== $repo: $pkg (touched)"
+    (cd "$mod" && go test -skip "$slow" "$pkg") || exit 1
+  done
+}
+
 check rules1e ./...
 check gobox-engine/core ./...
 check por-go ./rules ./rules4e -run 'Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
+for repo in por-go rules1e gobox-engine; do test_touched "$repo"; done
 
-# Other games only see gobox-engine outside core; they build against it from their own commit.
+# Other games build against gobox-engine outside core, from what is staged in them (their HEAD when nothing is).
 if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --name-only | grep -qv '^core/\|\.md$\|^gate.sh$'; then
   for mod in "$projects"/*/go.mod; do
     repo="$(basename "$(dirname "$mod")")"
     [ -e "$out/$repo" ] && continue
     grep -q 'gobox-engine/' "$mod" || continue
     mkdir "$out/$repo"
-    git -C "$projects/$repo" archive HEAD | tar -x -C "$out/$repo"
+    git -C "$projects/$repo" archive "$(git -C "$projects/$repo" write-tree)" | tar -x -C "$out/$repo"
     echo "== $repo"
     (cd "$out/$repo" && go build ./... && go vet ./...)
     # A layout name the fold or the parser's macros depend on (Shop, Temple, Portrait) can be overwritten by a
@@ -45,6 +69,7 @@ if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --nam
     if [ -d "$out/$repo/rules/scripts/layout" ]; then
       (cd "$out/$repo" && go test ./rules -run 'Layout|Fold|Gate')
     fi
+    test_touched "$repo"
   done
 fi
 echo "gate passed"

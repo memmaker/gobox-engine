@@ -289,6 +289,7 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
     - [ ] after d: name the unnamed cells from their script use, per game (COTAB, SotSB, POD)
     - [ ] after d: `WriteGbvm($2CB, …)` in cotab-re and sotsb-re EclCombat writes outside every zone (likely a Pascal bug): investigate
     - [x] bug class (cotab 8ee0677): a layout name overwrote a name the fold depends on; detection: gate.sh runs each game's Layout/Fold/Gate tests on every gobox change, and a macro refuses a word the layout does not name
+    - [x] bug class (por-go 6f9b20a): a behaviour commit left tests stale in packages the gate did not run; detection: gate.sh tests every package whose .go files the staged change touches, in every repo, from the staged tree (slow tests kept out by name in `slow`); stage in all repos, run the gate, then commit
 - [x] 4. aihigh: spell ids >= 0x80 fixed in the Pascal, tolerance dropped
 - [x] 5. Review `fix:` / `fixed:` comments in `rules/*.go`
 - [ ] 6. src/pure additions: shop, camp, chargen (conAdj clamp), item spell casting, combat aiming, viewchar, money, postcbt, saveload (B6), manual combat menus, SpellSelection, CombatMain round (B13)
