@@ -258,6 +258,28 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [ ] Engine loop in gobox: main loop, combat flow, presentation
 - [ ] Rule fixes, one commit each, listed in CHANGES-FROM-ORIGINAL.md
 
+### POR onto the architecture (handover, Felix 2026-11-10: "make POR adhere to our architecture first")
+
+Goal: POR is gobox engine + `rules1e` (implements `core.Rules`) + `por-go/adventure` (implements `core.Adventure`); `cmd/por` wires one of each; both leaves import only `gobox/core` and `core/dnd` (`imports_test.go` lists them); `por-go/rules` is gone. How: two agents in parallel, each step gated and committed, behaviour equal to the pure Pascal where vectors exist (any difference a CHANGES row). Lock: stage only your own paths, and hold `/private/tmp/por-gate.lock` (mkdir; rmdir after) from staging through gate and commit. Core interface changes are reported to Felix, not decided silently. Other games' 1b-e and the BR layouts wait until this is done.
+
+Track R (rules seam, agent R): rules move into rules1e behind the core interfaces.
+- [ ] R1. Combat `Decide` through the seam: por-go's computer turn calls `CombatRules.Decide` of rules1e, `TestDecideAgainstPascal` equal
+- [ ] R2. Combat handlers into rules1e behind `CombatRules` (BeginFight .. EndFight; spell and effect handlers); engine keeps the loop and presentation (item 7 below)
+- [ ] R3. Characters behind `CharacterRules`: spells, items, training, chargen (`Draft`), shop, temple, camp, purse (`Purse() Copper`); `Fact`/`SetFact` pure; `Check`
+- [ ] R4. `Rules.Allowed`/`Resolve`/`Elapse`/`Save`/`Load` complete in rules1e; por-go calls only the interface
+
+Track A (adventure seam, agent A): scripts and data move into the adventure leaf.
+- [ ] A1. 1b-f: saves by field (typed state by id; canonical save, section 6); old saves through saveimport.go
+- [ ] A2. Section 1: the character window through `Rules.Fact`/`SetFact` bindings (newEngineFields' `sel()` reads go); side-effect writes (member gone, died, stoned) become `Action`s by patch; an unbound field is an error
+- [ ] A3. Section 3: native scripts become script patches (tavern, histories, PayPlatinum)
+- [ ] A4. Section 4: typed ids in scripts (LoadMonster, treasure, FindItem; candidate lists at POR's 24 + 3 variable sites)
+- [ ] A5. Section 5: `cmd/import` originals to canonical files; no `gobox/dax` in POR at run time
+- [ ] A6. `por-go/adventure` implements `core.Adventure` (areas, journal, lore, scripts and patches, assets)
+
+Then (one agent, after both tracks):
+- [ ] E1. Engine loop in gobox (main loop, combat flow, presentation); `por-go/rules` gone; `cmd/por` wires `rules1e` + `por-go/adventure`
+- [ ] E2. Leaf guard on for both leaves; each game's full suite once; one scripted, windowed POR playthrough
+
 ### Reference queue (handover)
 
 Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the reference; por-go `rules` and rules1e equal it with gameplay options off. How, per item: Pascal fix (BUGS.md) → vector driver (`vectors-pure.sh`, `build-pure.sh`) → regenerate rules1e `testdata/por-*.txt` → Go `*_pascal_test.go` equal with no exception → break once, see it fail. Commit order por-re, por-go, rules1e; `gate.sh` before every commit; nothing pushed. Allowed differences are CHANGES-FROM-ORIGINAL.md rows.
