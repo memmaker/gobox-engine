@@ -264,10 +264,19 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
 
 - [ ] 1. EclSpell (area 14 Knock): `found` uninitialised, slot 0 never scanned, byte-truncated addresses; check Diogenes' `Save 1 [6B32]` before moving the window base
 - [x] 2. U1 ROB: `EclRob` reads var 3 for the per-item chance
-- [ ] 3. Group C: [x] U2 option, [x] U3 option, [x] U4 kept (whenCast), [ ] U5 Pascal display fix (with viewchar, item 6), [x] U6-U8 rows, [x] U9, [ ] U10 old-save import step
-- [ ] 1b. Felix's item 1 ruling: typed script references instead of address ranges (design sent, awaiting approval); doors as adventure-declared typed values (area 14 cabinets); Diogenes' camp bytes checked (really Save 1 [6B32])
-- [ ] 4. aihigh: spell ids >= 0x80 fixed in the Pascal, tolerance dropped
-- [ ] 5. Review `fix:` / `fixed:` comments in `rules/*.go`
+- [ ] 3. Group C: [x] U2 option, [x] U3 option, [x] U4 kept (whenCast; every listed spell has a combat handler), [ ] U5 Pascal display fix (with viewchar, item 6), [x] U6-U8 rows, [x] U9, [x] U10 (saveimport.go)
+- [ ] 1b. Typed script references (Felix d1-d4): no address ranges in gobox ecl or any game; each gated step builds and passes
+  - [ ] a. Layout table format in gobox ecl/script: per dialect, data; field, member-field, array (typed index, bounds), local, const-table, engine fact; unknown address fails import
+  - [ ] b. POR layout table from por-re's Pascal record types (TCharRecord, zones, specials)
+  - [ ] c. Importer: every operand resolved to a typed `Ref`; computed addresses to arrays; code-space tables to const tables; text format names refs
+  - [ ] d. VM `Host` on `Ref` (Get/Set/Text/SetText); `VarAddr`, `Addr`, `RemainderAddr` go
+  - [ ] e. por-go host on `Ref`; `ReadVar`/`WriteVar`, `addrKind`, zones, `SaveEditor.SetVar(addr)` go
+  - [ ] f. Saves: typed state by id; old saves through saveimport.go
+  - [ ] g. Area 14: Spell/SaveTable pair becomes one typed CastKnock call (native caster choice, slot spent); Spell opcode goes; cabinets stay script events
+  - [ ] h. Diogenes' camp write read as `RestChance = 1` (d4), CHANGES row with bytes
+  - [ ] i. Layout tables for COTAB, SotSB, POD, BR1, BR2 from their -re Pascal; their builds and tests
+- [x] 4. aihigh: spell ids >= 0x80 fixed in the Pascal, tolerance dropped
+- [x] 5. Review `fix:` / `fixed:` comments in `rules/*.go`
 - [ ] 6. src/pure additions: shop, camp, chargen (conAdj clamp), item spell casting, combat aiming, viewchar, money, postcbt, saveload (B6), manual combat menus, SpellSelection, CombatMain round (B13)
 - [ ] 7. Handler move into rules1e behind CombatRules; por-re refactoring template
 
