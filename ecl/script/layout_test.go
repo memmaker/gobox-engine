@@ -47,3 +47,18 @@ func must(r Ref, err error) Ref {
 	}
 	return r
 }
+
+func TestLayoutWith(t *testing.T) {
+	g, _ := ParseLayout(strings.NewReader("6DD2 1 byte game RestEvery\nC018 1 byte call LookAhead\n"))
+	a, _ := ParseLayout(strings.NewReader("4A00 4 byte local Seen\n"))
+	m, err := g.With(a)
+	if err != nil || len(m.Fields) != 3 || m.Fields[0].Name != "Seen" {
+		t.Fatalf("%v %+v", err, m)
+	}
+	for _, bad := range []string{"6DD2 1 byte local X\n", "4A00 1 byte local RestEvery\n"} {
+		b, _ := ParseLayout(strings.NewReader(bad))
+		if _, err := g.With(b); err == nil {
+			t.Errorf("%q merged", bad)
+		}
+	}
+}

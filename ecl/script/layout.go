@@ -31,10 +31,11 @@ const (
 	OwnerLocal                   // the script's scratch, cleared by a fresh area
 	OwnerConst                   // a constant table in the script's own code
 	OwnerFact                    // an engine fact (position, facing, the wall ahead)
+	OwnerCall                    // an engine routine CALL names
 )
 
 var ownerNames = map[string]Owner{"area": OwnerArea, "game": OwnerGame, "member": OwnerMember,
-	"local": OwnerLocal, "const": OwnerConst, "fact": OwnerFact}
+	"local": OwnerLocal, "const": OwnerConst, "fact": OwnerFact, "call": OwnerCall}
 
 // Width is how wide one element of a Field is.
 type Width uint8
@@ -77,6 +78,31 @@ func (l *Layout) Resolve(a int) (Ref, error) {
 // Field is the Field r names.
 func (l *Layout) Field(r Ref) *Field { return &l.Fields[r.Field] }
 
+// With is l and over together: an area's layout over the game's. A field of
+// one may not overlap a field of the other, nor share its name.
+func (l *Layout) With(over *Layout) (*Layout, error) {
+	m := &Layout{Fields: append(slices.Clone(l.Fields), over.Fields...)}
+	return m, m.check()
+}
+
+// check sorts the fields and refuses overlaps and repeated names.
+func (l *Layout) check() error {
+	slices.SortFunc(l.Fields, func(a, b Field) int { return a.From - b.From })
+	names := map[string]bool{}
+	for i, f := range l.Fields {
+		if names[f.Name] {
+			return fmt.Errorf("layout: %s twice", f.Name)
+		}
+		names[f.Name] = true
+		if i > 0 {
+			if p := l.Fields[i-1]; p.From+p.Len > f.From {
+				return fmt.Errorf("layout: %s overlaps %s", p.Name, f.Name)
+			}
+		}
+	}
+	return nil
+}
+
 // ParseLayout reads a layout text: one Field a line, "from len width owner
 // name [readonly]", from in hex; '#' starts a comment.
 func ParseLayout(r io.Reader) (*Layout, error) {
@@ -117,11 +143,5 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 	if err := sc.Err(); err != nil {
 		return nil, err
 	}
-	slices.SortFunc(l.Fields, func(a, b Field) int { return a.From - b.From })
-	for i := 1; i < len(l.Fields); i++ {
-		if p := l.Fields[i-1]; p.From+p.Len > l.Fields[i].From {
-			return nil, fmt.Errorf("layout: %s overlaps %s", p.Name, l.Fields[i].Name)
-		}
-	}
-	return l, nil
+	return l, l.check()
 }
