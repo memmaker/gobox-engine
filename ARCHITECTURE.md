@@ -302,6 +302,7 @@ Track A (adventure seam, agent A): scripts and data move into the adventure leaf
 - [ ] A2. Section 1: the character window through `Rules.Fact`/`SetFact` bindings (newEngineFields' `sel()` reads go); side-effect writes (member gone, died, stoned) become `Action`s by patch; an unbound field is an error
 - [ ] A3. Section 3: native scripts become script patches (tavern, histories, PayPlatinum)
   - [x] 64-bit cells: `ecl.Host` Get/Set and `VM.Arg` are int64; each game's host stores a word as the original (truncation at the store, so arithmetic, compare and random stay equal; no script found depending on a wrap before the store)
+  - [x] pager: `Journal(entry)` (POD's command 31) in every dialect (V1 at the same unused number); entries are the adventure's `names/entries.json` (`script.Entry`: id, name, book, title, box, voiced), their names the scripts' `Entry` values
 - [ ] A4. Section 4: typed ids in scripts (LoadMonster, treasure, FindItem; candidate lists at POR's 24 + 3 variable sites)
 - [ ] A5. Section 5: `cmd/import` originals to canonical files; no `gobox/dax` in POR at run time
 - [ ] A6. `por-go/adventure` implements `core.Adventure` (areas, journal, lore, scripts and patches, assets)

@@ -83,6 +83,13 @@ func ReadNames(data fs.FS, area int, labels bool, v *Version) (*Names, error) {
 			return nil, err
 		}
 	}
+	es, err := ReadEntries(data)
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range es {
+		n.Values = append(n.Values, Value{Kind: "Entry", N: int(e.ID), Name: e.Name})
+	}
 	n.Values = slices.DeleteFunc(n.Values, func(x Value) bool { return x.Area != 0 && x.Area != area })
 	return n, nil
 }
@@ -178,6 +185,7 @@ var operandKinds = map[string][]string{
 	"LoadMap":       {"Map", "", "MapIcons"},
 	"LoadWalls":     {"Walls", "Walls", "Walls"},
 	"NewECL":        {"Area"},
+	"Journal":       {"Entry"},
 }
 
 // operandLabels name the commands' operands in the script, as label=value

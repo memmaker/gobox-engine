@@ -74,6 +74,9 @@ var V1 = func() *Version {
 	})
 	counted(&t, 3, OpVMenu)
 	counted(&t, 2, OpOnGoto, OpOnGosub, OpHMenu)
+	// the pager (Felix 2026-11-11, one for every game): unused by the first
+	// engine, so at Pools of Darkness' own number
+	set(&t, 31, OpJournal, 1, 0)
 	return &Version{ID: 1, Base: 0x9900, Cmds: t, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true}
 }()
 
