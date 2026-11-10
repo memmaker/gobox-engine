@@ -266,6 +266,7 @@ Goal: POR is gobox engine + `rules1e` (implements `core.Rules`) + `por-go/advent
 
 - [ ] S. Separation in place (agent R): every drawing, sound, message and wait in `por-go/rules` logic becomes a returned `core.Effect`. The logic becomes pure functions on values (as `src/pure`), with no `Engine` receiver where the Pascal has none. Behaviour is unchanged: the Pascal vectors stay equal. Order: combat AI turn, attacks, spells and effects, items, characters (chargen, training, shop, temple, camp). No move to rules1e yet
   - [x] combat AI turn (por-go a132998): `computerTurn` returns its `core.Outcome`, `present` applies it in order; combat text `Narrated` (core: `Narrated.More`, a line going on), `Sounded`, standing `Turned`. Still drawing inside the turn's callees: attacks, spells, items (next steps); the turn still has an `Engine` receiver (the rule state is not yet apart from presentation)
+  - [ ] attacks: [x] facts `Attacked`, `Struck`, `Fell`, `Walked`, `Sounded` as effects, `Delay`/`MsgDelay` gone (por-go 0138853); [ ] missiles (`attackAnimation`, `flyMissile`: core `Shot` lacks what flies), attack poses, camera, `hitMessage` flashes
 - [ ] B. One big refactor into the target layout (after S, and after the adventure-data discussion): rules to rules1e behind `core.Rules`, the adventure as data plus the shared reader, the engine loop in gobox
 - [ ] F. Then the bugs it shows, one commit each
 
