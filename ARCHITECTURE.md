@@ -264,9 +264,23 @@ Goal: POR is gobox engine + `rules1e` (implements `core.Rules`) + `por-go/advent
 
 **Felix's order (2026-11-10):** "Separate the drawing from the rest first. We need pure functions, like the pascal code. Make sure we only have rules in the engine not in POR. Then do one big refactor and write everything as it should be and then fix the bugs." `Decide` + `Resolve` stay (core). An adventure is data only, read by one small shared piece of code that answers the engine. State the games share becomes a typed engine state variable. A game's own variables become an engine feature (the adventure declares them by name and type, and scripts read and write them). What cannot trivially stay data is to be discussed with Felix before it is built.
 
+**Felix's decisions for A3 and A5 (2026-11-11):**
+- **Long text:** the scripts' text commands stay. A pager command shows long passages (journal entries, the Phlan histories, tavern tales) from the adventure's text data; one exists or gets added, one for every game.
+- **Script cells are 64-bit:** this supersedes section 2's int32 widening. Gold and every other value fit, and the purse is read as an ordinary value.
+- **Shared Purse, a gameplay option:**
+  - On: one party purse; a "who pays" prompt is skipped and the purse pays.
+  - Off (original mode): each member holds their own coins; the engine asks who pays, as the original did.
+  - So a script asks for payment through a dedicated command (or at least marks the prompt as "who pays"), never by plain text.
+  - This also answers open question 2 (coin weight): with the option off, coins and their weight are per member again. `CharacterRules.Purse()` (one `Copper`) must serve both modes: a core change, reported when made.
+- **Formats** (canonical, rule 9):
+  - every graphic, animations included, in a PNG pixel atlas;
+  - sound as MIDI data or Ogg Vorbis samples;
+  - map data as a very simple binary format plus a metadata text file;
+  - JSON for structured data meant to be readable as plain text (items, text entries).
+
 - [ ] S. Separation in place (agent R): every drawing, sound, message and wait in `por-go/rules` logic becomes a returned `core.Effect`. The logic becomes pure functions on values (as `src/pure`), with no `Engine` receiver where the Pascal has none. Behaviour is unchanged: the Pascal vectors stay equal. Order: combat AI turn, attacks, spells and effects, items, characters (chargen, training, shop, temple, camp). No move to rules1e yet
   - [x] combat AI turn (por-go a132998): `computerTurn` returns its `core.Outcome`, `present` applies it in order; combat text `Narrated` (core: `Narrated.More`, a line going on), `Sounded`, standing `Turned`. Still drawing inside the turn's callees: attacks, spells, items (next steps); the turn still has an `Engine` receiver (the rule state is not yet apart from presentation)
-  - [ ] attacks: [x] facts `Attacked`, `Struck`, `Fell`, `Walked`, `Sounded` as effects, `Delay`/`MsgDelay` gone (por-go 0138853); [ ] missiles (`attackAnimation`, `flyMissile`: core `Shot` lacks what flies), attack poses, camera, `hitMessage` flashes
+  - [ ] attacks: [x] facts `Attacked`, `Struck`, `Fell`, `Walked`, `Sounded` as effects, `Delay`/`MsgDelay` gone (por-go 0138853); [x] poses, hit flashes, swing and step camera gone, a turn is `Turned` (por-go a1db765); [ ] missiles (`attackAnimation`, `flyMissile`: core `Shot` lacks what flies, needs item ids)
 - [ ] B. One big refactor into the target layout (after S, and after the adventure-data discussion): rules to rules1e behind `core.Rules`, the adventure as data plus the shared reader, the engine loop in gobox
 - [ ] F. Then the bugs it shows, one commit each
 
