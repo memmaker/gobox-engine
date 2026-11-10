@@ -276,6 +276,8 @@ Goal: POR is gobox engine + `rules1e` (implements `core.Rules`) + `por-go/advent
 - **Wilderness travel** is in all six games (BuildWildernessArena; MovePartyWilderness in POR, POD, BR1, BR2; COTAB's mapcurs): one shared engine feature.
 - **Start and end sequences** (title, intro, import offer, ending) are declarative script sequences: timings, images, page layouts, animation hints.
 - **References:** every game has a Pascal reconstruction (`~/Projects/*-re`); only POR has a pure branch so far. Each game's quirks dropped by the shared flow are judged against its own reconstruction, and a pure branch per game is the way to compare behaviour.
+- **Decompiler and DAX at import only (Felix, 2026-11-11):** nothing at run time decompiles or reads DAX. `cmd/import` runs the decompiler once and writes the finished scripts into the adventure folder; `Library` only reads text, and a missing or stale script is an import error at load.
+- **The patch files go:** each fix becomes a hard-coded special case in that game's decompiler, commented with what the original did, why it changes and its CHANGES row, so the decompiler writes the patched scripts directly. `patches/*.patch` and `ApplyPatch` are deleted. A special case whose site no longer matches the code it expects fails the import, never silently skips.
 
 **Felix's decisions for A3 and A5 (2026-11-11):**
 - **Long text:** the scripts' text commands stay. A pager command shows long passages (journal entries, the Phlan histories, tavern tales) from the adventure's text data; one exists or gets added, one for every game.
