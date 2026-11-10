@@ -2,10 +2,11 @@ package script
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io/fs"
 	"maps"
-	"os"
-	"path/filepath"
+	"path"
 	"slices"
 	"strconv"
 	"strings"
@@ -41,21 +42,21 @@ type Arg struct {
 	Ref   Ref    // a variable operand's typed reference (ResolveRefs); the zero Ref before or for no variable
 }
 
-// ReadNames reads area's names from the names files in the scripts folder
-// dir over the version's: the variables (with labels, the labels and tables
-// too), the areas and the values.
-func ReadNames(dir string, area int, labels bool, v *Version) (*Names, error) {
+// ReadNames reads area's names from a game's script data (its names/ and
+// layout/ folders) over the version's: the variables (with labels, the
+// labels and tables too), the areas and the values.
+func ReadNames(data fs.FS, area int, labels bool, v *Version) (*Names, error) {
 	n := &Names{Version: v, Vars: maps.Clone(v.Vars)}
 	files := []string{"global.txt", fmt.Sprintf("area%d.txt", area)}
 	if labels {
 		files = append(files, fmt.Sprintf("labels/area%d.txt", area))
 	}
 	for _, f := range files {
-		if err := ReadVarNames(filepath.Join(dir, "names", f), n.Vars); err != nil {
+		if err := ReadVarNames(data, path.Join("names", f), n.Vars); err != nil {
 			return nil, err
 		}
 	}
-	l, err := ReadLayout(dir, area)
+	l, err := ReadLayout(data, area)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +68,7 @@ func ReadNames(dir string, area int, labels bool, v *Version) (*Names, error) {
 			}
 		}
 	}
-	if n.Areas, err = ReadAreas(filepath.Join(dir, "names", "areas.txt")); err != nil {
+	if n.Areas, err = ReadAreas(data, "names/areas.txt"); err != nil {
 		return nil, err
 	}
 	for _, a := range n.Areas {
@@ -76,7 +77,7 @@ func ReadNames(dir string, area int, labels bool, v *Version) (*Names, error) {
 		}
 	}
 	for _, f := range []string{"values.txt", "pictures.txt", "variables.txt"} {
-		if n.Values, err = ReadValues(filepath.Join(dir, "names", f), n.Values); err != nil {
+		if n.Values, err = ReadValues(data, path.Join("names", f), n.Values); err != nil {
 			return nil, err
 		}
 	}
@@ -86,9 +87,9 @@ func ReadNames(dir string, area int, labels bool, v *Version) (*Names, error) {
 
 // ReadVarNames adds the "XXXX Name" lines of a names file, if there is
 // one (# starts a comment).
-func ReadVarNames(path string, names map[int]string) error {
-	f, err := os.Open(path)
-	if os.IsNotExist(err) {
+func ReadVarNames(data fs.FS, path string, names map[int]string) error {
+	f, err := data.Open(path)
+	if errors.Is(err, fs.ErrNotExist) {
 		return nil
 	} else if err != nil {
 		return err
@@ -128,9 +129,9 @@ type Area struct {
 
 // ReadAreas reads the "ID SET Name" lines of an areas file, if
 // there is one (# starts a comment).
-func ReadAreas(path string) ([]Area, error) {
-	b, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+func ReadAreas(data fs.FS, path string) ([]Area, error) {
+	b, err := fs.ReadFile(data, path)
+	if errors.Is(err, fs.ErrNotExist) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -195,9 +196,9 @@ var operandDefaults = map[string]map[int]string{
 }
 
 // ReadValues adds the values of a values file, if there is one.
-func ReadValues(path string, vals []Value) ([]Value, error) {
-	b, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+func ReadValues(data fs.FS, path string, vals []Value) ([]Value, error) {
+	b, err := fs.ReadFile(data, path)
+	if errors.Is(err, fs.ErrNotExist) {
 		return vals, nil
 	} else if err != nil {
 		return nil, err

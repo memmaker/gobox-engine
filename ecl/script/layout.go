@@ -116,7 +116,7 @@ func (l *Layout) check() error {
 		if names[f.Name] {
 			return fmt.Errorf("layout: %s twice", f.Name)
 		}
-		if elementName.MatchString(f.Name) {
+		if f.Owner != OwnerConst && elementName.MatchString(f.Name) { // a table keeps the decoder's T_<addr>
 			return fmt.Errorf("layout: %s ends in _<number>, the form of an array element's name", f.Name)
 		}
 		names[f.Name] = true

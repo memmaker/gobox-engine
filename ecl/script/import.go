@@ -3,6 +3,7 @@ package script
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -50,8 +51,8 @@ func AreaPath(dir string, area int) string {
 
 // patchPath is area's import patch: the hand fixes, a unified diff against
 // the decompiler's output.
-func patchPath(dir string, area int) string {
-	return filepath.Join(dir, "patches", fmt.Sprintf("area%d.patch", area))
+func patchPath(area int) string {
+	return fmt.Sprintf("patches/area%d.patch", area)
 }
 
 const maxDisk, maxBlock = 9, 256
@@ -69,7 +70,7 @@ func Import(v *Version, src Source, dir string) ([]FoldedGate, error) {
 				continue
 			}
 			done[block] = true
-			text, folds, err := importArea(v, src, dir, block, b[2:])
+			text, folds, err := importArea(v, src, os.DirFS(dir), block, b[2:])
 			if err != nil {
 				return nil, fmt.Errorf("area %d: %w", block, err)
 			}
@@ -82,8 +83,8 @@ func Import(v *Version, src Source, dir string) ([]FoldedGate, error) {
 	return all, nil
 }
 
-func importArea(v *Version, src Source, dir string, area int, code []byte) (string, []FoldedGate, error) {
-	names, err := ReadNames(dir, area, true, v)
+func importArea(v *Version, src Source, data fs.FS, area int, code []byte) (string, []FoldedGate, error) {
+	names, err := ReadNames(data, area, true, v)
 	if err != nil {
 		return "", nil, err
 	}
@@ -94,8 +95,8 @@ func importArea(v *Version, src Source, dir string, area int, code []byte) (stri
 	if err != nil {
 		return "", nil, err
 	}
-	p, err := os.ReadFile(patchPath(dir, area))
-	if os.IsNotExist(err) {
+	p, err := fs.ReadFile(data, patchPath(area))
+	if errors.Is(err, fs.ErrNotExist) {
 		return text, folds, nil
 	} else if err != nil {
 		return "", nil, err

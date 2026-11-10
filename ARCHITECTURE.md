@@ -278,6 +278,8 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
   - [x] g. Area 14: Spell/SaveTable pair becomes one typed CastKnock call (native caster choice, slot spent); Spell opcode goes; cabinets stay script events
   - [x] h. Diogenes' camp write read as `RestChance = 1` (d4), CHANGES row with bytes
   - [ ] i. Layout tables for COTAB, SotSB, POD, BR1, BR2 from their -re Pascal; their builds and tests
+    - [x] COTAB, SotSB, POD: rules/scripts/layout/global.txt from cotab-re/sotsb-re/pod-re (zones, specials, TZone arms, TGbvmBank0/TAreaState/TCharRecord), embedded as Library.Data; each game's TestLayoutCoversScripts resolves every DAX script; ReadNames/ReadLayout take an fs.FS
+    - [ ] layout required (no-layout exception goes)
 - [x] 4. aihigh: spell ids >= 0x80 fixed in the Pascal, tolerance dropped
 - [x] 5. Review `fix:` / `fixed:` comments in `rules/*.go`
 - [ ] 6. src/pure additions: shop, camp, chargen (conAdj clamp), item spell casting, combat aiming, viewchar, money, postcbt, saveload (B6), manual combat menus, SpellSelection, CombatMain round (B13)

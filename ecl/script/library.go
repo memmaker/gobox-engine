@@ -16,7 +16,8 @@ import (
 type Library struct {
 	Version *Version
 	Source  Source
-	Dir     string
+	Dir     string // where the texts are written
+	Data    fs.FS  // the game's script data: names/, layout/, patches/
 }
 
 // DAXSource reads the blocks of the game's ECL*.DAX.
@@ -37,7 +38,7 @@ func Empty(area int) *Script {
 
 // Area is area's script, Empty if the game has no such block.
 func (l *Library) Area(area int) (*Script, error) {
-	names, err := ReadNames(l.Dir, area, false, l.Version)
+	names, err := ReadNames(l.Data, area, false, l.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +57,7 @@ func (l *Library) Area(area int) (*Script, error) {
 		if code == nil {
 			return Empty(area), nil
 		}
-		text, _, err := importArea(l.Version, l.Source, l.Dir, area, code)
+		text, _, err := importArea(l.Version, l.Source, l.Data, area, code)
 		if err != nil {
 			return nil, fmt.Errorf("area %d: %w", area, err)
 		}
@@ -70,7 +71,7 @@ func (l *Library) Area(area int) (*Script, error) {
 		return nil, fmt.Errorf("%s:%w", path, err)
 	}
 	s.Area = area
-	if err := resolve(s, l.Dir, l.Version); err != nil {
+	if err := resolve(s, l.Data, l.Version); err != nil {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
 	return s, nil
