@@ -21,6 +21,7 @@ type Aimed struct {
 	Squares []BoardPos
 	Targets int
 	Area    int
+	Walk    *Reach // a melee attack's walk up to it first (por pathNextTo), nil: none
 }
 
 // Allowed is what a situation lets anyone do now (play.Allowed). Moves is the
@@ -35,6 +36,7 @@ type Allowed struct {
 type Reach struct {
 	At   BoardPos
 	Path []BoardPos
+	Free []bool // Free[i]: the step from Path[i] gives a foe a free attack (por's provoke marks); nil: none
 }
 
 type (
