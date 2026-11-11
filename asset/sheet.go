@@ -10,6 +10,7 @@ import (
 	"image/color"
 	"image/png"
 	"io/fs"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -283,6 +284,18 @@ func (a *Art) Block(v Version, file string, id int) *Block {
 		a.sheets[key] = s
 	}
 	return s[id]
+}
+
+// FirstID is file's lowest block id in version v; false: no blocks.
+func (a *Art) FirstID(v Version, file string) (int, bool) {
+	a.Block(v, file, 0) // reads the sheet
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	ids := slices.Collect(maps.Keys(a.sheets[string(v)+"/"+strings.ToUpper(file)]))
+	if len(ids) == 0 {
+		return 0, false
+	}
+	return slices.Min(ids), true
 }
 
 // Dir is the imported art of a game whose original archives are in dosDir:

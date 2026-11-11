@@ -101,7 +101,7 @@ func ImportArt(dosDir, amigaDir, dst string) error {
 			}
 		}
 	}
-	key, err := artKey(dosDir, amigaDir)
+	key, err := SourceKey(ArtFormat, dosDir, amigaDir)
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func ImportArtIfStale(dosDir, amigaDir, dst string) error {
 	if _, err := os.Stat(dosDir); errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
-	key, err := artKey(dosDir, amigaDir)
+	key, err := SourceKey(ArtFormat, dosDir, amigaDir)
 	if err != nil {
 		return err
 	}
@@ -144,11 +144,11 @@ func daxNames(dir string) ([]string, error) {
 	return out, nil
 }
 
-// artKey names what an import reads: the format and every archive's size
-// and time.
-func artKey(dirs ...string) (string, error) {
+// SourceKey names what an import of format reads from dirs: the format and
+// every DAX archive's size and time (an import is stale when it changes).
+func SourceKey(format string, dirs ...string) (string, error) {
 	var b strings.Builder
-	fmt.Fprintf(&b, "format %s\n", ArtFormat)
+	fmt.Fprintf(&b, "format %s\n", format)
 	for _, d := range dirs {
 		ents, err := os.ReadDir(d)
 		if errors.Is(err, fs.ErrNotExist) {
