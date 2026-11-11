@@ -48,3 +48,14 @@ Open, in order:
 - [ ] sotsb (roster + Join, default portraits by sex in Enforce), pod (POR's sheet in place of the list picker; starting spells and equipment into Make).
 - [ ] BR1/BR2 via rulesxxvc (X7). [ ] Creation() into CharacterRules. [ ] delete the old paths and game/pointbuy.go.
 Unverified: the full suites; point-buy has no game-level test yet, because no ruleset implements RollPointBuy.
+
+## C10 (agent C10, 2026-11-11)
+Done:
+- [x] core.Draft.HitRolls []int32 (the starting training's hit dice, main's decision).
+- [x] cotab rules/cotabcreation.go: cotabCreation implements core.CreationRules (Engine.Creation()); the hit dice of rollHitPoints/rollHitPoints2 go through state.hitDie, recorded into Draft.HitRolls by Enforce/Roll and replayed by charOf (no fresh dice); fresh = kindRecord + rollAge; SetField = setField(cr, ..), SetStat = setStat(c, i, st, x); Roll(minimal) = rollMinimal, a typed *core.MinimumError (the text matched cotab's); RollPointBuy over makeCharacter(bases); Minimums = d.Lows (no engine state). PoolIDs [4]core.PicID. TestCotabCreation: New and SetField draw exactly CreateCharacter's/SetField's dice and charOf rebuilds the same charRecord; an impossible minimum leaves the draft.
+Open, in order:
+- [ ] cotab RosterID (as POR C7: .cha trailer key, old files numbered once on load; Make returns it; Join). Make returns NoRoster and Join errors until then (ponytail in cotabcreation.go).
+- [ ] cotab wiring: CreateCharacter..EndCreation, PointBuy, QuickStart delegate to gobox/creation as por create.go; readers of e.creation.c (iconedit.go, quickstart.go, slots.go, party.go, verbs.go, state.go:186/238) to the draft; saveDraft/removeDraft go (POR's keep step: main approved? C7 asked; not confirmed in ONE-BINARY.md); the keepNew name prompt vs errNoName.
+- [ ] cotab DAX picture bytes (PortHead/PortBody/IconHead/IconBody) <-> PicID: cotab has no lookup (POR's porpics.go over e.pics); charOf keeps a member's bytes only, a new draft gets 0 (Quick Start's quickPorts bytes are lost on that path).
+- [ ] sotsb, pod (same HitRolls seam), BR1/BR2, Creation() into CharacterRules, delete old paths and game/pointbuy.go.
+Unverified: charOf after SetScore(CON) replays the training with the new CON, then the sheet's HP/MaxHP win (legacy did not retrain); only HP depends on it, as far as read. No full suites.

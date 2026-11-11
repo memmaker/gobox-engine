@@ -167,6 +167,10 @@ type Draft struct {
 	Purse   Copper
 	HitRoll int32
 	Ident   uint32
+	// HitRolls are the starting training's hit-dice results in the order the
+	// ruleset rolled them (per level, per class: cotab, sotsb, pod train to
+	// the starting experience), so Make replays the training without dice.
+	HitRolls []int32
 	// Buy is the bought bases RollPointBuy takes (gobox/creation's PointBuy).
 	Buy map[Ability]int32
 }
