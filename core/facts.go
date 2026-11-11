@@ -38,6 +38,7 @@ const (
 	FactPaladin     // cotab cvPaladinFlag
 	FactPartyPlace  // por 0x2B1
 	FactExceptional // exceptional strength: por Str00, a sheet word only
+	FactSideOnly    // por opAddNPC: 268 bit 0 written alone (SideParty or SideMonsters), the auto flag kept
 )
 
 func (AbilityFact) fact() {}
