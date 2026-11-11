@@ -44,6 +44,7 @@ const (
 	OpDamage6    byte = 0xA1
 	OpNothing    byte = 0xA2
 	OpLoadArea   byte = 0xA3 // LoadMap with no icons
+	OpQuest      byte = 0xA4 // a quest handed over: the adventure's Quest value
 )
 
 // opNames are the commands' names in script text.
@@ -64,7 +65,7 @@ var opNames = map[byte]string{
 	OpPartyStat: "PartyStat", OpSpaceFight: "SpaceFight", OpSkill: "Skill", OpSkillAll: "SkillAll", OpHasItem: "HasItem",
 	OpNPCJoin: "NPCJoin", OpMenuCall: "MenuCall", OpPickMember: "PickMember", OpLogbook: "Logbook", OpOp64: "Op64",
 	OpWallDist: "WallDistance", OpFor: "For", OpNext: "Next", OpOp72: "Op72", OpDuel: "Duel", OpShop: "Shop", OpAreaKind: "AreaKind",
-	OpDamage6: "Damage6", OpNothing: "Nothing", OpLoadArea: "LoadArea",
+	OpDamage6: "Damage6", OpNothing: "Nothing", OpLoadArea: "LoadArea", OpQuest: "Quest",
 }
 
 // OpName is the command's name in script text.

@@ -78,7 +78,7 @@ func ReadNames(data fs.FS, area int, labels bool, v *Version) (*Names, error) {
 			n.Set = a.Set
 		}
 	}
-	for _, f := range []string{"values.txt", "pictures.txt", "variables.txt"} {
+	for _, f := range []string{"values.txt", "pictures.txt", "variables.txt", "quests.txt"} {
 		if n.Values, err = ReadValues(data, path.Join("names", f), n.Values); err != nil {
 			return nil, err
 		}
@@ -186,6 +186,7 @@ var operandKinds = map[string][]string{
 	"LoadWalls":     {"Walls", "Walls", "Walls"},
 	"NewECL":        {"Area"},
 	"Journal":       {"Entry"},
+	"Quest":         {"Quest"},
 }
 
 // operandLabels name the commands' operands in the script, as label=value

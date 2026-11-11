@@ -77,6 +77,9 @@ var V1 = func() *Version {
 	// the pager (Felix 2026-11-11, one for every game): unused by the first
 	// engine, so at Pools of Darkness' own number
 	set(&t, 31, OpJournal, 1, 0)
+	// a quest handed over (the quest journal; Felix 2026-11-11: never by
+	// matching its printed text): unused by every Gold Box dialect
+	set(&t, 66, OpQuest, 1, 0)
 	return &Version{ID: 1, Base: 0x9900, Cmds: t, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true}
 }()
 
