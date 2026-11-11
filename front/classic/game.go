@@ -539,7 +539,7 @@ func (g *Game) TitlePicture(n int) {
 func (g *Game) TitleCredits(page int) {
 	g.run("titleCredits", func() play.Result { return g.r.titleCredits(page) })
 }
-func (g *Game) TitleDone()       { g.run("titleDone", g.r.titleDone) }
+func (g *Game) TitleDone() { g.run("titleDone", g.r.titleDone) }
 
 // SequenceDone: the presenter played State.Sequence to its end, or it was skipped.
 func (g *Game) SequenceDone(name string) { g.run("sequenceDone", g.r.sequenceDone) }
@@ -910,6 +910,9 @@ func (g *Game) Answer(a front.Action) error {
 	}
 	if _, ok := walks[a.Kind]; ok { // gobox moves the party on the game's Map
 		return g.walk(a.Kind)
+	}
+	if a.Kind == front.ActGo {
+		return g.goWay(a.N)
 	}
 	step := g.act(a)
 	if step == nil {

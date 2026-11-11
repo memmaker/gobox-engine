@@ -138,10 +138,12 @@ func windowOf(ps play.State) game.Window {
 	switch t := ps.(type) {
 	case play.Exploring:
 		switch {
+		case c.Picture != nil || c.Portrait != nil:
+			return game.WindowPicture
+		case t.Map.Overland: // the map screen of its own: the page's layers are the original's small map of it, which gobox draws whole
+			return game.WindowMap
 		case pictured:
 			return game.WindowPicture
-		case t.Map.Overland:
-			return game.WindowMap
 		}
 		return game.WindowScene
 	case play.Scene:

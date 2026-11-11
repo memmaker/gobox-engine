@@ -44,7 +44,23 @@ func (g *Game) walk(k front.ActKind) error {
 	if w.turn {
 		return g.do(play.Face{Facing: (where.Facing + w.side) % 8})
 	}
-	from, side := at(where), (where.Facing+w.side)%8
+	return g.stepThrough(m, (where.Facing+w.side)%8)
+}
+
+// goWay is ActGo on the area map: a step towards dir (0 N .. 3 W) whatever
+// the facing.
+func (g *Game) goWay(dir int) error {
+	m := g.walkMap()
+	if m == nil || dir < 0 || dir > 3 {
+		return nil
+	}
+	return g.stepThrough(m, 2*dir)
+}
+
+// stepThrough moves the party on m through side (0 N, 2 E, 4 S, 6 W) of its square.
+func (g *Game) stepThrough(m game.Map, side int) error {
+	where := g.Where()
+	from := at(where)
 	// The script ahead of the step runs even facing a wall, as the
 	// originals run the square's pre-step script on every step (SOTSB
 	// O050:3DB9): it may move the party through that wall.
