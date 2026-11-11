@@ -214,9 +214,8 @@ const (
 type FightResult struct {
 	Effects []Effect
 	Beaten  int32
-	Exp     int32 // per member
-	Items   []ItemRef
-	Loot    []ItemHandle // the treasure's items, by handle, for a ruleset that hands out handles (Items unused)
+	Exp     int32        // per member
+	Items   []ItemHandle // the loot's items (treasure), by handle
 	Money   Purse        // the loot's money (BR: credits in Copper)
 	Verdict Verdict      // how it ended: won, fled, lost; FightOn for neither (por: treasure found)
 	Foes    bool         // there were foes to beat (por's "The party has won.")

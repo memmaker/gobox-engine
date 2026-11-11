@@ -94,6 +94,13 @@ type (
 	// placeCombatants). Walls nil: the board is open country, no walls between
 	// the team blocks. One that finds no room Left.
 	PlaceFight struct{ Walls MapSides }
+	// TakeLoot: Who takes the treasure's Item (FightResult.Items); All:
+	// every piece in turn until one does not fit (por the treasure screen's Take).
+	TakeLoot struct {
+		Who  CharID
+		Item ItemHandle
+		All  bool
+	}
 
 	// Confirmed sends Action again after the rules' Outcome.Confirm got a
 	// yes (por: "its Yes makes the call again sure", combatflow.go).
@@ -308,6 +315,7 @@ func (Move) action()          {}
 func (AutoTurn) action()      {}
 func (FightPlaced) action()   {}
 func (PlaceFight) action()    {}
+func (TakeLoot) action()      {}
 func (Attack) action()        {}
 func (Shoot) action()         {}
 func (Cast) action()          {}
