@@ -15,3 +15,12 @@ func (ApplyItems) action() {}
 
 // MemoSlots is how many MemoFact slots a character has (0..MemoSlots-1).
 const MemoSlots = 21
+
+// HasRoom asks whether Who has room for Item (Yes; por's Overloaded,
+// ovr20:275B, negated) with Who's items as last applied (ApplyItems).
+type HasRoom struct {
+	Who  CharID
+	Item ItemHandle
+}
+
+func (HasRoom) check() {}

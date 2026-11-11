@@ -85,6 +85,7 @@ type (
 		Scribing            bool // someone was to scribe from the scroll
 		Scribe              bool // Who may scribe its first spell
 		Scroll              []ScrollSpell
+		Casts               int32 // the spell number its own use casts (por item +0x3D)
 	}
 	// ScrollSpell is one spell on a scroll.
 	ScrollSpell struct {
