@@ -221,3 +221,8 @@ type Settings interface{ RulesetSettings() }
 type Configure struct{ With Settings }
 
 func (Configure) action() {}
+
+// FightRound: the fight's round number (Value; por CombatRound).
+type FightRound struct{}
+
+func (FightRound) check() {}
