@@ -28,6 +28,13 @@ func TestGenerate(t *testing.T) {
 			t.Errorf("missing %q in\n%s", want, s)
 		}
 	}
+	js, err := JSON(tables, im)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "{\n \"a\": [1,-1],\n \"w\": [[2],[-2]],\n \"s\": [\"hi\",\"\"]\n}\n"; string(js) != want {
+		t.Errorf("JSON %q, want %q", js, want)
+	}
 	if _, err := Generate("p", []Table{{Name: "x", At: 100, Len: 1}}, im); err == nil {
 		t.Error("out of range accepted")
 	}
