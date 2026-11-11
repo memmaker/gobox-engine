@@ -176,6 +176,11 @@ type Draft struct {
 	Buy map[Ability]int32
 }
 
+// Pics is d's pictures by their field names (play.SetChoice's fields).
+func (d *Draft) Pics() map[string]*PicID {
+	return map[string]*PicID{"portraithead": &d.Head, "portraitbody": &d.Body, "iconhead": &d.Icon.Head, "iconbody": &d.Icon.Body}
+}
+
 // TrapDefinition is a trap as data: no universal skip of the stoned, the damage
 // kind and target eligibility decide. Replaces TrapSkipStoned, TrapRollEach.
 type (
