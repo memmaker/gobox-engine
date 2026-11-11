@@ -76,6 +76,9 @@ type (
 	// AutoTurn is a whole computer turn the rules play at once (por
 	// computerTurn); Key is the player's key its polls take, the engine's input.
 	AutoTurn struct{ Key AutoKey }
+	// FightPlaced: the engine has built the board and placed everyone
+	// (after BeginFight); the rules' start-of-fight effects run.
+	FightPlaced struct{}
 
 	// Confirmed sends Action again after the rules' Outcome.Confirm got a
 	// yes (por: "its Yes makes the call again sure", combatflow.go).
@@ -255,6 +258,7 @@ type (
 
 func (Move) action()          {}
 func (AutoTurn) action()      {}
+func (FightPlaced) action()   {}
 func (Attack) action()        {}
 func (Shoot) action()         {}
 func (Cast) action()          {}
