@@ -63,6 +63,7 @@ const (
 	StatusDead        Status = "dead"
 	StatusStoned      Status = "stoned"
 	StatusGone        Status = "gone"
+	StatusTempGone    Status = "tempgone" // por statusTempGone: away for now
 	// StatusInactive: out of the active members, the record's status kept
 	// (por SpecialWriteZ1 0x100 with a value >= 0x80 but 0x87).
 	StatusInactive Status = "inactive"
