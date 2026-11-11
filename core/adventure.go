@@ -49,7 +49,13 @@ type (
 type Campaign struct {
 	MaxLevel int32
 	Spells   []SpellID
+	Tables   Tables // nil: the ruleset holds all its numbers
 }
+
+// Tables are a ruleset's numbers that differ by adventure (BR1's and BR2's
+// START.EXE data), written by the importer and passed at Begin. Each ruleset's
+// concepts package has the one implementation (core/xxvc.Tables).
+type Tables interface{ RuleTables() }
 
 // Options are the player's. Off by default.
 type Options struct {

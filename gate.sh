@@ -7,7 +7,7 @@ out="$(mktemp -d)"
 trap 'rm -rf "$out"' EXIT
 export GOWORK=off
 
-for repo in por-go rules1e gobox-engine; do
+for repo in por-go rules1e rulesxxvc gobox-engine; do
   mkdir "$out/$repo"
   tree="$(git -C "$projects/$repo" write-tree)"
   git -C "$projects/$repo" archive "$tree" | tar -x -C "$out/$repo"
@@ -58,6 +58,7 @@ test_touched() {
 }
 
 check rules1e ./...
+check rulesxxvc ./...
 check gobox-engine/core ./...
 check por-go ./rules ./rules4e -run 'Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
 for repo in por-go rules1e gobox-engine; do test_touched "$repo"; done

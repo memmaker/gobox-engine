@@ -237,7 +237,7 @@ type (
 	}
 	// SkillRoll: BR opSkill (skill, all, hardness).
 	SkillRoll struct {
-		Whom       []CharID
+		Whom     []CharID
 		Skill    Skill
 		Hardness Hardness
 	}
