@@ -116,6 +116,7 @@ type FightTerms struct {
 	// The party's map facing when the fight began (BR partyPosition.facing:
 	// a fleeing monster runs from it).
 	PartyFacing Facing
+	PartyAt     image.Point // the party's map square when the fight began (por DS:6AAD/6AAE: the placement's origin)
 }
 
 // AreaKind is the sort of place a fight is in, as a ruleset tests it (BR
