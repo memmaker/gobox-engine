@@ -64,8 +64,9 @@ type FieldDef struct {
 type RollKind int
 
 const (
-	RollFull    RollKind = iota // Roll
-	RollMinimal                 // Minimal: until the minimums are met
+	RollFull     RollKind = iota // Roll
+	RollMinimal                  // Minimal: until the minimums are met
+	RollPointBuy                 // Point Buy: Draft.Buy's bases (PointBuySpent), then a roll's rules and hit points
 )
 
 // Template is one Quick Start member: its picks, name and pictures (pool names).

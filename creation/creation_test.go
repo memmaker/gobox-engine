@@ -33,6 +33,13 @@ func (f *fake) Roll(d *core.Draft, k core.RollKind, r *core.RNG) error {
 	if k == core.RollMinimal {
 		return &core.MinimumError{Ability: core.Strength, Want: 19, Best: 18}
 	}
+	if k == core.RollPointBuy { // the bases, plus one (a roll's rules)
+		d.Sheet.Scores = map[core.Ability]int32{}
+		for a, v := range d.Buy {
+			d.Sheet.Scores[a] = v + 1
+		}
+		return nil
+	}
 	if d.Sheet.Scores == nil {
 		d.Sheet.Scores = map[core.Ability]int32{core.Strength: 9}
 	}
@@ -111,5 +118,26 @@ func TestDraft(t *testing.T) {
 	}
 	if m, _ := Modify(r, &core.RNG{}, ids[0]); m.D.Of != ids[0] {
 		t.Errorf("modify of %v", m.D.Of)
+	}
+}
+
+// TestPointBuy: bought bases go through Roll(RollPointBuy); a buy over the
+// budget or out of range is refused and the draft stays.
+func TestPointBuy(t *testing.T) {
+	d, err := New(&fake{}, &core.RNG{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	was := d.D.Sheet.Scores[core.Strength]
+	for _, bad := range []map[core.Ability]int32{{core.Strength: 18, core.Intelligence: 18, core.Wisdom: 18}, {core.Strength: 7}, {}} {
+		if err := d.PointBuy(bad); !errors.Is(err, ErrPointBuy) || d.D.Sheet.Scores[core.Strength] != was {
+			t.Fatalf("%v: err %v, strength %d", bad, err, d.D.Sheet.Scores[core.Strength])
+		}
+	}
+	if err := d.PointBuy(map[core.Ability]int32{core.Strength: 18, core.Intelligence: 16}); err != nil {
+		t.Fatal(err)
+	}
+	if d.D.Sheet.Scores[core.Strength] != 19 || d.D.Sheet.Scores[core.Intelligence] != 17 || d.D.Buy != nil {
+		t.Fatalf("scores %v, buy %v", d.D.Sheet.Scores, d.D.Buy)
 	}
 }

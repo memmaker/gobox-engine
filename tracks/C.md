@@ -27,3 +27,24 @@ Open:
 - [ ] 5 port cotab (rules/creation.go: its own sheet, saveDraft writes at once with no keep step: behaviour differs from POR, ask main), sotsb, pod; BR1/BR2 via rulesxxvc (X5 owns, message main).
 - [ ] 6 Creation() into CharacterRules once all implement it.
 Unverified: QuickStart's dice now go through creation.begin/Roll; the party stats for a fixed seed may differ from quickCreate's (not compared). Icon size from the draft overrides the race default in charOf (Enforce re-derives it on a race change). No full suite; gate passed (por/rules, gobox core/creation, games).
+
+## C8 handover (agent C8, 2026-11-11)
+Done (no commits, no code changes):
+- [x] 1a QuickStart seed 7: full charRecord of all six members identical between c70cbee and f878174 (scratch exports; only the field name HitDice -> Thac0Base differs).
+- [x] 1b A foreign PicID (no POR number) is kept: setPic puts it in poolIDs, the .cha PID2 trailer saves it, pickPic prefers it on read. Not a bug (code read, no round-trip test).
+Open (asked main, waiting):
+- [ ] 2 cotab/sotsb/pod port. Decisions needed: PointBuy (cotab, sotsb; not in CreationRules), cotab keepNew name prompt, sotsb joinDraft (party vs roster), sotsb defaultPortraits by sex, pod has no sheet (blocking picker plus starting spells/equipment). Text minimums ("STR INT ...") become typed during the port.
+- [ ] 3 BR1/BR2 via rulesxxvc (X7). [ ] 4 Creation() into CharacterRules.
+
+## C9 handover (agent C9, 2026-11-11)
+Coordinator lines (main approved, 2026-11-11):
+- coordinator: point-buy is creation's third roll kind: core.RollPointBuy, Draft.Buy map[Ability]int32 (the bought bases), core/pointbuy.go the one table (PointBuyBudget/Min/Max, PointBuyCost, PointBuySpent); gobox/creation Draft.PointBuy(bases) checks it (ErrPointBuy) and calls Roll(RollPointBuy); game/pointbuy.go forwards to core. B8 adds porCreation.Roll's RollPointBuy case (as Engine.PointBuy: setBaseStats from d.Buy, rollHP).
+- coordinator: (a) the draft carries the training's dice as typed Draft fields (cotab/sotsb/pod roll trains to the starting experience: rollHitPoints -> trainSilently, per-level hit dice), so charOf replays the training without fresh dice.
+- coordinator: cotab gets RosterID as POR (C7): id in the .cha trailer, old files numbered once on load; PoolIDs [4]string become core.PicID.
+Done:
+- [x] point-buy in core + gobox/creation + game forwarder (TestPointBuy in creation). Commit: see agentC.log (pending main's gate.sh PROJECTS fix when this was written).
+Open, in order:
+- [ ] cotab port. Design note: what to carry for (a). cotab's training is a pure function of the RNG state, the kind and the rolled stats: create.go makeCharacter -> rollAbilities, rollHitPoints (rollHitPoints2 at level 1, then TrainCharacter's Dice pairs per level, train.go:403-409). HitRolls []int32 needs a dice-injection seam in e.Dice. A typed `Draft.RollSeed` (the RNG state before the roll), with charOf replaying the roll and then applying the sheet's edits, carries the same thing with no seam. That is a different field from the approved one, so ask main which. Then: cotabCreation (Fields/Fits/Enforce over kind.enforce and creation.options, Roll with typed *core.MinimumError replacing Roll(minimal, mins string), SetScore over SetStat's clamps, Make = keepNew/modifyPlayer's Keep, Join by RosterID, Draft), state calls delegate to gobox/creation as por create.go does, EndCreation's empty-name keep follows c70cbee, saveDraft goes (POR's keep step). The iconedit.go, quickstart.go, slots.go, party.go and verbs.go readers of e.creation.c move to the draft.
+- [ ] sotsb (roster + Join, default portraits by sex in Enforce), pod (POR's sheet in place of the list picker; starting spells and equipment into Make).
+- [ ] BR1/BR2 via rulesxxvc (X7). [ ] Creation() into CharacterRules. [ ] delete the old paths and game/pointbuy.go.
+Unverified: the full suites; point-buy has no game-level test yet, because no ruleset implements RollPointBuy.

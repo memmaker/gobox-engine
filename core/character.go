@@ -167,6 +167,8 @@ type Draft struct {
 	Purse   Copper
 	HitRoll int32
 	Ident   uint32
+	// Buy is the bought bases RollPointBuy takes (gobox/creation's PointBuy).
+	Buy map[Ability]int32
 }
 
 // TrapDefinition is a trap as data: no universal skip of the stoned, the damage

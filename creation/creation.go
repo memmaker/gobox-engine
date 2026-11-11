@@ -111,6 +111,22 @@ func (d *Draft) sizeSkills() {
 // meet is a *core.MinimumError, the draft unchanged.
 func (d *Draft) Roll(k core.RollKind) error { return d.R.Roll(&d.D, k, d.RNG) }
 
+// ErrPointBuy: bought scores outside core's point-buy range or budget.
+var ErrPointBuy = errors.New("Point buy over budget or out of range")
+
+// PointBuy makes the abilities from the bases bought (core.PointBuySpent),
+// then the ruleset's roll rules (Roll(RollPointBuy)); refused, the draft stays.
+func (d *Draft) PointBuy(bases map[core.Ability]int32) error {
+	if _, ok := core.PointBuySpent(bases); !ok || len(bases) == 0 {
+		return ErrPointBuy
+	}
+	was := d.D.Buy
+	d.D.Buy = bases
+	err := d.Roll(core.RollPointBuy)
+	d.D.Buy = was
+	return err
+}
+
 // ErrBudget: a skill spend past the field's budget or below zero.
 var ErrBudget = errors.New("no points left")
 
