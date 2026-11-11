@@ -2,6 +2,8 @@ package tablespec
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -40,5 +42,21 @@ func TestGenerate(t *testing.T) {
 	}
 	if String(7).Size() != 7 || Longs.Size() != 4 {
 		t.Error("Size")
+	}
+}
+
+// TestWriteRules: rules.json holds the tables of the images given; a table of another executable is left out.
+func TestWriteRules(t *testing.T) {
+	im := &exe.Image{Mem: []byte{1, 2}}
+	dir := t.TempDir()
+	if err := WriteRules([]byte(`[{"name":"a","at":0,"len":2,"kind":"bytes"},{"name":"o","at":0,"len":1,"kind":"bytes","img":1}]`), dir, im); err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(filepath.Join(dir, RulesFile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "{\n \"a\": [1,2]\n}\n"; string(b) != want {
+		t.Errorf("rules.json %q, want %q", b, want)
 	}
 }

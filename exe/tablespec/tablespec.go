@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/format"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -152,6 +154,30 @@ func JSON(tables []Table, imgs ...*exe.Image) ([]byte, error) {
 	}
 	b.WriteString("\n}\n")
 	return b.Bytes(), nil
+}
+
+// RulesFile is the ruleset's tables in an imported game's data folder.
+const RulesFile = "rules.json"
+
+// WriteRules writes the tables of spec (a game's tables.json) to dir/RulesFile
+// (JSON), read from imgs. Only the tables of the executables given are
+// written: one read from another game's executable (Img past imgs) stays
+// the game's literal.
+func WriteRules(spec []byte, dir string, imgs ...*exe.Image) error {
+	var all, tables []Table
+	if err := json.Unmarshal(spec, &all); err != nil {
+		return err
+	}
+	for _, t := range all {
+		if t.Img < len(imgs) {
+			tables = append(tables, t)
+		}
+	}
+	b, err := JSON(tables, imgs...)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, RulesFile), b, 0o644)
 }
 
 // Generate writes the Go source of package pkg declaring every table, read
