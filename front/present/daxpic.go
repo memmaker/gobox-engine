@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"gobox/dax"
+	"gobox/asset"
 	"gobox/ega"
 	"gobox/front"
 )
@@ -22,15 +22,43 @@ type daxKey struct {
 
 var daxPics = map[daxKey]image.Image{} // decoded once; nil: not decodable
 
-// Arts is the shown art (DOS: true) and how to switch it, when Amiga
-// archives stand in for the game's DAX files (set nil: one art). The shell
-// cross-fades the switch (F12); every picture and border decodes anew.
+// daxArt is the game's imported art (asset.Dir of Data.Files, which the
+// game's import writes: dax.ImportArt) and whether its Amiga art shows.
+var daxArt struct {
+	art   *asset.Art // nil: no art
+	amiga bool       // the Amiga version shows (F12)
+}
+
+// amigaShown reports whether the Amiga art shows.
+func amigaShown() bool { return daxArt.amiga && hasAmiga() }
+
+// hasAmiga reports whether the game has Amiga art to switch to.
+func hasAmiga() bool { return daxArt.art != nil && daxArt.art.Has(asset.Amiga) }
+
+// artBlock is block id of file as shown: the Amiga one while it shows and
+// there is one, else the DOS one; nil: none.
+func artBlock(file string, id int) *asset.Block {
+	if daxArt.art == nil {
+		return nil
+	}
+	file = strings.TrimSuffix(strings.ToUpper(file), ".DAX")
+	if amigaShown() {
+		if b := daxArt.art.Block(asset.Amiga, file, id); b != nil {
+			return b
+		}
+	}
+	return daxArt.art.Block(asset.DOS, file, id)
+}
+
+// Arts is the shown art (DOS: true) and how to switch it, when Amiga art
+// stands in for the game's own (set nil: one art). The shell cross-fades
+// the switch (F12); every picture and border decodes anew.
 func (f *Front) Arts() (dos bool, set func(bool)) {
-	if !daxLoader.HasAmiga() {
+	if !hasAmiga() {
 		return true, nil
 	}
 	return true, func(dos bool) {
-		daxLoader.SetDOS(dos)
+		daxArt.amiga = !dos
 		clear(daxPics)
 		clear(spriteAnims) // the other art's frames and delays
 		f.ArtNew = true
@@ -46,46 +74,60 @@ func daxMasked(file string, block, frame, mask int) image.Image {
 	if m, ok := daxPics[k]; ok {
 		return m
 	}
-	var m *image.RGBA
-	if daxLoader != nil {
-		b := daxLoader.BlockShared(file, block)
-		if im := dax.ParseVGA(b, false, 0); im != nil && frame >= im.Count { // a VGA still has no such frame: not an animation either (its 64K read as one took seconds)
-		} else if im != nil { // a VGA block (byte height, width: an EGA one's height high byte is 0)
-			m = image.NewRGBA(image.Rect(0, 0, im.Width*8, im.Height))
-			for i, c := range im.Frame(frame) {
-				if int(c) != mask {
-					m.SetRGBA(i%(im.Width*8), i/(im.Width*8), im.Palette[c])
-				}
-			}
-		} else if fs, _ := dax.ParseVGAAnim(b); frame < len(fs) { // a VGA animation (Buck Rogers, PoD PIC/SPRIT)
-			im := fs[frame].Image
-			sprite := strings.HasPrefix(strings.ToUpper(file), "SPRIT") // O124:0981: a sprite's 0 and 13 swap, 13 is clear
-			m = image.NewRGBA(image.Rect(0, 0, im.Width*8, im.Height))
-			for i, c := range im.Data {
-				switch {
-				case sprite && c == 0, int(c) == mask:
-				case sprite && c == 13:
-					m.SetRGBA(i%(im.Width*8), i/(im.Width*8), im.Palette[0])
-				default:
-					m.SetRGBA(i%(im.Width*8), i/(im.Width*8), im.Palette[c])
-				}
-			}
-		} else if im := daxStill(file, b, frame); im != nil {
-			m = image.NewRGBA(image.Rect(0, 0, im.Width*8, im.Height))
-			pal := daxLoader.AmigaPalette(file, block)
-			for i, c := range im.Frame(min(frame, im.Count-1)) {
-				if c < dax.Clear && int(c) != mask {
-					m.SetRGBA(i%(im.Width*8), i/(im.Width*8), pixelRGBA(c, pal))
-				}
-			}
-		}
-	}
+	m := artRGBA(artBlock(file, block), file, frame, mask)
 	if m == nil {
 		daxPics[k] = nil
 		return nil
 	}
 	daxPics[k] = m
 	return m
+}
+
+// artRGBA is frame of b in its colours, colour index mask left transparent
+// (nil: no such frame).
+func artRGBA(b *asset.Block, file string, frame, mask int) *image.RGBA {
+	if b == nil || frame < 0 || frame >= len(b.Frames) {
+		return nil
+	}
+	im := b.Frames[frame].Image
+	w := im.Width * 8
+	if w == 0 {
+		return nil
+	}
+	m := image.NewRGBA(image.Rect(0, 0, w, im.Height))
+	pal := b.Palette
+	switch b.Kind {
+	case asset.VGAStill:
+		for i, c := range im.Data {
+			if int(c) != mask {
+				m.SetRGBA(i%w, i/w, vgaRGBA(pal, c))
+			}
+		}
+	case asset.VGAAnim:
+		sprite := strings.HasPrefix(strings.ToUpper(file), "SPRIT") // O124:0981: a sprite's 0 and 13 swap, 13 is clear
+		for i, c := range im.Data {
+			switch {
+			case sprite && c == 0, int(c) == mask:
+			case sprite && c == 13:
+				m.SetRGBA(i%w, i/w, vgaRGBA(pal, 0))
+			default:
+				m.SetRGBA(i%w, i/w, vgaRGBA(pal, c))
+			}
+		}
+	default:
+		for i, c := range im.Data {
+			if c < asset.Clear && int(c) != mask {
+				m.SetRGBA(i%w, i/w, pixelRGBA(c, pal))
+			}
+		}
+	}
+	return m
+}
+
+// vgaRGBA is colour c of a VGA block's palette (RGB triplets).
+func vgaRGBA(pal []byte, c uint8) color.RGBA {
+	i := int(c) * 3
+	return color.RGBA{pal[i], pal[i+1], pal[i+2], 255}
 }
 
 // refMask is the colour index of pc's DAX picture left transparent: its own
@@ -136,21 +178,6 @@ func pixelRGBA(c uint8, pal []byte) color.RGBA {
 	return ega.AmigaRGBA(c)
 }
 
-// daxStill is frame of an EGA picture block: a plain image, else frame of an
-// animation block (PIC*, FINAL*: frames XORed on the first; SPRIT*), so a
-// view picture such as Silver Blades' PIC1 80 shows; nil if neither.
-func daxStill(file string, b []byte, frame int) *dax.Image {
-	if im := dax.ParseImage(b, false, 0); im != nil && im.Width > 0 && frame < im.Count {
-		return im
-	}
-	up := strings.ToUpper(file)
-	fs := dax.ParseSprite(b, false, 0, strings.HasPrefix(up, "PIC") || strings.HasPrefix(up, "FINAL"))
-	if frame >= len(fs) || fs[frame].Image.Width == 0 {
-		return nil
-	}
-	return fs[frame].Image
-}
-
 // spriteAnim is an animation block's frame delays and when it came up.
 type spriteAnim struct {
 	delays      []time.Duration
@@ -168,19 +195,17 @@ var spriteAnims = map[daxKey]*spriteAnim{} // by file and block (frame 0)
 // frame, O10F:102E), one the game cycles itself (Frames) or names by
 // pixels or pool name.
 func spriteFrame(pc front.Picture, now time.Time) (int, bool) {
-	if pc.File == "" || pc.Img != nil || pc.Pix != nil || pc.Name != "" || len(pc.Frames) > 0 || daxLoader == nil || strings.HasPrefix(strings.ToUpper(pc.File), "SPRIT") {
+	if pc.File == "" || pc.Img != nil || pc.Pix != nil || pc.Name != "" || len(pc.Frames) > 0 || daxArt.art == nil || strings.HasPrefix(strings.ToUpper(pc.File), "SPRIT") {
 		return 0, false
 	}
 	k := daxKey{file: pc.File, block: pc.Block}
 	a, ok := spriteAnims[k]
 	if !ok {
 		a = &spriteAnim{start: now}
-		b := daxLoader.BlockShared(pc.File, pc.Block)
-		fs, loop := dax.ParseVGAAnim(b)
-		if fs == nil && dax.ParseVGA(b, false, 0) == nil { // a VGA still (PoD's TITLE) is no EGA animation, as daxMasked reads it
-			if im := dax.ParseImage(b, false, 0); im == nil || im.Width == 0 { // not a plain image: an EGA animation block
-				fs = dax.ParseSprite(b, false, 0, false)
-			}
+		var fs []asset.Frame
+		loop := 0
+		if b := artBlock(pc.File, pc.Block); b != nil && !b.Kind.Pictured() {
+			fs, loop = b.Frames, b.Loop
 		}
 		a.loop = loop
 		for _, f := range fs {

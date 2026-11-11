@@ -75,8 +75,8 @@ func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
 			d.SetSoundtrack(true, 0, 0)
 		}
 	}
-	if daxLoader != nil && len(snd) == 0 { // the player's own music: data/music/<trigger>
-		ownMus = newOwnMusic(filepath.Join(filepath.Dir(daxLoader.Dir), "music"), data.MusicPlaces)
+	if data.Files != "" && len(snd) == 0 { // the player's own music: data/music/<trigger>
+		ownMus = newOwnMusic(filepath.Join(filepath.Dir(data.Files), "music"), data.MusicPlaces)
 		audio.Output(ownMus)
 		if d, ok := f.P.Snd.(*audio.Driver); ok {
 			d.SetOwnMusic(ownMus.Playing)

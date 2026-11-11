@@ -57,7 +57,7 @@ func (g classicGame) OpenPicker(kind int) bool {
 // F12's Amiga set alone, never mixed with the DOS one.
 func (pp *poolPick) list() {
 	prefix := poolPrefix[pp.field]
-	if pp.amiga = daxLoader.Amiga(); pp.amiga {
+	if pp.amiga = amigaShown(); pp.amiga {
 		prefix = "amiga_" + prefix
 	}
 	pp.names = pp.names[:0]
@@ -70,7 +70,7 @@ func (pp *poolPick) list() {
 
 func (g classicGame) PickerView(page int) *front.Picker {
 	if pp := g.p.pool; pp != nil {
-		if !pp.tiles && pp.amiga != daxLoader.Amiga() { // F12 while it is up: the other set's list
+		if !pp.tiles && pp.amiga != amigaShown() { // F12 while it is up: the other set's list
 			pp.list()
 		}
 		if pp.tiles {

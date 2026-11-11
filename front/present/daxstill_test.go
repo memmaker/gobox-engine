@@ -4,19 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"gobox/dax"
+	"gobox/asset"
 	"gobox/front"
 )
-
-// An animation block (PIC*: u8 count, a 21-byte frame header, packed pixels) decodes as its frame, not as nothing.
-func TestDaxStillSprite(t *testing.T) {
-	b := []byte{1, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-	b = append(b, 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0)
-	im := daxStill("PIC1", b, 0)
-	if im == nil || im.Width != 1 || im.Height != 2 || im.Frame(0)[0] != 1 {
-		t.Fatalf("%+v", im)
-	}
-}
 
 // A two-frame animation block shows frame 0 for its delay (tenths of a second), then frame 1, then loops.
 func TestSpriteFrameDelays(t *testing.T) {
@@ -24,9 +14,9 @@ func TestSpriteFrameDelays(t *testing.T) {
 	t0 := time.Unix(0, 0)
 	a.start, a.seen = t0, t0
 	spriteAnims[daxKey{file: "PIC9", block: 1}] = a
-	old := daxLoader
-	daxLoader = &dax.Loader{}
-	defer func() { daxLoader = old; delete(spriteAnims, daxKey{file: "PIC9", block: 1}) }()
+	old := daxArt
+	daxArt.art = asset.OpenArt(t.TempDir())
+	defer func() { daxArt = old; delete(spriteAnims, daxKey{file: "PIC9", block: 1}) }()
 	for _, c := range []struct {
 		ms, want int
 	}{{0, 0}, {100, 0}, {200, 0}, {300, 1}, {400, 0}} {
@@ -59,13 +49,9 @@ func TestSpriteNotAutoPlayed(t *testing.T) {
 // A VGA still (PoD's TITLE pictures) is not an animation: never a frame
 // past its one, which decodes as nothing (the title went black).
 func TestVGAStillNotAnimated(t *testing.T) {
-	l, err := dax.NewLoader("../../../pod-go/data/dos")
-	if err != nil || l.BlockShared("TITLE", 2) == nil {
+	if !useArt(t, "../../../pod-go/data/dos") || artBlock("TITLE", 2) == nil {
 		t.Skip("no PoD data")
 	}
-	old := daxLoader
-	daxLoader = l
-	defer func() { daxLoader = old; delete(spriteAnims, daxKey{file: "TITLE", block: 2}) }()
 	if f, ok := spriteFrame(front.Picture{File: "TITLE", Block: 2}, time.Now()); ok {
 		t.Fatalf("a VGA still plays as an animation (frame %d)", f)
 	}

@@ -123,12 +123,13 @@ func saveSheetPNG(t *testing.T, v front.View) {
 		return
 	}
 	home, _ := os.UserHomeDir()
+	var fl *dax.Loader
 	if l, err := dax.NewLoader(filepath.Join(home, "Projects", "buckrogers2-go", "data", "dos")); err == nil {
-		defer func(old *dax.Loader) { daxLoader = old; clear(daxPics) }(daxLoader)
-		daxLoader = l
+		useArt(t, l.Dir)
+		fl = l
 		clear(daxPics)
 	}
-	bits := brFont(daxLoader)
+	bits := brFont(fl)
 	font := func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(bits, ch, text); return g } // as fontmenu.go hands the page the game's font
 	for i, sc := range []*game.Screen{v.Screen, {Kind: game.ScreenSpaceFight, SpaceFight: testFight(), ShipSheet: testSheet(false)}} {
 		w := v

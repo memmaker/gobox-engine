@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/dax"
 	"gobox/front"
 	"gobox/sprites"
 )
@@ -16,17 +15,16 @@ import (
 // (games whose data/dos is not installed are skipped).
 func TestPoolMatchesDAX(t *testing.T) {
 	home, _ := os.UserHomeDir()
-	defer func(l *dax.Loader, id string) { daxLoader, gameID = l, id }(daxLoader, gameID)
+	defer func(id string) { gameID = id }(gameID)
 	n := 0
 	defer func() { t.Logf("compared %d", n) }()
 	for id, files := range sprites.Origins() {
 		dir := filepath.Join(home, "Projects", id+"-go", "data", "dos")
-		l, err := dax.NewLoader(dir)
-		if _, e := os.Stat(dir); e != nil || err != nil {
+		if !useArt(t, dir) {
 			t.Logf("skip %s: no data", id)
 			continue
 		}
-		daxLoader, gameID = l, id
+		gameID = id
 		for file, refs := range files {
 			for ref, name := range refs {
 				if !strings.HasPrefix(name, "head_") && !strings.HasPrefix(name, "body_") {

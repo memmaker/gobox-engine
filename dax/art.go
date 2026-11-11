@@ -1,32 +1,60 @@
 package dax
 
 import (
+	"errors"
 	"fmt"
 	"image/color"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 
 	"gobox/asset"
 	"gobox/ega"
 )
 
-// ArtFile is one graphics archive for ExportArt: its DOS name and whether
-// an animation's frames after the first are stored XORed against it (PIC*,
-// FINAL*). Whether a block is a picture or an animation is its layout's
-// (blockKind): FINAL holds both.
-type ArtFile struct {
-	Name   string
-	XOR    bool
-	NotArt []int // blocks that hold no picture (8X8D1's font, 201)
-}
+// ArtFormat changes when the sheets an import writes change: an older art
+// folder is stale (ImportArtIfStale).
+const ArtFormat = "3"
 
-// ExportArt is the art import: every block of files, as the loader gives
-// it, becomes a gobox/asset sheet, the DOS art in dst/dos and the Amiga
-// blocks standing in for it (UseAmiga) in dst/amiga, under the DOS name.
-// A file neither release has is skipped.
-func ExportArt(l *Loader, dst string, files []ArtFile) error {
+// ImportArt is the art import: every block of dosDir's DAX archives that
+// holds a picture or an animation (artBlock), as the loader gives it,
+// becomes a gobox/asset sheet, the DOS art in dst/dos and the Amiga blocks
+// of amigaDir standing in for it (UseAmiga) in dst/amiga, under the DOS
+// name; dst/key.txt names what was read. Nothing at run time reads the
+// archives' art.
+func ImportArt(dosDir, amigaDir, dst string) error {
+	l, err := NewLoader(dosDir)
+	if err != nil {
+		return err
+	}
+	l.UseAmiga(amigaDir)
+	if err := os.RemoveAll(dst); err != nil {
+		return err
+	}
+	files, err := daxNames(dosDir)
+	if err != nil {
+		return err
+	}
+	amigaFiles := files
+	if l.HasAmiga() { // the names the Amiga archives stand in for (AmigaShared): a set's own, the shared one's sets
+		am, err := daxNames(amigaDir)
+		if err != nil {
+			return err
+		}
+		for _, n := range am {
+			amigaFiles = append(amigaFiles, n)
+			if strings.TrimRight(n, "0123456789") == n {
+				for set := 1; set <= 9; set++ {
+					amigaFiles = append(amigaFiles, n+strconv.Itoa(set))
+				}
+			}
+		}
+		slices.Sort(amigaFiles)
+		amigaFiles = slices.Compact(amigaFiles)
+	}
 	pal := sheetPalette()
 	for _, v := range []asset.Version{asset.DOS, asset.Amiga} {
 		if v == asset.Amiga && !l.HasAmiga() {
@@ -36,73 +64,177 @@ func ExportArt(l *Loader, dst string, files []ArtFile) error {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return err
 		}
-		for _, f := range files {
-			dos := l.File(f.Name)
+		names := files
+		if v == asset.Amiga {
+			names = amigaFiles
+		}
+		for _, name := range names {
+			dos := l.File(name)
 			var blocks []asset.Block
 			for id := range 256 {
-				if slices.Contains(f.NotArt, id) {
-					continue
-				}
 				var b, p []byte
 				if dos != nil {
 					b = dos.BlockShared(id)
 				}
 				if v == asset.Amiga {
-					if b = l.AmigaShared(f.Name, id); b != nil {
-						p = l.AmigaPalette(f.Name, id)
+					if b = l.AmigaShared(name, id); b != nil {
+						p = l.AmigaPalette(name, id)
 					}
 				}
 				if b == nil {
 					continue
 				}
-				blk, err := artBlock(f, id, b)
-				if err != nil {
-					return fmt.Errorf("%s %s block %d: %w", v, f.Name, id, err)
+				blk, ok := artBlock(name, id, b)
+				if !ok {
+					continue
 				}
-				blk.Palette = p
+				if p != nil {
+					blk.Palette = p
+				}
 				blocks = append(blocks, blk)
 			}
 			if len(blocks) == 0 {
 				continue
 			}
-			if err := asset.WriteSheet(dir, strings.ToUpper(f.Name), blocks, pal); err != nil {
+			if err := asset.WriteSheet(dir, name, blocks, pal); err != nil {
 				return err
 			}
 		}
 	}
-	return nil
+	key, err := artKey(dosDir, amigaDir)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dst, "key.txt"), []byte(key), 0o644)
 }
 
-// artBlock decodes block b unmasked; its colour base is its Amiga tag's slot.
-func artBlock(f ArtFile, id int, b []byte) (asset.Block, error) {
-	kind, err := blockKind(b)
-	if err != nil {
-		return asset.Block{}, err
+// ImportArtIfStale runs ImportArt when dst is missing or was imported from
+// other archives or by another format; without dosDir there is nothing to
+// import.
+func ImportArtIfStale(dosDir, amigaDir, dst string) error {
+	if _, err := os.Stat(dosDir); errors.Is(err, fs.ErrNotExist) {
+		return nil
 	}
-	blk := asset.Block{ID: id, Kind: kind}
-	switch kind {
+	key, err := artKey(dosDir, amigaDir)
+	if err != nil {
+		return err
+	}
+	have, err := os.ReadFile(filepath.Join(dst, "key.txt"))
+	if err == nil && string(have) == key {
+		return nil
+	}
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
+	return ImportArt(dosDir, amigaDir, dst)
+}
+
+// daxNames are dir's DAX archives' names, upper case, without .DAX.
+func daxNames(dir string) ([]string, error) {
+	ents, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	var out []string
+	for _, e := range ents {
+		if n := e.Name(); strings.EqualFold(filepath.Ext(n), ".dax") {
+			out = append(out, strings.ToUpper(strings.TrimSuffix(n, filepath.Ext(n))))
+		}
+	}
+	return out, nil
+}
+
+// artKey names what an import reads: the format and every archive's size
+// and time.
+func artKey(dirs ...string) (string, error) {
+	var b strings.Builder
+	fmt.Fprintf(&b, "format %s\n", ArtFormat)
+	for _, d := range dirs {
+		ents, err := os.ReadDir(d)
+		if errors.Is(err, fs.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return "", err
+		}
+		for _, e := range ents {
+			if !strings.EqualFold(filepath.Ext(e.Name()), ".dax") {
+				continue
+			}
+			i, err := e.Info()
+			if err != nil {
+				return "", err
+			}
+			fmt.Fprintf(&b, "%s/%s %d %d\n", filepath.Base(d), e.Name(), i.Size(), i.ModTime().UnixNano())
+		}
+	}
+	return b.String(), nil
+}
+
+// XORed reports whether file's animations store their frames after the
+// first XORed against it (PIC*, FINAL*).
+func XORed(file string) bool {
+	up := strings.ToUpper(file)
+	return strings.HasPrefix(up, "PIC") || strings.HasPrefix(up, "FINAL")
+}
+
+// artBlock decodes block b of file unmasked: an EGA picture or animation
+// (the layout it fills exactly, blockKind; a picture where both fit), else
+// a VGA one (ParseVGA, ParseVGAAnim); ok is false for a block that is
+// neither (a script, a map, a font). An EGA block's colour base is its
+// Amiga tag's slot.
+func artBlock(file string, id int, b []byte) (blk asset.Block, ok bool) {
+	blk = asset.Block{ID: id}
+	switch blockKind(b) {
 	case asset.Still:
 		im := ParseImage(b, false, 0)
-
-		blk.ColourBase = colourBase(b[9:])
-		for i := range im.Count {
-			fr := NewImage(1, im.Width, im.Height)
-			fr.X, fr.Y = im.X, im.Y
-			copy(fr.Data, im.Frame(i))
-			blk.Frames = append(blk.Frames, asset.Frame{Image: fr})
-		}
+		blk.Kind, blk.ColourBase = asset.Still, colourBase(b[9:])
+		blk.Frames = stillFrames(im)
 	case asset.Anim:
-		blk.Frames = ParseSprite(b, false, 0, f.XOR)
+		blk.Kind, blk.Frames = asset.Anim, ParseSprite(b, false, 0, XORed(file))
 		if len(b) > 22 { // the first frame's header holds the tag
 			blk.ColourBase = colourBase(b[13:])
 		}
+	default:
+		if im := ParseVGA(b, false, 0); im != nil {
+			blk.Kind, blk.Palette, blk.Frames = asset.VGAStill, rgb(im.Palette), stillFrames(im)
+		} else if fs, loop := ParseVGAAnim(b); fs != nil {
+			blk.Kind, blk.Palette, blk.Loop, blk.Frames = asset.VGAAnim, rgb(fs[0].Image.Palette), loop, fs
+			for _, f := range fs {
+				f.Image.Palette = nil // the block's
+			}
+		} else {
+			return blk, false
+		}
 	}
-	return blk, nil
+	return blk, true
 }
 
-// blockKind is the layout b fills exactly: a picture's (ParseImage) or an
-// animation's (ParseSprite); neither or both fails the import.
-func blockKind(b []byte) (asset.Kind, error) {
+// stillFrames are im's frames, each an image of its own.
+func stillFrames(im *Image) []asset.Frame {
+	var out []asset.Frame
+	for i := range im.Count {
+		fr := NewImage(1, im.Width, im.Height)
+		fr.X, fr.Y = im.X, im.Y
+		copy(fr.Data, im.Frame(i))
+		out = append(out, asset.Frame{Image: fr})
+	}
+	return out
+}
+
+// rgb is pal as RGB triplets (Block.Palette).
+func rgb(pal []color.RGBA) []byte {
+	out := make([]byte, 0, len(pal)*3)
+	for _, c := range pal {
+		out = append(out, c.R, c.G, c.B)
+	}
+	return out
+}
+
+// blockKind is the EGA layout b fills exactly: a picture's (ParseImage,
+// also where an animation's fits too) or an animation's (ParseSprite); ""
+// for neither.
+func blockKind(b []byte) asset.Kind {
 	still := len(b) >= 17 && 17+int(b[8])*le16(b, 0)*le16(b, 2)*8/packed(b[9:]) == len(b)
 	anim := len(b) >= 1
 	p := 1
@@ -113,14 +245,13 @@ func blockKind(b []byte) (asset.Kind, error) {
 		}
 		p += 21 + le16(b, p+4)*le16(b, p+6)*8/packed(b[p+12:])
 	}
-	anim = anim && p == len(b)
 	switch {
-	case still && !anim:
-		return asset.Still, nil
-	case anim && !still:
-		return asset.Anim, nil
+	case still:
+		return asset.Still
+	case anim && p == len(b):
+		return asset.Anim
 	}
-	return "", fmt.Errorf("%d bytes: picture layout %v, animation layout %v", len(b), still, anim)
+	return ""
 }
 
 func le16(b []byte, i int) int { return int(b[i]) | int(b[i+1])<<8 }

@@ -18,8 +18,9 @@ func TestDaxMask(t *testing.T) {
 	if err != nil || !l.Exists("CHARS.DAX") {
 		t.Skip("no buckrogers data")
 	}
-	defer func(old *dax.Loader, m map[string]int) { daxLoader, daxMask = old, m; clear(daxPics) }(daxLoader, daxMask)
-	daxLoader, daxMask = l, nil
+	useArt(t, l.Dir)
+	defer func(m map[string]int) { daxMask = m }(daxMask)
+	daxMask = nil
 	clear(daxPics)
 	pc := front.Picture{File: "CHARS", Block: 0}
 	if picImage(pc, egaInk).(interface{ Opaque() bool }).Opaque() != true {

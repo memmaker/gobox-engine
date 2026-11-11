@@ -17,8 +17,7 @@ func TestDAXPictureVGA(t *testing.T) {
 	if err != nil || !l.Exists("TITLE.DAX") {
 		t.Skip("no pod data")
 	}
-	defer func(old *dax.Loader) { daxLoader = old; clear(daxPics) }(daxLoader)
-	daxLoader = l
+	useArt(t, l.Dir)
 	clear(daxPics)
 	want := dax.ParseVGA(l.BlockShared("TITLE", 1), false, 0)
 	m := daxImage("TITLE", 1, 0)

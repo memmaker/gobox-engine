@@ -17,8 +17,8 @@ import (
 	"testing/fstest"
 
 	"gobox/amiga"
+	"gobox/asset"
 	"gobox/audio"
-	"gobox/dax"
 	"gobox/front"
 	"gobox/game"
 	"gobox/ui"
@@ -65,8 +65,6 @@ type Data struct {
 	Art      fs.FS                   // maps/NAME.map and assets/walls/walls.txt
 	OpenAt   string                  // map:NAME:X:Y:D shows map NAME from that square alone (drawOpen); "" none
 
-	DAX *dax.Loader // the game's own DAX loader, over its own files: it decodes the pictures named by File and Block with Img nil and Theme.Border (nil: they stay undrawn)
-
 	Bindings []ui.Binding // the game's own help rows, after Any time's Ctrl-F row
 
 	Sounds     []byte           // the sound driver's tables (gobox/audio NewSynth's data: songs, scripts, vibrato waveforms; nil: none)
@@ -97,7 +95,6 @@ var (
 	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
 	openAt                           string
 	dollPNG                          = defaultDoll
-	daxLoader                        *dax.Loader
 	mapSide                          int // View.Map's side in pixels
 	sounds                           []byte
 	amigaSound                       []byte
@@ -128,12 +125,7 @@ func SetData(d Data) {
 	dollBoxes, slotNames, readiedMark = defaultDollBoxes, defaultSlotNames, cmp.Or(d.ReadyMark, "*")
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
 	dollPNG = defaultDoll
-	daxLoader = d.DAX
-	if daxLoader != nil && !daxLoader.HasAmiga() { // the Amiga art beside the DOS files (data/amiga), shown on F12
-		daxLoader.UseAmiga(filepath.Join(filepath.Dir(daxLoader.Dir), "amiga"))
-		daxLoader.SetDOS(true)
-	}
-	classic.AmigaArt = daxLoader.Amiga // the members' pool portraits and icons follow F12 too
+	classic.AmigaArt = amigaShown // the members' pool portraits and icons follow F12 too
 	if art == nil {
 		art = fstest.MapFS{} // no remastered maps: every area falls back to its original view
 	}
@@ -254,7 +246,7 @@ var (
 	filesDir  string
 )
 
-// gameArt is the game's Data.Art (the overland's terrain and marker).
+// daxArt is the game's Data.Art (the overland's terrain and marker).
 var gameArt map[string]game.Picture
 
 var daxMask map[string]int // Data.DaxMask
@@ -271,7 +263,7 @@ func gameData(g game.Data) {
 		texts[k] = v
 	}
 	sequences, filesDir = g.Sequences, g.Files
-	classic.GameID, classic.Amiga = g.ID, func() bool { return daxLoader.Amiga() }
+	classic.GameID, classic.Amiga = g.ID, amigaShown
 	classic.AmigaArt = classic.Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
 	if g.Series != "" {
 		series = g.Series
@@ -288,16 +280,12 @@ func gameData(g game.Data) {
 		}
 		applyTheme(t)
 	}
-	if g.Files != "" && daxLoader == nil { // the game's DAX files, decoded here
-		if l, err := dax.NewLoader(g.Files); err == nil {
-			daxLoader = l
-			daxLoader.UseAmiga(filepath.Join(filepath.Dir(l.Dir), "amiga"))
-			daxLoader.SetDOS(true)
-		}
+	if g.Files != "" && daxArt.art == nil { // the game's imported art (its import: dax.ImportArt)
+		daxArt.art = asset.OpenArt(asset.Dir(g.Files))
 	}
-	if g.AdLib != nil && daxLoader != nil && adLib == nil {
-		music, _ := os.ReadFile(daxLoader.Path(g.AdLib.Music))
-		snd, _ := os.ReadFile(daxLoader.Path(g.AdLib.Sounds))
+	if g.AdLib != nil && g.Files != "" && adLib == nil {
+		music, _ := os.ReadFile(filePath(g.Files, g.AdLib.Music))
+		snd, _ := os.ReadFile(filePath(g.Files, g.AdLib.Sounds))
 		if music != nil {
 			adLib = &audio.AdLibData{Music: music, Sounds: snd, Effects: g.AdLib.Effects, Rate: g.AdLib.Rate, Tempo: g.AdLib.Tempo, Named: map[string][]byte{}}
 			for _, sq := range g.Sequences { // the songs the animations cue (NAME.SMS beside them)
@@ -309,8 +297,8 @@ func gameData(g game.Data) {
 			}
 		}
 	}
-	if m := g.AmigaMusic; m != nil && daxLoader != nil && amigaMX == nil {
-		dir := filepath.Join(filepath.Dir(daxLoader.Dir), "amiga")
+	if m := g.AmigaMusic; m != nil && g.Files != "" && amigaMX == nil {
+		dir := filepath.Join(filepath.Dir(g.Files), "amiga")
 		mx, _ := os.ReadFile(filepath.Join(dir, m.Songs))
 		glb, _ := os.ReadFile(filepath.Join(dir, m.Effects))
 		if p, err := amiga.NewMX(mx, glb); err == nil {
@@ -415,3 +403,14 @@ func gameData(g game.Data) {
 
 // UseGameData hands the presenter the game's data without building a Front (headless callers).
 func UseGameData(g game.Data) { gameData(g) }
+
+// filePath is file name in dir, its name's case as on disk ("": none).
+func filePath(dir, name string) string {
+	ents, _ := os.ReadDir(dir)
+	for _, e := range ents {
+		if strings.EqualFold(e.Name(), name) {
+			return filepath.Join(dir, e.Name())
+		}
+	}
+	return ""
+}

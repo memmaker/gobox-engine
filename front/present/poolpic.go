@@ -26,7 +26,7 @@ func poolImage(pc front.Picture) image.Image {
 	if name == "" && pc.File != "" {
 		originsOnce.Do(func() { origins = sprites.Origins() })
 		f := origins[gameID][pc.File]
-		if daxLoader.Amiga() { // the Amiga set only (<game>-amiga, one archive per kind): never the DOS art
+		if amigaShown() { // the Amiga set only (<game>-amiga, one archive per kind): never the DOS art
 			a, n := origins[gameID+"-amiga"], strings.TrimSuffix(strings.ToUpper(pc.File), ".DAX")
 			if f = a[n+".DAX"]; f[strconv.Itoa(pc.Block)] == "" && f[strconv.Itoa(pc.Block)+"."+strconv.Itoa(pc.Frame)] == "" { // a set's own archive (HEAD5), else the shared one
 				f = a[strings.TrimRight(n, "0123456789")+".DAX"]

@@ -23,7 +23,7 @@ import (
 // <name>.txt saying what each frame is:
 //
 //	# comment
-//	block <id> image|anim <colour base> [<palette: hex RGB triplets>]
+//	block <id> image|anim|vga-image|vga-anim <colour base> <palette: hex RGB triplets, or -> <loop frame>
 //	frame <width in 8-pixel cells> <height> <x> <y> <delay>
 //
 // A block's frames follow it; frames take the atlas rows in the order listed.
@@ -36,7 +36,17 @@ type Kind string
 const (
 	Still Kind = "image" // one picture of Count frames (Block.Image)
 	Anim  Kind = "anim"  // an animation (Block.Anim)
+	// The VGA kinds' pixels index the block's Palette (256 RGB triplets)
+	// directly: Buck Rogers', Pools of Darkness' pictures.
+	VGAStill Kind = "vga-image"
+	VGAAnim  Kind = "vga-anim"
 )
+
+// Pictured reports whether k is a still picture (Block.Image), not an animation.
+func (k Kind) Pictured() bool { return k == Still || k == VGAStill }
+
+// vga reports whether k's pixels index its block's own 256 colours.
+func (k Kind) vga() bool { return k == VGAStill || k == VGAAnim }
 
 // NoMask is a load without a transparent colour.
 const NoMask = -1
@@ -46,14 +56,15 @@ type Block struct {
 	ID         int
 	Kind       Kind
 	ColourBase int    // added to the original colour indexes (Amiga palette slot); a mask colour c is ColourBase+c
-	Palette    []byte // the RGB triplets the picture was drawn in (Amiga), nil: none of its own
+	Palette    []byte // the RGB triplets the picture was drawn in (Amiga, VGA), nil: none of its own
+	Loop       int    // a VGA animation's frame play goes back to after the last
 	Frames     []Frame
 }
 
 // Image is the still block as a picture; with mask >= 0 that colour is
 // transparent (Clear), the original's masked load.
 func (b *Block) Image(mask int) *Image {
-	if b.Kind != Still || len(b.Frames) == 0 {
+	if !b.Kind.Pictured() || len(b.Frames) == 0 {
 		return nil
 	}
 	f := b.Frames[0].Image
@@ -62,23 +73,38 @@ func (b *Block) Image(mask int) *Image {
 	for i, fr := range b.Frames {
 		copy(im.Frame(i), fr.Image.Data)
 	}
+	im.Palette = b.vgaPalette()
 	b.masked(im, mask)
 	return im
 }
 
 // Anim is the animation block's frames, each a copy; mask as Image.
 func (b *Block) Anim(mask int) []Frame {
-	if b.Kind != Anim {
+	if b.Kind != Anim && b.Kind != VGAAnim {
 		return nil
 	}
 	out := make([]Frame, len(b.Frames))
+	pal := b.vgaPalette()
 	for i, f := range b.Frames {
 		im := *f.Image
+		im.Palette = pal
 		im.Data = slices.Clone(f.Image.Data)
 		b.masked(&im, mask)
 		out[i] = Frame{Delay: f.Delay, Image: &im}
 	}
 	return out
+}
+
+// vgaPalette is a VGA block's Palette as Image.Palette (nil otherwise).
+func (b *Block) vgaPalette() []color.RGBA {
+	if !b.Kind.vga() {
+		return nil
+	}
+	pal := make([]color.RGBA, len(b.Palette)/3)
+	for i := range pal {
+		pal[i] = color.RGBA{b.Palette[i*3], b.Palette[i*3+1], b.Palette[i*3+2], 255}
+	}
+	return pal
 }
 
 func (b *Block) masked(im *Image, mask int) {
@@ -113,7 +139,7 @@ func WriteSheet(dir, name string, blocks []Block, pal color.Palette) error {
 		if b.Palette != nil {
 			p = hex.EncodeToString(b.Palette)
 		}
-		fmt.Fprintf(&meta, "block %d %s %d %s\n", b.ID, b.Kind, b.ColourBase, p)
+		fmt.Fprintf(&meta, "block %d %s %d %s %d\n", b.ID, b.Kind, b.ColourBase, p, b.Loop)
 		for _, f := range b.Frames {
 			im := f.Image
 			fmt.Fprintf(&meta, "frame %d %d %d %d %d\n", im.Width, im.Height, im.X, im.Y, f.Delay)
@@ -165,10 +191,10 @@ func ReadSheet(dir, name string) (map[int]*Block, error) {
 		case strings.HasPrefix(line, "block "):
 			var b Block
 			var p string
-			if _, err := fmt.Sscanf(line, "block %d %s %d %s", &b.ID, &b.Kind, &b.ColourBase, &p); err != nil {
+			if _, err := fmt.Sscanf(line, "block %d %s %d %s %d", &b.ID, &b.Kind, &b.ColourBase, &p, &b.Loop); err != nil {
 				return nil, bad(err)
 			}
-			if b.Kind != Still && b.Kind != Anim {
+			if b.Kind != Still && b.Kind != Anim && !b.Kind.vga() {
 				return nil, bad(errors.New("unknown kind"))
 			}
 			if p != "-" {
@@ -194,7 +220,7 @@ func ReadSheet(dir, name string) (map[int]*Block, error) {
 			if y+im.Height > atlas.Rect.Dy() || fw > atlas.Rect.Dx() {
 				return nil, bad(errors.New("frame outside the atlas"))
 			}
-			if cur.Kind == Still && len(cur.Frames) > 0 && (fw != cur.Frames[0].Image.Width*8 || im.Height != cur.Frames[0].Image.Height) {
+			if cur.Kind.Pictured() && len(cur.Frames) > 0 && (fw != cur.Frames[0].Image.Width*8 || im.Height != cur.Frames[0].Image.Height) {
 				return nil, bad(errors.New("an image block's frames differ in size"))
 			}
 			im.BPP = fw * im.Height
@@ -258,3 +284,7 @@ func (a *Art) Block(v Version, file string, id int) *Block {
 	}
 	return s[id]
 }
+
+// Dir is the imported art of a game whose original archives are in dosDir:
+// assets/art beside it (as the Amiga's amiga/).
+func Dir(dosDir string) string { return filepath.Join(filepath.Dir(dosDir), "assets", "art") }
