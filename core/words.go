@@ -1,15 +1,19 @@
 package core
 
-// WordValue asks the value of a world word (Value); Yes: the ruleset keeps it.
-// The one form for the game and area record words (fold E-R6 design W1).
-type WordValue struct{ Word WorldWord }
+// WordIs asks the value of world word Word (Answer.Value, 0 or 1 for the
+// flag words; Yes: the ruleset keeps it, for WordEffect the entry Index).
+// The one form for the rules' record words (fold E-R6 design W1).
+type WordIs struct {
+	Word  WorldWord
+	Index int
+}
 
-// SetWord stores Value in a world word; an unknown word is refused
-// (ErrUnknownWord).
+// SetWord stores Value in world word Word; a word the ruleset does not keep
+// is refused (ErrUnknownWord).
 type SetWord struct {
 	Word  WorldWord
 	Value int32
 }
 
-func (WordValue) check() {}
-func (SetWord) action()  {}
+func (WordIs) check()   {}
+func (SetWord) action() {}
