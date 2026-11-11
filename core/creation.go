@@ -19,7 +19,23 @@ type CreationRules interface {
 	Minimums(d Draft) map[Ability]int32
 	// QuickParty is the ready-made party the empty party menu offers.
 	QuickParty() []Template
+	// SetScore sets ability a to v as typed on the sheet (POR setStatTyped,
+	// limitStat). gobox parses "18/50" into Strength 18 and StrengthPercent 50.
+	// The error says v is outside the race and class range.
+	SetScore(d Draft, a Ability, v int32) (Draft, error)
+	// Make keeps d as a new character (POR SaveCharacter).
+	Make(d Draft) (CharID, error)
+	// Draft opens an existing character for modifying.
+	Draft(c CharID) (Draft, error)
 }
+
+// FieldKind is how a field is picked.
+type FieldKind int
+
+const (
+	FieldChoice FieldKind = iota // one of Options (Draft.Picks)
+	FieldSkills                  // points spread over Options up to Budget (Draft.Points)
+)
 
 // FieldID names one creation field; the ruleset lists them in Fields.
 type FieldID int
@@ -27,8 +43,10 @@ type FieldID int
 // FieldDef is one field: its id, what the sheet shows, its options.
 type FieldDef struct {
 	ID      FieldID
+	Kind    FieldKind
 	Label   string
 	Options []string
+	Budget  int32 // FieldSkills: the points to spend
 }
 
 // RollKind is how Roll rolls.

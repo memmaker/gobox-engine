@@ -151,6 +151,13 @@ type Draft struct {
 	Step         string            // por creation's step; "" any, as play.Draft
 	Lows         map[Ability]int32 // the class's minimums (play.Draft.Minimums)
 	MinHP, MaxHP int32
+	// Picks is the option picked per FieldChoice field; Points the points
+	// spent per option of a FieldSkills field (CreationRules).
+	Picks              map[FieldID]int
+	Points             map[FieldID][]int32
+	Name               string
+	Head, Body         string // portrait pool names
+	IconHead, IconBody string // combat icon pool names
 }
 
 // TrapDefinition is a trap as data: no universal skip of the stoned, the damage
@@ -231,8 +238,8 @@ type (
 	// SkillRoll: BR opSkill (skill, all, hardness).
 	SkillRoll struct {
 		Whom       []CharID
-		Skill      Skill
-		Difficulty int32
+		Skill    Skill
+		Hardness Hardness
 	}
 )
 
@@ -244,11 +251,12 @@ func (HasItem) check()       {}
 func (SkillRoll) check()     {}
 
 // Answer is a Check's result. Which fields mean anything follows from the
-// Check: Low, High, Average for Census; Value for PartyStrength and SkillRoll;
-// Yes for the Has ones; Who for who succeeded or was found.
+// Check: Low, High, Average for Census; Value for PartyStrength; Grade for
+// SkillRoll; Yes for the Has ones; Who for who succeeded or was found.
 type Answer struct {
 	Yes            bool
 	Value          int32
+	Grade          Grade
 	Low, High, Avg int32
 	Who            CharID
 }

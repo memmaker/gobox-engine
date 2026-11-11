@@ -21,6 +21,8 @@ const (
 	Dexterity    Ability = "dexterity"
 	Constitution Ability = "constitution"
 	Charisma     Ability = "charisma"
+	// StrengthPercent is the xx of an exceptional 18/xx strength (0: none, 100: 18/00).
+	StrengthPercent Ability = "strength percent"
 )
 
 // Race is what a character is born as.
@@ -73,8 +75,8 @@ const (
 	SideMonsters Side = "monsters"
 )
 
-// Skill is a named skill, thief or XXVc. XXVc has 85 (eclbr.OffSkills+s);
-// only those scripts use are listed so far, the others come at migration.
+// Skill is a named skill, thief or XXVc. XXVc has 84 (core/xxvc.Skills);
+// 1e names its thief skills, core/xxvc all of XXVc.
 type Skill string
 
 // Save is a kind of saving throw. 1e has five, XXVc eight (eclbr.OffSaves);
