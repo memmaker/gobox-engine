@@ -1,7 +1,5 @@
 package core
 
-import "image"
-
 // Action is one thing a character or the party does. The set is closed. These
 // are the rule verbs of gobox/game/play: at migration play's become aliases
 // of them, never a second copy.
@@ -20,7 +18,7 @@ type Offer struct {
 // Aimed is an action that takes squares (play.Aimed).
 type Aimed struct {
 	Action  Action
-	Squares []image.Point
+	Squares []BoardPos
 	Targets int
 	Area    int
 }
@@ -35,34 +33,34 @@ type Allowed struct {
 
 // Reach is a square the actor can walk to.
 type Reach struct {
-	At   image.Point
-	Path []image.Point
+	At   BoardPos
+	Path []BoardPos
 }
 
 type (
 	// In a fight (the actor is the Fight's).
-	Move   struct{ To image.Point }
+	Move   struct{ To BoardPos }
 	Attack struct {
 		Target CharID
-		At     *image.Point
+		At     *BoardPos
 	}
-	Shoot struct{ Ats []image.Point }
+	Shoot struct{ Ats []BoardPos }
 	Cast  struct {
 		Caster CharID
 		Spell  SpellID
 		Target CharID
-		Ats    []image.Point
+		Ats    []BoardPos
 	}
 	UseItem struct {
 		User   CharID
 		Item   ItemSlot
 		Target CharID
-		Ats    []image.Point
+		Ats    []BoardPos
 		Spell  SpellID // a scroll's spell
 	}
 	Maneuver struct {
 		ID  ManeuverID
-		Ats []image.Point
+		Ats []BoardPos
 	}
 	TurnUndead struct{}
 	Guard      struct{}
@@ -70,11 +68,11 @@ type (
 	Quick      struct{ All bool }
 	Flee       struct{}
 	EndTurn    struct{}
-	Aid        struct{ Target CharID }  // BR
-	Sprint     struct{}                 // BR
-	Dodge      struct{}                 // BR
-	Intimidate struct{}                 // BR
-	Jetpack    struct{ To image.Point } // BR
+	Aid        struct{ Target CharID } // BR
+	Sprint     struct{}                // BR
+	Dodge      struct{}                // BR
+	Intimidate struct{}                // BR
+	Jetpack    struct{ To BoardPos }   // BR
 
 	// Confirmed sends Action again after the rules' Outcome.Confirm got a
 	// yes (por: "its Yes makes the call again sure", combatflow.go).

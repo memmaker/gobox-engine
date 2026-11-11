@@ -1,7 +1,5 @@
 package core
 
-import "image"
-
 // Effect is one fact of an Outcome, in the order it happened (RNG order is
 // the rules'). The engine applies the board ones and shows them all. The set
 // is the rule-made part of play.Event.
@@ -26,7 +24,7 @@ type (
 	Sounded struct{ Cue SoundCue }
 	Walked  struct {
 		Unit CharID
-		Path []image.Point
+		Path []BoardPos
 	}
 	Turned struct {
 		Unit   CharID
@@ -42,14 +40,14 @@ type (
 	// going on from a square).
 	Shot struct {
 		From      CharID
-		Start, To image.Point
+		Start, To BoardPos
 		Item      ItemID
 		Spell     SpellID
 	}
 	Casting struct {
 		From  CharID
 		Spell SpellID
-		Ats   []image.Point
+		Ats   []BoardPos
 	}
 	Struck struct {
 		Unit   CharID
@@ -64,16 +62,16 @@ type (
 	// Placed puts a unit on the board: a summons, a Dimension Door.
 	Placed struct {
 		Unit CharID
-		At   image.Point
+		At   BoardPos
 	}
 	// CloudOn and CloudOff are a lasting spell on a square (play Clouds).
 	CloudOn struct {
 		Spell SpellID
-		At    image.Point
+		At    BoardPos
 	}
 	CloudOff struct {
 		Spell SpellID
-		At    image.Point
+		At    BoardPos
 	}
 	Gained struct {
 		Who  CharID

@@ -145,7 +145,7 @@ type GroundKind string
 // BoardUnit is a combatant's place.
 type BoardUnit struct {
 	ID     CharID
-	At     image.Point
+	At     BoardPos
 	Size   int32
 	Facing Facing
 	Side   Side
@@ -154,7 +154,7 @@ type BoardUnit struct {
 // Cloud is a lasting spell on a square.
 type Cloud struct {
 	Spell SpellID
-	At    image.Point
+	At    BoardPos
 }
 
 // Verdict is how a fight stands (por sidesCheck, BR endFight).

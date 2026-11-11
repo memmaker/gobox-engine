@@ -83,6 +83,48 @@ var ShipSystems = []core.ShipSystem{Hull, Sensors, Control, LifeSupport, Fuel, E
 // core.Campaign.Tables.
 type Tables struct {
 	ItemTypes []ItemType // by TItemTemplate.itemType
+	ItemWords []string   // the words items' names are made of, by number (1..; 0 none)
+	Items     map[core.ItemID]ItemTemplate
+	Monsters  map[core.MonsterID]Monster
+}
+
+// ItemTemplate is one row of itemTemplates (types.pas TItemTemplate): what a
+// new item copies. Its ItemID is the importer's, stable by assignment.
+type ItemTemplate struct {
+	Type        int32    // into ItemTypes
+	Words       [3]int32 // into ItemWords, 0 none
+	Plus        int32
+	SaveBonus   int32
+	NotTreasure bool // C_Item.NOT_TREASURE: never loot
+	NotJoinable bool // C_Item.NOT_JOINABLE
+	Weight      int32
+	Quantity    int32
+	Value       int32
+	Special     [3]int32 // special 2 a projectile kind, fired while special 3 is non-zero
+}
+
+// Monster is one monster record (a TCharacter that EclMenu.InitCreature loads):
+// its rule fields, typed. Its MonsterID is the importer's.
+type Monster struct {
+	Name        string
+	Race        core.Race
+	Career      core.Class
+	Level       int32
+	Scores      map[core.Ability]int32
+	HP          int32
+	BaseCombat  int32 // baseCombat, attackBonus starts from it
+	AttackBonus int32
+	ArmorClass  [2]int32     // front, rear
+	Damage      [2]core.Dice // per attack phase (currentRolls, currentDice, currentModifiers)
+	BaseScale   int32        // phase 1's attacks per round times two, unarmed (baseScale)
+	Scale       int32        // attacks per round times two (scale)
+	Movement    int32
+	Skills      map[core.Skill]int32
+	Saves       [8]int32
+	Hostile     bool // C_Side.HOSTILE; else on the team's side
+	XPAward     int64
+	Credits     core.Copper // creditTotal
+	Items       []core.ItemRef
 }
 
 func (Tables) RuleTables() {}
