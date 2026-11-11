@@ -280,7 +280,11 @@ func gameData(g game.Data) {
 		}
 		applyTheme(t)
 	}
-	if g.Files != "" && daxArt.art == nil { // the game's imported art (its import: dax.ImportArt)
+	switch { // the game's imported art (its import: dax.ImportArt)
+	case daxArt.art != nil:
+	case g.Adventure != "":
+		daxArt.art = asset.OpenArt(filepath.Join(g.Adventure, "art"))
+	case g.Files != "":
 		daxArt.art = asset.OpenArt(asset.Dir(g.Files))
 	}
 	if g.AdLib != nil && g.Files != "" && adLib == nil {
@@ -297,8 +301,11 @@ func gameData(g game.Data) {
 			}
 		}
 	}
-	if m := g.AmigaMusic; m != nil && g.Files != "" && amigaMX == nil {
+	if m := g.AmigaMusic; m != nil && (g.Files != "" || g.Adventure != "") && amigaMX == nil {
 		dir := filepath.Join(filepath.Dir(g.Files), "amiga")
+		if g.Adventure != "" {
+			dir = filepath.Join(g.Adventure, "sound")
+		}
 		mx, _ := os.ReadFile(filepath.Join(dir, m.Songs))
 		glb, _ := os.ReadFile(filepath.Join(dir, m.Effects))
 		if p, err := amiga.NewMX(mx, glb); err == nil {

@@ -6,3 +6,8 @@ pod-go pod/rules -> gobox/walls
 por-go por/playpor -> gobox/app
 por-go por/playpor -> gobox/front/classic
 por-go por/playpor -> gobox/front/present
+cotab-go cotab/playcotab -> gobox/app
+cotab-go cotab/playcotab -> gobox/front/classic
+cotab-go cotab/playcotab -> gobox/front/present
+cotab-go cotab/playcotab -> gobox/gpu
+cotab-go cotab/playcotab -> gobox/ui/fonts

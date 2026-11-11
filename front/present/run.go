@@ -75,8 +75,8 @@ func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
 			d.SetSoundtrack(true, 0, 0)
 		}
 	}
-	if data.Files != "" && len(snd) == 0 { // the player's own music: data/music/<trigger>
-		ownMus = newOwnMusic(filepath.Join(filepath.Dir(data.Files), "music"), data.MusicPlaces)
+	if own := ownMusicDir(data); own != "" && len(snd) == 0 { // the player's own music: data/music/<trigger>
+		ownMus = newOwnMusic(own, data.MusicPlaces)
 		audio.Output(ownMus)
 		if d, ok := f.P.Snd.(*audio.Driver); ok {
 			d.SetOwnMusic(ownMus.Playing)
@@ -329,3 +329,15 @@ func newDriver() *audio.Driver {
 }
 
 var _ front.Sound = (*audio.Driver)(nil)
+
+// ownMusicDir is the player's own music folder: Data.OwnMusic, else beside
+// Data.Files ("": none).
+func ownMusicDir(d game.Data) string {
+	switch {
+	case d.OwnMusic != "":
+		return d.OwnMusic
+	case d.Files != "":
+		return filepath.Join(filepath.Dir(d.Files), "music")
+	}
+	return ""
+}

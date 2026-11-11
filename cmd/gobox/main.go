@@ -23,11 +23,13 @@ import (
 	"os"
 	"strings"
 
+	"cotab/playcotab"
 	"gobox/app"
 	"gobox/front/present"
 	"gobox/importer"
 	"por/playpor"
 
+	_ "cotab/importcotab"
 	_ "por/importpor"
 )
 
@@ -35,7 +37,8 @@ import (
 // engine per game until the engine loop is gobox's (Track R4/R5); then the
 // manifest's Ruleset picks the compiled-in ruleset and this table goes.
 var players = map[string]func(app.Start) error{
-	"por": playpor.Play,
+	"por":   playpor.Play,
+	"cotab": playcotab.Play,
 }
 
 // escapes are the -keys escapes beside the shell's (app.Flags): \r Enter,

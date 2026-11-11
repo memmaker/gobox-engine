@@ -3,8 +3,10 @@ package dax
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"os"
 	"strconv"
+	"sync"
 
 	"gobox/asset"
 )
@@ -29,13 +31,18 @@ const blockIDs = 256
 const sets = 10
 
 // ImportData writes the maps and records of l's archives into dst:
-// GEO<n>.bin/.txt, MON<n>.json (map id: Monster) and ITEM<n>.json (map id:
+// GEO<n>.bin/.txt, WALLDEF<n>.bin/.txt, MON<n>.json (map id: Monster) and ITEM<n>.json (map id:
 // items), for every set n whose archive exists.
 func ImportData[C, A, I any](l *Loader, dst string) error {
 	for s := range sets {
 		n := strconv.Itoa(s)
 		if l.Exists("GEO" + n + ".DAX") {
 			if err := asset.WriteBlocks(dst, "GEO"+n, "GEO"+n+".bin: GEO blocks, one after another (gobox/dax ImportData)", Blocks(l, "GEO"+n)); err != nil {
+				return err
+			}
+		}
+		if l.Exists("WALLDEF" + n + ".DAX") {
+			if err := asset.WriteBlocks(dst, "WALLDEF"+n, "WALLDEF"+n+".bin: WALLDEF blocks, one after another (gobox/dax ImportData)", Blocks(l, "WALLDEF"+n)); err != nil {
 				return err
 			}
 		}
@@ -114,4 +121,70 @@ func Table[T any](path string, n int) ([]T, error) {
 	b = append(b[2:], make([]byte, n*binary.Size(new(T)))...)
 	_, err = binary.Decode(b, binary.LittleEndian, out)
 	return out, err
+}
+
+// Data is an adventure's imported maps and records (ImportData's files in
+// its data dir), each file read on first use. A file that is not there is
+// none; one that does not read is a broken import: it panics.
+type Data[C, A, I any] struct {
+	dir      string
+	mu       sync.Mutex
+	blocks   map[string]map[int][]byte
+	monsters map[string]map[int]Monster[C, A, I]
+	items    map[string]map[int][]I
+}
+
+// OpenData is the imported data in dir.
+func OpenData[C, A, I any](dir string) *Data[C, A, I] {
+	return &Data[C, A, I]{dir: dir, blocks: map[string]map[int][]byte{}, monsters: map[string]map[int]Monster[C, A, I]{}, items: map[string]map[int][]I{}}
+}
+
+// Block is block id of a block file ("GEO2", "WALLDEF3"); nil: none. The
+// slice is shared: callers must not modify it.
+func (d *Data[C, A, I]) Block(file string, id int) []byte {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	m, ok := d.blocks[file]
+	if !ok {
+		var err error
+		if m, err = asset.ReadBlocks(d.dir, file); err != nil {
+			panic(fmt.Sprintf("data %s: %v (run the import again)", file, err))
+		}
+		d.blocks[file] = m
+	}
+	return m[id]
+}
+
+// Monster is monster id of family ("MON2"); false: none.
+func (d *Data[C, A, I]) Monster(family string, id int) (Monster[C, A, I], bool) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	m, ok := d.monsters[family]
+	if !ok {
+		m = readJSON[map[int]Monster[C, A, I]](d.dir, family)
+		d.monsters[family] = m
+	}
+	r, ok := m[id]
+	return r, ok
+}
+
+// Items is item list id of file ("ITEM2"); nil: none.
+func (d *Data[C, A, I]) Items(file string, id int) []I {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	m, ok := d.items[file]
+	if !ok {
+		m = readJSON[map[int][]I](d.dir, file)
+		d.items[file] = m
+	}
+	return m[id]
+}
+
+// readJSON is dir/name.json (zero: none); a broken one panics.
+func readJSON[T any](dir, name string) T {
+	var v T
+	if _, err := asset.ReadJSON(dir, name, &v); err != nil {
+		panic(fmt.Sprintf("data %s: %v (run the import again)", name, err))
+	}
+	return v
 }

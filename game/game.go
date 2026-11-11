@@ -809,6 +809,7 @@ type Data struct {
 	Palette     []byte                        // palette bytes
 	MenuItems   []MenuItem                    // the game's own main menu lines, after gobox's
 	MusicPlaces []string                      // every Where.Music trigger the game sets (gobox makes their data/music folders)
+	OwnMusic    string                        // the player's own music folder (the host's data/music) for a game with Adventure set ("": beside Files)
 	Imports     []string                      // other games' rosters and saves this game reads, by game id
 	QuickParty  []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
 	Clues       []Clue                        // the clue book's chapters (nil: the game has none)
@@ -820,6 +821,7 @@ type Data struct {
 	Sequences    []Sequence        // the full-screen animations State.Sequence names (nil: none)
 	DaxMask      map[string]int    `json:",omitempty"` // a DAX file's transparent colour index, as the original's loader takes it (File, e.g. "CHARS", "CPIC3"; no entry: none)
 	Files        string            // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
+	Adventure    string            // the imported adventure folder (gobox import): Picture File and Block from its art/, AmigaMusic's files from its sound/; set, Files is not read ("": none)
 	SoundTables  []byte            // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
 	AdLib        *AdLib            // the AdLib music and effects (nil: none)
 	AmigaMusic   *AmigaMusic       // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)

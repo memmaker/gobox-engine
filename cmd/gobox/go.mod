@@ -117,3 +117,9 @@ replace gobox/creation => ../../creation
 require por v0.0.0
 
 replace por => ../../../por-go
+
+require cotab v0.0.0
+
+replace cotab => ../../../cotab-go
+
+replace github.com/retro-ware/gameimport => ../../../gameimport
