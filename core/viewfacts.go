@@ -46,3 +46,11 @@ const (
 )
 
 func (Fixture) action() {}
+
+// ItemHandle is a placed item the ruleset holds, as CharID is a character:
+// handed out by the ruleset, stored by the engine (core.ItemID is the base
+// item it is made from).
+type ItemHandle int32
+
+// NoItem is no item.
+const NoItem ItemHandle = 0
