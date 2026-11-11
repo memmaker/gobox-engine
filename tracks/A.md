@@ -1,4 +1,4 @@
-# Track A: import and run-time data (agent A8, 2026-11-11)
+# Track A: import and run-time data (agent A8, then A9, 2026-11-11)
 
 Goal: `gobox import <game>` writes `adventures/<id>/` (scripts, art, data, manifest) for all six games; nothing at run time reads originals. Importers depend only on gobox/importer, dax, asset (and the game's own decoders), never gobox/app or front.
 
@@ -8,7 +8,8 @@ Goal: `gobox import <game>` writes `adventures/<id>/` (scripts, art, data, manif
 - [x] BR1/BR2 importers: ecl-br/importbr (scripts V4 no fixes, art, GEO/MON0/ITEM0, data/tables.json = xxvc.Tables with ItemTypes from ITEMS and Items from ITEM0 block 1); importbr1, importbr2 register; TestImportEqualsDecode each
 - [x] importer.Manifest.Start/End as `*importer.Sequence` (Format 2), filled from Game.Start/End (shape below)
 - [ ] xxvc.Tables.ItemWords (START.EXE word table) and Monsters (typed from MON0CHA by eclbr record offsets) in importbr (X3 asked)
-- [ ] portrait/icon map (C5 asked): per game, DAX picture numbers (portrait head, body, icon head, icon body) to the pool / buck-rogers collection entry IDs, a typed table in data/ plus a shared reader (sprites/cmd/poolsprites already knows origins.json per game: build it from that)
+- [x] A9 2e973e8: portrait/icon map: core.PicID; sprites.Pictures (DAXRef{File,Block,Frame} -> PicID, from origins.json), data/pictures.json written by every importer (sprites.WritePictures), read with sprites.ReadPictures. Open: Amiga (<game>-amiga) refs not in the table; old saves and the creation grid not yet converted through it (C6 retypes Draft fields to PicID).
+- [ ] (was) portrait/icon map (C5 asked): per game, DAX picture numbers (portrait head, body, icon head, icon body) to the pool / buck-rogers collection entry IDs, a typed table in data/ plus a shared reader (sprites/cmd/poolsprites already knows origins.json per game: build it from that)
 - [ ] BR zone1 revivesParty ($7EE6, != 0) and skipsCombatItems ($7EE3, == 1) as typed bools (coordinator): these are run-time ECL-written zone bytes (postcbt.pas 120, 224), not static area data. Proposal: BR's script layout (scripts/layout/global.txt: `7EE3 1 byte game SkipsCombatItems`, `7EE6 1 byte game RevivesParty`) written by importbr, so the engine reads them by name and maps them to core.FightTerms.NoItemLoot / RevivesParty. Needs ecl/script to accept a BR layout (BR runs with no names/layout today, so the texts change: update the runtime cache test with it). Not done.
 - [ ] sound: pod (no PC-speaker tables: AdLib MUSIC/ZOUNDS), BR1/BR2 (MUSIC.DAX); AdLib to MIDI, Amiga SOUND.BIN to data; then drop embedded sounddata.json (cotab, sotsb) and run-time DAX reads once B5's folder reader reads data/sound.json
 - [ ] title/end sequences filled per game into Game.Start/End (from each game's title.go / gamedata.go Intro, TitleSteps, CreditLines, CreditBoxes, TitleBackdrop; PARITY-BASELINE "Title sequences per game")
@@ -20,3 +21,8 @@ Goal: `gobox import <game>` writes `adventures/<id>/` (scripts, art, data, manif
 ## coordinator:
 - B5: por-go rules/dataimport.go should call `dax.ImportData[charRecord, affectRecord, Item]` and `dax.Table[itemBase]` instead of its own walk (same output names).
 - BR record types stay raw arrays (eclbr.Record [259]byte, Item [62]byte, effects [9]byte) in MON0.json: BR has no typed record struct; the typed form is xxvc.Tables.Monsters (open item above).
+
+## A9 handover
+Done: item 1 (picture lookup). Not started: BR zone bytes as a BR script layout (approved; reader side undecided, record it here for B6), ItemWords/Monsters, BR save import via rulesxxvc.ConvertBRCharacter, sound (AdLib->MIDI, Amiga SOUND.BIN), Start/End sequences, import tests off gobox/app, POR dataimport.go to dax.ImportData/Table.
+- Step 4 input (from main): rulesxxvc a0ed2a3 ConvertBRCharacter(xxvc.Tables, BRSave) (Character, error). importbr decodes the $103-byte record and .itm/.spc itself (core TestLeavesNoRawBytes forbids bytes in rulesxxvc): move X5's layout from scratchpad brsave_layout_for_A8.go into importbr, test against a real BR save.
+- Step 2: core.FightTerms.Area exists (d708f96); zone0 areaKind $A2/$A8 becomes a named BR script variable like RevivesParty ($7EE6) and SkipsCombatItems ($7EE3). Reader side not yet decided.
