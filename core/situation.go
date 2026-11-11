@@ -145,8 +145,12 @@ func (Scripted) situation()    {}
 // Board is the squares and who stands where. The engine builds it (por
 // combatmap.go, eclbr combatmap.go) and moves units on it by Effects.
 type Board struct {
-	Size    image.Point
-	Blocked []bool       // row by row, Size.X*Size.Y
+	Size image.Point
+	// Terrain is each square's terrain number, row by row (Size.X*Size.Y),
+	// as the ruleset numbers it (BR: the arena cell, gdconsts.pas
+	// combatTerrain's index); the ruleset says what blocks, costs and stops a
+	// line. Empty is open ground.
+	Terrain []TerrainID
 	Height  []int8       // the same; game.Ground.Height
 	Ground  []GroundKind // the same; BR bareGround
 	ZeroG   bool         // BR
@@ -155,6 +159,9 @@ type Board struct {
 	Clouds  []Cloud
 	Dungeon bool
 }
+
+// TerrainID is a square's terrain number; a ruleset gives it meaning.
+type TerrainID uint8
 
 // GroundKind is what a square is made of; a ruleset gives it meaning.
 type GroundKind string
