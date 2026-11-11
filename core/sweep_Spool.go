@@ -13,7 +13,7 @@ type (
 	PaladinCure struct{ Who, Target CharID }
 )
 
-func (PaladinHeal) action()  {}
+func (PaladinHeal) action() {}
 func (PaladinCure) action() {}
 
 type (
