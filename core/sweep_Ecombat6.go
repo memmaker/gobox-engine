@@ -19,3 +19,36 @@ func (DetectLoot) action() {}
 type IconFact struct{}
 
 func (IconFact) fact() {}
+
+// UnitFact is a fighter's unit number on the fight's board (por
+// CombatIndex, 1-based; 0 off the board); its Value is a Number.
+type UnitFact struct{}
+
+// WeaponFact is the weapon a fighter holds ready: Handles, empty or one.
+type WeaponFact struct{}
+
+// WeaponRulesFact is the rule lines of the readied weapon (por
+// WeaponRules); its Value is Lines, nil without a weapon.
+type WeaponRulesFact struct{}
+
+// TargetWhyFact is why the fighter cannot attack Target this turn, as the
+// status row words it (por TargetWhy in weapon range); its Value is Text.
+type TargetWhyFact struct{ Target CharID }
+
+// SquaresFact is the squares a walk of Move squares reaches (por Squares),
+// in board order; its Value is Squares.
+type SquaresFact struct{ Move int }
+
+// Lines are lines of text in order; Squares are board squares in order.
+type (
+	Lines   []string
+	Squares []BoardPos
+)
+
+func (UnitFact) fact()        {}
+func (WeaponFact) fact()      {}
+func (WeaponRulesFact) fact() {}
+func (TargetWhyFact) fact()   {}
+func (SquaresFact) fact()     {}
+func (Lines) value()          {}
+func (Squares) value()        {}
