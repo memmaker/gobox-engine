@@ -71,10 +71,15 @@ func Blocks(l *Loader, name string) map[int][]byte {
 	return out
 }
 
-// Monsters decodes the monsters of family ("MON<n>"): one per CHA block.
+// Monsters decodes the monsters of family ("MON<n>"): one per non-empty CHA
+// block. An empty block is no monster (the originals' "Unable to load
+// monster"), so it has no entry.
 func Monsters[C, A, I any](l *Loader, family string) map[int]Monster[C, A, I] {
 	out := map[int]Monster[C, A, I]{}
 	for id, b := range Blocks(l, family+"CHA") {
+		if len(b) == 0 {
+			continue
+		}
 		var m Monster[C, A, I]
 		rec := make([]byte, binary.Size(&m.Record))
 		copy(rec, b) // a short block reads as zero-padded

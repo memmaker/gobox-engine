@@ -53,3 +53,27 @@ func TestData(t *testing.T) {
 		t.Error("items", it)
 	}
 }
+
+// TestMonstersEmptyBlock: an empty CHA block is no monster (no entry), so
+// the engine's Monster lookup fails as the original's load did.
+func TestMonstersEmptyBlock(t *testing.T) {
+	dir := t.TempDir()
+	// two index entries (id, offset, raw size 0 = stored raw, stored size): id 1 empty, id 2 three bytes
+	idx := []byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 3, 0}
+	b := append([]byte{byte(len(idx)), 0}, idx...)
+	b = append(b, 7, 8, 0)
+	if err := os.WriteFile(filepath.Join(dir, "MON0CHA.DAX"), b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	l, err := NewLoader(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := Monsters[rec, rec, rec](l, "MON0")
+	if _, ok := m[1]; ok {
+		t.Error("empty block loaded as a monster")
+	}
+	if r, ok := m[2]; !ok || r.Record != (rec{7, 8}) {
+		t.Error("monster 2", r, ok)
+	}
+}
