@@ -3,6 +3,7 @@ package script
 import (
 	"strings"
 	"testing"
+	"testing/fstest"
 )
 
 func TestLayout(t *testing.T) {
@@ -116,5 +117,34 @@ func TestRoutineSpace(t *testing.T) {
 	}
 	if _, err := ParseLayout(strings.NewReader("0001 2 byte call CallA\n0002 1 byte call CallB\n")); err == nil {
 		t.Fatal("overlapping routines accepted")
+	}
+}
+
+// TestPartialLayout: layout/partial.txt reads as a Partial layout; an
+// operand it does not cover stays a raw address (no Ref, no error) while a
+// covered one resolves, and Partial survives With.
+func TestPartialLayout(t *testing.T) {
+	data := fstest.MapFS{PartialLayout: {Data: []byte("7EE6 1 byte game RevivesParty\n")}}
+	l, err := ReadLayout(data, 1)
+	if err != nil || l == nil || !l.Partial {
+		t.Fatalf("ReadLayout: %+v, %v", l, err)
+	}
+	s := &Script{Area: 1, Data: make([]byte, 8), Code: []Instr{
+		{Op: OpSave, Args: []Arg{{N: 1}, {Type: ArgVar, N: 0x7EE6}}},
+		{Op: OpSave, Args: []Arg{{N: 1}, {Type: ArgVar, N: 0x4BE6}}},
+		{Op: OpCall, Args: []Arg{{Type: ArgVar, N: 0x1234}}},
+	}}
+	full, err := l.With(ConstLayout(s, V1))
+	if err != nil || !full.Partial {
+		t.Fatalf("With: %+v, %v", full, err)
+	}
+	if err := ResolveRefs(s, full); err != nil {
+		t.Fatal(err)
+	}
+	if r := s.Code[0].Args[1].Ref; r == (Ref{}) || full.Field(r).Name != "RevivesParty" {
+		t.Errorf("covered: %+v", r)
+	}
+	if s.Code[1].Args[1].Ref != (Ref{}) || s.Code[2].Args[0].Ref != (Ref{}) {
+		t.Error("an uncovered operand got a Ref")
 	}
 }

@@ -2,6 +2,7 @@ package script
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -17,7 +18,14 @@ import (
 // record types of its Pascal (its -re repo).
 type Layout struct {
 	Fields []Field // memory fields by From, then routine fields by From; none overlap within its space
+	// Partial: the layout names only some addresses (Buck Rogers 1 and 2's,
+	// layout/partial.txt): an operand no Field covers stays a raw address
+	// (V_XXXX) instead of failing the import.
+	Partial bool
 }
+
+// errNoField is find's error for an address no Field covers.
+var errNoField = errors.New("in no field of the layout")
 
 // FieldID is a Field's place in its Layout, from 1; a Ref names its Field by
 // it, and the zero FieldID is no field (an operand not resolved).
@@ -111,9 +119,9 @@ func (l *Layout) find(a int, routine bool) (Ref, error) {
 		}
 	}
 	if routine {
-		return Ref{}, fmt.Errorf("routine %04X is no call field of the layout", a)
+		return Ref{}, fmt.Errorf("routine %04X: %w", a, errNoField)
 	}
-	return Ref{}, fmt.Errorf("address %04X is in no field of the layout", a)
+	return Ref{}, fmt.Errorf("address %04X: %w", a, errNoField)
 }
 
 // Field is the Field r names.
@@ -135,7 +143,7 @@ func (l *Layout) With(over *Layout) (*Layout, error) {
 		}
 		base = slices.Delete(base, i, i+1)
 	}
-	m := &Layout{Fields: append(base, over.Fields...)}
+	m := &Layout{Fields: append(base, over.Fields...), Partial: l.Partial || over.Partial}
 	return m, m.check()
 }
 

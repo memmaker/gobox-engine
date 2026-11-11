@@ -20,10 +20,25 @@ import (
 )
 
 // Format is the manifest's format version; it changes when Manifest does.
-const Format = 2
+const Format = 3
 
 // ManifestFile is the manifest's name in an adventure folder.
 const ManifestFile = "manifest.json"
+
+// Contents are the entries every imported folder holds besides the manifest.
+var Contents = []string{"scripts", "art", "data", "data/pictures.json", ManifestFile}
+
+// CheckContents reports the first of Contents missing in folder dir: each
+// game's import test runs it after Run, so an import step that clears what an
+// earlier one wrote (por's data/ over data/pictures.json) fails there.
+func CheckContents(dir string) error {
+	for _, c := range Contents {
+		if _, err := os.Stat(filepath.Join(dir, c)); err != nil {
+			return fmt.Errorf("adventure folder %s has no %s: %w", dir, c, err)
+		}
+	}
+	return nil
+}
 
 // Game is one game's importer.
 type Game struct {

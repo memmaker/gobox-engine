@@ -55,6 +55,9 @@ func ResolveRefs(s *Script, l *Layout) error {
 				resolve = l.ResolveCall // a routine number, not memory
 			}
 			r, err := resolve(a.N)
+			if l.Partial && errors.Is(err, errNoField) {
+				continue // a partial layout leaves it a raw address
+			}
 			if err != nil {
 				errs = append(errs, fmt.Errorf("area %d instruction %d (%s) operand %d: %w", s.Area, i, OpName(in.Op), k, err))
 				continue
@@ -65,11 +68,20 @@ func ResolveRefs(s *Script, l *Layout) error {
 	return errors.Join(errs...)
 }
 
+// GlobalLayout and PartialLayout are the game's layout files in its script
+// data: a complete one, or a Partial one (ReadLayout).
+const (
+	GlobalLayout  = "layout/global.txt"
+	PartialLayout = "layout/partial.txt"
+)
+
 // ReadLayout is area's layout in a game's script data: layout/global.txt
-// with layout/area<N>.txt (if the area has one) over it. Data with no
-// layout/global.txt has none (nil, nil): only Buck Rogers 1 and 2, whose
-// own VM reads addresses, until their layouts are written (ARCHITECTURE.md,
-// reference queue 1b-i); every other game's VM refuses an unresolved operand.
+// with layout/area<N>.txt (if the area has one) over it. Buck Rogers 1 and
+// 2, whose own VM reads addresses, have layout/partial.txt instead: a
+// Partial layout naming only the addresses the engine reads by name (until
+// their full layouts are written, ARCHITECTURE.md reference queue 1b-i).
+// Data with neither has none (nil, nil); every other game's VM refuses an
+// unresolved operand.
 func ReadLayout(data fs.FS, area int) (*Layout, error) {
 	read := func(path string) (*Layout, error) {
 		f, err := data.Open(path)
@@ -83,7 +95,12 @@ func ReadLayout(data fs.FS, area int) (*Layout, error) {
 		}
 		return l, nil
 	}
-	g, err := read("layout/global.txt")
+	g, err := read(GlobalLayout)
+	if errors.Is(err, fs.ErrNotExist) {
+		if g, err = read(PartialLayout); err == nil {
+			g.Partial = true
+		}
+	}
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, nil
 	}

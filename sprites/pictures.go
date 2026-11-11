@@ -12,12 +12,25 @@ import (
 )
 
 // DAXRef is one original picture: its DAX file ("HEAD2.DAX") and block (and
-// frame, for animated blocks; NoFrame otherwise).
+// frame, for animated blocks; NoFrame otherwise), in its Platform's archives
+// (whose names can repeat across platforms: CBODY.DAX).
 type DAXRef struct {
-	File  string
-	Block int
-	Frame int
+	File     string
+	Block    int
+	Frame    int
+	Platform Platform `json:",omitempty"`
 }
+
+// Platform is the version of a game an archive comes from.
+type Platform uint8
+
+const (
+	PlatformDOS   Platform = iota // origins.json key <game>
+	PlatformAmiga                 // origins.json key <game>-amiga
+)
+
+// originSuffix is each Platform's origins.json key suffix.
+var originSuffix = map[Platform]string{PlatformDOS: "", PlatformAmiga: "-amiga"}
 
 // NoFrame is a DAXRef of a whole block.
 const NoFrame = -1
@@ -36,12 +49,17 @@ type pictureEntry struct {
 	ID core.PicID
 }
 
-// GamePictures is game id's table, built from its series' origins.json.
+// GamePictures is game id's table, built from its series' origins.json:
+// the DOS archives' pictures (origins key game) and the Amiga's (game-amiga).
 func GamePictures(game string) Pictures {
 	p := Pictures{}
-	for file, blocks := range Origins()[game] {
-		for key, name := range blocks {
-			p[parseRef(file, key)] = core.PicID(name)
+	for pl, suffix := range originSuffix {
+		for file, blocks := range Origins()[game+suffix] {
+			for k, name := range blocks {
+				r := parseRef(file, k)
+				r.Platform = pl
+				p[r] = core.PicID(name)
+			}
 		}
 	}
 	return p
@@ -105,6 +123,9 @@ func ReadPictures(adventure fs.FS) (Pictures, error) {
 func sortEntries(es []pictureEntry) {
 	sort.Slice(es, func(i, j int) bool {
 		a, b := es[i].DAXRef, es[j].DAXRef
+		if a.Platform != b.Platform {
+			return a.Platform < b.Platform
+		}
 		if a.File != b.File {
 			return a.File < b.File
 		}
