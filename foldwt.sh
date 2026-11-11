@@ -43,6 +43,10 @@ land)
     for r in "${repos[@]}"; do git -C "$tree/$r" rebase main; done
     GATE_ALL=1 GATE_BASE=main GATE_PROJECTS="$tree" "$projects/gobox-engine/gate.sh"
   fi
+  # All or nothing: a repo that cannot fast-forward stops the land before any main moves.
+  for r in "${repos[@]}"; do
+    git -C "$projects/$r" merge-base --is-ancestor main "fold/$track" || { echo "$r: main is not an ancestor of fold/$track"; exit 1; }
+  done
   for r in "${repos[@]}"; do
     [ "$(git -C "$projects/$r" rev-parse main)" = "$(git -C "$tree/$r" rev-parse HEAD)" ] && continue
     git -C "$projects/$r" merge --ff-only "fold/$track"
