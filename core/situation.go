@@ -105,7 +105,17 @@ type FightTerms struct {
 	// beaten keep their items (skipsCombatItems).
 	RevivesParty bool
 	NoItemLoot   bool
+	Area         AreaKind // the sort of place the fight is in
 }
+
+// AreaKind is the sort of place a fight is in, as a ruleset tests it (BR
+// zone0 areaKind). The zero value is a place with no special kind.
+type AreaKind uint8
+
+const (
+	AreaPlain      AreaKind = iota
+	AreaWilderness          // BR: Venus or Mars wilderness (C_Area), where a jetpack flies
+)
 
 // Fight is a battle as the engine holds it: a snapshot, value by value.
 type Fight struct {
