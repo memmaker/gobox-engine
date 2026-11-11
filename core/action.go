@@ -63,8 +63,12 @@ type (
 		Spell  SpellID // a scroll's spell
 	}
 	Maneuver struct {
-		ID  ManeuverID
-		Ats []BoardPos
+		ID     ManeuverID
+		Ats    []BoardPos
+		Target CharID // the one aimed at (NoChar: none)
+		// Cancel: an armed maneuver's attack was not taken; it is disarmed and
+		// its move undone (Ats[0]: where the actor began).
+		Cancel bool
 	}
 	TurnUndead struct{}
 	Guard      struct{}
