@@ -45,6 +45,12 @@ Known bugs / smells: Step and SetChoice.Field are strings; BR pool picks were re
 C2 blocker (needs Felix, core interface): moving the draft flow into gobox needs CharacterRules to state the creation's data and legality, e.g. `Creation() CreationRules` with typed `Fields() []FieldDef` (id, options), `Fits(Draft, FieldID, option) bool`, `Enforce(Draft, FieldID) Draft`, `Roll(Draft, RollKind, *RNG) Draft`, `Minimums(Draft)`, `QuickParty() []Template`, and typed FieldID instead of Step/Field strings. BR careers and skills fit as fields plus a skills step. APPROVED by Felix 2026-11-11: Creation() CreationRules, typed FieldID, the string Step/Field names go; BR careers/skills as fields plus a skills step.
 C3 decision (needs Felix): merge `buck-rogers` into the one `pool` series (BR art is VGA, Pool EGA; dedup would never match across them, so the merge is only one listing), or keep two series per art family. DECIDED by Felix 2026-11-11: two families, Pool games pick from `pool`, BR games from `buck-rogers`, each deduplicated within itself. In-game combat icons come from the collection, not DAX, where the pickers already use pool PNGs.
 
+Handover (agent C, stopped at 527b2ee): core/creation.go holds CreationRules, FieldID, FieldDef, RollKind, Template, standalone (not embedded in CharacterRules, so every ruleset still builds). Next, in order, one gated commit each:
+1. gobox flow over CreationRules: a draft loop in game/play (or front/classic/rules.go) doing what por c70cbee editSheet does (rekind on race/class/alignment, Roll/Minimal/Keep, Esc abandon), feeding the existing game.Creation so front/classic/creation.go stays the drawing; Quick Start from QuickParty.
+2. Port por first (rules/create.go, quickstart.go are C's; B3 moves the rest into rules1e: git add -p only), then cotab (delete rules/iconedit.go too), sotsb, pod, BR1, BR2 (careers, skills step); GATE_ALL=1.
+3. Embed Creation() CreationRules in CharacterRules; delete Draft.Step and the SetChoice field strings.
+4. In-game combat icons from the series PNGs (front/present/poolpic.go: icons stay on DAX for palette recolour; the recolour must move to the PNG, check what each game recolours first).
+
 ## Track P: parity with the baseline and the title sequences
 - [x] feature and flow list of por-go c70cbee (PORT_CHECKLIST "Extras", MODERNIZED.md, git log) against today's engine: what is lost
 - [x] the title-sequence changes per game: list the commits, keep them in the declarative sequences
