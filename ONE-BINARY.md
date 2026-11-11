@@ -29,7 +29,8 @@ Next order: (a) per file, move the free funcs and types that only the Engine use
 - [ ] sound: JSON synth data, MIDI music (POR started: gobox 186dbf5, por-go c383aa1)
 - [ ] no run-time originals: no POOL.CFG / TITLE / 8X8D1 check
 - [ ] Shared Purse option (Felix's OFF-mode calls in ARCHITECTURE.md), WhoPays, CastKnock, nativeScripts gone
-- [ ] `gobox import <game>`: one entry, per-game importers on the import path only, writing `adventures/<id>/`
+- [~] `gobox import <game>`: one entry, per-game importers on the import path only, writing `adventures/<id>/` (A6: gobox/importer fd775bb: Register, Run, Main, manifest.json stub with Start/End hooks and SHA-256 source key incl. START.EXE; por-go cad97dc: importpor registers POR, `cmd/import -out adventures por data/dos` writes scripts/art/data identical to data/assets. Open: cmd/gobox (B3) calls importer.Main for `import`; POR's importers still live in por-go rules, move with B3's rules split; importer.Manifest is the stub B3's folder reader should adopt, not duplicate)
+- [~] shared readers of the folder's files (A6: gobox/asset WriteBlocks/ReadBlocks/WriteJSON/ReadJSON 46a3e70, por-go on them. Open: sound JSON and MIDI readers, por-go's soundFile/POOL.CFG reads in engine.go/files.go (B3's files))
 - [ ] importers for COTAB, SotSB, POD, BR1, BR2: scripts (with their fixes), art, maps, records, sound, tables, title/end sequences as declarative data
 
 ## Track C: character creation (one flow)
