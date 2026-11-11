@@ -13,9 +13,13 @@ type fake struct{ made []core.Draft }
 
 const fKind, fSkills core.FieldID = 0, 1
 
-func (f *fake) Fields() []core.FieldDef {
+func (f *fake) Fields(d core.Draft) []core.FieldDef {
+	sk := []string{"x", "y"}
+	if d.Picks[fKind] == 1 { // the skills depend on the kind (BR career skills)
+		sk = append(sk, "z")
+	}
 	return []core.FieldDef{{ID: fKind, Options: []string{"a", "b"}},
-		{ID: fSkills, Kind: core.FieldSkills, Options: []string{"x", "y"}, Budget: 3}}
+		{ID: fSkills, Kind: core.FieldSkills, Options: sk, Budget: 3}}
 }
 func (f *fake) Fits(d core.Draft, id core.FieldID, o int) bool { return true }
 func (f *fake) Enforce(d core.Draft, id core.FieldID, o int, r *core.RNG) core.Draft {
@@ -63,6 +67,9 @@ func TestDraft(t *testing.T) {
 	if d.Spend(sk, 0, 2) != nil || d.Spend(sk, 1, 2) == nil || d.Spend(sk, 1, -1) == nil {
 		t.Error("budget")
 	}
+	if d.SetField(fKind, 1); len(d.D.Points[fSkills]) != 3 || d.D.Of != core.NoChar {
+		t.Errorf("fields after a pick: %v of %v", d.D.Points, d.D.Of)
+	}
 	for _, c := range [][2]int32{{18, 100}, {18, 5}, {12, 0}} {
 		if v, p, _ := ParseScore(FormatScore(c[0], c[1])); v != c[0] || p != c[1] {
 			t.Errorf("round trip %v", c)
@@ -71,5 +78,8 @@ func TestDraft(t *testing.T) {
 	ids, err := QuickParty(r, &core.RNG{})
 	if err != nil || len(ids) != 1 || r.made[0].Sheet.Scores[core.Strength] < 15 || r.made[0].Picks[fKind] != 1 || r.made[0].Name != "Q" {
 		t.Errorf("quick party %v %v %+v", ids, err, r.made)
+	}
+	if m, _ := Modify(r, &core.RNG{}, ids[0]); m.D.Of != ids[0] {
+		t.Errorf("modify of %v", m.D.Of)
 	}
 }

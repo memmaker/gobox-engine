@@ -153,11 +153,13 @@ type Draft struct {
 	MinHP, MaxHP int32
 	// Picks is the option picked per FieldChoice field; Points the points
 	// spent per option of a FieldSkills field (CreationRules).
-	Picks              map[FieldID]int
-	Points             map[FieldID][]int32
-	Name               string
-	Head, Body         string // portrait pool names
-	IconHead, IconBody string // combat icon pool names
+	Picks      map[FieldID]int
+	Points     map[FieldID][]int32
+	Name       string
+	Head, Body string // portrait pool names
+	Icon       Icon
+	// Of is the character being modified (NoChar: a new one); Make updates it.
+	Of CharID
 }
 
 // TrapDefinition is a trap as data: no universal skip of the stoned, the damage

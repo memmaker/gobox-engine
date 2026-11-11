@@ -5,9 +5,10 @@ package core
 // Roll, Minimal, Keep, Quick Start) for every game. ONE-BINARY.md Track C2.
 // It joins CharacterRules as Creation() once every ruleset implements it.
 type CreationRules interface {
-	// Fields are the sheet's choices in the game's order (POR: sex, race,
-	// alignment, class; BR: race, sex, career, then the skills step).
-	Fields() []FieldDef
+	// Fields are the sheet's choices for d in the game's order (POR: sex, race,
+	// alignment, class; BR: race, sex, career, then the skills step). They
+	// may depend on earlier picks (4e powers on class, BR career skills on career).
+	Fields(d Draft) []FieldDef
 	// Fits says whether option o of field f is legal for d (POR classFor, alignFor).
 	Fits(d Draft, f FieldID, o int) bool
 	// Enforce sets f to o and moves every dependant to its first legal
@@ -23,9 +24,11 @@ type CreationRules interface {
 	// limitStat). gobox parses "18/50" into Strength 18 and StrengthPercent 50.
 	// The error says v is outside the race and class range.
 	SetScore(d Draft, a Ability, v int32) (Draft, error)
-	// Make keeps d as a new character (POR SaveCharacter).
+	// Make keeps d (POR SaveCharacter): a new character when d.Of is NoChar,
+	// else it updates d.Of, keeping what the sheet does not show (items,
+	// affects, spells).
 	Make(d Draft) (CharID, error)
-	// Draft opens an existing character for modifying.
+	// Draft opens an existing character for modifying (its Of is c).
 	Draft(c CharID) (Draft, error)
 }
 
@@ -64,4 +67,27 @@ type Template struct {
 	Head, Body         string
 	IconHead, IconBody string
 	Need               map[Ability]int32 // rerolled until these are met (POR quickPick.good)
+}
+
+// IconSize is the built combat icon's size (POR IconSize 1, 2).
+type IconSize int
+
+const (
+	IconSmall IconSize = iota // one square
+	IconLarge                 // two by two
+)
+
+// IconParts is how many colour parts a combat icon has (POR IconColour).
+const IconParts = 6
+
+// IconColour is one part's two shades, palette indexes (POR's low and high nibble).
+type IconColour struct{ Low, High uint8 }
+
+// Icon is the combat icon editor's result: the pool parts, their colours and
+// size, or a dropped PNG that replaces the built icon.
+type Icon struct {
+	Head, Body string // combat icon pool names
+	Colours    [IconParts]IconColour
+	Size       IconSize
+	PNG        []byte // a dropped PNG, encoded (nil: the built icon)
 }

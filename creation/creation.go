@@ -33,7 +33,9 @@ type Draft struct {
 // New is a fresh character: every field on its first option (POR: human male
 // fighter), rolled.
 func New(r core.CreationRules, rng *core.RNG) *Draft {
-	d := &Draft{R: r, RNG: rng, Fields: r.Fields()}
+	d := &Draft{R: r, RNG: rng}
+	d.D.Of = core.NoChar
+	d.Fields = r.Fields(d.D)
 	d.D.Picks = map[core.FieldID]int{}
 	d.D.Points = map[core.FieldID][]int32{}
 	for _, f := range d.Fields {
@@ -58,7 +60,8 @@ func Modify(r core.CreationRules, rng *core.RNG, c core.CharID) (*Draft, error) 
 	if err != nil {
 		return nil, err
 	}
-	return &Draft{R: r, RNG: rng, D: cd, Fields: r.Fields()}, nil
+	cd.Of = c
+	return &Draft{R: r, RNG: rng, D: cd, Fields: r.Fields(cd)}, nil
 }
 
 // Fits lists which options of field f are legal for the draft (grey: not).
@@ -71,7 +74,15 @@ func (d *Draft) Fits(f core.FieldDef) []bool {
 }
 
 // SetField picks option o of f; dependants that no longer fit move (Enforce).
-func (d *Draft) SetField(f core.FieldID, o int) { d.D = d.R.Enforce(d.D, f, o, d.RNG) }
+func (d *Draft) SetField(f core.FieldID, o int) {
+	d.D = d.R.Enforce(d.D, f, o, d.RNG)
+	d.Fields = d.R.Fields(d.D)
+	for _, fd := range d.Fields { // a field the pick brought (BR career skills) starts unspent
+		if fd.Kind == core.FieldSkills && len(d.D.Points[fd.ID]) != len(fd.Options) {
+			d.D.Points[fd.ID] = make([]int32, len(fd.Options))
+		}
+	}
+}
 
 // Roll rolls the abilities and hit points.
 func (d *Draft) Roll(k core.RollKind) { d.D = d.R.Roll(d.D, k, d.RNG) }
@@ -173,7 +184,7 @@ func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
 		for i := 0; i < quickTries && !meets(d.D, t.Need); i++ {
 			d.Roll(core.RollFull)
 		}
-		d.D.Name, d.D.Head, d.D.Body, d.D.IconHead, d.D.IconBody = t.Name, t.Head, t.Body, t.IconHead, t.IconBody
+		d.D.Name, d.D.Head, d.D.Body, d.D.Icon.Head, d.D.Icon.Body = t.Name, t.Head, t.Body, t.IconHead, t.IconBody
 		c, err := d.Keep()
 		if err != nil {
 			return out, err
