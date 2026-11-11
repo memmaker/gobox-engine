@@ -14,6 +14,7 @@ type (
 	KnownFact   struct{ Skill Skill }     // has the skill at all: BR 76 reads 128 or 0
 	MemoFact    struct{ Slot int }        // por 0x1F..0x70: Knock in area 14
 	PlainFact   int                       // the rest, one each
+	HitFact     struct{ Target CharID }   // a's chance in percent to hit Target with one blow of the readied attack (por hover text)
 )
 
 // The plain facts.
@@ -49,6 +50,7 @@ func (CoinFact) fact()    {}
 func (MemoFact) fact()    {}
 func (KnownFact) fact()   {}
 func (PlainFact) fact()   {}
+func (HitFact) fact()     {}
 
 // Value is what a Fact holds.
 type Value interface{ value() }
