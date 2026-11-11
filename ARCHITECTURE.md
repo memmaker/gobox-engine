@@ -10,8 +10,14 @@ DRAFT for Felix's review, revision 4: his 11 rulings, the 21 variation rulings, 
      |          |
  rules1e    rulesxxvc   adventures: POR, COTAB, SotSB, POD | BR1, BR2     (leaves: core + one world)
      \________ engine (gobox): main loop, one script machine, combat and ship loops, front, saves ________/
- cmd/<game>: main wires one Rules and one Adventure.   cmd/import: originals to canonical, once.
+ cmd/gobox: the one binary; starts any adventure from its data folder.   gobox import: originals to canonical, once.
 ```
+
+**One binary, adventures are data (Felix 2026-11-11).** There is no per-game executable and no per-game repo at the end: `por-go`, `cotab-go`, `sotsb-go`, `pod-go`, `buckrogers*-go` are wound down. One `gobox` binary lists the adventure folders under its data directory (`adventures/<id>/`) and plays any of them. An adventure folder holds only imported, canonical data: a manifest (id, title, ruleset, start sequence, declared custom fields), scripts, the PNG atlases, map `.bin`+`.txt`, JSON records and text, sound as MIDI and JSON synth data. The binary needs nothing else at run time: no original file, no POOL.CFG, no check that one exists; a folder without a valid manifest is not listed. Consequences:
+- The adventure "leaf" is no Go code per game: `core.Adventure` has one implementation in gobox that reads an adventure folder. What a game used to do in Go becomes data (scripts, declared fields, the start/end sequences) or a shared engine feature (wilderness travel, the pager, WhoPays, Quest/Journal).
+- Rulesets (`rules1e`, `rulesxxvc`, `rules4e`) are compiled into the binary; the manifest names which one, `Mismatches(Needs, Catalog)` checks it at load.
+- Everything per game lives on the import path only: `gobox import <game> <originals>` runs that game's decompiler, its commented special cases (the former script patches and journal/quest sites), the DAX/GEO/MON readers and the tablegen, and writes the folder. Importers may know their game; the run-time binary may not.
+- Each game's tests move with it: import-equality tests (art, data, sound, scripts) into the importer, rule vectors (TestAgainstPascal) into the ruleset.
 
 Leaves know neither gobox nor each other (`imports_test.go`, list empty until a leaf exists). A rule never calls back: all it needs arrives as a value. Sizes: `Rules` 8 + `CharacterRules` 13 + `CombatRules` 9; optional `ShipRules` 5; `Adventure` 11.
 
@@ -101,7 +107,7 @@ Party strength stays a number: see "Source check".
 
 ## 5. Asset data
 
-**Import, not on-demand decoding, of originals.** `cmd/import` (gobox; may use dax, geo, ega, script) runs once on the user's machine, turning originals into canonical files in the adventure's folder: PNG (animations: frames plus delays), WAV, script text, walls. At run time `Adventure` serves `Picture(PictureID)`, `Sound(SoundCue)`, `Map(MapID)`, `Script(AreaID)`, on demand from those files, returning decoded types only. No file name, block or format reaches the engine. An adventure may read originals itself if it brings its own decoder (a leaf may not import `gobox/dax`).
+**Import, not on-demand decoding, of originals.** `gobox import` (formerly `cmd/import`; may use dax, geo, ega, script) runs once on the user's machine, turning originals into canonical files in the adventure's folder: PNG (animations: frames plus delays), WAV, script text, walls. At run time `Adventure` serves `Picture(PictureID)`, `Sound(SoundCue)`, `Map(MapID)`, `Script(AreaID)`, on demand from those files, returning decoded types only. No file name, block or format reaches the engine. An adventure may read originals itself if it brings its own decoder (a leaf may not import `gobox/dax`).
 
 **Rule tables likewise** (ruling 6). One generator, `exe/cmd/tablegen`, already POD, COTAB, SotSB (`tables.json`, `TestTablesMatchEXE`), extended to typed values in the ruleset: thac0, saves, exp, monsters, items, ships. Dropped from run time: BR2 `dsimg.go` `os.ReadFile(START.EXE)`, BR1's `dsImg` bytes, `tab`, `fightData()`, cotab `engine.go`'s `gobox/exe` import, MON*/ITEMS at run time, words (BR's `word()`). Generated Go is checked in; fine for private use, a question if ever published.
 
@@ -232,7 +238,7 @@ Unverified: nothing here has run on a game. Only core's build, vet, tests. No ru
 
 ## POR migration checklist
 
-Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, the leaves importing only core, behind `Rules` and `Adventure`, compared against the pure Pascal. How: move piece by piece; every commit builds, vets and passes `TestAgainstPascal`, which grows with each piece. Core's interfaces are a draft this port corrects; changes touching a ruling are reported. BR's interpreter is not merged here. Changes: CHANGES-FROM-ORIGINAL.md.
+Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + its imported folder `adventures/por/` (see "One binary, adventures are data"), the ruleset importing only core, behind `Rules` and `Adventure`, compared against the pure Pascal. How: move piece by piece; every commit builds, vets and passes `TestAgainstPascal`, which grows with each piece. Core's interfaces are a draft this port corrects; changes touching a ruling are reported. BR's interpreter is not merged here. Changes: CHANGES-FROM-ORIGINAL.md.
 
 - [x] Baseline: rulings and table base stand; options only Felix's additions
 - [x] Differential harness: `vecadv`, `vecstat`, `vectab`, `vecdice`, `veccmb`, `vectors-pure.sh`, `TestAgainstPascal`, 8307 cases
@@ -253,14 +259,14 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + `por-go/adventure`, th
 - [x] src/pure additions: temple (`Temple`, `vectmpl`, TestTempleAgainstPascal)
 - [ ] src/pure additions: shop, camp, chargen, item spell casting, combat aiming
 - [ ] Spells, items, training behind `CharacterRules`
-- [ ] `por-go/adventure` leaf: areas, journal, lore, script patches, assets via importers
+- [ ] adventure folder `adventures/por/` read by gobox: areas, journal, lore, scripts with fixes applied at import, assets
 - [ ] Scripts through bindings (sections 1, 3), errors on
 - [ ] Engine loop in gobox: main loop, combat flow, presentation
 - [ ] Rule fixes, one commit each, listed in CHANGES-FROM-ORIGINAL.md
 
 ### POR onto the architecture (handover, Felix 2026-11-10: "make POR adhere to our architecture first")
 
-Goal: POR is gobox engine + `rules1e` (implements `core.Rules`) + `por-go/adventure` (implements `core.Adventure`); `cmd/por` wires one of each; both leaves import only `gobox/core` and `core/dnd` (`imports_test.go` lists them); `por-go/rules` is gone. How: two agents in parallel, each step gated and committed, behaviour equal to the pure Pascal where vectors exist (any difference a CHANGES row). Lock: stage only your own paths, and hold `/private/tmp/por-gate.lock` (mkdir; rmdir after) from staging through gate and commit. Core interface changes are reported to Felix, not decided silently. Other games' 1b-e and the BR layouts wait until this is done.
+Goal (revised 2026-11-11, "One binary, adventures are data"): POR plays in the one `gobox` binary from `adventures/por/`, a folder `gobox import por` writes; `rules1e` implements `core.Rules` and imports only `gobox/core` and `core/dnd`; gobox's one folder reader implements `core.Adventure`; `por-go/rules` and `cmd/por` are gone, POR's decompiler fixes and readers live on gobox's import path. How: two agents in parallel, each step gated and committed, behaviour equal to the pure Pascal where vectors exist (any difference a CHANGES row). Lock: stage only your own paths, and hold `/private/tmp/por-gate.lock` (mkdir; rmdir after) from staging through gate and commit. Core interface changes are reported to Felix, not decided silently. Other games' 1b-e and the BR layouts wait until this is done.
 
 **Felix's order (2026-11-10):** "Separate the drawing from the rest first. We need pure functions, like the pascal code. Make sure we only have rules in the engine not in POR. Then do one big refactor and write everything as it should be and then fix the bugs." `Decide` + `Resolve` stay (core). An adventure is data only, read by one small shared piece of code that answers the engine. State the games share becomes a typed engine state variable. A game's own variables become an engine feature (the adventure declares them by name and type, and scripts read and write them). What cannot trivially stay data is to be discussed with Felix before it is built.
 
@@ -337,10 +343,10 @@ Track A (adventure seam, agent A): scripts and data move into the adventure leaf
   - [x] sound (Felix: keep synth data): `audio/sounddata.Decode` (was cmd/sounddata's body) decodes START.EXE's speaker and Tandy tables at import into data/assets/data/sound.json (por `ImportData`, `soundLayout`; START.EXE now copied by import.toml); the run reads it (`Engine.SoundData`); rules/sounddata.json gone; TestSoundEqualsEXE. app.WriteCover's dax.ParseImage runs only in -setup (por, pod): import path. Still raw at run time: the Amiga SOUND.BIN (amiga.Player) and the other games' embedded sounddata.json and AdLib DAX
   - [x] patches into the decompiler: POR's 14 patch files (58 hunks; COTAB, SotSB, POD had none) are `script.Fix` special cases in por-go rules/scriptfixes.go, each with original, why and its CHANGES row (29 "POR script, ..." rows under Port's own); a site not there exactly once fails the import. Proof: every area's import equals the patched text byte for byte apart from the key header (29 areas). patches/, `ApplyPatch` and the patch part of the key are gone
   - [x] journal references: 47 special cases (31 prints in 14 areas, area 13's JournalEntry routine and its 5 callers, City Hall's proclamations) name their entries through `Journal` (JournalEntry1-58, 18 proclamations in names/entries.json); the text keeps what the text window showed. journalRefs, handoutPhrase, journalPrinted go; Journal no longer clears the text window, notes a journal text, and one script's entries share one pager. TestJournalSitesNamed detects a printed reference. Same class closed (A4): POR quests by `Quest(quest)` (gobox ecl V1 66, names/quests.txt, 30 sites; TestQuestSitesNamed), COTAB and SotSB journal references by `Journal` (journalfixes.go; TestJournalSitesNamed each); gobox `journal.Ref`/`Printed` deleted
-- [ ] A6. `por-go/adventure` implements `core.Adventure` (areas, journal, lore, scripts and patches, assets)
+- [ ] A6. gobox's adventure-folder reader implements `core.Adventure` (manifest, areas, journal, lore, scripts, assets); POR's importer writes `adventures/por/`, with no run-time check of originals (POOL.CFG, TITLE, 8X8D1 go)
 
 Then (one agent, after both tracks):
-- [ ] E1. Engine loop in gobox (main loop, combat flow, presentation); `por-go/rules` gone; `cmd/por` wires `rules1e` + `por-go/adventure`
+- [ ] E1. Engine loop in gobox (main loop, combat flow, presentation); `cmd/gobox` lists adventure folders and starts one with the manifest's ruleset; `por-go/rules` and `cmd/por` gone
 - [ ] E2. Leaf guard on for both leaves; each game's full suite once; one scripted, windowed POR playthrough
 
 ### Reference queue (handover)
