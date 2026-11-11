@@ -140,3 +140,7 @@ replace ecl-br => ../../../buckrogers-core
 require rulesxxvc v0.0.0 // indirect
 
 replace rulesxxvc => ../../../rulesxxvc
+
+require buckrogers2 v0.0.0
+
+replace buckrogers2 => ../../../buckrogers2-go

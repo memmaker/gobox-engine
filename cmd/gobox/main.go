@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"buckrogers/playbr1"
+	"buckrogers2/playbr2"
 	"cotab/playcotab"
 	"gobox/app"
 	"gobox/front/present"
@@ -32,6 +33,7 @@ import (
 	"por/playpor"
 
 	_ "buckrogers/importbr1"
+	_ "buckrogers2/importbr2"
 	_ "cotab/importcotab"
 	_ "pod/importpod"
 	_ "por/importpor"
@@ -45,6 +47,7 @@ var players = map[string]func(app.Start) error{
 	"cotab": playcotab.Play,
 	"pod":   playpod.Play,
 	"br1":   playbr1.Play,
+	"br2":   playbr2.Play,
 }
 
 // escapes are the -keys escapes beside the shell's (app.Flags): \r Enter,

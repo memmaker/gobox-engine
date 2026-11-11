@@ -17,3 +17,6 @@ pod-go pod/playpod -> gobox/front/present
 buckrogers-go buckrogers/playbr1 -> gobox/app
 buckrogers-go buckrogers/playbr1 -> gobox/front/classic
 buckrogers-go buckrogers/playbr1 -> gobox/front/present
+buckrogers2-go buckrogers2/playbr2 -> gobox/app
+buckrogers2-go buckrogers2/playbr2 -> gobox/front/classic
+buckrogers2-go buckrogers2/playbr2 -> gobox/front/present
