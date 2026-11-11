@@ -1,6 +1,6 @@
 // Package journal is the printed handouts a game only names ("SEE JOURNAL
-// ENTRY 26"): their texts, found by each game's reference patterns and laid
-// out for the Read pager (State.Read).
+// ENTRY 26"): their texts, laid out for the Read pager (State.Read). The
+// scripts name each through Journal(entry); nothing matches printed text.
 //
 // Text files: "[Title]" starts a text (the title is the reference's name),
 // a blank line a paragraph, a line "<FILE.PNG>" a picture from the same
@@ -15,43 +15,6 @@ import (
 	"strings"
 	"sync"
 )
-
-// Ref is one kind of handout reference: Titles turns Re's submatches into
-// the titles it names.
-type Ref struct {
-	Re     *regexp.Regexp
-	Titles func(m []string) []string
-}
-
-// Refs is the titles text names, in order.
-func Refs(refs []Ref, text string) []string {
-	type hit struct {
-		at     int
-		titles []string
-	}
-	var hits []hit
-	for _, r := range refs {
-		for _, ix := range r.Re.FindAllStringSubmatchIndex(text, -1) {
-			m := make([]string, len(ix)/2)
-			for i := range m {
-				if ix[2*i] >= 0 {
-					m[i] = text[ix[2*i]:ix[2*i+1]]
-				}
-			}
-			hits = append(hits, hit{ix[0], r.Titles(m)})
-		}
-	}
-	for i := 1; i < len(hits); i++ { // by position: few hits, insertion sort
-		for j := i; j > 0 && hits[j].at < hits[j-1].at; j-- {
-			hits[j], hits[j-1] = hits[j-1], hits[j]
-		}
-	}
-	var t []string
-	for _, h := range hits {
-		t = append(t, h.titles...)
-	}
-	return t
-}
 
 // Book is the handout texts and their pictures.
 type Book struct {
@@ -213,27 +176,4 @@ func Wrap(s string, w int) []string {
 		}
 	}
 	return append(out, line)
-}
-
-// Printed follows a text window: it adds what was printed (clear: the
-// window started over) and returns the titles named for the first time
-// since the window was last cleared.
-type Printed struct {
-	text  string
-	shown int
-}
-
-// Add is the titles refs finds newly named once s is printed.
-func (p *Printed) Add(refs []Ref, s string, clear bool) []string {
-	if clear {
-		*p = Printed{}
-	}
-	p.text += s
-	t := Refs(refs, strings.ToUpper(p.text))
-	if len(t) <= p.shown {
-		return nil
-	}
-	n := t[p.shown:]
-	p.shown = len(t)
-	return n
 }
