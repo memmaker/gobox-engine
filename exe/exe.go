@@ -6,13 +6,29 @@ package exe
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"os"
+	"strconv"
+	"strings"
 )
 
 // Image is the unpacked load image plus the data segment offset.
 type Image struct {
 	Mem []byte
 	DS  int // byte offset of the Turbo Pascal data segment (paragraph*16) inside Mem
+}
+
+// LoadArg loads a command-line argument PATH:DS (the tools' way to name an image).
+func LoadArg(arg string) (*Image, error) {
+	i := strings.LastIndex(arg, ":")
+	if i < 0 {
+		return nil, fmt.Errorf("%q: want PATH:DS", arg)
+	}
+	ds, err := strconv.Atoi(arg[i+1:])
+	if err != nil {
+		return nil, fmt.Errorf("%q: want PATH:DS", arg)
+	}
+	return Load(arg[:i], ds)
 }
 
 // Load reads and unpacks path; ds is the game's data-segment paragraph

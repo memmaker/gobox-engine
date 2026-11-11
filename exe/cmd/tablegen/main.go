@@ -13,8 +13,6 @@ import (
 	"flag"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
 	"gobox/exe"
 	"gobox/exe/tablespec"
@@ -29,12 +27,7 @@ func main() {
 	}
 	var imgs []*exe.Image
 	for _, a := range flag.Args() {
-		i := strings.LastIndex(a, ":")
-		ds, err := strconv.Atoi(a[i+1:])
-		if i < 0 || err != nil {
-			log.Fatalf("%q: want PATH:DS", a)
-		}
-		im, err := exe.Load(a[:i], ds)
+		im, err := exe.LoadArg(a)
 		if err != nil {
 			log.Fatal(err)
 		}
