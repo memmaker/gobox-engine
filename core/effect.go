@@ -25,6 +25,7 @@ type (
 	Walked  struct {
 		Unit CharID
 		Path []BoardPos
+		Pace Pace
 	}
 	Turned struct {
 		Unit   CharID
@@ -87,6 +88,31 @@ type (
 		Who  CharID
 		What string
 	}
+	// Took is a loot item gone from the pile to Who.
+	Took struct {
+		Who  CharID
+		Item CarriedID
+	}
+	// Refused is an action the rules turned down, and why.
+	Refused struct {
+		Who CharID
+		Why Refusal
+	}
+)
+
+// Pace is how fast a Walked unit goes: a walk, or fast (BR's leap for cover).
+type Pace int8
+
+const (
+	PaceWalk Pace = iota
+	PaceFast
+)
+
+// Refusal is why the rules turned an action down.
+type Refusal int8
+
+const (
+	OverLoaded Refusal = iota + 1 // no room for another item
 )
 
 // SoundCue is a sound a rule makes, named as the adventure's asset names it.
@@ -112,3 +138,5 @@ func (CloudOff) effect()   {}
 func (TerrainSet) effect() {}
 func (Gained) effect()     {}
 func (Lost) effect()       {}
+func (Took) effect()       {}
+func (Refused) effect()    {}

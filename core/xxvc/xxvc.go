@@ -86,6 +86,9 @@ type Tables struct {
 	ItemWords []string   // the words items' names are made of, by number (1..; 0 none)
 	Items     map[core.ItemID]ItemTemplate
 	Monsters  map[core.MonsterID]Monster
+	// AmmoPrices is gdconsts.pas ammoPrices: a clip's price by weapon item
+	// type (ItemTemplate.Type 5..18), the shop's Reload.
+	AmmoPrices map[int32]core.Copper
 }
 
 // ItemTemplate is one row of itemTemplates (types.pas TItemTemplate): what a

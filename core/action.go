@@ -175,6 +175,7 @@ type (
 	Reload struct {
 		Who  CharID
 		Item ItemSlot
+		Kind ReloadKind
 	} // BR
 	Train struct{ Who CharID }
 	Learn struct {
@@ -191,7 +192,10 @@ type (
 		Who  CharID
 		Item CarriedID
 	}
-	TakeMoney struct{}
+	TakeMoney struct {
+		Who    CharID
+		Amount Copper
+	}
 
 	// Doors (por TryDoor; the engine moves, the rules roll).
 	BashDoor struct{ Who CharID }
@@ -302,3 +306,12 @@ func (BashDoor) action()      {}
 func (PickLock) action()      {}
 func (ScriptDamage) action()  {}
 func (ScriptGainExp) action() {}
+
+// ReloadKind is BR's ammunition choice (shop.pas ShopAmmoMenu 'C'/'F'): a
+// new clip, or the weapon filled up.
+type ReloadKind int8
+
+const (
+	ReloadClip ReloadKind = iota + 1
+	ReloadFill
+)

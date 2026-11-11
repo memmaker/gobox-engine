@@ -29,6 +29,7 @@ type (
 	Shopping struct {
 		Party Party
 		Goods []ShopItem
+		Terms ShopTerms
 	}
 	// AtTemple: services for money.
 	AtTemple struct {
@@ -56,6 +57,12 @@ type (
 	// Scripted: a script's command, no screen of its own.
 	Scripted struct{ Party Party }
 )
+
+// ShopTerms is the zone's pricing a ruleset prices goods by (BR zone1
+// priceMultiplier, sixteenths of the value).
+type ShopTerms struct {
+	PriceMultiplier int32
+}
 
 // ShopItem is what the adventure's shop sells, at its prices.
 type ShopItem struct {
