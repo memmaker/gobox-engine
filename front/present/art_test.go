@@ -134,7 +134,7 @@ func daxDecode(l *dax.Loader, file string, block int) []*image.RGBA {
 	pal := l.AmigaPalette(file, block)
 	ega := func(c byte) (color.RGBA, bool) { return pixelRGBA(c, pal), c < dax.Clear }
 	if len(b) < 17 || (int(b[0])|int(b[1])<<8)*(int(b[2])|int(b[3])<<8)*int(b[8])*4 > len(b) { // ParseImage allocates what the header says
-	} else if im := dax.ParseImage(b, false, 0); im != nil && im.Width > 0 && im.Count > 0 {
+	} else if im, err := dax.ParseImage(b, false, 0); err == nil && im.Width > 0 && im.Count > 0 {
 		for f := range im.Count {
 			out = append(out, rgba(im, im.Frame(f), ega))
 		}

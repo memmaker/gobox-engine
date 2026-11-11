@@ -56,8 +56,8 @@ func frames(t *testing.T, out, name string, sprite bool) (blocks, n int) {
 			}
 			n += len(fs)
 		} else {
-			im := dax.ParseImage(b, true, 0)
-			if im == nil || im.Count == 0 || len(im.Data) != im.Count*im.BPP {
+			im, err := dax.ParseImage(b, true, 0)
+			if err != nil || im.Count == 0 || len(im.Data) != im.Count*im.BPP {
 				t.Errorf("%s %d: bad picture", name, e.ID)
 				continue
 			}
@@ -157,8 +157,10 @@ func TestFixedPalette(t *testing.T) {
 			}
 			n := 0
 			for _, e := range dos.Entries {
-				a, d, p := dax.ParseImage(am.BlockShared(e.ID), false, 0), dax.ParseImage(dos.BlockShared(e.ID), false, 0), pal.BlockShared(e.ID)
-				if a == nil || d == nil || len(a.Data) != len(d.Data) || len(p) != 48 {
+				a, aerr := dax.ParseImage(am.BlockShared(e.ID), false, 0)
+				d, derr := dax.ParseImage(dos.BlockShared(e.ID), false, 0)
+				p := pal.BlockShared(e.ID)
+				if aerr != nil || derr != nil || len(a.Data) != len(d.Data) || len(p) != 48 {
 					t.Fatalf("block %d: no picture or palette", e.ID)
 				}
 				for i := 0; i < len(a.Data); i += 97 {

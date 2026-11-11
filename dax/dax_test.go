@@ -1,6 +1,9 @@
 package dax
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestBlockCopy(t *testing.T) {
 	f := &File{cache: map[int][]byte{1: {1, 2}}}
@@ -29,7 +32,7 @@ func TestParseNotPicture(t *testing.T) {
 	for i := range b {
 		b[i] = 0xFF
 	}
-	if ParseImage(b, false, 0) != nil {
+	if im, err := ParseImage(b, false, 0); im != nil || !errors.Is(err, ErrNotImage) {
 		t.Error("ParseImage")
 	}
 	if fs := ParseSprite(b, false, 0, false); len(fs) != 0 {

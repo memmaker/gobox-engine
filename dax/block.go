@@ -2,6 +2,8 @@ package dax
 
 import (
 	"encoding/binary"
+	"errors"
+	"fmt"
 
 	"gobox/asset"
 )
@@ -19,12 +21,12 @@ const Clear = asset.Clear
 func NewImage(count, width, height int) *Image { return asset.NewImage(count, width, height) }
 
 // ParseImage decodes a picture block. If masked, maskColour becomes the
-// image's transparent colour (the original's "masked load"). nil: b is not
-// a picture (shorter than its header says, e.g. a font block), so nothing
-// is allocated beyond what b holds.
-func ParseImage(b []byte, masked bool, maskColour byte) *Image {
+// image's transparent colour (the original's "masked load"). ErrNotImage:
+// b is not a picture (shorter than its header says, e.g. a font block), so
+// nothing is allocated beyond what b holds.
+func ParseImage(b []byte, masked bool, maskColour byte) (*Image, error) {
 	if len(b) < 17 || 17+int(b[8])*le16(b, 0)*le16(b, 2)*8/packed(b[9:]) > len(b) {
-		return nil
+		return nil, fmt.Errorf("%d bytes: %w", len(b), ErrNotImage)
 	}
 	im := &Image{
 		Height: int(binary.LittleEndian.Uint16(b[0:])),
@@ -48,8 +50,11 @@ func ParseImage(b []byte, masked bool, maskColour byte) *Image {
 	if masked {
 		clearMask(im.Data, maskColour)
 	}
-	return im
+	return im, nil
 }
+
+// ErrNotImage: a block ParseImage cannot read as a picture.
+var ErrNotImage = errors.New("not a picture block")
 
 // ParseSprite decodes an animation block: u8 frame count, then per frame a
 // 21-byte header (u32 delay, u16 height, u16 width cells, u16 x, u16 y, 9

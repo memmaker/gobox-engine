@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -47,7 +48,10 @@ func WriteCover(dosDir, out string) error {
 	if b == nil {
 		return errors.New("TITLE.DAX has no title picture")
 	}
-	im := dax.ParseImage(b, false, 0)
+	im, err := dax.ParseImage(b, false, 0)
+	if err != nil {
+		return fmt.Errorf("TITLE.DAX block 2: %w", err)
+	}
 	cp := make(color.Palette, 16)
 	for i := range cp {
 		cp[i] = ega.RGBA(i)

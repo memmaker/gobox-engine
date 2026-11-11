@@ -14,8 +14,8 @@ import (
 // cellPx is a 40x25 cell's size in page pixels (320x200).
 const cellPx = 8
 
-// ErrStepKind: a sequence step a title Scene cannot show (StepAnim plays as
-// SceneSequence, not in a title).
+// ErrStepKind: a sequence step a title Scene cannot show (a StepAnim after
+// the first step; a leading one plays first as SceneSequence, LeadingAnim).
 var ErrStepKind = errors.New("step kind not in a title scene")
 
 // ErrNotCarried: a Sequence field gobox does not carry yet.
@@ -25,7 +25,8 @@ var ErrNotCarried = errors.New("sequence field not carried yet")
 // layers, loaded by pic, and its tune; the credits steps show their page.
 // Without full (the host's Full intro option) only s.Short's steps play.
 // A step whose Lightning is On in graphics mode g makes the intro flash. The rest of s goes to the
-// game's Data (TitleData).
+// game's Data (TitleData). A leading StepAnim is not a title step (step 1
+// stays its number): it plays before the title as LeadingAnim's sequence.
 func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, pic func(importer.Art) (game.Picture, error)) (Scene, error) {
 	in := &game.Intro{Full: true}
 	steps := map[int]TitleStep{}
@@ -33,6 +34,9 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 	whole := 0
 	for i, st := range s.Steps {
 		n := i + 1
+		if i == 0 && st.Kind == importer.StepAnim {
+			continue
+		}
 		if !full && s.Short != nil && !slices.Contains(s.Short, i) {
 			continue
 		}
@@ -69,6 +73,21 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 		return Scene{}, fmt.Errorf("Whole on some picture steps only: %w", ErrNotCarried)
 	}
 	return Scene{Common: cm, Kind: SceneTitle, Intro: in, Full: whole != 0, Steps: steps}, nil
+}
+
+// LeadingAnim is s's leading StepAnim as the game.Sequence name plays
+// (Anim, its Song as the Music), for game.Data.Sequences; nil: s starts with
+// no animation.
+func LeadingAnim(s importer.Sequence, name string) *game.Sequence {
+	if len(s.Steps) == 0 || s.Steps[0].Kind != importer.StepAnim {
+		return nil
+	}
+	st := s.Steps[0]
+	q := &game.Sequence{Name: name, Anim: st.Anim}
+	if st.Song != "" {
+		q.Music = []string{st.Song}
+	}
+	return q
 }
 
 // TitleData is s's credits lines, boxes and backdrop as game.Data's

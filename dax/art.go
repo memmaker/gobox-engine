@@ -187,7 +187,10 @@ func artBlock(file string, id int, b []byte) (blk asset.Block, ok bool) {
 	blk = asset.Block{ID: id}
 	switch blockKind(b) {
 	case asset.Still:
-		im := ParseImage(b, false, 0)
+		im, err := ParseImage(b, false, 0)
+		if err != nil { // blockKind's Still is the exact size ParseImage reads
+			return blk, false
+		}
 		blk.Kind, blk.ColourBase = asset.Still, colourBase(b[9:])
 		blk.Frames = stillFrames(im)
 	case asset.Anim:

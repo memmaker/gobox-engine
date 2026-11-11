@@ -80,7 +80,11 @@ func pic(l *dax.Loader, name string, id int) *dax.Image {
 	if im := dax.ParseVGA(b, true, 0xD); im != nil {
 		return im
 	}
-	return dax.ParseImage(b, true, 0xD)
+	im, err := dax.ParseImage(b, true, 0xD)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return im
 }
 
 func load(l *dax.Loader, m mapKey) (*view, error) {

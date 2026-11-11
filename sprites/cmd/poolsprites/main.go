@@ -107,7 +107,10 @@ func main() {
 				}
 				for _, e := range d.Entries {
 					blk := d.BlockShared(e.ID)
-					im := dax.ParseImage(blk, s.masked, 0)
+					im, err := dax.ParseImage(blk, s.masked, 0)
+					if err != nil && !vga[r.game] {
+						continue // not a picture block (a font)
+					}
 					if vga[r.game] {
 						im = dax.ParseVGA(blk, s.masked, 0)
 					}
@@ -173,8 +176,8 @@ func main() {
 				}
 				prefix := "amiga_" + s.prefix
 				for _, e := range d.Entries {
-					im := dax.ParseImage(dos.BlockShared(base, e.ID), s.masked, 0) // the loader's block: HEAD centred as drawn
-					if im == nil || im.Count == 0 || im.Width == 0 || im.Height == 0 || len(im.Data) < im.Count*im.BPP {
+					im, err := dax.ParseImage(dos.BlockShared(base, e.ID), s.masked, 0) // the loader's block: HEAD centred as drawn
+					if err != nil || im == nil || im.Count == 0 || im.Width == 0 || im.Height == 0 || len(im.Data) < im.Count*im.BPP {
 						continue
 					}
 					pal := dos.AmigaPalette(base, e.ID)

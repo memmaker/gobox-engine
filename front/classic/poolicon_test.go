@@ -75,10 +75,10 @@ func TestPoolIconMatchesDAX(t *testing.T) {
 			heads = append(heads, e)
 		}
 		for _, be := range bf.Entries {
-			b := dax.ParseImage(bf.BlockShared(be.ID), true, 0)
+			b, berr := dax.ParseImage(bf.BlockShared(be.ID), true, 0)
 			for _, he := range heads {
-				h := dax.ParseImage(hf.BlockShared(he.ID), true, 0)
-				if h == nil || b == nil || h.Width != b.Width {
+				h, herr := dax.ParseImage(hf.BlockShared(he.ID), true, 0)
+				if herr != nil || berr != nil || h.Width != b.Width {
 					continue
 				}
 				for pose := range min(2, h.Count, b.Count) {

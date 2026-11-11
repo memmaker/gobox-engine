@@ -34,8 +34,19 @@ func TestTitleScene(t *testing.T) {
 	if err != nil || !slices.Equal(short.Intro.Pictures, []int{1}) || len(short.Steps) != 1 {
 		t.Fatalf("short %+v, %v", short.Intro, err)
 	}
-	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepAnim}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrStepKind) {
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepCredits}, {Kind: importer.StepAnim}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrStepKind) {
 		t.Fatalf("anim step: %v", err)
+	}
+	lead := importer.Sequence{Steps: append([]importer.SequenceStep{{Kind: importer.StepAnim, Anim: "INTRO", Song: "P1"}}, seq.Steps...)}
+	led, err := TitleScene(lead, true, importer.GraphicsEGA, Common{}, pic)
+	if err != nil || !slices.Equal(led.Intro.Pictures, []int{2, 3, -1}) || !reflect.DeepEqual(led.Steps[2], want.Steps[1]) {
+		t.Fatalf("leading anim: %+v, %v", led.Intro, err)
+	}
+	if q := LeadingAnim(lead, "intro"); q == nil || !reflect.DeepEqual(*q, game.Sequence{Name: "intro", Anim: "INTRO", Music: []string{"P1"}}) {
+		t.Fatalf("LeadingAnim %+v", q)
+	}
+	if LeadingAnim(seq, "intro") != nil {
+		t.Fatal("LeadingAnim without an anim")
 	}
 	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{HoldMs: 1}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrNotCarried) {
 		t.Errorf("hold: %v", err)
