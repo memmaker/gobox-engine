@@ -101,3 +101,13 @@ BR1 vs BR2 reference: SelectSkillCharacter is the same rule (BR2 uses shr and si
 4. `core/imports_test.go` leaves lacks `../../rulesxxvc` (one line in core's test).
 5. The BR Go draws from PCG; rulesxxvc draws from core.RNG (Turbo Pascal's Random), matching the reconstructions' order. BR saves carry no RNG to keep.
 No BR pure-Pascal vector harness exists (rules1e's TestAgainstPascal has por-re's); rulesxxvc tests use hand-derived vectors from the .pas with TP Random computed outside Go. A BR vectors harness would need buckroger-re's toolchain.
+
+## Felix's decisions (2026-11-11, binding for all tracks)
+- Shared Purse: default **Off** (original, per-member coins); member coins widen to 64-bit typed amounts (no clamp); on switching to Off the whole purse goes to the first member; Off pays via the WhoPays prompt at shop, temple, training; coin loot by the original Share rule; coins weigh on encumbrance.
+- Sound: JSON synth data at import, synthesized at run time; music MIDI.
+- Creation: core CreationRules approved, plus: Draft carries typed picks per FieldID, Name and the four picture picks (head, body, icon head, icon body); `Make(Draft) (CharID, error)` and `Draft(CharID) (Draft, error)` on CreationRules, the draft lives in gobox, KeepDraft/DropDraft go; `SetScore(Draft, Ability, value)`, 18/xx parsed in gobox; BR skills as a `FieldSkills` field kind with a point budget.
+- Art collections: two families, `pool` and `buck-rogers`, each deduplicated.
+- gobox/rules and gobox/rules/grid: the pure helpers move under core (money rates, purse, grid/line of sight/paths); MakeFileName goes to the engine. Leaves still import only core.
+- Positions: separate typed `MapPos` and `BoardPos` in core (never mixed).
+- BR1/BR2 tables: adventure data written by the importer, passed typed at Begin.
+- XXVc: typed skill Hardness/Grade in core; core/xxvc rosters completed from the reconstructions (races, skills, eight saves, ship systems); core imports_test leaves gain rulesxxvc.
