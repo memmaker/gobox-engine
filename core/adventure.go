@@ -61,6 +61,9 @@ type Tables interface{ RuleTables() }
 type Options struct {
 	CriticalHits   bool // POD's rule, all games
 	PartyInventory bool // no encumbrance, one shared slotted inventory: POR's today
+	// SharedPurse: the party's coins are one purse. Off (the original): each
+	// member's own; turning it off gives the purse to the first member.
+	SharedPurse bool
 }
 
 // Identity names a module.

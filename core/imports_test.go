@@ -73,7 +73,8 @@ func rawBytes(dir string) ([]string, error) {
 			}
 		}
 		ast.Inspect(f, func(n ast.Node) bool {
-			if fn, ok := n.(*ast.FuncDecl); ok && fn.Name.Name == "Script" {
+			// Script, and Rules.Save and Load (the ruleset's canonical save), are the byte passages.
+			if fn, ok := n.(*ast.FuncDecl); ok && (fn.Name.Name == "Script" || fn.Name.Name == "Save" || fn.Name.Name == "Load") {
 				return false
 			}
 			if a, ok := n.(*ast.ArrayType); ok {
