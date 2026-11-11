@@ -41,6 +41,7 @@ const (
 	FactExceptional // exceptional strength: por Str00, a sheet word only
 	FactHarmed      // a sheet word only: the harmful effects on it, ", " between (por's after-fight list)
 	FactSideOnly    // por opAddNPC: 268 bit 0 written alone (SideParty or SideMonsters), the auto flag kept
+	FactLevelReady  // por (extra): it may train a level (Yes)
 )
 
 func (AbilityFact) fact() {}
