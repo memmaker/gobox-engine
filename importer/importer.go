@@ -49,8 +49,22 @@ type Game struct {
 	// Import writes the folder's files from the originals in dir src into
 	// dir dst (empty, existing).
 	Import func(src, dst string) error
-	// Start and End are the title and end sequences (nil: none).
-	Start, End *Sequence
+	// Start and End give the title and end sequences from the originals in
+	// dir src (nil func or nil Sequence: none); Fixed is one known without them.
+	Start, End func(src string) (*Sequence, error)
+}
+
+// Fixed is a Game.Start or End that is s whatever the originals.
+func Fixed(s *Sequence) func(string) (*Sequence, error) {
+	return func(string) (*Sequence, error) { return s, nil }
+}
+
+// sequence is f's Sequence from src (nil f: none).
+func sequence(f func(string) (*Sequence, error), src string) (*Sequence, error) {
+	if f == nil {
+		return nil, nil
+	}
+	return f(src)
 }
 
 // Manifest is an adventure folder's manifest.json.
@@ -109,7 +123,15 @@ func Run(id, src, root string) error {
 	if err := g.Import(src, dst); err != nil {
 		return fmt.Errorf("import %s: %w", id, err)
 	}
-	b, err := json.MarshalIndent(Manifest{ID: g.ID, Title: g.Title, Ruleset: g.Ruleset, Format: Format, Start: g.Start, End: g.End, Source: key}, "", "\t")
+	start, err := sequence(g.Start, src)
+	if err != nil {
+		return fmt.Errorf("import %s: start: %w", id, err)
+	}
+	end, err := sequence(g.End, src)
+	if err != nil {
+		return fmt.Errorf("import %s: end: %w", id, err)
+	}
+	b, err := json.MarshalIndent(Manifest{ID: g.ID, Title: g.Title, Ruleset: g.Ruleset, Format: Format, Start: start, End: end, Source: key}, "", "\t")
 	if err != nil {
 		return err
 	}
