@@ -76,7 +76,7 @@ type (
 	// SpellTableInit, SetupAffectHandlers).
 	InitRules struct{}
 	// NewAdventure puts the rules' adventure state back to a new game's: the
-	// game and area records, the start square, an empty purse, loot and pool.
+	// game and area records, an empty purse, loot and pool.
 	NewAdventure struct{}
 	// EndSession closes what a session had open: camp, training, learning.
 	EndSession struct{}
