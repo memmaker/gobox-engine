@@ -91,7 +91,7 @@ func pixRect(c importer.Cells) image.Rectangle {
 // it today (Scene today, Data d): picture step i has the layers of
 // today.Steps[today.Intro.Pictures[i]] (with the credits page 0 gobox adds
 // after two or more pictures, front/title.go), a credits step its page, Backdrop
-// the layers of today.Steps[d.TitleBackdrop], Credits and Remaster d's
+// d's TitleBackdrop, Credits and Remaster d's
 // CreditLines and RemasterCredit. Pictures compare by File and Block (pixels
 // unloaded, Clear -1). Songs are not compared. For the importers' tests.
 func TitleDiffs(s importer.Sequence, today Scene, d game.Data) (diffs []string) {
@@ -133,7 +133,7 @@ func TitleDiffs(s importer.Sequence, today Scene, d game.Data) (diffs []string) 
 			diffs = append(diffs, fmt.Sprintf("step %d: kind %d", i, st.Kind))
 		}
 	}
-	if got, want := layers(s.Backdrop), bare(today.Steps[d.TitleBackdrop].Layers); d.TitleBackdrop != 0 && !reflect.DeepEqual(got, want) {
+	if got, want := layers(s.Backdrop), bare(d.TitleBackdrop); len(s.Backdrop)+len(d.TitleBackdrop) != 0 && !reflect.DeepEqual(got, want) {
 		diffs = append(diffs, fmt.Sprintf("backdrop:\n got %+v\nwant %+v", got, want))
 	}
 	var lines []game.Credit

@@ -211,7 +211,10 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 		}
 		return Rect{}
 	}
-	p.intro.Backdrop, p.intro.Hold, p.intro.NoCredits = titleBackdrop, p.mm.title == nil, len(credits) == 0
+	if v.Intro != nil && p.mm.title == nil { // the picture the main menu comes in over
+		p.mm.title = layersImage(titleBackdrop)
+	}
+	p.intro.NoCredits = len(credits) == 0
 	front.IntroStep(p, &p.intro, v.Intro, false)
 	if ev := p.playing(); ev != nil && ev.Scene != nil { // the page as it stood at the pause played
 		v = *ev.Scene

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"gobox/game"
 	"gobox/gpu"
 	"gobox/gpu/vector"
 	"gobox/ui"
@@ -40,8 +41,6 @@ type mainUI struct {
 	logo     srcImage          // MainMenu.Logo on the GPU
 	backdrop srcImage          // MainMenu.Backdrop on the GPU
 	title    image.Image       // the title's picture kept under the menu (Data.TitleBackdrop; nil: none)
-	titleWas string            // the title step's pictures before the backdrop's (picturesKey): the backdrop is taken once they change
-	titleN   int               // frames the backdrop phase waited on a change
 	cards    []image.Rectangle // the party's cards drawn
 	rows     string            // the rows last drawn, and whether in the submenu: rows the game changed start the highlight on the first
 	rowsSub  bool
@@ -387,4 +386,32 @@ func ReadPNG(path string) image.Image {
 		return nil
 	}
 	return im
+}
+
+// layersImage is the title backdrop's layers (Data.TitleBackdrop) drawn
+// into one picture of their box (nil: none, or a picture that does not
+// decode).
+func layersImage(ls []game.Layer) image.Image {
+	pics := make([]front.Picture, len(ls))
+	var box image.Rectangle
+	for i, l := range ls {
+		f := front.Picture{File: l.File, Block: l.Block, Frame: l.Frame, Name: l.Name}
+		if l.Pixels != nil {
+			f = pix0(l.Picture)
+		}
+		f.At, box = l.At, box.Union(l.At)
+		pics[i] = f
+	}
+	pics = indexedPictures(daxPictures(pics), egaInk)
+	for _, pc := range pics {
+		if pc.Img == nil {
+			return nil
+		}
+	}
+	if box.Empty() {
+		return nil
+	}
+	m := image.NewRGBA(image.Rect(0, 0, box.Dx(), box.Dy()))
+	drawPictures(m, pics, box.Min)
+	return m
 }

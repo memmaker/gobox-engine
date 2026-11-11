@@ -85,7 +85,7 @@ var (
 	remasterCredit                   [2]string
 	creditGaps                       []int
 	creditBoxes                      []image.Rectangle // game.Data.CreditBoxes
-	titleBackdrop                    int               // game.Data.TitleBackdrop
+	titleBackdrop                    []game.Layer      // game.Data.TitleBackdrop
 	iconParts                        []string
 	spellRules                       []string
 	dollBoxes                        = defaultDollBoxes // the doll is every game's, whichever way its data came (SetData or NewFront)
