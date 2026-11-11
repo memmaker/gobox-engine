@@ -31,7 +31,17 @@ Next order: (a) per file, move the free funcs and types that only the Engine use
 - [ ] Shared Purse option (Felix's OFF-mode calls in ARCHITECTURE.md), WhoPays, CastKnock, nativeScripts gone
 - [~] `gobox import <game>`: one entry, per-game importers on the import path only, writing `adventures/<id>/` (A6: gobox/importer fd775bb: Register, Run, Main, manifest.json stub with Start/End hooks and SHA-256 source key incl. START.EXE; por-go cad97dc: importpor registers POR, `cmd/import -out adventures por data/dos` writes scripts/art/data identical to data/assets. Open: cmd/gobox (B3) calls importer.Main for `import`; POR's importers still live in por-go rules, move with B3's rules split; importer.Manifest is the stub B3's folder reader should adopt, not duplicate)
 - [~] shared readers of the folder's files (A6: gobox/asset WriteBlocks/ReadBlocks/WriteJSON/ReadJSON 46a3e70, por-go on them. Open: sound JSON and MIDI readers, por-go's soundFile/POOL.CFG reads in engine.go/files.go (B3's files))
-- [ ] importers for COTAB, SotSB, POD, BR1, BR2: scripts (with their fixes), art, maps, records, sound, tables, title/end sequences as declarative data
+- [~] importers for COTAB, SotSB, POD, BR1, BR2: scripts (with their fixes), art, maps, records, sound, tables, title/end sequences as declarative data (A7: cotab/sotsb/pod importers registered, scripts with fixes + art: gobox 375ffd0 ecl/script.ImportFolder, importer.SameTree; cotab baa2d0b, sotsb 6e522be, pod 5c65808, each TestImportEqualsDecode)
+
+### A7 handover (2026-11-11)
+Done: `import<game>` packages in cotab-go, sotsb-go, pod-go (pattern of por-go importpor): `rules.ImportScriptsTo(dos, dir)` beside each ImportScripts, `dax.ImportArt` to art/; tests compare the folder against the run-time script cache and data/assets/art (under 1 s each). No per-repo cmd/import (cmd/gobox will blank-import every import<game>).
+Next, in order:
+1. maps and records for cotab/sotsb/pod: generalise por-go's ImportDataTo (rules/dataimport.go, B5's: ask B5 to lift its walk into gobox/asset or a shared dax helper rather than copy it), equality test like TestDataEqualsDAX.
+2. BR1/BR2 importers: scripts (BR's decompiler in buckrogers-core/ecl-br), art, tables (wait for X2's typed tables value in core).
+3. sound: Amiga SOUND.BIN, AdLib MUSIC/ZOUNDS to JSON synth/MIDI via gobox audio/sounddata; then replace embedded sounddata.json and run-time DAX reads.
+4. title/end sequences as manifest data: agree Manifest.Start/End shape with B5 first.
+5. dax.SourceKey: only users are dax/art.go (key.txt for ImportArtIfStale, used by gobox app/setup.go and front/present/art_test.go) and por-go rules/dataimport.go (B5's). It goes once the games run from folders (the manifest's importer.SourceKey replaces the staleness key); switching earlier changes nothing useful.
+Note: gobox HEAD 996780f was briefly broken (core Hardness/Grade before core/skill.go was committed).
 
 ## Track C: character creation (one flow)
 - [x] inventory of chargen in POR baseline c70cbee vs each game's current one (steps, picks, portrait and combat-sprite selection), and gobox's picker
