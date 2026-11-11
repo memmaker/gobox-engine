@@ -196,6 +196,13 @@ type (
 		Who   CharID
 		Spell SpellID
 	}
+	// SetPolicy is Who's standing policy for one of its reactions (por
+	// SetPolicy, the sheet's Reactions).
+	SetPolicy struct {
+		Who      CharID
+		Reaction int
+		Policy   Policy
+	}
 	Heal struct {
 		Service ServiceID
 		Who     CharID
@@ -328,6 +335,7 @@ func (Repair) action()        {}
 func (Reload) action()        {}
 func (Train) action()         {}
 func (Learn) action()         {}
+func (SetPolicy) action()     {}
 func (Heal) action()          {}
 func (TakeItem) action()      {}
 func (TakeMoney) action()     {}
@@ -352,4 +360,13 @@ const (
 	AutoKeyNone       AutoKey = iota
 	AutoKeyQuickMagic         // the computer casts for the party, or stops
 	AutoKeyTakeOver           // every player character back under manual control
+)
+
+// Policy is when a reaction fires: a member's standing choice per reaction.
+type Policy uint8
+
+const (
+	PolicyAlways Policy = iota // the zero value
+	PolicyNever
+	PolicyOnHit // only when it turns a hit (the ruleset says which way)
 )
