@@ -36,6 +36,9 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 		if !full && s.Short != nil && !slices.Contains(s.Short, i) {
 			continue
 		}
+		if st.Edition != importer.EditionAny {
+			return Scene{}, fmt.Errorf("step %d Edition %d (not passed through Sequence.Shown): %w", n, st.Edition, ErrNotCarried)
+		}
 		if st.HoldMs != 0 {
 			return Scene{}, fmt.Errorf("step %d HoldMs: %w", n, ErrNotCarried)
 		}
@@ -47,7 +50,7 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 				if err != nil {
 					return Scene{}, fmt.Errorf("step %d: %w", n, err)
 				}
-				ts.Layers = append(ts.Layers, game.Layer{Picture: p, At: pixRect(l.At), Frames: l.Frames, FrameMs: l.FrameMs})
+				ts.Layers = append(ts.Layers, game.Layer{Picture: p, At: placed(l, p.W, p.H), Frames: l.Frames, FrameMs: l.FrameMs})
 			}
 			steps[n] = ts
 			in.Pictures = append(in.Pictures, n)
@@ -83,7 +86,7 @@ func TitleData(s importer.Sequence, pic func(importer.Art) (game.Picture, error)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("backdrop: %w", err)
 		}
-		backdrop = append(backdrop, game.Layer{Picture: p, At: pixRect(l.At), Frames: l.Frames, FrameMs: l.FrameMs})
+		backdrop = append(backdrop, game.Layer{Picture: p, At: placed(l, p.W, p.H), Frames: l.Frames, FrameMs: l.FrameMs})
 	}
 	return lines, boxes, backdrop, nil
 }
@@ -96,17 +99,32 @@ func pixRect(c importer.Cells) image.Rectangle {
 	return image.Rect(c.X1*cellPx, c.Y1*cellPx, (c.X2+1)*cellPx, (c.Y2+1)*cellPx)
 }
 
+// placed is layer l's box in page pixels for a picture of w x h pixels:
+// its cells, or with Centred the picture centred in them.
+func placed(l importer.Layer, w, h int) image.Rectangle {
+	box := pixRect(l.At)
+	if !l.Centred {
+		return box
+	}
+	at := box.Min.Add(image.Pt((box.Dx()-w)/2, (box.Dy()-h)/2))
+	return image.Rectangle{Min: at, Max: at.Add(image.Pt(w, h))}
+}
+
 // TitleDiffs lists where sequence s differs from a game's title as it states
 // it today (Scene today, Data d): picture step i has the layers of
 // today.Steps[today.Intro.Pictures[i]] (with the credits page 0 gobox adds
 // after two or more pictures, front/title.go), a credits step its page, Backdrop
 // d's TitleBackdrop, Credits and Remaster d's
 // CreditLines and RemasterCredit. Pictures compare by File and Block (pixels
-// unloaded, Clear -1). Songs are not compared. For the importers' tests.
+// unloaded, Clear -1); a Centred layer takes today's size. Songs are not compared. For the importers' tests.
 func TitleDiffs(s importer.Sequence, today Scene, d game.Data) (diffs []string) {
-	layers := func(ls []importer.Layer) (out []game.Layer) {
-		for _, l := range ls {
-			out = append(out, game.Layer{Picture: game.Picture{Source: picSource[l.Kind], File: l.File, Block: l.Block, Clear: -1}, At: pixRect(l.At), Frames: l.Frames, FrameMs: l.FrameMs})
+	layers := func(ls []importer.Layer, today []game.Layer) (out []game.Layer) {
+		for i, l := range ls {
+			var size image.Point
+			if i < len(today) {
+				size = today[i].At.Size()
+			}
+			out = append(out, game.Layer{Picture: game.Picture{Source: picSource[l.Kind], File: l.File, Block: l.Block, Clear: -1}, At: placed(l, size.X, size.Y), Frames: l.Frames, FrameMs: l.FrameMs})
 		}
 		return out
 	}
@@ -131,7 +149,7 @@ func TitleDiffs(s importer.Sequence, today Scene, d game.Data) (diffs []string) 
 		n := pics[i]
 		switch st.Kind {
 		case importer.StepPicture:
-			if got, want := layers(st.Layers), bare(today.Steps[n].Layers); !reflect.DeepEqual(got, want) {
+			if got, want := layers(st.Layers, today.Steps[n].Layers), bare(today.Steps[n].Layers); !reflect.DeepEqual(got, want) {
 				diffs = append(diffs, fmt.Sprintf("step %d:\n got %+v\nwant %+v", i, got, want))
 			}
 		case importer.StepCredits:
@@ -142,7 +160,7 @@ func TitleDiffs(s importer.Sequence, today Scene, d game.Data) (diffs []string) 
 			diffs = append(diffs, fmt.Sprintf("step %d: kind %d", i, st.Kind))
 		}
 	}
-	if got, want := layers(s.Backdrop), bare(d.TitleBackdrop); len(s.Backdrop)+len(d.TitleBackdrop) != 0 && !reflect.DeepEqual(got, want) {
+	if got, want := layers(s.Backdrop, d.TitleBackdrop), bare(d.TitleBackdrop); len(s.Backdrop)+len(d.TitleBackdrop) != 0 && !reflect.DeepEqual(got, want) {
 		diffs = append(diffs, fmt.Sprintf("backdrop:\n got %+v\nwant %+v", got, want))
 	}
 	var lines []game.Credit

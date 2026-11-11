@@ -258,6 +258,41 @@ type SequenceStep struct {
 	HoldMs    int     `json:",omitempty"` // 0: until a key or click
 	Lightning Flash   `json:",omitempty"` // when the picture flashes (POR TITLE 2: FlashEGA)
 	Whole     bool    `json:",omitempty"` // the layers are one whole-screen page
+	Edition   Edition `json:",omitempty"` // the art it is shown with (SotSB's Amiga credits card: EditionAmiga)
+}
+
+// Edition is which release's art a step belongs to.
+type Edition uint8
+
+const (
+	EditionAny   Edition = iota // shown with every art
+	EditionAmiga                // shown only while the Amiga art is up
+)
+
+// Shown is s as played with the Amiga art up (amiga) or not: the steps of
+// another edition dropped, Short's indexes moved with them, every Edition
+// EditionAny. play.TitleScene takes only a sequence passed through Shown.
+func (s Sequence) Shown(amiga bool) Sequence {
+	out := s
+	out.Steps, out.Short = nil, nil
+	at := map[int]int{} // old step index -> new
+	for i, st := range s.Steps {
+		if st.Edition == EditionAmiga && !amiga {
+			continue
+		}
+		at[i] = len(out.Steps)
+		st.Edition = EditionAny
+		out.Steps = append(out.Steps, st)
+	}
+	for _, i := range s.Short {
+		if n, ok := at[i]; ok {
+			out.Short = append(out.Short, n)
+		}
+	}
+	if s.Short != nil && out.Short == nil {
+		out.Short = []int{}
+	}
+	return out
 }
 
 // Flash is when a step's picture flashes with lightning.
@@ -301,6 +336,7 @@ type Layer struct {
 	At      Cells
 	Frames  []int `json:",omitempty"`
 	FrameMs int   `json:",omitempty"`
+	Centred bool  `json:",omitempty"` // the picture at its own size, centred in At (SotSB's Amiga credits card)
 }
 
 // Cells is a box in 40x25 cells, Min and Max the corner cells (inclusive).
