@@ -149,6 +149,8 @@ const (
 	Rocket         WeaponClass = 2
 	Laser          WeaponClass = 3
 	Microwave      WeaponClass = 4
+	Heat           WeaponClass = 5 // the Heat Gun
+	Sonic          WeaponClass = 6 // the Sonic Stunner
 	RocketLauncher WeaponClass = 7 // this and the next two are area weapons
 	Grenade        WeaponClass = 8
 	Plasma         WeaponClass = 9
