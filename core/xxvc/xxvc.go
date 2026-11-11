@@ -89,6 +89,13 @@ type Tables struct {
 	// AmmoPrices is gdconsts.pas ammoPrices: a clip's price by weapon item
 	// type (ItemTemplate.Type 5..18), the shop's Reload.
 	AmmoPrices map[int32]core.Copper
+	// ShipWeapons is gdconsts.pas shipWeapons by kind (ShipMount.Kind 1..8).
+	ShipWeapons map[ShipWeaponKind]ShipWeapon
+	// Ships is the SHIPS records by id (SaveLoad.LoadShipData: record 40 + n;
+	// the party's ship is PartyShip).
+	Ships map[core.ShipID]ShipRecord
+	// Explosion is how the crew is hurt when the party's hull goes (ShipCbt DamageCrew).
+	Explosion Explosion
 }
 
 // ItemTemplate is one row of itemTemplates (types.pas TItemTemplate): what a

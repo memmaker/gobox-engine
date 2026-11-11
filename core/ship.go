@@ -11,6 +11,9 @@ type ShipSystem string
 type ShipEncounter struct {
 	Foe   ShipID
 	Range int32 // B4A1F
+	// The script's pilot skill and to-hit number for the foe (BR ShipCombat's
+	// ECL arguments 3 and 4).
+	PilotSkill, ToHit int32
 }
 
 // Gauge is a system's state.
@@ -41,9 +44,15 @@ type (
 		Target ShipSystem
 	}
 	ShipBoost   struct{ System ShipSystem }
-	ShipJuryRig struct{ System ShipSystem }
+	ShipJuryRig struct {
+		System ShipSystem
+		Mount  int32 // a mount of Own.Weapons, for the weapons system
+	}
 	ShipRam     struct{}
-	ShipDodge   struct{}
+	ShipDodge   struct{ Yes bool } // the answer to the rules' dodge question (Outcome.Confirm)
+	ShipCommand struct{}           // take over as pilot (BR)
+	ShipBoard   struct{}           // board a stopped foe (BR)
+	ShipSensors struct{}           // sensor operation (BR)
 	ShipClose   struct{}
 	ShipRetreat struct{}
 	ShipReload  struct{ Weapon int32 }
@@ -57,6 +66,9 @@ func (ShipDodge) action()   {}
 func (ShipClose) action()   {}
 func (ShipRetreat) action() {}
 func (ShipReload) action()  {}
+func (ShipCommand) action() {}
+func (ShipBoard) action()   {}
+func (ShipSensors) action() {}
 
 // ShipRules are a ship fight's sequence. Rules.Ships gives them, nil when the
 // ruleset's Catalog lacks FeatureSpaceCombat: such an adventure never loads.
