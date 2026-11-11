@@ -12,7 +12,7 @@ const (
 )
 
 type (
-	// Pay takes Gold from the purse; refused with the rules' "Not enough money." when short.
+	// Pay takes Gold from the purse; refused when short (Refused{NoMoney}, ErrNotNow).
 	Pay struct{ Gold uint64 }
 	// Valuate takes a gem (or a jewel) from the purse, rolls its value and holds
 	// the valued item (ovr22:19B2); refused when the purse has none.
