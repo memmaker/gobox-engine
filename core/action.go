@@ -73,6 +73,9 @@ type (
 	Dodge      struct{}                // BR
 	Intimidate struct{}                // BR
 	Jetpack    struct{ To BoardPos }   // BR
+	// AutoTurn is a whole computer turn the rules play at once (por
+	// computerTurn); Key is the player's key its polls take, the engine's input.
+	AutoTurn struct{ Key AutoKey }
 
 	// Confirmed sends Action again after the rules' Outcome.Confirm got a
 	// yes (por: "its Yes makes the call again sure", combatflow.go).
@@ -251,6 +254,7 @@ type (
 )
 
 func (Move) action()          {}
+func (AutoTurn) action()      {}
 func (Attack) action()        {}
 func (Shoot) action()         {}
 func (Cast) action()          {}
@@ -319,4 +323,13 @@ type ReloadKind int8
 const (
 	ReloadClip ReloadKind = iota + 1
 	ReloadFill
+)
+
+// AutoKey is a key the player pressed for a computer turn (por aiKeys).
+type AutoKey uint8
+
+const (
+	AutoKeyNone       AutoKey = iota
+	AutoKeyQuickMagic         // the computer casts for the party, or stops
+	AutoKeyTakeOver           // every player character back under manual control
 )
