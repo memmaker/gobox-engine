@@ -101,6 +101,10 @@ type FightTerms struct {
 	NoMagic    bool
 	Duel       bool
 	NoExpAward bool // WordNoExpAward
+	// BR zone1: the downed party stands up with 1 HP (revivesParty); the
+	// beaten keep their items (skipsCombatItems).
+	RevivesParty bool
+	NoItemLoot   bool
 }
 
 // Fight is a battle as the engine holds it: a snapshot, value by value.

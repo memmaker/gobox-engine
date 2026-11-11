@@ -64,7 +64,23 @@ type Options struct {
 	// SharedPurse: the party's coins are one purse. Off (the original): each
 	// member's own; turning it off gives the purse to the first member.
 	SharedPurse bool
+	// Difficulty is the player's setting (BR's Novice..Ace); the zero value is
+	// each game's default.
+	Difficulty Difficulty
 }
+
+// Difficulty is how hard the player wants fights. DifficultyStandard, the
+// zero value, is the original's default (BR Trooper); each step away is one
+// of the original's levels.
+type Difficulty int32
+
+const (
+	DifficultyStandard Difficulty = iota // BR Trooper
+	DifficultyEasiest                    // BR Novice
+	DifficultyEasier                     // BR Cadet
+	DifficultyHarder                     // BR Veteran
+	DifficultyHardest                    // BR Ace
+)
 
 // Identity names a module.
 type Identity struct {
