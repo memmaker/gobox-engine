@@ -19,9 +19,11 @@ const Clear = asset.Clear
 func NewImage(count, width, height int) *Image { return asset.NewImage(count, width, height) }
 
 // ParseImage decodes a picture block. If masked, maskColour becomes the
-// image's transparent colour (the original's "masked load").
+// image's transparent colour (the original's "masked load"). nil: b is not
+// a picture (shorter than its header says, e.g. a font block), so nothing
+// is allocated beyond what b holds.
 func ParseImage(b []byte, masked bool, maskColour byte) *Image {
-	if len(b) < 17 {
+	if len(b) < 17 || 17+int(b[8])*le16(b, 0)*le16(b, 2)*8/packed(b[9:]) > len(b) {
 		return nil
 	}
 	im := &Image{
@@ -77,7 +79,7 @@ func ParseSprite(b []byte, masked bool, maskColour byte, xor bool) []SpriteFrame
 			size *= 2
 		}
 		if p+size > len(b) {
-			size = len(b) - p
+			break // not an animation's frame: its pixels are past the block
 		}
 		raw := append([]byte(nil), b[p:p+size]...)
 		p += size
