@@ -76,3 +76,13 @@ Open, in order:
 - [ ] pod (no sheet; starting spells/equipment into Make), BR1/BR2 (X owns rulesxxvc), Creation() into CharacterRules.
 - [ ] delete game/pointbuy.go (sotsb creation.go:224 and pod still call game.PointBuySpent) and front/present/pointbuy.go's use (switch it to core.PointBuySpent over a map[Ability]int32).
 Unverified: Quick Start's stats for a fixed seed differ from the old path (fields enforced in sheet order). No full cotab suite outside the gate.
+
+## C12 (agent C12, 2026-11-11)
+Felix's decision (sotsb, via main): sotsb's creation is unified to POR's behaviour. A class pick no longer joins the party at once (setDraftField/joinDraft go): the character is kept to the roster, as POR. Out-of-range stats clamp (setStat no longer refuses). Modify allows race and class changes as POR. No "NO-ONE" placeholder name. Default portraits as POR (none: defaultPortraits by sex go). sotsb's creation is ported with cotab's hit-dice design (Draft.HitRolls recorded/replayed).
+Done:
+- [x] C11's three items committed (gate GATE_ALL=1 green): gobox f4c1e44, por a21965c, cotab c44f165.
+- [x] (a) cotab Quick Start, seed 3: the new path drew other dice (sheet-order Enforce built the template kind at once). Enforce's first build now replays CreateCharacter (human fighter, rolled) then setField race, class, alignment, sex, the old order: the whole party's records and the final RandSeed equal the old path's (compared against an export of cotab c44f165^). TestQuickStart pins the seed (0x2ebd5e3c). Only difference left: the reroll cap is 2000 rolls (gobox quickTries), the old path's 1999.
+- [x] (b, behaviour) sotsb as POR: setDraftField/joinDraft/defaultPortraits gone (a class pick is a plain setField; Begin is refused while the sheet is up, the draft is kept to the roster); setStat clamps; Modify's race/class change makes the member again in its slot (name, pool ids, items kept; discard restores the original pointer, creationSheet.orig); no NO-ONE (the name prompt keys on PName empty, creationSheet.named gone). TestSheetAsPOR; TestGameDraft/TestNewCharacterSheet updated.
+Open, in order:
+- [ ] sotsb port (Felix's decision above): sotsbCreation (as cotabcreation.go; the creation sits in a temp party slot, pickTemp/dropTemp, which charOf must keep for trainSilently), hit-dice seam over e.Dice during startingHitPoints (gold 2d6 and levelHitPoints both draw there), RosterID (sotsb has no trailer: the .ids sidecar's fifth line is the natural place), wiring of sheetCall/partyDecide/nameKept/play.go's Begin-joins-draft, game.PointBuySpent -> core.PointBuySpent.
+- [ ] pod, BR1/BR2, Creation() into CharacterRules, delete the old paths, game/pointbuy.go, front/present/pointbuy.go -> core.PointBuySpent.
