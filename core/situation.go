@@ -206,6 +206,8 @@ type FightResult struct {
 	Exp     int32 // per member
 	Items   []ItemRef
 	Money   Copper
+	Verdict Verdict // how it ended: won, fled, lost; FightOn for neither (por: treasure found)
+	Foes    bool    // there were foes to beat (por's "The party has won.")
 }
 
 // Turn is what BeginTurn says of the actor.
