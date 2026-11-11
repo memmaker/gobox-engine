@@ -80,7 +80,18 @@ func (Side) value()      {}
 
 // Coin is a kind of money. Old scripts see per-member coins as a view of the
 // party's one purse.
-type Coin string
+type Coin int8
+
+// The coins of every ruleset: one closed set, so no two rulesets' coins collide
+// (dnd and xxvc name them).
+const (
+	CoinCopper Coin = iota + 1
+	CoinSilver
+	CoinElectrum
+	CoinGold
+	CoinPlatinum
+	CoinCredits
+)
 
 // Copper is money: the rules' one unit. Gold-and-copper is presentation's, and
 // a script's CoinFact is a view that converts.

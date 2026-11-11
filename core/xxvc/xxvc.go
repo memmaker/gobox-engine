@@ -63,7 +63,7 @@ var Skills = []core.Skill{
 // saveType). The original names none of them.
 var Saves = []core.Save{"save-0", "save-1", "save-2", "save-3", "save-4", "save-5", "save-6", "save-7"}
 
-const Credits core.Coin = "credits"
+const Credits = core.CoinCredits
 
 // A ship's systems, each with a now and a max (c_sys.pas, shipSystemNames).
 const (

@@ -74,11 +74,11 @@ const (
 )
 
 const (
-	Copper   core.Coin = "copper"
-	Silver   core.Coin = "silver"
-	Electrum core.Coin = "electrum"
-	Gold     core.Coin = "gold"
-	Platinum core.Coin = "platinum"
+	Copper   = core.CoinCopper
+	Silver   = core.CoinSilver
+	Electrum = core.CoinElectrum
+	Gold     = core.CoinGold
+	Platinum = core.CoinPlatinum
 )
 
 // A sample of the rosters the importer generates, numbers assigned once

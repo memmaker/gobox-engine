@@ -77,13 +77,13 @@ type ServicePrice struct {
 }
 
 // DoorState is a door as the adventure defines it.
-type DoorState string
+type DoorState int8
 
 const (
-	DoorOpen   DoorState = "open"
-	DoorClosed DoorState = "closed"
-	DoorLocked DoorState = "locked"
-	DoorMagic  DoorState = "magically-locked"
+	DoorOpen DoorState = iota + 1
+	DoorClosed
+	DoorLocked
+	DoorMagic // magically locked
 )
 
 // Door: the engine offers Pick, Bash and casting whatever the party can; the
@@ -182,7 +182,7 @@ type MapSides interface {
 type TerrainID uint8
 
 // GroundKind is what a square is made of; a ruleset gives it meaning.
-type GroundKind string
+type GroundKind int8
 
 // BoardUnit is a combatant's place.
 type BoardUnit struct {
