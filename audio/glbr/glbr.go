@@ -1,4 +1,8 @@
-package audio
+// Package glbr is SOUND.COM's AdLib song sequencer (GLBR/SLBR song blocks,
+// pod-go docs/MUSIC.md) and its SID twin, as register writes, and the songs
+// as data (MIDI plus OPLVoice records, midi.go). It needs only the standard
+// library, so importers use it; gobox/audio puts the writes on the chips.
+package glbr
 
 import "encoding/binary"
 
@@ -14,7 +18,7 @@ type adTrack struct {
 	ev                    []byte
 }
 
-type sequencer struct {
+type Sequencer struct {
 	w     func(reg int, val byte)
 	sid   *sidDev // the Innovation SSI-2001's SID in the OPL's place (nil: AdLib)
 	inst  [8][]byte
@@ -26,14 +30,14 @@ type sequencer struct {
 	ins   [6]int
 
 	rec   func(scoreEvent) // SongMIDI: each call on a track's voice
-	score []scoreEvent     // a song MIDI's calls, played in place of tr (newMIDISequencer)
+	score []scoreEvent     // a song MIDI's calls, played in place of tr (NewMIDI)
 	end   int              // ... and the tick it ends on
 }
 
-// newSequencer parses a song block (song 0) and writes the init registers; nil if malformed.
+// New parses a song block (song 0) and writes the init registers; nil if malformed.
 // The SLBR starts where the GLBR header's u32 says (PoD 0x1BC, SotSB 0x1B2). div is the
 // tempo divisor (SotSB's driver: 0x76); 0 takes the song header's tempo word / 84 (PoD).
-func newSequencer(b []byte, div int, w func(int, byte), sid bool) *sequencer {
+func New(b []byte, div int, w func(int, byte), sid bool) *Sequencer {
 	if len(b) < 12 || string(b[:4]) != "GLBR" {
 		return nil
 	}
@@ -45,7 +49,7 @@ func newSequencer(b []byte, div int, w func(int, byte), sid bool) *sequencer {
 	if cnt < 8 {
 		return nil
 	}
-	s := &sequencer{w: w}
+	s := &Sequencer{w: w}
 	off := 12 + 2*cnt
 	for i := 0; i < 8; i++ {
 		if off+12 > len(b) {
@@ -92,7 +96,7 @@ func newSequencer(b []byte, div int, w func(int, byte), sid bool) *sequencer {
 }
 
 // initOPL writes the driver's init registers.
-func (s *sequencer) initOPL() {
+func (s *Sequencer) initOPL() {
 	s.w(0xBD, 0x20)
 	s.w(0x08, 0x40)
 	for k := 1; k < 19; k++ {
@@ -101,7 +105,7 @@ func (s *sequencer) initOPL() {
 	s.w(0x01, 0)
 }
 
-func (s *sequencer) alloc(i int) int {
+func (s *Sequencer) alloc(i int) int {
 	if f := int(s.inst[i][1]); f != 0 {
 		s.mask |= 1 << f
 		return f
@@ -114,7 +118,7 @@ func (s *sequencer) alloc(i int) int {
 	return n
 }
 
-func (s *sequencer) program(ch, i int) {
+func (s *Sequencer) program(ch, i int) {
 	r := s.inst[i]
 	ops := []int{adOpSlot[adMap[ch]], adOpSlot[adMap[ch]+3]} // ponytail: rhythm voices (ch>6) unused by data, not ported
 	for k, o := range ops {
@@ -130,7 +134,7 @@ func (s *sequencer) program(ch, i int) {
 	}
 }
 
-func (s *sequencer) setInst(t, i int) {
+func (s *Sequencer) setInst(t, i int) {
 	if s.sid != nil {
 		s.sid.setInst(s.w, t, i)
 		return
@@ -148,7 +152,7 @@ func (s *sequencer) setInst(t, i int) {
 }
 
 // note sounds (vel >= 0) or releases (vel < 0) slot t.
-func (s *sequencer) note(t, note, vel int) {
+func (s *Sequencer) note(t, note, vel int) {
 	if s.sid != nil {
 		s.sid.note(s.w, t, note, vel)
 		return
@@ -189,7 +193,8 @@ func dur(code int) int {
 	return x
 }
 
-func (s *sequencer) silence() {
+// Silence keys every voice off.
+func (s *Sequencer) Silence() {
 	if s.sid != nil {
 		s.sid.silence(s.w)
 		return
@@ -200,9 +205,9 @@ func (s *sequencer) silence() {
 	s.w(0xBD, 0x20)
 }
 
-// tick advances one 72.8 Hz PIT tick (the sequencer runs on even ones); false once every
+// Tick advances one 72.8 Hz PIT tick (the sequencer runs on even ones); false once every
 // track has ended (the caller silences).
-func (s *sequencer) tick() bool {
+func (s *Sequencer) Tick() bool {
 	s.now++
 	if s.score != nil || s.end != 0 {
 		return s.replay()
@@ -282,7 +287,7 @@ func (s *sequencer) tick() bool {
 }
 
 // replay makes this tick's calls of a song MIDI's score; false at its end.
-func (s *sequencer) replay() bool {
+func (s *Sequencer) replay() bool {
 	for len(s.score) > 0 && s.score[0].Tick <= s.now {
 		e := s.score[0]
 		s.score = s.score[1:]
@@ -296,4 +301,29 @@ func (s *sequencer) replay() bool {
 		}
 	}
 	return s.now < s.end
+}
+
+// Writer is the register write s plays through.
+func (s *Sequencer) Writer() func(int, byte) { return s.w }
+
+// SID: s plays on the SID.
+func (s *Sequencer) SID() bool { return s.sid != nil }
+
+// Now is the PIT tick s last played.
+func (s *Sequencer) Now() int { return s.now }
+
+// Div is s's tempo divisor.
+func (s *Sequencer) Div() int { return s.div }
+
+// TrackEvents is each track's count of events before its end.
+func (s *Sequencer) TrackEvents() []int {
+	var ev []int
+	for _, tr := range s.tr {
+		k := 0
+		for p := 0; p+1 < len(tr.ev) && tr.ev[p] != 0xFF; p += 2 {
+			k++
+		}
+		ev = append(ev, k)
+	}
+	return ev
 }

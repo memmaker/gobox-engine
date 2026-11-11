@@ -1,4 +1,4 @@
-package audio
+package glbr
 
 import (
 	"bytes"
@@ -11,14 +11,14 @@ import (
 	"sort"
 )
 
-// A GLBR song (adlibseq.go) as data: its notes as a Standard MIDI File and
+// A GLBR song (glbr.go) as data: its notes as a Standard MIDI File and
 // its eight instruments as OPLVoice records (the sidecar <song>.opl.json).
 // The MIDI's channel n is the song's track n; a program change p on it
 // selects OPLVoice p (the driver's 0x81: track n takes instrument n), never a
 // General MIDI program. Times are the driver's 72.8227 Hz PIT ticks.
 
 // OPLVoice is one GLBR instrument: its 12 bytes as the driver programs them
-// (sequencer.program, note).
+// (Sequencer.program, note).
 type OPLVoice struct {
 	Lead               uint8    // byte 0, not read by the driver
 	FixedChannel       uint8    // the OPL channel it must sound on (0: any free one)
@@ -69,12 +69,12 @@ var ErrNotSong = errors.New("not a GLBR song")
 // file and its voices.
 func SongMIDI(b []byte, div int) ([]byte, []OPLVoice, error) {
 	var ev []scoreEvent
-	s := newSequencer(b, div, func(int, byte) {}, false)
+	s := New(b, div, func(int, byte) {}, false)
 	if s == nil {
 		return nil, nil, ErrNotSong
 	}
 	s.rec = func(e scoreEvent) { e.Tick = s.now; ev = append(ev, e) }
-	for s.tick() {
+	for s.Tick() {
 	}
 	voices := make([]OPLVoice, len(s.inst))
 	for i, r := range s.inst {
@@ -177,15 +177,15 @@ func readMIDI(m []byte) (ev []scoreEvent, end int, err error) {
 	return nil, 0, errors.New("no end of track")
 }
 
-// newMIDISequencer plays song MIDI m with voices on the OPL2 through w, write
-// for write as newSequencer plays the GLBR song it came from.
-func newMIDISequencer(m []byte, voices []OPLVoice, w func(int, byte)) (*sequencer, error) {
+// NewMIDI plays song MIDI m with voices on the OPL2 through w, write
+// for write as New plays the GLBR song it came from.
+func NewMIDI(m []byte, voices []OPLVoice, w func(int, byte)) (*Sequencer, error) {
 	ev, end, err := readMIDI(m)
 	if err != nil {
 		return nil, err
 	}
 	sort.SliceStable(ev, func(i, j int) bool { return ev[i].Tick < ev[j].Tick })
-	s := &sequencer{w: w}
+	s := &Sequencer{w: w}
 	for i, v := range voices {
 		if i < len(s.inst) {
 			s.inst[i] = v.bytes()
@@ -196,12 +196,15 @@ func newMIDISequencer(m []byte, voices []OPLVoice, w func(int, byte)) (*sequence
 	return s, nil
 }
 
+// MusicDir is where an adventure folder keeps its songs (WriteSongs).
+const MusicDir = "sound/music"
+
 // WriteSongs writes each GLBR song block n of DAX file music (tempo divisor
 // tempo, as AdLibData.Tempo) into dir as n.mid and n.opl.json (its
 // OPLVoices); it returns the blocks written. Blocks that are no song are left
 // out.
 func WriteSongs(music []byte, tempo int, dir string) ([]int, error) {
-	blocks, err := daxBlocks(music)
+	blocks, err := Blocks(music)
 	if err != nil {
 		return nil, err
 	}

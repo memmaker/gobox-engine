@@ -8,6 +8,8 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	"gobox/audio/glbr"
 )
 
 func adlibData(t *testing.T) *AdLib {
@@ -29,10 +31,10 @@ func TestAdLibRegs(t *testing.T) {
 	a := adlibData(t)
 	var got []string
 	now := 0
-	s := newSequencer(a.music[1], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, false)
+	s := glbr.New(a.music[1], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, false)
 	for now < 300 {
-		now = s.now + 1
-		if !s.tick() {
+		now = s.Now() + 1
+		if !s.Tick() {
 			break
 		}
 	}
@@ -115,25 +117,18 @@ func TestAdLibNamedSMS(t *testing.T) {
 		if n == 0 {
 			t.Fatalf("%s: not a song", c.name)
 		}
-		s := newSequencer(named[c.name], 0, func(int, byte) {}, false)
-		var ev []int
-		for _, tr := range s.tr {
-			k := 0
-			for p := 0; p+1 < len(tr.ev) && tr.ev[p] != 0xFF; p += 2 {
-				k++
-			}
-			ev = append(ev, k)
-		}
+		s := glbr.New(named[c.name], 0, func(int, byte) {}, false)
+		ev := s.TrackEvents()
 		a.Start(n)
 		m := make([]byte, 4*adlibRate)
 		a.Mix(m, false)
 		h := fmt.Sprintf("%x", sha256.Sum256(m))[:16]
-		t.Logf("%s: block %d div %d events %v hash %s", c.name, n, s.div, ev, h)
+		t.Logf("%s: block %d div %d events %v hash %s", c.name, n, s.Div(), ev, h)
 		if !slices.ContainsFunc(m, func(b byte) bool { return b != 0 }) {
 			t.Errorf("%s: silent", c.name)
 		}
-		if s.div != c.div || fmt.Sprint(ev) != fmt.Sprint(c.events) || h != c.hash {
-			t.Errorf("%s: div %d events %v hash %s, want %d %v %s", c.name, s.div, ev, h, c.div, c.events, c.hash)
+		if s.Div() != c.div || fmt.Sprint(ev) != fmt.Sprint(c.events) || h != c.hash {
+			t.Errorf("%s: div %d events %v hash %s, want %d %v %s", c.name, s.Div(), ev, h, c.div, c.events, c.hash)
 		}
 	}
 	if a.Named("P2") != 0 {
@@ -181,14 +176,14 @@ func TestSIDRegs(t *testing.T) {
 	for blk := 1; blk <= 8; blk++ {
 		var got []string
 		now := 0
-		s := newSequencer(a.music[blk], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, true)
+		s := glbr.New(a.music[blk], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, true)
 		if s == nil {
 			t.Fatalf("block %d: no SID song", blk)
 		}
 		for now < 600 {
-			now = s.now + 1
-			if !s.tick() {
-				s.silence()
+			now = s.Now() + 1
+			if !s.Tick() {
+				s.Silence()
 				break
 			}
 		}

@@ -3,11 +3,11 @@ package audio
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"slices"
 
 	"github.com/memmaker/opl2"
 
+	"gobox/audio/glbr"
 	"gobox/audio/sid"
 )
 
@@ -26,7 +26,7 @@ type AdLib struct {
 	song  int            // block playing, 0 none
 	named map[string]int // AdLibData.Named: name -> block
 	tempo int            // AdLibData.Tempo
-	seq   *sequencer
+	seq   *glbr.Sequencer
 
 	acc int // PIT ticks accumulated, in 1193182/(outRate*16384) units
 	fx  []byte
@@ -70,11 +70,11 @@ func (a *AdLib) SID() bool { return a.sidOn }
 func NewAdLib(d AdLibData) (*AdLib, error) {
 	a := &AdLib{effects: map[int][]byte{}, rate: d.Rate, tempo: d.Tempo}
 	var err error
-	if a.music, err = daxBlocks(d.Music); err != nil {
+	if a.music, err = glbr.Blocks(d.Music); err != nil {
 		return nil, err
 	}
 	if d.Sounds != nil {
-		if a.sounds, err = daxBlocks(d.Sounds); err != nil {
+		if a.sounds, err = glbr.Blocks(d.Sounds); err != nil {
 			return nil, err
 		}
 	}
@@ -98,48 +98,6 @@ func NewAdLib(d AdLibData) (*AdLib, error) {
 	return a, nil
 }
 
-// daxBlocks unpacks a DAX file into blocks indexed by id.
-func daxBlocks(f []byte) ([][]byte, error) {
-	if len(f) < 2 {
-		return nil, errors.New("dax: short")
-	}
-	n := int(binary.LittleEndian.Uint16(f))
-	var out [][]byte
-	for i := 0; i+9 <= n && 2+i+9 <= len(f); i += 9 {
-		e := f[2+i:]
-		id, off := int(e[0]), int(binary.LittleEndian.Uint32(e[1:]))
-		raw := int(binary.LittleEndian.Uint16(e[5:]))
-		comp := int(binary.LittleEndian.Uint16(e[7:]))
-		s := 2 + n + off
-		if s+comp > len(f) {
-			return nil, errors.New("dax: block outside file")
-		}
-		src, b := f[s:s+comp], make([]byte, 0, raw)
-		for p := 0; p < len(src) && len(b) < raw; {
-			c := int(src[p])
-			p++
-			if c < 0x80 {
-				c++
-				if p+c > len(src) {
-					return nil, errors.New("dax: truncated")
-				}
-				b = append(b, src[p:p+c]...)
-				p += c
-			} else if p < len(src) {
-				for range 256 - c {
-					b = append(b, src[p])
-				}
-				p++
-			}
-		}
-		for len(out) <= id {
-			out = append(out, nil)
-		}
-		out[id] = b[:min(len(b), raw)]
-	}
-	return out, nil
-}
-
 // Named is the block of the song AdLibData.Named called name (0: none).
 func (a *AdLib) Named(name string) int {
 	if n := a.named[name]; a.Has(n) {
@@ -152,7 +110,7 @@ func (a *AdLib) Len() int { return len(a.music) }
 
 // Has: block n holds a song.
 func (a *AdLib) Has(n int) bool {
-	return n > 0 && n < len(a.music) && newSequencer(a.music[n], a.tempo, func(int, byte) {}, false) != nil
+	return n > 0 && n < len(a.music) && glbr.New(a.music[n], a.tempo, func(int, byte) {}, false) != nil
 }
 func (a *AdLib) Song() int     { return a.song }
 func (a *AdLib) Playing() bool { return a.seq != nil || a.fx != nil }
@@ -160,7 +118,7 @@ func (a *AdLib) Playing() bool { return a.seq != nil || a.fx != nil }
 // Reset stops the song and the effect.
 func (a *AdLib) Reset() {
 	if a.seq != nil {
-		a.seq.silence()
+		a.seq.Silence()
 	}
 	a.seq, a.fx, a.song = nil, nil, 0
 }
@@ -178,8 +136,8 @@ func (a *AdLib) Start(n int) {
 		a.sc = sid.New(sid.MOS6581, sidClock, adlibRate)
 		w = func(r int, v byte) { a.sc.Write(byte(r), v) }
 	}
-	if a.seq = newSequencer(a.music[n], a.tempo, w, a.sidOn); a.seq == nil { // a song without SID instruments: the OPL2
-		a.seq = newSequencer(a.music[n], a.tempo, func(r int, v byte) { a.chip.Write(r, v) }, false)
+	if a.seq = glbr.New(a.music[n], a.tempo, w, a.sidOn); a.seq == nil { // a song without SID instruments: the OPL2
+		a.seq = glbr.New(a.music[n], a.tempo, func(r int, v byte) { a.chip.Write(r, v) }, false)
 	}
 	a.song, a.acc = n, 0
 }
@@ -202,10 +160,10 @@ func (a *AdLib) Mix(m []byte, loop bool) {
 		if a.seq != nil {
 			// 72.8227 Hz PIT tick = 1193182/16384
 			for a.acc += 1193182; a.acc >= adlibRate*16384; a.acc -= adlibRate * 16384 {
-				if !a.seq.tick() {
-					a.seq.silence()
+				if !a.seq.Tick() {
+					a.seq.Silence()
 					if loop {
-						a.seq = newSequencer(a.music[a.song], a.tempo, a.seq.w, a.seq.sid != nil)
+						a.seq = glbr.New(a.music[a.song], a.tempo, a.seq.Writer(), a.seq.SID())
 					} else {
 						a.seq = nil
 					}
@@ -213,7 +171,7 @@ func (a *AdLib) Mix(m []byte, loop bool) {
 				}
 			}
 			switch {
-			case a.seq != nil && a.seq.sid != nil:
+			case a.seq != nil && a.seq.SID():
 				v = int(a.sc.ClockSample() * sidGain)
 			case a.seq != nil:
 				v = a.rs.Next()

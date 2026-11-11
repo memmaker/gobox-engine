@@ -1,4 +1,4 @@
-package audio
+package glbr
 
 import "encoding/binary"
 
