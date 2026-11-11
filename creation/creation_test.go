@@ -9,7 +9,10 @@ import (
 
 // fake: one choice field (two options, option 1 illegal once rolled 18+)
 // and one skills field; Roll gives strength 10 then counts up.
-type fake struct{ made []core.Draft }
+type fake struct {
+	made   []core.Draft
+	joined []core.RosterID
+}
 
 const fKind, fSkills core.FieldID = 0, 1
 
@@ -47,9 +50,13 @@ func (f *fake) SetScore(d core.Draft, a core.Ability, v int32) (core.Draft, erro
 	d.Sheet.Scores[a] = v
 	return d, nil
 }
-func (f *fake) Make(d core.Draft) (core.CharID, error) {
+func (f *fake) Make(d core.Draft) (core.CharID, core.RosterID, error) {
 	f.made = append(f.made, d)
-	return core.CharID(len(f.made)), nil
+	return core.NoChar, core.RosterID(len(f.made)), nil
+}
+func (f *fake) Join(id core.RosterID) (core.CharID, error) {
+	f.joined = append(f.joined, id)
+	return core.CharID(len(f.joined)), nil
 }
 func (f *fake) Draft(c core.CharID) (core.Draft, error) {
 	if c == core.NoChar {
@@ -99,7 +106,7 @@ func TestDraft(t *testing.T) {
 		}
 	}
 	ids, err := QuickParty(r, &core.RNG{})
-	if err != nil || len(ids) != 1 || r.made[0].Sheet.Scores[core.Strength] < 15 || r.made[0].Picks[fKind] != 1 || r.made[0].Name != "Q" {
+	if err != nil || len(ids) != 1 || len(r.joined) != 1 || r.joined[0] != 1 || r.made[0].Sheet.Scores[core.Strength] < 15 || r.made[0].Picks[fKind] != 1 || r.made[0].Name != "Q" {
 		t.Errorf("quick party %v %v %+v", ids, err, r.made)
 	}
 	if m, _ := Modify(r, &core.RNG{}, ids[0]); m.D.Of != ids[0] {

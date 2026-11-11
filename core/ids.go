@@ -108,6 +108,13 @@ const NoChar CharID = 0
 // SpellID is a spell or an item power that casts like one: core/dnd lists them.
 type SpellID string
 
+// RosterID is a roster character's own stable number, never derived from its
+// name (POR: the .cha trailer's "rosterid").
+type RosterID uint32
+
+// NoRoster is no roster character.
+const NoRoster RosterID = 0
+
 // PicID is one entry of the shared portrait and combat icon collection
 // (gobox/sprites, series pool or buck-rogers): its sprite name, "head_012".
 type PicID string

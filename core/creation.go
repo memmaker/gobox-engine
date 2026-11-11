@@ -28,10 +28,13 @@ type CreationRules interface {
 	// limitStat). gobox parses "18/50" into Strength 18 and StrengthPercent 50.
 	// The error says v is outside the race and class range.
 	SetScore(d Draft, a Ability, v int32) (Draft, error)
-	// Make keeps d (POR SaveCharacter): a new character when d.Of is NoChar,
-	// else it updates d.Of, keeping what the sheet does not show (items,
+	// Make keeps d (POR SaveCharacter): a new character when d.Of is NoChar
+	// goes to the roster (its RosterID; CharID NoChar), else it updates d.Of
+	// (RosterID NoRoster), keeping what the sheet does not show (items,
 	// affects, spells).
-	Make(d Draft) (CharID, error)
+	Make(d Draft) (CharID, RosterID, error)
+	// Join puts roster character id in the party (POR the Add command's join).
+	Join(id RosterID) (CharID, error)
 	// Draft opens an existing character for modifying (its Of is c); NoChar
 	// is the start of a new one: its Picks only (POR a human male fighter).
 	Draft(c CharID) (Draft, error)
@@ -69,8 +72,8 @@ const (
 type Template struct {
 	Picks              map[FieldID]int
 	Name               string
-	Head, Body         string
-	IconHead, IconBody string
+	Head, Body         PicID
+	IconHead, IconBody PicID
 	Need               map[Ability]int32 // rerolled until these are met (POR quickPick.good)
 }
 
@@ -91,7 +94,7 @@ type IconColour struct{ Low, High uint8 }
 // Icon is the combat icon editor's result: the pool parts, their colours and
 // size, or a dropped PNG that replaces the built icon.
 type Icon struct {
-	Head, Body string // combat icon pool names
+	Head, Body PicID // combat icon pool pictures
 	Colours    [IconParts]IconColour
 	Size       IconSize
 	PNG        []byte // a dropped PNG, encoded (nil: the built icon)

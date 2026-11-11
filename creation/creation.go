@@ -193,10 +193,12 @@ func FormatScore(v, pct int32) string {
 }
 
 // Keep makes the character (POR SaveCharacter).
-func (d *Draft) Keep() (core.CharID, error) { return d.R.Make(d.D) }
+// A new character goes to the roster (its RosterID), a modified one stays
+// the member it is (its CharID).
+func (d *Draft) Keep() (core.CharID, core.RosterID, error) { return d.R.Make(d.D) }
 
 // QuickParty makes the ruleset's ready-made party: each member from its
-// template, rerolled until its Need is met.
+// template, rerolled until its Need is met, kept to the roster and joined.
 func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
 	var out []core.CharID
 	for _, t := range r.QuickParty() {
@@ -218,7 +220,11 @@ func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
 			}
 		}
 		d.D.Name, d.D.Head, d.D.Body, d.D.Icon.Head, d.D.Icon.Body = t.Name, t.Head, t.Body, t.IconHead, t.IconBody
-		c, err := d.Keep()
+		_, id, err := d.Keep()
+		if err != nil {
+			return out, err
+		}
+		c, err := r.Join(id)
 		if err != nil {
 			return out, err
 		}
