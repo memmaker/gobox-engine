@@ -95,9 +95,15 @@ var V1 = func() *Version {
 	// a quest handed over (the quest journal; Felix 2026-11-11: never by
 	// matching its printed text): unused by every Gold Box dialect
 	set(&t, 66, OpQuest, 1, 0)
-	// Skip all 0: POR's port steps over a command reading none of its
-	// operands (unlike the second engine's parse_command); kept as it is.
-	return &Version{ID: 1, Base: 0x9900, Cmds: t, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true}
+	// SkipEclCmd's counts (por-re src/eclmenu.pas:1041; Felix 2026-11-11:
+	// POR steps over a command as the original did)
+	skip := skips(map[byte][]byte{
+		1: {1, 2, 10, 14, 17, 18, 29, 32, 45, 50, 52, 54, 56, 57, 60},
+		2: {3, 8, 9, 12, 15, 16, 31, 34},
+		3: {4, 5, 6, 7, 11, 33, 40, 42, 47, 48, 53, 55, 59},
+		4: {20, 35}, 5: {46}, 6: {30, 44}, 8: {39}, 14: {41},
+	})
+	return &Version{ID: 1, Base: 0x9900, Cmds: t, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true, Skip: skip}
 }()
 
 // set makes byte-code command b the canonical command op with these operands.

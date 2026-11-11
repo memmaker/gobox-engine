@@ -15,7 +15,7 @@ func TestSkipCounts(t *testing.T) {
 	v3 := byteSet(append(counted, 52, 54, 66,
 		39, 49)...) // TreasureOf, MenuKeys: counted in POD
 	known := map[VersionID]map[byte]bool{
-		1: nil, // all 0 (POR's port); not checked
+		1: byteSet(append(counted, 52, 54, 66, 31, 12)...), // 12 SetupMonster: SkipEclCmd steps over 2 of its 3
 		2: v2,
 		3: v3,
 	}
