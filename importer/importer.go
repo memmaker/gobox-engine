@@ -17,10 +17,12 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"gobox/core"
 )
 
 // Format is the manifest's format version; it changes when Manifest does.
-const Format = 3
+const Format = 4
 
 // ManifestFile is the manifest's name in an adventure folder.
 const ManifestFile = "manifest.json"
@@ -42,10 +44,11 @@ func CheckContents(dir string) error {
 
 // Game is one game's importer.
 type Game struct {
-	ID      string   // the folder's name, adventures/<ID>
-	Title   string   // shown in the list of adventures
-	Ruleset string   // the ruleset compiled into the binary that plays it (rules1e, rulesxxvc)
-	Sources []string // the originals' file patterns the import reads (filepath.Match, case-insensitive), EXE files included
+	ID      string            // the folder's name, adventures/<ID>
+	Title   string            // shown in the list of adventures
+	Ruleset string            // the ruleset compiled into the binary that plays it (rules1e, rulesxxvc)
+	Record  core.RecordLayout // the layout of the adventure's character records (core.NoRecord: none)
+	Sources []string          // the originals' file patterns the import reads (filepath.Match, case-insensitive), EXE files included
 	// Import writes the folder's files from the originals in dir src into
 	// dir dst (empty, existing).
 	Import func(src, dst string) error
@@ -73,6 +76,7 @@ type Manifest struct {
 	Title   string
 	Ruleset string
 	Format  int
+	Record  core.RecordLayout `json:",omitempty"` // the character records' layout (gobox/char's codec)
 	Start   *Sequence         `json:",omitempty"` // the title sequence
 	End     *Sequence         `json:",omitempty"` // the end sequence
 	Source  map[string]string // each original read: its name, its SHA-256
@@ -131,7 +135,7 @@ func Run(id, src, root string) error {
 	if err != nil {
 		return fmt.Errorf("import %s: end: %w", id, err)
 	}
-	b, err := json.MarshalIndent(Manifest{ID: g.ID, Title: g.Title, Ruleset: g.Ruleset, Format: Format, Start: start, End: end, Source: key}, "", "\t")
+	b, err := json.MarshalIndent(Manifest{ID: g.ID, Title: g.Title, Ruleset: g.Ruleset, Format: Format, Record: g.Record, Start: start, End: end, Source: key}, "", "\t")
 	if err != nil {
 		return err
 	}

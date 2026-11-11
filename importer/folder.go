@@ -7,6 +7,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"gobox/core"
 )
 
 // Folder is an imported adventure folder: where it is and its manifest.
@@ -60,4 +62,13 @@ func List(root string) (folders []Folder, skipped []error, err error) {
 		folders = append(folders, f)
 	}
 	return folders, skipped, nil
+}
+
+// CheckRecord reports whether the folder's character records are in layout
+// l, the one the engine reads (an older import has none: re-import).
+func (f Folder) CheckRecord(l core.RecordLayout) error {
+	if f.Manifest.Record != l {
+		return fmt.Errorf("adventure %s: character records are layout %d, the engine reads %d: re-import it", f.Dir, f.Manifest.Record, l)
+	}
+	return nil
 }

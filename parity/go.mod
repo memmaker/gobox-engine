@@ -43,6 +43,7 @@ require (
 	gobox/ui v0.0.0 // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
+	rules1e v0.0.0
 )
 
 // por's checkout beside gobox's (the parity tests read its presentdata goldens)
@@ -101,3 +102,5 @@ replace gobox/ecl => ../ecl
 replace gobox/asset => ../asset
 
 replace gobox/core => ../core
+
+replace rules1e => ../../rules1e
