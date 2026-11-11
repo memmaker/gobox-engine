@@ -63,4 +63,5 @@ type Template struct {
 	Name               string
 	Head, Body         string
 	IconHead, IconBody string
+	Need               map[Ability]int32 // rerolled until these are met (POR quickPick.good)
 }
