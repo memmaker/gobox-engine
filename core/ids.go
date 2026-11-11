@@ -63,6 +63,9 @@ const (
 	StatusDead        Status = "dead"
 	StatusStoned      Status = "stoned"
 	StatusGone        Status = "gone"
+	// StatusInactive: out of the active members, the record's status kept
+	// (por SpecialWriteZ1 0x100 with a value >= 0x80 but 0x87).
+	StatusInactive Status = "inactive"
 )
 
 // Side is who a combatant fights for (por Character.Side, Auto; the Side word
