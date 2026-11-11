@@ -13,3 +13,7 @@ var (
 	RecordAlignment = [9]core.Alignment{dnd.LawfulGood, dnd.LawfulNeutral, dnd.LawfulEvil, dnd.NeutralGood, dnd.TrueNeutral,
 		dnd.NeutralEvil, dnd.ChaoticGood, dnd.ChaoticNeutral, dnd.ChaoticEvil}
 )
+
+// SaveOrder is the saving throws in the Gold Box games' order: a record's
+// save bytes and a script's save number (DAMAGE) index it.
+var SaveOrder = [5]core.Save{dnd.SaveParalysis, dnd.SavePetrify, dnd.SaveRod, dnd.SaveBreath, dnd.SaveSpell}

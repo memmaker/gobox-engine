@@ -98,6 +98,13 @@ type (
 	PartyHealed struct{}
 	// RestInterrupted: a monster broke the rest off (por stepRest's roll).
 	RestInterrupted struct{}
+	// Hurt: a script's damage (ScriptDamage) hit Unit for Damage, already
+	// taken; Dies: it killed outright (the "dies." message).
+	Hurt struct {
+		Unit   CharID
+		Damage int32
+		Dies   bool
+	}
 	// Refused is an action the rules turned down, and why.
 	Refused struct {
 		Who CharID
@@ -127,6 +134,7 @@ type SoundCue string
 type Facing int8
 
 func (Narrated) effect()        {}
+func (Hurt) effect()            {}
 func (Sounded) effect()         {}
 func (Walked) effect()          {}
 func (Turned) effect()          {}

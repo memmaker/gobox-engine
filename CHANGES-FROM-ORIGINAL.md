@@ -63,6 +63,7 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 
 | What | Games | Original | New | Ruling | Commit |
 |---|---|---|---|---|---|
+| Script DAMAGE | POR, SotSB, POD | POR: no 0x10 bit (flags&0x1F the save bonus only); SotSB: damage re-rolled per random member; POD: 0x10 = a made save halves, bonus mask 15 | COTAB's (O03C:2958) for all: flags 0x80 with 0x10 = a made save still hurts, bonus mask 31, one roll for the flagged forms; rules1e `scriptDamage` (core.ScriptDamage). POR: no constant DAMAGE operand in ECL*.DAX sets 0x80 and 0x10 together, so its scripts play as before (variable operands V_6E7D unverified); TestAgainstPascal `damage` documents it | 3 (S-diffs) | rules1e, por-go (this) |
 | Paladin saves | POR | own rows, L1 14,15,16,17,17 | COTAB's, L1 12,13,14,15,15 (L1-8) | 19 | port earlier; rules1e |
 | Paladin, ranger attacks | POR | fighter only: 3 from L7 | paladin L7, ranger L8 also 3 (COTAB) | 19 | port earlier; rules1e |
 | Races: half-elf ranger, cleric/ranger; human paladin, ranger | POR | not offered | offered; half-elf ranger takes the fighter's age | 19 | port earlier; rules1e |

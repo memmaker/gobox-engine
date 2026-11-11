@@ -223,11 +223,22 @@ type (
 	PickLock struct{ Who CharID }
 
 	// What a script does to characters, as commands (por opDamage, sotsb cmdGainExp).
+	// ScriptDamage is a script's DAMAGE (ruling 3, cotab's rule for all):
+	// Dice d Sides + Bonus; Random: to Count members picked at random, each
+	// by a trap's hit roll at HitBonus and the damage rolled again after
+	// each; else to every member (All) or to one, picked at random or
+	// the Selected (BySelected), each with a saving throw unless Save is
+	// "". A made save spares unless SaveHurts. The rules pick and roll;
+	// the Outcome has a Hurt per member hit.
 	ScriptDamage struct {
-		Whom               []CharID
+		Selected           CharID
 		Dice, Sides, Bonus int32
-		Save               Save // "": no saving throw
+		Random             bool
+		Count, HitBonus    int32
+		All, BySelected    bool
+		Save               Save
 		SaveBonus          int32
+		SaveHurts          bool
 	}
 	// DuelClone: por DuelSetup's opponent, a copy of Of named Name joining
 	// the monsters' side with copies of Of's items; Icon is its combat icon slot.
