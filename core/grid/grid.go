@@ -202,3 +202,9 @@ const AreaSize = 16
 
 // OnMap reports whether x,y is inside the 16x16 area map.
 func OnMap(x, y int) bool { return x >= 0 && x < AreaSize && y >= 0 && y < AreaSize }
+
+// View is a combat view window of W x H squares (the game's size).
+type View struct{ W, H int }
+
+// In: square (x, y), counted from the view's top left, lies inside it.
+func (v View) In(x, y int) bool { return x >= 0 && x < v.W && y >= 0 && y < v.H }
