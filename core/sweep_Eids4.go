@@ -11,3 +11,8 @@ type UsingItem struct {
 }
 
 func (UsingItem) situation() {}
+
+// Fit asks whether Who is fit to act (Yes; por's Okay, [6C00]).
+type Fit struct{ Who CharID }
+
+func (Fit) check() {}
