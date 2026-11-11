@@ -82,8 +82,8 @@ Goal: `~/Projects/rulesxxvc` (module `rulesxxvc`, imports core and core/xxvc onl
 - [x] X1 map (below)
 - [x] X2a module, import guard, dice, SkillValue/SkillCheck (charhlp.pas SelectSkillCharacter; rulesxxvc 8f1c8da)
 - [x] X2b skill prerequisites (charhlp.pas MeetsSkillPrerequisite, c_skill.pas; SkillNo, SkillLevels; rulesxxvc 32eb5a4)
-- [x] X2c attack arithmetic (AttackDie, Thac0Modifier by Difficulty, AttackHits, ProjectileRangePenalty, RangePenalty, ArmorValue; rulesxxvc 849f9c5)
-- [ ] X2d next: skill groups and career skills (gdconsts.pas skillDefinitions, careerSkills), saves (RollSavingThrow), damage (CalcWeaponDamage), initiative, ship-fight arithmetic (shipcbt.pas); then a Rules type over typed characters once gaps 1 and 3 are answered
+- [x] X2c attack arithmetic (AttackDie, Thac0Modifier by Difficulty, AttackHits, ProjectileRangePenalty, RangePenalty, ArmorValue; rulesxxvc 849f9c5); SaveDie, SaveMade (fxengine.pas RollSavingThrow; d1acc6f)
+- [ ] X2d next: skill groups and career skills (gdconsts.pas skillDefinitions, careerSkills), damage (CalcWeaponDamage), initiative, ship-fight arithmetic (shipcbt.pas); then a Rules type over typed characters once gaps 1 and 3 are answered
 
 Handover: every rulesxxvc function names its .pas; check BR2's copy before porting (so far identical); tests are hand-derived from the .pas, TP Random values computed outside Go.
 - [ ] X3 BR games keep their own code until wind-down (untouched so far)
