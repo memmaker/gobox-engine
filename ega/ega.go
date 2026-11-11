@@ -70,3 +70,17 @@ func AmigaRGBA(i uint8) color.RGBA {
 	f := func(v float64) uint8 { return uint8(max(0, min(255, l+(v-l)*AmigaSaturation)) + 0.5) }
 	return color.RGBA{f(r), f(g), f(b), 255}
 }
+
+// Regs are the EGA palette registers: register -> Palette colour.
+type Regs [16]uint8
+
+// Identity is the registers as the BIOS sets them.
+var Identity = Regs{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+
+// RGBA is the displayed colour of pixel value i under the registers r.
+func (r *Regs) RGBA(i uint8) color.RGBA {
+	if i >= AmigaBase {
+		return AmigaRGBA(i)
+	}
+	return RGBA(int(r[i&15]))
+}
