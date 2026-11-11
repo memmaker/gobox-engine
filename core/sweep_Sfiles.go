@@ -59,15 +59,11 @@ var DaspFx = map[int]string{
 // InFight asks whether a fight is on (Yes).
 type InFight struct{}
 
-// PartyPlace asks where the party stands on the map: Low is x, High is y.
-type PartyPlace struct{}
-
 // AreaGeo asks the current area's GEO block number (Value).
 type AreaGeo struct{}
 
-func (InFight) check()    {}
-func (PartyPlace) check() {}
-func (AreaGeo) check()    {}
+func (InFight) check() {}
+func (AreaGeo) check() {}
 
 // BeginState asks the game's begin flag (por DS:49F3; Value): 0 the party
 // menu, 5 a fight's setup.
