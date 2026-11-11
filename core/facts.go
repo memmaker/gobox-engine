@@ -187,6 +187,8 @@ const (
 	WordTraining     // por: the training hall is open (Yes; read only)
 	WordWho          // por DS:5D92: the member the rules act for
 	WordEffect       // por: the party's affect table, entry WordIs.Index (read only)
+	WordClockMinutes // por: the area clock as minutes of the day (read only)
+	WordCampOn       // por: camp is up (CampMenu; flag)
 )
 
 // WorldBinding names the address of a WorldWord in this adventure's scripts.

@@ -49,3 +49,27 @@ const (
 	DollArrows // arrows or quarrels beside the bow or crossbow in hand
 	DollSlots
 )
+
+// Reaction is one of the rule set's reactions a character has, with its policy.
+type Reaction struct {
+	ID     int
+	Name   string
+	Policy Policy
+}
+
+// Reactions are Who's reactions (ReactionsFact).
+type Reactions []Reaction
+
+// ReactionsFact is Who's reactions and its policy for each (Reactions).
+type ReactionsFact struct{}
+
+// StudyFact is what Who could study in camp (Study).
+type StudyFact struct{}
+
+// Study counts the spells of Who's book and those on the scrolls it carries.
+type Study struct{ Book, Scrolls int32 }
+
+func (Reactions) value()    {}
+func (Study) value()        {}
+func (ReactionsFact) fact() {}
+func (StudyFact) fact()     {}
