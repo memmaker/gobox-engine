@@ -5,10 +5,9 @@ package core
 // Actions a ruleset answers; none of them has a side effect but the Actions.
 
 type (
-	// PartySize: the members of the party (Value).
+	// PartySize: the members of the party (Value), extras too; core.WordPartyCount
+	// is the record's count, which they are not in.
 	PartySize struct{}
-	// HiredCount: the hired NPCs that joined so far (Value).
-	HiredCount struct{}
 	// TrainFee: the gold the hall asks (Value).
 	TrainFee struct{}
 	// PoolCap: the party inventory's room (Value).
@@ -20,18 +19,20 @@ type (
 	// CanJoin: Who may join the party (Yes); the Refusal says why not is the rules' own.
 	CanJoin struct{ Who CharID }
 	// InParty: a character of Who's name and random id is in the party (Yes).
-	// Value: the members the player controls (hired ones not) up to it, or all.
 	InParty struct{ Who CharID }
+	// ControlledBefore: the members the player controls (hired ones not)
+	// ahead of the first InParty match of Who, or all of them (Value).
+	ControlledBefore struct{ Who CharID }
 )
 
-func (PartySize) check()  {}
-func (HiredCount) check() {}
-func (CarryCount) check() {}
-func (PoolCap) check()    {}
-func (TrainFee) check()   {}
-func (HallOpen) check()   {}
-func (CanJoin) check()    {}
-func (InParty) check()    {}
+func (PartySize) check()        {}
+func (CarryCount) check()       {}
+func (PoolCap) check()          {}
+func (TrainFee) check()         {}
+func (HallOpen) check()         {}
+func (CanJoin) check()          {}
+func (InParty) check()          {}
+func (ControlledBefore) check() {}
 
 type (
 	// ListedFact is the items Who sees listed as the inventory orders them
@@ -165,11 +166,6 @@ func (ClearHired) action()   {}
 func (EnterShop) action()    {}
 func (IdentifyItem) action() {}
 func (StockShop) action()    {}
-
-// RefusedWhy is a refusal with the words the ruleset gives it.
-type RefusedWhy struct{ Why string }
-
-func (r *RefusedWhy) Error() string { return r.Why }
 
 // ItemIdentified is the shop's Id done: Revealed is false when the item had
 // nothing new to tell.

@@ -134,6 +134,7 @@ type Refusal int8
 const (
 	OverLoaded Refusal = iota + 1 // no room for another item
 	NoMoney                       // the purse cannot pay
+	NotTrainable                  // the hall will not train Who (the Narrated after it says why)
 )
 
 // SoundCue is a sound a rule makes, named as the adventure's asset names it.
