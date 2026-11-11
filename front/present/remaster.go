@@ -212,7 +212,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 		return Rect{}
 	}
 	if v.Intro != nil && p.mm.title == nil { // the picture the main menu comes in over
-		p.mm.title = layersImage(titleBackdrop)
+		p.mm.title, p.mm.painted = layersImage(titleBackdrop), paintedLayers(titleBackdrop)
 	}
 	p.intro.NoCredits = len(credits) == 0
 	front.IntroStep(p, &p.intro, v.Intro, false)

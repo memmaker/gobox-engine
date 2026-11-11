@@ -41,6 +41,7 @@ type mainUI struct {
 	logo     srcImage          // MainMenu.Logo on the GPU
 	backdrop srcImage          // title on the GPU
 	title    image.Image       // the title's picture kept under the menu (Data.TitleBackdrop; nil: none)
+	painted  bool              // title is a painted picture of its own (a SourcePNG layer), not the intro's last: the menu fades in over it without the zoom
 	cards    []image.Rectangle // the party's cards drawn
 	rows     string            // the rows last drawn, and whether in the submenu: rows the game changed start the highlight on the first
 	rowsSub  bool
@@ -50,7 +51,7 @@ type mainUI struct {
 func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	dst.Fill(color.Black)
 	b := dst.Bounds()
-	bd := m.title // the title's picture stays: the menu zooms in over it
+	bd := m.title // the title's picture stays: the menu comes in over it
 	if bd == nil {
 		m.drawMainUI(h, dst, v)
 		return
@@ -72,10 +73,11 @@ func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	m.layer.Clear()
 	m.drawMainUI(h, m.layer, v)
 	lo := &gpu.DrawImageOptions{}
-	z := 0.1 + 0.9*float64(max(a, 0)) // the menu zooms in from the centre out
-	lo.GeoM.Translate(-float64(b.Dx())/2, -float64(b.Dy())/2)
-	lo.GeoM.Scale(z, z)
-	lo.GeoM.Translate(float64(b.Dx())/2, float64(b.Dy())/2)
+	if z := 0.1 + 0.9*float64(max(a, 0)); !m.painted { // over the intro's last picture the menu zooms in from the centre out
+		lo.GeoM.Translate(-float64(b.Dx())/2, -float64(b.Dy())/2)
+		lo.GeoM.Scale(z, z)
+		lo.GeoM.Translate(float64(b.Dx())/2, float64(b.Dy())/2)
+	}
 	lo.ColorScale.ScaleAlpha(max(a, 0))
 	dst.DrawImage(m.layer, lo)
 }
@@ -365,6 +367,17 @@ func ReadPNG(path string) image.Image {
 		return nil
 	}
 	return im
+}
+
+// paintedLayers reports whether ls hold a painted picture of their own
+// (a SourcePNG layer) rather than the intro's own picture.
+func paintedLayers(ls []game.Layer) bool {
+	for _, l := range ls {
+		if l.Source == game.SourcePNG {
+			return true
+		}
+	}
+	return false
 }
 
 // layersImage is the title backdrop's layers (Data.TitleBackdrop) drawn
