@@ -46,8 +46,8 @@ C2 blocker (needs Felix, core interface): moving the draft flow into gobox needs
 C3 decision (needs Felix): merge `buck-rogers` into the one `pool` series (BR art is VGA, Pool EGA; dedup would never match across them, so the merge is only one listing), or keep two series per art family.
 
 ## Track P: parity with the baseline and the title sequences
-- [ ] feature and flow list of por-go c70cbee (PORT_CHECKLIST "Extras", MODERNIZED.md, git log) against today's engine: what is lost
-- [ ] the title-sequence changes per game: list the commits, keep them in the declarative sequences
+- [x] feature and flow list of por-go c70cbee (PORT_CHECKLIST "Extras", MODERNIZED.md, git log) against today's engine: what is lost
+- [x] the title-sequence changes per game: list the commits, keep them in the declarative sequences
 - [ ] restore every lost feature in the shared engine
 - [ ] per game: plays from its folder only; scripted windowed run to the first fight and a save/load
 
