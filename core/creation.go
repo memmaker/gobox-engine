@@ -28,7 +28,8 @@ type CreationRules interface {
 	// else it updates d.Of, keeping what the sheet does not show (items,
 	// affects, spells).
 	Make(d Draft) (CharID, error)
-	// Draft opens an existing character for modifying (its Of is c).
+	// Draft opens an existing character for modifying (its Of is c); NoChar
+	// is the start of a new one: its Picks only (POR a human male fighter).
 	Draft(c CharID) (Draft, error)
 }
 

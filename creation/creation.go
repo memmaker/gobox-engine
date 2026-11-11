@@ -6,6 +6,7 @@ package creation
 
 import (
 	"errors"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -30,27 +31,39 @@ type Draft struct {
 	Fields []core.FieldDef
 }
 
-// New is a fresh character: every field on its first option (POR: human male
-// fighter), rolled.
-func New(r core.CreationRules, rng *core.RNG) *Draft {
+// New is a fresh character: the ruleset's start (Draft(NoChar): POR a
+// human male fighter), each field enforced, rolled.
+func New(r core.CreationRules, rng *core.RNG) (*Draft, error) {
+	start, err := r.Draft(core.NoChar)
+	if err != nil {
+		return nil, err
+	}
+	return begin(r, rng, start.Picks), nil
+}
+
+// begin is a new draft from picks: each field enforced in the ruleset's
+// order (a ruleset may build and roll on the first, POR's fresh), then rolled
+// unless that rolled already. A field picks lacks starts on its first option.
+func begin(r core.CreationRules, rng *core.RNG, picks map[core.FieldID]int) *Draft {
 	d := &Draft{R: r, RNG: rng}
 	d.D.Of = core.NoChar
-	d.Fields = r.Fields(d.D)
 	d.D.Picks = map[core.FieldID]int{}
 	d.D.Points = map[core.FieldID][]int32{}
+	d.Fields = r.Fields(d.D)
 	for _, f := range d.Fields {
-		if f.Kind == core.FieldSkills {
-			d.D.Points[f.ID] = make([]int32, len(f.Options))
-			continue
+		if f.Kind == core.FieldChoice {
+			d.D.Picks[f.ID] = picks[f.ID]
 		}
-		d.D.Picks[f.ID] = 0
 	}
 	for _, f := range d.Fields {
 		if f.Kind == core.FieldChoice {
-			d.D = r.Enforce(d.D, f.ID, d.D.Picks[f.ID], rng)
+			d.SetField(f.ID, d.D.Picks[f.ID])
 		}
 	}
-	d.Roll(core.RollFull)
+	d.sizeSkills()
+	if d.D.Sheet.Scores == nil {
+		d.Roll(core.RollFull)
+	}
 	return d
 }
 
@@ -77,7 +90,15 @@ func (d *Draft) Fits(f core.FieldDef) []bool {
 func (d *Draft) SetField(f core.FieldID, o int) {
 	d.D = d.R.Enforce(d.D, f, o, d.RNG)
 	d.Fields = d.R.Fields(d.D)
-	for _, fd := range d.Fields { // a field the pick brought (BR career skills) starts unspent
+	d.sizeSkills()
+}
+
+// sizeSkills starts a skills field the picks brought (BR career skills) unspent.
+func (d *Draft) sizeSkills() {
+	if d.D.Points == nil {
+		d.D.Points = map[core.FieldID][]int32{}
+	}
+	for _, fd := range d.Fields {
 		if fd.Kind == core.FieldSkills && len(d.D.Points[fd.ID]) != len(fd.Options) {
 			d.D.Points[fd.ID] = make([]int32, len(fd.Options))
 		}
@@ -175,9 +196,12 @@ func (d *Draft) Keep() (core.CharID, error) { return d.R.Make(d.D) }
 func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
 	var out []core.CharID
 	for _, t := range r.QuickParty() {
-		d := New(r, rng)
-		for _, f := range d.Fields {
-			if o, ok := t.Picks[f.ID]; ok {
+		d := begin(r, rng, t.Picks)
+		for _, f := range d.Fields { // a pick the template leaves open (POR 4e powers): its first fitting option (POR defaultPowers)
+			if _, ok := t.Picks[f.ID]; ok || f.Kind != core.FieldChoice || d.D.Picks[f.ID] >= 0 {
+				continue
+			}
+			if o := slices.Index(d.Fits(f), true); o >= 0 {
 				d.SetField(f.ID, o)
 			}
 		}

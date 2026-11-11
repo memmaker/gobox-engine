@@ -48,11 +48,19 @@ func (f *fake) Make(d core.Draft) (core.CharID, error) {
 	f.made = append(f.made, d)
 	return core.CharID(len(f.made)), nil
 }
-func (f *fake) Draft(c core.CharID) (core.Draft, error) { return f.made[c-1], nil }
+func (f *fake) Draft(c core.CharID) (core.Draft, error) {
+	if c == core.NoChar {
+		return core.Draft{}, nil
+	}
+	return f.made[c-1], nil
+}
 
 func TestDraft(t *testing.T) {
 	r := &fake{}
-	d := New(r, &core.RNG{})
+	d, err := New(r, &core.RNG{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	d.Rename("Ab~cdefghijklmnopq")
 	if d.D.Name != "Abcdefghijklmno" {
 		t.Errorf("name %q", d.D.Name)

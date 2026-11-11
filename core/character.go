@@ -157,9 +157,16 @@ type Draft struct {
 	Points     map[FieldID][]int32
 	Name       string
 	Head, Body string // portrait pool names
+	Portrait   []byte // a dropped PNG portrait, encoded (nil: the pool head and body)
 	Icon       Icon
 	// Of is the character being modified (NoChar: a new one); Make updates it.
 	Of CharID
+	// The roll's values the sheet does not show, so Make keeps the rolled
+	// character: Purse the starting money, HitRoll the hit-dice roll before
+	// adjustments, Ident the ruleset's identity roll (POR RandomID).
+	Purse   Copper
+	HitRoll int32
+	Ident   uint32
 }
 
 // TrapDefinition is a trap as data: no universal skip of the stoned, the damage
