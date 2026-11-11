@@ -51,6 +51,13 @@ Handover (agent C, stopped at 527b2ee): core/creation.go holds CreationRules, Fi
 3. Embed Creation() CreationRules in CharacterRules; delete Draft.Step and the SetChoice field strings.
 4. In-game combat icons from the series PNGs (front/present/poolpic.go: icons stay on DAX for palette recolour; the recolour must move to the PNG, check what each game recolours first).
 
+C2 stop (agent C2, 2026-11-11, no code commits): step 1 cannot be written over CreationRules as approved; needs Felix (core interface). The loop that gobox owns needs, and CreationRules lacks:
+- the current picks: core.Draft has Sheet, Step, Lows, HP only, no value per FieldID, so the loop cannot show a field's pick (game.Field.Pick) nor call Fits for dependants. Proposal: `Draft.Picks map[FieldID]int`, and Draft.Name, Head, Body, IconHead, IconBody (pool names) so pictures and name are the loop's, not SetChoice strings.
+- finishing and starting: Keep (POR SaveCharacter) and Modify (a Draft from a member). Proposal: `Make(Draft) (CharID, error)` and `Draft(CharID) (Draft, error)` on CreationRules; `CharacterRules.Draft() *Draft` and core.KeepDraft/DropDraft go, since the draft lives in gobox.
+- stats typed in place (POR setStatTyped, limitStat, "18/50"): Proposal: `SetScore(Draft, Ability, int32) (Draft, error)` (error: out of the race/class range), the 18/xx parse in gobox.
+- BR's skills step: a FieldDef kind (`FieldSkills`, points to spend) or a separate `Skills(Draft) []SkillDef`; which?
+Also: nothing implements core.Rules yet (rules1e has creation tables only, R3 chargen open), and the six games drive creation through front.Game (POR) or play (others) with their own draft state; the gobox loop would first sit behind front.Game as an adapter (front/creation.go), each game supplying CreationRules. Answer these and C2 resumes at step 1.
+
 ## Track P: parity with the baseline and the title sequences
 - [x] feature and flow list of por-go c70cbee (PORT_CHECKLIST "Extras", MODERNIZED.md, git log) against today's engine: what is lost
 - [x] the title-sequence changes per game: list the commits, keep them in the declarative sequences
