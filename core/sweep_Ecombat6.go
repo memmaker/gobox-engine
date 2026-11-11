@@ -52,3 +52,32 @@ func (TargetWhyFact) fact()   {}
 func (SquaresFact) fact()     {}
 func (Lines) value()          {}
 func (Squares) value()        {}
+
+// ManeuverAim is what a maneuver aims at.
+type ManeuverAim int32
+
+const (
+	AimWeapon ManeuverAim = iota // a foe, with the next weapon attack
+	AimSelf                      // no aim
+	AimFoe                       // a foe within Range
+	AimAlly                      // a member of the fighter's side within Range (itself too)
+	AimArea                      // a square within Range: who stands within Area squares of it
+)
+
+// ManeuverCard is one maneuver as the fighter's turn offers it.
+type ManeuverCard struct {
+	ID          ManeuverID
+	Name, Tip   string
+	Aim         ManeuverAim
+	Range, Area int // squares: AimFoe, AimAlly, AimArea; AimArea's burst
+	Move        int // AimWeapon: squares the fighter may move first
+}
+
+// ManeuversFact is the fighter's maneuvers; its Value is ManeuverCards.
+type ManeuversFact struct{}
+
+// ManeuverCards are maneuvers in the ruleset's order.
+type ManeuverCards []ManeuverCard
+
+func (ManeuversFact) fact()  {}
+func (ManeuverCards) value() {}
