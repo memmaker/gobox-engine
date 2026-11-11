@@ -69,6 +69,11 @@ Felix: "Just keep a documentation on what has changed where." One row per bug fi
 | Ranger, cleric/ranger alignments | POR | any | good only (COTAB) | 19 | port earlier; rules1e |
 | Paladin XP, L2-8 | POR | -1, no progression | COTAB's 2751 .. 175001 | 19 | port earlier; rules1e |
 | Ranger XP, L2-7 | POR | -1, no progression | COTAB's 2251 .. 90001 | 19 | port earlier; rules1e |
+| Monk saves | POR | the class rows | also the old-level row (COTAB oldClassSaveData, O0FE:07FB): a monk with no old level takes row 0, 11,10,10,14,11; no POR career is a monk | Felix 18:10 (saves) | rules1e |
+| Paladin spells, L9+ | POR | none | COTAB's cleric slots (paladinSlotData, O0FE:000F); POR's paladins stop at 8 | Felix 18:10 (slots) | rules1e |
+| Ranger spells, L8+ | POR | none | COTAB's druid and magic-user slots (rangerSlotData); POR's rangers stop at 7 | Felix 18:10 (slots) | rules1e |
+| Thief skills: items of thievery, free action | POR | none (POR's items have no powers) | COTAB's (O0FE:0AEA): levels lifted to 5/7 or +5 kept across skills; free action lifts to 4 or +10 | Felix 18:10 (thief) | rules1e |
+| Magic-user slots: item of wizardry | POR | none (no item powers) | COTAB's: doubled | Felix 18:10 (slots) | rules1e |
 | Money | all four | coins per character, with weight | one party purse, copper; no coin weight (decision page 13: a minor unification) | 11, page 13 | POR port earlier; others decided |
 | Money: NPC share of the coins | POR | NpcTreasureShare cuts each of the five coin types and leaves each type's remainder | one copper pile is cut; equal whenever every pile divides (`TestNpcShareAgainstPascal`) | page 1: a minor unification | por-go hiredShare |
 | Money: WHO skips the purse | POR | EclWho may pick by the character's coins | the party purse is no character's, so `purseWho` skips it | page 5 | por-go purseWho |
