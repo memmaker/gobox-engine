@@ -1,6 +1,10 @@
 package goldbox
 
-import "time"
+import (
+	"time"
+
+	"gobox/core"
+)
 
 // Random = Turbo Pascal Random(n): *seed = *seed*0x08088405+1, then the high
 // word mod n. The seed advances even for n = 0, which returns 0.
@@ -40,3 +44,12 @@ func Dice(r Roller, n, sides int) int {
 	}
 	return t
 }
+
+// RNGDice is Dice over the engine's core.RNG (whose draw is N), for the
+// rulesets that roll from it (rulesxxvc: charhlp.pas RollDice, Byte count,
+// sides and total like the Pool games').
+func RNGDice(r *core.RNG, n, sides int) int { return Dice(coreRoller{r}, n, sides) }
+
+type coreRoller struct{ r *core.RNG }
+
+func (c coreRoller) Random(n int) int { return c.r.N(n) }
