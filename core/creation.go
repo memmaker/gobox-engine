@@ -111,6 +111,9 @@ func (m *MinimumError) Error() string {
 	if m.Tries > 0 {
 		return "Not met in " + strconv.Itoa(m.Tries) + " rolls"
 	}
+	if m.Ability == Strength && m.Best == 18 && m.BestPct == 0 { // POR create.go's special
+		return "STR 18/xx is for fighters only, max 18"
+	}
 	name := string(m.Ability)
 	if len(name) > 3 {
 		name = name[:3]

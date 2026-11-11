@@ -65,7 +65,7 @@ func TestDraft(t *testing.T) {
 		t.Fatal(err)
 	}
 	var me *core.MinimumError
-	if err := d.Roll(core.RollMinimal); !errors.As(err, &me) || me.Ability != core.Strength || err.Error() != "STR 19 impossible here, max 18" {
+	if err := d.Roll(core.RollMinimal); !errors.As(err, &me) || me.Ability != core.Strength || err.Error() != "STR 18/xx is for fighters only, max 18" {
 		t.Errorf("minimal: %v", err)
 	}
 	d.Rename("Ab~cdefghijklmnopq")
@@ -75,8 +75,16 @@ func TestDraft(t *testing.T) {
 	if err := d.SetScore(core.Strength, "18/00"); err != nil || d.D.Sheet.Scores[core.StrengthPercent] != 100 {
 		t.Errorf("18/00: %v %v", err, d.D.Sheet.Scores)
 	}
-	if d.SetScore(core.Strength, "19") == nil || d.SetScore(core.Strength, "18/5") == nil {
-		t.Error("bad scores taken")
+	if d.SetScore(core.Strength, "19") == nil {
+		t.Error("refusal lost")
+	}
+	if err := d.SetScore(core.Strength, "18/5"); err != nil || d.D.Sheet.Scores[core.StrengthPercent] != 5 {
+		t.Errorf("18/5 (POR parseMinStat: one digit): %v", err)
+	}
+	for _, s := range []string{"17/50", "26", "18/100", "x"} {
+		if _, _, err := ParseScore(s); err != ErrScore {
+			t.Errorf("%q parsed", s)
+		}
 	}
 	sk := d.Fields[1]
 	if d.Spend(sk, 0, 2) != nil || d.Spend(sk, 1, 2) == nil || d.Spend(sk, 1, -1) == nil {

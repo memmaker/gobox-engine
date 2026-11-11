@@ -162,19 +162,20 @@ func (d *Draft) SetScore(a core.Ability, typed string) error {
 	return nil
 }
 
-// ParseScore reads "15" (pct 0) or "18/50" (pct 50; "18/00": 100).
+// ParseScore reads "15" (pct 0) or "18/50" (pct 50; "18/5": 5; "18/00": 100);
+// scores run 0..25 and only 18 takes a percent (POR parseMinStat).
 func ParseScore(s string) (v, pct int32, err error) {
 	s = strings.TrimSpace(s)
 	base, ex, has := strings.Cut(s, "/")
 	n, e := strconv.Atoi(base)
-	if e != nil || n < 0 {
+	if e != nil || n < 0 || n > 25 {
 		return 0, 0, ErrScore
 	}
 	if !has {
 		return int32(n), 0, nil
 	}
 	p, e := strconv.Atoi(ex)
-	if e != nil || p < 0 || p > 99 || len(ex) != 2 {
+	if e != nil || p < 0 || p > 99 || n != 18 {
 		return 0, 0, ErrScore
 	}
 	if p == 0 {
