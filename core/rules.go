@@ -53,8 +53,9 @@ type CharacterRules interface {
 	Sheet(CharID) Sheet
 	// Draft is the character being made, nil none. play.Assembling.Draft.
 	Draft() *Draft
-	// Purse is the party's one purse. play.Common.Purse; por purseCoin.
-	Purse() Copper
+	// Purse is the coins a character can spend: its own, or the party's one
+	// purse under the shared purse. play.Common.Purse; por purseCoin.
+	Purse(CharID) Copper
 	// Shared is the one slotted inventory under Options.PartyInventory, else nil.
 	Shared() []Carried
 	// Spell is the registry row: presence does not mean learnable (Campaign).
