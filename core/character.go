@@ -34,7 +34,7 @@ type Sheet struct {
 // SlotCount is spell slots left and in all.
 type SlotCount struct{ Left, Max int32 }
 
-// Figure is a line a ruleset adds to the sheet (game.Stat).
+// Figure is a line a ruleset adds to the sheet, with its tooltip lines (game.Stat).
 type Figure struct {
 	Name, Value string
 	Help        []string

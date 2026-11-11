@@ -2,7 +2,11 @@
 // caller's DAX reader) into plain values. No engine state, no rendering.
 package geo
 
-import "errors"
+import (
+	"errors"
+
+	"gobox/core/grid"
+)
 
 const (
 	Size        = 0x402    // GEO block: 2-byte header + 4 planes
@@ -33,9 +37,6 @@ func ParseMap(b []byte) (*Map, error) {
 	return m, nil
 }
 
-// OnMap reports whether x,y is inside the 16x16 map.
-func OnMap(x, y int) bool { return x >= 0 && x <= 15 && y >= 0 && y <= 15 }
-
 func wrap(v int) int {
 	if v > 15 {
 		return 0
@@ -47,7 +48,7 @@ func wrap(v int) int {
 }
 
 // offSolid: off the map and the edges are solid.
-func (m *Map) offSolid(x, y int) bool { return !OnMap(x, y) && m.SolidEdges }
+func (m *Map) offSolid(x, y int) bool { return !grid.OnMap(x, y) && m.SolidEdges }
 
 // WallAt is the wall value 0..15 on side dir (0 N, 2 E, 4 S, 6 W) of a cell.
 func (m *Map) WallAt(x, y, dir int) byte {

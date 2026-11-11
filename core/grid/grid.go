@@ -196,3 +196,9 @@ func DirectionTo(x1, y1, x2, y2 int) int {
 	}
 	return 8 // never: the eight sectors cover the plane
 }
+
+// AreaSize is the side of a Pool game's area map in squares (GEO: 16x16).
+const AreaSize = 16
+
+// OnMap reports whether x,y is inside the 16x16 area map.
+func OnMap(x, y int) bool { return x >= 0 && x < AreaSize && y >= 0 && y < AreaSize }

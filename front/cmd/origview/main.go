@@ -14,6 +14,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"gobox/core/grid"
 	"gobox/dax"
 	"gobox/ega"
 	"gobox/geo"
@@ -205,7 +206,7 @@ func (v *view) draw(dir, px, py int) {
 				tx, ty, col, prev := x, y, 0, 0
 				for range 4 {
 					w := v.wall(dir, tx, ty)
-					if !geo.OnMap(tx, ty) && v.wall(side.other, tx, ty) == 0 {
+					if !grid.OnMap(tx, ty) && v.wall(side.other, tx, ty) == 0 {
 						prev = 0
 					}
 					if w != 0 {

@@ -10,6 +10,8 @@ import (
 	"image/color"
 	"io/fs"
 	"time"
+
+	"gobox/core"
 )
 
 // Picture is an art ref: a DAX File/Block/Frame (Block -1: none), or a Name,
@@ -211,10 +213,7 @@ type Sheet struct {
 }
 
 // Stat is one of a rule set's figures on the sheet, with its tooltip lines.
-type Stat struct {
-	Name, Value string
-	Help        []string
-}
+type Stat = core.Figure
 
 // SheetPage is what the character sheet's page shows.
 type SheetPage struct {
