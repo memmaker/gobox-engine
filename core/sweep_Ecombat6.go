@@ -7,3 +7,15 @@ package core
 type FightCleared struct{}
 
 func (FightCleared) action() {}
+
+// DetectLoot: the actor casts its memorized Detect Magic on the fight's
+// treasure (por LootDetect); ErrNotNow when there is no treasure or no such spell.
+type DetectLoot struct{}
+
+func (DetectLoot) action() {}
+
+// IconFact is a fighter's combat icon slot (por Character.Order); its
+// Value is a Number.
+type IconFact struct{}
+
+func (IconFact) fact() {}
