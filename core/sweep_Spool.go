@@ -62,24 +62,12 @@ func (InventoryView) value() {}
 type (
 	// OwedFact is the pick the member still owes (Fact: PowerOwed; no Options: none).
 	OwedFact struct{}
-	// PowersFact is the member's picked powers and daily uses (Fact: PowerSet).
-	PowersFact struct{}
 )
 
 // PowerOwed is one choice a member owes: one of Options.
 type PowerOwed struct {
 	What    string // "an at-will power"
 	Options ManeuverCards
-}
-
-// PowerSet is a member's picked powers (their ids), the daily uses spent
-// (Surges, Laid), the Toughness kept in its hit points and its reactions'
-// policies.
-type PowerSet struct {
-	Powers       []int
-	Surges, Laid int
-	Tough        int
-	Policies     map[int]Policy
 }
 
 type (
@@ -90,17 +78,9 @@ type (
 		Who   CharID
 		Power int
 	}
-	// SetPowers replaces Who's powers and daily uses (a saved member loaded).
-	SetPowers struct {
-		Who CharID
-		Set PowerSet
-	}
 )
 
 func (OwedFact) fact()    {}
-func (PowersFact) fact()  {}
 func (PowerOwed) value()  {}
-func (PowerSet) value()   {}
 func (Toughen) action()   {}
 func (TakePower) action() {}
-func (SetPowers) action() {}
