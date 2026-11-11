@@ -64,3 +64,5 @@ replace gobox/sprites => ../sprites
 replace gobox/asset => ../asset
 
 replace gobox/core => ../core
+
+require gobox/core v0.0.0 // indirect

@@ -23,15 +23,19 @@ var ErrNotCarried = errors.New("sequence field not carried yet")
 
 // TitleScene is the title Scene of sequence s's steps: step i (from 1) its
 // layers, loaded by pic, and its tune; the credits steps show their page.
+// Without full (the host's Full intro option) only s.Short's steps play.
 // A step whose Lightning is On in graphics mode g makes the intro flash. The rest of s goes to the
 // game's Data (TitleData).
-func TitleScene(s importer.Sequence, g importer.Graphics, cm Common, pic func(importer.Art) (game.Picture, error)) (Scene, error) {
+func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, pic func(importer.Art) (game.Picture, error)) (Scene, error) {
 	in := &game.Intro{Full: true}
 	steps := map[int]TitleStep{}
 	pics := 0
 	whole := 0
 	for i, st := range s.Steps {
 		n := i + 1
+		if !full && s.Short != nil && !slices.Contains(s.Short, i) {
+			continue
+		}
 		if st.HoldMs != 0 {
 			return Scene{}, fmt.Errorf("step %d HoldMs: %w", n, ErrNotCarried)
 		}
@@ -67,11 +71,8 @@ func TitleScene(s importer.Sequence, g importer.Graphics, cm Common, pic func(im
 // TitleData is s's credits lines and boxes as game.Data's CreditLines and
 // CreditBoxes.
 func TitleData(s importer.Sequence) (lines []game.Credit, boxes []image.Rectangle, err error) {
-	switch {
-	case s.Backdrop != nil:
+	if s.Backdrop != nil {
 		return nil, nil, fmt.Errorf("Backdrop: %w", ErrNotCarried)
-	case s.Short != nil:
-		return nil, nil, fmt.Errorf("Short: %w", ErrNotCarried)
 	}
 	for _, c := range s.Credits {
 		lines = append(lines, game.Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
@@ -81,6 +82,9 @@ func TitleData(s importer.Sequence) (lines []game.Credit, boxes []image.Rectangl
 	}
 	return lines, boxes, nil
 }
+
+// picSource is each importer.ArtKind's game.PicSource.
+var picSource = map[importer.ArtKind]game.PicSource{importer.ArtDAX: game.SourceDAX, importer.ArtPNG: game.SourcePNG}
 
 // pixRect is cell box c in page pixels, Max exclusive.
 func pixRect(c importer.Cells) image.Rectangle {
@@ -97,14 +101,14 @@ func pixRect(c importer.Cells) image.Rectangle {
 func TitleDiffs(s importer.Sequence, today Scene, d game.Data) (diffs []string) {
 	layers := func(ls []importer.Layer) (out []game.Layer) {
 		for _, l := range ls {
-			out = append(out, game.Layer{Picture: game.Picture{File: l.File, Block: l.Block, Clear: -1}, At: pixRect(l.At), Frames: l.Frames, FrameMs: l.FrameMs})
+			out = append(out, game.Layer{Picture: game.Picture{Source: picSource[l.Kind], File: l.File, Block: l.Block, Clear: -1}, At: pixRect(l.At), Frames: l.Frames, FrameMs: l.FrameMs})
 		}
 		return out
 	}
 	bare := func(ls []game.Layer) []game.Layer {
 		out := slices.Clone(ls)
 		for i := range out {
-			out[i].Picture = game.Picture{File: out[i].Picture.File, Block: out[i].Picture.Block, Clear: -1}
+			out[i].Picture = game.Picture{Source: out[i].Source, File: out[i].Picture.File, Block: out[i].Picture.Block, Clear: -1}
 		}
 		return out
 	}

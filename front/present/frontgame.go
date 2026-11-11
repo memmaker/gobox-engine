@@ -29,7 +29,7 @@ func (p *Presenter) ownCreation(v front.View) front.View {
 		if g, ok := p.eng.(interface{ SheetIcon(front.View) front.View }); ok { // its icon boxes take the draft's combat icon
 			v = g.SheetIcon(v)
 		}
-		v.MainMenu, v.Logo, v.Backdrop = nil, nil, nil
+		v.MainMenu, v.Logo = nil, nil
 	}
 	return v
 }
@@ -98,7 +98,7 @@ func (p *Presenter) ownPicker(v front.View) front.View {
 	}
 	key := [2]any{p.ran, v.Cells}
 	v.Creation, v.SheetPage, v.Camp, v.MainMenu, v.Sheet, v.Inventory = nil, nil, nil, nil, nil, nil
-	v.Portrait, v.IconBox, v.Logo, v.Backdrop = front.CellRect{}, front.CellRect{}, nil, nil
+	v.Portrait, v.IconBox, v.Logo = front.CellRect{}, front.CellRect{}, nil
 	if p.icon != nil {
 		if ed := p.icon.Layout(p.eng, key); ed != nil {
 			v.IconEditor, v.IconDrop = ed, true
@@ -141,7 +141,7 @@ func (p *Presenter) own(v front.View) front.View {
 	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
 	if p.slots != nil && p.eng != nil {
 		v.Slots = p.eng.SlotsView(p.slots.LoadOnly)
-		v.MainMenu, v.Logo, v.Backdrop = nil, nil, nil // the page covers the party menu: its keys are the page's
+		v.MainMenu, v.Logo = nil, nil // the page covers the party menu: its keys are the page's
 	}
 	return v
 }
@@ -175,7 +175,7 @@ func (p *Presenter) frontScreens() string {
 
 // mainView is v's party menu as the main menu takes it.
 func mainView(v front.View) front.MainMenu {
-	return front.MainMenu{Open: v.MainMenu, Hall: v.Hall, Logo: v.Logo, Backdrop: v.Backdrop,
+	return front.MainMenu{Open: v.MainMenu, Hall: v.Hall, Logo: v.Logo,
 		Party: len(v.Party), Selected: selectedIndex(v), Name: selectedName(v)}
 }
 

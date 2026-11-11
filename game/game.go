@@ -15,6 +15,7 @@ import (
 // Picture is an art ref: a DAX File/Block/Frame (Block -1: none), or a Name,
 // plus optionally raw indexed pixels (Pixels are palette indices, W*H long).
 type Picture struct {
+	Source       PicSource // what File names
 	File         string
 	Block, Frame int
 	Name         string
@@ -22,6 +23,14 @@ type Picture struct {
 	Pixels       []byte // palette indices, W*H
 	Clear        int    // with Pixels: the index drawn transparent, -1 none (ignored without Pixels)
 }
+
+// PicSource is what a Picture's File names.
+type PicSource uint8
+
+const (
+	SourceDAX PicSource = iota // a DAX archive (Block, Frame), or a pool Name
+	SourcePNG                  // a PNG file's path (POR's adventure art/TITLE.PNG)
+)
 
 // Mode says what the game waits for.
 type Mode int

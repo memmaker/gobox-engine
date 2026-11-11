@@ -4,9 +4,6 @@ import (
 	"gobox/front"
 	"gobox/ui"
 	"image"
-	"image/png"
-	"os"
-	"path/filepath"
 	"slices"
 	"testing"
 	"time"
@@ -15,12 +12,8 @@ import (
 // On the party menu a key during the title's fade ends it and acts; a key
 // with no row is ignored (it was sent as Enter).
 func TestMainMenuKeys(t *testing.T) {
-	f := filepath.Join(t.TempDir(), "title.png")
-	w, _ := os.Create(f)
-	png.Encode(w, image.NewRGBA(image.Rect(0, 0, 1, 1)))
-	w.Close()
 	p := &Presenter{main: true}
-	p.shownView.Backdrop = &front.Picture{File: f}
+	p.mm.title = image.NewRGBA(image.Rect(0, 0, 1, 1))
 	v := front.View{MainMenu: []front.ActKind{front.ActBegin, front.ActQuit}}
 	p.Key('B', v)
 	if p.mm.fade() < 1 || len(p.inv.acts) != 1 || p.inv.acts[0].Kind != front.ActBegin {
@@ -37,13 +30,9 @@ func TestMainMenuKeys(t *testing.T) {
 // that skips the menu's fade-in is used up, and a menu not yet drawn takes
 // no key at all: Load Game (the first row) is not chosen.
 func TestIntroEnterNoFallThrough(t *testing.T) {
-	f := filepath.Join(t.TempDir(), "title.png")
-	w, _ := os.Create(f)
-	png.Encode(w, image.NewRGBA(image.Rect(0, 0, 1, 1)))
-	w.Close()
-	bd := &front.Picture{File: f}
-	v := front.View{MainMenu: []front.ActKind{front.ActLoad, front.ActBegin}, Backdrop: bd}
+	v := front.View{MainMenu: []front.ActKind{front.ActLoad, front.ActBegin}}
 	p := &Presenter{}
+	p.mm.title = image.NewRGBA(image.Rect(0, 0, 1, 1))
 	p.Key('\r', v) // the game's View is the menu already, the intro still on screen
 	if p.slots != nil || len(p.inv.acts) != 0 {
 		t.Fatalf("a key reached the undrawn menu: slots %v, acts %v", p.slots != nil, p.inv.acts)

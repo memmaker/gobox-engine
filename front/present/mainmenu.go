@@ -23,7 +23,7 @@ import (
 // black, the functions under it in a box wrapped round them, the party's
 // cards where the 3D view has them.
 
-// The Amiga painted title (View.Backdrop) shows alone for titleHold when
+// The title's picture (Data.TitleBackdrop) shows alone for titleHold when
 // the main menu first comes up, then the menu fades in over it.
 const titleHold, titleFade = 2 * time.Second, 1500 * time.Millisecond
 
@@ -39,7 +39,7 @@ type mainUI struct {
 	ask      int               // the question up (askQuit ..)
 	layer    *gpu.Image        // the menu drawn for its fade in
 	logo     srcImage          // MainMenu.Logo on the GPU
-	backdrop srcImage          // MainMenu.Backdrop on the GPU
+	backdrop srcImage          // title on the GPU
 	title    image.Image       // the title's picture kept under the menu (Data.TitleBackdrop; nil: none)
 	cards    []image.Rectangle // the party's cards drawn
 	rows     string            // the rows last drawn, and whether in the submenu: rows the game changed start the highlight on the first
@@ -50,10 +50,7 @@ type mainUI struct {
 func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	dst.Fill(color.Black)
 	b := dst.Bounds()
-	bd, zoom := backdropImage(v.Backdrop), false
-	if bd == nil && m.title != nil { // the title's last picture stays: the menu zooms in over it
-		bd, zoom = m.title, true
-	}
+	bd := m.title // the title's picture stays: the menu zooms in over it
 	if bd == nil {
 		m.drawMainUI(h, dst, v)
 		return
@@ -75,11 +72,10 @@ func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
 	m.layer.Clear()
 	m.drawMainUI(h, m.layer, v)
 	lo := &gpu.DrawImageOptions{}
-	if z := 0.1 + 0.9*float64(max(a, 0)); zoom { // from the centre out
-		lo.GeoM.Translate(-float64(b.Dx())/2, -float64(b.Dy())/2)
-		lo.GeoM.Scale(z, z)
-		lo.GeoM.Translate(float64(b.Dx())/2, float64(b.Dy())/2)
-	}
+	z := 0.1 + 0.9*float64(max(a, 0)) // the menu zooms in from the centre out
+	lo.GeoM.Translate(-float64(b.Dx())/2, -float64(b.Dy())/2)
+	lo.GeoM.Scale(z, z)
+	lo.GeoM.Translate(float64(b.Dx())/2, float64(b.Dy())/2)
 	lo.ColorScale.ScaleAlpha(max(a, 0))
 	dst.DrawImage(m.layer, lo)
 }
@@ -97,8 +93,8 @@ func (m *mainUI) fade() float32 {
 // run, so the menu shows at once; it reports whether it did. A click that
 // did is used up (its target was not visible yet); a key but Enter
 // and Space goes on to the menu (Key).
-func (m *mainUI) skip(hall bool, bd *front.Picture) bool {
-	if hall || backdropImage(bd) == nil && m.title == nil || m.fade() >= 1 { // the hall's menu, and a game without a title picture, have no title to wait for
+func (m *mainUI) skip(hall bool) bool {
+	if hall || m.title == nil || m.fade() >= 1 { // the hall's menu, and a game without a title picture, have no title to wait for
 		return false
 	}
 	m.at = now().Add(-titleHold - titleFade)
@@ -357,23 +353,6 @@ func (m *mainUI) key(h MainHost, k uint16, v front.MainMenu) bool {
 	return ok
 }
 
-// backdropCache is the last backdrop decoded, by its file.
-var backdropCache struct {
-	file string
-	img  image.Image
-}
-
-// backdropImage decodes p's PNG file once (nil without one, or when it is not a PNG).
-func backdropImage(p *front.Picture) image.Image {
-	if p == nil || p.File == "" {
-		return nil
-	}
-	if backdropCache.file != p.File {
-		backdropCache.file, backdropCache.img = p.File, ReadPNG(p.File)
-	}
-	return backdropCache.img
-}
-
 // ReadPNG decodes the PNG at path, nil when it is not one.
 func ReadPNG(path string) image.Image {
 	f, err := os.Open(path)
@@ -396,17 +375,26 @@ func layersImage(ls []game.Layer) image.Image {
 	var box image.Rectangle
 	for i, l := range ls {
 		f := front.Picture{File: l.File, Block: l.Block, Frame: l.Frame, Name: l.Name}
-		if l.Pixels != nil {
+		if l.Source == game.SourcePNG {
+			f = front.Picture{} // no DAX reference: read below
+		} else if l.Pixels != nil {
 			f = pix0(l.Picture)
 		}
 		f.At, box = l.At, box.Union(l.At)
 		pics[i] = f
 	}
 	pics = indexedPictures(daxPictures(pics), egaInk)
-	for _, pc := range pics {
-		if pc.Img == nil {
+	for i, l := range ls {
+		if l.Source == game.SourcePNG { // a painted picture (POR's art/TITLE.PNG)
+			pics[i].Img = ReadPNG(l.File)
+		}
+		if pics[i].Img == nil {
 			return nil
 		}
+	}
+	if box.Empty() && len(pics) == 1 { // one picture with no place: its own size
+		box = pics[0].Img.Bounds().Sub(pics[0].Img.Bounds().Min)
+		pics[0].At = box
 	}
 	if box.Empty() {
 		return nil

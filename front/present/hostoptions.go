@@ -17,6 +17,7 @@ type HostOptions struct {
 	DaySky                bool    // the scripts' day sky follows day 6:00-20:00 instead of their hour < 14
 	Explicit              bool    // the harmless square events wait for Space instead of running on stepping
 	DOSArt                bool    // the pictures, portraits and combat icons in the DOS art instead of the Amiga's (F12)
+	FullIntro             bool    // the full title (its default the adventure's, importer.Sequence.Full); off: its Short steps
 }
 
 // DefaultHostOptions are the host settings before SETTINGS.JSON is read.
@@ -35,6 +36,7 @@ func HostOptionRows(h *HostOptions, voice func(toggle bool) bool) []HostRow {
 		{Page: "Gameplay", Label: "Path search", At: 4, Flag: &h.PathSearch},
 		{Page: "Gameplay", Label: "Quick search", At: 4, Flag: &h.QuickSearch},
 		{Page: "Gameplay", Label: "Day sky by clock", At: 4, Flag: &h.DaySky},
+		{Page: "Gameplay", Label: "Full intro", At: 4, Flag: &h.FullIntro},
 		{Page: "Audio", Label: "Voice-over", Get: func() string { return OnOff(voice(false)) }, Change: func(int) { voice(true) }},
 		{Page: "Audio", Label: "Music", Flag: &h.Soundtrack, Names: [2]string{"Original", "Soundtrack"}},
 		{Page: "Audio", Label: "DASP Sfx", Flag: &h.Dasp},

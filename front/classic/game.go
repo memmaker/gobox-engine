@@ -212,7 +212,7 @@ func (g *Game) View() front.View {
 		v.AreaMap = AreaMap(v.AreaMap, amap, c.Where, art)
 	}
 	if v.MainMenu != nil && !v.Hall && v.Powers == nil {
-		v.Logo, v.Backdrop = Title(v.Logo, v.Backdrop, art)
+		v.Logo = Title(v.Logo, art)
 	}
 	v.Battle = Battle(BattleOf(combat, party, art), combat, party)
 	if m := g.aim; m != nil && v.Battle != nil && combat != nil && len(v.Battle.AreaAt) == 0 { // the aimed spell's area, previewed

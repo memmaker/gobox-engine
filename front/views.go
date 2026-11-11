@@ -103,7 +103,6 @@ type MainMenu struct {
 	Open     []ActKind // ActCreate .. ActQuit, ActMember, ActDropMember
 	Hall     bool      // the training hall's: over the 3D view, Begin leaves the hall
 	Logo     *Picture  // the title picture (Pix) the lettering is cut from (Data.Logo); nil: none
-	Backdrop *Picture  // the painted title under it, File a PNG path the presenter decodes (nil: black)
 	Party    int       // the members
 	Selected int       // the selected member (-1: none)
 	Name     string    // ... its name ("" none)

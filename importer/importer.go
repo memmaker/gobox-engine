@@ -236,6 +236,7 @@ type Sequence struct {
 	Backdrop []Layer   `json:",omitempty"` // under the main menu after the steps (COTAB: painting and logo), the menu zooming and fading in over it
 	Remaster [2]string `json:",omitempty"` // two lines as game.Data.RemasterCredit: the remaster's own lines at the bottom of the credits page (game.Data.RemasterCredit)
 	Short    []int     `json:",omitempty"` // the steps (indexes) a short intro plays (COTAB: SSI logo only unless the config asks); nil: all
+	Full     bool      `json:",omitempty"` // the full intro by default (the original's config: POR's POOL.CFG); the host's "Full intro" option overrides it
 }
 
 // StepKind is what a sequence step shows.
@@ -278,11 +279,21 @@ const (
 // On reports whether f flashes in graphics mode g.
 func (f Flash) On(g Graphics) bool { return f == FlashEGA && g == GraphicsEGA }
 
-// Art is a picture in the folder's art: an archive's block (TITLE 2).
+// Art is a picture in the folder's art: an archive's block (TITLE 2), or
+// with Kind ArtPNG the PNG File in the folder's art/ (POR's TITLE.PNG).
 type Art struct {
 	File  string
 	Block int
+	Kind  ArtKind `json:",omitempty"`
 }
+
+// ArtKind is what an Art's File names.
+type ArtKind uint8
+
+const (
+	ArtDAX ArtKind = iota // a DAX archive, Block its block
+	ArtPNG                // a PNG picture in the folder's art/
+)
 
 // Layer is a picture placed in 40x25 cells, optionally cycling frames.
 type Layer struct {

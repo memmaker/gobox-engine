@@ -163,17 +163,13 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 	return ed
 }
 
-// Title is the title picture and the painted backdrop under the party
-// menu: art's "title/logo" (the picture's pixels) and "title/backdrop"
-// (File: the PNG), else logo and backdrop (the game's).
-func Title(logo, backdrop *front.Picture, art map[string]game.Picture) (*front.Picture, *front.Picture) {
+// Title is the title picture under the party menu: art's "title/logo"
+// (the picture's pixels), else logo (the game's).
+func Title(logo *front.Picture, art map[string]game.Picture) *front.Picture {
 	if p := pix(art["title/logo"]); p.Pix != nil {
 		logo = &p
 	}
-	if p := art["title/backdrop"]; p.File != "" {
-		backdrop = &front.Picture{File: p.File}
-	}
-	return logo, backdrop
+	return logo
 }
 
 // subject is the member whose portrait and icon are on show: the creation's

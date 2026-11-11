@@ -84,7 +84,7 @@ func (p *Presenter) ownTraining(v front.View) front.View {
 		p.training = v.Training != nil // a game loaded closes it
 	}
 	if p.training {
-		v.MainMenu, v.Hall, v.Logo, v.Backdrop, v.Powers = nil, false, nil, nil, nil
+		v.MainMenu, v.Hall, v.Logo, v.Powers = nil, false, nil, nil
 	}
 	return v
 }

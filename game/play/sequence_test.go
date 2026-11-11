@@ -4,6 +4,7 @@ import (
 	"errors"
 	"image"
 	"reflect"
+	"slices"
 	"testing"
 
 	"gobox/game"
@@ -17,7 +18,7 @@ func TestTitleScene(t *testing.T) {
 		{Kind: importer.StepCredits, Page: 0},
 	}}
 	pic := func(a importer.Art) (game.Picture, error) { return game.Picture{File: a.File, Block: a.Block}, nil }
-	got, err := TitleScene(seq, importer.GraphicsEGA, Common{}, pic)
+	got, err := TitleScene(seq, true, importer.GraphicsEGA, Common{}, pic)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,16 +29,21 @@ func TestTitleScene(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %+v\nwant %+v", got, want)
 	}
-	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepAnim}}}, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrStepKind) {
+	seq.Short = []int{0} // the short intro: the first step alone
+	short, err := TitleScene(seq, false, importer.GraphicsEGA, Common{}, pic)
+	if err != nil || !slices.Equal(short.Intro.Pictures, []int{1}) || len(short.Steps) != 1 {
+		t.Fatalf("short %+v, %v", short.Intro, err)
+	}
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepAnim}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrStepKind) {
 		t.Fatalf("anim step: %v", err)
 	}
-	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{HoldMs: 1}}}, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrNotCarried) {
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{HoldMs: 1}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrNotCarried) {
 		t.Errorf("hold: %v", err)
 	}
-	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Whole: true}, {}}}, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrNotCarried) {
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Whole: true}, {}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrNotCarried) {
 		t.Errorf("mixed whole: %v", err)
 	}
-	for name, bad := range map[string]importer.Sequence{"backdrop": {Backdrop: []importer.Layer{{}}}, "short": {Short: []int{}}} {
+	for name, bad := range map[string]importer.Sequence{"backdrop": {Backdrop: []importer.Layer{{}}}} {
 		if _, _, err := TitleData(bad); !errors.Is(err, ErrNotCarried) {
 			t.Errorf("%s: %v", name, err)
 		}

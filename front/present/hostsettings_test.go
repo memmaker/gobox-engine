@@ -14,13 +14,13 @@ func TestHostOptionsSettingsJSON(t *testing.T) {
  "Zoom": 1.5, "DamageNumbers": false, "NoMapZones": false, "SIDMusic": true, "PixelWalls": true,
  "Deskew": false, "Music": 0.25, "Effects": 0.5, "Voice": 0.75,
  "Dasp": false, "Soundtrack": true, "Steps": false, "Combat4e": true,
- "PathSearch": true, "QuickSearch": true, "DaySky": true, "Explicit": true, "DOSArt": true
+ "PathSearch": true, "QuickSearch": true, "DaySky": true, "Explicit": true, "DOSArt": true, "FullIntro": true
 }`
 	want := HostOptions{
 		Options: Options{MapOff: true, PartyRow: true, MapAlpha: 0.6, Cards: 2, Map: 3, Pic: 4,
 			Zoom: 1.5, SIDMusic: true, PixelWalls: true},
 		Music: 0.25, Effects: 0.5, Voice: 0.75, Soundtrack: true, Combat4e: true,
-		PathSearch: true, QuickSearch: true, DaySky: true, Explicit: true, DOSArt: true,
+		PathSearch: true, QuickSearch: true, DaySky: true, Explicit: true, DOSArt: true, FullIntro: true,
 	}
 	got := DefaultHostOptions
 	if err := json.Unmarshal([]byte(old), &got); err != nil {
