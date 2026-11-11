@@ -20,7 +20,7 @@ import (
 )
 
 // Format is the manifest's format version; it changes when Manifest does.
-const Format = 1
+const Format = 2
 
 // ManifestFile is the manifest's name in an adventure folder.
 const ManifestFile = "manifest.json"
@@ -34,6 +34,8 @@ type Game struct {
 	// Import writes the folder's files from the originals in dir src into
 	// dir dst (empty, existing).
 	Import func(src, dst string) error
+	// Start and End are the title and end sequences (nil: none).
+	Start, End *Sequence
 }
 
 // Manifest is an adventure folder's manifest.json.
@@ -42,8 +44,8 @@ type Manifest struct {
 	Title   string
 	Ruleset string
 	Format  int
-	Start   string            `json:",omitempty"` // the title sequence (hook, filled with the declarative sequences)
-	End     string            `json:",omitempty"` // the end sequence (hook)
+	Start   *Sequence         `json:",omitempty"` // the title sequence
+	End     *Sequence         `json:",omitempty"` // the end sequence
 	Source  map[string]string // each original read: its name, its SHA-256
 }
 
@@ -92,7 +94,7 @@ func Run(id, src, root string) error {
 	if err := g.Import(src, dst); err != nil {
 		return fmt.Errorf("import %s: %w", id, err)
 	}
-	b, err := json.MarshalIndent(Manifest{ID: g.ID, Title: g.Title, Ruleset: g.Ruleset, Format: Format, Source: key}, "", "\t")
+	b, err := json.MarshalIndent(Manifest{ID: g.ID, Title: g.Title, Ruleset: g.Ruleset, Format: Format, Start: g.Start, End: g.End, Source: key}, "", "\t")
 	if err != nil {
 		return err
 	}
@@ -185,4 +187,60 @@ func SameTree(a, b string) error {
 		return fmt.Errorf("%s: only in %s", rel, b)
 	}
 	return nil
+}
+
+// Sequence is a title or end sequence as data: its steps in order, then the
+// backdrop that stays under the main menu. gobox plays it; a key or click
+// ends a step's hold and goes no further (front/latch.go).
+type Sequence struct {
+	Steps    []SequenceStep
+	Credits  []Credit `json:",omitempty"` // the credits pages' lines, placed
+	Boxes    []Cells  `json:",omitempty"` // the credits' boxes (nil: one frame on the page's edges)
+	Backdrop *Art     `json:",omitempty"` // under the main menu after the steps, the menu zooming and fading in over it
+	Short    []int    `json:",omitempty"` // the steps (indexes) a short intro plays (COTAB: SSI logo only unless the config asks); nil: all
+}
+
+// StepKind is what a sequence step shows.
+type StepKind int
+
+const (
+	StepPicture StepKind = iota // Layers over the page
+	StepCredits                 // credits page Page
+	StepAnim                    // a full-screen animation (Anim)
+)
+
+// SequenceStep is one step: what it shows, its tune and how long it holds.
+type SequenceStep struct {
+	Kind      StepKind
+	Layers    []Layer `json:",omitempty"` // StepPicture
+	Page      int     `json:",omitempty"` // StepCredits
+	Anim      string  `json:",omitempty"` // StepAnim: the animation's base name in the folder's art
+	Song      string  `json:",omitempty"` // the tune it starts (a song name or the game's song number)
+	HoldMs    int     `json:",omitempty"` // 0: until a key or click
+	Lightning bool    `json:",omitempty"` // the picture flashes (POR TITLE 1)
+	Whole     bool    `json:",omitempty"` // the layers are one whole-screen page
+}
+
+// Art is a picture in the folder's art: an archive's block (TITLE 2).
+type Art struct {
+	File  string
+	Block int
+}
+
+// Layer is a picture placed in 40x25 cells, optionally cycling frames.
+type Layer struct {
+	Art
+	At      Cells
+	Frames  []int `json:",omitempty"`
+	FrameMs int   `json:",omitempty"`
+}
+
+// Cells is a box in 40x25 cells, Min and Max the corner cells (inclusive).
+type Cells struct{ X1, Y1, X2, Y2 int }
+
+// Credit is a credits line at its cell and colour (an EGA index), on page Page.
+type Credit struct {
+	X, Y, Colour int
+	Text         string
+	Page         int `json:",omitempty"`
 }
