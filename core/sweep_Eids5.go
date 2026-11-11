@@ -6,3 +6,9 @@ package core
 type OpenTurn struct{ Actor CharID }
 
 func (OpenTurn) action() {}
+
+// ApplyItems: Who's readied items are worked into its figures again (AC,
+// THAC0, damage, the item count; por ApplyItems, 00BA:0BB8).
+type ApplyItems struct{ Who CharID }
+
+func (ApplyItems) action() {}
