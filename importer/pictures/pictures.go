@@ -1,7 +1,13 @@
-package sprites
+// Package pictures is an adventure's picture table (data/pictures.json): each
+// original DAX picture's entry in the shared portrait and icon collection,
+// from the series' origins (origins/<series>.json, written by sprites'
+// cmd/poolsprites).
+package pictures
 
 import (
+	"embed"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -147,4 +153,31 @@ func WritePictures(game, dst string) error {
 		return err
 	}
 	return os.WriteFile(path, append(b, '\n'), 0o644)
+}
+
+//go:embed origins/*.json
+var originsFS embed.FS
+
+// Origins is every series' origins merged (game ids are unique across
+// series): game id, DAX file, "block" or "block.frame" -> its series' sprite name.
+func Origins() map[string]map[string]map[string]string {
+	o := map[string]map[string]map[string]string{}
+	files, err := fs.Glob(originsFS, "origins/*.json")
+	if err != nil {
+		panic(err) // a malformed pattern, fixed at compile time
+	}
+	for _, f := range files {
+		var m map[string]map[string]map[string]string
+		b, err := originsFS.ReadFile(f)
+		if err == nil {
+			err = json.Unmarshal(b, &m)
+		}
+		if err != nil {
+			panic(fmt.Sprintf("embedded %s: %v", f, err)) // embedded data, checked by TestPicturesRoundTrip
+		}
+		for k, v := range m {
+			o[k] = v
+		}
+	}
+	return o
 }

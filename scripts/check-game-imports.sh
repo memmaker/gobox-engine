@@ -4,7 +4,7 @@
 # A cmd/ main is the app wiring: it may import any of it (the app shell,
 # front, present, classic, playrules, walls, gpu, fonts).
 for g in por-go cotab-go sotsb-go pod-go buckrogers-go buckrogers2-go; do
-  d=$HOME/Projects/$g
+  d=${PROJECTS:-$HOME/Projects}/$g
   [ -d "$d" ] || continue
   (cd "$d" && go list -test -deps -f '{{if .Module}}{{if .Module.Main}}{{.ImportPath}}|{{join .Imports " "}}{{end}}{{end}}' ./... 2>/dev/null) |
   awk -F'|' -v g="$g" '

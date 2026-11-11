@@ -12,11 +12,20 @@ export GOCACHE="$(go env GOCACHE)" GOMODCACHE="$(go env GOMODCACHE)" GOPATH="$(g
 export HOME="$out/home"
 mkdir "$HOME"
 
-for repo in por-go rules1e rulesxxvc gobox-engine; do
+# The engine's repos and every game built on gobox-engine, from what is staged in them (their HEAD when nothing is).
+games=()
+for mod in "$projects"/*/go.mod; do
+  repo="$(basename "$(dirname "$mod")")"
+  case "$repo" in por-go|rules1e|rulesxxvc|gobox-engine) continue ;; esac
+  grep -q 'gobox-engine/' "$mod" && games+=("$repo")
+done
+for repo in por-go rules1e rulesxxvc gobox-engine "${games[@]}"; do
   mkdir "$out/$repo"
   tree="$(git -C "$projects/$repo" write-tree)"
   git -C "$projects/$repo" archive "$tree" | tar -x -C "$out/$repo"
 done
+# Tests that look at the other games (scripts/check-game-imports.sh) see these exports.
+export PROJECTS="$out"
 # Unversioned here: third-party checkouts, the -re reconstructions (tests read ../../<game>-re), and the game data.
 for dep in gogpu-wgpu goffi goplay gameimport; do ln -s "$projects/$dep" "$out/$dep"; done
 for re in "$projects"/*-re; do ln -s "$re" "$out/$(basename "$re")"; done
@@ -29,7 +38,7 @@ link_data() {
     [ -e "$out/$1/data/$(basename "$d")" ] || ln -s "$d" "$out/$1/data/"
   done
 }
-link_data por-go
+for repo in por-go "${games[@]}"; do link_data "$repo"; done
 
 check() { # dir, test packages and flags
   local dir="$1"; shift
@@ -70,13 +79,7 @@ for repo in por-go rules1e gobox-engine; do test_touched "$repo"; done
 
 # Other games build against gobox-engine outside core, from what is staged in them (their HEAD when nothing is).
 if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --name-only | grep -qv '^core/\|\.md$\|^gate.sh$'; then
-  for mod in "$projects"/*/go.mod; do
-    repo="$(basename "$(dirname "$mod")")"
-    [ -e "$out/$repo" ] && continue
-    grep -q 'gobox-engine/' "$mod" || continue
-    mkdir "$out/$repo"
-    git -C "$projects/$repo" archive "$(git -C "$projects/$repo" write-tree)" | tar -x -C "$out/$repo"
-    link_data "$repo"
+  for repo in "${games[@]}"; do
     echo "== $repo"
     (cd "$out/$repo" && go build ./... && go vet ./...)
     # A layout name the fold or the parser's macros depend on (Shop, Temple, Portrait) can be overwritten by a

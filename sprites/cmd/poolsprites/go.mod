@@ -10,3 +10,7 @@ require (
 replace gobox/dax => ../../../dax
 
 replace gobox/ega => ../../../ega
+
+require gobox/asset v0.0.0 // indirect
+
+replace gobox/asset => ../../../asset

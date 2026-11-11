@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"gobox/importer/pictures"
 	"strings"
 	"testing"
 
@@ -12,7 +13,7 @@ import (
 func TestAmigaTwin(t *testing.T) {
 	GameID = "por"
 	defer func() { GameID, AmigaArt = "", nil }()
-	o := sprites.Origins()["por"]
+	o := pictures.Origins()["por"]
 	for f, refs := range o {
 		if !strings.HasPrefix(f, "HEAD") && !strings.HasPrefix(f, "BODY") && f != "CHEAD.DAX" && f != "CBODY.DAX" {
 			continue

@@ -212,7 +212,7 @@ func main() {
 	}
 	games = append(games, games2...)
 	b, _ := json.MarshalIndent(origins, "", " ")
-	check(os.WriteFile(filepath.Join(pool, "origins.json"), append(b, '\n'), 0o644))
+	check(os.WriteFile(filepath.Join(*out, "..", "importer", "pictures", "origins", *series+".json"), append(b, '\n'), 0o644)) // the picture table's (gobox/importer/pictures)
 	poses := map[string]string{} // combat head/body frame 0 -> its pose-1 frame (the first origin's)
 	for _, files := range origins {
 		for _, refs := range files {
@@ -353,7 +353,7 @@ func index(path string, byDir map[string][]*entry) {
 		fmt.Sprintf("Pools: portraits (%d), combat (%d)", len(byDir["portraits"]), len(byDir["combat"])))
 	s = strings.TrimRight(s, "\n") + "\n"
 	for _, k := range []string{"portraits", "combat"} {
-		s += "\n## " + k + "\n\nShared by por, cotab, sotsb, pod; deduplicated by exact pixels, numbered in first-seen order. Machine-readable: series/pool/origins.json.\n\n| name | size | origin | source |\n|---|---|---|---|\n"
+		s += "\n## " + k + "\n\nShared by por, cotab, sotsb, pod; deduplicated by exact pixels, numbered in first-seen order. Machine-readable: importer/pictures/origins/pool.json.\n\n| name | size | origin | source |\n|---|---|---|---|\n"
 		for _, e := range byDir[k] {
 			var gs, src []string
 			for _, o := range e.origins {

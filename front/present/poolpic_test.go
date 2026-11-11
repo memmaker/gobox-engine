@@ -1,6 +1,7 @@
 package present
 
 import (
+	"gobox/importer/pictures"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -8,7 +9,6 @@ import (
 	"testing"
 
 	"gobox/front"
-	"gobox/sprites"
 )
 
 // Every portrait the pool maps from a game's DAX is pixel-identical to the decoded DAX
@@ -18,7 +18,7 @@ func TestPoolMatchesDAX(t *testing.T) {
 	defer func(id string) { gameID = id }(gameID)
 	n := 0
 	defer func() { t.Logf("compared %d", n) }()
-	for id, files := range sprites.Origins() {
+	for id, files := range pictures.Origins() {
 		dir := filepath.Join(home, "Projects", id+"-go", "data", "dos")
 		if !useArt(t, dir) {
 			t.Logf("skip %s: no data", id)

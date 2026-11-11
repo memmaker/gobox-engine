@@ -135,12 +135,14 @@ func writeAtomic(path, text string) error {
 
 // CacheDir is where a game with no scripts folder of its own keeps its
 // imported texts: they are made from the game's data, which may be read-only.
+// It is created when missing (a first run, a fresh home).
 func CacheDir(game string) (string, error) {
 	d, err := os.UserCacheDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(d, "gobox", "scripts", game), nil
+	dir := filepath.Join(d, "gobox", "scripts", game)
+	return dir, os.MkdirAll(dir, 0o755)
 }
 
 // Assemble makes a script of raw byte code with no header, one command per

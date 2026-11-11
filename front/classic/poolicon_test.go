@@ -2,6 +2,7 @@ package classic
 
 import (
 	"fmt"
+	"gobox/importer/pictures"
 	"image"
 	"os"
 	"path/filepath"
@@ -11,7 +12,6 @@ import (
 	"gobox/dax"
 	"gobox/front"
 	"gobox/game"
-	"gobox/sprites"
 )
 
 // daxIcon is the games' compositing (cotab rules.charIcon, por BuildCharIcon) of DAX
@@ -55,7 +55,7 @@ func TestPoolIconMatchesDAX(t *testing.T) {
 	home, _ := os.UserHomeDir()
 	n := 0
 	colours := [6]byte{0x9a, 0x2b, 0x3c, 0x4d, 0x5e, 0x6f}
-	for id, files := range sprites.Origins() {
+	for id, files := range pictures.Origins() {
 		dir := filepath.Join(home, "Projects", id+"-go", "data", "dos")
 		hf, err1 := dax.Open(filepath.Join(dir, "CHEAD.DAX"))
 		bf, err2 := dax.Open(filepath.Join(dir, "CBODY.DAX"))

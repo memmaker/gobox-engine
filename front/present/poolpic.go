@@ -5,6 +5,7 @@
 package present
 
 import (
+	"gobox/importer/pictures"
 	"image"
 	"strconv"
 	"strings"
@@ -24,7 +25,7 @@ var (
 func poolImage(pc front.Picture) image.Image {
 	name := pc.Name
 	if name == "" && pc.File != "" {
-		originsOnce.Do(func() { origins = sprites.Origins() })
+		originsOnce.Do(func() { origins = pictures.Origins() })
 		f := origins[gameID][pc.File]
 		if amigaShown() { // the Amiga set only (<game>-amiga, one archive per kind): never the DOS art
 			a, n := origins[gameID+"-amiga"], strings.TrimSuffix(strings.ToUpper(pc.File), ".DAX")

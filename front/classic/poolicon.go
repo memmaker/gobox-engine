@@ -1,6 +1,7 @@
 package classic
 
 import (
+	"gobox/importer/pictures"
 	"image"
 	"image/color"
 	"slices"
@@ -105,7 +106,7 @@ var Amiga = func() bool { return false }
 // Series is game.Data.Series, the asset series whose shared pool the members' ids name ("pool" when unset).
 var Series = "pool"
 
-var iconOrigins = sync.OnceValue(sprites.Origins)
+var iconOrigins = sync.OnceValue(pictures.Origins)
 
 // gameOrigins is the shown art's origins: <GameID>-amiga under F12's Amiga art, never the DOS set.
 func gameOrigins() map[string]map[string]string {

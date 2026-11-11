@@ -3,3 +3,6 @@ cotab-go cotab/rules -> gobox/front/classic
 sotsb-go sotsb/rules -> gobox/front/classic
 sotsb-go sotsb/rules -> gobox/ui/fonts
 pod-go pod/rules -> gobox/walls
+por-go por/playpor -> gobox/app
+por-go por/playpor -> gobox/front/classic
+por-go por/playpor -> gobox/front/present
