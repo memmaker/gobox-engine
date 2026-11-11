@@ -2,7 +2,7 @@
 # Commit gate of the POR migration: builds, vets and tests what is staged, from a clean
 # export of each repo, never the working tree. Run with the changes staged; commit if it passes.
 set -euo pipefail
-projects="$HOME/Projects"
+projects="${GATE_PROJECTS:-$HOME/Projects}"
 out="$(mktemp -d)"
 trap 'rm -rf "$out"' EXIT
 export GOWORK=off
