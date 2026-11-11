@@ -28,6 +28,7 @@ var dev struct {
 	pass *wgpu.RenderPassEncoder
 	on   *texture // the pass's target
 	pdep bool     // the pass has the target's depth buffer
+	used []*texture // what the open encoder draws from or into (texture.use)
 
 	uniforms, vertices stream
 
@@ -158,6 +159,7 @@ func passOn(t *texture, depth bool) *wgpu.RenderPassEncoder {
 	}
 	endPass()
 	t.ensure()
+	t.use()
 	color := wgpu.RenderPassColorAttachment{View: t.view, LoadOp: gputypes.LoadOpLoad, StoreOp: gputypes.StoreOpStore}
 	if t.clear {
 		Stats.Clears++
@@ -209,11 +211,26 @@ func submit() {
 		panic(err)
 	}
 	dev.enc = nil
-	if _, err := dev.queue.Submit(cmd); err != nil {
+	idx, err := dev.queue.Submit(cmd)
+	if err != nil {
 		panic(err)
 	}
+	for _, t := range dev.used {
+		t.busy, t.inEnc = idx, false
+	}
+	clear(dev.used)
+	dev.used = dev.used[:0]
 	dev.uniforms.reset()
 	dev.vertices.reset()
+}
+
+// idle waits until the GPU has run every submission that used t, so a CPU
+// write to t cannot change what they draw.
+// ponytail: polls the completed index; a fence wait if the sleeps ever show in a profile.
+func idle(t *texture) {
+	for t.busy > dev.queue.Poll() {
+		time.Sleep(50 * time.Microsecond)
+	}
 }
 
 // stream is a set of per-frame buffer chunks for data written each frame:

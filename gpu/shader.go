@@ -147,6 +147,9 @@ func (s *Shader) pack(builtin [8]float32, vals map[string]any) []byte {
 }
 
 func (s *Shader) group(ts [4]*texture) *wgpu.BindGroup {
+	for _, t := range ts {
+		t.use()
+	}
 	if g := s.groups[ts]; g != nil {
 		return g
 	}

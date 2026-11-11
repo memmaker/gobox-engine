@@ -24,6 +24,17 @@ type texture struct {
 	px         []byte // its pixels until there is a device (images made before RunGame)
 	external   bool   // the window's frame: a view gogpu lends for one frame, no texture of our own
 	gone       bool   // deallocated
+	busy       uint64 // the last submission that drew from or into it (Queue.Submit's index): WritePixels waits for it
+	inEnc      bool   // the open encoder draws from or into it (in dev.used)
+}
+
+// use marks t as drawn from or into by the open encoder: submit stamps it
+// with the submission's index (busy).
+func (t *texture) use() {
+	if !t.inEnc {
+		t.inEnc = true
+		dev.used = append(dev.used, t)
+	}
 }
 
 func newTexture(w, h int) *texture {
@@ -73,6 +84,7 @@ func (t *texture) make() {
 
 // group is the bind group sampling t with s.
 func (t *texture) group(s *wgpu.Sampler) *wgpu.BindGroup {
+	t.use()
 	if g := t.groups[s]; g != nil {
 		return g
 	}
@@ -268,6 +280,7 @@ func (i *Image) WritePixels(px []byte) {
 	i.t.ensure()
 	settle(i.t) // the pending clear comes first
 	submit()    // draws recorded earlier still see the old pixels
+	idle(i.t)   // and those submitted: on Apple GPUs the write is the CPU's, at once (Metal's replaceRegion), not queued behind them
 	w, h := i.r.Dx(), i.r.Dy()
 	Stats.Uploads++
 	if err := dev.queue.WriteTexture(&wgpu.ImageCopyTexture{Texture: i.t.tex, Origin: wgpu.Origin3D{X: uint32(i.r.Min.X), Y: uint32(i.r.Min.Y)}},
