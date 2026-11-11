@@ -14,3 +14,6 @@ cotab-go cotab/playcotab -> gobox/ui/fonts
 pod-go pod/playpod -> gobox/app
 pod-go pod/playpod -> gobox/front/classic
 pod-go pod/playpod -> gobox/front/present
+buckrogers-go buckrogers/playbr1 -> gobox/app
+buckrogers-go buckrogers/playbr1 -> gobox/front/classic
+buckrogers-go buckrogers/playbr1 -> gobox/front/present

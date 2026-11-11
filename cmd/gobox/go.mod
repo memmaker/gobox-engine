@@ -27,6 +27,7 @@ require (
 	github.com/jfreymuth/pulse v0.1.3 // indirect
 	github.com/memmaker/opl2 v0.1.0 // indirect
 	github.com/qmuntal/gltf v0.29.0 // indirect
+	gobox/exe v0.0.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
 
@@ -127,3 +128,15 @@ require pod v0.0.0
 replace pod => ../../../pod-go
 
 replace github.com/retro-ware/gameimport => ../../../gameimport
+
+require buckrogers v0.0.0
+
+replace buckrogers => ../../../buckrogers-go
+
+require ecl-br v0.0.0 // indirect
+
+replace ecl-br => ../../../buckrogers-core
+
+require rulesxxvc v0.0.0 // indirect
+
+replace rulesxxvc => ../../../rulesxxvc
