@@ -23,7 +23,7 @@ func (r *endRules) Do(a play.Action) (play.Outcome, error) {
 
 func newEnd(es ...play.Event) *endRules {
 	r := &endRules{events: es}
-	r.st = play.Fighting{Common: allow(play.Quick{}), Field: play.Battlefield{Size: image.Pt(4, 4), Units: []play.Unit{{ID: 1, Member: -1}, {ID: 2, Member: -1, Foe: true}}}}
+	r.st = play.Fighting{Common: allow(play.Quick{}), Field: play.Battlefield{Size: image.Pt(4, 4), Units: []game.Unit{{ID: 1, Member: -1}, {ID: 2, Member: -1, Foe: true}}}}
 	return r
 }
 

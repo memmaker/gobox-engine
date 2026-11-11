@@ -42,7 +42,7 @@ func TestCampNoRest(t *testing.T) {
 // call to the game, and CloseSheet returns to the same turn.
 func TestFightView(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "ARIN"}, {Name: "MAREN"}}, Allowed: allow(play.EndTurn{}).Allowed},
-		Field: play.Battlefield{Turn: 2, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: 1}}}}
+		Field: play.Battlefield{Turn: 2, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: 1}}}}
 	f := &fake{st: fight}
 	if v := NewGame(f, game.Data{}).View(); slices.ContainsFunc(v.Battle.Turn.Options, func(o front.TurnOption) bool { return o.Label == "View" }) {
 		t.Fatal("View the series doesn't key")
@@ -95,7 +95,7 @@ func TestFightSheetPage(t *testing.T) {
 // fight, with no call to the game; closing them returns to the same turn.
 func TestFightItems(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Selected: 0, Party: []game.Member{{Name: "ARIN"}, {Name: "MAREN"}}},
-		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
+		Field: play.Battlefield{Turn: 9, Units: []game.Unit{{ID: 9, Member: 1}}}}}
 	r := newRules(f, game.Data{})
 	r.send(play.OpenItems{Member: -1})
 	if s := shownOf(r); s.Items != game.ItemsOwn || s.Combat == nil || len(f.sent) != 0 || s.Selected != 1 {
@@ -112,7 +112,7 @@ func TestFightItems(t *testing.T) {
 func TestViewGearOpensItems(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Party: []game.Member{{Name: "ARIN"}, {Name: "MAREN"}, {Name: "VEX"}},
 		Ask: &play.Question{Replies: []string{"Gear", "Exit"}, Do: []play.Action{play.OpenItems{Member: 2}}}},
-		Field: play.Battlefield{Turn: 9, Units: []play.Unit{{ID: 9, Member: 1}}}}}
+		Field: play.Battlefield{Turn: 9, Units: []game.Unit{{ID: 9, Member: 1}}}}}
 	r := newRules(f, game.Data{})
 	r.send(tAnswer{N: 0})
 	if s := shownOf(r); s.Items != game.ItemsOwn || s.Selected != 2 || len(f.sent) != 0 || s.Pending != nil {
@@ -156,7 +156,7 @@ func TestSpeedMenu(t *testing.T) {
 // Done) places gobox's Items, Wait and End; naming Aim gives gobox's free Aim.
 func TestVerbOrderWords(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "ARIN"}}, Allowed: allow(play.EndTurn{}, play.UseItem{}, play.Delay{}).Allowed},
-		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}}}}
+		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}}}}
 	o := NewGame(&fake{st: fight}, game.Data{VerbOrder: []string{"Aim", "Done", "Delay", "Use"}}).View().Battle.Turn.Options
 	var ls []string
 	for _, x := range o {
@@ -171,7 +171,7 @@ func TestVerbOrderWords(t *testing.T) {
 // third), not the bar's end.
 func TestFreeAimInOrder(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "ARIN"}}, Allowed: allow(play.EndTurn{}, play.UseItem{}).Allowed},
-		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}}}}
+		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}}}}
 	o := NewGame(&fake{st: fight}, game.Data{VerbKeys: map[string]rune{"Aim": 'A'}, VerbOrder: []string{"Aim", "Use", "Done"}}).View().Battle.Turn.Options
 	if len(o) == 0 || o[0].Label != "Aim" {
 		t.Errorf("bar %+v, want Aim first", o)

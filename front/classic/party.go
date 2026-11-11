@@ -37,14 +37,14 @@ func Party(party []game.Member, cards []memberCard, sel int) []front.Member {
 			c = cards[i]
 		}
 		var head image.Image
-		if m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
+		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
 			head = poolImage("portraits", m.PortraitHeadID)
 		}
-		if head == nil { // no portrait: the combat icon (Buck Rogers' members have only that), else the card names the member
+		if head == nil && m.Dropped == nil { // no portrait: the combat icon (Buck Rogers' members have only that), else the card names the member
 			head = poolImage("combat", cmp.Or(m.IconBodyID, m.IconHeadID))
 		}
 		out = append(out, front.Member{Head: head, Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
-			Selected: c.Chosen || !marked && i == sel, Colour: nameColour(m), Powers: powers(c.Menu),
+			Selected: c.Chosen || !marked && i == sel, Colour: nameColour(m), Portrait: m.Dropped, Powers: powers(c.Menu),
 			Exp: int(int32(m.Exp)), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
 	}
 	return out

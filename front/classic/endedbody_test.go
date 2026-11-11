@@ -80,7 +80,7 @@ func TestEndedFightBeastStays(t *testing.T) {
 // last blow: the page came straight after, Mirelle standing to the end).
 func TestLiveFallBody(t *testing.T) {
 	r := &fightRules{}
-	r.st = play.Fighting{Field: play.Battlefield{Size: image.Pt(8, 8), Units: []play.Unit{{ID: 9, Member: -1, At: image.Pt(5, 5), HP: 9, Foe: true}}}}
+	r.st = play.Fighting{Field: play.Battlefield{Size: image.Pt(8, 8), Units: []game.Unit{{ID: 9, Member: -1, At: image.Pt(5, 5), HP: 9, Foe: true}}}}
 	g := NewGame(r, game.Data{})
 	g.lastCombat = &play.Combat{Size: image.Pt(8, 8), Units: []game.Unit{{ID: 2, At: image.Pt(3, 2), HP: 1}, {ID: 9, At: image.Pt(5, 5), HP: 9, Foe: true}}}
 	body := game.Picture{W: 1, H: 1, Pixels: []byte{5}, Clear: -1}

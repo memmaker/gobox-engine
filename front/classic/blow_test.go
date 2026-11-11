@@ -14,7 +14,7 @@ import (
 // pane keeps the line even when the game's own Text is blank.
 func TestBlowShows(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Text: []string{""}, Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}}}},
-		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
+		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
 	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Attacked{From: 1, To: 2, Hit: true, Damage: 5}, play.Narrated{Text: "ARIN HITS FOR 5"}}}}
 	g := NewGame(f, game.Data{})
 	if err := g.Answer(front.Action{Kind: front.ActAttack, N: 2}); err != nil {
@@ -42,7 +42,7 @@ func TestBlowShows(t *testing.T) {
 // 100 ms, the originals'), and SetSpeed changes it.
 func TestBlowHoldsSpeedDelay(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}}}},
-		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
+		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
 	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Attacked{From: 1, To: 2}}}}
 	r := newRules(f, game.Data{})
 	held := func() int {

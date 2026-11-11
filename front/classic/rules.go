@@ -571,9 +571,9 @@ func (r *rules) combat(f play.Fighting) *play.Combat {
 		Round: b.Round, Dungeon: b.Dungeon, Reach: al.Moves, Effects: b.Clouds}
 	var spells []game.SpellRef
 	for _, u := range b.Units {
-		c.Units = append(c.Units, game.Unit{ID: u.ID, Name: u.Name, At: u.At, Facing: u.Facing, Foe: u.Foe,
-			HP: u.HP, MaxHP: u.MaxHP, Art: u.Art, Dead: u.Dead, Gone: u.Gone, Size: u.Size, Squares: u.Squares,
-			AC: u.AC, Status: u.Status, Dmg: u.Dmg, Member: u.Member, Active: u.ID == b.Turn, Hit: u.Hit, Pose: u.Pose})
+		g := u
+		g.Active = u.ID == b.Turn
+		c.Units = append(c.Units, g)
 		if u.ID == b.Turn && u.Member >= 0 && u.Member < len(f.Party) {
 			spells = f.Party[u.Member].Spells
 		}

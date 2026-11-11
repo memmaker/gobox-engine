@@ -15,7 +15,7 @@ type fightRules = fake
 func TestFightSheetLookOnly(t *testing.T) {
 	r := &fightRules{}
 	r.st = play.Fighting{Common: play.Common{Party: []game.Member{{Name: "A"}, {Name: "B", Page: &game.SheetPage{Name: "B", Damage: "1d8", Sex: "Male"}}}},
-		Field: play.Battlefield{Turn: 7, Units: []play.Unit{{ID: 3, Member: 0}, {ID: 7, Member: 1}}}}
+		Field: play.Battlefield{Turn: 7, Units: []game.Unit{{ID: 3, Member: 0}, {ID: 7, Member: 1}}}}
 	g := NewGame(r, game.Data{})
 	if g.OpenSheet(-1); len(r.sent) != 0 {
 		t.Fatalf("the game was called: %v", r.sent)
@@ -38,7 +38,7 @@ func TestFightSheetLookOnly(t *testing.T) {
 func TestFightItemsTabSheet(t *testing.T) {
 	r := &fightRules{}
 	r.st = play.Fighting{Common: play.Common{Selected: 1, Party: []game.Member{{Name: "A"}, {Name: "B"}}},
-		Field: play.Battlefield{Turn: 3, Units: []play.Unit{{ID: 3, Member: 0}}}}
+		Field: play.Battlefield{Turn: 3, Units: []game.Unit{{ID: 3, Member: 0}}}}
 	g := NewGame(r, game.Data{})
 	g.CloseItems(false)
 	if sp := g.View().SheetPage; sp == nil || sp.Name != "B" {

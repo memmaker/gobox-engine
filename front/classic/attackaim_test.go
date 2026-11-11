@@ -13,7 +13,7 @@ import (
 // game offers by id, the cursor on the first; a square there attacks that id.
 func TestAttackAims(t *testing.T) {
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}, play.EndTurn{}}}},
-		Field: play.Battlefield{Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(5, 3), Foe: true}}}}}
+		Field: play.Battlefield{Units: []game.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(5, 3), Foe: true}}}}}
 	r := newRules(f, game.Data{})
 	if res := r.send(play.Attack{Target: 0}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim || shownOf(r).Combat.Cursor != image.Pt(5, 3) {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
@@ -36,7 +36,7 @@ func TestFledLeaves(t *testing.T) {
 func TestShootTargets(t *testing.T) {
 	shoot := play.Shoot{}
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: shoot, Squares: []image.Point{{4, 4}, {6, 6}, {9, 9}}, Targets: 1}}}},
-		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(6, 6), Foe: true}}}}}
+		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(6, 6), Foe: true}}}}}
 	r := newRules(f, game.Data{})
 	r.send(play.Shoot{})
 	c := shownOf(r).Combat
@@ -62,7 +62,7 @@ func TestQuickAllOption(t *testing.T) {
 func TestAimNoFoeInReach(t *testing.T) {
 	shoot := play.Shoot{}
 	f := &fake{st: play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: shoot, Squares: []image.Point{{2, 1}}, Targets: 1}}}},
-		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(4, 3), Foe: true}}}}}
+		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(4, 3), Foe: true}}}}}
 	r := newRules(f, game.Data{})
 	r.send(play.Shoot{})
 	c := shownOf(r).Combat

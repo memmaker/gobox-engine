@@ -360,6 +360,7 @@ type Member struct {
 	Items                                []Item // in the rules' order; gobox keeps it
 	Spells                               []SpellRef
 	Portrait                             Picture
+	Dropped                              image.Image    // the member's own PNG portrait (dropped on the sheet), drawn in place of the pool head; nil none
 	Icon                                 map[string]int // icon designer choices as numbers
 	PortraitHeadID, PortraitBodyID       string         // gobox's opaque shared-pool picks, one pool name each ("head_NNN", "body_NNN"); the game only stores and states them back ("": none, gobox falls back to Portrait)
 	IconHeadID, IconBodyID               string         // likewise the combat icon's ("combat_head_NNN", "combat_body_NNN"; "": none, gobox falls back to Icon)

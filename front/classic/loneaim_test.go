@@ -16,7 +16,7 @@ func TestLoneAimWithLeave(t *testing.T) {
 	foe := image.Pt(4, 2)
 	fight := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Leave{}},
 		Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{foe, {5, 2}}, Targets: 1}}}},
-		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: foe}}}}
+		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: foe}}}}
 	f := &fake{st: fight}
 	g := NewGame(f, game.Data{})
 	v := g.View()
@@ -44,7 +44,7 @@ func TestAimTargetsBigFoe(t *testing.T) {
 	in := image.Pt(5, 2)
 	fight := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Leave{}},
 		Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{in}, Targets: 1}}}},
-		Field: play.Battlefield{Turn: 1, Units: []play.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: image.Pt(4, 2), Squares: []image.Point{{4, 2}, in}, Size: 2}}}}
+		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: image.Pt(4, 2), Squares: []image.Point{{4, 2}, in}, Size: 2}}}}
 	g := NewGame(&fake{st: fight}, game.Data{})
 	if v := g.View(); v.Battle == nil || len(v.Battle.Targets) != 1 {
 		t.Fatalf("targets %+v", v.Battle)

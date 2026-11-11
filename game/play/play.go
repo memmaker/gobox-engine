@@ -212,7 +212,7 @@ type Battlefield struct {
 	Tiles     []string // Ground.Tile's Data.Art names
 	FloorTile string
 	Floor     color.RGBA
-	Units     []Unit
+	Units     []game.Unit
 	Clouds    []game.Effect // lasting spell effects on squares
 	Round     int
 	Turn      int // the unit ID whose turn it is
@@ -222,21 +222,6 @@ type Battlefield struct {
 	Weapon    *game.Weapon        // the turn's weapon in hand (its icon on Attack), nil none
 	Missile   *game.Weapon        // its ranged weapon readied, nil none
 	Maneuvers []game.TurnManeuver // the rule set's maneuvers, by DoManeuver ID
-}
-
-// Unit is a combatant.
-type Unit struct {
-	ID, Member      int // Member: party index, -1 a monster
-	Name            string
-	At              image.Point
-	Squares         []image.Point
-	Size, Facing    int
-	Foe, Dead, Gone bool
-	HP, MaxHP, AC   int
-	Status, Dmg     string
-	Hit             int // the turn's unit's chance in percent to hit it, 0 not a target
-	Pose            int // its icon's pose: 0 ready, 1 action
-	Art             game.Picture
 }
 
 // SceneKind says what a Scene is.

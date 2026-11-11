@@ -20,7 +20,7 @@ func (r *endGame) State() play.State {
 		return play.Scene{Common: play.Common{Status: "DONE"}}
 	}
 	return play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Quick{}}}}, Field: play.Battlefield{Size: image.Pt(4, 4),
-		Units: []play.Unit{{ID: 1, Member: -1, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(2, 1), Foe: true}}}}
+		Units: []game.Unit{{ID: 1, Member: -1, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(2, 1), Foe: true}}}}
 }
 func (r *endGame) Do(a play.Action) (play.Outcome, error) {
 	if _, ok := a.(play.Quick); !ok {

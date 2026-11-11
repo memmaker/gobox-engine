@@ -119,7 +119,7 @@ func TestGaps(t *testing.T) {
 		{"maneuver named", play.Fighting{Common: allow(play.DoManeuver{ID: 3}), Field: play.Battlefield{Maneuvers: []game.TurnManeuver{man}}}, play.Guard{}, play.Guard{},
 			func(s shown) bool { return s.Combat.Turn.Maneuvers[0].Name == "Sweep" }},
 		{"turn figures", play.Fighting{Field: play.Battlefield{Turn: 1, Moves: 5, Casting: 9, Weapon: &game.Weapon{},
-			Units: []play.Unit{{ID: 1, Pose: 1}}}}, play.EndTurn{}, play.EndTurn{},
+			Units: []game.Unit{{ID: 1, Pose: 1}}}}, play.EndTurn{}, play.EndTurn{},
 			func(s shown) bool {
 				t := s.Combat.Turn
 				return t.Moves == 5 && t.Casting == 9 && t.Weapon != nil && s.Combat.Units[0].Pose == 1
