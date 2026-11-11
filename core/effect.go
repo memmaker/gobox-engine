@@ -9,9 +9,10 @@ type Effect interface{ effect() }
 // the rules ask this yes/no first and take Confirmed{action} on yes (Flee?,
 // Attack Ally?).
 type Outcome struct {
-	Effects []Effect
-	Confirm string
-	Created CharID // KeepDraft: the character made, else NoChar
+	Effects  []Effect
+	Confirm  string
+	Created  CharID // KeepDraft: the character made, else NoChar
+	TurnOver bool   // in a fight: the actor's turn is used (por turnChoice's done)
 }
 
 type (
