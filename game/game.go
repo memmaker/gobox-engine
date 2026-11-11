@@ -9,6 +9,7 @@ import (
 	"image"
 	"image/color"
 	"io/fs"
+	"path/filepath"
 	"time"
 
 	"gobox/core"
@@ -80,7 +81,7 @@ type Intro struct {
 }
 
 // Sequence is a full-screen animation gobox plays (State.Sequence names
-// it): Anim the base name of its files in Data.Files (e.g. "INTRO": INTRO.ACF
+// it): Anim the base name of its files in Data.AnimDir (e.g. "INTRO": INTRO.ACF
 // and INTRO.BMA), Music the songs it cues.
 type Sequence struct {
 	Name  string
@@ -821,7 +822,7 @@ type Data struct {
 	Sequences    []Sequence        // the full-screen animations State.Sequence names (nil: none)
 	DaxMask      map[string]int    `json:",omitempty"` // a DAX file's transparent colour index, as the original's loader takes it (File, e.g. "CHARS", "CPIC3"; no entry: none)
 	Files        string            // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
-	Adventure    string            // the imported adventure folder (gobox import): Picture File and Block from its art/, AmigaMusic's files from its sound/; set, Files is not read ("": none)
+	Adventure    string            // the imported adventure folder (gobox import): Picture File and Block from its art/, AmigaMusic's and AdLib's files from its sound/ (SoundDir), Sequences' from its anim/ (AnimDir); set, Files is not read ("": none)
 	SoundTables  []byte            // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
 	AdLib        *AdLib            // the AdLib music and effects (nil: none)
 	AmigaMusic   *AmigaMusic       // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)
@@ -1104,4 +1105,22 @@ const (
 type PartyCommand struct {
 	Label string
 	Key   rune
+}
+
+// SoundDir is where the game's sound files are (AdLib, AmigaMusic, the
+// animations' songs): the adventure's sound/, else Files ("": none).
+func (d Data) SoundDir() string {
+	if d.Adventure != "" {
+		return filepath.Join(d.Adventure, "sound")
+	}
+	return d.Files
+}
+
+// AnimDir is where Sequences' animation files are: the adventure's anim/,
+// else Files ("": none).
+func (d Data) AnimDir() string {
+	if d.Adventure != "" {
+		return filepath.Join(d.Adventure, "anim")
+	}
+	return d.Files
 }

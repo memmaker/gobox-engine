@@ -262,7 +262,7 @@ func gameData(g game.Data) {
 		}
 		texts[k] = v
 	}
-	sequences, filesDir = g.Sequences, g.Files
+	sequences, filesDir = g.Sequences, g.AnimDir()
 	classic.GameID, classic.Amiga = g.ID, amigaShown
 	classic.AmigaArt = classic.Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
 	if g.Series != "" {
@@ -287,24 +287,24 @@ func gameData(g game.Data) {
 	case g.Files != "":
 		daxArt.art = asset.OpenArt(asset.Dir(g.Files))
 	}
-	if g.AdLib != nil && g.Files != "" && adLib == nil {
-		music, _ := os.ReadFile(filePath(g.Files, g.AdLib.Music))
-		snd, _ := os.ReadFile(filePath(g.Files, g.AdLib.Sounds))
+	if dir := g.SoundDir(); g.AdLib != nil && dir != "" && adLib == nil {
+		music, _ := os.ReadFile(filePath(dir, g.AdLib.Music))
+		snd, _ := os.ReadFile(filePath(dir, g.AdLib.Sounds))
 		if music != nil {
 			adLib = &audio.AdLibData{Music: music, Sounds: snd, Effects: g.AdLib.Effects, Rate: g.AdLib.Rate, Tempo: g.AdLib.Tempo, Named: map[string][]byte{}}
 			for _, sq := range g.Sequences { // the songs the animations cue (NAME.SMS beside them)
 				for _, m := range sq.Music {
-					if b, err := os.ReadFile(filepath.Join(g.Files, m+".SMS")); err == nil {
+					if b, err := os.ReadFile(filepath.Join(dir, m+".SMS")); err == nil {
 						adLib.Named[m] = b
 					}
 				}
 			}
 		}
 	}
-	if m := g.AmigaMusic; m != nil && (g.Files != "" || g.Adventure != "") && amigaMX == nil {
+	if m := g.AmigaMusic; m != nil && g.SoundDir() != "" && amigaMX == nil {
 		dir := filepath.Join(filepath.Dir(g.Files), "amiga")
 		if g.Adventure != "" {
-			dir = filepath.Join(g.Adventure, "sound")
+			dir = g.SoundDir()
 		}
 		mx, _ := os.ReadFile(filepath.Join(dir, m.Songs))
 		glb, _ := os.ReadFile(filepath.Join(dir, m.Effects))

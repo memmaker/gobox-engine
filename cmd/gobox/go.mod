@@ -122,4 +122,8 @@ require cotab v0.0.0
 
 replace cotab => ../../../cotab-go
 
+require pod v0.0.0
+
+replace pod => ../../../pod-go
+
 replace github.com/retro-ware/gameimport => ../../../gameimport

@@ -236,7 +236,7 @@ func (g *Game) View() front.View {
 	v = Border(v, art)
 	v = Walls(v, r.wallsOf(ps), art)
 	v = Intro(v, introOf(ps))
-	v = Sequence(v, sequenceOf(ps), g.D.Sequences, g.D.Files)
+	v = Sequence(v, sequenceOf(ps), g.D.Sequences, g.D.AnimDir())
 	v = Note(v, r.note)
 	v = Results(v, resultsOf(ps))
 	v = Screen(v, image.Point{}, screenOf(ps), [16]color.RGBA{})

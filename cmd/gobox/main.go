@@ -27,9 +27,11 @@ import (
 	"gobox/app"
 	"gobox/front/present"
 	"gobox/importer"
+	"pod/playpod"
 	"por/playpor"
 
 	_ "cotab/importcotab"
+	_ "pod/importpod"
 	_ "por/importpor"
 )
 
@@ -39,6 +41,7 @@ import (
 var players = map[string]func(app.Start) error{
 	"por":   playpor.Play,
 	"cotab": playcotab.Play,
+	"pod":   playpod.Play,
 }
 
 // escapes are the -keys escapes beside the shell's (app.Flags): \r Enter,

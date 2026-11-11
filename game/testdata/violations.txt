@@ -11,3 +11,6 @@ cotab-go cotab/playcotab -> gobox/front/classic
 cotab-go cotab/playcotab -> gobox/front/present
 cotab-go cotab/playcotab -> gobox/gpu
 cotab-go cotab/playcotab -> gobox/ui/fonts
+pod-go pod/playpod -> gobox/app
+pod-go pod/playpod -> gobox/front/classic
+pod-go pod/playpod -> gobox/front/present
