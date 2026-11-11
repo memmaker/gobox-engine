@@ -251,6 +251,12 @@ type (
 		Whom []CharID
 		Item ItemID
 	}
+	// HasMemorized: an okay member with Spell memorized (por lockedDoor's
+	// Knock, FindCaster); Who is the first in marching order.
+	HasMemorized struct {
+		Party Party
+		Spell SpellID
+	}
 	// SkillRoll: BR opSkill (skill, all, hardness).
 	SkillRoll struct {
 		Whom     []CharID
@@ -264,6 +270,7 @@ func (Census) check()        {}
 func (HasCondition) check()  {}
 func (HasClass) check()      {}
 func (HasItem) check()       {}
+func (HasMemorized) check()  {}
 func (SkillRoll) check()     {}
 
 // Answer is a Check's result. Which fields mean anything follows from the
