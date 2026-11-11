@@ -73,6 +73,12 @@ type (
 		Spell SpellID
 		At    BoardPos
 	}
+	// TerrainSet is a square's new terrain number (Board.Terrain): a blast's
+	// rubble, a cloud's marker laid or cleared, a corpse (BR cbtacts.pas).
+	TerrainSet struct {
+		At      BoardPos
+		Terrain TerrainID
+	}
 	Gained struct {
 		Who  CharID
 		What string
@@ -89,19 +95,20 @@ type SoundCue string
 // Facing is 0 N, 2 E, 4 S, 6 W, with the diagonals between (game.Where.Facing).
 type Facing int8
 
-func (Narrated) effect() {}
-func (Sounded) effect()  {}
-func (Walked) effect()   {}
-func (Turned) effect()   {}
-func (Attacked) effect() {}
-func (Shot) effect()     {}
-func (Casting) effect()  {}
-func (Struck) effect()   {}
-func (Healed) effect()   {}
-func (Fell) effect()     {}
-func (Fled) effect()     {}
-func (Placed) effect()   {}
-func (CloudOn) effect()  {}
-func (CloudOff) effect() {}
-func (Gained) effect()   {}
-func (Lost) effect()     {}
+func (Narrated) effect()   {}
+func (Sounded) effect()    {}
+func (Walked) effect()     {}
+func (Turned) effect()     {}
+func (Attacked) effect()   {}
+func (Shot) effect()       {}
+func (Casting) effect()    {}
+func (Struck) effect()     {}
+func (Healed) effect()     {}
+func (Fell) effect()       {}
+func (Fled) effect()       {}
+func (Placed) effect()     {}
+func (CloudOn) effect()    {}
+func (CloudOff) effect()   {}
+func (TerrainSet) effect() {}
+func (Gained) effect()     {}
+func (Lost) effect()       {}
