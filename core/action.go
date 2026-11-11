@@ -62,6 +62,7 @@ type (
 		Ats    []BoardPos
 		Aims   []Aim   // as Cast's
 		Spell  SpellID // a scroll's spell
+		Sure   bool    // out of a fight: yes to "Use it?" for a combat-only item
 	}
 	Maneuver struct {
 		ID     ManeuverID
