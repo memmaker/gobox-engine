@@ -58,4 +58,9 @@ Open, in order:
 - [ ] cotab wiring: CreateCharacter..EndCreation, PointBuy, QuickStart delegate to gobox/creation as por create.go; readers of e.creation.c (iconedit.go, quickstart.go, slots.go, party.go, verbs.go, state.go:186/238) to the draft; saveDraft/removeDraft go (POR's keep step: main approved? C7 asked; not confirmed in ONE-BINARY.md); the keepNew name prompt vs errNoName.
 - [ ] cotab DAX picture bytes (PortHead/PortBody/IconHead/IconBody) <-> PicID: cotab has no lookup (POR's porpics.go over e.pics); charOf keeps a member's bytes only, a new draft gets 0 (Quick Start's quickPorts bytes are lost on that path).
 - [ ] sotsb, pod (same HitRolls seam), BR1/BR2, Creation() into CharacterRules, delete old paths and game/pointbuy.go.
-Unverified: charOf after SetScore(CON) replays the training with the new CON, then the sheet's HP/MaxHP win (legacy did not retrain); only HP depends on it, as far as read. No full suites.
+- [x] CON replay: TestCotabCreationCon (cotab) types CON after the roll; the draft's whole charRecord equals the old SetStat path's.
+Main's answers (2026-11-11), for the next agent:
+- saveDraft: delete it if it is a private copy the draft replaces (as C7's creationEdit/creationDone copies); behaviour stays, say so in the commit.
+- Unnamed new character: keep cotab's keepNew name prompt (baseline); if errNoName is used, it must lead to that same prompt.
+- Pictures: cotab's DAX picture <-> PicID lookup over gobox/importer/pictures exactly as por rules/porpics.go; no second mechanism; if porpics' helper is generic, move it into importer/pictures and use it from both. (porpics is POR-table-specific except the DAXRef/e.pics.ID call; cotab needs its HEAD2/BODY2 table, see quickPorts.)
+Unverified: no full suites.
