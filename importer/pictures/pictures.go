@@ -181,3 +181,32 @@ func Origins() map[string]map[string]map[string]string {
 	}
 	return o
 }
+
+// Pick is one picture of a character as a draft holds it: its pool pick,
+// else the PicID of the game's own picture number (own).
+func Pick(pool, own core.PicID) core.PicID {
+	if pool != "" {
+		return pool
+	}
+	return own
+}
+
+// Set is Pick's inverse into a character: a picture the game has a number
+// for sets that number (kept when it already shows id) and clears the pool
+// pick; any other is the pool pick, and the number becomes none so the
+// record holds no second, stale source for the picture. of is a number's
+// PicID, inv its inverse.
+func Set(id core.PicID, num *byte, none byte, pool *core.PicID, of func(byte) core.PicID, inv func(core.PicID) (byte, bool)) {
+	*pool = ""
+	if of(*num) == id {
+		return
+	}
+	if b, ok := inv(id); ok {
+		*num = b
+		return
+	}
+	if id != "" { // "": no pick, the number stays the picture
+		*num = none
+	}
+	*pool = id
+}
