@@ -9,9 +9,6 @@ type WordName string
 const (
 	WordPartyCount WordName = "PartyCount" // the game record's party count
 	WordSymbolSet  WordName = "SymbolSet"
-	WordPosX       WordName = "PosX"
-	WordPosY       WordName = "PosY"
-	WordFacing     WordName = "FacingRaw"
 	WordBeginFlag  WordName = "BeginFlag"
 	WordDebug      WordName = "Debug"
 	WordTraining   WordName = "Training" // read only: the training hall is open
