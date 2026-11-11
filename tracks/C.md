@@ -16,3 +16,14 @@ Open, in order:
 4. done: copperPerGold reads goldbox.GoldBoxRates (gobox a5ab1d8).
 5. cotab, sotsb, pod, BR1, BR2 (BR via rulesxxvc: message main, X4 owns it); then Creation() into CharacterRules.
 Unverified: no full suite run; only rules tests matching Creat|Minimal|Roll|Quick|Modify|Sheet|Pick|Icon|Keep|Train, gobox core and creation.
+
+## C7 handover (agent C7, 2026-11-11)
+Done:
+- [x] 1 baseline c70cbee restored (gobox 137d41a, por-go 1455421): SetScore clamps (ErrOutOfRange gone), "18/5" = 18/05, text that is no score keeps it silently, "STR 18/xx is for fighters only, max 18". TestSetScoreBaseline.
+- [x] 2 one copy: pickers (PickHead/PickBody), PNG drops (icon, portrait), icon editor (EndIcon in creation), play.SetChoice write cr.d.D; creationEdit's and creationDone's draftOf(cr.c) copies gone (gobox 582b8ac, por-go f878174).
+- [x] 3 PicID: Draft.Head/Body, Template Head/Body/IconHead/IconBody, Icon Head/Body, POR poolIDs are core.PicID. rules/porpics.go: PortHead/PortBody/IconHead/IconBody <-> PicID through e.pics (sprites.Pictures); charOf's DAX carry and quickPortHead/Body gone. A POR picture picked from the pool is stored as POR's own number now (same picture).
+- [x] 4 RosterID (coordinator-approved): core.RosterID/NoRoster; .cha trailer key "rosterid"; save dir "rosternext"; BuildCharList numbers old .cha once (migrateRoster); Make -> (CharID, RosterID, error); Join(RosterID) on CreationRules (por joinRoster, linear scan); QuickStart = creation.QuickParty; quickCreate/quickPick gone. TestRosterIDs.
+Open:
+- [ ] 5 port cotab (rules/creation.go: its own sheet, saveDraft writes at once with no keep step: behaviour differs from POR, ask main), sotsb, pod; BR1/BR2 via rulesxxvc (X5 owns, message main).
+- [ ] 6 Creation() into CharacterRules once all implement it.
+Unverified: QuickStart's dice now go through creation.begin/Roll; the party stats for a fixed seed may differ from quickCreate's (not compared). Icon size from the draft overrides the race default in charOf (Enforce re-derives it on a race change). No full suite; gate passed (por/rules, gobox core/creation, games).
