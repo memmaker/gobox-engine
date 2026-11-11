@@ -6,12 +6,21 @@
 
 ## Track R: rules and engine loop (agent B3, then successors)
 - [x] `Purse(CharID) Copper` in core (gobox d995a8a)
-- [ ] actor at the core seam (Felix: option b)
+- [x] actor at the core seam (Felix: option b; por-go 7900727, TestActorSeam)
 - [ ] POR's rules into rules1e behind core.Rules / CharacterRules / CombatRules; TestAgainstPascal equal
 - [ ] gobox's one adventure-folder reader implements core.Adventure; the manifest (id, title, ruleset, start/end sequence, custom fields)
 - [ ] engine loop in gobox; `cmd/gobox` lists folders, starts one with its ruleset; `cmd/por`, `por-go/rules` gone
 - [ ] rulesxxvc for BR1/BR2 (from buckrogers-core and the BR rules), behind the same interfaces
 - [ ] the per-game flow differences (vault, ending, wilderness, doors, stack split/repair, level titles, import offers, difficulty, camp options) as shared features or manifest data
+  - [x] R1 one receiver per file: por-go 6b97aff, the Engine methods of the mixed files in `<file>_engine.go`; powercalls.go no longer imports gobox/game. create.go stays mixed (agent C's).
+
+### R handover (agent B4, 2026-11-11)
+Measured at 6b97aff: RuleState methods sit in 49 files (13.2k lines); Engine embeds RuleState and its 90 files use ~300 promoted names. Step R2 (move into rules1e) is blocked by the import rule (rules1e: gobox/core, core/dnd only). The RuleState files still import:
+- `gobox/rules` (GoldBoxRates, Purse, MakeFileName, Sign, Abs, RollDice, DexMissile) and `gobox/rules/grid` (LineOfSight, Sight, InArc, NearSort: cmap.go, spells1.go). Needs Felix: allow them in rules1e, or move them under core.
+- `gobox/ecl`, `gobox/ecl/script` (ecl.go, eclops*.go, scriptvars.go, saveimport.go, engine.go): the script VM's state sits in RuleState. It is the shared engine's, not the ruleset's: cut it out of RuleState first (the script calls the rules through core.Rules).
+- `gobox/game`, `game/play` (gamestate2.go, extras.go, poolid.go, create.go, engine.go): presenter types (Entry, SheetPage, Hold, Window aliases in types.go) go to the Engine side.
+- `gobox/asset`, `ega`, `por/pal`, `geo`, `image` (battle.go, train.go, engine.go, geo.go, 12 files with image.Point): art and palette leave RuleState; image.Point needs a core position type (none in core: interface change, needs Felix).
+Next order: (a) per file, move the free funcs and types that only the Engine uses into the `_engine.go` side (pure moves); (b) cut ECL and art state out of RuleState; (c) Felix's ruling on gobox/rules, grid and a core point type; (d) then the package move with gopls rename for the promoted names (`gopls rename` per identifier, scripted from the Engine files' `e.<name>` uses). R3 to R6 not started.
 
 ## Track A: import and run-time data (agent A5, then successors)
 - [x] art as PNG atlases, all six games (TestArtEqualsDAX, 46023 frames)
