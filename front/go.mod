@@ -60,6 +60,7 @@ require (
 	github.com/jfreymuth/pulse v0.1.3 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
 	gobox/amiga v0.0.0
+	gobox/asset v0.0.0
 	gobox/game v0.0.0
 	gobox/geo v0.0.0
 )
@@ -71,3 +72,5 @@ replace gobox/amiga => ../amiga
 replace gobox/game => ../game
 
 replace gobox/geo => ../geo
+
+replace gobox/asset => ../asset

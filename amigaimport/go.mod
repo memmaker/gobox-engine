@@ -8,7 +8,10 @@ require (
 	gobox/dax v0.0.0
 )
 
-require gobox/ega v0.0.0 // indirect
+require (
+	gobox/asset v0.0.0
+	gobox/ega v0.0.0 // indirect
+)
 
 replace (
 	gobox/adf => ../adf
@@ -16,3 +19,5 @@ replace (
 	gobox/dax => ../dax
 	gobox/ega => ../ega
 )
+
+replace gobox/asset => ../asset

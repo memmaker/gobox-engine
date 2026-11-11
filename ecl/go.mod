@@ -6,10 +6,15 @@ require gobox/dax v0.0.0
 
 require gobox/game v0.0.0
 
-require gobox/ega v0.0.0 // indirect
+require (
+	gobox/asset v0.0.0
+	gobox/ega v0.0.0 // indirect
+)
 
 replace gobox/dax => ../dax
 
 replace gobox/ega => ../ega
 
 replace gobox/game => ../game
+
+replace gobox/asset => ../asset

@@ -5,6 +5,7 @@ go 1.26.2
 require gobox/ecl v0.0.0
 
 require (
+	gobox/asset v0.0.0
 	gobox/dax v0.0.0 // indirect
 	gobox/ega v0.0.0 // indirect
 	gobox/game v0.0.0 // indirect
@@ -17,3 +18,5 @@ replace gobox/dax => ../dax
 replace gobox/ega => ../ega
 
 replace gobox/game => ../game
+
+replace gobox/asset => ../asset

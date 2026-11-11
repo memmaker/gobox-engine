@@ -40,7 +40,10 @@ replace gobox/ega => ../ega
 
 require gobox/dax v0.0.0
 
-require gobox/game v0.0.0 // indirect
+require (
+	gobox/asset v0.0.0
+	gobox/game v0.0.0 // indirect
+)
 
 replace gobox/dax => ../dax
 
@@ -57,3 +60,5 @@ replace gobox/combat => ../combat
 replace gobox/walls => ../walls
 
 replace gobox/sprites => ../sprites
+
+replace gobox/asset => ../asset

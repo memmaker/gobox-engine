@@ -33,6 +33,7 @@ require (
 	github.com/qmuntal/gltf v0.29.0 // indirect
 	gobox/amiga v0.0.0 // indirect
 	gobox/app v0.0.0 // indirect
+	gobox/asset v0.0.0
 	gobox/audio v0.0.0 // indirect
 	gobox/char v0.0.0 // indirect
 	gobox/combat v0.0.0 // indirect
@@ -96,3 +97,5 @@ replace github.com/go-webgpu/goffi => ../../goffi
 replace github.com/gogpu/gogpu => ../../goplay/third_party/gogpu
 
 replace gobox/ecl => ../ecl
+
+replace gobox/asset => ../asset
