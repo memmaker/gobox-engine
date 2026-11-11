@@ -99,3 +99,5 @@ replace github.com/gogpu/gogpu => ../../goplay/third_party/gogpu
 replace gobox/ecl => ../ecl
 
 replace gobox/asset => ../asset
+
+replace gobox/core => ../core

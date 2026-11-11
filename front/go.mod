@@ -51,6 +51,7 @@ require (
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/memmaker/opl2 v0.1.0 // indirect
 	github.com/qmuntal/gltf v0.29.0 // indirect
+	gobox/core v0.0.0 // indirect
 )
 
 require (
@@ -74,3 +75,5 @@ replace gobox/game => ../game
 replace gobox/geo => ../geo
 
 replace gobox/asset => ../asset
+
+replace gobox/core => ../core

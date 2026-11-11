@@ -108,6 +108,10 @@ const NoChar CharID = 0
 // SpellID is a spell or an item power that casts like one: core/dnd lists them.
 type SpellID string
 
+// PicID is one entry of the shared portrait and combat icon collection
+// (gobox/sprites, series pool or buck-rogers): its sprite name, "head_012".
+type PicID string
+
 // Things named by the adventure and given numbers by the ruleset. The
 // constants are in core/dnd and core/xxvc, generated at import. Scripts carry
 // these ids, resolved by the decompiler, no set or index (ARCHITECTURE.md).

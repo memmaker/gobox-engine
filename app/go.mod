@@ -62,3 +62,5 @@ replace gobox/walls => ../walls
 replace gobox/sprites => ../sprites
 
 replace gobox/asset => ../asset
+
+replace gobox/core => ../core
