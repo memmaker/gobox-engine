@@ -90,8 +90,8 @@ type VM struct {
 	Command, LastCommand byte
 	Stop                 bool
 
-	// Args[cmd] is the number of operands Skip steps over for cmd (a table
-	// the game fills; commands that take none stay 0).
+	// Args[cmd] is the number of operands Skip steps over for cmd
+	// (SetVersion: the dialect's Version.Skip).
 	Args [256]byte
 	// Ops is the opcode table; nil entries do nothing. New starts with Default.
 	Ops [256]Op
@@ -119,6 +119,7 @@ func (vm *VM) SetVersion(v *script.Version) {
 			vm.Raw[c.Op] = byte(b)
 		}
 	}
+	vm.Args = v.Skip
 }
 
 // Fetch starts the command at PC: Command, and its operands from the first.

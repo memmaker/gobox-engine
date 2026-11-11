@@ -1,0 +1,46 @@
+package script
+
+import "testing"
+
+// TestSkipCounts: where a dialect's Skip differs from its commands' fixed
+// operands, the difference is the original's and listed here; anything else
+// is a typo in one of the tables.
+func TestSkipCounts(t *testing.T) {
+	// counted commands: parse_command reads none of a counted list
+	counted := []byte{21, 37, 38, 43}
+	// 52 Clock, 54 AddNPC: the handlers read 2, parse_command steps over 1.
+	// 66 Quest: the port's, unknown to the originals.
+	v2 := byteSet(append(counted, 52, 54, 66,
+		31)...) // the port's pager (1 operand) where the original's table has 2
+	v3 := byteSet(append(counted, 52, 54, 66,
+		39, 49)...) // TreasureOf, MenuKeys: counted in POD
+	known := map[VersionID]map[byte]bool{
+		1: nil, // all 0 (POR's port); not checked
+		2: v2,
+		3: v3,
+	}
+	for id, ok := range known {
+		if ok == nil {
+			continue
+		}
+		v := Versions[id]
+		for b := range 256 {
+			c := v.Cmds[b]
+			want := c.Fixed
+			if !c.Known {
+				want = 0
+			}
+			if int(v.Skip[b]) != want && !ok[byte(b)] {
+				t.Errorf("V%d command %d (%s): Skip %d, Fixed %d", id, b, OpName(c.Op), v.Skip[b], want)
+			}
+		}
+	}
+}
+
+func byteSet(bs ...byte) map[byte]bool {
+	m := map[byte]bool{}
+	for _, b := range bs {
+		m[b] = true
+	}
+	return m
+}

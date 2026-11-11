@@ -34,6 +34,21 @@ type Version struct {
 	// LoadMapSecondUnused: the dialect's engine ignores LoadMap's second
 	// operand, so the text leaves it out.
 	LoadMapSecondUnused bool
+	// Skip[b] is how many operands the dialect's engine reads when it steps
+	// over byte-code command b unrun (an If that fails: parse_command's own
+	// table). It differs from Cmds[b].Fixed where the original's table did
+	// (TestSkipCounts names each difference).
+	Skip [256]byte
+}
+
+// skips makes a Skip table of the groups: operand count -> commands.
+func skips(groups map[byte][]byte) (t [256]byte) {
+	for n, cs := range groups {
+		for _, c := range cs {
+			t[c] = n
+		}
+	}
+	return t
 }
 
 // Current reports whether a text carrying id and revision is this version's.
@@ -80,6 +95,8 @@ var V1 = func() *Version {
 	// a quest handed over (the quest journal; Felix 2026-11-11: never by
 	// matching its printed text): unused by every Gold Box dialect
 	set(&t, 66, OpQuest, 1, 0)
+	// Skip all 0: POR's port steps over a command reading none of its
+	// operands (unlike the second engine's parse_command); kept as it is.
 	return &Version{ID: 1, Base: 0x9900, Cmds: t, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true}
 }()
 
@@ -98,7 +115,15 @@ var V2 = func() *Version {
 	set(&t, 64, OpDestroy, 1, 0)
 	set(&t, 65, OpGainExp, 2, 0)
 	set(&t, 52, 0x34, 2, 0)
-	return &Version{ID: 2, Base: 32768, Cmds: t}
+	// parse_command's counts (cotab O04C:1FD2, sotsb's); 65 is sotsb's only
+	// (cotab's scripts have no GainExperience).
+	skip := skips(map[byte][]byte{
+		1: {1, 2, 10, 14, 17, 18, 29, 32, 45, 50, 52, 54, 56, 57, 60, 63, 64},
+		2: {3, 8, 9, 15, 16, 31, 34, 65},
+		3: {4, 5, 6, 7, 11, 12, 33, 40, 42, 47, 48, 53, 55, 59},
+		4: {20, 35}, 5: {46}, 6: {30, 44}, 8: {39}, 14: {41},
+	})
+	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip}
 }()
 
 // V3 is Pools of Darkness' dialect.
@@ -117,7 +142,14 @@ var V3 = func() *Version {
 	set(&t, 55, OpFindNPC, 2, 0)
 	set(&t, 58, OpNoOp, 0, 0)
 	set(&t, 60, OpItemSet, 1, 0)
-	return &Version{ID: 3, Base: 32768, Cmds: t}
+	// Pools of Darkness' parse_command counts (O055:1464)
+	skip := skips(map[byte][]byte{
+		1: {1, 2, 10, 14, 17, 18, 31, 32, 44, 45, 50, 52, 54, 56, 57, 60, 63, 64},
+		2: {3, 8, 9, 15, 16, 65, 33, 55},
+		3: {4, 5, 6, 7, 11, 40, 42, 47, 48, 53, 59},
+		4: {12, 20}, 5: {46}, 6: {30},
+	})
+	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip}
 }()
 
 // V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).
