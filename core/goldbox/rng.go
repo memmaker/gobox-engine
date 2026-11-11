@@ -1,4 +1,4 @@
-package rules
+package goldbox
 
 import "time"
 

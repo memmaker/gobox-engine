@@ -1,4 +1,4 @@
-package rules
+package goldbox
 
 // StrIndex is the strength as one index: 1..17 as is, 18 with its percentile
 // 18..23, 19..25 as 24..30. Above 18/100 the original leaves the result

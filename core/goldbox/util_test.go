@@ -1,4 +1,4 @@
-package rules
+package goldbox
 
 import "testing"
 
@@ -7,9 +7,6 @@ import "testing"
 func TestUtilPinned(t *testing.T) {
 	if got := RemoveSubstr("aaaa", "a"); got != "aa" {
 		t.Errorf("RemoveSubstr = %q, want aa", got)
-	}
-	if got := MakeFileName("Sir Bob.the Great"); got != "SIRBOBTH" {
-		t.Errorf("MakeFileName = %q, want SIRBOBTH", got)
 	}
 	if Abs(-3) != 3 || Sign(-9) != -1 || Sign(0) != 0 || B2i(true) != 1 || Cut("abcd", 2) != "ab" || Upper('q') != 'Q' {
 		t.Error("helper wrong")

@@ -1,4 +1,4 @@
-package rules
+package goldbox
 
 // Purse is the party's one shared money: gold pieces, copper (under a gold
 // piece) and gems and jewelry to appraise. uint64, so nothing wraps at uint32.

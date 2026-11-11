@@ -5,22 +5,10 @@
 // game runs.
 package rules
 
-import "gobox/char"
-
-// RNG is the game's own random source (its original-RNG implementation).
-type RNG interface {
-	Dice(n, sides int) int
-}
-
-// Roll is the rule globals the games keep in rv: the last results, which the
-// affect handlers read.
-type Roll struct {
-	Save     byte
-	SaveType byte
-	SaveMade bool
-	DiceN    byte
-	HitRoll  int8
-}
+import (
+	"gobox/char"
+	"gobox/core/goldbox"
+)
 
 // Hooks are the game's side effects around a roll. Nil funcs do nothing.
 type Hooks struct {
@@ -48,14 +36,8 @@ const (
 	ClsRanger  = 4
 )
 
-// RollDice = Dice that also remembers n (the games' RollDice).
-func RollDice(rv *Roll, rng RNG, n, sides int) int {
-	rv.DiceN = byte(n)
-	return rng.Dice(n, sides)
-}
-
 // hitRoll rolls the d20 the attack and trap rolls share: 1 misses, 20 counts 100.
-func hitRoll(rv *Roll, rng RNG) bool {
+func hitRoll(rv *goldbox.Roll, rng goldbox.RNG) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false
@@ -67,7 +49,7 @@ func hitRoll(rv *Roll, rng RNG) bool {
 }
 
 // AttackHits: d20 + THAC0 + adj (the side's modifier) must reach need.
-func AttackHits(rv *Roll, rng RNG, att char.Stats, adj int, need int, h Hooks) bool {
+func AttackHits(rv *goldbox.Roll, rng goldbox.RNG, att char.Stats, adj int, need int, h Hooks) bool {
 	if h.Begin != nil {
 		h.Begin()
 	}
@@ -82,7 +64,7 @@ func AttackHits(rv *Roll, rng RNG, att char.Stats, adj int, need int, h Hooks) b
 }
 
 // TrapHits: a d20 with the defender's affects plus bonus must beat AC 0.
-func TrapHits(rv *Roll, rng RNG, c char.Stats, bonus byte, h Hooks) bool {
+func TrapHits(rv *goldbox.Roll, rng goldbox.RNG, c char.Stats, bonus byte, h Hooks) bool {
 	if !hitRoll(rv, rng) {
 		return false
 	}
@@ -95,7 +77,7 @@ func TrapHits(rv *Roll, rng RNG, c char.Stats, bonus byte, h Hooks) bool {
 // SavingThrow: 1 always fails, 20 always saves, otherwise d20 + bonus + the
 // save bonus must reach the target for the type. One path for all games: the
 // total is compared signed (por's fix), so a penalty below 0 does not wrap.
-func SavingThrow(rv *Roll, rng RNG, c char.Stats, typ, bonus int, h Hooks) bool {
+func SavingThrow(rv *goldbox.Roll, rng goldbox.RNG, c char.Stats, typ, bonus int, h Hooks) bool {
 	rv.SaveMade = true
 	rv.Save = byte(rng.Dice(1, 20))
 	switch rv.Save {
