@@ -57,8 +57,7 @@ type (
 	}
 	UseItem struct {
 		User   CharID
-		Item   ItemSlot
-		Held   ItemHandle // the item, for a ruleset that hands out handles (Item unused)
+		Item   ItemHandle
 		Target CharID
 		Ats    []BoardPos
 		Aims   []Aim   // as Cast's
@@ -109,16 +108,16 @@ type (
 	// Goods, anywhere.
 	Ready struct {
 		Who   CharID
-		Item  ItemSlot
+		Item  ItemHandle
 		Count int32
 	}
 	Unready struct {
 		Who  CharID
-		Item ItemSlot
+		Item ItemHandle
 	}
 	DropItem struct {
 		Who  CharID
-		Item ItemSlot
+		Item ItemHandle
 	}
 	GiveItem struct {
 		From, To CharID
@@ -181,11 +180,11 @@ type (
 	// Trade.
 	Buy struct {
 		Who  CharID
-		Item CarriedID
+		Item ItemHandle // one of the shop's goods
 	}
 	Sell struct {
 		Who  CharID
-		Item ItemSlot
+		Item ItemHandle
 	}
 	Identify struct {
 		Who  CharID

@@ -112,6 +112,12 @@ type (
 		Who CharID
 		Why Refusal
 	}
+	// Traded is an item bought (Sold false) or sold in a shop.
+	Traded struct {
+		Who  CharID
+		Item ItemHandle
+		Sold bool
+	}
 )
 
 // Pace is how fast a Walked unit goes: a walk, or fast (BR's leap for cover).
@@ -127,6 +133,7 @@ type Refusal int8
 
 const (
 	OverLoaded Refusal = iota + 1 // no room for another item
+	NoMoney                       // the purse cannot pay
 )
 
 // SoundCue is a sound a rule makes, named as the adventure's asset names it.
@@ -138,6 +145,7 @@ type Facing int8
 func (Narrated) effect()        {}
 func (Hurt) effect()            {}
 func (Sounded) effect()         {}
+func (Traded) effect()          {}
 func (Walked) effect()          {}
 func (Turned) effect()          {}
 func (Attacked) effect()        {}
