@@ -68,8 +68,8 @@ func Battle(b *front.Battle, c *play.Combat, party []game.Member) *front.Battle 
 			o.Units[i].Party, o.Units[i].Active, o.Units[i].Name = !g.Foe, g.Active, g.Name
 			o.Units[i].HP, o.Units[i].MaxHP, o.Units[i].AC = g.HP, g.MaxHP, g.AC
 			o.Units[i].Hit, o.Units[i].Dmg, o.Units[i].Status = g.Hit, g.Dmg, g.Status
-			if g.Icon != nil {
-				o.Units[i].Icon, o.Units[i].IconSize = g.Icon, ownIconSize
+			if im := g.Icon[g.Pose&1]; im != nil {
+				o.Units[i].Icon, o.Units[i].IconSize = im, ownIconSize
 			} else if m := g.Member; !g.Foe && m >= 0 && m < len(party) {
 				if pic, size, ok := memberPicture(party[m], g, 0); ok {
 					if !cloned { // the game's IconPix by unit, so far
@@ -217,8 +217,8 @@ func BattleOf(c *play.Combat, party []game.Member, art map[string]game.Picture) 
 		if g.Art.W > 0 { // a DAX ref's size is the decoded picture's (the presenter's nativeSize)
 			u.IconSize = image.Pt(g.Art.W, g.Art.H)
 		}
-		if g.Icon != nil {
-			u.Icon, u.IconSize = g.Icon, ownIconSize
+		if im := g.Icon[g.Pose&1]; im != nil {
+			u.Icon, u.IconSize = im, ownIconSize
 		} else if m := g.Member; !g.Foe && m >= 0 && m < len(party) {
 			if pic, size, ok := memberPicture(party[m], g, g.Pose); ok {
 				icon, u.IconSize = pic, size

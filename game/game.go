@@ -561,7 +561,7 @@ type Unit struct {
 	Active     bool        // it is the unit the player acts for
 	Hit        int         // the active unit's chance in percent to hit it with one blow, 0 not a target
 	Pose       int         // its icon's pose: 0 ready, 1 action
-	Icon       image.Image // a member's own PNG icon, in its pose and facing (nil: composed from its icon picks)
+	Icon       [2]image.Image // a member's own PNG icon in its facing, ready and action pose (nil: composed from its icon picks)
 }
 
 // Weapon is a Turn's weapon: its icon (Type, Words) and tooltip.
