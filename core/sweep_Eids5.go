@@ -12,3 +12,6 @@ func (OpenTurn) action() {}
 type ApplyItems struct{ Who CharID }
 
 func (ApplyItems) action() {}
+
+// MemoSlots is how many MemoFact slots a character has (0..MemoSlots-1).
+const MemoSlots = 21

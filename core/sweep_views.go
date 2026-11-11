@@ -97,6 +97,7 @@ type (
 		Why     string
 		Becomes []string
 		Best    int32
+		Rises   bool // the hall would raise a class now (no Why, a class to raise)
 	}
 	// Book is a character's spells for the roster cards: the book's, those in
 	// the head, the slots a class has per level (class 0 cleric, 1 mage; level 1..3
