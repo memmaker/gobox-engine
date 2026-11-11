@@ -26,12 +26,15 @@ func (f *fake) Enforce(d core.Draft, id core.FieldID, o int, r *core.RNG) core.D
 	d.Picks[id] = o
 	return d
 }
-func (f *fake) Roll(d core.Draft, k core.RollKind, r *core.RNG) core.Draft {
+func (f *fake) Roll(d *core.Draft, k core.RollKind, r *core.RNG) error {
+	if k == core.RollMinimal {
+		return &core.MinimumError{Ability: core.Strength, Want: 19, Best: 18}
+	}
 	if d.Sheet.Scores == nil {
 		d.Sheet.Scores = map[core.Ability]int32{core.Strength: 9}
 	}
 	d.Sheet.Scores[core.Strength]++
-	return d
+	return nil
 }
 func (f *fake) Minimums(d core.Draft) map[core.Ability]int32 { return nil }
 func (f *fake) QuickParty() []core.Template {
@@ -60,6 +63,10 @@ func TestDraft(t *testing.T) {
 	d, err := New(r, &core.RNG{})
 	if err != nil {
 		t.Fatal(err)
+	}
+	var me *core.MinimumError
+	if err := d.Roll(core.RollMinimal); !errors.As(err, &me) || me.Ability != core.Strength || err.Error() != "STR 19 impossible here, max 18" {
+		t.Errorf("minimal: %v", err)
 	}
 	d.Rename("Ab~cdefghijklmnopq")
 	if d.D.Name != "Abcdefghijklmno" {

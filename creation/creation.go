@@ -38,13 +38,13 @@ func New(r core.CreationRules, rng *core.RNG) (*Draft, error) {
 	if err != nil {
 		return nil, err
 	}
-	return begin(r, rng, start.Picks), nil
+	return begin(r, rng, start.Picks)
 }
 
 // begin is a new draft from picks: each field enforced in the ruleset's
 // order (a ruleset may build and roll on the first, POR's fresh), then rolled
 // unless that rolled already. A field picks lacks starts on its first option.
-func begin(r core.CreationRules, rng *core.RNG, picks map[core.FieldID]int) *Draft {
+func begin(r core.CreationRules, rng *core.RNG, picks map[core.FieldID]int) (*Draft, error) {
 	d := &Draft{R: r, RNG: rng}
 	d.D.Of = core.NoChar
 	d.D.Picks = map[core.FieldID]int{}
@@ -62,9 +62,11 @@ func begin(r core.CreationRules, rng *core.RNG, picks map[core.FieldID]int) *Dra
 	}
 	d.sizeSkills()
 	if d.D.Sheet.Scores == nil {
-		d.Roll(core.RollFull)
+		if err := d.Roll(core.RollFull); err != nil {
+			return nil, err
+		}
 	}
-	return d
+	return d, nil
 }
 
 // Modify opens character c on the sheet.
@@ -105,8 +107,9 @@ func (d *Draft) sizeSkills() {
 	}
 }
 
-// Roll rolls the abilities and hit points.
-func (d *Draft) Roll(k core.RollKind) { d.D = d.R.Roll(d.D, k, d.RNG) }
+// Roll rolls the abilities and hit points; a minimum the ruleset cannot
+// meet is a *core.MinimumError, the draft unchanged.
+func (d *Draft) Roll(k core.RollKind) error { return d.R.Roll(&d.D, k, d.RNG) }
 
 // ErrBudget: a skill spend past the field's budget or below zero.
 var ErrBudget = errors.New("no points left")
@@ -196,7 +199,10 @@ func (d *Draft) Keep() (core.CharID, error) { return d.R.Make(d.D) }
 func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
 	var out []core.CharID
 	for _, t := range r.QuickParty() {
-		d := begin(r, rng, t.Picks)
+		d, err := begin(r, rng, t.Picks)
+		if err != nil {
+			return out, err
+		}
 		for _, f := range d.Fields { // a pick the template leaves open (POR 4e powers): its first fitting option (POR defaultPowers)
 			if _, ok := t.Picks[f.ID]; ok || f.Kind != core.FieldChoice || d.D.Picks[f.ID] >= 0 {
 				continue
@@ -206,7 +212,9 @@ func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
 			}
 		}
 		for i := 0; i < quickTries && !meets(d.D, t.Need); i++ {
-			d.Roll(core.RollFull)
+			if err := d.Roll(core.RollFull); err != nil {
+				return out, err
+			}
 		}
 		d.D.Name, d.D.Head, d.D.Body, d.D.Icon.Head, d.D.Icon.Body = t.Name, t.Head, t.Body, t.IconHead, t.IconBody
 		c, err := d.Keep()

@@ -1,5 +1,7 @@
 package core
 
+import "strconv"
+
 // CreationRules is what a ruleset states about making a character, so that
 // gobox runs the one creation flow (POR c70cbee's sheet: fields as drop-downs,
 // Roll, Minimal, Keep, Quick Start) for every game. ONE-BINARY.md Track C2.
@@ -14,8 +16,10 @@ type CreationRules interface {
 	// Enforce sets f to o and moves every dependant to its first legal
 	// option (POR kind.enforce); a new kind rolls afresh, keeping name and pictures.
 	Enforce(d Draft, f FieldID, o int, r *RNG) Draft
-	// Roll rolls the abilities and hit points (POR rollCharacter; Minimal: rollMinimal).
-	Roll(d Draft, k RollKind, r *RNG) Draft
+	// Roll rolls d's abilities and hit points in place (POR rollCharacter;
+	// Minimal: rollMinimal). A minimum it cannot meet is a *MinimumError and
+	// leaves d as it was (Felix 2026-11-11).
+	Roll(d *Draft, k RollKind, r *RNG) error
 	// Minimums are the lowest abilities d's picks allow (POR meetsMinStats).
 	Minimums(d Draft) map[Ability]int32
 	// QuickParty is the ready-made party the empty party menu offers.
@@ -91,4 +95,41 @@ type Icon struct {
 	Colours    [IconParts]IconColour
 	Size       IconSize
 	PNG        []byte // a dropped PNG, encoded (nil: the built icon)
+}
+
+// MinimumError is Roll(RollMinimal) refusing: the minimum Want for Ability is
+// above Best, the most the draft's picks allow (Tries 0), or was not met in
+// Tries rolls. Pct is the strength percent of Want and Best (18/xx).
+type MinimumError struct {
+	Ability          Ability
+	Want, Best       int32
+	WantPct, BestPct int32
+	Tries            int
+}
+
+func (m *MinimumError) Error() string {
+	if m.Tries > 0 {
+		return "Not met in " + strconv.Itoa(m.Tries) + " rolls"
+	}
+	name := string(m.Ability)
+	if len(name) > 3 {
+		name = name[:3]
+	}
+	b := []byte(name)
+	for i, c := range b {
+		if c >= 'a' && c <= 'z' {
+			b[i] = c - 'a' + 'A'
+		}
+	}
+	return string(b) + " " + score(m.Want, m.WantPct) + " impossible here, max " + score(m.Best, m.BestPct)
+}
+
+// score is v as the sheet shows it, strength 18/xx with its percent (100: 18/00).
+func score(v, pct int32) string {
+	s := strconv.Itoa(int(v))
+	if pct > 0 {
+		p := pct % 100
+		s += "/" + strconv.Itoa(int(p/10)) + strconv.Itoa(int(p%10))
+	}
+	return s
 }
