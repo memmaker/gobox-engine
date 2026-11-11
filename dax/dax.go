@@ -198,7 +198,18 @@ func (l *Loader) BlockShared(name string, id int) []byte {
 	if l == nil {
 		return nil
 	}
-	if l.amiga != nil && !l.dos.Load() {
+	if !l.dos.Load() {
+		if b := l.AmigaShared(name, id); b != nil {
+			return b
+		}
+	}
+	return l.dosBlock(name, id)
+}
+
+// AmigaShared is the Amiga block standing in for block id of DOS archive
+// name, nil when there is none (BlockShared without the DOS fallback).
+func (l *Loader) AmigaShared(name string, id int) []byte {
+	if l != nil && l.amiga != nil {
 		k := amigaKey{name, id}
 		l.mu.Lock()
 		b, ok := l.memo[k]
@@ -227,7 +238,7 @@ func (l *Loader) BlockShared(name string, id int) []byte {
 			return b
 		}
 	}
-	return l.dosBlock(name, id)
+	return nil
 }
 
 // AmigaPalette is the 8-bit RGB triplets the Amiga picture block id of
@@ -255,11 +266,7 @@ func (l *Loader) DOSBlock(name string, id int) []byte {
 	if l == nil || l.amiga == nil {
 		return nil
 	}
-	l.BlockShared(name, id) // memoises the Amiga block, if there is one
-	l.mu.Lock()
-	_, ok := l.memo[amigaKey{name, id}]
-	l.mu.Unlock()
-	if !ok {
+	if l.AmigaShared(name, id) == nil {
 		return nil
 	}
 	return l.dosBlock(name, id)
