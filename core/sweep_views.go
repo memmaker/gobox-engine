@@ -5,8 +5,6 @@ package core
 // Actions a ruleset answers; none of them has a side effect but the Actions.
 
 type (
-	// InFight: a fight is on (Yes).
-	InFight struct{}
 	// PartySize: the members of the party (Value).
 	PartySize struct{}
 	// HiredCount: the hired NPCs that joined so far (Value).
@@ -26,7 +24,6 @@ type (
 	InParty struct{ Who CharID }
 )
 
-func (InFight) check()    {}
 func (PartySize) check()  {}
 func (HiredCount) check() {}
 func (CarryCount) check() {}
@@ -48,6 +45,8 @@ type (
 	TrainFact struct{}
 	// LearnableFact is the spells Who may learn in the hall (SpellCards).
 	LearnableFact struct{}
+	// DamageFact is the dice Who's blow rolls, as the sheet words them ("1d8+1": Text).
+	DamageFact struct{}
 	// BookFact is Who's spell book (Book).
 	BookFact struct{}
 	// TempleCureFact is cure Cure of the temple, as Who needs it (TempleCure); Who may be NoChar.
@@ -63,6 +62,7 @@ func (TrainFact) fact()        {}
 func (LearnableFact) fact()    {}
 func (TempleCureFact) fact()   {}
 func (BookFact) fact()         {}
+func (DamageFact) fact()       {}
 func (PurseFact) fact()        {}
 
 type (
@@ -144,15 +144,38 @@ type (
 	OpenHall struct{ Who CharID }
 	// CloseHall leaves it.
 	CloseHall struct{}
+	// IdentifyItem pays the shop's price for Item's hidden words to show (the
+	// Outcome has an ItemIdentified; none: the party could not pay).
+	IdentifyItem struct {
+		Who  CharID
+		Item ItemHandle
+	}
+	// EnterShop makes the party's screen the shop's.
+	EnterShop struct{}
+	// StockShop names the wares for no one and prices a free one at a piece,
+	// and sounds the door.
+	StockShop struct{}
 	// ClearHired forgets the hired NPCs of the roster (an empty party starts again).
 	ClearHired struct{}
 )
 
-func (OpenHall) action()   {}
-func (CloseHall) action()  {}
-func (ClearHired) action() {}
+func (OpenHall) action()     {}
+func (CloseHall) action()    {}
+func (ClearHired) action()   {}
+func (EnterShop) action()    {}
+func (IdentifyItem) action() {}
+func (StockShop) action()    {}
 
 // RefusedWhy is a refusal with the words the ruleset gives it.
 type RefusedWhy struct{ Why string }
 
 func (r *RefusedWhy) Error() string { return r.Why }
+
+// ItemIdentified is the shop's Id done: Revealed is false when the item had
+// nothing new to tell.
+type ItemIdentified struct {
+	Item     ItemHandle
+	Revealed bool
+}
+
+func (ItemIdentified) effect() {}
