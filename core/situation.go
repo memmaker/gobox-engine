@@ -216,11 +216,12 @@ type FightResult struct {
 	Beaten  int32
 	Exp     int32 // per member
 	Items   []ItemRef
-	Money   Purse    // the loot's money (BR: credits in Copper)
-	Verdict Verdict  // how it ended: won, fled, lost; FightOn for neither (por: treasure found)
-	Foes    bool     // there were foes to beat (por's "The party has won.")
-	Shared  bool     // hired NPCs took their shares of the money (por hiredShare's page)
-	Sharers []CharID // who took one
+	Loot    []ItemHandle // the treasure's items, by handle, for a ruleset that hands out handles (Items unused)
+	Money   Purse        // the loot's money (BR: credits in Copper)
+	Verdict Verdict      // how it ended: won, fled, lost; FightOn for neither (por: treasure found)
+	Foes    bool         // there were foes to beat (por's "The party has won.")
+	Shared  bool         // hired NPCs took their shares of the money (por hiredShare's page)
+	Sharers []CharID     // who took one
 }
 
 // Turn is what BeginTurn says of the actor.
