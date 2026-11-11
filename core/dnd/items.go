@@ -81,4 +81,8 @@ const (
 	ItemFeatherFallRing   core.ItemID = 74
 	ItemCloakDisplacement core.ItemID = 75
 	ItemProtectionRing    core.ItemID = 76
+	ItemLeatherHolySymbol core.ItemID = 77
+	ItemBrassKey          core.ItemID = 78
+	ItemEfreetiBottle     core.ItemID = 79
+	ItemPass              core.ItemID = 80
 )
