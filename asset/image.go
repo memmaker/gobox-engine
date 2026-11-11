@@ -1,6 +1,7 @@
-// Package asset holds the canonical art: every picture and animation as a
-// PNG pixel atlas with a metadata text file (a sheet, sheet.go), and the
-// Image and Frame types the games draw.
+// Package asset holds an adventure folder's canonical data: every picture
+// and animation as a PNG pixel atlas with a metadata text file (a sheet,
+// sheet.go), the Image and Frame types the games draw, and the numbered
+// binary blocks and JSON records (data.go).
 package asset
 
 import "image/color"
