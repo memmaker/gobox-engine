@@ -173,29 +173,51 @@ type ClearCombat struct{ Who CharID }
 // record's spell cleared).
 type CastingTaken struct{ Who CharID }
 
-// ClassNameFact is the fighter's class as the party card words it; Text.
-type ClassNameFact struct{}
+// MemberCardFact is what the party card shows of a member the sheet does
+// not (MemberCard).
+type MemberCardFact struct{}
 
-func (MayActFact) fact()    {}
-func (RangeToFact) fact()   {}
-func (SizeFact) fact()      {}
-func (FightCardFact) fact() {}
-func (AimFact) fact()       {}
-func (AimCheckFact) fact()  {}
-func (AreaFact) fact()      {}
-func (SpellAimFact) fact()  {}
-func (GroundFact) fact()    {}
-func (UnitsFact) fact()     {}
-func (SpellMenuFact) fact() {}
-func (ClassNameFact) fact() {}
-func (BoardUp) check()      {}
-func (FightCard) value()    {}
-func (AimOffer) value()     {}
-func (AimCheck) value()     {}
-func (AreaPreview) value()  {}
-func (SpellAim) value()     {}
-func (Ground) value()       {}
-func (Units) value()        {}
-func (SpellMenu) value()    {}
-func (ClearCombat) action() {}
+// MemberCard: Party: a member's card (not a monster loaded for a fight),
+// Class as the card words it, Ready spells memorized of Slots, the
+// dropped Portrait (nil: none).
+type MemberCard struct {
+	Party        bool
+	Class        string
+	Ready, Slots int
+	Portrait     PNG
+}
+
+func (MayActFact) fact()     {}
+func (RangeToFact) fact()    {}
+func (SizeFact) fact()       {}
+func (FightCardFact) fact()  {}
+func (AimFact) fact()        {}
+func (AimCheckFact) fact()   {}
+func (AreaFact) fact()       {}
+func (SpellAimFact) fact()   {}
+func (GroundFact) fact()     {}
+func (UnitsFact) fact()      {}
+func (SpellMenuFact) fact()  {}
+func (MemberCardFact) fact() {}
+func (MemberCard) value()    {}
+func (BoardUp) check()       {}
+func (FightCard) value()     {}
+func (AimOffer) value()      {}
+func (AimCheck) value()      {}
+func (AreaPreview) value()   {}
+func (SpellAim) value()      {}
+func (Ground) value()        {}
+func (Units) value()         {}
+func (SpellMenu) value()     {}
+func (ClearCombat) action()  {}
 func (CastingTaken) action() {}
+
+// Settings are a ruleset's own settings a frontend hands in (por
+// rules1e.Settings: the combat rule set, path search); the engine passes
+// them on without reading them.
+type Settings interface{ RulesetSettings() }
+
+// Configure: the ruleset takes With as its settings from now on.
+type Configure struct{ With Settings }
+
+func (Configure) action() {}
