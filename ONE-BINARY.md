@@ -78,6 +78,13 @@ C2 stop (agent C2, 2026-11-11, no code commits): step 1 cannot be written over C
 - BR's skills step: a FieldDef kind (`FieldSkills`, points to spend) or a separate `Skills(Draft) []SkillDef`; which?
 Also: nothing implements core.Rules yet (rules1e has creation tables only, R3 chargen open), and the six games drive creation through front.Game (POR) or play (others) with their own draft state; the gobox loop would first sit behind front.Game as an adapter (front/creation.go), each game supplying CreationRules. Answer these and C2 resumes at step 1.
 
+C3 (agent C3, 2026-11-11): step 1 done (gobox 996780f core additions; 6f9808a Template.Need), step 2's loop done: package `gobox/creation` (New, Modify, Fits, SetField, Roll, Spend, Rename, SetScore with the 18/xx parse, Keep, QuickParty; TestDraft over a fake ruleset). Not wired to any game yet.
+C3 stop (needs Felix, core interface): POR's port cannot round-trip its creation through core.Draft as it stands:
+- Fields() takes no draft: rules4e's power picks (por setPower, powerSlots) depend on the class picked, and BR's career skills on the career. Proposal: `Fields(d Draft) []FieldDef`.
+- the combat icon: POR's icon editor sets parts, six colours and size (c.IconColour, IconSize), and a dropped PNG icon; Draft has only IconHead/IconBody names. Proposal: `Draft.IconColours [6]Colour`, `Draft.IconSize`, or the icon editor's result as a typed `core.Icon` value.
+- Modify carries the member's items, affects, spells; Make on a Modify must update, not add. Proposal: `Draft.Of CharID` (NoChar: new) so Make updates that character and the ruleset keeps what the sheet does not show.
+Answer these and the next agent ports POR: a `porCreation` type in rules (beside create.go, so it moves with B5's split) implementing CreationRules over `fresh`/`rollCharacter`/`setStatTyped`/`limitStat`/`SaveCharacter`, with fresh split into a pure `kindRecord(k)` plus its two dice (RandomID, age) so conversion Draft->Character draws no dice; then the Engine's CreateCharacter..EndCreation delegate to creation.Draft and rebuild cr.c for the drawing.
+
 ## Track P: parity with the baseline and the title sequences
 - [x] feature and flow list of por-go c70cbee (PORT_CHECKLIST "Extras", MODERNIZED.md, git log) against today's engine: what is lost
 - [x] the title-sequence changes per game: list the commits, keep them in the declarative sequences
