@@ -89,6 +89,9 @@ Answer these and the next agent ports POR: a `porCreation` type in rules (beside
 - [x] feature and flow list of por-go c70cbee (PORT_CHECKLIST "Extras", MODERNIZED.md, git log) against today's engine: what is lost
 - [x] the title-sequence changes per game: list the commits, keep them in the declarative sequences
 - [ ] restore every lost feature in the shared engine
+C4 (agent C4, 2026-11-11): Felix's three additions done (gobox de74d9b: `Fields(d Draft)`, `core.Icon` {Head, Body, Colours [6]IconColour, Size, PNG}, `Draft.Of`; creation.SetField refreshes the fields). 
+C4 stop (needs Felix, core interface): POR's port (step 1) cannot round-trip a rolled character through core.Draft, because the roll yields values the Draft cannot hold: rollHP draws the starting money (Coins[3] = first-level dice sum*10/count) separately from the hit dice (rollHitDice), keeps HPRoll (the per-class average before the CON adjustment, used at level-up), and fresh draws RandomID (the character's identity across saves, train_engine.go matches on it) and the single-class age. Sheet has Age, HP/MaxHP, Scores but no money, HPRoll, RandomID. Make would have to re-roll them (the sheet's character is not the one kept) or the ruleset keeps a hidden side table. Proposal: typed rolled values in Draft, e.g. `Draft.Purse Copper` (starting money, as core Purse), `Draft.HitRoll int32` (the hit-dice roll before adjustments), `Draft.Ident uint32` (the ruleset's identity roll; POR RandomID); or a ruleset-owned typed value `Draft.Rolled Rolled` with those three. Answer and the port goes: porCreation in por-go rules/porcreation.go over fresh split into kindRecord(k) + (RandomID, age) dice, Fields(d) = sex, race, alignment, class, then rules4e power picks from powerSlots.
+
 - [ ] per game: plays from its folder only; scripted windowed run to the first fight and a save/load
 
 ## Open, unverified
