@@ -156,8 +156,8 @@ type Draft struct {
 	Picks      map[FieldID]int
 	Points     map[FieldID][]int32
 	Name       string
-	Head, Body PicID  // portrait pool pictures
-	Portrait   []byte // a dropped PNG portrait, encoded (nil: the pool head and body)
+	Head, Body PicID // portrait pool pictures
+	Portrait   PNG   // a dropped PNG portrait, encoded (nil: the pool head and body)
 	Icon       Icon
 	// Of is the character being modified (NoChar: a new one); Make updates it.
 	Of CharID

@@ -102,8 +102,12 @@ type Icon struct {
 	Head, Body PicID // combat icon pool pictures
 	Colours    [IconParts]IconColour
 	Size       IconSize
-	PNG        []byte // a dropped PNG, encoded (nil: the built icon)
+	PNG        PNG // a dropped PNG, encoded (nil: the built icon)
 }
+
+// PNG is an encoded PNG image (a dropped portrait or icon): the rules carry
+// it, the presenter decodes it.
+type PNG []byte
 
 // MinimumError is Roll(RollMinimal) refusing: the minimum Want for Ability is
 // above Best, the most the draft's picks allow (Tries 0), or was not met in
