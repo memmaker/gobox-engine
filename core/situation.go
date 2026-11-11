@@ -165,6 +165,16 @@ type Board struct {
 	Units   []BoardUnit
 	Clouds  []Cloud
 	Dungeon bool
+	// Straight: the board is drawn deskewed, north is north (por's Deskew
+	// option); the original's leans its north-south rows into the perspective.
+	Straight bool
+}
+
+// MapSides is the area map's sides a fight's placement reads (por WallAt and
+// DoorAt: the wall value 0..15 and the 2-bit door state of a cell's side).
+type MapSides interface {
+	WallAt(x, y, dir int) byte
+	DoorAt(x, y, dir int) byte
 }
 
 // TerrainID is a square's terrain number; a ruleset gives it meaning.

@@ -87,6 +87,11 @@ type (
 	// FightPlaced: the engine has built the board and placed everyone
 	// (after BeginFight); the rules' start-of-fight effects run.
 	FightPlaced struct{}
+	// PlaceFight: the engine has built the board (after BeginFight); the rules
+	// give everyone a combat block and place them on it (por combatBlocks and
+	// placeCombatants). Walls nil: the board is open country, no walls between
+	// the team blocks. One that finds no room Left.
+	PlaceFight struct{ Walls MapSides }
 
 	// Confirmed sends Action again after the rules' Outcome.Confirm got a
 	// yes (por: "its Yes makes the call again sure", combatflow.go).
@@ -300,6 +305,7 @@ type (
 func (Move) action()          {}
 func (AutoTurn) action()      {}
 func (FightPlaced) action()   {}
+func (PlaceFight) action()    {}
 func (Attack) action()        {}
 func (Shoot) action()         {}
 func (Cast) action()          {}

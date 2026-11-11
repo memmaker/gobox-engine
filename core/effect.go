@@ -61,6 +61,8 @@ type (
 	}
 	Fell struct{ Unit CharID }
 	Fled struct{ Unit CharID }
+	// Left: no room on the board; the unit is gone from the fight and the party.
+	Left struct{ Unit CharID }
 	// Placed puts a unit on the board: a summons, a Dimension Door.
 	Placed struct {
 		Unit CharID
@@ -147,6 +149,7 @@ func (PartyHealed) effect()     {}
 func (RestInterrupted) effect() {}
 func (Fell) effect()            {}
 func (Fled) effect()            {}
+func (Left) effect()            {}
 func (Placed) effect()          {}
 func (CloudOn) effect()         {}
 func (CloudOff) effect()        {}
