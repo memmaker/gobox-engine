@@ -4,7 +4,7 @@ package core
 
 // InvItem is one item of the inventory.
 type InvItem struct {
-	Index   int      // its place in the member's items (its number in play)
+	Item    ItemHandle // the item
 	Name    string   // as the list shows it
 	Type    byte     // base item type
 	Words   []string // the item's name words, known or not (for its icon)
