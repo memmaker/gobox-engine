@@ -38,6 +38,12 @@ func New(r core.CreationRules, rng *core.RNG) (*Draft, error) {
 	return begin(r, rng, start.Picks)
 }
 
+// NewWith is a fresh character of picks (pod's CreateCharacter of the
+// menus' choices), as New of the ruleset's start.
+func NewWith(r core.CreationRules, rng *core.RNG, picks map[core.FieldID]int) (*Draft, error) {
+	return begin(r, rng, picks)
+}
+
 // begin is a new draft from picks: each field enforced in the ruleset's
 // order (a ruleset may build and roll on the first, POR's fresh), then rolled
 // unless that rolled already. A field picks lacks starts on its first option.
