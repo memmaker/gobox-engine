@@ -229,6 +229,13 @@ type (
 		Save               Save // "": no saving throw
 		SaveBonus          int32
 	}
+	// DuelClone: por DuelSetup's opponent, a copy of Of named Name joining
+	// the monsters' side with copies of Of's items; Icon is its combat icon slot.
+	DuelClone struct {
+		Of   CharID
+		Name string
+		Icon int32
+	}
 	ScriptGainExp struct {
 		Whom []CharID
 		Exp  int32
@@ -342,6 +349,7 @@ func (TakeMoney) action()     {}
 func (BashDoor) action()      {}
 func (PickLock) action()      {}
 func (ScriptDamage) action()  {}
+func (DuelClone) action()     {}
 func (ScriptGainExp) action() {}
 
 // ReloadKind is BR's ammunition choice (shop.pas ShopAmmoMenu 'C'/'F'): a
