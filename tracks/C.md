@@ -86,3 +86,6 @@ Done:
 Open, in order:
 - [ ] sotsb port (Felix's decision above): sotsbCreation (as cotabcreation.go; the creation sits in a temp party slot, pickTemp/dropTemp, which charOf must keep for trainSilently), hit-dice seam over e.Dice during startingHitPoints (gold 2d6 and levelHitPoints both draw there), RosterID (sotsb has no trailer: the .ids sidecar's fifth line is the natural place), wiring of sheetCall/partyDecide/nameKept/play.go's Begin-joins-draft, game.PointBuySpent -> core.PointBuySpent.
 - [ ] pod, BR1/BR2, Creation() into CharacterRules, delete the old paths, game/pointbuy.go, front/present/pointbuy.go -> core.PointBuySpent.
+
+## C13 (agent C13, 2026-11-11)
+- [ ] 1 quickTries (uncommitted, blocked: B11 holds por-go rules/porcreation.go). The originals differ, counting all rolls: POR c70cbee 1+2000 (quickPick.good returns true on its 2001st call), cotab c44f165^ 1+1999, pod maxQuickRolls 1+1999, sotsb 2000 in its loop (whether newCharacter also rolls is unchecked). In the working trees: gobox creation's quickTries const is gone; core.CreationRules.QuickRerolls() int (rerolls after begin's roll) and the creation_test fake returns 2000; por porCreation 2000, cotab 1999 (const quickRerolls). Builds; creation, por and cotab Quick/Creat tests pass. Not committed.

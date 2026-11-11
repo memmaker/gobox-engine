@@ -18,9 +18,6 @@ const (
 	NameMax   = 15
 	nameFirst = 0x20
 	nameLast  = 0x7A
-	// quickTries: Quick Start rerolls a member until its Need is met, then
-	// keeps the next roll whatever it is (POR quickPick.good).
-	quickTries = 2000
 )
 
 // Draft is one character on the sheet.
@@ -230,7 +227,7 @@ func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
 				d.SetField(f.ID, o)
 			}
 		}
-		for i := 0; i < quickTries && !meets(d.D, t.Need); i++ {
+		for i := 0; i < r.QuickRerolls() && !meets(d.D, t.Need); i++ {
 			if err := d.Roll(core.RollFull); err != nil {
 				return out, err
 			}

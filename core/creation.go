@@ -24,6 +24,10 @@ type CreationRules interface {
 	Minimums(d Draft) map[Ability]int32
 	// QuickParty is the ready-made party the empty party menu offers.
 	QuickParty() []Template
+	// QuickRerolls is how often Quick Start rerolls a member after its first
+	// roll until its Need is met; the last roll stays (POR quickPick.good 2000,
+	// cotab and pod one fewer).
+	QuickRerolls() int
 	// SetScore sets ability a to v as typed on the sheet (POR setStatTyped,
 	// limitStat). gobox parses "18/50" into Strength 18 and StrengthPercent 50.
 	// The error says v is outside the race and class range.
