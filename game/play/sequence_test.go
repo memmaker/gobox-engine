@@ -12,8 +12,8 @@ import (
 
 func TestTitleScene(t *testing.T) {
 	seq := importer.Sequence{Steps: []importer.SequenceStep{
-		{Kind: importer.StepPicture, Song: "3", Lightning: true, Layers: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: 1}, At: importer.Cells{X2: 39, Y2: 24}}}},
-		{Kind: importer.StepPicture, Layers: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: 2}, At: importer.Cells{X1: 1, Y1: 2, X2: 3, Y2: 4}, Frames: []int{0, 1}, FrameMs: 100}}},
+		{Kind: importer.StepPicture, Song: "3", Lightning: true, Whole: true, Layers: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: 1}, At: importer.Cells{X2: 39, Y2: 24}}}},
+		{Kind: importer.StepPicture, Whole: true, Layers: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: 2}, At: importer.Cells{X1: 1, Y1: 2, X2: 3, Y2: 4}, Frames: []int{0, 1}, FrameMs: 100}}},
 		{Kind: importer.StepCredits, Page: 0},
 	}}
 	pic := func(a importer.Art) (game.Picture, error) { return game.Picture{File: a.File, Block: a.Block}, nil }
@@ -31,15 +31,19 @@ func TestTitleScene(t *testing.T) {
 	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepAnim}}}, Common{}, pic); !errors.Is(err, ErrStepKind) {
 		t.Fatalf("anim step: %v", err)
 	}
-	for name, bad := range map[string]importer.Sequence{
-		"hold":     {Steps: []importer.SequenceStep{{HoldMs: 1}}},
-		"credits":  {Credits: []importer.Credit{{}}},
-		"boxes":    {Boxes: []importer.Cells{{}}},
-		"backdrop": {Backdrop: &importer.Art{}},
-		"short":    {Short: []int{}},
-	} {
-		if _, err := TitleScene(bad, Common{}, pic); !errors.Is(err, ErrNotCarried) {
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{HoldMs: 1}}}, Common{}, pic); !errors.Is(err, ErrNotCarried) {
+		t.Errorf("hold: %v", err)
+	}
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Whole: true}, {}}}, Common{}, pic); !errors.Is(err, ErrNotCarried) {
+		t.Errorf("mixed whole: %v", err)
+	}
+	for name, bad := range map[string]importer.Sequence{"backdrop": {Backdrop: &importer.Art{}}, "short": {Short: []int{}}} {
+		if _, _, err := TitleData(bad); !errors.Is(err, ErrNotCarried) {
 			t.Errorf("%s: %v", name, err)
 		}
+	}
+	lines, boxes, err := TitleData(importer.Sequence{Credits: []importer.Credit{{X: 2, Y: 3, Colour: 4, Text: "a", Page: 1}}, Boxes: []importer.Cells{{X1: 1, Y1: 1, X2: 38, Y2: 3}}})
+	if err != nil || !reflect.DeepEqual(lines, []game.Credit{{X: 2, Y: 3, Colour: 4, Text: "a", Page: 1}}) || !reflect.DeepEqual(boxes, []image.Rectangle{{Min: image.Pt(1, 1), Max: image.Pt(38, 3)}}) {
+		t.Errorf("TitleData %v %v %v", lines, boxes, err)
 	}
 }

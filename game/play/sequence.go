@@ -16,25 +16,18 @@ const cellPx = 8
 // SceneSequence, not in a title).
 var ErrStepKind = errors.New("step kind not in a title scene")
 
-// ErrNotCarried: a Sequence field the title Scene does not carry yet.
-var ErrNotCarried = errors.New("sequence field not carried by the title scene")
+// ErrNotCarried: a Sequence field gobox does not carry yet.
+var ErrNotCarried = errors.New("sequence field not carried yet")
 
-// TitleScene is the title Scene of sequence s: step i (from 1) its layers,
-// loaded by pic, and its tune; the credits steps show their page. Lightning
-// on any step makes the intro flash.
+// TitleScene is the title Scene of sequence s's steps: step i (from 1) its
+// layers, loaded by pic, and its tune; the credits steps show their page.
+// Lightning on any step makes the intro flash. The rest of s goes to the
+// game's Data (TitleData).
 func TitleScene(s importer.Sequence, cm Common, pic func(importer.Art) (game.Picture, error)) (Scene, error) {
-	switch {
-	case len(s.Credits) > 0:
-		return Scene{}, fmt.Errorf("Credits: %w", ErrNotCarried)
-	case len(s.Boxes) > 0:
-		return Scene{}, fmt.Errorf("Boxes: %w", ErrNotCarried)
-	case s.Backdrop != nil:
-		return Scene{}, fmt.Errorf("Backdrop: %w", ErrNotCarried)
-	case s.Short != nil:
-		return Scene{}, fmt.Errorf("Short: %w", ErrNotCarried)
-	}
 	in := &game.Intro{Full: true}
 	steps := map[int]TitleStep{}
+	pics := 0
+	whole := 0
 	for i, st := range s.Steps {
 		n := i + 1
 		if st.HoldMs != 0 {
@@ -48,11 +41,14 @@ func TitleScene(s importer.Sequence, cm Common, pic func(importer.Art) (game.Pic
 				if err != nil {
 					return Scene{}, fmt.Errorf("step %d: %w", n, err)
 				}
-				at := image.Rect(l.At.X1*cellPx, l.At.Y1*cellPx, (l.At.X2+1)*cellPx, (l.At.Y2+1)*cellPx)
-				ts.Layers = append(ts.Layers, game.Layer{Picture: p, At: at, Frames: l.Frames, FrameMs: l.FrameMs})
+				ts.Layers = append(ts.Layers, game.Layer{Picture: p, At: pixRect(l.At), Frames: l.Frames, FrameMs: l.FrameMs})
 			}
 			steps[n] = ts
 			in.Pictures = append(in.Pictures, n)
+			pics++
+			if st.Whole {
+				whole++
+			}
 		case importer.StepCredits:
 			in.Pictures = append(in.Pictures, -(st.Page + 1))
 		default:
@@ -60,5 +56,31 @@ func TitleScene(s importer.Sequence, cm Common, pic func(importer.Art) (game.Pic
 		}
 		in.Lightning = in.Lightning || st.Lightning
 	}
-	return Scene{Common: cm, Kind: SceneTitle, Intro: in, Full: true, Steps: steps}, nil
+	if whole != 0 && whole != pics {
+		return Scene{}, fmt.Errorf("Whole on some picture steps only: %w", ErrNotCarried)
+	}
+	return Scene{Common: cm, Kind: SceneTitle, Intro: in, Full: whole != 0, Steps: steps}, nil
+}
+
+// TitleData is s's credits lines and boxes as game.Data's CreditLines and
+// CreditBoxes.
+func TitleData(s importer.Sequence) (lines []game.Credit, boxes []image.Rectangle, err error) {
+	switch {
+	case s.Backdrop != nil:
+		return nil, nil, fmt.Errorf("Backdrop: %w", ErrNotCarried)
+	case s.Short != nil:
+		return nil, nil, fmt.Errorf("Short: %w", ErrNotCarried)
+	}
+	for _, c := range s.Credits {
+		lines = append(lines, game.Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
+	}
+	for _, b := range s.Boxes {
+		boxes = append(boxes, image.Rect(b.X1, b.Y1, b.X2, b.Y2))
+	}
+	return lines, boxes, nil
+}
+
+// pixRect is cell box c in page pixels, Max exclusive.
+func pixRect(c importer.Cells) image.Rectangle {
+	return image.Rect(c.X1*cellPx, c.Y1*cellPx, (c.X2+1)*cellPx, (c.Y2+1)*cellPx)
 }
