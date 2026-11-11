@@ -45,10 +45,11 @@ type Width uint8
 const (
 	WidthByte Width = iota + 1
 	WidthWord
-	WidthText // a zero-terminated string, one character per address
+	WidthText  // a zero-terminated string, one character per address
+	WidthDword // four bytes, one address (the original's longints)
 )
 
-var widthNames = map[string]Width{"byte": WidthByte, "word": WidthWord, "text": WidthText}
+var widthNames = map[string]Width{"byte": WidthByte, "word": WidthWord, "dword": WidthDword, "text": WidthText}
 
 // Field is one typed piece of state: Len elements of Width, one address
 // each, from address From on. Len 1 is a single value; more is an array a
