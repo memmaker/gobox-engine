@@ -93,6 +93,16 @@ type (
 	// placeCombatants). Walls nil: the board is open country, no walls between
 	// the team blocks. One that finds no room Left.
 	PlaceFight struct{ Walls MapSides }
+	// BuildGround: the rules lay the fight's ground after BeginFight (por
+	// combatMapSetup's map half): Dungeon, the walls round the party's
+	// square; else the wilderness terrain, its map column MapShift on (por
+	// viewMode 3, 4). NoRemains: no remains in the clutter (por areaKind 0xA).
+	BuildGround struct {
+		Walls     MapSides
+		Dungeon   bool
+		MapShift  int
+		NoRemains bool
+	}
 	// TakeLoot: Who takes the treasure's Item (FightResult.Items); All:
 	// every piece in turn until one does not fit (por the treasure screen's Take).
 	TakeLoot struct {
@@ -314,6 +324,7 @@ func (Move) action()          {}
 func (AutoTurn) action()      {}
 func (FightPlaced) action()   {}
 func (PlaceFight) action()    {}
+func (BuildGround) action()   {}
 func (TakeLoot) action()      {}
 func (Attack) action()        {}
 func (Shoot) action()         {}
