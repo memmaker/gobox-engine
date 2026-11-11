@@ -50,12 +50,16 @@ type (
 		Spell  SpellID
 		Target CharID
 		Ats    []BoardPos
+		Aims   []Aim // the aims the player took, in the order the spell asks for them
+		Begun  bool  // the spell begun in an earlier turn goes off
 	}
 	UseItem struct {
 		User   CharID
 		Item   ItemSlot
+		Held   ItemHandle // the item, for a ruleset that hands out handles (Item unused)
 		Target CharID
 		Ats    []BoardPos
+		Aims   []Aim   // as Cast's
 		Spell  SpellID // a scroll's spell
 	}
 	Maneuver struct {
@@ -245,6 +249,14 @@ func (RemoveMember) action()    {}
 func (SpringTrap) action()      {}
 func (SetStatusAction) action() {}
 func (NewGroup) action()        {}
+
+// Aim is one aim the player took for a spell: Found false is a cancelled
+// aim; Target (NoChar for bare ground) stands At.
+type Aim struct {
+	Found  bool
+	Target CharID
+	At     BoardPos
+}
 
 // ItemSlot is an item on a character by its id on that character. CarriedID is
 // the id of one item the ruleset holds or Situation lists. ManeuverID is a
