@@ -34,3 +34,10 @@ Next (R4): move the RuleState files into rules1e. The Engine embeds RuleState (~
 ### Note for the engine loop (coordinator, 2026-11-11)
 core.FightTerms fields the engine fills at fight setup: `PartyFacing` (X6: the party's map facing); `Area`, `RevivesParty`, `NoItemLoot` from BR's named script variables areaKind, revivesParty, skipsCombatItems (A10 names them in the BR script layout). POR leaves Area/RevivesParty/NoItemLoot zero; it fills PartyFacing if its rules read it.
 - After R4/R5 (A10): once BR runs on cmd/gobox, BR's fight setup fills FightTerms from the named BR script variables RevivesParty (V_7EE6), SkipsCombatItems (V_7EE3), AreaKind (V_4BE6; $A2/$A8 = wilderness), and the party's facing.
+
+### R handover (agent B7, 2026-11-11)
+- [x] R6 1d: TestHostOptionsSettingsJSON (front/present/hostsettings_test.go; gobox 2a0f50a)
+- [x] R6 1b: rules.New reads data/pictures.json into Engine.pics (por-go 61ecdc9). Bug fixed: ImportDataTo's RemoveAll deleted importpor's pictures.json. ImportDataTo now clears nothing. Bug-class check: an import step that clears a directory that other steps write into (A10: importer.CheckContents / TestImportContents).
+- [ ] 1c: sent main the list of files to move (SOUND.BIN, dasp, speech, soundtrack, TITLE.PNG; read sites sound.go:225/229, voice.go:83, soundtrack.go:26, title.go:113). Switch those reads to e.adv once A10's import writes them.
+- [ ] 1a: blocked. Nothing fills or plays importer.Sequence. Proposed to main: a gobox converter Sequence -> play.Scene; POR's engine-driven title (TitleFlash/Credits/Done, logo cut) comes out once importpor fills Start. Waiting for main's OK.
+- [ ] 2 (Lost features), 3 (R4/R5): not started.
