@@ -2,7 +2,7 @@ package core
 
 // Additions of sweep Ssave (fold E-R6): what por's save, import and native
 // script code asks of the rules. Records of the original's files stay out of
-// core: the ruleset reads them and answers with typed values.
+// core and out of the rules: gobox/char reads them (ReadOriginalSave).
 
 type (
 	// SpendKnock casts Knock the native way: the first okay member who can
@@ -27,10 +27,6 @@ type (
 	// Gender, Class, Align); the Outcome holds Picked. Error: a name the
 	// ruleset does not know.
 	PickKind struct{ Race, Gender, Class, Align string }
-	// ImportOriginal reads an original save image (Files: its file name to its
-	// bytes) without touching the ruleset's state; the Outcome holds
-	// OriginalImported, the canonical form of it. Error: not a save.
-	ImportOriginal struct{ Files map[string][]byte }
 )
 
 func (SpendKnock) action()     {}
@@ -38,7 +34,6 @@ func (SetPurseGold) action()   {}
 func (ForgetParty) action()    {}
 func (RecordView) action()     {}
 func (TakeSavedWalls) action() {}
-func (ImportOriginal) action() {}
 func (PickKind) action()       {}
 
 type (
@@ -48,22 +43,8 @@ type (
 	SavedWalls struct{ A, B [3]uint16 }
 	// Picked is the creation picks PickKind asked.
 	Picked struct{ Picks map[FieldID]int }
-	// OriginalImported is an original save read: the ruleset's canonical part
-	// (Rules, for Load), what the engine keeps (positions, the party's file
-	// names as stored) and the record words by index, for the script fields
-	// that live in the records (the engine knows each record's address base).
-	OriginalImported struct {
-		Rules                    []byte
-		Set                      byte
-		X, Y, Facing, Pos3, Pos4 byte
-		ViewMode, BeginFlag      byte
-		AreaKind                 uint16
-		Party                    []string
-		Area, Game, Aux          []uint16
-	}
 )
 
-func (Picked) effect()           {}
-func (KnockCast) effect()        {}
-func (SavedWalls) effect()       {}
-func (OriginalImported) effect() {}
+func (Picked) effect()     {}
+func (KnockCast) effect()  {}
+func (SavedWalls) effect() {}
