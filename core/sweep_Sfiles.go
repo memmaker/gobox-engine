@@ -65,12 +65,6 @@ type AreaGeo struct{}
 func (InFight) check() {}
 func (AreaGeo) check() {}
 
-// BeginState asks the game's begin flag (por DS:49F3; Value): 0 the party
-// menu, 5 a fight's setup.
-type BeginState struct{}
-
-func (BeginState) check() {}
-
 type (
 	// InitRules readies the rules' tables for a new session (por Init:
 	// SpellTableInit, SetupAffectHandlers).
