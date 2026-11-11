@@ -48,7 +48,9 @@ check() { # dir, test packages and flags
   local unformatted
   unformatted="$(cd "$out/$dir" && gofmt -l .)"
   [ -z "$unformatted" ] || { echo "gofmt needed:"; echo "$unformatted"; return 1; }
+  local t=$SECONDS
   (cd "$out/$dir" && go build ./... && go vet ./... && go test "$@")
+  echo "-- $dir $((SECONDS - t))s"
 }
 # Known slow tests, kept out by name; everything else in a touched package runs.
 slow='^(TestNoSilentDo|TestRefusedCastKeepsTurn)$'
@@ -57,7 +59,10 @@ slow='^(TestNoSilentDo|TestRefusedCastKeepsTurn)$'
 # A behaviour commit must not leave a test stale in a package the gate would not run (por-go 6f9b20a).
 touched() {
   local repo="$1" f d mod
-  git -C "$projects/$repo" diff --cached --name-only HEAD -- '*.go' | while read -r f; do
+  # Staged changes, and with GATE_BASE (foldwt land) every commit since that base too.
+  { git -C "$projects/$repo" diff --cached --name-only HEAD -- '*.go'
+    [ -z "${GATE_BASE:-}" ] || git -C "$projects/$repo" diff --name-only "$GATE_BASE"...HEAD -- '*.go'
+  } | sort -u | while read -r f; do
     d="$out/$repo/$(dirname "$f")"
     [ -d "$d" ] || continue
     mod="$d"
@@ -69,7 +74,9 @@ test_touched() {
   local repo="$1" mod pkg
   touched "$repo" | while read -r mod pkg; do
     echo "== $repo: $pkg (touched)"
+    local t=$SECONDS
     (cd "$mod" && go test -skip "$slow" "$pkg") || exit 1
+    echo "-- $repo: $pkg $((SECONDS - t))s"
   done
 }
 
@@ -83,7 +90,9 @@ for repo in por-go rules1e gobox-engine; do test_touched "$repo"; done
 if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --name-only | grep -qv '^core/\|\.md$\|^gate.sh$'; then
   for repo in "${games[@]}"; do
     echo "== $repo"
+    t=$SECONDS
     (cd "$out/$repo" && go build ./... && go vet ./...)
+    echo "-- $repo build+vet $((SECONDS - t))s"
     # A layout name the fold or the parser's macros depend on (Shop, Temple, Portrait) can be overwritten by a
     # layout change (cotab 8ee0677): each game's script tests run with every gobox change.
     if [ -d "$out/$repo/rules/scripts/layout" ]; then
@@ -92,4 +101,4 @@ if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --nam
     test_touched "$repo"
   done
 fi
-echo "gate passed"
+echo "gate passed in ${SECONDS}s"

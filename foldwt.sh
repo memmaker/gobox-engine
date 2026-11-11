@@ -1,9 +1,9 @@
 #!/bin/bash
 # Per-track worktrees of the fold repos, replacing the shared gate lock for day-to-day work.
 #   foldwt.sh new <track>   ~/Projects/fold-wt/<track>/<repo> on branch fold/<track> from main, deps/-re/data linked
-#   foldwt.sh land <track>  rebase fold/<track> onto main in the track's worktrees, gate them, fast-forward main
+#   foldwt.sh land <track>  rebase fold/<track> onto main, gate the branch's packages, fast-forward main
 # A track commits freely in its own tree (gate: GATE_PROJECTS=~/Projects/fold-wt/<track> gate.sh).
-# Only land takes the lock, so tracks wait for each other only while one lands.
+# Land gates before taking the lock; under it only a main that moved meanwhile is gated again.
 set -euo pipefail
 projects="$HOME/Projects"
 repos=(por-go rules1e rulesxxvc gobox-engine cotab-go sotsb-go pod-go buckrogers-core buckrogers-go buckrogers2-go)
@@ -24,13 +24,25 @@ new)
   done
   echo "$tree" ;;
 land)
-  "$projects/gobox-engine/gatelock.sh" take "land-$track"
-  trap '"$projects/gobox-engine/gatelock.sh" drop "land-$track"' EXIT
+  # Gate outside the lock; under it, only when main moved meanwhile (rebase and gate again).
   for r in "${repos[@]}"; do
     [ -z "$(git -C "$tree/$r" status --porcelain --untracked-files=no)" ] || { echo "$r: uncommitted changes in $tree/$r"; exit 1; }
     git -C "$tree/$r" rebase main
   done
-  GATE_ALL=1 GATE_PROJECTS="$tree" "$projects/gobox-engine/gate.sh"
+  gated=(); for r in "${repos[@]}"; do gated+=("$(git -C "$projects/$r" rev-parse main)"); done
+  GATE_ALL=1 GATE_BASE=main GATE_PROJECTS="$tree" "$projects/gobox-engine/gate.sh"
+  "$projects/gobox-engine/gatelock.sh" take "land-$track"
+  trap '"$projects/gobox-engine/gatelock.sh" drop "land-$track"' EXIT
+  moved=""; i=0
+  for r in "${repos[@]}"; do
+    [ "$(git -C "$projects/$r" rev-parse main)" = "${gated[i]}" ] || moved=1
+    i=$((i + 1))
+  done
+  if [ -n "$moved" ]; then
+    echo "main moved since the gate: rebase and gate again"
+    for r in "${repos[@]}"; do git -C "$tree/$r" rebase main; done
+    GATE_ALL=1 GATE_BASE=main GATE_PROJECTS="$tree" "$projects/gobox-engine/gate.sh"
+  fi
   for r in "${repos[@]}"; do
     [ "$(git -C "$projects/$r" rev-parse main)" = "$(git -C "$tree/$r" rev-parse HEAD)" ] && continue
     git -C "$projects/$r" merge --ff-only "fold/$track"
