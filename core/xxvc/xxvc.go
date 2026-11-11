@@ -39,12 +39,11 @@ var Careers = []core.Class{RocketJock, Medic, Warrior, Engineer, Rogue, Scout}
 const BattleTactics core.Skill = "battle-tactics" // BR skill 31 (combat.go tactics)
 
 // Skills are the 84 skills by number: Skills[n-1] is skill n (skillDefinitions,
-// TCharacter.skillLevels' index). 9 and 10 are both Commo Operation in the
-// original; the second is named commo-operation-2.
+// TCharacter.skillLevels' index).
 var Skills = []core.Skill{
 	"repair-electrical", "repair-mechanical", "repair-nuclear-engine", "repair-life-support",
 	"repair-rocket-hull", "jury-rig", "bypass-security", "open-lock", "commo-operation",
-	"commo-operation-2", "sensor-operation", "demolitions", "cook", "first-aid", "repair-weapon",
+	"sensor-operation", "demolitions", "cook", "first-aid", "repair-weapon",
 	"repair-computer", "life-suspension-tech", "treat-light-wounds", "treat-serious-wounds",
 	"treat-critical-wounds", "treat-poisoning", "treat-stun-paralysis", "treat-disease", "diagnose",
 	"general-knowledge", "ship-lore", "composition", "mathematics", "physics", "geology",
