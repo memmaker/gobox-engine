@@ -125,7 +125,6 @@ type (
 	tShowMember   struct{ Member int }
 	tTitlePicture struct{ N int }
 	tTitleCredits struct{ Page int }
-	tTitleFlash   struct{ C int }
 	tTitleDone    struct{}
 	tSequenceDone struct{ Name string }
 	tStopWalk     struct{}

@@ -34,7 +34,6 @@ type Game interface {
 	// Title (Intro).
 	TitlePicture(n int)
 	TitleCredits(page int)
-	TitleFlash(c int)
 	TitleDone()
 	SequenceDone(name string) // the View.Sequence animation ended or was skipped
 

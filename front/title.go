@@ -2,7 +2,7 @@
 // picture 1 five seconds, with the full intro picture 2 five seconds with
 // its lightning, then the credits ten; a key or click cuts each short (and
 // a lightning flash one step). The game draws (TitlePicture,
-// TitleCredits, TitleFlash) and ends it (TitleDone).
+// TitleCredits; the presenter flashes from IntroUI.Flash) and ends it (TitleDone).
 
 package front
 
@@ -57,18 +57,9 @@ func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
 			return
 		}
 		in.Flash, in.ms = in.Flash[1:], in.ms[1:]
-		c := 1
-		if len(in.Flash) > 0 && len(in.Flash)%5 != 0 {
-			c = in.Flash[0]
-		}
 		if len(in.Flash) > 0 {
 			in.step = now.Add(time.Duration(in.ms[0]) * time.Millisecond)
-			if len(in.Flash)%5 == 0 {
-				h.Call(func(e Game) { e.TitleFlash(1) })
-				c = in.Flash[0]
-			}
 		}
-		h.Call(func(e Game) { e.TitleFlash(c) })
 		return
 	}
 	if in.Phase == IntroSecond && !key && intro.Lightning {
@@ -79,8 +70,6 @@ func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
 				in.ms = append(in.ms, 150, 100, 50, 100, 150)
 			}
 			in.step = now.Add(time.Duration(in.ms[0]) * time.Millisecond)
-			c := in.Flash[0]
-			h.Call(func(e Game) { e.TitleFlash(c) })
 			return
 		}
 	}

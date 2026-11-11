@@ -517,7 +517,7 @@ type View struct {
 	CreditPage    int            // which credits page (Credit.Page) while Credits
 	Credits       bool           // the title's credits page (Credits, RemasterCredit)
 	Sequence      *Sequence      // a full-screen animation plays (SequenceStep, SequenceDone)
-	Intro         *Intro         // the title waits to be played (TitlePicture, TitleCredits, TitleFlash, TitleDone)
+	Intro         *Intro         // the title waits to be played (TitlePicture, TitleCredits, TitleDone)
 	Full          bool           // Pictures are one whole-screen picture (the title's): fitted to the window
 	Cells         image.Point    // the page's size in text cells (40x25 at least; a larger window gives more, ActResize)
 	Ink           [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now (all zero: the EGA's own)

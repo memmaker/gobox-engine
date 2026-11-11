@@ -49,7 +49,6 @@ func TestParity(t *testing.T) {
 			func(s shown, _ play.Result) bool {
 				return s.Flags.Credits && s.Flags.CreditPage == 1 && len(s.Page.Layers) == 0
 			}},
-		{"title flash", title, game.Data{}, []any{tTitleFlash{C: 9}}, nil, nil},
 		{"holding door", play.Exploring{Door: &game.Door{}}, game.Data{}, nil, nil,
 			func(s shown, _ play.Result) bool { return s.Holding == game.HoldDoor }},
 		{"holding fight", play.Fighting{}, game.Data{}, nil, nil,

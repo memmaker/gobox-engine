@@ -539,7 +539,6 @@ func (g *Game) TitlePicture(n int) {
 func (g *Game) TitleCredits(page int) {
 	g.run("titleCredits", func() play.Result { return g.r.titleCredits(page) })
 }
-func (g *Game) TitleFlash(c int) {} // the front's palette
 func (g *Game) TitleDone()       { g.run("titleDone", g.r.titleDone) }
 
 // SequenceDone: the presenter played State.Sequence to its end, or it was skipped.
