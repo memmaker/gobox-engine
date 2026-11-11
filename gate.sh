@@ -6,6 +6,11 @@ projects="$HOME/Projects"
 out="$(mktemp -d)"
 trap 'rm -rf "$out"' EXIT
 export GOWORK=off
+# A home of its own: caches the tests write (os.UserCacheDir, e.g. the imported scripts) come
+# from the staged code, never from another agent's working tree. Go's build caches stay shared.
+export GOCACHE="$(go env GOCACHE)" GOMODCACHE="$(go env GOMODCACHE)" GOPATH="$(go env GOPATH)"
+export HOME="$out/home"
+mkdir "$HOME"
 
 for repo in por-go rules1e rulesxxvc gobox-engine; do
   mkdir "$out/$repo"
