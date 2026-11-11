@@ -14,7 +14,8 @@ type Sheet struct {
 	Age       int32
 	Scores    map[Ability]int32
 	Exp       int64
-	NextExp   int64
+	NextExp   int64 // 0: it rises no further
+	LevelExp  int64 // what its current level took
 	HP, MaxHP int32
 	AC, THAC0 int32
 	Move      int32
