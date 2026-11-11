@@ -66,6 +66,7 @@ type ShopTerms struct {
 
 // ShopItem is what the adventure's shop sells, at its prices.
 type ShopItem struct {
+	Handle    ItemHandle // names the good (Buy's Item); the engine gives each its own
 	Item      ItemRef
 	Buy, Sell Copper
 }
