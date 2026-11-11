@@ -43,14 +43,11 @@ func TestTitleScene(t *testing.T) {
 	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Whole: true}, {}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrNotCarried) {
 		t.Errorf("mixed whole: %v", err)
 	}
-	for name, bad := range map[string]importer.Sequence{"backdrop": {Backdrop: []importer.Layer{{}}}} {
-		if _, _, err := TitleData(bad); !errors.Is(err, ErrNotCarried) {
-			t.Errorf("%s: %v", name, err)
-		}
-	}
-	lines, boxes, err := TitleData(importer.Sequence{Credits: []importer.Credit{{X: 2, Y: 3, Colour: 4, Text: "a", Page: 1}}, Boxes: []importer.Cells{{X1: 1, Y1: 1, X2: 38, Y2: 3}}})
-	if err != nil || !reflect.DeepEqual(lines, []game.Credit{{X: 2, Y: 3, Colour: 4, Text: "a", Page: 1}}) || !reflect.DeepEqual(boxes, []image.Rectangle{{Min: image.Pt(1, 1), Max: image.Pt(38, 3)}}) {
-		t.Errorf("TitleData %v %v %v", lines, boxes, err)
+	lines, boxes, bd, err := TitleData(importer.Sequence{Credits: []importer.Credit{{X: 2, Y: 3, Colour: 4, Text: "a", Page: 1}}, Boxes: []importer.Cells{{X1: 1, Y1: 1, X2: 38, Y2: 3}},
+		Backdrop: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: 3}, At: importer.Cells{X1: 1, Y1: 2, X2: 3, Y2: 4}}}}, pic)
+	if err != nil || !reflect.DeepEqual(lines, []game.Credit{{X: 2, Y: 3, Colour: 4, Text: "a", Page: 1}}) || !reflect.DeepEqual(boxes, []image.Rectangle{{Min: image.Pt(1, 1), Max: image.Pt(38, 3)}}) ||
+		len(bd) != 1 || bd[0].Block != 3 || bd[0].At != image.Rect(8, 16, 32, 40) {
+		t.Errorf("TitleData %v %v %+v %v", lines, boxes, bd, err)
 	}
 }
 

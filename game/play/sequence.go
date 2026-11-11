@@ -68,19 +68,24 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 	return Scene{Common: cm, Kind: SceneTitle, Intro: in, Full: whole != 0, Steps: steps}, nil
 }
 
-// TitleData is s's credits lines and boxes as game.Data's CreditLines and
-// CreditBoxes.
-func TitleData(s importer.Sequence) (lines []game.Credit, boxes []image.Rectangle, err error) {
-	if s.Backdrop != nil {
-		return nil, nil, fmt.Errorf("Backdrop: %w", ErrNotCarried)
-	}
+// TitleData is s's credits lines, boxes and backdrop as game.Data's
+// CreditLines, CreditBoxes and TitleBackdrop, the backdrop's pictures loaded
+// by pic.
+func TitleData(s importer.Sequence, pic func(importer.Art) (game.Picture, error)) (lines []game.Credit, boxes []image.Rectangle, backdrop []game.Layer, err error) {
 	for _, c := range s.Credits {
 		lines = append(lines, game.Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
 	}
 	for _, b := range s.Boxes {
 		boxes = append(boxes, image.Rect(b.X1, b.Y1, b.X2, b.Y2))
 	}
-	return lines, boxes, nil
+	for _, l := range s.Backdrop {
+		p, err := pic(l.Art)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("backdrop: %w", err)
+		}
+		backdrop = append(backdrop, game.Layer{Picture: p, At: pixRect(l.At), Frames: l.Frames, FrameMs: l.FrameMs})
+	}
+	return lines, boxes, backdrop, nil
 }
 
 // picSource is each importer.ArtKind's game.PicSource.
