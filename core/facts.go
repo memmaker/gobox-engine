@@ -23,20 +23,21 @@ const (
 	FactClasses
 	FactSex
 	FactAlignment
-	FactActive     // 256: a pure read; NoChar reads inactive
-	FactStatus     // por 0x100; writing it only stores: consequences are Actions
-	FactSide       // 268 bit 0
-	FactSideLock   // BR 268 bit 7, r[215]; meaning to confirm at migration
-	FactControl    // por 0xB8 (charmed, hired)
-	FactMove       // por 0x11B
-	FactHP         // BR 281
-	FactMaxHP      // BR 69; sotsb cvMaxHP
-	FactMaxLevel   // por 0xA0
-	FactExpValue   // por 0xF7: what killing it gives
-	FactExpPerHP   // por 0xF9
-	FactReaction   // por 0x2CF: charisma as a percent
-	FactPaladin    // cotab cvPaladinFlag
-	FactPartyPlace // por 0x2B1
+	FactActive      // 256: a pure read; NoChar reads inactive
+	FactStatus      // por 0x100; writing it only stores: consequences are Actions
+	FactSide        // 268 bit 0
+	FactSideLock    // BR 268 bit 7, r[215]; meaning to confirm at migration
+	FactControl     // por 0xB8 (charmed, hired)
+	FactMove        // por 0x11B
+	FactHP          // BR 281
+	FactMaxHP       // BR 69; sotsb cvMaxHP
+	FactMaxLevel    // por 0xA0
+	FactExpValue    // por 0xF7: what killing it gives
+	FactExpPerHP    // por 0xF9
+	FactReaction    // por 0x2CF: charisma as a percent
+	FactPaladin     // cotab cvPaladinFlag
+	FactPartyPlace  // por 0x2B1
+	FactExceptional // exceptional strength: por Str00, a sheet word only
 )
 
 func (AbilityFact) fact() {}
