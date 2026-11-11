@@ -94,6 +94,10 @@ type (
 		Who  CharID
 		Item CarriedID
 	}
+	// PartyHealed: nobody is wounded any more (a rest's healing, por healTick).
+	PartyHealed struct{}
+	// RestInterrupted: a monster broke the rest off (por stepRest's roll).
+	RestInterrupted struct{}
 	// Refused is an action the rules turned down, and why.
 	Refused struct {
 		Who CharID
@@ -122,22 +126,24 @@ type SoundCue string
 // Facing is 0 N, 2 E, 4 S, 6 W, with the diagonals between (game.Where.Facing).
 type Facing int8
 
-func (Narrated) effect()   {}
-func (Sounded) effect()    {}
-func (Walked) effect()     {}
-func (Turned) effect()     {}
-func (Attacked) effect()   {}
-func (Shot) effect()       {}
-func (Casting) effect()    {}
-func (Struck) effect()     {}
-func (Healed) effect()     {}
-func (Fell) effect()       {}
-func (Fled) effect()       {}
-func (Placed) effect()     {}
-func (CloudOn) effect()    {}
-func (CloudOff) effect()   {}
-func (TerrainSet) effect() {}
-func (Gained) effect()     {}
-func (Lost) effect()       {}
-func (Took) effect()       {}
-func (Refused) effect()    {}
+func (Narrated) effect()        {}
+func (Sounded) effect()         {}
+func (Walked) effect()          {}
+func (Turned) effect()          {}
+func (Attacked) effect()        {}
+func (Shot) effect()            {}
+func (Casting) effect()         {}
+func (Struck) effect()          {}
+func (Healed) effect()          {}
+func (PartyHealed) effect()     {}
+func (RestInterrupted) effect() {}
+func (Fell) effect()            {}
+func (Fled) effect()            {}
+func (Placed) effect()          {}
+func (CloudOn) effect()         {}
+func (CloudOff) effect()        {}
+func (TerrainSet) effect()      {}
+func (Gained) effect()          {}
+func (Lost) effect()            {}
+func (Took) effect()            {}
+func (Refused) effect()         {}
