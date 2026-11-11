@@ -209,10 +209,11 @@ func SameTree(a, b string) error {
 // ends a step's hold and goes no further (front/latch.go).
 type Sequence struct {
 	Steps    []SequenceStep
-	Credits  []Credit `json:",omitempty"` // the credits pages' lines, placed
-	Boxes    []Cells  `json:",omitempty"` // the credits' boxes (nil: one frame on the page's edges)
-	Backdrop *Art     `json:",omitempty"` // under the main menu after the steps, the menu zooming and fading in over it
-	Short    []int    `json:",omitempty"` // the steps (indexes) a short intro plays (COTAB: SSI logo only unless the config asks); nil: all
+	Credits  []Credit  `json:",omitempty"` // the credits pages' lines, placed
+	Boxes    []Cells   `json:",omitempty"` // the credits' boxes (nil: one frame on the page's edges)
+	Backdrop []Layer   `json:",omitempty"` // under the main menu after the steps (COTAB: painting and logo), the menu zooming and fading in over it
+	Remaster [2]string `json:",omitempty"` // two lines as game.Data.RemasterCredit: the remaster's own lines at the bottom of the credits page (game.Data.RemasterCredit)
+	Short    []int     `json:",omitempty"` // the steps (indexes) a short intro plays (COTAB: SSI logo only unless the config asks); nil: all
 }
 
 // StepKind is what a sequence step shows.
@@ -232,9 +233,28 @@ type SequenceStep struct {
 	Anim      string  `json:",omitempty"` // StepAnim: the animation's base name in the folder's art
 	Song      string  `json:",omitempty"` // the tune it starts (a song name or the game's song number)
 	HoldMs    int     `json:",omitempty"` // 0: until a key or click
-	Lightning bool    `json:",omitempty"` // the picture flashes (POR TITLE 1)
+	Lightning Flash   `json:",omitempty"` // when the picture flashes (POR TITLE 2: FlashEGA)
 	Whole     bool    `json:",omitempty"` // the layers are one whole-screen page
 }
+
+// Flash is when a step's picture flashes with lightning.
+type Flash int
+
+const (
+	FlashNone Flash = iota // never
+	FlashEGA               // in EGA graphics only (POR: ovr02 title_screen under the EGA driver)
+)
+
+// Graphics is the run's graphics mode, as the game's config picks it.
+type Graphics int
+
+const (
+	GraphicsOther Graphics = iota // any mode without its own rule here (VGA, Tandy, CGA)
+	GraphicsEGA
+)
+
+// On reports whether f flashes in graphics mode g.
+func (f Flash) On(g Graphics) bool { return f == FlashEGA && g == GraphicsEGA }
 
 // Art is a picture in the folder's art: an archive's block (TITLE 2).
 type Art struct {
