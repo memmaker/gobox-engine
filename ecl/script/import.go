@@ -165,6 +165,17 @@ func Stale(v *Version, dir string, data fs.FS, fold Folding, fixes []Fix) (bool,
 	return false, nil
 }
 
+// ImportFolder is Import into an adventure folder's scripts dir (empty or
+// new): the game's script data is copied there first, so the folder reads
+// without the game's embedded files.
+func ImportFolder(v *Version, src Source, data fs.FS, dir string, fold Folding, fixes []Fix) error {
+	if err := os.CopyFS(dir, data); err != nil {
+		return err
+	}
+	_, err := Import(v, src, os.DirFS(dir), dir, fold, fixes)
+	return err
+}
+
 // ImportIfStale runs Import when dir's scripts are missing or stale (Stale):
 // a game's setup step, and a test binary's before it loads an area.
 func ImportIfStale(v *Version, src Source, data fs.FS, dir string, fold Folding, fixes []Fix) error {

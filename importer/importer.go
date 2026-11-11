@@ -7,6 +7,7 @@
 package importer
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -140,4 +141,48 @@ func Main(args []string) error {
 		return fmt.Errorf("usage: import [-out dir] <game> <originals>; games: %s", strings.Join(IDs(), ", "))
 	}
 	return Run(fs.Arg(0), fs.Arg(1), *out)
+}
+
+// SameTree reports the first difference between the files under a and the
+// files under b (names and bytes), nil when they hold the same: an
+// importer's equality test against the decode the game reads today.
+func SameTree(a, b string) error {
+	want := map[string][]byte{}
+	err := filepath.WalkDir(b, func(p string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		rel, _ := filepath.Rel(b, p)
+		want[rel], err = os.ReadFile(p)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	err = filepath.WalkDir(a, func(p string, d os.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		rel, _ := filepath.Rel(a, p)
+		got, err := os.ReadFile(p)
+		if err != nil {
+			return err
+		}
+		w, ok := want[rel]
+		if !ok {
+			return fmt.Errorf("%s: only in %s", rel, a)
+		}
+		if !bytes.Equal(got, w) {
+			return fmt.Errorf("%s differs", rel)
+		}
+		delete(want, rel)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	for rel := range want {
+		return fmt.Errorf("%s: only in %s", rel, b)
+	}
+	return nil
 }
