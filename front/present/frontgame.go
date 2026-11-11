@@ -5,6 +5,7 @@ package present
 
 import (
 	"fmt"
+	"gobox/ega"
 	"gobox/front"
 	"gobox/gpu"
 	"image"
@@ -137,6 +138,9 @@ func (p *Presenter) own(v front.View) front.View {
 		p.gridPick, p.icon, p.creating, p.training, p.q, p.clue = nil, nil, false, false, nil, nil
 	}
 	v = p.blinked(p.paged(pixView(v)))
+	if v.Intro != nil && len(p.intro.Flash) > 0 { // the title's lightning (ovr02:0626 title_screen): palette entry 1 in the flash step's EGA colour
+		v.Ink[1] = ega.RGBA(p.intro.Flash[0])
+	}
 	v.Pictures = daxPictures(indexedPictures(v.Pictures, v.Ink))
 	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
 	if p.slots != nil && p.eng != nil {
