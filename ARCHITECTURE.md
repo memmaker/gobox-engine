@@ -314,6 +314,9 @@ Track A (adventure seam, agent A): scripts and data move into the adventure leaf
   - [x] pager: `Journal(entry)` (POD's command 31) in every dialect (V1 at the same unused number); entries are the adventure's `names/entries.json` (`script.Entry`: id, name, book, title, box, voiced), their names the scripts' `Entry` values
 - [ ] A4. Section 4: typed ids in scripts (LoadMonster, treasure, FindItem; candidate lists at POR's 24 + 3 variable sites)
 - [ ] A5. Section 5: `cmd/import` originals to canonical files; no `gobox/dax` in POR at run time
+  - [x] decompiler and DAX at import only: `script.Import`/`ImportIfStale` (with `DAXSource`) are the import path; `Library` has no Source and only reads texts (missing or stale: `ErrNotImported`). POR: `cmd/import` (was cmd/eclscript), `por -setup` and the start run `rules.ImportScripts`; the other five games' commands run their `rules.ImportScripts` into the cache before `New`, their tests in TestMain
+  - [x] patches into the decompiler: POR's 14 patch files (58 hunks; COTAB, SotSB, POD had none) are `script.Fix` special cases in por-go rules/scriptfixes.go, each with original, why and its CHANGES row (29 "POR script, ..." rows under Port's own); a site not there exactly once fails the import. Proof: every area's import equals the patched text byte for byte apart from the key header (29 areas). patches/, `ApplyPatch` and the patch part of the key are gone
+  - [ ] the 43 ENTRY/ENTRIES/PROCLAMATION prints name their entries through `Journal` as special cases (journalRefs, handoutPhrase go)
 - [ ] A6. `por-go/adventure` implements `core.Adventure` (areas, journal, lore, scripts and patches, assets)
 
 Then (one agent, after both tracks):
@@ -345,7 +348,7 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
     - [x] COTAB, SotSB, POD: rules/scripts/layout/global.txt from cotab-re/sotsb-re/pod-re (zones, specials, TZone arms, TGbvmBank0/TAreaState/TCharRecord), embedded as Library.Data; each game's TestLayoutCoversScripts resolves every DAX script; ReadNames/ReadLayout take an fs.FS
     - [ ] layout required: BR1/BR2 have none yet, so ReadLayout gives nil for them (their own VM reads addresses); the exception goes with their layouts. Done: Version.Vars and v1Vars gone (the layout is the one name source; Names.Calls names CALL routines)
     - [x] CALL routines are their own space in a Layout (ResolveCall), named from each -re's EclCall; COTAB/SotSB Word cells the -re units name by constant (Shop, Temple, PriceScale, ...) named; POD 0014 is Temple (healerRequest)
-    - [x] library texts carry a key of names/, layout/, patches/ and the area's code; another key re-imports
+    - [x] library texts carry a key of names/, layout/ and the special cases (script.Key); another key is ErrNotImported at load (A5)
     - [ ] unnamed script-only cells (WordXXXX; no -re field or constant names them): COTAB 171, SotSB 156, POD 360; meaning to be read from the scripts
     - [ ] BR1, BR2 layouts from buckroger-re / buckrogers2-re (five zones, eclmenu.pas ReadGbvm/WriteGbvm); then drop ReadLayout's nil
     - [ ] after d: name the unnamed cells from their script use, per game (COTAB, SotSB, POD)

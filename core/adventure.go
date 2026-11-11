@@ -13,7 +13,7 @@ type Adventure interface {
 	// Scripts is how to run its scripts: dialect, bindings, id tables.
 	Scripts() ScriptSet
 	// Script is an area's canonical script text (the checked-in area text),
-	// patched at import where originals did native work. script.Library.
+	// with the decompiler's special cases (script.Fix). script.Library.
 	Script(AreaID) ([]byte, error)
 	// Area is an area's names and set. names/areas.txt; play.Common.Area.
 	Area(AreaID) (AreaInfo, error)

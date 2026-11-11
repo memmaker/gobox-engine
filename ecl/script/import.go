@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"gobox/dax"
 )
 
 // headerWord starts a script text's first line: "version <id> <revision>
@@ -66,18 +68,25 @@ func AreaPath(dir string, area int) string {
 	return filepath.Join(dir, fmt.Sprintf("area%d.txt", area))
 }
 
-// patchPath is area's import patch: the hand fixes, a unified diff against
-// the decompiler's output.
-func patchPath(area int) string {
-	return fmt.Sprintf("patches/area%d.patch", area)
-}
-
 const maxDisk, maxBlock = 9, 256
 
-// Import decompiles every block of the source into dir (with its names/ and
-// patches/ folders), applying each area's patch. A block on several disks is
-// taken from the first. It returns the folded gates.
-func Import(v *Version, src Source, dir string) ([]FoldedGate, error) {
+// A Fix is a game's special case in its decompiler: in area's text, Old
+// (whole lines, exactly once) becomes New. A fix whose Old is not there
+// once, or whose area has no block, fails the import.
+type Fix struct {
+	Area     int
+	Old, New string
+}
+
+// Import decompiles every block of the source into dir, with the game's
+// script data (names/, layout/) and its special cases. A block on several
+// disks is taken from the first. Each text carries Key. It returns the
+// folded gates.
+func Import(v *Version, src Source, data fs.FS, dir string, fold Folding, fixes []Fix) ([]FoldedGate, error) {
+	key, err := Key(v, data, fold, fixes)
+	if err != nil {
+		return nil, err
+	}
 	var all []FoldedGate
 	done := map[int]bool{}
 	for disk := 1; disk < maxDisk; disk++ {
@@ -87,20 +96,25 @@ func Import(v *Version, src Source, dir string) ([]FoldedGate, error) {
 				continue
 			}
 			done[block] = true
-			text, folds, err := importArea(v, src, os.DirFS(dir), block, b[2:], FoldGates)
+			text, folds, err := importArea(v, src, data, block, b[2:], fold, fixes)
 			if err != nil {
 				return nil, fmt.Errorf("area %d: %w", block, err)
 			}
 			all = append(all, folds...)
-			if err := os.WriteFile(AreaPath(dir, block), []byte(text), 0o644); err != nil {
+			if err := writeAtomic(AreaPath(dir, block), withKey(text, key)); err != nil {
 				return nil, err
 			}
+		}
+	}
+	for _, f := range fixes {
+		if !done[f.Area] {
+			return nil, fmt.Errorf("a fix for area %d, which has no block", f.Area)
 		}
 	}
 	return all, nil
 }
 
-func importArea(v *Version, src Source, data fs.FS, area int, code []byte, fold Folding) (string, []FoldedGate, error) {
+func importArea(v *Version, src Source, data fs.FS, area int, code []byte, fold Folding, fixes []Fix) (string, []FoldedGate, error) {
 	names, err := ReadNames(data, area, true, v)
 	if err != nil {
 		return "", nil, err
@@ -112,19 +126,26 @@ func importArea(v *Version, src Source, data fs.FS, area int, code []byte, fold 
 	if err != nil {
 		return "", nil, err
 	}
-	p, err := fs.ReadFile(data, patchPath(area))
-	if errors.Is(err, fs.ErrNotExist) {
-		return text, folds, nil
-	} else if err != nil {
-		return "", nil, err
+	for i, f := range fixes {
+		if f.Area != area {
+			continue
+		}
+		if n := strings.Count("\n"+text, "\n"+f.Old); n != 1 || f.Old == "" || !strings.HasSuffix(f.Old, "\n") {
+			return "", nil, fmt.Errorf("fix %d: its site is there %d times, want once", i, n)
+		}
+		at := strings.Index("\n"+text, "\n"+f.Old)
+		text = text[:at] + f.New + text[at+len(f.Old):]
 	}
-	text, err = ApplyPatch(text, string(p))
-	return text, folds, err
+	return text, folds, nil
 }
 
-// Stale reports whether dir's scripts need the import: any existing area
-// script (or none at all) of another version.
-func Stale(v *Version, dir string) (bool, error) {
+// Stale reports whether dir's scripts need the import: none at all, or
+// any made by another decompiler or from other data (Key).
+func Stale(v *Version, dir string, data fs.FS, fold Folding, fixes []Fix) (bool, error) {
+	key, err := Key(v, data, fold, fixes)
+	if err != nil {
+		return false, err
+	}
 	files, err := filepath.Glob(filepath.Join(dir, "area*.txt"))
 	if err != nil {
 		return false, err
@@ -137,56 +158,31 @@ func Stale(v *Version, dir string) (bool, error) {
 		if err != nil {
 			return false, err
 		}
-		if _, err := v.checkHeader(string(b)); errors.Is(err, ErrStale) {
+		if _, err := v.checkHeader(string(b)); errors.Is(err, ErrStale) || textKey(string(b)) != key {
 			return true, nil
 		}
 	}
 	return false, nil
 }
 
-// ApplyPatch applies a unified diff to text, line for line: any context or
-// removed line that does not match the text is an error.
-func ApplyPatch(text, patch string) (string, error) {
-	src := strings.SplitAfter(text, "\n")
-	var out []string
-	at := 0 // lines of src consumed
-	lines := strings.SplitAfter(patch, "\n")
-	for i := 0; i < len(lines); {
-		l := lines[i]
-		if !strings.HasPrefix(l, "@@ ") {
-			i++ // a header line
-			continue
-		}
-		var from, nFrom, to, nTo int
-		if _, err := fmt.Sscanf(l, "@@ -%d,%d +%d,%d @@", &from, &nFrom, &to, &nTo); err != nil {
-			return "", fmt.Errorf("patch line %d: hunk header %q", i+1, l)
-		}
-		if nFrom == 0 {
-			from++ // diff's "after line N"
-		}
-		if from-1 < at || from-1 > len(src) {
-			return "", fmt.Errorf("patch line %d: hunk out of order", i+1)
-		}
-		out = append(out, src[at:from-1]...)
-		at = from - 1
-		for i++; i < len(lines) && !strings.HasPrefix(lines[i], "@@ ") && lines[i] != ""; i++ {
-			body := lines[i]
-			switch body[0] {
-			case ' ', '-':
-				if at >= len(src) || src[at] != body[1:] {
-					return "", fmt.Errorf("patch line %d does not match line %d of the decompiled text", i+1, at+1)
-				}
-				if body[0] == ' ' {
-					out = append(out, body[1:])
-				}
-				at++
-			case '+':
-				out = append(out, body[1:])
-			case '\\': // "\ No newline at end of file"
-			default:
-				return "", fmt.Errorf("patch line %d: %q", i+1, body)
-			}
-		}
+// ImportIfStale runs Import when dir's scripts are missing or stale (Stale):
+// a game's setup step, and a test binary's before it loads an area.
+func ImportIfStale(v *Version, src Source, data fs.FS, dir string, fold Folding, fixes []Fix) error {
+	stale, err := Stale(v, dir, data, fold, fixes)
+	if err != nil || !stale {
+		return err
 	}
-	return strings.Join(append(out, src[at:]...), ""), nil
+	_, err = Import(v, src, data, dir, fold, fixes)
+	return err
+}
+
+// DAXSource reads the blocks of the game's ECL*.DAX, for the import.
+func DAXSource(l *dax.Loader) Source {
+	return Source{Block: func(disk, block int) []byte {
+		name := fmt.Sprintf("ECL%d", disk)
+		if !l.Exists(name + ".DAX") {
+			return nil
+		}
+		return l.BlockShared(name, block)
+	}}
 }

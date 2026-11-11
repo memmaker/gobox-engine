@@ -10,31 +10,37 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-
-	"gobox/dax"
 )
 
-// Library is a game's decompiled scripts: one text per area in Dir, each
-// made from the game's data the first time it is needed or when the
-// decompiler has moved on.
+// Library is a game's imported scripts: one text per area in Dir, written
+// by Import. It only reads them: a missing or stale text is ErrNotImported.
 type Library struct {
 	Version *Version
-	Source  Source
-	Dir     string  // where the texts are written
-	Data    fs.FS   // the game's script data: names/, layout/, patches/
+	Dir     string  // where Import wrote the texts
+	Data    fs.FS   // the game's script data: names/, layout/
+	Fixes   []Fix   // the game's decompiler special cases, part of the key
 	Fold    Folding // FoldGates, or KeepGates for a test comparing the two
+
+	key string // Key, once
 }
 
-// dataDirs are the parts of a game's script data a text is made from.
-var dataDirs = []string{"names", "layout", "patches"}
+// ErrNotImported: the scripts are missing or were imported from other data
+// or by another decompiler; the import must run.
+var ErrNotImported = errors.New("scripts not imported or stale: run the import")
 
-// key is what an area's text is made from: the decompiler's version, the
+// dataDirs are the parts of a game's script data a text is made from.
+var dataDirs = []string{"names", "layout"}
+
+// Key is what the texts are made from: the decompiler's version, the
 // folding, the game's script data (dataDirs: every file, path and content)
-// and the area's code. A text whose header carries another key is stale.
-func (l *Library) key(code []byte) (string, error) {
+// and its special cases. A text whose header carries another key is stale.
+func Key(v *Version, data fs.FS, fold Folding, fixes []Fix) (string, error) {
 	h := sha256.New()
-	fmt.Fprintf(h, "%s\x00fold %d\x00", l.Version.Header(), l.Fold)
-	err := fs.WalkDir(l.Data, ".", func(p string, d fs.DirEntry, err error) error {
+	fmt.Fprintf(h, "%s\x00fold %d\x00", v.Header(), fold)
+	for _, f := range fixes {
+		fmt.Fprintf(h, "fix %d\x00%d\x00%s\x00%d\x00%s\x00", f.Area, len(f.Old), f.Old, len(f.New), f.New)
+	}
+	err := fs.WalkDir(data, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -47,7 +53,7 @@ func (l *Library) key(code []byte) (string, error) {
 		if !strings.Contains(p, "/") {
 			return nil // a file beside the data folders: not data (POR's texts share its folder)
 		}
-		b, err := fs.ReadFile(l.Data, p)
+		b, err := fs.ReadFile(data, p)
 		if err != nil {
 			return err
 		}
@@ -58,20 +64,7 @@ func (l *Library) key(code []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Fprintf(h, "code\x00%d\x00", len(code))
-	h.Write(code)
 	return hex.EncodeToString(h.Sum(nil)), nil
-}
-
-// DAXSource reads the blocks of the game's ECL*.DAX.
-func DAXSource(l *dax.Loader) Source {
-	return Source{Block: func(disk, block int) []byte {
-		name := fmt.Sprintf("ECL%d", disk)
-		if !l.Exists(name + ".DAX") {
-			return nil
-		}
-		return l.BlockShared(name, block)
-	}}
 }
 
 // Empty is the script of an area with no block: every event exits.
@@ -79,40 +72,34 @@ func Empty(area int) *Script {
 	return &Script{Area: area, Code: []Instr{{Op: OpExit}}, Labels: map[string]int{}, At: map[int]string{}, Tables: map[string]int{}}
 }
 
-// Area is area's script, Empty if the game has no such block.
+// Area is area's script, Empty if the import wrote none (the game has no
+// such block).
 func (l *Library) Area(area int) (*Script, error) {
 	names, err := ReadNames(l.Data, area, false, l.Version)
 	if err != nil {
 		return nil, err
 	}
-	path := AreaPath(l.Dir, area)
-	code := l.block(area)
-	if code == nil {
-		return Empty(area), nil
-	}
-	key, err := l.key(code)
-	if err != nil {
-		return nil, err
-	}
-	b, err := os.ReadFile(path)
-	stale := errors.Is(err, fs.ErrNotExist)
-	if err != nil && !stale {
-		return nil, err
-	}
-	if !stale {
-		_, err := l.Version.checkHeader(string(b))
-		stale = errors.Is(err, ErrStale) || textKey(string(b)) != key
-	}
-	if stale {
-		text, _, err := importArea(l.Version, l.Source, l.Data, area, code, l.Fold)
-		if err != nil {
-			return nil, fmt.Errorf("area %d: %w", area, err)
-		}
-		text = withKey(text, key)
-		if err := writeAtomic(path, text); err != nil {
+	if l.key == "" {
+		if l.key, err = Key(l.Version, l.Data, l.Fold, l.Fixes); err != nil {
 			return nil, err
 		}
-		b = []byte(text)
+	}
+	path := AreaPath(l.Dir, area)
+	b, err := os.ReadFile(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		any, err := filepath.Glob(filepath.Join(l.Dir, "area*.txt"))
+		if err != nil {
+			return nil, err
+		}
+		if len(any) == 0 {
+			return nil, fmt.Errorf("%s: %w", l.Dir, ErrNotImported)
+		}
+		return Empty(area), nil
+	} else if err != nil {
+		return nil, err
+	}
+	if _, err := l.Version.checkHeader(string(b)); err != nil || textKey(string(b)) != l.key {
+		return nil, fmt.Errorf("%s: %w", path, ErrNotImported)
 	}
 	s, err := Parse(string(b), names)
 	if err != nil {
@@ -123,16 +110,6 @@ func (l *Library) Area(area int) (*Script, error) {
 		return nil, fmt.Errorf("%s: %w", path, err)
 	}
 	return s, nil
-}
-
-// block is area's code, from the first disk that has it.
-func (l *Library) block(area int) []byte {
-	for disk := 1; disk < maxDisk; disk++ {
-		if b := l.Source.Block(disk, area); len(b) >= 2 {
-			return b[2:]
-		}
-	}
-	return nil
 }
 
 // writeAtomic writes path so that no reader sees a part of it.
