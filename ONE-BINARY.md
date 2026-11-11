@@ -76,3 +76,27 @@ Also: nothing implements core.Rules yet (rules1e has creation tables only, R3 ch
 ## Open, unverified
 - B's one uncaptured test panic (not reproduced, count=10 and -race)
 - in-fight sounds by cue name may be silent; fall-sound fallback; toasts vs pane lines; rest-time line refresh (F list)
+
+## Track X: rulesxxvc (agent X, 2026-11-11)
+Goal: `~/Projects/rulesxxvc` (module `rulesxxvc`, imports core and core/xxvc only, `imports_test.go`) implements Rules, CharacterRules, CombatRules, ShipRules for BR1 and BR2 from buckroger-re / buckrogers2-re. BR1/BR2 differences are data or options.
+- [x] X1 map (below)
+- [x] X2a module, import guard, dice, SkillValue/SkillCheck (charhlp.pas SelectSkillCharacter; rulesxxvc 8f1c8da)
+- [x] X2b skill prerequisites (charhlp.pas MeetsSkillPrerequisite, c_skill.pas; SkillNo, SkillLevels; rulesxxvc 32eb5a4)
+- [x] X2c attack arithmetic (AttackDie, Thac0Modifier by Difficulty, AttackHits, ProjectileRangePenalty, RangePenalty, ArmorValue; rulesxxvc 849f9c5)
+- [ ] X2d next: skill groups and career skills (gdconsts.pas skillDefinitions, careerSkills), saves (RollSavingThrow), damage (CalcWeaponDamage), initiative, ship-fight arithmetic (shipcbt.pas); then a Rules type over typed characters once gaps 1 and 3 are answered
+
+Handover: every rulesxxvc function names its .pas; check BR2's copy before porting (so far identical); tests are hand-derived from the .pas, TP Random values computed outside Go.
+- [ ] X3 BR games keep their own code until wind-down (untouched so far)
+
+**Where BR's rules are today.** buckrogers-core (module `ecl-br`, 1.9k lines) is NOT rules: the byte Record (record.go, raw offsets), VM glue, views, combat map; it imports gobox/game, game/play, ecl. The rules live in `buckrogers-go/rules` and `buckrogers2-go/rules` (15k lines each, near copies: ai, char, rest, ship, spacefight, monster identical; create 151, combat 229, combatturn 330, items 89, skills 89 diff lines). Nothing there is pure: every rule is an `*Engine` method over `*eclbr.Record` bytes and reads tables from the START.EXE data segment (dsImg, `tab`). Most rule-like, little flow: char.go (record, train, hpRoll), skills.go (groups, unlocks: Engine only for asking), combat.go skillCheck/skillVal (:213), ai.go, monster.go, effects.go, ship.go. Rules entangled with flow/drawing (import game/play): create.go, combat.go, combatturn.go, throw.go, spacefight.go (1573 lines: arithmetic sRoll, sToHit, sDamage, hitShip, ram, dodge mixed with screens and asks), rest.go, loot.go, shop.go, items.go. Port path: re-derive each rule from the Pascal (charhlp, combat, combatai, shipcbt, skills, chargen .pas), check it against the Go, never copy the byte-record code.
+BR1 vs BR2 reference: SelectSkillCharacter is the same rule (BR2 uses shr and signed div, equal for non-negative values); the BR1 Go keeps the original's quirk that the bands use the last candidate's value (kept in rulesxxvc).
+
+**core/xxvc today:** Tech, Terran, five careers, BattleTactics, Credits, Fuel. Missing: the other races, 83 skills, the eight saves, ship systems beyond fuel ("to confirm").
+
+**Gaps in core for XXVc (for Felix; not changed):**
+1. Tables: BR1 and BR2 have different START.EXE data (items, careers, monsters). A ruleset receives nothing but Campaign{MaxLevel, Spells} and Options, so rulesxxvc cannot tell which game's tables to use. Needs a table/edition selector in Campaign (or the tables as data through Begin).
+2. `SkillRoll.Difficulty int32` and `Answer.Value` for its grade are untyped numbers; rulesxxvc has `Hardness` (VeryEasy..VeryHard) and `Grade` (FailedBadly..MadeWell). A typed core difficulty/grade, or a documented mapping, is needed.
+3. `CreationRules` (core 527b2ee) has only option fields; BR's skills step is a point allocation over 84 skills with unlocks and refunds (skills.pas, pO0DD_09D8). Fields() cannot express it: needs a points step (skills, budget, Spend/Refund legality).
+4. `core/imports_test.go` leaves lacks `../../rulesxxvc` (one line in core's test).
+5. The BR Go draws from PCG; rulesxxvc draws from core.RNG (Turbo Pascal's Random), matching the reconstructions' order. BR saves carry no RNG to keep.
+No BR pure-Pascal vector harness exists (rules1e's TestAgainstPascal has por-re's); rulesxxvc tests use hand-derived vectors from the .pas with TP Random computed outside Go. A BR vectors harness would need buckroger-re's toolchain.
