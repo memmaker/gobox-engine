@@ -57,6 +57,7 @@ type rules struct {
 	rest    time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
 	walk    *walking      // the auto-walk under way, a square per walkPace (PaceWalk)
 	now     func() time.Time
+	held    play.Held    // the slot list read while the game waits (saves); run drops it
 	seq     uint64       // counts the changes: the front redraws on a new one
 	data    game.Data    // the series' data (verb keys, texts)
 	log     []string     // the fight's message log, from the outcomes' text
@@ -1523,6 +1524,14 @@ func (r *rules) load(slot int) play.Result {
 // saves are gobox's slot files, newest first, then the game's own slots
 // (play.Slots).
 func (r *rules) saves() []game.SaveSlot {
+	return play.Hold(&r.held, slotsKey{}, r.readSaves)
+}
+
+// slotsKey is saves' value held: the slot screen lists it every frame.
+type slotsKey struct{}
+
+// readSaves is saves read from the disk.
+func (r *rules) readSaves() []game.SaveSlot {
 	sl := r.ownSaves()
 	if gs, ok := r.g.(play.Slots); ok {
 		sl = append(sl, gs.Slots()...)

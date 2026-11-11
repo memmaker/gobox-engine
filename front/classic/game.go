@@ -68,7 +68,9 @@ func (g *Game) run(what string, step func() play.Result) error {
 	g.lastParty = g.party()
 	was := g.pane()
 	paneWas, linesWere := paneTail(was), paneCount(was)
+	done := g.r.held.Change() // the step may write the saves
 	res := step()
+	done()
 	g.trace(what, res)
 	if g.combat() == nil && g.itemsUp() { // over the items the text pane is hidden: its new line (BR2's "Doc buys a ...", "not enough credits") is the toast
 		if t := paneTail(g.pane()); t != "" && (t != paneWas || paneCount(g.pane()) != linesWere) { // a new line, or the same one said again
