@@ -31,12 +31,14 @@ import (
 	"gobox/importer"
 	"pod/playpod"
 	"por/playpor"
+	"sotsb/playsotsb"
 
 	_ "buckrogers/importbr1"
 	_ "buckrogers2/importbr2"
 	_ "cotab/importcotab"
 	_ "pod/importpod"
 	_ "por/importpor"
+	_ "sotsb/importsotsb"
 )
 
 // players start an adventure's engine by the manifest's ID. ponytail: one
@@ -48,6 +50,7 @@ var players = map[string]func(app.Start) error{
 	"pod":   playpod.Play,
 	"br1":   playbr1.Play,
 	"br2":   playbr2.Play,
+	"sotsb": playsotsb.Play,
 }
 
 // escapes are the -keys escapes beside the shell's (app.Flags): \r Enter,

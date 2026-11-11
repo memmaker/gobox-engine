@@ -22,6 +22,10 @@ func OpenAmiga(b []byte) *File {
 	return f
 }
 
+// maxExpansion bounds the raw bytes per crunched byte: the densest code,
+// copyBack(12, bits(8)+1), writes 256 bytes from 23 bits (2048/23 < 90).
+const maxExpansion = 90
+
 // Unbytekill decrunches a ByteKiller stream, read backwards from its end:
 // u32 raw size, u32 checksum, then the bit stream; output is filled from
 // the end too. Returns nil on a malformed stream.
@@ -33,7 +37,11 @@ func Unbytekill(src []byte) (out []byte) {
 	}()
 	p := len(src)
 	long := func() uint32 { p -= 4; return binary.BigEndian.Uint32(src[p:]) }
-	out = make([]byte, long())
+	raw := long()
+	if uint64(raw) > uint64(len(src))*maxExpansion { // a header no stream of this length decrunches to (recover cannot catch the allocation's OOM)
+		return nil
+	}
+	out = make([]byte, raw)
 	long() // checksum
 	d0 := long()
 	bit := func() uint32 {

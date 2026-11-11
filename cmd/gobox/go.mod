@@ -144,3 +144,7 @@ replace rulesxxvc => ../../../rulesxxvc
 require buckrogers2 v0.0.0
 
 replace buckrogers2 => ../../../buckrogers2-go
+
+require sotsb v0.0.0
+
+replace sotsb => ../../../sotsb-go

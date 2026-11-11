@@ -20,3 +20,6 @@ buckrogers-go buckrogers/playbr1 -> gobox/front/present
 buckrogers2-go buckrogers2/playbr2 -> gobox/app
 buckrogers2-go buckrogers2/playbr2 -> gobox/front/classic
 buckrogers2-go buckrogers2/playbr2 -> gobox/front/present
+sotsb-go sotsb/playsotsb -> gobox/app
+sotsb-go sotsb/playsotsb -> gobox/front/classic
+sotsb-go sotsb/playsotsb -> gobox/front/present
