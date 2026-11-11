@@ -26,6 +26,8 @@ for repo in por-go rules1e rulesxxvc gobox-engine "${games[@]}"; do
 done
 # Tests that look at the other games (scripts/check-game-imports.sh) see these exports.
 export PROJECTS="$out"
+# Tests that find a sibling repo through $HOME/Projects (buckrogers bugclass_test, front sequence_test) see them too.
+ln -s "$out" "$HOME/Projects"
 # Unversioned here: third-party checkouts, the -re reconstructions (tests read ../../<game>-re), and the game data.
 for dep in gogpu-wgpu goffi goplay gameimport; do ln -s "$projects/$dep" "$out/$dep"; done
 for re in "$projects"/*-re; do ln -s "$re" "$out/$(basename "$re")"; done
