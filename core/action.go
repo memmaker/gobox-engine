@@ -229,11 +229,16 @@ type (
 		Who    CharID
 		Status Status
 	}
+	// NewGroup starts a group of monsters: the next Spawn rolls a fresh one,
+	// later Spawns of the same MonsterID copy it (por addMonsters clones a
+	// template without re-rolling).
+	NewGroup struct{}
 )
 
 func (RemoveMember) action()    {}
 func (SpringTrap) action()      {}
 func (SetStatusAction) action() {}
+func (NewGroup) action()        {}
 
 // ItemSlot is an item on a character by its id on that character. CarriedID is
 // the id of one item the ruleset holds or Situation lists. ManeuverID is a
