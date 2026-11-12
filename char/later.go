@@ -34,12 +34,8 @@ func PackLater[R Later](f LaterFiles) (core.CharacterFile, error) {
 	r := Decode[R](f.Record)
 	c := rules1e.CharacterJSON{Kept: &rules1e.KeptRecord{Layout: core.RecordLayout(len(Encode(r))), Image: core.RecordImage(bytes.Clone(f.Record))}}
 	sheetOfLater(&c, r)
-	for _, it := range ReadRecords[Item](f.Items, f.ItemSize) {
-		c.Items = append(c.Items, *it)
-	}
-	for _, a := range ReadRecords[AffectRecord](f.Affects, AffectSize) {
-		c.Affects = append(c.Affects, *a)
-	}
+	c.Items = readItems(f.Items, f.ItemSize)
+	c.Affects = ReadAffects(f.Affects)
 	b, err := json.Marshal(c)
 	if err != nil {
 		return nil, fmt.Errorf("PackLater: %w", err)
@@ -67,9 +63,9 @@ func UnpackLater[R Later](b core.CharacterFile, itemSize int) (LaterFiles, error
 	f := LaterFiles{Record: withBlanks[R](Encode(r), orig), ItemSize: itemSize}
 	pad := make([]byte, itemSize-ItemSize)
 	for _, it := range c.Items {
-		f.Items = append(append(f.Items, WriteRecords([]*Item{&it})...), pad...)
+		f.Items = append(append(f.Items, WriteItems([]Item{it})...), pad...)
 	}
-	f.Affects = WriteRecords(pointers(c.Affects))
+	f.Affects = WriteAffects(c.Affects)
 	return f, nil
 }
 
