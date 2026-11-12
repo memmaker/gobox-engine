@@ -80,7 +80,7 @@ func TestLootScreen(t *testing.T) {
 
 func TestLootDecisions(t *testing.T) {
 	for a, want := range map[front.Action]play.Action{
-		{Kind: front.ActBuy, N: 2}: play.Take{Item: 7},
+		{Kind: front.ActBuy, Item: 7}: play.Take{Item: 7},
 		{Kind: front.ActTakeMoney}: play.Take{Item: core.NoItem},
 		{Kind: front.ActTakeAll}:   play.Take{Item: core.NoItem, All: true},
 	} {

@@ -3,6 +3,7 @@
 package present
 
 import (
+	"gobox/core"
 	"gobox/front"
 	"gobox/game"
 	"gobox/gpu"
@@ -24,15 +25,18 @@ type word struct {
 	r    image.Rectangle
 }
 
-// itemAt is the inventory's item with Index i, nil if none.
-func itemAt(in *front.Inventory, i int) *front.InvItem {
+// itemAt is the inventory's item i, nil if none.
+func itemAt(in *front.Inventory, i core.ItemHandle) *front.InvItem {
+	if i == core.NoItem {
+		return nil
+	}
 	for _, it := range in.Doll {
-		if it != nil && it.Index == i {
+		if it != nil && it.Item == i {
 			return it
 		}
 	}
 	for k := range in.Pool {
-		if in.Pool[k].Index == i {
+		if in.Pool[k].Item == i {
 			return &in.Pool[k]
 		}
 	}
@@ -115,28 +119,28 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	p.shownView = p.own(v) // the decisions are made on the inventory, not on the screen under it
 	inv.load()
 	if inv.view == nil || in.Member != inv.member {
-		inv.sel, inv.list.top, inv.carry, inv.keep.row = -1, 0, nil, -1 // a new member: nothing highlighted or on the cursor
+		inv.sel, inv.list.top, inv.carry, inv.keep.row = core.NoItem, 0, nil, -1 // a new member: nothing highlighted or on the cursor
 	}
 	if inv.view == nil || (inv.view.Wares == nil) != (in.Wares == nil) {
-		inv.ware, inv.wares.top = -1, 0
+		inv.ware, inv.wares.top = core.NoItem, 0
 	}
 	inv.shown, inv.member, inv.count, inv.glyph, inv.view = true, in.Member, len(v.Party), note.Glyph, in
-	if shown, k := inv.list.shown(in.Pool), inv.keep; k.row >= 0 && (len(shown) != k.n || shown[k.row].Index != k.i || k.id != "" && itemID(shown[k.row]) != k.id) { // the sold, dropped or readied item is gone (a swap puts another in its place)
-		inv.sel = -1
+	if shown, k := inv.list.shown(in.Pool), inv.keep; k.row >= 0 && (len(shown) != k.n || shown[k.row].Item != k.i || k.id != "" && itemID(shown[k.row]) != k.id) { // the sold, dropped or readied item is gone (a swap puts another in its place)
+		inv.sel = core.NoItem
 		if j := slices.IndexFunc(shown, func(it front.InvItem) bool { return k.id != "" && itemID(it) == k.id }); j >= 0 { // a readied or unreadied item moved: it stays highlighted
-			inv.sel = shown[j].Index
+			inv.sel = shown[j].Item
 		} else if len(shown) > 0 {
-			inv.sel = shown[min(inv.keep.row, len(shown)-1)].Index
+			inv.sel = shown[min(inv.keep.row, len(shown)-1)].Item
 		}
 		inv.keep.row = -1
 	}
 	if itemAt(in, inv.sel) == nil {
-		inv.sel = -1
+		inv.sel = core.NoItem
 	}
 	if wareAt(in, inv.ware) == nil {
-		inv.ware = -1
+		inv.ware = core.NoItem
 	}
-	if o := inv.order(); inv.ware < 0 && inv.sel < 0 && len(o) > 0 { // something is always highlighted: the keys reach every item
+	if o := inv.order(); inv.ware == core.NoItem && inv.sel == core.NoItem && len(o) > 0 { // something is always highlighted: the keys reach every item
 		inv.choose(o[0].ware, o[0].i)
 	}
 	shop := in.Wares != nil
@@ -341,7 +345,7 @@ func (p *Presenter) drawMember(in *front.Inventory, v front.View, lx, lw, bottom
 			inv.drawIcon(it, box.Inset(1))
 			inv.lines = append(inv.lines, hit{r: box, item: *it, doll: true})
 		}
-		if it != nil && it.Index == inv.sel || inv.hover.In(box) && !busy {
+		if it != nil && it.Item == inv.sel || inv.hover.In(box) && !busy {
 			selectOutline(box, 1, inv.fill)
 		}
 	}

@@ -14,7 +14,7 @@ func TestHoverRowNotSelected(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{} }, Font: func(byte, bool) [8]byte { return [8]byte{} }}
-	v := front.View{Party: []front.Member{{Name: "Kade", Selected: true}}, Inventory: &front.Inventory{Member: 0, Pool: []front.InvItem{{Index: 0, Name: "Mace"}, {Index: 1, Name: "Sling"}}}}
+	v := front.View{Party: []front.Member{{Name: "Kade", Selected: true}}, Inventory: &front.Inventory{Member: 0, Pool: []front.InvItem{{Item: 1, Name: "Mace"}, {Item: 2, Name: "Sling"}}}}
 	p := &Presenter{}
 	p.Inventory(dst, note, v)
 	var rows []image.Rectangle
@@ -23,7 +23,7 @@ func TestHoverRowNotSelected(t *testing.T) {
 			rows = append(rows, h.r)
 		}
 	}
-	if len(rows) < 2 || p.inv.sel != 0 {
+	if len(rows) < 2 || p.inv.sel != 1 {
 		t.Fatalf("rows %v sel %d", rows, p.inv.sel)
 	}
 	mid := func(r image.Rectangle) image.Point { return image.Pt(r.Max.X-3, (r.Min.Y+r.Max.Y)/2) }

@@ -4,6 +4,7 @@ import (
 	"image"
 	"testing"
 
+	"gobox/core"
 	"gobox/front"
 	"gobox/front/classic"
 	"gobox/game"
@@ -16,14 +17,14 @@ type buyGame struct {
 	bought int
 }
 
-func (g *buyGame) Buy(n int) error { g.bought = n + 1; return nil }
+func (g *buyGame) Buy(h core.ItemHandle) error { g.bought = int(h); return nil }
 
 // Down then B on the shop's wares buys the highlighted ware (a rule call);
 // Trade, Halve and Join reach the game's Answer.
 func TestInventoryActs(t *testing.T) {
-	in := &front.Inventory{Wares: []front.InvItem{{Index: 3, Name: "Sword"}}, Sell: true, Trade: true, Halve: true, Join: true}
+	in := &front.Inventory{Wares: []front.InvItem{{Item: 4, Name: "Sword"}}, Sell: true, Trade: true, Halve: true, Join: true}
 	var p Presenter
-	p.inv.view, p.inv.ware, p.inv.sel = in, -1, -1
+	p.inv.view, p.inv.ware, p.inv.sel = in, core.NoItem, core.NoItem
 	p.shownView = front.View{Inventory: in}
 	p.inventoryKey(keyOf(input.Down))
 	p.inventoryKey(0x42)
@@ -36,9 +37,9 @@ func TestInventoryActs(t *testing.T) {
 		t.Fatalf("bought %d, passed %v", g.bought, as)
 	}
 	for _, k := range []front.ActKind{front.ActHalve, front.ActJoin} {
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: k, N: 1})
+		p.inv.acts = append(p.inv.acts, front.Action{Kind: k, Item: 2})
 	}
-	p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, N: 1, X: 2, Y: 1}) // Trade, its member asked
+	p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: 2, X: 2, Y: 1}) // Trade, its member asked
 	if as := p.Actions(); len(as) != 3 {
 		t.Fatalf("passed %v", as)
 	}
@@ -46,9 +47,9 @@ func TestInventoryActs(t *testing.T) {
 
 // Left highlights the shop's first ware, Enter buys it; a long name wraps.
 func TestShopKeys(t *testing.T) {
-	in := &front.Inventory{Wares: []front.InvItem{{Index: 2, Name: "Rope"}}, Pool: []front.InvItem{{Index: 0, Name: "Gun"}}, Sell: true}
+	in := &front.Inventory{Wares: []front.InvItem{{Item: 3, Name: "Rope"}}, Pool: []front.InvItem{{Item: 1, Name: "Gun"}}, Sell: true}
 	var p Presenter
-	p.inv.view, p.inv.ware, p.inv.sel = in, -1, 0
+	p.inv.view, p.inv.ware, p.inv.sel = in, core.NoItem, 1
 	p.shownView = front.View{Inventory: in}
 	p.inventoryKey(keyOf(input.Left))
 	p.inventoryKey(keyOf(input.Enter))
@@ -68,11 +69,11 @@ func TestShopKeys(t *testing.T) {
 // A drag off the doll unreadies, as a click there and a click on the list do;
 // a readied item dragged from the list onto the doll stays as it is.
 func TestInventoryDrag(t *testing.T) {
-	gun := front.InvItem{Index: 1, Name: "Gun", Type: 7, Readied: true}
+	gun := front.InvItem{Item: 2, Name: "Gun", Type: 7, Readied: true}
 	in := &front.Inventory{Doll: []*front.InvItem{&gun}, Pool: []front.InvItem{gun}}
 	var p Presenter
 	inv := &p.inv
-	inv.k, inv.kx, inv.ky, inv.view, inv.sel, inv.ware = 1, 1, 1, in, -1, -1
+	inv.k, inv.kx, inv.ky, inv.view, inv.sel, inv.ware = 1, 1, 1, in, core.NoItem, core.NoItem
 	inv.dollAt = image.Rect(0, 0, 100, 100)
 	drag := func(from hit, x, y int) []front.Action {
 		inv.lines = []hit{from}
@@ -93,11 +94,11 @@ func TestInventoryDrag(t *testing.T) {
 
 // Trade asks the member (drawn over the items).
 func TestTradeAsksOverItems(t *testing.T) {
-	in := &front.Inventory{Pool: []front.InvItem{{Index: 1, Name: "Gun"}}, Trade: true}
+	in := &front.Inventory{Pool: []front.InvItem{{Item: 2, Name: "Gun"}}, Trade: true}
 	v := front.View{Inventory: in, Party: []front.Member{{Selected: true}, {}}}
 	var p Presenter
 	p.shownView = v
-	p.inv.acts = []front.Action{{Kind: front.ActTrade, N: 1}}
+	p.inv.acts = []front.Action{{Kind: front.ActTrade, Item: 2}}
 	p.Actions()
 	if p.q == nil || p.q.Ask.Kind != front.AskMember {
 		t.Fatal("no member pick")
@@ -107,15 +108,15 @@ func TestTradeAsksOverItems(t *testing.T) {
 // Down walks every item once, readied ones too (they are on the doll and
 // in the list); PgDn moves a page.
 func TestInventoryKeysReachAll(t *testing.T) {
-	gun := front.InvItem{Index: 0, Name: "Gun", Readied: true}
+	gun := front.InvItem{Item: 1, Name: "Gun", Readied: true}
 	pool := []front.InvItem{gun}
 	for i := 1; i < 16; i++ {
-		pool = append(pool, front.InvItem{Index: i, Name: "Knife"})
+		pool = append(pool, front.InvItem{Item: core.ItemHandle(i + 1), Name: "Knife"})
 	}
 	in := &front.Inventory{Doll: []*front.InvItem{&gun}, Pool: pool}
 	var p Presenter
-	p.inv.view, p.inv.ware, p.inv.sel, p.inv.list.rows = in, -1, 0, 10
-	seen := map[int]bool{}
+	p.inv.view, p.inv.ware, p.inv.sel, p.inv.list.rows = in, core.NoItem, 1, 10
+	seen := map[core.ItemHandle]bool{}
 	for range 16 {
 		p.inventoryKey(keyOf(input.Down))
 		seen[p.inv.sel] = true
@@ -123,9 +124,9 @@ func TestInventoryKeysReachAll(t *testing.T) {
 	if len(seen) != 16 {
 		t.Fatalf("Down reached %d of 16", len(seen))
 	}
-	p.inv.sel = 0
+	p.inv.sel = 1
 	p.inventoryKey(keyOf(input.PgDn))
-	if p.inv.sel != 10 {
+	if p.inv.sel != 11 {
 		t.Fatalf("PgDn to %d", p.inv.sel)
 	}
 }

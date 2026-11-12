@@ -41,10 +41,10 @@ func lines(t string) []string {
 	return strings.Split(t, "\n")
 }
 
-// invItem is it as the inventory shows it at index i: its icon's type and
-// words, its tab.
-func invItem(i int, it game.Item) front.InvItem {
-	return front.InvItem{Index: i, Name: it.Name, Type: byte(it.Type), Words: it.Words, Count: it.Count,
+// invItem is it as the inventory shows it: its icon's type and words, its
+// tab.
+func invItem(it game.Item) front.InvItem {
+	return front.InvItem{Item: it.Handle, Name: it.Name, Type: byte(it.Type), Words: it.Words, Count: it.Count,
 		Kind: itemKinds[it.Kind]}
 }
 
@@ -68,8 +68,8 @@ func Inventory(v *front.Inventory, mode game.Mode, party []game.Member, sel, slo
 			n.Powers = append(n.Powers, front.Power{Name: p.Label, Kind: k})
 		}
 	}
-	for i, it := range m.Items {
-		x := invItem(i, it)
+	for _, it := range m.Items {
+		x := invItem(it)
 		x.Slot, x.Wrong, x.Use, x.Look, x.Scribe = slotted(it), it.Wrong, it.Usable, lines(it.Text), slices.ContainsFunc(it.Scroll, func(s game.ScrollSpell) bool { return s.Scribing })
 		x.Price = front.Money{Gold: it.Sale[Coin], Copper: it.Sale[game.Copper]}
 		if d := dollSlot(it, n.Doll); it.Readied && d >= 0 && n.Doll[d] == nil {
@@ -90,8 +90,8 @@ func Inventory(v *front.Inventory, mode game.Mode, party []game.Member, sel, slo
 	case shop != nil:
 		goods = shop.Goods
 	}
-	for i, it := range goods {
-		x := invItem(i, it)
+	for _, it := range goods {
+		x := invItem(it)
 		x.Slot, x.Wrong, x.Look, x.Price = slotted(it), it.Wrong, lines(it.Text), front.Money{Gold: it.Price}
 		n.Wares = append(n.Wares, x)
 	}
@@ -141,13 +141,13 @@ func Shop(h *front.Shop, sh *game.Shop, purse map[string]int, allowed map[string
 	}
 	for _, r := range sh.Unknown {
 		if it := item(r); it != nil {
-			x := invItem(0, *it)
+			x := invItem(*it)
 			v.Unknown = append(v.Unknown, front.Unknown{Member: r.Member, Item: r.Item, Owner: party[r.Member].Name, Name: it.Name, Icon: &x})
 		}
 	}
 	if r := sh.Identified; r != nil {
 		if it := item(*r); it != nil {
-			x := invItem(0, *it)
+			x := invItem(*it)
 			x.Look = lines(it.Text)
 			v.Identified = &x
 		}

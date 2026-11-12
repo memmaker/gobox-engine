@@ -4,6 +4,7 @@ package present
 
 import (
 	"fmt"
+	"gobox/core"
 	"gobox/front"
 	"gobox/game"
 	"image"
@@ -54,26 +55,27 @@ type inventory struct {
 	img, tip    *gpu.Image     // the canvas and the tooltip on the GPU
 	glyph       func(byte) [8]byte
 
-	shown bool // the last frame was the inventory
-	sel   int  // the highlighted item (InvItem.Index), -1 for none
+	shown bool            // the last frame was the inventory
+	sel   core.ItemHandle // the highlighted item, NoItem for none
 	keep  struct {
-		row, n, i int
-		id        string
+		row, n int
+		i      core.ItemHandle
+		id     string
 	} // a sold, dropped or readied item's line, the list's length and its Index then: the line after it is highlighted once it is gone (row -1 none)
 	ask     *front.Action     // a Drop or Sell waits for Yes
 	askSel  int               // the question's highlighted answer: 0 Yes, 1 No
 	askAt   []image.Rectangle // the question's Yes and No on the screen, as last drawn
 	view    *front.Inventory
-	acts    []front.Action // to send (Presenter.Actions)
-	words   []word         // the menu row's words
-	focus   int            // 1+ the word the keys are on (PgUp/PgDn, the pad's shoulders), 0 none
-	k       int            // canvas scale, whole: what the pixel art is drawn at
-	kx, ky  float64        // the canvas on screen: k and the stretch to the window's edges (fit)
-	w, h    int            // canvas size
-	list    pane           // the party inventory
-	wares   pane           // the shop's goods (Browse)
-	ware    int            // the highlighted ware (InvItem.Index), -1 for none
-	lines   []hit          // the items' rectangles (canvas)
+	acts    []front.Action  // to send (Presenter.Actions)
+	words   []word          // the menu row's words
+	focus   int             // 1+ the word the keys are on (PgUp/PgDn, the pad's shoulders), 0 none
+	k       int             // canvas scale, whole: what the pixel art is drawn at
+	kx, ky  float64         // the canvas on screen: k and the stretch to the window's edges (fit)
+	w, h    int             // canvas size
+	list    pane            // the party inventory
+	wares   pane            // the shop's goods (Browse)
+	ware    core.ItemHandle // the highlighted ware, NoItem for none
+	lines   []hit           // the items' rectangles (canvas)
 	dollAt  image.Rectangle
 	face    image.Rectangle // the portrait on the canvas, when facePNG is drawn over it at the window's resolution
 	facePNG image.Image
@@ -133,7 +135,7 @@ func (inv *inventory) pickUp(h *hit, n int) {
 	if n <= 0 || n > all {
 		n = all
 	}
-	inv.choose(false, h.item.Index)
+	inv.choose(false, h.item.Item)
 	inv.carry = &carried{typ: h.item.Type, words: h.item.Words, doll: h.doll, n: n, icon: h.item}
 }
 
@@ -153,7 +155,7 @@ func (inv *inventory) put(n int) {
 		if n >= max(it.Count, 1) {
 			x = 0 // the whole stack
 		}
-		inv.removeX(front.ActReady, it.Index, x)
+		inv.removeX(front.ActReady, it.Item, x)
 	}
 	if c.n -= n; c.n <= 0 {
 		inv.carry = nil
@@ -206,15 +208,15 @@ func (inv *inventory) do(k front.ActKind) {
 		inv.acts = append(inv.acts, front.Action{Kind: k})
 	case k == front.ActBuy:
 		if w := wareAt(inv.view, inv.ware); w != nil {
-			inv.acts = append(inv.acts, front.Action{Kind: k, N: w.Index})
+			inv.acts = append(inv.acts, front.Action{Kind: k, Item: w.Item})
 		}
 	case it == nil:
 	case inv.ask == nil && (k == front.ActDrop || k == front.ActSell):
 		yes := confirmOf(itemConfirm(k, it), game.Confirm{Asks: []string{""}, Yes: k == front.ActSell}).Yes // the game's (Data.Confirms), else a sale on Yes, as the Gold Box's, a drop (gone forever) on No
-		inv.ask, inv.askSel = &front.Action{Kind: k, N: it.Index}, map[bool]int{true: 0, false: 1}[yes]
+		inv.ask, inv.askSel = &front.Action{Kind: k, Item: it.Item}, map[bool]int{true: 0, false: 1}[yes]
 		return
 	default:
-		inv.remove(k, it.Index)
+		inv.remove(k, it.Item)
 	}
 	inv.ask = nil
 }
@@ -223,18 +225,18 @@ func (inv *inventory) do(k front.ActKind) {
 // engine's Index of every later item shifts and the list is sorted, so the
 // highlight is kept on the line, not the Index: selling down a list, or
 // readying out of the party inventory, stays in place.
-func (inv *inventory) remove(k front.ActKind, i int) {
+func (inv *inventory) remove(k front.ActKind, i core.ItemHandle) {
 	inv.removeX(k, i, 0)
 }
 
 // removeX is remove with the action's X (Ready's count).
-func (inv *inventory) removeX(k front.ActKind, i, x int) {
-	inv.acts = append(inv.acts, front.Action{Kind: k, N: i, X: x})
+func (inv *inventory) removeX(k front.ActKind, i core.ItemHandle, x int) {
+	inv.acts = append(inv.acts, front.Action{Kind: k, Item: i, X: x})
 	if k != front.ActSell && k != front.ActDrop && k != front.ActReady {
 		return
 	}
 	shown := inv.list.shown(inv.view.Pool) // a readied item on the doll is not in it: row -1
-	inv.keep.row, inv.keep.n, inv.keep.i = slices.IndexFunc(shown, func(it front.InvItem) bool { return it.Index == i }), len(shown), i
+	inv.keep.row, inv.keep.n, inv.keep.i = slices.IndexFunc(shown, func(it front.InvItem) bool { return it.Item == i }), len(shown), i
 	inv.keep.id = ""
 	if k == front.ActReady && inv.keep.row >= 0 { // readying keeps the item in the list, moved (readied gear first): the highlight follows it
 		inv.keep.id = itemID(shown[inv.keep.row])
@@ -247,8 +249,8 @@ func itemID(it front.InvItem) string {
 }
 
 // choose highlights ware i of the shop or item i of the member's.
-func (inv *inventory) choose(ware bool, i int) {
-	inv.sel, inv.ware, inv.keep.row = -1, -1, -1
+func (inv *inventory) choose(ware bool, i core.ItemHandle) {
+	inv.sel, inv.ware, inv.keep.row = core.NoItem, core.NoItem, -1
 	if ware {
 		inv.ware = i
 	} else {

@@ -8,6 +8,7 @@ package present
 import (
 	"cmp"
 	"errors"
+	"gobox/core"
 	"gobox/front"
 	"slices"
 )
@@ -38,15 +39,15 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		case front.ActMember:
 			do(func(e front.Game) error { return e.ShowMember(n) })
 		case front.ActReady:
-			do(func(e front.Game) error { return e.Ready(n, a.X) })
+			do(func(e front.Game) error { return e.Ready(a.Item, a.X) })
 		case front.ActUse:
-			p.useCall(n, 0, -1, false)
+			p.useCall(a.Item, 0, -1, false)
 		case front.ActDrop:
-			do(func(e front.Game) error { return e.Drop(n) })
+			do(func(e front.Game) error { return e.Drop(a.Item) })
 		case front.ActSell:
-			do(func(e front.Game) error { return e.Sell(n) })
+			do(func(e front.Game) error { return e.Sell(a.Item) })
 		case front.ActBuy:
-			do(func(e front.Game) error { return e.Buy(n) })
+			do(func(e front.Game) error { return e.Buy(a.Item) })
 		case front.ActTakeAll:
 			do(func(e front.Game) error { return e.TakeAll() })
 		case front.ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
@@ -55,7 +56,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 			}
 			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
 			front.AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
-				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, N: n, X: t, Y: 1})
+				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: a.Item, X: t, Y: 1})
 			})
 		case front.ActSpells:
 			p.combatCast()
@@ -79,7 +80,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 			}
 			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
 			front.AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
-				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, N: n, X: t, Y: 1})
+				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: a.Item, X: t, Y: 1})
 			})
 		case front.ActSpells:
 			p.combatCast()
@@ -118,7 +119,7 @@ func (p *Presenter) combatCast() {
 
 // useCall calls UseItem on item i; a pick or question it is refused with
 // is asked, and the call made again with the answer.
-func (p *Presenter) useCall(i, spell, target int, sure bool) {
+func (p *Presenter) useCall(i core.ItemHandle, spell, target int, sure bool) {
 	p.call(func(e front.Game) {
 		var (
 			who  front.PickMember

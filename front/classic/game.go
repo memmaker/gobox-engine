@@ -108,34 +108,6 @@ func (g *Game) sel(n int) int {
 	return n
 }
 
-// held is the handle of the selected member's item i (Inventory.Pool's
-// Index), NoItem for none.
-func (g *Game) held(i int) core.ItemHandle { return g.heldBy(g.sel(-1), i) }
-
-// ware is the handle of ware w (the shop's goods, the loot's items), NoItem for none.
-func (g *Game) ware(w int) core.ItemHandle {
-	var l []game.Item
-	switch t := g.r.g.State().(type) {
-	case play.Trading:
-		l = t.Goods
-	case play.Looting:
-		l = t.Items
-	}
-	if w < 0 || w >= len(l) {
-		return core.NoItem
-	}
-	return l[w].Handle
-}
-
-// heldBy is the handle of member m's item i, NoItem for none.
-func (g *Game) heldBy(m, i int) core.ItemHandle {
-	p := play.CommonOf(g.r.g.State()).Party
-	if m >= 0 && m < len(p) && i >= 0 && i < len(p[m].Items) {
-		return p[m].Items[i].Handle
-	}
-	return core.NoItem
-}
-
 // Send applies d to the front state and the game, for scripted drives (cmd
 // tests); the player's path is Answer.
 func (g *Game) Send(a play.Action) play.Result { return g.r.apply(a) }
@@ -778,19 +750,19 @@ func (g *Game) CloseItems(all bool) error {
 	}
 	return g.run("closeItems", func() play.Result { return g.r.closeItems(all) })
 }
-func (g *Game) Ready(i, x int) error {
-	return g.do(play.Ready{Member: g.sel(-1), Item: g.held(i), Count: x})
+func (g *Game) Ready(h core.ItemHandle, x int) error {
+	return g.do(play.Ready{Member: g.sel(-1), Item: h, Count: x})
 }
-func (g *Game) UseItem(i, spell, target int, sure bool) error {
-	return g.asking(g.do(play.UseItem{Member: g.sel(-1), Item: g.held(i), Spell: spell, Target: target}))
+func (g *Game) UseItem(h core.ItemHandle, spell, target int, sure bool) error {
+	return g.asking(g.do(play.UseItem{Member: g.sel(-1), Item: h, Spell: spell, Target: target}))
 }
-func (g *Game) Drop(i int) error { return g.do(play.Drop{Member: g.sel(-1), Item: g.held(i)}) }
-func (g *Game) Sell(i int) error { return g.do(play.Sell{Member: g.sel(-1), Item: g.held(i)}) }
-func (g *Game) Buy(w int) error {
+func (g *Game) Drop(h core.ItemHandle) error { return g.do(play.Drop{Member: g.sel(-1), Item: h}) }
+func (g *Game) Sell(h core.ItemHandle) error { return g.do(play.Sell{Member: g.sel(-1), Item: h}) }
+func (g *Game) Buy(h core.ItemHandle) error {
 	if lootOf(g.r.g.State()) != nil { // the loot screen's Take, as the act mapping does
-		return g.do(play.Take{Item: g.ware(w)})
+		return g.do(play.Take{Item: h})
 	}
-	return g.do(play.Buy{Member: g.sel(-1), Item: g.ware(w)})
+	return g.do(play.Buy{Member: g.sel(-1), Item: h})
 }
 func (g *Game) TakeAll() error { return g.do(play.Take{Item: core.NoItem, All: true}) }
 func (g *Game) SetPolicy(id int, p front.Policy) error {
@@ -1018,26 +990,26 @@ func (g *Game) act(a front.Action) func() error {
 	case front.ActSheet:
 		return own("closeItems", func() play.Result { return g.r.closeItems(false) })
 	case front.ActTrade:
-		return send(play.Give{From: g.sel(-1), To: a.X, Item: g.held(a.N)})
+		return send(play.Give{From: g.sel(-1), To: a.X, Item: a.Item})
 	case front.ActHalve:
-		return send(play.Halve{Member: g.sel(-1), Item: g.held(a.N)})
+		return send(play.Halve{Member: g.sel(-1), Item: a.Item})
 	case front.ActJoin:
-		return send(play.Join{Member: g.sel(-1), Item: g.held(a.N)})
+		return send(play.Join{Member: g.sel(-1), Item: a.Item})
 	case front.ActReady:
-		return send(play.Ready{Member: g.sel(-1), Item: g.held(a.N), Count: a.X})
+		return send(play.Ready{Member: g.sel(-1), Item: a.Item, Count: a.X})
 	case front.ActUse:
-		return send(play.UseItem{Member: g.sel(-1), Item: g.held(a.N)})
+		return send(play.UseItem{Member: g.sel(-1), Item: a.Item})
 	case front.ActDrop:
-		return send(play.Drop{Member: g.sel(-1), Item: g.held(a.N)})
+		return send(play.Drop{Member: g.sel(-1), Item: a.Item})
 	case front.ActSell:
-		return send(play.Sell{Member: g.sel(-1), Item: g.held(a.N)})
+		return send(play.Sell{Member: g.sel(-1), Item: a.Item})
 	case front.ActReload:
-		return send(play.Reload{Member: g.sel(-1), Item: g.held(a.N)})
+		return send(play.Reload{Member: g.sel(-1), Item: a.Item})
 	case front.ActBuy:
 		if lootOf(g.r.g.State()) != nil {
-			return send(play.Take{Item: g.ware(a.N)})
+			return send(play.Take{Item: a.Item})
 		}
-		return send(play.Buy{Member: g.sel(-1), Item: g.ware(a.N)})
+		return send(play.Buy{Member: g.sel(-1), Item: a.Item})
 	case front.ActTakeAll:
 		return send(play.Take{Item: core.NoItem, All: true})
 	case front.ActTakeMoney:

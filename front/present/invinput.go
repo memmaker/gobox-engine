@@ -3,6 +3,7 @@
 package present
 
 import (
+	"gobox/core"
 	"gobox/front"
 	"gobox/gpu"
 	"gobox/input"
@@ -32,7 +33,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		if len(order) == 0 {
 			return
 		}
-		i := slices.Index(order, pick{inv.ware >= 0, max(inv.ware, inv.sel)})
+		i := slices.Index(order, pick{inv.ware != core.NoItem, max(inv.ware, inv.sel)})
 		if i < 0 && d < 0 {
 			i = 0
 		}
@@ -53,7 +54,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		inv.do(front.ActSheet)
 	case a == input.Minimap: // the shop and the loot: the next tab of the highlighted item's list
 		pn := &inv.list
-		if inv.ware >= 0 {
+		if inv.ware != core.NoItem {
 			pn = &inv.wares
 		}
 		pn.tab, pn.top = (pn.tab+1)%len(tabNames), 0
@@ -74,7 +75,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		inv.choose(order[len(order)-1].ware, order[len(order)-1].i)
 	case (a == input.PgUp || a == input.PgDn) && len(order) > 0: // PgUp/PgDn, the pad's shoulders: a page of the highlighted pane
 		pn := &inv.list
-		if inv.ware >= 0 {
+		if inv.ware != core.NoItem {
 			pn = &inv.wares
 		}
 		sign := 1
@@ -82,7 +83,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 			sign = -1
 		}
 		d := sign * max(1, pn.rows)
-		i := max(0, slices.Index(order, pick{inv.ware >= 0, max(inv.ware, inv.sel)}))
+		i := max(0, slices.Index(order, pick{inv.ware != core.NoItem, max(inv.ware, inv.sel)}))
 		j := min(max(i+d, 0), len(order)-1)
 		for order[j].ware != order[i].ware { // within the pane
 			j -= sign
@@ -92,7 +93,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		if w := inv.words[inv.focus-1]; w.on {
 			inv.do(w.act)
 		}
-	case a == input.Enter && inv.ware >= 0:
+	case a == input.Enter && inv.ware != core.NoItem:
 		inv.do(front.ActBuy)
 	case a == input.Enter && inv.view.Wares != nil && inv.view.Sell:
 		inv.do(front.ActSell)
@@ -117,22 +118,22 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 // pick is an item on the inventory screen: a ware of the shop or the member's.
 type pick struct {
 	ware bool
-	i    int
+	i    core.ItemHandle
 }
 
 // order is the items as the screen shows them: the goods or the doll, then the list.
 func (inv *inventory) order() []pick {
 	var order []pick
 	for _, it := range inv.wares.shown(inv.view.Wares) {
-		order = append(order, pick{true, it.Index})
+		order = append(order, pick{true, it.Item})
 	}
 	for _, it := range inv.view.Doll {
-		if it != nil && !slices.ContainsFunc(inv.view.Pool, func(x front.InvItem) bool { return x.Index == it.Index }) { // a readied item in the list is stepped to there, once
-			order = append(order, pick{false, it.Index})
+		if it != nil && !slices.ContainsFunc(inv.view.Pool, func(x front.InvItem) bool { return x.Item == it.Item }) { // a readied item in the list is stepped to there, once
+			order = append(order, pick{false, it.Item})
 		}
 	}
 	for _, it := range inv.list.shown(inv.view.Pool) {
-		order = append(order, pick{false, it.Index})
+		order = append(order, pick{false, it.Item})
 	}
 	return order
 }
@@ -226,11 +227,11 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 		if inv.view.Wares != nil {
 			for _, l := range inv.lines {
 				if inv.hover.In(l.r) && !l.doll {
-					inv.choose(l.ware, l.item.Index)
+					inv.choose(l.ware, l.item.Item)
 					if l.ware && inv.view.Loot {
 						inv.do(front.ActBuy)
 					} else if l.ware {
-						inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, N: l.item.Index}, 0
+						inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, Item: l.item.Item}, 0
 					} else if inv.view.Sell {
 						inv.do(front.ActSell)
 					}
@@ -270,16 +271,16 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 				continue
 			}
 			if inv.view.Wares != nil && !l.doll && shift { // Shift-click: a quick trade, no question
-				inv.choose(l.ware, l.item.Index)
+				inv.choose(l.ware, l.item.Item)
 				if l.ware {
 					inv.do(front.ActBuy)
 				} else if inv.view.Sell {
-					inv.remove(front.ActSell, l.item.Index)
+					inv.remove(front.ActSell, l.item.Item)
 				}
 				return
 			}
 			if inv.view.Wares == nil && shift { // Shift-click: the whole stack is readied or unreadied
-				inv.choose(false, l.item.Index)
+				inv.choose(false, l.item.Item)
 				inv.do(front.ActReady)
 				return
 			}
@@ -298,16 +299,16 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 	partySide := inv.hover.X >= inv.list.at.Min.X // dropped on the party's side of the divider
 	if h.ware {                                   // a click highlights a ware, a second one or a drag over to the party's items buys it
 		was := inv.ware
-		inv.choose(true, h.item.Index)
+		inv.choose(true, h.item.Item)
 		switch {
 		case drag && partySide && !inv.view.Loot:
-			inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, N: h.item.Index}, 0 // Yes first; a drag asks first (loot is free: no question)
-		case drag && partySide, !drag && was == h.item.Index:
+			inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, Item: h.item.Item}, 0 // Yes first; a drag asks first (loot is free: no question)
+		case drag && partySide, !drag && was == h.item.Item:
 			inv.do(front.ActBuy)
 		}
 		return
 	}
-	inv.choose(false, h.item.Index)
+	inv.choose(false, h.item.Item)
 	if inv.view.Wares != nil { // the shop: a drag over to the goods sells
 		if drag && !partySide && inv.view.Sell {
 			inv.do(front.ActSell)

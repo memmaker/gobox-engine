@@ -251,7 +251,7 @@ type Inventory struct {
 	Reload    bool       // the shop refills clips (ActReload)
 	Switch    bool       // ActMember shows another member (not in combat)
 	Powers    []Power    // what the member can do besides items (the View menu's)
-	Wares     []InvItem  // the shop's goods (Browse; nil elsewhere): Index is ActBuy's N, Price what it costs
+	Wares     []InvItem  // the shop's goods (Browse; nil elsewhere): Item is ActBuy's Item, Price what it costs
 	Loot      bool       // Wares are a fight's treasure (the Loot screen): ActBuy takes one for nothing
 	Treasure  *Loot      // with Loot: the treasure's money and its other options (Detect, Share, Pool, Status)
 	Gold      int        // the party's money, with Wares
@@ -272,10 +272,10 @@ type Power struct {
 
 // InvItem is one item of the inventory.
 type InvItem struct {
-	Index   int      // its place in the member's items (Action.N)
-	Name    string   // as the list shows it
-	Type    byte     // base item type
-	Words   []string // the item's name words, known or not (for its icon)
+	Item    core.ItemHandle // names it (Action.Item)
+	Name    string          // as the list shows it
+	Type    byte            // base item type
+	Words   []string        // the item's name words, known or not (for its icon)
 	Count   int
 	Readied bool     // it is readied (shown with present.Data.ReadyMark)
 	Slot    bool     // it has a doll slot (it can be readied)

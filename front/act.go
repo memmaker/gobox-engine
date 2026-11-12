@@ -1,5 +1,7 @@
 package front
 
+import "gobox/core"
+
 // Actions: the remastered screens act on the game through typed actions
 // instead of keys; the game publishes what each screen shows and takes the
 // decisions (por: engine.Apply).
@@ -12,11 +14,11 @@ const (
 	ActClose              // leave the screen
 	ActMember             // show party member N
 	ActLead               // make party member N the selected one (the command bar's member): F1-F8, the member keys; in a member pick the candidate
-	ActReady              // inventory: ready or unready item N
-	ActUse                // inventory: use item N
+	ActReady              // inventory: ready or unready item Item
+	ActUse                // inventory: use item Item
 	ActRanged             // combat: throw the Missiles slot's weapon (aims as Attack)
-	ActDrop               // inventory: drop item N (the player already confirmed)
-	ActSell               // inventory: sell item N (confirmed)
+	ActDrop               // inventory: drop item Item (the player already confirmed)
+	ActSell               // inventory: sell item Item (confirmed)
 	ActWalk               // combat: walk to square X, Y (one of Battle.Reach)
 	ActAttack             // combat: attack unit N (one of Battle.Targets; 0: aim first)
 	ActGuard              // combat: end the turn on guard
@@ -49,7 +51,7 @@ const (
 	ActHeal               // inventory: a paladin lays on hands
 	ActCure               // inventory: a paladin cures disease
 	ActMainMenu           // drop the game in play for the party menu (the pause menu's Back to Main Menu)
-	ActBuy                // shop inventory: buy ware N (Inventory.Wares)
+	ActBuy                // shop inventory: buy ware Item (Inventory.Wares)
 	ActTakeAll            // loot inventory: take every piece of treasure (Inventory.Loot)
 	ActHead               // member N's next paper-doll head (N < 0: the selected member); Shift-click on the sheet's portrait
 	ActPortrait           // the PNG at Text is member N's portrait (N < 0: the selected member); a file dropped on the sheet
@@ -117,11 +119,11 @@ const (
 
 	ActAlter // camp: setting N (Camp.Settings) takes the value X; the game answers it
 
-	ActTrade      // inventory: trade item N to member X (offered with Inventory.Trade; gobox asks whom, Y 1 once asked)
-	ActHalve      // inventory: split item N's stack in two (Inventory.Halve; the game answers or refuses)
-	ActJoin       // inventory: join item N with the same items of the member (Inventory.Join; the game answers or refuses)
+	ActTrade      // inventory: trade item Item to member X (offered with Inventory.Trade; gobox asks whom, Y 1 once asked)
+	ActHalve      // inventory: split item Item's stack in two (Inventory.Halve; the game answers or refuses)
+	ActJoin       // inventory: join item Item with the same items of the member (Inventory.Join; the game answers or refuses)
 	ActCommand    // the party menu: game.Data.Commands[N]'s Do
-	ActReload     // inventory: the shop refills item N's clip (Inventory.Reload)
+	ActReload     // inventory: the shop refills item Item's clip (Inventory.Reload)
 	ActTakeMoney  // loot inventory: take the treasure's money (Loot.Money)
 	ActLootDetect // loot inventory: Detect (Loot.Detect)
 	ActLootShare  // loot inventory: Share (Loot.Share)
@@ -134,6 +136,7 @@ const (
 type Action struct {
 	Kind ActKind
 	N    int
-	X, Y int    // a combat map square, a text cell (ActSpot)
-	Text string // ActText
+	Item core.ItemHandle // the item of an item act (ActReady, ActUse, ActDrop, ActSell, ActBuy, ActTrade, ActHalve, ActJoin, ActReload)
+	X, Y int             // a combat map square, a text cell (ActSpot)
+	Text string          // ActText
 }

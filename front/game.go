@@ -91,11 +91,11 @@ type Game interface {
 	ShowMember(n int) error
 	OpenItems(n int, direct bool) error
 	CloseItems(all bool) error
-	Ready(i, x int) error
-	UseItem(i, spell, target int, sure bool) error
-	Drop(i int) error
-	Sell(i int) error
-	Buy(w int) error
+	Ready(h core.ItemHandle, x int) error
+	UseItem(h core.ItemHandle, spell, target int, sure bool) error
+	Drop(h core.ItemHandle) error
+	Sell(h core.ItemHandle) error
+	Buy(h core.ItemHandle) error
 	TakeAll() error
 	SetPolicy(id int, p Policy) error
 

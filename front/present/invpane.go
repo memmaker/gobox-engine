@@ -5,18 +5,20 @@ package present
 import (
 	"bufio"
 	"bytes"
+	"gobox/core"
 	"gobox/front"
 	"gobox/front/classic"
 	"gobox/game"
 	"gobox/sprites"
 	"gobox/ui"
-	xdraw "golang.org/x/image/draw"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/png"
 	"strconv"
 	"strings"
+
+	xdraw "golang.org/x/image/draw"
 )
 
 // tabNames are the party inventory's tabs: all, then by front.ItemKind.
@@ -56,7 +58,7 @@ func (inv *inventory) drawTabs(pn *pane, x int, busy bool) {
 // pane is a scrolled list of items: the party inventory or the shop's goods.
 type pane struct {
 	top, rows, n int             // the first line shown, the lines shown, the lines
-	seen         int             // the highlight the list last scrolled to
+	seen         core.ItemHandle // the highlight the list last scrolled to
 	at           image.Rectangle // the lines' area
 	scroll       image.Rectangle // the scroll bar
 	tab          int             // its tab (tabNames)
@@ -69,10 +71,10 @@ func (pn *pane) clamp() { pn.top = max(0, min(pn.top, pn.n-pn.rows)) }
 // drawPane draws items as lines of icon and name (and price) from x0 to x1,
 // listTop to bottom, the highlighted one (sel) in blue, with a scroll bar
 // when they do not fit.
-func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel int, ware, priced, busy bool, x0, x1, bottom int) {
+func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel core.ItemHandle, ware, priced, busy bool, x0, x1, bottom int) {
 	pn.n, pn.rows = len(items), max(1, (bottom-listTop)/rowH)
 	for i, it := range items { // keep a newly highlighted line in sight (the wheel scrolls freely)
-		if it.Index == sel && sel != pn.seen {
+		if it.Item == sel && sel != pn.seen {
 			pn.top = min(pn.top, i)
 			pn.top = max(pn.top, i-pn.rows+1)
 		}
@@ -97,7 +99,7 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel int, ware, p
 		r := image.Rect(x0, y, tr, y+rowH)
 		switch {
 		case inkBlue < 0:
-		case it.Index == sel:
+		case it.Item == sel:
 			inv.fill(r, col(inkBlue)) // the text selection
 		case inv.hover.In(r) && !busy: // the row under the pointer: the selection's ink as an outline, never a second selection
 			selectOutline(r, 1, func(r image.Rectangle, _ color.RGBA) { inv.fill(r, col(inkBlue)) })
@@ -148,10 +150,13 @@ func withGold(title string, gold int) string {
 	return title + string(rune(ui.InkFoot)) + " Party " + price(front.Money{Gold: gold}) + " "
 }
 
-// wareAt is the shop's ware with Index i, nil if none.
-func wareAt(in *front.Inventory, i int) *front.InvItem {
+// wareAt is the shop's ware i, nil if none.
+func wareAt(in *front.Inventory, i core.ItemHandle) *front.InvItem {
+	if i == core.NoItem {
+		return nil
+	}
 	for k := range in.Wares {
-		if in.Wares[k].Index == i {
+		if in.Wares[k].Item == i {
 			return &in.Wares[k]
 		}
 	}

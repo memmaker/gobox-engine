@@ -51,7 +51,7 @@ func TestItemConfirm(t *testing.T) {
 			t.Errorf("%+v: %s, want %s", it, got, want)
 		}
 	}
-	inv := &inventory{view: &front.Inventory{Pool: []front.InvItem{{Index: 0, Price: front.Money{Gold: 1}}}}, sel: 0}
+	inv := &inventory{view: &front.Inventory{Pool: []front.InvItem{{Item: 1, Price: front.Money{Gold: 1}}}}, sel: 1}
 	inv.do(front.ActSell)
 	if inv.ask == nil || inv.askSel != 1 {
 		t.Fatalf("sell asks on row %d, want No (Confirm.Yes false)", inv.askSel)
