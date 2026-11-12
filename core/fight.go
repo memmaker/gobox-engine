@@ -184,6 +184,17 @@ type Ground struct {
 // UnitsFact is the fighters on the board in unit order (Units); Who is NoChar.
 type UnitsFact struct{}
 
+// UnitCharFact is who board unit Unit (1-based, an effect's Unit) is
+// (UnitChar; Who NoChar: no such unit). The Fact's own id is NoChar.
+type UnitCharFact struct{ Unit CharID }
+
+// UnitChar is UnitCharFact's answer.
+type UnitChar struct{ Who CharID }
+
+func (UnitCharFact) fact() {}
+
+func (UnitChar) value() {}
+
 // Unit is one fighter on the board.
 type Unit struct {
 	ID              CharID
