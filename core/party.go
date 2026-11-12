@@ -262,7 +262,7 @@ type IconPicsFact struct{}
 // and body numbers, the size (1 small, 2 large) and the parts' colours.
 type IconPics struct {
 	Head, Body, Size int
-	Colours          []byte
+	Colours          [IconParts]IconColour
 	PNG              PNG // a dropped PNG in place of the pictures (nil: none)
 }
 
