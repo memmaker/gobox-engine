@@ -20,7 +20,7 @@ func TestRecords(t *testing.T) {
 	}
 	p := filepath.Join(t.TempDir(), "ITEMS")
 	os.WriteFile(p, []byte{1, 0, 5, 6, 0}, 0o644)
-	tab, err := Table[rec](p, 2)
+	tab, err := Table[rec](p, 2, Counted)
 	if err != nil || tab[0] != (rec{5, 6}) || tab[1] != (rec{}) {
 		t.Fatal(tab, err)
 	}

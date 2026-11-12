@@ -83,7 +83,7 @@ func (d *gameData) itemBlock(file string, id int) []char.Item {
 // itemTable is the ITEMS table (nil: the game data has none).
 func (d *gameData) itemTable() []char.ItemBase {
 	if d.table == nil {
-		readJSON(d.dir, "ITEMS", &d.table)
+		readJSON(d.dir, dax.ItemTableFile, &d.table)
 	}
 	return d.table
 }

@@ -112,20 +112,45 @@ func Records[T any](b []byte) []T {
 	return out
 }
 
-// Table decodes a counted table file (ITEMS: a 2-byte count, then records)
-// as n T records; records past the file's end are zero.
-func Table[T any](path string, n int) ([]T, error) {
+// TableHead is how a table file starts: POR, COTAB and SotSB count their
+// records in 2 bytes, POD's file is the records alone (O079:0837).
+type TableHead int
+
+const (
+	Counted TableHead = iota
+	Bare
+)
+
+// Table decodes a table file (ITEMS) as n T records; records past the
+// file's end are zero.
+func Table[T any](path string, n int, head TableHead) ([]T, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	if len(b) < 2 {
-		b = make([]byte, 2)
+	if head == Counted {
+		b = b[min(2, len(b)):]
 	}
 	out := make([]T, n)
-	b = append(b[2:], make([]byte, n*binary.Size(new(T)))...)
+	b = append(b, make([]byte, n*binary.Size(new(T)))...)
 	_, err = binary.Decode(b, binary.LittleEndian, out)
 	return out, err
+}
+
+// ItemTableFile is the base item table in an import's data dir (JSON).
+const ItemTableFile = "ITEMS"
+
+// ImportItemTable writes the originals' ITEMS (n T records, head as the
+// game's file starts) to dst as ItemTableFile; no ITEMS: nothing.
+func ImportItemTable[T any](l *Loader, dst string, n int, head TableHead) error {
+	if !l.Exists("ITEMS") {
+		return nil
+	}
+	items, err := Table[T](l.Path("ITEMS"), n, head)
+	if err != nil {
+		return err
+	}
+	return asset.WriteJSON(dst, ItemTableFile, items)
 }
 
 // Data is an adventure's imported maps and records (ImportData's files in
@@ -192,4 +217,15 @@ func readJSON[T any](dir, name string) T {
 		panic(fmt.Sprintf("data %s: %v (run the import again)", name, err))
 	}
 	return v
+}
+
+// ItemTableBytes is dir's ItemTableFile as n T records in the DOS layout
+// (the bytes a game's engine reads); nil: the import has none.
+func ItemTableBytes[T any](dir string, n int) ([]byte, error) {
+	var items []T
+	if ok, err := asset.ReadJSON(dir, ItemTableFile, &items); !ok || err != nil {
+		return nil, err
+	}
+	items = append(items, make([]T, max(0, n-len(items)))...)
+	return binary.Append(nil, binary.LittleEndian, items[:n])
 }
