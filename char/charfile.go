@@ -104,7 +104,11 @@ func SheetOf(b []byte) rules1e.Sheet { return sheetOf(Decode[Record285](b)) }
 func SheetBytes(s rules1e.Sheet) []byte { return Encode(recordOf(s)) }
 
 // ReadRecords reads the n-byte records in b (a partial last one is dropped).
+// n must be positive: a zero size would never advance through b.
 func ReadRecords[T any](b []byte, n int) []*T {
+	if n <= 0 {
+		panic(fmt.Sprintf("char.ReadRecords: record size %d", n))
+	}
 	var out []*T
 	for ; len(b) >= n; b = b[n:] {
 		v := new(T)
