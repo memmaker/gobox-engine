@@ -62,4 +62,4 @@ func (StepInfo) value() {}
 type ClassByNumber struct{ N int }
 
 func (ClassByNumber) fact() {}
-func (Class) value() {}
+func (Class) value()        {}
