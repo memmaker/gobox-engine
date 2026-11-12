@@ -8,6 +8,7 @@ import (
 	"maps"
 	"slices"
 	"strconv"
+	"strings"
 
 	"gobox/core"
 	"rules1e"
@@ -250,14 +251,33 @@ func readStr(t []byte) (string, []byte, bool) {
 	return string(t[2:n]), t[n:], true
 }
 
-// ReadPoolIDs parses the trailer of a character file image; zero when none.
-func ReadPoolIDs(b []byte) (p rules1e.PoolIDs) {
-	n := int(Layout285)
-	if len(b) <= n || !bytes.HasPrefix(b[n:], []byte(rules1e.PoolMagic)) {
-		return
+// ReadPoolIDs parses the trailer of a Pool of Radiance character file
+// image; zero when none.
+func ReadPoolIDs(b []byte) rules1e.PoolIDs {
+	_, p := SplitPoolIDs(b, int(Layout285))
+	return p
+}
+
+// SplitPoolIDs is a saved record of n bytes (b) without its trailer, and
+// the trailer's ids: PoolTrailer's, the one format written, or an older
+// port's the readers still accept (oldIDs). No trailer: zero ids.
+func SplitPoolIDs(b []byte, n int) ([]byte, rules1e.PoolIDs) {
+	if len(b) <= n {
+		return b, rules1e.PoolIDs{}
 	}
+	rec, t := b[:n], b[n:]
+	switch {
+	case bytes.HasPrefix(t, []byte(cotabIDMagic)):
+		return rec, oldIDs(t[len(cotabIDMagic)+min(1, len(t)-len(cotabIDMagic)):]) // the count byte
+	case !bytes.HasPrefix(t, []byte(rules1e.PoolMagic)):
+		if n == int(Layout510) { // POD's art trailer has no magic
+			return rec, oldIDs(t)
+		}
+		return rec, rules1e.PoolIDs{}
+	}
+	var p rules1e.PoolIDs
 	f := p.Fields()
-	for t := b[n+len(rules1e.PoolMagic):]; len(t) > 0; {
+	for t = t[len(rules1e.PoolMagic):]; len(t) > 0; {
 		k, rest, ok := readStr(t)
 		if !ok {
 			break
@@ -272,6 +292,45 @@ func ReadPoolIDs(b []byte) (p rules1e.PoolIDs) {
 			p.Roster = core.RosterID(n)
 		}
 		t = rest
+	}
+	return rec, p
+}
+
+// cotabIDMagic opened COTAB's old trailer: a count byte, then the ids.
+const cotabIDMagic = "GOBXID"
+
+// oldIDs reads the ids of the trailers the ports wrote before PoolTrailer
+// (COTAB's after cotabIDMagic and a count, POD's bare): the four ids in
+// PoolKeys order as uint16 length and bytes, then the RosterID in decimal.
+func oldIDs(t []byte) (p rules1e.PoolIDs) {
+	f := p.Fields()
+	ids := []*core.PicID{f[rules1e.PoolKeys[0]], f[rules1e.PoolKeys[1]], f[rules1e.PoolKeys[2]], f[rules1e.PoolKeys[3]]}
+	for i := 0; ; i++ {
+		v, rest, ok := readStr(t)
+		if !ok {
+			return
+		}
+		if i < len(ids) {
+			*ids[i] = core.PicID(v)
+		} else if n, err := strconv.ParseUint(v, 10, 32); err == nil {
+			p.Roster = core.RosterID(n)
+			return
+		}
+		t = rest
+	}
+}
+
+// ReadIDsFile reads SotSB's old .ids file (the four ids in PoolKeys order,
+// then the RosterID, one per line); its characters now carry PoolTrailer.
+func ReadIDsFile(b []byte) (p rules1e.PoolIDs) {
+	f := p.Fields()
+	lines := strings.Split(strings.TrimSuffix(string(b), "\n"), "\n")
+	for i, l := range lines {
+		if i < len(rules1e.PoolKeys) {
+			*f[rules1e.PoolKeys[i]] = core.PicID(l)
+		} else if n, err := strconv.ParseUint(l, 10, 32); err == nil {
+			p.Roster = core.RosterID(n)
+		}
 	}
 	return
 }
@@ -456,4 +515,10 @@ func slots285(s rules1e.SpellSlots) (r [6]rules1e.Count) {
 	copy(r[0:3], s[rules1e.SpellClassCleric][:3])
 	copy(r[3:6], s[rules1e.SpellClassMage][:3])
 	return r
+}
+
+// IsIDTrailer tells whether t (the bytes after a record) opens with a
+// port's id trailer: PoolTrailer's, or COTAB's old one.
+func IsIDTrailer(t []byte) bool {
+	return bytes.HasPrefix(t, []byte(rules1e.PoolMagic)) || bytes.HasPrefix(t, []byte(cotabIDMagic))
 }

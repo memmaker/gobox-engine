@@ -34,8 +34,10 @@ type LaterFiles struct {
 // and SpellBook hold the game's spell numbers; rules1e's Import maps them
 // to the unified ids.
 func PackLater[R Later](f LaterFiles) (core.CharacterFile, error) {
-	r := Decode[R](f.Record)
-	c := rules1e.CharacterJSON{Kept: &rules1e.KeptRecord{Layout: core.RecordLayout(len(Encode(r))), Image: core.RecordImage(bytes.Clone(f.Record))}}
+	n := len(Encode(*new(R)))
+	rec, ids := SplitPoolIDs(f.Record, n)
+	r := Decode[R](rec)
+	c := rules1e.CharacterJSON{PoolIDs: ids, Kept: &rules1e.KeptRecord{Layout: core.RecordLayout(n), Image: core.RecordImage(bytes.Clone(rec))}}
 	sheetOfLater(&c, r)
 	c.Items = readItems(f.Items, f.ItemSize)
 	c.Affects = ReadAffects(f.Affects)
@@ -63,7 +65,7 @@ func UnpackLater[R Later](b core.CharacterFile, itemSize int) (LaterFiles, error
 		return LaterFiles{}, fmt.Errorf("UnpackLater: kept record is not a %T", r)
 	}
 	laterOfSheet(&r, c)
-	f := LaterFiles{Record: withBlanks[R](Encode(r), orig), ItemSize: itemSize}
+	f := LaterFiles{Record: append(withBlanks[R](Encode(r), orig), PoolTrailer(c.PoolIDs)...), ItemSize: itemSize}
 	pad := make([]byte, itemSize-ItemSize)
 	for _, it := range c.Items {
 		f.Items = append(append(f.Items, WriteItems([]Item{it})...), pad...)
@@ -243,13 +245,24 @@ func CheckLater[R Later](tb *rules1e.Tables, items []ItemBase, f LaterFiles) err
 	if err != nil {
 		return err
 	}
-	if !bytes.Equal(g.Record, f.Record) {
-		for i := range min(len(g.Record), len(f.Record)) {
-			if g.Record[i] != f.Record[i] {
-				return fmt.Errorf("record byte %#x: %d, want %d", i, g.Record[i], f.Record[i])
+	// a port-written save's old trailer comes back as PoolTrailer: its ids
+	// must, the record's bytes too
+	n := len(Encode(*new(R)))
+	wantRec, wantIDs := SplitPoolIDs(f.Record, n)
+	gotRec, gotIDs := SplitPoolIDs(g.Record, n)
+	if gotIDs != wantIDs {
+		return fmt.Errorf("pool ids %+v, want %+v", gotIDs, wantIDs)
+	}
+	if len(f.Record) <= n || bytes.HasPrefix(f.Record[n:], []byte(rules1e.PoolMagic)) {
+		gotRec, wantRec = g.Record, f.Record // no trailer or the canonical one: byte for byte
+	}
+	if !bytes.Equal(gotRec, wantRec) {
+		for i := range min(len(gotRec), len(wantRec)) {
+			if gotRec[i] != wantRec[i] {
+				return fmt.Errorf("record byte %#x: %d, want %d", i, gotRec[i], wantRec[i])
 			}
 		}
-		return fmt.Errorf("record length %d, want %d", len(g.Record), len(f.Record))
+		return fmt.Errorf("record length %d, want %d", len(gotRec), len(wantRec))
 	}
 	// the DOS pointers in items and affects are not kept (the port writes zeros)
 	pad := make([]byte, f.ItemSize-ItemSize)
@@ -278,7 +291,8 @@ func firstDiff(what string, got, want []byte, n int) error {
 
 // LaterSave names a game's character files by extension (".GUY", ".SWG",
 // ".FX"); a missing items or affects file is none.
-type LaterSave struct{ Record, Items, Affects string }
+// IDs (SotSB's old .ids) is read as the ids its trailer now carries.
+type LaterSave struct{ Record, Items, Affects, IDs string }
 
 // CheckLaterDir runs CheckLater on every character file under dir (any of
 // saves' record extensions, any case), their items held ItemSize-wide in
@@ -298,11 +312,10 @@ func CheckLaterDir[R Later](tb *rules1e.Tables, items []ItemBase, dir string, it
 			}
 			base := strings.TrimSuffix(p, ext)
 			f := LaterFiles{Record: readFold(base, s.Record), Items: readFold(base, s.Items), Affects: readFold(base, s.Affects), ItemSize: itemSize}
-			checked = append(checked, p)
-			if n := len(Encode(*new(R))); len(f.Record) > n {
-				errs = append(errs, fmt.Errorf("%s: %d bytes after the record (a port trailer) PackLater does not carry", p, len(f.Record)-n))
-				f.Record = f.Record[:n]
+			if b := readFold(base, s.IDs); s.IDs != "" && b != nil {
+				f.Record = append(f.Record, PoolTrailer(ReadIDsFile(b))...)
 			}
+			checked = append(checked, p)
 			if first == nil {
 				first = f.Record
 			}
