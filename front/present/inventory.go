@@ -211,7 +211,7 @@ func (inv *inventory) do(k front.ActKind) {
 			inv.acts = append(inv.acts, front.Action{Kind: k, Item: w.Item})
 		}
 	case it == nil:
-	case inv.ask == nil && (k == front.ActDrop || k == front.ActSell):
+	case inv.ask == nil && (k == front.ActDrop && !inv.view.Loot || k == front.ActSell): // leaving an item in the treasure (Deposit) is no loss: no question
 		yes := confirmOf(itemConfirm(k, it), game.Confirm{Asks: []string{""}, Yes: k == front.ActSell}).Yes // the game's (Data.Confirms), else a sale on Yes, as the Gold Box's, a drop (gone forever) on No
 		inv.ask, inv.askSel = &front.Action{Kind: k, Item: it.Item}, map[bool]int{true: 0, false: 1}[yes]
 		return

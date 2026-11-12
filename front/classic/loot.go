@@ -24,6 +24,7 @@ func Loot(mode game.Mode, l *game.Loot, allowed map[string]bool, party []game.Me
 		v.Share = v.Share && on
 	}
 	v.Pool = allowed["PoolCoins"]
+	v.Drop = allowed["Drop"]
 	v.Status = l.Status
 	for _, k := range []string{game.Platinum, game.Gold, game.Electrum, game.Silver, game.Copper, game.Credits, game.Gems, game.Jewelry} {
 		if n := l.Money[k]; n > 0 {

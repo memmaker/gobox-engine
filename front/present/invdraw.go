@@ -59,9 +59,9 @@ func (inv *inventory) menu(in *front.Inventory) []word {
 			on   bool
 			text string
 			act  front.ActKind
-		}{{len(t.Money) > 0, "Money", front.ActTakeMoney}, {t.Detect, "Detect", front.ActLootDetect}, {t.Share, "Share", front.ActLootShare}, {t.Pool, "Pool", front.ActLootPool}, {t.Status, "Status", front.ActLootStatus}} {
+		}{{len(t.Money) > 0, "Money", front.ActTakeMoney}, {t.Detect, "Detect", front.ActLootDetect}, {t.Share, "Share", front.ActLootShare}, {t.Pool, "Pool", front.ActLootPool}, {t.Status, "Status", front.ActLootStatus}, {t.Drop, "Drop", front.ActDrop}} {
 			if o.on {
-				w = append(w, word{text: o.text, act: o.act, on: true})
+				w = append(w, word{text: o.text, act: o.act, on: o.act != front.ActDrop || it != nil})
 			}
 		}
 		return append(w, word{text: "Exit", act: front.ActClose, on: true})

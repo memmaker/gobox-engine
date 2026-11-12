@@ -514,6 +514,9 @@ func (e *Engine) allowed(s facts) play.Allowed {
 			}
 		}
 		items()
+		if e.vault == nil { // Drop is the vault's Deposit: no other treasure takes the party's items
+			a.Plain = slices.DeleteFunc(a.Plain, func(x play.Action) bool { _, ok := x.(play.Drop); return ok })
+		}
 	default: // a Scene
 		switch {
 		case s.Read != nil:

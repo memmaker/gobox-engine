@@ -10,6 +10,7 @@ type Loot struct {
 	Share  bool     // there is money to divide among the party (LootShare)
 	Pool   bool     // the party can pool its money (LootPool)
 	Status bool     // the game offers Status (LootStatus)
+	Drop   bool     // the party's items can be left in the treasure (ActDrop: the vault's Deposit)
 	Money  []string // the treasure's money, "120 gold" (the loot inventory's border; ActTakeMoney)
 }
 

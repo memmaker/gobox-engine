@@ -2,6 +2,7 @@ package present
 
 import (
 	"image"
+	"slices"
 	"testing"
 
 	"gobox/core"
@@ -150,5 +151,30 @@ func TestListKeepsLine(t *testing.T) {
 	p.openList(v)
 	if p.list.sel != 1 {
 		t.Fatalf("back on line %d", p.list.sel)
+	}
+}
+
+// The vault's loot menu has a Drop word (the Deposit) for every device: the D
+// key, a click and the pad's focus all go through the menu's words; it sends
+// ActDrop at once, with no "gone forever" question.
+func TestLootDropWord(t *testing.T) {
+	in := &front.Inventory{Loot: true, Treasure: &front.Loot{Drop: true}, Wares: []front.InvItem{{Item: 4, Name: "Sword"}},
+		Pool: []front.InvItem{{Item: 1, Name: "Gun"}}}
+	var p Presenter
+	p.inv.view, p.inv.ware, p.inv.sel = in, core.NoItem, 1
+	p.shownView = front.View{Inventory: in}
+	if !slices.ContainsFunc(p.inv.menu(in), func(w word) bool { return w.act == front.ActDrop && w.on }) {
+		t.Fatal("no live Drop word in the loot menu")
+	}
+	p.inventoryKey('D')
+	if p.inv.ask != nil {
+		t.Fatal("Drop asked a question in the treasure")
+	}
+	if as := p.inv.acts; len(as) != 1 || as[0].Kind != front.ActDrop || as[0].Item != 1 {
+		t.Fatalf("acts %v, want ActDrop on item 1", as)
+	}
+	in.Treasure.Drop = false // an ordinary treasure: no Drop
+	if slices.ContainsFunc(p.inv.menu(in), func(w word) bool { return w.act == front.ActDrop }) {
+		t.Fatal("Drop offered outside the vault")
 	}
 }

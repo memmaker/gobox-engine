@@ -47,6 +47,9 @@ func TestVault(t *testing.T) {
 	if mine == core.NoItem {
 		t.Fatal("the member has no unreadied item to deposit")
 	}
+	if !slices.ContainsFunc(play.CommonOf(e.State()).Allowed.Plain, func(a play.Action) bool { _, ok := a.(play.Drop); return ok }) {
+		t.Error("no Drop (Deposit) allowed in the vault") // the loot menu offers it from this (front TestLootDropWord)
+	}
 	if _, err := e.Do(play.Drop{Member: 0, Item: mine}); err != nil { // Deposit
 		t.Fatal(err)
 	}
