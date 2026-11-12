@@ -135,22 +135,47 @@ func Read(t Table, imgs ...*exe.Image) (any, error) {
 // JSON is every table's values (Read) as one JSON object by name, in spec
 // order: the data a game's importer writes for the ruleset.
 func JSON(tables []Table, imgs ...*exe.Image) ([]byte, error) {
+	return jsonWith(tables, nil, imgs...)
+}
+
+// Extra is a rules.json entry the importer writes from the game's code,
+// not read from the executable's tables (rules1e's creationStart).
+type Extra struct {
+	Name  string
+	Value any
+}
+
+// jsonWith is JSON with extra's entries after the tables.
+func jsonWith(tables []Table, extra []Extra, imgs ...*exe.Image) ([]byte, error) {
 	var b bytes.Buffer
 	b.WriteString("{")
-	for i, t := range tables {
+	n := 0
+	entry := func(name string, v any) error {
+		key, _ := json.Marshal(name)
+		val, err := json.Marshal(v)
+		if err != nil {
+			return err
+		}
+		if n > 0 {
+			b.WriteString(",")
+		}
+		n++
+		fmt.Fprintf(&b, "\n %s: %s", key, val)
+		return nil
+	}
+	for _, t := range tables {
 		v, err := Read(t, imgs...)
 		if err != nil {
 			return nil, err
 		}
-		name, _ := json.Marshal(t.Name)
-		val, err := json.Marshal(v)
-		if err != nil {
+		if err := entry(t.Name, v); err != nil {
 			return nil, err
 		}
-		if i > 0 {
-			b.WriteString(",")
+	}
+	for _, x := range extra {
+		if err := entry(x.Name, x.Value); err != nil {
+			return nil, err
 		}
-		fmt.Fprintf(&b, "\n %s: %s", name, val)
 	}
 	b.WriteString("\n}\n")
 	return b.Bytes(), nil
@@ -164,6 +189,11 @@ const RulesFile = "rules.json"
 // written: one read from another game's executable (Img past imgs) stays
 // the game's literal.
 func WriteRules(spec []byte, dir string, imgs ...*exe.Image) error {
+	return WriteRulesWith(spec, dir, nil, imgs...)
+}
+
+// WriteRulesWith is WriteRules with extra's entries after the tables.
+func WriteRulesWith(spec []byte, dir string, extra []Extra, imgs ...*exe.Image) error {
 	var all, tables []Table
 	if err := json.Unmarshal(spec, &all); err != nil {
 		return err
@@ -173,7 +203,7 @@ func WriteRules(spec []byte, dir string, imgs ...*exe.Image) error {
 			tables = append(tables, t)
 		}
 	}
-	b, err := JSON(tables, imgs...)
+	b, err := jsonWith(tables, extra, imgs...)
 	if err != nil {
 		return err
 	}
