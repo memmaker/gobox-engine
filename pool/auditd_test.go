@@ -11,7 +11,7 @@ func TestFixItemRecord(t *testing.T) {
 	ring := &rules1e.Item{Type: rules1e.ItemFeatherFallRing, Words: [3]rules1e.WordID{0xEE, 0xA7, 0x42}}
 	br := &rules1e.Item{Type: rules1e.ItemBracers, Plus: 6, Words: [3]rules1e.WordID{0, 0xDC, 0x4F}}
 	for _, it := range []*rules1e.Item{ft, ring, br} {
-		rules1e.FixItemRecord(it)
+		rules1e.POR.MendItem(it)
 	}
 	if ft.Spells[2] != rules1e.ItemPower(rules1e.AffItem0) || ft.Spells[1] != rules1e.ItemPower(rules1e.AffBonusByTargetRace) || ring.Spells[1] != rules1e.ItemPower(rules1e.AffFeatherFall) || br.Plus != 8 {
 		t.Errorf("flame tongue %v, ring %v, bracers %d", ft.Spells, ring.Spells, br.Plus)
