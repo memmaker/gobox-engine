@@ -44,6 +44,9 @@ func advEngine(t *testing.T, env string) *Engine {
 	if err := e.SetStart(f.Manifest.Start); err != nil { // the adventure's Start sequence
 		t.Fatal(err)
 	}
+	if err := e.SetEnd(f.Manifest.End); err != nil { // and its End, as playpool hands both
+		t.Fatal(err)
+	}
 	seed := uint32(7)
 	e.FixedSeed = &seed
 	return e
@@ -102,8 +105,14 @@ func TestAdvSmokePOR(t *testing.T) {
 // TestAdvBeginSOTSB: Quick Start and Begin take sotsb's party into the
 // adventure (the first wait after the party menu is not the party menu and
 // no error), as sotsb's own journey tests started (rules/journey_test.go).
-func TestAdvBeginSOTSB(t *testing.T) {
-	e := advStarted(t, advEnvSOTSB)
+func TestAdvBeginSOTSB(t *testing.T) { advBegin(t, advEnvSOTSB) }
+
+// TestAdvBeginPOD: the same for pod (its own engine's journey tests, pod rules/, are gone).
+func TestAdvBeginPOD(t *testing.T) { advBegin(t, advEnvPOD) }
+
+// advBegin: Quick Start and Begin leave the party menu without an error.
+func advBegin(t *testing.T, env string) {
+	e := advStarted(t, env)
 	for _, a := range []play.Action{play.QuickStart{}, play.Begin{}} {
 		if _, err := e.Do(a); err != nil {
 			t.Fatalf("%T: %v", a, err)
