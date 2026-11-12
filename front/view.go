@@ -630,6 +630,7 @@ type Cure struct {
 	Needed   bool   // false: Not says why, and the player is asked to pay anyway
 	Not      string // "is not blind."
 	Declines bool   // the temple says Not and does not ask to cast anyway
+	Only     bool   // not Needed: the row cannot be picked (the wound cures)
 }
 
 // Appraise is the gems and jewelry to appraise (Appraise, false a gem,

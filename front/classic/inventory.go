@@ -116,7 +116,7 @@ func Temple(t *front.Temple, services []game.Service, offers []game.Offer, purse
 	v := &front.Temple{Gold: purse[Coin], Appraise: appraise(purse, offers),
 		Money: front.Money3{Take: allowed["Take"], Pool: allowed["PoolCoins"], Share: allowed["LootShare"]}}
 	for _, sv := range services {
-		v.Cures = append(v.Cures, front.Cure{Name: sv.Name, Price: sv.Price, Not: sv.Not[sel], Declines: sv.Declines,
+		v.Cures = append(v.Cures, front.Cure{Name: sv.Name, Price: sv.Price, Not: sv.Not[sel], Declines: sv.Declines, Only: sv.Only,
 			Needed: sel < 0 || sel >= len(party) || slices.Contains(sv.Needs, sel)})
 	}
 	return v

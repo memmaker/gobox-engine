@@ -23,3 +23,15 @@ func TestTempleNotDeclines(t *testing.T) {
 		}
 	}
 }
+
+// TestTempleWoundOff: a wound cure (Cure.Only) a member does not need is greyed out:
+// its row has nothing to pick, for key, mouse and pad alike (ui.RowsOff); a needed one is picked.
+func TestTempleWoundOff(t *testing.T) {
+	p := &Presenter{}
+	p.camp.screen = templeHeal
+	v := front.View{Temple: &front.Temple{Cures: []front.Cure{{Name: "Cure Light Wounds", Only: true}, {Name: "Cure Light Wounds", Only: true, Needed: true}, {Name: "Cure Blindness"}}}}
+	_, rows := p.templeItems(v)
+	if rows[0].Do != nil || rows[1].Do == nil || rows[2].Do == nil {
+		t.Errorf("rows picked: %v %v %v, want off, on, on", rows[0].Do != nil, rows[1].Do != nil, rows[2].Do != nil)
+	}
+}

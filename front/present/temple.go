@@ -22,14 +22,18 @@ func (p *Presenter) templeItems(v front.View) (string, []ui.MenuRow) {
 			if cu.Price != 0 {
 				cost = price(front.Money{Gold: cu.Price})
 			}
-			it = append(it, ui.MenuRow{Text: fmt.Sprintf("%-20s %6s", cu.Name, cost), Key: 0, Do: func() {
+			row := ui.MenuRow{Text: fmt.Sprintf("%-20s %6s", cu.Name, cost), Key: 0, Do: func() {
 				c.pick = i
 				if cu.Needed {
 					c.to(templePay, 1)()
 				} else {
 					c.to(templeNot, 1)()
 				}
-			}})
+			}}
+			if !cu.Needed && cu.Only { // greyed out: no key, click or button picks it
+				row.Do = nil
+			}
+			it = append(it, row)
 		}
 		return withGold(name+", how can we help you?", t.Gold), append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: c.back(campMain)})
 	case templeNot:

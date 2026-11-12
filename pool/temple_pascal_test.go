@@ -76,6 +76,9 @@ func TestTempleAgainstPascal(t *testing.T) {
 		if paid {
 			e.state().TempleCure(c, cure)
 		}
+		if e.state().T().Town.Temple[cure].Kind.Wound() && c.Status == rules1e.StatusDead {
+			w[0] = 0 // Felix 2026-11-12: a wound cure is never needed by the dead (POR's said it was)
+		}
 		gold := (w[8]+w[10])*5 + w[9] + w[11]
 		got := fmt.Sprintf("%d %d %d %d %d %d %d %d %d %d", rules1e.B2i(needed), rules1e.B2i(paid), c.Status, c.HP, c.MaxHP,
 			c.Stats[rules1e.StatCon], c.Okay, len(c.Affects), e.state().Purse.Gold, int32(e.state().RandSeed))

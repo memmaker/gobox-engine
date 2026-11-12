@@ -177,10 +177,11 @@ func TestTempleWords(t *testing.T) {
 	e.Temple()
 	e.Advance()
 	tr, ok := e.State().(play.Trading)
-	if !ok || len(tr.Services) < 3 || !tr.Services[2].Declines || tr.Services[1].Declines {
+	if !ok || len(tr.Services) < 3 || !tr.Services[2].Declines || tr.Services[1].Declines || !tr.Services[2].Only || tr.Services[0].Only {
 		t.Fatalf("services %+v (%T)", tr.Services, e.State())
 	}
 	e.state().Purse.Gold = 10000
+	e.state().Party[0].HP = 1 // a wound cure is given only to the hurt
 	if err := e.Cure(0, 2); err != nil {
 		t.Fatal(err)
 	}

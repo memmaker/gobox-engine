@@ -59,6 +59,7 @@ type TempleCure struct {
 	Not      string
 	Done     string // what the temple says of a member it helped ("": "is cured.")
 	Declines bool   // it only says Not of one it would not help, and does not offer to cast anyway
+	Only     bool   // it cannot be chosen for one who does not need it (the wound cures)
 }
 
 func (TrainCard) value() {}
