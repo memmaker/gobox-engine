@@ -207,3 +207,16 @@ func (SetPortrait) action() {}
 type Modifiable struct{ Who CharID }
 
 func (Modifiable) check() {}
+
+// PartyAuto: a member of the party fights by the computer (Yes): its turns poll the keys (por aiKeys).
+type PartyAuto struct{}
+
+func (PartyAuto) check() {}
+
+// MoveMember: Who takes place To in the party (camp's order); ErrNotNow out of camp or out of range.
+type MoveMember struct {
+	Who CharID
+	To  int32
+}
+
+func (MoveMember) action() {}
