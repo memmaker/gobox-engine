@@ -1,156 +1,16 @@
 package pool
 
 import (
-	"strings"
-
 	"gobox/asset"
 	"gobox/core"
-	"gobox/ega"
 )
 
 // Story and housekeeping routines of ovr18, ovr19 and ovr34, and the duel
 // set-up of ovr08.
 
-// ProgramEight = ovr19:02A4: the Tyranthraxus finale. The FINAL pictures
-// are drawn on the page, then animated; the dragon dies, Tyranthraxus
-// speaks, and the screen is rebuilt. The script waits on it (PendStory)
-// while the presenter plays the animations a pass at a time (StoryStep).
-func (e *Engine) ProgramEight() {
-	e.story = &storyRun{savedFlag: byte(e.worldWord(core.WordBeginFlag))}
-	e.setWorldWord(core.WordBeginFlag, 7)
-	e.songMusic(songEnding, 0) // extra
-	e.storyStart()
-	if e.storyPlay() {
-		return
-	}
-	e.wait(PendStory) // the original spins; one pass a StoryStep
-}
-
-// storyRun is the finale's place: the animation n is cycling its frames.
-type storyRun struct {
-	n           int // animations started
-	pass, loops int
-	last        int64
-	cur, count  int // rec[1] and rec[0]
-	savedFlag   byte
-}
-
-// storyAnim is one animation (finalAnim = the nested routine at
-// ovr19:0006: cycle the frames of FINAL<block> at (x,y) until loops
-// passes are done), each after what comes before it (storyBefore).
-type storyAnim struct {
-	x, y, block int
-	slow        bool // as many passes as the message delay says, else one
-}
-
-var storyAnims = []storyAnim{{3, 5, 2, true}, {3, 1, 7, true}, {3, 1, 8, false}}
-
-// storyPage draws FINAL<set> block at page cell (x,y) (0464:0111, 0464:0D71 mode 0).
-func (e *Engine) storyPage(block, x, y int) {
-	e.drawPage(x, y, e.LoadPic(e.set.File("FINAL"), block), 0, false) // Str(DS:5376) -> DS:4713, never freed
-}
-
-// storySpeak says lines at row 0x11 down, and reads them aloud as one text
-// (extra, voice.go).
-func (e *Engine) storySpeak(lines ...string) {
-	for i, l := range lines {
-		e.text(1, 0x11+i, ega.LightGreen, l)
-	}
-	e.speak(voiceKey(strings.Join(lines, " ")))
-}
-
-// storyBefore is what comes before animation n.
-func (e *Engine) storyBefore(n int) {
-	switch n {
-	case 0:
-		e.clearPane()
-		e.storySpeak("Mortally wounded, the dragon roars!", "The spirit of Tyranthraxus flares up", "from the dragon's body.")
-		e.DrawMainScreen()
-		e.storyPage(1, 0, 0)
-	case 1:
-		e.storyPage(3, 0, 0)
-		if e.worldWord(core.WordPartyCount) > 1 {
-			e.storyPage(4, 0, 0xB)
-		}
-		if e.worldWord(core.WordPartyCount) > 2 {
-			e.storyPage(5, 0xD, 9)
-		}
-		if e.worldWord(core.WordPartyCount) > 3 {
-			e.storyPage(6, 0, 9)
-		}
-		e.clearPane()
-		e.storySpeak("\"Fools, you have but slain the body", "I possessed.  I cannot be defeated!\"", "With the power of the pool of radiance", "which I moved here, to my lair,", "I will still rule, by possessing one", "of you!\"")
-	case 2:
-		e.clearPane()
-		e.storySpeak("\"No Lord Bane!  I can still rule here!", "I have not failed.  Do not call me back", "through the pool!\"", "Noooo...")
-	}
-}
-
-// storyStart is finalAnim's set-up for the next animation.
-func (e *Engine) storyStart() {
-	st := e.story
-	a := storyAnims[st.n]
-	e.storyBefore(st.n)
-	st.n++
-	st.loops = 1
-	if a.slow {
-		st.loops = (10 - int(e.msgDelay)) * 5 >> 1
-	}
-	st.pass, st.last = 0, e.Ticks()
-	e.LoadAnimPic("FINAL", a.block, false)
-	st.cur, st.count = e.pic.cur, len(e.pic.frames)
-	if st.count > 0 { // ovr19:004C: frame 1, unmasked, then 1B52
-		e.drawPage(a.x-1, a.y-1, e.pic.frames[0].Image, 0, false)
-	}
-}
-
-// storyStep is one pass of finalAnim's loop; true when it ends.
-func (e *Engine) storyStep() bool {
-	st := e.story
-	a := storyAnims[st.n-1]
-	var delay int64
-	if st.cur >= 1 && st.cur <= st.count {
-		e.drawPicAt(a.x, a.y, true, e.pic.frames[st.cur-1].Image) // ovr29:0000 flips
-		delay = int64(e.pic.frames[st.cur-1].Delay)
-	}
-	now := e.Ticks()
-	if now-st.last > int64(e.msgDelay+3)*delay {
-		st.cur++
-		if st.cur > st.count {
-			st.cur = 1
-			st.pass++
-		}
-		st.last = now
-	}
-	return st.pass == st.loops
-}
-
-// storyPlay goes on until the next frame is needed; true when the finale is over.
-func (e *Engine) storyPlay() bool {
-	st := e.story
-	for e.storyStep() {
-		e.FreeAnimPic()
-		if st.n == len(storyAnims) {
-			e.setWorldWord(core.WordBeginFlag, int(st.savedFlag))
-			e.DrawMainScreen()
-			return true
-		}
-		e.storyStart()
-	}
-	return false
-}
-
-// StoryStep plays the finale on a pass (the presenter paces it); over,
-// the script goes on.
-func (e *Engine) StoryStep() error {
-	if !e.waiting(PendStory) {
-		return core.ErrNotNow
-	}
-	if e.storyPlay() {
-		e.resume()
-	}
-	return nil
-}
+// StoryStep is front.Game's finale pass: POR's finale is its manifest's End now (SetEnd,
+// ending), so no pass is ever due.
+func (e *Engine) StoryStep() error { return core.ErrNotNow }
 
 // recolourFrame = 0464:1E5C (from, to, frame, random, image), the EGA
 // path (DS:4A1E = 1) on chunky pixels: for each of the 16 colours whose

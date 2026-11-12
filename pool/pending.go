@@ -42,8 +42,6 @@ func (e *Engine) leaveWait() {
 	case PendTemple:
 		e.blank(0, 0, lastCol, promptRow) // ovr05:0C18
 		e.DrawMainScreen()
-	case PendStory:
-		e.story = nil
 	}
 }
 

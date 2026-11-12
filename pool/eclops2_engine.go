@@ -595,15 +595,15 @@ func (e *Engine) opProgram() {
 	switch e.eclVersion.Programs[v] { // the screens put up suspend the VM until they are gone
 	case script.ProgramPartyMenu:
 		e.es.hold = holdPartyMenu
-	case script.ProgramEnding:
-		e.ProgramEight() // ovr19:02A4
+	case script.ProgramEnding: // POR 8 (ovr19:02A4), COTAB's ending: the manifest's End, then the script goes on
+		e.ending(false)
 	case script.ProgramCamp:
 		e.es.hold, e.es.holdPC = holdEncamp, int(e.vm.PC)
 	case script.ProgramQuit: // cotab 3, pod 2 (O040:1F1F): back to DOS; the front ends the run (play.Ended), as pod's Exit
 		e.event(play.Ended{})
 	case script.ProgramSaveQuit: // pod 1 (O043:0000): the save screen (the player picks the slot), then the ending
 		e.event(play.SaveOffered{})
-		e.ending()
+		e.ending(true)
 	}
 }
 

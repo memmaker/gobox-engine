@@ -47,8 +47,6 @@ func (e *Engine) stateMode() game.Mode {
 		return game.ModeCamp
 	case e.exploring() && e.powersView() == nil:
 		return game.ModeExplore
-	case e.pending == PendStory:
-		return game.ModeStory
 	}
 	return game.ModeNone
 }

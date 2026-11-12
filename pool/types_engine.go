@@ -221,7 +221,7 @@ const (
 	PendShop             // the shop: Browse, Identify, Appraise, KeepAppraised; Leave
 	PendTemple           // the temple: Cure, ViewMember, Appraise, KeepAppraised; Leave
 	PendFight            // a fight: CombatStep, TurnChoice
-	PendStory            // the finale's pictures: StoryStep
+	PendStory            // (unused: POR's finale is the manifest's End; the front's numbering keeps the place)
 	PendLoot             // the treasure after a fight (State.Loot, gobox's loot screen): TakeLoot, LootDetect; LootLeave
 	PendDoor             // a locked door (View.Door): TryDoor
 	PendSequence         // a full-screen animation (State.Sequence): Continue

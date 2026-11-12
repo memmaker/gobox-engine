@@ -68,8 +68,6 @@ func (e *Engine) pace() Pace {
 		return PaceFight
 	case e.resting != nil:
 		return PaceRest
-	case e.waiting(PendStory):
-		return PaceStory
 	case e.animating():
 		return PaceAnim
 	}
@@ -86,8 +84,6 @@ func (e *Engine) Step() {
 		e.CombatStep()
 	case PaceRest:
 		e.RestStep()
-	case PaceStory:
-		e.StoryStep()
 	case PaceAnim:
 		e.Animate()
 	}

@@ -137,7 +137,6 @@ type Engine struct {
 	picker         *picker                    // the grid picker up (View.Picker)
 	iconEd         *iconEdit                  // the combat icon designed (EditIcon)
 	valued         core.ItemHandle            // an appraised gem or jewel, sold or kept next (play.Keep)
-	story          *storyRun                  // the finale's place (StoryStep)
 	pending        Pending                    // what the script's wait screen waits on (View.Pending)
 	pw             waitData                   // what the wait screen keeps (pending.go)
 	waitSeq        int                        // when the wait opened (top)

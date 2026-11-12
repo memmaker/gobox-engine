@@ -48,21 +48,35 @@ type title struct {
 	backdrop    []game.Layer
 	remaster    [2]string
 	seqs        []game.Sequence // the full-screen animations State.Sequence names (SetEnd)
+	end         *play.Scene     // the end sequence of pictures (SetEnd)
 }
 
 // seqEnding is the name of the end sequence (game.Data.Sequences).
 const seqEnding = "ending"
 
-// SetEnd takes the adventure's end sequence (its manifest's End; nil: none): the
-// ending ProgramSaveQuit plays before the run ends.
-func (e *Engine) SetEnd(s *importer.Sequence) {
-	e.title.seqs = nil
+// SetEnd takes the adventure's end sequence (its manifest's End; nil: none): what
+// PROGRAM's ending and pod's save-and-quit play. A leading animation plays as a full-screen
+// sequence (seqEnding), picture steps as a scene of their own (title.end).
+func (e *Engine) SetEnd(s *importer.Sequence) error {
+	e.title.seqs, e.title.end = nil, nil
 	if s == nil {
-		return
+		return nil
 	}
 	if q := play.LeadingAnim(*s, seqEnding); q != nil {
 		e.title.seqs = append(e.title.seqs, *q)
+		return nil
 	}
+	g := importer.GraphicsOther
+	if e.Cfg.Graphics == 'E' {
+		g = importer.GraphicsEGA
+	}
+	shown := s.Shown(!DOSArt.Load())
+	sc, err := play.TitleScene(shown, true, g, play.Common{}, e.titleArt)
+	if err != nil {
+		return fmt.Errorf("end: %w", err)
+	}
+	e.title.end = &sc
+	return nil
 }
 
 // hasSequence is whether the sequence name was given.
@@ -78,7 +92,7 @@ func (e *Engine) SetStart(s *importer.Sequence) error {
 	}
 	shown := s.Shown(!DOSArt.Load()) // the steps of the art up (an Amiga-only card is dropped under the DOS art)
 	s = &shown
-	var t title
+	t := title{seqs: e.title.seqs, end: e.title.end} // SetEnd's stay
 	var err error
 	g := importer.GraphicsOther
 	if e.Cfg.Graphics == 'E' { // DS:4A1E: the EGA driver
@@ -113,6 +127,11 @@ func (e *Engine) titleArt(a importer.Art) (game.Picture, error) {
 		return game.Picture{Source: game.SourcePNG, File: p}, nil
 	case importer.ArtDAX:
 		im := e.LoadPic(a.File, a.Block)
+		if b, _ := e.artBlocks(a.File, a.Block); im == nil && b != nil && b.Kind == asset.Anim { // an animation's first frame stands for it
+			if fr := b.Anim(asset.NoMask); len(fr) > 0 {
+				im = fr[0].Image
+			}
+		}
 		if im == nil {
 			return game.Picture{}, fmt.Errorf("%s %d: %w", a.File, a.Block, errNoArt)
 		}

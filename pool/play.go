@@ -36,6 +36,10 @@ func (e *Engine) State() play.State {
 	s := e.known()
 	cm := e.common(s)
 	switch {
+	case e.ext.ending && e.title.end != nil: // the end's pictures, as the title's steps
+		sc := *e.title.end
+		sc.Common = cm
+		return sc
 	case s.Intro != nil:
 		sc := e.title.short
 		if e.FullIntro.Load() {
@@ -282,7 +286,7 @@ func (e *Engine) allowed(s facts) play.Allowed {
 		return a
 	}
 	switch {
-	case s.Intro != nil, s.Sequence != "", s.Results != nil && s.Pending == nil: // results with a question answer it, as the Scene's Replies say
+	case s.Intro != nil, s.Sequence != "", e.ext.ending, s.Results != nil && s.Pending == nil: // results with a question answer it, as the Scene's Replies say
 		add(play.Continue{})
 		return a
 	case s.Door != nil: // the Locked. menu: its ways, by the old front's numbering (doorWays)
@@ -707,8 +711,8 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 			err = native(func() error { e.titleDone(); return nil })
 			break
 		}
-		if s.Sequence != "" {
-			err = native(e.sequenceDone)
+		if s.Sequence != "" || e.ext.ending {
+			err = native(e.endDone)
 			break
 		}
 		err = native(func() error { return e.answerPlay(0, "") })
