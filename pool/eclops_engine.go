@@ -134,7 +134,7 @@ func (e *Engine) opLoadCharacter() {
 	e.run.restoreSel = true
 	e.vm.ReadArgs(1)
 	v := byte(e.vm.Arg(1, e.host))
-	refresh := v&0x80 != 0
+	refresh := v&0x80 != 0 && e.eclVersion.Behaviour.SelectMemberDrop
 	n := int(v & 0x7F)
 	if n < e.partySize() {
 		e.sel = n
@@ -192,16 +192,28 @@ func (e *Engine) addMonsters(idx, count, icon int) {
 
 // opSetupMonster = ovr04:03B4 (sprite, max distance, picture).
 func (e *Engine) opSetupMonster() {
-	e.vm.ReadArgs(3)
+	sides := e.eclVersion.Behaviour.SetupMonsterSides
+	if sides {
+		e.vm.ReadArgs(4)
+		e.run.monsterSides = byte(e.vm.Arg(4, e.host))
+	} else {
+		e.vm.ReadArgs(3)
+	}
 	e.run.sprite = int(byte(e.vm.Arg(1, e.host)))
 	e.setWorldWord(core.WordMaxDist, int(e.vm.Arg(2, e.host)))
 	e.run.closeup = int(byte(e.vm.Arg(3, e.host)))
 	e.setWorldWord(core.WordMonsterDist, int(e.FreeSteps(e.posX, e.posY, e.facing)))
+	if sides && e.worldWord(core.WordIn3D) == 0 { // outdoors the distance asked becomes 2 (pod O055:03D7)
+		e.setWorldWord(core.WordMaxDist, maxEncounterDist)
+	}
 	if e.worldWord(core.WordMaxDist) < e.worldWord(core.WordMonsterDist) {
 		e.setWorldWord(core.WordMonsterDist, int(e.worldWord(core.WordMaxDist)))
 	}
 	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(core.WordMonsterDist))), &e.es.encounterShown)
 }
+
+// maxEncounterDist: an encounter is at most two squares away (FreeSteps).
+const maxEncounterDist = 2
 
 // opApproach = ovr04:0817: the monster comes one step closer.
 func (e *Engine) opApproach() {
@@ -252,7 +264,11 @@ func (e *Engine) opInputNumber() {
 func (e *Engine) opInputString() {
 	e.vm.ReadArgs(2)
 	dst := e.vm.Ref(2)
-	e.askLine(0x28, false, askDone{kind: dString, dst: dst})
+	max := textCols
+	if e.eclVersion.Behaviour.InputTextOperand {
+		max = int(byte(e.vm.Arg(1, e.host)))
+	}
+	e.askLine(max, false, askDone{kind: dString, dst: dst})
 }
 
 // opPrint = ovr04:0A09 (PRINT 0x11, PRINTCLEAR 0x12).
@@ -315,7 +331,7 @@ func (e *Engine) listAnswered(dst script.Ref, i int) {
 // opNewECL = ovr04:0BD1 (area): switch to another area's script.
 func (e *Engine) opNewECL() {
 	e.vm.ReadArgs(1)
-	e.setWorldWord(core.WordAreaKind, int(e.gs.areaKind))
+	e.setWorldWord(core.WordLastBlock, int(e.gs.areaKind))
 	v := byte(e.vm.Arg(1, e.host))
 	e.gs.areaKind = v
 	e.eclFile = e.set.File("ECL") + ".dax" // DS:547C
@@ -327,6 +343,28 @@ func (e *Engine) opNewECL() {
 	e.run.areaChanged = true
 	e.run.scriptLoad = 0
 }
+
+// opLoadArea = pod O040:0C58 (map, walls): in a 3D area the GEO map, and the walls
+// unless they are already loaded (255: none; the map from 127 on: none).
+func (e *Engine) opLoadArea() {
+	e.vm.ReadArgs(2)
+	e.run.scriptLoad, e.run.geoSet, e.run.walldefSet = 1, 1, 1
+	geo, walls := int(byte(e.vm.Arg(1, e.host))), int(byte(e.vm.Arg(2, e.host)))
+	if geo < geoNone && e.worldWord(core.WordIn3D) != 0 {
+		e.setWorldWord(core.WordGeo, geo)
+		e.LoadGeo(geo)
+		e.setWorldWord(core.WordHoldMove, 0)
+	}
+	if walls != wallsNone && walls != e.mapPairA[0] {
+		e.LoadWalldef(walls, 1)
+	}
+}
+
+// LoadArea's operands that load nothing.
+const (
+	geoNone   = 127 // from it on: no map
+	wallsNone = 255
+)
 
 // opLoadFiles = ovr04:0C74 (0x21 LOAD FILES, 0x37 LOAD PIECES).
 func (e *Engine) opLoadFiles() {
@@ -526,17 +564,15 @@ func (e *Engine) opCombat() {
 	e.takeover()
 	e.push(cont{kind: kOpCombatEnd})
 	if e.run.monstersLoaded == 0 && e.run.duelMode == 0 {
-		switch {
-		case e.worldWord(core.WordShop) == 1:
-			e.setWorldWord(core.WordShop, 0)
-			e.Shop() // ovr07:053E
-		case e.worldWord(core.WordTemple) == 1:
-			e.setWorldWord(core.WordTemple, 0)
-			e.Temple() // ovr05:0D09
-		default:
+		if open := e.noMonsterScreen(); open != nil {
+			open()
+		} else {
 			e.pushAfterCombat() // ovr06:1527
 		}
 		return
+	}
+	if e.eclVersion.Behaviour.AreaMonstersJoin {
+		e.addAreaMonsters()
 	}
 	d := e.FreeSteps(e.posX, e.posY, e.facing)
 	if d < e.worldWord(core.WordMonsterDist) {
@@ -544,6 +580,59 @@ func (e *Engine) opCombat() {
 	}
 	e.push(cont{kind: kOpFought})
 	e.pushCombat() // ovr09:007A
+}
+
+// noMonsterScreen is the screen Combat opens with no monsters: the dialect's first one
+// whose word is set (it clears the word); nil: none.
+func (e *Engine) noMonsterScreen() func() {
+	for _, s := range e.eclVersion.Behaviour.NoMonsterCombat {
+		w := combatScreenWords[s]
+		if e.worldWord(w) != 1 {
+			continue
+		}
+		e.setWorldWord(w, 0)
+		switch s {
+		case script.CombatShop:
+			return e.Shop // ovr07:053E
+		case script.CombatTemple:
+			return e.Temple // ovr05:0D09
+		default: // the vault screen is not ported yet (coordinator?)
+			return func() { fmt.Fprintln(os.Stderr, "ecl: Combat: the vault screen is not ported") }
+		}
+	}
+	return nil
+}
+
+// combatScreenWords is the world word that asks for each screen.
+var combatScreenWords = map[script.CombatScreen]core.WorldWord{
+	script.CombatShop: core.WordShop, script.CombatTemple: core.WordTemple, script.CombatVault: core.WordVault}
+
+// areaMonsterFor is the monster the area screen adds to a fight; none past the table.
+func (t AreaMonsters) areaMonsterFor(screen int) (AreaMonster, bool) {
+	if screen < 0 || screen >= len(t.ByScreen) {
+		return AreaMonster{}, false
+	}
+	return t.ByScreen[screen], true
+}
+
+// addAreaMonsters = pod O055:1740: the area screen's own monsters join the fight, standing aside.
+func (e *Engine) addAreaMonsters() {
+	t := e.game().AreaMonsters
+	m, ok := t.areaMonsterFor(e.worldWord(core.WordAreaScreen))
+	if !ok {
+		return
+	}
+	e.addMonsters(m.Monster, t.Count, m.Icon)
+	ids := e.partyIDs()
+	for _, id := range ids[len(ids)-t.Count:] {
+		if err := e.ruleset().SetFact(id, core.FactStatus, core.Number(t.Status)); err != nil {
+			panic("addAreaMonsters: " + err.Error())
+		}
+		control := e.fact(id, core.FactControl).(core.Number)
+		if err := e.ruleset().SetFact(id, core.FactControl, control|core.Number(t.Control)); err != nil {
+			panic("addAreaMonsters: " + err.Error())
+		}
+	}
 }
 
 // opFought: the fight is over; AfterCombat (ovr06:1527).
@@ -629,6 +718,7 @@ type eclRun struct {
 	closeup        int         // DS:6F82
 	doorTry        [3]byte     // DS:6DDE..6DE0: bash, pick, knock still allowed
 	lineHasText    byte        // DS:84DF
+	monsterSides   byte        // SetupMonster's sides (pod; bits 0..3): where the monsters come from in combat
 }
 
 func init() {
@@ -642,8 +732,8 @@ func init() {
 		script.OpCheckParty: (*Engine).opCheckParty, script.OpJournal: (*Engine).opJournal, script.OpNewECL: (*Engine).opNewECL,
 		script.OpLoadMap: (*Engine).opLoadFiles, script.OpPartySurprise: (*Engine).opPartySurprise, script.OpSurprise: (*Engine).opSurprise,
 		script.OpCombat: (*Engine).opCombat, script.OpGetTable: (*Engine).opGetTable, script.OpHMenu: (*Engine).opHMenu,
-		script.OpLoadWalls: (*Engine).opLoadFiles,
-		script.OpQuest:     (*Engine).opQuest, // the port's (gobox ecl V1)
+		script.OpLoadWalls: (*Engine).opLoadFiles, script.OpLoadArea: (*Engine).opLoadArea,
+		script.OpQuest: (*Engine).opQuest, // the port's (gobox ecl V1)
 		// ovr04 0x25..0x3D (eclops2_engine.go)
 		script.OpRob: (*Engine).opRob, script.OpEncounterMenu: (*Engine).opEncounterMenu, script.OpParlay: (*Engine).opParlay,
 		script.OpCall: (*Engine).opCall, script.OpDamage: (*Engine).opDamage, script.OpRedrawView: (*Engine).opRedrawView,

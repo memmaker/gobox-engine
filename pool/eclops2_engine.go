@@ -517,6 +517,9 @@ func (e *Engine) opAddNPC() {
 		return
 	}
 	id := e.selected()
+	if e.game().AddNPCIcon {
+		e.LoadIconPic("CPIC", v, e.partyIndex(id))
+	}
 	if err := e.ruleset().SetFact(id, core.FactControl, core.Number(byte(e.vm.Arg(2, e.host))>>1|0x80)); err != nil {
 		panic("opAddNPC: " + err.Error())
 	}

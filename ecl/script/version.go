@@ -44,6 +44,28 @@ type Version struct {
 	Calls map[uint16]CallFn
 	// Programs names what each PROGRAM operand does; one not listed does nothing.
 	Programs map[byte]ProgramFn
+	// Behaviour is how the dialect's engine runs the commands that differ
+	// between the games (ruling S15).
+	Behaviour Behaviour
+}
+
+// CombatScreen is what Combat opens when no monsters are loaded.
+type CombatScreen int
+
+const (
+	CombatShop   CombatScreen = iota + 1 // the shop
+	CombatTemple                         // the temple
+	CombatVault                          // the vault (pod)
+)
+
+// Behaviour is the per-dialect behaviour of the commands whose encoding or
+// effect differs between the games (one named behaviour each, decoded here).
+type Behaviour struct {
+	SetupMonsterSides bool           // SetupMonster has a 4th operand, the sides (bits 0..3) the monsters come from, and an area outdoors is 2 squares away
+	InputTextOperand  bool           // InputString's first operand is the maximum length; otherwise the text window's width
+	SelectMemberDrop  bool           // SelectMember's bit 7 refreshes and may drop a dead member; otherwise the bit is only masked off
+	NoMonsterCombat   []CombatScreen // Combat with no monsters loaded: the first screen whose word is set opens (it clears the word)
+	AreaMonstersJoin  bool           // Combat with monsters first adds the area's own (GameTables.AreaMonsters)
 }
 
 // ProgramFn is a PROGRAM sub-command, by name (ruling S14: each game's
@@ -140,7 +162,8 @@ var V1 = func() *Version {
 		// ovr04:2FE8's routine numbers, operand - 0x7FFF in the original
 		Calls: map[uint16]CallFn{0x2C90: CallRedrawView, 0x8000: CallDuelWin, 0x8001: CallDuelLose, 0xBA03: CallDuelSound,
 			0xC01E: CallStepForward, 0xC018: CallWallAhead},
-		Programs: map[byte]ProgramFn{0: ProgramPartyMenu, 8: ProgramEnding, 9: ProgramCamp}}
+		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 8: ProgramEnding, 9: ProgramCamp},
+		Behaviour: Behaviour{SelectMemberDrop: true, NoMonsterCombat: []CombatScreen{CombatShop, CombatTemple}}}
 }()
 
 // set makes byte-code command b the canonical command op with these operands.
@@ -173,7 +196,7 @@ var V2 = func() *Version {
 		45568: CallDuelSound, 45571: CallDuelSound, 49182: CallStepForward, 49176: CallWallAhead, 26627: CallPause}
 	// PROGRAM: cotab's 0, 3 quit, 8 ending, 9 camp; sotsb uses 0 and 9
 	programs := map[byte]ProgramFn{0: ProgramPartyMenu, 3: ProgramQuit, 8: ProgramEnding, 9: ProgramCamp}
-	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs}
+	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs, Behaviour: V1.Behaviour}
 }()
 
 // V3 is Pools of Darkness' dialect.
@@ -201,7 +224,8 @@ var V3 = func() *Version {
 	})
 	// pod renumbered its routines (O040:1E4A)
 	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallNextFrame},
-		Programs: map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp}}
+		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp},
+		Behaviour: Behaviour{SetupMonsterSides: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, AreaMonstersJoin: true}}
 }()
 
 // V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).

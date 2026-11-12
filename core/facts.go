@@ -189,6 +189,9 @@ const (
 	WordEffect       // por: the party's affect table, entry WordIs.Index (read only)
 	WordClockMinutes // por: the area clock as minutes of the day (read only)
 	WordCampOn       // por: camp is up (CampMenu; flag)
+	WordLastBlock    // the script block NewECL left, kept to come back to (por the area's AreaKind word; sotsb/cotab area word LastECL; pod game save block)
+	WordVault        // pod: Combat with no monsters opens the vault (flag)
+	WordAreaScreen   // pod: the area screen that picks the area's own monsters
 )
 
 // WorldBinding names the address of a WorldWord in this adventure's scripts.
