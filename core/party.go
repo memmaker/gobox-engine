@@ -77,11 +77,14 @@ func (Reactions) value() {}
 
 func (ReactionsFact) fact() {}
 
-// PartyMoveRange asks the fastest (Answer.High) and slowest (Answer.Low)
-// party member's movement, haste doubling and slow halving (por PartyHpRange).
-type PartyMoveRange struct{}
+// MoveExtremes asks the fastest (Answer.High) and slowest (Answer.Low)
+// party member's movement, haste doubling and slow halving (the original's
+// MoveExtremes, eclmenu.pas: the encounter menu's flee test). Not
+// Census{Fact: FactMove}: CheckParty's census reads each member's movementCur
+// as it is, hasted or not (EclCheckParty).
+type MoveExtremes struct{}
 
-func (PartyMoveRange) check() {}
+func (MoveExtremes) check() {}
 
 // EmptyParty sets the party's member count to 0 (the roster stays).
 type EmptyParty struct{}
