@@ -179,7 +179,7 @@ func (e *Engine) placeState(s *facts) {
 	switch e.pending {
 	case PendShop:
 		for i := range goods {
-			goods[i].Price = int(e.shopPrice(int32(goods[i].Price)))
+			goods[i].Price = int(e.shopPrice(int32(goods[i].Price), e.itemCard(core.NoChar, goods[i].Handle).Count))
 		}
 		s.Shop = &game.Shop{Goods: goods, Buys: true}
 		s.Shop.Offers, s.Shop.IdentifyPrice = e.offers(s.Selected), 200

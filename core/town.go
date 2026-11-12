@@ -15,6 +15,11 @@ func (SetPurseGold) action() {}
 // TrainFee: the gold the hall asks (Value).
 type TrainFee struct{}
 
+// BundlePrices: a shop's bundle of items costs its count times the price (Yes).
+type BundlePrices struct{}
+
+func (BundlePrices) check() {}
+
 // HallOpen: the training hall is up (Yes); Value 1 when it waits for a spell pick.
 type HallOpen struct{}
 

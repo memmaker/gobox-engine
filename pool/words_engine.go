@@ -85,14 +85,17 @@ func UnboundFields(data fs.FS) ([]string, error) {
 	return out, nil
 }
 
-// shopPrice is price as the shop asks it, by the layout's price factor (a game whose layout
-// has none, POR, asks the price).
-func (e *Engine) shopPrice(price int32) int32 {
-	r, ok := e.layoutField(fieldPriceScale)
-	if !ok {
-		return price
+// shopPrice is price as the shop asks it for an item of count pieces: by the layout's price
+// factor (a game whose layout has none, POR, asks the price), then, in a game whose shops sell
+// bundles at their count times the price (pod, core.BundlePrices), times the count.
+func (e *Engine) shopPrice(price, count int32) int32 {
+	if r, ok := e.layoutField(fieldPriceScale); ok {
+		price = scalePrice(price, int32(e.host.Get(r)))
 	}
-	return scalePrice(price, int32(e.host.Get(r)))
+	if count > 1 && e.ruleset().Check(core.BundlePrices{}, nil).Yes {
+		price *= count
+	}
+	return price
 }
 
 // scalePrice is price times factor over 16, for the factors the shops set (1 2 4 8 32 64 128;
