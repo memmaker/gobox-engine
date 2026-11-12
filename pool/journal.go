@@ -19,10 +19,10 @@ import (
 // special cases (scriptfixes.go) name it with Journal instead, and the
 // pager shows it right there, with its pictures. The books and pictures
 // (pre-scaled to the screen, one shared 16-colour palette) are the game's
-// own, in its data folder's JournalDir, written by its import, in gobox's
+// own, in the adventure folder's JournalDir, written by its import, in gobox's
 // journal format; gobox (game/journal) reads, finds and lays them out.
 
-// JournalDir is the game's journal books and pictures in its data folder (DataDir).
+// JournalDir is the game's journal books and pictures in the adventure folder.
 const JournalDir = "journal"
 
 // book is the game's journal book name (a file of JournalDir), loaded once;
@@ -31,7 +31,7 @@ func (e *Engine) book(name string) *journal.Book {
 	if b, ok := e.books[name]; ok {
 		return b
 	}
-	b, err := journal.Load(os.DirFS(filepath.Join(e.adv, DataDir, JournalDir)), name)
+	b, err := journal.Load(os.DirFS(filepath.Join(e.adv, JournalDir)), name)
 	if errors.Is(err, fs.ErrNotExist) {
 		b = nil
 	} else if err != nil {
@@ -54,7 +54,7 @@ func (e *Engine) journalLayout(name string, titles []string, voiced bool) []stri
 	}
 	b := e.book(name)
 	if b == nil {
-		panic(fmt.Sprintf("script: no journal book %s in %s", name, filepath.Join(e.adv, DataDir, JournalDir))) // a broken game folder
+		panic(fmt.Sprintf("script: no journal book %s in %s", name, filepath.Join(e.adv, JournalDir))) // a broken game folder
 	}
 	return b.Layout(titles, jrWidth, jrRows(), voice)
 }
