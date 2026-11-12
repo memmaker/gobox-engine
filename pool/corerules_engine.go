@@ -28,8 +28,15 @@ type GameTables struct {
 	ScriptSounds               map[byte]ScriptSound  // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays nothing
 	AddNPCIcon                 bool                  // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
 	AreaMonsters               AreaMonsters          // the area's own monsters a fight adds (pod); zero: none
+	Dialect                    core.Dialect          // the game's script byte-code dialect (ReadGameTables sets Script from it)
+	Words                      ScriptWords           // the game-block words the engine itself binds
 	TreasureSets               [][]int32             // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
 }
+
+// ScriptWords are the game's own words the engine binds by name (0: the game has none):
+// LastBlock is core.WordLastBlock (pod: the save block), Remainder where DIVIDE leaves
+// its remainder (ecl.VM.Remainder). Numbers are the game block's word offsets.
+type ScriptWords struct{ LastBlock, Remainder int }
 
 // AreaMonsters are the monsters a fight adds by area screen (Behaviour.AreaMonstersJoin):
 // Count of ByScreen[the area screen], standing aside with Status and Control.

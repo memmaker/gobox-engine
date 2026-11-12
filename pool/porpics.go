@@ -2,10 +2,13 @@ package pool
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"gobox/core"
 	"gobox/core/goldbox"
+	"gobox/ecl/script"
 	"gobox/importer/pictures"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -70,16 +73,33 @@ func (e *Engine) iconByte(file string, id core.PicID, size byte) (byte, bool) {
 // (DataDir), written by the game's import.
 const PortraitsFile = "portraits.json"
 
-// ReadGameTables reads the game's tables from the adventure folder adv: the
-// portrait tables (PortraitsFile), as the game's import wrote them.
+// GameTablesFile is the game's GameTables other than its portraits in the adventure's
+// data folder (DataDir), written by the game's import.
+const GameTablesFile = "gametables.json"
+
+// ReadGameTables reads the game's tables from the adventure folder adv, as the
+// game's import wrote them: GameTablesFile and the portrait tables (PortraitsFile);
+// a game writes either or both. Script is the Dialect's.
 func ReadGameTables(adv string) (GameTables, error) {
-	b, err := os.ReadFile(filepath.Join(adv, DataDir, PortraitsFile))
-	if err != nil {
-		return GameTables{}, fmt.Errorf("%w (run the game's import)", err)
-	}
 	var t GameTables
-	if err := json.Unmarshal(b, &t); err != nil {
-		return GameTables{}, fmt.Errorf("%s: %w", PortraitsFile, err)
+	found := false
+	for _, f := range []string{GameTablesFile, PortraitsFile} {
+		b, err := os.ReadFile(filepath.Join(adv, DataDir, f))
+		if errors.Is(err, fs.ErrNotExist) {
+			continue
+		} else if err != nil {
+			return GameTables{}, err
+		}
+		if err := json.Unmarshal(b, &t); err != nil {
+			return GameTables{}, fmt.Errorf("%s: %w", f, err)
+		}
+		found = true
+	}
+	if !found {
+		return GameTables{}, fmt.Errorf("%s and %s: not found (run the game's import)", GameTablesFile, PortraitsFile)
+	}
+	if t.Dialect != 0 {
+		t.Script = script.Versions[script.VersionID(t.Dialect)]
 	}
 	return t, nil
 }
