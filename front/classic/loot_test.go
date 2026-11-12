@@ -3,6 +3,7 @@ package classic
 import (
 	"testing"
 
+	"gobox/core"
 	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
@@ -79,11 +80,11 @@ func TestLootScreen(t *testing.T) {
 
 func TestLootDecisions(t *testing.T) {
 	for a, want := range map[front.Action]play.Action{
-		{Kind: front.ActBuy, N: 2}: play.Take{Item: 2},
-		{Kind: front.ActTakeMoney}: play.Take{Item: -1},
-		{Kind: front.ActTakeAll}:   play.Take{Item: -1, All: true},
+		{Kind: front.ActBuy, N: 2}: play.Take{Item: 7},
+		{Kind: front.ActTakeMoney}: play.Take{Item: core.NoItem},
+		{Kind: front.ActTakeAll}:   play.Take{Item: core.NoItem, All: true},
 	} {
-		f := &fake{st: play.Looting{}}
+		f := &fake{st: play.Looting{Items: []game.Item{{}, {}, {Handle: 7}}}}
 		g := NewGame(f, game.Data{})
 		g.found = true
 		g.Answer(a)

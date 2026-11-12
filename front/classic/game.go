@@ -112,6 +112,21 @@ func (g *Game) sel(n int) int {
 // Index), NoItem for none.
 func (g *Game) held(i int) core.ItemHandle { return g.heldBy(g.sel(-1), i) }
 
+// ware is the handle of ware w (the shop's goods, the loot's items), NoItem for none.
+func (g *Game) ware(w int) core.ItemHandle {
+	var l []game.Item
+	switch t := g.r.g.State().(type) {
+	case play.Trading:
+		l = t.Goods
+	case play.Looting:
+		l = t.Items
+	}
+	if w < 0 || w >= len(l) {
+		return core.NoItem
+	}
+	return l[w].Handle
+}
+
 // heldBy is the handle of member m's item i, NoItem for none.
 func (g *Game) heldBy(m, i int) core.ItemHandle {
 	p := play.CommonOf(g.r.g.State()).Party
@@ -771,11 +786,11 @@ func (g *Game) Drop(i int) error { return g.do(play.Drop{Member: g.sel(-1), Item
 func (g *Game) Sell(i int) error { return g.do(play.Sell{Member: g.sel(-1), Item: g.held(i)}) }
 func (g *Game) Buy(w int) error {
 	if lootOf(g.r.g.State()) != nil { // the loot screen's Take, as the act mapping does
-		return g.do(play.Take{Item: w})
+		return g.do(play.Take{Item: g.ware(w)})
 	}
-	return g.do(play.Buy{Member: g.sel(-1), Item: w})
+	return g.do(play.Buy{Member: g.sel(-1), Item: g.ware(w)})
 }
-func (g *Game) TakeAll() error { return g.do(play.Take{Item: -1, All: true}) }
+func (g *Game) TakeAll() error { return g.do(play.Take{Item: core.NoItem, All: true}) }
 func (g *Game) SetPolicy(id int, p front.Policy) error {
 	return g.do(play.SetPolicy{ID: id, Policy: int(p)})
 }
@@ -1016,13 +1031,13 @@ func (g *Game) act(a front.Action) func() error {
 		return send(play.Reload{Member: g.sel(-1), Item: g.held(a.N)})
 	case front.ActBuy:
 		if lootOf(g.r.g.State()) != nil {
-			return send(play.Take{Item: a.N})
+			return send(play.Take{Item: g.ware(a.N)})
 		}
-		return send(play.Buy{Member: g.sel(-1), Item: a.N})
+		return send(play.Buy{Member: g.sel(-1), Item: g.ware(a.N)})
 	case front.ActTakeAll:
-		return send(play.Take{Item: -1, All: true})
+		return send(play.Take{Item: core.NoItem, All: true})
 	case front.ActTakeMoney:
-		return send(play.Take{Item: -1})
+		return send(play.Take{Item: core.NoItem})
 	case front.ActLootPool: // a shop's Pool (the treasure's goes through Gate)
 		return send(play.PoolCoins{Member: g.sel(-1)}) // the selected member's coins
 	case front.ActLootShare:

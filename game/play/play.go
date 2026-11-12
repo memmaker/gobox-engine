@@ -606,7 +606,10 @@ type (
 	} // Text: a typed answer
 
 	// Trading.
-	Buy  struct{ Member, Item int }
+	Buy struct {
+		Member int
+		Item   core.ItemHandle
+	}
 	Sell struct {
 		Member int
 		Item   core.ItemHandle
@@ -636,8 +639,8 @@ type (
 
 	// Looting, and Trading where the shop holds pooled coins (Take, LootShare).
 	Take struct {
-		Item int  // -1: the money only
-		All  bool // the money and every item
+		Item core.ItemHandle // NoItem: the money only
+		All  bool            // the money and every item
 	}
 
 	LootDetect struct{}

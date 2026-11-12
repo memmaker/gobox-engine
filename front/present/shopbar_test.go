@@ -1,6 +1,7 @@
 package present
 
 import (
+	"gobox/core"
 	"testing"
 
 	"gobox/front/classic"
@@ -27,7 +28,7 @@ func TestShopBarReachesGame(t *testing.T) {
 	for _, c := range []struct {
 		keys string
 		want play.Action
-	}{{"P", play.PoolCoins{Member: 1}}, {"T", play.Take{Item: -1}}, {"S", play.LootShare{}}, {"E", play.Leave{}},
+	}{{"P", play.PoolCoins{Member: 1}}, {"T", play.Take{Item: core.NoItem}}, {"S", play.LootShare{}}, {"E", play.Leave{}},
 		{"BP", play.PoolCoins{Member: 1}}, {"BEE", play.Leave{}}} {
 		sp := &shopPlay{st: play.Trading{Common: play.Common{Party: []game.Member{{Name: "A"}, {Name: "B"}}, Selected: 1,
 			Allowed: play.Allowed{Plain: []play.Action{play.PoolCoins{Member: 1}, play.Take{}, play.LootShare{}, play.Leave{}}}}}}
