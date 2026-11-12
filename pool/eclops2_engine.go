@@ -34,6 +34,47 @@ func (e *Engine) opTreasure() {
 	e.do(core.AddRandomTreasure{N: int32(v - 0x80), Who: e.selected()})
 }
 
+// treasureOfCoins are TreasureOf's coin operands: platinum, gems, jewelry, the last three of the seven kinds.
+const (
+	treasureOfCoins = 3
+	firstOfCoins    = 4 // platinum's place among the seven
+)
+
+// opTreasureOf = pod O040:13E0 (platinum, gems, jewelry, count, items...): the coins add to the
+// loot, the ITEM0 library's items (255: a random scroll) go to the head of the treasure.
+func (e *Engine) opTreasureOf() {
+	e.vm.ReadArgs(treasureOfCoins + 1)
+	var coins [7]uint16
+	for k := range treasureOfCoins {
+		coins[firstOfCoins+k] = uint16(e.vm.Arg(k+1, e.host))
+	}
+	e.do(core.AddLoot{Coins: coins})
+	n := int(byte(e.vm.Arg(treasureOfCoins+1, e.host)))
+	e.vm.PC--
+	e.vm.ReadArgs(n)
+	ids := make([]int32, n)
+	for k := range ids {
+		ids[k] = int32(byte(e.vm.Arg(k+1, e.host)))
+	}
+	e.do(core.AddLibraryItems{IDs: ids})
+}
+
+// opItemSet = pod O040:251F (set): the set's library items, their names known, are all the
+// treasure; the shop then sells them. A set out of range is set 1 (GameTables.TreasureSets).
+func (e *Engine) opItemSet() {
+	e.vm.ReadArgs(1)
+	e.clearTreasure()
+	sets := e.game().TreasureSets
+	n := int(byte(e.vm.Arg(1, e.host)))
+	if n < 1 || n >= len(sets) {
+		n = 1
+	}
+	e.do(core.AddLibraryItems{IDs: sets[n], Known: true})
+	e.takeover()
+	e.push(cont{kind: kOpCombatEnd})
+	e.Shop()
+}
+
 // opRob = ovr04:1DB1 (who, pct, items): take pct% of the money and items%
 // of the items; who 0 is the selected member (and their share of the
 // purse), else everyone. Operand 3 is the per-item chance, as the fixed

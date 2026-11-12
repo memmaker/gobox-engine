@@ -83,3 +83,20 @@ func ReadGameTables(adv string) (GameTables, error) {
 	}
 	return t, nil
 }
+
+// TreasureSetsFile is GameTables.TreasureSets in the adventure's data folder (DataDir),
+// written by the game's import (pod).
+const TreasureSetsFile = "treasuresets.json"
+
+// ReadTreasureSets reads the treasure sets (TreasureSetsFile) from the adventure folder adv.
+func ReadTreasureSets(adv string) ([][]int32, error) {
+	b, err := os.ReadFile(filepath.Join(adv, DataDir, TreasureSetsFile))
+	if err != nil {
+		return nil, fmt.Errorf("%w (run the game's import)", err)
+	}
+	var sets [][]int32
+	if err := json.Unmarshal(b, &sets); err != nil {
+		return nil, fmt.Errorf("%s: %w", TreasureSetsFile, err)
+	}
+	return sets, nil
+}

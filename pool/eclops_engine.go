@@ -443,6 +443,11 @@ func (e *Engine) opHMenu() {
 // opClearMonsters = ovr04:125D.
 func (e *Engine) opClearMonsters() {
 	e.vm.PC++
+	e.clearTreasure()
+}
+
+// clearTreasure is ClearMonsters' work (pod's clearTreasure too): no monsters, no loot.
+func (e *Engine) clearTreasure() {
 	e.run.monCount = 0
 	e.run.monstersLoaded = 0
 	e.es.cloneIcon = 8
@@ -737,7 +742,7 @@ func init() {
 		// ovr04 0x25..0x3D (eclops2_engine.go)
 		script.OpRob: (*Engine).opRob, script.OpEncounterMenu: (*Engine).opEncounterMenu, script.OpParlay: (*Engine).opParlay,
 		script.OpCall: (*Engine).opCall, script.OpDamage: (*Engine).opDamage, script.OpRedrawView: (*Engine).opRedrawView,
-		script.OpTreasure: (*Engine).opTreasure,
+		script.OpTreasure: (*Engine).opTreasure, script.OpTreasureOf: (*Engine).opTreasureOf, script.OpItemSet: (*Engine).opItemSet,
 		script.OpFindItem: (*Engine).opFindItem, script.OpNewLine: (*Engine).opNewLine, script.OpClock: (*Engine).opClock,
 		script.OpAddNPC: (*Engine).opAddNPC, script.OpProgram: (*Engine).opProgram, script.OpWho: (*Engine).opWho,
 		script.OpDelay: (*Engine).opDelay, script.OpProtection: (*Engine).opProtection,

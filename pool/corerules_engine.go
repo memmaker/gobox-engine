@@ -28,6 +28,7 @@ type GameTables struct {
 	ScriptSounds               map[byte]ScriptSound  // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays nothing
 	AddNPCIcon                 bool                  // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
 	AreaMonsters               AreaMonsters          // the area's own monsters a fight adds (pod); zero: none
+	TreasureSets               [][]int32             // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
 }
 
 // AreaMonsters are the monsters a fight adds by area screen (Behaviour.AreaMonstersJoin):
