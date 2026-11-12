@@ -45,6 +45,12 @@ func TestWorldChecks(t *testing.T) {
 	if get(0) != 0 || get(1) != 0 || get(2) != 0 || get(3) != 1 {
 		t.Errorf("CheckParty find traps: %d %d %d found %d", get(0), get(1), get(2), get(3))
 	}
+	// the fourth result is the count (S-diffs 12): area13's `Scratch1 != 0` branches as found did
+	e.state().AddAffect(e.state().Party[0], 0x13, 0, 0, 0)
+	checkParty(script.Arg{N: 0})
+	if get(3) != 2 {
+		t.Errorf("CheckParty find traps: count %d, want 2", get(3))
+	}
 	lo, hi, sum := byte(0xFF), byte(0), 0
 	for _, c := range e.state().Party {
 		lo, hi, sum = min(lo, c.Move), max(hi, c.Move), sum+int(c.Move)
@@ -52,6 +58,9 @@ func TestWorldChecks(t *testing.T) {
 	checkParty(v(testField(t, e, fieldSelMove)))
 	if get(0) != int64(lo) || get(1) != int64(hi) || get(2) != int64(byte(sum/len(e.state().Party))) {
 		t.Errorf("CheckParty move: %d %d %d, want %d %d %d", get(0), get(1), get(2), lo, hi, sum/len(e.state().Party))
+	}
+	if get(3) != int64(len(e.state().Party)) { // area20's fix sets Scratch1 back to the original's 0
+		t.Errorf("CheckParty move: count %d, want the party's %d", get(3), len(e.state().Party))
 	}
 
 	for _, c := range e.state().Party {

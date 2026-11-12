@@ -418,9 +418,12 @@ func (e *Engine) opPartyStrength() {
 	e.host.Set(e.vm.Ref(1), int64(uint16(total)))
 }
 
-// opCheckParty = ovr04:1435 (what, special, min, max, avg, found): a party
+// opCheckParty = ovr04:1435 (what, special, min, max, avg, count): a party
 // census. what 0 looks for a special ability, 0x6BA7 averages +0x79 and
-// 0x6C1B averages +0x11C.
+// 0x6C1B averages +0x11C. The fourth result is the count for every game
+// (S-diffs 12, sotsb's form): the members with the ability, or the members
+// counted; found is count > 0. POR's original wrote found there (its two
+// scripts are patched at import, ScriptFixes).
 func (e *Engine) opCheckParty() {
 	e.vm.ReadArgs(6)
 	what := censusNone
@@ -439,20 +442,17 @@ func (e *Engine) opCheckParty() {
 	for i := 3; i <= 6; i++ {
 		dst[i] = e.vm.Ref(i)
 	}
-	lo, hi, avg, found := byte(0xFF), byte(0), byte(0), false
+	lo, hi, avg, count := byte(0xFF), byte(0), byte(0), 0
 	store := func() { // ovr04:13D7
 		e.host.Set(dst[3], int64(uint16(lo)))
 		e.host.Set(dst[4], int64(uint16(hi)))
 		e.host.Set(dst[5], int64(uint16(avg)))
-		f := uint16(0)
-		if found {
-			f = 1
-		}
-		e.host.Set(dst[6], int64(f))
+		e.host.Set(dst[6], int64(uint16(count)))
 	}
 	census := func(f core.Fact) {
-		a := e.ruleset().Check(core.Census{Party: e.partyIDs(), Fact: f}, nil)
-		lo, hi, avg = byte(a.Low), byte(a.High), byte(a.Avg)
+		party := e.partyIDs()
+		a := e.ruleset().Check(core.Census{Party: party, Fact: f}, nil)
+		lo, hi, avg, count = byte(a.Low), byte(a.High), byte(a.Avg), len(party)
 		store()
 	}
 	switch what {
@@ -461,7 +461,11 @@ func (e *Engine) opCheckParty() {
 		if !ok {
 			panic(fmt.Sprintf("script: CheckParty: no condition %d", special))
 		}
-		found = e.ruleset().Check(core.HasCondition{Whom: e.partyIDs(), Condition: cond}, nil).Yes // 00BA:2199
+		for _, id := range e.partyIDs() {
+			if e.ruleset().Check(core.HasCondition{Whom: []core.CharID{id}, Condition: cond}, nil).Yes { // 00BA:2199
+				count++
+			}
+		}
 		lo, hi, avg = 0, 0, 0
 		store()
 	case censusFindTraps:

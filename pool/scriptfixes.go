@@ -1882,4 +1882,21 @@ RelaxOrWalk:
 `, New: `    Text("'I HAVE BEEN AUTHORIZED TO GIVE YOU AN ENCHANTED WEAPON IF YOU ACCEPT THE COMMISSION TO END THE GRAVEYARD MENACE.  DO YOU ACCEPT?'")
     Quest(ValhingenGraveyard)
 `},
+	// area 13 CheckTrap: the original's CheckParty wrote found (0/1) as its fourth result.
+	// Why: pool's CheckParty writes the count for every game (S-diffs 12); found is count > 0, the same branch.
+	// CHANGES: none (no behaviour change).
+	{Area: 13, Old: `    CheckParty(0, 19, Scratch1, Scratch1, Scratch1, Scratch1)
+    if Scratch1 == 1 { goto TrapFound }
+`, New: `    CheckParty(0, 19, Scratch1, Scratch1, Scratch1, Scratch1)
+    if Scratch1 != 0 { goto TrapFound } # the count of members who find traps; was found == 1
+`},
+	// area 20 TryRunning: the original's movement census wrote found, always 0, as its fourth result, into Scratch1.
+	// Why: pool's CheckParty writes the count for every game (S-diffs 12); Scratch1 is set back to the original's 0, the same branches.
+	// CHANGES: none (no behaviour change).
+	{Area: 20, Old: `    CheckParty(SelMove, 0, Scratch9, Scratch1, Scratch1, Scratch1)
+    if AuxEncResult < Scratch1 {
+`, New: `    CheckParty(SelMove, 0, Scratch9, Scratch1, Scratch1, Scratch1)
+    Scratch1 = 0 # the original's fourth result after a census (found, never set); the count is the party size
+    if AuxEncResult < Scratch1 {
+`},
 }
