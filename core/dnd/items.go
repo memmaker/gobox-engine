@@ -85,4 +85,7 @@ const (
 	ItemBrassKey          core.ItemID = 78
 	ItemEfreetiBottle     core.ItemID = 79
 	ItemPass              core.ItemID = 80
+	ItemDrowMace          core.ItemID = 81
+	ItemDrowChainMail     core.ItemID = 82
+	ItemDrowLongSword     core.ItemID = 83
 )
