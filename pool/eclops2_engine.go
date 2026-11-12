@@ -250,36 +250,38 @@ func (e *Engine) opParlay() {
 	e.askChoice(" ", "~HAUGHTY ~SLY ~NICE ~MEEK ~ABUSIVE", false, false, askDone{kind: dParlay, dst: dst, r: r})
 }
 
-// opCall = ovr04:2CCF (addr): calls into engine routines by their old
-// addresses.
+// opCall = ovr04:2CCF (addr): runs the engine routine the dialect names
+// for the operand (script.Version.Calls).
 func (e *Engine) opCall() {
 	e.vm.ReadArgs(1)
-	switch uint16(e.vm.ArgN[1]) - 0x7FFF { // a routine number, not memory
-	case 0xAC91:
+	switch e.eclVersion.Calls[uint16(e.vm.ArgN[1])] { // a routine number, not memory
+	case script.CallRedrawView:
 		e.es.cell = e.MapCell(e.posX, e.posY)
 		s := &e.es
 		if e.run.scriptLoad != 0 && (s.picShown != 0 || s.spriteLoaded != 0 || s.skyChanged != 0 || s.posChanged != 0 || s.portraitChanged != 0) {
 			e.Redraw()
 			s.portraitChanged, s.skyChanged, s.posChanged, s.picShown, s.spriteLoaded = 0, 0, 0, 0, 0
 		}
-	case 1:
+	case script.CallDuelWin:
 		e.DuelSetup(1) // ovr08:1A6F
-	case 2:
+	case script.CallDuelLose:
 		e.DuelSetup(0)
-	case 0x3A04:
+	case script.CallDuelSound:
 		switch e.es.soundVar {
 		case 8:
 			e.cue(core.CueStep)
 		case 0xA:
 			e.cue(core.CueFireball) // DS:262A
 		}
-	case 0x401F:
+	case script.CallStepForward:
 		e.StepForward()
-	case 0x4019:
+	case script.CallWallAhead:
 		if e.viewMode == 1 {
 			e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
 		}
 	}
+	// ponytail: CallAnimate (cotab/sotsb a pause, pod a picture frame) has no
+	// handler until a game on pool CALLs it (Felix? which behaviour).
 }
 
 // DAMAGE's first operand (ruling 3, cotab's): a count of random members,
@@ -394,11 +396,22 @@ func (e *Engine) opNewLine() {
 // opClock = ovr04:2AC1 (n): advance the clock n minutes. (The original
 // passes an uninitialised local as the operand number to ArgValue; operand 1
 // is what the scripts mean.)
+//
+// Ruling S6 (Felix 2026-11-11): one handler, count + unit; the first
+// engine's one-operand form is unit = minutes.
 func (e *Engine) opClock() {
-	e.vm.ReadArgs(1)
+	n := e.eclVersion.Cmds[e.vm.Command].Fixed
+	e.vm.ReadArgs(n)
+	unit := int32(clockMinutes)
+	if n > 1 {
+		unit = int32(int8(byte(e.vm.Arg(2, e.host))))
+	}
 	e.as(e.sel)
-	e.do(core.AdvanceClock{Count: int32(byte(e.vm.Arg(1, e.host))), Unit: 1})
+	e.do(core.AdvanceClock{Count: int32(byte(e.vm.Arg(1, e.host))), Unit: unit})
 }
+
+// clockMinutes is CLOCK's unit for minutes (the clock's field 1).
+const clockMinutes = 1
 
 // opAddNPC = ovr04:2B7E (monster, morale).
 func (e *Engine) opAddNPC() {

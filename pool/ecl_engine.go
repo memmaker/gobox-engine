@@ -104,18 +104,22 @@ func (e *Engine) HitMessage(h core.Hurt) {
 	e.blank(17, 1, paneRight, 15)
 }
 
-// initVM makes the script machine: POR's dialect, ecl.Default and its own ops,
+// initVM makes the script machine: the game's dialect (POR's by default), ecl.Default and its own ops,
 // no area loaded.
 func (e *Engine) initVM() {
 	e.host = eclHost{e}
 	e.engineFields = e.newEngineFields()
 	e.vars, e.locals = fieldCells{}, fieldCells{}
 	e.vm = ecl.New(e.host, eclLayout, make([]byte, eclCodeSize))
-	e.vm.SetVersion(script.V1)
+	e.eclVersion = e.game().Script
+	if e.eclVersion == nil {
+		e.eclVersion = script.V1
+	}
+	e.vm.SetVersion(e.eclVersion)
 	e.vm.Script = &script.Script{}
 	for c, op := range eclOps {
-		if op != nil {
-			e.vm.Ops[c] = func(*ecl.VM, ecl.Host) { op(e) }
+		if b := e.vm.Raw[c]; e.eclVersion.Cmds[b].Known && e.eclVersion.Cmds[b].Op == c {
+			e.vm.Ops[b] = func(*ecl.VM, ecl.Host) { op(e) }
 		}
 	}
 }

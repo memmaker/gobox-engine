@@ -261,7 +261,7 @@ func (e *Engine) opPrint() {
 	if e.vm.ArgType[1] < 0x80 {
 		e.vm.Text[1] = strconv.Itoa(int(e.vm.Arg(1, e.host))) // 00BA:1073
 	}
-	e.scriptText(e.vm.Command == script.OpPrintClear, e.vm.Text[1])
+	e.scriptText(e.cmdIs(script.OpPrintClear), e.vm.Text[1])
 }
 
 // scriptText is opPrint's text: clear starts the text window over.
@@ -336,7 +336,7 @@ func (e *Engine) opLoadFiles() {
 	for i := 1; i <= 3; i++ {
 		a[i] = int(byte(e.vm.Arg(i, e.host)))
 	}
-	if e.vm.Command == 0x21 {
+	if e.cmdIs(script.OpLoadMap) {
 		e.run.geoSet = 1
 		if a[1] != 0xFF && a[1] != 0x7F && e.worldWord(core.WordIn3D) != 0 {
 			e.setWorldWord(core.WordGeo, int(a[1]))
@@ -601,7 +601,9 @@ const (
 	censusMove                    // SelMove (0x6C1B): +0x11C
 )
 
-var eclOps [0x43]eclOp
+// eclOps are the commands the engine runs by name (the rest are
+// ecl.Default's); initVM puts each at its dialect's byte code.
+var eclOps map[byte]eclOp
 
 // eclRun holds the ovr04 globals that are not part of the ovr08 interpreter.
 type eclRun struct {
@@ -626,27 +628,31 @@ type eclRun struct {
 }
 
 func init() {
-	eclOps = [0x43]eclOp{
-		0x00: (*Engine).opExit, ecl.CmdCompare: (*Engine).opCompare,
-		0x0A: (*Engine).opLoadCharacter, 0x0B: (*Engine).opLoadMonster,
-		0x0C: (*Engine).opSetupMonster, 0x0D: (*Engine).opApproach, 0x0E: (*Engine).opPicture,
-		0x0F: (*Engine).opInputNumber, 0x10: (*Engine).opInputString, 0x11: (*Engine).opPrint,
-		0x12: (*Engine).opPrint, 0x15: (*Engine).opVMenu,
-		0x1C: (*Engine).opClearMonsters, 0x1D: (*Engine).opPartyStrength,
-		0x1E: (*Engine).opCheckParty, 0x1F: (*Engine).opJournal, 0x20: (*Engine).opNewECL, 0x21: (*Engine).opLoadFiles,
-		0x22: (*Engine).opPartySurprise, 0x23: (*Engine).opSurprise, 0x24: (*Engine).opCombat,
-		ecl.CmdGetTable: (*Engine).opGetTable, 0x2B: (*Engine).opHMenu, 0x37: (*Engine).opLoadFiles,
-		0x42: (*Engine).opQuest, // the port's (gobox ecl V1)
+	eclOps = map[byte]eclOp{
+		script.OpExit: (*Engine).opExit, script.OpCompare: (*Engine).opCompare,
+		script.OpSelectMember: (*Engine).opLoadCharacter, script.OpLoadMonster: (*Engine).opLoadMonster,
+		script.OpSetupMonster: (*Engine).opSetupMonster, script.OpApproach: (*Engine).opApproach, script.OpPicture: (*Engine).opPicture,
+		script.OpInputNumber: (*Engine).opInputNumber, script.OpInputString: (*Engine).opInputString, script.OpPrint: (*Engine).opPrint,
+		script.OpPrintClear: (*Engine).opPrint, script.OpVMenu: (*Engine).opVMenu,
+		script.OpClearMonsters: (*Engine).opClearMonsters, script.OpPartyStr: (*Engine).opPartyStrength,
+		script.OpCheckParty: (*Engine).opCheckParty, script.OpJournal: (*Engine).opJournal, script.OpNewECL: (*Engine).opNewECL,
+		script.OpLoadMap: (*Engine).opLoadFiles, script.OpPartySurprise: (*Engine).opPartySurprise, script.OpSurprise: (*Engine).opSurprise,
+		script.OpCombat: (*Engine).opCombat, script.OpGetTable: (*Engine).opGetTable, script.OpHMenu: (*Engine).opHMenu,
+		script.OpLoadWalls: (*Engine).opLoadFiles,
+		script.OpQuest:     (*Engine).opQuest, // the port's (gobox ecl V1)
 		// ovr04 0x25..0x3D (eclops2_engine.go)
-		0x28: (*Engine).opRob, 0x29: (*Engine).opEncounterMenu, 0x2C: (*Engine).opParlay,
-		0x2D: (*Engine).opCall, 0x2E: (*Engine).opDamage, 0x31: (*Engine).opRedrawView,
-		0x27: (*Engine).opTreasure,
-		0x32: (*Engine).opFindItem, 0x33: (*Engine).opNewLine, 0x34: (*Engine).opClock,
-		0x36: (*Engine).opAddNPC, 0x38: (*Engine).opProgram, 0x39: (*Engine).opWho,
-		0x3A: (*Engine).opDelay, 0x3C: (*Engine).opProtection,
-		0x3D: (*Engine).opClearBox,
+		script.OpRob: (*Engine).opRob, script.OpEncounterMenu: (*Engine).opEncounterMenu, script.OpParlay: (*Engine).opParlay,
+		script.OpCall: (*Engine).opCall, script.OpDamage: (*Engine).opDamage, script.OpRedrawView: (*Engine).opRedrawView,
+		script.OpTreasure: (*Engine).opTreasure,
+		script.OpFindItem: (*Engine).opFindItem, script.OpNewLine: (*Engine).opNewLine, script.OpClock: (*Engine).opClock,
+		script.OpAddNPC: (*Engine).opAddNPC, script.OpProgram: (*Engine).opProgram, script.OpWho: (*Engine).opWho,
+		script.OpDelay: (*Engine).opDelay, script.OpProtection: (*Engine).opProtection,
+		script.OpClearBox: (*Engine).opClearBox,
 	}
 }
+
+// cmdIs reports whether the command being run is the canonical op.
+func (e *Engine) cmdIs(op byte) bool { return e.vm.Command == e.vm.Raw[op] }
 
 // eclOp is an instruction only this game runs, or runs its own way (the rest
 // are ecl.Default's).

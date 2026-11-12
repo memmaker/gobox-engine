@@ -39,7 +39,24 @@ type Version struct {
 	// table). It differs from Cmds[b].Fixed where the original's table did
 	// (TestSkipCounts names each difference).
 	Skip [256]byte
+	// Calls names the engine routine each CALL operand (its raw value, an
+	// address in the original) runs; an operand not listed runs nothing.
+	Calls map[uint16]CallFn
 }
+
+// CallFn is an engine routine a script CALLs, by name.
+type CallFn int
+
+const (
+	CallNone        CallFn = iota
+	CallRedrawView         // redraw the view if the script changed it
+	CallStepForward        // the party steps one square ahead
+	CallWallAhead          // the wall the party faces into the wall variable
+	CallDuelWin            // the duel's winning setup
+	CallDuelLose           // the duel's losing setup
+	CallDuelSound          // the duel's sound, by the sound variable
+	CallAnimate            // the picture's next step
+)
 
 // skips makes a Skip table of the groups: operand count -> commands.
 func skips(groups map[byte][]byte) (t [256]byte) {
@@ -103,7 +120,10 @@ var V1 = func() *Version {
 		3: {4, 5, 6, 7, 11, 33, 40, 42, 47, 48, 53, 55, 59},
 		4: {20, 35}, 5: {46}, 6: {30, 44}, 8: {39}, 14: {41},
 	})
-	return &Version{ID: 1, Base: 0x9900, Cmds: t, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true, Skip: skip}
+	return &Version{ID: 1, Base: 0x9900, Cmds: t, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true, Skip: skip,
+		// ovr04:2FE8's routine numbers, operand - 0x7FFF in the original
+		Calls: map[uint16]CallFn{0x2C90: CallRedrawView, 0x8000: CallDuelWin, 0x8001: CallDuelLose, 0xBA03: CallDuelSound,
+			0xC01E: CallStepForward, 0xC018: CallWallAhead}}
 }()
 
 // set makes byte-code command b the canonical command op with these operands.
@@ -129,7 +149,12 @@ var V2 = func() *Version {
 		3: {4, 5, 6, 7, 11, 12, 33, 40, 42, 47, 48, 53, 55, 59},
 		4: {20, 35}, 5: {46}, 6: {30, 44}, 8: {39}, 14: {41},
 	})
-	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip}
+	// CALL's addresses: Curse of the Azure Bonds' (O03C:2F23) and Secret of
+	// the Silver Blades' (O050:33C6) differ for RedrawView and DuelSound;
+	// none collides, so the one dialect carries both.
+	calls := map[uint16]CallFn{11792: CallRedrawView, 11723: CallRedrawView, 32768: CallDuelWin, 32769: CallDuelLose,
+		45568: CallDuelSound, 45571: CallDuelSound, 49182: CallStepForward, 49176: CallWallAhead, 26627: CallAnimate}
+	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls}
 }()
 
 // V3 is Pools of Darkness' dialect.
@@ -155,7 +180,8 @@ var V3 = func() *Version {
 		3: {4, 5, 6, 7, 11, 40, 42, 47, 48, 53, 59},
 		4: {12, 20}, 5: {46}, 6: {30},
 	})
-	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip}
+	// pod renumbered its routines (O040:1E4A)
+	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallAnimate}}
 }()
 
 // V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).

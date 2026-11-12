@@ -34,6 +34,7 @@ type Engine struct {
 	iconPoses          map[iconPoseKey]image.Image // the cuts of PNG icons (iconPNG)
 	newRules           Ruleset                     // builds rules (New; bareRuleset when nil)
 	given              *GameTables                 // the game's GameTables (New; bareData when nil)
+	eclVersion         *script.Version             // the game's ECL dialect (initVM)
 	rules              core.Rules                  // the ruleset; it owns the rules' state (state) (corerules_engine.go)
 	create             core.CreationRules          // the ruleset's creation, made with rules
 	posX, posY, facing int                         // the party's map square and facing 0..7 (DS:6AAD, 6AAE, 6AAF): world navigation, the Engine's; saves keep them (files_engine.go)

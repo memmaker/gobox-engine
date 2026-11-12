@@ -6,6 +6,26 @@ import "fmt"
 // canonical number below 0x80 is the first engine's byte; the commands later
 // dialects added are from 0x80.
 const (
+	OpSelectMember  byte = 0x0A
+	OpLoadMonster   byte = 0x0B
+	OpSetupMonster  byte = 0x0C
+	OpApproach      byte = 0x0D
+	OpCheckParty    byte = 0x1E
+	OpPartySurprise byte = 0x22
+	OpSurprise      byte = 0x23
+	OpRob           byte = 0x28
+	OpEncounterMenu byte = 0x29
+	OpDamage        byte = 0x2E
+	OpRedrawView    byte = 0x31
+	OpClock         byte = 0x34
+	OpAddNPC        byte = 0x36
+	OpWho           byte = 0x39
+	OpDelay         byte = 0x3A
+	OpSpell         byte = 0x3B
+	OpClearBox      byte = 0x3D
+)
+
+const (
 	OpLoadWalls  byte = 0x37
 	OpProtection byte = 0x3C
 	OpClearExit  byte = 0x80 // clear, redraw and stop
