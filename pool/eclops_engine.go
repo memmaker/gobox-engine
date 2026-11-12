@@ -656,7 +656,7 @@ func init() {
 		script.OpSpriteOff: (*Engine).opRedrawView, script.OpNoOp: (*Engine).opNoOp, script.OpPressKey: (*Engine).opPressKey,
 		script.OpYesNo: (*Engine).opYesNo, script.OpClearExit: (*Engine).opClearExit, script.OpGainExp: (*Engine).opGainExperience,
 		script.OpSpell: (*Engine).opSpell, script.OpDestroy: (*Engine).opDestroyItems, script.OpDump: (*Engine).opDump,
-		script.OpFindNPC: (*Engine).opFindNPC, script.OpSound: (*Engine).opSound,
+		script.OpFindNPC: (*Engine).opFindNPC, script.OpSound: (*Engine).opSound, script.OpMenuKeys: (*Engine).opMenuKeys,
 	}
 }
 

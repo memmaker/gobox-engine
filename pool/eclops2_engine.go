@@ -673,3 +673,12 @@ func (e *Engine) opSound() {
 		e.cue(s.Cue)
 	}
 }
+
+// menuKeysPrompt heads MenuKeys' menu (pod O040:0FE1, command 49).
+const menuKeysPrompt = "what do you do?"
+
+// opMenuKeys = pod's HMenu 49: "what do you do?", then the HMenu.
+func (e *Engine) opMenuKeys() {
+	e.scriptText(false, menuKeysPrompt)
+	e.opHMenu()
+}
