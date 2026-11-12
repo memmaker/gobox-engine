@@ -97,7 +97,7 @@ func checkDir(t *testing.T, dir string) (*token.FileSet, []*ast.File, *types.Inf
 
 // actorReaders is the names of the rules1e RuleState methods that read the
 // actor (RuleState.Who), directly or through what they call (the affect
-// handlers through AffectHandlers' users), and "Who" itself.
+// handlers through affectHandler's users), and "Who" itself.
 func actorReaders(t *testing.T, dir string) map[string]bool {
 	_, files, info := checkDir(t, dir)
 	var who types.Object
@@ -114,8 +114,8 @@ func actorReaders(t *testing.T, dir string) map[string]bool {
 			}
 		}
 	}
-	// refs: every function and method a function names; the table's
-	// fillers' handlers count as named by the users of AffectHandlers.
+	// refs: every function and method a function names; init's
+	// handlers (affectHandler) count as named by the users of affectHandler.
 	refs := map[types.Object][]types.Object{}
 	reads := map[types.Object]bool{}
 	var handlers []types.Object
@@ -127,14 +127,12 @@ func actorReaders(t *testing.T, dir string) map[string]bool {
 			switch x := x.(type) {
 			case *ast.AssignStmt:
 				for _, l := range x.Lhs {
-					if ix, ok := l.(*ast.IndexExpr); ok {
-						if id, ok := ix.X.(*ast.Ident); ok && id.Name == "AffectHandlers" {
-							fills = true
-						}
+					if id, ok := l.(*ast.Ident); ok && id.Name == "affectHandler" {
+						fills = true
 					}
 				}
 			case *ast.Ident:
-				if x.Name == "AffectHandlers" {
+				if x.Name == "affectHandler" {
 					tableUsers[me] = true
 				}
 			case *ast.SelectorExpr:
