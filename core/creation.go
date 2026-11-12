@@ -148,3 +148,40 @@ func score(v, pct int32) string {
 	}
 	return s
 }
+
+// The creation sheet's character (por's sheet draws a record of the draft as
+// the selected member, outside the party).
+type (
+	// SheetDraft makes the character d draws as, without dice; Outcome.Created is it.
+	SheetDraft struct{ Draft Draft }
+	// SeatTemp puts Who at the end of the party for the sheet, not as a member joining.
+	SeatTemp struct{ Who CharID }
+	// TrimParty drops every member after the first Size (SeatTemp's undo).
+	TrimParty struct{ Size int32 }
+	// ReplaceMember puts Who in the party's place At.
+	ReplaceMember struct {
+		At  int32
+		Who CharID
+	}
+	// HoldCopy keeps a copy of Who as it is, for RestoreCopy.
+	HoldCopy struct{ Who CharID }
+	// RestoreCopy makes Who again as HoldCopy kept it.
+	RestoreCopy struct{ Who CharID }
+	// SetMinimums takes the minimums typed for Minimal ("STR INT WIS DEX CON
+	// CHA"; a field that is not a value keeps the last one).
+	SetMinimums struct{ Text string }
+)
+
+func (SheetDraft) action()    {}
+func (SeatTemp) action()      {}
+func (TrimParty) action()     {}
+func (ReplaceMember) action() {}
+func (HoldCopy) action()      {}
+func (RestoreCopy) action()   {}
+func (SetMinimums) action()   {}
+
+// DraftIconFact is Who's combat icon as a Draft holds it (Icon).
+type DraftIconFact struct{}
+
+func (DraftIconFact) fact() {}
+func (Icon) value()         {}

@@ -220,3 +220,54 @@ type MoveMember struct {
 }
 
 func (MoveMember) action() {}
+
+// PoolPic names one of a character's shared-pool picture picks.
+type PoolPic int
+
+const (
+	PoolPortraitHead PoolPic = iota
+	PoolPortraitBody
+	PoolIconHead
+	PoolIconBody
+)
+
+// poolPicNames are the picks' play.SetChoice field names (Draft.Pics).
+var poolPicNames = map[string]PoolPic{"portraithead": PoolPortraitHead, "portraitbody": PoolPortraitBody, "iconhead": PoolIconHead, "iconbody": PoolIconBody}
+
+// PoolPicNamed is the pick a play.SetChoice field names; false: not a pick.
+func PoolPicNamed(field string) (PoolPic, bool) {
+	p, ok := poolPicNames[field]
+	return p, ok
+}
+
+// PoolPicsFact is Who's shared-pool picks (PoolPics).
+type PoolPicsFact struct{}
+
+// PoolPics are a character's shared-pool picks; "" is none.
+type PoolPics struct {
+	PortraitHead, PortraitBody, IconHead, IconBody PicID
+}
+
+// SetPoolPic: Who's pick Pic is ID.
+type SetPoolPic struct {
+	Who CharID
+	Pic PoolPic
+	ID  PicID
+}
+
+// IconPicsFact is Who's own combat icon (IconPics).
+type IconPicsFact struct{}
+
+// IconPics is a character's combat icon in the ruleset's own pictures: the head
+// and body numbers, the size (1 small, 2 large) and the parts' colours.
+type IconPics struct {
+	Head, Body, Size int
+	Colours          []byte
+	PNG              PNG // a dropped PNG in place of the pictures (nil: none)
+}
+
+func (PoolPicsFact) fact() {}
+func (PoolPics) value()    {}
+func (SetPoolPic) action() {}
+func (IconPicsFact) fact() {}
+func (IconPics) value()    {}

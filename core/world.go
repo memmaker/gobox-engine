@@ -21,3 +21,9 @@ func (IsDay) check() {}
 type MapTerrain struct{ X, Y int }
 
 func (MapTerrain) check() {}
+
+// AreaTileIs asks the area map's tile at square (X, Y) (Answer.Value): the
+// terrain, or a landmark while it shows (por AreaTile).
+type AreaTileIs struct{ X, Y int32 }
+
+func (AreaTileIs) check() {}
