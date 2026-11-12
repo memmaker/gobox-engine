@@ -40,7 +40,7 @@ func TestTrimMemorized(t *testing.T) {
 	e.initVM()
 	c := &rules1e.Character{}
 	c.Levels[rules1e.ClsMage], c.SpellSlots = 1, rules1e.SpellSlots{rules1e.SpellClassMage: {1}}
-	c.Memorized[0], c.Memorized[1] = rules1e.SpMagicMissile, rules1e.SpMagicMissile | rules1e.SpellPending
+	c.Memorized[0], c.Memorized[1] = rules1e.SpMagicMissile, rules1e.SpMagicMissile|rules1e.SpellPending
 	e.state().TrimMemorized(c)
 	if c.Memorized[0] != rules1e.SpMagicMissile || c.Memorized[1] != 0 {
 		t.Errorf("memorized %v", c.Memorized[:2])
