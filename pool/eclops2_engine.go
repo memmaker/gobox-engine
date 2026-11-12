@@ -276,9 +276,11 @@ func (e *Engine) opCall() {
 		if e.viewMode == 1 {
 			e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
 		}
+	case script.CallPause: // cotab gameDelay, sotsb pauseForMessage
+		e.askPause(int(e.msgDelay)*0xE1, askDone{})
 	}
-	// ponytail: CallAnimate (cotab/sotsb a pause, pod a picture frame) has no
-	// handler until a game on pool CALLs it (Felix? which behaviour).
+	// ponytail: CallNextFrame (pod's picture frame step) waits for pod's
+	// switch to pool, where its picture frames live.
 }
 
 // redrawChanged is CALL's RedrawView: the cell under the party again, and

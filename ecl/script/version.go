@@ -70,7 +70,8 @@ const (
 	CallDuelWin            // the duel's winning setup
 	CallDuelLose           // the duel's losing setup
 	CallDuelSound          // the duel's sound, by the sound variable
-	CallAnimate            // the picture's next step
+	CallPause              // a message pause (cotab, sotsb)
+	CallNextFrame          // the picture's next frame (pod)
 )
 
 // skips makes a Skip table of the groups: operand count -> commands.
@@ -169,7 +170,7 @@ var V2 = func() *Version {
 	// the Silver Blades' (O050:33C6) differ for RedrawView and DuelSound;
 	// none collides, so the one dialect carries both.
 	calls := map[uint16]CallFn{11792: CallRedrawView, 11723: CallRedrawView, 32768: CallDuelWin, 32769: CallDuelLose,
-		45568: CallDuelSound, 45571: CallDuelSound, 49182: CallStepForward, 49176: CallWallAhead, 26627: CallAnimate}
+		45568: CallDuelSound, 45571: CallDuelSound, 49182: CallStepForward, 49176: CallWallAhead, 26627: CallPause}
 	// PROGRAM: cotab's 0, 3 quit, 8 ending, 9 camp; sotsb uses 0 and 9
 	programs := map[byte]ProgramFn{0: ProgramPartyMenu, 3: ProgramQuit, 8: ProgramEnding, 9: ProgramCamp}
 	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs}
@@ -199,7 +200,7 @@ var V3 = func() *Version {
 		4: {12, 20}, 5: {46}, 6: {30},
 	})
 	// pod renumbered its routines (O040:1E4A)
-	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallAnimate},
+	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallNextFrame},
 		Programs: map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp}}
 }()
 
