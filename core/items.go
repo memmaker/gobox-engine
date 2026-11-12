@@ -84,6 +84,16 @@ func (ValuedItem) check() {}
 // PoolCap: the party inventory's room (Value).
 type PoolCap struct{}
 
+// ItemTableMissing: the base item table holds no record (the game data lacks it; Yes).
+type ItemTableMissing struct{}
+
+func (ItemTableMissing) check() {}
+
+// StopUsingItem ends the use of an item out of the inventory (por UsingItem, DS:6DBF, cleared).
+type StopUsingItem struct{}
+
+func (StopUsingItem) action() {}
+
 // PoolCount: the items in the party inventory (Value).
 type PoolCount struct{}
 

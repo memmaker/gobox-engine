@@ -8,6 +8,17 @@ import "strings"
 // SpellTableInit, SetupAffectHandlers).
 type InitRules struct{}
 
+// LoadItemTable reads the base item records from the ruleset's item source
+// (por's ITEMS file, DS:5582).
+type LoadItemTable struct{}
+
+func (LoadItemTable) action() {}
+
+// SetSeed sets the rules' random seed (por Randomize, 0AF8:1247).
+type SetSeed struct{ Seed uint32 }
+
+func (SetSeed) action() {}
+
 // NewAdventure puts the rules' adventure state back to a new game's: the
 // game and area records, an empty purse, loot and pool.
 type NewAdventure struct{}

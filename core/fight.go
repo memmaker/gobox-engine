@@ -266,6 +266,29 @@ type CombatSay struct {
 
 func (CombatSay) action() {}
 
+// ClearTreasure empties the fight's items, the coins kept (the loot taken).
+type ClearTreasure struct{}
+
+// DevTreasure makes the treasure one random item of the ruleset's dev
+// scene (por's dev loot: gauntlets).
+type DevTreasure struct{}
+
+// AddTreasureBlock puts the data set's item block Block at the head of the
+// treasure, its last item leading (por opTreasure's ITEM block). Error:
+// the data set lacks the block.
+type AddTreasureBlock struct{ Block int32 }
+
+// SetSpeed sets Who's attacks for the round from its weapon and affects (por SetSpeed).
+type SetSpeed struct{ Who CharID }
+
+func (ClearTreasure) action() {}
+
+func (DevTreasure) action() {}
+
+func (AddTreasureBlock) action() {}
+
+func (SetSpeed) action() {}
+
 // ClearLoot empties the fight's coins and items (por opClearMonsters).
 type ClearLoot struct{}
 
