@@ -57,6 +57,14 @@ func (TempleCure) value() {}
 
 func (Purse) value() {}
 
+// GiveTempleCure does the temple's cure Cure on Who, paid for (por's temple cures, ovr05).
+type GiveTempleCure struct {
+	Who  CharID
+	Cure int32
+}
+
+func (GiveTempleCure) action() {}
+
 // OpenHall opens the training hall for Who (the party menu's Train).
 type OpenHall struct{ Who CharID }
 

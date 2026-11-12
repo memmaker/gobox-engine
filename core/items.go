@@ -84,6 +84,11 @@ func (ValuedItem) check() {}
 // PoolCap: the party inventory's room (Value).
 type PoolCap struct{}
 
+// PoolCount: the items in the party inventory (Value).
+type PoolCount struct{}
+
+func (PoolCount) check() {}
+
 // CarryCount: what Who can reach, the party inventory after its own (Value).
 type CarryCount struct{ Who CharID }
 

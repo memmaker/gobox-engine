@@ -36,6 +36,12 @@ type SetRoster struct {
 	Roster RosterID
 }
 
+// JoinParty puts Who at the end of the party with the first free icon
+// slot, and makes it the selected member (por AddToParty).
+type JoinParty struct{ Who CharID }
+
+func (JoinParty) action() {}
+
 // EmptyMember empties the ruleset's one placeholder character (the
 // selected member of an empty party); the Outcome holds EmptyMemberIs.
 type EmptyMember struct{}

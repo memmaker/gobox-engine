@@ -257,6 +257,15 @@ type FightRound struct{}
 
 func (FightRound) check() {}
 
+// CombatSay is Who's line in the fight's text (NoChar: no name), a fresh
+// line (por CombatSay).
+type CombatSay struct {
+	Who  CharID
+	Text string
+}
+
+func (CombatSay) action() {}
+
 // ClearLoot empties the fight's coins and items (por opClearMonsters).
 type ClearLoot struct{}
 
