@@ -42,6 +42,7 @@ type TrainCard struct {
 	Why     string
 	Becomes []string
 	Best    int32
+	Rises   bool // the hall would raise a class now (no Why, a class to raise)
 }
 
 // TempleCure is a cure of the temple and whether Who needs it.
