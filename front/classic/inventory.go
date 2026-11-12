@@ -4,14 +4,15 @@ import (
 	"slices"
 	"strings"
 
+	"gobox/core"
 	"gobox/front"
 	"gobox/game"
 )
 
 // DollSlots are the paper doll's slots by Inventory.Doll index, by
-// game.Item.Slot name (arrows and bolts share the Missiles slot, the
-// launcher takes the Launcher slot when the weapon slot is taken).
-var DollSlots = []string{"weapon", "shield", "armor", "gauntlets", "helm", "belt", "robe", "cloak", "boots", "ring", "ring2", "arrows", "launcher"}
+// game.Item.Slot name: core.DollNames (arrows and bolts share the Missiles
+// slot), then the Launcher slot a launcher takes when the weapon slot is taken.
+var DollSlots = append(core.DollNames[:], "launcher")
 
 // dollSlot is the Doll index for it, -1 for none.
 func dollSlot(it game.Item, doll []*front.InvItem) int {

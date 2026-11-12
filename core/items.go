@@ -32,6 +32,11 @@ const (
 	DollSlots
 )
 
+// DollNames are the doll slots' names by slot (game.Item.Slot); the arrows
+// slot is shared by arrows and bolts.
+var DollNames = [DollSlots]string{DollWeapon: "weapon", DollShield: "shield", DollArmor: "armor", DollGauntlets: "gauntlets", DollHelm: "helm",
+	DollBelt: "belt", DollRobe: "robe", DollCloak: "cloak", DollBoots: "boots", DollRing1: "ring", DollRing2: "ring2", DollArrows: "arrows"}
+
 // UsingItem: Who would use Item out of the inventory (por's UseItem before
 // its questions). Allowed lists the uses: the item's own spell (one UseItem
 // with no Spell), or each spell a scroll lets Who read (UseItem with Spell,
