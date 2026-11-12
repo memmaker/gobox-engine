@@ -198,3 +198,13 @@ type SpellByNumber struct{ N int }
 
 func (SpellByNumber) fact() {}
 func (SpellID) value()      {}
+
+// Memorized asks who of Party first has Spell memorized: Who, Value its
+// memorized slot (from 0); not Yes when no one has (the script's Spell;
+// ruling S11: matched by the one spell list's id).
+type Memorized struct {
+	Party Party
+	Spell SpellID
+}
+
+func (Memorized) check() {}

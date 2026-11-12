@@ -7,6 +7,7 @@ import (
 	"gobox/ecl/script"
 	"gobox/ega"
 	"gobox/game/play"
+	"slices"
 )
 
 // opTreasure = ovr04:19B0 (7 money amounts, items): items < 0x80 is an
@@ -328,6 +329,25 @@ func (e *Engine) opGainExperience() {
 	e.scriptText(true, text)
 	e.askPause(int(e.msgDelay)*0xE1, askDone{})
 }
+
+// opSpell = sotsb O050:3410 (spell, slot, who): who in the party first has
+// the spell memorized: its slot (from 0; spellNone when no one) and the
+// member's place (the last member's when no one). Ruling S11: the one spell
+// list's id, no range search; POR gains the handler (area14's one Spell runs as the engine's castKnock).
+func (e *Engine) opSpell() {
+	e.vm.ReadArgs(3)
+	ids := e.partyIDs()
+	a := e.ruleset().Check(core.Memorized{Party: ids, Spell: e.spellID(int(byte(e.vm.Arg(1, e.host))))}, nil)
+	slot, who := int64(spellNone), max(len(ids)-1, 0)
+	if a.Yes {
+		slot, who = int64(a.Value), slices.Index(ids, a.Who)
+	}
+	e.host.Set(e.vm.Ref(2), slot)
+	e.host.Set(e.vm.Ref(3), int64(who))
+}
+
+// spellNone is Spell's slot result when no one has the spell.
+const spellNone = 255
 
 // DAMAGE's first operand (ruling 3, cotab's): a count of random members,
 // or flags; its save operand: the save type, or with saveSelected the
