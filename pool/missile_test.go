@@ -21,6 +21,9 @@ func testEngine(t *testing.T) *Engine {
 		t.Fatal(err)
 	}
 	e.Cfg.SaveDir = t.TempDir()
+	if _, err := e.r1e().Resolve(nil, core.LoadItemTable{}, nil); err != nil { // RandomItem converts through it
+		t.Fatal(err)
+	}
 	return e
 }
 

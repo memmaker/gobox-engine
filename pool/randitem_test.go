@@ -8,8 +8,7 @@ import (
 // Every base type makes an item: the table records RandomItem reads lie
 // inside itemTable (the rod's record at 0x91 ran past it).
 func TestRandomItemAllTypes(t *testing.T) {
-	e := &Engine{}
-	e.initVM()
+	e := testEngine(t)
 	for typ := 0; typ < 0x100; typ++ {
 		for range 50 {
 			e.state().RandomItem(rules1e.ItemType(typ))
