@@ -57,3 +57,9 @@ type SetPortrait struct {
 func (PortraitFact) fact()  {}
 func (Portrait) value()     {}
 func (SetPortrait) action() {}
+
+// Modifiable asks whether Who may be modified: no experience of its own,
+// that is the adventure's starting experience (Yes).
+type Modifiable struct{ Who CharID }
+
+func (Modifiable) check() {}
