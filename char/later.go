@@ -273,7 +273,11 @@ func CheckLater[R Later](tb *rules1e.Tables, items []ItemBase, f LaterFiles) err
 	// the DOS pointers in items and affects are not kept (the port writes zeros)
 	pad := make([]byte, f.ItemSize-ItemSize)
 	var want []byte
-	for _, it := range readItems(f.Items, f.ItemSize) {
+	kept := readItems(f.Items, f.ItemSize)
+	if err := r.GoneSpellsOut(kept); err != nil {
+		return err
+	}
+	for _, it := range kept {
 		want = append(append(want, WriteItems([]Item{it})...), pad...)
 	}
 	if !bytes.Equal(g.Items, want) {

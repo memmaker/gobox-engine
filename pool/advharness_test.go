@@ -13,8 +13,6 @@ import (
 // The adventure harness: any game's imported folder (gobox import <game>
 // <originals>) started headless, as quickStarted does for POR. Each game has
 // its own env var holding the folder; a test skips when it is unset.
-// The smoke tests of sotsb, pod and cotab stop at "script: no game field
-// QuestSlums" (quests are POR's until per-game quest data lands).
 const (
 	advEnvSOTSB = "POOL_ADV_SOTSB"
 	advEnvPOD   = "POOL_ADV_POD"
