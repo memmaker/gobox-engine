@@ -2,24 +2,6 @@ package core
 
 // Items: the inventory as the engine shows it, item cards, identifying and valuing.
 
-// InvItem is one item of the inventory.
-type InvItem struct {
-	Item    ItemHandle // the item
-	Name    string     // as the list shows it
-	Type    byte       // base item type
-	Words   []string   // the item's name words, known or not (for its icon)
-	Count   int
-	Readied bool     // it is readied (shown with present.Data.ReadyMark, for a game without a doll)
-	Slot    bool     // it has a doll slot (it can be readied)
-	Wrong   bool     // the member's class cannot ready it
-	Use     bool     // it has a use (a scroll, a spell of its own)
-	Look    []string // what it does (the shop's Look text)
-	Price   Money    // what selling it pays (a ware: what it costs; loot: none)
-	Scribe  bool     // a scroll someone was going to scribe from (the front end asks before it goes)
-	Kind    InvTab   // its party inventory tab
-	Rules   []string // extra: how it attacks in combat (the bar's tooltip), set on the Turn's Weapon and Missile
-}
-
 // Money is an amount the front end shows (as "12g 50c").
 type Money struct{ Gold, Copper int }
 
@@ -111,7 +93,8 @@ type ListedFact struct{ Goods bool }
 // IdentifiableFact is the items the shop's Id offers Who (Handles).
 type IdentifiableFact struct{}
 
-// ItemCardFact is Item as Who sees it (ItemCard); Who may be NoChar.
+// ItemCardFact is Item as Who sees it (ItemCard); Who may be NoChar. Who is
+// the holder when the card shows a held item.
 type ItemCardFact struct{ Item ItemHandle }
 
 // DamageFact is the dice Who's blow rolls, as the sheet words them ("1d8+1": Text).
@@ -128,8 +111,11 @@ func (DamageFact) fact() {}
 // Handles are items in an order.
 type Handles []ItemHandle
 
-// ItemCard is an item as a character sees it.
+// ItemCard is an item as a character sees it: the one card for the item
+// list, the inventory screen and the weapon in hand.
 type ItemCard struct {
+	Item                ItemHandle // the item
+	Rules               []string   // extra: how it attacks in combat (the bar's tooltip), set on the Turn's Weapon and Missile
 	Name                string
 	Type, Count, Price  int32
 	Weight              int32
@@ -169,11 +155,6 @@ type ItemIdentified struct {
 
 func (ItemIdentified) effect() {}
 
-// ItemViewFact is one held item as the member shows and pictures it
-// (Fact of the holder: an InvItem; its Index, Price and the flags of a
-// list are left unset).
-type ItemViewFact struct{ Item ItemHandle }
-
 // InventoryFact is the member's inventory screen (Fact: an InventoryView);
 // Powers is the engine's to add.
 type InventoryFact struct{}
@@ -184,18 +165,14 @@ type InventoryFact struct{}
 type InventoryView struct {
 	Member int // the member's place in the party
 	Cap    int // the party inventory's slots
-	Doll   []*InvItem
-	Pool   []InvItem
+	Doll   []*ItemCard
+	Pool   []ItemCard
 	Use    bool // items can be used here
 	Sell   bool // a shop buys them
 	Switch bool // another member can be shown (not in combat)
 }
 
-func (ItemViewFact) fact() {}
-
 func (InventoryFact) fact() {}
-
-func (InvItem) value() {}
 
 func (InventoryView) value() {}
 
