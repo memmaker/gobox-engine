@@ -188,8 +188,10 @@ func TestPlayParty(t *testing.T) {
 }
 
 // devPlay is an exploring engine with dev scene name up.
-func devPlay(t *testing.T, name string) *Engine {
-	e := testEngine(t)
+func devPlay(t *testing.T, name string) *Engine { return devPlayOn(t, testEngine(t), name) }
+
+// devPlayOn is devPlay on the engine e (any game's: advEngine).
+func devPlayOn(t *testing.T, e *Engine, name string) *Engine {
 	e.Explore = true
 	e.DevAction = e.DevScene(name)
 	seed := uint32(1)

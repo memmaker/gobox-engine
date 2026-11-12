@@ -13,9 +13,11 @@ import (
 
 // partyTurnScene: the combat dev scene up to its first party turn, Magic
 // Missile memorized.
-func partyTurnScene(t *testing.T) *Engine {
+func partyTurnScene(t *testing.T) *Engine { t.Helper(); return partyTurnSceneOn(t, testEngine(t)) }
+
+// partyTurnSceneOn is partyTurnScene on the engine e (any game's: advEngine).
+func partyTurnSceneOn(t *testing.T, e *Engine) *Engine {
 	t.Helper()
-	e := testEngine(t)
 	e.Explore = true
 	sc := e.DevScene("combat")
 	e.DevAction = func() {

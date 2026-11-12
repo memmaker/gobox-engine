@@ -15,7 +15,7 @@ import (
 const DataDir = "data"
 
 // monsterData is a monster's records (MON<n>CHA, SPC, ITM block id).
-type monsterData = dax.Monster[CharRecord, char.AffectRecord, char.Item]
+type monsterData = dax.Monster[char.Sheet, char.AffectRecord, char.Item]
 
 // sets are the data sets the engine reads (Set.file).
 const sets = 8

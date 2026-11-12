@@ -21,7 +21,32 @@ type (
 	Item         = rules1e.Item
 	AffectRecord = rules1e.AffectRecord
 	ItemBase     = rules1e.ItemBase
+	Sheet        = rules1e.Sheet // a record as the rules model it (MON<n>.json's monster records)
 )
+
+// SheetOfRecord is a record of any game's layout as the rules' Sheet, as the importers
+// write monsters (dax.ImportData). It keeps the game's numbers: rules1e maps races,
+// spells and affects when it makes the monster.
+func SheetOfRecord[R Record285 | Later](r R) Sheet {
+	switch r := any(r).(type) {
+	case Record285:
+		return sheetOf(r)
+	case Record422:
+		return laterSheet(r)
+	case Record439:
+		return laterSheet(r)
+	case Record510:
+		return laterSheet(r)
+	}
+	panic("char: not a record layout") // the constraint admits no other type
+}
+
+// laterSheet is a later layout's record as the Sheet (PackLater's sheet).
+func laterSheet[R Later](r R) Sheet {
+	var c rules1e.CharacterJSON
+	sheetOfLater(&c, r)
+	return c.Sheet
+}
 
 // The record sizes of Item and AffectRecord.
 const (
@@ -89,11 +114,6 @@ func pointers[T any](v []T) []*T {
 		out = append(out, &v[i])
 	}
 	return out
-}
-
-// Monster285 is a MON block's records for the rules.
-func Monster285(r Record285, affects []AffectRecord, items []Item) rules1e.Monster {
-	return rules1e.Monster{Sheet: sheetOf(r), Affects: affects, Items: items}
 }
 
 // SheetOf reads a record in the 0x11D layout (short data leaves the rest zero).

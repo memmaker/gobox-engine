@@ -17,7 +17,8 @@ import (
 // in the DOS layout, read with encoding/binary).
 
 // Monster is a monster's records: MON<set>CHA, SPC (affects) and ITM (items)
-// blocks of one id.
+// blocks of one id. MON<n>.json holds it with the record as the rules' sheet
+// (ImportData's sheet), so every game's monsters read the same.
 type Monster[C, A, I any] struct {
 	Record  C
 	Affects []A `json:",omitempty"`
@@ -32,8 +33,9 @@ const sets = 10
 
 // ImportData writes the maps and records of l's archives into dst:
 // GEO<n>.bin/.txt, WALLDEF<n>.bin/.txt, MON<n>.json (map id: Monster) and ITEM<n>.json (map id:
-// items), for every set n whose archive exists.
-func ImportData[C, A, I any](l *Loader, dst string) error {
+// items), for every set n whose archive exists. sheet is a game record as the rules' sheet,
+// the one form MON<n>.json holds the record in.
+func ImportData[C, A, I, S any](l *Loader, dst string, sheet func(C) S) error {
 	for s := range sets {
 		n := strconv.Itoa(s)
 		if l.Exists("GEO" + n + ".DAX") {
@@ -47,7 +49,11 @@ func ImportData[C, A, I any](l *Loader, dst string) error {
 			}
 		}
 		if l.Exists("MON" + n + "CHA.DAX") {
-			if err := asset.WriteJSON(dst, "MON"+n, Monsters[C, A, I](l, "MON"+n)); err != nil {
+			out := map[int]Monster[S, A, I]{}
+			for id, m := range Monsters[C, A, I](l, "MON"+n) {
+				out[id] = Monster[S, A, I]{Record: sheet(m.Record), Affects: m.Affects, Items: m.Items}
+			}
+			if err := asset.WriteJSON(dst, "MON"+n, out); err != nil {
 				return err
 			}
 		}

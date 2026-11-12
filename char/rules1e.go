@@ -18,7 +18,7 @@ import (
 // panics: run the game's import); else on rules1e.POR.
 func Rules1e(
 	rules string,
-	monster func(core.MonsterID) (Record285, []AffectRecord, []Item, bool),
+	monster func(core.MonsterID) (Sheet, []AffectRecord, []Item, bool),
 	items func() []ItemBase,
 	treasure func(block int) []Item,
 	host goldbox.CreationHost,
@@ -37,7 +37,7 @@ func Rules1e(
 	}
 	r.Monsters = func(id core.MonsterID) (rules1e.Monster, bool) {
 		rec, affects, its, ok := monster(id)
-		return Monster285(rec, affects, its), ok
+		return rules1e.Monster{Sheet: rec, Affects: affects, Items: its}, ok
 	}
 	r.ItemTable = items
 	r.TreasureBlock = treasure

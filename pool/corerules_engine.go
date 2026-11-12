@@ -19,7 +19,7 @@ import (
 // needs nothing of this package.
 type Ruleset func(
 	rules string,
-	monster func(core.MonsterID) (char.Record285, []char.AffectRecord, []char.Item, bool),
+	monster func(core.MonsterID) (char.Sheet, []char.AffectRecord, []char.Item, bool),
 	items func() []char.ItemBase,
 	treasure func(block int) []char.Item,
 	host goldbox.CreationHost,
@@ -98,7 +98,7 @@ func (e *Engine) ruleset() core.Rules {
 		if build == nil {
 			build = bareRuleset
 		}
-		monster := func(id core.MonsterID) (char.Record285, []char.AffectRecord, []char.Item, bool) {
+		monster := func(id core.MonsterID) (char.Sheet, []char.AffectRecord, []char.Item, bool) {
 			m, ok := e.gdata().monster(e.set.File("MON"), int(id))
 			return m.Record, m.Affects, m.Items, ok
 		}
