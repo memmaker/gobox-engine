@@ -14,7 +14,6 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/pool"
 	"por/porgame"
 )
 
@@ -54,7 +53,7 @@ func TestMapImage(t *testing.T) {
 		m := front.MapSquares{Party: rec.Party, Ahead: rec.Ahead}
 		for y, row := range rec.Squares {
 			for x, q := range row {
-				m.Squares[y][x] = front.MapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index(pool.Data().LabelInks, q.Ink), Letter: q.Letter}
+				m.Squares[y][x] = front.MapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index(e.Data().LabelInks, q.Ink), Letter: q.Letter}
 			}
 		}
 		r, err := os.Open(strings.TrimSuffix(f, ".json") + ".png")
