@@ -188,6 +188,16 @@ func (Toughen) action() {}
 
 func (TakePower) action() {}
 
+// FiguresFact is the lines Who's rule set adds to its sheet (Figures; nil: none).
+type FiguresFact struct{}
+
+// Figures is FiguresFact's answer.
+type Figures []Figure
+
+func (FiguresFact) fact() {}
+
+func (Figures) value() {}
+
 // PortraitFact is Who's portrait (Portrait).
 type PortraitFact struct{}
 

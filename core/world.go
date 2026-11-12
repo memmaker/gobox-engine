@@ -28,6 +28,12 @@ type AreaTileIs struct{ X, Y int32 }
 
 func (AreaTileIs) check() {}
 
+// AdvanceClock adds Count units of the area clock (Unit: the clock's word,
+// 1 minutes ..) and runs the timed effects down (por AdvanceClock, ovr21:03D5).
+type AdvanceClock struct{ Count, Unit int32 }
+
+func (AdvanceClock) action() {}
+
 // DevPlace sets a dev scene's fight up before its first turn: Melee puts a
 // foe beside each member, else each member goes to the map's edge.
 type DevPlace struct{ Melee bool }
