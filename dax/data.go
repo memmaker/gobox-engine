@@ -33,9 +33,9 @@ const sets = 10
 
 // ImportData writes the maps and records of l's archives into dst:
 // GEO<n>.bin/.txt, WALLDEF<n>.bin/.txt, MON<n>.json (map id: Monster) and ITEM<n>.json (map id:
-// items), for every set n whose archive exists. sheet is a game record as the rules' sheet,
-// the one form MON<n>.json holds the record in.
-func ImportData[C, A, I, S any](l *Loader, dst string, sheet func(C) S) error {
+// items), for every set n whose archive exists. sheet is a game record as the rules' sheet and
+// item a game item as the rules' item, the one form MON<n>.json and ITEM<n>.json hold them in.
+func ImportData[C, A, I, S, T any](l *Loader, dst string, sheet func(C) S, item func(I) T) error {
 	for s := range sets {
 		n := strconv.Itoa(s)
 		if l.Exists("GEO" + n + ".DAX") {
@@ -49,21 +49,34 @@ func ImportData[C, A, I, S any](l *Loader, dst string, sheet func(C) S) error {
 			}
 		}
 		if l.Exists("MON" + n + "CHA.DAX") {
-			out := map[int]Monster[S, A, I]{}
+			out := map[int]Monster[S, A, T]{}
 			for id, m := range Monsters[C, A, I](l, "MON"+n) {
-				out[id] = Monster[S, A, I]{Record: sheet(m.Record), Affects: m.Affects, Items: m.Items}
+				out[id] = Monster[S, A, T]{Record: sheet(m.Record), Affects: m.Affects, Items: items(m.Items, item)}
 			}
 			if err := asset.WriteJSON(dst, "MON"+n, out); err != nil {
 				return err
 			}
 		}
 		if l.Exists("ITEM" + n + ".DAX") {
-			if err := asset.WriteJSON(dst, "ITEM"+n, ItemBlocks[I](l, "ITEM"+n)); err != nil {
+			out := map[int][]T{}
+			for id, its := range ItemBlocks[I](l, "ITEM"+n) {
+				out[id] = items(its, item)
+			}
+			if err := asset.WriteJSON(dst, "ITEM"+n, out); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+// items is each of its as item makes it.
+func items[I, T any](its []I, item func(I) T) []T {
+	out := make([]T, len(its))
+	for i, it := range its {
+		out[i] = item(it)
+	}
+	return out
 }
 
 // Blocks is every block of archive name, by id.

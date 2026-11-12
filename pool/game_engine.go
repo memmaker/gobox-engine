@@ -342,9 +342,9 @@ func (e *Engine) commandBegin() {
 	e.areaMusic()
 	e.unback() // a backward step the scripts ended
 	if e.viewMode >= 2 && e.viewMode <= 4 && e.prevViewMode < 2 {
-		e.LoadIconPic("ICON", 0, 9)
-		e.LoadIconPic("ICON", 1, 0xA)
-		e.LoadIconPic("ICON", 2, 0xB)
+		e.loadAreaIcon(0, 9)
+		e.loadAreaIcon(1, 0xA)
+		e.loadAreaIcon(2, 0xB)
 		e.areaMapIcons() // 00BA:2B5E
 	}
 	if e.viewMode >= 1 && e.viewMode <= 4 {

@@ -324,7 +324,7 @@ func (e *Engine) loadSlot() bool {
 		e.LoadGeo(int(byte(e.worldWord(core.WordGeo)))) // ovr30:10C7
 	}
 	if e.viewMode > 1 {
-		e.LoadIconPic("ICON", 0, 0xB) // ovr33:01C8
+		e.loadAreaIcon(0, 0xB) // ovr33:01C8
 	} else {
 		for i := 1; i <= 3; i++ {
 			e.mapPairA[i-1] = int(int16(walls.A[i-1]))

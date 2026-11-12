@@ -51,24 +51,58 @@ func (e *Engine) drawIcon(x, y int, dir, pose, slot byte) {
 	e.drawPage(x*3, y*3, im, 0, true)
 }
 
-// LoadBackpacIcons = ovr33:0022 (name, first, n): block 1 of the DAX file
-// copied into the tile set from tile first on, frames 0..n (the Amiga's
-// RANDCOM has two more, which would land on the tiles after it).
-func (e *Engine) LoadBackpacIcons(name string, first, n int) {
-	if first > 0x7F {
+// LayTiles = ovr33:0022 LoadBackpacIcons (name, first, n): block l.Block
+// of l.File copied into the tile set from tile l.First on, frames 0..l.Last
+// (POR's Amiga RANDCOM has two more, which would land on the tiles after it).
+func (e *Engine) LayTiles(l TileLoad) {
+	if l.First > 0x7F {
 		return // the original stops with a fatal error
 	}
-	im := e.LoadPic(name, 1)
+	im := e.LoadPic(l.File, e.tileBlock(l))
 	t := e.sqrpaci[0]
 	if im == nil || t == nil {
 		return
 	}
 	// the frames change in place: the tiles' pictures follow their pixels (picRGBA)
-	for f := 0; f <= n && f < im.Count && first+f < t.Count && im.BPP == t.BPP; f++ {
-		copy(t.Frame(first+f), im.Frame(f))
-		if im.Alt != nil && t.Alt != nil && f < im.Alt.Count && first+f < t.Alt.Count && im.Alt.BPP == t.Alt.BPP {
-			copy(t.Alt.Frame(first+f), im.Alt.Frame(f))
+	for f := 0; f <= l.Last && f < im.Count && l.First+f < t.Count && im.BPP == t.BPP; f++ {
+		copy(t.Frame(l.First+f), im.Frame(f))
+		if im.Alt != nil && t.Alt != nil && f < im.Alt.Count && l.First+f < t.Alt.Count && im.Alt.BPP == t.Alt.BPP {
+			copy(t.Alt.Frame(l.First+f), im.Alt.Frame(f))
 		}
+	}
+}
+
+// tileBlock is l's block number in the game's present state.
+func (e *Engine) tileBlock(l TileLoad) int {
+	switch l.From {
+	case TileBlockWalls:
+		return e.mapPairA[0] & 0xFF
+	case TileBlockAreaSet:
+		if s := e.worldWord(core.WordAreaScreen); s == 1 || s == 2 {
+			return s
+		}
+		return 0
+	}
+	return l.Block
+}
+
+// blankTiles is the tile set of a game without a sheet of its own (sotsb,
+// pod): 0x80 blank 24x24 tiles the Tiles and combat sheets fill.
+// ponytail: no DOS twin, so F12 shows the Amiga tiles; give it one if a game with Amiga art needs it.
+func blankTiles() *asset.Image { return asset.NewImage(0x80, 3, 24) }
+
+// layAreaTiles lays the area map's tiles (BACPAC) over the tile set.
+func (e *Engine) layAreaTiles() {
+	for _, l := range e.artNames().AreaTiles {
+		e.LayTiles(l)
+	}
+}
+
+// loadAreaIcon loads the area map's party icon block into slot (ICON); a
+// game without one loads nothing.
+func (e *Engine) loadAreaIcon(block, slot int) {
+	if n := e.artNames().AreaIcon; n != "" {
+		e.LoadIconPic(n, block, slot)
 	}
 }
 
@@ -104,9 +138,9 @@ func (e *Engine) LoadIconPic(name string, block, slot int) {
 		}
 		n := name[:len(name)-1]
 		ic[0], ic[1] = load(n, block), load(n, block+0x80)
-	case up == "COMSPR" || up == "ICON":
+	case up == strings.ToUpper(e.artNames().CombatSprites) || up == strings.ToUpper(e.artNames().AreaIcon):
 		ic[0], ic[1] = load(name, block), load(name, block+0x80)
-		if up == "ICON" {
+		if up == strings.ToUpper(e.artNames().AreaIcon) {
 			e.recolour(ic[0], &IconPaletteCF2)
 			e.recolour(ic[1], &IconPaletteCF2)
 		}

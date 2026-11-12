@@ -36,12 +36,13 @@ func (e *Engine) combatSetup() {
 // combatMapSetup = ovr11:1244: the tile sets and the map.
 func (e *Engine) combatMapSetup() {
 	e.snap.dungeon = e.viewMode == 1
+	lays := e.artNames().WildTiles
 	if e.viewMode == 1 {
-		e.LoadBackpacIcons("DungCom", 0, 0x18)
-	} else {
-		e.LoadBackpacIcons("WildCom", 0, 0x21)
+		lays = e.artNames().DungeonTiles
 	}
-	e.LoadBackpacIcons("RandCom", 0x22, 5)
+	for _, l := range lays {
+		e.LayTiles(l)
+	}
 	if _, err := e.ruleset().Resolve(core.Fight{}, e.groundTerms(), nil); err != nil {
 		panic(fmt.Sprintf("combat ground: %v", err))
 	}

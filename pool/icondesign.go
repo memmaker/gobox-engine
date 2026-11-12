@@ -159,8 +159,8 @@ func (e *Engine) EndIcon(keep bool) {
 	e.clearPrompt()
 	e.freeIcon(0xC) // ovr33:014E
 	if e.viewMode > 1 {
-		e.LoadIconPic("ICON", 0, 0xB)
-		e.LoadIconPic("ICON", 1, 0xC)
+		e.loadAreaIcon(0, 0xB)
+		e.loadAreaIcon(1, 0xC)
 	}
 	e.combatViewEnter() // ovr32:0105
 	switch {

@@ -1,6 +1,7 @@
 package pool
 
 import (
+	"gobox/asset"
 	"gobox/char"
 	"gobox/core"
 	"gobox/ega"
@@ -25,12 +26,18 @@ func (e *Engine) Init() {
 	for _, l := range symbols { // ovr35:003B
 		e.LoadSymbolSet(l)
 	}
-	e.sqrpaci[0] = e.LoadPic("SQRPACI", 1) // 0464:0111 → DS:5E52
-	e.sqrpaci[1] = e.LoadPic("SQRPACI", 2) // DS:5E56
-	for i := 0; i <= 0xB; i++ {
-		e.LoadIconPic("COMSPR", i, i+0xD) // ovr33:01C8
+	e.sqrpaci = [2]*asset.Image{blankTiles()}
+	for _, l := range e.artNames().TileSheets { // POR: SQRPACI 1 and 2, 0464:0111 → DS:5E52, DS:5E56
+		e.sqrpaci[l.First/0x80] = e.LoadPic(l.File, l.Block)
 	}
-	e.LoadIconPic("COMSPR", 0x19, 0x19)
+	for _, l := range e.artNames().Tiles {
+		e.LayTiles(l)
+	}
+	spr := e.artNames().CombatSprites
+	for i := 0; i <= 0xB; i++ {
+		e.LoadIconPic(spr, i, i+0xD) // ovr33:01C8
+	}
+	e.LoadIconPic(spr, 0x19, 0x19)
 	e.do(core.LoadItemTable{}) // ITEMS file, 2-byte header then the records → DS:5582
 	e.clearPrompt()
 	e.Randomize()          // 0AF8:1247

@@ -41,6 +41,23 @@ func SheetOfRecord[R Record285 | Later](r R) Sheet {
 	panic("char: not a record layout") // the constraint admits no other type
 }
 
+// ItemOfRecord is an item record of any game's layout as the rules' Item, as the
+// importers write items (dax.ImportData): every game's 0x3F-byte record is
+// rules1e.ItemFile's layout, and a shorter one (pod's 17-byte library item) is
+// that record's tail, the bytes before it zero.
+func ItemOfRecord[R any](r R) Item {
+	var b bytes.Buffer
+	binary.Write(&b, binary.LittleEndian, r)
+	if b.Len() > ItemSize {
+		panic(fmt.Sprintf("char: a %d-byte item record", b.Len()))
+	}
+	rec := make([]byte, ItemSize)
+	copy(rec[ItemSize-b.Len():], b.Bytes())
+	var f rules1e.ItemFile
+	binary.Read(bytes.NewReader(rec), binary.LittleEndian, &f) // ItemSize bytes into the ItemSize-byte layout: cannot fail
+	return f.Item()
+}
+
 // laterSheet is a later layout's record as the Sheet (PackLater's sheet).
 func laterSheet[R Later](r R) Sheet {
 	var c rules1e.CharacterJSON

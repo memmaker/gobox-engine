@@ -99,7 +99,7 @@ func (e *Engine) DevScene(name string) func() {
 			e.viewMode = 2
 			e.setWorldWord(core.WordMapX, 7)
 			e.setWorldWord(core.WordMapY, 29)
-			e.LoadIconPic("ICON", 0, 9)
+			e.loadAreaIcon(0, 9)
 			e.areaMapIcons()
 		}
 	case "bestiary": // camp with a few kinds met for its Bestiary (CPIC blocks 1..5)

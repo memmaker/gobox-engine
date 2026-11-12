@@ -384,7 +384,7 @@ func (e *Engine) opLoadFiles() {
 			e.setWorldWord(core.WordHoldMove, 0)
 		}
 		if a[3] != 0xFF && e.worldWord(core.WordIn3D) == 0 {
-			e.LoadBackpacIcons("BACPAC", 0, 0x28) // ovr33:0022
+			e.layAreaTiles() // ovr33:0022
 		}
 	} else {
 		e.run.walldefSet = 1
@@ -645,10 +645,10 @@ func (e *Engine) opFought() {
 // opAfterFight: AfterCombat is over.
 func (e *Engine) opAfterFight() {
 	if e.worldWord(core.WordIn3D) == 0 {
-		e.LoadBackpacIcons("BACPAC", 0, 0x28)
-		e.LoadIconPic("ICON", 0, 9)
-		e.LoadIconPic("ICON", 1, 0xA)
-		e.LoadIconPic("ICON", 2, 0xB)
+		e.layAreaTiles()
+		e.loadAreaIcon(0, 9)
+		e.loadAreaIcon(1, 0xA)
+		e.loadAreaIcon(2, 0xB)
 	}
 	e.run.duelMode = 0
 	e.ret()

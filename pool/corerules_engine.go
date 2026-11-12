@@ -41,6 +41,72 @@ type GameTables struct {
 	OriginalSave               char.SaveLayout       // the game's SAVGAMx.DAT format (the original-save import)
 	PurseWhos                  []PurseWho            // the Who commands that spend the party's one purse (POR: the inn, the tavern)
 	Symbols                    []SymbolLoad          // the 8x8 symbol sets Init loads; nil: POR's, sotsb's and cotab's (PorSymbols)
+	Art                        *ArtNames             // the pictures the Engine loads by role; nil: POR's (PorArt)
+}
+
+// ArtNames are the picture files the Engine loads by role, each game's own
+// (POR's SQRPACI tile set is cotab's TILES; sotsb and pod have none). An
+// empty name or list: the game has no such picture.
+type ArtNames struct {
+	TileSheets    []TileLoad // whole sheets Init takes as the tile set, tile First/0x80's half (POR: SQRPACI 1 and 2); none: a blank set
+	Tiles         []TileLoad // laid over the tile set at Init (cotab: TILES 1 and 2, copyprot's Load24x24Set)
+	DungeonTiles  []TileLoad // what combat setup lays over the tiles in a dungeon (ovr11:1244, LoadCombatTileSet)
+	WildTiles     []TileLoad // and outdoors (sotsb: none, the set stays as it is)
+	AreaTiles     []TileLoad // the area map's (BACPAC), laid over the tiles off the 3D view
+	AreaIcon      string     // the area map's party icon sheet (ICON)
+	CombatSprites string     // the combat sprites (COMSPR)
+	Title         string     // the title pictures (TITLE)
+}
+
+// TileLoad is a block of File laid into the tile set from tile First: its
+// frames 0..Last (LoadBackpacIcons' n, Load24x24Set's count-1). The block is
+// Block, or for From a value of the game's state.
+type TileLoad struct {
+	File               string
+	Block, First, Last int
+	From               TileFrom `json:",omitempty"`
+}
+
+// TileFrom is where a TileLoad's block number comes from.
+type TileFrom int
+
+const (
+	TileBlockFixed   TileFrom = iota // TileLoad.Block
+	TileBlockWalls                   // the low byte of the loaded wall set's id (pod's DungCom)
+	TileBlockAreaSet                 // the area's tile set when 1 or 2, else 0 (pod's WildCom)
+)
+
+// PorArt is POR's ArtNames (Init, ovr11:1244, ovr33:0022).
+var PorArt = ArtNames{
+	TileSheets:    []TileLoad{{File: "SQRPACI", Block: 1}, {File: "SQRPACI", Block: 2, First: 0x80}},
+	DungeonTiles:  []TileLoad{{File: "DUNGCOM", Block: 1, Last: 0x18}, {File: "RANDCOM", Block: 1, First: 0x22, Last: 5}},
+	WildTiles:     []TileLoad{{File: "WILDCOM", Block: 1, Last: 0x21}, {File: "RANDCOM", Block: 1, First: 0x22, Last: 5}},
+	AreaTiles:     []TileLoad{{File: "BACPAC", Block: 1, Last: 0x28}},
+	AreaIcon:      "ICON",
+	CombatSprites: "COMSPR",
+	Title:         "TITLE",
+}
+
+// Files are every file a names (TestArtNamesImported).
+func (a ArtNames) Files() []string {
+	var out []string
+	for _, l := range slices.Concat(a.TileSheets, a.Tiles, a.DungeonTiles, a.WildTiles, a.AreaTiles) {
+		out = append(out, l.File)
+	}
+	for _, n := range []string{a.AreaIcon, a.CombatSprites, a.Title} {
+		if n != "" {
+			out = append(out, n)
+		}
+	}
+	return out
+}
+
+// artNames is the game's ArtNames.
+func (e *Engine) artNames() ArtNames {
+	if a := e.game().Art; a != nil {
+		return *a
+	}
+	return PorArt
 }
 
 // SymbolLoad is one 8x8 symbol set Init loads: block Block of File into set

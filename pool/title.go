@@ -152,7 +152,7 @@ func (e *Engine) titleLogo() *Picture {
 	if e.snap.logo != nil {
 		return e.snap.logo
 	}
-	im := e.LoadPic("TITLE", 2)
+	im := e.LoadPic(e.artNames().Title, 2)
 	if im == nil {
 		return nil
 	}

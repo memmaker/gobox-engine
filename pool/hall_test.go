@@ -74,7 +74,7 @@ func TestTitleFull(t *testing.T) {
 	e := testEngine(t)
 	e.Init()
 	e.ext.intro = true // as Run
-	e.fullPicture(e.LoadPic("TITLE", 1))
+	e.fullPicture(e.LoadPic(e.artNames().Title, 1))
 	e.Advance()
 	pics := e.pagePictures()
 	if !e.snap.full || len(pics) == 0 {
