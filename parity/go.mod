@@ -44,6 +44,7 @@ require (
 	gobox/audio v0.0.0 // indirect
 	gobox/char v0.0.0 // indirect
 	gobox/combat v0.0.0 // indirect
+	gobox/exe v0.0.0 // indirect
 	gobox/geo v0.0.0 // indirect
 	gobox/input v0.0.0 // indirect
 	gobox/rules v0.0.0 // indirect

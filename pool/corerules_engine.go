@@ -6,15 +6,19 @@ import (
 	"gobox/core"
 	"gobox/core/goldbox"
 	"gobox/ecl/script"
+	"gobox/exe/tablespec"
+	"os"
+	"path/filepath"
 	"slices"
 )
 
 // Ruleset builds the Engine's ruleset (the one injection point of the rules,
 // fold step E2): monster, items and treasure are the game data's monster
-// records, base item table and treasure blocks; host is the Engine's side of
-// the creation. The game hands it to New; the types are unnamed so a builder
+// records, base item table and treasure blocks; rules is the adventure's
+// rules.json ("": it has none); host is the Engine's side of the creation. The game hands it to New; the types are unnamed so a builder
 // needs nothing of this package.
 type Ruleset func(
+	rules string,
 	monster func(core.MonsterID) (char.Record285, []char.AffectRecord, []char.Item, bool),
 	items func() []char.ItemBase,
 	treasure func(block int) []char.Item,
@@ -94,7 +98,7 @@ func (e *Engine) ruleset() core.Rules {
 			}
 			return e.gdata().itemBlock(e.set.File("ITEM"), n)
 		}
-		e.rules, e.create = build(monster, e.readItems, treasure, creationHost{e})
+		e.rules, e.create = build(e.rulesFile(), monster, e.readItems, treasure, creationHost{e})
 	}
 	return e.rules
 }
@@ -172,4 +176,13 @@ func (e *Engine) rollDice(n, sides int) int {
 // rollRandom is the rules' Random(n) (core.RollRandom).
 func (e *Engine) rollRandom(n int) int {
 	return int(e.ruleset().Check(core.RollRandom{N: int32(n)}, nil).Value)
+}
+
+// rulesFile is the adventure's rules.json (tablespec.RulesFile in its data folder), "" when it has none.
+func (e *Engine) rulesFile() string {
+	p := filepath.Join(e.adv, DataDir, tablespec.RulesFile)
+	if _, err := os.Stat(p); err != nil {
+		return ""
+	}
+	return p
 }
