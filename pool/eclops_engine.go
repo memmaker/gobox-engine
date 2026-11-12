@@ -514,7 +514,6 @@ func (e *Engine) opCheckParty() {
 	}
 }
 
-
 // opPartySurprise = ovr04:1629 (a, b): a = someone has +0x2F of 4 or 10;
 // b is always 0.
 func (e *Engine) opPartySurprise() {
