@@ -164,12 +164,13 @@ func TestFleeOffEdge(t *testing.T) {
 // TestViewKey: the fight bar's View (the original's second verb, "Move
 // View Aim ...") is gobox's, on the original's V (Data.VerbKeys).
 func TestViewKey(t *testing.T) {
-	if k := Data().VerbKeys["View"]; k != 'V' {
+	d := testEngine(t).gameData
+	if k := d.VerbKeys["View"]; k != 'V' {
 		t.Errorf("View key %q, want 'V'", k)
 	}
 	want := []string{"Move", "View", "Aim", "Use", "Cast", "Turn", "Quick", "Done"}
-	if !slices.Equal(Data().VerbOrder, want) {
-		t.Errorf("VerbOrder %v, want %v", Data().VerbOrder, want)
+	if !slices.Equal(d.VerbOrder, want) {
+		t.Errorf("VerbOrder %v, want %v", d.VerbOrder, want)
 	}
 	for _, v := range turnBar { // every bar verb has its place
 		if !slices.Contains(want, v.o.Label) {

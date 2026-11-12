@@ -824,7 +824,7 @@ const (
 // the rules and the data together: app.Run(rules, data).
 type Data struct {
 	Commands    []PartyCommand // the party menu's extra entries; play.Assembling.Commands[i] does entry i
-	SaveDir     string         // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
+	SaveDir     string         `json:"-"` // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)
 	Series      string
 	Coin        string            `json:",omitempty"` // the money Purse, Sale and Pooled count in (Credits; "": Gold)
 	ID          string            // game id
@@ -834,34 +834,34 @@ type Data struct {
 	PartyMenu   []MenuKey         `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
 	Texts       map[string]string
 	Confirms    map[string]Confirm `json:",omitempty"` // gobox's own confirms in the original's words, by act: "Drop", "DropScribe", "Sell", "SellMany", "SellFree", "SellFreeMany", "DropMember" (nil: gobox's)
-	Credits     []string
-	SpellRules  map[int]string // what each spell does, by spell id (the spell tip text)
-	Art         map[string]Picture
+	Credits     []string           `json:"-"`
+	SpellRules  map[int]string     // what each spell does, by spell id (the spell tip text)
+	Art         map[string]Picture `json:"-"`
 	Sounds      map[string]string
 	Palette     []byte                        // palette bytes
 	MenuItems   []MenuItem                    // the game's own main menu lines, after gobox's
 	MusicPlaces []string                      // every Where.Music trigger the game sets (gobox makes their data/music folders)
-	OwnMusic    string                        // the player's own music folder (the host's data/music) for a game with Adventure set ("": beside Files)
+	OwnMusic    string                        `json:"-"` // the player's own music folder (the host's data/music) for a game with Adventure set ("": beside Files)
 	Imports     []string                      // other games' rosters and saves this game reads, by game id
 	QuickParty  []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
-	Clues       []Clue                        // the clue book's chapters (nil: the game has none)
-	Scans       func(name string) image.Image // the picture a Read's line "\x01name" shows (nil: none)
+	Clues       []Clue                        `json:"-"` // the clue book's chapters (nil: the game has none)
+	Scans       func(name string) image.Image `json:"-"` // the picture a Read's line "\x01name" shows (nil: none)
 	Font        string                        // the ui/fonts pool name of the game's font ("": gobox's default)
-	Fonts       []Typeface                    // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
+	Fonts       []Typeface                    `json:"-"` // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
 	Border      *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
-	Sequences    []Sequence        // the full-screen animations State.Sequence names (nil: none)
+	Sequences    []Sequence        `json:"-"`          // the full-screen animations State.Sequence names (nil: none)
 	DaxMask      map[string]int    `json:",omitempty"` // a DAX file's transparent colour index, as the original's loader takes it (File, e.g. "CHARS", "CPIC3"; no entry: none)
-	Files        string            // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
-	Adventure    string            // the imported adventure folder (gobox import): Picture File and Block from its art/, AmigaMusic's and AdLib's files from its sound/ (SoundDir), Sequences' from its anim/ (AnimDir); set, Files is not read ("": none)
-	SoundTables  []byte            // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
+	Files        string            `json:"-"`          // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
+	Adventure    string            `json:"-"`          // the imported adventure folder (gobox import): Picture File and Block from its art/, AmigaMusic's and AdLib's files from its sound/ (SoundDir), Sequences' from its anim/ (AnimDir); set, Files is not read ("": none)
+	SoundTables  []byte            `json:"-"`          // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
 	AdLib        *AdLib            // the AdLib music and effects (nil: none)
 	AmigaMusic   *AmigaMusic       // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)
 	DungeonTiles int               // the tiles at the start of the combat set
 	Rests        []RestKind        // camp's rests, in the menu's order (nil: none)
-	CreditLines  []Credit          // the title's credits page, placed (nil: Credits as plain lines)
-	CreditGaps   []int             // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
-	CreditBoxes  []image.Rectangle // the original's credits boxes in 40x25 cells, Min and Max the corner cells; an edge on the page's (x 38, y 23) follows the page's. The lines go in at their cells with CreditGaps. nil: one frame on the page's edges, the lines spread over it
+	CreditLines  []Credit          `json:"-"` // the title's credits page, placed (nil: Credits as plain lines)
+	CreditGaps   []int             `json:"-"` // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
+	CreditBoxes  []image.Rectangle `json:"-"` // the original's credits boxes in 40x25 cells, Min and Max the corner cells; an edge on the page's (x 38, y 23) follows the page's. The lines go in at their cells with CreditGaps. nil: one frame on the page's edges, the lines spread over it
 	IconParts    []string          // the combat icon designer's parts
 	ReadyMark    string            // shown before a readied item's name ("": none)
 	LabelInks    []int             // a map label's EGA colour by its kind
@@ -869,11 +869,11 @@ type Data struct {
 
 	DoorInk, SelectInk color.RGBA     // a door's colour on the maps; the frame round the selected box (zero: gobox's)
 	Logo               *Logo          // how the main menu's lettering is cut from the title picture (nil: none)
-	RemasterCredit     [2]string      // the remaster's own lines at the bottom of the credits page
-	TitleBackdrop      []Layer        // the title's picture under the main menu, none of Intro.Pictures' timed steps: gobox draws it once the title is done, fitted, and zooms the menu in over it (nil: none)
-	AreaMaps           map[int]string // the remastered 3D map (Remaster maps/NAME.map) of each area id
-	Remaster           fs.FS          // the remastered art: maps/NAME.map and assets/walls/walls.txt
-	OpenAt             string         // debug: map:NAME:X:Y:D shows that remastered map alone
+	RemasterCredit     [2]string      `json:"-"` // the remaster's own lines at the bottom of the credits page
+	TitleBackdrop      []Layer        `json:"-"` // the title's picture under the main menu, none of Intro.Pictures' timed steps: gobox draws it once the title is done, fitted, and zooms the menu in over it (nil: none)
+	AreaMaps           map[int]string `json:"-"` // the remastered 3D map (Remaster maps/NAME.map) of each area id
+	Remaster           fs.FS          `json:"-"` // the remastered art: maps/NAME.map and assets/walls/walls.txt
+	OpenAt             string         `json:"-"` // debug: map:NAME:X:Y:D shows that remastered map alone
 	Bindings           []Binding      // the game's own help rows, after the Any time Ctrl-F row
 }
 

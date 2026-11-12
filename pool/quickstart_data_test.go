@@ -8,7 +8,7 @@ import (
 	"gobox/game"
 )
 
-// TestQuickPartyData: Data().QuickParty is the old quickParty table.
+// TestQuickPartyData: e.gameData.QuickParty is the old quickParty table.
 func TestQuickPartyData(t *testing.T) {
 	e := testEngine(t)
 	old := []struct {
@@ -23,7 +23,7 @@ func TestQuickPartyData(t *testing.T) {
 		{"Corwin", 1, 11, map[string]int{"int": 18, "dex": 16, "con": 14}},
 		{"Pip", 14, 5, map[string]int{"str": 16, "dex": 17, "con": 15}},
 	}
-	var got []game.QuickPick = Data().QuickParty
+	var got []game.QuickPick = e.gameData.QuickParty
 	if len(got) != len(old) {
 		t.Fatalf("%d picks, want %d", len(got), len(old))
 	}

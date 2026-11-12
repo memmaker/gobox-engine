@@ -9,6 +9,7 @@ import (
 	"gobox/ecl"
 	"gobox/ecl/script"
 	"gobox/ega"
+	"gobox/game"
 	"gobox/importer/pictures"
 	"image"
 	"os"
@@ -52,12 +53,13 @@ type Engine struct {
 	adv                string                      // New's adventure folder: scripts, art, data
 	data               string                      // New's host data directory: AssetsDir, AmigaDir, SaveDir
 
-	pics   pictures.Pictures // the adventure's picture table (data/pictures.json): DAX picture -> collection entry
-	arts   *asset.Art        // the imported art of data (artFolder)
-	gd     *gameData         // the imported data of data (gdata)
-	sounds []byte            // the imported sound tables (SoundData)
-	held   play.Held         // the roster list read while the game waits (BuildCharList)
-	listed []string          // the roster list migrateRoster last saw: a list read each frame is numbered once
+	pics     pictures.Pictures // the adventure's picture table (data/pictures.json): DAX picture -> collection entry
+	arts     *asset.Art        // the imported art of data (artFolder)
+	gameData game.Data         // the game's static data (GameDataFile)
+	gd       *gameData         // the imported data of data (gdata)
+	sounds   []byte            // the imported sound tables (SoundData)
+	held     play.Held         // the roster list read while the game waits (BuildCharList)
+	listed   []string          // the roster list migrateRoster last saw: a list read each frame is numbered once
 
 	pal         ega.Regs // EGA palette registers (SetPaletteColor)
 	Cfg         Config
@@ -182,10 +184,14 @@ const (
 // rules builds the ruleset and d is the game's GameTables.
 func New(rules Ruleset, d GameTables, adv, data string) (*Engine, error) {
 	e := &Engine{newRules: rules, given: &d, adv: adv, data: data, pal: ega.Identity, set: 1, start: time.Now()}
+	var err error
 	e.initVM()
 	e.Cfg = Config{Graphics: 'E', Sound: 'P', SaveDir: filepath.Join(data, SaveDir)}
 	e.FullIntro.Store(true) // POOL.CFG's default (DS:49D1) until the host passes its Full intro option
 	e.pic.block = -1
+	if e.gameData, err = ReadGameData(adv); err != nil {
+		return nil, err
+	}
 	e.port = portrait{headID: 0xFF, bodyID: 0xFF}
 	pics, err := pictures.ReadPictures(os.DirFS(adv))
 	if err != nil {

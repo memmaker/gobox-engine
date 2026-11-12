@@ -369,3 +369,8 @@ func unpack(b []byte) ([]byte, error) {
 	copy(out[dst-i:dst], packed[:i])
 	return out, nil
 }
+
+// Silent is the sound tables of a game with no PC speaker or Tandy music (Pools
+// of Darkness plays AdLib only): the one song every game has, song 0, which ends
+// every channel. audio.NewDriver takes it, and every song after it plays nothing.
+const Silent = `{"program":[{}],"speaker":[[0,0,0,0]],"tandy":[[0,0,0,0]],"vibratos":[],"envelopes":[]}`

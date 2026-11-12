@@ -41,7 +41,7 @@ func (h creationHost) SetPics(d core.Draft, p *goldbox.Pics) {
 
 func (h creationHost) QuickParty() []core.Template {
 	var out []core.Template
-	for _, qp := range Data().QuickParty {
+	for _, qp := range h.e.gameData.QuickParty {
 		need := map[core.Ability]int32{}
 		for key, v := range qp.Need {
 			if i := slices.Index(statKeys, key); i >= 0 {

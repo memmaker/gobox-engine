@@ -34,7 +34,7 @@ func TestPicturesMasked(t *testing.T) {
 			t.Errorf("%s: Clear %d", n, p.Clear)
 		}
 	}
-	if len(Data().DaxMask) != 0 {
-		t.Errorf("DaxMask %v: por names no masked file", Data().DaxMask)
+	if len(e.gameData.DaxMask) != 0 {
+		t.Errorf("DaxMask %v: por names no masked file", e.gameData.DaxMask)
 	}
 }
