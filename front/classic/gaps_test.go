@@ -314,10 +314,10 @@ func TestShopBrowse(t *testing.T) {
 
 // TestReadyToggles: Ready on a readied item unreadies it.
 func TestReadyToggles(t *testing.T) {
-	c := play.Common{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Readied: true}}}}}
+	c := play.Common{Party: []game.Member{{Items: []game.Item{{Handle: 1, Name: "Gun", Readied: true}}}}}
 	f := &fake{st: play.Exploring{Common: c}}
-	newRules(f, game.Data{}).send(play.Ready{Member: 0, Item: 0})
-	if len(f.sent) != 1 || f.sent[0] != (play.Unready{}) {
+	newRules(f, game.Data{}).send(play.Ready{Member: 0, Item: 1})
+	if len(f.sent) != 1 || f.sent[0] != (play.Unready{Item: 1}) {
 		t.Fatalf("sent %v", f.sent)
 	}
 }

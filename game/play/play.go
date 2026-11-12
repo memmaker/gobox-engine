@@ -445,9 +445,16 @@ func (ShipShown) event()   {}
 // type here. Which apply now is the state's Allowed.
 type (
 	// Anywhere a member's goods are shown.
-	Ready   struct{ Member, Item, Count int } // Count of a stack (0: all)
-	Unready struct{ Member, Item int }
-	Drop    struct {
+	Ready struct {
+		Member int
+		Item   core.ItemHandle
+		Count  int // of a stack (0: all)
+	}
+	Unready struct {
+		Member int
+		Item   core.ItemHandle
+	}
+	Drop struct {
 		Member int
 		Item   core.ItemHandle
 	}

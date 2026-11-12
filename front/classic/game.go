@@ -763,7 +763,7 @@ func (g *Game) CloseItems(all bool) error {
 	}
 	return g.run("closeItems", func() play.Result { return g.r.closeItems(all) })
 }
-func (g *Game) Ready(i, x int) error { return g.do(play.Ready{Member: g.sel(-1), Item: i, Count: x}) }
+func (g *Game) Ready(i, x int) error { return g.do(play.Ready{Member: g.sel(-1), Item: g.held(i), Count: x}) }
 func (g *Game) UseItem(i, spell, target int, sure bool) error {
 	return g.asking(g.do(play.UseItem{Member: g.sel(-1), Item: i, Spell: spell, Target: target}))
 }
@@ -1005,7 +1005,7 @@ func (g *Game) act(a front.Action) func() error {
 	case front.ActJoin:
 		return send(play.Join{Member: g.sel(-1), Item: a.N})
 	case front.ActReady:
-		return send(play.Ready{Member: g.sel(-1), Item: a.N, Count: a.X})
+		return send(play.Ready{Member: g.sel(-1), Item: g.held(a.N), Count: a.X})
 	case front.ActUse:
 		return send(play.UseItem{Member: g.sel(-1), Item: a.N})
 	case front.ActDrop:

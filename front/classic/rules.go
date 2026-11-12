@@ -777,7 +777,7 @@ func (r *rules) apply(a play.Action) play.Result {
 			}
 		}
 	case play.Ready: // on a readied item it unreadies it, as the originals' Ready toggles
-		if pt := play.CommonOf(ps).Party; d.Member >= 0 && d.Member < len(pt) && d.Item >= 0 && d.Item < len(pt[d.Member].Items) && pt[d.Member].Items[d.Item].Readied {
+		if pt := play.CommonOf(ps).Party; d.Member >= 0 && d.Member < len(pt) && slices.ContainsFunc(pt[d.Member].Items, func(it game.Item) bool { return it.Handle == d.Item && it.Readied }) {
 			return r.do(play.Unready{Member: d.Member, Item: d.Item})
 		}
 	}
