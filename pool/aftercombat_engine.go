@@ -181,7 +181,7 @@ func (e *Engine) LootLeave(sure bool) error {
 	if !e.waiting(PendLoot) {
 		return core.ErrNotNow
 	}
-	if len(e.goods()) > 0 && !sure {
+	if len(e.goods()) > 0 && !sure && e.vault == nil { // the vault keeps what is left
 		return e.askSure("There is still treasure left.  Do you want to go back and claim your treasure?", pendingCall{kind: callLoot}) // ovr06:0E7D, 0E9D
 	}
 	e.resume()

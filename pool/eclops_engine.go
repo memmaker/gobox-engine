@@ -593,8 +593,10 @@ func (e *Engine) noMonsterScreen() func() {
 			return e.Shop // ovr07:053E
 		case script.CombatTemple:
 			return e.Temple // ovr05:0D09
-		default: // the vault screen is not ported yet (coordinator?)
-			return func() { fmt.Fprintln(os.Stderr, "ecl: Combat: the vault screen is not ported") }
+		case script.CombatVault:
+			return e.Vault
+		default:
+			panic(fmt.Sprintf("ecl: Combat: no screen for %v", s))
 		}
 	}
 	return nil

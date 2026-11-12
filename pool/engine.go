@@ -34,6 +34,7 @@ type Engine struct {
 	pngs               map[pngKey]image.Image      // the characters' PNGs decoded (pngImage)
 	iconPoses          map[iconPoseKey]image.Image // the cuts of PNG icons (iconPNG)
 	newRules           Ruleset                     // builds rules (New; bareRuleset when nil)
+	vault              *vault                      // the open vault (Vault)
 	given              *GameTables                 // the game's GameTables (New; bareData when nil)
 	eclVersion         *script.Version             // the game's ECL dialect (initVM)
 	rules              core.Rules                  // the ruleset; it owns the rules' state (state) (corerules_engine.go)

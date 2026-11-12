@@ -87,7 +87,12 @@ func (e *Engine) ruleset() core.Rules {
 			m, ok := e.gdata().monster(e.set.File("MON"), int(id))
 			return m.Record, m.Affects, m.Items, ok
 		}
-		treasure := func(n int) []char.Item { return e.gdata().itemBlock(e.set.File("ITEM"), n) }
+		treasure := func(n int) []char.Item {
+			if n == vaultBlock {
+				return e.vault.items
+			}
+			return e.gdata().itemBlock(e.set.File("ITEM"), n)
+		}
 		e.rules, e.create = build(monster, e.readItems, treasure, creationHost{e})
 	}
 	return e.rules

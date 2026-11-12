@@ -49,6 +49,7 @@ const (
 	kAfterResults                  // AfterCombat: the results page had its key
 	kLootDone                      // AfterCombat: the treasure screen is left
 	kAfterEnd                      // AfterCombat is over (the monsters' page had its key)
+	kVaultDone                     // the vault screen is left
 )
 
 // cont is what to do next, with what it needs.
@@ -155,5 +156,7 @@ func (e *Engine) ret() {
 		e.afterEnd()
 	case kAfterEnd:
 		e.afterEnd()
+	case kVaultDone:
+		e.vaultDone()
 	}
 }
