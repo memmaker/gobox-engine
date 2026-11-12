@@ -271,3 +271,30 @@ func (PoolPics) value()    {}
 func (SetPoolPic) action() {}
 func (IconPicsFact) fact() {}
 func (IconPics) value()    {}
+
+// PartyFact is the party in marching order (Party; Who is NoChar).
+type PartyFact struct{}
+
+// ModFact is Who's modifier of ability Ability (Number).
+type ModFact struct{ Ability Ability }
+
+// Abilities are the six abilities in the order of a sheet's rows.
+var Abilities = [6]Ability{Strength, Intelligence, Wisdom, Dexterity, Constitution, Charisma}
+
+// ClassByNumber is the ruleset's class of the original's class number N
+// (Class; ClassNone outside the table).
+type ClassByNumber struct{ N int }
+
+// PaladinCan asks whether Who may lay on hands now (Cure false) or cure
+// disease now (Cure true): Yes.
+type PaladinCan struct {
+	Who  CharID
+	Cure bool
+}
+
+func (PartyFact) fact()     {}
+func (ModFact) fact()       {}
+func (ClassByNumber) fact() {}
+func (PaladinCan) check()   {}
+func (Party) value()        {}
+func (Class) value()        {}

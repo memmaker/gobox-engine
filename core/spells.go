@@ -191,3 +191,10 @@ func (CampCast) action()   {}
 
 // MemoSlots is how many MemoFact slots a character has (0..MemoSlots-1).
 const MemoSlots = 21
+
+// SpellByNumber is the ruleset's id of the original's spell number N
+// (SpellID; "" outside the table).
+type SpellByNumber struct{ N int }
+
+func (SpellByNumber) fact() {}
+func (SpellID) value()      {}

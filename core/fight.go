@@ -320,3 +320,17 @@ func (UnitBody) check() {}
 type OpenTurn struct{ Actor CharID }
 
 func (OpenTurn) action() {}
+
+// StepFact is what lies a step of Dir (0..7) from the fighter on the fight's board (StepInfo).
+type StepFact struct{ Dir int }
+
+// StepInfo is a square a fighter may step on: Unit the combatant on it (0 none),
+// Ground its terrain (0 and no unit: off the map), Foe whether that unit is
+// on the other side.
+type StepInfo struct {
+	Unit, Ground int32
+	Foe          bool
+}
+
+func (StepFact) fact()  {}
+func (StepInfo) value() {}

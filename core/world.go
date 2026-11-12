@@ -27,3 +27,9 @@ func (MapTerrain) check() {}
 type AreaTileIs struct{ X, Y int32 }
 
 func (AreaTileIs) check() {}
+
+// DevPlace sets a dev scene's fight up before its first turn: Melee puts a
+// foe beside each member, else each member goes to the map's edge.
+type DevPlace struct{ Melee bool }
+
+func (DevPlace) action() {}

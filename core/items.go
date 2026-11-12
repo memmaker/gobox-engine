@@ -195,3 +195,10 @@ type HasRoom struct {
 }
 
 func (HasRoom) check() {}
+
+// ItemByNumber is the ruleset's id of the original's item type N
+// (ItemID; the Fact errs when the ruleset has none).
+type ItemByNumber struct{ N int }
+
+func (ItemByNumber) fact() {}
+func (ItemID) value()      {}
