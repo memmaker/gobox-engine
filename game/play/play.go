@@ -597,8 +597,11 @@ type (
 	} // Text: a typed answer
 
 	// Trading.
-	Buy      struct{ Member, Item int }
-	Sell     struct{ Member, Item int }
+	Buy  struct{ Member, Item int }
+	Sell struct {
+		Member int
+		Item   core.ItemHandle
+	}
 	Identify struct{ Member, Item int }
 	Appraise struct {
 		Member, Item int

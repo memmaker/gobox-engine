@@ -765,7 +765,7 @@ func (g *Game) UseItem(i, spell, target int, sure bool) error {
 	return g.asking(g.do(play.UseItem{Member: g.sel(-1), Item: i, Spell: spell, Target: target}))
 }
 func (g *Game) Drop(i int) error { return g.do(play.Drop{Member: g.sel(-1), Item: g.held(i)}) }
-func (g *Game) Sell(i int) error { return g.do(play.Sell{Member: g.sel(-1), Item: i}) }
+func (g *Game) Sell(i int) error { return g.do(play.Sell{Member: g.sel(-1), Item: g.held(i)}) }
 func (g *Game) Buy(w int) error {
 	if lootOf(g.r.g.State()) != nil { // the loot screen's Take, as the act mapping does
 		return g.do(play.Take{Item: w})
@@ -1008,7 +1008,7 @@ func (g *Game) act(a front.Action) func() error {
 	case front.ActDrop:
 		return send(play.Drop{Member: g.sel(-1), Item: g.held(a.N)})
 	case front.ActSell:
-		return send(play.Sell{Member: g.sel(-1), Item: a.N})
+		return send(play.Sell{Member: g.sel(-1), Item: g.held(a.N)})
 	case front.ActReload:
 		return send(play.Reload{Member: g.sel(-1), Item: a.N})
 	case front.ActBuy:
