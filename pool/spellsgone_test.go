@@ -3,6 +3,7 @@ package pool
 import (
 	"testing"
 
+	"gobox/core"
 	"gobox/core/goldbox"
 	"rules1e"
 )
@@ -48,9 +49,40 @@ func spellsGone(t *testing.T, e *Engine, gone ...int) {
 			}
 		}
 	}
+	itemSpells(t, e, known)
 	for _, n := range gone { // a script naming one reads it as no spell or its stand-in
 		if id := e.scriptSpell(n); id != "" && n != 103 {
 			t.Errorf("removed spell %d reads as %q", n, id)
 		}
 	}
+}
+
+// itemSpells: every treasure block's items (a shop's stock is one) and
+// random treasure (TREASURE $80+n) hold no scroll spell without an id.
+func itemSpells(t *testing.T, e *Engine, known func(rules1e.SpellID) bool) {
+	t.Helper()
+	r, s := e.r1e(), e.state()
+	s.Treasure = nil
+	for b := range 0x80 {
+		if len(r.TreasureBlock(b)) == 0 {
+			continue
+		}
+		if _, err := r.Resolve(nil, core.AddTreasureBlock{Block: int32(b)}, nil); err != nil {
+			t.Fatalf("treasure block %d: %v", b, err)
+		}
+	}
+	if _, err := r.Resolve(nil, core.AddRandomTreasure{N: 60}, nil); err != nil {
+		t.Fatalf("random treasure: %v", err)
+	}
+	for _, it := range s.Treasure {
+		if !s.IsScroll(it) {
+			continue
+		}
+		for _, p := range it.Spells {
+			if sp := p.Spell(); p != 0 && !known(sp) {
+				t.Errorf("scroll %v (type %d): spell %d has no id", it.Words, it.Type, sp)
+			}
+		}
+	}
+	s.Treasure = nil
 }
