@@ -13,10 +13,14 @@ import (
 // without a unified id; a script's removed spell
 // number reads as no spell (pod 103: Hold Person). Detect the class: a removed spell number must be
 // in the importer's spellsGone (POR: rules1e.PorSpellsGone).
-func TestSpellsGone(t *testing.T)      { spellsGone(t, quickStarted(t), 56) }
-func TestSpellsGoneCOTAB(t *testing.T) { spellsGone(t, quickStartedOn(t, advEngine(t, advEnvCOTAB)), 56) }
+func TestSpellsGone(t *testing.T) { spellsGone(t, quickStarted(t), 56) }
+func TestSpellsGoneCOTAB(t *testing.T) {
+	spellsGone(t, quickStartedOn(t, advEngine(t, advEnvCOTAB)), 56)
+}
 func TestSpellsGoneSOTSB(t *testing.T) { spellsGone(t, quickStartedOn(t, advEngine(t, advEnvSOTSB))) }
-func TestSpellsGonePOD(t *testing.T)   { spellsGone(t, quickStartedOn(t, advEngine(t, advEnvPOD)), 102, 103) }
+func TestSpellsGonePOD(t *testing.T) {
+	spellsGone(t, quickStartedOn(t, advEngine(t, advEnvPOD)), 102, 103)
+}
 
 func spellsGone(t *testing.T, e *Engine, gone ...int) {
 	t.Helper()
