@@ -602,7 +602,10 @@ type (
 		Member int
 		Item   core.ItemHandle
 	}
-	Identify struct{ Member, Item int }
+	Identify struct {
+		Member int
+		Item   core.ItemHandle
+	}
 	Appraise struct {
 		Member, Item int
 		Keep         bool

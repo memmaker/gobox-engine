@@ -110,8 +110,11 @@ func (g *Game) sel(n int) int {
 
 // held is the handle of the selected member's item i (Inventory.Pool's
 // Index), NoItem for none.
-func (g *Game) held(i int) core.ItemHandle {
-	p, m := play.CommonOf(g.r.g.State()).Party, g.sel(-1)
+func (g *Game) held(i int) core.ItemHandle { return g.heldBy(g.sel(-1), i) }
+
+// heldBy is the handle of member m's item i, NoItem for none.
+func (g *Game) heldBy(m, i int) core.ItemHandle {
+	p := play.CommonOf(g.r.g.State()).Party
 	if m >= 0 && m < len(p) && i >= 0 && i < len(p[m].Items) {
 		return p[m].Items[i].Handle
 	}
@@ -779,7 +782,7 @@ func (g *Game) SetPolicy(id int, p front.Policy) error {
 
 // Shops, temples, training.
 func (g *Game) Browse(n int) error      { return g.do(play.OpenItems{Member: -1}) }
-func (g *Game) Identify(n, x int) error { return g.do(play.Identify{Member: n, Item: x}) }
+func (g *Game) Identify(n, x int) error { return g.do(play.Identify{Member: n, Item: game.PositionHandle(x)}) }
 
 // Appraise values the purse's gem or piece of jewelry: the offer of that kind.
 func (g *Game) Appraise(jewelry bool) error {
