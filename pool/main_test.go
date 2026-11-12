@@ -1,21 +1,26 @@
 package pool_test
 
 import (
-	"log"
+	"fmt"
 	"os"
-	"os/exec"
+	"path/filepath"
 	"testing"
 )
 
-// TestMain runs the import a test's areas need (por-go's cmd/importstale),
-// as the setup does: nothing at load decompiles. It runs the game's own
-// command, so the engine's module does not import the game.
+// TestMain needs the imports a test's areas need (por-go's cmd/importstale,
+// run by the gate before these tests): nothing at load decompiles, and the
+// engine's module does not import the game. With the game files present and
+// an import missing, it fails with a clear message; it cannot tell a stale
+// import (por's importpor decides that), so the gate runs the import first.
 func TestMain(m *testing.M) {
-	cmd := exec.Command("go", "run", "./cmd/importstale")
-	cmd.Dir = "../../por-go"
-	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-	if err := cmd.Run(); err != nil {
-		log.Fatal(err)
+	const por = "../../por-go"
+	if _, err := os.Stat(filepath.Join(por, "data", "dos", "TITLE.DAX")); err == nil {
+		for _, f := range []string{"assets/data/key.txt", "assets/data/portraits.json", "assets/scripts/area1.txt"} {
+			if _, err := os.Stat(filepath.Join(por, "data", f)); err != nil {
+				fmt.Fprintf(os.Stderr, "missing %s: run por's import (go run ./cmd/importstale in por-go) before these tests\n", f)
+				os.Exit(1)
+			}
+		}
 	}
 	os.Exit(m.Run())
 }

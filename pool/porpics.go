@@ -1,9 +1,13 @@
 package pool
 
 import (
+	"encoding/json"
+	"fmt"
 	"gobox/core"
 	"gobox/core/goldbox"
 	"gobox/importer/pictures"
+	"os"
+	"path/filepath"
 )
 
 // POR's picture numbers as the shared collection's core.PicID (e.pics, the
@@ -60,4 +64,22 @@ func (e *Engine) iconByte(file string, id core.PicID, size byte) (byte, bool) {
 		}
 	}
 	return 0, false
+}
+
+// PortraitsFile is the portrait tables in the adventure's data folder
+// (DataDir), written by the game's import.
+const PortraitsFile = "portraits.json"
+
+// ReadGameTables reads the game's tables from the adventure folder adv: the
+// portrait tables (PortraitsFile), as the game's import wrote them.
+func ReadGameTables(adv string) (GameTables, error) {
+	b, err := os.ReadFile(filepath.Join(adv, DataDir, PortraitsFile))
+	if err != nil {
+		return GameTables{}, fmt.Errorf("%w (run the game's import)", err)
+	}
+	var t GameTables
+	if err := json.Unmarshal(b, &t); err != nil {
+		return GameTables{}, fmt.Errorf("%s: %w", PortraitsFile, err)
+	}
+	return t, nil
 }

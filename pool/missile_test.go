@@ -1,6 +1,7 @@
 package pool
 
 import (
+	"gobox/char"
 	"gobox/core"
 	"os"
 	"rules1e"
@@ -15,7 +16,7 @@ func testEngine(t *testing.T) *Engine {
 	if _, err := os.Stat("../../por-go/data/dos/TITLE.DAX"); err != nil {
 		t.Skip("no game files")
 	}
-	e, err := New(porRuleset, porTables, "../../por-go/data/assets", "../../por-go/data")
+	e, err := New(char.Rules1e, porTables, "../../por-go/data/assets", "../../por-go/data")
 	if err != nil {
 		t.Fatal(err)
 	}

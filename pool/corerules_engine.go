@@ -24,7 +24,7 @@ type Ruleset func(
 // GameTables is the game's data the Engine shows, handed in by the game at New.
 type GameTables struct {
 	PortraitHead, PortraitBody []goldbox.PortraitPic // portrait number -> its picture, 1-based ([0] unused)
-	Script                     *script.Version       // the game's ECL dialect; nil: the first engine's (V1)
+	Script                     *script.Version       `json:"-"` // the game's ECL dialect; nil: the first engine's (V1)
 }
 
 // bareRuleset and bareData are what an Engine made without New (a test's
