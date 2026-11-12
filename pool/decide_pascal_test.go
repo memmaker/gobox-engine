@@ -122,6 +122,10 @@ func TestDecideAgainstPascal(t *testing.T) {
 				turned: byte(tu), startY: byte(y)}, seed, dist, 40, 0, 0)
 		case "aicast":
 			seed, sp, dist, pend, item := k[0], byte(k[1]), k[2], k[3], k[4]
+			if rules1e.SpellIDs[sp] == "" { // a removed spell (56 Restoration, Felix 2026-11-12): no caster holds it
+				cases--
+				continue
+			}
 			v := aiVaried{control: 0x80 + 50, aHP: 40, aInt: 10, dMove: 12, startY: 10, casterLvl: 5}
 			switch {
 			case item != 0:
