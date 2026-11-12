@@ -83,7 +83,14 @@ test_touched() {
 check rules1e ./...
 check rulesxxvc ./...
 check gobox-engine/core ./...
-check por-go ./rules ./rules4e -run 'Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
+fixed='Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
+if touched por-go | grep -q ' \./rules$'; then
+  # ./rules runs whole below; here only rules4e and the slow tests the fixed set names but the touched run skips.
+  check por-go ./rules4e -run "$fixed"
+  (cd "$out/por-go" && go test ./rules -run "$slow")
+else
+  check por-go ./rules ./rules4e -run "$fixed"
+fi
 for repo in por-go rules1e gobox-engine; do test_touched "$repo"; done
 
 # Other games build against gobox-engine outside core, from what is staged in them (their HEAD when nothing is).
