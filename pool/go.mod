@@ -14,9 +14,24 @@ require (
 require (
 	github.com/ebitengine/oto/v3 v3.5.0 // indirect
 	github.com/ebitengine/purego v0.11.0 // indirect
+	github.com/go-webgpu/goffi v0.6.3 // indirect
+	github.com/gogpu/gogpu v0.54.0 // indirect
+	github.com/gogpu/gpucontext v0.31.3 // indirect
+	github.com/gogpu/gputypes v0.8.0 // indirect
+	github.com/gogpu/naga v0.19.0 // indirect
+	github.com/gogpu/wgpu v0.34.5 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/jfreymuth/pulse v0.1.3 // indirect
 	github.com/memmaker/opl2 v0.1.0 // indirect
+	github.com/qmuntal/gltf v0.29.0 // indirect
+	gobox/blobber v0.0.0 // indirect
+	gobox/combat v0.0.0 // indirect
+	gobox/gpu v0.0.0 // indirect
+	gobox/input v0.0.0 // indirect
+	gobox/sprites v0.0.0 // indirect
+	gobox/ui v0.0.0 // indirect
+	gobox/walls v0.0.0 // indirect
+	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
 
@@ -30,6 +45,7 @@ require (
 	gobox/dax v0.0.0
 	gobox/ecl v0.0.0
 	gobox/ega v0.0.0
+	gobox/front v0.0.0
 	gobox/game v0.0.0
 	gobox/geo v0.0.0
 	gobox/importer v0.0.0
