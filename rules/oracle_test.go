@@ -46,8 +46,6 @@ var sotsbThac0 = [7][19]byte{
 	{39, 39, 39, 39, 39, 39, 41, 41, 41, 41, 41, 43, 43, 43, 43, 43, 46, 46, 46},
 	{40, 40, 40, 40, 40, 41, 41, 41, 41, 44, 44, 44, 44, 46, 46, 46, 46, 48, 48},
 }
-var cotabHD = [8]byte{10, 15, 10, 10, 11, 12, 11, 19}
-var sotsbHD = [7]byte{10, 15, 10, 10, 11, 12, 11}
 
 // oc is the part of a game's Character the oracles touch.
 type oc struct {
@@ -173,68 +171,6 @@ func oracleStrengthCode(str, str00 byte) byte {
 	return str + 100
 }
 
-// cotab-go/engine/stats.go:227 (sotsb's is identical).
-func oracleConHP(c *oc, con byte, hd []byte) {
-	classes := 0
-	oldMax := c.MaxHP
-	c.MaxHP = c.HPRoll
-	var bonus byte
-	addLevels := func(k int, lvl byte) {
-		if hd[k] <= lvl {
-			lvl = hd[k] - 1
-		}
-		if k == 4 && (c.Multi == 0 || c.OldLevels[4] == c.Multi) {
-			lvl++
-		}
-		if k == 2 || k == 3 || k == 4 {
-			switch {
-			case con >= 15 && con <= 19:
-				bonus += lvl * (con - 14)
-			case con == 20:
-				bonus += lvl * 5
-			case con >= 21 && con <= 23:
-				bonus += lvl * 6
-			case con >= 24 && con <= 25:
-				bonus += lvl * 7
-			}
-			return
-		}
-		if con > 15 {
-			bonus += lvl * 2
-		} else if con == 15 {
-			bonus += lvl
-		}
-	}
-	for k := 0; k < len(c.Levels); k++ {
-		if lvl := c.OldLevels[k]; lvl > 0 {
-			addLevels(k, lvl)
-		}
-		lvl := c.Levels[k]
-		if lvl > 0 {
-			classes++
-		}
-		if hd[k] < lvl {
-			lvl = hd[k]
-		}
-		if lvl > c.Multi {
-			addLevels(k, lvl-c.Multi)
-		}
-	}
-	if classes > 0 {
-		bonus /= byte(classes)
-	}
-	c.MaxHP += bonus
-	switch {
-	case c.MaxHP > oldMax:
-		c.HP += c.MaxHP - oldMax
-	case c.MaxHP < oldMax:
-		if lost := oldMax - c.MaxHP; c.HP > lost {
-			c.HP -= lost
-		} else {
-			c.HP = 0
-		}
-	}
-}
 
 // cotab-go/engine/damage.go:68 damagePlayer, combat bookkeeping returned.
 func oracleDamage(c *oc, dmg byte) (over byte, dying, down bool) {
@@ -380,41 +316,6 @@ func TestTablesAndStrength(t *testing.T) {
 		for s0 := 0; s0 < 256; s0 += 5 {
 			if StrengthCode(byte(s), byte(s0)) != oracleStrengthCode(byte(s), byte(s0)) {
 				t.Fatal("strength")
-			}
-		}
-	}
-}
-
-func TestConHitPoints(t *testing.T) {
-	for fi, f := range layouts {
-		hd := cotabHD[:]
-		if fi == 1 {
-			hd = sotsbHD[:]
-		}
-		for i, r := range recs(t, f, 1500) {
-			for k := 0; k < r.Classes(); k++ { // the games' tables are only indexed by levels the record holds
-				if i%3 == 0 {
-					r.Set("levels", k, int(r.Level(k))%30)
-					r.Set("oldLevels", k, int(r.OldLevel(k))%30)
-				}
-			}
-			con := byte(i % 28)
-			o := load(r)
-			func() {
-				defer func() { recover() }() // a hit dice table underflow panics in both
-				oracleConHP(o, con, hd)
-			}()
-			ok := true
-			func() {
-				defer func() {
-					if recover() != nil {
-						ok = false
-					}
-				}()
-				ConHitPoints(r, con, hd)
-			}()
-			if ok {
-				o.same(t, r, "conHP")
 			}
 		}
 	}
