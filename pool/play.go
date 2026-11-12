@@ -357,7 +357,10 @@ func (e *Engine) allowed(s facts) play.Allowed {
 				case partyRemove:
 					add(play.RemoveCharacter{Roster: n})
 				case partyModify:
-					add(play.Modify{Member: n}, play.EditIcon{Member: n})
+					if e.ruleset().Check(core.Modifiable{Who: e.partyIDs()[n]}, nil).Yes { // greyed (not allowed) for a character with experience of its own
+						add(play.Modify{Member: n})
+					}
+					add(play.EditIcon{Member: n})
 				case partyTraining:
 					add(play.OpenTraining{Member: n})
 				}
