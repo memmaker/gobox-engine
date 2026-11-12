@@ -84,8 +84,12 @@ check rules1e ./...
 check rulesxxvc ./...
 check gobox-engine/core ./...
 fixed='Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
-if touched por-go | grep -q ' \./rules$'; then
-  # ./rules runs whole below; here only rules4e and the slow tests the fixed set names but the touched run skips.
+# POR's engine (gobox-engine/pool; por-go/rules before fold E2): the fixed set, and the slow tests the touched run skips.
+if [ -d "$out/gobox-engine/pool" ]; then
+  check gobox-engine/pool . -run "$fixed"
+  (cd "$out/gobox-engine/pool" && go test . -run "$slow")
+  check por-go ./rules4e -run "$fixed"
+elif touched por-go | grep -q ' \./rules$'; then
   check por-go ./rules4e -run "$fixed"
   (cd "$out/por-go" && go test ./rules -run "$slow")
 else
