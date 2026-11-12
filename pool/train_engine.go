@@ -111,26 +111,34 @@ func (e *Engine) addSaved(p *picker, i int) bool {
 	defer e.WriteCharList(names) // ovr18:01B8 (extra: on each pick)
 	if id := p.chars[i]; id != core.NoChar && (names[i] == "" || names[i][0] != '*') {
 		names[i] = goldbox.Cut("* "+names[i], textCols)
-		if e.partySize() == 0 {
-			e.must(core.EmptyParty{})
-			e.join(id) // ovr18:1446
-		} else {
-			dup := e.ruleset().Check(core.InParty{Who: id}, nil).Yes
-			count = int(e.ruleset().Check(core.ControlledBefore{Who: id}, nil).Value)
-			npc := e.fact(id, core.FactControl).(core.Number) >= 0x80
-			refused := !dup && !e.ruleset().Check(core.CanJoin{Who: id}, nil).Yes
-			if refused {
-				names[i] = names[i][2:] // unmarked again, as in CotAB
-			}
-			if !dup && !refused && (!npc && count < 6 || npc && e.worldWord(core.WordPartyCount) < 8) {
-				e.join(id)
-				if !npc {
-					count++
-				}
-			}
+		var refused bool
+		if refused, count = e.joinPicked(id); refused {
+			names[i] = names[i][2:] // unmarked again, as in CotAB
 		}
 	}
 	return count > 5 || e.worldWord(core.WordPartyCount) > 7
+}
+
+// joinPicked puts the picked character id in the party (ovr17:306D): the first into an empty
+// party, the others unless already in, refused by the party's rules, or past the six
+// players or eight members. refused is the rules' refusal; count the players now (0: none yet).
+func (e *Engine) joinPicked(id core.CharID) (refused bool, count int) {
+	if e.partySize() == 0 {
+		e.must(core.EmptyParty{})
+		e.join(id) // ovr18:1446
+		return false, 0
+	}
+	dup := e.ruleset().Check(core.InParty{Who: id}, nil).Yes
+	count = int(e.ruleset().Check(core.ControlledBefore{Who: id}, nil).Value)
+	npc := e.fact(id, core.FactControl).(core.Number) >= 0x80
+	refused = !dup && !e.ruleset().Check(core.CanJoin{Who: id}, nil).Yes
+	if !dup && !refused && (!npc && count < 6 || npc && e.worldWord(core.WordPartyCount) < 8) {
+		e.join(id)
+		if !npc {
+			count++
+		}
+	}
+	return refused, count
 }
 
 // recolourIcon = 0464:1E5C (identity, to, 0, 0, icon): colour i becomes

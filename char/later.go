@@ -190,6 +190,7 @@ func sheetOfLater[R Later](c *rules1e.CharacterJSON, r R) {
 		c.CanTrain = *m.train != 0
 	}
 	if r, ok := any(r).(Record422); ok {
+		c.Sheet.ScriptFlag = r.Pad402[0]
 		c.Sheet.Pad86, c.Sheet.Pad87 = r.Pad86[0], r.Pad86[1]
 	}
 }
@@ -220,6 +221,7 @@ func laterOfSheet[R Later](r *R, c rules1e.CharacterJSON) {
 		}
 	}
 	if p, ok := any(r).(*Record422); ok {
+		p.Pad402[0] = c.Sheet.ScriptFlag
 		p.Pad86 = [2]byte{c.Sheet.Pad86, c.Sheet.Pad87}
 	}
 }

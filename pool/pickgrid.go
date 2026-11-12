@@ -68,16 +68,23 @@ func (e *Engine) OpenPicker(kind int) bool {
 		return e.LoadPic(heads[n].Set.File("HEAD"), int(heads[n].Id)), -1
 	}
 	switch kind {
-	case PickAdd, PickForget:
+	case PickAdd, PickForget, PickAddFrom:
 		// pickSaved (extra): the Add and Forget lists are cards, the head of
 		// the character's portrait (a dropped PNG fitted into its place) with
 		// the name and class beside it; a character whose files are gone
 		// (nil) is its name alone.
-		names := e.BuildCharList() // ovr18:0010
-		if len(names) == 0 {
-			return false
+		var names []string
+		var chars []core.CharID
+		if kind == PickAddFrom {
+			if names, chars = e.foreignChars(e.addFrom); len(names) == 0 {
+				return false
+			}
+		} else {
+			if names = e.BuildCharList(); len(names) == 0 { // ovr18:0010
+				return false
+			}
+			chars = e.loadSaved(names)
 		}
-		chars := e.loadSaved(names)
 		w := 0
 		for i, c := range chars {
 			w = max(w, len(names[i]))
@@ -123,6 +130,8 @@ func (e *Engine) Pick(i int) (done bool) {
 	switch p.kind {
 	case PickAdd:
 		done = e.addSaved(p, i)
+	case PickAddFrom:
+		done = e.addForeign(p, i)
 	case PickForget:
 		base := grules.MakeFileName(goldbox.RemoveSubstr(p.labels[i], "."))
 		for _, ext := range []string{".cha", ".itm", ".spc", ".mem", ".dual", ".pow", ".png", ".icon.png"} {
@@ -153,3 +162,41 @@ func (e *Engine) loadSaved(names []string) []core.CharID {
 
 // iconRect is the page rectangle of a combat icon pose drawn at cell (x, y).
 func iconRect(x, y int) image.Rectangle { return image.Rect(x*8, y*8, x*8+24, y*8+24) }
+
+// foreignChars are the characters another game saved (Config.Foreign) taken into the
+// ruleset, flagged as added from another game (core.MarkImported), with their names.
+func (e *Engine) foreignChars(from string) (names []string, chars []core.CharID) {
+	if e.Cfg.Foreign == nil {
+		return nil, nil
+	}
+	files, err := e.Cfg.Foreign(from)
+	if err != nil {
+		e.fileError("read", from)
+		return nil, nil
+	}
+	for _, f := range files {
+		e.setWorldWord(core.WordWho, e.sel) // ImportCharacter's member
+		id, err := e.ruleset().Import(f)
+		if err != nil {
+			e.fileError("read", from)
+			continue
+		}
+		e.do(core.MarkImported{Who: id})
+		names, chars = append(names, e.ruleset().Sheet(id).Name), append(chars, id)
+	}
+	return names, chars
+}
+
+// addForeign is the pick of character i of the PickAddFrom picker: it joins the party as a saved one does;
+// the list marks it ("* "), done when the party is full.
+func (e *Engine) addForeign(p *picker, i int) bool {
+	if id := p.chars[i]; id != core.NoChar && !strings.HasPrefix(p.labels[i], "*") {
+		p.labels[i] = goldbox.Cut("* "+p.labels[i], textCols)
+		refused, count := e.joinPicked(id)
+		if refused {
+			p.labels[i] = p.labels[i][2:]
+		}
+		return count > 5 || e.worldWord(core.WordPartyCount) > 7
+	}
+	return e.worldWord(core.WordPartyCount) > 7
+}

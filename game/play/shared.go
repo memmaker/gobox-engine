@@ -143,6 +143,9 @@ func CommandEntries(cs []Option) []game.PartyCommand {
 	out := make([]game.PartyCommand, len(cs))
 	for i, c := range cs {
 		out[i] = game.PartyCommand{Label: c.Label, Key: c.Key}
+		if a, ok := c.Do.(AddCharacter); ok {
+			out[i].From = a.From
+		}
 	}
 	return out
 }

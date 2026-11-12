@@ -1136,6 +1136,7 @@ const (
 type PartyCommand struct {
 	Label string
 	Key   rune
+	From  string `json:",omitempty"` // Add from another game: its id (Data.Imports)
 }
 
 // SoundDir is where the game's sound files are (AdLib, AmigaMusic, the

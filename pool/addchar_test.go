@@ -1,6 +1,8 @@
 package pool
 
 import (
+	"gobox/core"
+	"gobox/game"
 	grules "gobox/rules"
 	"slices"
 	"testing"
@@ -63,5 +65,45 @@ func TestDropMember(t *testing.T) {
 	n := len(e.state().Party)
 	if _, err := e.Do(play.DropMember{Member: 0}); err != nil || len(e.state().Party) != n-1 || commonOf(e.State()).Ask != nil {
 		t.Fatalf("Drop: %v, party %d want %d, ask %+v", err, len(e.state().Party), n-1, commonOf(e.State()).Ask)
+	}
+}
+
+// TestAddFromOtherGame: a game that lists another (Data.Imports) adds that game's characters
+// through the one canonical format (Config.Foreign): Roster -1 opens its list, a Roster adds
+// that one; another game it does not list, or a host with no source, is refused.
+func TestAddFromOtherGame(t *testing.T) {
+	e := testEngine(t)
+	e.Open("")
+	e.titleDone()
+	e.Advance()
+	if _, err := e.Do(play.QuickStart{}); err != nil {
+		t.Fatal(err)
+	}
+	var files []core.CharacterFile
+	for _, c := range e.state().Party[:2] {
+		f, err := e.ruleset().Export(e.charID(c))
+		if err != nil {
+			t.Fatal(err)
+		}
+		files = append(files, f)
+	}
+	e.state().Party = e.state().Party[:0]
+	e.gameData.Imports = []string{"other"}
+	e.gameData.Commands = []game.PartyCommand{{Label: "Add from Other", Key: 'O', From: "other"}}
+	if _, err := e.Do(play.AddCharacter{Roster: -1, From: "other"}); err == nil {
+		t.Fatal("a host with no source was accepted")
+	}
+	e.Cfg.Foreign = func(from string) ([]core.CharacterFile, error) { return files, nil }
+	if _, err := e.Do(play.AddCharacter{Roster: -1, From: "elsewhere"}); err == nil {
+		t.Error("a game the data does not list was accepted")
+	}
+	if _, err := e.Do(play.AddCharacter{Roster: -1, From: "other"}); err != nil || e.picker == nil || e.picker.kind != PickAddFrom || e.picker.n != 2 {
+		t.Fatalf("open the list: %v, picker %+v", err, e.picker)
+	}
+	if _, err := e.Do(play.AddCharacter{Roster: 1, From: "other"}); err != nil || len(e.state().Party) != 1 {
+		t.Fatalf("add the second: %v, party %d", err, len(e.state().Party))
+	}
+	if _, err := e.Do(play.AddCharacter{Roster: 1, From: "other"}); err == nil {
+		t.Error("the same character added again was accepted")
 	}
 }

@@ -377,6 +377,7 @@ const (
 	PickWeapon          // its weapon: the icon's body (CBODY)
 	PickAdd             // the saved characters to add to the party (party menu)
 	PickForget          // the saved characters to forget (party menu)
+	PickAddFrom         // another game's saved characters to add to the party (party menu; Engine.addFrom)
 )
 
 // Lore and Read are the game's.

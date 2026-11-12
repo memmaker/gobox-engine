@@ -92,6 +92,13 @@ type MoveExtremes struct{}
 
 func (MoveExtremes) check() {}
 
+// MarkImported flags Who as a character added from another game, as the game's own rules
+// mark one (COTAB: the flag the scripts read, which its Hillsfar import sets); a game with
+// no such mark leaves it be.
+type MarkImported struct{ Who CharID }
+
+func (MarkImported) action() {}
+
 // EmptyParty sets the party's member count to 0 (the roster stays).
 type EmptyParty struct{}
 

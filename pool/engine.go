@@ -27,7 +27,8 @@ import (
 type Config struct {
 	Graphics, Sound byte
 	SaveDir         string
-	Param           string // ParamStr(1): "STING" unlocked the original's 'J' debug key (not on the party menu's bar, so never picked)
+	Foreign         func(from string) ([]core.CharacterFile, error) // another game's saved characters by its id (game.Data.Imports), as canonical files (char.ReadRoster); nil: none
+	Param           string                                          // ParamStr(1): "STING" unlocked the original's 'J' debug key (not on the party menu's bar, so never picked)
 }
 
 // Engine holds the global state the DOS program kept in its data segment.
@@ -132,6 +133,7 @@ type Engine struct {
 	events         []play.Event               // the facts not yet handed out (Do's outcome)
 	hitTo          int                        // the unit the last hit struck, its harm still to come (0 none): Attacked carries it
 	looking, over  bool                       // GameLoop: in its look and camp loop; a script quit the game
+	addFrom        string                     // the game whose characters the PickAddFrom picker lists
 	picker         *picker                    // the grid picker up (View.Picker)
 	iconEd         *iconEdit                  // the combat icon designed (EditIcon)
 	valued         core.ItemHandle            // an appraised gem or jewel, sold or kept next (play.Keep)

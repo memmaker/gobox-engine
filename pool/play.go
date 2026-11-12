@@ -59,6 +59,11 @@ func (e *Engine) State() play.State {
 	switch mode {
 	case game.ModeNone, game.ModeParty, game.ModeCreate:
 		a := play.Assembling{Common: cm}
+		for _, c := range e.gameData.Commands { // the game's own party commands: adding from another game
+			if c.From != "" {
+				a.Commands = append(a.Commands, play.Option{Label: c.Label, Key: c.Key, Do: play.AddCharacter{Roster: -1, From: c.From}})
+			}
+		}
 		a.Roster = e.BuildCharList()
 		if cr := s.Creation; cr != nil && s.Mode == game.ModeCreate {
 			a.Draft = &play.Draft{Member: cr.Draft, Fields: cr.Fields, MinHP: cr.MinHP, MaxHP: cr.MaxHP, Minimums: cr.Minimums,
@@ -342,6 +347,17 @@ func (e *Engine) allowed(s facts) play.Allowed {
 				add(play.OpenPicker{Kind: PickAdd})
 				for i := range e.BuildCharList() {
 					add(play.AddCharacter{Roster: i})
+				}
+				for _, c := range e.gameData.Commands { // adding from another game: its list, then each of its characters
+					if c.From == "" || e.Cfg.Foreign == nil {
+						continue
+					}
+					add(play.AddCharacter{Roster: -1, From: c.From})
+					if p := e.picker; p != nil && p.kind == PickAddFrom && e.addFrom == c.From {
+						for i := range p.n {
+							add(play.AddCharacter{Roster: i, From: c.From})
+						}
+					}
 				}
 			case partyForget:
 				add(play.OpenPicker{Kind: PickForget})
@@ -1005,7 +1021,19 @@ func (e *Engine) partyDo(a play.Action, s facts, native func(func() error) error
 		})
 	case play.AddCharacter:
 		return true, native(func() error {
-			if a.From != "" || !e.menuUp() || !e.OpenPicker(PickAdd) || a.Roster < 0 || a.Roster >= e.picker.n {
+			if a.From != "" { // another game's characters: Roster < 0 opens the list, else adds that one
+				if !e.menuUp() || !slices.Contains(e.gameData.Imports, a.From) {
+					return core.ErrNotNow
+				}
+				e.addFrom = a.From
+				if !e.OpenPicker(PickAddFrom) || a.Roster >= e.picker.n {
+					e.ClosePicker()
+					return &play.Refusal{Text: "no such character"}
+				}
+				if a.Roster < 0 {
+					return nil
+				}
+			} else if !e.menuUp() || !e.OpenPicker(PickAdd) || a.Roster < 0 || a.Roster >= e.picker.n {
 				e.ClosePicker()
 				return &play.Refusal{Text: "no such character"}
 			}
