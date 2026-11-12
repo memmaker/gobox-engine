@@ -54,7 +54,7 @@ func TestCharRecordLayout(t *testing.T) {
 }
 
 func TestItemAffectRecords(t *testing.T) {
-	if n := binary.Size(rules1e.Item{}); n != rules1e.ItemRecSize {
+	if n := binary.Size(rules1e.ItemFile{}); n != rules1e.ItemRecSize {
 		t.Fatalf("item is %#x bytes, want %#x", n, rules1e.ItemRecSize)
 	}
 	if n := binary.Size(rules1e.AffectFile{}); n != rules1e.AffectRecSize {
