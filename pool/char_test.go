@@ -57,7 +57,7 @@ func TestItemAffectRecords(t *testing.T) {
 	if n := binary.Size(rules1e.Item{}); n != rules1e.ItemRecSize {
 		t.Fatalf("item is %#x bytes, want %#x", n, rules1e.ItemRecSize)
 	}
-	if n := binary.Size(rules1e.AffectRecord{}); n != rules1e.AffectRecSize {
+	if n := binary.Size(rules1e.AffectFile{}); n != rules1e.AffectRecSize {
 		t.Fatalf("affect is %d bytes, want %d", n, rules1e.AffectRecSize)
 	}
 	b := make([]byte, 2*rules1e.ItemRecSize)

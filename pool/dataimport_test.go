@@ -41,8 +41,8 @@ func TestDataEqualsDAX(t *testing.T) {
 				var c rules1e.Character
 				c.Sheet = char.SheetOf(b)
 				var aff []rules1e.AffectRecord
-				for _, a := range char.ReadRecords[rules1e.AffectRecord](l.BlockShared(s.File("MON")+"SPC", id), rules1e.AffectRecSize) {
-					aff = append(aff, *a)
+				for _, a := range char.ReadRecords[rules1e.AffectFile](l.BlockShared(s.File("MON")+"SPC", id), rules1e.AffectRecSize) {
+					aff = append(aff, a.Record())
 				}
 				var its []rules1e.Item
 				for _, it := range char.ReadRecords[rules1e.Item](l.BlockShared(s.File("MON")+"ITM", id), rules1e.ItemRecSize) {

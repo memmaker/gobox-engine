@@ -47,8 +47,8 @@ func Pack285(f Files) (core.CharacterFile, error) {
 	for _, it := range ReadRecords[Item](f.Items, ItemSize) {
 		c.Items = append(c.Items, *it)
 	}
-	for _, a := range ReadRecords[AffectRecord](f.Affects, AffectSize) {
-		c.Affects = append(c.Affects, *a)
+	for _, a := range ReadRecords[rules1e.AffectFile](f.Affects, AffectSize) {
+		c.Affects = append(c.Affects, a.Record())
 	}
 	if f.Plan != nil {
 		c.Plan = new([21]rules1e.SpellID)
@@ -76,7 +76,11 @@ func Unpack285(b core.CharacterFile, game bool) (Files, error) {
 	}
 	f := Files{Record: append(SheetBytes(c.Sheet), PoolTrailer(c.PoolIDs)...), Portrait: c.Portrait, Icon: c.Icon, Powers: powerBytes(c)}
 	f.Items = WriteRecords(pointers(items))
-	f.Affects = WriteRecords(pointers(c.Affects))
+	var affects []rules1e.AffectFile
+	for _, a := range c.Affects {
+		affects = append(affects, a.File())
+	}
+	f.Affects = WriteRecords(pointers(affects))
 	if c.Plan != nil {
 		f.Plan = bytes.TrimRight(fileBytes(c.Plan[:]), "\x00")
 	}
