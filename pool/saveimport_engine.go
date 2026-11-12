@@ -67,7 +67,7 @@ func (e *Engine) importSlots() {
 // out of its record words by their layout addresses (the game's fields, and
 // the locals of the area it was saved in).
 func (e *Engine) importSave(b []byte) (gameSave, error) {
-	o, err := char.ReadOriginalSave(b)
+	o, err := char.ReadOriginalSave(b, e.game().OriginalSave)
 	if err != nil {
 		return gameSave{}, err
 	}
@@ -102,20 +102,6 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 // here: the import turns it into the canonical save (savegame.go).
 const origSaveFile = char.OriginalSaveFile
 
-// recordCell is the save record word at script address a, nil outside the
-// records.
-func recordCell(o *char.ImportedSave, a int) *uint16 {
-	switch {
-	case a >= areaVarBase && a < areaVarBase+len(o.Area):
-		return &o.Area[a-areaVarBase]
-	case a >= gameVarBase && a < gameVarBase+len(o.Game):
-		return &o.Game[a-gameVarBase]
-	case a >= auxVarBase && a < auxVarBase+len(o.Aux):
-		return &o.Aux[a-auxVarBase]
-	}
-	return nil
-}
-
 // decodeCells are field fl's cells in o's records (a text up to its NUL);
 // nil when all are zero.
 func decodeCells(o *char.ImportedSave, fl script.Field) []int64 {
@@ -125,7 +111,7 @@ func decodeCells(o *char.ImportedSave, fl script.Field) []int64 {
 		n = 0x100
 	}
 	for i := range n {
-		p := recordCell(o, fl.From+i)
+		p := o.Cell(fl.From + i)
 		if p == nil || fl.Width == script.WidthText && *p == 0 {
 			break
 		}

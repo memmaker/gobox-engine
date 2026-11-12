@@ -125,13 +125,10 @@ func (e *Engine) initVM() {
 }
 
 // ECL virtual-machine support, ported from ovr08. The script's variables
-// are the typed fields of scriptvars.go; the addresses here are the save
-// file's records (savecodec.go) and the code image.
+// are the typed fields of scriptvars.go; the save's records are the game's
+// data (GameTables.OriginalSave); eclBase is the code image.
 const (
-	areaVarBase = 0x4900 // the area record's first word in the original's script addresses
-	gameVarBase = 0x6B00 // the game record's
-	auxVarBase  = 0x9700 // the aux record's
-	eclBase     = 0x9900 // the code image (to 0xB6FF)
+	eclBase = 0x9900 // the code image (to 0xB6FF)
 
 	areaScratchWords = 0x20 // the area record's words 0x4A00..0x4A1F: locals, cleared by a fresh area (SaveEditor.EnterArea)
 )

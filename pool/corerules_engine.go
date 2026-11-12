@@ -34,15 +34,12 @@ type GameTables struct {
 	AddNPCIcon                 bool                  // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
 	AreaMonsters               AreaMonsters          // the area's own monsters a fight adds (pod); zero: none
 	Dialect                    core.Dialect          // the game's script byte-code dialect (ReadGameTables sets Script from it)
-	Words                      ScriptWords           // the game-block words the engine itself binds
 	TreasureSets               [][]int32             // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
+	ScriptFixes                []script.Fix          // the game's decompiler special cases (script.Library.Fixes): the import's, for the texts' key
+	Natives                    []NativeAt            // the labels a native script runs at (POR: the tavern game, CAST KNOCK); none: no native
+	OriginalSave               char.SaveLayout       // the game's SAVGAMx.DAT format (the original-save import)
+	PurseWhos                  []PurseWho            // the Who commands that spend the party's one purse (POR: the inn, the tavern)
 }
-
-// ScriptWords are the script layout's fields (layout/global.txt) the engine binds by name
-// ("": the game has none, the ruleset's own): LastBlock is core.WordLastBlock, the block
-// NewECL left (pod AreaScriptId, sotsb PrevEcl), Remainder where DIVIDE leaves its
-// remainder (ecl.VM.Remainder; pod, sotsb, cotab DivideRemainder).
-type ScriptWords struct{ LastBlock, Remainder string }
 
 // AreaMonsters are the monsters a fight adds by area screen (Behaviour.AreaMonstersJoin):
 // Count of ByScreen[the area screen], standing aside with Status and Control.

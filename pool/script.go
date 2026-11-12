@@ -38,22 +38,24 @@ func (e *Engine) loadScript(area int) {
 		}
 	}
 	e.purseWho = map[int]bool{}
-	for _, w := range purseWhos {
-		if i, ok := s.Labels[w.label]; ok && w.area == area {
-			e.purseWho[i+w.by] = true
+	for _, w := range e.game().PurseWhos {
+		if i, ok := s.Labels[w.Label]; ok && w.Area == area {
+			e.purseWho[i+w.By] = true
 		}
 	}
 	e.native = map[int]func(*Engine){}
-	for at, f := range nativeScripts {
-		if at.area == area {
-			if i, ok := s.Labels[at.label]; ok {
-				e.native[i] = f
-			}
+	for _, n := range e.game().Natives {
+		f, ok := natives[n.Native]
+		if !ok {
+			panic(fmt.Sprintf("gametables.json: no native script %q", n.Native))
+		}
+		if i, ok := s.Labels[n.Label]; ok && n.Area == area {
+			e.native[i] = f
 		}
 	}
 }
 
 func (e *Engine) parseScriptFile(area int) (*script.Script, error) {
-	l := script.Library{Version: script.V1, Dir: e.scriptDir(), Data: os.DirFS(e.scriptDir()), Fixes: ScriptFixes}
+	l := script.Library{Version: e.eclVersion, Dir: e.scriptDir(), Data: os.DirFS(e.scriptDir()), Fixes: e.game().ScriptFixes}
 	return l.Area(area)
 }

@@ -17,14 +17,37 @@ import (
 // gold and copper). RunECL runs one instead of the commands at its label;
 // it leaves vm.PC at the label the script would have gone on to.
 
-type scriptAt struct {
-	area  int    // the area script
-	label string // its label
+// Native names one of the engine's native scripts (GameTables.Natives).
+type Native string
+
+const (
+	NativeTavernGamble Native = "TavernGamble" // POR's New Phlan tavern game
+	NativeCastKnock    Native = "CastKnock"    // POR's cabinets' CAST KNOCK
+)
+
+// natives are the engine's native scripts by name.
+var natives = map[Native]func(*Engine){
+	NativeTavernGamble: (*Engine).tavernGamble,
+	NativeCastKnock:    (*Engine).castKnock,
 }
 
-var nativeScripts = map[scriptAt]func(*Engine){
-	{0, "TavernGamble"}: (*Engine).tavernGamble,
-	{14, "CastKnock"}:   (*Engine).castKnock,
+// ScriptAt is a label of an area script.
+type ScriptAt struct {
+	Area  int    // the area script
+	Label string // its label
+}
+
+// NativeAt runs Native in place of the commands at its label (GameTables.Natives).
+type NativeAt struct {
+	ScriptAt
+	Native Native
+}
+
+// PurseWho is a Who command that spends the party's one purse: the label's
+// instruction plus By (GameTables.PurseWhos).
+type PurseWho struct {
+	ScriptAt
+	By int
 }
 
 // The layout fields the engine names itself (layout/global.txt).
@@ -67,16 +90,6 @@ func (e *Engine) gold() uint64 {
 		panic(fmt.Sprintf("native: purse: %v", err)) // the purse is always held
 	}
 	return v.(core.Purse).Gold
-}
-
-// purseWhos are the Who commands that spend the party's one purse: a label's
-// instruction plus by.
-var purseWhos = []struct {
-	scriptAt
-	by int
-}{
-	{scriptAt{0, "PayPlatinum"}, 0},   // the inn, ECL3 A1B4
-	{scriptAt{0, "TavernGamble"}, -1}, // the tavern, ahead of A501
 }
 
 func (e *Engine) nativeScript() func(*Engine) { return e.native[int(e.vm.PC)] }

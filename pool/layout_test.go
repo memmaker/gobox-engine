@@ -290,3 +290,10 @@ func testRecordCell(f *char.OriginalSave, a int) *uint16 {
 	}
 	return nil
 }
+
+// POR's record bases in its script addresses (importpor's OriginalSave layout).
+const (
+	areaVarBase = 0x4900
+	gameVarBase = 0x6B00
+	auxVarBase  = 0x9700
+)

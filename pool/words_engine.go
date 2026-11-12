@@ -3,38 +3,83 @@ package pool
 import (
 	"fmt"
 	"gobox/core"
+	"io/fs"
 	"gobox/ecl/script"
+	"slices"
 )
 
-// namedWord is the loaded script's layout field called name; a game whose data names a
-// field its layout lacks is a bug of the game's data.
-func (e *Engine) namedWord(name string) script.Ref {
+// The canonical fields of the words the VM itself keeps (every game's layout names them so,
+// when it has them).
+const (
+	fieldLastBlock = "LastBlock"       // the block NewECL left (sotsb, cotab, pod); POR has none: core.WordLastBlock
+	fieldRemainder = "DivideRemainder" // where DIVIDE leaves its remainder (sotsb, cotab, pod); POR has none
+)
+
+// layoutField is the loaded script's field called name; ok false when the game's layout has none.
+func (e *Engine) layoutField(name string) (script.Ref, bool) {
 	l := e.vm.Script.Layout
 	if l == nil {
-		panic(fmt.Sprintf("gametables.json Words names %s: the script has no layout", name))
+		return script.Ref{}, false
 	}
 	r, err := l.Named(name)
-	if err != nil {
-		panic(fmt.Sprintf("gametables.json Words: %v", err))
-	}
-	return r
+	return r, err == nil
 }
 
-// bindWords points DIVIDE's remainder at the game's Remainder field (GameTables.Words),
-// for the script just loaded.
+// bindWords points DIVIDE's remainder at the layout's DivideRemainder, for the script just
+// loaded; a game without one keeps no remainder.
 func (e *Engine) bindWords() {
-	e.vm.Remainder = script.Ref{}
-	if n := e.game().Words.Remainder; n != "" {
-		e.vm.Remainder = e.namedWord(n)
-	}
+	e.vm.Remainder, _ = e.layoutField(fieldRemainder)
 }
 
-// setLastBlock keeps block, the one NewECL leaves, to come back to: in the game's LastBlock
-// field, else in the ruleset's core.WordLastBlock.
+// setLastBlock keeps block, the one NewECL leaves, to come back to: in the layout's LastBlock
+// field, else (POR) in the ruleset's core.WordLastBlock.
 func (e *Engine) setLastBlock(block int) {
-	if n := e.game().Words.LastBlock; n != "" {
-		e.host.Set(e.namedWord(n), int64(block))
+	if r, ok := e.layoutField(fieldLastBlock); ok {
+		e.host.Set(r, int64(block))
 		return
 	}
 	e.setWorldWord(core.WordLastBlock, block)
+}
+
+// BoundFields are the canonical script field names the engine gives a meaning: a game's
+// layout names a field so when, and only when, it has that field (each game's layout test).
+func BoundFields() []string {
+	names := []string{fieldLastBlock, fieldRemainder, fieldScratch6, fieldHours}
+	for n := range (&Engine{}).newEngineFields() {
+		names = append(names, n)
+	}
+	slices.Sort(names)
+	return slices.Compact(names)
+}
+
+// UnboundFields are the BoundFields that no layout of data (a game's script data: layout/global.txt
+// and every layout/area<N>.txt) names: the bindings the game does not have.
+func UnboundFields(data fs.FS) ([]string, error) {
+	names, err := fs.Glob(data, "layout/area*.txt")
+	if err != nil {
+		return nil, err
+	}
+	have := map[string]bool{}
+	for _, n := range append(names, "layout/global.txt") {
+		a := 0
+		if n != "layout/global.txt" {
+			if _, err := fmt.Sscanf(n, "layout/area%d.txt", &a); err != nil {
+				return nil, err
+			}
+		}
+		l, err := script.ReadLayout(data, a)
+		if err != nil {
+			return nil, err
+		}
+		for _, f := range l.Fields {
+			have[f.Name] = true
+		}
+	}
+	var out []string
+	for _, n := range BoundFields() {
+		if !have[n] {
+			out = append(out, n)
+		}
+	}
+	return out, nil
 }
