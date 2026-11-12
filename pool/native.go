@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/ecl/script"
 	"gobox/game/play"
 )
 
@@ -57,14 +56,6 @@ const (
 )
 
 // field is the running script's field called name.
-func (e *Engine) field(name string) script.Ref {
-	r, err := e.vm.Script.Layout.Named(name)
-	if err != nil {
-		panic(err) // the game's layout lacks a word the engine names: a broken game folder
-	}
-	return r
-}
-
 // castKnock is the cabinets' CAST KNOCK (area 14, Felix d3): Knock cast the
 // native way (spendKnock), on at KnockOpens with the caster's place in the
 // party in Scratch6, or at NoKnock. It was the Spell command and the script
@@ -79,7 +70,9 @@ func (e *Engine) castKnock() {
 		return
 	}
 	c := out.Effects[0].(core.KnockCast).Who
-	e.host.Set(e.field(fieldScratch6), int64(uint16(slices.Index(e.partyIDs(), c))))
+	if r, ok := e.layoutField(fieldScratch6); ok {
+		e.host.Set(r, int64(uint16(slices.Index(e.partyIDs(), c))))
+	}
 	e.vm.PC = uint16(e.scriptLabel("KnockOpens"))
 }
 

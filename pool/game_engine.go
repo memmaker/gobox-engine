@@ -33,8 +33,8 @@ func (e *Engine) GameLoop() {
 	e.InitAreaScript()
 	if e.Explore { // -explore: no guided tour of Phlan either
 		e.Explore = false
-		if fresh && e.gs.areaKind == 0 {
-			e.host.Set(e.field(tourDone), 1)
+		if r, ok := e.layoutField(tourDone); ok && fresh && e.gs.areaKind == 0 {
+			e.host.Set(r, 1)
 		}
 	}
 	e.push(cont{kind: kGameBegan, flag: fresh})

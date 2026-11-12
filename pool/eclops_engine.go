@@ -118,7 +118,8 @@ func (e *Engine) opCompare() {
 	}
 	a := e.vm.Arg(1, e.host)
 	b := e.vm.Arg(2, e.host)
-	if (e.vm.ArgType[1] == ecl.ArgVarByte || e.vm.ArgType[1] == ecl.ArgVarWord) && e.vm.Ref(1) == e.field(fieldHours) && e.vm.ArgType[2] == ecl.ArgImmediate && b == 14 && e.DaySky.Load() {
+	hours, hasHours := e.layoutField(fieldHours)
+	if hasHours && (e.vm.ArgType[1] == ecl.ArgVarByte || e.vm.ArgType[1] == ecl.ArgVarWord) && e.vm.Ref(1) == hours && e.vm.ArgType[2] == ecl.ArgImmediate && b == 14 && e.DaySky.Load() {
 		// option (U3): the scripts pick the day sky by hour < 14; day is 6:00-20:00 instead.
 		// Night is 15, not 14, so the pier's "Hours > 14" (no ship picture after dark) holds too.
 		a = 15
