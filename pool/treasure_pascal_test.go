@@ -76,7 +76,11 @@ func TestRandomTreasureAgainstPascal(t *testing.T) {
 		e.state().AddRandomTreasure(k[1])
 		var got []string
 		for _, it := range e.state().Treasure {
-			b := char.WriteItems([]rules1e.Item{*it})[0x2E:rules1e.ItemRecSize]
+			rec, err := e.state().GameRecords([]rules1e.Item{*it})
+			if err != nil {
+				t.Fatal(err)
+			}
+			b := char.WriteItems(rec)[0x2E:rules1e.ItemRecSize]
 			var parts []string
 			for _, x := range b {
 				parts = append(parts, fmt.Sprint(int8(x)))
@@ -112,8 +116,12 @@ func TestRandomItemAgainstPascal(t *testing.T) {
 		k := atois(t, strings.Fields(key)[1:])
 		e.state().RandSeed = uint32(int32(k[1]))
 		it := e.state().RandomItem(rules1e.ItemType(k[0]))
+		rec, err := e.state().GameRecords([]rules1e.Item{*it})
+		if err != nil {
+			t.Fatal(err)
+		}
 		var parts []string
-		for _, x := range char.WriteItems([]rules1e.Item{*it})[0x2E:rules1e.ItemRecSize] {
+		for _, x := range char.WriteItems(rec)[0x2E:rules1e.ItemRecSize] {
 			parts = append(parts, fmt.Sprint(int8(x)))
 		}
 		if g := strings.Join(parts, ".") + " " + fmt.Sprint(int32(e.state().RandSeed)); g != val {
@@ -150,8 +158,12 @@ func TestFixItemRecordAgainstPascal(t *testing.T) {
 	e.state().AddTreasureBlock(values(block))
 	got := map[string]string{}
 	for _, it := range e.state().Treasure {
+		rec, err := e.state().GameRecords([]rules1e.Item{*it})
+		if err != nil {
+			t.Fatal(err)
+		}
 		var parts []string
-		for _, x := range char.WriteItems([]rules1e.Item{*it})[0x2E:rules1e.ItemRecSize] {
+		for _, x := range char.WriteItems(rec)[0x2E:rules1e.ItemRecSize] {
 			parts = append(parts, fmt.Sprint(int8(x)))
 		}
 		got[string(it.PName[1:1+it.PName[0]])] = strings.Join(parts, ".")
