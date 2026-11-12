@@ -8,8 +8,7 @@ import (
 // sotsbCodecs are sotsb's encodings of canonical fields (its layout's enc=).
 var sotsbCodecs = map[script.Encoding]codec{
 	// SpecialReadZ1 $100 (sotsb-re eclmenu.pas) reads the status 1..7; SpecialWriteZ1 $100 acts
-	// only on 1 (okay and enabled: a revive), which POR's SelStatus has no write for, so every
-	// game write is the canonical no-op 1.
+	// only on 1 (okay and enabled: the canonical revive); any other write only stores.
 	"SotsbSelStatus": {
 		toGame: func(e *Engine, canonical int64) int64 {
 			if canonical == 1 {
@@ -17,7 +16,12 @@ var sotsbCodecs = map[script.Encoding]codec{
 			}
 			return sotsbStatus[e.ruleset().Sheet(e.selected()).Status] // a status with no row reads 0, as the Pascal's else
 		},
-		toCanon: func(*Engine, int64) int64 { return 1 },
+		toCanon: func(_ *Engine, g int64) int64 {
+			if g == sotsbStatus[core.StatusOkay] {
+				return canonStatusOkay
+			}
+			return canonStatusStore
+		},
 	},
 	// SpecialWriteZ1 $1B..$65: memorizedSpells[address-$1B], slot 0 included; POR's field starts at slot 1.
 	"SotsbSelMemorized": {element: func(i int) int { return i - 1 }},

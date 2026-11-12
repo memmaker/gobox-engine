@@ -9,47 +9,47 @@ import (
 
 // pod's values (pod-re C_Status, TCharRecord.side) and POR's canonical ones.
 const (
-	podStatusOkay      = 0 // C_Status.OKAY
-	podStatusDead      = 6 // C_Status.DEAD_STATUS
-	podStatusPetrified = 7 // C_Status.PETRIFIED
-	podStatusGone      = 8 // C_Status.GONE
-	podSideParty       = 0 // TCharRecord.side: the party's
-	podSideOther       = 1 // the other side
-	podSymbolSetZero   = 4 // TileSet 4 loads symbol set 0 (WriteGbvm $39)
-	podSymbolSets      = 5 // TileSet writes from here on are ignored
+	podSideParty     = 0 // TCharRecord.side: the party's
+	podSideOther     = 1 // the other side
+	podSymbolSetZero = 4 // TileSet 4 loads symbol set 0 (WriteGbvm $39)
+	podSymbolSets    = 5 // TileSet writes from here on are ignored
 
-	canonStatusOkay   = 1    // SelStatus: active
-	canonStatusOut    = 0x80 // inactive (any write >= 0x80 but 0x87)
-	canonStatusStoned = 0x87
-	canonStatusDied   = 0 // a write: the member died
 )
+
+// podStatus is C_Status's number for each status (pod-re includes/c_status.pas; 2 has no name).
+var podStatus = map[core.Status]int64{
+	core.StatusOkay: 0, core.StatusAnimated: 1, core.StatusRunning: 3, core.StatusUnconscious: 4,
+	core.StatusDying: 5, core.StatusDead: 6, core.StatusStoned: 7, core.StatusGone: 8,
+}
 
 // podCodecs are pod's encodings of canonical fields (its layout's enc=).
 var podCodecs = map[script.Encoding]codec{
+	"PodSelControl": {ignoreWrites: true}, // SpecialWriteZ1 has no case for it
 	// TCharRecord.status, 0..8 (OKAY 0); SpecialWriteZ1 $1ED: inPlay = status = OKAY.
 	"PodSelStatus": {
-		toGame: func(_ *Engine, c int64) int64 {
-			if c == canonStatusOkay {
-				return podStatusOkay
+		toGame: func(e *Engine, _ int64) int64 { // the member's own status, not the canonical active bit
+			st := e.ruleset().Sheet(e.selected()).Status
+			n, ok := podStatus[st]
+			if !ok {
+				panic(fmt.Sprintf("pod: SelStatus: no C_Status for %s", st))
 			}
-			return podStatusGone // ponytail: the canonical read says only "not active"; gone stands for every other status
+			return n
 		},
 		toCanon: func(_ *Engine, g int64) int64 {
 			switch g {
-			case podStatusOkay:
-				return canonStatusOkay // POR has no revive write: 1 only stores
-			case podStatusDead:
+			case podStatus[core.StatusOkay]:
+				return canonStatusOkay // the revive
+			case podStatus[core.StatusDead]:
 				return canonStatusDied
-			case podStatusPetrified:
+			case podStatus[core.StatusStoned]:
 				return canonStatusStoned
 			}
 			return canonStatusOut
 		},
 	},
-	// TCharRecord.coins[0..2]: platinum, gems, jewelry, words at bytes 0, 2, 4. Platinum is the canonical
-	// coin pair 8/9; gems and jewelry have no canonical coin, so they go to the odd (no field) elements and
-	// stay script cells only.
-	"PodSelCoins": {element: func(i int) int { return [6]int{8, 9, 1, 3, 5, 7}[i] }},
+	// TCharRecord.coins[0..2]: platinum, gems, jewelry, words at bytes 0, 2, 4: the canonical coin pairs
+	// 8, 10 and 12 (scriptCoin), their high bytes the odd elements after them.
+	"PodSelCoins": {element: func(i int) int { return 8 + i }},
 	// TCharRecord.spells[0..140]: slot 0 first, where the canonical element i is slot i+1.
 	"PodSelMemorized": {element: func(i int) int { return i - 1 }},
 	// ReadGbvm $10: facing div 2 in a dungeon, the raw 0..7 on the area map; the write (0..3, less 4 till it

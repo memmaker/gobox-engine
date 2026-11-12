@@ -49,6 +49,7 @@ func (SkillFact) fact()   {}
 func (SaveFact) fact()    {}
 func (LevelFact) fact()   {}
 func (CoinFact) fact()    {}
+func (PiecesFact) fact()  {}
 func (MemoFact) fact()    {}
 func (KnownFact) fact()   {}
 func (PlainFact) fact()   {}
@@ -77,6 +78,10 @@ func (Sex) value()       {}
 func (Alignment) value() {}
 func (Status) value()    {}
 func (Side) value()      {}
+
+// PiecesFact is the count of unappraised gems (Jewel false) or jewelry the party
+// holds: items, not money, until appraised and sold. A write adds or removes them.
+type PiecesFact struct{ Jewel bool }
 
 // Coin is a kind of money. Old scripts see per-member coins as a view of the
 // party's one purse.

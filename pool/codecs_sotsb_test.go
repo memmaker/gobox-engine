@@ -8,9 +8,9 @@ func TestSotsbCodecs(t *testing.T) {
 	if got := st.toGame(nil, 1); got != 1 {
 		t.Errorf("SelStatus okay reads %d, want 1", got)
 	}
-	for _, v := range []int64{0, 1, 2, 7, 0x80, 0x87} {
-		if got := st.toCanon(nil, v); got != 1 {
-			t.Errorf("SelStatus write %#x is canonical %#x, want the no-op 1", v, got)
+	for v, want := range map[int64]int64{1: canonStatusOkay, 0: canonStatusStore, 2: canonStatusStore, 7: canonStatusStore, 0x80: canonStatusStore, 0x87: canonStatusStore} {
+		if got := st.toCanon(nil, v); got != want {
+			t.Errorf("SelStatus write %#x is canonical %#x, want %#x (1 revives, the rest only store)", v, got, want)
 		}
 	}
 	if got := sotsbCodecs["SotsbSelMemorized"].element(0); got != -1 { // slot 0 = canonical slot 0 (element -1 + 1)

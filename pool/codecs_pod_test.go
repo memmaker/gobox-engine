@@ -1,6 +1,10 @@
 package pool
 
-import "testing"
+import (
+	"gobox/core"
+	"gobox/core/dnd"
+	"testing"
+)
 
 // TestPodCodecs round-trips pod's encodings on the original's values.
 func TestPodCodecs(t *testing.T) {
@@ -11,8 +15,12 @@ func TestPodCodecs(t *testing.T) {
 			t.Errorf("status %d: canon %#x, want %#x", g, got, c)
 		}
 	}
-	if st.toGame(e, 1) != 0 || st.toGame(e, 0x80) == 0 {
-		t.Error("status read")
+	seen := map[int64]bool{}
+	for _, n := range podStatus { // the read is the member's own status: one C_Status number each
+		if seen[n] {
+			t.Errorf("C_Status %d twice", n)
+		}
+		seen[n] = true
 	}
 	sd := codecs["PodSelSide"]
 	for _, g := range []int64{0, 1} {
@@ -20,8 +28,8 @@ func TestPodCodecs(t *testing.T) {
 			t.Errorf("side %d -> %d", g, got)
 		}
 	}
-	if c := codecs["PodSelCoins"].element; c(0) != 8 || c(1) != 9 || c(2)%2 != 1 || c(4)%2 != 1 {
-		t.Error("coins: platinum is 8, gems and jewelry no coin")
+	if c := codecs["PodSelCoins"].element; scriptCoin[c(0)/2] != core.Fact(core.CoinFact{Coin: dnd.Platinum}) || scriptCoin[c(2)/2] != core.Fact(core.PiecesFact{}) || scriptCoin[c(4)/2] != core.Fact(core.PiecesFact{Jewel: true}) || c(1)%2 != 1 {
+		t.Error("coins: platinum, gems, jewelry")
 	}
 	if codecs["PodSelMemorized"].element(0) != -1 {
 		t.Error("memorized: slot 0")

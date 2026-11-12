@@ -60,3 +60,15 @@ func TestSelStatus(t *testing.T) {
 		}
 	}
 }
+
+// TestSelAlignmentWrite: a script's write sets the member's alignment.
+func TestSelAlignmentWrite(t *testing.T) {
+	e := &Engine{}
+	c := &rules1e.Character{}
+	e.state().Party = []*rules1e.Character{c}
+	f := e.newEngineFields()["SelAlignment"]
+	f.set(0, 5)
+	if c.Alignment != 5 {
+		t.Errorf("alignment = %d, want 5", c.Alignment)
+	}
+}

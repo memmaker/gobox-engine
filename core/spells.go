@@ -211,8 +211,9 @@ func (CastCard) value()    {}
 func (OpenCast) action()   {}
 func (CampCast) action()   {}
 
-// MemoSlots is how many MemoFact slots a character has (0..MemoSlots-1).
-const MemoSlots = 21
+// MemoSlots is how many MemoFact slots a character has (0..MemoSlots-1): the widest
+// record's (pod's 141, rules1e MemorySlots), so every game's memorised slots reach the rules.
+const MemoSlots = 141
 
 // SpellByNumber is the ruleset's id of the original's spell number N
 // (SpellID; "" outside the table). Game: N is the game's own number (a

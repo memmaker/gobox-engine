@@ -16,7 +16,7 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		if i%2 != 0 { // the odd ones are the original's high bytes, no field of the record
 			return 0, false
 		}
-		return e.selFact(core.CoinFact{Coin: scriptCoin[i/2]}), true
+		return e.selFact(scriptCoin[i/2]), true
 	}
 	m := map[string]engineField{
 		"SymbolSet": { // ovr08:07BC/0A74 +0x312: the symbol set (0802:094A)
@@ -55,10 +55,12 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			}},
 		"SelCoins": {stored: true, get: coin, set: func(i int, v int64) {
 			if i%2 == 0 {
-				e.setSelFact(core.CoinFact{Coin: scriptCoin[i/2]}, int64(uint16(v)))
+				e.setSelFact(scriptCoin[i/2], int64(uint16(v)))
 			}
 		}},
-		"SelAlignment": reads(func() uint16 { return signedByte(selIndex(e, core.FactAlignment, goldbox.RecordAlignment[:])) }),
+		"SelAlignment": {stored: true, get: func(int) (int64, bool) {
+			return int64(signedByte(selIndex(e, core.FactAlignment, goldbox.RecordAlignment[:]))), true
+		}, set: func(_ int, v int64) { e.setSelFact(core.FactAlignment, int64(uint8(v))) }}, // the record's byte (alignmentNameTable index)
 		"SelExpValue": {stored: true, get: func(int) (int64, bool) { return e.selFact(core.FactExpValue), true },
 			set: func(_ int, v int64) { e.setSelFact(core.FactExpValue, v) }},
 		"SelExpPerHP": {stored: true, get: func(int) (int64, bool) { return e.selFact(core.FactExpPerHP), true },
@@ -69,10 +71,13 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			}
 			return 0x80, true
 		}, set: func(_ int, v int64) {
-			if v >= 0x80 {
+			if v >= 0x80 || v == canonStatusOkay {
 				st := core.StatusInactive
-				if v == 0x87 {
+				switch v {
+				case canonStatusStoned:
 					st = core.StatusStoned
+				case canonStatusOkay: // Okay revives the member (sotsb, pod; POR's scripts never write it)
+					st = core.StatusOkay
 				}
 				a := core.SetStatusAction{Who: e.selected(), Status: st}
 				if _, err := e.ruleset().Resolve(nil, a, nil); err != nil {
@@ -221,6 +226,9 @@ func (e *Engine) setVar(r script.Ref, v int64) {
 		}
 		e.storeCells(f, r.Index, []int64{v})
 	}
+	if bound && writesIgnored(f) {
+		return
+	}
 	if bound && ef.set != nil {
 		ef.set(canonElement(f, r.Index), e.canonValue(f, v))
 	} else if bound && !ef.stored {
@@ -343,8 +351,10 @@ func fact(r func() uint16, w func(v uint16)) engineField {
 	return f
 }
 
-// scriptCoin is the coin of each SelCoins word pair (copper .. platinum).
-var scriptCoin = [5]core.Coin{dnd.Copper, dnd.Silver, dnd.Electrum, dnd.Gold, dnd.Platinum}
+// scriptCoin is the fact of each SelCoins word pair (the records' coins[0..6]: copper ..
+// platinum, then the unappraised gems and jewelry, items; POR's field holds the first five).
+var scriptCoin = [7]core.Fact{core.CoinFact{Coin: dnd.Copper}, core.CoinFact{Coin: dnd.Silver}, core.CoinFact{Coin: dnd.Electrum},
+	core.CoinFact{Coin: dnd.Gold}, core.CoinFact{Coin: dnd.Platinum}, core.PiecesFact{}, core.PiecesFact{Jewel: true}}
 
 func signedByte(v int) uint16 { return uint16(int16(int8(v))) }
 
