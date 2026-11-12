@@ -197,7 +197,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	// AC, THAC0 and Damage on the pane's bottom: three columns, each label
 	// over its value, centred in its column
 	colW := (rr - rx) / 3
-	for j, f := range [][2]string{{"AC", strconv.Itoa(sp.AC)}, {"THAC0", strconv.Itoa(sp.THAC0)}, {"Damage", sp.Damage}} {
+	for j, f := range [][2]string{{"AC", strconv.Itoa(sp.AC) + "/" + strconv.Itoa(sp.RearAC)}, {"THAC0", strconv.Itoa(sp.THAC0)}, {"Damage", sp.Damage}} {
 		if f[1] == "" {
 			continue // the game leaves it empty: no label
 		}

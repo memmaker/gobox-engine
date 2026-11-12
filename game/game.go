@@ -229,7 +229,8 @@ type SheetPage struct {
 	Creating                    bool
 	Levels                      string
 	Exp, Next                   int
-	AC, HP, MaxHP, THAC0        int
+	AC, HP, MaxHP, THAC0        int // AC: the front armour class
+	RearAC                      int // the rear one
 	Damage                      string
 	Move                        int
 	Saves                       [5]int

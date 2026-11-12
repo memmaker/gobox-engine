@@ -30,7 +30,7 @@ func Sheet(v front.View, h *game.Sheet, portrait, iconBox image.Rectangle, page 
 	if p != nil {
 		k := &front.SheetPage{Name: p.Name, NameColour: nameColour(own), NPC: p.NPC, Spells: p.Spells, Sex: p.Sex, Race: p.Race, Age: p.Age,
 			Alignment: p.Alignment, Class: p.Class, Stats: p.Stats, Str00: p.Str00, Creating: p.Creating, Levels: p.Levels,
-			Exp: p.Exp, Next: p.Next, AC: p.AC, HP: p.HP, MaxHP: p.MaxHP, THAC0: p.THAC0, Damage: p.Damage, Move: p.Move,
+			Exp: p.Exp, Next: p.Next, AC: p.AC, RearAC: p.RearAC, HP: p.HP, MaxHP: p.MaxHP, THAC0: p.THAC0, Damage: p.Damage, Move: p.Move,
 			Saves: p.Saves, Mods: p.Mods, Status: p.Status, Weapon: p.Weapon, Armour: p.Armour, Encumbrance: p.Encumbrance,
 			Coins: p.Coins, Effects: p.Effects, PortraitAt: cells(p.PortraitAt), Portrait: p.Portrait, Icons: p.Icons}
 		for _, r := range p.Rules {
@@ -54,9 +54,9 @@ func Sheet(v front.View, h *game.Sheet, portrait, iconBox image.Rectangle, page 
 func draftPage(c *game.Creation, rules *game.SheetPage) *game.SheetPage {
 	d := c.Draft
 	p := &game.SheetPage{Name: d.Name, Race: d.Race, Alignment: d.Alignment, Class: d.Class, Creating: true,
-		AC: d.AC, HP: d.HP, MaxHP: d.MaxHP, THAC0: d.THAC0, Move: d.Move, Status: d.Status, Age: d.Age}
+		AC: d.AC, RearAC: d.AC, HP: d.HP, MaxHP: d.MaxHP, THAC0: d.THAC0, Move: d.Move, Status: d.Status, Age: d.Age}
 	if r := rules; r != nil { // the rules' own figures: one source, never a 0 the game did figure
-		p.Age, p.AC, p.HP, p.MaxHP, p.THAC0, p.Damage, p.Move = r.Age, r.AC, r.HP, r.MaxHP, r.THAC0, r.Damage, r.Move
+		p.Age, p.AC, p.RearAC, p.HP, p.MaxHP, p.THAC0, p.Damage, p.Move = r.Age, r.AC, r.RearAC, r.HP, r.MaxHP, r.THAC0, r.Damage, r.Move
 		p.Saves, p.Mods, p.Rules, p.Levels, p.Exp, p.Next, p.Portrait = r.Saves, r.Mods, r.Rules, r.Levels, r.Exp, r.Next, r.Portrait
 	}
 	if d.ClassText != "" {

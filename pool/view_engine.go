@@ -87,7 +87,7 @@ func (e *Engine) effectsFit(id core.CharID) bool { _, ok := e.effectsLine(id); r
 // party items, movement.
 func (e *Engine) combatStats(id core.CharID, sp *SheetPage) {
 	sh := e.ruleset().Sheet(id)
-	sp.AC, sp.HP, sp.MaxHP = int(sh.AC), int(sh.HP), int(sh.MaxHP)
+	sp.AC, sp.RearAC, sp.HP, sp.MaxHP = int(sh.AC), int(sh.RearAC), int(sh.HP), int(sh.MaxHP)
 	sp.THAC0, sp.Damage, sp.Move = int(sh.THAC0), goldbox.Cut(string(e.fact(id, core.DamageFact{}).(core.Text)), textCols), int(sh.Move)
 	if sp.Rules = e.fact(id, core.FiguresFact{}).(core.Figures); sp.Rules != nil { // extra: the rule set's modifiers and figures
 		for a := range sp.Mods {

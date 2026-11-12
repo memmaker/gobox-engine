@@ -17,7 +17,8 @@ type Sheet struct {
 	NextExp   int64 // 0: it rises no further
 	LevelExp  int64 // what its current level took
 	HP, MaxHP int32
-	AC, THAC0 int32
+	AC, THAC0 int32 // AC: the front armour class
+	RearAC    int32 // the rear armour class (attacks from behind)
 	Move      int32
 	Saves     map[Save]int32
 	Skills    map[Skill]int32

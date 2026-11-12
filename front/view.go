@@ -575,7 +575,8 @@ type SheetPage struct {
 	Levels             string   // "1/2"
 	Exp                int
 	Next               int // the experience the next level takes (0: none)
-	AC, HP             int // AC as displayed (10 down to negative)
+	AC, HP             int // AC as displayed (10 down to negative): the front one
+	RearAC             int // the rear armour class, as displayed
 	MaxHP              int // HP below it shows yellow
 	THAC0              int
 	Damage             string
