@@ -128,8 +128,3 @@ func (CanJoin) check() {}
 func (InParty) check() {}
 
 func (ControlledBefore) check() {}
-
-// ClearHired forgets the hired NPCs of the roster (an empty party starts again).
-type ClearHired struct{}
-
-func (ClearHired) action() {}
