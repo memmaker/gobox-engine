@@ -217,3 +217,14 @@ type ItemByNumber struct{ N int }
 
 func (ItemByNumber) fact() {}
 func (ItemID) value()      {}
+
+// DestroyItems takes every Item Whom carry (the party inventory too) out of
+// the game, each readied one put away first; MagicalOnly spares those with
+// no plus (the script's DestroyItems; ruling S9, for all games).
+type DestroyItems struct {
+	Whom        Party
+	Item        ItemID
+	MagicalOnly bool
+}
+
+func (DestroyItems) action() {}

@@ -349,6 +349,25 @@ func (e *Engine) opSpell() {
 // spellNone is Spell's slot result when no one has the spell.
 const spellNone = 255
 
+// DestroyItems' operand: the item type, +128 for magical items only.
+const (
+	destroyMagicalOnly = 128
+	destroyTypeMask    = 127
+)
+
+// opDestroyItems = pod O040:2066 (type): the party's items of the type go,
+// readied ones put away first. Ruling S9: unready always, pod's +128
+// magical-only flag, for all games.
+func (e *Engine) opDestroyItems() {
+	e.vm.ReadArgs(1)
+	v := int(byte(e.vm.Arg(1, e.host)))
+	id, err := e.itemID(v & destroyTypeMask)
+	if err != nil { // an item type without an id: no one carries it (as opFindItem)
+		return
+	}
+	e.do(core.DestroyItems{Whom: e.partyIDs(), Item: id, MagicalOnly: v&destroyMagicalOnly != 0})
+}
+
 // DAMAGE's first operand (ruling 3, cotab's): a count of random members,
 // or flags; its save operand: the save type, or with saveSelected the
 // selected member saves (type 0: none).
