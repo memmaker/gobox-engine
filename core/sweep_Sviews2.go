@@ -56,3 +56,10 @@ type StepInfo struct {
 
 func (StepFact) fact()  {}
 func (StepInfo) value() {}
+
+// ClassByNumber is the ruleset's class of the original's class number N
+// (Class; ClassNone outside the table).
+type ClassByNumber struct{ N int }
+
+func (ClassByNumber) fact() {}
+func (Class) value() {}
