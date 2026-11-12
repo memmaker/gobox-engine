@@ -1013,7 +1013,7 @@ func (g *Game) act(a front.Action) func() error {
 	case front.ActSell:
 		return send(play.Sell{Member: g.sel(-1), Item: g.held(a.N)})
 	case front.ActReload:
-		return send(play.Reload{Member: g.sel(-1), Item: a.N})
+		return send(play.Reload{Member: g.sel(-1), Item: g.held(a.N)})
 	case front.ActBuy:
 		if lootOf(g.r.g.State()) != nil {
 			return send(play.Take{Item: a.N})

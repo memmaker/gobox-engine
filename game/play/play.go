@@ -619,8 +619,14 @@ type (
 		Member, Item int
 		Keep         bool
 	}
-	Repair        struct{ Member, Item int }
-	Reload        struct{ Member, Item int }
+	Repair struct {
+		Member int
+		Item   core.ItemHandle
+	}
+	Reload struct {
+		Member int
+		Item   core.ItemHandle
+	}
 	Train         struct{ Member int }
 	Heal          struct{ Service, Member int }
 	PoolCoins     struct{ Member int }
