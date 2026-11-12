@@ -783,7 +783,7 @@ func (g *Game) Appraise(jewelry bool) error {
 	}
 	for _, o := range g.offers() {
 		if o.Kind == kind {
-			return g.do(play.Appraise{Member: o.Member, Item: o.Item})
+			return g.do(play.Appraise{Member: o.Member, Offer: o.Offer})
 		}
 	}
 	return errors.New("no " + kind + " to appraise")
@@ -793,7 +793,7 @@ func (g *Game) Appraise(jewelry bool) error {
 func (g *Game) KeepAppraised(keep bool) error {
 	for _, o := range g.offers() {
 		if o.Value > 0 {
-			return g.do(play.Appraise{Member: o.Member, Item: o.Item, Keep: keep})
+			return g.do(play.Appraise{Member: o.Member, Offer: o.Offer, Keep: keep})
 		}
 	}
 	return errors.New("nothing valued to keep or sell")

@@ -604,11 +604,20 @@ type TurnManeuver struct {
 // Offer is a gem or jewel of the purse to appraise (Appraise), by the member:
 // Value 0, not valued yet; else the one valued, to keep or sell.
 type Offer struct {
-	Member, Item int
-	Kind         string // Gems or Jewelry
-	Value        int
-	CanKeep      bool // Appraise.Keep is allowed
+	Member  int
+	Offer   OfferKind // what is offered (Appraise's Offer)
+	Kind    string    // Gems or Jewelry
+	Value   int
+	CanKeep bool // Appraise.Keep is allowed
 }
+
+// OfferKind is what an Offer values: the purse's gem or piece of jewelry.
+type OfferKind int
+
+const (
+	OfferGem OfferKind = iota
+	OfferJewel
+)
 
 // ItemRef names one member's item.
 type ItemRef struct {

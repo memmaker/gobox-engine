@@ -629,7 +629,7 @@ type (
 	}
 	Appraise struct {
 		Member int
-		Item   int // ITEM?
+		Offer  game.OfferKind
 		Keep   bool
 	}
 	Repair struct {
@@ -775,9 +775,9 @@ func (Jetpack) action()          {}
 func AppraiseActions(offers []game.Offer) []Action {
 	var l []Action
 	for _, o := range offers {
-		l = append(l, Appraise{Member: o.Member, Item: o.Item})
+		l = append(l, Appraise{Member: o.Member, Offer: o.Offer})
 		if o.Value > 0 && o.CanKeep {
-			l = append(l, Appraise{Member: o.Member, Item: o.Item, Keep: true})
+			l = append(l, Appraise{Member: o.Member, Offer: o.Offer, Keep: true})
 		}
 	}
 	return l
