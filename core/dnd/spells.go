@@ -124,8 +124,6 @@ const (
 	SpellRemoveCurseMU                 core.SpellID = "remove-curse-mu"
 	SpellResistCold                    core.SpellID = "resist-cold"
 	SpellResistFire                    core.SpellID = "resist-fire"
-	SpellRestoration                   core.SpellID = "restoration"
-	SpellRestorationCleric             core.SpellID = "restoration-cleric"
 	SpellResurrection                  core.SpellID = "resurrection"
 	SpellScrollOfProtection            core.SpellID = "scroll-of-protection"
 	SpellShield                        core.SpellID = "shield"
