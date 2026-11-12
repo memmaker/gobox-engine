@@ -40,7 +40,19 @@ type GameTables struct {
 	Quests                     []QuestDef            // the quest journal's quests (POR: the commissions); none: an empty journal
 	OriginalSave               char.SaveLayout       // the game's SAVGAMx.DAT format (the original-save import)
 	PurseWhos                  []PurseWho            // the Who commands that spend the party's one purse (POR: the inn, the tavern)
+	Symbols                    []SymbolLoad          // the 8x8 symbol sets Init loads; nil: POR's, sotsb's and cotab's (PorSymbols)
 }
+
+// SymbolLoad is one 8x8 symbol set Init loads: block Block of File into set
+// Set; an empty File is the content set's 8X8D<n>.
+type SymbolLoad struct {
+	Set   int
+	File  string
+	Block int
+}
+
+// PorSymbols are the sets POR, sotsb and cotab load (ovr35:003B).
+var PorSymbols = []SymbolLoad{{Set: 4, Block: 202}, {Set: 0, Block: 203}}
 
 // AreaMonsters are the monsters a fight adds by area screen (Behaviour.AreaMonstersJoin):
 // Count of ByScreen[the area screen], standing aside with Status and Control.

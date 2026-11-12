@@ -116,6 +116,7 @@ func (e *Engine) dropMember(n int) {
 	if e.partySize() == 1 {
 		e.RemoveSelected(false, true)
 		e.Exit()
+		return
 	}
 	if c.Status == core.StatusOkay {
 		e.say(c.Name + " bids you farewell")

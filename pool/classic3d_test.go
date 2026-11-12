@@ -209,9 +209,9 @@ func (e *Engine) classicWalldefLoad(block, slot int) error {
 			if bl == 0 {
 				bl = 0xA
 			}
-			e.LoadSymbolSet(s, bl*10+k)
+			e.LoadSymbolSet(SymbolLoad{Set: s, Block: bl*10 + k})
 		} else {
-			e.LoadSymbolSet(s, block)
+			e.LoadSymbolSet(SymbolLoad{Set: s, Block: block})
 		}
 	}
 	return nil
@@ -268,8 +268,8 @@ func TestClassicViews(t *testing.T) {
 		return n
 	}
 	e.set = goldbox.Set(num(f[0]))
-	e.LoadSymbolSet(4, 202)
-	e.LoadSymbolSet(0, 203)
+	e.LoadSymbolSet(SymbolLoad{Set: 4, Block: 202})
+	e.LoadSymbolSet(SymbolLoad{Set: 0, Block: 203})
 	e.LoadGeo(num(f[1]))
 	e.gs.areaKind = byte(num(f[2]))
 	for _, w := range strings.Split(f[3], ",") {

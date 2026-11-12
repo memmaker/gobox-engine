@@ -18,13 +18,17 @@ var symFix = [5]int{0x001, 0x02E, 0x074, 0x0BA, 0x100}
 
 // LoadSymbolSet = ovr35:003B — load 8X8D<n>.DAX block into set index,
 // masked on colour 13.
-func (e *Engine) LoadSymbolSet(set, block int) {
-	if set < 0 || set > 4 {
+func (e *Engine) LoadSymbolSet(l SymbolLoad) {
+	if l.Set < 0 || l.Set > 4 {
 		return
 	}
-	e.sym[set] = e.LoadPicMasked(e.set.File("8X8D"), block, 0xD)
-	if e.sym[set] == nil {
-		e.PromptRow24(ega.White, "Unable to load "+e.set.File("8x8D")+"-"+strconv.Itoa(block))
+	file := l.File
+	if file == "" {
+		file = e.set.File("8X8D")
+	}
+	e.sym[l.Set] = e.LoadPicMasked(file, l.Block, 0xD)
+	if e.sym[l.Set] == nil {
+		e.PromptRow24(ega.White, "Unable to load "+file+"-"+strconv.Itoa(l.Block))
 		e.Exit()
 	}
 }
@@ -39,11 +43,11 @@ func (e *Engine) LoadPicMasked(name string, id int, mask byte) *asset.Image {
 // with its DOS twin (Image.Alt), else the DOS one.
 func (e *Engine) loadPic(name string, id, mask int) *asset.Image {
 	b, dos := e.artBlocks(name, id)
-	if b == nil || b.Kind != asset.Still {
+	if b == nil || !b.Kind.Pictured() {
 		return nil
 	}
 	im := named(b.Image(mask), name, id)
-	if dos != nil && dos.Kind == asset.Still {
+	if dos != nil && dos.Kind.Pictured() {
 		twin(im, named(dos.Image(mask), name, id))
 	}
 	return im

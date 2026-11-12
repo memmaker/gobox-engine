@@ -18,8 +18,13 @@ func (e *Engine) Init() {
 	e.ext.minimap = e.marked(minimapFile) // here, not in New: Cfg.SaveDir is set by then (a test's temp dir)
 	e.clearPrompt()
 	e.prompt(ega.LightGreen, "Loading...Please Wait")
-	e.LoadSymbolSet(4, 202) // ovr35:003B
-	e.LoadSymbolSet(0, 203)
+	symbols := e.game().Symbols
+	if symbols == nil {
+		symbols = PorSymbols
+	}
+	for _, l := range symbols { // ovr35:003B
+		e.LoadSymbolSet(l)
+	}
 	e.sqrpaci[0] = e.LoadPic("SQRPACI", 1) // 0464:0111 → DS:5E52
 	e.sqrpaci[1] = e.LoadPic("SQRPACI", 2) // DS:5E56
 	for i := 0; i <= 0xB; i++ {

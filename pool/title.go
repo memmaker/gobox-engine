@@ -76,6 +76,8 @@ func (e *Engine) SetStart(s *importer.Sequence) error {
 	if s == nil {
 		s = &importer.Sequence{}
 	}
+	shown := s.Shown(!DOSArt.Load()) // the steps of the art up (an Amiga-only card is dropped under the DOS art)
+	s = &shown
 	var t title
 	var err error
 	g := importer.GraphicsOther

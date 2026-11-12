@@ -204,9 +204,10 @@ func New(rules Ruleset, d GameTables, adv, data string) (*Engine, error) {
 	return e, nil
 }
 
-// Exit = 0899:0000: back to DOS.
+// Exit = 0899:0000: back to DOS. The engine never ends the process: it
+// emits play.Ended and the front ends the run (as ProgramQuit does).
 func (e *Engine) Exit() {
-	os.Exit(0)
+	e.event(play.Ended{})
 }
 
 // iconSlots is how many combat icon slots DS:5E5A holds: one per combatant
