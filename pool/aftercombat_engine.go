@@ -137,13 +137,19 @@ func (e *Engine) lootRedraw() {
 // screen: item h of the treasure (State.Loot) for the
 // selected member; all: every piece in turn until one does not fit. The
 // money (NoItem) is the party's already (the purse is shared), so there is
-// none to take.
+// none to take; the vault's is banked by Take.
 func (e *Engine) TakeLoot(h core.ItemHandle, all bool) error {
 	if !e.waiting(PendLoot) {
 		return core.ErrNotNow
 	}
+	if e.vault != nil && (all || h == core.NoItem) { // the vault's money is left there until taken
+		e.must(core.BankLoot{})
+	}
 	if all {
 		return e.takeLoot(core.TakeLoot{Who: e.selected(), All: true})
+	}
+	if h == core.NoItem && e.vault != nil {
+		return nil
 	}
 	if h == core.NoItem {
 		return &play.Refusal{} // the money line: the purse is shared, nothing to take, no toast

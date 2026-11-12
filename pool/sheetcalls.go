@@ -210,6 +210,10 @@ func (e *Engine) Drop(h core.ItemHandle) error {
 	if h == core.NoItem {
 		return core.ErrNotNow
 	}
+	if e.vault != nil { // Deposit: the item stays in the vault (pod's dropItem)
+		_, err := e.ruleset().Resolve(nil, core.DepositItem{Who: cID, Item: h}, nil)
+		return err
+	}
 	_, err := e.ruleset().Resolve(nil, core.DropItem{Who: cID, Item: h}, nil)
 	return err
 }

@@ -228,3 +228,25 @@ type DestroyItems struct {
 }
 
 func (DestroyItems) action() {}
+
+// TreasureRecordsFact is the treasure's items as the game's 0x3F-byte file records
+// (ItemRecords), last of the list first, so that a block read in file order
+// by AddTreasureBlock comes back in it: what the vault writes back.
+type TreasureRecordsFact struct{}
+
+// ItemRecords is item records, one after the other.
+type ItemRecords []byte
+
+// DepositItem: Who leaves Item in the treasure (the vault's Deposit; the
+// items menu's Drop there). It goes at the head, so it is last in the file.
+// ErrNotNow when Who does not hold it; an item that may not be lost (readied) stays.
+type DepositItem struct {
+	Who  CharID
+	Item ItemHandle
+}
+
+func (TreasureRecordsFact) fact() {}
+
+func (ItemRecords) value() {}
+
+func (DepositItem) action() {}

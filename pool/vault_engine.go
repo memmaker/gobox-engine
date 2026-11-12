@@ -15,8 +15,9 @@ import (
 // longints, then 63-byte item records. The vault screen is the treasure screen
 // (PendLoot) over those items; the money is banked on opening and the items
 // not taken are written back on leaving.
-// ponytail: no Deposit (the items menu's Drop) and no money left in the vault;
-// both need rules (a treasure the party can add to and read back as records).
+// The money is the loot's: it stays in the vault until the party takes it
+// (Take on the money line), and what is left is written back, as pod and sotsb
+// do. Deposit is the items menu's Drop while the vault is open (pod's dropItem).
 
 const (
 	vaultFile  = "vault.dat"
@@ -24,13 +25,11 @@ const (
 	// the three longints of the file, and their place among core.SetLoot's seven coins
 	vaultCoins                          = 3
 	coinPlatinum, coinGems, coinJewelry = 4, 5, 6
+	goldPerPlatinum                     = 5
 )
 
-// vault is the open vault: its item records, by the handle the treasure gave each.
-type vault struct {
-	items []char.Item
-	byID  map[core.ItemHandle]char.Item
-}
+// vault is the open vault: its item records, which the treasure reads (vaultBlock).
+type vault struct{ items []char.Item }
 
 // Vault = pod's vault screen: the treasure screen over vault.dat until the party leaves.
 func (e *Engine) Vault() {
@@ -38,43 +37,32 @@ func (e *Engine) Vault() {
 	if err != nil {
 		panic(fmt.Sprintf("vault: %v", err))
 	}
-	e.vault = &vault{items: items, byID: map[core.ItemHandle]char.Item{}}
+	e.vault = &vault{items: items}
 	e.do(core.ClearLoot{})
-	for coins != [vaultCoins]uint64{} { // SetLoot holds 16 bits a kind: bank it in turns
+	for coins != [vaultCoins]uint64{} { // AddLoot holds 16 bits a kind: add it in turns
 		var c [7]uint16
 		for i, k := range []int{coinPlatinum, coinGems, coinJewelry} {
 			n := uint16(min(coins[i], math.MaxUint16))
 			c[k], coins[i] = n, coins[i]-uint64(n)
 		}
-		e.do(core.SetLoot{Coins: c})
-		e.do(core.BankLoot{})
+		e.do(core.AddLoot{Coins: c})
 	}
 	if len(items) > 0 {
-		e.do(core.ClearTreasure{})
 		e.do(core.AddTreasureBlock{Block: vaultBlock})
-		goods := e.goods()
-		if len(goods) != len(items) {
-			panic(fmt.Sprintf("vault: %d items listed of %d", len(goods), len(items)))
-		}
-		for i, h := range goods { // the block's last item leads (AddTreasureBlock)
-			e.vault.byID[h] = items[len(items)-1-i]
-		}
 	}
 	e.push(cont{kind: kVaultDone})
 	e.lootMenu()
 }
 
-// vaultDone: the vault is left; the items not taken are written back.
+// vaultDone: the vault is left; the money and items not taken are written back.
 func (e *Engine) vaultDone() {
-	var left []char.Item
-	for _, h := range e.goods() {
-		left = append(left, e.vault.byID[h])
-	}
 	e.vault = nil
-	if err := writeVault(e.savePath(vaultFile), left); err != nil {
+	records := e.fact(core.NoChar, core.TreasureRecordsFact{}).(core.ItemRecords)
+	loot := e.purse(true)
+	e.do(core.ClearLoot{}) // and the treasure
+	if err := writeVault(e.savePath(vaultFile), loot, records); err != nil {
 		e.say("Can't save the vault: " + err.Error())
 	}
-	e.do(core.ClearTreasure{})
 	e.afterEnd()
 }
 
@@ -99,7 +87,12 @@ func readVault(path string) ([vaultCoins]uint64, []char.Item, error) {
 	return coins, char.ReadItems(rest[:len(rest)/char.ItemSize*char.ItemSize]), nil
 }
 
-// writeVault writes vault.dat: an empty pool and items.
-func writeVault(path string, items []char.Item) error {
-	return os.WriteFile(path, slices.Concat(make([]byte, vaultCoins*4), char.WriteItems(items)), 0o644)
+// writeVault writes vault.dat: the pool's platinum, gems and jewelry (gold
+// under a platinum piece and copper cannot be left, as in pod), then the item records.
+func writeVault(path string, loot core.Purse, records core.ItemRecords) error {
+	head := make([]byte, 0, vaultCoins*4)
+	for _, n := range []uint64{loot.Gold / goldPerPlatinum, loot.Gems, loot.Jewelry} {
+		head = binary.LittleEndian.AppendUint32(head, uint32(min(n, math.MaxInt32)))
+	}
+	return os.WriteFile(path, slices.Concat(head, records), 0o644)
 }
