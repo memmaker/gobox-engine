@@ -116,12 +116,15 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 				if !ev.Hit {
 					break
 				}
-				for _, n := range out.Events[j+1:] { // the hit's damage is its own: no Struck for it after
-					if _, ok := n.(play.Attacked); ok {
-						break
-					}
-					if n, ok := n.(play.Struck); ok && n.Unit == ev.To {
-						t.Errorf("unit %d's hit on %d shows its damage twice", ev.From, ev.To)
+			hit:
+				for _, n := range out.Events[j+1:] { // the hit's damage is its own: no Struck for it before the next action
+					switch n := n.(type) {
+					case play.Attacked, play.CastSpell: // another swing's or a spell's harm is its own (cotab: a spell on the one just hit)
+						break hit
+					case play.Struck:
+						if n.Unit == ev.To {
+							t.Errorf("unit %d's hit on %d shows its damage twice", ev.From, ev.To)
+						}
 					}
 				}
 			}

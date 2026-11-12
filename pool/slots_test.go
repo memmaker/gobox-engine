@@ -169,14 +169,13 @@ func (e *Engine) labels() map[int]mapLabel {
 // adventure starts without them, and removing one shows the built-in again.
 func TestPhlanLabels(t *testing.T) {
 	e := &Engine{set: 3, data: "../../por-go/data", adv: "../../por-go/data/assets"} // the save needs the script layout
-	e.given = &GameTables{MapLabels: PorMapLabels}
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
 	if m := e.labels(); m[1<<4|15].text != "Boats" || len(m) != len(e.builtinLabels(3<<16)) {
 		t.Fatalf("fresh New Phlan: %d labels, 15,1 = %q", len(m), m[1<<4|15].text)
 	}
 	e.userLabels()[1<<4|15] = mapLabel{"My boat", poiUser}
-	e.userLabels()[1<<4|11] = e.builtinLabels(3<<16)[1<<4|11]
+	e.userLabels()[1<<4|11] = e.builtinLabels(3 << 16)[1<<4|11]
 	e.saveTo("X")
 	path := filepath.Join(e.slotRoot(), "X", labelsFile)
 	if b, _ := os.ReadFile(path); string(b) != "map 196608\n15 1 0 My boat\n" {
