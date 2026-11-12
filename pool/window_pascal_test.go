@@ -48,7 +48,7 @@ func TestWindowAgainstPascal(t *testing.T) {
 			cases++
 			continue
 		}
-		c.Memorized = [21]rules1e.SpellID{}
+		c.Memorized = [rules1e.MemorySlots]rules1e.SpellID{}
 		c.Control, c.ExpValue, c.ExpPerHP, c.Okay, c.Status, c.Side, c.Auto = 0, 0, 0, 1, rules1e.StatusOkay, rules1e.SideParty, 0
 		e.es.memberGone, e.es.memberDied = 0, 0
 		if r, ok := refAt(t, e, k[0]); ok { // no field there: no script writes it, nothing changes
@@ -56,7 +56,7 @@ func TestWindowAgainstPascal(t *testing.T) {
 		}
 		var b strings.Builder
 		for i := 1; i <= 20; i++ {
-			fmt.Fprint(&b, c.Memorized[i], " ")
+			fmt.Fprint(&b, c.Memorized[i].Byte(), " ")
 		}
 		fmt.Fprint(&b, c.Control, c.ExpValue, c.ExpPerHP, c.Okay, c.Status, c.Side, c.Auto, e.es.memberGone, e.es.memberDied)
 		if got := b.String(); got != strings.Join(strings.Fields(want), " ") {

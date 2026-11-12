@@ -29,6 +29,11 @@ func (e *Engine) spellID(n int) core.SpellID {
 	return e.fact(core.NoChar, core.SpellByNumber{N: n}).(core.SpellID)
 }
 
+// scriptSpell is the ruleset's id of a script's spell number n (the game's).
+func (e *Engine) scriptSpell(n int) core.SpellID {
+	return e.fact(core.NoChar, core.SpellByNumber{N: n, Game: true}).(core.SpellID)
+}
+
 // UnknownItemType is a script's item number with no ruleset id (ids.txt).
 type UnknownItemType struct{ N int }
 

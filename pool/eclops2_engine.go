@@ -377,7 +377,7 @@ func (e *Engine) opGainExperience() {
 func (e *Engine) opSpell() {
 	e.vm.ReadArgs(3)
 	ids := e.partyIDs()
-	a := e.ruleset().Check(core.Memorized{Party: ids, Spell: e.spellID(int(byte(e.vm.Arg(1, e.host))))}, nil)
+	a := e.ruleset().Check(core.Memorized{Party: ids, Spell: e.scriptSpell(int(byte(e.vm.Arg(1, e.host))))}, nil)
 	slot, who := int64(spellNone), max(len(ids)-1, 0)
 	if a.Yes {
 		slot, who = int64(a.Value), slices.Index(ids, a.Who)

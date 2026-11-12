@@ -47,8 +47,8 @@ func Pack285(f Files) (core.CharacterFile, error) {
 	c.Items = ReadItems(f.Items)
 	c.Affects = ReadAffects(f.Affects)
 	if f.Plan != nil {
-		c.Plan = new([21]rules1e.SpellID)
-		fromBytes(c.Plan[:], f.Plan)
+		c.Plan = new([rules1e.MemorySlots]rules1e.SpellID)
+		memoryOf(c.Plan[:], f.Plan)
 	}
 	fromBytes(c.OldLevels[:], f.Dual)
 	readPowers(&c, f.Powers)
@@ -74,7 +74,9 @@ func Unpack285(b core.CharacterFile, game bool) (Files, error) {
 	f.Items = WriteItems(items)
 	f.Affects = WriteAffects(c.Affects)
 	if c.Plan != nil {
-		f.Plan = bytes.TrimRight(fileBytes(c.Plan[:]), "\x00")
+		f.Plan = make([]byte, len(c.Plan))
+		memoryBytes(f.Plan, c.Plan[:])
+		f.Plan = bytes.TrimRight(f.Plan, "\x00")
 	}
 	f.Dual = bytes.TrimRight(fileBytes(c.OldLevels[:]), "\x00")
 	return f, nil
@@ -167,6 +169,32 @@ func fileBytes[T ~uint8](v []T) []byte {
 	b := make([]byte, len(v))
 	bytesOf(b, v)
 	return b
+}
+
+// memoryOf fills v from a record's memory bytes b (spell number, +0x80
+// pending), as copy does; memoryBytes is its inverse.
+func memoryOf(v []rules1e.SpellID, b []byte) {
+	for i := range min(len(v), len(b)) {
+		v[i] = rules1e.SpellOfByte(b[i])
+	}
+}
+
+func memoryBytes(b []byte, v []rules1e.SpellID) {
+	for i := range min(len(v), len(b)) {
+		b[i] = v[i].Byte()
+	}
+}
+
+// memorySheet and bookSheet are a record's memory and spell book bytes as
+// the Sheet's fields (the rest zero).
+func memorySheet(b []byte) (v [rules1e.MemorySlots]rules1e.SpellID) {
+	memoryOf(v[:], b)
+	return
+}
+
+func bookSheet(b []byte) (v [rules1e.LastSpellID]rules1e.Flag) {
+	fromBytes(v[:], b)
+	return
 }
 
 // fromBytes fills v from b (a save file's bytes), as copy does.
@@ -279,14 +307,14 @@ func sheetOf(r Record285) rules1e.Sheet {
 		Pad87:      r.Pad86[1],
 		Stats:      r.Stats,
 		Str00:      r.Str00,
-		Memorized:  r.Memorized,
+		Memorized:  memorySheet(r.Memorized[:]),
 		Study:      r.Study,
 		Thac0Base:  r.Thac0Base,
 		Race:       r.Race,
 		Class:      r.Class,
 		Age:        r.Age,
 		MaxHP:      r.MaxHP,
-		SpellBook:  r.SpellBook,
+		SpellBook:  bookSheet(r.SpellBook[:]),
 		FightLevel: r.FightLevel,
 		Size:       r.Size,
 		Saves:      r.Saves,
@@ -349,14 +377,12 @@ func recordOf(s rules1e.Sheet) Record285 {
 		Pad86:      [2]byte{s.Pad86, s.Pad87},
 		Stats:      s.Stats,
 		Str00:      s.Str00,
-		Memorized:  s.Memorized,
 		Study:      s.Study,
 		Thac0Base:  s.Thac0Base,
 		Race:       s.Race,
 		Class:      s.Class,
 		Age:        s.Age,
 		MaxHP:      s.MaxHP,
-		SpellBook:  s.SpellBook,
 		FightLevel: s.FightLevel,
 		Size:       s.Size,
 		Saves:      s.Saves,
@@ -411,6 +437,8 @@ func recordOf(s rules1e.Sheet) Record285 {
 		HP:         s.HP,
 		Move:       s.Move,
 	}
+	memoryBytes(r.Memorized[:], s.Memorized[:])
+	bytesOf(r.SpellBook[:], s.SpellBook[:])
 	r.PName[0] = byte(copy(r.PName[1:], s.CharName[:min(len(s.CharName), 15)]))
 	return r
 }

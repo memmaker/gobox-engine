@@ -15,7 +15,7 @@ func TestCastKnock(t *testing.T) {
 	c := *e.state().Party[0]
 	e.state().Party = []*rules1e.Character{&c, {}, {}}
 	for _, p := range e.state().Party {
-		p.Status, p.Memorized = rules1e.StatusOkay, [21]rules1e.SpellID{}
+		p.Status, p.Memorized = rules1e.StatusOkay, [rules1e.MemorySlots]rules1e.SpellID{}
 	}
 	e.state().Party[0].Status = rules1e.StatusDead
 	e.state().Party[0].Memorized[3] = rules1e.SpKnock

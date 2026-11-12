@@ -41,10 +41,10 @@ func TestPlanSpells(t *testing.T) {
 	e.initVM()
 	c := &rules1e.Character{}
 	c.SpellSlots[rules1e.SpellClassCleric][0] = 3 // three 1st-level cleric spells
-	c.Plan = [21]rules1e.SpellID{rules1e.SpCureLightWounds, rules1e.SpCureLightWounds, rules1e.SpCureLightWounds}
-	c.Memorized = [21]rules1e.SpellID{rules1e.SpBless, rules1e.SpCureLightWounds | 0x80}
+	c.Plan = [rules1e.MemorySlots]rules1e.SpellID{rules1e.SpCureLightWounds, rules1e.SpCureLightWounds, rules1e.SpCureLightWounds}
+	c.Memorized = [rules1e.MemorySlots]rules1e.SpellID{rules1e.SpBless, rules1e.SpCureLightWounds | rules1e.SpellPending}
 	e.state().PlanSpells(c)
-	want := [21]rules1e.SpellID{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, rules1e.SpBless, rules1e.SpCureLightWounds | 0x80, rules1e.SpCureLightWounds | 0x80}
+	want := [rules1e.MemorySlots]rules1e.SpellID{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, rules1e.SpBless, rules1e.SpCureLightWounds | rules1e.SpellPending, rules1e.SpCureLightWounds | rules1e.SpellPending}
 	if c.Memorized != want {
 		t.Fatalf("got %x, want %x", c.Memorized, want)
 	}

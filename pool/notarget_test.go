@@ -43,7 +43,7 @@ func TestNoTargetAsks(t *testing.T) {
 		c := e.state().Party[0]
 		it := e.state().AddItemCopy(c, e.state().RandomItem(typ))
 		if typ == rules1e.ItemClericScroll {
-			it.Spells = [3]rules1e.ItemPower{rules1e.SpCureLightWounds | 0x80}
+			it.Spells = [3]rules1e.ItemPower{rules1e.ItemPower(rules1e.SpCureLightWounds) | rules1e.ScrollScribing}
 		}
 		e.state().ReadyItem(it)
 		e.state().ApplyItems(c)

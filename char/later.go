@@ -26,10 +26,9 @@ type LaterFiles struct {
 }
 
 // PackLater is f as the canonical character: the fields rules1e models in
-// the Sheet and the extras, the record itself kept for the rest. Spell ids
-// (Memorized, SpellBook) stay in the kept record: rules1e's are POR's
-// [21]/[56] by POR's numbers; they move once the unified spell list (S11)
-// gives each game's number map.
+// the Sheet and the extras, the record itself kept for the rest. Memorized
+// and SpellBook hold the game's spell numbers; rules1e's Import maps them
+// to the unified ids.
 func PackLater[R Later](f LaterFiles) (core.CharacterFile, error) {
 	r := Decode[R](f.Record)
 	c := rules1e.CharacterJSON{Kept: &rules1e.KeptRecord{Layout: core.RecordLayout(len(Encode(r))), Image: core.RecordImage(bytes.Clone(f.Record))}}
@@ -89,7 +88,7 @@ func withBlanks[R Record](enc, orig []byte) []byte {
 // rules1e's Sheet both name is the same value in the same width and moves
 // as it is (copySame).
 var laterByHand = map[string]bool{
-	"PName": true, "Stats": true, "Str00": true, "Memorized": true, "SpellBook": true,
+	"PName": true, "Stats": true, "Str00": true, "Memorized": true,
 	"SpellSlots": true, "Coins": true, "Pad86": true, "OldLevels": true,
 	"MulticlassLevel": true, "CanTrain": true,
 }
@@ -145,6 +144,7 @@ type common struct {
 	name  *[16]byte
 	stats *[6]StatPair
 	str00 *Str00Pair
+	memo  []byte
 	slots []byte
 	coins []uint16 // COTAB/SotSB: copper .. jewelry; POD: platinum, gems, jewelry
 	old   []byte
@@ -155,11 +155,11 @@ type common struct {
 func commonOf(r any) common {
 	switch r := r.(type) {
 	case *Record422:
-		return common{&r.PName, &r.Stats, &r.Str00, r.SpellSlots[:], r.Coins[:], r.OldLevels[:], &r.MulticlassLevel, nil}
+		return common{&r.PName, &r.Stats, &r.Str00, r.Memorized[:], r.SpellSlots[:], r.Coins[:], r.OldLevels[:], &r.MulticlassLevel, nil}
 	case *Record439:
-		return common{&r.PName, &r.Stats, &r.Str00, r.SpellSlots[:], r.Coins[:], r.OldLevels[:], &r.MulticlassLevel, nil}
+		return common{&r.PName, &r.Stats, &r.Str00, r.Memorized[:], r.SpellSlots[:], r.Coins[:], r.OldLevels[:], &r.MulticlassLevel, nil}
 	case *Record510:
-		return common{&r.PName, &r.Stats, &r.Str00, r.SpellSlots[:], r.Coins[:], r.OldLevels[:], &r.MulticlassLevel, &r.CanTrain}
+		return common{&r.PName, &r.Stats, &r.Str00, r.Memorized[:], r.SpellSlots[:], r.Coins[:], r.OldLevels[:], &r.MulticlassLevel, &r.CanTrain}
 	}
 	panic("char: not a later layout")
 }
@@ -173,6 +173,7 @@ func sheetOfLater[R Later](c *rules1e.CharacterJSON, r R) {
 		c.Sheet.Stats[i] = rules1e.Score(p.Value)
 	}
 	c.Sheet.Str00 = m.str00.Value
+	memoryOf(c.Sheet.Memorized[:], m.memo)
 	for cls, run := range slotRuns(&r) {
 		fromBytes(c.Sheet.SpellSlots[cls][:run.n], m.slots[run.at:run.at+run.n])
 	}
@@ -199,6 +200,7 @@ func laterOfSheet[R Later](r *R, c rules1e.CharacterJSON) {
 		m.stats[i].Value = byte(c.Sheet.Stats[i])
 	}
 	m.str00.Value = c.Sheet.Str00
+	memoryBytes(m.memo, c.Sheet.Memorized[:])
 	for cls, run := range slotRuns(r) {
 		bytesOf(m.slots[run.at:run.at+run.n], c.Sheet.SpellSlots[cls][:run.n])
 	}

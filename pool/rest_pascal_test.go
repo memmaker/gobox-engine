@@ -91,7 +91,7 @@ func TestRestTickAgainstPascal(t *testing.T) {
 		c := e.state().Party[0]
 		e.state().Party = e.state().Party[:1]
 		c.HP, c.MaxHP, c.Status = 5, 20, rules1e.StatusOkay
-		c.Memorized = [len(c.Memorized)]rules1e.SpellID{0x81, 0x82}
+		c.Memorized = [len(c.Memorized)]rules1e.SpellID{1 | rules1e.SpellPending, 2 | rules1e.SpellPending}
 		c.Study = byte(k[0])
 		clear(e.state().Area.Clock[:])
 		e.state().Camp.Heal = 0
@@ -114,7 +114,7 @@ func TestRestTickAgainstPascal(t *testing.T) {
 		if c.Surges != 1 {
 			t.Errorf("%s: Surges %d after the rest, the 1e set left them", line, c.Surges)
 		}
-		got := fmt.Sprintf("%d %d %d %d %d", c.HP, c.Memorized[0], c.Memorized[1], c.Study, e.state().Camp.Heal)
+		got := fmt.Sprintf("%d %d %d %d %d", c.HP, c.Memorized[0].Byte(), c.Memorized[1].Byte(), c.Study, e.state().Camp.Heal)
 		for i := 1; i <= 6; i++ {
 			got += fmt.Sprintf(" %d", e.state().Area.Clock[i])
 		}

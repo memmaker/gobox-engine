@@ -33,7 +33,7 @@ func TestSelMemorized(t *testing.T) {
 	f := e.newEngineFields()["SelMemorized"]
 	for i, v := range []int64{15, 0x80 | 3, 0, 0x7F} {
 		f.set(i, v)
-		if got := int64(c.Memorized[i+1]); got != v {
+		if got := int64(c.Memorized[i+1].Byte()); got != v {
 			t.Errorf("slot %d = %#x, want %#x", i+1, got, v)
 		}
 	}

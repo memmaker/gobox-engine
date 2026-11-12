@@ -151,7 +151,7 @@ func spellLostCase(t *testing.T, slot int) string {
 	a := e.state().Party[0]
 	d := fixChar(40, 1)
 	d.Combat.Spell = 5
-	a.Memorized, d.Memorized = [21]rules1e.SpellID{}, [21]rules1e.SpellID{}
+	a.Memorized, d.Memorized = [rules1e.MemorySlots]rules1e.SpellID{}, [rules1e.MemorySlots]rules1e.SpellID{}
 	a.Memorized[slot], d.Memorized[slot] = 5, 5
 	fixFloor(e)
 	fixPlace(e, a, 6, 4)

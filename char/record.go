@@ -75,14 +75,14 @@ type Record285 struct {
 	PName      [16]byte               // 0x00 Pascal string, max 15
 	Stats      [6]rules1e.Score       // 0x10 str int wis dex con cha
 	Str00      byte                   // 0x16 exceptional strength
-	Memorized  [21]rules1e.SpellID    // 0x17 spell ids, +0x80 = still to be memorised
+	Memorized  [21]byte               // 0x17 spell numbers, +0x80 = still to be memorised (rules1e.SpellOfByte)
 	Study      byte                   // 0x2C hours of study the pending spells need (0/4/6)
 	Thac0Base  byte                   // 0x2D THAC0 base, from the DS:3C7C table
 	Race       rules1e.RaceID         // 0x2E
 	Class      rules1e.ClassID        // 0x2F
 	Age        uint16                 // 0x30
 	MaxHP      byte                   // 0x32
-	SpellBook  [56]rules1e.Flag       // 0x33 [n-1]: spell n known
+	SpellBook  [56]byte               // 0x33 [n-1]: spell n known
 	FightLevel byte                   // 0x6B fighter level (1 for non-fighters)
 	Size       byte                   // 0x6C low bits: icon size; 0x80 flag
 	Saves      [5]rules1e.Score       // 0x6D saving throw targets

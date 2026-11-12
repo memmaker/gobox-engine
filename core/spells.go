@@ -193,8 +193,12 @@ func (CampCast) action()   {}
 const MemoSlots = 21
 
 // SpellByNumber is the ruleset's id of the original's spell number N
-// (SpellID; "" outside the table).
-type SpellByNumber struct{ N int }
+// (SpellID; "" outside the table). Game: N is the game's own number (a
+// script's operand), which the ruleset maps; else the ruleset's number.
+type SpellByNumber struct {
+	N    int
+	Game bool
+}
 
 func (SpellByNumber) fact() {}
 func (SpellID) value()      {}

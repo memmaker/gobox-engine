@@ -42,7 +42,7 @@ func aiTurnVector(e *Engine, v aiVaried, seed, dist, hp, lvl, flank int) string 
 	a.Auto = v.quick
 	d.Undead = v.undead
 	e.state().Rv.Side = [2]int8{1, 1}
-	a.Memorized[0] = rules1e.SpellID(v.memo)
+	a.Memorized[0] = rules1e.SpellOfByte(v.memo)
 	a.Levels[rules1e.ClsCleric], a.Levels[rules1e.ClsMage] = rules1e.Level(v.casterLvl), rules1e.Level(v.casterLvl)
 	if v.itemEff != 0 {
 		it := &rules1e.Item{Readied: 1, Type: rules1e.ItemType(len(e.state().Items))} // the Pascal's base item 0: all zero
@@ -56,7 +56,7 @@ func aiTurnVector(e *Engine, v aiVaried, seed, dist, hp, lvl, flank int) string 
 	}
 	a.Stats[rules1e.StatInt] = rules1e.Score(v.aInt)
 	d.Combat = &rules1e.CombatInfo{Attackers: byte(flank), Facing: west}
-	a.Combat = &rules1e.CombatInfo{Delay: 4, Moves: 24, AttackSlot: 2, CanCast: 1, CanUse: 1, Turned: v.turned, Spell: v.pending}
+	a.Combat = &rules1e.CombatInfo{Delay: 4, Moves: 24, AttackSlot: 2, CanCast: 1, CanUse: 1, Turned: v.turned, Spell: rules1e.SpellID(v.pending)}
 	e.state().Party, e.state().Who = []*rules1e.Character{d, a}, 1
 	e.state().CombatantSlots, e.state().Ncomb = []*rules1e.Character{d, a}, 2
 	e.state().Cmap = &rules1e.CombatMap{}
@@ -135,7 +135,7 @@ func TestDecideAgainstPascal(t *testing.T) {
 			e.state().FoesHealth = 100
 			rest := aiTurnVector(e, v, seed, dist, 40, 0, 0)
 			a := e.state().CombatantSlots[1]
-			got = fmt.Sprintf("%d %d %d %s", a.Combat.Spell, a.Combat.Delay, a.Memorized[0], rest)
+			got = fmt.Sprintf("%d %d %d %s", a.Combat.Spell, a.Combat.Delay, a.Memorized[0].Byte(), rest)
 		case "aibreath":
 			b := &rules1e.Affect{AffectRecord: rules1e.AffectRecord{Type: rules1e.AffBreathWeapon, Data: byte(k[3])}}
 			e.state().CombatRound = byte(k[2])
@@ -152,7 +152,7 @@ func TestDecideAgainstPascal(t *testing.T) {
 			e.state().FoesHealth = 100
 			rest := aiTurnVector(e, v, k[0], k[2], 40, 0, 0)
 			a := e.state().CombatantSlots[1]
-			got = fmt.Sprintf("%d %d %d %s", a.Combat.Spell, a.Combat.Delay, a.Memorized[0], rest)
+			got = fmt.Sprintf("%d %d %d %s", a.Combat.Spell, a.Combat.Delay, a.Memorized[0].Byte(), rest)
 		case "aiundead":
 			v := aiVaried{control: 0x80 + 50, aHP: 40, aInt: 10, dMove: 12, startY: 10, casterLvl: byte(k[1]), undead: byte(k[2])}
 			e.state().FoesHealth = 100
