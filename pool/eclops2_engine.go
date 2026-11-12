@@ -660,3 +660,16 @@ func (e *Engine) opFindNPC() {
 	}
 	e.host.Set(e.vm.Ref(2), r)
 }
+
+// opSound = pod O040:24CD (n): what the game's number n plays (GameTables.ScriptSounds).
+func (e *Engine) opSound() {
+	e.vm.ReadArgs(1)
+	s, ok := e.game().ScriptSounds[byte(e.vm.Arg(1, e.host))]
+	switch {
+	case !ok:
+	case s.Music:
+		e.songMusic(s.Song, 0)
+	default:
+		e.cue(s.Cue)
+	}
+}

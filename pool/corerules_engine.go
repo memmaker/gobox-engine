@@ -25,6 +25,14 @@ type Ruleset func(
 type GameTables struct {
 	PortraitHead, PortraitBody []goldbox.PortraitPic // portrait number -> its picture, 1-based ([0] unused)
 	Script                     *script.Version       `json:"-"` // the game's ECL dialect; nil: the first engine's (V1)
+	ScriptSounds               map[byte]ScriptSound  // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays nothing
+}
+
+// ScriptSound is what one Sound command number plays: a song or a cue.
+type ScriptSound struct {
+	Music bool          // Song, not Cue
+	Song  int           // the soundtrack's song
+	Cue   core.SoundCue // the sound pack's event
 }
 
 // bareRuleset and bareData are what an Engine made without New (a test's
