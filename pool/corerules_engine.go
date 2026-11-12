@@ -25,7 +25,8 @@ type Ruleset func(
 type GameTables struct {
 	PortraitHead, PortraitBody []goldbox.PortraitPic // portrait number -> its picture, 1-based ([0] unused)
 	Script                     *script.Version       `json:"-"` // the game's ECL dialect; nil: the first engine's (V1)
-	ScriptSounds               map[byte]ScriptSound  // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays nothing
+	ScriptSounds               map[byte]ScriptSound  // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays DefaultSound
+	DefaultSound               *ScriptSound          // what a number ScriptSounds does not list plays; nil: nothing
 	AddNPCIcon                 bool                  // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
 	AreaMonsters               AreaMonsters          // the area's own monsters a fight adds (pod); zero: none
 	Dialect                    core.Dialect          // the game's script byte-code dialect (ReadGameTables sets Script from it)
@@ -48,6 +49,17 @@ type AreaMonsters struct {
 
 // AreaMonster is one area screen's monster and its combat icon.
 type AreaMonster struct{ Monster, Icon int }
+
+// scriptSound is what the game's number n plays: its ScriptSounds entry, else DefaultSound.
+func (g GameTables) scriptSound(n byte) (ScriptSound, bool) {
+	if s, ok := g.ScriptSounds[n]; ok {
+		return s, true
+	}
+	if g.DefaultSound != nil {
+		return *g.DefaultSound, true
+	}
+	return ScriptSound{}, false
+}
 
 // ScriptSound is what one Sound command number plays: a song or a cue.
 type ScriptSound struct {

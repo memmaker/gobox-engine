@@ -305,7 +305,7 @@ func (e *Engine) opCall() {
 	case script.CallDuelLose:
 		e.DuelSetup(0)
 	case script.CallDuelSound:
-		if s, ok := e.game().ScriptSounds[byte(e.es.soundVar)]; ok { // the game's duel sounds (DS:2612's numbers)
+		if s, ok := e.game().scriptSound(byte(e.es.soundVar)); ok { // the game's duel sounds (DS:2612's numbers)
 			e.cue(s.Cue)
 		}
 	case script.CallStepForward:
@@ -719,7 +719,7 @@ func (e *Engine) opFindNPC() {
 // opSound = pod O040:24CD (n): what the game's number n plays (GameTables.ScriptSounds).
 func (e *Engine) opSound() {
 	e.vm.ReadArgs(1)
-	s, ok := e.game().ScriptSounds[byte(e.vm.Arg(1, e.host))]
+	s, ok := e.game().scriptSound(byte(e.vm.Arg(1, e.host)))
 	switch {
 	case !ok:
 	case s.Music:

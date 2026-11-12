@@ -58,4 +58,9 @@ func TestDuelSound(t *testing.T) {
 	if len(e.events) != 0 {
 		t.Fatalf("unlisted duel sound 9: events %v", e.events)
 	}
+	g.DefaultSound = &ScriptSound{Cue: core.SoundCue("dflt")}
+	call(9)
+	if !slices.Contains(e.events, play.Event(play.Sounded{Sound: "dflt"})) {
+		t.Fatalf("unlisted duel sound 9 with DefaultSound: events %v", e.events)
+	}
 }
