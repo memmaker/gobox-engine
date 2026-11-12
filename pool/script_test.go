@@ -208,7 +208,7 @@ Kinds = [1, 2, 3]
 	if err != nil {
 		t.Fatal(err)
 	}
-	ahead, later, kinds := s.Labels["Ahead"], s.Labels["Later"], script.Arg{Type: 1, N: eclBase}
+	ahead, later, kinds := s.Labels["Ahead"], s.Labels["Later"], script.Arg{Type: 1, N: porTables.OriginalSave.CodeBase}
 	done, count, ask := s.Labels["Done"], s.Labels["Count"], s.Labels["Ask"]
 	call := func(l int) script.Instr {
 		return script.Instr{Op: script.OpGosub, Args: []script.Arg{{Type: 1, N: l, Label: true}}}

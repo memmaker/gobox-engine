@@ -27,7 +27,7 @@ func TestQuestGiven(t *testing.T) {
 }
 
 // TestQuestSitesNamed (bug class: a quest recorded by matching printed
-// text): names/quests.txt names exactly the quests of quests.go, and every
+// text): names/quests.txt names exactly the quests of gametables.json, and every
 // quest is handed over by a Quest command of the imported scripts.
 func TestQuestSitesNamed(t *testing.T) {
 	vals, err := script.ReadValues(os.DirFS("../../por-go/data/assets/scripts"), "names/quests.txt", nil)
@@ -36,7 +36,7 @@ func TestQuestSitesNamed(t *testing.T) {
 	}
 	named := map[questID]string{}
 	for _, v := range vals {
-		if _, ok := questByID(questID(v.N)); v.Kind != "Quest" || !ok {
+		if _, ok := (&Engine{}).questByID(questID(v.N)); v.Kind != "Quest" || !ok {
 			t.Errorf("quests.txt: %+v is no quest", v)
 		}
 		named[questID(v.N)] = v.Name
@@ -53,9 +53,9 @@ func TestQuestSitesNamed(t *testing.T) {
 		}
 		all.Write(b)
 	}
-	for _, q := range quests {
-		if n, ok := named[q.id]; !ok || !strings.Contains(all.String(), "Quest("+n+")") {
-			t.Errorf("quest %d %s (%q): no Quest command", q.id, q.name, n)
+	for _, q := range porTables.Quests {
+		if n, ok := named[questID(q.ID)]; !ok || !strings.Contains(all.String(), "Quest("+n+")") {
+			t.Errorf("quest %d %s (%q): no Quest command", q.ID, q.Name, n)
 		}
 	}
 }
@@ -94,13 +94,13 @@ func TestQuestBriefsVerbatim(t *testing.T) {
 		}
 		all.Write(b)
 	}
-	for _, q := range quests {
-		if len(q.brief) == 0 {
-			t.Errorf("%s: no words", q.name)
+	for _, q := range porTables.Quests {
+		if len(q.Brief) == 0 {
+			t.Errorf("%s: no words", q.Name)
 		}
-		for _, l := range q.brief {
+		for _, l := range q.Brief {
 			if !strings.Contains(all.String(), l) {
-				t.Errorf("%s: %q is no script text", q.name, l)
+				t.Errorf("%s: %q is no script text", q.Name, l)
 			}
 		}
 	}

@@ -185,7 +185,7 @@ func (e *Engine) varField(r script.Ref) *script.Field {
 // getVar = ReadGbvm (ovr08:0E0C) on a Ref.
 func (e *Engine) getVar(r script.Ref) int64 {
 	f := e.varField(r)
-	if f.Owner == script.OwnerConst { // a table in the script's own code (the code image at eclBase)
+	if f.Owner == script.OwnerConst { // a table in the script's own code (the code image at OriginalSave.CodeBase)
 		e.inField(f, r.Index)
 		return int64(e.vm.CodeByte(uint16(f.From + r.Index)))
 	}

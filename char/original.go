@@ -67,7 +67,9 @@ const originalSaveFile = "SAVGAMA.DAT"
 type SaveLayout struct {
 	Lead         SaveLead     // the byte before the records
 	Records      []SaveRecord // in file order
-	CodeBytes    int          // the ECL code image after the records (POR 0x1E00)
+	CodeBase     int          // the script address of the ECL code image (POR 0x9900, the later games 0x8000)
+	CodeSize     int          // its bytes (0x1E00 in all four)
+	CodeSaved    bool         // the code image follows the records in the save (POR, cotab)
 	WallBytes    int          // the wall slots after the position and states (POR none)
 	AreaKindAt   *int         // the script address of the record word naming the area's locals layout (POR 0x49F2); nil: the lead's, or none
 	RulesRecords bool         // the records are rules1e's AreaVars, GameVars, AuxVars (POR): the ruleset's state is read from them
@@ -163,11 +165,15 @@ func ReadOriginalSave(b []byte, l SaveLayout) (ImportedSave, error) {
 		}
 		o.Records = append(o.Records, c)
 	}
-	tail := read(l.CodeBytes + 5 + 2 + l.WallBytes + 1 + len(PascalName{})*8)
+	code := 0
+	if l.CodeSaved {
+		code = l.CodeSize
+	}
+	tail := read(code + 5 + 2 + l.WallBytes + 1 + len(PascalName{})*8)
 	if tail == nil {
 		return o, short
 	}
-	t := tail[l.CodeBytes:]
+	t := tail[code:]
 	o.X, o.Y, o.Facing, o.Pos3, o.Pos4, o.ViewMode, o.BeginFlag = t[0], t[1], t[2], t[3], t[4], t[5], t[6]
 	t = t[7+l.WallBytes:]
 	count := int(t[0])

@@ -37,6 +37,7 @@ type GameTables struct {
 	TreasureSets               [][]int32             // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
 	ScriptFixes                []script.Fix          // the game's decompiler special cases (script.Library.Fixes): the import's, for the texts' key
 	Natives                    []NativeAt            // the labels a native script runs at (POR: the tavern game, CAST KNOCK); none: no native
+	Quests                     []QuestDef            // the quest journal's quests (POR: the commissions); none: an empty journal
 	OriginalSave               char.SaveLayout       // the game's SAVGAMx.DAT format (the original-save import)
 	PurseWhos                  []PurseWho            // the Who commands that spend the party's one purse (POR: the inn, the tavern)
 }

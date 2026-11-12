@@ -110,7 +110,7 @@ func (e *Engine) initVM() {
 	e.host = eclHost{e}
 	e.engineFields = e.newEngineFields()
 	e.vars, e.locals = fieldCells{}, fieldCells{}
-	e.vm = ecl.New(e.host, eclLayout, make([]byte, eclCodeSize))
+	e.vm = ecl.New(e.host, e.eclLayout(), make([]byte, e.game().OriginalSave.CodeSize))
 	e.eclVersion = e.game().Script
 	if e.eclVersion == nil {
 		e.eclVersion = script.V1
@@ -126,10 +126,8 @@ func (e *Engine) initVM() {
 
 // ECL virtual-machine support, ported from ovr08. The script's variables
 // are the typed fields of scriptvars.go; the save's records are the game's
-// data (GameTables.OriginalSave); eclBase is the code image.
+// data (GameTables.OriginalSave), the code image's base and size with them.
 const (
-	eclBase = 0x9900 // the code image (to 0xB6FF)
-
 	areaScratchWords = 0x20 // the area record's words 0x4A00..0x4A1F: locals, cleared by a fresh area (SaveEditor.EnterArea)
 )
 
@@ -164,11 +162,14 @@ const (
 	holdEncamp             // camp, then the script exits
 )
 
-// eclCodeSize is the code image: eclBase .. 0xB6FF (DS:49DE, ECL code at pc-0x9900).
-const eclCodeSize = 0x1E00
-
-// eclLayout: the VM needs only the code image's range.
-var eclLayout = ecl.Layout{Code: ecl.Range{First: eclBase, Last: eclBase + eclCodeSize - 1}}
+// eclLayout: the VM needs only the code image's range, the game's (GameTables.OriginalSave).
+func (e *Engine) eclLayout() ecl.Layout {
+	s := e.game().OriginalSave
+	if s.CodeSize == 0 {
+		panic("gametables.json OriginalSave: no code image (run the game's import)")
+	}
+	return ecl.Layout{Code: ecl.Range{First: uint16(s.CodeBase), Last: uint16(s.CodeBase + s.CodeSize - 1)}}
+}
 
 // eclState mirrors the DS globals used by the interpreter.
 type eclState struct {
