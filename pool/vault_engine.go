@@ -11,8 +11,8 @@ import (
 )
 
 // The vault (pod O046/O06E:30B1): what the party leaves behind stays in vault.dat
-// in the save directory: the pool's platinum, gems and jewelry as three
-// longints, then 63-byte item records. The vault screen is the treasure screen
+// in the save directory: the pool's gold, copper, gems and jewelry as four
+// longints (money is gold and copper only, Felix 2026-11-12), then 63-byte item records. The vault screen is the treasure screen
 // (PendLoot) over those items; the money is banked on opening and the items
 // not taken are written back on leaving.
 // The money is the loot's: it stays in the vault until the party takes it
@@ -21,11 +21,9 @@ import (
 
 const (
 	vaultFile  = "vault.dat"
+	// (pod's own file held platinum; this engine writes its own, never the original's)
 	vaultBlock = -1 // treasure's block number for the vault's items (AddTreasureBlock)
-	// the three longints of the file, and their place among core.SetLoot's seven coins
-	vaultCoins                          = 3
-	coinPlatinum, coinGems, coinJewelry = 4, 5, 6
-	goldPerPlatinum                     = 5
+	vaultCoins = 4 // the file's longints: gold, copper, gems, jewelry
 )
 
 // vault is the open vault: its item records, which the treasure reads (vaultBlock).
@@ -39,14 +37,7 @@ func (e *Engine) Vault() {
 	}
 	e.vault = &vault{items: items}
 	e.do(core.ClearLoot{})
-	for coins != [vaultCoins]uint64{} { // AddLoot holds 16 bits a kind: add it in turns
-		var c [7]uint16
-		for i, k := range []int{coinPlatinum, coinGems, coinJewelry} {
-			n := uint16(min(coins[i], math.MaxUint16))
-			c[k], coins[i] = n, coins[i]-uint64(n)
-		}
-		e.do(core.AddLoot{Coins: c})
-	}
+	e.do(core.AddLoot{Loot: core.Purse{Gold: coins[0], Copper: coins[1], Gems: coins[2], Jewelry: coins[3]}})
 	if len(items) > 0 {
 		e.do(core.AddTreasureBlock{Block: vaultBlock})
 	}
@@ -87,11 +78,10 @@ func readVault(path string) ([vaultCoins]uint64, []char.Item, error) {
 	return coins, char.ReadItems(rest[:len(rest)/char.ItemSize*char.ItemSize]), nil
 }
 
-// writeVault writes vault.dat: the pool's platinum, gems and jewelry (gold
-// under a platinum piece and copper cannot be left, as in pod), then the item records.
+// writeVault writes vault.dat: the pool's gold, copper, gems and jewelry, then the item records.
 func writeVault(path string, loot core.Purse, records core.ItemRecords) error {
 	head := make([]byte, 0, vaultCoins*4)
-	for _, n := range []uint64{loot.Gold / goldPerPlatinum, loot.Gems, loot.Jewelry} {
+	for _, n := range []uint64{loot.Gold, loot.Copper, loot.Gems, loot.Jewelry} {
 		head = binary.LittleEndian.AppendUint32(head, uint32(min(n, math.MaxInt32)))
 	}
 	return os.WriteFile(path, slices.Concat(head, records), 0o644)

@@ -12,7 +12,7 @@ import (
 )
 
 // TestVault: the vault opens as the treasure screen over vault.dat: its
-// platinum is the party's, its items are taken one by one, and what is left is
+// money is the party's, its items are taken one by one, and what is left is
 // written back when the party leaves (no "treasure left" question).
 func TestVault(t *testing.T) {
 	e := quickStarted(t)
@@ -20,7 +20,8 @@ func TestVault(t *testing.T) {
 	st := e.state()
 	items := []char.Item{*st.RandomItem(rules1e.ItemJavelin), *st.RandomItem(rules1e.ItemArrow)}
 	head := make([]byte, vaultCoins*4)
-	binary.LittleEndian.PutUint32(head, 3) // platinum
+	binary.LittleEndian.PutUint32(head, 3)    // gold
+	binary.LittleEndian.PutUint32(head[4:], 7) // copper
 	path := e.savePath(vaultFile)
 	if err := os.WriteFile(path, slices.Concat(head, char.WriteItems(items)), 0o644); err != nil {
 		t.Fatal(err)
@@ -32,7 +33,7 @@ func TestVault(t *testing.T) {
 		t.Fatalf("state %T: want the treasure screen with the vault's 2 items", e.State())
 	}
 	if st.Purse.Gold != gold {
-		t.Errorf("the vault's platinum was banked on opening: gold %d, was %d", st.Purse.Gold, gold)
+		t.Errorf("the vault's money was banked on opening: gold %d, was %d", st.Purse.Gold, gold)
 	}
 	if _, err := e.Do(play.Take{Item: e.goods()[0]}); err != nil {
 		t.Fatal(err)
@@ -63,14 +64,14 @@ func TestVault(t *testing.T) {
 		t.Fatal("still in the treasure screen after Leave")
 	}
 	if st.Purse.Gold != gold {
-		t.Errorf("leaving banked the vault's platinum: gold %d, was %d", st.Purse.Gold, gold)
+		t.Errorf("leaving banked the vault's money: gold %d, was %d", st.Purse.Gold, gold)
 	}
 	b, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := binary.LittleEndian.Uint32(b); got != 3 {
-		t.Errorf("vault.dat holds %d platinum, want the 3 left", got)
+	if g, c := binary.LittleEndian.Uint32(b), binary.LittleEndian.Uint32(b[4:]); g != 3 || c != 7 {
+		t.Errorf("vault.dat holds %d gold %d copper, want the 3 and 7 left", g, c)
 	}
 	// the taken item was the member's first, so it is the one deposited, last in the file
 	left := char.ReadItems(b[vaultCoins*4:]) // the shown name is not the record's: compare types
@@ -83,7 +84,7 @@ func TestVault(t *testing.T) {
 		t.Fatal(err)
 	}
 	if st.Purse.Gold <= gold {
-		t.Errorf("Take on the money line did not bank the vault's platinum: gold %d, was %d", st.Purse.Gold, gold)
+		t.Errorf("Take on the money line did not bank the vault's money: gold %d, was %d", st.Purse.Gold, gold)
 	}
 }
 

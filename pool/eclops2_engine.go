@@ -44,11 +44,11 @@ const (
 // loot, the ITEM0 library's items (255: a random scroll) go to the head of the treasure.
 func (e *Engine) opTreasureOf() {
 	e.vm.ReadArgs(treasureOfCoins + 1)
-	var coins [7]uint16
+	coins := make([]uint64, firstOfCoins+treasureOfCoins)
 	for k := range treasureOfCoins {
-		coins[firstOfCoins+k] = uint16(e.vm.Arg(k+1, e.host))
+		coins[firstOfCoins+k] = uint64(uint16(e.vm.Arg(k+1, e.host)))
 	}
-	e.do(core.AddLoot{Coins: coins})
+	e.do(core.AddLoot{Loot: core.FromCoins(coins, goldbox.GoldBoxRates)}) // platinum by value
 	n := int(byte(e.vm.Arg(treasureOfCoins+1, e.host)))
 	e.vm.PC--
 	e.vm.ReadArgs(n)

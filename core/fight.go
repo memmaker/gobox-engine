@@ -294,8 +294,9 @@ type DevTreasure struct{}
 // the data set lacks the block.
 type AddTreasureBlock struct{ Block int32 }
 
-// AddLoot adds the coins to the fight's coins (TreasureOf; Felix's S ruling 4: its coins add).
-type AddLoot struct{ Coins [7]uint16 }
+// AddLoot adds Loot to the fight's money (TreasureOf; Felix's S ruling 4: its coins add).
+// Money is gold and copper only (Felix 2026-11-12): a caller converts other coins by value.
+type AddLoot struct{ Loot Purse }
 
 // AddLibraryItems puts the data set's library items IDs at the head of the
 // treasure in turn, so the last one leads (pod TREASURE, ITEM SET):
