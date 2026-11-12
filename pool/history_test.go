@@ -17,6 +17,7 @@ import (
 // fits the page, and every paragraph fits one page under the title (the
 // pager keeps a voiced paragraph whole).
 func TestPhlanHistory(t *testing.T) {
+	e := testEngine(t)
 	names, err := script.ReadNames(os.DirFS("../../por-go/data/assets/scripts"), 0, true, script.V1)
 	if err != nil {
 		t.Fatal(err)
@@ -41,7 +42,7 @@ func TestPhlanHistory(t *testing.T) {
 			continue
 		}
 		c := en.Title
-		lines := journalLayout("HISTORY.TXT", []string{c}, true)
+		lines := e.journalLayout("HISTORY.TXT", []string{c}, true)
 		if len(lines) < 3 || len(c) > jrWidth {
 			t.Fatalf("%q: missing or its title is too long", c)
 		}

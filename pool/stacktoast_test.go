@@ -56,7 +56,7 @@ func TestStackAndToasts(t *testing.T) {
 		t.Errorf("two stacks bought: %d listed, %q count %d, want one of 20", n, name, count)
 	}
 	lore := len(commonOf(e.State()).Lore)
-	for title := range journalTexts() {
+	for title := range e.journalTexts() {
 		e.noteJournal(title)
 		break
 	}

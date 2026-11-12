@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"gobox/asset"
+	"gobox/game/journal"
 	"gobox/game/play"
 )
 
@@ -155,6 +156,8 @@ type Engine struct {
 	vox          voice  // voice.go: the voice-over
 
 	entryTable map[script.EntryID]script.Entry // the long texts by id (entries)
+	books      map[string]*journal.Book        // the game's journal books by file name (book); nil: none
+	jtexts     map[string][]string             // journalTexts, once
 
 	DevAction   func() // run once at the next adventuring command prompt (-dev)
 	Explore     bool   // -explore: no intro, a Quick Start party when there is none, begin adventuring at once

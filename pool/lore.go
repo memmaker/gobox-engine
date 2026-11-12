@@ -6,7 +6,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 // Notes (extra): the journal's second tab, published as View.Lore, newest
@@ -27,9 +26,15 @@ type noteRec struct {
 
 // journalTexts are JOURNAL.TXT's texts by title, paragraphs joined and
 // pictures left out.
-var journalTexts = sync.OnceValue(func() map[string][]string {
+func (e *Engine) journalTexts() map[string][]string {
+	if e.jtexts != nil {
+		return e.jtexts
+	}
 	out := map[string][]string{}
-	j := book("JOURNAL.TXT")
+	j := e.book("JOURNAL.TXT")
+	if j == nil {
+		return out // the game has no journal texts
+	}
 	for _, t := range j.Titles() {
 		var paras []string
 		for _, p := range j.Text(t) {
@@ -43,12 +48,13 @@ var journalTexts = sync.OnceValue(func() map[string][]string {
 		}
 		out[t] = slices.DeleteFunc(paras, func(p string) bool { return p == "" })
 	}
+	e.jtexts = out
 	return out
-})
+}
 
 // noteJournal adds the journal text titled t, once, and says so.
 func (e *Engine) noteJournal(t string) {
-	if _, ok := journalTexts()[t]; !ok || slices.ContainsFunc(e.ext.notes, func(n noteRec) bool { return !n.User && n.Title == t }) {
+	if _, ok := e.journalTexts()[t]; !ok || slices.ContainsFunc(e.ext.notes, func(n noteRec) bool { return !n.User && n.Title == t }) {
 		return
 	}
 	e.ext.notes = append(e.ext.notes, noteRec{Title: t}) // gobox says it was added (State.Lore grew)
@@ -96,18 +102,18 @@ func (e *Engine) loreView() []Lore {
 		if n.User {
 			out = append(out, Lore{Title: n.Title, Place: n.Place, Text: n.Text, ID: i})
 		} else {
-			out = append(out, Lore{Title: n.Title, Place: "", Text: journalTexts()[n.Title], ID: -1})
+			out = append(out, Lore{Title: n.Title, Place: "", Text: e.journalTexts()[n.Title], ID: -1})
 		}
 	}
 	var old []string
-	for t := range journalTexts() {
+	for t := range e.journalTexts() {
 		if e.ext.voiced[strings.ReplaceAll(t, " ", "_")] && !slices.ContainsFunc(e.ext.notes, func(n noteRec) bool { return !n.User && n.Title == t }) {
 			old = append(old, t)
 		}
 	}
 	slices.Sort(old)
 	for _, t := range old {
-		out = append(out, Lore{Title: t, Place: "", Text: journalTexts()[t], ID: -1})
+		out = append(out, Lore{Title: t, Place: "", Text: e.journalTexts()[t], ID: -1})
 	}
 	return out
 }

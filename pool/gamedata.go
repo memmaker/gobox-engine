@@ -32,7 +32,6 @@ func Data() game.Data {
 		{Race: "Halfling", Gender: "Male", Class: "Fighter/Thief", Align: "Neutral Good", Need: map[string]int{"str": 16, "dex": 17, "con": 15}, Name: "Pip", Head: "head_025", Body: "body_001"},
 	}
 
-	d.Scans = journalPicture
 	d.IconParts, d.DungeonTiles, d.MapCell = IconParts[:], DungeonTiles, MapCell
 	d.LabelInks = []int{15, 10, 13, 14, 11} // the map labels' EGA colours by kind (engine poiUser .. poiCivic)
 	d.Rests = []game.RestKind{              // camp's rests: until fixed while someone heals or studies, an hour, until night or day
@@ -51,10 +50,6 @@ func Data() game.Data {
 		if t != "" {
 			d.SpellRules[id] = t
 		}
-	}
-	for i, t := range clueChapters() {
-		r := ClueRead(i)
-		d.Clues = append(d.Clues, game.Clue{Title: t, Read: game.Read{Title: r.Title, Lines: r.Lines, Page: r.Page}})
 	}
 	return d
 }
@@ -114,6 +109,11 @@ type artKey struct {
 // loaded now.
 func (e *Engine) Data() game.Data {
 	d := Data()
+	d.Scans = e.journalPicture
+	for i, t := range e.clueChapters() {
+		r := e.ClueRead(i)
+		d.Clues = append(d.Clues, game.Clue{Title: t, Read: game.Read{Title: r.Title, Lines: r.Lines, Page: r.Page}})
+	}
 	d.Art = e.overlandArt()
 	d.CreditLines, d.CreditBoxes, d.TitleBackdrop, d.RemasterCredit = e.title.credits, e.title.boxes, e.title.backdrop, e.title.remaster // the adventure's Start (SetStart)
 	d.Fonts = e.fontFaces()

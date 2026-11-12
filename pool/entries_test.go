@@ -10,6 +10,7 @@ import (
 // Every long text entry (names/entries.json) is a text of its book, and
 // the scripts name it (Journal(Name)).
 func TestEntriesInBooks(t *testing.T) {
+	e := testEngine(t)
 	data := os.DirFS("../../por-go/data/assets/scripts")
 	es, err := script.ReadEntries(data)
 	if err != nil || len(es) == 0 {
@@ -20,7 +21,7 @@ func TestEntriesInBooks(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, en := range es {
-		if b := book(en.Book); b == nil || !b.Has(en.Title) {
+		if b := e.book(en.Book); b == nil || !b.Has(en.Title) {
 			t.Errorf("entry %d %s: no %q in %s", en.ID, en.Name, en.Title, en.Book)
 		}
 		if nm := script.ValueName(n.Values, "Entry", n.Set, int(en.ID)); nm != en.Name {

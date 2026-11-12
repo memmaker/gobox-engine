@@ -67,8 +67,9 @@ func TestShowEntryTogether(t *testing.T) {
 
 // TestClueBook: the clue book's chapters are unique and its pictures are there.
 func TestClueBook(t *testing.T) {
+	e := testEngine(t)
 	seen := map[string]bool{}
-	for _, c := range clueChapters() {
+	for _, c := range e.clueChapters() {
 		if seen[c] {
 			t.Errorf("chapter %q twice", c)
 		}
@@ -76,12 +77,12 @@ func TestClueBook(t *testing.T) {
 	}
 	for _, paras := range oldParse(t, "CLUEBOOK.TXT") {
 		for _, p := range paras {
-			if n := len(p); n > 2 && p[0] == '<' && p[n-1] == '>' && journalPicture(p[1:n-1]) == nil {
+			if n := len(p); n > 2 && p[0] == '<' && p[n-1] == '>' && e.journalPicture(p[1:n-1]) == nil {
 				t.Errorf("picture %s missing", p)
 			}
 		}
 	}
-	if len(seen) < 30 || journalPicture("CLUE04A.PNG") == nil {
+	if len(seen) < 30 || e.journalPicture("CLUE04A.PNG") == nil {
 		t.Errorf("%d chapters", len(seen))
 	}
 }
@@ -89,7 +90,7 @@ func TestClueBook(t *testing.T) {
 // oldParse is por's journal format as it read it before gobox did: each
 // title's lines.
 func oldParse(t *testing.T, name string) map[string][]string {
-	b, err := journalFS.ReadFile("journal/" + name)
+	b, err := os.ReadFile("../../por-go/importpor/journal/" + name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,8 +114,9 @@ func oldParse(t *testing.T, name string) map[string][]string {
 // are each journal text's paragraphs, joined and without pictures, as por
 // made them from the lines itself.
 func TestJournalNotes(t *testing.T) {
+	e := testEngine(t)
 	old := oldParse(t, "JOURNAL.TXT")
-	got := journalTexts()
+	got := e.journalTexts()
 	if len(got) != len(old) || len(got) < 90 {
 		t.Fatalf("%d texts, want %d", len(got), len(old))
 	}
@@ -159,5 +161,29 @@ func TestReadPublishOnly(t *testing.T) {
 	e.showJournal(journalBox, []string{"two"})
 	if !handout() {
 		t.Fatalf("second Read: %T, want a handout Scene", e.State())
+	}
+}
+
+// TestOwnJournalBooks: the books are the game's own, from its data folder:
+// a folder with another game's book gives that text, and one without POR's
+// books has none of POR's.
+func TestOwnJournalBooks(t *testing.T) {
+	adv := t.TempDir()
+	dir := filepath.Join(adv, DataDir, JournalDir)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "JOURNAL.TXT"), []byte("[Own Entry]\nthe game's own words\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	e := &Engine{adv: adv}
+	if got := e.journalTexts()["Own Entry"]; !slices.Equal(got, []string{"the game's own words"}) {
+		t.Errorf("own text %q", got)
+	}
+	if _, ok := e.journalTexts()["Journal Entry 26"]; ok {
+		t.Error("POR's text in another game's folder")
+	}
+	if e.book("CLUEBOOK.TXT") != nil || len(e.clueChapters()) != 0 || e.journalPicture("CLUE04A.PNG") != nil {
+		t.Error("POR's clue book in another game's folder")
 	}
 }

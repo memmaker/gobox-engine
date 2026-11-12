@@ -9,7 +9,7 @@ import (
 // an older save's heard journal texts follow; only the player's note can
 // be removed.
 func TestNotes(t *testing.T) {
-	e := &Engine{}
+	e := &Engine{adv: "../../por-go/data/assets"}
 	e.initVM()
 	e.ext.voiced = map[string]bool{"Proclamation_LIX": true, "Journal_Entry_26": true, "1a83648acff21ee4": true}
 	e.noteJournal("Journal Entry 26") // twice: noted once
@@ -25,7 +25,7 @@ func TestNotes(t *testing.T) {
 	if len(e.ext.notes) != 1 || e.ext.notes[0].User {
 		t.Fatalf("after remove %+v", e.ext.notes)
 	}
-	for _, ps := range journalTexts() {
+	for _, ps := range e.journalTexts() {
 		for _, p := range ps {
 			if strings.HasPrefix(p, "<") {
 				t.Fatalf("picture %q", p)

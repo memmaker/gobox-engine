@@ -1,13 +1,13 @@
 package pool
 
 import (
-	"embed"
+	"errors"
 	"fmt"
 	"image"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
-	"sync"
 
 	"gobox/ecl/script"
 	"gobox/game/journal"
@@ -17,44 +17,55 @@ import (
 // entry of the printed Adventurer's Journal ("SEE JOURNAL ENTRY 26", "YOU
 // OVERHEAR TAVERN TALE 5", the proclamations at City Hall). The import's
 // special cases (scriptfixes.go) name it with Journal instead, and the
-// pager shows it right there, with its pictures. The
-// texts and pictures (pre-scaled to the screen, one shared 16-colour
-// palette) are built in from journal/, in gobox's journal format; gobox
-// (game/journal) reads, finds and lays them out.
+// pager shows it right there, with its pictures. The books and pictures
+// (pre-scaled to the screen, one shared 16-colour palette) are the game's
+// own, in its data folder's JournalDir, written by its import, in gobox's
+// journal format; gobox (game/journal) reads, finds and lays them out.
 
-//go:embed journal
-var journalFS embed.FS
+// JournalDir is the game's journal books and pictures in its data folder (DataDir).
+const JournalDir = "journal"
 
-// books are journal/'s files, each a journal.Book, loaded once.
-var books = sync.OnceValue(func() map[string]*journal.Book {
-	sub, _ := fs.Sub(journalFS, "journal")
-	out := map[string]*journal.Book{}
-	for _, f := range []string{"JOURNAL.TXT", "HISTORY.TXT", "CLUEBOOK.TXT"} {
-		b, err := journal.Load(sub, f)
-		if err != nil {
-			panic(err) // built in: never
-		}
-		out[f] = b
+// book is the game's journal book name (a file of JournalDir), loaded once;
+// nil if the game has none.
+func (e *Engine) book(name string) *journal.Book {
+	if b, ok := e.books[name]; ok {
+		return b
 	}
-	return out
-})
+	b, err := journal.Load(os.DirFS(filepath.Join(e.adv, DataDir, JournalDir)), name)
+	if errors.Is(err, fs.ErrNotExist) {
+		b = nil
+	} else if err != nil {
+		panic(err) // a broken game folder
+	}
+	if e.books == nil {
+		e.books = map[string]*journal.Book{}
+	}
+	e.books[name] = b
+	return b
+}
 
-// book is journal/name's Book.
-func book(name string) *journal.Book { return books()[name] }
-
-// journalLayout is the texts titled titles of journal/name laid out for the
+// journalLayout is the texts titled titles of book name laid out for the
 // pager (journal.Book.Layout's markers); voiced marks each paragraph with
 // its own recording's key.
-func journalLayout(name string, titles []string, voiced bool) []string {
+func (e *Engine) journalLayout(name string, titles []string, voiced bool) []string {
 	var voice func(string) string
 	if voiced {
 		voice = voiceKey
 	}
-	return book(name).Layout(titles, jrWidth, jrRows(), voice)
+	b := e.book(name)
+	if b == nil {
+		panic(fmt.Sprintf("script: no journal book %s in %s", name, filepath.Join(e.adv, DataDir, JournalDir))) // a broken game folder
+	}
+	return b.Layout(titles, jrWidth, jrRows(), voice)
 }
 
-// journalPicture is a picture of journal/ (Data.Scans); nil if missing.
-func journalPicture(name string) image.Image { return book("JOURNAL.TXT").Picture(name) }
+// journalPicture is a picture of the game's journal (Data.Scans); nil if missing.
+func (e *Engine) journalPicture(name string) image.Image {
+	if b := e.book("JOURNAL.TXT"); b != nil {
+		return b.Picture(name)
+	}
+	return nil
+}
 
 // WrapWords breaks s into lines of at most w characters at spaces.
 func WrapWords(s string, w int) []string { return journal.Wrap(s, w) }
@@ -99,7 +110,7 @@ func (e *Engine) showEntry(id script.EntryID) {
 	if !ok {
 		panic(fmt.Sprintf("script: no text entry %d (%s)", id, script.EntriesFile)) // a script naming no entry: a broken game folder
 	}
-	lines := journalLayout(en.Book, []string{en.Title}, en.Voiced)
+	lines := e.journalLayout(en.Book, []string{en.Title}, en.Voiced)
 	if en.Voiced {
 		e.ext.again = map[string]bool{}
 		for _, l := range lines {
