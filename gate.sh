@@ -86,6 +86,9 @@ check gobox-engine/core ./...
 fixed='Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
 # POR's engine (gobox-engine/pool; por-go/rules before fold E2): the fixed set, and the slow tests the touched run skips.
 if [ -d "$out/gobox-engine/pool" ]; then
+  # pool's tests read POR's imported data (scripts, data/assets/data) and fail without it: the import
+  # (por-go cmd/importstale, a no-op without the game files) runs first, here, not in the tests.
+  (cd "$out/por-go" && go run ./cmd/importstale)
   check gobox-engine/pool . -run "$fixed"
   (cd "$out/gobox-engine/pool" && go test . -run "$slow")
   check por-go ./rules4e -run "$fixed"
