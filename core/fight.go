@@ -181,12 +181,17 @@ type Ground struct {
 	Footprints [5]Squares
 }
 
+// UnitID is a fighter's board unit number (1-based, the original's combat
+// index): never a CharID. A ruleset whose board numbers its units by
+// CharID converts at the effect (rulesxxvc unitOf).
+type UnitID int32
+
 // UnitsFact is the fighters on the board in unit order (Units); Who is NoChar.
 type UnitsFact struct{}
 
 // UnitCharFact is who board unit Unit (1-based, an effect's Unit) is
 // (UnitChar; Who NoChar: no such unit). The Fact's own id is NoChar.
-type UnitCharFact struct{ Unit CharID }
+type UnitCharFact struct{ Unit UnitID }
 
 // UnitChar is UnitCharFact's answer.
 type UnitChar struct{ Who CharID }
@@ -351,7 +356,7 @@ type ArcDir struct{ Start, To BoardPos }
 
 // UnitBody asks about a fallen combat Unit: Yes its body is shown on the
 // ground, Value that ground's tile, Low and High the unit's square.
-type UnitBody struct{ Unit CharID }
+type UnitBody struct{ Unit UnitID }
 
 func (ArcDir) check() {}
 

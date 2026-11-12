@@ -24,16 +24,16 @@ type (
 	}
 	Sounded struct{ Cue SoundCue }
 	Walked  struct {
-		Unit CharID
+		Unit UnitID
 		Path []BoardPos
 		Pace Pace
 	}
 	Turned struct {
-		Unit   CharID
+		Unit   UnitID
 		Facing Facing
 	}
 	Attacked struct {
-		From, To CharID
+		From, To UnitID
 		Hit      bool
 		Damage   int32
 	}
@@ -41,25 +41,25 @@ type (
 	// spell or power (Spell); From is who stands at Start (NoChar: a bolt
 	// going on from a square).
 	Shot struct {
-		From      CharID
+		From      UnitID
 		Start, To BoardPos
 		Item      ItemID
 		Spell     SpellID
 	}
 	Casting struct {
-		From  CharID
+		From  UnitID
 		Spell SpellID
 		Ats   []BoardPos
 	}
 	Struck struct {
-		Unit   CharID
+		Unit   UnitID
 		Damage int32
 	}
 	Healed struct {
 		Unit CharID
 		HP   int32
 	}
-	Fell struct{ Unit CharID }
+	Fell struct{ Unit UnitID }
 	Fled struct{ Unit CharID }
 	// Left: no room on the board; the unit is gone from the fight and the party.
 	Left struct{ Unit CharID }
