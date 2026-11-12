@@ -272,6 +272,14 @@ type IconPics struct {
 	PNG              PNG // a dropped PNG in place of the pictures (nil: none)
 }
 
+// SetIconPics: Who's own combat icon is Pics (the icon designer's edits, and its undo).
+type SetIconPics struct {
+	Who  CharID
+	Pics IconPics
+}
+
+func (SetIconPics) action() {}
+
 func (PoolPicsFact) fact() {}
 func (PoolPics) value()    {}
 func (SetPoolPic) action() {}
