@@ -276,9 +276,6 @@ func (e *Engine) UseItem(h core.ItemHandle, spell, target int, sure bool) error 
 		return e.askSpell(spells, p)
 	}
 	s := byte(spell)
-	if own && s > 0x38 {
-		s -= 0x17
-	}
 	if !e.inFight() {
 		e.do(core.StopUsingItem{})
 		p.spell = spell

@@ -123,7 +123,7 @@ type ScrollSpell struct {
 // level 1..9 at index 0..8) and the level of each class column.
 type Book struct {
 	Known, Memorized []BookSpell
-	Slots            [3][9]int32
+	Slots            [SpellPower][9]int32
 	Levels           []int32
 }
 
@@ -131,11 +131,28 @@ type Book struct {
 // own spell numbers) with its class and level, how many are planned and
 // whether it is still to be memorized (Memorized lists only).
 type BookSpell struct {
-	Spell        SpellID
-	Number       int32
-	Name         string
-	Class, Level int32
-	Planned      int32
+	Spell   SpellID
+	Number  int32
+	Name    string
+	Class   SpellClass
+	Level   int32
+	Planned int32
+}
+
+// SpellClass is the caster class a spell belongs to (Book's Slots rows:
+// cleric, mage, druid); SpellPower is an item's or monster's power.
+type SpellClass int32
+
+const (
+	SpellCleric SpellClass = iota
+	SpellMage
+	SpellDruid
+	SpellPower
+)
+
+// String is the class as the ruleset words its level groups ("mage 3").
+func (c SpellClass) String() string {
+	return [...]string{SpellCleric: "cleric", SpellMage: "mage", SpellDruid: "druid", SpellPower: "power"}[c]
 }
 
 // SpellCard is a spell to pick: its name and level.

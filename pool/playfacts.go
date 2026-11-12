@@ -92,12 +92,12 @@ func (e *Engine) known() facts {
 			book := e.fact(id, core.BookFact{}).(core.Book)
 			for _, sp := range book.Known { // the book: the spells id knows
 				gm.Spells = append(gm.Spells, game.SpellRef{ID: int(sp.Number), Name: sp.Name, Level: int(sp.Level),
-					Planned: int(sp.Planned), Group: spellGroup(byte(sp.Class), byte(sp.Level))})
+					Planned: int(sp.Planned), Group: spellGroup(sp.Class, byte(sp.Level))})
 			}
 			gm.SlotsMax = map[string]int{}
 			for cls, levels := range book.Slots {
 				for lvl, n := range levels {
-					gm.SlotsMax[spellGroup(byte(cls), byte(lvl+1))] = int(n)
+					gm.SlotsMax[spellGroup(core.SpellClass(cls), byte(lvl+1))] = int(n)
 				}
 			}
 			sel := e.sel
@@ -473,8 +473,8 @@ var labelKinds = [...]string{poiUser: "", poiShop: "shop", poiTemple: "temple", 
 
 // spellGroup is the level group a spell of class cls and level lvl is
 // listed under (SpellRef.Group, the SlotsMax keys): "cleric 1", "mage 2".
-func spellGroup(cls, lvl byte) string {
-	return [2]string{"cleric", "mage"}[cls&1] + " " + strconv.Itoa(int(lvl))
+func spellGroup(cls core.SpellClass, lvl byte) string {
+	return cls.String() + " " + strconv.Itoa(int(lvl))
 }
 
 // gamePicture is p (the game's pixels) as a game.Picture.
