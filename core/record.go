@@ -13,3 +13,7 @@ const (
 	Layout439 RecordLayout = 439   // Secret of the Silver Blades
 	Layout510 RecordLayout = 510   // Pools of Darkness
 )
+
+// RecordImage is a character record as read from its file, in its layout;
+// only gobox/char codes it (the rules carry it for the fields they do not model).
+type RecordImage []byte

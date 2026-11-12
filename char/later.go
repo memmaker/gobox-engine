@@ -32,7 +32,7 @@ type LaterFiles struct {
 // gives each game's number map.
 func PackLater[R Later](f LaterFiles) (core.CharacterFile, error) {
 	r := Decode[R](f.Record)
-	c := rules1e.CharacterJSON{Kept: &rules1e.KeptRecord{Layout: core.RecordLayout(len(Encode(r))), Image: bytes.Clone(f.Record)}}
+	c := rules1e.CharacterJSON{Kept: &rules1e.KeptRecord{Layout: core.RecordLayout(len(Encode(r))), Image: core.RecordImage(bytes.Clone(f.Record))}}
 	sheetOfLater(&c, r)
 	for _, it := range ReadRecords[Item](f.Items, f.ItemSize) {
 		c.Items = append(c.Items, *it)
