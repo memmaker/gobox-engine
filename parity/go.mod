@@ -5,14 +5,21 @@ go 1.26.2
 require (
 	gobox/blobber v0.0.0
 	gobox/dax v0.0.0
-	gobox/ecl v0.0.0
 	gobox/ega v0.0.0
 	gobox/front v0.0.0
-	gobox/game v0.0.0
-	gobox/gpu v0.0.0
-	gobox/sprites v0.0.0
+	gobox/pool v0.0.0
 	gobox/walls v0.0.0
 	por v0.0.0
+)
+
+require (
+	gobox/core v0.0.0 // indirect
+	gobox/creation v0.0.0 // indirect
+	gobox/ecl v0.0.0 // indirect
+	gobox/game v0.0.0 // indirect
+	gobox/gpu v0.0.0 // indirect
+	gobox/importer v0.0.0 // indirect
+	gobox/sprites v0.0.0 // indirect
 )
 
 require (
@@ -33,7 +40,7 @@ require (
 	github.com/qmuntal/gltf v0.29.0 // indirect
 	gobox/amiga v0.0.0 // indirect
 	gobox/app v0.0.0 // indirect
-	gobox/asset v0.0.0
+	gobox/asset v0.0.0 // indirect
 	gobox/audio v0.0.0 // indirect
 	gobox/char v0.0.0 // indirect
 	gobox/combat v0.0.0 // indirect
@@ -43,7 +50,7 @@ require (
 	gobox/ui v0.0.0 // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	rules1e v0.0.0
+	rules1e v0.0.0 // indirect
 )
 
 // por's checkout beside gobox's (the parity tests read its presentdata goldens)
@@ -104,3 +111,9 @@ replace gobox/asset => ../asset
 replace gobox/core => ../core
 
 replace rules1e => ../../rules1e
+
+replace gobox/pool => ../pool
+
+replace gobox/importer => ../importer
+
+replace gobox/creation => ../creation

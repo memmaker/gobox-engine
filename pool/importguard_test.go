@@ -9,7 +9,7 @@ import (
 )
 
 // TestPoolImportsNoRuleset: the engine reaches the rules only through core
-// (fold E2): no non-test file imports a ruleset (rules1e, rulesxxvc) or a
+// (fold E2): no non-test file imports a ruleset (rules1e, rulesxxvc), and no file, test files included, a
 // game's package (por/...); the game hands its ruleset and data to New.
 func TestPoolImportsNoRuleset(t *testing.T) {
 	files, err := filepath.Glob("*.go")
@@ -18,16 +18,16 @@ func TestPoolImportsNoRuleset(t *testing.T) {
 	}
 	fset := token.NewFileSet()
 	for _, f := range files {
-		if strings.HasSuffix(f, "_test.go") {
-			continue
-		}
 		ast, err := parser.ParseFile(fset, f, nil, parser.ImportsOnly)
 		if err != nil {
 			t.Fatal(err)
 		}
 		for _, imp := range ast.Imports {
 			p := strings.Trim(imp.Path.Value, `"`)
-			if p == "rules1e" || p == "rulesxxvc" || p == "por" || strings.HasPrefix(p, "por/") {
+			isGame := p == "por" || strings.HasPrefix(p, "por/")
+			isRuleset := p == "rules1e" || p == "rulesxxvc"
+			// Tests build their rules from rules1e; no file may import a game.
+			if isGame || isRuleset && !strings.HasSuffix(f, "_test.go") {
 				t.Errorf("%s imports %s", f, p)
 			}
 		}

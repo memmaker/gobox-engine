@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"gobox/dax"
-	"por/importsrc"
 )
 
 // TestScriptRoundTrip: every area's byte code, written as a script and
@@ -271,22 +270,6 @@ Kinds = [1, 2, 3]
 		if !strings.Contains(text, form) {
 			t.Errorf("the writer lost %q:\n%s", form, text)
 		}
-	}
-}
-
-// TestImportAppliesFixes: the game data decompiles and every special case (scriptFixes) applies.
-func TestImportAppliesFixes(t *testing.T) {
-	const scripts = "../../por-go/data/assets/scripts"
-	l, err := dax.NewLoader("../../por-go/data/dos")
-	if err != nil {
-		t.Skip(err)
-	}
-	dir := t.TempDir()
-	if _, err := script.Import(script.V1, importsrc.ImportSource(l), os.DirFS(scripts), dir, script.FoldGates, ScriptFixes); err != nil {
-		t.Fatal(err)
-	}
-	if files, _ := filepath.Glob(filepath.Join(dir, "area*.txt")); len(files) == 0 {
-		t.Fatal("no scripts")
 	}
 }
 

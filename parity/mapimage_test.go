@@ -14,7 +14,8 @@ import (
 	"strings"
 	"testing"
 
-	"por/rules"
+	"gobox/pool"
+	"por/porgame"
 )
 
 // The maps (the minimap, View.Map, the full map) were pictures the engine
@@ -26,11 +27,11 @@ func TestMapImage(t *testing.T) {
 	for i := range ink {
 		ink[i] = color.RGBA{ega.Palette[i][0], ega.Palette[i][1], ega.Palette[i][2], 255}
 	}
-	e, err := rules.New(filepath.Join(porDir(t), "data"))
+	e, err := porgame.New(filepath.Join(porDir(t), "data", "assets"), filepath.Join(porDir(t), "data"))
 	if err != nil {
 		t.Skip("no game files")
 	}
-	e.Init() // the font
+	e.Init()                      // the font
 	present.UseGameData(e.Data()) // the label inks
 	files, _ := filepath.Glob(filepath.Join(porDir(t), "presentdata", "testdata", "map_*.json"))
 	if len(files) == 0 {
@@ -53,7 +54,7 @@ func TestMapImage(t *testing.T) {
 		m := front.MapSquares{Party: rec.Party, Ahead: rec.Ahead}
 		for y, row := range rec.Squares {
 			for x, q := range row {
-				m.Squares[y][x] = front.MapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index(rules.Data().LabelInks, q.Ink), Letter: q.Letter}
+				m.Squares[y][x] = front.MapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index(pool.Data().LabelInks, q.Ink), Letter: q.Letter}
 			}
 		}
 		r, err := os.Open(strings.TrimSuffix(f, ".json") + ".png")

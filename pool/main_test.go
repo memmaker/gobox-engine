@@ -3,19 +3,18 @@ package pool_test
 import (
 	"log"
 	"os"
+	"os/exec"
 	"testing"
-
-	"por/importpor"
 )
 
-// TestMain runs the import a test's areas need (importpor.ImportIfStale), as the
-// setup does: nothing at load decompiles. It is an external test file, so the
-// package's tests can use the importer that imports the package.
+// TestMain runs the import a test's areas need (por-go's cmd/importstale),
+// as the setup does: nothing at load decompiles. It runs the game's own
+// command, so the engine's module does not import the game.
 func TestMain(m *testing.M) {
-	if err := importpor.ImportIfStale("../../por-go/data/dos", "../../por-go/data/assets/scripts"); err != nil {
-		log.Fatal(err)
-	}
-	if err := importpor.ImportAssetsIfStale("../../por-go/data"); err != nil {
+	cmd := exec.Command("go", "run", "./cmd/importstale")
+	cmd.Dir = "../../por-go"
+	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	if err := cmd.Run(); err != nil {
 		log.Fatal(err)
 	}
 	os.Exit(m.Run())

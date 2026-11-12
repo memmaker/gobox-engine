@@ -7,7 +7,6 @@ require github.com/jfreymuth/vorbis v1.0.2 // indirect
 require (
 	gobox/core v0.0.0
 	gobox/creation v0.0.0
-	por v0.0.0
 	rules1e v0.0.0
 )
 

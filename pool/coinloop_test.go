@@ -8,7 +8,6 @@ import (
 
 	"gobox/dax"
 	"gobox/ecl/script"
-	"por/importsrc"
 )
 
 // TestArea9CoinLoop: area 9's special cases type the coin loop (SelCoins[i] for
@@ -40,10 +39,7 @@ func TestArea9CoinLoop(t *testing.T) {
 	// its Ref and reads on past it into the coins as the original did
 	// (coinWindow).
 	orig = resolvedOver(t, orig, area, "6B01 1 byte member CoinLoopBase\n")
-	dir := t.TempDir()
-	if _, err := script.Import(script.V1, importsrc.ImportSource(l), os.DirFS(scripts), dir, script.FoldGates, ScriptFixes); err != nil {
-		t.Fatal(err)
-	}
+	dir := scripts // imported, special cases applied, by the TestMain import (por-go cmd/importstale)
 	text, err := os.ReadFile(script.AreaPath(dir, area))
 	if err != nil {
 		t.Fatal(err)

@@ -58,6 +58,9 @@ const (
 	PaceAnim  = game.PaceAnim
 )
 
+// Pace is the loop that goes on now, for the host and the outside tests (settle).
+func (e *Engine) Pace() Pace { return e.pace() }
+
 // pace is the loop that goes on now.
 func (e *Engine) pace() Pace {
 	switch {

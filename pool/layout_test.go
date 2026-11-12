@@ -14,7 +14,6 @@ import (
 
 	"gobox/dax"
 	"gobox/ecl/script"
-	"por/importsrc"
 )
 
 // TestLayoutCoversScripts: every variable operand of every area's script
@@ -22,14 +21,10 @@ import (
 // game's layout, the area's over it and the area's constant tables.
 func TestLayoutCoversScripts(t *testing.T) {
 	const scripts = "../../por-go/data/assets/scripts"
-	l, err := dax.NewLoader("../../por-go/data/dos")
-	if err != nil {
+	if _, err := dax.NewLoader("../../por-go/data/dos"); err != nil {
 		t.Skip(err)
 	}
-	dir := t.TempDir()
-	if _, err := script.Import(script.V1, importsrc.ImportSource(l), os.DirFS(scripts), dir, script.FoldGates, ScriptFixes); err != nil {
-		t.Fatal(err)
-	}
+	dir := scripts // imported, special cases applied, by the TestMain import (por-go cmd/importstale)
 	files, err := filepath.Glob(filepath.Join(dir, "area*.txt"))
 	if err != nil || len(files) == 0 {
 		t.Fatal("no scripts", err)

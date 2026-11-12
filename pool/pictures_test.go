@@ -1,13 +1,12 @@
 package pool
 
 import (
-	"por/porrules"
 	"testing"
 )
 
 // TestEnginePictures: New reads the adventure's data/pictures.json.
 func TestEnginePictures(t *testing.T) {
-	e, err := New(porrules.Ruleset, porTables, "../../por-go/data/assets", "../../por-go/data")
+	e, err := New(porRuleset, porTables, "../../por-go/data/assets", "../../por-go/data")
 	if err != nil {
 		t.Fatal(err)
 	}
