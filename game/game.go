@@ -397,6 +397,7 @@ type SpellRef struct {
 
 // Item is one item.
 type Item struct {
+	Handle                      core.ItemHandle // names it in the item verbs (play.Drop's Item ...); NoItem never
 	Name                        string
 	Readied, Identified, Cursed bool
 	Charges, Price, Weight      int
@@ -414,6 +415,20 @@ type Item struct {
 	Hidden                      string         // an unidentified item\'s real name, shown once identified
 	Sale                        map[string]int // what a shop pays for it, by money kind
 }
+
+// ByPosition gives each item the handle of its place in the list (the
+// first 1), and Position is the place a handle so given names.
+// ponytail: the adapter of the games whose items have no handle of their
+// own (cotab, sotsb, pod, buckrogers); it goes when they switch to pool.
+func ByPosition(items []Item) []Item {
+	for i := range items {
+		items[i].Handle = core.ItemHandle(i + 1)
+	}
+	return items
+}
+
+// Position: see ByPosition (-1 for NoItem).
+func Position(h core.ItemHandle) int { return int(h) - 1 }
 
 // Quest is a quest fact.
 type Quest struct {
@@ -556,11 +571,11 @@ type Unit struct {
 	Squares    []image.Point // squares covered
 	AC         int
 	Status     string
-	Dmg        string      // the unit's damage, e.g. "1d8+6"
-	Member     int         // party index of a party unit, -1 for a monster
-	Active     bool        // it is the unit the player acts for
-	Hit        int         // the active unit's chance in percent to hit it with one blow, 0 not a target
-	Pose       int         // its icon's pose: 0 ready, 1 action
+	Dmg        string         // the unit's damage, e.g. "1d8+6"
+	Member     int            // party index of a party unit, -1 for a monster
+	Active     bool           // it is the unit the player acts for
+	Hit        int            // the active unit's chance in percent to hit it with one blow, 0 not a target
+	Pose       int            // its icon's pose: 0 ready, 1 action
 	Icon       [2]image.Image // a member's own PNG icon in its facing, ready and action pose (nil: composed from its icon picks)
 }
 

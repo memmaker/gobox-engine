@@ -67,7 +67,7 @@ type shown struct {
 // shownOf reads every reader once, as Game.View does.
 func shownOf(r *rules) shown {
 	ps := r.g.State()
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	party := partyOf(ps)
 	s := shown{Mode: r.modeOf(ps), Pending: r.pending(ps), Party: party, Selected: r.selectedOf(ps), Where: c.Where,
 		Story: storyOf(c), Purse: c.Purse, Quests: c.Quests, Map: r.automapOf(ps), Combat: r.combatOf(ps), Shop: shopOf(ps),

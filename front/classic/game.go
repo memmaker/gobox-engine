@@ -156,7 +156,7 @@ func (g *Game) art() map[string]game.Picture {
 
 func (g *Game) View() front.View {
 	r, ps := g.r, g.r.g.State()
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	art := g.art()
 	mode, pending := r.modeOf(ps), r.pending(ps)
 	if g.asked != nil {
@@ -607,7 +607,7 @@ func (g *Game) TryDoor(k front.DoorWay) error {
 // Pickers and the icon designer.
 func (g *Game) OpenPicker(kind int) bool {
 	ok := g.do(play.OpenPicker{Kind: kind}) == nil
-	if kind == front.PickWeapon && commonOf(g.r.g.State()).Picker == nil {
+	if kind == front.PickWeapon && play.CommonOf(g.r.g.State()).Picker == nil {
 		if n, _ := BodyTiles(g.Subject()); len(n) > 0 { // no pictures from the game: the pool's, by original ref
 			g.tiles = true
 			return true
@@ -619,7 +619,7 @@ func (g *Game) PickerView(page int) *front.Picker {
 	if g.tiles {
 		return g.TilesOf(page, g.grid.X, g.grid.Y)
 	}
-	return g.PickerOf(commonOf(g.r.g.State()).Picker, page, g.grid.X, g.grid.Y)
+	return g.PickerOf(play.CommonOf(g.r.g.State()).Picker, page, g.grid.X, g.grid.Y)
 }
 func (g *Game) Pick(i int) bool {
 	if g.tiles {
@@ -631,7 +631,7 @@ func (g *Game) Pick(i int) bool {
 		return true
 	}
 	g.do(play.Pick{N: i})
-	return commonOf(g.r.g.State()).Picker == nil
+	return play.CommonOf(g.r.g.State()).Picker == nil
 }
 
 // SetChoice sends gobox's pool pick field (the portrait's or the icon's) to
@@ -657,7 +657,7 @@ func (g *Game) EndIcon(keep bool)   { g.do(play.EndIcon{Keep: keep}) }
 // SlotsView is State.Saves as the slot list (nil on the title).
 func (g *Game) SlotsView(loadOnly bool) *front.Slots {
 	ps := g.r.g.State()
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	if introOf(ps) != nil {
 		return nil
 	}
@@ -809,7 +809,7 @@ func (g *Game) OpenTraining(n int) error { return g.do(play.OpenTraining{Member:
 func (g *Game) CloseTraining() error     { return g.do(play.CloseTraining{}) }
 func (g *Game) TrainingView() *front.Training {
 	ps := g.r.g.State()
-	return Training(trainingOf(ps), partyOf(ps), g.r.selectedOf(ps), commonOf(ps).Purse)
+	return Training(trainingOf(ps), partyOf(ps), g.r.selectedOf(ps), play.CommonOf(ps).Purse)
 }
 func (g *Game) Train() error           { return g.do(play.Train{Member: g.sel(-1)}) }
 func (g *Game) Learn(id int) error     { return g.do(play.Learn{Spell: id}) }
@@ -1136,17 +1136,17 @@ func (g *Game) CreationOn(cols, rows int) *front.Creation {
 
 // IconEditorOn is the icon designer on a page of cols by rows.
 func (g *Game) IconEditorOn(ink *[16]color.RGBA, cols, rows int) *front.IconEditor {
-	return IconEditor(commonOf(g.r.g.State()).IconEditor, nil, g.Subject(), ink, cols, rows)
+	return IconEditor(play.CommonOf(g.r.g.State()).IconEditor, nil, g.Subject(), ink, cols, rows)
 }
 
 // FullMapOf is f with the map of where the party is.
 func (g *Game) FullMapOf(f *front.FullMap) *front.FullMap {
 	ps := g.r.g.State()
-	return FullMap(f, g.r.automapOf(ps), commonOf(ps).Where)
+	return FullMap(f, g.r.automapOf(ps), play.CommonOf(ps).Where)
 }
 
 // Where is the party's place; Mode the screen up; Dungeon a fight's ground.
-func (g *Game) Where() game.Where { return commonOf(g.r.g.State()).Where }
+func (g *Game) Where() game.Where { return play.CommonOf(g.r.g.State()).Where }
 func (g *Game) Mode() game.Mode   { return g.mode() }
 
 // Asked is the question up (nil: none).
@@ -1224,7 +1224,7 @@ func paneCount(p *game.Page) int {
 
 // PickerOn is page page of the picker up on a page of cols by rows (nil: none).
 func (g *Game) PickerOn(page, cols, rows int) *front.Picker {
-	if p := g.PickerOf(commonOf(g.r.g.State()).Picker, page, cols, rows); p != nil {
+	if p := g.PickerOf(play.CommonOf(g.r.g.State()).Picker, page, cols, rows); p != nil {
 		return p
 	}
 	return g.PickerView(page)

@@ -12,7 +12,7 @@ import (
 
 // partyOf is ps's party as the screens show it.
 func partyOf(ps play.State) []game.Member {
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	var out []game.Member
 	for i, m := range c.Party {
 		m.CanCast = m.CanCast || canCast(c.Allowed, i)
@@ -29,7 +29,7 @@ type memberCard struct {
 
 // cardsOf are ps's party's cards, by member.
 func cardsOf(ps play.State) []memberCard {
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	var out []memberCard
 	for i, m := range partyOf(ps) {
 		out = append(out, memberCard{Chosen: i == c.Selected, Menu: card(m, c.Allowed, i)})
@@ -40,7 +40,7 @@ func cardsOf(ps play.State) []memberCard {
 // selectedOf is the member the screens act on: in a fight with the items up,
 // whose items they are.
 func (r *rules) selectedOf(ps play.State) int {
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	if f, ok := ps.(play.Fighting); ok {
 		if m := cmp.Or(r.itemsOf+1, activeMember(f.Field)+1) - 1; r.items != game.ItemsNone && m >= 0 && m < len(c.Party) {
 			return m
@@ -52,7 +52,7 @@ func (r *rules) selectedOf(ps play.State) int {
 // allowedOf is what ps allows by action name, and NoRest where camp has no
 // timed rest.
 func allowedOf(ps play.State) map[string]bool {
-	m := allowedNames(commonOf(ps).Allowed)
+	m := allowedNames(play.CommonOf(ps).Allowed)
 	if _, camp := ps.(play.Camping); camp && !m["Rest"] {
 		m["NoRest"] = true
 	}
@@ -61,7 +61,7 @@ func allowedOf(ps play.State) map[string]bool {
 
 // automapOf is the map of where the party is; camp keeps the one explored.
 func (r *rules) automapOf(ps play.State) game.Automap {
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	a := c.Automap
 	if x, ok := ps.(play.Exploring); ok && a.Size == (image.Point{}) {
 		a = x.Map.Automap
@@ -87,7 +87,7 @@ func storyOf(c play.Common) []game.Picture {
 
 // pageOf is the text page up.
 func (r *rules) pageOf(ps play.State) *game.Page {
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	p := &game.Page{Layers: c.Layers}
 	if c.Picture != nil && len(c.Layers) == 0 { // the front draws a page's layers: the picture is the page's only one
 		p.Layers = []game.Layer{{Picture: *c.Picture}}
@@ -114,7 +114,7 @@ func (r *rules) pageOf(ps play.State) *game.Page {
 
 // flagsOf are the screen's plain status flags.
 func (r *rules) flagsOf(ps play.State, party []game.Member) *game.Flags {
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	_, camp := ps.(play.Camping)
 	f := &game.Flags{Adventure: c.Adventure, Ordering: camp && allowedOf(ps)["Order"], Sweeping: c.Where.Searching,
 		Inside: c.Where.Inside, CanCast: c.Selected >= 0 && c.Selected < len(party) && party[c.Selected].CanCast,
@@ -133,7 +133,7 @@ func (r *rules) flagsOf(ps play.State, party []game.Member) *game.Flags {
 
 // windowOf is what the view window shows.
 func windowOf(ps play.State) game.Window {
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	pictured := c.Picture != nil || len(c.Layers) > 0 || c.Portrait != nil
 	switch t := ps.(type) {
 	case play.Exploring:
@@ -175,7 +175,7 @@ func (r *rules) sheetOf(c play.Common) *game.Sheet {
 
 // sheetPageOf is the sheet's page up: the rules', else gobox's from the member.
 func (r *rules) sheetPageOf(ps play.State, party []game.Member) *game.SheetPage {
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	var p *game.SheetPage
 	if n := r.sheet; n >= 0 && n < len(c.Party) {
 		if p = c.Party[n].Page; p == nil {
@@ -255,7 +255,7 @@ func (r *rules) readOf(ps play.State) *game.Read {
 // modeOf is the screen ps puts up, a question over it counted.
 func (r *rules) modeOf(ps play.State) game.Mode {
 	var m game.Mode
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	switch t := ps.(type) {
 	case play.Assembling:
 		m = game.ModeParty
@@ -417,7 +417,7 @@ type MusicCue struct {
 func (g *Game) MusicCue() MusicCue {
 	ps, m := g.r.g.State(), g.mode()
 	c := g.r.combatOf(ps)
-	return MusicCue{Where: commonOf(ps).Where, Mode: m, Title: sequenceOf(ps) != "" || introOf(ps) != nil || m == game.ModeTitle,
+	return MusicCue{Where: play.CommonOf(ps).Where, Mode: m, Title: sequenceOf(ps) != "" || introOf(ps) != nil || m == game.ModeTitle,
 		Creating: creationOf(ps) != nil || m == game.ModeCreate, Results: resultsOf(ps) != nil,
 		Fighting: c != nil || m == game.ModeCombat, Dungeon: c != nil && c.Dungeon}
 }
@@ -426,7 +426,7 @@ func (g *Game) MusicCue() MusicCue {
 func (g *Game) Party() []game.Member     { return g.party() }
 func (g *Game) Fight() *play.Combat      { return g.combat() }
 func (g *Game) Pace() game.Pace          { return g.pace() }
-func (g *Game) Common() play.Common      { return commonOf(g.r.g.State()) }
+func (g *Game) Common() play.Common      { return play.CommonOf(g.r.g.State()) }
 func (g *Game) Walls() *game.Walls       { return g.r.wallsOf(g.r.g.State()) }
 func (g *Game) Loot() *game.Loot         { return lootOf(g.r.g.State()) }
 func (g *Game) Automap() game.Automap    { return g.r.automapOf(g.r.g.State()) }

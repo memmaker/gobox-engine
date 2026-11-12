@@ -744,3 +744,48 @@ func AppraiseActions(offers []game.Offer) []Action {
 	}
 	return l
 }
+
+// CommonOf is the Common of any State (none: the zero Common).
+func CommonOf(ps State) Common {
+	switch t := ps.(type) {
+	case Assembling:
+		return t.Common
+	case Exploring:
+		return t.Common
+	case Camping:
+		return t.Common
+	case Fighting:
+		return t.Common
+	case Scene:
+		return t.Common
+	case Trading:
+		return t.Common
+	case Looting:
+		return t.Common
+	case Over:
+		return t.Common
+	case ShipFight:
+		return t.Common
+	}
+	return Common{}
+}
+
+// ByPosition gives the items of s (the party's, the goods, the vault's, the
+// loot) the handles of their places in their lists (game.ByPosition).
+// ponytail: the play boundary of the games whose items have no handle of
+// their own (cotab, sotsb, pod, buckrogers); it goes when they switch to pool.
+func ByPosition(s State) State {
+	for _, m := range CommonOf(s).Party {
+		game.ByPosition(m.Items)
+	}
+	switch t := s.(type) {
+	case Trading:
+		game.ByPosition(t.Goods)
+		if t.Vault != nil {
+			game.ByPosition(t.Vault.Items)
+		}
+	case Looting:
+		game.ByPosition(t.Items)
+	}
+	return s
+}

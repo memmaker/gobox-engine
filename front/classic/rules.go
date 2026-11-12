@@ -86,7 +86,7 @@ func newRules(g play.Game, d game.Data) *rules {
 // who is n, or the selected member when n is -1.
 func who(n int, ps play.State) int {
 	if n < 0 {
-		return commonOf(ps).Selected
+		return play.CommonOf(ps).Selected
 	}
 	return n
 }
@@ -116,7 +116,7 @@ func (r *rules) Step() play.Result {
 	switch {
 	case r.rest > 0:
 		d := min(r.rest, restChunk)
-		if m, _ := restCap(commonOf(r.g.State()).Allowed); m > 0 {
+		if m, _ := restCap(play.CommonOf(r.g.State()).Allowed); m > 0 {
 			d = min(d, m)
 		}
 		r.rest -= d
@@ -150,7 +150,7 @@ func (r *rules) pending(ps play.State) *play.Ask {
 	if sc, ok := ps.(play.Scene); ok && (sc.Kind == play.SceneHandout || sc.Kind == play.SceneTitle || sc.Kind == play.SceneSequence) {
 		return nil
 	}
-	al := commonOf(ps).Allowed
+	al := play.CommonOf(ps).Allowed
 	if f, ok := ps.(play.Fighting); ok && r.loneAim(f) {
 		return &play.Ask{Kind: game.Square, Prompt: f.Status}
 	}
@@ -164,7 +164,7 @@ func (r *rules) asked(ps play.State) *play.Ask {
 	if r.ask != nil {
 		return r.ask
 	}
-	c := commonOf(ps)
+	c := play.CommonOf(ps)
 	if q := c.Ask; q != nil {
 		a := r.question(q, q.List)
 		a.View = slices.ContainsFunc(c.Allowed.Plain, func(x play.Action) bool { _, ok := x.(play.ViewMember); return ok }) // a pick the rules let the player look over first
@@ -324,7 +324,7 @@ func askMode(m game.Mode, a *play.Ask, ps play.State) game.Mode {
 			return m // a typed screen answers by its own keys
 		}
 		return game.ModeAsk
-	case m == game.ModeCreate && commonOf(ps).Ask != nil:
+	case m == game.ModeCreate && play.CommonOf(ps).Ask != nil:
 		return game.ModeAsk
 	}
 	return m
@@ -362,30 +362,6 @@ func wallsKey(w play.Walls) string {
 func isHandout(ps play.State) bool {
 	sc, ok := ps.(play.Scene)
 	return ok && sc.Kind == play.SceneHandout
-}
-
-func commonOf(ps play.State) play.Common {
-	switch t := ps.(type) {
-	case play.Assembling:
-		return t.Common
-	case play.Exploring:
-		return t.Common
-	case play.Camping:
-		return t.Common
-	case play.Fighting:
-		return t.Common
-	case play.Scene:
-		return t.Common
-	case play.Trading:
-		return t.Common
-	case play.Looting:
-		return t.Common
-	case play.Over:
-		return t.Common
-	case play.ShipFight:
-		return t.Common
-	}
-	return play.Common{}
 }
 
 // oldNames are the old Allowed keys of the renamed actions.
@@ -740,7 +716,7 @@ func spellRef(sp []game.SpellRef, id int) game.SpellRef {
 // state for the decisions that only steer the screen.
 func (r *rules) apply(a play.Action) play.Result {
 	ps := r.g.State()
-	al := commonOf(ps).Allowed
+	al := play.CommonOf(ps).Allowed
 	switch d := a.(type) {
 	case play.Reply:
 		if f, ok := ps.(play.Fighting); ok && r.ask == nil && f.Ask == nil {
@@ -801,7 +777,7 @@ func (r *rules) apply(a play.Action) play.Result {
 			}
 		}
 	case play.Ready: // on a readied item it unreadies it, as the originals' Ready toggles
-		if pt := commonOf(ps).Party; d.Member >= 0 && d.Member < len(pt) && d.Item >= 0 && d.Item < len(pt[d.Member].Items) && pt[d.Member].Items[d.Item].Readied {
+		if pt := play.CommonOf(ps).Party; d.Member >= 0 && d.Member < len(pt) && d.Item >= 0 && d.Item < len(pt[d.Member].Items) && pt[d.Member].Items[d.Item].Readied {
 			return r.do(play.Unready{Member: d.Member, Item: d.Item})
 		}
 	}
@@ -817,10 +793,10 @@ func (r *rules) cancel() play.Result {
 		return play.Result{}
 	}
 	if r.ask == nil && r.aim == nil && isHandout(ps) { // Esc on a handout leaves it, as reading to its end does
-		return r.do(onward(commonOf(ps).Allowed))
+		return r.do(onward(play.CommonOf(ps).Allowed))
 	}
-	lone := r.aim != nil && r.ask == nil && slices.Contains(commonOf(ps).Allowed.Plain, play.Action(play.Leave{}))
-	if q := commonOf(ps).Ask; q != nil && r.ask == nil && r.aim == nil { // Esc on the rules' menu: the reply it names (its Exit, as the originals')
+	lone := r.aim != nil && r.ask == nil && slices.Contains(play.CommonOf(ps).Allowed.Plain, play.Action(play.Leave{}))
+	if q := play.CommonOf(ps).Ask; q != nil && r.ask == nil && r.aim == nil { // Esc on the rules' menu: the reply it names (its Exit, as the originals')
 		if i, ok := q.Esc.Reply(); ok && i < len(q.Replies) {
 			return r.answer(ps, play.Reply{N: i}, image.Point{})
 		}
@@ -830,7 +806,7 @@ func (r *rules) cancel() play.Result {
 	if _, fight := ps.(play.Fighting); fight && lone { // Esc on the aim the game asks: its Leave
 		return r.do(play.Leave{})
 	}
-	if _, loot := ps.(play.Looting); loot && bare && slices.Contains(commonOf(ps).Allowed.Plain, play.Action(play.Leave{})) { // Esc on the treasure list: its Leave
+	if _, loot := ps.(play.Looting); loot && bare && slices.Contains(play.CommonOf(ps).Allowed.Plain, play.Action(play.Leave{})) { // Esc on the treasure list: its Leave
 		return r.do(play.Leave{})
 	}
 	return play.Result{}
@@ -893,7 +869,7 @@ func (r *rules) titleDone() play.Result {
 	return r.do(play.Continue{})
 }
 
-func (r *rules) sequenceDone() play.Result { return r.do(onward(commonOf(r.g.State()).Allowed)) }
+func (r *rules) sequenceDone() play.Result { return r.do(onward(play.CommonOf(r.g.State()).Allowed)) }
 
 // speak voices a page: gobox's own.
 func (r *rules) speak(keys []string) play.Result {
@@ -908,7 +884,7 @@ func (r *rules) speak(keys []string) play.Result {
 // in chunks, Step by Step, where the game allows; else the game's own advance.
 func (r *rules) restFor(minutes int) play.Result {
 	ps := r.g.State()
-	if _, ok := restCap(commonOf(ps).Allowed); ok {
+	if _, ok := restCap(play.CommonOf(ps).Allowed); ok {
 		r.rest = time.Duration(minutes) * time.Minute
 		if c, ok := ps.(play.Camping); ok && r.rest == 0 {
 			r.rest = c.Study
@@ -933,14 +909,14 @@ func (r *rules) stopWalk() play.Result {
 }
 
 func (r *rules) saveNamed(name string) play.Result {
-	if commonOf(r.g.State()).NoSave {
+	if play.CommonOf(r.g.State()).NoSave {
 		return play.Result{Err: errors.New("cannot save here")}
 	}
 	return play.Result{Err: r.save(name)}
 }
 
 func (r *rules) loadSlot(slot int) play.Result {
-	if commonOf(r.g.State()).NoLoad {
+	if play.CommonOf(r.g.State()).NoLoad {
 		return play.Result{Err: errors.New("cannot load here")}
 	}
 	return r.load(slot)
@@ -982,9 +958,9 @@ func (r *rules) answer(ps play.State, d play.Reply, at image.Point) play.Result 
 		if d.N < 0 || d.N >= len(moves) {
 			return play.Result{Err: errors.New("no such choice")}
 		}
-		return r.aimOrDo(commonOf(ps).Allowed, moves[d.N])
+		return r.aimOrDo(play.CommonOf(ps).Allowed, moves[d.N])
 	}
-	if q := commonOf(ps).Ask; q != nil {
+	if q := play.CommonOf(ps).Ask; q != nil {
 		if d.N >= 0 && d.N < len(q.Do) && q.Do[d.N] != nil { // the rules' front-state reply (Gear: the items screen)
 			return r.apply(q.Do[d.N])
 		}
@@ -1349,7 +1325,7 @@ func (r *rules) walkStep() play.Result {
 	if x.Map.Walk.Departure(from, side) && (!act(play.RunEvent{Before: true, Side: side}) || !w.stands(r.g.State(), from, side)) {
 		return res
 	}
-	if !act(allowedArrive(commonOf(r.g.State()).Allowed, from, to, side)) {
+	if !act(allowedArrive(play.CommonOf(r.g.State()).Allowed, from, to, side)) {
 		return res
 	}
 	ps := r.g.State()
@@ -1359,7 +1335,7 @@ func (r *rules) walkStep() play.Result {
 		}
 		ps = r.g.State()
 	}
-	if !w.stands(ps, to, side) || walkHalts(facts, visited) || hasPicture(commonOf(ps)) && !hasPicture(x.Common) || !visited && newText(x.Text, commonOf(ps).Text) {
+	if !w.stands(ps, to, side) || walkHalts(facts, visited) || hasPicture(play.CommonOf(ps)) && !hasPicture(x.Common) || !visited && newText(x.Text, play.CommonOf(ps).Text) {
 		return res
 	}
 	r.walk = w
