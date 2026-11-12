@@ -688,6 +688,10 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 			err = native(func() error { e.titleDone(); return nil })
 			break
 		}
+		if s.Sequence != "" {
+			err = native(e.sequenceDone)
+			break
+		}
 		err = native(func() error { return e.answerPlay(0, "") })
 	case play.Reply:
 		err = native(func() error { return e.answerPlay(a.N, a.Text) })

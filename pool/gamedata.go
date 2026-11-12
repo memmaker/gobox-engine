@@ -116,6 +116,7 @@ func (e *Engine) Data() game.Data {
 	}
 	d.Art = e.overlandArt()
 	d.CreditLines, d.CreditBoxes, d.TitleBackdrop, d.RemasterCredit = e.title.credits, e.title.boxes, e.title.backdrop, e.title.remaster // the adventure's Start (SetStart)
+	d.Sequences = e.title.seqs
 	d.Fonts = e.fontFaces()
 	d.SoundTables = e.sounds // read by SoundData before the presenter starts
 	return d

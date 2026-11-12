@@ -603,7 +603,7 @@ func (e *Engine) opProgram() {
 		e.event(play.Ended{})
 	case script.ProgramSaveQuit: // pod 1 (O043:0000): the save screen (the player picks the slot), then the ending
 		e.event(play.SaveOffered{})
-		e.ProgramEight()
+		e.ending()
 	}
 }
 

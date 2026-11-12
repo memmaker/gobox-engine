@@ -6,6 +6,7 @@ import (
 	"image"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"gobox/asset"
 	"gobox/game"
@@ -46,6 +47,27 @@ type title struct {
 	boxes       []image.Rectangle
 	backdrop    []game.Layer
 	remaster    [2]string
+	seqs        []game.Sequence // the full-screen animations State.Sequence names (SetEnd)
+}
+
+// seqEnding is the name of the end sequence (game.Data.Sequences).
+const seqEnding = "ending"
+
+// SetEnd takes the adventure's end sequence (its manifest's End; nil: none): the
+// ending ProgramSaveQuit plays before the run ends.
+func (e *Engine) SetEnd(s *importer.Sequence) {
+	e.title.seqs = nil
+	if s == nil {
+		return
+	}
+	if q := play.LeadingAnim(*s, seqEnding); q != nil {
+		e.title.seqs = append(e.title.seqs, *q)
+	}
+}
+
+// hasSequence is whether the sequence name was given.
+func (e *Engine) hasSequence(name string) bool {
+	return slices.ContainsFunc(e.title.seqs, func(q game.Sequence) bool { return q.Name == name })
 }
 
 // SetStart takes the adventure's title sequence (its manifest's Start; nil:

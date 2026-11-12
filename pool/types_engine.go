@@ -224,6 +224,7 @@ const (
 	PendStory          // the finale's pictures: StoryStep
 	PendLoot           // the treasure after a fight (State.Loot, gobox's loot screen): TakeLoot, LootDetect; LootLeave
 	PendDoor           // a locked door (View.Door): TryDoor
+	PendSequence       // a full-screen animation (State.Sequence): Continue
 )
 
 // Quest is a journal entry: Text is what its giver said, paragraph by paragraph.
