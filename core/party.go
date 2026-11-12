@@ -178,3 +178,29 @@ func (PowerOwed) value() {}
 func (Toughen) action() {}
 
 func (TakePower) action() {}
+
+// PortraitFact is Who's portrait (Portrait).
+type PortraitFact struct{}
+
+// Portrait: a dropped PNG (nil: none, the pool's Head and Body pictures
+// show; 0: not picked), Head and Body the ruleset's own picture numbers.
+type Portrait struct {
+	PNG        PNG
+	Head, Body int
+}
+
+// SetPortrait: Who's portrait is the dropped PNG (nil: back to Head and Body).
+type SetPortrait struct {
+	Who CharID
+	PNG PNG
+}
+
+func (PortraitFact) fact()  {}
+func (Portrait) value()     {}
+func (SetPortrait) action() {}
+
+// Modifiable asks whether Who may be modified: no experience of its own,
+// that is the adventure's starting experience (Yes).
+type Modifiable struct{ Who CharID }
+
+func (Modifiable) check() {}
