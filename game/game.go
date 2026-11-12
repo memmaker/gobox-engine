@@ -287,9 +287,11 @@ type TextRun struct {
 // Layer is a picture placed on the page: At in pixels of the page.
 type Layer struct {
 	Picture
-	At      image.Rectangle
-	Frames  []int // with FrameMs: the front cycles the picture through these frames (empty: static)
-	FrameMs int   // the milliseconds each of Frames shows (0: static)
+	At         image.Rectangle
+	Frames     []int // with FrameMs: the front cycles the picture through these frames (empty: static)
+	FrameMs    int   // the milliseconds each of Frames shows (0: static)
+	MinParty   int   // shown only with at least this many party members (0: always); the game filters it before it is passed on
+	MsgDelayed bool  // FrameMs is as at the default message delay: the game scales it by its own before it passes it on
 }
 
 // Picker is a grid picker up (the creation's heads and bodies, the icon's

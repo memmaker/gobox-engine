@@ -37,9 +37,7 @@ func (e *Engine) State() play.State {
 	cm := e.common(s)
 	switch {
 	case e.ext.ending && e.title.end != nil: // the end's pictures, as the title's steps
-		sc := *e.title.end
-		sc.Common = cm
-		return sc
+		return e.endScene(cm)
 	case s.Intro != nil:
 		sc := e.title.short
 		if e.FullIntro.Load() {

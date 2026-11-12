@@ -22,7 +22,7 @@ import (
 )
 
 // Format is the manifest's format version; it changes when Manifest does.
-const Format = 4
+const Format = 5
 
 // ManifestFile is the manifest's name in an adventure folder.
 const ManifestFile = "manifest.json"
@@ -241,7 +241,18 @@ type Sequence struct {
 	Remaster [2]string `json:",omitempty"` // two lines as game.Data.RemasterCredit: the remaster's own lines at the bottom of the credits page (game.Data.RemasterCredit)
 	Short    []int     `json:",omitempty"` // the steps (indexes) a short intro plays (COTAB: SSI logo only unless the config asks); nil: all
 	Full     bool      `json:",omitempty"` // the full intro by default (the original's config: POR's POOL.CFG); the host's "Full intro" option overrides it
+	After    []Effect  `json:",omitempty"` // what an end sequence leaves in the game once it is over (the ruleset does it)
+	Note     string    `json:",omitempty"` // an end sequence's closing note, shown once it is over
 }
+
+// Effect is what an end sequence does to the game when it is over; the ruleset
+// carries it out (core.HealParty, core.SetWord).
+type Effect int
+
+const (
+	EffectHealParty Effect = iota + 1 // every party member back to full hit points and well
+	EffectOpenHall                    // the training hall teaches (the party menu offers it)
+)
 
 // StepKind is what a sequence step shows.
 type StepKind int
@@ -250,19 +261,21 @@ const (
 	StepPicture StepKind = iota // Layers over the page
 	StepCredits                 // credits page Page
 	StepAnim                    // a full-screen animation (Anim)
+	StepText                    // Text alone, no picture
 )
 
 // SequenceStep is one step: what it shows, its tune and how long it holds.
 type SequenceStep struct {
 	Kind      StepKind
-	Layers    []Layer `json:",omitempty"` // StepPicture
-	Page      int     `json:",omitempty"` // StepCredits
-	Anim      string  `json:",omitempty"` // StepAnim: the animation's base name in the folder's art
-	Song      string  `json:",omitempty"` // the tune it starts (a song name or the game's song number)
-	HoldMs    int     `json:",omitempty"` // 0: until a key or click
-	Lightning Flash   `json:",omitempty"` // when the picture flashes (POR TITLE 2: FlashEGA)
-	Whole     bool    `json:",omitempty"` // the layers are one whole-screen page
-	Edition   Edition `json:",omitempty"` // the art it is shown with (SotSB's Amiga credits card: EditionAmiga)
+	Layers    []Layer  `json:",omitempty"` // StepPicture
+	Text      []string `json:",omitempty"` // StepText, StepPicture: the paragraphs said over the step (colours are gobox's)
+	Page      int      `json:",omitempty"` // StepCredits
+	Anim      string   `json:",omitempty"` // StepAnim: the animation's base name in the folder's art
+	Song      string   `json:",omitempty"` // the tune it starts (a song name or the game's song number)
+	HoldMs    int      `json:",omitempty"` // 0: until a key or click
+	Lightning Flash    `json:",omitempty"` // when the picture flashes (POR TITLE 2: FlashEGA)
+	Whole     bool     `json:",omitempty"` // the layers are one whole-screen page
+	Edition   Edition  `json:",omitempty"` // the art it is shown with (SotSB's Amiga credits card: EditionAmiga)
 }
 
 // Edition is which release's art a step belongs to.
@@ -337,10 +350,12 @@ const (
 // Layer is a picture placed in 40x25 cells, optionally cycling frames.
 type Layer struct {
 	Art
-	At      Cells
-	Frames  []int `json:",omitempty"`
-	FrameMs int   `json:",omitempty"`
-	Centred bool  `json:",omitempty"` // the picture at its own size, centred in At (SotSB's Amiga credits card)
+	At         Cells
+	Frames     []int `json:",omitempty"`
+	FrameMs    int   `json:",omitempty"`
+	Centred    bool  `json:",omitempty"` // the picture at its own size, centred in At (SotSB's Amiga credits card)
+	MinParty   int   `json:",omitempty"` // shown only with at least this many party members (POR's finale: one picture per member)
+	MsgDelayed bool  `json:",omitempty"` // FrameMs is as at the default message delay: the host's message delay slows or quickens it
 }
 
 // Cells is a box in 40x25 cells, Min and Max the corner cells (inclusive).

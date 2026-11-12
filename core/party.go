@@ -339,3 +339,9 @@ type GainExperience struct {
 }
 
 func (GainExperience) action() {}
+
+// HealParty puts every party member back at full hit points and well (the dead and stoned too):
+// what an ending leaves behind.
+type HealParty struct{}
+
+func (HealParty) action() {}

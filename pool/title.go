@@ -47,8 +47,10 @@ type title struct {
 	boxes       []image.Rectangle
 	backdrop    []game.Layer
 	remaster    [2]string
-	seqs        []game.Sequence // the full-screen animations State.Sequence names (SetEnd)
-	end         *play.Scene     // the end sequence of pictures (SetEnd)
+	seqs        []game.Sequence   // the full-screen animations State.Sequence names (SetEnd)
+	end         *play.Scene       // the end sequence of pictures (SetEnd)
+	after       []importer.Effect // what the end leaves in the game (SetEnd)
+	note        string            // the end's closing note (SetEnd)
 }
 
 // seqEnding is the name of the end sequence (game.Data.Sequences).
@@ -58,10 +60,11 @@ const seqEnding = "ending"
 // PROGRAM's ending and pod's save-and-quit play. A leading animation plays as a full-screen
 // sequence (seqEnding), picture steps as a scene of their own (title.end).
 func (e *Engine) SetEnd(s *importer.Sequence) error {
-	e.title.seqs, e.title.end = nil, nil
+	e.title.seqs, e.title.end, e.title.after, e.title.note = nil, nil, nil, ""
 	if s == nil {
 		return nil
 	}
+	e.title.after, e.title.note = s.After, s.Note
 	if q := play.LeadingAnim(*s, seqEnding); q != nil {
 		e.title.seqs = append(e.title.seqs, *q)
 		return nil

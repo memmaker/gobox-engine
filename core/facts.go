@@ -189,7 +189,7 @@ const (
 	WordPartyCount   // por game.PartyCount (read: the party's size)
 	WordSymbolSet    // por game.SymbolSet (write)
 	WordDebug        // por: the debug flag (Yes)
-	WordTraining     // por: the training hall is open (Yes; read only)
+	WordTraining     // por: the training hall is open (Yes; SetWord opens or closes it)
 	WordWho          // por DS:5D92: the member the rules act for
 	WordEffect       // por: the party's affect table, entry WordIs.Index (read only)
 	WordClockMinutes // por: the area clock as minutes of the day (read only)

@@ -106,6 +106,9 @@ func (r *rules) pageOf(ps play.State) *game.Page {
 				n = t.Intro.Pictures[0]
 			}
 			pg.Layers = append(pg.Layers, t.Steps[n].Layers...)
+			for _, line := range t.Steps[n].Text { // the step's words, over its picture
+				pg.Pane = append(pg.Pane, r.run(line))
+			}
 		}
 		p.Pane, p.View, p.Layers = append(p.Pane, pg.Pane...), pg.View, append(p.Layers, pg.Layers...)
 	}

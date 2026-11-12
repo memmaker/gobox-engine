@@ -48,13 +48,13 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 		}
 		switch st.Kind {
 		case importer.StepPicture:
-			ts := TitleStep{Song: st.Song}
+			ts := TitleStep{Song: st.Song, Text: st.Text}
 			for _, l := range st.Layers {
 				p, err := pic(l.Art)
 				if err != nil {
 					return Scene{}, fmt.Errorf("step %d: %w", n, err)
 				}
-				ts.Layers = append(ts.Layers, game.Layer{Picture: p, At: placed(l, p.W, p.H), Frames: l.Frames, FrameMs: l.FrameMs})
+				ts.Layers = append(ts.Layers, game.Layer{Picture: p, At: placed(l, p.W, p.H), Frames: l.Frames, FrameMs: l.FrameMs, MinParty: l.MinParty, MsgDelayed: l.MsgDelayed})
 			}
 			steps[n] = ts
 			in.Pictures = append(in.Pictures, n)
@@ -62,6 +62,12 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 			if st.Whole {
 				whole++
 			}
+		case importer.StepText:
+			if len(st.Layers) != 0 || len(st.Text) == 0 {
+				return Scene{}, fmt.Errorf("step %d: a text step has text and no layers: %w", n, ErrStepKind)
+			}
+			steps[n] = TitleStep{Song: st.Song, Text: st.Text}
+			in.Pictures = append(in.Pictures, n)
 		case importer.StepCredits:
 			in.Pictures = append(in.Pictures, -(st.Page + 1))
 		default:

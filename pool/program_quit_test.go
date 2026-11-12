@@ -1,9 +1,11 @@
 package pool
 
 import (
+	"gobox/core"
 	"gobox/ecl/script"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/importer"
 	"slices"
 	"testing"
 )
@@ -76,5 +78,57 @@ func TestProgramEnding(t *testing.T) {
 	o, err := e.Do(play.Continue{})
 	if err != nil || e.ext.ending || e.waiting(PendSequence) || slices.Contains(o.Events, play.Event(play.Ended{})) {
 		t.Fatalf("Continue: %v, ending %v, events %v: want the script on", err, e.ext.ending, o.Events)
+	}
+}
+
+// TestEndScene: the end's pictures show only as many party pictures as the party has members,
+// and an animation's frames last as the message delay says.
+func TestEndScene(t *testing.T) {
+	e := quickStarted(t)
+	layer := func(min int, ms int) game.Layer {
+		return game.Layer{MinParty: min, FrameMs: ms, MsgDelayed: ms != 0}
+	}
+	e.title.end = &play.Scene{Kind: play.SceneTitle, Steps: map[int]play.TitleStep{1: {Text: []string{"x"}, Layers: []game.Layer{layer(0, 0), layer(2, 0), layer(0, 160)}}}}
+	e.msgDelay = 5 // (5+3)/(1+3) = twice the default
+	for _, members := range []int{1, 3} {
+		e.setWorldWord(core.WordPartyCount, members)
+		st := e.endScene(play.Common{}).Steps[1]
+		want := 2
+		if members >= 2 {
+			want = 3
+		}
+		if len(st.Layers) != want || !slices.Equal(st.Text, []string{"x"}) {
+			t.Fatalf("%d members: %d layers, want %d", members, len(st.Layers), want)
+		}
+		if l := st.Layers[len(st.Layers)-1]; l.FrameMs != 320 || l.MinParty != 0 || l.MsgDelayed {
+			t.Fatalf("animation layer %+v: want 320 ms, filters cleared", l)
+		}
+	}
+	if e.title.end.Steps[1].Layers[2].FrameMs != 160 {
+		t.Fatal("the end's own layers were changed")
+	}
+}
+
+// TestEndEffects: an End's After goes through the ruleset when it is over: the party is healed
+// and the hall opens; the closing note is said.
+func TestEndEffects(t *testing.T) {
+	e := quickStarted(t)
+	id := e.partyIDs()[0]
+	e.ruleset().Resolve(nil, core.SetWord{Word: core.WordTraining, Value: 0}, nil)
+	before := e.ruleset().Sheet(id)
+	if before.HP == 0 {
+		t.Fatal("no member to heal")
+	}
+	e.title.after = []importer.Effect{importer.EffectHealParty, importer.EffectOpenHall}
+	e.title.note = "You've won."
+	e.endEffects()
+	if a := e.ruleset().Check(core.WordIs{Word: core.WordTraining}, nil); !a.Yes || a.Value == 0 {
+		t.Fatalf("training word %+v: want open", a)
+	}
+	if got := e.ruleset().Sheet(id); got.HP != got.MaxHP {
+		t.Fatalf("HP %d of %d after the ending", got.HP, got.MaxHP)
+	}
+	if e.ext.note == "" {
+		t.Fatal("no closing note")
 	}
 }

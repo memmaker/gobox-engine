@@ -68,3 +68,26 @@ func TestFlashEGAOnly(t *testing.T) {
 		t.Error("FlashEGA must flash in EGA only")
 	}
 }
+
+// TestTitleSceneText: a text step is a step of its own with no picture, and a picture
+// step carries the words said over it; the layers keep what the game filters them by.
+func TestTitleSceneText(t *testing.T) {
+	seq := importer.Sequence{Steps: []importer.SequenceStep{
+		{Kind: importer.StepText, Text: []string{"one"}},
+		{Kind: importer.StepPicture, Text: []string{"two"}, Layers: []importer.Layer{{Art: importer.Art{File: "F", Block: 1}, MinParty: 2, MsgDelayed: true}}},
+	}}
+	pic := func(a importer.Art) (game.Picture, error) { return game.Picture{File: a.File, Block: a.Block}, nil }
+	sc, err := TitleScene(seq, true, importer.GraphicsEGA, Common{}, pic)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(sc.Intro.Pictures, []int{1, 2}) || !slices.Equal(sc.Steps[1].Text, []string{"one"}) || len(sc.Steps[1].Layers) != 0 {
+		t.Fatalf("text step: %+v", sc)
+	}
+	if l := sc.Steps[2].Layers[0]; !slices.Equal(sc.Steps[2].Text, []string{"two"}) || l.MinParty != 2 || !l.MsgDelayed {
+		t.Fatalf("picture step: %+v", sc.Steps[2])
+	}
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepText}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrStepKind) {
+		t.Errorf("empty text step: %v", err)
+	}
+}
