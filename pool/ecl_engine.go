@@ -117,8 +117,8 @@ func (e *Engine) initVM() {
 	}
 	e.vm.SetVersion(e.eclVersion)
 	e.vm.Script = &script.Script{}
-	for c, op := range eclOps {
-		if b := e.vm.Raw[c]; e.eclVersion.Cmds[b].Known && e.eclVersion.Cmds[b].Op == c {
+	for b, c := range e.eclVersion.Cmds {
+		if op := eclOps[c.Op]; c.Known && op != nil {
 			e.vm.Ops[b] = func(*ecl.VM, ecl.Host) { op(e) }
 		}
 	}

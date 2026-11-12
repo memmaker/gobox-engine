@@ -6,6 +6,7 @@ import (
 	"gobox/core/goldbox"
 	"gobox/ecl/script"
 	"gobox/ega"
+	"gobox/game/play"
 )
 
 // opTreasure = ovr04:19B0 (7 money amounts, items): items < 0x80 is an
@@ -256,12 +257,7 @@ func (e *Engine) opCall() {
 	e.vm.ReadArgs(1)
 	switch e.eclVersion.Calls[uint16(e.vm.ArgN[1])] { // a routine number, not memory
 	case script.CallRedrawView:
-		e.es.cell = e.MapCell(e.posX, e.posY)
-		s := &e.es
-		if e.run.scriptLoad != 0 && (s.picShown != 0 || s.spriteLoaded != 0 || s.skyChanged != 0 || s.posChanged != 0 || s.portraitChanged != 0) {
-			e.Redraw()
-			s.portraitChanged, s.skyChanged, s.posChanged, s.picShown, s.spriteLoaded = 0, 0, 0, 0, 0
-		}
+		e.redrawChanged()
 	case script.CallDuelWin:
 		e.DuelSetup(1) // ovr08:1A6F
 	case script.CallDuelLose:
@@ -282,6 +278,38 @@ func (e *Engine) opCall() {
 	}
 	// ponytail: CallAnimate (cotab/sotsb a pause, pod a picture frame) has no
 	// handler until a game on pool CALLs it (Felix? which behaviour).
+}
+
+// redrawChanged is CALL's RedrawView: the cell under the party again, and
+// the view when the script changed it.
+func (e *Engine) redrawChanged() {
+	e.es.cell = e.MapCell(e.posX, e.posY)
+	s := &e.es
+	if e.run.scriptLoad != 0 && (s.picShown != 0 || s.spriteLoaded != 0 || s.skyChanged != 0 || s.posChanged != 0 || s.portraitChanged != 0) {
+		e.Redraw()
+		s.portraitChanged, s.skyChanged, s.posChanged, s.picShown, s.spriteLoaded = 0, 0, 0, 0, 0
+	}
+}
+
+// opNoOp: a command the dialect's engine reads and does nothing for.
+func (e *Engine) opNoOp() { e.vm.PC++ }
+
+// opPressKey = pod O040:1641: wait for a key.
+func (e *Engine) opPressKey() {
+	e.vm.PC++
+	e.askContinue(askDone{})
+}
+
+// opYesNo = pod O040:1677: equal when the answer is Yes.
+func (e *Engine) opYesNo() {
+	e.vm.PC++
+	e.askYesNo(&play.Question{YesNo: true, Default: 1, Replies: []string{"No", "Yes"}, NoEsc: true}, false, askDone{kind: dYesNo})
+}
+
+// opClearExit = pod O040:24AE: the view back, then Exit.
+func (e *Engine) opClearExit() {
+	e.redrawChanged()
+	e.opExit()
 }
 
 // DAMAGE's first operand (ruling 3, cotab's): a count of random members,

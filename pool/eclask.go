@@ -66,6 +66,7 @@ const (
 	dParlay                        // Parlay: r[choice] to var dst
 	dWho                           // Who: the member is the selected one (who: where it started)
 	dPauseKey                      // a pause, then a key
+	dYesNo                         // YesNo: equal when the answer is Yes
 	dTavernWager                   // the tavern: the key after "YOU HAVE", then the wager
 	dTavernSpun                    // the tavern: the wager is taken, the spin told
 	dTavernAsk                     // the tavern: the spin had its key
@@ -422,6 +423,8 @@ func (e *Engine) complete(d askDone, v ansv) {
 			who = d.who
 		}
 		e.selectChar(who)
+	case dYesNo:
+		e.vm.Flags = [6]bool{v.n == 1, v.n != 1}
 	case dPauseKey: // was PromptRow24's any key
 		e.askContinue(askDone{})
 	case dTavernWager:
