@@ -202,7 +202,7 @@ func (e *Engine) placeState(s *facts) {
 			if !ok {
 				break
 			}
-			sv := game.Service{Name: c.Name, Price: int(c.Price), Not: map[int]string{}}
+			sv := game.Service{Name: c.Name, Price: int(c.Price), Not: map[int]string{}, Declines: c.Declines}
 			for k, id := range e.partyIDs() {
 				if e.fact(id, core.TempleCureFact{Cure: i}).(core.TempleCure).Needed {
 					sv.Needs = append(sv.Needs, k)

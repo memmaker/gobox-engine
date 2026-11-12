@@ -2,6 +2,8 @@ package pool
 
 import (
 	"image"
+	"slices"
+	"strings"
 	"testing"
 
 	"gobox/game/play"
@@ -155,5 +157,34 @@ func TestShopTemplePending(t *testing.T) {
 	}
 	if err := e.Leave(); err != nil || !left() || trading(play.TradeTemple) {
 		t.Fatalf("Leave the temple: %v, script on %v", err, left())
+	}
+}
+
+// TestTempleWords: a game's temple data reaches the screen and the cure: the service the temple
+// declines to cast anyway (game.Service.Declines) and what it says of a member it helped (Done).
+func TestTempleWords(t *testing.T) {
+	e := testEngine(t)
+	seed := uint32(7)
+	e.FixedSeed = &seed
+	e.Explore = true
+	e.Init()
+	e.Start(e.Play)
+	tab := *e.state().T()
+	tab.Town.Temple = slices.Clone(tab.Town.Temple)
+	tab.Town.Temple[2].Declines, tab.Town.Temple[2].Done = true, "is healed"
+	e.state().Tables = &tab
+	e.push(cont{kind: kNop})
+	e.Temple()
+	e.Advance()
+	tr, ok := e.State().(play.Trading)
+	if !ok || len(tr.Services) < 3 || !tr.Services[2].Declines || tr.Services[1].Declines {
+		t.Fatalf("services %+v (%T)", tr.Services, e.State())
+	}
+	e.state().Purse.Gold = 10000
+	if err := e.Cure(0, 2); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasSuffix(e.ext.note, "is healed") {
+		t.Errorf("note %q: want the service's own words", e.ext.note)
 	}
 }

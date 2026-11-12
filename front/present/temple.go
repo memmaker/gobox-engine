@@ -33,6 +33,9 @@ func (p *Presenter) templeItems(v front.View) (string, []ui.MenuRow) {
 		}
 		return withGold(name+", how can we help you?", t.Gold), append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: c.back(campMain)})
 	case templeNot:
+		if cure.Declines { // the temple only says why
+			return name + " " + cure.Not, []ui.MenuRow{{Text: "OK", Key: 'O', Do: c.back(templeHeal)}}
+		}
 		return name + " " + cure.Not + " Cast cure anyway?", []ui.MenuRow{{Text: "Yes", Key: 'Y', Do: c.to(templePay, 1)}, {Text: "No", Key: 'N', Do: c.back(templeHeal)}}
 	case templePay:
 		return withGold(fmt.Sprintf("%s will only cost %s. Pay for cure?", cure.Name, gold(cure.Price)), t.Gold), []ui.MenuRow{

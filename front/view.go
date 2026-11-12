@@ -625,10 +625,11 @@ type Money3 struct{ Take, Pool, Share bool }
 
 // Cure is a temple service.
 type Cure struct {
-	Name   string
-	Price  int    // gold
-	Needed bool   // false: Not says why, and the player is asked to pay anyway
-	Not    string // "is not blind."
+	Name     string
+	Price    int    // gold
+	Needed   bool   // false: Not says why, and the player is asked to pay anyway
+	Not      string // "is not blind."
+	Declines bool   // the temple says Not and does not ask to cast anyway
 }
 
 // Appraise is the gems and jewelry to appraise (Appraise, false a gem,

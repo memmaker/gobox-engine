@@ -24,7 +24,11 @@ func (e *Engine) Cure(n, x int) error {
 		}
 	}
 	e.emit(core.Sounded{Cue: core.SoundCue("recover")})
-	e.say(e.ruleset().Sheet(cID).Name + " is cured.")
+	done := sv.Done
+	if done == "" {
+		done = "is cured."
+	}
+	e.say(e.ruleset().Sheet(cID).Name + " " + done)
 	e.setWorldWord(core.WordWho, e.sel)
 	e.do(core.GiveTempleCure{Who: cID, Cure: int32(x)})
 	return nil

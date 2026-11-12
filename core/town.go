@@ -48,10 +48,12 @@ type TrainCard struct {
 // TempleCure is a service of the temple: its name and price in gold (0: free), whether
 // Who needs it, and what the temple says of one it would not help (Not; "": it always helps).
 type TempleCure struct {
-	Name   string
-	Needed bool
-	Price  int32
-	Not    string
+	Name     string
+	Needed   bool
+	Price    int32
+	Not      string
+	Done     string // what the temple says of a member it helped ("": "is cured.")
+	Declines bool   // it only says Not of one it would not help, and does not offer to cast anyway
 }
 
 func (TrainCard) value() {}
