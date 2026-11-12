@@ -146,6 +146,9 @@ func (e *Engine) LoadIconPic(name string, block, slot int) {
 		}
 	default:
 		n := e.set.File(name)
+		if up == "CPIC" { // the monsters' icons: sotsb's and pod's are always CPIC1
+			n = e.monsterSet().File(name)
+		}
 		ic[0], ic[1] = load(n, block), load(n, block+0x80)
 		e.recolour(ic[0], &IconPaletteCE2)
 		e.recolour(ic[1], &IconPaletteCE2)

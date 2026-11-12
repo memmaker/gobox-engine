@@ -14,7 +14,12 @@ var devSeed = uint32(2) // Felix's R3 rulings 1-2 (3d6+1 abilities, best-of-two 
 // devFirstTurn starts -dev name and plays to the party's first turn.
 func devFirstTurn(t *testing.T, name string, deskew bool) *Engine {
 	t.Helper()
-	e := testEngine(t)
+	return devFirstTurnOn(t, testEngine(t), name, deskew)
+}
+
+// devFirstTurnOn is devFirstTurn on the engine e (any game's: advEngine).
+func devFirstTurnOn(t *testing.T, e *Engine, name string, deskew bool) *Engine {
+	t.Helper()
 	e.Explore = true
 	e.Deskew.Store(deskew)
 	e.DevAction = e.DevScene(name)
@@ -281,8 +286,10 @@ func TestDevWinFight(t *testing.T) {
 // TestPartyWipeEnds: a lost fight ("The monsters rejoice", ovr06:1527 with
 // combatResult's quit) answered on reaches the game's end, the party menu,
 // not explore with a dead party (BUG-CLASSES 53).
-func TestPartyWipeEnds(t *testing.T) {
-	e := devFirstTurn(t, "losefight", false)
+func TestPartyWipeEnds(t *testing.T) { testPartyWipeEnds(t, testEngine) }
+
+func testPartyWipeEnds(t *testing.T, mk func(*testing.T) *Engine) {
+	e := devFirstTurnOn(t, mk(t), "losefight", false)
 	for range 300 {
 		s := e.State()
 		switch q := commonOf(s).Ask; {
@@ -313,8 +320,10 @@ func isAssembling(s play.State) bool { _, ok := s.(play.Assembling); return ok }
 // falls) carries the body it leaves (ovr32:0E11's ground 0x1F, a party
 // member's only: a monster vanishes) on Fell's Body, since no field
 // follows to show it (BUG-CLASSES 55).
-func TestLastBlowBody(t *testing.T) {
-	e := devFirstTurn(t, "losefight", false)
+func TestLastBlowBody(t *testing.T) { testLastBlowBody(t, testEngine) }
+
+func testLastBlowBody(t *testing.T, mk func(*testing.T) *Engine) {
+	e := devFirstTurnOn(t, mk(t), "losefight", false)
 	downs := 0
 	for range 300 {
 		var out play.Outcome
@@ -342,9 +351,11 @@ func TestLastBlowBody(t *testing.T) {
 }
 
 // devLoot starts -dev loot and plays on to the treasure.
-func devLoot(t *testing.T) *Engine {
+func devLoot(t *testing.T) *Engine { t.Helper(); return devLootOn(t, testEngine(t)) }
+
+// devLootOn is devLoot on the engine e (any game's: advEngine).
+func devLootOn(t *testing.T, e *Engine) *Engine {
 	t.Helper()
-	e := testEngine(t)
 	e.Explore = true
 	e.DevAction = e.DevScene("loot")
 	seed := devSeed
@@ -366,8 +377,10 @@ func devLoot(t *testing.T) *Engine {
 // (ovr06:1093: treasure left asks first), not "not now" while the screen's
 // animation paces it (BUG-CLASSES 56). The scene's end gives the parent
 // state back: exploring on the same square (BUG-CLASSES 60).
-func TestLootEscLeaves(t *testing.T) {
-	e := devLoot(t)
+func TestLootEscLeaves(t *testing.T) { testLootEscLeaves(t, testEngine) }
+
+func testLootEscLeaves(t *testing.T, mk func(*testing.T) *Engine) {
+	e := devLootOn(t, mk(t))
 	w := commonOf(e.State()).Where
 	if _, err := e.Do(play.Leave{}); err != nil {
 		t.Fatal("Leave on the treasure:", err)

@@ -227,7 +227,7 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (core.CharID, bool) {
 // LoadMonster = ovr18:0EC4 (index): MON<n>CHA/SPC/ITM.DAX block index as a
 // new character.
 func (e *Engine) LoadMonster(index int) (core.CharID, bool) {
-	if _, ok := e.gdata().monster(e.set.File("MON"), index); !ok {
+	if _, ok := e.gdata().monster(e.monsterSet().File("MON"), index); !ok {
 		e.PromptRow24(ega.White, "Unable to load monster")
 		e.Exit()
 		return core.NoChar, false

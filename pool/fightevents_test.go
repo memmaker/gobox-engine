@@ -12,8 +12,10 @@ import (
 // TestFightEventsOut (BUG-CLASSES 20): a headless fight (the computer for
 // both sides) hands out a play event for each kind of the rules' facts, and
 // a unit's damage shows as lower HP in the next State.
-func TestFightEventsOut(t *testing.T) {
-	e := testEngine(t)
+func TestFightEventsOut(t *testing.T) { testFightEventsOut(t, testEngine) }
+
+func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
+	e := mk(t)
 	e.Explore = true
 	scene := e.DevScene("autocombat")
 	e.DevAction = func() {

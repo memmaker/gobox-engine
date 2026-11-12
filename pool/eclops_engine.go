@@ -176,7 +176,7 @@ func (e *Engine) addMonsters(idx, count, icon int) {
 	}
 	tmplID := e.partyIDs()[e.partySize()-1]
 	e.LoadIconPic("CPIC", icon, int(e.es.cloneIcon)) // ovr33:01C8
-	e.meetMonster(e.ruleset().Sheet(tmplID).Name, e.set.File("CPIC"), icon)
+	e.meetMonster(e.ruleset().Sheet(tmplID).Name, e.monsterSet().File("CPIC"), icon)
 	// The template itself is the first monster (ovr04:055B); each clone is
 	// a copy of it made by Spawn (its Order too).
 	e.do(core.SetOrder{Who: tmplID, Order: int32(e.es.cloneIcon)})

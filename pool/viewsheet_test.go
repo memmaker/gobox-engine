@@ -10,14 +10,16 @@ import (
 // TestViewSheet (BUG-CLASSES 36): mid-fight and in a shop each member's
 // Sheet is the game's own page in full (Sex, Damage, saves ...), the same
 // page the game's sheet shows; opening and closing it is gobox's.
-func TestViewSheet(t *testing.T) {
+func TestViewSheet(t *testing.T) { testViewSheet(t, testEngine) }
+
+func testViewSheet(t *testing.T, mk func(*testing.T) *Engine) {
 	full := func(what string, p *game.SheetPage) {
 		t.Helper()
 		if p == nil || p.Name == "" || p.Sex == "" || p.Race == "" || p.Class == "" || p.Damage == "" || p.Saves == [5]int{} || p.MaxHP == 0 {
 			t.Fatalf("%s: sheet %+v", what, p)
 		}
 	}
-	e := partyTurnScene(t)
+	e := partyTurnSceneOn(t, mk(t))
 	m := e.state().PartyIndex(e.member(e.cs.actor))
 	fight := commonOf(e.State()).Party[m].Page
 	full("fight", fight)
@@ -25,13 +27,7 @@ func TestViewSheet(t *testing.T) {
 		t.Errorf("fight sheet of %s, not the active %s", fight.Name, e.member(e.cs.actor).Name())
 	}
 
-	viewSheetShop(t, devPlay(t, "shop"))
-}
-
-// TestViewSheetCOTAB: the shop half on cotab's imported folder (its fight half waits for
-// cotab's battle view: pool's combat board draws POR's SQRPACI tiles, which cotab lacks).
-func TestViewSheetCOTAB(t *testing.T) {
-	viewSheetShop(t, devPlayOn(t, advEngine(t, advEnvCOTAB), "shop"))
+	viewSheetShop(t, devPlayOn(t, mk(t), "shop"))
 }
 
 // viewSheetShop is TestViewSheet's shop half on e, in the shop dev scene.

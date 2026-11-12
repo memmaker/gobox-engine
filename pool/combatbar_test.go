@@ -250,12 +250,14 @@ func TestBandage(t *testing.T) {
 // TestTurnWeapon (BUG-CLASSES 39): a member with a weapon readied
 // publishes it on its turn (Field.Weapon.Name, the item's list name), as
 // the original's panel shows it.
-func TestTurnWeapon(t *testing.T) {
-	e := partyTurnScene(t)
+func TestTurnWeapon(t *testing.T) { testTurnWeapon(t, testEngine) }
+
+func testTurnWeapon(t *testing.T, mk func(*testing.T) *Engine) {
+	e := partyTurnSceneOn(t, mk(t))
 	c := e.member(e.cs.actor)
 	w := c.Slots[rules1e.SlotWeapon]
 	if w == nil { // readied before the turn: its options built anew
-		w = e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemLongSword))
+		w = e.state().AddItemCopy(c, e.state().RandomItem(weaponFor(t, e, c, rules1e.ItemLongSword, false)))
 		e.state().ReadyItem(w)
 		e.state().ApplyItems(c)
 		e.turnChoices(e.charID(c))
@@ -314,14 +316,16 @@ func TestBarConditions(t *testing.T) {
 // of its own weapon is offered and taken, a second one unreadies it (the
 // fight's item menu toggles), and Field.Weapon follows; another member's
 // items are not its to ready.
-func TestReadyInFight(t *testing.T) {
-	e := partyTurnScene(t)
+func TestReadyInFight(t *testing.T) { testReadyInFight(t, testEngine) }
+
+func testReadyInFight(t *testing.T, mk func(*testing.T) *Engine) {
+	e := partyTurnSceneOn(t, mk(t))
 	c := e.member(e.cs.actor)
 	m := e.state().PartyIndex(c)
 	if m < 0 {
 		t.Fatal("the actor is not in the party")
 	}
-	w := e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemLongSword))
+	w := e.state().AddItemCopy(c, e.state().RandomItem(weaponFor(t, e, c, rules1e.ItemLongSword, false)))
 	if h := c.Slots[rules1e.SlotWeapon]; h != nil {
 		e.state().ReadyItem(h)
 	}
@@ -436,8 +440,10 @@ func TestMoveStep(t *testing.T) {
 // TestAllyBump (BUG-CLASSES 41): an Attack at an ally's square asks the
 // original's "Attack Ally?" (a Question, not a silent answer); No does
 // nothing, Yes attacks and turns the party on its friend.
-func TestAllyBump(t *testing.T) {
-	e := partyTurnScene(t)
+func TestAllyBump(t *testing.T) { testAllyBump(t, testEngine) }
+
+func testAllyBump(t *testing.T, mk func(*testing.T) *Engine) {
+	e := partyTurnSceneOn(t, mk(t))
 	a := e.member(e.cs.actor)
 	var to image.Point
 	found := false
@@ -470,8 +476,10 @@ func TestAllyBump(t *testing.T) {
 
 // TestDropOnce (BUG-CLASSES 47): Drop drops the item at once; gobox asked
 // ovr20's "Drop It?" already, so there is no second question.
-func TestDropOnce(t *testing.T) {
-	e := partyTurnScene(t)
+func TestDropOnce(t *testing.T) { testDropOnce(t, testEngine) }
+
+func testDropOnce(t *testing.T, mk func(*testing.T) *Engine) {
+	e := partyTurnSceneOn(t, mk(t))
 	c := e.member(e.cs.actor)
 	m := e.state().PartyIndex(c)
 	if m < 0 {

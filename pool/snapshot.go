@@ -105,10 +105,10 @@ func (e *Engine) head(p goldbox.PortraitPic) Picture {
 // 0x116 top), taken once the symbols are loaded, as the border's pieces by
 // place (ui.TopLeft ..): View pixels in the EGA's own colours.
 func (e *Engine) borderTiles() [8]Picture {
-	if e.snap.tiles[0].Pix == nil && e.sym[4] != nil {
+	if cells := e.artNames().BorderCells; e.snap.tiles[0].Pix == nil && e.sym[4] != nil && len(cells) == len(e.snap.tiles) {
 		im := e.sym[4]
-		for i := range e.snap.tiles {
-			e.snap.tiles[i] = Picture{Pix: slices.Clone(im.Frame(0x114 + i - symFix[4])), PixW: im.Width * 8}
+		for i, c := range cells {
+			e.snap.tiles[i] = Picture{Pix: slices.Clone(im.Frame(c - symFix[4])), PixW: im.Width * 8}
 		}
 	}
 	c, side, top := e.snap.tiles[0], e.snap.tiles[1], e.snap.tiles[2]

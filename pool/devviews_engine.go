@@ -61,7 +61,7 @@ func (e *Engine) DevScene(name string) func() {
 			// Block 1 exists only in MON2CHA; take the first monster of
 			// the current set (DS:5376) so any save can start a fight.
 			idx := 1
-			if id, ok := e.gdata().firstMonster(e.set.File("MON")); ok {
+			if id, ok := e.gdata().firstMonster(e.monsterSet().File("MON")); ok {
 				idx = id
 			}
 			count := 3
@@ -105,7 +105,7 @@ func (e *Engine) DevScene(name string) func() {
 	case "bestiary": // camp with a few kinds met for its Bestiary (CPIC blocks 1..5)
 		return func() {
 			for i, n := range []string{"KOBOLD", "ORC", "TROLL", "GOBLIN GUARD", "WYVERN"} {
-				e.meetMonster(n, e.set.File("CPIC"), i+1)
+				e.meetMonster(n, e.monsterSet().File("CPIC"), i+1)
 			}
 			e.CampMenu()
 		}

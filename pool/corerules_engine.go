@@ -42,6 +42,7 @@ type GameTables struct {
 	PurseWhos                  []PurseWho            // the Who commands that spend the party's one purse (POR: the inn, the tavern)
 	Symbols                    []SymbolLoad          // the 8x8 symbol sets Init loads; nil: POR's, sotsb's and cotab's (PorSymbols)
 	Art                        *ArtNames             // the pictures the Engine loads by role; nil: POR's (PorArt)
+	MonsterSet                 goldbox.Set           // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
 }
 
 // ArtNames are the picture files the Engine loads by role, each game's own
@@ -56,6 +57,7 @@ type ArtNames struct {
 	AreaIcon      string     // the area map's party icon sheet (ICON)
 	CombatSprites string     // the combat sprites (COMSPR)
 	Title         string     // the title pictures (TITLE)
+	BorderCells   []int      // DrawBorder style 0's corner, side and top symbols (POR: 0x114..0x116); none: no border pictures
 }
 
 // TileLoad is a block of File laid into the tile set from tile First: its
@@ -85,6 +87,7 @@ var PorArt = ArtNames{
 	AreaIcon:      "ICON",
 	CombatSprites: "COMSPR",
 	Title:         "TITLE",
+	BorderCells:   []int{0x114, 0x115, 0x116},
 }
 
 // Files are every file a names (TestArtNamesImported).
@@ -99,6 +102,14 @@ func (a ArtNames) Files() []string {
 		}
 	}
 	return out
+}
+
+// monsterSet is the set the monsters' MON and CPIC archives are read from.
+func (e *Engine) monsterSet() goldbox.Set {
+	if s := e.game().MonsterSet; s != 0 {
+		return s
+	}
+	return e.set
 }
 
 // artNames is the game's ArtNames.
@@ -165,7 +176,7 @@ func (e *Engine) ruleset() core.Rules {
 			build = bareRuleset
 		}
 		monster := func(id core.MonsterID) (char.Sheet, []char.AffectRecord, []char.Item, bool) {
-			m, ok := e.gdata().monster(e.set.File("MON"), int(id))
+			m, ok := e.gdata().monster(e.monsterSet().File("MON"), int(id))
 			return m.Record, m.Affects, m.Items, ok
 		}
 		treasure := func(n int) []char.Item {

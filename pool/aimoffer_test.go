@@ -12,8 +12,10 @@ import (
 // TestAimOffersAccepted (BUG-CLASSES 17): in a real fight, every foe the aim
 // offers (its Targets, what Tab cycles and gobox shows) is a square the aim
 // accepts: pointing at it gives no refusal.
-func TestAimOffersAccepted(t *testing.T) {
-	e := testEngine(t)
+func TestAimOffersAccepted(t *testing.T) { testAimOffersAccepted(t, testEngine) }
+
+func testAimOffersAccepted(t *testing.T, mk func(*testing.T) *Engine) {
+	e := mk(t)
 	e.Explore = true
 	e.DevAction = e.DevScene("combat")
 	seed := uint32(1)
@@ -55,7 +57,13 @@ func TestAimOffersAccepted(t *testing.T) {
 		t.Fatal("Attack opened no aim")
 	}
 	e.aimApply(TurnAct{Verb: VerbClose})
-	j := e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemJavelin)) // readied in hand, Attack throws it: an aim, nobody in range needed
+	for _, h := range []int{rules1e.SlotWeapon, rules1e.SlotShield} { // empty hands (a game's starting gear may fill them)
+		if it := c.Slots[h]; it != nil {
+			e.state().ReadyItem(it)
+		}
+	}
+	e.state().ApplyItems(c)
+	j := e.state().AddItemCopy(c, e.state().RandomItem(weaponFor(t, e, c, rules1e.ItemJavelin, true))) // readied in hand, Attack throws it: an aim, nobody in range needed
 	e.state().ReadyItem(j)
 	e.state().ApplyItems(c)
 	if c.Slots[rules1e.SlotWeapon] != j {
