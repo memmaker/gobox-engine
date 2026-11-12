@@ -1,11 +1,7 @@
 por-go por/presentdata -> gobox/walls
 cotab-go cotab/rules -> gobox/front/classic
-sotsb-go sotsb/rules -> gobox/front/classic
-sotsb-go sotsb/rules -> gobox/ui/fonts
 pod-go pod/rules -> gobox/walls
 por-go por/playpor -> gobox/app
-por-go por/playpor -> gobox/front/classic
-por-go por/playpor -> gobox/front/present
 cotab-go cotab/playcotab -> gobox/app
 cotab-go cotab/playcotab -> gobox/front/classic
 cotab-go cotab/playcotab -> gobox/front/present
@@ -21,5 +17,3 @@ buckrogers2-go buckrogers2/playbr2 -> gobox/app
 buckrogers2-go buckrogers2/playbr2 -> gobox/front/classic
 buckrogers2-go buckrogers2/playbr2 -> gobox/front/present
 sotsb-go sotsb/playsotsb -> gobox/app
-sotsb-go sotsb/playsotsb -> gobox/front/classic
-sotsb-go sotsb/playsotsb -> gobox/front/present

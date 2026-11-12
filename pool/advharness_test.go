@@ -98,3 +98,19 @@ func TestAdvSmokePOR(t *testing.T) {
 	}
 	quitEnds(t, e)
 }
+
+// TestAdvBeginSOTSB: Quick Start and Begin take sotsb's party into the
+// adventure (the first wait after the party menu is not the party menu and
+// no error), as sotsb's own journey tests started (rules/journey_test.go).
+func TestAdvBeginSOTSB(t *testing.T) {
+	e := advStarted(t, advEnvSOTSB)
+	for _, a := range []play.Action{play.QuickStart{}, play.Begin{}} {
+		if _, err := e.Do(a); err != nil {
+			t.Fatalf("%T: %v", a, err)
+		}
+	}
+	if _, ok := e.State().(play.Assembling); ok {
+		t.Fatalf("after Begin still at the party menu")
+	}
+	t.Logf("first wait after Begin: %T", e.State())
+}

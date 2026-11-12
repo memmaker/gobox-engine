@@ -18,7 +18,7 @@ type Folder struct {
 }
 
 // Read reads the adventure folder dir's manifest. It is valid when it has
-// this Format, a ruleset and the folder's own name as its ID; nothing else
+// this Format, its registered game's Version (when registered), a ruleset and the folder's own name as its ID; nothing else
 // in the folder (and no original) is looked at.
 func Read(dir string) (Folder, error) {
 	b, err := os.ReadFile(filepath.Join(dir, ManifestFile))
@@ -34,6 +34,8 @@ func Read(dir string) (Folder, error) {
 		return Folder{}, fmt.Errorf("%s: manifest format %d, want %d (import it again)", dir, m.Format, Format)
 	case m.ID != filepath.Base(dir):
 		return Folder{}, fmt.Errorf("%s: manifest names %q", dir, m.ID)
+	case games[m.ID].Version != m.Version && games[m.ID].ID != "":
+		return Folder{}, fmt.Errorf("%s: written by %s's import version %d, want %d (import it again)", dir, m.ID, m.Version, games[m.ID].Version)
 	case m.Ruleset == "":
 		return Folder{}, fmt.Errorf("%s: manifest names no ruleset", dir)
 	}
