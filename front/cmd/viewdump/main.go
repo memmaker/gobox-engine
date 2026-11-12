@@ -12,12 +12,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"gobox/asset"
 	"gobox/dax"
 	"gobox/ega"
 	"image"
 	"image/color"
 	"image/draw"
-	"image/png"
 	"log"
 	"os"
 	"path/filepath"
@@ -178,10 +178,5 @@ func writeWall(path string, def []byte, sets [4]*dax.Image, scale int, ground bo
 			}
 		}
 	}
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return png.Encode(f, img)
+	return asset.WritePNG(path, img)
 }

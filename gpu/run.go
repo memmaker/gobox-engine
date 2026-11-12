@@ -1,6 +1,7 @@
 package gpu
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"image"
@@ -318,10 +319,10 @@ func glitchCheck(screen *Image) {
 	}
 	if glitch.n > 0 && d*32 > len(glitch.cur) && glitch.saved < 40 {
 		for k, px := range [][]byte{glitch.prev, glitch.cur} {
-			f, err := os.Create(filepath.Join(conf.GlitchDir, fmt.Sprintf("glitch%d_%c.png", glitch.saved, 'a'+k)))
+			var b bytes.Buffer
+			err := (&png.Encoder{CompressionLevel: png.BestSpeed}).Encode(&b, &image.RGBA{Pix: px, Stride: w * 4, Rect: image.Rect(0, 0, w, h)})
 			if err == nil {
-				err = (&png.Encoder{CompressionLevel: png.BestSpeed}).Encode(f, &image.RGBA{Pix: px, Stride: w * 4, Rect: image.Rect(0, 0, w, h)})
-				f.Close()
+				err = os.WriteFile(filepath.Join(conf.GlitchDir, fmt.Sprintf("glitch%d_%c.png", glitch.saved, 'a'+k)), b.Bytes(), 0o644)
 			}
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "glitch:", err)

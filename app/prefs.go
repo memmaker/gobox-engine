@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -56,7 +57,7 @@ func (p Prefs) Save(v any) error {
 		err = os.Rename(f.Name(), p.Path())
 	}
 	if err != nil {
-		os.Remove(f.Name())
+		return errors.Join(err, os.Remove(f.Name()))
 	}
-	return err
+	return nil
 }

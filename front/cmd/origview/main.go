@@ -14,13 +14,13 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"gobox/asset"
 	"gobox/core/grid"
 	"gobox/dax"
 	"gobox/ega"
 	"gobox/geo"
 	"image"
 	"image/color"
-	"image/png"
 	"log"
 	"os"
 	"strings"
@@ -375,12 +375,9 @@ func main() {
 		if err != nil {
 			log.Fatal(f, err)
 		}
-		out, err := os.Create(f[5])
-		if err != nil {
+		if err := asset.WritePNG(f[5], scaled(im, *scale)); err != nil {
 			log.Fatal(err)
 		}
-		png.Encode(out, scaled(im, *scale))
-		out.Close()
 		fmt.Println(f[5])
 	}
 }

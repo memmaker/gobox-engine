@@ -138,33 +138,53 @@ func (s Store) Index(name string) int {
 	return slices.IndexFunc(s.List(), func(sl Slot) bool { return sl.Name == name })
 }
 
-// Delete deletes the slot, if there is one.
-func (s Store) Delete(name string) {
-	if s.Index(name) >= 0 {
-		os.RemoveAll(s.Path(name))
-		s.forget()
+// Delete deletes the slot, if there is one; a folder that cannot be removed
+// is the error.
+func (s Store) Delete(name string) error {
+	if s.Index(name) < 0 {
+		return nil
 	}
+	defer s.forget()
+	return os.RemoveAll(s.Path(name))
 }
 
 // ErrIncomplete is Write's error when write left no Marker.
 var ErrIncomplete = errors.New("saves: the save wrote no marker")
+
+// DeleteJoin is a deferred Delete of a temporary slot: its error joins *err
+// (the caller's named result), so a failed clean-up is never lost.
+func (s Store) DeleteJoin(name string, err *error) {
+	*err = errors.Join(*err, s.Delete(name))
+}
 
 // Write saves slot name: write fills a fresh folder (dir) beside the old
 // slot, which is replaced only once the new one holds Marker. write's
 // error comes back, the old slot kept.
 func (s Store) Write(name string, write func(dir string) error) error {
 	tmp := s.Path("." + name + ".saving")
-	os.RemoveAll(tmp)
-	if err := write(tmp); err != nil {
-		os.RemoveAll(tmp)
+	if err := os.RemoveAll(tmp); err != nil { // a stale one of a crashed save
 		return err
 	}
-	if _, err := os.Stat(filepath.Join(tmp, s.Marker)); err != nil {
-		return ErrIncomplete
+	if err := write(tmp); err != nil {
+		return removeTmp(tmp, err)
 	}
-	os.RemoveAll(s.Path(name))
+	if _, err := os.Stat(filepath.Join(tmp, s.Marker)); err != nil {
+		return removeTmp(tmp, ErrIncomplete)
+	}
 	defer s.forget()
+	if err := os.RemoveAll(s.Path(name)); err != nil {
+		return removeTmp(tmp, err)
+	}
 	return os.Rename(tmp, s.Path(name))
+}
+
+// removeTmp removes the half-written folder tmp and returns cause, joined with
+// the removal's own error when that failed too (cause itself when not).
+func removeTmp(tmp string, cause error) error {
+	if err := os.RemoveAll(tmp); err != nil {
+		return errors.Join(cause, err)
+	}
+	return cause
 }
 
 // Name keeps what a slot's folder name may hold: letters, digits and " -_!'".

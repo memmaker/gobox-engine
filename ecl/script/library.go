@@ -122,15 +122,17 @@ func writeAtomic(path, text string) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(f.Name())
-	if _, err := f.WriteString(text); err != nil {
-		f.Close()
-		return err
+	_, err = f.WriteString(text)
+	if cerr := f.Close(); err == nil {
+		err = cerr
 	}
-	if err := f.Close(); err != nil {
-		return err
+	if err == nil {
+		err = os.Rename(f.Name(), path)
 	}
-	return os.Rename(f.Name(), path)
+	if err != nil {
+		return errors.Join(err, os.Remove(f.Name()))
+	}
+	return nil
 }
 
 // CacheDir is where a game with no scripts folder of its own keeps its

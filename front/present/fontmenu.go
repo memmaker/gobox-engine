@@ -1,6 +1,7 @@
 package present
 
 import (
+	"log"
 	"path/filepath"
 	"time"
 
@@ -56,7 +57,13 @@ func (f *Front) FontMenu() (names func() []string, at func() int, set func(int),
 	if c == nil {
 		return nil, nil, nil, nil
 	}
-	return func() []string { return c.Names(f.P.fontLabel) }, func() int { return c.Cur }, c.Set,
+	// the menu has no place for an error: the choice stands, the failed keeping is logged
+	set = func(i int) {
+		if err := c.Set(i); err != nil {
+			log.Printf("font choice not kept: %v", err)
+		}
+	}
+	return func() []string { return c.Names(f.P.fontLabel) }, func() int { return c.Cur }, set,
 		func(i int, ch byte) [8]byte { g, _ := c.Glyph(i, ch, true); return g }
 }
 

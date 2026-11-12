@@ -3,6 +3,7 @@ package app
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"runtime/pprof"
@@ -59,10 +60,19 @@ func Flags(esc map[byte]Key) func() Capture {
 		c.GPU = gpu.Config{FPS: *fps, Passes: *passes, NoVSync: *novsync, Offscreen: c.Shot != "" || *offscreen,
 			GlitchDir: *glitch, Skip: strings.Split(*skip, ",")}
 		if *cpuprofile != "" {
-			if f, err := os.Create(*cpuprofile); err == nil {
-				pprof.StartCPUProfile(f)
-				time.AfterFunc(20*time.Second, func() { pprof.StopCPUProfile(); f.Close() })
+			f, err := os.Create(*cpuprofile)
+			if err == nil {
+				err = pprof.StartCPUProfile(f)
 			}
+			if err != nil {
+				log.Fatal("cpuprofile: ", err)
+			}
+			time.AfterFunc(20*time.Second, func() {
+				pprof.StopCPUProfile()
+				if err := f.Close(); err != nil {
+					log.Print("cpuprofile: ", err)
+				}
+			})
 		}
 		if *stacks > 0 {
 			go func() {

@@ -116,10 +116,11 @@ func (c *Chooser) Names(label string) []string {
 	return ns
 }
 
-// Set picks font i (0: the game's) and keeps the choice; out of range does nothing.
-func (c *Chooser) Set(i int) {
+// Set picks font i (0: the game's) and keeps the choice; out of range does
+// nothing. The font stays picked when the choice cannot be kept: the error says so.
+func (c *Chooser) Set(i int) error {
 	if i < 0 || i > len(c.List) {
-		return
+		return nil
 	}
 	c.Cur = i
 	name := ""
@@ -127,8 +128,9 @@ func (c *Chooser) Set(i int) {
 		name = c.List[i-1].Name
 	}
 	if c.File != "" {
-		os.WriteFile(c.File, []byte(name+"\n"), 0o644)
+		return os.WriteFile(c.File, []byte(name+"\n"), 0o644)
 	}
+	return nil
 }
 
 // Step moves to the next font (1) or the one before (-1), wrapping.

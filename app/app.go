@@ -5,8 +5,8 @@ package app
 
 import (
 	"fmt"
+	"gobox/asset"
 	"image"
-	"image/png"
 	"log"
 	"os"
 	"strings"
@@ -294,12 +294,7 @@ func saveShot(dst *gpu.Image, name string) {
 	b := dst.Bounds()
 	img := image.NewRGBA(b)
 	dst.ReadPixels(img.Pix)
-	f, err := os.Create(name)
-	if err == nil {
-		err = (&png.Encoder{CompressionLevel: png.BestSpeed}).Encode(f, img)
-		f.Close()
-	}
-	if err != nil {
+	if err := asset.WritePNG(name, img); err != nil {
 		log.Fatal(err)
 	}
 }

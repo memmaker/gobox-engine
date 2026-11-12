@@ -2,6 +2,7 @@ package saves
 
 import (
 	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -85,5 +86,43 @@ func BenchmarkList(b *testing.B) {
 	}
 	for range b.N {
 		s.List()
+	}
+}
+
+// A slot that cannot be removed or replaced (a read-only folder) is the
+// error of Delete and Write, with the slot still there.
+func TestStoreErrorsComeBack(t *testing.T) {
+	s := Store{Dir: t.TempDir(), Marker: "M"}
+	mark := func(dir string) error {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
+		return os.WriteFile(filepath.Join(dir, "M"), nil, 0o644)
+	}
+	if err := s.Write("a", mark); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(s.Dir, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(s.Dir, 0o700)
+	if err := s.Delete("a"); !errors.Is(err, fs.ErrPermission) {
+		t.Errorf("Delete in a read-only folder: %v, want the permission error", err)
+	}
+	if err := s.Write("a", mark); !errors.Is(err, fs.ErrPermission) {
+		t.Errorf("Write in a read-only folder: %v, want the permission error", err)
+	}
+	s2 := Store{Dir: t.TempDir(), Marker: "M"}
+	if err := s2.Write("a", mark); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(s2.Dir, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	defer os.Chmod(s2.Dir, 0o700)
+	var err error
+	s2.DeleteJoin("a", &err)
+	if !errors.Is(err, fs.ErrPermission) {
+		t.Errorf("DeleteJoin: %v, want the permission error", err)
 	}
 }

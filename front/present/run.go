@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"gobox/input"
 	"gobox/ui/fonts"
+	"log"
 	"path/filepath"
 	"time"
 
@@ -76,7 +77,10 @@ func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
 		}
 	}
 	if own := ownMusicDir(data); own != "" && len(snd) == 0 { // the player's own music: data/music/<trigger>
-		ownMus = newOwnMusic(own, data.MusicPlaces)
+		var err error
+		if ownMus, err = newOwnMusic(own, data.MusicPlaces); err != nil {
+			log.Printf("own music: %v", err) // NewFront has no error to return; the music found plays
+		}
 		audio.Output(ownMus)
 		if d, ok := f.P.Snd.(*audio.Driver); ok {
 			d.SetOwnMusic(ownMus.Playing)

@@ -21,7 +21,10 @@ func TestOwnMusicTriggers(t *testing.T) {
 		t.Fatalf("combat chain %v", c)
 	}
 	dir := t.TempDir()
-	m := newOwnMusic(dir, []string{"new-phlan"})
+	m, err := newOwnMusic(dir, []string{"new-phlan"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, d := range []string{"peaceful-town", "new-phlan", "combat"} {
 		if _, err := os.Stat(filepath.Join(dir, d)); err != nil {
 			t.Fatalf("no folder %s", d)

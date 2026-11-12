@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"io/fs"
 	"os"
 	"path"
@@ -63,12 +62,7 @@ func WriteCover(dosDir, out string) error {
 			img.SetColorIndex(x, y, d[y*w+x]&15)
 		}
 	}
-	f, err := os.Create(out)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return png.Encode(f, img)
+	return asset.WritePNG(out, img)
 }
 
 // ImportArt is a game's art import, run at its start: the DAX archives in

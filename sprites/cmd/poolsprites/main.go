@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"gobox/asset"
 	"image"
 	"image/color"
 	"image/png"
@@ -216,7 +217,7 @@ func main() {
 	games = append(games, games2...)
 	b, _ := json.MarshalIndent(origins, "", " ")
 	check(os.WriteFile(filepath.Join(*out, "..", "importer", "pictures", "origins", *series+".json"), append(b, '\n'), 0o644)) // the picture table's (gobox/importer/pictures)
-	poses := map[string]string{} // combat head/body frame 0 -> its pose-1 frame (the first origin's)
+	poses := map[string]string{}                                                                                               // combat head/body frame 0 -> its pose-1 frame (the first origin's)
 	for _, files := range origins {
 		for _, refs := range files {
 			for ref, name := range refs {
@@ -339,11 +340,7 @@ func indexed(im *dax.Image, fr int, apal []byte) *image.Paletted {
 }
 
 func write(path string, im image.Image) {
-	check(os.MkdirAll(filepath.Dir(path), 0o755))
-	f, err := os.Create(path)
-	check(err)
-	check(png.Encode(f, im))
-	check(f.Close())
+	check(asset.WritePNG(path, im))
 }
 
 // index rewrites the portraits and combat tables (and pool counts) of INDEX.md.

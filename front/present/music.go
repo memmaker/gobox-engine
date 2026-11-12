@@ -5,6 +5,7 @@
 package present
 
 import (
+	"errors"
 	"gobox/front/classic"
 	"math/rand/v2"
 	"os"
@@ -106,10 +107,13 @@ type ownMusic struct {
 
 // newOwnMusic makes dir's trigger folders (gobox's and places) where they
 // are missing and finds their files.
-func newOwnMusic(dir string, places []string) *ownMusic {
+// A folder that cannot be made (a read-only data folder) is the error returned
+// with the music still found in the folders there are.
+func newOwnMusic(dir string, places []string) (*ownMusic, error) {
 	m := &ownMusic{pools: map[string][]string{}}
+	var failed error
 	for _, t := range append(slices.Clone(musicTriggers), places...) {
-		os.MkdirAll(filepath.Join(dir, t), 0o755)
+		failed = errors.Join(failed, os.MkdirAll(filepath.Join(dir, t), 0o755))
 	}
 	es, _ := os.ReadDir(dir)
 	for _, e := range es {
@@ -120,7 +124,7 @@ func newOwnMusic(dir string, places []string) *ownMusic {
 			}
 		}
 	}
-	return m
+	return m, failed
 }
 
 // Want plays the first trigger of chain with files, a song of the trigger

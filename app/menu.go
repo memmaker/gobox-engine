@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"reflect"
 
 	"gobox/blobber"
@@ -51,7 +52,9 @@ func (m *Menu) setup(held func(any) bool, tps int) {
 		if m.Apply != nil {
 			m.Apply()
 		}
-		m.Prefs.Save(m.both(o))
+		if err := m.Prefs.Save(m.both(o)); err != nil { // the menu has no place for an error: the settings stand, the failed keeping is logged
+			log.Printf("settings not kept: %v", err)
+		}
 	}
 	blobber.ExtraRows = m.Rows
 	blobber.Repeats = func(d int) bool { return input.Repeat(d, tps) } // held keys and buttons repeat at the game's one rate
