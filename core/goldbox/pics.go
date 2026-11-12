@@ -11,3 +11,9 @@ type Pics struct {
 	IconSize           byte // 1 small, 2 large
 	Pool               core.PoolPics
 }
+
+// PortraitPic is a portrait head or body: its picture id in HEADn/BODYn.DAX of set n.
+type PortraitPic struct {
+	Set Set
+	Id  byte
+}
