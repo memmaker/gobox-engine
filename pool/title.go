@@ -73,7 +73,7 @@ func (e *Engine) SetEnd(s *importer.Sequence) error {
 	if e.Cfg.Graphics == 'E' {
 		g = importer.GraphicsEGA
 	}
-	shown := s.Shown(!DOSArt.Load())
+	shown := s.Shown(e.amigaUp())
 	sc, err := play.TitleScene(shown, true, g, play.Common{}, e.titleArt)
 	if err != nil {
 		return fmt.Errorf("end: %w", err)
@@ -93,7 +93,7 @@ func (e *Engine) SetStart(s *importer.Sequence) error {
 	if s == nil {
 		s = &importer.Sequence{}
 	}
-	shown := s.Shown(!DOSArt.Load()) // the steps of the art up (an Amiga-only card is dropped under the DOS art)
+	shown := s.Shown(e.amigaUp()) // the steps of the art up (an Amiga-only card is dropped under the DOS art)
 	s = &shown
 	t := title{seqs: e.title.seqs, end: e.title.end} // SetEnd's stay
 	var err error

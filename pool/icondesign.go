@@ -79,7 +79,7 @@ func (e *Engine) EditIcon(n int) {
 // stepped them (slot 0 is left out).
 func (e *Engine) iconCells() (cells [16]byte, amiga bool) {
 	im := e.icons[0xC][0]
-	amiga = !DOSArt.Load() // no combat picture in the slot (the pool composes the icon): the art set says
+	amiga = e.amigaUp() // no combat picture in the slot (the pool composes the icon): the art set says
 	if im != nil {
 		amiga = slices.ContainsFunc(im.Data, func(v byte) bool { return v >= ega.AmigaBase })
 	}
