@@ -131,8 +131,11 @@ func Shop(h *front.Shop, sh *game.Shop, purse map[string]int, allowed map[string
 	v := &front.Shop{IDPrice: sh.IdentifyPrice, Gold: purse[Coin], Pooled: sh.Pooled[Coin], Appraise: appraise(purse, sh.Offers), IdentifiedN: sh.Identifies,
 		Pool: allowed["PoolCoins"], Take: allowed["Take"], Share: allowed["LootShare"]}
 	item := func(r game.ItemRef) *game.Item {
-		if r.Member >= 0 && r.Member < len(party) && r.Item >= 0 && r.Item < len(party[r.Member].Items) {
-			return &party[r.Member].Items[r.Item]
+		if r.Member < 0 || r.Member >= len(party) {
+			return nil
+		}
+		if i := slices.IndexFunc(party[r.Member].Items, func(it game.Item) bool { return it.Handle == r.Item }); i >= 0 {
+			return &party[r.Member].Items[i]
 		}
 		return nil
 	}

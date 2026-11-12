@@ -48,7 +48,7 @@ type aiming struct {
 	ats      []image.Point
 }
 
-var _ front.Game = (*Game)(nil)
+var _ front.Game = game.PositionHandle(game.PositionHandle(game.PositionHandle(game.PositionHandle(game.Position(game.PositionHandle(game.Position(game.PositionHandle((*Game)(nil)))))))))
 
 // NewGame is the front.Game over p and d.
 func NewGame(p play.Game, d game.Data) *Game {
@@ -778,7 +778,9 @@ func (g *Game) CloseItems(all bool) error {
 	}
 	return g.run("closeItems", func() play.Result { return g.r.closeItems(all) })
 }
-func (g *Game) Ready(i, x int) error { return g.do(play.Ready{Member: g.sel(-1), Item: g.held(i), Count: x}) }
+func (g *Game) Ready(i, x int) error {
+	return g.do(play.Ready{Member: g.sel(-1), Item: g.held(i), Count: x})
+}
 func (g *Game) UseItem(i, spell, target int, sure bool) error {
 	return g.asking(g.do(play.UseItem{Member: g.sel(-1), Item: g.held(i), Spell: spell, Target: target}))
 }
@@ -796,8 +798,10 @@ func (g *Game) SetPolicy(id int, p front.Policy) error {
 }
 
 // Shops, temples, training.
-func (g *Game) Browse(n int) error      { return g.do(play.OpenItems{Member: -1}) }
-func (g *Game) Identify(n, x int) error { return g.do(play.Identify{Member: n, Item: game.PositionHandle(x)}) }
+func (g *Game) Browse(n int) error { return g.do(play.OpenItems{Member: -1}) }
+func (g *Game) Identify(n, x int) error {
+	return g.do(play.Identify{Member: n, Item: game.PositionHandle(x)})
+}
 
 // Appraise values the purse's gem or piece of jewelry: the offer of that kind.
 func (g *Game) Appraise(jewelry bool) error {

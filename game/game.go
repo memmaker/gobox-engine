@@ -611,7 +611,10 @@ type Offer struct {
 }
 
 // ItemRef names one member's item.
-type ItemRef struct{ Member, Item int }
+type ItemRef struct {
+	Member int
+	Item   core.ItemHandle
+}
 
 type Shop struct {
 	Offers        []Offer

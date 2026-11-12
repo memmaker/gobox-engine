@@ -1,6 +1,7 @@
 package front
 
 import (
+	"gobox/core"
 	"image"
 	"log"
 	"sync"
@@ -100,7 +101,7 @@ type Game interface {
 
 	// Shops, temples, training (Pending, Training).
 	Browse(n int) error
-	Identify(n, x int) error
+	Identify(n int, h core.ItemHandle) error
 	Appraise(jewelry bool) error
 	KeepAppraised(keep bool) error
 	Cure(n, x int) error

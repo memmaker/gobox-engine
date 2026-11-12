@@ -655,9 +655,10 @@ type Shop struct {
 
 // Unknown is an item to identify: Identify(Member, Item).
 type Unknown struct {
-	Member, Item int // the member and the index in its items (member 0: with the party inventory)
-	Owner, Name  string
-	Icon         *InvItem // its type and words: the icon
+	Member      int             // the member (0: with the party inventory)
+	Item        core.ItemHandle // the item
+	Owner, Name string
+	Icon        *InvItem // its type and words: the icon
 }
 
 // Training is the training hall's offer to the selected member.
