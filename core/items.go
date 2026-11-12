@@ -167,3 +167,33 @@ type ItemIdentified struct {
 }
 
 func (ItemIdentified) effect() {}
+
+// ItemViewFact is one held item as the member shows and pictures it
+// (Fact of the holder: an InvItem; its Index, Price and the flags of a
+// list are left unset).
+type ItemViewFact struct{ Item ItemHandle }
+
+// InventoryFact is the member's inventory screen (Fact: an InventoryView);
+// Powers is the engine's to add.
+type InventoryFact struct{}
+
+// InventoryView is the inventory screen's rule part: the readied items by
+// doll slot (nil: empty), the party inventory in its list order, and what
+// can be done here.
+type InventoryView struct {
+	Member int // the member's place in the party
+	Cap    int // the party inventory's slots
+	Doll   []*InvItem
+	Pool   []InvItem
+	Use    bool // items can be used here
+	Sell   bool // a shop buys them
+	Switch bool // another member can be shown (not in combat)
+}
+
+func (ItemViewFact) fact() {}
+
+func (InventoryFact) fact() {}
+
+func (InvItem) value() {}
+
+func (InventoryView) value() {}

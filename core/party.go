@@ -128,3 +128,53 @@ func (CanJoin) check() {}
 func (InParty) check() {}
 
 func (ControlledBefore) check() {}
+
+// PaladinHeal is the paladin Who laying hands on Target: 2 hp per paladin
+// level (CotAB PaladinHeal), and the day's use spent. The Outcome holds
+// Healed when Target was healed, none when it is unaffected.
+type PaladinHeal struct{ Who, Target CharID }
+
+// PaladinCure is the paladin Who curing Target of the temple's diseases
+// (CotAB PaladinCureDisease), and the day's use spent.
+type PaladinCure struct{ Who, Target CharID }
+
+func (PaladinHeal) action() {}
+
+func (PaladinCure) action() {}
+
+// Diseased asks whether Who has one of the diseases PaladinCure cures (Yes).
+type Diseased struct{ Who CharID }
+
+// PartyHasSkill asks whether a party member holds thief skill number N
+// above 0 (ovr15:0236); Yes.
+type PartyHasSkill struct{ N int }
+
+func (Diseased) check() {}
+
+func (PartyHasSkill) check() {}
+
+// OwedFact is the pick the member still owes (Fact: PowerOwed; no Options: none).
+type OwedFact struct{}
+
+// PowerOwed is one choice a member owes: one of Options.
+type PowerOwed struct {
+	What    string // "an at-will power"
+	Options ManeuverCards
+}
+
+// Toughen keeps the ruleset's Toughness in Who's maximum hit points.
+type Toughen struct{ Who CharID }
+
+// TakePower adds Power to Who's picked powers.
+type TakePower struct {
+	Who   CharID
+	Power int
+}
+
+func (OwedFact) fact() {}
+
+func (PowerOwed) value() {}
+
+func (Toughen) action() {}
+
+func (TakePower) action() {}

@@ -16,3 +16,8 @@ func (RollDice) check() {}
 func (RollRandom) check() {}
 
 func (IsDay) check() {}
+
+// MapTerrain asks the area map's terrain number at map square (X, Y) (Value).
+type MapTerrain struct{ X, Y int }
+
+func (MapTerrain) check() {}
