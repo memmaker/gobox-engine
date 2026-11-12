@@ -26,6 +26,7 @@ import (
 //	-fps, -passes, -novsync, -offscreen, -glitch DIR, -skip a,b  gpu.Config
 //	-cpuprofile FILE  a CPU profile of the first 20 seconds
 //	-stacks N       every goroutine to stderr every N seconds
+//	-fight N, -freetrain, -ecltrace, -saves DIR, -at B,X,Y  DevFlags
 //
 // The returned func, called after flag.Parse, reads them into a Capture
 // and starts the profile and the stack dumps.
@@ -46,8 +47,21 @@ func Flags(esc map[byte]Key) func() Capture {
 	skip := flag.String("skip", "", "measure: parts of the frame left out, a,b,...")
 	cpuprofile := flag.String("cpuprofile", "", "measure: a CPU profile of the first 20 seconds to FILE")
 	stacks := flag.Int("stacks", 0, "debug: every goroutine to stderr every N seconds")
+	fight := flag.Int("fight", 0, "debug: a fight with three of monster N (the area's MON file) at the first adventuring prompt")
+	freeTrain := flag.Bool("freetrain", false, "debug: the training hall trains everyone free, experience or not")
+	eclTrace := flag.Bool("ecltrace", false, "debug: each script command and its operands to stderr")
+	saves := flag.String("saves", "", "the save directory (default: the game's)")
+	at := flag.String("at", "", "debug: enter script block BLOCK at X,Y at the first adventuring prompt (BLOCK,X,Y)")
 	return func() Capture {
-		c := Capture{Shot: *shot, Keys: ParseKeys(*keys, esc), Freeze: *freeze, Quit: *quit, Slot: *slot, PNG: *png}
+		c := Capture{Shot: *shot, Keys: ParseKeys(*keys, esc), Freeze: *freeze, Quit: *quit, Slot: *slot, PNG: *png,
+			Dev: DevFlags{Fight: *fight, FreeTrain: *freeTrain, ECLTrace: *eclTrace, Saves: *saves}}
+		if *at != "" {
+			var a At
+			if _, err := fmt.Sscanf(*at, "%d,%d,%d", &a.Block, &a.X, &a.Y); err != nil {
+				log.Fatal("-at: ", err)
+			}
+			c.Dev.At = &a
+		}
 		for _, pt := range strings.Split(*pointer, ";") {
 			var p [2]int
 			if _, err := fmt.Sscanf(pt, "%d,%d", &p[0], &p[1]); err == nil {

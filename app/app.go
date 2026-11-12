@@ -76,7 +76,21 @@ type Capture struct {
 	Slot    string     // a save slot to start from instead of the game's own start ("": none); passed to a Starter
 	Pointer [][2]int   // with Shot: the pointer at these window pixels, one after another (Next)
 	PNG     string     // a picture a dev scene uses (e.g. a portrait); the game's to read
+	Dev     DevFlags   // every game's debug switches
 }
+
+// DevFlags are the debug switches every game gets (Felix 2026-11-12: the
+// games' own -fight, 'J', -ecltrace, -saves and -at, once).
+type DevFlags struct {
+	Fight     int    // a fight with three of this monster (the area's MON file) at the first adventuring prompt (0: none)
+	FreeTrain bool   // the training hall trains everyone free, experience or not (sotsb's 'J', POR's STING debug)
+	ECLTrace  bool   // each script command and its operands to stderr
+	Saves     string // the save directory ("": the game's)
+	At        *At    // enter a script block there at the first adventuring prompt (nil: none)
+}
+
+// At is a script block and a position in it (-at BLOCK,X,Y).
+type At struct{ Block, X, Y int }
 
 // Scripted says whether the run is scripted: the user's input is ignored.
 func (c Capture) Scripted() bool { return c.Shot != "" || c.Freeze || c.Quit }

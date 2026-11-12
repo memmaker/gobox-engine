@@ -5,7 +5,9 @@ import (
 	"gobox/asset"
 	"gobox/core"
 	"gobox/core/grid"
+	"gobox/ecl"
 	"gobox/ega"
+	"os"
 )
 
 // DevScene returns a routine that sets up one screen for a headless check
@@ -63,6 +65,9 @@ func (e *Engine) DevScene(name string) func() {
 			idx := 1
 			if id, ok := e.gdata().firstMonster(e.monsterSet().File("MON")); ok {
 				idx = id
+			}
+			if e.DevMonster > 0 { // -fight N
+				idx = e.DevMonster
 			}
 			count := 3
 			if name == "meleefight" || name == "losefight" {
@@ -290,5 +295,25 @@ func (e *Engine) devParlayAnswered(c int) {
 func (e *Engine) fixture(id core.FixtureID, who core.CharID) {
 	if _, err := e.ruleset().Resolve(nil, core.Fixture{ID: id, Who: who}, nil); err != nil {
 		panic(fmt.Sprintf("dev scene %v: %v", id, err))
+	}
+}
+
+// DevAt (-at BLOCK,X,Y) enters script block block at x, y, as a script's
+// NEW ECL does (opNewECL), and runs the area's start events (AreaChange).
+func (e *Engine) DevAt(block, x, y int) {
+	e.setLastBlock(int(e.gs.areaKind))
+	e.gs.areaKind = byte(block)
+	e.eclFile = e.set.File("ECL") + ".dax"
+	e.LoadArea(block)
+	e.InitAreaScript()
+	e.posX, e.posY = x, y
+	e.AreaChange()
+}
+
+// TraceScripts (-ecltrace) prints each script command and its operands to stderr.
+func (e *Engine) TraceScripts() {
+	e.vm.Trace = func(vm *ecl.VM, n int) {
+		fmt.Fprintf(os.Stderr, "ecl %04X op %02X\n", vm.PC, vm.Command)
+		ecl.ArgsTrace(e.host, func(s string) { fmt.Fprint(os.Stderr, s) })(vm, n)
 	}
 }

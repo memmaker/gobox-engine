@@ -164,10 +164,12 @@ type Engine struct {
 	books      map[string]*journal.Book        // the game's journal books by file name (book); nil: none
 	jtexts     map[string][]string             // journalTexts, once
 
-	DevAction   func() // run once at the next adventuring command prompt (-dev)
-	Explore     bool   // -explore: no intro, a Quick Start party when there is none, begin adventuring at once
-	DevPortrait []byte // the PNG the portrait dev scenes put on the sheet (-png)
-	ExploreSlot string // with Explore: the save to start from (-slot) instead of a Quick Start
+	DevAction    func() // run once at the next adventuring command prompt (-dev)
+	DevMonster   int    // the combat dev scene's monster (-fight; 0: the area's first)
+	FreeTraining bool   // the hall trains everyone free (-freetrain: the debug flag, POR's STING 'J')
+	Explore      bool   // -explore: no intro, a Quick Start party when there is none, begin adventuring at once
+	DevPortrait  []byte // the PNG the portrait dev scenes put on the sheet (-png)
+	ExploreSlot  string // with Explore: the save to start from (-slot) instead of a Quick Start
 }
 
 // The data directory (New's dir) holds one folder per kind of file.

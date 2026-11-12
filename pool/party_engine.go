@@ -95,7 +95,11 @@ func (e *Engine) partyMenu(hall, chain bool) {
 			return
 		}
 	}
-	e.setWorldWord(core.WordDebug, 0)
+	debug := 0
+	if e.FreeTraining { // -freetrain
+		debug = 1
+	}
+	e.setWorldWord(core.WordDebug, debug)
 	e.ext.hall = hall // a script's (the training hall): the game goes on under it
 	e.setWorldWord(core.WordBeginFlag, 0)
 	e.partyRedraw()

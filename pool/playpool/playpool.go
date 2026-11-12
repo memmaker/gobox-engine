@@ -68,6 +68,9 @@ func Play(s app.Start, gm Game) error {
 	if gm.SaveDir != "" {
 		eng.Cfg.SaveDir = gm.SaveDir
 	}
+	if d := s.Capture.Dev.Saves; d != "" {
+		eng.Cfg.SaveDir = d
+	}
 	eng.Cfg.Foreign = gm.Foreign
 	if err := eng.SetStart(f.Manifest.Start); err != nil {
 		return err
@@ -125,6 +128,18 @@ func Play(s app.Start, gm Game) error {
 	}
 	if s.Battle {
 		eng.DevAction = eng.DevScene("autocombat")
+	}
+	dev := s.Capture.Dev
+	if dev.Fight > 0 {
+		eng.DevMonster = dev.Fight
+		eng.DevAction = eng.DevScene("combat")
+	}
+	if a := dev.At; a != nil {
+		eng.DevAction = func() { eng.DevAt(a.Block, a.X, a.Y) }
+	}
+	eng.FreeTraining = dev.FreeTrain
+	if dev.ECLTrace {
+		eng.TraceScripts()
 	}
 	if s.Seed >= 0 {
 		seed := uint32(s.Seed)
