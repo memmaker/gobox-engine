@@ -14,7 +14,7 @@ func TestAIPathAroundWall(t *testing.T) {
 	e.state().Cmap = &rules1e.CombatMap{} // a fight's map (BuildGround makes it)
 	for y := range e.state().Cmap.Ground {
 		for x := range e.state().Cmap.Ground[y] {
-			e.state().Cmap.Ground[y][x] = rules1e.GroundFloor
+			e.state().Cmap.Ground[y][x] = rules1e.PorGroundIDs.Floor
 		}
 	}
 	for y := 3; y < 25; y++ {

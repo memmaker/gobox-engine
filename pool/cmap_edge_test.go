@@ -11,7 +11,7 @@ func TestTileOfNoWrap(t *testing.T) {
 	e := &Engine{}
 	e.state().Cmap = &rules1e.CombatMap{}
 	e.initVM()
-	bare := e.state().GroundInfo(rules1e.GroundFloor)[3]
+	bare := e.state().GroundInfo(rules1e.PorGroundIDs.Floor)[3]
 	var wall byte
 	for g := range rules1e.GroundTable {
 		if rules1e.GroundTable[g][3] != bare {

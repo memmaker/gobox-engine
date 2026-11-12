@@ -192,7 +192,7 @@ func fixFloor(e *Engine) {
 	e.state().Cmap = &rules1e.CombatMap{}
 	for y := range e.state().Cmap.Ground {
 		for x := range e.state().Cmap.Ground[y] {
-			e.state().Cmap.Ground[y][x] = rules1e.GroundFloor
+			e.state().Cmap.Ground[y][x] = rules1e.PorGroundIDs.Floor
 		}
 	}
 }
