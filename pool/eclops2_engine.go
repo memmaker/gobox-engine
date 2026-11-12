@@ -636,3 +636,27 @@ type encounter struct {
 	hi, lo   int
 	parlay   bool // the menu offers PARLAY, not ADVANCE
 }
+
+// FindNPC's results (pod O040:1C84).
+const (
+	npcNotFound = 255 // no hired NPC of that name
+	npcNotOkay  = 128 // added to the place: the NPC is not up
+	npcControl  = 128 // FactControl from here on: an NPC
+)
+
+// opFindNPC = pod O040:1C84 (name, dst): the party place of the hired NPC
+// named name (+npcNotOkay when not up), or npcNotFound.
+func (e *Engine) opFindNPC() {
+	e.vm.ReadArgs(2)
+	name, r := e.strAt(1), int64(npcNotFound)
+	for i, id := range e.partyIDs() {
+		if e.name(id) == name && e.fact(id, core.FactControl).(core.Number) >= npcControl {
+			r = int64(i)
+			if e.fact(id, core.FactActive) != core.Yes(true) {
+				r |= npcNotOkay
+			}
+			break
+		}
+	}
+	e.host.Set(e.vm.Ref(2), r)
+}
