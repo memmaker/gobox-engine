@@ -83,7 +83,7 @@ func TestFixesAgainstPascal(t *testing.T) {
 			z := quickStarted(t)
 			m := fixChar(8, 0)
 			ring := &rules1e.Item{Type: 0x5A, Readied: 1}
-			ring.Spells[1], ring.Spells[2] = rules1e.SpellID(rules1e.AffFeatherFall), 130 // effect 27, handler 130 (grant the item's effect)
+			ring.Spells[1], ring.Spells[2] = rules1e.ItemPower(rules1e.AffFeatherFall), 130 // effect 27, handler 130 (grant the item's effect)
 			m.Items = []*rules1e.Item{ring}
 			z.state().AddAffect(m, rules1e.AffFeatherFall, 0, 12, 0)
 			z.state().RandSeed = uint32(int32(k[1]))

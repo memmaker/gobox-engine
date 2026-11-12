@@ -7,13 +7,13 @@ import (
 
 // The broken data records are mended as they are read.
 func TestFixItemRecord(t *testing.T) {
-	ft := &rules1e.Item{Type: rules1e.ItemLongSword, Words: [3]rules1e.WordID{0xF1, 0xA3, 0x24}, Spells: [3]rules1e.SpellID{0, 0x16, 0}}
+	ft := &rules1e.Item{Type: rules1e.ItemLongSword, Words: [3]rules1e.WordID{0xF1, 0xA3, 0x24}, Spells: [3]rules1e.ItemPower{0, 0x16, 0}}
 	ring := &rules1e.Item{Type: rules1e.ItemFeatherFallRing, Words: [3]rules1e.WordID{0xEE, 0xA7, 0x42}}
 	br := &rules1e.Item{Type: rules1e.ItemBracers, Plus: 6, Words: [3]rules1e.WordID{0, 0xDC, 0x4F}}
 	for _, it := range []*rules1e.Item{ft, ring, br} {
 		rules1e.FixItemRecord(it)
 	}
-	if ft.Spells[2] != rules1e.SpellID(rules1e.AffItem0) || ft.Spells[1] != rules1e.SpellID(rules1e.AffBonusByTargetRace) || ring.Spells[1] != rules1e.SpellID(rules1e.AffFeatherFall) || br.Plus != 8 {
+	if ft.Spells[2] != rules1e.ItemPower(rules1e.AffItem0) || ft.Spells[1] != rules1e.ItemPower(rules1e.AffBonusByTargetRace) || ring.Spells[1] != rules1e.ItemPower(rules1e.AffFeatherFall) || br.Plus != 8 {
 		t.Errorf("flame tongue %v, ring %v, bracers %d", ft.Spells, ring.Spells, br.Plus)
 	}
 }

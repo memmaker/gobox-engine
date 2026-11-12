@@ -53,7 +53,7 @@ func TestPoolScribe(t *testing.T) {
 	e.state().Items[rules1e.ItemMageScroll].Slot = 0xB
 	fighter, mage := &rules1e.Character{}, &rules1e.Character{}
 	e.state().Party = []*rules1e.Character{fighter, mage}
-	scroll := &rules1e.Item{Type: rules1e.ItemMageScroll, Spells: [3]rules1e.SpellID{15 | 0x80}} // Magic Missile
+	scroll := &rules1e.Item{Type: rules1e.ItemMageScroll, Spells: [3]rules1e.ItemPower{15 | 0x80}} // Magic Missile
 	e.state().Pool = []*rules1e.Item{scroll}
 	e.state().MarkScribe(mage, scroll, 0)
 	if e.state().StudyTime(fighter) != 0 || e.state().StudyTime(mage) == 0 {

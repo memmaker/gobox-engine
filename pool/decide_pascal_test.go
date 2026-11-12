@@ -46,7 +46,7 @@ func aiTurnVector(e *Engine, v aiVaried, seed, dist, hp, lvl, flank int) string 
 	a.Levels[rules1e.ClsCleric], a.Levels[rules1e.ClsMage] = rules1e.Level(v.casterLvl), rules1e.Level(v.casterLvl)
 	if v.itemEff != 0 {
 		it := &rules1e.Item{Readied: 1, Type: rules1e.ItemType(len(e.state().Items))} // the Pascal's base item 0: all zero
-		it.Spells[1] = rules1e.SpellID(v.itemEff)
+		it.Spells[1] = rules1e.ItemPower(v.itemEff)
 		a.Items = []*rules1e.Item{it}
 	}
 	if v.bow != 0 {

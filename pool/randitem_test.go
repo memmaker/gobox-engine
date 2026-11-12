@@ -15,7 +15,7 @@ func TestRandomItemAllTypes(t *testing.T) {
 			e.state().RandomItem(rules1e.ItemType(typ))
 		}
 	}
-	if it := e.state().RandomItem(0x43); it.Price != 6000 || it.Spells != [3]rules1e.SpellID{0, 0x48, 0x86} {
+	if it := e.state().RandomItem(0x43); it.Price != 6000 || it.Spells != [3]rules1e.ItemPower{0, 0x48, 0x86} {
 		t.Errorf("rod record 0x91: price %d, spells %v", it.Price, it.Spells)
 	}
 }

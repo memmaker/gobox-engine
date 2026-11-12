@@ -25,7 +25,7 @@ func TestPackRoundTrip(t *testing.T) {
 	var s rules1e.Sheet
 	s.CharName, s.HP, s.Levels[2] = "Brok", 9, 3
 	rec := append(SheetBytes(s), PoolTrailer(rules1e.PoolIDs{IconHeadID: "x", Roster: 4})...)
-	it := WriteRecords([]*Item{{Type: 3, Count: 2, Price: 0x7A79}})
+	it := WriteItems([]Item{{Type: 3, Count: 2, Price: 0x7A79}})
 	f := Files{Record: rec, Items: it, Plan: []byte{5, 6}, Dual: []byte{1}, Powers: []byte{7, 0, 1, 2, 3}, Portrait: []byte("png")}
 	b, err := Pack285(f)
 	if err != nil {

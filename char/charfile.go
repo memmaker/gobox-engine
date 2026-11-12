@@ -44,8 +44,8 @@ type Files struct {
 // Pack285 is f as the canonical character (rules1e.CharacterFile's JSON).
 func Pack285(f Files) (core.CharacterFile, error) {
 	c := rules1e.CharacterJSON{Sheet: SheetOf(f.Record), PoolIDs: ReadPoolIDs(f.Record), Portrait: f.Portrait, Icon: f.Icon}
-	for _, it := range ReadRecords[Item](f.Items, ItemSize) {
-		c.Items = append(c.Items, *it)
+	for _, it := range ReadRecords[rules1e.ItemFile](f.Items, ItemSize) {
+		c.Items = append(c.Items, it.Item())
 	}
 	for _, a := range ReadRecords[rules1e.AffectFile](f.Affects, AffectSize) {
 		c.Affects = append(c.Affects, a.Record())
@@ -75,7 +75,7 @@ func Unpack285(b core.CharacterFile, game bool) (Files, error) {
 		items = append(items, c.Pool...)
 	}
 	f := Files{Record: append(SheetBytes(c.Sheet), PoolTrailer(c.PoolIDs)...), Portrait: c.Portrait, Icon: c.Icon, Powers: powerBytes(c)}
-	f.Items = WriteRecords(pointers(items))
+	f.Items = WriteItems(items)
 	var affects []rules1e.AffectFile
 	for _, a := range c.Affects {
 		affects = append(affects, a.File())
@@ -129,6 +129,24 @@ func WriteRecords[T any](list []*T) []byte {
 		binary.Write(&buf, binary.LittleEndian, v)
 	}
 	return buf.Bytes()
+}
+
+// ReadItems and WriteItems are a list of items as its file records.
+func ReadItems(b []byte) []Item {
+	var out []Item
+	for _, f := range ReadRecords[rules1e.ItemFile](b, ItemSize) {
+		out = append(out, f.Item())
+	}
+	return out
+}
+
+func WriteItems(items []Item) []byte {
+	var files []*rules1e.ItemFile
+	for _, it := range items {
+		f := it.File()
+		files = append(files, &f)
+	}
+	return WriteRecords(files)
 }
 
 // fileBytes is v as the bytes of a save file (.mem, .dual).

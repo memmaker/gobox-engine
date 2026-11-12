@@ -51,7 +51,7 @@ func TestPaladinCotabTransfer(t *testing.T) {
 			t.Errorf("CotAB would import affect %#x", typ)
 		}
 	}
-	if n := len(char.WriteRecords([]*rules1e.AffectRecord{{Type: rules1e.AffLaidOnHands, Time: 1440}})); n != 9 {
+	if n := len(char.WriteRecords([]*rules1e.AffectFile{{Type: byte(rules1e.AffLaidOnHands), Time: 1440}})); n != 9 {
 		t.Errorf("affect record %d bytes", n)
 	}
 }

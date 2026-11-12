@@ -45,8 +45,8 @@ func TestDataEqualsDAX(t *testing.T) {
 					aff = append(aff, a.Record())
 				}
 				var its []rules1e.Item
-				for _, it := range char.ReadRecords[rules1e.Item](l.BlockShared(s.File("MON")+"ITM", id), rules1e.ItemRecSize) {
-					its = append(its, *it)
+				for _, it := range char.ReadItems(l.BlockShared(s.File("MON")+"ITM", id)) {
+					its = append(its, it)
 				}
 				if c.Sheet != char.SheetOf(char.Encode(m.Record)) || !reflect.DeepEqual(aff, m.Affects) || !reflect.DeepEqual(its, m.Items) {
 					t.Fatalf("%s %d: differs", s.File("MON"), id)
@@ -56,8 +56,8 @@ func TestDataEqualsDAX(t *testing.T) {
 			b = l.BlockShared(s.File("ITEM"), id)
 			got := d.itemBlock(s.File("ITEM"), id)
 			want := []rules1e.Item{}
-			for _, it := range char.ReadRecords[rules1e.Item](b, rules1e.ItemRecSize) {
-				want = append(want, *it)
+			for _, it := range char.ReadItems(b) {
+				want = append(want, it)
 			}
 			if b == nil {
 				want = nil

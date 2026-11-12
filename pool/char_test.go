@@ -66,8 +66,8 @@ func TestItemAffectRecords(t *testing.T) {
 	}
 	clear(b[0x2A:0x2E]) // next pointers are dropped
 	clear(b[rules1e.ItemRecSize+0x2A : rules1e.ItemRecSize+0x2E])
-	items := char.ReadRecords[rules1e.Item](b, rules1e.ItemRecSize)
-	if len(items) != 2 || items[1].Price != 0x7A79 || !bytes.Equal(char.WriteRecords(items), b) {
+	items := char.ReadItems(b)
+	if len(items) != 2 || items[1].Price != 0x7A79 || !bytes.Equal(char.WriteItems(items), b) {
 		t.Fatal("items do not round-trip")
 	}
 }
