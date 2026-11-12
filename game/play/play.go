@@ -458,9 +458,18 @@ type (
 		Member int
 		Item   core.ItemHandle
 	}
-	Give    struct{ From, To, Item int }
-	Halve   struct{ Member, Item int }
-	Join    struct{ Member, Item int }
+	Give struct {
+		From, To int
+		Item     core.ItemHandle
+	}
+	Halve struct {
+		Member int
+		Item   core.ItemHandle
+	}
+	Join struct {
+		Member int
+		Item   core.ItemHandle
+	}
 	UseItem struct { // Item NoItem in a fight's Allowed: the pack is open to the turn (gobox offers Items) though nothing in it is usable
 		Member int
 		Item   core.ItemHandle
@@ -619,8 +628,9 @@ type (
 		Item   core.ItemHandle
 	}
 	Appraise struct {
-		Member, Item int
-		Keep         bool
+		Member int
+		Item   int // ITEM?
+		Keep   bool
 	}
 	Repair struct {
 		Member int

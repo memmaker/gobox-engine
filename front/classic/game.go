@@ -48,7 +48,7 @@ type aiming struct {
 	ats      []image.Point
 }
 
-var _ front.Game = game.PositionHandle(game.PositionHandle(game.PositionHandle(game.PositionHandle(game.Position(game.PositionHandle(game.Position(game.PositionHandle((*Game)(nil)))))))))
+var _ front.Game = (*Game)(nil)
 
 // NewGame is the front.Game over p and d.
 func NewGame(p play.Game, d game.Data) *Game {
@@ -799,8 +799,8 @@ func (g *Game) SetPolicy(id int, p front.Policy) error {
 
 // Shops, temples, training.
 func (g *Game) Browse(n int) error { return g.do(play.OpenItems{Member: -1}) }
-func (g *Game) Identify(n, x int) error {
-	return g.do(play.Identify{Member: n, Item: game.PositionHandle(x)})
+func (g *Game) Identify(n int, h core.ItemHandle) error {
+	return g.do(play.Identify{Member: n, Item: h})
 }
 
 // Appraise values the purse's gem or piece of jewelry: the offer of that kind.
@@ -1018,11 +1018,11 @@ func (g *Game) act(a front.Action) func() error {
 	case front.ActSheet:
 		return own("closeItems", func() play.Result { return g.r.closeItems(false) })
 	case front.ActTrade:
-		return send(play.Give{From: g.sel(-1), To: a.X, Item: a.N})
+		return send(play.Give{From: g.sel(-1), To: a.X, Item: g.held(a.N)})
 	case front.ActHalve:
-		return send(play.Halve{Member: g.sel(-1), Item: a.N})
+		return send(play.Halve{Member: g.sel(-1), Item: g.held(a.N)})
 	case front.ActJoin:
-		return send(play.Join{Member: g.sel(-1), Item: a.N})
+		return send(play.Join{Member: g.sel(-1), Item: g.held(a.N)})
 	case front.ActReady:
 		return send(play.Ready{Member: g.sel(-1), Item: g.held(a.N), Count: a.X})
 	case front.ActUse:
