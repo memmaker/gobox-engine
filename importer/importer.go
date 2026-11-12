@@ -22,7 +22,7 @@ import (
 )
 
 // Format is the manifest's format version; it changes when Manifest does.
-const Format = 5
+const Format = 6
 
 // ManifestFile is the manifest's name in an adventure folder.
 const ManifestFile = "manifest.json"
