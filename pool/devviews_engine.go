@@ -1,0 +1,294 @@
+package pool
+
+import (
+	"fmt"
+	"gobox/asset"
+	"gobox/core"
+	"gobox/core/grid"
+	"gobox/ega"
+)
+
+// DevScene returns a routine that sets up one screen for a headless check
+// (snap ... game SLOT KEYS SCENE) and puts it up, or nil.
+func (e *Engine) DevScene(name string) func() {
+	switch name {
+	case "shop":
+		return func() {
+			e.fixture(core.FixtureShop, core.NoChar)
+			if h, ok := e.artFolder().FirstID(asset.DOS, e.set.File("HEAD")); ok {
+				if b, ok := e.artFolder().FirstID(asset.DOS, e.set.File("BODY")); ok {
+					e.ShowPortrait(h, b) // a shopkeeper's both halves, as a shop's script shows them (no 0, no body block 0)
+				}
+			}
+			e.push(cont{kind: kDevBack})
+			e.Shop()
+		}
+	case "hall", "hallpoor": // the training hall's party menu (hallpoor: no gold for the fee)
+		return func() {
+			f := core.FixtureHall
+			if name == "hallpoor" {
+				f = core.FixtureHallPoor
+			}
+			e.fixture(f, core.NoChar)
+			e.push(cont{kind: kDrawMain})
+			e.partyMenu(true, true)
+		}
+	case "temple":
+		return func() {
+			e.fixture(core.FixtureTemple, e.selected())
+			e.push(cont{kind: kDevBack})
+			e.Temple()
+		}
+	case "appraise":
+		return func() {
+			e.fixture(core.FixtureAppraise, core.NoChar)
+			e.push(cont{kind: kDevBack})
+			e.Shop()
+		}
+	case "combat", "wildcombat", "castfight", "missile", "autocombat", "meleefight", "fleefight", "winfight", "losefight": // losefight: a foe of 250 hp next to every member of 1 hp (the party falls: the last blow's body, the monsters' page, the party menu); winfight: one foe of 1 hp next to the party (a hit wins, the round's end asks Continue Battle:); meleefight: a foe next to every member (a bump attack on the first turn); fleefight: every member on a square beside the map's edge (a step off it asks Flee:); castfight: every member has Cure Light Wounds memorized (the inventory's Spells in a fight); missile: items for everyone (a sling, a bow and arrows, javelins), so the bar shows Use; autocombat: the computer fights for the party against eight (measuring the battle view)
+		return func() {
+			if name == "missile" {
+				e.fixture(core.FixtureMissile, core.NoChar)
+				e.selectMember(0)
+			}
+			if name == "wildcombat" { // the overland's terrain, from the dungeon save
+				e.viewMode = 2
+			}
+			if name == "castfight" {
+				e.fixture(core.FixtureCastFight, core.NoChar)
+				e.do(core.SetPortrait{Who: e.selected(), PNG: e.DevPortrait}) // the sheet's portrait, when DevPortrait is set
+			}
+			// Block 1 exists only in MON2CHA; take the first monster of
+			// the current set (DS:5376) so any save can start a fight.
+			idx := 1
+			if id, ok := e.gdata().firstMonster(e.set.File("MON")); ok {
+				idx = id
+			}
+			count := 3
+			if name == "meleefight" || name == "losefight" {
+				count = e.partySize() // a foe for every member
+			}
+			if name == "winfight" {
+				count = 1
+			}
+			if name == "autocombat" {
+				count = 8
+				e.fixture(core.FixtureAutoCombat, core.NoChar)
+			}
+			e.addMonsters(idx, count, 1)
+			// as opSetupMonster with max distance 1: the monsters stand off
+			// a block (a fresh game's distance is 0, right among the party)
+			e.setWorldWord(core.WordMonsterDist, min(e.FreeSteps(e.posX, e.posY, e.facing), 1))
+			open := e.pushCombat
+			if name == "meleefight" || name == "fleefight" || name == "winfight" || name == "losefight" {
+				open = func() {
+					e.pushCombat()
+					e.do(core.DevPlace{Melee: name != "fleefight"})
+					if name == "winfight" || name == "losefight" {
+						e.fixture(map[string]core.FixtureID{"winfight": core.FixtureWinFight, "losefight": core.FixtureLoseFight}[name], core.NoChar)
+					}
+				}
+			}
+			e.push(cont{kind: kDevFought})
+			open()
+		}
+	case "overland": // the wilderness map, the party on it
+		return func() {
+			e.setWorldWord(core.WordBeginFlag, 4)
+			e.setWorldWord(core.WordIn3D, 0)
+			e.viewMode = 2
+			e.setWorldWord(core.WordMapX, 7)
+			e.setWorldWord(core.WordMapY, 29)
+			e.LoadIconPic("ICON", 0, 9)
+			e.areaMapIcons()
+		}
+	case "bestiary": // camp with a few kinds met for its Bestiary (CPIC blocks 1..5)
+		return func() {
+			for i, n := range []string{"KOBOLD", "ORC", "TROLL", "GOBLIN GUARD", "WYVERN"} {
+				e.meetMonster(n, e.set.File("CPIC"), i+1)
+			}
+			e.CampMenu()
+		}
+	case "parlay": // an encounter's menu, then the talk-style menu a script's Parlay shows after PARLAY
+		return func() { // as opEncounterMenu at distance 0 with a close-up, then the script's Parlay
+			sprite, pic := 1, 1
+			for _, f := range []struct {
+				name string
+				id   *int
+			}{{"SPRIT", &sprite}, {"PIC", &pic}} {
+				if id, ok := e.artFolder().FirstID(asset.DOS, e.set.File(f.name)); ok {
+					*f.id = id
+				}
+			}
+			e.es.inEncounterMenu = 1
+			e.setWorldWord(core.WordPortrait, 0xFF)
+			e.ShowEncounter(sprite, pic, 0, &e.es.encounterShown)
+			e.msgCol, e.msgRow = 1, 0x11
+			e.paneText(ega.LightGreen, true, "A band of kobolds blocks the way.")
+			e.push(cont{kind: kDrawMain})
+			e.devParlayAnswered(-1)
+			e.openAsk()
+		}
+	case "password": // a script's InputString: the question in the text window, then the line typed (the remaster's pop-up)
+		return func() {
+			e.scriptText(true, "WHAT DO YOU SAY? (TYPE A SINGLE WORD)")
+			e.askLine(0x28, false, askDone{kind: dDevPassword})
+			e.push(cont{kind: kDrawMain})
+			e.openAsk()
+		}
+	case "portrait": // the DevPortrait (-png) as the selected member's portrait: the sheet, then the view with the cards
+		return func() {
+			e.do(core.SetPortrait{Who: e.selected(), PNG: e.DevPortrait})
+			e.openThen(false, cont{kind: kDevLoot})
+		}
+	case "sheetcast": // the sheet's Spells with the DevPortrait (-png) as the portrait: the list is a page of its own (no portrait overlay, no tall row)
+		return func() {
+			e.selectMember(e.firstOkay())
+			e.do(core.SetPortrait{Who: e.selected(), PNG: e.DevPortrait})
+			e.fixture(core.FixtureSheetCast, e.selected())
+			e.openThen(false, cont{kind: kDrawMain})
+		}
+	case "cast", "castko": // Cast on the command bar with Cure Light Wounds memorized; castko with the selected member unconscious
+		return func() {
+			f := core.FixtureCastKO
+			if name == "cast" { // an able caster
+				f = core.FixtureCast
+				if i := e.firstOkay(); i >= 0 {
+					e.selectMember(i)
+				}
+			}
+			e.fixture(f, e.selected())
+		}
+	case "who": // a member pick on the view, as a script's "Who will search?"
+		return func() { e.askMember("Who will search?", core.NoChar, askDone{kind: dWho}); e.openAsk() }
+	case "effects":
+		return func() { // spell effects for the View page: many on member 1, one on member 2
+			e.fixture(core.FixtureEffects, core.NoChar)
+		}
+	case "journal": // a text window naming journal entries, as ECL3 block 0 prints them
+		return func() {
+			e.paneText(ega.LightGreen, true, "YOU RECORD IT IN YOUR JOURNAL.")
+			e.showEntry(e.entryNamed("TavernTale3"))
+			e.push(cont{kind: kDevJournal})
+			e.blockedRet()
+		}
+	case "talljournal": // a journal entry with a picture taller than wide (entry 37): Up and Down scroll it
+		return func() {
+			e.paneText(ega.LightGreen, true, "IT BECOMES PART OF YOUR JOURNAL.")
+			e.showEntry(e.entryNamed("JournalEntry37"))
+		}
+	case "runes": // the Sokal Keep elf's scroll (ECL1 block 21, 9BD7): opClearBox, three opProtection lines
+		return func() {
+			e.snap.win = WinText // as opClearBox
+			e.blank(1, 1, 15, 15)
+			e.run.textInBox = 1
+			e.msgCol, e.msgRow = 2, 5
+			for _, l := range [][]byte{{0x56, 0x57, 0x6b, 0x6c, 0x71, 0x72}, {0x67, 0x68, 0x40, 0x41, 0x58, 0x59, 0x5c, 0x5d, 0x67, 0x68, 0x6b, 0x6c, 0x46, 0x47}, {0x67, 0x68, 0x4e, 0x4f, 0x48, 0x49, 0x67, 0x68, 0x69, 0x6a, 0x5a, 0x5b, 0x50, 0x51}} {
+				for i := 0; i < len(l); i += 2 {
+					e.char(e.msgCol+i/2, e.msgRow, ega.White, runeLetter(l[i]+1), true)
+				}
+				e.msgRow++
+			}
+			e.keyWait(cont{kind: kNop}) // the scroll stays up until a key (a pause outside a fight never waits)
+		}
+	case "inventory": // member 1 fully equipped, a party inventory to scroll
+		return func() {
+			e.fixture(core.FixtureInventory, core.NoChar)
+		}
+	case "lockeddoor": // a locked door ahead that no one can pick (the Pick menu's failure)
+		return func() {
+			for d := 0; d < 8; d += 2 { // face a wall
+				if e.WallAt(e.posX, e.posY, d) != 0 && grid.OnMap(e.posX+grid.StepX[d], e.posY+grid.StepY[d]) {
+					e.facing = d
+					break
+				}
+			}
+			e.setDoor(e.posX, e.posY, e.facing, 2)
+			e.setDoor(e.posX+grid.StepX[e.facing], e.posY+grid.StepY[e.facing], (e.facing+4)%8, 2)
+			e.run.doorTry = [3]byte{1, 1, 1}
+			e.fixture(core.FixtureNoPicker, core.NoChar)
+			e.Redraw()
+		}
+	case "dual": // the training hall with a human fighter who may change class (NewClass)
+		return func() {
+			e.fixture(core.FixtureDual, core.NoChar)
+			e.DevScene("hall")()
+		}
+	case "camp", "resting": // camp up; resting: a member is hurt and the rest has begun (StopRest)
+		return func() {
+			e.CampMenu()
+			if name == "resting" {
+				e.fixture(core.FixtureHurt, core.NoChar)
+				e.CampRest(RestFix)
+			}
+		}
+	case "sheet", "items", "usable", "paladin", "drop": // drop: items with a dagger to drop (Drop It?); the selected member's sheet; items: and its inventory over it; usable: with a potion to drink as the last item; paladin: a paladin of level 3 (its powers)
+		return func() {
+			if name == "paladin" || name == "drop" || name == "usable" {
+				e.fixture(map[string]core.FixtureID{"paladin": core.FixturePaladin, "drop": core.FixtureDrop, "usable": core.FixtureUsable}[name], e.selected())
+			}
+			e.OpenSheet(-1)
+			if name != "sheet" && name != "paladin" {
+				e.OpenItems(-1, false)
+			}
+		}
+	case "learn": // the training hall with the hall's magic-user ready to rise (Train, then Learn)
+		return func() {
+			e.fixture(core.FixtureLearn, core.NoChar)
+			e.sel = 4
+			e.DevScene("hall")()
+		}
+	case "loot", "lootdetect": // lootdetect: the selected member has Detect Magic memorized
+		return func() {
+			if name == "lootdetect" {
+				e.fixture(core.FixtureLootDetect, e.selected())
+			}
+			e.fixture(core.FixtureLoot, core.NoChar)
+			e.push(cont{kind: kDevFightEnd})
+			e.pushAfterCombat()
+		}
+	}
+	return nil
+}
+
+// devBack: as opCombat after a shop or temple, the 3D view comes back.
+func (e *Engine) devBack() {
+	e.setWorldWord(core.WordBeginFlag, 4)
+	e.DrawMainScreen()
+	e.ret()
+}
+
+// devFightEnd ends a dev scene's fight as opCombat's ECL loop does: a lost
+// party (run.quit, combatResult) ends the game through stepEnd, as a
+// script fight's does; else the explore screen (BUG-CLASSES 53).
+func (e *Engine) devFightEnd() {
+	if e.run.quit {
+		e.stepEnd()
+		return
+	}
+	e.DrawMainScreen()
+	e.ret()
+}
+
+// devParlayAnswered is the dev encounter menu's step: WAIT a message, then
+// the menu again (c -1: the first); else the talk-style menu.
+func (e *Engine) devParlayAnswered(c int) {
+	if c == 1 {
+		e.paneText(ega.LightGreen, true, "Both sides wait. The kobolds eye the party with suspicion.")
+	}
+	if c < 0 || c == 1 {
+		e.askChoice("", "~COMBAT ~WAIT ~FLEE ~PARLAY", false, false, askDone{kind: dDevParlay})
+		return
+	}
+	e.clearPrompt()
+	e.es.inEncounterMenu = 0
+	e.askChoice(" ", "~HAUGHTY ~SLY ~NICE ~MEEK ~ABUSIVE", false, false, askDone{})
+}
+
+// fixture has the ruleset set the party up for a dev scene (core.Fixture);
+// who is the selected member, for the temple.
+func (e *Engine) fixture(id core.FixtureID, who core.CharID) {
+	if _, err := e.ruleset().Resolve(nil, core.Fixture{ID: id, Who: who}, nil); err != nil {
+		panic(fmt.Sprintf("dev scene %v: %v", id, err))
+	}
+}

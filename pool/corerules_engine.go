@@ -1,0 +1,126 @@
+package pool
+
+import (
+	"fmt"
+	"gobox/char"
+	"gobox/core"
+	"gobox/core/goldbox"
+	"slices"
+)
+
+// Ruleset builds the Engine's ruleset (the one injection point of the rules,
+// fold step E2): monster, items and treasure are the game data's monster
+// records, base item table and treasure blocks; host is the Engine's side of
+// the creation. The game hands it to New; the types are unnamed so a builder
+// needs nothing of this package.
+type Ruleset func(
+	monster func(core.MonsterID) (char.Record285, []char.AffectRecord, []char.Item, bool),
+	items func() []char.ItemBase,
+	treasure func(block int) []char.Item,
+	host goldbox.CreationHost,
+) (core.Rules, core.CreationRules)
+
+// GameTables is the game's data the Engine shows, handed in by the game at New.
+type GameTables struct {
+	PortraitHead, PortraitBody []goldbox.PortraitPic // portrait number -> its picture, 1-based ([0] unused)
+}
+
+// bareRuleset and bareData are what an Engine made without New (a test's
+// &Engine{}) builds from; the tests set them (r1e_test.go).
+var (
+	bareRuleset Ruleset
+	bareData    GameTables
+)
+
+// ruleset is the Engine's ruleset, owner of the rules' state (fold step E-R6), made
+// at first use by the game's Ruleset: the Engine reaches the rules through it.
+func (e *Engine) ruleset() core.Rules {
+	if e.rules == nil {
+		build := e.newRules
+		if build == nil {
+			build = bareRuleset
+		}
+		monster := func(id core.MonsterID) (char.Record285, []char.AffectRecord, []char.Item, bool) {
+			m, ok := e.gdata().monster(e.set.File("MON"), int(id))
+			return m.Record, m.Affects, m.Items, ok
+		}
+		treasure := func(n int) []char.Item { return e.gdata().itemBlock(e.set.File("ITEM"), n) }
+		e.rules, e.create = build(monster, e.readItems, treasure, creationHost{e})
+	}
+	return e.rules
+}
+
+// game is the game's GameTables (bareData for an Engine made without New).
+func (e *Engine) game() GameTables {
+	if e.given == nil {
+		return bareData
+	}
+	return *e.given
+}
+
+// selFact is the selected member's Fact f as a number; a Fact the ruleset
+// does not hold is a bug of the script table.
+func (e *Engine) selFact(f core.Fact) int64 {
+	return int64(e.selValue(f).(core.Number))
+}
+
+// setSelFact writes the selected member's Fact f.
+func (e *Engine) setSelFact(f core.Fact, v int64) {
+	e.setSelValue(f, core.Number(v))
+}
+
+// scriptSide is the Side word's number of each side (SpecialReadZ1 268);
+// writing any other number changes nothing.
+var scriptSide = map[core.Side]uint16{core.SideParty: 0, core.SideAuto: 0x80, core.SideMonsters: 0x81}
+
+// selValue is the selected member's Fact f.
+func (e *Engine) selValue(f core.Fact) core.Value {
+	v, err := e.ruleset().Fact(e.selected(), f)
+	if err != nil {
+		panic(fmt.Sprintf("script: fact %v: %v", f, err))
+	}
+	return v
+}
+
+// setSelValue writes the selected member's Fact f.
+func (e *Engine) setSelValue(f core.Fact, v core.Value) {
+	if err := e.ruleset().SetFact(e.selected(), f, v); err != nil {
+		panic(fmt.Sprintf("script: fact %v: %v", f, err))
+	}
+}
+
+// selIndex is the selected member's typed Fact f as the script's number: its
+// place in the record's table of f's values. A record byte outside the table
+// comes back as a core.Number and is read as it stands (SpecialReadZ1).
+func selIndex[V comparable](e *Engine, f core.Fact, table []V) int {
+	switch v := e.selValue(f).(type) {
+	case core.Number:
+		return int(v)
+	case V:
+		return slices.Index(table, v)
+	}
+	panic(fmt.Sprintf("script: fact %v: unexpected value", f))
+}
+
+// worldWord is the world word w's value (core.WordIs); a word the rules do not
+// keep is a bug of the Engine.
+func (e *Engine) worldWord(w core.WorldWord) int {
+	a := e.ruleset().Check(core.WordIs{Word: w}, nil)
+	if !a.Yes {
+		panic(fmt.Sprintf("rules keep no world word %d", w))
+	}
+	return int(a.Value)
+}
+
+// setWorldWord stores v in the world word w (core.SetWord).
+func (e *Engine) setWorldWord(w core.WorldWord, v int) { e.do(core.SetWord{Word: w, Value: int32(v)}) }
+
+// rollDice is n dice of sides from the rules' generator (core.RollDice).
+func (e *Engine) rollDice(n, sides int) int {
+	return int(e.ruleset().Check(core.RollDice{N: int32(n), Sides: int32(sides)}, nil).Value)
+}
+
+// rollRandom is the rules' Random(n) (core.RollRandom).
+func (e *Engine) rollRandom(n int) int {
+	return int(e.ruleset().Check(core.RollRandom{N: int32(n)}, nil).Value)
+}

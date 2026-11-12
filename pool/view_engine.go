@@ -1,0 +1,208 @@
+package pool
+
+import (
+	"gobox/core"
+	"gobox/core/dnd"
+	"gobox/core/goldbox"
+	"strconv"
+	"strings"
+)
+
+// ClearScreen = 0709:0CAB.
+func (e *Engine) ClearScreen() {
+	e.clearPage()
+}
+
+// CharacterSheet = ovr20:004A: the selected member's sheet (View.SheetPage,
+// laid out by the presenter).
+func (e *Engine) CharacterSheet() {
+	id := e.selected()
+	e.ClearScreen()
+	e.applyItems(id)
+	e.snap.sheet = e.sheetPage(id)
+	if e.viewBit0 != 0 { // the original: only while set 3 is loaded (its HEAD/BODY); extra: everywhere, from charArt
+		e.SheetPortrait()
+	}
+}
+
+// sheetPage is c's sheet page as CharacterSheet shows it, its portrait
+// aside (SheetPortrait); with no side effect, so State builds it for every
+// member (game.Member.Page, BUG-CLASSES 36).
+func (e *Engine) sheetPage(id core.CharID) *SheetPage {
+	sh := e.ruleset().Sheet(id)
+	sp := &SheetPage{Name: sh.Name, NameColour: e.nameColour(id), NPC: e.fact(id, core.FactControl).(core.Number) > 0x7F,
+		Sex: e.word(id, core.FactSex), Race: e.word(id, core.FactRace), Age: int(sh.Age),
+		Alignment: e.word(id, core.FactAlignment), Class: e.word(id, core.FactClasses), Str00: e.word(id, core.FactExceptional), Creating: e.ext.creating}
+	for i, a := range [...]core.Ability{core.Strength, core.Intelligence, core.Wisdom, core.Dexterity, core.Constitution, core.Charisma} {
+		sp.Stats[i] = int(sh.Scores[a])
+	}
+	e.combatStats(id, sp)
+	if !e.ext.creating { // extra: the creation's sheet: no level, experience or status yet (create.go)
+		for _, l := range e.fact(id, core.BookFact{}).(core.Book).Levels[:8] {
+			if int8(l) > 0 {
+				if sp.Levels != "" {
+					sp.Levels += "/"
+				}
+				sp.Levels += strconv.Itoa(int(int8(l)))
+			}
+		}
+		sp.Exp = int(int32(sh.Exp))
+		if need := sh.NextExp; need > 0 { // extra: the experience the next level takes, green once it is there
+			sp.Next = int(need)
+		}
+		for i, v := range [...]core.Save{dnd.SaveParalysis, dnd.SavePetrify, dnd.SaveRod, dnd.SaveBreath, dnd.SaveSpell} { // extra: the saving throws
+			sp.Saves[i] = int(e.fact(id, core.SaveFact{Save: v}).(core.Number))
+		}
+		sp.Status = e.statusName(id)
+		sp.Effects, _ = e.effectsLine(id)
+	}
+	return sp
+}
+
+// Extra: the sheet lists the spell effects on the character (the camp
+// menu's Display, which is not offered) on the free row under HP. When they
+// do not all fit, the View menu offers Magic with the whole list.
+func (e *Engine) effectsLine(id core.CharID) (string, bool) {
+	names := e.ruleset().Sheet(id).Effects
+	if len(names) == 0 {
+		return "", true
+	}
+	s := strings.Join(names, ", ")
+	if len(s) <= winRight-9 {
+		return s, true
+	}
+	n := 0
+	for len(strings.Join(names[:n+1], ", "))+len(", +9 more") <= winRight-9 {
+		n++
+	}
+	if n == 0 {
+		return strconv.Itoa(len(names)) + " spell effects", false
+	}
+	return strings.Join(names[:n], ", ") + ", +" + strconv.Itoa(len(names)-n) + " more", false
+}
+
+func (e *Engine) effectsFit(id core.CharID) bool { _, ok := e.effectsLine(id); return ok }
+
+// combatStats = showCombatStats (ovr20:0608): AC, HP, THAC0, damage,
+// party items, movement.
+func (e *Engine) combatStats(id core.CharID, sp *SheetPage) {
+	sh := e.ruleset().Sheet(id)
+	sp.AC, sp.HP, sp.MaxHP = int(sh.AC), int(sh.HP), int(sh.MaxHP)
+	sp.THAC0, sp.Damage, sp.Move = int(sh.THAC0), goldbox.Cut(string(e.fact(id, core.DamageFact{}).(core.Text)), textCols), int(sh.Move)
+	if sp.Rules = e.fact(id, core.FiguresFact{}).(core.Figures); sp.Rules != nil { // extra: the rule set's modifiers and figures
+		for a := range sp.Mods {
+			sp.Mods[a] = e.mod(id, a)
+		}
+	}
+}
+
+// sheetView is the sheet's decisions for the View.
+func (e *Engine) sheetView() *Sheet {
+	id := e.selected()
+	return &Sheet{Powers: e.powers(id), Reactions: e.fact(id, core.ReactionsFact{}).(core.Reactions)}
+}
+
+// SheetPortrait = ovr29:04F9: the character's head and body in a box at
+// the top right of the sheet (SheetPage.PortraitAt; the presenter frames it).
+func (e *Engine) SheetPortrait() {
+	pt := e.fact(e.selected(), core.PortraitFact{}).(core.Portrait)
+	if pt.PNG == nil && (pt.Head == 0 || pt.Body == 0) {
+		return
+	}
+	box := CellRect{X1: winRight - 10, Y1: 1, X2: winRight, Y2: 11} // against the right border, whatever the page's width
+	if e.creation != nil {
+		box = sheetPortraitBox() // larger as the page has room (the presenter scales the pictures)
+	}
+	e.blank(box.X1, box.Y1, box.X2, box.Y2)
+	e.snap.portrait = box // Shift-click and a dropped PNG land here
+	if sp := e.snap.sheet; sp != nil {
+		sp.PortraitAt, sp.Portrait = box, e.pngImage(pt.PNG) // extra: the dropped PNG, fitted into the box at the window's resolution
+	}
+	if pt.PNG != nil {
+		return
+	}
+	heads, bodies := e.portraitPics("HEAD"), e.portraitPics("BODY")
+	h, b := heads[byte(pt.Head)%byte(len(heads))], bodies[byte(pt.Body)%byte(len(bodies))]
+	e.LoadPortrait(h.Set, int(h.Id), 0xFF)
+	e.LoadPortrait(b.Set, 0xFF, int(b.Id))
+	e.DrawPortrait(box.X1, 1, true)
+}
+
+// identifyItem = ovr20:1F52 (item): 200 gp shows the hidden words (the
+// player took the deal).
+func (e *Engine) identifyItem(id core.CharID, h core.ItemHandle) {
+	for _, f := range e.resolve(core.IdentifyItem{Who: id, Item: h}).Effects {
+		done, ok := f.(core.ItemIdentified)
+		if !ok {
+			continue
+		}
+		card := e.itemCard(id, h)
+		if !done.Revealed {
+			e.say("I can't tell anything new about your " + card.Name)
+			return
+		}
+		x := e.invItem(id, h) // (extra) the reveal in a pop-up of its own (View.Shop.Identified)
+		x.Look = card.LookPlain
+		e.snap.identified, e.snap.identN, e.snap.identIt = x, e.snap.identN+1, h
+		e.say("It looks like some sort of " + card.Name)
+	}
+}
+
+// powers is what c can do besides items: the View menu's Spells, Magic,
+// Heal and Cure (the inventory offers them too).
+func (e *Engine) powers(id core.CharID) []Power {
+	var ps []Power
+	if e.ruleset().Sheet(id).CanCast { // memorized, not still to be learned
+		ps = append(ps, Power{Name: "Cast", Kind: PowerSpells})
+	}
+	if !e.effectsFit(id) {
+		ps = append(ps, Power{Name: "Magic", Kind: PowerMagic}) // extra: all of the spell effects
+	}
+	if e.paladinHeals(id) {
+		ps = append(ps, Power{Name: "Heal", Kind: PowerHeal})
+	}
+	if e.paladinCures(id) {
+		ps = append(ps, Power{Name: "Cure", Kind: PowerCure})
+	}
+	return ps
+}
+
+// memberPowers (extra) is a card's context menu out of combat: View, Items
+// when c carries any, then powers; in camp also what c does there
+// (Memorize and Scribe open the presenter's lists, Drop its question).
+func (e *Engine) memberPowers(id core.CharID) []Power {
+	if e.inFight() {
+		return nil
+	}
+	ps := []Power{{Name: "View", Kind: PowerView}}
+	if e.carryCount(id) > 0 {
+		ps = append(ps, Power{Name: "Items", Kind: PowerItems})
+	}
+	ps = append(ps, e.powers(id)...)
+	if !e.campOn() {
+		return ps
+	}
+	study := e.fact(id, core.StudyFact{}).(core.Study)
+	if study.Book > 0 {
+		ps = append(ps, Power{Name: "Memorize", Kind: PowerPlan})
+	}
+	if study.Scrolls > 0 {
+		ps = append(ps, Power{Name: "Scribe", Kind: PowerScribe})
+	}
+	return append(ps, Power{Name: "Icon", Kind: PowerIcon}, Power{Name: "Drop", Kind: PowerDrop})
+}
+
+type viewState struct {
+	on    bool // the sheet is up (OpenSheet)
+	leave bool // the sheet was opened on the inventory (F1-F8): leaving that leaves it
+	chain bool // the game opened them (the loot, Browse): the cont on top of the stack goes on once both are closed
+}
+
+// portrait is id's portrait; false when id is no character.
+func (e *Engine) portrait(id core.CharID) (core.Portrait, bool) {
+	v, err := e.ruleset().Fact(id, core.PortraitFact{})
+	if err != nil {
+		return core.Portrait{}, false
+	}
+	return v.(core.Portrait), true
+}
