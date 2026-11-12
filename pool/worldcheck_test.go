@@ -1,6 +1,8 @@
 package pool
 
 import (
+	"gobox/core"
+	"gobox/core/dnd"
 	"gobox/ecl/script"
 	"rules1e"
 	"testing"
@@ -76,5 +78,26 @@ func TestWorldChecks(t *testing.T) {
 	run(e.opPartySurprise, v(out[0]), v(out[1]))
 	if get(0) != 1 || get(1) != 0 {
 		t.Errorf("PartySurprise %d %d with a ranger", get(0), get(1))
+	}
+}
+
+// TestCheckPartyThiefSkills: opCheckParty averages every thief skill the
+// layout names (cotab's area32 asks SelPickPockets), as the selected
+// member's skill fact.
+func TestCheckPartyThiefSkills(t *testing.T) {
+	e := quickStarted(t)
+	out := [4]script.Ref{}
+	for i, n := range []string{"Scratch1", "Scratch2", "Scratch3", "Scratch4"} {
+		out[i] = testField(t, e, n)
+	}
+	e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{Type: 1, Ref: testField(t, e, "SelPickPockets")}, {N: 0},
+		{Type: 1, Ref: out[0]}, {Type: 1, Ref: out[1]}, {Type: 1, Ref: out[2]}, {Type: 1, Ref: out[3]}}}}, Layout: e.vm.Script.Layout}
+	e.vm.PC = 0
+	e.vm.Fetch()
+	e.opCheckParty()
+	party := e.partyIDs()
+	a := e.ruleset().Check(core.Census{Party: party, Fact: core.SkillFact{Skill: dnd.PickPockets}}, nil)
+	if got := [4]int64{e.host.Get(out[0]), e.host.Get(out[1]), e.host.Get(out[2]), e.host.Get(out[3])}; got != [4]int64{int64(byte(a.Low)), int64(byte(a.High)), int64(byte(a.Avg)), int64(len(party))} {
+		t.Errorf("CheckParty pick pockets: %v, census %+v of %d", got, a, len(party))
 	}
 }

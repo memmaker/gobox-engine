@@ -470,15 +470,18 @@ func (e *Engine) opPartyStrength() {
 func (e *Engine) opCheckParty() {
 	e.vm.ReadArgs(6)
 	what := censusNone
+	var fact core.Fact
 	switch {
 	case e.vm.ArgType[1] != 1:
 		if e.vm.Arg(1, e.host) == 0 {
 			what = censusSpecial
 		}
-	case e.vm.Ref(1) == e.field(fieldSelFindTraps):
-		what = censusFindTraps
-	case e.vm.Ref(1) == e.field(fieldSelMove):
-		what = censusMove
+	default:
+		for name, f := range censusFacts {
+			if r, err := e.vm.Script.Layout.Named(name); err == nil && e.vm.Ref(1) == r { // a word the game's layout lacks is no census
+				what, fact = censusFact, f
+			}
+		}
 	}
 	special := byte(e.vm.Arg(2, e.host))
 	var dst [7]script.Ref
@@ -507,10 +510,8 @@ func (e *Engine) opCheckParty() {
 		}
 		lo, hi, avg = 0, 0, 0
 		store()
-	case censusFindTraps:
-		census(core.SkillFact{Skill: dnd.FindTraps})
-	case censusMove:
-		census(core.FactMove)
+	case censusFact:
+		census(fact)
 	}
 }
 
@@ -684,11 +685,21 @@ var platinumPrices = strings.NewReplacer(
 type census int
 
 const (
-	censusNone      census = iota // another address or number: nothing stored
-	censusSpecial                 // 0: a special ability
-	censusFindTraps               // SelFindTraps (0x6BA7): +0x79
-	censusMove                    // SelMove (0x6C1B): +0x11C
+	censusNone    census = iota // another address or number: nothing stored
+	censusSpecial               // 0: a special ability
+	censusFact                  // a selected member's fact (censusFacts)
 )
+
+// censusFacts are the fields opCheckParty averages over the party, by the
+// layout's name: the thief skills the game's scripts name and the movement
+// (por SelFindTraps 0x6BA7, SelMove 0x6C1B; cotab's census covers all eight
+// thief skills, cvThiefFirst..Last).
+var censusFacts = map[string]core.Fact{
+	"SelPickPockets":  core.SkillFact{Skill: dnd.PickPockets},
+	fieldSelFindTraps: core.SkillFact{Skill: dnd.FindTraps},
+	"SelThiefSkill6":  core.SkillFact{Skill: dnd.Climb},
+	fieldSelMove:      core.FactMove,
+}
 
 // eclOps are the commands the engine runs by name (the rest are
 // ecl.Default's); initVM puts each at its dialect's byte code.

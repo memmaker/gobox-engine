@@ -305,11 +305,8 @@ func (e *Engine) opCall() {
 	case script.CallDuelLose:
 		e.DuelSetup(0)
 	case script.CallDuelSound:
-		switch e.es.soundVar {
-		case 8:
-			e.cue(core.CueStep)
-		case 0xA:
-			e.cue(core.CueFireball) // DS:262A
+		if s, ok := e.game().ScriptSounds[byte(e.es.soundVar)]; ok { // the game's duel sounds (DS:2612's numbers)
+			e.cue(s.Cue)
 		}
 	case script.CallStepForward:
 		e.StepForward()
