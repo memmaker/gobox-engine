@@ -545,9 +545,11 @@ func (e *Engine) opProgram() {
 		e.ProgramEight() // ovr19:02A4
 	case script.ProgramCamp:
 		e.es.hold, e.es.holdPC = holdEncamp, int(e.vm.PC)
+	case script.ProgramQuit: // cotab 3, pod 2 (O040:1F1F): back to DOS
+		e.Exit()
 	}
-	// ponytail: ProgramQuit/ProgramSaveQuit (cotab, pod) have no pool handler
-	// until those games switch; their endings are per-game content.
+	// ProgramSaveQuit (pod 1) has no pool handler: pod's save asks a slot
+	// letter and its ending is pod's own sequence; pool has neither (Felix?).
 }
 
 // opWho = ovr04:2B33 (prompt): choose a party member.
