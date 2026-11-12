@@ -1,6 +1,7 @@
 package front
 
 import (
+	"gobox/core"
 	"gobox/game"
 	"image"
 	"image/color"
@@ -218,8 +219,8 @@ type Lore struct {
 	ID           int
 }
 
-// Money is an amount the front end shows (as "12g 50c").
-type Money struct{ Gold, Copper int }
+// Money is core.Money: an amount the front end shows (as "12g 50c").
+type Money = core.Money
 
 // Pending is what the game waits on (View.Pending): a shop or temple a
 // suspended ECL script opened, a fight, the finale, the treasure after a
