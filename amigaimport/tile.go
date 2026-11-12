@@ -172,9 +172,10 @@ func byteRun(s []byte) []byte {
 
 // tlbBlocks converts a .TLB library into DOS-layout blocks (first seen
 // wins: the same archive may sit on several disks) and its palettes.
-func tlbBlocks(data []byte, g Gfx, blocks, pals map[int][]byte) {
+func tlbBlocks(name string, data []byte, g Gfx, blocks, pals map[int][]byte) {
 	_, es, err := glib(data)
 	if err != nil {
+		Logf("amigaimport: skip %s.tlb: %v", name, err)
 		return
 	}
 	add := func(m map[int][]byte, id int, b []byte) {
@@ -202,30 +203,51 @@ func tlbBlocks(data []byte, g Gfx, blocks, pals map[int][]byte) {
 					add(pals, id, f.data[8:])
 				} else if t := decodeTile(f.data); t != nil {
 					frames = append(frames, t)
+				} else {
+					Logf("amigaimport: skip %s entry %d, a frame of %d bytes: not decodable", name, id, len(f.data))
 				}
 			}
 		} else if isPalette(e.data) {
 			add(pals, id, e.data[8:])
 		} else if t := decodeTile(e.data); t != nil {
 			frames = []*tile{t}
+		} else {
+			Logf("amigaimport: skip %s entry %d (%d bytes): not a picture or palette", name, id, len(e.data))
 		}
 		if g.Frames && !indexed {
 			all = append(all, frames...)
 		} else if len(frames) > 0 {
-			add(blocks, id, encode(frames, g))
+			if len(frames) > maxFrames {
+				Logf("amigaimport: %s entry %d: %d frames, the first %d kept (a DOS block counts frames in a byte)", name, id, len(frames), maxFrames)
+			}
+			if b := encode(frames, g); b != nil {
+				add(blocks, id, b)
+			} else {
+				Logf("amigaimport: skip %s block %d: past a DOS archive's 64 KB", name, id)
+			}
 		}
 	}
 	if len(all) > 0 {
-		add(blocks, g.Base, encode(all, g))
+		if len(all) > maxFrames {
+			Logf("amigaimport: %s block %d: %d frames, the first %d kept (a DOS block counts frames in a byte)", name, g.Base, len(all), maxFrames)
+		}
+		if b := encode(all, g); b != nil {
+			add(blocks, g.Base, b)
+		} else {
+			Logf("amigaimport: skip %s block %d: past a DOS archive's 64 KB", name, g.Base)
+		}
 	}
 }
+
+// maxFrames is the most frames a DOS block holds (its count is a byte).
+const maxFrames = 255
 
 // encode writes frames in the DOS picture (or, Sprite, animation) layout,
 // tagged "AM" with the palette slot, one byte per pixel when any colour
 // is past 15.
 func encode(frames []*tile, g Gfx) []byte {
-	frames = frames[:min(len(frames), 255)] // ponytail: a DOS block counts frames in a byte; PoD's 8X8D sets hold 256
-	if g.XOR {                              // later frames are drawn over the first
+	frames = frames[:min(len(frames), maxFrames)] // ponytail: a DOS block counts frames in a byte; PoD's 8X8D sets hold 256
+	if g.XOR {                                    // later frames are drawn over the first
 		for _, f := range frames[1:] {
 			if f.h != frames[0].h || f.w != frames[0].w {
 				continue

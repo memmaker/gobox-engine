@@ -14,7 +14,7 @@ import (
 var DOSArt atomic.Bool
 
 // amigaUp is whether the Amiga art is shown: DOSArt off and the adventure
-// has Amiga art (sotsb has none: its DOS art is up either way).
+// has Amiga art (every game's import has it: por, cotab, sotsb, pod).
 func (e *Engine) amigaUp() bool { return !DOSArt.Load() && e.artFolder().Has(asset.Amiga) }
 
 // symFix = DS:2722 / coab symbol_set_fix: first symbol id of each set.

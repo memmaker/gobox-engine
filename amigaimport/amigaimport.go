@@ -14,8 +14,10 @@ import (
 	"image/png"
 	"io"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -23,6 +25,10 @@ import (
 	"gobox/amiga"
 	"gobox/dax"
 )
+
+// Logf reports everything the import leaves out (a file, a block, a frame):
+// nothing is dropped unsaid. Tests replace it to collect the lines.
+var Logf = log.Printf
 
 // Gfx is how one archive converts.
 type Gfx struct {
@@ -54,6 +60,21 @@ type Spec struct {
 	// other: MinGfx is ignored, and of two releases the one whose marker
 	// is listed wins.
 	Disks []string
+	// Skip are the disk files the import deliberately leaves out, by base
+	// name (case-insensitive) with the reason; any other file that is not
+	// converted, copied or a program/palette source is logged as unknown.
+	Skip map[string]string
+	// Alias merges a library into another archive, by base name: Pools of
+	// Darkness' disk 1 8X8DA.TLB holds the 8X8D symbols of its own disk.
+	Alias map[string]string
+}
+
+// archive is the name a disk file's pictures are written under.
+func (s Spec) archive(name string) string {
+	if a, ok := s.Alias[name]; ok {
+		return a
+	}
+	return name
 }
 
 // Import reads the .adf images under src and writes to out.
@@ -166,7 +187,7 @@ func Import(src, out string, s Spec) error {
 			name = strings.ToLower(f.Path) // por: the data disk's own names, as ever
 			ext = ".dax"
 		}
-		name = strings.TrimSuffix(name, ext)
+		name = s.archive(strings.TrimSuffix(name, ext))
 		g, ok := s.Gfx[name]
 		if !ok {
 			continue
@@ -176,11 +197,12 @@ func Import(src, out string, s Spec) error {
 		}
 		switch ext {
 		case ".dax":
-			daxBlocks(f.Data, g, blocks[name])
+			daxBlocks(name, f.Data, g, blocks[name])
 		case ".tlb":
-			tlbBlocks(f.Data, g, blocks[name], pals[name])
+			tlbBlocks(name, f.Data, g, blocks[name], pals[name])
 		}
 	}
+	logSkipped(disk, s)
 	setArchives(blocks, pals)
 	for name, b := range blocks {
 		if p := s.Gfx[strings.TrimRight(name, "0123456789")].Pal; p > 0 && p+32 <= len(exe) {
@@ -207,6 +229,73 @@ func Import(src, out string, s Spec) error {
 	return nil
 }
 
+// skipReason is why a file is left out of every game's import (Spec.Skip
+// adds the game's own).
+var skipReason = map[string]string{
+	"always.tlb":  "the Amiga's own UI pieces (compass, arrows, window frames, cursors): gobox draws the UI, and the DOS archives have no such pictures",
+	"ecl.glb":     "game data, not art or sound: gobox import reads it from the DOS originals",
+	"geo.glb":     "game data, not art or sound: gobox import reads it from the DOS originals",
+	"moncha.glb":  "game data, not art or sound: gobox import reads it from the DOS originals",
+	"monitm.glb":  "game data, not art or sound: gobox import reads it from the DOS originals",
+	"monspc.glb":  "game data, not art or sound: gobox import reads it from the DOS originals",
+	"item.glb":    "game data, not art or sound: gobox import reads it from the DOS originals",
+	"walldef.glb": "game data, not art or sound: gobox import reads it from the DOS originals",
+	"items.dat":   "item table (game data): gobox import reads it from the DOS originals",
+	"item.dat":    "item table (game data): gobox import reads it from the DOS originals",
+	"strings.glb": "text strings (game data): the DOS originals' text is the source",
+	"curse.fon":   "the Amiga's bitmap font: gobox's fonts are its own",
+	"secret.fon":  "the Amiga's bitmap font: gobox's fonts are its own",
+	"pod.fon":     "the Amiga's bitmap font: gobox's fonts are its own",
+	"curse.slb":   "SLBR sound library of the Amiga's player: not read (the songs, where the disks have them, are the .mx file)",
+	"secret.slb":  "SLBR sound library of the Amiga's player: not read (the songs are SECRET.MX)",
+	"ecl.dax":     "game data, not art or sound: gobox import reads it from the DOS originals",
+	"geo.dax":     "game data, not art or sound: gobox import reads it from the DOS originals",
+	"item.dax":    "game data, not art or sound: gobox import reads it from the DOS originals",
+	"moncha.dax":  "game data, not art or sound: gobox import reads it from the DOS originals",
+	"monitm.dax":  "game data, not art or sound: gobox import reads it from the DOS originals",
+	"monspc.dax":  "game data, not art or sound: gobox import reads it from the DOS originals",
+	"walldef.dax": "game data, not art or sound: gobox import reads it from the DOS originals",
+}
+
+// osDirs are the AmigaOS directories of a boot disk: no game data.
+var osDirs = map[string]bool{"c": true, "devs": true, "l": true, "libs": true, "s": true, "fonts": true, "system": true}
+
+// logSkipped reports the data disks' files that were neither converted nor
+// copied, with the game's reason (Spec.Skip). AmigaOS files, icons, saved
+// games (save) and files without an extension (programs) are not game data.
+func logSkipped(disk []adf.File, s Spec) {
+	for _, f := range disk {
+		dir, _, _ := strings.Cut(strings.ToLower(f.Path), "/")
+		base := f.Path[strings.LastIndex(f.Path, "/")+1:]
+		lower, ext := strings.ToLower(base), strings.ToLower(filepath.Ext(base))
+		name := strings.TrimSuffix(lower, ext)
+		if _, gfx := s.Gfx[s.archive(name)]; gfx && (ext == ".tlb" || ext == ".dax") || ext == ".info" || ext == "" || osDirs[dir] || dir == "save" {
+			continue
+		}
+		if slices.ContainsFunc(s.Disks, func(m string) bool { return strings.EqualFold(f.Path, m) }) {
+			continue // the disk's marker file
+		}
+		if slices.ContainsFunc(s.Files, func(n string) bool { return strings.EqualFold(base, n[strings.LastIndex(n, "/")+1:]) }) {
+			continue
+		}
+		if why, ok := firstReason(s.Skip[lower], skipReason[lower]); ok {
+			Logf("amigaimport: skip %s: %s", f.Path, why)
+		} else {
+			Logf("amigaimport: skip %s: UNKNOWN (not in Gfx, Files or Skip)", f.Path)
+		}
+	}
+}
+
+// firstReason is the first non-empty reason.
+func firstReason(reasons ...string) (string, bool) {
+	for _, r := range reasons {
+		if r != "" {
+			return r, true
+		}
+	}
+	return "", false
+}
+
 // marked: the disk's volume or one of its files is a marker.
 func marked(vol string, files []adf.File, marks []string) bool {
 	for _, m := range marks {
@@ -223,11 +312,12 @@ func marked(vol string, files []adf.File, marks []string) bool {
 }
 
 // daxBlocks converts a Pool of Radiance .dax archive.
-func daxBlocks(data []byte, g Gfx, blocks map[int][]byte) {
+func daxBlocks(name string, data []byte, g Gfx, blocks map[int][]byte) {
 	a := dax.OpenAmiga(data)
 	for _, e := range a.Entries {
 		b := a.BlockShared(e.ID)
 		if len(b) < 16 || e.ID > 255 {
+			Logf("amigaimport: skip %s.dax block %d (%d bytes): too small or id past 255", name, e.ID, len(b))
 			continue
 		}
 		if g.Sprite {
