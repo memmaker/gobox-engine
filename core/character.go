@@ -246,6 +246,12 @@ type (
 		Whom      []CharID
 		Condition Condition
 	}
+	// HasAffect: a script's FindAffect (cotab, sotsb, pod) and CheckParty
+	// what=0 (por): the affect by the number the module's scripts write.
+	HasAffect struct {
+		Whom   []CharID
+		Affect ScriptAffect
+	}
 	// HasClass: por opPartySurprise's ranger.
 	HasClass struct {
 		Party Party
@@ -274,6 +280,7 @@ func (PartyStrength) check() {}
 func (Census) check()        {}
 func (HasCondition) check()  {}
 func (HasClass) check()      {}
+func (HasAffect) check()     {}
 func (HasItem) check()       {}
 func (HasMemorized) check()  {}
 func (SkillRoll) check()     {}
@@ -293,3 +300,7 @@ type Answer struct {
 // adventures on the same ruleset. Originals (.GUY, CHRDATA) come in once through
 // the save importer (ARCHITECTURE.md); nothing writes them.
 type CharacterFile []byte
+
+// ScriptAffect is an affect as a module's scripts number it; the ruleset
+// reads it through the game's own affect numbering.
+type ScriptAffect byte

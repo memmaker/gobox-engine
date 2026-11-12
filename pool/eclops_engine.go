@@ -500,12 +500,8 @@ func (e *Engine) opCheckParty() {
 	}
 	switch what {
 	case censusSpecial:
-		cond, ok := scriptConditions[special]
-		if !ok {
-			panic(fmt.Sprintf("script: CheckParty: no condition %d", special))
-		}
 		for _, id := range e.partyIDs() {
-			if e.ruleset().Check(core.HasCondition{Whom: []core.CharID{id}, Condition: cond}, nil).Yes { // 00BA:2199
+			if e.ruleset().Check(core.HasAffect{Whom: []core.CharID{id}, Affect: core.ScriptAffect(special)}, nil).Yes { // 00BA:2199
 				count++
 			}
 		}
@@ -518,10 +514,6 @@ func (e *Engine) opCheckParty() {
 	}
 }
 
-// scriptConditions is the Condition each affect number of CheckParty's
-// what=0 names (the ruleset knows the affect).
-// ponytail: the one por's scripts use (19); add numbers when a script does.
-var scriptConditions = map[byte]core.Condition{19: dnd.CondFindTraps}
 
 // opPartySurprise = ovr04:1629 (a, b): a = someone has +0x2F of 4 or 10;
 // b is always 0.
@@ -743,7 +735,7 @@ func init() {
 		script.OpRob: (*Engine).opRob, script.OpEncounterMenu: (*Engine).opEncounterMenu, script.OpParlay: (*Engine).opParlay,
 		script.OpCall: (*Engine).opCall, script.OpDamage: (*Engine).opDamage, script.OpRedrawView: (*Engine).opRedrawView,
 		script.OpTreasure: (*Engine).opTreasure, script.OpTreasureOf: (*Engine).opTreasureOf, script.OpItemSet: (*Engine).opItemSet,
-		script.OpFindItem: (*Engine).opFindItem, script.OpNewLine: (*Engine).opNewLine, script.OpClock: (*Engine).opClock,
+		script.OpFindItem: (*Engine).opFindItem, script.OpFindAffect: (*Engine).opFindAffect, script.OpNewLine: (*Engine).opNewLine, script.OpClock: (*Engine).opClock,
 		script.OpAddNPC: (*Engine).opAddNPC, script.OpProgram: (*Engine).opProgram, script.OpWho: (*Engine).opWho,
 		script.OpDelay: (*Engine).opDelay, script.OpProtection: (*Engine).opProtection,
 		script.OpClearBox: (*Engine).opClearBox,

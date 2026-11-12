@@ -520,6 +520,19 @@ func (e *Engine) opFindItem() {
 	}
 }
 
+// opFindAffect = cotab O03C:32A5, pod O040:2015 (affect): equal when the
+// selected member has the affect (the script's number; the ruleset reads it
+// through the game's affect numbering).
+func (e *Engine) opFindAffect() {
+	e.vm.ReadArgs(1)
+	n := core.ScriptAffect(e.vm.Arg(1, e.host))
+	e.vm.Flags = [6]bool{}
+	e.vm.Flags[1] = true
+	if e.ruleset().Check(core.HasAffect{Whom: []core.CharID{e.selected()}, Affect: n}, nil).Yes {
+		e.vm.Flags[0], e.vm.Flags[1] = true, false
+	}
+}
+
 // opNewLine = ovr04:2AEB: text cursor to the start of the next row.
 func (e *Engine) opNewLine() {
 	e.vm.PC++
