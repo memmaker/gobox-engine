@@ -650,7 +650,7 @@ func init() {
 		script.OpClearBox: (*Engine).opClearBox,
 		// the later dialects' (fold S2): SpriteOff is the first engine's 0x31
 		script.OpSpriteOff: (*Engine).opRedrawView, script.OpNoOp: (*Engine).opNoOp, script.OpPressKey: (*Engine).opPressKey,
-		script.OpYesNo: (*Engine).opYesNo, script.OpClearExit: (*Engine).opClearExit,
+		script.OpYesNo: (*Engine).opYesNo, script.OpClearExit: (*Engine).opClearExit, script.OpGainExp: (*Engine).opGainExperience,
 	}
 }
 

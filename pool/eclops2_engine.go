@@ -312,6 +312,23 @@ func (e *Engine) opClearExit() {
 	e.opExit()
 }
 
+// opGainExperience = sotsb O050:37F4 (whole party, points): the points go
+// to everyone (or the selected member), split among each one's classes.
+// Ruling S8: as given (pod's are multiplied by 100 at import), any member
+// whatever its state.
+func (e *Engine) opGainExperience() {
+	e.vm.ReadArgs(2)
+	whom := e.partyIDs()
+	text := "Congratulations the party gains experience!"
+	if byte(e.vm.Arg(1, e.host)) == 0 {
+		whom = core.Party{e.selected()}
+		text = "Congratulations " + e.name(e.selected()) + " gains experience!"
+	}
+	e.do(core.GainExperience{Whom: whom, Points: int32(uint16(e.vm.Arg(2, e.host)))})
+	e.scriptText(true, text)
+	e.askPause(int(e.msgDelay)*0xE1, askDone{})
+}
+
 // DAMAGE's first operand (ruling 3, cotab's): a count of random members,
 // or flags; its save operand: the save type, or with saveSelected the
 // selected member saves (type 0: none).

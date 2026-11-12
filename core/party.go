@@ -322,3 +322,13 @@ func (ClassByNumber) fact() {}
 func (PaladinCan) check()   {}
 func (Party) value()        {}
 func (Class) value()        {}
+
+// GainExperience gives each of Whom Points experience, split evenly among
+// its classes (the script's GainExperience; ruling S8: as given, any member
+// whatever its state).
+type GainExperience struct {
+	Whom   Party
+	Points int32
+}
+
+func (GainExperience) action() {}
