@@ -119,11 +119,11 @@ type ScrollSpell struct {
 }
 
 // Book is a character's spells for the roster cards: the book's, those in
-// the head, the slots a class has per level (class 0 cleric, 1 mage; level 1..3
-// at index 0..2) and the level of each class column.
+// the head, the slots a class has per level (class 0 cleric, 1 mage, 2 druid;
+// level 1..9 at index 0..8) and the level of each class column.
 type Book struct {
 	Known, Memorized []BookSpell
-	Slots            [2][3]int32
+	Slots            [3][9]int32
 	Levels           []int32
 }
 

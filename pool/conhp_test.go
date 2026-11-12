@@ -19,9 +19,9 @@ func TestGenheerisSlots(t *testing.T) {
 	e := &Engine{}
 	e.initVM()
 	c := &rules1e.Character{}
-	c.Levels[rules1e.ClsMage], c.SpellSlots = 7, [6]rules1e.Count{0, 0, 0, 4, 2, 2}
+	c.Levels[rules1e.ClsMage], c.SpellSlots = 7, rules1e.SpellSlots{rules1e.SpellClassMage: {4, 2, 2}}
 	e.state().RecomputeCharacter(c)
-	if c.SpellSlots != [6]rules1e.Count{0, 0, 0, 4, 2, 2} {
+	if c.SpellSlots != (rules1e.SpellSlots{rules1e.SpellClassMage: {4, 2, 2}}) {
 		t.Errorf("slots %v", c.SpellSlots)
 	}
 }
@@ -31,9 +31,9 @@ func TestDrainedSlots(t *testing.T) {
 	e := &Engine{}
 	e.initVM()
 	c := &rules1e.Character{}
-	c.Levels[rules1e.ClsMage], c.SpellSlots = 1, [6]rules1e.Count{0, 0, 0, 2, 0, 0}
+	c.Levels[rules1e.ClsMage], c.SpellSlots = 1, rules1e.SpellSlots{rules1e.SpellClassMage: {2, 0, 0}}
 	e.state().RecomputeCharacter(c)
-	if c.SpellSlots != [6]rules1e.Count{0, 0, 0, 1, 0, 0} {
+	if c.SpellSlots != (rules1e.SpellSlots{rules1e.SpellClassMage: {1, 0, 0}}) {
 		t.Errorf("slots %v", c.SpellSlots)
 	}
 }

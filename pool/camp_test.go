@@ -40,7 +40,7 @@ func TestPlanSpells(t *testing.T) {
 	e := &Engine{}
 	e.initVM()
 	c := &rules1e.Character{}
-	c.SpellSlots[0] = 3 // three 1st-level cleric spells
+	c.SpellSlots[rules1e.SpellClassCleric][0] = 3 // three 1st-level cleric spells
 	c.Plan = [21]rules1e.SpellID{rules1e.SpCureLightWounds, rules1e.SpCureLightWounds, rules1e.SpCureLightWounds}
 	c.Memorized = [21]rules1e.SpellID{rules1e.SpBless, rules1e.SpCureLightWounds | 0x80}
 	e.state().PlanSpells(c)

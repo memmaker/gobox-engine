@@ -76,7 +76,7 @@ func TestFixesAgainstPascal(t *testing.T) {
 			for _, v := range m.Memorized {
 				held += rules1e.B2i(v != 0)
 			}
-			got = fmt.Sprintf("%d %d %d", m.Levels[rules1e.ClsCleric], m.SpellSlots[0], held)
+			got = fmt.Sprintf("%d %d %d", m.Levels[rules1e.ClsCleric], m.SpellSlots[rules1e.SpellClassCleric][0], held)
 		case "ringsave":
 			got = ringSaveCase(t, k[0], k[1], k[2])
 		case "robring":

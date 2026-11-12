@@ -275,7 +275,7 @@ func sheetOf(r Record285) rules1e.Sheet {
 		Exp:        r.Exp,
 		ClassMask:  r.ClassMask,
 		HPRoll:     r.HPRoll,
-		SpellSlots: r.SpellSlots,
+		SpellSlots: slotsOf285(r.SpellSlots),
 		ExpValue:   r.ExpValue,
 		ExpPerHP:   r.ExpPerHP,
 		PortHead:   r.PortHead,
@@ -345,7 +345,7 @@ func recordOf(s rules1e.Sheet) Record285 {
 		Exp:        s.Exp,
 		ClassMask:  s.ClassMask,
 		HPRoll:     s.HPRoll,
-		SpellSlots: s.SpellSlots,
+		SpellSlots: slots285(s.SpellSlots),
 		ExpValue:   s.ExpValue,
 		ExpPerHP:   s.ExpPerHP,
 		PortHead:   s.PortHead,
@@ -373,5 +373,20 @@ func recordOf(s rules1e.Sheet) Record285 {
 		Move:       s.Move,
 	}
 	r.PName[0] = byte(copy(r.PName[1:], s.CharName[:min(len(s.CharName), 15)]))
+	return r
+}
+
+// slotsOf285 and slots285 move the 0x11D record's slots (cleric 1..3,
+// magic-user 1..3) to and from rules1e's by spell class and level; the
+// record has no room for the rest.
+func slotsOf285(r [6]rules1e.Count) (s rules1e.SpellSlots) {
+	copy(s[rules1e.SpellClassCleric][:3], r[0:3])
+	copy(s[rules1e.SpellClassMage][:3], r[3:6])
+	return s
+}
+
+func slots285(s rules1e.SpellSlots) (r [6]rules1e.Count) {
+	copy(r[0:3], s[rules1e.SpellClassCleric][:3])
+	copy(r[3:6], s[rules1e.SpellClassMage][:3])
 	return r
 }
