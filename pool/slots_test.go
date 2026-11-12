@@ -159,7 +159,7 @@ func TestSeenByMap(t *testing.T) {
 // built-in ones with the player's over them.
 func (e *Engine) labels() map[int]mapLabel {
 	m := map[int]mapLabel{}
-	maps.Copy(m, builtinLabels(e.areaKey()))
+	maps.Copy(m, e.builtinLabels(e.areaKey()))
 	maps.Copy(m, e.ext.labels[e.areaKey()])
 	return m
 }
@@ -169,13 +169,14 @@ func (e *Engine) labels() map[int]mapLabel {
 // adventure starts without them, and removing one shows the built-in again.
 func TestPhlanLabels(t *testing.T) {
 	e := &Engine{set: 3, data: "../../por-go/data", adv: "../../por-go/data/assets"} // the save needs the script layout
+	e.given = &GameTables{MapLabels: PorMapLabels}
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
-	if m := e.labels(); m[1<<4|15].text != "Boats" || len(m) != len(phlanLabels) {
+	if m := e.labels(); m[1<<4|15].text != "Boats" || len(m) != len(e.builtinLabels(3<<16)) {
 		t.Fatalf("fresh New Phlan: %d labels, 15,1 = %q", len(m), m[1<<4|15].text)
 	}
 	e.userLabels()[1<<4|15] = mapLabel{"My boat", poiUser}
-	e.userLabels()[1<<4|11] = phlanLabels[1<<4|11]
+	e.userLabels()[1<<4|11] = e.builtinLabels(3<<16)[1<<4|11]
 	e.saveTo("X")
 	path := filepath.Join(e.slotRoot(), "X", labelsFile)
 	if b, _ := os.ReadFile(path); string(b) != "map 196608\n15 1 0 My boat\n" {
@@ -292,5 +293,14 @@ func TestLegacySaveLoads(t *testing.T) {
 	}
 	if g.Set != 2 || g.X != 7 || s.Area != old.Area || s.Game != old.Game || s.Purse != old.Purse {
 		t.Errorf("loaded set %d x %d %+v, want the old save's", g.Set, g.X, s.Purse)
+	}
+}
+
+// TestMapLabelsPerGame: a game without MapLabels shows none on set 3, GEO 0
+// (POR's New Phlan labels were on every game's map there).
+func TestMapLabelsPerGame(t *testing.T) {
+	e := &Engine{set: 3, given: &GameTables{}}
+	if len(e.builtinLabels(e.areaKey())) != 0 || e.areaSong() != 0 {
+		t.Fatal("another game's area 3/0 has POR's labels or songs")
 	}
 }

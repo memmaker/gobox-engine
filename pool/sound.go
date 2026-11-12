@@ -8,7 +8,6 @@ import (
 	"gobox/amiga"
 	"gobox/audio/sounddata"
 	"gobox/core"
-	"gobox/core/grid"
 	"gobox/game/play"
 )
 
@@ -119,32 +118,31 @@ func (e *Engine) areaMusic() {
 
 // The soundtrack's songs, numbered in the Famicom cartridge's order.
 const (
-	songTitle           = 1
-	songNewPhlan        = 2
-	songDungeon1        = 3
-	songDungeon2        = 4
-	songDiogenes        = 5
-	songDungeon3        = 6
-	songYarash          = 7
-	songGraveyard       = 8
-	songValjevo         = 9 // Stojanow Gate and Valjevo Castle
-	songLair            = 10
-	songCombat          = 11
-	songTyranthraxus    = 12
-	songWilderness      = 13
-	songShop            = 14
-	songEnding          = 15
-	songGameOver        = 16
-	songEncounter       = 17
-	songVictory         = 18 // with the fanfare; 19 is the loop alone
-	songTemple          = 20
-	songInn             = 21
-	songTrainingHall    = 24 // with the fanfare; 22 is the loop alone
-	songCityHall        = 23
-	songTavern          = 25
-	songGypsy           = 26
-	songBattleBegins    = 27 // a two-second sting
-	geoTyranthraxusLair = 7
+	songTitle        = 1
+	songNewPhlan     = 2
+	songDungeon1     = 3
+	songDungeon2     = 4
+	songDiogenes     = 5
+	songDungeon3     = 6
+	songYarash       = 7
+	songGraveyard    = 8
+	songValjevo      = 9 // Stojanow Gate and Valjevo Castle
+	songLair         = 10
+	songCombat       = 11
+	songTyranthraxus = 12
+	songWilderness   = 13
+	songShop         = 14
+	songEnding       = 15
+	songGameOver     = 16
+	songEncounter    = 17
+	songVictory      = 18 // with the fanfare; 19 is the loop alone
+	songTemple       = 20
+	songInn          = 21
+	songTrainingHall = 24 // with the fanfare; 22 is the loop alone
+	songCityHall     = 23
+	songTavern       = 25
+	songGypsy        = 26
+	songBattleBegins = 27 // a two-second sting
 )
 
 // amigaSong (extra) maps the Amiga songs Music starts to the soundtrack's:
@@ -153,39 +151,50 @@ const (
 // wilderness.
 var amigaSong = [...]int{0: 0, 1: songTitle, 2: songCombat, 3: songTrainingHall, 4: songNewPhlan, 5: songGameOver, 6: songWilderness}
 
-// areaSongs (extra) is each area's song, by GEO block: the cartridge's own
-// area table (bank 59 $8C46) where its areas match the PC's, the themes'
-// names elsewhere.
-var areaSongs = map[int]int{
-	0: songNewPhlan, 1: songDungeon3, 2: songDungeon1,
-	3: songValjevo, 4: songValjevo, 5: songValjevo, 6: songValjevo, geoTyranthraxusLair: songLair,
-	9: songValjevo, 10: songGraveyard, 13: songDungeon1, 14: songDungeon2, 15: songDungeon1,
-	16: songYarash, 17: songGypsy, 18: songDungeon1, 19: songDiogenes, 20: songDungeon1,
-	21: songDungeon2, 22: songYarash, 23: songYarash, 24: songDungeon2,
-	25: songWilderness, 26: songWilderness, 27: songWilderness, 28: songDungeon3,
-	29: songDungeon1, 30: songYarash, 31: songDungeon2, 32: songDungeon1,
+// AreaMusic is a game's soundtrack by area (GameTables.Music; nil: none):
+// each GEO block's song, and the songs of the battles fought there.
+type AreaMusic struct {
+	Songs       map[int]int // GEO block -> its song
+	BattleSongs map[int]int // GEO block -> its battles' song; none: A Battle Begins into the combat theme
 }
 
-// phlanSongs are New Phlan's buildings' songs, by their map labels.
-var phlanSongs = map[string]int{
-	"Inn": songInn, "Tavern": songTavern, "Training Hall": songTrainingHall, "City Hall": songCityHall,
-	"Shop": songShop, "Jeweler": songShop, "Arms and Armor": songShop, "Silver Shop": songShop,
-	"Temple of Tyr": songTemple, "Temple of Sune": songTemple, "Temple of Tempus": songTemple, "Bishop Braccio": songTemple,
+// PorMusic (extra) is POR's: the cartridge's own area table (bank 59 $8C46)
+// where its areas match the PC's, the themes' names elsewhere; Tyranthraxus's
+// lair (GEO 7) has his own battle song.
+var PorMusic = AreaMusic{
+	Songs: map[int]int{
+		0: songNewPhlan, 1: songDungeon3, 2: songDungeon1,
+		3: songValjevo, 4: songValjevo, 5: songValjevo, 6: songValjevo, 7: songLair,
+		9: songValjevo, 10: songGraveyard, 13: songDungeon1, 14: songDungeon2, 15: songDungeon1,
+		16: songYarash, 17: songGypsy, 18: songDungeon1, 19: songDiogenes, 20: songDungeon1,
+		21: songDungeon2, 22: songYarash, 23: songYarash, 24: songDungeon2,
+		25: songWilderness, 26: songWilderness, 27: songWilderness, 28: songDungeon3,
+		29: songDungeon1, 30: songYarash, 31: songDungeon2, 32: songDungeon1,
+	},
+	BattleSongs: map[int]int{7: songTyranthraxus},
+}
+
+// music is the game's AreaMusic.
+func (e *Engine) music() AreaMusic {
+	if m := e.game().Music; m != nil {
+		return *m
+	}
+	return AreaMusic{}
 }
 
 // areaSong is the song for where the party is: the wilderness on the
-// overland map, a building's in New Phlan, else the area's (0: none).
+// overland map, a labelled building's (MapLabel.Song), else the area's (0: none).
 func (e *Engine) areaSong() int {
 	if e.viewMode > 1 {
 		return songWilderness
 	}
-	x, y := e.posX, e.posY
-	if e.areaKey() == phlanKey && grid.OnMap(x, y) {
-		if song, ok := phlanSongs[phlanLabels[y<<4|x].text]; ok {
-			return song
+	k := e.areaKey()
+	for _, l := range e.game().MapLabels {
+		if l.Area == k && l.X == e.posX && l.Y == e.posY && l.Song != 0 {
+			return l.Song
 		}
 	}
-	return areaSongs[e.worldWord(core.WordGeo)]
+	return e.music().Songs[e.worldWord(core.WordGeo)]
 }
 
 // battleMusic (extra) starts a battle's music: A Battle Begins into the
@@ -193,7 +202,7 @@ func (e *Engine) areaSong() int {
 // without the soundtrack.
 func (e *Engine) battleMusic() {
 	switch {
-	case e.worldWord(core.WordGeo) == geoTyranthraxusLair && e.songMusic(songTyranthraxus, 0):
+	case e.music().BattleSongs[e.worldWord(core.WordGeo)] != 0 && e.songMusic(e.music().BattleSongs[e.worldWord(core.WordGeo)], 0):
 	case e.songMusic(songBattleBegins, songCombat):
 	default:
 		e.Music(2) // Amiga 0x364E2

@@ -42,6 +42,8 @@ type GameTables struct {
 	PurseWhos                  []PurseWho            // the Who commands that spend the party's one purse (POR: the inn, the tavern)
 	Symbols                    []SymbolLoad          // the 8x8 symbol sets Init loads; nil: POR's, sotsb's and cotab's (PorSymbols)
 	Art                        *ArtNames             // the pictures the Engine loads by role; nil: POR's (PorArt)
+	MapLabels                  []MapLabel            // the maps' fixed labels (POR: New Phlan's buildings, PorMapLabels); none: none
+	Music                      *AreaMusic            // the soundtrack by area (POR: PorMusic); nil: none
 	MonsterSet                 goldbox.Set           // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
 }
 

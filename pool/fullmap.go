@@ -17,7 +17,7 @@ import (
 // square with a letter on every labelled square and a legend beside it. A
 // cursor (arrows, click) picks a square; Walk goes there (walk.go), Label
 // names it, Remove clears it.
-// New Phlan's buildings are always labelled (phlanLabels, in every game);
+// The game's fixed labels (GameTables.MapLabels; POR: New Phlan's buildings) are always shown;
 // the player's labels go over them and are kept with the save (labelsFile).
 
 // Label kinds, each with its colour on the maps (LabelInks, present.Data).
@@ -34,50 +34,62 @@ type mapLabel struct {
 	kind byte
 }
 
-// phlanLabels are the buildings of New Phlan (ECL3 block 0, GEO3 block 0):
-// the squares whose event id (cell byte & 0x7F, the script's [6E82]) leads
-// to a shop, temple, inn, tavern or office in the block's step event (ECL
-// 9B4C ONGOTO).
-var phlanLabels = func() map[int]mapLabel {
-	m := map[int]mapLabel{}
-	add := func(text string, kind byte, sq ...[2]int) {
+// MapLabel is a fixed label of a map square, the game's data (GameTables.MapLabels;
+// POR: New Phlan's buildings): its text and kind, and the soundtrack song
+// played there (0: the area's).
+type MapLabel struct {
+	Area int // areaKey: data set<<16 | GEO block
+	X, Y int
+	Text string
+	Kind byte // poi*
+	Song int
+}
+
+// PorMapLabels are the buildings of New Phlan (data set 3, GEO block 0;
+// ECL3 block 0): the squares whose event id (cell byte & 0x7F, the
+// script's [6E82]) leads to a shop, temple, inn, tavern or office in the
+// block's step event (ECL 9B4C ONGOTO).
+var PorMapLabels = func() []MapLabel {
+	var m []MapLabel
+	add := func(text string, kind byte, song int, sq ...[2]int) {
 		for _, s := range sq {
-			m[s[1]<<4|s[0]] = mapLabel{text, kind}
+			m = append(m, MapLabel{Area: 3 << 16, X: s[0], Y: s[1], Text: text, Kind: kind, Song: song})
 		}
 	}
-	add("Boats", poiCivic, [2]int{15, 1})                                          // 1
-	add("Harbor master", poiCivic, [2]int{11, 1})                                  // 2
-	add("Bishop Braccio", poiTemple, [2]int{10, 5})                                // 5
-	add("Temple of Tyr", poiTemple, [2]int{11, 3}, [2]int{8, 4}, [2]int{8, 6})     // 6
-	add("Temple of Sune", poiTemple, [2]int{1, 1}, [2]int{3, 1}, [2]int{1, 3})     // 7
-	add("Inn", poiInn, [2]int{4, 12}, [2]int{6, 12}, [2]int{4, 13}, [2]int{6, 13}, // 9
+	add("Boats", poiCivic, 0, [2]int{15, 1})                                                // 1
+	add("Harbor master", poiCivic, 0, [2]int{11, 1})                                        // 2
+	add("Bishop Braccio", poiTemple, songTemple, [2]int{10, 5})                             // 5
+	add("Temple of Tyr", poiTemple, songTemple, [2]int{11, 3}, [2]int{8, 4}, [2]int{8, 6})  // 6
+	add("Temple of Sune", poiTemple, songTemple, [2]int{1, 1}, [2]int{3, 1}, [2]int{1, 3})  // 7
+	add("Inn", poiInn, songInn, [2]int{4, 12}, [2]int{6, 12}, [2]int{4, 13}, [2]int{6, 13}, // 9
 		[2]int{0, 14}, [2]int{1, 14}, [2]int{2, 14})
-	add("Training Hall", poiCivic, [2]int{5, 0}, [2]int{7, 0}, [2]int{9, 0})          // 10, 17
-	add("Shop", poiShop, [2]int{15, 8}, [2]int{9, 10}, [2]int{12, 10}, [2]int{9, 11}, // 19
+	add("Training Hall", poiCivic, songTrainingHall, [2]int{5, 0}, [2]int{7, 0}, [2]int{9, 0})  // 10, 17
+	add("Shop", poiShop, songShop, [2]int{15, 8}, [2]int{9, 10}, [2]int{12, 10}, [2]int{9, 11}, // 19
 		[2]int{11, 11})
-	add("Tavern", poiInn, [2]int{10, 8}, [2]int{8, 9}, [2]int{14, 10}, [2]int{15, 10}, // 20
+	add("Tavern", poiInn, songTavern, [2]int{10, 8}, [2]int{8, 9}, [2]int{14, 10}, [2]int{15, 10}, // 20
 		[2]int{15, 12}, [2]int{15, 13}, [2]int{15, 14})
-	add("Jeweler", poiShop, [2]int{8, 10})                                       // 21
-	add("Arms and Armor", poiShop, [2]int{13, 8}, [2]int{8, 11}, [2]int{11, 12}, // 22
+	add("Jeweler", poiShop, songShop, [2]int{8, 10})                                       // 21
+	add("Arms and Armor", poiShop, songShop, [2]int{13, 8}, [2]int{8, 11}, [2]int{11, 12}, // 22
 		[2]int{8, 13}, [2]int{9, 13})
-	add("Silver Shop", poiShop, [2]int{11, 10}, [2]int{10, 13})                        // 23
-	add("Temple of Tempus", poiTemple, [2]int{0, 12}, [2]int{2, 12})                   // 24
-	add("Gate to slums", poiCivic, [2]int{0, 4})                                       // 25
-	add("City Hall", poiCivic, [2]int{4, 4}, [2]int{4, 3}, [2]int{3, 4}, [2]int{5, 4}) // 27, 26
+	add("Silver Shop", poiShop, songShop, [2]int{11, 10}, [2]int{10, 13})                            // 23
+	add("Temple of Tempus", poiTemple, songTemple, [2]int{0, 12}, [2]int{2, 12})                     // 24
+	add("Gate to slums", poiCivic, 0, [2]int{0, 4})                                                  // 25
+	add("City Hall", poiCivic, songCityHall, [2]int{4, 4}, [2]int{4, 3}, [2]int{3, 4}, [2]int{5, 4}) // 27, 26
 	return m
 }()
-
-const phlanKey = 3 << 16 // areaKey of New Phlan: data set 3, GEO block 0
 
 // labelsFile holds a slot's map labels (the player's, by map).
 const labelsFile = "LABELS.TXT"
 
-// builtinLabels are map k's fixed labels: New Phlan's buildings.
-func builtinLabels(k int) map[int]mapLabel {
-	if k == phlanKey {
-		return phlanLabels
+// builtinLabels are map k's fixed labels (GameTables.MapLabels), by square.
+func (e *Engine) builtinLabels(k int) map[int]mapLabel {
+	m := map[int]mapLabel{}
+	for _, l := range e.game().MapLabels {
+		if l.Area == k {
+			m[l.Y<<4|l.X] = mapLabel{l.Text, l.Kind}
+		}
 	}
-	return nil
+	return m
 }
 
 // userLabels are the player's labels of the current map (ext.labels).
@@ -132,10 +144,10 @@ func (e *Engine) writeLabels(path string) error {
 	sort.Ints(keys)
 	for _, k := range keys {
 		fmt.Fprintf(&b, "map %d\n", k)
-		m := e.ext.labels[k]
+		m, built := e.ext.labels[k], e.builtinLabels(k)
 		sq := make([]int, 0, len(m))
 		for s, l := range m {
-			if b, ok := builtinLabels(k)[s]; !ok || b != l {
+			if b, ok := built[s]; !ok || b != l {
 				sq = append(sq, s)
 			}
 		}

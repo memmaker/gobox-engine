@@ -325,7 +325,7 @@ func (e *Engine) mapState(s *facts) {
 		return
 	}
 	m := game.Automap{Area: e.mapName(), Size: image.Pt(16, 16), NoMap: e.worldWord(core.WordNoCoords) != 0}
-	seen, mine := e.ext.seen[e.areaKey()], e.userLabels()
+	seen, mine, built := e.ext.seen[e.areaKey()], e.userLabels(), e.builtinLabels(e.areaKey())
 	for y := range 16 {
 		for x := range 16 {
 			at := image.Pt(x, y)
@@ -351,7 +351,7 @@ func (e *Engine) mapState(s *facts) {
 			}
 			if l, ok := mine[y<<4|x]; ok {
 				m.Marked, m.Notes, m.NoteKinds = append(m.Marked, at), append(m.Notes, l.text), append(m.NoteKinds, "")
-			} else if l, ok := builtinLabels(e.areaKey())[y<<4|x]; ok {
+			} else if l, ok := built[y<<4|x]; ok {
 				m.Labels = append(m.Labels, game.Label{At: at, Text: l.text, Kind: labelKinds[l.kind]})
 			}
 		}
