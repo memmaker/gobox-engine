@@ -5,7 +5,11 @@ import (
 	"cmp"
 	"encoding/json"
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"reflect"
+	"strings"
 
 	"gobox/core"
 	"rules1e"
@@ -216,4 +220,122 @@ func laterOfSheet[R Later](r *R, c rules1e.CharacterJSON) {
 	if p, ok := any(r).(*Record422); ok {
 		p.Pad86 = [2]byte{c.Sheet.Pad86, c.Sheet.Pad87}
 	}
+}
+
+// CheckLater is f through PackLater, rules1e's Import and Export over the
+// game's tables tb and base item table items, and UnpackLater: nil when the
+// record, items and affects come back byte-equal. Import fails on a spell,
+// affect or item power number the game's maps (rules.json) lack.
+func CheckLater[R Later](tb *rules1e.Tables, items []ItemBase, f LaterFiles) error {
+	b, err := PackLater[R](f)
+	if err != nil {
+		return err
+	}
+	r := &rules1e.Rules{S: &rules1e.RuleState{Tables: tb, Items: items}}
+	id, err := r.Import(b)
+	if err != nil {
+		return err
+	}
+	if b, err = r.Export(id); err != nil {
+		return err
+	}
+	g, err := UnpackLater[R](b, f.ItemSize)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(g.Record, f.Record) {
+		for i := range min(len(g.Record), len(f.Record)) {
+			if g.Record[i] != f.Record[i] {
+				return fmt.Errorf("record byte %#x: %d, want %d", i, g.Record[i], f.Record[i])
+			}
+		}
+		return fmt.Errorf("record length %d, want %d", len(g.Record), len(f.Record))
+	}
+	// the DOS pointers in items and affects are not kept (the port writes zeros)
+	pad := make([]byte, f.ItemSize-ItemSize)
+	var want []byte
+	for _, it := range readItems(f.Items, f.ItemSize) {
+		want = append(append(want, WriteItems([]Item{it})...), pad...)
+	}
+	if !bytes.Equal(g.Items, want) {
+		return firstDiff("items", g.Items, want, f.ItemSize)
+	}
+	if affects := WriteAffects(ReadAffects(f.Affects)); !bytes.Equal(g.Affects, affects) {
+		return firstDiff("affects", g.Affects, affects, AffectSize)
+	}
+	return nil
+}
+
+// firstDiff names the first n-byte record of got that differs from want.
+func firstDiff(what string, got, want []byte, n int) error {
+	for i := range min(len(got), len(want)) {
+		if got[i] != want[i] {
+			return fmt.Errorf("%s record %d byte %#x: %d, want %d", what, i/n, i%n, got[i], want[i])
+		}
+	}
+	return fmt.Errorf("%s length %d, want %d", what, len(got), len(want))
+}
+
+// LaterSave names a game's character files by extension (".GUY", ".SWG",
+// ".FX"); a missing items or affects file is none.
+type LaterSave struct{ Record, Items, Affects string }
+
+// CheckLaterDir runs CheckLater on every character file under dir (any of
+// saves' record extensions, any case), their items held ItemSize-wide in
+// itemSize bytes, and on one character (the first found) holding extra as
+// its items: the game data's items, so every spell, power and affect number
+// they hold meets the maps. It returns the files checked and their failures.
+func CheckLaterDir[R Later](tb *rules1e.Tables, items []ItemBase, dir string, itemSize int, extra []Item, saves ...LaterSave) (checked []string, errs []error) {
+	var first []byte
+	filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		ext := filepath.Ext(p)
+		for _, s := range saves {
+			if !strings.EqualFold(ext, s.Record) {
+				continue
+			}
+			base := strings.TrimSuffix(p, ext)
+			f := LaterFiles{Record: readFold(base, s.Record), Items: readFold(base, s.Items), Affects: readFold(base, s.Affects), ItemSize: itemSize}
+			checked = append(checked, p)
+			if n := len(Encode(*new(R))); len(f.Record) > n {
+				errs = append(errs, fmt.Errorf("%s: %d bytes after the record (a port trailer) PackLater does not carry", p, len(f.Record)-n))
+				f.Record = f.Record[:n]
+			}
+			if first == nil {
+				first = f.Record
+			}
+			if err := CheckLater[R](tb, items, f); err != nil {
+				errs = append(errs, fmt.Errorf("%s: %w", p, err))
+			}
+		}
+		return nil
+	})
+	if first != nil && len(extra) > 0 {
+		pad := make([]byte, itemSize-ItemSize)
+		f := LaterFiles{Record: first, ItemSize: itemSize}
+		for _, it := range extra {
+			it.Readied = 0 // loot: one character cannot ready them all
+			f.Items = append(append(f.Items, WriteItems([]Item{it})...), pad...)
+		}
+		for i := 0; i < len(extra); i += 100 { // in hundreds: a failure names its range
+			g := f
+			g.Items = f.Items[i*itemSize : min(i+100, len(extra))*itemSize]
+			if err := CheckLater[R](tb, items, g); err != nil {
+				errs = append(errs, fmt.Errorf("data items %d..: %w", i, err))
+			}
+		}
+	}
+	return checked, errs
+}
+
+// readFold reads base+ext in the case ext has or upper/lower case; nil: none.
+func readFold(base, ext string) []byte {
+	for _, e := range []string{ext, strings.ToUpper(ext), strings.ToLower(ext)} {
+		if b, err := os.ReadFile(base + e); err == nil {
+			return b
+		}
+	}
+	return nil
 }
