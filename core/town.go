@@ -1,0 +1,78 @@
+package core
+
+// The town: training hall, temple, shop and the purse.
+
+// Pay takes Gold from the purse; refused when short (Refused{NoMoney}, ErrNotNow).
+type Pay struct{ Gold uint64 }
+
+func (Pay) action() {}
+
+// SetPurseGold sets the party's gold pieces (the tavern game's wager).
+type SetPurseGold struct{ Gold uint64 }
+
+func (SetPurseGold) action() {}
+
+// TrainFee: the gold the hall asks (Value).
+type TrainFee struct{}
+
+// HallOpen: the training hall is up (Yes); Value 1 when it waits for a spell pick.
+type HallOpen struct{}
+
+func (TrainFee) check() {}
+
+func (HallOpen) check() {}
+
+// TrainFact is what the hall offers Who (TrainCard).
+type TrainFact struct{}
+
+// TempleCureFact is cure Cure of the temple, as Who needs it (TempleCure); Who may be NoChar.
+type TempleCureFact struct{ Cure int }
+
+// PurseFact is the party's coins, or the loot's (Purse).
+type PurseFact struct{ Loot bool }
+
+func (TrainFact) fact() {}
+
+func (TempleCureFact) fact() {}
+
+func (PurseFact) fact() {}
+
+// TrainCard is the hall's offer: Why not ("" it trains), what it becomes, the experience held at.
+type TrainCard struct {
+	Why     string
+	Becomes []string
+	Best    int32
+}
+
+// TempleCure is a cure of the temple and whether Who needs it.
+type TempleCure struct {
+	Name   string
+	Needed bool
+}
+
+func (TrainCard) value() {}
+
+func (TempleCure) value() {}
+
+func (Purse) value() {}
+
+// OpenHall opens the training hall for Who (the party menu's Train).
+type OpenHall struct{ Who CharID }
+
+// CloseHall leaves it.
+type CloseHall struct{}
+
+// EnterShop makes the party's screen the shop's.
+type EnterShop struct{}
+
+// StockShop names the wares for no one and prices a free one at a piece,
+// and sounds the door.
+type StockShop struct{}
+
+func (OpenHall) action() {}
+
+func (CloseHall) action() {}
+
+func (EnterShop) action() {}
+
+func (StockShop) action() {}
