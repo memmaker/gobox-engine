@@ -77,6 +77,8 @@ type Field struct {
 	// or element numbering other than POR's); the engine turns it into the canonical
 	// value by this name. "": the canonical encoding.
 	Encoding Encoding
+	// Coins: the field's elements are money (coins=, CoinCell an element); nil: none.
+	Coins []CoinCell
 }
 
 // Encoding names a game's encoding of a canonical field (Field.Encoding).
@@ -188,7 +190,7 @@ func (l *Layout) check() error {
 }
 
 // ParseLayout reads a layout text: one Field a line, "from len width owner
-// name [readonly|replaces] [enc=<encoding>]", from in hex; '#' starts a comment.
+// name [readonly|replaces] [enc=<encoding>] [coins=<cells>]", from in hex; '#' starts a comment.
 func ParseLayout(r io.Reader) (*Layout, error) {
 	l := &Layout{}
 	names := map[string]bool{}
@@ -200,12 +202,16 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 			continue
 		}
 		if len(f) < 5 {
-			return nil, fmt.Errorf("layout line %d: want from len width owner name [readonly|replaces] [enc=<encoding>]", n)
+			return nil, fmt.Errorf("layout line %d: want from len width owner name [readonly|replaces] [enc=<encoding>] [coins=<cells>]", n)
 		}
 		var readOnly, replaces bool
 		var enc Encoding
+		var coins string
 		for _, flag := range f[5:] {
+			c, isCoins := strings.CutPrefix(flag, "coins=")
 			switch e, isEnc := strings.CutPrefix(flag, "enc="); {
+			case isCoins && c != "" && coins == "":
+				coins = c
 			case flag == "readonly" && !readOnly:
 				readOnly = true
 			case flag == "replaces" && !replaces:
@@ -236,7 +242,13 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 			return nil, fmt.Errorf("layout line %d: %s twice", n, f[4])
 		}
 		names[f[4]] = true
-		l.Fields = append(l.Fields, Field{Name: f[4], Owner: o, Width: w, From: int(from), Len: size, ReadOnly: readOnly, Replaces: replaces, Encoding: enc})
+		fd := Field{Name: f[4], Owner: o, Width: w, From: int(from), Len: size, ReadOnly: readOnly, Replaces: replaces, Encoding: enc}
+		if coins != "" {
+			if fd.Coins, err = parseCoins(coins, size); err != nil {
+				return nil, fmt.Errorf("layout line %d: %w", n, err)
+			}
+		}
+		l.Fields = append(l.Fields, fd)
 	}
 	if err := sc.Err(); err != nil {
 		return nil, err

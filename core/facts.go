@@ -83,18 +83,15 @@ func (Side) value()      {}
 // holds: items, not money, until appraised and sold. A write adds or removes them.
 type PiecesFact struct{ Jewel bool }
 
-// Coin is a kind of money. Old scripts see per-member coins as a view of the
-// party's one purse.
+// Coin is a kind of money: gold and copper in the Gold Box games (the import
+// rewrites the scripts' other coins, script.GoldCoins), credits in Buck Rogers.
 type Coin int8
 
 // The coins of every ruleset: one closed set, so no two rulesets' coins collide
 // (dnd and xxvc name them).
 const (
 	CoinCopper Coin = iota + 1
-	CoinSilver
-	CoinElectrum
 	CoinGold
-	CoinPlatinum
 	CoinCredits
 )
 

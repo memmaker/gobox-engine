@@ -15,14 +15,6 @@ func TestPurse(t *testing.T) {
 	if got := char.ReadPurse(char.AppendPurse(nil, want)); got != want {
 		t.Fatalf("save round trip = %+v", got)
 	}
-	// a script paying 3 platinum out of 1234 gold
-	e := &Engine{}
-	e.state().Purse = want
-	e.initVM()
-	e.state().SetPurseCoin(4, e.state().PurseCoin(4)-3)
-	if e.state().Purse != (rules1e.Purse{Gold: 1219, Copper: 7, Gems: 2, Jewelry: 3}) {
-		t.Fatalf("after paying 3 platinum: %+v", e.state().Purse)
-	}
 	// 150 copper twice is a gold piece and 100 copper, not rounded per pile
 	var p rules1e.Purse
 	p.Add(rules1e.CoinsToPurse([7]uint16{150}), goldbox.GoldBoxRates)

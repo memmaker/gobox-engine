@@ -47,9 +47,15 @@ var podCodecs = map[script.Encoding]codec{
 			return canonStatusOut
 		},
 	},
-	// TCharRecord.coins[0..2]: platinum, gems, jewelry, words at bytes 0, 2, 4: the canonical coin pairs
-	// 8, 10 and 12 (scriptCoin), their high bytes the odd elements after them.
-	"PodSelCoins": {element: func(i int) int { return 8 + i }},
+	// TCharRecord.coins[0..2]: platinum, gems, jewelry, words at bytes 0, 2, 4. The import rewrote the
+	// platinum word to gold (script.GoldCoins): the canonical elements 6 (gold), 10 and 12 (selCoin),
+	// the high bytes the odd elements after them.
+	"PodSelCoins": {element: func(i int) int {
+		if i < 2 {
+			return 6 + i
+		}
+		return 8 + i
+	}},
 	// TCharRecord.spells[0..140]: slot 0 first, where the canonical element i is slot i+1.
 	"PodSelMemorized": {element: func(i int) int { return i - 1 }},
 	// ReadGbvm $10: facing div 2 in a dungeon, the raw 0..7 on the area map; the write (0..3, less 4 till it

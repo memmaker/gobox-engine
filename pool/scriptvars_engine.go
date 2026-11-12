@@ -16,7 +16,11 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		if i%2 != 0 { // the odd ones are the original's high bytes, no field of the record
 			return 0, false
 		}
-		return e.selFact(scriptCoin[i/2]), true
+		f, ok := selCoin(i)
+		if !ok {
+			return 0, false
+		}
+		return e.selFact(f), true
 	}
 	m := map[string]engineField{
 		"SymbolSet": { // ovr08:07BC/0A74 +0x312: the symbol set (0802:094A)
@@ -54,8 +58,8 @@ func (e *Engine) newEngineFields() map[string]engineField {
 				e.setSelFact(core.FactControl, v)
 			}},
 		"SelCoins": {stored: true, get: coin, set: func(i int, v int64) {
-			if i%2 == 0 {
-				e.setSelFact(scriptCoin[i/2], int64(uint16(v)))
+			if f, ok := selCoin(i); ok {
+				e.setSelFact(f, int64(uint16(v)))
 			}
 		}},
 		"SelAlignment": {stored: true, get: func(int) (int64, bool) {
@@ -351,10 +355,22 @@ func fact(r func() uint16, w func(v uint16)) engineField {
 	return f
 }
 
-// scriptCoin is the fact of each SelCoins word pair (the records' coins[0..6]: copper ..
-// platinum, then the unappraised gems and jewelry, items; POR's field holds the first five).
-var scriptCoin = [7]core.Fact{core.CoinFact{Coin: dnd.Copper}, core.CoinFact{Coin: dnd.Silver}, core.CoinFact{Coin: dnd.Electrum},
-	core.CoinFact{Coin: dnd.Gold}, core.CoinFact{Coin: dnd.Platinum}, core.PiecesFact{}, core.PiecesFact{Jewel: true}}
+// selCoin is the fact of SelCoins element i: copper (0) and gold (6), the
+// money the import leaves the scripts (script.GoldCoins), then the unappraised
+// gems (10) and jewelry (12), items. Any other element is no field.
+func selCoin(i int) (core.Fact, bool) {
+	switch i {
+	case 0:
+		return core.CoinFact{Coin: dnd.Copper}, true
+	case 6:
+		return core.CoinFact{Coin: dnd.Gold}, true
+	case 10:
+		return core.PiecesFact{}, true
+	case 12:
+		return core.PiecesFact{Jewel: true}, true
+	}
+	return nil, false
+}
 
 func signedByte(v int) uint16 { return uint16(int16(int8(v))) }
 

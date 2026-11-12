@@ -270,7 +270,7 @@ const (
 )
 
 // the import stores.
-func DecodeBlock(code []byte, area int, names *Names, fold Folding) (string, []FoldedGate, error) {
+func DecodeBlock(code []byte, area int, names *Names, lay *Layout, fold Folding) (string, []FoldedGate, error) {
 	s, err := Decode(code, names)
 	if err != nil {
 		return "", nil, err
@@ -279,6 +279,9 @@ func DecodeBlock(code []byte, area int, names *Names, fold Folding) (string, []F
 	var folds []FoldedGate
 	if fold == FoldGates {
 		folds = FoldVendorGates(s, area, names)
+	}
+	if lay != nil {
+		GoldCoins(s, lay)
 	}
 	text, err := Write(s, names)
 	return text, folds, err

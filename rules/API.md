@@ -65,4 +65,4 @@ Coins in the record (7 uint16 at +251: copper, silver, electrum, gold, platinum,
   `FromCoins(args, GoldBoxRates)`; taking the treasure does `e.purse.Add(e.loot, rates)` and clears it. The take/share/drop
   per-kind screens and `treasureExpDivisor`/`Factor` experience (computed from the pool's kinds before Add) are the places
   that need the kind split: compute experience from the raw `coins` before `FromCoins`. Scripts that read or set a member's
-  coin words use por's `purseCoin`/`setPurseCoin` (platinum, gold, copper view of the purse).
+  coin words: gold and copper only, the purse's (the import rewrote the scripts' other coins, script.GoldCoins).

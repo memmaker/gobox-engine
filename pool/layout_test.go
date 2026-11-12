@@ -207,7 +207,7 @@ func TestSaveKeepsFields(t *testing.T) {
 	values := func() []string {
 		var out []string
 		for i, fl := range lay.Fields {
-			if !slices.Contains(saved, fl) {
+			if !slices.ContainsFunc(saved, func(s script.Field) bool { return s.Name == fl.Name }) {
 				continue
 			}
 			r := script.Ref{Field: script.FieldID(i + 1)}

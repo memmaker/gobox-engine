@@ -122,7 +122,11 @@ func importArea(v *Version, src Source, data fs.FS, area int, code []byte, fold 
 	if src.Treasure != nil {
 		names.Treasure = func(block int) string { return src.Treasure(names.Set, block) }
 	}
-	text, folds, err := DecodeBlock(code, area, names, fold)
+	lay, err := ReadLayout(data, area)
+	if err != nil {
+		return "", nil, err
+	}
+	text, folds, err := DecodeBlock(code, area, names, lay, fold)
 	if err != nil {
 		return "", nil, err
 	}
