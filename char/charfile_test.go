@@ -7,13 +7,13 @@ import (
 
 // NAME.pow keeps the powers and the daily uses; an older one has only powers.
 func TestPowerBytes(t *testing.T) {
-	c := rules1e.CharacterFile{Powers: []int{1, 100}, Surges: 3, Laid: 1, Tough: 5, Policies: map[int]rules1e.Policy{44: rules1e.Never, 9: rules1e.OnHit}}
-	var d rules1e.CharacterFile
+	c := rules1e.CharacterJSON{Powers: []int{1, 100}, Surges: 3, Laid: 1, Tough: 5, Policies: map[int]rules1e.Policy{44: rules1e.Never, 9: rules1e.OnHit}}
+	var d rules1e.CharacterJSON
 	readPowers(&d, powerBytes(c))
 	if len(d.Powers) != 2 || d.Powers[1] != 100 || d.Surges != 3 || d.Laid != 1 || d.Tough != 5 || d.Policies[44] != rules1e.Never || d.Policies[9] != rules1e.OnHit || len(d.Policies) != 2 {
 		t.Errorf("read back %v %d %d %v", d.Powers, d.Surges, d.Laid, d.Policies)
 	}
-	d = rules1e.CharacterFile{}
+	d = rules1e.CharacterJSON{}
 	readPowers(&d, []byte{1, 2})
 	if len(d.Powers) != 2 || d.Surges != 0 || d.Policies != nil {
 		t.Errorf("an older file: %v %d", d.Powers, d.Surges)

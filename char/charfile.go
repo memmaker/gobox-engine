@@ -43,7 +43,7 @@ type Files struct {
 
 // Pack285 is f as the canonical character (rules1e.CharacterFile's JSON).
 func Pack285(f Files) (core.CharacterFile, error) {
-	c := rules1e.CharacterFile{Sheet: SheetOf(f.Record), PoolIDs: ReadPoolIDs(f.Record), Portrait: f.Portrait, Icon: f.Icon}
+	c := rules1e.CharacterJSON{Sheet: SheetOf(f.Record), PoolIDs: ReadPoolIDs(f.Record), Portrait: f.Portrait, Icon: f.Icon}
 	for _, it := range ReadRecords[Item](f.Items, ItemSize) {
 		c.Items = append(c.Items, *it)
 	}
@@ -66,7 +66,7 @@ func Pack285(f Files) (core.CharacterFile, error) {
 // Unpack285 is the canonical character as its files; a game save's items
 // file (game) carries the shared pack the party's first member holds.
 func Unpack285(b core.CharacterFile, game bool) (Files, error) {
-	var c rules1e.CharacterFile
+	var c rules1e.CharacterJSON
 	if err := json.Unmarshal(b, &c); err != nil {
 		return Files{}, fmt.Errorf("Unpack285: %w", err)
 	}
@@ -140,7 +140,7 @@ func fromBytes[T ~uint8](v []T, b []byte) {
 // powerBytes are c's Powers for NAME.pow: the ids, then a 0 and the
 // daily uses spent (Surges, Laid) and the Toughness in MaxHP (Tough), then
 // the reactions' policies.
-func powerBytes(c rules1e.CharacterFile) []byte {
+func powerBytes(c rules1e.CharacterJSON) []byte {
 	var b []byte
 	for _, id := range c.Powers {
 		b = append(b, byte(id))
@@ -153,7 +153,7 @@ func powerBytes(c rules1e.CharacterFile) []byte {
 }
 
 // readPowers reads NAME.pow's bytes into c's Powers and daily uses.
-func readPowers(c *rules1e.CharacterFile, b []byte) {
+func readPowers(c *rules1e.CharacterJSON, b []byte) {
 	for i, id := range b {
 		if id == 0 { // the daily uses (an older file has none)
 			if i+2 < len(b) {
