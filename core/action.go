@@ -191,8 +191,9 @@ type (
 
 	// Trade.
 	Buy struct {
-		Who  CharID
-		Item ItemHandle // one of the shop's goods
+		Who   CharID
+		Item  ItemHandle // one of the shop's goods
+		Price int32      // what the shop asks, by its price factor (0: the item's own price)
 	}
 	Sell struct {
 		Who  CharID

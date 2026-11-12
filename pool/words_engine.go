@@ -11,8 +11,9 @@ import (
 // The canonical fields of the words the VM itself keeps (every game's layout names them so,
 // when it has them).
 const (
-	fieldLastBlock = "LastBlock"       // the block NewECL left (sotsb, cotab, pod); POR has none: core.WordLastBlock
-	fieldRemainder = "DivideRemainder" // where DIVIDE leaves its remainder (sotsb, cotab, pod); POR has none
+	fieldLastBlock  = "LastBlock"       // the block NewECL left (sotsb, cotab, pod); POR has none: core.WordLastBlock
+	fieldRemainder  = "DivideRemainder" // where DIVIDE leaves its remainder (sotsb, cotab, pod); POR has none
+	fieldPriceScale = "PriceScale"      // the shops' price factor (cotab, sotsb, pod); POR has none
 )
 
 // layoutField is the loaded script's field called name; ok false when the game's layout has none.
@@ -44,7 +45,7 @@ func (e *Engine) setLastBlock(block int) {
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
 // layout names a field so when, and only when, it has that field (each game's layout test).
 func BoundFields() []string {
-	names := []string{fieldLastBlock, fieldRemainder, fieldScratch6, fieldHours}
+	names := []string{fieldLastBlock, fieldRemainder, fieldPriceScale, fieldScratch6, fieldHours}
 	for n := range (&Engine{}).newEngineFields() {
 		names = append(names, n)
 	}
@@ -82,4 +83,24 @@ func UnboundFields(data fs.FS) ([]string, error) {
 		}
 	}
 	return out, nil
+}
+
+// shopPrice is price as the shop asks it, by the layout's price factor (a game whose layout
+// has none, POR, asks the price).
+func (e *Engine) shopPrice(price int32) int32 {
+	r, ok := e.layoutField(fieldPriceScale)
+	if !ok {
+		return price
+	}
+	return scalePrice(price, int32(e.host.Get(r)))
+}
+
+// scalePrice is price times factor over 16, for the factors the shops set (1 2 4 8 32 64 128;
+// any other, 16 the normal one, leaves it).
+func scalePrice(price, factor int32) int32 {
+	switch factor {
+	case 1, 2, 4, 8, 32, 64, 128:
+		return price * factor / 16
+	}
+	return price
 }

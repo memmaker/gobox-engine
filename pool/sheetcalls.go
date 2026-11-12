@@ -230,7 +230,7 @@ func (e *Engine) Buy(h core.ItemHandle) error {
 	if !e.snap.invOn || !e.snap.shop || !slices.Contains(e.goods(), h) {
 		return core.ErrNotNow
 	}
-	o, err := e.ruleset().Resolve(nil, core.Buy{Who: e.selected(), Item: h}, nil)
+	o, err := e.ruleset().Resolve(nil, core.Buy{Who: e.selected(), Item: h, Price: e.shopPrice(e.itemCard(core.NoChar, h).Price)}, nil)
 	e.traded(o, "Bought!")
 	return err
 }

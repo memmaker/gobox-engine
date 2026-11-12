@@ -9,16 +9,19 @@ import (
 // Cure is temple cure x for member n (n < 0: the selected one), the
 // player agreed to the price.
 func (e *Engine) Cure(n, x int) error {
-	if !e.waiting(PendTemple) || x < 0 || x >= len(templeCures) {
+	sv, ok := e.templeService(core.NoChar, x)
+	if !e.waiting(PendTemple) || !ok {
 		return core.ErrNotNow
 	}
 	cID := e.actor(n)
 	defer e.waited()
-	if o, err := e.ruleset().Resolve(nil, core.Pay{Gold: uint64(templeCures[x].price)}, nil); err != nil { // ovr05:00BF
-		if slices.Contains(o.Effects, core.Effect(core.Refused{Why: core.NoMoney})) {
-			return errNoMoney
+	if sv.Price > 0 { // a temple that heals free has no price to pay
+		if o, err := e.ruleset().Resolve(nil, core.Pay{Gold: uint64(sv.Price)}, nil); err != nil { // ovr05:00BF
+			if slices.Contains(o.Effects, core.Effect(core.Refused{Why: core.NoMoney})) {
+				return errNoMoney
+			}
+			return err
 		}
-		return err
 	}
 	e.emit(core.Sounded{Cue: core.SoundCue("recover")})
 	e.say(e.ruleset().Sheet(cID).Name + " is cured.")
@@ -53,14 +56,14 @@ func (e *Engine) Temple() {
 	e.wait(PendTemple)
 }
 
-// templeCures = the services of DS:011A, their prices and the "is not"
-// messages of ovr05:0013 (none: always needed).
-var templeCures = [9]struct {
-	price uint16
-	not   string
-}{
-	{1000, "is not blind."}, {1000, "is not Diseased."}, {100, ""}, {350, ""}, {600, ""},
-	{1000, "is not poisoned."}, {5500, "is not dead."}, {3500, "is not cursed."}, {2000, "is not stoned."},
+// templeService is the temple's service x as member who needs it (core.NoChar: for no one);
+// false when the game's temple has no such service (rules.json town).
+func (e *Engine) templeService(who core.CharID, x int) (core.TempleCure, bool) {
+	v, err := e.ruleset().Fact(who, core.TempleCureFact{Cure: x})
+	if err != nil {
+		return core.TempleCure{}, false
+	}
+	return v.(core.TempleCure), true
 }
 
 // errNoMoney is a payment the purse cannot meet (core.NoMoney), as the temple words it.

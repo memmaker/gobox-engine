@@ -178,6 +178,9 @@ func (e *Engine) placeState(s *facts) {
 	}
 	switch e.pending {
 	case PendShop:
+		for i := range goods {
+			goods[i].Price = int(e.shopPrice(int32(goods[i].Price)))
+		}
 		s.Shop = &game.Shop{Goods: goods, Buys: true}
 		s.Shop.Offers, s.Shop.IdentifyPrice = e.offers(s.Selected), 200
 		identified := e.snap.identIt
@@ -194,13 +197,17 @@ func (e *Engine) placeState(s *facts) {
 		}
 		s.Shop.Identifies = e.snap.identN
 	case PendTemple:
-		for i := range templeCures {
-			sv := game.Service{Name: e.fact(core.NoChar, core.TempleCureFact{Cure: i}).(core.TempleCure).Name, Price: int(templeCures[i].price), Not: map[int]string{}}
+		for i := 0; ; i++ {
+			c, ok := e.templeService(core.NoChar, i)
+			if !ok {
+				break
+			}
+			sv := game.Service{Name: c.Name, Price: int(c.Price), Not: map[int]string{}}
 			for k, id := range e.partyIDs() {
 				if e.fact(id, core.TempleCureFact{Cure: i}).(core.TempleCure).Needed {
 					sv.Needs = append(sv.Needs, k)
 				}
-				sv.Not[k] = templeCures[i].not // the temple words it so for anyone it would not help
+				sv.Not[k] = c.Not // the temple words it so for anyone it would not help
 			}
 			s.Temple = append(s.Temple, sv)
 		}

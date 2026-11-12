@@ -72,7 +72,7 @@ func TestTempleAgainstPascal(t *testing.T) {
 		}
 		e.state().RandSeed = uint32(int32(seed))
 		needed := e.state().CureNeeded(c, cure)
-		paid := e.state().Pay(uint64(templeCures[cure].price))
+		paid := e.state().Pay(uint64(e.state().T().Town.Temple[cure].Price))
 		if paid {
 			e.state().TempleCure(c, cure)
 		}

@@ -45,10 +45,13 @@ type TrainCard struct {
 	Rises   bool // the hall would raise a class now (no Why, a class to raise)
 }
 
-// TempleCure is a cure of the temple and whether Who needs it.
+// TempleCure is a service of the temple: its name and price in gold (0: free), whether
+// Who needs it, and what the temple says of one it would not help (Not; "": it always helps).
 type TempleCure struct {
 	Name   string
 	Needed bool
+	Price  int32
+	Not    string
 }
 
 func (TrainCard) value() {}
