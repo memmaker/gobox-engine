@@ -10,7 +10,8 @@ import (
 )
 
 // ModifyCharacter = ovr17:209E, redone (extra) as the creation sheet on
-// the selected character, experienced or not: Roll, Minimal, the fields
+// the selected character with no experience of its own (as the original,
+// Felix's R3 ruling 16; ErrNotNow else): Roll, Minimal, the fields
 // and the pictures change it as at the creation; Keep keeps it, Esc puts
 // the old character back. (The original raised and lowered the abilities
 // and hit points within the race and class limits, and only for a
@@ -20,6 +21,9 @@ func (e *Engine) ModifyCharacter(n int) error {
 		return core.ErrNotNow
 	}
 	c, i := e.actor(n), e.sel
+	if !e.ruleset().Check(core.Modifiable{Who: c}, nil).Yes { // no experience of its own only (Felix's R3 ruling 16)
+		return core.ErrNotNow
+	}
 	e.do(core.HoldCopy{Who: c})
 	d, err := gcreation.Modify(e.Creation(), nil, c)
 	if err != nil {

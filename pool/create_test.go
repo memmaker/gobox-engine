@@ -132,9 +132,13 @@ func TestCreateSheet(t *testing.T) {
 		t.Fatalf("added: party %d", len(e.state().Party))
 	}
 	e.ClosePicker()
-	// Modify: the creation sheet on the member, experienced or not, Keep
-	// keeps the changes.
+	// Modify: the creation sheet on a member with no experience of its
+	// own (Felix's R3 ruling 16), Keep keeps the changes.
 	e.state().Party[0].Exp = 500
+	if err := e.ModifyCharacter(-1); err == nil || draft() != nil {
+		t.Fatal("modify: an experienced member was modifiable")
+	}
+	e.state().Party[0].Exp = 0
 	e.ModifyCharacter(-1)
 	if draft() == nil || e.creation.abandon != "Discard the changes?" {
 		t.Fatalf("modify: %+v", draft())
