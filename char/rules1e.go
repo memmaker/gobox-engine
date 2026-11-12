@@ -41,6 +41,7 @@ func Rules1e(
 	}
 	r.ItemTable = items
 	r.TreasureBlock = treasure
+	r.ItemRecords = func(items []Item) core.ItemRecords { return WriteItems(items) }
 	r.Host = host
 	return r, r.Creation()
 }
