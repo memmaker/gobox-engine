@@ -110,6 +110,9 @@ func TestAdvBeginSOTSB(t *testing.T) { advBegin(t, advEnvSOTSB) }
 // TestAdvBeginPOD: the same for pod (its own engine's journey tests, pod rules/, are gone).
 func TestAdvBeginPOD(t *testing.T) { advBegin(t, advEnvPOD) }
 
+// TestAdvBeginCOTAB: the same for cotab (its own engine, cotab rules/, is gone).
+func TestAdvBeginCOTAB(t *testing.T) { advBegin(t, advEnvCOTAB) }
+
 // advBegin: Quick Start and Begin leave the party menu without an error.
 func advBegin(t *testing.T, env string) {
 	e := advStarted(t, env)

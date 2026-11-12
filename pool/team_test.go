@@ -10,8 +10,13 @@ import (
 // (ovr18:1446): PartyCount is the party's size before the first fight,
 // every member is on the party's side with its own icon slot (Order < 8,
 // COMSPR's, not CPIC's), and Quick Start over a party is refused.
-func TestTeamJoined(t *testing.T) {
-	e := testEngine(t)
+func TestTeamJoined(t *testing.T) { teamJoined(t, testEngine(t)) }
+
+// TestTeamJoinedCOTAB: the same on cotab's imported folder.
+func TestTeamJoinedCOTAB(t *testing.T) { teamJoined(t, advEngine(t, advEnvCOTAB)) }
+
+// teamJoined is TestTeamJoined on e.
+func teamJoined(t *testing.T, e *Engine) {
 	seed := uint32(7)
 	e.FixedSeed = &seed
 	e.Init()

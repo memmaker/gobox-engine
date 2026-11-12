@@ -1,5 +1,4 @@
 por-go por/presentdata -> gobox/walls
-cotab-go cotab/rules -> gobox/front/classic
 por-go por/playpor -> gobox/app
 cotab-go cotab/playcotab -> gobox/app
 cotab-go cotab/playcotab -> gobox/front/classic

@@ -20,6 +20,7 @@ import (
 // (an event), or is refused. Two State calls in a row are DeepEqual first,
 // so a difference is the action's; nothing is offered twice (class 34).
 func TestNoSilentDo(t *testing.T) {
+	quick := quickStarted
 	scene := func(name string) func(t *testing.T) *Engine {
 		return func(t *testing.T) *Engine {
 			e := testEngine(t)
@@ -53,9 +54,9 @@ func TestNoSilentDo(t *testing.T) {
 		}
 	}
 	states := map[string]func(t *testing.T) *Engine{
-		"party menu": quickStarted,
+		"party menu": quick,
 		"creation": func(t *testing.T) *Engine {
-			e := quickStarted(t)
+			e := quick(t)
 			if _, err := e.Do(play.NewCharacter{}); err != nil {
 				t.Fatal(err)
 			}
@@ -72,6 +73,37 @@ func TestNoSilentDo(t *testing.T) {
 			return e
 		},
 	}
+	noSilentDo(t, states)
+}
+
+// TestNoSilentDoCOTAB: the same on cotab's imported folder (it skips without
+// one), in the states reached without POR's dev scenes: the party menu,
+// creation, and exploring after Quick Start and Begin.
+func TestNoSilentDoCOTAB(t *testing.T) {
+	quick := func(t *testing.T) *Engine { return quickStartedOn(t, advEngine(t, advEnvCOTAB)) }
+	noSilentDo(t, map[string]func(t *testing.T) *Engine{
+		"party menu": quick,
+		"creation": func(t *testing.T) *Engine {
+			e := quick(t)
+			if _, err := e.Do(play.NewCharacter{}); err != nil {
+				t.Fatal(err)
+			}
+			return e
+		},
+		"explore": func(t *testing.T) *Engine {
+			e := advStarted(t, advEnvCOTAB)
+			for _, a := range []play.Action{play.QuickStart{}, play.Begin{}} {
+				if _, err := e.Do(a); err != nil {
+					t.Fatalf("%T: %v", a, err)
+				}
+			}
+			return e
+		},
+	})
+}
+
+// noSilentDo is TestNoSilentDo's check over the states each opener opens.
+func noSilentDo(t *testing.T, states map[string]func(t *testing.T) *Engine) {
 	for name, open := range states {
 		e := open(t)
 		s := e.State()
@@ -150,8 +182,16 @@ func doCatch(e *Engine, a play.Action) (out play.Outcome, err error, panicked an
 // TestGuardsRefuse (BUG-CLASSES 85): an action a guard turns away is an
 // error, not a nil: Modify without a party, KeepCharacter without a
 // creation, a second NewCharacter; an empty note is refused.
-func TestGuardsRefuse(t *testing.T) {
-	e := quickStarted(t)
+func TestGuardsRefuse(t *testing.T) { guardsRefuse(t, testEngine) }
+
+// TestGuardsRefuseCOTAB: the same on cotab's imported folder.
+func TestGuardsRefuseCOTAB(t *testing.T) {
+	guardsRefuse(t, func(t *testing.T) *Engine { return advEngine(t, advEnvCOTAB) })
+}
+
+// guardsRefuse is TestGuardsRefuse on the engines base makes.
+func guardsRefuse(t *testing.T, base func(*testing.T) *Engine) {
+	e := quickStartedOn(t, base(t))
 	for _, a := range []play.Action{play.KeepCharacter{}, play.AddNote{}} {
 		if _, err := e.Do(a); err == nil {
 			t.Errorf("%T taken", a)
@@ -163,7 +203,7 @@ func TestGuardsRefuse(t *testing.T) {
 	if _, err := e.Do(play.NewCharacter{}); err == nil {
 		t.Error("second NewCharacter taken")
 	}
-	e = testEngine(t)
+	e = base(t)
 	if _, err := e.Do(play.Modify{}); err == nil {
 		t.Error("Modify with no party taken")
 	}

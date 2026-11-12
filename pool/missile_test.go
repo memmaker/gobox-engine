@@ -26,9 +26,11 @@ func testEngine(t *testing.T) *Engine {
 
 // quickStarted: an engine with the Quick Start party, its roster written
 // under a temp dir: tests never read or write the game's own saves.
-func quickStarted(t *testing.T) *Engine {
+func quickStarted(t *testing.T) *Engine { t.Helper(); return quickStartedOn(t, testEngine(t)) }
+
+// quickStartedOn is quickStarted on the engine e (any game's: advEngine).
+func quickStartedOn(t *testing.T, e *Engine) *Engine {
 	t.Helper()
-	e := testEngine(t)
 	seed := uint32(7) // the same party every run
 	e.FixedSeed = &seed
 	e.Init()

@@ -122,6 +122,9 @@ func (e *Engine) SheetPortrait() {
 		return
 	}
 	heads, bodies := e.portraitPics("HEAD"), e.portraitPics("BODY")
+	if len(heads) == 0 || len(bodies) == 0 { // a game with no DOS portrait tables (cotab, sotsb, pod: GameTables leaves them empty) draws only the shared collection's PNG
+		return
+	}
 	h, b := heads[byte(pt.Head)%byte(len(heads))], bodies[byte(pt.Body)%byte(len(bodies))]
 	e.LoadPortrait(h.Set, int(h.Id), 0xFF)
 	e.LoadPortrait(b.Set, 0xFF, int(b.Id))
