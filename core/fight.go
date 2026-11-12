@@ -294,6 +294,26 @@ type DevTreasure struct{}
 // the data set lacks the block.
 type AddTreasureBlock struct{ Block int32 }
 
+// AddLoot adds the coins to the fight's coins (TreasureOf; Felix's S ruling 4: its coins add).
+type AddLoot struct{ Coins [7]uint16 }
+
+// AddLibraryItems puts the data set's library items IDs at the head of the
+// treasure in turn, so the last one leads (pod TREASURE, ITEM SET):
+// RandomScrollItem makes a random scroll, an empty entry adds nothing.
+// Known: their names are known. Error: the ruleset has no library, or no
+// random scroll when one is asked for.
+type AddLibraryItems struct {
+	IDs   []int32
+	Known bool
+}
+
+// RandomScrollItem is AddLibraryItems' id of a random scroll.
+const RandomScrollItem int32 = 255
+
+func (AddLoot) action() {}
+
+func (AddLibraryItems) action() {}
+
 // SetSpeed sets Who's attacks for the round from its weapon and affects (por SetSpeed).
 type SetSpeed struct{ Who CharID }
 
