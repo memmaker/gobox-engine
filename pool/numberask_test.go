@@ -8,8 +8,14 @@ import (
 // TestNumberAskHuge: a "How much?" with a huge Max publishes a bounded
 // state (no option or Allowed entry per amount) and takes its answer
 // (BUG-CLASSES 51).
-func TestNumberAskHuge(t *testing.T) {
-	e := testEngine(t)
+func TestNumberAskHuge(t *testing.T) { numberAskHuge(t, testEngine(t)) }
+
+// TestNumberAskHugeCOTAB: the same on cotab's imported folder.
+func TestNumberAskHugeCOTAB(t *testing.T) { numberAskHuge(t, advEngine(t, advEnvCOTAB)) }
+
+// numberAskHuge is TestNumberAskHuge on e.
+func numberAskHuge(t *testing.T, e *Engine) {
+	t.Helper()
 	e.Init()
 	e.Start(e.Play)
 	v := testField(t, e, fieldSurprise)

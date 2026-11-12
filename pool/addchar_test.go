@@ -18,6 +18,15 @@ func TestAddChar(t *testing.T) {
 	e.Open("")
 	e.titleDone()
 	e.Advance()
+	addChar(t, e)
+}
+
+// TestAddCharCOTAB: the same on cotab's imported folder.
+func TestAddCharCOTAB(t *testing.T) { addChar(t, advStarted(t, advEnvCOTAB)) }
+
+// addChar is TestAddChar on e, at the party menu.
+func addChar(t *testing.T, e *Engine) {
+	t.Helper()
 	if _, err := e.Do(play.QuickStart{}); err != nil { // a party to save, then dropped
 		t.Fatal(err)
 	}

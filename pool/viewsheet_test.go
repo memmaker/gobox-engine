@@ -25,7 +25,24 @@ func TestViewSheet(t *testing.T) {
 		t.Errorf("fight sheet of %s, not the active %s", fight.Name, e.member(e.cs.actor).Name())
 	}
 
-	e = devPlay(t, "shop")
+	viewSheetShop(t, devPlay(t, "shop"))
+}
+
+// TestViewSheetCOTAB: the shop half on cotab's imported folder (its fight half waits for
+// cotab's battle view: pool's combat board draws POR's SQRPACI tiles, which cotab lacks).
+func TestViewSheetCOTAB(t *testing.T) {
+	viewSheetShop(t, devPlayOn(t, advEngine(t, advEnvCOTAB), "shop"))
+}
+
+// viewSheetShop is TestViewSheet's shop half on e, in the shop dev scene.
+func viewSheetShop(t *testing.T, e *Engine) {
+	t.Helper()
+	full := func(what string, p *game.SheetPage) {
+		t.Helper()
+		if p == nil || p.Name == "" || p.Sex == "" || p.Race == "" || p.Class == "" || p.Damage == "" || p.Saves == [5]int{} || p.MaxHP == 0 {
+			t.Fatalf("%s: sheet %+v", what, p)
+		}
+	}
 	if _, ok := e.State().(play.Trading); !ok {
 		t.Fatalf("no shop: %T", e.State())
 	}

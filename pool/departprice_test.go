@@ -1,6 +1,8 @@
 package pool
 
 import (
+	"gobox/core"
+	"gobox/core/goldbox"
 	"gobox/game/play"
 	"image"
 	"rules1e"
@@ -15,6 +17,34 @@ func TestDepartureAtWalls(t *testing.T) {
 	e.set = 8
 	e.LoadGeo(13) // Kobold Caves, as TestMapEdgeNoWrap
 	e.gs.areaKind, e.viewMode = 13, 1
+	departureAtWalls(t, e)
+}
+
+// TestDepartureAtWallsCOTAB: the same on cotab's imported folder, in every dungeon map
+// its data holds.
+func TestDepartureAtWallsCOTAB(t *testing.T) {
+	e := quickStartedOn(t, advEngine(t, advEnvCOTAB))
+	n := 0
+	for s := goldbox.Set(1); s <= sets; s++ {
+		for id := range 256 {
+			if len(e.gdata().geoBlock(s.File("GEO"), id)) < geoSize {
+				continue
+			}
+			e.set = s
+			e.LoadGeo(id)
+			e.gs.areaKind, e.viewMode = byte(id), 1
+			departureAtWalls(t, e)
+			n++
+		}
+	}
+	if n == 0 {
+		t.Fatal("no dungeon maps")
+	}
+}
+
+// departureAtWalls is TestDepartureAtWalls on e's loaded map.
+func departureAtWalls(t *testing.T, e *Engine) {
+	t.Helper()
 	m := walkMap{e}
 	n := 0
 	for y := 0; y < 16; y++ {
@@ -30,7 +60,7 @@ func TestDepartureAtWalls(t *testing.T) {
 		}
 	}
 	if n == 0 {
-		t.Fatal("no walls in the Kobold Caves")
+		t.Fatalf("no walls in geo %d", e.worldWord(core.WordGeo))
 	}
 }
 

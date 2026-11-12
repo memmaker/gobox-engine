@@ -20,6 +20,7 @@ var updatePics = flag.Bool("update", false, "rewrite beastpics.go from the scrip
 // -update rewrites beastpics.go.
 func TestBeastPics(t *testing.T) {
 	e := testEngine(t)
+	e.Init() // the item table: a monster's items map through it (rules1e Rules.monster)
 	count := map[string]map[int]int{}
 	for disk := 1; disk <= 8; disk++ { // each set's ECL and MON files hold its own blocks (ovr18:0EC4 reads the set's alone)
 		e.set = goldbox.Set(disk)
