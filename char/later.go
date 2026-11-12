@@ -176,9 +176,9 @@ func sheetOfLater[R Later](c *rules1e.CharacterJSON, r R) {
 	n := min(int(m.name[0]), 15)
 	c.Sheet.CharName = string(m.name[1 : 1+n])
 	for i, p := range m.stats {
-		c.Sheet.Stats[i] = rules1e.Score(p.Value)
+		c.Sheet.Stats[i], c.Sheet.Base[i] = rules1e.Score(p.Value), rules1e.Score(p.Base)
 	}
-	c.Sheet.Str00 = m.str00.Value
+	c.Sheet.Str00, c.Sheet.Str00Base = m.str00.Value, m.str00.Base
 	memoryOf(c.Sheet.Memorized[:], m.memo)
 	for cls, run := range slotRuns(&r) {
 		fromBytes(c.Sheet.SpellSlots[cls][:run.n], m.slots[run.at:run.at+run.n])
@@ -203,10 +203,14 @@ func laterOfSheet[R Later](r *R, c rules1e.CharacterJSON) {
 		*m.name = [16]byte{}
 		m.name[0] = byte(copy(m.name[1:], c.Sheet.CharName[:min(len(c.Sheet.CharName), 15)]))
 	}
-	for i := range m.stats {
-		m.stats[i].Value = byte(c.Sheet.Stats[i])
+	base, base00 := c.Sheet.Base, c.Sheet.Str00Base
+	if c.Kept == nil && base == ([6]rules1e.Score{}) { // a character made here: its own scores are those in use
+		base, base00 = c.Sheet.Stats, c.Sheet.Str00
 	}
-	m.str00.Value = c.Sheet.Str00
+	for i := range m.stats {
+		m.stats[i].Value, m.stats[i].Base = byte(c.Sheet.Stats[i]), byte(base[i])
+	}
+	m.str00.Value, m.str00.Base = c.Sheet.Str00, base00
 	memoryBytes(m.memo, c.Sheet.Memorized[:])
 	for cls, run := range slotRuns(r) {
 		bytesOf(m.slots[run.at:run.at+run.n], c.Sheet.SpellSlots[cls][:run.n])
