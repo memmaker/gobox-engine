@@ -188,3 +188,6 @@ func (CastCardFact) fact() {}
 func (CastCard) value()    {}
 func (OpenCast) action()   {}
 func (CampCast) action()   {}
+
+// MemoSlots is how many MemoFact slots a character has (0..MemoSlots-1).
+const MemoSlots = 21

@@ -198,3 +198,18 @@ func (InventoryFact) fact() {}
 func (InvItem) value() {}
 
 func (InventoryView) value() {}
+
+// ApplyItems: Who's readied items are worked into its figures again (AC,
+// THAC0, damage, the item count; por ApplyItems, 00BA:0BB8).
+type ApplyItems struct{ Who CharID }
+
+func (ApplyItems) action() {}
+
+// HasRoom asks whether Who has room for Item (Yes; por's Overloaded,
+// ovr20:275B, negated) with Who's items as last applied (ApplyItems).
+type HasRoom struct {
+	Who  CharID
+	Item ItemHandle
+}
+
+func (HasRoom) check() {}
