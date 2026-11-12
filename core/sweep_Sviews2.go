@@ -36,3 +36,9 @@ func (ItemID) value()  {}
 
 // Abilities are the six abilities in the order of a sheet's rows.
 var Abilities = [6]Ability{Strength, Intelligence, Wisdom, Dexterity, Constitution, Charisma}
+
+// DevPlace sets a dev scene's fight up before its first turn: Melee puts a
+// foe beside each member, else each member goes to the map's edge.
+type DevPlace struct{ Melee bool }
+
+func (DevPlace) action() {}
