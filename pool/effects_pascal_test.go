@@ -109,6 +109,9 @@ func documentedEffect(kind string, k []int, want, got []string) bool {
 	return false
 }
 
+// mirrorImage is POR's mirror image affect, the one ruled row of the vectors.
+const mirrorImage = 0x1C
+
 func TestEffectsAgainstPascal(t *testing.T) {
 	e := testEngine(t)
 	e.Init()
@@ -134,7 +137,19 @@ func TestEffectsAgainstPascal(t *testing.T) {
 			}
 			cases++
 			got := strings.Join(strings.Fields(effectVector(e, fs[0], k)), " ")
-			if w := strings.Join(strings.Fields(want), " "); got != w {
+			w := strings.Join(strings.Fields(want), " ")
+			if fs[1] == strconv.Itoa(int(mirrorImage)) && (fs[0] == "effplain" || fs[0] == "effweapon") {
+				// Ruled (Felix, all games): sotsb's mirror image, images in the data's high
+				// nibble. The vectors' data 2 holds none, so the row plays as no affect,
+				// but for the seed (the last field): the rule rolls its die.
+				none := strings.Fields(effectVector(e, fs[0], append([]int{0}, k[1:]...)))
+				ours := strings.Fields(got)
+				if strings.Join(ours[:len(ours)-1], " ") != strings.Join(none[:len(none)-1], " ") {
+					t.Errorf("%s: ruled mirror image (as no affect) %v, ours %v", key, none, ours)
+				}
+				continue
+			}
+			if got != w {
 				diffs[fs[0]+" "+fs[1]]++
 				if !documentedEffect(fs[0], k, strings.Fields(w), strings.Fields(got)) {
 					t.Errorf("%s: pascal %s, ours %s", key, w, got)
