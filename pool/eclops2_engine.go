@@ -722,8 +722,10 @@ func (e *Engine) opSound() {
 	s, ok := e.game().scriptSound(byte(e.vm.Arg(1, e.host)))
 	switch {
 	case !ok:
+	case s.Music && e.songMusic(s.Song, 0):
+	case s.Music && e.snd.d != nil:
+		e.snd.d.AmigaSong(s.Song) // the Amiga's Music-X song (game.AmigaMusic)
 	case s.Music:
-		e.songMusic(s.Song, 0)
 	default:
 		e.cue(s.Cue)
 	}

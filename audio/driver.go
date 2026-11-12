@@ -107,6 +107,14 @@ func (d *Driver) Attach(am Amiga, fx []int, t Tracks, p Pack, speaking func() bo
 	d.on = true
 }
 
+// SetAmiga swaps in the Amiga player am and its effect table fx, keeping
+// what else Attach gave (a game's Music-X set, game.AmigaMusic).
+func (d *Driver) SetAmiga(am Amiga, fx []int) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.am, d.fx = am, fx
+}
+
 // Read renders the speaker, the Tandy or the Amiga, then mixes in the
 // soundtrack and the sound pack's clips: s16le stereo at 44100 Hz. A cut
 // due inside p falls on its frame.

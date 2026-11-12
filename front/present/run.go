@@ -69,6 +69,9 @@ func NewFront(g front.Game, data game.Data, snd ...front.Sound) *Front {
 		f.P.Snd = d
 		audio.Output(d)
 	}
+	if d, ok := f.P.Snd.(*audio.Driver); ok && len(snd) > 0 && amigaMX != nil { // the game's Music-X set on the driver it was handed (newDriver attaches its own)
+		d.SetAmiga(amigaMX, amigaFx)
+	}
 	if d, ok := f.P.Snd.(*audio.Driver); ok && adLib != nil { // the AdLib songs are the driver's soundtrack, its effects over them
 		if a, err := audio.NewAdLib(*adLib); err == nil {
 			f.P.AdLib = a

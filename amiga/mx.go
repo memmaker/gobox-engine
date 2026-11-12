@@ -154,6 +154,9 @@ func (m *MX) effects(glb []byte) {
 // Len is the number of songs in the file.
 func (m *MX) Len() int { return len(m.songs) }
 
+// Effects is the number of effects in the library.
+func (m *MX) Effects() int { return len(m.fx) }
+
 // Song starts the game's song n once (Songs; 0 or unknown stops) = Sound(14+n-1).
 func (m *MX) Song(n int) {
 	s, ok := m.Songs[n]
