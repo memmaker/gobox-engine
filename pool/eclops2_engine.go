@@ -545,11 +545,12 @@ func (e *Engine) opProgram() {
 		e.ProgramEight() // ovr19:02A4
 	case script.ProgramCamp:
 		e.es.hold, e.es.holdPC = holdEncamp, int(e.vm.PC)
-	case script.ProgramQuit: // cotab 3, pod 2 (O040:1F1F): back to DOS
-		e.Exit()
+	case script.ProgramQuit: // cotab 3, pod 2 (O040:1F1F): back to DOS; the front ends the run (play.Ended), as pod's Exit
+		e.event(play.Ended{})
+	case script.ProgramSaveQuit: // pod 1 (O043:0000): the save screen (the player picks the slot), then the ending
+		e.event(play.SaveOffered{})
+		e.ProgramEight()
 	}
-	// ProgramSaveQuit (pod 1) has no pool handler: pod's save asks a slot
-	// letter and its ending is pod's own sequence; pool has neither (Felix?).
 }
 
 // opWho = ovr04:2B33 (prompt): choose a party member.
