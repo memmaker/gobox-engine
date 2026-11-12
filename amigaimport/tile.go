@@ -97,10 +97,13 @@ func decodeTile(d []byte) (t *tile) {
 func sparse(t *tile, b []byte) {
 	a, n := be16(b, 0), be16(b, 2)
 	codes, col := b[4:4+a], b[4+a:]
-	planes := len(col) / n
 	for i := range t.px {
 		t.px[i] = clear
 	}
+	if n == 0 {
+		return // a blank frame: row codes only, no colour bytes (Curse's PIC 57, 74 and SotSB's 6, 17 frame 3 or 5)
+	}
+	planes := len(col) / n
 	y, x, k := 0, 0, 0 // row, byte column, next colour byte
 	put := func(m byte) {
 		for bit := 0; bit < 8; bit++ {
