@@ -34,10 +34,11 @@ type GameTables struct {
 	TreasureSets               [][]int32             // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
 }
 
-// ScriptWords are the game's own words the engine binds by name (0: the game has none):
-// LastBlock is core.WordLastBlock (pod: the save block), Remainder where DIVIDE leaves
-// its remainder (ecl.VM.Remainder). Numbers are the game block's word offsets.
-type ScriptWords struct{ LastBlock, Remainder int }
+// ScriptWords are the script layout's fields (layout/global.txt) the engine binds by name
+// ("": the game has none, the ruleset's own): LastBlock is core.WordLastBlock, the block
+// NewECL left (pod AreaScriptId, sotsb PrevEcl), Remainder where DIVIDE leaves its
+// remainder (ecl.VM.Remainder; pod, sotsb, cotab DivideRemainder).
+type ScriptWords struct{ LastBlock, Remainder string }
 
 // AreaMonsters are the monsters a fight adds by area screen (Behaviour.AreaMonstersJoin):
 // Count of ByScreen[the area screen], standing aside with Status and Control.

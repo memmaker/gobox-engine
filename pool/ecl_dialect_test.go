@@ -143,3 +143,37 @@ func TestPodDelayAndNextFrame(t *testing.T) {
 	e.pic.frames = nil
 	runOp(e, script.V3, e.opCall, 3) // no picture: nothing to step
 }
+
+// TestGameTablesWords: the layout fields GameTables.Words names are the game's last block (NewECL)
+// and DIVIDE's remainder; a game without them keeps the ruleset's word and no remainder; a name
+// the layout lacks is a loud failure.
+func TestGameTablesWords(t *testing.T) {
+	e := quickStarted(t)
+	lay := &script.Layout{Fields: []script.Field{
+		{Name: "SaveBlock", Owner: script.OwnerGame, Width: script.WidthByte, From: 21, Len: 1},
+		{Name: "Rest", Owner: script.OwnerGame, Width: script.WidthByte, From: 40, Len: 1},
+	}}
+	e.vm.Script.Layout = lay
+	e.bindWords()
+	if e.vm.Remainder != (script.Ref{}) {
+		t.Fatal("remainder bound without Words")
+	}
+	e.given = &GameTables{Words: ScriptWords{LastBlock: "SaveBlock", Remainder: "Rest"}}
+	e.bindWords()
+	rest, _ := lay.Named("Rest")
+	if e.vm.Remainder != rest {
+		t.Fatalf("remainder %+v, want %+v", e.vm.Remainder, rest)
+	}
+	e.setLastBlock(7) // opNewECL's
+	save, _ := lay.Named("SaveBlock")
+	if b := e.getVar(save); b != 7 {
+		t.Fatalf("last block field %d, want 7", b)
+	}
+	e.given = &GameTables{Words: ScriptWords{Remainder: "Nope"}}
+	defer func() {
+		if recover() == nil {
+			t.Error("a Words name the layout lacks did not fail")
+		}
+	}()
+	e.bindWords()
+}

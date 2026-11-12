@@ -29,6 +29,7 @@ func (e *Engine) loadScript(area int) {
 		s = &script.Script{Area: area, Code: []script.Instr{{Op: 0}}, Labels: map[string]int{}, At: map[int]string{}}
 	}
 	e.vm.Script = s
+	e.bindWords()
 	copy(e.vm.Code, s.Data)
 	e.ext.stopAt, e.ext.interact = map[int]bool{}, nil
 	for _, l := range interactions(e.scriptDir())[area] {

@@ -331,7 +331,7 @@ func (e *Engine) listAnswered(dst script.Ref, i int) {
 // opNewECL = ovr04:0BD1 (area): switch to another area's script.
 func (e *Engine) opNewECL() {
 	e.vm.ReadArgs(1)
-	e.setWorldWord(core.WordLastBlock, int(e.gs.areaKind))
+	e.setLastBlock(int(e.gs.areaKind))
 	v := byte(e.vm.Arg(1, e.host))
 	e.gs.areaKind = v
 	e.eclFile = e.set.File("ECL") + ".dax" // DS:547C
