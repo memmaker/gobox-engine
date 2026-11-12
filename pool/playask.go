@@ -20,14 +20,15 @@ import (
 type callKind int
 
 const (
-	callNone     callKind = iota // nothing (a No)
-	callTurn                     // the fight's turn actions, the first sure
-	callAimClose                 // a fight's No: an aim it asked over gives up (ovr14:3212)
-	callItem                     // UseItem
-	callPower                    // UsePower
-	callLoot                     // LootLeave
-	callDrop                     // dropping a member, target the questions still to ask
-	callClass                    // NewClass, target the class
+	callNone       callKind = iota // nothing (a No)
+	callTurn                       // the fight's turn actions, the first sure
+	callAimClose                   // a fight's No: an aim it asked over gives up (ovr14:3212)
+	callItem                       // UseItem
+	callPower                      // UsePower
+	callLoot                       // LootLeave
+	callDrop                       // dropping a member, target the questions still to ask
+	callClass                      // NewClass, target the class
+	callCastChoice                 // the reply to a spell's own question (SpellAim.Choose): the waiting cast goes off
 )
 
 // askOf is what a pending question picks: a menu entry, a spell, a member.
@@ -48,6 +49,7 @@ type pendingCall struct {
 	class                 core.Class // callClass
 	power                 game.PowerKind
 	sure                  bool
+	choice                int32 // callCastChoice: the reply's index
 }
 
 // playQuestion is the question up and the call each reply makes.
@@ -86,6 +88,8 @@ func (e *Engine) makeCall(p pendingCall) error {
 		return e.LootLeave(p.sure)
 	case callClass:
 		return e.newClass(p.member, p.class)
+	case callCastChoice:
+		e.castChosen(p.choice)
 	case callDrop:
 		if p.target > 0 { // ovr17:1F93: asked again
 			e.ext.pq = &playQuestion{q: play.Question{Text: "Are you sure? ", YesNo: true, Replies: []string{"No", "Yes"}, Default: 1},

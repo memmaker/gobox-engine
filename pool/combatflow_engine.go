@@ -171,7 +171,7 @@ func (e *Engine) turnDone() {
 // (the inventory, the sheet) going: its menu again, or its end.
 func (e *Engine) turnOn() {
 	c := e.cs.actor
-	if c == core.NoChar || e.cs.aim != nil || e.top() != onWait {
+	if c == core.NoChar || e.cs.aim != nil || e.cs.choice != nil || e.top() != onWait {
 		return
 	}
 	if t := e.cs.turn; t != nil {
@@ -257,10 +257,16 @@ func (e *Engine) aimSpellTaken(found bool, t aimTarget) {
 
 // castRun is the cast an aim led to, through core.Rules Resolve(Cast/UseItem).
 func (e *Engine) castRun(w castWhat, aims []core.Aim) {
+	if w.kind != cwItem && !w.chosen {
+		if aim := e.fact(w.c, core.SpellAimFact{Spell: e.spellID(w.n)}).(core.SpellAim); aim.Choose != "" && (w.kind == cwInfo || aim.Now) {
+			e.askCastChoice(w, aims, aim)
+			return
+		}
+	}
 	var a core.Action
 	switch w.kind {
 	case cwInfo, cwTurn:
-		a = core.Cast{Caster: w.c, Spell: e.spellID(w.n), Aims: aims, Begun: w.kind == cwInfo}
+		a = core.Cast{Caster: w.c, Spell: e.spellID(w.n), Aims: aims, Begun: w.kind == cwInfo, Choice: w.choice}
 	case cwItem:
 		if !e.fact(w.c, core.FightCardFact{}).(core.FightCard).Auto {
 			e.combatUseHook() // 00BA:2B88: the player's use goes back to the combat map
@@ -279,6 +285,34 @@ func (e *Engine) castRun(w castWhat, aims []core.Aim) {
 	if w.kind != cwInfo {
 		e.later(resume{kind: rBool, ok: out.TurnOver})
 	}
+}
+
+// askCastChoice puts the spell's own question up (the pending one, which
+// must be answered); its reply casts w (castChosen).
+func (e *Engine) askCastChoice(w castWhat, aims []core.Aim, aim core.SpellAim) {
+	e.cs.choice = &castChoice{w: w, aims: aims}
+	pq := &playQuestion{q: play.Question{Text: aim.Choose, Replies: aim.Choices, NoEsc: true}}
+	for i := range aim.Choices {
+		pq.calls = append(pq.calls, pendingCall{kind: callCastChoice, choice: int32(i)})
+	}
+	e.ext.pq = pq
+}
+
+// castChosen casts the waiting spell with reply i, then the turn goes on
+// as after the aim that led to it (aimApply, TurnChoice).
+func (e *Engine) castChosen(i int32) {
+	ch := e.cs.choice
+	if ch == nil {
+		return
+	}
+	e.cs.choice = nil
+	w := ch.w
+	w.chosen, w.choice = true, i
+	e.castRun(w, ch.aims)
+	if e.cs.aim == nil && e.cs.turn != nil && e.top() == onWait && e.resumed() {
+		e.turnDone()
+	}
+	e.turnOn()
 }
 
 // aimFinished goes on with an aim's results: found, and the target t.
@@ -375,6 +409,13 @@ type combatState struct {
 	ask    string      // the yes/no question the turn call asked (Flee:, Attack Ally?): turnActs makes it the pending one
 	resume resume      // what a choice left for the turn (later)
 	sa     *spellAim   // the aims a spell takes before it is cast (aimSpell)
+	choice *castChoice // a spell's own question is up (askCastChoice): the cast and the turn wait for its reply
+}
+
+// castChoice is a cast waiting for the reply to its spell's question.
+type castChoice struct {
+	w    castWhat
+	aims []core.Aim
 }
 
 type fightPhase int
@@ -400,6 +441,10 @@ type castWhat struct {
 	n    int             // the spell (cwInfo, cwTurn) or the scroll's spell byte (cwItem)
 	it   core.ItemHandle // cwItem
 	own  bool
+	// chosen: the spell's own question (SpellAim.Choose) is answered, choice
+	// the reply's index.
+	chosen bool
+	choice int32
 }
 
 type castKind byte

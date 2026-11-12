@@ -28,13 +28,18 @@ const (
 )
 
 // SpellAim: how the spell aims, Range its squares, FoesOnly offers foes
-// only, Now: cast this turn (not begun for the next round).
+// only, Now: cast this turn (not begun for the next round). Choose is the
+// spell's own question (Delayed Blast Fireball's delay), asked once its aims
+// are taken, as the cast goes off; Choices its replies, Cast.Choice the index
+// of the one taken. Empty Choose: none.
 type SpellAim struct {
 	Name          string
 	Kind          SpellAimKind
 	Area, Targets int
 	Range         int
 	FoesOnly, Now bool
+	Choose        string
+	Choices       []string
 }
 
 // SpellMenuFact is the fighter's spell list of Kind (por buildSpellList's

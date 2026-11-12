@@ -54,6 +54,7 @@ type (
 		Ats    []BoardPos
 		Aims   []Aim // the aims the player took, in the order the spell asks for them
 		Begun  bool  // the spell begun in an earlier turn goes off
+		Choice int32 // the reply to the spell's own question (SpellAim.Choices), an index
 	}
 	UseItem struct {
 		User   CharID
