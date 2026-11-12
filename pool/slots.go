@@ -254,9 +254,10 @@ func (e *Engine) saveTo(name string) error {
 }
 
 // canSave says whether a save is taken now: not from the party menu's
-// Load (loadOnly), and only with a game in play outside a fight.
+// Load (loadOnly), and only with a game in play outside a fight and with no
+// vault open (its items and the screen to leave it are not in a save).
 func (e *Engine) canSave(loadOnly bool) bool {
-	return !loadOnly && e.ext.inGame && len(e.partyIDs()) > 0 && e.beginFlag() != 5
+	return !loadOnly && e.ext.inGame && len(e.partyIDs()) > 0 && e.beginFlag() != 5 && e.vault == nil
 }
 
 // SlotsView is the save slots, newest first, for the presenter's F10

@@ -83,3 +83,25 @@ func TestVault(t *testing.T) {
 		t.Errorf("Take on the money line did not bank the vault's platinum: gold %d, was %d", st.Purse.Gold, gold)
 	}
 }
+
+// TestNoSaveInVault: a save is refused while the vault is open (the open vault
+// is not in a save), and allowed again once it is left.
+func TestNoSaveInVault(t *testing.T) {
+	e := quickStarted(t)
+	e.selectMember(0)
+	e.ext.inGame = true // quickStarted skips the game start; canSave needs a game in play
+	if !e.canSave(false) {
+		t.Fatal("cannot save before the vault")
+	}
+	e.push(cont{kind: kNop})
+	e.Start(e.Vault)
+	if e.canSave(false) || e.SaveNamed("VAULTSAVE") == nil {
+		t.Fatal("saved with the vault open")
+	}
+	if _, err := e.Do(play.Leave{}); err != nil {
+		t.Fatal(err)
+	}
+	if !e.canSave(false) {
+		t.Fatal("cannot save after leaving the vault")
+	}
+}
