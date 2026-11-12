@@ -98,6 +98,13 @@ func TestRandomTreasureAgainstPascal(t *testing.T) {
 	}
 }
 
+// porTreasureRuled are the kinds whose POR roll fixes a slip of the original
+// (Df, DEFAULT: Felix may override; rules1e treasure/por.json): the javelin's
+// one-in-five Javelin of Lightning, the wand's 1d3 over all three wands, the
+// ring of protection's save bonus. Their records differ from the Pascal's on
+// purpose; the rolls (the RNG state after) do not.
+var porTreasureRuled = map[rules1e.ItemType]bool{rules1e.ItemJavelin: true, rules1e.ItemWand: true, rules1e.ItemProtectionRing: true}
+
 // TestRandomItemAgainstPascal compares RandomItem with Money.GenerateRandomItem for the javelin, potion
 // and wand kinds on 40 seeds (por-treasure.txt "genitem" lines), whose rolls reached leftover item
 // data in the original: the record bytes from the type to the end, and the RNG state after.
@@ -123,6 +130,14 @@ func TestRandomItemAgainstPascal(t *testing.T) {
 		var parts []string
 		for _, x := range char.WriteItems(rec)[0x2E:rules1e.ItemRecSize] {
 			parts = append(parts, fmt.Sprint(int8(x)))
+		}
+		if porTreasureRuled[rules1e.ItemType(k[0])] { // the original's slip, fixed by ruling: only the dice match
+			_, wantSeed, _ := strings.Cut(val, " ")
+			if g := fmt.Sprint(int32(e.state().RandSeed)); g != wantSeed {
+				t.Errorf("%s:\n Go seed %s", line, g)
+			}
+			cases++
+			continue
 		}
 		if g := strings.Join(parts, ".") + " " + fmt.Sprint(int32(e.state().RandSeed)); g != val {
 			t.Errorf("%s:\n Go %s", line, g)
