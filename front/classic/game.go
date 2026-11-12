@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"gobox/core"
 	"image"
 	"image/color"
 	"os"
@@ -105,6 +106,16 @@ func (g *Game) sel(n int) int {
 		return g.selected()
 	}
 	return n
+}
+
+// held is the handle of the selected member's item i (Inventory.Pool's
+// Index), NoItem for none.
+func (g *Game) held(i int) core.ItemHandle {
+	p, m := play.CommonOf(g.r.g.State()).Party, g.sel(-1)
+	if m >= 0 && m < len(p) && i >= 0 && i < len(p[m].Items) {
+		return p[m].Items[i].Handle
+	}
+	return core.NoItem
 }
 
 // Send applies d to the front state and the game, for scripted drives (cmd
@@ -753,7 +764,7 @@ func (g *Game) Ready(i, x int) error { return g.do(play.Ready{Member: g.sel(-1),
 func (g *Game) UseItem(i, spell, target int, sure bool) error {
 	return g.asking(g.do(play.UseItem{Member: g.sel(-1), Item: i, Spell: spell, Target: target}))
 }
-func (g *Game) Drop(i int) error { return g.do(play.Drop{Member: g.sel(-1), Item: i}) }
+func (g *Game) Drop(i int) error { return g.do(play.Drop{Member: g.sel(-1), Item: g.held(i)}) }
 func (g *Game) Sell(i int) error { return g.do(play.Sell{Member: g.sel(-1), Item: i}) }
 func (g *Game) Buy(w int) error {
 	if lootOf(g.r.g.State()) != nil { // the loot screen's Take, as the act mapping does
@@ -995,7 +1006,7 @@ func (g *Game) act(a front.Action) func() error {
 	case front.ActUse:
 		return send(play.UseItem{Member: g.sel(-1), Item: a.N})
 	case front.ActDrop:
-		return send(play.Drop{Member: g.sel(-1), Item: a.N})
+		return send(play.Drop{Member: g.sel(-1), Item: g.held(a.N)})
 	case front.ActSell:
 		return send(play.Sell{Member: g.sel(-1), Item: a.N})
 	case front.ActReload:

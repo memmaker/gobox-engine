@@ -9,6 +9,7 @@
 package play
 
 import (
+	"gobox/core"
 	"image"
 	"image/color"
 	"time"
@@ -446,7 +447,10 @@ type (
 	// Anywhere a member's goods are shown.
 	Ready   struct{ Member, Item, Count int } // Count of a stack (0: all)
 	Unready struct{ Member, Item int }
-	Drop    struct{ Member, Item int }
+	Drop    struct {
+		Member int
+		Item   core.ItemHandle
+	}
 	Give    struct{ From, To, Item int }
 	Halve   struct{ Member, Item int }
 	Join    struct{ Member, Item int }

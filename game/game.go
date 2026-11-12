@@ -422,12 +422,15 @@ type Item struct {
 // own (cotab, sotsb, pod, buckrogers); it goes when they switch to pool.
 func ByPosition(items []Item) []Item {
 	for i := range items {
-		items[i].Handle = core.ItemHandle(i + 1)
+		items[i].Handle = PositionHandle(i)
 	}
 	return items
 }
 
-// Position: see ByPosition (-1 for NoItem).
+// PositionHandle is the handle ByPosition gives place i.
+func PositionHandle(i int) core.ItemHandle { return core.ItemHandle(i + 1) }
+
+// Position is the place PositionHandle gave h (-1 for NoItem).
 func Position(h core.ItemHandle) int { return int(h) - 1 }
 
 // Quest is a quest fact.
