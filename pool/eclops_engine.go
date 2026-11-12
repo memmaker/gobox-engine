@@ -136,7 +136,8 @@ func (e *Engine) opLoadCharacter() {
 	v := byte(e.vm.Arg(1, e.host))
 	refresh := v&0x80 != 0 && e.eclVersion.Behaviour.SelectMemberDrop
 	n := int(v & 0x7F)
-	if n < e.partySize() {
+	e.es.memberMissing = n >= e.partySize()
+	if !e.es.memberMissing {
 		e.sel = n
 	}
 	if refresh && e.es.memberDied != 0 && e.es.memberGone != 0 {

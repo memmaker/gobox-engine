@@ -191,8 +191,8 @@ func (e *Engine) getVar(r script.Ref) int64 {
 	}
 	ef, bound := e.engineFields[f.Name]
 	if bound && ef.get != nil {
-		if v, ok := ef.get(r.Index); ok {
-			return v
+		if v, ok := ef.get(canonElement(f, r.Index)); ok {
+			return e.gameValue(f, v)
 		}
 	}
 	if bound && !ef.stored {
@@ -222,7 +222,7 @@ func (e *Engine) setVar(r script.Ref, v int64) {
 		e.storeCells(f, r.Index, []int64{v})
 	}
 	if bound && ef.set != nil {
-		ef.set(r.Index, v)
+		ef.set(canonElement(f, r.Index), e.canonValue(f, v))
 	} else if bound && !ef.stored {
 		panic(fmt.Sprintf("script: %s cannot be written", f.Name))
 	}

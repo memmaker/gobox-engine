@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"reflect"
 	"rules1e"
 )
 
@@ -95,7 +96,7 @@ type RecordCells struct {
 }
 
 // ImportedSave is an original save read: the ruleset's canonical part (Rules,
-// for core.Rules Load), what the engine keeps (positions, the party's file
+// for core.Rules Load; nil unless the layout's RulesRecords: RulesFromFields makes it), what the engine keeps (positions, the party's file
 // names as stored) and the record cells by script address, for the script
 // fields that live in the records.
 type ImportedSave struct {
@@ -106,6 +107,7 @@ type ImportedSave struct {
 	AreaKind                 uint16
 	Party                    []string
 	Records                  []RecordCells
+	Purse                    rules1e.Purse // the trailer's
 }
 
 // Cell is the record cell at script address a, nil outside the records.
@@ -188,8 +190,9 @@ func ReadOriginalSave(b []byte, l SaveLayout) (ImportedSave, error) {
 		}
 		o.AreaKind = *k
 	}
-	s := &rules1e.RuleState{Purse: ReadPurse(b[p:])}
+	o.Purse = ReadPurse(b[p:])
 	if l.RulesRecords {
+		s := &rules1e.RuleState{Purse: o.Purse}
 		if len(o.Records) != 3 || len(o.Records[0].Cells) != rules1e.AreaWords || len(o.Records[1].Cells) != rules1e.GameWords || len(o.Records[2].Cells) != len(rules1e.AuxVars{}) {
 			return o, fmt.Errorf("%s: RulesRecords needs the area, game and aux records", OriginalSaveFile)
 		}
@@ -201,11 +204,10 @@ func ReadOriginalSave(b []byte, l SaveLayout) (ImportedSave, error) {
 		}
 		s.Area.ClearScriptWords()
 		s.Game.ClearScriptWords()
-	}
-	r := &rules1e.Rules{S: s}
-	var err error
-	if o.Rules, err = r.Save(); err != nil {
-		return o, err
+		var err error
+		if o.Rules, err = (&rules1e.Rules{S: s}).Save(); err != nil {
+			return o, err
+		}
 	}
 	for i := range min(count, len(names)) {
 		o.Party = append(o.Party, names[i].String())
@@ -215,3 +217,55 @@ func ReadOriginalSave(b []byte, l SaveLayout) (ImportedSave, error) {
 
 // OriginalSaveFile is the original's save of a slot (ovr18 SaveGame).
 const OriginalSaveFile = "SAVGAMA.DAT"
+
+// clockParts are the canonical fields over rules1e's Clock (rounds, minutes, tens, hours,
+// days, months, years): its first element each.
+var clockParts = map[string]int{"Clock": 0, "TenMinutes": 2, "Hours": 3, "ClockRest": 4, "ClockDate": 4}
+
+// RulesFromFields is the ruleset's canonical part of a save whose records are not rules1e's
+// (sotsb, cotab, pod): each canonical field (canonical values, by name) that is a word of
+// rules1e's area or game record goes there; the others are script fields only.
+func RulesFromFields(fields map[string][]int64, p rules1e.Purse) ([]byte, error) {
+	s := &rules1e.RuleState{Purse: p}
+	words := recordFields(&s.Area)
+	for n, w := range recordFields(&s.Game) {
+		words[n] = w
+	}
+	for name, cells := range fields {
+		at, ok := words[name]
+		if k, clock := clockParts[name]; clock {
+			at, ok = words["Clock"][k:], true
+		}
+		if !ok {
+			continue
+		}
+		if len(cells) > len(at) {
+			return nil, fmt.Errorf("%s: %d cells, rules1e has %d", name, len(cells), len(at))
+		}
+		for i, v := range cells {
+			*at[i] = uint16(v)
+		}
+	}
+	return (&rules1e.Rules{S: s}).Save()
+}
+
+// recordFields are a rules1e record's named words (its exported fields but the
+// unnamed V<addr> runs) by name.
+func recordFields(rec any) map[string][]*uint16 {
+	v := reflect.ValueOf(rec).Elem()
+	out := map[string][]*uint16{}
+	for i := range v.NumField() {
+		f, fv := v.Type().Field(i), v.Field(i)
+		if !f.IsExported() || f.Tag.Get("json") == "-" {
+			continue
+		}
+		if fv.Kind() == reflect.Array {
+			for k := range fv.Len() {
+				out[f.Name] = append(out[f.Name], fv.Index(k).Addr().Interface().(*uint16))
+			}
+			continue
+		}
+		out[f.Name] = []*uint16{fv.Addr().Interface().(*uint16)}
+	}
+	return out
+}

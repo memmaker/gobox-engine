@@ -73,7 +73,14 @@ type Field struct {
 	// exactly its addresses, for that area only: the area's script used the
 	// game's word for state of its own (one script's reuse of another's word).
 	Replaces bool
+	// Encoding: the game keeps this canonical field in an encoding of its own (a value
+	// or element numbering other than POR's); the engine turns it into the canonical
+	// value by this name. "": the canonical encoding.
+	Encoding Encoding
 }
+
+// Encoding names a game's encoding of a canonical field (Field.Encoding).
+type Encoding string
 
 // Ref is a resolved operand: element Index of Field. A value: Args compare
 // with ==, Ref and all; the zero Ref is none.
@@ -181,7 +188,7 @@ func (l *Layout) check() error {
 }
 
 // ParseLayout reads a layout text: one Field a line, "from len width owner
-// name [readonly|replaces]", from in hex; '#' starts a comment.
+// name [readonly|replaces] [enc=<encoding>]", from in hex; '#' starts a comment.
 func ParseLayout(r io.Reader) (*Layout, error) {
 	l := &Layout{}
 	names := map[string]bool{}
@@ -192,8 +199,22 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 		if len(f) == 0 {
 			continue
 		}
-		if len(f) != 5 && !(len(f) == 6 && (f[5] == "readonly" || f[5] == "replaces")) {
-			return nil, fmt.Errorf("layout line %d: want from len width owner name [readonly|replaces]", n)
+		if len(f) < 5 {
+			return nil, fmt.Errorf("layout line %d: want from len width owner name [readonly|replaces] [enc=<encoding>]", n)
+		}
+		var readOnly, replaces bool
+		var enc Encoding
+		for _, flag := range f[5:] {
+			switch e, isEnc := strings.CutPrefix(flag, "enc="); {
+			case flag == "readonly" && !readOnly:
+				readOnly = true
+			case flag == "replaces" && !replaces:
+				replaces = true
+			case isEnc && e != "" && enc == "":
+				enc = Encoding(e)
+			default:
+				return nil, fmt.Errorf("layout line %d: flag %q", n, flag)
+			}
 		}
 		from, err := strconv.ParseInt(f[0], 16, 32)
 		if err != nil {
@@ -215,7 +236,7 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 			return nil, fmt.Errorf("layout line %d: %s twice", n, f[4])
 		}
 		names[f[4]] = true
-		l.Fields = append(l.Fields, Field{Name: f[4], Owner: o, Width: w, From: int(from), Len: size, ReadOnly: len(f) == 6 && f[5] == "readonly", Replaces: len(f) == 6 && f[5] == "replaces"})
+		l.Fields = append(l.Fields, Field{Name: f[4], Owner: o, Width: w, From: int(from), Len: size, ReadOnly: readOnly, Replaces: replaces, Encoding: enc})
 	}
 	if err := sc.Err(); err != nil {
 		return nil, err

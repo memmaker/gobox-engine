@@ -189,6 +189,7 @@ type eclState struct {
 	encounterShown                     [2]byte    // DS:84C8
 	soundVar, scriptVarB8, scriptVarB9 uint16     // DS:84CC/84CE/84D0
 	memberDied, memberGone             byte       // DS:84D2/84D3 (DS:84D4 is run.duelMode)
+	memberMissing                      bool       // the last SELECT MEMBER matched nobody (cotab characterNotFound: CotabSelStatus reads 0 once)
 	picShown                           byte       // DS:84E0
 	picAnimating                       byte       // DS:84E1
 	textInView                         byte       // DS:84E2

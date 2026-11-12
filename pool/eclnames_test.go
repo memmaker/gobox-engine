@@ -1,6 +1,7 @@
 package pool
 
 import (
+	"gobox/char"
 	"gobox/ecl/script"
 	"testing"
 )
@@ -9,7 +10,7 @@ import (
 // name, and no byte runs a command its dialect gives another name (fold S2).
 func TestEclOpsByName(t *testing.T) {
 	for _, v := range []*script.Version{script.V1, script.V2, script.V3} {
-		e := &Engine{given: &GameTables{Script: v}}
+		e := &Engine{given: &GameTables{Script: v, OriginalSave: testCode}}
 		e.initVM()
 		for b, c := range v.Cmds {
 			_, named := eclOps[c.Op]
@@ -22,3 +23,6 @@ func TestEclOpsByName(t *testing.T) {
 		}
 	}
 }
+
+// testCode is a code image for an Engine without the game's tables (POR's place and size).
+var testCode = char.SaveLayout{CodeBase: 0x9900, CodeSize: 0x1E00}

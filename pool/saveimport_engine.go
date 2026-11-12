@@ -85,6 +85,11 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 	if err != nil {
 		return gameSave{}, err
 	}
+	if !e.game().OriginalSave.RulesRecords {
+		if g.Rules, err = char.RulesFromFields(e.canonFields(&o, l), o.Purse); err != nil {
+			return gameSave{}, err
+		}
+	}
 	for _, fl := range l.Fields {
 		if fl.Owner == script.OwnerLocal && e.saved(fl) {
 			if c := decodeCells(&o, fl); c != nil {
@@ -121,4 +126,35 @@ func decodeCells(o *char.ImportedSave, fl script.Field) []int64 {
 		return nil
 	}
 	return c
+}
+
+// canonFields are the canonical values of l's record fields in o (codecs.go), by name: what
+// a save whose records are not rules1e's hands the ruleset (char.RulesFromFields).
+func (e *Engine) canonFields(o *char.ImportedSave, l *script.Layout) map[string][]int64 {
+	out := map[string][]int64{}
+	for i := range l.Fields {
+		fl := &l.Fields[i]
+		if fl.Owner != script.OwnerGame && fl.Owner != script.OwnerArea {
+			continue
+		}
+		c := decodeCells(o, *fl)
+		for k := range c {
+			c[k] = e.canonValue(fl, c[k])
+		}
+		if c != nil {
+			out[fl.Name] = c
+		}
+	}
+	return out
+}
+
+// OriginalRules is the ruleset's part of an original save b of the game t whose script
+// fields are l: the import's (importSave), for a game's test against its real saves.
+func OriginalRules(b []byte, t GameTables, l *script.Layout) ([]byte, error) {
+	o, err := char.ReadOriginalSave(b, t.OriginalSave)
+	if err != nil || t.OriginalSave.RulesRecords {
+		return o.Rules, err
+	}
+	e := &Engine{given: &t}
+	return char.RulesFromFields(e.canonFields(&o, l), o.Purse)
 }
