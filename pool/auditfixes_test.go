@@ -36,11 +36,3 @@ func TestAuditCSpeedNoExtraAttacks(t *testing.T) {
 		t.Fatalf("attacks %d", c.Attacks[0])
 	}
 }
-
-func TestAuditCDrainNoLevels(t *testing.T) {
-	e := &Engine{}
-	e.initVM()
-	c := &rules1e.Character{}
-	c.MaxLevel, c.MaxHP, c.HP = 3, 10, 10
-	e.state().DrainLevels(c, 2)
-}

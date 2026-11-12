@@ -88,8 +88,8 @@ type Record285 struct {
 	Saves      [5]rules1e.Score       // 0x6D saving throw targets
 	BaseMove   byte                   // 0x72
 	MaxLevel   byte                   // 0x73 highest class level
-	Drained    byte                   // 0x74 levels lost to energy drain
-	DrainedHP  byte                   // 0x75 hit points lost with them
+	Kept74     byte                   // 0x74 kept for byte-equality (was the level-drain count; no game drains)
+	Kept75     byte                   // 0x75 kept for byte-equality (was the drained hit points)
 	Undead     byte                   // 0x76 turn undead row
 	Thief      [8]rules1e.Percent     // 0x77 thief skills
 	_          [4]byte                // 0x7F affect list pointer
@@ -162,8 +162,8 @@ type Record422 struct {
 	BaseMove        byte        // 228
 	MaxLevel        byte        // 229 highest class level (hit dice)
 	MulticlassLevel byte        // 230
-	Drained         byte        // 231 levels lost to energy drain
-	DrainedHP       byte        // 232 hit points lost with them
+	Kept74          byte        // 231 kept for byte-equality (was the level-drain count; no game drains)
+	Kept75          byte        // 232 kept for byte-equality (was the drained hit points)
 	Undead          byte        // 233 turn undead row
 	Thief           [8]byte     // 234 thief skills
 	_               [4]byte     // 242 affect list pointer
@@ -241,8 +241,8 @@ type Record439 struct {
 	BaseMove        byte        // 237
 	MaxLevel        byte        // 238 highest class level (hit dice)
 	MulticlassLevel byte        // 239
-	Drained         byte        // 240 levels lost to energy drain
-	DrainedHP       byte        // 241 hit points lost with them
+	Kept74          byte        // 240 kept for byte-equality (was the level-drain count; no game drains)
+	Kept75          byte        // 241 kept for byte-equality (was the drained hit points)
 	Undead          byte        // 242 turn undead row
 	Thief           [8]byte     // 243 thief skills
 	_               [4]byte     // 251 affect list pointer

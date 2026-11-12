@@ -62,21 +62,7 @@ func TestFixesAgainstPascal(t *testing.T) {
 			h.state().IsHardier(m, &rules1e.Affect{}, 0)
 			got = fmt.Sprintf("%d %d %d %d", m.MaxHP, m.HP, m.Stats[rules1e.StatCon], rules1e.B2i(len(m.Affects) > 0))
 		case "drain":
-			z := quickStarted(t)
-			m := fixChar(30, 0)
-			m.Levels = [len(m.Levels)]rules1e.Level{}
-			m.Levels[rules1e.ClsCleric], m.MaxLevel, m.Stats[rules1e.StatWis] = 3, 3, rules1e.Score(k[0])
-			z.state().RecomputeCharacter(m)
-			m.Memorized = [len(m.Memorized)]rules1e.SpellID{}
-			for i := range k[1] {
-				m.Memorized[i] = rules1e.SpBless
-			}
-			z.state().DrainLevels(m, 1)
-			held := 0
-			for _, v := range m.Memorized {
-				held += rules1e.B2i(v != 0)
-			}
-			got = fmt.Sprintf("%d %d %d", m.Levels[rules1e.ClsCleric], m.SpellSlots[rules1e.SpellClassCleric][0], held)
+			continue // ruled (Felix): no game drains levels; the Pascal drain vectors have no rule to check
 		case "ringsave":
 			got = ringSaveCase(t, k[0], k[1], k[2])
 		case "robring":

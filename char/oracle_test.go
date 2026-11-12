@@ -32,8 +32,8 @@ type cotabRecord struct {
 	BaseMove        byte        // 228
 	MaxLevel        byte        // 229 highest class level (hit dice)
 	MulticlassLevel byte        // 230
-	Drained         byte        // 231 levels lost to energy drain
-	DrainedHP       byte        // 232 hit points lost with them
+	Kept74          byte        // 231 kept for byte-equality (was the level-drain count; no game drains)
+	Kept75          byte        // 232 kept for byte-equality (was the drained hit points)
 	Undead          byte        // 233 turn undead row
 	Thief           [8]byte     // 234 thief skills
 	_               [4]byte     // 242 affect list pointer
@@ -109,8 +109,8 @@ type sotsbRecord struct {
 	BaseMove        byte        // 237
 	MaxLevel        byte        // 238 highest class level (hit dice)
 	MulticlassLevel byte        // 239
-	Drained         byte        // 240 levels lost to energy drain
-	DrainedHP       byte        // 241 hit points lost with them
+	Kept74          byte        // 240 kept for byte-equality (was the level-drain count; no game drains)
+	Kept75          byte        // 241 kept for byte-equality (was the drained hit points)
 	Undead          byte        // 242 turn undead row
 	Thief           [8]byte     // 243 thief skills
 	_               [4]byte     // 251 affect list pointer
@@ -208,6 +208,8 @@ func TestLayoutsMatchStructs(t *testing.T) {
 			case "str00", "str00Use":
 				fv, ok = get("Str00")
 				sub = map[string]string{"str00": "Base", "str00Use": "Value"}[name]
+			case "drained", "drainedHP": // the original's drain counters, kept as bytes (no game drains)
+				fv, ok = get(map[string]string{"drained": "Kept74", "drainedHP": "Kept75"}[name])
 			case "itemList", "slots":
 				continue // pointers: not in the struct
 			default:

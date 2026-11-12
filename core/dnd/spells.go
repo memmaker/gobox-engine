@@ -51,7 +51,6 @@ const (
 	SpellDispelMagicMU                 core.SpellID = "dispel-magic-mu"
 	SpellDustOfDisappearance           core.SpellID = "dust-of-disappearance"
 	SpellElixirOfYouth                 core.SpellID = "elixir-of-youth"
-	SpellEnergyDrain                   core.SpellID = "energy-drain"
 	SpellEnlarge                       core.SpellID = "enlarge"
 	SpellEntangle                      core.SpellID = "entangle"
 	SpellFaerieFire                    core.SpellID = "faerie-fire"

@@ -24,8 +24,8 @@ func From285(p Record285) Record422 {
 	bytesOf(r.Saves[:], p.Saves[:])
 	r.BaseMove = p.BaseMove
 	r.MaxLevel = p.MaxLevel
-	r.Drained = p.Drained
-	r.DrainedHP = p.DrainedHP
+	r.Kept74 = p.Kept74
+	r.Kept75 = p.Kept75
 	r.Undead = p.Undead
 	bytesOf(r.Thief[:], p.Thief[:])
 	r.Pad83 = p.Pad83

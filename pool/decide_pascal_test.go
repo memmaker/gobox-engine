@@ -161,6 +161,9 @@ func TestDecideAgainstPascal(t *testing.T) {
 		case "aisilence":
 			c := &rules1e.Character{Combat: &rules1e.CombatInfo{CanUse: byte(k[0]), CanCast: byte(k[1])}}
 			if k[2] == 1 {
+				// ruled (Felix): coughing acts only in a fight (PoD's rule); the
+				// Pascal vector's use/cast outcome is checked there
+				e.state().BeginFlag = 5
 				e.state().CoughingEnds(c, nil, 0)
 			} else {
 				e.state().IsSilenced(c, nil, 0)
