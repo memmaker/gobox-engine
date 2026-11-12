@@ -12,7 +12,6 @@ import (
 	"gobox/asset"
 	"image"
 	"image/color"
-	"image/png"
 	"os"
 	"path/filepath"
 	"regexp"
