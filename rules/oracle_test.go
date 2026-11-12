@@ -171,7 +171,6 @@ func oracleStrengthCode(str, str00 byte) byte {
 	return str + 100
 }
 
-
 // cotab-go/engine/damage.go:68 damagePlayer, combat bookkeeping returned.
 func oracleDamage(c *oc, dmg byte) (over byte, dying, down bool) {
 	var left byte
