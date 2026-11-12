@@ -20,10 +20,10 @@ import (
 // do. Deposit is the items menu's Drop while the vault is open (pod's dropItem).
 
 const (
-	vaultFile  = "vault.dat"
+	vaultFile = "vault.dat"
 	// (pod's own file held platinum; this engine writes its own, never the original's)
 	vaultBlock = -1 // treasure's block number for the vault's items (AddTreasureBlock)
-	vaultCoins = 4 // the file's longints: gold, copper, gems, jewelry
+	vaultCoins = 4  // the file's longints: gold, copper, gems, jewelry
 )
 
 // vault is the open vault: its item records, which the treasure reads (vaultBlock).

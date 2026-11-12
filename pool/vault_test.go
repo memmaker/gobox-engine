@@ -20,7 +20,7 @@ func TestVault(t *testing.T) {
 	st := e.state()
 	items := []char.Item{*st.RandomItem(rules1e.ItemJavelin), *st.RandomItem(rules1e.ItemArrow)}
 	head := make([]byte, vaultCoins*4)
-	binary.LittleEndian.PutUint32(head, 3)    // gold
+	binary.LittleEndian.PutUint32(head, 3)     // gold
 	binary.LittleEndian.PutUint32(head[4:], 7) // copper
 	path := e.savePath(vaultFile)
 	if err := os.WriteFile(path, slices.Concat(head, char.WriteItems(items)), 0o644); err != nil {
