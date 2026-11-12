@@ -104,6 +104,8 @@ type (
 		Dungeon   bool
 		MapShift  int
 		NoRemains bool
+		Terrain   TerrainID // the wilderness terrain, for a ruleset that takes it from the game (ground gen terrain "given")
+		River     bool      // a river runs across the wilderness (PoD)
 	}
 	// TakeLoot: Who takes the treasure's Item (FightResult.Items); All:
 	// every piece in turn until one does not fit (por the treasure screen's Take).

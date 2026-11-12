@@ -177,6 +177,7 @@ type Board struct {
 type MapSides interface {
 	WallAt(x, y, dir int) byte
 	DoorAt(x, y, dir int) byte
+	MapCell(x, y int) byte // the cell byte (its flags: rubble)
 }
 
 // TerrainID is a square's terrain number; a ruleset gives it meaning.
