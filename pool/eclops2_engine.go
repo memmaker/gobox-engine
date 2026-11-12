@@ -316,9 +316,9 @@ func (e *Engine) opCall() {
 		}
 	case script.CallPause: // cotab gameDelay, sotsb pauseForMessage
 		e.askPause(int(e.msgDelay)*0xE1, askDone{})
+	case script.CallNextFrame: // pod: the picture's next frame, wrapping at its frame count
+		e.nextPictureFrame()
 	}
-	// ponytail: CallNextFrame (pod's picture frame step) waits for pod's
-	// switch to pool, where its picture frames live.
 }
 
 // redrawChanged is CALL's RedrawView: the cell under the party again, and

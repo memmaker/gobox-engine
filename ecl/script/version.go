@@ -213,7 +213,7 @@ var V3 = func() *Version {
 	set(&t, 44, OpSound, 1, 0)
 	set(&t, 49, OpMenuKeys, 2, 2)
 	set(&t, 55, OpFindNPC, 2, 0)
-	set(&t, 58, OpNoOp, 0, 0)
+	set(&t, 58, OpDelay, 0, 0) // the original pauses 600 ms (game delay)
 	set(&t, 60, OpItemSet, 1, 0)
 	// Pools of Darkness' parse_command counts (O055:1464)
 	skip := skips(map[byte][]byte{

@@ -92,6 +92,17 @@ func (e *Engine) drawPicAt(x, y int, overlay bool, im *asset.Image) {
 	}
 }
 
+// nextPictureFrame = pod's CALL 3: the view picture steps to its next frame, wrapping at the
+// frame count, and is drawn as the animation draws it.
+func (e *Engine) nextPictureFrame() {
+	a := &e.pic
+	if len(a.frames) == 0 {
+		return
+	}
+	a.cur = a.cur%len(a.frames) + 1
+	e.drawPicAt(3, 3, true, a.frames[a.cur-1].Image)
+}
+
 // DrawAnimFrame = ovr29:0708 (pic, frame): frame 1..3 of a sprite at its
 // own cell offset inside the view window.
 func (e *Engine) DrawAnimFrame(frame int) {

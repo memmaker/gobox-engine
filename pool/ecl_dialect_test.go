@@ -124,3 +124,22 @@ func TestAddNPCIcon(t *testing.T) {
 		t.Fatal("no icon")
 	}
 }
+
+// TestPodDelayAndNextFrame: pod's byte 58 is Delay (the game's pause), and its CALL 3 steps the
+// view picture's frame, wrapping at the frame count.
+func TestPodDelayAndNextFrame(t *testing.T) {
+	if c := script.V3.Cmds[58]; c.Op != script.OpDelay || c.Fixed != 0 {
+		t.Fatalf("pod byte 58: %+v, want Delay with no operands", c)
+	}
+	e := quickStarted(t)
+	im := func() asset.Frame { return asset.Frame{Image: &asset.Image{Width: 1, Height: 1}} }
+	e.pic.frames, e.pic.cur = []asset.Frame{im(), im(), im()}, 2
+	for _, want := range []int{3, 1, 2} {
+		runOp(e, script.V3, e.opCall, 3)
+		if e.pic.cur != want {
+			t.Fatalf("frame %d, want %d", e.pic.cur, want)
+		}
+	}
+	e.pic.frames = nil
+	runOp(e, script.V3, e.opCall, 3) // no picture: nothing to step
+}
