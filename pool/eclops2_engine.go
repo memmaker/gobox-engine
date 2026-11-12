@@ -368,6 +368,14 @@ func (e *Engine) opDestroyItems() {
 	e.do(core.DestroyItems{Whom: e.partyIDs(), Item: id, MagicalOnly: v&destroyMagicalOnly != 0})
 }
 
+// opDump = cotab O03C:3249: the selected member leaves the party; the one
+// selected after is the one Exit puts back.
+func (e *Engine) opDump() {
+	e.vm.PC++
+	e.RemoveSelected(false, true)
+	e.run.savedSel = e.selected()
+}
+
 // DAMAGE's first operand (ruling 3, cotab's): a count of random members,
 // or flags; its save operand: the save type, or with saveSelected the
 // selected member saves (type 0: none).
@@ -520,7 +528,7 @@ func (e *Engine) opAddNPC() {
 	e.applyItems(id) // 00BA:0BB8
 }
 
-// opProgram = ovr04:2E10 (n): 0 party menu, 8 ovr19:02A4, 9 encamp.
+// opProgram = ovr04:2E10 (n): the sub-command the dialect names (script.Version.Programs).
 func (e *Engine) opProgram() {
 	e.vm.ReadArgs(1)
 	v := byte(e.vm.Arg(1, e.host))
@@ -528,14 +536,16 @@ func (e *Engine) opProgram() {
 		e.selectChar(e.run.savedSel)
 		e.run.restoreSel = false
 	}
-	switch v { // the screens put up suspend the VM until they are gone
-	case 0:
+	switch e.eclVersion.Programs[v] { // the screens put up suspend the VM until they are gone
+	case script.ProgramPartyMenu:
 		e.es.hold = holdPartyMenu
-	case 8:
+	case script.ProgramEnding:
 		e.ProgramEight() // ovr19:02A4
-	case 9:
+	case script.ProgramCamp:
 		e.es.hold, e.es.holdPC = holdEncamp, int(e.vm.PC)
 	}
+	// ponytail: ProgramQuit/ProgramSaveQuit (cotab, pod) have no pool handler
+	// until those games switch; their endings are per-game content.
 }
 
 // opWho = ovr04:2B33 (prompt): choose a party member.

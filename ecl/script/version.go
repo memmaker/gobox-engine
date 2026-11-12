@@ -42,7 +42,22 @@ type Version struct {
 	// Calls names the engine routine each CALL operand (its raw value, an
 	// address in the original) runs; an operand not listed runs nothing.
 	Calls map[uint16]CallFn
+	// Programs names what each PROGRAM operand does; one not listed does nothing.
+	Programs map[byte]ProgramFn
 }
+
+// ProgramFn is a PROGRAM sub-command, by name (ruling S14: each game's
+// codes map onto one set).
+type ProgramFn int
+
+const (
+	ProgramNone      ProgramFn = iota
+	ProgramPartyMenu           // the party menu
+	ProgramEnding              // the adventure's ending
+	ProgramCamp                // camp (pod: with its camp events)
+	ProgramQuit                // leave the game
+	ProgramSaveQuit            // save, then the ending
+)
 
 // CallFn is an engine routine a script CALLs, by name.
 type CallFn int
@@ -123,7 +138,8 @@ var V1 = func() *Version {
 	return &Version{ID: 1, Base: 0x9900, Cmds: t, ExitOverrides: v1ExitOverrides, LoadMapSecondUnused: true, Skip: skip,
 		// ovr04:2FE8's routine numbers, operand - 0x7FFF in the original
 		Calls: map[uint16]CallFn{0x2C90: CallRedrawView, 0x8000: CallDuelWin, 0x8001: CallDuelLose, 0xBA03: CallDuelSound,
-			0xC01E: CallStepForward, 0xC018: CallWallAhead}}
+			0xC01E: CallStepForward, 0xC018: CallWallAhead},
+		Programs: map[byte]ProgramFn{0: ProgramPartyMenu, 8: ProgramEnding, 9: ProgramCamp}}
 }()
 
 // set makes byte-code command b the canonical command op with these operands.
@@ -154,7 +170,9 @@ var V2 = func() *Version {
 	// none collides, so the one dialect carries both.
 	calls := map[uint16]CallFn{11792: CallRedrawView, 11723: CallRedrawView, 32768: CallDuelWin, 32769: CallDuelLose,
 		45568: CallDuelSound, 45571: CallDuelSound, 49182: CallStepForward, 49176: CallWallAhead, 26627: CallAnimate}
-	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls}
+	// PROGRAM: cotab's 0, 3 quit, 8 ending, 9 camp; sotsb uses 0 and 9
+	programs := map[byte]ProgramFn{0: ProgramPartyMenu, 3: ProgramQuit, 8: ProgramEnding, 9: ProgramCamp}
+	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs}
 }()
 
 // V3 is Pools of Darkness' dialect.
@@ -181,7 +199,8 @@ var V3 = func() *Version {
 		4: {12, 20}, 5: {46}, 6: {30},
 	})
 	// pod renumbered its routines (O040:1E4A)
-	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallAnimate}}
+	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallAnimate},
+		Programs: map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp}}
 }()
 
 // V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).
