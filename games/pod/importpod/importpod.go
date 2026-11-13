@@ -26,7 +26,7 @@ import (
 
 func init() {
 	importer.Register(importer.Game{
-		ID: "pod", Title: "Pools of Darkness", Ruleset: "rules1e", Record: RecordLayout, Version: 9, // 1: imported for pool (Sw-pod); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art, items as char.Item (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds, itemKinds, moraleUncapped (Ph); 7: appraisal (Pi); 8: scripts gold only (Gc); 9: the Amiga music in sound/ (Pm)
+		ID: "pod", Title: "Pools of Darkness", Ruleset: "rules1e", Record: RecordLayout, Version: 10, // 1: imported for pool (Sw-pod); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art, items as char.Item (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds, itemKinds, moraleUncapped (Ph); 7: appraisal (Pi); 8: scripts gold only (Gc); 9: the Amiga music in sound/ (Pm); 10: AreaState, KeptAreaState, KeptAreaCells, Word02EF arrays (TestNoScalarTables)
 		Sources: []string{"*.DAX", "ITEMS", "GAME.EXE", "*.SMS", "*.ACF", "*.BMA"},
 		Import:  Import,
 		Start:   importer.Fixed(StartSequence()),
