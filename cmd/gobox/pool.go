@@ -95,7 +95,7 @@ func playPool(s start) (ui.Launch, error) {
 		return ui.Launch{}, err
 	}
 	am, fx, pack, speaking, vol := eng.SoundParts()
-	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), engine.SoundtrackFiles), pack, speaking, vol) // the presenter decodes and plays the recordings
+	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), eng.SoundtrackFiles()), pack, speaking, vol) // the presenter decodes and plays the recordings
 	eng.SetSound(drv)
 	audio.Output(drv) // speaker and voice share one context
 	audio.Output(eng.VoiceReader())
