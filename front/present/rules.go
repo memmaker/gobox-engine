@@ -586,8 +586,8 @@ func (r *rules) combat(f play.Fighting) *play.Combat {
 		l, m := cmp.Or(r.data.Texts["View"], "View"), activeMember(b)
 		t.Options = append(t.Options, play.Option{Label: l, Key: k, Do: play.ViewMember{Member: m}})
 	}
-	called := r.data.Texts["Ranged"] == "Aim" && slices.ContainsFunc(t.Options, func(o play.Option) bool { _, shoot := o.Do.(play.Shoot); return shoot }) // the series' Data calls its Ranged verb Aim (SotSB), and it is offered
-	if _, keyed := r.data.VerbKeys["Aim"]; len(t.Options) > 0 && !called && (keyed || slices.Contains(r.data.VerbOrder, "Aim")) {                         // the series names Aim (keyed or placed): gobox's free cursor; no menu ("Continue battle?"): no Aim either
+	called := r.data.AimsShots && slices.ContainsFunc(t.Options, func(o play.Option) bool { _, shoot := o.Do.(play.Shoot); return shoot }) // the series' Data calls its Ranged verb Aim (SotSB), and it is offered
+	if _, keyed := r.data.VerbKeys["Aim"]; len(t.Options) > 0 && !called && (keyed || slices.Contains(r.data.VerbOrder, "Aim")) {          // the series names Aim (keyed or placed): gobox's free cursor; no menu ("Continue battle?"): no Aim either
 		t.Options = append(t.Options, play.Option{Label: "Aim", Do: play.Aim{}}) // the free cursor, gobox's own
 	}
 	if ord := r.data.VerbOrder; len(ord) > 0 { // the series' order; the verbs it leaves out after, as gobox has them

@@ -37,6 +37,7 @@ func GameData(adv string) game.Data {
 		Rests:     []game.RestKind{{Text: "Rest", Key: 'R', N: 0, Duration: true}, {Text: "Fix", Key: 'F', N: restFix, Fix: true}},
 		IconParts: IconPartNames[:],
 		// O089's turn menu Move View Aim Use Cast Quick Done, Done's Guard Delay Quit Bandage: gobox's verbs by the original's names and letters
+		AimsShots:  true,
 		Texts:      map[string]string{"Ranged": "Aim", "Items": "Use", "End": "Done"},
 		VerbKeys:   map[string]rune{"Ranged": 'A', "Items": 'U', "Move": 'M', "Cast": 'C', "Quick": 'Q', "End": 'D', "View": 'V'},
 		VerbChords: map[string]string{"Quick All": "alt+q"},
