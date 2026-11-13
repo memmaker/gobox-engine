@@ -54,8 +54,6 @@ type Engine struct {
 	fx                 []core.Effect               // the effects queued and not yet shown (emit, present)
 	resting            *restRun                    // the camp rest going on (RestStep), nil none
 	adv                string                      // New's adventure folder: scripts, art, data
-	mapNames           []script.Value              // names/pictures.txt, read once (mapName runs every frame through State)
-	mapNamesRead       bool                        // mapNames is read
 	data               string                      // New's host data directory: AssetsDir, AmigaDir, SaveDir
 
 	pics     pictures.Pictures // the adventure's picture table (data/pictures.json): DAX picture -> collection entry
@@ -63,8 +61,7 @@ type Engine struct {
 	gameData game.Data         // the game's static data (GameDataFile)
 	gd       *gameData         // the imported data of data (gdata)
 	sounds   []byte            // the imported sound tables (SoundData)
-	held     play.Held         // the roster list read while the game waits (BuildCharList)
-	listed   []string          // the roster list migrateRoster last saw: a list read each frame is numbered once
+	listed   []string          // the roster list migrateRoster last saw: each new list is numbered once (it reads every .cha)
 
 	pal         ega.Regs // EGA palette registers (SetPaletteColor)
 	Cfg         Config

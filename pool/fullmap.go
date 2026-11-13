@@ -178,14 +178,11 @@ func (e *Engine) Unmark(x, y int) {
 // mapName is the current map's name in words, from the scripts' names of
 // the GEO blocks (names/pictures.txt), or "Map".
 func (e *Engine) mapName() string {
-	if !e.mapNamesRead {
-		vals, err := script.ReadValues(os.DirFS(e.scriptDir()), "names/pictures.txt", nil)
-		if err != nil {
-			log.Printf("map names: %v", err)
-		}
-		e.mapNames, e.mapNamesRead = vals, true
+	vals, err := script.ReadValues(os.DirFS(e.scriptDir()), "names/pictures.txt", nil)
+	if err != nil {
+		log.Printf("map names: %v", err)
 	}
-	n := script.ValueName(e.mapNames, "Map", int(e.set), e.worldWord(core.WordGeo))
+	n := script.ValueName(vals, "Map", int(e.set), e.worldWord(core.WordGeo))
 	if n == "" {
 		return "Map"
 	}

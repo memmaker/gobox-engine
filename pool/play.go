@@ -653,7 +653,6 @@ func allows(al play.Allowed, a play.Action) bool {
 
 // Do applies a and returns what happened, or refuses it.
 func (e *Engine) Do(a play.Action) (play.Outcome, error) {
-	defer e.held.Change()() // the step may write the save folder
 	defer e.rebuild()
 	e.takeSettings()
 	st := e.State()
@@ -922,7 +921,6 @@ const playSlot = "PLAYSAVE"
 
 // Save is the whole game as one slot's files.
 func (e *Engine) Save() (_ []byte, err error) {
-	defer e.held.Change()() // the step may write the save folder
 	if err := e.SaveNamed(playSlot); err != nil {
 		return nil, err
 	}
@@ -946,7 +944,6 @@ func (e *Engine) Save() (_ []byte, err error) {
 
 // Load goes back to what Save gave (the party menu's Load: only there).
 func (e *Engine) Load(b []byte) (err error) {
-	defer e.held.Change()() // the step may write the save folder
 	defer e.rebuild()
 	var files map[string][]byte
 	if err := gob.NewDecoder(bytes.NewReader(b)).Decode(&files); err != nil {
@@ -984,7 +981,6 @@ func (e *Engine) Slots() []game.SaveSlot {
 
 // LoadSlot loads slot n of Slots.
 func (e *Engine) LoadSlot(n int) error {
-	defer e.held.Change()() // the step may write the save folder
 	defer e.rebuild()
 	name := "Slot " + strconv.Itoa(n)
 	if names := e.SlotsView(false).Names; n >= 0 && n < len(names) {

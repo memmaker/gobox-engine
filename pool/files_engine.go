@@ -9,7 +9,6 @@ import (
 	"gobox/core"
 	"gobox/core/goldbox"
 	"gobox/ega"
-	"gobox/game/play"
 	grules "gobox/rules"
 	"io/fs"
 	"log"
@@ -74,17 +73,8 @@ func (e *Engine) removeSaved(path string) error {
 }
 
 // BuildCharList = ovr18:0010: names from charlist.txt, "* " for party
-// members. Held while the game waits (play.Held): State lists it every
-// frame. Clipped: an append copies, never writes into the held list.
+// members.
 func (e *Engine) BuildCharList() []string {
-	return slices.Clip(play.Hold(&e.held, charListKey{}, e.readCharList))
-}
-
-// charListKey is BuildCharList's value held.
-type charListKey struct{}
-
-// readCharList is BuildCharList read from the disk.
-func (e *Engine) readCharList() []string {
 	p := e.savePath("charlist.txt")
 	f, err := os.Open(p)
 	if err != nil {
@@ -119,7 +109,6 @@ func (e *Engine) readCharList() []string {
 // WriteCharList = ovr18:01B8: rewrite charlist.txt without "*" entries. A
 // write that fails shows "Cannot write" and is the error returned.
 func (e *Engine) WriteCharList(list []string) error {
-	defer e.held.Change()() // BuildCharList reads the new list
 	var b strings.Builder
 	for _, n := range list {
 		if len(n) > 0 && n[0] == '*' {
