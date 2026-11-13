@@ -10,6 +10,7 @@ import (
 	"gobox/adventure"
 	"gobox/asset"
 	"gobox/ecl"
+	"gobox/game"
 	"gobox/rules"
 	"os"
 )
@@ -133,7 +134,7 @@ func (e *Engine) DevScene(name string) func() {
 			e.setWorldWord(rules.WordPortrait, 0xFF)
 			e.ShowEncounter(sprite, pic, 0, &e.es.encounterShown)
 			e.msgCol, e.msgRow = 1, 0x11
-			e.paneText(asset.EGALightGreen, true, "A band of kobolds blocks the way.")
+			e.paneText(game.InkLightGreen, true, "A band of kobolds blocks the way.")
 			e.push(cont{kind: kDrawMain})
 			e.devParlayAnswered(-1)
 			e.openAsk()
@@ -176,14 +177,14 @@ func (e *Engine) DevScene(name string) func() {
 		}
 	case "journal": // a text window naming journal entries, as ECL3 block 0 prints them
 		return func() {
-			e.paneText(asset.EGALightGreen, true, "YOU RECORD IT IN YOUR JOURNAL.")
+			e.paneText(game.InkLightGreen, true, "YOU RECORD IT IN YOUR JOURNAL.")
 			e.showEntry(e.entryNamed("TavernTale3"))
 			e.push(cont{kind: kDevJournal})
 			e.blockedRet()
 		}
 	case "talljournal": // a journal entry with a picture taller than wide (entry 37): Up and Down scroll it
 		return func() {
-			e.paneText(asset.EGALightGreen, true, "IT BECOMES PART OF YOUR JOURNAL.")
+			e.paneText(game.InkLightGreen, true, "IT BECOMES PART OF YOUR JOURNAL.")
 			e.showEntry(e.entryNamed("JournalEntry37"))
 		}
 	case "runes": // the Sokal Keep elf's scroll (ECL1 block 21, 9BD7): opClearBox, three opProtection lines
@@ -194,7 +195,7 @@ func (e *Engine) DevScene(name string) func() {
 			e.msgCol, e.msgRow = 2, 5
 			for _, l := range [][]byte{{0x56, 0x57, 0x6b, 0x6c, 0x71, 0x72}, {0x67, 0x68, 0x40, 0x41, 0x58, 0x59, 0x5c, 0x5d, 0x67, 0x68, 0x6b, 0x6c, 0x46, 0x47}, {0x67, 0x68, 0x4e, 0x4f, 0x48, 0x49, 0x67, 0x68, 0x69, 0x6a, 0x5a, 0x5b, 0x50, 0x51}} {
 				for i := 0; i < len(l); i += 2 {
-					e.char(e.msgCol+i/2, e.msgRow, asset.EGAWhite, runeLetter(l[i]+1), true)
+					e.char(e.msgCol+i/2, e.msgRow, game.InkWhite, runeLetter(l[i]+1), true)
 				}
 				e.msgRow++
 			}
@@ -283,7 +284,7 @@ func (e *Engine) devFightEnd() {
 // the menu again (c -1: the first); else the talk-style menu.
 func (e *Engine) devParlayAnswered(c int) {
 	if c == 1 {
-		e.paneText(asset.EGALightGreen, true, "Both sides wait. The kobolds eye the party with suspicion.")
+		e.paneText(game.InkLightGreen, true, "Both sides wait. The kobolds eye the party with suspicion.")
 	}
 	if c < 0 || c == 1 {
 		e.askChoice("", "~COMBAT ~WAIT ~FLEE ~PARLAY", false, false, askDone{kind: dDevParlay})

@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/asset"
+	"gobox/game"
 	"image"
 )
 
@@ -14,8 +14,9 @@ import (
 // textCell is a character the game wrote: upcased (DisplayString's way)
 // or not, in colour on bg.
 type textCell struct {
-	set, upcase   bool
-	c, colour, bg byte
+	set, upcase bool
+	c           byte
+	colour, bg  game.Ink
 }
 
 // texts is the text the game wrote, by where it goes.
@@ -51,12 +52,12 @@ func (t *texts) row(x, y int) []textCell {
 }
 
 // put writes ch at cell (x, y).
-func (e *Engine) put(x, y, colour, bg int, ch byte, upcase bool) {
+func (e *Engine) put(x, y int, colour, bg game.Ink, ch byte, upcase bool) {
 	if x < 0 || x > lastCol || y < 0 || y > promptRow {
 		return
 	}
 	if r := e.pg.tx.row(x, y); x < len(r) {
-		r[x] = textCell{set: true, upcase: upcase, c: ch, colour: byte(colour), bg: byte(bg)}
+		r[x] = textCell{set: true, upcase: upcase, c: ch, colour: colour, bg: bg}
 	}
 }
 
@@ -81,13 +82,13 @@ func (e *Engine) unwrite(r image.Rectangle) {
 // char = 0709:01DF display_char(upcase, ch, count, colour, y, x):
 // ch at cell (x,y) in colour on black. Glyph index = upcase(ch) mod 0x40
 // into 8X8D1 block 201 (the presenter's: gobox's font).
-func (e *Engine) char(x, y, colour int, ch byte, upcase bool) {
-	e.put(x, y, colour, asset.EGABlack, ch, upcase)
+func (e *Engine) char(x, y int, colour game.Ink, ch byte, upcase bool) {
+	e.put(x, y, colour, game.InkBlack, ch, upcase)
 }
 
 // text = 0709:0626 displayString(x, y, colour, str): characters left to
 // right, each upcased, no wrapping (x stops at lastCol).
-func (e *Engine) text(x, y, colour int, s string) {
+func (e *Engine) text(x, y int, colour game.Ink, s string) {
 	for i := 0; i < len(s) && i < 255; i++ {
 		e.char(x+i, y, colour, s[i], true)
 	}
@@ -103,7 +104,7 @@ func (e *Engine) blank(x1, y1, x2, y2 int) {
 // s): word wrapped text in the cell box, continuing at the text cursor
 // (DS:5E24 x, DS:5E25 y) when it lies inside the box. When the box is full
 // the player is asked to press a key and the box starts over.
-func (e *Engine) textBlock(x1, y1, x2, y2, colour int, clear bool, s string) {
+func (e *Engine) textBlock(x1, y1, x2, y2 int, colour game.Ink, clear bool, s string) {
 	if x1 > lastCol || y1 > promptRow || x2 > lastCol || y2 > lastCol {
 		return
 	}
@@ -119,7 +120,7 @@ func (e *Engine) textBlock(x1, y1, x2, y2, colour int, clear bool, s string) {
 			e.pageOn()
 			return
 		}
-		e.PromptRow24(asset.EGALightMagenta, "Press any key to continue")
+		e.PromptRow24(game.InkLightMagenta, "Press any key to continue")
 		e.blank(x1, y1, x2, y2)
 	})
 }
@@ -134,7 +135,7 @@ func (e *Engine) pageOn() {
 }
 
 // paneText is textBlock in the text pane.
-func (e *Engine) paneText(colour int, clear bool, s string) {
+func (e *Engine) paneText(colour game.Ink, clear bool, s string) {
 	e.textBlock(1, msgTop, paneRight, paneBottom, colour, clear, s)
 }
 
@@ -147,7 +148,7 @@ func (e *Engine) clearPrompt() { e.pg.tx.prompt = nil }
 // PromptRow24 = 0709:0BF5: clear row 24, show, wait for a key: in a fight
 // the fight's key pause, outside one keyWait (BUG-CLASSES 11), unless a
 // question is already up (its key is the wait).
-func (e *Engine) PromptRow24(colour int, s string) {
+func (e *Engine) PromptRow24(colour game.Ink, s string) {
 	e.prompt(colour, s)
 	switch {
 	case e.inFight(): // the presenter paces a fight: no wait here
@@ -157,7 +158,7 @@ func (e *Engine) PromptRow24(colour int, s string) {
 }
 
 // prompt shows s alone on the prompt row.
-func (e *Engine) prompt(colour int, s string) {
+func (e *Engine) prompt(colour game.Ink, s string) {
 	e.clearPrompt()
 	e.text(0, promptRow, colour, s)
 }

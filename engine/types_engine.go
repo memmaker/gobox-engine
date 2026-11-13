@@ -19,7 +19,7 @@ type CellRect struct{ X1, Y1, X2, Y2 int }
 type PaneRun struct {
 	X      int
 	Text   string
-	Fg, Bg byte
+	Fg, Bg game.Ink
 	Upcase bool
 }
 
@@ -47,9 +47,9 @@ type Results struct {
 // Ink. The DAX portrait is among Pictures.
 type SheetPage struct {
 	Name               string
-	NameColour         int    // red when not okay, yellow a monster, else cyan (displayName)
-	NPC                bool   // "(NPC)" after the name
-	Spells             string // a spell list's title over the name row ("Spells in Memory"); "" none
+	NameColour         game.Ink // red when not okay, yellow a monster, else cyan (displayName)
+	NPC                bool     // "(NPC)" after the name
+	Spells             string   // a spell list's title over the name row ("Spells in Memory"); "" none
 	Sex, Race          string
 	Age                int
 	Alignment          string
@@ -87,7 +87,7 @@ type Member struct {
 	Status   string      // as the sheet names it ("Okay", "Unconscious" ...)
 	Class    string      // as the sheet names it ("Fighter/Thief" ...)
 	Selected bool        // the selected member, or the candidate while a member is picked (SelectCharacter)
-	Colour   int         // the roster's EGA colour for the name when not Selected: red not okay, yellow a monster, magenta ready for a level, else cyan
+	Colour   game.Ink    // the roster's EGA colour for the name when not Selected: red not okay, yellow a monster, magenta ready for a level, else cyan
 	Head     image.Image // the paper-doll head the player chose, in EGA colours (nil if missing)
 	HeadPix  Picture     // Head as the game's pixels in the EGA's own colours, not Ink (the presenter colours it)
 	Portrait image.Image // extra: the PNG the player dropped on the sheet, in place of Head (nil: none)

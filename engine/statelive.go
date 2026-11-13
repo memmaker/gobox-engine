@@ -105,7 +105,7 @@ func viewLine(rs []PaneRun) []game.TextRun {
 			t = strings.Repeat(" ", r.X-end) + t
 		}
 		end = r.X + len(r.Text)
-		l = append(l, game.TextRun{Text: t, Fg: game.EGAInk(int(r.Fg)), Bg: game.EGAInk(int(r.Bg))})
+		l = append(l, game.TextRun{Text: t, Fg: r.Fg, Bg: r.Bg})
 	}
 	return l
 }

@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/asset"
+	"gobox/game"
 	"strings"
 	"testing"
 )
@@ -16,7 +16,7 @@ func TestPaneOverflowPaged(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	e.clearPane()
-	e.paneText(asset.EGAWhite, true, strings.Repeat("word ", 46)+"LAST") // under the original's 255 characters
+	e.paneText(game.InkWhite, true, strings.Repeat("word ", 46)+"LAST") // under the original's 255 characters
 	p := e.statePage()
 	if len(p.Pane) <= paneRows {
 		t.Fatalf("pane: %d lines", len(p.Pane))

@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/asset"
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -66,22 +66,22 @@ func (e *Engine) paladinCures(cID rules.CharID) bool {
 // nameColour = 00BA:1816 displayName's colour: red when not okay,
 // yellow for monsters, cyan otherwise. (00BA:08EF displayAC and 00BA:0973
 // displayHP are the presenter's: the roster, Party.)
-func (e *Engine) nameColour(id rules.CharID) int {
+func (e *Engine) nameColour(id rules.CharID) game.Ink {
 	switch {
 	case !bool(e.fact(id, rules.FactActive).(rules.Yes)):
-		return asset.EGALightRed
+		return game.InkLightRed
 	case e.fact(id, rules.FactSide).(rules.Side) == rules.SideMonsters:
-		return asset.EGAYellow
+		return game.InkYellow
 	}
-	return asset.EGALightCyan
+	return game.InkLightCyan
 }
 
 // rosterColour is the roster's colour for id's name when it is not the one
 // highlighted: magenta ready for a level (extra), else nameColour.
-func (e *Engine) rosterColour(id rules.CharID) int {
+func (e *Engine) rosterColour(id rules.CharID) game.Ink {
 	if e.fact(id, rules.FactActive).(rules.Yes) && e.fact(id, rules.FactSide).(rules.Side) != rules.SideMonsters &&
 		e.fact(id, rules.FactLevelReady).(rules.Yes) {
-		return asset.EGALightMagenta
+		return game.InkLightMagenta
 	}
 	return e.nameColour(id)
 }

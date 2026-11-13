@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/asset"
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -43,7 +43,7 @@ func (e *Engine) LoadWalldef(block, slot int) {
 func (e *Engine) LoadGeo(n int) {
 	b := e.gdata().geoBlock(e.set.File("GEO"), n)
 	if len(b) != 0 && len(b) != geoSize {
-		e.PromptRow24(asset.EGAWhite, "Unable to load geo in Load3DMap.")
+		e.PromptRow24(game.InkWhite, "Unable to load geo in Load3DMap.")
 	}
 	if len(b) >= geoSize { // a longer block is cut to its size
 		if m, err := rules.ParseMap(b[:geoSize]); err == nil {

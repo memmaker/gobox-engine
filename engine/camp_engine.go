@@ -2,7 +2,7 @@ package engine
 
 import (
 	"gobox/adventure"
-	"gobox/asset"
+	"gobox/game"
 	"gobox/rules"
 	"strconv"
 )
@@ -259,17 +259,17 @@ func (e *Engine) campRest(kind int) error {
 // showRest = ovr21:05F0 (unit): "Rest time dd:hh:mm" (the original: "Rest Time:"), the unit being
 // changed in white.
 func (e *Engine) showRest(unit int) {
-	var col [7]int
+	var col [7]game.Ink
 	for i := range col {
-		col[i] = 0xA
+		col[i] = game.InkLightGreen
 	}
-	col[unit] = 0xF
+	col[unit] = game.InkWhite
 	r := e.restUnit
-	e.text(1, 17, asset.EGALightGreen, "Rest time")
+	e.text(1, 17, game.InkLightGreen, "Rest time")
 	x := 0xB
 	for i := 4; i >= 3; i-- {
 		e.text(x+1, 17, col[i], twoDigits(r(i)))
-		e.text(x+3, 17, asset.EGALightGreen, ":")
+		e.text(x+3, 17, game.InkLightGreen, ":")
 		x += 3
 	}
 	e.text(x+1, 17, col[2], twoDigits(10*r(2)+r(1)))
@@ -302,13 +302,13 @@ func (e *Engine) RestStep() error {
 	}
 	if s.healed {
 		e.showRest(0)
-		e.text(1, 19, asset.EGALightGreen, "The Whole Party Is Healed")
+		e.text(1, 19, game.InkLightGreen, "The Whole Party Is Healed")
 		e.ClearMessageArea()
 	}
 	if s.interrupted {
 		e.ClearMessageArea()
 		e.showRest(0)
-		e.text(1, 19, asset.EGAWhite, "The Party is rudely interrupted!")
+		e.text(1, 19, game.InkWhite, "The Party is rudely interrupted!")
 	}
 	if s.over {
 		e.resting = nil

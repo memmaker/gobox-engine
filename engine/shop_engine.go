@@ -58,7 +58,7 @@ func (e *Engine) keepPane(pane [paneRows][]textCell) {
 	for i, row := range pane {
 		for x, c := range row {
 			if c.set {
-				e.put(x, msgTop+i, int(c.colour), int(c.bg), c.c, c.upcase)
+				e.put(x, msgTop+i, c.colour, c.bg, c.c, c.upcase)
 			}
 		}
 	}

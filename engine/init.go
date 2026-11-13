@@ -3,6 +3,7 @@ package engine
 import (
 	"gobox/adventure"
 	"gobox/asset"
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
 	"log"
@@ -17,7 +18,7 @@ func (e *Engine) Init() {
 	e.set = 1 // DS:5376 = 1
 	e.resetAdventure()
 	e.clearPrompt()
-	e.prompt(asset.EGALightGreen, "Loading...Please Wait")
+	e.prompt(game.InkLightGreen, "Loading...Please Wait")
 	symbols := e.game().Symbols
 	if symbols == nil {
 		symbols = adventure.DefaultSymbols

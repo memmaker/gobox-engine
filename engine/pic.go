@@ -7,6 +7,7 @@ import (
 
 	"gobox/adventure"
 	"gobox/asset"
+	"gobox/game"
 )
 
 // DOSArt (extra) shows the DOS pictures, portraits, animations and combat
@@ -32,7 +33,7 @@ func (e *Engine) LoadSymbolSet(l adventure.SymbolLoad) {
 	}
 	e.sym[l.Set] = e.LoadPicMasked(file, l.Block, 0xD)
 	if e.sym[l.Set] == nil {
-		e.PromptRow24(asset.EGAWhite, "Unable to load "+file+"-"+strconv.Itoa(l.Block))
+		e.PromptRow24(game.InkWhite, "Unable to load "+file+"-"+strconv.Itoa(l.Block))
 		e.Exit()
 	}
 }

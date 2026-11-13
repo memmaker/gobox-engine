@@ -2,6 +2,7 @@ package engine
 
 import (
 	"gobox/asset"
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -105,7 +106,7 @@ func (e *Engine) nextPictureFrame() {
 // own cell offset inside the view window.
 func (e *Engine) DrawAnimFrame(frame int) {
 	if frame < 1 || frame > 3 {
-		e.PromptRow24(asset.EGAWhite, "Illegal range in Show3DSprite.")
+		e.PromptRow24(game.InkWhite, "Illegal range in Show3DSprite.")
 		e.Exit()
 		return
 	}
