@@ -16,7 +16,7 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 	for _, id := range e.partySide() {
 		heads = append(heads, byte(e.fact(id, rules.PortraitFact{}).(rules.Portrait).Head))
 	}
-	k := artKey{e.sqrpaci, e.icons[9][0], DOSArt.Load(), border[0].Pix != nil, string(heads)}
+	k := artKey{e.sqrpaci, e.icons[9][0], e.tileGen, DOSArt.Load(), border[0].Pix != nil, string(heads)}
 	if e.ext.art != nil && e.ext.artKey == k {
 		return e.ext.art
 	}
@@ -49,6 +49,7 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 type artKey struct {
 	tiles  [2]*asset.Image
 	marker *asset.Image
+	gen    int // Engine.tileGen: the images above written in place
 	dos    bool
 	border bool   // the border's tiles are loaded
 	heads  string // the party's PortHead numbers

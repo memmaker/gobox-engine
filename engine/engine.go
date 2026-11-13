@@ -29,6 +29,7 @@ type Config struct {
 // Engine holds the global state the DOS program kept in its data segment.
 type Engine struct {
 	tiles              map[tileKey]Picture    // the combat ground tiles converted (tilePix)
+	tileGen            int                    // counts the in-place writes to the tile and icon frames (tilesChanged): a cache keyed by those images keys it too
 	grounds            map[*asset.Image]uint8 // each combat tile set's ground colour (groundOf)
 	newRules           Ruleset                // builds rules (New; bareRuleset when nil)
 	sequence           string                 // the full-screen animation playing (adventure.SeqEnding; "": none)

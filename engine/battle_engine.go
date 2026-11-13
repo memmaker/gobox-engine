@@ -127,8 +127,8 @@ func (e *Engine) groundOf(im *asset.Image) uint8 {
 
 // tilesChanged drops the tile conversions and ground counts: frames were
 // written in place (LayTiles, recolour, recolourFrame), so the images that
-// key them hold other pixels now.
-func (e *Engine) tilesChanged() { e.tiles, e.grounds = nil, nil }
+// key them hold other pixels now (tileGen: the overland's art too).
+func (e *Engine) tilesChanged() { e.tiles, e.grounds = nil, nil; e.tileGen++ }
 
 type tileKey struct {
 	art       *asset.Image // the shown art (DOS or Amiga)

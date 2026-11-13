@@ -22,7 +22,7 @@ type areaPic struct {
 	size    image.Point     // ... and its size
 	pics    [][]image.Image // terrain's square pictures
 	pixels  int             // the largest square's side
-	markers map[string]image.Image
+	markers map[string]markerPic
 }
 
 // resolve fills pics and pixels for terrain t of size sz from the art (square pictures "terrain/<id>").
@@ -42,16 +42,32 @@ func (a *areaPic) resolve(t []int, sz image.Point, art map[string]game.Picture) 
 	}
 }
 
-// marker is the party's icon art[name], kept.
+// markerPic is a marker's picture and the art it was made of.
+type markerPic struct {
+	src game.Picture
+	img image.Image
+}
+
+// marker is the party's icon art[name], kept while art[name] is the same
+// picture (the game builds its art again: other pixels, or the marker back).
 func (a *areaPic) marker(name string, art map[string]game.Picture) image.Image {
-	if m, ok := a.markers[name]; ok {
-		return m
+	pc := art[name]
+	if m, ok := a.markers[name]; ok && samePicture(m.src, pc) {
+		return m.img
 	}
 	if a.markers == nil {
-		a.markers = map[string]image.Image{}
+		a.markers = map[string]markerPic{}
 	}
-	a.markers[name] = wallPic(art[name])
-	return a.markers[name]
+	a.markers[name] = markerPic{pc, wallPic(pc)}
+	return a.markers[name].img
+}
+
+// samePicture: a and b are one picture (the same pixels' backing array, or the same reference).
+func samePicture(a, b game.Picture) bool {
+	if len(a.Pixels) > 0 || len(b.Pixels) > 0 {
+		return len(a.Pixels) == len(b.Pixels) && len(a.Pixels) > 0 && &a.Pixels[0] == &b.Pixels[0] && a.W == b.W
+	}
+	return a.Source == b.Source && a.File == b.File && a.Block == b.Block && a.Frame == b.Frame && a.Name == b.Name
 }
 
 // build is the picture of the squares (a seen square's picture, nil: none drawn), tile pixels each.
