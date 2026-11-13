@@ -49,7 +49,7 @@ func TestAdapter(t *testing.T) {
 	wall := errors.New("a wall")
 	talk := game.Scene{Kind: game.SceneTalk, Text: []string{"Who goes?"}, Common: game.Common{Ask: &game.Question{Replies: []string{"Friend", "Foe"}}}}
 	fight := game.Fighting{Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
-	hand := game.Scene{Kind: game.SceneHandout, Handout: "Journal 1", Lines: []string{"line"}}
+	hand := game.Scene{Kind: game.SceneHandout, Handout: "Journal 1", Texts: []game.ReadText{{Title: "line"}}}
 	cases := []struct {
 		name  string
 		f     *fake

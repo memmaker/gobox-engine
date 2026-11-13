@@ -2,6 +2,8 @@ package engine
 
 import (
 	"gobox/ecl"
+	"gobox/ui"
+	"image/color"
 	"os"
 	"strings"
 	"testing"
@@ -32,7 +34,6 @@ func TestPhlanHistory(t *testing.T) {
 			t.Error("area 0 has no label", l)
 		}
 	}
-	const rows = 25 - 2 - 1 - jrTop - 2 // jrRows at 40x25, less the title and its blank line
 	es, err := ecl.ReadEntries(os.DirFS("../data/por/sources/assets/scripts"))
 	if err != nil {
 		t.Fatal(err)
@@ -42,16 +43,21 @@ func TestPhlanHistory(t *testing.T) {
 			continue
 		}
 		c := en.Title
-		lines := e.journalLayout("HISTORY.TXT", []string{c}, true)
-		if len(lines) < 3 || len(c) > jrWidth {
+		texts := e.journalReadTexts("HISTORY.TXT", []string{c}, true)
+		if len(texts) != 1 || len(texts[0].Paras) < 2 || len(c) > 0x24 {
 			t.Fatalf("%q: missing or its title is too long", c)
 		}
-		run := 0
-		for _, l := range lines[2:] {
-			if run++; l == "" {
-				run = 0
-			} else if run > rows {
-				t.Errorf("%q: paragraph longer than a page at %q", c, strings.TrimLeft(l, "\x03"))
+		for n := 0; ; n++ { // a page with no blank line holds a paragraph longer than it
+			pg, _ := ui.JournalPage(c, texts, n, 0, 40, 25, [16]color.RGBA{}, nil)
+			blank := false
+			for _, l := range pg.Lines {
+				blank = blank || len(l) == 0 || strings.TrimSpace(l[0].Text) == ""
+			}
+			if !blank {
+				t.Errorf("%q: paragraph longer than a page on page %d", c, n)
+			}
+			if n >= pg.Pages-1 {
+				break
 			}
 		}
 	}

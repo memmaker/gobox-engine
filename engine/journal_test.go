@@ -51,7 +51,7 @@ func TestShowEntryTogether(t *testing.T) {
 	e.showEntry(e.entryNamed("JournalEntry14"))
 	e.showEntry(e.entryNamed("JournalEntry23"))
 	r := e.ext.read
-	if r == nil || !slices.Contains(r.Lines, "\x00Journal Entry 23") || !slices.Contains(r.Lines, "\x00Journal Entry 14") {
+	if r == nil || !slices.ContainsFunc(r.Texts, func(t game.ReadText) bool { return t.Title == "Journal Entry 23" }) || !slices.ContainsFunc(r.Texts, func(t game.ReadText) bool { return t.Title == "Journal Entry 14" }) {
 		t.Fatalf("read %+v", r)
 	}
 	n := 0
@@ -148,7 +148,7 @@ func TestReadPublishOnly(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	handout := func() bool { sc, ok := e.build().(game.Scene); return ok && sc.Kind == game.SceneHandout }
-	e.showJournal(journalBox, []string{"one"}) // Seq is gobox's now (each Scene a new one): not checked here
+	e.showJournal(journalBox, []game.ReadText{{Title: "one"}}) // Seq is gobox's now (each Scene a new one): not checked here
 	if !handout() {
 		t.Fatalf("first Read: %T, want a handout Scene", e.build())
 	}
@@ -158,7 +158,7 @@ func TestReadPublishOnly(t *testing.T) {
 	if handout() {
 		t.Fatal("Leave left the Read up")
 	}
-	e.showJournal(journalBox, []string{"two"})
+	e.showJournal(journalBox, []game.ReadText{{Title: "two"}})
 	if !handout() {
 		t.Fatalf("second Read: %T, want a handout Scene", e.build())
 	}

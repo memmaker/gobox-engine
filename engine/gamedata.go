@@ -121,7 +121,7 @@ func (e *Engine) Data() game.Data {
 	d.Scans = e.journalPicture
 	for i, t := range e.clueChapters() {
 		r := e.ClueRead(i)
-		d.Clues = append(d.Clues, game.Clue{Title: t, Read: game.Read{Title: r.Title, Lines: r.Lines, Page: r.Page}})
+		d.Clues = append(d.Clues, game.Clue{Title: t, Read: game.Read{Title: r.Title, Texts: r.Texts, Page: r.Page}})
 	}
 	d.Art = e.overlandArt()
 	d.CreditLines, d.CreditBoxes, d.TitleBackdrop = e.title.credits, e.title.boxes, e.title.backdrop // the adventure's Start (SetStart)

@@ -114,10 +114,21 @@ type Harm struct{ Name, What string }
 // Read is journal text the game shows for the player to read.
 type Read struct {
 	Title string   // the box's title
-	Lines []string // journalLayout's: "\x00" a title, "\x01" a picture, "\x02" its rows, "\x03key\x03" a voiced paragraph
-	Page  int      // the page to start on
-	Seq   int      // up by one for each new text: the front shows a new Seq once, owns its paging and closing, and never reports back
+	Texts []ReadText // the texts in order; ui lays them out
+	Page  int        // the page to start on
+	Seq   int        // up by one for each new text: the front shows a new Seq once, owns its paging and closing, and never reports back
 }
+
+// ReadText is one titled text of a Read.
+type ReadText struct {
+	Title string
+	Paras []ReadPara
+}
+
+// ReadPara is a paragraph of a ReadText, as written: Text "" is a blank line
+// (and no Picture), Picture names a picture instead of text, Voice (""
+// none) is the paragraph's recording key.
+type ReadPara struct{ Text, Picture, Voice string }
 
 // Pace is the loop that goes on with time while the game waits.
 type Pace int
@@ -974,7 +985,7 @@ type QuickPick struct {
 }
 
 // Clue is a clue book chapter: its title, and the book read from it to its
-// end, laid out as a Read's Lines are.
+// end, as a Read's Texts.
 type Clue struct {
 	Title string
 	Read  Read

@@ -44,7 +44,7 @@ type frontState struct {
 	g    game.Game
 	dir  string
 	now  func() time.Time
-	held game.Held              // the slot list read while the game waits (saves); run drops it
+	held heldStore              // the slot list read while the game waits (saves); run drops it
 	data game.Data              // the series' data (verb keys, texts)
 	ran  uint64                 // the steps done: each drops the held saves (Game.run)
 	der  memo[uint64, *derived] // what is made from the State, at its Version (derived)
@@ -1486,7 +1486,7 @@ func (r *frontState) load(slot int) game.Result {
 // saves are gobox's slot files, newest first, then the game's own slots
 // (game.Slots).
 func (r *frontState) saves() []game.SaveSlot {
-	return game.HeldValue(&r.held, slotsKey{}, r.readSaves)
+	return heldValue(&r.held, slotsKey{}, r.readSaves)
 }
 
 // slotsKey is saves' value held: the slot screen lists it every frame.

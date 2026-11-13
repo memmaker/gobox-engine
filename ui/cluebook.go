@@ -40,7 +40,7 @@ func (p *Presenter) readClue(r *Read) {
 	p.clue, p.clueRead = nil, r
 	p.pager = &pager{Pager: Pager{P: r.Page}, read: r, left: func(page int) {
 		r.Page = page
-		pg, _ := p.eng.JournalPage(r.Title, r.Lines, 0, 0)
+		pg, _ := p.eng.JournalPage(r.Title, r.Texts, 0, 0)
 		p.clueEnd = page >= pg.Pages
 		p.clue = &clueUI{sel: p.clueSel}
 	}}

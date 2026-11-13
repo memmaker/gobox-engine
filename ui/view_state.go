@@ -5,6 +5,7 @@ package ui
 import (
 	"cmp"
 	"image"
+	"reflect"
 	"slices"
 
 	"gobox/game"
@@ -183,7 +184,7 @@ func (r *frontState) sheetPageOf(ps game.State, party []game.Member) *game.Sheet
 	var p *game.SheetPage
 	if n := r.sheet; n >= 0 && n < len(c.Party) {
 		if p = c.Party[n].Page; p == nil {
-			p = game.MemberPage(party[n])
+			p = memberPage(party[n])
 		}
 	}
 	if a, ok := ps.(game.Assembling); ok && a.Draft != nil && a.Draft.Member.Page != nil {
@@ -251,8 +252,8 @@ func (r *frontState) readOf(ps game.State) *game.Read {
 		r.read = nil
 		return nil
 	}
-	if r.read == nil || r.read.Title != t.Handout || !slices.Equal(r.read.Lines, t.Lines) {
-		r.read = &game.Read{Title: t.Handout, Lines: t.Lines}
+	if r.read == nil || r.read.Title != t.Handout || !reflect.DeepEqual(r.read.Texts, t.Texts) {
+		r.read = &game.Read{Title: t.Handout, Texts: t.Texts}
 	}
 	return r.read
 }

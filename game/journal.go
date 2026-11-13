@@ -1,6 +1,6 @@
 // Journal (journal.go) is the printed handouts a game only names ("SEE JOURNAL
-// ENTRY 26"): their texts, laid out for the Read pager (State.Read). The
-// scripts name each through Journal(entry); nothing matches printed text.
+// ENTRY 26"): their texts for the Read pager (State.Read; ui lays them out).
+// The scripts name each through Journal(entry); nothing matches printed text.
 //
 // Text files: "[Title]" starts a text (the title is the reference's name),
 // a blank line a paragraph, a line "<FILE.PNG>" a picture from the same
@@ -23,16 +23,15 @@ type JournalBook struct {
 	order []string // the titles in file order
 	mu    sync.Mutex
 	pics  map[string]image.Image
-	sizes map[string]image.Rectangle
 }
 
-// Load reads files of fsys into a Book.
 // softBreak is a word the printed book broke at its line end ("men- ace"),
 // kept in the transcription: the text is reflowed, so the halves join.
 var softBreak = regexp.MustCompile(`([a-z])- ([a-z])`)
 
+// LoadJournal reads files of fsys into a Book.
 func LoadJournal(fsys fs.FS, files ...string) (*JournalBook, error) {
-	b := &JournalBook{fsys: fsys, texts: map[string][]string{}, pics: map[string]image.Image{}, sizes: map[string]image.Rectangle{}}
+	b := &JournalBook{fsys: fsys, texts: map[string][]string{}, pics: map[string]image.Image{}}
 	for _, f := range files {
 		data, err := fs.ReadFile(fsys, f)
 		if err != nil {
@@ -82,98 +81,27 @@ func (b *JournalBook) Picture(name string) image.Image {
 	return im
 }
 
-// bounds is a picture's size from its header alone (the layout needs no pixels).
-func (b *JournalBook) bounds(name string) image.Rectangle {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	if r, ok := b.sizes[name]; ok {
-		return r
-	}
-	var r image.Rectangle
-	if f, err := b.fsys.Open(name); err == nil {
-		if c, _, err := image.DecodeConfig(f); err == nil {
-			r = image.Rect(0, 0, c.Width, c.Height)
-		}
-		f.Close()
-	}
-	b.sizes[name] = r
-	return r
-}
-
-// JournalPictureSize is the screen area a picture of size r covers on a page width
-// characters wide: the scans are 300 dpi, shown at about 90 pixels an inch,
-// at most the text width wide and, unless taller than wide (those scroll),
-// 17 rows high.
-func JournalPictureSize(r image.Rectangle, width int) (w, h int) {
-	s := min(0.3, float64(width*8)/float64(r.Dx()))
-	if r.Dy() <= r.Dx() {
-		s = min(s, 136/float64(r.Dy()))
-	}
-	return int(float64(r.Dx()) * s), int(float64(r.Dy()) * s)
-}
-
-// Layout lays out the texts titled titles for the pager, width characters
-// wide and rows lines a page: "\x00" marks a title (a blank line under it),
-// "\x01" a picture and "\x02" the rows it covers; voice (nil: none) gives
-// each paragraph's recording key, marked "\x03key\x03" on its first line.
-func (b *JournalBook) Layout(titles []string, width, rows int, voice func(para string) string) []string {
-	var lines []string
+// Texts is the texts titled titles (those the book holds) as a Read shows
+// them; voice (nil: none) gives each paragraph's recording key.
+func (b *JournalBook) Texts(titles []string, voice func(para string) string) []ReadText {
+	var out []ReadText
 	for _, t := range titles {
 		paras, ok := b.texts[t]
 		if !ok {
 			continue
 		}
-		if len(lines) > 0 {
-			lines = append(lines, "")
-		}
-		lines = append(lines, "\x00"+t, "")
+		rt := ReadText{Title: t}
 		for _, p := range paras {
 			switch {
-			case p == "":
-				lines = append(lines, "")
 			case strings.HasPrefix(p, "<") && strings.HasSuffix(p, ">"):
-				if r := b.bounds(p[1 : len(p)-1]); r != (image.Rectangle{}) {
-					lines = append(lines, "\x01"+p[1:len(p)-1])
-					_, h := JournalPictureSize(r, width)
-					for range min((h+7)/8, rows) - 1 {
-						lines = append(lines, "\x02")
-					}
-				}
-			case len(p) <= width: // as written: keeps the spacing of tables
-				lines = append(lines, p)
+				rt.Paras = append(rt.Paras, ReadPara{Picture: p[1 : len(p)-1]})
+			case p != "" && voice != nil:
+				rt.Paras = append(rt.Paras, ReadPara{Text: p, Voice: voice(p)})
 			default:
-				lines = append(lines, WrapText(p, width)...)
-			}
-			if voice != nil && p != "" {
-				for i := len(lines) - 1; i >= 0 && lines[i] != ""; i-- {
-					if i == 0 || lines[i-1] == "" {
-						lines[i] = "\x03" + voice(p) + "\x03" + lines[i]
-					}
-				}
+				rt.Paras = append(rt.Paras, ReadPara{Text: p})
 			}
 		}
+		out = append(out, rt)
 	}
-	return lines
-}
-
-// WrapText breaks s into lines of at most w characters at spaces.
-func WrapText(s string, w int) []string {
-	var out []string
-	line := ""
-	for _, word := range strings.Fields(s) {
-		for len(word) > w {
-			out = append(out, word[:w])
-			word = word[w:]
-		}
-		switch {
-		case line == "":
-			line = word
-		case len(line)+1+len(word) <= w:
-			line += " " + word
-		default:
-			out = append(out, line)
-			line = word
-		}
-	}
-	return append(out, line)
+	return out
 }

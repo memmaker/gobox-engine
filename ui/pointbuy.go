@@ -1,7 +1,7 @@
 package ui
 
 // The point buy (scrBuy): a new character's abilities bought on
-// game.PointBuyBudget points, each from game.PointBuyMin, the rows the
+// rules.PointBuyBudget points, each from int(rules.PointBuyMin), the rows the
 // abilities with their score and cost, the title the points left. Right,
 // +, Enter and a click raise the ability; Left and - lower it; Raise and
 // Lower change the ability last highlighted; Done hands the scores to the
@@ -10,6 +10,7 @@ package ui
 import (
 	"fmt"
 	"gobox/game"
+	"gobox/rules"
 	"gobox/ui/input"
 	"slices"
 )
@@ -17,7 +18,7 @@ import (
 // openBuy starts the point buy with every ability at the minimum.
 func (p *Presenter) openBuy(cr *FrontCreation) {
 	s := &p.scr
-	s.buy, s.buyStat = slices.Repeat([]int{game.PointBuyMin}, len(cr.StatNames)), 0
+	s.buy, s.buyStat = slices.Repeat([]int{int(rules.PointBuyMin)}, len(cr.StatNames)), 0
 	s.sub, s.sel, s.top = scrBuy, 0, 0
 }
 
@@ -29,7 +30,7 @@ func (p *Presenter) buyBy(i, d int) {
 	}
 	old := s.buy[i]
 	s.buy[i] += d
-	if _, ok := game.PointBuySpent(s.buy); !ok {
+	if _, ok := rules.PointBuyTotal(s.buy); !ok {
 		s.buy[i] = old
 	}
 }
@@ -40,7 +41,7 @@ func (p *Presenter) buyItems(cr *FrontCreation) (string, []MenuRow) {
 	if s.sel < len(s.buy) {
 		s.buyStat = s.sel
 	}
-	spent, _ := game.PointBuySpent(s.buy)
+	spent, _ := rules.PointBuyTotal(s.buy)
 	w := 0
 	for _, n := range cr.StatNames {
 		w = max(w, len(n))
@@ -51,9 +52,9 @@ func (p *Presenter) buyItems(cr *FrontCreation) (string, []MenuRow) {
 		if i < len(cr.StatNames) {
 			name = cr.StatNames[i]
 		}
-		it = append(it, MenuRow{Text: fmt.Sprintf("%-*s  - %2d +  cost %2d", w, name, v, game.PointBuyCost(v)), Do: func() { p.buyBy(i, 1) }})
+		it = append(it, MenuRow{Text: fmt.Sprintf("%-*s  - %2d +  cost %2d", w, name, v, rules.PointBuyCost(int32(v))), Do: func() { p.buyBy(i, 1) }})
 	}
-	return fmt.Sprintf("Points left: %d", game.PointBuyBudget-spent), append(it,
+	return fmt.Sprintf("Points left: %d", rules.PointBuyBudget-spent), append(it,
 		MenuRow{Text: "Raise", Key: '+', Do: func() { p.buyBy(s.buyStat, 1) }},
 		MenuRow{Text: "Lower", Key: '-', Do: func() { p.buyBy(s.buyStat, -1) }},
 		MenuRow{Text: "Done", Key: 'D', Do: func() {

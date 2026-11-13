@@ -620,13 +620,13 @@ func (g *Game) WalkTo(x, y int) bool {
 }
 
 // JournalPage is the journal text laid out on the page (Data.Scans has its pictures).
-func (g *Game) JournalPage(title string, lines []string, p, off int) (*Pages, int) {
-	return JournalPage(title, lines, p, off, g.r.grid.X, g.r.grid.Y, [16]color.RGBA{}, g.D.Scans)
+func (g *Game) JournalPage(title string, texts []game.ReadText, p, off int) (*Pages, int) {
+	return JournalPage(title, texts, p, off, g.r.grid.X, g.r.grid.Y, [16]color.RGBA{}, g.D.Scans)
 }
 
 // SpeakPage has the game voice the page, in place of the page voiced before.
-func (g *Game) SpeakPage(lines []string, p int) {
-	g.run("speak", func() game.Result { return g.r.speak(SpeakKeys(lines, p, g.r.grid.X, g.r.grid.Y)) })
+func (g *Game) SpeakPage(texts []game.ReadText, p int) {
+	g.run("speak", func() game.Result { return g.r.speak(SpeakKeys(texts, g.D.Scans, p, g.r.grid.X, g.r.grid.Y)) })
 }
 
 // ClueChapters and ClueRead are Data.Clues.
@@ -641,7 +641,7 @@ func (g *Game) ClueRead(i int) *Read {
 		return nil
 	}
 	r := g.D.Clues[min(max(i, 0), len(g.D.Clues)-1)].Read
-	return &Read{Title: r.Title, Lines: r.Lines, Page: r.Page}
+	return &Read{Title: r.Title, Texts: r.Texts, Page: r.Page}
 }
 
 // Answer does the Decision a names; ActResize is the front's own (the page's size).

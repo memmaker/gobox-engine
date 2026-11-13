@@ -267,7 +267,7 @@ type Scene struct {
 	Pictures []Picture
 	Text     []string          // plain paragraphs; colours are gobox's
 	Handout  string            // SceneHandout: the title
-	Lines    []string          // SceneHandout: journal.Layout's
+	Texts    []ReadText        // SceneHandout: the Read's
 	Layers   []Layer           // pictures with their place and frames (Pictures: gobox places them)
 	Placed   []Placed          // text at cells over the window (Text: the message lines)
 	Intro    *Intro            // SceneTitle
