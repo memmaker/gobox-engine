@@ -47,3 +47,23 @@ func TestResultsOwnScreen(t *testing.T) {
 		t.Fatal("the after-combat page still lays out on the classic page")
 	}
 }
+
+// lines are the cells as runs of one colour, a row each.
+func (c *cellPage) lines() [][]PaneRun {
+	ls := make([][]PaneRun, c.rows)
+	for y, row := range c.cells {
+		var l []PaneRun
+		for x, k := range row {
+			if !k.set {
+				continue
+			}
+			if n := len(l) - 1; n >= 0 && l[n].X+len(l[n].Text) == x && l[n].Fg == k.fg && l[n].Bg == k.bg && l[n].Upcase == k.upcase {
+				l[n].Text += string(k.ch)
+				continue
+			}
+			l = append(l, PaneRun{X: x, Text: string(k.ch), Fg: k.fg, Bg: k.bg, Upcase: k.upcase})
+		}
+		ls[y] = l
+	}
+	return ls
+}

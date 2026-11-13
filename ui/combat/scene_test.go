@@ -235,3 +235,10 @@ func TestAimEnterCentres(t *testing.T) {
 		t.Fatalf("%+v", got)
 	}
 }
+
+// pick is the map square under screen point (nx, ny) in -1..1 (y up), on
+// the floor; ok is false off the map.
+func (c camera) pick(nx, ny float64) (x, z int, ok bool) {
+	x, z, hit := c.plane(nx, ny)
+	return x, z, hit && onBoard(image.Pt(x, z))
+}

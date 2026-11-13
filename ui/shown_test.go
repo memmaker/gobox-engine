@@ -181,3 +181,25 @@ func (r *frontState) send(d any) game.Result {
 	}
 	return game.Result{}
 }
+
+// holding is what the old front waits on in ps.
+func holding(ps game.State) game.Hold {
+	switch t := ps.(type) {
+	case game.Exploring:
+		if t.Door != nil && t.Ask == nil {
+			return game.HoldDoor
+		}
+	case game.Trading:
+		if t.Kind == game.TradeTemple || t.Kind == game.TradeShop && len(t.Services) > 0 {
+			return game.HoldTemple
+		}
+		if t.Kind == game.TradeShop || t.Kind == game.TradeVault {
+			return game.HoldShop
+		}
+	case game.Looting:
+		return game.HoldLoot
+	case game.Fighting:
+		return game.HoldFight
+	}
+	return game.HoldNone // a story page waits on its question, not a hold (HoldStory is the finale's pictures)
+}

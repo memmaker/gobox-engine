@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"image"
 	"image/png"
 	"os"
 	"path/filepath"
@@ -34,3 +35,6 @@ func TestDAXPictureVGA(t *testing.T) {
 		}
 	}
 }
+
+// daxImage is frame of block of file in the EGA colours (nil: none).
+func daxImage(file string, block, frame int) image.Image { return daxMasked(file, block, frame, -1) }
