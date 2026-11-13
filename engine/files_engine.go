@@ -191,11 +191,11 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (rules.CharID, bool) {
 	}
 	f.Items, f.Affects, f.Dual, f.Plan, f.Powers = read(".itm"), read(".spc"), read(".dual"), read(".mem"), read(".pow")
 	// extra: the dropped portrait and combat icon
-	if f.Portrait, err = readPNG(e.savePath(nm + ".png")); err != nil {
+	if f.Portrait, err = asset.ReadPNG(e.savePath(nm + ".png")); err != nil {
 		e.fileError("read", e.savePath(nm+".png"))
 	}
-	if f.Icon, err = readPNG(e.savePath(nm + ".icon.png")); err == nil && f.Icon != nil {
-		err = iconShape(f.Icon)
+	if f.Icon, err = asset.ReadPNG(e.savePath(nm + ".icon.png")); err == nil && f.Icon != nil {
+		err = asset.IconShape(f.Icon)
 	}
 	if err != nil {
 		f.Icon = nil

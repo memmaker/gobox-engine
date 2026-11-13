@@ -55,7 +55,7 @@ func (e *Engine) iconEditorState(edit *iconEdit) *game.IconEditor {
 	k := &game.IconEditor{Large: c.Size == 2, Custom: c.PNG != nil}
 	for p := range 2 {
 		if c.PNG != nil {
-			k.Icons[p] = iconPose(e.pngImage(c.PNG), p, false)
+			k.Icons[p] = asset.IconPose(e.pngImage(c.PNG), p, false)
 		} else if im := e.icons[0xC][p]; im != nil {
 			w := im.Width * 8
 			k.Poses[p] = game.Picture{W: w, H: len(im.Frame(0)) / w, Pixels: slices.Clone(im.Frame(0)), Palette: im.Palette, Clear: im.Mask}
