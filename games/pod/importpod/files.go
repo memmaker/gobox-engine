@@ -1,12 +1,6 @@
 package importpod
 
-const (
-	itemRecSize     = 63 // an item in ITEM*.DAX and MON*ITM
-	itemFileRecSize = 67 // an item in a Silver Blades .stf file: the record and a pointer
-	affectRecSize   = 9
-	gamePartyCount  = 31 // game block byte (p87F8+31): the members in the party
-	gsSymbolSet     = 1572
-)
+const ()
 
 // Item is a carried item: its record and, for a bag, what is in it.
 type Item struct {
