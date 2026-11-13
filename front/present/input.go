@@ -60,8 +60,8 @@ func frontOnly(k uint16) bool {
 func (p *Presenter) arrow(a input.Act, v front.View) {
 	back := a == input.Up || a == input.Left || a == input.PgUp || a == input.Home
 	on := a == input.Down || a == input.Right || a == input.PgDn || a == input.End
-	if n := len(v.Party); n > 0 && choosing(v) && (back || on) {
-		i := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
+	if n := len(p.party()); n > 0 && choosing(v) && (back || on) {
+		i := p.selectedIndex()
 		switch {
 		case on:
 			i = (i + 1) % n // none: the first
@@ -74,7 +74,7 @@ func (p *Presenter) arrow(a input.Act, v front.View) {
 		return
 	}
 	switch {
-	case v.Picker != nil: // a picker pages to an absolute page (pickerKey), never by -1 and +1
+	case p.picker(v.Ink) != nil: // a picker pages to an absolute page (pickerKey), never by -1 and +1
 	case back:
 		p.send(front.ActPage, -1)
 	case on:
@@ -117,19 +117,19 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		return
 	}
 	p.typing = false
-	if askAnswered(k, v, p.send) {
+	if p.askAnswered(k, v) {
 		return
 	}
 	if askList(v) != nil && askMenu(v) != nil && !choosing(v) && p.listKey(k, v) {
 		return
 	}
-	if screenUp(v) && p.campKey(k, v) {
+	if p.screenUp(v) && p.campKey(k, v) {
 		return
 	}
 	if p.exploring() && p.exploreKey(k) {
 		return
 	}
-	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), false); ok { // F1-F8, the stick buttons: select the member (exploring: and open their context menu, as a card's click)
+	if n, ok := memberKey(k, p.selectedIndex(), len(p.party()), false); ok { // F1-F8, the stick buttons: select the member (exploring: and open their context menu, as a card's click)
 		if p.command {
 			p.cardClick(n)
 			return
@@ -187,7 +187,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		p.send(front.ActOverview, 0)
 	case keypad(k) != input.None:
 		p.arrow(keypad(k), v)
-	case c == ' ' || askMenu(v) == nil && v.MainMenu == nil: // "press any key" (the party menu ignores keys it has no row for)
+	case c == ' ' || askMenu(v) == nil && !p.mainMenuUp(): // "press any key" (the party menu ignores keys it has no row for)
 		p.send(front.ActOK, 0)
 	}
 }
@@ -199,13 +199,13 @@ func (p *Presenter) Drop(path string, cx, cy int, in bool, v front.View) {
 	if !strings.EqualFold(filepath.Ext(path), ".png") {
 		return
 	}
-	r := v.IconBox
+	r := p.iconBox()
 	switch {
 	case p.icon != nil:
 		IconAct(p, &p.icon, front.Action{Kind: front.ActIcon, Text: path})
-	case v.IconDrop || in && r != (front.CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
+	case p.iconEditor(v.Ink) != nil || in && r != (front.CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActIcon, Text: path})
-	case v.Portrait != (front.CellRect{}) || v.Inventory != nil && v.Inventory.Wares == nil: // the sheet or the member's inventory
+	case p.portraitBox() != (front.CellRect{}) || p.inventoryKind() == invOwn: // the sheet or the member's inventory
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActPortrait, N: -1, Text: path})
 	}
 }
@@ -271,11 +271,11 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			p.battle.Zoom(wheel > 0, Host.Zoom)
 			continue
 		}
-		if c := &p.camp; screenUp(v) && c.screen == campBestiary && c.pointer.In(c.beastPane) { // over the entry: it scrolls
+		if c := &p.camp; p.screenUp(v) && c.screen == campBestiary && c.pointer.In(c.beastPane) { // over the entry: it scrolls
 			c.beastY = min(max(c.beastY-10*unit(wheel), 0), c.beastMax)
 			continue
 		}
-		if screenUp(v) || askList(v) != nil || p.pageMenu { // over a list: a line at most a pause, the rest of a fling dropped
+		if p.screenUp(v) || askList(v) != nil || p.pageMenu { // over a list: a line at most a pause, the rest of a fling dropped
 			if c := &p.camp; now().Sub(c.wheeled) < 2*wheelPause {
 				break
 			}
@@ -287,12 +287,12 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			p.key(k, v)
 		}
 	}
-	if p.pageScreen(v) && (p.pageMenu || v.Picker != nil) { // the page screens' own pointer (screens.go): the right button is Esc
+	if p.pageScreen(v) && (p.pageMenu || p.picker(v.Ink) != nil) { // the page screens' own pointer (screens.go): the right button is Esc
 		if right {
 			p.screenKey(keyOf(input.Esc), v)
 			right = false
 		}
-		if v.Picker != nil || v.Creation != nil || v.IconEditor != nil {
+		if p.picker(v.Ink) != nil || p.creation() != nil || p.iconEditor(v.Ink) != nil {
 			if in {
 				p.screenMouse(cx, cy, left, v)
 			}
@@ -317,14 +317,14 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 		p.send(front.ActOK, 0)
 	case p.menu && p.exploring(): // the command bar's popup: it alone closes (key)
 		p.menu = false
-	case screenUp(v): // back one level, as Esc
+	case p.screenUp(v): // back one level, as Esc
 		p.campBack(v)
 	case p.exploring() && !p.menu && p.active && p.view != nil: // as Esc: the options
 		p.view.OpenOptions()
 	default:
 		p.send(front.ActClose, 0)
 	}
-	if r := v.Portrait; left && in && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)) { // Shift-click on the sheet's portrait: the next head
+	if r := p.portraitBox(); left && in && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)) { // Shift-click on the sheet's portrait: the next head
 		p.send(front.ActHead, -1)
 		return
 	}
@@ -541,21 +541,21 @@ var keypadDirs = map[input.Act]int{input.Up: 8, input.Down: 2, input.Left: 4, in
 // askAnswered sends what key k answers on v's question by its data: a
 // direction (Ask.Dirs, AskMove: ActDir), another member (Ask.Reselect,
 // F1..F8: ActLead); false: k is none of these.
-func askAnswered(k uint16, v front.View, send func(front.ActKind, int)) bool {
+func (p *Presenter) askAnswered(k uint16, v front.View) bool {
 	a := v.Ask
 	if a == nil {
 		return false
 	}
 	if d, ok := keypadDirs[actOf(k)]; ok && (a.Dirs || a.Kind == front.AskMove) {
-		send(front.ActDir, d)
+		p.send(front.ActDir, d)
 		return true
 	}
-	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), false); a.Reselect && ok { // F1..F8, the pad's stick buttons
-		send(front.ActLead, n)
+	if n, ok := memberKey(k, p.selectedIndex(), len(p.party()), false); a.Reselect && ok { // F1..F8, the pad's stick buttons
+		p.send(front.ActLead, n)
 		return true
 	}
 	if a.View && (k == 'v' || k == 'V') {
-		send(front.ActView, -1)
+		p.send(front.ActView, -1)
 		return true
 	}
 	return false

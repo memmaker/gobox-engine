@@ -205,11 +205,11 @@ func confirmOf(act string, def game.Confirm) game.Confirm {
 // the most specific the game gives, else "Drop" or "Sell". Sell's are
 // SellMany (a stack), SellFree (no price) and SellFreeMany; Drop's
 // DropScribe (a scroll being scribed).
-func itemConfirm(k front.ActKind, it *front.InvItem) string {
+func itemConfirm(k front.ActKind, it game.Item) string {
 	base, keys := "Drop", []string{}
 	if k == front.ActSell {
 		base = "Sell"
-		free := it.Price == (front.Money{})
+		free := salePrice(it) == (front.Money{})
 		switch {
 		case free && it.Count > 1:
 			keys = []string{"SellFreeMany", "SellFree"}
@@ -218,7 +218,7 @@ func itemConfirm(k front.ActKind, it *front.InvItem) string {
 		case it.Count > 1:
 			keys = []string{"SellMany"}
 		}
-	} else if it.Scribe {
+	} else if scribing(it) {
 		keys = []string{"DropScribe"}
 	}
 	for _, c := range keys {

@@ -128,14 +128,6 @@ func pixView(v front.View) front.View {
 		c.Marker = picImage(m.MarkerPix, ink)
 		v.AreaMap = &c
 	}
-	if pixParty(v.Party) {
-		v.Party = append([]front.Member(nil), v.Party...)
-		for i := range v.Party {
-			if m := &v.Party[i]; m.Head == nil {
-				m.Head = pixImage(m.HeadPix, egaInk)
-			}
-		}
-	}
 	if c := v.Camp; c != nil && len(c.Bestiary) > 0 && c.Bestiary[0].Icon == nil {
 		cc := *c
 		cc.Bestiary = append([]front.Beast(nil), c.Bestiary...)
@@ -151,15 +143,6 @@ func pixView(v front.View) front.View {
 		v.Camp = &cc
 	}
 	return v
-}
-
-func pixParty(ms []front.Member) bool {
-	for _, m := range ms {
-		if m.Head == nil && m.HeadPix.Pix != nil {
-			return true
-		}
-	}
-	return false
 }
 
 // textured is t, or where t is one flat colour (a Pool floor tile is a

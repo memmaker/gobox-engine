@@ -20,14 +20,14 @@ func TestFightSheetLookOnly(t *testing.T) {
 	if g.OpenSheet(-1); len(r.sent) != 0 {
 		t.Fatalf("the game was called: %v", r.sent)
 	}
-	v := g.View()
-	if sp := v.SheetPage; sp == nil || sp.Damage != "1d8" || sp.Sex != "Male" || v.Sheet == nil || len(v.Sheet.Powers) != 0 {
-		t.Fatalf("sheet %+v %+v", v.Sheet, v.SheetPage)
+	p := presenterOf(g)
+	if sp := p.sheetPage(); sp == nil || sp.Damage != "1d8" || sp.Sex != "Male" || !p.sheetShown() || len(p.sheetItems()) != 0 {
+		t.Fatalf("sheet %+v", p.sheetPage())
 	}
-	if g.ShowMember(0); g.View().SheetPage.Name != "A" {
+	if g.ShowMember(0); p.sheetPage().Name != "A" {
 		t.Fatal("no page built from the Member")
 	}
-	if g.CloseSheet(); len(r.sent) != 0 || g.View().SheetPage != nil {
+	if g.CloseSheet(); len(r.sent) != 0 || p.sheetPage() != nil {
 		t.Fatalf("close: %v", r.sent)
 	}
 }
@@ -41,7 +41,7 @@ func TestFightItemsTabSheet(t *testing.T) {
 		Field: play.Battlefield{Turn: 3, Units: []game.Unit{{ID: 3, Member: 0}}}}
 	g := NewGame(r, game.Data{})
 	g.CloseItems(false)
-	if sp := g.View().SheetPage; sp == nil || sp.Name != "B" {
+	if sp := presenterOf(g).sheetPage(); sp == nil || sp.Name != "B" {
 		t.Fatalf("sheet %+v", sp)
 	}
 }

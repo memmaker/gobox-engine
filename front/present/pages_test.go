@@ -2,6 +2,7 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game"
 	"image"
 	"image/color"
 	"slices"
@@ -15,8 +16,10 @@ func TestSheetSpellsTitle(t *testing.T) {
 	for i := range ink {
 		ink[i] = col(i)
 	}
-	v := front.View{Cells: image.Pt(40, 25), Ink: ink, SheetPage: &front.SheetPage{Name: "Mirelle", NameColour: inkCyan, Spells: "Spells in Memory"}}
-	c := (&Presenter{}).screenPage(v)
+	v := front.View{Cells: image.Pt(40, 25), Ink: ink}
+	p := partyOn(game.Member{Name: "Mirelle", Okay: true, Page: &game.SheetPage{Name: "Mirelle", Spells: "Spells in Memory"}})
+	p.eng.r.sheet = 0
+	c := p.screenPage(v)
 	got := c.lines()[1]
 	want := []front.PaneRun{{X: 1, Text: "Mirelle's", Fg: ink[inkCyan], Bg: ink[0], Upcase: true}, {X: 11, Text: "Spells in Memory", Fg: ink[inkGreen], Bg: ink[0], Upcase: true}}
 	if !slices.Equal(got, want) {

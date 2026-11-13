@@ -59,32 +59,6 @@ type Read = game.Read
 // Money is core.Money: an amount the front end shows (as "12g 50c").
 type Money = core.Money
 
-// Inventory is the inventory screen (ItemsMenu) as the remastered one
-// draws it. Its items' Index is what an Action's N names.
-type Inventory struct {
-	Member    int        // index into View.Party
-	Doll      []*InvItem // the readied items by doll slot (the game's slots, nil: empty)
-	Pool      []InvItem  // the party inventory
-	Cap       int        // the party inventory's slots
-	Used      int        // the slots the party pack fills (play.Common.PoolItems; readied gear is not counted)
-	Use       bool       // items can be used here (ActUse)
-	Sell      bool       // a shop buys them (ActSell)
-	Reload    bool       // the shop refills clips (ActReload)
-	Switch    bool       // ActMember shows another member (not in combat)
-	Powers    []Power    // what the member can do besides items (the View menu's)
-	Wares     []InvItem  // the shop's goods (Browse; nil elsewhere): Item is ActBuy's Item, Price what it costs
-	Loot      bool       // Wares are a fight's treasure (the Loot screen): ActBuy takes one for nothing
-	Treasure  *Loot      // with Loot: the treasure's money and its other options (Detect, Share, Pool, Status)
-	Gold      int        // the party's money, with Wares
-	Copper    int
-	Trade     bool // the menu offers ActTrade
-	Halve     bool // ... ActHalve
-	Join      bool // ... ActJoin
-	AC, THAC0 int  // the member's, as its sheet shows them (the items page's bottom border; Stats)
-	Stats     bool // the game publishes AC and THAC0 (a member with a THAC0)
-	PoolCoins bool // the shop pools the party's coins (ActLootPool; Allowed PoolCoins)
-}
-
 // Power is a member's action of the View menu the inventory offers too.
 type Power struct {
 	Name string
@@ -166,27 +140,6 @@ const (
 	WinPicture               // a picture, portrait or approaching sprite
 	WinText                  // text in the whole view window (opClearBox)
 )
-
-// Member is one party member as the party list shows them.
-type Member struct {
-	Name     string
-	HP       int
-	MaxHP    int
-	AC       int         // as displayed: 10 down to negative
-	Status   string      // as the sheet names it ("Okay", "Unconscious" ...)
-	Class    string      // as the sheet names it ("Fighter/Thief" ...)
-	Selected bool        // the selected member, or the candidate while a member is picked (SelectCharacter)
-	Colour   int         // the roster's EGA colour for the name when not Selected: red not okay, yellow a monster, magenta ready for a level, else cyan
-	Head     image.Image // the paper-doll head the player chose, in EGA colours (nil if missing)
-	HeadPix  Picture     // Head as the game's pixels in the EGA's own colours, not View.Ink (the presenter colours it)
-	Portrait image.Image // extra: the PNG the player dropped on the sheet, in place of Head (nil: none)
-	Powers   []Power     // extra: what the member can do now out of combat (a card's context menu): View, Items, then powers'; Kind with the member's index acts
-	Exp      int         // extra: experience, what the level took (LevelExp) and what the next takes (NextExp; 0: it can rise no further)
-	LevelExp int
-	NextExp  int
-	Spells   string // extra: a spellcaster's spells ready over its slots ("0/3", the overview); "" otherwise
-	Memo     string // extra: in camp a spellcaster's spells ready over its slots ("0/3"); "" otherwise
-}
 
 // Pane is the text under the 3D view (TextPane): what DisplayTextBlock,
 // the messages and the debug values put there, a line per row.
@@ -270,28 +223,21 @@ type View struct {
 	Area       AreaID
 	X, Y       int
 	Facing     Dir
-	Day        bool        // 6:00 to 20:00, when the scripts show the day sky
-	Inside     bool        // the party stands on an inside square (the original's inside sky colour)
-	Exploring  bool        // the party explores: the adventuring decisions (ActForward .. ActCastPick) are taken
-	Sweeping   bool        // ... at the slow, searching pace (ActSweep): the HUD says so
-	Interact   bool        // ... on a square whose event waits for ActInteract: the HUD says so
-	CanCast    bool        // ... and the selected member has a spell to cast (ActCastPick)
-	Camp       *Camp       // the party is in camp: the camp decisions (ActRest .. ActIconEdit) are taken; ActClose leaves
-	Temple     *Temple     // a temple (PendTemple): Cure, ViewMember, Appraise, KeepAppraised, ActLead; Leave
-	Shop       *Shop       // a shop (PendShop): Browse (the goods, ActBuy, ActSell), Identify, Appraise, KeepAppraised, ActLead; Leave
-	Loot       *Loot       // the treasure after a fight (PendLoot): LootView, LootTake, LootDetect, Lead; LootLeave
-	Door       *DoorOpts   // a locked door (PendDoor): TryDoor
-	Training   *Training   // the training hall for the selected member (TrainingView, the presenter's): Train, Learn; CloseTraining
-	Powers     *PowerPick  // a member chooses a power: PickPower
-	Sheet      *Sheet      // the selected member's sheet (the page): ActInventory, ActSpells .. ActCure, ActMember (another member); ActClose leaves
-	IconEditor *IconEditor // the combat icon editor is up (the page; IconDrop): the presenter lays it out and takes its clicks
-	SheetPage  *SheetPage  // the character sheet's page is up (the sheet, the creation's, the spell lists over it): the presenter draws it
-	Creation   *Creation   // the creation (or Modify) sheet (the page): ActRoll, ActSetField, ActName, ActStat, ActPicker, ActIconEdit, ActKeep; ActClose abandons (the player agreed to Abandon)
-	Picker     *Picker     // a grid picker (the page): ActPicked, ActPage; ActClose leaves
-	Ask        *Ask        // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
-	Party      []Member
+	Day        bool           // 6:00 to 20:00, when the scripts show the day sky
+	Inside     bool           // the party stands on an inside square (the original's inside sky colour)
+	Exploring  bool           // the party explores: the adventuring decisions (ActForward .. ActCastPick) are taken
+	Sweeping   bool           // ... at the slow, searching pace (ActSweep): the HUD says so
+	Interact   bool           // ... on a square whose event waits for ActInteract: the HUD says so
+	CanCast    bool           // ... and the selected member has a spell to cast (ActCastPick)
+	Camp       *Camp          // the party is in camp: the camp decisions (ActRest .. ActIconEdit) are taken; ActClose leaves
+	Temple     *Temple        // a temple (PendTemple): Cure, ViewMember, Appraise, KeepAppraised, ActLead; Leave
+	Shop       *Shop          // a shop (PendShop): Browse (the goods, ActBuy, ActSell), Identify, Appraise, KeepAppraised, ActLead; Leave
+	Loot       *Loot          // the treasure after a fight (PendLoot): LootView, LootTake, LootDetect, Lead; LootLeave
+	Door       *DoorOpts      // a locked door (PendDoor): TryDoor
+	Training   *Training      // the training hall for the selected member (TrainingView, the presenter's): Train, Learn; CloseTraining
+	Powers     *PowerPick     // a member chooses a power: PickPower
+	Ask        *Ask           // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
 	Note       Note           // the status line's toast, shown on the bottom row a while after At
-	Inventory  *Inventory     // the inventory screen is up (nil otherwise)
 	Pictures   []Picture      // the screen's pictures, symbols and fills, bottom first
 	Adventure  bool           // the party is out in the world: the 3D view (or the overland map) is the screen
 	Prompt     []PaneRun      // the prompt row's text (the last row), X the page's column
@@ -305,14 +251,9 @@ type View struct {
 	Full       bool           // Pictures are one whole-screen picture (the title's): fitted to the window
 	Cells      image.Point    // the page's size in text cells (40x25 at least; a larger window gives more, ActResize)
 	Ink        [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now (all zero: the EGA's own)
-	Portrait   CellRect       // the sheet's portrait box (zero elsewhere): Shift-click takes the next head (ActHead), a dropped PNG becomes the portrait (ActPortrait)
-	IconDrop   bool           // the combat icon editor is up: a dropped PNG becomes the member's icon (ActIcon)
-	IconBox    CellRect       // the creation sheet's combat icon (zero elsewhere): a PNG dropped on it becomes the icon (ActIcon)
 	Read       *Read          // journal text the game waits to have read: the presenter pages it (JournalPage), then ActOK
-	Purse      *Purse         // the party's money and party items (nil without a party)
 	Ordering   bool           // the camp's Party Order bar is up: a card dragged onto another's place moves the member (ActOrder)
 	MainMenu   []ActKind      // the party menu is up: the functions open now (ActCreate .. ActQuit, ActMember, ActDropMember); ActLead selects a member
-	Logo       *Picture       // with MainMenu: the title picture (Pix) the presenter cuts the lettering from (present.Data.Logo)
 	Hall       bool           // MainMenu is the training hall's: over the 3D view, Begin leaves the hall
 	Screen     *game.Screen   // a game's typed screen is up (nil: none): the presenter draws it from its data, the Ask on its prompt rows
 }
@@ -378,12 +319,6 @@ type SheetPage struct {
 type Stat struct {
 	Name, Value string
 	Help        []string
-}
-
-// Purse is the party's money and party inventory, on the overview.
-type Purse struct {
-	Gold, Copper, Gems, Jewelry int
-	Items, Slots                int // the party items held and their room ("12/60")
 }
 
 // Sheet is what the character sheet offers besides the page.

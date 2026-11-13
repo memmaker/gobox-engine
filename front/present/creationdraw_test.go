@@ -6,18 +6,19 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game/play"
 )
 
 // The pool's portrait and icon on the creation sheet (a Name, no File) are
 // content the screen draws, as the game's DAX pictures there are.
 func TestContentPoolPictures(t *testing.T) {
-	cr := &front.Creation{Head: front.CellRect{X1: 28, Y1: 1, X2: 38, Y2: 5}, Icon: front.CellRect{X1: 29, Y1: 13, X2: 36, Y2: 15}}
-	v := front.View{Creation: cr, Pictures: []front.Picture{
+	v := front.View{Pictures: []front.Picture{
 		{Name: "head_000", Img: image.NewRGBA(image.Rect(0, 0, 88, 40)), At: image.Rect(224, 8, 312, 48)},
 		{Name: "combat_head_000", Pix: make([]uint8, 576), PixW: 24, At: image.Rect(232, 104, 256, 128)},
 		{Pix: make([]uint8, 576), PixW: 24, At: image.Rect(232, 104, 256, 128)}, // a frame: not content
 	}}
-	if n := len((&Presenter{}).contentPictures(v)); n != 2 {
+	p, _ := draftOn(&play.Draft{}) // the page's default layout: the portrait at 28,1, the icon at 29,13
+	if n := len(p.contentPictures(v)); n != 2 {
 		t.Fatalf("%d content pictures, want the pool's 2", n)
 	}
 }

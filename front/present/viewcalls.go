@@ -30,7 +30,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 	n := a.N
 	do := func(f func(e *classicGame) error) { p.call(func(e *classicGame) { f(e) }) }
 	switch k := a.Kind; {
-	case v.Inventory != nil:
+	case p.inventoryUp():
 		switch k {
 		case front.ActClose:
 			do(func(e *classicGame) error { return e.CloseItems(true) })
@@ -54,7 +54,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 			if a.Y == 1 {
 				return false
 			}
-			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
+			sel := p.selectedIndex()
 			AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
 				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: a.Item, X: t, Y: 1})
 			})
@@ -63,7 +63,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		default:
 			return !slices.Contains(viewPasses, k)
 		}
-	case v.Sheet != nil:
+	case p.sheetShown():
 		switch k {
 		case front.ActClose:
 			do(func(e *classicGame) error { return e.CloseSheet() })
@@ -78,7 +78,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 			if a.Y == 1 {
 				return false
 			}
-			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
+			sel := p.selectedIndex()
 			AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
 				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: a.Item, X: t, Y: 1})
 			})
@@ -87,7 +87,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		default:
 			return !slices.Contains(viewPasses, k)
 		}
-	case k == front.ActMember && (p.exploring() || v.Camp != nil || v.MainMenu != nil || turn), k == front.ActView && turn: // the bar's View in a turn: the active member's sheet, as a portrait's
+	case k == front.ActMember && (p.exploring() || v.Camp != nil || p.mainMenuUp() || turn), k == front.ActView && turn: // the bar's View in a turn: the active member's sheet, as a portrait's
 		if turn {
 			n = -1
 		}
@@ -130,7 +130,7 @@ func (p *Presenter) useCall(i core.ItemHandle, spell, target int, sure bool) {
 		)
 		switch err := e.UseItem(i, spell, target, sure); {
 		case errors.As(err, &who):
-			sel := slices.IndexFunc(e.View().Party, func(m front.Member) bool { return m.Selected })
+			sel := p.selectedIndex()
 			AskForMember(p, string(who), sel, func(t int) { p.useCall(i, spell, t, sure) })
 		case errors.As(err, &pick):
 			AskForSpell(p, pick, func(id int) { p.useCall(i, id, target, sure) })

@@ -64,13 +64,13 @@ type screenUI struct {
 
 func (p *Presenter) screenName(v front.View) string {
 	switch {
-	case v.Picker != nil:
+	case p.picker(v.Ink) != nil:
 		return "picker"
-	case v.Creation != nil:
+	case p.creation() != nil:
 		return "creation"
 	case p.slotsView() != nil:
 		return "slots"
-	case v.IconDrop && askMenu(v) == nil:
+	case p.iconEditor(v.Ink) != nil && askMenu(v) == nil:
 		return "icon"
 	}
 	return ""
@@ -97,7 +97,7 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 	}
 	switch p.screenName(v) {
 	case "creation":
-		cr := v.Creation
+		cr := p.creation()
 		switch s.sub {
 		case scrField:
 			fl := crField(cr, s.field)
@@ -257,8 +257,8 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 			s.sub, s.mainSel = scrHow, 0
 		}
 		s.newChar = false
-		if v.Picker != nil {
-			s.cur = v.Picker.Cur
+		if p.picker(v.Ink) != nil {
+			s.cur = p.picker(v.Ink).Cur
 		}
 		if sl := p.slotsView(); sl != nil { // on the game last loaded or saved
 			p.pointer = p.camp.pointer // the resting pointer does not take it; only a moved one does
@@ -271,7 +271,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 		}
 	}
 	p.winRects = p.winRects[:0]
-	if pk := v.Picker; pk != nil {
+	if pk := p.picker(v.Ink); pk != nil {
 		s.cur = min(max(s.cur, 0), pk.N-1)
 		if i := s.cur - pk.Page*pk.PerPage; i >= 0 && i < len(pk.Cells) {
 			r := p.cellRect(pk.Cells[i])
@@ -294,8 +294,8 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 	if s.sub == scrType { // the line being typed is no row to pick
 		off[0] = false
 	}
-	if s.sub == scrField && v.Creation != nil { // grey: picking it changes what depends on it
-		fl := crField(v.Creation, s.field)
+	if cr := p.creation(); s.sub == scrField && cr != nil { // grey: picking it changes what depends on it
+		fl := crField(cr, s.field)
 		for r, i := range fieldOrder(fl) {
 			off[r] = !fl.Options[i].Fits
 		}
@@ -486,7 +486,7 @@ func (p *Presenter) screenKey(k uint16, v front.View) bool {
 		}
 		return true
 	}
-	if pk := v.Picker; pk != nil && s.sub != scrAsk {
+	if pk := p.picker(v.Ink); pk != nil && s.sub != scrAsk {
 		return p.pickerKey(k, pk)
 	}
 	if sp := p.spots(v); sp != nil && s.sub == scrMain {
@@ -595,7 +595,7 @@ func (p *Presenter) screenMouse(cx, cy int, left bool, v front.View) bool {
 	in := func(r front.CellRect) bool { return image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)) }
 	moved := image.Pt(cx, cy) != s.ptr
 	s.ptr = image.Pt(cx, cy)
-	if pk := v.Picker; pk != nil && s.sub == scrMain {
+	if pk := p.picker(v.Ink); pk != nil && s.sub == scrMain {
 		for i, r := range pk.Cells {
 			if in(r) {
 				if moved || left {
@@ -633,7 +633,7 @@ func (p *Presenter) screenMouse(cx, cy int, left bool, v front.View) bool {
 			return true
 		}
 	}
-	if ed := v.IconEditor; ed != nil && left { // the poses: the head above, the weapon below
+	if ed := p.iconEditor(v.Ink); ed != nil && left { // the poses: the head above, the weapon below
 		if a, ok := iconClick(ed, cx, cy); ok {
 			p.sendA(a)
 			return true
@@ -674,8 +674,8 @@ func (p *Presenter) spots(v front.View) []spot {
 	var sp []spot
 	at := func(r front.CellRect, key byte, do func()) { sp = append(sp, spot{r, key, do}) }
 	send := func(k front.ActKind, n int) func() { return func() { p.send(k, n) } }
-	switch ed, cr := v.IconEditor, v.Creation; {
-	case v.Picker != nil:
+	switch ed, cr := p.iconEditor(v.Ink), p.creation(); {
+	case p.picker(v.Ink) != nil:
 		return nil
 	case ed != nil:
 		click := func(x, y int) func() {
@@ -719,7 +719,7 @@ func (p *Presenter) spots(v front.View) []spot {
 		return nil
 	}
 	row := p.scr.ph/8 - 1 // the prompt row
-	for _, w := range barWords(v) {
+	for _, w := range p.barWords(v) {
 		at(front.CellRect{X1: w.x, Y1: row, X2: w.x + len(w.label) - 1, Y2: row}, w.key, p.barDo(v, w.key))
 	}
 	return sp
@@ -728,11 +728,11 @@ func (p *Presenter) spots(v front.View) []spot {
 // barWords are the special screen's bar on the prompt row, as the
 // original's: the creation's Roll, Minimal, Keep, Exit; the icon
 // editor's Keep, Exit.
-func barWords(v front.View) []footWord {
+func (p *Presenter) barWords(v front.View) []footWord {
 	ws := []string{"Keep", "Exit"}
-	if v.IconEditor == nil {
+	if p.iconEditor(v.Ink) == nil {
 		ws = []string{"Roll", "Minimal", "Keep", "Exit"}
-		if v.Creation != nil && len(v.Creation.Powers) > 0 {
+		if p.creation() != nil && len(p.creation().Powers) > 0 {
 			ws = []string{"Roll", "Minimal", "Powers", "Keep", "Exit"}
 		}
 	}
@@ -748,13 +748,13 @@ func barWords(v front.View) []footWord {
 // barDo is what the bar's word with hotkey h does.
 func (p *Presenter) barDo(v front.View, h byte) func() {
 	return func() {
-		cr := v.Creation
+		cr := p.creation()
 		switch {
 		case h == 'K' && cr != nil && slices.ContainsFunc(cr.Powers, func(f front.Field) bool { return f.Cur < 0 }), h == 'P' && cr != nil:
 			p.scr.open(scrPowers) // a power still to pick: the picks first
 		case h == 'K':
 			p.send(front.ActKeep, 0)
-		case h == 'E' && (v.IconEditor != nil || cr == nil):
+		case h == 'E' && (p.iconEditor(v.Ink) != nil || cr == nil):
 			p.send(front.ActClose, 0)
 		case h == 'E':
 			p.askThen(cr.Abandon, func() { p.send(front.ActClose, 0) })

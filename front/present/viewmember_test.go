@@ -61,11 +61,12 @@ func TestFightView(t *testing.T) {
 		t.Errorf("VerbOrder: %+v, want View first", o)
 	}
 	g.Answer(front.Action{Kind: front.ActOption, N: n})
-	if v := g.View(); v.SheetPage == nil || v.Sheet == nil || g.combat() == nil || g.combat().Turn == nil || len(f.sent) != 0 {
-		t.Fatalf("sheet %v, battle %v, sent %v", v.SheetPage != nil, g.combat() != nil, f.sent)
+	p := presenterOf(g)
+	if p.sheetPage() == nil || !p.sheetShown() || g.combat() == nil || g.combat().Turn == nil || len(f.sent) != 0 {
+		t.Fatalf("sheet %v, battle %v, sent %v", p.sheetPage() != nil, g.combat() != nil, f.sent)
 	}
 	g.CloseSheet()
-	if v := g.View(); v.SheetPage != nil || g.combat() == nil || g.combat().Turn == nil || g.combat().Turn.Unit != 2 {
+	if p.sheetPage() != nil || g.combat() == nil || g.combat().Turn == nil || g.combat().Turn.Unit != 2 {
 		t.Fatal("not back on the turn")
 	}
 	f.st = play.Fighting{Common: play.Common{Party: fight.Party, Allowed: allow(play.ViewTarget{}).Allowed}, Field: fight.Field}
@@ -86,7 +87,7 @@ func TestFightSheetPage(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "ARIN", Page: &game.SheetPage{Name: "ARIN", Damage: "1d8", Sex: "Male", Age: 20}}}}}
 	g := NewGame(&fake{st: fight}, game.Data{})
 	g.OpenSheet(0)
-	if sp := g.View().SheetPage; sp == nil || sp.Damage != "1d8" || sp.Sex != "Male" || sp.Age != 20 {
+	if sp := presenterOf(g).sheetPage(); sp == nil || sp.Damage != "1d8" || sp.Sex != "Male" || sp.Age != 20 {
 		t.Fatalf("page %+v", sp)
 	}
 }
@@ -120,8 +121,8 @@ func TestViewGearOpensItems(t *testing.T) {
 	}
 	g := NewGame(f, game.Data{})
 	g.r = r
-	if v := g.View(); v.Inventory == nil || v.Ask != nil { // the items draw, over the question
-		t.Fatalf("inventory %v ask %v", v.Inventory != nil, v.Ask != nil)
+	if v := g.View(); !presenterOf(g).inventoryUp() || v.Ask != nil { // the items draw, over the question
+		t.Fatalf("inventory %v ask %v", presenterOf(g).inventoryUp(), v.Ask != nil)
 	}
 	r.send(tCloseItems{})
 	if shownOf(r).Pending == nil {

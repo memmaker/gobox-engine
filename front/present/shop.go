@@ -92,7 +92,7 @@ func (p *Presenter) serviceAct(a front.Action) bool {
 		default:
 			return false
 		}
-	case a.Kind == front.ActTraining && v.MainMenu != nil:
+	case a.Kind == front.ActTraining && p.mainMenuUp():
 		p.call(func(e *classicGame) { e.OpenTraining(a.N); p.training = p.hallUp() })
 	case v.Shop != nil && a.Kind == front.ActInventory:
 		p.call(func(e *classicGame) { e.Browse(a.N) })
@@ -115,7 +115,7 @@ func (p *Presenter) ownTraining(v front.View) front.View {
 		p.training = p.hallUp() // a game loaded closes it
 	}
 	if p.training {
-		v.MainMenu, v.Hall, v.Logo, v.Powers = nil, false, nil, nil
+		v.MainMenu, v.Hall, v.Powers = nil, false, nil
 	}
 	return v
 }

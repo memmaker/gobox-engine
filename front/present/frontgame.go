@@ -9,7 +9,6 @@ import (
 	"gobox/front"
 	"gobox/gpu"
 	"image"
-	"slices"
 )
 
 var _ RuleHost = (*Presenter)(nil)
@@ -20,15 +19,19 @@ func (p *Presenter) Call(f func(*classicGame)) { p.call(func(e *classicGame) { f
 // Edit queues f (edit).
 func (p *Presenter) Edit(f func(*classicGame)) { p.edit(func(e *classicGame) { f(e) }) }
 
-// ownCreation puts the creation sheet up in v, over the party menu.
+// ownCreation is v with the creation sheet's pool portrait and icon in its
+// boxes, over the party menu (the sheet itself is creation()).
 func (p *Presenter) ownCreation(v front.View) front.View {
-	if p.creating && p.eng != nil {
-		v.Creation = p.eng.CreationView()
-		if p.creating = v.Creation != nil; !p.creating { // the game ended it itself (a step after Keep, a save): the party menu is back
-			return v
-		}
-		v = p.eng.SheetIcon(v) // its icon boxes take the draft's combat icon
-		v.MainMenu, v.Logo = nil, nil
+	if p.eng == nil {
+		return v
+	}
+	cr := p.layoutCreation()
+	if p.creating = p.creating && cr != nil; cr == nil { // the game ended it itself (a step after Keep, a save): the party menu is back
+		return v
+	}
+	v = p.eng.CreationPictures(v, cr)
+	if p.creating {
+		v.MainMenu = nil
 	}
 	return v
 }
@@ -43,11 +46,11 @@ func (p *Presenter) Asking() *front.Question { return p.q }
 func (p *Presenter) Shown() Shown {
 	v := p.shownView
 	var t *front.Loot
-	if v.Inventory != nil {
-		t = v.Inventory.Treasure
+	if in := p.inventory(); in != nil {
+		t = in.treasure
 	}
-	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: p.board != nil,
-		Camp: v.Camp != nil, MainMenu: v.MainMenu != nil, Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(v.Party)}
+	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: p.sheetShown(), Inventory: p.inventoryUp(), Battle: p.board != nil,
+		Camp: v.Camp != nil, MainMenu: p.mainMenuUp(), Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(p.party())}
 }
 
 // ownQuestion is v with the presenter's question up.
@@ -55,7 +58,7 @@ func (p *Presenter) ownQuestion(v front.View) front.View {
 	q := p.q
 	if q == nil && v.Ask == nil {
 		l := v.Loot
-		if v.Inventory != nil { // the loot screen's item list is the treasure: its Take, All, Exit, not the gate menu over it
+		if p.inventoryUp() { // the loot screen's item list is the treasure: its Take, All, Exit, not the gate menu over it
 			l = nil
 		}
 		q = GateQuestion(p, l, v.Door)
@@ -63,12 +66,6 @@ func (p *Presenter) ownQuestion(v front.View) front.View {
 	if q != nil {
 		a := q.Ask
 		v.Ask, v.Exploring, v.CanCast, v.Interact = &a, false, false, false // the question takes the keys
-		if a.Kind == front.AskMember {
-			v.Party = slices.Clone(v.Party)
-			for i := range v.Party {
-				v.Party[i].Selected = i == q.Cand
-			}
-		}
 	}
 	return v
 }
@@ -95,22 +92,7 @@ func (p *Presenter) ownPicker(v front.View) front.View {
 	if p.eng == nil || p.gridPick == nil && p.icon == nil {
 		return v
 	}
-	key := [2]any{p.ran, p.ui().grid}
-	v.Creation, v.SheetPage, v.Camp, v.MainMenu, v.Sheet, v.Inventory = nil, nil, nil, nil, nil, nil
-	v.Portrait, v.IconBox, v.Logo = front.CellRect{}, front.CellRect{}, nil
-	if p.icon != nil {
-		if ed := p.icon.Layout(p.eng, key); ed != nil {
-			v.IconEditor, v.IconDrop = ed, true
-		}
-	}
-	if p.gridPick != nil {
-		v.Picker, v.IconEditor, v.IconDrop = p.gridPick.Layout(p.eng, key), nil, false
-		if v.Picker != nil { // pictures named by DAX ref, as View.Pictures
-			pk := *v.Picker
-			pk.Pics = daxPictures(indexedPictures(pk.Pics, v.Ink))
-			v.Picker = &pk
-		}
-	}
+	v.Camp, v.MainMenu = nil, nil // the screens under it
 	return v
 }
 
@@ -142,7 +124,7 @@ func (p *Presenter) own(v front.View) front.View {
 	v.Pictures = daxPictures(indexedPictures(v.Pictures, v.Ink))
 	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
 	if p.slots != nil && p.eng != nil {
-		v.MainMenu, v.Logo = nil, nil // the page covers the party menu: its keys are the page's
+		v.MainMenu = nil // the page covers the party menu: its keys are the page's
 	}
 	return v
 }
@@ -174,12 +156,6 @@ func (p *Presenter) frontScreens() string {
 		front.ScreenUp{Name: front.ScreenQuestion, On: p.q != nil})
 }
 
-// mainView is v's party menu as the main menu takes it.
-func mainView(v front.View) front.MainMenu {
-	return front.MainMenu{Open: v.MainMenu, Hall: v.Hall, Logo: v.Logo,
-		Party: len(v.Party), Selected: selectedIndex(v), Name: selectedName(v)}
-}
-
 // Send sends the action k, N n (send).
 func (p *Presenter) Send(k front.ActKind, n int) { p.send(k, n) }
 
@@ -202,15 +178,11 @@ func (p *Presenter) WinRects() []image.Rectangle { return p.winRects }
 // DrawCards draws the party's cards where the 3D view has them, exp the
 // way to the next level under each, and the tip of the one pointed at.
 func (p *Presenter) DrawCards(dst *gpu.Image, exp bool) []image.Rectangle {
-	v := p.shownView
 	p.expShown = exp
-	p.drawParty(dst, v.Party, cardAt(dst))
+	p.drawParty(dst, p.shownParty(), p.cardSelected(), cardAt(dst))
 	p.expShown = false
-	p.cards = p.cards[:0]
-	for i := range v.Party {
-		p.cards = append(p.cards, cardAt(dst)(i, len(v.Party)))
-	}
-	p.drawCardTip(dst, v)
+	p.layCards(dst)
+	p.drawCardTip(dst)
 	return p.cards
 }
 
@@ -232,4 +204,4 @@ func (p *Presenter) Point(x, y int) bool {
 func (p *Presenter) Calls() []func(*classicGame) { return p.calls.Take() }
 
 // SetEngine gives the presenter the game its queries (JournalPage) ask.
-func (p *Presenter) SetEngine(e *classicGame) { p.eng = e }
+func (p *Presenter) SetEngine(e *classicGame) { p.eng, p.lay = e, layouts{} }

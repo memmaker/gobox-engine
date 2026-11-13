@@ -63,6 +63,7 @@ func (g *Game) run(what string, step func() play.Result) error {
 	g.r.ran++
 	res := step()
 	done()
+	g.dropLook()
 	g.trace(what, res)
 	if g.combat() == nil && g.itemsUp() { // over the items the text pane is hidden: its new line (BR2's "Doc buys a ...", "not enough credits") is the toast
 		if t := paneTail(g.pane()); t != "" && (t != paneWas || paneCount(g.pane()) != linesWere) { // a new line, or the same one said again
@@ -112,7 +113,16 @@ func (g *Game) step() error {
 		g.trace("step", res)
 	}
 	g.events = append(g.events, res.Events...)
+	g.dropLook()
 	return res.Err
+}
+
+// dropLook ends a look-only sheet the fight no longer holds (it ended, or
+// the member is gone), so it does not come back with the next fight.
+func (g *Game) dropLook() {
+	if _, ok := g.r.lookMember(g.r.g.State()); !ok {
+		g.r.lookSheet = 0
+	}
 }
 
 // View is the page classic builds from State.
@@ -124,9 +134,12 @@ func (g *Game) Subject() game.Member {
 	return OwnSubject(g.r.modeOf(ps), creationOf(ps), partyOf(ps), g.r.selectedOf(ps))
 }
 
-// SheetIcon is v with the draft's combat icon in the creation sheet's box.
-func (g *Game) SheetIcon(v front.View) front.View {
-	return PoolIcon(v, g.Subject(), g.r.sheetPageOf(g.r.g.State(), g.party()))
+// CreationPictures is v with the draft's pool portrait and combat icon in the
+// creation sheet's boxes (cr), in place of the game's pictures there.
+func (g *Game) CreationPictures(v front.View, cr *front.Creation) front.View {
+	own := g.Subject()
+	v = PoolPortrait(v, cr, own)
+	return PoolIcon(v, cr, own, g.r.sheetPageOf(g.r.g.State(), g.party()))
 }
 
 // PickerOf is the game's grid picker, page page on cols by rows cells.
@@ -151,32 +164,11 @@ func (g *Game) View() front.View {
 	c := play.CommonOf(ps)
 	art := g.art()
 	mode, pending := r.modeOf(ps), r.asking(ps)
-	if g.r.refusalAsk != nil {
-		mode = game.ModeAsk
-	}
 	party, sel := partyOf(ps), r.selectedOf(ps)
-	sheet, page := r.sheetOf(c), r.sheetPageOf(ps, party)
-	combat := r.combatOf(ps)
-	if n := g.r.lookSheet - 1; n >= 0 && n < len(party) && combat != nil { // the look-only sheet: the member's page, no powers
-		sel, sheet, page = n, &game.Sheet{}, cmp.Or(party[n].Page, game.MemberPage(party[n]))
-	} else {
-		g.r.lookSheet = 0
-	}
-	amap, allowed, loot, shop := r.derived().automap, allowedOf(ps), lootOf(ps), shopOf(ps)
+	amap, loot, shop := r.derived().automap, lootOf(ps), shopOf(ps)
 	services, _ := templeOf(ps)
-	training, draft := trainingOf(ps), creationOf(ps)
-	own := OwnSubject(mode, draft, party, sel)
+	training := trainingOf(ps)
 	v := front.View{Exploring: mode == game.ModeExplore}
-	switch r.itemsUp(ps) { // the builders refine a screen the game has up
-	case game.ItemsOwn:
-		v.Inventory = &front.Inventory{}
-	case game.ItemsShop, game.ItemsLoot:
-		v.Inventory = &front.Inventory{Wares: []front.InvItem{}}
-	case game.ItemsNone: // the treasure is up: its screen is the loot inventory
-		if mode == game.ModeLoot && loot != nil && sheet == nil && !announced(ps) {
-			v.Inventory = &front.Inventory{Wares: []front.InvItem{}}
-		}
-	}
 	if len(amap.Terrain) > 0 {
 		v.AreaMap = &front.AreaMap{}
 	}
@@ -190,23 +182,17 @@ func (g *Game) View() front.View {
 		v.Camp = &front.Camp{}
 	}
 	v.MainMenu, v.Hall = PartyMenu(mode, training, pending, c.Where.Hall)
-	v.Inventory = Inventory(v.Inventory, mode, party, sel, c.PartyCap, c.PoolItems, c.Purse, allowed, shop, loot)
-	v = askOver(v, mode, pending, loot != nil || training != nil)
+	v = askOver(v, mode, pending, loot != nil || training != nil, r.inventoryKind(ps) != invNone)
 	if mode == game.ModeLoot && loot != nil && announced(ps) { // the treasure's picture under a message; Enter or Space opens it
 		v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}
 	}
 	if v.AreaMap != nil {
 		v.AreaMap = AreaMap(v.AreaMap, amap, c.Where, art)
 	}
-	if v.MainMenu != nil && !v.Hall && v.Powers == nil {
-		v.Logo = Title(v.Logo, art)
-	}
 	v = Page(v, r.pageOf(ps), storyOf(c))
 	v = Flags(v, r.flagsOf(ps, party), OverMenu(mode, pending))
 	v = Place(v, c.Where, windowOf(ps))
 	v = Waits(v, doorOf(ps), c.PowerPick)
-	v.Party, v.Purse = Party(party, cardsOf(ps), sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
-	v = Sheet(v, sheet, image.Rectangle{}, image.Rectangle{}, page, Drafting(mode, draft), draft, own)
 	v = Intro(v, introOf(ps))
 	v = Sequence(v, sequenceOf(ps), g.D.Sequences, g.D.AnimDir())
 	v = NoteView(v, r.note)
@@ -222,12 +208,7 @@ func (g *Game) View() front.View {
 	if v.Note.Text == "" {
 		v.Note = g.r.toast
 	}
-	v.Creation = Creation(mode, draft, pending, g.r.grid.X, g.r.grid.Y)
-	v = PoolPortrait(v, own)
-	v = PoolIcon(v, own, page)
 	v.Training = Training(training, party, sel, c.Purse)
-	v.Picker = Picker(c.Picker, image.Point{}, 0, g.r.grid.X, g.r.grid.Y)
-	v.IconEditor = IconEditor(c.IconEditor, nil, own, &v.Ink, g.r.grid.X, g.r.grid.Y)
 	return v
 }
 
@@ -1060,9 +1041,6 @@ func (g *Game) pending() *play.Ask {
 
 // mode is the screen up, a Refusal's question counted.
 func (g *Game) mode() game.Mode {
-	if g.r.refusalAsk != nil {
-		return game.ModeAsk
-	}
 	return g.r.modeOf(g.r.g.State())
 }
 
@@ -1173,11 +1151,11 @@ func (g *Game) Draft() *game.Creation { return creationOf(g.r.g.State()) }
 
 // askOver is v with the question up. A place's mode with no screen of its
 // own yet draws its question, never a blank frame.
-func askOver(v front.View, mode game.Mode, pending *play.Ask, screen bool) front.View {
+func askOver(v front.View, mode game.Mode, pending *play.Ask, screen, items bool) front.View {
 	if q, ok := Ask(mode, pending); ok && q != nil {
 		v.Ask = q
 	}
-	if v.MainMenu == nil && v.Ask == nil && v.Camp == nil && v.Temple == nil && v.Shop == nil && v.Inventory == nil && !screen &&
+	if v.MainMenu == nil && v.Ask == nil && v.Camp == nil && v.Temple == nil && v.Shop == nil && !items && !screen &&
 		pending != nil && mode >= game.ModeCamp && mode <= game.ModeLoot {
 		if q, ok := Ask(game.ModeAsk, pending); ok {
 			v.Ask = q

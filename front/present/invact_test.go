@@ -15,14 +15,15 @@ import (
 // Down then B on the shop's wares buys the highlighted ware (a rule call);
 // Trade, Halve and Join reach the game's Answer.
 func TestInventoryActs(t *testing.T) {
-	in := &front.Inventory{Wares: []front.InvItem{{Item: 4, Name: "Sword"}}, Sell: true, Trade: true, Halve: true, Join: true}
+	in := &invUp{kind: invShop, wares: []game.Item{{Handle: 4, Name: "Sword"}}, sell: true, trade: true, halve: true, join: true}
+	g, f := playGame(play.Trading{Common: play.Common{Party: []game.Member{{}}}})
+	g.r.items = game.ItemsShop
 	var p Presenter
-	p.inv.view, p.inv.ware, p.inv.sel = in, core.NoItem, core.NoItem
-	p.shownView = front.View{Inventory: in}
+	p.SetEngine(g)
+	p.inv.up, p.inv.ware, p.inv.sel = in, core.NoItem, core.NoItem
 	p.inventoryKey(keyOf(input.Down))
 	p.inventoryKey(0x42)
 	as := p.Actions()
-	g, f := playGame(play.Trading{})
 	for _, c := range p.Calls() {
 		c(g)
 	}
@@ -40,14 +41,15 @@ func TestInventoryActs(t *testing.T) {
 
 // Left highlights the shop's first ware, Enter buys it; a long name wraps.
 func TestShopKeys(t *testing.T) {
-	in := &front.Inventory{Wares: []front.InvItem{{Item: 3, Name: "Rope"}}, Pool: []front.InvItem{{Item: 1, Name: "Gun"}}, Sell: true}
+	in := &invUp{kind: invShop, wares: []game.Item{{Handle: 3, Name: "Rope"}}, pool: []game.Item{{Handle: 1, Name: "Gun"}}, sell: true}
+	g, f := playGame(play.Trading{Common: play.Common{Party: []game.Member{{}}}})
+	g.r.items = game.ItemsShop
 	var p Presenter
-	p.inv.view, p.inv.ware, p.inv.sel = in, core.NoItem, 1
-	p.shownView = front.View{Inventory: in}
+	p.SetEngine(g)
+	p.inv.up, p.inv.ware, p.inv.sel = in, core.NoItem, 1
 	p.inventoryKey(keyOf(input.Left))
 	p.inventoryKey(keyOf(input.Enter))
 	p.Actions()
-	g, f := playGame(play.Trading{})
 	for _, c := range p.Calls() {
 		c(g)
 	}
@@ -62,11 +64,11 @@ func TestShopKeys(t *testing.T) {
 // A drag off the doll unreadies, as a click there and a click on the list do;
 // a readied item dragged from the list onto the doll stays as it is.
 func TestInventoryDrag(t *testing.T) {
-	gun := front.InvItem{Item: 2, Name: "Gun", Type: 7, Readied: true}
-	in := &front.Inventory{Doll: []*front.InvItem{&gun}, Pool: []front.InvItem{gun}}
+	gun := game.Item{Handle: 2, Name: "Gun", Type: 7, Readied: true}
+	in := &invUp{kind: invOwn, doll: []*game.Item{&gun}, pool: []game.Item{gun}}
 	var p Presenter
 	inv := &p.inv
-	inv.k, inv.kx, inv.ky, inv.view, inv.sel, inv.ware = 1, 1, 1, in, core.NoItem, core.NoItem
+	inv.k, inv.kx, inv.ky, inv.up, inv.sel, inv.ware = 1, 1, 1, in, core.NoItem, core.NoItem
 	inv.dollAt = image.Rect(0, 0, 100, 100)
 	drag := func(from hit, x, y int) []front.Action {
 		inv.lines = []hit{from}
@@ -87,10 +89,10 @@ func TestInventoryDrag(t *testing.T) {
 
 // Trade asks the member (drawn over the items).
 func TestTradeAsksOverItems(t *testing.T) {
-	in := &front.Inventory{Pool: []front.InvItem{{Item: 2, Name: "Gun"}}, Trade: true}
-	v := front.View{Inventory: in, Party: []front.Member{{Selected: true}, {}}}
+	g, _ := playGame(play.Exploring{Common: play.Common{Party: []game.Member{{Items: []game.Item{{Handle: 2, Name: "Gun"}}}, {}}, Allowed: play.Allowed{Plain: []play.Action{play.Give{}}}}})
+	g.r.items = game.ItemsOwn
 	var p Presenter
-	p.shownView = v
+	p.SetEngine(g)
 	p.inv.acts = []front.Action{{Kind: front.ActTrade, Item: 2}}
 	p.Actions()
 	if p.q == nil || p.q.Ask.Kind != front.AskMember {
@@ -101,14 +103,14 @@ func TestTradeAsksOverItems(t *testing.T) {
 // Down walks every item once, readied ones too (they are on the doll and
 // in the list); PgDn moves a page.
 func TestInventoryKeysReachAll(t *testing.T) {
-	gun := front.InvItem{Item: 1, Name: "Gun", Readied: true}
-	pool := []front.InvItem{gun}
+	gun := game.Item{Handle: 1, Name: "Gun", Readied: true}
+	pool := []game.Item{gun}
 	for i := 1; i < 16; i++ {
-		pool = append(pool, front.InvItem{Item: core.ItemHandle(i + 1), Name: "Knife"})
+		pool = append(pool, game.Item{Handle: core.ItemHandle(i + 1), Name: "Knife"})
 	}
-	in := &front.Inventory{Doll: []*front.InvItem{&gun}, Pool: pool}
+	in := &invUp{kind: invOwn, doll: []*game.Item{&gun}, pool: pool}
 	var p Presenter
-	p.inv.view, p.inv.ware, p.inv.sel, p.inv.list.rows = in, core.NoItem, 1, 10
+	p.inv.up, p.inv.ware, p.inv.sel, p.inv.list.rows = in, core.NoItem, 1, 10
 	seen := map[core.ItemHandle]bool{}
 	for range 16 {
 		p.inventoryKey(keyOf(input.Down))
@@ -150,12 +152,11 @@ func TestListKeepsLine(t *testing.T) {
 // key, a click and the pad's focus all go through the menu's words; it sends
 // ActDrop at once, with no "gone forever" question.
 func TestLootDropWord(t *testing.T) {
-	in := &front.Inventory{Loot: true, Treasure: &front.Loot{Drop: true}, Wares: []front.InvItem{{Item: 4, Name: "Sword"}},
-		Pool: []front.InvItem{{Item: 1, Name: "Gun"}}}
+	in := &invUp{kind: invLoot, treasure: &front.Loot{Drop: true}, wares: []game.Item{{Handle: 4, Name: "Sword"}},
+		pool: []game.Item{{Handle: 1, Name: "Gun"}}}
 	var p Presenter
-	p.inv.view, p.inv.ware, p.inv.sel = in, core.NoItem, 1
-	p.shownView = front.View{Inventory: in}
-	if !slices.ContainsFunc(p.inv.menu(in), func(w word) bool { return w.act == front.ActDrop && w.on }) {
+	p.inv.up, p.inv.ware, p.inv.sel = in, core.NoItem, 1
+	if !slices.ContainsFunc(p.inv.menu(), func(w word) bool { return w.act == front.ActDrop && w.on }) {
 		t.Fatal("no live Drop word in the loot menu")
 	}
 	p.inventoryKey('D')
@@ -165,8 +166,8 @@ func TestLootDropWord(t *testing.T) {
 	if as := p.inv.acts; len(as) != 1 || as[0].Kind != front.ActDrop || as[0].Item != 1 {
 		t.Fatalf("acts %v, want ActDrop on item 1", as)
 	}
-	in.Treasure.Drop = false // an ordinary treasure: no Drop
-	if slices.ContainsFunc(p.inv.menu(in), func(w word) bool { return w.act == front.ActDrop }) {
+	in.treasure.Drop = false // an ordinary treasure: no Drop
+	if slices.ContainsFunc(p.inv.menu(), func(w word) bool { return w.act == front.ActDrop }) {
 		t.Fatal("Drop offered outside the vault")
 	}
 }

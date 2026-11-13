@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game/play"
 )
 
 // TestTypedOwnsKeys: a typed question owns the keyboard over any screen:
@@ -12,10 +13,11 @@ import (
 func TestTypedOwnsKeys(t *testing.T) {
 	ask := &front.Ask{Kind: front.AskText, Max: 15, Menu: front.Menu{Prompt: "Character name:"}}
 	for name, v := range map[string]front.View{
-		"creation":  {Creation: &front.Creation{}, Ask: ask},
-		"main menu": {Creation: &front.Creation{}, MainMenu: []front.ActKind{front.ActCreate}, Ask: ask},
+		"creation":  {Ask: ask},
+		"main menu": {MainMenu: []front.ActKind{front.ActCreate}, Ask: ask},
 	} {
-		p := &Presenter{main: true}
+		p, _ := draftOn(&play.Draft{})
+		p.main = true
 		for _, k := range []uint16{'B', 'o', 'b', '\r'} {
 			p.Key(k, v)
 		}

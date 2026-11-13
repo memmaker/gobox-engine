@@ -1,11 +1,8 @@
 package present
 
 import (
-	"cmp"
 	"gobox/front"
 	"gobox/game"
-	"image"
-	"slices"
 )
 
 // kinds are the actions the menu verbs of game.Entry stand for.
@@ -26,38 +23,6 @@ func powers(es []game.Entry) []front.Power {
 	return out
 }
 
-// Party is the party's cards (nil: none).
-func Party(party []game.Member, cards []memberCard, sel int) []front.Member {
-	var out []front.Member
-	marked := slices.ContainsFunc(cards, func(c memberCard) bool { return c.Chosen })
-	for i, m := range party {
-		m = defaultPortrait(m)
-		var c memberCard
-		if i < len(cards) {
-			c = cards[i]
-		}
-		var head image.Image
-		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
-			head = poolPicture("portraits", m.PortraitHeadID)
-		}
-		if head == nil && m.Dropped == nil { // no portrait: the combat icon (Buck Rogers' members have only that), else the card names the member
-			head = poolPicture("combat", cmp.Or(m.IconBodyID, m.IconHeadID))
-		}
-		out = append(out, front.Member{Head: head, Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
-			Selected: c.Chosen || !marked && i == sel, Colour: nameColour(m), Portrait: m.Dropped, Powers: powers(c.Menu),
-			Exp: int(int32(m.Exp)), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
-	}
-	return out
-}
-
-// Purse is the party's money and party items (nil: no party).
-func Purse(p map[string]int, items, slots int) *front.Purse {
-	if p == nil {
-		return nil
-	}
-	return &front.Purse{Gold: p[Coin], Copper: p[game.Copper], Gems: p[game.Gems], Jewelry: p[game.Jewelry], Items: items, Slots: slots}
-}
-
 // nameColour is the roster colour of m's name (EGA number) when not
 // selected: red out of action, yellow on the monsters' side, magenta
 // ready for a level, else cyan.
@@ -72,3 +37,6 @@ func nameColour(m game.Member) int {
 	}
 	return 11
 }
+
+// expOf is m's experience as the cards and the sheet show it (a signed count: a level drained below 0).
+func expOf(m game.Member) int { return int(int32(m.Exp)) }

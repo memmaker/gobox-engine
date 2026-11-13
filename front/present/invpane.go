@@ -24,14 +24,14 @@ import (
 var tabNames = [...]string{"All", "Weapons", "Armor", "Misc"}
 
 // shown is the part of items the pane's tab shows.
-func (pn *pane) shown(items []front.InvItem) []front.InvItem {
+func (pn *pane) shown(items []game.Item) []game.Item {
 	kinds := [...]front.ItemKind{0, front.KindWeapon, front.KindArmor, front.KindMisc}
 	if pn.tab == 0 {
 		return items
 	}
-	var out []front.InvItem
+	var out []game.Item
 	for _, it := range items {
-		if it.Kind == kinds[pn.tab] {
+		if itemKinds[it.Kind] == kinds[pn.tab] {
 			out = append(out, it)
 		}
 	}
@@ -70,10 +70,10 @@ func (pn *pane) clamp() { pn.top = max(0, min(pn.top, pn.n-pn.rows)) }
 // drawPane draws items as lines of icon and name (and price) from x0 to x1,
 // listTop to bottom, the highlighted one (sel) in blue, with a scroll bar
 // when they do not fit.
-func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel core.ItemHandle, ware, priced, busy bool, x0, x1, bottom int) {
+func (inv *inventory) drawPane(pn *pane, items []game.Item, sel core.ItemHandle, ware, priced, busy bool, x0, x1, bottom int) {
 	pn.n, pn.rows = len(items), max(1, (bottom-listTop)/rowH)
 	for i, it := range items { // keep a newly highlighted line in sight (the wheel scrolls freely)
-		if it.Item == sel && sel != pn.seen {
+		if it.Handle == sel && sel != pn.seen {
 			pn.top = min(pn.top, i)
 			pn.top = max(pn.top, i-pn.rows+1)
 		}
@@ -88,7 +88,7 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel core.ItemHan
 	pw := 0 // the prices' column
 	if priced {
 		for _, it := range items {
-			pw = max(pw, 8*len(price(it.Price))+8)
+			pw = max(pw, 8*len(price(pricing(it, ware)))+8)
 		}
 	}
 	chars := (tr - x0 - rowH - 4 - pw) / 8
@@ -98,24 +98,24 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel core.ItemHan
 		r := image.Rect(x0, y, tr, y+rowH)
 		switch {
 		case inkBlue < 0:
-		case it.Item == sel:
+		case it.Handle == sel:
 			inv.fill(r, col(inkBlue)) // the text selection
 		case inv.hover.In(r) && !busy: // the row under the pointer: the selection's ink as an outline, never a second selection
 			selectOutline(r, 1, func(r image.Rectangle, _ color.RGBA) { inv.fill(r, col(inkBlue)) })
 		}
-		inv.drawIcon(it, image.Rect(x0, y, x0+rowH, y+rowH))
+		inv.drawIcon(it.Name, it.Words, image.Rect(x0, y, x0+rowH, y+rowH))
 		tc := green
 		if it.Wrong {
 			tc = red
 		}
-		if a, b := wrapName(readyMark(it)+strings.TrimSpace(it.Name), chars); b == "" {
+		if a, b := wrapName(readyMark(it.Readied)+strings.TrimSpace(it.Name), chars); b == "" {
 			inv.text(a, x0+rowH+4, y+(rowH-8)/2, tc)
 		} else { // too long for the line: two lines of the row
 			inv.text(a, x0+rowH+4, y+(rowH-16)/2, tc)
 			inv.text(b, x0+rowH+4, y+(rowH-16)/2+8, tc)
 		}
-		if priced && it.Price != (front.Money{}) { // no price given: none shown, not 0g
-			m := price(it.Price)
+		if priced && pricing(*it, ware) != (front.Money{}) { // no price given: none shown, not 0g
+			m := price(pricing(*it, ware))
 			inv.text(m, tr-4-8*len(m), y+(rowH-8)/2, col(inkYellow))
 		}
 		inv.lines = append(inv.lines, hit{r: r, item: *it, ware: ware, whole: len(strings.TrimSpace(it.Name)) <= chars})
@@ -149,17 +149,12 @@ func withGold(title string, gold int) string {
 	return title + string(rune(ui.InkFoot)) + " Party " + price(front.Money{Gold: gold}) + " "
 }
 
-// wareAt is the shop's ware i, nil if none.
-func wareAt(in *front.Inventory, i core.ItemHandle) *front.InvItem {
-	if i == core.NoItem {
-		return nil
+// pricing is the price the list shows for it: what a ware costs, or what the shop pays for the party's.
+func pricing(it game.Item, ware bool) front.Money {
+	if ware {
+		return warePrice(it)
 	}
-	for k := range in.Wares {
-		if in.Wares[k].Item == i {
-			return &in.Wares[k]
-		}
-	}
-	return nil
+	return salePrice(it)
 }
 
 // decodePNG decodes b; empty or bad data gives a 1x1 clear image.
@@ -205,8 +200,8 @@ func (inv *inventory) load() {
 // icon is the atlas cell of an item: the longest items.rec name its name
 // (or one of its words) contains, ignoring case; -1 for none. Of two as
 // long, the later in the name (the noun: a Staff Sling is a sling).
-func (inv *inventory) icon(it *front.InvItem) int {
-	name := strings.ToLower(it.Name + "\n" + strings.Join(it.Words, " "))
+func (inv *inventory) icon(itemName string, words []string) int {
+	name := strings.ToLower(itemName + "\n" + strings.Join(words, " "))
 	n, best, at, bk := -1, 0, -1, ""
 	for k, c := range inv.icons { // the longest; of two as long the later in the name (a Staff Sling is a sling), then the first in order: never the map's order
 		i := strings.LastIndex(name, k)
@@ -219,9 +214,9 @@ func (inv *inventory) icon(it *front.InvItem) int {
 
 // iconImage is the item's atlas cell (nil: none), at the atlas's size:
 // a cell is the atlas's width / atlasCols, whatever the series draws.
-func (inv *inventory) iconImage(it *front.InvItem) image.Image {
+func (inv *inventory) iconImage(name string, words []string) image.Image {
 	inv.load()
-	n := inv.icon(it)
+	n := inv.icon(name, words)
 	if n < 0 || inv.atlas == nil {
 		return nil
 	}
@@ -233,8 +228,8 @@ func (inv *inventory) iconImage(it *front.InvItem) image.Image {
 }
 
 // drawIcon draws the item's atlas cell scaled to iconSlot, in the middle of r (cut to r).
-func (inv *inventory) drawIcon(it *front.InvItem, r image.Rectangle) {
-	ic := inv.iconImage(it)
+func (inv *inventory) drawIcon(name string, words []string, r image.Rectangle) {
+	ic := inv.iconImage(name, words)
 	if ic == nil {
 		inv.text("?", r.Min.X+r.Dx()/2-4, r.Min.Y+r.Dy()/2-4, gray)
 		return
@@ -277,8 +272,8 @@ func gold(n int) string {
 }
 
 // readyMark is Data.ReadyMark before a readied item's name ("": none).
-func readyMark(it *front.InvItem) string {
-	if it.Readied {
+func readyMark(readied bool) string {
+	if readied {
 		return readiedMark
 	}
 	return ""

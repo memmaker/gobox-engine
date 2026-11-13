@@ -101,11 +101,7 @@ func (r *rules) exploring(ps play.State) bool {
 	if _, ok := ps.(play.Exploring); !ok || play.CommonOf(ps).Ask != nil || doorOf(ps) != nil {
 		return false
 	}
-	mode := r.modeOf(ps)
-	if r.refusalAsk != nil {
-		mode = game.ModeAsk
-	}
-	return !OverMenu(mode, r.asking(ps))
+	return !OverMenu(r.modeOf(ps), r.asking(ps))
 }
 
 // exploring is r.exploring over the game's state now, and no question of

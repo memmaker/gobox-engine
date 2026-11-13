@@ -2,6 +2,7 @@ package present
 
 import (
 	"image"
+	"image/color"
 
 	"gobox/front"
 )
@@ -40,18 +41,17 @@ func (g classicGame) View() front.View {
 
 // pickerView is page page of the grid picker the state holds, else the front's.
 func (g classicGame) pickerView(page int) *front.Picker {
-	return g.Game.PickerOn(page, g.p.grid[0], g.p.grid[1])
+	return g.Game.PickerOn(page, g.r.grid.X, g.r.grid.Y)
 }
 
 // IconEditorView is the icon designer on the presenter's page.
-func (g classicGame) IconEditorView() *front.IconEditor {
-	ink := g.Game.View().Ink
-	return g.Game.IconEditorOn(&ink, g.p.grid[0], g.p.grid[1])
+func (g classicGame) IconEditorView(ink [16]color.RGBA) *front.IconEditor {
+	return g.Game.IconEditorOn(&ink, g.r.grid.X, g.r.grid.Y)
 }
 
 // CreationView is the sheet on the page the presenter last laid out (ActResize).
 func (g classicGame) CreationView() *front.Creation {
-	return g.Game.CreationOn(g.p.grid[0], g.p.grid[1])
+	return g.Game.CreationOn(g.r.grid.X, g.r.grid.Y)
 }
 
 // FullMapView is the full map under cursor.

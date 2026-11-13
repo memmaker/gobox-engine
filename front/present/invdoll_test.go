@@ -4,7 +4,7 @@ import (
 	"image"
 	"testing"
 
-	"gobox/front"
+	"gobox/game"
 )
 
 // A game without a paper doll (no DollBoxes) still sends its readied
@@ -15,8 +15,8 @@ func TestDrawMemberNoDoll(t *testing.T) {
 	dollBoxes = nil
 	var p Presenter
 	p.inv.px, p.inv.doll = image.NewRGBA(image.Rect(0, 0, 200, 200)), image.NewRGBA(image.Rect(0, 0, 10, 10))
-	in := &front.Inventory{Member: -1, Doll: []*front.InvItem{{Item: 2, Name: "Sword"}}}
-	p.drawMember(in, front.View{Inventory: in}, 0, 100, 150, false)
+	p.inv.up = &invUp{member: -1, doll: []*game.Item{{Handle: 2, Name: "Sword"}}}
+	p.drawMember(0, 100, 150, false)
 }
 
 // The paper doll is there without SetData: NewFront (gameData) is the
@@ -28,7 +28,7 @@ func TestDollDefaults(t *testing.T) {
 }
 
 func TestReadyMarkDefault(t *testing.T) {
-	if readyMark(&front.InvItem{Readied: true}) == "" {
+	if readyMark(true) == "" {
 		t.Fatal("a readied item has no mark")
 	}
 }

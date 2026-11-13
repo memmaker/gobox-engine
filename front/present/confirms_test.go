@@ -14,7 +14,7 @@ func TestConfirmsDropMember(t *testing.T) {
 	confirms = map[string]game.Confirm{"DropMember": {Asks: []string{"Drop %s?", "Really drop %s?"}}}
 	defer func() { confirms = nil }()
 	p := campPresenter()
-	v := front.View{Camp: &front.Camp{}, Party: []front.Member{{Name: "Ann", Selected: true}}}
+	v := front.View{Camp: &front.Camp{}}
 	p.memberAct(front.ActDropMember, 0)
 	p.inv.acts = nil
 	title, rows := p.campItems(v)
@@ -45,13 +45,13 @@ func TestItemConfirm(t *testing.T) {
 	confirms = map[string]game.Confirm{"Sell": {Asks: []string{"Will you sell it?"}, Yes: false}, "SellFree": {Asks: []string{"Shall I dispose of it for you?"}},
 		"SellFreeMany": {Asks: []string{"Would you like to discard them?"}}, "Drop": {Asks: []string{"Lose it? "}, Yes: true}}
 	defer func() { confirms = nil }()
-	paid, free, stack := &front.InvItem{Price: front.Money{Gold: 5}, Count: 3}, &front.InvItem{}, &front.InvItem{Count: 4}
-	for it, want := range map[*front.InvItem]string{paid: "Sell", free: "SellFree", stack: "SellFreeMany"} {
+	paid, free, stack := game.Item{Sale: map[string]int{Coin: 5}, Count: 3}, game.Item{}, game.Item{Count: 4}
+	for want, it := range map[string]game.Item{"Sell": paid, "SellFree": free, "SellFreeMany": stack} {
 		if got := itemConfirm(front.ActSell, it); got != want {
 			t.Errorf("%+v: %s, want %s", it, got, want)
 		}
 	}
-	inv := &inventory{view: &front.Inventory{Pool: []front.InvItem{{Item: 1, Price: front.Money{Gold: 1}}}}, sel: 1}
+	inv := &inventory{up: &invUp{pool: []game.Item{{Handle: 1, Sale: map[string]int{Coin: 1}}}}, sel: 1}
 	inv.do(front.ActSell)
 	if inv.ask == nil || inv.askSel != 1 {
 		t.Fatalf("sell asks on row %d, want No (Confirm.Yes false)", inv.askSel)
@@ -69,11 +69,11 @@ func TestSellAskOffer(t *testing.T) {
 	old := confirms
 	defer func() { confirms = old }()
 	confirms = map[string]game.Confirm{"SellMany": {Asks: []string{"Will you sell them? "}}, "SellFree": {Asks: []string{"Shall I dispose of it? "}}}
-	got := sellAsk(&front.InvItem{Name: "Arrows", Count: 50, Price: front.Money{Gold: 7}})
+	got := sellAsk(&game.Item{Name: "Arrows", Count: 50, Sale: map[string]int{Coin: 7}})
 	if !strings.HasPrefix(got, "I'll give you") || !strings.Contains(got, "Arrows") || !strings.HasSuffix(got, "Will you sell them? ") {
 		t.Fatalf("%q", got)
 	}
-	if got := sellAsk(&front.InvItem{Name: "Rock"}); got != "Shall I dispose of it? " {
+	if got := sellAsk(&game.Item{Name: "Rock"}); got != "Shall I dispose of it? " {
 		t.Fatalf("free: %q", got)
 	}
 }

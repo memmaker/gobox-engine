@@ -73,13 +73,13 @@ func (g classicGame) PickerView(page int) *front.Picker {
 			pp.list()
 		}
 		if pp.tiles {
-			return g.Game.TilesOf(page, g.p.grid[0], g.p.grid[1])
+			return g.Game.TilesOf(page, g.r.grid.X, g.r.grid.Y)
 		}
 		k := &game.Picker{Cell: pp.cell, Pics: make([]game.Picture, len(pp.names))}
 		for i := range k.Pics {
 			k.Pics[i].W = 1 // present, no pixels: Picker lays the cell out, the PNG fills it
 		}
-		v := g.Game.PickerOf(k, page, g.p.grid[0], g.p.grid[1])
+		v := g.Game.PickerOf(k, page, g.r.grid.X, g.r.grid.Y)
 		if v != nil {
 			v.Portraits = make([]image.Image, len(pp.names))
 			for i, n := range pp.names {

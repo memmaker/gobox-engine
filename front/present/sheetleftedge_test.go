@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 )
 
@@ -19,9 +20,8 @@ func TestSheetLeftValuesClearBorder(t *testing.T) {
 		return [8]byte{}
 	}
 	note := Note{Glyph: g, Font: func(c byte, _ bool) [8]byte { return g(c) }}
-	v := front.View{Party: []front.Member{{Name: "A", HP: 5, MaxHP: 5, Selected: true}}, SheetPage: &front.SheetPage{Status: "####", THAC0: 9}, Sheet: &front.Sheet{}}
-	p := &Presenter{bars: gpu.NewImageFromImage(barArt())}
-	p.drawSheet(dst, note, v)
+	p := sheetOn(&game.SheetPage{Status: "####", THAC0: 9})
+	p.drawSheet(dst, note, front.View{})
 	px, edge := p.sheet.px, (leftCells-1)*8 // the border's inner edge
 	for y := px.Rect.Min.Y; y < px.Rect.Max.Y; y++ {
 		for x := edge - 8; x < edge; x++ {

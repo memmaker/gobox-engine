@@ -3,14 +3,14 @@ package present
 import (
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // The items page carries the member's published AC and THAC0.
 func TestInventoryStats(t *testing.T) {
-	s := shown{Party: []game.Member{{AC: -5, THAC0: 7}}}
-	if n := Inventory(&front.Inventory{}, s.Mode, s.Party, s.Selected, s.PartyCap, s.PoolItems, s.Purse, s.Allowed, s.Shop, s.Loot); n.AC != -5 || n.THAC0 != 7 || !n.Stats {
+	n := upOf(play.Exploring{Common: play.Common{Party: []game.Member{{AC: -5, THAC0: 7}}}}, game.ItemsOwn)
+	if n.ac != -5 || n.thac0 != 7 || !n.stats {
 		t.Fatalf("%+v", n)
 	}
 }

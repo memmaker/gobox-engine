@@ -37,8 +37,7 @@ var turnActs = []front.ActKind{front.ActWalk, front.ActAttack, front.ActItems, f
 
 // turnAct makes a decision of the turn up a rule call; false: no turn waits.
 func (p *Presenter) turnAct(a front.Action) bool {
-	v := p.shownView
-	if p.board == nil || p.board.Turn == nil || v.Inventory != nil || v.Sheet != nil || !slices.Contains(turnActs, a.Kind) {
+	if p.board == nil || p.board.Turn == nil || p.inventoryUp() || p.sheetShown() || !slices.Contains(turnActs, a.Kind) {
 		return false
 	}
 	p.turnCall(a, false)

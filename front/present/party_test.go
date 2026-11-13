@@ -1,6 +1,8 @@
 package present
 
 import (
+	"image"
+	"image/color"
 	"testing"
 
 	"gobox/front"
@@ -14,8 +16,7 @@ func TestPartyIconHead(t *testing.T) {
 	old := Series
 	defer func() { Series = old }()
 	Series = "buck-rogers"
-	ms := Party([]game.Member{{Name: "Buck", IconBodyID: "combat_icon_000"}}, nil, 0)
-	if len(ms) != 1 || ms[0].Head == nil {
+	if headOf(game.Member{Name: "Buck", IconBodyID: "combat_icon_000"}) == nil {
 		t.Fatal("no face for an icon-only member")
 	}
 }
@@ -23,10 +24,9 @@ func TestPartyIconHead(t *testing.T) {
 // TestInventoryListsReadied: a readied item is on the doll and in the
 // list, marked readied, so the keys reach it.
 func TestInventoryListsReadied(t *testing.T) {
-	s := shown{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Kind: "weapon", Slot: "weapon", Readied: true}}}}}
-	in := Inventory(&front.Inventory{}, s.Mode, s.Party, s.Selected, s.PartyCap, s.PoolItems, s.Purse, s.Allowed, s.Shop, s.Loot)
-	if in.Doll[0] == nil || len(in.Pool) != 1 || !in.Pool[0].Readied {
-		t.Fatalf("doll %v pool %+v", in.Doll[0], in.Pool)
+	in := upOf(play.Exploring{Common: play.Common{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Kind: "weapon", Slot: "weapon", Readied: true}}}}}}, game.ItemsOwn)
+	if in.doll[0] == nil || len(in.pool) != 1 || !in.pool[0].Readied {
+		t.Fatalf("doll %v pool %+v", in.doll[0], in.pool)
 	}
 }
 
@@ -42,7 +42,7 @@ func TestYesNoOverExplore(t *testing.T) {
 func TestDraftFigures(t *testing.T) {
 	s := shown{Mode: game.ModeCreate, Creation: &game.Creation{Draft: game.Member{Name: "Doc", Stats: map[string]int{"str": 12}}},
 		SheetPage: &game.SheetPage{AC: 4, THAC0: 17, Damage: "1d8"}}
-	k := Sheet(front.View{}, s.Sheet, s.Portrait, s.IconBox, s.SheetPage, Drafting(s.Mode, s.Creation), s.Creation, OwnSubject(s.Mode, s.Creation, s.Party, s.Selected)).SheetPage
+	k := draftPage(s.Creation, s.SheetPage)
 	if k == nil || k.Damage != "1d8" || k.THAC0 != 17 || k.AC != 4 || k.Name != "Doc" || k.Stats[0] != 12 {
 		t.Fatalf("%+v", k)
 	}
@@ -50,9 +50,14 @@ func TestDraftFigures(t *testing.T) {
 
 // The sheet's name colour is gobox's: a draft's name is never black.
 func TestDraftNameColour(t *testing.T) {
-	s := shown{Mode: game.ModeCreate, Creation: &game.Creation{Draft: game.Member{Name: "Doc"}}}
-	if k := Sheet(front.View{}, s.Sheet, s.Portrait, s.IconBox, s.SheetPage, Drafting(s.Mode, s.Creation), s.Creation, OwnSubject(s.Mode, s.Creation, s.Party, s.Selected)).SheetPage; k.NameColour == 0 {
-		t.Fatal("black name")
+	p, _ := draftOn(&play.Draft{Member: game.Member{Name: "Doc"}})
+	var ink [16]color.RGBA
+	for i := range ink {
+		ink[i] = col(i)
+	}
+	c := p.screenPage(front.View{Cells: image.Pt(40, 25), Ink: ink})
+	if runs := c.lines()[1]; len(runs) == 0 || runs[0].Fg == (color.RGBA{}) || runs[0].Fg == ink[0] {
+		t.Fatalf("black name: %+v", runs)
 	}
 }
 

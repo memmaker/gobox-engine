@@ -21,14 +21,15 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 	mapSide, mapCell = 160, 10
 	glyph := func(byte) [8]byte { return [8]byte{0x7e, 0x42, 0x42, 0x42, 0x42, 0x42, 0x7e, 0} }
 	note := Note{Glyph: glyph, Font: func(byte, bool) [8]byte { return glyph(0) }}
-	pw := []front.Power{{Name: "View"}, {Name: "Items"}, {Name: "Cast"}, {Name: "Memorize"}, {Name: "Drop"}}
-	var party []front.Member
+	var members []game.Member
+	var allowed play.Allowed // each card's menu: View, Items, Cast, Memorize, Drop
 	for i := range 8 {
-		party = append(party, front.Member{Name: fmt.Sprint("M", i), HP: 1, MaxHP: 1, Powers: pw})
+		members = append(members, game.Member{Name: fmt.Sprint("M", i), HP: 1, MaxHP: 1})
+		allowed.Plain = append(allowed.Plain, play.Ready{Member: i}, play.Cast{Member: i}, play.Memorize{Member: i}, play.DropMember{Member: i})
 	}
-	v := front.View{Party: party, Exploring: true, Adventure: true, Camp: &front.Camp{}, Sweeping: true, Interact: true}
+	v := front.View{Exploring: true, Adventure: true, Camp: &front.Camp{}, Sweeping: true, Interact: true}
 	presenter := func() *Presenter { // over the 3D view and its minimap the state gives
-		g, _ := playGame(play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
+		g, _ := playGame(play.Exploring{Common: play.Common{Party: members, Allowed: allowed}, Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
 			Walls: play.Walls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}})
 		p := &Presenter{}
 		p.SetEngine(g)

@@ -46,7 +46,8 @@ func TestLootScreen(t *testing.T) {
 	announced.Announce = true
 	f := &fake{st: announced}
 	g := NewGame(f, game.Data{})
-	if v := g.View(); v.Inventory != nil || v.Ask == nil || v.Ask.Menu.Prompt != "You found some loot!" || v.Loot != nil {
+	p := presenterOf(g)
+	if v := g.View(); p.inventoryUp() || v.Ask == nil || v.Ask.Menu.Prompt != "You found some loot!" || v.Loot != nil {
 		t.Fatalf("no found message first: %+v", v.Ask)
 	}
 	g.Answer(front.Action{Kind: front.ActOK})
@@ -55,17 +56,17 @@ func TestLootScreen(t *testing.T) {
 	}
 	f.st = treasure
 	v := g.View()
-	in := v.Inventory
-	if in == nil || !in.Loot || len(in.Wares) != 1 || in.Treasure == nil || v.Loot != nil {
+	in := p.inventory()
+	if in == nil || in.kind != invLoot || len(in.wares) != 1 || in.treasure == nil || v.Loot != nil {
 		t.Fatalf("no loot screen: %+v loot %+v", in, v.Loot)
 	}
-	if m := in.Treasure.Money; len(m) != 2 || m[0] != "120 gold" || m[1] != "2 gems" {
+	if m := in.treasure.Money; len(m) != 2 || m[0] != "120 gold" || m[1] != "2 gems" {
 		t.Errorf("money %q", m)
 	}
 	sheet := treasure
 	sheet.Party = []game.Member{{SheetPowers: []game.Entry{{Name: "Heal"}}}}
 	f.st = sheet
-	if g.View().Inventory != nil {
+	if p.inventoryUp() {
 		t.Error("loot screen over the sheet")
 	}
 }

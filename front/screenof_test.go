@@ -29,7 +29,7 @@ func TestLatchScreenOf(t *testing.T) {
 func TestLatchScreenSwitch(t *testing.T) {
 	var l Latch
 	menu := ScreenOf(View{MainMenu: []ActKind{ActCreate}}, "")
-	sheet := ScreenOf(View{Creation: &Creation{}}, "")
+	sheet := ScreenOf(View{}, Screens(ScreenUp{Name: ScreenCreation, On: true})) // the presenter names its own screens
 	if menu == sheet {
 		t.Fatal("menu and creation sheet share a screen name")
 	}

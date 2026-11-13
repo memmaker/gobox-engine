@@ -89,14 +89,14 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if confirm(v) != "" {
 		return p.confirmKey(k)
 	}
-	if v.MainMenu != nil && !p.main { // the menu is not drawn yet: no key picks from it
+	if p.mainMenuUp() && !p.main { // the menu is not drawn yet: no key picks from it
 		return true
 	}
 	if p.main {
-		if p.mm.skip(p.shownView.Hall) && (k == '\r' || k == ' ') { // a key ends the title's fade and still acts (an arrow or a hotkey right as the menu appears is not lost); Enter and Space, the title's own skip keys, only end it, so one held through the intro picks nothing
+		if p.mm.skip(p.mainMenu().Hall) && (k == '\r' || k == ' ') { // a key ends the title's fade and still acts (an arrow or a hotkey right as the menu appears is not lost); Enter and Space, the title's own skip keys, only end it, so one held through the intro picks nothing
 			return true
 		}
-		if p.mm.key(p, k, mainView(v)) {
+		if p.mm.key(p, k, p.mainMenu()) {
 			return true
 		}
 	}
@@ -111,21 +111,21 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if askList(v) != nil && askMenu(v) != nil && !choosing(v) {
 		return p.listKey(k, v)
 	}
-	if (p.pageMenu || v.Picker != nil) && typing(v) == nil && !(p.q != nil && choosing(v)) && p.pageMenuKey(k, v) { // a picker's keys never wait on the frame that sets pageMenu // a line being typed (a map label) takes its keys in keyAct // the presenter's own member pick over a page (Trade to whom?) takes the arrows and Enter in keyAct
+	if (p.pageMenu || p.picker(v.Ink) != nil) && typing(v) == nil && !(p.q != nil && choosing(v)) && p.pageMenuKey(k, v) { // a picker's keys never wait on the frame that sets pageMenu // a line being typed (a map label) takes its keys in keyAct // the presenter's own member pick over a page (Trade to whom?) takes the arrows and Enter in keyAct
 		return true
 	}
-	if v.Inventory != nil && p.inv.view != nil && !choosing(v) {
+	if p.inventoryUp() && p.inv.up != nil && !choosing(v) {
 		return p.inventoryKey(k)
 	}
 	if p.fight {
 		return p.fightKey(k)
 	}
 	if p.ctx > 0 { // the card's context menu: the arrows, Enter, a hotkey or Esc, as the game's menus
-		if m, ok := memberKey(k, p.ctx-1, len(v.Party), true); p.campHome(v) && (ok || actOf(k) == input.PartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
+		if m, ok := memberKey(k, p.ctx-1, len(p.party()), true); p.campHome(v) && (ok || actOf(k) == input.PartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
 			p.campFocus(v, k, m)
 			return true
 		}
-		if _, ok := memberKey(k, 0, len(v.Party), false); ok { // another member: selected (keyAct), their menu opens instead
+		if _, ok := memberKey(k, 0, len(p.party()), false); ok { // another member: selected (keyAct), their menu opens instead
 			p.ctx = 0
 			return false
 		}
@@ -147,7 +147,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if p.view.OptionsOpen() {
 		return true
 	}
-	if screenUp(v) {
+	if p.screenUp(v) {
 		return p.campKey(k, v)
 	}
 	if p.exploring() {
@@ -199,7 +199,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		p.menu = false
 		return false
 	}
-	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), true); ok { // the member the bar is for (camp, the temple)
+	if n, ok := memberKey(k, p.selectedIndex(), len(p.party()), true); ok { // the member the bar is for (camp, the temple)
 		p.send(front.ActLead, n)
 		return true
 	}
@@ -265,7 +265,7 @@ func (p *Presenter) Click(x, y int) bool {
 		p.send(front.ActNote, 0)
 		return true
 	}
-	if sheetUp(p.shownView) && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(x, y).In(p.sheet.faceAt) { // Shift-click on the sheet's portrait: the next head
+	if p.sheetUp(p.shownView) && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(x, y).In(p.sheet.faceAt) { // Shift-click on the sheet's portrait: the next head
 		p.send(front.ActHead, -1)
 		return true
 	}
@@ -286,7 +286,7 @@ func (p *Presenter) Click(x, y int) bool {
 		p.confirmPick(slices.IndexFunc(p.confirmAt, image.Pt(x, y).In))
 		return true
 	}
-	if v := p.shownView; v.Ask != nil && v.Ask.Reselect && cardUnder(p.cards, x, y) >= 0 && cardUnder(p.cards, x, y) < len(v.Party) { // another member while the question stays up
+	if v := p.shownView; v.Ask != nil && v.Ask.Reselect && cardUnder(p.cards, x, y) >= 0 && cardUnder(p.cards, x, y) < len(p.party()) { // another member while the question stays up
 		p.send(front.ActLead, cardUnder(p.cards, x, y))
 		return true
 	}
@@ -312,8 +312,8 @@ func (p *Presenter) Click(x, y int) bool {
 	}
 	if p.pageMenu {
 		for i, r := range p.winRects {
-			if image.Pt(x, y).In(r) && sheetUp(p.shownView) {
-				p.sheetItems(p.shownView)[i].Do()
+			if image.Pt(x, y).In(r) && p.sheetUp(p.shownView) {
+				p.sheetItems()[i].Do()
 				return true
 			}
 			if image.Pt(x, y).In(r) {
@@ -321,24 +321,24 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if v := p.shownView; !p.pageScreen(v) && !sheetUp(v) && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
+		if v := p.shownView; !p.pageScreen(v) && !p.sheetUp(v) && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
 			p.send(front.ActClose, 0)
 			return true
 		}
 	}
 	if p.main {
-		if p.mm.skip(p.shownView.Hall) {
+		if p.mm.skip(p.mainMenu().Hall) {
 			return true
 		}
-		return p.mm.click(p, mainView(p.shownView), x, y)
+		return p.mm.click(p, p.mainMenu(), x, y)
 	}
 	if p.pickClick(x, y) {
 		return true
 	}
 	if v := p.shownView; p.campHome(v) && p.active { // camp: a line of any member's menu
 		for i, rs := range p.campCtx {
-			if j := slices.IndexFunc(rs, image.Pt(x, y).In); j >= 0 && i < len(v.Party) {
-				if _, acts, _ := powerLines(v.Party[i].Powers); j < len(acts) { // the lines as drawn (powerLines leaves Icon out), not Powers' indexes
+			if j := slices.IndexFunc(rs, image.Pt(x, y).In); j >= 0 && i < len(p.party()) {
+				if _, acts, _ := powerLines(p.cardPowers()[i]); j < len(acts) { // the lines as drawn (powerLines leaves Icon out), not Powers' indexes
 					p.ctx = 0
 					p.memberAct(acts[j], i)
 				}
@@ -369,7 +369,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if v := p.shownView; screenUp(v) && p.active && !p.view.OptionsOpen() {
+		if v := p.shownView; p.screenUp(v) && p.active && !p.view.OptionsOpen() {
 			for i, r := range p.menuRects {
 				if image.Pt(x, y).In(r) {
 					p.campPick(v, p.camp.top+i)
@@ -485,7 +485,7 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		p.campHover(p.shownView, x, y)
 		return
 	}
-	if screenUp(p.shownView) && p.ctx == 0 && image.Pt(x, y) != p.pointer { // camp-style screens highlight under the pointer too
+	if p.screenUp(p.shownView) && p.ctx == 0 && image.Pt(x, y) != p.pointer { // camp-style screens highlight under the pointer too
 		p.pointer = image.Pt(x, y)
 		if i := slices.IndexFunc(p.menuRects, p.pointer.In); i >= 0 {
 			p.camp.sel = p.camp.top + i
@@ -553,7 +553,7 @@ func (p *Presenter) cardClick(i int) {
 	case p.command, p.campHome(p.shownView): // camp: the keys go to its menu
 		p.send(front.ActLead, i)
 		p.ctx, p.ctxSel = 1+i, 0 // the first line highlighted: Enter acts at once
-	case screenUp(p.shownView) && (p.shownView.Temple != nil || p.shownView.Training != nil): // the temple, the training hall: the member they act for, as F1-F8
+	case p.screenUp(p.shownView) && (p.shownView.Temple != nil || p.shownView.Training != nil): // the temple, the training hall: the member they act for, as F1-F8
 		p.send(front.ActLead, i)
 	default:
 		p.send(front.ActInventory, i)

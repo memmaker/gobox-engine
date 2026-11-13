@@ -23,24 +23,27 @@ const (
 type PickUI struct {
 	Page int
 	view *front.Picker
-	key  any
+	key  pageKey
 }
 
 // IconUI is the icon editor up: the swatch the palette sets and the page
 // laid out (as PickUI's).
 type IconUI struct {
 	part, shade int
-	view        *front.IconEditor
-	key         any
+	view        *front.IconEditor // the layout, with the swatch selected
+	key         pageKey
 }
 
 // page is the picker's page laid out on g, again when key (the calls run
 // and the window) changed.
-func (pk *PickUI) Layout(g *classicGame, key any) *front.Picker {
+func (pk *PickUI) Layout(g *classicGame, key pageKey) *front.Picker {
 	if pk.view == nil || pk.key != key {
 		pk.view, pk.key = g.PickerView(pk.Page), key
 		if pk.view != nil {
 			pk.Page = pk.view.Page
+			v := *pk.view
+			v.Pics = daxPictures(indexedPictures(v.Pics, key.ink)) // pictures named by DAX ref, as View.Pictures
+			pk.view = &v
 		}
 	}
 	return pk.view
@@ -48,16 +51,16 @@ func (pk *PickUI) Layout(g *classicGame, key any) *front.Picker {
 
 // Layout is the editor's page laid out on g, with the swatch selected
 // (nil: none).
-func (ic *IconUI) Layout(g *classicGame, key any) *front.IconEditor {
+func (ic *IconUI) Layout(g *classicGame, key pageKey) *front.IconEditor {
+	key.part, key.shade = ic.part, ic.shade
 	if ic.view == nil || ic.key != key {
-		ic.view, ic.key = g.IconEditorView(), key
+		ic.view, ic.key = nil, key
+		if ed := g.IconEditorView(key.ink); ed != nil {
+			ed.Part, ed.Shade = ic.part, ic.shade
+			ic.view = ed
+		}
 	}
-	if ic.view == nil {
-		return nil
-	}
-	ed := *ic.view
-	ed.Part, ed.Shade = ic.part, ic.shade
-	return &ed
+	return ic.view
 }
 
 // OpenPicker opens picker kind when it has something to pick.
