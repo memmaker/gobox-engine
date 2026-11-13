@@ -1,4 +1,4 @@
-package porgame_test
+package main
 
 import (
 	"os"
@@ -8,7 +8,6 @@ import (
 
 	"gobox/engine"
 	"gobox/game/play"
-	"gobox/games/por/porgame"
 )
 
 // explore: a headless engine (needs the game files in the repo root) that
@@ -16,10 +15,10 @@ import (
 // -explore does; its roster goes to a temp dir, never the game's saves.
 func explore(t *testing.T) *engine.Engine {
 	t.Helper()
-	if _, err := os.Stat("../../../data/por/sources/dos/TITLE.DAX"); err != nil {
+	if _, err := os.Stat("../../../../data/por/sources/dos/TITLE.DAX"); err != nil {
 		t.Skip("no game files")
 	}
-	e, err := porgame.New("../../../data/por/sources/assets", "../../../data/por/sources")
+	e, err := engine.NewPool("../../../../data/por/sources/assets", "../../../../data/por/sources")
 	if err != nil {
 		t.Fatal(err)
 	}

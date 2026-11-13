@@ -3,6 +3,7 @@ package parity
 import (
 	"encoding/json"
 	"gobox/asset"
+	"gobox/engine"
 	"gobox/ui"
 	"image"
 	"image/color"
@@ -12,8 +13,6 @@ import (
 	"slices"
 	"strings"
 	"testing"
-
-	"gobox/games/por/porgame"
 )
 
 // The maps (the minimap, View.Map, the full map) were pictures the engine
@@ -25,7 +24,7 @@ func TestMapImage(t *testing.T) {
 	for i := range ink {
 		ink[i] = color.RGBA{asset.EGAPalette[i][0], asset.EGAPalette[i][1], asset.EGAPalette[i][2], 255}
 	}
-	e, err := porgame.New(filepath.Join(porDir(t), "data", "assets"), filepath.Join(porDir(t), "data"))
+	e, err := engine.NewPool(filepath.Join(porDir(t), "data", "assets"), filepath.Join(porDir(t), "data"))
 	if err != nil {
 		t.Skip("no game files")
 	}

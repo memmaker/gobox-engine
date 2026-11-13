@@ -3,6 +3,7 @@ package games
 import (
 	"encoding/json"
 	"errors"
+	"gobox/engine"
 	"io/fs"
 	"os"
 	"reflect"
@@ -10,7 +11,6 @@ import (
 	"testing"
 
 	"gobox/game/play"
-	"gobox/games/por/porgame"
 	"gobox/importer"
 )
 
@@ -19,7 +19,7 @@ import (
 // lightning in EGA, TITLE 1 alone without the Full intro; Data's credits are
 // start()'s.
 func TestStartIsPORTitle(t *testing.T) {
-	e, err := porgame.New("../../data/por/sources/assets", "../../data/por/sources")
+	e, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
 	if err != nil {
 		t.Skip("no game files:", err)
 	}
@@ -60,7 +60,7 @@ func TestStartIsPORTitle(t *testing.T) {
 // TestEndIsPORFinale: the engine takes end() (the manifest's End) as the finale's pictures,
 // three steps with their pixels loaded and the animations' frames.
 func TestEndIsPORFinale(t *testing.T) {
-	e, err := porgame.New("../../data/por/sources/assets", "../../data/por/sources")
+	e, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
 	if err != nil {
 		t.Skip("no game files:", err)
 	}

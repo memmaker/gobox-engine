@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gobox/engine"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -8,7 +9,6 @@ import (
 	"time"
 
 	"gobox/engine/playpool"
-	"gobox/games/por/porgame"
 	"gobox/ui"
 )
 
@@ -25,7 +25,7 @@ func TestLoadedExploreStateBuilds(t *testing.T) {
 	if _, err := os.Stat(src); err != nil {
 		t.Skip(err)
 	}
-	eng, err := porgame.New("../../data/por/sources/assets", "../../data/por/sources")
+	eng, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}

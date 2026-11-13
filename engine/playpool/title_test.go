@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"gobox/asset"
+	"gobox/engine"
 	"gobox/gpu"
 	"gobox/importer"
 	"gobox/ui"
@@ -22,7 +23,7 @@ func titleFront(t *testing.T, id string) *ui.Front {
 	if err != nil {
 		t.Skipf("%s: not imported: %v", id, err)
 	}
-	eng, err := New(adv, adv+"/sources")
+	eng, err := engine.NewPool(adv, adv+"/sources")
 	if err != nil {
 		t.Fatal(err)
 	}

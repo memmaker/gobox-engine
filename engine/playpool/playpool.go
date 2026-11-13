@@ -35,15 +35,6 @@ type Extras struct {
 	Combat4e rules1e.CombatRules // the Gameplay page's "4e Combat" (nil: the option does nothing)
 }
 
-// New is the game's Engine on the adventure folder adv and the host data directory data.
-func New(adv, data string) (*engine.Engine, error) {
-	tables, err := engine.ReadGameTables(adv)
-	if err != nil {
-		return nil, err
-	}
-	return engine.New(rules1e.Rules1e, tables, adv, data)
-}
-
 // Data is the engine's game.Data with the remastered art (asset.Remaster) of game id, if it has any.
 func Data(eng *engine.Engine, id string) game.Data {
 	d := eng.Data()
@@ -65,7 +56,7 @@ func Play(s app.Start, gm Extras) error {
 	}
 	host.FullIntro = f.Manifest.Start != nil && f.Manifest.Start.Full // the adventure's default
 	ui.Host = &host.Options
-	eng, err := New(s.Adventure, s.Data)
+	eng, err := engine.NewPool(s.Adventure, s.Data)
 	if err != nil {
 		return err
 	}

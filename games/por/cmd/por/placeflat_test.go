@@ -1,4 +1,4 @@
-package porgame_test
+package main
 
 import (
 	"gobox/game/play"

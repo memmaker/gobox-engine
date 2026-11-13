@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gobox/engine"
 	"gobox/ui"
 	"testing"
 	"time"
@@ -9,13 +10,12 @@ import (
 	"gobox/game/play"
 
 	"gobox/engine/playpool"
-	"gobox/games/por/porgame"
 )
 
 // The classic front on the play.Game : Open starts the engine,
 // exploring shows the party, a turn turns it, camp opens and closes.
 func TestPlayFront(t *testing.T) {
-	eng, err := porgame.New("../../../../data/por/sources/assets", "../../../../data/por/sources")
+	eng, err := engine.NewPool("../../../../data/por/sources/assets", "../../../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}
@@ -59,7 +59,7 @@ func TestPlayFront(t *testing.T) {
 // The auto-walk is gobox's (WalkTo: Face, RunEvent, Arrive through Do over
 // the play state's Map.Walk): a square at a time to the square, by Step alone.
 func TestPlayFrontWalk(t *testing.T) {
-	eng, err := porgame.New("../../../../data/por/sources/assets", "../../../../data/por/sources")
+	eng, err := engine.NewPool("../../../../data/por/sources/assets", "../../../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}

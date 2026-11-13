@@ -1,12 +1,12 @@
 package main
 
 import (
+	"gobox/engine"
 	"os"
 	"testing"
 
 	"gobox/engine/playpool"
 	"gobox/game/play"
-	"gobox/games/por/porgame"
 	"gobox/ui"
 )
 
@@ -17,7 +17,7 @@ func frameFront(b *testing.B, dev string) *ui.Front {
 		b.Skip(err)
 	}
 	b.Cleanup(func() { os.Chdir("cmd/por") })
-	eng, err := porgame.New("../../data/por/sources/assets", "../../data/por/sources")
+	eng, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
 	if err != nil {
 		b.Skip(err)
 	}

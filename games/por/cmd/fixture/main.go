@@ -20,7 +20,7 @@ import (
 	"gobox/asset/orig"
 	"gobox/engine"
 	"gobox/fixture"
-	"gobox/games/por/porgame"
+	"gobox/rules1e"
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 		},
 		Open: func(root, slot string) (fixture.State, error) {
 			slotDir = filepath.Join(root, engine.SaveDir, "saves", slot)
-			s, err := porgame.OpenSave(slotDir, filepath.Join(root, engine.AssetsDir))
+			s, err := engine.OpenSave(rules1e.Rules1e, slotDir, filepath.Join(root, engine.AssetsDir))
 			if err != nil {
 				return nil, fmt.Errorf("slot %s: %v", slot, err)
 			}

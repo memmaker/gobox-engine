@@ -9,7 +9,6 @@ import (
 	"gobox/game/play"
 
 	"gobox/engine/playpool"
-	"gobox/games/por/porgame"
 )
 
 // TestBuildingLeaveStays (bug class: a building's cell event re-runs after
@@ -54,7 +53,7 @@ func TestBuildingLeaveStays(t *testing.T) {
 
 // porWalker is POR started in New Phlan for a scripted walk.
 func porWalker(t *testing.T) (*ui.Game, *engine.Engine) {
-	eng, err := porgame.New("../../../../data/por/sources/assets", "../../../../data/por/sources")
+	eng, err := engine.NewPool("../../../../data/por/sources/assets", "../../../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}
