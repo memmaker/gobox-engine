@@ -1,3 +1,5 @@
+//go:build fixture
+
 // Command fixture builds a save fixture: save A of SAVE/ (por: a named slot)
 // with its party, moved into another area. The area's ECL block is the script
 // the load runs, as when a script enters it (ovr04:0BD1 opNewECL), and the

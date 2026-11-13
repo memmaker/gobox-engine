@@ -10,7 +10,7 @@ Needs nothing but the stdlib. Never writes to the game's data, only to `-out`.
 - `State`: `EnterArea`, `SetPos`, `SetVar`, `Bytes`, `Party`. por's `*rules.SaveEditor` fits; `SetVar` takes a field's layout name.
 - `RawSave` / `OpenRawSave(sv, RawLayout)` / `MakeStrong`: the byte-level State; the game passes its SAVGAMA layout (offsets) as a `RawLayout`, with its script layout (`Vars`) naming the fields `-set` sets.
 
-`cmd/fixture` (gobox; `-game por|cotab|sotsb`, a table of per-game callbacks):
+`cmd/fixture` (gobox; build with `-tags fixture`; `-game por|cotab|sotsb`, a table of per-game callbacks):
 
     sv, err := os.ReadFile("../SAVE/SAVGAMA.DAT") // then fixture.OpenRawSave(sv, layout)
     fixture.Run(fixture.Game{Root: ..., Open: ..., ECL: <dax.NewLoader(root).Block("ECLn", b)>, Member: <read ../SAVE/name+ext>,
