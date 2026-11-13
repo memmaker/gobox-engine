@@ -7,5 +7,5 @@
 - [ ] M: package merges gpu/vector→gpu, game/play+game/journal→game, ecl/script→ecl, audio/sounddata→audio
 - [ ] T: dev dump cmds removed (keep importstale: gate.sh), fixture cmds folded into one
 - [ ] L: per-game launchers → cmd/gobox `import` subcommand + manifest Amiga specs
-- [ ] Docs: stale root docs folded into ARCHITECTURE.md
+- [x] Docs: stale root docs folded into DESIGN.md and ONE-BINARY.md, rest dropped
 - [ ] Final: full build/vet/test on main

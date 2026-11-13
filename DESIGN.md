@@ -123,6 +123,29 @@ Shared pieces stay shared: one purse (gobox/rules), saving throws, one rolling
 rule, por's menus and sheet, gobox's 3D view and combat board, the asset
 series pools, gameimport.
 
+## Passive games and one path (folded from the 2026-11 handovers)
+
+- Games are passive: the resting state is "waiting for player input". `Do(Action)` changes state and returns. No callbacks, continuations, coroutines or replay. A pending decision is plain data (`play.Question`) and the answer is the next action. Front state (typed-so-far, pause timing, Esc, layout) is gobox's. Guards: `parity/nocopies_test.go` (`TestNoPrivatePlumbing`, `TestPassive`; the lists only shrink).
+- One path: the front reads `play.State` and sends `play.Action`; no adapter, no `game.Rules`.
+- No per-game switches in gobox (no bools, enums, modes or game ids that games set differently). Where the originals agree, unify; where one genuinely differs, express it as data the game loads, else the piece stays in the game. Check every apparent difference against the reconstructions (`~/Projects/*-re`) first: most are port bugs. The 2026-11-06 audit found 10 violations, all fixed. Kept: `classic.GameID` only selects a game's section of the shared `origins.json`; `Data.Series` is a folder name.
+- Esc on an optional menu closes it or backs out. Script menus: a typed hint (`play.Question.Esc`, written by the import-time decompiler heuristic) names the exit row; no hint means Esc selects nothing and the choice is forced. The engine never reads text for this.
+- One script decompiler (`ecl/script`), run at import for every game; differences are typed versions. Vendor menus: the decompiler folds the Yes/No gate and the menu into one; a folded menu's exit runs the cut No branch.
+- Auto-walk (POR's rules, all games): stops on an unvisited square with a script, on any key or click; locked doors are walls.
+- Paladin powers are offered wherever spell casting is.
+- A disk-write error always reaches `Do`; nothing is dropped.
+
+### Bug classes (detect by grep or test, not by trace)
+
+- Logic keyed on text: `grep -n 'Prompt ==\|Prompt !=' */rules/*.go`; `.Label` compared with a word; `%T` names; string-valued step/mode fields (`\.(step|mode|stage)\s*[!=]=\s*"`). Key on typed state, hotkeys or ids.
+- Allowed vs Do: at each test state, `Do` every allowed action on a fresh copy; none may be refused or change nothing. Every pending question must show in State with an answer allowed.
+- Yes/No replies: assert `Question.Default` names the original's cursor start; reply order matches listed order.
+- Data-segment tables copied by hand: compare with the data segment over every index used.
+- Sibling ports of one original: diff with comments stripped; what truly differs becomes data.
+- Per-game text tables: `go test -run TestTextsFilled`; an unset field prints "" silently.
+- Tests: no rolled fields in fixtures (run `-count=30`); set `FixedSeed` after `Randomize`, never `RandSeed` before it.
+- Signed vs unsigned compares in saving throws; a Go local narrower than the original's (byte for a word): test above 255.
+- Clone/replay: copy by dynamic type; memo keys include the type.
+
 ## Modules
 
 Each directory is its own Go module. A game uses them with `replace`:

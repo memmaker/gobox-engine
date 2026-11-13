@@ -52,7 +52,7 @@ Next, in order:
 Note: gobox HEAD 996780f was briefly broken (core Hardness/Grade before core/skill.go was committed).
 
 ### A8: Manifest.Start/End shape (proposal for B5, adopted unless B5 objects here)
-`importer.Manifest.Start, End *importer.Sequence` (Format 2), filled from `importer.Game.Start/End`. `Sequence{Steps []SequenceStep; Credits []Credit; Boxes []Cells; Backdrop *Art; Short []int}`; `SequenceStep{Kind StepKind (StepPicture | StepCredits | StepAnim); Layers []Layer; Page; Anim; Song; HoldMs (0: until key/click); Lightning; Whole}`; `Art{File, Block}`, `Layer{Art; At Cells; Frames; FrameMs}`, `Cells{X1,Y1,X2,Y2}` in 40x25 cells, `Credit{X, Y, Colour, Text, Page}`. It maps one to one onto today's game.Intro / play.TitleStep / Data.CreditLines, CreditBoxes, TitleBackdrop, NoCredits (Short) and game.Sequence (StepAnim), so every PARITY-BASELINE title change is expressible. B5's folder reader converts it to the play types; no second manifest type.
+`importer.Manifest.Start, End *importer.Sequence` (Format 2), filled from `importer.Game.Start/End`. `Sequence{Steps []SequenceStep; Credits []Credit; Boxes []Cells; Backdrop *Art; Short []int}`; `SequenceStep{Kind StepKind (StepPicture | StepCredits | StepAnim); Layers []Layer; Page; Anim; Song; HoldMs (0: until key/click); Lightning; Whole}`; `Art{File, Block}`, `Layer{Art; At Cells; Frames; FrameMs}`, `Cells{X1,Y1,X2,Y2}` in 40x25 cells, `Credit{X, Y, Colour, Text, Page}`. It maps one to one onto today's game.Intro / play.TitleStep / Data.CreditLines, CreditBoxes, TitleBackdrop, NoCredits (Short) and game.Sequence (StepAnim), so every title change in the old PARITY-BASELINE.md is expressible. B5's folder reader converts it to the play types; no second manifest type.
 Note for B5: gobox/dax data.go (ImportData, Blocks, Monsters, ItemBlocks, Records, Table) is the shared Gold Box maps/records decoder; por-go rules/dataimport.go should call `dax.ImportData[charRecord, affectRecord, Item]` and `dax.Table[itemBase]` instead of its own walk (output format equal: GEO<n>.bin/.txt, MON<n>.json, ITEM<n>.json).
 
 ## Track C: character creation (one flow)
@@ -72,7 +72,7 @@ Where the six differ (all on the rules side, not the drawing):
 - the draft state machine (fields, legality, enforce, roll, minimums, rekind, keep) is written six times: por rules/create.go+play.go, cotab rules/creation.go+flow.go, sotsb rules/creation.go+partyflow.go, pod rules/draft.go+facts.go, BR1/BR2 rules/create.go (brcore DraftStep; careers, skills, no alignment). quickstart.go six times. cotab keeps its own rules/iconedit.go.
 - core.Draft (core/character.go) carries only Sheet, Step string, Lows, MinHP/MaxHP; the choices go through Allowed(Creating) / play.SetChoice with Field names as strings ("portraithead", "iconbody", "race" ...): logic keyed on strings (rule 13).
 
-Known bugs / smells: Step and SetChoice.Field are strings; BR pool picks were refused before (handover.md, fixed in BR); pool and buck-rogers are separate collections, against "one shared collection"; per-game duplicated draft logic violates "one canonical implementation".
+Known bugs / smells: Step and SetChoice.Field are strings; BR pool picks were refused before (fixed in BR); pool and buck-rogers are separate collections, against "one shared collection"; per-game duplicated draft logic violates "one canonical implementation".
 
 C2 blocker (needs Felix, core interface): moving the draft flow into gobox needs CharacterRules to state the creation's data and legality, e.g. `Creation() CreationRules` with typed `Fields() []FieldDef` (id, options), `Fits(Draft, FieldID, option) bool`, `Enforce(Draft, FieldID) Draft`, `Roll(Draft, RollKind, *RNG) Draft`, `Minimums(Draft)`, `QuickParty() []Template`, and typed FieldID instead of Step/Field strings. BR careers and skills fit as fields plus a skills step. APPROVED by Felix 2026-11-11: Creation() CreationRules, typed FieldID, the string Step/Field names go; BR careers/skills as fields plus a skills step.
 C3 decision (needs Felix): merge `buck-rogers` into the one `pool` series (BR art is VGA, Pool EGA; dedup would never match across them, so the merge is only one listing), or keep two series per art family. DECIDED by Felix 2026-11-11: two families, Pool games pick from `pool`, BR games from `buck-rogers`, each deduplicated within itself. In-game combat icons come from the collection, not DAX, where the pickers already use pool PNGs.
@@ -111,6 +111,13 @@ C5 next, in order: (a) the typed DAX number -> pool entry lookup (A8's importer;
 - [x] the title-sequence changes per game: list the commits, keep them in the declarative sequences
 - [ ] restore every lost feature in the shared engine
 - [ ] per game: plays from its folder only; scripted windowed run to the first fight and a save/load
+
+## Open (folded from ONE-PATH.md, PARITY-BASELINE.md)
+- [ ] Exit hints (`play.Question.Esc`) for POD, COTAB, SotSB, BR1, BR2 script menus (POR done); paladin powers offered and Cure Disease reachable in POD, audited in COTAB and SotSB
+- [ ] Decompiler vendor-gate folds compared against gate-No back-out (structural tests only so far; POR 7, COTAB 2, SotSB 2 folds)
+- [ ] Parity with por-go c70cbee (its PORT_CHECKLIST.md "Extras"): every por-only feature (voice-over, labels/MAPS.GOB persistence, party pool, itemStats, itemLook, aoe, hitChance, moveReach, provokes, throwTargets, levelReady, day sky, battle log text, quickstart) has a home in rules1e or gobox; host options (voice, DASP, step sounds, volumes, day sky), exe icon and browser build move to cmd/gobox. "No target in range" was removed on purpose (Felix, 2026-11-06)
+- [ ] Unverified: song 6 overland and song 4 entering Phlan triggers, camp fire animation, wiped party returns to the party menu, 120 Hz input poll, js build
+- [ ] Per-game title sequences into the manifests' Start/End (history: the deleted PARITY-BASELINE.md in version control)
 
 ## Open, unverified
 - B's one uncaptured test panic (not reproduced, count=10 and -race)
