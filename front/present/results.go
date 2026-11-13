@@ -8,12 +8,12 @@ import (
 	"gobox/ui"
 )
 
-// drawResults draws the after-combat page (View.Results) as a screen of
+// drawResults draws the after-combat page (Scene.Results) as a screen of
 // its own: the outcome and experience, the hirelings' shares, what the
 // party takes, the members harmed (name cyan, what red) and, when the party
 // is destroyed, the end; its question as every page's.
 func (p *Presenter) drawResults(dst *gpu.Image, v front.View, note Note) Rect {
-	r := v.Results
+	r := resultsOf(p.state())
 	u := ui.Results{Outcome: r.Outcome, Exp: r.Exp, Shares: r.Shares, Taken: r.Taken, End: r.End}
 	for _, h := range r.Harmed {
 		u.Harmed = append(u.Harmed, ui.Harm(h))
