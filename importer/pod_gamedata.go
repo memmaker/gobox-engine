@@ -3,6 +3,7 @@ package importer
 import (
 	"gobox/adventure"
 	"gobox/game"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -49,9 +50,11 @@ func podGameData(adv string) game.Data {
 		MusicPlaces: musicPlaceList(),
 		Scans:       journalBook().Picture, // the journal's pictures a Read shows
 		// the screen frame (R142:0000, O17E:02E6): BORDERS.DAX block 0, corners TL TR BL BR,
-		// top and bottom, the sides, masked on colour 13 (O17E:004B)
+		// top and bottom, the sides, masked on colour 13 (O17E:004B); BORDERS blocks 0..3 are the
+		// four frame sets, game word SymbolSet (tileSet) picking one: Load8x8Set(tileSet, 2), set 4
+		// loading 0 (pod-re eclmenu.pas WriteGbvm $39, saveload.pas after a load)
 		DaxMask:      daxMask,
-		Border:       &game.Border{File: "BORDERS", Block: 0, Pieces: [8]int{0, 1, 2, 3, 4, 4, 5, 5}, Mask: &podBorderMask},
+		Border:       &game.Border{File: "BORDERS", Block: 0, Pieces: [8]int{0, 1, 2, 3, 4, 4, 5, 5}, Mask: &podBorderMask, Sets: podFrameSets, Amiga: podAmigaFrame()},
 		AdLib:        &game.AdLib{Music: adLibMusic, Sounds: adLibSounds, Effects: effects, Rate: 9000},
 		DungeonTiles: adventure.DungeonTiles,
 		Rests:        []game.RestKind{{Text: "Rest", Key: 'R', N: 0, Duration: true}, {Text: "Fix", Key: 'F', N: 1, Fix: true}},
@@ -108,3 +111,46 @@ var confirms = map[string]game.Confirm{
 
 // partyCommands are the game's own party commands.
 var podPartyCommands = []game.Option{{Label: "Add from Secret", Key: 'S', Do: game.AddCharacter{Roster: -1, From: importSotSB}}}
+
+// podFrameSets are BORDERS.DAX's frame sets' blocks by tileSet.
+var podFrameSets = []int{0, 1, 2, 3}
+
+// The Amiga Pools of Darkness' frame screens (Pools of Darkness, code hunk
+// 0): F_405e6(y, x, lib 1, entry) blits pieces of the frame set loaded as
+// library 1, FRAME.TLB entry tileSet+1 (F_3e1bc, 0x3e1bc: party byte 0x3A,
+// 4 loading set 0, as DOS); amigaimport makes each set block set+1, its
+// pieces frames entry-1 (the set's palette, entry 0, is no frame). Every
+// blit passes 0, 0: the pieces' hot spots place them. 0x3df08(row) draws
+// the rule of row 2, 8, 16 or 20 (entries 7..10).
+const (
+	podFullFrame = iota // 0x3df80
+	podViewFrame        // 0x3e02e: 0x3df80, the rule (row 16), the 3D view's surround with the divider
+	podRuleFrame        // 0x3e05c: 0x3df80, the rule (row 16)
+)
+
+// FRAME.TLB's frame pieces, per set (their sizes and hot spots from the entries' headers).
+const (
+	podTopBar    = 1  // 320x8
+	podLeftBar   = 2  // 8x184
+	podRightBar  = 3  // 8x184, hot spot x -312
+	podBottomBar = 4  // 320x16, hot spot y -184
+	podRule16    = 9  // 320x7, hot spot y -128
+	podViewBox   = 12 // 136x136: the 3D view's surround, the divider its right edge
+)
+
+// podAmigaFrameSets are the Amiga FRAME blocks by tileSet (FRAME.TLB entries 1..4).
+var podAmigaFrameSets = []int{1, 2, 3, 4}
+
+// podAmigaFrame is the Amiga Pools of Darkness' frame (set 0's blocks; Sets
+// the others). Its 3D view's box takes the frame's general edges, as on DOS.
+func podAmigaFrame() *game.AmigaFrame {
+	at := func(entry, x, y int) game.FrameBlit {
+		return game.FrameBlit{Block: podAmigaFrameSets[0], Frame: entry - 1, X: x, Y: y}
+	}
+	full := []game.FrameBlit{at(podTopBar, 0, 0), at(podLeftBar, 0, 0), at(podRightBar, 312, 0), at(podBottomBar, 0, 184)} // 0x3dfaa .. 0x3dfe6
+	rule := at(podRule16, 0, ruleRow*frameCell)                                                                            // 0x3df3e
+	view := append(slices.Clone(full), rule, at(podViewBox, 0, 0))                                                         // 0x3e036, 0x3e04a
+	ruled := append(slices.Clone(full), rule)                                                                              // 0x3e064
+	return &game.AmigaFrame{File: "FRAME", Screens: [][]game.FrameBlit{full, view, ruled}, Pieces: framePieces(podFullFrame),
+		Edges: frameEdges(podFullFrame, podRuleFrame, podViewFrame), Sets: podAmigaFrameSets}
+}

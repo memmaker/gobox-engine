@@ -45,11 +45,12 @@ type borders struct {
 	tiles, grey Ribbon
 }
 
-// uploadBorders uploads the game's tiles t (p.border builds it when they change).
-func uploadBorders(t [Places]image.Image) (b borders) {
+// uploadBorders uploads the game's border wb (p.border builds it when its tiles change).
+func uploadBorders(wb windowBorder) (b borders) {
+	t := wb.pieces
 	defer func() { // the theme's cracked edges go with these tiles
 		edgeTiles, edgeSets = Edges{}, nil
-		es := borderEdges()
+		es := wb.edges
 		if es == nil {
 			return
 		}
@@ -105,8 +106,8 @@ func greyed(m image.Image) *image.RGBA {
 // setup takes this frame's font and border tiles from the game.
 func (p *Presenter) setup(note Note) {
 	p.glyph = note.Glyph
-	if t := p.windowBorder().pieces; t[0] != nil { // none yet: the last tiles stay
-		p.border.get(t, func() borders { return uploadBorders(t) })
+	if wb := p.windowBorder(); wb.pieces[0] != nil { // none yet: the last tiles stay
+		p.border.get(wb.pieces, func() borders { return uploadBorders(wb) })
 	}
 	menuChars = p.cardMenuChars() // the row's spacing: the widest context menu line
 	if p.faceImgs == nil {

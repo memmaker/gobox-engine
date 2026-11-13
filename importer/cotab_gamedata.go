@@ -3,6 +3,7 @@ package importer
 import (
 	_ "embed"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -112,6 +113,55 @@ var border = game.Border{File: "8X8D1", Block: 202, Mask: &cotabBorderMask,
 		"view.left":   {20, 22, 27, 22, 22, 22, 22, 25, 22, 22, 22, 22, 21},
 		"view.right":  {22, 25, 29, 22, 22, 22, 27, 25, 22, 22, 22, 22, 23},
 	},
+	Amiga: cotabAmigaFrame(),
+}
+
+// The Amiga Curse's frame screens (Curse, code hunk 0): ALWAYS.TLB entries
+// (amigaimport block = entry, one frame) blitted by F_3bcf8(y, x, lib 0,
+// entry). The DOS game draws the same three: the full frame, the 3D view's
+// and the one with the rule alone.
+const (
+	cotabFullFrame = iota // F_398b0 (0x398b0)
+	cotabViewFrame        // 0x39990: F_398b0, the 3D view's box and the divider, the rule
+	cotabRuleFrame        // 0x39afe: F_398b0, the rule (row 16)
+)
+
+// ALWAYS.TLB's frame pieces (their sizes and hot spots from the entries' headers).
+const (
+	cotabTopBar     = 71  // 320x8
+	cotabLeftSide   = 72  // 8x16, repeated
+	cotabLeftFoot   = 73  // 8x16
+	cotabRightSide  = 74  // 8x16, repeated
+	cotabBottomBar  = 75  // 320x16, hot spot y -184
+	cotabDivider    = 76  // 8x16, repeated
+	cotabDividerTop = 77  // 8x8
+	cotabDividerEnd = 78  // 8x16, over the rule
+	cotabRule       = 96  // 320x8
+	cotabViewBox    = 98  // 104x104, hot spot -16, -16
+	cotabRightFoot  = 106 // 8x16
+)
+
+// cotabAmigaFrame is the Amiga Curse's frame, its cells where the DOS frame's are.
+func cotabAmigaFrame() *game.AmigaFrame {
+	at := func(entry, x, y int) game.FrameBlit { return game.FrameBlit{Block: entry, X: x, Y: y} }
+	full := []game.FrameBlit{at(cotabTopBar, 0, 0)} // 0x398ce
+	for y := 8; y <= 152; y += 16 {                 // 0x398e6..0x39920: d2 1, 3 .. 19, y 8*d2
+		full = append(full, at(cotabLeftSide, 0, y), at(cotabRightSide, 312, y))
+	}
+	full = append(full, at(cotabLeftFoot, 0, 168), at(cotabRightFoot, 312, 168), at(cotabBottomBar, 0, 184)) // 0x39922, 0x39934, 0x39946
+	view := append(slices.Clone(full), at(cotabViewBox, 16, 16), at(cotabDividerTop, 128, 0))                // 0x39998, 0x399aa
+	for y := 8; y <= 104; y += 16 {                                                                          // 0x399c2..0x399e2: d2 1, 3 .. 13
+		view = append(view, at(cotabDivider, 128, y))
+	}
+	view = append(view, at(cotabRule, 0, 128), at(cotabDividerEnd, 128, 120)) // 0x399e4, 0x399f6
+	rule := append(slices.Clone(full), at(cotabRule, 0, 128))                 // 0x39b02
+	edges := frameEdges(cotabFullFrame, cotabRuleFrame, cotabViewFrame)
+	// the 3D view's box, cells 2..14 (the DOS "view." edges' cells)
+	edges["view.top"] = frameRow(cotabViewFrame, 2, 2, 14)
+	edges["view.bottom"] = frameRow(cotabViewFrame, 14, 2, 14)
+	edges["view.left"] = frameCol(cotabViewFrame, 2, 2, 14)
+	edges["view.right"] = frameCol(cotabViewFrame, 14, 2, 14)
+	return &game.AmigaFrame{File: "ALWAYS", Screens: [][]game.FrameBlit{full, view, rule}, Pieces: framePieces(cotabFullFrame), Edges: edges, Mask: alwaysMask}
 }
 
 // AmigaMusic is the Amiga release's sampled effects (SOUNDS.GLB, 8-bit at

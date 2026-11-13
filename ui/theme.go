@@ -56,6 +56,12 @@ type Border struct {
 	// repeats the middle ones (the original's cracked borders); a missing
 	// edge draws the Pieces.
 	Edges map[string][]int
+
+	// Sets are the frame sets' blocks by the game's symbol set
+	// (game.Border.Sets; nil: Block); Amiga the frame under Amiga art
+	// (game.Border.Amiga; nil: this one).
+	Sets  []int
+	Amiga *game.AmigaFrame
 }
 
 // DefaultTheme is por's look.
@@ -71,6 +77,7 @@ func init() { applyTheme(DefaultTheme) }
 // applyTheme makes t the presenter's look.
 func applyTheme(t Theme) {
 	theme = t
+	clear(amigaScreens) // the last theme's frame
 	q := fontPalette
 	inkBlack, inkBlue, inkGrey, inkDark, inkGreen, inkCyan, inkRed, inkMagenta, inkYellow, inkWhite = q.Background, q.Selected, q.Log, q.Off, q.Text, q.Heading, q.Warn, q.Mark, q.Gold, q.Hotkey
 	green, white, cyan, gray, dark, red = col(inkGreen), col(inkWhite), col(inkCyan), col(inkGrey), col(inkDark), col(inkRed)
@@ -80,9 +87,14 @@ func applyTheme(t Theme) {
 	}
 }
 
-// borderEdges is Theme.Border.Edges decoded, by edge (nil: none).
-func borderEdges() map[string][]image.Image {
+// borderEdges is Theme.Border.Edges decoded for symbol set set, by edge
+// (nil: none): the Amiga frame's cells under Amiga art (borderAmiga).
+func borderEdges(set int) map[string][]image.Image {
 	b := theme.Border
+	if a := b.Amiga; a != nil && amigaShown() {
+		_, edges := amigaFrame(a, set)
+		return edges
+	}
 	if b.File == "" || len(b.Edges) == 0 {
 		return nil
 	}
@@ -90,13 +102,23 @@ func borderEdges() map[string][]image.Image {
 	if b.Mask != nil {
 		mask = int(*b.Mask)
 	}
+	block := setBlock(b.Sets, b.Block, set)
 	out := map[string][]image.Image{}
 	for k, fs := range b.Edges {
 		for _, f := range fs {
-			out[k] = append(out[k], daxMasked(b.File, b.Block, f, mask))
+			out[k] = append(out[k], daxMasked(b.File, block, f, mask))
 		}
 	}
 	return out
+}
+
+// setBlock is the block of frame set set (sets: the blocks by set; nil or
+// a set past them: block).
+func setBlock(sets []int, block, set int) int {
+	if set >= 0 && set < len(sets) {
+		return sets[set]
+	}
+	return block
 }
 
 // windowBorder is the window border's pieces by place, and whether the
@@ -104,21 +126,23 @@ func borderEdges() map[string][]image.Image {
 type windowBorder struct {
 	pieces [Places]image.Image
 	own    bool
+	edges  map[string][]image.Image // Theme.Border's edges (borderEdges; nil: none)
 }
 
 // windowBorder is the border the state's derived reads hold (derived); with
 // no game, Theme.Border's.
 func (p *Presenter) windowBorder() windowBorder {
 	if p.eng == nil {
-		return borderOf(nil)
+		return borderOf(nil, 0)
 	}
 	return p.eng.r.derived().border
 }
 
 // borderOf is the game's border pieces from its art ("border/<place>",
 // 0..7, ui.TopLeft ..; "border/cap/<n>", 0..3, ui.LeftTopCap ..; in the
-// EGA's colours), or Theme.Border's decoded when the art has no first piece.
-func borderOf(art map[string]game.Picture) windowBorder {
+// EGA's colours), or Theme.Border's decoded for symbol set set when the
+// art has no first piece.
+func borderOf(art map[string]game.Picture, set int) windowBorder {
 	if pix(art["border/0"]).Pix != nil {
 		var t [Places]image.Image
 		for i := range LeftTopCap {
@@ -127,14 +151,20 @@ func borderOf(art map[string]game.Picture) windowBorder {
 		for i := range 4 {
 			t[LeftTopCap+i] = pixImage(pix(art["border/cap/"+strconv.Itoa(i)]), egaInk)
 		}
-		return windowBorder{t, true}
+		return windowBorder{pieces: t, own: true}
 	}
-	return windowBorder{pieces: themeBorder()}
+	return windowBorder{pieces: themeBorder(set), edges: borderEdges(set)}
 }
 
-// themeBorder is Theme.Border's pieces, decoded.
-func themeBorder() [Places]image.Image {
+// themeBorder is Theme.Border's pieces of symbol set set, decoded: the
+// Amiga frame's cells under Amiga art (amigaFrame).
+func themeBorder(set int) [Places]image.Image {
 	var t [Places]image.Image
+	if a := theme.Border.Amiga; a != nil && amigaShown() {
+		pieces, _ := amigaFrame(a, set)
+		copy(t[:], pieces[:])
+		return t
+	}
 	pics := append(theme.Border.Pics[:], theme.Border.CapPics[:]...)
 	for i, pc := range pics {
 		if pc.File != "" {
@@ -153,7 +183,7 @@ func themeBorder() [Places]image.Image {
 			if theme.Border.Mask != nil {
 				mask = int(*theme.Border.Mask)
 			}
-			if m := daxMasked(theme.Border.File, theme.Border.Block, f, mask); m != nil {
+			if m := daxMasked(theme.Border.File, setBlock(theme.Border.Sets, theme.Border.Block, set), f, mask); m != nil {
 				t[i] = m
 			}
 		}

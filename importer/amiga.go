@@ -46,8 +46,21 @@ func laterGfx(pal int, mask byte) map[string]amigaimport.Gfx {
 	}
 }
 
+// withFrame is gfx with the program's window-frame library ALWAYS.TLB
+// converted too (its pieces drawn as AmigaFrame screens), its masked
+// pieces' clear pixels written as colour mask.
+func withFrame(gfx map[string]amigaimport.Gfx, pal int, mask byte) map[string]amigaimport.Gfx {
+	gfx["always"] = amigaimport.Gfx{Pal: pal, Mask: mask}
+	return gfx
+}
+
+// alwaysMask is the colour the Silver Blades' masked frame piece (ALWAYS 41,
+// the rule) leaves clear: no frame piece (ALWAYS 37..50, 66, 68 use colours
+// 0, 1, 6..9, 0xD, 0xF) draws it. Curse's frame pieces carry no mask.
+const alwaysMask = 0xE
+
 // cotabAmiga: the two Curse disks; SOUNDS.GLB the sampled effects (CotabAmigaMusic).
-var cotabAmiga = amigaimport.Spec{Gfx: laterGfx(0x47410, 0xD), Disks: []string{"CurseA", "CurseB"}, Exe: "Curse", Font: "DISKA/CURSE.FON", Files: []string{"SOUNDS.GLB"}}
+var cotabAmiga = amigaimport.Spec{Gfx: withFrame(laterGfx(0x47410, 0xD), 0x47410, alwaysMask), Disks: []string{"CurseA", "CurseB"}, Exe: "Curse", Font: "DISKA/CURSE.FON", Files: []string{"SOUNDS.GLB"}}
 
 // podAmiga: the three Pools of Darkness disks; the music (pod.mx) and the
 // sampled effects (SOUNDS.GLB) copied as they are.
@@ -55,4 +68,4 @@ var podAmiga = amigaimport.Spec{Gfx: laterGfx(0x51354, 0), Disks: []string{"POD_
 	Files: []string{"pod.mx", "SOUNDS.GLB"}, Alias: map[string]string{"8x8da": "8x8d"}}
 
 // sotsbAmiga: the two Silver Blades disks with their music.
-var sotsbAmiga = amigaimport.Spec{Gfx: laterGfx(0x4fdea, 0), Exe: "Secret", Font: "DISK1/SECRET.FON", Disks: []string{"Secret 1", "Secret 2"}, Files: []string{SotsbAmigaMusic.Songs, SotsbAmigaMusic.Effects}}
+var sotsbAmiga = amigaimport.Spec{Gfx: withFrame(laterGfx(0x4fdea, 0), 0x4fdea, alwaysMask), Exe: "Secret", Font: "DISK1/SECRET.FON", Disks: []string{"Secret 1", "Secret 2"}, Files: []string{SotsbAmigaMusic.Songs, SotsbAmigaMusic.Effects}}

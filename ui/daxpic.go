@@ -58,7 +58,8 @@ func (f *Front) Arts() (dos bool, set func(bool)) {
 	return true, func(dos bool) {
 		daxArt.amiga = !dos
 		clear(daxPics)
-		clear(spriteAnims) // the other art's frames and delays
+		clear(amigaScreens) // cut from the other art's pictures
+		clear(spriteAnims)  // the other art's frames and delays
 		f.ArtNew = true
 	}
 }

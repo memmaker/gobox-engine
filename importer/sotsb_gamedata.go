@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"gobox/adventure"
@@ -28,7 +29,7 @@ func GameData(adv string) game.Data {
 		// the screen frame as R19D:0000 draws it: symbol 311 (frame 55) on the top and bottom rows,
 		// corners included, 309 (frame 53) down the sides; symbol set 4 from 256 is 8X8D1 block 202
 		Commands:     game.CommandEntries(sotsbPartyCommands),
-		Border:       &game.Border{File: "8X8D1", Block: 202, Pieces: [8]int{55, 55, 55, 55, 55, 55, 53, 53}, Caps: []int{52, 54, 52, 54}},
+		Border:       &game.Border{File: "8X8D1", Block: 202, Pieces: [8]int{55, 55, 55, 55, 55, 55, 53, 53}, Caps: []int{52, 54, 52, 54}, Amiga: sotsbAmigaFrame()},
 		SoundTables:  soundData,
 		AdLib:        &game.AdLib{Music: "SOUND.DAX", Tempo: 0x76},
 		DungeonTiles: adventure.DungeonTiles,
@@ -189,3 +190,35 @@ var SotsbAmigaMusic = &game.AmigaMusic{Songs: "SECRET.MX", Effects: "sounds.glb"
 
 // partyCommands are the game's own party commands.
 var sotsbPartyCommands = []game.Option{{Label: "Add from Curse", Key: 'U', Do: game.AddCharacter{Roster: -1, From: "cotab"}}}
+
+// The Amiga Silver Blades' frame screens (Secret, code hunk 0): ALWAYS.TLB
+// entries (amigaimport block = entry, one frame) blitted by F_3ff40(y, x,
+// lib 0, entry); 0x3da58(row) draws the rule at row row.
+const (
+	sotsbFullFrame = iota // 0x3da76
+	sotsbViewFrame        // 0x3db32: 0x3da76, the rule (row 16), the 3D view's surround with the divider
+	sotsbRuleFrame        // 0x3dbdc: 0x3da76, the rule (row 16)
+)
+
+// ALWAYS.TLB's frame pieces (their sizes and hot spots from the entries' headers).
+const (
+	sotsbTopBar    = 37 // 320x8
+	sotsbLeftBar   = 38 // 8x184
+	sotsbRightBar  = 39 // 8x183
+	sotsbBottomBar = 40 // 320x16, hot spot y -184
+	sotsbRule      = 41 // 320x7, masked
+	sotsbViewBox   = 68 // 136x135: the 3D view's surround, the divider its right edge
+)
+
+// sotsbAmigaFrame is the Amiga Silver Blades' frame. Its 3D view's box is
+// not the DOS one's cells 2..14 (the surround's opening is x 19..115, y
+// 23..113): the box takes the frame's general edges, as on DOS.
+func sotsbAmigaFrame() *game.AmigaFrame {
+	at := func(entry, x, y int) game.FrameBlit { return game.FrameBlit{Block: entry, X: x, Y: y} }
+	rule := game.FrameBlit{Block: sotsbRule, Y: ruleRow * frameCell, Masked: true}                                                 // 0x3da58: y 8*row
+	full := []game.FrameBlit{at(sotsbTopBar, 0, 0), at(sotsbLeftBar, 0, 0), at(sotsbRightBar, 312, 0), at(sotsbBottomBar, 0, 184)} // 0x3da9e .. 0x3dad4
+	view := append(slices.Clone(full), rule, at(sotsbViewBox, 0, 0))                                                               // 0x3db3a, 0x3db4c
+	ruled := append(slices.Clone(full), rule)                                                                                      // 0x3dbe4
+	return &game.AmigaFrame{File: "ALWAYS", Screens: [][]game.FrameBlit{full, view, ruled}, Pieces: framePieces(sotsbFullFrame),
+		Edges: frameEdges(sotsbFullFrame, sotsbRuleFrame, sotsbViewFrame), Mask: alwaysMask}
+}

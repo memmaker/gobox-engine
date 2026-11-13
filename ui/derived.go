@@ -33,7 +33,7 @@ func (r *frontState) derived() *derived {
 		}
 		d.walls, d.kept = wallsOf(ps, oldKept)
 		d.unknown = unknownOf(ps)
-		d.border = borderOf(r.Art())
+		d.border = borderOf(r.Art(), game.CommonOf(ps).SymbolSet)
 		d.automap = automapOf(ps, d.explored)
 		if _, ok := ps.(game.Exploring); ok {
 			d.explored = d.automap

@@ -244,7 +244,7 @@ func Import(src, out string, s Spec) error {
 // skipReason is why a file is left out of every game's import (Spec.Skip
 // adds the game's own).
 var skipReason = map[string]string{
-	"always.tlb":  "the Amiga's own UI pieces (compass, arrows, window frames, cursors): gobox draws the UI, and the DOS archives have no such pictures",
+	"always.tlb":  "the Amiga's own UI pieces (compass, arrows, cursors): gobox draws the UI, and the DOS archives have no such pictures (a game whose window frame is here converts it: Spec.Gfx \"always\")",
 	"ecl.glb":     "game data, not art or sound: gobox import reads it from the DOS originals",
 	"geo.glb":     "game data, not art or sound: gobox import reads it from the DOS originals",
 	"moncha.glb":  "game data, not art or sound: gobox import reads it from the DOS originals",

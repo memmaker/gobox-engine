@@ -443,7 +443,7 @@ func cellBorder(m *image.RGBA, wb windowBorder, cells image.Point, r CellRect) {
 	if wb.own {
 		return // the game's own pieces
 	}
-	all := borderEdges()
+	all := wb.edges
 	es := func(key string, n int) []image.Image { // the edge's own table for length n, else its general one
 		if t := all[key+"@"+strconv.Itoa(n)]; len(t) > 0 {
 			return t

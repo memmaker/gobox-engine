@@ -240,7 +240,7 @@ func (e *Engine) common(mode game.Mode, pending *game.Question, pg *textPage, do
 	where, automap := e.whereState()
 	cm := game.Common{Where: where, Automap: automap, Area: automap.Area, Quests: e.questsState(), Lore: e.loreState(), PowerPick: e.powerPickState(),
 		PartyCap: int(e.ruleset().Check(rules.PoolCap{}, nil).Value), PoolItems: int(e.ruleset().Check(rules.PoolCount{}, nil).Value),
-		Text: pg.Pane, Status: pg.Prompt, Layers: pg.Layers}
+		Text: pg.Pane, Status: pg.Prompt, Layers: pg.Layers, SymbolSet: e.worldWord(rules.WordSymbolSet)}
 	cm.Party, cm.Selected = e.partyState()
 	if e.partySize() > 0 {
 		cm.Purse = purseMoney(e.purse(false))

@@ -289,7 +289,7 @@ func gameData(g game.Data) {
 	Coin = cmp.Or(g.Coin, game.Gold)
 	if b := g.Border; b != nil { // the game's look, as plain data
 		t := theme
-		t.Border = Border{File: b.File, Block: b.Block, Pieces: b.Pieces, Caps: b.Caps, Mask: b.Mask, Edges: b.Edges}
+		t.Border = Border{File: b.File, Block: b.Block, Pieces: b.Pieces, Caps: b.Caps, Mask: b.Mask, Edges: b.Edges, Sets: b.Sets, Amiga: b.Amiga}
 		applyTheme(t)
 	}
 	switch { // the game's imported art (its import: dax.ImportArt)

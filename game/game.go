@@ -939,6 +939,9 @@ type RestKind struct {
 // bottom, left, right; below 0: none), Caps the 4 end caps, Mask the colour
 // index left transparent (nil: none), and Edges an edge's cells one by one
 // ("top", "bottom", "rule", "left", "right", "divider"; see gobox's present).
+// Sets, when set, are the frame sets' blocks by Common.SymbolSet (pod's
+// BORDERS 0..3; Block is set 0's); Amiga is the Amiga release's frame, the
+// border under Amiga art (nil: the Amiga shows this one).
 type Border struct {
 	File   string
 	Block  int
@@ -946,7 +949,35 @@ type Border struct {
 	Caps   []int
 	Mask   *uint8
 	Edges  map[string][]int
+	Sets   []int       `json:",omitempty"`
+	Amiga  *AmigaFrame `json:",omitempty"`
 }
+
+// AmigaFrame is the Amiga release's window frame as its program draws it:
+// Screens are the frame screens (each the pieces it blits, in order, on a
+// 320x200 screen), and every border cell is the 8x8 cell of a screen at
+// the place gobox draws it (Pieces, Caps and Edges as Border's, by cell).
+// Sets are the frame sets' blocks by Common.SymbolSet, as Border.Sets: a
+// blit of block Sets[0] draws from the set's block.
+type AmigaFrame struct {
+	File    string
+	Screens [][]FrameBlit
+	Pieces  [8]FrameCell
+	Edges   map[string][]FrameCell
+	Mask    uint8 // the colour a Masked blit leaves clear (amigaimport Gfx.Mask)
+	Sets    []int `json:",omitempty"`
+}
+
+// FrameBlit is one piece the Amiga program draws: frame Frame of block
+// Block of the AmigaFrame's File, its top-left pixel at X, Y (the call's
+// position less the piece's hot spot), through its mask when Masked.
+type FrameBlit struct {
+	Block, Frame, X, Y int
+	Masked             bool `json:",omitempty"`
+}
+
+// FrameCell is the 8x8 cell at column Col, row Row of screen Screen.
+type FrameCell struct{ Screen, Col, Row int }
 
 // QuickPick is one Quick Start member: the creation answers by the names the
 // game's sheet shows, the abilities rerolled for (StatKeys key -> minimum),
