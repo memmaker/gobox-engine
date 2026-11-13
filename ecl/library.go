@@ -150,3 +150,21 @@ func CacheDir(game string) (string, error) {
 	return dir, os.MkdirAll(dir, 0o755)
 }
 
+
+// Assemble makes a script of raw byte code with no header, one command per
+// command, for a test to run a few commands: command numbers are its jumps;
+// its operands resolve in lay (none for nil: Buck Rogers, ReadLayout).
+func Assemble(v *Version, lay *Layout, code []byte) (*Script, error) {
+	s := Empty(0)
+	s.Code = nil
+	r := &reader{code: code, base: v.Base}
+	for pc := v.Base; pc < v.Base+len(code); {
+		l := v.decode(r, pc)
+		s.Code = append(s.Code, Instr{Op: l.Cmd.Op, Args: l.Args})
+		pc = l.Next
+	}
+	if lay == nil {
+		return s, nil
+	}
+	return s, ResolveRefs(s, lay)
+}
