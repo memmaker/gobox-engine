@@ -51,6 +51,8 @@ func New(adv, data string) (*pool.Engine, error) {
 
 // Play runs the game of s.Adventure until the window closes.
 func Play(s app.Start, gm Game) error {
+	s.Explore = s.Explore || s.Capture.Slot != "" // -slot starts play from that save (Explore reads it), -explore or not
+
 	host := present.DefaultHostOptions // the settings in use; app.Menu reads them from SETTINGS.JSON
 	f, err := importer.Read(s.Adventure)
 	if err != nil {

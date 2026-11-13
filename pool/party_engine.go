@@ -79,7 +79,8 @@ func (e *Engine) partyMenu(hall, chain bool) {
 	if e.Explore { // -explore: straight into the 3D view (debugging the renderer); GameLoop clears it
 		if e.partySize() == 0 && e.ExploreSlot != "" && e.loadFrom(e.ExploreSlot) { // -slot: a saved game instead
 			e.Explore = false
-			e.ret() // GameLoop
+			e.loadedGame = e.beginFlag() != 0 // DS:49F8, as the party menu's Load (LoadNamed): the game resumes, not afresh
+			e.ret()                           // GameLoop
 			return
 		}
 		if e.partySize() == 0 {

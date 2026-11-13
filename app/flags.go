@@ -51,7 +51,7 @@ func Flags(esc map[byte]Key) func() Capture {
 	fight := flag.Int("fight", 0, "debug: a fight with three of monster N (the area's MON file) at the first adventuring prompt")
 	freeTrain := flag.Bool("freetrain", false, "debug: the training hall trains everyone free, experience or not")
 	eclTrace := flag.Bool("ecltrace", false, "debug: each script command and its operands to stderr")
-	saves := flag.String("saves", "", "the save directory (default: the game's)")
+	saves := flag.String("saves", "", "the save directory: its saves/NAME are the slots (default: the game's)")
 	at := flag.String("at", "", "debug: enter script block BLOCK at X,Y at the first adventuring prompt (BLOCK,X,Y)")
 	return func() Capture {
 		c := Capture{Shot: *shot, Keys: ParseKeys(*keys, esc), Freeze: *freeze, Quit: *quit, Slot: *slot, PNG: *png,
