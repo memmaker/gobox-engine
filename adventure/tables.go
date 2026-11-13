@@ -2,6 +2,7 @@ package adventure
 
 import (
 	"gobox/ecl"
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
@@ -27,7 +28,7 @@ type GameTables struct {
 	MapLabels                  []MapLabel           // the maps' fixed labels (POR: New Phlan's buildings); none: none
 	Music                      *AreaMusic           // the soundtrack by area (POR's); nil: none
 	MonsterSet                 rules.Set            // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
-	Walls                      *WallTextures        // the 3D view's remastered wall textures; nil: none (POR: its remastered area maps)
+	Walls                      *WallTextures        // the 3D view's remastered wall textures; nil: none
 	GameSet                    rules.Set            // the set the party menu's game starts in (DS:5376: POR 3; cotab, sotsb, pod 2)
 	FirstBlock                 int                  // the ECL block a new game starts on, with no last block saved (POR 0, cotab 1, sotsb 17, pod 16)
 }
@@ -37,6 +38,26 @@ type GameTables struct {
 type WallTextures struct {
 	Floor, Sky string
 	Walls      []WallTexture
+	Areas      []AreaLook // the areas' own flats and scenery
+}
+
+// AreaLook is GEO block Geo of set Set's own 3D view look: its flats
+// (pool floor_<Floor>, ceiling_<Sky>; "": the game's) and scenery.
+type AreaLook struct {
+	Set        rules.Set
+	Geo        int
+	Floor, Sky string
+	Scenery    game.Scenery
+}
+
+// Area is the look of GEO block geo of set set; nil: the game's.
+func (w *WallTextures) Area(set rules.Set, geo int) *AreaLook {
+	for i := range w.Areas {
+		if w.Areas[i].Set == set && w.Areas[i].Geo == geo {
+			return &w.Areas[i]
+		}
+	}
+	return nil
 }
 
 // WallTexture is wall Wall (1..rules.SetWalls) of chunk Chunk (1-based) of

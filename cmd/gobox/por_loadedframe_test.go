@@ -40,7 +40,7 @@ func TestLoadedExploreStateBuilds(t *testing.T) {
 	eng.FullIntro.Store(false)
 	seed := uint32(1)
 	eng.FixedSeed = &seed
-	data := poolData(eng, "por")
+	data := eng.Data()
 	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("back-for-good")
 	f.Frame(1280, 800)

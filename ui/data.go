@@ -9,12 +9,10 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
-	"testing/fstest"
 
 	"gobox/adventure"
 	"gobox/asset"
@@ -39,10 +37,6 @@ type Data struct {
 
 	IconParts  []string
 	SpellRules []string // what each spell does, by spell id (the camp's spell tips; "" none)
-
-	AreaMaps map[AreaID]string // the 3D map (Art maps/NAME.map) of each area
-	Art      fs.FS             // maps/NAME.map and assets/walls/walls.txt
-	OpenAt   string            // map:NAME:X:Y:D shows map NAME from that square alone (drawOpen); "" none
 
 	Bindings []Binding // the game's own help rows, after Any time's Ctrl-F row
 
@@ -79,9 +73,6 @@ var (
 	spellRules                       []string
 	dollBoxes                        = defaultDollBoxes // the doll is every game's, whichever way its data came (SetData or NewFront)
 	slotNames                        = defaultSlotNames
-	areaMaps                         map[AreaID]string
-	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
-	openAt                           string
 	dollPNG                          = defaultDoll
 	sounds                           []byte
 	amigaSound                       []byte
@@ -352,16 +343,6 @@ func gameData(g game.Data) {
 	if g.Adventure != "" {
 		applyLook(g.Adventure)
 		menuLogo = readLogo(filepath.Join(g.Adventure, adventure.ArtDir, adventure.LogoFile))
-	}
-	areaMaps, art = map[AreaID]string{}, fstest.MapFS{} // the game's own, none kept from the game before
-	for id, n := range g.AreaMaps {
-		areaMaps[AreaID(id)] = n
-	}
-	if g.Remaster != nil {
-		art = g.Remaster
-	}
-	if g.OpenAt != "" {
-		openAt = g.OpenAt
 	}
 	if g.Bindings != nil {
 		var own []Binding

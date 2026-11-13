@@ -7,12 +7,10 @@ package blobber
 import (
 	"image"
 	"image/color"
-	"io"
 	"maps"
 	"math"
 	"math/rand"
 	"reflect"
-	"strings"
 
 	"gobox/gpu"
 )
@@ -39,27 +37,6 @@ const (
 )
 
 var level []string // set by SetMap
-
-// LoadMap reads a map file: one row per line, '.' floor, other characters walls by material.
-// Lines starting with a lowercase word and a space ("object ...", "item ...") are not grid rows;
-// they are returned in extra for the host to interpret.
-func LoadMap(r io.Reader) (rows, extra []string, err error) {
-	b, err := io.ReadAll(r)
-	if err != nil {
-		return nil, nil, err
-	}
-	for _, l := range strings.Split(string(b), "\n") {
-		l = strings.TrimRight(l, "\r")
-		switch {
-		case l == "":
-		case l[0] >= 'a' && l[0] <= 'z' && strings.Contains(l, " "):
-			extra = append(extra, l)
-		default:
-			rows = append(rows, l)
-		}
-	}
-	return rows, extra, nil
-}
 
 // Object is a static billboard standing in a cell: map props, levers, items on the floor.
 // Size is its longest side in tiles. Objects outside the map are hidden.

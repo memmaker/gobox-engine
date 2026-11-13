@@ -3,15 +3,14 @@
 package ui
 
 import (
-	"fmt"
 	"gobox/asset"
 	"gobox/game"
 	"gobox/gpu"
 	"gobox/ui/blobber"
 	"image"
 	"image/color"
-	"io/fs"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -69,38 +68,17 @@ func (p *Presenter) drawMap(dst *gpu.Image, ink [16]color.RGBA, font func(byte, 
 	dst.DrawImage(p.mapImg, op)
 }
 
-// scene is the remastered map of the area the state shows, or nil for an area
-// without one (logged once: there is no other view of it).
+// scene is the 3D view of the rules' map the state shows (wallScene), or nil: none.
 func (p *Presenter) scene() *blobber.Scene {
 	if p.eng == nil {
 		return nil
 	}
-	if w := p.walls(); w != nil {
-		p.behind = p.wallScene(w, p.eng.art())
-		return p.behind
-	}
-	if _, ok := areaMaps[p.areaID()]; !ok && !p.exploring() { // no 3D view: no map to look up
+	w := p.walls()
+	if w == nil {
 		return nil
 	}
-	p.behind = p.sceneNamed(p.sceneName())
+	p.behind = p.wallScene(w, p.eng.art())
 	return p.behind
-}
-
-// areaID is the GEO block the party's area is drawn from.
-func (p *Presenter) areaID() AreaID {
-	n, _ := strconv.Atoi(p.where().Area)
-	return AreaID(n)
-}
-
-// sceneName names the scene the state shows: the rules' map's (Walls), or the remastered map's.
-func (p *Presenter) sceneName() string {
-	if w := p.walls(); w != nil {
-		return "walls:" + w.Key
-	}
-	if name, ok := areaMaps[p.areaID()]; ok {
-		return name
-	}
-	return fmt.Sprintf("area%d", p.areaID())
 }
 
 // wallPic is picture pc of the walls' art as an image (its pixels in the EGA's colours, or the DAX picture it names).
@@ -134,6 +112,11 @@ func (p *Presenter) wallScene(w *game.Walls, art map[string]game.Picture) *blobb
 	if backdrop != nil && !flatsPainted(w, backdrop) { // the classic picture only where the series lacks the flats
 		sc.Backdrop = backdrop
 	}
+	face := func(x, y, d int, tex string) {
+		k := [3]int{x, y, d}
+		sc.Faces[k] = []blobber.FacePart{{Tex: tex, T1: 1, U1: 1}}
+		sc.Edges[k] = true
+	}
 	for y, row := range w.Side {
 		for x, sides := range row {
 			for d, n := range sides {
@@ -141,15 +124,35 @@ func (p *Presenter) wallScene(w *game.Walls, art map[string]game.Picture) *blobb
 				if tex == "" {
 					continue
 				}
-				k := [3]int{x, y, d}
-				sc.Faces[k] = []blobber.FacePart{{Tex: tex, T1: 1, U1: 1}}
-				sc.Edges[k] = true
+				face(x, y, d, tex)
+				if nx, ny := x+sideStep[d][0], y+sideStep[d][1]; slices.Contains(w.Scenery.TwoSided, n) &&
+					ny >= 0 && ny < len(w.Side) && nx >= 0 && nx < len(w.Side[ny]) && w.Side[ny][nx][d^2] == 0 {
+					face(nx, ny, d^2, tex) // a free-standing wall, seen from its open side too
+				}
 			}
+		}
+	}
+	sn := w.Scenery
+	for _, q := range sn.Water {
+		sc.Water[q] = true
+	}
+	for _, q := range sn.Pond {
+		sc.Pond[q] = true
+	}
+	sc.Sea = sn.Sea
+	for _, pr := range sn.Props {
+		if o := blobber.NewProp(pr.Tex, [2]float64{pr.X, pr.Y}, pr.Size, pr.Front, pr.Sink, pr.Ring); o != nil {
+			sc.Props = append(sc.Props, o)
+		} else {
+			log.Printf("walls: no prop texture %q", pr.Tex) // the import checks them (TestWallTextures)
 		}
 	}
 	p.scenes[name] = sc
 	return sc
 }
+
+// sideStep is the square past side d (N E S W) of a square, rows from the top.
+var sideStep = [4][2]int{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
 
 // flatsPainted says whether the view draws its own floor and sky over
 // the backdrop: when either named flat resolves (the other takes the pool's,
@@ -183,66 +186,9 @@ func (p *Presenter) wallTexture(w *game.Walls, art map[string]game.Picture, n in
 	return t
 }
 
-// openAt (Data.OpenAt, map:NAME:X:Y:D, D 0..3 for N E S W) shows the 3D
-// map NAME from square X, Y alone, whatever the engine shows.
-
-// drawOpen draws the view openAt names.
-func (p *Presenter) drawOpen(dst *gpu.Image) {
-	f := strings.Split(openAt, ":")
-	if len(f) != 5 || f[0] != "map" {
-		log.Fatalf("open at %q: want map:NAME:X:Y:D", openAt)
-	}
-	x, _ := strconv.Atoi(f[2])
-	y, _ := strconv.Atoi(f[3])
-	d, _ := strconv.Atoi(f[4])
-	sc := p.sceneNamed(f[1])
-	if sc == nil {
-		log.Fatalf("open at %q: no map %s", openAt, f[1])
-	}
-	if p.shown != f[1] {
-		p.view.Show(sc, blobber.Camera{X: x, Y: y, Dir: d})
-		p.shown = f[1]
-		blobber.SetFlats(sc.Floor, sc.Ceiling)
-	}
-	p.animate()
-	p.view.Draw(dst)
-}
-
 // wallImage is Load: a texture of the game's series of the shared pool,
-// decoded when first drawn (the maps name their textures; walls.txt is the character table).
+// decoded when first drawn.
 func wallImage(name string) image.Image { return asset.WallImage(series, name) }
-
-// paintedWalls is Painted, from assets/walls/walls.txt: map character, then texture name.
-func paintedWalls() map[byte]string {
-	out := map[byte]string{}
-	b, _ := fs.ReadFile(art, "assets/walls/walls.txt")
-	for _, l := range strings.Split(string(b), "\n") {
-		if f := strings.Fields(strings.SplitN(l, "#", 2)[0]); len(f) == 2 && len(f[0]) == 1 {
-			out[f[0][0]] = f[1]
-		}
-	}
-	return out
-}
-
-// sceneNamed is the remastered map NAME, or nil (logged once).
-func (p *Presenter) sceneNamed(name string) *blobber.Scene {
-	p.newView()
-	if sc, ok := p.scenes[name]; ok {
-		return sc
-	}
-	var sc *blobber.Scene
-	gpu.Note("scene %s parsed", name)
-	if f, err := art.Open("maps/" + name + ".map"); err != nil {
-		log.Println("remaster:", err)
-	} else {
-		defer f.Close()
-		if sc, _, err = blobber.ParseScene(f); err != nil {
-			log.Printf("remaster: %s.map: %v", name, err)
-		}
-	}
-	p.scenes[name] = sc // nil too: a missing or broken map is logged once
-	return sc
-}
 
 // wallStyle puts Host.PixelWalls' wall style in use (newView: every scene
 // lookup, so a saved style holds from the first frame): the 3D view drops its
@@ -277,7 +223,6 @@ func (p *Presenter) newView() {
 			log.Fatalln("remaster:", err)
 		}
 		p.view.Load = wallImage
-		p.view.Painted = paintedWalls()
 	}
 }
 

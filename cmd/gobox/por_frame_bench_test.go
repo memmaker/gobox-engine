@@ -28,7 +28,7 @@ func frameFront(b *testing.B, dev string) *ui.Front {
 	}
 	seed := uint32(1)
 	eng.FixedSeed = &seed
-	data := poolData(eng, "por")
+	data := eng.Data()
 	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("")
 	f.Frame(1280, 800)

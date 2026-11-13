@@ -40,7 +40,7 @@ func TestStartupTiming(t *testing.T) {
 		t.Fatal(err)
 	}
 	lap("sound")
-	data := poolData(eng, "por")
+	data := eng.Data()
 	lap("Data")
 	g := ui.NewFront(ui.NewGame(eng, data), data, drv)
 	lap("NewFront")

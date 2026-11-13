@@ -208,6 +208,26 @@ type MapWalls struct {
 	Sun               bool    // the sun is up in the sky the rules paint
 	Mountains         bool    // the mountain range on the horizon, by day outside
 	SunAz, SunEl      float64 // the sun's bearing and height
+	Scenery           Scenery // the area's own water and props
+}
+
+// Scenery is what an area's 3D view shows besides walls and flats.
+type Scenery struct {
+	Water, Pond [][2]int // squares (x, y) drawn as water: sea that runs off the map, and ponds that do not
+	Sea         bool     // water off the map even with no water squares (a river along the edge)
+	Props       []Prop
+	TwoSided    []int // wall values also drawn on the open far side of their square's side (free-standing walls)
+}
+
+// Prop is a billboard (or with Ring, a hole in the floor) at floor position
+// X, Y in squares, in the pool series texture Tex.
+type Prop struct {
+	Tex   string
+	X, Y  float64
+	Size  float64     // its longest side in squares
+	Front float64     // > 0: while the party stands on its square, this far in front of the square's centre
+	Sink  float64     // its foot this far below the floor
+	Ring  *[3]float64 // a well: half width, half depth, rim width (Tex the rim); nil: a billboard
 }
 
 // Fighting: a battle is on.
