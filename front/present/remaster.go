@@ -252,7 +252,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 			v = *p.lastFight
 		}
 		p.board, p.boardParty, p.fly = ev.Board, ev.Party, ev.fly
-		v.Party = nil
+		v.Party = nil // no party cards over a replayed moment: the whose-turn card (drawFight) waits for the live board
 		v.Ask = nil
 	} else if live != nil {
 		p.lastFight = &v
