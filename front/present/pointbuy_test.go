@@ -88,8 +88,8 @@ func TestPointBuy(t *testing.T) {
 					got = b.Scores
 				}
 			}
-			if !slices.Equal(got, want) || g.note.Text != "" {
-				t.Fatalf("game got %v (%q), want %v", got, g.note.Text, want)
+			if !slices.Equal(got, want) || g.r.toast.Text != "" {
+				t.Fatalf("game got %v (%q), want %v", got, g.r.toast.Text, want)
 			}
 		})
 	}

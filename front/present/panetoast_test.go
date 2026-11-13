@@ -17,8 +17,8 @@ func TestPaneLineToast(t *testing.T) {
 	if err := g.do(play.Buy{}); err != nil {
 		t.Fatal(err)
 	}
-	if g.note.Text != "Doc buys a Rope" {
-		t.Fatalf("note %q", g.note.Text)
+	if g.r.toast.Text != "Doc buys a Rope" {
+		t.Fatalf("note %q", g.r.toast.Text)
 	}
 }
 

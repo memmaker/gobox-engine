@@ -42,33 +42,12 @@ func saveDir(d game.Data) string {
 }
 
 type rules struct {
-	g       play.Game
-	dir     string
-	items   game.ItemsUp
-	ask     *play.Ask     // gobox's own question up (a maneuver pick), nil none
-	moves   []play.Action // the actions ask's options stand for
-	aim     *squareAim
-	cursor  image.Point   // the free cursor's square
-	read    *game.Read    // the handout up, kept so the pointer holds while it does
-	sheet   int           // the member whose sheet is up, -1 none
-	itemsOf int           // the member whose items are up (OpenItems), -1: the acting or selected one
-	speedUp bool          // the Speed menu is up (SpeedMenu)
-	speed   int           // the game speed (SetSpeed, 0-9): a fight's moment holds speed × 100 ms, as the originals' message delay
-	rest    time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
-	walk    *walking      // the auto-walk under way, a square per walkPace (PaceWalk)
-	now     func() time.Time
-	held    play.Held    // the slot list read while the game waits (saves); run drops it
-	seq     uint64       // counts the changes: the front redraws on a new one
-	data    game.Data    // the series' data (verb keys, texts)
-	log     []string     // the fight's message log, from the outcomes' text
-	note    game.Note    // the status line's toast: the last refusal
-	walls   *game.Walls  // the 3D view last explored: a scene over it keeps it
-	camMap  game.Automap // the map last explored: camp keeps it
-	title   struct {     // the title as gobox steps it
-		n       int
-		credits bool
-		page    int
-	}
+	g    play.Game
+	dir  string
+	now  func() time.Time
+	held play.Held // the slot list read while the game waits (saves); run drops it
+	data game.Data // the series' data (verb keys, texts)
+	UI
 }
 
 // squareAim is an Aimed action whose squares the player is picking.
@@ -80,7 +59,7 @@ type squareAim struct {
 
 // newRules is the front state over g; d is the game's Data.
 func newRules(g play.Game, d game.Data) *rules {
-	return &rules{g: g, dir: saveDir(d), sheet: -1, data: d, speed: defaultSpeed, now: time.Now}
+	return &rules{g: g, dir: saveDir(d), data: d, now: time.Now, UI: UI{grid: image.Pt(40, 25), sheet: -1, speed: defaultSpeed}}
 }
 
 // who is n, or the selected member when n is -1.

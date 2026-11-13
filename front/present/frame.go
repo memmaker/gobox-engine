@@ -1,0 +1,79 @@
+// frame.go: the switch's skeleton (switch-spec.md). The presenter reads
+// the game's play.State, which the engine built and shares read-only, and
+// UI, the front's own state over it; nothing repacks the State.
+package present
+
+import (
+	"image"
+	"time"
+
+	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
+)
+
+// UI is what gobox has up over the game's state that the rules do not
+// know: its own questions, the aiming, the screens it opened, the paging,
+// the pacing and the toasts. Only the front writes it; game facts never
+// go here (they are play.State's).
+type UI struct {
+	grid       image.Point   // the page's size in cells (ActResize); 40x25 at least
+	items      game.ItemsUp  // the inventory screen up, gobox's (OpenItems)
+	itemsOf    int           // the member whose items are up (OpenItems), -1: the acting or selected one
+	ask        *play.Ask     // gobox's own question up (a maneuver pick), nil none
+	moves      []play.Action // the actions ask's options stand for
+	refusalAsk *play.Ask     // a Refusal's question put instead (answered by its options' Do)
+	aim        *squareAim    // an Aimed action's squares being picked
+	spellAim   *aiming       // a combat spell's squares being picked (Combat.Aims)
+	cursor     image.Point   // the free cursor's square
+	read       *game.Read    // the handout up, kept so the pointer holds while it does
+	sheet      int           // the member whose sheet is up, -1 none
+	lookSheet  int           // the look-only sheet up (a fight's View): member+1, 0 none
+	tiles      bool          // the weapon picker up is the pool bodies by original ref (TilePicker)
+	speedUp    bool          // the Speed menu is up (SpeedMenu)
+	speed      int           // the game speed (SetSpeed, 0-9): a fight's moment holds speed × 100 ms
+	rest       time.Duration // camp's rest still to go, a chunk per Step (PaceRest)
+	walk       *walking      // the auto-walk under way, a square per walkPace (PaceWalk)
+	seq        uint64        // counts the changes: the front redraws on a new one
+	log        []string      // the fight's message log, from the outcomes' text
+	note       game.Note     // the status line's toast: the last refusal
+	toast      front.Note    // the front's own toast (Added to journal, a refusal over the items)
+	lore       int           // journal notes seen (State.Lore), +1; 0: none counted yet
+	walls      *game.Walls   // the 3D view last explored: a scene over it keeps it
+	camMap     game.Automap  // the map last explored: camp keeps it
+	title      struct {      // the title as gobox steps it
+		n       int
+		credits bool
+		page    int
+	}
+}
+
+// Moment is one thing that happened, as the presenter plays it: the
+// rules' Report, how long it holds, and the board or party as they stood
+// then. Board and Party are snapshots, never modified; nil Board: the
+// live state's. A timed page or screen is Report.Page or Report.Screen,
+// drawn over the live state. It replaces front.CombatEvent (switch).
+type Moment struct {
+	play.Report
+	Ms    int           // how long it holds (0: no moment of its own)
+	Key   bool          // held until a key ("press any key"), not for Ms
+	Board *play.Combat  // in a fight: the board this moment shows
+	Party []game.Member // with Board: the party's figures then
+}
+
+// state is the game's state now, as the engine built it (read-only; nil:
+// no game set, SetEngine).
+func (p *Presenter) state() play.State {
+	if p.eng == nil {
+		return nil
+	}
+	return p.eng.G.State()
+}
+
+// ui is the front's own state over it (nil: no game set).
+func (p *Presenter) ui() *UI {
+	if p.eng == nil {
+		return nil
+	}
+	return &p.eng.r.UI
+}

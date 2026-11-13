@@ -14,8 +14,8 @@ import (
 // toast every screen draws, never silent.
 func TestRefusalNotes(t *testing.T) {
 	g := NewGame(&fake{st: play.Trading{}, err: errors.New("Not enough Money.")}, game.Data{})
-	if g.Buy(0) == nil || g.note.Text != "Not enough Money." {
-		t.Fatalf("note %q", g.note.Text)
+	if g.Buy(0) == nil || g.r.toast.Text != "Not enough Money." {
+		t.Fatalf("note %q", g.r.toast.Text)
 	}
 }
 

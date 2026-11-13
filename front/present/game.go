@@ -26,19 +26,12 @@ type Game struct {
 	D game.Data
 	r *rules // what gobox holds over G
 
-	grid       image.Point   // the page's size in cells (ActResize); 40x25 at least
 	events     []play.Report // the fight's events since the last Settle
 	lastCombat *play.Combat  // the fight before the step: its events play on it (Settle)
 	ended      *play.Combat  // that fight as the ending events so far left it
 	lastParty  []game.Member // the party before the step: the events' figures are theirs (a fight the party lost leaves none)
-	note       front.Note    // the front's own refusal toast
-	lore       int           // journal notes seen (State.Lore), +1; 0: none counted yet
 	resets     int
 	traceMode  game.Mode // the mode last traced
-	tiles      bool      // the weapon picker up is the pool bodies by original ref (TilePicker)
-	asked      *play.Ask // a Refusal's question put instead (answered by its options' Do)
-	aim        *aiming   // a combat spell's squares being picked (Combat.Aims)
-	sheet      int       // the look-only sheet up (a fight's View): member+1, 0 none
 }
 
 // aiming is the squares picked so far for spell, up to n.
@@ -50,7 +43,7 @@ type aiming struct {
 // NewGame is the *classicGame over p and d.
 func NewGame(p play.Game, d game.Data) *Game {
 	GameID = d.ID
-	return &Game{G: p, r: newRules(p, d), D: d, grid: image.Pt(40, 25)}
+	return &Game{G: p, r: newRules(p, d), D: d}
 }
 
 // do hands d to the rules, keeping its events; the refusal is the error.
@@ -72,7 +65,7 @@ func (g *Game) run(what string, step func() play.Result) error {
 	g.trace(what, res)
 	if g.combat() == nil && g.itemsUp() { // over the items the text pane is hidden: its new line (BR2's "Doc buys a ...", "not enough credits") is the toast
 		if t := paneTail(g.pane()); t != "" && (t != paneWas || paneCount(g.pane()) != linesWere) { // a new line, or the same one said again
-			g.note = front.Note{Text: t, At: time.Now()}
+			g.r.toast = front.Note{Text: t, At: time.Now()}
 		}
 	}
 	g.events = append(g.events, res.Events...)
@@ -81,11 +74,11 @@ func (g *Game) run(what string, step func() play.Result) error {
 			g.resets++
 		}
 		if e.Kind == game.EvMessage && strings.TrimSpace(e.Text) != "" && g.combat() == nil && g.itemsUp() { // over the items (the shop's "Brann buys a Broad Sword"): the toast on its bottom row, as a refusal's; the inventory plays no message
-			g.note = front.Note{Text: strings.TrimSpace(e.Text), At: time.Now()}
+			g.r.toast = front.Note{Text: strings.TrimSpace(e.Text), At: time.Now()}
 		}
 	}
 	if r, ok := res.Err.(*play.Refusal); ok && r.Ask != nil { // the question to put instead
-		g.asked = r.Ask
+		g.r.refusalAsk = r.Ask
 		return nil
 	}
 	if res.Err != nil && res.Err.Error() != "" { // a refusal always says why, whichever screen asked
@@ -157,16 +150,16 @@ func (g *Game) View() front.View {
 	c := play.CommonOf(ps)
 	art := g.art()
 	mode, pending := r.modeOf(ps), r.pending(ps)
-	if g.asked != nil {
-		mode, pending = game.ModeAsk, g.asked
+	if g.r.refusalAsk != nil {
+		mode, pending = game.ModeAsk, g.r.refusalAsk
 	}
 	party, sel := partyOf(ps), r.selectedOf(ps)
 	sheet, page := r.sheetOf(c), r.sheetPageOf(ps, party)
 	combat := r.combatOf(ps)
-	if n := g.sheet - 1; n >= 0 && n < len(party) && combat != nil { // the look-only sheet: the member's page, no powers
+	if n := g.r.lookSheet - 1; n >= 0 && n < len(party) && combat != nil { // the look-only sheet: the member's page, no powers
 		sel, sheet, page = n, &game.Sheet{}, cmp.Or(party[n].Page, game.MemberPage(party[n]))
 	} else {
-		g.sheet = 0
+		g.r.lookSheet = 0
 	}
 	amap, allowed, loot, shop := r.automapOf(ps), allowedOf(ps), lootOf(ps), shopOf(ps)
 	services, offers := templeOf(ps)
@@ -214,7 +207,7 @@ func (g *Game) View() front.View {
 		v.Logo = Title(v.Logo, art)
 	}
 	v.Battle = Battle(BattleOf(combat, party, art), combat, party)
-	if m := g.aim; m != nil && v.Battle != nil && combat != nil && len(v.Battle.AreaAt) == 0 { // the aimed spell's area, previewed
+	if m := g.r.spellAim; m != nil && v.Battle != nil && combat != nil && len(v.Battle.AreaAt) == 0 { // the aimed spell's area, previewed
 		for _, sp := range combat.Aims {
 			if sp.ID == m.spell {
 				v.Battle.AimArea = sp.Area + 1
@@ -241,21 +234,21 @@ func (g *Game) View() front.View {
 	v = Screen(v, image.Point{}, screenOf(ps), [16]color.RGBA{})
 	v.Read = r.readOf(ps)
 	v = Pacing(v, r.pacingOf(ps))
-	if n := len(c.Lore) + 1; g.lore > 0 && n > g.lore { // the journal gained a note: gobox says so, the game prints nothing
-		g.note = front.Note{Text: "Added to journal", At: time.Now()}
-		g.lore = n
-	} else if g.lore == 0 || n < g.lore { // the first look, a load or a new game: no news
-		g.lore = n
+	if n := len(c.Lore) + 1; g.r.lore > 0 && n > g.r.lore { // the journal gained a note: gobox says so, the game prints nothing
+		g.r.toast = front.Note{Text: "Added to journal", At: time.Now()}
+		g.r.lore = n
+	} else if g.r.lore == 0 || n < g.r.lore { // the first look, a load or a new game: no news
+		g.r.lore = n
 	}
 	if v.Note.Text == "" {
-		v.Note = g.note
+		v.Note = g.r.toast
 	}
-	v.Creation = Creation(mode, draft, pending, g.grid.X, g.grid.Y)
+	v.Creation = Creation(mode, draft, pending, g.r.grid.X, g.r.grid.Y)
 	v = PoolPortrait(v, own)
 	v = PoolIcon(v, own, page)
 	v.Training = Training(training, party, sel, c.Purse)
-	v.Picker = Picker(c.Picker, image.Point{}, 0, g.grid.X, g.grid.Y)
-	v.IconEditor = IconEditor(c.IconEditor, nil, own, &v.Ink, g.grid.X, g.grid.Y)
+	v.Picker = Picker(c.Picker, image.Point{}, 0, g.r.grid.X, g.r.grid.Y)
+	v.IconEditor = IconEditor(c.IconEditor, nil, own, &v.Ink, g.r.grid.X, g.r.grid.Y)
 	return v
 }
 
@@ -494,7 +487,7 @@ func (g *Game) Open(slot string) {
 }
 
 func (g *Game) Resets() int       { return g.resets }
-func (g *Game) Refuse(s string)   { g.note = front.Note{Text: s, At: time.Now()} }
+func (g *Game) Refuse(s string)   { g.r.toast = front.Note{Text: s, At: time.Now()} }
 func (g *Game) CombatStep() error { return g.step() }
 func (g *Game) RestStep() error   { return g.step() }
 func (g *Game) StoryStep() error  { return g.step() }
@@ -522,7 +515,7 @@ func (g *Game) SetField(f, o int) error {
 }
 func (g *Game) EndCreation(keep bool) error { return g.endCreation(keep) }
 func (g *Game) CreationView() *front.Creation {
-	return g.CreationOn(g.grid.X, g.grid.Y)
+	return g.CreationOn(g.r.grid.X, g.r.grid.Y)
 }
 func (g *Game) PointBuy(scores []int) error { return g.do(play.PointBuy{Scores: scores}) }
 func (g *Game) Roll(minimal bool, minimums string) error {
@@ -603,11 +596,11 @@ func (g *Game) LootStatus() error    { return g.do(play.LootStatus{}) }
 func (g *Game) LootPool() error      { return g.do(play.PoolCoins{Member: g.sel(-1)}) }
 func (g *Game) LootLeave(sure bool) error {
 	err := g.do(play.Leave{})
-	if a := g.asked; a != nil && slices.ContainsFunc(a.Options, func(o play.Option) bool { return o.Do != nil }) { // the game's own answers (POR: Yes stays, No leaves Sure): its question as it is
+	if a := g.r.refusalAsk; a != nil && slices.ContainsFunc(a.Options, func(o play.Option) bool { return o.Do != nil }) { // the game's own answers (POR: Yes stays, No leaves Sure): its question as it is
 		return nil
 	}
-	if a := g.asked; a != nil && (a.Kind == game.YesNo || a.Kind == game.Choice) { // no answers of its own: the presenter asks it as a Confirm, Yes leaving (Silver Blades and Pools of Darkness state it as a Yes/No Choice)
-		g.asked = nil
+	if a := g.r.refusalAsk; a != nil && (a.Kind == game.YesNo || a.Kind == game.Choice) { // no answers of its own: the presenter asks it as a Confirm, Yes leaving (Silver Blades and Pools of Darkness state it as a Yes/No Choice)
+		g.r.refusalAsk = nil
 		return front.Confirm(a.Prompt)
 	}
 	var r *play.Refusal
@@ -625,25 +618,25 @@ func (g *Game) OpenPicker(kind int) bool {
 	ok := g.do(play.OpenPicker{Kind: kind}) == nil
 	if kind == front.PickWeapon && play.CommonOf(g.r.g.State()).Picker == nil {
 		if n, _ := BodyTiles(g.Subject()); len(n) > 0 { // no pictures from the game: the pool's, by original ref
-			g.tiles = true
+			g.r.tiles = true
 			return true
 		}
 	}
 	return ok
 }
 func (g *Game) PickerView(page int) *front.Picker {
-	if g.tiles {
-		return g.TilesOf(page, g.grid.X, g.grid.Y)
+	if g.r.tiles {
+		return g.TilesOf(page, g.r.grid.X, g.r.grid.Y)
 	}
-	return g.PickerOf(play.CommonOf(g.r.g.State()).Picker, page, g.grid.X, g.grid.Y)
+	return g.PickerOf(play.CommonOf(g.r.g.State()).Picker, page, g.r.grid.X, g.r.grid.Y)
 }
 func (g *Game) Pick(i int) bool {
-	if g.tiles {
+	if g.r.tiles {
 		t := PickTile(g.Subject(), i)
 		if t == "" || g.SetChoice("iconbody", t) != nil {
 			return false
 		}
-		g.tiles = false
+		g.r.tiles = false
 		return true
 	}
 	g.do(play.Pick{N: i})
@@ -656,11 +649,11 @@ func (g *Game) SetChoice(field, id string) error {
 	_, err := g.r.g.Do(play.SetChoice{Field: field, Text: id})
 	return err
 }
-func (g *Game) ClosePicker()   { g.tiles = false; g.do(play.ClosePicker{}) }
+func (g *Game) ClosePicker()   { g.r.tiles = false; g.do(play.ClosePicker{}) }
 func (g *Game) EditIcon(n int) { g.do(play.EditIcon{Member: n}) }
 func (g *Game) IconEditorView() *front.IconEditor {
 	ink := g.View().Ink
-	return g.IconEditorOn(&ink, g.grid.X, g.grid.Y)
+	return g.IconEditorOn(&ink, g.r.grid.X, g.r.grid.Y)
 }
 func (g *Game) IconSize() { g.do(play.IconSize{}) }
 func (g *Game) IconColour(part, shade, v int) {
@@ -732,20 +725,20 @@ func (g *Game) OpenSheet(n int) error {
 	if n < 0 || n >= len(g.party()) {
 		return nil
 	}
-	g.sheet = n + 1
+	g.r.lookSheet = n + 1
 	return nil
 }
 
 func (g *Game) CloseSheet() error {
-	if g.sheet > 0 {
-		g.sheet = 0
+	if g.r.lookSheet > 0 {
+		g.r.lookSheet = 0
 		return nil
 	}
 	return g.run("closeSheet", g.r.closeSheet)
 }
 func (g *Game) ShowMember(n int) error {
-	if g.sheet > 0 && n >= 0 && n < len(g.party()) { // another member's look-only sheet
-		g.sheet = n + 1
+	if g.r.lookSheet > 0 && n >= 0 && n < len(g.party()) { // another member's look-only sheet
+		g.r.lookSheet = n + 1
 		return nil
 	}
 	return g.run("showMember", func() play.Result { return g.r.showMember(n) })
@@ -847,12 +840,12 @@ func (g *Game) WalkTo(x, y int) bool {
 
 // JournalPage is the journal text laid out on the page (Data.Scans has its pictures).
 func (g *Game) JournalPage(title string, lines []string, p, off int) (*front.Pages, int) {
-	return JournalPage(title, lines, p, off, g.grid.X, g.grid.Y, [16]color.RGBA{}, g.D.Scans)
+	return JournalPage(title, lines, p, off, g.r.grid.X, g.r.grid.Y, [16]color.RGBA{}, g.D.Scans)
 }
 
 // SpeakPage has the game voice the page, in place of the page voiced before.
 func (g *Game) SpeakPage(lines []string, p int) {
-	g.run("speak", func() play.Result { return g.r.speak(SpeakKeys(lines, p, g.grid.X, g.grid.Y)) })
+	g.run("speak", func() play.Result { return g.r.speak(SpeakKeys(lines, p, g.r.grid.X, g.r.grid.Y)) })
 }
 
 // ClueChapters and ClueRead are Data.Clues.
@@ -877,10 +870,10 @@ func (g *Game) Answer(a front.Action) error {
 	}
 	if a.Kind == front.ActResize {
 		err := error(nil)
-		g.grid = image.Pt(40, 25) // the page the game shows: its Cells, else the original's (a game that keeps its page lays nothing out wider)
+		g.r.grid = image.Pt(40, 25) // the page the game shows: its Cells, else the original's (a game that keeps its page lays nothing out wider)
 		return err
 	}
-	if m := g.aim; m != nil { // up to n squares, then the cast; Enter casts on those picked, Esc gives up
+	if m := g.r.spellAim; m != nil { // up to n squares, then the cast; Enter casts on those picked, Esc gives up
 		switch {
 		case a.Kind == front.ActAim:
 			if m.ats = append(m.ats, image.Pt(a.X, a.Y)); len(m.ats) < m.n {
@@ -888,15 +881,15 @@ func (g *Game) Answer(a front.Action) error {
 			}
 		case a.Kind == front.ActOK && len(m.ats) > 0:
 		case a.Kind == front.ActClose:
-			g.aim, g.asked = nil, nil
+			g.r.spellAim, g.r.refusalAsk = nil, nil
 			return nil
 		default:
 			return nil
 		}
-		g.aim, g.asked = nil, nil
+		g.r.spellAim, g.r.refusalAsk = nil, nil
 		return g.do(play.Cast{Member: -1, Spell: m.spell, Ats: m.ats})
 	}
-	if announced(g.r.g.State()) && g.asked == nil {
+	if announced(g.r.g.State()) && g.r.refusalAsk == nil {
 		if a.Kind != front.ActOK && a.Kind != front.ActClose {
 			return nil
 		}
@@ -908,16 +901,16 @@ func (g *Game) Answer(a front.Action) error {
 		if c := g.combat(); c != nil {
 			for _, sp := range c.Aims {
 				if sp.ID == a.N {
-					g.aim = &aiming{spell: sp.ID, n: max(sp.Targets, 1)}
-					g.asked = &play.Ask{Kind: game.Square, Prompt: "Aim " + sp.Name}
+					g.r.spellAim = &aiming{spell: sp.ID, n: max(sp.Targets, 1)}
+					g.r.refusalAsk = &play.Ask{Kind: game.Square, Prompt: "Aim " + sp.Name}
 					return nil
 				}
 			}
 			return g.do(play.Cast{Member: -1, Spell: a.N})
 		}
 	}
-	if q := g.asked; q != nil { // a Refusal's question: an option's Do, or anything else drops it
-		g.asked = nil
+	if q := g.r.refusalAsk; q != nil { // a Refusal's question: an option's Do, or anything else drops it
+		g.r.refusalAsk = nil
 		i := yesNoOption(q, a.Kind) // a Yes/No with its own options: the one labelled so
 		if (a.Kind == front.ActChoose || a.Kind == front.ActOK) && a.N >= 0 && a.N < len(q.Options) {
 			i = a.N
@@ -1136,15 +1129,15 @@ func (g *Game) itemsUp() bool        { return g.r.itemsUp(g.r.g.State()) != game
 
 // pending is the question up, a Refusal's first.
 func (g *Game) pending() *play.Ask {
-	if g.asked != nil {
-		return g.asked
+	if g.r.refusalAsk != nil {
+		return g.r.refusalAsk
 	}
 	return g.r.pending(g.r.g.State())
 }
 
 // mode is the screen up, a Refusal's question counted.
 func (g *Game) mode() game.Mode {
-	if g.asked != nil {
+	if g.r.refusalAsk != nil {
 		return game.ModeAsk
 	}
 	return g.r.modeOf(g.r.g.State())
@@ -1178,7 +1171,7 @@ func (g *Game) Asked() *play.Ask { return g.pending() }
 // pick or question (PickSpell, PickMember, Confirm), which the presenter
 // asks before making the call again with the answer.
 func (g *Game) asking(err error) error {
-	a := g.asked
+	a := g.r.refusalAsk
 	if a == nil {
 		return err
 	}
@@ -1195,13 +1188,13 @@ func (g *Game) asking(err error) error {
 			}
 			ps = append(ps, front.Spell{ID: id, Name: o.Label})
 		}
-		g.asked = nil
+		g.r.refusalAsk = nil
 		return ps
 	case game.PickMember:
-		g.asked = nil
+		g.r.refusalAsk = nil
 		return front.PickMember(a.Prompt)
 	case game.YesNo:
-		g.asked = nil
+		g.r.refusalAsk = nil
 		return front.Confirm(a.Prompt)
 	}
 	return err
