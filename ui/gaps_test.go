@@ -127,7 +127,7 @@ func TestGaps(t *testing.T) {
 		{"br intimidate", play.Fighting{Common: allow(play.Intimidate{}, play.Jetpack{})}, tAnswer{N: 'I'}, play.Intimidate{},
 			func(s shown) bool {
 				o := s.Combat.Turn.Options
-				return slices.ContainsFunc(o, func(x play.Option) bool { return x.Label == "Jetpack" && x.Do == play.Action(play.Reply{N: 'J'}) })
+				return slices.ContainsFunc(o, func(x play.Option) bool { return x.Label == "Jetpack" && x.Do == play.Action(play.Jetpack{}) })
 			}},
 		{"br target", play.Fighting{Common: allow(play.Target{})}, tAnswer{N: 'T'}, play.Target{}, nil},
 		{"br view", play.Fighting{Common: allow(play.ViewTarget{})}, tAnswer{N: 'V'}, play.ViewTarget{}, nil},

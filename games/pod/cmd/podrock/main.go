@@ -22,7 +22,7 @@ import (
 const ceilRows, size = 44, 256
 
 func main() {
-	game, pool := "../../data/pod/extras/gog", "../../walls/series/pool"
+	game, pool := "../../data/pod/extras/gog", "../../asset/walls/series/pool"
 	if len(os.Args) > 1 {
 		game = os.Args[1]
 	}

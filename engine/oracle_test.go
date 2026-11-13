@@ -227,7 +227,7 @@ func recs(t *testing.T, file string, n int) []*rules1e.Rec {
 	return out
 }
 
-var layouts = []string{"../char/testdata/cotab.json", "../char/testdata/sotsb.json"}
+var layouts = []string{"../rules1e/testdata/cotab.json", "../rules1e/testdata/sotsb.json"}
 
 func TestSavingThrow(t *testing.T) {
 	signedDiffers := 0

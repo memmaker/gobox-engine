@@ -81,13 +81,13 @@ func coreNames(t *testing.T) map[string]string {
 	return names
 }
 
-// caseName is the core name a case expression mentions: core.T, core.T{...}.
+// caseName is the rules name a case expression mentions: rules.T, rules.T{...}.
 func caseName(e ast.Expr) string {
 	if c, ok := e.(*ast.CompositeLit); ok {
 		e = c.Type
 	}
 	if s, ok := e.(*ast.SelectorExpr); ok {
-		if x, ok := s.X.(*ast.Ident); ok && x.Name == "core" {
+		if x, ok := s.X.(*ast.Ident); ok && x.Name == "rules" {
 			return s.Sel.Name
 		}
 	}
