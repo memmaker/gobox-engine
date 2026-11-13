@@ -405,8 +405,17 @@ func LoadAmiga(path string) (Amiga, error) {
 	if err != nil {
 		return nil, err
 	}
+	p, err := AmigaPlayer(img)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
+	return p, nil
+}
+
+// AmigaPlayer is the Amiga's sound player over SOUND.BIN's image img.
+func AmigaPlayer(img []byte) (Amiga, error) {
 	if len(img) != orig.End-orig.Base {
-		return nil, fmt.Errorf("%s: %d bytes, want %d (run the import again)", path, len(img), orig.End-orig.Base)
+		return nil, fmt.Errorf("%d bytes, want %d (run the import again)", len(img), orig.End-orig.Base)
 	}
 	p := orig.NewPlayer(img)
 	p.SongOn = 0x667d5
