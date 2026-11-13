@@ -12,7 +12,7 @@ func TestPaula(t *testing.T) {
 		b    byte
 		want int16
 	}{{0x9c, 0}, {100, 12800}} {
-		p := New(make([]byte, End-Base))
+		p := AmigaNew(make([]byte, End-Base))
 		p.frac = 1e9 // no player ticks
 		p.wb(0x65000, 100)
 		p.wb(0x65001, c.b)

@@ -5,8 +5,8 @@ import (
 	"errors"
 )
 
-// Blocks unpacks a DAX file into blocks indexed by id.
-func Blocks(f []byte) ([][]byte, error) {
+// GlbrBlocks unpacks a DAX file into blocks indexed by id.
+func GlbrBlocks(f []byte) ([][]byte, error) {
 	if len(f) < 2 {
 		return nil, errors.New("dax: short")
 	}

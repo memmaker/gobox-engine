@@ -52,20 +52,20 @@ func TestMIDIEqualsAdLib(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		music, err := glbr.Blocks(dax)
+		music, err := glbr.GlbrBlocks(dax)
 		if err != nil {
 			t.Fatal(f, err)
 		}
 		n := 0
 		for id, b := range music {
-			if glbr.New(b, 0, func(int, byte) {}, false) == nil {
+			if glbr.GlbrNew(b, 0, func(int, byte) {}, false) == nil {
 				continue
 			}
 			mid, voices, err := glbr.SongMIDI(b, 0)
 			if err != nil {
 				t.Fatal(f, id, err)
 			}
-			wantR, wantP := render(func(w func(int, byte)) *glbr.Sequencer { return glbr.New(b, 0, w, false) }, 5)
+			wantR, wantP := render(func(w func(int, byte)) *glbr.Sequencer { return glbr.GlbrNew(b, 0, w, false) }, 5)
 			gotR, gotP := render(func(w func(int, byte)) *glbr.Sequencer {
 				s, err := glbr.NewMIDI(mid, voices, w)
 				if err != nil {

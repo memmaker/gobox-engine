@@ -8,14 +8,14 @@ import (
 
 const bsize = 512
 
-// File is one file of the disk, Path relative to the root ("dir/name").
-type File struct {
+// AdfFile is one file of the disk, Path relative to the root ("dir/name").
+type AdfFile struct {
 	Path string
 	Data []byte
 }
 
 // Read returns the volume name and every file of an 880K/1760K image.
-func Read(img []byte) (string, []File, error) {
+func Read(img []byte) (string, []AdfFile, error) {
 	if len(img) < 1760*bsize || string(img[:3]) != "DOS" {
 		return "", nil, errors.New("not an Amiga DOS disk")
 	}
@@ -39,7 +39,7 @@ func Read(img []byte) (string, []File, error) {
 	if u32(root, 0) != 2 || u32(root, bsize-4) != 1 {
 		return "", nil, errors.New("no root block")
 	}
-	var files []File
+	var files []AdfFile
 	seen := map[uint32]bool{}
 	var walk func(dir []byte, prefix string)
 	walk = func(dir []byte, prefix string) {
@@ -55,7 +55,7 @@ func Read(img []byte) (string, []File, error) {
 				case 2: // directory
 					walk(b, p+"/")
 				case -3: // file
-					files = append(files, File{p, readFile(b, blk, u32, ffs)})
+					files = append(files, AdfFile{p, readFile(b, blk, u32, ffs)})
 				}
 				h = u32(b, bsize-16) // hash chain
 			}

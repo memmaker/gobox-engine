@@ -216,7 +216,7 @@ func (e *Engine) battleMusic() {
 func (e *Engine) SoundParts() (*amiga.Player, []int, interface{ Mix([]byte) }, func() bool, func(string) float64) {
 	var am *amiga.Player
 	if img, err := os.ReadFile(filepath.Join(e.adv, SoundDir, "SOUND.BIN")); err == nil && len(img) == amiga.End-amiga.Base {
-		am = amiga.New(img)
+		am = amiga.AmigaNew(img)
 		am.SongOn = 0x667d5
 	}
 	e.snd.dasp = loadDasp(filepath.Join(e.adv, SoundDir, daspDir))

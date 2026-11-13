@@ -26,7 +26,7 @@ func TestGolden(t *testing.T) {
 	}
 	var got strings.Builder
 	play := func(name string, start func(p *Player), secs int) {
-		p := New(append([]byte(nil), img...))
+		p := AmigaNew(append([]byte(nil), img...))
 		p.SongOn = 0x667d5
 		h := sha256.New()
 		p.trace = func(off, size int, v uint32) {

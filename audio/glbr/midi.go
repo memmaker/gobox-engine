@@ -69,7 +69,7 @@ var ErrNotSong = errors.New("not a GLBR song")
 // file and its voices.
 func SongMIDI(b []byte, div int) ([]byte, []OPLVoice, error) {
 	var ev []scoreEvent
-	s := New(b, div, func(int, byte) {}, false)
+	s := GlbrNew(b, div, func(int, byte) {}, false)
 	if s == nil {
 		return nil, nil, ErrNotSong
 	}
@@ -204,7 +204,7 @@ const MusicDir = "sound/music"
 // OPLVoices); it returns the blocks written. Blocks that are no song are left
 // out.
 func WriteSongs(music []byte, tempo int, dir string) ([]int, error) {
-	blocks, err := Blocks(music)
+	blocks, err := GlbrBlocks(music)
 	if err != nil {
 		return nil, err
 	}

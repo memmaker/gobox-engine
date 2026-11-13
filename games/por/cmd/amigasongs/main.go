@@ -38,7 +38,7 @@ func main() {
 		log.Fatal(err)
 	}
 	for song := 1; song <= 7; song++ {
-		p := amiga.New(img)
+		p := amiga.AmigaNew(img)
 		p.SongOn = 0x667d5
 		p.Song(song)
 		pcm := make([]byte, secs*rate*4) // s16 stereo

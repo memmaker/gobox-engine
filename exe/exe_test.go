@@ -34,7 +34,7 @@ func TestLoadSynthetic(t *testing.T) {
 	v := b[48:]
 	binary.LittleEndian.PutUint16(v[12:], 1)
 	copy(v[16:], "RB")
-	im, err := unpack(b, 3)
+	im, err := exeUnpack(b, 3)
 	if err != nil {
 		t.Fatal(err)
 	}

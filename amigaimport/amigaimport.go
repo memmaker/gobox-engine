@@ -79,7 +79,7 @@ func (s Spec) archive(name string) string {
 
 // Import reads the .adf images under src and writes to out.
 func Import(src, out string, s Spec) error {
-	var disk []adf.File
+	var disk []adf.AdfFile
 	var snd []byte
 	var title image.Image
 	var exe []byte
@@ -98,7 +98,7 @@ func Import(src, out string, s Spec) error {
 		n := 0
 		for _, f := range files {
 			if s.Program != "" && strings.EqualFold(f.Path, s.Program) && snd == nil {
-				snd = amiga.Image(f.Data)
+				snd = amiga.AmigaProgramImage(f.Data)
 			}
 			if s.Exe != "" && strings.EqualFold(f.Path, s.Exe) && exe == nil {
 				exe = f.Data
@@ -263,7 +263,7 @@ var osDirs = map[string]bool{"c": true, "devs": true, "l": true, "libs": true, "
 // logSkipped reports the data disks' files that were neither converted nor
 // copied, with the game's reason (Spec.Skip). AmigaOS files, icons, saved
 // games (save) and files without an extension (programs) are not game data.
-func logSkipped(disk []adf.File, s Spec) {
+func logSkipped(disk []adf.AdfFile, s Spec) {
 	for _, f := range disk {
 		dir, _, _ := strings.Cut(strings.ToLower(f.Path), "/")
 		base := f.Path[strings.LastIndex(f.Path, "/")+1:]
@@ -297,7 +297,7 @@ func firstReason(reasons ...string) (string, bool) {
 }
 
 // marked: the disk's volume or one of its files is a marker.
-func marked(vol string, files []adf.File, marks []string) bool {
+func marked(vol string, files []adf.AdfFile, marks []string) bool {
 	for _, m := range marks {
 		if strings.EqualFold(vol, m) {
 			return true

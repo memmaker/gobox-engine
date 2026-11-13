@@ -12,14 +12,14 @@ import (
 	"strings"
 )
 
-// Image is the unpacked load image plus the data segment offset.
-type Image struct {
+// ExeImage is the unpacked load image plus the data segment offset.
+type ExeImage struct {
 	Mem []byte
 	DS  int // byte offset of the Turbo Pascal data segment (paragraph*16) inside Mem
 }
 
 // LoadArg loads a command-line argument PATH:DS (the tools' way to name an image).
-func LoadArg(arg string) (*Image, error) {
+func LoadArg(arg string) (*ExeImage, error) {
 	i := strings.LastIndex(arg, ":")
 	if i < 0 {
 		return nil, fmt.Errorf("%q: want PATH:DS", arg)
@@ -33,15 +33,15 @@ func LoadArg(arg string) (*Image, error) {
 
 // Load reads and unpacks path; ds is the game's data-segment paragraph
 // (DS = ds*16), see API.md.
-func Load(path string, ds int) (*Image, error) {
+func Load(path string, ds int) (*ExeImage, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	return unpack(b, ds)
+	return exeUnpack(b, ds)
 }
 
-func unpack(b []byte, ds int) (*Image, error) {
+func exeUnpack(b []byte, ds int) (*ExeImage, error) {
 	if len(b) < 0x20 || string(b[:2]) != "MZ" {
 		return nil, errors.New("not an MZ executable")
 	}
@@ -91,11 +91,11 @@ func unpack(b []byte, ds int) (*Image, error) {
 	}
 	// unconsumed leading bytes are stored as-is
 	copy(out[dst-i:dst], packed[:i])
-	return &Image{Mem: out, DS: ds * 16}, nil
+	return &ExeImage{Mem: out, DS: ds * 16}, nil
 }
 
 // Bytes returns n bytes at DS:ofs, or nil if out of range.
-func (im *Image) Bytes(ofs, n int) []byte {
+func (im *ExeImage) Bytes(ofs, n int) []byte {
 	p := im.DS + ofs
 	if p < 0 || n < 0 || p+n > len(im.Mem) {
 		return nil

@@ -25,7 +25,7 @@ func main() {
 	if *spec == "" || flag.NArg() < 1 {
 		log.Fatal("usage: tablegen -spec tables.json [-pkg engine] START.EXE:DS [OTHER.EXE:DS ...]")
 	}
-	var imgs []*exe.Image
+	var imgs []*exe.ExeImage
 	for _, a := range flag.Args() {
 		im, err := exe.LoadArg(a)
 		if err != nil {
@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var tables []tablespec.Table
+	var tables []tablespec.TablespecTable
 	if err := json.Unmarshal(raw, &tables); err != nil {
 		log.Fatal(err)
 	}

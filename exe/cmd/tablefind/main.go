@@ -32,7 +32,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var sources []*exe.Image
+	var sources []*exe.ExeImage
 	for _, a := range flag.Args() {
 		im, err := exe.LoadArg(a)
 		if err != nil {
@@ -44,7 +44,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var tables []tablespec.Table
+	var tables []tablespec.TablespecTable
 	if err := json.Unmarshal(raw, &tables); err != nil {
 		log.Fatal(err)
 	}

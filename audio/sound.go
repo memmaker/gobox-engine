@@ -344,7 +344,7 @@ func NewPlayer(c Config) (*Player, error) {
 	}
 	s.on = true
 	if len(c.Amiga) == amiga.End-amiga.Base {
-		s.am = amiga.New(c.Amiga)
+		s.am = amiga.AmigaNew(c.Amiga)
 		s.am.SongOn = c.AmigaSongOn
 	}
 	if s.typ != sndNone { // soundInit: with a card, the timer interrupt hooked, song 0 on both sets

@@ -39,8 +39,8 @@ type voice struct {
 	pos          float64
 }
 
-// New wants the bytes from Base to End.
-func New(img []byte) *Player {
+// AmigaNew wants the bytes from Base to End.
+func AmigaNew(img []byte) *Player {
 	return &Player{m: append([]byte(nil), img...)}
 }
 
@@ -1017,10 +1017,10 @@ func (p *Player) Render(out []byte, rate int) {
 	}
 }
 
-// Image flattens the Amiga "program" hunk executable the way it runs here
+// AmigaProgramImage flattens the Amiga "program" hunk executable the way it runs here
 // (hunks at 4K-aligned bases from 0x10000, relocated) and returns Base..End,
 // or nil if it isn't Pool of Radiance.
-func Image(exe []byte) (img []byte) {
+func AmigaProgramImage(exe []byte) (img []byte) {
 	defer func() {
 		if recover() != nil {
 			img = nil
