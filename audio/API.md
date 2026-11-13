@@ -23,7 +23,7 @@ func (*Synth) Hook(); func (*Synth) Unhook()
 func (*Synth) Song() int
 func (*Synth) Render([]byte) int // s16le stereo 44100 Hz, unscaled
 
-// The full driver, a front.Sound (gobox/front/sound.go): PlaySound with the 0.1 s cut,
+// The full driver, a ui.Sound (gobox/ui): PlaySound with the 0.1 s cut,
 // card switching, Amiga songs, soundtrack recordings and voice ducking. Locked; Read is the mixer.
 const (Tandy = iota; Speaker; None)              // SetCard values
 func NewDriver(data []byte, card byte) (*Driver, error) // 44100 Hz
@@ -38,8 +38,8 @@ type Pack interface{ Mix(p []byte) }
 ```
 present.NewFront(g) builds a Tandy Driver from Data.Sounds (Amiga from Data.AmigaSound) when no
 front.Sound is passed; NewFront(g, drv) shares the game's own. Lock order: driver, then voice, then pack.
-Generator: `go -C ../gobox-engine/audio run ./cmd/sounddata <flags> START.EXE > sounddata.json` (`go run gobox/audio/...` works only from a module that requires gobox/audio).
-Switch, all games: `require gobox/audio v0.0.0`, `replace gobox/audio => ../gobox-engine/audio`; delete the
+Generator: `go -C ../gobox-engine/audio run ./cmd/sounddata <flags> START.EXE > sounddata.json` (`go run gobox/audio/...` works from any module that requires gobox).
+Switch, all games: `require gobox v0.0.0`, `replace gobox => ../gobox-engine`, `replace gobox/rules => ../gobox-engine/rules`; delete the
 game's sound.go, sounddata.go, amiga/, volume_*.go; embed the JSON; `NewPlayer`, `audio.Output(p)`.
 - cotab: `Card: Cfg.Sound, Dir: *dir`, Volume = the old volume_js.go logic; EvSound n -> `p.Play(n)`, `Play(255)` on Exit.
   `-segment 0x699 -jumptable 356 -speakerset 368 -tandyset 778 -speakersongs 1186 -tandysongs 1354 -songs 21

@@ -1,4 +1,4 @@
-# gobox/amiga: Amiga Pool of Radiance / CotAB / SotSB sound (Paula + Wally Beben player)
+# gobox/asset/orig (amiga): Amiga Pool of Radiance / CotAB / SotSB sound (Paula + Wally Beben player)
 
 Pure Go, no deps. Plays the game's own 68000 sound code over its memory image.
 
@@ -16,8 +16,8 @@ p.Playing() / p.Sounding()     music has the channels / a song (not a one-shot j
 Test: `AMIGA_SOUND=path/to/SOUND.BIN go test` checks testdata/golden.txt (skipped otherwise).
 
 ## Switch steps (per game)
-1. go.mod: `require gobox/amiga v0.0.0` and `replace gobox/amiga => ../gobox-engine/amiga`.
-2. Change imports `"<game>/amiga"` to `"gobox/amiga"`; same names (New, Base, End, Image, Title, Render, Effect, Song, Playing).
+1. go.mod: `require gobox v0.0.0`, `replace gobox => ../gobox-engine` and `replace gobox/rules => ../gobox-engine/rules` (one module: every package below imports as `gobox/<dir>`).
+2. Change imports `"<game>/amiga"` to `"gobox/asset/orig"`; same names (NewPlayer, AmigaImage, ...).
 3. por: nothing else (uses Sounding). cotab/sotsb: calls unchanged (Playing, Effect, Render); they never call Title.
 4. Delete `<game>/amiga` and its imports; `go vet ./... && go test ./...`.
 5. All games: set `p.SongOn` after New (no default any more; 0x667d5 in por's SOUND.BIN) -- Sounding and the music player read it.

@@ -45,7 +45,7 @@ but read Engine fields (party, monsters, sc.*); they could join once those sit b
 
 Both games (cotab-go, sotsb-go `engine/`):
 
-1. go.mod: `require gobox/ecl v0.0.0` + `replace gobox/ecl => ../gobox-engine/ecl`.
+1. go.mod: `require gobox v0.0.0`, `replace gobox => ../gobox-engine` and `replace gobox/rules => ../gobox-engine/rules` (one module: every package below imports as `gobox/<dir>`).
 2. `eclvm.go`: delete scriptArea*/Code* consts, addrKindOf, readArgs, arg, varAddr, letterOf, unpackText, codeByte/setCodeByte,
    compareValues/Texts, scriptCall (about 170 of 322 lines). Keep `script` but replace `code`, `pc`, `argType/Lo/Hi`, `text`, `flags`, `calls`,
    `command`, `lastCommand`, `stop` with an embedded/owned `*ecl.VM` (`e.sc.vm`). `e.readArgs(n)` -> `e.sc.vm.ReadArgs(n)`,

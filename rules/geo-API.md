@@ -1,4 +1,4 @@
-# gobox/geo API
+# gobox/rules API: geo
 Pure parser: block bytes in (caller's own dax), plain values out. No dax, no engine state, no drawing.
 
 - `ParseMap(b) (*Map, error)`: GEO block (at least 0x402 bytes, else `ErrSize`; longer ones are cut). `ParseWalldef` of a block shorter than one 0x30C chunk is an empty Walldef, not an error. `Map.Plane` is the 4 planes; `Map.SolidEdges` set by game.
@@ -14,7 +14,7 @@ Pure parser: block bytes in (caller's own dax), plain values out. No dax, no eng
 - Stay game-side: sky colours, overhead flag, the 0x7F second-sky-word rule (not in cotab's current geo.go; unverified), Draw3DView, event/area-word writes, OxXXX addresses.
 
 ## Switch steps (per game)
-1. go.mod: `require gobox/geo v0.0.0` + `replace gobox/geo => ../gobox-engine/geo`.
+1. go.mod: `require gobox v0.0.0`, `replace gobox => ../gobox-engine` and `replace gobox/rules => ../gobox-engine/rules` (one module: every package below imports as `gobox/rules`).
 2. geoState.geo -> `*geo.Map`; LoadGeo: `m, err := geo.ParseMap(daxBlock)`; on err report as now; set `m.SolidEdges` per query/area change.
 3. WallAt/DoorAt/MapCell delegate to Map; delete onMap/wrap/validWallSlot copies.
 4. LoadWalldef: `geo.ParseWalldef` (+Fits, Relocate, SymbolBlock); delete walldefSet/SetSize constants.

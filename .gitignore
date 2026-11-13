@@ -1,7 +1,6 @@
-blobber/art/
-blobber/cmd/
-blobber/settings.json
-blobber/.claude/
+/ui/blobber
+/ui/blobber.sav
+/ui/settings.json
 por-switch.patch
 .DS_Store
 crash_logs/
@@ -15,6 +14,6 @@ crash_logs/
 # build output
 /gobox
 games/*/bin/
-sprites/cmd/poolsprites/poolsprites
+asset/cmd/poolsprites/poolsprites
 games/pod/tools/music/render/podmusicrender
-ui/fonts/cmd/fontexport/fontexport
+asset/cmd/fontexport/fontexport

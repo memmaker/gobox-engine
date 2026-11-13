@@ -1,4 +1,4 @@
-# gobox/combat API (3D tabletop combat map; needs gpu, input)
+# gobox/ui API: combat (3D tabletop combat map; needs gpu, input)
 
 Reads a `Board` snapshot, draws figurines on a wooden table, returns `Decision`s. The camera turns in eighths (XCOM style).
 

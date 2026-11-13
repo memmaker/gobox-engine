@@ -1,4 +1,4 @@
-# gobox/front API (first cut)
+# gobox/ui API: front (first cut)
 
 The shared front end: main menu, party setup, character creation, save/load
 slots. Pool of Radiance is the template. Imports nothing but the stdlib so far.

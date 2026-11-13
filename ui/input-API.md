@@ -1,4 +1,4 @@
-# gobox/input API (pure Go, no window; module gobox/input)
+# gobox/input API (pure Go, no window; part of gobox/ui)
 
 Names what a key does. The game owns the key table (code -> Act by context); screens switch on Act, never on the code.
 

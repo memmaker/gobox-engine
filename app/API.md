@@ -1,4 +1,4 @@
-# gobox/app API (module gobox/app; app needs a window, app/saves is pure Go)
+# gobox/app API (package gobox/app; app needs a window, app/saves is pure Go)
 
 The app shell: the window, the frame loop, fullscreen and the window's
 shape, a scripted capture's clock and screenshots, and save slots on disk.

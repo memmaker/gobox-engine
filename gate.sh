@@ -87,25 +87,22 @@ test_touched() {
 
 check gobox-engine/rules1e ./...
 check rulesxxvc ./...
-check gobox-engine/core ./...
+check gobox-engine/rules ./...
 fixed='Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
-# POR's engine (gobox-engine/pool): the fixed set, and the slow tests the touched run skips.
-if [ -d "$out/gobox-engine/pool" ]; then
-  # pool's tests read POR's imported data (scripts, data/assets/data) and fail without it: the import
-  # (games/por cmd/importstale, a no-op without the game files) runs first, here, not in the tests.
-  (cd "$out/gobox-engine/games/por" && go run ./cmd/importstale)
-  check gobox-engine/pool . -run "$fixed"
-  (cd "$out/gobox-engine/pool" && go test . -run "$slow")
-fi
+# POR's engine (gobox-engine/engine): the fixed set, and the slow tests the touched run skips.
+# Its tests read POR's imported data (scripts, data/assets/data) and fail without it: the import
+# (games/por cmd/importstale, a no-op without the game files) runs first, here, not in the tests.
+(cd "$out/gobox-engine" && go run ./games/por/cmd/importstale)
+check gobox-engine/engine . -run "$fixed"
+(cd "$out/gobox-engine/engine" && go test . -run "$slow")
 check gobox-engine/games/por ./rules4e -run "$fixed"
 test_touched gobox-engine
 
 # Other games build against gobox-engine outside core, from what is staged in them (their HEAD when nothing is).
-if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --name-only | grep -qv '^core/\|\.md$\|^gate.sh$'; then
-  for g in cotab sotsb pod; do
-    echo "== games/$g"
-    (cd "$out/gobox-engine/games/$g" && go build ./... && go vet ./...)
-  done
+if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --name-only | grep -qv '^rules/\|\.md$\|^gate.sh$'; then
+  # The games and the rest are packages of the one gobox module (rules is the nested one, checked above).
+  echo "== gobox-engine (all packages)"
+  (cd "$out/gobox-engine" && go build ./... && go vet ./...)
   for repo in "${games[@]}"; do
     echo "== $repo"
     t=$SECONDS

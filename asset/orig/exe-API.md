@@ -1,4 +1,4 @@
-# gobox/exe API
+# gobox/asset/orig (exe) API
 
 Unpacks an EXEPACK-compressed Gold Box START.EXE (Turbo Pascal) so a game can read
 its data tables at run time.
@@ -10,8 +10,8 @@ its data tables at run time.
 Dropped (no callers): PString, Long, LoadCurse, LoadBlades.
 
 ## Per-game switch
-go.mod: `require gobox/exe v0.0.0` + `replace gobox/exe => ../gobox-engine/exe`; import
-`gobox/exe`; delete the game's exe/ dir (move its exe_test.go away, the module has it).
+go.mod: `require gobox v0.0.0`, `replace gobox => ../gobox-engine` and `replace gobox/rules => ../gobox-engine/rules` (one module: every package below imports as `gobox/<dir>`). Import
+`gobox/asset/orig`; delete the game's exe/ dir (move its exe_test.go away, the package has it).
 
 - sotsb-go: `exe.LoadBlades(p)` -> `exe.Load(p, 3554)`  (bladesDataSegment; used in cmd/dsfind, tablegen, tablefind, dsbytes, itemdump)
 - cotab-go: `exe.LoadCurse(p)` -> `exe.Load(p, 2750)`   (cotabDataSegment; cmd/tablegen)
@@ -20,9 +20,9 @@ go.mod: `require gobox/exe v0.0.0` + `replace gobox/exe => ../gobox-engine/exe`;
 - cotab-go/sotsb-go cmd/sounddata: `exe.Load(p)` -> `exe.Load(p, 0)` (only Mem is used; DS irrelevant)
 
 ## tablespec and cmd/tablegen
-`gobox/exe/tablespec`: `Kind` (`Bytes Signed Words SignedWords Longs String(n)`, text form bytes|signed|words|swords|longs|string:N), `Table{Name, At, Len, Kind, Doc, Cols, Img, Stride}` (json tags lower-case), `Generate(pkg, tables, imgs ...*exe.Image) ([]byte, error)`.
+`gobox/asset/orig` (tablespec.go): `Kind` (`Bytes Signed Words SignedWords Longs String(n)`, text form bytes|signed|words|swords|longs|string:N), `TableSpec{Name, At, Len, Kind, Doc, Cols, Img, Stride}` (json tags lower-case), `Generate(pkg, tables, imgs ...*exe.Image) ([]byte, error)`.
 `Img` is the superset of sotsb's `Curse bool`: the index of the executable a table is read from. `Stride` (sotsb) is the row pitch when rows are padded. `Longs` and the "slot holds data, not a string" check (sotsb) are included.
-`go run gobox/exe/cmd/tablegen -spec tables.json -pkg engine START.EXE:DS [OTHER.EXE:DS] > tables.go`
+`go run gobox/asset/orig/cmd/tablegen -spec tables.json -pkg engine START.EXE:DS [OTHER.EXE:DS] > tables.go`
 
 ## Migrate
 - cotab-go: delete tablespec/ and cmd/tablegen/. Turn `tablespec.Tables` into tables.json (same fields; `{"kind":"bytes"}`, `"string:10"` for `String(10)`; all rows `img` 0). Run `tablegen -spec tables.json -pkg engine START.EXE:2750`. Output is unchanged.

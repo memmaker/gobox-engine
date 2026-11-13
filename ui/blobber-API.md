@@ -1,4 +1,4 @@
-# gobox/blobber API (first-person grid crawler, pure 2D quads; needs gpu)
+# gobox/ui API: blobber (first-person grid crawler, pure 2D quads; needs gpu)
 
 Deepnight look: every surface a hand-transformed flat quad, painted far to near; the texture shader steps darkness into fog. Two ways in: the standalone `Game` (owns loop and rules, cmd/) and `View` (host owns both). Maps are the game's (`LoadMap` reads the .map format from any io.Reader).
 

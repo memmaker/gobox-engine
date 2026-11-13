@@ -1,6 +1,6 @@
 # gobox/ui API (window phase 2, first cut)
 
-Imports only gobox/gpu, gobox/input, gobox/gpu/vector. Tests need no window.
+Imports only gobox/gpu, gobox/gpu/vector. Tests need no window.
 
 ## Widgets (in -> out)
 - ScrollBar{R,N,Rows,Top}: Thumb(), To(y)->top, Draw(fill,BarColors), DrawOn(dst,BarColors).
@@ -16,7 +16,7 @@ Imports only gobox/gpu, gobox/input, gobox/gpu/vector. Tests need no window.
 - DrawText(img,glyph,s,x,y,c).
 - AreaMap.Draw(dst,pic,tile,party,marker,k0); AreaMap.DrawIn(dst,rect,pic,...) the same clipped into rect of dst (centred as in a window of rect's size); AreaGeom(...) is the pure geometry.
 - BIOSKey(gpu.Key)->(code,ok): the INT 16h table (Enter 13, Esc 27, Bksp 8, Tab 9, F1-F10 0x3B00.., arrows/KP 2468 0x48/50/4B/4D00, Home/End/PgUp/PgDn/KP1379, KP5 0x4C00, Delete 0x5300).
-- input.Repeat(held,delay,rate)->bool (gobox/input, no gpu): held = ticks down (1 = first tick); true on 1, at delay, then every rate. Host sets delay/rate.
+- input.Repeat(held,delay,rate)->bool (gobox/ui): held = ticks down (1 = first tick); true on 1, at delay, then every rate. Host sets delay/rate.
 - ResultsRuns(Results,cw,ch)->[]Run{Text,X,Y,Role}; ResultsTitle(Results). Roles: RunGreen/Cyan/Red.
 - Console{Cols,Rows,Cells,Col,Row,Theme}: NewConsole(cols,rows,Theme). Put/PutSymbol/Text/TextBg/Blank, Border(x1,y1,x2,y2,style,colour), BoxTitled(...,title), TextBlock(x1,y1,x2,y2,colour,clear,s,full) (cursor = Col,Row; full = the game's "press a key"), MenuBar(x0,y,menu,items,sel,normal,hi,black,lastCol). Cell{Set,Upcase,Symbol,C,Colour,Bg,Sym}; the game renders Cells with its own font. Theme{Border(style)->Frame{Corner,Vert,Horz}} is the game's border symbol ids.
 - Flow(s,x1,y1,x2,y2,&col,&row,put,full), Wrap(s,x1,x2), Punct; MenuItems(menu)->[]MenuItem{First,Last}, IsHotkey; PadLeft, PriceLine(name,price,width), Commas.

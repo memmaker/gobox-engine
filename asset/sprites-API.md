@@ -1,6 +1,6 @@
 # sprites API
 
-    import "gobox/sprites"
+    import "gobox/asset"
     sprites.Image(pool, name string) image.Image // nil if absent
     sprites.Names(pool string) []string          // sorted
 

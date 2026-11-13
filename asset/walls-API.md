@@ -1,6 +1,6 @@
 # walls
 
-Shared wall/floor/ceiling texture pool (`gobox/walls`), keyed by asset series: `series/<series>/<name>.png`, names without `.png`; see INDEX.md. `Image(series, name)`, `Names(series)`, `Textures(series, names...)`, `Series()`.
+Shared wall/floor/ceiling texture pool (`gobox/asset`), keyed by asset series: `series/<series>/<name>.png`, names without `.png`; see INDEX.md. `Image(series, name)`, `Names(series)`, `Textures(series, names...)`, `Series()`.
 
 - `walls.Image(name) image.Image` - nil if absent
 - `walls.Names() []string`
