@@ -1,6 +1,7 @@
 package rules1e
 
 import (
+	"errors"
 	"slices"
 	"strconv"
 )
@@ -760,12 +761,19 @@ func (e *RuleState) stepRest() (s restStep) {
 	return
 }
 
+// ErrNoMove refuses a MoveMember whose places are not two of the party's:
+// a bad argument, not the camp's "not now".
+var ErrNoMove = errors.New("rules1e: no such move in the marching order")
+
 // MoveMember (extra) moves member from to place to in the marching order,
-// while camp is up and only then; the caller selects it there.
+// while camp is up and only then (ErrNotNow); the caller selects it there.
 func (e *RuleState) MoveMember(from, to int) error {
 	n := len(e.Party)
-	if !e.Camp.On || from < 0 || from >= n || to < 0 || to >= n || from == to {
+	if !e.Camp.On {
 		return ErrNotNow
+	}
+	if from < 0 || from >= n || to < 0 || to >= n || from == to {
+		return ErrNoMove
 	}
 	c := e.Party[from]
 	e.Party = slices.Insert(slices.Delete(e.Party, from, from+1), to, c)

@@ -1,6 +1,7 @@
 package pool
 
 import (
+	"errors"
 	"gobox/core"
 	"rules1e"
 	"testing"
@@ -20,7 +21,12 @@ func TestOrderDrag(t *testing.T) {
 	if e.state().MoveMember(0, 2) != nil || e.state().Party[0] != b || e.state().Party[1] != c || e.state().Party[2] != a {
 		t.Fatalf("first to last: %v", e.state().Party)
 	}
-	if e.state().MoveMember(1, 3) == nil {
+	if !errors.Is(e.state().MoveMember(1, 3), rules1e.ErrNoMove) {
 		t.Fatal("moved out of the party")
+	}
+	// the camp's offered Order with its places unset (From == To) is a bad
+	// move, not "not now" (the offered-then-refused class, TestOfferedTaken)
+	if err := e.state().MoveMember(0, 0); errors.Is(err, core.ErrNotNow) || err == nil {
+		t.Fatalf("Order{0,0}: %v, want ErrNoMove", err)
 	}
 }
