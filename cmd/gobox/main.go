@@ -29,8 +29,8 @@ import (
 	"gobox/app"
 	"gobox/engine/playpool"
 	"gobox/games/por/presentdata"
-	"gobox/games/por/rules4e"
 	"gobox/importer"
+	"gobox/rules4e"
 	"gobox/ui"
 
 	_ "buckrogers/importbr1"
