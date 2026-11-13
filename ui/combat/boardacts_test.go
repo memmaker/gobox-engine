@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"gobox/ui/input"
@@ -14,12 +14,12 @@ import (
 
 // boardScene is a turn whose unit (ID 1) stands on the west edge at (0, 8),
 // a foe (7) at (3, 8), (1, 8) in reach; the camera looks at the unit.
-func boardScene() *CombatPresenter {
+func boardScene() *Presenter {
 	foe := Unit{ID: 7, X: 3, Y: 8, Squares: []image.Point{{3, 8}}}
-	opts := []CombatOption{{"Move", 'M', DecideWalk, ""}, {"View", 'V', DecideView, ""}, {"Aim", 0, DecideAim, ""}, {"Cast", 'C', DecideCast, ""}, {"Flee", 0, DecideFlee, ""}, {"Done", 'D', DecideEnd, ""}}
+	opts := []Option{{"Move", 'M', DecideWalk, ""}, {"View", 'V', DecideView, ""}, {"Aim", 0, DecideAim, ""}, {"Cast", 'C', DecideCast, ""}, {"Flee", 0, DecideFlee, ""}, {"Done", 'D', DecideEnd, ""}}
 	b := &Board{Units: []Unit{{ID: 1, X: 0, Y: 8, Squares: []image.Point{{0, 8}}, Party: true, Active: true}, foe}, Targets: []int{7},
 		Reach: []image.Point{{1, 8}}, Turn: &Turn{Options: opts}}
-	p := &CombatPresenter{b: b, screen: image.Rect(0, 0, 800, 600)}
+	p := &Presenter{b: b, screen: image.Rect(0, 0, 800, 600)}
 	p.cam = camera{eye: vec{2, 9, 16}, at: vec{1, 0, 8}, fovy: 0.8, aspect: 4.0 / 3}
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
@@ -41,7 +41,7 @@ func TestBarHasNoBoardActs(t *testing.T) {
 }
 
 // screenAt is the pixel showing the middle of square sq.
-func screenAt(p *CombatPresenter, sq image.Point) (int, int) {
+func screenAt(p *Presenter, sq image.Point) (int, int) {
 	nx, ny, _ := p.cam.ndc(vec{float64(sq.X) + .5, 0, float64(sq.Y) + .5})
 	return int((nx + 1) / 2 * 800), int((1 - ny) / 2 * 600)
 }

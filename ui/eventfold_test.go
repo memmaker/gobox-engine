@@ -6,6 +6,7 @@ import (
 
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/combat"
 )
 
 // settled is g's Settle: the moments queued as the presenter plays them.
@@ -41,19 +42,19 @@ func creditsOn(screen image.Rectangle) *Presenter {
 }
 
 // boardIn is c as the tabletop draws it, over no game.
-func boardIn(c *play.Combat, party []game.Member) *Board {
+func boardIn(c *play.Combat, party []game.Member) *combat.Board {
 	return new(Presenter).boardOf(c, party, nil)
 }
 
 // liveBoard is g's fight as the presenter draws it now (nil: none).
-func liveBoard(g *Game) *Board {
+func liveBoard(g *Game) *combat.Board {
 	p := presenterOf(g)
 	p.fightView = g.combat()
 	return p.aimPreview(p.boardOf(p.fightView, g.party(), nil))
 }
 
 // boardOfFrame is the board frame f holds, as drawn.
-func boardOfFrame(f frame) *Board { return new(Presenter).boardOf(f.Board, f.Party, f.fly) }
+func boardOfFrame(f frame) *combat.Board { return new(Presenter).boardOf(f.Board, f.Party, f.fly) }
 
 // played is es as moments (g.moments) queued as the presenter plays them.
 func played(es []play.Report, fight bool, posed func(play.Report) (*play.Combat, []game.Member), holdMs int) []frame {

@@ -217,6 +217,8 @@ func TestKeyDispatch(t *testing.T) {
 	}
 	used := map[string]bool{} // the identifiers the screens use
 	files, _ := filepath.Glob("*.go")
+	sub, _ := filepath.Glob("combat/*.go") // the board takes Acts too
+	files = append(files, sub...)
 	scan := regexp.MustCompile(`0x(3[B-F]|4[0-9A-F]|5[0-3]|E[0-5]|FD)00\b|KeyPad|KeyF[19]|KeyFontPrev|\bk ?[=!]= ?(8|9|13|27)\b|case (8|9|13|27)\b`)
 	for _, name := range files {
 		if strings.HasSuffix(name, "_test.go") || tables[name] {

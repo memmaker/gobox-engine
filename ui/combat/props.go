@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"encoding/json"
@@ -100,7 +100,7 @@ func readBlocks(fsys fs.FS, names []string, ps *propSet) map[int]image.Image {
 		if m := pic(n); m != nil {
 			out[i] = m
 		}
-		if m := pic(n + "_top"); m != nil && slot < combatAtlasCols*atlasRows {
+		if m := pic(n + "_top"); m != nil && slot < atlasCols*atlasRows {
 			out[slot], ps.top[i] = m, slot
 			slot++
 		}

@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"crypto/sha256"
@@ -10,7 +10,7 @@ func glyphT(c byte) [8]byte { return [8]byte{c, 0xFF, c ^ 0x55, 0x81, c, 0xAA, 0
 
 // TestDefaultThemeIsPor: the hashes were taken from the code before Theme existed (embedded icons included).
 func TestDefaultThemeIsPor(t *testing.T) {
-	th := CombatDefaultTheme
+	th := DefaultTheme
 	items := []barItem{{'F', "Attack", DecideAttack, 0, 0, ""}, {'C', "Cast", DecideCast, 0, 0, ""}, {'E', "Cancel", DecideClose, 0, 0, ""}, {'W', "Wait", DecideWait, 0, 0, ""}, {'Y', "Yes", DecideYes, 0, 0, ""}}
 	h := func(b []byte) string { return fmt.Sprintf("%x", sha256.Sum256(b)) }
 	for got, want := range map[string]string{

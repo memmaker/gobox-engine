@@ -9,6 +9,7 @@ import (
 	"gobox/asset"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/combat"
 )
 
 // turnAct is the combat menu's action a Decision does (false: not a menu entry).
@@ -100,7 +101,7 @@ func tilePicture(name string, a game.Picture) Picture {
 // original icon numbers), effects (fly: a shot's sprite over the moment),
 // the turn's bar, the cursor, the walks, the aim, the strike and the log.
 // party are the figures the members stand as then. nil outside a fight.
-func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *Board {
+func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *combat.Board {
 	if c == nil {
 		return nil
 	}
@@ -110,17 +111,17 @@ func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *B
 		art, d = p.eng.art(), p.eng.D
 	}
 	ink := egaInk
-	b := &Board{
+	b := &combat.Board{
 		WallTiles: dungeonTiles, StoneTile: 3, TileNames: slices.Clone(c.Tiles),
 		Floor: c.Floor, Dungeon: c.Dungeon, Cursor: c.Cursor, CursorOn: c.CursorOn, CursorAt: slices.Clone(c.CursorAt),
 		Marks: slices.Clone(c.Marks), Targets: slices.Clone(c.Targets), Panel: c.Panel, Log: slices.Clone(c.Log),
 		Area: c.Area, AreaAt: slices.Clone(c.AreaAt), Skipped: slices.Clone(c.Skipped), AimWhy: c.Why, View: c.View,
-		Strike: Strike{Seq: c.Strike.Seq, From: c.Strike.From, To: c.Strike.To, Hit: c.Strike.Hit, Damage: c.Strike.Damage},
+		Strike: combat.Strike{Seq: c.Strike.Seq, From: c.Strike.From, To: c.Strike.To, Hit: c.Strike.Hit, Damage: c.Strike.Damage},
 	}
 	grid := image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))
 	for _, g := range c.Squares {
 		if g.At.In(grid) {
-			b.Ground[g.At.Y][g.At.X] = Square{Tile: g.Tile, Wall: g.Block, Height: g.Height}
+			b.Ground[g.At.Y][g.At.X] = combat.Square{Tile: g.Tile, Wall: g.Block, Height: g.Height}
 		}
 	}
 	tiles := make([]Picture, 0x100)
@@ -172,19 +173,19 @@ func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *B
 		b.Tiles[i] = textured(picImage(pc, ink))
 	}
 	for _, f := range c.Effects {
-		b.Effects = append(b.Effects, Effect{X: float64(f.X) / 3, Y: float64(f.Y) / 3, Pic: picImage(pix(f.Art), ink)})
+		b.Effects = append(b.Effects, combat.Effect{X: float64(f.X) / 3, Y: float64(f.Y) / 3, Pic: picImage(pix(f.Art), ink)})
 	}
 	if fly != nil {
-		b.Effects = append(b.Effects, Effect{X: fly.X, Y: fly.Y, Pic: picImage(pix(fly.Art), ink)})
+		b.Effects = append(b.Effects, combat.Effect{X: fly.X, Y: fly.Y, Pic: picImage(pix(fly.Art), ink)})
 	}
 	for _, r := range c.Reach {
 		b.Reach = append(b.Reach, r.At)
 		if b.Paths == nil {
-			b.Paths = map[image.Point][]Step{}
+			b.Paths = map[image.Point][]combat.Step{}
 		}
-		var path []Step
+		var path []combat.Step
 		for _, st := range r.Path {
-			path = append(path, Step{Point: st.At, Free: st.Free})
+			path = append(path, combat.Step{Point: st.At, Free: st.Free})
 		}
 		b.Paths[r.At] = path
 	}
@@ -192,7 +193,7 @@ func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *B
 		if g.Gone {
 			continue
 		}
-		u := Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
+		u := combat.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
 			Active: g.Active, Name: g.Name, HP: g.HP, MaxHP: g.MaxHP, AC: g.AC, Hit: g.Hit, Dmg: g.Dmg, Status: g.Status, Down: g.Dead}
 		if g.Member >= 0 && g.Member < len(party) {
 			for _, it := range party[g.Member].Items {
@@ -229,7 +230,7 @@ func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *B
 		}
 	}
 	if t := c.Turn; t != nil {
-		b.Turn = &Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves, CastDirect: len(c.Spells) == 0}
+		b.Turn = &combat.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves, CastDirect: len(c.Spells) == 0}
 		for _, op := range turnOptions(c, d) {
 			act, ok := turnAct(op.Do)
 			if !ok { // a decision with no act of its own (an Answer by hotkey): the bar sends the option itself
@@ -240,13 +241,13 @@ func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *B
 				b.Turn.Can = append(b.Turn.Can, k)
 			}
 			if !known || act == 0 {
-				k = DecideOption
+				k = combat.DecideOption
 			}
 			key := byte(0)
 			if op.Key > 0 && op.Key < 128 {
 				key = byte(op.Key)
 			}
-			b.Turn.Options = append(b.Turn.Options, CombatOption{Label: op.Label, Key: key, DecisionKind: k, Chords: op.Chords})
+			b.Turn.Options = append(b.Turn.Options, combat.Option{Label: op.Label, Key: key, DecisionKind: k, Chords: op.Chords})
 		}
 	}
 	return b

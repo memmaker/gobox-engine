@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"image"
@@ -14,12 +14,12 @@ import (
 // rows, Y up. Walls are one square tall.
 
 const (
-	combatAtlasCols = 16  // tiles per atlas row
-	atlasRows       = 17  // the game's 256 tiles, then a row of our own
-	tilePx          = 24  // a tile's side in pixels
-	atlasPx         = 128 // an atlas slot's side: tiles scale up to it by whole texels, block pictures fit it
-	wallSlot        = 256
-	floorSlot       = 257
+	atlasCols = 16  // tiles per atlas row
+	atlasRows = 17  // the game's 256 tiles, then a row of our own
+	tilePx    = 24  // a tile's side in pixels
+	atlasPx   = 128 // an atlas slot's side: tiles scale up to it by whole texels, block pictures fit it
+	wallSlot  = 256
+	floorSlot = 257
 )
 
 // kind is how a square stands in the world.
@@ -296,9 +296,9 @@ func shade(vs []gpu.MeshVertex, a, b, c, d float32) []gpu.MeshVertex {
 // right, top right, top left (a hair inside, so nearest sampling never
 // reaches the neighbour).
 func tileUV(t int) [4][2]float32 {
-	const w, h = combatAtlasCols * atlasPx, atlasRows * atlasPx
+	const w, h = atlasCols * atlasPx, atlasRows * atlasPx
 	const in = 0.01
-	u0, v0 := (float32(t%combatAtlasCols*atlasPx)+in)/w, (float32(t/combatAtlasCols*atlasPx)+in)/h
+	u0, v0 := (float32(t%atlasCols*atlasPx)+in)/w, (float32(t/atlasCols*atlasPx)+in)/h
 	u1, v1 := u0+(atlasPx-2*in)/w, v0+(atlasPx-2*in)/h
 	return [4][2]float32{{u0, v1}, {u1, v1}, {u1, v0}, {u0, v0}}
 }

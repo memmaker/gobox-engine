@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"gobox/ui/input"
@@ -68,7 +68,7 @@ func TestStoneTexture(t *testing.T) {
 }
 
 func TestKeys(t *testing.T) {
-	p := &CombatPresenter{}
+	p := &Presenter{}
 	b := &Board{Turn: &Turn{Can: []Kind{DecideAttack, DecideWait, DecideEnd, DecideQuick}}}
 	p.b = b
 	p.bar.items = shownItems(b, false)
@@ -135,7 +135,7 @@ func TestNDC(t *testing.T) {
 }
 
 func TestBarFocus(t *testing.T) {
-	p := &CombatPresenter{}
+	p := &Presenter{}
 	b := &Board{Turn: &Turn{Can: []Kind{DecideAttack, DecideWait, DecideEnd}}}
 	p.b = b
 	p.bar.items = shownItems(b, false)
@@ -173,7 +173,7 @@ func TestBarFocus(t *testing.T) {
 // active unit and Enter walks or attacks there as a click; aiming, it
 // moves the aim and the shoulders cycle the targets.
 func TestCursor(t *testing.T) {
-	p := &CombatPresenter{}
+	p := &Presenter{}
 	b := &Board{Turn: &Turn{}, Units: []Unit{{ID: 1, X: 5, Y: 5, Active: true, Party: true}, {ID: 2, X: 9, Y: 9}, {ID: 3, X: 2, Y: 2}},
 		Reach: []image.Point{{5, 3}}}
 	p.b = b
@@ -201,7 +201,7 @@ func TestCursor(t *testing.T) {
 
 // A click on a Reach square walks there.
 func TestClickReach(t *testing.T) {
-	p := &CombatPresenter{b: &Board{Turn: &Turn{}, Reach: []image.Point{{3, 4}}}}
+	p := &Presenter{b: &Board{Turn: &Turn{}, Reach: []image.Point{{3, 4}}}}
 	if !p.clickSquare(image.Pt(3, 4)) || !slices.Equal(p.Actions(), []Decision{{Kind: DecideWalk, X: 3, Y: 4}}) {
 		t.Error("a click on a Reach square did not return Walk")
 	}
@@ -226,7 +226,7 @@ func TestMapMeshPartial(t *testing.T) {
 // looked at (the original's Center).
 func TestAimEnterCentres(t *testing.T) {
 	b := &Board{Units: []Unit{{ID: 1, X: 2, Y: 2, Active: true}}, Cursor: image.Pt(9, 4), CursorOn: true, Turn: &Turn{Aim: true}}
-	p := &CombatPresenter{b: b}
+	p := &Presenter{b: b}
 	p.Key(input.Enter, 0)
 	if p.tabTo == nil || *p.tabTo != (vec{9.5, 0, 4.5}) {
 		t.Fatalf("view on %v", p.tabTo)

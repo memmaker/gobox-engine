@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"image"
@@ -22,7 +22,7 @@ type floater struct {
 }
 
 // Float starts number n over unit id's head: hit points lost.
-func (p *CombatPresenter) Float(id, n int) {
+func (p *Presenter) Float(id, n int) {
 	at, ok := p.tops[id]
 	if !ok || p.Glyph == nil || n <= 0 {
 		return
@@ -31,7 +31,7 @@ func (p *CombatPresenter) Float(id, n int) {
 }
 
 // FloatText starts word s (MISS) over unit id's head, in the text colour.
-func (p *CombatPresenter) FloatText(id int, s string) {
+func (p *Presenter) FloatText(id int, s string) {
 	if at, ok := p.tops[id]; ok && p.Glyph != nil {
 		p.floats = append(p.floats, floater{at: at, img: gpu.NewImageFromImage(textImage(p.Glyph, s, p.Theme.Letter, p.Theme.TextOutline))})
 	}
@@ -60,7 +60,7 @@ func textImage(glyph func(byte) [8]byte, s string, c, outline color.RGBA) *image
 }
 
 // drawDamage moves, fades and draws the numbers at the UI's glyph size.
-func (p *CombatPresenter) drawDamage(dst *gpu.Image, vp gpu.Mat4, dt float64) {
+func (p *Presenter) drawDamage(dst *gpu.Image, vp gpu.Mat4, dt float64) {
 	k := float64(max(1, p.K))
 	live := p.floats[:0]
 	for _, f := range p.floats {

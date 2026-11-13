@@ -5,7 +5,7 @@
 // The camera turns in eighths like XCOM's. It only reads Board:
 // what it shows is what the original shows, in 3D.
 
-package ui
+package combat
 
 import (
 	"image"
@@ -23,9 +23,9 @@ import (
 	"gobox/gpu"
 )
 
-// CombatPresenter keeps the GPU side of one combat map.
-type CombatPresenter struct {
-	Theme                      CombatTheme          // the host's colours; set before the first Draw
+// Presenter keeps the GPU side of one combat map.
+type Presenter struct {
+	Theme                      Theme                // the host's colours; set before the first Draw
 	Alt                        bool                 // Alt is held (the host sets it each frame): the game's alt+ chords
 	Shift                      bool                 // Shift is held (the host sets it each frame): the health bars show
 	Icons                      map[Kind]image.Image // a button's icon by action (the game's art; without one the hotkey letter shows); the weapon in hand on Attack, what Ranged shoots
@@ -49,7 +49,7 @@ type CombatPresenter struct {
 	board, shadows, table      *gpu.Mesh
 	box, base, flatQuad        *gpu.Mesh
 	figs                       map[image.Image]*figure // ponytail: never evicted; a few dozen pictures a game
-	bar                        combatBar
+	bar                        bar
 
 	b             *Board       // the last frame's
 	out           []Decision   // queued for Actions
@@ -142,7 +142,7 @@ var (
 )
 
 // Draw shows b on dst.
-func (p *CombatPresenter) Draw(dst *gpu.Image, b *Board) {
+func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	p.initCamera()
 	b = p.aimBoard(b)
 	p.b = b
@@ -460,7 +460,7 @@ func (p *CombatPresenter) Draw(dst *gpu.Image, b *Board) {
 
 // drawSparks moves, fades and draws the particles, all in one draw call:
 // a draw each made missiles and hits stutter.
-func (p *CombatPresenter) drawSparks(dst *gpu.Image, vp gpu.Mat4, dt float64) {
+func (p *Presenter) drawSparks(dst *gpu.Image, vp gpu.Mat4, dt float64) {
 	if p.sparkMesh == nil {
 		p.sparkMesh, p.boxVs = gpu.NewMesh(nil), box()
 	}
@@ -493,7 +493,7 @@ func (p *CombatPresenter) drawSparks(dst *gpu.Image, vp gpu.Mat4, dt float64) {
 }
 
 // tick is the time since the last frame, at most a tenth of a second.
-func (p *CombatPresenter) tick() float64 {
+func (p *Presenter) tick() float64 {
 	now := time.Now()
 	dt := 0.1
 	if !p.last.IsZero() {
@@ -508,7 +508,7 @@ func (p *CombatPresenter) tick() float64 {
 }
 
 // sync brings the atlas and the board up to b.
-func (p *CombatPresenter) sync(b *Board) {
+func (p *Presenter) sync(b *Board) {
 	if p.white == nil {
 		p.white, p.tops = gpu.NewImage(1, 1), map[int]vec{}
 		p.white.Fill(color.White)
@@ -516,7 +516,7 @@ func (p *CombatPresenter) sync(b *Board) {
 		p.base = gpu.NewMesh(disc(24))
 		p.flatQuad = gpu.NewMesh(quad(nil, [4][3]float32{{-.5, 0, .5}, {.5, 0, .5}, {.5, 0, -.5}, {-.5, 0, -.5}},
 			[4][2]float32{{0, 1}, {1, 1}, {1, 0}, {0, 0}}, [3]float32{0, 1, 0}))
-		p.atlas = gpu.NewImage(combatAtlasCols*atlasPx, atlasRows*atlasPx)
+		p.atlas = gpu.NewImage(atlasCols*atlasPx, atlasRows*atlasPx)
 		p.shadow = gpu.NewImageFromImage(blob(32))
 		p.wood = gpu.NewImageFromImage(woodTexture(64, p.Theme.Wood))
 		p.table = gpu.NewMesh(tableMesh())
@@ -547,7 +547,7 @@ func (p *CombatPresenter) sync(b *Board) {
 		p.floor, p.floorTile = b.Floor, b.FloorTile
 		a := image.NewRGBA(p.atlas.Bounds())
 		put := func(slot int, t image.Image) {
-			o := image.Pt(slot%combatAtlasCols*atlasPx, slot/combatAtlasCols*atlasPx)
+			o := image.Pt(slot%atlasCols*atlasPx, slot/atlasCols*atlasPx)
 			xdraw.NearestNeighbor.Scale(a, image.Rectangle{o, o.Add(image.Pt(atlasPx, atlasPx))}, t, t.Bounds(), draw.Src, nil)
 		}
 		for i, t := range p.tiles {
@@ -610,7 +610,7 @@ func (p *CombatPresenter) sync(b *Board) {
 
 // modelAt is the model that stands on square s, nil if none. A dungeon
 // piece on a walkable square is no wall: nothing stands there.
-func (p *CombatPresenter) modelAt(s Square) *tileMesh {
+func (p *Presenter) modelAt(s Square) *tileMesh {
 	if s.Tile < 0 || s.Tile >= len(p.meshOf) || p.walls > 0 && s.Tile < p.walls && !s.Wall {
 		return nil
 	}
@@ -618,7 +618,7 @@ func (p *CombatPresenter) modelAt(s Square) *tileMesh {
 }
 
 // tileMesh is the model of the tile named n (cached; nil: it has none).
-func (p *CombatPresenter) tileMesh(n string) *tileMesh {
+func (p *Presenter) tileMesh(n string) *tileMesh {
 	if n == "" || p.Meshes == nil {
 		return nil
 	}
@@ -644,7 +644,7 @@ func (p *CombatPresenter) tileMesh(n string) *tileMesh {
 // figure is the extruded mesh for a picture (cached).
 // texels: the width of the sprite the picture stands for (0: its own),
 // which sets the slab's thickness (extrude).
-func (p *CombatPresenter) figure(pic image.Image, texels int) *figure {
+func (p *Presenter) figure(pic image.Image, texels int) *figure {
 	if f, ok := p.figs[pic]; ok {
 		return f
 	}
@@ -826,7 +826,7 @@ func restFocus(last vec, b *Board) vec {
 
 // aimBoard is b with the aim cursor, front state (aimTo), over the game's:
 // it starts on the game's Cursor (which names no squares) and ends with the aim.
-func (p *CombatPresenter) aimBoard(b *Board) *Board {
+func (p *Presenter) aimBoard(b *Board) *Board {
 	if b.Turn == nil || !b.Turn.Aim {
 		p.aimAt = nil
 		return b

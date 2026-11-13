@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/combat"
 	"gobox/ui/input"
 	"image"
 	"math"
@@ -61,7 +62,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 			if ic := p.inv.iconImage(it.Name, it.Words); ic != nil {
 				n := p.inv.icon(it.Name, it.Words)
 				if p.battle.Icons == nil {
-					p.battle.Icons = map[Kind]image.Image{}
+					p.battle.Icons = map[combat.Kind]image.Image{}
 				}
 				p.battle.Icons[combatKinds[kind]] = ic
 				p.battle.IconKey += strconv.Itoa(int(kind)) + ":" + strconv.Itoa(n) + " "
@@ -146,7 +147,7 @@ func (p *Presenter) drawTipOver(dst *gpu.Image, title string, lines []string, k 
 // asked, the aiming help, else the panel (the unit under the pointer, else
 // the one the game names); between the player's turns the last message.
 // All of them are in the Log (L).
-func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *Board, k float64) {
+func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *combat.Board, k float64) {
 	w, h := max(40, int(float64(dst.Bounds().Dx())/k)/8)*8, fightRows*8 // as many cells as the window has
 	glyph := note.Glyph
 	if p.rowsImg == nil || p.rowsImg.Bounds().Dx() != w {
@@ -252,7 +253,7 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *Board, k float64
 // Log, else the 3D map's and bar's.
 // CameraKey is whether k turns the fight's camera (it acts while the fight's events play).
 func (p *Presenter) CameraKey(k uint16) bool {
-	return p.fight && CameraAct(combatAct(k))
+	return p.fight && combat.CameraAct(combatAct(k))
 }
 
 func (p *Presenter) fightKey(k uint16) bool {
@@ -497,7 +498,7 @@ func (p *Presenter) pickList() []Spell {
 	switch {
 	case p.pick != nil:
 		return p.pick
-	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil && p.battle.PickKind == DecideManeuver:
+	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil && p.battle.PickKind == combat.DecideManeuver:
 		if p.fightLists.maneuvers == nil { // never nil: an empty list still takes Esc
 			return []Spell{}
 		}
@@ -510,7 +511,7 @@ func (p *Presenter) pickList() []Spell {
 
 // maneuvering: the bar's Maneuver list is up (pickList holds maneuvers).
 func (p *Presenter) maneuvering() bool {
-	return p.pick == nil && p.fight && p.battle.Picking && p.battle.PickKind == DecideManeuver
+	return p.pick == nil && p.fight && p.battle.Picking && p.battle.PickKind == combat.DecideManeuver
 }
 
 // drawPickList draws the spell list (pickList) as a menu with hotkeys, its
@@ -568,7 +569,7 @@ func (p *Presenter) cast(i int) {
 	spells, fromBar := p.pickList(), p.pick == nil
 	p.battle.Picking = false
 	switch {
-	case i >= 0 && i < len(spells) && fromBar && p.battle.PickKind == DecideManeuver:
+	case i >= 0 && i < len(spells) && fromBar && p.battle.PickKind == combat.DecideManeuver:
 		p.send(ActManeuver, spells[i].ID)
 	case i >= 0 && i < len(spells):
 		p.send(ActCast, spells[i].ID)
@@ -727,15 +728,15 @@ func (p *Presenter) drawnBoard() {
 
 // fightDrawn is what the drawn fight is made of (drawnBoard).
 type fightDrawn struct {
-	view  *play.Combat // the board with the fallen kept until their fall plays
-	lists lists        // the turn's weapons, spells and maneuvers
-	board *Board       // view as the tabletop draws it, aims put in
+	view  *play.Combat  // the board with the fallen kept until their fall plays
+	lists lists         // the turn's weapons, spells and maneuvers
+	board *combat.Board // view as the tabletop draws it, aims put in
 }
 
 // aimPreview is b with the aimed spell's area washed round the hovered
 // square, while it has none of its own (the live board; a replayed one never
 // aims).
-func (p *Presenter) aimPreview(b *Board) *Board {
+func (p *Presenter) aimPreview(b *combat.Board) *combat.Board {
 	if p.eng == nil || p.Playing() || p.ui().spellAim == nil || len(b.AreaAt) != 0 {
 		return b
 	}

@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"image"
@@ -48,12 +48,12 @@ type Turn struct {
 	Labels     map[Kind]string // optional button words
 	Keys       map[Kind]int    // optional hotkey letters by button (0 or missing: derived from the word; -1: none)
 	CastDirect bool            // Cast acts at once instead of opening the spell list (no spells to list)
-	Options    []CombatOption  // the game's options in its order: the bar's buttons (none: Can)
+	Options    []Option        // the game's options in its order: the bar's buttons (none: Can)
 }
 
-// CombatOption is a button the game offers: its word, hotkey (0: derived) and
+// Option is a button the game offers: its word, hotkey (0: derived) and
 // action (ActOption: the game's own, Decision.N its index).
-type CombatOption struct {
+type Option struct {
 	Label        string
 	Key          byte
 	DecisionKind Kind
@@ -143,9 +143,9 @@ type Decision struct {
 	Pre     image.Point // a maneuver's pre-aimed square (TODO, not emitted yet)
 }
 
-// CombatTheme is the host's colours for what combat draws besides the board's own.
+// Theme is the host's colours for what combat draws besides the board's own.
 // DefaultTheme is por's current look; a game copies and changes it.
-type CombatTheme struct {
+type Theme struct {
 	Backdrop    color.RGBA // behind the table
 	Wood        color.RGBA // the table's plank colour (its grain darkens it)
 	Panel       color.RGBA // a button's face behind its icon
@@ -159,8 +159,8 @@ type CombatTheme struct {
 	Series      string     // the asset series whose bar icons show (icons/<series>/)
 }
 
-// CombatDefaultTheme is por's current look (EGA colours).
-var CombatDefaultTheme = CombatTheme{
+// DefaultTheme is por's current look (EGA colours).
+var DefaultTheme = Theme{
 	Backdrop:    color.RGBA{0x0C, 0x0B, 0x0A, 0xFF},
 	Wood:        color.RGBA{92, 60, 36, 255},
 	Panel:       color.RGBA{0x18, 0x20, 0x38, 0xFF},
@@ -174,8 +174,8 @@ var CombatDefaultTheme = CombatTheme{
 	Series:      "pool",
 }
 
-// combatSelectOutline fills a frame of colour c, t pixels thick inside r.
-func combatSelectOutline(r image.Rectangle, t int, c color.RGBA, fill func(image.Rectangle, color.RGBA)) {
+// selectOutline fills a frame of colour c, t pixels thick inside r.
+func selectOutline(r image.Rectangle, t int, c color.RGBA, fill func(image.Rectangle, color.RGBA)) {
 	fill(image.Rect(r.Min.X, r.Min.Y, r.Max.X, r.Min.Y+t), c)
 	fill(image.Rect(r.Min.X, r.Max.Y-t, r.Max.X, r.Max.Y), c)
 	fill(image.Rect(r.Min.X, r.Min.Y, r.Min.X+t, r.Max.Y), c)

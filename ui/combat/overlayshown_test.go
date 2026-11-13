@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"image"
@@ -31,7 +31,7 @@ func TestOverlayOverFloor(t *testing.T) {
 			b.Ground[y][x].Overlay = 2
 		}
 	}
-	var p CombatPresenter
+	var p Presenter
 	p.Draw(dst, b)
 	p.Draw(dst, b)
 	px := make([]byte, 4*640*400)

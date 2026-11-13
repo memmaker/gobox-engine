@@ -1,4 +1,4 @@
-package ui
+package combat
 
 // Tile meshes: a tile named <name> may have <name>.gltf (and its PNG) in the
 // series' combat/meshes. Model units are 16 to a board square, origin at the

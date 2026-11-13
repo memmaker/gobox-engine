@@ -6,6 +6,7 @@ import (
 
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/combat"
 )
 
 // endRules is a fight that one Quick ends: its Outcome carries the fight's
@@ -56,7 +57,7 @@ func TestEndingEventsMove(t *testing.T) {
 	if len(es) != 5 || boardOfFrame(es[1]) == nil || boardOfFrame(es[4]) == nil {
 		t.Fatalf("%d events", len(es))
 	}
-	unit := func(b *Board, id int) *Unit {
+	unit := func(b *combat.Board, id int) *combat.Unit {
 		for k := range b.Units {
 			if b.Units[k].ID == id {
 				return &b.Units[k]

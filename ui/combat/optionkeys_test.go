@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"gobox/ui/input"
@@ -12,7 +12,7 @@ import (
 // remaster's letter (Attack F, Quick U, as POR before gobox); an option the
 // front has no act for is sent by its index.
 func TestOptionKeys(t *testing.T) {
-	b := &Board{Turn: &Turn{Options: []CombatOption{{"Attack", 'A', DecideAttack, ""}, {"Quick", 'Q', DecideQuick, ""}, {"Target", 'T', DecideOption, ""}, {"Dodge", 'D', DecideOption, ""}}}}
+	b := &Board{Turn: &Turn{Options: []Option{{"Attack", 'A', DecideAttack, ""}, {"Quick", 'Q', DecideQuick, ""}, {"Target", 'T', DecideOption, ""}, {"Dodge", 'D', DecideOption, ""}}}}
 	for _, c := range []struct {
 		a    input.Act
 		k    uint16
@@ -22,7 +22,7 @@ func TestOptionKeys(t *testing.T) {
 		{input.None, 'f', Decision{Kind: DecideAttack}},
 		{input.None, 't', Decision{Kind: DecideOption, N: 2}},
 	} {
-		p := &CombatPresenter{b: b}
+		p := &Presenter{b: b}
 		p.bar.items = shownItems(b, false)
 		p.bar.rects = make([]image.Rectangle, len(p.bar.items))
 		if !p.Key(c.a, c.k) {
@@ -34,7 +34,7 @@ func TestOptionKeys(t *testing.T) {
 		}
 	}
 	for _, k := range []uint16{'a', 'q', 'd'} { // the game keyed Attack A, Quick Q, Dodge D: the camera keeps them (Dodge: its number)
-		p := &CombatPresenter{b: b}
+		p := &Presenter{b: b}
 		p.bar.items = shownItems(b, false)
 		p.bar.rects = make([]image.Rectangle, len(p.bar.items))
 		p.Key(input.None, k)
@@ -47,8 +47,8 @@ func TestOptionKeys(t *testing.T) {
 // TestMoveOption: the game's Move starts the square cursor on the active
 // unit; it never sends a walk to (0,0).
 func TestMoveOption(t *testing.T) {
-	b := &Board{Units: []Unit{{X: 3, Y: 4, Active: true}}, Turn: &Turn{Options: []CombatOption{{"Move", 'M', DecideWalk, ""}}}}
-	p := &CombatPresenter{b: b}
+	b := &Board{Units: []Unit{{X: 3, Y: 4, Active: true}}, Turn: &Turn{Options: []Option{{"Move", 'M', DecideWalk, ""}}}}
+	p := &Presenter{b: b}
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
 	if !p.Key(input.None, 'm') || len(p.Actions()) != 0 || p.free == nil || *p.free != image.Pt(3, 4) {
@@ -61,7 +61,7 @@ func TestMoveOption(t *testing.T) {
 func TestClickHitsUnit(t *testing.T) {
 	foe := Unit{ID: 7, X: 14, Y: 8, Squares: []image.Point{{14, 8}}}
 	b := &Board{Units: []Unit{{ID: 1, X: 18, Y: 14, Active: true}, foe}, Targets: []int{7}, Turn: &Turn{Can: []Kind{DecideAttack}}}
-	p := &CombatPresenter{b: b, screen: image.Rect(0, 0, 800, 600)}
+	p := &Presenter{b: b, screen: image.Rect(0, 0, 800, 600)}
 	p.cam = camera{eye: vec{20, 9, 20}, at: vec{14, 0, 8}, fovy: 0.8, aspect: 4.0 / 3}
 	nx, ny, _ := p.cam.ndc(vec{14.5, 0.8, 8.5}) // the figure's head
 	x, y := int((nx+1)/2*800), int((1-ny)/2*600)
@@ -78,8 +78,8 @@ func TestClickHitsUnit(t *testing.T) {
 
 // TestOptionChords: a game's chords (Alt-Q, Space) pick its option; its Quick (Q) is on U.
 func TestOptionChords(t *testing.T) {
-	b := &Board{Turn: &Turn{Options: []CombatOption{{"Quick", 'Q', DecideQuick, ""}, {"Quick All", 0, DecideOption, "alt+q, alt+a"}, {"Quick Off", 0, DecideOption, "space"}}}}
-	p := &CombatPresenter{b: b}
+	b := &Board{Turn: &Turn{Options: []Option{{"Quick", 'Q', DecideQuick, ""}, {"Quick All", 0, DecideOption, "alt+q, alt+a"}, {"Quick Off", 0, DecideOption, "space"}}}}
+	p := &Presenter{b: b}
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
 	p.Alt = true
@@ -98,7 +98,7 @@ func TestOptionChords(t *testing.T) {
 func TestAimClickFoe(t *testing.T) {
 	foe := Unit{ID: 7, X: 14, Y: 8, Squares: []image.Point{{14, 8}}}
 	b := &Board{Units: []Unit{{ID: 1, X: 18, Y: 14, Active: true}, foe}, Cursor: image.Pt(18, 14), Turn: &Turn{Aim: true, Can: []Kind{DecideAim}}}
-	p := &CombatPresenter{b: b, screen: image.Rect(0, 0, 800, 600)}
+	p := &Presenter{b: b, screen: image.Rect(0, 0, 800, 600)}
 	p.cam = camera{eye: vec{20, 9, 20}, at: vec{14, 0, 8}, fovy: 0.8, aspect: 4.0 / 3}
 	nx, ny, _ := p.cam.ndc(vec{14.5, 0.8, 8.5})
 	x, y := int((nx+1)/2*800), int((1-ny)/2*600)
@@ -117,7 +117,7 @@ func TestAimClickFoe(t *testing.T) {
 func TestAimCursorStarts(t *testing.T) {
 	foe := Unit{ID: 7, X: 4, Y: 2, Squares: []image.Point{{4, 2}, {5, 2}}}
 	b := &Board{Units: []Unit{foe}, Cursor: image.Pt(5, 2), CursorOn: true, Turn: &Turn{Aim: true}}
-	var p CombatPresenter
+	var p Presenter
 	got := p.aimBoard(b)
 	if !slices.Equal(got.CursorAt, foe.Squares) || len(b.CursorAt) != 0 {
 		t.Fatalf("cursor at %v (game's board %v)", got.CursorAt, b.CursorAt)
@@ -133,7 +133,7 @@ func TestAimCursorStarts(t *testing.T) {
 func TestArrowsStepUnit(t *testing.T) {
 	u := Unit{ID: 1, X: 2, Y: 2, Active: true}
 	b := &Board{Units: []Unit{u}, Reach: []image.Point{{1, 2}}, Turn: &Turn{}}
-	p := &CombatPresenter{b: b}
+	p := &Presenter{b: b}
 	if !p.Key(input.CursorLeft, 0x4B00) {
 		t.Fatal("left not taken")
 	}
@@ -151,7 +151,7 @@ func TestArrowsStepUnit(t *testing.T) {
 func TestAimStartsOnNearestFoe(t *testing.T) {
 	b := &Board{Turn: &Turn{Aim: true}, Units: []Unit{{ID: 1, X: 2, Y: 2, Party: true, Active: true},
 		{ID: 8, X: 7, Y: 2, Squares: []image.Point{{7, 2}}}, {ID: 9, X: 3, Y: 3, Squares: []image.Point{{3, 3}}}}}
-	var p CombatPresenter
+	var p Presenter
 	got := p.aimBoard(b)
 	if !got.CursorOn || got.Cursor != image.Pt(3, 3) || !slices.Equal(got.Targets, []int{9, 8}) {
 		t.Fatalf("cursor %v on %v, targets %v", got.Cursor, got.CursorOn, got.Targets)
@@ -174,7 +174,7 @@ func TestChordLabel(t *testing.T) {
 func TestMoveThenArrowSteps(t *testing.T) {
 	u := Unit{ID: 1, X: 2, Y: 2, Active: true}
 	b := &Board{Units: []Unit{u}, Reach: []image.Point{{1, 2}}, Turn: &Turn{}}
-	p := &CombatPresenter{b: b}
+	p := &Presenter{b: b}
 	p.press(barItem{Kind: DecideWalk})
 	p.Key(input.CursorLeft, 0x4B00)
 	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: DecideWalk, X: 1, Y: 2}) {

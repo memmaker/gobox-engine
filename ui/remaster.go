@@ -20,6 +20,7 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
+	"gobox/ui/combat"
 	"gobox/ui/input"
 )
 
@@ -90,7 +91,7 @@ type Presenter struct {
 	noMenu      bool                               // nothing to pick: any click answers
 	pointer     image.Point                        // the mouse, as Hover last saw it (keys move the highlight while it rests)
 	mc          MenuCanvas                         // the vertical menu's images (ui.MenuCanvas.Draw)
-	battle      CombatPresenter                    // the combat map in 3D
+	battle      combat.Presenter                   // the combat map in 3D
 	mapBottom   int                                // screen rows above this are the 3D map
 	fight       bool                               // the last frame was the 3D combat map
 	inv         inventory                          // the inventory screen (inventory.go)
@@ -99,7 +100,7 @@ type Presenter struct {
 	boardParty  []game.Member                      // the party's figures on board
 	noCards     bool                               // a fight's moment plays: the cards are not drawn
 	fightView   *play.Combat                       // board with the fallen kept until their fall plays (keepFallen)
-	fightBoard  *Board                             // fightView as the tabletop draws it, aims put in
+	fightBoard  *combat.Board                      // fightView as the tabletop draws it, aims put in
 	fly         *flight                            // a shot's sprite over board (a replayed missile frame)
 	lastBoard   *play.Combat                       // the fight before the moments now playing (keepFallen)
 	inkAsk      *FrontAsk                          // the question whose menu is being drawn: its colours (asking)

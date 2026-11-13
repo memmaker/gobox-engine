@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"image"
@@ -24,7 +24,7 @@ func TestNoTeleport(t *testing.T) {
 		{Units: []Unit{unit(1, 5, 6), unit(3, 8, 8)}},   // 3 appeared
 	}
 	const dt = 1.0 / 60
-	var p CombatPresenter
+	var p Presenter
 	last := map[int][2]float32{}
 	for i, b := range boards {
 		for f := 0; f < 3*60; f++ {
@@ -58,7 +58,7 @@ func TestNoTeleport(t *testing.T) {
 // (no catch-up) arrives after that many steps, not at once.
 func TestStepPace(t *testing.T) {
 	icon := image.NewRGBA(image.Rect(0, 0, 24, 24))
-	p := CombatPresenter{StepTime: 0.2}
+	p := Presenter{StepTime: 0.2}
 	p.moveUnits(&Board{Units: []Unit{{ID: 1, X: 0, Y: 0, Squares: []image.Point{{0, 0}}, Icon: icon}}}, 0.01)
 	b := &Board{Units: []Unit{{ID: 1, X: 2, Y: 0, Squares: []image.Point{{2, 0}}, Icon: icon}}}
 	p.moveUnits(b, 0.2) // one step

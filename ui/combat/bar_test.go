@@ -1,4 +1,4 @@
-package ui
+package combat
 
 import (
 	"image"
@@ -44,7 +44,7 @@ func TestHotkeysUnique(t *testing.T) {
 // The game's letters only: Attack keyed A by the game is not also F (COTAB's
 // arena, where F is no button: Flee is not allowed).
 func TestTableKeyOnlyUnkeyed(t *testing.T) {
-	b := combatBar{items: []barItem{{Text: "Attack", Kind: DecideAttack, Hot: 'A'}, {Text: "Quick", Kind: DecideQuick}}, rects: make([]image.Rectangle, 2)}
+	b := bar{items: []barItem{{Text: "Attack", Kind: DecideAttack, Hot: 'A'}, {Text: "Quick", Kind: DecideQuick}}, rects: make([]image.Rectangle, 2)}
 	if it := b.tableKey('f'); it != nil {
 		t.Errorf("F pressed %q", it.Text)
 	}
