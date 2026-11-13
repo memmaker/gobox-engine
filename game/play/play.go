@@ -173,9 +173,10 @@ type Draft struct {
 // Exploring: the party walks a map (dungeon, town or wilderness).
 type Exploring struct {
 	Common
-	Map  ExploreMap
-	Day  bool       // daylight as the rules see it (the sky they paint)
-	Door *game.Door // a door the party stands at, with the ways through (TryDoor); nil none
+	Map      ExploreMap
+	Day      bool       // daylight as the rules see it (the sky they paint)
+	Interact bool       // the square's event waits for the player (Explicit Interactions): ActInteract runs it
+	Door     *game.Door // a door the party stands at, with the ways through (TryDoor); nil none
 }
 
 // ExploreMap is what gobox needs to walk, draw the 3D view and the

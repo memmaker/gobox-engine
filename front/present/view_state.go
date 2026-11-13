@@ -122,7 +122,7 @@ func (r *rules) flagsOf(ps play.State, party []game.Member) *game.Flags {
 		IconDrop: c.IconEditor != nil, Day: c.Day, NoSave: c.NoSave, NoLoad: c.NoLoad}
 	switch t := ps.(type) {
 	case play.Exploring:
-		f.Exploring, f.Day = c.Ask == nil, t.Day || c.Day // the game's say, never the hour guessed
+		f.Exploring, f.Day, f.Interact = c.Ask == nil, t.Day || c.Day, t.Interact && c.Ask == nil // the game's say, never the hour guessed
 	case play.Scene:
 		f.Full = t.Full
 		if t.Kind == play.SceneTitle {

@@ -108,7 +108,7 @@ func (e *Engine) build() play.State {
 		return a
 	case game.ModeExplore:
 		x := play.Exploring{Common: cm, Map: play.ExploreMap{Automap: s.Map, Walk: e.walkMap(), Overland: e.viewMode != 1}, Door: s.Door,
-			Day: s.Flags != nil && s.Flags.Day} // the sky drawView paints, not the clock
+			Day: s.Flags != nil && s.Flags.Day, Interact: s.Flags != nil && s.Flags.Interact} // the sky drawView paints, not the clock
 		if w := walls(s); w != nil {
 			x.Map.Walls = *w
 		}
