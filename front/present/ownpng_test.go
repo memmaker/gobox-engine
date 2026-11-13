@@ -14,8 +14,8 @@ import (
 // showed a race/class pool face, the board the pool icon.
 func TestOwnPNGsReachTheFront(t *testing.T) {
 	face, icon, strike := image.NewRGBA(image.Rect(0, 0, 32, 40)), image.NewRGBA(image.Rect(0, 0, 64, 64)), image.NewRGBA(image.Rect(0, 0, 64, 64))
-	ms := Party([]game.Member{{Name: "A", Race: "Human", Class: "Fighter", Dropped: face}}, nil, 0)
-	if len(ms) != 1 || ms[0].Portrait != face {
+	ms := partyOf(play.Exploring{Common: play.Common{Party: []game.Member{{Name: "A", Race: "Human", Class: "Fighter", Dropped: face}}}})
+	if len(ms) != 1 || ms[0].Dropped != face {
 		t.Errorf("card Portrait is not the dropped PNG")
 	}
 	st := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "A"}}},

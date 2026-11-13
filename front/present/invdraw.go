@@ -89,7 +89,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	inv := &p.inv
 	inv.shown = false
 	in := p.inventory()
-	party := partyOf(p.state())
+	party := p.party()
 	if p.own(v).Ask != nil && p.q == nil { // the game's question (Heal whom?, Use it?): Draw asks it, never hidden under the items; the presenter's own (Trade to whom?) is asked over the items
 		return false
 	}
@@ -313,7 +313,7 @@ func (p *Presenter) drawMember(lx, lw, bottom int, busy bool) {
 	inv := &p.inv
 	in := inv.up
 	inv.face, inv.facePNG = image.Rectangle{}, nil
-	if party := partyOf(p.state()); in.member >= 0 && in.member < len(party) {
+	if party := p.party(); in.member >= 0 && in.member < len(party) {
 		inv.face, inv.facePNG = p.memberPane(inv.px, inv.glyph, party[in.member], bottom)
 	}
 

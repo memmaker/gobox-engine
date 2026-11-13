@@ -192,7 +192,6 @@ func (g *Game) View() front.View {
 	v = Flags(v, r.flagsOf(ps, party), OverMenu(mode, pending))
 	v = Place(v, c.Where, windowOf(ps))
 	v = Waits(v, doorOf(ps), c.PowerPick)
-	v.Party, v.Purse = Party(party, cardsOf(ps), sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
 	v = Walls(v, r.wallsOf(ps), art)
 	v = Intro(v, introOf(ps))
 	v = Sequence(v, sequenceOf(ps), g.D.Sequences, g.D.AnimDir())

@@ -3,7 +3,6 @@ package present
 import (
 	"gobox/front"
 	"gobox/game"
-	"slices"
 )
 
 // kinds are the actions the menu verbs of game.Entry stand for.
@@ -22,31 +21,6 @@ func powers(es []game.Entry) []front.Power {
 		out[i] = front.Power{Name: e.Name, Kind: kinds[e.Verb]}
 	}
 	return out
-}
-
-// Party is the party's cards (nil: none).
-func Party(party []game.Member, cards []memberCard, sel int) []front.Member {
-	var out []front.Member
-	marked := slices.ContainsFunc(cards, func(c memberCard) bool { return c.Chosen })
-	for i, m := range party {
-		m = defaultPortrait(m)
-		var c memberCard
-		if i < len(cards) {
-			c = cards[i]
-		}
-		out = append(out, front.Member{Head: headOf(m), Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
-			Selected: c.Chosen || !marked && i == sel, Colour: nameColour(m), Portrait: m.Dropped, Powers: powers(c.Menu),
-			Exp: expOf(m), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
-	}
-	return out
-}
-
-// Purse is the party's money and party items (nil: no party).
-func Purse(p map[string]int, items, slots int) *front.Purse {
-	if p == nil {
-		return nil
-	}
-	return &front.Purse{Gold: p[Coin], Copper: p[game.Copper], Gems: p[game.Gems], Jewelry: p[game.Jewelry], Items: items, Slots: slots}
 }
 
 // nameColour is the roster colour of m's name (EGA number) when not

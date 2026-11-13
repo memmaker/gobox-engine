@@ -1,16 +1,22 @@
 package present
 
 import (
-	"gobox/game"
 	"testing"
+
+	"gobox/game"
+	"gobox/game/play"
 )
 
+// The marked card is the selected member's, else the candidate of a member pick.
 func TestPartySelectedFromIndex(t *testing.T) {
-	s := shown{Selected: 1, Party: []game.Member{{Name: "A"}, {Name: "B"}}}
-	if p := Party(s.Party, nil, s.Selected); p[0].Selected || !p[1].Selected {
-		t.Fatalf("selected %v %v, want member 1", p[0].Selected, p[1].Selected)
+	g, _ := playGame(play.Exploring{Common: play.Common{Selected: 1, Party: []game.Member{{Name: "A"}, {Name: "B"}}}})
+	p := &Presenter{}
+	p.SetEngine(g)
+	if n := p.cardSelected(); n != 1 || p.selectedIndex() != 1 || p.selectedName() != "B" {
+		t.Fatalf("selected %d, want member 1", n)
 	}
-	if p := Party(s.Party, []memberCard{{Chosen: true}}, s.Selected); !p[0].Selected || p[1].Selected {
-		t.Fatalf("candidate not alone")
+	AskForMember(p, "Whom?", 0, func(int) {})
+	if n := p.cardSelected(); n != 0 {
+		t.Fatalf("candidate %d, want member 0 alone", n)
 	}
 }

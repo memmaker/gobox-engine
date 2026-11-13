@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"gobox/ui/fonts"
 	"image"
 	"image/color"
@@ -277,12 +279,12 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 			str(50, y, inkWhite, "XP to next")
 		}
 		y += 2
-		for _, c := range v.Party {
+		for i, c := range p.party() {
 			if y > rows-9 { // above the purse
 				break
 			}
 			colour := inkCyan
-			if c.Selected {
+			if i == p.selectedIndex() {
 				colour = inkWhite
 			}
 			str(2, y, colour, c.Name[:min(len(c.Name), 15)])
@@ -297,12 +299,12 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 			str(27, y, inkGreen, strconv.Itoa(c.AC))
 			str(31, y, inkGreen, c.Status)
 			if cols >= 50 {
-				str(43, y, inkGreen, c.Spells)
+				str(43, y, inkGreen, c.SpellsReady)
 			}
 			if cols >= 61 {
 				xp := "-"
 				if c.NextExp > 0 {
-					xp = strconv.Itoa(max(c.NextExp-c.Exp, 0))
+					xp = strconv.Itoa(max(c.NextExp-expOf(c), 0))
 				}
 				str(50, y, inkGreen, xp)
 			}
@@ -315,10 +317,10 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 			fill(image.Rect(px, py, px+w*4, py+3), col(hpc))
 			y += 2
 		}
-		if p := v.Purse; p != nil { // a blank row between the pairs and before the items
-			str(2, rows-7, inkYellow, fmt.Sprintf("%d gold  %d copper", p.Gold, p.Copper))
-			str(2, rows-5, inkYellow, fmt.Sprintf("%d gems  %d jewelry", p.Gems, p.Jewelry))
-			str(2, rows-3, inkCyan, fmt.Sprintf("Party items %d/%d", p.Items, p.Slots))
+		if c := play.CommonOf(p.state()); c.Purse != nil { // a blank row between the pairs and before the items
+			str(2, rows-7, inkYellow, fmt.Sprintf("%d gold  %d copper", c.Purse[Coin], c.Purse[game.Copper]))
+			str(2, rows-5, inkYellow, fmt.Sprintf("%d gems  %d jewelry", c.Purse[game.Gems], c.Purse[game.Jewelry]))
+			str(2, rows-3, inkCyan, fmt.Sprintf("Party items %d/%d", c.PoolItems, c.PartyCap))
 		}
 		// no prompt: the frame runs round the whole page, any key still closes it
 	}

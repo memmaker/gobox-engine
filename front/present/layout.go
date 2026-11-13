@@ -58,6 +58,9 @@ type menuKey struct {
 // layouts are the page screens the state puts up, laid out, and the
 // screens' facts read from it.
 type layouts struct {
+	party     memo[uint64, []game.Member]   // partyOf, by the State's build
+	powers    memo[uint64, [][]front.Power] // each card's context menu
+	menuChars memo[uint64, int]             // the widest line of them
 	inventory memo[uiKey, *invUp]
 	sheet     memo[uiKey, *game.SheetPage]
 	sheetUp   memo[uiKey, bool]
@@ -146,4 +149,41 @@ func (p *Presenter) stateScreens() string {
 	}
 	ink := p.shownView.Ink
 	return fmt.Sprint(p.inventoryKind(), p.sheetShown(), p.sheetPage() != nil, p.creation() != nil, p.picker(ink) != nil, p.iconEditor(ink) != nil)
+}
+
+// party is the party as the screens show it (partyOf), kept per State.
+func (p *Presenter) party() []game.Member {
+	if p.eng == nil {
+		return nil
+	}
+	return p.lay.party.get(p.eng.G.Version(), func() []game.Member { return partyOf(p.state()) })
+}
+
+// cardPowers are the cards' context menus, by member.
+func (p *Presenter) cardPowers() [][]front.Power {
+	if p.eng == nil {
+		return nil
+	}
+	return p.lay.powers.get(p.eng.G.Version(), func() (out [][]front.Power) {
+		for _, c := range cardsOf(p.state()) {
+			out = append(out, powers(c.Menu))
+		}
+		return out
+	})
+}
+
+// cardMenuChars is the widest line of the cards' context menus.
+func (p *Presenter) cardMenuChars() int {
+	if p.eng == nil {
+		return 0
+	}
+	return p.lay.menuChars.get(p.eng.G.Version(), func() (n int) {
+		for _, ps := range p.cardPowers() {
+			lines, _, _ := powerLines(ps)
+			for _, l := range lines {
+				n = max(n, len(l))
+			}
+		}
+		return n
+	})
 }

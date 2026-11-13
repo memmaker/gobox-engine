@@ -60,8 +60,8 @@ func frontOnly(k uint16) bool {
 func (p *Presenter) arrow(a input.Act, v front.View) {
 	back := a == input.Up || a == input.Left || a == input.PgUp || a == input.Home
 	on := a == input.Down || a == input.Right || a == input.PgDn || a == input.End
-	if n := len(v.Party); n > 0 && choosing(v) && (back || on) {
-		i := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
+	if n := len(p.party()); n > 0 && choosing(v) && (back || on) {
+		i := p.selectedIndex()
 		switch {
 		case on:
 			i = (i + 1) % n // none: the first
@@ -117,7 +117,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		return
 	}
 	p.typing = false
-	if askAnswered(k, v, p.send) {
+	if p.askAnswered(k, v) {
 		return
 	}
 	if askList(v) != nil && askMenu(v) != nil && !choosing(v) && p.listKey(k, v) {
@@ -129,7 +129,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 	if p.exploring() && p.exploreKey(k) {
 		return
 	}
-	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), false); ok { // F1-F8, the stick buttons: select the member (exploring: and open their context menu, as a card's click)
+	if n, ok := memberKey(k, p.selectedIndex(), len(p.party()), false); ok { // F1-F8, the stick buttons: select the member (exploring: and open their context menu, as a card's click)
 		if p.command {
 			p.cardClick(n)
 			return
@@ -541,21 +541,21 @@ var keypadDirs = map[input.Act]int{input.Up: 8, input.Down: 2, input.Left: 4, in
 // askAnswered sends what key k answers on v's question by its data: a
 // direction (Ask.Dirs, AskMove: ActDir), another member (Ask.Reselect,
 // F1..F8: ActLead); false: k is none of these.
-func askAnswered(k uint16, v front.View, send func(front.ActKind, int)) bool {
+func (p *Presenter) askAnswered(k uint16, v front.View) bool {
 	a := v.Ask
 	if a == nil {
 		return false
 	}
 	if d, ok := keypadDirs[actOf(k)]; ok && (a.Dirs || a.Kind == front.AskMove) {
-		send(front.ActDir, d)
+		p.send(front.ActDir, d)
 		return true
 	}
-	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), false); a.Reselect && ok { // F1..F8, the pad's stick buttons
-		send(front.ActLead, n)
+	if n, ok := memberKey(k, p.selectedIndex(), len(p.party()), false); a.Reselect && ok { // F1..F8, the pad's stick buttons
+		p.send(front.ActLead, n)
 		return true
 	}
 	if a.View && (k == 'v' || k == 'V') {
-		send(front.ActView, -1)
+		p.send(front.ActView, -1)
 		return true
 	}
 	return false

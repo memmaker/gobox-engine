@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 	"gobox/ui"
 )
@@ -24,16 +25,16 @@ func TestOneCellSize(t *testing.T) {
 	menu := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "PRESS ENTER", Commands: []front.Command{{Text: "CONTINUE"}, {Text: "LEAVE"}}}}
 	yesNo := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "ARE YOU SURE?", Commands: []front.Command{{Text: "YES", Key: 'Y'}, {Text: "NO", Key: 'N'}}}}
 	typing := &front.Ask{Kind: front.AskText, Menu: front.Menu{Prompt: "Character name:"}, Max: 15}
-	party := []front.Member{{Name: "ANNA", HP: 8, MaxHP: 8}, {Name: "BERT", HP: 5, MaxHP: 9}, {Name: "CARL", HP: 3, MaxHP: 3}}
+	party := []game.Member{{Name: "ANNA", HP: 8, MaxHP: 8}, {Name: "BERT", HP: 5, MaxHP: 9}, {Name: "CARL", HP: 3, MaxHP: 3}}
 	screens := map[string]front.View{
 		"pane":               {Pane: pane},
 		"pane, menu":         {Pane: pane, Ask: menu},
 		"typing":             {Ask: typing},
 		"yes/no":             {Ask: yesNo},
-		"adventure pane":     {Adventure: true, Pane: pane, Party: party},
-		"adventure menu":     {Adventure: true, Pane: pane, Ask: menu, Party: party},
-		"adventure question": {Adventure: true, Pane: pane, Ask: yesNo, Party: party},
-		"adventure typing":   {Adventure: true, Pane: pane, Ask: typing, Party: party},
+		"adventure pane":     {Adventure: true, Pane: pane},
+		"adventure menu":     {Adventure: true, Pane: pane, Ask: menu},
+		"adventure question": {Adventure: true, Pane: pane, Ask: yesNo},
+		"adventure typing":   {Adventure: true, Pane: pane, Ask: typing},
 	}
 	defer func() { drawnAt = nil }()
 	for _, sz := range [][2]int{{800, 500}, {1280, 800}, {1920, 1200}, {2560, 1600}, {3840, 2400}} {
@@ -50,7 +51,11 @@ func TestOneCellSize(t *testing.T) {
 					t.Errorf("%v %s: a %v drawn at %v, K %v", sz, name, what, k, K)
 				}
 			}
-			(&Presenter{}).Draw(dst, note, v)
+			p := &Presenter{}
+			if v.Adventure { // the cards are the party's
+				p = partyOn(party...)
+			}
+			p.Draw(dst, note, v)
 			if n == 0 {
 				t.Errorf("%v %s: no menu or box drawn", sz, name)
 			}

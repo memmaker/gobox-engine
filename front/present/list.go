@@ -149,7 +149,7 @@ func (p *Presenter) raise(i, d int) {
 func (p *Presenter) listKey(k uint16, v front.View) bool {
 	l := &p.list
 	n := len(askList(v))
-	if _, ok := memberKey(k, 0, len(v.Party), false); ok { // the member the list is for (keyAct)
+	if _, ok := memberKey(k, 0, len(p.party()), false); ok { // the member the list is for (keyAct)
 		return false
 	}
 	if a := actOf(k); modifying(v) && (a == input.Left || a == input.Right) && l.sel < n { // the line highlighted down or up

@@ -116,13 +116,7 @@ func greyed(m image.Image) *image.RGBA {
 func (p *Presenter) setup(note Note, v front.View) {
 	p.glyph, blobber.Glyph = note.Glyph, note.Glyph
 	p.border.update(p.windowBorder().pieces)
-	menuChars = 0 // the row's spacing: the widest context menu line
-	for _, c := range cardsOf(p.state()) {
-		lines, _, _ := powerLines(powers(c.Menu))
-		for _, l := range lines {
-			menuChars = max(menuChars, len(l))
-		}
-	}
+	menuChars = p.cardMenuChars() // the row's spacing: the widest context menu line
 	if p.faceImgs == nil {
 		p.faceImgs, p.hiFaces, p.labels = map[image.Image]*gpu.Image{}, map[image.Image]*gpu.Image{}, map[string]*gpu.Image{}
 		p.faces = map[image.Image]image.Image{}
@@ -180,8 +174,7 @@ func (p *Presenter) drawCardTip(dst *gpu.Image) {
 	if p.ctx > 0 {
 		i = p.ctx - 1
 	}
-	s := p.state()
-	party := partyOf(s)
+	party := p.party()
 	if i < 0 || i >= len(p.cards) || i >= len(party) {
 		return
 	}
@@ -195,7 +188,7 @@ func (p *Presenter) drawCardTip(dst *gpu.Image) {
 	}
 	var keys []byte
 	if p.ctx > 0 {
-		lines, p.ctxActs, keys = powerLines(powers(cardsOf(s)[i].Menu))
+		lines, p.ctxActs, keys = powerLines(p.cardPowers()[i])
 		sel, p.ctxKeys = p.ctxSel, keys
 		if len(lines) == 0 { // nothing to do (a fight began)
 			p.ctx = 0
@@ -537,7 +530,37 @@ func (p *Presenter) cardSelected() int {
 	if q := p.q; q != nil && q.Ask.Kind == front.AskMember {
 		return q.Cand
 	}
-	return play.CommonOf(p.state()).Selected
+	if n := play.CommonOf(p.state()).Selected; n >= 0 && n < len(p.party()) {
+		return n
+	}
+	if p.eng == nil {
+		return -1
+	}
+	return p.eng.r.selectedOf(p.state())
+}
+
+// selectedIndex is the member marked on the cards (-1: none).
+func (p *Presenter) selectedIndex() int {
+	if n := p.cardSelected(); n >= 0 && n < len(p.party()) {
+		return n
+	}
+	return -1
+}
+
+// selectedName is the marked member's name ("": none).
+func (p *Presenter) selectedName() string {
+	if n := p.selectedIndex(); n >= 0 {
+		return p.party()[n].Name
+	}
+	return ""
+}
+
+// shownParty is the party the cards show (none while a fight's moment plays).
+func (p *Presenter) shownParty() []game.Member {
+	if p.noCards {
+		return nil
+	}
+	return p.party()
 }
 
 // hiFace is a PNG portrait at n pixels square for a card at the window's
@@ -636,7 +659,7 @@ func nameLines(name string, w, rows int) []string {
 
 // layCards puts the party's cards on dst (p.cards): the ones drawParty draws.
 func (p *Presenter) layCards(dst *gpu.Image) {
-	n := len(play.CommonOf(p.state()).Party)
+	n := len(p.shownParty())
 	p.cards = p.cards[:0]
 	for i := range n {
 		p.cards = append(p.cards, cardAt(dst)(i, n))
@@ -646,7 +669,7 @@ func (p *Presenter) layCards(dst *gpu.Image) {
 // cardOf is member i alone, with the PNG portrait img (nil: its own); none
 // when there is no member i.
 func (p *Presenter) cardOf(i int, img image.Image) []game.Member {
-	party := partyOf(p.state())
+	party := p.party()
 	if i < 0 || i >= len(party) {
 		return nil
 	}

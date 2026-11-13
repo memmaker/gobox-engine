@@ -9,7 +9,6 @@ import (
 	"gobox/front"
 	"gobox/gpu"
 	"image"
-	"slices"
 )
 
 var _ RuleHost = (*Presenter)(nil)
@@ -51,7 +50,7 @@ func (p *Presenter) Shown() Shown {
 		t = in.treasure
 	}
 	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: p.sheetShown(), Inventory: p.inventoryUp(), Battle: p.board != nil,
-		Camp: v.Camp != nil, MainMenu: p.mainMenuUp(), Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(v.Party)}
+		Camp: v.Camp != nil, MainMenu: p.mainMenuUp(), Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(p.party())}
 }
 
 // ownQuestion is v with the presenter's question up.
@@ -67,12 +66,6 @@ func (p *Presenter) ownQuestion(v front.View) front.View {
 	if q != nil {
 		a := q.Ask
 		v.Ask, v.Exploring, v.CanCast, v.Interact = &a, false, false, false // the question takes the keys
-		if a.Kind == front.AskMember {
-			v.Party = slices.Clone(v.Party)
-			for i := range v.Party {
-				v.Party[i].Selected = i == q.Cand
-			}
-		}
 	}
 	return v
 }
@@ -186,7 +179,7 @@ func (p *Presenter) WinRects() []image.Rectangle { return p.winRects }
 // way to the next level under each, and the tip of the one pointed at.
 func (p *Presenter) DrawCards(dst *gpu.Image, exp bool) []image.Rectangle {
 	p.expShown = exp
-	p.drawParty(dst, partyOf(p.state()), p.cardSelected(), cardAt(dst))
+	p.drawParty(dst, p.shownParty(), p.cardSelected(), cardAt(dst))
 	p.expShown = false
 	p.layCards(dst)
 	p.drawCardTip(dst)

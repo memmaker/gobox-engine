@@ -121,11 +121,11 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		return p.fightKey(k)
 	}
 	if p.ctx > 0 { // the card's context menu: the arrows, Enter, a hotkey or Esc, as the game's menus
-		if m, ok := memberKey(k, p.ctx-1, len(v.Party), true); p.campHome(v) && (ok || actOf(k) == input.PartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
+		if m, ok := memberKey(k, p.ctx-1, len(p.party()), true); p.campHome(v) && (ok || actOf(k) == input.PartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
 			p.campFocus(v, k, m)
 			return true
 		}
-		if _, ok := memberKey(k, 0, len(v.Party), false); ok { // another member: selected (keyAct), their menu opens instead
+		if _, ok := memberKey(k, 0, len(p.party()), false); ok { // another member: selected (keyAct), their menu opens instead
 			p.ctx = 0
 			return false
 		}
@@ -199,7 +199,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		p.menu = false
 		return false
 	}
-	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), true); ok { // the member the bar is for (camp, the temple)
+	if n, ok := memberKey(k, p.selectedIndex(), len(p.party()), true); ok { // the member the bar is for (camp, the temple)
 		p.send(front.ActLead, n)
 		return true
 	}
@@ -286,7 +286,7 @@ func (p *Presenter) Click(x, y int) bool {
 		p.confirmPick(slices.IndexFunc(p.confirmAt, image.Pt(x, y).In))
 		return true
 	}
-	if v := p.shownView; v.Ask != nil && v.Ask.Reselect && cardUnder(p.cards, x, y) >= 0 && cardUnder(p.cards, x, y) < len(v.Party) { // another member while the question stays up
+	if v := p.shownView; v.Ask != nil && v.Ask.Reselect && cardUnder(p.cards, x, y) >= 0 && cardUnder(p.cards, x, y) < len(p.party()) { // another member while the question stays up
 		p.send(front.ActLead, cardUnder(p.cards, x, y))
 		return true
 	}
@@ -337,8 +337,8 @@ func (p *Presenter) Click(x, y int) bool {
 	}
 	if v := p.shownView; p.campHome(v) && p.active { // camp: a line of any member's menu
 		for i, rs := range p.campCtx {
-			if j := slices.IndexFunc(rs, image.Pt(x, y).In); j >= 0 && i < len(v.Party) {
-				if _, acts, _ := powerLines(v.Party[i].Powers); j < len(acts) { // the lines as drawn (powerLines leaves Icon out), not Powers' indexes
+			if j := slices.IndexFunc(rs, image.Pt(x, y).In); j >= 0 && i < len(p.party()) {
+				if _, acts, _ := powerLines(p.cardPowers()[i]); j < len(acts) { // the lines as drawn (powerLines leaves Icon out), not Powers' indexes
 					p.ctx = 0
 					p.memberAct(acts[j], i)
 				}

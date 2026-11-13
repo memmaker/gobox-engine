@@ -36,22 +36,21 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 	b, k := p.fightBoard, scale(dst)
 	p.mapBottom = dst.Bounds().Dy() - int(math.Ceil(k*8*fightRows)) // the line is drawn at k, whole or not
 	if b.Turn != nil {
-		for i, m := range p.shownView.Party { // whose turn: the portrait card, bottom left
-			if m.Selected {
-				if m.Portrait == nil && m.Head == nil { // no portrait: the member's combat icon, else no box
-					for _, u := range b.Units {
-						if u.ID == b.Turn.Unit {
-							m.Portrait = u.Icon
-						}
-					}
-					if m.Portrait == nil {
-						continue
+		if i := p.selectedIndex(); i >= 0 { // whose turn: the portrait card, bottom left
+			var icon image.Image
+			bare := p.party()[i].Dropped == nil && headOf(p.party()[i]) == nil
+			if bare { // no portrait: the member's combat icon, else no box
+				for _, u := range b.Units {
+					if u.ID == b.Turn.Unit {
+						icon = u.Icon
 					}
 				}
+			}
+			if !bare || icon != nil {
 				ck := max(1, int(k)/2) // the portrait card: its own scale (cards are not K)
 				y := p.mapBottom - (cardH+cardGap)*ck + cardFoot*ck
 				p.fightCard = image.Rect(cardGap*ck, y, cardGap*ck+cardW*ck, y+cardH*ck)
-				p.drawParty(dst, p.cardOf(i, m.Portrait), 0, func(int, int) image.Rectangle { return p.fightCard })
+				p.drawParty(dst, p.cardOf(i, icon), 0, func(int, int) image.Rectangle { return p.fightCard })
 			}
 		}
 	}

@@ -9,7 +9,7 @@ import (
 // TestNoFrontScreenOverAsk: F10 opens no slot list while the game's yes/no
 // is up (BR2's "Quit to DOS?").
 func TestNoFrontScreenOverAsk(t *testing.T) {
-	v := front.View{Party: []front.Member{{Name: "A"}}, Ask: &front.Ask{Kind: front.AskConfirm, Menu: front.Menu{Prompt: "Quit to DOS?"}}}
+	v := front.View{Ask: &front.Ask{Kind: front.AskConfirm, Menu: front.Menu{Prompt: "Quit to DOS?"}}}
 	p := &Presenter{}
 	g, _ := slotsGame(t)
 	p.SetEngine(g)

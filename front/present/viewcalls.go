@@ -54,7 +54,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 			if a.Y == 1 {
 				return false
 			}
-			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
+			sel := p.selectedIndex()
 			AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
 				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: a.Item, X: t, Y: 1})
 			})
@@ -78,7 +78,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 			if a.Y == 1 {
 				return false
 			}
-			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
+			sel := p.selectedIndex()
 			AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
 				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: a.Item, X: t, Y: 1})
 			})
@@ -130,7 +130,7 @@ func (p *Presenter) useCall(i core.ItemHandle, spell, target int, sure bool) {
 		)
 		switch err := e.UseItem(i, spell, target, sure); {
 		case errors.As(err, &who):
-			sel := slices.IndexFunc(e.View().Party, func(m front.Member) bool { return m.Selected })
+			sel := p.selectedIndex()
 			AskForMember(p, string(who), sel, func(t int) { p.useCall(i, spell, t, sure) })
 		case errors.As(err, &pick):
 			AskForSpell(p, pick, func(id int) { p.useCall(i, id, target, sure) })

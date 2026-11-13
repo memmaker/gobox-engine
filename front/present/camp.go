@@ -175,11 +175,11 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 				return
 			}
 			c.dropAsk = 0
-			p.send(front.ActDropMember, selectedIndex(v))
+			p.send(front.ActDropMember, p.selectedIndex())
 			c.back(campMain)()
 		}
 		no := func() { c.dropAsk = 0; c.back(campMain)() }
-		return confirmText(cf.Asks[n], selectedName(v), ""), []ui.MenuRow{{Text: "Yes", Key: 'Y', Do: yes}, {Text: "No", Key: 'N', Do: no}}
+		return confirmText(cf.Asks[n], p.selectedName(), ""), []ui.MenuRow{{Text: "Yes", Key: 'Y', Do: yes}, {Text: "No", Key: 'N', Do: no}}
 	}
 	var it []ui.MenuRow // the party's, the rests first: each member's own are on their card's menu (drawCampMenus)
 	for _, r := range rests {
@@ -229,8 +229,8 @@ func (p *Presenter) campHome(v front.View) bool {
 // card; the one with the keys (ctx) shows its highlight.
 func (p *Presenter) drawCampMenus(dst *gpu.Image, v front.View) {
 	p.campCtx = p.campCtx[:0]
-	for i := range min(len(v.Party), len(p.cards)) {
-		lines, acts, keys := powerLines(v.Party[i].Powers)
+	for i := range min(len(p.party()), len(p.cards)) {
+		lines, acts, keys := powerLines(p.cardPowers()[i])
 		sel := -1
 		if p.ctx == 1+i {
 			sel = p.ctxSel
@@ -260,13 +260,13 @@ func (p *Presenter) drawCampMenus(dst *gpu.Image, v front.View) {
 // or the row's left half), the party's menu, the rest.
 func (p *Presenter) campFocus(v front.View, k uint16, m int) {
 	order := []int{} // ctx values: 0 the party's menu, 1+i member i's
-	for i := range v.Party {
-		if i == (len(v.Party)+1)/2 {
+	for i := range p.party() {
+		if i == (len(p.party())+1)/2 {
 			order = append(order, 0)
 		}
 		order = append(order, 1+i)
 	}
-	if len(v.Party) < 2 {
+	if len(p.party()) < 2 {
 		order = append(order, 0)
 	}
 	n, at := len(order), slices.Index(order, p.ctx)
@@ -341,22 +341,6 @@ func (p *Presenter) beasts(v front.View) []front.Beast {
 }
 
 var roman = [...]string{"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII"}
-
-func selectedIndex(v front.View) int {
-	for i, m := range v.Party {
-		if m.Selected {
-			return i
-		}
-	}
-	return -1
-}
-
-func selectedName(v front.View) string {
-	if i := selectedIndex(v); i >= 0 {
-		return v.Party[i].Name
-	}
-	return ""
-}
 
 // drawCamp draws the camp screen up at scale k, centred on cx, its top at
 // top; a bestiary entry's icon goes over its box.
@@ -483,7 +467,7 @@ func (p *Presenter) campKey(k uint16, v front.View) bool {
 	c.follow(items)
 	n := len(items)
 	spells := p.spellList(v)
-	m, member := memberKey(k, selectedIndex(v), len(v.Party), true)
+	m, member := memberKey(k, p.selectedIndex(), len(p.party()), true)
 	switch a := actOf(k); {
 	case c.screen == campBestiary && (a == input.PgUp || a == input.PgDn): // the entry, eight lines a step
 		step := 80
@@ -517,11 +501,11 @@ func (p *Presenter) campKey(k uint16, v front.View) bool {
 // cardKey acts the selected member's card line whose hotkey is k (camp:
 // a card's verbs answer their keys without Tab to its menu first).
 func (p *Presenter) cardKey(v front.View, k uint16) bool {
-	n := selectedIndex(v)
-	if n < 0 || n >= len(v.Party) || k >= 128 {
+	n := p.selectedIndex()
+	if n < 0 || n >= len(p.party()) || k >= 128 {
 		return false
 	}
-	_, acts, keys := powerLines(v.Party[n].Powers)
+	_, acts, keys := powerLines(p.cardPowers()[n])
 	if j := slices.Index(keys, byte(unicode.ToUpper(rune(k)))); j >= 0 && keys[j] != 0 {
 		p.memberAct(acts[j], n)
 		return true

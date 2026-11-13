@@ -124,7 +124,7 @@ type sheetCanvas struct {
 // drawSheet draws the sheet (sheetUp) over the whole window.
 func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	s, rl := p.state(), p.eng.r
-	party := partyOf(s)
+	party := p.party()
 	sp, i := p.sheetPage(), rl.selectedOf(s) // the look-only sheet and the creation's draft included
 	if i < 0 || i >= len(party) || sp == nil {
 		return

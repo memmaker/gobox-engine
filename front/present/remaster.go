@@ -112,6 +112,7 @@ type Presenter struct {
 	boardKey    boardKey      // what fightBoard was made from (drawnBoard)
 	board       *play.Combat  // the fight this frame shows: the live one, or the one a replayed moment holds (nil: none)
 	boardParty  []game.Member // the party's figures on board
+	noCards     bool          // a fight's moment plays: the cards are not drawn
 	fightView   *play.Combat  // board with the fallen kept until their fall plays (keepFallen)
 	fightBoard  *combat.Board // fightView as the tabletop draws it, aims put in
 	fly         *flight       // a shot's sprite over board (a replayed missile frame)
@@ -235,7 +236,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.battle.StepTime = float64(ev.Ms) / 1000
 	}
 	live, party := p.liveFight()
-	p.board, p.boardParty, p.fly = live, party, nil
+	p.board, p.boardParty, p.fly, p.noCards = live, party, nil, false
 	if ev != nil && (ev.Page != nil || ev.Screen != nil) { // the page or screen as it stood at the pause played, over the live state
 		if ev.Page != nil {
 			v = Page(v, ev.Page, nil)
@@ -247,8 +248,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 		if live == nil && p.lastFight != nil { // the Result ended the fight: its moments play on the fight they happened in, the page after them
 			v = *p.lastFight
 		}
-		p.board, p.boardParty, p.fly = ev.Board, ev.Party, ev.fly
-		v.Party = nil
+		p.board, p.boardParty, p.fly, p.noCards = ev.Board, ev.Party, ev.fly, true // the cards are the live party's: none while the moment plays
 		v.Ask = nil
 	} else if live != nil {
 		p.lastFight = &v
@@ -501,7 +501,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			return r
 		}
 	}
-	p.drawParty(dst, partyOf(p.state()), p.cardSelected(), at)
+	p.drawParty(dst, p.shownParty(), p.cardSelected(), at)
 	p.view.DrawMenu(dst) // over the map and cards
 	p.layCards(dst)
 	if p.ctx == 0 && !p.campHome(v) { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
