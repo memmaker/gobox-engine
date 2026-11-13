@@ -577,9 +577,9 @@ func (r *rules) combat(f play.Fighting) *play.Combat {
 	if slices.Contains(al.Plain, play.Action(play.Quick{All: true})) { // the original's Quick for the whole party: its own entry, keyed by the series (VerbKeys, VerbChords) or clicked
 		t.Options = append(t.Options, play.Option{Label: cmp.Or(r.data.Texts["Quick All"], "Quick All"), Key: r.data.VerbKeys["Quick All"], Do: play.Quick{All: true}})
 	}
-	for _, v := range answerVerbs { // the rules take these as an answer by hotkey
-		if k := r.verbKey(v.label); allowed[name(v.a)] {
-			t.Options = append(t.Options, play.Option{Label: v.label, Key: k, Do: play.Reply{N: int(k)}})
+	for _, v := range answerVerbs { // the rules' own verbs, keyed as the series keys them
+		if allowed[name(v.a)] {
+			t.Options = append(t.Options, play.Option{Label: v.label, Key: r.verbKey(v.label), Do: v.a})
 		}
 	}
 	if k, ok := r.data.VerbKeys["View"]; ok && activeMember(b) >= 0 && len(t.Options) > 0 && !allowed["ViewTarget"] { // the series' View (keyed in VerbKeys): the active member's sheet, front state (BR's View is its rules' ViewTarget)

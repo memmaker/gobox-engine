@@ -68,7 +68,13 @@ func turnOptions(c *play.Combat, d game.Data) []play.Option {
 	}
 	ops := c.Turn.Options
 	k, ok := d.VerbKeys["View"]
-	if !ok || len(ops) == 0 || c.Turn.Aim || slices.ContainsFunc(ops, func(o play.Option) bool { _, view := o.Do.(play.ViewMember); return view || o.Label == "View" }) {
+	if !ok || len(ops) == 0 || c.Turn.Aim || slices.ContainsFunc(ops, func(o play.Option) bool {
+		switch o.Do.(type) {
+		case play.ViewMember, play.ViewTarget:
+			return true
+		}
+		return false
+	}) {
 		return ops
 	}
 	at := len(ops)
