@@ -21,10 +21,6 @@ func (e *Engine) combatSetup() {
 	e.combatMapSetup()
 	e.placeCombatants()
 	e.spr = nil // 0464:248E (1, 4, 3, 0x18): iconToSprite sizes it
-	if p := e.partyIDs(); len(p) > 0 {
-		at := e.at(p[0])
-		e.cview.X, e.cview.Y = at.X-3, at.Y-3
-	}
 	e.combatUseHook()
 	e.as(e.sel)
 	if _, err := e.ruleset().Resolve(rules.Fight{}, rules.FightPlaced{}, nil); err != nil {
@@ -46,7 +42,6 @@ func (e *Engine) combatMapSetup() {
 	if _, err := e.ruleset().Resolve(rules.Fight{}, e.groundTerms(), nil); err != nil {
 		panic(fmt.Sprintf("combat ground: %v", err))
 	}
-	e.ccursor = freshCursor // a fresh combat map's
 }
 
 // groundTerms is what the rules lay the combat ground from.

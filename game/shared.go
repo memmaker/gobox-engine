@@ -82,13 +82,9 @@ type Combat struct {
 	Tiles     []string
 	FloorTile string `json:",omitempty"` // the Tiles name (a series combat sprite) of the plain floor, tiled on every floor square; "": the bare ground's Floor colour
 	Floor     color.RGBA
-	Effects   []Effect    // sprites over the map
-	Cursor    image.Point // the square the cursor was last drawn on
-	CursorOn  bool        // the cursor icon is up (aiming, looking)
-	CursorAt  []image.Point
-	View      image.Point // top left square of the scrolled view window
-	Strike    Strike      // the last weapon attack
-	Log       []string    // the battle's messages, oldest first
+	Effects   []Effect // sprites over the map
+	Strike    Strike   // the last weapon attack
+	Log       []string // the battle's messages, oldest first
 }
 
 // Report is something that happened.

@@ -6,13 +6,13 @@ import (
 
 // The combat map (ovr31, ovr32, ovr33). The original drew 7x7 squares of
 // the 50x25 map on its drawing page, 3x3 cells a square; that page is
-// gone (the battle view draws the map from the snapshot, battle.go), but
-// its scrolling window stays as what the view looks at (Battle.View).
+// gone (the battle view draws the map from the snapshot, battle.go); the
+// cursor and the scrolled view are the front's.
 
 // CombatMap is the 0x4E9-byte record at [DS:6716].
 type CombatMap struct {
-	// +2/+3 the view's top left square: the Engine's (presentation); combatOnScreen takes it as input
-	// +4/+5 the cursor (icon, footprint): the Engine's (presentation)
+	// +2/+3 the view's top left square: the front's (not kept)
+	// +4/+5 the cursor (icon, footprint): the front's (not kept)
 	seeAll byte           // +6 line of sight ignores walls
 	Ground [25][50]Ground // +7 ground type per square
 }

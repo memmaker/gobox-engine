@@ -84,9 +84,6 @@ func (e *Engine) apply(f rules.Effect) {
 	case rules.Fell: // with the body ovr32:0E11 leaves for a fight the blow ends (class 55)
 		ev := game.Fell{Unit: int(f.Unit)}
 		b := e.ruleset().Check(rules.UnitBody{Unit: f.Unit}, nil)
-		if x, y := int(b.Low), int(b.High); !e.inView(x, y) {
-			e.recentre(x, y, 3) // ovr32:0E11: the fall brought into view
-		}
 		if t := int(b.Value); b.Yes && t/0x80 < len(e.sqrpaci) && e.sqrpaci[t/0x80] != nil {
 			ev.Body = gamePicture(e.picPix(e.sqrpaci[t/0x80], t%0x80, false, int(groundColour(e.art(e.sqrpaci[0], 0)))))
 		}

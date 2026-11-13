@@ -44,8 +44,6 @@ type Engine struct {
 	campSavedAnim      bool                        // the picture's animation as camp found it
 	campInterrupted    bool                        // a rest was interrupted (camp closes)
 	campSeq            int                         // when camp opened (top); the rules keep camp up (core.WordCampOn)
-	ccursor            combatCursor                // the combat cursor (cmap +4/+5): presentation, the Engine's
-	cview              image.Point                 // the combat view's top left map square ([DS:6716]+2/+3): presentation, the Engine's
 	fx                 []rules.Effect              // the effects queued and not yet shown (emit, present)
 	resting            *restRun                    // the camp rest going on (RestStep), nil none
 	adv                string                      // New's adventure folder: scripts, art, data

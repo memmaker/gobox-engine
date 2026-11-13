@@ -28,7 +28,7 @@ func (e *Engine) aoeMarks(x, y int) {
 	e.snap.area, e.snap.skipped = points(a.Area), points(a.Skipped)
 	marks := map[rules.BoardPos]bool{}
 	for _, p := range a.Hit {
-		if p.X != x || p.Y != y || !e.ccursor.icon { // the cursor marks its own square
+		if p.X != x || p.Y != y { // the aim's cursor marks its own square
 			marks[p] = true
 		}
 	}

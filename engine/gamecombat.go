@@ -43,7 +43,7 @@ func (e *Engine) combatState(s *facts) {
 	c := &game.Combat{Size: image.Pt(len(b.Ground[0]), len(b.Ground)), Round: int(e.ruleset().Check(rules.FightRound{}, nil).Value), Dungeon: b.Dungeon,
 		Targets: slices.Clone(b.Targets), Panel: b.Panel, Marks: slices.Clone(b.Marks), Area: b.Area,
 		AreaAt: slices.Clone(b.AreaAt), Skipped: slices.Clone(b.Skipped), Why: b.AimWhy,
-		Floor: b.Floor, Cursor: b.Cursor, CursorOn: b.CursorOn, CursorAt: slices.Clone(b.CursorAt), View: b.View,
+		Floor:  b.Floor,
 		Strike: game.Strike{Seq: b.Strike.Seq, From: b.Strike.From, To: b.Strike.To, Hit: b.Strike.Hit, Damage: b.Strike.Damage},
 		Log:    slices.Clone(b.Log)}
 	for y := range b.Ground {

@@ -21,14 +21,10 @@ func (e *Engine) battle() *Battle {
 		return nil
 	}
 	b := &Battle{
-		Cursor: s.cursor, CursorOn: s.cursorOn,
-		Marks: s.marks, Reach: s.reach, Paths: s.paths, Targets: s.targets, Turn: s.turn, Area: e.ext.aoe != 0, AreaAt: s.area, Skipped: s.skipped, AimWhy: s.aimWhy, Dungeon: s.dungeon, View: e.cview,
+		Marks: s.marks, Reach: s.reach, Paths: s.paths, Targets: s.targets, Turn: s.turn, Area: e.ext.aoe != 0, AreaAt: s.area, Skipped: s.skipped, AimWhy: s.aimWhy, Dungeon: s.dungeon,
 		Strike: s.strike, Log: slices.Clone(e.ext.battleLog[max(0, len(e.ext.battleLog)-100):]),
 	}
 	g := e.fact(rules.NoChar, rules.GroundFact{}).(rules.Ground)
-	for _, d := range g.Footprints[e.ccursor.size] {
-		b.CursorAt = append(b.CursorAt, s.cursor.Add(image.Pt(d.X, d.Y)))
-	}
 	b.Ground = g.Squares
 	ground := e.groundOf(e.art(e.sqrpaci[0], 0)) // the shown art's (F12): 0 on DOS, a grey on the Amiga
 	b.Floor = e.pal.RGBA(ground)
@@ -140,7 +136,6 @@ type tileKey struct {
 
 // cmapShown notes the combat map is drawn: the view shows it from then on.
 func (e *Engine) cmapShown() {
-	e.snap.cursorOn = false // a fresh page: drawCursor puts it back
 	e.snap.cmapOn = true
 }
 

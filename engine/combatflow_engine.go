@@ -95,7 +95,6 @@ func (e *Engine) stepFight() bool {
 // endTurn = takeTurn's end: the cursor off; the last one down ends the round.
 func (e *Engine) endTurn(cID rules.CharID) {
 	e.ruleset().EndTurn(rules.Fight{}, cID, nil) // extra: the rule set's
-	e.eraseCursor(e.at(cID).X, e.at(cID).Y)
 	e.sidesCheck()
 }
 
