@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
+	"gobox/engine/playpool"
 	"gobox/game/play"
 	"gobox/games/por/porgame"
-	"gobox/games/por/presentdata"
 	"gobox/ui"
 )
 
@@ -29,7 +29,7 @@ func frameFront(b *testing.B, dev string) *ui.Front {
 	}
 	seed := uint32(1)
 	eng.FixedSeed = &seed
-	data := presentdata.Data(eng)
+	data := playpool.Data(eng, "por")
 	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("")
 	f.Frame(1280, 800)

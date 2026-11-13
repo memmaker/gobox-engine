@@ -28,7 +28,6 @@ import (
 	"buckrogers2/playbr2"
 	"gobox/app"
 	"gobox/engine/playpool"
-	"gobox/games/por/presentdata"
 	"gobox/importer"
 	"gobox/rules4e"
 	"gobox/ui"
@@ -51,7 +50,7 @@ const ruleset1e = "rules1e"
 
 // extras are what a pool game adds in code: POR's remastered art and its 4e combat.
 var extras = map[string]playpool.Extras{
-	"por": {Combat4e: rules4e.New(), Data: presentdata.Data},
+	"por": {Combat4e: rules4e.New()},
 }
 
 // play starts the adventure folder f in the engine of its game.

@@ -8,8 +8,8 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 
+	"gobox/engine/playpool"
 	"gobox/games/por/porgame"
-	"gobox/games/por/presentdata"
 )
 
 // TestBuildingLeaveStays (bug class: a building's cell event re-runs after
@@ -62,7 +62,7 @@ func porWalker(t *testing.T) (*ui.Game, *engine.Engine) {
 	seed := uint32(7)
 	eng.FixedSeed = &seed
 	eng.Explore = true
-	g := ui.NewGame(eng, presentdata.Data(eng))
+	g := ui.NewGame(eng, playpool.Data(eng, "por"))
 	g.Open("")
 	for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ {
 		g.TitleDone()

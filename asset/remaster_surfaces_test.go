@@ -1,20 +1,17 @@
-package presentdata
+package asset
 
 import (
 	"bufio"
 	"strings"
 	"testing"
-
-	"gobox/asset"
-	"gobox/games/por/presentdata/blobberart"
 )
 
-// TestSurfacesTextured: every AreaMaps map names a floor, a ceiling or sky and
+// TestSurfacesTextured: every porAreaMaps map names a floor, a ceiling or sky and
 // a texture for every face and prop, and each one is in the pool walls series
 // (BUG-CLASSES 12: no solid-coloured surface).
 func TestSurfacesTextured(t *testing.T) {
-	for geo, name := range AreaMaps {
-		f, err := blobberart.FS.Open("maps/" + name + ".map")
+	for geo, name := range porAreaMaps {
+		f, err := remasterFS.Open("remaster/por/maps/" + name + ".map")
 		if err != nil {
 			t.Errorf("geo %d: %v", geo, err)
 			continue
@@ -37,7 +34,7 @@ func TestSurfacesTextured(t *testing.T) {
 			case "prop":
 				tex = w[1]
 			}
-			if tex != "" && !asset.Has("pool", tex) {
+			if tex != "" && !Has("pool", tex) {
 				t.Errorf("%s: %q has no texture %s", name, sc.Text(), tex)
 			}
 		}

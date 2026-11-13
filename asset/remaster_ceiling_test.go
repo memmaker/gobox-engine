@@ -1,4 +1,4 @@
-package presentdata_test
+package asset_test
 
 import (
 	"bufio"
@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"io/fs"
+
+	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/rules"
-
-	"gobox/games/por/presentdata"
-	"gobox/games/por/presentdata/blobberart"
 )
 
 // TestMapCeilingInside: a remastered map's ceiling line is a sky exactly when
@@ -18,12 +18,13 @@ import (
 // State's Inside reads, on all but at most one cell): -open, with no game to
 // say Inside, shows the cave's rock, not clouds.
 func TestMapCeilingInside(t *testing.T) {
-	l, err := orig.NewLoader("../../../data/por/sources/dos")
+	l, err := orig.NewLoader("../data/por/sources/dos")
 	if err != nil {
 		t.Skip("no game files")
 	}
-	l.UseAmiga("../../../data/por/sources/amiga")
-	for g, name := range presentdata.AreaMaps {
+	art, maps := asset.Remaster("por")
+	l.UseAmiga("../data/por/sources/amiga")
+	for g, name := range maps {
 		var b []byte
 		for s := 1; s <= 8 && b == nil; s++ { // the set whose GEO file holds the map (ovr30:10C7 reads the area's set alone)
 			b = l.BlockShared(fmt.Sprintf("GEO%d", s), g)
@@ -43,12 +44,12 @@ func TestMapCeilingInside(t *testing.T) {
 				}
 			}
 		}
-		art, err := blobberart.FS.ReadFile("maps/" + name + ".map")
+		b2, err := fs.ReadFile(art, "maps/"+name+".map")
 		if err != nil {
 			t.Fatal(err)
 		}
 		ceil := ""
-		for sc := bufio.NewScanner(strings.NewReader(string(art))); sc.Scan(); {
+		for sc := bufio.NewScanner(strings.NewReader(string(b2))); sc.Scan(); {
 			if f := strings.Fields(sc.Text()); len(f) == 2 && f[0] == "ceiling" {
 				ceil = f[1]
 			}

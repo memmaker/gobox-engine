@@ -8,8 +8,8 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 
+	"gobox/engine/playpool"
 	"gobox/games/por/porgame"
-	"gobox/games/por/presentdata"
 )
 
 // The classic front on the play.Game : Open starts the engine,
@@ -23,7 +23,7 @@ func TestPlayFront(t *testing.T) {
 	seed := uint32(7)
 	eng.FixedSeed = &seed
 	eng.Explore = true
-	data := presentdata.Data(eng)
+	data := playpool.Data(eng, "por")
 	g := ui.NewGame(eng, data)
 	g.Open("")
 	for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ { // the title, as the front ends it
@@ -67,7 +67,7 @@ func TestPlayFrontWalk(t *testing.T) {
 	seed := uint32(7)
 	eng.FixedSeed = &seed
 	eng.Explore = true
-	data := presentdata.Data(eng)
+	data := playpool.Data(eng, "por")
 	g := ui.NewGame(eng, data)
 	g.Open("")
 	for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ {

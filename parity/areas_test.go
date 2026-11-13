@@ -7,8 +7,6 @@ import (
 
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/games/por/presentdata"
-	"gobox/games/por/presentdata/blobberart"
 	"gobox/ui"
 )
 
@@ -22,6 +20,7 @@ func TestEveryAreaHasMap(t *testing.T) {
 	if _, err := ui.NewView(asset.Textures("pool", asset.WallNames("pool")...)); err != nil { // ParseScene checks the names against the current View.Textures
 		t.Skip("no GPU:", err)
 	}
+	art, areaMaps := asset.Remaster("por")
 	for disk := 1; disk <= 8; disk++ {
 		f := l.File(fmt.Sprintf("GEO%d", disk))
 		if f == nil {
@@ -31,12 +30,12 @@ func TestEveryAreaHasMap(t *testing.T) {
 			if f.BlockShared(b) == nil {
 				continue
 			}
-			n, ok := presentdata.AreaMaps[b]
+			n, ok := areaMaps[b]
 			if !ok {
 				t.Errorf("GEO%d block %d: no remastered map (phlan-poc/areas.py, make_map.py)", disk, b)
 				continue
 			}
-			m, err := blobberart.FS.Open("maps/" + n + ".map")
+			m, err := art.Open("maps/" + n + ".map")
 			if err != nil {
 				t.Errorf("GEO%d block %d: %v", disk, b, err)
 				continue

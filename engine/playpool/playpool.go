@@ -16,6 +16,7 @@ import (
 	"slices"
 
 	"gobox/app"
+	"gobox/asset"
 	"gobox/audio"
 	"gobox/engine"
 	"gobox/game"
@@ -31,8 +32,7 @@ const tps = 120
 // Extras are what a game adds in code, the rest of its host settings being
 // its manifest's (importer.Manifest: title, window, saves, foreign rosters).
 type Extras struct {
-	Combat4e rules1e.CombatRules            // the Gameplay page's "4e Combat" (nil: the option does nothing)
-	Data     func(*engine.Engine) game.Data // the presenter's data (nil: the engine's Data)
+	Combat4e rules1e.CombatRules // the Gameplay page's "4e Combat" (nil: the option does nothing)
 }
 
 // New is the game's Engine on the adventure folder adv and the host data directory data.
@@ -42,6 +42,13 @@ func New(adv, data string) (*engine.Engine, error) {
 		return nil, err
 	}
 	return engine.New(rules1e.Rules1e, tables, adv, data)
+}
+
+// Data is the engine's game.Data with the remastered art (asset.Remaster) of game id, if it has any.
+func Data(eng *engine.Engine, id string) game.Data {
+	d := eng.Data()
+	d.Remaster, d.AreaMaps = asset.Remaster(id)
+	return d
 }
 
 // Play runs the game of the adventure folder s.Adventure until the window closes.
@@ -149,10 +156,7 @@ func Play(s app.Start, gm Extras) error {
 		eng.FixedSeed = &seed
 	}
 
-	data := eng.Data()
-	if gm.Data != nil {
-		data = gm.Data(eng)
-	}
+	data := Data(eng, f.ID)
 	data.OpenAt = s.Open
 	data.OwnMusic = filepath.Join(s.Data, "music") // the player's own music, by trigger
 	cg := ui.NewGame(eng, data)
