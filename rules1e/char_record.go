@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"reflect"
 
 	"gobox/rules"
 )
@@ -37,23 +36,6 @@ func Encode[R Record](r R) []byte {
 	var buf bytes.Buffer
 	binary.Write(&buf, binary.LittleEndian, &r) // fixed-size struct: cannot fail
 	return buf.Bytes()
-}
-
-// Kept is b (one record) with the bytes of R's blank fields (the DOS
-// pointers) zeroed: what Encode(Decode(b)) gives back.
-func Kept[R Record](b []byte) []byte {
-	out := bytes.Clone(b)
-	t := reflect.TypeFor[R]()
-	off := 0
-	for i := range t.NumField() {
-		f := t.Field(i)
-		n := binary.Size(reflect.New(f.Type).Elem().Interface())
-		if f.Name == "_" {
-			clear(out[off : off+n])
-		}
-		off += n
-	}
-	return out
 }
 
 // StatPair is one ability score: the character's own (Base) and the value

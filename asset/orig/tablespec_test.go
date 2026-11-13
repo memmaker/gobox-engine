@@ -28,7 +28,7 @@ func TestGenerate(t *testing.T) {
 			t.Errorf("missing %q in\n%s", want, s)
 		}
 	}
-	js, err := JSON(tables, im)
+	js, err := jsonWith(tables, nil, im)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func TestGenerate(t *testing.T) {
 func TestWriteRules(t *testing.T) {
 	im := &ExeImage{Mem: []byte{1, 2}}
 	dir := t.TempDir()
-	if err := WriteRules([]byte(`[{"name":"a","at":0,"len":2,"kind":"bytes"},{"name":"o","at":0,"len":1,"kind":"bytes","img":1}]`), dir, im); err != nil {
+	if err := WriteRulesWith([]byte(`[{"name":"a","at":0,"len":2,"kind":"bytes"},{"name":"o","at":0,"len":1,"kind":"bytes","img":1}]`), dir, nil, im); err != nil {
 		t.Fatal(err)
 	}
 	b, err := os.ReadFile(filepath.Join(dir, RulesFile))

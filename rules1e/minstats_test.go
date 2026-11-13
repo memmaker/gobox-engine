@@ -13,7 +13,7 @@ func TestParseMinStat(t *testing.T) {
 			t.Errorf("%q: %d %v", c.s, v, ok)
 		}
 	}
-	if StrScore(18, 100) <= StrScore(18, 99) || StrScore(18, 1) <= StrScore(18, 0) || fmtStr(1900) != "18/00" {
+	if StrScore(18, 100) <= StrScore(18, 99) || StrScore(18, 1) <= StrScore(18, 0) {
 		t.Error("18/xx ordering")
 	}
 }

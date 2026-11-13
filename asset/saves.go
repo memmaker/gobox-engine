@@ -6,8 +6,6 @@
 package asset
 
 import (
-	"bytes"
-	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"os"
@@ -42,36 +40,6 @@ type Meta struct {
 
 // MetaFile is the file WriteMeta writes in a slot.
 const MetaFile = "SLOT.META"
-
-// WriteMeta writes m into the slot folder dir (inside Write's write).
-func WriteMeta(dir string, m Meta) error {
-	b, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(filepath.Join(dir, MetaFile), b, 0o644)
-}
-
-// WriteSide writes v, a fixed-size value (a uint64 purse, a struct of
-// them), little-endian into file in the slot folder dir (inside Write's
-// write).
-func WriteSide[T any](dir, file string, v T) error {
-	var b bytes.Buffer
-	if err := binary.Write(&b, binary.LittleEndian, v); err != nil {
-		return err
-	}
-	return os.WriteFile(filepath.Join(dir, file), b.Bytes(), 0o644)
-}
-
-// ReadSide reads WriteSide's file of slot name into a T.
-func ReadSide[T any](s Store, name, file string) (T, error) {
-	var v T
-	b, err := os.ReadFile(filepath.Join(s.Path(name), file))
-	if err == nil {
-		err = binary.Read(bytes.NewReader(b), binary.LittleEndian, &v)
-	}
-	return v, err
-}
 
 // Path is the slot's folder.
 func (s Store) Path(name string) string { return filepath.Join(s.Dir, name) }

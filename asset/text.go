@@ -57,29 +57,12 @@ func DrawGlyph(m *image.RGBA, g [8]byte, x, y int, fg, bg *color.RGBA) {
 	}
 }
 
-// DrawText draws s as text in font bits from x, y of m (8 pixels a
-// character); bg nil leaves the pixels behind the glyphs alone.
-func DrawText(m *image.RGBA, bits []byte, s string, x, y int, fg color.RGBA, bg *color.RGBA) {
-	for i := 0; i < len(s); i++ {
-		g, _ := Glyph(bits, s[i], true)
-		DrawGlyph(m, g, x+i*8, y, &fg, bg)
-	}
-}
-
 // Chooser is the font a game shows: the game's own font (Cur 0) or one of
 // List (Cur-1). The game only says which; FONT.CFG (File) keeps the choice.
 type Chooser struct {
 	List []Font
 	Cur  int
 	File string // where the choice is kept, "" for nowhere
-}
-
-// NewChooser lists Load(dir) with first (a name) put first, the rest in
-// Load's order, and picks the font named in file (if any).
-func NewChooser(dir, first, file string) *Chooser {
-	c := NewChooserOf(FontDir(dir), first)
-	c.Keep(file)
-	return c
 }
 
 // NewChooserOf lists own, then the pool, with first (a name) put first.

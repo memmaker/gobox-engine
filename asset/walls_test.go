@@ -5,6 +5,9 @@ import (
 	"image"
 	"image/png"
 	"io/fs"
+	"os"
+	"path/filepath"
+	"sort"
 	"testing"
 	"testing/fstest"
 )
@@ -73,4 +76,17 @@ func TestImageOnce(t *testing.T) {
 	if first == nil || WallImage("once", "floor") != first || n != opened {
 		t.Errorf("second Image opened %d files", n-opened)
 	}
+}
+
+// Series lists the series under Dir, sorted.
+func Series() []string {
+	es, _ := os.ReadDir(filepath.Join(WallDir, "series"))
+	var out []string
+	for _, e := range es {
+		if e.IsDir() {
+			out = append(out, e.Name())
+		}
+	}
+	sort.Strings(out)
+	return out
 }

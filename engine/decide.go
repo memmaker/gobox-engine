@@ -55,13 +55,6 @@ func (e *Engine) blocked() bool {
 	return e.eclWait != nil && e.eclWait.seq > 0 || e.pending != PendNone || e.campOn() || e.menu.on
 }
 
-// blockedRet goes on with what follows unless something waits.
-func (e *Engine) blockedRet() {
-	if !e.blocked() {
-		e.ret()
-	}
-}
-
 // closed ends a slot: when nothing else is open the cont on top of the
 // stack goes on; then the slot under it draws itself again, unless that
 // opened another or dropped the game (unwindReset).

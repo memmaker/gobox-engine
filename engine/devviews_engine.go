@@ -318,7 +318,7 @@ func (e *Engine) DevAt(block, x, y int) {
 func (e *Engine) TraceScripts() {
 	e.vm.Trace = func(vm *ecl.VM, n int) {
 		fmt.Fprintf(os.Stderr, "ecl %04X op %02X\n", vm.PC, vm.Command)
-		ecl.ArgsTrace(e.host, func(s string) { fmt.Fprint(os.Stderr, s) })(vm, n)
+		argsTrace(e.host, func(s string) { fmt.Fprint(os.Stderr, s) })(vm, n)
 	}
 }
 
@@ -351,5 +351,58 @@ func (e *Engine) devAnswered(d askDone, v ansv) {
 	case dDevPassword:
 		e.scriptText(true, "YOU SAY '"+v.s+"'.")
 		e.askContinue(askDone{})
+	}
+}
+
+// okay is whether member i's status is okay.
+func (e *Engine) okay(i int) bool {
+	return e.ruleset().Sheet(e.partyIDs()[i]).Status == rules.StatusOkay
+}
+
+// firstOkay is the first member whose status is okay, or -1.
+func (e *Engine) firstOkay() int {
+	for i := range e.partySize() {
+		if e.okay(i) {
+			return i
+		}
+	}
+	return -1
+}
+
+// firstMonster is the lowest monster id of file; false: none.
+func (d *gameData) firstMonster(file string) (int, bool) {
+	d.monster(file, 0)
+	first, ok := 0, false
+	for id := range d.monsters[file] {
+		if !ok || id < first {
+			first, ok = id, true
+		}
+	}
+	return first, ok
+}
+
+// blockedRet goes on with what follows unless something waits.
+func (e *Engine) blockedRet() {
+	if !e.blocked() {
+		e.ret()
+	}
+}
+
+// entryNamed is the id of the entry the scripts call name (a dev view's).
+func (e *Engine) entryNamed(name string) ecl.EntryID {
+	for id, en := range e.entries() {
+		if en.Name == name {
+			return id
+		}
+	}
+	panic("no text entry " + name)
+}
+
+// argsTrace is a ready Trace printing operands the way the games' scriptTrace does.
+func argsTrace(h ecl.Host, print func(string)) func(*ecl.VM, int) {
+	return func(vm *ecl.VM, n int) {
+		for k := 1; k <= n; k++ {
+			print(fmt.Sprintf("    arg%d type %d %d %v = %d\n", k, vm.ArgType[k], vm.ArgN[k], vm.ArgRef[k], vm.Arg(k, h)))
+		}
 	}
 }

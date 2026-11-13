@@ -206,7 +206,7 @@ type sound struct {
 	tickLeft  float64
 	tandy     bool // Tandy sound chip present (config 'T'): render the SN76489
 	sn        sn76489
-	am        *orig.Player // Config.Amiga given: the Amiga players instead
+	am        *orig.Player // the Amiga SOUND.BIN image given: the Amiga players instead
 }
 
 // amigaFx maps PlaySound 2..12 to Amiga effects: the Amiga's effect table parallels the
@@ -310,62 +310,6 @@ func (s *sound) snSilence() {
 	}
 }
 
-// Config is what a game gives NewPlayer.
-type Config struct {
-	Data        []byte                    // the game's sounddata.json (cmd/sounddata)
-	Card        byte                      // 'P' speaker, 'T' Tandy, else none
-	Amiga       []byte                    // the Amiga SOUND.BIN image (amiga.Base..amiga.End): selects the Amiga sound; nil: DOS
-	AmigaSongOn uint32                    // address of the Amiga player's "song running" byte (amiga.Player.SongOn)
-	Volume      func(kind string) float64 // fader for "music" or "sfx", 0 to 1; nil: 1
-}
-
-// NewPlayer starts the driver; the Player's Read is the audio stream: signed 16-bit
-// little endian stereo at 44100 Hz, to be fed to an audio player (Output).
-func NewPlayer(c Config) (*Player, error) {
-	d, err := parseData(c.Data)
-	if err != nil {
-		return nil, err
-	}
-	s := &sound{d: d, volume: c.Volume}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.speaker = sndChannelSet{songs: d.speaker, periods: d.speakerPeriods}
-	s.tandySet = sndChannelSet{songs: d.tandy, periods: d.tandyPeriods}
-	s.enabled, s.ret = true, 0
-	s.sn.att = [4]int{snSilent, snSilent, snSilent, snSilent}
-	s.tandy = c.Card == 'T'
-	switch c.Card { // main 0x4574
-	case 'T':
-		s.typ = sndTandy
-	case 'P':
-		s.typ = sndSpeaker
-	default:
-		s.typ = sndNone
-	}
-	s.on = true
-	if len(c.Amiga) == orig.End-orig.Base {
-		s.am = orig.NewPlayer(c.Amiga)
-		s.am.SongOn = c.AmigaSongOn
-	}
-	if s.typ != sndNone { // soundInit: with a card, the timer interrupt hooked, song 0 on both sets
-		s.isr = true
-		s.start(&s.speaker, 0)
-		s.start(&s.tandySet, 0)
-	}
-	return &Player{s}, nil
-}
-
-// Player renders the game's sounds; Read is its audio stream.
-type Player struct{ s *sound }
-
-// vol is the fader for kind.
-func (s *sound) vol(kind string) float64 {
-	if s.volume == nil {
-		return 1
-	}
-	return s.volume(kind)
-}
-
 // scale turns s16 samples down by g.
 func scale(p []byte, g float64) {
 	if g >= 1 {
@@ -375,26 +319,6 @@ func scale(p []byte, g float64) {
 		v := float64(int16(binary.LittleEndian.Uint16(p[i:])))
 		binary.LittleEndian.PutUint16(p[i:], uint16(int16(v*g)))
 	}
-}
-
-// Read renders the Amiga players, or the speaker and the Tandy (render) at the
-// effects volume.
-func (r *Player) Read(p []byte) (int, error) {
-	s := r.s
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	n := len(p) / 4 * 4
-	if s.am != nil {
-		if s.typ == sndNone {
-			clear(p[:n])
-		} else {
-			s.am.Render(p[:n], sndRate)
-		}
-		return n, nil
-	}
-	s.render(p[:n])
-	scale(p[:n], s.vol("sfx")) // the DOS game has no music
-	return n, nil
 }
 
 // render renders the speaker as a square wave (plus the SN76489 when the
@@ -631,41 +555,6 @@ func (s *sound) start(set *sndChannelSet, song int) {
 func (s *sound) stop() {
 	s.start(&s.tandySet, 0)
 	s.start(&s.speaker, 0)
-}
-
-// Play (n): only 0..15 and 255 are taken, and only with a sound
-// card. sndMute starts the empty song 0 on both sets, sndUnmute lets the speaker
-// sound, sndStop silences everything and unhooks the timer interrupt; 2..14 start
-// song n-1 on the card's set. 15 arms the driver's copy-protection countdown
-// (after 5000 ticks it prints a message and exits); no caller passes it.
-func (r *Player) Play(n int) {
-	s := r.s
-	if !(n >= sndMute && n <= sndCountdown || n == sndStop) {
-		return
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if !s.on || s.typ == sndNone {
-		return
-	}
-	switch {
-	case n == sndMute:
-		s.stop()
-	case n == sndUnmute:
-		s.enabled = true
-	case n == sndStop:
-		s.stop()
-		s.unhook()
-		s.installed = false
-	case n >= sndSpell && n < sndCountdown && n-1 < len(s.speaker.songs):
-		if s.am != nil && n-sndSpell < len(amigaFx) {
-			s.am.Effect(amigaFx[n-sndSpell])
-		} else if s.typ == sndSpeaker {
-			s.start(&s.speaker, n-1)
-		} else {
-			s.start(&s.tandySet, n-1)
-		}
-	}
 }
 
 // unhook restores the timer interrupt: speaker off, all Tandy voices off.

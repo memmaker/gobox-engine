@@ -122,26 +122,6 @@ func (c *cellPage) box(x1, y1, x2, y2, colour int, title string) {
 	}
 }
 
-// lines are the cells as runs of one colour, a row each.
-func (c *cellPage) lines() [][]PaneRun {
-	ls := make([][]PaneRun, c.rows)
-	for y, row := range c.cells {
-		var l []PaneRun
-		for x, k := range row {
-			if !k.set {
-				continue
-			}
-			if n := len(l) - 1; n >= 0 && l[n].X+len(l[n].Text) == x && l[n].Fg == k.fg && l[n].Bg == k.bg && l[n].Upcase == k.upcase {
-				l[n].Text += string(k.ch)
-				continue
-			}
-			l = append(l, PaneRun{X: x, Text: string(k.ch), Fg: k.fg, Bg: k.bg, Upcase: k.upcase})
-		}
-		ls[y] = l
-	}
-	return ls
-}
-
 // screenPage is v's page as the presenter draws it: the page's pictures
 // and boxes and the screens' text over them.
 // contentPictures are the original art a screen of its own shows from the

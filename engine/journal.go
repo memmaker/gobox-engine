@@ -118,16 +118,6 @@ func (e *Engine) showEntry(id ecl.EntryID) {
 	e.showJournal(en.Box, texts)
 }
 
-// entryNamed is the id of the entry the scripts call name (a dev view's).
-func (e *Engine) entryNamed(name string) ecl.EntryID {
-	for id, en := range e.entries() {
-		if en.Name == name {
-			return id
-		}
-	}
-	panic("no text entry " + name)
-}
-
 // entries are the adventure's long texts by id, read once.
 func (e *Engine) entries() map[ecl.EntryID]ecl.Entry {
 	if e.entryTable == nil {

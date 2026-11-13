@@ -253,13 +253,6 @@ func (e *Engine) binding(f *ecl.Field, i int) (engineField, int, bool) {
 	return ef, canonElement(f, i), ok
 }
 
-// boundElement: element i of f is a named element the engine binds (it keeps
-// no cell of f's).
-func (e *Engine) boundElement(f *ecl.Field, i int) bool {
-	_, ok := e.engineFields[f.ElementName(i)]
-	return ok && f.ElementName(i) != ""
-}
-
 // storeCells writes vs into f's cells from element i on.
 func (e *Engine) storeCells(f *ecl.Field, i int, vs []int64) {
 	m := e.cells(f)

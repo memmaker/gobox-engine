@@ -2,6 +2,8 @@ package ui
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -71,4 +73,19 @@ func TestSong(t *testing.T) {
 	if err != nil || len(ch) != 2 || ch[0].Tag != "GLBR" || ch[1].Tag != "SLBR" {
 		t.Fatalf("%v %v", ch, err)
 	}
+}
+
+// Song splits an .SMS file into its chunks: a tag, a big-endian u32 size
+// counting the 8-byte head, then the data.
+func Song(b []byte) ([]Chunk, error) {
+	var out []Chunk
+	for len(b) >= 8 {
+		n := int(binary.BigEndian.Uint32(b[4:]))
+		if n < 8 || n > len(b) {
+			return nil, errors.New("vace: bad SMS chunk size")
+		}
+		out = append(out, Chunk{string(b[:4]), b[8:n]})
+		b = b[n:]
+	}
+	return out, nil
 }

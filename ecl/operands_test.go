@@ -67,3 +67,15 @@ func TestGameOperands(t *testing.T) {
 		})
 	}
 }
+
+// CacheDir is where a game with no scripts folder of its own keeps its
+// imported texts: they are made from the game's data, which may be read-only.
+// It is created when missing (a first run, a fresh home).
+func CacheDir(game string) (string, error) {
+	d, err := os.UserCacheDir()
+	if err != nil {
+		return "", err
+	}
+	dir := filepath.Join(d, "gobox", "scripts", game)
+	return dir, os.MkdirAll(dir, 0o755)
+}

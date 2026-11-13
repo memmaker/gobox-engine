@@ -13,15 +13,6 @@ import (
 	"gobox/game"
 )
 
-// fullPicture draws a whole-screen picture (320x200) in the middle of the
-// page: on a page of another shape (a full screen) it gets black bars,
-// never a crop or a stretch.
-func (e *Engine) fullPicture(pic *asset.Image) {
-	e.ClearScreen()
-	e.DrawPicture((textCols-minCols)/2, (textRows-minRows)/2, pic, 0)
-	e.snap.full = true
-}
-
 // The title (ovr02:0626 title_screen) is the presenter's: the adventure's
 // Start sequence (SetStart), played until Continue ends it (titleDone).
 // Until then Intro is set and the party menu waits.

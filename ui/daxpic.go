@@ -63,9 +63,6 @@ func (f *Front) Arts() (dos bool, set func(bool)) {
 	}
 }
 
-// daxImage is frame of block of file in the EGA colours (nil: none).
-func daxImage(file string, block, frame int) image.Image { return daxMasked(file, block, frame, -1) }
-
 // daxMasked is daxImage with colour index mask transparent too (-1: none).
 func daxMasked(file string, block, frame, mask int) image.Image {
 	k := daxKey{file, block, frame, mask}

@@ -317,28 +317,6 @@ func askMode(m game.Mode, a *game.Ask, ps game.State) game.Mode {
 	return m
 }
 
-// holding is what the old front waits on in ps.
-func holding(ps game.State) game.Hold {
-	switch t := ps.(type) {
-	case game.Exploring:
-		if t.Door != nil && t.Ask == nil {
-			return game.HoldDoor
-		}
-	case game.Trading:
-		if t.Kind == game.TradeTemple || t.Kind == game.TradeShop && len(t.Services) > 0 {
-			return game.HoldTemple
-		}
-		if t.Kind == game.TradeShop || t.Kind == game.TradeVault {
-			return game.HoldShop
-		}
-	case game.Looting:
-		return game.HoldLoot
-	case game.Fighting:
-		return game.HoldFight
-	}
-	return game.HoldNone // a story page waits on its question, not a hold (HoldStory is the finale's pictures)
-}
-
 // wallsKey names w's look: a new one has the 3D view built again.
 func wallsKey(w game.MapWalls) string {
 	h := fnv.New64a()
@@ -1349,8 +1327,6 @@ const speedStepMs, defaultSpeed, shipMs = 100, 4, 350
 func (r *frontState) engaged(f game.Fighting) game.Report {
 	return game.Report{Kind: game.EvEngaged, Combat: r.combat(f), Party: f.Party}
 }
-
-func events(es []game.Event) []game.Report { return eventsAt(es, defaultSpeed*speedStepMs, nil) }
 
 // eventsAt are the outcome's facts as the old events, a blow or a cast held
 // ms; engaged gives an Engaged fight as the old Combat and party (nil: no EvEngaged).

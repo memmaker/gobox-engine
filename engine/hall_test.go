@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"gobox/asset"
 	"gobox/game"
 )
 
@@ -188,4 +189,16 @@ func TestTempleWords(t *testing.T) {
 	if !strings.HasSuffix(e.ext.note, "is healed") {
 		t.Errorf("note %q: want the service's own words", e.ext.note)
 	}
+}
+
+// invUp: the inventory screen is up (not under a modal).
+func (e *Engine) invUp() bool { return e.snap.invOn }
+
+// fullPicture draws a whole-screen picture (320x200) in the middle of the
+// page: on a page of another shape (a full screen) it gets black bars,
+// never a crop or a stretch.
+func (e *Engine) fullPicture(pic *asset.Image) {
+	e.ClearScreen()
+	e.DrawPicture((textCols-minCols)/2, (textRows-minRows)/2, pic, 0)
+	e.snap.full = true
 }

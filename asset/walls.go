@@ -63,19 +63,6 @@ func open(s string) fs.FS {
 	return series[s]
 }
 
-// Series lists the series under Dir, sorted.
-func Series() []string {
-	es, _ := os.ReadDir(filepath.Join(WallDir, "series"))
-	var out []string
-	for _, e := range es {
-		if e.IsDir() {
-			out = append(out, e.Name())
-		}
-	}
-	sort.Strings(out)
-	return out
-}
-
 var pixel bool // the style: pixel/<name>.png over <name>.png where there is one
 
 // SetStyle picks the textures' style: "pixel" (series/<series>/pixel/<name>.png,

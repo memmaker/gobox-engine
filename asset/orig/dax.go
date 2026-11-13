@@ -155,9 +155,6 @@ func (l *Loader) HasAmiga() bool { return l != nil && l.amiga != nil }
 // where there are any (false, the default).
 func (l *Loader) SetDOS(dos bool) { l.dos.Store(dos) }
 
-// Amiga reports whether BlockShared gives the Amiga blocks now.
-func (l *Loader) Amiga() bool { return l.HasAmiga() && !l.dos.Load() }
-
 // Path returns the real path for a case-insensitive file name, or "".
 func (l *Loader) Path(name string) string {
 	if real, ok := l.names[strings.ToLower(name)]; ok {
@@ -259,18 +256,6 @@ func (l *Loader) AmigaPalette(name string, id int) []byte {
 		return f.BlockShared(id)
 	}
 	return nil
-}
-
-// DOSBlock is the DOS block that an Amiga one stands in for in Block; nil
-// when Block gives the DOS one anyway (the Image.Alt twin).
-func (l *Loader) DOSBlock(name string, id int) []byte {
-	if l == nil || l.amiga == nil {
-		return nil
-	}
-	if l.AmigaShared(name, id) == nil {
-		return nil
-	}
-	return l.dosBlock(name, id)
 }
 
 func (l *Loader) dosBlock(name string, id int) []byte {

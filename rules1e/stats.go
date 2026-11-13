@@ -43,9 +43,6 @@ type LevelSlots [MaxSpellLevel]int
 // classOrder is the order later classes overwrite earlier ones' attacks.
 var classOrder = [8]rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, ClassRanger, ClassMage, ClassThief, ClassMonk}
 
-// ClassStats is ClassCal.RecalcClassStats over POR's tables.
-func ClassStats(w Who) Stats { return POR.ClassStats(w) }
-
 // ClassStats is ClassCal.RecalcClassStats with COTAB's superset (O0FE:000F
 // calcSpellSlots, O0FE:07FB savingThrows, O0FE:0AEA thiefSkills): paladin
 // and ranger spells, the monk's old-level saves, items of thievery, free

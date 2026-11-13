@@ -88,3 +88,12 @@ func TestFightArtResolves(t *testing.T) {
 		}
 	}
 }
+
+// fileBytes is v as the bytes of a save file (.mem, .dual) or of a byte field.
+func fileBytes[T ~uint8](v []T) []byte {
+	b := make([]byte, len(v))
+	for i, x := range v {
+		b[i] = byte(x)
+	}
+	return b
+}

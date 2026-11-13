@@ -69,3 +69,5 @@ func TestAimNoFoeInReach(t *testing.T) {
 		t.Fatalf("%+v", c)
 	}
 }
+
+func events(es []game.Event) []game.Report { return eventsAt(es, defaultSpeed*speedStepMs, nil) }
