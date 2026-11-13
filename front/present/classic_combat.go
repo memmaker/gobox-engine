@@ -200,16 +200,10 @@ func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *c
 		if t := c.Turn; t != nil && t.Weapon != nil && t.Weapon.Name != "" && (g.ID == t.Unit || g.Active) { // the turn's own say for the unit acting
 			u.Weapon = t.Weapon.Name
 		}
-		icon := pix(g.Art)
-		if g.Art.W > 0 { // a DAX ref's size is the decoded picture's (the presenter's nativeSize)
-			u.IconSize = image.Pt(g.Art.W, g.Art.H)
-		}
+		icon, size := figureOf(g, party)
+		u.IconSize = size
 		if im := g.Icon[g.Pose&1]; im != nil {
 			u.Icon, u.IconSize = im, ownIconSize
-		} else if m := g.Member; !g.Foe && m >= 0 && m < len(party) {
-			if pic, size, ok := memberPicture(party[m], g, g.Pose); ok {
-				icon, u.IconSize = pic, size
-			}
 		}
 		if u.Icon == nil {
 			u.Icon = picImage(icon, ink)
@@ -267,6 +261,22 @@ func weapon(w *game.Weapon) *front.InvItem {
 		return nil
 	}
 	return &front.InvItem{Name: w.Name, Type: byte(w.Type), Words: w.Words, Look: w.Look, Rules: w.Rules}
+}
+
+// figureOf is the picture unit g shows, and its size in the original's
+// pixels (zero: the decoded picture's): its Art, or a member's figure (memberPicture)
+// when it has no icon of its own.
+func figureOf(g game.Unit, party []game.Member) (icon front.Picture, size image.Point) {
+	icon = pix(g.Art)
+	if g.Art.W > 0 { // a DAX ref's size is the decoded picture's (the presenter's nativeSize)
+		size = image.Pt(g.Art.W, g.Art.H)
+	}
+	if m := g.Member; g.Icon[g.Pose&1] == nil && !g.Foe && m >= 0 && m < len(party) {
+		if pic, sz, ok := memberPicture(party[m], g, g.Pose); ok {
+			icon, size = pic, sz
+		}
+	}
+	return icon, size
 }
 
 // memberPicture is member m's figure as unit g in pose: g's Art for a member

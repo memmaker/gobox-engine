@@ -27,6 +27,9 @@ func TestBattleOfRefs(t *testing.T) {
 	if len(b.Units) != 1 {
 		t.Error("the unit is not on the board")
 	}
+	if p, _ := figureOf(s.Combat.Units[0], s.Party); p.File != "CPIC1" || p.Block != 23 {
+		t.Errorf("unit picture %+v, want CPIC1 block 23", p)
+	}
 }
 
 // A Gone unit is not on the board; a Dead one stays.
@@ -56,5 +59,15 @@ func TestBattleMemberArt(t *testing.T) {
 	b := boardIn(s.Combat, s.Party)
 	if sz := b.Units[0].IconSize; sz != image.Pt(2, 2) {
 		t.Fatalf("member drawn at %v, want its Art's size", sz)
+	}
+}
+
+// A member with no icon of its own shows its Art's DAX picture: the ref (file
+// and block) is what is chosen, not only that some image was built.
+func TestBattleMemberArtRef(t *testing.T) {
+	party := []game.Member{{Name: "NPC"}}
+	g := game.Unit{ID: 1, Member: 0, Art: game.Picture{File: "CPIC1", Block: 85, Clear: -1}}
+	if p, _ := figureOf(g, party); p.File != "CPIC1" || p.Block != 85 {
+		t.Errorf("member picture %+v, want CPIC1 block 85", p)
 	}
 }

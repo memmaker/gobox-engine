@@ -13,6 +13,10 @@ func TestJournalAndPowers(t *testing.T) {
 	s := shown{Quests: []game.Quest{{ID: "Rats", Giver: "Bram", Place: "Inn", Brief: []string{"a", "b"}, Done: true}},
 		PowerPick: &game.PowerPick{Name: "Ann", What: "Surge", Options: []game.PowerOption{{ID: 3, Name: "Smite", Aim: 2, Range: 4}}},
 		Holding:   game.HoldDoor, Door: &game.Door{Locked: true, Pick: true}}
+	want := []inked{{"Given by Bram", jInk}, {"Inn", jFaded}, {"", jInk}, {"a", jInk}, {"", jInk}, {"b", jInk}, {"", jInk}}
+	if got := questLines(s.Quests[0], 40); !slices.Equal(got, want) {
+		t.Errorf("quest page %+v, want %+v", got, want)
+	}
 	v := Waits(front.View{}, s.Door, s.PowerPick)
 	if !v.Door.Pick || v.Door.Bash || v.Powers.Options[0].Aim != front.AimFoe || v.Powers.Options[0].Range != 4 {
 		t.Errorf("waits %+v %+v", v.Door, v.Powers)

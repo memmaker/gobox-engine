@@ -343,8 +343,8 @@ func (p *Presenter) drawJournal(dst *gpu.Image, note Note) {
 		var paras []string
 		var done bool
 		cols := rw/8 - 3
-		var lines [][2]any // text, ink
-		add := func(s string, c color.RGBA) { lines = append(lines, [2]any{s, c}) }
+		var lines []inked
+		add := func(s string, c color.RGBA) { lines = append(lines, inked{s, c}) }
 		status, stc := "Open", jRed
 		if j.tab == 1 {
 			n := cm.Lore[q]
@@ -359,14 +359,8 @@ func (p *Presenter) drawJournal(dst *gpu.Image, note Note) {
 			}
 		} else {
 			qu := cm.Quests[q]
-			name, paras, done = qu.ID, qu.Brief, qu.Done
-			for _, l := range ui.WrapWords("Given by "+qu.Giver, cols) {
-				add(l, jInk)
-			}
-			for _, l := range ui.WrapWords(qu.Place, cols) {
-				add(l, jFaded)
-			}
-			add("", jInk)
+			name, done = qu.ID, qu.Done
+			lines = questLines(qu, cols)
 		}
 		for _, t := range paras {
 			for _, l := range ui.WrapWords(t, cols) {
@@ -388,7 +382,7 @@ func (p *Presenter) drawJournal(dst *gpu.Image, note Note) {
 		text(ent, status, (rw-8*len(status))/2, 26, stc)
 		y := 44
 		for _, l := range lines {
-			text(ent, l[0].(string), 12, y, l[1].(color.RGBA))
+			text(ent, l.text, 12, y, l.ink)
 			y += 10
 		}
 		if at := j.tab<<16 | q; j.at != at {
@@ -445,4 +439,29 @@ func (p *Presenter) drawJournal(dst *gpu.Image, note Note) {
 	for _, r := range rows {
 		j.rects = append(j.rects, on(r))
 	}
+}
+
+// inked is a line of the journal's page and its ink.
+type inked struct {
+	text string
+	ink  color.RGBA
+}
+
+// questLines are the page of quest qu in cols cells: who gave it, where, and its brief.
+func questLines(qu game.Quest, cols int) (lines []inked) {
+	add := func(s string, c color.RGBA) { lines = append(lines, inked{s, c}) }
+	for _, l := range ui.WrapWords("Given by "+qu.Giver, cols) {
+		add(l, jInk)
+	}
+	for _, l := range ui.WrapWords(qu.Place, cols) {
+		add(l, jFaded)
+	}
+	add("", jInk)
+	for _, t := range qu.Brief {
+		for _, l := range ui.WrapWords(t, cols) {
+			add(l, jInk)
+		}
+		add("", jInk)
+	}
+	return lines
 }
