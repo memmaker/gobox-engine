@@ -33,7 +33,7 @@ func TestRestPick(t *testing.T) {
 // are not "Stop resting?".
 func TestRestNotPacedOverTurn(t *testing.T) {
 	var p Presenter
-	p.Pace(front.View{Pace: front.PaceRest, Resting: true, Battle: &front.Battle{Turn: &front.Turn{Unit: 1}}})
+	p.Pace(front.View{Battle: &front.Battle{Turn: &front.Turn{Unit: 1}}})
 	if len(p.Calls()) != 0 {
 		t.Fatal("the rest stepped over the member's turn")
 	}

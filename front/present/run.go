@@ -118,7 +118,7 @@ func (f *Front) view() front.View {
 // timedView logs the first View and each change of screen (GOBOX_TIMING).
 func (f *Front) timedView(at time.Time) {
 	v := f.v
-	s := fmt.Sprintf("exploring %v, fight %v, party menu %v, intro %v, page %v, area %d", v.Exploring, v.Battle != nil, v.MainMenu != nil, v.Intro != nil, v.Pane != nil, v.Area)
+	s := fmt.Sprintf("exploring %v, fight %v, party menu %v, intro %v, page %v, area %d", f.P.exploring(), v.Battle != nil, v.MainMenu != nil, v.Intro != nil, v.Pane != nil, v.Area)
 	if !f.viewed || s != f.lastScreen {
 		gpu.Mark("View (%.1f ms to build): %s", float64(time.Since(at).Microseconds())/1000, s)
 	}
@@ -141,7 +141,7 @@ func (f *Front) Key(k uint16) {
 		f.held = append(f.held, k)
 		return
 	}
-	if v := f.view(); f.drawn != "" && screenSig(v) != f.drawn { // the screen changed and is not on show yet: the key waits for it, never acting on the one before
+	if v := f.view(); f.drawn != "" && f.screenSig(v) != f.drawn { // the screen changed and is not on show yet: the key waits for it, never acting on the one before
 		f.held = append(f.held, k)
 		return
 	}
@@ -149,13 +149,13 @@ func (f *Front) Key(k uint16) {
 }
 
 // screenSig is what screen v is, as far as keys go: a key acts on the one drawn.
-func screenSig(v front.View) string {
+func (f *Front) screenSig(v front.View) string {
 	ask := front.AskKind(-1)
 	if v.Ask != nil {
 		ask = v.Ask.Kind
 	}
 	turn := v.Battle != nil && v.Battle.Turn != nil
-	return fmt.Sprint(v.Battle != nil, turn, ask, v.Inventory != nil, v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, v.MainMenu != nil, v.Exploring, v.Training != nil)
+	return fmt.Sprint(v.Battle != nil, turn, ask, v.Inventory != nil, v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, v.MainMenu != nil, f.P.exploring(), v.Training != nil)
 }
 func (f *Front) Tick() { Scripted = true; f.P.Tick() } // only a script ticks: its clock is the frames
 
@@ -178,7 +178,7 @@ func (f *Front) Idle() bool {
 		return false
 	}
 	v := f.view()
-	if v.Pace != front.PaceNone && v.Pace != front.PaceAnim || v.Ask != nil && v.Ask.Kind == front.AskPause {
+	if pace := f.P.pacing().Pace; pace != game.PaceNone && pace != game.PaceAnim || v.Ask != nil && v.Ask.Kind == front.AskPause {
 		return false
 	}
 	return f.P.view == nil || !f.P.view.Moving()
@@ -224,7 +224,7 @@ func (f *Front) ViewClick(x, y int) {
 // stopWalk stops the auto-walk under way (any key or click does; that input
 // acts on nothing else); false: none is.
 func (f *Front) stopWalk() bool {
-	if f.view().Pace != front.PaceWalk {
+	if f.P.pacing().Pace != game.PaceWalk {
 		return false
 	}
 	f.P.call(func(e *classicGame) { e.StopWalk() })
@@ -281,11 +281,7 @@ func (f *Front) Cell(x, y float64) (int, int, bool) {
 	if x < p.X || y < p.Y || x >= p.X+p.W || y >= p.Y+p.H {
 		return 0, 0, false
 	}
-	v := f.view()
-	cols, rows := 40, 25
-	if v.Cells.X > 0 {
-		cols, rows = v.Cells.X, v.Cells.Y
-	}
+	cols, rows := f.Game.r.grid.X, f.Game.r.grid.Y
 	return int((x - p.X) * float64(cols) / p.W), int((y - p.Y) * float64(rows) / p.H), true
 }
 
@@ -303,7 +299,7 @@ func (f *Front) Draw(dst *gpu.Image) {
 	} else {
 		f.pic = f.P.Draw(dst, note, v)
 	}
-	f.drawn = screenSig(v)
+	f.drawn = f.screenSig(v)
 	if held := f.held; len(held) > 0 { // the keys pressed before this screen showed, now on it
 		f.held = nil
 		for _, k := range held {

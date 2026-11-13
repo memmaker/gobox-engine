@@ -47,7 +47,7 @@ func (p *Presenter) Shown() Shown {
 		t = v.Inventory.Treasure
 	}
 	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: v.Battle != nil,
-		Camp: v.Camp != nil, MainMenu: v.MainMenu != nil, Loot: v.Loot, Door: v.Door, Resting: v.Resting, Party: len(v.Party)}
+		Camp: v.Camp != nil, MainMenu: v.MainMenu != nil, Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(v.Party)}
 }
 
 // ownQuestion is v with the presenter's question up.
@@ -95,7 +95,7 @@ func (p *Presenter) ownPicker(v front.View) front.View {
 	if p.eng == nil || p.gridPick == nil && p.icon == nil {
 		return v
 	}
-	key := [2]any{p.ran, v.Cells}
+	key := [2]any{p.ran, p.ui().grid}
 	v.Creation, v.SheetPage, v.Camp, v.MainMenu, v.Sheet, v.Inventory = nil, nil, nil, nil, nil, nil
 	v.Portrait, v.IconBox, v.Logo = front.CellRect{}, front.CellRect{}, nil
 	if p.icon != nil {

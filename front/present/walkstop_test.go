@@ -4,7 +4,6 @@ import (
 	"image"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -45,7 +44,7 @@ func TestAnyInputStopsWalk(t *testing.T) {
 			t.Fatal("no walk")
 		}
 		f.stale()
-		if f.view().Pace != front.PaceWalk {
+		if f.P.pacing().Pace != game.PaceWalk {
 			t.Fatal("not walking")
 		}
 		input(f)
@@ -53,7 +52,7 @@ func TestAnyInputStopsWalk(t *testing.T) {
 			c(f.Game)
 		}
 		f.stale()
-		if f.view().Pace == front.PaceWalk {
+		if f.P.pacing().Pace == game.PaceWalk {
 			t.Errorf("%s did not stop the walk", name)
 		}
 		if len(w.sent) != 0 {

@@ -106,3 +106,11 @@ func (r *rules) exploring(ps play.State) bool {
 func (p *Presenter) exploring() bool {
 	return p.eng != nil && p.q == nil && p.eng.r.exploring(p.state())
 }
+
+// pacing is what goes on with time now (nothing: no game set).
+func (p *Presenter) pacing() game.Pacing {
+	if p.eng == nil {
+		return game.Pacing{}
+	}
+	return *p.eng.r.pacingOf(p.state())
+}

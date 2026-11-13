@@ -13,19 +13,6 @@ import (
 // each time it waits; the presenter reads only this. Nothing in it points
 // back into the game's state.
 
-// Pace is what goes on with time while the engine waits (View.Pace): the
-// presenter paces it with the call it names.
-type Pace int
-
-const (
-	PaceNone  Pace = iota
-	PaceFight      // CombatStep (a player's turn waits on TurnChoice instead: Battle.Turn)
-	PaceRest       // RestStep; a key asks StopRest
-	PaceStory      // StoryStep
-	PaceWalk       // WalkStep: the auto-walk; a key or a click stops it
-	PaceAnim       // Animate: the picture's frames
-)
-
 // AreaMap (extra) is the whole area map for a screen of its own: every
 // square's picture (Squares[y][x], nil: none drawn), Tile pixels square,
 // and the party's square and marker. The presenter builds the map's picture
@@ -534,8 +521,6 @@ type View struct {
 	Hall          bool           // MainMenu is the training hall's: over the 3D view, Begin leaves the hall
 	Screen        *game.Screen   // a game's typed screen is up (nil: none): the presenter draws it from its data, the Ask on its prompt rows
 	Seq           uint64         // counts the Views published: a presenter redraws the page on a new one
-	Pace          Pace           // what goes on with time: the call the presenter paces it with
-	Resting       bool           // camp's rest goes on (RestStep): a key asks to stop it (StopRest)
 }
 
 // Results is the after-combat page: the hired NPCs hiding their

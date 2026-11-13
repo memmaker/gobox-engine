@@ -2,10 +2,11 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game"
 	"slices"
 )
 
-// The presenter paces what goes on with time (View.Pace: the fight's
+// The presenter paces what goes on with time (Pacing: the fight's
 // turns, camp's rest, the finale, the auto-walk; a picture's frames
 // animate in the draw, from the View's FrameMs, no call) and asks the
 // yes/no questions the rules need answered (Flee?, Attack Ally?, Stop
@@ -17,14 +18,14 @@ func (p *Presenter) Pace(v front.View) {
 	if p.q != nil || v.Battle != nil && v.Battle.Turn != nil { // a member's turn waits on TurnChoice: nothing goes on with time (a rest the fight broke into never answers it)
 		return
 	}
-	switch v.Pace {
-	case front.PaceFight:
+	switch p.pacing().Pace {
+	case game.PaceFight:
 		p.call(func(e *classicGame) { e.CombatStep() })
-	case front.PaceRest:
+	case game.PaceRest:
 		p.call(func(e *classicGame) { e.RestStep() })
-	case front.PaceStory:
+	case game.PaceStory:
 		p.call(func(e *classicGame) { e.StoryStep() })
-	case front.PaceWalk:
+	case game.PaceWalk:
 		p.call(func(e *classicGame) { e.WalkStep() })
 	}
 }
