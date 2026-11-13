@@ -19,11 +19,11 @@ No game names: the title, shape, key codes and save marker are the game's data.
   (`Screen()` names the screen), BIOS codes (`ui.BIOSKey`), Ctrl-letter
   1..26, Ctrl-Shift-F `FontPrev`, F12 `Art.Toggle`. A Front may be a Starter.
 - `Art{Want, Toggle, Set}`: two arts; Draw cross-fades (600 ms) when Want changes, then Set.
-- `Menu{Prefs, Extra, Rows, Apply, SaveLoad, MainMenu, Font...}`: blobber's Esc
-  menu. Run loads `blobber.Settings` and `*Extra` from Prefs, calls Apply, and
-  wires blobber's hooks (OnSettings: Apply then Save of both, Extra's fields at
+- `Menu{Prefs, Extra, Rows, Apply, SaveLoad, MainMenu, Font...}`: ui's Esc
+  menu (ui/options.go). Run loads `ui.Settings` and `*Extra` from Prefs, calls Apply, and
+  wires ui's menu hooks (OnSettings: Apply then Save of both, Extra's fields at
   the top level; ExtraRows; Repeats at TPS; Held through the latch).
-  `blobber.Settings.Fullscreen` ORs into Settings.Fullscreen.
+  `ui.Settings.Fullscreen` ORs into Settings.Fullscreen.
 - `Game` interface: `Update()` once a tick (TPS a second; in a scripted run
   the game must ignore the user's input), `Step(k Key)` once a scripted
   frame before Draw (k = the key due, 0 none), `Draw(dst *gpu.Image)`.

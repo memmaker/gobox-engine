@@ -1,4 +1,4 @@
-# gobox/ui API: combat (3D tabletop combat map; needs gpu, input)
+# gobox/ui/combat API (3D tabletop combat map; needs gpu and ui/input only, never imports ui)
 
 Reads a `Board` snapshot, draws figurines on a wooden table, returns `Decision`s. The camera turns in eighths (XCOM style).
 
@@ -9,7 +9,8 @@ Reads a `Board` snapshot, draws figurines on a wooden table, returns `Decision`s
 - `Turn`: Unit, `Can []Kind` (buttons in the game's menu order), Aim, Casting, Moves, `Labels map[Kind]string` (button words). (`Turn.Icons` was removed: use `Presenter.Icons`.)
 
 ## Decisions (combat -> game)
-- `Decision{Kind, N, X, Y, Pre}`. Kinds: ActNone, ActWalk, ActStep, ActAttack, ActAim, ActPoint, ActClose, ActYes, ActNo, ActWait, ActEnd, ActQuick, ActGuard, ActBandage, ActFlee, ActTurn, ActCast, ActItems, ActRanged, ActManeuver, ActView.
+- `Decision{Kind, N, X, Y, Pre}`. Kinds: the `Decide*` constants (Walk, Step, Attack, Aim, Point, Close, Yes, No, Wait, End, Quick, Guard, Bandage, Flee, Turn, Cast, Items, Ranged, Maneuver, View, Option). `Option` is a game's own action.
+- `CameraAct(input.Act) bool`; `Theme`, `DefaultTheme`.
 
 ## Presenter (one per combat; zero value works)
 - `Draw(dst, *Board)`; `DrawBar(dst, glyph, *Board, k, bottom)` the action bar at scale k; `HideBar()`.

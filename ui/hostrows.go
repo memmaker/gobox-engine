@@ -1,4 +1,4 @@
-// hostrows.go: the Esc menu rows (blobber.ExtraRows) of the presenter's
+// hostrows.go: the Esc menu rows (ExtraRows) of the presenter's
 // Options, and the row makers a game builds its own settings' rows with.
 
 package ui
@@ -117,7 +117,7 @@ type HostRow struct {
 	Change      func(int)
 }
 
-// HostRows are rows and o's own rows (OptionRows) by page for blobber.ExtraRows:
+// HostRows are rows and o's own rows (OptionRows) by page for ExtraRows:
 // where they share a built-in row, rows come first.
 func HostRows(o *Options, rows ...HostRow) map[string][]Row {
 	out := map[string][]Row{}
