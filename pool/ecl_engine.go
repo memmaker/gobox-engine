@@ -29,6 +29,9 @@ func (e *Engine) InitAreaScript() {
 		e.locals = fieldCells{} // area words 0x4A00..0x4A1F and game words 0x6E79..0x6E82
 	} else if e.loadedLocals != nil { // nil: a load that kept the running game's state (slots.go)
 		e.locals, e.loadedLocals = e.loadedLocals, nil
+		if l := e.vm.Script.Layout; l != nil {
+			foldElements(e.locals, l.Fields)
+		}
 		e.loadedGame = false
 	} else {
 		e.loadedGame = false

@@ -18,6 +18,9 @@ import (
 // only an original save is imported.
 func (e *Engine) readSlotSave() (gameSave, error) {
 	g, err := readGameSave(e.savePath(gameFile))
+	if err == nil {
+		foldElements(g.Fields, e.gameFields())
+	}
 	if !errors.Is(err, fs.ErrNotExist) {
 		return g, err
 	}
@@ -107,17 +110,19 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 // here: the import turns it into the canonical save (savegame.go).
 const origSaveFile = char.OriginalSaveFile
 
-// decodeCells are field fl's cells in o's records (a text up to its NUL);
+// decodeCells are field fl's cells in o's records (a text up to its NUL,
+// a text buffer with named elements all its Len);
 // nil when all are zero.
 func decodeCells(o *char.ImportedSave, fl script.Field) []int64 {
 	var c []int64
 	n := fl.Len
-	if fl.Width == script.WidthText {
+	text := fl.Width == script.WidthText && fl.Elements == nil // a text buffer with named elements keeps all its cells
+	if text {
 		n = 0x100
 	}
 	for i := range n {
 		p := o.Cell(fl.From + i)
-		if p == nil || fl.Width == script.WidthText && *p == 0 {
+		if p == nil || text && *p == 0 {
 			break
 		}
 		c = append(c, int64(*p))

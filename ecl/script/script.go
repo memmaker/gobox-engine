@@ -66,7 +66,7 @@ func ReadNames(data fs.FS, area int, labels bool, v *Version) (*Names, error) {
 			continue
 		}
 		n.Vars[f.From] = f.Name
-		if f.Len > 1 && f.Width != WidthText {
+		if f.Len > 1 && (f.Width != WidthText || len(f.Elements) > 0) { // a text buffer whose cells the scripts also index
 			n.Arrays[f.From] = f.Name
 		}
 		for i := 1; i < f.Len && f.Width != WidthText; i++ {

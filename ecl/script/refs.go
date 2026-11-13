@@ -21,20 +21,51 @@ func tableBase(op byte, k int) bool {
 
 // ConstLayout is the layout of s's own tables: one read-only constant field
 // a table, from its address to the next table's (or the end of the data).
+// A one-entry table a variable indexes is another base of the table after
+// it (cotab area21: T_8CFF[level] and T_8D00[level], one table read 1-based
+// and 0-based; GetTable reads base+index of the code, unbounded): one field
+// from the first base, the later tables its named elements.
 func ConstLayout(s *Script, v *Version) *Layout {
 	l := &Layout{}
 	names := slices.Sorted(maps.Keys(s.Tables))
 	slices.SortFunc(names, func(a, b string) int { return s.Tables[a] - s.Tables[b] })
+	indexed := varIndexedTables(s)
+	runsOn := false // the last field is a one-entry base the next table continues
 	for i, n := range names {
-		end := v.Base + len(s.Data)
+		at, end := s.Tables[n], v.Base+len(s.Data)
 		if i+1 < len(names) {
 			end = s.Tables[names[i+1]]
 		}
-		if end > s.Tables[n] {
-			l.Fields = append(l.Fields, Field{Name: n, Owner: OwnerConst, Width: WidthByte, From: s.Tables[n], Len: end - s.Tables[n], ReadOnly: true})
+		if end <= at {
+			continue
 		}
+		base := runsOn
+		runsOn = end-at == 1 && indexed[at] && i+1 < len(names)
+		if base {
+			f := &l.Fields[len(l.Fields)-1]
+			if f.Elements == nil {
+				f.Elements = map[int]string{}
+			}
+			f.Elements[at-f.From] = n
+			f.Len = end - f.From
+			continue
+		}
+		l.Fields = append(l.Fields, Field{Name: n, Owner: OwnerConst, Width: WidthByte, From: at, Len: end - at, ReadOnly: true})
 	}
 	return l
+}
+
+// varIndexedTables are the table addresses of s a variable indexes.
+func varIndexedTables(s *Script) map[int]bool {
+	t := map[int]bool{}
+	for _, in := range s.Code {
+		for k, a := range in.Args {
+			if tableBase(in.Op, k) && k+1 < len(in.Args) && isVarArg(in.Args[k+1].Type) {
+				t[a.N] = true
+			}
+		}
+	}
+	return t
 }
 
 // ResolveRefs gives every variable operand of s its typed reference in l

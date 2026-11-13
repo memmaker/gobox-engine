@@ -207,12 +207,12 @@
 7B4A 1 text game Word7B4A
 7B5E 1 text game Word7B5E
 7B86 1 text game Word7B86
-7B90 1 text game Word7B90
-7B91 9 byte game Word7B91
-7B9A 1 text game Word7B9A
+7B90 16 text game Word7B90  # a text buffer (area68 $Word7B90 = InputString(15): 15 characters and the NUL) that area33's well also uses as 8 members' 16-bit stash (Scratch2 = 2*member 0..7: Word7B90[Scratch2] its low, Word7B91[Scratch2] its high byte); area98 keeps a second text at $Word7B9A
+7B91 = Word7B91
+7B9A = Word7B9A
 7BAE 1 word game Word7BAE
-7BC2 1 text game Word7BC2
-7BC3 1 byte game Word7BC3
+7BC2 16 text game Word7BC2  # a text buffer (area98 $Word7BC2 = InputString(15)) that area16's gem trade also uses as 8 members' 16-bit gold stash (Scratch2 = 2*member 0..7: Word7BC2[Scratch2] low, Word7BC3[Scratch2] high byte)
+7BC3 = Word7BC3
 7C00 1 text member SelName
 7C18 1 byte member SelCon  # SpecialReadZ1 $18 conCur
 7C19 1 byte member SelWindow019

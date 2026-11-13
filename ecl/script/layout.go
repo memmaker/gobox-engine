@@ -297,7 +297,7 @@ func (l *Layout) nameElement(from, name string) error {
 	}
 	f := &l.Fields[len(l.Fields)-1]
 	i := int(a) - f.From
-	if f.Len < 2 || f.Width == WidthText || f.routine() || i < 0 || i >= f.Len {
+	if f.Len < 2 || f.routine() || i < 0 || i >= f.Len {
 		return fmt.Errorf("element %s at %04X is in no array field before it (%s)", name, a, f.Name)
 	}
 	if elementName.MatchString(name) {

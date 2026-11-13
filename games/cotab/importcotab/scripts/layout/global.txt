@@ -30,35 +30,36 @@
 4BFD 1 byte game Sky  # mapview.pas SKY_INDEX; a write redraws the sky
 4BFE 1 byte game SkyInside  # mapview.pas CEILING_INDEX; a write redraws the sky
 4BFF 1 byte game ViewFlags  # saveload.pas SAVED_PICTURE_FLAGS: picsOn*2 + animOn, as POR's
-4C00 1 byte local Local00
-4C01 1 byte local Local01
-4C02 1 byte local Local02
-4C03 1 byte local Local03
-4C04 1 byte local Local04
-4C05 1 byte local Local05
-4C06 1 byte local Local06
-4C07 1 byte local Local07
-4C08 1 byte local Local08
-4C09 1 byte local Local09
-4C0A 1 byte local Local0A
-4C0B 1 byte local Local0B
-4C0C 1 byte local Local0C
-4C0D 1 byte local Local0D
-4C0E 1 byte local Local0E
-4C0F 1 byte local Local0F
-4C10 1 byte local Local10
-4C11 1 byte local Local11
-4C12 1 byte local Local12
-4C13 1 byte local Local13
-4C14 1 byte local Local14
-4C15 1 byte local Local15
-4C16 1 byte local Local16
-4C17 1 byte local Local17
-4C18 1 byte local Local18
-4C19 1 byte local Local19
-4C1A 1 byte local Local1A
-4C1E 1 byte local Local1E
-4C1F 1 byte local Local1F
+4C00 32 byte local Locals  # the area words EclInit clears for a new game (eclmenu.pas: zone0^[$4C00..$4C1F], 32); scripts index them (area17 clears Local00[0..7], area64/66 Local00[0..2], area67 Local15[0..3], area80/81 Local02[menu choice])
+4C00 = Local00
+4C01 = Local01
+4C02 = Local02
+4C03 = Local03
+4C04 = Local04
+4C05 = Local05
+4C06 = Local06
+4C07 = Local07
+4C08 = Local08
+4C09 = Local09
+4C0A = Local0A
+4C0B = Local0B
+4C0C = Local0C
+4C0D = Local0D
+4C0E = Local0E
+4C0F = Local0F
+4C10 = Local10
+4C11 = Local11
+4C12 = Local12
+4C13 = Local13
+4C14 = Local14
+4C15 = Local15
+4C16 = Local16
+4C17 = Local17
+4C18 = Local18
+4C19 = Local19
+4C1A = Local1A
+4C1E = Local1E
+4C1F = Local1F
 4C20 1 byte game Word4C20
 4C21 1 byte game Word4C21
 4C22 1 byte game Word4C22
@@ -77,9 +78,10 @@
 4C2F 1 byte game Word4C2F
 4C30 1 byte game Word4C30
 4C31 1 byte game Word4C31
-4C32 1 byte game Word4C32
-4C33 1 byte game Word4C33
-4C34 1 byte game Word4C34
+4C32 3 byte game CheckpointGuards  # area16 checkpoints 0..2 (Word4C31 the one the party is at, 255 none): 255 once the party fought its guards (L_8838 CheckpointGuards[Word4C31] = 255); 3 posts L_864A/8665/8680
+4C32 = Word4C32
+4C33 = Word4C33
+4C34 = Word4C34
 4C35 1 byte game Word4C35
 4C36 1 byte game Word4C36
 4C37 1 byte game Word4C37
@@ -282,16 +284,17 @@
 7F70 1 byte game MonsterHit  # C_Gbvm MONSTER_THAC0_MODIFIER
 7F71 1 byte game PartyHit  # C_Gbvm PARTY_THAC0_MODIFIER
 7F72 1 byte game PartyMove  # C_Gbvm PARTY_MOVE_MODIFIER
-7F79 1 text local Scratch1
-7F7A 1 byte local Scratch2
-7F7B 1 byte local Scratch3
-7F7C 1 byte local Scratch4
-7F7D 1 byte local Scratch5
-7F7E 1 byte local Scratch6
-7F7F 1 byte local Scratch7
-7F80 1 byte local Scratch8
-7F81 1 byte local Scratch9
-7F82 1 byte local Scratch10
+7F79 10 text local Scratch  # zone-1 words EclInit clears (eclmenu.pas: zone1^[$7F79..$7F82], 10); text: $Scratch1 = InputString runs over the others; area67 clears Scratch1[1..9] and writes Scratch1[4+i] (Scratch5..8)
+7F79 = Scratch1
+7F7A = Scratch2
+7F7B = Scratch3
+7F7C = Scratch4
+7F7D = Scratch5
+7F7E = Scratch6
+7F7F = Scratch7
+7F80 = Scratch8
+7F81 = Scratch9
+7F82 = Scratch10
 7FF6 1 byte game Word7FF6
 B200 1 byte call CallSound  # key $3201: the move-step sound
 C01E 1 byte call CallMoveForward  # key $401F: move the party forward
