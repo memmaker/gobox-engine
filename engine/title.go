@@ -31,11 +31,11 @@ func (e *Engine) titleDone() {
 // title is the adventure's Start sequence as the engine shows it (SetStart):
 // which steps play; gobox composes them from the script.
 type title struct {
-	start       adventure.Sequence // the Start, its title Scene made as the state is read (startScene): its steps follow the art showing (F12)
-	endAnim     bool               // the End starts with an animation (adventure.SeqEnding)
-	end         *game.Scene        // the end sequence of pictures (SetEnd)
-	after       []adventure.Effect // what the end leaves in the game (SetEnd)
-	note        string             // the end's closing note (SetEnd)
+	start   adventure.Sequence // the Start, its title Scene made as the state is read (startScene): its steps follow the art showing (F12)
+	endAnim bool               // the End starts with an animation (adventure.SeqEnding)
+	end     *game.Scene        // the end sequence of pictures (SetEnd)
+	after   []adventure.Effect // what the end leaves in the game (SetEnd)
+	note    string             // the end's closing note (SetEnd)
 }
 
 // graphics is the run's graphics mode as the sequences' flashes take it.
@@ -94,7 +94,7 @@ func (e *Engine) SetStart(s *adventure.Sequence) error {
 		s = &adventure.Sequence{}
 	}
 	t := title{start: *s, endAnim: e.title.endAnim, end: e.title.end, after: e.title.after, note: e.title.note} // SetEnd's stay
-	for _, full := range []bool{true, false} { // its pictures checked with the art showing now, its steps with either art
+	for _, full := range []bool{true, false} {                                                                  // its pictures checked with the art showing now, its steps with either art
 		if _, err := e.titleScene(*s, full); err != nil {
 			return err
 		}
