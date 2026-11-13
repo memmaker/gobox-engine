@@ -19,7 +19,7 @@ import (
 func init() {
 	Register(Game{
 		Cover: true,
-		ID:    "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: adventure.RecordLayout, Combat4e: true, Version: 4, // 4: art/LOGO.png, the cut menu lettering (Data.Logo gone); 3: Combat4e in the manifest (playpool offers rules4e on it); 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
+		ID:    "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: adventure.RecordLayout, Combat4e: true, Version: 5, // 5: data/look.json (door colour, Amiga combat ground); 4: art/LOGO.png, the cut menu lettering (Data.Logo gone); 3: Combat4e in the manifest (playpool offers rules4e on it); 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
 
 		Window:  Size{W: asset.ScreenW, H: asset.ScreenH},
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},
@@ -116,6 +116,13 @@ func PorImport(dos, dst string) error {
 		return err
 	}
 	if err := writeLogo(filepath.Join(dst, adventure.ArtDir)); err != nil {
+		return err
+	}
+	look, err := porLook(filepath.Join(dst, adventure.ArtDir))
+	if err != nil {
+		return err
+	}
+	if err := writeLook(filepath.Join(dst, adventure.DataDir), look); err != nil {
 		return err
 	}
 	if err := asset.WritePictures("por", dst); err != nil {

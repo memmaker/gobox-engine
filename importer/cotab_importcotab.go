@@ -19,7 +19,7 @@ import (
 func init() {
 	Register(Game{
 		Cover: true,
-		ID:    "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: CotabRecordLayout, Version: 12, // 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's)
+		ID:    "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: CotabRecordLayout, Version: 13, // 13: data/look.json (ReadyMark "Yes "); 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's)
 		Window: Size{W: asset.ScreenW, H: asset.ScreenH}, UserSaves: true, Foreign: []string{"por"},
 		Sources: []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR"},
 		Import:  CotabImport, Amiga: &cotabAmiga,
@@ -113,6 +113,9 @@ func CotabImport(dos, dst string) error {
 		return err
 	}
 	if err := WriteJSON(filepath.Join(data, adventure.GameTablesFile), cotabGameTables); err != nil {
+		return err
+	}
+	if err := writeLook(data, cotabLook); err != nil {
 		return err
 	}
 	return WriteJSON(filepath.Join(data, rules1e.LayoutFile), CotabLayout1e)

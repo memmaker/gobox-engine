@@ -108,17 +108,33 @@ var (
 // door's colour on the maps (light brown, Amiga 0xA84: it stands out
 // against the white walls and the grey, black and blue floors), a map
 // label's EGA colour by its kind (labelKinds), and the mark before a
-// readied item's name.
+// readied item's name. The adventure's look file (adventure.Look) replaces
+// the door, the mark and the Amiga combat ground.
 const (
-	mapCell     = 10
-	mapSide     = 16 * mapCell
-	readiedMark = "*"
+	mapCell = 10
+	mapSide = 16 * mapCell
 )
 
 var (
-	doorRGBA  = color.RGBA{0xaa, 0x88, 0x44, 0xff}
-	labelInks = [...]int{15, 10, 13, 14, 11} // the player's, shop, temple, inn, civic
+	defaultDoor = color.RGBA{0xaa, 0x88, 0x44, 0xff}
+	doorRGBA    = defaultDoor
+	readiedMark = "*"
+	amigaGround *color.RGBA                    // the combat tiles' bare ground in the Amiga art; nil: black, as in the DOS art
+	labelInks   = [...]int{15, 10, 13, 14, 11} // the player's, shop, temple, inn, civic
 )
+
+// applyLook sets the door, ready mark and Amiga ground from the adventure
+// folder adv's look file; a broken one is a broken import: it panics.
+func applyLook(adv string) {
+	l, err := adventure.ReadLook(adv)
+	if err != nil {
+		panic(fmt.Sprintf("%v (run the import again)", err))
+	}
+	doorRGBA, readiedMark, amigaGround = defaultDoor, cmp.Or(l.ReadyMark, "*"), l.AmigaGround
+	if l.Door != nil {
+		doorRGBA = *l.Door
+	}
+}
 
 // Rest is one of camp's rests (Data.Rests): Text with its Key sends
 // ActRest N. Fix: offered only while someone resting heals or studies
@@ -318,6 +334,7 @@ func gameData(g game.Data) {
 		iconParts = g.IconParts
 	}
 	if g.Adventure != "" {
+		applyLook(g.Adventure)
 		menuLogo = readLogo(filepath.Join(g.Adventure, adventure.ArtDir, adventure.LogoFile))
 	}
 	if g.AreaMaps != nil {
