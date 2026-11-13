@@ -35,8 +35,11 @@ func TestTourPausesTimed(t *testing.T) {
 		t.Fatal(r.Err)
 	}
 	pauses := 0
-	for range 12 { // the greeting's two Approaches, then the walk's first stops
+	for range 40 { // the greeting's two Approaches, then the walk's first stops
 		v := g.View()
+		if v.Window == front.WinText && len(v.ViewText) == 0 || v.Window == front.WinPicture && len(v.Pictures) == 0 {
+			t.Fatalf("at %d,%d window %v with nothing in it", v.X, v.Y, v.Window)
+		}
 		switch {
 		case v.Ask == nil:
 			t.Fatalf("at %d,%d nothing asked: a story page waiting for a key", v.X, v.Y)

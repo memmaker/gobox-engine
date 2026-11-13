@@ -155,8 +155,10 @@ func windowOf(ps play.State) game.Window {
 			return game.WindowScene
 		case len(t.Pictures)+len(t.Layers) > 0:
 			return game.WindowPicture
+		case len(t.Placed) > 0: // text over the view window (opClearBox, the runes)
+			return game.WindowText
 		}
-		return game.WindowText
+		return game.WindowScene // nothing over the view: the 3D view under the text (Rolf's tour between his pictures)
 	}
 	if pictured {
 		return game.WindowPicture

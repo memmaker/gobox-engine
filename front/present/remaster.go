@@ -495,6 +495,9 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	// the picture at the top, the text in the middle, an answer's menu right under it
 	pic, txt := innerWindow.Framed(), paneCells(v.Pane).Framed()
+	if v.Window == front.WinText { // text all over the view window, not just the picture frame: its height places it
+		pic = viewWindow.Framed()
+	}
 	ph, th := float64(pic.Pixels().Dy()), float64(txt.Pixels().Dy())
 	pk := min(k, max(1, float64(min(int(float64(b.Dy())/2/(ph+th/2)), b.Dx()/ega.W))))
 	// the text box and the menus at their sizes (Esc, Graphics), as far as they fit between the cards
@@ -502,21 +505,12 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	tk := fitScale(k, 1, func(k float64) bool { return k*float64(txt.Pixels().Dx()) <= bw && k*th <= bh/2 })
 	mk := fitScale(k, 1, func(k float64) bool { return k*28*8 <= bw && k*12*8 <= bh/2 })
 	cx, cy := (b.Min.X+b.Max.X)/2, b.Dy()/2
-	if v.Window == front.WinText { // text all over the view window, not just the picture frame
-		pic = viewWindow.Framed()
-	}
-	picBottom := 0                                                                                     // the bottom of the picture box, when one is up
-	if v.Adventure && (v.Window == front.WinPicture || v.Window == front.WinText) && !p.spellList(v) { // the spell lists' rules go there; not the page a member pick came from
-		// the picture at its size as far as it, the text box and a menu fit one under the other: in the middle of the space over the text, else from the top with the text moved down under it
-		pw, gap := float64(pic.Pixels().Dx()), pk*4
-		pp := fitScale(pk, Host.Pic, func(k float64) bool {
-			return k*pw <= bw && 3*gap+k*ph+tk*th+mk*7*8 <= bh
-		})
-		py := int(float64(cy)-tk*th/2) / 2
-		if float64(py)-pp*ph/2 < gap || float64(py)+pp*ph/2+gap > float64(cy)-tk*th/2 {
-			py = int(gap + pp*ph/2)
-			cy = py + int(pp*ph/2+gap+tk*th/2)
-		}
+	picBottom := 0                                                                                                   // the bottom of the picture box, when one is up
+	boxUp := v.Window == front.WinPicture && len(v.Pictures) > 0 || v.Window == front.WinText && len(v.ViewText) > 0 // never an empty box
+	if v.Adventure && boxUp && !p.spellList(v) {                                                                     // the spell lists' rules go there; not the page a member pick came from
+		var pp float64
+		var py int
+		pp, py, cy = picPlace(pic, pk, tk, mk, th, b)
 		var inside *gpu.Image
 		if v.Window == front.WinPicture {
 			inside = pictureBox(&p.pg.pic, v.Pictures, pic.Pixels().Inset(8))
@@ -912,4 +906,23 @@ func (p *Presenter) drawTyping(dst *gpu.Image, note Note, v front.View, mk float
 	top := max(dst.Bounds().Dy()/2-int(mk*float64(len(ui.WrapWords(typing(v).Prompt, 24))+5)*4), floor)
 	p.drawMenu(dst, note.Glyph, typing(v).Prompt, []string{caretLine(t, c, w, p.blink())}, nil, nil, 0, mk, cx, top)
 	p.menuRects = p.menuRects[:0]
+}
+
+// picPlace places the picture box pic (with the text box th high at tk and
+// a menu at mk under it) in b at most at scale pk: its scale pp, its centre row py and the text
+// box's centre row cy. The picture sits in the middle of the space over the
+// text, else from b's top with the text moved down under it; it never runs
+// off b's top.
+func picPlace(pic front.CellRect, pk, tk, mk, th float64, b image.Rectangle) (pp float64, py, cy int) {
+	ph, pw := float64(pic.Pixels().Dy()), float64(pic.Pixels().Dx())
+	bw, bh := float64(b.Dx()), float64(b.Dy())
+	gap := pk * 4
+	pp = fitScale(pk, Host.Pic, func(k float64) bool { return k*pw <= bw && 3*gap+k*ph+tk*th+mk*7*8 <= bh })
+	cy = b.Dy() / 2
+	py = int(float64(cy)-tk*th/2) / 2
+	if float64(py)-pp*ph/2 < gap || float64(py)+pp*ph/2+gap > float64(cy)-tk*th/2 {
+		py = int(gap + pp*ph/2)
+		cy = py + int(pp*ph/2+gap+tk*th/2)
+	}
+	return pp, py, cy
 }
