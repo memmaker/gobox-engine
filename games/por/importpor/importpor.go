@@ -17,7 +17,7 @@ import (
 
 func init() {
 	importer.Register(importer.Game{
-		ID: "por", Title: "Pool of Radiance", Ruleset: "rules1e", Record: pool.RecordLayout,
+		ID: "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: pool.RecordLayout,
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},
 		Import:  Import,
 		Start:   importer.Fixed(start()),

@@ -1,12 +1,15 @@
 package importer
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"gobox/core"
 )
@@ -63,6 +66,16 @@ func List(root string) (folders []Folder, skipped []error, err error) {
 		}
 		folders = append(folders, f)
 	}
+	// oldest release first (a game not registered here sorts last), then by title
+	release := func(f Folder) int {
+		if g, ok := games[f.Manifest.ID]; ok && g.Release > 0 {
+			return g.Release
+		}
+		return math.MaxInt
+	}
+	slices.SortStableFunc(folders, func(a, b Folder) int {
+		return cmp.Or(cmp.Compare(release(a), release(b)), cmp.Compare(a.Manifest.Title, b.Manifest.Title))
+	})
 	return folders, skipped, nil
 }
 

@@ -15,7 +15,7 @@ import (
 
 func init() {
 	importer.Register(importer.Game{
-		ID: "sotsb", Title: "Secret of the Silver Blades", Ruleset: "rules1e", Record: RecordLayout, Version: 10, // 1: imported for pool (Sw-sotsb); 2: MON records as the rules' Sheet (Pf); 3: GameTables.Art, items as char.Item (Pg); 4: Hold tips (Rz); 5: groundIds, itemKinds, spiritualHammer (Ph); 6: randomTreasure, appraisal (Pi); 7: scripts gold only (Gc); 8: randomTreasure from rules1e's treasure/sotsb.json (Ct); 9: area 16 gem trade 1 per 500 gold (Df); 10: Word7B90, Word7BC2 16-cell text arrays (Tb)
+		ID: "sotsb", Title: "Secret of the Silver Blades", Release: 1990, Ruleset: "rules1e", Record: RecordLayout, Version: 10, // 1: imported for pool (Sw-sotsb); 2: MON records as the rules' Sheet (Pf); 3: GameTables.Art, items as char.Item (Pg); 4: Hold tips (Rz); 5: groundIds, itemKinds, spiritualHammer (Ph); 6: randomTreasure, appraisal (Pi); 7: scripts gold only (Gc); 8: randomTreasure from rules1e's treasure/sotsb.json (Ct); 9: area 16 gem trade 1 per 500 gold (Df); 10: Word7B90, Word7BC2 16-cell text arrays (Tb)
 		Sources: []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR"},
 		Import:  Import,
 		Start:   importer.Fixed(start()),

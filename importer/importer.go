@@ -51,6 +51,7 @@ func CheckContents(dir string) error {
 type Game struct {
 	ID      string            // the folder's name, adventures/<ID>
 	Title   string            // shown in the list of adventures
+	Release int               // the original's release year: the list of adventures runs in this order
 	Ruleset string            // the ruleset compiled into the binary that plays it (rules1e, rulesxxvc)
 	Record  core.RecordLayout // the layout of the adventure's character records (core.NoRecord: none)
 	Version int               // the game's import version: bumped when what Import writes changes, so older folders read as stale (Read)
