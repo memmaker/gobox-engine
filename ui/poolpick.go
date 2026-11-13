@@ -74,9 +74,9 @@ func (g classicGame) PickerView(page int) *FrontPicker {
 		if pp.tiles {
 			return g.Game.TilesOf(page, g.r.grid.X, g.r.grid.Y)
 		}
-		k := &game.Picker{Cell: pp.cell, Pics: make([]game.Picture, len(pp.names))}
-		for i := range k.Pics {
-			k.Pics[i].W = 1 // present, no pixels: Picker lays the cell out, the PNG fills it
+		k := &game.Picker{Pics: make([]game.Picture, len(pp.names))}
+		for i := range k.Pics { // present, no pixels: the cell's size, the PNG fills it
+			k.Pics[i].W, k.Pics[i].H = pp.cell.X*8, pp.cell.Y*8
 		}
 		v := g.Game.PickerOf(k, page, g.r.grid.X, g.r.grid.Y)
 		if v != nil {

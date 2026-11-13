@@ -5,6 +5,7 @@ import (
 	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
+	"image"
 )
 
 // tempSel is a selection selectTemp replaced: the selected member and the party's size.
@@ -259,3 +260,6 @@ type creation struct {
 	idx     int
 	orig    rules.CharID // the member modified, as it was held (core.HoldCopy)
 }
+
+// iconRect is the page rectangle of a combat icon pose drawn at cell (x, y).
+func iconRect(x, y int) image.Rectangle { return image.Rect(x*8, y*8, x*8+24, y*8+24) }

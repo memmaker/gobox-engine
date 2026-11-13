@@ -36,9 +36,9 @@ func TilePicker(own game.Member, cells image.Point, page, cols, rows int) *Front
 	names, blocks := BodyTiles(own)
 	m := subject(own)
 	head, _ := memberIcon(m)
-	k := &game.Picker{Cell: image.Pt(3, 3), Pics: make([]game.Picture, len(names))}
+	k := &game.Picker{Pics: make([]game.Picture, len(names))}
 	for i, n := range names {
-		p := game.Picture{File: "CBODY", Block: blocks[i], Clear: -1}
+		p := game.Picture{File: "CBODY", Block: blocks[i], Clear: -1, W: 24, H: 24} // a 3 by 3 cell tile
 		if pic, ok := poolIcon(head, n, m.IconColors, 0, false); ok && pic.Palette == nil {
 			p.W, p.H, p.Pixels, p.Clear = pic.PixW, len(pic.Pix)/pic.PixW, pic.Pix, clearPix
 		}

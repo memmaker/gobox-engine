@@ -28,7 +28,7 @@ func (e *Engine) pickState(s *facts) {
 
 // pickerState is every picture of p, as PickerView lays out a page of them.
 func (e *Engine) pickerState(p *picker) *game.Picker {
-	k := &game.Picker{Cell: image.Pt(p.cw, p.ch), Labels: slices.Clone(p.labels), Ask: p.ask}
+	k := &game.Picker{Labels: slices.Clone(p.labels), Ask: p.ask}
 	for _, id := range p.chars {
 		cl, im := "", image.Image(nil)
 		if pt, ok := e.portrait(id); ok {

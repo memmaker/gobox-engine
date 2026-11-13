@@ -11,7 +11,7 @@ import (
 func TestRosterPickerFits(t *testing.T) {
 	names := []string{"ABC", "ALDRIC", "CORWYN", "PIP", "SYLVAINE", "THORVALD"}
 	s := shown{Picker: &game.Picker{Pics: make([]game.Picture, len(names)), Labels: names}}
-	s.Picker.Cell.X, s.Picker.Cell.Y = 11, 6
+	s.Picker.Pics[0] = game.Picture{W: 88, H: 48} // 11 by 6 cells
 	v := Picker(s.Picker, s.Cells, 0, 80, 25)
 	for i, r := range v.Cells {
 		if end := r.X1 + 12 + len(names[i]) - 1; end > r.X2 || end > 80-3 {
@@ -28,7 +28,7 @@ func TestRosterPickerFits(t *testing.T) {
 func TestPickerOnShownPage(t *testing.T) {
 	names := []string{"ABC", "ALDRIC", "CORWYN"}
 	s := shown{Picker: &game.Picker{Pics: make([]game.Picture, len(names)), Labels: names}}
-	s.Picker.Cell.X, s.Picker.Cell.Y = 11, 6
+	s.Picker.Pics[0] = game.Picture{W: 88, H: 48} // 11 by 6 cells
 	for _, r := range Picker(s.Picker, s.Cells, 0, 53, 33).Cells {
 		if r.X2 > 40-2 || r.Y2 > 25-2 {
 			t.Fatalf("cell %+v off the 40x25 page", r)

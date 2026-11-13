@@ -20,17 +20,23 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *FrontPicke
 	if k != nil {
 		n = len(k.Pics)
 	}
-	if n == 0 || k.Cell.X < 1 || k.Cell.Y < 1 {
+	if n == 0 {
 		return nil
 	}
 	cols, rows = shownPage(cells)
 	textCols, textRows := max(cols, 40), max(rows, 25)
 	winRight, bot := textCols-2, textRows-2 // bot: the box's inner bottom, the page's last row holds its border
-	cw, ch := k.Cell.X, k.Cell.Y
-	if len(k.Labels) > 0 { // a roster: the portrait (11 by 5 cells) and the name beside it fit the cell (present's picker)
+	cw, ch := 1, 1                          // the cell: the largest picture, in text cells
+	for _, p := range k.Pics {
+		cw, ch = max(cw, (p.W+7)/8), max(ch, (p.H+7)/8)
+	}
+	if len(k.Labels) > 0 { // a roster: the portrait (11 by 5 cells) and the name and class beside it fit the cell (present's picker)
 		ch = max(ch, 5)
-		for _, l := range k.Labels {
+		for i, l := range k.Labels {
 			cw = max(cw, 12+len(l))
+			if i < len(k.Classes) {
+				cw = max(cw, 12+len(k.Classes[i]))
+			}
 		}
 	}
 	gap, nc := 1, winRight/(cw+1)

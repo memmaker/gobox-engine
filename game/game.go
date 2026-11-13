@@ -113,7 +113,7 @@ type Harm struct{ Name, What string }
 
 // Read is journal text the game shows for the player to read.
 type Read struct {
-	Title string   // the box's title
+	Title string     // the box's title
 	Texts []ReadText // the texts in order; ui lays them out
 	Page  int        // the page to start on
 	Seq   int        // up by one for each new text: the front shows a new Seq once, owns its paging and closing, and never reports back
@@ -311,7 +311,6 @@ type Layer struct {
 // parts, the saved characters): every picture it holds, in order; the front
 // lays them out in pages.
 type Picker struct {
-	Cell      image.Point   // a picture's size in text cells
 	Cur       int           // the picture it opens on
 	Pics      []Picture     // one per picture; Pixels nil where it has none (W, H in pixels, the DAX ref as loaded)
 	Labels    []string      // the pictures' names (saved characters)

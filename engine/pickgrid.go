@@ -11,48 +11,23 @@ import (
 	"gobox/game"
 )
 
-// Grid pickers (extra): the saved characters are picked from a grid of all of them, as many
-// columns and rows as the whole page holds (a larger window shows more; no
-// bar: the box takes the prompt row too), centred in the box. What does not
-// fit is on further pages: a pager line "< page 1/2 >" at the bottom of the
-// box says so. The picker is the presenter's screen: OpenPicker readies
-// one, PickerView lays a page of it out with its pictures, Pick takes one.
+// Grid pickers (extra): the saved characters are picked from all of them.
+// OpenPicker readies the candidates (game.Picker), ui lays them out in pages,
+// Pick takes one.
 // Portrait and combat-icon parts are gobox's shared-pool picker
 // (front/present/poolpick.go), answered by SetChoice.
 
 // picker is the grid picker readied (OpenPicker).
 type picker struct {
-	kind, n, cw, ch, cur int
-	pic                  func(i int) (im *asset.Image, mask int) // picture i (nil: none)
-	labels               []string                                // the pictures' names (saved characters)
-	chars                []rules.CharID                          // ... the characters (core.NoChar where the files are gone)
-	ask                  string                                  // asked before a pick (%s: the label)
-
-	cols, rows, gap, x0, y0, bot, pager, page int // the layout, from the page's size
+	kind, n, cur int
+	pic          func(i int) (im *asset.Image, mask int) // picture i (nil: none)
+	labels       []string                                // the pictures' names (saved characters)
+	chars        []rules.CharID                          // ... the characters (core.NoChar where the files are gone)
+	ask          string                                  // asked before a pick (%s: the label)
 
 	state    *game.Picker // pickState's pictures, built once (nil: again)
 	stateDOS bool         // the art set they were built in
 }
-
-func (p *picker) layout() {
-	p.bot = promptRow - 1 // the box's inner bottom: the page's last row holds its border
-	p.gap, p.cols = 1, winRight/(p.cw+1)
-	if winRight/p.cw > p.cols { // a blank between the columns only when it costs none
-		p.gap, p.cols = 0, winRight/p.cw
-	}
-	p.cols = max(1, min(p.cols, p.n))
-	p.rows, p.pager = max(1, p.bot/p.ch), 0
-	if (p.n+p.cols-1)/p.cols > p.rows { // paged: the pager line takes the box's last row
-		p.rows, p.pager = max(1, (p.bot-1)/p.ch), p.bot
-	}
-	p.rows = min(p.rows, (p.n+p.cols-1)/p.cols)
-	p.x0 = 1 + (winRight-(p.cols*(p.cw+p.gap)-p.gap))/2
-	p.y0 = 1 + (p.bot-p.pager/p.bot-p.rows*p.ch)/2
-	p.page = min(max(p.page, 0), p.pages()-1)
-}
-
-func (p *picker) perPage() int { return p.cols * p.rows }
-func (p *picker) pages() int   { return max(1, (p.n+p.perPage()-1)/p.perPage()) }
 
 // OpenPicker readies picker kind for the presenter: false when it has
 // nothing to pick now (no creation or icon editor up, no saved
@@ -84,14 +59,7 @@ func (e *Engine) OpenPicker(kind int) bool {
 			}
 			chars = e.loadSaved(names)
 		}
-		w := 0
-		for i, c := range chars {
-			w = max(w, len(names[i]))
-			if c != rules.NoChar {
-				w = max(w, len(e.word(c, rules.FactClasses)))
-			}
-		}
-		p = &picker{n: len(chars), cw: 12 + w, ch: 5, labels: names, chars: chars}
+		p = &picker{n: len(chars), labels: names, chars: chars}
 		p.pic = func(i int) (*asset.Image, int) {
 			if pt, ok := e.portrait(p.chars[i]); ok && pt.PNG == nil { // a PNG, the name and class are the presenter's
 				return head(byte(pt.Head))
@@ -106,8 +74,6 @@ func (e *Engine) OpenPicker(kind int) bool {
 	}
 	p.kind = kind
 	p.cur = min(max(p.cur, 0), max(p.n-1, 0))
-	p.layout()
-	p.page = p.cur / p.perPage()
 	e.picker = p
 	return true
 }
@@ -158,9 +124,6 @@ func (e *Engine) loadSaved(names []string) []rules.CharID {
 	}
 	return chars
 }
-
-// iconRect is the page rectangle of a combat icon pose drawn at cell (x, y).
-func iconRect(x, y int) image.Rectangle { return image.Rect(x*8, y*8, x*8+24, y*8+24) }
 
 // foreignChars are the characters another game saved (Config.Foreign) taken into the
 // ruleset, flagged as added from another game (core.MarkImported), with their names.
