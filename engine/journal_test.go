@@ -90,7 +90,7 @@ func TestClueBook(t *testing.T) {
 // oldParse is por's journal format as it read it before gobox did: each
 // title's lines.
 func oldParse(t *testing.T, name string) map[string][]string {
-	b, err := os.ReadFile("../games/por/importpor/journal/" + name)
+	b, err := os.ReadFile("../importer/games/por/journal/" + name)
 	if err != nil {
 		t.Fatal(err)
 	}

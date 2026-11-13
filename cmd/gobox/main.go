@@ -35,10 +35,7 @@ import (
 
 	_ "buckrogers/importbr1"
 	_ "buckrogers2/importbr2"
-	_ "gobox/games/cotab/importcotab"
-	_ "gobox/games/pod/importpod"
-	_ "gobox/games/por/importpor"
-	_ "gobox/games/sotsb/importsotsb"
+	_ "gobox/importer/games"
 )
 
 // players start the games that are not on rules1e's pool host (playpool.Play

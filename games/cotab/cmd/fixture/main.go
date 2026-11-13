@@ -14,7 +14,7 @@ import (
 	"gobox/asset/orig"
 	"gobox/fixture"
 
-	"gobox/games/cotab/importcotab"
+	"gobox/importer/games"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 			if err != nil {
 				return nil, err
 			}
-			vars, err := importcotab.ScriptLayout()
+			vars, err := games.CotabScriptLayout()
 			if err != nil {
 				return nil, err
 			}

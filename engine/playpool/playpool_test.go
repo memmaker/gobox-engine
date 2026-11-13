@@ -7,7 +7,7 @@ import (
 )
 
 // TestHomeSaves: the first run makes the saves' home, seeded from the folder's
-// saves; a second run keeps it (ported from pod's playpod).
+// saves; a second run keeps it (ported from pod's playpool).
 func TestHomeSaves(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 	adv := t.TempDir()

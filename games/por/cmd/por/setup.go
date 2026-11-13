@@ -7,15 +7,14 @@ import (
 	"gobox/app"
 	"gobox/asset"
 	"gobox/engine"
-	"gobox/games/por"
-	"gobox/games/por/importpor"
+	"gobox/importer/games"
 )
 
 // setupData makes an installation whole once gameimport has copied the
 // game's files into dst: the port's own assets (the text scripts) and the
 // cover picture.
 func setupData(dst string) error {
-	if err := app.CopyFS(por.Assets, "scripts", filepath.Join(dst, engine.AssetsDir, "scripts")); err != nil {
+	if err := app.CopyFS(games.PorAssets, "por/scripts", filepath.Join(dst, engine.AssetsDir, "scripts")); err != nil {
 		return err
 	}
 	if err := importScripts(dst); err != nil {
@@ -27,10 +26,10 @@ func setupData(dst string) error {
 // importScripts decompiles the game's event scripts into the installation
 // and imports its art and data (pool.ImportAssets).
 func importScripts(dst string) error {
-	if err := importpor.ImportScripts(filepath.Join(dst, engine.DOSDir), filepath.Join(dst, engine.AssetsDir, "scripts")); err != nil {
+	if err := games.ImportScripts(filepath.Join(dst, engine.DOSDir), filepath.Join(dst, engine.AssetsDir, "scripts")); err != nil {
 		return err
 	}
-	return importpor.ImportAssets(dst)
+	return games.ImportAssets(dst)
 }
 
 // amigaGfx: the Amiga Pool of Radiance graphics archives, with the palette

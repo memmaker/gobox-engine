@@ -21,7 +21,7 @@ import (
 	"gobox/asset/orig"
 	"gobox/fixture"
 
-	"gobox/games/sotsb/importsotsb"
+	"gobox/importer/games"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 			if err != nil {
 				return nil, err
 			}
-			vars, err := importsotsb.ScriptLayout()
+			vars, err := games.SotsbScriptLayout()
 			if err != nil {
 				return nil, err
 			}

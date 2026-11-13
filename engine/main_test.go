@@ -11,7 +11,7 @@ import (
 // run by the gate before these tests): nothing at load decompiles, and the
 // engine's module does not import the game. With the game files present and
 // an import missing, it fails with a clear message; it cannot tell a stale
-// import (por's importpor decides that), so the gate runs the import first.
+// import (por's the por import decides that), so the gate runs the import first.
 func TestMain(m *testing.M) {
 	const por = "../data/por/sources"
 	if _, err := os.Stat(filepath.Join(por, "dos", "TITLE.DAX")); err == nil {

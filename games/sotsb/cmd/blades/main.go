@@ -17,7 +17,7 @@ import (
 	"gobox/app"
 
 	"gobox/engine/playpool"
-	"gobox/games/sotsb/importsotsb"
+	"gobox/importer/games"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 	flag.Parse()
 	if *imp != "" {
 		// the two Silver Blades disks among the .adf images, as DOS-layout archives gobox import sotsb reads
-		spec := amigaimport.Spec{Gfx: amigaGfx, Exe: "Secret", Disks: []string{"Secret 1", "Secret 2"}, Files: []string{importsotsb.AmigaMusic.Songs, importsotsb.AmigaMusic.Effects}}
+		spec := amigaimport.Spec{Gfx: amigaGfx, Exe: "Secret", Disks: []string{"Secret 1", "Secret 2"}, Files: []string{games.SotsbAmigaMusic.Songs, games.SotsbAmigaMusic.Effects}}
 		if err := amigaimport.Import(*imp, *amigaDir, spec); err != nil {
 			log.Fatal(err)
 		}
