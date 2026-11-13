@@ -5,7 +5,6 @@
 package importcotab
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"rules1e"
@@ -115,10 +114,10 @@ func Import(dos, dst string) error {
 	if err := pool.WriteGameData(data, StaticData()); err != nil {
 		return err
 	}
-	if err := writeJSON(filepath.Join(data, pool.GameTablesFile), gameTables); err != nil {
+	if err := importer.WriteJSON(filepath.Join(data, pool.GameTablesFile), gameTables); err != nil {
 		return err
 	}
-	return writeJSON(filepath.Join(data, rules1e.LayoutFile), Layout1e)
+	return importer.WriteJSON(filepath.Join(data, rules1e.LayoutFile), Layout1e)
 }
 
 // importJournal writes COTAB's journal books and pictures (JournalFS, gobox's journal format) into dir.
@@ -146,15 +145,6 @@ var gameTables = pool.GameTables{
 		CombatSprites: "COMSPR",
 		Title:         "TITLE",
 	},
-}
-
-// writeJSON writes v as indented JSON to path.
-func writeJSON(path string, v any) error {
-	b, err := json.MarshalIndent(v, "", " ")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(path, b, 0o644)
 }
 
 // importRules writes START.EXE's tables (tables.json, data segment paragraph

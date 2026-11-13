@@ -2,7 +2,6 @@ package importsotsb
 
 import (
 	"embed"
-	"gobox/dax"
 	"gobox/ecl"
 	eclscript "gobox/ecl/script"
 	"io/fs"
@@ -49,11 +48,7 @@ func ScriptLayout() (*eclscript.Layout, error) { return eclscript.ReadLayout(scr
 
 // ImportScriptsTo decompiles the game's ECL*.DAX in dos into an adventure
 // folder's scripts dir, with the script data beside them (the importer's
-// step; eclscript.ImportFolder).
+// step; eclscript.ImportDAXFolder).
 func ImportScriptsTo(dos, dir string) error {
-	l, err := dax.NewLoader(dos)
-	if err != nil {
-		return err
-	}
-	return eclscript.ImportFolder(eclscript.V2, eclscript.DAXSource(l), scriptData(), dir, eclscript.FoldGates, journalFixes)
+	return eclscript.ImportDAXFolder(eclscript.V2, dos, scriptData(), dir, journalFixes)
 }

@@ -98,28 +98,16 @@ func writeSwitchData(dst string) error {
 	if err := os.WriteFile(filepath.Join(data, pool.SoundFile), []byte(sounddata.Silent), 0o644); err != nil { // AdLib only: no speaker or Tandy tables
 		return err
 	}
-	if err := writeJSON(filepath.Join(data, pool.GameTablesFile), tables); err != nil {
+	if err := importer.WriteJSON(filepath.Join(data, pool.GameTablesFile), tables); err != nil {
 		return err
 	}
-	if err := writeJSON(filepath.Join(data, rules1e.LayoutFile), Layout1e()); err != nil {
+	if err := importer.WriteJSON(filepath.Join(data, rules1e.LayoutFile), Layout1e()); err != nil {
 		return err
 	}
 	if err := WriteJournal(filepath.Join(dst, pool.JournalDir)); err != nil {
 		return err
 	}
-	return writeJSON(filepath.Join(dst, "scripts", script.EntriesFile), JournalEntries())
-}
-
-// writeJSON writes v as indented JSON to path, making its folder.
-func writeJSON(path string, v any) error {
-	b, err := json.MarshalIndent(v, "", " ")
-	if err != nil {
-		return err
-	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	return os.WriteFile(path, b, 0o644)
+	return importer.WriteJSON(filepath.Join(dst, "scripts", script.EntriesFile), JournalEntries())
 }
 
 // importRules writes GAME.EXE's tables (tables.json, data segment paragraph

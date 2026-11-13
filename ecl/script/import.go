@@ -201,3 +201,14 @@ func DAXSource(l *dax.Loader) Source {
 		return l.BlockShared(name, block)
 	}}
 }
+
+// ImportDAXFolder decompiles the ECL*.DAX in dos into an adventure folder's
+// scripts dir (ImportFolder with the DAX source and gate folding): the
+// games' importer step.
+func ImportDAXFolder(v *Version, dos string, data fs.FS, dir string, fixes []Fix) error {
+	l, err := dax.NewLoader(dos)
+	if err != nil {
+		return err
+	}
+	return ImportFolder(v, DAXSource(l), data, dir, FoldGates, fixes)
+}
