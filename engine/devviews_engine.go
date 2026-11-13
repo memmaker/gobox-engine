@@ -1,3 +1,8 @@
+//go:build !nodev
+
+// Dev views: the headless checks' scenes (-dev, -battle, -fight, -at,
+// -ecltrace). Left out of a release build (`-tags nodev`;
+// devviews_off.go stands in for the dispatch hooks there).
 package engine
 
 import (
@@ -313,5 +318,37 @@ func (e *Engine) TraceScripts() {
 	e.vm.Trace = func(vm *ecl.VM, n int) {
 		fmt.Fprintf(os.Stderr, "ecl %04X op %02X\n", vm.PC, vm.Command)
 		ecl.ArgsTrace(e.host, func(s string) { fmt.Fprint(os.Stderr, s) })(vm, n)
+	}
+}
+
+// devCont runs the dev scenes' continuation steps.
+func (e *Engine) devCont(c cont) {
+	switch c.kind {
+	case kDevBack:
+		e.devBack()
+	case kDevFought:
+		e.push(cont{kind: kDevFightEnd})
+		e.pushAfterCombat()
+	case kDevFightEnd:
+		e.devFightEnd()
+	case kDevJournal:
+		e.showEntry(e.entryNamed("JournalEntry26"))
+		e.showEntry(e.entryNamed("JournalEntry4"))
+		e.ret()
+	case kDevLoot:
+		e.do(rules.DevTreasure{})
+		e.push(cont{kind: kDrawMain})
+		e.lootMenu()
+	}
+}
+
+// devAnswered runs the dev scenes' answered prompts.
+func (e *Engine) devAnswered(d askDone, v ansv) {
+	switch d.kind {
+	case dDevParlay:
+		e.devParlayAnswered(v.n)
+	case dDevPassword:
+		e.scriptText(true, "YOU SAY '"+v.s+"'.")
+		e.askContinue(askDone{})
 	}
 }

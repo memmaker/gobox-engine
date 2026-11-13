@@ -5,11 +5,9 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"gobox/rules1e"
-	"image/png"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -105,35 +103,10 @@ func playPool(s start) (ui.Launch, error) {
 	if s.Explore {
 		eng.Explore = true
 	}
-	capt := s.Capture
-	if capt.PNG != "" { // the -png picture the portrait dev scenes show
-		b, err := os.ReadFile(capt.PNG)
-		if err == nil {
-			_, err = png.Decode(bytes.NewReader(b))
-		}
-		if err != nil {
-			return ui.Launch{}, fmt.Errorf("-png: %w", err)
-		}
-		eng.DevPortrait = b
+	if err := devViews(eng, s); err != nil {
+		return ui.Launch{}, err
 	}
-	if s.Dev != "" {
-		eng.DevAction = eng.DevScene(s.Dev)
-	}
-	if s.Battle {
-		eng.DevAction = eng.DevScene("autocombat")
-	}
-	dev := s.Capture.Dev
-	if dev.Fight > 0 {
-		eng.DevMonster = dev.Fight
-		eng.DevAction = eng.DevScene("combat")
-	}
-	if a := dev.At; a != nil {
-		eng.DevAction = func() { eng.DevAt(a.Block, a.X, a.Y) }
-	}
-	eng.FreeTraining = dev.FreeTrain
-	if dev.ECLTrace {
-		eng.TraceScripts()
-	}
+	eng.FreeTraining = s.Capture.Dev.FreeTrain
 	seed := uint32(s.Seed)
 	eng.FixedSeed = &seed
 
