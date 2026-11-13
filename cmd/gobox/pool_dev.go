@@ -1,7 +1,7 @@
-//go:build devviews
+//go:build !nodev
 
 // The pool engine's dev views (-dev, -battle, -fight, -at, -ecltrace, -png).
-// Built only with `-tags devviews`; pool_nodev.go refuses these flags otherwise.
+// Left out of a `-tags nodev` build, where pool_nodev.go refuses these flags.
 package main
 
 import (

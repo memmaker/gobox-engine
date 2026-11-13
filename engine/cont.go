@@ -144,6 +144,6 @@ func (e *Engine) ret() {
 	case kVaultDone:
 		e.vaultDone()
 	default:
-		e.devCont(c) // the dev scenes' steps (-tags devviews)
+		e.devCont(c) // the dev scenes' steps (not in -tags nodev)
 	}
 }

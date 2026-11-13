@@ -434,6 +434,6 @@ func (e *Engine) complete(d askDone, v ansv) {
 			e.cs.phase = fightRound
 		}
 	default:
-		e.devAnswered(d, v) // the dev scenes' answers (-tags devviews)
+		e.devAnswered(d, v) // the dev scenes' answers (not in -tags nodev)
 	}
 }

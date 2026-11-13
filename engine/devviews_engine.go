@@ -1,9 +1,8 @@
-//go:build devviews
+//go:build !nodev
 
 // Dev views: the headless checks' scenes (-dev, -battle, -fight, -at,
-// -ecltrace). Built only with `-tags devviews`; a normal build has none of
-// this (devviews_off.go stands in for the dispatch hooks). The tests that
-// use the scenes carry the same tag.
+// -ecltrace). Left out of a release build (`-tags nodev`;
+// devviews_off.go stands in for the dispatch hooks there).
 package engine
 
 import (
