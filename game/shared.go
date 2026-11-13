@@ -101,8 +101,7 @@ type Report struct {
 	At, To       image.Point
 	Sprite       []Picture
 	StepMs       int     // EvMissile with Sprite: the flight's time per third of a square (0: Ms shared out)
-	Ms           int     // >0 with Page: the front shows Page for Ms milliseconds (a timed moment outside a fight)
-	Page         *Page   // the whole page as it stood for this moment (nil: none)
+	Ms           int     // >0: the moment holds this many milliseconds (with Screen: a timed moment outside a fight)
 	Pose         int     // >0 with Ms in a fight: Unit's icon pose (1 action) while this moment shows
 	Screen       *Screen // with Ms: the typed screen as it stood for this moment (a blink, a blast frame), shown for Ms milliseconds
 }

@@ -249,14 +249,6 @@ const (
 	SceneHeading                   // a heading to pick (overland, rocket): Heading, Leave for Done
 )
 
-// Placed is a line of text at a text cell; Tone says what it means, gobox
-// picks the colour.
-type Placed struct {
-	At   image.Point // column, row from 1
-	Text string
-	Tone Tone
-}
-
 // Scene: a script shows something and waits for the player. The script's
 // place is the game's state; Continue or a Reply moves it on.
 type Scene struct {
@@ -268,7 +260,7 @@ type Scene struct {
 	Handout  string            // SceneHandout: the title
 	Texts    []ReadText        // SceneHandout: the Read's
 	Layers   []Layer           // pictures with their place and frames (Pictures: gobox places them)
-	Placed   []Placed          // text at cells over the window (Text: the message lines)
+	Placed   [][]TextRun       // the lines over the view window in the original's order and wrapping, a blank row an empty line (Text: the message lines); gobox places them
 	Intro    *Intro            // SceneTitle
 	Sequence string            // SceneSequence: the Data.Sequences name
 	Results  *Results          // SceneResults

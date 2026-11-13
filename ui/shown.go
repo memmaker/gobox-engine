@@ -33,7 +33,6 @@ type laidPage struct {
 // played, the creation sheet's boxes the pool pictures go in and the ink.
 type laidKey struct {
 	version  uint64
-	moment   *game.Page
 	creation *FrontCreation
 	ink      [16]color.RGBA
 }
@@ -45,7 +44,7 @@ func (p *Presenter) moment() *frame { return p.played }
 // the live page or question.
 func (p *Presenter) replaying() bool {
 	ev := p.moment()
-	return ev != nil && ev.Page == nil && ev.Screen == nil
+	return ev != nil && ev.Screen == nil
 }
 
 // ink is the page's text colours: the EGA's, the title's lightning in
@@ -64,28 +63,18 @@ func (p *Presenter) laid() *laidPage {
 	if p.eng == nil {
 		return &laidPage{}
 	}
-	var mp *game.Page
-	if ev := p.moment(); ev != nil {
-		mp = ev.Page
-	}
 	cr := p.layoutCreation()
 	if !p.creating {
 		cr = nil
 	}
-	k := laidKey{p.eng.G.Version(), mp, cr, p.ink()}
+	k := laidKey{p.eng.G.Version(), cr, p.ink()}
 	return p.lay.page.update(k, func(old *laidPage) *laidPage {
 		s := p.state()
 		pg, portrait := p.eng.r.pageOf(s), storyOf(game.CommonOf(s))
-		if mp != nil {
-			pg, portrait = mp, nil
-		}
 		l := layPage(pg, portrait, k.ink)
 		if cr != nil {
 			own := p.eng.Subject()
 			l.pictures = withPoolIcon(withPoolPortrait(l.pictures, cr, own), cr, own, p.eng.r.sheetPageOf(s, p.party()))
-		}
-		if old == nil || linesText(old.pane) != linesText(l.pane) { // new text: from its first lines
-			p.paneFrom = 0
 		}
 		if l.blinks != "" && (old == nil || old.blinks != l.blinks) {
 			p.blinkAt = now()
@@ -96,15 +85,15 @@ func (p *Presenter) laid() *laidPage {
 
 // layPage lays the page pg out (portrait: a script portrait's pictures
 // when pg has none of its own) in ink.
-func layPage(pg *game.Page, portrait []game.Picture, ink [16]color.RGBA) *laidPage {
+func layPage(pg *TextPage, portrait []game.Picture, ink [16]color.RGBA) *laidPage {
 	l := &laidPage{}
 	if pg == nil {
 		return l
 	}
 	if pg.Pane != nil {
-		l.pane = wrapPane(&Pane{Lines: paneLines(pg.Pane), Rows: pg.PaneRows})
+		l.pane = wrapPane(&Pane{Lines: paneLines(pg.Pane, ink)})
 	}
-	l.prompt, l.viewText = paneRuns(pg.Prompt), paneLines(pg.View)
+	l.prompt, l.viewText = paneRuns(pg.Prompt, ink), paneLines(pg.View, ink)
 	for _, ly := range pg.Layers {
 		f := pix(ly.Picture)
 		f.File, f.Block, f.Frame, f.At = ly.File, ly.Block, ly.Frame, ly.At
@@ -186,8 +175,7 @@ func (p *Presenter) blinkedLines(ls [][]PaneRun) [][]PaneRun {
 	return c
 }
 
-// pane is the text pane under the 3D view as shown: its Rows lines from
-// paneFrom (nil: none).
+// pane is the text pane under the 3D view as shown (nil: none).
 func (p *Presenter) pane() *Pane {
 	if p.backdrop { // the menu over the backdrop takes the text's place
 		return nil
@@ -197,18 +185,8 @@ func (p *Presenter) pane() *Pane {
 		return nil
 	}
 	c := *pn
-	if pn.Rows > 0 && len(pn.Lines) > pn.Rows {
-		from := min(p.paneFrom, len(pn.Lines)-pn.Rows)
-		c.Lines = pn.Lines[from : from+pn.Rows]
-	}
 	c.Lines = p.blinkedLines(c.Lines)
 	return &c
-}
-
-// panePaged is whether the pane has lines after those shown: a key brings them.
-func (p *Presenter) panePaged() bool {
-	pn := p.laid().pane
-	return pn != nil && pn.Rows > 0 && len(pn.Lines) > pn.Rows && min(p.paneFrom, len(pn.Lines)-pn.Rows)+pn.Rows < len(pn.Lines)
 }
 
 // prompt is the prompt row's text (the last row).

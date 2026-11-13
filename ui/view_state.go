@@ -88,9 +88,9 @@ func storyOf(c game.Common) []game.Picture {
 }
 
 // pageOf is the text page up.
-func (r *frontState) pageOf(ps game.State) *game.Page {
+func (r *frontState) pageOf(ps game.State) *TextPage {
 	c := game.CommonOf(ps)
-	p := &game.Page{Layers: c.Layers}
+	p := &TextPage{Layers: c.Layers}
 	if c.Picture != nil && len(c.Layers) == 0 { // the front draws a page's layers: the picture is the page's only one
 		p.Layers = []game.Layer{{Picture: *c.Picture}}
 	}
@@ -439,7 +439,7 @@ func (g *Game) Common() game.Common      { return game.CommonOf(g.r.g.State()) }
 func (g *Game) Walls() *game.Walls       { return g.r.derived().walls }
 func (g *Game) Loot() *game.Loot         { return lootOf(g.r.g.State()) }
 func (g *Game) Automap() game.Automap    { return g.r.derived().automap }
-func (g *Game) Page() *game.Page         { return g.pane() }
+func (g *Game) Page() *TextPage          { return g.pane() }
 func (g *Game) Results() *game.Results   { return resultsOf(g.r.g.State()) }
 func (g *Game) Flags() *game.Flags       { return g.r.flagsOf(g.r.g.State(), g.party()) }
 func (g *Game) Window() game.Window      { return windowOf(g.r.g.State()) }

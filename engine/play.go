@@ -145,11 +145,7 @@ func (e *Engine) build() game.State {
 	// the pane, the picture and its layers are Common's (Text, Picture, Layers): the Scene adds only its own
 	sc := game.Scene{Common: cm, Kind: game.SceneText, Full: s.Flags != nil && s.Flags.Full}
 	if pg := s.Page; pg != nil {
-		for row, l := range pg.View {
-			for _, t := range l {
-				sc.Placed = append(sc.Placed, game.Placed{At: image.Pt(t.X, row+1), Text: t.Text})
-			}
-		}
+		sc.Placed = pg.View
 	}
 	// a Scene's picture and layers are its own (gobox's window is the Scene's), once: a layer already shows the picture
 	sc.Layers, sc.Common.Layers, sc.Common.Picture = cm.Layers, nil, nil
@@ -213,29 +209,6 @@ func sceneless(m game.Mode) bool {
 	return false
 }
 
-// runText is a row's runs as plain text.
-func runText(rs []game.TextRun) (t string) {
-	for _, r := range rs {
-		t += r.Text
-	}
-	return t
-}
-
-// paneText is the page's message lines as plain strings.
-func paneText(pg *game.Page) (out []string) {
-	if pg == nil {
-		return nil
-	}
-	for _, l := range pg.Pane {
-		var b strings.Builder
-		for _, r := range l {
-			b.WriteString(r.Text)
-		}
-		out = append(out, b.String())
-	}
-	return out
-}
-
 // tradeKinds are the trading places by mode.
 var tradeKinds = map[game.Mode]game.TradeKind{game.ModeShop: game.TradeShop, game.ModeTemple: game.TradeTemple,
 	game.ModeTraining: game.TradeTraining, game.ModeVault: game.TradeVault}
@@ -243,12 +216,12 @@ var tradeKinds = map[game.Mode]game.TradeKind{game.ModeShop: game.TradeShop, gam
 // common is what every state shows, with the actions allowed now.
 func (e *Engine) common(s facts) game.Common {
 	cm := game.Common{Selected: s.Selected, Purse: s.Purse, PartyCap: s.PartyCap, PoolItems: s.PoolItems, Where: s.Where, Area: s.Map.Area, Lore: s.Lore, Quests: s.Quests,
-		PowerPick: s.PowerPick, Picker: s.Picker, IconEditor: s.IconEditor, Automap: s.Map, Text: paneText(s.Page)}
+		PowerPick: s.PowerPick, Picker: s.Picker, IconEditor: s.IconEditor, Automap: s.Map}
+	if pg := s.Page; pg != nil {
+		cm.Text, cm.Status = pg.Pane, pg.Prompt
+	}
 	if len(cm.Text) == 0 && s.LastText != "" {
 		cm.Text = []string{s.LastText}
-	}
-	if pg := s.Page; pg != nil {
-		cm.Status = runText(pg.Prompt)
 	}
 	if s.Picture.Name != "" || s.Picture.File != "" {
 		cm.Picture = &s.Picture

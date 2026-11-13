@@ -38,7 +38,7 @@ type shown struct {
 	Picker                 *game.Picker
 	IconEditor             *game.IconEditor
 	IconPalette            []color.RGBA
-	Page                   *game.Page
+	Page                   *TextPage
 	Flags                  *game.Flags
 	Walls                  *game.Walls
 	Intro                  *game.Intro

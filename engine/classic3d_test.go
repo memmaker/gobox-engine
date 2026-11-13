@@ -7,6 +7,7 @@ import (
 	"gobox/rules"
 	"gobox/rules1e"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/png"
 	"os"
@@ -218,7 +219,10 @@ func (e *Engine) classicWalldefLoad(block, slot int) error {
 
 // pageRGBA rasterises the page's pictures as the presenter does.
 func (e *Engine) pageRGBA() *image.RGBA {
-	ink := e.ink()
+	var ink [16]color.RGBA
+	for i := range ink {
+		ink[i] = e.pal.RGBA(byte(i))
+	}
 	m := image.NewRGBA(image.Rect(0, 0, textCols*8, textRows*8))
 	draw.Draw(m, m.Bounds(), image.Black, image.Point{}, draw.Src)
 	for _, s := range e.pagePictures() {

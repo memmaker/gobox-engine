@@ -275,26 +275,44 @@ type Flags struct {
 	IconDrop   bool // the combat icon designer is up
 }
 
-// Page is the text a game wrote and the pictures it showed: scripted text,
-// story pages and the messages in the text window. Lines hold runs in the
-// colours the game chose; the front lays them out.
-type Page struct {
-	Pane     [][]TextRun // the messages' lines (nil: no message shown)
-	Prompt   []TextRun   // the prompt row's text
-	View     [][]TextRun // text over the view window, rows from 1
-	Layers   []Layer     // the pictures, bottom first
-	PaneRows int         // >0: the front shows this many Pane lines at a time and waits for a key before the next lot (0: no paging)
-}
-
-// TextRun is text in one colour on a line from column X (Upcase: the
-// glyphs of a game that upcases what it writes).
+// TextRun is text in one of the original's colours, a run of a line
+// (Upcase: the glyphs of a game that upcases what it writes).
 type TextRun struct {
-	X      int
 	Text   string
-	Fg, Bg color.RGBA
+	Fg, Bg Ink
 	Upcase bool
 	Blink  bool // the front alternates the run's ink with its highlight colour a few times, ending on normal
 }
+
+// Ink is a text colour of the original by its EGA name; gobox maps it to
+// its palette. InkNone: gobox's own (the body text's ink, no background).
+type Ink uint8
+
+const (
+	InkNone Ink = iota
+	InkBlack
+	InkBlue
+	InkGreen
+	InkCyan
+	InkRed
+	InkMagenta
+	InkBrown
+	InkLightGrey
+	InkDarkGrey
+	InkLightBlue
+	InkLightGreen
+	InkLightCyan
+	InkLightRed
+	InkLightMagenta
+	InkYellow
+	InkWhite
+)
+
+// EGAInk is EGA colour n (0..15) as an Ink.
+func EGAInk(n int) Ink { return InkBlack + Ink(n&15) }
+
+// EGA is the ink's EGA colour number (0..15); ok false for InkNone.
+func (k Ink) EGA() (n int, ok bool) { return int(k) - int(InkBlack), k != InkNone }
 
 // Layer is a picture placed on the page: At in pixels of the page.
 type Layer struct {

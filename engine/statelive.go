@@ -1,6 +1,10 @@
 package engine
 
-import "gobox/game"
+import (
+	"gobox/game"
+	"slices"
+	"strings"
+)
 
 // The screens State reports, read off the engine's own state: the ones
 // publish puts in a View, without making one.
@@ -53,21 +57,58 @@ func (e *Engine) stateMode() game.Mode {
 	return game.ModeNone
 }
 
-// statePage is the text page as a game.Page: its lines and colours, its pictures.
-func (e *Engine) statePage() *game.Page {
+// textPage is the text the game wrote and the pictures it showed: the
+// pane's lines (earlier lots first), the prompt row, the lines over the
+// view window (Scene.Placed) and the pictures, bottom first.
+type textPage struct {
+	Pane   []string
+	Prompt string
+	View   [][]game.TextRun
+	Layers []game.Layer
+}
+
+// statePage is the text page as the state shows it.
+func (e *Engine) statePage() *textPage {
 	pics := e.pagePictures()
-	p := &game.Page{Prompt: gameRuns(e.runs(e.pg.tx.prompt)), Layers: make([]game.Layer, 0, len(pics))}
+	p := &textPage{Prompt: runsText(e.runs(e.pg.tx.prompt)), Layers: make([]game.Layer, 0, len(pics))}
 	if pane := e.pagePane(); pane != nil {
-		p.Pane = gameLines(pane.Lines)
-		if more := e.pg.tx.more; len(more) > 0 {
-			p.Pane, p.PaneRows = append(gameLines(more), p.Pane...), TextPaneRows
+		for _, l := range append(slices.Clone(e.pg.tx.more), pane.Lines...) {
+			p.Pane = append(p.Pane, runsText(l))
 		}
 	}
-	p.View = gameLines(e.pageText())
+	for _, l := range e.pageText() {
+		p.View = append(p.View, viewLine(l))
+	}
 	for _, l := range pics {
 		g := game.Layer{Picture: gamePicture(l), At: l.At}
 		g.File, g.Block, g.Frame = l.File, l.Block, l.Frame
 		p.Layers = append(p.Layers, g)
 	}
 	return p
+}
+
+// runsText is a row's runs as plain text.
+func runsText(rs []PaneRun) string {
+	var b strings.Builder
+	for _, r := range rs {
+		b.WriteString(r.Text)
+	}
+	return b.String()
+}
+
+// viewLine is a row of text over the view window as a line: its runs in
+// order in their colours, the gaps between them as spaces; where the row
+// starts is gobox's (Scene.Placed).
+func viewLine(rs []PaneRun) []game.TextRun {
+	var l []game.TextRun
+	end := -1
+	for _, r := range rs {
+		t := r.Text
+		if end >= 0 && r.X > end {
+			t = strings.Repeat(" ", r.X-end) + t
+		}
+		end = r.X + len(r.Text)
+		l = append(l, game.TextRun{Text: t, Fg: game.EGAInk(int(r.Fg)), Bg: game.EGAInk(int(r.Bg)), Upcase: r.Upcase})
+	}
+	return l
 }

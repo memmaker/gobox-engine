@@ -49,11 +49,7 @@ func TestOpeningPicture(t *testing.T) {
 func paneOf(e *Engine) []string {
 	var out []string
 	if p := e.statePage(); p != nil {
-		for _, ln := range p.Pane {
-			s := ""
-			for _, r := range ln {
-				s += r.Text
-			}
+		for _, s := range p.Pane {
 			if s = strings.TrimRight(s, " "); s != "" {
 				out = append(out, s)
 			}

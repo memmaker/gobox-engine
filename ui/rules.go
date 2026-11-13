@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"hash/fnv"
 	"image"
-	"image/color"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -438,14 +437,6 @@ func canCast(al game.Allowed, n int) bool {
 	return false
 }
 
-// Text colours are gobox's: plain ink, and one per Tone (EGA white, light
-// cyan, light red, yellow, light magenta, white). A game's own Ink is not
-// taken.
-var ink = color.RGBA{255, 255, 255, 255}
-
-var tones = map[game.Tone]color.RGBA{game.ToneText: ink, game.ToneOwn: {85, 255, 255, 255}, game.ToneBad: {255, 85, 85, 255},
-	game.TonePrompt: {255, 255, 85, 255}, game.ToneWarn: {255, 85, 255, 255}, game.ToneLoud: ink}
-
 // run is a line of the rules' text: its colour unset, so the front gives
 // it gobox's body text colour, in the text glyphs (Upcase: fonts.Glyph
 // keeps a font's own lower case, else capitals). Upcase is not the case: a
@@ -461,8 +452,8 @@ func gameWalls(w game.MapWalls) *game.Walls {
 		SunAz: w.SunAz, SunEl: w.SunEl, Backdrop: w.Backdrop}
 }
 
-func (r *frontState) page(sc game.Scene) *game.Page {
-	p := &game.Page{}
+func (r *frontState) page(sc game.Scene) *TextPage {
+	p := &TextPage{View: sc.Placed}
 	if sc.Speaker != "" {
 		p.Pane = append(p.Pane, r.run(sc.Speaker+":"))
 	}
@@ -473,12 +464,6 @@ func (r *frontState) page(sc game.Scene) *game.Page {
 		p.Layers = append(p.Layers, game.Layer{Picture: pic})
 	}
 	p.Layers = append(p.Layers, sc.Layers...)
-	for _, t := range sc.Placed {
-		for len(p.View) < t.At.Y {
-			p.View = append(p.View, nil)
-		}
-		p.View[t.At.Y-1] = append(p.View[t.At.Y-1], game.TextRun{X: t.At.X, Text: t.Text, Fg: tones[t.Tone]})
-	}
 	return p
 }
 

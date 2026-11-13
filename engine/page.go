@@ -181,7 +181,7 @@ func (e *Engine) runs(row []textCell) []PaneRun {
 		if !c.set {
 			continue
 		}
-		fg, bg := e.pal.RGBA(c.colour), e.pal.RGBA(c.bg)
+		fg, bg := c.colour, c.bg
 		if n := len(l) - 1; n >= 0 && l[n].X+len(l[n].Text) == x && l[n].Fg == fg && l[n].Bg == bg && l[n].Upcase == c.upcase {
 			l[n].Text += string(c.c)
 			continue
@@ -220,14 +220,6 @@ func (e *Engine) layerPicture(l *layer) Picture {
 		s.Pix, s.PixW = crop(d, w, s.At.Sub(at.Min)), s.At.Dx()
 	}
 	return s
-}
-
-// ink is the text colours (EGA 0..15) in the palette now (Ink).
-func (e *Engine) ink() (k [16]color.RGBA) {
-	for i := range k {
-		k[i] = e.pal.RGBA(byte(i))
-	}
-	return k
 }
 
 // crop is the pixels of r in d, w wide.

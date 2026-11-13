@@ -362,10 +362,10 @@ type frame struct {
 	fly *flight
 }
 
-// held is whether f holds the screen: a board, page or screen shown for Ms
-// or until a key.
+// held is whether f holds the screen: a board or screen shown for Ms or
+// until a key.
 func (f *frame) held() bool {
-	return f.Board != nil || f.Page != nil || f.Screen != nil
+	return f.Board != nil || f.Screen != nil
 }
 
 // lastBoard: the shown moment is the last held one queued (the board the

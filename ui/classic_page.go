@@ -8,24 +8,42 @@ import (
 	"gobox/game"
 )
 
-func paneRuns(l []game.TextRun) []PaneRun {
+// TextPage is the text page the state shows: the pane's lines, the prompt
+// row, the lines over the view window (Scene.Placed) and the pictures,
+// bottom first.
+type TextPage struct {
+	Pane   [][]game.TextRun
+	Prompt []game.TextRun
+	View   [][]game.TextRun
+	Layers []game.Layer
+}
+
+// paneRuns lays line l out from the line's start in ink: an unset ink is
+// the body text's colour (gobox's, as every font colour) on no background.
+func paneRuns(l []game.TextRun, ink [16]color.RGBA) []PaneRun {
 	var r []PaneRun
+	x := 0
 	for _, t := range l {
-		if t.Fg == (color.RGBA{}) { // unset: the body text's colour (gobox's, as every font colour)
-			t.Fg = asset.EGARGBA(10)
+		fg, bg := asset.EGARGBA(10), color.RGBA{}
+		if n, ok := t.Fg.EGA(); ok {
+			fg = ink[n]
 		}
-		r = append(r, PaneRun{X: t.X, Text: t.Text, Fg: t.Fg, Bg: t.Bg, Upcase: t.Upcase, Blink: t.Blink})
+		if n, ok := t.Bg.EGA(); ok {
+			bg = ink[n]
+		}
+		r = append(r, PaneRun{X: x, Text: t.Text, Fg: fg, Bg: bg, Upcase: t.Upcase, Blink: t.Blink})
+		x += len(t.Text)
 	}
 	return r
 }
 
-func paneLines(ls [][]game.TextRun) [][]PaneRun {
+func paneLines(ls [][]game.TextRun, ink [16]color.RGBA) [][]PaneRun {
 	if ls == nil {
 		return nil
 	}
 	r := make([][]PaneRun, len(ls))
 	for i, l := range ls {
-		r[i] = paneRuns(l)
+		r[i] = paneRuns(l, ink)
 	}
 	return r
 }
