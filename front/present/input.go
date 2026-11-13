@@ -147,7 +147,10 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 	case a == input.Esc:
 		p.send(front.ActClose, 0)
 	case a == input.Minimap:
-		p.send(front.ActMinimap, 0)
+		Host.MapOff = !Host.MapOff // pure UI: the presenter's own option, never the game's
+		if blobber.OnSettings != nil {
+			blobber.OnSettings(blobber.Settings)
+		}
 	case a == input.Overview && v.Exploring:
 		p.overview = true
 	case a == input.Overview:

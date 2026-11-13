@@ -159,7 +159,7 @@ type Game interface {
 // ActText, ActYes, ActNo, ActLead, ActMember, the command bar's and the
 // exploration keys' kinds) and the screen-wide passes (ActHead,
 // ActPortrait, ActFont, ActSound, ActResize, ActMainMenu, ActNote,
-// ActNoteRemove, ActIcon, ActMinimap). A kind the game does not apply it
+// ActNoteRemove, ActIcon). A kind the game does not apply it
 // hands to Unhandled.
 
 // Unhandled reports an action the game did not apply: a log line by

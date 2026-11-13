@@ -38,7 +38,7 @@ func voiceKey(s string) string {
 func (e *Engine) voiceOn() bool { return !e.marked(voiceOffFile) }
 
 // marked reports whether the marker file name exists in the save folder: a
-// switch the player set (VOICE.OFF, SOUND.OFF, MINIMAP.ON) kept across runs.
+// switch the player set (VOICE.OFF, SOUND.OFF) kept across runs.
 func (e *Engine) marked(name string) bool {
 	_, err := os.Stat(filepath.Join(e.Cfg.SaveDir, name))
 	return err == nil

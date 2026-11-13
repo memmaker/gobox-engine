@@ -69,12 +69,8 @@ const (
 	seenVisited = 2
 )
 
-// minimapFile in the save folder marks the minimap as switched on (Tab).
-const minimapFile = "MINIMAP.ON"
-
 // extras holds the convenience-feature state.
 type extras struct {
-	minimap   bool                    // roster panel shows the minimap
 	hall      bool                    // the party menu is the training hall's (opProgram 0), not the title's
 	seen      map[int]*[256]uint8     // per map (areaKey): 1 seen, 2 visited
 	voiced    map[string]bool         // voice.go: the recordings this save has heard: the lore found (lore.go)

@@ -16,7 +16,6 @@ func (e *Engine) Init() {
 	clear(e.vm.Code)
 	e.set = 1 // DS:5376 = 1
 	e.resetAdventure()
-	e.ext.minimap = e.marked(minimapFile) // here, not in New: Cfg.SaveDir is set by then (a test's temp dir)
 	e.clearPrompt()
 	e.prompt(ega.LightGreen, "Loading...Please Wait")
 	symbols := e.game().Symbols
