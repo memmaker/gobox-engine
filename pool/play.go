@@ -276,7 +276,10 @@ func (e *Engine) allowed(s facts) play.Allowed {
 	items := func() {
 		for n, m := range s.Party {
 			for _, it := range m.Items {
-				add(e.readyAct(n, it.Handle), play.Drop{Member: n, Item: it.Handle}, play.UseItem{Member: n, Item: it.Handle})
+				add(e.readyAct(n, it.Handle), play.Drop{Member: n, Item: it.Handle})
+				if len(e.ruleset().Allowed(core.UsingItem{Who: e.partyIDs()[n], Item: it.Handle}).Offers) > 0 { // an item with no use is not offered Use (UseItem refused it "not now")
+					add(play.UseItem{Member: n, Item: it.Handle})
+				}
 			}
 			add(play.SelectMember{Member: n})
 		}
@@ -489,13 +492,18 @@ func (e *Engine) allowed(s facts) play.Allowed {
 			add(play.AppraiseActions(s.Shop.Offers)...)
 		}
 		add(play.AppraiseActions(s.TempleOffers)...)
+		if s.Shop != nil {
+			for _, u := range s.Shop.Unknown { // only what the shop can identify (Identify refused the rest "not now")
+				add(play.Identify{Member: u.Member, Item: u.Item})
+			}
+		}
 		for n, m := range s.Party {
 			if s.Shop != nil {
 				for _, g := range s.Shop.Goods {
 					add(play.Buy{Member: n, Item: g.Handle})
 				}
 				for _, it := range m.Items {
-					add(play.Sell{Member: n, Item: it.Handle}, play.Identify{Member: n, Item: it.Handle})
+					add(play.Sell{Member: n, Item: it.Handle})
 				}
 			}
 			for k, sv := range s.Temple {
