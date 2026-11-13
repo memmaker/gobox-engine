@@ -33,18 +33,6 @@ var turnBar = []struct {
 	{VerbEnd, play.Option{Label: "Done", Key: 'D', Do: play.EndTurn{}}},
 }
 
-// doneMenu is Done's menu (ovr09:0E85-0EE0 "Guard Delay Quit Bandage"):
-// its options answer it (Answer N), the verbs the turn can.
-var doneMenu = []struct {
-	can TurnVerb
-	o   play.Option
-}{
-	{VerbGuard, play.Option{Label: "Guard", Key: 'G'}},
-	{VerbWait, play.Option{Label: "Delay", Key: 'D'}},
-	{VerbEnd, play.Option{Label: "Quit", Key: 'Q'}},
-	{VerbBandage, play.Option{Label: "Bandage", Key: 'B'}},
-}
-
 // combatState is the fight as the View shows it: the combatants with their
 // numbers, the turn's menu and spells (with the aims they take), the squares
 // a move reaches, the foes an attack takes and the aim.

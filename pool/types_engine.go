@@ -348,12 +348,6 @@ type Inventory struct {
 	Join   bool // ... Join
 }
 
-// Loot is the treasure screen's options besides View and Exit (View.Loot).
-type Loot struct {
-	Take   bool // there is treasure to take (LootTake)
-	Detect bool // the selected member has Detect Magic memorized (LootDetect)
-	Share  bool // there is money to divide among the party (LootShare)
-}
 
 // AreaMap (extra) is the whole area map for a screen of its own: every
 // square's picture (Squares[y][x], nil: none drawn), Tile pixels square,

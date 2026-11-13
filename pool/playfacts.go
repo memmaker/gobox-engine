@@ -290,11 +290,6 @@ func (e *Engine) itemsState(id core.CharID) []game.Item {
 	return l
 }
 
-// itemGame is h as id sees it.
-func (e *Engine) itemGame(id core.CharID, h core.ItemHandle) game.Item {
-	return gameItem(h, e.itemCard(id, h))
-}
-
 // gameItem is card (of h) as gobox's item: its tab ("ring" for a ring, else as
 // the item's kind), the slot it is readied in, its name's words, what Look
 // tells of it, whether it is used, and its real name while unidentified.

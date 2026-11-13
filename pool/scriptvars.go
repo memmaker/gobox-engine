@@ -27,8 +27,3 @@ type engineField struct {
 	text    func() string
 	setText func(s string)
 }
-
-// word binds a field to an engine word: reads and writes are the word itself.
-func word(p *uint16) engineField {
-	return engineField{get: func(int) (int64, bool) { return int64(*p), true }, set: func(_ int, v int64) { *p = uint16(v) }}
-}

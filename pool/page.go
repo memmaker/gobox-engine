@@ -28,7 +28,6 @@ type layer struct {
 
 type pageState struct {
 	layers []layer
-	held   int    // Hold depth: the page is not published meanwhile
 	ids    uint64 // layers drawn
 	tx     texts  // the text the game wrote (text.go)
 }
@@ -100,24 +99,6 @@ func (e *Engine) clearPage() {
 // page (its portrait box), the icon's drop.
 func (e *Engine) newPage() {
 	e.snap.portrait, e.snap.iconDrop, e.snap.iconBox, e.snap.sheet, e.snap.results, e.snap.full = CellRect{}, nil, CellRect{}, nil, nil, false
-}
-
-// resizePage gives the page cols by rows cells (40x25 at least): what is
-// drawn stays where it is, then the screen draws itself up again at the
-// new size (redrawNow); a question is the presenter's to lay out.
-func (e *Engine) resizePage(cols, rows int) {
-	cols, rows = max(cols, minCols), max(rows, minRows)
-	if cols == textCols && rows == textRows {
-		return
-	}
-	prompt := e.pg.tx.prompt // the prompt row moves with the page's bottom
-	setPageSize(cols, rows)
-	e.pg.tx.prompt = nil
-	if len(prompt) > 0 {
-		e.pg.tx.prompt = make([]textCell, textCols)
-		copy(e.pg.tx.prompt, prompt) // a narrower page cuts the row
-	}
-	e.redrawNow()
 }
 
 // redrawKind is a screen that draws itself up again at the page's size.

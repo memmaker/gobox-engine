@@ -127,13 +127,6 @@ func (e *Engine) initVM() {
 	}
 }
 
-// ECL virtual-machine support, ported from ovr08. The script's variables
-// are the typed fields of scriptvars.go; the save's records are the game's
-// data (GameTables.OriginalSave), the code image's base and size with them.
-const (
-	areaScratchWords = 0x20 // the area record's words 0x4A00..0x4A1F: locals, cleared by a fresh area (SaveEditor.EnterArea)
-)
-
 // extractHotkeys = ovr08:156D: "~Yes ~No" → menu "yes no", hotkeys "YN".
 func extractHotkeys(menu string) (hot, out string) {
 	b := []byte(menu)

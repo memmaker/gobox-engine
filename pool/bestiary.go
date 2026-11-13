@@ -1,7 +1,6 @@
 package pool
 
 import (
-	"gobox/asset"
 	"slices"
 	"strings"
 )
@@ -100,38 +99,4 @@ func (e *Engine) meetMonster(name, file string, block int) {
 		e.ext.met = map[string]metIcon{}
 	}
 	e.ext.met[b.Name] = metIcon{file, block}
-}
-
-// beasts are the bestiary entries of the kinds met, with their icons.
-func (e *Engine) beasts() []Beast {
-	if b := e.ext.beasts; b != nil && len(b) == len(e.ext.met) && e.ext.beastsDOS == DOSArt.Load() { // kinds are only ever added
-		return b
-	}
-	var out []Beast
-	for _, b := range bestiary {
-		ic, ok := e.ext.met[b.Name]
-		if !ok {
-			continue
-		}
-		bt := Beast{Name: b.Name, Danger: b.Danger, Text: b.Desc}
-		if im := e.LoadPicMasked(ic.File, ic.Block, 0); im != nil && im.Count > 0 {
-			e.recolour(im, &IconPaletteCE2)
-			bt.IconPix = e.picPix(im, 0, false, -1)
-		}
-		if bp, ok := beastPics[b.Name]; ok { // the scripts' picture of its fights (beastpics.go)
-			if b, dos := e.artBlocks(e.set.File("PIC"), bp); b != nil && b.Kind == asset.Anim {
-				if fr := b.Anim(asset.NoMask); len(fr) > 0 {
-					if dos != nil && dos.Kind == asset.Anim { // its DOS twin (F12)
-						if alt := dos.Anim(asset.NoMask); len(alt) > 0 {
-							twin(fr[0].Image, alt[0].Image)
-						}
-					}
-					bt.PicPix = e.picPix(fr[0].Image, 0, false, -1)
-				}
-			}
-		}
-		out = append(out, bt)
-	}
-	e.ext.beasts, e.ext.beastsDOS = out, DOSArt.Load()
-	return out
 }

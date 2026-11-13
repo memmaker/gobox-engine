@@ -95,11 +95,6 @@ type ansv struct {
 // choosing: a member pick waits (the roster highlights its candidate).
 func (e *Engine) choosing() bool { return e.eclWait != nil && e.eclWait.member }
 
-// typing: a line is being typed.
-func (e *Engine) typing() bool {
-	return e.eclWait != nil && (e.eclWait.ask.Typed || e.eclWait.ask.Number)
-}
-
 // yesNo is a yes/no question (the highlight starts on Yes); strict: only Y
 // and N answer it, not Enter or Esc (ovr26:10D1).
 func yesNo(text string, strict bool) *play.Question {

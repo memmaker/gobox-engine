@@ -766,9 +766,6 @@ func (e *Engine) exploring() bool {
 	return e.top() == onExplore && !e.over && !e.view.on && !e.snap.invOn
 }
 
-// viewing: the sheet's own menu waits.
-func (e *Engine) viewing() bool { return e.view.on }
-
 // tourDone is area 0's TourDone (layout/area0.txt): Rolf's tour runs while it is 0.
 const tourDone = "TourDone"
 

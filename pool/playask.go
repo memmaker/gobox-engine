@@ -247,39 +247,3 @@ func (e *Engine) moveActs(to image.Point, reach []game.Reach) ([]TurnAct, error)
 	}
 	return []TurnAct{{Verb: VerbWalk, X: to.X, Y: to.Y}}, nil
 }
-
-// askDrop asks before member n leaves the party (the old front's Drop):
-// in camp once (ovr16:196E), on the party menu twice (ovr17:1F5A, 1F93).
-func (e *Engine) askDrop(n int) error {
-	if n < 0 || n >= e.partySize() {
-		return core.ErrNotNow
-	}
-	again := 0
-	q := "Drop from party? "
-	switch {
-	case e.inCamp():
-	case e.inParty():
-		q, again = "Drop "+e.name(e.actor(n))+" forever? ", 1
-	default:
-		return core.ErrNotNow
-	}
-	e.ext.pq = &playQuestion{q: play.Question{Text: q, YesNo: true, Replies: []string{"No", "Yes"}, Default: 1},
-		calls: []pendingCall{{}, {kind: callDrop, member: n, target: again}}}
-	return nil
-}
-
-// doneMenuAsk is Done's menu (doneMenu) as the pending question: each entry the turn can.
-func (e *Engine) doneMenuAsk() error {
-	if !e.battleUp() || e.battle().Turn == nil {
-		return core.ErrNotNow
-	}
-	pq := &playQuestion{q: play.Question{Text: "Done"}}
-	for _, v := range doneMenu {
-		if slices.Contains(e.battle().Turn.Can, v.can) {
-			pq.q.Replies, pq.q.Keys = append(pq.q.Replies, v.o.Label), append(pq.q.Keys, v.o.Key)
-			pq.calls = append(pq.calls, pendingCall{kind: callTurn, acts: []TurnAct{{Verb: v.can}}})
-		}
-	}
-	e.ext.pq = pq
-	return nil
-}

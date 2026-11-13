@@ -71,22 +71,21 @@ const (
 
 // extras holds the convenience-feature state.
 type extras struct {
-	hall      bool                    // the party menu is the training hall's (opProgram 0), not the title's
-	seen      map[int]*[256]uint8     // per map (areaKey): 1 seen, 2 visited
-	voiced    map[string]bool         // voice.go: the recordings this save has heard: the lore found (lore.go)
-	again     map[string]bool         // voice.go: heard, to be spoken again (Rolf's history)
-	met       map[string]metIcon      // bestiary.go: the monster kinds this save has met
-	quests    []questNote             // quests.go: the quests this save was given
-	notes     []noteRec               // lore.go: the journal's notes
-	doors     map[int][]doorSide      // per map (areaKey): the doors opened for good (openDoor)
-	beasts    []Beast                 // bestiary.go: their entries, as last published
-	beastsDOS bool                    // ... in the DOS art (DOSArt)
-	art       map[string]game.Picture // gamedata.go: the overland's art, as last built
-	artKey    artKey                  // ... from these pictures
-	creating  bool                    // CreateCharacter's sheet is up: no level, experience, party items or status on it
-	inGame    bool                    // slots.go: GameLoop has started: saving allowed
-	aoe       int                     // aoe.go: radius+1 of the spell being aimed, 0 none
-	aoeSpell  int                     // aoe.go: the spell being aimed
+	hall     bool                    // the party menu is the training hall's (opProgram 0), not the title's
+	seen     map[int]*[256]uint8     // per map (areaKey): 1 seen, 2 visited
+	voiced   map[string]bool         // voice.go: the recordings this save has heard: the lore found (lore.go)
+	again    map[string]bool         // voice.go: heard, to be spoken again (Rolf's history)
+	met      map[string]metIcon      // bestiary.go: the monster kinds this save has met
+	quests   []questNote             // quests.go: the quests this save was given
+	notes    []noteRec               // lore.go: the journal's notes
+	doors    map[int][]doorSide      // per map (areaKey): the doors opened for good (openDoor)
+	beasts   []Beast                 // bestiary.go: their entries, as last published
+	art      map[string]game.Picture // gamedata.go: the overland's art, as last built
+	artKey   artKey                  // ... from these pictures
+	creating bool                    // CreateCharacter's sheet is up: no level, experience, party items or status on it
+	inGame   bool                    // slots.go: GameLoop has started: saving allowed
+	aoe      int                     // aoe.go: radius+1 of the spell being aimed, 0 none
+	aoeSpell int                     // aoe.go: the spell being aimed
 
 	// nav.go: keys and mouse
 	enemiesOnly bool // aiming a weapon or hostile spell: Tab cycles through foes only (playerAim)

@@ -13,20 +13,6 @@ import (
 	"gobox/core/goldbox"
 )
 
-// listedIndex: the number of entries (not headers) of the list before sel.
-func (e *Engine) listedIndex(sel *ListNode) int {
-	idx := 0
-	for _, n := range e.spellList {
-		if n == sel {
-			break
-		}
-		if n.Flag == 0 {
-			idx++
-		}
-	}
-	return idx
-}
-
 // buildSpellList = ovr23:059C (kind): fills the menu list with the
 // rules' SpellMenuFact of the selected member; kinds as in SpellList.
 // Each scroll line notes its scroll (DS:477F; kinds 3 and 6 start the

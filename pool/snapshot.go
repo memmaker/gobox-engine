@@ -31,7 +31,6 @@ const mapCell = 10
 
 // snapState is the engine's side of the seam.
 type snapState struct {
-	seq        uint64                      // states published
 	quiet      bool                        // a play action is running: no scene is published for the events
 	invOn      bool                        // ItemsMenu waits: View.Inventory is up
 	shop       bool                        // ... as the shop's Browse: View.Inventory.Wares

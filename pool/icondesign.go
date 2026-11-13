@@ -20,13 +20,7 @@ import (
 // Layout, in cells: the poses 9 cells square at the 40x25 page, a whole
 // multiple of that as far as the grid has room (iconScale); the rest
 // moves along with them.
-const (
-	idPreviewRow  = 2 // the poses; ready, action 9s+2 to the right
-	idPreviewCols = 2
-	idPartCol     = 2  // the six parts, a row each, under the poses
-	idSwatchCol   = 12 // colour 1; colour 2 three to the right
-	idPaletteCol  = 2  // the 16 colours, 8 a row, 2 cells each, under the parts
-)
+const ()
 
 // Head, Weapon, Size
 // IconParts are the parts in IconColour order (the hair and the face

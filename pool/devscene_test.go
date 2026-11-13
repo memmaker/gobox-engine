@@ -350,9 +350,6 @@ func testLastBlowBody(t *testing.T, mk func(*testing.T) *Engine) {
 	t.Fatal("no end")
 }
 
-// devLoot starts -dev loot and plays on to the treasure.
-func devLoot(t *testing.T) *Engine { t.Helper(); return devLootOn(t, testEngine(t)) }
-
 // devLootOn is devLoot on the engine e (any game's: advEngine).
 func devLootOn(t *testing.T, e *Engine) *Engine {
 	t.Helper()
