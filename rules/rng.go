@@ -12,10 +12,4 @@ package rules
 type RNG struct{ State uint32 }
 
 // N is 0..n-1. The state advances even for n = 0, which gives 0.
-func (r *RNG) N(n int) int {
-	r.State = r.State*0x08088405 + 1
-	if uint16(n) == 0 {
-		return 0
-	}
-	return int(uint16(r.State>>16) % uint16(n))
-}
+func (r *RNG) N(n int) int { return Random(&r.State, n) }
