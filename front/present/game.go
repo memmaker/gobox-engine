@@ -18,7 +18,7 @@ import (
 	"gobox/game/play"
 )
 
-// Game is a front.Game built from a game's rules and data alone: View comes
+// Game is a *classicGame built from a game's rules and data alone: View comes
 // from the classic builders over State, every rule call and Action becomes
 // the Decision the game takes. It holds no game code.
 type Game struct {
@@ -47,9 +47,7 @@ type aiming struct {
 	ats      []image.Point
 }
 
-var _ front.Game = (*Game)(nil)
-
-// NewGame is the front.Game over p and d.
+// NewGame is the *classicGame over p and d.
 func NewGame(p play.Game, d game.Data) *Game {
 	GameID = d.ID
 	return &Game{G: p, r: newRules(p, d), D: d, grid: image.Pt(40, 25)}
@@ -942,7 +940,7 @@ func (g *Game) Answer(a front.Action) error {
 	}
 	step := g.act(a)
 	if step == nil {
-		front.Unhandled(a)
+		Unhandled(a)
 		return nil
 	}
 	return step()

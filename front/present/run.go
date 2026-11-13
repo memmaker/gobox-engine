@@ -1,4 +1,4 @@
-// run.go: Front, the ready-made front end over a front.Game: the shell
+// run.go: Front, the ready-made front end over a *classicGame: the shell
 // (gobox/app, Config.Front) drives the presenter's screens with it, and the
 // game's rules run on the screens' decisions.
 
@@ -23,7 +23,7 @@ import (
 
 // Front is an app.Front: the presenter's screens over Game.
 type Front struct {
-	Game front.Game
+	Game *classicGame
 	P    Presenter
 
 	// Glyph is a character's pattern in the game's font now, Font a pane
@@ -52,7 +52,7 @@ type Front struct {
 // SetData handed in. It plays sound through snd (the game's own driver,
 // one instance shared with its rules), or else through a Driver it builds
 // from Data.Sounds and Data.AmigaSound, on the Tandy, and plays out itself.
-func NewFront(g front.Game, data game.Data, snd ...audio.Sound) *Front {
+func NewFront(g *Game, data game.Data, snd ...audio.Sound) *Front {
 	gpu.Mark("NewFront")
 	gameData(data)
 	f := &Front{}
@@ -62,7 +62,7 @@ func NewFront(g front.Game, data game.Data, snd ...audio.Sound) *Front {
 	}
 	f.chooseFonts(data.Fonts)
 	gpu.Mark("NewFront: fonts")
-	f.Game = WithRules(g, &f.P)
+	f.Game = &classicGame{g, &f.P}
 	if len(snd) > 0 {
 		f.P.Snd = snd[0]
 	} else if d := newDriver(); d != nil {
@@ -227,7 +227,7 @@ func (f *Front) stopWalk() bool {
 	if f.view().Pace != front.PaceWalk {
 		return false
 	}
-	f.P.call(func(e front.Game) { e.StopWalk() })
+	f.P.call(func(e *classicGame) { e.StopWalk() })
 	return true
 }
 func (f *Front) Mouse(cx, cy int, in, left, right bool, wheel int) {

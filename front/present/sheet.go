@@ -24,7 +24,7 @@ func (p *Presenter) sheetItems(v front.View) []ui.MenuRow {
 	}
 	for _, r := range v.Sheet.Reactions {
 		it = append(it, ui.MenuRow{Text: r.Name + " " + r.Policy.String(), Key: r.Name[0], Do: func() {
-			p.call(func(e front.Game) { e.SetPolicy(r.ID, r.Policy+1) })
+			p.call(func(e *classicGame) { e.SetPolicy(r.ID, r.Policy+1) })
 		}})
 	}
 	return it

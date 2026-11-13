@@ -19,13 +19,13 @@ func (p *Presenter) Pace(v front.View) {
 	}
 	switch v.Pace {
 	case front.PaceFight:
-		p.call(func(e front.Game) { e.CombatStep() })
+		p.call(func(e *classicGame) { e.CombatStep() })
 	case front.PaceRest:
-		p.call(func(e front.Game) { e.RestStep() })
+		p.call(func(e *classicGame) { e.RestStep() })
 	case front.PaceStory:
-		p.call(func(e front.Game) { e.StoryStep() })
+		p.call(func(e *classicGame) { e.StoryStep() })
 	case front.PaceWalk:
-		p.call(func(e front.Game) { e.WalkStep() })
+		p.call(func(e *classicGame) { e.WalkStep() })
 	}
 }
 
@@ -47,7 +47,7 @@ func (p *Presenter) turnAct(a front.Action) bool {
 // turnCall calls TurnChoice; a question it is refused with is asked, Yes
 // calls it again sure.
 func (p *Presenter) turnCall(a front.Action, sure bool) {
-	p.call(func(e front.Game) {
-		front.AskSure(p, e.TurnChoice(a, sure), func() { p.turnCall(a, true) })
+	p.call(func(e *classicGame) {
+		AskSure(p, e.TurnChoice(a, sure), func() { p.turnCall(a, true) })
 	})
 }

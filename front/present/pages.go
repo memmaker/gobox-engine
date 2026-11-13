@@ -765,23 +765,23 @@ func iconClick(ed *front.IconEditor, cx, cy int) (front.Action, bool) {
 	in := func(r front.CellRect) bool { return cx >= r.X1 && cx <= r.X2 && cy >= r.Y1 && cy <= r.Y2 }
 	if ed.Custom {
 		if in(ed.Remove) {
-			return front.Action{Kind: front.ActIconRemove}, true
+			return front.Action{Kind: ActIconRemove}, true
 		}
 		return front.Action{}, false
 	}
-	head, weapon := front.Action{Kind: front.ActPicker, N: front.PickIconHead}, front.Action{Kind: front.ActPicker, N: front.PickWeapon}
+	head, weapon := front.Action{Kind: ActPicker, N: front.PickIconHead}, front.Action{Kind: ActPicker, N: front.PickWeapon}
 	switch {
 	case in(ed.Head):
 		return head, true
 	case in(ed.Weapon):
 		return weapon, true
 	case in(ed.Size):
-		return front.Action{Kind: front.ActIconSize}, true
+		return front.Action{Kind: ActIconSize}, true
 	case in(ed.Parts):
-		return front.Action{Kind: front.ActIconColour, N: cy - ed.Parts.Y1, X: (cx - ed.Parts.X1) / 3, Y: -1}, true
+		return front.Action{Kind: ActIconColour, N: cy - ed.Parts.Y1, X: (cx - ed.Parts.X1) / 3, Y: -1}, true
 	case in(ed.Palette):
 		if v := ed.Colours[(cy-ed.Palette.Y1)*8+(cx-ed.Palette.X1)/2]; v >= 0 {
-			return front.Action{Kind: front.ActIconColour, N: ed.Part, X: ed.Shade, Y: v}, true
+			return front.Action{Kind: ActIconColour, N: ed.Part, X: ed.Shade, Y: v}, true
 		}
 		return front.Action{}, false
 	}

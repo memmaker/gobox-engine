@@ -39,7 +39,7 @@ func TestAnyInputStopsWalk(t *testing.T) {
 		"view":  func(f *Front) { f.ViewClick(10, 10) },
 	} {
 		w := &walkerGame{}
-		f := &Front{Game: NewGame(w, game.Data{}), started: true}
+		f := &Front{Game: &classicGame{Game: NewGame(w, game.Data{})}, started: true}
 		f.P.SetEngine(f.Game)
 		if !f.Game.WalkTo(3, 0) {
 			t.Fatal("no walk")

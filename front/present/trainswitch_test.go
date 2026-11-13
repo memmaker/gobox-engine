@@ -4,19 +4,8 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game/play"
 )
-
-type trainGame struct {
-	front.Game
-	calls []string
-}
-
-func (g *trainGame) CloseTraining() error { g.calls = append(g.calls, "close"); return nil }
-func (g *trainGame) OpenTraining(n int) error {
-	g.calls = append(g.calls, "open"+string(rune('0'+n)))
-	return nil
-}
-func (g *trainGame) TrainingView() *front.Training { return &front.Training{} }
 
 // TestTrainingSwitch: another member in the training hall is OpenTraining
 // for them alone, no CloseTraining (that leaves a hall the game opened).
@@ -25,12 +14,12 @@ func TestTrainingSwitch(t *testing.T) {
 	if !p.serviceAct(front.Action{Kind: front.ActLead, N: 2}) {
 		t.Fatal("not taken")
 	}
-	g := &trainGame{}
+	g, f := playGame(play.Trading{})
 	for _, c := range p.Calls() {
 		c(g)
 	}
-	if len(g.calls) != 1 || g.calls[0] != "open2" {
-		t.Fatalf("%v", g.calls)
+	if len(f.sent) != 1 || f.sent[0] != (play.OpenTraining{Member: 2}) {
+		t.Fatalf("%v", f.sent)
 	}
 }
 
@@ -42,11 +31,11 @@ func TestTrainingSwitchGameHall(t *testing.T) {
 	if !p.serviceAct(front.Action{Kind: front.ActLead, N: 1}) {
 		t.Fatal("not taken")
 	}
-	g := &trainGame{}
+	g, f := playGame(play.Trading{})
 	for _, c := range p.Calls() {
 		c(g)
 	}
-	if len(g.calls) != 1 || g.calls[0] != "open1" {
-		t.Fatalf("%v", g.calls)
+	if len(f.sent) != 1 || f.sent[0] != (play.OpenTraining{Member: 1}) {
+		t.Fatalf("%v", f.sent)
 	}
 }

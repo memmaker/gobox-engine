@@ -10,24 +10,11 @@ import (
 
 	"gobox/dax"
 	"gobox/front"
+	"gobox/game/play"
 	"gobox/gpu"
 	"gobox/input"
 	"gobox/ui/fonts"
 )
-
-// pointsGame is the engine as the point buy asks it: the scores it was handed.
-type pointsGame struct {
-	front.Game
-	scores  []int
-	refused string
-	cr      *front.Creation
-}
-
-func (g *pointsGame) CreateCharacter() error        { return nil }
-func (g *pointsGame) PointBuy(s []int) error        { g.scores = s; return nil }
-func (g *pointsGame) Refuse(s string)               { g.refused = s }
-func (g *pointsGame) CreationView() *front.Creation { return g.cr }
-func (g *pointsGame) Resets() int                   { return 0 }
 
 func buyView(names []string) front.View {
 	cr := &front.Creation{StatNames: names, Name: front.CellRect{X1: 1, Y1: 1, X2: 4, Y2: 1}}
@@ -49,7 +36,7 @@ func TestPointBuy(t *testing.T) {
 		{"br", []string{"STR", "DEX", "CON", "INT", "WIS", "CHA", "TECH"}, brBits},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			g := &pointsGame{}
+			g, f := playGame(play.Assembling{Draft: &play.Draft{}})
 			p := &Presenter{}
 			p.SetEngine(g)
 			dst := gpu.NewImage(640, 400)
@@ -58,7 +45,6 @@ func TestPointBuy(t *testing.T) {
 			gl := func(ch byte) [8]byte { r, _ := fonts.Glyph(bits, ch, true); return r }
 			note := Note{Glyph: gl, Font: func(ch byte, text bool) [8]byte { r, _ := fonts.Glyph(bits, ch, text); return r }}
 			v := buyView(tc.stats)
-			g.cr = v.Creation
 			p.send(front.ActCreate, 0)
 			p.Draw(dst, note, v)
 			if p.scr.sub != scrHow {
@@ -93,11 +79,17 @@ func TestPointBuy(t *testing.T) {
 			p.Draw(dst, note, v)
 			saveBuyPNG(t, dst, tc.name)
 			p.Key('D', v)
-			for _, f := range p.Calls() {
-				f(g)
+			for _, c := range p.Calls() {
+				c(g)
 			}
-			if !slices.Equal(g.scores, want) || g.refused != "" {
-				t.Fatalf("game got %v (%q), want %v", g.scores, g.refused, want)
+			var got []int
+			for _, a := range f.sent {
+				if b, ok := a.(play.PointBuy); ok {
+					got = b.Scores
+				}
+			}
+			if !slices.Equal(got, want) || g.note.Text != "" {
+				t.Fatalf("game got %v (%q), want %v", got, g.note.Text, want)
 			}
 		})
 	}

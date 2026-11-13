@@ -8,16 +8,9 @@ import (
 	"gobox/core"
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/input"
 )
-
-// buyGame records the rule calls the inventory's decisions become.
-type buyGame struct {
-	front.Game
-	bought int
-}
-
-func (g *buyGame) Buy(h core.ItemHandle) error { g.bought = int(h); return nil }
 
 // Down then B on the shop's wares buys the highlighted ware (a rule call);
 // Trade, Halve and Join reach the game's Answer.
@@ -29,12 +22,12 @@ func TestInventoryActs(t *testing.T) {
 	p.inventoryKey(keyOf(input.Down))
 	p.inventoryKey(0x42)
 	as := p.Actions()
-	g := &buyGame{}
+	g, f := playGame(play.Trading{})
 	for _, c := range p.Calls() {
 		c(g)
 	}
-	if g.bought != 4 || len(as) != 0 {
-		t.Fatalf("bought %d, passed %v", g.bought, as)
+	if bought(f) != 4 || len(as) != 0 {
+		t.Fatalf("sent %v, passed %v", f.sent, as)
 	}
 	for _, k := range []front.ActKind{front.ActHalve, front.ActJoin} {
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: k, Item: 2})
@@ -54,12 +47,12 @@ func TestShopKeys(t *testing.T) {
 	p.inventoryKey(keyOf(input.Left))
 	p.inventoryKey(keyOf(input.Enter))
 	p.Actions()
-	g := &buyGame{}
+	g, f := playGame(play.Trading{})
 	for _, c := range p.Calls() {
 		c(g)
 	}
-	if g.bought != 3 {
-		t.Fatalf("bought %d", g.bought)
+	if bought(f) != 3 {
+		t.Fatalf("sent %v", f.sent)
 	}
 	if a, b := wrapName("1 POISON ANTIDOTE", 12); a != "1 POISON" || b != "ANTIDOTE" {
 		t.Fatalf("%q %q", a, b)

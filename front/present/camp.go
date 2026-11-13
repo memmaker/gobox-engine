@@ -189,7 +189,7 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 	if len(cp.Bestiary) > 0 {
 		it = append(it, ui.MenuRow{Text: "Bestiary", Key: 'B', Do: c.to(campBestiary, 0)})
 	}
-	it = append(it, ui.MenuRow{Text: "Save", Key: 'S', Do: act(front.ActSaveGame, 0)}) // the slot screen says whether the rules let it save
+	it = append(it, ui.MenuRow{Text: "Save", Key: 'S', Do: act(ActSaveGame, 0)}) // the slot screen says whether the rules let it save
 	return "Camp", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: act(front.ActClose, 0)})
 }
 
@@ -553,18 +553,18 @@ func (p *Presenter) appraiseItems(a front.Appraise, back func()) (string, []ui.M
 		}
 		var it []ui.MenuRow
 		if a.CanKeep {
-			it = append(it, ui.MenuRow{Text: "Keep", Key: 'K', Do: func() { p.call(func(e front.Game) { e.KeepAppraised(true) }) }})
+			it = append(it, ui.MenuRow{Text: "Keep", Key: 'K', Do: func() { p.call(func(e *classicGame) { e.KeepAppraised(true) }) }})
 		}
-		sell := func() { p.call(func(e front.Game) { e.KeepAppraised(false) }) }
+		sell := func() { p.call(func(e *classicGame) { e.KeepAppraised(false) }) }
 		return fmt.Sprintf("The %s is valued at %s. Leaving sells it.", what, price(front.Money{Gold: a.Valued})), append(it, ui.MenuRow{Text: "Sell", Key: 'S', Do: sell},
 			ui.MenuRow{Text: "Exit", Key: 'E', Do: sell}) // back to the list: the original's leaving sells (Esc too, campBack), the shop stays
 	}
 	var it []ui.MenuRow
 	if a.Gems > 0 {
-		it = append(it, ui.MenuRow{Text: fmt.Sprintf("Gems (%d)", a.Gems), Key: 'G', Do: func() { p.call(func(e front.Game) { e.Appraise(false) }) }})
+		it = append(it, ui.MenuRow{Text: fmt.Sprintf("Gems (%d)", a.Gems), Key: 'G', Do: func() { p.call(func(e *classicGame) { e.Appraise(false) }) }})
 	}
 	if a.Jewelry > 0 {
-		it = append(it, ui.MenuRow{Text: fmt.Sprintf("Jewelry (%d)", a.Jewelry), Key: 'J', Do: func() { p.call(func(e front.Game) { e.Appraise(true) }) }})
+		it = append(it, ui.MenuRow{Text: fmt.Sprintf("Jewelry (%d)", a.Jewelry), Key: 'J', Do: func() { p.call(func(e *classicGame) { e.Appraise(true) }) }})
 	}
 	title := "You have a fine collection"
 	if len(it) == 0 {

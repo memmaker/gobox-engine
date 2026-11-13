@@ -4,40 +4,48 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 	"image"
 )
 
-// countGame counts View builds (each is the rules' whole State).
-type countGame struct {
-	front.Game
-	views int
-	v     front.View
+// counting is a fake that counts the State reads (every View build reads it).
+type counting struct {
+	*fake
+	reads int
 }
 
-func (g *countGame) View() front.View { g.views++; return g.v }
+func (f *counting) State() play.State { f.reads++; return f.fake.State() }
+
+// countGame is the presenter's game over a counting fake.
+func countGame() (*classicGame, *counting) {
+	f := &counting{fake: &fake{st: play.Exploring{}}}
+	return &classicGame{Game: NewGame(f, game.Data{})}, f
+}
 
 // The shell asks for the View several times a frame (Screen, Free, Act's
 // pacing, Draw): it is built once until something may change it.
 func TestFrontBuildsViewOncePerFrame(t *testing.T) {
-	g := &countGame{}
+	g, c := countGame()
 	f := &Front{Game: g, started: true}
 	f.Screen()
+	one := c.reads // one View build's reads
 	f.Free()
 	f.Free()
-	if g.views != 1 {
-		t.Fatalf("Screen and Free built the View %d times, want 1", g.views)
+	if c.reads != one {
+		t.Fatalf("Free built the View again: %d reads, want %d", c.reads, one)
 	}
-	f.Act() // nothing to run: its pacing builds the frame's View once
+	f.Act() // nothing to run: the View stays
 	f.Screen()
 	f.Free()
-	if g.views != 2 {
-		t.Fatalf("after Act: %d builds, want 2", g.views)
+	if c.reads != one {
+		t.Fatalf("after an idle Act: %d reads, want %d", c.reads, one)
 	}
 	f.Key(' ') // a key may change it: the next ask builds it again
 	f.Screen()
-	if g.views != 3 {
-		t.Fatalf("after Key: %d builds, want 3", g.views)
+	if c.reads != 2*one {
+		t.Fatalf("after Key: %d reads, want %d", c.reads, 2*one)
 	}
 }
 
@@ -66,7 +74,8 @@ func TestMinimapUploadsOnChange(t *testing.T) {
 // A key pressed while the fight's events play is kept, not dropped: it
 // acts once they are played (Draw hands it on).
 func TestKeyDuringPlayKept(t *testing.T) {
-	f := &Front{Game: &countGame{}, started: true}
+	g, _ := countGame()
+	f := &Front{Game: g, started: true}
 	f.P.Play([]front.CombatEvent{{Ms: 5000, Battle: &front.Battle{}}})
 	f.Key('x')
 	if len(f.held) != 1 || f.held[0] != 'x' || !f.P.Playing() {
@@ -81,7 +90,8 @@ func TestKeyDuringPlayKept(t *testing.T) {
 // The camera's keys (Q, E, Home) turn it while the fight's events play: not
 // held for after, and the moment plays on.
 func TestCameraKeyDuringPlay(t *testing.T) {
-	f := &Front{Game: &countGame{}, started: true}
+	g, _ := countGame()
+	f := &Front{Game: g, started: true}
 	f.P.fight = true
 	f.P.Play([]front.CombatEvent{{Ms: 5000, Battle: &front.Battle{}}})
 	f.Key('q')

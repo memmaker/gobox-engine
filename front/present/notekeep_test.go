@@ -9,7 +9,7 @@ import (
 )
 
 // a State with no note keeps the View's own toast (the shop's "buys a",
-// a refusal): classicGame lays Note over the Game's View
+// a refusal): *classicGame lays Note over the Game's View
 func TestNoteKeepsOwn(t *testing.T) {
 	v := front.View{Note: front.Note{Text: "Brann buys a Broad Sword", At: time.Now()}}
 	if got := NoteView(v, game.Note{}).Note.Text; got != v.Note.Text {

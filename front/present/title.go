@@ -4,9 +4,10 @@
 // a lightning flash one step). The game draws (TitlePicture,
 // TitleCredits; the presenter flashes from IntroUI.Flash) and ends it (TitleDone).
 
-package front
+package present
 
 import (
+	"gobox/front"
 	"math/rand/v2"
 	"slices"
 	"time"
@@ -34,7 +35,7 @@ type IntroUI struct {
 
 // IntroStep plays the title (nil: none waits) this frame on in; key: a
 // key or click came.
-func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
+func IntroStep(h RuleHost, in *IntroUI, intro *front.Intro, key bool) {
 	if intro == nil {
 		*in = IntroUI{}
 		return
@@ -83,15 +84,15 @@ func IntroStep(h Host, in *IntroUI, intro *Intro, key bool) {
 		n := pics[in.Phase-1]
 		if n < 0 { // a credits page step
 			in.end = now.Add(10 * time.Second)
-			h.Call(func(e Game) { e.TitleCredits(-n - 1) })
+			h.Call(func(e *classicGame) { e.TitleCredits(-n - 1) })
 			break
 		}
 		in.end = now.Add(5 * time.Second)
-		h.Call(func(e Game) { e.TitlePicture(n) })
+		h.Call(func(e *classicGame) { e.TitlePicture(n) })
 	case !in.NoCredits && in.Phase != IntroCredits && len(pics) > 1 && !slices.ContainsFunc(pics, func(n int) bool { return n < 0 }): // a lone picture ends the title
 		in.Phase, in.end = IntroCredits, now.Add(10*time.Second)
-		h.Call(func(e Game) { e.TitleCredits(0) })
+		h.Call(func(e *classicGame) { e.TitleCredits(0) })
 	default:
-		h.Call(func(e Game) { e.TitleDone() })
+		h.Call(func(e *classicGame) { e.TitleDone() })
 	}
 }

@@ -160,3 +160,20 @@ func TestShowMemberOpensSheet(t *testing.T) {
 		t.Fatalf("sheet %d", r.sheet)
 	}
 }
+
+// playGame is the presenter's game over a fake play.Game in st: a test
+// sees the play actions the presenter's calls become in its sent.
+func playGame(st play.State) (*classicGame, *fake) {
+	f := &fake{st: st}
+	return &classicGame{Game: NewGame(f, game.Data{}), p: &Presenter{}}, f
+}
+
+// bought is the item of the first Buy sent (-1: none).
+func bought(f *fake) int {
+	for _, a := range f.sent {
+		if b, ok := a.(play.Buy); ok {
+			return int(b.Item)
+		}
+	}
+	return -1
+}

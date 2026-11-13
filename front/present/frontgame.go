@@ -1,5 +1,5 @@
-// frontgame.go: the presenter is the screens' front.Host; its rule calls run on
-// the game, a front.Game.
+// frontgame.go: the presenter is the screens' RuleHost; its rule calls run on
+// the game, a *classicGame.
 
 package present
 
@@ -12,13 +12,13 @@ import (
 	"slices"
 )
 
-var _ front.Host = (*Presenter)(nil)
+var _ RuleHost = (*Presenter)(nil)
 
 // Call queues f (call).
-func (p *Presenter) Call(f func(front.Game)) { p.call(func(e front.Game) { f(e) }) }
+func (p *Presenter) Call(f func(*classicGame)) { p.call(func(e *classicGame) { f(e) }) }
 
 // Edit queues f (edit).
-func (p *Presenter) Edit(f func(front.Game)) { p.edit(func(e front.Game) { f(e) }) }
+func (p *Presenter) Edit(f func(*classicGame)) { p.edit(func(e *classicGame) { f(e) }) }
 
 // ownCreation puts the creation sheet up in v, over the party menu.
 func (p *Presenter) ownCreation(v front.View) front.View {
@@ -27,9 +27,7 @@ func (p *Presenter) ownCreation(v front.View) front.View {
 		if p.creating = v.Creation != nil; !p.creating { // the game ended it itself (a step after Keep, a save): the party menu is back
 			return v
 		}
-		if g, ok := p.eng.(interface{ SheetIcon(front.View) front.View }); ok { // its icon boxes take the draft's combat icon
-			v = g.SheetIcon(v)
-		}
+		v = p.eng.SheetIcon(v) // its icon boxes take the draft's combat icon
 		v.MainMenu, v.Logo = nil, nil
 	}
 	return v
@@ -42,13 +40,13 @@ func (p *Presenter) Ask(q *front.Question) { p.q = q }
 func (p *Presenter) Asking() *front.Question { return p.q }
 
 // Shown is what the last frame showed, as the screens see it.
-func (p *Presenter) Shown() front.Shown {
+func (p *Presenter) Shown() Shown {
 	v := p.shownView
 	var t *front.Loot
 	if v.Inventory != nil {
 		t = v.Inventory.Treasure
 	}
-	return front.Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: v.Battle != nil,
+	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: v.Battle != nil,
 		Camp: v.Camp != nil, MainMenu: v.MainMenu != nil, Loot: v.Loot, Door: v.Door, Resting: v.Resting, Party: len(v.Party)}
 }
 
@@ -60,7 +58,7 @@ func (p *Presenter) ownQuestion(v front.View) front.View {
 		if v.Inventory != nil { // the loot screen's item list is the treasure: its Take, All, Exit, not the gate menu over it
 			l = nil
 		}
-		q = front.GateQuestion(p, l, v.Door)
+		q = GateQuestion(p, l, v.Door)
 	}
 	if q != nil {
 		a := q.Ask
@@ -79,16 +77,16 @@ func (p *Presenter) ownQuestion(v front.View) front.View {
 // or while camp rests (AskAct); then the powers and the rule calls of the
 // screens up; false leaves a to the others.
 func (p *Presenter) questionAct(a front.Action) bool {
-	if taken, done := front.AskAct(p, a); done {
+	if taken, done := AskAct(p, a); done {
 		return taken
 	}
-	return front.PowerAct(p, a) || p.viewAct(a) || p.turnAct(a) || front.StateAct(p, a)
+	return PowerAct(p, a) || p.viewAct(a) || p.turnAct(a) || StateAct(p, a)
 }
 
 // edit queues f, after which the picker's and the editor's pages are
 // laid out again.
-func (p *Presenter) edit(f func(e front.Game)) {
-	p.call(func(e front.Game) { f(e); p.ran++ })
+func (p *Presenter) edit(f func(e *classicGame)) {
+	p.call(func(e *classicGame) { f(e); p.ran++ })
 }
 
 // ownPicker puts the picker and the icon editor up in v, over the screens
@@ -123,7 +121,7 @@ func (p *Presenter) openSlots(v front.View, loadOnly bool) {
 	case p.slots != nil:
 		p.slots = nil
 	case p.eng != nil && !p.modal(v) && p.eng.SlotsView(loadOnly) != nil:
-		p.slots = &front.SlotsUI{LoadOnly: loadOnly}
+		p.slots = &SlotsUI{LoadOnly: loadOnly}
 	}
 }
 
@@ -158,19 +156,19 @@ func (p *Presenter) slotAct(a front.Action) bool {
 		p.scr.newChar = a.Kind == front.ActCreate
 	}
 	if sl == nil {
-		if p.gridPick != nil && front.PickAct(p, &p.gridPick, a) { // a picker up takes its own actions first: none of the screens under it pages or picks for it
+		if p.gridPick != nil && PickAct(p, &p.gridPick, a) { // a picker up takes its own actions first: none of the screens under it pages or picks for it
 			return true
 		}
-		return p.questionAct(a) || front.PickAct(p, &p.gridPick, a) || front.IconAct(p, &p.icon, a) || front.CreateAct(p, &p.creating, a) || p.serviceAct(a)
+		return p.questionAct(a) || PickAct(p, &p.gridPick, a) || IconAct(p, &p.icon, a) || CreateAct(p, &p.creating, a) || p.serviceAct(a)
 	}
-	return front.SlotsAct(p, &p.slots, a)
+	return SlotsAct(p, &p.slots, a)
 }
 
 // frontScreens names the front's screens the presenter has up (Screens).
 func (p *Presenter) frontScreens() string {
 	return front.Screens(
 		front.ScreenUp{Name: front.ScreenSlots, On: p.slots != nil},
-		front.ScreenUp{Name: front.ScreenTitle, On: p.intro.Phase != front.IntroNone, State: fmt.Sprint(p.intro.Phase, len(p.intro.Flash))},
+		front.ScreenUp{Name: front.ScreenTitle, On: p.intro.Phase != IntroNone, State: fmt.Sprint(p.intro.Phase, len(p.intro.Flash))},
 		front.ScreenUp{Name: front.ScreenPicker, On: p.gridPick != nil},
 		front.ScreenUp{Name: front.ScreenIconEditor, On: p.icon != nil},
 		front.ScreenUp{Name: front.ScreenCreation, On: p.creating},
@@ -232,7 +230,7 @@ func (p *Presenter) Point(x, y int) bool {
 
 // Calls hands over the rule calls the screens made since the last call
 // (call); the game runs them on its rules before the actions.
-func (p *Presenter) Calls() []func(front.Game) { return p.calls.Take() }
+func (p *Presenter) Calls() []func(*classicGame) { return p.calls.Take() }
 
 // SetEngine gives the presenter the game its queries (JournalPage) ask.
-func (p *Presenter) SetEngine(e front.Game) { p.eng = e }
+func (p *Presenter) SetEngine(e *classicGame) { p.eng = e }

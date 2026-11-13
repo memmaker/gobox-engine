@@ -10,7 +10,7 @@ import (
 
 // TestFullMapNoLabelsHeader: a map with no labels draws no "Labels" header.
 func TestFullMapNoLabelsHeader(t *testing.T) {
-	g := &noLabelGame{}
+	g, _ := playGame(mapState)
 	p := &Presenter{}
 	p.SetEngine(g)
 	p.fullMap = &fullMapUI{}
@@ -25,10 +25,4 @@ func TestFullMapNoLabelsHeader(t *testing.T) {
 			t.Fatalf("a Labels header at (%d,%d) with no labels: %v", x, y+3, c)
 		}
 	}
-}
-
-type noLabelGame struct{ markGame }
-
-func (g *noLabelGame) FullMapView(image.Point, *string) *front.FullMap {
-	return &front.FullMap{Map: &front.MapSquares{}}
 }

@@ -6,7 +6,7 @@ import (
 	"gobox/front"
 )
 
-// classicGame is the classic front with what only the presenter knows: its
+// *classicGame is the classic front with what only the presenter knows: its
 // page's size, the music and a menu item's animation.
 type classicGame struct {
 	*Game
@@ -57,12 +57,4 @@ func (g classicGame) CreationView() *front.Creation {
 // FullMapView is the full map under cursor.
 func (g classicGame) FullMapView(cursor image.Point, label *string) *front.FullMap {
 	return g.Game.FullMapOf(g.Game.FullMapView(cursor, label))
-}
-
-// WithRules is g as classicGame (p lays out its page) when it is the classic front.
-func WithRules(g front.Game, p *Presenter) front.Game {
-	if c, ok := g.(*Game); ok {
-		return classicGame{c, p}
-	}
-	return g
 }

@@ -2,6 +2,7 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game/play"
 	"gobox/ui"
 	"image"
 	"slices"
@@ -48,16 +49,11 @@ func TestIntroEnterNoFallThrough(t *testing.T) {
 	}
 }
 
-// creationGone is a game whose creation has ended.
-type creationGone struct{ front.Game }
-
-func (creationGone) CreationView() *front.Creation { return nil }
-func (creationGone) Resets() int                   { return 0 }
-
 // A creation the game ends itself (a save after Keep) gives the party
 // menu back: the presenter's sheet does not stay over it, eating its keys.
 func TestCreationEndedByGame(t *testing.T) {
-	p := &Presenter{creating: true, eng: creationGone{}}
+	gone, _ := playGame(play.Assembling{}) // no draft: the creation has ended
+	p := &Presenter{creating: true, eng: gone}
 	v := p.own(front.View{MainMenu: []front.ActKind{front.ActCreate}})
 	if p.creating || v.MainMenu == nil {
 		t.Fatalf("creating %v, menu %v", p.creating, v.MainMenu)

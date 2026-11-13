@@ -16,7 +16,7 @@ func (p *Presenter) trainItems(v front.View) (string, []ui.MenuRow) {
 		var it []ui.MenuRow
 		p.camp.ids = p.camp.ids[:0]
 		for _, s := range t.Learn {
-			it = append(it, ui.MenuRow{Text: s.Name, Key: 0, Do: func() { p.call(func(e front.Game) { e.Learn(s.ID); p.training = e.TrainingView() != nil }) }})
+			it = append(it, ui.MenuRow{Text: s.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.Learn(s.ID); p.training = e.TrainingView() != nil }) }})
 			p.camp.ids = append(p.camp.ids, s.ID)
 		}
 		return t.Name + " may add a spell to the book", it
@@ -37,7 +37,7 @@ func (p *Presenter) trainItems(v front.View) (string, []ui.MenuRow) {
 	}
 	return fmt.Sprintf("%s\n\nTraining costs %s.\nThe party has %s.\n\nDo you wish to train?",
 			will, g(cost, costs), g(ui.InkGold, price(front.Money{Gold: t.Gold}))),
-		[]ui.MenuRow{{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e front.Game) { e.Train(); p.training = e.TrainingView() != nil }) }}, {Text: "No", Key: 'N', Do: leave.Do}}
+		[]ui.MenuRow{{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e *classicGame) { e.Train(); p.training = e.TrainingView() != nil }) }}, {Text: "No", Key: 'N', Do: leave.Do}}
 }
 
 // powerItems is the power pick (View.Powers): one line a power, its rule
@@ -49,7 +49,7 @@ func (p *Presenter) powerItems(v front.View) (string, []ui.MenuRow) {
 	}
 	var it []ui.MenuRow
 	for _, m := range pp.Options {
-		it = append(it, ui.MenuRow{Text: m.Name, Key: 0, Do: func() { p.call(func(e front.Game) { e.PickPower(m.ID) }) }})
+		it = append(it, ui.MenuRow{Text: m.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.PickPower(m.ID) }) }})
 	}
 	return pp.Name + " chooses " + pp.What, it
 }

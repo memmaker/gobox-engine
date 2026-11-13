@@ -15,11 +15,11 @@ type seqRules = fake
 
 // seqHost runs the presenter's calls on the classic game.
 type seqHost struct {
-	front.Host
-	g front.Game
+	RuleHost
+	g *classicGame
 }
 
-func (h seqHost) Call(f func(front.Game)) { f(h.g) }
+func (h seqHost) Call(f func(*classicGame)) { f(h.g) }
 
 // A skip ends State.Sequence with SequenceDone, once, even with no files to play.
 func TestSequenceSkip(t *testing.T) {
@@ -29,10 +29,10 @@ func TestSequenceSkip(t *testing.T) {
 	if sq == nil || sq.Anim != "INTRO" {
 		t.Fatalf("View.Sequence %+v", sq)
 	}
-	var ui front.SequenceUI
-	h := seqHost{g: g}
-	front.SequenceStep(h, &ui, sq, true)
-	front.SequenceStep(h, &ui, sq, true)
+	var ui SequenceUI
+	h := seqHost{g: &classicGame{Game: g}}
+	SequenceStep(h, &ui, sq, true)
+	SequenceStep(h, &ui, sq, true)
 	if len(r.sent) != 1 || r.sent[0] != (play.Continue{}) {
 		t.Fatalf("actions %v, want one Continue", r.sent)
 	}
@@ -47,12 +47,12 @@ func TestSequenceSkipPlaying(t *testing.T) {
 	r := &fake{st: play.Scene{Kind: play.SceneSequence, Sequence: "INTRO", Common: allow(play.Continue{})}}
 	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: dir})
 	sq := Sequence(front.View{}, shownOf(g.r).Sequence, g.D.Sequences, g.D.Files).Sequence
-	var ui front.SequenceUI
-	h := seqHost{g: g}
-	if f := front.SequenceStep(h, &ui, sq, false); f == nil || len(r.sent) != 0 {
+	var ui SequenceUI
+	h := seqHost{g: &classicGame{Game: g}}
+	if f := SequenceStep(h, &ui, sq, false); f == nil || len(r.sent) != 0 {
 		t.Fatalf("first step: frame %v, actions %v", f, r.sent)
 	}
-	front.SequenceStep(h, &ui, sq, true)
+	SequenceStep(h, &ui, sq, true)
 	if len(r.sent) != 1 || r.sent[0] != (play.Continue{}) {
 		t.Fatalf("actions %v, want one Continue", r.sent)
 	}

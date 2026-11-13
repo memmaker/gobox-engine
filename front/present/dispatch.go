@@ -25,12 +25,12 @@ func (p *Presenter) Key(k uint16, v front.View) {
 		return
 	}
 	if v.Sequence != nil { // a key ends the animation
-		front.SequenceStep(p, &p.seq, v.Sequence, true)
+		SequenceStep(p, &p.seq, v.Sequence, true)
 		p.seqMusic(p.seq.Cues)
 		return
 	}
 	if v.Intro != nil { // a key cuts the title's phase short
-		front.IntroStep(p, &p.intro, v.Intro, true)
+		IntroStep(p, &p.intro, v.Intro, true)
 		return
 	}
 	if p.Playing() && p.fight && p.battle.Camera(combatAct(k)) { // the camera turns while the fight's events play too (only Space, Enter, Esc cut them short)
@@ -233,12 +233,12 @@ func (p *Presenter) Click(x, y int) bool {
 		return true
 	}
 	if p.shownView.Sequence != nil { // a click ends the animation
-		front.SequenceStep(p, &p.seq, p.shownView.Sequence, true)
+		SequenceStep(p, &p.seq, p.shownView.Sequence, true)
 		p.seqMusic(p.seq.Cues)
 		return true
 	}
 	if p.shownView.Intro != nil { // a click cuts the title's phase short
-		front.IntroStep(p, &p.intro, p.shownView.Intro, true)
+		IntroStep(p, &p.intro, p.shownView.Intro, true)
 		return true
 	}
 	if p.overview { // a click closes the party overview

@@ -1,32 +1,48 @@
-package front
+package present
 
 import (
 	"fmt"
 	"testing"
+
+	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 )
 
-type titleGame struct {
-	Game
+// titleHost runs the presenter's calls on a game over a title Scene and
+// logs what each did: the picture or credits page it put up, or done
+// (the Continue sent).
+type titleHost struct {
+	RuleHost
+	g   *classicGame
+	f   *fake
 	log *[]string
 }
 
-func (g titleGame) TitlePicture(n int)    { *g.log = append(*g.log, fmt.Sprint("pic", n)) }
-func (g titleGame) TitleCredits(page int) { *g.log = append(*g.log, fmt.Sprint("credits", page)) }
-func (g titleGame) TitleDone()            { *g.log = append(*g.log, "done") }
-
-type titleHost struct {
-	Host
-	g titleGame
+func newTitleHost(log *[]string) titleHost {
+	f := &fake{st: play.Scene{}}
+	return titleHost{g: &classicGame{Game: NewGame(f, game.Data{})}, f: f, log: log}
 }
 
-func (h titleHost) Call(f func(Game)) { f(h.g) }
+func (h titleHost) Call(f func(*classicGame)) {
+	sent := len(h.f.sent)
+	f(h.g)
+	switch t := h.g.r.title; {
+	case len(h.f.sent) > sent:
+		*h.log = append(*h.log, "done")
+	case t.credits:
+		*h.log = append(*h.log, fmt.Sprint("credits", t.page))
+	default:
+		*h.log = append(*h.log, fmt.Sprint("pic", t.n))
+	}
+}
 
 // A -N step shows credits page N-1, and a picture may follow it.
 func TestIntroCreditPages(t *testing.T) {
 	var log []string
-	h := titleHost{g: titleGame{log: &log}}
+	h := newTitleHost(&log)
 	var in IntroUI
-	intro := &Intro{Pictures: []int{1, -1, -2, 4}}
+	intro := &front.Intro{Pictures: []int{1, -1, -2, 4}}
 	for range 5 {
 		IntroStep(h, &in, intro, true)
 		IntroStep(h, &in, intro, false) // a frame without a key lets the next key cut again
@@ -40,9 +56,9 @@ func TestIntroCreditPages(t *testing.T) {
 // done: never an empty credits pane (PoD's credits are picture 3).
 func TestIntroNoCredits(t *testing.T) {
 	var log []string
-	h := titleHost{g: titleGame{log: &log}}
+	h := newTitleHost(&log)
 	in := IntroUI{NoCredits: true}
-	intro := &Intro{Pictures: []int{3, 1, 2}}
+	intro := &front.Intro{Pictures: []int{3, 1, 2}}
 	for range 5 {
 		if len(log) > 0 && log[len(log)-1] == "done" {
 			break

@@ -90,7 +90,7 @@ func (p *Presenter) send(kind front.ActKind, n int) {
 		p.openSlots(p.shownView, true)
 		return
 	}
-	if kind == front.ActSaveGame && p.slots == nil { // the party menu's Save
+	if kind == ActSaveGame && p.slots == nil { // the party menu's Save
 		p.openSlots(p.shownView, false)
 		return
 	}
@@ -202,7 +202,7 @@ func (p *Presenter) Drop(path string, cx, cy int, in bool, v front.View) {
 	r := v.IconBox
 	switch {
 	case p.icon != nil:
-		front.IconAct(p, &p.icon, front.Action{Kind: front.ActIcon, Text: path})
+		IconAct(p, &p.icon, front.Action{Kind: front.ActIcon, Text: path})
 	case v.IconDrop || in && r != (front.CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActIcon, Text: path})
 	case v.Portrait != (front.CellRect{}) || v.Inventory != nil && v.Inventory.Wares == nil: // the sheet or the member's inventory

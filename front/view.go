@@ -762,3 +762,8 @@ type MapLabel struct {
 	Kind   int // its colour is Data.LabelInks[Kind]
 	First  image.Point
 }
+
+// Sequence is the animation State.Sequence names: Anim its files' base name in Dir.
+type Sequence struct {
+	Name, Anim, Dir string
+}

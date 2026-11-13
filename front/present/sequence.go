@@ -2,18 +2,14 @@
 // .ACF/.BMA, gobox/dax/vace) and ends it (SequenceDone) when it runs out
 // or on a key, click or pad button.
 
-package front
+package present
 
 import (
+	"gobox/front"
 	"time"
 
 	"gobox/dax/vace"
 )
-
-// Sequence is the animation State.Sequence names: Anim its files' base name in Dir.
-type Sequence struct {
-	Name, Anim, Dir string
-}
 
 // SequenceUI is the animation being played.
 type SequenceUI struct {
@@ -29,7 +25,7 @@ type SequenceUI struct {
 
 // SequenceStep plays sq (nil: none) this frame on in and returns the
 // frame to show (nil: none); skip: a key, click or button came.
-func SequenceStep(h Host, in *SequenceUI, sq *Sequence, skip bool) *vace.Frame {
+func SequenceStep(h RuleHost, in *SequenceUI, sq *front.Sequence, skip bool) *vace.Frame {
 	if sq == nil {
 		*in = SequenceUI{}
 		return nil
@@ -54,7 +50,7 @@ func SequenceStep(h Host, in *SequenceUI, sq *Sequence, skip bool) *vace.Frame {
 			in.Cues = append(in.Cues, vace.Cue{At: t, Op: "stop"})
 		}
 		name := sq.Name
-		h.Call(func(e Game) { e.SequenceDone(name) })
+		h.Call(func(e *classicGame) { e.SequenceDone(name) })
 		return in.last()
 	}
 	for i := range in.Anim.Frames {

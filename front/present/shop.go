@@ -27,7 +27,7 @@ func (p *Presenter) shopItems(v front.View) (string, []ui.MenuRow) {
 		}
 		u := s.Unknown[c.pick]
 		return withGold(fmt.Sprintf("Identify %s for %s. Is it a deal?", u.Name, gold(s.IDPrice)), s.Gold), []ui.MenuRow{
-			{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e front.Game) { e.Identify(u.Member, u.Item) }); c.back(shopID)() }},
+			{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e *classicGame) { e.Identify(u.Member, u.Item) }); c.back(shopID)() }},
 			{Text: "No", Key: 'N', Do: c.back(shopID)}}
 	case appraise:
 		return p.appraiseItems(s.Appraise, c.back(campMain))
@@ -57,20 +57,20 @@ func (p *Presenter) serviceAct(a front.Action) bool {
 	case p.training || v.Training != nil: // the hall up, from Train or the game's own (ModeTraining)
 		switch a.Kind {
 		case front.ActClose:
-			p.call(func(e front.Game) { e.CloseTraining(); p.training = e.TrainingView() != nil })
+			p.call(func(e *classicGame) { e.CloseTraining(); p.training = e.TrainingView() != nil })
 		case front.ActLead: // another member: the game's training opens for them (Close would leave a hall the game opened)
-			p.call(func(e front.Game) { e.OpenTraining(a.N); p.training = e.TrainingView() != nil })
+			p.call(func(e *classicGame) { e.OpenTraining(a.N); p.training = e.TrainingView() != nil })
 		default:
 			return false
 		}
 	case a.Kind == front.ActTraining && v.MainMenu != nil:
-		p.call(func(e front.Game) { e.OpenTraining(a.N); p.training = e.TrainingView() != nil })
+		p.call(func(e *classicGame) { e.OpenTraining(a.N); p.training = e.TrainingView() != nil })
 	case v.Shop != nil && a.Kind == front.ActInventory:
-		p.call(func(e front.Game) { e.Browse(a.N) })
+		p.call(func(e *classicGame) { e.Browse(a.N) })
 	case (v.Temple != nil || v.Shop != nil) && a.Kind == front.ActMember:
-		p.call(func(e front.Game) { e.ViewMember(a.N) })
+		p.call(func(e *classicGame) { e.ViewMember(a.N) })
 	case (v.Shop != nil || v.Temple != nil) && a.Kind == front.ActClose:
-		p.call(func(e front.Game) { e.Leave() })
+		p.call(func(e *classicGame) { e.Leave() })
 	default:
 		return false
 	}

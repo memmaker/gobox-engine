@@ -135,7 +135,7 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 		}
 		var it []ui.MenuRow
 		if sl.CanSave {
-			do := func() { p.typeLine("Save as", "", 20, front.ActSaveSlot, 0) }
+			do := func() { p.typeLine("Save as", "", 20, ActSaveSlot, 0) }
 			it = append(it, ui.MenuRow{Text: "New Slot", Key: 'N', Do: do})
 		}
 		w, lc := slotCols(max(v.Cells.X, 40))
@@ -159,7 +159,7 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 				if i < len(sl.Overwrites) && sl.Overwrites[i] != "" {
 					q = sl.Overwrites[i] // the game's words
 				}
-				p.askThen(q, named(front.ActSaveSlot, name))
+				p.askThen(q, named(ActSaveSlot, name))
 			}})
 		}
 		if len(it) == 0 {
@@ -356,7 +356,7 @@ func (p *Presenter) slotKey(v front.View, h byte) {
 	case 'L':
 		p.sendA(front.Action{Kind: front.ActLoad, Text: name})
 	case 'D':
-		p.askThen("Delete "+name+"?", func() { s.open(scrMain); p.sendA(front.Action{Kind: front.ActDeleteSlot, Text: name}) })
+		p.askThen("Delete "+name+"?", func() { s.open(scrMain); p.sendA(front.Action{Kind: ActDeleteSlot, Text: name}) })
 	}
 }
 
@@ -579,7 +579,7 @@ func (p *Presenter) pickerTake(pk *front.Picker, i int) {
 	if i < 0 || i >= pk.N {
 		return
 	}
-	take := func() { p.send(front.ActPicked, i) }
+	take := func() { p.send(ActPicked, i) }
 	if pk.Ask != "" && i < len(pk.Labels) {
 		p.askThen(fmt.Sprintf(pk.Ask, pk.Labels[i]), take)
 		return
@@ -686,7 +686,7 @@ func (p *Presenter) spots(v front.View) []spot {
 			}
 		}
 		if ed.Custom {
-			at(ed.Remove, 'R', send(front.ActIconRemove, 0))
+			at(ed.Remove, 'R', send(ActIconRemove, 0))
 		} else {
 			at(ed.Head, 'H', click(ed.Head.X1, ed.Head.Y1))
 			at(ed.Weapon, 'W', click(ed.Weapon.X1, ed.Weapon.Y1))
@@ -712,8 +712,8 @@ func (p *Presenter) spots(v front.View) []spot {
 		for i, r := range cr.Stats {
 			at(r, 0, func() { p.typeAt(r, cr.StatNames[i], 5, front.ActStat, i) })
 		}
-		at(cr.Head, 0, send(front.ActPicker, front.PickHead))
-		at(cr.Body, 0, send(front.ActPicker, front.PickBody))
+		at(cr.Head, 0, send(ActPicker, front.PickHead))
+		at(cr.Body, 0, send(ActPicker, front.PickBody))
 		at(cr.Icon, 'I', send(front.ActIconEdit, -1))
 	default:
 		return nil

@@ -28,34 +28,34 @@ func (p *Presenter) viewAct(a front.Action) bool {
 	}
 	turn := v.Battle != nil && v.Battle.Turn != nil
 	n := a.N
-	do := func(f func(e front.Game) error) { p.call(func(e front.Game) { f(e) }) }
+	do := func(f func(e *classicGame) error) { p.call(func(e *classicGame) { f(e) }) }
 	switch k := a.Kind; {
 	case v.Inventory != nil:
 		switch k {
 		case front.ActClose:
-			do(func(e front.Game) error { return e.CloseItems(true) })
+			do(func(e *classicGame) error { return e.CloseItems(true) })
 		case front.ActSheet:
-			do(func(e front.Game) error { return e.CloseItems(false) })
+			do(func(e *classicGame) error { return e.CloseItems(false) })
 		case front.ActMember:
-			do(func(e front.Game) error { return e.ShowMember(n) })
+			do(func(e *classicGame) error { return e.ShowMember(n) })
 		case front.ActReady:
-			do(func(e front.Game) error { return e.Ready(a.Item, a.X) })
+			do(func(e *classicGame) error { return e.Ready(a.Item, a.X) })
 		case front.ActUse:
 			p.useCall(a.Item, 0, -1, false)
 		case front.ActDrop:
-			do(func(e front.Game) error { return e.Drop(a.Item) })
+			do(func(e *classicGame) error { return e.Drop(a.Item) })
 		case front.ActSell:
-			do(func(e front.Game) error { return e.Sell(a.Item) })
+			do(func(e *classicGame) error { return e.Sell(a.Item) })
 		case front.ActBuy:
-			do(func(e front.Game) error { return e.Buy(a.Item) })
+			do(func(e *classicGame) error { return e.Buy(a.Item) })
 		case front.ActTakeAll:
-			do(func(e front.Game) error { return e.TakeAll() })
+			do(func(e *classicGame) error { return e.TakeAll() })
 		case front.ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
 			if a.Y == 1 {
 				return false
 			}
 			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
-			front.AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
+			AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
 				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: a.Item, X: t, Y: 1})
 			})
 		case front.ActSpells:
@@ -66,20 +66,20 @@ func (p *Presenter) viewAct(a front.Action) bool {
 	case v.Sheet != nil:
 		switch k {
 		case front.ActClose:
-			do(func(e front.Game) error { return e.CloseSheet() })
+			do(func(e *classicGame) error { return e.CloseSheet() })
 		case front.ActMember:
-			do(func(e front.Game) error { return e.ShowMember(n) })
+			do(func(e *classicGame) error { return e.ShowMember(n) })
 		case front.ActInventory, front.ActOverview:
 			if k == front.ActOverview {
 				n = -1
 			}
-			do(func(e front.Game) error { return e.OpenItems(n, false) })
+			do(func(e *classicGame) error { return e.OpenItems(n, false) })
 		case front.ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
 			if a.Y == 1 {
 				return false
 			}
 			sel := slices.IndexFunc(v.Party, func(m front.Member) bool { return m.Selected })
-			front.AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
+			AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
 				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: a.Item, X: t, Y: 1})
 			})
 		case front.ActSpells:
@@ -91,11 +91,11 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		if turn {
 			n = -1
 		}
-		do(func(e front.Game) error { return e.OpenSheet(n) })
+		do(func(e *classicGame) error { return e.OpenSheet(n) })
 	case k == front.ActInventory && (v.Exploring || v.Camp != nil):
-		do(func(e front.Game) error { return e.OpenItems(n, true) })
+		do(func(e *classicGame) error { return e.OpenItems(n, true) })
 	case k == front.ActItems && turn:
-		do(func(e front.Game) error { return e.OpenItems(-1, false) })
+		do(func(e *classicGame) error { return e.OpenItems(-1, false) })
 	default:
 		return false
 	}
@@ -110,17 +110,17 @@ func (p *Presenter) combatCast() {
 		return
 	}
 	spells := b.Turn.Spells
-	p.call(func(e front.Game) {
+	p.call(func(e *classicGame) {
 		e.CloseSheet()
 		e.CloseItems(true)
-		front.AskForSpell(p, spells, func(id int) { p.turnCall(front.Action{Kind: front.ActCast, N: id}, false) })
+		AskForSpell(p, spells, func(id int) { p.turnCall(front.Action{Kind: front.ActCast, N: id}, false) })
 	})
 }
 
 // useCall calls UseItem on item i; a pick or question it is refused with
 // is asked, and the call made again with the answer.
 func (p *Presenter) useCall(i core.ItemHandle, spell, target int, sure bool) {
-	p.call(func(e front.Game) {
+	p.call(func(e *classicGame) {
 		var (
 			who  front.PickMember
 			pick front.PickSpell
@@ -128,11 +128,11 @@ func (p *Presenter) useCall(i core.ItemHandle, spell, target int, sure bool) {
 		switch err := e.UseItem(i, spell, target, sure); {
 		case errors.As(err, &who):
 			sel := slices.IndexFunc(e.View().Party, func(m front.Member) bool { return m.Selected })
-			front.AskForMember(p, string(who), sel, func(t int) { p.useCall(i, spell, t, sure) })
+			AskForMember(p, string(who), sel, func(t int) { p.useCall(i, spell, t, sure) })
 		case errors.As(err, &pick):
-			front.AskForSpell(p, pick, func(id int) { p.useCall(i, id, target, sure) })
+			AskForSpell(p, pick, func(id int) { p.useCall(i, id, target, sure) })
 		default:
-			front.AskSure(p, err, func() { p.useCall(i, spell, target, true) })
+			AskSure(p, err, func() { p.useCall(i, spell, target, true) })
 		}
 	})
 }

@@ -28,7 +28,7 @@ func (p *Presenter) openMap(v front.View) {
 		return
 	}
 	if p.eng.FullMapView(image.Pt(v.X, v.Y), nil) == nil {
-		p.call(func(e front.Game) { e.Refuse("Not Here") })
+		p.call(func(e *classicGame) { e.Refuse("Not Here") })
 		return
 	}
 	p.fullMap = &fullMapUI{cursor: image.Pt(v.X, v.Y)}
@@ -88,7 +88,7 @@ func (p *Presenter) mapPick(i int) {
 	c := f.cursor
 	switch m.Commands[i].Key {
 	case 'W':
-		p.call(func(e front.Game) {
+		p.call(func(e *classicGame) {
 			if e.WalkTo(c.X, c.Y) {
 				p.fullMap = nil
 			}
@@ -97,7 +97,7 @@ func (p *Presenter) mapPick(i int) {
 		s := ""
 		f.label, f.cur = &s, 0
 	case 'R':
-		p.call(func(e front.Game) { e.Unmark(c.X, c.Y) })
+		p.call(func(e *classicGame) { e.Unmark(c.X, c.Y) })
 	}
 }
 
@@ -115,7 +115,7 @@ func (p *Presenter) mapKey(k uint16) {
 		switch done, cancel, _ := editKey(k, f.label, &f.cur, 0x20, false); {
 		case done:
 			c, s := f.cursor, *f.label
-			p.call(func(e front.Game) { e.Mark(c.X, c.Y, s) })
+			p.call(func(e *classicGame) { e.Mark(c.X, c.Y, s) })
 			f.label = nil
 		case cancel:
 			f.label = nil

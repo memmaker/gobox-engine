@@ -34,15 +34,15 @@ import (
 type Presenter struct {
 	pg page // the original's screen, drawn from the View
 
-	calls     front.Calls[front.Game] // rule calls not yet run (Calls)
-	overview  bool                    // the party overview is up (any key or click closes it)
-	pager     *pager                  // the help or a Read is up (pager.go)
-	eng       front.Game              // for queries (SetEngine)
-	pool      *poolPick               // gobox's own pool picker is up (poolpick.go)
-	fonts     *fonts.Chooser          // the text fonts (fontmenu.go; nil: the game's own)
-	fontNote  string                  // the font's name, shown for a moment after Ctrl-F
-	fontAt    time.Time               // ... since then
-	fontLabel string                  // the game's own font's name in the list
+	calls     front.Calls[*classicGame] // rule calls not yet run (Calls)
+	overview  bool                      // the party overview is up (any key or click closes it)
+	pager     *pager                    // the help or a Read is up (pager.go)
+	eng       *classicGame              // for queries (SetEngine)
+	pool      *poolPick                 // gobox's own pool picker is up (poolpick.go)
+	fonts     *fonts.Chooser            // the text fonts (fontmenu.go; nil: the game's own)
+	fontNote  string                    // the font's name, shown for a moment after Ctrl-F
+	fontAt    time.Time                 // ... since then
+	fontLabel string                    // the game's own font's name in the list
 
 	pauseFrom time.Time // a script's pause (AskPause) began; zero: none up
 
@@ -155,15 +155,15 @@ type Presenter struct {
 	mapPointer  image.Point               // the full map: the pointer's last cell (a move there moves the cursor)
 	fullMap     *fullMapUI                // the full map up (fullmap.go)
 	resets      int                       // the engine's Resets when own last looked
-	gridPick    *front.PickUI             // a grid picker up (picker.go)
+	gridPick    *PickUI                   // a grid picker up (picker.go)
 	creating    bool                      // the creation sheet up (creation.go)
 	training    bool                      // the training hall up over the party menu (shop.go serviceAct)
-	icon        *front.IconUI             // the icon editor up
+	icon        *IconUI                   // the icon editor up
 	ran         int                       // the picker's and editor's calls run: their pages are laid out again
-	slots       *front.SlotsUI            // the save slots up (slots.go)
-	intro       front.IntroUI             // the title being played (title.go)
+	slots       *SlotsUI                  // the save slots up (slots.go)
+	intro       IntroUI                   // the title being played (title.go)
 	seqSong     string                    // the song the animation loaded last (vace cue "load")
-	seq         front.SequenceUI          // the full-screen animation being played (View.Sequence)
+	seq         SequenceUI                // the full-screen animation being played (View.Sequence)
 	seqImg      srcImage                  // its frame on the GPU
 	clue        *clueUI                   // the clue book's chapter list up (cluebook.go)
 	clueRead    *front.Read               // the clue book last read, at the page left
@@ -197,7 +197,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && p.AdLib.SID() != Host.SIDMusic { // the Music card option
 		d.Do(func() { p.AdLib.SetSID(Host.SIDMusic) })
 	}
-	if f := front.SequenceStep(p, &p.seq, v.Sequence, false); v.Sequence != nil { // the animation: full screen, over everything
+	if f := SequenceStep(p, &p.seq, v.Sequence, false); v.Sequence != nil { // the animation: full screen, over everything
 		p.seqMusic(p.seq.Cues)
 		p.shownView = v
 		dst.Fill(color.Black)
@@ -215,7 +215,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.mm.title, p.mm.painted = layersImage(titleBackdrop), paintedLayers(titleBackdrop)
 	}
 	p.intro.NoCredits = len(credits) == 0
-	front.IntroStep(p, &p.intro, v.Intro, false)
+	IntroStep(p, &p.intro, v.Intro, false)
 	ev := p.playing()
 	if ev != nil && ev.Kind == front.EvMoved && ev.Ms > 0 { // a step's hold is how long the figure takes for it
 		p.battle.StepTime = float64(ev.Ms) / 1000
