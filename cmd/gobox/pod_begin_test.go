@@ -3,13 +3,14 @@ package main
 import (
 	"testing"
 
+	"gobox/asset"
 	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
 	"gobox/ui"
 )
 
-// TestPodBegin: Quick Start, then Begin Adventuring, reaches exploring (it panicked: scripts keyed without pod's ScriptFixes).
+// TestPodBegin: Quick Start, then Begin Adventuring, reaches exploring among remastered walls (it panicked: scripts keyed without pod's ScriptFixes; then set 2 read the missing GEO2: no walls).
 func TestPodBegin(t *testing.T) {
 	eng, err := engine.NewPool("../../data/pod", "../../data/pod/sources")
 	if err != nil {
@@ -50,8 +51,23 @@ func TestPodBegin(t *testing.T) {
 		if _, ok := eng.State().(game.Scene); ok && i%20 == 19 { // the opening's pages
 			f.Key('\r')
 		}
-		if _, ok := eng.State().(game.Exploring); ok {
-			return
+		if x, ok := eng.State().(game.Exploring); ok {
+			if x.Map.Walls.Side == nil {
+				t.Fatalf("exploring set %v without remastered walls", x.Where)
+			}
+			for _, tex := range x.Map.Walls.Pool {
+				if !asset.Has("pool", tex) {
+					t.Errorf("wall texture %q not in the pool", tex)
+				}
+			}
+			for _, row := range x.Map.Walls.Side {
+				for _, sides := range row {
+					if sides != [4]int{} {
+						return
+					}
+				}
+			}
+			t.Fatal("the start area has no walls (its GEO block did not load)")
 		}
 	}
 	x, _ := eng.State().(game.Exploring)
