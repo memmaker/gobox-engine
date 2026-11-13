@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"bytes"
 	"image"
 	"image/color"
 	"slices"
@@ -42,6 +43,18 @@ type MenuCanvas struct {
 	Buf     []byte
 	footImg *gpu.Image
 	footBuf []byte
+	drawn   []byte     // the Buf, foot and border Img holds: the same again is not composed again (a WritePixels waits for the GPU)
+	dImg    *gpu.Image // the Img drawn holds (cards.go swaps Img for a tooltip's)
+	dFoot   string
+	dTiles  Ribbon
+	dEdges  Edges
+}
+
+// same says whether Img already holds this Buf with this border and foot.
+func (m *MenuCanvas) same(st MenuStyle, foot string) bool {
+	e, d := st.Edges, m.dEdges
+	return m.drawn != nil && m.dImg == m.Img && bytes.Equal(m.drawn, m.Buf) && m.dFoot == foot && m.dTiles == st.Tiles &&
+		slices.Equal(e.Top, d.Top) && slices.Equal(e.Bottom, d.Bottom) && slices.Equal(e.Left, d.Left) && slices.Equal(e.Right, d.Right) && slices.Equal(e.Divider, d.Divider)
 }
 
 // Draw draws a vertical menu: a box with the ribbon border, the items in
@@ -172,34 +185,37 @@ func (m *MenuCanvas) Draw(dst *gpu.Image, st MenuStyle, title string, items []st
 			col++
 		}
 	}
-	m.Img.WritePixels(m.Buf)
+	if !m.same(st, foot) {
+		m.Img.WritePixels(m.Buf)
 
-	Window(m.Img, st.Tiles, gpu.GeoM{}, cw, ch, nil)
-	WindowEdges(m.Img, st.Edges, gpu.GeoM{}, cw, ch)
-	if foot != "" { // gold on black, right on the bottom border
-		fw := len(foot) * 8
-		if gpu.Sized(&m.footImg, fw, 8) {
-			m.footBuf = make([]byte, fw*8*4)
-		}
-		for i := 0; i < len(m.footBuf); i += 4 {
-			m.footBuf[i], m.footBuf[i+1], m.footBuf[i+2], m.footBuf[i+3] = 0, 0, 0, 255
-		}
-		gold := t.Foot
-		for n := 0; n < len(foot); n++ {
-			g := glyph(foot[n])
-			for y := 0; y < 8; y++ {
-				for b := 0; b < 8; b++ {
-					if g[y]&(0x80>>b) != 0 {
-						o := (y*fw + n*8 + b) * 4
-						m.footBuf[o], m.footBuf[o+1], m.footBuf[o+2] = gold.R, gold.G, gold.B
+		Window(m.Img, st.Tiles, gpu.GeoM{}, cw, ch, nil)
+		WindowEdges(m.Img, st.Edges, gpu.GeoM{}, cw, ch)
+		if foot != "" { // gold on black, right on the bottom border
+			fw := len(foot) * 8
+			if gpu.Sized(&m.footImg, fw, 8) {
+				m.footBuf = make([]byte, fw*8*4)
+			}
+			for i := 0; i < len(m.footBuf); i += 4 {
+				m.footBuf[i], m.footBuf[i+1], m.footBuf[i+2], m.footBuf[i+3] = 0, 0, 0, 255
+			}
+			gold := t.Foot
+			for n := 0; n < len(foot); n++ {
+				g := glyph(foot[n])
+				for y := 0; y < 8; y++ {
+					for b := 0; b < 8; b++ {
+						if g[y]&(0x80>>b) != 0 {
+							o := (y*fw + n*8 + b) * 4
+							m.footBuf[o], m.footBuf[o+1], m.footBuf[o+2] = gold.R, gold.G, gold.B
+						}
 					}
 				}
 			}
+			m.footImg.WritePixels(m.footBuf)
+			fo := &gpu.DrawImageOptions{}
+			fo.GeoM.Translate(float64((cw-1)*8-fw), float64((ch-1)*8))
+			m.Img.DrawImage(m.footImg, fo)
 		}
-		m.footImg.WritePixels(m.footBuf)
-		fo := &gpu.DrawImageOptions{}
-		fo.GeoM.Translate(float64((cw-1)*8-fw), float64((ch-1)*8))
-		m.Img.DrawImage(m.footImg, fo)
+		m.drawn, m.dImg, m.dFoot, m.dTiles, m.dEdges = append(m.drawn[:0], m.Buf...), m.Img, foot, st.Tiles, st.Edges
 	}
 
 	if st.Tip { // a tooltip: wholly on the window, whatever its anchor

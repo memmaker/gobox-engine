@@ -52,6 +52,8 @@ type Engine struct {
 	fx                 []core.Effect               // the effects queued and not yet shown (emit, present)
 	resting            *restRun                    // the camp rest going on (RestStep), nil none
 	adv                string                      // New's adventure folder: scripts, art, data
+	mapNames           []script.Value              // names/pictures.txt, read once (mapName runs every frame through State)
+	mapNamesRead       bool                        // mapNames is read
 	data               string                      // New's host data directory: AssetsDir, AmigaDir, SaveDir
 
 	pics     pictures.Pictures // the adventure's picture table (data/pictures.json): DAX picture -> collection entry

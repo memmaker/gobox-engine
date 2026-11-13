@@ -1,6 +1,7 @@
 package present
 
 import (
+	"bytes"
 	"fmt"
 	"gobox/front"
 	"gobox/ui/fonts"
@@ -392,10 +393,21 @@ func viewTextImage(img **gpu.Image, rows [][]front.PaneRun, r image.Rectangle, n
 	return upload(img, m)
 }
 
-// upload writes m to *img, made or remade at m's size.
+// uploaded is the pixels each upload target holds: the same pixels again are
+// not written (a WritePixels submits the frame so far and waits for the GPU).
+var uploaded = map[*gpu.Image][]byte{}
+
+// upload writes m to *img, made or remade at m's size, unless it holds m already.
 func upload(img **gpu.Image, m *image.RGBA) *gpu.Image {
-	gpu.Sized(img, m.Rect.Dx(), m.Rect.Dy())
+	old := *img
+	if gpu.Sized(img, m.Rect.Dx(), m.Rect.Dy()) {
+		delete(uploaded, old)
+	}
+	if px, ok := uploaded[*img]; ok && bytes.Equal(px, m.Pix) {
+		return *img
+	}
 	(*img).WritePixels(m.Pix)
+	uploaded[*img] = m.Pix // m is the caller's new image every time: kept, not copied
 	return *img
 }
 
