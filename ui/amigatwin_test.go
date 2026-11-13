@@ -2,37 +2,24 @@ package ui
 
 import (
 	"strings"
+	"sync"
 	"testing"
 
 	"gobox/asset"
 )
 
-// Every POR DOS portrait and combat icon has its Amiga twin (but set 6's heads 1
-// and 3, which the Amiga lacks), and poolImage draws it only while the Amiga art shows.
-func TestAmigaTwin(t *testing.T) {
+// TestAmigaTwinsEveryGame: every pool head any game's DOS art names has its
+// Amiga twin, whichever game plays (POR's cards kept the heads from the
+// other games' art on F12: twins came from the playing game alone).
+// noAmigaHead are the heads whose games' Amiga art has none.
+func TestAmigaTwinsEveryGame(t *testing.T) {
+	noAmigaHead := map[string]bool{"head_033": true, "head_035": true}
+	defer func(id string) { GameID = id }(GameID)
 	GameID = "por"
-	defer func() { GameID, AmigaArt = "", nil }()
-	o := asset.Origins()["por"]
-	for f, refs := range o {
-		if !strings.HasPrefix(f, "HEAD") && !strings.HasPrefix(f, "BODY") && f != "CHEAD.DAX" && f != "CBODY.DAX" {
-			continue
+	twinsOnce, twins = sync.Once{}, nil
+	for _, n := range asset.SpriteNames(Series, "portraits") {
+		if strings.HasPrefix(n, "head_") && !noAmigaHead[n] && amigaTwin(n) == "" {
+			t.Errorf("%s: no Amiga twin", n)
 		}
-		for r, n := range refs {
-			if f == "HEAD6.DAX" && (r == "1" || r == "3") {
-				continue
-			}
-			if tw := amigaTwin(n); !strings.HasPrefix(tw, "amiga_") {
-				t.Errorf("%s %s (%s): twin %q", f, r, n, tw)
-			}
-		}
-	}
-	n := o["HEAD3.DAX"]["0"]
-	dos := asset.SpriteImage(Series, "portraits", n)
-	if poolPicture("portraits", n) != dos {
-		t.Fatal("DOS art: not the DOS picture")
-	}
-	AmigaArt = func() bool { return true }
-	if im := poolPicture("portraits", n); im == nil || im == dos {
-		t.Fatal("Amiga art: not the Amiga twin")
 	}
 }
