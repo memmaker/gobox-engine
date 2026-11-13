@@ -15,6 +15,8 @@ var SotsbLayout1e = rules1e.Layout{SlotStride: sotsbSpellLevels, Races: rules1e.
 // (callSound); the portrait tables stay empty.
 var GameTables = adventure.GameTables{
 	Walls:      wallTextures("sotsb", "", ""),
+	GameSet:    2,  // the game's start: gameArea := 2
+	FirstBlock: 17, // firstBlock
 	Dialect:    rules.DialectCOTAB,
 	AddNPCIcon: true,
 	ScriptSounds: map[byte]adventure.ScriptSound{

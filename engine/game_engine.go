@@ -22,6 +22,9 @@ func (e *Engine) GameLoop() {
 	e.setWorldWord(rules.WordBeginFlag, 4)
 	r.areaChanged = false
 	e.gs.areaKind = byte(e.worldWord(rules.WordAreaKind))
+	if e.gs.areaKind == 0 { // no last block: the game's first (POR's is 0)
+		e.gs.areaKind = byte(e.game().FirstBlock)
+	}
 	fresh := !e.loadedGame // extra: a new adventure, not a loaded game
 	if k := e.gs.areaKind; (k == 0x19 || k == 0x1A || k == 0x1B) && e.worldWord(rules.WordIn3D) == 0 {
 		e.setWorldWord(rules.WordBeginFlag, 3)

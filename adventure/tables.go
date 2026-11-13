@@ -28,6 +28,8 @@ type GameTables struct {
 	Music                      *AreaMusic           // the soundtrack by area (POR's); nil: none
 	MonsterSet                 rules.Set            // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
 	Walls                      *WallTextures        // the 3D view's remastered wall textures; nil: none (POR: its remastered area maps)
+	GameSet                    rules.Set            // the set the party menu's game starts in (DS:5376: POR 3; cotab, sotsb, pod 2)
+	FirstBlock                 int                  // the ECL block a new game starts on, with no last block saved (POR 0, cotab 1, sotsb 17, pod 16)
 }
 
 // WallTextures are the remastered textures of the WALLDEF walls the 3D view

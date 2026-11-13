@@ -27,10 +27,11 @@ var portraits []byte
 // the duel sounds of CALL 0xBA03 (8 a step, 10 the fireball, DS:2612's numbers); any other plays nothing.
 // The import's script fixes; the native scripts of the tavern game and the cabinets'
 // CAST KNOCK; the inn's and the tavern's Who commands spend the one purse (ECL3 A1B4, ahead of A501).
-var porGameTables = adventure.GameTables{ScriptSounds: map[byte]adventure.ScriptSound{
-	8:  {Cue: rules.CueStep},
-	10: {Cue: rules.CueFireball},
-},
+var porGameTables = adventure.GameTables{GameSet: 3, // DS:5376 = 3
+	ScriptSounds: map[byte]adventure.ScriptSound{
+		8:  {Cue: rules.CueStep},
+		10: {Cue: rules.CueFireball},
+	},
 	ScriptFixes:  porScriptFixes,
 	OriginalSave: porSave,
 	Quests:       porQuests,
@@ -48,7 +49,7 @@ var porGameTables = adventure.GameTables{ScriptSounds: map[byte]adventure.Script
 }
 
 // dataFormat changes when the files ImportData writes change.
-const dataFormat = "22" // 22: no View or Aim on the combat bar (Felix 2026-11-13); 21: data/look.json (writePorLook, as PorImport); 20: GameTables.Music.Files, AmigaSongs (P1); 19: Sheet.Race is the typed race (a name), MonsterRace the record byte of a monster; 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
+const dataFormat = "23" // 23: GameTables.GameSet; 22: no View or Aim on the combat bar (Felix 2026-11-13); 21: data/look.json (writePorLook, as PorImport); 20: GameTables.Music.Files, AmigaSongs (P1); 19: Sheet.Race is the typed race (a name), MonsterRace the record byte of a monster; 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
 
 // ImportData is the data import: data's GEO, MON and ITEM archives, the
 // ITEMS table and START.EXE's sound tables (soundFile) as data/assets/data (DataDir).

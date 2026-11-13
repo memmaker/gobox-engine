@@ -76,8 +76,8 @@ func (e *Engine) partyMenu(hall, chain bool) {
 	if hall || !e.songMusic(adventure.SongTitle, 0) { // extra: the title plays on under the main menu
 		e.Music(3) // Amiga 0x2D35C
 	}
-	e.set = 3      // DS:5376 = 3
-	if e.Explore { // -explore: straight into the 3D view (debugging the renderer); GameLoop clears it
+	e.set = e.game().GameSet // DS:5376 (POR 3): the game's own start set
+	if e.Explore {           // -explore: straight into the 3D view (debugging the renderer); GameLoop clears it
 		if e.partySize() == 0 && e.ExploreSlot != "" && e.loadFrom(e.ExploreSlot) { // -slot: a saved game instead
 			e.Explore = false
 			e.loadedGame = e.beginFlag() != 0 // DS:49F8, as the party menu's Load (LoadNamed): the game resumes, not afresh
