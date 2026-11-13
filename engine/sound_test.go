@@ -34,7 +34,7 @@ func soundEngine(t *testing.T, card byte) (*Engine, *fakeSound) {
 	e := &Engine{Cfg: Config{Sound: card}}
 	e.initVM()
 	f := &fakeSound{}
-	e.SetSound(f)
+	e.SetSound(f, nil, nil)
 	f.calls = nil
 	return e, f
 }

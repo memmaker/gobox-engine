@@ -9,7 +9,7 @@ import (
 
 // fakeSnd records what the presenter asks of the driver.
 type fakeSnd struct {
-	audio.Sound
+	game.Sound
 	on      bool
 	songs   []int
 	effects []int

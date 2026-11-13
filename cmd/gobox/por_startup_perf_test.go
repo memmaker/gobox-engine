@@ -36,9 +36,7 @@ func TestStartupTiming(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	am, fx, pack, speaking, vol := eng.SoundParts()
-	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), eng.SoundtrackFiles()), pack, speaking, vol)
-	eng.SetSound(drv)
+	attachSound(eng, drv)
 	lap("sound")
 	data := poolData(eng, "por")
 	lap("Data")

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gobox/audio"
 	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules1e"
@@ -14,14 +13,9 @@ import (
 )
 
 // SoundFile is the driver's songs, scripts and vibrato waveforms, decoded from
-// START.EXE at import (ImportData, sounddata.Decode at soundLayout) and
+// START.EXE at import (ImportData, audio.DecodeSoundData at porSoundLayout) and
 // synthesized at run time.
 const SoundFile = "sound.json"
-
-// SoundLayout is where START.EXE's driver (segment 08AE) keeps its tables (gobox audio API.md).
-var SoundLayout = audio.SoundDataLayout{Segment: 0x8AE, JumpTable: 545, SpeakerSet: 557, TandySet: 967,
-	SpeakerSongs: 1375, TandySongs: 1543, Songs: 21, Enabled: 525,
-	Commands: map[int]string{5710: "reset", 5804: "return", 5811: "call", 5701: "switch", 5678: "loop", 5759: "set"}}
 
 // The data directory (New's dir) holds one folder per kind of file.
 const (

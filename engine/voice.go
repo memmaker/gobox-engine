@@ -1,16 +1,12 @@
 package engine
 
 import (
-	"encoding/binary"
-	"gobox/audio"
-
 	"hash/fnv"
-	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 // Voice-over (extra): story texts, journal texts and first visits are read
@@ -21,11 +17,6 @@ import (
 
 // voiceOffFile in the save folder marks the voice as switched off.
 const voiceOffFile = "VOICE.OFF"
-
-type voice struct {
-	mu    sync.Mutex
-	queue [][]byte // s16 stereo PCM, the first one playing
-}
 
 // voiceKey names a script text's file: FNV-64a of the trimmed text, in hex
 // (voice/render.py computes the same).
@@ -90,55 +81,16 @@ func (e *Engine) speak(key string) {
 	if !e.voiceOn() {
 		return
 	}
-	pcm, err := audio.VorbisPCM(b)
-	if err != nil {
-		return
+	if e.vox == nil {
+		return // headless: nothing plays
 	}
-	e.vox.mu.Lock()
-	e.vox.queue = append(e.vox.queue, pcm)
-	e.vox.mu.Unlock()
+	if err := e.vox.Say(b); err != nil {
+		log.Printf("voice %s: %v", key, err)
+	}
 }
 
 func (e *Engine) stopVoice() {
-	e.vox.mu.Lock()
-	e.vox.queue = nil
-	e.vox.mu.Unlock()
-}
-
-// speaking reports whether a recording is queued or playing.
-func (v *voice) speaking() bool {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	return len(v.queue) > 0
-}
-
-// VoiceReader is the voice's audio source, in SoundReader's format.
-func (e *Engine) VoiceReader() io.Reader { return &e.vox }
-
-func (v *voice) Read(p []byte) (int, error) {
-	v.mu.Lock()
-	defer v.mu.Unlock()
-	n := len(p) / 4 * 4
-	o := 0
-	for o < n && len(v.queue) > 0 {
-		c := copy(p[o:n], v.queue[0])
-		o += c
-		if v.queue[0] = v.queue[0][c:]; len(v.queue[0]) == 0 {
-			v.queue = v.queue[1:]
-		}
-	}
-	clear(p[o:n])
-	scale(p[:n], volume("voice"))
-	return n, nil
-}
-
-// scale turns s16 samples down by g.
-func scale(p []byte, g float64) {
-	if g >= 1 {
-		return
-	}
-	for i := 0; i+1 < len(p); i += 2 {
-		v := float64(int16(binary.LittleEndian.Uint16(p[i:])))
-		binary.LittleEndian.PutUint16(p[i:], uint16(int16(v*g)))
+	if e.vox != nil {
+		e.vox.Stop()
 	}
 }

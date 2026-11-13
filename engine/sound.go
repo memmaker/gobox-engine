@@ -7,7 +7,6 @@ import (
 
 	"gobox/adventure"
 	"gobox/asset/orig"
-	"gobox/audio"
 	"gobox/game"
 	"gobox/rules"
 )
@@ -34,13 +33,13 @@ const (
 // sound is the rules' side of the driver: the calls go to d (nil until
 // SetSound), DS:5372..5374 stay here.
 type sound struct {
-	d     audio.Sound
-	typ   int  // DS:5372: sndTandy, sndSpeaker or sndNone
-	saved int  // DS:5373: typ before Ctrl-S turned the sound off
-	wait  int  // DS:5374
-	music int  // the Amiga song Music started last
-	stOn  bool // the Soundtrack option
-	dasp  *audio.SoundPack
+	d     game.Sound
+	typ   int            // DS:5372: sndTandy, sndSpeaker or sndNone
+	saved int            // DS:5373: typ before Ctrl-S turned the sound off
+	wait  int            // DS:5374
+	music int            // the Amiga song Music started last
+	stOn  bool           // the Soundtrack option
+	dasp  game.SoundPack // nil: none
 }
 
 // amigaFx maps PlaySound 2..12 to Amiga effects: the Amiga's effect table parallels the
@@ -141,28 +140,25 @@ func (e *Engine) battleMusic() {
 	}
 }
 
-// SoundParts loads what the driver plays besides the synth, for
-// audio.Driver.Attach: the Amiga players and their effects, the sound pack,
-// the voice-over's speaking and the volume sliders.
-func (e *Engine) SoundParts() (*orig.Player, []int, interface{ Mix([]byte) }, func() bool, func(string) float64) {
+// SoundParts is what the driver plays besides the synth, for
+// audio.Driver.Attach: the Amiga player (nil without SOUND.BIN) and its
+// effects, the sound pack's folder (audio.LoadSoundPack) and the volume
+// sliders ("music", "sfx", "voice").
+func (e *Engine) SoundParts() (*orig.Player, []int, string, func(string) float64) {
 	var am *orig.Player
 	if img, err := os.ReadFile(filepath.Join(e.adv, adventure.SoundDir, "SOUND.BIN")); err == nil && len(img) == orig.End-orig.Base {
 		am = orig.NewPlayer(img)
 		am.SongOn = 0x667d5
 	}
-	e.snd.dasp = audio.LoadSoundPack(filepath.Join(e.adv, adventure.SoundDir, daspDir), func() float64 { return volume("sfx") })
-	var pack interface{ Mix([]byte) }
-	if e.snd.dasp != nil {
-		pack = e.snd.dasp
-	}
-	return am, amigaFx[:], pack, e.vox.speaking, volume
+	return am, amigaFx[:], filepath.Join(e.adv, adventure.SoundDir, daspDir), volume
 }
 
 // SetSound hands the rules the attached driver (audio.Driver, made on
-// Cfg.Sound): main 0x4574 picks the card.
-func (e *Engine) SetSound(d audio.Sound) {
+// Cfg.Sound), the sound pack (nil: none) and the voice-over (nil: silent):
+// main 0x4574 picks the card.
+func (e *Engine) SetSound(d game.Sound, pack game.SoundPack, vox game.Voice) {
 	s := &e.snd
-	s.d = d
+	s.d, s.dasp, e.vox = d, pack, vox
 	switch e.Cfg.Sound { // main 0x4574
 	case 'T':
 		s.typ = sndTandy
