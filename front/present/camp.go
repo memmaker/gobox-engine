@@ -109,7 +109,7 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 		return p.powerItems(v)
 	}
 	c, s := &p.camp, p.state()
-	party, sel := partyOf(s), p.eng.r.selectedOf(s)
+	party, sel := partyOf(s), p.selected()
 	var m game.Member // the selected member: whose spells the lists show
 	if sel >= 0 && sel < len(party) {
 		m = party[sel]

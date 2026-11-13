@@ -13,7 +13,7 @@ import (
 // Training (play.Trading): the hall's offer, the question, the new spell.
 func (p *Presenter) trainItems() (string, []ui.MenuRow) {
 	s := p.state()
-	t, party, sel := trainingOf(s), partyOf(s), p.eng.r.selectedOf(s)
+	t, party, sel := trainingOf(s), partyOf(s), p.selected()
 	leave := ui.MenuRow{Text: "Exit", Key: 'E', Do: func() { p.send(front.ActClose, 0) }}
 	if sel < 0 || sel >= len(party) {
 		return "No one to train", []ui.MenuRow{leave}
@@ -47,7 +47,7 @@ func (p *Presenter) trainItems() (string, []ui.MenuRow) {
 // offers training).
 func (p *Presenter) learning() []game.SpellRef {
 	s := p.state()
-	if t, n := trainingOf(s), p.eng.r.selectedOf(s); t != nil && t.Learning && n >= 0 && n < len(partyOf(s)) {
+	if t, n := trainingOf(s), p.selected(); t != nil && t.Learning && n >= 0 && n < len(partyOf(s)) {
 		return t.Learn
 	}
 	return nil

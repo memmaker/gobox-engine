@@ -68,6 +68,15 @@ func (p *Presenter) state() play.State {
 	return p.eng.G.State()
 }
 
+// selected is the member the screens act on (selectedOf; the state's
+// own when no game is set).
+func (p *Presenter) selected() int {
+	if p.eng == nil {
+		return play.CommonOf(nil).Selected
+	}
+	return p.eng.r.selectedOf(p.state())
+}
+
 // ui is the front's own state over it (nil: no game set).
 func (p *Presenter) ui() *UI {
 	if p.eng == nil {

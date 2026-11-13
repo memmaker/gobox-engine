@@ -14,7 +14,7 @@ import (
 func (p *Presenter) templeItems() (string, []ui.MenuRow) {
 	c, s := &p.camp, p.state()
 	services, offers := templeOf(s)
-	party, sel, purse := partyOf(s), p.eng.r.selectedOf(s), play.CommonOf(s).Purse
+	party, sel, purse := partyOf(s), p.selected(), play.CommonOf(s).Purse
 	name := memberName(party, sel)
 	var cure game.Service
 	if c.pick >= 0 && c.pick < len(services) {
