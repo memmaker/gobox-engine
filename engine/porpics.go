@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gobox/asset"
 	"gobox/ecl/script"
-	"gobox/importer/pictures"
 	"gobox/rules"
 	"io/fs"
 	"os"
@@ -32,7 +32,7 @@ func (e *Engine) portPic(family string, b byte) rules.PicID {
 	if b == 0 || int(b) >= len(t) {
 		return ""
 	}
-	return e.pics.ID(pictures.DAXRef{File: t[b].Set.File(family) + ".DAX", Block: int(t[b].Id), Frame: pictures.NoFrame})
+	return e.pics.ID(asset.DAXRef{File: t[b].Set.File(family) + ".DAX", Block: int(t[b].Id), Frame: asset.NoFrame})
 }
 
 // portByte is portPic's inverse: the first number showing id.
@@ -55,7 +55,7 @@ func iconBlockOff(size byte) int {
 
 // iconPic is combat icon part b of file ("CHEAD", "CBODY") at size as a PicID.
 func (e *Engine) iconPic(file string, b, size byte) rules.PicID {
-	return e.pics.ID(pictures.DAXRef{File: file + ".DAX", Block: int(b) + iconBlockOff(size), Frame: pictures.NoFrame})
+	return e.pics.ID(asset.DAXRef{File: file + ".DAX", Block: int(b) + iconBlockOff(size), Frame: asset.NoFrame})
 }
 
 // iconByte is iconPic's inverse at size.

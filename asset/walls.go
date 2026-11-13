@@ -1,9 +1,9 @@
-// Package walls is the shared pool of blobber wall, floor and ceiling
+// Package asset is the shared pool of blobber wall, floor and ceiling
 // textures, keyed by asset series: games of one series (e.g. "pool",
 // "buck-rogers") share series/<series>/; a game names its series as data.
 // The textures are read from disk when first asked for, not embedded: a
 // game's binary carries none, and a map loads only the ones it draws.
-package walls
+package asset
 
 import (
 	"bytes"
@@ -19,13 +19,13 @@ import (
 )
 
 // WallDir is the directory holding series/<series>/<name>.png: $GOBOX_WALLS, else
-// this package's own directory in the gobox checkout the game was built from.
+// the walls directory of this package in the gobox checkout the game was built from.
 var WallDir = func() string {
 	if d := os.Getenv("GOBOX_WALLS"); d != "" {
 		return d
 	}
 	_, f, _, _ := runtime.Caller(0)
-	return filepath.Dir(f)
+	return filepath.Join(filepath.Dir(f), "walls")
 }()
 
 var (

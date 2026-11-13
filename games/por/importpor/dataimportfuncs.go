@@ -4,11 +4,11 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
+	"gobox/asset"
 	"gobox/audio/sounddata"
 	"gobox/char"
 	"gobox/dax"
 	"gobox/engine"
-	"gobox/importer/pictures"
 	"gobox/rules"
 	"gobox/rules1e"
 	"io/fs"
@@ -69,7 +69,7 @@ func ImportData(data string) error {
 	if err := ImportDataTo(filepath.Join(data, engine.DOSDir), filepath.Join(adv, engine.DataDir)); err != nil {
 		return err
 	}
-	return pictures.WritePictures("por", adv)
+	return asset.WritePictures("por", adv)
 }
 
 // ImportDataTo is ImportData from the DOS files in dos into dst; it clears

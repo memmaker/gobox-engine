@@ -4,7 +4,7 @@ import (
 	"image"
 	"image/color"
 
-	"gobox/ui/fonts"
+	"gobox/asset"
 )
 
 // Draw renders the set character cells at 8x8 pixels a cell into dst (cell
@@ -25,12 +25,12 @@ func (c *TextConsole) Draw(dst *image.RGBA, bits []byte, pal func(byte) color.RG
 				g, _ = symbol(cl.Sym)
 				bg := pal(0)
 				fg := pal(cl.Colour)
-				fonts.DrawGlyph(dst, g, x*8, y*8, &fg, &bg)
+				asset.DrawGlyph(dst, g, x*8, y*8, &fg, &bg)
 				continue
 			}
-			g, _ = fonts.Glyph(bits, cl.C, cl.Upcase)
+			g, _ = asset.Glyph(bits, cl.C, cl.Upcase)
 			fg, bg := pal(cl.Colour), pal(cl.Bg)
-			fonts.DrawGlyph(dst, g, x*8, y*8, &fg, &bg)
+			asset.DrawGlyph(dst, g, x*8, y*8, &fg, &bg)
 		}
 	}
 }

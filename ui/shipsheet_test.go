@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"gobox/asset"
 	"gobox/dax"
 	"gobox/game"
 	"gobox/game/play"
-	"gobox/ui/fonts"
 )
 
 func testSheet(own bool) *game.ShipSheet {
@@ -130,7 +130,7 @@ func saveSheetPNG(t *testing.T, v sfView) {
 		clear(daxPics)
 	}
 	bits := brFont(fl)
-	font := func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(bits, ch, text); return g } // as fontmenu.go hands the page the game's font
+	font := func(ch byte, text bool) [8]byte { g, _ := asset.Glyph(bits, ch, text); return g } // as fontmenu.go hands the page the game's font
 	for i, sc := range []*game.Screen{v.Screen, {Kind: game.ScreenSpaceFight, SpaceFight: testFight(), ShipSheet: testSheet(false)}} {
 		w := v
 		w.Screen = sc

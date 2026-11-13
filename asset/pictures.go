@@ -1,8 +1,8 @@
-// Package pictures is an adventure's picture table (data/pictures.json): each
+// Package asset is an adventure's picture table (data/pictures.json): each
 // original DAX picture's entry in the shared portrait and icon collection,
 // from the series' origins (origins/<series>.json, written by sprites'
 // cmd/poolsprites).
-package pictures
+package asset
 
 import (
 	"embed"

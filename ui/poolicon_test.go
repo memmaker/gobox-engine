@@ -2,7 +2,7 @@ package ui
 
 import (
 	"fmt"
-	"gobox/importer/pictures"
+	"gobox/asset"
 	"image"
 	"os"
 	"path/filepath"
@@ -54,7 +54,7 @@ func TestPoolIconMatchesDAX(t *testing.T) {
 	home, _ := os.UserHomeDir()
 	n := 0
 	colours := [6]byte{0x9a, 0x2b, 0x3c, 0x4d, 0x5e, 0x6f}
-	for id, files := range pictures.Origins() {
+	for id, files := range asset.Origins() {
 		dir := filepath.Join(home, "Projects", id+"-go", "data", "dos")
 		hf, err1 := dax.Open(filepath.Join(dir, "CHEAD.DAX"))
 		bf, err2 := dax.Open(filepath.Join(dir, "CBODY.DAX"))

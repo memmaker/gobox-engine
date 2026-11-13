@@ -1,4 +1,4 @@
-package walls
+package asset
 
 import (
 	"bytes"

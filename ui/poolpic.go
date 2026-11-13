@@ -5,13 +5,12 @@
 package ui
 
 import (
-	"gobox/importer/pictures"
 	"image"
 	"strconv"
 	"strings"
 	"sync"
 
-	"gobox/sprites"
+	"gobox/asset"
 )
 
 var (
@@ -24,7 +23,7 @@ var (
 func poolImage(pc Picture) image.Image {
 	name := pc.Name
 	if name == "" && pc.File != "" {
-		originsOnce.Do(func() { origins = pictures.Origins() })
+		originsOnce.Do(func() { origins = asset.Origins() })
 		f := origins[gameID][pc.File]
 		if amigaShown() { // the Amiga set only (<game>-amiga, one archive per kind): never the DOS art
 			a, n := origins[gameID+"-amiga"], strings.TrimSuffix(strings.ToUpper(pc.File), ".DAX")
@@ -39,5 +38,5 @@ func poolImage(pc Picture) image.Image {
 	if n := strings.TrimPrefix(name, "amiga_"); !strings.HasPrefix(n, "head_") && !strings.HasPrefix(n, "body_") {
 		return nil
 	}
-	return sprites.SpriteImage(series, "portraits", name)
+	return asset.SpriteImage(series, "portraits", name)
 }

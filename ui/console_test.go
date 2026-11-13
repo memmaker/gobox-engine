@@ -2,7 +2,7 @@ package ui
 
 import (
 	"bytes"
-	"gobox/ui/fonts"
+	"gobox/asset"
 	"image"
 	"image/color"
 	"math/rand"
@@ -298,7 +298,7 @@ func TestConsoleDraw(t *testing.T) {
 	for y, row := range c.Cells {
 		for x, cl := range row {
 			if cl.Set {
-				g, _ := fonts.Glyph(nil, cl.C, cl.Upcase)
+				g, _ := asset.Glyph(nil, cl.C, cl.Upcase)
 				glyphAtOracle(want, g, x*8, y*8, pal(cl.Colour), pal(cl.Bg))
 			}
 		}

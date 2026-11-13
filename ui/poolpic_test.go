@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"gobox/importer/pictures"
+	"gobox/asset"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -16,7 +16,7 @@ func TestPoolMatchesDAX(t *testing.T) {
 	defer func(id string) { gameID = id }(gameID)
 	n := 0
 	defer func() { t.Logf("compared %d", n) }()
-	for id, files := range pictures.Origins() {
+	for id, files := range asset.Origins() {
 		dir := filepath.Join(home, "Projects", id+"-go", "data", "dos")
 		if !useArt(t, dir) {
 			t.Logf("skip %s: no data", id)

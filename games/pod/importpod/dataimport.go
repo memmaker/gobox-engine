@@ -1,12 +1,12 @@
 package importpod
 
 import (
+	"gobox/asset"
 	"gobox/char"
 	"gobox/dax"
-	"gobox/importer/pictures"
+	"gobox/rules1e"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 )
 
 // ImportDataTo writes the game's maps and records from the DOS originals in
@@ -52,7 +52,7 @@ func ImportTo(dos, dst string) error {
 	if err := ImportDataTo(dos, filepath.Join(dst, dataDir)); err != nil {
 		return err
 	}
-	if err := pictures.WritePictures("pod", dst); err != nil {
+	if err := asset.WritePictures("pod", dst); err != nil {
 		return err
 	}
 	if err := dax.ImportArt(dos, filepath.Join(filepath.Dir(dos), "amiga"), filepath.Join(dst, artDir)); err != nil {

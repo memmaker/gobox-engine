@@ -1,11 +1,10 @@
 package ui
 
 import (
-	"gobox/importer/pictures"
 	"strings"
 	"testing"
 
-	"gobox/sprites"
+	"gobox/asset"
 )
 
 // Every POR DOS portrait and combat icon has its Amiga twin (but set 6's heads 1
@@ -13,7 +12,7 @@ import (
 func TestAmigaTwin(t *testing.T) {
 	GameID = "por"
 	defer func() { GameID, AmigaArt = "", nil }()
-	o := pictures.Origins()["por"]
+	o := asset.Origins()["por"]
 	for f, refs := range o {
 		if !strings.HasPrefix(f, "HEAD") && !strings.HasPrefix(f, "BODY") && f != "CHEAD.DAX" && f != "CBODY.DAX" {
 			continue
@@ -28,7 +27,7 @@ func TestAmigaTwin(t *testing.T) {
 		}
 	}
 	n := o["HEAD3.DAX"]["0"]
-	dos := sprites.SpriteImage(Series, "portraits", n)
+	dos := asset.SpriteImage(Series, "portraits", n)
 	if poolPicture("portraits", n) != dos {
 		t.Fatal("DOS art: not the DOS picture")
 	}

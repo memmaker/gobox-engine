@@ -6,13 +6,13 @@
 package importpor
 
 import (
-	"gobox/importer/pictures"
+	"gobox/asset"
 	"os"
 	"path/filepath"
 
 	"gobox/dax"
-	"gobox/importer"
 	"gobox/engine"
+	"gobox/importer"
 )
 
 func init() {
@@ -112,7 +112,7 @@ func Import(dos, dst string) error {
 	if err := dax.ImportArt(dos, amiga, filepath.Join(dst, engine.ArtDir)); err != nil {
 		return err
 	}
-	if err := pictures.WritePictures("por", dst); err != nil {
+	if err := asset.WritePictures("por", dst); err != nil {
 		return err
 	}
 	for _, h := range hostFiles {

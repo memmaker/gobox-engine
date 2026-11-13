@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/importer/pictures"
+	"gobox/asset"
 	"gobox/rules1e"
 	"testing"
 
@@ -16,7 +16,7 @@ func TestForeignPicRoundTrip(t *testing.T) {
 	c.SetName("Gamma")
 	c.PortHead = 5
 	const foreign rules.PicID = "pool:foreign-head"
-	pictures.Set(foreign, &c.PortHead, 0, &c.PoolIDs.PortraitHeadID, func(b byte) rules.PicID { return e.portPic("HEAD", b) }, func(id rules.PicID) (byte, bool) { return e.portByte("HEAD", id) })
+	asset.Set(foreign, &c.PortHead, 0, &c.PoolIDs.PortraitHeadID, func(b byte) rules.PicID { return e.portPic("HEAD", b) }, func(id rules.PicID) (byte, bool) { return e.portByte("HEAD", id) })
 	if c.PortHead != 0 {
 		t.Fatalf("stale head byte %d", c.PortHead)
 	}
@@ -26,7 +26,7 @@ func TestForeignPicRoundTrip(t *testing.T) {
 		t.Fatal("load")
 	}
 	got := e.member(gotID)
-	if id := pictures.Pick(got.PoolIDs.PortraitHeadID, e.portPic("HEAD", got.PortHead)); id != foreign || got.PortHead != 0 {
+	if id := asset.Pick(got.PoolIDs.PortraitHeadID, e.portPic("HEAD", got.PortHead)); id != foreign || got.PortHead != 0 {
 		t.Fatalf("loaded %q byte %d", id, got.PortHead)
 	}
 }

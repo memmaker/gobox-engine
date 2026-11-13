@@ -6,9 +6,9 @@ import (
 	"image"
 	"slices"
 
+	"gobox/asset"
 	"gobox/game"
 	"gobox/game/play"
-	"gobox/sprites"
 )
 
 // turnAct is the combat menu's action a Decision does (false: not a menu entry).
@@ -88,7 +88,7 @@ func turnOptions(c *play.Combat, d game.Data) []play.Option {
 // sprite of that name when a has no picture.
 func tilePicture(name string, a game.Picture) Picture {
 	pc := pix(a)
-	if im := sprites.SpriteImage(Series, "combat", name); a.File == "" && pc.Pix == nil && im != nil { // a series sprite
+	if im := asset.SpriteImage(Series, "combat", name); a.File == "" && pc.Pix == nil && im != nil { // a series sprite
 		pc.Img = im
 	}
 	return pc
@@ -125,7 +125,7 @@ func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *B
 	}
 	tiles := make([]Picture, 0x100)
 	if c.FloorTile != "" {
-		b.FloorTile = sprites.SpriteImage(Series, "combat", c.FloorTile)
+		b.FloorTile = asset.SpriteImage(Series, "combat", c.FloorTile)
 	}
 	slot, slots := len(c.Tiles), map[string]int{} // a square's own Art: a tile slot of its own past the named tiles, one per picture
 	slotOf := func(a game.Picture) (int, bool) {  // a's tile slot, made on first use

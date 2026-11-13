@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"gobox/asset"
 	"gobox/game"
-	"gobox/ui/fonts"
 )
 
 // The text fonts (Data.Fonts): Ctrl-F cycles from the game's own font
@@ -21,25 +21,25 @@ func (f *Front) chooseFonts(own []game.Typeface) {
 	if own == nil {
 		return
 	}
-	var l []fonts.Font
+	var l []asset.Font
 	for _, t := range own {
-		l = append(l, fonts.Font{Name: t.Name, Bits: t.Bits})
+		l = append(l, asset.Font{Name: t.Name, Bits: t.Bits})
 	}
 	first := ""
 	if len(l) > 0 {
 		first = l[0].Name
 	}
-	c := fonts.NewChooserOf(l, first)
+	c := asset.NewChooserOf(l, first)
 	f.P.fonts = c
-	game := fonts.Get(theme.Font) // the game's own font: the theme's, else gobox's
+	game := asset.Get(theme.Font) // the game's own font: the theme's, else gobox's
 	bits := func() []byte {
 		if b := c.Bits(c.Cur); b != nil {
 			return b
 		}
 		return game
 	}
-	f.Glyph = func(ch byte) [8]byte { g, _ := fonts.Glyph(bits(), ch, true); return g }
-	f.Font = func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(bits(), ch, text); return g }
+	f.Glyph = func(ch byte) [8]byte { g, _ := asset.Glyph(bits(), ch, true); return g }
+	f.Font = func(ch byte, text bool) [8]byte { g, _ := asset.Glyph(bits(), ch, text); return g }
 }
 
 // KeepFonts keeps the font choice in dir (app calls it with the settings'
@@ -80,6 +80,6 @@ func (p *Presenter) cycleFont(d int) bool {
 
 // PoolGlyph is the glyph lookup of the pool font called name (MapImage's glyph).
 func PoolGlyph(name string) func(ch byte, text bool) [8]byte {
-	bits := fonts.Get(name)
-	return func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(bits, ch, text); return g }
+	bits := asset.Get(name)
+	return func(ch byte, text bool) [8]byte { g, _ := asset.Glyph(bits, ch, text); return g }
 }

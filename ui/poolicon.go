@@ -1,16 +1,15 @@
 package ui
 
 import (
-	"gobox/importer/pictures"
 	"image"
 	"image/color"
 	"slices"
 	"strconv"
 	"sync"
 
+	"gobox/asset"
 	"gobox/ega"
 	"gobox/game"
-	"gobox/sprites"
 )
 
 // clearPix is the Pix index of a transparent pixel (front.IndexedRGBA leaves 17 out).
@@ -66,7 +65,7 @@ var poolIcons struct {
 func composeIcon(head, body string, colours []byte, pose int, flip bool) (pic Picture, ok bool) {
 	load := func(name string) *image.Paletted {
 		if pose == 1 {
-			if p := sprites.Pose(Series, name); p != "" {
+			if p := asset.Pose(Series, name); p != "" {
 				name = p
 			}
 		}
@@ -142,7 +141,7 @@ var Amiga = func() bool { return false }
 // Series is game.Data.Series, the asset series whose shared pool the members' ids name ("pool" when unset).
 var Series = "pool"
 
-var iconOrigins = sync.OnceValue(pictures.Origins)
+var iconOrigins = sync.OnceValue(asset.Origins)
 
 // gameOrigins is the shown art's origins: <GameID>-amiga under F12's Amiga art, never the DOS set.
 func gameOrigins() map[string]map[string]string {

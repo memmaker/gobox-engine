@@ -2,14 +2,14 @@ package importcotab
 
 import (
 	"errors"
+	"gobox/rules1e"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 
+	"gobox/asset"
 	"gobox/char"
 	"gobox/dax"
-	"gobox/importer/pictures"
 )
 
 // ImportTo writes the adventure folder dst from the DOS originals in dos
@@ -24,7 +24,7 @@ func ImportTo(dos, dst string) error {
 	if err := ImportDataTo(dos, filepath.Join(dst, dataDir)); err != nil {
 		return err
 	}
-	if err := pictures.WritePictures("cotab", dst); err != nil {
+	if err := asset.WritePictures("cotab", dst); err != nil {
 		return err
 	}
 	amiga := filepath.Join(filepath.Dir(dos), "amiga")

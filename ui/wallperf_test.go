@@ -4,7 +4,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"gobox/walls"
+	"gobox/asset"
 )
 
 // The 3D view's first frame decodes no texture up front: the pool series is
@@ -16,7 +16,7 @@ func TestNewViewDecodesLazily(t *testing.T) {
 	if n := len(p.view.Textures); n != 0 {
 		t.Fatalf("newView decoded %d textures up front", n)
 	}
-	if n := walls.WallNames(series); len(n) > 0 && p.view.Load(n[0]) == nil {
+	if n := asset.WallNames(series); len(n) > 0 && p.view.Load(n[0]) == nil {
 		t.Fatalf("Load(%q) is nil", n[0])
 	}
 }

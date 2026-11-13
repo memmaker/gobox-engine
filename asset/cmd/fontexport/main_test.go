@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
+	"gobox/asset"
 	"gobox/dax"
-	"gobox/ui/fonts"
 )
 
 // glyph is the games' decoder (cotab cmd/cotab/combat.go glyph, sotsb
@@ -29,7 +29,7 @@ func TestPool(t *testing.T) {
 			t.Skip(err)
 		}
 		blk := l.Block(c.dax, block) // what the game gets
-		pool := fonts.Get(c.name)
+		pool := asset.Get(c.name)
 		if len(blk) != 1416 || len(pool) != 2048 {
 			t.Fatal(c.name, len(blk), len(pool))
 		}

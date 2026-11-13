@@ -1,4 +1,4 @@
-package saves
+package asset
 
 import (
 	"errors"

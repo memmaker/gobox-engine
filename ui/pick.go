@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
+	"gobox/asset"
 	"gobox/ega"
 	"gobox/game"
-	"gobox/sprites"
 )
 
 // Picker is page page of the grid picker in s (page < 0: the one holding
@@ -234,7 +234,7 @@ func poolPickName(m game.Member, kind, prefix string) string {
 		h.Write([]byte(m.Name))
 	}
 	var ns []string
-	for _, n := range sprites.SpriteNames(Series, kind) {
+	for _, n := range asset.SpriteNames(Series, kind) {
 		if strings.HasPrefix(n, prefix) {
 			ns = append(ns, n)
 		}

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/walls"
+	"gobox/asset"
 	"gobox/games/por/presentdata/blobberart"
 )
 
@@ -37,7 +37,7 @@ func TestSurfacesTextured(t *testing.T) {
 			case "prop":
 				tex = w[1]
 			}
-			if tex != "" && !walls.Has("pool", tex) {
+			if tex != "" && !asset.Has("pool", tex) {
 				t.Errorf("%s: %q has no texture %s", name, sc.Text(), tex)
 			}
 		}

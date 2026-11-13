@@ -14,12 +14,12 @@ import (
 	"strings"
 	"time"
 
+	"gobox/asset"
 	"gobox/audio"
 	"gobox/ega"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
-	"gobox/ui/fonts"
 )
 
 // Presenter draws the remastered screen. Screens it has no remaster for
@@ -33,7 +33,7 @@ type Presenter struct {
 	pager     *pager               // the help or a Read is up (pager.go)
 	eng       *classicGame         // for queries (SetEngine)
 	pool      *poolPick            // gobox's own pool picker is up (poolpick.go)
-	fonts     *fonts.Chooser       // the text fonts (fontmenu.go; nil: the game's own)
+	fonts     *asset.Chooser       // the text fonts (fontmenu.go; nil: the game's own)
 	fontNote  string               // the font's name, shown for a moment after Ctrl-F
 	fontAt    time.Time            // ... since then
 	fontLabel string               // the game's own font's name in the list

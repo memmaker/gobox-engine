@@ -8,11 +8,11 @@ import (
 	"slices"
 	"testing"
 
+	"gobox/asset"
 	"gobox/dax"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
-	"gobox/ui/fonts"
 )
 
 // buyDraft is a draft whose sheet has the abilities names (nil: STR .. CHA).
@@ -32,7 +32,7 @@ func TestPointBuy(t *testing.T) {
 		stats []string
 		font  func() []byte
 	}{
-		{"pool", []string{"STR", "INT", "WIS", "DEX", "CON", "CHA"}, func() []byte { return fonts.Get(theme.Font) }},
+		{"pool", []string{"STR", "INT", "WIS", "DEX", "CON", "CHA"}, func() []byte { return asset.Get(theme.Font) }},
 		{"br", []string{"STR", "DEX", "CON", "INT", "WIS", "CHA", "TECH"}, brBits},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -41,8 +41,8 @@ func TestPointBuy(t *testing.T) {
 			dst := gpu.NewImage(640, 400)
 			defer dst.Deallocate()
 			bits := tc.font()
-			gl := func(ch byte) [8]byte { r, _ := fonts.Glyph(bits, ch, true); return r }
-			note := Note{Glyph: gl, Font: func(ch byte, text bool) [8]byte { r, _ := fonts.Glyph(bits, ch, text); return r }}
+			gl := func(ch byte) [8]byte { r, _ := asset.Glyph(bits, ch, true); return r }
+			note := Note{Glyph: gl, Font: func(ch byte, text bool) [8]byte { r, _ := asset.Glyph(bits, ch, text); return r }}
 			p.send(FrontActCreate, 0)
 			p.Draw(dst, note)
 			if p.scr.sub != scrHow {
@@ -102,7 +102,7 @@ func brBits() []byte {
 			return b
 		}
 	}
-	return fonts.Get("Buck_Rogers_8x8D1")
+	return asset.Get("Buck_Rogers_8x8D1")
 }
 
 // saveBuyPNG writes dst to POINTBUY_PNG/name.png when set.

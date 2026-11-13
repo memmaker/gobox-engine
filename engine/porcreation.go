@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/importer/pictures"
+	"gobox/asset"
 	"slices"
 
 	"gobox/rules"
@@ -22,20 +22,20 @@ func (h creationHost) Keep(id rules.CharID) error                   { return h.e
 func (h creationHost) Join(id rules.RosterID) (rules.CharID, error) { return h.e.joinRoster(id) }
 
 func (h creationHost) Portrait(p rules.Pics) (head, body rules.PicID) {
-	return pictures.Pick(p.Pool.PortraitHead, h.e.portPic("HEAD", p.PortHead)), pictures.Pick(p.Pool.PortraitBody, h.e.portPic("BODY", p.PortBody))
+	return asset.Pick(p.Pool.PortraitHead, h.e.portPic("HEAD", p.PortHead)), asset.Pick(p.Pool.PortraitBody, h.e.portPic("BODY", p.PortBody))
 }
 
 func (h creationHost) IconPics(p rules.Pics) (head, body rules.PicID) {
-	return pictures.Pick(p.Pool.IconHead, h.e.iconPic("CHEAD", p.IconHead, p.IconSize)), pictures.Pick(p.Pool.IconBody, h.e.iconPic("CBODY", p.IconBody, p.IconSize))
+	return asset.Pick(p.Pool.IconHead, h.e.iconPic("CHEAD", p.IconHead, p.IconSize)), asset.Pick(p.Pool.IconBody, h.e.iconPic("CBODY", p.IconBody, p.IconSize))
 }
 
 // SetPics sets p's pictures from d; p.IconSize is already d's.
 func (h creationHost) SetPics(d rules.Draft, p *rules.Pics) {
 	e := h.e
-	pictures.Set(d.Head, &p.PortHead, 0, &p.Pool.PortraitHead, func(b byte) rules.PicID { return e.portPic("HEAD", b) }, func(id rules.PicID) (byte, bool) { return e.portByte("HEAD", id) })
-	pictures.Set(d.Body, &p.PortBody, 0, &p.Pool.PortraitBody, func(b byte) rules.PicID { return e.portPic("BODY", b) }, func(id rules.PicID) (byte, bool) { return e.portByte("BODY", id) })
-	pictures.Set(d.Icon.Head, &p.IconHead, 0, &p.Pool.IconHead, func(b byte) rules.PicID { return e.iconPic("CHEAD", b, p.IconSize) }, func(id rules.PicID) (byte, bool) { return e.iconByte("CHEAD", id, p.IconSize) })
-	pictures.Set(d.Icon.Body, &p.IconBody, 0, &p.Pool.IconBody, func(b byte) rules.PicID { return e.iconPic("CBODY", b, p.IconSize) }, func(id rules.PicID) (byte, bool) { return e.iconByte("CBODY", id, p.IconSize) })
+	asset.Set(d.Head, &p.PortHead, 0, &p.Pool.PortraitHead, func(b byte) rules.PicID { return e.portPic("HEAD", b) }, func(id rules.PicID) (byte, bool) { return e.portByte("HEAD", id) })
+	asset.Set(d.Body, &p.PortBody, 0, &p.Pool.PortraitBody, func(b byte) rules.PicID { return e.portPic("BODY", b) }, func(id rules.PicID) (byte, bool) { return e.portByte("BODY", id) })
+	asset.Set(d.Icon.Head, &p.IconHead, 0, &p.Pool.IconHead, func(b byte) rules.PicID { return e.iconPic("CHEAD", b, p.IconSize) }, func(id rules.PicID) (byte, bool) { return e.iconByte("CHEAD", id, p.IconSize) })
+	asset.Set(d.Icon.Body, &p.IconBody, 0, &p.Pool.IconBody, func(b byte) rules.PicID { return e.iconPic("CBODY", b, p.IconSize) }, func(id rules.PicID) (byte, bool) { return e.iconByte("CBODY", id, p.IconSize) })
 }
 
 func (h creationHost) QuickParty() []rules.Template {

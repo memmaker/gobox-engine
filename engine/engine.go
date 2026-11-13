@@ -8,7 +8,6 @@ import (
 	"gobox/ecl/script"
 	"gobox/ega"
 	"gobox/game"
-	"gobox/importer/pictures"
 	"gobox/rules"
 	"image"
 	"os"
@@ -55,12 +54,12 @@ type Engine struct {
 	adv                string                      // New's adventure folder: scripts, art, data
 	data               string                      // New's host data directory: AssetsDir, AmigaDir, SaveDir
 
-	pics     pictures.Pictures // the adventure's picture table (data/pictures.json): DAX picture -> collection entry
-	arts     *asset.Art        // the imported art of data (artFolder)
-	gameData game.Data         // the game's static data (GameDataFile)
-	gd       *gameData         // the imported data of data (gdata)
-	sounds   []byte            // the imported sound tables (SoundData)
-	listed   []string          // the roster list migrateRoster last saw: each new list is numbered once (it reads every .cha)
+	pics     asset.Pictures // the adventure's picture table (data/pictures.json): DAX picture -> collection entry
+	arts     *asset.Art     // the imported art of data (artFolder)
+	gameData game.Data      // the game's static data (GameDataFile)
+	gd       *gameData      // the imported data of data (gdata)
+	sounds   []byte         // the imported sound tables (SoundData)
+	listed   []string       // the roster list migrateRoster last saw: each new list is numbered once (it reads every .cha)
 
 	pal         ega.Regs // EGA palette registers (SetPaletteColor)
 	Cfg         Config
@@ -198,7 +197,7 @@ func New(ruleset Ruleset, d GameTables, adv, data string) (*Engine, error) {
 		return nil, err
 	}
 	e.port = portrait{headID: 0xFF, bodyID: 0xFF}
-	pics, err := pictures.ReadPictures(os.DirFS(adv))
+	pics, err := asset.ReadPictures(os.DirFS(adv))
 	if err != nil {
 		return nil, err
 	}

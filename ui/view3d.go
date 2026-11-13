@@ -4,10 +4,10 @@ package ui
 
 import (
 	"fmt"
+	"gobox/asset"
 	"gobox/game"
 	"gobox/gpu"
 	"gobox/gpu/vector"
-	"gobox/walls"
 	"image"
 	"image/color"
 	"io/fs"
@@ -158,7 +158,7 @@ func flatsPainted(w *game.Walls, backdrop image.Image) bool {
 	if _, flat := flatColour(backdrop); flat {
 		return true
 	}
-	return w.Floor != "" && walls.Has(series, "floor_"+w.Floor) || w.Sky != "" && walls.Has(series, "ceiling_"+w.Sky)
+	return w.Floor != "" && asset.Has(series, "floor_"+w.Floor) || w.Sky != "" && asset.Has(series, "ceiling_"+w.Sky)
 }
 
 // wallTexture is the texture of wall value n of w: its remastered one from
@@ -167,7 +167,7 @@ func (p *Presenter) wallTexture(w *game.Walls, art map[string]game.Picture, n in
 	if n == 0 {
 		return ""
 	}
-	if t := w.Pool[n]; t != "" && walls.Has(series, t) { // decoded on first draw (Load)
+	if t := w.Pool[n]; t != "" && asset.Has(series, t) { // decoded on first draw (Load)
 		return t
 	}
 	pc, ok := art[w.Fronts[n]]
@@ -210,7 +210,7 @@ func (p *Presenter) drawOpen(dst *gpu.Image) {
 
 // wallImage is Load: a texture of the game's series of the shared pool,
 // decoded when first drawn (the maps name their textures; walls.txt is the character table).
-func wallImage(name string) image.Image { return walls.WallImage(series, name) }
+func wallImage(name string) image.Image { return asset.WallImage(series, name) }
 
 // paintedWalls is Painted, from assets/walls/walls.txt: map character, then texture name.
 func paintedWalls() map[byte]string {
@@ -253,10 +253,10 @@ func (p *Presenter) wallStyle() {
 	if Host.PixelWalls {
 		style = "pixel"
 	}
-	if walls.Style() == style {
+	if asset.Style() == style {
 		return
 	}
-	walls.SetStyle(style)
+	asset.SetStyle(style)
 	if p.view != nil {
 		p.view.ResetTextures()
 		clear(p.scenes)

@@ -3,9 +3,9 @@ package ui
 import (
 	"bytes"
 	"fmt"
+	"gobox/asset"
 	"gobox/game"
 	"gobox/game/play"
-	"gobox/ui/fonts"
 	"image"
 	"image/color"
 	"image/draw"
@@ -442,7 +442,7 @@ func upload(img **gpu.Image, m *image.RGBA) *gpu.Image {
 // glyphAt draws glyph g at x, y: set bits fg, the rest bg.
 func glyphAt(m *image.RGBA, g [8]byte, x, y int, fg, bg color.RGBA) {
 	fg, bg = fontInk(fg), fontInk(bg)
-	fonts.DrawGlyph(m, g, x, y, &fg, &bg)
+	asset.DrawGlyph(m, g, x, y, &fg, &bg)
 }
 
 // fontInk is c as gobox's font colour: the EGA colour nearest c in gobox's

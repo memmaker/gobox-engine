@@ -2,7 +2,7 @@
 // and combat icon of the series' games, deduplicated by exact pixels, plus
 // series/<series>/origins.json (and, for the pool series, INDEX.md's tables).
 //
-//	go run . [-series pool|buck-rogers] [-games ~/Projects] [-out ../..]   (run in sprites/cmd/poolsprites)
+//	go run . [-series pool|buck-rogers] [-games ~/Projects] [-out ../../sprites]   (run in asset/cmd/poolsprites)
 package main
 
 import (
@@ -69,7 +69,7 @@ type entry struct {
 
 func main() {
 	root := flag.String("games", "..", "directory holding <game>-go")
-	out := flag.String("out", "../..", "sprites module directory")
+	out := flag.String("out", "../../sprites", "sprites data directory")
 	series := flag.String("series", "pool", "series to build: pool (por, cotab, sotsb, pod) or buck-rogers")
 	flag.Parse()
 	switch *series {
@@ -215,7 +215,7 @@ func main() {
 	}
 	games = append(games, games2...)
 	b, _ := json.MarshalIndent(origins, "", " ")
-	check(os.WriteFile(filepath.Join(*out, "..", "importer", "pictures", "origins", *series+".json"), append(b, '\n'), 0o644)) // the picture table's (gobox/importer/pictures)
+	check(os.WriteFile(filepath.Join(*out, "..", "origins", *series+".json"), append(b, '\n'), 0o644)) // the picture table's (gobox/asset)
 	poses := map[string]string{}                                                                                               // combat head/body frame 0 -> its pose-1 frame (the first origin's)
 	for _, files := range origins {
 		for _, refs := range files {

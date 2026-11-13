@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"gobox/sprites"
+	"gobox/asset"
 )
 
 // AmigaArt reports whether the Amiga art is showing (F12); nil: never.
@@ -20,12 +20,12 @@ var AmigaArt func() bool
 func poolPicture(kind, name string) image.Image {
 	if AmigaArt != nil && AmigaArt() {
 		if t := amigaTwin(name); t != "" {
-			if im := sprites.SpriteImage(Series, kind, t); im != nil {
+			if im := asset.SpriteImage(Series, kind, t); im != nil {
 				return im
 			}
 		}
 	}
-	return sprites.SpriteImage(Series, kind, name)
+	return asset.SpriteImage(Series, kind, name)
 }
 
 var (

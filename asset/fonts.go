@@ -1,8 +1,8 @@
-// Package fonts is the shared pool of PC BIOS 8x8 fonts (The Ultimate
+// Package asset is the shared pool of PC BIOS 8x8 fonts (The Ultimate
 // Oldschool PC Font Pack, CC BY-SA 4.0, see LICENSE.txt): code page 437,
 // 256 glyphs of 8 rows, bit 7 leftmost. They are not game art; a game picks
 // one by name.
-package fonts
+package asset
 
 import (
 	"embed"
@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-//go:embed *.f8
+//go:embed fonts/*.f8
 var fontFS embed.FS
 
 // Font is one 8x8 font: Bits holds 256 glyphs of 8 bytes.
@@ -23,10 +23,10 @@ type Font struct {
 
 // All are the embedded fonts, sorted by name ignoring case.
 func All() []Font {
-	ents, _ := fontFS.ReadDir(".")
+	ents, _ := fontFS.ReadDir("fonts")
 	var out []Font
 	for _, e := range ents {
-		b, _ := fontFS.ReadFile(e.Name())
+		b, _ := fontFS.ReadFile("fonts/" + e.Name())
 		out = append(out, Font{strings.TrimSuffix(e.Name(), ".f8"), b})
 	}
 	sort.Slice(out, func(i, j int) bool { return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name) })
@@ -35,7 +35,7 @@ func All() []Font {
 
 // Get is the embedded font called name (no ".f8"), nil if there is none.
 func Get(name string) []byte {
-	b, _ := fontFS.ReadFile(name + ".f8")
+	b, _ := fontFS.ReadFile("fonts/" + name + ".f8")
 	return b
 }
 

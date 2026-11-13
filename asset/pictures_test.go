@@ -1,4 +1,4 @@
-package pictures
+package asset
 
 import (
 	"encoding/json"

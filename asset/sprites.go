@@ -1,6 +1,6 @@
-// Package sprites is the shared pool of portraits, combat sprites and item
-// icons, keyed by asset series: series/<series>/<kind>/<name>.png.
-package sprites
+// Package asset is the shared pool of portraits, combat sprites and item
+// icons, keyed by asset series: sprites/series/<series>/<kind>/<name>.png.
+package asset
 
 import (
 	"bytes"
@@ -14,13 +14,13 @@ import (
 	"sync"
 )
 
-//go:embed all:series
+//go:embed all:sprites/series
 var fsys embed.FS
 
 // SpriteImage decodes sprite name (no extension) of series from kind "portraits", "combat" or "items"; nil if absent.
 // Decoded once and kept: callers ask every View, and keep GPU copies by image identity.
 func SpriteImage(series, kind, name string) image.Image {
-	path := "series/" + series + "/" + kind + "/" + name + ".png"
+	path := "sprites/series/" + series + "/" + kind + "/" + name + ".png"
 	if m, ok := decoded.Load(path); ok {
 		im, _ := m.(image.Image)
 		return im
@@ -46,13 +46,13 @@ func decode(path string) image.Image {
 
 // Meshes is the series' combat tile models: <name>.gltf with its PNG (see combat.Presenter.Meshes).
 func Meshes(series string) fs.FS {
-	f, _ := fs.Sub(fsys, "series/"+series+"/combat/meshes")
+	f, _ := fs.Sub(fsys, "sprites/series/"+series+"/combat/meshes")
 	return f
 }
 
 // Combat is the series' combat directory: props.json says how its tiles draw (see combat.Presenter.Props).
 func Combat(series string) fs.FS {
-	f, _ := fs.Sub(fsys, "series/"+series+"/combat")
+	f, _ := fs.Sub(fsys, "sprites/series/"+series+"/combat")
 	return f
 }
 
@@ -63,7 +63,7 @@ var names sync.Map // series/kind -> []string
 // SpriteNames lists the sprite names of a series' kind, sorted. The list is
 // shared: callers must not change it.
 func SpriteNames(series, kind string) []string {
-	dir := "series/" + series + "/" + kind
+	dir := "sprites/series/" + series + "/" + kind
 	if out, ok := names.Load(dir); ok {
 		return out.([]string)
 	}
@@ -81,7 +81,7 @@ func SpriteNames(series, kind string) []string {
 
 // Pose is the series' combat head or body name drawn in the action pose when name is the ready one ("": none).
 func Pose(series, name string) string {
-	b, err := fsys.ReadFile("series/" + series + "/combat/poses.json")
+	b, err := fsys.ReadFile("sprites/series/" + series + "/combat/poses.json")
 	if err != nil {
 		return ""
 	}
@@ -93,7 +93,7 @@ func Pose(series, name string) string {
 // ItemIcons is a series' item icon sheet (itemicons/atlas.png) and its
 // records (itemicons/items.rec: item name -> cell), one for every game of the series.
 func ItemIcons(series string) (atlas []byte, rec string) {
-	atlas, _ = fsys.ReadFile("series/" + series + "/itemicons/atlas.png")
-	b, _ := fsys.ReadFile("series/" + series + "/itemicons/items.rec")
+	atlas, _ = fsys.ReadFile("sprites/series/" + series + "/itemicons/atlas.png")
+	b, _ := fsys.ReadFile("sprites/series/" + series + "/itemicons/items.rec")
 	return atlas, string(b)
 }

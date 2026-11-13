@@ -6,7 +6,7 @@ package ui
 
 import (
 	"fmt"
-	"gobox/ui/fonts"
+	"gobox/asset"
 	"log"
 	"path/filepath"
 	"time"
@@ -48,9 +48,9 @@ func NewFront(g *Game, data game.Data, snd ...audio.Sound) *Front {
 	gpu.Mark("NewFront")
 	gameData(data)
 	f := &Front{}
-	if font := fonts.Get(theme.Font); font != nil { // the theme's font; a game's own glyphs replace these
-		f.Glyph = func(ch byte) [8]byte { g, _ := fonts.Glyph(font, ch, true); return g }
-		f.Font = func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(font, ch, text); return g }
+	if font := asset.Get(theme.Font); font != nil { // the theme's font; a game's own glyphs replace these
+		f.Glyph = func(ch byte) [8]byte { g, _ := asset.Glyph(font, ch, true); return g }
+		f.Font = func(ch byte, text bool) [8]byte { g, _ := asset.Glyph(font, ch, text); return g }
 	}
 	f.chooseFonts(data.Fonts)
 	gpu.Mark("NewFront: fonts")

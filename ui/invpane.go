@@ -5,9 +5,9 @@ package ui
 import (
 	"bufio"
 	"bytes"
+	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
-	"gobox/sprites"
 	"image"
 	"image/color"
 	"image/draw"
@@ -190,7 +190,7 @@ func (inv *inventory) load() {
 	if inv.doll != nil {
 		return
 	}
-	atlas, rec := sprites.ItemIcons(series)
+	atlas, rec := asset.ItemIcons(series)
 	inv.doll, inv.atlas = decodePNG(dollPNG), decodePNG(atlas)
 	inv.icons = readIcons(rec)
 }

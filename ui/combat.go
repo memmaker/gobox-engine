@@ -6,8 +6,8 @@ import (
 	"image"
 	"slices"
 
+	"gobox/asset"
 	"gobox/gpu"
-	"gobox/sprites"
 )
 
 // The adapter between the engine's combat snapshot and gobox/combat.
@@ -33,7 +33,7 @@ var engineKinds = func() map[Kind]ActKind {
 func (p *Presenter) syncBattle() {
 	p.battle.Theme, p.battle.Shift, p.battle.Alt = CombatDefaultTheme, gpu.IsKeyPressed(gpu.KeyShift), gpu.IsKeyPressed(gpu.KeyAlt)
 	p.battle.Theme.Series = series
-	p.battle.Meshes, p.battle.Props = sprites.Meshes(series), sprites.Combat(series)
+	p.battle.Meshes, p.battle.Props = asset.Meshes(series), asset.Combat(series)
 }
 
 // toAction is what the player chose as the engine's action.

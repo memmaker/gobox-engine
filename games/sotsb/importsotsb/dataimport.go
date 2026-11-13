@@ -2,17 +2,17 @@ package importsotsb
 
 import (
 	"encoding/json"
+	"gobox/rules1e"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 
+	"gobox/asset"
 	"gobox/char"
 	"gobox/dax"
+	"gobox/engine"
 	"gobox/exe"
 	"gobox/exe/tablespec"
-	"gobox/importer/pictures"
-	"gobox/engine"
 	"gobox/games/sotsb"
 )
 
@@ -45,7 +45,7 @@ func ImportTo(dos, dst string) error {
 	if err := ImportDataTo(dos, filepath.Join(dst, dataDir)); err != nil {
 		return err
 	}
-	if err := pictures.WritePictures("sotsb", dst); err != nil {
+	if err := asset.WritePictures("sotsb", dst); err != nil {
 		return err
 	}
 	if err := ImportRulesTo(dos, filepath.Join(dst, dataDir)); err != nil {
