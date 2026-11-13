@@ -39,6 +39,9 @@ func write(s *Script, names *Names, callTests bool) (string, error) {
 	for _, n := range names.Vars {
 		w.taken[n] = true
 	}
+	for _, n := range names.Arrays {
+		w.taken[n] = true
+	}
 	for _, n := range names.Calls {
 		w.taken[n] = true
 	}
@@ -756,6 +759,12 @@ func (w *scriptWriter) simple(i int) (string, error) {
 	a := in.Args
 	plain := func(k int) string { return w.arg(a[k], "", Arg{}, "") }
 	beside := func(k, v int, op string) string { return w.arg(a[k], "", a[v], op) }
+	table := func(k int) string { // an indexed base: the array's name, not its element 0's
+		if t := w.names.Arrays[a[k].N]; t != "" && w.varName(a[k]) != "" {
+			return t
+		}
+		return plain(k)
+	}
 	n := len(a)
 	if !destIsVar(in) {
 		n = -1 // the original stores through a number: no assignment form
@@ -777,9 +786,9 @@ func (w *scriptWriter) simple(i int) (string, error) {
 		op := map[byte]string{OpAdd: "+", OpMul: "*", OpDiv: "/", OpAnd: "&", OpOr: "|"}[in.Op]
 		return plain(2) + " = " + beside(0, 1, op) + " " + op + " " + beside(1, 0, op), nil
 	case in.Op == OpGetTable && n == 3:
-		return fmt.Sprintf("%s = %s[%s]", plain(2), plain(0), plain(1)), nil
+		return fmt.Sprintf("%s = %s[%s]", plain(2), table(0), plain(1)), nil
 	case in.Op == OpSaveTable && n == 3:
-		return fmt.Sprintf("%s[%s] = %s", plain(1), plain(2), plain(0)), nil
+		return fmt.Sprintf("%s[%s] = %s", table(1), plain(2), plain(0)), nil
 	case in.Op == OpRandom && n == 2:
 		return fmt.Sprintf("%s = Random(%s)", plain(1), plain(0)), nil
 	case in.Op == OpPartyStr && n == 1:

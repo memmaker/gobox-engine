@@ -201,7 +201,9 @@ func TestSaveKeepsFields(t *testing.T) {
 			continue
 		}
 		for k := range fl.Len {
-			e.storeCells(&fl, k, []int64{0xBEEF - int64(k)})
+			if !e.boundElement(&fl, k) {
+				e.storeCells(&fl, k, []int64{0xBEEF - int64(k)})
+			}
 		}
 	}
 	values := func() []string {
@@ -216,7 +218,9 @@ func TestSaveKeepsFields(t *testing.T) {
 				continue
 			}
 			for k := range fl.Len {
-				out = append(out, fmt.Sprint(fl.Name, k, "=", e.getVar(r.Plus(k))))
+				if !e.boundElement(&fl, k) {
+					out = append(out, fmt.Sprint(fl.Name, k, "=", e.getVar(r.Plus(k))))
+				}
 			}
 		}
 		return out

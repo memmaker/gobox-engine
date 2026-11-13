@@ -807,13 +807,13 @@ CastKnock: # engine (castKnock): the first okay member with Knock memorized cast
 	// 31: area 14 KnockOpens. Original: nothing here.
 	// Why: CastKnock's NoKnock section (OpenLockMenu's).
 	// CHANGES: Cabinets' CAST KNOCK (area 14).
-	{Area: 14, Old: `    CabinetALock[Scratch2] = 0
+	{Area: 14, Old: `    LockTable[Scratch2] = 0
     return
 
 PickLock:
-    Scratch3 = CabinetALock[Scratch2]
+    Scratch3 = LockTable[Scratch2]
     if Scratch3 == 2 { goto LockTooComplex }
-`, New: `    CabinetALock[Scratch2] = 0
+`, New: `    LockTable[Scratch2] = 0
     return
 
 NoKnock:
@@ -821,7 +821,7 @@ NoKnock:
     goto OpenLockMenu
 
 PickLock:
-    Scratch3 = CabinetALock[Scratch2]
+    Scratch3 = LockTable[Scratch2]
     if Scratch3 == 2 { goto LockTooComplex }
 `},
 	// 32: area 14 WeaponPileAmbush. Original: nothing here.
@@ -1903,21 +1903,5 @@ RelaxOrWalk:
 `, New: `    CheckParty(SelMove, 0, Scratch9, Scratch1, Scratch1, Scratch1)
     Scratch1 = 0 # the original's fourth result after a census (found, never set); the count is the party size
     if AuxEncResult < Scratch1 {
-`},
-	// area 0 WagerPrompt: the original counted the gambler's platinum ("PP", house limit 1000).
-	// Why: DEFAULT (Felix may override): coins are gold only (Gc); the wager is gold, the house limit 1000 platinum in gold (pool tavernHouseLimit, the native TavernGamble's).
-	// CHANGES: POR script, area 0 tavern wager in gold.
-	{Area: 0, Old: `    Print(" PP.")
-    WaitReturnPressed()
-    Text("HOW MANY PLATINUM PIECES WILL YOU WAGER? (HOUSE LIMIT IS 1000)")
-    &Wager = InputNumber(4)
-    if &GamblerPlatinum < &Wager { goto WagerRefused }
-    if &Wager > 1000 { goto WagerRefused }
-`, New: `    Print(" GP.")
-    WaitReturnPressed()
-    Text("HOW MANY GOLD PIECES WILL YOU WAGER? (HOUSE LIMIT IS 5000)")
-    &Wager = InputNumber(4)
-    if &GamblerPlatinum < &Wager { goto WagerRefused }
-    if &Wager > 5000 { goto WagerRefused }
 `},
 }

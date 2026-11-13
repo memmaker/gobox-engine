@@ -79,7 +79,14 @@ type Field struct {
 	Encoding Encoding
 	// Coins: the field's elements are money (coins=, CoinCell an element); nil: none.
 	Coins []CoinCell
+	// Elements: names of single elements of an array, by index (the layout's
+	// "from = name" lines): a table the scripts index, whose entries other
+	// scripts name one by one (POR's QuestTable, QuestSokalKeep its element 1).
+	Elements map[int]string
 }
+
+// ElementName is the name of f's element i, or "": the element has none.
+func (f *Field) ElementName(i int) string { return f.Elements[i] }
 
 // Encoding names a game's encoding of a canonical field (Field.Encoding).
 type Encoding string
@@ -104,8 +111,16 @@ func (r Ref) Plus(i int) Ref { return Ref{Field: r.Field, Index: r.Index + i} }
 // writes by itself (a native command's answer, DIVIDE's remainder).
 func (l *Layout) Named(name string) (Ref, error) {
 	for i, f := range l.Fields {
-		if f.Name == name && !f.routine() {
+		if f.routine() {
+			continue
+		}
+		if f.Name == name {
 			return Ref{Field: FieldID(i + 1)}, nil
+		}
+		for k, n := range f.Elements {
+			if n == name {
+				return Ref{Field: FieldID(i + 1), Index: k}, nil
+			}
 		}
 	}
 	return Ref{}, fmt.Errorf("layout: no field %s", name)
@@ -180,6 +195,12 @@ func (l *Layout) check() error {
 			return fmt.Errorf("layout: %s ends in _<number>, the form of an array element's name", f.Name)
 		}
 		names[f.Name] = true
+		for _, n := range f.Elements {
+			if names[n] {
+				return fmt.Errorf("layout: %s twice", n)
+			}
+			names[n] = true
+		}
 		if i > 0 {
 			if p := l.Fields[i-1]; p.routine() == f.routine() && p.From+p.Len > f.From {
 				return fmt.Errorf("layout: %s overlaps %s", p.Name, f.Name)
@@ -190,7 +211,9 @@ func (l *Layout) check() error {
 }
 
 // ParseLayout reads a layout text: one Field a line, "from len width owner
-// name [readonly|replaces] [enc=<encoding>] [coins=<cells>]", from in hex; '#' starts a comment.
+// name [readonly|replaces] [enc=<encoding>] [coins=<cells>]", from in hex, or
+// "from = name": the name of the element at from of the array field before
+// it (Field.Elements); '#' starts a comment.
 func ParseLayout(r io.Reader) (*Layout, error) {
 	l := &Layout{}
 	names := map[string]bool{}
@@ -199,6 +222,12 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 		line, _, _ := strings.Cut(sc.Text(), "#")
 		f := strings.Fields(line)
 		if len(f) == 0 {
+			continue
+		}
+		if len(f) == 3 && f[1] == "=" {
+			if err := l.nameElement(f[0], f[2]); err != nil {
+				return nil, fmt.Errorf("layout line %d: %w", n, err)
+			}
 			continue
 		}
 		if len(f) < 5 {
@@ -254,4 +283,32 @@ func ParseLayout(r io.Reader) (*Layout, error) {
 		return nil, err
 	}
 	return l, l.check()
+}
+
+// nameElement names the element at address from (hex) of the last field read,
+// which must be an array holding it.
+func (l *Layout) nameElement(from, name string) error {
+	a, err := strconv.ParseInt(from, 16, 32)
+	if err != nil {
+		return fmt.Errorf("from %q", from)
+	}
+	if len(l.Fields) == 0 {
+		return fmt.Errorf("element %s before any field", name)
+	}
+	f := &l.Fields[len(l.Fields)-1]
+	i := int(a) - f.From
+	if f.Len < 2 || f.Width == WidthText || f.routine() || i < 0 || i >= f.Len {
+		return fmt.Errorf("element %s at %04X is in no array field before it (%s)", name, a, f.Name)
+	}
+	if elementName.MatchString(name) {
+		return fmt.Errorf("element %s ends in _<number>", name)
+	}
+	if f.Elements == nil {
+		f.Elements = map[int]string{}
+	}
+	if _, dup := f.Elements[i]; dup {
+		return fmt.Errorf("element %04X of %s named twice", a, f.Name)
+	}
+	f.Elements[i] = name
+	return nil
 }

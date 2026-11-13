@@ -1,6 +1,6 @@
 # POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
 # Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
-4900 1 byte game EffectTable  # GetTable at L_ACF5: entries 0-63 searched for 27, entry+64 compared with 6DB4 (who); guess: active spell-effect table (feather fall in the well)
+4900 128 byte game EffectTable  # GetTable at L_ACF5: entries 0-63 searched for 27, entry+64 compared with 6DB4 (who); guess: active spell-effect table (feather fall in the well)
 4A02 1 byte local TapestryRoomSeen  # set 255 after "FADED, MOTHEATEN TAPESTRIES" text; area-local reuse
 4A05 1 byte local SkullcrusherLootDestroyed  # set 255 after "YOU DESTROY EVERYTHING OF VALUE." (dark object / dead hobgoblin); area-local reuse
 4A06 1 byte local StenchRoomSeen  # set 255 after "APPALLED BY THE STENCH" text; area-local reuse

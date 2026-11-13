@@ -29,3 +29,23 @@ func TestScriptsGoldOnly(t *testing.T) {
 		t.Error(b)
 	}
 }
+
+// TestNoScalarTables: no imported script indexes a field of one element
+// (eclscript.ScalarTables; POR's quest table was split into scalars).
+func TestNoScalarTables(t *testing.T) {
+	dos := filepath.Join("..", "..", "..", "data", "pod", "sources", "dos")
+	if _, err := os.Stat(dos); err != nil {
+		t.Skip("no originals:", err)
+	}
+	dir := t.TempDir()
+	if err := ImportScriptsTo(dos, dir); err != nil {
+		t.Fatal(err)
+	}
+	bad, err := eclscript.ScalarTables(eclscript.V3, dir, scriptData(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, b := range bad {
+		t.Error(b)
+	}
+}

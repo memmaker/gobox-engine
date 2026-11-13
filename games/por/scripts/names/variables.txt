@@ -383,8 +383,8 @@ PatrolsFought3 0 1 PatrolsFought
 # clerk (area8); QuestBivant area1: 1 the boy bought, 128 bungled;
 # QuestPodalAuction area18: 1 the auction on; QuestZhentilOutpost area28:
 # 1 the commandant killed, 253 left the outpost
-QuestBandits 0 254 RewardDue
-QuestBandits 0 255 Rewarded
+QuestTable 0 254 RewardDue
+QuestTable 0 255 Rewarded
 
 QuestSokalKeep 0 254 RewardDue
 QuestSokalKeep 0 255 Rewarded
@@ -704,9 +704,9 @@ VisitStage 0 1 Entered
 VisitStage 0 2 StormShown
 
 # names/area14.txt 4AEA-4AF1: the lock state table, 1 looted, 2 too complex, 3 left
-CabinetALock 0 1 Looted
-CabinetALock 0 2 TooComplex
-CabinetALock 0 3 LeftAlone
+LockTable 0 1 Looted
+LockTable 0 2 TooComplex
+LockTable 0 3 LeftAlone
 
 CabinetBLock 0 1 Looted
 CabinetBLock 0 2 TooComplex

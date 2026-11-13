@@ -46,7 +46,7 @@ type Arg struct {
 // layout/ folders) over the version's: the variables (with labels, the
 // labels and tables too), the areas and the values.
 func ReadNames(data fs.FS, area int, labels bool, v *Version) (*Names, error) {
-	n := &Names{Version: v, Vars: map[int]string{}, Calls: map[int]string{}}
+	n := &Names{Version: v, Vars: map[int]string{}, Arrays: map[int]string{}, Calls: map[int]string{}}
 	files := []string{"global.txt", fmt.Sprintf("area%d.txt", area)}
 	if labels {
 		files = append(files, fmt.Sprintf("labels/area%d.txt", area))
@@ -66,8 +66,14 @@ func ReadNames(data fs.FS, area int, labels bool, v *Version) (*Names, error) {
 			continue
 		}
 		n.Vars[f.From] = f.Name
+		if f.Len > 1 && f.Width != WidthText {
+			n.Arrays[f.From] = f.Name
+		}
 		for i := 1; i < f.Len && f.Width != WidthText; i++ {
 			n.Vars[f.From+i] = fmt.Sprintf("%s_%d", f.Name, i)
+		}
+		for i, e := range f.Elements { // a named element: its own name (the table keeps its for an index)
+			n.Vars[f.From+i] = e
 		}
 	}
 	if n.Areas, err = ReadAreas(data, "names/areas.txt"); err != nil {
@@ -124,6 +130,7 @@ func ReadVarNames(data fs.FS, path string, names map[int]string) error {
 type Names struct {
 	Version  *Version
 	Vars     map[int]string // variables (and, for cmd/eclscript, labels and tables) by address
+	Arrays   map[int]string // the layout's array fields by first address: an indexed command's base (Vars may name its element 0)
 	Calls    map[int]string // engine routines by CALL's operand (the layout's call fields)
 	Areas    []Area
 	Values   []Value

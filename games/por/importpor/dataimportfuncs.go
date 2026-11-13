@@ -56,7 +56,7 @@ var gameTables = pool.GameTables{ScriptSounds: map[byte]pool.ScriptSound{
 }
 
 // dataFormat changes when the files ImportData writes change.
-const dataFormat = "17" // 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
+const dataFormat = "18" // 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
 
 // ImportData is the data import: data's GEO, MON and ITEM archives, the
 // ITEMS table and START.EXE's sound tables (soundFile) as data/assets/data (DataDir).

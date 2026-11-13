@@ -52,14 +52,15 @@ func (s *SaveEditor) Bytes() []byte {
 	return b
 }
 
-// SetVar sets element 0 of the game's field name (layout/), as a script would.
+// SetVar sets the game's word name (layout/: a field's element 0 or a named element), as a script would.
 func (s *SaveEditor) SetVar(name string, v uint16) error {
 	fields, err := layoutGameFields(os.DirFS(s.e.scriptDir()))
 	if err != nil {
 		return err
 	}
-	i := slices.IndexFunc(fields, func(f script.Field) bool { return f.Name == name })
-	if i < 0 {
+	field, _, ok := wordIn(fields, name)
+	i := slices.IndexFunc(fields, func(f script.Field) bool { return f.Name == field })
+	if !ok {
 		return fmt.Errorf("no game field %s", name)
 	}
 	if fields[i].Owner == script.OwnerMember {

@@ -26,6 +26,9 @@ func Parse(text string, names *Names) (*Script, error) {
 	for a, n := range names.Vars {
 		p.vars[n] = a
 	}
+	for a, n := range names.Arrays {
+		p.vars[n] = a
+	}
 	for a, n := range names.Calls {
 		p.routines[n] = a
 	}

@@ -74,6 +74,9 @@ func UnboundFields(data fs.FS) ([]string, error) {
 		}
 		for _, f := range l.Fields {
 			have[f.Name] = true
+			for _, e := range f.Elements {
+				have[e] = true
+			}
 		}
 	}
 	var out []string

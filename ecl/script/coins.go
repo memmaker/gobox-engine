@@ -203,18 +203,8 @@ func GoldCoins(s *Script, l *Layout) {
 // the import moves (Field.Moved): none, when every script deals in gold and
 // copper only. Each game's TestScriptsGoldOnly runs it on its import.
 func MovedCoins(v *Version, dir string, data fs.FS, fixes []Fix) ([]string, error) {
-	l := Library{Version: v, Dir: dir, Data: data, Fixes: fixes}
 	var bad []string
-	areas := 0
-	for area := range maxBlock {
-		if _, err := os.Stat(AreaPath(dir, area)); errors.Is(err, fs.ErrNotExist) {
-			continue
-		}
-		s, err := l.Area(area)
-		if err != nil {
-			return nil, err
-		}
-		areas++
+	err := eachImportedArea(v, dir, data, fixes, func(area int, s *Script) {
 		for i, in := range s.Code {
 			for k, a := range in.Args {
 				if a.Ref != (Ref{}) && s.Layout.Field(a.Ref).Moved(a.Ref.Index) {
@@ -222,9 +212,27 @@ func MovedCoins(v *Version, dir string, data fs.FS, fixes []Fix) ([]string, erro
 				}
 			}
 		}
+	})
+	return bad, err
+}
+
+// eachImportedArea runs fn on every imported area text in dir.
+func eachImportedArea(v *Version, dir string, data fs.FS, fixes []Fix, fn func(area int, s *Script)) error {
+	l := Library{Version: v, Dir: dir, Data: data, Fixes: fixes}
+	areas := 0
+	for area := range maxBlock {
+		if _, err := os.Stat(AreaPath(dir, area)); errors.Is(err, fs.ErrNotExist) {
+			continue
+		}
+		s, err := l.Area(area)
+		if err != nil {
+			return err
+		}
+		areas++
+		fn(area, s)
 	}
 	if areas == 0 {
-		return nil, fmt.Errorf("%s: no imported scripts", dir)
+		return fmt.Errorf("%s: no imported scripts", dir)
 	}
-	return bad, nil
+	return nil
 }

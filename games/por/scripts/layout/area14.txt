@@ -13,11 +13,12 @@
 4A46 1 byte game CasketsLooted  # bits 1/2/4/8 = four caskets (gems, jewelry, gems, pearls) taken
 4A47 1 byte game RoomsLooted  # bits: 1 loot pile, 4 rugs, 8 scrolls, 32 weapon pile taken
 4A48 1 byte game FilesFound  # bits: 1 files j38/51, 2 jail cell fight, 4 NW castle slate, 8 NE castle map
-4AEA 1 byte game CabinetALock  # lock state table base (index 0-7): 0 open, 2 too complex, 3 left, 1 looted (cabinet A files)
-4AEB 1 byte game CabinetBLock  # lock/looted state, cabinet B silver
-4AEC 1 byte game CabinetCLock  # lock/looted state, cabinet C gold
-4AED 1 byte game ScrollCaseLock  # lock state, scroll cases
-4AEE 1 byte game CasketGemsLock  # lock state, small gems casket
-4AEF 1 byte game CasketJewelryLock  # lock state, jewelry casket
-4AF0 1 byte game CasketBigGemsLock  # lock state, beautiful gems casket
-4AF1 1 byte game CasketPearlsLock  # lock state, pearls casket
+4AEA 8 byte game LockTable  # lock state by container (indexed 0-7): 0 open, 2 too complex, 3 left, 1 looted
+4AEA = CabinetALock  # cabinet A files
+4AEB = CabinetBLock  # lock/looted state, cabinet B silver
+4AEC = CabinetCLock  # lock/looted state, cabinet C gold
+4AED = ScrollCaseLock  # lock state, scroll cases
+4AEE = CasketGemsLock  # lock state, small gems casket
+4AEF = CasketJewelryLock  # lock state, jewelry casket
+4AF0 = CasketBigGemsLock  # lock state, beautiful gems casket
+4AF1 = CasketPearlsLock  # lock state, pearls casket

@@ -198,9 +198,9 @@ func (e *Engine) getVar(r script.Ref) int64 {
 		e.inField(f, r.Index)
 		return int64(e.vm.CodeByte(uint16(f.From + r.Index)))
 	}
-	ef, bound := e.engineFields[f.Name]
+	ef, bi, bound := e.binding(f, r.Index)
 	if bound && ef.get != nil {
-		if v, ok := ef.get(canonElement(f, r.Index)); ok {
+		if v, ok := ef.get(bi); ok {
 			return e.gameValue(f, v)
 		}
 	}
@@ -223,7 +223,7 @@ func (e *Engine) setVar(r script.Ref, v int64) {
 		panic(fmt.Sprintf("script: %s is read-only", f.Name))
 	}
 	v = cutToWidth(f.Width, v)
-	ef, bound := e.engineFields[f.Name]
+	ef, bi, bound := e.binding(f, r.Index)
 	if !bound || ef.stored {
 		if f.Width != script.WidthText {
 			e.inField(f, r.Index)
@@ -234,10 +234,30 @@ func (e *Engine) setVar(r script.Ref, v int64) {
 		return
 	}
 	if bound && ef.set != nil {
-		ef.set(canonElement(f, r.Index), e.canonValue(f, v))
+		ef.set(bi, e.canonValue(f, v))
 	} else if bound && !ef.stored {
 		panic(fmt.Sprintf("script: %s cannot be written", f.Name))
 	}
+}
+
+// binding is the engine's own field for element i of f and the element it
+// reads there: a named element's binding (Boss, element 13 of POR's
+// QuestTable) as its element 0, else f's at f's canonical element i.
+func (e *Engine) binding(f *script.Field, i int) (engineField, int, bool) {
+	if n := f.ElementName(i); n != "" {
+		if ef, ok := e.engineFields[n]; ok {
+			return ef, 0, true
+		}
+	}
+	ef, ok := e.engineFields[f.Name]
+	return ef, canonElement(f, i), ok
+}
+
+// boundElement: element i of f is a named element the engine binds (it keeps
+// no cell of f's).
+func (e *Engine) boundElement(f *script.Field, i int) bool {
+	_, ok := e.engineFields[f.ElementName(i)]
+	return ok && f.ElementName(i) != ""
 }
 
 // storeCells writes vs into f's cells from element i on.
@@ -289,44 +309,62 @@ func (e *Engine) textField(f *script.Field) {
 	}
 }
 
-// savedWord is element 0 of the game's field name in any area (the quest
-// log reads the quest table wherever the party is).
+// savedWord is the game's word name (a field's element 0, or a named
+// element) in any area (the quest log reads the quest table wherever the
+// party is).
 func (e *Engine) savedWord(name string) int64 {
-	e.mustGameField(name)
 	if ef, ok := e.engineFields[name]; ok && ef.get != nil {
 		if v, ok := ef.get(0); ok {
 			return v
 		}
 	}
-	if c := e.vars[name]; len(c) > 0 {
-		return c[0]
+	f, i := e.gameWord(name)
+	if c := e.vars[f]; i < len(c) {
+		return c[i]
 	}
 	return 0
 }
 
-// setSavedWord sets element 0 of the game's field name, as a script would.
+// setSavedWord sets the game's word name, as a script would.
 func (e *Engine) setSavedWord(name string, v int64) {
-	e.mustGameField(name)
 	if ef, ok := e.engineFields[name]; ok && !ef.stored {
 		ef.set(0, v)
 		return
 	}
-	c := e.vars[name]
-	if len(c) == 0 {
-		c = []int64{0}
+	f, i := e.gameWord(name)
+	c := e.vars[f]
+	if len(c) <= i {
+		c = append(c, make([]int64, i+1-len(c))...)
 	}
-	c[0] = v
-	e.vars[name] = c
+	c[i] = v
+	e.vars[f] = c
 }
 
-// mustGameField: name is a field of the game's layouts.
-func (e *Engine) mustGameField(name string) {
+// gameWord is the saved field and element the game's word name is: a field
+// (element 0) or a field's named element. The engine's own words have none.
+func (e *Engine) gameWord(name string) (field string, i int) {
+	if f, i, ok := wordIn(e.gameFields(), name); ok {
+		return f, i
+	}
 	if _, ok := e.engineFields[name]; ok {
-		return
+		return name, 0
 	}
-	if !slices.ContainsFunc(e.gameFields(), func(f script.Field) bool { return f.Name == name }) {
-		panic("script: no game field " + name)
+	panic("script: no game field " + name)
+}
+
+// wordIn finds the word name in fields: a field's element 0 or a named element.
+func wordIn(fields []script.Field, name string) (field string, i int, ok bool) {
+	for _, f := range fields {
+		if f.Name == name {
+			return f.Name, 0, true
+		}
+		for k, n := range f.Elements {
+			if n == name {
+				return f.Name, k, true
+			}
+		}
 	}
+	return "", 0, false
 }
 
 // The fields the engine itself names (layout/global.txt; EffectTable is

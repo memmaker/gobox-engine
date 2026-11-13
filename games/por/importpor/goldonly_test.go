@@ -24,3 +24,20 @@ func TestScriptsGoldOnly(t *testing.T) {
 		t.Error(b)
 	}
 }
+
+// TestNoScalarTables: no imported script indexes a field of one element
+// (script.ScalarTables: the quest table 4AA6-4ABF was 26 scalars, the clerk's
+// QuestBandits[Scratch1] ran past it). Each game runs this test.
+func TestNoScalarTables(t *testing.T) {
+	dir := t.TempDir()
+	if err := ImportIfStale("../../../data/por/sources/dos", dir); err != nil {
+		t.Fatal(err)
+	}
+	bad, err := script.ScalarTables(script.V1, dir, os.DirFS(dir), scriptFixes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, b := range bad {
+		t.Error(b)
+	}
+}

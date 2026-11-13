@@ -148,3 +148,25 @@ func TestPartialLayout(t *testing.T) {
 		t.Error("an uncovered operand got a Ref")
 	}
 }
+
+// TestLayoutElements: an array's named elements (POR's quest table) are its
+// elements by name; a name outside an array before it is refused.
+func TestLayoutElements(t *testing.T) {
+	l, err := ParseLayout(strings.NewReader(`4AA6 26 byte game QuestTable
+4AA7 = QuestSokalKeep
+4AB3 = Boss
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, i := range map[string]int{"QuestTable": 0, "QuestSokalKeep": 1, "Boss": 13} {
+		if r, err := l.Named(name); err != nil || l.Field(r).Name != "QuestTable" || r.Index != i {
+			t.Errorf("%s: %v %+v", name, err, r)
+		}
+	}
+	for _, bad := range []string{"4AA6 1 byte game Q\n4AA6 = A\n", "4AA6 2 byte game Q\n4AA8 = A\n", "4AA6 2 byte game Q\n4AA7 = Q\n", "4AA7 = A\n"} {
+		if _, err := ParseLayout(strings.NewReader(bad)); err == nil {
+			t.Errorf("%q: no error", bad)
+		}
+	}
+}
