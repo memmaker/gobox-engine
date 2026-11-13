@@ -72,16 +72,30 @@ func TestEngineNotImporter(t *testing.T) {
 	}
 }
 
-// TestGoboxNotRules1e: cmd/gobox reaches rules1e only through engine
-// (REFACTOR.md R1); direct imports, tests included.
+// TestGoboxNotRules1e: cmd/gobox reaches rules1e and rules4e only through
+// engine (REFACTOR.md R1, R3); direct imports, tests included.
 func TestGoboxNotRules1e(t *testing.T) {
 	out, err := exec.Command("go", "list", "-test", "-f", `{{join .Imports " "}} {{join .TestImports " "}} {{join .XTestImports " "}}`, "gobox/cmd/gobox").Output()
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, p := range strings.Fields(string(out)) {
-		if p == "gobox/rules1e" {
+		if p == "gobox/rules1e" || p == "gobox/rules4e" {
 			t.Errorf("gobox/cmd/gobox imports %s", p)
+		}
+	}
+}
+
+// TestRules4eNotEngine: a ruleset depends on rules (and its base rules1e),
+// never on engine (REFACTOR.md R3).
+func TestRules4eNotEngine(t *testing.T) {
+	out, err := exec.Command("go", "list", "-deps", "gobox/rules4e").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range strings.Fields(string(out)) {
+		if p == "gobox/engine" {
+			t.Errorf("gobox/rules4e depends on %s", p)
 		}
 	}
 }

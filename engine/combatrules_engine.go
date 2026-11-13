@@ -5,12 +5,26 @@ import (
 	"fmt"
 	"gobox/rules"
 	"gobox/rules1e"
+	"gobox/rules4e"
 	"slices"
 )
 
 // HandIn makes s the rules' settings from the next decision point on (Do,
 // CombatStep). Safe from any goroutine.
-func (e *Engine) HandIn(s rules.Settings) { e.handedIn.Store(&s) }
+func (e *Engine) HandIn(s Settings) {
+	var combat rules1e.CombatRules // nil: the original's
+	if s.Combat4e {
+		combat = rules4e.New()
+	}
+	var rs rules.Settings = rules1e.Settings{Combat: combat, PathSearch: s.PathSearch}
+	e.handedIn.Store(&rs)
+}
+
+// Settings are the player's rule options the frontend hands in (HandIn).
+type Settings struct {
+	PathSearch bool // Gameplay "Path search": the computer walks by path search
+	Combat4e   bool // Gameplay "4e Combat": the rules4e combat rules
+}
 
 // takeSettings makes the settings handed in the rules' own.
 func (e *Engine) takeSettings() {
@@ -149,13 +163,6 @@ func (e *Engine) maneuverAimed(th aimThen, found bool, t aimTarget) {
 // squares are the squares a walk of move squares takes id to.
 func (e *Engine) squares(id rules.CharID, move int) rules.Squares {
 	return e.fact(id, rules.SquaresFact{Move: move}).(rules.Squares)
-}
-
-// PoolSettings are the settings of a rules1e game: path search on or off and
-// the combat rule set (nil: the original's). The frontend hands them in with
-// HandIn without importing rules1e.
-func PoolSettings(pathSearch bool, combat rules1e.CombatRules) rules.Settings {
-	return rules1e.Settings{Combat: combat, PathSearch: pathSearch}
 }
 
 // ReadRoster is the characters another game of record layout l saved in dir,

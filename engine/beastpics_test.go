@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gobox/ecl"
 	"gobox/rules"
+	"gobox/rules1e"
 	"os"
 	"slices"
 	"strings"
@@ -57,7 +58,7 @@ func TestBeastPics(t *testing.T) {
 						continue
 					}
 					c := e.member(id)
-					if bt := beastOf(c.Name()); bt != nil {
+					if bt := rules1e.BeastOf(c.Name()); bt != nil {
 						if count[bt.Name] == nil {
 							count[bt.Name] = map[int]int{}
 						}
