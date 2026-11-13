@@ -108,14 +108,6 @@ func path(f fs.FS, name string) string {
 	return name + ".png"
 }
 
-func file(s, name string) ([]byte, error) {
-	f := open(s)
-	if f == nil {
-		return nil, fs.ErrNotExist
-	}
-	return fs.ReadFile(f, path(f, name))
-}
-
 // Image decodes texture name (no extension) of series; nil if absent.
 // Each file is read and decoded once (per style): callers draw it every
 // frame and must not change it.
