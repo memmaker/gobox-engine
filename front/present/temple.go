@@ -57,7 +57,7 @@ func (p *Presenter) templeItems() (string, []ui.MenuRow) {
 		return p.appraiseItems(purse, offers, c.back(campMain))
 	}
 	it := []ui.MenuRow{{Text: "Heal", Key: 'H', Do: c.to(templeHeal, 0)}, {Text: "View", Key: 'V', Do: func() { p.send(front.ActMember, -1) }}}
-	it = append(it, p.moneyRows(allowedOf(s))...)
+	it = append(it, p.moneyRows(play.CommonOf(s).Allowed)...)
 	if appraisable(purse, offers) {
 		it = append(it, ui.MenuRow{Text: "Appraise", Key: 'A', Do: c.to(appraise, 0)})
 	}

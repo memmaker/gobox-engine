@@ -42,7 +42,7 @@ func (p *Presenter) shopItems() (string, []ui.MenuRow) {
 	}
 	it := []ui.MenuRow{{Text: "Buy", Key: 'B', Do: func() { p.send(front.ActInventory, -1) }},
 		{Text: "View", Key: 'V', Do: func() { p.send(front.ActMember, -1) }}} // look-only: the selected member's sheet
-	it = append(it, p.moneyRows(allowedOf(s))...)
+	it = append(it, p.moneyRows(play.CommonOf(s).Allowed)...)
 	if appraisable(purse, sh.Offers) {
 		it = append(it, ui.MenuRow{Text: "Appraise", Key: 'A', Do: c.to(appraise, 0)})
 	}
@@ -121,12 +121,23 @@ func (p *Presenter) ownTraining(v front.View) front.View {
 }
 
 // moneyRows are the money acts allowed offers: Take, Pool, Share.
-func (p *Presenter) moneyRows(allowed map[string]bool) (it []ui.MenuRow) {
+func (p *Presenter) moneyRows(al play.Allowed) (it []ui.MenuRow) {
+	var take, pool, share bool
+	for _, a := range al.Plain {
+		switch a.(type) {
+		case play.Take:
+			take = true
+		case play.PoolCoins:
+			pool = true
+		case play.LootShare:
+			share = true
+		}
+	}
 	for _, o := range []struct {
 		on   bool
 		text string
 		act  front.ActKind
-	}{{allowed["Take"], "Take", front.ActTakeMoney}, {allowed["PoolCoins"], "Pool", front.ActLootPool}, {allowed["LootShare"], "Share", front.ActLootShare}} {
+	}{{take, "Take", front.ActTakeMoney}, {pool, "Pool", front.ActLootPool}, {share, "Share", front.ActLootShare}} {
 		if o.on {
 			it = append(it, ui.MenuRow{Text: o.text, Key: o.text[0], Do: func() { p.send(o.act, 0) }})
 		}
