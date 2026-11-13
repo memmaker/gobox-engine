@@ -154,7 +154,7 @@ type Theme struct {
 	Letter      color.RGBA // the hotkey and the big letter
 	Accent      color.RGBA // the selection frame and the hovered word
 	Caption     color.RGBA // the casting caption
-	Hurt, Heal  color.RGBA // damage numbers
+	Hurt        color.RGBA // damage numbers
 	TextOutline color.RGBA // round the damage numbers
 	Series      string     // the asset series whose bar icons show (icons/<series>/)
 }
@@ -170,7 +170,6 @@ var DefaultTheme = Theme{
 	Accent:      color.RGBA{82, 255, 82, 255},
 	Caption:     color.RGBA{255, 255, 82, 255},
 	Hurt:        color.RGBA{255, 255, 85, 255},
-	Heal:        color.RGBA{85, 255, 85, 255},
 	TextOutline: color.RGBA{0, 0, 0, 255},
 	Series:      "pool",
 }

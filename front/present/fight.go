@@ -458,7 +458,7 @@ func (p *Presenter) playing() *frame {
 			case word != "":
 				p.battle.FloatText(id, word)
 			case n > 0 && Host.DamageNumbers:
-				p.battle.Float(id, n, false)
+				p.battle.Float(id, n)
 			}
 		}
 		if ev := &r.q[0]; (ev.Key || ev.Ms > 0 && (!r.fast || r.lastBoard())) && ev.held() && !r.skip {
