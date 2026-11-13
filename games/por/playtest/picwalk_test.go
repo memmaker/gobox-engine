@@ -1,4 +1,4 @@
-package main
+package playtest
 
 import (
 	"os"
@@ -47,18 +47,18 @@ func pictures(v reflect.Value, f func(game.Picture)) {
 // addMonsters, the load opcode's own (opLoadMonster, eclops.go).
 func TestFightPicturesResolve(t *testing.T) {
 	for _, sc := range []string{"combat", "missile", "castfight", "wildcombat", "meleefight"} {
-		if _, err := os.Stat("../../../../data/por/sources/dos/TITLE.DAX"); err != nil {
+		if _, err := os.Stat("../../../data/por/sources/dos/TITLE.DAX"); err != nil {
 			t.Skip("no game files")
 		}
-		e, err := engine.NewPool("../../../../data/por/sources/assets", "../../../../data/por/sources")
+		e, err := engine.NewPool("../../../data/por/sources/assets", "../../../data/por/sources")
 		if err != nil {
 			t.Fatal(err)
 		}
-		ref, err := orig.NewLoader("../../../../data/por/sources/" + engine.DOSDir) // the reference decoder: a picture's block is in the archives
+		ref, err := orig.NewLoader("../../../data/por/sources/" + engine.DOSDir) // the reference decoder: a picture's block is in the archives
 		if err != nil {
 			t.Fatal(err)
 		}
-		ref.UseAmiga("../../../../data/por/sources/" + engine.AmigaDir)
+		ref.UseAmiga("../../../data/por/sources/" + engine.AmigaDir)
 		e.Cfg.SaveDir = t.TempDir()
 		e.Explore = true
 		e.DevAction = e.DevScene(sc)

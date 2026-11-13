@@ -21,9 +21,9 @@ func init() {
 
 		Window:  importer.Size{W: asset.ScreenW, H: asset.ScreenH},
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},
-		Import:  PorImport,
-		Start:   importer.Fixed(porStart()),
-		End:     importer.Fixed(porEnd()),
+		Import:  PorImport, Amiga: &porAmiga,
+		Start: importer.Fixed(porStart()),
+		End:   importer.Fixed(porEnd()),
 	})
 }
 

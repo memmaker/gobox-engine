@@ -2,7 +2,7 @@
 // and imports them:
 //
 //	gobox [flags] [adventure]       play it (none: a numbered menu of the games in -data)
-//	gobox import [-out dir] <game> <originals>
+//	gobox import [-out dir] [-amiga] <game> <originals>
 //
 // An adventure is a folder <data>/<id>/ (default data/, run from
 // gobox-engine) with a valid manifest.json (gobox/importer); the binary reads

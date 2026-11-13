@@ -1,4 +1,4 @@
-package main
+package playtest
 
 import (
 	"gobox/engine"
@@ -16,7 +16,7 @@ import (
 // not a bare story page that waits for a key. play.Question had no Ms, so
 // the pause's time was dropped between pool and the front.
 func TestTourPausesTimed(t *testing.T) {
-	eng, err := engine.NewPool("../../../../data/por/sources/assets", "../../../../data/por/sources")
+	eng, err := engine.NewPool("../../../data/por/sources/assets", "../../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}
