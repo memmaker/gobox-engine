@@ -57,7 +57,7 @@ func TestNoSilentDo(t *testing.T) {
 		"party menu": quick,
 		"creation": func(t *testing.T) *Engine {
 			e := quick(t)
-			if _, err := e.Do(play.NewCharacter{}); err != nil {
+			if _, err := e.doNow(play.NewCharacter{}); err != nil {
 				t.Fatal(err)
 			}
 			return e
@@ -67,7 +67,7 @@ func TestNoSilentDo(t *testing.T) {
 		"overland":      scene("overland"),
 		"camp": func(t *testing.T) *Engine {
 			e := scene("overland")(t)
-			if _, err := e.Do(play.MakeCamp{}); err != nil {
+			if _, err := e.doNow(play.MakeCamp{}); err != nil {
 				t.Fatal(err)
 			}
 			return e
@@ -85,7 +85,7 @@ func TestNoSilentDoCOTAB(t *testing.T) {
 		"party menu": quick,
 		"creation": func(t *testing.T) *Engine {
 			e := quick(t)
-			if _, err := e.Do(play.NewCharacter{}); err != nil {
+			if _, err := e.doNow(play.NewCharacter{}); err != nil {
 				t.Fatal(err)
 			}
 			return e
@@ -93,7 +93,7 @@ func TestNoSilentDoCOTAB(t *testing.T) {
 		"explore": func(t *testing.T) *Engine {
 			e := advStarted(t, advEnvCOTAB)
 			for _, a := range []play.Action{play.QuickStart{}, play.Begin{}} {
-				if _, err := e.Do(a); err != nil {
+				if _, err := e.doNow(a); err != nil {
 					t.Fatalf("%T: %v", a, err)
 				}
 			}
@@ -106,9 +106,9 @@ func TestNoSilentDoCOTAB(t *testing.T) {
 func noSilentDo(t *testing.T, states map[string]func(t *testing.T) *Engine) {
 	for name, open := range states {
 		e := open(t)
-		s := e.State()
+		s := e.build()
 		for range 20 { // BUG-CLASSES 33: a field built from a map differs on some call
-			if !reflect.DeepEqual(s, e.State()) {
+			if !reflect.DeepEqual(s, e.build()) {
 				t.Fatalf("%s: two State calls differ", name)
 			}
 		}
@@ -158,15 +158,15 @@ func noSilentDo(t *testing.T, states map[string]func(t *testing.T) *Engine) {
 					continue
 				}
 			}
-			before := e.State()
+			before := e.build()
 			out, err, panicked := doCatch(e, a)
 			switch {
 			case panicked != nil:
 				t.Errorf("%s: %T%+v panics: %v", name, a, a, panicked)
-			case err == nil && len(out.Events) == 0 && reflect.DeepEqual(before, e.State()):
+			case err == nil && len(out.Events) == 0 && reflect.DeepEqual(before, e.build()):
 				t.Errorf("%s: %T%+v taken with no effect", name, a, a)
 			}
-			if panicked != nil || !reflect.DeepEqual(before, e.State()) {
+			if panicked != nil || !reflect.DeepEqual(before, e.build()) {
 				e = open(t) // fresh for the next one
 			}
 		}
@@ -175,7 +175,7 @@ func noSilentDo(t *testing.T, states map[string]func(t *testing.T) *Engine) {
 
 func doCatch(e *Engine, a play.Action) (out play.Outcome, err error, panicked any) {
 	defer func() { panicked = recover() }()
-	out, err = e.Do(a)
+	out, err = e.doNow(a)
 	return out, err, nil
 }
 
@@ -193,18 +193,18 @@ func TestGuardsRefuseCOTAB(t *testing.T) {
 func guardsRefuse(t *testing.T, base func(*testing.T) *Engine) {
 	e := quickStartedOn(t, base(t))
 	for _, a := range []play.Action{play.KeepCharacter{}, play.AddNote{}} {
-		if _, err := e.Do(a); err == nil {
+		if _, err := e.doNow(a); err == nil {
 			t.Errorf("%T taken", a)
 		}
 	}
-	if _, err := e.Do(play.NewCharacter{}); err != nil {
+	if _, err := e.doNow(play.NewCharacter{}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := e.Do(play.NewCharacter{}); err == nil {
+	if _, err := e.doNow(play.NewCharacter{}); err == nil {
 		t.Error("second NewCharacter taken")
 	}
 	e = base(t)
-	if _, err := e.Do(play.Modify{}); err == nil {
+	if _, err := e.doNow(play.Modify{}); err == nil {
 		t.Error("Modify with no party taken")
 	}
 }

@@ -68,7 +68,7 @@ func TestAiKeyActions(t *testing.T) {
 		want core.AutoKey
 	}{{play.Manual{}, core.AutoKeyTakeOver}, {play.QuickMagic{}, core.AutoKeyQuickMagic}} {
 		e.aiKey = core.AutoKeyNone
-		if ok, err := e.combatDo(c.a, facts{}, run); !ok || err != nil || e.aiKey != c.want {
+		if ok, err := e.combatDo(c.a, play.Allowed{}, run); !ok || err != nil || e.aiKey != c.want {
 			t.Errorf("%T: taken %v, err %v, key %d", c.a, ok, err, e.aiKey)
 		}
 	}

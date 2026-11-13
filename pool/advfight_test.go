@@ -18,9 +18,9 @@ func TestAdvFightPOD(t *testing.T)   { advFight(t, advEnvPOD) }
 func advFightOn(t *testing.T, env string) *Engine {
 	t.Helper()
 	e := partyTurnSceneOn(t, advEngine(t, env))
-	f, ok := e.State().(play.Fighting)
+	f, ok := e.build().(play.Fighting)
 	if !ok {
-		t.Fatalf("party turn is %T, want play.Fighting", e.State())
+		t.Fatalf("party turn is %T, want play.Fighting", e.build())
 	}
 	if e.battle() == nil || len(f.Field.Units) == 0 {
 		t.Fatalf("no board: battleShown %v, %d units", e.battleShown(), len(f.Field.Units))
@@ -31,7 +31,7 @@ func advFightOn(t *testing.T, env string) *Engine {
 func advFight(t *testing.T, env string) {
 	e := advFightOn(t, env)
 	for range 400 {
-		s := e.State()
+		s := e.build()
 		if f, ok := s.(play.Fighting); ok && f.Field.Round >= 1 {
 			return // a round went by
 		} else if !ok {
@@ -39,7 +39,7 @@ func advFight(t *testing.T, env string) {
 		}
 		switch {
 		case myTurn(s):
-			if _, err := e.Do(play.EndTurn{}); err != nil {
+			if _, err := e.doNow(play.EndTurn{}); err != nil {
 				t.Fatal("EndTurn:", err)
 			}
 		case e.waiting(PendFight):

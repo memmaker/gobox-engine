@@ -16,13 +16,13 @@ func TestModifyGreyedWithExperience(t *testing.T) {
 	e.push(cont{kind: kDrawMain})
 	e.partyMenu(true, true)
 	e.Advance()
-	if !playAllows(e.State(), play.Modify{Member: 0}) {
+	if !playAllows(e.build(), play.Modify{Member: 0}) {
 		t.Error("Modify not offered for a member with no experience")
 	}
-	if playAllows(e.State(), play.Modify{Member: 1}) {
+	if playAllows(e.build(), play.Modify{Member: 1}) {
 		t.Error("Modify offered for a member with experience of its own")
 	}
-	if _, err := e.Do(play.Modify{Member: 1}); err == nil {
+	if _, err := e.doNow(play.Modify{Member: 1}); err == nil {
 		t.Error("Modify taken for a member with experience")
 	}
 }

@@ -26,7 +26,7 @@ func TestSidesApart(t *testing.T) {
 			}
 			e.Init()
 			e.Start(e.Play)
-			f, ok := e.State().(play.Fighting)
+			f, ok := e.build().(play.Fighting)
 			if !ok {
 				t.Fatalf("deskew %v dist %d: no fight", deskew, dist)
 			}

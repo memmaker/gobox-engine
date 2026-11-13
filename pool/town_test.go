@@ -47,8 +47,8 @@ func TestShopBundlesAndWares(t *testing.T) {
 	e.push(cont{kind: kNop})
 	e.Shop()
 	e.Advance()
-	tr, ok := e.State().(play.Trading)
+	tr, ok := e.build().(play.Trading)
 	if !ok || len(tr.Goods) != 1 || tr.Goods[0].Price != 600 {
-		t.Fatalf("wares %+v (%T): want one at 600", tr.Goods, e.State())
+		t.Fatalf("wares %+v (%T): want one at 600", tr.Goods, e.build())
 	}
 }

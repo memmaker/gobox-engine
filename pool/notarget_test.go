@@ -16,7 +16,7 @@ import (
 func TestNoTargetAsks(t *testing.T) {
 	check := func(name string, e *Engine, a play.Action) {
 		t.Helper()
-		if _, err := e.Do(a); err != nil {
+		if _, err := e.doNow(a); err != nil {
 			t.Errorf("%s: %v, want it taken or a pick", name, err)
 			return
 		}
@@ -25,7 +25,7 @@ func TestNoTargetAsks(t *testing.T) {
 			if pq == nil || pq.of == askMember {
 				return
 			}
-			if _, err := e.Do(play.Reply{N: len(pq.calls) - 1}); err != nil { // a spell; a yes/no's Yes
+			if _, err := e.doNow(play.Reply{N: len(pq.calls) - 1}); err != nil { // a spell; a yes/no's Yes
 				t.Errorf("%s: reply: %v", name, err)
 				return
 			}
@@ -49,8 +49,8 @@ func TestNoTargetAsks(t *testing.T) {
 		e.state().ApplyItems(c)
 		it.Hidden = 0
 		n := e.itemHandle(it)
-		if !playAllows(e.State(), play.UseItem{Member: 0, Item: n}) {
-			t.Fatalf("item %x: UseItem not allowed in %T (%d items)", typ, e.State(), len(commonOf(e.State()).Party[0].Items))
+		if !playAllows(e.build(), play.UseItem{Member: 0, Item: n}) {
+			t.Fatalf("item %x: UseItem not allowed in %T (%d items)", typ, e.build(), len(commonOf(e.build()).Party[0].Items))
 		}
 		check(it.Name(), e, play.UseItem{Member: 0, Item: n, Target: -1})
 	}

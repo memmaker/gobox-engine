@@ -46,7 +46,7 @@ func TestProgramSaveQuitEnding(t *testing.T) {
 	if e.sequence != seqEnding || slices.Contains(e.events, play.Event(play.Ended{})) {
 		t.Fatalf("SaveQuit with an end: sequence %q, events %v: want the sequence up, the run on", e.sequence, e.events)
 	}
-	o, err := e.Do(play.Continue{})
+	o, err := e.doNow(play.Continue{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,10 +72,10 @@ func TestProgramEnding(t *testing.T) {
 	}
 	e.title.end = &play.Scene{Kind: play.SceneTitle, Intro: &game.Intro{Full: true}}
 	program()
-	if sc, ok := e.State().(play.Scene); !ok || sc.Kind != play.SceneTitle || !e.waiting(PendSequence) {
-		t.Fatalf("the end is up as %T, waiting %v", e.State(), e.waiting(PendSequence))
+	if sc, ok := e.build().(play.Scene); !ok || sc.Kind != play.SceneTitle || !e.waiting(PendSequence) {
+		t.Fatalf("the end is up as %T, waiting %v", e.build(), e.waiting(PendSequence))
 	}
-	o, err := e.Do(play.Continue{})
+	o, err := e.doNow(play.Continue{})
 	if err != nil || e.ext.ending || e.waiting(PendSequence) || slices.Contains(o.Events, play.Event(play.Ended{})) {
 		t.Fatalf("Continue: %v, ending %v, events %v: want the script on", err, e.ext.ending, o.Events)
 	}

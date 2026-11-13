@@ -14,7 +14,7 @@ func TestTempleLeave(t *testing.T) {
 	if !e.waiting(PendTemple) {
 		t.Fatal("no temple")
 	}
-	if _, err := e.Do(play.Leave{}); err != nil {
+	if _, err := e.doNow(play.Leave{}); err != nil {
 		t.Fatal("Leave:", err)
 	}
 	if e.waiting(PendTemple) {

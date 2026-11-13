@@ -17,11 +17,11 @@ func TestShopZeroPrice(t *testing.T) {
 	e.state().Purse.Gold = 10
 	e.Shop()
 	e.Advance()
-	s, _ := e.State().(play.Trading)
+	s, _ := e.build().(play.Trading)
 	if len(s.Goods) != 1 || s.Goods[0].Price != 1 {
 		t.Fatalf("goods %+v, want the ware at 1", s.Goods)
 	}
-	if _, err := e.Do(play.Buy{Item: e.goods()[0]}); err != nil || e.state().Purse.Gold != 9 {
+	if _, err := e.doNow(play.Buy{Item: e.goods()[0]}); err != nil || e.state().Purse.Gold != 9 {
 		t.Fatalf("Buy: %v, gold %d, want 9", err, e.state().Purse.Gold)
 	}
 }

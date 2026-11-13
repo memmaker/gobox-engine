@@ -74,7 +74,7 @@ func TestAreaExitOneStep(t *testing.T) {
 	if e.gs.areaKind != 20 || e.posX != 15 || e.posY != 4 || e.facing != 6 {
 		t.Fatalf("west out of Phlan: area %d at %d,%d facing %d, want the Slums (20) at 15,4 facing 6", e.gs.areaKind, e.posX, e.posY, e.facing)
 	}
-	e.Do(play.Face{Facing: 2})
+	e.doNow(play.Face{Facing: 2})
 	stepBy(e, 0)
 	if e.gs.areaKind != 0 || e.posX != 0 || e.posY != 4 || e.facing != 2 {
 		t.Fatalf("east out of the Slums: area %d at %d,%d facing %d, want Phlan (0) at 0,4 facing 2", e.gs.areaKind, e.posX, e.posY, e.facing)

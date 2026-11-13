@@ -22,7 +22,7 @@ func (e *Engine) pushCombat() {
 	e.ext.battleLog, e.ext.panel = nil, core.NoChar
 	e.cs = combatState{}
 	e.combatSetup()
-	if f, ok := e.State().(play.Fighting); ok { // the board before the first turn: the step's fight events play from it
+	if f, ok := e.build().(play.Fighting); ok { // the board before the first turn: the step's fight events play from it
 		e.event(play.Engaged{At: f})
 	}
 	if e.ruleset().Verdict(core.Fight{}) != core.FightOn {

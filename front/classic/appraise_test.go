@@ -19,7 +19,6 @@ func TestAppraiseThroughFront(t *testing.T) {
 		t.Error("gems appraised with none offered")
 	}
 	f.st = play.Trading{Offers: []game.Offer{{Member: 2, Offer: 1, Kind: game.Jewelry, Value: 50}}}
-	g.r.g.fresh() // the fake changed outside Do
 	if err := g.KeepAppraised(true); err != nil {
 		t.Fatal(err)
 	}

@@ -147,12 +147,12 @@ func TestReadPublishOnly(t *testing.T) {
 	e.Explore = true
 	e.Init()
 	e.Start(e.Play)
-	handout := func() bool { sc, ok := e.State().(play.Scene); return ok && sc.Kind == play.SceneHandout }
+	handout := func() bool { sc, ok := e.build().(play.Scene); return ok && sc.Kind == play.SceneHandout }
 	e.showJournal(journalBox, []string{"one"}) // Seq is gobox's now (each Scene a new one): not checked here
 	if !handout() {
-		t.Fatalf("first Read: %T, want a handout Scene", e.State())
+		t.Fatalf("first Read: %T, want a handout Scene", e.build())
 	}
-	if _, err := e.Do(play.Leave{}); err != nil {
+	if _, err := e.doNow(play.Leave{}); err != nil {
 		t.Fatalf("Leave under a Read: %v", err)
 	}
 	if handout() {
@@ -160,7 +160,7 @@ func TestReadPublishOnly(t *testing.T) {
 	}
 	e.showJournal(journalBox, []string{"two"})
 	if !handout() {
-		t.Fatalf("second Read: %T, want a handout Scene", e.State())
+		t.Fatalf("second Read: %T, want a handout Scene", e.build())
 	}
 }
 

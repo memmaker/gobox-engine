@@ -63,7 +63,7 @@ func TestResultPagesWait(t *testing.T) {
 	if r := e.snap.results; r == nil || r.Outcome == "" || e.question() == nil || after() {
 		t.Fatalf("results page: results %+v, question %v, after %v", r, e.question() != nil, after())
 	}
-	sc, _ := e.State().(play.Scene)
+	sc, _ := e.build().(play.Scene)
 	if sc.Results == nil {
 		t.Fatal("results page pending but not published (BUG-CLASSES 14)")
 	}
@@ -86,7 +86,7 @@ func TestAskAllowsAnswersOnly(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	e.keyWait(cont{kind: kNop})
-	c := commonOf(e.State())
+	c := commonOf(e.build())
 	if c.Ask == nil {
 		t.Fatal("no question up")
 	}

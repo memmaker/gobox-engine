@@ -22,19 +22,19 @@ func TestInnRestCamps(t *testing.T) {
 	}
 	e.Init()
 	e.Start(e.Play)
-	mode := fmt.Sprintf("%T", e.State())
+	mode := fmt.Sprintf("%T", e.build())
 	stepBy(e, 0)
 	if e.ext.owed != nil {
-		e.Do(play.RunEvent{})
+		e.doNow(play.RunEvent{})
 	}
-	if commonOf(e.State()).Ask == nil {
+	if commonOf(e.build()).Ask == nil {
 		t.Fatal("no Inn question at (4,13)")
 	}
-	e.Do(play.Reply{N: 0})
+	e.doNow(play.Reply{N: 0})
 	watch := func() bool {
-		return slices.ContainsFunc(commonOf(e.State()).Text, func(l string) bool { return strings.Contains(l, "ROUSTED") })
+		return slices.ContainsFunc(commonOf(e.build()).Text, func(l string) bool { return strings.Contains(l, "ROUSTED") })
 	}
-	if q := commonOf(e.State()).Ask; q != nil || !e.campUp() {
+	if q := commonOf(e.build()).Ask; q != nil || !e.campUp() {
 		t.Fatalf("after Yes: asking %v camp %v watch %v", q, e.campUp(), watch())
 	}
 	if err := e.LeaveCamp(); err != nil {
@@ -43,7 +43,7 @@ func TestInnRestCamps(t *testing.T) {
 	if watch() {
 		t.Fatal("the watch roused after leaving an unbroken Inn rest")
 	}
-	if q, now := commonOf(e.State()).Ask, fmt.Sprintf("%T", e.State()); q != nil || now != mode { // 23b: the step's own continuation ran on after camp
+	if q, now := commonOf(e.build()).Ask, fmt.Sprintf("%T", e.build()); q != nil || now != mode { // 23b: the step's own continuation ran on after camp
 		t.Fatalf("after camp: asking %v state %v, want %v", q, now, mode)
 	}
 }
@@ -62,13 +62,13 @@ func TestInnRestNo(t *testing.T) {
 	e.Start(e.Play)
 	stepBy(e, 0)
 	if e.ext.owed != nil {
-		e.Do(play.RunEvent{})
+		e.doNow(play.RunEvent{})
 	}
-	if q := commonOf(e.State()).Ask; q == nil || len(q.Replies) != 2 || q.Replies[0] != "Yes" {
+	if q := commonOf(e.build()).Ask; q == nil || len(q.Replies) != 2 || q.Replies[0] != "Yes" {
 		t.Fatalf("Inn question: %+v", q)
 	}
-	for i := 0; i < 5 && commonOf(e.State()).Ask != nil && !e.campUp(); i++ {
-		e.Do(play.Reply{N: 1})
+	for i := 0; i < 5 && commonOf(e.build()).Ask != nil && !e.campUp(); i++ {
+		e.doNow(play.Reply{N: 1})
 	}
 	if e.campUp() {
 		t.Fatal("No at the Inn opened camp")

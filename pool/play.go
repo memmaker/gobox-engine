@@ -31,8 +31,24 @@ func (e *Engine) Art() map[string]game.Picture { return e.overlandArt() }
 
 var errNotAllowed = errors.New("not allowed now")
 
-// State is where the core is parked, as one of play's states.
+// State is where the core is parked, as one of play's states: the one
+// built after the last change (rebuild), shared, read-only.
 func (e *Engine) State() play.State {
+	if e.ps == nil {
+		e.rebuild()
+	}
+	return e.ps
+}
+
+// rebuild builds State anew: every call that changes the engine (Do, Load,
+// LoadSlot, Start, Step) ends with it.
+func (e *Engine) rebuild() {
+	e.ps = e.build()
+	e.StateBuilds++
+}
+
+// build is where the core is parked now, as one of play's states.
+func (e *Engine) build() play.State {
 	s := e.known()
 	cm := e.common(s)
 	switch {
@@ -638,9 +654,10 @@ func allows(al play.Allowed, a play.Action) bool {
 // Do applies a and returns what happened, or refuses it.
 func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 	defer e.held.Change()() // the step may write the save folder
+	defer e.rebuild()
 	e.takeSettings()
-	s := e.known()
-	al := e.allowed(s)
+	st := e.State()
+	al := play.CommonOf(st).Allowed
 	if v, ok := a.(play.SetChoice); ok && v.Text != "" && e.creation == nil && e.sel >= 0 && e.sel < e.partySize() {
 		pic, ok := core.PoolPicNamed(v.Field)
 		if !ok {
@@ -658,7 +675,7 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 		e.facts(&out, r)
 		return r.Err
 	}
-	if ok, err := e.partyDo(a, s, native); ok {
+	if ok, err := e.partyDo(a, st, native); ok {
 		return out, err
 	}
 	if ok, err := e.frontDo(a, native); ok {
@@ -678,7 +695,7 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 	if ok, err := e.campDo(a, &out, native); ok {
 		return out, e.stepOn(&out, err)
 	}
-	if ok, err := e.combatDo(a, s, native); ok {
+	if ok, err := e.combatDo(a, al, native); ok {
 		return out, e.stepOn(&out, err)
 	}
 	var err error
@@ -719,11 +736,11 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 			return err
 		})
 	case play.Continue:
-		if s.Intro != nil {
+		if e.ext.intro {
 			err = native(func() error { e.titleDone(); return nil })
 			break
 		}
-		if s.Sequence != "" || e.ext.ending {
+		if e.sequence != "" || e.ext.ending {
 			err = native(e.endDone)
 			break
 		}
@@ -764,7 +781,7 @@ func (e *Engine) stepOn(out *play.Outcome, err error) error {
 
 // combatDo takes the fight's verbs and the item and power uses (false: a
 // is none of them); a question one asks is the pending one (playask.go).
-func (e *Engine) combatDo(a play.Action, s facts, native func(func() error) error) (bool, error) {
+func (e *Engine) combatDo(a play.Action, al play.Allowed, native func(func() error) error) (bool, error) {
 	turn := func(as ...TurnAct) (bool, error) {
 		return true, native(func() error { return e.turnActs(as, false) })
 	}
@@ -772,7 +789,7 @@ func (e *Engine) combatDo(a play.Action, s facts, native func(func() error) erro
 	switch a := a.(type) {
 	case play.MoveTo:
 		return true, native(func() error {
-			as, err := e.moveActs(a.To, s.Combat)
+			as, err := e.moveActs(a.To, al.Moves)
 			if err != nil {
 				return err
 			}
@@ -849,7 +866,7 @@ func (e *Engine) combatDo(a play.Action, s facts, native func(func() error) erro
 			return e.runCall(pendingCall{kind: callPower, member: a.Member, power: a.Kind, spell: a.Spell, target: a.Target})
 		})
 	case play.Leave:
-		if s.Mode == game.ModeLoot && e.question() == nil { // O072 asks while treasure is left
+		if e.stateMode() == game.ModeLoot && e.question() == nil { // O072 asks while treasure is left
 			return true, native(func() error { return e.runCall(pendingCall{kind: callLoot}) })
 		}
 	}
@@ -930,6 +947,7 @@ func (e *Engine) Save() (_ []byte, err error) {
 // Load goes back to what Save gave (the party menu's Load: only there).
 func (e *Engine) Load(b []byte) (err error) {
 	defer e.held.Change()() // the step may write the save folder
+	defer e.rebuild()
 	var files map[string][]byte
 	if err := gob.NewDecoder(bytes.NewReader(b)).Decode(&files); err != nil {
 		return err
@@ -967,6 +985,7 @@ func (e *Engine) Slots() []game.SaveSlot {
 // LoadSlot loads slot n of Slots.
 func (e *Engine) LoadSlot(n int) error {
 	defer e.held.Change()() // the step may write the save folder
+	defer e.rebuild()
 	name := "Slot " + strconv.Itoa(n)
 	if names := e.SlotsView(false).Names; n >= 0 && n < len(names) {
 		name = names[n]
@@ -1012,7 +1031,7 @@ func (e *Engine) noteResult() play.Result {
 
 // partyDo takes the party menu's and the creation sheet's actions (false:
 // a is none of them). gobox asks any confirmation before it sends them.
-func (e *Engine) partyDo(a play.Action, s facts, native func(func() error) error) (bool, error) {
+func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error) error) (bool, error) {
 	switch a := a.(type) {
 	case play.Begin:
 		return true, native(e.Begin)
@@ -1089,11 +1108,11 @@ func (e *Engine) partyDo(a play.Action, s facts, native func(func() error) error
 	case play.DiscardCharacter: // gobox asked abandon
 		return true, native(func() error { return e.EndCreation(false) })
 	case play.SetChoice:
-		cr := s.Creation
-		if cr == nil || s.Mode != game.ModeCreate {
+		as, _ := st.(play.Assembling)
+		if as.Draft == nil {
 			return false, nil
 		}
-		if i := slices.IndexFunc(cr.Fields, func(f game.Field) bool { return f.Name == a.Field }); i >= 0 && a.Text == "" {
+		if i := slices.IndexFunc(as.Draft.Fields, func(f game.Field) bool { return f.Name == a.Field }); i >= 0 && a.Text == "" {
 			return true, native(func() error { return e.SetField(i, a.N) })
 		}
 		return true, native(func() error {

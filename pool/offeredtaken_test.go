@@ -28,7 +28,7 @@ func TestOfferedTakenAdv(t *testing.T) {
 func offeredTaken(t *testing.T, base func(*testing.T) *Engine) {
 	notNow := error(refusal(core.ErrNotNow))
 	for _, name := range []string{"shop", "temple", "hall", "hallpoor", "appraise"} {
-		acts := commonOf(devPlayOn(t, base(t), name).State()).Allowed.Plain
+		acts := commonOf(devPlayOn(t, base(t), name).build()).Allowed.Plain
 		if len(acts) == 0 {
 			t.Errorf("%s: nothing offered", name)
 		}
@@ -36,7 +36,7 @@ func offeredTaken(t *testing.T, base func(*testing.T) *Engine) {
 			if _, quit := a.(play.Quit); quit {
 				continue
 			}
-			if _, err := devPlayOn(t, base(t), name).Do(a); reflect.DeepEqual(err, notNow) {
+			if _, err := devPlayOn(t, base(t), name).doNow(a); reflect.DeepEqual(err, notNow) {
 				t.Errorf("%s: %T%+v offered but refused: %v", name, a, a, err)
 			}
 		}

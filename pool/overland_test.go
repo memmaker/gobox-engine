@@ -20,18 +20,18 @@ func TestOverlandIsTheMap(t *testing.T) {
 	if !playOn(e, 50, func(s play.State) bool { x, ok := s.(play.Exploring); return ok && x.Ask == nil && x.Map.Walk != nil }) {
 		t.Fatal("not exploring the overland")
 	}
-	x := e.State().(play.Exploring)
+	x := e.build().(play.Exploring)
 	if !x.Map.Overland {
 		t.Fatal("overland: ExploreMap.Overland false")
 	}
 	from := image.Pt(x.Where.X, x.Where.Y)
-	if _, err := e.Do(play.RunEvent{Before: true, Side: 2}); err != nil {
+	if _, err := e.doNow(play.RunEvent{Before: true, Side: 2}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := e.Do(play.Arrive{From: from, To: from.Add(image.Pt(1, 0)), Facing: x.Where.Facing}); err != nil {
+	if _, err := e.doNow(play.Arrive{From: from, To: from.Add(image.Pt(1, 0)), Facing: x.Where.Facing}); err != nil {
 		t.Fatal(err)
 	}
-	w := commonOf(e.State()).Where
+	w := commonOf(e.build()).Where
 	if w.X != from.X+1 || w.Y != from.Y {
 		t.Errorf("step east from %v (facing %d): at %d,%d", from, x.Where.Facing, w.X, w.Y)
 	}

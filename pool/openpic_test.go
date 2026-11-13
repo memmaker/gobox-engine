@@ -30,7 +30,7 @@ func TestOpeningPicture(t *testing.T) {
 	seen := ""
 	for range 200 {
 		e.stepOn(&play.Outcome{}, nil)
-		s := e.State()
+		s := e.build()
 		p := eventPic(s)
 		if x, ok := s.(play.Exploring); p != "" {
 			seen = p

@@ -134,6 +134,8 @@ type Engine struct {
 	k              []cont                     // what follows the flows under way (cont.go)
 	resets         int                        // unwindReset calls: a continuation dropped the game
 	cs             combatState                // the fight's rounds and turn (combatflow.go)
+	ps             play.State                 // State: built after each change (rebuild)
+	StateBuilds    int                        // the States built (the frame tests count them)
 	events         []play.Event               // the facts not yet handed out (Do's outcome)
 	hitTo          int                        // the unit the last hit struck, its harm still to come (0 none): Attacked carries it
 	looking, over  bool                       // GameLoop: in its look and camp loop; a script quit the game

@@ -22,57 +22,57 @@ func TestPlayGame(t *testing.T) {
 	e.Explore = true
 	e.Init()
 	e.Start(e.Play)
-	x, ok := e.State().(play.Exploring)
+	x, ok := e.build().(play.Exploring)
 	if !ok || len(x.Party) == 0 {
-		t.Fatalf("state %T, want Exploring with a party", e.State())
+		t.Fatalf("state %T, want Exploring with a party", e.build())
 	}
 	if len(e.state().Party) > 1 {
 		e.sel = 1
 	}
 	sel := e.sel
-	if s1, s2 := e.State(), e.State(); !reflect.DeepEqual(s1, s2) || e.sel != sel { // bug class 1: reading changes nothing
+	if s1, s2 := e.build(), e.build(); !reflect.DeepEqual(s1, s2) || e.sel != sel { // bug class 1: reading changes nothing
 		t.Fatalf("State twice differs, or moved the selection %d -> %d", sel, e.sel)
 	}
-	if _, err := e.Do(play.Buy{}); err == nil {
+	if _, err := e.doNow(play.Buy{}); err == nil {
 		t.Error("Buy while exploring: no refusal")
 	}
 	f := x.Where.Facing
 	turn := (f + 2) % 8
-	if _, err := e.Do(play.Face{Facing: turn}); err != nil {
+	if _, err := e.doNow(play.Face{Facing: turn}); err != nil {
 		t.Fatal("Face:", err)
 	}
-	if w := e.State().(play.Exploring).Where; w.Facing != turn {
+	if w := e.build().(play.Exploring).Where; w.Facing != turn {
 		t.Errorf("facing %d, want %d", w.Facing, turn)
 	}
 	b, err := e.Save()
 	if err != nil {
 		t.Fatal("Save:", err)
 	}
-	if _, err := e.Do(play.MakeCamp{}); err != nil {
+	if _, err := e.doNow(play.MakeCamp{}); err != nil {
 		t.Fatal("MakeCamp:", err)
 	}
-	if _, ok := e.State().(play.Camping); !ok {
-		t.Fatalf("after MakeCamp %T, want Camping", e.State())
+	if _, ok := e.build().(play.Camping); !ok {
+		t.Fatalf("after MakeCamp %T, want Camping", e.build())
 	}
 	if len(e.state().Party) > 1 {
 		first := e.state().Party[0]
-		if _, err := e.Do(play.Order{From: 0, To: 1}); err != nil {
+		if _, err := e.doNow(play.Order{From: 0, To: 1}); err != nil {
 			t.Fatal("Order:", err)
 		}
 		if e.state().Party[1] != first {
 			t.Error("Order did not move the first member")
 		}
 	}
-	if _, err := e.Do(play.AdvanceTimeBy{D: time.Hour}); err != nil {
+	if _, err := e.doNow(play.AdvanceTimeBy{D: time.Hour}); err != nil {
 		t.Fatal("AdvanceTimeBy:", err)
 	}
-	if _, err := e.Do(play.BreakCamp{}); err != nil {
+	if _, err := e.doNow(play.BreakCamp{}); err != nil {
 		t.Fatal("BreakCamp:", err)
 	}
 	if err := e.Load(b); err != nil {
 		t.Fatal("Load:", err)
 	}
-	if w := e.State().(play.Exploring).Where; w.Facing != turn {
+	if w := e.build().(play.Exploring).Where; w.Facing != turn {
 		t.Errorf("after Load facing %d, want %d", w.Facing, turn)
 	}
 }
@@ -100,7 +100,7 @@ func TestPlayPoolPickMember(t *testing.T) {
 	e.Explore = true
 	e.Init()
 	e.Start(e.Play)
-	if _, err := e.Do(play.SetChoice{Field: "iconbody", Text: "pool-body-7"}); err != nil {
+	if _, err := e.doNow(play.SetChoice{Field: "iconbody", Text: "pool-body-7"}); err != nil {
 		t.Fatal(err)
 	}
 	if got := e.state().Party[e.sel].PoolIDs.IconBodyID; got != "pool-body-7" {
@@ -116,55 +116,55 @@ func TestPlayParty(t *testing.T) {
 	e.Init()
 	e.Start(e.Run)
 	for i := 0; i < 5; i++ { // past the title
-		if sc, ok := e.State().(play.Scene); !ok || sc.Kind != play.SceneTitle {
+		if sc, ok := e.build().(play.Scene); !ok || sc.Kind != play.SceneTitle {
 			break
 		}
-		if _, err := e.Do(play.Continue{}); err != nil {
+		if _, err := e.doNow(play.Continue{}); err != nil {
 			t.Fatal("Continue:", err)
 		}
 	}
-	if _, ok := e.State().(play.Assembling); !ok {
-		t.Fatalf("state %T, want Assembling", e.State())
+	if _, ok := e.build().(play.Assembling); !ok {
+		t.Fatalf("state %T, want Assembling", e.build())
 	}
-	if _, err := e.Do(play.NewCharacter{}); err != nil {
+	if _, err := e.doNow(play.NewCharacter{}); err != nil {
 		t.Fatal("NewCharacter:", err)
 	}
-	as := e.State().(play.Assembling)
+	as := e.build().(play.Assembling)
 	if as.Draft == nil || len(as.Draft.Fields) == 0 {
 		t.Fatal("no draft after NewCharacter")
 	}
-	if _, err := e.Do(play.Reroll{}); err != nil {
+	if _, err := e.doNow(play.Reroll{}); err != nil {
 		t.Fatal("Reroll:", err)
 	}
 	f := as.Draft.Fields[0]
-	if _, err := e.Do(play.SetChoice{Field: f.Name, N: len(f.Options) - 1}); err != nil {
+	if _, err := e.doNow(play.SetChoice{Field: f.Name, N: len(f.Options) - 1}); err != nil {
 		t.Fatal("SetChoice:", err)
 	}
-	if _, err := e.Do(play.SetChoice{Field: "iconhead", Text: "pool-head-3"}); err != nil {
+	if _, err := e.doNow(play.SetChoice{Field: "iconhead", Text: "pool-head-3"}); err != nil {
 		t.Fatal("SetChoice pool id:", err)
 	}
 	if e.member(e.creation.c).PoolIDs.IconHeadID != "pool-head-3" {
 		t.Error("the draft's pool pick not taken")
 	}
 	e.Rename("TESTER")
-	if _, err := e.Do(play.KeepCharacter{}); err != nil {
+	if _, err := e.doNow(play.KeepCharacter{}); err != nil {
 		t.Fatal("KeepCharacter:", err)
 	}
 	if e.creation != nil {
 		t.Fatal("draft still up after Keep")
 	}
-	roster := e.State().(play.Assembling).Roster
+	roster := e.build().(play.Assembling).Roster
 	i := slices.Index(roster, "TESTER")
 	if i < 0 {
 		t.Fatalf("TESTER not in the roster %v", roster)
 	}
-	if _, err := e.Do(play.OpenPicker{Kind: PickAdd}); err != nil || e.picker == nil {
+	if _, err := e.doNow(play.OpenPicker{Kind: PickAdd}); err != nil || e.picker == nil {
 		t.Fatal("OpenPicker:", err)
 	}
-	if _, err := e.Do(play.ClosePicker{}); err != nil || e.picker != nil {
+	if _, err := e.doNow(play.ClosePicker{}); err != nil || e.picker != nil {
 		t.Fatal("ClosePicker:", err)
 	}
-	if _, err := e.Do(play.AddCharacter{Roster: i}); err != nil {
+	if _, err := e.doNow(play.AddCharacter{Roster: i}); err != nil {
 		t.Fatal("AddCharacter:", err)
 	}
 	if n := len(e.state().Party); n != 1 {
@@ -172,14 +172,14 @@ func TestPlayParty(t *testing.T) {
 	}
 	size := e.state().Party[0].IconSize
 	for _, a := range []play.Action{play.EditIcon{Member: 0}, play.IconSize{}, play.EndIcon{Keep: true}} {
-		if _, err := e.Do(a); err != nil {
+		if _, err := e.doNow(a); err != nil {
 			t.Fatalf("%T: %v", a, err)
 		}
 	}
 	if e.iconEd != nil || e.state().Party[0].IconSize == size {
 		t.Errorf("icon editor up %v, size %d (was %d)", e.iconEd != nil, e.state().Party[0].IconSize, size)
 	}
-	if _, err := e.Do(play.DropMember{Member: 0}); err != nil {
+	if _, err := e.doNow(play.DropMember{Member: 0}); err != nil {
 		t.Fatal("DropMember:", err)
 	}
 	if n := len(e.state().Party); n != 0 {
@@ -206,22 +206,22 @@ func devPlayOn(t *testing.T, e *Engine, name string) *Engine {
 func TestPlayReplyLeave(t *testing.T) {
 	e := devPlay(t, "password")
 	if e.question() == nil {
-		t.Fatalf("no question up in the password scene (%T)", e.State())
+		t.Fatalf("no question up in the password scene (%T)", e.build())
 	}
-	if _, err := e.Do(play.Reply{Text: "WORD"}); err != nil {
+	if _, err := e.doNow(play.Reply{Text: "WORD"}); err != nil {
 		t.Fatal("Reply:", err)
 	}
 	if q := e.question(); q != nil && q.Typed {
 		t.Error("the typed question still up")
 	}
 	e = devPlay(t, "shop")
-	if _, ok := e.State().(play.Trading); !ok {
-		t.Fatalf("shop scene: %T", e.State())
+	if _, ok := e.build().(play.Trading); !ok {
+		t.Fatalf("shop scene: %T", e.build())
 	}
-	if _, err := e.Do(play.Leave{}); err != nil {
+	if _, err := e.doNow(play.Leave{}); err != nil {
 		t.Fatal("Leave:", err)
 	}
-	if _, ok := e.State().(play.Trading); ok {
+	if _, ok := e.build().(play.Trading); ok {
 		t.Error("still trading after Leave")
 	}
 }
@@ -247,18 +247,18 @@ func toTurn(t *testing.T, e *Engine) {
 func TestPlayFightQuestion(t *testing.T) {
 	e := devPlay(t, "fleefight")
 	toTurn(t, e)
-	if _, err := e.Do(play.Flee{}); err != nil {
+	if _, err := e.doNow(play.Flee{}); err != nil {
 		t.Fatal("Flee:", err)
 	}
-	f, ok := e.State().(play.Fighting)
+	f, ok := e.build().(play.Fighting)
 	if !ok || f.Ask == nil || !f.Ask.YesNo || e.ext.pq == nil {
-		t.Fatalf("after Flee %T, ask %+v: want the Flee question", e.State(), f.Ask)
+		t.Fatalf("after Flee %T, ask %+v: want the Flee question", e.build(), f.Ask)
 	}
-	if _, err := e.Do(play.MoveTo{To: image.Pt(0, 0)}); err == nil {
+	if _, err := e.doNow(play.MoveTo{To: image.Pt(0, 0)}); err == nil {
 		t.Error("a move with the question up: no refusal")
 	}
 	actor := e.member(e.cs.actor)
-	if _, err := e.Do(play.Reply{N: 1}); err != nil {
+	if _, err := e.doNow(play.Reply{N: 1}); err != nil {
 		t.Fatal("Reply yes:", err)
 	}
 	if e.ext.pq != nil || e.member(e.cs.actor) == actor && e.cs.turn != nil {
@@ -267,7 +267,7 @@ func TestPlayFightQuestion(t *testing.T) {
 
 	e = devPlay(t, "meleefight")
 	toTurn(t, e)
-	f = e.State().(play.Fighting)
+	f = e.build().(play.Fighting)
 	var at play.Action
 	for _, x := range f.Allowed.Plain {
 		if _, ok := x.(play.Attack); ok {
@@ -279,7 +279,7 @@ func TestPlayFightQuestion(t *testing.T) {
 		t.Fatal("no Attack allowed in the melee")
 	}
 	actor = e.member(e.cs.actor)
-	if _, err := e.Do(at); err != nil {
+	if _, err := e.doNow(at); err != nil {
 		t.Fatal("Attack:", err)
 	}
 	if e.member(e.cs.actor) == actor && e.cs.aim != nil {
@@ -292,35 +292,35 @@ func TestPlayFightQuestion(t *testing.T) {
 func TestPlayLootLeave(t *testing.T) {
 	e := devPlay(t, "loot")
 	for i := 0; i < 20; i++ {
-		if _, ok := e.State().(play.Looting); ok {
+		if _, ok := e.build().(play.Looting); ok {
 			break
 		}
 		press(e)
 	}
-	if _, ok := e.State().(play.Looting); !ok {
-		t.Skipf("loot scene: %T", e.State())
+	if _, ok := e.build().(play.Looting); !ok {
+		t.Skipf("loot scene: %T", e.build())
 	}
-	if _, err := e.Do(play.Leave{}); err != nil {
+	if _, err := e.doNow(play.Leave{}); err != nil {
 		t.Fatal("Leave:", err)
 	}
 	if e.ext.pq == nil {
-		if _, ok := e.State().(play.Looting); ok {
+		if _, ok := e.build().(play.Looting); ok {
 			t.Fatal("Leave neither asked nor left")
 		}
 		return // nothing left to ask about
 	}
 	t.Log("asked:", e.ext.pq.q.Text)
-	if _, err := e.Do(play.Reply{N: 1}); err != nil { // Yes: back to the treasure
+	if _, err := e.doNow(play.Reply{N: 1}); err != nil { // Yes: back to the treasure
 		t.Fatal("Reply yes:", err)
 	}
-	if _, ok := e.State().(play.Looting); !ok {
-		t.Fatalf("Yes left the treasure: %T", e.State())
+	if _, ok := e.build().(play.Looting); !ok {
+		t.Fatalf("Yes left the treasure: %T", e.build())
 	}
-	e.Do(play.Leave{})
-	if _, err := e.Do(play.Reply{N: 0}); err != nil { // No: leave it
+	e.doNow(play.Leave{})
+	if _, err := e.doNow(play.Reply{N: 0}); err != nil { // No: leave it
 		t.Fatal("Reply no:", err)
 	}
-	if _, ok := e.State().(play.Looting); ok {
+	if _, ok := e.build().(play.Looting); ok {
 		t.Error("No did not leave the treasure")
 	}
 }
@@ -334,12 +334,12 @@ func TestPlayWalk(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	for _, d := range []int{0, 2, 4, 6} {
-		x := e.State().(play.Exploring)
+		x := e.build().(play.Exploring)
 		from := image.Pt(x.Where.X, x.Where.Y)
-		if _, err := e.Do(play.RunEvent{Before: true, Side: d}); err != nil {
+		if _, err := e.doNow(play.RunEvent{Before: true, Side: d}); err != nil {
 			t.Fatal("RunEvent Before:", err)
 		}
-		x, ok := e.State().(play.Exploring)
+		x, ok := e.build().(play.Exploring)
 		if !ok {
 			continue
 		}
@@ -352,17 +352,17 @@ func TestPlayWalk(t *testing.T) {
 		if arr == nil {
 			continue // a wall that way
 		}
-		out, err := e.Do(arr)
+		out, err := e.doNow(arr)
 		if err != nil {
 			t.Fatal("Arrive:", err)
 		}
-		if w := e.State().(play.Exploring).Where; image.Pt(w.X, w.Y) != from.Add(sideSteps[d]) {
+		if w := e.build().(play.Exploring).Where; image.Pt(w.X, w.Y) != from.Add(sideSteps[d]) {
 			t.Fatalf("at %d,%d after Arrive, want %v", w.X, w.Y, from.Add(sideSteps[d]))
 		}
 		if len(out.Events) == 0 {
 			t.Error("Arrive: no Moved event")
 		}
-		if _, err := e.Do(play.RunEvent{}); err != nil {
+		if _, err := e.doNow(play.RunEvent{}); err != nil {
 			t.Fatal("RunEvent:", err)
 		}
 		return
@@ -402,24 +402,24 @@ func playAllows(s play.State, a play.Action) bool {
 // first reply) until done holds or n actions are taken; false: it never held.
 func playOn(e *Engine, n int, done func(play.State) bool) bool {
 	for range n {
-		s := e.State()
+		s := e.build()
 		if done(s) {
 			return true
 		}
 		switch {
 		case playAllows(s, play.Continue{}):
-			e.Do(play.Continue{})
+			e.doNow(play.Continue{})
 		case commonOf(s).Ask != nil:
 			if q := commonOf(s).Ask; q.Typed || q.Number {
-				e.Do(play.Reply{})
+				e.doNow(play.Reply{})
 			} else {
-				e.Do(play.Reply{N: 0})
+				e.doNow(play.Reply{N: 0})
 			}
 		default:
-			return done(e.State())
+			return done(e.build())
 		}
 	}
-	return done(e.State())
+	return done(e.build())
 }
 
 // press is the player's key to what waits, through Do: a page's or a
@@ -430,11 +430,11 @@ func press(e *Engine) {
 	if q := e.question(); q != nil && len(q.Replies) == 1 {
 		a = play.Reply{N: 0}
 	}
-	if !allows(commonOf(e.State()).Allowed, a) {
+	if !allows(commonOf(e.build()).Allowed, a) {
 		e.advance()
 		return
 	}
-	if _, err := e.Do(a); err != nil {
+	if _, err := e.doNow(a); err != nil {
 		panic(err) // allowed, so taken
 	}
 }
@@ -448,7 +448,7 @@ func TestPlayEndGame(t *testing.T) {
 	if !e.exploring() {
 		t.Fatal("not exploring")
 	}
-	if _, err := e.Do(play.EndGame{}); err != nil {
+	if _, err := e.doNow(play.EndGame{}); err != nil {
 		t.Fatal(err)
 	}
 	if !e.menuUp() {
@@ -463,7 +463,7 @@ func TestPlayAdvanceTime(t *testing.T) {
 	e.CampMenu()
 	c := e.state().Party[0]
 	c.HP = 1
-	if _, err := e.Do(play.AdvanceTimeBy{D: time.Hour}); err != nil {
+	if _, err := e.doNow(play.AdvanceTimeBy{D: time.Hour}); err != nil {
 		t.Fatal(err)
 	}
 	if c.HP <= 1 {
@@ -477,7 +477,14 @@ func TestPlayCampCast(t *testing.T) {
 	e := quickStarted(t)
 	e.CampMenu()
 	e.state().Party[0].Memorized[0] = rules1e.SpCureLightWounds
-	if _, err := e.Do(play.Cast{Member: 0, Spell: rules1e.SpCureLightWounds}); err != nil {
+	if _, err := e.doNow(play.Cast{Member: 0, Spell: rules1e.SpCureLightWounds}); err != nil {
 		t.Fatal(err)
 	}
+}
+
+// doNow is Do on the engine as it is now: these tests change it outside Do
+// (its internals), so State is built anew first.
+func (e *Engine) doNow(a play.Action) (play.Outcome, error) {
+	e.rebuild()
+	return e.Do(a)
 }

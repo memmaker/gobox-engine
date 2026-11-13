@@ -65,7 +65,7 @@ func advStarted(t *testing.T, env string) *Engine {
 // never ends the process).
 func quitEnds(t *testing.T, e *Engine) {
 	t.Helper()
-	out, err := e.Do(play.Quit{})
+	out, err := e.doNow(play.Quit{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,8 +78,8 @@ func quitEnds(t *testing.T, e *Engine) {
 // state), and quits.
 func smoke(t *testing.T, env string) {
 	e := advStarted(t, env)
-	if _, ok := e.State().(play.Assembling); !ok {
-		t.Fatalf("first wait is %T, want the party menu (play.Assembling)", e.State())
+	if _, ok := e.build().(play.Assembling); !ok {
+		t.Fatalf("first wait is %T, want the party menu (play.Assembling)", e.build())
 	}
 	quitEnds(t, e)
 }
@@ -94,8 +94,8 @@ func TestAdvSmokePOR(t *testing.T) {
 	e.Open("")
 	e.titleDone()
 	e.Advance()
-	if _, ok := e.State().(play.Assembling); !ok {
-		t.Fatalf("first wait is %T, want the party menu (play.Assembling)", e.State())
+	if _, ok := e.build().(play.Assembling); !ok {
+		t.Fatalf("first wait is %T, want the party menu (play.Assembling)", e.build())
 	}
 	quitEnds(t, e)
 }
@@ -115,12 +115,12 @@ func TestAdvBeginCOTAB(t *testing.T) { advBegin(t, advEnvCOTAB) }
 func advBegin(t *testing.T, env string) {
 	e := advStarted(t, env)
 	for _, a := range []play.Action{play.QuickStart{}, play.Begin{}} {
-		if _, err := e.Do(a); err != nil {
+		if _, err := e.doNow(a); err != nil {
 			t.Fatalf("%T: %v", a, err)
 		}
 	}
-	if _, ok := e.State().(play.Assembling); ok {
+	if _, ok := e.build().(play.Assembling); ok {
 		t.Fatalf("after Begin still at the party menu")
 	}
-	t.Logf("first wait after Begin: %T", e.State())
+	t.Logf("first wait after Begin: %T", e.build())
 }

@@ -67,7 +67,7 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 	}
 	seen := map[string]int{}
 	casts37b, fought := 0, false
-	prev := e.State()
+	prev := e.build()
 	for i := 0; i < 2000; i++ {
 		_, fighting := prev.(play.Fighting)
 		fought = fought || fighting || seen["attack"] > 0
@@ -83,16 +83,16 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 			if q.Text == "Continue Battle:" && !q.YesNo { // No: the fight is won
 				n = 1
 			}
-			out, err = e.Do(play.Reply{N: n})
+			out, err = e.doNow(play.Reply{N: n})
 		} else if playAllows(prev, play.Continue{}) {
-			out, err = e.Do(play.Continue{})
+			out, err = e.doNow(play.Continue{})
 		} else {
 			t.Fatalf("a fight at rest with nothing to do: %T %+v", prev, commonOf(prev).Allowed) // Do runs the computer's turns on
 		}
 		if err != nil {
 			t.Fatal(err)
 		}
-		s := e.State()
+		s := e.build()
 		for j, ev := range out.Events {
 			seen[kind(ev)]++
 			switch ev := ev.(type) {

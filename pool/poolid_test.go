@@ -56,7 +56,7 @@ func TestPoolIDsState(t *testing.T) {
 	e.Start(e.Play)
 	e.Advance()
 	e.state().Party[0].PoolIDs = rules1e.PoolIDs{PortraitHeadID: "head_001", PortraitBodyID: "body_002", IconHeadID: "combat_head_003", IconBodyID: "combat_body_004"}
-	m := commonOf(e.State()).Party[0]
+	m := commonOf(e.build()).Party[0]
 	if m.PortraitHeadID != "head_001" || m.PortraitBodyID != "body_002" || m.IconHeadID != "combat_head_003" || m.IconBodyID != "combat_body_004" {
 		t.Errorf("play member: %q %q %q %q", m.PortraitHeadID, m.PortraitBodyID, m.IconHeadID, m.IconBodyID)
 	}

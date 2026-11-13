@@ -40,7 +40,7 @@ func partyTurnSceneOn(t *testing.T, e *Engine) *Engine {
 			press(e)
 		}
 	}
-	if !myTurn(e.State()) {
+	if !myTurn(e.build()) {
 		t.Skip("no party turn")
 	}
 	return e
@@ -48,7 +48,7 @@ func partyTurnSceneOn(t *testing.T, e *Engine) *Engine {
 
 // fighting is the fight's state (the zero one when there is none).
 func fighting(e *Engine) play.Fighting {
-	f, _ := e.State().(play.Fighting)
+	f, _ := e.build().(play.Fighting)
 	return f
 }
 
@@ -99,7 +99,7 @@ func TestCombatVerbs(t *testing.T) {
 		}
 	}
 	unit := f.Field.Turn
-	if _, err := e.Do(play.EndTurn{}); err != nil {
+	if _, err := e.doNow(play.EndTurn{}); err != nil {
 		t.Fatal("EndTurn:", err)
 	}
 	if g := fighting(e); myTurn(g) && g.Field.Turn == unit && e.cs.aim == nil {
@@ -112,27 +112,27 @@ func TestCombatVerbs(t *testing.T) {
 func TestFleeOffEdge(t *testing.T) {
 	e := partyTurnScene(t)
 	for range 40 {
-		s := e.State()
+		s := e.build()
 		f, ok := s.(play.Fighting)
 		if !ok {
 			t.Skip("the fight ended before the edge")
 		}
 		if f.Ask != nil || !myTurn(s) {
-			e.Do(yes(f.Ask))
+			e.doNow(yes(f.Ask))
 			continue
 		}
 		a := e.member(e.cs.actor)
 		at := image.Pt(e.state().CombatX(a), e.state().CombatY(a))
 		for dir := 0; dir < 8; dir++ {
 			if who, g := e.state().GroundAt(a, dir); who == 0 && g == 0 {
-				if _, err := e.Do(play.Flee{}); err != nil {
+				if _, err := e.doNow(play.Flee{}); err != nil {
 					t.Fatal("Flee:", err)
 				}
-				q := fightQ(e.State())
+				q := fightQ(e.build())
 				if q == nil || q.Text != "Flee:" {
 					t.Fatalf("a step off the map asks %+v, want Flee:", q)
 				}
-				o, err := e.Do(yes(q))
+				o, err := e.doNow(yes(q))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -155,10 +155,10 @@ func TestFleeOffEdge(t *testing.T) {
 			}
 		}
 		if best == at {
-			e.Do(play.EndTurn{})
+			e.doNow(play.EndTurn{})
 			continue
 		}
-		e.Do(play.MoveTo{To: best})
+		e.doNow(play.MoveTo{To: best})
 	}
 	t.Skip("never reached the edge")
 }
@@ -207,7 +207,7 @@ func TestBandage(t *testing.T) {
 	if !bandage() {
 		t.Fatalf("no Bandage with %s dying: %+v", d.Name(), fighting(e).Allowed.Plain)
 	}
-	o, err := e.Do(play.Bandage{Member: max(e.sel, 0)})
+	o, err := e.doNow(play.Bandage{Member: max(e.sel, 0)})
 	if err != nil {
 		t.Fatalf("Bandage: %v", err)
 	}
@@ -226,15 +226,15 @@ func TestBandage(t *testing.T) {
 	round := e.state().CombatRound
 	var lines []string
 	for i := 0; i < 200 && e.state().CombatRound == round; i++ {
-		s := e.State()
+		s := e.build()
 		if _, ok := s.(play.Fighting); !ok {
 			break
 		}
 		var o play.Outcome
 		if q := commonOf(s).Ask; q != nil {
-			o, _ = e.Do(yes(q))
+			o, _ = e.doNow(yes(q))
 		} else {
-			o, _ = e.Do(play.EndTurn{})
+			o, _ = e.doNow(play.EndTurn{})
 		}
 		lines = append(lines, said(o)...)
 	}
@@ -304,7 +304,7 @@ func TestBarConditions(t *testing.T) {
 	if v := offered(); !v.use || !v.cast || !v.turn {
 		t.Errorf("an item, a spell, a cleric (no undead needed): %+v", v)
 	}
-	o, err := e.Do(play.TurnUndead{}) // with no undead about: the original's turn, no hang
+	o, err := e.doNow(play.TurnUndead{}) // with no undead about: the original's turn, no hang
 	t.Logf("Turn with no undead: %v, said %q", err, said(o))
 	c.Combat.TurnUsed = 1
 	if v := offered(); v.turn {
@@ -335,7 +335,7 @@ func testReadyInFight(t *testing.T, mk func(*testing.T) *Engine) {
 		t.Fatal("the new sword is not carried")
 	}
 	ready := play.Ready{Member: m, Item: e.itemHandle(w)}
-	if !playAllows(e.State(), ready) {
+	if !playAllows(e.build(), ready) {
 		t.Errorf("no Ready for the acting member: %+v", fighting(e).Allowed.Plain)
 	}
 	weapon := func() string {
@@ -344,13 +344,13 @@ func testReadyInFight(t *testing.T, mk func(*testing.T) *Engine) {
 		}
 		return ""
 	}
-	if _, err := e.Do(ready); err != nil || w.Readied == 0 {
+	if _, err := e.doNow(ready); err != nil || w.Readied == 0 {
 		t.Fatalf("Ready: %v, readied %d", err, w.Readied)
 	}
 	if n := weapon(); n != e.invItem(e.charID(c), e.itemHandle(w)).Name {
 		t.Errorf("Field.Weapon %q after Ready, want %q", n, e.invItem(e.charID(c), e.itemHandle(w)).Name)
 	}
-	if _, err := e.Do(ready); err != nil || w.Readied != 0 {
+	if _, err := e.doNow(ready); err != nil || w.Readied != 0 {
 		t.Fatalf("Ready again: %v, readied %d", err, w.Readied)
 	}
 	if n := weapon(); n != "" {
@@ -358,7 +358,7 @@ func testReadyInFight(t *testing.T, mk func(*testing.T) *Engine) {
 	}
 	for o, oc := range e.state().Party {
 		if oc != c && oc.Side == rules1e.SideParty {
-			if _, err := e.Do(play.Ready{Member: o, Item: e.listedItems(e.partyIDs()[o])[0]}); err == nil {
+			if _, err := e.doNow(play.Ready{Member: o, Item: e.listedItems(e.partyIDs()[o])[0]}); err == nil {
 				t.Errorf("Ready of %s's items on %s's turn taken", oc.Name(), c.Name())
 			}
 			break
@@ -388,13 +388,13 @@ func TestMoveStep(t *testing.T) {
 			press(e)
 		}
 	}
-	if !myTurn(e.State()) {
+	if !myTurn(e.build()) {
 		t.Skip("no party turn")
 	}
 	a := e.member(e.cs.actor)
 	at := image.Pt(e.state().CombatX(a), e.state().CombatY(a))
 	step := func(dir int) image.Point { return at.Add(image.Pt(rules1e.DirDX[dir], rules1e.DirDY[dir])) }
-	inReach := func(p image.Point) bool { return playAllows(e.State(), play.MoveTo{To: p}) }
+	inReach := func(p image.Point) bool { return playAllows(e.build(), play.MoveTo{To: p}) }
 	free, walled := -1, -1
 	for dir := 0; dir < 8; dir++ {
 		who, g := e.state().GroundAt(a, dir)
@@ -408,7 +408,7 @@ func TestMoveStep(t *testing.T) {
 	if free < 0 || walled < 0 {
 		t.Fatalf("no free (%d) or walled (%d) square next to %s", free, walled, a.Name())
 	}
-	if _, err := e.Do(play.MoveTo{To: step(walled)}); err == nil {
+	if _, err := e.doNow(play.MoveTo{To: step(walled)}); err == nil {
 		t.Errorf("a move into the wall at %v taken", step(walled))
 	}
 	var foe *rules1e.Character // a foe on the free square: the bump attacks it
@@ -427,7 +427,7 @@ func TestMoveStep(t *testing.T) {
 	e.state().Cpos[fi].X, e.state().Cpos[fi].Y = byte(p.X), byte(p.Y)
 	e.state().Occ[p.Y][p.X] = rules1e.Slot(byte(fi))
 	e.turnChoices(e.charID(a))
-	o, err := e.Do(play.Attack{At: &p})
+	o, err := e.doNow(play.Attack{At: &p})
 	if err != nil {
 		t.Fatalf("bump into %s: %v", foe.Name(), err)
 	}
@@ -457,19 +457,19 @@ func testAllyBump(t *testing.T, mk func(*testing.T) *Engine) {
 	}
 	bump := func() *play.Question {
 		t.Helper()
-		if _, err := e.Do(play.Attack{At: &to}); err != nil {
+		if _, err := e.doNow(play.Attack{At: &to}); err != nil {
 			t.Fatal(err)
 		}
-		q := fightQ(e.State())
+		q := fightQ(e.build())
 		if q == nil || q.Text != "Attack Ally?" {
 			t.Fatalf("step into an ally asks %+v, want Attack Ally?", q)
 		}
 		return q
 	}
-	if _, err := e.Do(no(bump())); err != nil || e.state().AttackedAlly != 0 {
+	if _, err := e.doNow(no(bump())); err != nil || e.state().AttackedAlly != 0 {
 		t.Fatalf("No: %v, attacked %d", err, e.state().AttackedAlly)
 	}
-	if _, err := e.Do(yes(bump())); err != nil || e.state().AttackedAlly == 0 { // asked again: No took nothing
+	if _, err := e.doNow(yes(bump())); err != nil || e.state().AttackedAlly == 0 { // asked again: No took nothing
 		t.Fatalf("Yes: %v, attacked %d", err, e.state().AttackedAlly)
 	}
 }
@@ -490,7 +490,7 @@ func testDropOnce(t *testing.T, mk func(*testing.T) *Engine) {
 	if i < 0 {
 		t.Fatal("the new sword is not carried")
 	}
-	if _, err := e.Do(play.Drop{Member: m, Item: e.itemHandle(w)}); err != nil || slices.Contains(e.state().Carried(c), w) || commonOf(e.State()).Ask != nil {
-		t.Fatalf("Drop: %v, still carried %v, ask %+v", err, slices.Contains(e.state().Carried(c), w), commonOf(e.State()).Ask)
+	if _, err := e.doNow(play.Drop{Member: m, Item: e.itemHandle(w)}); err != nil || slices.Contains(e.state().Carried(c), w) || commonOf(e.build()).Ask != nil {
+		t.Fatalf("Drop: %v, still carried %v, ask %+v", err, slices.Contains(e.state().Carried(c), w), commonOf(e.build()).Ask)
 	}
 }

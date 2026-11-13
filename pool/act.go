@@ -33,6 +33,7 @@ const (
 func (e *Engine) Start(body func()) {
 	body()
 	e.advance()
+	e.rebuild()
 }
 
 // advance runs the engine on to its next wait. With nothing open, the
@@ -79,6 +80,7 @@ func (e *Engine) Animate() { e.animateWhileWaiting() }
 
 // Step is the call View.Pace names (a headless run's pacing: tests).
 func (e *Engine) Step() {
+	defer e.rebuild()
 	switch e.pace() {
 	case PaceFight:
 		e.CombatStep()

@@ -15,7 +15,7 @@ func TestInsideNotSky(t *testing.T) {
 	want := e.MapCell(e.posX, e.posY) > 0x7F
 	for _, sky := range []uint16{0, 8, 11} {
 		e.state().Area.Sky, e.state().Area.SkyInside = sky, sky
-		if got := commonOf(e.State()).Where.Inside; got != want {
+		if got := commonOf(e.build()).Where.Inside; got != want {
 			t.Errorf("sky %d: Inside %v, the cell says %v", sky, got, want)
 		}
 	}

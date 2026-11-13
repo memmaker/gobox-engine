@@ -27,7 +27,7 @@ func TestAddCharCOTAB(t *testing.T) { addChar(t, advStarted(t, advEnvCOTAB)) }
 // addChar is TestAddChar on e, at the party menu.
 func addChar(t *testing.T, e *Engine) {
 	t.Helper()
-	if _, err := e.Do(play.QuickStart{}); err != nil { // a party to save, then dropped
+	if _, err := e.doNow(play.QuickStart{}); err != nil { // a party to save, then dropped
 		t.Fatal(err)
 	}
 	for _, c := range e.state().Party {
@@ -38,19 +38,19 @@ func addChar(t *testing.T, e *Engine) {
 		t.Fatal("no saved characters")
 	}
 	n := len(e.state().Party)
-	if _, err := e.Do(play.OpenPicker{Kind: PickAdd}); err != nil || e.picker == nil {
+	if _, err := e.doNow(play.OpenPicker{Kind: PickAdd}); err != nil || e.picker == nil {
 		t.Fatalf("OpenPicker PickAdd: %v", err)
 	}
-	if p := commonOf(e.State()).Picker; p == nil || !slices.Equal(p.Labels, e.BuildCharList()) {
+	if p := commonOf(e.build()).Picker; p == nil || !slices.Equal(p.Labels, e.BuildCharList()) {
 		t.Fatalf("Add picker labels %v, want %v", p, e.BuildCharList())
 	}
-	if _, err := e.Do(play.AddCharacter{Roster: 0}); err != nil {
+	if _, err := e.doNow(play.AddCharacter{Roster: 0}); err != nil {
 		t.Fatalf("AddCharacter refused: %v", err)
 	}
 	if len(e.state().Party) != n+1 {
 		t.Fatalf("party %d, want %d", len(e.state().Party), n+1)
 	}
-	if _, err := e.Do(play.AddCharacter{Roster: 0}); err == nil { // BUG-CLASSES 31: added twice, nothing changes
+	if _, err := e.doNow(play.AddCharacter{Roster: 0}); err == nil { // BUG-CLASSES 31: added twice, nothing changes
 		t.Error("the same character added again was accepted")
 	}
 }
@@ -60,7 +60,7 @@ func addChar(t *testing.T, e *Engine) {
 func TestNoSilentNoop(t *testing.T) {
 	e := quickStarted(t)
 	for _, a := range []play.Action{play.Order{From: 0, To: 99}, play.RemoveNote{ID: 99}} {
-		if _, err := e.Do(a); err == nil {
+		if _, err := e.doNow(a); err == nil {
 			t.Errorf("%T%+v accepted with no effect", a, a)
 		}
 	}
@@ -72,8 +72,8 @@ func TestDropMember(t *testing.T) {
 	e := quickStarted(t)
 	e.Advance() // the party menu comes up
 	n := len(e.state().Party)
-	if _, err := e.Do(play.DropMember{Member: 0}); err != nil || len(e.state().Party) != n-1 || commonOf(e.State()).Ask != nil {
-		t.Fatalf("Drop: %v, party %d want %d, ask %+v", err, len(e.state().Party), n-1, commonOf(e.State()).Ask)
+	if _, err := e.doNow(play.DropMember{Member: 0}); err != nil || len(e.state().Party) != n-1 || commonOf(e.build()).Ask != nil {
+		t.Fatalf("Drop: %v, party %d want %d, ask %+v", err, len(e.state().Party), n-1, commonOf(e.build()).Ask)
 	}
 }
 
@@ -85,7 +85,7 @@ func TestAddFromOtherGame(t *testing.T) {
 	e.Open("")
 	e.titleDone()
 	e.Advance()
-	if _, err := e.Do(play.QuickStart{}); err != nil {
+	if _, err := e.doNow(play.QuickStart{}); err != nil {
 		t.Fatal(err)
 	}
 	var files []core.CharacterFile
@@ -99,20 +99,20 @@ func TestAddFromOtherGame(t *testing.T) {
 	e.state().Party = e.state().Party[:0]
 	e.gameData.Imports = []string{"other"}
 	e.gameData.Commands = []game.PartyCommand{{Label: "Add from Other", Key: 'O', From: "other"}}
-	if _, err := e.Do(play.AddCharacter{Roster: -1, From: "other"}); err == nil {
+	if _, err := e.doNow(play.AddCharacter{Roster: -1, From: "other"}); err == nil {
 		t.Fatal("a host with no source was accepted")
 	}
 	e.Cfg.Foreign = func(from string) ([]core.CharacterFile, error) { return files, nil }
-	if _, err := e.Do(play.AddCharacter{Roster: -1, From: "elsewhere"}); err == nil {
+	if _, err := e.doNow(play.AddCharacter{Roster: -1, From: "elsewhere"}); err == nil {
 		t.Error("a game the data does not list was accepted")
 	}
-	if _, err := e.Do(play.AddCharacter{Roster: -1, From: "other"}); err != nil || e.picker == nil || e.picker.kind != PickAddFrom || e.picker.n != 2 {
+	if _, err := e.doNow(play.AddCharacter{Roster: -1, From: "other"}); err != nil || e.picker == nil || e.picker.kind != PickAddFrom || e.picker.n != 2 {
 		t.Fatalf("open the list: %v, picker %+v", err, e.picker)
 	}
-	if _, err := e.Do(play.AddCharacter{Roster: 1, From: "other"}); err != nil || len(e.state().Party) != 1 {
+	if _, err := e.doNow(play.AddCharacter{Roster: 1, From: "other"}); err != nil || len(e.state().Party) != 1 {
 		t.Fatalf("add the second: %v, party %d", err, len(e.state().Party))
 	}
-	if _, err := e.Do(play.AddCharacter{Roster: 1, From: "other"}); err == nil {
+	if _, err := e.doNow(play.AddCharacter{Roster: 1, From: "other"}); err == nil {
 		t.Error("the same character added again was accepted")
 	}
 }

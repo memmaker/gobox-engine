@@ -12,8 +12,8 @@ import (
 // refusal tell it in the outcome, a journal text adds to Lore (BUG-CLASSES 70).
 func TestStackAndToasts(t *testing.T) {
 	e := devPlay(t, "shop")
-	if _, ok := e.State().(play.Trading); !ok {
-		t.Fatalf("shop scene: %T", e.State())
+	if _, ok := e.build().(play.Trading); !ok {
+		t.Fatalf("shop scene: %T", e.build())
 	}
 	a := e.state().RandomItem(rules1e.ItemArrow)
 	a.Price, a.Count, a.Hidden = 1, 10, 0
@@ -23,7 +23,7 @@ func TestStackAndToasts(t *testing.T) {
 		n := 0
 		var name string
 		var count int
-		for _, g := range commonOf(e.State()).Party[e.sel].Items {
+		for _, g := range commonOf(e.build()).Party[e.sel].Items {
 			if g.Type == int(rules1e.ItemArrow) {
 				n, name, count = n+1, g.Name, g.Count
 			}
@@ -42,25 +42,25 @@ func TestStackAndToasts(t *testing.T) {
 		return ""
 	}
 	buy := play.Buy{Member: e.sel, Item: e.goods()[0]}
-	if o, err := e.Do(buy); err != nil || said(o) != "Bought!" {
+	if o, err := e.doNow(buy); err != nil || said(o) != "Bought!" {
 		t.Errorf("after a buy: %q %v", said(o), err)
 	}
-	if o, err := e.Do(buy); err == nil && said(o) == "" { // no gold left
+	if o, err := e.doNow(buy); err == nil && said(o) == "" { // no gold left
 		t.Errorf("a refused buy told nothing")
 	}
 	e.state().Purse.Gold = 1
-	if o, err := e.Do(buy); err != nil {
+	if o, err := e.doNow(buy); err != nil {
 		t.Fatalf("third buy: %v %+v", err, o)
 	}
 	if name, count, n := arrows(); n != 1 || count != 20 || name[:3] != "20 " {
 		t.Errorf("two stacks bought: %d listed, %q count %d, want one of 20", n, name, count)
 	}
-	lore := len(commonOf(e.State()).Lore)
+	lore := len(commonOf(e.build()).Lore)
 	for title := range e.journalTexts() {
 		e.noteJournal(title)
 		break
 	}
-	if len(commonOf(e.State()).Lore) != lore+1 {
-		t.Errorf("Lore %d after a journal text, want %d", len(commonOf(e.State()).Lore), lore+1)
+	if len(commonOf(e.build()).Lore) != lore+1 {
+		t.Errorf("Lore %d after a journal text, want %d", len(commonOf(e.build()).Lore), lore+1)
 	}
 }

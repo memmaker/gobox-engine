@@ -46,8 +46,8 @@ func TestSidestepAside(t *testing.T) {
 	for range 4 {
 		x, y, f := e.posX, e.posY, e.facing
 		stepBy(e, 6)
-		if e.facing != f || commonOf(e.State()).Where.Facing != f/2&3*2 {
-			t.Fatalf("aside: facing %d (published %d), want %d", e.facing, commonOf(e.State()).Where.Facing, f)
+		if e.facing != f || commonOf(e.build()).Where.Facing != f/2&3*2 {
+			t.Fatalf("aside: facing %d (published %d), want %d", e.facing, commonOf(e.build()).Where.Facing, f)
 		}
 		if e.posX == x && e.posY == y {
 			turnRight(e)
@@ -67,15 +67,15 @@ func TestSidestepAside(t *testing.T) {
 func stepBy(e *Engine, by int) error {
 	d := (e.facing + by) % 8
 	from := image.Pt(e.posX, e.posY)
-	if _, err := e.Do(play.RunEvent{Before: true, Side: d}); err != nil {
+	if _, err := e.doNow(play.RunEvent{Before: true, Side: d}); err != nil {
 		return err
 	}
-	_, err := e.Do(play.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[d], rules1e.DirDY[d])), Facing: e.facing})
+	_, err := e.doNow(play.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[d], rules1e.DirDY[d])), Facing: e.facing})
 	return err
 }
 
 // turnRight is gobox's turn to the right: a Face.
-func turnRight(e *Engine) { e.Do(play.Face{Facing: (e.facing + 2) % 8}) }
+func turnRight(e *Engine) { e.doNow(play.Face{Facing: (e.facing + 2) % 8}) }
 
 // Arrive moves and leaves the step's events owed (Map.Event); RunEvent runs them.
 func TestArriveThenRunEvent(t *testing.T) {
@@ -97,11 +97,11 @@ func TestArriveThenRunEvent(t *testing.T) {
 			t.Fatal("Arrive left the pre-step script owed")
 		}
 		at := image.Pt(e.posX, e.posY)
-		xs, ok := e.State().(play.Exploring)
+		xs, ok := e.build().(play.Exploring)
 		if e.ext.owed == nil || !ok || xs.Map.Walk == nil || !xs.Map.Walk.Event(at) {
 			t.Fatalf("after Arrive: owed %v, exploring %v", e.ext.owed, ok)
 		}
-		if _, err := e.Do(play.RunEvent{}); err != nil {
+		if _, err := e.doNow(play.RunEvent{}); err != nil {
 			t.Fatal(err)
 		}
 		if e.ext.owed != nil {
@@ -121,7 +121,7 @@ func TestArriveNeedsBefore(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	from := image.Pt(e.posX, e.posY)
-	_, err := e.Do(play.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[e.facing], rules1e.DirDY[e.facing])), Facing: e.facing})
+	_, err := e.doNow(play.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[e.facing], rules1e.DirDY[e.facing])), Facing: e.facing})
 	if err == nil || e.posX != from.X || e.posY != from.Y {
 		t.Fatalf("Arrive alone: err %v, at %d,%d", err, e.posX, e.posY)
 	}

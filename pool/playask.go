@@ -221,7 +221,7 @@ func (e *Engine) withItems(n int, f func() error) error {
 // moveActs are a fight's step to to as turn actions: a step off the map
 // flees, into a foe attacks it, into an ally aims at it (which asks
 // Attack Ally?, BUG-CLASSES 41), as moveAttack's (ovr09:09DF).
-func (e *Engine) moveActs(to image.Point, b *play.Combat) ([]TurnAct, error) {
+func (e *Engine) moveActs(to image.Point, reach []game.Reach) ([]TurnAct, error) {
 	if c := e.cs.actor; c != core.NoChar && e.battleUp() {
 		at := e.fact(c, core.AtFact{}).(core.BoardPos)
 		for dir := 0; dir < 8; dir++ {
@@ -240,7 +240,7 @@ func (e *Engine) moveActs(to image.Point, b *play.Combat) ([]TurnAct, error) {
 					as = append([]TurnAct{{Verb: VerbAttack}}, as...)
 				}
 				return as, nil
-			case b == nil || !slices.ContainsFunc(b.Reach, func(q game.Reach) bool { return q.At == to }):
+			case !slices.ContainsFunc(reach, func(q game.Reach) bool { return q.At == to }):
 				return nil, &play.Refusal{Text: "Blocked"} // ovr09:0C6B, the string at 09D7
 			}
 		}

@@ -47,7 +47,7 @@ func TestFightArtResolves(t *testing.T) {
 		e.Start(e.Play)
 		fights := 0
 		for range 300 {
-			st := e.State()
+			st := e.build()
 			if f, ok := st.(play.Fighting); ok {
 				fights++
 				c := f.Field
@@ -73,11 +73,11 @@ func TestFightArtResolves(t *testing.T) {
 			}
 			switch {
 			case commonOf(st).Ask != nil:
-				if _, err := e.Do(play.Reply{}); err != nil {
-					e.Do(play.Continue{})
+				if _, err := e.doNow(play.Reply{}); err != nil {
+					e.doNow(play.Continue{})
 				}
 			case playAllows(st, play.Quick{}):
-				e.Do(play.Quick{})
+				e.doNow(play.Quick{})
 			default:
 				e.Step()
 				press(e)

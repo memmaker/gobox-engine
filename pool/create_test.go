@@ -39,8 +39,8 @@ func TestKindEnforce(t *testing.T) {
 func TestCreateSheet(t *testing.T) {
 	e := testEngine(t)
 	e.viewBit0 = 1 // the sheet's portrait, as init sets it
-	draft := func() *play.Draft { a, _ := e.State().(play.Assembling); return a.Draft }
-	cm := func() play.Common { return commonOf(e.State()) }
+	draft := func() *play.Draft { a, _ := e.build().(play.Assembling); return a.Draft }
+	cm := func() play.Common { return commonOf(e.build()) }
 	option := func(f int, text string) int {
 		i := slices.Index(draft().Fields[f].Options, text)
 		if i < 0 {
@@ -184,7 +184,7 @@ func TestCreateSheet(t *testing.T) {
 func TestPointBuy(t *testing.T) {
 	e := testEngine(t)
 	buy := []int{18, 16, 12, 8, 8, 8}
-	if e.Do(play.PointBuy{Scores: buy}); e.creation != nil {
+	if e.doNow(play.PointBuy{Scores: buy}); e.creation != nil {
 		t.Fatal("a draft appeared")
 	}
 	if err := e.PointBuy(buy); err == nil {

@@ -11,9 +11,9 @@ import (
 // valuedOffer is the state's offer with a value (nil: none).
 func valuedOffer(t *testing.T, e *Engine) *game.Offer {
 	t.Helper()
-	tr, ok := e.State().(play.Trading)
+	tr, ok := e.build().(play.Trading)
 	if !ok {
-		t.Fatalf("not trading: %T", e.State())
+		t.Fatalf("not trading: %T", e.build())
 	}
 	for i := range tr.Offers {
 		if tr.Offers[i].Value > 0 {
@@ -26,7 +26,7 @@ func valuedOffer(t *testing.T, e *Engine) *game.Offer {
 func purseGems(e *Engine) int { return int(e.state().Purse.Gems) }
 
 // carriedCount is the first member's items, the party inventory among them.
-func carriedCount(e *Engine) int { return len(commonOf(e.State()).Party[0].Items) }
+func carriedCount(e *Engine) int { return len(commonOf(e.build()).Party[0].Items) }
 
 // TestAppraiseFlow: clicking Appraise values the gem and neither sells nor
 // loses it; Keep, selling and leaving then each settle it. Through Do
@@ -42,13 +42,13 @@ func TestAppraiseFlow(t *testing.T) {
 			e.state().Purse.Gems, e.state().Purse.Jewelry = 3, 0
 			st := steps{}
 			st.value = func() error {
-				tr := e.State().(play.Trading)
-				_, err := e.Do(play.Appraise{Member: tr.Offers[0].Member, Offer: tr.Offers[0].Offer})
+				tr := e.build().(play.Trading)
+				_, err := e.doNow(play.Appraise{Member: tr.Offers[0].Member, Offer: tr.Offers[0].Offer})
 				return err
 			}
 			st.keep = func(k bool) error {
 				o := valuedOffer(t, e)
-				_, err := e.Do(play.Appraise{Member: o.Member, Offer: o.Offer, Keep: k})
+				_, err := e.doNow(play.Appraise{Member: o.Member, Offer: o.Offer, Keep: k})
 				return err
 			}
 			gold, items := e.state().Purse.Gold, carriedCount(e)
@@ -85,7 +85,7 @@ func TestAppraiseFlow(t *testing.T) {
 			}
 			gold = e.state().Purse.Gold
 			value()
-			if _, err := e.Do(play.Leave{}); err != nil {
+			if _, err := e.doNow(play.Leave{}); err != nil {
 				t.Fatal("leave:", err)
 			}
 			if e.state().Purse.Gold <= gold || e.valued != core.NoItem {

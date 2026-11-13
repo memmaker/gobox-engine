@@ -75,12 +75,12 @@ func TestSceneYesNoOrder(t *testing.T) {
 		e.host.Set(v, 7)
 		e.askYesNo(yesNo("SURE?", false), false, askDone{kind: dChoiceVar, dst: v})
 		e.openAsk()
-		sc, ok := e.State().(play.Scene)
+		sc, ok := e.build().(play.Scene)
 		if !ok || sc.Ask == nil {
-			t.Fatalf("%T, no Scene question", e.State())
+			t.Fatalf("%T, no Scene question", e.build())
 		}
 		n := slices.Index(sc.Ask.Replies, want)
-		if _, err := e.Do(play.Reply{N: n}); err != nil {
+		if _, err := e.doNow(play.Reply{N: n}); err != nil {
 			t.Fatal(err)
 		}
 		if got := e.host.Get(v) == 1; got != (want == "Yes") {

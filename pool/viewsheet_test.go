@@ -21,7 +21,7 @@ func testViewSheet(t *testing.T, mk func(*testing.T) *Engine) {
 	}
 	e := partyTurnSceneOn(t, mk(t))
 	m := e.state().PartyIndex(e.member(e.cs.actor))
-	fight := commonOf(e.State()).Party[m].Page
+	fight := commonOf(e.build()).Party[m].Page
 	full("fight", fight)
 	if fight.Name != e.member(e.cs.actor).Name() {
 		t.Errorf("fight sheet of %s, not the active %s", fight.Name, e.member(e.cs.actor).Name())
@@ -39,10 +39,10 @@ func viewSheetShop(t *testing.T, e *Engine) {
 			t.Fatalf("%s: sheet %+v", what, p)
 		}
 	}
-	if _, ok := e.State().(play.Trading); !ok {
-		t.Fatalf("no shop: %T", e.State())
+	if _, ok := e.build().(play.Trading); !ok {
+		t.Fatalf("no shop: %T", e.build())
 	}
-	shop := commonOf(e.State()).Party[1].Page
+	shop := commonOf(e.build()).Party[1].Page
 	full("shop", shop)
 	e.ext.creating = false
 	e.selectMember(1)

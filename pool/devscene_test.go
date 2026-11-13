@@ -85,15 +85,15 @@ func TestDevMeleeAndFlee(t *testing.T) {
 				switch {
 				case name == "meleefight" && who > 0 && e.state().Combatant(who).Side != a.Side:
 					found = true
-					if _, err := e.Do(play.Attack{At: &to}); err != nil { // gobox's bump
+					if _, err := e.doNow(play.Attack{At: &to}); err != nil { // gobox's bump
 						t.Errorf("%s deskew %v: bump %v", name, deskew, err)
 					}
 				case name == "fleefight" && who == 0 && g == 0:
 					found = true
-					if _, err := e.Do(play.Flee{}); err != nil {
+					if _, err := e.doNow(play.Flee{}); err != nil {
 						t.Errorf("%s deskew %v: Flee %v", name, deskew, err)
 					}
-					if q := fightQ(e.State()); q == nil || q.Text != "Flee:" {
+					if q := fightQ(e.build()); q == nil || q.Text != "Flee:" {
 						t.Errorf("%s deskew %v: Flee asks %+v, want Flee:", name, deskew, q)
 					}
 				}
@@ -128,8 +128,8 @@ func TestDevDrop(t *testing.T) {
 	m := e.state().PartyIndex(c)
 	e.CloseItems(true) // the items screen is gobox's: Drop opens what it needs
 	n := len(e.state().Carried(c))
-	if _, err := e.Do(play.Drop{Member: m, Item: h}); err != nil || len(e.state().Carried(c)) != n-1 {
-		t.Errorf("drop: %v, %d items, want %d (%T)", err, len(e.state().Carried(c)), n-1, e.State())
+	if _, err := e.doNow(play.Drop{Member: m, Item: h}); err != nil || len(e.state().Carried(c)) != n-1 {
+		t.Errorf("drop: %v, %d items, want %d (%T)", err, len(e.state().Carried(c)), n-1, e.build())
 	}
 }
 
@@ -139,12 +139,12 @@ func TestDevDrop(t *testing.T) {
 func TestDevMissileShoots(t *testing.T) {
 	e := devFirstTurn(t, "missile", false)
 	for range 400 {
-		s := e.State()
+		s := e.build()
 		if _, ok := s.(play.Fighting); !ok {
 			break
 		}
 		if q := fightQ(s); q != nil || !myTurn(s) {
-			if _, err := e.Do(yes(q)); err != nil {
+			if _, err := e.doNow(yes(q)); err != nil {
 				t.Fatalf("%T: %v", s, err)
 			}
 			continue
@@ -161,13 +161,13 @@ func TestDevMissileShoots(t *testing.T) {
 			if rng < 3 && e.state().RangedWeapon(a) {
 				t.Fatalf("%s's launcher reaches %d squares", a.Name(), rng)
 			}
-			e.Do(play.Delay{}) // the foes come closer
+			e.doNow(play.Delay{}) // the foes come closer
 			continue
 		}
 		if rng < 3 {
 			t.Fatalf("%s's launcher reaches %d squares", a.Name(), rng)
 		}
-		out, err := e.Do(play.Shoot{Ats: []image.Point{image.Pt(e.state().CombatX(foe), e.state().CombatY(foe))}})
+		out, err := e.doNow(play.Shoot{Ats: []image.Point{image.Pt(e.state().CombatX(foe), e.state().CombatY(foe))}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -193,21 +193,21 @@ func TestFightAsksKeepCombat(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s: %v", what, err)
 		}
-		if fightQ(e.State()) == nil {
-			t.Fatalf("%s: %T with no question in the fight", what, e.State())
+		if fightQ(e.build()) == nil {
+			t.Fatalf("%s: %T with no question in the fight", what, e.build())
 		}
 	}
 	e := devFirstTurn(t, "fleefight", false)
-	_, err := e.Do(play.Flee{})
+	_, err := e.doNow(play.Flee{})
 	inFight("Flee:", e, err)
 	e = devFirstTurn(t, "meleefight", false)
 	a := e.member(e.cs.actor)
 	for dir := 0; dir < 8; dir++ {
 		if who, _ := e.state().GroundAt(a, dir); who > 0 && e.state().Combatant(who).Side == a.Side {
 			at := image.Pt(e.state().CombatX(a)+rules1e.DirDX[dir], e.state().CombatY(a)+rules1e.DirDY[dir])
-			_, err := e.Do(play.Attack{At: &at})
+			_, err := e.doNow(play.Attack{At: &at})
 			inFight("Attack Ally?", e, err)
-			e.Do(no(fightQ(e.State())))
+			e.doNow(no(fightQ(e.build())))
 			break
 		}
 	}
@@ -216,7 +216,7 @@ func TestFightAsksKeepCombat(t *testing.T) {
 // endTurn ends the turn (play's EndTurn is Done's end: no menu between).
 func endTurn(t *testing.T, e *Engine) play.Outcome {
 	t.Helper()
-	o, err := e.Do(play.EndTurn{})
+	o, err := e.doNow(play.EndTurn{})
 	if err != nil {
 		t.Fatal("EndTurn:", err)
 	}
@@ -236,7 +236,7 @@ func TestContinueBattle(t *testing.T) {
 	ask := func() *play.Question {
 		t.Helper()
 		for range 60 {
-			s := e.State()
+			s := e.build()
 			if q := commonOf(s).Ask; q != nil {
 				if _, ok := s.(play.Fighting); q.Text != "Continue Battle:" || !ok {
 					t.Fatalf("asked %q in %T", q.Text, s)
@@ -254,13 +254,13 @@ func TestContinueBattle(t *testing.T) {
 		t.Fatal("no Continue Battle:")
 		return nil
 	}
-	e.Do(yes(ask()))
-	if _, ok := e.State().(play.Fighting); !ok {
-		sc, _ := e.State().(play.Scene)
-		t.Fatalf("Yes ended the fight: %T %q %q phase %v flag %d", e.State(), sc.Text, commonOf(sc).Text, e.cs.phase, e.state().BeginFlag)
+	e.doNow(yes(ask()))
+	if _, ok := e.build().(play.Fighting); !ok {
+		sc, _ := e.build().(play.Scene)
+		t.Fatalf("Yes ended the fight: %T %q %q phase %v flag %d", e.build(), sc.Text, commonOf(sc).Text, e.cs.phase, e.state().BeginFlag)
 	}
-	e.Do(no(ask()))
-	if _, ok := e.State().(play.Fighting); ok {
+	e.doNow(no(ask()))
+	if _, ok := e.build().(play.Fighting); ok {
 		t.Fatal("No left the fight up")
 	}
 }
@@ -271,14 +271,14 @@ func TestContinueBattle(t *testing.T) {
 func TestDevWinFight(t *testing.T) {
 	e := devFirstTurn(t, "winfight", false)
 	for range 300 {
-		s := e.State()
+		s := e.build()
 		if q := commonOf(s).Ask; q != nil && q.Text == "Continue Battle:" {
 			return
 		}
 		if !myTurn(s) {
 			t.Fatalf("at rest in %T with nothing to do", s)
 		}
-		e.Do(play.Quick{})
+		e.doNow(play.Quick{})
 	}
 	t.Fatal("winfight: no Continue Battle:")
 }
@@ -291,7 +291,7 @@ func TestPartyWipeEnds(t *testing.T) { testPartyWipeEnds(t, testEngine) }
 func testPartyWipeEnds(t *testing.T, mk func(*testing.T) *Engine) {
 	e := devFirstTurnOn(t, mk(t), "losefight", false)
 	for range 300 {
-		s := e.State()
+		s := e.build()
 		switch q := commonOf(s).Ask; {
 		case isAssembling(s):
 			if e.run.quit {
@@ -299,11 +299,11 @@ func testPartyWipeEnds(t *testing.T, mk func(*testing.T) *Engine) {
 			}
 			return
 		case q != nil:
-			e.Do(yes(q))
+			e.doNow(yes(q))
 		case myTurn(s):
 			endTurn(t, e)
 		case playAllows(s, play.Continue{}):
-			e.Do(play.Continue{})
+			e.doNow(play.Continue{})
 		default:
 			if _, ok := s.(play.Exploring); ok {
 				t.Fatal("a lost party left exploring")
@@ -327,7 +327,7 @@ func testLastBlowBody(t *testing.T, mk func(*testing.T) *Engine) {
 	downs := 0
 	for range 300 {
 		var out play.Outcome
-		switch s := e.State(); {
+		switch s := e.build(); {
 		case myTurn(s):
 			out = endTurn(t, e)
 		case downs > 0 || commonOf(s).Ask != nil || playAllows(s, play.Continue{}):
@@ -363,7 +363,7 @@ func devLootOn(t *testing.T, e *Engine) *Engine {
 	e.Init()
 	e.Start(e.Play)
 	for range 40 {
-		if _, ok := e.State().(play.Looting); ok {
+		if _, ok := e.build().(play.Looting); ok {
 			return e
 		}
 		e.Step()
@@ -381,20 +381,20 @@ func TestLootEscLeaves(t *testing.T) { testLootEscLeaves(t, testEngine) }
 
 func testLootEscLeaves(t *testing.T, mk func(*testing.T) *Engine) {
 	e := devLootOn(t, mk(t))
-	w := commonOf(e.State()).Where
-	if _, err := e.Do(play.Leave{}); err != nil {
+	w := commonOf(e.build()).Where
+	if _, err := e.doNow(play.Leave{}); err != nil {
 		t.Fatal("Leave on the treasure:", err)
 	}
-	q := commonOf(e.State()).Ask
+	q := commonOf(e.build()).Ask
 	if q == nil || !q.YesNo {
 		t.Fatalf("Leave with treasure left: %+v, want a yes/no", q)
 	}
-	if _, err := e.Do(no(q)); err != nil || e.waiting(PendLoot) { // No: leave the treasure
+	if _, err := e.doNow(no(q)); err != nil || e.waiting(PendLoot) { // No: leave the treasure
 		t.Fatalf("leave: %v, still on the treasure %v", err, e.waiting(PendLoot))
 	}
-	x, ok := e.State().(play.Exploring)
+	x, ok := e.build().(play.Exploring)
 	if !ok || x.Where.X != w.X || x.Where.Y != w.Y || x.Where.Area != w.Area || x.Ask != nil {
-		t.Errorf("after the scene: %T at %+v ask %+v, want exploring at %+v", e.State(), x.Where, x.Ask, w)
+		t.Errorf("after the scene: %T at %+v ask %+v, want exploring at %+v", e.build(), x.Where, x.Ask, w)
 	}
 }
 
@@ -406,11 +406,11 @@ func TestTimedCastTaken(t *testing.T) {
 	e := devFirstTurn(t, "castfight", false)
 	a := e.member(e.cs.actor)
 	at := image.Pt(e.state().CombatX(a), e.state().CombatY(a))
-	if _, err := e.Do(play.Cast{Member: -1, Spell: 3, Ats: []image.Point{at}}); err != nil || a.Combat.Spell == 0 {
+	if _, err := e.doNow(play.Cast{Member: -1, Spell: 3, Ats: []image.Point{at}}); err != nil || a.Combat.Spell == 0 {
 		t.Fatalf("Cast: %v, casting %d", err, a.Combat.Spell)
 	}
 	for range 200 {
-		s := e.State()
+		s := e.build()
 		f, ok := s.(play.Fighting)
 		switch {
 		case !ok:
@@ -424,12 +424,12 @@ func TestTimedCastTaken(t *testing.T) {
 				c.Ats = []image.Point{at}
 				act = c
 			}
-			if _, err := e.Do(act); err != nil {
+			if _, err := e.doNow(act); err != nil {
 				t.Fatalf("%T at the aim: %v", act, err)
 			}
 			return
 		case f.Ask != nil:
-			e.Do(yes(f.Ask))
+			e.doNow(yes(f.Ask))
 		case myTurn(s):
 			endTurn(t, e)
 		default:
@@ -451,7 +451,7 @@ func TestOpeningStepsAlone(t *testing.T) {
 	e.Start(e.Play)
 	var out play.Outcome
 	e.stepOn(&out, nil) // as a Do's run on
-	s := e.State()
+	s := e.build()
 	if q := commonOf(s).Ask; q != nil {
 		t.Fatalf("the opening waits on %q", q.Text)
 	}
@@ -468,7 +468,7 @@ func TestMovesHaveSquares(t *testing.T) {
 	n := 0
 	at := map[int]image.Point{}
 	for range 400 {
-		s := e.State()
+		s := e.build()
 		f, ok := s.(play.Fighting)
 		if !ok {
 			break
@@ -480,9 +480,9 @@ func TestMovesHaveSquares(t *testing.T) {
 		var err error
 		switch {
 		case f.Ask != nil:
-			out, err = e.Do(no(f.Ask))
+			out, err = e.doNow(no(f.Ask))
 		case myTurn(s):
-			out, err = e.Do(play.Quick{})
+			out, err = e.doNow(play.Quick{})
 		default:
 			t.Fatalf("at rest with nothing to do: %+v", f.Allowed)
 		}
@@ -517,7 +517,7 @@ func TestStepNoRepeat(t *testing.T) {
 	notes := 0
 	for range 80 {
 		var out play.Outcome
-		switch s := e.State(); {
+		switch s := e.build(); {
 		case !myTurn(s) && commonOf(s).Ask == nil:
 			if notes == 0 {
 				t.Fatal("no message")
@@ -526,7 +526,7 @@ func TestStepNoRepeat(t *testing.T) {
 		case myTurn(s):
 			out = endTurn(t, e)
 		default:
-			out, _ = e.Do(yes(commonOf(s).Ask))
+			out, _ = e.doNow(yes(commonOf(s).Ask))
 		}
 		for i, ev := range out.Events {
 			n, ok := ev.(play.Narrated)

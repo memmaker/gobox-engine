@@ -74,9 +74,9 @@ func TestShopPriceIsGold(t *testing.T) {
 		e.state().Purse.Gold = 1 << 20
 		e.Shop()
 		e.Advance()
-		shown := e.State().(play.Trading).Goods[0].Price
+		shown := e.build().(play.Trading).Goods[0].Price
 		gold := e.state().Purse.Gold
-		if _, err := e.Do(play.Buy{Item: e.goods()[0]}); err != nil {
+		if _, err := e.doNow(play.Buy{Item: e.goods()[0]}); err != nil {
 			t.Fatalf("%x: Buy: %v", typ, err)
 		}
 		if paid := int(gold - e.state().Purse.Gold); paid != shown || shown <= 0 {

@@ -114,10 +114,10 @@ func TestAllyAskKeepsAim(t *testing.T) {
 	at := image.Pt(e.state().CombatX(ally), e.state().CombatY(ally))
 	ask := func() *play.Question {
 		t.Helper()
-		if _, err := e.Do(play.Attack{At: &at}); err != nil {
+		if _, err := e.doNow(play.Attack{At: &at}); err != nil {
 			t.Fatalf("Attack at the ally: %v", err)
 		}
-		q := fightQ(e.State())
+		q := fightQ(e.build())
 		if q == nil || q.Text != "Attack Ally?" || !q.NoEsc || !q.NoPick { // Y/N only (ovr26:10D1)
 			t.Fatalf("Attack at the ally asks %+v, want Attack Ally?", q)
 		}
@@ -127,11 +127,11 @@ func TestAllyAskKeepsAim(t *testing.T) {
 		return q
 	}
 	q := ask()
-	if _, err := e.Do(no(q)); err != nil || e.cs.aim != nil || e.state().AttackedAlly != 0 || !myTurn(e.State()) { // No: the aim ends, the turn's menu again (ovr14:3212, the T/Enter left in the exit set 2DA7)
+	if _, err := e.doNow(no(q)); err != nil || e.cs.aim != nil || e.state().AttackedAlly != 0 || !myTurn(e.build()) { // No: the aim ends, the turn's menu again (ovr14:3212, the T/Enter left in the exit set 2DA7)
 		t.Fatalf("No: %v, aim %v, attacked %d", err, e.cs.aim != nil, e.state().AttackedAlly)
 	}
-	q = ask()                                                                                 // aimed again: No took nothing
-	if _, err := e.Do(yes(q)); err != nil || e.cs.aim != nil || e.state().AttackedAlly == 0 { // Yes
+	q = ask()                                                                                    // aimed again: No took nothing
+	if _, err := e.doNow(yes(q)); err != nil || e.cs.aim != nil || e.state().AttackedAlly == 0 { // Yes
 		t.Fatalf("Yes: %v, aim %v, attacked %d", err, e.cs.aim != nil, e.state().AttackedAlly)
 	}
 }

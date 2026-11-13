@@ -17,7 +17,7 @@ func TestCampDayIsClock(t *testing.T) {
 	if !e.campUp() {
 		t.Fatal("camp not up")
 	}
-	if day := commonOf(e.State()).Day; day || e.state().IsDay() {
+	if day := commonOf(e.build()).Day; day || e.state().IsDay() {
 		t.Errorf("23:00 in camp: Day %v, isDay %v", day, e.state().IsDay())
 	}
 }

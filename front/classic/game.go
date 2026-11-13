@@ -492,9 +492,8 @@ func (g *Game) posedBattle(e play.Report) *front.Battle {
 
 // Open starts the rules on save slot slot ("" none) when they take it.
 func (g *Game) Open(slot string) {
-	if o, ok := g.r.g.Game.(interface{ Open(string) }); ok {
+	if o, ok := g.r.g.(interface{ Open(string) }); ok {
 		o.Open(slot)
-		g.r.g.fresh()
 	}
 }
 

@@ -75,10 +75,10 @@ func TestCastAsksSpell(t *testing.T) {
 	e := quickStarted(t)
 	i := 0
 	e.state().Party[i].Memorized[0] = 1 // a spell memorized
-	if _, err := e.Do(play.UsePower{Member: i, Kind: game.PowerCast, Target: -1}); err != nil {
+	if _, err := e.doNow(play.UsePower{Member: i, Kind: game.PowerCast, Target: -1}); err != nil {
 		t.Fatal(err)
 	}
-	if q := commonOf(e.State()).Ask; q == nil || e.ext.pq.of != askSpell || len(q.Replies) == 0 {
+	if q := commonOf(e.build()).Ask; q == nil || e.ext.pq.of != askSpell || len(q.Replies) == 0 {
 		t.Fatalf("want a spell pick, got %+v", q)
 	}
 	if pq := e.ext.pq; pq == nil || pq.calls[0].kind != callPower || pq.calls[0].spell == 0 || pq.calls[0].member != i {
@@ -107,14 +107,14 @@ func TestPaladinPowerAllowed(t *testing.T) {
 	e.Start(e.Play)
 	e.Advance()
 	e.state().Party[0].Levels[rules1e.ClsPaladin] = 1
-	if _, err := e.Do(play.MakeCamp{}); err != nil {
+	if _, err := e.doNow(play.MakeCamp{}); err != nil {
 		t.Fatal(err)
 	}
 	heal := play.UsePower{Member: 0, Kind: game.PowerHeal, Target: -1}
-	if !slices.Contains(e.State().(play.Camping).Allowed.Plain, play.Action(heal)) {
+	if !slices.Contains(e.build().(play.Camping).Allowed.Plain, play.Action(heal)) {
 		t.Fatal("Heal not allowed in camp")
 	}
-	if _, err := e.Do(heal); err != nil {
+	if _, err := e.doNow(heal); err != nil {
 		t.Fatal(err)
 	}
 	if e.ext.pq == nil {

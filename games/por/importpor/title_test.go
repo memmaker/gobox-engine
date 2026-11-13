@@ -33,8 +33,8 @@ func TestStartIsPORTitle(t *testing.T) {
 	if err := e.SetStart(&seq); err != nil {
 		t.Fatal(err)
 	}
-	e.Run()
 	e.FullIntro.Store(true)
+	e.Start(e.Run)
 	sc, ok := e.State().(play.Scene)
 	if !ok || sc.Kind != play.SceneTitle || !sc.Full {
 		t.Fatalf("not the title: %+v", e.State())
@@ -48,6 +48,7 @@ func TestStartIsPORTitle(t *testing.T) {
 		t.Errorf("intro %+v, song %q", *sc.Intro, sc.Steps[1].Song)
 	}
 	e.FullIntro.Store(false)
+	e.Start(e.Run) // State is built per change: the setting takes from the next one
 	if short := e.State().(play.Scene); !reflect.DeepEqual(short.Intro.Pictures, []int{1}) {
 		t.Errorf("short intro %+v", short.Intro)
 	}
