@@ -94,13 +94,11 @@ How the original was read, so another game can be read the same way:
   "javelin of" record; Appraise losing the gem when the item list was empty;
   the rod's record read past the item table; sky colours 10..15 read past
   the table.
-- `cmd/fixture` builds a save fixture that stands the party in any area at
+- `cmd/fixture -game por` builds a save fixture that stands the party in any area at
   any square with any script variables (`-slot NAME -block N -walls A,B,C
   -x X -y Y -dir D -set VAR=VAL`), through `rules.SaveEditor` (typed, no
   offsets). Used for traces, tests and screenshots.
-- `cmd/ecl DISK BLOCK` lists one ECL script block as opcodes;
-  `cmd/geodump DISK BLOCK OUT` extracts a GEO block; `cmd/viewdump` renders
-  every wall of every WALLDEF set to PNG (section 3.2); gobox audio's `cmd/sounddata`
+- gobox audio's `cmd/sounddata`
   extracts the PC speaker / Tandy sound driver's data from `START.EXE` into
   `rules/sounddata.json`.
 - `cmd/por` is the game. Its flags: `-data DIR`, `-scale N` (default 3:
@@ -1338,8 +1336,7 @@ art for the same blocks. The port can play with the Amiga art and music:
   and effect before and after. It is used when `data/amiga/SOUND.BIN`
   exists; `amigaFx` maps the DOS PlaySound numbers 2..12 to the Amiga
   effects `{5,9,8,10,12,11,6,11,4,7,0}`; `Music(n)`: 1 title/camp, 2
-  battle, 3 party menu, 5 party killed. `cmd/amigasongs SOUND.BIN OUTDIR
-  [SECONDS]` renders songs 1–7 to WAV for listening. Extra music: song 6
+  battle, 3 party menu, 5 party killed. Extra music: song 6
   loops on the overland map (`areaMusic`) and song 4 plays on first
   entering Phlan (the original never started them: nine `playMusic`
   callers were audited, none starts 4 or 6). A goplay volume fader puts the
@@ -1383,12 +1380,8 @@ art for the same blocks. The port can play with the Amiga art and music:
 | `cmd/por` | repo | the game; `-import-disk2`, `-setup` (writes the embedded text scripts and the cover); app.Flags (-shot, -keys ...) and -dev for headless shots and dev scenes (`rules/devviews.go`) |
 | `build_n_run.sh` | repo root | build and play |
 | `cmd/import` | repo | ECL → text scripts (`data/assets/scripts`) |
-| `cmd/ecl` | repo | list one ECL block as opcodes |
-| `cmd/geodump` | repo | extract a GEO block |
-| `cmd/viewdump` | repo | render every WALLDEF wall to PNG (`-transparent`, `-scale`) |
-| `cmd/fixture` | repo | build a save that stands the party anywhere (`-slot`, `-block`, `-walls`, `-x -y -dir`, `-set`) |
+| `cmd/fixture -game por` | gobox | build a save that stands the party anywhere (`-slot`, `-block`, `-walls`, `-x -y -dir`, `-set`) |
 | `cmd/sounddata` | gobox audio | the DOS sound driver's data → JSON |
-| `cmd/amigasongs` | repo | Amiga songs → WAV |
 | `phlan-poc/areas.py` | repo | one entry per 3D map |
 | `phlan-poc/make_map.py` | repo | GEO → `.map` + `presentdata/areas.go` |
 | `phlan-poc/make_textures.py` | repo | wall textures (OpenAI edit, finish) |

@@ -41,9 +41,8 @@ data with save A in `$SOTSB_DATA` (default `../sotsb-re/gog`).
   records, art, the game's data (gamedata.json, gametables.json, rules.json).
 - `playsotsb/`: starts the game on `gobox/pool/playpool`.
 - `cmd/blades`: the native binary.
-- `cmd/dsbytes`, `cmd/dsfind`, `cmd/itemdump`: porting aids (tablefind: gobox exe/cmd/tablefind)
   over the data segment and the item files.
-- `cmd/fixture`: builds save fixtures in another area.
+- `cmd/fixture -game sotsb` (gobox): builds save fixtures in another area.
 - `import.toml`: what `gameimport` copies.
 
 ## What's left

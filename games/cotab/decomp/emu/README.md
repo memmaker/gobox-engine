@@ -20,7 +20,7 @@ as the Go engine's trace mode, so the two can be diffed.
 | Go engine, same script | `go run ../../cmd/trace -keys "enter l a" -out out/go.json -png out/go.png` |
 | First divergence | `.venv/bin/python compare.py out/emu.json out/go.json [--only DisplayString,ReadKey]` |
 | Start from a save fixture | `POR_SAVES=$PWD/saves/finale ./both.sh finale enter l a ...` (both sides copy the fixture over SAVE) |
-| Build a fixture | `cd ../.. && go run ./cmd/fixture -out decomp/emu/saves/X -block N -walls A,B,C -x X -y Y` (see saves/build.sh) |
+| Build a fixture | `cd ../.. && go run ./cmd/fixture -game cotab -out decomp/emu/saves/X -block N -walls A,B,C -x X -y Y` (see saves/build.sh) |
 | List an area script | `cd ../.. && go run ./cmd/ecl DISK BLOCK` |
 | Go PNG after record N | `go run ../../cmd/trace ... -png-at 21987:out/go.png` (Go counts records without BIOS ones) |
 | Key parser self-test | `.venv/bin/python keys.py` and `go test ../../cmd/trace` |
