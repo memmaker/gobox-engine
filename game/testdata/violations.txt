@@ -1,7 +1,3 @@
-cotab gobox/games/cotab/playcotab -> gobox/app
-pod gobox/games/pod/playpod -> gobox/app
-por gobox/games/por/playpor -> gobox/app
-sotsb gobox/games/sotsb/playsotsb -> gobox/app
 buckrogers-go buckrogers/playbr1 -> gobox/app
 buckrogers-go buckrogers/playbr1 -> gobox/ui
 buckrogers2-go buckrogers2/playbr2 -> gobox/app

@@ -1,5 +1,5 @@
 // Command cotab plays Curse of the Azure Bonds from its imported adventure
-// folder (gobox import cotab; playcotab, as cmd/gobox does), and converts
+// folder (gobox import cotab; playpool, as cmd/gobox does), and converts
 // the Amiga disks' graphics for that import:
 //
 //	cotab [-adv DIR] [-scale N] [-seed N] [app.Flags' -shot, -keys, -slot ...]
@@ -16,7 +16,7 @@ import (
 	"gobox/amigaimport"
 	"gobox/app"
 
-	"gobox/games/cotab/playcotab"
+	"gobox/engine/playpool"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 		return
 	}
 	s := app.Start{Adventure: *adv, Data: "../../data/cotab/sources", Settings: app.Settings{Scale: *scale}, Capture: captureOf(), Seed: *seed}
-	if err := playcotab.Play(s); err != nil {
+	if err := playpool.Play(s, playpool.Extras{}); err != nil {
 		log.Fatal(err)
 	}
 }

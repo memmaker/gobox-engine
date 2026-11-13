@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/games/por/playpor"
 	"gobox/games/por/porgame"
+	"gobox/games/por/presentdata"
 	"gobox/ui"
 )
 
@@ -53,7 +53,7 @@ func TestLockedDoorOverView(t *testing.T) {
 	eng.FullIntro.Store(false)
 	seed := uint32(1)
 	eng.FixedSeed = &seed
-	data := playpor.Data(eng)
+	data := presentdata.Data(eng)
 	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("back-for-good")
 	f.Frame(1280, 800)
@@ -94,7 +94,7 @@ func TestHallNoTitle(t *testing.T) {
 	eng.DevAction = eng.DevScene("hall")
 	seed := uint32(1)
 	eng.FixedSeed = &seed
-	data := playpor.Data(eng)
+	data := presentdata.Data(eng)
 	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("")
 	f.Frame(1280, 800)

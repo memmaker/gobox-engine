@@ -1,5 +1,5 @@
 // Command blades plays Secret of the Silver Blades from its imported
-// adventure folder (gobox import sotsb; playsotsb, as cmd/gobox does), and
+// adventure folder (gobox import sotsb; playpool, as cmd/gobox does), and
 // converts the Amiga disks' graphics and music for that import:
 //
 //	blades [-adv DIR] [-scale N] [app.Flags: -shot, -keys ...]
@@ -16,8 +16,8 @@ import (
 	"gobox/amigaimport"
 	"gobox/app"
 
+	"gobox/engine/playpool"
 	"gobox/games/sotsb/importsotsb"
-	"gobox/games/sotsb/playsotsb"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 		return
 	}
 	s := app.Start{Adventure: *adv, Data: "../../data/sotsb/sources", Settings: app.Settings{Scale: *scale, Window: true}, Capture: captureOf(), Seed: *seed}
-	if err := playsotsb.Play(s); err != nil {
+	if err := playpool.Play(s, playpool.Extras{}); err != nil {
 		log.Fatal(err)
 	}
 }

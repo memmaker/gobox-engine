@@ -15,7 +15,8 @@ import (
 
 func init() {
 	importer.Register(importer.Game{
-		ID: "sotsb", Title: "Secret of the Silver Blades", Release: 1990, Ruleset: "rules1e", Record: RecordLayout, Version: 11, // 1: imported for pool (Sw-sotsb); 2: MON records as the rules' Sheet (Pf); 3: GameTables.Art, items as char.Item (Pg); 4: Hold tips (Rz); 5: groundIds, itemKinds, spiritualHammer (Ph); 6: randomTreasure, appraisal (Pi); 7: scripts gold only (Gc); 8: randomTreasure from rules1e's treasure/sotsb.json (Ct); 9: area 16 gem trade 1 per 500 gold (Df); 10: Word7B90, Word7BC2 16-cell text arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits on the Amiga card
+		ID: "sotsb", Title: "Secret of the Silver Blades", Release: 1990, Ruleset: "rules1e", Record: RecordLayout, Version: 12, // 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-sotsb); 2: MON records as the rules' Sheet (Pf); 3: GameTables.Art, items as char.Item (Pg); 4: Hold tips (Rz); 5: groundIds, itemKinds, spiritualHammer (Ph); 6: randomTreasure, appraisal (Pi); 7: scripts gold only (Gc); 8: randomTreasure from rules1e's treasure/sotsb.json (Ct); 9: area 16 gem trade 1 per 500 gold (Df); 10: Word7B90, Word7BC2 16-cell text arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits on the Amiga card
+		Window: importer.Size{W: 80 * 8, H: 50 * 8}, UserSaves: true, Foreign: []string{"cotab"},
 		Sources: []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR"},
 		Import:  Import,
 		Start:   importer.Fixed(start()),

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"gobox/games/por/playpor"
 	"gobox/games/por/porgame"
+	"gobox/games/por/presentdata"
 	"gobox/ui"
 )
 
@@ -41,7 +41,7 @@ func TestLoadedExploreStateBuilds(t *testing.T) {
 	eng.FullIntro.Store(false)
 	seed := uint32(1)
 	eng.FixedSeed = &seed
-	data := playpor.Data(eng)
+	data := presentdata.Data(eng)
 	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("back-for-good")
 	f.Frame(1280, 800)

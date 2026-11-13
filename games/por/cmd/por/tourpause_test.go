@@ -7,8 +7,8 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 
-	"gobox/games/por/playpor"
 	"gobox/games/por/porgame"
+	"gobox/games/por/presentdata"
 )
 
 // TestTourPausesTimed: Rolf's tour (area 0 CityTour) walks itself: each
@@ -23,7 +23,7 @@ func TestTourPausesTimed(t *testing.T) {
 	eng.Cfg.SaveDir = t.TempDir()
 	seed := uint32(7)
 	eng.FixedSeed = &seed
-	g := ui.NewGame(eng, playpor.Data(eng))
+	g := ui.NewGame(eng, presentdata.Data(eng))
 	g.Open("")
 	for i := 0; i < 5; i++ {
 		g.TitleDone()

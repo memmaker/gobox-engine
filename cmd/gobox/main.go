@@ -27,10 +27,9 @@ import (
 	"buckrogers/playbr1"
 	"buckrogers2/playbr2"
 	"gobox/app"
-	"gobox/games/cotab/playcotab"
-	"gobox/games/pod/playpod"
-	"gobox/games/por/playpor"
-	"gobox/games/sotsb/playsotsb"
+	"gobox/engine/playpool"
+	"gobox/games/por/presentdata"
+	"gobox/games/por/rules4e"
 	"gobox/importer"
 	"gobox/ui"
 
@@ -42,16 +41,28 @@ import (
 	_ "gobox/games/sotsb/importsotsb"
 )
 
-// players start an adventure's engine by the manifest's ID. ponytail: one
-// engine per game until the engine loop is gobox's (Track R4/R5); then the
-// manifest's Ruleset picks the compiled-in ruleset and this table goes.
+// players start the games that are not on rules1e's pool host (playpool.Play
+// reads everything else of a rules1e game from its manifest). ponytail: one
+// engine per game until the engine loop is gobox's (Track R4/R5).
 var players = map[string]func(app.Start) error{
-	"por":   playpor.Play,
-	"cotab": playcotab.Play,
-	"pod":   playpod.Play,
-	"br1":   playbr1.Play,
-	"br2":   playbr2.Play,
-	"sotsb": playsotsb.Play,
+	"br1": playbr1.Play,
+	"br2": playbr2.Play,
+}
+
+// ruleset1e is the manifest Ruleset the pool host plays.
+const ruleset1e = "rules1e"
+
+// extras are what a pool game adds in code: POR's remastered art and its 4e combat.
+var extras = map[string]playpool.Extras{
+	"por": {Combat4e: rules4e.New(), Data: presentdata.Data},
+}
+
+// play starts the adventure folder f in the engine of its game.
+func play(s app.Start, f importer.Folder) error {
+	if f.Ruleset == ruleset1e {
+		return playpool.Play(s, extras[f.ID])
+	}
+	return players[f.ID](s)
 }
 
 // escapes are the -keys escapes beside the shell's (app.Flags): \r Enter,
@@ -96,7 +107,7 @@ func main() {
 	}
 	var playable []importer.Folder
 	for _, f := range folders {
-		if players[f.ID] != nil {
+		if f.Ruleset == ruleset1e || players[f.ID] != nil {
 			playable = append(playable, f)
 		}
 	}
@@ -110,7 +121,7 @@ func main() {
 	}
 	s.Adventure = f.Dir
 	s.Data = filepath.Join(f.Dir, "sources")
-	if err := players[f.ID](s); err != nil {
+	if err := play(s, f); err != nil {
 		log.Fatal(err)
 	}
 }

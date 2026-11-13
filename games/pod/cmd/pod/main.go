@@ -1,5 +1,5 @@
 // Command pod runs Pools of Darkness from its imported adventure folder
-// (gobox import pod) through the shared pool host (playpod).
+// (gobox import pod) through the shared pool host (playpool).
 //
 //	pod [-adv DIR] [-scale N] [-seed N] [app.Flags: -shot, -keys ...]
 //	pod -setup [-data DIR]
@@ -17,7 +17,7 @@ import (
 
 	"gobox/amigaimport"
 	"gobox/app"
-	"gobox/games/pod/playpod"
+	"gobox/engine/playpool"
 )
 
 func main() {
@@ -47,7 +47,7 @@ func main() {
 		return
 	}
 	s := app.Start{Adventure: *adv, Data: "../../data/pod/sources", Settings: app.Settings{Scale: *scale, Window: true}, Capture: captureOf(), Seed: *seed}
-	if err := playpod.Play(s); err != nil {
+	if err := playpool.Play(s, playpool.Extras{}); err != nil {
 		log.Fatal(err)
 	}
 }

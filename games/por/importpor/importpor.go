@@ -17,8 +17,9 @@ import (
 
 func init() {
 	importer.Register(importer.Game{
-		ID: "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: engine.RecordLayout, Version: 1, // 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
+		ID: "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: engine.RecordLayout, Version: 2, // 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
 
+		Window:  importer.Size{W: asset.ScreenW, H: asset.ScreenH},
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},
 		Import:  Import,
 		Start:   importer.Fixed(start()),

@@ -1,7 +1,7 @@
 // Package playpool starts a Gold Box game's pool engine (engine.New over
 // rules1e) on an imported adventure folder for cmd/gobox: the one host loop
-// every game on pool shares. A game's play package only names what differs
-// (Game).
+// every game on pool shares. What differs between games is the manifest's
+// (importer.Manifest) or Extras.
 package playpool
 
 import (
@@ -13,6 +13,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"gobox/app"
 	"gobox/audio"
@@ -27,15 +28,11 @@ import (
 // the engine sees it.
 const tps = 120
 
-// Game is what one game's host differs in.
-type Game struct {
-	Title    string                                           // the window's title
-	W, H     int                                              // the window's size at scale 1 (app.Theme)
-	Record   rules.RecordLayout                               // the adventure's character records (importer.Game.Record)
-	Combat4e rules1e.CombatRules                              // the Gameplay page's "4e Combat" (nil: the option does nothing)
-	SaveDir  string                                           // the saves ("": the host data dir's pool.SaveDir)
-	Foreign  func(from string) ([]rules.CharacterFile, error) // pool.Config.Foreign (nil: none)
-	Data     func(*engine.Engine) game.Data                   // the presenter's data (nil: the engine's Data)
+// Extras are what a game adds in code, the rest of its host settings being
+// its manifest's (importer.Manifest: title, window, saves, foreign rosters).
+type Extras struct {
+	Combat4e rules1e.CombatRules            // the Gameplay page's "4e Combat" (nil: the option does nothing)
+	Data     func(*engine.Engine) game.Data // the presenter's data (nil: the engine's Data)
 }
 
 // New is the game's Engine on the adventure folder adv and the host data directory data.
@@ -47,8 +44,8 @@ func New(adv, data string) (*engine.Engine, error) {
 	return engine.New(rules1e.Rules1e, tables, adv, data)
 }
 
-// Play runs the game of s.Adventure until the window closes.
-func Play(s app.Start, gm Game) error {
+// Play runs the game of the adventure folder s.Adventure until the window closes.
+func Play(s app.Start, gm Extras) error {
 	s.Explore = s.Explore || s.Capture.Slot != "" // -slot starts play from that save (Explore reads it), -explore or not
 
 	host := ui.DefaultHostOptions // the settings in use; app.Menu reads them from SETTINGS.JSON
@@ -56,8 +53,8 @@ func Play(s app.Start, gm Game) error {
 	if err != nil {
 		return err
 	}
-	if err := f.CheckRecord(gm.Record); err != nil {
-		return err
+	if f.Record == rules.NoRecord {
+		return fmt.Errorf("adventure %s: manifest has no character record layout: re-import it", f.Dir)
 	}
 	host.FullIntro = f.Manifest.Start != nil && f.Manifest.Start.Full // the adventure's default
 	ui.Host = &host.Options
@@ -65,13 +62,19 @@ func Play(s app.Start, gm Game) error {
 	if err != nil {
 		return err
 	}
-	if gm.SaveDir != "" {
-		eng.Cfg.SaveDir = gm.SaveDir
+	if f.UserSaves {
+		saves, err := HomeSaves(f.ID, s.Adventure)
+		if err != nil {
+			return err
+		}
+		eng.Cfg.SaveDir = saves
 	}
 	if d := s.Capture.Dev.Saves; d != "" {
 		eng.Cfg.SaveDir = d
 	}
-	eng.Cfg.Foreign = gm.Foreign
+	if len(f.Foreign) > 0 {
+		eng.Cfg.Foreign = homeRosters(filepath.Dir(s.Adventure), f.Foreign)
+	}
 	if err := eng.SetStart(f.Manifest.Start); err != nil {
 		return err
 	}
@@ -173,7 +176,7 @@ func Play(s app.Start, gm Game) error {
 			SaveLoad: func() { g.P.OpenSlots() }, // as F10
 			MainMenu: func() { cg.EndGame() },    // through classic, so its view is fresh
 		},
-		Theme:    app.Theme{Title: gm.Title, W: gm.W, H: gm.H},
+		Theme:    app.Theme{Title: f.Title, W: f.Window.W, H: f.Window.H},
 		Settings: s.Settings,
 		Capture:  capt,
 		TPS:      tps,
@@ -201,18 +204,22 @@ func HomeSaves(id, adv string) (string, error) {
 	return home, nil
 }
 
-// HomeRosters is a pool.Config.Foreign over the other games' save folders
-// under the user's config dir (gobox/<id>), each read by its record layout.
-func HomeRosters(layouts map[string]rules.RecordLayout) func(string) ([]rules.CharacterFile, error) {
+// homeRosters is a pool.Config.Foreign over the saves of the games named in
+// names under the user's config dir (gobox/<id>), each read by the character
+// record layout its adventure folder root/<id> declares.
+func homeRosters(root string, names []string) func(string) ([]rules.CharacterFile, error) {
 	return func(from string) ([]rules.CharacterFile, error) {
-		l, ok := layouts[from]
-		if !ok {
+		if !slices.Contains(names, from) {
 			return nil, fmt.Errorf("no roster known of game %q", from)
+		}
+		other, err := importer.Read(filepath.Join(root, from))
+		if err != nil {
+			return nil, err
 		}
 		cfg, err := os.UserConfigDir()
 		if err != nil {
 			return nil, err
 		}
-		return rules1e.ReadRoster(l, filepath.Join(cfg, "gobox", from))
+		return rules1e.ReadRoster(other.Record, filepath.Join(cfg, "gobox", from))
 	}
 }

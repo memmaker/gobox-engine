@@ -7,8 +7,8 @@ import (
 
 	"gobox/audio"
 	"gobox/engine"
-	"gobox/games/por/playpor"
 	"gobox/games/por/porgame"
+	"gobox/games/por/presentdata"
 	"gobox/ui"
 )
 
@@ -42,7 +42,7 @@ func TestStartupTiming(t *testing.T) {
 	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), engine.SoundtrackFiles), pack, speaking, vol)
 	eng.SetSound(drv)
 	lap("sound")
-	data := playpor.Data(eng)
+	data := presentdata.Data(eng)
 	lap("Data")
 	g := ui.NewFront(ui.NewGame(eng, data), data, drv)
 	lap("NewFront")
