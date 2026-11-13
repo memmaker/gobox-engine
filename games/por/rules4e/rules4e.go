@@ -15,7 +15,7 @@ import (
 	"gobox/rules1e"
 	"strings"
 
-	"gobox/pool"
+	"gobox/engine"
 )
 
 // Role is how a monster fights (DMG pp. 54-55).
@@ -112,7 +112,7 @@ func Lookup(name string) (Monster, bool) {
 	if m, ok := variants[strings.ToUpper(strings.TrimSpace(name))]; ok {
 		return m, true
 	}
-	m, ok := kinds[pool.BeastKind(name)]
+	m, ok := kinds[engine.BeastKind(name)]
 	return m, ok
 }
 

@@ -19,7 +19,7 @@ import (
 
 	"gobox/dax"
 	"gobox/fixture"
-	"gobox/pool"
+	"gobox/engine"
 	"gobox/games/por/porgame"
 )
 
@@ -40,15 +40,15 @@ func main() {
 			return "", nil
 		},
 		Open: func(root, slot string) (fixture.State, error) {
-			slotDir = filepath.Join(root, pool.SaveDir, "saves", slot)
-			s, err := porgame.OpenSave(slotDir, filepath.Join(root, pool.AssetsDir))
+			slotDir = filepath.Join(root, engine.SaveDir, "saves", slot)
+			s, err := porgame.OpenSave(slotDir, filepath.Join(root, engine.AssetsDir))
 			if err != nil {
 				return nil, fmt.Errorf("slot %s: %v", slot, err)
 			}
 			return s, nil
 		},
 		ECL: func(root string, block int) (int, []byte, error) {
-			l, err := dax.NewLoader(filepath.Join(root, pool.DOSDir))
+			l, err := dax.NewLoader(filepath.Join(root, engine.DOSDir))
 			if err != nil {
 				return 0, nil, err
 			}
@@ -62,7 +62,7 @@ func main() {
 		Member: func(_, name, ext string) ([]byte, error) {
 			return os.ReadFile(filepath.Join(slotDir, name+ext))
 		},
-		Strong: pool.MakeStrong,
+		Strong: engine.MakeStrong,
 	}, os.Args[1:])
 	if err != nil {
 		log.Fatal(err)

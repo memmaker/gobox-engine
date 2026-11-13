@@ -6,7 +6,7 @@ import (
 
 	"gobox/game"
 	"gobox/game/play"
-	"gobox/pool"
+	"gobox/engine"
 
 	"gobox/games/por/playpor"
 	"gobox/games/por/porgame"
@@ -53,7 +53,7 @@ func TestBuildingLeaveStays(t *testing.T) {
 }
 
 // porWalker is POR started in New Phlan for a scripted walk.
-func porWalker(t *testing.T) (*present.Game, *pool.Engine) {
+func porWalker(t *testing.T) (*present.Game, *engine.Engine) {
 	eng, err := porgame.New("../../../../data/por/sources/assets", "../../../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
@@ -72,7 +72,7 @@ func porWalker(t *testing.T) (*present.Game, *pool.Engine) {
 
 // settleBuilding answers every question with its Esc reply, else its last
 // (no, exit), until the party explores or a building is open.
-func settleBuilding(t *testing.T, g *present.Game, eng *pool.Engine) (play.Trading, bool) {
+func settleBuilding(t *testing.T, g *present.Game, eng *engine.Engine) (play.Trading, bool) {
 	t.Helper()
 	for range 300 {
 		g.Settle()

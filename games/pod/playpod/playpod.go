@@ -1,12 +1,12 @@
 // Package playpod starts Pools of Darkness on an imported adventure folder
 // (`gobox import pod`) for cmd/gobox and cmd/pod through the shared pool host
-// (gobox/pool/playpool).
+// (gobox/engine/playpool).
 package playpod
 
 import (
 	"gobox/app"
 	"gobox/core"
-	"gobox/pool/playpool"
+	"gobox/engine/playpool"
 )
 
 // Play runs the game of s.Adventure until the window closes; the saves are

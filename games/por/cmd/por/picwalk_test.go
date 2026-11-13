@@ -10,7 +10,7 @@ import (
 	"gobox/game/play"
 	"gobox/sprites"
 
-	"gobox/pool"
+	"gobox/engine"
 	"gobox/games/por/porgame"
 )
 
@@ -55,11 +55,11 @@ func TestFightPicturesResolve(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		ref, err := dax.NewLoader("../../../../data/por/sources/" + pool.DOSDir) // the reference decoder: a picture's block is in the archives
+		ref, err := dax.NewLoader("../../../../data/por/sources/" + engine.DOSDir) // the reference decoder: a picture's block is in the archives
 		if err != nil {
 			t.Fatal(err)
 		}
-		ref.UseAmiga("../../../../data/por/sources/" + pool.AmigaDir)
+		ref.UseAmiga("../../../../data/por/sources/" + engine.AmigaDir)
 		e.Cfg.SaveDir = t.TempDir()
 		e.Explore = true
 		e.DevAction = e.DevScene(sc)

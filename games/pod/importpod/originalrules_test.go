@@ -3,7 +3,7 @@ package importpod
 import (
 	"encoding/json"
 	eclscript "gobox/ecl/script"
-	"gobox/pool"
+	"gobox/engine"
 	"os"
 	"path/filepath"
 	"gobox/rules1e"
@@ -22,7 +22,7 @@ func TestOriginalRules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	blob, err := pool.OriginalRules(b, pool.GameTables{OriginalSave: OriginalSave}, l)
+	blob, err := engine.OriginalRules(b, engine.GameTables{OriginalSave: OriginalSave}, l)
 	if err != nil {
 		t.Fatal(err)
 	}

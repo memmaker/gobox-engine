@@ -11,7 +11,7 @@ import (
 	"gobox/ecl/script"
 	"gobox/game/journal"
 	"gobox/importer"
-	"gobox/pool"
+	"gobox/engine"
 	"gobox/rules1e"
 )
 
@@ -29,7 +29,7 @@ func TestImportedTablesLoad(t *testing.T) {
 	}
 	dst := filepath.Join(root, "cotab")
 
-	g, err := pool.ReadGameTables(dst)
+	g, err := engine.ReadGameTables(dst)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func TestImportedTablesLoad(t *testing.T) {
 		t.Error("char.Rules1e builds no rules")
 	}
 
-	book, err := journal.Load(os.DirFS(filepath.Join(dst, "data", pool.JournalDir)), "JOURNAL.TXT")
+	book, err := journal.Load(os.DirFS(filepath.Join(dst, "data", engine.JournalDir)), "JOURNAL.TXT")
 	if err != nil {
 		t.Fatal(err)
 	}

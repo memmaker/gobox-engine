@@ -1,12 +1,12 @@
 // Package playsotsb starts Secret of the Silver Blades on an imported
 // adventure folder (`gobox import sotsb`) for cmd/gobox through the shared
-// pool host (gobox/pool/playpool).
+// pool host (gobox/engine/playpool).
 package playsotsb
 
 import (
 	"gobox/app"
 	"gobox/core"
-	"gobox/pool/playpool"
+	"gobox/engine/playpool"
 )
 
 // Play runs the game of s.Adventure until the window closes; the saves are

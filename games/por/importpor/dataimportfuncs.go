@@ -9,7 +9,7 @@ import (
 	"gobox/core"
 	"gobox/dax"
 	"gobox/importer/pictures"
-	"gobox/pool"
+	"gobox/engine"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -35,23 +35,23 @@ var journalFS embed.FS
 // the duel sounds of CALL 0xBA03 (8 a step, 10 the fireball, DS:2612's numbers); any other plays nothing.
 // The import's script fixes; the native scripts of the tavern game and the cabinets'
 // CAST KNOCK; the inn's and the tavern's Who commands spend the one purse (ECL3 A1B4, ahead of A501).
-var gameTables = pool.GameTables{ScriptSounds: map[byte]pool.ScriptSound{
+var gameTables = engine.GameTables{ScriptSounds: map[byte]engine.ScriptSound{
 	8:  {Cue: core.CueStep},
 	10: {Cue: core.CueFireball},
 },
 	ScriptFixes:  scriptFixes,
 	OriginalSave: porSave,
 	Quests:       porQuests,
-	Art:          &pool.PorArt,
-	MapLabels:    pool.PorMapLabels,
-	Music:        &pool.PorMusic,
-	Natives: []pool.NativeAt{
-		{ScriptAt: pool.ScriptAt{Area: 0, Label: "TavernGamble"}, Native: pool.NativeTavernGamble},
-		{ScriptAt: pool.ScriptAt{Area: 14, Label: "CastKnock"}, Native: pool.NativeCastKnock},
+	Art:          &engine.PorArt,
+	MapLabels:    engine.PorMapLabels,
+	Music:        &engine.PorMusic,
+	Natives: []engine.NativeAt{
+		{ScriptAt: engine.ScriptAt{Area: 0, Label: "TavernGamble"}, Native: engine.NativeTavernGamble},
+		{ScriptAt: engine.ScriptAt{Area: 14, Label: "CastKnock"}, Native: engine.NativeCastKnock},
 	},
-	PurseWhos: []pool.PurseWho{
-		{ScriptAt: pool.ScriptAt{Area: 0, Label: "PayPlatinum"}, By: 0},
-		{ScriptAt: pool.ScriptAt{Area: 0, Label: "TavernGamble"}, By: -1},
+	PurseWhos: []engine.PurseWho{
+		{ScriptAt: engine.ScriptAt{Area: 0, Label: "PayPlatinum"}, By: 0},
+		{ScriptAt: engine.ScriptAt{Area: 0, Label: "TavernGamble"}, By: -1},
 	},
 }
 
@@ -62,11 +62,11 @@ const dataFormat = "18" // 12: MON<n>.json records as the rules' Sheet (char.She
 // ITEMS table and START.EXE's sound tables (soundFile) as data/assets/data (DataDir).
 // It clears the old data first and writes the picture table as importpor does.
 func ImportData(data string) error {
-	adv := filepath.Join(data, pool.AssetsDir)
-	if err := os.RemoveAll(filepath.Join(adv, pool.DataDir)); err != nil {
+	adv := filepath.Join(data, engine.AssetsDir)
+	if err := os.RemoveAll(filepath.Join(adv, engine.DataDir)); err != nil {
 		return err
 	}
-	if err := ImportDataTo(filepath.Join(data, pool.DOSDir), filepath.Join(adv, pool.DataDir)); err != nil {
+	if err := ImportDataTo(filepath.Join(data, engine.DOSDir), filepath.Join(adv, engine.DataDir)); err != nil {
 		return err
 	}
 	return pictures.WritePictures("por", adv)
@@ -82,37 +82,37 @@ func ImportDataTo(dos, dst string) error {
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := dax.ImportData[pool.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, char.SheetOfRecord[pool.CharRecord], char.ItemOfRecord[rules1e.ItemFile]); err != nil {
+	if err := dax.ImportData[engine.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, char.SheetOfRecord[engine.CharRecord], char.ItemOfRecord[rules1e.ItemFile]); err != nil {
 		return err
 	}
-	if err := dax.ImportItemTable[rules1e.ItemBase](l, dst, pool.ItemTypes, dax.Counted); err != nil {
+	if err := dax.ImportItemTable[rules1e.ItemBase](l, dst, engine.ItemTypes, dax.Counted); err != nil {
 		return err
 	}
 	exe, err := os.ReadFile(l.Path("START.EXE"))
 	if err != nil {
 		return err
 	}
-	snd, err := sounddata.Decode(exe, pool.SoundLayout)
+	snd, err := sounddata.Decode(exe, engine.SoundLayout)
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, pool.SoundFile), snd, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dst, engine.SoundFile), snd, 0o644); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, pool.PortraitsFile), portraits, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dst, engine.PortraitsFile), portraits, 0o644); err != nil {
 		return err
 	}
 	b, err := json.MarshalIndent(gameTables, "", " ")
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, pool.GameTablesFile), b, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dst, engine.GameTablesFile), b, 0o644); err != nil {
 		return err
 	}
-	if err := pool.WriteGameData(dst, gameData()); err != nil {
+	if err := engine.WriteGameData(dst, gameData()); err != nil {
 		return err
 	}
-	if err := writeJournal(filepath.Join(filepath.Dir(dst), pool.JournalDir)); err != nil {
+	if err := writeJournal(filepath.Join(filepath.Dir(dst), engine.JournalDir)); err != nil {
 		return err
 	}
 	key, err := dax.SourceKey(dataFormat, dos)
@@ -125,14 +125,14 @@ func ImportDataTo(dos, dst string) error {
 // ImportDataIfStale runs ImportData when the data is missing or was
 // imported from other archives or by another format.
 func ImportDataIfStale(data string) error {
-	if _, err := os.Stat(filepath.Join(data, pool.DOSDir)); errors.Is(err, fs.ErrNotExist) {
+	if _, err := os.Stat(filepath.Join(data, engine.DOSDir)); errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
-	key, err := dax.SourceKey(dataFormat, filepath.Join(data, pool.DOSDir))
+	key, err := dax.SourceKey(dataFormat, filepath.Join(data, engine.DOSDir))
 	if err != nil {
 		return err
 	}
-	have, err := os.ReadFile(filepath.Join(data, pool.AssetsDir, pool.DataDir, "key.txt"))
+	have, err := os.ReadFile(filepath.Join(data, engine.AssetsDir, engine.DataDir, "key.txt"))
 	if err == nil && string(have) == key {
 		return nil
 	}

@@ -12,7 +12,7 @@ import (
 	"gobox/exe"
 	"gobox/exe/tablespec"
 	"gobox/importer/pictures"
-	"gobox/pool"
+	"gobox/engine"
 	"gobox/games/sotsb"
 )
 
@@ -130,13 +130,13 @@ func ImportGameTablesTo(dst string) error {
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := pool.WriteGameData(dst, StaticData()); err != nil {
+	if err := engine.WriteGameData(dst, StaticData()); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, pool.SoundFile), soundData, 0o644); err != nil { // START.EXE's tables, as pool.SoundData reads them
+	if err := os.WriteFile(filepath.Join(dst, engine.SoundFile), soundData, 0o644); err != nil { // START.EXE's tables, as pool.SoundData reads them
 		return err
 	}
-	for file, v := range map[string]any{pool.GameTablesFile: GameTables, rules1e.LayoutFile: Layout1e} {
+	for file, v := range map[string]any{engine.GameTablesFile: GameTables, rules1e.LayoutFile: Layout1e} {
 		b, err := json.MarshalIndent(v, "", " ")
 		if err != nil {
 			return err

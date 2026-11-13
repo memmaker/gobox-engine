@@ -6,7 +6,7 @@ import (
 	"gobox/amigaimport"
 	"gobox/app"
 	"gobox/ega"
-	"gobox/pool"
+	"gobox/engine"
 	"gobox/games/por"
 	"gobox/games/por/importpor"
 )
@@ -15,19 +15,19 @@ import (
 // game's files into dst: the port's own assets (the text scripts) and the
 // cover picture.
 func setupData(dst string) error {
-	if err := app.CopyFS(por.Assets, "scripts", filepath.Join(dst, pool.AssetsDir, "scripts")); err != nil {
+	if err := app.CopyFS(por.Assets, "scripts", filepath.Join(dst, engine.AssetsDir, "scripts")); err != nil {
 		return err
 	}
 	if err := importScripts(dst); err != nil {
 		return err
 	}
-	return app.WriteCover(filepath.Join(dst, pool.DOSDir), filepath.Join(dst, "COVER.PNG"))
+	return app.WriteCover(filepath.Join(dst, engine.DOSDir), filepath.Join(dst, "COVER.PNG"))
 }
 
 // importScripts decompiles the game's event scripts into the installation
 // and imports its art and data (pool.ImportAssets).
 func importScripts(dst string) error {
-	if err := importpor.ImportScripts(filepath.Join(dst, pool.DOSDir), filepath.Join(dst, pool.AssetsDir, "scripts")); err != nil {
+	if err := importpor.ImportScripts(filepath.Join(dst, engine.DOSDir), filepath.Join(dst, engine.AssetsDir, "scripts")); err != nil {
 		return err
 	}
 	return importpor.ImportAssets(dst)

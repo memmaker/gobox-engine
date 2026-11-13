@@ -11,7 +11,7 @@ import (
 	"gobox/char"
 	"gobox/dax"
 	"gobox/importer"
-	"gobox/pool"
+	"gobox/engine"
 	"gobox/rules1e"
 )
 
@@ -29,7 +29,7 @@ func TestOriginals(t *testing.T) {
 		t.Fatal(err)
 	}
 	dst := filepath.Join(root, "cotab")
-	if _, err := pool.ReadGameTables(dst); err != nil {
+	if _, err := engine.ReadGameTables(dst); err != nil {
 		t.Fatal(err)
 	}
 	l, err := rules1e.ReadLayout(filepath.Join(dst, "data", rules1e.LayoutFile))
@@ -41,7 +41,7 @@ func TestOriginals(t *testing.T) {
 		t.Fatal(err)
 	}
 	var items []rules1e.ItemBase // the base item table as pool reads it
-	if ok, err := asset.ReadJSON(filepath.Join(dst, "data"), dax.ItemTableFile, &items); !ok || err != nil || len(items) != pool.ItemTypes {
+	if ok, err := asset.ReadJSON(filepath.Join(dst, "data"), dax.ItemTableFile, &items); !ok || err != nil || len(items) != engine.ItemTypes {
 		t.Fatalf("%s.json: %d items, %v %v", dax.ItemTableFile, len(items), ok, err)
 	}
 	ld, err := dax.NewLoader(dos)

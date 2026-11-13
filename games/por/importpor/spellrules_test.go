@@ -1,7 +1,7 @@
 package importpor
 
 import (
-	"gobox/pool"
+	"gobox/engine"
 	"path/filepath"
 	"reflect"
 	"gobox/rules1e"
@@ -24,10 +24,10 @@ func TestSpellRulesAligned(t *testing.T) {
 // TestGameDataFile: the data written is what pool reads back, POR's own values.
 func TestGameDataFile(t *testing.T) {
 	dir := t.TempDir()
-	if err := pool.WriteGameData(filepath.Join(dir, pool.DataDir), gameData()); err != nil {
+	if err := engine.WriteGameData(filepath.Join(dir, engine.DataDir), gameData()); err != nil {
 		t.Fatal(err)
 	}
-	got, err := pool.ReadGameData(dir)
+	got, err := engine.ReadGameData(dir)
 	if err != nil {
 		t.Fatal(err)
 	}

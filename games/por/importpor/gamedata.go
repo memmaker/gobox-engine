@@ -3,7 +3,7 @@ package importpor
 import (
 	"gobox/ega"
 	"gobox/game"
-	"gobox/pool"
+	"gobox/engine"
 	"image/color"
 )
 
@@ -29,11 +29,11 @@ func gameData() game.Data {
 		{Race: "Halfling", Gender: "Male", Class: "Fighter/Thief", Align: "Neutral Good", Need: map[string]int{"str": 16, "dex": 17, "con": 15}, Name: "Pip", Head: "head_025", Body: "body_001"},
 	}
 
-	d.IconParts, d.DungeonTiles, d.MapCell = pool.IconParts[:], pool.DungeonTiles, pool.MapCell
+	d.IconParts, d.DungeonTiles, d.MapCell = engine.IconParts[:], engine.DungeonTiles, engine.MapCell
 	d.Rests = []game.RestKind{ // camp's rests: until fixed while someone heals or studies, an hour, until night or day
-		{Text: "Until fixed", Key: 'F', N: pool.RestFix, Fix: true},
-		{Text: "Wait an hour", Key: 'W', N: pool.RestWait},
-		{Text: "Until night", Key: 'N', N: pool.RestUntil, Night: "Until day", NightKey: 'D'},
+		{Text: "Until fixed", Key: 'F', N: engine.RestFix, Fix: true},
+		{Text: "Wait an hour", Key: 'W', N: engine.RestWait},
+		{Text: "Until night", Key: 'N', N: engine.RestUntil, Night: "Until day", NightKey: 'D'},
 	}
 	d.DoorInk, d.SelectInk = ega.Identity.RGBA(doorColour), ega.RGBA(10)
 	// TITLE picture 2's "Pool of Radiance" (yellow with a light blue shadow, above row 108)

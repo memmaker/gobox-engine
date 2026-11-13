@@ -12,12 +12,12 @@ import (
 
 	"gobox/dax"
 	"gobox/importer"
-	"gobox/pool"
+	"gobox/engine"
 )
 
 func init() {
 	importer.Register(importer.Game{
-		ID: "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: pool.RecordLayout, Version: 1, // 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
+		ID: "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: engine.RecordLayout, Version: 1, // 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
 
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},
 		Import:  Import,
@@ -108,8 +108,8 @@ func Import(dos, dst string) error {
 	if err := ImportScripts(dos, scripts); err != nil {
 		return err
 	}
-	amiga := filepath.Join(filepath.Dir(dos), pool.AmigaDir)
-	if err := dax.ImportArt(dos, amiga, filepath.Join(dst, pool.ArtDir)); err != nil {
+	amiga := filepath.Join(filepath.Dir(dos), engine.AmigaDir)
+	if err := dax.ImportArt(dos, amiga, filepath.Join(dst, engine.ArtDir)); err != nil {
 		return err
 	}
 	if err := pictures.WritePictures("por", dst); err != nil {
@@ -120,7 +120,7 @@ func Import(dos, dst string) error {
 			return err
 		}
 	}
-	return ImportDataTo(dos, filepath.Join(dst, pool.DataDir))
+	return ImportDataTo(dos, filepath.Join(dst, engine.DataDir))
 }
 
 // copyEntry copies file or directory src to dst.

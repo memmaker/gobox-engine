@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"gobox/game/play"
-	"gobox/pool"
+	"gobox/engine"
 	"gobox/games/por/porgame"
 )
 
 // explore: a headless engine (needs the game files in the repo root) that
 // begins adventuring with the Quick Start party once Init and Play run, as
 // -explore does; its roster goes to a temp dir, never the game's saves.
-func explore(t *testing.T) *pool.Engine {
+func explore(t *testing.T) *engine.Engine {
 	t.Helper()
 	if _, err := os.Stat("../../../data/por/sources/dos/TITLE.DAX"); err != nil {
 		t.Skip("no game files")
@@ -85,12 +85,12 @@ func TestScriptInputPrompt(t *testing.T) {
 // settle steps the engine, as the presenter does once a frame, while
 // something goes on with time, for d at most (default 300 ms: a picture may
 // animate for ever), and returns the State.
-func settle(e *pool.Engine, d ...time.Duration) play.State {
+func settle(e *engine.Engine, d ...time.Duration) play.State {
 	max := 300 * time.Millisecond
 	if len(d) > 0 {
 		max = d[0]
 	}
-	for t0 := time.Now(); e.Pace() != pool.PaceNone && time.Since(t0) < max; {
+	for t0 := time.Now(); e.Pace() != engine.PaceNone && time.Since(t0) < max; {
 		time.Sleep(time.Millisecond)
 		e.Step()
 	}
@@ -100,7 +100,7 @@ func settle(e *pool.Engine, d ...time.Duration) play.State {
 // pressKey is the player's key to what waits, through Do: a page's
 // Continue, a lone "Press" reply; with nothing to continue the engine
 // steps on.
-func pressKey(t *testing.T, e *pool.Engine) {
+func pressKey(t *testing.T, e *engine.Engine) {
 	t.Helper()
 	st := e.State()
 	cm, q := common(st), common(st).Ask

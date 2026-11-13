@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gobox/pool"
+	"gobox/engine"
 )
 
 // TestGameDataFile: cotab's StaticData goes through data/gamedata.json to the
@@ -13,10 +13,10 @@ import (
 func TestGameDataFile(t *testing.T) {
 	dir := t.TempDir()
 	want := StaticData()
-	if err := pool.WriteGameData(filepath.Join(dir, pool.DataDir), want); err != nil {
+	if err := engine.WriteGameData(filepath.Join(dir, engine.DataDir), want); err != nil {
 		t.Fatal(err)
 	}
-	got, err := pool.ReadGameData(dir)
+	got, err := engine.ReadGameData(dir)
 	if err != nil {
 		t.Fatal(err)
 	}

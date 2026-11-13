@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 
 	"gobox/amigaimport"
-	"gobox/pool"
+	"gobox/engine"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 		}
 		// the Amiga data disk among the .adf images under -import-disk2 (loose or zipped): its graphics as DOS-layout archives in -data/amiga
 		spec := amigaimport.Spec{Gfx: amigaGfx, Disks: []string{"poolgame", "POOLDATA"}, Program: "program", Intro: "intro", Skip: map[string]string{"8x8d.dax": "the Amiga set is laid out for its own wall renderer and does not match WALLDEF's symbol numbers: the 3D view stays DOS (setup.go amigaGfx)"}}
-		if err := amigaimport.Import(*imp2, filepath.Join(*dir, pool.AmigaDir), spec); err != nil {
+		if err := amigaimport.Import(*imp2, filepath.Join(*dir, engine.AmigaDir), spec); err != nil {
 			log.Fatal(err)
 		}
 	default:

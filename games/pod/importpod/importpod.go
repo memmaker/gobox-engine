@@ -20,7 +20,7 @@ import (
 	"gobox/exe"
 	"gobox/exe/tablespec"
 	"gobox/importer"
-	"gobox/pool"
+	"gobox/engine"
 	"gobox/games/pod"
 )
 
@@ -54,7 +54,7 @@ func Import(dos, dst string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, pool.DataDir, pool.TreasureSetsFile), sets, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dst, engine.DataDir, engine.TreasureSetsFile), sets, 0o644); err != nil {
 		return err
 	}
 	return writeSwitchData(dst)
@@ -64,47 +64,47 @@ func Import(dos, dst string) error {
 // its tables: GameTables (gametables.json), the slot Layout, the journal book
 // and the entries the scripts' Journal n name.
 func writeSwitchData(dst string) error {
-	data := filepath.Join(dst, pool.DataDir)
+	data := filepath.Join(dst, engine.DataDir)
 	monsters, icons, count, status, control := AreaMonsterTable()
-	area := pool.AreaMonsters{Count: count, Status: status, Control: control}
+	area := engine.AreaMonsters{Count: count, Status: status, Control: control}
 	for i := range monsters {
-		area.ByScreen = append(area.ByScreen, pool.AreaMonster{Monster: int(monsters[i]), Icon: int(icons[i])})
+		area.ByScreen = append(area.ByScreen, engine.AreaMonster{Monster: int(monsters[i]), Icon: int(icons[i])})
 	}
-	sounds := map[byte]pool.ScriptSound{}
+	sounds := map[byte]engine.ScriptSound{}
 	for n := 0; n <= math.MaxUint8; n++ {
 		song, music, digitized := SoundKind(byte(n))
 		switch {
 		case music:
-			sounds[byte(n)] = pool.ScriptSound{Music: true, Song: song}
+			sounds[byte(n)] = engine.ScriptSound{Music: true, Song: song}
 		case digitized:
-			sounds[byte(n)] = pool.ScriptSound{Cue: core.SoundCue(strconv.Itoa(n))}
+			sounds[byte(n)] = engine.ScriptSound{Cue: core.SoundCue(strconv.Itoa(n))}
 		}
 	}
-	tables := pool.GameTables{
+	tables := engine.GameTables{
 		Dialect: Dialect, AddNPCIcon: true, AreaMonsters: area, ScriptSounds: sounds,
 		OriginalSave: OriginalSave,
-		Symbols:      []pool.SymbolLoad{{Set: 4, File: "8X8D0", Block: 202}}, // gameinit's Load8x8Set(202, 1): POD's symbols are 8X8D0's, not the content set's file
+		Symbols:      []engine.SymbolLoad{{Set: 4, File: "8X8D0", Block: 202}}, // gameinit's Load8x8Set(202, 1): POD's symbols are 8X8D0's, not the content set's file
 		MonsterSet:   1,                                                      // LoadCreatureData's MON1, LoadIconAnim's CPIC1
-		Art: &pool.ArtNames{ // LoadCombatTileSet's Load24x24Set (pod-re combatst.pas)
-			DungeonTiles:  []pool.TileLoad{{File: "DUNGCOM", From: pool.TileBlockWalls, Last: 24}},
-			WildTiles:     []pool.TileLoad{{File: "WILDCOM", From: pool.TileBlockAreaSet, Last: 38}},
+		Art: &engine.ArtNames{ // LoadCombatTileSet's Load24x24Set (pod-re combatst.pas)
+			DungeonTiles:  []engine.TileLoad{{File: "DUNGCOM", From: engine.TileBlockWalls, Last: 24}},
+			WildTiles:     []engine.TileLoad{{File: "WILDCOM", From: engine.TileBlockAreaSet, Last: 38}},
 			CombatSprites: "COMSPR",
 			Title:         "TITLE",
 		},
 	}
-	if err := pool.WriteGameData(data, StaticData()); err != nil {
+	if err := engine.WriteGameData(data, StaticData()); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(data, pool.SoundFile), []byte(sounddata.Silent), 0o644); err != nil { // AdLib only: no speaker or Tandy tables
+	if err := os.WriteFile(filepath.Join(data, engine.SoundFile), []byte(sounddata.Silent), 0o644); err != nil { // AdLib only: no speaker or Tandy tables
 		return err
 	}
-	if err := importer.WriteJSON(filepath.Join(data, pool.GameTablesFile), tables); err != nil {
+	if err := importer.WriteJSON(filepath.Join(data, engine.GameTablesFile), tables); err != nil {
 		return err
 	}
 	if err := importer.WriteJSON(filepath.Join(data, rules1e.LayoutFile), Layout1e()); err != nil {
 		return err
 	}
-	if err := WriteJournal(filepath.Join(dst, pool.JournalDir)); err != nil {
+	if err := WriteJournal(filepath.Join(dst, engine.JournalDir)); err != nil {
 		return err
 	}
 	return importer.WriteJSON(filepath.Join(dst, "scripts", script.EntriesFile), JournalEntries())

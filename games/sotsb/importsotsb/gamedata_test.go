@@ -4,17 +4,17 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/pool"
+	"gobox/engine"
 )
 
 // TestGameDataFile: sotsb's data goes through data/gamedata.json to the shared
 // engine's reader, with its AdLib music (no Amiga files in the folder).
 func TestGameDataFile(t *testing.T) {
 	dir := t.TempDir()
-	if err := ImportGameTablesTo(filepath.Join(dir, pool.DataDir)); err != nil {
+	if err := ImportGameTablesTo(filepath.Join(dir, engine.DataDir)); err != nil {
 		t.Fatal(err)
 	}
-	got, err := pool.ReadGameData(dir)
+	got, err := engine.ReadGameData(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
