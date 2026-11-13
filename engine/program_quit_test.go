@@ -39,10 +39,10 @@ func TestProgramSaveQuitEnding(t *testing.T) {
 	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: 1}}}}, Layout: e.vm.Script.Layout}
 	e.vm.PC = 0
 	e.vm.Fetch()
-	e.title.seqs = []game.Sequence{{Name: seqEnding}}
+	e.title.endAnim = true
 	e.events = nil
 	e.opProgram()
-	if e.sequence != seqEnding || slices.Contains(e.events, game.Event(game.Ended{})) {
+	if e.sequence != adventure.SeqEnding || slices.Contains(e.events, game.Event(game.Ended{})) {
 		t.Fatalf("SaveQuit with an end: sequence %q, events %v: want the sequence up, the run on", e.sequence, e.events)
 	}
 	o, err := e.doNow(game.ContinueAction{})
@@ -80,31 +80,19 @@ func TestProgramEnding(t *testing.T) {
 	}
 }
 
-// TestEndScene: the end's pictures show only as many party pictures as the party has members,
-// and an animation's frames last as the message delay says.
+// TestEndScene: the end's scene states the party's members and the message delay gobox shows
+// its pictures by (adventure.Layer.MinParty, MsgDelayed).
 func TestEndScene(t *testing.T) {
 	e := quickStarted(t)
-	layer := func(min int, ms int) game.Layer {
-		return game.Layer{MinParty: min, FrameMs: ms, MsgDelayed: ms != 0}
+	e.title.end = &game.Scene{Kind: game.SceneTitle, Intro: &game.Intro{Pictures: []int{1}, End: true}}
+	e.msgDelay = 5
+	e.setWorldWord(rules.WordPartyCount, 3)
+	in := e.endScene(game.Common{}).Intro
+	if in.Party != 3 || in.MsgDelay != 5 || !in.End || !slices.Equal(in.Pictures, []int{1}) {
+		t.Fatalf("end intro %+v", in)
 	}
-	e.title.end = &game.Scene{Kind: game.SceneTitle, Steps: map[int]game.TitleStep{1: {Text: []string{"x"}, Layers: []game.Layer{layer(0, 0), layer(2, 0), layer(0, 160)}}}}
-	e.msgDelay = 5 // (5+3)/(1+3) = twice the default
-	for _, members := range []int{1, 3} {
-		e.setWorldWord(rules.WordPartyCount, members)
-		st := e.endScene(game.Common{}).Steps[1]
-		want := 2
-		if members >= 2 {
-			want = 3
-		}
-		if len(st.Layers) != want || !slices.Equal(st.Text, []string{"x"}) {
-			t.Fatalf("%d members: %d layers, want %d", members, len(st.Layers), want)
-		}
-		if l := st.Layers[len(st.Layers)-1]; l.FrameMs != 320 || l.MinParty != 0 || l.MsgDelayed {
-			t.Fatalf("animation layer %+v: want 320 ms, filters cleared", l)
-		}
-	}
-	if e.title.end.Steps[1].Layers[2].FrameMs != 160 {
-		t.Fatal("the end's own layers were changed")
+	if e.title.end.Intro.Party != 0 {
+		t.Fatal("the end's own intro was changed")
 	}
 }
 

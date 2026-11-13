@@ -52,7 +52,8 @@ func playOther(s start, f importer.Folder) (ui.Launch, error) {
 	if err != nil {
 		return ui.Launch{}, err
 	}
-	d.OwnMusic = filepath.Join(s.Data, "music") // the player's own music, by trigger
+	d.OwnMusic = filepath.Join(s.Data, "music")     // the player's own music, by trigger
+	ui.SetScripts(f.Manifest.Start, f.Manifest.End) // the title, credits and end gobox composes
 	w, h := window(f)
 	return ui.Launch{Front: ui.NewFront(ui.NewGame(g, d), d), Title: f.Title, W: w, H: h, Apply: ui.Tune(g)}, nil
 }

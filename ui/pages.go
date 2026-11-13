@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/game"
 	"image"
 	"image/color"
@@ -269,11 +270,11 @@ func (c *cellPage) texts(prompt []PaneRun, f *game.Flags, bar bool) {
 		}
 		c.run(r, c.rows-1)
 	}
-	if f.Credits && creditBoxes == nil { // one frame on the page's edges, the lines laid out over the page inside it
+	if f.Credits && creditBoxes() == nil { // one frame on the page's edges, the lines laid out over the page inside it
 		c.border(1, 1, c.cols-2, c.rows-2)
-		var page []Credit
+		var page []adventure.Credit
 		x1, x2, y2 := c.cols, 0, 1
-		for _, l := range credits {
+		for _, l := range credits() {
 			if l.Page == f.CreditPage {
 				page = append(page, l)
 				x1, x2, y2 = min(x1, l.X), max(x2, l.X+len(l.Text)), max(y2, l.Y)
@@ -306,28 +307,28 @@ func (c *cellPage) texts(prompt []PaneRun, f *game.Flags, bar bool) {
 					y += grow[b]
 				}
 			}
-			c.str(l.X+dx, y, l.Colour, l.Text) // a row above 1 (a title on the frame's top edge) stays where it is
+			c.str(l.X+dx, y, inkEGA(l.Colour), l.Text) // a row above 1 (a title on the frame's top edge) stays where it is
 		}
 		c.remasterCredit()
 		return
 	}
 	if f.Credits { // the original's boxes, an edge on its page's following this page's
-		for _, b := range creditBoxes {
-			x2, y2 := b.Max.X, b.Max.Y
+		for _, b := range creditBoxes() {
+			x2, y2 := b.X2, b.Y2
 			if x2 >= 38 {
 				x2 = c.cols - 2
 			}
 			if y2 >= 23 {
 				y2 = c.rows - 2
 			}
-			c.border(b.Min.X, b.Min.Y, x2, y2)
+			c.border(b.X1, b.Y1, x2, y2)
 		}
 		// Centred on wider pages; on pages tall enough, a blank row after
 		// each of creditGaps' rows (Pool: before "game created by", after it
 		// and after the version).
 		dx, gaps := max(0, (c.cols-40)/2), 0
-		var page []Credit
-		for _, l := range credits {
+		var page []adventure.Credit
+		for _, l := range credits() {
 			if l.Page == f.CreditPage {
 				page = append(page, l)
 			}
@@ -372,7 +373,7 @@ func (c *cellPage) texts(prompt []PaneRun, f *game.Flags, bar bool) {
 					y += grow[b]
 				}
 			}
-			c.str(l.X+dx, y, l.Colour, l.Text)
+			c.str(l.X+dx, y, inkEGA(l.Colour), l.Text)
 		}
 		c.remasterCredit()
 	}
@@ -792,4 +793,12 @@ func iconClick(ed *FrontIconEditor, cx, cy int) (Action, bool) {
 		}
 	}
 	return Action{}, false
+}
+
+// inkEGA is ink k's EGA colour number (InkNone: the body text's, inkGreen).
+func inkEGA(k game.Ink) int {
+	if n, ok := k.EGA(); ok {
+		return n
+	}
+	return inkGreen
 }

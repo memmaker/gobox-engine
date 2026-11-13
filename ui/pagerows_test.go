@@ -6,13 +6,13 @@ import (
 	"gobox/game"
 )
 
-// layPage carries a Layer's Frames and FrameMs to its picture, and lays
+// layPage carries a picture's Frames and FrameMs to its picture, and lays
 // a line's runs out one after the other in their inks.
 func TestPageRowsFrames(t *testing.T) {
 	ink := egaInk
 	l := layPage(&TextPage{
 		View:   [][]game.TextRun{{{Text: "ab", Fg: game.InkYellow}, {Text: "c"}}},
-		Layers: []game.Layer{{Frames: []int{1, 2}, FrameMs: 80}}}, nil, ink)
+		Layers: []Picture{{Frames: []int{1, 2}, FrameMs: 80}}}, nil, ink)
 	if len(l.pictures[0].Frames) != 2 || l.pictures[0].FrameMs != 80 {
 		t.Fatalf("%+v", l.pictures)
 	}

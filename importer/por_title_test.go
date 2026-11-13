@@ -16,9 +16,8 @@ import (
 )
 
 // TestStartIsPORTitle: the engine shows start() as POR's title (ovr02:0626):
-// TITLE 1 and 2 named with their pixels, the credits page after them, the
-// lightning in EGA, TITLE 1 alone without the Full intro; Data's credits are
-// start()'s.
+// steps 1 and 2 (TITLE 1 and 2), the credits page after them, the
+// lightning in EGA, TITLE 1 alone without the Full intro.
 func TestStartIsPORTitle(t *testing.T) {
 	e, err := engine.NewPool("../data/por/sources/assets", "../data/por/sources")
 	if err != nil {
@@ -40,21 +39,20 @@ func TestStartIsPORTitle(t *testing.T) {
 		t.Fatalf("not the title: %+v", e.State())
 	}
 	for n := 1; n <= 2; n++ {
-		if l := sc.Steps[n].Layers; len(l) != 1 || l[0].File != "TITLE" || l[0].Block != n || l[0].Pixels == nil {
+		if l := seq.Step(n).Layers; len(l) != 1 || l[0].File != "TITLE" || l[0].Block != n {
 			t.Errorf("step %d: %+v", n, l)
 		}
 	}
-	if !sc.Intro.Lightning || !reflect.DeepEqual(sc.Intro.Pictures, []int{1, 2, -1}) || sc.Steps[1].Song != "1" {
-		t.Errorf("intro %+v, song %q", *sc.Intro, sc.Steps[1].Song)
+	if !sc.Intro.Lightning || !reflect.DeepEqual(sc.Intro.Pictures, []int{1, 2, -1}) || seq.Step(1).Song != "1" {
+		t.Errorf("intro %+v, song %q", *sc.Intro, seq.Step(1).Song)
 	}
 	e.FullIntro.Store(false)
 	e.Start(e.Run) // State is built per change: the setting takes from the next one
 	if short := e.State().(game.Scene); !reflect.DeepEqual(short.Intro.Pictures, []int{1}) {
 		t.Errorf("short intro %+v", short.Intro)
 	}
-	d := e.Data()
-	if len(d.CreditLines) != len(seq.Credits) || len(d.CreditBoxes) != 2 {
-		t.Errorf("credits %d lines, boxes %v", len(d.CreditLines), d.CreditBoxes)
+	if len(seq.Boxes) != 2 {
+		t.Errorf("credits boxes %v", seq.Boxes)
 	}
 }
 

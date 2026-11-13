@@ -16,8 +16,8 @@ import (
 // and effects when the import found them): the spell tips, and the other games' rosters it reads (Curse of the Azure
 // Bonds' characters, rules/charimport.go), its font and window border.
 func GameData(adv string) game.Data {
-	d := game.Data{Series: "pool", ID: "sotsb", Adventure: adv, SpellRules: sotsbSpellTips(), Imports: []string{"cotab"}, QuickParty: sotsbQuickParty, TitleBackdrop: titleLayers[titleBanner],
-		CreditLines: Credits, MusicPlaces: SotsbMusicPlaces(), Scans: book().Picture, // the credits page (0x36e) on the screen frame alone, its lines at their cells (the two boxes put a divider through them)
+	d := game.Data{Series: "pool", ID: "sotsb", Adventure: adv, SpellRules: sotsbSpellTips(), Imports: []string{"cotab"}, QuickParty: sotsbQuickParty,
+		MusicPlaces: SotsbMusicPlaces(), Scans: book().Picture,
 		Font: "Gold_Box_8x8D1",
 		Confirms: map[string]game.Confirm{ // the original's words: O100:0994, O100:2C77, O0EF:23DA (both on No)
 			"Drop":         {Asks: []string{"Your %s\nwill be gone forever\n\nDrop It?"}},

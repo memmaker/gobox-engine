@@ -94,12 +94,7 @@ func layPage(pg *TextPage, portrait []game.Picture, ink [16]color.RGBA) *laidPag
 		l.pane = wrapPane(&Pane{Lines: paneLines(pg.Pane, ink)})
 	}
 	l.prompt, l.viewText = paneRuns(pg.Prompt, ink), paneLines(pg.View, ink)
-	for _, ly := range pg.Layers {
-		f := pix(ly.Picture)
-		f.File, f.Block, f.Frame, f.At = ly.File, ly.Block, ly.Frame, ly.At
-		f.Frames, f.FrameMs = ly.Frames, ly.FrameMs
-		l.pictures = append(l.pictures, f)
-	}
+	l.pictures = append(l.pictures, pg.Layers...)
 	if len(pg.Layers) == 0 {
 		l.pictures = story(portrait)
 	}
@@ -331,21 +326,19 @@ func (p *Presenter) introUp() *game.Intro {
 }
 
 // sequenceUp is the full-screen animation playing: the state's, else a
-// game.MenuItem's (playSeq, gobox's own; nil: none).
-func (p *Presenter) sequenceUp() *game.Sequence {
+// game.MenuItem's (playSeq, gobox's own; "": none, or the adventure has no
+// such animation).
+func (p *Presenter) sequenceUp() string {
 	name := playSeq
 	if p.eng != nil {
 		if n := sequenceOf(p.state()); n != "" {
 			name = n
 		}
 	}
-	if name == "" {
-		return nil
+	if seqAnim(name) == nil {
+		return ""
 	}
-	if i := slices.IndexFunc(sequences, func(q game.Sequence) bool { return q.Name == name }); i >= 0 {
-		return &sequences[i]
-	}
-	return nil
+	return name
 }
 
 // gameScreen is the game's typed screen up: a played moment's, else the state's (nil: none).

@@ -106,7 +106,8 @@ func playPool(s start) (ui.Launch, error) {
 
 	data := poolData(eng, f.ID)
 	data.OpenAt = s.Open
-	data.OwnMusic = filepath.Join(s.Data, "music") // the player's own music, by trigger
+	data.OwnMusic = filepath.Join(s.Data, "music")  // the player's own music, by trigger
+	ui.SetScripts(f.Manifest.Start, f.Manifest.End) // the title, credits and end gobox composes
 	cg := ui.NewGame(eng, data)
 	g := ui.NewFront(cg, data, drv) // the rules' data (series, spell tips, overland art); one driver: the rules' calls and the fight's events
 	g.OnStart = func() { engine.DOSArt.Store(host.DOSArt) }

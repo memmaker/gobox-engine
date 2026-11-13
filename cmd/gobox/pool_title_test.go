@@ -2,12 +2,10 @@ package main
 
 import (
 	"image"
-	"image/color"
 	"os"
 	"os/exec"
 	"testing"
 
-	"gobox/asset"
 	"gobox/engine"
 	"gobox/gpu"
 	"gobox/importer"
@@ -36,6 +34,7 @@ func titleFront(t *testing.T, id string) *ui.Front {
 	if data.Adventure != adv {
 		t.Errorf("%s: Data.Adventure %q, want %q (the presenter's art and Theme.Border)", id, data.Adventure, adv)
 	}
+	ui.SetScripts(f.Manifest.Start, f.Manifest.End)
 	fr := ui.NewFront(ui.NewGame(eng, data), data)
 	fr.Start("")
 	return fr
@@ -77,29 +76,15 @@ func TestTitleScreens(t *testing.T) {
 	for _, id := range []string{os.Getenv("TITLE_GAME")} {
 		t.Run(id, func(t *testing.T) {
 			fr := titleFront(t, id)
-			art := asset.OpenArt("../../data/" + id + "/art")
 			dst := gpu.NewImage(w, h)
 			defer dst.Deallocate()
 			k := ui.K(dst.Bounds())
 			sawCredits := false
 			for step := 0; step < 40 && !fr.TitleDrawn(); step++ {
 				fr.Act()
-				pg, credits := fr.Game.Page(), fr.Game.Flags().Credits
+				credits := fr.Game.Flags().Credits
 				fr.Draw(dst)
 				fr.Draw(dst) // the step's first frame can still be the last one's (the presenter's page caches a frame behind)
-				for _, l := range pg.Layers {
-					pc := l.Picture
-					b := art.Block(asset.Amiga, pc.File, pc.Block)
-					if pc.Pixels == nil || b == nil || len(b.Palette) == 0 || b.ColourBase < asset.AmigaBase {
-						continue
-					}
-					for i := 0; i < len(b.Palette)/3; i++ {
-						want := color.RGBA{b.Palette[3*i], b.Palette[3*i+1], b.Palette[3*i+2], 255}
-						if len(pc.Palette) <= b.ColourBase+i || pc.Palette[b.ColourBase+i] != want {
-							t.Fatalf("step %d: %s %d without its block's palette (colour %d: want %v)", step, pc.File, pc.Block, i, want)
-						}
-					}
-				}
 				if credits {
 					sawCredits = true
 					if r := lit(dst); r.Min.X > 16*k || r.Min.Y > 16*k || r.Max.X < w-16*k || r.Max.Y < h-16*k {

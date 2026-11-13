@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"gobox/adventure"
 	"image"
 	"slices"
 	"testing"
@@ -30,8 +31,9 @@ func optionLabels(a *game.Ask) (l []string) {
 // TestParity: what the coordinators' parity runs found missing, by fact.
 func TestParity(t *testing.T) {
 	pic := &game.Picture{File: "PIC", Block: 3}
-	title := game.Scene{Kind: game.SceneTitle, Intro: &game.Intro{Pictures: []int{1, -1}},
-		Steps: map[int]game.TitleStep{1: {Layers: []game.Layer{{Picture: game.Picture{File: "TITLE", Block: 1}}}, Song: "title"}}}
+	withScripts(t, &adventure.Sequence{Steps: []adventure.SequenceStep{{Kind: adventure.StepPicture, Song: "title",
+		Layers: []adventure.Layer{{Art: adventure.Art{File: "TITLE", Block: 1}}}}}}, nil)
+	title := game.Scene{Kind: game.SceneTitle, Intro: &game.Intro{Pictures: []int{1, -1}}}
 	cases := []struct {
 		name string
 		st   game.State
@@ -42,7 +44,7 @@ func TestParity(t *testing.T) {
 	}{
 		{"title step layers and song", title, game.Data{}, []any{tTitlePicture{N: 1}}, nil,
 			func(s shown, res game.Result) bool {
-				return len(s.Page.Layers) == 1 && s.Page.Layers[0].Picture.File == "TITLE" && res.Events[0].Kind == game.EvSong
+				return len(s.Page.Layers) == 1 && s.Page.Layers[0].File == "TITLE" && res.Events[0].Kind == game.EvSong
 			}},
 		{"title credits", title, game.Data{}, []any{tTitleCredits{Page: 1}}, nil,
 			func(s shown, _ game.Result) bool {
@@ -216,7 +218,7 @@ func TestParity(t *testing.T) {
 			func(s shown, _ game.Result) bool { return s.Window == game.WindowPicture && len(s.Story) == 2 }},
 		{"no free aim", game.Fighting{}, game.Data{}, nil, nil,
 			func(s shown, _ game.Result) bool { return len(s.Combat.Turn.Options) == 0 }},
-		{"camp layers and day", game.Camping{Common: game.Common{Day: true, Layers: []game.Layer{{FrameMs: 100}}}}, game.Data{}, nil, nil,
+		{"camp layers and day", game.Camping{Common: game.Common{Day: true, Layers: []game.Drawn{{}}}}, game.Data{}, nil, nil,
 			func(s shown, _ game.Result) bool {
 				return s.Window == game.WindowPicture && len(s.Page.Layers) == 1 && s.Flags.Day
 			}},

@@ -5,7 +5,7 @@
 package ui
 
 import (
-	"gobox/game"
+	"gobox/adventure"
 	"time"
 )
 
@@ -21,17 +21,31 @@ type SequenceUI struct {
 	Cues []Cue
 }
 
-// SequenceStep plays sq (nil: none) this frame on in and returns the
-// frame to show (nil: none); skip: a key, click or button came.
-func SequenceStep(h RuleHost, in *SequenceUI, sq *game.Sequence, skip bool) *VaceFrame {
+// seqAnim is the animation named name (game.Scene.Sequence, a menu item's):
+// the leading StepAnim of the adventure's script it names (nil: none).
+func seqAnim(name string) *adventure.SequenceStep {
+	switch name {
+	case adventure.SeqIntro:
+		return startSeq.LeadingAnim()
+	case adventure.SeqEnding:
+		return endSeq.LeadingAnim()
+	}
+	return nil
+}
+
+// SequenceStep plays the animation name ("" or none such: none) this frame
+// on in and returns the frame to show (nil: none); skip: a key, click or
+// button came.
+func SequenceStep(h RuleHost, in *SequenceUI, name string, skip bool) *VaceFrame {
+	sq := seqAnim(name)
 	if sq == nil {
 		*in = SequenceUI{}
 		return nil
 	}
 	now := time.Now()
-	if in.Name != sq.Name || in.start.IsZero() {
+	if in.Name != name || in.start.IsZero() {
 		a, _ := Load(filesDir, sq.Anim)
-		*in = SequenceUI{Name: sq.Name, Anim: a, start: now}
+		*in = SequenceUI{Name: name, Anim: a, start: now}
 	}
 	in.Cues = nil
 	if in.done {
@@ -47,7 +61,6 @@ func SequenceStep(h RuleHost, in *SequenceUI, sq *game.Sequence, skip bool) *Vac
 		if in.Anim != nil && len(in.Anim.Cues) > 0 { // VACE stops its song on the way out
 			in.Cues = append(in.Cues, Cue{At: t, Op: "stop"})
 		}
-		name := sq.Name
 		h.Call(func(e *classicGame) { e.SequenceDone(name) })
 		return in.last()
 	}

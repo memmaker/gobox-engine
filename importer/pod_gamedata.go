@@ -40,12 +40,12 @@ func podGameData(adv string) game.Data {
 	}
 	return game.Data{Series: "pool", ID: "pod", PartyMenu: partyMenuOrder(), Imports: []string{importSotSB}, SpellRules: podSpellTips, QuickParty: podQuickParty,
 		Adventure:   adv,
-		Texts:       map[string]string{"Trade to whom?": "Trade with Whom?"},              // Trade's member pick (O0AA:1181)
-		Confirms:    confirms,                                                             // the original's own asks (pO108_2254)
-		VerbKeys:    map[string]rune{"View": 'V'},                                         // the combat menu's View (s2F8C): gobox's sheet of the member whose turn it is
-		VerbOrder:   strings.Fields(strings.ReplaceAll(combatMenu, "@", " ")),             // s2F8C's order: View between Bandage and Speed
-		VerbChords:  map[string]string{"Quick All": "alt+q,alt+a"},                        // the combat menu's Alt+Q / Alt+A (O05F:0CF2, scan codes 16, 30): the whole party to the computer; plain Q is the member's own (O05F:0B43)
-		MenuItems:   []game.MenuItem{{Label: "Play intro", Key: 'I', Sequence: seqIntro}}, // gobox replays the intro from the main menu
+		Texts:       map[string]string{"Trade to whom?": "Trade with Whom?"},                        // Trade's member pick (O0AA:1181)
+		Confirms:    confirms,                                                                       // the original's own asks (pO108_2254)
+		VerbKeys:    map[string]rune{"View": 'V'},                                                   // the combat menu's View (s2F8C): gobox's sheet of the member whose turn it is
+		VerbOrder:   strings.Fields(strings.ReplaceAll(combatMenu, "@", " ")),                       // s2F8C's order: View between Bandage and Speed
+		VerbChords:  map[string]string{"Quick All": "alt+q,alt+a"},                                  // the combat menu's Alt+Q / Alt+A (O05F:0CF2, scan codes 16, 30): the whole party to the computer; plain Q is the member's own (O05F:0B43)
+		MenuItems:   []game.MenuItem{{Label: "Play intro", Key: 'I', Sequence: adventure.SeqIntro}}, // gobox replays the intro from the main menu
 		MusicPlaces: musicPlaceList(),
 		Font:        "Pools_of_Darkness",   // PoD's own 8X8D0.DAX font
 		Scans:       journalBook().Picture, // the journal's pictures a Read shows

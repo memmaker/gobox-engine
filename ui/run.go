@@ -181,7 +181,7 @@ func (f *Front) Click(x, y int) bool {
 	if !f.started {
 		f.Act()
 	}
-	if f.P.sync(); f.P.introUp() != nil || f.P.sequenceUp() != nil {
+	if f.P.sync(); f.P.introUp() != nil || f.P.sequenceUp() != "" {
 		f.Key('\r')
 		return true
 	}

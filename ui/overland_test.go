@@ -14,7 +14,7 @@ import (
 func TestOverlandGoesEachWay(t *testing.T) {
 	x := game.Exploring{Map: game.ExploreMap{Walk: yard{size: image.Pt(9, 9)}, Overland: true}}
 	x.Where = game.Where{X: 4, Y: 4, Facing: 6}
-	x.Layers = []game.Layer{{}}
+	x.Layers = []game.Drawn{{}}
 	if w := windowOf(x); w != game.WindowMap {
 		t.Fatalf("overland window %v, want WindowMap", w)
 	}

@@ -6,7 +6,6 @@ import (
 	"cmp"
 	"image"
 	"reflect"
-	"slices"
 
 	"gobox/game"
 )
@@ -90,9 +89,12 @@ func storyOf(c game.Common) []game.Picture {
 // pageOf is the text page up.
 func (r *frontState) pageOf(ps game.State) *TextPage {
 	c := game.CommonOf(ps)
-	p := &TextPage{Layers: c.Layers}
+	p := &TextPage{}
+	for _, d := range c.Layers {
+		p.Layers = append(p.Layers, drawnPicture(d.Picture, d.At))
+	}
 	if c.Picture != nil && len(c.Layers) == 0 { // the front draws a page's layers: the picture is the page's only one
-		p.Layers = []game.Layer{{Picture: *c.Picture}}
+		p.Layers = []Picture{drawnPicture(*c.Picture, image.Rectangle{})}
 	}
 	for _, t := range c.Text {
 		p.Pane = append(p.Pane, r.run(t))
@@ -103,10 +105,11 @@ func (r *frontState) pageOf(ps game.State) *TextPage {
 	if t, ok := ps.(game.Scene); ok {
 		pg := r.page(t)
 		if t.Kind == game.SceneTitle && !r.title.credits {
-			n := r.titleStep(t)
-			pg.Layers = append(pg.Layers, t.Steps[n].Layers...)
-			for _, line := range t.Steps[n].Text { // the step's words, over its picture
-				pg.Pane = append(pg.Pane, r.run(line))
+			if st := scriptOf(t.Intro).Step(r.titleStep(t)); st != nil {
+				pg.Layers = append(pg.Layers, scriptPictures(st, t.Intro)...)
+				for _, line := range st.Text { // the step's words, over its picture
+					pg.Pane = append(pg.Pane, r.run(line))
+				}
 			}
 		}
 		p.Pane, p.View, p.Layers = append(p.Pane, pg.Pane...), pg.View, append(p.Layers, pg.Layers...)
@@ -128,7 +131,8 @@ func (r *frontState) flagsOf(ps game.State, party []game.Member) *game.Flags {
 		f.Full = t.Full
 		if t.Kind == game.SceneTitle {
 			f.Credits, f.CreditPage = r.title.credits, r.title.page
-			f.CreditsPic = !r.title.credits && t.Steps[r.titleStep(t)].Credits
+			st := scriptOf(t.Intro).Step(r.titleStep(t))
+			f.CreditsPic = !r.title.credits && st != nil && st.Credits
 		}
 	}
 	return f
@@ -216,10 +220,6 @@ func (r *frontState) pacingOf(ps game.State) *game.Pacing {
 		p.Pace, p.Resting = game.PaceRest, true
 	case r.walk != nil:
 		p.Pace = game.PaceWalk
-	default:
-		if t, ok := ps.(game.Scene); ok && slices.ContainsFunc(t.Layers, func(l game.Layer) bool { return l.FrameMs > 0 }) {
-			p.Pace = game.PaceAnim
-		}
 	}
 	return p
 }
@@ -448,7 +448,7 @@ func (g *Game) Shop() *game.Shop         { return shopOf(g.r.g.State()) }
 func (g *Game) Training() *game.Training { return trainingOf(g.r.g.State()) }
 func (g *Game) ItemsUp() game.ItemsUp    { return g.r.itemsUp(g.r.g.State()) }
 
-// titleStep is the Steps key of the title step shown: before gobox's first
+// titleStep is the script's step shown (adventure.Sequence.Step): before gobox's first
 // step, that step's picture already.
 func (r *frontState) titleStep(t game.Scene) int {
 	if n := r.title.n; n != 0 || t.Intro == nil || len(t.Intro.Pictures) == 0 {

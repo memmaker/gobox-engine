@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"gobox/adventure"
 	"gobox/game"
 	"gobox/gpu"
 )
@@ -370,10 +371,10 @@ func ReadPNG(path string) image.Image {
 }
 
 // paintedLayers reports whether ls hold a painted picture of their own
-// (a SourcePNG layer) rather than the intro's own picture.
-func paintedLayers(ls []game.Layer) bool {
+// (an ArtPNG layer) rather than the intro's own picture.
+func paintedLayers(ls []adventure.Layer) bool {
 	for _, l := range ls {
-		if l.Source == game.SourcePNG {
+		if l.Kind == adventure.ArtPNG {
 			return true
 		}
 	}
@@ -383,24 +384,15 @@ func paintedLayers(ls []game.Layer) bool {
 // layersImage is the title backdrop's layers (Data.TitleBackdrop) drawn
 // into one picture of their box (nil: none, or a picture that does not
 // decode).
-func layersImage(ls []game.Layer) image.Image {
+func layersImage(ls []adventure.Layer) image.Image {
 	pics := make([]Picture, len(ls))
 	var box image.Rectangle
 	for i, l := range ls {
-		f := Picture{File: l.File, Block: l.Block, Frame: l.Frame, Name: l.Name}
-		if l.Source == game.SourcePNG {
-			f = Picture{} // no DAX reference: read below
-		} else if l.Pixels != nil {
-			f = PixelsOf(l.Picture)
-		}
-		f.At, box = l.At, box.Union(l.At)
-		pics[i] = f
+		pics[i] = scriptPicture(l)
+		box = box.Union(pics[i].At)
 	}
 	pics = indexedPictures(daxPictures(pics), egaInk)
-	for i, l := range ls {
-		if l.Source == game.SourcePNG { // a painted picture (POR's art/TITLE.PNG)
-			pics[i].Img = ReadPNG(l.File)
-		}
+	for i := range pics {
 		if pics[i].Img == nil {
 			return nil
 		}

@@ -18,7 +18,7 @@ func (p *Presenter) Key(k uint16) {
 	if p.askHeld(k) { // NoPick/NoEsc: no path answers the question with Enter, the arrows or Esc
 		defer p.dropAnswers(len(p.inv.acts))
 	}
-	if p.sequenceUp() != nil { // a key ends the animation
+	if p.sequenceUp() != "" { // a key ends the animation
 		SequenceStep(p, &p.seq, p.sequenceUp(), true)
 		p.seqMusic(p.seq.Cues)
 		return
@@ -226,7 +226,7 @@ func (p *Presenter) Click(x, y int) bool {
 		p.replay.skip = true
 		return true
 	}
-	if p.sequenceUp() != nil { // a click ends the animation
+	if p.sequenceUp() != "" { // a click ends the animation
 		SequenceStep(p, &p.seq, p.sequenceUp(), true)
 		p.seqMusic(p.seq.Cues)
 		return true

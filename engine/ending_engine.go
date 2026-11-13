@@ -4,38 +4,16 @@ import (
 	"gobox/adventure"
 	"gobox/game"
 	"gobox/rules"
-	"maps"
 )
 
-// defaultMsgDelay is the message delay an end animation's FrameMs is stated at (init.go).
-const defaultMsgDelay = 1
-
-// msgDelayTicks is the original's frame delay factor: a frame lasts its Delay times (message delay + 3).
-const msgDelayTicks = 3
-
-// endScene is the end's pictures as the party and the message delay show them: only as many party
-// pictures as the party has members (game.Layer.MinParty), and the animations' frames paced by the
-// message delay (game.Layer.MsgDelayed), as the original's finale.
+// endScene is the end's pictures with what gobox shows them by: the party's
+// members (adventure.Layer.MinParty) and the message delay (adventure.Layer.MsgDelayed).
 func (e *Engine) endScene(cm game.Common) game.Scene {
 	sc := *e.title.end
 	sc.Common = cm
-	party := e.worldWord(rules.WordPartyCount)
-	sc.Steps = maps.Clone(sc.Steps)
-	for n, st := range sc.Steps {
-		var layers []game.Layer
-		for _, l := range st.Layers {
-			if l.MinParty > party {
-				continue
-			}
-			if l.MsgDelayed {
-				l.FrameMs = l.FrameMs * (int(e.msgDelay) + msgDelayTicks) / (defaultMsgDelay + msgDelayTicks)
-			}
-			l.MinParty, l.MsgDelayed = 0, false
-			layers = append(layers, l)
-		}
-		st.Layers = layers
-		sc.Steps[n] = st
-	}
+	in := *sc.Intro
+	in.Party, in.MsgDelay = e.worldWord(rules.WordPartyCount), int(e.msgDelay)
+	sc.Intro = &in
 	return sc
 }
 
@@ -46,8 +24,8 @@ func (e *Engine) endScene(cm game.Common) game.Scene {
 func (e *Engine) ending(ends bool) bool {
 	e.ext.endRun = ends
 	switch {
-	case e.hasSequence(seqEnding):
-		e.sequence = seqEnding
+	case e.title.endAnim:
+		e.sequence = adventure.SeqEnding
 	case e.title.end != nil:
 		e.ext.ending = true
 	default:

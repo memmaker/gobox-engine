@@ -16,7 +16,7 @@ import (
 func init() {
 	Register(Game{
 		Cover: true,
-		ID:    "sotsb", Title: "Secret of the Silver Blades", Release: 1990, Ruleset: "rules1e", Record: SotsbRecordLayout, Version: 12, // 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-sotsb); 2: MON records as the rules' Sheet (Pf); 3: GameTables.Art, items as char.Item (Pg); 4: Hold tips (Rz); 5: groundIds, itemKinds, spiritualHammer (Ph); 6: randomTreasure, appraisal (Pi); 7: scripts gold only (Gc); 8: randomTreasure from rules1e's treasure/sotsb.json (Ct); 9: area 16 gem trade 1 per 500 gold (Df); 10: Word7B90, Word7BC2 16-cell text arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits on the Amiga card
+		ID:    "sotsb", Title: "Secret of the Silver Blades", Release: 1990, Ruleset: "rules1e", Record: SotsbRecordLayout, Version: 14, // 14: credits' Colour a game.Ink (C1); 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-sotsb); 2: MON records as the rules' Sheet (Pf); 3: GameTables.Art, items as char.Item (Pg); 4: Hold tips (Rz); 5: groundIds, itemKinds, spiritualHammer (Ph); 6: randomTreasure, appraisal (Pi); 7: scripts gold only (Gc); 8: randomTreasure from rules1e's treasure/sotsb.json (Ct); 9: area 16 gem trade 1 per 500 gold (Df); 10: Word7B90, Word7BC2 16-cell text arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits on the Amiga card
 		Window: Size{W: 80 * 8, H: 50 * 8}, UserSaves: true, Foreign: []string{"cotab"},
 		Sources: []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR"},
 		Import:  SotsbImport, Amiga: &sotsbAmiga,
@@ -46,9 +46,7 @@ func sotsbStart() *adventure.Sequence {
 		},
 		Backdrop: []adventure.Layer{painting, {Art: adventure.Art{File: "TITLE", Block: 4}, At: adventure.Cells{X1: 5, Y1: 5, X2: 35, Y2: 15}}},
 	}
-	for _, c := range Credits {
-		q.Credits = append(q.Credits, adventure.Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
-	}
+	q.Credits = Credits
 	return q
 }
 

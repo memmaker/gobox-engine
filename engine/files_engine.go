@@ -378,4 +378,3 @@ func (e *Engine) charBase(cID rules.CharID) string {
 }
 
 const charRecSize = int(adventure.RecordLayout)
-

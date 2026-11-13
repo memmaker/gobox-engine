@@ -23,14 +23,6 @@ import (
 	"gobox/game"
 )
 
-// Credit is one line of the title's credits page, at its cell X, Y in the
-// colour Colour.
-type Credit struct {
-	X, Y, Colour int
-	Text         string
-	Page         int
-}
-
 // Data is what the game hands the presenter.
 type Data struct {
 	Series string // the asset series whose shared pools the game uses ("pool", "buck-rogers"; "": "pool")
@@ -45,8 +37,6 @@ type Data struct {
 
 	Rests []Rest // camp's rests, in the menu's order
 
-	Credits    []Credit
-	CreditGaps []int // the credits' rows a blank row follows on a tall page, as many as fit from the first (nil: 4, 5, 6)
 	IconParts  []string
 	SpellRules []string // what each spell does, by spell id (the camp's spell tips; "" none)
 
@@ -84,10 +74,7 @@ var (
 	menuEntries                      []Entry
 	texts                            map[string]string
 	rests                            []Rest
-	credits                          []Credit
-	creditGaps                       []int
-	creditBoxes                      []image.Rectangle // game.Data.CreditBoxes
-	titleBackdrop                    []game.Layer      // game.Data.TitleBackdrop
+	creditGaps                       []int // the credits' rows a blank row follows on a tall page, as many as fit from the first (nil: none)
 	iconParts                        []string
 	spellRules                       []string
 	dollBoxes                        = defaultDollBoxes // the doll is every game's, whichever way its data came (SetData or NewFront)
@@ -223,11 +210,52 @@ func confirmText(ask, name, price string) string {
 // Text is the game's named text (Data.Texts; "": none).
 func Text(name string) string { return texts[name] }
 
-// sequences and filesDir are the game's Data.Sequences and Data.Files (Sequence).
-var (
-	sequences []game.Sequence
-	filesDir  string
-)
+// filesDir is where the animations' files are (Data.AnimDir; SequenceStep).
+var filesDir string
+
+// The adventure's scripts (SetScripts): the title and the credits (Start),
+// and the end (End); nil: none.
+var startSeq, endSeq *adventure.Sequence
+
+// SetScripts hands gobox the adventure's Start and End sequences (its
+// manifest's; nil: none) before NewFront: gobox composes the title, the
+// credits, the menu's backdrop and the end from them.
+func SetScripts(start, end *adventure.Sequence) { startSeq, endSeq = start, end }
+
+// scriptOf is the script intro in plays: the End's or the Start's.
+func scriptOf(in *game.Intro) *adventure.Sequence {
+	if in != nil && in.End {
+		return endSeq
+	}
+	return startSeq
+}
+
+// credits are the title's credits lines (the Start's; nil: none).
+func credits() []adventure.Credit {
+	if startSeq == nil {
+		return nil
+	}
+	return startSeq.Credits
+}
+
+// creditBoxes are the original's credits boxes (the Start's; nil: one frame on the page's edges).
+func creditBoxes() []adventure.Cells {
+	if startSeq == nil {
+		return nil
+	}
+	return startSeq.Boxes
+}
+
+// titleBackdrop is the title's picture under the main menu (the Start's Backdrop; nil: none).
+func titleBackdrop() []adventure.Layer {
+	if startSeq == nil {
+		return nil
+	}
+	return startSeq.Backdrop
+}
+
+// advDir is the imported adventure folder (Data.Adventure; "": none).
+var advDir string
 
 var daxMask map[string]int // Data.DaxMask
 
@@ -242,7 +270,7 @@ func gameData(g game.Data) {
 		}
 		texts[k] = v
 	}
-	sequences, filesDir = g.Sequences, g.AnimDir()
+	filesDir, advDir = g.AnimDir(), g.Adventure
 	GameID, Amiga = g.ID, amigaShown
 	AmigaArt = Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
 	if g.Series != "" {
@@ -272,11 +300,12 @@ func gameData(g game.Data) {
 		snd, _ := os.ReadFile(filePath(dir, g.AdLib.Sounds))
 		if music != nil {
 			adLib = &audio.AdLibData{Music: music, Sounds: snd, Effects: g.AdLib.Effects, Rate: g.AdLib.Rate, Tempo: g.AdLib.Tempo, Named: map[string][]byte{}}
-			for _, sq := range g.Sequences { // the songs the animations cue (NAME.SMS beside them)
-				for _, m := range sq.Music {
-					if b, err := os.ReadFile(filepath.Join(dir, m+".SMS")); err == nil {
-						adLib.Named[m] = b
-					}
+			for _, sq := range []*adventure.SequenceStep{startSeq.LeadingAnim(), endSeq.LeadingAnim()} { // the songs the animations cue (NAME.SMS beside them)
+				if sq == nil || sq.Song == "" {
+					continue
+				}
+				if b, err := os.ReadFile(filepath.Join(dir, sq.Song+".SMS")); err == nil {
+					adLib.Named[sq.Song] = b
 				}
 			}
 		}
@@ -303,16 +332,6 @@ func gameData(g game.Data) {
 		for _, r := range g.Rests {
 			rests = append(rests, Rest(r))
 		}
-	}
-	if g.CreditLines != nil {
-		credits = nil
-		for _, c := range g.CreditLines {
-			credits = append(credits, Credit(c))
-		}
-	}
-	creditBoxes, titleBackdrop = g.CreditBoxes, g.TitleBackdrop
-	if g.CreditGaps != nil {
-		creditGaps = g.CreditGaps
 	}
 	if g.IconParts != nil {
 		iconParts = g.IconParts

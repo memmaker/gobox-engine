@@ -95,7 +95,7 @@ type Common struct {
 	Status    string    // the rules' status line (plain text; "" none)
 	Text      []string  // the rules' message lines in the text pane, oldest first
 	Picture   *Picture  // the picture or portrait up (in the view while exploring); nil none
-	Layers    []Layer   // a picture built of layers (with frames), as Picture
+	Layers    []Drawn   // a picture built of layers, as Picture
 	Day       bool      // daylight as the rules see it, in every state
 	Automap   Automap   // the map of where the party is (the overland, the starmap, ...), any state
 	Ask       *Question // a question over this state (the view stays); Reply answers it
@@ -198,16 +198,16 @@ type ExploreMap struct {
 
 // MapWalls is the map's walls by square and side and what they look like.
 type MapWalls struct {
-	Side                [][][4]int     // a square's wall value by side (N E S W), rows from the top (0: open)
-	Fronts              map[int]string // a wall value's art name in Data.Art
-	Pool                map[int]string // a wall value's remastered texture, in place of Fronts
-	Floor, Sky          string
+	Side              [][][4]int     // a square's wall value by side (N E S W), rows from the top (0: open)
+	Fronts            map[int]string // a wall value's art name in Data.Art
+	Pool              map[int]string // a wall value's remastered texture, in place of Fronts
+	Floor, Sky        string
 	FloorInk, CeilInk Ink
-	Backdrop            *Picture
-	Outside             bool    // under the sky
-	Sun                 bool    // the sun is up in the sky the rules paint
-	Mountains           bool    // the mountain range on the horizon, by day outside
-	SunAz, SunEl        float64 // the sun's bearing and height
+	Backdrop          *Picture
+	Outside           bool    // under the sky
+	Sun               bool    // the sun is up in the sky the rules paint
+	Mountains         bool    // the mountain range on the horizon, by day outside
+	SunAz, SunEl      float64 // the sun's bearing and height
 }
 
 // Fighting: a battle is on.
@@ -242,7 +242,7 @@ const (
 	SceneTalk                      // someone speaks; Common.Ask holds the answers
 	SceneHandout                   // a journal handout to read; Continue leaves
 	SceneTitle                     // the title (Intro); Continue ends it
-	SceneSequence                  // a Data.Sequences entry full screen; Continue at its end
+	SceneSequence                  // an animation full screen (Scene.Sequence); Continue at its end
 	SceneResults                   // the after-combat page (Results); Continue leaves
 	SceneScreen                    // a typed screen (Screen: a ship sheet, a table, ...)
 	SceneHeading                   // a heading to pick (overland, rocket): Heading, Leave for Done
@@ -255,26 +255,17 @@ type Scene struct {
 	Kind     SceneKind
 	Speaker  string
 	Pictures []Picture
-	Text     []string          // plain paragraphs; colours are gobox's
-	Handout  string            // SceneHandout: the title
-	Texts    []ReadText        // SceneHandout: the Read's
-	Layers   []Layer           // pictures with their place and frames (Pictures: gobox places them)
-	Placed   [][]TextRun       // the lines over the view window in the original's order and wrapping, a blank row an empty line (Text: the message lines); gobox places them
-	Intro    *Intro            // SceneTitle
-	Sequence string            // SceneSequence: the Data.Sequences name
-	Results  *Results          // SceneResults
-	Screen   *Screen           // SceneScreen
-	Full     bool              // the pictures are one whole-screen picture
-	Steps    map[int]TitleStep // SceneTitle: Intro.Pictures' step N's pictures and tune; gobox steps through them
-	Walls    *MapWalls         // the 3D view the scene is over (nil: the one last explored, if any)
-}
-
-// TitleStep is one title picture step: its layers and the tune it starts.
-type TitleStep struct {
-	Layers  []Layer
-	Song    string   // the song's name, or its number as text ("3": the game's song 3, as EvSong N)
-	Text    []string // the paragraphs said over the step (colours are gobox's)
-	Credits bool     // the picture is the game's credits (importer.SequenceStep.Credits)
+	Text     []string    // plain paragraphs; colours are gobox's
+	Handout  string      // SceneHandout: the title
+	Texts    []ReadText  // SceneHandout: the Read's
+	Layers   []Drawn     // pictures where the original drew them (Pictures: gobox places them)
+	Placed   [][]TextRun // the lines over the view window in the original's order and wrapping, a blank row an empty line (Text: the message lines); gobox places them
+	Intro    *Intro      // SceneTitle
+	Sequence string      // SceneSequence: the animation's name (adventure.SeqIntro, SeqEnding)
+	Results  *Results    // SceneResults
+	Screen   *Screen     // SceneScreen
+	Full     bool        // the pictures are one whole-screen picture
+	Walls    *MapWalls   // the 3D view the scene is over (nil: the one last explored, if any)
 }
 
 // DoorWay is a way to try a door.
