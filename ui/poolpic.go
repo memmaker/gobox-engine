@@ -39,5 +39,5 @@ func poolImage(pc Picture) image.Image {
 	if n := strings.TrimPrefix(name, "amiga_"); !strings.HasPrefix(n, "head_") && !strings.HasPrefix(n, "body_") {
 		return nil
 	}
-	return sprites.Image(series, "portraits", name)
+	return sprites.SpriteImage(series, "portraits", name)
 }

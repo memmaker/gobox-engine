@@ -16,7 +16,7 @@ func TestNewViewDecodesLazily(t *testing.T) {
 	if n := len(p.view.Textures); n != 0 {
 		t.Fatalf("newView decoded %d textures up front", n)
 	}
-	if n := walls.Names(series); len(n) > 0 && p.view.Load(n[0]) == nil {
+	if n := walls.WallNames(series); len(n) > 0 && p.view.Load(n[0]) == nil {
 		t.Fatalf("Load(%q) is nil", n[0])
 	}
 }

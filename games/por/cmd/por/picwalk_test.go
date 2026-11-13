@@ -77,7 +77,7 @@ func TestFightPicturesResolve(t *testing.T) {
 						if f := ref.File(p.File); f == nil || len(f.BlockShared(p.Block)) == 0 && p.Block >= 0 {
 							t.Fatalf("%s: %s block %d does not resolve", sc, p.File, p.Block)
 						}
-					case sprites.Image("pool", "combat", p.Name) == nil && sprites.Image("pool", "icon", p.Name) == nil:
+					case sprites.SpriteImage("pool", "combat", p.Name) == nil && sprites.SpriteImage("pool", "icon", p.Name) == nil:
 						t.Errorf("%s: sprite %q does not resolve", sc, p.Name)
 					}
 				})

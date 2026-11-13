@@ -234,7 +234,7 @@ func poolPickName(m game.Member, kind, prefix string) string {
 		h.Write([]byte(m.Name))
 	}
 	var ns []string
-	for _, n := range sprites.Names(Series, kind) {
+	for _, n := range sprites.SpriteNames(Series, kind) {
 		if strings.HasPrefix(n, prefix) {
 			ns = append(ns, n)
 		}

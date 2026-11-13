@@ -18,9 +18,9 @@ import (
 	"sync"
 )
 
-// Dir is the directory holding series/<series>/<name>.png: $GOBOX_WALLS, else
+// WallDir is the directory holding series/<series>/<name>.png: $GOBOX_WALLS, else
 // this package's own directory in the gobox checkout the game was built from.
-var Dir = func() string {
+var WallDir = func() string {
 	if d := os.Getenv("GOBOX_WALLS"); d != "" {
 		return d
 	}
@@ -54,7 +54,7 @@ func open(s string) fs.FS {
 	if s == "" || strings.ContainsAny(s, `/\.`) {
 		return nil
 	}
-	d := filepath.Join(Dir, "series", s)
+	d := filepath.Join(WallDir, "series", s)
 	if st, err := os.Stat(d); err != nil || !st.IsDir() {
 		return nil
 	}
@@ -64,7 +64,7 @@ func open(s string) fs.FS {
 
 // Series lists the series under Dir, sorted.
 func Series() []string {
-	es, _ := os.ReadDir(filepath.Join(Dir, "series"))
+	es, _ := os.ReadDir(filepath.Join(WallDir, "series"))
 	var out []string
 	for _, e := range es {
 		if e.IsDir() {
@@ -108,10 +108,10 @@ func path(f fs.FS, name string) string {
 	return name + ".png"
 }
 
-// Image decodes texture name (no extension) of series; nil if absent.
+// WallImage decodes texture name (no extension) of series; nil if absent.
 // Each file is read and decoded once (per style): callers draw it every
 // frame and must not change it.
-func Image(series, name string) image.Image {
+func WallImage(series, name string) image.Image {
 	f := open(series)
 	if f == nil {
 		return nil
@@ -151,8 +151,8 @@ func Has(s, name string) bool {
 	return err == nil
 }
 
-// Names lists every texture name of series, sorted.
-func Names(s string) []string {
+// WallNames lists every texture name of series, sorted.
+func WallNames(s string) []string {
 	f := open(s)
 	if f == nil {
 		return nil
@@ -172,7 +172,7 @@ func Names(s string) []string {
 func Textures(series string, names ...string) map[string]image.Image {
 	m := map[string]image.Image{}
 	for _, n := range names {
-		if img := Image(series, n); img != nil {
+		if img := WallImage(series, n); img != nil {
 			m[n] = img
 		}
 	}

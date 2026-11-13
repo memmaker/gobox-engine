@@ -210,7 +210,7 @@ func (p *Presenter) drawOpen(dst *gpu.Image) {
 
 // wallImage is Load: a texture of the game's series of the shared pool,
 // decoded when first drawn (the maps name their textures; walls.txt is the character table).
-func wallImage(name string) image.Image { return walls.Image(series, name) }
+func wallImage(name string) image.Image { return walls.WallImage(series, name) }
 
 // paintedWalls is Painted, from assets/walls/walls.txt: map character, then texture name.
 func paintedWalls() map[byte]string {

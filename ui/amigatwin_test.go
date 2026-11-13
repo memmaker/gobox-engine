@@ -28,7 +28,7 @@ func TestAmigaTwin(t *testing.T) {
 		}
 	}
 	n := o["HEAD3.DAX"]["0"]
-	dos := sprites.Image(Series, "portraits", n)
+	dos := sprites.SpriteImage(Series, "portraits", n)
 	if poolPicture("portraits", n) != dos {
 		t.Fatal("DOS art: not the DOS picture")
 	}

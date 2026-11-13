@@ -19,7 +19,7 @@ func TestEveryAreaHasMap(t *testing.T) {
 	if err != nil {
 		t.Skip("no game files")
 	}
-	if _, err := ui.NewView(walls.Textures("pool", walls.Names("pool")...)); err != nil { // ParseScene checks the names against the current View.Textures
+	if _, err := ui.NewView(walls.Textures("pool", walls.WallNames("pool")...)); err != nil { // ParseScene checks the names against the current View.Textures
 		t.Skip("no GPU:", err)
 	}
 	for disk := 1; disk <= 8; disk++ {

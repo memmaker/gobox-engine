@@ -17,9 +17,9 @@ import (
 //go:embed all:series
 var fsys embed.FS
 
-// Image decodes sprite name (no extension) of series from kind "portraits", "combat" or "items"; nil if absent.
+// SpriteImage decodes sprite name (no extension) of series from kind "portraits", "combat" or "items"; nil if absent.
 // Decoded once and kept: callers ask every View, and keep GPU copies by image identity.
-func Image(series, kind, name string) image.Image {
+func SpriteImage(series, kind, name string) image.Image {
 	path := "series/" + series + "/" + kind + "/" + name + ".png"
 	if m, ok := decoded.Load(path); ok {
 		im, _ := m.(image.Image)
@@ -60,9 +60,9 @@ func Combat(series string) fs.FS {
 // (the portrait pick lists them every frame).
 var names sync.Map // series/kind -> []string
 
-// Names lists the sprite names of a series' kind, sorted. The list is
+// SpriteNames lists the sprite names of a series' kind, sorted. The list is
 // shared: callers must not change it.
-func Names(series, kind string) []string {
+func SpriteNames(series, kind string) []string {
 	dir := "series/" + series + "/" + kind
 	if out, ok := names.Load(dir); ok {
 		return out.([]string)

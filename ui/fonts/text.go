@@ -77,7 +77,7 @@ type Chooser struct {
 // NewChooser lists Load(dir) with first (a name) put first, the rest in
 // Load's order, and picks the font named in file (if any).
 func NewChooser(dir, first, file string) *Chooser {
-	c := NewChooserOf(Dir(dir), first)
+	c := NewChooserOf(FontDir(dir), first)
 	c.Keep(file)
 	return c
 }

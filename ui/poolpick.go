@@ -59,7 +59,7 @@ func (pp *poolPick) list() {
 		prefix = "amiga_" + prefix
 	}
 	pp.names = pp.names[:0]
-	for _, n := range sprites.Names(series, pp.kind) {
+	for _, n := range sprites.SpriteNames(series, pp.kind) {
 		if len(n) > len(prefix) && n[:len(prefix)] == prefix {
 			pp.names = append(pp.names, n)
 		}
@@ -88,7 +88,7 @@ func (g classicGame) PickerView(page int) *FrontPicker {
 				case "iconbody":
 					v.Portraits[i] = PickIcon(g.Game.Subject(), "", n)
 				default:
-					v.Portraits[i] = sprites.Image(series, pp.kind, n)
+					v.Portraits[i] = sprites.SpriteImage(series, pp.kind, n)
 				}
 			}
 		}

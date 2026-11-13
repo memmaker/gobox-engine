@@ -13,7 +13,7 @@ import (
 )
 
 //go:embed *.f8
-var fs embed.FS
+var fontFS embed.FS
 
 // Font is one 8x8 font: Bits holds 256 glyphs of 8 bytes.
 type Font struct {
@@ -23,10 +23,10 @@ type Font struct {
 
 // All are the embedded fonts, sorted by name ignoring case.
 func All() []Font {
-	ents, _ := fs.ReadDir(".")
+	ents, _ := fontFS.ReadDir(".")
 	var out []Font
 	for _, e := range ents {
-		b, _ := fs.ReadFile(e.Name())
+		b, _ := fontFS.ReadFile(e.Name())
 		out = append(out, Font{strings.TrimSuffix(e.Name(), ".f8"), b})
 	}
 	sort.Slice(out, func(i, j int) bool { return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name) })
@@ -35,16 +35,16 @@ func All() []Font {
 
 // Get is the embedded font called name (no ".f8"), nil if there is none.
 func Get(name string) []byte {
-	b, _ := fs.ReadFile(name + ".f8")
+	b, _ := fontFS.ReadFile(name + ".f8")
 	return b
 }
 
 // Load are the game's own .f8 fonts in dir (2048 bytes each), then the
 // embedded ones. A missing dir gives just the embedded fonts.
-func Load(dir string) []Font { return append(Dir(dir), All()...) }
+func Load(dir string) []Font { return append(FontDir(dir), All()...) }
 
-// Dir are the .f8 fonts (2048 bytes each) in dir.
-func Dir(dir string) []Font {
+// FontDir are the .f8 fonts (2048 bytes each) in dir.
+func FontDir(dir string) []Font {
 	var out []Font
 	ents, _ := os.ReadDir(dir)
 	for _, d := range ents {
