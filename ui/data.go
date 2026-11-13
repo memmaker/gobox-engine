@@ -113,12 +113,14 @@ var (
 const (
 	mapCell = 10
 	mapSide = 16 * mapCell
+
+	defaultReadyMark = "*"
 )
 
 var (
 	defaultDoor = color.RGBA{0xaa, 0x88, 0x44, 0xff}
 	doorRGBA    = defaultDoor
-	readiedMark = "*"
+	readiedMark = defaultReadyMark
 	amigaGround *color.RGBA                    // the combat tiles' bare ground in the Amiga art; nil: black, as in the DOS art
 	labelInks   = [...]int{15, 10, 13, 14, 11} // the player's, shop, temple, inn, civic
 )
@@ -130,7 +132,7 @@ func applyLook(adv string) {
 	if err != nil {
 		panic(fmt.Sprintf("%v (run the import again)", err))
 	}
-	doorRGBA, readiedMark, amigaGround = defaultDoor, cmp.Or(l.ReadyMark, "*"), l.AmigaGround
+	doorRGBA, readiedMark, amigaGround = defaultDoor, cmp.Or(l.ReadyMark, defaultReadyMark), l.AmigaGround
 	if l.Door != nil {
 		doorRGBA = *l.Door
 	}
