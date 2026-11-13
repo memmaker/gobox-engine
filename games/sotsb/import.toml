@@ -1,4 +1,6 @@
-# Read by gameimport (shipped beside blades): it asks for the game and copies it into data/.
+# Read by gameimport (~/Projects/gameimport/cmd/gameimport): `gameimport games/sotsb/import.toml`.
+# Paths are relative to this file. It copies the originals into data/sotsb/sources/ and runs
+# `gobox import`, which writes the adventure folder data/sotsb (and its COVER.PNG).
 game = "Secret of the Silver Blades"
 
 [[source]]
@@ -6,5 +8,6 @@ name     = "Secret of the Silver Blades (1990)"
 describe = "The SSI DOS release"
 markers  = ["GEO1.DAX", "TITLE.DAX", "GAME.OVR"] # Pool and Curse have no GEO1.DAX
 files    = ["*.DAX", "START.EXE", "GAME.OVR", "ITEMS", "BLADES.CFG"]
-dest     = "data"
+dest     = "../../data/sotsb/sources/dos"
 upper    = true
+run      = ["../../gobox", "import", "-out", "../../data", "sotsb", "../../data/sotsb/sources/dos"] # the adventure folder data/sotsb

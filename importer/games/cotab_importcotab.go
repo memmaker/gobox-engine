@@ -19,7 +19,8 @@ import (
 // beside the originals when there is one (data/dos, data/amiga).
 func init() {
 	importer.Register(importer.Game{
-		ID: "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: CotabRecordLayout, Version: 12, // 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's)
+		Cover: true,
+		ID:    "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: CotabRecordLayout, Version: 12, // 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's)
 		Window: importer.Size{W: asset.ScreenW, H: asset.ScreenH}, UserSaves: true, Foreign: []string{"por"},
 		Sources: []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR"},
 		Import:  CotabImport, Amiga: &cotabAmiga,

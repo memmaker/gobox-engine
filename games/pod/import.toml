@@ -1,5 +1,6 @@
-# Read by gameimport (~/Projects/gameimport/cmd/gameimport, shipped beside pod): it asks for
-# the game, copies its files into data/dos, where pod looks by default, and writes the cover.
+# Read by gameimport (~/Projects/gameimport/cmd/gameimport): `gameimport games/pod/import.toml`.
+# Paths are relative to this file. It copies the originals into data/pod/sources/ and runs
+# `gobox import`, which writes the adventure folder data/pod (and its COVER.PNG).
 game = "Pools of Darkness"
 
 [[source]]
@@ -7,9 +8,9 @@ name     = "Pools of Darkness (1991)"
 describe = "The SSI DOS release: the game folder, its disks or the GOG installer"
 markers  = ["POOL4.CFG", "GAME.OVR", "TITLE.DAX"] # Pool, Curse and Silver Blades have no POOL4.CFG
 files    = ["*.DAX", "*.ACF", "*.BMA", "*.SMS", "SOUND.COM", "ITEMS", "POOL4.CFG", "GAME.EXE", "GAME.OVR", "SAVE/*", "SECRET/*"]
-dest     = "data/dos"
+dest     = "../../data/pod/sources/dos"
 upper    = true
-run      = ["./gobox", "import", "pod", "data/dos"] # the adventure folder data/pod
+run      = ["../../gobox", "import", "-out", "../../data", "pod", "../../data/pod/sources/dos"] # the adventure folder data/pod
 
 [[source]]
 name     = "the Amiga disks"
@@ -17,5 +18,5 @@ optional = true
 describe = "The Amiga release's .adf disk images (loose or zipped). F12 then switches to the Amiga graphics."
 markers  = ["*.ADF"]
 files    = ["*.ADF"]
-dest     = "data/ADF"
-run      = ["./gobox", "import", "-amiga", "pod", "data/ADF"] # into data/pod/sources/amiga; the DOS import reads it when run again
+dest     = "../../data/pod/sources/adf"
+run      = ["../../gobox", "import", "-out", "../../data", "-amiga", "pod", "../../data/pod/sources/adf"] # into sources/amiga, then the DOS import again

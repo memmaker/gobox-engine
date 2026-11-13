@@ -11,6 +11,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -66,6 +67,7 @@ type Game struct {
 	// archives the import reads beside the originals (sources/amiga; nil: no
 	// Amiga release): `gobox import -amiga <game> <adfdir>`.
 	Amiga *amigaimport.Spec
+	Cover bool // Run writes CoverFile from the originals' TITLE.DAX
 	// Import writes the folder's files from the originals in dir src into
 	// dir dst (empty, existing).
 	Import func(src, dst string) error
@@ -149,6 +151,11 @@ func Run(id, src, root string) error {
 	if err := g.Import(src, dst); err != nil {
 		return fmt.Errorf("import %s: %w", id, err)
 	}
+	if g.Cover {
+		if err := writeCover(src, filepath.Join(dst, CoverFile)); err != nil {
+			return fmt.Errorf("import %s: cover: %w", id, err)
+		}
+	}
 	start, err := sequence(g.Start, src)
 	if err != nil {
 		return fmt.Errorf("import %s: start: %w", id, err)
@@ -215,12 +222,17 @@ func matches(name string, patterns []string) bool {
 	return false
 }
 
-// AmigaDir is where in a game's folder ImportAmiga writes (sources/amiga,
-// beside the DOS originals in sources/dos).
-const AmigaDir = "sources/amiga"
+// AmigaDir is where in a game's folder ImportAmiga writes, beside the DOS
+// originals in DOSDir.
+const (
+	AmigaDir = "sources/amiga"
+	DOSDir   = "sources/dos"
+)
 
 // ImportAmiga converts game id's Amiga disks among the .adf images under adf
-// (loose or zipped) into root/<id>/AmigaDir, by its Game.Amiga.
+// (loose or zipped) into root/<id>/AmigaDir, by its Game.Amiga, then
+// re-runs the DOS import from root/<id>/DOSDir when those originals are
+// there, so the folder picks the Amiga art up whichever came first.
 func ImportAmiga(id, adf, root string) error {
 	g, ok := games[id]
 	if !ok {
@@ -229,14 +241,23 @@ func ImportAmiga(id, adf, root string) error {
 	if g.Amiga == nil {
 		return fmt.Errorf("import %s: no Amiga release", id)
 	}
-	return amigaimport.Import(adf, filepath.Join(root, id, AmigaDir), *g.Amiga)
+	if err := amigaimport.Import(adf, filepath.Join(root, id, AmigaDir), *g.Amiga); err != nil {
+		return err
+	}
+	dos := filepath.Join(root, id, DOSDir)
+	if _, err := os.Stat(dos); errors.Is(err, os.ErrNotExist) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	return Run(id, dos, root)
 }
 
 // Main is the import command's body: args are [-out dir] [-amiga] <game> <originals>.
 func Main(args []string) error {
 	fs := flag.NewFlagSet("import", flag.ContinueOnError)
 	out := fs.String("out", "data", "the games' data directory")
-	amiga := fs.Bool("amiga", false, "<originals> are the Amiga .adf disks: convert them into <out>/<game>/"+AmigaDir+" (before the DOS import, which reads them)")
+	amiga := fs.Bool("amiga", false, "<originals> are the Amiga .adf disks: convert them into <out>/<game>/"+AmigaDir+" (the DOS import from <out>/<game>/"+DOSDir+" re-runs when present)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}

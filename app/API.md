@@ -45,9 +45,8 @@ No game names: the title, shape, key codes and save marker are the game's data.
   `-shot FILE.png -keys S -freeze -quit -slot NAME -pointer x,y;x,y -png FILE
   -size WxH -fps -passes -novsync -offscreen -glitch DIR -skip a,b
   -cpuprofile FILE -stacks N`. No env vars.
-- `CopyFS(fsys, root, dst) error`, `WriteCover(dosDir, out) error`: a game's
-  `-setup` step: its embedded assets beside the imported files, and
-  COVER.PNG from TITLE.DAX block 2 in the EGA palette.
+- `CopyFS(fsys, root, dst) error`: a game's embedded assets beside the
+  imported files. (COVER.PNG: `importer.Run`, for a `Game.Cover` game.)
 - `ParseKeys(s, esc map[byte]Key) []Key`: `\M \C \P \w` are the shell's,
   esc the game's (`\r`, `\e`, arrows, F-keys: the game's codes); any other
   byte is its own code.

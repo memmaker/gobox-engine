@@ -22,7 +22,8 @@ import (
 // beside the originals when there is one (data/dos, data/amiga).
 func init() {
 	importer.Register(importer.Game{
-		ID: "pod", Title: "Pools of Darkness", Release: 1991, Ruleset: "rules1e", Record: PodRecordLayout, Version: 13, // 13: Window, UserSaves, Foreign in the manifest (playpool reads them); 12: 1: imported for pool (Sw-pod); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art, items as char.Item (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds, itemKinds, moraleUncapped (Ph); 7: appraisal (Pi); 8: scripts gold only (Gc); 9: the Amiga music in sound/ (Pm); 10: AreaState, KeptAreaState, KeptAreaCells, Word02EF arrays (TestNoScalarTables); 11: debug party-variable menu and the Word00AB[159] write removed (Felix 2026-11-13); 12: SequenceStep.Credits on the credits picture (TITLE 3)
+		Cover: true,
+		ID:    "pod", Title: "Pools of Darkness", Release: 1991, Ruleset: "rules1e", Record: PodRecordLayout, Version: 13, // 13: Window, UserSaves, Foreign in the manifest (playpool reads them); 12: 1: imported for pool (Sw-pod); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art, items as char.Item (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds, itemKinds, moraleUncapped (Ph); 7: appraisal (Pi); 8: scripts gold only (Gc); 9: the Amiga music in sound/ (Pm); 10: AreaState, KeptAreaState, KeptAreaCells, Word02EF arrays (TestNoScalarTables); 11: debug party-variable menu and the Word00AB[159] write removed (Felix 2026-11-13); 12: SequenceStep.Credits on the credits picture (TITLE 3)
 		Window: importer.Size{W: 80 * 8, H: 50 * 8}, UserSaves: true, Foreign: []string{"sotsb"},
 		Sources: []string{"*.DAX", "ITEMS", "GAME.EXE", "*.SMS", "*.ACF", "*.BMA"},
 		Import:  PodImport, Amiga: &podAmiga,
