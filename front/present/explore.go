@@ -11,7 +11,7 @@ import (
 )
 
 // The adventuring commands: the presenter's own list, each a decision
-// sent for the selected member (View.Exploring).
+// sent for the selected member (Exploring).
 
 type command struct {
 	text string

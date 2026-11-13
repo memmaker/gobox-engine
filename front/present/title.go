@@ -1,4 +1,4 @@
-// title.go plays the title (View.Intro, ovr02:0626 title_screen): TITLE
+// title.go plays the title (Intro, ovr02:0626 title_screen): TITLE
 // picture 1 five seconds, with the full intro picture 2 five seconds with
 // its lightning, then the credits ten; a key or click cuts each short (and
 // a lightning flash one step). The game draws (TitlePicture,

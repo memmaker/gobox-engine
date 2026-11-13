@@ -110,7 +110,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 		Size:  cell(wc, previewRow+2, wc+9, previewRow+2),
 		Names: cell(partCol, pr, swatchCol-1, pr+5), Parts: cell(swatchCol, pr, swatchCol+4, pr+5),
 		Palette: cell(paletteCol, pr+7, paletteCol+15, pr+8)}
-	if *ink == ([16]color.RGBA{}) { // unset: the EGA's own (View.Ink)
+	if *ink == ([16]color.RGBA{}) { // unset: the EGA's own (Ink)
 		var egaInk [16]color.RGBA
 		for i := range egaInk {
 			egaInk[i] = ega.RGBA(i)

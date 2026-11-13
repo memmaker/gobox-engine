@@ -16,9 +16,9 @@ import (
 )
 
 // The page screens taking decisions whose questions are the presenter's:
-// the creation sheet (View.Creation: its menu, the drop-downs, the typed
-// lines), the grid pickers (View.Picker: the cursor, the frame, the
-// pages), the icon editor's bar (View.IconDrop) and the save slots
+// the creation sheet (Creation: its menu, the drop-downs, the typed
+// lines), the grid pickers (Picker: the cursor, the frame, the
+// pages), the icon editor's bar (IconDrop) and the save slots
 // (the slot list, the name, Overwrite and Delete).
 
 // Sub-screens of a page screen.

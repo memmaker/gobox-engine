@@ -11,7 +11,7 @@ import (
 )
 
 // LogoCut says how the main menu's lettering is cut out of the title
-// picture (View.Logo's Pix, EGA indexes): above Sub the Keep colours in
+// picture (Logo's Pix, EGA indexes): above Sub the Keep colours in
 // the EGA palette, from Sub to Bottom the SubInk pixels in Gold with an
 // Outline round them; everything else transparent, cut to the lettering.
 type LogoCut struct {

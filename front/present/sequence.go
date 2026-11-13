@@ -1,4 +1,4 @@
-// sequence.go plays a full-screen animation (View.Sequence: VACE's
+// sequence.go plays a full-screen animation (Sequence: VACE's
 // .ACF/.BMA, gobox/dax/vace) and ends it (SequenceDone) when it runs out
 // or on a key, click or pad button.
 

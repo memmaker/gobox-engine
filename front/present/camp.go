@@ -18,7 +18,7 @@ import (
 	"gobox/input"
 )
 
-// Camp (View.Camp): the presenter's own screens over camp's state, each
+// Camp (Camp): the presenter's own screens over camp's state, each
 // choice a decision for the selected member.
 
 // Camp screens.

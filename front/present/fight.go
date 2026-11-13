@@ -106,7 +106,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 		p.fightAskAt = slices.Clone(p.winRects)
 	}
 	switch {
-	case p.battle.Picking && b.Turn != nil && p.pick == nil: // the bar's Cast list (View.Ask (AskSpell) is drawn by Draw)
+	case p.battle.Picking && b.Turn != nil && p.pick == nil: // the bar's Cast list (the Ask (AskSpell) is drawn by Draw)
 		p.drawPickList(dst, glyph, k, cx, int(k)*16)
 	case p.fightLog:
 		var lines []string
@@ -495,7 +495,7 @@ func (p *Presenter) PadStick(x, y float64) {
 	p.battle.Stick = [2]float64{dead(x), dead(y)}
 }
 
-// pickList is the spell list up for a choice: View.Ask (AskSpell) anywhere, else
+// pickList is the spell list up for a choice: the Ask (AskSpell) anywhere, else
 // the bar's Cast in combat (Picking); nil when none.
 func (p *Presenter) pickList() []front.Spell {
 	switch {

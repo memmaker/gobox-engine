@@ -258,7 +258,7 @@ func (f *Front) Cell(x, y float64) (int, int, bool) {
 	return int((x - p.X) * float64(cols) / p.W), int((y - p.Y) * float64(rows) / p.H), true
 }
 
-// Draw draws the screens, the status line's toast (View.Note) on the
+// Draw draws the screens, the status line's toast (Note) on the
 // bottom row while it is fresh.
 func (f *Front) Draw(dst *gpu.Image) {
 	if ownMus != nil {

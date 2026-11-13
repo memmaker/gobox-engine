@@ -63,7 +63,7 @@ type Border struct {
 // DefaultTheme is por's look.
 var DefaultTheme = Theme{
 	Font:   "Dark_Queen_of_Krynn",
-	Border: Border{Pieces: [ui.Pieces]int{0x114, 0x114, 0x114, 0x114, 0x116, 0x116, 0x115, 0x115}}, // por hands its pieces in (View.Border): its symbols are in the game's palette
+	Border: Border{Pieces: [ui.Pieces]int{0x114, 0x114, 0x114, 0x114, 0x116, 0x116, 0x115, 0x115}}, // por hands its pieces in (Border): its symbols are in the game's palette
 }
 
 var theme Theme

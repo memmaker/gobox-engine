@@ -1,6 +1,6 @@
 // Package remaster shows the game with the Blobber renderer: the 3D view
 // fills the window, and the original's windows are laid over it. It only
-// reads the game, through front.View, so drawing never touches the
+// reads the game, through play.State and the UI, so drawing never touches the
 // game's state.
 package present
 
@@ -79,7 +79,7 @@ type Presenter struct {
 	asked       string                      // the question menu last opened by itself (menuID); send clears it on a pick, so the same menu back after one (a refusal, back from Browse) opens again
 	pageAsked   string                      // the page question menu last opened (drawPageMenu)
 	answered    string                      // the text pane under the last question: once it is answered, that text is done
-	mapImg      *gpu.Image                  // View.Map on the GPU
+	mapImg      *gpu.Image                  // Map on the GPU
 	mapAt       image.Rectangle             // where drawMap last put the minimap (a click there opens the full map)
 	mapSrc      *front.MapSquares           // the derived minimap it holds (derived)
 	mapInk      [16]color.RGBA              // the ink it was drawn in
@@ -122,14 +122,14 @@ type Presenter struct {
 	typed       string                    // ... and reads this ...
 	typedCur    int                       // ... its cursor here
 	cardHover   int                       // 1 + the card the pointer is on (0 none): its name and class show beside it
-	dragFrom    int                       // 1 + the card pressed while the party is being ordered (View.Ordering), it follows the pointer to the card it is dropped on (0 none)
+	dragFrom    int                       // 1 + the card pressed while the party is being ordered (Ordering), it follows the pointer to the card it is dropped on (0 none)
 	dragAt      image.Point               // where the pointer is while a card is dragged
 	Sound       func(n int, event string) // plays a fight's EvSound n (the sound pack's event) when its turn comes (Engine.PlayEventSound)
 	Snd         audio.Sound               // the sound driver EvSound and EvSong play through when Sound is nil (NewFront)
 	AdLib       *audio.AdLib              // Data.AdLib's player: EvSong and EvSound go to it first (NewFront)
 	dragStart   image.Point               // where it was pressed
 	dragged     bool                      // it has moved far enough from dragStart to be a drag
-	ordering    bool                      // View.Ordering
+	ordering    bool                      // Ordering
 	tipping     bool                      // tipMenu is drawing: drawMenuIcons keeps the box on the window
 	ctx         int                       // 1 + the card whose context menu a right click opened (0 none): drawCardTip
 	ctxSel      int                       // its highlighted line
@@ -143,19 +143,19 @@ type Presenter struct {
 	menuTight   bool                      // drawMenu without the blank column inside the border
 	ctxRects    []image.Rectangle         // its lines on screen, as last drawn
 	ctxBox      image.Rectangle           // where its box went: the spell pick opens there
-	pick        []front.Spell             // View.Ask (AskSpell) as last drawn: a spell to cast is being picked on this screen
+	pick        []front.Spell             // the Ask (AskSpell) as last drawn: a spell to cast is being picked on this screen
 	picBottom   int                       // the bottom of the picture box drawn this frame (0: none): menus go under it
 	labelAt     []image.Rectangle         // the top labels drawn this frame (Sweeping, <act>)
 	pickAt      image.Rectangle           // the context menu's box the pick list replaces (zero: the top middle, the bar's scale)
 	pickSel     int                       // the pick list's highlight ...
 	picking     bool                      // ... reset when it opens
-	command     bool                      // the party explores (View.Exploring), as last drawn
+	command     bool                      // the party explores (Exploring), as last drawn
 	cmds        []command                 // the command menu's commands (explore.go), as last drawn
 	camp        campUI                    // the camp screens (camp.go)
 	screenWas   bool                      // a camp-style screen was up when last drawn: one opening starts on its main screen
 	listWas     bool                      // a list was asked when last drawn (openList)
 	played      *frame                    // the moment Draw plays (nil: none)
-	list        listUI                    // View.Ask (AskList)'s highlight (list.go)
+	list        listUI                    // the Ask (AskList)'s highlight (list.go)
 	pageMenu    bool                      // a page's question is up (list.go)
 	mapPointer  image.Point               // the full map: the pointer's last cell (a move there moves the cursor)
 	fullMap     *fullMapUI                // the full map up (fullmap.go)
@@ -169,7 +169,7 @@ type Presenter struct {
 	slots       *SlotsUI                  // the save slots up (slots.go)
 	intro       IntroUI                   // the title being played (title.go)
 	seqSong     string                    // the song the animation loaded last (vace cue "load")
-	seq         SequenceUI                // the full-screen animation being played (View.Sequence)
+	seq         SequenceUI                // the full-screen animation being played (Sequence)
 	seqImg      srcImage                  // its frame on the GPU
 	clue        *clueUI                   // the clue book's chapter list up (cluebook.go)
 	clueRead    *front.Read               // the clue book last read, at the page left
@@ -181,7 +181,7 @@ type Presenter struct {
 	spellTipBuf []byte                    // its pixels
 	scr         screenUI                  // the page screens' questions (screens.go)
 	screen      image.Rectangle           // the window, as last drawn
-	confirmFor  string                    // the yes/no question (View.Ask, AskConfirm) up, as last drawn ...
+	confirmFor  string                    // the yes/no question (the Ask, AskConfirm) up, as last drawn ...
 	paneRect    image.Rectangle           // the page's text pane as drawn this frame: card menus keep clear of it
 	menuFloor   int                       // the page's text pane's top: a bottom menu stops above it (drawGeneric; 0 none)
 	confirmSel  int                       // ... its highlight (Yes 0, No 1) ...

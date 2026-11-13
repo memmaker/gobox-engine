@@ -18,7 +18,7 @@ import (
 	"gobox/input"
 )
 
-// The character sheet (View.Sheet): the page is the engine's; its View
+// The character sheet (Sheet): the page is the engine's; its View
 // menu is the presenter's.
 func (p *Presenter) sheetItems() []ui.MenuRow {
 	var it []ui.MenuRow // the powers, then the reactions' policies (each pick turns to the next): Tab is the inventory, Esc leaves

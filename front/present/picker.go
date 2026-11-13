@@ -42,7 +42,7 @@ func (pk *PickUI) Layout(g *classicGame, key pageKey) *front.Picker {
 		if pk.view != nil {
 			pk.Page = pk.view.Page
 			v := *pk.view
-			v.Pics = daxPictures(indexedPictures(v.Pics, key.ink)) // pictures named by DAX ref, as View.Pictures
+			v.Pics = daxPictures(indexedPictures(v.Pics, key.ink)) // pictures named by DAX ref, as Pictures
 			pk.view = &v
 		}
 	}

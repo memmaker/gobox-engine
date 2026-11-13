@@ -40,7 +40,7 @@ const (
 	RoleBackground
 )
 
-// Ask is the question waiting for the player (View.Ask): every one is
+// Ask is the question waiting for the player (the Ask): every one is
 // published the same way, whoever asks (the engine's prompts, a script
 // instruction).
 type Ask struct {
@@ -93,7 +93,7 @@ type Menu struct {
 	Commands []Command // the options (ActChoose N); none: a message to acknowledge (ActOK)
 }
 
-// Entry is a line of View.Ask (AskList, AskSpell): what its commands act on.
+// Entry is a line of the Ask (AskList, AskSpell): what its commands act on.
 type Entry struct {
 	Text    string
 	Header  bool     // a heading

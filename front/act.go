@@ -27,16 +27,16 @@ const (
 	ActEnd                // combat: Done's Quit: end the turn
 	ActQuick              // combat: the computer fights for the member (N 1: the whole party)
 	ActTurn               // combat: turn undead
-	ActCast               // cast spell N (one of Turn.Spells in combat, of View.Ask (AskSpell) elsewhere)
+	ActCast               // cast spell N (one of Turn.Spells in combat, of the Ask (AskSpell) elsewhere)
 	ActItems              // combat: the inventory
 	ActAim                // combat, aiming: take square X, Y
-	ActPoint              // the cursor is on square X, Y: combat's aim (the preview follows), the full map's (View.MapCursor)
-	ActYes                // yes to View.Ask (AskConfirm)
-	ActNo                 // no to View.Ask (AskConfirm); ActClose too
+	ActPoint              // the cursor is on square X, Y: combat's aim (the preview follows), the full map's (MapCursor)
+	ActYes                // yes to the Ask (AskConfirm)
+	ActNo                 // no to the Ask (AskConfirm); ActClose too
 	ActFlee               // combat: step off the map's edge and try to run away (Turn offers it at the edge)
-	ActChoose             // choose option N of View.Ask (X: the line of its List)
+	ActChoose             // choose option N of the Ask (X: the line of its List)
 	ActOK                 // Enter: the highlighted choice, or "press a key"
-	ActText               // the line being typed (View.Ask) now reads Text
+	ActText               // the line being typed (the Ask) now reads Text
 	ActInventory          // member N's items (a card's left click)
 	ActSheet              // the inventory: back to the sheet under it
 	ActMap                // the full map (M)
@@ -54,13 +54,13 @@ const (
 	ActTakeAll            // loot inventory: take every piece of treasure (Inventory.Loot)
 	ActHead               // member N's next paper-doll head (N < 0: the selected member); Shift-click on the sheet's portrait
 	ActPortrait           // the PNG at Text is member N's portrait (N < 0: the selected member); a file dropped on the sheet
-	ActIcon               // the PNG at Text is the member's combat icon; a file dropped on the icon editor (View.IconDrop)
-	ActOrder              // member N takes place X in the party (View.Ordering): a card dragged onto another's
+	ActIcon               // the PNG at Text is the member's combat icon; a file dropped on the icon editor (IconDrop)
+	ActOrder              // member N takes place X in the party (Ordering): a card dragged onto another's
 	ActNote               // the text pane's text goes into the journal's notes (the text box's "> Notes")
 	ActNoteRemove         // the journal's note N (Lore.ID) is removed
 	ActOption             // combat: the turn's option N (Turn.Options), as the game offers it
 
-	// Adventuring decisions (View.Exploring)
+	// Adventuring decisions (Exploring)
 	ActForward     // a step ahead (3D view)
 	ActBackward    // a step back, facing kept (3D view)
 	ActTurnLeft    // face left (3D view)
@@ -71,19 +71,19 @@ const (
 	ActCamp        // make camp
 	ActSearch      // search this square once
 	ActSweep       // the slow, searching pace on or off
-	ActCastPick    // member N (< 0: the selected one) picks a memorised spell to cast (View.Ask (AskSpell))
+	ActCastPick    // member N (< 0: the selected one) picks a memorised spell to cast (the Ask (AskSpell))
 
-	// Camp decisions (View.Camp); N is the member (< 0: the selected one)
+	// Camp decisions (Camp); N is the member (< 0: the selected one)
 	ActRest       // rest: N is RestFix .. RestUntil
 	ActPlan       // member N memorizes spell X on every rest Y (+1 or -1) times more
 	ActScribe     // member N scribes spell X from a scroll on the next rest, or no longer
 	ActDropMember // member N leaves the party (the player confirmed)
 	ActIconEdit   // member N's combat icon editor
 
-	// Temple, shop and training decisions (View.Temple, View.Shop, View.Training)
+	// Temple, shop and training decisions (Temple, Shop, Training)
 	ActKeep // keep (N 1) or sell (N 0) the one appraised
 
-	// Party menu decisions (View.MainMenu); N is the member (< 0: the
+	// Party menu decisions (MainMenu); N is the member (< 0: the
 	// selected one) where one is meant; ActMember views, ActDropMember drops
 	ActCreate     // create a character
 	ActModify     // member N's sheet to change
@@ -97,7 +97,7 @@ const (
 	ActBegin      // begin adventuring
 	ActQuit       // quit the game (the player confirmed)
 
-	// Creation and Modify decisions (View.Creation); the pickers and the
+	// Creation and Modify decisions (Creation); the pickers and the
 	// icon editor are the presenter's (OpenPicker, EditIcon)
 	ActRoll     // roll the abilities (N 1: until the minimums Text, "STR INT WIS DEX CON CHA", met)
 	ActSetField // creation field N (FieldSex ..) takes its option X (Creation.Fields[N].Options)
@@ -107,9 +107,9 @@ const (
 
 	ActManeuver // combat: maneuver N (one of Turn.Maneuvers; the rule set's, combatrules.go)
 
-	ActInteract // (extra) run the square's event that waits for it (View.Interact, interact.go)
+	ActInteract // (extra) run the square's event that waits for it (Interact, interact.go)
 
-	ActDir    // a direction key answers View.Ask (AskMove): N is the keypad's 1..9 (8 up, 6 right ...)
+	ActDir    // a direction key answers the Ask (AskMove): N is the keypad's 1..9 (8 up, 6 right ...)
 	ActRaise  // AskModify: row N's value goes X (+1 or -1)
 	ActImport // the party menu: import characters from another game's saves (a Data.Entries entry's Act)
 

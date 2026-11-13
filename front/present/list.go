@@ -13,7 +13,7 @@ import (
 	"gobox/input"
 )
 
-// Lists (View.Ask (AskList)): the presenter scrolls and highlights the lines; the
+// Lists (the Ask (AskList)): the presenter scrolls and highlights the lines; the
 // question's options follow them. A line picked is ActChoose -1, an option
 // ActChoose N, each with the line highlighted as X.
 

@@ -45,7 +45,7 @@ var (
 	greenFill, redFill, goldFill = image.Rect(0, 11, 82, 15), image.Rect(0, 15, 82, 19), image.Rect(0, 19, 82, 23) // gold: the experience bar
 )
 
-// borders are the window border's tiles (View.Border) on the GPU, in
+// borders are the window border's tiles (Border) on the GPU, in
 // colour and in grey.
 type borders struct {
 	src         [ui.Places]image.Image

@@ -170,7 +170,7 @@ func (p *Presenter) wallTexture(w *game.Walls, art map[string]game.Picture, n in
 	if n == 0 {
 		return ""
 	}
-	if t := w.Pool[n]; t != "" && walls.Has(series, t) { // decoded on first draw (View.Load)
+	if t := w.Pool[n]; t != "" && walls.Has(series, t) { // decoded on first draw (Load)
 		return t
 	}
 	pc, ok := art[w.Fronts[n]]
@@ -211,11 +211,11 @@ func (p *Presenter) drawOpen(dst *gpu.Image) {
 	p.view.Draw(dst)
 }
 
-// wallImage is View.Load: a texture of the game's series of the shared pool,
+// wallImage is Load: a texture of the game's series of the shared pool,
 // decoded when first drawn (the maps name their textures; walls.txt is the character table).
 func wallImage(name string) image.Image { return walls.Image(series, name) }
 
-// paintedWalls is View.Painted, from assets/walls/walls.txt: map character, then texture name.
+// paintedWalls is Painted, from assets/walls/walls.txt: map character, then texture name.
 func paintedWalls() map[byte]string {
 	out := map[byte]string{}
 	b, _ := fs.ReadFile(art, "assets/walls/walls.txt")

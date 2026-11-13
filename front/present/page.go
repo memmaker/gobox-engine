@@ -408,7 +408,7 @@ func paneImage(img **gpu.Image, pn *front.Pane, note Note) *gpu.Image {
 	return upload(img, m)
 }
 
-// viewTextImage draws the text over the view window (View.ViewText, rows
+// viewTextImage draws the text over the view window (ViewText, rows
 // rows from 1, columns of the page) as the window's inside r shows it.
 func viewTextImage(img **gpu.Image, rows [][]front.PaneRun, r image.Rectangle, note Note) *gpu.Image {
 	m := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))

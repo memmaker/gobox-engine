@@ -1,5 +1,5 @@
 // question.go: the questions the presenter asks itself (drawn and
-// answered as the game's, View.Ask): the yes/no of a rule call's
+// answered as the game's, the Ask): the yes/no of a rule call's
 // Confirm, a member or a spell a rule call needs (PickMember, PickSpell),
 // a list to read (Magic); and the powers out of combat as rule calls.
 

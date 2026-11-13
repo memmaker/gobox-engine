@@ -53,7 +53,7 @@ func (p *Presenter) learning() []game.SpellRef {
 	return nil
 }
 
-// powerItems is the power pick (View.Powers): one line a power, its rule
+// powerItems is the power pick (Powers): one line a power, its rule
 // the tip; no hotkeys (the lines are names) and no Exit (the pick is owed).
 func (p *Presenter) powerItems() (string, []ui.MenuRow) {
 	pp := p.powerPick()

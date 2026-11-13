@@ -37,7 +37,7 @@ type Data struct {
 
 	PaneBox, ViewWindow, InnerWindow front.CellRect // the original's main screen boxes at their 40x25 places
 
-	MapCell      int // pixels a square of View.Map
+	MapCell      int // pixels a square of Map
 	DungeonTiles int // the tiles at the start of the combat set
 
 	Theme   *Theme            // the look (nil: DefaultTheme)
@@ -45,12 +45,12 @@ type Data struct {
 	Entries []Entry           // the game's own main menu entries, after the default list (nil: none)
 
 	DoorRGBA  color.RGBA // a door's colour on the maps
-	LabelInks []int      // a map label's palette index (View.Ink) by its kind
+	LabelInks []int      // a map label's palette index (Ink) by its kind
 	SelectInk color.RGBA // the frame round the selected box (selectOutline)
 
 	Rests []Rest // camp's rests, in the menu's order
 
-	Logo LogoCut // how the main menu's lettering is cut from View.Logo
+	Logo LogoCut // how the main menu's lettering is cut from Logo
 
 	Credits    []Credit
 	CreditGaps []int // the credits' rows a blank row follows on a tall page, as many as fit from the first (nil: 4, 5, 6)
@@ -92,7 +92,7 @@ var (
 	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
 	openAt                           string
 	dollPNG                          = defaultDoll
-	mapSide                          int // View.Map's side in pixels
+	mapSide                          int // Map's side in pixels
 	sounds                           []byte
 	amigaSound                       []byte
 	adLib                            *audio.AdLibData
@@ -237,7 +237,7 @@ func confirmText(ask, name, price string) string {
 // Text is the game's named text (Data.Texts; "": none).
 func Text(name string) string { return texts[name] }
 
-// sequences and filesDir are the game's Data.Sequences and Data.Files (View.Sequence).
+// sequences and filesDir are the game's Data.Sequences and Data.Files (Sequence).
 var (
 	sequences []game.Sequence
 	filesDir  string

@@ -20,7 +20,7 @@ import (
 	"gobox/front"
 )
 
-// The main menu (the party menu, View.MainMenu): the title's lettering on
+// The main menu (the party menu, MainMenu): the title's lettering on
 // black, the functions under it in a box wrapped round them, the party's
 // cards where the 3D view has them.
 
