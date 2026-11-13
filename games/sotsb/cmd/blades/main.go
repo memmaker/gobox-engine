@@ -16,8 +16,8 @@ import (
 	"gobox/amigaimport"
 	"gobox/app"
 
-	"sotsb/playsotsb"
 	"sotsb/importsotsb"
+	"sotsb/playsotsb"
 )
 
 func main() {

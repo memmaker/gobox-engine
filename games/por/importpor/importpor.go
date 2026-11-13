@@ -88,7 +88,6 @@ var credits = []importer.Credit{
 	{X: 2, Y: 0x17, Colour: 0xb, Text: "james kucera,robert daly,rick white"},
 }
 
-
 // hostFiles are the port's own files beside the originals (the host -data
 // directory, dos's parent) the folder carries, from -> to (folder path).
 // fonts/ and data/music/ stay the host's. TestImportContents checks them.
