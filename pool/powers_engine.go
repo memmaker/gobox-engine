@@ -49,13 +49,13 @@ func (e *Engine) offerPicks() {
 }
 
 // picksOpen: the party is exploring or at the party menu (no training
-// hall over it), where a pick owed is offered (View.Powers).
+// hall over it), where a pick owed is offered (Powers).
 func (e *Engine) picksOpen() bool {
 	hall, _ := e.hallOpen()
 	return e.exploring() || e.menu.on && !hall
 }
 
-// PickPower takes the pick owed now (View.Powers): power id.
+// PickPower takes the pick owed now (Powers): power id.
 func (e *Engine) PickPower(id int) error {
 	who, p := e.owing()
 	if who == core.NoChar || !e.picksOpen() || !slices.ContainsFunc(p.Options, func(m core.ManeuverCard) bool { return int(m.ID) == id }) {

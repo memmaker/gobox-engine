@@ -119,7 +119,7 @@ func (e *Engine) art(im *asset.Image, f int) *asset.Image {
 	return im
 }
 
-// named records where im came from (View.Pictures' File and Block).
+// named records where im came from (Pictures' File and Block).
 func named(im *asset.Image, file string, block int) *asset.Image {
 	if im != nil {
 		im.File, im.Block = file, block

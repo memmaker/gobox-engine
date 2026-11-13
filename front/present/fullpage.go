@@ -28,7 +28,7 @@ func (p *Presenter) fullPage(dst *gpu.Image, sc *sheetCanvas, note Note, title s
 		noteLine(sc.px, note, (ch-1)*8)
 	}
 	sc.img.WritePixels(sc.px.Pix)
-	window(sc.img, p.border.tiles, gpu.GeoM{}, cw, ch, nil)
+	window(sc.img, p.border.val.tiles, gpu.GeoM{}, cw, ch, nil)
 	if title != "" {
 		onBorder(sc.img, note.Glyph, (cw*8-8*(len(title)+2))/2, 0, true, []string{title}, []color.RGBA{white})
 	}

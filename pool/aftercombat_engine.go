@@ -59,7 +59,7 @@ func (e *Engine) hiredShare() {
 	e.keyWait(cont{kind: kNop}) // press <enter>/<return> to continue
 }
 
-// showResult = ovr06:0916 (exp): the page (View.Results).
+// showResult = ovr06:0916 (exp): the page (Results).
 func (e *Engine) showResult(exp int32) {
 	e.newPage()
 	e.blank(1, 1, winRight, winBottom)
@@ -119,7 +119,7 @@ func (e *Engine) showResult(exp int32) {
 }
 
 // lootMenu = ovr06:0ECD: the treasure screen, the script's wait PendLoot
-// (View.Loot) until LootLeave; what follows (pushed by the caller) goes on
+// (Loot) until LootLeave; what follows (pushed by the caller) goes on
 // once the party leaves it.
 func (e *Engine) lootMenu() {
 	e.pw.anim = e.animInput
@@ -241,7 +241,7 @@ func (e *Engine) afterEnd() {
 }
 
 // endPage is the text under "The END!" (textBlock into box r, cleared):
-// View.Results.End (gobox wraps it), the text cursor back at its start.
+// Results.End (gobox wraps it), the text cursor back at its start.
 func (e *Engine) endPage(text string, r CellRect) {
 	e.snap.results = &Results{End: text, EndAt: r}
 	e.msgCol, e.msgRow = r.X1, r.Y1

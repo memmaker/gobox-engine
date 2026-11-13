@@ -613,7 +613,7 @@ func sameImage(a, b image.Image) bool {
 // journal (ActNote; Ctrl-N, the pad's Back).
 func (p *Presenter) paneBox(dst *gpu.Image, note Note, k float64, cx, cy int) {
 	txt := paneCells(p.pane()).Framed()
-	drawBox(dst, paneImage(&p.pg.pane, p.pane(), note), p.border.tiles, txt, k, cx, cy)
+	drawBox(dst, paneImage(&p.pg.pane, p.pane(), note), p.border.val.tiles, txt, k, cx, cy)
 	const label = " > Notes "
 	m := image.NewRGBA(image.Rect(0, 0, 8*len(label), 8))
 	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)

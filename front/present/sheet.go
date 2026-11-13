@@ -293,7 +293,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 	}
 
 	sc.img.WritePixels(sc.px.Pix)
-	t := p.border.tiles
+	t := p.border.val.tiles
 	window(sc.img, t, gpu.GeoM{}, leftCells, ch-1, nil)
 	var g gpu.GeoM
 	g.Translate(float64(leftCells-1)*8, 0)

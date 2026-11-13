@@ -131,7 +131,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 	split := leftCells // the left box's width in cells, with its border
 	busy := inv.ask != nil
 	p.setup(note)
-	t := p.border.tiles
+	t := p.border.val.tiles
 
 	b := dst.Bounds()
 	var cw, ch int

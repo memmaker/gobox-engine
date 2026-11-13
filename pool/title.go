@@ -25,7 +25,7 @@ func (e *Engine) fullPicture(pic *asset.Image) {
 
 // The title (ovr02:0626 title_screen) is the presenter's: the adventure's
 // Start sequence (SetStart), played until Continue ends it (titleDone).
-// Until then View.Intro is set and the party menu waits.
+// Until then Intro is set and the party menu waits.
 
 // titleDone ends the title: the party menu comes up.
 func (e *Engine) titleDone() {

@@ -49,71 +49,71 @@ type Presenter struct {
 	pauseFrom time.Time // a script's pause (AskPause) began; zero: none up
 
 	view        *blobber.View
-	scenes      map[string]*blobber.Scene   // parsed maps by name
-	shown       string                      // the scene the view shows
-	last        time.Time                   // when the animation last advanced
-	ticks       float64                     // animation time not yet run, in 1/60 s ticks
-	border      borders                     // the game's window border
-	bars        *gpu.Image                  // bars.png
-	idImg       *gpu.Image                  // its pop-up
-	expShown    bool                        // drawParty: every card's experience bar, Ctrl or not (the training hall)
-	cardImgs    []*gpu.Image                // the cards, drawn at scale 1...
-	cardKeys    []cardKey                   // ...and what each shows
-	faceImgs    map[image.Image]*gpu.Image  // the faces on the GPU
-	hiFaces     map[image.Image]*gpu.Image  // the PNG portraits at the cards' window resolution
-	labels      map[string]*gpu.Image       // card labels in the game's font
-	glyph       func(byte) [8]byte          // the game's font
-	main        bool                        // the main menu is up (mainmenu.go)
-	mm          mainUI                      // ... its state
-	ask         bool                        // ... with a question over it
-	gridTries   int                         // the ActResize sent for this grid
-	grid        [2]int                      // the text cells the window holds, as last told to the engine (ActResize)
-	gridAge     int                         // frames since
-	cards       []image.Rectangle           // the party's cards on screen in the 3D view, as last drawn (none elsewhere)
-	faces       map[image.Image]image.Image // card art cropped from each paper-doll head
-	inside      bool                        // the view has the inside ceiling
-	active      bool                        // the last frame was drawn remastered
-	menu        bool                        // the vertical menu is open
-	menuFor     string                      // the menu it opened for (menuID): another menu arriving closes it, so one key never answers two menus
-	sel         int                         // its highlighted item
-	asked       string                      // the question menu last opened by itself (menuID); send clears it on a pick, so the same menu back after one (a refusal, back from Browse) opens again
-	pageAsked   string                      // the page question menu last opened (drawPageMenu)
-	answered    string                      // the text pane under the last question: once it is answered, that text is done
-	mapImg      *gpu.Image                  // Map on the GPU
-	mapAt       image.Rectangle             // where drawMap last put the minimap (a click there opens the full map)
-	mapSrc      *front.MapSquares           // the derived minimap it holds (derived)
-	mapInk      [16]color.RGBA              // the ink it was drawn in
-	mapFont     int                         // and the font (fonts.Cur, -1: the game's own)
-	menuRects   []image.Rectangle           // the vertical menu's items on screen, as last drawn
-	scrolls     ui.Bars                     // the scroll bars drawn this frame (scrollbar.go) and the drag
-	logTop      int                         // the battle Log's first line shown
-	sheet       sheetCanvas                 // the character sheet
-	journal     journalUI                   // the quest journal (journal.go)
-	resultsPage sheetCanvas                 // the after-combat page (drawResults)
-	area        ui.AreaMap                  // the overland's map and marker last uploaded (drawAreaMap)
-	areaPic     areaPic                     // the overland's picture built from its squares (drawAreaMap)
-	fightAskAt  []image.Rectangle           // the fight pop-up menu's lines on screen
-	winRects    []image.Rectangle           // the Esc menu's lines on screen, as last drawn
-	noMenu      bool                        // nothing to pick: any click answers
-	pointer     image.Point                 // the mouse, as Hover last saw it (keys move the highlight while it rests)
-	mc          ui.MenuCanvas               // the vertical menu's images (ui.MenuCanvas.Draw)
-	battle      combat.Presenter            // the combat map in 3D
-	mapBottom   int                         // screen rows above this are the 3D map
-	fight       bool                        // the last frame was the 3D combat map
-	inv         inventory                   // the inventory screen (inventory.go)
-	fightLists  lists                       // the turn's weapons, spells and maneuvers (drawnBoard)
-	board       *play.Combat                // the fight this frame shows: the live one, or the one a replayed moment holds (nil: none)
-	boardParty  []game.Member               // the party's figures on board
-	noCards     bool                        // a fight's moment plays: the cards are not drawn
-	fightView   *play.Combat                // board with the fallen kept until their fall plays (keepFallen)
-	fightBoard  *combat.Board               // fightView as the tabletop draws it, aims put in
-	fly         *flight                     // a shot's sprite over board (a replayed missile frame)
-	lastBoard   *play.Combat                // the fight before the moments now playing (keepFallen)
-	inkAsk      *front.Ask                  // the question whose menu is being drawn: its colours (asking)
-	replay      replay                      // the fight's events still to play
-	logGrey     bool                        // drawMenu's plain text light grey, not green (the battle Log)
-	fightLog    bool                        // the battle Log is up (fight.go)
-	blowLine    string                      // the last line a blow's replay said, shown on the pane a while
+	scenes      map[string]*blobber.Scene             // parsed maps by name
+	shown       string                                // the scene the view shows
+	last        time.Time                             // when the animation last advanced
+	ticks       float64                               // animation time not yet run, in 1/60 s ticks
+	border      memo[[ui.Places]image.Image, borders] // the game's window border
+	bars        *gpu.Image                            // bars.png
+	idImg       *gpu.Image                            // its pop-up
+	expShown    bool                                  // drawParty: every card's experience bar, Ctrl or not (the training hall)
+	cardImgs    []*gpu.Image                          // the cards, drawn at scale 1...
+	cardKeys    []cardKey                             // ...and what each shows
+	faceImgs    map[image.Image]*gpu.Image            // the faces on the GPU
+	hiFaces     map[image.Image]*gpu.Image            // the PNG portraits at the cards' window resolution
+	labels      map[string]*gpu.Image                 // card labels in the game's font
+	glyph       func(byte) [8]byte                    // the game's font
+	main        bool                                  // the main menu is up (mainmenu.go)
+	mm          mainUI                                // ... its state
+	ask         bool                                  // ... with a question over it
+	gridTries   int                                   // the ActResize sent for this grid
+	grid        [2]int                                // the text cells the window holds, as last told to the engine (ActResize)
+	gridAge     int                                   // frames since
+	cards       []image.Rectangle                     // the party's cards on screen in the 3D view, as last drawn (none elsewhere)
+	faces       map[image.Image]image.Image           // card art cropped from each paper-doll head
+	inside      bool                                  // the view has the inside ceiling
+	active      bool                                  // the last frame was drawn remastered
+	menu        bool                                  // the vertical menu is open
+	menuFor     string                                // the menu it opened for (menuID): another menu arriving closes it, so one key never answers two menus
+	sel         int                                   // its highlighted item
+	asked       string                                // the question menu last opened by itself (menuID); send clears it on a pick, so the same menu back after one (a refusal, back from Browse) opens again
+	pageAsked   string                                // the page question menu last opened (drawPageMenu)
+	answered    string                                // the text pane under the last question: once it is answered, that text is done
+	mapImg      *gpu.Image                            // Map on the GPU
+	mapAt       image.Rectangle                       // where drawMap last put the minimap (a click there opens the full map)
+	mapSrc      *front.MapSquares                     // the derived minimap it holds (derived)
+	mapInk      [16]color.RGBA                        // the ink it was drawn in
+	mapFont     int                                   // and the font (fonts.Cur, -1: the game's own)
+	menuRects   []image.Rectangle                     // the vertical menu's items on screen, as last drawn
+	scrolls     ui.Bars                               // the scroll bars drawn this frame (scrollbar.go) and the drag
+	logTop      int                                   // the battle Log's first line shown
+	sheet       sheetCanvas                           // the character sheet
+	journal     journalUI                             // the quest journal (journal.go)
+	resultsPage sheetCanvas                           // the after-combat page (drawResults)
+	area        ui.AreaMap                            // the overland's map and marker last uploaded (drawAreaMap)
+	areaPic     areaPic                               // the overland's picture built from its squares (drawAreaMap)
+	fightAskAt  []image.Rectangle                     // the fight pop-up menu's lines on screen
+	winRects    []image.Rectangle                     // the Esc menu's lines on screen, as last drawn
+	noMenu      bool                                  // nothing to pick: any click answers
+	pointer     image.Point                           // the mouse, as Hover last saw it (keys move the highlight while it rests)
+	mc          ui.MenuCanvas                         // the vertical menu's images (ui.MenuCanvas.Draw)
+	battle      combat.Presenter                      // the combat map in 3D
+	mapBottom   int                                   // screen rows above this are the 3D map
+	fight       bool                                  // the last frame was the 3D combat map
+	inv         inventory                             // the inventory screen (inventory.go)
+	fightLists  lists                                 // the turn's weapons, spells and maneuvers (drawnBoard)
+	board       *play.Combat                          // the fight this frame shows: the live one, or the one a replayed moment holds (nil: none)
+	boardParty  []game.Member                         // the party's figures on board
+	noCards     bool                                  // a fight's moment plays: the cards are not drawn
+	fightView   *play.Combat                          // board with the fallen kept until their fall plays (keepFallen)
+	fightBoard  *combat.Board                         // fightView as the tabletop draws it, aims put in
+	fly         *flight                               // a shot's sprite over board (a replayed missile frame)
+	lastBoard   *play.Combat                          // the fight before the moments now playing (keepFallen)
+	inkAsk      *front.Ask                            // the question whose menu is being drawn: its colours (asking)
+	replay      replay                                // the fight's events still to play
+	logGrey     bool                                  // drawMenu's plain text light grey, not green (the battle Log)
+	fightLog    bool                                  // the battle Log is up (fight.go)
+	blowLine    string                                // the last line a blow's replay said, shown on the pane a while
 	blowAt      time.Time
 	fightCard   image.Rectangle           // the active member's card (fight.go): a click the sheet
 	rowsImg     *gpu.Image                // the combat rows, drawn at scale 1
@@ -494,7 +494,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		} else {
 			inside = viewTextImage(&p.pg.pic, p.viewText(), pic.Pixels().Inset(8), note) // text over the whole view window (WinText)
 		}
-		drawBox(dst, inside, p.border.tiles, pic, pp, cx, py)
+		drawBox(dst, inside, p.border.val.tiles, pic, pp, cx, py)
 		picBottom = py + int(pp*ph/2)
 		p.picBottom = picBottom
 	}

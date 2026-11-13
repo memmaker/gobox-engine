@@ -416,7 +416,7 @@ func (p *Presenter) drawJournal(dst *gpu.Image, note Note) {
 	}
 
 	sc.img.WritePixels(sc.px.Pix)
-	t := p.border.tiles
+	t := p.border.val.tiles
 	window(sc.img, t, gpu.GeoM{}, listCells+1, ch, nil)
 	var g gpu.GeoM
 	g.Translate(float64(listCells)*8, 0)

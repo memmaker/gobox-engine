@@ -57,18 +57,18 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, note Note) Rect {
 		vw := viewWindow.Framed()
 		r := vw.Pixels()
 		vk := math.Max(1, math.Min(k, math.Floor((float64(b.Dy())-th-3*float64(gap))/float64(r.Dy()))))
-		drawBox(dst, viewTextImage(&p.pg.pic, p.viewText(), r.Inset(8), note), p.border.tiles, vw, vk, cx, gap+int(vk*float64(r.Dy())/2))
+		drawBox(dst, viewTextImage(&p.pg.pic, p.viewText(), r.Inset(8), note), p.border.val.tiles, vw, vk, cx, gap+int(vk*float64(r.Dy())/2))
 	} else if pic := innerWindow.Framed(); len(art) > 0 && box.In(pic.Pixels().Inset(8)) { // a view-window picture (a treasure, a face): in the view window's frame, as over the 3D view
 		r := pic.Pixels()
 		s := math.Max(1, math.Floor(math.Min(float64(b.Dx()-2*gap)/float64(r.Dx()), (float64(b.Dy())-th-3*float64(gap))/float64(r.Dy()))))
 		s = math.Min(s, math.Max(1, math.Floor(k)))
-		drawBox(dst, pictureBox(&p.pg.pic, art, r.Inset(8)), p.border.tiles, pic, s, cx, gap+int(s*float64(r.Dy())/2))
+		drawBox(dst, pictureBox(&p.pg.pic, art, r.Inset(8)), p.border.val.tiles, pic, s, cx, gap+int(s*float64(r.Dy())/2))
 	} else if fr := (front.CellRect{X1: box.Min.X / 8, Y1: box.Min.Y / 8, X2: (box.Max.X - 1) / 8, Y2: (box.Max.Y - 1) / 8}).Framed(); len(art) > 0 && fr.Pixels().Inset(8) == box { // a cell-aligned picture (SotSB's big pictures): in a frame, as the original's screen
 		r := fr.Pixels()
 		s := fitScale(k, Host.Pic, func(s float64) bool { // the picture box: whole steps of K, as far as it fits over the text (its ribbon at a whole cell)
 			return s*float64(r.Dx()) <= float64(b.Dx()-2*gap) && s*float64(r.Dy()) <= float64(b.Dy())-th-2*float64(gap)
 		})
-		drawBox(dst, pictureBox(&p.pg.pic, art, box), p.border.tiles, fr, s, cx, gap+int(s*float64(r.Dy())/2))
+		drawBox(dst, pictureBox(&p.pg.pic, art, box), p.border.val.tiles, fr, s, cx, gap+int(s*float64(r.Dy())/2))
 	} else if len(art) > 0 {
 		s := math.Max(1, math.Floor(math.Min(float64(b.Dx()-2*gap)/float64(box.Dx()), (float64(b.Dy())-th-3*float64(gap))/float64(box.Dy()))))
 		img := pictureBox(&p.pg.pic, art, box)

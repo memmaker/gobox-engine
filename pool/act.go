@@ -78,7 +78,7 @@ func (e *Engine) pace() Pace {
 // Animate shows the picture's next frame when it is time.
 func (e *Engine) Animate() { e.animateWhileWaiting() }
 
-// Step is the call View.Pace names (a headless run's pacing: tests).
+// Step is the call Pace names (a headless run's pacing: tests).
 func (e *Engine) Step() {
 	defer e.rebuild()
 	switch e.pace() {

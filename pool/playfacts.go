@@ -449,7 +449,7 @@ func refusal(err error) *play.Refusal {
 	return &play.Refusal{Text: err.Error()}
 }
 
-// question is the question the engine waits on (View.Ask), nil for none: a
+// question is the question the engine waits on (the Ask), nil for none: a
 // list's and a member pick's rows are its replies, a menu with none a Continue.
 func (e *Engine) question() *play.Question {
 	w := e.eclWait

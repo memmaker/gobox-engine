@@ -560,7 +560,7 @@ func (e *Engine) moveEnd() {
 }
 
 // lockedDoor = the door menu of ovr15:0D6D, the wait PendDoor
-// (View.Door) until TryDoor. A plain locked door (state 2) offers Bash,
+// (Door) until TryDoor. A plain locked door (state 2) offers Bash,
 // Pick and Knock; a wizard-locked one (3) only lets Bash work. Whether the
 // party goes through is ext.doorThrough, then what follows.
 func (e *Engine) lockedDoor(wizard bool) {

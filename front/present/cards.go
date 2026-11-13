@@ -48,16 +48,11 @@ var (
 // borders are the window border's tiles (Border) on the GPU, in
 // colour and in grey.
 type borders struct {
-	src         [ui.Places]image.Image
 	tiles, grey ui.Ribbon
 }
 
-// update uploads the game's tiles when they change.
-func (b *borders) update(t [ui.Places]image.Image) {
-	if t == b.src || t[0] == nil {
-		return
-	}
-	b.src = t
+// uploadBorders uploads the game's tiles t (p.border builds it when they change).
+func uploadBorders(t [ui.Places]image.Image) (b borders) {
 	defer func() { // the theme's cracked edges go with these tiles
 		edgeTiles, edgeSets = ui.Edges{}, nil
 		es := borderEdges()
@@ -97,6 +92,7 @@ func (b *borders) update(t [ui.Places]image.Image) {
 		b.tiles[i] = gpu.NewImageFromImage(m)
 		b.grey[i] = gpu.NewImageFromImage(greyed(m))
 	}
+	return b
 }
 
 // greyed is m in grey (the unselected cards' border).
@@ -115,7 +111,9 @@ func greyed(m image.Image) *image.RGBA {
 // setup takes this frame's font and border tiles from the game.
 func (p *Presenter) setup(note Note) {
 	p.glyph, blobber.Glyph = note.Glyph, note.Glyph
-	p.border.update(p.windowBorder().pieces)
+	if t := p.windowBorder().pieces; t[0] != nil { // none yet: the last tiles stay
+		p.border.get(t, func() borders { return uploadBorders(t) })
+	}
 	menuChars = p.cardMenuChars() // the row's spacing: the widest context menu line
 	if p.faceImgs == nil {
 		p.faceImgs, p.hiFaces, p.labels = map[image.Image]*gpu.Image{}, map[image.Image]*gpu.Image{}, map[string]*gpu.Image{}
@@ -125,7 +123,7 @@ func (p *Presenter) setup(note Note) {
 
 // drawParty draws the members' cards where at puts them.
 func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func(i, n int) image.Rectangle) {
-	if p.border.tiles[0] == nil {
+	if p.border.val.tiles[0] == nil {
 		return
 	}
 	if p.bars == nil {
@@ -137,7 +135,7 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func
 	}
 	for i, m := range ms {
 		d := p.cardImgs[i]
-		key := cardKey{i == sel, m.HP, m.MaxHP, m.Status, p.portrait(m), m.Dropped != nil, 0, 0, p.border.tiles[0], m.Memo}
+		key := cardKey{i == sel, m.HP, m.MaxHP, m.Status, p.portrait(m), m.Dropped != nil, 0, 0, p.border.val.tiles[0], m.Memo}
 		if m.NextExp > 0 && (p.expShown || gpu.IsKeyPressed(gpu.KeyControl)) {
 			key.exp, key.nextExp = expOf(m)-m.LevelExp, m.NextExp-m.LevelExp
 		}
@@ -353,9 +351,9 @@ type cardKey struct {
 // drawCard draws m's card into d (scale 1): border, face, status, bars.
 func (p *Presenter) drawCard(d *gpu.Image, m game.Member, key cardKey) {
 	d.Clear()
-	t := p.border.tiles
+	t := p.border.val.tiles
 	if !key.selected {
-		t = p.border.grey
+		t = p.border.val.grey
 	}
 	window(d, t, gpu.GeoM{}, cardW/8, frameH/8, color.Black)
 	if f := p.portrait(m); f != nil && m.Dropped == nil { // a PNG is drawn at the window's resolution below

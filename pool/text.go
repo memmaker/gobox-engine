@@ -10,7 +10,7 @@ import (
 // The game's text (extra): the engine draws no text. What its routines
 // wrote is kept as typed text where it goes: the text pane's lines, the
 // prompt row and the view window's text (opProtection's runes), published
-// as View.Pane, View.Prompt and View.ViewText; the screens' own text is
+// as Pane, Prompt and ViewText; the screens' own text is
 // their View data (the status line, the roster, after-combat, the credits).
 
 // textCell is a character the game wrote: upcased (DisplayString's way)

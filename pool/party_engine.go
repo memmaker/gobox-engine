@@ -59,7 +59,7 @@ func (e *Engine) join(cID core.CharID) {
 // follow selects the rules' actor after a call that moved it.
 func (e *Engine) follow() { e.sel = e.worldWord(core.WordWho) }
 
-// PartyMenu = ovr17:0161: the party menu takes decisions (View.MainMenu)
+// PartyMenu = ovr17:0161: the party menu takes decisions (MainMenu)
 // until the player begins adventuring or loads a game that starts play
 // (beginFlag != 0), then GameLoop (the cont it pushes) runs. extra: the front end
 // lists the functions in its own order and asks its questions (Quit,
@@ -191,7 +191,7 @@ func (e *Engine) QuitGame() error {
 }
 
 // partyRedraw clears the party menu's page: the menu and the roster are
-// the presenter's (View.MainMenu, View.Party).
+// the presenter's (MainMenu, Party).
 func (e *Engine) partyRedraw() {
 	e.snap.saves = len(e.slots()) > 0
 	e.ClearScreen()

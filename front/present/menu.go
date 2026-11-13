@@ -34,7 +34,7 @@ func (p *Presenter) drawMenuIcons(dst *gpu.Image, glyph func(byte) [8]byte, titl
 	if drawnAt != nil {
 		drawnAt(drawnMenu, dst, k)
 	}
-	st := ui.MenuStyle{Theme: menuTheme, Tiles: p.border.tiles, Edges: edgeTiles, Glyph: glyph, RowGlyph: blobber.MenuGlyph, Tight: p.menuTight, Tip: p.tipping}
+	st := ui.MenuStyle{Theme: menuTheme, Tiles: p.border.val.tiles, Edges: edgeTiles, Glyph: glyph, RowGlyph: blobber.MenuGlyph, Tight: p.menuTight, Tip: p.tipping}
 	if p.logGrey {
 		st.Theme.Text = col(inkGrey) // the battle Log's light grey
 	}
@@ -49,7 +49,7 @@ func (p *Presenter) drawMenuIcons(dst *gpu.Image, glyph func(byte) [8]byte, titl
 		}
 	}
 	if p.menuGrey {
-		st.Tiles = p.border.grey
+		st.Tiles = p.border.val.grey
 	}
 	p.menuRects = p.mc.Draw(dst, st, title, items, keys, off, icons, sel, k, cx, top, p.menuRects[:0])
 }

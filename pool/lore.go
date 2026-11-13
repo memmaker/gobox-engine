@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Notes (extra): the journal's second tab, published as View.Lore, newest
+// Notes (extra): the journal's second tab, published as Lore, newest
 // first. The game adds the printed journal's texts the text window names
 // (journal entries, proclamations, tavern tales: showEntry); the
 // player adds what the text window shows (the text box's "> Notes"),
