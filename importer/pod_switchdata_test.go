@@ -33,7 +33,7 @@ func TestSwitchData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if d.ID != "pod" || d.Font != "Pools_of_Darkness" || len(d.QuickParty) == 0 || d.AdLib == nil || len(d.Rests) != 2 {
+	if d.ID != "pod" || len(d.QuickParty) == 0 || d.AdLib == nil || len(d.Rests) != 2 {
 		t.Errorf("game data %+v", d)
 	}
 	snd, err := os.ReadFile(filepath.Join(dst, adventure.DataDir, adventure.SoundFile))

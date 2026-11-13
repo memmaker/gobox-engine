@@ -40,7 +40,6 @@ func CotabStaticData() game.Data {
 	for n, name := range soundNames {
 		d.Sounds[name] = strconv.Itoa(n)
 	}
-	d.Font = "Gold_Box_8x8D1" // the gobox/ui/fonts pool font of cotab's pages (8X8D1 block 201 re-laid out)
 	d.Border = &border
 	d.AmigaMusic = CotabAmigaMusic                                                // the Amiga's sampled effects, when the import found them (pool.ReadGameData); else the Tandy's
 	d.DungeonTiles = adventure.DungeonTiles                                       // the stone wall pieces at the start of the combat set (cubes on the board)

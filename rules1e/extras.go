@@ -14,7 +14,7 @@ package rules1e
 //	?      keyboard help, at any prompt
 //	F1-F8  select party member 1-8 (Left/Right the previous/next on the
 //	       menu screens); P switches between items and the View page
-//	Ctrl-F next text font (Ctrl-Shift-F the one before; gobox, Data.Fonts)
+//	Ctrl-F next text font (Ctrl-Shift-F the one before; gobox, its font pool)
 //	Q    quickstart on the empty party menu: a ready-made party of six
 //	F10  named save slots: save and load at any time (slots.go)
 //

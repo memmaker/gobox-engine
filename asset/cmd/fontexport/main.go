@@ -13,29 +13,9 @@ import (
 	"fmt"
 	"os"
 
+	"gobox/asset"
 	"gobox/asset/orig"
 )
-
-const block = 201
-
-// toF8 is the 256-glyph form of the 64-glyph font.
-func toF8(b []byte) []byte {
-	out := make([]byte, 256*8)
-	for ch := 0x20; ch < 0x80; ch++ {
-		c := ch
-		if c >= 'a' && c <= 'z' {
-			c -= 0x20
-		}
-		i := c % 0x40 * 8
-		if i+8 <= len(b) {
-			copy(out[ch*8:], b[i:i+8])
-		}
-	}
-	for k := 64; k*8+8 <= len(b) && 0x80+k-64 < 256; k++ {
-		copy(out[(0x80+k-64)*8:], b[k*8:k*8+8])
-	}
-	return out
-}
 
 func main() {
 	if len(os.Args) != 3 {
@@ -44,11 +24,11 @@ func main() {
 	}
 	f, err := orig.Open(os.Args[1])
 	if err == nil {
-		b := f.Block(block)
+		b := f.Block(asset.FontBlock)
 		if len(b) < 512 || len(b)%8 != 0 {
-			err = fmt.Errorf("block %d is %d bytes", block, len(b))
+			err = fmt.Errorf("block %d is %d bytes", asset.FontBlock, len(b))
 		} else {
-			err = os.WriteFile(os.Args[2], toF8(b), 0o644)
+			err = os.WriteFile(os.Args[2], asset.F8(b), 0o644)
 		}
 	}
 	if err != nil {

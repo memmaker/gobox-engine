@@ -142,27 +142,12 @@ func saveSheetPNG(t *testing.T, v sfView) {
 	}
 }
 
-// brFont is BR2's own text font as its port hands it to gobox (Data.Fonts,
-// buckrogers2-go rules/data.go ownFont): 8X8D1 block 201, a character c at
-// c mod 64 for 0x20..0x7F (a-z the capitals), the symbols from 0x80.
+// brFont is BR2's own text font as the importer pools it (asset.F8 of
+// 8X8D1 block asset.FontBlock).
 func brFont(l *orig.Loader) []byte {
-	if l == nil {
-		return nil
-	}
-	b := l.BlockShared("8X8D1", 201)
+	b := l.BlockShared("8X8D1", asset.FontBlock)
 	if len(b) < 64*8 {
 		return nil
 	}
-	out := make([]byte, 256*8)
-	for ch := 0x20; ch < 0x80; ch++ {
-		c := ch
-		if c >= 'a' && c <= 'z' {
-			c -= 0x20
-		}
-		copy(out[ch*8:ch*8+8], b[c%64*8:])
-	}
-	for k := 64; k*8+8 <= len(b) && 0x80+k-64 < 256; k++ {
-		copy(out[(0x80+k-64)*8:], b[k*8:k*8+8])
-	}
-	return out
+	return asset.F8(b)
 }

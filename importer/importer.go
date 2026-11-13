@@ -139,7 +139,8 @@ func IDs() []string {
 }
 
 // Run imports game id from the originals in src into root/<id>/, replacing
-// the folder's entries but Kept; the manifest is written last, so a failed
+// the folder's entries but Kept, and adds its text font to root's font
+// pool (asset.FontPoolDir); the manifest is written last, so a failed
 // import leaves no valid folder.
 func Run(id, src, root string) error {
 	g, ok := games[id]
@@ -162,6 +163,9 @@ func Run(id, src, root string) error {
 	}
 	if err := importSaves(dst); err != nil {
 		return fmt.Errorf("import %s: saves: %w", id, err)
+	}
+	if err := poolFont(g, src, root); err != nil {
+		return fmt.Errorf("import %s: font: %w", id, err)
 	}
 	if g.Cover {
 		if err := writeCover(src, filepath.Join(dst, CoverFile)); err != nil {

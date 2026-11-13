@@ -164,7 +164,7 @@ func helpPage(cols, n int) *Pages {
 	n = max(min(n, len(pages)-1), 0)
 	run := func(x, c int, s string) PaneRun {
 		s = s[:max(0, min(len(s), cols-x))]
-		return PaneRun{X: x, Text: s, Fg: egaInk[c], Bg: egaInk[inkBlack], Upcase: true}
+		return PaneRun{X: x, Text: s, Fg: egaInk[c], Bg: egaInk[inkBlack]}
 	}
 	const title = "Help"
 	pg := &Pages{Title: run((cols-1-len(title))/2, 15, title), Top: 2, Page: n, Pages: len(pages)}

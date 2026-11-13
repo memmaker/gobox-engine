@@ -416,12 +416,9 @@ func canCast(al game.Allowed, n int) bool {
 }
 
 // run is a line of the rules' text: its colour unset, so the front gives
-// it gobox's body text colour, in the text glyphs (Upcase: fonts.Glyph
-// keeps a font's own lower case, else capitals). Upcase is not the case: a
-// false one (once set for Data.Lowercase) drew PoD's lower-case letters as
-// the charset's graphics.
+// it gobox's body text colour; the font in use decides its case.
 func (r *frontState) run(t string) []game.TextRun {
-	return []game.TextRun{{Text: t, Upcase: true}}
+	return []game.TextRun{{Text: t}}
 }
 
 func gameWalls(w game.MapWalls) *game.Walls {

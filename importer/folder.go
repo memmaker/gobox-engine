@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+
+	"gobox/asset"
 )
 
 // Folder is an imported adventure folder: where it is and its manifest.
@@ -54,7 +56,7 @@ func List(root string) (folders []Folder, skipped []error, err error) {
 		return nil, nil, err
 	}
 	for _, e := range ents {
-		if !e.IsDir() {
+		if !e.IsDir() || e.Name() == asset.FontPoolDir {
 			continue
 		}
 		f, err := Read(filepath.Join(root, e.Name()))

@@ -35,9 +35,9 @@ func (o overlay) Part() image.Rectangle {
 }
 
 type cell struct {
-	set, upcase bool
-	ch          byte
-	fg, bg      color.RGBA
+	set    bool
+	ch     byte
+	fg, bg color.RGBA
 }
 
 // cellPage is the page as the presenter draws it: the View's pictures and
@@ -69,7 +69,7 @@ func (c *cellPage) run(r PaneRun, y int) {
 	}
 	for i := 0; i < len(r.Text) && r.X+i < c.cols; i++ {
 		if r.X+i >= 0 {
-			c.cells[y][r.X+i] = cell{true, r.Upcase, r.Text[i], fontInk(r.Fg), fontInk(r.Bg)}
+			c.cells[y][r.X+i] = cell{true, r.Text[i], fontInk(r.Fg), fontInk(r.Bg)}
 		}
 	}
 }
@@ -80,7 +80,7 @@ func (c *cellPage) str(x, y, colour int, s string) {
 		return
 	}
 	for i := 0; i < len(s) && x+i < c.cols && y < c.rows; i++ {
-		c.cells[y][x+i] = cell{true, true, s[i], egaInk[colour], c.ink[inkBlack]} // text in gobox's colours, not the page palette
+		c.cells[y][x+i] = cell{true, s[i], egaInk[colour], c.ink[inkBlack]} // text in gobox's colours, not the page palette
 	}
 }
 
@@ -502,7 +502,7 @@ func (c *cellPage) draw(m *image.RGBA, wb windowBorder, cells image.Point, note 
 	for y, row := range c.cells {
 		for x, k := range row {
 			if k.set {
-				glyphAt(m, note.Font(k.ch, k.upcase), x*8, y*8, k.fg, k.bg)
+				glyphAt(m, note.Font(k.ch, true), x*8, y*8, k.fg, k.bg)
 			}
 		}
 	}

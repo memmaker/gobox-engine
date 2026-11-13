@@ -211,11 +211,11 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 	cols, rows := m.Rect.Dx()/8, m.Rect.Dy()/8
 	run := func(r PaneRun, y int) {
 		for i := 0; i < len(r.Text); i++ {
-			glyphAt(m, note.Font(r.Text[i], r.Upcase), (r.X+i)*8, y*8, r.Fg, r.Bg)
+			glyphAt(m, note.Font(r.Text[i], true), (r.X+i)*8, y*8, r.Fg, r.Bg)
 		}
 	}
 	str := func(x, y, c int, s string) { // DisplayString
-		run(PaneRun{X: x, Text: s[:max(0, min(len(s), cols-x))], Fg: col(c), Bg: col(inkBlack), Upcase: true}, y)
+		run(PaneRun{X: x, Text: s[:max(0, min(len(s), cols-x))], Fg: col(c), Bg: col(inkBlack)}, y)
 	}
 	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(m, r, image.NewUniform(c), image.Point{}, draw.Src) }
 	box := func(x2, y2 int) { // DrawBoxTitled(1, 1, x2, y2): the inside cleared, the border's cells round it
@@ -394,7 +394,7 @@ func paneImage(img **gpu.Image, pn *Pane, note Note) *gpu.Image {
 	for y, l := range pn.Lines {
 		for _, run := range l {
 			for i := 0; i < len(run.Text); i++ {
-				glyphAt(m, note.Font(run.Text[i], run.Upcase), (run.X+i)*8, y*8, run.Fg, run.Bg)
+				glyphAt(m, note.Font(run.Text[i], true), (run.X+i)*8, y*8, run.Fg, run.Bg)
 			}
 		}
 	}
@@ -413,7 +413,7 @@ func viewTextImage(img **gpu.Image, rows [][]PaneRun, r image.Rectangle, note No
 	for y, l := range rows {
 		for _, run := range l {
 			for i := 0; i < len(run.Text); i++ {
-				glyphAt(m, note.Font(run.Text[i], run.Upcase), (run.X+i)*8, (y+1)*8-r.Min.Y, run.Fg, run.Bg)
+				glyphAt(m, note.Font(run.Text[i], true), (run.X+i)*8, (y+1)*8-r.Min.Y, run.Fg, run.Bg)
 			}
 		}
 	}
