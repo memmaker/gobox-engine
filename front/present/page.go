@@ -146,7 +146,7 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 		if sf != nil {
 			c.spaceFight(sf, sh, v.Ask, v.Screen)
 		}
-		c.draw(m, v, note)
+		c.draw(m, p.windowBorder(), v.Cells, note)
 		pg.overs = c.overs
 	}
 	p.drawModal(m, v, note)
@@ -206,7 +206,7 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(m, r, image.NewUniform(c), image.Point{}, draw.Src) }
 	box := func(x2, y2 int) { // DrawBoxTitled(1, 1, x2, y2): the inside cleared, the border's cells round it
 		fill(image.Rect(8, 8, x2*8+8, y2*8+8), col(inkBlack))
-		cellBorder(m, v, front.CellRect{X1: 1, Y1: 1, X2: x2, Y2: y2})
+		cellBorder(m, p.windowBorder(), v.Cells, front.CellRect{X1: 1, Y1: 1, X2: x2, Y2: y2})
 	}
 	prompt := func(s string, c int) { // the prompt row cleared, s on it
 		str(0, rows-1, inkBlack, strings.Repeat(" ", cols))

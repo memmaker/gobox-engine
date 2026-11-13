@@ -160,7 +160,7 @@ func savePNG(t *testing.T, _ *cellPage, v front.View) {
 		p.sf.page = 9
 		c := fightPage(p, v)
 		m := image.NewRGBA(image.Rect(0, 0, 320, 200))
-		c.draw(m, v, Note{Font: font})
+		c.draw(m, (&Presenter{}).windowBorder(), v.Cells, Note{Font: font})
 		name := strings.TrimSuffix(out, ".png") + string(rune('0'+i)) + ".png"
 		fh, _ := os.Create(name)
 		png.Encode(fh, m)

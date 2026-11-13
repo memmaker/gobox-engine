@@ -47,7 +47,7 @@ type cellPage struct {
 	ink        [16]color.RGBA
 	cells      [][]cell
 	pics       []front.Picture  // the View's pictures, then the cells cleared (fills)
-	boxes      []front.CellRect // DrawBorder's insides: the border's cells round them (View.Border)
+	boxes      []front.CellRect // DrawBorder's insides: the border's cells round them (the window border)
 	overs      []overlay
 }
 
@@ -417,12 +417,12 @@ func capOr(b [ui.Places]image.Image, cap, side int) int {
 	return side
 }
 
-// cellBorder draws View.Border's cells into m round the cells of r. The
+// cellBorder draws the window border's cells into m round the cells of r. The
 // page boxes are text-grid cells drawn into the page's CPU image (uploaded
 // once per View, cropped by the adventure frame), not window()'s GPU pass.
-func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
+func cellBorder(m *image.RGBA, wb windowBorder, cells image.Point, r front.CellRect) {
 	f := r.Framed()
-	b := borderPieces(v)
+	b := wb.pieces
 	tile := func(i, x, y int) {
 		if t := b[i]; t != nil {
 			draw.Draw(m, image.Rect(x*8, y*8, x*8+8, y*8+8), t, t.Bounds().Min, draw.Over)
@@ -447,7 +447,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		tile(l, f.X1, y)
 		tile(r, f.X2, y)
 	}
-	if v.Border != ([8]image.Image{}) {
+	if wb.own {
 		return // the game's own pieces
 	}
 	all := borderEdges()
@@ -469,7 +469,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		}
 	}
 	h, w := f.Y2-f.Y1+1, f.X2-f.X1+1
-	cols := v.Cells.X
+	cols := cells.X
 	if cols == 0 {
 		cols = 40
 	}
@@ -489,7 +489,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		key, outer string
 		y          int
 		outerRow   bool
-	}{{"rule", "top", f.Y1, f.Y1 == 0}, {"rule", "bottom", f.Y2, f.Y2 >= v.Cells.Y-1}} {
+	}{{"rule", "top", f.Y1, f.Y1 == 0}, {"rule", "bottom", f.Y2, f.Y2 >= cells.Y-1}} {
 		key := edge.key
 		if edge.outerRow {
 			key = edge.outer
@@ -502,10 +502,10 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 
 // draw draws the page into m (its pictures, the borders' cells, the text
 // in the game's font).
-func (c *cellPage) draw(m *image.RGBA, v front.View, note Note) {
+func (c *cellPage) draw(m *image.RGBA, wb windowBorder, cells image.Point, note Note) {
 	drawPictures(m, c.pics, image.Point{})
 	for _, r := range c.boxes {
-		cellBorder(m, v, r)
+		cellBorder(m, wb, cells, r)
 	}
 	for y, row := range c.cells {
 		for x, k := range row {

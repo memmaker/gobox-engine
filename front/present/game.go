@@ -218,7 +218,6 @@ func (g *Game) View() front.View {
 	v = Waits(v, doorOf(ps), c.PowerPick)
 	v.Party, v.Purse = Party(party, cardsOf(ps), sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
 	v = Sheet(v, sheet, image.Rectangle{}, image.Rectangle{}, page, Drafting(mode, draft), draft, own)
-	v = BorderView(v, art)
 	v = Walls(v, r.wallsOf(ps), art)
 	v = Intro(v, introOf(ps))
 	v = Sequence(v, sequenceOf(ps), g.D.Sequences, g.D.AnimDir())

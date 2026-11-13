@@ -136,7 +136,7 @@ func saveSheetPNG(t *testing.T, v front.View) {
 		w.Screen = sc
 		c := fightPage(&Presenter{}, w)
 		m := image.NewRGBA(image.Rect(0, 0, 320, 200))
-		c.draw(m, w, Note{Font: font})
+		c.draw(m, (&Presenter{}).windowBorder(), image.Point{}, Note{Font: font})
 		fh, _ := os.Create(filepath.Join(out, "sheet"+string(rune('0'+i))+".png"))
 		png.Encode(fh, m)
 		fh.Close()
