@@ -16,12 +16,12 @@ trap 'rm -f "$edges"' EXIT
 for mod in $(cd "$root" && find . -name go.mod -not -path './.claude/*' -not -path '*/testdata/*' -exec dirname {} \;); do
 	(cd "$root/$mod" && go list -e -f '{{if or (ne .Name "main") (eq .ImportPath "gobox/cmd/gobox")}}{{.ImportPath}}{{range .Imports}} {{.}}{{end}}{{end}}' ./...)
 done | awk 'NF { for (i = 2; i <= NF; i++) if ($i ~ /^gobox(\/|$)/) print $1, $i; if (NF == 1 || $1 ~ /^gobox/) print $1 }' |
-	grep '^gobox' | sort -u >"$edges"
+	grep '^gobox' | sed 's#gobox/##g' | sort -u >"$edges" # every node is gobox's: the prefix only adds noise
 
 # node: every package seen; edge: lines with two fields
 nodes() { tr ' ' '\n' <"$edges" | sort -u; }
 pairs() { awk 'NF == 2' "$edges"; }
-id() { sed 's#^gobox/\{0,1\}##; s#^$#gobox#; s#[/.-]#_#g'; }
+id() { sed 's#[/.-]#_#g'; }
 
 {
 	echo 'digraph gobox {'
