@@ -81,6 +81,7 @@ func writeSwitchData(dst string) error {
 		Walls:      wallTextures("pod", podFloor, podSky),
 		GameSet:    2,  // the game's start: gameArea := 2
 		FirstBlock: 16, // firstBlock
+		BigPictures: adventure.BigPictures{First: 240, NotOverland: true}, // O040:07DB
 		Dialect:    Dialect, AddNPCIcon: true, AreaMonsters: area, ScriptSounds: sounds,
 		OriginalSave: PodOriginalSave,
 		Symbols:      []adventure.SymbolLoad{{Set: 4, File: "8X8D0", Block: 202}}, // gameinit's Load8x8Set(202, 1): POD's symbols are 8X8D0's, not the content set's file

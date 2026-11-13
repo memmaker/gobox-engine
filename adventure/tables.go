@@ -31,6 +31,15 @@ type GameTables struct {
 	Walls                      *WallTextures        // the 3D view's remastered wall textures; nil: none
 	GameSet                    rules.Set            // the set the party menu's game starts in (DS:5376: POR 3; cotab, sotsb, pod 2)
 	FirstBlock                 int                  // the ECL block a new game starts on, with no last block saved (POR 0, cotab 1, sotsb 17, pod 16)
+	BigPictures                BigPictures          // the Picture command's whole-screen BIGPIC pictures; zero: none (POR)
+}
+
+// BigPictures are the Picture command's numbers that show BIGPIC<set> block n
+// instead of PIC<set>'s view-window picture.
+type BigPictures struct {
+	First       int  // the first big picture number (sotsb 112, cotab 120, pod 240); 0: none
+	Framed      int  // a big picture that keeps the screen's frame, not whole-screen (sotsb 121, the overland map); 0: none
+	NotOverland bool // on the overland a big picture keeps the frame (pod O040:07DB)
 }
 
 // WallTextures are the remastered textures of the WALLDEF walls the 3D view

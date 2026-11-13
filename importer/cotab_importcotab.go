@@ -130,6 +130,7 @@ var cotabGameTables = adventure.GameTables{
 	Walls:      wallTextures("cotab", cotabFloor, cotabSky),
 	GameSet:    2, // START.PAS: gameArea := 2
 	FirstBlock: 1, // the adventure's first script, no last ECL saved
+	BigPictures: adventure.BigPictures{First: 120}, // O03C:0873
 	Dialect:    rules.DialectCOTAB,
 	ScriptSounds: map[byte]adventure.ScriptSound{
 		8:  {Cue: rules.CueStep},

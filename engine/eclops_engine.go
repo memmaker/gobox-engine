@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
@@ -237,6 +238,10 @@ func (e *Engine) opPicture() {
 		e.es.encounterShown[1] = 1
 		e.es.picShown = 1
 		if face := e.worldWord(rules.WordPortrait); face == 0xFF {
+			if big := e.game().BigPictures; big.First > 0 && v >= big.First {
+				e.showBigPicture(v, big)
+				return
+			}
 			e.LoadAnimPic("PIC", v, false)
 			e.DrawAnimFirst()
 		} else {
@@ -244,6 +249,7 @@ func (e *Engine) opPicture() {
 		}
 		return
 	}
+	e.hideBigPicture()
 	if e.prevViewMode > 1 || e.viewMode == 1 {
 		if e.es.picShown != 0 || e.es.spriteLoaded != 0 {
 			e.Redraw()
@@ -252,6 +258,32 @@ func (e *Engine) opPicture() {
 		}
 	}
 	e.es.encounterShown = [2]byte{}
+}
+
+// showBigPicture = sotsb O050:08A8, cotab O03C:0873, pod O040:07DB: BIGPIC<set>
+// block n over the screen, whole-screen (the Scene's Full) unless big says
+// it keeps the frame.
+func (e *Engine) showBigPicture(n int, big adventure.BigPictures) {
+	e.hideBigPicture()
+	im := e.LoadPic(e.set.File(bigPicFile), n)
+	if im == nil {
+		return
+	}
+	e.DrawPicture(0, 0, im, 0)
+	e.es.bigPic = e.pg.ids
+	e.snap.full = n != big.Framed && !(big.NotOverland && e.worldWord(rules.WordIn3D) == 0)
+}
+
+// bigPicFile is the big pictures' file family (BIGPIC<set>.DAX).
+const bigPicFile = "BIGPIC"
+
+// hideBigPicture takes the big picture up, if any, off the page.
+func (e *Engine) hideBigPicture() {
+	if e.es.bigPic == 0 {
+		return
+	}
+	e.pg.layers = slices.DeleteFunc(e.pg.layers, func(l layer) bool { return l.id == e.es.bigPic })
+	e.es.bigPic, e.snap.full = 0, false
 }
 
 // opInputNumber = ovr04:0951.

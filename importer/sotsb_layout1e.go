@@ -17,6 +17,7 @@ var GameTables = adventure.GameTables{
 	Walls:      wallTextures("sotsb", "", ""),
 	GameSet:    2,  // the game's start: gameArea := 2
 	FirstBlock: 17, // firstBlock
+	BigPictures: adventure.BigPictures{First: 112, Framed: 121}, // O050:08A8
 	Dialect:    rules.DialectCOTAB,
 	AddNPCIcon: true,
 	ScriptSounds: map[byte]adventure.ScriptSound{

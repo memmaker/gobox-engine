@@ -184,6 +184,7 @@ type eclState struct {
 	memberDied, memberGone             byte       // DS:84D2/84D3 (DS:84D4 is run.duelMode)
 	memberMissing                      bool       // the last SELECT MEMBER matched nobody (cotab characterNotFound: CotabSelStatus reads 0 once)
 	picShown                           byte       // DS:84E0
+	bigPic                             uint64     // the big picture's page layer (0: none up)
 	picAnimating                       byte       // DS:84E1
 	textInView                         byte       // DS:84E2
 	spriteLoaded                       byte       // DS:84E3
