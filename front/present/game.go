@@ -350,52 +350,15 @@ func (g *Game) WalkStep() error   { return g.step() }
 func (g *Game) StopWalk() error   { return g.run("stopWalk", g.r.stopWalk) }
 
 // Party menu.
-func (g *Game) Begin() error             { return g.do(play.Begin{}) }
-func (g *Game) Lead(n int) error         { return g.do(play.SelectMember{Member: n}) }
-func (g *Game) RemoveMember(n int) error { return g.do(play.RemoveCharacter{Roster: n}) }
-func (g *Game) DropMember(n int) error   { return g.do(play.DropMember{Member: n}) }
-func (g *Game) NewClass(n, class int) error {
-	return g.do(play.ChangeClass{Member: n, Class: class})
-}
-func (g *Game) QuickStart()     { g.do(play.QuickStart{}) }
-func (g *Game) QuitGame() error { return g.do(play.Quit{}) }
-func (g *Game) EndGame() error  { return g.do(play.EndGame{}) }
+func (g *Game) EndGame() error { return g.do(play.EndGame{}) }
 
 // Creation sheet.
-func (g *Game) CreateCharacter() error      { return g.do(play.NewCharacter{}) }
-func (g *Game) ModifyCharacter(n int) error { return g.do(play.Modify{Member: n}) }
-func (g *Game) Rename(name string) error    { return g.do(play.Rename{Name: name}) }
 func (g *Game) SetField(f, o int) error {
 	return g.run("setField", func() play.Result { return g.r.setField(f, o) })
 }
 func (g *Game) EndCreation(keep bool) error { return g.endCreation(keep) }
 func (g *Game) CreationView() *front.Creation {
 	return g.CreationOn(g.r.grid.X, g.r.grid.Y)
-}
-func (g *Game) PointBuy(scores []int) error { return g.do(play.PointBuy{Scores: scores}) }
-func (g *Game) Roll(minimal bool, minimums string) error {
-	return g.do(play.Reroll{Minimal: minimal})
-}
-
-// SetStat types ability i: "18/50" is strength 18 and exceptional 50.
-func (g *Game) SetStat(i int, typed string) error {
-	c := creationOf(g.r.g.State())
-	if c == nil || i < 0 || i >= 6 {
-		return g.do(play.Adjust{Stat: i})
-	}
-	base, exc, _ := strings.Cut(typed, "/")
-	n, err := strconv.Atoi(base)
-	if err != nil {
-		return &play.Refusal{Text: "not a number"}
-	}
-	if err := g.do(play.Adjust{Stat: i, By: n - c.Draft.Stats[game.StatKeys[i]]}); err != nil || exc == "" {
-		return err
-	}
-	x, _ := strconv.Atoi(exc)
-	if x == 0 {
-		x = 100
-	}
-	return g.do(play.Adjust{Stat: 7, By: x - c.Draft.Str00})
 }
 
 // Title: the presenter plays it from State.Intro, the game draws it.
@@ -411,18 +374,11 @@ func (g *Game) TitleDone() { g.run("titleDone", g.r.titleDone) }
 func (g *Game) SequenceDone(name string) { g.run("sequenceDone", g.r.sequenceDone) }
 
 // Camp.
-func (g *Game) LeaveCamp() error { return g.do(play.BreakCamp{}) }
-func (g *Game) PlanSpell(n, spell, count int) error {
-	return g.do(play.Plan{Member: n, Spell: spell, Count: count})
-}
-func (g *Game) Scribe(n, spell int) error { return g.do(play.Scribe{Member: n, Spell: spell}) }
-func (g *Game) CampRest(kind int) error   { return g.do(play.CampRest{Kind: kind}) }
 
 // RestFor rests minutes long (a RestKind.Duration rest's picked time).
 func (g *Game) RestFor(minutes int) error {
 	return g.run("rest", func() play.Result { return g.r.restFor(minutes) })
 }
-func (g *Game) StopRest() error { return g.do(play.StopRest{}) }
 
 // Powers.
 func (g *Game) UsePower(n int, k front.ActKind, spell, target int, sure bool) error {
@@ -445,10 +401,6 @@ func (g *Game) EffectsList(n int) (out []front.Entry) {
 // Waits.
 func (g *Game) LootView(n int) error { return error(nil) }
 func (g *Game) LootTake(n int) error { return errors.New("no such action") }
-func (g *Game) LootDetect() error    { return g.do(play.LootDetect{}) }
-func (g *Game) LootShare() error     { return g.do(play.LootShare{}) }
-func (g *Game) LootStatus() error    { return g.do(play.LootStatus{}) }
-func (g *Game) LootPool() error      { return g.do(play.PoolCoins{Member: g.sel(-1)}) }
 func (g *Game) LootLeave(sure bool) error {
 	err := g.do(play.Leave{})
 	if a := g.r.refusalAsk; a != nil && slices.ContainsFunc(a.Options, func(o play.Option) bool { return o.Do != nil }) { // the game's own answers (POR: Yes stays, No leaves Sure): its question as it is
@@ -463,9 +415,6 @@ func (g *Game) LootLeave(sure bool) error {
 		return front.ConfirmNo(r.Text)
 	}
 	return err
-}
-func (g *Game) TryDoor(k play.DoorWay) error {
-	return g.do(play.TryDoor{Way: k})
 }
 
 // Pickers and the icon designer.
@@ -594,9 +543,6 @@ func (g *Game) ShowMember(n int) error {
 	}
 	return g.run("showMember", func() play.Result { return g.r.showMember(n) })
 }
-func (g *Game) OpenItems(n int, direct bool) error {
-	return g.do(play.OpenItems{Member: n})
-}
 
 // CloseItems: Tab (all false) is the sheet, as out of a fight; in a fight
 // that is the look-only sheet of the member whose items were up.
@@ -609,30 +555,17 @@ func (g *Game) CloseItems(all bool) error {
 	}
 	return g.run("closeItems", func() play.Result { return g.r.closeItems(all) })
 }
-func (g *Game) Ready(h core.ItemHandle, x int) error {
-	return g.do(play.Ready{Member: g.sel(-1), Item: h, Count: x})
-}
 func (g *Game) UseItem(h core.ItemHandle, spell, target int, sure bool) error {
 	return g.asking(g.do(play.UseItem{Member: g.sel(-1), Item: h, Spell: spell, Target: target}))
 }
-func (g *Game) Drop(h core.ItemHandle) error { return g.do(play.Drop{Member: g.sel(-1), Item: h}) }
-func (g *Game) Sell(h core.ItemHandle) error { return g.do(play.Sell{Member: g.sel(-1), Item: h}) }
 func (g *Game) Buy(h core.ItemHandle) error {
 	if lootOf(g.r.g.State()) != nil { // the loot screen's Take, as the act mapping does
 		return g.do(play.Take{Item: h})
 	}
 	return g.do(play.Buy{Member: g.sel(-1), Item: h})
 }
-func (g *Game) TakeAll() error { return g.do(play.Take{Item: core.NoItem, All: true}) }
-func (g *Game) SetPolicy(id int, p front.Policy) error {
-	return g.do(play.SetPolicy{ID: id, Policy: int(p)})
-}
 
 // Shops, temples, training.
-func (g *Game) Browse(n int) error { return g.do(play.OpenItems{Member: -1}) }
-func (g *Game) Identify(n int, h core.ItemHandle) error {
-	return g.do(play.Identify{Member: n, Item: h})
-}
 
 // Appraise values the purse's gem or piece of jewelry: the offer of that kind.
 func (g *Game) Appraise(jewelry bool) error {
@@ -666,18 +599,10 @@ func (g *Game) offers() []game.Offer {
 	return nil
 }
 
-func (g *Game) Cure(n, x int) error      { return g.do(play.Heal{Member: n, Service: x}) }
-func (g *Game) ViewMember(n int) error   { return g.do(play.ViewMember{Member: g.sel(n)}) } // -1: the selected member
-func (g *Game) Leave() error             { return g.do(play.Leave{}) }
-func (g *Game) OpenTraining(n int) error { return g.do(play.OpenTraining{Member: n}) }
-func (g *Game) CloseTraining() error     { return g.do(play.CloseTraining{}) }
 func (g *Game) TrainingView() *front.Training {
 	ps := g.r.g.State()
 	return Training(trainingOf(ps), partyOf(ps), g.r.selectedOf(ps), play.CommonOf(ps).Purse)
 }
-func (g *Game) Train() error           { return g.do(play.Train{Member: g.sel(-1)}) }
-func (g *Game) Learn(id int) error     { return g.do(play.Learn{Spell: id}) }
-func (g *Game) PickPower(id int) error { return g.do(play.PickPower{ID: id}) }
 
 // The full map: its cursor and label are the presenter's, classic fills the rest.
 func (g *Game) FullMapView(cursor image.Point, label *string) *front.FullMap {

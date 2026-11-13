@@ -51,7 +51,11 @@ func (p *Presenter) templeItems() (string, []ui.MenuRow) {
 		return name + " " + not + " Cast cure anyway?", []ui.MenuRow{{Text: "Yes", Key: 'Y', Do: c.to(templePay, 1)}, {Text: "No", Key: 'N', Do: c.back(templeHeal)}}
 	case templePay:
 		return withGold(fmt.Sprintf("%s will only cost %s. Pay for cure?", cure.Name, gold(cure.Price)), purse[Coin]), []ui.MenuRow{
-			{Text: "Yes", Key: 'Y', Do: func() { pick := c.pick; p.call(func(e *classicGame) { e.Cure(-1, pick) }); c.back(templeHeal)() }},
+			{Text: "Yes", Key: 'Y', Do: func() {
+				pick := c.pick
+				p.call(func(e *classicGame) { e.do(play.Heal{Member: -1, Service: pick}) })
+				c.back(templeHeal)()
+			}},
 			{Text: "No", Key: 'N', Do: c.back(templeHeal)}}
 	case appraise:
 		return p.appraiseItems(purse, offers, c.back(campMain))

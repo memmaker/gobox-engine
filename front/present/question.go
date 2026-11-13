@@ -116,7 +116,7 @@ func AskAct(h RuleHost, a front.Action) (taken, done bool) {
 			return true, true
 		}
 	case s.Resting && !s.Battle && a.Kind != front.ActPoint && a.Kind != front.ActResize && a.Kind != front.ActMainMenu: // a fight's turn takes its own decisions
-		AskYes(h, "Stop resting?", func() { h.Call(func(e *classicGame) { e.StopRest() }) })
+		AskYes(h, "Stop resting?", func() { h.Call(func(e *classicGame) { e.do(play.StopRest{}) }) })
 		return true, true
 	}
 	return false, false
@@ -188,20 +188,22 @@ func Gate(h RuleHost, l *front.Loot, d *game.Door) (string, []GateItem) {
 			items = append(items, GateItem{text, do})
 		}
 	}
-	door := func(k play.DoorWay) func(e *classicGame) { return func(e *classicGame) { e.TryDoor(k) } }
+	door := func(k play.DoorWay) func(e *classicGame) {
+		return func(e *classicGame) { e.do(play.TryDoor{Way: k}) }
+	}
 	switch {
 	case l != nil:
 		add(true, "View", func(e *classicGame) { e.LootView(-1) })
 		add(l.Take, "Take", func(e *classicGame) { e.LootTake(-1) })
-		add(l.Detect, "Detect", func(e *classicGame) { e.LootDetect() })
+		add(l.Detect, "Detect", func(e *classicGame) { e.do(play.LootDetect{}) })
 		add(l.Share, "Share", func(e *classicGame) {
-			e.LootShare()
+			e.do(play.LootShare{})
 		})
 		add(l.Pool, "Pool", func(e *classicGame) {
-			e.LootPool()
+			e.do(play.PoolCoins{Member: e.sel(-1)})
 		})
 		add(l.Status, "Status", func(e *classicGame) {
-			e.LootStatus()
+			e.do(play.LootStatus{})
 		})
 		add(true, "Exit", func(e *classicGame) {
 			AskSure(h, e.LootLeave(false), func() { h.Call(func(e *classicGame) { e.LootLeave(true) }) })

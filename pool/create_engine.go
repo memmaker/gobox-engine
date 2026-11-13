@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gobox/core"
 	gcreation "gobox/creation"
+	"gobox/game/play"
 )
 
 // tempSel is a selection selectTemp replaced: the selected member and the party's size.
@@ -187,10 +188,11 @@ func (e *Engine) SetStat(i int, typed string) error {
 		return nil
 	}
 	return e.creationEdit(func(cr *creation) error {
-		if err := cr.d.SetScore(abilities[i], typed); !errors.Is(err, gcreation.ErrScore) {
-			return err
+		err := cr.d.SetScore(abilities[i], typed)
+		if errors.Is(err, gcreation.ErrScore) {
+			return &play.Refusal{Text: "not a number"}
 		}
-		return nil // baseline setStatTyped: what is not a value keeps the score, no message
+		return err
 	})
 }
 

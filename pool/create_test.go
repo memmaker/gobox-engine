@@ -1,6 +1,7 @@
 package pool
 
 import (
+	"errors"
 	"gobox/game/play"
 	"image"
 	"image/png"
@@ -72,6 +73,10 @@ func TestCreateSheet(t *testing.T) {
 	e.SetStat(rules1e.StatCha, "9")
 	if c = e.member(e.selected()); c.Stats[rules1e.StatCha] != 9 {
 		t.Errorf("charisma %d, want 9", c.Stats[rules1e.StatCha])
+	}
+	var ref *play.Refusal // typed text that is no number is refused, never kept silently
+	if err := e.SetStat(rules1e.StatCha, "x"); !errors.As(err, &ref) || ref.Text != "not a number" {
+		t.Errorf("SetStat x: %v, want the refusal not a number", err)
 	}
 	e.Rename("Brok")
 	e.Roll(true, "3 3 3 3 3 3")

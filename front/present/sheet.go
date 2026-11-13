@@ -37,7 +37,7 @@ func (p *Presenter) sheetItems() []ui.MenuRow {
 	for _, re := range sh.Reactions {
 		pol := front.Policy(re.Policy)
 		it = append(it, ui.MenuRow{Text: re.Name + " " + pol.String(), Key: re.Name[0], Do: func() {
-			p.call(func(e *classicGame) { e.SetPolicy(re.ID, pol+1) })
+			p.call(func(e *classicGame) { e.do(play.SetPolicy{ID: re.ID, Policy: int(pol + 1)}) })
 		}})
 	}
 	return it

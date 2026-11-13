@@ -10,6 +10,7 @@ import (
 	"errors"
 	"gobox/core"
 	"gobox/front"
+	"gobox/game/play"
 	"slices"
 )
 
@@ -38,17 +39,17 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		case front.ActMember:
 			do(func(e *classicGame) error { return e.ShowMember(n) })
 		case front.ActReady:
-			do(func(e *classicGame) error { return e.Ready(a.Item, a.X) })
+			do(func(e *classicGame) error { return e.do(play.Ready{Member: e.sel(-1), Item: a.Item, Count: a.X}) })
 		case front.ActUse:
 			p.useCall(a.Item, 0, -1, false)
 		case front.ActDrop:
-			do(func(e *classicGame) error { return e.Drop(a.Item) })
+			do(func(e *classicGame) error { return e.do(play.Drop{Member: e.sel(-1), Item: a.Item}) })
 		case front.ActSell:
-			do(func(e *classicGame) error { return e.Sell(a.Item) })
+			do(func(e *classicGame) error { return e.do(play.Sell{Member: e.sel(-1), Item: a.Item}) })
 		case front.ActBuy:
 			do(func(e *classicGame) error { return e.Buy(a.Item) })
 		case front.ActTakeAll:
-			do(func(e *classicGame) error { return e.TakeAll() })
+			do(func(e *classicGame) error { return e.do(play.Take{Item: core.NoItem, All: true}) })
 		case front.ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
 			if a.Y == 1 {
 				return false
@@ -72,7 +73,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 			if k == front.ActOverview {
 				n = -1
 			}
-			do(func(e *classicGame) error { return e.OpenItems(n, false) })
+			do(func(e *classicGame) error { return e.do(play.OpenItems{Member: n}) })
 		case front.ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
 			if a.Y == 1 {
 				return false
@@ -92,9 +93,9 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		}
 		do(func(e *classicGame) error { return e.OpenSheet(n) })
 	case k == front.ActInventory && (p.exploring() || p.campUp()):
-		do(func(e *classicGame) error { return e.OpenItems(n, true) })
+		do(func(e *classicGame) error { return e.do(play.OpenItems{Member: n}) })
 	case k == front.ActItems && turn:
-		do(func(e *classicGame) error { return e.OpenItems(-1, false) })
+		do(func(e *classicGame) error { return e.do(play.OpenItems{Member: -1}) })
 	default:
 		return false
 	}

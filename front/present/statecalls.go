@@ -6,6 +6,7 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game/play"
 	"os"
 )
 
@@ -22,21 +23,21 @@ func StateAct(h RuleHost, a front.Action) bool {
 	case v.Camp:
 		switch a.Kind {
 		case front.ActClose:
-			do(func(e *classicGame) error { return e.LeaveCamp() })
+			do(func(e *classicGame) error { return e.do(play.BreakCamp{}) })
 		case front.ActLead:
-			do(func(e *classicGame) error { return e.Lead(n) })
+			do(func(e *classicGame) error { return e.do(play.SelectMember{Member: n}) })
 		case front.ActPlan:
-			do(func(e *classicGame) error { return e.PlanSpell(n, a.X, a.Y) })
+			do(func(e *classicGame) error { return e.do(play.Plan{Member: n, Spell: a.X, Count: a.Y}) })
 		case front.ActScribe:
-			do(func(e *classicGame) error { return e.Scribe(n, a.X) })
+			do(func(e *classicGame) error { return e.do(play.Scribe{Member: n, Spell: a.X}) })
 		case front.ActDropMember:
-			do(func(e *classicGame) error { return e.DropMember(n) })
+			do(func(e *classicGame) error { return e.do(play.DropMember{Member: n}) })
 		case front.ActRest:
 			do(func(e *classicGame) error {
 				if a.X > 0 { // a picked duration, X minutes
 					return e.RestFor(a.X)
 				}
-				return e.CampRest(n)
+				return e.do(play.CampRest{Kind: n})
 			})
 		default:
 			return false
@@ -44,21 +45,21 @@ func StateAct(h RuleHost, a front.Action) bool {
 	case v.MainMenu:
 		switch a.Kind {
 		case front.ActLead:
-			do(func(e *classicGame) error { return e.Lead(n) })
+			do(func(e *classicGame) error { return e.do(play.SelectMember{Member: n}) })
 		case front.ActBegin:
-			do(func(e *classicGame) error { return e.Begin() })
+			do(func(e *classicGame) error { return e.do(play.Begin{}) })
 		case front.ActRemove:
-			do(func(e *classicGame) error { return e.RemoveMember(n) })
+			do(func(e *classicGame) error { return e.do(play.RemoveCharacter{Roster: n}) })
 		case front.ActDropMember:
-			do(func(e *classicGame) error { return e.DropMember(n) })
+			do(func(e *classicGame) error { return e.do(play.DropMember{Member: n}) })
 		case front.ActQuit:
 			h.Call(func(e *classicGame) {
-				if e.QuitGame() == nil { // the player confirmed: every game's run ends here
+				if e.do(play.Quit{}) == nil { // the player confirmed: every game's run ends here
 					os.Exit(0)
 				}
 			})
 		case front.ActQuickStart:
-			h.Call(func(e *classicGame) { e.QuickStart() })
+			h.Call(func(e *classicGame) { e.do(play.QuickStart{}) })
 		case front.ActNewClass:
 			NewClass(h, n, -1)
 		default:
@@ -72,5 +73,5 @@ func StateAct(h RuleHost, a front.Action) bool {
 
 // NewClass calls NewClass (the game asks for the class itself).
 func NewClass(h RuleHost, n, class int) {
-	h.Call(func(e *classicGame) { e.NewClass(n, class) })
+	h.Call(func(e *classicGame) { e.do(play.ChangeClass{Member: n, Class: class}) })
 }

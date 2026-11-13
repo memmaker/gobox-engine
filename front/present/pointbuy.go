@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/input"
 	"slices"
 
@@ -63,7 +64,7 @@ func (p *Presenter) buyItems(cr *front.Creation) (string, []ui.MenuRow) {
 			scores := slices.Clone(s.buy)
 			s.open(scrMain)
 			p.Edit(func(e *classicGame) {
-				if err := e.PointBuy(scores); err != nil {
+				if err := e.do(play.PointBuy{Scores: scores}); err != nil {
 					e.Refuse(err.Error())
 				}
 			})

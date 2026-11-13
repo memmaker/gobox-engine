@@ -35,7 +35,10 @@ func (p *Presenter) shopItems() (string, []ui.MenuRow) {
 		}
 		u := unknown[c.pick]
 		return withGold(fmt.Sprintf("Identify %s for %s. Is it a deal?", itemOf(party, u).Name, gold(sh.IdentifyPrice)), have), []ui.MenuRow{
-			{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e *classicGame) { e.Identify(u.Member, u.Item) }); c.back(shopID)() }},
+			{Text: "Yes", Key: 'Y', Do: func() {
+				p.call(func(e *classicGame) { e.do(play.Identify{Member: u.Member, Item: u.Item}) })
+				c.back(shopID)()
+			}},
 			{Text: "No", Key: 'N', Do: c.back(shopID)}}
 	case appraise:
 		return p.appraiseItems(purse, sh.Offers, c.back(campMain))
@@ -85,20 +88,20 @@ func (p *Presenter) serviceAct(a front.Action) bool {
 	case p.training || p.hallUp(): // the hall up, from Train or the game's own (ModeTraining)
 		switch a.Kind {
 		case front.ActClose:
-			p.call(func(e *classicGame) { e.CloseTraining(); p.training = p.hallUp() })
+			p.call(func(e *classicGame) { e.do(play.CloseTraining{}); p.training = p.hallUp() })
 		case front.ActLead: // another member: the game's training opens for them (Close would leave a hall the game opened)
-			p.call(func(e *classicGame) { e.OpenTraining(a.N); p.training = p.hallUp() })
+			p.call(func(e *classicGame) { e.do(play.OpenTraining{Member: a.N}); p.training = p.hallUp() })
 		default:
 			return false
 		}
 	case a.Kind == front.ActTraining && p.mainMenuUp():
-		p.call(func(e *classicGame) { e.OpenTraining(a.N); p.training = p.hallUp() })
+		p.call(func(e *classicGame) { e.do(play.OpenTraining{Member: a.N}); p.training = p.hallUp() })
 	case p.shopUp() && a.Kind == front.ActInventory:
-		p.call(func(e *classicGame) { e.Browse(a.N) })
+		p.call(func(e *classicGame) { e.do(play.OpenItems{Member: -1}) })
 	case (p.templeUp() || p.shopUp()) && a.Kind == front.ActMember:
-		p.call(func(e *classicGame) { e.ViewMember(a.N) })
+		p.call(func(e *classicGame) { e.do(play.ViewMember{Member: e.sel(a.N)}) })
 	case (p.shopUp() || p.templeUp()) && a.Kind == front.ActClose:
-		p.call(func(e *classicGame) { e.Leave() })
+		p.call(func(e *classicGame) { e.do(play.Leave{}) })
 	default:
 		return false
 	}

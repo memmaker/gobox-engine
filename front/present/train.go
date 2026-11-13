@@ -23,7 +23,7 @@ func (p *Presenter) trainItems() (string, []ui.MenuRow) {
 		var it []ui.MenuRow
 		p.camp.ids = p.camp.ids[:0]
 		for _, sp := range t.Learn {
-			it = append(it, ui.MenuRow{Text: sp.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.Learn(sp.ID); p.training = p.hallUp() }) }})
+			it = append(it, ui.MenuRow{Text: sp.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.do(play.Learn{Spell: sp.ID}); p.training = p.hallUp() }) }})
 			p.camp.ids = append(p.camp.ids, sp.ID)
 		}
 		return name + " may add a spell to the book", it
@@ -40,7 +40,7 @@ func (p *Presenter) trainItems() (string, []ui.MenuRow) {
 	will := name + " will become\n" + g(ui.InkGold, strings.Join(t.Becomes[sel], " and ")) + "."
 	return fmt.Sprintf("%s\n\nTraining costs %s.\nThe party has %s.\n\nDo you wish to train?",
 			will, g(cost, price(front.Money{Gold: t.Cost})), g(ui.InkGold, price(front.Money{Gold: have}))),
-		[]ui.MenuRow{{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e *classicGame) { e.Train(); p.training = p.hallUp() }) }}, {Text: "No", Key: 'N', Do: leave.Do}}
+		[]ui.MenuRow{{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e *classicGame) { e.do(play.Train{Member: e.sel(-1)}); p.training = p.hallUp() }) }}, {Text: "No", Key: 'N', Do: leave.Do}}
 }
 
 // learning is the spells the selected member may learn now (nil: the hall
@@ -62,7 +62,7 @@ func (p *Presenter) powerItems() (string, []ui.MenuRow) {
 	}
 	var it []ui.MenuRow
 	for _, m := range pp.Options {
-		it = append(it, ui.MenuRow{Text: m.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.PickPower(m.ID) }) }})
+		it = append(it, ui.MenuRow{Text: m.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.do(play.PickPower{ID: m.ID}) }) }})
 	}
 	return pp.Name + " chooses " + pp.What, it
 }
