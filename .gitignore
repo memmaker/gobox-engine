@@ -15,3 +15,4 @@ crash_logs/
 # build output
 /gobox
 games/*/bin/
+sprites/cmd/poolsprites/poolsprites
