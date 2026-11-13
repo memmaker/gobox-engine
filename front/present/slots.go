@@ -19,7 +19,18 @@ func (p *Presenter) slotsView() *front.Slots {
 	if p.slots == nil || p.eng == nil {
 		return nil
 	}
-	return p.eng.SlotsView(p.slots.LoadOnly)
+	k := slotsFrom{p.eng.G.Version(), p.eng.r.ran, p.slots.LoadOnly}
+	if p.slotsMade.key != k || !p.slotsMade.ok {
+		p.slotsMade.v, p.slotsMade.key, p.slotsMade.ok = p.eng.SlotsView(k.loadOnly), k, true
+	}
+	return p.slotsMade.v
+}
+
+// slotsFrom is what the slot screen is listed from: the game's State, the
+// steps done (they may write the saves) and whether it only loads.
+type slotsFrom struct {
+	version, ran uint64
+	loadOnly     bool
 }
 
 // SlotsUI is the slot screen up.

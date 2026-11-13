@@ -375,7 +375,7 @@ func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, v front.V
 	switch {
 	case v.Shop != nil && p.camp.screen == shopID:
 		s := p.state()
-		for _, u := range unknownOf(s) {
+		for _, u := range p.eng.r.derived().unknown {
 			x := invItem(*itemOf(partyOf(s), u))
 			icons = append(icons, p.inv.iconImage(&x))
 		}

@@ -60,6 +60,7 @@ func (g *Game) run(what string, step func() play.Result) error {
 	was := g.pane()
 	paneWas, linesWere := paneTail(was), paneCount(was)
 	done := g.r.held.Change() // the step may write the saves
+	g.r.ran++
 	res := step()
 	done()
 	g.trace(what, res)

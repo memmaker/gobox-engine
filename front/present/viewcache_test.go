@@ -192,3 +192,36 @@ func TestBorderBuiltOncePerChange(t *testing.T) {
 		t.Fatalf("a new State: %d art reads, want %d", g.arts, one+1)
 	}
 }
+
+// The shop's unidentified items and the slot screen are derived once per
+// Version (and, for the slots, per step that may write the saves).
+func TestShopUnknownAndSlotsBuiltOncePerChange(t *testing.T) {
+	st := func(n int) play.State {
+		return play.Trading{Kind: play.TradeShop, Unknown: []game.ItemRef{{Member: 0, Item: 7}},
+			Common: play.Common{Where: game.Where{X: n}, Party: []game.Member{{Name: "A", Items: []game.Item{{Handle: 7}}}}}}
+	}
+	g, f := playGame(st(1))
+	var p Presenter
+	p.SetEngine(g)
+	p.slots = &SlotsUI{}
+	u, sl := p.eng.r.derived().unknown, p.slotsView()
+	if len(u) != 1 || sl == nil {
+		t.Fatalf("unknown %v, slots %v", u, sl)
+	}
+	for range 5 {
+		p.shopItems()
+		p.slotsView()
+	}
+	if &p.eng.r.derived().unknown[0] != &u[0] || p.slotsView() != sl {
+		t.Fatal("idle frames derived them again")
+	}
+	p.eng.r.ran++ // a step that may write the saves
+	if p.slotsView() == sl {
+		t.Fatal("a step did not list the slots again")
+	}
+	sl = p.slotsView()
+	f.st = st(2)
+	if p.slotsView() == sl || &p.eng.r.derived().unknown[0] == &u[0] {
+		t.Fatal("a new State did not derive them again")
+	}
+}

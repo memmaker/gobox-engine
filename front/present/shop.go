@@ -16,7 +16,7 @@ func (p *Presenter) shopItems() (string, []ui.MenuRow) {
 	c, s := &p.camp, p.state()
 	sh, purse := shopOf(s), play.CommonOf(s).Purse
 	have := purse[Coin]
-	unknown := unknownOf(s)
+	unknown := p.eng.r.derived().unknown
 	party := partyOf(s)
 	switch c.screen {
 	case shopID:
