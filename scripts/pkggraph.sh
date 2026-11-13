@@ -2,6 +2,8 @@
 # pkggraph.sh: the import graph of this repo's own packages (no std lib, no
 # third-party) as Graphviz dot, Mermaid and D2, plus index.html rendering them
 # (pinch to zoom, scroll to pan), written to outdir and opened in the browser.
+# The one shipped binary, cmd/gobox, is the only main shown: the development and
+# import tools (every other package main) are left out.
 #   scripts/pkggraph.sh [outdir]   (default: a fresh /tmp/gobox-pkggraph.* dir)
 set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -12,8 +14,8 @@ edges=$(mktemp)
 trap 'rm -f "$edges"' EXIT
 # the root module and the nested ones; each package's own (non-test) imports
 for mod in $(cd "$root" && find . -name go.mod -not -path './.claude/*' -not -path '*/testdata/*' -exec dirname {} \;); do
-	(cd "$root/$mod" && go list -e -f '{{.ImportPath}}{{range .Imports}} {{.}}{{end}}' ./...)
-done | awk '{ for (i = 2; i <= NF; i++) if ($i ~ /^gobox(\/|$)/) print $1, $i; if (NF == 1 || $1 ~ /^gobox/) print $1 }' |
+	(cd "$root/$mod" && go list -e -f '{{if or (ne .Name "main") (eq .ImportPath "gobox/cmd/gobox")}}{{.ImportPath}}{{range .Imports}} {{.}}{{end}}{{end}}' ./...)
+done | awk 'NF { for (i = 2; i <= NF; i++) if ($i ~ /^gobox(\/|$)/) print $1, $i; if (NF == 1 || $1 ~ /^gobox/) print $1 }' |
 	grep '^gobox' | sort -u >"$edges"
 
 # node: every package seen; edge: lines with two fields
