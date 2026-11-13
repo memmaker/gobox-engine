@@ -13,7 +13,7 @@ import (
 // a refusal's note goes over it.
 func TestNoteKeepsOwn(t *testing.T) {
 	p, _ := presenterOn(play.Exploring{})
-	own := front.Note{Text: "Brann buys a Broad Sword", At: time.Now()}
+	own := front.FrontNote{Text: "Brann buys a Broad Sword", At: time.Now()}
 	p.eng.r.toast = own
 	if got := p.note().Text; got != own.Text {
 		t.Fatalf("note %q, want %q", got, own.Text)

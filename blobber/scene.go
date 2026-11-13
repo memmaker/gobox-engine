@@ -121,7 +121,7 @@ func (s *Scene) line(l string) (bool, error) {
 // Show makes s the scene drawn, with the host's own objects (named props)
 // among its props. It does not move the party: SetMap does.
 func (s *Scene) Show(objs ...*Object) {
-	Faces, Edges, Water, NoMap, Pond, Sea = s.Faces, s.Edges, s.Water, s.NoMap, s.Pond, s.Sea
+	Faces, BlobberEdges, Water, NoMap, Pond, Sea = s.Faces, s.Edges, s.Water, s.NoMap, s.Pond, s.Sea
 	worldChanged()
 	FlatColors = [2]*color.RGBA{s.FloorRGBA, s.CeilRGBA}
 	SetFlats(s.Floor, s.Ceiling)

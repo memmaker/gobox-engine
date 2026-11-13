@@ -25,7 +25,7 @@ type SequenceUI struct {
 
 // SequenceStep plays sq (nil: none) this frame on in and returns the
 // frame to show (nil: none); skip: a key, click or button came.
-func SequenceStep(h RuleHost, in *SequenceUI, sq *game.Sequence, skip bool) *vace.Frame {
+func SequenceStep(h RuleHost, in *SequenceUI, sq *game.Sequence, skip bool) *vace.VaceFrame {
 	if sq == nil {
 		*in = SequenceUI{}
 		return nil
@@ -62,7 +62,7 @@ func SequenceStep(h RuleHost, in *SequenceUI, sq *game.Sequence, skip bool) *vac
 	return in.last()
 }
 
-func (in *SequenceUI) last() *vace.Frame {
+func (in *SequenceUI) last() *vace.VaceFrame {
 	if in.Anim == nil || len(in.Anim.Frames) == 0 {
 		return nil
 	}

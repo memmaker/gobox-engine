@@ -10,14 +10,14 @@ import (
 // Training is the training hall's offer t to member n of party
 // (nil: the hall is not open): what it becomes, or why it may not train;
 // while a spell is being learned, the spells to choose from.
-func Training(t *game.Training, party []game.Member, n int, purse map[string]int) *front.Training {
+func Training(t *game.Training, party []game.Member, n int, purse map[string]int) *front.FrontTraining {
 	if t == nil {
 		return nil
 	}
 	if n < 0 || n >= len(party) {
-		return &front.Training{Why: "No one to train"}
+		return &front.FrontTraining{Why: "No one to train"}
 	}
-	v := &front.Training{Name: party[n].Name, Price: t.Cost, Gold: purse[Coin]}
+	v := &front.FrontTraining{Name: party[n].Name, Price: t.Cost, Gold: purse[Coin]}
 	if t.Learning {
 		for _, sp := range t.Learn {
 			v.Learn = append(v.Learn, front.BookSpell{ID: sp.ID, Name: sp.Name, Level: levelName(sp.Level)})

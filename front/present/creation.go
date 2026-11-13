@@ -13,17 +13,17 @@ import (
 // of cols by rows cells: the sheet's text from the top left, the portrait
 // against the right border and the combat icon under it, both at the
 // whole scale the page leaves room for.
-func Creation(mode game.Mode, c *game.Creation, pending *play.Ask, cols, rows int) *front.Creation {
+func Creation(mode game.Mode, c *game.Creation, pending *play.Ask, cols, rows int) *front.FrontCreation {
 	if !Drafting(mode, c) {
 		return nil
 	}
 	d := c.Draft
 	winRight, winBottom := max(cols, 40)-2, max(rows, 25)-3
-	v := &front.Creation{Minimums: minimums(c.Minimums), Abandon: "Abandon this character?"}
+	v := &front.FrontCreation{Minimums: minimums(c.Minimums), Abandon: "Abandon this character?"}
 	if a := pending; a != nil && a.Kind == game.YesNo {
 		v.Abandon = a.Prompt
 	}
-	v.Name = front.CellRect{X1: 1, Y1: 1, X2: max(1, len(d.Name)), Y2: 1}
+	v.Name = front.FrontCellRect{X1: 1, Y1: 1, X2: max(1, len(d.Name)), Y2: 1}
 	main := min(len(c.Fields), 4) // the four sheet fields, then the power picks
 	if rowFields(c) {
 		main = len(c.Fields)
@@ -41,7 +41,7 @@ func Creation(mode game.Mode, c *game.Creation, pending *play.Ask, cols, rows in
 	}
 	if rowFields(c) { // one field per row, as draftRows draws them
 		for i := range v.Fields {
-			v.Fields[i].At = front.CellRect{X1: 1, Y1: fieldRow + i, X2: max(1, len(picked(c.Fields[i]))), Y2: fieldRow + i}
+			v.Fields[i].At = front.FrontCellRect{X1: 1, Y1: fieldRow + i, X2: max(1, len(picked(c.Fields[i]))), Y2: fieldRow + i}
 		}
 	} else {
 		g := 0
@@ -49,7 +49,7 @@ func Creation(mode game.Mode, c *game.Creation, pending *play.Ask, cols, rows in
 			g = len(picked(c.Fields[front.FieldSex]))
 		}
 		for i := range v.Fields {
-			v.Fields[i].At = []front.CellRect{
+			v.Fields[i].At = []front.FrontCellRect{
 				{X1: 1, Y1: 3, X2: g, Y2: 3},
 				{X1: g + 2, Y1: 3, X2: g + 1 + len(d.Race), Y2: 3},
 				{X1: 1, Y1: 4, X2: len(d.Alignment), Y2: 4},
@@ -61,7 +61,7 @@ func Creation(mode game.Mode, c *game.Creation, pending *play.Ask, cols, rows in
 		for i, st := range c.Stats {
 			v.StatNames = append(v.StatNames, st.Label)
 			x2 := front.StatCol(st.Label) + 1 + len(st.Extra)
-			v.Stats = append(v.Stats, front.CellRect{X1: 1, Y1: 7 + i, X2: x2, Y2: 7 + i})
+			v.Stats = append(v.Stats, front.FrontCellRect{X1: 1, Y1: 7 + i, X2: x2, Y2: 7 + i})
 		}
 	} else {
 		v.StatNames = []string{"STR", "INT", "WIS", "DEX", "CON", "CHA"}
@@ -70,15 +70,15 @@ func Creation(mode game.Mode, c *game.Creation, pending *play.Ask, cols, rows in
 			if i == 0 && d.Stats["str"] == 18 && d.Str00 != 0 {
 				x1 += len("(00)")
 			}
-			v.Stats = append(v.Stats, front.CellRect{X1: 1, Y1: 7 + i, X2: x1, Y2: 7 + i})
+			v.Stats = append(v.Stats, front.FrontCellRect{X1: 1, Y1: 7 + i, X2: x1, Y2: 7 + i})
 		}
 	}
 	sc := max(1, min((winRight-37)/11, (winBottom-3)/14)) // the combat stats reach column 37, the prompt row stays free
 	left := winRight - 11*sc + 1                          // the portrait's 11x11 cells at 1x
-	v.Head = front.CellRect{X1: left, Y1: 1, X2: winRight, Y2: 5 * sc}
-	v.Body = front.CellRect{X1: left, Y1: 5*sc + 1, X2: winRight, Y2: 11 * sc}
+	v.Head = front.FrontCellRect{X1: left, Y1: 1, X2: winRight, Y2: 5 * sc}
+	v.Body = front.FrontCellRect{X1: left, Y1: 5*sc + 1, X2: winRight, Y2: 11 * sc}
 	x, y := winRight-10*sc+1, 2+11*sc
-	v.Icon, v.Scale = front.CellRect{X1: x, Y1: y, X2: x + 8*sc - 1, Y2: y + 3*sc - 1}, sc
+	v.Icon, v.Scale = front.FrontCellRect{X1: x, Y1: y, X2: x + 8*sc - 1, Y2: y + 3*sc - 1}, sc
 	return v
 }
 

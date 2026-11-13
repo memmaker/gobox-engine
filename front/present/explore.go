@@ -99,13 +99,13 @@ func (p *Presenter) exploreKey(k uint16) bool {
 		a = kp
 	}
 	if p.window() == game.WindowMap { // the area map: a step each way
-		if d, ok := map[input.Act]int{input.Up: 0, input.Right: 1, input.Down: 2, input.Left: 3}[a]; ok {
+		if d, ok := map[input.Act]int{input.Up: 0, input.InputRight: 1, input.Down: 2, input.InputLeft: 3}[a]; ok {
 			p.send(front.ActGo, d)
 			return true
 		}
-	} else if act, ok := map[input.Act]front.ActKind{input.Up: front.ActForward, input.Down: front.ActBackward, input.Left: front.ActTurnLeft, input.Right: front.ActTurnRight}[a]; ok {
-		if gpu.IsKeyPressed(gpu.KeyShift) && (a == input.Left || a == input.Right) { // Shift: a step aside instead of a turn
-			act = map[input.Act]front.ActKind{input.Left: front.ActStrafeLeft, input.Right: front.ActStrafeRight}[a]
+	} else if act, ok := map[input.Act]front.ActKind{input.Up: front.ActForward, input.Down: front.ActBackward, input.InputLeft: front.ActTurnLeft, input.InputRight: front.ActTurnRight}[a]; ok {
+		if gpu.IsKeyPressed(gpu.KeyShift) && (a == input.InputLeft || a == input.InputRight) { // Shift: a step aside instead of a turn
+			act = map[input.Act]front.ActKind{input.InputLeft: front.ActStrafeLeft, input.InputRight: front.ActStrafeRight}[a]
 		}
 		p.send(act, 0)
 		return true

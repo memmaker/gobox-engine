@@ -23,8 +23,8 @@ const Tick = time.Second * 65536 / 1193182
 // divisor 0x4000 (72.8227 Hz) and VACE counts every INT 8.
 const MusicTick = time.Second * 16384 / 1193182
 
-// Frame is one picture shown for Delay.
-type Frame struct {
+// VaceFrame is one picture shown for Delay.
+type VaceFrame struct {
 	Image *image.Paletted
 	Delay time.Duration
 }
@@ -40,7 +40,7 @@ type Cue struct {
 
 // Anim is a decoded animation.
 type Anim struct {
-	Frames []Frame
+	Frames []VaceFrame
 	Cues   []Cue
 }
 
@@ -121,7 +121,7 @@ func Decode(acf, bma []byte) (*Anim, error) {
 	flush := func() {
 		if pending != nil {
 			pending.Palette = append(color.Palette(nil), pal...)
-			a.Frames = append(a.Frames, Frame{pending, delay})
+			a.Frames = append(a.Frames, VaceFrame{pending, delay})
 			now += delay
 			pending = nil
 		}

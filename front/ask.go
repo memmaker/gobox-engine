@@ -40,13 +40,13 @@ const (
 	RoleBackground
 )
 
-// Ask is the question waiting for the player (the Ask): every one is
+// FrontAsk is the question waiting for the player (the FrontAsk): every one is
 // published the same way, whoever asks (the engine's prompts, a script
 // instruction).
-type Ask struct {
+type FrontAsk struct {
 	Kind    AskKind
 	Menu            // the prompt and the options (ActChoose N)
-	Entries []Entry // AskList, AskSpell: the entries the commands act on
+	Entries []FrontEntry // AskList, AskSpell: the entries the commands act on
 	Text    string  // AskText, AskNumber: the line as typed so far
 	NoEsc   bool    // Esc does not answer it: the question stays up (the game's say)
 	NoPick  bool    // no highlight: Enter and the arrows do nothing, only the hotkeys (Y and N) answer
@@ -93,8 +93,8 @@ type Menu struct {
 	Commands []Command // the options (ActChoose N); none: a message to acknowledge (ActOK)
 }
 
-// Entry is a line of the Ask (AskList, AskSpell): what its commands act on.
-type Entry struct {
+// FrontEntry is a line of the Ask (AskList, AskSpell): what its commands act on.
+type FrontEntry struct {
 	Text    string
 	Header  bool     // a heading
 	Dim     bool     // greyed out
@@ -119,7 +119,7 @@ type Spell struct {
 // it is up, true when it is answered (it goes); Cand is a member pick's
 // candidate.
 type Question struct {
-	Ask    Ask
-	Answer func(a Action) bool
+	Ask    FrontAsk
+	Answer func(a FrontAction) bool
 	Cand   int
 }

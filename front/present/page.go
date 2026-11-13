@@ -177,7 +177,7 @@ func (p *Presenter) pageImage(note Note) *gpu.Image {
 
 // iconKey names the icon editor's content (the game need not bump the change count
 // for an edit): a change redraws the page.
-func iconKey(e *front.IconEditor) string {
+func iconKey(e *front.FrontIconEditor) string {
 	if e == nil {
 		return ""
 	}
@@ -224,7 +224,7 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(m, r, image.NewUniform(c), image.Point{}, draw.Src) }
 	box := func(x2, y2 int) { // DrawBoxTitled(1, 1, x2, y2): the inside cleared, the border's cells round it
 		fill(image.Rect(8, 8, x2*8+8, y2*8+8), col(inkBlack))
-		cellBorder(m, p.windowBorder(), p.cells(), front.CellRect{X1: 1, Y1: 1, X2: x2, Y2: y2})
+		cellBorder(m, p.windowBorder(), p.cells(), front.FrontCellRect{X1: 1, Y1: 1, X2: x2, Y2: y2})
 	}
 	prompt := func(s string, c int) { // the prompt row cleared, s on it
 		str(0, rows-1, inkBlack, strings.Repeat(" ", cols))

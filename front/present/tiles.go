@@ -33,7 +33,7 @@ func BodyTiles(own game.Member) (names []string, blocks []int) {
 
 // TilePicker is page page of BodyTiles' picker: each tile the member's icon
 // with that body, carrying the original ref (File CBODY, its block, frame 0).
-func TilePicker(own game.Member, cells image.Point, page, cols, rows int) *front.Picker {
+func TilePicker(own game.Member, cells image.Point, page, cols, rows int) *front.FrontPicker {
 	names, blocks := BodyTiles(own)
 	m := subject(own)
 	head, _ := memberIcon(m)

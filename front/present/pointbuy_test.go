@@ -45,7 +45,7 @@ func TestPointBuy(t *testing.T) {
 			bits := tc.font()
 			gl := func(ch byte) [8]byte { r, _ := fonts.Glyph(bits, ch, true); return r }
 			note := Note{Glyph: gl, Font: func(ch byte, text bool) [8]byte { r, _ := fonts.Glyph(bits, ch, text); return r }}
-			p.send(front.ActCreate, 0)
+			p.send(front.FrontActCreate, 0)
 			p.Draw(dst, note)
 			if p.scr.sub != scrHow {
 				t.Fatalf("sub %d, want the Roll or Point Buy question", p.scr.sub)
@@ -54,7 +54,7 @@ func TestPointBuy(t *testing.T) {
 			if p.scr.sub != scrBuy || len(p.scr.buy) != len(tc.stats) {
 				t.Fatalf("sub %d buy %v", p.scr.sub, p.scr.buy)
 			}
-			right, left, down := keyOf(input.Right), keyOf(input.Left), keyOf(input.Down)
+			right, left, down := keyOf(input.InputRight), keyOf(input.InputLeft), keyOf(input.Down)
 			for range 12 { // STR to 18 (16 points), no further
 				p.Key(right)
 			}

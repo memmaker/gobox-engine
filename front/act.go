@@ -44,7 +44,7 @@ const (
 	ActHelp               // the help pages (?)
 	ActFont               // the next text font (N -1: the one before)
 	ActSound              // sound on or off (Ctrl-S)
-	ActResize             // the window shows X by Y text cells (40x25 at least): the page takes that size and the screen draws itself again
+	FrontActResize             // the window shows X by Y text cells (40x25 at least): the page takes that size and the screen draws itself again
 	ActSpells             // inventory: the member's memorised spells
 	ActMagic              // inventory: the spell effects on the member
 	ActHeal               // inventory: a paladin lays on hands
@@ -85,7 +85,7 @@ const (
 
 	// Party menu decisions (MainMenu); N is the member (< 0: the
 	// selected one) where one is meant; ActMember views, ActDropMember drops
-	ActCreate     // create a character
+	FrontActCreate     // create a character
 	ActModify     // member N's sheet to change
 	ActAdd        // add saved characters to the party
 	ActForget     // forget a saved character
@@ -131,8 +131,8 @@ const (
 
 )
 
-// Action is one thing the player did on a remastered screen.
-type Action struct {
+// FrontAction is one thing the player did on a remastered screen.
+type FrontAction struct {
 	Kind ActKind
 	N    int
 	Item rules.ItemHandle // the item of an item act (ActReady, ActUse, ActDrop, ActSell, ActBuy, ActTrade, ActHalve, ActJoin, ActReload)

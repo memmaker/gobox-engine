@@ -49,7 +49,7 @@ func project(dst *gpu.Image, vp gpu.Mat4, v vec) (x, y float64, ok bool) {
 }
 
 // drawHealth draws the bars over the figurines.
-func (p *Presenter) drawHealth(dst *gpu.Image, vp gpu.Mat4, heads []head) {
+func (p *CombatPresenter) drawHealth(dst *gpu.Image, vp gpu.Mat4, heads []head) {
 	r := dst.Bounds()
 	w := math.Round(float64(r.Dy()) / 14) // the same width for every bar
 	h := math.Max(3, math.Round(w/10))

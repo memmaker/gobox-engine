@@ -73,7 +73,7 @@ func (p *Presenter) Key(k uint16) {
 
 // key takes k on the remastered screens; false leaves it to keyAct.
 func (p *Presenter) key(k uint16) bool {
-	if actOf(k) == input.Note { // the text box's "> Notes"
+	if actOf(k) == input.InputNote { // the text box's "> Notes"
 		if !p.noteBtn.Empty() {
 			p.send(front.ActNote, 0)
 		}
@@ -121,7 +121,7 @@ func (p *Presenter) key(k uint16) bool {
 		return p.fightKey(k)
 	}
 	if p.ctx > 0 { // the card's context menu: the arrows, Enter, a hotkey or Esc, as the game's menus
-		if m, ok := memberKey(k, p.ctx-1, len(p.party()), true); p.campHome() && (ok || actOf(k) == input.PartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
+		if m, ok := memberKey(k, p.ctx-1, len(p.party()), true); p.campHome() && (ok || actOf(k) == input.InputPartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
 			p.campFocus(k, m)
 			return true
 		}
@@ -475,7 +475,7 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		}
 		if !down {
 			if to := p.cardHover; p.dragged && to > 0 && to != p.dragFrom {
-				p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActOrder, N: p.dragFrom - 1, X: to - 1})
+				p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActOrder, N: p.dragFrom - 1, X: to - 1})
 			}
 			p.dragFrom = 0
 		}
@@ -563,7 +563,7 @@ func (p *Presenter) cardClick(i int) {
 // dropAnswers drops the answers to the question sent since the acts were n
 // long (Key under NoPick/NoEsc).
 func (p *Presenter) dropAnswers(n int) {
-	p.inv.acts = append(p.inv.acts[:n], slices.DeleteFunc(p.inv.acts[n:], func(a front.Action) bool {
+	p.inv.acts = append(p.inv.acts[:n], slices.DeleteFunc(p.inv.acts[n:], func(a front.FrontAction) bool {
 		switch a.Kind {
 		case front.ActChoose, front.ActOK, front.ActYes, front.ActNo, front.ActClose:
 			return true

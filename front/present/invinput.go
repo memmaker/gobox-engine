@@ -59,9 +59,9 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 			pn = &inv.wares
 		}
 		pn.tab, pn.top = (pn.tab+1)%len(tabNames), 0
-	case (a == input.Left || a == input.Right) && inv.up.kind != invOwn: // the shop: Left the goods, Right the member's items
+	case (a == input.InputLeft || a == input.InputRight) && inv.up.kind != invOwn: // the shop: Left the goods, Right the member's items
 		for _, o := range order {
-			if o.ware == (a == input.Left) {
+			if o.ware == (a == input.InputLeft) {
 				inv.choose(o.ware, o.i)
 				break
 			}
@@ -102,7 +102,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		inv.do(front.ActReady)
 	case member:
 		if inv.up.switchable {
-			inv.acts = append(inv.acts, front.Action{Kind: front.ActMember, N: m})
+			inv.acts = append(inv.acts, front.FrontAction{Kind: front.ActMember, N: m})
 		}
 	case k > ' ' && k < 128:
 		for _, w := range inv.menu() {
@@ -200,7 +200,7 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 	}
 	shift := gpu.IsKeyPressed(gpu.KeyShift)
 	if pressed && shift && inv.up.kind == invOwn && inv.hover.In(inv.face) { // Shift-click on the portrait: the next head
-		inv.acts = append(inv.acts, front.Action{Kind: front.ActHead, N: -1})
+		inv.acts = append(inv.acts, front.FrontAction{Kind: front.ActHead, N: -1})
 		return
 	}
 	if right && inv.up.kind == invOwn { // a stack on the cursor: one of it (Shift: half) is dropped where the pointer is; else one of the stack under the pointer (Shift: half) is picked up; elsewhere the screen closes
@@ -232,7 +232,7 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 					if l.ware && inv.up.kind == invLoot {
 						inv.do(front.ActBuy)
 					} else if l.ware {
-						inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, Item: l.item.Handle}, 0
+						inv.ask, inv.askSel = &front.FrontAction{Kind: front.ActBuy, Item: l.item.Handle}, 0
 					} else if inv.up.sell {
 						inv.do(front.ActSell)
 					}
@@ -303,7 +303,7 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 		inv.choose(true, h.item.Handle)
 		switch {
 		case drag && partySide && inv.up.kind != invLoot:
-			inv.ask, inv.askSel = &front.Action{Kind: front.ActBuy, Item: h.item.Handle}, 0 // Yes first; a drag asks first (loot is free: no question)
+			inv.ask, inv.askSel = &front.FrontAction{Kind: front.ActBuy, Item: h.item.Handle}, 0 // Yes first; a drag asks first (loot is free: no question)
 		case drag && partySide, !drag && was == h.item.Handle:
 			inv.do(front.ActBuy)
 		}

@@ -37,8 +37,8 @@ func wallTexture(name string) *gpu.Image {
 	return t
 }
 
-// paintedWalls is View.Painted: map character -> texture name.
-func paintedWalls() map[byte]string {
+// blobberPaintedWalls is View.Painted: map character -> texture name.
+func blobberPaintedWalls() map[byte]string {
 	if cur != nil {
 		return cur.Painted
 	}

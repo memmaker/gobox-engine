@@ -64,11 +64,11 @@ type inventory struct {
 		i      rules.ItemHandle
 		id     string
 	} // a sold, dropped or readied item's line, the list's length and its Index then: the line after it is highlighted once it is gone (row -1 none)
-	ask     *front.Action     // a Drop or Sell waits for Yes
+	ask     *front.FrontAction     // a Drop or Sell waits for Yes
 	askSel  int               // the question's highlighted answer: 0 Yes, 1 No
 	askAt   []image.Rectangle // the question's Yes and No on the screen, as last drawn
 	up      *invUp            // what the screen shows, read from the state when it was last drawn (nil: not up)
-	acts    []front.Action    // to send (Presenter.Actions)
+	acts    []front.FrontAction    // to send (Presenter.Actions)
 	words   []word            // the menu row's words
 	focus   int               // 1+ the word the keys are on (PgUp/PgDn, the pad's shoulders), 0 none
 	k       int               // canvas scale, whole: what the pixel art is drawn at
@@ -188,12 +188,12 @@ func (p *Presenter) Screens() string {
 func (p *Presenter) call(f func(*classicGame)) { p.calls = append(p.calls, f) }
 
 // Actions hands over the actions the screens made since the last call.
-func (p *Presenter) Actions() []front.Action {
+func (p *Presenter) Actions() []front.FrontAction {
 	for _, a := range p.battle.Actions() {
 		a := p.askAction(a) // the turn's are rule calls (pace.go)
 		p.sendA(a)
 	}
-	var as []front.Action
+	var as []front.FrontAction
 	for _, a := range p.inv.acts { // the screens' own (the inventory's, a list's) meet the presenter's questions and rule calls too
 		if !p.slotAct(a) {
 			as = append(as, a)
@@ -209,15 +209,15 @@ func (inv *inventory) do(k front.ActKind) {
 	switch {
 	case k == front.ActNone:
 	case k == front.ActClose, k == front.ActSheet, k == front.ActTakeAll, k >= front.ActSpells && k <= front.ActCure, k >= front.ActTakeMoney && k <= front.ActLootStatus:
-		inv.acts = append(inv.acts, front.Action{Kind: k})
+		inv.acts = append(inv.acts, front.FrontAction{Kind: k})
 	case k == front.ActBuy:
 		if w := inv.wareAt(inv.ware); w != nil {
-			inv.acts = append(inv.acts, front.Action{Kind: k, Item: w.Handle})
+			inv.acts = append(inv.acts, front.FrontAction{Kind: k, Item: w.Handle})
 		}
 	case it == nil:
 	case inv.ask == nil && (k == front.ActDrop && inv.up.kind != invLoot || k == front.ActSell): // leaving an item in the treasure (Deposit) is no loss: no question
 		yes := confirmOf(itemConfirm(k, *it), game.Confirm{Asks: []string{""}, Yes: k == front.ActSell}).Yes // the game's (Data.Confirms), else a sale on Yes, as the Gold Box's, a drop (gone forever) on No
-		inv.ask, inv.askSel = &front.Action{Kind: k, Item: it.Handle}, map[bool]int{true: 0, false: 1}[yes]
+		inv.ask, inv.askSel = &front.FrontAction{Kind: k, Item: it.Handle}, map[bool]int{true: 0, false: 1}[yes]
 		return
 	default:
 		inv.remove(k, it.Handle)
@@ -235,7 +235,7 @@ func (inv *inventory) remove(k front.ActKind, i rules.ItemHandle) {
 
 // removeX is remove with the action's X (Ready's count).
 func (inv *inventory) removeX(k front.ActKind, i rules.ItemHandle, x int) {
-	inv.acts = append(inv.acts, front.Action{Kind: k, Item: i, X: x})
+	inv.acts = append(inv.acts, front.FrontAction{Kind: k, Item: i, X: x})
 	if k != front.ActSell && k != front.ActDrop && k != front.ActReady {
 		return
 	}
@@ -284,7 +284,7 @@ type invUp struct {
 	capacity, used                                            int          // the party pack's slots (0: no limit) and what it holds
 	use, sell, reload, switchable, trade, halve, join, pooled bool
 	powers                                                    []front.Power // what the member can do besides items (the View menu's)
-	treasure                                                  *front.Loot   // invLoot: the treasure's money and other options
+	treasure                                                  *front.FrontLoot   // invLoot: the treasure's money and other options
 	gold, copper                                              int           // the party's money, in a shop
 	ac, thac0                                                 int
 	stats                                                     bool // the game publishes AC and THAC0 (a member with a THAC0)

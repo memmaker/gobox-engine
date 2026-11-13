@@ -249,12 +249,12 @@ func (p *Presenter) campFocus(k uint16, m int) {
 	}
 	n, at := len(order), slices.Index(order, p.ctx)
 	switch a := actOf(k); a {
-	case input.PartyMenu:
+	case input.InputPartyMenu:
 		p.ctx = 0
 		return
-	case input.Left, input.PrevMember:
+	case input.InputLeft, input.PrevMember:
 		p.ctx = order[(at+n-1)%n]
-	case input.Right, input.NextMember, input.Minimap: // Minimap: Tab
+	case input.InputRight, input.NextMember, input.Minimap: // Minimap: Tab
 		p.ctx = order[(at+1)%n]
 	default:
 		p.ctx = 1 + m
@@ -301,10 +301,10 @@ func (p *Presenter) memberAct(k front.ActKind, n int) {
 // its scribing.
 func (p *Presenter) campSpell(id, n int) {
 	if p.camp.screen == campScribe {
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActScribe, N: -1, X: id})
+		p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActScribe, N: -1, X: id})
 		return
 	}
-	p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActPlan, N: -1, X: id, Y: n})
+	p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActPlan, N: -1, X: id, Y: n})
 }
 
 // drawCamp draws the camp screen up at scale k, centred on cx, its top at
@@ -433,7 +433,7 @@ func (p *Presenter) campKey(k uint16) bool {
 		p.campSpellAt(c.sel, -1)
 	case spells && a == input.More && c.sel < n-1: // +: one more
 		p.campSpellAt(c.sel, 1)
-	case actOf(k) == input.PartyMenu:
+	case actOf(k) == input.InputPartyMenu:
 	case (member || actOf(k) == input.Minimap) && p.campHome(): // another menu takes the keys
 		p.campFocus(k, m)
 	case member && !yesNo(p.campKeys(items)): // the member camp acts for (not under a question about one)
@@ -508,7 +508,7 @@ func (p *Presenter) screenUp() bool {
 }
 
 // sendX sends a decision with an X.
-func (p *Presenter) sendX(k front.ActKind, n, x int) { p.sendA(front.Action{Kind: k, N: n, X: x}) }
+func (p *Presenter) sendX(k front.ActKind, n, x int) { p.sendA(front.FrontAction{Kind: k, N: n, X: x}) }
 
 // appraiseItems is the appraise screen; back goes to the screen before.
 func (p *Presenter) appraiseItems(purse map[string]int, offers []game.Offer, back func()) (string, []ui.MenuRow) {
@@ -547,12 +547,12 @@ func (p *Presenter) appraiseItems(purse map[string]int, offers []game.Offer, bac
 func (p *Presenter) askRest(n int) {
 	t, field := [3]int{}, 2 // days, hours, minutes
 	most, step := [3]int{99, 23, 55}, [3]int{1, 1, 5}
-	q := &front.Question{Ask: front.Ask{Kind: front.AskMenu, Menu: front.Menu{Commands: restItems}, Default: 3}}
+	q := &front.Question{Ask: front.FrontAsk{Kind: front.AskMenu, Menu: front.Menu{Commands: restItems}, Default: 3}}
 	set := func() {
 		q.Ask.Prompt = fmt.Sprintf("Rest Time: %d Days %d Hours %d Mins", t[0], t[1], t[2])
 	}
 	set()
-	q.Answer = func(a front.Action) bool {
+	q.Answer = func(a front.FrontAction) bool {
 		switch {
 		case a.Kind == front.ActChoose && a.N < 3:
 			field = a.N
@@ -563,7 +563,7 @@ func (p *Presenter) askRest(n int) {
 		case a.Kind == front.ActChoose && a.N < 5:
 			t[field] = min(most[field], max(0, t[field]+step[field]*(7-2*a.N)))
 		case a.Kind == front.ActChoose && a.N == 5, a.Kind == front.ActOK:
-			p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActRest, N: n, X: t[0]*1440 + t[1]*60 + t[2]})
+			p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActRest, N: n, X: t[0]*1440 + t[1]*60 + t[2]})
 			return true
 		case a.Kind == front.ActChoose, a.Kind == front.ActClose:
 			return true

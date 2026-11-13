@@ -110,7 +110,7 @@ func TestPoolIconCreation(t *testing.T) {
 	if !ok {
 		t.Skip("no pool art")
 	}
-	cr := &front.Creation{Icon: front.CellRect{X1: 29, Y1: 13, X2: 31, Y2: 15}, Scale: 1}
+	cr := &front.FrontCreation{Icon: front.FrontCellRect{X1: 29, Y1: 13, X2: 31, Y2: 15}, Scale: 1}
 	pics := withPoolIcon([]front.Picture{{File: "CBODY", At: image.Rect(232, 104, 256, 128)}}, cr, d, nil)
 	if len(pics) != 2 || !slices.Equal(pics[0].Pix, want.Pix) || pics[0].At.Min != image.Pt(232, 104) {
 		t.Fatalf("icon box not the pool icon: %+v", pics)

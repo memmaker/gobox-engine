@@ -81,7 +81,7 @@ type Presenter struct {
 	answered    string                                // the text pane under the last question: once it is answered, that text is done
 	mapImg      *gpu.Image                            // Map on the GPU
 	mapAt       image.Rectangle                       // where drawMap last put the minimap (a click there opens the full map)
-	mapSrc      *front.MapSquares                     // the derived minimap it holds (derived)
+	mapSrc      *front.FrontMapSquares                     // the derived minimap it holds (derived)
 	mapInk      [16]color.RGBA                        // the ink it was drawn in
 	mapFont     int                                   // and the font (fonts.Cur, -1: the game's own)
 	menuRects   []image.Rectangle                     // the vertical menu's items on screen, as last drawn
@@ -90,14 +90,14 @@ type Presenter struct {
 	sheet       sheetCanvas                           // the character sheet
 	journal     journalUI                             // the quest journal (journal.go)
 	resultsPage sheetCanvas                           // the after-combat page (drawResults)
-	area        ui.AreaMap                            // the overland's map and marker last uploaded (drawAreaMap)
+	area        ui.UIAreaMap                            // the overland's map and marker last uploaded (drawAreaMap)
 	areaPic     areaPic                               // the overland's picture built from its squares (drawAreaMap)
 	fightAskAt  []image.Rectangle                     // the fight pop-up menu's lines on screen
 	winRects    []image.Rectangle                     // the Esc menu's lines on screen, as last drawn
 	noMenu      bool                                  // nothing to pick: any click answers
 	pointer     image.Point                           // the mouse, as Hover last saw it (keys move the highlight while it rests)
 	mc          ui.MenuCanvas                         // the vertical menu's images (ui.MenuCanvas.Draw)
-	battle      combat.Presenter                      // the combat map in 3D
+	battle      combat.CombatPresenter                      // the combat map in 3D
 	mapBottom   int                                   // screen rows above this are the 3D map
 	fight       bool                                  // the last frame was the 3D combat map
 	inv         inventory                             // the inventory screen (inventory.go)
@@ -109,7 +109,7 @@ type Presenter struct {
 	fightBoard  *combat.Board                         // fightView as the tabletop draws it, aims put in
 	fly         *flight                               // a shot's sprite over board (a replayed missile frame)
 	lastBoard   *play.Combat                          // the fight before the moments now playing (keepFallen)
-	inkAsk      *front.Ask                            // the question whose menu is being drawn: its colours (asking)
+	inkAsk      *front.FrontAsk                            // the question whose menu is being drawn: its colours (asking)
 	replay      replay                                // the fight's events still to play
 	logGrey     bool                                  // drawMenu's plain text light grey, not green (the battle Log)
 	fightLog    bool                                  // the battle Log is up (fight.go)
@@ -638,7 +638,7 @@ func (p *Presenter) Options() bool { return p.view != nil && p.view.OptionsOpen(
 func (p *Presenter) UpdateOptions() { p.view.UpdateOptions() }
 
 // optionsKeys: the pad's acts as the options page reads them.
-var optionsKeys = map[input.Act]gpu.Key{input.Up: gpu.KeyUp, input.Down: gpu.KeyDown, input.Left: gpu.KeyLeft, input.Right: gpu.KeyRight,
+var optionsKeys = map[input.Act]gpu.Key{input.Up: gpu.KeyUp, input.Down: gpu.KeyDown, input.InputLeft: gpu.KeyLeft, input.InputRight: gpu.KeyRight,
 	input.PgUp: gpu.KeyPageUp, input.PgDn: gpu.KeyPageDown, input.Home: gpu.KeyHome, input.End: gpu.KeyEnd,
 	input.PadA: gpu.KeyEnter, input.Enter: gpu.KeyEnter, input.Esc: gpu.KeyEscape}
 
@@ -775,7 +775,7 @@ func (p *Presenter) resize(dst *gpu.Image) {
 	if g != p.grid || p.gridAge > 30 && p.gridTries < 3 && (pw != cols*8 || ph != rows*8) { // a game that never lays out to it (it does not apply ActResize) is asked three times, not for ever
 		p.grid, p.gridAge = g, 0
 		p.gridTries++
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActResize, X: cols, Y: rows})
+		p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.FrontActResize, X: cols, Y: rows})
 	}
 }
 
@@ -897,7 +897,7 @@ func (p *Presenter) drawTyping(dst *gpu.Image, note Note, mk float64, cx, floor 
 // box's centre row cy. The picture sits in the middle of the space over the
 // text, else from b's top with the text moved down under it; it never runs
 // off b's top.
-func picPlace(pic front.CellRect, pk, tk, mk, th float64, b image.Rectangle) (pp float64, py, cy int) {
+func picPlace(pic front.FrontCellRect, pk, tk, mk, th float64, b image.Rectangle) (pp float64, py, cy int) {
 	ph, pw := float64(pic.Pixels().Dy()), float64(pic.Pixels().Dx())
 	bw, bh := float64(b.Dx()), float64(b.Dy())
 	gap := pk * 4

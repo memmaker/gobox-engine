@@ -19,7 +19,7 @@ import (
 // Unhandled reports an action the game did not apply: a log line by
 // default; a test may set it to collect them.
 // A kind is logged once per run (a resize sends one every frame of a drag).
-var Unhandled = func(a front.Action) {
+var Unhandled = func(a front.FrontAction) {
 	if _, seen := unhandledSeen.LoadOrStore(a.Kind, true); !seen {
 		log.Printf("front: action %d (N %d) not applied by the game", a.Kind, a.N)
 	}
@@ -41,7 +41,7 @@ type RuleHost interface {
 type Shown struct {
 	Ask, Powers, Sheet, Inventory, Battle bool        // up
 	Camp, MainMenu                        bool        // up
-	Treasure                              *front.Loot // the loot inventory's (Inventory.Treasure)
+	Treasure                              *front.FrontLoot // the loot inventory's (Inventory.Treasure)
 	Door                                  *game.Door
 	Resting                               bool // camp's rest goes on
 	Party                                 int  // the members

@@ -56,9 +56,9 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 					rs = append(rs, u)
 				}
 				if row { // a spell list from the first card's menu: above the cards, on screen
-					spells := front.Ask{Kind: front.AskSpell, Entries: make([]front.Entry, 9)}
+					spells := front.FrontAsk{Kind: front.AskSpell, Entries: make([]front.FrontEntry, 9)}
 					for i := range spells.Entries {
-						spells.Entries[i] = front.Entry{Text: fmt.Sprint("Spell ", i), Spell: 1 + i}
+						spells.Entries[i] = front.FrontEntry{Text: fmt.Sprint("Spell ", i), Spell: 1 + i}
 					}
 					q := presenter()
 					q.q = &front.Question{Ask: spells}

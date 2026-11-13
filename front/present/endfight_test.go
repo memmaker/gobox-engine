@@ -50,7 +50,7 @@ func TestEndingEventsPlay(t *testing.T) {
 	f.Act()
 	f.Draw(dst)
 	f.Tick()
-	f.Game.Answer(front.Action{Kind: front.ActQuick})
+	f.Game.Answer(front.FrontAction{Kind: front.ActQuick})
 	f.P.Play(f.Game.Settle())
 	fight, page := 0, -1
 	for i := range 600 {

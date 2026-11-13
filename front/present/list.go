@@ -128,9 +128,9 @@ func (p *Presenter) listPick(sel int) {
 	}
 	switch {
 	case sel < n && !p.askList()[sel].Off:
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActChoose, N: -1, X: sel})
+		p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActChoose, N: -1, X: sel})
 	case sel >= n && sel-n < len(p.list.opts):
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActChoose, N: p.list.opts[sel-n], X: p.listLine()})
+		p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActChoose, N: p.list.opts[sel-n], X: p.listLine()})
 	default:
 		return
 	}
@@ -140,7 +140,7 @@ func (p *Presenter) listPick(sel int) {
 // raise sends line i's value up (d +1) or down (-1) on AskModify.
 func (p *Presenter) raise(i, d int) {
 	if i >= 0 {
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActRaise, N: i, X: d})
+		p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActRaise, N: i, X: d})
 	}
 }
 
@@ -152,8 +152,8 @@ func (p *Presenter) listKey(k uint16) bool {
 	if _, ok := memberKey(k, 0, len(p.party()), false); ok { // the member the list is for (keyAct)
 		return false
 	}
-	if a := actOf(k); p.modifying() && (a == input.Left || a == input.Right) && l.sel < n { // the line highlighted down or up
-		p.raise(l.sel, map[input.Act]int{input.Left: -1, input.Right: 1}[a])
+	if a := actOf(k); p.modifying() && (a == input.InputLeft || a == input.InputRight) && l.sel < n { // the line highlighted down or up
+		p.raise(l.sel, map[input.Act]int{input.InputLeft: -1, input.InputRight: 1}[a])
 		return true
 	}
 	keys := p.listKeys()
@@ -337,7 +337,7 @@ func itemRows(m *front.Menu) []ui.MenuRow {
 func (p *Presenter) openList() {
 	up := p.askList() != nil
 	if up && !p.listWas && p.askUp().Prompt != p.list.of {
-		p.list = listUI{sel: max(0, slices.IndexFunc(p.askList(), func(l front.Entry) bool { return !l.Off })), of: p.askUp().Prompt}
+		p.list = listUI{sel: max(0, slices.IndexFunc(p.askList(), func(l front.FrontEntry) bool { return !l.Off })), of: p.askUp().Prompt}
 	}
 	p.listWas = up
 }

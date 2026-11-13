@@ -23,10 +23,10 @@ type poolPick struct {
 }
 
 var poolPicks = map[int]poolPick{
-	front.PickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5), false, false},
-	front.PickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6), false, false},
-	front.PickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5), false, false},
-	front.PickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6), false, false},
+	front.FrontPickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5), false, false},
+	front.FrontPickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6), false, false},
+	front.FrontPickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5), false, false},
+	front.FrontPickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6), false, false},
 }
 
 // poolPrefix is what the names of a field start with.
@@ -39,7 +39,7 @@ func (g classicGame) OpenPicker(kind int) bool {
 	if !has { // the game's own pictures; a portrait or icon part comes from the shared pool, whatever the game offers
 		return ok
 	}
-	if names, _ := BodyTiles(g.Game.Subject()); kind == front.PickWeapon && len(names) > 0 {
+	if names, _ := BodyTiles(g.Game.Subject()); kind == front.FrontPickWeapon && len(names) > 0 {
 		pp.names, pp.tiles = names, true
 		g.p.pool = &pp
 		return true
@@ -67,7 +67,7 @@ func (pp *poolPick) list() {
 	}
 }
 
-func (g classicGame) PickerView(page int) *front.Picker {
+func (g classicGame) PickerView(page int) *front.FrontPicker {
 	if pp := g.p.pool; pp != nil {
 		if !pp.tiles && pp.amiga != amigaShown() { // F12 while it is up: the other set's list
 			pp.list()

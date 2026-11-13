@@ -305,9 +305,9 @@ func TestConfirmStart(t *testing.T) {
 	yn := front.Menu{Commands: []front.Command{{Text: "Yes"}, {Text: "No"}}}
 	ny := front.Menu{Commands: []front.Command{{Text: "No"}, {Text: "Yes"}}}
 	for _, c := range []struct {
-		a    front.Ask
+		a    front.FrontAsk
 		want int
-	}{{front.Ask{Menu: yn}, 0}, {front.Ask{Menu: yn, Default: 1}, 1}, {front.Ask{Menu: ny}, 1}, {front.Ask{Menu: ny, Default: 1}, 0}, {front.Ask{Yes: true}, 0}, {front.Ask{}, 1}} {
+	}{{front.FrontAsk{Menu: yn}, 0}, {front.FrontAsk{Menu: yn, Default: 1}, 1}, {front.FrontAsk{Menu: ny}, 1}, {front.FrontAsk{Menu: ny, Default: 1}, 0}, {front.FrontAsk{Yes: true}, 0}, {front.FrontAsk{}, 1}} {
 		if got := confirmStart(&c.a); got != c.want {
 			t.Errorf("%+v: row %d, want %d", c.a, got, c.want)
 		}
@@ -331,7 +331,7 @@ func TestConfirmNoEsc(t *testing.T) {
 // asks) lights no row; Enter and the arrows answer nothing, Y and N do,
 // Esc as NoEsc says.
 func TestConfirmNoPick(t *testing.T) {
-	a := &front.Ask{Kind: front.AskConfirm, Menu: front.Menu{Prompt: "Pay?"}, NoPick: true, NoEsc: true}
+	a := &front.FrontAsk{Kind: front.AskConfirm, Menu: front.Menu{Prompt: "Pay?"}, NoPick: true, NoEsc: true}
 	if confirmStart(a) != -1 {
 		t.Error("a row is lit")
 	}

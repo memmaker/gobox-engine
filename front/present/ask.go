@@ -16,7 +16,7 @@ var askKinds = map[game.AskKind]front.AskKind{
 
 // Ask is the question from s (nil: none up), and false where classic
 // cannot rebuild it from play.Ask: the game's stays.
-func Ask(mode game.Mode, a *play.Ask) (*front.Ask, bool) {
+func Ask(mode game.Mode, a *play.Ask) (*front.FrontAsk, bool) {
 	if a == nil || mode != game.ModeAsk && !OverMenu(mode, a) {
 		return nil, true
 	}
@@ -24,7 +24,7 @@ func Ask(mode game.Mode, a *play.Ask) (*front.Ask, bool) {
 	if !ok {
 		return nil, false
 	}
-	q := &front.Ask{Kind: k, Menu: front.Menu{Prompt: a.Prompt}, Max: a.Max, Default: a.Default, Break: a.Break, Yes: a.Yes, Text: a.Typed, View: a.View, NoEsc: a.NoEsc, NoPick: a.NoPick}
+	q := &front.FrontAsk{Kind: k, Menu: front.Menu{Prompt: a.Prompt}, Max: a.Max, Default: a.Default, Break: a.Break, Yes: a.Yes, Text: a.Typed, View: a.View, NoEsc: a.NoEsc, NoPick: a.NoPick}
 	if a.Kind == game.Name && q.Max <= 0 { // no length given (0): the Gold Box name's 15, never a line that takes no letter
 		q.Max = 15
 	}
@@ -38,7 +38,7 @@ func Ask(mode game.Mode, a *play.Ask) (*front.Ask, bool) {
 		q.Commands = append(q.Commands, front.Command{Text: o.Label, Key: byte(o.Key)})
 	}
 	for _, l := range a.Lines {
-		ll := front.Entry{Text: l.Text, Header: l.Header, Dim: l.Dim, Off: l.Off, Spell: l.Spell}
+		ll := front.FrontEntry{Text: l.Text, Header: l.Header, Dim: l.Dim, Off: l.Off, Spell: l.Spell}
 		for _, k := range l.Hides {
 			if k >= 0 && k < len(a.Options) {
 				ll.Without = append(ll.Without, a.Options[k].Label)

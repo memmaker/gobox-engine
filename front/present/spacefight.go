@@ -146,7 +146,7 @@ func (p *Presenter) sfOf() *game.SpaceFight {
 
 // sfBar is the bar's item string as 10CD takes it: each item followed by a
 // blank, '@' after the first row's last.
-func sfBar(a *front.Ask) string {
+func sfBar(a *front.FrontAsk) string {
 	var b strings.Builder
 	for i, it := range a.Commands {
 		b.WriteString(it.Text)
@@ -220,7 +220,7 @@ func (p *Presenter) sfKey(k uint16) bool {
 	switch {
 	case a.Kind == front.AskConfirm:
 		switch {
-		case act == input.Left || act == input.Right:
+		case act == input.InputLeft || act == input.InputRight:
 			u.sel = 1 - u.sel
 		case act == input.Enter && u.sel == 0, k < 256 && upper == 'Y':
 			p.send(front.ActYes, 0)
@@ -234,10 +234,10 @@ func (p *Presenter) sfKey(k uint16) bool {
 	case a.Kind == front.AskMenu:
 		n := len(a.Commands)
 		switch act {
-		case input.Left:
+		case input.InputLeft:
 			u.sel = (u.sel + n - 1) % n
 			return true
-		case input.Right:
+		case input.InputRight:
 			u.sel = (u.sel + 1) % n
 			return true
 		case input.Up, input.Down: // 0ED3, 1-based
@@ -340,7 +340,7 @@ func rjust(n, w int) string {
 // With scr's Kind ScreenShipSheet the left half (the view, the foe, the
 // status, the range, the foe's panel) is the sheet (BR1 2358 / BR2 2461
 // with no foe); with a ShipSheet on the fight it goes over the fight.
-func (c *cellPage) spaceFight(sf *game.SpaceFight, sh sfShown, ask *front.Ask, scr *game.Screen) {
+func (c *cellPage) spaceFight(sf *game.SpaceFight, sh sfShown, ask *front.FrontAsk, scr *game.Screen) {
 	left := scr == nil || scr.Kind != game.ScreenShipSheet
 	alt := func(on bool, fg, other int) int {
 		if on && sh.Blink%2 == 1 && sh.Blink < sfBlinkSteps {
@@ -464,7 +464,7 @@ func (c *cellPage) panel(sf *game.SpaceFight, own bool, alt func(bool, int, int)
 }
 
 // fightBottom is the message window and the prompt rows.
-func (c *cellPage) fightBottom(sf *game.SpaceFight, sh sfShown, ask *front.Ask) {
+func (c *cellPage) fightBottom(sf *game.SpaceFight, sh sfShown, ask *front.FrontAsk) {
 	// the message window (1,19)-(38,21)
 	c.fillCells(1, 19, 38, 21, 0)
 	for i, r := range sh.Pages[sh.Page] {

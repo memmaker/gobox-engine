@@ -294,7 +294,7 @@ func (p *Presenter) fightKey(k uint16) bool {
 		p.logTop = max(0, min(p.logTop, math.MaxInt32-logRows)+d) // clamped when drawn
 		return true
 	}
-	if a == input.Options && p.view != nil {
+	if a == input.InputOptions && p.view != nil {
 		p.view.OpenOptions()
 		return true
 	}
@@ -501,7 +501,7 @@ func (p *Presenter) pickList() []front.Spell {
 	switch {
 	case p.pick != nil:
 		return p.pick
-	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil && p.battle.PickKind == combat.ActManeuver:
+	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil && p.battle.PickKind == combat.CombatActManeuver:
 		if p.fightLists.maneuvers == nil { // never nil: an empty list still takes Esc
 			return []front.Spell{}
 		}
@@ -514,7 +514,7 @@ func (p *Presenter) pickList() []front.Spell {
 
 // maneuvering: the bar's Maneuver list is up (pickList holds maneuvers).
 func (p *Presenter) maneuvering() bool {
-	return p.pick == nil && p.fight && p.battle.Picking && p.battle.PickKind == combat.ActManeuver
+	return p.pick == nil && p.fight && p.battle.Picking && p.battle.PickKind == combat.CombatActManeuver
 }
 
 // drawPickList draws the spell list (pickList) as a menu with hotkeys, its
@@ -572,7 +572,7 @@ func (p *Presenter) cast(i int) {
 	spells, fromBar := p.pickList(), p.pick == nil
 	p.battle.Picking = false
 	switch {
-	case i >= 0 && i < len(spells) && fromBar && p.battle.PickKind == combat.ActManeuver:
+	case i >= 0 && i < len(spells) && fromBar && p.battle.PickKind == combat.CombatActManeuver:
 		p.send(front.ActManeuver, spells[i].ID)
 	case i >= 0 && i < len(spells):
 		p.send(front.ActCast, spells[i].ID)

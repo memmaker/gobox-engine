@@ -21,14 +21,14 @@ func TestSheetSpellsTitle(t *testing.T) {
 	if !slices.Equal(got, want) {
 		t.Errorf("row 1: %+v, want %+v", got, want)
 	}
-	if !slices.Contains(c.boxes, front.CellRect{X1: 1, Y1: 1, X2: 38, Y2: 1}) {
+	if !slices.Contains(c.boxes, front.FrontCellRect{X1: 1, Y1: 1, X2: 38, Y2: 1}) {
 		t.Errorf("no box round the title: %v", c.boxes)
 	}
 }
 
 // The focus goes to the nearest part the arrow points at.
 func TestNearestSpot(t *testing.T) {
-	r := func(x, y int) spot { return spot{r: front.CellRect{X1: x, Y1: y, X2: x + 3, Y2: y}} }
+	r := func(x, y int) spot { return spot{r: front.FrontCellRect{X1: x, Y1: y, X2: x + 3, Y2: y}} }
 	sp := []spot{r(1, 1), r(1, 3), r(8, 3), r(30, 2), r(0, 24)}
 	for _, c := range []struct {
 		from int

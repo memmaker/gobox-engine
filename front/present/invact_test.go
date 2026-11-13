@@ -31,9 +31,9 @@ func TestInventoryActs(t *testing.T) {
 		t.Fatalf("sent %v, passed %v", f.sent, as)
 	}
 	for _, k := range []front.ActKind{front.ActHalve, front.ActJoin} {
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: k, Item: 2})
+		p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: k, Item: 2})
 	}
-	p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActTrade, Item: 2, X: 2, Y: 1}) // Trade, its member asked
+	p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActTrade, Item: 2, X: 2, Y: 1}) // Trade, its member asked
 	if as := p.Actions(); len(as) != 3 {
 		t.Fatalf("passed %v", as)
 	}
@@ -47,7 +47,7 @@ func TestShopKeys(t *testing.T) {
 	var p Presenter
 	p.SetEngine(g)
 	p.inv.up, p.inv.ware, p.inv.sel = in, rules.NoItem, 1
-	p.inventoryKey(keyOf(input.Left))
+	p.inventoryKey(keyOf(input.InputLeft))
 	p.inventoryKey(keyOf(input.Enter))
 	p.Actions()
 	for _, c := range p.Calls() {
@@ -70,7 +70,7 @@ func TestInventoryDrag(t *testing.T) {
 	inv := &p.inv
 	inv.k, inv.kx, inv.ky, inv.up, inv.sel, inv.ware = 1, 1, 1, in, rules.NoItem, rules.NoItem
 	inv.dollAt = image.Rect(0, 0, 100, 100)
-	drag := func(from hit, x, y int) []front.Action {
+	drag := func(from hit, x, y int) []front.FrontAction {
 		inv.lines = []hit{from}
 		p.InventoryMouse(from.r.Min.X+5, from.r.Min.Y+5, true, false, 0)
 		p.InventoryMouse(x, y, true, false, 0)
@@ -93,7 +93,7 @@ func TestTradeAsksOverItems(t *testing.T) {
 	g.r.items = game.ItemsOwn
 	var p Presenter
 	p.SetEngine(g)
-	p.inv.acts = []front.Action{{Kind: front.ActTrade, Item: 2}}
+	p.inv.acts = []front.FrontAction{{Kind: front.ActTrade, Item: 2}}
 	p.Actions()
 	if p.q == nil || p.q.Ask.Kind != front.AskMember {
 		t.Fatal("no member pick")
@@ -154,7 +154,7 @@ func TestListKeepsLine(t *testing.T) {
 // key, a click and the pad's focus all go through the menu's words; it sends
 // ActDrop at once, with no "gone forever" question.
 func TestLootDropWord(t *testing.T) {
-	in := &invUp{kind: invLoot, treasure: &front.Loot{Drop: true}, wares: []game.Item{{Handle: 4, Name: "Sword"}},
+	in := &invUp{kind: invLoot, treasure: &front.FrontLoot{Drop: true}, wares: []game.Item{{Handle: 4, Name: "Sword"}},
 		pool: []game.Item{{Handle: 1, Name: "Gun"}}}
 	var p Presenter
 	p.inv.up, p.inv.ware, p.inv.sel = in, rules.NoItem, 1

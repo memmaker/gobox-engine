@@ -37,7 +37,7 @@ func (p *Presenter) openMap() {
 }
 
 // fm is the full map as the engine draws it; nil with none up.
-func (p *Presenter) fm() *front.FullMap {
+func (p *Presenter) fm() *front.FrontFullMap {
 	if p.fullMap == nil || p.eng == nil {
 		return nil
 	}
@@ -54,7 +54,7 @@ const (
 
 // layFullMap places fm on a page of cells (40x25 at least): the map's
 // corner and square size, the legend's place and the lines that fit.
-func layFullMap(fm *front.FullMap, cells image.Point) *front.FullMap {
+func layFullMap(fm *front.FrontFullMap, cells image.Point) *front.FrontFullMap {
 	if fm == nil {
 		return nil
 	}
@@ -137,13 +137,13 @@ func (p *Presenter) mapKey(k uint16) {
 		}
 		return
 	}
-	d := map[input.Act]image.Point{input.Up: {0, -1}, input.Down: {0, 1}, input.Left: {-1, 0}, input.Right: {1, 0}}[a]
+	d := map[input.Act]image.Point{input.Up: {0, -1}, input.Down: {0, 1}, input.InputLeft: {-1, 0}, input.InputRight: {1, 0}}[a]
 	switch {
 	case d != (image.Point{}):
 		p.mapMove(f.cursor.Add(d))
 	case a == input.Enter || a == input.Space || a == input.PadA:
 		f.menu, p.sel = true, 0
-	case a == input.Esc || a == input.Map:
+	case a == input.Esc || a == input.InputMap:
 		p.fullMap = nil
 	}
 }

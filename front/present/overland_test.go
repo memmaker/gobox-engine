@@ -22,7 +22,7 @@ func TestOverlandGoesEachWay(t *testing.T) {
 	}
 	for dir, to := range []image.Point{{4, 3}, {5, 4}, {4, 5}, {3, 4}} {
 		r := &fake{st: x}
-		if err := NewGame(r, game.Data{}).Answer(front.Action{Kind: front.ActGo, N: dir}); err != nil {
+		if err := NewGame(r, game.Data{}).Answer(front.FrontAction{Kind: front.ActGo, N: dir}); err != nil {
 			t.Fatal(err)
 		}
 		if len(r.sent) != 1 || r.sent[0] != (play.Arrive{From: image.Pt(4, 4), To: to, Facing: 6}) {

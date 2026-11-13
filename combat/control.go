@@ -13,7 +13,7 @@ import (
 
 // Zoom moves the camera in (wheel up) or out by one wheel step: 15 percent
 // of its distance at speed 1 (the Zoom speed option).
-func (p *Presenter) Zoom(in bool, speed float64) {
+func (p *CombatPresenter) Zoom(in bool, speed float64) {
 	p.initCamera()
 	f := 1 + 0.15*speed
 	if in {
@@ -32,7 +32,7 @@ func (p *Presenter) Zoom(in bool, speed float64) {
 //
 // a is what the binding table makes of the
 // key, k the key itself: the digits and the bar's letters are raw input.
-func (p *Presenter) Key(a input.Act, k uint16) bool {
+func (p *CombatPresenter) Key(a input.Act, k uint16) bool {
 	p.initCamera()
 	if k < 128 && k >= 'A' && k <= 'Z' {
 		k += 'a' - 'A'
@@ -41,19 +41,19 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 	aiming := b != nil && b.Turn != nil && b.Turn.Aim
 	cycle := a == input.Tab || a == input.PgUp || a == input.PgDn
 	back := a == input.PgUp || a == input.Tab && p.Shift
-	keyed := bar{}
+	keyed := combatBar{}
 	if b != nil && !p.Picking {
 		keyed = keyedItems(b, p.Asking) // the buttonless acts' keys (M, V ...), after the bar's
 	}
-	either := func(f func(*bar) *barItem) *barItem { return cmp.Or(f(&p.bar), f(&keyed)) }
-	chord := either(func(b *bar) *barItem { return b.chordKey(k, p.Alt, p.Shift) })
-	game := either(func(b *bar) *barItem { return b.gameKey(k) })
-	table := either(func(b *bar) *barItem { return b.tableKey(k) })
+	either := func(f func(*combatBar) *barItem) *barItem { return cmp.Or(f(&p.bar), f(&keyed)) }
+	chord := either(func(b *combatBar) *barItem { return b.chordKey(k, p.Alt, p.Shift) })
+	game := either(func(b *combatBar) *barItem { return b.gameKey(k) })
+	table := either(func(b *combatBar) *barItem { return b.tableKey(k) })
 	switch {
 	case chord != nil: // the game's own chords (Alt-Q, Space) first
 		p.press(*chord)
 	case k == 'u' && p.Shift && p.bar.hotkey(a, k) != nil: // Shift-U: Quick for the whole party
-		p.act(Decision{Kind: ActQuick, N: 1})
+		p.act(Decision{Kind: CombatActQuick, N: 1})
 	case game != nil: // the game's own hotkey wins over the camera's (Q, E, W ...)
 		p.press(*game)
 	case table != nil: // the remaster's letter for the same act (F Attack, U Quick), where the game gave its own
@@ -62,13 +62,13 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 	case a >= input.CursorUp && a <= input.CursorRight && p.stepUnit(cursorDirs[a]): // the arrows step the turn's unit, as the original's
 	case a >= input.CursorUp && a <= input.CursorRight: // the square cursor (the pad's d-pad and left stick send these too)
 		p.moveCursor(cursorDirs[a])
-	case a == input.Up || a == input.Down || a == input.Left || a == input.Right: // W A S D pan
+	case a == input.Up || a == input.Down || a == input.InputLeft || a == input.InputRight: // W A S D pan
 	case k >= '0' && k <= '9':
 		if i := (int(k) - '0' + 9) % 10; i < len(p.bar.rects) { // 1 is the first button, 0 the tenth
 			p.press(p.bar.items[i])
 		}
-	case either(func(b *bar) *barItem { return b.hotkey(a, k) }) != nil:
-		p.press(*either(func(b *bar) *barItem { return b.hotkey(a, k) }))
+	case either(func(b *combatBar) *barItem { return b.hotkey(a, k) }) != nil:
+		p.press(*either(func(b *combatBar) *barItem { return b.hotkey(a, k) }))
 	case cycle && aiming && len(b.Targets) > 0: // Tab, Shift-Tab, the pad's shoulders: the next, previous target
 		p.cycleTarget(back)
 	case a == input.Space:
@@ -76,7 +76,7 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 	case a == input.Enter && aiming: // a square the game doesn't take leaves the aim up, the view centred on the cursor (the original's Center)
 		t := vec{float64(b.Cursor.X) + .5, 0, float64(b.Cursor.Y) + .5}
 		p.tabTo = &t
-		p.act(Decision{Kind: ActAim, X: b.Cursor.X, Y: b.Cursor.Y})
+		p.act(Decision{Kind: CombatActAim, X: b.Cursor.X, Y: b.Cursor.Y})
 	case cycle && len(p.bar.rects) > 0: // Tab, Shift-Tab, the pad's shoulders (PgUp, PgDn): the focus
 		d := 1
 		if back {
@@ -89,7 +89,7 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 		return p.clickSquare(*p.free)
 	case a == input.Enter && p.lookCursor(): // no cursor yet: it starts on the turn's unit (Move had it), the arrows then move it
 	case a == input.Esc && aiming:
-		p.act(Decision{Kind: ActClose})
+		p.act(Decision{Kind: CombatActClose})
 	default:
 		return false
 	}
@@ -99,7 +99,7 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 // Camera takes the camera's own acts (Q and E turn, Home brings it back),
 // whatever the fight is doing: its events playing too. It reports whether a
 // was one.
-func (p *Presenter) Camera(a input.Act) bool {
+func (p *CombatPresenter) Camera(a input.Act) bool {
 	if !CameraAct(a) {
 		return false
 	}
@@ -122,7 +122,7 @@ func CameraAct(a input.Act) bool {
 
 // cycleTarget moves the aim to the next of the turn's targets (back: the
 // previous), the camera along.
-func (p *Presenter) cycleTarget(back bool) {
+func (p *CombatPresenter) cycleTarget(back bool) {
 	b := p.b
 	i := 0
 	for j, id := range b.Targets {
@@ -147,7 +147,7 @@ func (p *Presenter) cycleTarget(back bool) {
 // moveCursor moves the square cursor a square forward (d[0]) or right
 // (d[1]) as the camera looks: aiming, the aim (ActPoint); else the free
 // cursor, from the active unit's square, kept on the map.
-func (p *Presenter) moveCursor(d [2]float64) {
+func (p *CombatPresenter) moveCursor(d [2]float64) {
 	b := p.b
 	if b == nil || b.Turn == nil {
 		return
@@ -167,7 +167,7 @@ func (p *Presenter) moveCursor(d [2]float64) {
 	}
 	at = at.Add(step)
 	if u, ok := p.activeUnit(); ok && !b.Turn.Aim && *p.free == image.Pt(u.X, u.Y) && !onBoard(at) { // the cursor on the unit, pushed off the board's edge: a step off, the flee
-		p.act(Decision{Kind: ActFlee})
+		p.act(Decision{Kind: CombatActFlee})
 		return
 	}
 	at = image.Pt(min(max(at.X, 0), len(p.ground[0])-1), min(max(at.Y, 0), len(p.ground)-1))
@@ -182,7 +182,7 @@ func (p *Presenter) moveCursor(d [2]float64) {
 var cursorDirs = map[input.Act][2]float64{input.CursorUp: {1, 0}, input.CursorDown: {-1, 0}, input.CursorRight: {0, 1}, input.CursorLeft: {0, -1}}
 
 // screenStep is the board offset of screen direction d as the camera turns.
-func (p *Presenter) screenStep(d [2]float64) image.Point {
+func (p *CombatPresenter) screenStep(d [2]float64) image.Point {
 	sin, cos := math.Sin(p.yaw), math.Cos(p.yaw)
 	return image.Pt(int(math.Round(-sin*d[0]+cos*d[1])), int(math.Round(-cos*d[0]-sin*d[1])))
 }
@@ -190,7 +190,7 @@ func (p *Presenter) screenStep(d [2]float64) image.Point {
 // stepUnit walks the turn's unit one square in screen direction d when the
 // game lets it go there (Reach), outside an aim; it reports whether it did. A blocked step starts the look
 // cursor instead, which the arrows then move (Enter walks there).
-func (p *Presenter) stepUnit(d [2]float64) bool {
+func (p *CombatPresenter) stepUnit(d [2]float64) bool {
 	b := p.b
 	if b == nil || b.Turn == nil || b.Turn.Aim || p.Asking || p.Picking {
 		return false
@@ -203,12 +203,12 @@ func (p *Presenter) stepUnit(d [2]float64) bool {
 			to := image.Pt(u.X, u.Y).Add(p.screenStep(d))
 			if !onBoard(to) { // a step off the board's edge: the flee (the game asks, or refuses away from its edge)
 				p.free = nil
-				p.act(Decision{Kind: ActFlee})
+				p.act(Decision{Kind: CombatActFlee})
 				return true
 			}
 			if p.moving == u.ID || slices.Contains(b.Reach, to) {
 				p.free = nil // Move's cursor, still on the unit: the arrows step it, as the original's
-				p.act(Decision{Kind: ActWalk, X: to.X, Y: to.Y})
+				p.act(Decision{Kind: CombatActWalk, X: to.X, Y: to.Y})
 				return true
 			}
 		}
@@ -220,7 +220,7 @@ func (p *Presenter) stepUnit(d [2]float64) bool {
 func onBoard(sq image.Point) bool { return sq.In(image.Rect(0, 0, len(Board{}.Ground[0]), len(Board{}.Ground))) }
 
 // activeUnit is the unit whose turn it is (ok false: none).
-func (p *Presenter) activeUnit() (Unit, bool) {
+func (p *CombatPresenter) activeUnit() (Unit, bool) {
 	if p.b != nil {
 		for _, u := range p.b.Units {
 			if u.Active {
@@ -234,7 +234,7 @@ func (p *Presenter) activeUnit() (Unit, bool) {
 // lookCursor starts the square cursor on the turn's unit, outside an aim,
 // a question and a pick; the arrows then move it and Enter takes the
 // square it is on (clickSquare). It reports whether it started.
-func (p *Presenter) lookCursor() bool {
+func (p *CombatPresenter) lookCursor() bool {
 	u, ok := p.activeUnit()
 	if !ok || p.b.Turn == nil || p.b.Turn.Aim || p.Asking || p.Picking {
 		return false
@@ -257,7 +257,7 @@ func targetAt(b *Board, sq image.Point) bool {
 // its heading, and reports whether any is held. A pan starts from where
 // the camera is (not from the focus it was easing toward), so the first
 // frames never swing the other way.
-func (p *Presenter) pan(dt float64, focus vec) bool {
+func (p *CombatPresenter) pan(dt float64, focus vec) bool {
 	f, r := -p.Stick[1], p.Stick[0] // the pad's right stick
 	for _, h := range [4]struct {
 		k    gpu.Key
@@ -284,7 +284,7 @@ func (p *Presenter) pan(dt float64, focus vec) bool {
 // it sits inside the view's comfort box (the eye does not follow what is
 // in plain sight: less motion the player did not ask for), and rising
 // smoothly as it leaves the box for the edge.
-func (p *Presenter) chase(focus vec) float64 {
+func (p *CombatPresenter) chase(focus vec) float64 {
 	const side, top, bottom = 0.6, 0.65, -0.3 // the box in -1..1 (the bar covers the bottom)
 	nx, ny, ok := p.cam.ndc(focus)
 	if !ok {
@@ -294,21 +294,21 @@ func (p *Presenter) chase(focus vec) float64 {
 	return min(1, out/0.3)
 }
 
-func (p *Presenter) initCamera() {
+func (p *CombatPresenter) initCamera() {
 	if p.distTo == 0 {
 		p.dist, p.distTo = 12, 12
 	}
 }
 
 // Pick is the map square under screen pixel (x, y), as last drawn.
-func (p *Presenter) Pick(x, y int) (int, int, bool) {
+func (p *CombatPresenter) Pick(x, y int) (int, int, bool) {
 	sq, hit := p.pickPlane(x, y)
 	return sq.X, sq.Y, hit && onBoard(sq)
 }
 
 // pickPlane is the square under screen pixel (x, y) on the board's plane,
 // on the board or past its edge (hit false: the pixel shows no ground).
-func (p *Presenter) pickPlane(x, y int) (image.Point, bool) {
+func (p *CombatPresenter) pickPlane(x, y int) (image.Point, bool) {
 	r := p.screen
 	if r.Empty() || !image.Pt(x, y).In(r) {
 		return image.Point{}, false
@@ -353,7 +353,7 @@ func iconSize(u Unit) image.Point {
 
 // aimTo puts the aim cursor on square at: front state, the game is not
 // told (Enter or a click sends the ActAim).
-func (p *Presenter) aimTo(at image.Point) {
+func (p *CombatPresenter) aimTo(at image.Point) {
 	p.aimAt = &at
 	if p.b != nil {
 		p.b.Cursor, p.b.CursorOn, p.b.CursorAt = at, true, []image.Point{at}

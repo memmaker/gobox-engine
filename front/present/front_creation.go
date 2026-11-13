@@ -12,10 +12,10 @@ import (
 
 // CreateAct takes a decision a on the creation sheet (or one opening it),
 // creating whether it is up: false leaves it to the front.
-func CreateAct(h RuleHost, creating *bool, a front.Action) bool {
+func CreateAct(h RuleHost, creating *bool, a front.FrontAction) bool {
 	if !*creating {
 		switch a.Kind {
-		case front.ActCreate:
+		case front.FrontActCreate:
 			h.Edit(func(e *classicGame) { refused(e, e.do(play.NewCharacter{})); *creating = e.CreationView() != nil })
 		case front.ActModify:
 			h.Edit(func(e *classicGame) { refused(e, e.do(play.Modify{Member: a.N})); *creating = e.CreationView() != nil })

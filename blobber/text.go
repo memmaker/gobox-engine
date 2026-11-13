@@ -14,7 +14,7 @@ var Glyph func(byte) [8]byte
 // LineH is the height of a line of text.
 const LineH = 16
 
-var texts = map[string]*gpu.Image{}
+var blobberTexts = map[string]*gpu.Image{}
 
 // Width is s's width in pixels.
 func Width(s string) int { return 16 * len(s) }
@@ -24,16 +24,16 @@ func Print(dst *gpu.Image, s string, x, y int) {
 	if s == "" {
 		return
 	}
-	img, ok := texts[s]
+	img, ok := blobberTexts[s]
 	if !ok {
-		if len(texts) > 256 { // ponytail: drop the whole cache, an LRU if this ever shows up in profiles
-			for _, t := range texts {
+		if len(blobberTexts) > 256 { // ponytail: drop the whole cache, an LRU if this ever shows up in profiles
+			for _, t := range blobberTexts {
 				t.Deallocate()
 			}
-			clear(texts)
+			clear(blobberTexts)
 		}
 		img = gpu.NewImageFromImage(render(s))
-		texts[s] = img
+		blobberTexts[s] = img
 	}
 	op := &gpu.DrawImageOptions{}
 	op.GeoM.Translate(float64(x), float64(y))

@@ -110,14 +110,14 @@ func (m *mainUI) skip(hall bool) bool {
 // mainNames are the party menu's functions as the menu names them.
 var mainNames = map[front.ActKind]string{
 	front.ActBegin: "BEGIN Adventuring", front.ActLoad: "Load Game", front.ActQuickStart: "Quick Start", front.ActQuit: blobber.QuitRow,
-	front.ActAdd: "Add", front.ActCreate: "Create", front.ActForget: "Forget", front.ActDropMember: "Drop",
+	front.ActAdd: "Add", front.FrontActCreate: "Create", front.ActForget: "Forget", front.ActDropMember: "Drop",
 	front.ActModify: "Modify", front.ActTraining: "Train", front.ActNewClass: "New Class", front.ActMember: "View", front.ActRemove: "Remove",
 }
 
 // mainLong are the party menu's functions by their full names, the keys
 // a series renames them by in Data.Texts.
 var mainLong = map[front.ActKind]string{
-	front.ActAdd: "Add Character", front.ActCreate: "Create Character", front.ActForget: "Forget Character", front.ActDropMember: "Drop Character",
+	front.ActAdd: "Add Character", front.FrontActCreate: "Create Character", front.ActForget: "Forget Character", front.ActDropMember: "Drop Character",
 	front.ActModify: "Modify Character", front.ActTraining: "Train Character", front.ActMember: "View Character", front.ActRemove: "Remove Character",
 }
 
@@ -173,13 +173,13 @@ func (m *mainUI) items(h MainHost, v front.MainMenu) (string, []ui.MenuRow) {
 		it = append(it, ui.MenuRow{Text: name, Key: key, Do: do})
 	}
 	if v.Hall { // the training hall's: the party's functions and the way out, no title, no submenu
-		for _, k := range []front.ActKind{front.ActTraining, front.ActNewClass, front.ActMember, front.ActModify, front.ActAdd, front.ActCreate, front.ActRemove, front.ActDropMember} {
+		for _, k := range []front.ActKind{front.ActTraining, front.ActNewClass, front.ActMember, front.ActModify, front.ActAdd, front.FrontActCreate, front.ActRemove, front.ActDropMember} {
 			add(k)
 		}
 		return "", append(it, ui.MenuRow{Text: "Leave the Hall", Key: 'L', Do: func() { h.Send(front.ActBegin, -1) }})
 	}
 	if m.sub {
-		for _, k := range []front.ActKind{front.ActAdd, front.ActCreate, front.ActForget, front.ActDropMember, front.ActModify, front.ActTraining, front.ActMember, front.ActRemove} {
+		for _, k := range []front.ActKind{front.ActAdd, front.FrontActCreate, front.ActForget, front.ActDropMember, front.ActModify, front.ActTraining, front.ActMember, front.ActRemove} {
 			add(k)
 		}
 		it = m.entries(h, it, true)

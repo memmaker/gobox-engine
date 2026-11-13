@@ -35,7 +35,7 @@ func (inv *inventory) menu() []word {
 	if in.kind == invLoot { // the loot: take a piece of treasure
 		t := in.treasure
 		if t == nil {
-			t = &front.Loot{}
+			t = &front.FrontLoot{}
 		}
 		w := []word{{text: "Take", act: front.ActBuy, on: inv.wareAt(inv.ware) != nil}, {text: "All", act: front.ActTakeAll, on: len(in.wares) > 0 || len(t.Money) > 0}}
 		for _, o := range []struct {

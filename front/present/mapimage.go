@@ -10,7 +10,7 @@ import (
 
 // mapImage draws m at cell pixels a square in the colours ink (ui.MapImage:
 // the engine's squares copied over, their Seen and wall values map 1:1).
-func mapImage(m *front.MapSquares, cell int, ink [16]color.RGBA, glyph func(byte, bool) [8]byte) *image.RGBA {
+func mapImage(m *front.FrontMapSquares, cell int, ink [16]color.RGBA, glyph func(byte, bool) [8]byte) *image.RGBA {
 	u := &ui.MapSquares{Party: m.Party, Ahead: m.Ahead}
 	for y, row := range m.Squares {
 		for x, q := range row {
@@ -24,5 +24,5 @@ func mapImage(m *front.MapSquares, cell int, ink [16]color.RGBA, glyph func(byte
 			u.Squares[y][x] = s
 		}
 	}
-	return ui.MapImage(u, cell, ink, doorRGBA, glyph)
+	return ui.UIMapImage(u, cell, ink, doorRGBA, glyph)
 }

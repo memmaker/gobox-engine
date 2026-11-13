@@ -22,7 +22,7 @@ const (
 // the page laid out, kept until a call or the window changes it.
 type PickUI struct {
 	Page int
-	view *front.Picker
+	view *front.FrontPicker
 	key  pageKey
 }
 
@@ -30,13 +30,13 @@ type PickUI struct {
 // laid out (as PickUI's).
 type IconUI struct {
 	part, shade int
-	view        *front.IconEditor // the layout, with the swatch selected
+	view        *front.FrontIconEditor // the layout, with the swatch selected
 	key         pageKey
 }
 
 // page is the picker's page laid out on g, again when key (the calls run
 // and the window) changed.
-func (pk *PickUI) Layout(g *classicGame, key pageKey) *front.Picker {
+func (pk *PickUI) Layout(g *classicGame, key pageKey) *front.FrontPicker {
 	if pk.view == nil || pk.key != key {
 		pk.view, pk.key = g.PickerView(pk.Page), key
 		if pk.view != nil {
@@ -51,7 +51,7 @@ func (pk *PickUI) Layout(g *classicGame, key pageKey) *front.Picker {
 
 // Layout is the editor's page laid out on g, with the swatch selected
 // (nil: none).
-func (ic *IconUI) Layout(g *classicGame, key pageKey) *front.IconEditor {
+func (ic *IconUI) Layout(g *classicGame, key pageKey) *front.FrontIconEditor {
 	key.part, key.shade = ic.part, ic.shade
 	if ic.view == nil || ic.key != key {
 		ic.view, ic.key = nil, key
@@ -74,7 +74,7 @@ func OpenPicker(h RuleHost, pick **PickUI, kind int) {
 
 // PickAct takes a decision a on the picker up (*pick, or one opening it):
 // false leaves it to the front.
-func PickAct(h RuleHost, pick **PickUI, a front.Action) bool {
+func PickAct(h RuleHost, pick **PickUI, a front.FrontAction) bool {
 	switch pk := *pick; {
 	case a.Kind == ActPicker:
 		OpenPicker(h, pick, a.N)
@@ -103,7 +103,7 @@ func PickAct(h RuleHost, pick **PickUI, a front.Action) bool {
 
 // IconAct takes a decision a on the icon editor up (*icon, or one
 // opening it): false leaves it to the front.
-func IconAct(h RuleHost, icon **IconUI, a front.Action) bool {
+func IconAct(h RuleHost, icon **IconUI, a front.FrontAction) bool {
 	ic := *icon
 	if ic == nil {
 		if a.Kind != front.ActIconEdit {

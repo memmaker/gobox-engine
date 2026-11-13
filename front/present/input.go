@@ -24,12 +24,12 @@ func memberKey(k uint16, cur, n int, lr bool) (int, bool) {
 		i := int(a - input.Member1)
 		return i, i < n
 	case n == 0:
-	case a == input.PrevMember || lr && a == input.Left:
+	case a == input.PrevMember || lr && a == input.InputLeft:
 		if cur <= 0 {
 			return n - 1, true
 		}
 		return cur - 1, true
-	case a == input.NextMember || lr && a == input.Right:
+	case a == input.NextMember || lr && a == input.InputRight:
 		return (cur + 1) % n, true
 	}
 	return -1, false
@@ -49,7 +49,7 @@ func globalKey(k uint16) bool {
 // overview), which the game never asked for.
 func frontOnly(k uint16) bool {
 	switch actOf(k) {
-	case input.SaveLoad, input.Map, input.Overview, input.Party:
+	case input.SaveLoad, input.InputMap, input.Overview, input.Party:
 		return true
 	}
 	return false
@@ -58,8 +58,8 @@ func frontOnly(k uint16) bool {
 // arrow turns a cursor key a into its decision on v: the member pick's candidate (ActLead), else a pager's page
 // (ActPage -1 or +1).
 func (p *Presenter) arrow(a input.Act) {
-	back := a == input.Up || a == input.Left || a == input.PgUp || a == input.Home
-	on := a == input.Down || a == input.Right || a == input.PgDn || a == input.End
+	back := a == input.Up || a == input.InputLeft || a == input.PgUp || a == input.Home
+	on := a == input.Down || a == input.InputRight || a == input.PgDn || a == input.End
 	if n := len(p.party()); n > 0 && p.choosing() && (back || on) {
 		i := p.selectedIndex()
 		switch {
@@ -94,10 +94,10 @@ func (p *Presenter) send(kind front.ActKind, n int) {
 		p.openSlots(false)
 		return
 	}
-	if p.slotAct(front.Action{Kind: kind, N: n}) {
+	if p.slotAct(front.FrontAction{Kind: kind, N: n}) {
 		return
 	}
-	p.inv.acts = append(p.inv.acts, front.Action{Kind: kind, N: n})
+	p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: kind, N: n})
 }
 
 // keyAct turns key k into the action it stands for on the screen v shows.
@@ -108,7 +108,7 @@ func (p *Presenter) keyAct(k uint16) {
 		}
 		switch done, cancel, _ := editKey(k, &p.typed, &p.typedCur, t.Max, t.Kind == front.AskNumber); {
 		case done: // the whole line, once: the game never sees a line half typed
-			p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActText, Text: p.typed})
+			p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActText, Text: p.typed})
 			p.typing = false
 		case cancel:
 			p.send(front.ActClose, 0)
@@ -179,7 +179,7 @@ func (p *Presenter) keyAct(k uint16) {
 	case k >= 128 || c < ' ': // another key the table binds (or none): nothing here
 	case menuIndex(p.askMenu(), c) >= 0:
 		p.send(front.ActChoose, menuIndex(p.askMenu(), c))
-	case a == input.Map:
+	case a == input.InputMap:
 		p.openMap()
 	case a == input.Party && p.exploring():
 		p.overview = true
@@ -202,11 +202,11 @@ func (p *Presenter) Drop(path string, cx, cy int, in bool) {
 	r := p.iconBox()
 	switch {
 	case p.icon != nil:
-		IconAct(p, &p.icon, front.Action{Kind: front.ActIcon, Text: path})
-	case p.iconEditor(p.ink()) != nil || in && r != (front.CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActIcon, Text: path})
-	case p.portraitBox() != (front.CellRect{}) || p.inventoryKind() == invOwn: // the sheet or the member's inventory
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActPortrait, N: -1, Text: path})
+		IconAct(p, &p.icon, front.FrontAction{Kind: front.ActIcon, Text: path})
+	case p.iconEditor(p.ink()) != nil || in && r != (front.FrontCellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
+		p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActIcon, Text: path})
+	case p.portraitBox() != (front.FrontCellRect{}) || p.inventoryKind() == invOwn: // the sheet or the member's inventory
+		p.inv.acts = append(p.inv.acts, front.FrontAction{Kind: front.ActPortrait, N: -1, Text: path})
 	}
 }
 
@@ -368,7 +368,7 @@ func (p *Presenter) askDefault() int {
 }
 
 // askList is the list v asks a line of (nil: none).
-func (p *Presenter) askList() []front.Entry {
+func (p *Presenter) askList() []front.FrontEntry {
 	if a := p.askUp(); a != nil && (a.Kind == front.AskList || a.Kind == front.AskModify) {
 		return a.Entries
 	}
@@ -394,9 +394,9 @@ func editKey(k uint16, text *string, cur *int, max int, digits bool) (done, canc
 		return true, false, true
 	case a == input.Esc:
 		return false, true, true
-	case a == input.Left:
+	case a == input.InputLeft:
 		c = c - min(c, 1)
-	case a == input.Right:
+	case a == input.InputRight:
 		c = min(len(t), c+1)
 	case a == input.Home:
 		c = 0
@@ -431,7 +431,7 @@ func caretLine(text string, cur, w int, on bool) string {
 }
 
 // typingAsk is the line the question asks to be typed (nil: none).
-func (p *Presenter) typingAsk() *front.Ask {
+func (p *Presenter) typingAsk() *front.FrontAsk {
 	if a := p.askUp(); a != nil && (a.Kind == front.AskText || a.Kind == front.AskNumber) {
 		return a
 	}
@@ -464,7 +464,7 @@ func (p *Presenter) confirm() string {
 // confirmStart is the row (0 Yes, 1 No) a's yes/no starts on: No, unless
 // the game starts on Yes (Yes, or Default naming its Yes option, whatever
 // the options' order).
-func confirmStart(a *front.Ask) int {
+func confirmStart(a *front.FrontAsk) int {
 	if a != nil && a.NoPick {
 		return -1 // no row lit
 	}
@@ -484,7 +484,7 @@ func (p *Presenter) askHeld(k uint16) bool {
 	switch actOf(k) {
 	case input.Esc:
 		return a.NoEsc
-	case input.Enter, input.Up, input.Down, input.Left, input.Right, input.Space, input.PadA:
+	case input.Enter, input.Up, input.Down, input.InputLeft, input.InputRight, input.Space, input.PadA:
 		return a.NoPick
 	}
 	return false
@@ -505,7 +505,7 @@ func (p *Presenter) confirmKey(k uint16) bool {
 			p.confirmPick(1)
 		case actOf(k) == input.Esc && !a.NoEsc:
 			p.confirmPick(1)
-		case !slices.Contains([]input.Act{input.Enter, input.Up, input.Down, input.Esc, input.Left, input.Right}, actOf(k)):
+		case !slices.Contains([]input.Act{input.Enter, input.Up, input.Down, input.Esc, input.InputLeft, input.InputRight}, actOf(k)):
 			return !globalKey(k)
 		}
 		return true
@@ -532,7 +532,7 @@ func (p *Presenter) confirmPick(i int) {
 }
 
 // keypadDirs are the direction keys as the keypad's digits (ActDir N).
-var keypadDirs = map[input.Act]int{input.Up: 8, input.Down: 2, input.Left: 4, input.Right: 6, input.Home: 7, input.PgUp: 9, input.End: 1, input.PgDn: 3}
+var keypadDirs = map[input.Act]int{input.Up: 8, input.Down: 2, input.InputLeft: 4, input.InputRight: 6, input.Home: 7, input.PgUp: 9, input.End: 1, input.PgDn: 3}
 
 // askAnswered sends what key k answers on v's question by its data: a
 // direction (AskMove: ActDir), another member (Ask.Reselect,

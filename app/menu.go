@@ -48,7 +48,7 @@ func (m *Menu) setup(held func(any) bool, tps int) {
 	if m.Apply != nil {
 		m.Apply()
 	}
-	blobber.OnSettings = func(o blobber.Options) {
+	blobber.OnSettings = func(o blobber.BlobberOptions) {
 		if m.Apply != nil {
 			m.Apply()
 		}
@@ -64,7 +64,7 @@ func (m *Menu) setup(held func(any) bool, tps int) {
 
 // both is o and *Extra as one struct embedding both, so the file holds
 // their fields at its top level in their order.
-func (m *Menu) both(o blobber.Options) any {
+func (m *Menu) both(o blobber.BlobberOptions) any {
 	if m.Extra == nil {
 		return o
 	}

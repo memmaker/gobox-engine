@@ -12,8 +12,8 @@ const (
 	// Menus (and the cursor keys everywhere)
 	Up
 	Down
-	Left
-	Right
+	InputLeft
+	InputRight
 	PgUp
 	PgDn
 	Home
@@ -38,19 +38,19 @@ const (
 	// Adventuring
 	Minimap
 	Overview // the pad's X
-	Map      // M, after the menu's hotkeys
+	InputMap      // M, after the menu's hotkeys
 	Party    // P, after the menu's hotkeys
 
 	// Any time
 	Help
 	SaveLoad
-	PartyMenu // camp: the party's menu takes the keys (F9)
+	InputPartyMenu // camp: the party's menu takes the keys (F9)
 	Sound
 	Font
 	FontPrev
 	Backspace
 	Delete
-	Note // the text box's text to the journal's notes
+	InputNote // the text box's text to the journal's notes
 
 	// Combat
 	CursorUp
@@ -61,7 +61,7 @@ const (
 	TurnRight
 	Tab
 	EndTurn
-	Options // the pad's Start: the options, even while aiming
+	InputOptions // the pad's Start: the options, even while aiming
 	Log
 
 	WallStyle // any time: the walls hi-def or pixel art (Shift-F12)

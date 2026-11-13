@@ -17,7 +17,7 @@ import (
 // the picture it opened on; nil: none up) on a page of cols by rows cells:
 // as many columns and rows as the box holds, centred, the rest on further
 // pages with a pageCut line at the bottom.
-func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *front.Picker {
+func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *front.FrontPicker {
 	n := 0
 	if k != nil {
 		n = len(k.Pics)
@@ -53,7 +53,7 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *front.Pick
 		page = cur / per
 	}
 	page = min(max(page, 0), pages-1)
-	v := &front.Picker{N: n, Page: page, Pages: pages, PerPage: per, Cols: nc, Cur: cur, Bottom: bot, Labels: k.Labels, Ask: k.Ask,
+	v := &front.FrontPicker{N: n, Page: page, Pages: pages, PerPage: per, Cols: nc, Cur: cur, Bottom: bot, Labels: k.Labels, Ask: k.Ask,
 		Classes: k.Classes, Portraits: k.Portraits}
 	if len(k.Labels) > 0 {
 		v.Title = "Saved Characters"
@@ -67,7 +67,7 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *front.Pick
 	first := page * per
 	for i := first; i < n && i < first+per; i++ {
 		x, y := x0+i%nc*(cw+gap), y0+(i/nc-page*nr)*ch
-		v.Cells = append(v.Cells, front.CellRect{X1: x, Y1: y, X2: x + cw - 1, Y2: y + ch - 1})
+		v.Cells = append(v.Cells, front.FrontCellRect{X1: x, Y1: y, X2: x + cw - 1, Y2: y + ch - 1})
 		if p := k.Pics[i]; p.Pixels != nil && p.W > 0 {
 			f := pix(p)
 			f.File, f.Block, f.Frame, f.Name = p.File, p.Block, p.Frame, p.Name
@@ -79,7 +79,7 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *front.Pick
 		t := "< page " + strconv.Itoa(page+1) + "/" + strconv.Itoa(pages) + " >"
 		x := (textCols - len(t)) / 2
 		h := len(t) / 2 // each half of the pageCut line pages, not only its < and > cells
-		v.Prev, v.Next = front.CellRect{X1: x, Y1: pageCut, X2: x + h - 1, Y2: pageCut}, front.CellRect{X1: x + h, Y1: pageCut, X2: x + len(t) - 1, Y2: pageCut}
+		v.Prev, v.Next = front.FrontCellRect{X1: x, Y1: pageCut, X2: x + h - 1, Y2: pageCut}, front.FrontCellRect{X1: x + h, Y1: pageCut, X2: x + len(t) - 1, Y2: pageCut}
 	}
 	return v
 }
@@ -96,7 +96,7 @@ func shownPage(c image.Point) (int, int) {
 
 // IconEditor is the combat icon designer's page from s (nil: none up) on a
 // page of cols by rows cells, its poses and swatches in ink.
-func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *[16]color.RGBA, cols, rows int) *front.IconEditor {
+func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *[16]color.RGBA, cols, rows int) *front.FrontIconEditor {
 	if k == nil {
 		return nil
 	}
@@ -104,8 +104,8 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 	sc := max(1, min((winRight-16)/18, (winBottom-13)/9)) // the poses' whole scale
 	const previewRow, previewCols, partCol, swatchCol, paletteCol = 2, 2, 2, 12, 2
 	wc, pr := previewCols+2*(9*sc+2), previewRow+9*sc+2
-	cell := func(x1, y1, x2, y2 int) front.CellRect { return front.CellRect{X1: x1, Y1: y1, X2: x2, Y2: y2} }
-	ed := &front.IconEditor{Large: k.Large, Custom: k.Custom,
+	cell := func(x1, y1, x2, y2 int) front.FrontCellRect { return front.FrontCellRect{X1: x1, Y1: y1, X2: x2, Y2: y2} }
+	ed := &front.FrontIconEditor{Large: k.Large, Custom: k.Custom,
 		Head: cell(wc, previewRow, wc+5, previewRow), Weapon: cell(wc, previewRow+1, wc+5, previewRow+1),
 		Size:  cell(wc, previewRow+2, wc+9, previewRow+2),
 		Names: cell(partCol, pr, swatchCol-1, pr+5), Parts: cell(swatchCol, pr, swatchCol+4, pr+5),
@@ -162,7 +162,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 	}
 	if ed.Custom { // a dropped PNG takes no parts or colours: it can only go
 		ed.Remove = cell(wc, previewRow, wc+5, previewRow)
-		ed.Head, ed.Weapon, ed.Size, ed.Names, ed.Parts, ed.Palette = front.CellRect{}, front.CellRect{}, front.CellRect{}, front.CellRect{}, front.CellRect{}, front.CellRect{}
+		ed.Head, ed.Weapon, ed.Size, ed.Names, ed.Parts, ed.Palette = front.FrontCellRect{}, front.FrontCellRect{}, front.FrontCellRect{}, front.FrontCellRect{}, front.FrontCellRect{}, front.FrontCellRect{}
 	}
 	return ed
 }

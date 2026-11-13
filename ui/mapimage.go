@@ -56,12 +56,12 @@ func DrawText(dst *image.RGBA, glyph func(byte) [8]byte, s string, x, y int, c c
 	}
 }
 
-// MapImage draws m at cell pixels a square in the colours ink (door: a
+// UIMapImage draws m at cell pixels a square in the colours ink (door: a
 // door's colour): seen squares dark grey, walked ones blue, the walls (dim
 // on squares not yet seen, doors not told apart there), the labels (their
 // letter in glyph's font when glyph is set and the cell fits it, else a
 // dot) and the party, a dot with a tick towards its facing.
-func MapImage(m *MapSquares, cell int, ink [16]color.RGBA, door color.RGBA, glyph func(byte, bool) [8]byte) *image.RGBA {
+func UIMapImage(m *MapSquares, cell int, ink [16]color.RGBA, door color.RGBA, glyph func(byte, bool) [8]byte) *image.RGBA {
 	n := 16 * cell
 	img := image.NewRGBA(image.Rect(0, 0, n, n))
 	fill := func(x0, y0, x1, y1 int, c color.RGBA) {

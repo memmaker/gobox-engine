@@ -60,7 +60,7 @@ func TestFightView(t *testing.T) {
 	if o := turnOptsOf(NewGame(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}, VerbOrder: []string{"View", "End"}})); o[0].Label != "View" {
 		t.Errorf("VerbOrder: %+v, want View first", o)
 	}
-	g.Answer(front.Action{Kind: front.ActOption, N: n})
+	g.Answer(front.FrontAction{Kind: front.ActOption, N: n})
 	p := presenterOf(g)
 	if p.sheetPage() == nil || !p.sheetShown() || g.combat() == nil || g.combat().Turn == nil || len(f.sent) != 0 {
 		t.Fatalf("sheet %v, battle %v, sent %v", p.sheetPage() != nil, g.combat() != nil, f.sent)

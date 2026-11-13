@@ -83,33 +83,33 @@ var texBlack *gpu.Image
 // Objects is the host-maintained list of objects on the current map.
 var Objects []*Object
 
-// Window, when set, draws the Esc menu's text window in the host's look; nil keeps the plain built-in one.
+// BlobberWindow, when set, draws the Esc menu's text window in the host's look; nil keeps the plain built-in one.
 // keys[i] (0 none) is lines[i]'s hotkey.
-var Window func(screen *gpu.Image, title string, lines []string, keys []byte, sel int, bottom bool)
+var BlobberWindow func(screen *gpu.Image, title string, lines []string, keys []byte, sel int, bottom bool)
 
 // Map cells: '.' is floor, anything else is a wall whose character picks the material (see mats).
 func wall(x, y int) bool {
-	ch := cell(x, y)
-	return ch != '.' && ch != Door
+	ch := blobberCell(x, y)
+	return ch != '.' && ch != BlobberDoor
 }
 
-// Door is the map character of an open doorway: a passable gap in a wall.
+// BlobberDoor is the map character of an open doorway: a passable gap in a wall.
 // Locked is a door that is still a wall; scripts open it with `altercell X Y D`.
-const Door, Locked = 'D', 'L'
+const BlobberDoor, Locked = 'D', 'L'
 
 var Faces = map[[3]int][]FacePart{}
 
-// Edges  are thin walls: key {x, y, side} blocks stepping out of cell x, y towards
+// BlobberEdges  are thin walls: key {x, y, side} blocks stepping out of cell x, y towards
 // dirs[side]. With Faces they give a map edge walls of no thickness, one-sided like the original's.
-var Edges = map[[3]int]bool{}
+var BlobberEdges = map[[3]int]bool{}
 
 // NoMap  are faces the minimap leaves out: objects the party walks through, like graves.
 var NoMap = map[[3]int]bool{}
 
 // blocked: a wall cell at x+dx, y+dy, or a thin wall on the way there.
 func blocked(x, y, dx, dy int) bool {
-	for i, d := range dirs {
-		if d == [2]int{dx, dy} && Edges[[3]int{x, y, i}] {
+	for i, d := range blobberDirs {
+		if d == [2]int{dx, dy} && BlobberEdges[[3]int{x, y, i}] {
 			return true
 		}
 	}
@@ -197,13 +197,13 @@ type FacePart struct {
 	Tex            string // a painted texture by name (View.Textures[TEX]), instead of Mat
 }
 
-var texMats = map[string]*mat{} // FacePart.Tex materials, loaded on first use
+var texMats = map[string]*blobberMat{} // FacePart.Tex materials, loaded on first use
 
-func texMat(name string) *mat {
+func texMat(name string) *blobberMat {
 	m, ok := texMats[name]
 	if !ok {
 		if t := wallTexture(name); t != nil {
-			m = &mat{img: t, lit: wallTexture(name + "_light")}
+			m = &blobberMat{img: t, lit: wallTexture(name + "_light")}
 		}
 		texMats[name] = m
 	}
@@ -211,7 +211,7 @@ func texMat(name string) *mat {
 }
 
 // material returns the texture of the wall at (x, y); unknown chars use stone.
-func material(x, y int) *mat {
+func material(x, y int) *blobberMat {
 	if y >= 0 && y < len(level) && x >= 0 && x < len(level[y]) {
 		if m := mats[level[y][x]]; m != nil {
 			return m
@@ -281,9 +281,9 @@ var MatColors = map[byte][2][3]float64{
 	'I': {{95, 100, 115}, {50, 52, 60}}, // iron
 }
 
-var mats = map[byte]*mat{}
+var mats = map[byte]*blobberMat{}
 
-var genMats map[byte]*mat        // mats as generated, before the painted ones
+var genMats map[byte]*blobberMat        // mats as generated, before the painted ones
 var genFloor, genCeil *gpu.Image // the generated floor and ceiling
 
 // paintMats lays the painted textures over the generated materials, floor and ceiling.
@@ -291,12 +291,12 @@ func paintMats() {
 	clear(mats)
 	maps.Copy(mats, genMats)
 	painted := map[byte]string{'#': "stone"} // painted textures, each with an optional NAME_light.png
-	for ch, name := range paintedWalls() {
+	for ch, name := range blobberPaintedWalls() {
 		painted[ch] = name
 	}
 	for ch, name := range painted {
 		if t := wallTexture(name); t != nil {
-			mats[ch] = &mat{img: t, lit: wallTexture(name + "_light")}
+			mats[ch] = &blobberMat{img: t, lit: wallTexture(name + "_light")}
 		}
 	}
 	texFloor, texCeil = genFloor, genCeil
@@ -313,8 +313,8 @@ func paintMats() {
 func genTextures() {
 	rng.Seed(7)
 	worldChanged()
-	stoneMat := func(bw, bh int, offset bool, c [2][3]float64) *mat {
-		return &mat{
+	stoneMat := func(bw, bh int, offset bool, c [2][3]float64) *blobberMat {
+		return &blobberMat{
 			img:   genStone(bw, bh, offset, c[0], c[1], 0.3, -1),
 			right: genStone(bw, bh, offset, c[0], c[1], 1, -0.4),  // wall on our left, face points right
 			left:  genStone(bw, bh, offset, c[0], c[1], -1, -0.4), // wall on our right, face points left
@@ -324,7 +324,7 @@ func genTextures() {
 		mats[ch] = stoneMat(64, 32, true, c)
 	}
 	door := stoneMat(16, 128, false, MatColors['W']) // vertical planks
-	mats[Door], mats[Locked] = door, door
+	mats[BlobberDoor], mats[Locked] = door, door
 	genMats = maps.Clone(mats)
 	genFloor = genStone(64, 64, false, [3]float64{115, 110, 105}, [3]float64{60, 58, 55}, 0.4, -1)
 	genCeil = genStone(64, 64, false, [3]float64{70, 66, 72}, [3]float64{40, 38, 42}, 0.4, 1)
@@ -342,7 +342,7 @@ func genTextures() {
 
 // ---------- game state ----------
 
-type Game struct {
+type BlobberGame struct {
 	x, y, dir int
 	// smooth movement tween
 	fx, fz, fa, tx, tz, ta float64 // from/to pos & angle
@@ -376,9 +376,9 @@ type Game struct {
 	free                       free      // No Grid's camera (free.go)
 }
 
-var dirs = [4][2]int{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
+var blobberDirs = [4][2]int{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
 
-func (g *Game) startMove(nx, ny, ndir int, sway float64) {
+func (g *BlobberGame) startMove(nx, ny, ndir int, sway float64) {
 	g.fx, g.fz, g.fa = g.tx, g.tz, g.ta
 	g.walk = nx != g.x || ny != g.y
 	g.x, g.y, g.dir = nx, ny, ndir
@@ -399,7 +399,7 @@ const walkSpeed, turnSpeed, walkAccel = 5.0, 7.0, 70.0 // a turn (13 frames) a l
 // tween advances a step or turn by one frame: full speed while its key is held (and, for a step, the
 // next cell is free), flowing on into the next one; otherwise braking to stop exactly on the cell or
 // facing. Without smooth movement a move is done at once.
-func (g *Game) tween() {
+func (g *BlobberGame) tween() {
 	const dt = 1.0 / 60
 	if !g.moving {
 		return
@@ -445,7 +445,7 @@ func (g *Game) tween() {
 }
 
 // updateMenu runs the Esc menu for one frame and reports true when Quit was confirmed.
-func (g *Game) updateMenu() bool {
+func (g *BlobberGame) updateMenu() bool {
 	items := g.menuOptions()
 	n := len(items)
 	for i, k := range menuKeys(items) { // a hotkey (a letter, else a digit) picks its line
@@ -498,7 +498,7 @@ func (g *Game) updateMenu() bool {
 }
 
 // back is Esc in the menu: a page or a question goes back to the root (true), the root closes (false).
-func (g *Game) back() bool {
+func (g *BlobberGame) back() bool {
 	if g.page == "" && g.confirm == nil {
 		return false
 	}
@@ -520,8 +520,8 @@ func (g *Game) back() bool {
 // set, is shown after the label.
 type menuLine struct {
 	label  string
-	value  func(g *Game) string
-	change func(g *Game, d int)
+	value  func(g *BlobberGame) string
+	change func(g *BlobberGame, d int)
 }
 
 // Row is a host row on an Esc menu page: Get is the value shown, Change runs on Enter (0), Left (-1)
@@ -555,21 +555,21 @@ func withExtra(page string, rows []menuLine, exit menuLine) []menuLine {
 }
 
 func (r Row) line() menuLine {
-	l := menuLine{label: r.Label, change: func(_ *Game, d int) {
+	l := menuLine{label: r.Label, change: func(_ *BlobberGame, d int) {
 		if r.Change != nil {
 			r.Change(d)
 		}
 	}}
 	if r.Get != nil {
-		l.value = func(*Game) string { return r.Get() }
+		l.value = func(*BlobberGame) string { return r.Get() }
 	}
 	return l
 }
 
-func flip(p *bool) func(*Game, int) { return func(*Game, int) { *p = !*p } }
+func flip(p *bool) func(*BlobberGame, int) { return func(*BlobberGame, int) { *p = !*p } }
 
-// step moves v by s within lo..hi: Left down, Right up, Enter up and round to lo past hi.
-func step(v, lo, hi, s float64, d int) float64 {
+// blobberStep moves v by s within lo..hi: Left down, Right up, Enter up and round to lo past hi.
+func blobberStep(v, lo, hi, s float64, d int) float64 {
 	switch {
 	case d < 0:
 		v -= s
@@ -583,44 +583,44 @@ func step(v, lo, hi, s float64, d int) float64 {
 	return math.Round(math.Max(lo, math.Min(hi, v))/s) * s
 }
 
-// bar draws v in lo..hi (step s) as a slider.
-func bar(v, lo, hi, s float64) string {
+// blobberBar draws v in lo..hi (step s) as a slider.
+func blobberBar(v, lo, hi, s float64) string {
 	i, n := int(math.Round((v-lo)/s)), int(math.Round((hi-lo)/s))
 	return strings.Repeat("#", i+1) + strings.Repeat("-", n-i)
 }
 
-func onOffOf(p *bool) func(*Game) string { return func(*Game) string { return onOff(*p) } }
+func onOffOf(p *bool) func(*BlobberGame) string { return func(*BlobberGame) string { return onOff(*p) } }
 
 // menuOptions are the lines of the menu page shown: the root, a settings page, or a yes/no question.
-func (g *Game) menuOptions() []menuLine {
+func (g *BlobberGame) menuOptions() []menuLine {
 	if g.confirm != nil {
 		do := g.confirm.do
-		return []menuLine{{label: "Yes", change: func(g *Game, _ int) { g.back(); do() }},
-			{label: "No", change: func(g *Game, _ int) { g.back() }}}
+		return []menuLine{{label: "Yes", change: func(g *BlobberGame, _ int) { g.back(); do() }},
+			{label: "No", change: func(g *BlobberGame, _ int) { g.back() }}}
 	}
-	exit := menuLine{label: "Exit", change: func(g *Game, _ int) { g.back() }} // a settings page's way back, as Esc
+	exit := menuLine{label: "Exit", change: func(g *BlobberGame, _ int) { g.back() }} // a settings page's way back, as Esc
 	switch g.page {
 	case "Graphics":
 		return withExtra("Graphics", []menuLine{
-			{"Fullscreen", func(*Game) string { return onOff(gpu.IsFullscreen()) }, func(*Game, int) { gpu.SetFullscreen(!gpu.IsFullscreen()) }},
-			{"Dithered darkness", func(g *Game) string { return onOff(g.dither) }, func(g *Game, _ int) { g.dither = !g.dither }},
-			{"Torch intensity", func(g *Game) string { return fmt.Sprintf("%.1f", g.torch) }, func(g *Game, d int) { g.torch = step(g.torch, 0.5, 1.5, 0.5, d) }},
-			{"Font", func(*Game) string { return FontNames()[FontAt()] }, func(g *Game, _ int) { g.page, g.sel = "Font", FontAt() }},
+			{"Fullscreen", func(*BlobberGame) string { return onOff(gpu.IsFullscreen()) }, func(*BlobberGame, int) { gpu.SetFullscreen(!gpu.IsFullscreen()) }},
+			{"Dithered darkness", func(g *BlobberGame) string { return onOff(g.dither) }, func(g *BlobberGame, _ int) { g.dither = !g.dither }},
+			{"Torch intensity", func(g *BlobberGame) string { return fmt.Sprintf("%.1f", g.torch) }, func(g *BlobberGame, d int) { g.torch = blobberStep(g.torch, 0.5, 1.5, 0.5, d) }},
+			{"Font", func(*BlobberGame) string { return FontNames()[FontAt()] }, func(g *BlobberGame, _ int) { g.page, g.sel = "Font", FontAt() }},
 		}, exit)
 	case "Font": // every font, each line in its own; the highlighted one is in use at once
 		var o []menuLine
 		for _, n := range FontNames() {
-			o = append(o, menuLine{label: n, change: func(g *Game, _ int) { g.page = "Graphics"; g.sel = g.fontRow() }})
+			o = append(o, menuLine{label: n, change: func(g *BlobberGame, _ int) { g.page = "Graphics"; g.sel = g.fontRow() }})
 		}
 		return o
 	case "Gameplay":
 		return withExtra("Gameplay", []menuLine{
-			{"Smooth movement", func(g *Game) string { return onOff(g.smooth) }, func(g *Game, _ int) { g.smooth = !g.smooth }},
+			{"Smooth movement", func(g *BlobberGame) string { return onOff(g.smooth) }, func(g *BlobberGame, _ int) { g.smooth = !g.smooth }},
 			{"Fluid movement", onOffOf(&Settings.Fluid), flip(&Settings.Fluid)},
 			{"No Grid", onOffOf(&Settings.NoGrid), flip(&Settings.NoGrid)},
-			{"Walk speed", func(*Game) string {
-				return bar(Settings.Speed, minSpeed, maxSpeed, 0.25) + fmt.Sprintf(" %.2fx", Settings.Speed)
-			}, func(_ *Game, d int) { Settings.Speed = step(Settings.Speed, minSpeed, maxSpeed, 0.25, d) }},
+			{"Walk speed", func(*BlobberGame) string {
+				return blobberBar(Settings.Speed, minSpeed, maxSpeed, 0.25) + fmt.Sprintf(" %.2fx", Settings.Speed)
+			}, func(_ *BlobberGame, d int) { Settings.Speed = blobberStep(Settings.Speed, minSpeed, maxSpeed, 0.25, d) }},
 		}, exit)
 	}
 	if rows, ok := ExtraRows[g.page]; ok && g.page != "" {
@@ -631,14 +631,14 @@ func (g *Game) menuOptions() []menuLine {
 		return append(o, exit)
 	}
 	page := func(p string) menuLine {
-		return menuLine{label: p, change: func(g *Game, _ int) { g.pageSel, g.page, g.sel = g.sel, p, 0 }}
+		return menuLine{label: p, change: func(g *BlobberGame, _ int) { g.pageSel, g.page, g.sel = g.sel, p, 0 }}
 	}
 	ask := func(label, q string, do func()) menuLine {
-		return menuLine{label: label, change: func(g *Game, _ int) { g.askSel, g.confirm, g.sel = g.sel, &question{q, do}, 1 }}
+		return menuLine{label: label, change: func(g *BlobberGame, _ int) { g.askSel, g.confirm, g.sel = g.sel, &question{q, do}, 1 }}
 	}
-	o := []menuLine{{label: "Resume", change: func(g *Game, _ int) { g.menu = false }}}
+	o := []menuLine{{label: "Resume", change: func(g *BlobberGame, _ int) { g.menu = false }}}
 	if OnSaveLoad != nil {
-		o = append(o, menuLine{label: "Save / Load", change: func(g *Game, _ int) { g.menu = false; OnSaveLoad() }})
+		o = append(o, menuLine{label: "Save / Load", change: func(g *BlobberGame, _ int) { g.menu = false; OnSaveLoad() }})
 	}
 	o = append(o, page("Gameplay"), page("Graphics"))
 	var pages []string
@@ -675,7 +675,7 @@ var (
 )
 
 // fontRow is the Font line's row on the Graphics page.
-func (g *Game) fontRow() int {
+func (g *BlobberGame) fontRow() int {
 	save := g.page
 	g.page = "Graphics"
 	defer func() { g.page = save }()
@@ -730,7 +730,7 @@ func Hotkeys(labels []string) []byte {
 	return keys
 }
 
-func (g *Game) menuItems() []string {
+func (g *BlobberGame) menuItems() []string {
 	var out []string
 	for _, o := range g.menuOptions() {
 		s := o.label
@@ -747,7 +747,7 @@ func (g *Game) menuItems() []string {
 // camera for this frame
 type cam struct{ x, z, ang, roll, fwx, fwz, rtx, rtz, pitch float64 } // pitch: the horizon's shift up, a share of H
 
-func (g *Game) camera() cam {
+func (g *BlobberGame) camera() cam {
 	if f := g.free; Settings.NoGrid && f.on { // No Grid: the eye where the party walks (free.go)
 		c := cam{x: f.x, z: f.z, ang: f.yaw, pitch: f.pitch}
 		c.fwx, c.fwz = math.Sin(c.ang), -math.Cos(c.ang)
@@ -828,7 +828,7 @@ var nightTint = []float32{0.42, 0.48, 0.72}
 // texNightSky, texStars : ceiling_sky_night and ceiling_night_stars, loaded with texClouds.
 var texNightSky, texStars *gpu.Image
 
-func (g *Game) drawSky(dst *gpu.Image, c cam) {
+func (g *BlobberGame) drawSky(dst *gpu.Image, c cam) {
 	hy := horizon(c)
 	if texClouds != nil && night() {
 		b := texNightSky.Bounds()
@@ -874,7 +874,7 @@ func onOff(b bool) string {
 	return "OFF"
 }
 
-func (g *Game) drawMenu(screen *gpu.Image) {
+func (g *BlobberGame) drawMenu(screen *gpu.Image) {
 	items, title := g.menuItems(), ""
 	switch {
 	case g.confirm != nil:
@@ -882,18 +882,18 @@ func (g *Game) drawMenu(screen *gpu.Image) {
 	case g.page != "":
 		title = strings.ToUpper(g.page)
 	}
-	if Window == nil || g.confirm == nil { // the game dims under the menu; Window dims under a question itself
+	if BlobberWindow == nil || g.confirm == nil { // the game dims under the menu; Window dims under a question itself
 		b := screen.Bounds()
 		vector.DrawFilledRect(screen, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
 	}
-	if Window != nil {
+	if BlobberWindow != nil {
 		keys := menuKeys(g.menuOptions())
 		if g.page == "Font" && FontGlyph != nil {
 			MenuGlyph = FontGlyph
 			defer func() { MenuGlyph = nil }()
 			keys = nil // the font names' letters would pick fonts at a keystroke
 		}
-		Window(screen, title, items, keys, g.sel, false)
+		BlobberWindow(screen, title, items, keys, g.sel, false)
 		return
 	}
 	vector.DrawFilledRect(screen, float32(W/2-130), float32(H/2-60), 260, 152, color.RGBA{0, 0, 0, 200})
@@ -908,7 +908,7 @@ func (g *Game) drawMenu(screen *gpu.Image) {
 }
 
 // resize makes the view w by h pixels.
-func (g *Game) resize(w, h int) {
+func (g *BlobberGame) resize(w, h int) {
 	if w != W || h != H {
 		W, H, focal = w, h, float64(w)*focalW
 		g.scene = gpu.NewImage(W, H)
@@ -931,7 +931,7 @@ fn Fragment(dstPos: vec4f, srcPos: vec2f, color: vec4f, custom: vec4f) -> vec4f 
 `
 
 // game is the one Game, the View's.
-var game *Game
+var game *BlobberGame
 
 // SetMap swaps the level and places the party at (x, y) without a tween, keeping the facing.
 func SetMap(lvl []string, x, y int) {
@@ -939,7 +939,7 @@ func SetMap(lvl []string, x, y int) {
 	visCache.cells = nil
 	worldChanged()
 	if game == nil {
-		game = &Game{t: 1}
+		game = &BlobberGame{t: 1}
 	}
 	g := game
 	g.x, g.y = x, y
@@ -948,8 +948,8 @@ func SetMap(lvl []string, x, y int) {
 	g.t, g.moving = 1, false
 }
 
-// cell returns the map character at x,y, or 0 outside the map.
-func cell(x, y int) byte {
+// blobberCell returns the map character at x,y, or 0 outside the map.
+func blobberCell(x, y int) byte {
 	if y < 0 || y >= len(level) || x < 0 || x >= len(level[y]) {
 		return 0
 	}
@@ -964,8 +964,8 @@ func Face(dir int) {
 	g.fa = g.ta
 }
 
-// Options are the settings on the Esc menu's pages.
-type Options struct {
+// BlobberOptions are the settings on the Esc menu's pages.
+type BlobberOptions struct {
 	Smooth, Fluid, Dither, Fullscreen bool // Fluid: a held key walks or turns on without slowing at each cell
 	Torch                             float64
 	Speed                             float64 // walk and turn speed, minSpeed to maxSpeed times the normal
@@ -977,12 +977,12 @@ const minSpeed, maxSpeed = 0.5, 2.0
 // Settings are the options the view starts with; set them before NewView (from a settings file).
 // OnSettings is called with the new options whenever the player changes one.
 var (
-	Settings   = Options{Smooth: true, Fluid: true, Dither: true, Fullscreen: true, Torch: 1, Speed: 1}
-	OnSettings func(Options)
+	Settings   = BlobberOptions{Smooth: true, Fluid: true, Dither: true, Fullscreen: true, Torch: 1, Speed: 1}
+	OnSettings func(BlobberOptions)
 )
 
 // newGame makes the textures and shaders and the one Game, facing dir.
-func newGame(dir int) (*Game, error) {
+func newGame(dir int) (*BlobberGame, error) {
 	genTextures()
 	tsh, err := gpu.NewMeshShader(meshSrc)
 	if err != nil {
@@ -992,7 +992,7 @@ func newGame(dir int) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	g := &Game{dither: Settings.Dither, smooth: Settings.Smooth, torch: Settings.Torch, scene: gpu.NewImage(W, H), shader: sh, meshShader: tsh}
+	g := &BlobberGame{dither: Settings.Dither, smooth: Settings.Smooth, torch: Settings.Torch, scene: gpu.NewImage(W, H), shader: sh, meshShader: tsh}
 	game = g
 	g.ta = float64(dir) * math.Pi / 2
 	g.dir = dir

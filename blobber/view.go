@@ -16,7 +16,7 @@ import (
 // state. Make them per-View when two views must
 // draw at once.
 type View struct {
-	g *Game
+	g *BlobberGame
 
 	// Textures are the wall, floor and ceiling images by name (FacePart.Tex,
 	// "floor_NAME", "ceiling_NAME"); the host fills them, and calls
@@ -128,7 +128,7 @@ func oneMove(l, c Camera) bool {
 }
 
 // followStep animates the move to c, or jumps there when it is not one.
-func (g *Game) followStep(c Camera) {
+func (g *BlobberGame) followStep(c Camera) {
 	if !oneMove(Camera{g.x, g.y, g.dir}, c) {
 		SetMap(level, c.X, c.Y)
 		Face(c.Dir)
@@ -136,7 +136,7 @@ func (g *Game) followStep(c Camera) {
 	}
 	dx, dy := c.X-g.x, c.Y-g.y
 	sway := 0.0 // a sidestep rolls the view, as the player's own does
-	if r := dirs[(g.dir+1)%4]; [2]int{dx, dy} == r {
+	if r := blobberDirs[(g.dir+1)%4]; [2]int{dx, dy} == r {
 		sway = 1
 	} else if [2]int{dx, dy} == [2]int{-r[0], -r[1]} {
 		sway = -1

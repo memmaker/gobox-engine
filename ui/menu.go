@@ -103,9 +103,9 @@ func MenuNav(a input.Act, k uint16, sel *int, keys []byte) (pick int, back, ok b
 // MenuNavH is MenuNav for a horizontal bar: Left is Up and Right is Down.
 func MenuNavH(a input.Act, k uint16, sel *int, keys []byte) (pick int, back, ok bool) {
 	switch a {
-	case input.Left:
+	case input.InputLeft:
 		a = input.Up
-	case input.Right:
+	case input.InputRight:
 		a = input.Down
 	}
 	return MenuNav(a, k, sel, keys)

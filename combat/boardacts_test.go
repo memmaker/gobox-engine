@@ -15,12 +15,12 @@ import (
 
 // boardScene is a turn whose unit (ID 1) stands on the west edge at (0, 8),
 // a foe (7) at (3, 8), (1, 8) in reach; the camera looks at the unit.
-func boardScene() *Presenter {
+func boardScene() *CombatPresenter {
 	foe := Unit{ID: 7, X: 3, Y: 8, Squares: []image.Point{{3, 8}}}
-	opts := []Option{{"Move", 'M', ActWalk, ""}, {"View", 'V', ActView, ""}, {"Aim", 0, ActAim, ""}, {"Cast", 'C', ActCast, ""}, {"Flee", 0, ActFlee, ""}, {"Done", 'D', ActEnd, ""}}
+	opts := []CombatOption{{"Move", 'M', CombatActWalk, ""}, {"View", 'V', CombatActView, ""}, {"Aim", 0, CombatActAim, ""}, {"Cast", 'C', CombatActCast, ""}, {"Flee", 0, CombatActFlee, ""}, {"Done", 'D', CombatActEnd, ""}}
 	b := &Board{Units: []Unit{{ID: 1, X: 0, Y: 8, Squares: []image.Point{{0, 8}}, Party: true, Active: true}, foe}, Targets: []int{7},
 		Reach: []image.Point{{1, 8}}, Turn: &Turn{Options: opts}}
-	p := &Presenter{b: b, screen: image.Rect(0, 0, 800, 600)}
+	p := &CombatPresenter{b: b, screen: image.Rect(0, 0, 800, 600)}
 	p.cam = camera{eye: vec{2, 9, 16}, at: vec{1, 0, 8}, fovy: 0.8, aspect: 4.0 / 3}
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
@@ -36,13 +36,13 @@ func TestBarHasNoBoardActs(t *testing.T) {
 	if !slices.Equal(words, []string{"Cast", "Done"}) {
 		t.Errorf("bar %v, want [Cast Done]", words)
 	}
-	if !p.Key(input.None, 'v') || !slices.Equal(p.Actions(), []Decision{{Kind: ActView}}) { // View's key stays
+	if !p.Key(input.None, 'v') || !slices.Equal(p.Actions(), []Decision{{Kind: CombatActView}}) { // View's key stays
 		t.Error("V: no View")
 	}
 }
 
 // screenAt is the pixel showing the middle of square sq.
-func screenAt(p *Presenter, sq image.Point) (int, int) {
+func screenAt(p *CombatPresenter, sq image.Point) (int, int) {
 	nx, ny, _ := p.cam.ndc(vec{float64(sq.X) + .5, 0, float64(sq.Y) + .5})
 	return int((nx + 1) / 2 * 800), int((1 - ny) / 2 * 600)
 }
@@ -53,10 +53,10 @@ func TestBoardActsMouse(t *testing.T) {
 		sq   image.Point
 		want Decision
 	}{
-		{"empty square: move", image.Pt(1, 8), Decision{Kind: ActWalk, X: 1, Y: 8}},
-		{"foe: attack", image.Pt(3, 8), Decision{Kind: ActAttack, N: 7}},
-		{"own square: view", image.Pt(0, 8), Decision{Kind: ActView, N: -1}},
-		{"past the edge: flee", image.Pt(-1, 8), Decision{Kind: ActFlee}},
+		{"empty square: move", image.Pt(1, 8), Decision{Kind: CombatActWalk, X: 1, Y: 8}},
+		{"foe: attack", image.Pt(3, 8), Decision{Kind: CombatActAttack, N: 7}},
+		{"own square: view", image.Pt(0, 8), Decision{Kind: CombatActView, N: -1}},
+		{"past the edge: flee", image.Pt(-1, 8), Decision{Kind: CombatActFlee}},
 	} {
 		p := boardScene()
 		x, y := screenAt(p, c.sq)
@@ -83,12 +83,12 @@ func TestBoardActsKeys(t *testing.T) {
 		keys []input.Act
 		want Decision
 	}{
-		{"cursor to empty square: move", []input.Act{input.Enter, right, input.Enter}, Decision{Kind: ActWalk, X: 1, Y: 8}},
-		{"cursor onto foe: attack", []input.Act{input.Enter, right, right, right, input.Enter}, Decision{Kind: ActAttack, N: 7}},
-		{"cursor on the unit: view", []input.Act{input.Enter, input.Enter}, Decision{Kind: ActView, N: -1}},
-		{"step off the edge: flee", []input.Act{left}, Decision{Kind: ActFlee}},
-		{"cursor off the edge: flee", []input.Act{input.Enter, left}, Decision{Kind: ActFlee}},
-		{"step: move", []input.Act{right}, Decision{Kind: ActWalk, X: 1, Y: 8}},
+		{"cursor to empty square: move", []input.Act{input.Enter, right, input.Enter}, Decision{Kind: CombatActWalk, X: 1, Y: 8}},
+		{"cursor onto foe: attack", []input.Act{input.Enter, right, right, right, input.Enter}, Decision{Kind: CombatActAttack, N: 7}},
+		{"cursor on the unit: view", []input.Act{input.Enter, input.Enter}, Decision{Kind: CombatActView, N: -1}},
+		{"step off the edge: flee", []input.Act{left}, Decision{Kind: CombatActFlee}},
+		{"cursor off the edge: flee", []input.Act{input.Enter, left}, Decision{Kind: CombatActFlee}},
+		{"step: move", []input.Act{right}, Decision{Kind: CombatActWalk, X: 1, Y: 8}},
 	} {
 		p := boardScene()
 		for _, a := range c.keys {

@@ -18,7 +18,7 @@ func TestAskView(t *testing.T) {
 			st.Allowed.Plain = []play.Action{play.ViewMember{Member: 2}}
 		}
 		f := &fake{st: st}
-		NewGame(f, game.Data{}).Answer(front.Action{Kind: front.ActView, N: 2})
+		NewGame(f, game.Data{}).Answer(front.FrontAction{Kind: front.ActView, N: 2})
 		if view != (len(f.sent) == 1 && f.sent[0] == play.Action(play.ViewMember{Member: 2})) {
 			t.Errorf("View %v: %v", view, f.sent)
 		}
@@ -32,7 +32,7 @@ func TestTempleView(t *testing.T) {
 		play.Trading{Kind: play.TradeShop, Common: play.Common{Selected: 1}},
 	} {
 		g := NewGame(&fake{st: st}, game.Data{})
-		g.Answer(front.Action{Kind: front.ActMember, N: -1})
+		g.Answer(front.FrontAction{Kind: front.ActMember, N: -1})
 		if g.r.sheet != 1 { // no View the rules offer: gobox's sheet of the selected member
 			t.Fatalf("%T: sheet %d", st, g.r.sheet)
 		}
@@ -45,7 +45,7 @@ func TestAimAnswersInFight(t *testing.T) {
 	st := play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Shoot{}, Squares: []image.Point{{14, 8}}, Targets: 1}}}}}
 	f := &fake{st: st}
 	g := NewGame(f, game.Data{})
-	g.Answer(front.Action{Kind: front.ActAim, X: 14, Y: 8})
+	g.Answer(front.FrontAction{Kind: front.ActAim, X: 14, Y: 8})
 	if len(f.sent) != 1 {
 		t.Fatalf("%#v", f.sent)
 	}
@@ -54,7 +54,7 @@ func TestAimAnswersInFight(t *testing.T) {
 // A picked rest time reaches the game as Rest{Minutes}.
 func TestRestMinutes(t *testing.T) {
 	f := &fake{st: play.Camping{}}
-	NewGame(f, game.Data{}).Answer(front.Action{Kind: front.ActRest, N: 2, X: 300})
+	NewGame(f, game.Data{}).Answer(front.FrontAction{Kind: front.ActRest, N: 2, X: 300})
 	if len(f.sent) != 1 || f.sent[0] != play.Action(play.AdvanceTimeBy{D: 300 * time.Minute}) {
 		t.Fatalf("%#v", f.sent)
 	}

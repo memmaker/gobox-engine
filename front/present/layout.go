@@ -53,13 +53,13 @@ type layouts struct {
 	sheet     memo[uiKey, *game.SheetPage]
 	sheetUp   memo[uiKey, bool]
 	menu      memo[menuKey, front.MainMenu]
-	creation  memo[creationKey, *front.Creation]
-	picker    memo[pageKey, *front.Picker]     // the game's own picker
-	icon      memo[pageKey, *front.IconEditor] // the game's own icon editor
+	creation  memo[creationKey, *front.FrontCreation]
+	picker    memo[pageKey, *front.FrontPicker]     // the game's own picker
+	icon      memo[pageKey, *front.FrontIconEditor] // the game's own icon editor
 	page      memo[laidKey, *laidPage]         // the text page laid out (shown.go)
 	music     memo[uiKey, string]              // the own music's trigger playing, wanted on the state up (Front.Draw)
-	ask       memo[uiKey, *front.Ask]          // the state's question, or the door's menu
-	training  memo[uiKey, *front.Training]
+	ask       memo[uiKey, *front.FrontAsk]          // the state's question, or the door's menu
+	training  memo[uiKey, *front.FrontTraining]
 	flags     memo[flagsKey, *game.Flags]
 }
 
@@ -89,7 +89,7 @@ type pageKey struct {
 
 // creation is the creation sheet laid out on the page (nil: none up, or a
 // picker over it).
-func (p *Presenter) creation() *front.Creation {
+func (p *Presenter) creation() *front.FrontCreation {
 	if p.pickerOver() {
 		return nil
 	}
@@ -97,20 +97,20 @@ func (p *Presenter) creation() *front.Creation {
 }
 
 // layoutCreation is the creation sheet laid out on the page, a picker over it or not.
-func (p *Presenter) layoutCreation() *front.Creation {
+func (p *Presenter) layoutCreation() *front.FrontCreation {
 	if p.eng == nil {
 		return nil
 	}
 	r, s := p.eng.r, p.state()
 	k := creationKey{p.eng.G.Version(), r.grid, r.ask, r.refusalAsk}
-	return p.lay.creation.get(k, func() *front.Creation {
+	return p.lay.creation.get(k, func() *front.FrontCreation {
 		return Creation(r.modeOf(s), creationOf(s), r.pending(s), r.grid.X, r.grid.Y)
 	})
 }
 
 // picker is the grid picker up laid out, in the page's palette ink (nil:
 // none): the presenter's own, else the game's.
-func (p *Presenter) picker(ink [16]color.RGBA) *front.Picker {
+func (p *Presenter) picker(ink [16]color.RGBA) *front.FrontPicker {
 	if p.eng == nil {
 		return nil
 	}
@@ -119,14 +119,14 @@ func (p *Presenter) picker(ink [16]color.RGBA) *front.Picker {
 		return pk.Layout(p.eng, k)
 	}
 	s := p.state()
-	return p.lay.picker.get(k, func() *front.Picker {
+	return p.lay.picker.get(k, func() *front.FrontPicker {
 		return Picker(play.CommonOf(s).Picker, image.Point{}, 0, p.eng.r.grid.X, p.eng.r.grid.Y)
 	})
 }
 
 // iconEditor is the combat icon editor up laid out in the page's palette
 // ink (nil: none, or a picker over it).
-func (p *Presenter) iconEditor(ink [16]color.RGBA) *front.IconEditor {
+func (p *Presenter) iconEditor(ink [16]color.RGBA) *front.FrontIconEditor {
 	if p.eng == nil || p.gridPick != nil {
 		return nil
 	}
@@ -135,7 +135,7 @@ func (p *Presenter) iconEditor(ink [16]color.RGBA) *front.IconEditor {
 		return ic.Layout(p.eng, k)
 	}
 	s := p.state()
-	return p.lay.icon.get(k, func() *front.IconEditor {
+	return p.lay.icon.get(k, func() *front.FrontIconEditor {
 		return IconEditor(play.CommonOf(s).IconEditor, nil, p.eng.Subject(), &ink, p.eng.r.grid.X, p.eng.r.grid.Y)
 	})
 }

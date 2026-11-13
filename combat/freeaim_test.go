@@ -21,7 +21,7 @@ func TestFreeAimSteps(t *testing.T) {
 				{ID: 2, X: 8, Y: 5, Size: 1, Squares: []image.Point{{8, 5}}, Icon: icon}},
 			Turn: &Turn{Aim: true}, Targets: []int{2}, Cursor: image.Pt(8, 5), CursorOn: true, CursorAt: []image.Point{{8, 5}}}
 	}
-	var p Presenter
+	var p CombatPresenter
 	p.Draw(dst, board())
 	start := p.b.Cursor
 	for range 3 {

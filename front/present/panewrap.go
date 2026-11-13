@@ -6,7 +6,7 @@ import "gobox/front"
 const maxPaneRows = 12
 
 // paneCells is paneBox grown to hold pn's lines (up to maxPaneRows).
-func paneCells(pn *front.Pane) front.CellRect {
+func paneCells(pn *front.Pane) front.FrontCellRect {
 	r := paneBox
 	if pn != nil {
 		r.Y2 = max(r.Y2, r.Y1+min(len(pn.Lines), maxPaneRows)-1)

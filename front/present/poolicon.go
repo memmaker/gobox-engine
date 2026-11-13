@@ -168,7 +168,7 @@ func memberIcon(m game.Member) (head, body string) {
 
 // withPoolIcon is pics with the creation draft's combat icon (pool ids, else its Icon numbers) in the
 // sheet's Icon box, in place of the game's picture there (pics itself when the draft has none).
-func withPoolIcon(pics []front.Picture, cr *front.Creation, own game.Member, sheet *game.SheetPage) []front.Picture {
+func withPoolIcon(pics []front.Picture, cr *front.FrontCreation, own game.Member, sheet *game.SheetPage) []front.Picture {
 	m := subject(own)
 	if cr == nil {
 		return pics

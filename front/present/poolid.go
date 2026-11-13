@@ -25,7 +25,7 @@ func poolID(kind, head, body string) image.Image {
 
 // withPoolPortrait is pics with the pool head and body of the creation draft in the sheet's Head and Body
 // boxes, in place of the game's pictures there (pics itself when the draft names none).
-func withPoolPortrait(pics []front.Picture, cr *front.Creation, own game.Member) []front.Picture {
+func withPoolPortrait(pics []front.Picture, cr *front.FrontCreation, own game.Member) []front.Picture {
 	m := subject(own)
 	if cr == nil || m.PortraitHeadID == "" || m.PortraitBodyID == "" {
 		return pics
@@ -47,7 +47,7 @@ func withPoolPortrait(pics []front.Picture, cr *front.Creation, own game.Member)
 	}
 	for _, p := range []struct {
 		im   image.Image
-		box  front.CellRect
+		box  front.FrontCellRect
 		name string
 	}{{head, cr.Head, m.PortraitHeadID}, {body, cr.Body, m.PortraitBodyID}} {
 		at := p.box.Pixels().Min

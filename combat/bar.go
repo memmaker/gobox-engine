@@ -28,7 +28,7 @@ const (
 	labelH  = 14 // the hovered button's word under them, at scale 1
 )
 
-type bar struct {
+type combatBar struct {
 	img   *gpu.Image
 	id    string            // what img shows
 	rects []image.Rectangle // the buttons on screen, as last drawn
@@ -39,7 +39,7 @@ type bar struct {
 
 // moveFocus moves the keys' focus d buttons on, wrapping; from none it
 // goes to the first (d > 0) or last button.
-func (b *bar) moveFocus(d int) {
+func (b *combatBar) moveFocus(d int) {
 	n := len(b.items)
 	switch {
 	case n == 0:
@@ -126,12 +126,12 @@ func hotkeysOf(items []barItem) []hotkey {
 var leftArrow = [8]byte{0x00, 0x10, 0x30, 0x7E, 0x30, 0x10, 0x00, 0x00}
 
 // actWords are the bar's words for the turn's actions.
-var actWords = map[Kind]string{ActAttack: "Attack", ActRanged: "Ranged", ActGuard: "Guard", ActItems: "Items",
-	ActCast: "Cast", ActTurn: "Turn", ActBandage: "Bandage", ActWait: "Wait", ActEnd: "End", ActQuick: "Quick", ActFlee: "Flee", ActManeuver: "Maneuver",
-	ActStep: "Move", ActWalk: "Move", ActView: "View", ActAim: "Aim"}
+var actWords = map[Kind]string{CombatActAttack: "Attack", CombatActRanged: "Ranged", CombatActGuard: "Guard", CombatActItems: "Items",
+	CombatActCast: "Cast", CombatActTurn: "Turn", CombatActBandage: "Bandage", CombatActWait: "Wait", CombatActEnd: "End", CombatActQuick: "Quick", CombatActFlee: "Flee", CombatActManeuver: "Maneuver",
+	CombatActStep: "Move", CombatActWalk: "Move", CombatActView: "View", CombatActAim: "Aim"}
 
 // hotkey is the button whose hotkey is letter k or the table's key a (nil: none).
-func (b *bar) hotkey(a input.Act, k uint16) *barItem {
+func (b *combatBar) hotkey(a input.Act, k uint16) *barItem {
 	for i, h := range hotkeysOf(b.items) {
 		if (h.key != 0 && h.key == k || h.act != input.None && h.act == a) && i < len(b.rects) {
 			return &b.items[i]
@@ -141,7 +141,7 @@ func (b *bar) hotkey(a input.Act, k uint16) *barItem {
 }
 
 // gameKey is the button the game gave hotkey k (lower case; nil: none).
-func (b *bar) gameKey(k uint16) *barItem {
+func (b *combatBar) gameKey(k uint16) *barItem {
 	for i, it := range b.items {
 		if it.Hot > 0 && uint16(byte(it.Hot)|0x20) == k && i < len(b.rects) {
 			return &b.items[i]
@@ -152,7 +152,7 @@ func (b *bar) gameKey(k uint16) *barItem {
 
 // chordKey is the button one of whose chords (alt+q, shift+u, space, q) is
 // key k with Alt and Shift as held (nil: none).
-func (b *bar) chordKey(k uint16, alt, shift bool) *barItem {
+func (b *combatBar) chordKey(k uint16, alt, shift bool) *barItem {
 	names := map[string]uint16{"space": ' ', "enter": '\r', "tab": '\t', "backspace": 8}
 	for i, it := range b.items {
 		for _, c := range strings.Split(strings.ToLower(it.Keys), ",") {
@@ -179,7 +179,7 @@ func (b *bar) chordKey(k uint16, alt, shift bool) *barItem {
 // tableKey is the button whose act's remaster letter (hotkeys) is k, by its
 // act's word whatever the game calls it, for a button the game gave no
 // letter of its own (nil: none).
-func (b *bar) tableKey(k uint16) *barItem {
+func (b *combatBar) tableKey(k uint16) *barItem {
 	for i, it := range b.items {
 		if h, ok := hotkeys[actWords[it.Kind]]; ok && it.Hot == 0 && h.key != 0 && h.key == k && i < len(b.rects) { // only a button the game gave no letter: its letters are the game's
 			return &b.items[i]
@@ -189,7 +189,7 @@ func (b *bar) tableKey(k uint16) *barItem {
 }
 
 // overBar tells whether screen pixel (x, y) is on the bar.
-func (p *Presenter) overBar(x, y int) bool {
+func (p *CombatPresenter) overBar(x, y int) bool {
 	for _, r := range p.bar.rects {
 		if image.Pt(x, y).In(image.Rect(r.Min.X-r.Dx()/4, r.Min.Y-r.Dy()/2, r.Max.X+r.Dx()/4, r.Max.Y+r.Dy()/2)) {
 			return true
@@ -202,7 +202,7 @@ func (p *Presenter) overBar(x, y int) bool {
 // ruling 2026-11-13): an empty square walks (Move), a foe is attacked (Aim),
 // a step off the board's edge flees, the active unit's square or a
 // portrait opens its sheet (View). Their keys (M, V, A, R) still work.
-var boardKinds = map[Kind]bool{ActWalk: true, ActStep: true, ActView: true, ActAim: true, ActFlee: true}
+var boardKinds = map[Kind]bool{CombatActWalk: true, CombatActStep: true, CombatActView: true, CombatActAim: true, CombatActFlee: true}
 
 // shownItems are b's buttons: turnItems without the board's own acts.
 func shownItems(b *Board, asking bool) []barItem {
@@ -211,9 +211,9 @@ func shownItems(b *Board, asking bool) []barItem {
 
 // keyedItems are the board's own acts the turn offers (boardKinds), with no
 // button: only their keys reach them.
-func keyedItems(b *Board, asking bool) bar {
+func keyedItems(b *Board, asking bool) combatBar {
 	its := slices.DeleteFunc(turnItems(b, asking), func(it barItem) bool { return !boardKinds[it.Kind] })
-	return bar{items: its, rects: make([]image.Rectangle, len(its))}
+	return combatBar{items: its, rects: make([]image.Rectangle, len(its))}
 }
 
 // turnItems are the buttons for b, XCOM 2 style: a question's Yes and
@@ -223,10 +223,10 @@ func keyedItems(b *Board, asking bool) bar {
 func turnItems(b *Board, asking bool) (items []barItem) {
 	switch t := b.Turn; {
 	case asking:
-		return []barItem{{'Y', "Yes", ActYes, 0, 0, ""}, {'N', "No", ActNo, 0, 0, ""}}
+		return []barItem{{'Y', "Yes", CombatActYes, 0, 0, ""}, {'N', "No", CombatActNo, 0, 0, ""}}
 	case t == nil:
 	case t.Aim:
-		return []barItem{{'E', "Cancel", ActClose, 0, 0, ""}}
+		return []barItem{{'E', "Cancel", CombatActClose, 0, 0, ""}}
 	case len(t.Options) > 0: // the game's own options, every one, in its order
 		for i, o := range t.Options {
 			w := o.Label
@@ -237,7 +237,7 @@ func turnItems(b *Board, asking bool) (items []barItem) {
 				continue
 			}
 			n := 0
-			if o.Kind == ActOption {
+			if o.Kind == CombatActOption {
 				n = i
 			}
 			items = append(items, barItem{w[0], w, o.Kind, gameHot(int(o.Key)), n, o.Chords})
@@ -259,7 +259,7 @@ func turnItems(b *Board, asking bool) (items []barItem) {
 
 // DrawBar draws b's buttons as the action bar at scale k (K, shrunk as far as it must to fit), its bottom at bottom,
 // in the game's font (glyph).
-func (p *Presenter) DrawBar(dst *gpu.Image, glyph func(byte) [8]byte, b *Board, k, bottom int) {
+func (p *CombatPresenter) DrawBar(dst *gpu.Image, glyph func(byte) [8]byte, b *Board, k, bottom int) {
 	br := &p.bar
 	items := shownItems(b, p.Asking)
 	if len(items) == 0 || p.Picking {
@@ -326,7 +326,7 @@ func buttonRect(w, n, i, k int) image.Rectangle {
 // Click takes a click at screen pixel (x, y): a button of the bar, else
 // a square of the map (aiming: the aim; a foe of the turn's targets: the
 // attack; a square in reach: the walk). It reports whether it was taken.
-func (p *Presenter) Click(x, y int) bool {
+func (p *CombatPresenter) Click(x, y int) bool {
 	for i, r := range p.bar.rects {
 		if image.Pt(x, y).In(r) {
 			p.press(p.bar.items[i])
@@ -345,7 +345,7 @@ func (p *Presenter) Click(x, y int) bool {
 
 // unitUnder is the unit whose standing figure (a square wide, a square tall,
 // over its footprint) is under screen pixel (x, y), the nearest one first.
-func (p *Presenter) unitUnder(x, y int) (Unit, bool) {
+func (p *CombatPresenter) unitUnder(x, y int) (Unit, bool) {
 	r := p.screen
 	if p.b == nil || r.Empty() || !image.Pt(x, y).In(r) {
 		return Unit{}, false
@@ -371,34 +371,34 @@ func (p *Presenter) unitUnder(x, y int) (Unit, bool) {
 
 // clickSquare takes a click (or the keys' cursor's Enter) on square sq:
 // aiming, the aim; a foe, the attack; a square in reach, the walk.
-func (p *Presenter) clickSquare(sq image.Point) bool {
+func (p *CombatPresenter) clickSquare(sq image.Point) bool {
 	b := p.b
 	if b == nil || b.Turn == nil || p.Asking || p.Picking {
 		return false
 	}
 	sx, sy := sq.X, sq.Y
 	if b.Turn.Aim {
-		p.act(Decision{Kind: ActAim, X: sx, Y: sy})
+		p.act(Decision{Kind: CombatActAim, X: sx, Y: sy})
 		return true
 	}
 	for _, u := range b.Units {
 		if !u.Party && slices.Contains(u.Squares, sq) { // any foe: the game refuses with the reason
-			p.act(Decision{Kind: ActAttack, N: u.ID})
+			p.act(Decision{Kind: CombatActAttack, N: u.ID})
 			return true
 		}
 	}
 	if slices.Contains(b.Reach, sq) {
 		p.free = nil // the arrows step the unit from where it walks to
-		p.act(Decision{Kind: ActWalk, X: sx, Y: sy})
+		p.act(Decision{Kind: CombatActWalk, X: sx, Y: sy})
 		return true
 	}
 	if u, ok := p.activeUnit(); ok && image.Pt(u.X, u.Y) == sq { // the turn's own unit: its sheet, as its portrait's
 		p.free = nil
-		p.act(Decision{Kind: ActView, N: -1})
+		p.act(Decision{Kind: CombatActView, N: -1})
 		return true
 	}
 	if !onBoard(sq) { // a square past the board's edge: the flee (the game refuses away from its edge)
-		p.act(Decision{Kind: ActFlee})
+		p.act(Decision{Kind: CombatActFlee})
 		return true
 	}
 	return false
@@ -406,7 +406,7 @@ func (p *Presenter) clickSquare(sq image.Point) bool {
 
 // Point follows the pointer at screen pixel (x, y): once it moves it takes
 // over from the keys' cursor; aiming, the aim goes to the square under it.
-func (p *Presenter) Point(x, y int) {
+func (p *CombatPresenter) Point(x, y int) {
 	if image.Pt(x, y) == p.mouseAt {
 		return
 	}
@@ -423,8 +423,8 @@ func (p *Presenter) Point(x, y int) {
 
 // press takes button it: Cast opens the spell list (acts at once with Turn.CastDirect), Maneuver the
 // maneuvers', the others act.
-func (p *Presenter) press(it barItem) {
-	if it.Kind == ActWalk || it.Kind == ActStep { // Move: the square cursor on the active unit; the keys move it, Enter walks there
+func (p *CombatPresenter) press(it barItem) {
+	if it.Kind == CombatActWalk || it.Kind == CombatActStep { // Move: the square cursor on the active unit; the keys move it, Enter walks there
 		p.free = &image.Point{}
 		for _, u := range p.b.Units {
 			if u.Active {
@@ -433,7 +433,7 @@ func (p *Presenter) press(it barItem) {
 		}
 		return
 	}
-	if it.Kind == ActManeuver || it.Kind == ActCast && (p.b == nil || p.b.Turn == nil || !p.b.Turn.CastDirect) {
+	if it.Kind == CombatActManeuver || it.Kind == CombatActCast && (p.b == nil || p.b.Turn == nil || !p.b.Turn.CastDirect) {
 		p.Picking, p.PickKind = true, it.Kind
 		return
 	}
@@ -441,26 +441,26 @@ func (p *Presenter) press(it barItem) {
 }
 
 // act queues a for Actions.
-func (p *Presenter) act(a Decision) {
-	if a.Kind != ActWalk {
+func (p *CombatPresenter) act(a Decision) {
+	if a.Kind != CombatActWalk {
 		p.moving = 0
 	}
 	p.out = append(p.out, a)
 }
 
 // Actions hands over the actions queued since the last call.
-func (p *Presenter) Actions() []Decision {
+func (p *CombatPresenter) Actions() []Decision {
 	a := p.out
 	p.out = nil
 	return a
 }
 
 // HideBar forgets the buttons (no bar on screen: clicks hit nothing).
-func (p *Presenter) HideBar() { p.bar.rects, p.bar.hover, p.bar.focus = p.bar.rects[:0], -1, 0 }
+func (p *CombatPresenter) HideBar() { p.bar.rects, p.bar.hover, p.bar.focus = p.bar.rects[:0], -1, 0 }
 
 // Hovered is the action of the button the pointer is on and the button's
 // rectangle on screen (ok: there is one), for a tooltip over it.
-func (p *Presenter) Hovered() (kind Kind, r image.Rectangle, ok bool) {
+func (p *CombatPresenter) Hovered() (kind Kind, r image.Rectangle, ok bool) {
 	br := &p.bar
 	if br.hover < 0 || br.hover >= len(br.rects) || br.hover >= len(br.items) {
 		return 0, image.Rectangle{}, false
@@ -469,7 +469,7 @@ func (p *Presenter) Hovered() (kind Kind, r image.Rectangle, ok bool) {
 }
 
 // barPixels is the bar's picture at scale k (hover: the button whose word shows, -1 none).
-func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, icons map[Kind]image.Image, caption string, th Theme) *image.RGBA {
+func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, icons map[Kind]image.Image, caption string, th CombatTheme) *image.RGBA {
 	im := image.NewRGBA(image.Rect(0, 0, w, h))
 	textOn := func(im *image.RGBA, s string, x, y, scale int, c color.RGBA) {
 		for i := 0; i < len(s); i++ {
@@ -496,7 +496,7 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 		r := buttonRect(w, len(items), i, k)
 		fill(r, th.Button)
 		if i == hover {
-			selectOutline(r, 2*k, th.Accent, fill)
+			combatSelectOutline(r, 2*k, th.Accent, fill)
 		}
 		in := r.Inset(2 * k)
 		// the face at the icon's size: the icon 1:1, the letters on it in
@@ -545,7 +545,7 @@ func barPixels(glyph func(byte) [8]byte, items []barItem, hover, w, h, k int, ic
 
 // hoverSquare is the square the hover frame and the walk preview show: the
 // keys' cursor, else the one under the mouse (not over the bar).
-func (p *Presenter) hoverSquare() (int, int, bool) {
+func (p *CombatPresenter) hoverSquare() (int, int, bool) {
 	if c := p.free; c != nil {
 		return c.X, c.Y, true
 	}

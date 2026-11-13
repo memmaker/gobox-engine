@@ -16,7 +16,7 @@ import (
 // AskYes puts a yes/no question q up (AskConfirm, starting on No); yes
 // runs on Yes.
 func AskYes(h RuleHost, q string, yes func()) {
-	h.Ask(&front.Question{Ask: front.Ask{Kind: front.AskConfirm, Menu: front.Menu{Prompt: q}}, Answer: func(a front.Action) bool {
+	h.Ask(&front.Question{Ask: front.FrontAsk{Kind: front.AskConfirm, Menu: front.Menu{Prompt: q}}, Answer: func(a front.FrontAction) bool {
 		switch a.Kind {
 		case front.ActYes:
 			yes()
@@ -31,9 +31,9 @@ func AskYes(h RuleHost, q string, yes func()) {
 // AskForMember asks for a party member (AskMember: Select, Exit), starting
 // on member who; then gets the one picked (Exit: nothing).
 func AskForMember(h RuleHost, prompt string, who int, then func(n int)) {
-	q := &front.Question{Ask: front.Ask{Kind: front.AskMember, Menu: front.Menu{Prompt: prompt,
+	q := &front.Question{Ask: front.FrontAsk{Kind: front.AskMember, Menu: front.Menu{Prompt: prompt,
 		Commands: []front.Command{{Text: "Select", Key: 'S'}, {Text: "Exit", Key: 'E'}}}}, Cand: max(who, 0)}
-	q.Answer = func(a front.Action) bool {
+	q.Answer = func(a front.FrontAction) bool {
 		n := h.Shown().Party
 		switch a.Kind {
 		case front.ActLead:
@@ -62,10 +62,10 @@ func AskForMember(h RuleHost, prompt string, who int, then func(n int)) {
 }
 
 // spellEntries is spells as AskSpell's entries: the name, the ID as Spell.
-func spellEntries(spells []front.Spell) []front.Entry {
-	out := make([]front.Entry, len(spells))
+func spellEntries(spells []front.Spell) []front.FrontEntry {
+	out := make([]front.FrontEntry, len(spells))
 	for i, s := range spells {
-		out[i] = front.Entry{Text: s.Name, Spell: s.ID}
+		out[i] = front.FrontEntry{Text: s.Name, Spell: s.ID}
 	}
 	return out
 }
@@ -73,7 +73,7 @@ func spellEntries(spells []front.Spell) []front.Entry {
 // AskForSpell asks for one of spells (AskSpell); then gets its ID (Close:
 // nothing).
 func AskForSpell(h RuleHost, spells []front.Spell, then func(id int)) {
-	h.Ask(&front.Question{Ask: front.Ask{Kind: front.AskSpell, Entries: spellEntries(spells)}, Answer: func(a front.Action) bool {
+	h.Ask(&front.Question{Ask: front.FrontAsk{Kind: front.AskSpell, Entries: spellEntries(spells)}, Answer: func(a front.FrontAction) bool {
 		switch a.Kind {
 		case front.ActCast:
 			if slices.ContainsFunc(spells, func(s front.Spell) bool { return s.ID == a.N }) {
@@ -88,9 +88,9 @@ func AskForSpell(h RuleHost, spells []front.Spell, then func(id int)) {
 }
 
 // ShowList shows lines (AskList) until Exit.
-func ShowList(h RuleHost, lines []front.Entry) {
-	h.Ask(&front.Question{Ask: front.Ask{Kind: front.AskList, Entries: lines, Menu: front.Menu{Commands: []front.Command{{Text: "Exit", Key: 'E'}}}},
-		Answer: func(a front.Action) bool {
+func ShowList(h RuleHost, lines []front.FrontEntry) {
+	h.Ask(&front.Question{Ask: front.FrontAsk{Kind: front.AskList, Entries: lines, Menu: front.Menu{Commands: []front.Command{{Text: "Exit", Key: 'E'}}}},
+		Answer: func(a front.FrontAction) bool {
 			return a.Kind == front.ActChoose || a.Kind == front.ActClose || a.Kind == front.ActOK
 		}})
 }
@@ -98,11 +98,11 @@ func ShowList(h RuleHost, lines []front.Entry) {
 // AskAct takes a while the host's question is up (every other decision
 // waits), and asks "Stop resting?" for one made while camp rests; done
 // false leaves a to the others.
-func AskAct(h RuleHost, a front.Action) (taken, done bool) {
+func AskAct(h RuleHost, a front.FrontAction) (taken, done bool) {
 	s := h.Shown()
 	switch q := h.Asking(); {
 	case q != nil:
-		if a.Kind == front.ActResize || a.Kind == front.ActFont || a.Kind == front.ActSound {
+		if a.Kind == front.FrontActResize || a.Kind == front.ActFont || a.Kind == front.ActSound {
 			return false, true
 		}
 		if a.Kind != front.ActPoint && q.Answer(a) && h.Asking() == q {
@@ -115,7 +115,7 @@ func AskAct(h RuleHost, a front.Action) (taken, done bool) {
 		if lootAct(h, s.Treasure, a) {
 			return true, true
 		}
-	case s.Resting && !s.Battle && a.Kind != front.ActPoint && a.Kind != front.ActResize && a.Kind != front.ActMainMenu: // a fight's turn takes its own decisions
+	case s.Resting && !s.Battle && a.Kind != front.ActPoint && a.Kind != front.FrontActResize && a.Kind != front.ActMainMenu: // a fight's turn takes its own decisions
 		AskYes(h, "Stop resting?", func() { h.Call(func(e *classicGame) { e.do(play.StopRest{}) }) })
 		return true, true
 	}
@@ -125,7 +125,7 @@ func AskAct(h RuleHost, a front.Action) (taken, done bool) {
 // PowerAct makes a member's power out of combat (the sheet's, the
 // inventory's, a card's, camp's, the bar's Cast) up a rule call; Magic
 // lists the effects; false: a is no power.
-func PowerAct(h RuleHost, a front.Action) bool {
+func PowerAct(h RuleHost, a front.FrontAction) bool {
 	k := a.Kind
 	switch k {
 	case front.ActCastPick:
@@ -181,7 +181,7 @@ type GateItem struct {
 
 // Gate is the menu of the treasure screen (loot) or a locked door
 // (door), the last item Exit; nil: neither is up.
-func Gate(h RuleHost, l *front.Loot, d *game.Door) (string, []GateItem) {
+func Gate(h RuleHost, l *front.FrontLoot, d *game.Door) (string, []GateItem) {
 	var items []GateItem
 	add := func(on bool, text string, do func(e *classicGame)) {
 		if on {
@@ -224,7 +224,7 @@ var lootActs = map[front.ActKind]string{front.ActLootDetect: "Detect", front.Act
 
 // lootAct makes a's Gate call on the loot inventory (Exit asks first while
 // treasure is left); false: a is not one.
-func lootAct(h RuleHost, l *front.Loot, a front.Action) bool {
+func lootAct(h RuleHost, l *front.FrontLoot, a front.FrontAction) bool {
 	_, items := Gate(h, l, nil)
 	for _, it := range items {
 		if lootActs[a.Kind] == it.text {
@@ -241,7 +241,7 @@ func GateQuestion(h RuleHost, d *game.Door) *front.Question {
 	if items == nil {
 		return nil
 	}
-	q := &front.Question{Ask: front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: prompt}}}
+	q := &front.Question{Ask: front.FrontAsk{Kind: front.AskMenu, Menu: front.Menu{Prompt: prompt}}}
 	for _, it := range items {
 		q.Ask.Commands = append(q.Ask.Commands, front.Command{Text: it.text, Key: it.text[0]})
 	}
@@ -250,10 +250,10 @@ func GateQuestion(h RuleHost, d *game.Door) *front.Question {
 
 // GateAct takes a at a locked door: an option (ActChoose N, Esc Exit) is
 // its rule call.
-func GateAct(h RuleHost, a front.Action) bool {
+func GateAct(h RuleHost, a front.FrontAction) bool {
 	_, items := Gate(h, nil, h.Shown().Door)
 	switch a.Kind {
-	case front.ActResize, front.ActFont, front.ActSound:
+	case front.FrontActResize, front.ActFont, front.ActSound:
 		return false
 	case front.ActChoose:
 		if a.N >= 0 && a.N < len(items) {

@@ -15,7 +15,7 @@ func TestMapImage(t *testing.T) {
 	m := &MapSquares{Party: image.Pt(1, 1), Ahead: image.Pt(0, -1)}
 	m.Squares[0][0] = MapSquare{Seen: Visited, Walls: [4]Wall{WallSolid, Door, NoWall, NoWall}}
 	m.Squares[0][2] = MapSquare{Seen: SeenFar, Ink: 10, Letter: 'A'}
-	img := MapImage(m, 8, ink, door, nil)
+	img := UIMapImage(m, 8, ink, door, nil)
 	for _, c := range []struct {
 		p image.Point
 		w color.RGBA

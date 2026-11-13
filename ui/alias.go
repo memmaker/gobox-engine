@@ -4,22 +4,22 @@ import "gobox/ui/text"
 
 // The pure text helpers live in gobox/ui/text (no gpu or input dependency).
 type (
-	Cell     = text.Cell
-	Frame    = text.Frame
-	Theme    = text.Theme
-	Console  = text.Console
-	MenuItem = text.MenuItem
-	List     = text.List
+	Cell     = text.TextCell
+	Frame    = text.TextFrame
+	UITheme    = text.TextTheme
+	Console  = text.TextConsole
+	MenuItem = text.TextMenuItem
+	List     = text.TextList
 )
 
 var (
-	NewConsole = text.NewConsole
-	IsHotkey   = text.IsHotkey
-	MenuItems  = text.MenuItems
-	Punct      = text.Punct
-	Flow       = text.Flow
-	Wrap       = text.Wrap
-	PadLeft    = text.PadLeft
-	PriceLine  = text.PriceLine
-	Commas     = text.Commas
+	NewConsole = text.TextNewConsole
+	IsHotkey   = text.TextIsHotkey
+	MenuItems  = text.TextMenuItems
+	Punct      = text.TextPunct
+	Flow       = text.TextFlow
+	Wrap       = text.TextWrap
+	PadLeft    = text.TextPadLeft
+	PriceLine  = text.TextPriceLine
+	Commas     = text.TextCommas
 )

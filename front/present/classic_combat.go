@@ -242,13 +242,13 @@ func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *c
 				b.Turn.Can = append(b.Turn.Can, k)
 			}
 			if !known || act == 0 {
-				k = combat.ActOption
+				k = combat.CombatActOption
 			}
 			key := byte(0)
 			if op.Key > 0 && op.Key < 128 {
 				key = byte(op.Key)
 			}
-			b.Turn.Options = append(b.Turn.Options, combat.Option{Label: op.Label, Key: key, Kind: k, Chords: op.Chords})
+			b.Turn.Options = append(b.Turn.Options, combat.CombatOption{Label: op.Label, Key: key, Kind: k, Chords: op.Chords})
 		}
 	}
 	return b

@@ -11,9 +11,9 @@ import (
 )
 
 // IconClick is the action a click on cell cx, cy of the icon editor takes.
-func IconClick(ed *front.IconEditor, cx, cy int) (front.Action, bool) { return iconClick(ed, cx, cy) }
+func IconClick(ed *front.FrontIconEditor, cx, cy int) (front.FrontAction, bool) { return iconClick(ed, cx, cy) }
 
 // MapImage draws m at cell pixels a square in the colours ink.
-func MapImage(m *front.MapSquares, cell int, ink [16]color.RGBA, glyph func(byte, bool) [8]byte) *image.RGBA {
+func MapImage(m *front.FrontMapSquares, cell int, ink [16]color.RGBA, glyph func(byte, bool) [8]byte) *image.RGBA {
 	return mapImage(m, cell, ink, glyph)
 }

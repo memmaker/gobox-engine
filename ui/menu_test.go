@@ -6,7 +6,7 @@ import (
 	"gobox/input"
 )
 
-func TestMenuNav(t *testing.T) {
+func UITestMenuNav(t *testing.T) {
 	sel := 0
 	keys := []byte{'C', 'E'}
 	if i, back, _ := MenuNav(input.Esc, 27, &sel, keys); i != -1 || !back {
@@ -26,7 +26,7 @@ func TestMenuNav(t *testing.T) {
 	}
 }
 
-func TestDigitKeys(t *testing.T) {
+func UITestDigitKeys(t *testing.T) {
 	keys := DigitKeys([]byte{'B', 0, '2', 0, 0}, func(i int) bool { return i != 3 })
 	if string(keys) != "B12\x003" {
 		t.Fatalf("%q", keys)

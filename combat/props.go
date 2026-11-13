@@ -100,7 +100,7 @@ func readBlocks(fsys fs.FS, names []string, ps *propSet) map[int]image.Image {
 		if m := pic(n); m != nil {
 			out[i] = m
 		}
-		if m := pic(n + "_top"); m != nil && slot < atlasCols*atlasRows {
+		if m := pic(n + "_top"); m != nil && slot < combatAtlasCols*atlasRows {
 			out[slot], ps.top[i] = m, slot
 			slot++
 		}

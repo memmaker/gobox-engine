@@ -7,7 +7,7 @@ import (
 
 // TestFontPage: the Graphics page's Font line opens the list, Esc goes back to it.
 func TestFontPage(t *testing.T) {
-	g := &Game{page: "Graphics"}
+	g := &BlobberGame{page: "Graphics"}
 	graphicsFont := g.fontRow()
 	if l := g.menuOptions()[graphicsFont]; l.label != "Font" {
 		t.Fatalf("Graphics row %d is %q, not Font", graphicsFont, l.label)
@@ -29,19 +29,19 @@ func TestExtraRows(t *testing.T) {
 		"Graphics": {{Label: "A", At: 1}, {Label: "B", At: 1}, {Label: "Z", At: 4}},
 		"Sound":    {{Label: "Vol", Get: func() string { return "7" }, Change: func(d int) { hit += d + 5 }}},
 	}
-	labels := func(g *Game) (o []string) {
+	labels := func(g *BlobberGame) (o []string) {
 		for _, l := range g.menuOptions() {
 			o = append(o, l.label)
 		}
 		return
 	}
-	if got := fmt.Sprint(labels(&Game{page: "Graphics"})); got != "[Fullscreen A B Dithered darkness Torch intensity Font Z Exit]" {
+	if got := fmt.Sprint(labels(&BlobberGame{page: "Graphics"})); got != "[Fullscreen A B Dithered darkness Torch intensity Font Z Exit]" {
 		t.Fatal(got)
 	}
-	if got := fmt.Sprint(labels(&Game{})); got != "[Resume Gameplay Graphics Sound Quit to DOS]" {
+	if got := fmt.Sprint(labels(&BlobberGame{})); got != "[Resume Gameplay Graphics Sound Quit to DOS]" {
 		t.Fatal(got)
 	}
-	g := &Game{page: "Sound"}
+	g := &BlobberGame{page: "Sound"}
 	o := g.menuOptions()
 	o[0].change(g, 1)
 	if fmt.Sprint(labels(g)) != "[Vol Exit]" || o[0].value(g) != "7" || hit != 6 {

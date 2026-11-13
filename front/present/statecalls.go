@@ -12,7 +12,7 @@ import (
 
 // StateAct makes a decision in camp or on the party menu a rule call;
 // false leaves it to the others.
-func StateAct(h RuleHost, a front.Action) bool {
+func StateAct(h RuleHost, a front.FrontAction) bool {
 	v := h.Shown()
 	if v.Ask || v.Powers || v.Sheet || v.Inventory {
 		return false

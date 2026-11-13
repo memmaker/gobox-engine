@@ -17,11 +17,11 @@ func TestAimAreaPreview(t *testing.T) {
 	if b := liveBoard(g); b == nil || b.AimArea != 0 {
 		t.Fatalf("before aiming: %+v", b)
 	}
-	g.Answer(front.Action{Kind: front.ActCast, N: 7})
+	g.Answer(front.FrontAction{Kind: front.ActCast, N: 7})
 	if b := liveBoard(g); b == nil || b.AimArea != 3 {
 		t.Fatalf("aiming: AimArea %v, want 3", b.AimArea)
 	}
-	g.Answer(front.Action{Kind: front.ActClose})
+	g.Answer(front.FrontAction{Kind: front.ActClose})
 	if b := liveBoard(g); b.AimArea != 0 {
 		t.Fatalf("after Esc: AimArea %d", b.AimArea)
 	}

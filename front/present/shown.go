@@ -36,7 +36,7 @@ type laidPage struct {
 type laidKey struct {
 	version  uint64
 	moment   *game.Page
-	creation *front.Creation
+	creation *front.FrontCreation
 	ink      [16]color.RGBA
 }
 
@@ -253,7 +253,7 @@ func (p *Presenter) pictures() []front.Picture {
 
 // askUp is the question up: the presenter's own (Ask), else the state's, else
 // the locked door's menu (nil: none, or a fight's moment holds the screen).
-func (p *Presenter) askUp() *front.Ask {
+func (p *Presenter) askUp() *front.FrontAsk {
 	if p.backdrop { // the backdrop draws no question
 		return nil
 	}
@@ -263,7 +263,7 @@ func (p *Presenter) askUp() *front.Ask {
 	if p.eng == nil || p.replaying() {
 		return nil
 	}
-	return p.lay.ask.get(p.uiKey(), func() *front.Ask {
+	return p.lay.ask.get(p.uiKey(), func() *front.FrontAsk {
 		if a := p.eng.r.askOf(p.state()); a != nil {
 			return a
 		}
@@ -277,10 +277,10 @@ func (p *Presenter) askUp() *front.Ask {
 // askOf is the state's question as the presenter asks it. A place's mode
 // with no screen of its own yet draws its question, never a blank frame;
 // the treasure's picture waits under a message (Enter or Space opens it).
-func (r *frontState) askOf(ps play.State) *front.Ask {
+func (r *frontState) askOf(ps play.State) *front.FrontAsk {
 	mode, pending := r.modeOf(ps), r.asking(ps)
 	if mode == game.ModeLoot && lootOf(ps) != nil && announced(ps) {
-		return &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}
+		return &front.FrontAsk{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}
 	}
 	if q, ok := Ask(mode, pending); ok && q != nil {
 		return q
@@ -328,11 +328,11 @@ func (p *Presenter) templeUp() bool {
 }
 
 // trainingUp is the training hall's offer to the selected member (nil: none).
-func (p *Presenter) trainingUp() *front.Training {
+func (p *Presenter) trainingUp() *front.FrontTraining {
 	if p.eng == nil {
 		return nil
 	}
-	return p.lay.training.get(p.uiKey(), func() *front.Training {
+	return p.lay.training.get(p.uiKey(), func() *front.FrontTraining {
 		s := p.state()
 		return Training(trainingOf(s), partyOf(s), p.selected(), play.CommonOf(s).Purse)
 	})
@@ -384,12 +384,12 @@ func (p *Presenter) gameScreen() *game.Screen {
 }
 
 // note is the status line's toast: the rules' last refusal, else the front's own.
-func (p *Presenter) note() front.Note {
+func (p *Presenter) note() front.FrontNote {
 	if p.eng == nil {
-		return front.Note{}
+		return front.FrontNote{}
 	}
 	if n := p.eng.r.note; n.Text != "" {
-		return front.Note{Text: n.Text, At: n.At}
+		return front.FrontNote{Text: n.Text, At: n.At}
 	}
 	return p.eng.r.toast
 }

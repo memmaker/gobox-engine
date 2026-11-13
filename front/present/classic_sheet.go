@@ -8,8 +8,8 @@ import (
 	"gobox/game"
 )
 
-func cells(r image.Rectangle) front.CellRect {
-	return front.CellRect{X1: r.Min.X, Y1: r.Min.Y, X2: r.Max.X, Y2: r.Max.Y}
+func cells(r image.Rectangle) front.FrontCellRect {
+	return front.FrontCellRect{X1: r.Min.X, Y1: r.Min.Y, X2: r.Max.X, Y2: r.Max.Y}
 }
 
 // sheetOwn is the member whose sheet is up: the draft being made, else the selected one.

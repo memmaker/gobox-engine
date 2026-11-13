@@ -10,17 +10,17 @@ import (
 
 // The window's actions and boxes, as a cmd test sends and checks them.
 type (
-	Action   = front.Action
-	CellRect = front.CellRect
+	Action   = front.FrontAction
+	CellRect = front.FrontCellRect
 )
 
 const (
-	ActResize    = front.ActResize
-	ActCreate    = front.ActCreate
-	PickHead     = front.PickHead
-	PickBody     = front.PickBody
-	PickIconHead = front.PickIconHead
-	PickWeapon   = front.PickWeapon
+	ActResize    = front.FrontActResize
+	ActCreate    = front.FrontActCreate
+	PickHead     = front.FrontPickHead
+	PickBody     = front.FrontPickBody
+	PickIconHead = front.FrontPickIconHead
+	PickWeapon   = front.FrontPickWeapon
 )
 
 // TitleDrawn: the last frame drew the main menu's screen, over the title's

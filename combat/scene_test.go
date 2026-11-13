@@ -69,8 +69,8 @@ func TestStoneTexture(t *testing.T) {
 }
 
 func TestKeys(t *testing.T) {
-	p := &Presenter{}
-	b := &Board{Turn: &Turn{Can: []Kind{ActAttack, ActWait, ActEnd, ActQuick}}}
+	p := &CombatPresenter{}
+	b := &Board{Turn: &Turn{Can: []Kind{CombatActAttack, CombatActWait, CombatActEnd, CombatActQuick}}}
 	p.b = b
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
@@ -79,7 +79,7 @@ func TestKeys(t *testing.T) {
 		k uint16
 	}
 	took := func(k key) []Decision { p.Key(k.a, k.k); return p.Actions() }
-	for k, want := range map[key]Kind{{0, '1'}: ActAttack, {0, '2'}: ActWait, {input.EndTurn, 8}: ActEnd, {0, 'u'}: ActQuick, {0, 'p'}: ActWait} {
+	for k, want := range map[key]Kind{{0, '1'}: CombatActAttack, {0, '2'}: CombatActWait, {input.EndTurn, 8}: CombatActEnd, {0, 'u'}: CombatActQuick, {0, 'p'}: CombatActWait} {
 		if got := took(k); len(got) != 1 || got[0].Kind != want {
 			t.Errorf("key %v: %+v, want kind %d", k, got, want)
 		}
@@ -101,10 +101,10 @@ func TestKeys(t *testing.T) {
 	if got := took(key{input.Tab, 9}); len(got) != 0 || b.Cursor != image.Pt(4, 2) { // the aim cursor is front state: no game action
 		t.Errorf("Tab aiming: %+v at %v, want the next target", got, b.Cursor)
 	}
-	if got := took(key{input.Enter, 13}); len(got) != 1 || got[0] != (Decision{Kind: ActAim, X: 4, Y: 2}) {
+	if got := took(key{input.Enter, 13}); len(got) != 1 || got[0] != (Decision{Kind: CombatActAim, X: 4, Y: 2}) {
 		t.Errorf("Enter aiming: %+v", got)
 	}
-	if got := took(key{input.Esc, 27}); len(got) != 1 || got[0].Kind != ActClose {
+	if got := took(key{input.Esc, 27}); len(got) != 1 || got[0].Kind != CombatActClose {
 		t.Errorf("Esc aiming: %+v", got)
 	}
 }
@@ -136,8 +136,8 @@ func TestNDC(t *testing.T) {
 }
 
 func TestBarFocus(t *testing.T) {
-	p := &Presenter{}
-	b := &Board{Turn: &Turn{Can: []Kind{ActAttack, ActWait, ActEnd}}}
+	p := &CombatPresenter{}
+	b := &Board{Turn: &Turn{Can: []Kind{CombatActAttack, CombatActWait, CombatActEnd}}}
 	p.b = b
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
@@ -153,7 +153,7 @@ func TestBarFocus(t *testing.T) {
 			t.Fatalf("key %v: focus %d, want %d", c.a, p.bar.focus, c.focus)
 		}
 	}
-	if p.Key(input.Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: ActWait}}) {
+	if p.Key(input.Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: CombatActWait}}) {
 		t.Error("Enter did not press the focused Wait")
 	}
 	p.bar.focus = 0
@@ -163,7 +163,7 @@ func TestBarFocus(t *testing.T) {
 	}
 	b.Turn = nil
 	p.bar.items = shownItems(b, true)
-	for k, want := range map[uint16]Kind{'y': ActYes, 'n': ActNo} {
+	for k, want := range map[uint16]Kind{'y': CombatActYes, 'n': CombatActNo} {
 		if p.Key(0, k); !slices.Equal(p.Actions(), []Decision{{Kind: want}}) {
 			t.Errorf("question key %#x: want kind %d", k, want)
 		}
@@ -174,7 +174,7 @@ func TestBarFocus(t *testing.T) {
 // active unit and Enter walks or attacks there as a click; aiming, it
 // moves the aim and the shoulders cycle the targets.
 func TestCursor(t *testing.T) {
-	p := &Presenter{}
+	p := &CombatPresenter{}
 	b := &Board{Turn: &Turn{}, Units: []Unit{{ID: 1, X: 5, Y: 5, Active: true, Party: true}, {ID: 2, X: 9, Y: 9}, {ID: 3, X: 2, Y: 2}},
 		Reach: []image.Point{{5, 3}}}
 	p.b = b
@@ -184,7 +184,7 @@ func TestCursor(t *testing.T) {
 	if p.Key(input.CursorUp, 'w'); p.free == nil || *p.free != image.Pt(5, 3) {
 		t.Fatalf("W again: cursor %v, want 5,3", p.free)
 	}
-	if p.Key(input.Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: ActWalk, X: 5, Y: 3}}) {
+	if p.Key(input.Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: CombatActWalk, X: 5, Y: 3}}) {
 		t.Error("Enter on a reach square did not walk there")
 	}
 	p.Point(100, 100) // a moved mouse takes over
@@ -202,8 +202,8 @@ func TestCursor(t *testing.T) {
 
 // A click on a Reach square walks there.
 func TestClickReach(t *testing.T) {
-	p := &Presenter{b: &Board{Turn: &Turn{}, Reach: []image.Point{{3, 4}}}}
-	if !p.clickSquare(image.Pt(3, 4)) || !slices.Equal(p.Actions(), []Decision{{Kind: ActWalk, X: 3, Y: 4}}) {
+	p := &CombatPresenter{b: &Board{Turn: &Turn{}, Reach: []image.Point{{3, 4}}}}
+	if !p.clickSquare(image.Pt(3, 4)) || !slices.Equal(p.Actions(), []Decision{{Kind: CombatActWalk, X: 3, Y: 4}}) {
 		t.Error("a click on a Reach square did not return Walk")
 	}
 }
@@ -227,12 +227,12 @@ func TestMapMeshPartial(t *testing.T) {
 // looked at (the original's Center).
 func TestAimEnterCentres(t *testing.T) {
 	b := &Board{Units: []Unit{{ID: 1, X: 2, Y: 2, Active: true}}, Cursor: image.Pt(9, 4), CursorOn: true, Turn: &Turn{Aim: true}}
-	p := &Presenter{b: b}
+	p := &CombatPresenter{b: b}
 	p.Key(input.Enter, 0)
 	if p.tabTo == nil || *p.tabTo != (vec{9.5, 0, 4.5}) {
 		t.Fatalf("view on %v", p.tabTo)
 	}
-	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: ActAim, X: 9, Y: 4}) {
+	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: CombatActAim, X: 9, Y: 4}) {
 		t.Fatalf("%+v", got)
 	}
 }

@@ -19,7 +19,7 @@ import (
 )
 
 // openBuy starts the point buy with every ability at the minimum.
-func (p *Presenter) openBuy(cr *front.Creation) {
+func (p *Presenter) openBuy(cr *front.FrontCreation) {
 	s := &p.scr
 	s.buy, s.buyStat = slices.Repeat([]int{game.PointBuyMin}, len(cr.StatNames)), 0
 	s.sub, s.sel, s.top = scrBuy, 0, 0
@@ -39,7 +39,7 @@ func (p *Presenter) buyBy(i, d int) {
 }
 
 // buyItems are the point buy's title and rows.
-func (p *Presenter) buyItems(cr *front.Creation) (string, []ui.MenuRow) {
+func (p *Presenter) buyItems(cr *front.FrontCreation) (string, []ui.MenuRow) {
 	s := &p.scr
 	if s.sel < len(s.buy) {
 		s.buyStat = s.sel
@@ -80,9 +80,9 @@ func (p *Presenter) buyKey(k uint16) bool {
 		return false
 	}
 	switch actOf(k) {
-	case input.Left:
+	case input.InputLeft:
 		p.buyBy(s.sel, -1)
-	case input.Right:
+	case input.InputRight:
 		p.buyBy(s.sel, 1)
 	default:
 		return false

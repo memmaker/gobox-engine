@@ -69,7 +69,7 @@ func aimKeys(r *castGame, cast bool) {
 	f.P.SetEngine(f.Game)
 	dst := gpu.NewImage(640, 400)
 	if cast {
-		f.Game.Answer(front.Action{Kind: front.ActCast, N: 7})
+		f.Game.Answer(front.FrontAction{Kind: front.ActCast, N: 7})
 	}
 	for _, k := range []uint16{0, 0x4D00, 0x4D00, 13, 0} { // the aim's cursor two squares east, Enter
 		f.Act()

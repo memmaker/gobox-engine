@@ -11,7 +11,7 @@ import (
 // (0,0) at its top left) in font bits (nil: the game's): Colour on Bg, both
 // looked up in the game's palette. Symbol cells use symbol(id), a game
 // tile; without it they are skipped.
-func (c *Console) Draw(dst *image.RGBA, bits []byte, pal func(byte) color.RGBA, symbol func(id int) ([8]byte, bool)) {
+func (c *TextConsole) Draw(dst *image.RGBA, bits []byte, pal func(byte) color.RGBA, symbol func(id int) ([8]byte, bool)) {
 	for y, row := range c.Cells {
 		for x, cl := range row {
 			if !cl.Set {

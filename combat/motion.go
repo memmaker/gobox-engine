@@ -39,7 +39,7 @@ type shownUnit struct {
 
 // moveUnits brings every figure a frame of dt seconds closer to b's
 // board and lists what to draw, the departing ones after b's units.
-func (p *Presenter) moveUnits(b *Board, dt float64) []shownUnit {
+func (p *CombatPresenter) moveUnits(b *Board, dt float64) []shownUnit {
 	if p.units == nil {
 		p.units = map[int]*walker{}
 	}
@@ -98,7 +98,7 @@ func (p *Presenter) moveUnits(b *Board, dt float64) []shownUnit {
 // cells are the centres u walks through from where w's walk ends to c:
 // the last board's path to u's square where it offered one, else the
 // straight line of squares.
-func (p *Presenter) cells(w *walker, u Unit, c [2]float64) [][2]float64 {
+func (p *CombatPresenter) cells(w *walker, u Unit, c [2]float64) [][2]float64 {
 	off := [2]float64{c[0] - float64(u.X), c[1] - float64(u.Y)} // the centre's place on the unit's anchor square
 	if steps := p.paths[image.Pt(u.X, u.Y)]; len(steps) > 1 && centre(steps[0].Point, off) == w.end {
 		out := make([][2]float64, 0, len(steps)-1)

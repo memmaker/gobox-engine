@@ -5,75 +5,75 @@ import (
 	"strings"
 )
 
-// Cell is one character cell of a Console: the character written (Upcase:
+// TextCell is one character cell of a Console: the character written (Upcase:
 // drawn as its upcased glyph), its colour and background; Symbol cells hold
 // a border/tile symbol id in Sym instead of a character.
-type Cell struct {
+type TextCell struct {
 	Set, Upcase, Symbol bool
 	C, Colour, Bg       byte
 	Sym                 int
 }
 
-// Frame is the symbol ids of one border style: corner, vertical, horizontal.
-type Frame struct{ Corner, Vert, Horz int }
+// TextFrame is the symbol ids of one border style: corner, vertical, horizontal.
+type TextFrame struct{ Corner, Vert, Horz int }
 
-// Theme is the game's border data: Border(style) gives that style's symbols.
-type Theme struct{ Border func(style int) Frame }
+// TextTheme is the game's border data: Border(style) gives that style's symbols.
+type TextTheme struct{ Border func(style int) TextFrame }
 
-// Console is a grid of cells with a text cursor (Col, Row) for TextBlock.
+// TextConsole is a grid of cells with a text cursor (Col, Row) for TextBlock.
 // It draws nothing: the game renders Cells with its own font and palette.
-type Console struct {
+type TextConsole struct {
 	Cols, Rows int
-	Cells      [][]Cell
+	Cells      [][]TextCell
 	Col, Row   int
-	Theme      Theme
+	Theme      TextTheme
 }
 
-func NewConsole(cols, rows int, t Theme) *Console {
-	c := &Console{Cols: cols, Rows: rows, Theme: t, Cells: make([][]Cell, rows)}
+func TextNewConsole(cols, rows int, t TextTheme) *TextConsole {
+	c := &TextConsole{Cols: cols, Rows: rows, Theme: t, Cells: make([][]TextCell, rows)}
 	for y := range c.Cells {
-		c.Cells[y] = make([]Cell, cols)
+		c.Cells[y] = make([]TextCell, cols)
 	}
 	return c
 }
 
 // Put writes ch at (x, y); out of the grid it does nothing.
-func (c *Console) Put(x, y, colour, bg int, ch byte, upcase bool) {
+func (c *TextConsole) Put(x, y, colour, bg int, ch byte, upcase bool) {
 	if x < 0 || x >= c.Cols || y < 0 || y >= c.Rows {
 		return
 	}
-	c.Cells[y][x] = Cell{Set: true, Upcase: upcase, C: ch, Colour: byte(colour), Bg: byte(bg)}
+	c.Cells[y][x] = TextCell{Set: true, Upcase: upcase, C: ch, Colour: byte(colour), Bg: byte(bg)}
 }
 
 // PutSymbol writes border symbol id at (x, y).
-func (c *Console) PutSymbol(x, y, colour, id int) {
+func (c *TextConsole) PutSymbol(x, y, colour, id int) {
 	if x < 0 || x >= c.Cols || y < 0 || y >= c.Rows {
 		return
 	}
-	c.Cells[y][x] = Cell{Set: true, Symbol: true, Sym: id, Colour: byte(colour)}
+	c.Cells[y][x] = TextCell{Set: true, Symbol: true, Sym: id, Colour: byte(colour)}
 }
 
 // Text writes s from (x, y), each character upcased, no wrapping (at most 255).
-func (c *Console) Text(x, y, colour int, s string) { c.TextBg(x, y, colour, 0, s) }
+func (c *TextConsole) Text(x, y, colour int, s string) { c.TextBg(x, y, colour, 0, s) }
 
 // TextBg is Text on background bg.
-func (c *Console) TextBg(x, y, colour, bg int, s string) {
+func (c *TextConsole) TextBg(x, y, colour, bg int, s string) {
 	for i := 0; i < len(s) && i < 255; i++ {
 		c.Put(x+i, y, colour, bg, s[i], true)
 	}
 }
 
 // Blank empties the cells [x1..x2] x [y1..y2].
-func (c *Console) Blank(x1, y1, x2, y2 int) {
+func (c *TextConsole) Blank(x1, y1, x2, y2 int) {
 	for y := max(y1, 0); y <= y2 && y < c.Rows; y++ {
 		for x := max(x1, 0); x <= x2 && x < c.Cols; x++ {
-			c.Cells[y][x] = Cell{}
+			c.Cells[y][x] = TextCell{}
 		}
 	}
 }
 
 // Border draws style's frame around the cell rectangle (one cell outside it).
-func (c *Console) Border(x1, y1, x2, y2, style, colour int) {
+func (c *TextConsole) Border(x1, y1, x2, y2, style, colour int) {
 	f := c.Theme.Border(style)
 	x1, y1, x2, y2 = x1-1, y1-1, x2+1, y2+1
 	for _, p := range [][2]int{{x1, y1}, {x2, y1}, {x1, y2}, {x2, y2}} {
@@ -91,7 +91,7 @@ func (c *Console) Border(x1, y1, x2, y2, style, colour int) {
 
 // BoxTitled blanks the interior, draws the border (colour) and centres the
 // title on row y1 (the interior's first row, as the games do).
-func (c *Console) BoxTitled(x1, y1, x2, y2, style, colour int, title string) {
+func (c *TextConsole) BoxTitled(x1, y1, x2, y2, style, colour int, title string) {
 	title = title[:min(len(title), c.Cols)]
 	c.Blank(x1, y1, x2, y2)
 	c.Border(x1, y1, x2, y2, style, colour)
@@ -104,7 +104,7 @@ func (c *Console) BoxTitled(x1, y1, x2, y2, style, colour int, title string) {
 // when it lies inside the box (clear: blank the box first and start at its
 // corner). When the box is full, full is called (the game's "press a key"),
 // then the box is blanked and starts over.
-func (c *Console) TextBlock(x1, y1, x2, y2, colour int, clear bool, s string, full func()) {
+func (c *TextConsole) TextBlock(x1, y1, x2, y2, colour int, clear bool, s string, full func()) {
 	if c.Col < x1 || c.Col > x2 || c.Row < y1 || c.Row > y2 {
 		c.Col, c.Row = x1, y1
 	}
@@ -112,7 +112,7 @@ func (c *Console) TextBlock(x1, y1, x2, y2, colour int, clear bool, s string, fu
 		c.Blank(x1, y1, x2, y2)
 		c.Col, c.Row = x1, y1
 	}
-	Flow(s, x1, y1, x2, y2, &c.Col, &c.Row, func(x, y int, ch byte) { c.Put(x, y, colour, 0, ch, true) }, func() {
+	TextFlow(s, x1, y1, x2, y2, &c.Col, &c.Row, func(x, y int, ch byte) { c.Put(x, y, colour, 0, ch, true) }, func() {
 		if full != nil {
 			full()
 		}
@@ -120,18 +120,18 @@ func (c *Console) TextBlock(x1, y1, x2, y2, colour int, clear bool, s string, fu
 	})
 }
 
-// MenuItem is the span of one bottom-row menu item: from its hotkey to two
+// TextMenuItem is the span of one bottom-row menu item: from its hotkey to two
 // cells before the next hotkey (1-based positions in the menu text).
-type MenuItem struct{ First, Last int }
+type TextMenuItem struct{ First, Last int }
 
-// IsHotkey: the characters that start a menu item ([0-9A-Z]).
-func IsHotkey(c byte) bool { return c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' }
+// TextIsHotkey: the characters that start a menu item ([0-9A-Z]).
+func TextIsHotkey(c byte) bool { return c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' }
 
-// MenuItems splits menu text into its items; every hotkey starts one.
-func MenuItems(menu string) []MenuItem {
-	items := []MenuItem{{}}
+// TextMenuItems splits menu text into its items; every hotkey starts one.
+func TextMenuItems(menu string) []TextMenuItem {
+	items := []TextMenuItem{{}}
 	for i := 1; i <= len(menu); i++ {
-		if !IsHotkey(menu[i-1]) {
+		if !TextIsHotkey(menu[i-1]) {
 			continue
 		}
 		cur := &items[len(items)-1]
@@ -139,7 +139,7 @@ func MenuItems(menu string) []MenuItem {
 			cur.First = i
 		} else {
 			cur.Last = i - 2
-			items = append(items, MenuItem{First: i})
+			items = append(items, TextMenuItem{First: i})
 		}
 	}
 	items[len(items)-1].Last = len(menu)
@@ -149,7 +149,7 @@ func MenuItems(menu string) []MenuItem {
 // MenuBar draws menu text at (x0, y): the selected item (1-based) black on
 // highlight, hotkeys in highlight, the rest in normal; the row cleared to
 // lastCol after it. black is the game's black.
-func (c *Console) MenuBar(x0, y int, menu string, items []MenuItem, sel, normal, highlight, black, lastCol int) {
+func (c *TextConsole) MenuBar(x0, y int, menu string, items []TextMenuItem, sel, normal, highlight, black, lastCol int) {
 	if len(menu) == 0 {
 		return
 	}
@@ -158,7 +158,7 @@ func (c *Console) MenuBar(x0, y int, menu string, items []MenuItem, sel, normal,
 		switch {
 		case items[sel-1].First <= i && i <= items[sel-1].Last && highlight != 0:
 			c.Put(x0+i-1, y, black, highlight, ch, false)
-		case IsHotkey(ch):
+		case TextIsHotkey(ch):
 			c.Put(x0+i-1, y, highlight, black, ch, false)
 		default:
 			c.Put(x0+i-1, y, normal, black, ch, false)
@@ -169,13 +169,13 @@ func (c *Console) MenuBar(x0, y int, menu string, items []MenuItem, sel, normal,
 	}
 }
 
-// Punct is the set of characters that end a word for TextBlock.
-func Punct(c byte) bool { return strings.IndexByte("!,-.:;?", c) >= 0 }
+// TextPunct is the set of characters that end a word for TextBlock.
+func TextPunct(c byte) bool { return strings.IndexByte("!,-.:;?", c) >= 0 }
 
-// Flow lays s out word wrapped in the box x1..x2, y1..y2 from the cursor
+// TextFlow lays s out word wrapped in the box x1..x2, y1..y2 from the cursor
 // (*col, *row): put gets each character's cell; when the box is full, full
 // is called and the box starts over.
-func Flow(s string, x1, y1, x2, y2 int, col, row *int, put func(x, y int, c byte), full func()) {
+func TextFlow(s string, x1, y1, x2, y2 int, col, row *int, put func(x, y int, c byte), full func()) {
 	n := min(len(s), 255)
 	if n == 0 {
 		return
@@ -190,14 +190,14 @@ func Flow(s string, x1, y1, x2, y2 int, col, row *int, put func(x, y int, c byte
 	}
 	for {
 		j := i
-		for j < n && Punct(at(j)) {
+		for j < n && TextPunct(at(j)) {
 			j++
 		}
-		for j < n && !Punct(at(j)) && at(j) != ' ' {
+		for j < n && !TextPunct(at(j)) && at(j) != ' ' {
 			j++
 		}
 		if at(j) != ' ' {
-			for j+1 < n && Punct(at(j+1)) {
+			for j+1 < n && TextPunct(at(j+1)) {
 				j++
 			}
 		}
@@ -225,12 +225,12 @@ func Flow(s string, x1, y1, x2, y2 int, col, row *int, put func(x, y int, c byte
 	}
 }
 
-// Wrap is s word-wrapped between columns x1 and x2, from x1: the rows' text,
+// TextWrap is s word-wrapped between columns x1 and x2, from x1: the rows' text,
 // each from column x1.
-func Wrap(s string, x1, x2 int) []string {
+func TextWrap(s string, x1, x2 int) []string {
 	var rows [][]byte
 	col, row := x1, 0
-	Flow(s, x1, 0, x2, 1<<30, &col, &row, func(x, y int, c byte) {
+	TextFlow(s, x1, 0, x2, 1<<30, &col, &row, func(x, y int, c byte) {
 		for len(rows) <= y {
 			rows = append(rows, nil)
 		}
@@ -246,17 +246,17 @@ func Wrap(s string, x1, x2 int) []string {
 	return out
 }
 
-// PadLeft right-aligns s in width columns.
-func PadLeft(s string, width int) string {
+// TextPadLeft right-aligns s in width columns.
+func TextPadLeft(s string, width int) string {
 	if len(s) < width {
 		s = strings.Repeat(" ", width-len(s)) + s
 	}
 	return s
 }
 
-// PriceLine is name left and price right-aligned in width columns (a shop
+// TextPriceLine is name left and price right-aligned in width columns (a shop
 // line); the price is cut to 16 characters, the name to what fits.
-func PriceLine(name, price string, width int) string {
+func TextPriceLine(name, price string, width int) string {
 	price = price[:min(len(price), 16)]
 	line := []byte(strings.Repeat(" ", width))
 	copy(line[width-len(price):], price)
@@ -264,8 +264,8 @@ func PriceLine(name, price string, width int) string {
 	return string(line)
 }
 
-// Commas is the decimal digits of n with commas every three.
-func Commas(n int) string {
+// TextCommas is the decimal digits of n with commas every three.
+func TextCommas(n int) string {
 	s := strconv.Itoa(n)
 	for i := len(s) - 3; i > 0; i -= 3 {
 		s = s[:i] + "," + s[i:]

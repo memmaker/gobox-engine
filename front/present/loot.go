@@ -12,11 +12,11 @@ const detectMagic = "Detect Magic" // ponytail: by its Gold Box name; a game-giv
 // Loot is the treasure screen's options (nil: not up): Take while
 // there are items, Detect while the selected member has Detect Magic
 // memorized for them.
-func Loot(mode game.Mode, l *game.Loot, allowed map[string]bool, party []game.Member, sel int) *front.Loot {
+func Loot(mode game.Mode, l *game.Loot, allowed map[string]bool, party []game.Member, sel int) *front.FrontLoot {
 	if mode != game.ModeLoot || l == nil {
 		return nil
 	}
-	v := &front.Loot{Take: len(l.Items) > 0}
+	v := &front.FrontLoot{Take: len(l.Items) > 0}
 	for _, n := range l.Money { // Share: only Game has LootShare (*classicGame's other makers lack it)
 		v.Share = v.Share || n > 0
 	}

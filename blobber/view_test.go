@@ -7,7 +7,7 @@ import (
 
 // Follow animates a step or a turn and jumps anything further; held keys never move a View.
 func TestViewFollow(t *testing.T) {
-	g := &Game{t: 1}
+	g := &BlobberGame{t: 1}
 	game = g
 	v := &View{g: g}
 	v.Show(&Scene{Rows: []string{"#####", "#...#", "#...#", "#####"}}, Camera{1, 1, 1})
@@ -33,7 +33,7 @@ func TestViewFollow(t *testing.T) {
 
 // Moves that come while one is animating queue up and flow on without braking.
 func TestViewFollowQueue(t *testing.T) {
-	g := &Game{smooth: true, t: 1}
+	g := &BlobberGame{smooth: true, t: 1}
 	game = g
 	v := &View{g: g}
 	v.Show(&Scene{Rows: []string{"######", "#....#", "######"}}, Camera{1, 1, 1})
@@ -58,7 +58,7 @@ func TestViewFollowQueue(t *testing.T) {
 // for turns as for steps.
 func TestViewFlow(t *testing.T) {
 	Settings.Fluid = true
-	g := &Game{smooth: true, t: 1}
+	g := &BlobberGame{smooth: true, t: 1}
 	game = g
 	v := &View{g: g}
 	v.Show(&Scene{Rows: []string{"######", "#....#", "######"}}, Camera{1, 1, 1})
@@ -91,7 +91,7 @@ func TestViewFlow(t *testing.T) {
 // Show hands the scene's flat colours on to FlatTexture.
 func TestSceneFlatColors(t *testing.T) {
 	c := color.RGBA{170, 0, 0, 255}
-	game = &Game{t: 1}
+	game = &BlobberGame{t: 1}
 	(&View{g: game}).Show(&Scene{Rows: []string{"###"}, FloorRGBA: &c}, Camera{})
 	if FlatColors[0] == nil || *FlatColors[0] != c || FlatColors[1] != nil {
 		t.Fatal(FlatColors)

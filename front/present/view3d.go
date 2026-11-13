@@ -281,7 +281,7 @@ func (p *Presenter) newView() {
 		}
 		p.view.Load = wallImage
 		p.view.Painted = paintedWalls()
-		blobber.Window = func(d *gpu.Image, t string, l []string, k []byte, sel int, b bool) { // its menu and options in the game's box
+		blobber.BlobberWindow = func(d *gpu.Image, t string, l []string, k []byte, sel int, b bool) { // its menu and options in the game's box
 			p.keyWindow(d, t, l, k, nil, sel, b)
 		}
 	}
@@ -305,7 +305,7 @@ func now() time.Time {
 
 // drawBox copies box r of the classic frame onto dst at scale k, centred
 // on cx, cy: its inside, in a plain window of tiles' cells.
-func drawBox(dst, inside *gpu.Image, tiles ui.Ribbon, r front.CellRect, k float64, cx, cy int) {
+func drawBox(dst, inside *gpu.Image, tiles ui.Ribbon, r front.FrontCellRect, k float64, cx, cy int) {
 	if drawnAt != nil {
 		drawnAt(drawnBox, dst, k)
 	}

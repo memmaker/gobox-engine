@@ -67,7 +67,7 @@ func (g *Game) run(what string, step func() play.Result) error {
 	g.trace(what, res)
 	if g.combat() == nil && g.itemsUp() { // over the items the text pane is hidden: its new line (BR2's "Doc buys a ...", "not enough credits") is the toast
 		if t := paneTail(g.pane()); t != "" && (t != paneWas || paneCount(g.pane()) != linesWere) { // a new line, or the same one said again
-			g.r.toast = front.Note{Text: t, At: time.Now()}
+			g.r.toast = front.FrontNote{Text: t, At: time.Now()}
 		}
 	}
 	g.events = append(g.events, res.Events...)
@@ -76,7 +76,7 @@ func (g *Game) run(what string, step func() play.Result) error {
 			g.resets++
 		}
 		if e.Kind == game.EvMessage && strings.TrimSpace(e.Text) != "" && g.combat() == nil && g.itemsUp() { // over the items (the shop's "Brann buys a Broad Sword"): the toast on its bottom row, as a refusal's; the inventory plays no message
-			g.r.toast = front.Note{Text: strings.TrimSpace(e.Text), At: time.Now()}
+			g.r.toast = front.FrontNote{Text: strings.TrimSpace(e.Text), At: time.Now()}
 		}
 	}
 	if r, ok := res.Err.(*play.Refusal); ok && r.Ask != nil { // the question to put instead
@@ -135,12 +135,12 @@ func (g *Game) Subject() game.Member {
 }
 
 // PickerOf is the game's grid picker, page page on cols by rows cells.
-func (g *Game) PickerOf(k *game.Picker, page, cols, rows int) *front.Picker {
+func (g *Game) PickerOf(k *game.Picker, page, cols, rows int) *front.FrontPicker {
 	return Picker(k, image.Point{}, page, cols, rows)
 }
 
 // TilesOf is the weapon's pool bodies' picker.
-func (g *Game) TilesOf(page, cols, rows int) *front.Picker {
+func (g *Game) TilesOf(page, cols, rows int) *front.FrontPicker {
 	return TilePicker(g.Subject(), image.Point{}, page, cols, rows)
 }
 
@@ -185,7 +185,7 @@ func (g *Game) Settle() []Moment {
 func (g *Game) loreNews() {
 	n := len(play.CommonOf(g.r.g.State()).Lore) + 1
 	if g.r.lore > 0 && n > g.r.lore {
-		g.r.toast = front.Note{Text: "Added to journal", At: time.Now()}
+		g.r.toast = front.FrontNote{Text: "Added to journal", At: time.Now()}
 	}
 	g.r.lore = n
 }
@@ -342,7 +342,7 @@ func (g *Game) Open(slot string) {
 }
 
 func (g *Game) Resets() int       { return g.resets }
-func (g *Game) Refuse(s string)   { g.r.toast = front.Note{Text: s, At: time.Now()} }
+func (g *Game) Refuse(s string)   { g.r.toast = front.FrontNote{Text: s, At: time.Now()} }
 func (g *Game) CombatStep() error { return g.step() }
 func (g *Game) RestStep() error   { return g.step() }
 func (g *Game) StoryStep() error  { return g.step() }
@@ -364,7 +364,7 @@ func (g *Game) SetField(f, o int) error {
 	return g.run("setField", func() play.Result { return g.r.setField(f, o) })
 }
 func (g *Game) EndCreation(keep bool) error { return g.endCreation(keep) }
-func (g *Game) CreationView() *front.Creation {
+func (g *Game) CreationView() *front.FrontCreation {
 	return g.CreationOn(g.r.grid.X, g.r.grid.Y)
 }
 
@@ -394,13 +394,13 @@ func (g *Game) UsePower(n int, k front.ActKind, spell, target int, sure bool) er
 func (g *Game) SelectedMember() int { return g.selected() }
 
 // EffectsList is member n's Effects lines from State.
-func (g *Game) EffectsList(n int) (out []front.Entry) {
+func (g *Game) EffectsList(n int) (out []front.FrontEntry) {
 	party := g.party()
 	if n = g.sel(n); n < 0 || n >= len(party) {
 		return nil
 	}
 	for _, l := range party[n].Effects {
-		out = append(out, front.Entry{Text: l.Text, Header: l.Header, Dim: l.Dim, Off: l.Off, Spell: l.Spell})
+		out = append(out, front.FrontEntry{Text: l.Text, Header: l.Header, Dim: l.Dim, Off: l.Off, Spell: l.Spell})
 	}
 	return out
 }
@@ -427,7 +427,7 @@ func (g *Game) LootLeave(sure bool) error {
 // Pickers and the icon designer.
 func (g *Game) OpenPicker(kind int) bool {
 	ok := g.do(play.OpenPicker{Kind: kind}) == nil
-	if kind == front.PickWeapon && play.CommonOf(g.r.g.State()).Picker == nil {
+	if kind == front.FrontPickWeapon && play.CommonOf(g.r.g.State()).Picker == nil {
 		if n, _ := BodyTiles(g.Subject()); len(n) > 0 { // no pictures from the game: the pool's, by original ref
 			g.r.tiles = true
 			return true
@@ -435,7 +435,7 @@ func (g *Game) OpenPicker(kind int) bool {
 	}
 	return ok
 }
-func (g *Game) PickerView(page int) *front.Picker {
+func (g *Game) PickerView(page int) *front.FrontPicker {
 	if g.r.tiles {
 		return g.TilesOf(page, g.r.grid.X, g.r.grid.Y)
 	}
@@ -509,7 +509,7 @@ func (g *Game) Load(name string, loadOnly bool) bool {
 }
 
 // TurnChoice is the combat Action as its Decision (the unsure ask is an Ask).
-func (g *Game) TurnChoice(a front.Action, sure bool) error { return g.Answer(a) }
+func (g *Game) TurnChoice(a front.FrontAction, sure bool) error { return g.Answer(a) }
 
 // Sheet and inventory.
 // OpenSheet: in a fight the sheet is look-only, gobox's from Member.Page
@@ -606,14 +606,14 @@ func (g *Game) offers() []game.Offer {
 	return nil
 }
 
-func (g *Game) TrainingView() *front.Training {
+func (g *Game) TrainingView() *front.FrontTraining {
 	ps := g.r.g.State()
 	return Training(trainingOf(ps), partyOf(ps), g.r.selectedOf(ps), play.CommonOf(ps).Purse)
 }
 
 // The full map: its cursor and label are the presenter's, classic fills the rest.
-func (g *Game) FullMapView(cursor image.Point, label *string) *front.FullMap {
-	return g.FullMapOf(&front.FullMap{Cursor: cursor})
+func (g *Game) FullMapView(cursor image.Point, label *string) *front.FrontFullMap {
+	return g.FullMapOf(&front.FrontFullMap{Cursor: cursor})
 }
 func (g *Game) Mark(x, y int, text string) { g.do(play.Mark{At: image.Pt(x, y), Text: text}) }
 func (g *Game) Unmark(x, y int)            { g.do(play.Unmark{At: image.Pt(x, y)}) }
@@ -647,11 +647,11 @@ func (g *Game) ClueRead(i int) *front.Read {
 }
 
 // Answer does the Decision a names; ActResize is the front's own (the page's size).
-func (g *Game) Answer(a front.Action) error {
+func (g *Game) Answer(a front.FrontAction) error {
 	if traceOn {
 		fmt.Fprintf(os.Stderr, "trace %s act %+v\n", traceStamp(), a)
 	}
-	if a.Kind == front.ActResize {
+	if a.Kind == front.FrontActResize {
 		err := error(nil)
 		g.r.grid = image.Pt(40, 25) // the page the game shows: its Cells, else the original's (a game that keeps its page lays nothing out wider)
 		return err
@@ -723,7 +723,7 @@ func (g *Game) Answer(a front.Action) error {
 }
 
 // act is the step a asks for (nil: none).
-func (g *Game) act(a front.Action) func() error {
+func (g *Game) act(a front.FrontAction) func() error {
 	send := func(x play.Action) func() error { return func() error { return g.do(x) } }
 	own := func(what string, step func() play.Result) func() error {
 		return func() error { return g.run(what, step) }
@@ -852,7 +852,7 @@ func (g *Game) act(a front.Action) func() error {
 		return send(play.IconPNG{Path: a.Text})
 	case front.ActIconEdit:
 		return send(play.EditIcon{Member: a.N})
-	case front.ActCreate:
+	case front.FrontActCreate:
 		return send(play.NewCharacter{})
 	case front.ActModify:
 		return send(play.Modify{Member: m})
@@ -924,18 +924,18 @@ func (g *Game) mode() game.Mode {
 }
 
 // CreationOn is the creation sheet on a page of cols by rows.
-func (g *Game) CreationOn(cols, rows int) *front.Creation {
+func (g *Game) CreationOn(cols, rows int) *front.FrontCreation {
 	ps := g.r.g.State()
 	return Creation(g.r.modeOf(ps), creationOf(ps), g.r.pending(ps), cols, rows)
 }
 
 // IconEditorOn is the icon designer on a page of cols by rows.
-func (g *Game) IconEditorOn(ink *[16]color.RGBA, cols, rows int) *front.IconEditor {
+func (g *Game) IconEditorOn(ink *[16]color.RGBA, cols, rows int) *front.FrontIconEditor {
 	return IconEditor(play.CommonOf(g.r.g.State()).IconEditor, nil, g.Subject(), ink, cols, rows)
 }
 
 // FullMapOf is f with the map of where the party is.
-func (g *Game) FullMapOf(f *front.FullMap) *front.FullMap {
+func (g *Game) FullMapOf(f *front.FrontFullMap) *front.FrontFullMap {
 	ps := g.r.g.State()
 	return FullMap(f, g.r.derived().automap, play.CommonOf(ps).Where)
 }
@@ -1018,7 +1018,7 @@ func paneCount(p *game.Page) int {
 }
 
 // PickerOn is page page of the picker up on a page of cols by rows (nil: none).
-func (g *Game) PickerOn(page, cols, rows int) *front.Picker {
+func (g *Game) PickerOn(page, cols, rows int) *front.FrontPicker {
 	if p := g.PickerOf(play.CommonOf(g.r.g.State()).Picker, page, cols, rows); p != nil {
 		return p
 	}

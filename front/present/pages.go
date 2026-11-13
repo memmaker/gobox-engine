@@ -49,7 +49,7 @@ type cellPage struct {
 	ink        [16]color.RGBA
 	cells      [][]cell
 	pics       []front.Picture  // the View's pictures, then the cells cleared (fills)
-	boxes      []front.CellRect // DrawBorder's insides: the border's cells round them (the window border)
+	boxes      []front.FrontCellRect // DrawBorder's insides: the border's cells round them (the window border)
 	overs      []overlay
 }
 
@@ -104,7 +104,7 @@ func (c *cellPage) unset(r image.Rectangle) {
 
 // border = DrawBorder: the border's cells round the cells x1..x2, y1..y2.
 func (c *cellPage) border(x1, y1, x2, y2 int) {
-	r := front.CellRect{X1: x1, Y1: y1, X2: x2, Y2: y2}
+	r := front.FrontCellRect{X1: x1, Y1: y1, X2: x2, Y2: y2}
 	c.boxes = append(c.boxes, r)
 	f := r.Framed().Pixels()
 	for _, e := range []image.Rectangle{{f.Min, image.Pt(f.Max.X, f.Min.Y+8)}, {image.Pt(f.Min.X, f.Max.Y-8), f.Max}, {f.Min, image.Pt(f.Min.X+8, f.Max.Y)}, {image.Pt(f.Max.X-8, f.Min.Y), f.Max}} {
@@ -158,12 +158,12 @@ func (p *Presenter) contentPictures() []front.Picture {
 	case pk != nil:
 		return pk.Pics
 	default:
-		var boxes []front.CellRect
+		var boxes []front.FrontCellRect
 		if cr := p.creation(); cr != nil {
 			boxes = append(boxes, cr.Head, cr.Body, cr.Icon)
 		}
 		for _, b := range boxes {
-			if b != (front.CellRect{}) { // a box the screen has: not one at the origin
+			if b != (front.FrontCellRect{}) { // a box the screen has: not one at the origin
 				in = append(in, b.Pixels())
 			}
 		}
@@ -434,7 +434,7 @@ func capOr(b [ui.Places]image.Image, cap, side int) int {
 // cellBorder draws the window border's cells into m round the cells of r. The
 // page boxes are text-grid cells drawn into the page's CPU image (uploaded
 // once per View, cropped by the adventure frame), not window()'s GPU pass.
-func cellBorder(m *image.RGBA, wb windowBorder, cells image.Point, r front.CellRect) {
+func cellBorder(m *image.RGBA, wb windowBorder, cells image.Point, r front.FrontCellRect) {
 	f := r.Framed()
 	b := wb.pieces
 	tile := func(i, x, y int) {
@@ -543,7 +543,7 @@ func fit(b, r image.Rectangle) image.Rectangle {
 // sheet lays the character sheet out (ovr20:004A CharacterSheet).
 // d is the draft being made (nil: a member's sheet), nameColour the name's
 // ink and portrait the PNG or default head in the portrait's box.
-func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, portrait image.Image, cr *front.Creation) {
+func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, portrait image.Image, cr *front.FrontCreation) {
 	right, bottom := c.cols-2, c.rows-3
 	c.unset(image.Rect(0, 0, c.cols*8, (bottom+2)*8)) // the sheet's page: ClearScreen came first (the 3D view's status line once wrote over it)
 	c.border(1, 1, right, bottom)
@@ -646,13 +646,13 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 			c.str(at[0]+len(f[0])+1, at[1], inkGreen, f[1])
 		}
 	}
-	if b := cells(s.PortraitAt); b != (front.CellRect{}) {
+	if b := cells(s.PortraitAt); b != (front.FrontCellRect{}) {
 		c.border(b.X1, b.Y1, b.X2, b.Y2)
 		if portrait != nil {
 			c.overs = append(c.overs, overlay{Img: portrait, At: fit(portrait.Bounds(), b.Pixels())}) // the whole box: the rope runs outside its cells
 		}
 	}
-	k, box := 1, front.CellRect{}
+	k, box := 1, front.FrontCellRect{}
 	if cr != nil { // the creation's combat icon, from a PNG
 		k, box = max(1, cr.Scale), cr.Icon
 	}
@@ -672,7 +672,7 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 // scaled takes the creation sheet's portrait and icon pictures, which the
 // engine draws at 1x from the portrait box's and the icon box's corners,
 // off the page as crisp overlays cr.Scale times their size; the rest stay.
-func (c *cellPage) scaled(cr *front.Creation) []front.Picture {
+func (c *cellPage) scaled(cr *front.FrontCreation) []front.Picture {
 	port := cr.Head.Pixels().Union(cr.Body.Pixels())
 	var keep []front.Picture
 	for _, pc := range c.pics {
@@ -697,7 +697,7 @@ func (c *cellPage) scaled(cr *front.Creation) []front.Picture {
 
 // picker lays a grid picker's page out (showPicker): the box, the pager,
 // the saved characters' names, classes and PNG portraits.
-func (c *cellPage) picker(pk *front.Picker) {
+func (c *cellPage) picker(pk *front.FrontPicker) {
 	c.border(1, 1, c.cols-2, pk.Bottom)
 	if pk.Title != "" { // centred on the box's top edge
 		c.str((c.cols-len(pk.Title))/2, 1, inkWhite, pk.Title)
@@ -708,7 +708,7 @@ func (c *cellPage) picker(pk *front.Picker) {
 	for k, r := range pk.Cells {
 		i := pk.Page*pk.PerPage + k
 		if i < len(pk.Portraits) && pk.Portraits[i] != nil {
-			c.overs = append(c.overs, overlay{Img: pk.Portraits[i], At: fit(pk.Portraits[i].Bounds(), front.CellRect{X1: r.X1, Y1: r.Y1, X2: r.X1 + 10, Y2: r.Y1 + 4}.Pixels()), Crisp: true}) // nearest neighbour
+			c.overs = append(c.overs, overlay{Img: pk.Portraits[i], At: fit(pk.Portraits[i].Bounds(), front.FrontCellRect{X1: r.X1, Y1: r.Y1, X2: r.X1 + 10, Y2: r.Y1 + 4}.Pixels()), Crisp: true}) // nearest neighbour
 		}
 		if i < len(pk.Labels) {
 			c.str(r.X1+12, r.Y1+1, inkWhite, pk.Labels[i])
@@ -721,7 +721,7 @@ func (c *cellPage) picker(pk *front.Picker) {
 
 // iconEditor lays the combat icon editor's page out: the frame, the poses,
 // the words, the swatches and the palette (their colours the engine's).
-func (c *cellPage) iconEditor(ed *front.IconEditor) {
+func (c *cellPage) iconEditor(ed *front.FrontIconEditor) {
 	c.border(1, 1, c.cols-2, c.rows-3) // the bar under it
 	for p, r := range ed.PoseAt {
 		c.pics = append(c.pics, front.Picture{At: r.Pixels(), Fill: true, Colour: col(inkDark)}) // the pose on grey (the page's, not the combat palette's dark): its black parts show
@@ -780,38 +780,38 @@ func (c *cellPage) iconEditor(ed *front.IconEditor) {
 }
 
 // iconClick is what a click on cell (cx, cy) of the icon editor does.
-func iconClick(ed *front.IconEditor, cx, cy int) (front.Action, bool) {
-	in := func(r front.CellRect) bool { return cx >= r.X1 && cx <= r.X2 && cy >= r.Y1 && cy <= r.Y2 }
+func iconClick(ed *front.FrontIconEditor, cx, cy int) (front.FrontAction, bool) {
+	in := func(r front.FrontCellRect) bool { return cx >= r.X1 && cx <= r.X2 && cy >= r.Y1 && cy <= r.Y2 }
 	if ed.Custom {
 		if in(ed.Remove) {
-			return front.Action{Kind: ActIconRemove}, true
+			return front.FrontAction{Kind: ActIconRemove}, true
 		}
-		return front.Action{}, false
+		return front.FrontAction{}, false
 	}
-	head, weapon := front.Action{Kind: ActPicker, N: front.PickIconHead}, front.Action{Kind: ActPicker, N: front.PickWeapon}
+	head, weapon := front.FrontAction{Kind: ActPicker, N: front.FrontPickIconHead}, front.FrontAction{Kind: ActPicker, N: front.FrontPickWeapon}
 	switch {
 	case in(ed.Head):
 		return head, true
 	case in(ed.Weapon):
 		return weapon, true
 	case in(ed.Size):
-		return front.Action{Kind: ActIconSize}, true
+		return front.FrontAction{Kind: ActIconSize}, true
 	case in(ed.Parts):
-		return front.Action{Kind: ActIconColour, N: cy - ed.Parts.Y1, X: (cx - ed.Parts.X1) / 3, Y: -1}, true
+		return front.FrontAction{Kind: ActIconColour, N: cy - ed.Parts.Y1, X: (cx - ed.Parts.X1) / 3, Y: -1}, true
 	case in(ed.Palette):
 		if v := ed.Colours[(cy-ed.Palette.Y1)*8+(cx-ed.Palette.X1)/2]; v >= 0 {
-			return front.Action{Kind: ActIconColour, N: ed.Part, X: ed.Shade, Y: v}, true
+			return front.FrontAction{Kind: ActIconColour, N: ed.Part, X: ed.Shade, Y: v}, true
 		}
-		return front.Action{}, false
+		return front.FrontAction{}, false
 	}
 	for _, r := range ed.PoseAt { // the head on the poses' upper part, the weapon below
 		mid := r.Y1 + (r.Y2-r.Y1+1)*4/9
-		if in(front.CellRect{X1: r.X1, Y1: r.Y1, X2: r.X2, Y2: mid - 1}) {
+		if in(front.FrontCellRect{X1: r.X1, Y1: r.Y1, X2: r.X2, Y2: mid - 1}) {
 			return head, true
 		}
-		if in(front.CellRect{X1: r.X1, Y1: mid, X2: r.X2, Y2: r.Y2}) {
+		if in(front.FrontCellRect{X1: r.X1, Y1: mid, X2: r.X2, Y2: r.Y2}) {
 			return weapon, true
 		}
 	}
-	return front.Action{}, false
+	return front.FrontAction{}, false
 }

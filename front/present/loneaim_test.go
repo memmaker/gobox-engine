@@ -22,7 +22,7 @@ func TestLoneAimWithLeave(t *testing.T) {
 	if b := liveBoard(g); b == nil || b.Turn == nil || !b.Turn.Aim || b.Cursor != foe {
 		t.Fatalf("not aiming at the first target: %+v", b)
 	}
-	if err := g.Answer(front.Action{Kind: front.ActAim, X: foe.X, Y: foe.Y}); err != nil {
+	if err := g.Answer(front.FrontAction{Kind: front.ActAim, X: foe.X, Y: foe.Y}); err != nil {
 		t.Fatal(err)
 	}
 	if len(f.sent) != 1 {
@@ -31,7 +31,7 @@ func TestLoneAimWithLeave(t *testing.T) {
 	if a, ok := f.sent[0].(play.Attack); !ok || a.At == nil || *a.At != foe {
 		t.Fatalf("sent %#v", f.sent[0])
 	}
-	if g.Answer(front.Action{Kind: front.ActClose}); len(f.sent) != 2 || f.sent[1] != play.Action(play.Leave{}) {
+	if g.Answer(front.FrontAction{Kind: front.ActClose}); len(f.sent) != 2 || f.sent[1] != play.Action(play.Leave{}) {
 		t.Fatalf("Esc sent %#v", f.sent)
 	}
 }

@@ -50,7 +50,7 @@ func TestLootScreen(t *testing.T) {
 	if q := p.askUp(); p.inventoryUp() || q == nil || q.Menu.Prompt != "You found some loot!" {
 		t.Fatalf("no found message first: %+v", q)
 	}
-	g.Answer(front.Action{Kind: front.ActOK})
+	g.Answer(front.FrontAction{Kind: front.ActOK})
 	if len(f.sent) != 1 || f.sent[0] != (play.Continue{}) {
 		t.Fatalf("OK on the found message sent %v", f.sent)
 	}
@@ -71,7 +71,7 @@ func TestLootScreen(t *testing.T) {
 }
 
 func TestLootDecisions(t *testing.T) {
-	for a, want := range map[front.Action]play.Action{
+	for a, want := range map[front.FrontAction]play.Action{
 		{Kind: front.ActBuy, Item: 7}: play.Take{Item: 7},
 		{Kind: front.ActTakeMoney}:    play.Take{Item: rules.NoItem},
 		{Kind: front.ActTakeAll}:      play.Take{Item: rules.NoItem, All: true},

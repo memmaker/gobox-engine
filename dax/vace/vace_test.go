@@ -23,7 +23,7 @@ func load(t *testing.T, base string) *Anim {
 	return a
 }
 
-func hash(f Frame) string {
+func hash(f VaceFrame) string {
 	h := sha256.New()
 	h.Write(f.Image.Pix)
 	for _, c := range f.Image.Palette {

@@ -131,7 +131,7 @@ func (t *Table) KeyOf(a input.Act) uint16 {
 	return 0
 }
 
-var keypadActs = [...]input.Act{input.End, input.Down, input.PgDn, input.Left, input.None, input.Right, input.Home, input.Up, input.PgUp}
+var keypadActs = [...]input.Act{input.End, input.Down, input.PgDn, input.InputLeft, input.None, input.InputRight, input.Home, input.Up, input.PgUp}
 
 // Keypad is digit k as the keypad's key (1 End .. 9 PgUp; None: not a
 // digit 1-9).

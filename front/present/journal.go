@@ -128,7 +128,7 @@ func (p *Presenter) journalKey(k uint16) {
 	switch a := actOf(k); {
 	case a == input.Delete || a == input.Overview || k == 'x' || k == 'X':
 		j.askRemove(p.common())
-	case a == input.Left || a == input.Right || a == input.Tab:
+	case a == input.InputLeft || a == input.InputRight || a == input.Tab:
 		j.setTab(1-j.tab, p.common())
 	case a == input.Up:
 		j.pick(-1)

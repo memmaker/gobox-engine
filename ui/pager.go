@@ -49,7 +49,7 @@ func (pg *Pager) Key(a input.Act, src PageSource) (closed, turned bool) {
 	switch a {
 	case input.Esc:
 		return true, false
-	case input.Up, input.Left, input.PgUp, input.Home:
+	case input.Up, input.InputLeft, input.PgUp, input.Home:
 		closed = pg.Turn(src, -1)
 	default:
 		closed = pg.Turn(src, 1)
