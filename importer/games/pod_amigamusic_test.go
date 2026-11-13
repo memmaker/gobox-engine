@@ -28,7 +28,7 @@ func TestAmigaMusic(t *testing.T) {
 	if err := PodImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	lib := eclscript.Library{Version: eclscript.V3, Dir: dir, Data: podScriptData()}
+	lib := eclscript.Library{Version: eclscript.V3, Dir: dir, Data: podScriptData(), Fixes: podScriptFixes} // the import's own key: PodImportScriptsTo
 	seen := 0
 	for area := range 256 {
 		if _, err := os.Stat(eclscript.AreaPath(dir, area)); errors.Is(err, fs.ErrNotExist) {
