@@ -20,6 +20,7 @@ func TestLootContract(t *testing.T) {
 	e.push(cont{kind: kNop})
 	left := func() bool { return !slices.ContainsFunc(e.k, func(c cont) bool { return c.kind == kNop }) } // the cont is done: the treasure screen is left
 	e.Start(e.lootMenu)
+	seeLoot(t, e)
 	items := func() int {
 		l, ok := e.build().(play.Looting)
 		if !ok {

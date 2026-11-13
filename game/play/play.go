@@ -317,9 +317,10 @@ type Trading struct {
 // Looting: treasure lies before the party.
 type Looting struct {
 	Common
-	Items  []game.Item
-	Money  map[string]int
-	Status bool // LootStatus is offered (the ship sheet over the fight)
+	Items    []game.Item
+	Money    map[string]int
+	Status   bool // LootStatus is offered (the ship sheet over the fight)
+	Announce bool // "You found some loot!" is up over the treasure: Continue opens it (the only action allowed)
 }
 
 // Camping: the party has made camp (rest, memorize, scribe, fix, order).

@@ -39,7 +39,6 @@ type Game struct {
 	asked      *play.Ask // a Refusal's question put instead (answered by its options' Do)
 	aim        *aiming   // a combat spell's squares being picked (Combat.Aims)
 	sheet      int       // the look-only sheet up (a fight's View): member+1, 0 none
-	found      bool      // the treasure's "You found some loot!" was acknowledged (cleared when it goes)
 }
 
 // aiming is the squares picked so far for spell, up to n.
@@ -185,7 +184,7 @@ func (g *Game) View() front.View {
 	case game.ItemsShop, game.ItemsLoot:
 		v.Inventory = &front.Inventory{Wares: []front.InvItem{}}
 	case game.ItemsNone: // the treasure is up: its screen is the loot inventory
-		if mode == game.ModeLoot && loot != nil && sheet == nil && g.found {
+		if mode == game.ModeLoot && loot != nil && sheet == nil && !announced(ps) {
 			v.Inventory = &front.Inventory{Wares: []front.InvItem{}}
 		}
 	}
@@ -207,8 +206,7 @@ func (g *Game) View() front.View {
 	v.Temple, v.Shop = Temple(v.Temple, services, offers, c.Purse, allowed, party, sel), Shop(v.Shop, shop, c.Purse, allowed, party)
 	v.Inventory = Inventory(v.Inventory, mode, party, sel, c.PartyCap, c.PoolItems, c.Purse, allowed, shop, loot)
 	v = askOver(v, mode, pending, loot != nil || training != nil)
-	g.found = g.found && loot != nil                      // a new treasure is announced again
-	if mode == game.ModeLoot && loot != nil && !g.found { // the treasure's picture under a message; Enter or Space opens it
+	if mode == game.ModeLoot && loot != nil && announced(ps) { // the treasure's picture under a message; Enter or Space opens it
 		v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}
 	}
 	if v.AreaMap != nil {
@@ -900,10 +898,12 @@ func (g *Game) Answer(a front.Action) error {
 		g.aim, g.asked = nil, nil
 		return g.do(play.Cast{Member: -1, Spell: m.spell, Ats: m.ats})
 	}
-	if ps := g.r.g.State(); g.r.modeOf(ps) == game.ModeLoot && !g.found && g.asked == nil {
-		g.found = a.Kind == front.ActOK || a.Kind == front.ActClose
-		if a.Kind != front.ActClose { // Esc passes the found page and leaves at once, as Enter then Esc
+	if announced(g.r.g.State()) && g.asked == nil {
+		if a.Kind != front.ActOK && a.Kind != front.ActClose {
 			return nil
+		}
+		if err := g.do(play.Continue{}); err != nil || a.Kind == front.ActOK { // Esc passes the found page and leaves at once, as Enter then Esc
+			return err
 		}
 	}
 	if a.Kind == front.ActCast {
@@ -1278,4 +1278,10 @@ func (g *Game) endCreation(keep bool) error {
 		return g.do(play.KeepCharacter{})
 	}
 	return g.do(play.DiscardCharacter{})
+}
+
+// announced is whether the treasure's "You found some loot!" is up (play.Looting.Announce).
+func announced(ps play.State) bool {
+	l, ok := ps.(play.Looting)
+	return ok && l.Announce
 }

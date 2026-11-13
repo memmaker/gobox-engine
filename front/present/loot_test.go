@@ -42,12 +42,18 @@ func TestLoot(t *testing.T) {
 // its acts are TakeLoot.
 func TestLootScreen(t *testing.T) {
 	treasure := play.Looting{Common: play.Common{Party: []game.Member{{}}}, Items: []game.Item{{Name: "Gauntlets"}}, Money: map[string]int{game.Gold: 120, game.Gems: 2}}
-	f := &fake{st: treasure}
+	announced := treasure
+	announced.Announce = true
+	f := &fake{st: announced}
 	g := NewGame(f, game.Data{})
 	if v := g.View(); v.Inventory != nil || v.Ask == nil || v.Ask.Menu.Prompt != "You found some loot!" || v.Loot != nil {
 		t.Fatalf("no found message first: %+v", v.Ask)
 	}
 	g.Answer(front.Action{Kind: front.ActOK})
+	if len(f.sent) != 1 || f.sent[0] != (play.Continue{}) {
+		t.Fatalf("OK on the found message sent %v", f.sent)
+	}
+	f.st = treasure
 	v := g.View()
 	in := v.Inventory
 	if in == nil || !in.Loot || len(in.Wares) != 1 || in.Treasure == nil || v.Loot != nil {
@@ -56,25 +62,11 @@ func TestLootScreen(t *testing.T) {
 	if m := in.Treasure.Money; len(m) != 2 || m[0] != "120 gold" || m[1] != "2 gems" {
 		t.Errorf("money %q", m)
 	}
-	asked := treasure // a question over the treasure (Buck 2's credits) does not announce it again
-	asked.Ask = &play.Question{Text: "Sure?", Replies: []string{"Yes"}}
-	f.st = asked
-	g.View()
-	f.st = treasure
-	if g.View().Inventory == nil {
-		t.Error("a question over the treasure announced it again")
-	}
 	sheet := treasure
 	sheet.Party = []game.Member{{SheetPowers: []game.Entry{{Name: "Heal"}}}}
 	f.st = sheet
 	if g.View().Inventory != nil {
 		t.Error("loot screen over the sheet")
-	}
-	f.st = play.Exploring{}
-	g.View()
-	f.st = treasure
-	if g.View().Inventory != nil {
-		t.Error("the next treasure was not announced")
 	}
 }
 
@@ -86,7 +78,6 @@ func TestLootDecisions(t *testing.T) {
 	} {
 		f := &fake{st: play.Looting{Items: []game.Item{{}, {}, {Handle: 7}}}}
 		g := NewGame(f, game.Data{})
-		g.found = true
 		g.Answer(a)
 		if len(f.sent) != 1 || f.sent[0] != want {
 			t.Errorf("%v: %#v", a.Kind, f.sent)
