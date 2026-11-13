@@ -201,22 +201,6 @@ type Read = game.Read
 // Money is core.Money: an amount the front end shows (as "12g 50c").
 type Money = core.Money
 
-// Pending is what the game waits on (View.Pending): a shop or temple a
-// suspended ECL script opened, a fight, the finale, the treasure after a
-// fight, a locked door met while walking. A rule call answers it (Leave,
-// LootLeave, TryDoor) and the game goes on.
-type Pending int
-
-const (
-	PendNone   Pending = iota
-	PendShop           // the shop: Browse, Identify, Appraise, KeepAppraised; Leave
-	PendTemple         // the temple: Cure, ViewMember, Appraise, KeepAppraised; Leave
-	PendFight          // a fight: CombatStep, TurnChoice
-	PendStory          // the finale's pictures: StoryStep
-	PendLoot           // the treasure after a fight (View.Loot): LootView, LootTake, LootDetect, Lead; LootLeave
-	PendDoor           // a locked door (View.Door): TryDoor
-)
-
 // Inventory is the inventory screen (ItemsMenu) as the remastered one
 // draws it. Its items' Index is what an Action's N names.
 type Inventory struct {
@@ -453,7 +437,6 @@ type View struct {
 	Interact      bool        // ... on a square whose event waits for ActInteract: the HUD says so
 	CanCast       bool        // ... and the selected member has a spell to cast (ActCastPick)
 	Camp          *Camp       // the party is in camp: the camp decisions (ActRest .. ActIconEdit) are taken; ActClose leaves
-	Pending       Pending     // what a suspended script waits on
 	Temple        *Temple     // a temple (PendTemple): Cure, ViewMember, Appraise, KeepAppraised, ActLead; Leave
 	Shop          *Shop       // a shop (PendShop): Browse (the goods, ActBuy, ActSell), Identify, Appraise, KeepAppraised, ActLead; Leave
 	Loot          *Loot       // the treasure after a fight (PendLoot): LootView, LootTake, LootDetect, Lead; LootLeave
@@ -500,7 +483,6 @@ type View struct {
 	Logo          *Picture       // with MainMenu: the title picture (Pix) the presenter cuts the lettering from (present.Data.Logo)
 	Hall          bool           // MainMenu is the training hall's: over the 3D view, Begin leaves the hall
 	Screen        *game.Screen   // a game's typed screen is up (nil: none): the presenter draws it from its data, the Ask on its prompt rows
-	Seq           uint64         // counts the Views published: a presenter redraws the page on a new one
 }
 
 // Results is the after-combat page: the hired NPCs hiding their

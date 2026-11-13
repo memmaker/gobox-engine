@@ -108,6 +108,14 @@ type scan struct {
 	part image.Rectangle // the part of the scan a scaled copy (w, h) is of
 }
 
+// changes is the change count the page was drawn at (0: no game set).
+func (p *Presenter) changes() uint64 {
+	if u := p.ui(); u != nil {
+		return u.seq
+	}
+	return 0
+}
+
 // pageImage draws v's page (only when a new View or the note changed) and
 // returns it.
 func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
@@ -123,11 +131,11 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 		sh = p.sfState(v, sf)
 		own += fmt.Sprintf("%v%+v%+v", *sf, sh, v.Screen.ShipSheet)
 	}
-	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(v.IconEditor) && (v.Seq == pg.seq || !p.modal() && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
-		pg.seq = v.Seq
+	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(v.IconEditor) && (p.changes() == pg.seq || !p.modal() && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
+		pg.seq = p.changes()
 		return pg.img
 	}
-	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, v.Seq, note.Show, own, iconKey(v.IconEditor)
+	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, p.changes(), note.Show, own, iconKey(v.IconEditor)
 	pg.page, pg.text = append(pg.page[:0], v.Pictures...), pageText(v)
 	m := pg.px
 	if p.modal() { // help, the journal, the maps, the overview: from their data alone, nothing of the page under them
@@ -149,7 +157,7 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 	return pg.img
 }
 
-// iconKey names the icon editor's content (the game need not bump View.Seq
+// iconKey names the icon editor's content (the game need not bump the change count
 // for an edit): a change redraws the page.
 func iconKey(e *front.IconEditor) string {
 	if e == nil {
