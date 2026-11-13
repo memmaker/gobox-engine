@@ -2,6 +2,7 @@ package games
 
 import (
 	"errors"
+	"gobox/adventure"
 	"gobox/rules1e"
 	"io/fs"
 	"os"
@@ -20,14 +21,14 @@ func CotabImportTo(dos, dst string) error {
 	if err := CotabImportScriptsTo(dos, filepath.Join(dst, scriptsDir)); err != nil {
 		return err
 	}
-	if err := CotabImportDataTo(dos, filepath.Join(dst, dataDir)); err != nil {
+	if err := CotabImportDataTo(dos, filepath.Join(dst, adventure.DataDir)); err != nil {
 		return err
 	}
 	if err := asset.WritePictures("cotab", dst); err != nil {
 		return err
 	}
 	amiga := filepath.Join(filepath.Dir(dos), "amiga")
-	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, artDir)); err != nil {
+	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, adventure.ArtDir)); err != nil {
 		return err
 	}
 	if err := copyIfThere(filepath.Join(dst, saveDir), os.DirFS(filepath.Join(dos, "SAVE"))); err != nil {
@@ -40,10 +41,10 @@ func CotabImportTo(dos, dst string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Join(dst, soundDir), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(dst, adventure.SoundDir), 0o755); err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(dst, soundDir, CotabAmigaMusic.Effects), glb, 0o644)
+	return os.WriteFile(filepath.Join(dst, adventure.SoundDir, CotabAmigaMusic.Effects), glb, 0o644)
 }
 
 // copyIfThere copies src into dir; a src that is not there copies nothing.
@@ -68,7 +69,7 @@ func CotabImportDataTo(dos, dst string) error {
 	if err := orig.ImportData[cotabCharRecord, affectRecord, CotabItem](l, dst, rules1e.SheetOfRecord[cotabCharRecord], rules1e.ItemOfRecord[CotabItem]); err != nil {
 		return err
 	}
-	return orig.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, orig.Counted)
+	return orig.ImportItemTable[rules1e.ItemBase](l, dst, adventure.ItemTypes, orig.Counted)
 }
 
 // SoundFile is the sound tables in the data dir (gobox audio's JSON,

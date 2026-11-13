@@ -152,14 +152,8 @@ type affectRecord struct {
 // The adventure folder's parts (gobox import cotab writes them).
 const (
 	scriptsDir = "scripts"
-	artDir     = "art"
-	dataDir    = "data"
-	soundDir   = "sound"
 	saveDir    = "saves"
 )
-
-// itemTypes is the base item table's records (DS:5582, 0x810 bytes).
-const itemTypes = 0x81
 
 // quickParty: a fighter and a paladin in front, a cleric, a fighter/mage,
 // a magic-user and a thief for locks and traps; nobody evil (the paladin).

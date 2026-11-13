@@ -12,9 +12,9 @@ type podCharRecord = rules1e.Record510
 // RecordLayout is the layout of the game's character records (its adventure's manifest names it).
 const PodRecordLayout = rules1e.Layout510
 
-// Art is the opaque art IDs gobox picked for a character, head and body
+// PodArt is the opaque art IDs gobox picked for a character, head and body
 // separately; the rules store them and never interpret them.
-type Art struct{ PortraitHead, PortraitBody, IconHead, IconBody string }
+type PodArt struct{ PortraitHead, PortraitBody, IconHead, IconBody string }
 
 // IntToStr = O0EC:14A5.
 func itoa(n int) string { return strconv.Itoa(n) }

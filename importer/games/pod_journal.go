@@ -35,8 +35,8 @@ const (
 // journalTitle is entry n's title in JOURNAL.TXT.
 func journalTitle(n byte) string { return "Journal Entry " + itoa(int(n)) }
 
-// Read is journal text the game waits to have read.
-type Read struct {
+// PodRead is journal text the game waits to have read.
+type PodRead struct {
 	Title string
 	Lines []string
 }

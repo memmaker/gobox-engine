@@ -48,7 +48,7 @@ func PodCreationStart(adv string) rules1e.StartData {
 // ItemLibrary is the imported adventure adv's ITEM0 library as rules1e
 // items, by id-1 (rules.json itemLibrary); nil: an empty entry.
 func ItemLibrary(adv string) []*rules1e.Item {
-	library := OpenFolder(adv).Data.Items("ITEM0", 1)
+	library := OpenPodFolder(adv).Data.Items("ITEM0", 1)
 	out := make([]*rules1e.Item, len(library))
 	for i, it := range library {
 		if it.Type == libraryAbsent { // the library record's first byte, the item's type

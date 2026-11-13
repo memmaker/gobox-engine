@@ -1,6 +1,7 @@
 package games
 
 import (
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/rules1e"
@@ -22,7 +23,7 @@ func PodImportDataTo(dos, dst string) error {
 	if err := orig.ImportData[podCharRecord, affectRecord, libraryRecord](l, dst, rules1e.SheetOfRecord[podCharRecord], rules1e.ItemOfRecord[libraryRecord]); err != nil {
 		return err
 	}
-	return orig.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, orig.Bare)
+	return orig.ImportItemTable[rules1e.ItemBase](l, dst, adventure.ItemTypes, orig.Bare)
 }
 
 // The originals' sound and animation files the folder carries as they are
@@ -48,13 +49,13 @@ func PodImportTo(dos, dst string) error {
 	if err := PodImportScriptsTo(dos, filepath.Join(dst, scriptsDir)); err != nil {
 		return err
 	}
-	if err := PodImportDataTo(dos, filepath.Join(dst, dataDir)); err != nil {
+	if err := PodImportDataTo(dos, filepath.Join(dst, adventure.DataDir)); err != nil {
 		return err
 	}
 	if err := asset.WritePictures("pod", dst); err != nil {
 		return err
 	}
-	if err := orig.ImportArt(dos, filepath.Join(filepath.Dir(dos), "amiga"), filepath.Join(dst, artDir)); err != nil {
+	if err := orig.ImportArt(dos, filepath.Join(filepath.Dir(dos), "amiga"), filepath.Join(dst, adventure.ArtDir)); err != nil {
 		return err
 	}
 	if save := filepath.Join(dos, "SAVE"); exists(save) {
@@ -62,11 +63,11 @@ func PodImportTo(dos, dst string) error {
 			return err
 		}
 	}
-	if err := podCopyFiles(dos, filepath.Join(dst, soundDir), soundFiles); err != nil {
+	if err := podCopyFiles(dos, filepath.Join(dst, adventure.SoundDir), soundFiles); err != nil {
 		return err
 	}
 	if amiga := filepath.Join(filepath.Dir(dos), "amiga"); exists(filepath.Join(amiga, PodAmigaMusic.Songs)) {
-		if err := podCopyFiles(amiga, filepath.Join(dst, soundDir), []string{PodAmigaMusic.Songs, PodAmigaMusic.Effects}); err != nil {
+		if err := podCopyFiles(amiga, filepath.Join(dst, adventure.SoundDir), []string{PodAmigaMusic.Songs, PodAmigaMusic.Effects}); err != nil {
 			return err
 		}
 	}

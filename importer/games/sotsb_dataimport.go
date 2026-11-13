@@ -25,7 +25,7 @@ func SotsbImportDataTo(dos, dst string) error {
 	if err := orig.ImportData[sotsbCharRecord, affectRecord, itemRecord](l, dst, rules1e.SheetOfRecord[sotsbCharRecord], rules1e.ItemOfRecord[itemRecord]); err != nil {
 		return err
 	}
-	return orig.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, orig.Counted)
+	return orig.ImportItemTable[rules1e.ItemBase](l, dst, adventure.ItemTypes, orig.Counted)
 }
 
 // ImportTo writes the adventure folder dst from the DOS originals in dos
@@ -37,23 +37,23 @@ func SotsbImportTo(dos, dst string) error {
 	if err := SotsbImportScriptsTo(dos, filepath.Join(dst, scriptsDir)); err != nil {
 		return err
 	}
-	if err := SotsbImportDataTo(dos, filepath.Join(dst, dataDir)); err != nil {
+	if err := SotsbImportDataTo(dos, filepath.Join(dst, adventure.DataDir)); err != nil {
 		return err
 	}
 	if err := asset.WritePictures("sotsb", dst); err != nil {
 		return err
 	}
-	if err := ImportRulesTo(dos, filepath.Join(dst, dataDir)); err != nil {
+	if err := ImportRulesTo(dos, filepath.Join(dst, adventure.DataDir)); err != nil {
 		return err
 	}
-	if err := ImportGameTablesTo(filepath.Join(dst, dataDir)); err != nil {
+	if err := ImportGameTablesTo(filepath.Join(dst, adventure.DataDir)); err != nil {
 		return err
 	}
-	if err := ImportJournal("sotsb", filepath.Join(dst, journalDir)); err != nil {
+	if err := ImportJournal("sotsb", filepath.Join(dst, adventure.JournalDir)); err != nil {
 		return err
 	}
 	amiga := filepath.Join(filepath.Dir(dos), "amiga")
-	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, artDir)); err != nil {
+	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, adventure.ArtDir)); err != nil {
 		return err
 	}
 	if err := sotsbCopyFiles(dos, filepath.Join(dst, savesDir), savePatterns...); err != nil {
@@ -62,10 +62,10 @@ func SotsbImportTo(dos, dst string) error {
 	if err := sotsbCopyFiles(filepath.Join(dos, "SAVE"), filepath.Join(dst, savesDir), savePatterns...); err != nil {
 		return err
 	}
-	if err := sotsbCopyFiles(dos, filepath.Join(dst, soundDir), "SOUND.DAX"); err != nil {
+	if err := sotsbCopyFiles(dos, filepath.Join(dst, adventure.SoundDir), "SOUND.DAX"); err != nil {
 		return err
 	}
-	return sotsbCopyFiles(amiga, filepath.Join(dst, soundDir), SotsbAmigaMusic.Songs, SotsbAmigaMusic.Effects)
+	return sotsbCopyFiles(amiga, filepath.Join(dst, adventure.SoundDir), SotsbAmigaMusic.Songs, SotsbAmigaMusic.Effects)
 }
 
 // savePatterns are the shipped characters and saved games (rules/charfiles.go:

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gobox/adventure"
 	"gobox/game"
 )
 
@@ -42,7 +43,7 @@ func GameData(adv string) game.Data {
 		VerbChords: map[string]string{"Quick All": "alt+q"},
 		VerbOrder:  []string{"Move", "View", "Aim", "Use", "Cast", "Quick", "Done"},
 	}
-	if _, err := os.Stat(filepath.Join(adv, soundDir, SotsbAmigaMusic.Songs)); err == nil {
+	if _, err := os.Stat(filepath.Join(adv, adventure.SoundDir, SotsbAmigaMusic.Songs)); err == nil {
 		d.AdLib, d.AmigaMusic = nil, SotsbAmigaMusic
 	}
 	return d
