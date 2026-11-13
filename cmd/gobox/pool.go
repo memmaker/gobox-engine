@@ -18,7 +18,6 @@ import (
 	"gobox/game"
 	"gobox/importer"
 	"gobox/rules"
-	"gobox/rules4e"
 	"gobox/ui"
 )
 
@@ -75,11 +74,7 @@ func playPool(s start) (ui.Launch, error) {
 		eng.QuickSearch.Store(h.QuickSearch)
 		eng.DaySky.Store(h.DaySky)
 		eng.FullIntro.Store(h.FullIntro && !s.Explore)
-		if h.Combat4e && f.Combat4e {
-			eng.HandIn(engine.PoolSettings(h.PathSearch, rules4e.New()))
-		} else {
-			eng.HandIn(engine.PoolSettings(h.PathSearch, nil))
-		}
+		eng.HandIn(engine.Settings{PathSearch: h.PathSearch, Combat4e: h.Combat4e && f.Combat4e})
 		eng.Dasp.Store(h.Dasp)
 		eng.SetSoundtrack(h.Soundtrack)
 		eng.NoSteps.Store(!h.Steps)

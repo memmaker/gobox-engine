@@ -14,8 +14,6 @@ package rules4e
 import (
 	"gobox/rules1e"
 	"strings"
-
-	"gobox/engine"
 )
 
 // Role is how a monster fights (DMG pp. 54-55).
@@ -48,7 +46,7 @@ type Monster struct {
 	MM     string // the Monster Manual entry it follows ("" when the book has none)
 }
 
-// kinds are the bestiary kinds (pool.BeastKind); variants are the
+// kinds are the bestiary kinds (rules1e.BeastKind); variants are the
 // MON*CHA names that differ from their kind (a leader among minions).
 var (
 	kinds = map[string]Monster{
@@ -112,7 +110,7 @@ func Lookup(name string) (Monster, bool) {
 	if m, ok := variants[strings.ToUpper(strings.TrimSpace(name))]; ok {
 		return m, true
 	}
-	m, ok := kinds[engine.BeastKind(name)]
+	m, ok := kinds[rules1e.BeastKind(name)]
 	return m, ok
 }
 
