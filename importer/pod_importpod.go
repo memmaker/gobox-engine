@@ -22,7 +22,7 @@ import (
 func init() {
 	Register(Game{
 		Cover: true,
-		ID:    "pod", Title: "Pools of Darkness", Release: 1991, Ruleset: "rules1e", Record: PodRecordLayout, Version: 13, // 13: Window, UserSaves, Foreign in the manifest (playpool reads them); 12: 1: imported for pool (Sw-pod); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art, items as char.Item (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds, itemKinds, moraleUncapped (Ph); 7: appraisal (Pi); 8: scripts gold only (Gc); 9: the Amiga music in sound/ (Pm); 10: AreaState, KeptAreaState, KeptAreaCells, Word02EF arrays (TestNoScalarTables); 11: debug party-variable menu and the Word00AB[159] write removed (Felix 2026-11-13); 12: SequenceStep.Credits on the credits picture (TITLE 3)
+		ID:    "pod", Title: "Pools of Darkness", Release: 1991, Ruleset: "rules1e", Record: PodRecordLayout, Version: 14, // 14: GameTables.Walls (the 3D view's wall textures); 13: Window, UserSaves, Foreign in the manifest (playpool reads them); 12: 1: imported for pool (Sw-pod); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art, items as char.Item (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds, itemKinds, moraleUncapped (Ph); 7: appraisal (Pi); 8: scripts gold only (Gc); 9: the Amiga music in sound/ (Pm); 10: AreaState, KeptAreaState, KeptAreaCells, Word02EF arrays (TestNoScalarTables); 11: debug party-variable menu and the Word00AB[159] write removed (Felix 2026-11-13); 12: SequenceStep.Credits on the credits picture (TITLE 3)
 		Window: Size{W: 80 * 8, H: 50 * 8}, UserSaves: true, Foreign: []string{"sotsb"},
 		Sources: []string{"*.DAX", "ITEMS", "GAME.EXE", "*.SMS", "*.ACF", "*.BMA"},
 		Import:  PodImport, Amiga: &podAmiga,
@@ -78,6 +78,7 @@ func writeSwitchData(dst string) error {
 		}
 	}
 	tables := adventure.GameTables{
+		Walls:   wallTextures("pod", podFloor, podSky),
 		Dialect: Dialect, AddNPCIcon: true, AreaMonsters: area, ScriptSounds: sounds,
 		OriginalSave: PodOriginalSave,
 		Symbols:      []adventure.SymbolLoad{{Set: 4, File: "8X8D0", Block: 202}}, // gameinit's Load8x8Set(202, 1): POD's symbols are 8X8D0's, not the content set's file

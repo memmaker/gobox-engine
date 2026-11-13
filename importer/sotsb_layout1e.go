@@ -14,6 +14,7 @@ var SotsbLayout1e = rules1e.Layout{SlotStride: sotsbSpellLevels, Races: rules1e.
 // the second engine's dialect, an NPC loads its combat icon, the duel sounds
 // (callSound); the portrait tables stay empty.
 var GameTables = adventure.GameTables{
+	Walls:      wallTextures("sotsb", "", ""),
 	Dialect:    rules.DialectCOTAB,
 	AddNPCIcon: true,
 	ScriptSounds: map[byte]adventure.ScriptSound{

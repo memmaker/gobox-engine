@@ -33,10 +33,16 @@ func (e *Engine) LoadWalldef(block, slot int) {
 	if !rules.ValidWallSlot(slot) {
 		return
 	}
-	if block == 0xA { // ovr30:1061: block 10 is recorded as 0 (quirk)
-		block = 0
+	e.mapPairA[slot-1], e.mapPairB[slot-1] = walldefRecorded(block), slot
+}
+
+// walldefRecorded is the block LoadWalldef records for block: ovr30:1061
+// records block 10 as 0 (quirk).
+func walldefRecorded(block int) int {
+	if block == 0xA {
+		return 0
 	}
-	e.mapPairA[slot-1], e.mapPairB[slot-1] = block, slot
+	return block
 }
 
 // LoadGeo = ovr30:10C7 (n): GEO<n>.DAX block n into the map planes.

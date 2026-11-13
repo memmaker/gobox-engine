@@ -365,6 +365,9 @@ func (e *Engine) opLoadArea() {
 const (
 	geoNone   = 127 // from it on: no map
 	wallsNone = 255
+	// walldefDefault as LOAD WALLS' first block loads block 0; in a later
+	// slot it is recorded as is, the slot left to the chunks before it.
+	walldefDefault = 0x7F
 )
 
 // opLoadFiles = ovr04:0C74 (0x21 LOAD FILES, 0x37 LOAD PIECES).
@@ -388,7 +391,7 @@ func (e *Engine) opLoadFiles() {
 	} else {
 		e.run.walldefSet = 1
 		switch {
-		case a[1] == 0x7F:
+		case a[1] == walldefDefault:
 			e.LoadWalldef(0, 1)
 		case e.worldWord(rules.WordWallSplitA) != 0 && e.worldWord(rules.WordWallSplitB) != 0:
 			e.LoadWalldef(a[1], 1)
