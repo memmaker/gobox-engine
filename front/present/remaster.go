@@ -303,6 +303,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		b.Ask, b.Pane = nil, nil
 		p.backView = &b
 	}
+	p.mm.titleDrawn = false
 	p.main = v.MainMenu != nil // before the pages, which return early: a stale main menu would take their keys
 	p.pace(v)
 	p.pageMenu = false

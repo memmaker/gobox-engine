@@ -45,10 +45,13 @@ type mainUI struct {
 	cards    []image.Rectangle // the party's cards drawn
 	rows     string            // the rows last drawn, and whether in the submenu: rows the game changed start the highlight on the first
 	rowsSub  bool
+
+	titleDrawn bool // this frame drew the main menu's screen: the title's picture (if any) under it (TitleDrawn)
 }
 
 // drawMain draws the main menu.
 func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v front.MainMenu) {
+	m.titleDrawn = true
 	dst.Fill(color.Black)
 	b := dst.Bounds()
 	bd := m.title // the title's picture stays: the menu comes in over it

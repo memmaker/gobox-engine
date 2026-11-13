@@ -23,6 +23,10 @@ const (
 	PickWeapon   = front.PickWeapon
 )
 
+// TitleDrawn: the last frame drew the main menu's screen, over the title's
+// picture (Data.TitleBackdrop) when the game has one: never during play.
+func (f *Front) TitleDrawn() bool { return f.P.mm.titleDrawn }
+
 // Frame runs one window frame headless (Act, then Draw onto an offscreen
 // w by h picture kept across calls), as the shell does each frame.
 func (f *Front) Frame(w, h int) {

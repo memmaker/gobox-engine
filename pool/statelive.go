@@ -41,6 +41,8 @@ func (e *Engine) stateMode() game.Mode {
 		return game.ModeShop
 	case e.waiting(PendTemple):
 		return game.ModeTemple
+	case e.waiting(PendDoor): // the Locked. menu over the 3D view (ovr15:0D6D): Exploring's Door
+		return game.ModeExplore
 	case e.pending == PendLoot:
 		return game.ModeLoot
 	case e.campUp():
