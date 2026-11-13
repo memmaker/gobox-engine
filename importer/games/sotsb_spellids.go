@@ -2,19 +2,6 @@ package games
 
 import "strconv"
 
-// Spell numbers (the spell table, the spellbook and memorised lists).
-const (
-	spellSpell101 = 101
-	spellSpell102 = 102
-	spellSpell103 = 103
-	spellSpell104 = 104
-	spellSpell105 = 105
-	spellSpell106 = 106
-	spellSpell107 = 107
-	spellSpell108 = 108
-	spellSpell109 = 109
-)
-
 // Spell classes in the spell table; each has seven spell levels of
 // SpellSlots (the third group is unused).
 const (

@@ -223,22 +223,7 @@ func (c *Character) SetName(s string) {
 // stats is a Character as gobox/rules reads it. POR keeps no multiclass level.
 type stats struct{ c *Character }
 
-func (s stats) Classes() int         { return len(s.c.Levels) }
-func (s stats) Level(k int) int      { return int(s.c.Levels[k]) }
-func (s stats) OldLevel(k int) int   { return int(s.c.OldLevels[k]) }
-func (s stats) MulticlassLevel() int { return 0 }
-func (s stats) HPRoll() int          { return int(s.c.HPRoll) }
-func (s stats) MaxHP() int           { return int(s.c.MaxHP) }
-func (s stats) HP() int              { return int(s.c.HP) }
-func (s stats) THAC0() int           { return int(s.c.THAC0) }
 func (s stats) AC(i int) int         { return int(s.c.AC[i]) }
-func (s stats) Save(t int) int       { return int(s.c.Saves[t]) }
-func (s stats) SaveBonus() int       { return int(int8(s.c.SaveBonus)) }
-func (s stats) Status() int          { return int(s.c.Status) }
-func (s stats) SetHP(v int)          { s.c.HP = byte(v) }
-func (s stats) SetMaxHP(v int)       { s.c.MaxHP = byte(v) }
-func (s stats) SetStatus(v int)      { s.c.Status = byte(v) }
-func (s stats) SetOkay(v int)        { s.c.Okay = byte(v) }
 
 // SpellPending marks a memory slot (or plan entry) whose spell is still to
 // be memorised: the DOS byte's +0x80, moved above every unified id. The

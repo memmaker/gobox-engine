@@ -67,8 +67,6 @@ func (e *Engine) journalPicture(name string) image.Image {
 	return nil
 }
 
-// WrapWords breaks s into lines of at most w characters at spaces.
-func WrapWords(s string, w int) []string { return journal.Wrap(s, w) }
 
 // The pager: the text inside a full-screen box, jrRows lines a page from
 // row jrTop (under the journal's title and a blank row) to two rows above

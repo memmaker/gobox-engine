@@ -98,37 +98,6 @@ var (
 	logoCut                          LogoCut // Data.Logo
 )
 
-// SetData hands the presenter the game's data.
-func SetData(d Data) {
-	paneBox, viewWindow, innerWindow = d.PaneBox, d.ViewWindow, d.InnerWindow
-	mapCell, dungeonTiles = d.MapCell, d.DungeonTiles
-	if series = d.Series; series == "" {
-		series = "pool"
-	}
-	menuEntries, texts, logoCut = d.Entries, d.Texts, d.Logo
-	if d.Theme != nil {
-		applyTheme(*d.Theme)
-	} else {
-		applyTheme(DefaultTheme)
-	}
-	doorRGBA, labelInks, selectInk = d.DoorRGBA, d.LabelInks, d.SelectInk
-	rests = d.Rests
-	credits, iconParts, spellRules = d.Credits, d.IconParts, d.SpellRules
-	if creditGaps = d.CreditGaps; creditGaps == nil {
-		creditGaps = []int{4, 5, 6}
-	}
-	dollBoxes, slotNames, readiedMark = defaultDollBoxes, defaultSlotNames, cmp.Or(d.ReadyMark, "*")
-	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
-	dollPNG = defaultDoll
-	AmigaArt = amigaShown // the members' pool portraits and icons follow F12 too
-	if art == nil {
-		art = fstest.MapFS{} // no remastered maps: every area falls back to its original view
-	}
-	mapSide = 16 * mapCell
-	setBindings(d.Bindings)
-	sounds, amigaSound, adLib = d.Sounds, d.AmigaSound, d.AdLib
-}
-
 // Rest is one of camp's rests (Data.Rests): Text with its Key sends
 // ActRest N. Fix: offered only while someone resting heals or studies
 // (Camp.Healing, Studying). Night, NightKey: its text and key at night
@@ -184,9 +153,6 @@ var (
 	amigaMX *orig.MX
 	amigaFx []int
 )
-
-// Sounds is the game's sound tables (Data.Sounds), for audio.NewSynth.
-func Sounds() []byte { return sounds }
 
 // confirms is the game's Data.Confirms.
 var confirms map[string]game.Confirm

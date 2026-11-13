@@ -46,12 +46,8 @@ func TestWalldef(t *testing.T) {
 	if err != nil || len(w.Sets) != 2 {
 		t.Fatal(err, len(w.Sets))
 	}
-	w.Relocate(0, 45)
-	if w.Sets[0][0] != 0x2C || w.Sets[0][1] != 0x2D+45 || w.Sets[1][0] != 0x50 {
-		t.Fatal("reloc")
-	}
-	if !w.Fits(2) || w.Fits(3) || SymbolBlock(7, 2, 2) != 72 || SymbolBlock(7, 1, 1) != 7 {
-		t.Fatal("fits")
+	if SymbolBlock(7, 2, 2) != 72 || SymbolBlock(7, 1, 1) != 7 {
+		t.Fatal("symbolblock")
 	}
 	if w, err := ParseWalldef(b[:10]); err != nil || len(w.Sets) != 0 {
 		t.Fatal("short")

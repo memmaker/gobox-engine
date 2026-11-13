@@ -238,13 +238,3 @@ func readJSON[T any](dir, name string) T {
 	return v
 }
 
-// ItemTableBytes is dir's ItemTableFile as n T records in the DOS layout
-// (the bytes a game's engine reads); nil: the import has none.
-func ItemTableBytes[T any](dir string, n int) ([]byte, error) {
-	var items []T
-	if ok, err := asset.ReadJSON(dir, ItemTableFile, &items); !ok || err != nil {
-		return nil, err
-	}
-	items = append(items, make([]T, max(0, n-len(items)))...)
-	return binary.Append(nil, binary.LittleEndian, items[:n])
-}

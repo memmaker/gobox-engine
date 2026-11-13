@@ -34,19 +34,6 @@ func (e *Engine) cure(n, x int) error {
 	return nil
 }
 
-// viewMember = the temple's View: member n's sheet (n < 0: the selected one).
-func (e *Engine) viewMember(n int) error {
-	fight := e.waiting(PendFight) && e.cs.turn != nil && e.cs.actor != rules.NoChar
-	if !fight && !e.waiting(PendTemple, PendShop) { // BUG-CLASSES 36: the shop's and the fight's View too, the game's own sheet (State.SheetPage) in full
-		return rules.ErrNotNow
-	}
-	if fight {
-		n = e.partyIndex(e.cs.actor) // the fight's View: the active member's
-	}
-	e.actor(n)
-	e.openSheet()
-	return nil
-}
 
 // Temple = ovr05:0D09: the script waits on the temple (PendTemple) until
 // the party leaves (Leave).

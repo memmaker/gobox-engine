@@ -3,75 +3,12 @@ package games
 import (
 	"fmt"
 	"gobox/rules1e"
-	"slices"
-	"sort"
 	"strconv"
 	"strings"
-	"unicode"
 
 	"gobox/asset/orig"
 	"gobox/ecl/script"
 )
-
-// DataValues names set's monsters (MON<set>CHA records) and item types
-// (the items of ITEM<set>), for names/values.txt. A name two numbers
-// share gets the number on.
-func DataValues(l *orig.Loader, set int) []script.Value {
-	var out []script.Value
-	add := func(kind string, names map[int]string) {
-		count := map[string]int{}
-		for _, n := range names {
-			count[n]++
-		}
-		var ids []int
-		for id := range names {
-			ids = append(ids, id)
-		}
-		sort.Ints(ids)
-		for _, id := range ids {
-			n := names[id]
-			if count[n] > 1 {
-				n += strconv.Itoa(id)
-			}
-			out = append(out, script.Value{Kind: kind, Set: set, N: id, Name: n})
-		}
-	}
-	mons := map[int]string{}
-	for id := range 256 {
-		if r := l.BlockShared(fmt.Sprintf("MON%dCHA", set), id); len(r) > 0 {
-			c := &rules1e.Character{}
-			c.Sheet = rules1e.SheetOf(r)
-			if n := camelName(c.Name()); n != "" {
-				mons[id] = n
-			}
-		}
-	}
-	add("Monster", mons)
-	items := map[int]string{} // the shortest name of an item of the type
-	for id := range 0x80 {
-		for _, it := range rules1e.ReadItems(l.BlockShared(fmt.Sprintf("ITEM%d", set), id)) {
-			n := camelName(itemFullName(&it))
-			if old, ok := items[int(it.Type)]; n != "" && (!ok || len(n) < len(old)) {
-				items[int(it.Type)] = n
-			}
-		}
-	}
-	add("Item", items)
-	for id := range 0x80 { // the stocks, an ITEM block's items by name
-		var s []string
-		for _, it := range rules1e.ReadItems(l.BlockShared(fmt.Sprintf("ITEM%d", set), id)) {
-			n := camelName(itemFullName(&it))
-			if it.Count > 1 {
-				n += "*" + strconv.Itoa(int(it.Count))
-			}
-			s = append(s, n)
-		}
-		if len(s) > 0 && !slices.Contains(s, "") {
-			out = append(out, script.Value{Kind: "Stock", Set: set, N: id, Name: strings.Join(s, ",")})
-		}
-	}
-	return out
-}
 
 // TreasureItems lists the items of set's ITEM block, for a comment.
 func TreasureItems(l *orig.Loader, set, block int) string {
@@ -98,26 +35,6 @@ func itemFullName(it *rules1e.Item) string {
 		}
 	}
 	return strings.Join(w, " ")
-}
-
-// camelName is a game name as one script word: "KOBOLD LEADER" ->
-// KoboldLeader.
-func camelName(s string) string {
-	var b strings.Builder
-	up := true
-	for _, r := range strings.ToLower(s) {
-		switch {
-		case unicode.IsLetter(r) || unicode.IsDigit(r) && b.Len() > 0:
-			if up {
-				r = unicode.ToUpper(r)
-			}
-			b.WriteRune(r)
-			up = false
-		default:
-			up = true
-		}
-	}
-	return b.String()
 }
 
 // ImportSource is the game data the script import reads.
