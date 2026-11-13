@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"cmp"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"gobox/adventure"
 	"gobox/asset"
 	"gobox/ecl"
 	"gobox/rules"
 	"gobox/rules1e"
+	"io/fs"
+	"log"
 	"maps"
 	"os"
 	"path/filepath"
@@ -170,34 +173,27 @@ func (e *Engine) loadFrom(name string) (ok bool) {
 		return false
 	}
 	e.ext.seen, e.ext.voiced, e.ext.met, e.ext.beasts, e.ext.quests, e.ext.notes, e.ext.doors = nil, nil, nil, nil, nil, nil, nil
-	if f, err := os.Open(filepath.Join(e.slotRoot(), name, seenFile)); err == nil {
-		gob.NewDecoder(f).Decode(&e.ext.seen)
-		f.Close()
-	} else if f, err := os.Open(filepath.Join(e.slotRoot(), name, oldSeenFile)); err == nil {
+	dir := filepath.Join(e.slotRoot(), name)
+	if _, err := os.Stat(filepath.Join(dir, seenFile)); err == nil {
+		if !decodeSlotFile(dir, seenFile, &e.ext.seen) {
+			return false
+		}
+	} else {
 		var old map[int]*[256]uint8
-		gob.NewDecoder(f).Decode(&old)
-		f.Close()
-		e.ext.seen = e.seenByMap(old)
+		if !decodeSlotFile(dir, oldSeenFile, &old) {
+			return false
+		}
+		if old != nil {
+			e.ext.seen = e.seenByMap(old)
+		}
 	}
-	if f, err := os.Open(filepath.Join(e.slotRoot(), name, voicedFile)); err == nil {
-		gob.NewDecoder(f).Decode(&e.ext.voiced)
-		f.Close()
-	}
-	if f, err := os.Open(filepath.Join(e.slotRoot(), name, metFile)); err == nil {
-		gob.NewDecoder(f).Decode(&e.ext.met)
-		f.Close()
-	}
-	if f, err := os.Open(filepath.Join(e.slotRoot(), name, questsFile)); err == nil {
-		gob.NewDecoder(f).Decode(&e.ext.quests)
-		f.Close()
-	}
-	if f, err := os.Open(filepath.Join(e.slotRoot(), name, notesFile)); err == nil {
-		gob.NewDecoder(f).Decode(&e.ext.notes)
-		f.Close()
-	}
-	if f, err := os.Open(filepath.Join(e.slotRoot(), name, doorsFile)); err == nil {
-		gob.NewDecoder(f).Decode(&e.ext.doors)
-		f.Close()
+	for _, f := range []struct {
+		file string
+		to   any
+	}{{voicedFile, &e.ext.voiced}, {metFile, &e.ext.met}, {questsFile, &e.ext.quests}, {notesFile, &e.ext.notes}, {doorsFile, &e.ext.doors}} {
+		if !decodeSlotFile(dir, f.file, f.to) {
+			return false
+		}
 	}
 	e.reopenDoors() // the map loadSlot loaded
 	e.readLabels(filepath.Join(e.slotRoot(), name, labelsFile))
@@ -340,6 +336,25 @@ func (e *Engine) LoadNamed(name string, loadOnly bool) bool {
 		e.PartyMenu()
 	} else {
 		e.GameLoop()
+	}
+	return true
+}
+
+// decodeSlotFile reads a slot's gob file into to. A missing file is fine
+// (slots saved before it was kept); one that does not decode refuses the
+// load, logged by name.
+func decodeSlotFile(dir, file string, to any) bool {
+	f, err := os.Open(filepath.Join(dir, file))
+	if errors.Is(err, fs.ErrNotExist) {
+		return true
+	}
+	if err == nil {
+		defer f.Close()
+		err = gob.NewDecoder(f).Decode(to)
+	}
+	if err != nil {
+		log.Printf("load refused: %s: %v", filepath.Join(dir, file), err)
+		return false
 	}
 	return true
 }
