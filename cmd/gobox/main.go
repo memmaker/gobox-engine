@@ -23,9 +23,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
-	"buckrogers/playbr1"
-	"buckrogers2/playbr2"
 	"gobox/importer"
 	"gobox/ui"
 
@@ -33,14 +32,6 @@ import (
 	_ "buckrogers2/importbr2"
 	_ "gobox/importer/games"
 )
-
-// players start the games that are not on rules1e's pool host (playPool
-// reads everything else of a rules1e game from its manifest). ponytail: one
-// engine per game until the engine loop is gobox's (Track R4/R5).
-var players = map[string]func(ui.Boot) (ui.Launch, error){
-	"br1": playbr1.Play,
-	"br2": playbr2.Play,
-}
 
 // ruleset1e is the manifest Ruleset the pool host plays.
 const ruleset1e = "rules1e"
@@ -53,7 +44,7 @@ func play(s start, f importer.Folder) error {
 	if f.Ruleset == ruleset1e {
 		l, err = playPool(s)
 	} else {
-		l, err = players[f.ID](s.boot())
+		l, err = playOther(s, f)
 	}
 	if err != nil {
 		return err
@@ -88,11 +79,13 @@ func main() {
 	flag.BoolVar(&s.Explore, "explore", false, "debug: skip the intro, Quick Start a party if there is none and begin adventuring at once")
 	flag.BoolVar(&s.Battle, "battle", false, "debug: a fight the computer plays out for both sides at the first prompt (with -explore: at once)")
 	flag.StringVar(&s.Dev, "dev", "", "debug: a dev scene (e.g. combat) at the first adventuring prompt")
-	flag.Int64Var(&s.Seed, "seed", -1, "debug: the same dice every run (e.g. 1), for comparing captures")
+	seed := flag.Int64("seed", -1, "debug: the same dice every run (e.g. 1), for comparing captures; <0: the clock, but a scripted run (-keys) without it plays seed 1")
 	flag.StringVar(&s.Open, "open", "", "debug: open the remastered map there, map:NAME:X:Y:D")
 	captureOf := captureFlags(escapes())
+	brFlags()
 	flag.Parse()
 	s.Capture = captureOf()
+	s.Seed = resolveSeed(*seed, len(s.Capture.Keys) > 0, time.Now())
 
 	folders, skipped, err := importer.List(*root)
 	if err != nil {
@@ -120,6 +113,18 @@ func main() {
 	if err := play(s, f); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// resolveSeed is the dice seed of a run: flag (-seed) when it is >= 0, else
+// 1 for a scripted run (so each prefix's shot is the same game), else the clock now.
+func resolveSeed(flag int64, scripted bool, now time.Time) uint64 {
+	switch {
+	case flag >= 0:
+		return uint64(flag)
+	case scripted:
+		return 1
+	}
+	return uint64(now.UnixNano())
 }
 
 // pick is the folder named want, or with want empty the one whose number

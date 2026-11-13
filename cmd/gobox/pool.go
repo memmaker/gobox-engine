@@ -40,7 +40,7 @@ func poolData(eng *engine.Engine, id string) game.Data {
 func playPool(s start) (ui.Launch, error) {
 	s.Explore = s.Explore || s.Capture.Slot != "" // -slot starts play from that save (Explore reads it), -explore or not
 
-	host := ui.DefaultHostOptions // the settings in use; Menu reads them from SETTINGS.JSON
+	host := &ui.HostSettings // the shared settings in use; ui.Play loads them from SETTINGS.JSON
 	f, err := importer.Read(s.Adventure)
 	if err != nil {
 		return ui.Launch{}, err
@@ -49,7 +49,6 @@ func playPool(s start) (ui.Launch, error) {
 		return ui.Launch{}, fmt.Errorf("adventure %s: manifest has no character record layout: re-import it", f.Dir)
 	}
 	host.FullIntro = f.Manifest.Start != nil && f.Manifest.Start.Full // the adventure's default
-	ui.Host = &host.Options
 	eng, err := engine.NewPool(s.Adventure, s.Data)
 	if err != nil {
 		return ui.Launch{}, err
@@ -73,8 +72,7 @@ func playPool(s start) (ui.Launch, error) {
 	if err := eng.SetEnd(f.Manifest.End); err != nil {
 		return ui.Launch{}, err
 	}
-	apply := func() { // the Esc menu's options (minimap, picture box, speed, fullscreen ...) kept across runs
-		h := host
+	apply := func(h ui.HostOptions) { // the Esc menu's options (minimap, picture box, speed, fullscreen ...) kept across runs
 		eng.Deskew.Store(h.Deskew)
 		eng.Explicit.Store(h.Explicit)
 		eng.QuickSearch.Store(h.QuickSearch)
@@ -136,10 +134,8 @@ func playPool(s start) (ui.Launch, error) {
 	if dev.ECLTrace {
 		eng.TraceScripts()
 	}
-	if s.Seed >= 0 {
-		seed := uint32(s.Seed)
-		eng.FixedSeed = &seed
-	}
+	seed := uint32(s.Seed)
+	eng.FixedSeed = &seed
 
 	data := poolData(eng, f.ID)
 	data.OpenAt = s.Open
@@ -148,24 +144,23 @@ func playPool(s start) (ui.Launch, error) {
 	g := ui.NewFront(cg, data, drv) // the rules' data (series, spell tips, overland art); one driver: the rules' calls and the fight's events
 	g.OnStart = func() { engine.DOSArt.Store(host.DOSArt) }
 	g.P.Sound = eng.PlayEventSound // a fight's sounds with what they belong to
+	w, h := window(f)
 	return ui.Launch{
 		Front: g,
 		Title: f.Title,
-		W:     f.Window.W,
-		H:     f.Window.H,
+		W:     w,
+		H:     h,
 		Art: &ui.Arts{ // the Amiga or the DOS art (F12, the Graphics page)
 			Want:   func() bool { return host.DOSArt },
 			Toggle: func() { host.DOSArt = !host.DOSArt },
 			Set:    func(dos bool) { engine.DOSArt.Store(dos); g.ArtNew = true },
 		},
-		FontPrev:    ui.KeyFontPrev,
-		SettingsDir: eng.Cfg.SaveDir,
-		Extra:       &host,
-		Rows:        ui.HostRows(&host.Options, ui.HostOptionRows(&host, eng.ToggleVoice)...),
-		Apply:       apply,
-		SaveLoad:    func() { g.P.OpenSlots() }, // as F10
-		MainMenu:    func() { cg.EndGame() },    // through classic, so its view is fresh
-		TPS:         tps,
+		FontPrev: ui.KeyFontPrev,
+		Apply:    apply,
+		Voice:    eng.ToggleVoice,
+		SaveLoad: func() { g.P.OpenSlots() }, // as F10
+		MainMenu: func() { cg.EndGame() },    // through classic, so its view is fresh
+		TPS:      tps,
 	}, nil
 }
 

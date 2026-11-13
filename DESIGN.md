@@ -61,7 +61,7 @@ fonts into the pool and selects by name.
   lists, input dispatch, the input latch) lives in gobox; a game keeps its
   engine, Theme/Data values and the glue to front's Game interface.
 - Map, minimap and exploration HUD: gobox front (por's as the template); a game supplies only map data, marks and styling.
-- The presenter is gobox's (`front/present`), whole: 3D view hosting, combat board adapter, panes, frames, key bindings. A game keeps no present package and no drawing in cmd; its play package hands its data to ui.Play (ui.Launch) through cmd/gobox.
+- The presenter is gobox's (`front/present`), whole: 3D view hosting, combat board adapter, panes, frames, key bindings. A game keeps no present package and no drawing in cmd; its play package hands its engine and data to cmd/gobox.
 - The combat bar and the health bars are gobox's: a game publishes only which actions are possible (Turn.Can) and the HP numbers. Its words are gobox's own (POR's); gobox picks the buttons, hotkeys (unique, off the camera keys) and digits.
 - The inventory, buy, sell and shop screens are gobox's and shared: a game publishes View.Inventory (items, Wares) and View.Shop and answers the Acts (ActBuy, ActSell, ActTrade ...); it draws no item or shop screen of its own, as text menus or pages.
 - Import: every game ships an `import.toml` for ~/Projects/gameimport's `cmd/gameimport` (por-go/import.toml is the template); its `run` steps call the game's own setup commands. goplay is not supported.
@@ -95,8 +95,9 @@ Packages, the same names in every repo:
   AdLib songs, rests, credits, labels, art, sequences. It holds values, tables
   and DAX refs, never drawing.
 - no `cmd/<game>`: gobox's one binary (cmd/gobox) starts every game; a game
-  outside gobox gives it a `play<game>.Play(ui.Boot) (ui.Launch, error)` and
-  cmd/gobox runs it in ui.Play, the one host loop. Only cmd/ mains may import
+  outside gobox gives it a `play<game>.Play(adv, saves, seed, Dev) (game.Game,
+  game.Data, error)` (Dev: its typed test starts, filled from gobox's flags);
+  cmd/gobox puts ui's front on it and runs it in ui.Play, the one host loop. Only cmd/ mains may import
   gobox/ui and gobox/gpu (scripts/check-game-imports.sh,
   game/testdata/violations.txt, which may only shrink). Data tools (dumps,
   finders) may sit beside it in cmd/, with no drawing.

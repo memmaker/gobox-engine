@@ -130,8 +130,8 @@ type Options struct {
 // DefaultOptions are the settings before the game's are loaded.
 var DefaultOptions = Options{MapAlpha: 1, Zoom: 0.5, Cards: 1, Map: 1, Pic: 1, DamageNumbers: true, NoMapZones: true}
 
-// Host is the settings in use: the game points it at its own.
-var Host = &DefaultOptions
+// Host is the presenter's settings in use: the shared engine settings' (HostSettings.Options).
+var Host = &HostSettings.Options
 
 // UISteps are the sizes the screen elements come in: whole steps of the one glyph cell size (K).
 var UISteps = []float64{1, 2, 3, 4}

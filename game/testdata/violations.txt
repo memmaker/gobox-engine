@@ -1,2 +1,0 @@
-buckrogers-go buckrogers/playbr1 -> gobox/ui
-buckrogers2-go buckrogers2/playbr2 -> gobox/ui

@@ -1,9 +1,12 @@
 package ui
 
-// HostOptions are the settings the Esc menu of gobox's blobber does not keep
-// itself (it keeps only its own view options): the host writes them to
-// SETTINGS.JSON beside blobber.Options (Launch.Extra) and puts their rows
-// back with HostOptionRows. The engine reads them through the host's apply.
+import "slices"
+
+// HostOptions are the engine settings the Esc menu of gobox's blobber does not
+// keep itself (it keeps only its own view options), one set shared by every
+// game: Play keeps them in gobox's SETTINGS.JSON beside blobber.Options and
+// puts their rows in with HostOptionRows. A game takes them up through
+// Launch.Apply.
 type HostOptions struct {
 	Options                       // the presenter's own: minimap, portraits, picture box, zoom, damage numbers
 	Deskew                bool    // the combat maps on a square grid (walls straight) instead of the original's perspective
@@ -23,12 +26,15 @@ type HostOptions struct {
 // DefaultHostOptions are the host settings before SETTINGS.JSON is read.
 var DefaultHostOptions = HostOptions{Options: DefaultOptions, Deskew: true, Music: 1, Effects: 1, Voice: 1, Dasp: true, Steps: true}
 
+// HostSettings are the engine settings in use (Play loads and keeps them).
+var HostSettings = DefaultHostOptions
+
 // HostOptionRows are the Esc menu rows of h (HostRows puts them with the
 // presenter's own): the Graphics and Gameplay rows go before the built-in
 // row At, the Audio page is new. voice toggles the voice-over when its
-// argument is true and reports whether it is on.
+// argument is true and reports whether it is on (nil: no voice-over row).
 func HostOptionRows(h *HostOptions, voice func(toggle bool) bool) []HostRow {
-	return []HostRow{
+	rows := []HostRow{
 		{Page: "Graphics", Label: "Artwork", At: 4, Flag: &h.DOSArt, Names: [2]string{"Amiga", "DOS"}},
 		{Page: "Gameplay", Label: "Explicit Interactions", At: 3, Flag: &h.Explicit},
 		{Page: "Gameplay", Label: "Deskew combat maps", At: 4, Flag: &h.Deskew},
@@ -37,7 +43,6 @@ func HostOptionRows(h *HostOptions, voice func(toggle bool) bool) []HostRow {
 		{Page: "Gameplay", Label: "Quick search", At: 4, Flag: &h.QuickSearch},
 		{Page: "Gameplay", Label: "Day sky by clock", At: 4, Flag: &h.DaySky},
 		{Page: "Gameplay", Label: "Full intro", At: 4, Flag: &h.FullIntro},
-		{Page: "Audio", Label: "Voice-over", Get: func() string { return OnOff(voice(false)) }, Change: func(int) { voice(true) }},
 		{Page: "Audio", Label: "Music", Flag: &h.Soundtrack, Names: [2]string{"Original", "Soundtrack"}},
 		{Page: "Audio", Label: "DASP Sfx", Flag: &h.Dasp},
 		{Page: "Audio", Label: "Step sounds", Flag: &h.Steps},
@@ -45,4 +50,8 @@ func HostOptionRows(h *HostOptions, voice func(toggle bool) bool) []HostRow {
 		{Page: "Audio", Label: "Effects volume", Level: &h.Effects},
 		{Page: "Audio", Label: "Voice volume", Level: &h.Voice},
 	}
+	if voice != nil {
+		rows = slices.Insert(rows, 8, HostRow{Page: "Audio", Label: "Voice-over", Get: func() string { return OnOff(voice(false)) }, Change: func(int) { voice(true) }})
+	}
+	return rows
 }

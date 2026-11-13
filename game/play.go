@@ -24,6 +24,16 @@ type Game interface {
 	Load([]byte) error          // back to what Save gave; error: refused, nothing changed
 }
 
+// Tuned is what a game may also implement to take the engine settings
+// the player sets in gobox's Esc menu, one set shared by every game: Tune
+// once they are loaded and on every change.
+type Tuned interface{ Tune(Tuning) }
+
+// Tuning is the part of the shared engine settings a game outside gobox reads.
+type Tuning struct {
+	Deskew bool // the combat maps on a square grid (walls straight) instead of the original's perspective
+}
+
 // Slots is what a game with save slots of its own (the original's) may
 // also implement: gobox lists them after its own and loads one by index.
 type Slots interface {

@@ -5,6 +5,7 @@ import (
 	"gobox/ui"
 	"slices"
 	"testing"
+	"time"
 )
 
 func TestFlags(t *testing.T) {
@@ -24,5 +25,13 @@ func TestParseKeys(t *testing.T) {
 	want := []ui.Key{'a', 13, ui.ScriptRight, ui.ScriptLeft, ui.ScriptNext, ui.ScriptWait, '\\', 'x', '\\'}
 	if !slices.Equal(got, want) {
 		t.Fatalf("%x, want %x", got, want)
+	}
+}
+
+// TestResolveSeed: -seed >= 0 wins, a scripted run without it plays 1, else the clock.
+func TestResolveSeed(t *testing.T) {
+	now := time.Unix(0, 42)
+	if resolveSeed(7, true, now) != 7 || resolveSeed(0, false, now) != 0 || resolveSeed(-1, true, now) != 1 || resolveSeed(-1, false, now) != 42 {
+		t.Fatal("resolveSeed")
 	}
 }

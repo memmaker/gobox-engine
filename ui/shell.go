@@ -9,6 +9,7 @@ import (
 	"image"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -128,15 +129,24 @@ type shell struct {
 // scripted run's capture (zero: none).
 func Play(l Launch, w WindowMode, c Capture) error {
 	Scripted = c.Scripted()
+	cfg, err := os.UserConfigDir()
+	if err != nil {
+		return err
+	}
+	apply := func() {
+		if l.Apply != nil {
+			l.Apply(HostSettings)
+		}
+	}
 	return run(shellConfig{
 		Front:    l.Front,
 		Art:      l.Art,
 		FontPrev: l.FontPrev,
 		Menu: &shellMenu{
-			Prefs:    prefs{Dir: l.SettingsDir},
-			Extra:    l.Extra,
-			Rows:     l.Rows,
-			Apply:    l.Apply,
+			Prefs:    prefs{Dir: filepath.Join(cfg, "gobox")}, // one settings file, every game's
+			Extra:    &HostSettings,
+			Rows:     HostRows(&HostSettings.Options, HostOptionRows(&HostSettings, l.Voice)...),
+			Apply:    apply,
 			SaveLoad: l.SaveLoad,
 			MainMenu: l.MainMenu,
 		},

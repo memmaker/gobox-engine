@@ -16,5 +16,7 @@ func TestMain(m *testing.M) {
 	if err := games.ImportAssetsIfStale("../../data/por/sources"); err != nil {
 		log.Fatal(err)
 	}
-	os.Exit(m.Run())
+	code := m.Run()
+	os.RemoveAll(brAdvs()) // the br1/br2 tests' imported folders
+	os.Exit(code)
 }
