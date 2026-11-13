@@ -20,7 +20,11 @@
 - `engine.MapCell` reaches `ui` as `game.Data.MapCell` (pixels per map square, set by `importer/games/por_gamedata.go`). Fix: a `ui` constant; drop the field.
 - Not yet checked: `snapshot.go`'s other 100 uses, `ccursor`/`cview` (combat cursor/view corner: engine-only, 19 uses, likely safe to cut once `ui` keeps its own cursor).
 
+**Buck Rogers is cut** (Felix, 2026-11-13). gobox drops buckrogers-go, buckrogers2-go, buckrogers-core and rulesxxvc: the go.mod requires and replaces, the BR launch and front tests in `cmd/gobox`, the BR importer entries, `rules/xxvc`, and every `ui`/`game` type only BR uses (space fight, ship sheet, `Blast`, `Blink`). The sibling repos are left on disk untouched and are no longer built or checked. `game` stays the contract: `ui` still must not import `engine`.
+
 ## Checklist
+
+- [ ] B1 Buck Rogers cut (above); after F1/F2, before P1. The T2 rows for BR-only types go with it
 
 - [x] T2 Audit `game` for every presentation field (sizes, cells, positions, colours, drawn text runs); list them here, each with its `ui` replacement
 - [x] T1 Test: `ui` does not depend on `gobox/engine` (`go list -deps`), beside TestGameImports
