@@ -31,7 +31,7 @@ func TestCotabBeginWalls(t *testing.T) {
 	eng.Cfg.SaveDir = t.TempDir()
 	seed := uint32(1)
 	eng.FixedSeed = &seed
-	data := poolData(eng, "cotab")
+	data := eng.Data()
 	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("")
 	for i := range 400 { // Enter through the title to the party menu

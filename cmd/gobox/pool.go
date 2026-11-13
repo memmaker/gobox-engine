@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"slices"
 
-	"gobox/asset"
 	"gobox/audio"
 	"gobox/engine"
 	"gobox/game"
@@ -24,13 +23,6 @@ import (
 // tps: Update runs 120 times a second, so a key waits at most ~8 ms before
 // the engine sees it.
 const tps = 120
-
-// Data is the engine's game.Data with the remastered art (asset.Remaster) of game id, if it has any.
-func poolData(eng *engine.Engine, id string) game.Data {
-	d := eng.Data()
-	d.Remaster, d.AreaMaps = asset.Remaster(id)
-	return d
-}
 
 // playPool starts the game of the adventure folder s.Adventure.
 func playPool(s start) (ui.Launch, error) {
@@ -105,8 +97,7 @@ func playPool(s start) (ui.Launch, error) {
 	seed := uint32(s.Seed)
 	eng.FixedSeed = &seed
 
-	data := poolData(eng, f.ID)
-	data.OpenAt = s.Open
+	data := eng.Data()
 	data.OwnMusic = filepath.Join(s.Data, "music")  // the player's own music, by trigger
 	ui.SetScripts(f.Manifest.Start, f.Manifest.End) // the title, credits and end gobox composes
 	cg := ui.NewGame(eng, data)

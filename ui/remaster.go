@@ -328,10 +328,6 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		}
 		return Rect{}
 	}
-	if openAt != "" {
-		p.drawOpen(dst)
-		return Rect{}
-	}
 	if p.main && p.mainMenu().Hall { // the training hall: its menu over the 3D view
 		p.active, p.menu = false, false
 		if sc := p.scene(); sc != nil {
@@ -372,7 +368,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		return Rect{}
 	}
 	sc := p.scene()
-	area := p.areaMapUp()                                                                                                                                                                                                                                                                                                                                       // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
+	area := p.areaMapUp()                                                                                                                                                                                                                                                                                                                                                         // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
 	if sc == nil && !area && !p.campUp() && !p.exploring() || p.flags().Full && len(p.pictures()) > 0 && p.introUp() == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || p.sfOf() != nil || p.results() != nil || p.iconEditor(p.ink()) != nil || !p.choosing() && !p.flags().Adventure || p.sheetUp() && p.sheetPage() != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
 		if p.screenUp() { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
@@ -415,7 +411,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		p.drawAreaMap(dst)
 	} else if sc != nil {
 		p.draw3D(dst, sc, note)
-	} else { // camp, or an area without a remastered map (no 3D view): black under the cards, the picture and the menus
+	} else { // camp, or an area without walls (no 3D view): black under the cards, the picture and the menus
 		p.shown = ""
 		dst.Fill(color.Black)
 	}
@@ -810,14 +806,9 @@ func (s *srcImage) of(src image.Image) *gpu.Image {
 
 // draw3D draws the 3D view of the area and its minimap.
 func (p *Presenter) draw3D(dst *gpu.Image, sc *blobber.Scene, note Note) {
-	where := p.where()
-	cam := cameraOf(where)
-	area, _ := strconv.Atoi(where.Area)
-	name := areaMaps[AreaID(area)]
+	cam := cameraOf(p.where())
 	w := p.walls()
-	if w != nil {
-		name = p.sceneName()
-	}
+	name := "walls:" + w.Key
 	if name != p.shown {
 		p.view.Show(sc, cam)
 		p.shown, p.inside = name, !p.flags().Inside // a new scene: set its flats below, inside or out
@@ -832,12 +823,9 @@ func (p *Presenter) draw3D(dst *gpu.Image, sc *blobber.Scene, note Note) {
 			blobber.SetFlats(sc.Floor, sc.Ceiling)
 		}
 	}
-	p.view.Night = !p.flags().Day
-	if w != nil { // the rules' own map: night only outside, the sun and the mountains by day outside
-		day := p.flags().Day && !p.flags().Inside
-		p.view.Night = !p.flags().Inside && !p.flags().Day
-		p.view.SunUp, p.view.SunAz, p.view.SunEl, p.view.Mountains = w.Sun && day, w.SunAz, w.SunEl, w.Mountains && day
-	}
+	day := p.flags().Day && !p.flags().Inside // night only outside, the sun and the mountains by day outside
+	p.view.Night = !p.flags().Inside && !p.flags().Day
+	p.view.SunUp, p.view.SunAz, p.view.SunEl, p.view.Mountains = w.Sun && day, w.SunAz, w.SunEl, w.Mountains && day
 	p.animate()
 	p.view.Draw(dst)
 	p.drawMap(dst, p.ink(), note.Font)

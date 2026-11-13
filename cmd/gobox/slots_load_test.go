@@ -28,7 +28,7 @@ func TestShippedSlotsLoad(t *testing.T) {
 			if err := os.CopyFS(eng.Cfg.SaveDir, os.DirFS(filepath.Join(src, "save"))); err != nil {
 				t.Fatal(err)
 			}
-			g := ui.NewGame(eng, poolData(eng, id))
+			g := ui.NewGame(eng, eng.Data())
 			g.Open("")
 			for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ {
 				g.TitleDone()

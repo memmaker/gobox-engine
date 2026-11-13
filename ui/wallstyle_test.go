@@ -30,7 +30,7 @@ func TestWallStyleSwapsTextures(t *testing.T) {
 		"pixel/w.png": {Data: solid(color.RGBA{0, 0, 255, 255}, 4)},
 	})
 	old, oldHost := series, Host
-	series, art = "styletest", fstest.MapFS{}
+	series = "styletest"
 	h := DefaultOptions
 	Host = &h
 	defer func() { series, Host = old, oldHost; asset.SetStyle("hd") }()
@@ -75,7 +75,7 @@ func TestWallStyleSwapsTextures(t *testing.T) {
 // yet) already draws its floor and ceiling over the fog.
 func TestWallSceneFirstFrameFlats(t *testing.T) {
 	old, oldHost := series, Host
-	series, art = "buck-rogers", fstest.MapFS{}
+	series = "buck-rogers"
 	h := DefaultOptions
 	Host = &h
 	defer func() { series, Host = old, oldHost }()
@@ -98,4 +98,20 @@ func openGrid() [][][4]int {
 		g[y] = make([][4]int, 5)
 	}
 	return g
+}
+
+// wallScene carries the area's scenery: water, ponds, the sea, and a
+// free-standing wall's far side (Scenery.TwoSided) where that side is open.
+func TestWallSceneScenery(t *testing.T) {
+	var p Presenter
+	w := &game.Walls{Key: "scenery", Side: [][][4]int{{{0, 2, 0, 0}, {0, 0, 0, 0}}}, Fronts: map[int]string{2: "w"},
+		Scenery: game.Scenery{Water: [][2]int{{1, 0}}, Pond: [][2]int{{0, 0}}, Sea: true, TwoSided: []int{2}}}
+	art := map[string]game.Picture{"w": {W: 1, H: 1, Pixels: []byte{1}, Clear: -1}}
+	sc := p.wallScene(w, art)
+	if len(sc.Faces[[3]int{0, 0, 1}]) == 0 || len(sc.Faces[[3]int{1, 0, 3}]) == 0 {
+		t.Errorf("faces %v: want the wall's both sides", sc.Faces)
+	}
+	if !sc.Water[[2]int{1, 0}] || !sc.Pond[[2]int{0, 0}] || !sc.Sea {
+		t.Errorf("water %v pond %v sea %v", sc.Water, sc.Pond, sc.Sea)
+	}
 }

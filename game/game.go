@@ -12,7 +12,6 @@ package game
 import (
 	"image"
 	"image/color"
-	"io/fs"
 	"path/filepath"
 	"time"
 
@@ -76,6 +75,7 @@ type Walls struct {
 	// walls, stretched with nearest-neighbour filtering, in place of the sky
 	// and floor flats (nil: none, the flats and CeilInk/FloorInk fills show).
 	Backdrop *Picture `json:",omitempty"`
+	Scenery  Scenery
 }
 
 // Intro is the title (or the end) waiting to be played: the steps of the
@@ -888,9 +888,6 @@ type Data struct {
 	DungeonTiles int            // the tiles at the start of the combat set
 	Rests        []RestKind     // camp's rests, in the menu's order (nil: none)
 	IconParts    []string       // the combat icon designer's parts
-	AreaMaps     map[int]string `json:"-"` // the remastered 3D map (Remaster maps/NAME.map) of each area id
-	Remaster     fs.FS          `json:"-"` // the remastered art: maps/NAME.map and assets/walls/walls.txt
-	OpenAt       string         `json:"-"` // debug: map:NAME:X:Y:D shows that remastered map alone
 	Bindings     []Binding      // the game's own help rows, after the Any time Ctrl-F row
 }
 

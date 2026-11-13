@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"gobox/adventure"
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -31,7 +32,83 @@ func wallTextures(id, floor, sky string) *adventure.WallTextures {
 		}
 		w.Walls = append(w.Walls, t)
 	}
+	if b, err := wallFiles.ReadFile("walls/" + id + "_areas.txt"); err == nil {
+		w.Areas = areaLooks(id, string(b))
+	}
 	return w
+}
+
+// areaLooks reads walls/<id>_areas.txt, the areas' own looks, a line a
+// thing: SET GEO then one of
+//
+//	floor NAME / ceiling NAME                  the area's flats (pool floor_NAME, ceiling_NAME)
+//	water X Y / pond X Y / sea edge            water squares, ponds, water off the map (game.Scenery)
+//	prop TEX X Y SIZE [FRONT [SINK]]             a billboard (game.Prop)
+//	well TEX X Y HALFW HALFD RIMW [FRONT]      a hole in the floor, TEX its rim
+//	twosided V                                 wall value V also drawn from its open far side
+func areaLooks(id, text string) []adventure.AreaLook {
+	var out []adventure.AreaLook
+	for _, l := range strings.Split(strings.TrimSpace(text), "\n") {
+		f := strings.Fields(l)
+		var set rules.Set
+		var geo int
+		bad := len(f) < 3
+		if !bad {
+			_, err := fmt.Sscan(f[0]+" "+f[1], &set, &geo)
+			bad = err != nil
+		}
+		var a *adventure.AreaLook
+		if !bad {
+			if a = (&adventure.WallTextures{Areas: out}).Area(set, geo); a == nil {
+				out = append(out, adventure.AreaLook{Set: set, Geo: geo})
+				a = &out[len(out)-1]
+			}
+		}
+		nums := func(from, need int, v ...*float64) bool { // the fields from from on into v, at least need of them
+			if len(f) < from+need || len(f) > from+len(v) {
+				return false
+			}
+			for i, p := range v[:len(f)-from] {
+				if _, err := fmt.Sscan(f[from+i], p); err != nil {
+					return false
+				}
+			}
+			return true
+		}
+		var x, y float64
+		switch {
+		case bad:
+		case f[2] == "floor" && len(f) == 4:
+			a.Floor = f[3]
+		case f[2] == "ceiling" && len(f) == 4:
+			a.Sky = f[3]
+		case f[2] == "sea":
+			a.Scenery.Sea = true
+		case (f[2] == "water" || f[2] == "pond") && nums(3, 2, &x, &y):
+			sq := [2]int{int(x), int(y)}
+			if f[2] == "water" {
+				a.Scenery.Water = append(a.Scenery.Water, sq)
+			} else {
+				a.Scenery.Pond = append(a.Scenery.Pond, sq)
+			}
+		case f[2] == "prop" && len(f) >= 4:
+			p := game.Prop{Tex: f[3]}
+			bad = !nums(4, 3, &p.X, &p.Y, &p.Size, &p.Front, &p.Sink)
+			a.Scenery.Props = append(a.Scenery.Props, p)
+		case f[2] == "well" && len(f) >= 4:
+			p := game.Prop{Tex: f[3], Ring: &[3]float64{}}
+			bad = !nums(4, 5, &p.X, &p.Y, &p.Ring[0], &p.Ring[1], &p.Ring[2], &p.Front)
+			a.Scenery.Props = append(a.Scenery.Props, p)
+		case f[2] == "twosided" && nums(3, 1, &x):
+			a.Scenery.TwoSided = append(a.Scenery.TwoSided, int(x))
+		default:
+			bad = true
+		}
+		if bad {
+			panic(fmt.Sprintf("walls/%s_areas.txt: %q", id, l))
+		}
+	}
+	return out
 }
 
 // The games' 3D view flats (the pool series' floor_<x>, ceiling_<x>):

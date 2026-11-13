@@ -14,6 +14,5 @@ type start struct {
 	Explore   bool   // debug: no intro, a Quick Start party when there is none, begin adventuring at once
 	Battle    bool   // debug: a fight the computer plays out for both sides at the first prompt
 	Dev       string // debug: a dev scene at the first adventuring prompt
-	Open      string // debug: open the remastered map there, map:NAME:X:Y:D
 	Seed      uint64 // the dice seed (resolveSeed)
 }

@@ -79,7 +79,6 @@ func main() {
 	flag.BoolVar(&s.Battle, "battle", false, "debug: a fight the computer plays out for both sides at the first prompt (with -explore: at once)")
 	flag.StringVar(&s.Dev, "dev", "", "debug: a dev scene (e.g. combat) at the first adventuring prompt")
 	seed := flag.Int64("seed", -1, "debug: the same dice every run (e.g. 1), for comparing captures; <0: the clock, but a scripted run (-keys) without it plays seed 1")
-	flag.StringVar(&s.Open, "open", "", "debug: open the remastered map there, map:NAME:X:Y:D")
 	captureOf := captureFlags(escapes())
 	brFlags()
 	flag.Parse()

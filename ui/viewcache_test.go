@@ -151,7 +151,6 @@ func TestWallsAndMinimapBuiltOncePerChange(t *testing.T) {
 	}
 	for range 5 {
 		p.scene()
-		p.sceneName()
 		p.drawMap(dst, egaInk, font)
 	}
 	if p.walls() != w || p.eng.r.derived().minimap != m {

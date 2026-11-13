@@ -319,7 +319,7 @@ func askMode(m game.Mode, a *game.Ask, ps game.State) game.Mode {
 // wallsKey names w's look: a new one has the 3D view built again.
 func wallsKey(w game.MapWalls) string {
 	h := fnv.New64a()
-	fmt.Fprint(h, w.Side, w.Fronts, w.Pool, w.Floor, w.Sky, w.FloorInk, w.CeilInk, w.Backdrop)
+	fmt.Fprint(h, w.Side, w.Fronts, w.Pool, w.Floor, w.Sky, w.FloorInk, w.CeilInk, w.Backdrop, w.Scenery)
 	return strconv.FormatUint(h.Sum64(), 36)
 }
 
@@ -424,7 +424,7 @@ func (r *frontState) run(t string) []game.TextRun {
 func gameWalls(w game.MapWalls) *game.Walls {
 	return &game.Walls{Key: wallsKey(w), Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
 		FloorInk: w.FloorInk, CeilInk: w.CeilInk, Sun: w.Sun, Mountains: w.Mountains,
-		SunAz: w.SunAz, SunEl: w.SunEl, Backdrop: w.Backdrop}
+		SunAz: w.SunAz, SunEl: w.SunEl, Backdrop: w.Backdrop, Scenery: w.Scenery}
 }
 
 func (r *frontState) page(sc game.Scene) *TextPage {

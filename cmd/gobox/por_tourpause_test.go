@@ -20,7 +20,7 @@ func TestTourPausesTimed(t *testing.T) {
 	eng.Cfg.SaveDir = t.TempDir()
 	seed := uint32(7)
 	eng.FixedSeed = &seed
-	g := ui.NewGame(eng, poolData(eng, "por"))
+	g := ui.NewGame(eng, eng.Data())
 	g.Open("")
 	for i := 0; i < 5; i++ {
 		g.TitleDone()

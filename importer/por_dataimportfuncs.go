@@ -38,6 +38,7 @@ var porGameTables = adventure.GameTables{GameSet: 3, // DS:5376 = 3
 	Art:          &porArt,
 	MapLabels:    porMapLabels,
 	Music:        &porMusic,
+	Walls:        wallTextures("por", "", ""), // the floor and sky are the areas' own (walls/por_areas.txt)
 	Natives: []adventure.NativeAt{
 		{ScriptAt: adventure.ScriptAt{Area: 0, Label: "TavernGamble"}, Native: adventure.NativeTavernGamble},
 		{ScriptAt: adventure.ScriptAt{Area: 14, Label: "CastKnock"}, Native: adventure.NativeCastKnock},
@@ -49,7 +50,7 @@ var porGameTables = adventure.GameTables{GameSet: 3, // DS:5376 = 3
 }
 
 // dataFormat changes when the files ImportData writes change.
-const dataFormat = "23" // 23: GameTables.GameSet; 22: no View or Aim on the combat bar (Felix 2026-11-13); 21: data/look.json (writePorLook, as PorImport); 20: GameTables.Music.Files, AmigaSongs (P1); 19: Sheet.Race is the typed race (a name), MonsterRace the record byte of a monster; 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
+const dataFormat = "24" // 24: GameTables.Walls (walls/por.txt, por_areas.txt); 23: GameTables.GameSet; 22: no View or Aim on the combat bar (Felix 2026-11-13); 21: data/look.json (writePorLook, as PorImport); 20: GameTables.Music.Files, AmigaSongs (P1); 19: Sheet.Race is the typed race (a name), MonsterRace the record byte of a monster; 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
 
 // ImportData is the data import: data's GEO, MON and ITEM archives, the
 // ITEMS table and START.EXE's sound tables (soundFile) as data/assets/data (DataDir).

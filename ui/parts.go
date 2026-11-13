@@ -82,10 +82,6 @@ const (
 
 func (p Policy) String() string { return [...]string{"Always", "Never", "On hit"}[p%3] }
 
-// AreaID is the GEO block a 3D area is drawn from (the same area in every
-// disk's GEO file that has it).
-type AreaID int
-
 // Pane is the text under the 3D view (TextPane): what DisplayTextBlock,
 // the messages and the debug values put there, a line per row.
 type Pane struct {
