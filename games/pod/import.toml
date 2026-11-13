@@ -19,4 +19,4 @@ describe = "The Amiga release's .adf disk images (loose or zipped). F12 then swi
 markers  = ["*.ADF"]
 files    = ["*.ADF"]
 dest     = "../../data/pod/sources/adf"
-run      = ["../../gobox", "import", "-out", "../../data", "-amiga", "pod", "../../data/pod/sources/adf"] # into sources/amiga, then the DOS import again
+run      = ["../../gobox", "import", "-out", "../../data", "-amiga", "pod", "../../data/pod/sources/adf"] # into sources/amiga; a step of its own, the DOS import reads it

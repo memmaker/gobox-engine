@@ -20,7 +20,7 @@ describe = "The Amiga release's .adf disk images (loose or zipped). opool then s
 markers  = ["*.ADF"]
 files    = ["*.ADF"]
 dest     = "../../data/por/sources/adf"
-run      = ["../../gobox", "import", "-out", "../../data", "-amiga", "por", "../../data/por/sources/adf"] # into sources/amiga, then the DOS import again
+run      = ["../../gobox", "import", "-out", "../../data", "-amiga", "por", "../../data/por/sources/adf"] # into sources/amiga; a step of its own, the DOS import reads it
 
 [[source]]
 name     = "the voice-over"

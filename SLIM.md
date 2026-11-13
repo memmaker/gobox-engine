@@ -6,6 +6,6 @@
 - [x] D: dead code (deadcode -test list, rules1e stats accessors, unused spell-ID consts, engine.lead/viewMember, xinput packet), tracked poolsprites binary + sprites/, empty blobber/
 - [x] M: package merges gpu/vector→gpu, game/play+game/journal→game, ecl/script→ecl, audio/sounddata→audio
 - [x] T: dev dump cmds removed (keep importstale: gate.sh; keep ui/cmd/viewdump: remaster.json dump), fixture cmds folded into one
-- [x] L: per-game launchers gone; Amiga specs are importer.Game.Amiga (`gobox import -amiga`), por play tests in games/por/playtest. COVER.PNG: importer.Run (Game.Cover); import.toml targets data/<id>/sources; -amiga re-runs the DOS import
+- [x] L: per-game launchers gone; Amiga specs are importer.Game.Amiga (`gobox import -amiga`), por play tests in games/por/playtest. COVER.PNG: importer.Run (Game.Cover); import.toml targets data/<id>/sources
 - [x] Docs: stale root docs folded into DESIGN.md and ONE-BINARY.md, rest dropped
 - [x] Final: full build/vet/test on main (sibling buckrogers tests: pre-existing walls/ path failures)

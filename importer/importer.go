@@ -11,7 +11,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -222,17 +221,12 @@ func matches(name string, patterns []string) bool {
 	return false
 }
 
-// AmigaDir is where in a game's folder ImportAmiga writes, beside the DOS
-// originals in DOSDir.
-const (
-	AmigaDir = "sources/amiga"
-	DOSDir   = "sources/dos"
-)
+// AmigaDir is where in a game's folder ImportAmiga writes (sources/amiga,
+// beside the DOS originals in sources/dos).
+const AmigaDir = "sources/amiga"
 
 // ImportAmiga converts game id's Amiga disks among the .adf images under adf
-// (loose or zipped) into root/<id>/AmigaDir, by its Game.Amiga, then
-// re-runs the DOS import from root/<id>/DOSDir when those originals are
-// there, so the folder picks the Amiga art up whichever came first.
+// (loose or zipped) into root/<id>/AmigaDir, by its Game.Amiga.
 func ImportAmiga(id, adf, root string) error {
 	g, ok := games[id]
 	if !ok {
@@ -241,23 +235,14 @@ func ImportAmiga(id, adf, root string) error {
 	if g.Amiga == nil {
 		return fmt.Errorf("import %s: no Amiga release", id)
 	}
-	if err := amigaimport.Import(adf, filepath.Join(root, id, AmigaDir), *g.Amiga); err != nil {
-		return err
-	}
-	dos := filepath.Join(root, id, DOSDir)
-	if _, err := os.Stat(dos); errors.Is(err, os.ErrNotExist) {
-		return nil
-	} else if err != nil {
-		return err
-	}
-	return Run(id, dos, root)
+	return amigaimport.Import(adf, filepath.Join(root, id, AmigaDir), *g.Amiga)
 }
 
 // Main is the import command's body: args are [-out dir] [-amiga] <game> <originals>.
 func Main(args []string) error {
 	fs := flag.NewFlagSet("import", flag.ContinueOnError)
 	out := fs.String("out", "data", "the games' data directory")
-	amiga := fs.Bool("amiga", false, "<originals> are the Amiga .adf disks: convert them into <out>/<game>/"+AmigaDir+" (the DOS import from <out>/<game>/"+DOSDir+" re-runs when present)")
+	amiga := fs.Bool("amiga", false, "<originals> are the Amiga .adf disks: convert them into <out>/<game>/"+AmigaDir+" (a step of its own, before the DOS import, which reads them)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
