@@ -126,8 +126,8 @@ type Seen uint8
 
 const (
 	Unseen  Seen = iota
-	SeenFar           // seen from afar
-	Visited           // walked on
+	SeenFar      // seen from afar
+	Visited      // walked on
 )
 
 // MapWall is a wall on a map.
@@ -204,12 +204,12 @@ type Scan struct {
 // FrontFullMap is the full-screen map (FullMapView), the presenter's: its
 // cursor cell's context menu has Walk (WalkTo), Mark and Remove.
 type FrontFullMap struct {
-	Name     string           // the map's name, top left
+	Name     string      // the map's name, top left
 	Map      *MapSquares // the squares, the legend's letter on each labelled square
-	At       image.Point      // the map's top left on the page, in pixels (At, Cell, LegendAt: the presenter lays them out)
-	Cell     int              // pixels a square
-	Cursor   image.Point      // the cursor's square
-	Legend   []MapLabel       // the legend's lines, from cell LegendAt down (the game gives them all, the presenter keeps those that fit)
+	At       image.Point // the map's top left on the page, in pixels (At, Cell, LegendAt: the presenter lays them out)
+	Cell     int         // pixels a square
+	Cursor   image.Point // the cursor's square
+	Legend   []MapLabel  // the legend's lines, from cell LegendAt down (the game gives them all, the presenter keeps those that fit)
 	LegendAt image.Point
 	Info     string  // the cursor's square and its label, on the message row
 	Label    *string // the label being typed (nil: none), on the prompt row
@@ -257,8 +257,8 @@ const (
 	PickBody     = game.PickBody
 	PickIconHead = game.PickIconHead
 	PickWeapon   = game.PickWeapon
-	PickAdd           = game.PickAdd
-	PickForget        = game.PickForget
+	PickAdd      = game.PickAdd
+	PickForget   = game.PickForget
 )
 
 // FrontIconEditor is the combat icon editor's page, in cells:
@@ -272,14 +272,14 @@ type FrontIconEditor struct {
 	PoseAt             [2]CellRect
 	Large              bool // Size: large (else small)
 	Head, Weapon, Size CellRect
-	Names              CellRect    // the parts' names, a row each
-	Parts              CellRect    // their two swatches, 2 cells wide and 3 apart
-	Palette            CellRect    // the colours, 8 a row, 2 cells each
+	Names              CellRect         // the parts' names, a row each
+	Parts              CellRect         // their two swatches, 2 cells wide and 3 apart
+	Palette            CellRect         // the colours, 8 a row, 2 cells each
 	Colours            [16]int          // the colour number in each palette cell, row-major (-1: empty)
 	Part, Shade        int              // the swatch the palette sets
 	Colour             [6][2]int        // each part's two colour numbers (the swatches)
 	Custom             bool             // the poses are a dropped PNG: no parts or colours, only Remove (ActIconRemove)
-	Remove             CellRect    // the Remove word, when Custom
+	Remove             CellRect         // the Remove word, when Custom
 	Swatch             [6][2]color.RGBA // each part's two colours as they show
 	PaletteInk         [16]color.RGBA   // each palette cell's colour as it shows
 	// Indexed alternative to Poses, Swatch and PaletteInk: with Indexed set the
@@ -294,16 +294,16 @@ type FrontIconEditor struct {
 // FrontPicker is a grid picker's page as the engine drew it.
 type FrontPicker struct {
 	N, Page, Pages, PerPage, Cols int
-	Cur                           int             // the picture it opened on
-	Cells                         []CellRect // the pictures on this page: Page*PerPage on
-	Pics                          []Picture       // their pictures, as the page would show them
-	Prev, Next                    CellRect   // the pager's arrows (zero: one page)
-	Bottom                        int             // the box's inner bottom row (the box: from cell 1, 1 to the page's right)
-	Labels                        []string        // the pictures' names (the saved characters)
-	Classes                       []string        // ... their classes ("": the files are gone)
-	Portraits                     []image.Image   // ... their PNG portraits, fitted into the head's place (nil: none; the DAX head is among the pictures)
-	Ask                           string          // the question before a pick (%s: the label), "" none
-	Title                         string          // what is being picked, on the box's top edge ("" none)
+	Cur                           int           // the picture it opened on
+	Cells                         []CellRect    // the pictures on this page: Page*PerPage on
+	Pics                          []Picture     // their pictures, as the page would show them
+	Prev, Next                    CellRect      // the pager's arrows (zero: one page)
+	Bottom                        int           // the box's inner bottom row (the box: from cell 1, 1 to the page's right)
+	Labels                        []string      // the pictures' names (the saved characters)
+	Classes                       []string      // ... their classes ("": the files are gone)
+	Portraits                     []image.Image // ... their PNG portraits, fitted into the head's place (nil: none; the DAX head is among the pictures)
+	Ask                           string        // the question before a pick (%s: the label), "" none
+	Title                         string        // what is being picked, on the box's top edge ("" none)
 }
 
 // Slots is the save slot screen: the saves, newest first.
@@ -350,13 +350,13 @@ type FrontCreation struct {
 	Powers    []Field // the rule set's power picks (ActSetField N len(Fields)+i), off the page: the bar's Powers; Cur -1: none picked yet
 	Name      CellRect
 	Stats     []CellRect // the abilities' cells (ActStat N), STR .. CHA or the game's own
-	StatNames []string        // their labels
+	StatNames []string   // their labels
 	Head      CellRect   // the portrait's head (PickHead) ...
 	Body      CellRect   // ... and body (PickBody)
 	Icon      CellRect   // the combat icon (ActIconEdit)
-	Scale     int             // the portrait's and the icon's whole scale: the engine draws them at 1x from Head's and Icon's corners
-	Abandon   string          // what Esc asks before ActClose
-	Minimums  string          // the minimums Minimal last rolled to (ActRoll N 1)
+	Scale     int        // the portrait's and the icon's whole scale: the engine draws them at 1x from Head's and Icon's corners
+	Abandon   string     // what Esc asks before ActClose
+	Minimums  string     // the minimums Minimal last rolled to (ActRoll N 1)
 }
 
 // StatCol is the column an ability's value starts at after its label

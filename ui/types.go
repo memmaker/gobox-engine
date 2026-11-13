@@ -54,10 +54,10 @@ type Turn struct {
 // CombatOption is a button the game offers: its word, hotkey (0: derived) and
 // action (ActOption: the game's own, Decision.N its index).
 type CombatOption struct {
-	Label  string
-	Key    byte
-	DecisionKind   Kind
-	Chords string // more keys that pick it, comma-separated: alt+q, shift+u, space, q
+	Label        string
+	Key          byte
+	DecisionKind Kind
+	Chords       string // more keys that pick it, comma-separated: alt+q, shift+u, space, q
 }
 
 // Effect is a sprite over the map for a moment.

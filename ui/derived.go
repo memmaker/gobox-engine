@@ -11,13 +11,13 @@ import (
 // built once per Version (not every frame; the game is turn-based), with
 // what camp keeps of the last exploring (kept, explored) carried over.
 type derived struct {
-	walls    *game.Walls      // the 3D view up (nil: none)
-	kept     *game.Walls      // the one last explored: camp and a scene keep it
-	automap  game.Automap     // the map of where the party is
-	explored game.Automap     // the one last explored (camp)
-	minimap  *MapSquares // automap's squares when it is the 16x16 map (nil: not)
-	unknown  []game.ItemRef   // the party's items the shop's Id would tell something about
-	border   windowBorder     // the window border's decoded pieces
+	walls    *game.Walls    // the 3D view up (nil: none)
+	kept     *game.Walls    // the one last explored: camp and a scene keep it
+	automap  game.Automap   // the map of where the party is
+	explored game.Automap   // the one last explored (camp)
+	minimap  *MapSquares    // automap's squares when it is the 16x16 map (nil: not)
+	unknown  []game.ItemRef // the party's items the shop's Id would tell something about
+	border   windowBorder   // the window border's decoded pieces
 }
 
 // derived is the State's derived reads, made again when its Version changed.

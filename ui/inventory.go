@@ -62,11 +62,11 @@ type inventory struct {
 		i      rules.ItemHandle
 		id     string
 	} // a sold, dropped or readied item's line, the list's length and its Index then: the line after it is highlighted once it is gone (row -1 none)
-	ask     *Action      // a Drop or Sell waits for Yes
+	ask     *Action           // a Drop or Sell waits for Yes
 	askSel  int               // the question's highlighted answer: 0 Yes, 1 No
 	askAt   []image.Rectangle // the question's Yes and No on the screen, as last drawn
 	up      *invUp            // what the screen shows, read from the state when it was last drawn (nil: not up)
-	acts    []Action     // to send (Presenter.Actions)
+	acts    []Action          // to send (Presenter.Actions)
 	words   []word            // the menu row's words
 	focus   int               // 1+ the word the keys are on (PgUp/PgDn, the pad's shoulders), 0 none
 	k       int               // canvas scale, whole: what the pixel art is drawn at

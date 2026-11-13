@@ -74,7 +74,7 @@ type Presenter struct {
 	answered    string                             // the text pane under the last question: once it is answered, that text is done
 	mapImg      *gpu.Image                         // Map on the GPU
 	mapAt       image.Rectangle                    // where drawMap last put the minimap (a click there opens the full map)
-	mapSrc      *MapSquares                   // the derived minimap it holds (derived)
+	mapSrc      *MapSquares                        // the derived minimap it holds (derived)
 	mapInk      [16]color.RGBA                     // the ink it was drawn in
 	mapFont     int                                // and the font (fonts.Cur, -1: the game's own)
 	menuRects   []image.Rectangle                  // the vertical menu's items on screen, as last drawn
@@ -83,7 +83,7 @@ type Presenter struct {
 	sheet       sheetCanvas                        // the character sheet
 	journal     journalUI                          // the quest journal (journal.go)
 	resultsPage sheetCanvas                        // the after-combat page (drawResults)
-	area        AreaMapPainter                          // the overland's map and marker last uploaded (drawAreaMap)
+	area        AreaMapPainter                     // the overland's map and marker last uploaded (drawAreaMap)
 	areaPic     areaPic                            // the overland's picture built from its squares (drawAreaMap)
 	fightAskAt  []image.Rectangle                  // the fight pop-up menu's lines on screen
 	winRects    []image.Rectangle                  // the Esc menu's lines on screen, as last drawn

@@ -46,7 +46,7 @@ type cellPage struct {
 	cols, rows int
 	ink        [16]color.RGBA
 	cells      [][]cell
-	pics       []Picture       // the View's pictures, then the cells cleared (fills)
+	pics       []Picture  // the View's pictures, then the cells cleared (fills)
 	boxes      []CellRect // DrawBorder's insides: the border's cells round them (the window border)
 	overs      []overlay
 }

@@ -47,15 +47,15 @@ type screenUI struct {
 	ask     string // scrAsk: the question; yes on Yes, back to sub on No
 	yes     func()
 	back    int
-	backSel int            // the row the question was asked from
-	mainSel int            // the main menu's row that opened the submenu up: back restores it
-	cur     int            // the picker's cursor
-	at      Rect           // where the page went on the window ...
-	pw, ph  int            // ... and its size in pixels
+	backSel int       // the row the question was asked from
+	mainSel int       // the main menu's row that opened the submenu up: back restores it
+	cur     int       // the picker's cursor
+	at      Rect      // where the page went on the window ...
+	pw, ph  int       // ... and its size in pixels
 	anchor  *CellRect // the drop-down's field: the menu opens on it
-	newChar bool           // ActCreate sent: the creation sheet coming up asks Roll or Point Buy
-	buy     []int          // scrBuy: the scores bought ...
-	buyStat int            // ... and the one Raise and Lower change
+	newChar bool      // ActCreate sent: the creation sheet coming up asks Roll or Point Buy
+	buy     []int     // scrBuy: the scores bought ...
+	buyStat int       // ... and the one Raise and Lower change
 }
 
 func (p *Presenter) screenName() string {

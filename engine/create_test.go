@@ -3,11 +3,11 @@ package engine
 import (
 	"errors"
 	"gobox/game/play"
+	"gobox/rules1e"
 	"image"
 	"image/png"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 	"slices"
 	"testing"
 )
