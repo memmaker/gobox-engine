@@ -1,4 +1,4 @@
-package engine
+package audio
 
 import (
 	"encoding/binary"
@@ -7,9 +7,9 @@ import (
 	"testing"
 )
 
-// TestDasp: sound.cfg's events, a mono WAV decoded and mixed onto both
+// TestSoundPack: sound.cfg's events, a mono WAV decoded and mixed onto both
 // channels, a clip dropped once played.
-func TestDasp(t *testing.T) {
+func TestSoundPack(t *testing.T) {
 	dir := t.TempDir()
 	os.WriteFile(filepath.Join(dir, "sound.cfg"), []byte("# hit = no.wav\n[Sound]\nhit = a.wav b.wav\nwalk =\n"), 0o644)
 	wav := []byte("RIFF\x00\x00\x00\x00WAVEfmt \x10\x00\x00\x00")
@@ -24,7 +24,7 @@ func TestDasp(t *testing.T) {
 	wav = binary.LittleEndian.AppendUint16(wav, uint16(0xFFFF-499)) // -500
 	os.WriteFile(filepath.Join(dir, "a.wav"), wav, 0o644)
 
-	d := loadDasp(dir)
+	d := LoadSoundPack(dir, func() float64 { return 1 })
 	if got := d.events["hit"]; len(got) != 2 || got[0] != "a.wav" || len(d.events["walk"]) != 0 || len(d.events) != 2 {
 		t.Fatalf("events %v", d.events)
 	}
@@ -35,7 +35,7 @@ func TestDasp(t *testing.T) {
 	if readWav(filepath.Join(dir, "b.wav")).pcm != nil {
 		t.Fatal("a missing file decoded")
 	}
-	d.playing = []daspClip{{daspWav: w}}
+	d.playing = []playingClip{{wavClip: w}}
 	p := make([]byte, 12) // three stereo frames, the third past the clip
 	binary.LittleEndian.PutUint16(p, 32000)
 	d.Mix(p)

@@ -40,7 +40,7 @@ type sound struct {
 	wait  int  // DS:5374
 	music int  // the Amiga song Music started last
 	stOn  bool // the Soundtrack option
-	dasp  *dasp
+	dasp  *audio.SoundPack
 }
 
 // amigaFx maps PlaySound 2..12 to Amiga effects: the Amiga's effect table parallels the
@@ -150,7 +150,7 @@ func (e *Engine) SoundParts() (*orig.Player, []int, interface{ Mix([]byte) }, fu
 		am = orig.NewPlayer(img)
 		am.SongOn = 0x667d5
 	}
-	e.snd.dasp = loadDasp(filepath.Join(e.adv, adventure.SoundDir, daspDir))
+	e.snd.dasp = audio.LoadSoundPack(filepath.Join(e.adv, adventure.SoundDir, daspDir), func() float64 { return volume("sfx") })
 	var pack interface{ Mix([]byte) }
 	if e.snd.dasp != nil {
 		pack = e.snd.dasp
