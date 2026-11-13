@@ -16,7 +16,7 @@ import (
 // period (game.RestEvery, camp.interval) at 50 percent. The rest time is read
 // before RestStep clears it.
 func TestRestAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-rest.txt")
+	f, err := os.Open("../rules1e/testdata/por-rest.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +73,7 @@ func TestRestAgainstPascal(t *testing.T) {
 // and an hour from a zero clock: hp, the two slots, Study, the heal counter
 // (camp.heal) and the clock.
 func TestRestTickAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-rest.txt")
+	f, err := os.Open("../rules1e/testdata/por-rest.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

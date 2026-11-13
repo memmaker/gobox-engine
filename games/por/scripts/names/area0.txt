@@ -1,0 +1,8 @@
+B592 TourStopKinds  # GetTable -> [6E7C], OnGoto over tour stops
+B5B4 TourStopX  # GetTable -> [6E7A] tour position
+B5D6 TourStopY  # GetTable -> [6E7B] tour position
+B5F8 TourStopFacing  # GetTable -> Facing
+B61A EjectXTable  # GetTable -> PartyX after losing to watch
+B61E EjectYTable  # GetTable -> PartyY after losing to watch
+B622 DuelMonsters  # GetTable -> AuxMonster: the duel monsters, by set
+B628 DuelIcons  # GetTable -> the duel monsters' combat icons (LoadMonster icon=)

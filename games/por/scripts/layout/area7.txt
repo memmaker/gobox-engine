@@ -1,0 +1,8 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local MerchantRoomSeen  # set 1 after "APARTMENT OF A WEALTHY IF ECCENTRIC MERCHANT" text; area-local reuse
+4A01 1 byte local BenchRoomSeen  # set 1 after "ROOM FURNISHED WITH CHAIRS AND BENCHES" text; area-local reuse
+4A02 1 byte local StatueRoomSeen  # set 1 after "ROOM FILLED WITH BROKEN STATUES" text; area-local reuse
+4A6D 1 byte game GenheerisFlags  # bits: 1 Genheeris joined, 2 he left/fought, 4 guards beaten, 8 audience hall seen, 16 dragon done (read)
+4A72 1 byte game TowerEndFlags  # set to 4A6D|16 after Tyranthraxus beaten; guess: final-state copy
+4AE0 1 byte game TyranthraxusDefeated  # set 1 after final fight (Program 8), event4 then plays ending walk to Phlan, cleared

@@ -1,0 +1,6 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local WagonManMet  # set 1 when the wagon driver encounter happens (only once); area-local reuse
+4A01 1 byte local GuardRoomSeenBits  # bits 1/2 = guard room text shown in each tower; area-local reuse
+4A77 1 byte game GateFlags  # bits 1/2 tower sides cleared for passage (no rock volley), 4/8 tower garrisons slain, 16 outside guards slain, 32 gate description seen, 64 wagon owned
+4A78 1 byte game BugbearWarnings  # 1..3 wall warnings from bugbears; 3 = they rob you; compared with random roll

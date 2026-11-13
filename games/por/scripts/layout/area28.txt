@@ -1,0 +1,18 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 14 byte local EntryPoint  # set 2 in event3 before relocating party (guess); area-local reuse
+4A0E 1 byte local AttackedGuards  # set at "YOU ATTACK THE GUARDS"; area-local reuse
+4A0F 1 byte local OutpostFought  # set after the commandant fight; area-local reuse
+4A10 1 byte local NightInQuarters  # set at "IT IS NIGHT AND YOU ARE IN YOUR QUARTERS"; area-local reuse
+4A13 1 byte local GivenQuarters  # set at L_B453; needed for the night scene; area-local reuse
+4A14 1 byte local AlarmFightScore  # +20 per alarm fight, >=40 ends; area-local reuse
+4A17 1 byte local AlarmLevel  # set 1 on alarm; guard fights grow with it; area-local reuse
+4A18 1 byte local EscortedIn  # 128 at "ESCORTED INTO ZHENTIL OUTPOST"; area-local reuse
+4A19 1 byte local TalkedNewPhlan  # topic: power in New Phlan; area-local reuse
+4A1A 1 word local TalkedOldPhlan  # topic: Tirantikus legend; area-local reuse
+4A1B 1 byte local AdvisorAsked  # topic: magical items / Pool of Radiance; area-local reuse
+4A1C 1 byte local TalkedPolitics  # topic: Ulrich Eberhard; area-local reuse
+4A1D 1 byte local TopicsDiscussed  # counts conversation topics, 2 ends talk; area-local reuse
+4A1E 1 byte local ReachedGate  # set at "COMMOTION ALLOWS YOU TO GET TO THE FRONT GATE"; area-local reuse
+4A59 1 byte game InvitedToDinner  # set after the commandant reads the papers
+4A5A 1 byte game OutpostConquered  # set after killing the commandant

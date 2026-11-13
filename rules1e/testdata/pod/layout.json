@@ -1,0 +1,15 @@
+{
+ "SlotStride": 9,
+ "SlotTotals": true,
+ "RangerMageColumn": 5,
+ "SlotLevels": 0,
+ "Races": [
+  "elf",
+  "half-elf",
+  "dwarf",
+  "gnome",
+  "halfling",
+  "human",
+  "monster"
+ ]
+}

@@ -13,7 +13,7 @@ import (
 // (rules1e testdata/por-terrain.txt, por-re vecterr) for every value, before
 // and after Yarash's mission.
 func TestTerrainKindsAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-terrain.txt")
+	f, err := os.Open("../rules1e/testdata/por-terrain.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

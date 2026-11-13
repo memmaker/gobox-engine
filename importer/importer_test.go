@@ -35,3 +35,28 @@ func TestRunWritesFolderAndManifest(t *testing.T) {
 		t.Fatal("unknown game imported")
 	}
 }
+
+// TestRunKeepsSourcesAndDocs: an import into a game's data folder replaces
+// the import's entries and keeps Kept, its originals among them.
+func TestRunKeepsSourcesAndDocs(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "keep")
+	src := filepath.Join(dir, "sources", "dos")
+	os.MkdirAll(src, 0o755)
+	os.MkdirAll(filepath.Join(dir, "docs"), 0o755)
+	os.WriteFile(filepath.Join(src, "START.EXE"), []byte("exe"), 0o644)
+	os.WriteFile(filepath.Join(dir, "stale.txt"), nil, 0o644)
+	Register(Game{ID: "keep", Ruleset: "rules1e", Sources: []string{"START.EXE"},
+		Import: func(src, dst string) error { return os.WriteFile(filepath.Join(dst, "x.txt"), nil, 0o644) }})
+	if err := Run("keep", src, root); err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range []string{"sources/dos/START.EXE", "docs", "x.txt", ManifestFile} {
+		if _, err := os.Stat(filepath.Join(dir, f)); err != nil {
+			t.Error(err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(dir, "stale.txt")); err == nil {
+		t.Error("stale.txt kept")
+	}
+}

@@ -1,0 +1,30 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 4 byte local SlumsEntered  # set 255 after the "entered the monster-crawling slums" text; area-local reuse
+4A04 1 byte local OhloQuestState  # 250 sent to fetch potion from rope guild, 255 Ohlo fought/finished; area-local reuse
+4A07 1 byte local DirtyRoomSeen  # set 250 after dirty room text; area-local reuse
+4A08 2 byte local StableSeen20  # set 250 after unclean stable text; area-local reuse
+4A0A 1 byte local HempMarketSeen  # set 255 after old hemp market rumours; area-local reuse
+4A0B 1 byte local FortuneTellerState  # 251 visited old woman, 255 murdered her (raises patrol odds); area-local reuse
+4A0F 1 byte local StorageRoomSeen  # set 255 after small storage room text; area-local reuse
+4A14 1 byte local EmptyRoomSeen  # set 255 after large empty room text; area-local reuse
+4A16 1 byte local PatrolMorale  # set 30..70 per patrol size, copied to Morale, raised on bribes/anger; area-local reuse
+4A17 1 byte local RopeGuildEntered  # set 255 after rope guild entry text; area-local reuse
+4A18 1 byte local InRopeGuild  # 1 inside rope guild, 0 just north of its entry; area-local reuse
+4A19 1 byte local BoothManDone  # set 255 once the booth man talked/fled/gave package; area-local reuse
+4A1D 1 byte local BoothFightDone  # set 1 after fight at the rope guild booth; area-local reuse
+4A1F 1 byte local EventTimer  # 0 in event1, 200 in event3 (guess: step/encounter timer); area-local reuse
+4A80 1 byte game PatrolsBeaten20  # +1 per patrol fight won; >=15 stops patrols; fortune text by value; 0 if woman murdered
+4A81 1 byte game OhloPotionState  # 250 package received from booth, 255 Ohlo fight done
+4A83 1 byte game FloorChestTaken  # set 255 after chest under loose floorboard
+4A85 1 byte game KoboldsFed  # set 255 after feeding kobolds fight
+4ACA 1 byte game OrcPapersFight  # set 255 after orcs arguing over papers fight
+4ACB 1 byte game GoblinTrainerFight  # set 255 after goblin instructor fight
+4ACC 1 byte game LeatherBagOpened  # set 255 after long leather bag fight
+4ACD 1 byte game OrcHomeFight  # set 255 after large orc fight
+4ACE 1 byte game HobgoblinGoldState  # 250 hobgoblins beaten, 255 valuables taken
+4ACF 1 byte game GuardsInterceptFight  # set 255 after guards intercept fight
+4AD0 1 byte game LeadersMeetingFight  # set 255 after monster leaders gathering fight
+4AD6 1 byte game TreasureRoomFight  # set 255 after treasure room fight
+4AD8 1 byte game AlertedGuardsFight  # set 255 after alerted guards fight
+4AD9 1 byte game GrainSackFight  # set 255 after grain sack monsters fight

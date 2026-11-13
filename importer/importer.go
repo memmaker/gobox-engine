@@ -27,6 +27,11 @@ const Format = 6
 // ManifestFile is the manifest's name in an adventure folder.
 const ManifestFile = "manifest.json"
 
+// Kept are the entries of a game's data folder that are not the import's:
+// its docs, its sources (the originals the import reads, e.g. sources/dos)
+// and extras (remaster work, scenarios, captures). Run replaces the rest.
+var Kept = []string{"docs", "sources", "extras"}
+
 // Contents are the entries every imported folder holds besides the manifest.
 var Contents = []string{"scripts", "art", "data", "data/pictures.json", ManifestFile}
 
@@ -105,8 +110,8 @@ func IDs() []string {
 }
 
 // Run imports game id from the originals in src into root/<id>/, replacing
-// the folder; the manifest is written last, so a failed import leaves no
-// valid folder.
+// the folder's entries but Kept; the manifest is written last, so a failed
+// import leaves no valid folder.
 func Run(id, src, root string) error {
 	g, ok := games[id]
 	if !ok {
@@ -120,10 +125,7 @@ func Run(id, src, root string) error {
 		return fmt.Errorf("import %s: no originals in %s", id, src)
 	}
 	dst := filepath.Join(root, id)
-	if err := os.RemoveAll(dst); err != nil {
-		return err
-	}
-	if err := os.MkdirAll(dst, 0o755); err != nil {
+	if err := emptyBut(dst); err != nil {
 		return err
 	}
 	if err := g.Import(src, dst); err != nil {
@@ -142,6 +144,26 @@ func Run(id, src, root string) error {
 		return err
 	}
 	return os.WriteFile(filepath.Join(dst, ManifestFile), b, 0o644)
+}
+
+// emptyBut empties folder dir but its Kept entries, making it when missing.
+func emptyBut(dir string) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	ents, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	for _, e := range ents {
+		if slices.Contains(Kept, e.Name()) {
+			continue
+		}
+		if err := os.RemoveAll(filepath.Join(dir, e.Name())); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // SourceKey is each file of dir matching one of patterns (case-insensitive),
@@ -178,7 +200,7 @@ func matches(name string, patterns []string) bool {
 // Main is the import command's body: args are [-out dir] <game> <originals>.
 func Main(args []string) error {
 	fs := flag.NewFlagSet("import", flag.ContinueOnError)
-	out := fs.String("out", "adventures", "the adventures directory")
+	out := fs.String("out", "data", "the games' data directory")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}

@@ -1,0 +1,3 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A87 1 byte game DragonTalkFlags  # bits: 1 the dragon spoke and flew off, 2 Diogenes told of the efreet bottle, 128 the dragon attacked (fireball); area25 uses the same word for its lair fights (DragonCaveFlags)

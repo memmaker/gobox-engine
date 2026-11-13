@@ -1,0 +1,79 @@
+package importpor
+
+import (
+	"errors"
+	"io/fs"
+	"reflect"
+	"testing"
+
+	"gobox/game/play"
+	"por/porgame"
+)
+
+// TestStartIsPORTitle: the engine shows start() as POR's title (ovr02:0626):
+// TITLE 1 and 2 named with their pixels, the credits page after them, the
+// lightning in EGA, TITLE 1 alone without the Full intro; Data's credits are
+// start()'s.
+func TestStartIsPORTitle(t *testing.T) {
+	t.Chdir("..")
+	e, err := porgame.New("../../data/por/sources/assets", "../../data/por/sources")
+	if err != nil {
+		t.Skip("no game files:", err)
+	}
+	e.Cfg.Graphics = 'E'
+	seq := *start()
+	if err := e.SetStart(&seq); !errors.Is(err, fs.ErrNotExist) { // the test folder has no art/TITLE.PNG (the import copies it)
+		t.Fatalf("SetStart without TITLE.PNG: %v", err)
+	}
+	seq.Backdrop = nil
+	if err := e.SetStart(&seq); err != nil {
+		t.Fatal(err)
+	}
+	e.Run()
+	e.FullIntro.Store(true)
+	sc, ok := e.State().(play.Scene)
+	if !ok || sc.Kind != play.SceneTitle || !sc.Full {
+		t.Fatalf("not the title: %+v", e.State())
+	}
+	for n := 1; n <= 2; n++ {
+		if l := sc.Steps[n].Layers; len(l) != 1 || l[0].File != "TITLE" || l[0].Block != n || l[0].Pixels == nil {
+			t.Errorf("step %d: %+v", n, l)
+		}
+	}
+	if !sc.Intro.Lightning || !reflect.DeepEqual(sc.Intro.Pictures, []int{1, 2, -1}) || sc.Steps[1].Song != "1" {
+		t.Errorf("intro %+v, song %q", *sc.Intro, sc.Steps[1].Song)
+	}
+	e.FullIntro.Store(false)
+	if short := e.State().(play.Scene); !reflect.DeepEqual(short.Intro.Pictures, []int{1}) {
+		t.Errorf("short intro %+v", short.Intro)
+	}
+	d := e.Data()
+	if len(d.CreditLines) != len(seq.Credits) || len(d.CreditBoxes) != 2 || d.RemasterCredit != seq.Remaster {
+		t.Errorf("credits %d lines, boxes %v, remaster %q", len(d.CreditLines), d.CreditBoxes, d.RemasterCredit)
+	}
+}
+
+// TestEndIsPORFinale: the engine takes end() (the manifest's End) as the finale's pictures,
+// three steps with their pixels loaded and the animations' frames.
+func TestEndIsPORFinale(t *testing.T) {
+	t.Chdir("..")
+	e, err := porgame.New("../../data/por/sources/assets", "../../data/por/sources")
+	if err != nil {
+		t.Skip("no game files:", err)
+	}
+	e.Cfg.Graphics = 'E'
+	if err := e.SetEnd(end()); err != nil {
+		t.Fatal(err)
+	}
+	var ends int
+	for _, st := range end().Steps {
+		for _, l := range st.Layers {
+			if len(l.Frames) > 0 {
+				ends++
+			}
+		}
+	}
+	if ends != 3 || len(end().Steps) != 3 {
+		t.Errorf("%d animations in %d steps", ends, len(end().Steps))
+	}
+}

@@ -1,0 +1,4 @@
+B5ED RewardTable1  # per-quest Treasure operand 4 (L_9EC2)
+B604 RewardTable2  # per-quest Treasure operand 5
+B61B RewardTable3  # per-quest Treasure operand 6
+B632 RewardTable4  # per-quest Treasure operand 7

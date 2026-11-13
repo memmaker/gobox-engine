@@ -14,8 +14,8 @@ import (
 // produce a file the index names fails here.
 func TestAmigaArtIndex(t *testing.T) {
 	ran := 0
-	for _, game := range []string{"por-go", "cotab-go", "sotsb-go", "pod-go"} {
-		data := filepath.Join("..", "..", game, "data")
+	for _, game := range []string{"por", "cotab", "sotsb", "pod"} {
+		data := filepath.Join("..", "data", game, "sources")
 		key, err := os.ReadFile(filepath.Join(data, AssetsDir, ArtDir, "key.txt"))
 		if err != nil {
 			t.Logf("%s: no imported art, skipped", game)

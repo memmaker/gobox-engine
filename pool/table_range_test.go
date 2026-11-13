@@ -35,7 +35,7 @@ func checkRecordInTables(t *testing.T, where string, b []byte) {
 // stat. NPCs join through AddMonsterToParty from these same MON<n>CHA files (no other
 // NPC records exist). Saved characters are local files, so they count when present.
 func TestMonsterRecordsStayInTables(t *testing.T) {
-	files, err := filepath.Glob("../../por-go/data/dos/MON*CHA.DAX")
+	files, err := filepath.Glob("../data/por/sources/dos/MON*CHA.DAX")
 	if err != nil || len(files) == 0 {
 		t.Fatalf("no monster files: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestMonsterRecordsStayInTables(t *testing.T) {
 			checkRecordInTables(t, fmt.Sprintf("%s %d", path, entry.ID), f.BlockShared(entry.ID))
 		}
 	}
-	saved, err := filepath.Glob("../../por-go/data/save/*.CHA")
+	saved, err := filepath.Glob("../data/por/sources/save/*.CHA")
 	if err != nil {
 		t.Fatal(err)
 	}

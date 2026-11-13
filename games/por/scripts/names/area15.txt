@@ -1,0 +1,9 @@
+993C DestX  # GetTable base, GetTable [993C] [6E82] PartyX
+9940 DestY  # GetTable base, GetTable [9940] [6E82] PartyY
+9944 DestFacing  # GetTable base, GetTable [9944] [6E82] Facing
+9B07 Table9B07  # GetTable base, GetTable [9B07] [6E82] [6E80]
+9B09 ByFacing9B09  # GetTable base, GetTable [9B09] Facing [6E7F]
+9B0D SymbolSets  # GetTable base, GetTable [9B0D] Facing SymbolSet
+9B5B Table9B5B  # GetTable base, GetTable [9B5B] [6E82] [6E7A]
+9B6E Table9B6E  # GetTable base, GetTable [9B6E] [6E82] [6E79]
+AC77 CarrelFoilBitTable  # table by carrel room -> bit of 4A31 marking its gold foil box taken

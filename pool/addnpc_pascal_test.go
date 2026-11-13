@@ -18,7 +18,7 @@ import (
 // with member 1 selected, monster 5 or 24, morale 100. The Go port always
 // has the monster's record, so the cases with none are not here.
 func TestAddNPCAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-addnpc.txt")
+	f, err := os.Open("../rules1e/testdata/por-addnpc.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,0 +1,428 @@
+# Explicit Interactions (the Esc menu's Gameplay page, rules/interact.go):
+# per area, the labels of the harmless square events (descriptions, shops,
+# talks, questions) a step stops at; Space then runs them. "AREA LABEL".
+# The #auto lines are fixed-square events left to run on stepping: fights,
+# traps, forced moves.
+
+# area 0: New Phlan (civilized town; FindCellLoop -> CellDispatch on Cell & ~Inside)
+0 HarborMaster       # harbor master sells boat passage (menu)
+0 GatewaySouth       # sign: passenger dock to the north (watch may take Cadorna's box, no fight)
+0 TempleOfBaneEvent  # temple guards / Bishop Braccio, Dirten join question (menu)
+0 TempleOfTyr        # temple of Tyr healing services
+0 TempleOfSune       # temple of Sune healing services
+0 RiverView          # text: you walk near the river
+0 InnRest            # inn: pay 1 pp to rest? (yes/no)
+0 GeneralShop        # general shop
+0 TavernEnter        # tavern description, gossip/gambling, pickpocket choice
+0 ArmorShop          # jewelry shop
+0 WeaponShop         # arms and armor shop
+0 SilverShop         # silver shop
+0 UnsettledGateway   # text: gateway to the unsettled areas
+0 CityHallOutside    # text: outside city hall, proclamations
+0 RolfEvent          # (extra) Rolf's history menu; reached by a PartyX/PartyY check in on step, not Cell
+#auto 0 PierBoat     # boards the boat and sails off at once once passage is bought
+#auto 0 HealerTemple # temple of Tempus, but the watch fights at once if FoughtWatch (state-gated Combat)
+#auto 0 ToArea11A    # plain exit to the training hall
+#auto 0 ToArea11B    # plain exit to the training hall
+#auto 0 ToArea8      # plain exit to city hall
+# area 1: Buccaneer Base (DispatchCell / DispatchCellStampede on Cell & ~Inside)
+1 MainGateEmpty      # text: at the main gate (stampede variant)
+1 SlavePenOutside    # slave pen, boy and merchant (menu)
+1 SlavePenOutsideStampede # text: outside the slave pen
+1 CaptainRoom        # captain asks what you want (attack/boy/leave menu)
+1 SeedyManPass       # seedy man sells a pass (menu)
+1 EmptyBarracks      # text: empty barracks
+1 AnimalPenPacked    # text: packed animal pen
+1 AnimalPensEmpty    # text: empty animal pens
+1 AnimalPenGate      # release the animals? (menu)
+1 AnimalPenDoorOpen  # text: open door to the pens
+1 SlavePenGateCheck  # pen gate guards (attack/sneak/leave menu) or gate text
+1 SlavePenGate       # text: near the slave pen gate (stampede variant)
+1 InsideSlavePen     # the boy: get him / leave (menu)
+#auto 1 MainGateEnter     # first visit escorts the party; later guards may attack at once
+#auto 1 MerchantsCamp     # text only, but also reached mid-escort from MainGateEnter
+#auto 1 CaptainDoorGuards # guards sound the alarm and attack at once when the boy is taken
+#auto 1 GuardTower        # tower guards attack at once when the boy is taken
+#auto 1 BarracksEnter     # barracks guards attack at once when the boy is taken
+# area 2: Textile House / hobgoblins (goto table on Cell & ~Inside)
+2 StenchRoom         # text: stench
+2 DeterioratedRoom   # text: deteriorated building
+2 Nursery            # text: baby hobgoblins flee
+2 CarvedWall         # text: 'Skullcrusher was here'
+2 DarkObject         # text: dark object to the west
+2 DeadHobgoblin      # dead hobgoblin, search/destroy body (menu)
+2 Kitchen            # text: simple kitchen
+2 SmokingFire        # text: smoking fire
+2 Larder             # text: larder
+2 SmallDarkRoom      # chained prisoner (Skullcrusher) menu/parlay
+2 BloodRoom          # text: blood-smeared room
+2 SecretDoorHint     # Skullcrusher points out the secret door
+2 DiaryPage          # find diary page (journal 11)
+2 ThievesWell        # 'thieves only' well: climb down? (menu)
+#auto 2 RandomEncounterRoll # random encounters
+#auto 2 CourtyardAmbush # drum beats, hobgoblins attack at once
+#auto 2 Barracks       # hobgoblin encounter at once
+#auto 2 TapestryRoom   # hobgoblin encounter at once
+#auto 2 GraffitiRoom   # hobgoblin encounter at once
+#auto 2 GrishnakTemple # Grishnak fight at once
+#auto 2 OgreChief      # ogre chief fight at once
+# area 3: Valjevo Castle 3 (RoomEvents: Table9B99[Cell & 31])
+3 DiningHall         # text: dining hall
+3 LooseStoneTreasure # treasure under a loose stone (when searching)
+3 Latrine            # text: latrine
+3 FindTreasure       # tower treasure (when searching)
+3 CobwebBuilding     # text: cobwebbed building
+3 WellView           # text: a well filled with water
+3 CadornaCell        # Cadorna chained in a cell (release/leave/kill menu)
+#auto 3 FighterBuilding  # door slams and raises the alarm / fighter confronts
+#auto 3 ArmedManAttacks  # armed man attacks at once
+#auto 3 GiantApartment   # two giants approach at once
+#auto 3 BucketRoom       # bucket trap damage, giants charge
+#auto 3 GiantQuarters    # giants encounter at once
+#auto 3 CeilingCaves     # ceiling caves in, damage
+#auto 3 DoorGiants       # giants challenge, fight on stolen goods
+#auto 3 GiantsBarWay     # giants bar the way, same challenge
+#auto 3 GiantSnakes      # giant snakes encounter
+#auto 3 ExitToArea5      # plain exit to the grounds
+# area 4: Valjevo Castle 4 (RoomEvents on Cell & 31)
+4 PaperOnGround      # paper with passwords (when searching)
+4 Armory             # armory: take anything? (yes/no)
+4 Kitchen            # kitchen slaves and gnoll overseer (menu)
+4 RecordsBuilding    # read the records? (yes/no)
+#auto 4 FighterBuilding  # door slams and raises the alarm / fighter confronts
+#auto 4 ArmedManAttacks  # armed man attacks at once
+#auto 4 PigstyBarracks   # four giants, attack at once under alarm
+#auto 4 ScribesHall      # officers encounter, alarm raised
+# area 5: Valjevo Grounds (SpecialSquare on Cell & 31)
+5 HarmlessMage       # harmless middle-aged man (encounter, peaceful options)
+5 FrogsAndToads      # giants' frogs-and-toads question (menu); inside ArguingGiants, reached only from it
+#auto 5 ArguingGiants    # thief/alarm branches attack at once (FrogsAndToads listed instead)
+#auto 5 GateGiants       # three giants step up, encounter
+#auto 5 ThroneRoom       # fake Tyranthraxus approaches, encounter
+#auto 5 TowerTrolls      # troll pack encounter
+#auto 5 Disorient        # teleports the party
+# area 6: Valjevo Castle 6 (DispatchCell on Cell & 31)
+6 LaundryEnter       # washerwomen offer a disguise (parlay)
+6 SmithyEnter        # smithy, smith asks what you need (encounter with talk)
+6 Smokehouse         # text: smokehouse
+6 BaneTempleEnter    # priest of Bane offers blessing (menu)
+6 CoalStoreroom      # text: coal storeroom
+6 AltarEnter         # offering box / crossed swords: take them? (yes/no)
+# area 7: Valjevo Castle tower
+7 TrapDoorRoom  # empty room with a trap door, "do you open it?" (petrify/jump only after the player's yes)
+7 MerchantRoom  # merchant's apartment, Genheeris at his desk (encounter menu, deal or fight by choice)
+#auto 7 SecretDoorCheck  # passive secret-door roll on stepping (search mechanic, not an interaction)
+#auto 7 StatueRoom  # statue room text then a medusa comes running (also reached by the trap-door jump)
+#auto 7 BenchRoom  # messenger thief; attacks at once if the Bane temple was robbed (state check)
+#auto 7 AudienceHall  # guards bar the way, every menu choice attacks; then the dragon
+#auto 7 GenheerisLeaves  # bookkeeping: Genheeris leaves the party
+
+# area 8: City Hall
+8 ClerkOffice  # the council clerk pays rewards and lists commissions
+8 CadornaChambers  # Cadorna offers the textile-house commission
+8 CadornaZhentilMission  # Cadorna hands over the Zhentil Keep packet
+8 UrslingenRoom  # Urslingen asks you to take Stojanow Gate
+8 CouncilChambers  # the council asks you to lead the assault on the castle
+#auto 8 EnterCityHall  # entry square: one-time intro / Cadorna confronts, turns the party south
+#auto 8 OutsideClerkOffice  # text plus resets ClerkTalkedThisVisit, the clerk depends on it running on every pass
+#auto 8 GuardPost  # the council guard intercepts and blocks the way (Approach, leave or fight)
+
+# area 9: Stojanow Gate
+9 StojanowGateEvent  # description of the gate; at night facing north while searching, the wagon man is seen
+9 WagonTrader  # a trader with a wagon, talk/buy the wagon (encounter menu)
+#auto 9 MageGuardRoom  # guard room, mage and ettins (menu); also reached after the tower stairs via on move
+#auto 9 FighterGuardRoom  # guard room, fighter and ettins (menu); also reached after the tower stairs via on move
+#auto 9 NearWall  # warnings, then bugbears approach, punch or demand weapons
+#auto 9 GateEntrance  # bugbears approach demanding a toll, random impostor accusation, arrows
+#auto 9 WallSquare  # arrows or bugbears demand weapons
+#auto 9 BugbearsBehindGate  # bugbears waiting, every choice attacks
+#auto 9 GateTowerSquare  # tower monsters charge
+#auto 9 MonstersBehindWall  # monsters rush you
+
+# area 10: Valhingen Graveyard
+10 WightBossWarning  # huge locked tower, warning voices, "do you leave?"
+10 GiftVoice  # a voice and a risen knight lay gifts (treasure)
+10 MysticManMeet  # a mystic man asks to join (join or send away)
+10 PitStairs  # wooden stairs into a pit, "do you go down?"
+10 MysticManHint  # the mystic man hints the vampire is behind the north wall
+#auto 10 Cell1Event  # one-time entry intro (storm/lightning), entry square
+#auto 10 SkeletonPatrol  # random skeleton patrol
+#auto 10 SkeletonAmbush  # claws rise from the soil, fight
+#auto 10 GiantSkeletonApproach  # skeleton army attacks
+#auto 10 GiantSkeletonLair  # giant skeleton fight, then the chest
+#auto 10 ZombiePatrol  # random zombie patrol
+#auto 10 GiantZombieApproach  # zombies shuffle down the stairs, fight
+#auto 10 GiantZombieLair  # juju zombie fight, then loot
+#auto 10 WightPatrol  # random wight patrol
+#auto 10 WightBossApproach  # wights attack
+#auto 10 WightBossLair  # wraith approaches (leave/stay), then crypt loot
+#auto 10 BoneTowerView  # tower view then skeletons attack
+#auto 10 FumesDamage  # fumes deal damage
+#auto 10 SkeletonLairEntry  # spectre lair encounter
+#auto 10 FurTowerView  # zombies attack
+#auto 10 ZombieLairEntry  # spectre lair encounter
+#auto 10 Monster114Ambush  # mummies approach and attack
+#auto 10 LightningTowerView  # wights attack, else warning door text
+#auto 10 GlassChamberSting  # sting damage
+#auto 10 WightLairEntry  # spectre lair encounter
+#auto 10 BrassDoorsView  # two spectres attack, else knight panel text
+#auto 10 BlackCrypt  # crypt/scroll/coffin menus, but the vampire's guards attack once it fled as vapour (state)
+#auto 10 VampireLair  # vampire fight (also reached from PitStairs)
+
+# area 11: Training Hall
+11 ReadNotices  # notices for teachers and students
+11 ReadDoorSign  # sign directing magic users and clerics
+11 ClericTrainer  # cleric training, "do you want to train?"
+11 MagicUserTrainer  # magic-user training
+11 EnterArena  # dueling arena, the arena master offers duels and hirelings
+11 FightersSign  # sign 'FIGHTERS'
+11 FighterTrainer  # fighter training
+11 ThiefTrainer  # thief training
+11 RoguesSign  # sign 'ROGUES'
+
+# area 13: Kobold caves
+13 AskLeave  # "do you want to leave?"
+13 MineTailings  # pile of mine tailings, kobold drawing when searching
+13 DrunkenKobold  # drunken kobold (slip past / wake / kill)
+13 HearVoices  # you hear voices of humans and kobolds
+13 BrassBottle  # brass bottle in a crack (leave / pull out), efreeti only by choice
+13 CrudeBarracks  # crude barracks with a map (journal 28)
+13 FatimaRoom  # Princess Fatima offers to join
+13 PrisonCell  # former prison cell, dead kobolds
+13 CrippledKobold  # crippled kobold asks for water (menu)
+13 LivingAreas  # kobold living areas
+13 RatLarder  # rat larder
+13 MessTables  # mess tables
+13 RuinedBallista  # a ruined ballista
+13 WyvernNest  # treasure in the wyvern's nest
+13 KoboldHoard  # the kobold hoard (treasure)
+13 KingInPit  # the king lies dead in his own pit (text, quest flag)
+#auto 13 KoboldAmbush  # random kobold ambush
+#auto 13 WaterPit  # pit trap, items lost
+#auto 13 KoboldTruce  # truce menu, but a deadfall trap springs on later visits (state)
+#auto 13 NetTrap  # net trap and kobold fight
+#auto 13 SpikeTrap  # spike trap damage
+#auto 13 ThroneRoom  # kobold horde attacks
+#auto 13 SearchNorthWall  # passive secret-door roll (holds the move)
+#auto 13 RubbleSlope  # facing east you tumble down and the wyvern lands (unconditional)
+#auto 13 WyvernCharges  # wyvern charges
+#auto 13 KingsQuarters  # king's guards fight
+
+# area 14: Cadorna Textile House
+14 LootRoom  # loot rooms: loot pile, three cabinets, rugs, wooden cabinet, caskets, weapon pile (menus/treasure)
+14 ThievesFlee  # two thieves flee, "will you chase them?"
+14 FloorFiles  # files on the floor (journal 38, 51)
+14 SlateMazeNW  # slate with the NW castle maze (journal 41)
+14 MapMazeNE  # crude map of the NE castle maze (journal 29)
+#auto 14 BackstabThief  # a thief appears, random backstab damage
+#auto 14 DoorTrapSquare  # door traps (blade, gas, net)
+#auto 14 ThiefAmbush  # thieves ambush
+#auto 14 JailCell  # thugs attack on the first visit (state)
+# area 15: Mendor's Library
+15 PhilosophyBooks  # searching the philosophy stacks: journal books (take it?)
+15 HistoryBooks     # searching the history stacks: journal books (take it?)
+15 BonesRoom        # ruined room with bones; jar under the floorboards when searching
+15 BenchChamber     # chamber of rotted benches (text)
+15 FrescoRoom       # frescoes of learned men (text)
+15 WritingHall      # hall of writing tables (text)
+15 MadFighter       # mad fighter: combat/wait/flee/parlay/ignore menu, may join
+15 StudyRoom        # ruined study (text)
+15 TrashBook        # book buried in trash when searching (take it?)
+15 CarrelsRoom      # illuminators' carrels; gold foil when searching
+15 SmallDeskRoom    # small room with a desk (text)
+15 StoreroomEnter   # storeroom; kobolds plead for mercy via encounter menu
+#auto 15 StacksEnter  # stacks sign is shared with the rhetoric stack, which leads to the basilisk (can surprise-attack)
+#auto 15 GardenEnter  # random green slime damage
+
+# area 16: Yarash's Pyramid
+16 SearchForTunnel  # hidden tunnel / blocked stairs when searching: do you take it?
+16 FindTreasure     # treasure when searching (take it?)
+#auto 16 RuinedBuilding  # after the old lizardman: lizard patrol ambush
+#auto 16 CentralKeep     # after the old lizardman: javelin ambush (damage)
+#auto 16 LShapedBuilding # after the old lizardman: giant lizards ambush
+#auto 16 PoolLizardmen   # javelins thrown at once (damage)
+
+# area 17: Nomad Camp -- no Cell dispatch; RoomEvents runs by camp state/time (also from on rest), nothing listed
+#auto 17 NomadsHostile  # nomads charge
+#auto 17 KoboldRaid     # kobold raid on the camp
+
+# area 18: Podol Plaza
+18 AuctionStart     # the auction: listen/move closer/comments/leave menu
+18 TavernEnter      # tavern: buccaneer menu, then crowd menu
+18 ThePittSign      # sign 'THE PITT'
+18 IlmaterTemple    # hidden Ilmater temple: healing offer (menu)
+18 BaneShrine       # shrine of Bane (text)
+18 AbandonedShop    # abandoned shop (text)
+18 DecayedBuilding  # decayed building (text)
+#auto 18 RobedOrc    # once a meeting is set, the Bane ambush fights at once; a disguised party is attacked whatever it picks
+
+# area 19: Diogenes' cave -- no Cell dispatch; every step runs the cave/dragon script, nothing listed
+
+# area 20: Slums
+20 OhloRoom         # Ohlo: leave/talk/attack menu
+20 DirtyRoom        # dirty room (text)
+20 UncleanStable    # stable; leather bag when searching (open it?)
+20 HempMarket       # hemp market rumours (text)
+20 FortuneTeller    # fortune teller: attack/leave/pay menu
+20 SearchValuables  # hobgoblins' valuables when searching (after the fight)
+20 StorageRoom      # storage room (text)
+20 TreasureRoom     # treasure room pickup
+20 LargeEmptyRoom   # empty room; floorboard chest when searching (take it?)
+20 PotionBooth      # potion booth man: leave/attack/speak menu
+#auto 20 OrcsArguePapers  # orcs attack at once
+#auto 20 GoblinTrainer    # goblins attack at once
+#auto 20 FeedingKobolds   # kobolds attack at once
+#auto 20 OrcHome          # orcs attack at once
+#auto 20 HobgoblinGold    # hobgoblins attack at once (first visit)
+#auto 20 GuardsIntercept  # guards attack at once
+#auto 20 LeadersMeeting   # monster leaders attack at once
+#auto 20 AlertedGuards    # goblin guards attack at once
+#auto 20 GrainSack        # ogres and trolls attack at once
+#auto 20 InsideRopeGuild  # random patrol roll; also NoCoords bookkeeping
+
+# area 21: Sokal Keep
+21 DeadElf          # dead elf: scroll / leave-search-attack-talk menu
+21 KeepGates        # gates of Sokal Keep (text)
+21 Stable           # moldy stable (text)
+21 FungusRoom       # fungus room (text)
+21 Smithy           # smithy description; frogs come via encounter menu
+21 Barracks         # barracks; haunts menu (parlay password)
+21 Armory           # old armory (text)
+21 Chapel           # chapel (text)
+21 FerranSpirit     # Ferran's spirit: encounter menu / parlay
+21 GearStands       # stands holding equipment (text)
+21 SmithyHammer     # hammer when searching (take it?)
+21 BarracksSearch   # diary and gems when searching
+21 MagicGear        # magic gear (take it?)
+21 EmptyHallCheck   # empty hall after the battle (text)
+#auto 21 Insects     # insects attack at once
+#auto 21 OrcRaid     # orcs and hobgoblins rush you
+#auto 21 HiddenRoom  # sets NoCoords first (pairs with CoordsOff); left automatic
+# area 22: Sewers south / Tyrmor
+22 PriestRoom          # human priest, encounter menu (attack/talk)
+22 TyrmorCorpse        # stripped corpse, Tyrmor's journal when searching
+#auto 22 RockRoom      # unknown teleporter fires without a choice on first visit
+#auto 22 TeleporterSquare  # teleports at once
+#auto 22 SecretDoorSpot    # silent secret-door search, runs on into RandomEncounter
+
+# area 23: Yarash's lab level
+23 LizardMenGroup      # five lizard men, encounter menu
+23 TortureRoom         # room description (text)
+23 VatRoom             # room description (text)
+23 AlchemistLab        # room description (text)
+23 FindNotebook        # notebook found when searching
+23 JunkStoreroom       # storeroom, hidden treasure when searching
+23 PasswordDoor        # sign over door, password question
+23 FountainChamber     # fountain chamber, valve menu
+23 PumpingRoom         # shackled lizard slaves, encounter menu
+23 ColorDial           # colour dial, change-setting question
+23 YarashDesk          # Yarash's desk, papers when searching
+#auto 23 VatLizardAmbush   # lizard men attack when searching
+#auto 23 AncientMage       # every menu choice leads to attack
+#auto 23 RockRoom          # unknown teleporter fires without a choice on first visit
+#auto 23 FlashTeleportCell # teleports at once
+#auto 23 DialTeleport      # teleports at once
+#auto 23 CheckSecretDoor   # silent secret-door search, also reached from other handlers
+
+# area 24: Mansion / Temple of Bane
+24 OutsideMansion      # mansion walls with black hand prints (text)
+24 RubbleRoom          # rubble, tapestry take/leave when searching
+24 DiningRoom          # dining room, skeleton jewelry take/leave
+24 GreatHall           # great hall, trap door open/leave
+24 BodiesRoom          # victims' bodies, jewelry take/leave
+24 GoblinSlaves        # goblin slaves, kill / let go menu
+24 HayBeds             # hay beds, search / leave menu
+24 CellRoom            # room converted into a cell (text)
+24 ScratchedMessage    # scratched wall message (text)
+24 TempleInside        # temple trap-door search spots and bloody altar menu
+#auto 24 MansionEntry      # orcs attack at once (unless holy symbol)
+#auto 24 OgreAndOrcs       # ogre and orcs attack at once
+#auto 24 OrcGuardRoom      # orcs attack at once
+#auto 24 TempleEntrance    # guards ambush by state before any menu
+
+# area 25: Mountains overland + dragon cave lair
+25 DragonInDistance    # dragon seen in the distance (text)
+25 DragonCaveEvent     # dragon cave, enter/ignore menu
+25 SlaverCaravan       # slaver caravan rides by (text)
+25 BuccaneerBaseSite   # buccaneer base, enter/leave menu
+25 GuardsRideBy        # armed guards ride by (text)
+25 OutpostRiders       # outpost riders, yes/no or stay/leave menu
+25 BoarSow             # boar sow, approach/leave menu
+25 DwarfRemains        # dwarf remains (text)
+25 SoftGround          # soft ground (text)
+25 AnkhegVictims       # victims' remains with treasure
+25 SnakeSkin           # shed snake skin (text)
+25 ThriKreenBlock      # thri-kreen block passage, leave/attack menu
+25 PassageOutside      # leave cave? question
+#auto 25 AnkhegAmbush      # ankhegs erupt and attack
+#auto 25 TwoBoars          # boars charge at once
+#auto 25 ThreeBoars        # boars charge at once
+#auto 25 AnkhegLunges      # ankheg attacks at once
+#auto 25 GiganticSnake     # snake attacks at once
+#auto 25 SnakeFalls        # snake falls on party
+#auto 25 ThriKreenWarriors # thri-kreen attack at once
+#auto 25 ThriKreenChest    # thri-kreen attack at once
+
+# area 26: Wilderness / swamp + lizard lair
+26 AbandonedCamp       # abandoned camp (text)
+26 NomadCampEvent      # nomad camp, enter/leave menu
+26 CityNorthEdge       # city/graveyard/leave menu
+26 CityEastEdge        # north/south/boat/leave menu
+26 CityWestEdge        # north/south/leave menu
+26 HiddenRowboat       # rowboat to the pyramid? question
+26 BoatHome            # boat back to Phlan? question
+26 GroveEdge           # edge of the grove (text)
+26 SplashingPool       # splashing pool, approach/leave menu
+26 ChainedKobolds      # chained kobolds, release/attack/leave menu
+26 StenchWest          # stench from the west (text)
+26 LeaveLairAsk        # leave the area? question
+#auto 26 PyramidFront      # also reached from RiverOpened on step and from HiddenRowboat
+#auto 26 DisplacerAmbush   # ambush
+#auto 26 MutantLizardHut   # attack at once
+#auto 26 LizardHut         # attack at once
+#auto 26 LargeLizardMen    # attack at once
+#auto 26 StirgeSwarm       # stirges attack at once
+
+# area 27: Kobold wilderness + wyvern lair
+27 RuinedCastle        # ruined castle, enter/leave menu
+27 TwoCaves            # two caves, large/small/exit menu
+27 BoatDock            # boat back to Phlan? question
+27 HalflingRemains     # halfling remains (text)
+27 WyvernTreasure      # wyvern treasure
+27 HumanBones          # bones room (text)
+27 LairTreasure        # treasure
+27 ElfRemains          # elf remains (text)
+27 PassageOutside      # stay/leave menu
+#auto 27 KoboldHorde       # kobold horde attacks
+#auto 27 FerociousWyvern   # wyvern attacks
+#auto 27 TerribleWyvern    # wyvern attacks
+#auto 27 FourLizards       # lizards attack
+#auto 27 LizardsAndMinotaurs # attack at once
+#auto 27 TwoLizards        # attack at once
+#auto 27 GnollAttack       # random gnoll attack
+#auto 27 GnollsAndTrolls   # attack at once
+#auto 27 MadKobolds        # random kobold attack
+
+# area 28: Zhentil Outpost
+28 RelaxOrWalk         # in quarters, walk around / relax menu (only from QuartersEnter)
+28 ClimbableWall       # climb over wall? question
+#auto 28 EscortIn          # forced escorted tour; FrontGateCheck random ambush
+#auto 28 RestrictedGuards  # guards stop the party (restriction enforcement)
+#auto 28 QuartersEnter     # also reached after the dinner walk; night ambush
+#auto 28 DwarfAttackCheck  # dwarf and commandant attack by state
+
+# area 29: Kuto's Well
+29 SeerWoman           # seer woman's warning, hidden armor when searching
+29 NorthWallDoor       # secret door search (text)
+29 SouthWallDoor       # secret door search (text)
+29 BanditTreasure      # bandit treasure, take? question
+#auto 29 KutosWellEvent    # arrow rain damage / monsters by state
+#auto 29 WellPlaza         # monsters attack; also reached from on move
+#auto 29 WellApproach      # monsters attack when searching
+#auto 29 PlazaWander       # random flavour line
+#auto 29 SicklyKobolds     # random encounter
+#auto 29 LizardPatrol      # attack at once
+#auto 29 HiddenCatacombs   # arrow volley ambush
+#auto 29 CatacombSniper1   # sniper arrow
+#auto 29 CatacombSniper2   # sniper arrow
+#auto 29 NorrisBandits     # bandits surround party; also from on camp

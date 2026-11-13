@@ -1,0 +1,23 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 7 byte local TrapSquareDone  # table base, index cell-3 (cells 3-8); 1 = trap there already handled, skip; area-local reuse; TrapSquareDone3: entry 3 of 4A00 table, set to 2 when trap of a guarded square done; area-local reuse; TrapSquareDone6: entry 6 of 4A00 table; tested before running trap check; area-local reuse
+4A07 1 byte local LastBackstabCell  # cell where the backstabbing thief last appeared, avoids repeat; area-local reuse
+4A08 11 byte local LootRoomDone  # table base indexed cell-9 (loot rooms); 1 = skip (guess); area-local reuse
+4A13 1 byte local TrapResult  # set by trap-check sub: 0 sprung, 1 avoided, 2 disarmed; area-local reuse
+4A15 1 byte local WeaponPileGasDone  # set 1 after weapon-pile gas/thief ambush; 0 = ambush still pending; area-local reuse
+4A16 1 byte local ThiefChaseDone  # set 255 when the two fleeing thieves event plays; area-local reuse
+4A19 1 byte local GuildAmbushDone  # set 1 after ambush fight (adds 15 to ThievesKilled); area-local reuse
+4A1A 1 word local SavedGeo14  # restored into Geo when party flees combat; area-local reuse
+4A1C 1 byte local LockAttempt  # zeroed at start of lock menu, otherwise unused (guess); area-local reuse
+4A45 1 byte game ThievesKilled  # counter of thieves defeated; >=21 makes area safe
+4A46 1 byte game CasketsLooted  # bits 1/2/4/8 = four caskets (gems, jewelry, gems, pearls) taken
+4A47 1 byte game RoomsLooted  # bits: 1 loot pile, 4 rugs, 8 scrolls, 32 weapon pile taken
+4A48 1 byte game FilesFound  # bits: 1 files j38/51, 2 jail cell fight, 4 NW castle slate, 8 NE castle map
+4AEA 1 byte game CabinetALock  # lock state table base (index 0-7): 0 open, 2 too complex, 3 left, 1 looted (cabinet A files)
+4AEB 1 byte game CabinetBLock  # lock/looted state, cabinet B silver
+4AEC 1 byte game CabinetCLock  # lock/looted state, cabinet C gold
+4AED 1 byte game ScrollCaseLock  # lock state, scroll cases
+4AEE 1 byte game CasketGemsLock  # lock state, small gems casket
+4AEF 1 byte game CasketJewelryLock  # lock state, jewelry casket
+4AF0 1 byte game CasketBigGemsLock  # lock state, beautiful gems casket
+4AF1 1 byte game CasketPearlsLock  # lock state, pearls casket

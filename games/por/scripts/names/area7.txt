@@ -1,0 +1,5 @@
+99D8 Table99D8  # GetTable base, GetTable [99D8] [6E79] [6E7B]
+99E0 Table99E0  # GetTable base, GetTable [99E0] [6E79] [6E7C]
+99E8 Table99E8  # GetTable base, GetTable [99E8] [6E79] [6E7B]
+9ACC DestX  # GetTable base, GetTable [9ACC] [6E79] PartyX
+9AD3 DestY  # GetTable base, GetTable [9AD3] [6E79] PartyY

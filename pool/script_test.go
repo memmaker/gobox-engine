@@ -17,11 +17,11 @@ import (
 // parsed back, is the same Script (cmd/import's output parses to the
 // byte code's commands).
 func TestScriptRoundTrip(t *testing.T) {
-	l, err := dax.NewLoader("../../por-go/data/dos")
+	l, err := dax.NewLoader("../data/por/sources/dos")
 	if err != nil {
 		t.Skip(err)
 	}
-	dir := "../../por-go/data/assets/scripts"
+	dir := "../data/por/sources/assets/scripts"
 	out := os.Getenv("POR_SCRIPTS_OUT") // write the scripts there too
 	for set := 1; set <= 8; set++ {
 		for block := 0; block < 40; block++ {
@@ -137,7 +137,7 @@ func where(s *script.Script, i int) string {
 
 // TestParseForms: the forms the writer makes, by hand.
 func TestParseForms(t *testing.T) {
-	names, err := script.ReadNames(os.DirFS("../../por-go/data/assets/scripts"), 0, false, script.V1)
+	names, err := script.ReadNames(os.DirFS("../data/por/sources/assets/scripts"), 0, false, script.V1)
 	if err != nil {
 		t.Fatal(err)
 	}

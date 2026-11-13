@@ -32,7 +32,7 @@ const tmplPlatinum = 1500
 // (rules1e testdata/por-temple.txt, por-re vectmpl). The party holds one purse, so the character's and the pool's
 // coins compare as one sum of gold.
 func TestTempleAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-temple.txt")
+	f, err := os.Open("../rules1e/testdata/por-temple.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

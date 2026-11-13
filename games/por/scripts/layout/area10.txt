@@ -1,0 +1,39 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local VisitStage  # incremented on entry/intro; 0 first visit, intro text when <=1; area-local reuse
+4A01 1 byte local SkeletonGroup  # skeletons in next roaming group (from 4A39 minus strength), minus Beaten; area-local reuse
+4A02 1 byte local ZombieGroup  # zombies in next group (from 4A3A), minus Beaten; area-local reuse
+4A03 1 byte local WightGroup  # wights in next group (from 4A3B), capped 4; area-local reuse
+4A05 1 byte local SkeletonCount  # copy of 4A01 at entry; giant skeleton retainers when >=17; area-local reuse
+4A06 1 byte local ZombieCount  # copy of 4A02 at entry; tested >=16 at giant zombie; area-local reuse
+4A07 1 byte local WightCount  # copy of 4A03; LoadMonster 20 count at tower; area-local reuse
+4A08 1 byte local SkeletonsGone  # set 1 when skeleton group computes 0; area-local reuse
+4A09 1 word local WightsTotal  # running wight total, refills 4A03; area-local reuse
+4A0A 1 byte local ZombiesGone  # set 1 when zombie group computes 0; area-local reuse
+4A0B 1 byte local WightsGone  # set 1 when wight group computes 0; area-local reuse
+4A0D 1 word local ZombieLairDone  # set after zombie lair fight; area-local reuse
+4A0E 1 byte local SkeletonAmbushDone  # set at L_9D73; area-local reuse
+4A10 1 byte local Monster114Fought  # set after LoadMonster 114 combat; area-local reuse
+4A12 1 byte local FumesDamaged  # set after "NOXIOUS FUMES" damage; area-local reuse
+4A13 1 byte local SkeletonLairDone  # set after skeleton lair fight; area-local reuse
+4A14 1 byte local WightLairDone  # set after wight lair fight; area-local reuse
+4A15 1 byte local VampireFought  # set after fighting the vampire; area-local reuse
+4A16 1 byte local SavedGroundShade  # SetGroundShade saved at first entry, restored on leaving; area-local reuse
+4A18 1 byte local TowerFightDone  # set after fight at L_AB91; area-local reuse
+4A1B 1 byte local PartyPower  # PartyStrength, halved repeatedly to size undead groups; area-local reuse
+4A1C 1 byte local StungInChamber  # set after "SHARP CRACK ... STUNG"; area-local reuse
+4A41 1 byte game VampireState  # 250 fled as vapor, 255 slain; >=254 ends spectre events
+4A42 1 byte game MysticManState  # counts up, 250 joined ("VAMPIRE IN NORTHEAST"), 255 done
+4A43 1 byte game CryptState  # 251 = holy items placed in the dusty crypt
+4A49 1 byte game SkeletonTreasureTaken  # 255 after treasure 59
+4A4A 1 byte game VampireTreasureTaken  # 255 after crypt treasure 30
+4A88 1 byte game ZombieTreasureTaken  # 255 after treasure 28
+4A89 1 byte game WightTreasureTaken  # 255 after treasure 26
+4AD5 1 byte game VampireGuardLoaded  # 255 once monster 70 joined vampire fight
+4AF2 1 byte game GiantSkeletonState  # 1 seen, +10 after fight
+4AF3 1 byte game GiantZombieState  # 1 seen, +10 after fight
+4AF4 1 byte game WightBossState  # 1 seen, +10 after fight
+4AF5 1 byte game Event5Seen  # set at L_A4AA (guess)
+4AF6 1 byte game FurTowerSeen  # set at L_A6F7 near "HAIR AND FUR"
+4AF7 1 byte game LightningTowerFought  # set after wights at static tower
+4AF8 1 byte game Treasure29Taken  # set after treasure 29

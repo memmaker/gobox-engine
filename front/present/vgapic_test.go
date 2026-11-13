@@ -12,8 +12,7 @@ import (
 // A VGA DAX picture (PoD's TITLE) is drawn in its own palette, not decoded as EGA
 // (skipped without pod-go's data/dos). PNG: $VGAPIC_PNG.
 func TestDAXPictureVGA(t *testing.T) {
-	home, _ := os.UserHomeDir()
-	l, err := dax.NewLoader(filepath.Join(home, "Projects", "pod-go", "data", "dos"))
+	l, err := dax.NewLoader(filepath.Join("..", "..", "data", "pod", "sources", "dos"))
 	if err != nil || !l.Exists("TITLE.DAX") {
 		t.Skip("no pod data")
 	}

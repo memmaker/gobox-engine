@@ -1,0 +1,15 @@
+99A8 Table99A8  # GetTable base, GetTable [99A8] [6E82] [6E79]
+99B0 Table99B0  # GetTable base, GetTable [99B0] [6E82] [6E7D]
+B607 EncDistTable  # encounter table by kind -> MonsterDist
+B60B EncMonsterTable  # -> 980F monster id
+B60F EncPictureTable  # -> 9823 picture
+B613 EncTable4  # -> 9824 (guess)
+B617 EncMoraleTable  # -> 9825, copied to Morale
+B61B EncTable6  # -> 9810 (guess)
+B61F EncTable7  # -> 9811 (guess)
+B623 EncStrengthAdjTable  # -> 9819, added to PartyStrength
+B627 EncGroupStepTable  # -> 981A, count step
+B62B EncGroupIncTable  # -> 981B, second group increment
+B62F EncTable11  # -> 981C (guess)
+B633 EncTable12  # -> 981D (guess)
+B637 EncTable13  # -> 981E (guess)

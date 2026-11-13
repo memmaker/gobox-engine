@@ -1,0 +1,18 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local EnteredBase  # set 1 after the gate escort to the merchants' center plays; area-local reuse
+4A01 1 byte local SlavePenSeen  # set 1 after first look at the slave pen / boy with birthmark; area-local reuse
+4A03 1 byte local PassBought  # set 255 after buying the captain's pass from the seedy man; area-local reuse
+4A04 1 byte local AnimalsLoose  # 255 after opening the animal pens (stampede); 0 when captured; area-local reuse
+4A05 1 byte local StampedeTimer  # counts steps (+9 when searching) while animals loose; 60 -> captured; area-local reuse
+4A09 1 word local BaseAlerted  # never set here; nonzero skips guards/captain/towers/pens (guess: base on alert); area-local reuse
+4A0A 1 byte local SlavePenBlocked  # never set here; nonzero skips slave pen events (guess); area-local reuse
+4A0E 1 byte local DoorGuardsKilled  # set 1 after killing the captain's door guards; area-local reuse
+4A0F 1 byte local CaptainFightDone  # tested before the captain's room (guess, set elsewhere); area-local reuse
+4A10 1 byte local BoyBought  # set 1 when the captain sells the boy to the party; area-local reuse
+4A11 1 byte local PenGuardsDefeated  # set 1 after the fight at the slave pen; area-local reuse
+4A13 1 byte local GateGuardsDefeated  # set 1 after the fight at the gate (party has the boy); area-local reuse
+4A19 1 byte local GuardSpotChance  # steps since last guard patrol with the boy; compared to random roll; area-local reuse
+4A1A 1 word local GuardPatrolCount  # patrols that spotted party with the boy (0-3 picks the fight); area-local reuse
+4A1B 1 byte local CaptainKilled  # set 1 when the captain is killed; area-local reuse
+4A8B 1 byte game BaseCaptured  # 255 fort captured; 128 fled leaving the boy

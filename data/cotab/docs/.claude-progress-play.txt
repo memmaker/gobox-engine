@@ -1,0 +1,47 @@
+# COTAB passive rebuild (handover: gobox-engine/handover.md)
+# Goal: Engine implements play.Game (State/Do/Save/Load) natively; replay engine (rules/core.go: ask/unwind/checkpoint/clone)
+# removed once all 246 asking routines are explicit steps with pending questions as data; game.Rules adapter goes.
+# Approach: POD's order: 1 Engine is play.Game over old path -> 2 verbs native -> 3 decision() gone -> 4 tests on e.State()/e.Do
+# -> 5 state built from engine, adapter deleted -> then replay engine -> nocopies_test.go entry.
+step1: Engine is play.Game (Play/NewPlay gone; State->Snap, Save/Load->SaveNamed/LoadNamed; old/new parity tests deleted as SOTSB/POD)
+step2: the core takes play actions (decide/screenCall/verb/turn/icon/notes/picker on play types); Do routes to decide directly, decision() gone; Apply converts old decisions via playOf; tests: TestPlay|Contract|State|BugClass* ok
+step4 (started): TestBugClass11/53 on e.State()/e.Do via fightStep helper; ~320 old-path uses in 41 test files remain
+step4: bug classes 55,58,59,64 on play; BUG fixed: Keep's name question (core pending game.Name, sheet closed) was missing from the play state (Assembling had no Ask, Reply refused) -> Common.Ask typed + Allowed Reply
+step4: contract_test.go deleted; state_test.go on play. BUGS fixed: gobox's pool pick on a member (SetChoice iconhead.. outside creation) refused -> selected member; camp's AdvanceTimeBy only allowed at exactly 1h -> D 0 any length
+step4: fight_test, donemenu, 39/40/41/84 on play. BUGS: (a) my 0e5225f regression: Do never set c.gobox (Apply did) -> core asked its own aim menu/scroll list/rest tick; fixed in Do. (b) Do opened the item menu around a fight's UseItem: scroll Spell and squares ignored; fixed. (c) a step into an adjacent ally (Attack Ally?) not in Allowed; added. (d) Done's Guard/Delay/Bandage{Member} not allowed from the combat menu; added
+step4: flee, areaexit, stalecall(atCore), 76fresh, explore, journal, 77, 79 on play. BUG: the journal's handout Scene over exploring had explore's Allowed (Continue refused, the page could not close); fixed
+step 4 done: tests on State/Do (cmd tests drive gobox's playrules over Do)
+step 5 done: State built from a private facts struct (known); Apply, Pending, Step, playOf, gameEvents, game.State gone; turn verbs a named turnVerb
+step 6 started: frames.go (frame, drive, runFrames, mainLoop); party menu and DisplayInput are frames; replay still runs the rest
+step 6: adventure loop a frame; Engaged emitted (3f39142)
+step 6: adventure turn stages + eventRun frames (top-level events)
+step 6: scriptRestart + Adventure frames
+step 6: camping, scriptMenu, inputText frames; drive stack-aware
+step 6: listMenu, memberMenu frames
+step 6: combat, combatCommand, programMenu frames; entryCombat gone
+step 6: playerTurn frame
+step 6: moveAttack + yesNo frames
+step 6: aimAt frame; playerTurn runs command frames (moveAttack, aimAt)
+step 6: otherMenu frame; BUG: deepCopy shared frames under non-frame interfaces (command) -> copied by dynamic type
+step 6: combat menu typed (waitCombatMenu), turn verbs by hotkey; label matching gone from the turn
+step 6: viewPlayer frame (combat View a command)
+step 6: Engine.word gone (answers by hotkey); doneMenu/itemMenu label matches replaced by waitDoneMenu (facts.wait) and Calls+invUp; party.go gofmt
+step 6: a done Use ends the item menu (and the sheet) outside fights too, as use_item's loop (O0AF:1583); play's item-menu guess gone
+step 6: ItemsMenu (itemsMenu), spellMenu (spellPick), spellMenuTargets (castMenu) and adventureInput frames; the turn's Use and Cast are pushed commands
+step 6: lockedDoor, shopMenu, shopBuy, templeMenu, templeHeal, appraise frames (COMBAT pushes shopCommand); lockedDoor's Pick/Knock no longer found by strings.Contains on the menu
+step 6: AfterCombat (aftermath), lootMenu, takeTreasure, lootTake frames; COMBAT's treasure a shopCommand, the fight's a combatCommand stage
+step 6: campMenu, magicMenu, restMenu, restFor (restRun: restTick a frame question, the direct ask gone), restTimeMenu, addCharacter frames; the party menu pushes View and Add
+step 6: creation (createCharacter), Drop (dropCharacter), the party's Exit (quitGame), Modify (modifyCharacter: QModify its own question), training (trainCharacter, learnSpell), InputString (lineInput) frames; the party menu pushes them
+step 6: SelectCharacter (selectMember: QMember its own question), Trade's member pick, Continue Battle (combat stage), speedMenu frames; choose (unused) gone
+step 6: CastSpell (castSpell), spellTargetHook (spellTargets: aimAt/selectMember pushed), aimManual/aimConfirm/mayAttack, camp Cast/Memorize/Scribe/Display/Fix/Alter, temple cures (templeCure), Save/Load (saveGame/loadGame) frames; rule calls push frames over the waiting question (runStack callWait: its Esc after them): Add, View, EndCreation's name (keepNew). Tracer: nothing over the suite (rules 197s)
+step 6: View's Spells, Heal, Cure frames (paladinAct); selectMemberMenu's sync wrapper gone. Suite ok (rules 158s), tracer empty — but untested sync wrappers remain (see handover COTAB row)
+step 6: DAMAGE (damageCmd), ENCOUNTER, PARLAY, INPUT NUMBER, the ending (endGameText) and its save question, SaveCharacter (saveCharacter: Overwrite?/New file name), canLoseItem's question, useItem, Detect, the hired shares' page, fire shield, ChangeClass are frames; displayAndWait is pushWait (exitWith before an exit); unused sync wrappers gone; label match in ChangeClass gone (class by row). Suite exit 0
+replay gone: frames.go resume/reply/call, drive panics on a question (AI/spell-effect/silent training paths), deepCopy/checkpoint/ask/unwind gone, play.Engaged computed as the fight begins (state.engine). Suite: rules 113.3s before -> 2.7s after (go test -count=1). asks_test.go: DAMAGE, ENCOUNTER, PARLAY, INPUT NUMBER, ending, SaveCharacter, fire shield, canLoseItem through Do
+targeted tests through Do: Save/Load, Alter, Fix, temple cure, paladin Heal/Cure, useItem, ChangeClass, shares page, won save question, drive's panic (asks_test.go)
+step 7: gobox parity funcFields cotab 3 -> 2 (gobox d24cc45); knownCopies left (the frames' own Question/Decision/Event types). Open: loseItem's internal-error pushWait from a frame finishing in the same step would panic (handover Check: frame pushed by a finishing frame)
+step 8: loseItem's faults are Do's errors (core.fault); exitWith panics fatal, proceed puts its key wait up then exits (exitAfter); saves written through with their errors (persist ignored disk errors); DAMAGE's amount a word (v12w) and its RNG order checked against O03C:2958; tests: TestAskWonSaveYes, TestAskSaveError, TestLoseItemFault, TestExitWithWaits, TestDamageWord
+step 8b: fixtures are play scripts (testdata/*.play, script_test.go: stepFile through Do, wander, TestFindScripts); tests off Reply/Call. BUGS: Add left its roster list up (Begin refused); Train after OpenTraining refused; MoveTo beyond one step refused though Allowed; human thief's skill 8 past thiefRaceData (panic); unfit SetChoice allowed; Leave in training refused; Fix offered with no one wounded
+step 8c: non-gobox paths gone: core.gobox, QSquare, the Aim menu (aimKey), the scroll's spell list in useItem, cmd/replay; go test ./... exit 0
+step 8d: Event/EvKind gone (rules emit play events); frames ask play.Question and take play.Action; Decision/Option/QKind/Question/Row gone; asking{kind,calls,rows} carries the rules' own wait; BUGS: Yes/No default inverted; member picker unanswerable through Do; Modify's Reply{0} refused; go test ./... exit 0
+step 8e: Modify Esc; knownCopies entry removed (gobox); handover updated; report
+21:57:56 ESC/POWERS: engine menus' Esc is Exit (exitLast), UsePower Heal and Cure allowed where casting is

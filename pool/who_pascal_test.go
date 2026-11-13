@@ -14,7 +14,7 @@ import (
 // 1..3 current, the prompt answered with member 1..3 or backed out of (0).
 // The purse pick (purseWho, an extra) answers without a prompt and is not here.
 func TestWhoAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-who.txt")
+	f, err := os.Open("../rules1e/testdata/por-who.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

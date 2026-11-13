@@ -1,0 +1,421 @@
+[
+  {
+    "name": "recolourFrom",
+    "at": 15816,
+    "len": 16,
+    "kind": "bytes",
+    "doc": "The colours recolouring maps from (identity)."
+  },
+  {
+    "name": "recolourIcons",
+    "at": 15832,
+    "len": 16,
+    "kind": "bytes",
+    "doc": "Combat icons recoloured to (colour 8 becomes 0)."
+  },
+  {
+    "name": "raceNames",
+    "at": 4157,
+    "len": 7,
+    "kind": "string:9",
+    "doc": "Race names (raceElf ...); PoD has no placeholder race 0."
+  },
+  {
+    "name": "genderNames",
+    "at": 4373,
+    "len": 2,
+    "kind": "string:7",
+    "doc": "Gender names."
+  },
+  {
+    "name": "classNames",
+    "at": 3671,
+    "len": 17,
+    "kind": "string:27",
+    "doc": "Class names; 8.. are the multi-class combinations."
+  },
+  {
+    "name": "alignmentNames",
+    "at": 4220,
+    "len": 9,
+    "kind": "string:17",
+    "doc": "Alignment names."
+  },
+  {
+    "name": "coinNames",
+    "at": 4387,
+    "len": 3,
+    "kind": "string:11",
+    "doc": "Coin names: platinum, gems, jewelry (the only coins PoD has)."
+  },
+  {
+    "name": "statusNames",
+    "at": 4420,
+    "len": 9,
+    "kind": "string:13",
+    "doc": "Character status names (Status)."
+  },
+  {
+    "name": "itemWords",
+    "at": 13119,
+    "len": 126,
+    "kind": "string:21",
+    "doc": "The words item names are made of (entry 0 unused); an item type is also the number of its word."
+  },
+  {
+    "name": "defaultIconColours",
+    "at": 28125,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Entries 1..6: combat icon colours of a new character, one per icon part."
+  },
+  {
+    "name": "raceClasses",
+    "at": 28503,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per race: the number of classes it may take, then those classes.",
+    "cols": 14
+  },
+  {
+    "name": "classAlignments",
+    "at": 28917,
+    "len": 17,
+    "kind": "bytes",
+    "doc": "Per class: the number of alignments it allows, then those alignments.",
+    "cols": 10
+  },
+  {
+    "name": "thac0Table",
+    "at": 27928,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class and level (0..21): the THAC0 base value.",
+    "cols": 22
+  },
+  {
+    "name": "classItemFlags",
+    "at": 28082,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: the item-use bits it adds to the class mask."
+  },
+  {
+    "name": "raceAges",
+    "at": 28587,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per race, for the classes 0..6: starting age base (word), dice count, dice sides.",
+    "cols": 28
+  },
+  {
+    "name": "ageSteps",
+    "at": 28755,
+    "len": 7,
+    "kind": "words",
+    "doc": "Per race: the ages at which abilities change (four steps, one spare word).",
+    "cols": 5
+  },
+  {
+    "name": "raceAbilityLimits",
+    "at": 28407,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per race: strength minimum and maximum by gender, exceptional strength maximum by gender, then minimum and maximum of int wis dex con cha.",
+    "cols": 16
+  },
+  {
+    "name": "classStatMinimum",
+    "at": 28815,
+    "len": 17,
+    "kind": "bytes",
+    "doc": "Per class: the minimum of each ability (str int wis dex con cha).",
+    "cols": 6
+  },
+  {
+    "name": "classTrainingBits",
+    "at": 28089,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: the training bit of the class (trainers list the bits they train; clerics and druids share one)."
+  },
+  {
+    "name": "classMaxHitDice",
+    "at": 28105,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: the level up to which hit points are rolled."
+  },
+  {
+    "name": "classFirstHitDice",
+    "at": 28112,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: hit dice rolled at level 1."
+  },
+  {
+    "name": "classHitDiceSides",
+    "at": 28119,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: sides of the hit dice."
+  },
+  {
+    "name": "conHitPointBonus",
+    "at": 29084,
+    "len": 26,
+    "kind": "signed",
+    "doc": "Per constitution score: the hit point bonus per die."
+  },
+  {
+    "name": "expTable",
+    "at": 29102,
+    "len": 7,
+    "kind": "longs",
+    "doc": "Per class: the experience levels 0..11 need (level n: entry n); past 11 each level adds expSteps.",
+    "cols": 12,
+    "stride": 301
+  },
+  {
+    "name": "expSteps",
+    "at": 28379,
+    "len": 7,
+    "kind": "longs",
+    "doc": "Per class: the experience each level past 11 adds (DS:6E73 step[class+26], O102:12D1)."
+  },
+  {
+    "name": "modifyKeypad",
+    "at": 21348,
+    "len": 9,
+    "kind": "bytes",
+    "doc": "The keys 1..9 of the number pad as the scan codes Modify works with."
+  },
+  {
+    "name": "clericSlotData",
+    "at": 29140,
+    "len": 271,
+    "kind": "bytes",
+    "doc": "Cleric spells per day by level (up to 29): entry level*9 + spell level (1..7)."
+  },
+  {
+    "name": "paladinSlotData",
+    "at": 30043,
+    "len": 271,
+    "kind": "bytes",
+    "doc": "Paladin cleric spells per day: entry level*9 + spell level (1..4)."
+  },
+  {
+    "name": "rangerSlotData",
+    "at": 30344,
+    "len": 271,
+    "kind": "bytes",
+    "doc": "Ranger spells per day: entry level*9 + k (k 1..3 druid, 5..6 magic-user 1..2)."
+  },
+  {
+    "name": "mageSlotData",
+    "at": 30645,
+    "len": 271,
+    "kind": "bytes",
+    "doc": "Magic-user spells per day: entry level*9 + spell level (1..9)."
+  },
+  {
+    "name": "saveTableData",
+    "at": 31226,
+    "len": 740,
+    "kind": "bytes",
+    "doc": "Saving throw targets: entry class*105 + level*5 + save (levels 0..21)."
+  },
+  {
+    "name": "thiefBaseData",
+    "at": 28123,
+    "len": 153,
+    "kind": "bytes",
+    "doc": "Thief skills by level: entry level*8 + skill (1..8)."
+  },
+  {
+    "name": "thiefRaceData",
+    "at": 28275,
+    "len": 65,
+    "kind": "signed",
+    "doc": "Thief skill adjustment by race: entry race*8 + skill."
+  },
+  {
+    "name": "thiefDexData",
+    "at": 28278,
+    "len": 131,
+    "kind": "signed",
+    "doc": "Thief skill adjustment by dexterity: entry dex*5 + skill (1..5)."
+  },
+  {
+    "name": "directionNames",
+    "at": 15766,
+    "len": 8,
+    "kind": "string:3",
+    "doc": "Compass point names by facing 0..7."
+  },
+  {
+    "name": "stepX",
+    "at": 16044,
+    "len": 9,
+    "kind": "signed",
+    "doc": "Column step by facing 0..7 (8: none)."
+  },
+  {
+    "name": "stepY",
+    "at": 16053,
+    "len": 9,
+    "kind": "signed",
+    "doc": "Row step by facing 0..7 (8: none)."
+  },
+  {
+    "name": "groundInfo",
+    "at": 16058,
+    "len": 70,
+    "kind": "bytes",
+    "doc": "Combat ground tiles: move cost (255 blocks), two flags and the tile's kind.\nRows 67..69 are DS:3FC6.., the footprints the original reads on into.",
+    "cols": 4
+  },
+  {
+    "name": "footprints",
+    "at": 16326,
+    "len": 6,
+    "kind": "signed",
+    "doc": "Squares a combatant of size 0..5 covers: column and row offsets of its six parts (-1 none).",
+    "cols": 12
+  },
+  {
+    "name": "teamSides",
+    "at": 2316,
+    "len": 4,
+    "kind": "bytes",
+    "doc": "Formation: the side each of the four teams of a facing looks to.",
+    "cols": 4
+  },
+  {
+    "name": "teamDirs",
+    "at": 2332,
+    "len": 4,
+    "kind": "bytes",
+    "doc": "Formation: each team's direction (times 2) for the facing.",
+    "cols": 4
+  },
+  {
+    "name": "combatFacings",
+    "at": 2348,
+    "len": 4,
+    "kind": "bytes",
+    "doc": "Combat facing for the party's map facing / 2."
+  },
+  {
+    "name": "formationStartX",
+    "at": 2352,
+    "len": 2,
+    "kind": "signed",
+    "doc": "Formation start column: first team / other teams, by direction.",
+    "cols": 4
+  },
+  {
+    "name": "formationStartY",
+    "at": 2360,
+    "len": 2,
+    "kind": "signed",
+    "doc": "Formation start row: first team / other teams, by direction.",
+    "cols": 4
+  },
+  {
+    "name": "formationRows",
+    "at": 2368,
+    "len": 5,
+    "kind": "signed",
+    "doc": "Formation slots: per direction (4: the second team), rows 0..5 of first and last column.",
+    "cols": 12
+  },
+  {
+    "name": "diseaseAffects",
+    "at": 16401,
+    "len": 5,
+    "kind": "bytes",
+    "doc": "Entries 1..4: the affects a paladin's Cure Disease removes (diseases)."
+  },
+  {
+    "name": "clockLimits",
+    "at": 27914,
+    "len": 7,
+    "kind": "words",
+    "doc": "Clock carries: minutes per ten, tens per hour, hours per day ... (area words 198..204)."
+  },
+  {
+    "name": "helplessAffectData",
+    "at": 16397,
+    "len": 5,
+    "kind": "bytes",
+    "doc": "Entries 1..4: the affects that leave a character helpless."
+  },
+  {
+    "name": "cloudSquares",
+    "at": 21478,
+    "len": 9,
+    "kind": "bytes",
+    "doc": "The facings from a cloud's centre to its 9 squares (DS:53E5 from entry 1); 8 is the centre."
+  },
+  {
+    "name": "spellNames",
+    "at": 21453,
+    "len": 127,
+    "kind": "string:35",
+    "doc": "Spell names by spell number."
+  },
+  {
+    "name": "affectDisplayNames",
+    "at": 16481,
+    "len": 128,
+    "kind": "string:38",
+    "doc": "Affect names the game shows, by affect number (empty: none)."
+  },
+  {
+    "name": "spellLevelHeadings",
+    "at": 2732,
+    "len": 10,
+    "kind": "string:41",
+    "doc": "Spell menu headings by spell level."
+  },
+  {
+    "name": "spellTableData",
+    "at": 25882,
+    "len": 127,
+    "kind": "bytes",
+    "doc": "The spell table: one 16-byte record per spell number (spellEntry).",
+    "cols": 16
+  },
+  {
+    "name": "raceMaximumLevels",
+    "at": 31966,
+    "len": 7,
+    "kind": "bytes",
+    "cols": 7,
+    "doc": "raceMaximumLevels (DS:7CDE): the level each race's classes stop at, as\ncanTrain sees it (0: never trains). The original's table has six rows; a\nmonster (race 6) reads on into DS:7D08 (bug class 42)."
+  },
+  {
+    "name": "startingKits",
+    "at": 2494,
+    "len": 4,
+    "kind": "bytes",
+    "cols": 6,
+    "doc": "The starting kits of O075:5478 (DS:09BE): six ITEM0 library entries\neach (0 none), for fighters, thieves, clerics and the rest."
+  },
+  {
+    "name": "affectsEndedByFall",
+    "at": 3182,
+    "len": 16,
+    "kind": "bytes",
+    "doc": "affectsEndedByFall = DS:0C6D entries 1..16: the affects going out of\naction ends."
+  },
+  {
+    "name": "turnUndeadTable",
+    "at": 2555,
+    "len": 14,
+    "kind": "signed",
+    "cols": 11,
+    "doc": "turnUndeadTable (DS:09FB): the d20 roll needed to turn undead of the\nrow (Undead 1..13) by turning level 0..10; negative: destroyed on the\nabsolute value, 99: never. Row 0 is other data, never read (nextUndead\ntakes rows above 0)."
+  }
+]

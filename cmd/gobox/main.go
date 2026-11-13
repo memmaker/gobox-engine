@@ -1,14 +1,14 @@
 // Command gobox plays the adventures imported into its adventures directory
 // and imports them:
 //
-//	gobox [flags] [adventure]       play it (none: the only one, or the list)
+//	gobox [flags] [adventure]       play it (none: a numbered menu of the games in -data)
 //	gobox import [-out dir] <game> <originals>
 //
-// An adventure is a folder adventures/<id>/ with a valid manifest.json
-// (gobox/importer); the binary reads nothing else of the game at run time,
-// no original file and no check that one exists. -data is the host's own
-// directory: the port's assets (fonts, speech, sound pack, soundtrack, the
-// Amiga sound) and the saves.
+// An adventure is a folder <data>/<id>/ (default data/, run from
+// gobox-engine) with a valid manifest.json (gobox/importer); the binary reads
+// nothing else of the game at run time, no original file and no check that
+// one exists. The folder's sources/ is the host's directory for that game:
+// the port's own assets (fonts), the saves and the player's music.
 //
 // The Windows exe's icon: icon.ico (the Amiga Pool of Radiance title
 // picture's hero and dragon) linked in through rsrc_windows_amd64.syso:
@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"buckrogers/playbr1"
@@ -71,9 +72,8 @@ func main() {
 		}
 		return
 	}
-	root := flag.String("adventures", "adventures", "the adventures directory (gobox import writes it)")
+	root := flag.String("data", "data", "the games' data directory: one imported folder per game (gobox import -out writes it)")
 	s := app.Start{}
-	flag.StringVar(&s.Data, "data", "data", "the host's data directory: the port's assets and the saves")
 	flag.IntVar(&s.Settings.Scale, "scale", 3, "window scale (with -window)")
 	flag.BoolVar(&s.Settings.Window, "window", false, "a window instead of the full screen (the Esc menu's setting is left as it is)")
 	flag.BoolVar(&s.Settings.Fullscreen, "fullscreen", false, "the screen at its own resolution")
@@ -100,25 +100,41 @@ func main() {
 			playable = append(playable, f)
 		}
 	}
-	want := flag.Arg(0)
-	if want == "" && len(playable) == 1 {
-		want = playable[0].ID
-	}
-	for _, f := range playable {
-		if f.ID == want {
-			s.Adventure = f.Dir
-			if err := players[f.ID](s); err != nil {
-				log.Fatal(err)
-			}
-			return
-		}
-	}
-	fmt.Fprintf(os.Stderr, "usage: gobox [flags] <adventure>; in %s:\n", *root)
-	for _, f := range playable {
-		fmt.Fprintf(os.Stderr, "  %-8s %s (%s)\n", f.ID, f.Title, f.Ruleset)
-	}
 	if len(playable) == 0 {
-		fmt.Fprintf(os.Stderr, "  none: import one with gobox import <game> <originals>; games: %s\n", strings.Join(importer.IDs(), ", "))
+		fmt.Fprintf(os.Stderr, "no game in %s: import one with gobox import -out %s <game> <originals>; games: %s\n", *root, *root, strings.Join(importer.IDs(), ", "))
+		os.Exit(2)
 	}
-	os.Exit(2)
+	f, ok := pick(playable, flag.Arg(0))
+	if !ok {
+		os.Exit(2)
+	}
+	s.Adventure = f.Dir
+	s.Data = filepath.Join(f.Dir, "sources")
+	if err := players[f.ID](s); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// pick is the folder named want, or with want empty the one whose number
+// the player types into the menu printed on stdout.
+func pick(playable []importer.Folder, want string) (importer.Folder, bool) {
+	if want != "" {
+		for _, f := range playable {
+			if f.ID == want {
+				return f, true
+			}
+		}
+		fmt.Fprintf(os.Stderr, "no game %q\n", want)
+		return importer.Folder{}, false
+	}
+	for i, f := range playable {
+		fmt.Printf("%d. %s\n", i+1, f.Title)
+	}
+	fmt.Print("Game number: ")
+	var n int
+	if _, err := fmt.Scan(&n); err != nil || n < 1 || n > len(playable) {
+		fmt.Fprintln(os.Stderr, "no such game")
+		return importer.Folder{}, false
+	}
+	return playable[n-1], true
 }

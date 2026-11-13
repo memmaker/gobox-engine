@@ -1,0 +1,842 @@
+[
+ {
+  "ID": 1001,
+  "Name": "TavernTale1",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 1",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1002,
+  "Name": "TavernTale2",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 2",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1003,
+  "Name": "TavernTale3",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 3",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1004,
+  "Name": "TavernTale4",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 4",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1005,
+  "Name": "TavernTale5",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 5",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1006,
+  "Name": "TavernTale6",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 6",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1007,
+  "Name": "TavernTale7",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 7",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1008,
+  "Name": "TavernTale8",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 8",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1009,
+  "Name": "TavernTale9",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 9",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1010,
+  "Name": "TavernTale10",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 10",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1011,
+  "Name": "TavernTale11",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 11",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1012,
+  "Name": "TavernTale12",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 12",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1013,
+  "Name": "TavernTale13",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 13",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1014,
+  "Name": "TavernTale14",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 14",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1015,
+  "Name": "TavernTale15",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 15",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1016,
+  "Name": "TavernTale16",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 16",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1017,
+  "Name": "TavernTale17",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 17",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1018,
+  "Name": "TavernTale18",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 18",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1019,
+  "Name": "TavernTale19",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 19",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1020,
+  "Name": "TavernTale20",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 20",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1021,
+  "Name": "TavernTale21",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 21",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1022,
+  "Name": "TavernTale22",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 22",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 1023,
+  "Name": "TavernTale23",
+  "Book": "JOURNAL.TXT",
+  "Title": "Tavern Tale 23",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 2001,
+  "Name": "History1",
+  "Book": "HISTORY.TXT",
+  "Title": "The Moonsea Reaches",
+  "Box": "A History of Phlan",
+  "Voiced": true
+ },
+ {
+  "ID": 2002,
+  "Name": "History2",
+  "Book": "HISTORY.TXT",
+  "Title": "The Ancient City of Phlan",
+  "Box": "A History of Phlan",
+  "Voiced": true
+ },
+ {
+  "ID": 2003,
+  "Name": "History3",
+  "Book": "HISTORY.TXT",
+  "Title": "Greathammer & the First Rebirth",
+  "Box": "A History of Phlan",
+  "Voiced": true
+ },
+ {
+  "ID": 2004,
+  "Name": "History4",
+  "Book": "HISTORY.TXT",
+  "Title": "The Fall of Phlan",
+  "Box": "A History of Phlan",
+  "Voiced": true
+ },
+ {
+  "ID": 2005,
+  "Name": "History5",
+  "Book": "HISTORY.TXT",
+  "Title": "The Reemergence of Phlan",
+  "Box": "A History of Phlan",
+  "Voiced": true
+ },
+ {
+  "ID": 2006,
+  "Name": "History6",
+  "Book": "HISTORY.TXT",
+  "Title": "Phlan Today",
+  "Box": "A History of Phlan",
+  "Voiced": true
+ },
+ {
+  "ID": 4001,
+  "Name": "ProclamationLIX",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation LIX",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4002,
+  "Name": "ProclamationLXIV",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation LXIV",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4003,
+  "Name": "ProclamationLXXVIII",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation LXXVIII",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4004,
+  "Name": "ProclamationCI",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CI",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4005,
+  "Name": "ProclamationCIX",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CIX",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4006,
+  "Name": "ProclamationCX",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CX",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4007,
+  "Name": "ProclamationCXIV",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CXIV",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4008,
+  "Name": "ProclamationCXX",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CXX",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4009,
+  "Name": "ProclamationCXXVI",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CXXVI",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4010,
+  "Name": "ProclamationCXXIX",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CXXIX",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4011,
+  "Name": "ProclamationCXXXIV",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CXXXIV",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4012,
+  "Name": "ProclamationCLIV",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CLIV",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4013,
+  "Name": "ProclamationCLVI",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CLVI",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4014,
+  "Name": "ProclamationCLXX",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CLXX",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4015,
+  "Name": "ProclamationCXC",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CXC",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4016,
+  "Name": "ProclamationCCI",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CCI",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4017,
+  "Name": "ProclamationCCIV",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CCIV",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 4018,
+  "Name": "ProclamationCCXIV",
+  "Book": "JOURNAL.TXT",
+  "Title": "Proclamation CCXIV",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3001,
+  "Name": "JournalEntry1",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 1",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3002,
+  "Name": "JournalEntry2",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 2",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3003,
+  "Name": "JournalEntry3",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 3",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3004,
+  "Name": "JournalEntry4",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 4",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3005,
+  "Name": "JournalEntry5",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 5",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3006,
+  "Name": "JournalEntry6",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 6",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3007,
+  "Name": "JournalEntry7",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 7",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3008,
+  "Name": "JournalEntry8",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 8",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3009,
+  "Name": "JournalEntry9",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 9",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3010,
+  "Name": "JournalEntry10",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 10",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3011,
+  "Name": "JournalEntry11",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 11",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3012,
+  "Name": "JournalEntry12",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 12",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3013,
+  "Name": "JournalEntry13",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 13",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3014,
+  "Name": "JournalEntry14",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 14",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3015,
+  "Name": "JournalEntry15",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 15",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3016,
+  "Name": "JournalEntry16",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 16",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3017,
+  "Name": "JournalEntry17",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 17",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3018,
+  "Name": "JournalEntry18",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 18",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3019,
+  "Name": "JournalEntry19",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 19",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3020,
+  "Name": "JournalEntry20",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 20",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3021,
+  "Name": "JournalEntry21",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 21",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3022,
+  "Name": "JournalEntry22",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 22",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3023,
+  "Name": "JournalEntry23",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 23",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3024,
+  "Name": "JournalEntry24",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 24",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3025,
+  "Name": "JournalEntry25",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 25",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3026,
+  "Name": "JournalEntry26",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 26",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3027,
+  "Name": "JournalEntry27",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 27",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3028,
+  "Name": "JournalEntry28",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 28",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3029,
+  "Name": "JournalEntry29",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 29",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3030,
+  "Name": "JournalEntry30",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 30",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3031,
+  "Name": "JournalEntry31",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 31",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3032,
+  "Name": "JournalEntry32",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 32",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3033,
+  "Name": "JournalEntry33",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 33",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3034,
+  "Name": "JournalEntry34",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 34",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3035,
+  "Name": "JournalEntry35",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 35",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3036,
+  "Name": "JournalEntry36",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 36",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3037,
+  "Name": "JournalEntry37",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 37",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3038,
+  "Name": "JournalEntry38",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 38",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3039,
+  "Name": "JournalEntry39",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 39",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3040,
+  "Name": "JournalEntry40",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 40",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3041,
+  "Name": "JournalEntry41",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 41",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3042,
+  "Name": "JournalEntry42",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 42",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3043,
+  "Name": "JournalEntry43",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 43",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3044,
+  "Name": "JournalEntry44",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 44",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3045,
+  "Name": "JournalEntry45",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 45",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3046,
+  "Name": "JournalEntry46",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 46",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3047,
+  "Name": "JournalEntry47",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 47",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3048,
+  "Name": "JournalEntry48",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 48",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3049,
+  "Name": "JournalEntry49",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 49",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3050,
+  "Name": "JournalEntry50",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 50",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3051,
+  "Name": "JournalEntry51",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 51",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3052,
+  "Name": "JournalEntry52",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 52",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3053,
+  "Name": "JournalEntry53",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 53",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3054,
+  "Name": "JournalEntry54",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 54",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3055,
+  "Name": "JournalEntry55",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 55",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3056,
+  "Name": "JournalEntry56",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 56",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3057,
+  "Name": "JournalEntry57",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 57",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ },
+ {
+  "ID": 3058,
+  "Name": "JournalEntry58",
+  "Book": "JOURNAL.TXT",
+  "Title": "Journal Entry 58",
+  "Box": "Adventurer's Journal",
+  "Voiced": false
+ }
+]

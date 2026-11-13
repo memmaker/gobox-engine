@@ -1,0 +1,7 @@
+B6E3 PatrolDistTable  # GetTable by patrol kind -> MonsterDist
+B6E6 PatrolMonsterTable  # GetTable by patrol kind -> 6E80, used as SetupMonster monster
+B6E9 PatrolTable3  # GetTable by patrol kind -> 9805 (guess)
+B6EC PatrolTable4  # GetTable by patrol kind -> 9806 (guess)
+B6EF PatrolPictureTable  # GetTable by patrol kind -> 9827, SetupMonster picture (guess)
+B6F2 HideXTable  # index -> PartyX after hiding
+B6F7 HideYTable  # index -> PartyY after hiding

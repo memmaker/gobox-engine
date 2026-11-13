@@ -1,0 +1,13 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local NoticesRead  # set after "NOTICES FOR TEACHERS AND STUDENTS" text; area-local reuse
+4A01 1 byte local DuelOffered  # set at L_9CAC; skips arena master's duel question; area-local reuse
+4A02 1 byte local DoorSignRead  # set after "MAGIC USERS ... EAST DOOR ... CLERICS WEST DOOR"; area-local reuse
+4A03 1 byte local WatchCombatDone11  # 0 before city watch fight, 1 after; area-local reuse
+4A05 1 byte local ArenaEntered  # set at "ROOM IS FILLED WITH DUELING PAIRS"; area-local reuse
+4A07 1 byte local Temp1  # only cleared on leaving (L_A0A1); guess scratch; area-local reuse
+4A08 1 byte local PartnerDeclined  # set when party says NO to "SEEK A PARTNER"; area-local reuse
+4A09 6 word local TrainerCooldown  # set 2 on meeting a class trainer, counts on each event; blocks trainers while >0 (guess); area-local reuse
+4A0F 1 byte local Temp2  # only cleared on leaving (L_A0A1); guess scratch; area-local reuse
+4A10 1 byte local PartnerTries  # counts hireling searches, 8 = "NO ONE WHO WILL GO WITH YOU"; area-local reuse
+4A11 1 byte local Temp3  # only cleared on leaving (L_A0A1); guess scratch; area-local reuse

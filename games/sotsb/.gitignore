@@ -1,0 +1,14 @@
+/cotab
+*.wasm
+
+# the original game files (run.sh installs them from the GOG installer): never commit
+/data/
+.DS_Store
+crash_logs/
+scenarios/out/
+/remaster/raw/
+/remaster/viewdump/
+/remaster/mapdump/
+/bin/
+/scenarios/*.debug
+/adventures/

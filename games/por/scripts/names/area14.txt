@@ -1,0 +1,2 @@
+B4AC ChaseSteps  # table: steps to walk per leg of thief chase
+B4BC ChaseFacing  # table: facing per leg of thief chase

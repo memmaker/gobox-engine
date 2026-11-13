@@ -55,7 +55,7 @@ require (
 )
 
 // por's checkout beside gobox's (the parity tests read its presentdata goldens)
-replace por => ../../por-go
+replace por => ../games/por
 
 replace gobox/gpu => ../gpu
 
@@ -111,7 +111,7 @@ replace gobox/asset => ../asset
 
 replace gobox/core => ../core
 
-replace rules1e => ../../rules1e
+replace rules1e => ../rules1e
 
 replace gobox/pool => ../pool
 

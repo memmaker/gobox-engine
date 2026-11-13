@@ -14,7 +14,7 @@ import (
 // item block (rules1e testdata/por-treasure.txt, por-re vectres): the records of a
 // block, named by number, onto an empty list or one holding item 0.
 func TestTreasureBlockAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-treasure.txt")
+	f, err := os.Open("../rules1e/testdata/por-treasure.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func TestTreasureBlockAgainstPascal(t *testing.T) {
 // random items on a shared seed (por-treasure.txt "random" lines): each item's
 // record bytes from the type to the end, head first, and the RNG state after.
 func TestRandomTreasureAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-treasure.txt")
+	f, err := os.Open("../rules1e/testdata/por-treasure.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +109,7 @@ var porTreasureRuled = map[rules1e.ItemType]bool{rules1e.ItemJavelin: true, rule
 // and wand kinds on 40 seeds (por-treasure.txt "genitem" lines), whose rolls reached leftover item
 // data in the original: the record bytes from the type to the end, and the RNG state after.
 func TestRandomItemAgainstPascal(t *testing.T) {
-	data, err := os.ReadFile("../../rules1e/testdata/por-treasure.txt")
+	data, err := os.ReadFile("../rules1e/testdata/por-treasure.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestRandomItemAgainstPascal(t *testing.T) {
 // Feather Falling, Bracers AC 2, the Fine Composite Long Bow, a Ring of
 // Protection and a Cloak of Displacement with no save bonus, and a sound Flame Tongue left alone.
 func TestFixItemRecordAgainstPascal(t *testing.T) {
-	data, err := os.ReadFile("../../rules1e/testdata/por-treasure.txt")
+	data, err := os.ReadFile("../rules1e/testdata/por-treasure.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

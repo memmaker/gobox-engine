@@ -18,7 +18,7 @@ import (
 // restored curSpell, wildRoad's pair at the last column, isHardier's hit points, Constitution's save bonus,
 // an item spell's magic resistance (ruling 15) and Hold Person's save vs spell (ruling 16).
 func TestFixesAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-fix.txt")
+	f, err := os.Open("../rules1e/testdata/por-fix.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

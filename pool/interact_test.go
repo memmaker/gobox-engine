@@ -9,7 +9,7 @@ import (
 func TestInteractionLabels(t *testing.T) {
 	e := testEngine(t)
 	e.Init()
-	dir := filepath.Join("..", "..", "por-go", "data", AssetsDir, "scripts")
+	dir := filepath.Join("..", "data", "por", "sources", AssetsDir, "scripts")
 	for area, labels := range interactions(dir) {
 		e.LoadArea(area)
 		s := e.vm.Script

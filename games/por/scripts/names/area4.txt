@@ -1,0 +1,3 @@
+A4AA ProtectionPassword  # Protection operand after "TODAY'S PASSWORD IS"
+A4B7 ProtectionGatePassword  # Protection operand after "THE GATE PASSWORD IS" / the writing
+A4BE ProtectionStart  # Protection operand before the password texts

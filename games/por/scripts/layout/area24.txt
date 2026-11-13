@@ -1,0 +1,16 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A01 1 byte local LastRoomVisited  # 1..4 = rubble room, dining room, great hall, bodies room (room text shown once in a row); area-local reuse
+4A02 1 byte local AltarDestroyed  # set 1 after destroying the Bane altar; area-local reuse
+4A03 1 byte local SavedGeo24  # Save Geo before encounter, restored after fleeing; area-local reuse
+4A0A 1 byte local LastMansionRoom  # 1 hay beds room, 2 cell room; area-local reuse
+4A0E 1 byte local EncounterIsOrcs  # 1 when random encounter rolls orcs (black-hand patrol logic), 0 otherwise; area-local reuse
+4A0F 1 byte local TempleGuardState  # 1 guards fought, 2 passed with holy symbol (guess); area-local reuse
+4A18 1 byte local EncounterCount1  # number of first monster loaded (LoadMonster count); area-local reuse
+4A19 1 byte local TempleSearchFlag  # 1 while searching temple spots, 0 on exit; OnGoto selects outcome; area-local reuse
+4A1B 1 byte local EncounterCount2  # number of second monster group loaded, 0 if none; area-local reuse
+4A1D 1 byte local EncounterTemp  # set 0 before black-hand patrol menu (guess: scratch); area-local reuse
+4A2A 1 byte game OrcsKnowParty  # set 1 after dealing with an orc patrol; orcs at entrance are confused instead of attacking
+4A2D 1 byte game TempleTreasureBits  # bits 1/2/4 = temple treasure spots found; 7 triggers half-orc ambush
+4A2E 1 byte game MansionRoomBits  # bits 1 tapestry,2 skeleton jewelry,4 trap door,8 body jewelry,16 ogre fight,32 goblin slaves
+4A44 1 byte game MansionFightBits  # bits 1 orc guards fight, 2 hay bed orcs fight

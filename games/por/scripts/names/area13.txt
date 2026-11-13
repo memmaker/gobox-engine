@@ -1,0 +1,5 @@
+B537 GuidePathEvent  # GetTable by step: event kind for kobold guide walk
+B550 GuidePathMove  # GetTable by step into scratch (guide step data, guess)
+B569 GuidePathFacing  # GetTable by step into Facing
+B582 EscapeXTable  # random index -> PartyX on escape
+B588 EscapeYTable  # random index -> PartyY on escape

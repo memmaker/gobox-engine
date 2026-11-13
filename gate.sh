@@ -16,10 +16,10 @@ mkdir "$HOME"
 games=()
 for mod in "$projects"/*/go.mod; do
   repo="$(basename "$(dirname "$mod")")"
-  case "$repo" in por-go|rules1e|rulesxxvc|gobox-engine) continue ;; esac
+  case "$repo" in rulesxxvc|gobox-engine) continue ;; esac
   grep -q 'gobox-engine/' "$mod" && games+=("$repo")
 done
-for repo in por-go rules1e rulesxxvc gobox-engine "${games[@]}"; do
+for repo in rulesxxvc gobox-engine "${games[@]}"; do
   mkdir "$out/$repo"
   tree="$(git -C "$projects/$repo" write-tree)"
   git -C "$projects/$repo" archive "$tree" | tar -x -C "$out/$repo"
@@ -28,7 +28,8 @@ done
 export PROJECTS="$out"
 # Tests that find a sibling repo through $HOME/Projects (buckrogers bugclass_test, front sequence_test) see them too.
 ln -s "$out" "$HOME/Projects"
-# Unversioned here: third-party checkouts, the -re reconstructions (tests read ../../<game>-re), and the game data.
+# Unversioned here: third-party checkouts, the -re reconstructions (tests read ../../<game>-re), and the game data
+# (gobox-engine/data/<game>: the imported folder, sources/, extras/; its docs are versioned and exported).
 for dep in gogpu-wgpu goffi goplay gameimport; do ln -s "$projects/$dep" "$out/$dep"; done
 for re in "$projects"/*-re; do ln -s "$re" "$out/$(basename "$re")"; done
 # link_data repo: the repo's unversioned data/ entries into its export.
@@ -40,7 +41,11 @@ link_data() {
     [ -e "$out/$1/data/$(basename "$d")" ] || ln -s "$d" "$out/$1/data/"
   done
 }
-for repo in por-go "${games[@]}"; do link_data "$repo"; done
+for repo in "${games[@]}"; do link_data "$repo"; done
+for d in "$projects"/gobox-engine/data/*/; do
+  g="$(basename "$d")"; mkdir -p "$out/gobox-engine/data/$g"
+  for e in "$d"*; do [ -e "$out/gobox-engine/data/$g/$(basename "$e")" ] || ln -s "$e" "$out/gobox-engine/data/$g/"; done
+done
 
 check() { # dir, test packages and flags
   local dir="$1"; shift
@@ -80,28 +85,27 @@ test_touched() {
   done
 }
 
-check rules1e ./...
+check gobox-engine/rules1e ./...
 check rulesxxvc ./...
 check gobox-engine/core ./...
 fixed='Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
-# POR's engine (gobox-engine/pool; por-go/rules before fold E2): the fixed set, and the slow tests the touched run skips.
+# POR's engine (gobox-engine/pool): the fixed set, and the slow tests the touched run skips.
 if [ -d "$out/gobox-engine/pool" ]; then
   # pool's tests read POR's imported data (scripts, data/assets/data) and fail without it: the import
-  # (por-go cmd/importstale, a no-op without the game files) runs first, here, not in the tests.
-  (cd "$out/por-go" && go run ./cmd/importstale)
+  # (games/por cmd/importstale, a no-op without the game files) runs first, here, not in the tests.
+  (cd "$out/gobox-engine/games/por" && go run ./cmd/importstale)
   check gobox-engine/pool . -run "$fixed"
   (cd "$out/gobox-engine/pool" && go test . -run "$slow")
-  check por-go ./rules4e -run "$fixed"
-elif touched por-go | grep -q ' \./rules$'; then
-  check por-go ./rules4e -run "$fixed"
-  (cd "$out/por-go" && go test ./rules -run "$slow")
-else
-  check por-go ./rules ./rules4e -run "$fixed"
 fi
-for repo in por-go rules1e gobox-engine; do test_touched "$repo"; done
+check gobox-engine/games/por ./rules4e -run "$fixed"
+test_touched gobox-engine
 
 # Other games build against gobox-engine outside core, from what is staged in them (their HEAD when nothing is).
 if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --name-only | grep -qv '^core/\|\.md$\|^gate.sh$'; then
+  for g in cotab sotsb pod; do
+    echo "== games/$g"
+    (cd "$out/gobox-engine/games/$g" && go build ./... && go vet ./...)
+  done
   for repo in "${games[@]}"; do
     echo "== $repo"
     t=$SECONDS

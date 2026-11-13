@@ -7,6 +7,6 @@ require (
 	rules1e v0.0.0
 )
 
-replace rules1e => ../../rules1e
+replace rules1e => ../rules1e
 
 replace gobox/core => ../core

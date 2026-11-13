@@ -9,7 +9,7 @@ import (
 // an older save's heard journal texts follow; only the player's note can
 // be removed.
 func TestNotes(t *testing.T) {
-	e := &Engine{adv: "../../por-go/data/assets"}
+	e := &Engine{adv: "../data/por/sources/assets"}
 	e.initVM()
 	e.ext.voiced = map[string]bool{"Proclamation_LIX": true, "Journal_Entry_26": true, "1a83648acff21ee4": true}
 	e.noteJournal("Journal Entry 26") // twice: noted once

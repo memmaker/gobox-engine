@@ -1,0 +1,11 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local EncounterType27  # random encounter monster kind 0-8 (kobolds..minotaurs), index into encounter tables; area-local reuse
+4A01 1 byte local EncounterExtraCount27  # number of second-group monsters loaded (LoadMonster [9808] count); area-local reuse
+4A02 1 byte local EncounterCount27  # number of main monsters to load, computed from party strength; area-local reuse
+4A09 8 word local MapCellIndex  # scratch index into [6300] while copying map tables (guess); area-local reuse
+4A11 1 byte local KoboldHordeDefeated  # set 255 after the screaming kobold horde fight; area-local reuse
+4A13 1 byte local WyvernLairFlags  # bits: 1 wyvern treasure, 2/4 the two wyverns, 8/16/64 fights, 32 treasure, 128 last fight; area-local reuse
+4A15 1 byte local ForceEncounter27  # event3 sets 1 to force a random encounter; 0 normal roll; area-local reuse
+4A18 1 byte local LairStartX27  # random entry X into 3D lair, copied to PartyX; area-local reuse
+4A19 1 byte local LairStartY27  # random entry Y into 3D lair, copied to PartyY; area-local reuse

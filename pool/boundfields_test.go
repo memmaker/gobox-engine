@@ -9,7 +9,7 @@ import (
 // TestBoundFieldsPOR: POR's layouts name every field the engine binds but the VM words POR
 // keeps in the ruleset, and the shops' price factor (POR's shops have none).
 func TestBoundFieldsPOR(t *testing.T) {
-	got, err := UnboundFields(os.DirFS("../../por-go/data/assets/scripts"))
+	got, err := UnboundFields(os.DirFS("../data/por/sources/assets/scripts"))
 	if err != nil {
 		t.Fatal(err)
 	}

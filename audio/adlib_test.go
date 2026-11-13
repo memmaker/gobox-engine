@@ -90,7 +90,7 @@ func TestAdLibPCM(t *testing.T) {
 // PoD's VACE songs (P1.SMS, P3.SMS) are song blocks: Named finds them, they
 // parse to the expected tracks and tempo, and the first second renders the same.
 func TestAdLibNamedSMS(t *testing.T) {
-	dir := os.Getenv("HOME") + "/Projects/pod-go/data/dos/"
+	dir := "../data/pod/sources/dos/"
 	named := map[string][]byte{}
 	for _, n := range []string{"P1", "P3"} {
 		b, err := os.ReadFile(dir + n + ".SMS")
@@ -139,7 +139,7 @@ func TestAdLibNamedSMS(t *testing.T) {
 // SotSB's title (SOUND.DAX block 2: GLBR, SLBR at 0x1B2, fixed tempo divisor 0x76) plays
 // once for 84.45 s on the same sequencer.
 func TestSotSBTitle(t *testing.T) {
-	f, err := os.ReadFile("/Users/felix/Projects/sotsb-go/data/dos/SOUND.DAX")
+	f, err := os.ReadFile("/Users/felix/Projects/gobox-engine/data/sotsb/sources/dos/SOUND.DAX")
 	if err != nil {
 		t.Skip("no Secret of the Silver Blades files")
 	}

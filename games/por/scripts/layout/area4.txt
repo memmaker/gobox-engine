@@ -1,0 +1,4 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local ArmoryVisited  # bit 1 set on first entry to the armory; area-local reuse
+4A68 1 byte game ReportsFound  # 1,2,3: which Tyranthraxus report was found last (OnGoto in L_AFB6)

@@ -20,8 +20,8 @@ import (
 // (imported afresh, its special cases applied) resolves (script.ResolveRefs) in the
 // game's layout, the area's over it and the area's constant tables.
 func TestLayoutCoversScripts(t *testing.T) {
-	const scripts = "../../por-go/data/assets/scripts"
-	if _, err := dax.NewLoader("../../por-go/data/dos"); err != nil {
+	const scripts = "../data/por/sources/assets/scripts"
+	if _, err := dax.NewLoader("../data/por/sources/dos"); err != nil {
 		t.Skip(err)
 	}
 	dir := scripts // imported, special cases applied, by the TestMain import (por-go cmd/importstale)
@@ -77,7 +77,7 @@ func resolved(t *testing.T, s *script.Script, area int) *script.Script {
 // area's.
 func resolvedOver(t *testing.T, s *script.Script, area int, over string) *script.Script {
 	t.Helper()
-	l, err := script.ReadLayout(os.DirFS("../../por-go/data/assets/scripts"), area)
+	l, err := script.ReadLayout(os.DirFS("../data/por/sources/assets/scripts"), area)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +136,7 @@ func withLayout(t *testing.T, e *Engine) {
 func TestSavedFields(t *testing.T) {
 	e := &Engine{}
 	e.initVM()
-	data := os.DirFS(filepath.Join("..", "..", "por-go", "data", AssetsDir, "scripts"))
+	data := os.DirFS(filepath.Join("..", "data", "por", "sources", AssetsDir, "scripts"))
 	names, err := fs.Glob(data, "layout/area*.txt")
 	if err != nil {
 		t.Fatal(err)

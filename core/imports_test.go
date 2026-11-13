@@ -18,7 +18,7 @@ import (
 // library, directly or not. No leaf exists yet, so leaves is empty: a
 // migrated package adds its module directory here.
 var leaves = []string{
-	"../../rules1e",
+	"../rules1e",
 	"../../rulesxxvc",
 }
 

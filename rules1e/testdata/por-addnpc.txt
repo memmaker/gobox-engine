@@ -1,0 +1,13 @@
+# vecnpc from por-re f312d9e bugfixed-rules src/pure
+addnpc 1 0 5 = 1 1 0 0
+addnpc 1 0 24 = 1 1 0 0
+addnpc 1 1 5 = 2 0 178 0
+addnpc 1 1 24 = 2 0 178 1
+addnpc 7 0 5 = 7 1 0 0
+addnpc 7 0 24 = 7 1 0 0
+addnpc 7 1 5 = 8 0 178 0
+addnpc 7 1 24 = 8 0 178 1
+addnpc 8 0 5 = 8 1 0 0
+addnpc 8 0 24 = 8 1 0 0
+addnpc 8 1 5 = 8 1 0 0
+addnpc 8 1 24 = 8 1 0 0

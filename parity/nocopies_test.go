@@ -131,7 +131,7 @@ var (
 
 // TestNoOldPath fails on any reference to the removed rules path.
 func TestNoOldPath(t *testing.T) {
-	roots := []string{"..", "../../por-go", "../../cotab-go", "../../sotsb-go", "../../pod-go",
+	roots := []string{"..", "../games/por", "../games/cotab", "../games/sotsb", "../games/pod",
 		"../../buckrogers-go", "../../buckrogers2-go", "../../buckrogers-core"}
 	for _, root := range roots {
 		err := filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {

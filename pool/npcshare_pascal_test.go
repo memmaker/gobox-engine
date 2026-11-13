@@ -15,7 +15,7 @@ import (
 // the port (Felix's ruling): the Pascal's five coin piles are compared as their
 // worth in copper; gems and jewelry are counts on both sides.
 func TestNpcShareAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-npcshare.txt")
+	f, err := os.Open("../rules1e/testdata/por-npcshare.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

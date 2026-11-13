@@ -7,7 +7,7 @@ import (
 
 // POR's START.EXE (optional; needs the original files).
 func TestLoadPOR(t *testing.T) {
-	im, err := Load("../../por-go/original/START.EXE", 0xC7C)
+	im, err := Load("../data/por/sources/original/START.EXE", 0xC7C)
 	if err != nil {
 		t.Skip(err)
 	}

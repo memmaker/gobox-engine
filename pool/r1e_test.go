@@ -11,7 +11,7 @@ import (
 // the game's import wrote (ReadGameTables). Without the game files there are
 // none, and the tests that need them skip (testEngine).
 var porTables = func() GameTables {
-	t, _ := ReadGameTables("../../por-go/data/assets")
+	t, _ := ReadGameTables("../data/por/sources/assets")
 	return t
 }()
 

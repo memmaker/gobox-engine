@@ -1,0 +1,183 @@
+package importpor
+
+import (
+	"embed"
+	"encoding/json"
+	"errors"
+	"gobox/audio/sounddata"
+	"gobox/char"
+	"gobox/core"
+	"gobox/dax"
+	"gobox/importer/pictures"
+	"gobox/pool"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"rules1e"
+)
+
+// portraits is POR's portrait tables (which HEADn/BODYn.DAX block shows each
+// portrait number: 1..14 heads and 1..12 bodies are the original's, set 3;
+// the rest are every other one the files hold), game data checked in here
+// and written to data/assets/data by the import; pool.ReadGameTables reads it.
+//
+//go:embed portraits.json
+var portraits []byte
+
+// journalFS is POR's journal books (JOURNAL, HISTORY, CLUEBOOK and the pictures
+// they show), written to the adventure folder's pool.JournalDir by the import; the
+// engine reads the game's own books from there.
+//
+//go:embed journal
+var journalFS embed.FS
+
+// gameTables is POR's pool.GameTables other than its portraits (data/gametables.json):
+// the duel sounds of CALL 0xBA03 (8 a step, 10 the fireball, DS:2612's numbers); any other plays nothing.
+// The import's script fixes; the native scripts of the tavern game and the cabinets'
+// CAST KNOCK; the inn's and the tavern's Who commands spend the one purse (ECL3 A1B4, ahead of A501).
+var gameTables = pool.GameTables{ScriptSounds: map[byte]pool.ScriptSound{
+	8:  {Cue: core.CueStep},
+	10: {Cue: core.CueFireball},
+},
+	ScriptFixes:  scriptFixes,
+	OriginalSave: porSave,
+	Quests:       porQuests,
+	Art:          &pool.PorArt,
+	MapLabels:    pool.PorMapLabels,
+	Music:        &pool.PorMusic,
+	Natives: []pool.NativeAt{
+		{ScriptAt: pool.ScriptAt{Area: 0, Label: "TavernGamble"}, Native: pool.NativeTavernGamble},
+		{ScriptAt: pool.ScriptAt{Area: 14, Label: "CastKnock"}, Native: pool.NativeCastKnock},
+	},
+	PurseWhos: []pool.PurseWho{
+		{ScriptAt: pool.ScriptAt{Area: 0, Label: "PayPlatinum"}, By: 0},
+		{ScriptAt: pool.ScriptAt{Area: 0, Label: "TavernGamble"}, By: -1},
+	},
+}
+
+// dataFormat changes when the files ImportData writes change.
+const dataFormat = "17" // 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
+
+// ImportData is the data import: data's GEO, MON and ITEM archives, the
+// ITEMS table and START.EXE's sound tables (soundFile) as data/assets/data (DataDir).
+// It clears the old data first and writes the picture table as importpor does.
+func ImportData(data string) error {
+	adv := filepath.Join(data, pool.AssetsDir)
+	if err := os.RemoveAll(filepath.Join(adv, pool.DataDir)); err != nil {
+		return err
+	}
+	if err := ImportDataTo(filepath.Join(data, pool.DOSDir), filepath.Join(adv, pool.DataDir)); err != nil {
+		return err
+	}
+	return pictures.WritePictures("por", adv)
+}
+
+// ImportDataTo is ImportData from the DOS files in dos into dst; it clears
+// nothing (the adventure import writes beside it, pictures.PicturesFile).
+func ImportDataTo(dos, dst string) error {
+	l, err := dax.NewLoader(dos)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(dst, 0o755); err != nil {
+		return err
+	}
+	if err := dax.ImportData[pool.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, char.SheetOfRecord[pool.CharRecord], char.ItemOfRecord[rules1e.ItemFile]); err != nil {
+		return err
+	}
+	if err := dax.ImportItemTable[rules1e.ItemBase](l, dst, pool.ItemTypes, dax.Counted); err != nil {
+		return err
+	}
+	exe, err := os.ReadFile(l.Path("START.EXE"))
+	if err != nil {
+		return err
+	}
+	snd, err := sounddata.Decode(exe, pool.SoundLayout)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(dst, pool.SoundFile), snd, 0o644); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(dst, pool.PortraitsFile), portraits, 0o644); err != nil {
+		return err
+	}
+	b, err := json.MarshalIndent(gameTables, "", " ")
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(dst, pool.GameTablesFile), b, 0o644); err != nil {
+		return err
+	}
+	if err := pool.WriteGameData(dst, gameData()); err != nil {
+		return err
+	}
+	if err := writeJournal(filepath.Join(filepath.Dir(dst), pool.JournalDir)); err != nil {
+		return err
+	}
+	key, err := dax.SourceKey(dataFormat, dos)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dst, "key.txt"), []byte(key), 0o644)
+}
+
+// ImportDataIfStale runs ImportData when the data is missing or was
+// imported from other archives or by another format.
+func ImportDataIfStale(data string) error {
+	if _, err := os.Stat(filepath.Join(data, pool.DOSDir)); errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	key, err := dax.SourceKey(dataFormat, filepath.Join(data, pool.DOSDir))
+	if err != nil {
+		return err
+	}
+	have, err := os.ReadFile(filepath.Join(data, pool.AssetsDir, pool.DataDir, "key.txt"))
+	if err == nil && string(have) == key {
+		return nil
+	}
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
+	return ImportData(data)
+}
+
+// writeJournal writes the embedded journal books to dir.
+func writeJournal(dir string) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	files, err := journalFS.ReadDir("journal")
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		b, err := journalFS.ReadFile("journal/" + f.Name())
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(dir, f.Name()), b, 0o644); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// porAreaKind is the area record's AreaKind word (rules1e.AreaVars +0x1E4) in script addresses.
+var porAreaKind = 0x49F2
+
+// porSave is POR's SAVGAMx.DAT (ovr18 LoadGame/SaveGame, char.OriginalSave): the set, the area,
+// game and aux records (rules1e's) at script addresses 0x4900, 0x6B00, 0x9700, the code image.
+var porSave = char.SaveLayout{
+	Lead: char.LeadSet,
+	Records: []char.SaveRecord{
+		{Base: 0x4900, Cells: rules1e.AreaWords, CellBytes: 2},
+		{Base: 0x6B00, Cells: rules1e.GameWords, CellBytes: 2},
+		{Base: 0x9700, Cells: len(rules1e.AuxVars{}), CellBytes: 2},
+	},
+	CodeBase:     0x9900, // DS:49DE, ECL code at pc-0x9900
+	CodeSize:     len(char.OriginalSave{}.ECL),
+	CodeSaved:    true,
+	AreaKindAt:   &porAreaKind,
+	RulesRecords: true,
+}

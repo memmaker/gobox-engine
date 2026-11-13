@@ -1,0 +1,31 @@
+# build output
+/por
+.DS_Store
+__pycache__/
+
+# game data in data/ and the unused originals in original/: never commit
+# (only the event scripts, data/assets/scripts)
+/data/*
+!/data/assets/
+/data/assets/*
+!/data/assets/scripts/
+/original/
+decomp/out/
+decomp/emu/saves/
+
+
+# local tooling
+decomp/emu/.venv/
+decomp/emu/scratch/
+decomp/emu/out/
+.claude/settings.local.json
+.mcp.json
+/viewdump/
+/remaster/
+/por-voice.zip
+crash_logs/
+
+# the area scripts are imported from the game data (gobox/ecl/script)
+data/assets/scripts/area*.txt
+/gobox
+/adventures/

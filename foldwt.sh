@@ -6,7 +6,7 @@
 # Land gates before taking the lock; under it only a main that moved meanwhile is gated again.
 set -euo pipefail
 projects="$HOME/Projects"
-repos=(por-go rules1e rulesxxvc gobox-engine cotab-go sotsb-go pod-go buckrogers-core buckrogers-go buckrogers2-go)
+repos=(rulesxxvc gobox-engine buckrogers-core buckrogers-go buckrogers2-go)
 cmd="${1:?new|land}"; track="${2:?track}"
 tree="$projects/fold-wt/$track"
 case "$cmd" in
@@ -18,6 +18,9 @@ new)
       mkdir -p "$tree/$r/data"
       for d in "$projects/$r"/data/*; do [ -e "$tree/$r/data/$(basename "$d")" ] || ln -s "$d" "$tree/$r/data/"; done
     fi
+  done
+  for g in "$projects"/gobox-engine/data/*/; do # each game's unversioned data (sources/, the import, extras/)
+    for e in "$g"*; do x="$tree/gobox-engine/data/$(basename "$g")/$(basename "$e")"; [ -e "$x" ] || ln -s "$e" "$x"; done
   done
   for d in gogpu-wgpu goffi goplay gameimport gogpu-naga "$(cd "$projects" && ls -d *-re)"; do
     for x in $d; do [ -e "$tree/$x" ] || ln -s "$projects/$x" "$tree/$x"; done

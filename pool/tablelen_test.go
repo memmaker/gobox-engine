@@ -13,7 +13,7 @@ import (
 // table record for record, all 66 (the last two overlap footprintTable's
 // unused size 0 at DS:2844).
 func TestGroundTableLen(t *testing.T) {
-	exe, err := os.ReadFile("../../por-go/original/START.EXE")
+	exe, err := os.ReadFile("../data/por/sources/original/START.EXE")
 	if err != nil {
 		t.Skip("no START.EXE")
 	}

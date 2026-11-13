@@ -64,7 +64,7 @@ func TestRealData(t *testing.T) {
 	if sotsb == "" {
 		sotsb = "../../sotsb-re/gog"
 	}
-	for _, dir := range []string{"../../por-go/data/dos", sotsb} {
+	for _, dir := range []string{"../data/por/sources/dos", sotsb} {
 		t.Run(filepath.Base(dir), func(t *testing.T) {
 			files, _ := filepath.Glob(filepath.Join(dir, "GEO*.DAX"))
 			if len(files) == 0 {

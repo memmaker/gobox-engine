@@ -13,7 +13,7 @@ import (
 // foes standing or down, and the answer to Continue Battle: endRound's end and
 // whether the fight asks, with the answer applied as dContinueFight does.
 func TestContinueBattleAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-cont.txt")
+	f, err := os.Open("../rules1e/testdata/por-cont.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

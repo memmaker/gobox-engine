@@ -16,7 +16,7 @@ import (
 // offered is Exit in the Pascal; Go refuses it, so the case is answered with Exit.
 // Bash and kind 2's Pick roll dice and are not in the vectors.
 func TestDoorAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-door.txt")
+	f, err := os.Open("../rules1e/testdata/por-door.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,7 +93,7 @@ func TestDoorAgainstPascal(t *testing.T) {
 // Explore.PickLock on a shared seed (rules1e testdata/por-door.txt, por-re vecdoor):
 // opened, the choice left and the RNG state after.
 func TestDoorDiceAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-door.txt")
+	f, err := os.Open("../rules1e/testdata/por-door.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,0 +1,19 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local EncounterKind  # 0 kobolds,1 displacer beasts,2 driders,3 stirges,4 lizard men,5 bandits,6 nomads,7 merchants; indexes B0xx tables; area-local reuse
+4A01 1 byte local LeaderCount  # number of leader monsters in the random encounter; area-local reuse
+4A02 1 byte local MonsterCount  # number of regular monsters (LoadMonster [9804] [4A02]); area-local reuse
+4A06 1 byte local RiverTileIndex  # index into B26E while drawing the river; area-local reuse
+4A09 4 word local RiverTileOffset  # SaveTable offset into [D000]/[6300]; area-local reuse
+4A0D 1 word local DelayCounter  # busy loop 0..100 in L_AE2E; area-local reuse
+4A0E 1 byte local CampFound  # set at "RECENTLY ABBANDONED CAMP"; area-local reuse
+4A0F 1 byte local NomadCampSeen  # tested before "LARGE NOMAD CAMP" (guess: set inside); area-local reuse
+4A13 1 byte local LairFightFlags  # bits 1,2,8,16,32 lair fights won, 4 kobold prisoners freed/killed; area-local reuse
+4A14 1 byte local LairRespawnTimer  # 3 after monster 61 fight, counts down; area-local reuse
+4A15 1 byte local ForcedEncounter  # event3 sets 1 to force a random encounter; area-local reuse
+4A16 1 byte local SavedMapX  # MapX saved on entering a 3D lair; area-local reuse
+4A17 1 byte local SavedMapY  # MapY saved on entering a 3D lair; area-local reuse
+4A18 1 byte local LairStartX26  # PartyX inside the lair (2/10/13); area-local reuse
+4A19 1 byte local LairStartY26  # PartyY inside the lair (3/13/6); area-local reuse
+4A1E 1 byte local RiverFrame  # counts to 2 in river animation (L_AE2E), reset after; area-local reuse
+4A9A 1 byte area RiverState replaces  # the river drawn (1) or opened (255); the original wrote it in the game word CouncilMeeting (area 8). Its own field since typed storage (1b-e); not in the save file until saves by field (1b-f)

@@ -60,7 +60,7 @@ replace github.com/gogpu/gogpu => ../../goplay/third_party/gogpu // macOS fullsc
 
 replace gobox/core => ../core
 
-replace rules1e => ../../rules1e
+replace rules1e => ../rules1e
 
 replace gobox/gpu => ../gpu
 
@@ -112,4 +112,4 @@ replace gobox/asset => ../asset
 
 replace gobox/creation => ../creation
 
-replace por => ../../por-go
+replace por => ../games/por

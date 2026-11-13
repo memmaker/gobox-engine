@@ -7,7 +7,7 @@ import (
 
 // TestEnginePictures: New reads the adventure's data/pictures.json.
 func TestEnginePictures(t *testing.T) {
-	e, err := New(char.Rules1e, porTables, "../../por-go/data/assets", "../../por-go/data")
+	e, err := New(char.Rules1e, porTables, "../data/por/sources/assets", "../data/por/sources")
 	if err != nil {
 		t.Fatal(err)
 	}

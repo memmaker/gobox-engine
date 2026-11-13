@@ -16,7 +16,7 @@ import (
 // purse (the money unification) and are not here. The "rd" lines read each
 // window address a script reads back (readSpecialGlobal against SpecialReadZ1).
 func TestWindowAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-window.txt")
+	f, err := os.Open("../rules1e/testdata/por-window.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

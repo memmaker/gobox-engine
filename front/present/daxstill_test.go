@@ -49,7 +49,7 @@ func TestSpriteNotAutoPlayed(t *testing.T) {
 // A VGA still (PoD's TITLE pictures) is not an animation: never a frame
 // past its one, which decodes as nothing (the title went black).
 func TestVGAStillNotAnimated(t *testing.T) {
-	if !useArt(t, "../../../pod-go/data/dos") || artBlock("TITLE", 2) == nil {
+	if !useArt(t, "../../data/pod/sources/dos") || artBlock("TITLE", 2) == nil {
 		t.Skip("no PoD data")
 	}
 	if f, ok := spriteFrame(front.Picture{File: "TITLE", Block: 2}, time.Now()); ok {

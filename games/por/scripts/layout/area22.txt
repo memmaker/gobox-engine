@@ -1,0 +1,6 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local TyrmorJournalFound  # set 1 after finding the journal of Tyrmor under the corpse; area-local reuse
+4A4B 1 byte game SecretDoorBits  # bit per secret door found; bit 128 = priest freed through the chiseled hole
+4A4C 1 byte game SouthGroupsBeaten  # bits of wandering groups killed (PartyY>=8 half); all 63 stops encounters
+4A4E 1 byte game NorthGroupsBeaten  # bits of wandering groups killed (PartyY<8 half); all 63 stops encounters

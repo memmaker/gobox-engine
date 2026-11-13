@@ -1,0 +1,5 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A4F 1 byte game SecretDoorsFound  # bitmask ANDed with door bit [6E79]; "A SECRET DOOR IS FOUND"; bit 4 tested before lizard men
+4A50 1 byte game DialColor  # HMenu BLUE/COPPER/SILVER/GOLD; indexes teleport table at L_9DDD
+4A51 1 byte game RoomsVisited  # bits: 1 lizard men, 2 torture room, 4 vats, 8 combat, 16 lab, 32 notebook, 64 password door monster, 128 fountain

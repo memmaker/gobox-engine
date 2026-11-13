@@ -63,7 +63,7 @@ replace github.com/gogpu/gogpu => ../../../goplay/third_party/gogpu // macOS ful
 
 replace gobox/core => ../../core
 
-replace rules1e => ../../../rules1e
+replace rules1e => ../../rules1e
 
 replace gobox/gpu => ../../gpu
 
@@ -117,15 +117,15 @@ replace gobox/creation => ../../creation
 
 require por v0.0.0
 
-replace por => ../../../por-go
+replace por => ../../games/por
 
 require cotab v0.0.0
 
-replace cotab => ../../../cotab-go
+replace cotab => ../../games/cotab
 
 require pod v0.0.0
 
-replace pod => ../../../pod-go
+replace pod => ../../games/pod
 
 replace github.com/retro-ware/gameimport => ../../../gameimport
 
@@ -147,7 +147,7 @@ replace buckrogers2 => ../../../buckrogers2-go
 
 require sotsb v0.0.0
 
-replace sotsb => ../../../sotsb-go
+replace sotsb => ../../games/sotsb
 
 require gobox/pool v0.0.0 // indirect
 

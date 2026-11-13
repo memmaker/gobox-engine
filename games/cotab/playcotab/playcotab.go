@@ -1,0 +1,24 @@
+// Package playcotab starts Curse of the Azure Bonds on an imported adventure
+// folder (`gobox import cotab`) for cmd/gobox through the shared pool host
+// (gobox/pool/playpool).
+package playcotab
+
+import (
+	"gobox/app"
+	"gobox/core"
+	"gobox/pool/playpool"
+)
+
+// Play runs the game of s.Adventure until the window closes; the saves are
+// the user's (playpool.HomeSaves), Add from Pool of Radiance reads POR's.
+func Play(s app.Start) error {
+	saves, err := playpool.HomeSaves("cotab", s.Adventure)
+	if err != nil {
+		return err
+	}
+	return playpool.Play(s, playpool.Game{
+		Title: "Curse of the Azure Bonds", W: 320, H: 200, Record: core.Layout422,
+		SaveDir: saves,
+		Foreign: playpool.HomeRosters(map[string]core.RecordLayout{"por": core.Layout285}),
+	})
+}

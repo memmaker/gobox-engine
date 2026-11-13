@@ -18,11 +18,11 @@ import (
 // pager keeps a voiced paragraph whole).
 func TestPhlanHistory(t *testing.T) {
 	e := testEngine(t)
-	names, err := script.ReadNames(os.DirFS("../../por-go/data/assets/scripts"), 0, true, script.V1)
+	names, err := script.ReadNames(os.DirFS("../data/por/sources/assets/scripts"), 0, true, script.V1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	b, _ := os.ReadFile("../../por-go/data/assets/scripts/area0.txt")
+	b, _ := os.ReadFile("../data/por/sources/assets/scripts/area0.txt")
 	s, err := script.Parse(string(b), names)
 	if err != nil {
 		t.Fatal(err)
@@ -33,7 +33,7 @@ func TestPhlanHistory(t *testing.T) {
 		}
 	}
 	const rows = 25 - 2 - 1 - jrTop - 2 // jrRows at 40x25, less the title and its blank line
-	es, err := script.ReadEntries(os.DirFS("../../por-go/data/assets/scripts"))
+	es, err := script.ReadEntries(os.DirFS("../data/por/sources/assets/scripts"))
 	if err != nil {
 		t.Fatal(err)
 	}

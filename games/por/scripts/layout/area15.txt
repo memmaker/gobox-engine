@@ -1,0 +1,13 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 4 byte local StacksSignSeen  # table by stack room (6E79): set 1 after printing "LIBRARY STACKS ... SIGN READS"; area-local reuse
+4A04 1 byte local BonesRoomState  # 0 unseen, 1 room with bones desc shown, 2 jar under floorboards found; area-local reuse
+4A05 1 byte local BenchChamberSeen  # bitmask by room (6E79): "CHAMBER FILLED WITH ROTTED FURNITURE" printed; area-local reuse
+4A06 1 byte local FrescoRoomSeen  # set 1 after "EMPTY ROOM ... FRESCOES" text; area-local reuse
+4A07 1 byte local WritingHallSeen  # set 1 after "HALL ... WRITING TABLES" text; area-local reuse
+4A08 1 byte local StudySeen  # set 1 after "ONCE A STUDY" text; area-local reuse
+4A09 3 word local CarrelsSeen  # table by room (6E79): "ILLUMINATORS CARRELS" text shown; area-local reuse
+4A0C 1 byte local StoreroomSeen  # set 1 after "STOREROOM FULL OF SUPPLIES" text; area-local reuse
+4A2F 1 byte game BooksFoundFlags  # bits: 1 Fyerdetha,2 Urgund,4 Lex Geographica,8 History North,16 Arts of War,32 jar,64 trash book,128 named book; 159 all taken -> spectre appears
+4A30 1 byte game NamedBooksFound  # counter 0-5 indexing book titles (Meditations ... Nature of Writing)
+4A32 1 byte game GardenVisits  # 0 first visit text, incremented per slime encounter, stops after 7

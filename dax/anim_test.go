@@ -15,9 +15,9 @@ import (
 // Rogers, PoD), each frame its full size and the block used up.
 func TestAnimBlocksDecode(t *testing.T) {
 	seen := 0
-	for _, g := range []string{"por-go", "cotab-go", "sotsb-go", "pod-go", "buckrogers-go", "buckrogers2-go"} {
+	for _, data := range []string{"../data/por/sources", "../data/cotab/sources", "../data/sotsb/sources", "../data/pod/sources", "../../buckrogers-go/data", "../../buckrogers2-go/data"} {
 		for _, side := range []string{"dos", "amiga"} {
-			dir := filepath.Join("..", "..", g, "data", side)
+			dir := filepath.Join(data, side)
 			ents, _ := os.ReadDir(dir)
 			for _, e := range ents {
 				n := strings.ToUpper(e.Name())
@@ -35,7 +35,7 @@ func TestAnimBlocksDecode(t *testing.T) {
 					}
 					seen++
 					if !animWhole(b) {
-						t.Errorf("%s %s %s block %d: does not decode", g, side, n, en.ID)
+						t.Errorf("%s %s %s block %d: does not decode", data, side, n, en.ID)
 					}
 				}
 			}
@@ -79,7 +79,7 @@ func animWhole(b []byte) bool {
 // PoD's PIC1 block 44 (the mud man): 8 frames, their delays, and play
 // going back to frame 4 after the last (O108:0834's loop).
 func TestVGAAnimPod(t *testing.T) {
-	f, err := Open("../../pod-go/data/dos/PIC1.DAX")
+	f, err := Open("../data/pod/sources/dos/PIC1.DAX")
 	if err != nil {
 		t.Skip("no PoD data")
 	}

@@ -1,0 +1,87 @@
+# Spell tips (game.Data.SpellRules): spell id, a tab, the tip. Written for cotab from the rules' own spell table (tables.go spellTableData) and cast routines (spells1.go spellFx, spells2.go, affects.go): the original has none.
+1	Caster's side within 2 squares of a point in range 6 gets +1 to hit and +5 morale (not those next to a foe); party in camp. Lasts 6 rounds. No save.
+2	Enemy side within 2 squares of a point in range 6 gets -1 to hit and -5 morale. Lasts 6 rounds. No save.
+3	Heals one creature by touch (range 1) 1d8 hit points. No save.
+4	Touch attack (needs a hit roll) on one creature for 1d8 damage. No save.
+5	The caster detects magic. Lasts 10 rounds. No save.
+6	One creature by touch: evil attackers get -2 to hit it and it gets +2 on saves against them. Lasts 3 rounds per level. No save.
+7	One creature by touch: good attackers get -2 to hit it and it gets +2 on saves against them. Lasts 3 rounds per level. No save.
+8	One creature by touch takes half damage from cold and gets +3 on saves against it. Lasts 10 rounds per level. No save.
+9	One creature by touch takes fire damage equal to the caster's level. No save.
+10	One man-sized humanoid within 12 squares joins the caster's side until the charm is broken. Save vs. spell negates.
+11	The caster detects magic. Lasts 2 rounds per level. No save.
+12	One creature in range 2 squares per level gets magical strength by level: 18 at 1, 18/51 at 3, 18/00 at 6, up to 22 at 10-11. Lasts 10 rounds per level. No save.
+13	One creature in range 2 squares per level loses an Enlarge on it. Save vs. spell negates.
+14	Camp only. The caster gains +2d4 charisma. Lasts 1 round per level. No save.
+15	One target in range 6 + 4 squares per level takes 1d4+1 per missile, one missile per 2 levels (rounded up). No save; Shield stops it.
+16	One creature by touch: evil attackers get -2 to hit it and it gets +2 on saves against them. Lasts 2 rounds per level. No save.
+17	One creature by touch: good attackers get -2 to hit it and it gets +2 on saves against them. Lasts 2 rounds per level. No save.
+18	Camp only. Lets the caster read magic. Lasts 2 rounds per level. No save.
+19	The caster's armour class becomes at least 3, +1 on saves, and Magic Missile does no harm. Lasts 5 rounds per level. No save.
+20	Touch attack (needs a hit roll) on one creature for 1d8 + caster level electrical damage. No save.
+21	Creatures within 1 square of a point in range 3 + 4 per level sleep, up to 4d4 hit dice (level 1: 1, 2: 2, 3: 4, 4: 6, 5+: 10-20). Lasts 5 rounds per level. No save.
+22	Camp only. The caster finds traps. Lasts 30 rounds. No save.
+23	Up to 3 man-sized humanoids within 6 squares are held. Lasts 4 + 1 round per level. Save vs. spell negates (-2 on one target, -1 on two).
+24	One creature by touch takes half damage from fire and gets +3 on saves against it. Lasts 10 rounds per level. No save.
+25	One creature or the area round a square within 12 squares is silenced: no casting or using items. Lasts 2 rounds per level. Save is rolled but has no effect.
+26	One poisoned creature by touch is kept at 1+ hit points, its poison damage stopped, and stunned 10 rounds. Lasts 60 rounds per level. No save.
+27	Combat only. Snakes with total hit points up to the caster's current hit points fall asleep until it ends. No save.
+28	The caster gains a +1 magic hammer, range 3. Lasts 1 round per level. No save.
+29	The caster sees invisible creatures (no penalty to hit them), range 4 squares per level. Lasts 5 rounds per level. No save.
+30	One creature by touch turns invisible: attackers without Detect Invisibility get -4 to hit it. Lasts until ended. No save.
+31	Combat only. Shows "Knock-Knock" on the caster; the code gives it no other effect. No save.
+32	The caster gets 1d4 images; a one-target spell or blow may strike an image instead. Lasts 2 rounds per level. No save.
+33	One target, range 1 square +1 per level: the damage it deals drops by a quarter. Lasts 1 round per level. Combat only. Save vs. spell negates.
+34	Range 3: a 2x2-square cloud that lasts 1 round per level. Inside, save vs. paralysis or retch, losing 1d4+1 rounds; on a save, cough (no spells or items, AC 2 worse).
+35	One member, touch: Strength +1d4 (mage), +1d6 (cleric/thief) or +1d8 (fighter); past 18, fighters gain exceptional strength. Lasts 60 rounds per level. No save.
+36	Range 4: raises fallen party members' corpses to fight on the caster's side as undead, one per caster level. Permanent. No save.
+37	One member, touch: cures blindness. Instant. No save.
+38	Touch, needs a hit roll: the target is blind, -4 to hit, -4 on saves and AC 4 worse. Permanent until cured. Combat only. Save vs. spell negates.
+39	One member, touch: cures disease, including the effects of Cause Disease. Instant. Camp only. No save.
+40	Touch, needs a hit roll: the target is diseased, weakened and wasting (Strength drops over time). Permanent until cured. Combat only. Save vs. spell negates.
+41	Range 6: each spell effect on the target may end, 50% +5% per caster level above the effect's (-2% per level below); also clouds on the 3x3 squares. No save.
+42	The caster's side gets +1 to hit and on saves, its enemies -1, within the caster's aura. Lasts 1 round per level. No save.
+43	One member, touch: lifts Bestow Curse, or else uncurses one cursed item (unreadying it). Instant. No save.
+44	Touch, needs a hit roll: the target has -4 to hit and -4 on saves. Lasts 10 rounds per level. Combat only. Save vs. spell negates.
+45	The caster blinks: attacks on him miss once he has acted in the round. Lasts 1 round per level. Combat only. No save.
+46	Range 12: each spell effect on the target may end, 50% +5% per caster level above the effect's (-2% per level below); also clouds on the 3x3 squares. No save.
+47	Range 10 squares +1 per level: 1d6 fire damage per caster level to all within 3 squares of the target square (2 outdoors). Save vs. spell for half.
+48	Range 6, radius 2: up to 1 ally per caster level is hasted (double speed, ages 1 year) and freed of Slow. Lasts 3 rounds +1 per level. No save.
+49	Range 12: holds up to 4 man-sized humanoids, saves at -3 for one target, -1 for two. Lasts 2 rounds per level. Save vs. spell negates.
+50	Radius 1 square round the caster, or the whole party: invisible, attackers -4 to hit unless they detect invisibility. Lasts until broken. No save.
+51	Range 4 squares +1 per level: a bolt doing 1d6 electricity damage per caster level along a line past the target, bouncing off walls. Save vs. spell for half.
+52	One member, touch: evil attackers get -2 to hit him and he gets +2 on saves against them. Lasts 2 rounds per level. No save.
+53	One member, touch: good attackers get -2 to hit him and he gets +2 on saves against them. Lasts 2 rounds per level. No save.
+54	One member, touch: non-magical missile and ranged attacks against him miss. Lasts 10 rounds per level. No save.
+55	Range 9 squares +1 per level, radius 2: up to 1 enemy per caster level is slowed (half speed) and loses Haste. Lasts 3 rounds +1 per level. Combat only. No save.
+58	One member, touch: heals 2d8+1 hit points. Instant. No save.
+66	Touch one target for 2d8+1 damage. No save.
+67	Removes poison from the caster in combat or a chosen member in camp, restoring a poisoned character to 1 HP if at 0. No save.
+68	Touch one target: it saves vs. poison or is poisoned and killed.
+69	One creature within 3 squares (a member in camp): evil attackers get -2 to hit and it gets +2 on saves vs. them. Lasts 10 rounds per level. No save.
+70	One creature within 3 squares fights snakes that soak up attacks equal to caster level, losing its turn; fails on level 6+. Lasts 2 rounds per level. No save.
+71	Touch heals one target (a member in camp) 3d8+3 hit points. No save.
+72	Touch attack (needs a hit roll) for 3d8+3 damage to one target. Save vs. spell negates.
+73	Caster only: attacking enchanted creatures, each saves vs. spell or is dispelled (destroyed). Lasts 1 round per level.
+74	One target within 6 squares takes 6d8 fire damage. Save vs. spell for half.
+75	Camp only: raises a dead (non-elf) member to 1 HP at the cost of 1 Constitution. No save.
+76	One target within 3 squares saves vs. spell or is slain; on a save it still takes 2d8+1 damage.
+77	Druid. Caster only: lays a detect magic affect for 12 rounds. No save.
+78	Druid. Area of radius 3 within 8 squares, outdoors only: targets are entangled and rooted for 6 + 3 rounds per level. Save vs. spell negates.
+79	Druid. Up to caster level hit dice of creatures within 8 squares get AC changed by 2 for 4 rounds per level; the last one picked is never affected. Save vs. spell negates.
+80	Druid. Touch one creature (a member in camp): animals attack it at -4 to hit. Lasts 10 + 1 round per level. No save.
+81	Up to 2d4 hit dice of creatures within 6 squares are charmed permanently; large ones and the last one picked are unaffected. Save vs. spell negates.
+82	Area of radius 3 within 12 squares, at most 2d8 creatures confused for 2 + 1 round per level. Save vs. spell negates.
+83	Combat only: the caster teleports to an empty square within 3 squares per level, breaking free of huggers or engulfers. No save.
+84	A cone 3 wide and 6 long: creatures flee in terror for 1 round per level. Save vs. spell negates.
+85	Caster only, hot or cold flames: double damage of that element, +2 saves vs. the other, adjacent attackers take double their damage back. Lasts 2 + 1 round per level.
+86	One target within 1 square per level is made clumsy (on a save, slowed instead) for 1 round per level. Save vs. spell.
+87	Area of radius 2 within 1 square per level takes 3d10 cold damage. No save.
+88	Caster only: blocks spells of levels 1 to 3. Lasts 1 round per level. No save.
+89	Touch one target (a member in camp): lifts a curse, or else un-curses its cursed items. No save.
+90	Animates dead party members, up to caster level of them, as undead fighting for the caster, permanently. No save.
+91	A 9-square poison cloud within 2 squares for caster-level rounds: up to 4 HD die, 5 HD save vs. poison at -4, 6 HD save, stronger immune.
+92	A cone 2 wide and (level+1)/2 long from the caster: level + level d4 cold damage. Save vs. spell for half.
+93	One target within 16 squares: Int and Wis drop to 7 and it cannot cast, permanently. Save vs. spell negates; mages save at -4, clerics at +1, others at -2.
+94	Up to 4 creatures within 1 square per level, any size, are held (paralyzed) for 1 round per level. Save vs. spell negates, at -3 for one target, -1 for two.
+100	Touch one target: announces it is cursed, but the record lays no affect, so it has no game effect. Save vs. spell negates.

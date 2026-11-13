@@ -1,0 +1,304 @@
+# COTAB script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated from the decoded operands and cotab-re src/eclmenu.pas (genlay2.py): the member fields are SpecialReadZ1/SpecialWriteZ1 cases,
+# the facts ReadGbvm/WriteGbvm zone-4 cases, the locals the entry clears, the named words C_Gbvm constants; Word<addr> is a zone word the Pascal gives no meaning.
+00B1 1 byte fact ProbeCell  # eclmenu.pas ReadGbvm zone 4 $B1: scriptResultB1; write ignored
+00B8 1 byte fact UnusedB8  # eclmenu.pas WriteGbvm zone 4 $B8: scriptValueB8, never read
+00B9 1 byte fact UnusedB9  # WriteGbvm zone 4 $B9: scriptValueB9, never read
+00FB 1 byte fact ProbeX  # ReadGbvm zone 4 $FB: scriptResultFb; write ignored
+00FC 1 byte fact ProbeY  # ReadGbvm zone 4 $FC: scriptResultFc; write ignored
+033D 1 byte fact FacingRaw  # ReadGbvm zone 4 $33D: partyPos.facing (0..7)
+035F 1 byte fact ProbeWall  # ReadGbvm zone 4 $35F: handled, no value
+03DE 1 byte fact Sound
+2E10 1 byte call CallRedraw  # key $AE11 (address - $7FFF): refresh cell, redraw view
+4B72 1 byte game Word4B72
+4BC3 1 byte game MapX  # combatst.pas MAP_X
+4BC4 1 byte game MapY  # combatst.pas MAP_Y
+4BC5 1 byte game Geo  # C_Gbvm GEO_MAP_ID
+4BC6 2 word game Clock  # gametime.pas AdvanceTime: zone0^[$4BC6 + i], i 0..6 (clockLimits 10, 10, 6, 24, 30, 12, 256); Clock[0..1], charhlp CLOCK_MINUTES $4BC7
+4BC8 1 word game TenMinutes  # Clock[2], charhlp.pas CLOCK_TEN_MINUTES
+4BC9 1 word game Hours  # Clock[3], C_Gbvm CLOCK_HOURS
+4BCA 3 word game ClockDate  # Clock[4..6]: days, months, years
+4BE5 1 byte game NoMagic  # C_Gbvm ANTI_MAGIC
+4BE6 1 byte game In3D  # C_Gbvm VIEW_3D
+4BE7 1 byte game WallSplitA  # eclvm.pas AREA_GRAPHICS_1: with WallSplitB nonzero LOAD PIECES loads slots 1 and 3
+4BE8 1 byte game WallSplitB  # eclvm.pas AREA_GRAPHICS_2
+4BF0 1 byte game PrevX  # eclvm.pas PRE_MOVE_X
+4BF1 1 byte game PrevY  # eclvm.pas PRE_MOVE_Y
+4BF2 1 byte game LastBlock  # C_Gbvm PREV_SCRIPT: the script before the last NEWECL
+4BFB 1 byte game NoCoords  # C_Gbvm NO_AUTOMAP
+4BFC 1 byte game MsgDelay  # saveload.pas SAVED_SPEED: the game delay saved with the game
+4BFD 1 byte game Sky  # mapview.pas SKY_INDEX; a write redraws the sky
+4BFE 1 byte game SkyInside  # mapview.pas CEILING_INDEX; a write redraws the sky
+4BFF 1 byte game ViewFlags  # saveload.pas SAVED_PICTURE_FLAGS: picsOn*2 + animOn, as POR's
+4C00 1 byte local Local00
+4C01 1 byte local Local01
+4C02 1 byte local Local02
+4C03 1 byte local Local03
+4C04 1 byte local Local04
+4C05 1 byte local Local05
+4C06 1 byte local Local06
+4C07 1 byte local Local07
+4C08 1 byte local Local08
+4C09 1 byte local Local09
+4C0A 1 byte local Local0A
+4C0B 1 byte local Local0B
+4C0C 1 byte local Local0C
+4C0D 1 byte local Local0D
+4C0E 1 byte local Local0E
+4C0F 1 byte local Local0F
+4C10 1 byte local Local10
+4C11 1 byte local Local11
+4C12 1 byte local Local12
+4C13 1 byte local Local13
+4C14 1 byte local Local14
+4C15 1 byte local Local15
+4C16 1 byte local Local16
+4C17 1 byte local Local17
+4C18 1 byte local Local18
+4C19 1 byte local Local19
+4C1A 1 byte local Local1A
+4C1E 1 byte local Local1E
+4C1F 1 byte local Local1F
+4C20 1 byte game Word4C20
+4C21 1 byte game Word4C21
+4C22 1 byte game Word4C22
+4C23 1 byte game Word4C23
+4C24 1 byte game Word4C24
+4C25 1 byte game Word4C25
+4C26 1 byte game Word4C26
+4C27 1 byte game Word4C27
+4C28 1 byte game Word4C28
+4C29 1 byte game Word4C29
+4C2A 1 byte game Word4C2A
+4C2B 1 byte game Word4C2B
+4C2C 1 byte game Word4C2C
+4C2D 1 byte game Word4C2D
+4C2E 1 byte game Word4C2E
+4C2F 1 byte game Word4C2F
+4C30 1 byte game Word4C30
+4C31 1 byte game Word4C31
+4C32 1 byte game Word4C32
+4C33 1 byte game Word4C33
+4C34 1 byte game Word4C34
+4C35 1 byte game Word4C35
+4C36 1 byte game Word4C36
+4C37 1 byte game Word4C37
+4C38 1 byte game Word4C38
+4C3A 1 byte game Word4C3A
+4C3B 1 byte game Word4C3B
+4C3C 1 byte game Word4C3C
+4C3D 1 byte game Word4C3D
+4C3E 1 byte game Word4C3E
+4C3F 1 byte game Word4C3F
+4C40 1 byte game Word4C40
+4C41 1 byte game Word4C41
+4C42 1 byte game Word4C42
+4C43 1 byte game Word4C43
+4C44 1 byte game Word4C44
+4C45 1 byte game Word4C45
+4C46 1 byte game Word4C46
+4C47 1 byte game Word4C47
+4C48 1 byte game Word4C48
+4C4B 1 byte game Word4C4B
+4C4C 1 byte game Word4C4C
+4C4D 1 byte game Word4C4D
+4C4E 1 byte game Word4C4E
+4C4F 1 byte game Word4C4F
+4C50 1 byte game Word4C50
+4C51 1 byte game Word4C51
+4C52 1 byte game Word4C52
+4C53 1 byte game Word4C53
+4C54 1 byte game Word4C54
+4C59 1 byte game Word4C59
+4C5A 1 byte game Word4C5A
+4C5B 1 byte game Word4C5B
+4C5E 1 byte game Word4C5E
+4C5F 1 byte game Word4C5F
+4C60 1 byte game Word4C60
+4C61 1 byte game Word4C61
+4C62 1 byte game Word4C62
+4C63 1 byte game Word4C63
+4C64 1 byte game Word4C64
+4C65 1 byte game Word4C65
+4C66 1 byte game Word4C66
+4C68 1 text game Word4C68
+4C81 1 byte game Word4C81
+4C82 1 byte game Word4C82
+4C83 1 byte game Word4C83
+4C84 1 byte game Word4C84
+4C85 1 byte game Word4C85
+4C86 1 byte game Word4C86
+4C88 1 byte game Word4C88
+4C89 1 byte game Word4C89
+4C8A 1 byte game Word4C8A
+4C8B 1 byte game Word4C8B
+4C8C 1 byte game Word4C8C
+4C8D 1 byte game Word4C8D
+4C8E 1 byte game Word4C8E
+4C8F 1 byte game Word4C8F
+4C90 1 byte game Word4C90
+4C91 1 byte game Word4C91
+4C92 1 byte game Word4C92
+4C93 1 byte game Word4C93
+4C94 1 byte game Word4C94
+4C95 1 byte game Word4C95
+4C96 1 byte game Word4C96
+4C97 1 byte game Word4C97
+4C98 1 byte game Word4C98
+4C99 1 byte game Word4C99
+4C9A 1 byte game Word4C9A
+4C9B 1 byte game Word4C9B
+4C9C 1 byte game Word4C9C
+4C9D 1 byte game Word4C9D
+4C9E 1 byte game Word4C9E
+4C9F 1 byte game Word4C9F
+4CA0 1 byte game Word4CA0
+4CA1 1 byte game OverlandLocation
+4CA2 1 byte game Word4CA2
+4CA3 1 byte game Word4CA3
+4CB8 1 byte game Word4CB8
+4CB9 1 byte game Word4CB9
+4CBA 1 byte game Word4CBA
+4CBB 1 byte game Word4CBB
+4CBC 1 byte game Word4CBC
+4CBD 1 byte game Word4CBD
+4CBE 1 byte game Word4CBE
+4CBF 1 byte game Word4CBF
+4CC0 1 byte game Word4CC0
+4CC1 1 byte game Word4CC1
+4CC2 1 byte game Word4CC2
+4CC3 1 byte game Word4CC3
+4CC4 1 byte game Word4CC4
+4CC5 1 byte game Word4CC5
+4CC6 1 byte game Word4CC6
+4CC7 1 byte game Word4CC7
+4CC8 1 byte game Word4CC8
+4CC9 1 byte game Word4CC9
+4CCA 1 byte game Word4CCA
+4CCB 1 byte game Word4CCB
+4CCC 1 byte game Word4CCC
+4CCD 1 byte game Word4CCD
+4CCE 1 byte game Word4CCE
+4CCF 1 byte game Word4CCF
+4CD0 1 byte game Word4CD0
+4CD1 1 byte game Word4CD1
+4CD2 1 byte game Word4CD2
+4CD3 1 byte game Word4CD3
+4CD4 1 byte game Word4CD4
+4CD5 1 byte game Word4CD5
+4CD6 1 byte game Word4CD6
+4CD7 1 byte game Word4CD7
+4CD8 1 byte game Word4CD8
+4CD9 1 byte game Word4CD9
+4CDA 1 byte game Word4CDA
+4CDB 1 byte game Word4CDB
+4CE1 1 byte game Word4CE1
+4CE2 1 byte game Word4CE2
+4CE3 1 byte game Word4CE3
+4CE4 1 byte game Word4CE4
+4CE5 1 byte game Word4CE5
+4CE6 1 byte game Word4CE6
+4CE7 1 byte game Word4CE7
+4CEA 1 byte game Word4CEA
+4CEB 1 byte game Word4CEB
+4CEC 1 byte game Word4CEC
+4CED 1 byte game Word4CED
+4CEE 1 byte game Word4CEE
+4CEF 1 byte game Word4CEF
+4CF0 1 byte game Word4CF0
+4CF1 1 byte game Word4CF1
+4CF2 1 byte game Word4CF2
+4CF3 1 byte game Word4CF3
+4CF4 1 byte game Word4CF4
+4CFE 1 byte game Word4CFE
+4CFF 1 byte game AnimRequest
+4DCB 1 byte game Word4DCB
+6803 1 byte call CallNextFrame  # key $E804: step the portrait animation
+7B00 1 text game Word7B00
+7B01 1 text game Word7B01
+7B09 1 byte game Word7B09
+7B2C 1 byte game Word7B2C
+7B33 1 text game Word7B33
+7B4A 1 text game Word7B4A
+7B50 1 text game Word7B50
+7B5B 1 byte game Word7B5B
+7B5E 1 byte game Word7B5E
+7B88 1 text game Word7B88
+7B89 1 text game Word7B89
+7B90 1 text game Word7B90
+7BC2 1 text game Word7BC2
+7BF4 1 byte game Word7BF4
+7C00 21 text member SelName
+7C15 1 byte member SelInt
+7C18 1 byte member SelCon  # SpecialReadZ1 $18: Constitution
+7C20 20 byte member SelMemorized
+7C72 1 byte member SelRace
+7C73 1 byte member SelClass
+7C9B 1 byte member SelSaveVsPetrify  # SpecialReadZ1 $9B: saves[1]
+7CA5 1 byte member SelPickPockets
+7CA7 1 byte member SelFindTraps
+7CAB 1 byte member SelThiefSkill6
+7CB8 1 byte member SelControl
+7CBB 9 word member SelCoins coins=c,-,10c,-,100c,-,g,-,5g  # the import rewrites silver and electrum to copper, platinum to gold, by value (script.GoldCoins); SpecialReadZ1/WriteZ1 $BB..$C3 step 2: coins[0..4] copper .. platinum; the odd ones no field
+7CC4 1 byte game Word7CC4
+7CC9 1 byte member SelMageLevel
+7CD6 1 byte member SelGender
+7CD8 1 byte member SelAlignment
+7CE4 1 byte member SelScriptFlag
+7CEB 1 byte game Word7CEB
+7CF7 1 word member SelExpValue  # SpecialReadZ1/WriteZ1 $F7: xpAward
+7CF9 1 byte member SelExpPerHP  # SpecialReadZ1/WriteZ1 $F9: xpBonusPerHp
+7D00 1 byte member SelStatus enc=CotabSelStatus
+7D0C 1 byte member SelSide
+7D1B 1 byte member SelMove  # SpecialReadZ1 $11B: movementCur
+7EA8 1 byte game PartyExp  # C_Gbvm TRAIN_MASK: the classes the hall trains
+7EB1 1 byte member SelPartyIndex
+7EB4 1 byte member SelPartyIndex2  # SpecialReadZ1 $2B4: FindCurCharIdx, as $2B1
+7EC0 1 byte game MaxDist  # eclvm.pas MONSTER_DIST_REQUEST
+7EC1 1 byte game MonsterDist  # C_Gbvm MONSTER_DIST
+7EC6 1 byte game Morale  # C_Gbvm MORALE_THRESHOLD
+7EC7 1 byte game CombatEnd  # postcbt.pas COMBAT_RESULT: $80 lost, $81 fled, 0 otherwise
+7EC8 1 byte game Beaten  # postcbt.pas MONSTERS_DEFEATED
+7EC9 1 byte game HoldMove  # C_Gbvm MOVE_LOCK
+7ECA 1 byte game Search  # C_Gbvm SEARCH_FLAGS
+7ECB 1 byte game Surprise
+7ECF 1 byte member SelReaction  # SpecialReadZ1 $2CF: Charisma reaction 0..60
+7ED2 1 byte game RestEvery  # gametime.pas:499
+7ED3 1 byte game RestChance  # gametime.pas:503
+7ED5 1 byte game LeftMap  # C_Gbvm LEAVE_MAP
+7EE1 1 byte game Portrait  # C_Gbvm PORTRAIT_HEAD
+7EE2 1 byte game Temple
+7EE3 1 byte game NoLoot  # postcbt.pas NO_COMBAT_ITEMS
+7EE6 1 byte game Duel  # C_Gbvm MIRROR_DUEL
+7F12 1 byte game SymbolSet  # saveload.pas DATA_DISK; SpecialReadZ1 $312 diskIndex, SpecialWriteZ1 PushState
+7F22 1 byte game WallSlot1  # SpecialWriteZ1 $322: >$80 loads wall set v&$7F into slot 1
+7F24 1 byte game WallSlot2  # SpecialWriteZ1 $324: slot 2
+7F26 1 byte game WallSlot3  # SpecialWriteZ1 $326: slot 3
+7F33 1 byte game AttackedAlly  # C_Gbvm ATTACKED_ALLIES
+7F3E 1 byte game PartyCount  # C_Gbvm PARTY_SIZE (SpecialReadZ1 $33E)
+7F3F 1 byte game DivideRemainder
+7F6C 1 byte game Shop
+7F6D 1 byte game PriceScale
+7F70 1 byte game MonsterHit  # C_Gbvm MONSTER_THAC0_MODIFIER
+7F71 1 byte game PartyHit  # C_Gbvm PARTY_THAC0_MODIFIER
+7F72 1 byte game PartyMove  # C_Gbvm PARTY_MOVE_MODIFIER
+7F79 1 text local Scratch1
+7F7A 1 byte local Scratch2
+7F7B 1 byte local Scratch3
+7F7C 1 byte local Scratch4
+7F7D 1 byte local Scratch5
+7F7E 1 byte local Scratch6
+7F7F 1 byte local Scratch7
+7F80 1 byte local Scratch8
+7F81 1 byte local Scratch9
+7F82 1 byte local Scratch10
+7FF6 1 byte game Word7FF6
+B200 1 byte call CallSound  # key $3201: the move-step sound
+C01E 1 byte call CallMoveForward  # key $401F: move the party forward
+C04B 1 byte fact PartyX
+C04C 1 byte fact PartyY
+C04D 1 byte fact Facing
+C04E 1 byte fact WallAhead
+C04F 1 byte fact Cell
+C059 1 byte fact SetGroundShade  # WriteGbvm $BF68+$F1: wallColorSel, redraw view colors
+C05F 1 byte fact SetSkyShade  # WriteGbvm $BF68+$F7: ceilFloorColorSel, redraw view colors

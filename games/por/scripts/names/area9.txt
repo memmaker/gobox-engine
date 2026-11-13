@@ -1,0 +1,5 @@
+9D10 Table9D10  # GetTable base, GetTable [9D10] [6E7D] [6E81]
+9D18 Table9D18  # GetTable base, GetTable [9D18] [6E7D] [6E80]
+A196 TowerExitXTable  # by tower index -> PartyX
+A19C TowerExitYTable  # by tower index -> PartyY
+A1A2 TowerExitCellTable  # by tower index -> Cell

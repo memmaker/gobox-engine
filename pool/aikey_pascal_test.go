@@ -18,7 +18,7 @@ import (
 // the turn the first's or the NPC's, quick magic off or on. quickfight is Auto,
 // quickMagic magicOn, initiative Combat.Delay.
 func TestAiKeysAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-aikey.txt")
+	f, err := os.Open("../rules1e/testdata/por-aikey.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

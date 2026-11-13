@@ -1,0 +1,15 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A00 1 byte local EncounterType25  # random encounter kind 0-10 (quicklings..giant snakes), index into encounter tables; area-local reuse
+4A01 1 byte local EncounterExtraCount25  # number of second-group monsters loaded; area-local reuse
+4A02 1 byte local EncounterCount25  # number of main monsters, from party strength; area-local reuse
+4A0F 1 byte local AnkhegsDefeated  # set 1 after the two ankhegs erupting from the ground; area-local reuse
+4A10 1 byte local SlaverCaravanSeen  # set 1 after the slaver caravan rides by; area-local reuse
+4A11 1 byte local GuardsRideBySeen  # set 1 after armed guards ride by / envoy refused; area-local reuse
+4A13 1 byte local DragonCaveFlags  # 3D lair fights/treasures done, bits 1..128 (ankheg remains = 8); area-local reuse
+4A14 1 byte local DragonCaveFlags2  # more lair fights done, bits 1/2 (monster 118); area-local reuse
+4A15 1 byte local ForceEncounter25  # event3 sets 1 to force a random encounter; area-local reuse
+4A18 1 byte local LairStartX25  # random entry X into the 3D cave, copied to PartyX; area-local reuse
+4A19 1 byte local LairStartY25  # random entry Y into the 3D cave, copied to PartyY; area-local reuse
+4A1A 1 word local KeepRidersFought  # set 255 after the keep's riders fight (trespassing); area-local reuse
+4AA1 1 byte game DragonSeen  # 1 = dragon seen flying, 255 = seen landing at cave

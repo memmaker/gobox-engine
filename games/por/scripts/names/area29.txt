@@ -1,0 +1,14 @@
+AFA2 EncMonsterDistTable  # random encounter table (3 entries): MonsterDist
+AFA5 EncTable2  # random encounter table: value into 6E80
+AFA8 EncTable3  # random encounter table: value into 9805
+AFAB EncTable4  # random encounter table: value into 9806
+AFAE EncTable5  # random encounter table: value into 9827
+AFB1 EncTable6  # random encounter table: value into 9807
+AFB4 DropOffXTable  # 8 random PartyX after the bandits release you
+AFBC DropOffYTable  # 8 random PartyY after release
+AFC4 ExitCellByFacing  # cell that leads out of the map per facing
+AFC7 ExitSymbolSetByFacing  # SymbolSet for the next area per facing
+AFCA ExitAreaByFacing  # NewECL area per facing
+AFCE CellEventTable  # event index per cell (event1 OnGoto)
+AFE5 SecretDoorChanceByRace  # indexed by 6B72 (race), plus Search, vs random 5
+AFED GroundShadeTable  # SetGroundShade per GroundKind (4ADB)

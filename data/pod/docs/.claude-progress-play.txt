@@ -1,0 +1,33 @@
+13:05 start: read play contract + pod rules; baseline go test ./rules ok 78s; plan: Engine implements play.Game, wait holds play.State prototype + *play.Question, take(play.Action)
+13:11 rule change received: game passive, no callbacks; porting what is feasible, listing the rest. done so far (uncompiled): flow.go eclrun.go campflow.go alterflow.go itemflow.go rulesflow.go lootflow.go
+13:12 coordinator: passive design, per-flow commits. wait-based WIP saved to scratchpad waitbased-port.patch and reverted; tree builds at HEAD
+13:15 commit: merged yes/no wrappers (confirm, YesNo -> yesNoFrom); rules tests ok
+13:19 ECL VM: frames+pending in script, runEvent/scriptRestart/Adventure/afterInput/depart/campEvents/script asks/subs passive; vet ok, running rules tests
+13:25 commit: ECL VM passive (frames+pending); rules ok, cmd ok
+13:28 commit (a): temple play.Heal -> game.Heal; rules ok
+13:31 commit (b): creation passive (createTake, partyMenu/partyTake methods, selectTemp/unselectTemp); rules ok
+13:37 commit: SavingThrow/AttackHits/trapHits/RollDice/damagePlayer -> grules (signed save fix); rules+cmd ok
+13:51 commit (c): flows take frames not funcs; Adventure() has no done; tests ported (putAside/flowOver); rules ok except other session's TestTablesMatchEXE; cmd ok
+d: non-combat asks as question frames; combat asks/then(bool) remain
+1: combat asks as question frames, then(bool) -> actDone/castRun; ask+yesNoFrom removed
+2: Engine is play.Game/SlotSaver, Play/NewPlay gone
+14:26 commit fc28a16: WIP finished (Event/EventKind/Result gone, play events native, playEvents tests fixed); rules ok 42s; gobox 0f8dc8a knownCopies -3
+14:31 commit 31e81a6: explore+camp verbs are play actions (steps 1-2 collapsed as SOTSB); rules ok 45s
+14:34 commit d9b129e: loot/shop money verbs are play.Take/PoolCoins (step 3, part loot); rules ok
+14:35 commit ef9d131: shop/temple Buy/Heal/Repair/Appraise are play actions (step 3, part shop); rules ok
+14:37 commit afae1b6: item verbs are play actions (step 3, part items); rules ok 38s
+14:41 commit 34e2a78: combat verbs are play actions (step 3 done: combat/shop/loot/items); rules ok 50s
+14:42 cmd/pod tests ok 69s; gobox 3cd7a64 handover POD row. stop: steps 4-5 (party/creation; State from screen stack, delete Contract) wait for SOTSB's reference shape
+14:46 commit 41ebb19: step 4a party menu verbs are play actions; rules ok 50s
+14:48 commit 2ed34c1: step 4b creation sheet/Modify as play actions; rules ok 46s (before gobox dax OneDisk change broke the build, another session)
+14:51 commit d864f01: step 4c front actions, decision() gone; rules ok 53s (built with a go.work pinning gobox/dax to HEAD: another session's uncommitted dax change drops Loader.OneDisk, pod engine.go:224 still uses it)
+2026-11-06 14:56:48 7b1c455 step 4d: Do answers Continue/Reply/Leave directly; pool art pick on member + State keeps selection (WIP: cmd/pod TestCreationFront/TestKeyFlow failing)
+2026-11-06 15:00:25 d167711 cmd/pod TestCreationFront/TestKeyFlow fixed (old front decisions converted to play before call); 42ae5b3 SlotSaver/SaveSlot gone; step 4 done, rules+cmd/pod green
+2026-11-06 19:10:47 df8b596 step 5 tests: rules tests: aimed casts, art resolve, body down and pool fights on e.State()/e.Do (fieldOf, isHandout) (also dd1826a, 11fded1, 90fbf9d)
+2026-11-06 19:12:13 9c807a5 step 5 tests: rules tests: pool, quick start, edge exits, scenario saves and item flows on e.State()/e.Do (pictureOf)
+2026-11-06 19:16:45 19e906b step 5 tests: rules tests: contract, contract flows and play tests on e.State()/e.Do; the decision-mapping tests, the exploring parity and TestPlayStateDiff gone; walkMap is the engine's
+2026-11-06 19:26:12 8bcfbbc step 5b: facts struct replaces game.State, Contract type/decision mappings/call() game cases deleted, contract*.go renamed; rules 56s + cmd/pod 71s green
+2026-11-08 15:50:08 UNCOMMITTED, stopped on usage limit: contractdraft_test fixed; fight key tests press 'f' ('a' is camera pan); play.Engaged at combatFlow (engaged, TestEngaged); cmd/pod tests on a logged play.Game (no game.Rules). Full suite RED: cmd/pod TestQuickFightsToEnd hits its 60s hang watchdog (cause unknown, maybe Engaged); rules TestPartyJoined/create failed in the full run, passes alone. Left: Decision/Mode/Apply + wait.take closures, knownCopies, Prompt/Label/cancelWords -> typed + Esc, State0 strings.
+2026-11-08 20:17:06 16710c4 Decision/Mode/Apply/wait.take gone (targeted rules tests ok)
+2026-11-08 20:22:04 2822231 45e67b4 text keying gone, Esc typed; gobox knownCopies entry gone; full suite EXIT=0
+21:57:55 POWERS: Heal, Cure through play.UsePower, Allowed where casts are; Cure reachable (TestPaladinPowersDo). Script menus forced: no decompiler

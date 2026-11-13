@@ -136,8 +136,8 @@ func TestFixedPalette(t *testing.T) {
 		game, exe, dos, name string
 		pal                  int
 	}{
-		{"cotab", "Curse", "/Users/felix/Projects/cotab-go/data/dos", "CHEAD", 0x47410},
-		{"sotsb", "Secret", "/Users/felix/Projects/sotsb-go/data/dos", "CBODY", 0x4fdea},
+		{"cotab", "Curse", "/Users/felix/Projects/gobox-engine/data/cotab/sources/dos", "CHEAD", 0x47410},
+		{"sotsb", "Secret", "/Users/felix/Projects/gobox-engine/data/sotsb/sources/dos", "CBODY", 0x4fdea},
 	} {
 		t.Run(c.game, func(t *testing.T) {
 			s := games[c.game]

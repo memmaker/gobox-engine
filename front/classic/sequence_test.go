@@ -40,7 +40,7 @@ func TestSequenceSkip(t *testing.T) {
 
 // With the real INTRO playing, a frame shows and nothing is sent until the skip.
 func TestSequenceSkipPlaying(t *testing.T) {
-	dir := filepath.Join(os.Getenv("HOME"), "Projects/pod-go/data/dos")
+	dir := filepath.Join("..", "..", "data", "pod", "sources", "dos")
 	if _, err := os.Stat(filepath.Join(dir, "INTRO.BMA")); err != nil {
 		t.Skip("no Pools of Darkness files")
 	}

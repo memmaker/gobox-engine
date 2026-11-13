@@ -1,0 +1,14 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A0F 1 byte local BanditTreasureState  # 250 after the bandit gang falls (treasure waits), 255 taken or robbed; area-local reuse
+4A10 1 byte local InWell  # 1 after climbing down the well rungs, 0 after climbing up / being released; area-local reuse
+4A12 1 byte local CatacombAmbushDone  # 255 after the arrow volley in the hidden catacombs; area-local reuse
+4A13 1 byte local CatacombSpot1Done  # 255 after the event at L_A113 (facing north) (guess); area-local reuse
+4A14 1 byte local CatacombSpot2Done  # 255 after the event at L_A13A (facing south) (guess); area-local reuse
+4A19 1 byte local KoboldBandDone  # 255 after the kobold fight or when they scamper away; area-local reuse
+4A1A 1 word local EncounterMode  # 0 at event1, 200 forces the event3 (bandit) encounter variant; area-local reuse
+4A1F 1 byte local SecretDoorFound  # 255 after "YOU FIND A SECRET DOOR"; area-local reuse
+4A22 1 byte game RandomEncounters29  # random encounters so far; 10+ stops them, 255 = done
+4A23 1 byte game WildFlags  # bits: 1 well rungs found (L_A3D1), 2 spirit woman's warning heard, 4 searched treasure taken, 8 fight won, 16 nailed door forced
+4A24 1 byte game BanditsDone  # 255 after the bandit gang is beaten or the party robbed
+4ADB 1 byte game GroundKind  # 0 surface, 1 near the well, 2 well bottom; index into AFED ground shades

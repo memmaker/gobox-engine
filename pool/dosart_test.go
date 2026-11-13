@@ -8,7 +8,7 @@ import (
 // TestDOSArt: an Amiga picture carries its DOS twin, and DOSArt (F12)
 // shows the twin.
 func TestDOSArt(t *testing.T) {
-	if _, err := os.Stat("../../por-go/data/amiga/PIC.DAX"); err != nil {
+	if _, err := os.Stat("../data/por/sources/amiga/PIC.DAX"); err != nil {
 		t.Skip("no Amiga import")
 	}
 	e := testEngine(t)

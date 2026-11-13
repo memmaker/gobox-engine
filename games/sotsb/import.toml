@@ -1,0 +1,10 @@
+# Read by gameimport (shipped beside blades): it asks for the game and copies it into data/.
+game = "Secret of the Silver Blades"
+
+[[source]]
+name     = "Secret of the Silver Blades (1990)"
+describe = "The SSI DOS release"
+markers  = ["GEO1.DAX", "TITLE.DAX", "GAME.OVR"] # Pool and Curse have no GEO1.DAX
+files    = ["*.DAX", "START.EXE", "GAME.OVR", "ITEMS", "BLADES.CFG"]
+dest     = "data"
+upper    = true

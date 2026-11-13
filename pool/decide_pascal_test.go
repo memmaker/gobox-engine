@@ -90,7 +90,7 @@ func aiTurnVector(e *Engine, v aiVaried, seed, dist, hp, lvl, flank int) string 
 func TestDecideAgainstPascal(t *testing.T) {
 	e := testEngine(t)
 	e.Init()
-	f, err := os.Open("../../rules1e/testdata/por-ai.txt")
+	f, err := os.Open("../rules1e/testdata/por-ai.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

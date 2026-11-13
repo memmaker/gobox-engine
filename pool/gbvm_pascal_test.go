@@ -8,7 +8,7 @@ import (
 
 // TestGbvmAgainstPascal compares the engine fields at the special addresses with EclMenu.ReadGbvm (rules1e testdata/por-gbvm.txt).
 func TestGbvmAgainstPascal(t *testing.T) {
-	data, err := os.ReadFile("../../rules1e/testdata/por-gbvm.txt")
+	data, err := os.ReadFile("../rules1e/testdata/por-gbvm.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

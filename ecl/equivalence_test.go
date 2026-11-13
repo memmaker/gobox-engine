@@ -27,13 +27,12 @@ func (noText) Exit(*VM)                   {}
 // are compared in cotab's TestGateComparedWithFold. Without the game's data
 // a game is skipped.
 func TestScriptEqualsByteCode(t *testing.T) {
-	projects := filepath.Join("..", "..")
 	for _, g := range []struct {
-		dir string
+		dir string // the game's data: dos/ is its originals
 		v   *script.Version
-	}{{"por-go", script.V1}, {"cotab-go", script.V2}, {"sotsb-go", script.V2}, {"pod-go", script.V3}, {"buckrogers-go", script.V4}, {"buckrogers2-go", script.V4}} {
+	}{{"../data/por/sources", script.V1}, {"../data/cotab/sources", script.V2}, {"../data/sotsb/sources", script.V2}, {"../data/pod/sources", script.V3}, {"../../buckrogers-go/data", script.V4}, {"../../buckrogers2-go/data", script.V4}} {
 		t.Run(g.dir, func(t *testing.T) {
-			dos := filepath.Join(projects, g.dir, "data", "dos")
+			dos := filepath.Join(g.dir, "dos")
 			if _, err := os.Stat(dos); err != nil {
 				t.Skip("no game data")
 			}

@@ -15,7 +15,7 @@ import (
 // colours 0 and 13, DOS and Amiga; every block of the graphics archives the
 // game draws (artFiles) is there.
 func TestArtEqualsDAX(t *testing.T) {
-	data := filepath.Join("..", "..", "por-go", "data")
+	data := filepath.Join("..", "data", "por", "sources")
 	l, err := dax.NewLoader(filepath.Join(data, DOSDir))
 	if err != nil {
 		t.Skip("no game files")

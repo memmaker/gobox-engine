@@ -40,7 +40,7 @@ func porTreasureLines(t *testing.T) []string {
 // rewrites it).
 func TestPorTreasureGolden(t *testing.T) {
 	got := strings.Join(porTreasureLines(t), "\n") + "\n"
-	const file = "../../rules1e/testdata/treasure-por.golden"
+	const file = "../rules1e/testdata/treasure-por.golden"
 	if os.Getenv("CT_GOLDEN") != "" {
 		if err := os.WriteFile(file, []byte(got), 0o644); err != nil {
 			t.Fatal(err)

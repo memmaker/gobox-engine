@@ -1,0 +1,10 @@
+B255 DisguiseChoiceTable  # menu choice -> DisguiseState
+B258 RandomExitX  # table of X positions party is thrown to after fleeing
+B260 EncTypeTable  # random roll 0-8 -> EncType
+B269 EncMonsterTable  # per-type monster id
+B26F EncDistanceTable  # per-type value -> EncDistance
+B275 EncStrengthTable  # per-type strength divisor
+B27B EncParlayTable  # per-type parlay modifier
+B281 EncMoraleTable  # per-type morale
+B287 EncMinCountTable  # per-type count threshold for adding a second group
+B28D EncExtraTable  # per-type second-group count

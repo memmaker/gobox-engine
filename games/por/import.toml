@@ -1,0 +1,29 @@
+# Read by gameimport (shipped beside por): it asks for the game, copies it into data/ and runs the setup steps.
+game = "Pool of Radiance"
+
+[[source]]
+name     = "Pool of Radiance (1988)"
+describe = "The SSI DOS release"
+markers  = ["TITLE.DAX", "8X8D1.DAX"]
+exclude  = ["SKY.DAX", "BIGPIC1.DAX"] # Curse of the Azure Bonds
+files    = ["*.DAX", "POOL.CFG", "ITEMS", "START.EXE"] # START.EXE: the sound tables, decoded at import
+dest     = "data/dos"
+upper    = true
+run      = ["./por", "-setup"] # the port's own files (the area scripts) and the cover picture
+
+[[source]]
+name     = "the Amiga disks"
+optional = true
+describe = "The Amiga release's .adf disk images (loose or zipped). opool then shows the Amiga graphics and plays its sound."
+markers  = ["*.ADF"]
+files    = ["*.ADF"]
+dest     = "data/ADF"
+run      = ["./por", "-import-disk2", "data/ADF", "-data", "data"]
+
+[[source]]
+name     = "the voice-over"
+optional = true
+describe = "por-voice.zip, the spoken story lines (.ogg)."
+markers  = ["1a83648acff21ee4.ogg", "1ae1390bbc88f267.ogg"]
+files    = ["*.ogg"]
+dest     = "data/assets/speech"

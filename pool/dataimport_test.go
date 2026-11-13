@@ -19,7 +19,7 @@ import (
 // TestDataEqualsDAX: every GEO, MON and ITEM block and the ITEMS table read
 // back from the imported data (gdata) as the archives decode them.
 func TestDataEqualsDAX(t *testing.T) {
-	data := filepath.Join("..", "..", "por-go", "data")
+	data := filepath.Join("..", "data", "por", "sources")
 	l, err := dax.NewLoader(filepath.Join(data, DOSDir))
 	if err != nil {
 		t.Skip("no game files")
@@ -82,7 +82,7 @@ func TestDataEqualsDAX(t *testing.T) {
 // TestSoundEqualsEXE: the imported sound tables are START.EXE's driver
 // tables as decoded, and the driver plays them.
 func TestSoundEqualsEXE(t *testing.T) {
-	data := filepath.Join("..", "..", "por-go", "data")
+	data := filepath.Join("..", "data", "por", "sources")
 	exe, err := os.ReadFile(filepath.Join(data, DOSDir, "START.EXE"))
 	if err != nil {
 		t.Skip("no START.EXE")

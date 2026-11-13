@@ -1,0 +1,17 @@
+ADCE BlockedTerrain  # table of 8 terrain codes that stop movement (HoldMove)
+ADD6 SiteRowY  # table: Y of each special-site row
+ADDE SiteX  # table: X of special sites
+ADF5 SiteRowEnd  # table: end index of sites per row
+ADFD SiteKind  # table: site handler index
+AE14 EncSurpriseA  # per-encounter-type surprise value
+AE1F EncSurpriseB  # per-encounter-type surprise/distance value
+AE2A EncStrength  # per-type strength vs party strength
+AE35 EncGroupSize  # per-type divisor for extra group size
+AE4B EncData2  # per-type field -> [9802]
+AE56 EncData3  # per-type field -> [9803]
+AE61 EncMonster  # per-type main monster id -> [9804]
+AE6C EncData9  # per-type field -> [9809] (LoadMonster picture)
+AE77 EncData5  # per-type field -> [9805]
+AE82 EncMorale  # per-type morale -> [9806]
+AE8D EncData7  # per-type field -> [9807]
+AE98 EncMonster2  # per-type second monster id -> [9808]

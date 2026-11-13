@@ -117,7 +117,7 @@ func TestEffectsAgainstPascal(t *testing.T) {
 	e.Init()
 	cases, diffs := 0, map[string]int{}
 	for _, file := range []string{"por-eff", "por-dmg"} {
-		f, err := os.Open("../../rules1e/testdata/" + file + ".txt")
+		f, err := os.Open("../rules1e/testdata/" + file + ".txt")
 		if err != nil {
 			t.Fatal(err)
 		}

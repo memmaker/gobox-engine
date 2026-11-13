@@ -1,0 +1,13 @@
+bin/
+*.DAX
+gog/
+
+# the original game files (run.sh installs them from the GOG installer): never commit
+/data/
+.DS_Store
+crash_logs/
+/remaster/raw/
+/remaster/viewdump/
+/remaster/mapdump/
+/bin/
+/scenarios/*.debug

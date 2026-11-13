@@ -43,13 +43,13 @@ func osCall(n ast.Node, names map[string]bool) bool {
 // Fix by returning the error (one os.WriteFile per file, saves.Store.Write,
 // asset.WritePNG). A new violation fails here.
 func TestNoUncheckedWrites(t *testing.T) {
-	for _, root := range []string{"../../por-go", "../../gobox-engine", "../../cotab-go", "../../sotsb-go", "../../pod-go", "../../buckrogers-core", "../../buckrogers-go", "../../buckrogers2-go", "../../rules1e", "../../rulesxxvc"} {
+	for _, root := range []string{"../games/por", "../../gobox-engine", "../games/cotab", "../games/sotsb", "../games/pod", "../../buckrogers-core", "../../buckrogers-go", "../../buckrogers2-go", "../rules1e", "../../rulesxxvc"} {
 		filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 			if err != nil {
 				t.Error(err)
 				return nil
 			}
-			if filepath.ToSlash(path) == "../../pod-go/tools/music" {
+			if filepath.ToSlash(path) == "../games/pod/tools/music" {
 				return fs.SkipDir // a dev tool in its own module (a replace outside the tree): the gate cannot build it; its Close is left
 			}
 			if d.IsDir() && path != root && (d.Name() == "testdata" || d.Name() == "vendor" || strings.HasPrefix(d.Name(), ".")) {

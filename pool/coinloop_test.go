@@ -15,8 +15,8 @@ import (
 // code and the patched script take the same coins: TakeCoins runs from the
 // same purse and cost in both, and the purse and the cost left are equal.
 func TestArea9CoinLoop(t *testing.T) {
-	const scripts, area = "../../por-go/data/assets/scripts", 9
-	l, err := dax.NewLoader("../../por-go/data/dos")
+	const scripts, area = "../data/por/sources/assets/scripts", 9
+	l, err := dax.NewLoader("../data/por/sources/dos")
 	if err != nil {
 		t.Skip(err)
 	}

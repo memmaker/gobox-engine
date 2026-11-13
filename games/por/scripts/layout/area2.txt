@@ -1,0 +1,19 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4900 1 byte game EffectTable  # GetTable at L_ACF5: entries 0-63 searched for 27, entry+64 compared with 6DB4 (who); guess: active spell-effect table (feather fall in the well)
+4A02 1 byte local TapestryRoomSeen  # set 255 after "FADED, MOTHEATEN TAPESTRIES" text; area-local reuse
+4A05 1 byte local SkullcrusherLootDestroyed  # set 255 after "YOU DESTROY EVERYTHING OF VALUE." (dark object / dead hobgoblin); area-local reuse
+4A06 1 byte local StenchRoomSeen  # set 255 after "APPALLED BY THE STENCH" text; area-local reuse
+4A08 1 byte local KitchenSeen  # set 255 after "A SIMPLE KITCHEN" text; area-local reuse
+4A09 3 word local LarderSeen2  # set 255 after "BREAD AND MEAT LIE ABOUT" text; area-local reuse
+4A0C 1 byte local DeterioratedRoomSeen  # set 255 after "A DETERIORATED BUILDING" text; area-local reuse
+4A0F 1 byte local DiaryEntry11Found  # set 1 when the diary page (journal entry 11) is taken; area-local reuse
+4A17 1 byte local RestalDealDone  # set 1 after the Restal guild talk (seal duplicate deal / farewell); area-local reuse
+4A73 1 byte game PrisonerState  # small-room prisoner: 128 padlocks opened by brass key, 255 dealt with (died/joined/left)
+4A74 1 byte game HobgoblinTempleState  # 0 courtyard drum fight pending, 1 won ("STRANGELY QUIET"), 2 Grishnak defeated
+4A75 1 byte game IronBoxFound  # set 255 when the Cadorna iron box is found; also blocks the encounter at 22
+4AE1 1 byte game BarracksSeen  # set 255 after "SERVES AS A BARRACKS" text
+4AE2 1 byte game NurserySeen  # set 255 after the baby hobgoblins flee
+4AE3 1 byte game GraffitiRoomSeen  # set 255 after the graffiti text
+4AE4 1 byte game RandomEncounters2  # random-encounter counter in L_9A2A, counts to 10
+4A76 1 byte game RestalSealDuplicated  # added by patches/area2.patch

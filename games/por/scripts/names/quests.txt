@@ -1,0 +1,19 @@
+# The quest journal's quests (rules/quests.go, by id): "Quest 0 ID Name",
+# the operand of Quest(Name), the command a script hands a quest over with
+# (rules/scriptfixes.go, questFixes). By hand.
+Quest 0 0 ClearTheSlums
+Quest 0 1 SokalKeep
+Quest 0 2 LoreOfOldPhlan
+Quest 0 3 PodalPlazaAuction
+Quest 0 4 CadornasTreasure
+Quest 0 5 TempleOfBane
+Quest 0 6 KovelMansion
+Quest 0 7 TheNomads
+Quest 0 8 TheKoboldTribe
+Quest 0 9 ThePoisonedRiver
+Quest 0 10 TheLizardmen
+Quest 0 11 TheHeirOfBivant
+Quest 0 12 ZhentilEnvoys
+Quest 0 13 StojanowGate
+Quest 0 14 ValjevoCastle
+Quest 0 15 ValhingenGraveyard

@@ -1,0 +1,7 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A5D 1 byte game LizardMenKilled  # caps lizard men per ambush (<50), Beaten added via L_99D0; >=40 sets journal marker 4AB5
+4A5E 1 byte game PoolTreasureTaken  # bitmask by pool (AC46): "YOU FIND SOME TREASURE" in deep pool; also oddly read in L_9971 for giant lizard cap (orig bug?)
+4A5F 1 byte game GiantLizardsKilled  # Beaten giant lizards added via L_99D0; caps giant lizard numbers (<10)
+4A60 1 byte game EncountersDone  # bits per building encounter (A6F2), 1 treasure; 255 after championing old lizard man; bit1 cleared on taking tunnel down
+4A61 1 byte game BuildingsSeen  # bits: 2 rubble building, 4 central keep, 8 L-shaped building text shown; 1 pool lizards dived away

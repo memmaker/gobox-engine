@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var dosDir = filepath.Join(os.Getenv("HOME"), "Projects/pod-go/data/dos")
+var dosDir = filepath.Join("..", "..", "data", "pod", "sources", "dos")
 
 func load(t *testing.T, base string) *Anim {
 	t.Helper()

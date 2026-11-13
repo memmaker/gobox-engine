@@ -1,0 +1,9 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+49C0 1 byte game RestSaveX  # PartyX saved before resting in the nomad hut (Program 9)
+49C1 1 byte game RestSaveY  # PartyY saved before resting in the hut
+49C2 1 byte game RestSaveFacing  # Facing saved before resting in the hut
+4A00 1 byte local NomadAllies  # nomad helpers fighting with you (random 2d6, 3 after "LET US DO IT!"), loaded as monster 40; area-local reuse
+4A7D 1 byte game CampStage  # nomad camp visit: 1 lodged in hut, 2 games, 3 headman's request, 0 done; OnGoto in L_99CE
+4A7E 1 byte game KoboldRaidStage  # kobold attack on the camp: OnGoto index, set 1 at start, +1 per round
+4A7F 1 byte game NomadFightCount  # +1 after each nomad fight; OnGoto picks the 4th variant

@@ -15,7 +15,7 @@ import (
 // sprShown es.spriteLoaded, picDrawn es.picAnimating, monsterFlags
 // es.encounterShown, locTypePrev and locType prevViewMode and viewMode.
 func TestPictureAgainstPascal(t *testing.T) {
-	f, err := os.Open("../../rules1e/testdata/por-picture.txt")
+	f, err := os.Open("../rules1e/testdata/por-picture.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

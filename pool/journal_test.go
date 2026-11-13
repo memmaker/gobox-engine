@@ -19,7 +19,7 @@ import (
 // (Parse resolves the Entry values).
 func TestJournalSitesNamed(t *testing.T) {
 	ref := regexp.MustCompile(`\b(?:ENTRY\s*\d|ENTRIES\s*\d|PROCLAMATIONS?\s*(?:[IVXLC]+\b|"))`)
-	files, err := filepath.Glob("../../por-go/data/assets/scripts/area*.txt")
+	files, err := filepath.Glob("../data/por/sources/assets/scripts/area*.txt")
 	if err != nil || len(files) == 0 {
 		t.Skip("no imported scripts", err)
 	}
@@ -90,7 +90,7 @@ func TestClueBook(t *testing.T) {
 // oldParse is por's journal format as it read it before gobox did: each
 // title's lines.
 func oldParse(t *testing.T, name string) map[string][]string {
-	b, err := os.ReadFile("../../por-go/importpor/journal/" + name)
+	b, err := os.ReadFile("../games/por/importpor/journal/" + name)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -7,7 +7,7 @@ import (
 
 // PoD's border pictures (BORDERS.DAX block 0) decode as VGA, masked colour 13.
 func TestParseVGAPod(t *testing.T) {
-	const dir = "../../pod-go/gog/"
+	const dir = "../data/pod/extras/gog/"
 	if _, err := os.Stat(dir + "BORDERS.DAX"); err != nil {
 		t.Skip("no PoD data")
 	}

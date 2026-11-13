@@ -13,7 +13,7 @@ func TestWritesFailWithTheirError(t *testing.T) {
 	e := &Engine{set: 1}
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
-	e.data, e.adv = "../../por-go/data", "../../por-go/data/assets"
+	e.data, e.adv = "../data/por/sources", "../data/por/sources/assets"
 	if err := os.Chmod(e.Cfg.SaveDir, 0o500); err != nil {
 		t.Fatal(err)
 	}

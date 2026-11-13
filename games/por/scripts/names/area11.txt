@@ -1,0 +1,3 @@
+A168 EjectXTable  # GetTable -> PartyX after losing to watch
+A16C EjectYTable  # GetTable -> PartyY after losing to watch
+A170 HirelingTable  # GetTable -> AddNPC monster id

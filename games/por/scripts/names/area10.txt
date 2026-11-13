@@ -1,0 +1,6 @@
+B6C7 GroupDistTable  # GetTable -> MonsterDist by undead kind
+B6D0 GroupTable1  # GetTable -> [6E7B] by undead kind
+B6D9 GroupTable2  # GetTable -> [6E7C] by undead kind
+B6E2 GroupTable3  # GetTable -> [6E7D] by undead kind
+B6EB FleeXTable  # GetTable -> PartyX after defeat
+B6F0 FleeYTable  # GetTable -> PartyY after defeat

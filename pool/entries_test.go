@@ -11,7 +11,7 @@ import (
 // the scripts name it (Journal(Name)).
 func TestEntriesInBooks(t *testing.T) {
 	e := testEngine(t)
-	data := os.DirFS("../../por-go/data/assets/scripts")
+	data := os.DirFS("../data/por/sources/assets/scripts")
 	es, err := script.ReadEntries(data)
 	if err != nil || len(es) == 0 {
 		t.Fatalf("entries: %v (%d)", err, len(es))

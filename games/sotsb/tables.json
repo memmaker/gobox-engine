@@ -1,0 +1,477 @@
+[
+  {
+    "name": "recolourFrom",
+    "at": 6564,
+    "len": 16,
+    "kind": "bytes",
+    "doc": "The colours recolouring maps from (identity)."
+  },
+  {
+    "name": "recolourIcons",
+    "at": 6580,
+    "len": 16,
+    "kind": "bytes",
+    "doc": "Combat icons recoloured to (colour 8 becomes 0)."
+  },
+  {
+    "name": "wildMapCursorX",
+    "at": 2634,
+    "len": 32,
+    "kind": "bytes",
+    "doc": "Wilderness map cursor columns (8-pixel cells), by place.",
+    "img": 1
+  },
+  {
+    "name": "wildMapCursorY",
+    "at": 2666,
+    "len": 32,
+    "kind": "bytes",
+    "doc": "Wilderness map cursor rows (8-pixel cells), by place.",
+    "img": 1
+  },
+  {
+    "name": "raceNames",
+    "at": 3441,
+    "len": 8,
+    "kind": "string:9",
+    "doc": "Race names (raceTribble, raceElf ...)."
+  },
+  {
+    "name": "genderNames",
+    "at": 3666,
+    "len": 2,
+    "kind": "string:7",
+    "doc": "Gender names."
+  },
+  {
+    "name": "classNames",
+    "at": 2955,
+    "len": 17,
+    "kind": "string:27",
+    "doc": "Class names; 8.. are the multi-class combinations."
+  },
+  {
+    "name": "alignmentNames",
+    "at": 3513,
+    "len": 9,
+    "kind": "string:17",
+    "doc": "Alignment names."
+  },
+  {
+    "name": "coinNames",
+    "at": 3680,
+    "len": 7,
+    "kind": "string:11",
+    "doc": "Coin names: copper .. jewelry."
+  },
+  {
+    "name": "statusNames",
+    "at": 3757,
+    "len": 9,
+    "kind": "string:13",
+    "doc": "Character status names (Status)."
+  },
+  {
+    "name": "itemWords",
+    "at": 3853,
+    "len": 126,
+    "kind": "string:21",
+    "doc": "The words item names are made of, from START's table (sotsb-re orig/START.bin file offset 0xEED1 + 21*(n-20), word 20 being Two-Handed Sword: Pascal string[20]\nslots; entry 0 unused); an item type is also the number of its word."
+  },
+  {
+    "name": "defaultIconColours",
+    "at": 19631,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Entries 1..6: combat icon colours of a new character, one per icon part."
+  },
+  {
+    "name": "raceClasses",
+    "at": 19967,
+    "len": 8,
+    "kind": "bytes",
+    "doc": "Per race: the number of classes it may take, then those classes.",
+    "cols": 14
+  },
+  {
+    "name": "classAlignments",
+    "at": 20395,
+    "len": 17,
+    "kind": "bytes",
+    "doc": "Per class: the number of alignments it allows, then those alignments.",
+    "cols": 10
+  },
+  {
+    "name": "thac0Table",
+    "at": 19468,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class and level (0..18): the THAC0 base value.",
+    "cols": 19
+  },
+  {
+    "name": "classItemFlags",
+    "at": 19602,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: the item-use bits it adds to the class mask."
+  },
+  {
+    "name": "raceAges",
+    "at": 20037,
+    "len": 8,
+    "kind": "bytes",
+    "doc": "Per race, for the classes 0..6: starting age base (word), dice count, dice sides.",
+    "cols": 28
+  },
+  {
+    "name": "ageSteps",
+    "at": 20223,
+    "len": 8,
+    "kind": "words",
+    "doc": "Per race: the ages at which abilities change (four steps, one spare word).",
+    "cols": 5
+  },
+  {
+    "name": "raceAbilityLimits",
+    "at": 19869,
+    "len": 8,
+    "kind": "bytes",
+    "doc": "Per race: strength minimum and maximum by gender, exceptional strength maximum by gender, then minimum and maximum of int wis dex con cha.",
+    "cols": 16
+  },
+  {
+    "name": "clericStartSpells",
+    "at": 22540,
+    "len": 11,
+    "kind": "bytes",
+    "doc": "Entries 1..10: the spells a new cleric knows (0 ends the list)."
+  },
+  {
+    "name": "raceStatLimits",
+    "at": 16264,
+    "len": 8,
+    "kind": "bytes",
+    "doc": "Per race: strength min/max by gender, exceptional strength max by gender, then min/max of int wis dex con cha.",
+    "cols": 16,
+    "img": 1
+  },
+  {
+    "name": "classStatMinimum",
+    "at": 20293,
+    "len": 17,
+    "kind": "bytes",
+    "doc": "Per class: the minimum of each ability (str int wis dex con cha).",
+    "cols": 6
+  },
+  {
+    "name": "classTrainingBits",
+    "at": 19609,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: the training bit of the class (trainers list the bits they train; clerics and druids share one)."
+  },
+  {
+    "name": "classMaxHitDice",
+    "at": 19625,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: the level up to which hit points are rolled."
+  },
+  {
+    "name": "classFirstHitDice",
+    "at": 2480,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: hit dice rolled at level 1."
+  },
+  {
+    "name": "classHitDiceSides",
+    "at": 2487,
+    "len": 7,
+    "kind": "bytes",
+    "doc": "Per class: sides of the hit dice."
+  },
+  {
+    "name": "conHitPointBonus",
+    "at": 20562,
+    "len": 26,
+    "kind": "signed",
+    "doc": "Per constitution score: the hit point bonus per die."
+  },
+  {
+    "name": "expTable",
+    "at": 20580,
+    "len": 7,
+    "kind": "longs",
+    "doc": "Per class: the experience each level needs (level n: entry n).",
+    "cols": 46,
+    "stride": 187
+  },
+  {
+    "name": "modifyKeypad",
+    "at": 13342,
+    "len": 9,
+    "kind": "bytes",
+    "doc": "The keys 1..9 of the number pad as the scan codes Modify works with."
+  },
+  {
+    "name": "clericSlotData",
+    "at": 20641,
+    "len": 133,
+    "kind": "bytes",
+    "doc": "Cleric spells gained per level: entry level*7 + spell level (1..7)."
+  },
+  {
+    "name": "paladinSlotData",
+    "at": 21202,
+    "len": 133,
+    "kind": "bytes",
+    "doc": "Paladin cleric spells gained per level: entry level*7 + spell level."
+  },
+  {
+    "name": "rangerSlotData",
+    "at": 21389,
+    "len": 133,
+    "kind": "bytes",
+    "doc": "Ranger spells gained per level: entry level*7 + k (k 1..3 druid, 4..5 magic-user)."
+  },
+  {
+    "name": "mageSlotData",
+    "at": 21576,
+    "len": 133,
+    "kind": "bytes",
+    "doc": "Magic-user spells gained per level: entry level*7 + spell level."
+  },
+  {
+    "name": "saveTableData",
+    "at": 21906,
+    "len": 635,
+    "kind": "bytes",
+    "doc": "Saving throw targets: entry class*90 + level*5 + save (levels 1..18)."
+  },
+  {
+    "name": "thiefBaseData",
+    "at": 19629,
+    "len": 145,
+    "kind": "bytes",
+    "doc": "Thief skills by level: entry level*8 + skill (1..8)."
+  },
+  {
+    "name": "thiefRaceData",
+    "at": 19773,
+    "len": 65,
+    "kind": "signed",
+    "doc": "Thief skill adjustment by race: entry race*8 + skill."
+  },
+  {
+    "name": "thiefDexData",
+    "at": 19784,
+    "len": 131,
+    "kind": "signed",
+    "doc": "Thief skill adjustment by dexterity: entry dex*5 + skill (1..5)."
+  },
+  {
+    "name": "skyColours",
+    "at": 2728,
+    "len": 16,
+    "kind": "bytes",
+    "doc": "The sky colour by the area's sky word."
+  },
+  {
+    "name": "directionNames",
+    "at": 6458,
+    "len": 8,
+    "kind": "string:3",
+    "doc": "Compass point names by facing 0..7."
+  },
+  {
+    "name": "stepX",
+    "at": 6800,
+    "len": 9,
+    "kind": "signed",
+    "doc": "Column step by facing 0..7 (8: none)."
+  },
+  {
+    "name": "stepY",
+    "at": 6809,
+    "len": 9,
+    "kind": "signed",
+    "doc": "Row step by facing 0..7 (8: none)."
+  },
+  {
+    "name": "groundInfo",
+    "at": 6814,
+    "len": 31,
+    "kind": "bytes",
+    "doc": "Combat ground tiles: move cost (255 blocks), two flags and the tile's kind\n(START.EXE 61678: 31 records, through the stinking cloud's 29 and a body's 30).",
+    "cols": 4
+  },
+  {
+    "name": "footprints",
+    "at": 6930,
+    "len": 5,
+    "kind": "signed",
+    "doc": "Squares a combatant of size 0..4 covers: column and row offsets of its four parts (-1 none).",
+    "cols": 8
+  },
+  {
+    "name": "teamSides",
+    "at": 848,
+    "len": 4,
+    "kind": "bytes",
+    "doc": "Formation: the side each of the four teams of a facing looks to.",
+    "cols": 4
+  },
+  {
+    "name": "teamDirs",
+    "at": 864,
+    "len": 4,
+    "kind": "bytes",
+    "doc": "Formation: each team's direction (times 2) for the facing.",
+    "cols": 4
+  },
+  {
+    "name": "combatFacings",
+    "at": 880,
+    "len": 4,
+    "kind": "bytes",
+    "doc": "Combat facing for the party's map facing / 2."
+  },
+  {
+    "name": "formationStartX",
+    "at": 884,
+    "len": 2,
+    "kind": "signed",
+    "doc": "Formation start column: first team / other teams, by direction.",
+    "cols": 4
+  },
+  {
+    "name": "formationStartY",
+    "at": 892,
+    "len": 2,
+    "kind": "signed",
+    "doc": "Formation start row: first team / other teams, by direction.",
+    "cols": 4
+  },
+  {
+    "name": "formationRows",
+    "at": 900,
+    "len": 5,
+    "kind": "signed",
+    "doc": "Formation slots: per direction (4: the second team), rows 0..5 of first and last column.",
+    "cols": 12
+  },
+  {
+    "name": "itemTemplates",
+    "at": 2600,
+    "len": 57,
+    "kind": "words",
+    "doc": "Magic item templates read by the treasure generator: from entry n, name words n..n+2, weight n+3, price n+4, spells n+5..n+7 (low bytes)."
+  },
+  {
+    "name": "diseaseAffects",
+    "at": 6973,
+    "len": 5,
+    "kind": "bytes",
+    "doc": "Entries 1..4: the affects a paladin's Cure Disease removes (diseases)."
+  },
+  {
+    "name": "clockLimits",
+    "at": 15916,
+    "len": 7,
+    "kind": "words",
+    "doc": "Clock carries: minutes per ten, tens per hour, hours per day ... (area words 198..204).",
+    "img": 1
+  },
+  {
+    "name": "helplessAffectData",
+    "at": 6969,
+    "len": 5,
+    "kind": "bytes",
+    "doc": "Entries 1..4: the affects that leave a character helpless."
+  },
+  {
+    "name": "downAffectData",
+    "at": 2713,
+    "len": 15,
+    "kind": "bytes",
+    "doc": "Entries 1..14: the affects a character loses when it goes out of action (O145:13E9)."
+  },
+  {
+    "name": "cloudSquares4",
+    "at": 13472,
+    "len": 4,
+    "kind": "bytes",
+    "doc": "The facings from a small cloud's centre to its 4 squares (stinking cloud)."
+  },
+  {
+    "name": "dispelCloudSquares",
+    "at": 13472,
+    "len": 9,
+    "kind": "bytes",
+    "doc": "The squares Dispel Magic tries for a cloud: DS:27D9 read from entry 1,\nthe small cloud's table running on into the next, also for the large\ncloud (O113:3337)."
+  },
+  {
+    "name": "cloudSquares9",
+    "at": 13476,
+    "len": 9,
+    "kind": "bytes",
+    "doc": "The facings from a large cloud's centre to its 9 squares (cloudkill); 8 is the centre."
+  },
+  {
+    "name": "spellNames",
+    "at": 13451,
+    "len": 118,
+    "kind": "string:35",
+    "doc": "Spell names by spell number."
+  },
+  {
+    "name": "affectDisplayNames",
+    "at": 8743,
+    "len": 114,
+    "kind": "string:38",
+    "doc": "Affect names the game shows, by affect number (empty: none)."
+  },
+  {
+    "name": "spellLevelHeadings",
+    "at": 2167,
+    "len": 10,
+    "kind": "string:41",
+    "doc": "Spell menu headings by spell level.",
+    "img": 1
+  },
+  {
+    "name": "spellTableData",
+    "at": 17565,
+    "len": 118,
+    "kind": "bytes",
+    "doc": "The spell table: one 16-byte record per spell number (spellEntry).",
+    "cols": 16
+  },
+  {
+    "name": "turnUndeadRolls",
+    "at": 884,
+    "len": 10,
+    "kind": "signed",
+    "doc": "turnUndeadRolls = DS:0369 + 10*undead + column: the d20 a cleric needs to\nturn undead of each row (1..10), by cleric column (levels 1..8, 9..13,\n14 and up). 0: turned automatically, negative: destroyed (needing its\nabsolute value), 99: impossible.",
+    "cols": 10,
+    "img": 1
+  },
+  {
+    "name": "wildTerrainFlags",
+    "at": 852,
+    "len": 132,
+    "kind": "bytes",
+    "doc": "wildTerrainFlags = DS:0354: the wilderness terrain flags (terrainSparse\n...) by area byte 0x342.",
+    "img": 1
+  },
+  {
+    "name": "mageSpellsByLevel",
+    "at": 22621,
+    "len": 7,
+    "kind": "bytes",
+    "cols": 11,
+    "doc": "mageSpellsByLevel = DS:5851 + 11*level + 1..11: the magic-user spells a\nnew level may learn (the third row runs into the next one's 47)."
+  }
+]

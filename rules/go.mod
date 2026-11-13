@@ -13,4 +13,4 @@ require (
 
 replace gobox/core => ../core
 
-replace rules1e => ../../rules1e
+replace rules1e => ../rules1e

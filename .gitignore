@@ -5,3 +5,13 @@ blobber/.claude/
 por-switch.patch
 .DS_Store
 crash_logs/
+
+# every game's data (imported folder, sources, remaster, scenarios): never commit; its docs are tracked
+/data/**
+!/data/*/
+!/data/*/docs/
+!/data/*/docs/**
+.DS_Store
+# build output
+/gobox
+games/*/bin/

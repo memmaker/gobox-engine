@@ -1,0 +1,17 @@
+# POR script layout (gobox ecl/script Layout): from len width owner name [readonly].
+# Generated once from the decoded scripts' operands and names/*.txt (widths from the operand types), then kept by hand.
+4A01 1 byte local EncCount  # number of main monsters in the patrol (computed from party strength); area-local reuse
+4A02 1 byte local EncMonster  # monster id of current patrol (SetupMonster/LoadMonster); area-local reuse
+4A03 1 byte local EncExtraCount  # number of second-kind monsters in the patrol; area-local reuse
+4A04 1 byte local EncType  # patrol kind 0-8 rolled from B260, index into encounter tables; area-local reuse
+4A05 1 byte local EncMenuMode  # EncounterMenu option, 2 normally, 0 once PatrolsBeaten18>=64; area-local reuse
+4A08 2 byte local EncDistance  # per-type value from B26F passed to EncounterMenu (guess: distance); area-local reuse
+4A0A 1 byte local EncMorale  # morale for patrol combat (+10 with a second group); area-local reuse
+4A0B 1 byte local EncParlayMod  # per-type value from B27B (parlay modifier), otherwise unused; area-local reuse
+4A19 1 byte local BaneMeetHour  # Clock_3 + 2 (mod 24): hour to return to meet the Bane recruiter; area-local reuse
+4A1A 1 word local LastBuildingCell  # cell of the last abandoned building visited; 4 = Ilmater temple met; area-local reuse
+4A34 1 byte game PatrolsBeaten18  # counter of monster patrols defeated; 9 -> area cleared, 64 = auction mode
+4A35 1 byte game DisguiseState  # 0 not chosen, 1 bold, 2 disguised, 254 auction over, 255 cover blown
+4A36 1 byte game OverheardIndex  # which overheard monster rumour (0-4) plays next
+4A37 1 byte game TavernState  # 0 first visit, 1 brawl begun, 2 brawl won, 3 bar destroyed
+4A38 1 byte game BaneRecruiterState  # 0 robed orc not met, 1 meeting set, 2 ambush fought

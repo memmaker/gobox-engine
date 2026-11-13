@@ -1,0 +1,10 @@
+AEF6 EncMonsterDistTable  # per encounter -> MonsterDist
+AEFE EncMonsterTable  # per encounter -> monster id (9803)
+AF06 EncMoraleTable  # per encounter -> Morale (9804)
+AF0E EncCountTable  # per encounter -> monster count (9805)
+AF16 EncPictureTable  # per encounter -> LoadMonster 3rd arg (9806), guess picture
+AF1E ElfScrollLine1  # Protection text line 1 of the elf's scroll
+AF25 ElfScrollLine2  # Protection text line 2 of the elf's scroll
+AF34 ElfScrollLine3  # Protection text line 3 of the elf's scroll
+AF43 FleeXTable  # random PartyX after running away
+AF47 FleeYTable  # random PartyY after running away

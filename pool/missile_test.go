@@ -13,10 +13,10 @@ import (
 // its saves under a temp dir: tests never read or write the game's own.
 func testEngine(t *testing.T) *Engine {
 	t.Helper()
-	if _, err := os.Stat("../../por-go/data/dos/TITLE.DAX"); err != nil {
+	if _, err := os.Stat("../data/por/sources/dos/TITLE.DAX"); err != nil {
 		t.Skip("no game files")
 	}
-	e, err := New(char.Rules1e, porTables, "../../por-go/data/assets", "../../por-go/data")
+	e, err := New(char.Rules1e, porTables, "../data/por/sources/assets", "../data/por/sources")
 	if err != nil {
 		t.Fatal(err)
 	}

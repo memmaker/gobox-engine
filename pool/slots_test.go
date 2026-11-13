@@ -29,7 +29,7 @@ func TestSaveToKeepsArea(t *testing.T) {
 	e := &Engine{set: 1}
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
-	e.data, e.adv = "../../por-go/data", "../../por-go/data/assets" // the fields' layouts
+	e.data, e.adv = "../data/por/sources", "../data/por/sources/assets" // the fields' layouts
 	e.mapPairB = [3]int{5, 6, 7}
 	e.saveTo("X")
 	if w := e.state().Area.WallsB[2]; w != 0 {
@@ -46,7 +46,7 @@ func TestSaveToKeepsArea(t *testing.T) {
 // A save in the first command input after an area change names the area
 // the party is in, not the one it left (the area block still does then).
 func TestSaveToRunningArea(t *testing.T) {
-	e := &Engine{set: 1, data: "../../por-go/data", adv: "../../por-go/data/assets"} // the save needs the script layout
+	e := &Engine{set: 1, data: "../data/por/sources", adv: "../data/por/sources/assets"} // the save needs the script layout
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
 	e.state().Area.AreaKind, e.gs.areaKind = 20, 0
@@ -60,7 +60,7 @@ func TestSaveToRunningArea(t *testing.T) {
 // A slot holding only an original save is listed once imported, and loads
 // the original's state.
 func TestImportSlot(t *testing.T) {
-	e := &Engine{set: 1, data: "../../por-go/data", adv: "../../por-go/data/assets"}
+	e := &Engine{set: 1, data: "../data/por/sources", adv: "../data/por/sources/assets"}
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
 	f := char.OriginalSave{Set: 1, X: 7, Y: 9}
@@ -119,7 +119,7 @@ func TestVarOffsets(t *testing.T) {
 // The explored squares go with the slot: a load brings back the save's, not
 // what was explored since.
 func TestSeenFollowsSlot(t *testing.T) {
-	e := &Engine{set: 1, data: "../../por-go/data", adv: "../../por-go/data/assets"} // the save needs the script layout
+	e := &Engine{set: 1, data: "../data/por/sources", adv: "../data/por/sources/assets"} // the save needs the script layout
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
 	e.ext.seen = map[int]*[256]uint8{3: {5: seenVisited}}
@@ -141,7 +141,7 @@ func TestSeenFollowsSlot(t *testing.T) {
 // A slot saved with the explored squares by script area loads them by map:
 // New Phlan's district (area 0) and Training Hall (11) pool on set 3's map 0.
 func TestSeenByMap(t *testing.T) {
-	e := &Engine{set: 1, data: "../../por-go/data", adv: "../../por-go/data/assets"}
+	e := &Engine{set: 1, data: "../data/por/sources", adv: "../data/por/sources/assets"}
 	e.initVM()
 	seen := e.seenByMap(map[int]*[256]uint8{0: {5: seenVisited, 6: seenSeen}, 11 << 16: {6: seenVisited, 7: seenSeen}, 20<<16 | 20: {1: seenVisited}})
 	want := map[int]*[256]uint8{3 << 16: {5: seenVisited, 6: seenVisited, 7: seenSeen}, 2<<16 | 20: {1: seenVisited}}
@@ -168,7 +168,7 @@ func (e *Engine) labels() map[int]mapLabel {
 // over them and with the slot (built-in copies are not written), a new
 // adventure starts without them, and removing one shows the built-in again.
 func TestPhlanLabels(t *testing.T) {
-	e := &Engine{set: 3, data: "../../por-go/data", adv: "../../por-go/data/assets"} // the save needs the script layout
+	e := &Engine{set: 3, data: "../data/por/sources", adv: "../data/por/sources/assets"} // the save needs the script layout
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
 	if m := e.labels(); m[1<<4|15].text != "Boats" || len(m) != len(e.builtinLabels(3<<16)) {
@@ -197,7 +197,7 @@ func TestPhlanLabels(t *testing.T) {
 
 // The full map is titled with its map's name from names/pictures.txt.
 func TestMapName(t *testing.T) {
-	e := &Engine{set: 3, data: "../../por-go/data", adv: "../../por-go/data/assets"}
+	e := &Engine{set: 3, data: "../data/por/sources", adv: "../data/por/sources/assets"}
 	e.initVM()
 	if n := e.mapName(); n != "New Phlan" {
 		t.Errorf("set 3 GEO 0 = %q, want New Phlan", n)

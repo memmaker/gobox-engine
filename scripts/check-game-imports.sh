@@ -3,8 +3,9 @@
 # module (tests included) that directly imports UI code. gobox/app is
 # A cmd/ main is the app wiring: it may import any of it (the app shell,
 # front, present, classic, playrules, walls, gpu, fonts).
-for g in por-go cotab-go sotsb-go pod-go buckrogers-go buckrogers2-go; do
-  d=${PROJECTS:-$HOME/Projects}/$g
+here=$(cd "$(dirname "$0")/.." && pwd)
+for d in "$here"/games/* "$here"/../buckrogers-go "$here"/../buckrogers2-go; do
+  g=$(basename "$d")
   [ -d "$d" ] || continue
   (cd "$d" && go list -test -deps -f '{{if .Module}}{{if .Module.Main}}{{.ImportPath}}|{{join .Imports " "}}{{end}}{{end}}' ./... 2>/dev/null) |
   awk -F'|' -v g="$g" '

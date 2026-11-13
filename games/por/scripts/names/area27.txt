@@ -1,0 +1,18 @@
+AB9E BlockedTerrain  # table of 8 terrain codes that stop movement (HoldMove)
+ABA6 SiteRowY  # table: Y of each special site row
+ABAB SiteX  # table: X of special sites
+ABB4 SiteRowEnd  # table: end index of sites per row
+ABB9 SiteKind  # table: site handler index (castle, kobolds, caves, ...)
+ABC2 EncSurpriseA  # per-encounter-type surprise value
+ABCB EncSurpriseB  # per-encounter-type surprise/distance value
+ABD4 EncStrength  # per-type strength value vs party strength
+ABDD EncGroupSize  # per-type divisor for extra group size
+ABEF EncData2  # per-type encounter record field -> [9802]
+ABF8 EncData3  # per-type field -> [9803]
+AC01 EncMonster  # per-type main monster id -> [9804]
+AC0A EncData5  # per-type field -> [9805]
+AC13 EncMorale  # per-type morale -> [9806]
+AC1C EncData7  # per-type field -> [9807]
+AC25 EncMonster2  # per-type second monster id -> [9808]
+ACA7 MapPatchBase  # table of 5 base offsets into [6300] (guess)
+ACAC MapPatchValues  # table of values written into [6300] (guess)

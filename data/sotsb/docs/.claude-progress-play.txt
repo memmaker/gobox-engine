@@ -1,0 +1,32 @@
+start 13:02:55: read code, planning play.Game port
+step1 done: key layer removed (commit e60abcf). next: main port
+flow.go rewritten on play types (wait/ask/emit); engine files not yet ported, build broken until the port lands 13:07:08
+stopped 13:11:13: new passive-game rule makes the wait-based port obsolete; WIP saved as refs/wip/play-port, tree restored to e60abcf+MODERNIZE; see report
+step1 done: dead code deleted (CreateCharacter, ModifyCharacter, Load/SaveGame, Move{Dir}, walk.go, View/ModeSheet -> fs.sheet front state, title step/sung/credits, DropMember/SetSpeed); deleted tests: partyflow_test.go, TestModifyCharacterFlow, TestTitle, TestTitleAmigaCredits? (kept), cmd/blades/flow_test.go (old-vs-new needs TitlePicture). rules+cmd tests pass
+step2 done: ECL VM passive (script.running/frames/pending, runScript/resume/push/fire/subDone, pk* kinds, encounter+door as pending); rules+cmd tests pass
+step3a done: play.Heal -> game.Heal; pending yn yes/no aligned with pod b68f757
+step 3c: screen-stack flows, no func in shop/vault/temple/camp/combat/aftercombat/party; tests green
+step 3b: creation sheet undo func -> data (sel,n; pickTemp/dropTemp)
+step 3d/adapter: readyAct (Ready/Unready by state), EvSong->MusicChange; TestJoinedName flaky independent of my change (fails ~random with -count=15 without it)
+step 4a: Engine implements play.Game (play.go methods moved onto Engine; NewPlay/Play deleted; State->snap, Slots->slotStore, LoadSlot->loadKey)
+step 4b: PickMember/Number asks answerable in Scene and over states; EndIcon{Keep} applied directly via setIcon (tests added)
+step 5.1: Event/EventKind/Result gone; engine emits play.Event, Apply returns (play.Outcome, error); e.say for the text pane; adapter keeps callResult/gameEvents until its deletion
+step 5.2: explore and camp verbs are play actions handled in Do (own()); Step/Depart/Arrive/SquareEvent/Turn/Search/Look/Select/Camp/Rest/Fix/Memorize/Forget/Scribe/Cast/Order/LeaveCamp/SetDifficulty gone; asks stay game.Answer
+step 3: combat/shop/loot verbs are play actions in Do (Attack..Quick, Buy..PoolCoins, Take, Leave); old verbs and decision cases gone; tests ported to gdo/e.Do; fixed Take-piece not reopening the loot menu, Casting aim offered as Aimed Cast, allows() DeepEqual on Cast; rules+cmd green
+14:29:25 step 4 (party/creation): 7433df7 Call/partyCall/keepDraft/AddCharacter..BeginAdventure gone, sheet+party menu are play actions in Do; Begin joins a draft; RemoveCharacter per member; built/tested against gobox HEAD worktree (gobox has someone's uncommitted PointBuy WIP that breaks sotsb gamedata.go); rules+cmd green
+14:32:04 step 5a: e709305 frontAct takes picker/icon/training/Quit/LootShare/TryDoor/refusals as play actions; decision() gone; rules+cmd green
+14:32:24 stopped after 5a: 5b (decide() out of Do) and 5c (State builder + ~220 test uses, delete adapters) remain
+14:34:18 step 5b: baeb00e Do calls e.answer/e.cancel/e.titleCall directly; decide() gone; rules+cmd green
+14:34:57 5c not started: blocked by order. 143 test reads of g.State() (game.State) share the one builder; rewriting it to play.State keeps tests green only with a second, duplicate builder. Proposed: port tests to e.State()/e.Do first, then rewrite the builder and delete the adapter
+14:37:07 test port chunk 1: 8340e80 small files on e.State()/e.Do; lost front-only checks: pane Upcase, Window==WindowPicture (TestPageAfterBegin, TestPagePictureLayer, TestOpeningPictures)
+14:39:57 test port chunk 2: ec7c220 gamecalls/lootleave/noop/contractsmoke; lost adapter-only checks: ShowMember/OpenItems/CloseItems sheet+items (TestGameCalls, TestContractSmoke), TurnUndead refusal, LootLeave's Items==None
+14:45:34 test port chunk 3: 6119904 combatflow+journey on e.State()/e.Do; BUG fixed: e.State() changed partySel (allowed() called the selecting e.member); lost: OpenSheet/Cancel around the journey's ready/unready (front-only), Walls.Key in a message
+14:47:00 test port chunk 4: 7632d5f bigpic_test on e.State()/e.Do; lost: Window==WindowPicture, Flags.Full outside a Scene (TestBigPictures), ViewMember->SheetPage (now Party[0].Sheet), OpenItems before Drop
+14:51:15 test port chunk 5: 4c2886a game_test on e.State()/e.Do; BUG fixed: play.SetChoice{pool field, Text} outside creation was refused (gobox's member portrait/icon pool picker never reached SOTSB through play); lost: adapter refusals Aim/SetIcon nonsense/Call/TurnUndead (TestGameAdapter), Turn.Options (now Allowed), Cancel route of Abort Spell (now Cast{}), Member.Powers (checked via powerOptions)
+14:52:05 test port chunk 6: 9687439 gact gone. Left on the adapter by design: TestPlayParity, TestPlayStateDiff (adapter-vs-playrules parity: delete with the adapter), TestAskAllowsOnlyReplies (builds a game.State for allowed(): port when 5c changes allowed's input). Helpers gdo/gstep/gturn still take *Game (g.e, g.Map)
+2026-11-06 5c done (9cf8203): State from e.facts() (sotsb's own facts, gobox data types as values), gameadapter.go/Game/call()/Apply/run/gameEvents gone, TestPlayParity+TestPlayStateDiff deleted, TestPlayRestPaced kept (rest_test.go), TestAskAllowsOnlyReplies on facts; SaveSlot/SlotSaver gone, Save/Load round-trip tested; gobox funcFields sotsb 3->2
+15:43:22 text keys gone: door ways typed (pending.ways), learning/door by pending kind, Quick Start by place, Esc by play.EscTo (last item on hotkey E), yes/no by hotkeys, doneWord by type; TestJoinedName flake fixed (test's rolled Spells)
+15:45:05 play.Engaged emitted at combatFlow's start (TestEngaged)
+15:46:22 private Decision and Mode gone: handlers take play.Action (Reply for answers), engine's Mode is game.Mode, Apply is private take; CombatStep/SetIcon/loadNamed/joinDraft/poolPick verbs became combatStep, setIcon and partyCall
+15:47:20 Checks scan: dropped disk errors in SaveCharacter/notes/Save reported (fileError, returned); left: SaveCharacter's failure does not fail SaveNamed
+21:57:56 ESC/POWERS: script menus take no Esc (the E row guess gone for them), UsePower Allowed in camp
