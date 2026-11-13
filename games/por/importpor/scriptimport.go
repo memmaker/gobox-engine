@@ -5,7 +5,6 @@ import (
 	"gobox/asset/orig"
 	"gobox/ecl/script"
 	"gobox/games/por"
-	"gobox/games/por/importsrc"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -49,7 +48,7 @@ func ImportScripts(dos, dir string) error {
 	if err != nil {
 		return err
 	}
-	_, err = script.Import(script.V1, importsrc.ImportSource(l), os.DirFS(dir), dir, script.FoldGates, scriptFixes)
+	_, err = script.Import(script.V1, ImportSource(l), os.DirFS(dir), dir, script.FoldGates, scriptFixes)
 	return err
 }
 
@@ -67,5 +66,5 @@ func ImportIfStale(dos, dir string) error {
 	if err != nil {
 		return err
 	}
-	return script.ImportIfStale(script.V1, importsrc.ImportSource(l), os.DirFS(dir), dir, script.FoldGates, scriptFixes)
+	return script.ImportIfStale(script.V1, ImportSource(l), os.DirFS(dir), dir, script.FoldGates, scriptFixes)
 }

@@ -1,4 +1,4 @@
-package importsrc
+package importpor
 
 import (
 	"fmt"
