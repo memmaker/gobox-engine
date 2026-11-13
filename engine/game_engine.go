@@ -46,6 +46,11 @@ func (e *Engine) GameLoop() {
 // gameBegan: the area's start events are done; exploring opens.
 func (e *Engine) gameBegan(fresh bool) {
 	r := &e.run
+	if r.areaChanged { // the start script switched areas (sotsb's opening, area 17's NEW ECL 16): the new one's start events before any input (sotsb-re, cotab-re, pod-re GameLoop: NewEclDone)
+		e.push(cont{kind: kGameBegan, flag: fresh})
+		e.AreaChange()
+		return
+	}
 	if e.worldWord(rules.WordBeginFlag) != 3 {
 		if r.needFrame == 1 {
 			e.DrawMainScreen()
