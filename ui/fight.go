@@ -30,6 +30,7 @@ const logRows = 20 // the battle Log's lines shown at a time
 func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 	glyph := note.Glyph
 	b, k := p.fightBoard, scale(dst)
+	ck := max(1, int(k)/2) // the portrait card and the action bar: their own scale (the portrait card's, as before ui.K)
 	p.mapBottom = dst.Bounds().Dy() - int(math.Ceil(k*8*fightRows)) // the line is drawn at k, whole or not
 	if b.Turn != nil {
 		if i := p.selectedIndex(); i >= 0 { // whose turn: the portrait card, bottom left
@@ -43,7 +44,6 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 				}
 			}
 			if !bare || icon != nil {
-				ck := max(1, int(k)/2) // the portrait card: its own scale (cards are not K)
 				y := p.mapBottom - (cardH+cardGap)*ck + cardFoot*ck
 				p.fightCard = image.Rect(cardGap*ck, y, cardGap*ck+cardW*ck, y+cardH*ck)
 				p.drawParty(dst, p.party()[i:i+1], 0, func(int, int) image.Rectangle { return p.fightCard }, icon)
@@ -70,7 +70,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 	}
 	p.syncBattle()
 	p.battle.Pointer = p.pointer
-	p.battle.DrawBar(dst, glyph, b, int(k), p.mapBottom) // the bar and its words at K
+	p.battle.DrawBar(dst, glyph, b, ck, p.mapBottom) // the bar and its words at the portrait card's scale
 	if ck, r, ok := p.battle.Hovered(); ok && b.Turn != nil {
 		kind := engineKinds[ck] // the readied weapon over Attack and Ranged: what it does, its rules
 		if it := map[ActKind]*InvItem{ActAttack: weap, ActRanged: shot}[kind]; it != nil {

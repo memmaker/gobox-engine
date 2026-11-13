@@ -128,6 +128,7 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 	if c.FloorTile != "" {
 		b.FloorTile = asset.SpriteImage(Series, "combat", c.FloorTile)
 	}
+	b.GroundTex = wallImage("floor") // the bare ground: the series floor texture, never a fallback colour (ruling 7)
 	slot, slots := len(c.Tiles), map[string]int{} // a square's own Art: a tile slot of its own past the named tiles, one per picture
 	slotOf := func(a game.Picture) (int, bool) {  // a's tile slot, made on first use
 		if !hasPic(a) {

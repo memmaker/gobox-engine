@@ -41,6 +41,7 @@ type Presenter struct {
 	cut                        [256]bool        // tiles with see-through texels: sprites, not ground cover
 	floor                      color.RGBA
 	floorTile                  image.Image
+	groundTex                  image.Image
 	names                      []string             // the tile names the meshes were looked up for
 	meshOf                     [256]*tileMesh       // the tiles that draw a model
 	meshes                     map[string]*tileMesh // by name; nil: none (looked up once)
@@ -522,7 +523,7 @@ func (p *Presenter) sync(b *Board) {
 		p.wood = gpu.NewImageFromImage(woodTexture(64, p.Theme.Wood))
 		p.table = gpu.NewMesh(tableMesh())
 	}
-	changed := b.Floor != p.floor || b.FloorTile != p.floorTile
+	changed := b.Floor != p.floor || b.FloorTile != p.floorTile || b.GroundTex != p.groundTex
 	for i := range p.tiles {
 		var t image.Image
 		if i < len(b.Tiles) {
@@ -545,7 +546,7 @@ func (p *Presenter) sync(b *Board) {
 		}
 	}
 	if changed || b.Ground != p.ground {
-		p.floor, p.floorTile = b.Floor, b.FloorTile
+		p.floor, p.floorTile, p.groundTex = b.Floor, b.FloorTile, b.GroundTex
 		a := image.NewRGBA(p.atlas.Bounds())
 		put := func(slot int, t image.Image) {
 			o := image.Pt(slot%atlasCols*atlasPx, slot/atlasCols*atlasPx)
@@ -561,6 +562,8 @@ func (p *Presenter) sync(b *Board) {
 			put(floorSlot, b.FloorTile)
 		} else if t := baseFloor(&b.Ground, p.tiles[:]); t >= 0 {
 			put(floorSlot, p.tiles[t]) // the area's own ground: no square under a prop is ever a hole
+		} else if b.GroundTex != nil {
+			put(floorSlot, b.GroundTex)
 		} else {
 			put(floorSlot, floorTile(b.Floor))
 		}

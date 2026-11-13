@@ -139,12 +139,20 @@ func texturedOnce(t image.Image) image.Image {
 	if !ok {
 		return t
 	}
-	tex := wallImage("floor")
-	if tex == nil {
-		return t
+	if m := floorIn(c); m != nil {
+		return m
 	}
+	return t
+}
+
+// floorIn is the series' floor texture tinted to c, made once a colour (nil: the series has none).
+func floorIn(c color.RGBA) image.Image {
 	if m, ok := flatTiles[c]; ok {
 		return m
+	}
+	tex := wallImage("floor")
+	if tex == nil {
+		return nil
 	}
 	m := blobber.Tint(tex, c)
 	flatTiles[c] = m
