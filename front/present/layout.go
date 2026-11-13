@@ -16,21 +16,6 @@ import (
 	"gobox/game/play"
 )
 
-// memo is a value derived from the state, kept while its key stays.
-type memo[K comparable, V any] struct {
-	key K
-	val V
-	ok  bool
-}
-
-// get is the value for key: built by build when key is not the last one's.
-func (m *memo[K, V]) get(key K, build func() V) V {
-	if !m.ok || m.key != key {
-		m.key, m.val, m.ok = key, build(), true
-	}
-	return m.val
-}
-
 // uiKey is what the screens' derivations read besides the game's State:
 // its build (Version) and the front's own state over it.
 type uiKey struct {
@@ -58,9 +43,12 @@ type menuKey struct {
 // layouts are the page screens the state puts up, laid out, and the
 // screens' facts read from it.
 type layouts struct {
-	party     memo[uint64, []game.Member]   // partyOf, by the State's build
-	powers    memo[uint64, [][]front.Power] // each card's context menu
-	menuChars memo[uint64, int]             // the widest line of them
+	slots     memo[slotsFrom, *front.Slots]   // the slot screen as the game lists it
+	combat    memo[fightSource, *play.Combat] // the live fight read from the State
+	board     memo[boardKey, fightDrawn]      // the drawn fight board
+	party     memo[uint64, []game.Member]     // partyOf, by the State's build
+	powers    memo[uint64, [][]front.Power]   // each card's context menu
+	menuChars memo[uint64, int]               // the widest line of them
 	inventory memo[uiKey, *invUp]
 	sheet     memo[uiKey, *game.SheetPage]
 	sheetUp   memo[uiKey, bool]

@@ -655,12 +655,8 @@ func (p *Presenter) liveFight() (*play.Combat, []game.Member) {
 	if p.eng == nil {
 		return nil, nil
 	}
-	if !p.live.ok || p.live.key != p.fightSource() {
-		s := p.state()
-		p.live.c, p.live.party = p.eng.r.combatOf(s), partyOf(s)
-		p.live.key, p.live.ok = p.fightSource(), true // after the build: it may start the lone aim
-	}
-	return p.live.c, p.live.party
+	c := p.lay.combat.get(p.fightSource(), func() *play.Combat { return p.eng.r.combatOf(p.state()) })
+	return c, p.party()
 }
 
 // liveCombat is the fight up in the game's state (nil: none).
@@ -711,26 +707,33 @@ type boardKey struct {
 // drawnBoard makes fightView and fightBoard from p.board, when what they
 // are made from has changed.
 func (p *Presenter) drawnBoard() {
-	k := boardKey{live: p.live.key, board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim}
+	k := boardKey{live: p.fightSource(), board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim}
 	if q := p.shownView.Ask; q != nil {
 		k.ask = q.Kind
 	}
-	if p.fightBoard != nil && k == p.boardKey {
-		return
-	}
-	p.fightView = p.keepFallen(p.board)
-	p.fightLists = lists{}
-	if t := p.fightView.Turn; t != nil {
-		p.fightLists.weapon, p.fightLists.missile = weapon(t.Weapon), weapon(t.Missile)
-		for _, m := range t.Maneuvers {
-			p.fightLists.maneuvers = append(p.fightLists.maneuvers, front.Spell{ID: m.ID, Name: m.Name})
+	d := p.lay.board.get(k, func() (d fightDrawn) {
+		d.view = p.keepFallen(p.board)
+		p.fightView = d.view // aimPreview and askedBoard read it
+		if t := d.view.Turn; t != nil {
+			d.lists.weapon, d.lists.missile = weapon(t.Weapon), weapon(t.Missile)
+			for _, m := range t.Maneuvers {
+				d.lists.maneuvers = append(d.lists.maneuvers, front.Spell{ID: m.ID, Name: m.Name})
+			}
+			for _, sp := range d.view.Spells {
+				d.lists.spells = append(d.lists.spells, front.Spell{ID: sp.ID, Name: sp.Name})
+			}
 		}
-		for _, sp := range p.fightView.Spells {
-			p.fightLists.spells = append(p.fightLists.spells, front.Spell{ID: sp.ID, Name: sp.Name})
-		}
-	}
-	p.fightBoard = p.askedBoard(p.aimPreview(p.boardOf(p.fightView, p.boardParty, p.fly)), p.fightView)
-	p.boardKey = k
+		d.board = p.askedBoard(p.aimPreview(p.boardOf(d.view, p.boardParty, p.fly)), d.view)
+		return d
+	})
+	p.fightView, p.fightLists, p.fightBoard = d.view, d.lists, d.board
+}
+
+// fightDrawn is what the drawn fight is made of (drawnBoard).
+type fightDrawn struct {
+	view  *play.Combat  // the board with the fallen kept until their fall plays
+	lists lists         // the turn's weapons, spells and maneuvers
+	board *combat.Board // view as the tabletop draws it, aims put in
 }
 
 // aimPreview is b with the aimed spell's area washed round the hovered

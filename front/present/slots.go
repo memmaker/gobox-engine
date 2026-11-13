@@ -20,10 +20,7 @@ func (p *Presenter) slotsView() *front.Slots {
 		return nil
 	}
 	k := slotsFrom{p.eng.G.Version(), p.eng.r.ran, p.slots.LoadOnly}
-	if p.slotsMade.key != k || !p.slotsMade.ok {
-		p.slotsMade.v, p.slotsMade.key, p.slotsMade.ok = p.eng.SlotsView(k.loadOnly), k, true
-	}
-	return p.slotsMade.v
+	return p.lay.slots.get(k, func() *front.Slots { return p.eng.SlotsView(k.loadOnly) })
 }
 
 // slotsFrom is what the slot screen is listed from: the game's State, the

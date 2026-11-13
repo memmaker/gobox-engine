@@ -45,10 +45,10 @@ type rules struct {
 	g    play.Game
 	dir  string
 	now  func() time.Time
-	held play.Held // the slot list read while the game waits (saves); run drops it
-	data game.Data // the series' data (verb keys, texts)
-	ran  uint64    // the steps done: each drops the held saves (Game.run)
-	der  derived   // what is made from the State, at its Version (derived)
+	held play.Held              // the slot list read while the game waits (saves); run drops it
+	data game.Data              // the series' data (verb keys, texts)
+	ran  uint64                 // the steps done: each drops the held saves (Game.run)
+	der  memo[uint64, *derived] // what is made from the State, at its Version (derived)
 	UI
 }
 

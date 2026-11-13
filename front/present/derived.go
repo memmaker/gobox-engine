@@ -12,8 +12,6 @@ import (
 // built once per Version (not every frame; the game is turn-based), with
 // what camp keeps of the last exploring (kept, explored) carried over.
 type derived struct {
-	version  uint64
-	ok       bool
 	walls    *game.Walls       // the 3D view up (nil: none)
 	kept     *game.Walls       // the one last explored: camp and a scene keep it
 	automap  game.Automap      // the map of where the party is
@@ -25,23 +23,29 @@ type derived struct {
 
 // derived is the State's derived reads, made again when its Version changed.
 func (r *rules) derived() *derived {
-	if v := r.g.Version(); !r.der.ok || r.der.version != v {
-		ps, old := r.g.State(), r.der
-		d := derived{version: v, ok: true, explored: old.explored}
-		d.walls, d.kept = wallsOf(ps, old.kept)
+	return r.der.update(r.g.Version(), func(old *derived) *derived {
+		ps := r.g.State()
+		d := &derived{}
+		if old != nil {
+			d.explored = old.explored
+		}
+		var oldKept *game.Walls
+		if old != nil {
+			oldKept = old.kept
+		}
+		d.walls, d.kept = wallsOf(ps, oldKept)
 		d.unknown = unknownOf(ps)
 		d.border = borderOf(r.Art())
-		d.automap = automapOf(ps, old.explored)
+		d.automap = automapOf(ps, d.explored)
 		if _, ok := ps.(play.Exploring); ok {
 			d.explored = d.automap
 		}
 		if am := d.automap; am.Size == image.Pt(16, 16) {
 			d.minimap = Map(&front.MapSquares{}, am, play.CommonOf(ps).Where)
-			if old.minimap != nil && *d.minimap == *old.minimap { // the same map: the one uploaded
+			if old != nil && old.minimap != nil && *d.minimap == *old.minimap { // the same map: the one uploaded
 				d.minimap = old.minimap
 			}
 		}
-		r.der = d
-	}
-	return &r.der
+		return d
+	})
 }
