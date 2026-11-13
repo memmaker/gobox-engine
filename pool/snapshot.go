@@ -94,7 +94,7 @@ func (e *Engine) head(p goldbox.PortraitPic) Picture {
 	var out Picture
 	im := e.art(e.LoadPic(p.Set.File("HEAD"), int(p.Id)), 0)
 	if im != nil && im.Count > 0 {
-		out = Picture{Pix: slices.Clone(im.Frame(0)), PixW: im.Width * 8}
+		out = Picture{Pix: slices.Clone(im.Frame(0)), PixW: im.Width * 8, Palette: im.Palette}
 	}
 	e.snap.heads[id] = out
 	return out
@@ -108,7 +108,7 @@ func (e *Engine) borderTiles() [8]Picture {
 	if cells := e.artNames().BorderCells; e.snap.tiles[0].Pix == nil && e.sym[4] != nil && len(cells) == len(e.snap.tiles) {
 		im := e.sym[4]
 		for i, c := range cells {
-			e.snap.tiles[i] = Picture{Pix: slices.Clone(im.Frame(c - symFix[4])), PixW: im.Width * 8}
+			e.snap.tiles[i] = Picture{Pix: slices.Clone(im.Frame(c - symFix[4])), PixW: im.Width * 8, Palette: im.Palette}
 		}
 	}
 	c, side, top := e.snap.tiles[0], e.snap.tiles[1], e.snap.tiles[2]

@@ -30,8 +30,7 @@ func gameData() game.Data {
 	}
 
 	d.IconParts, d.DungeonTiles, d.MapCell = pool.IconParts[:], pool.DungeonTiles, pool.MapCell
-	d.LabelInks = []int{15, 10, 13, 14, 11} // the map labels' EGA colours by kind (engine poiUser .. poiCivic)
-	d.Rests = []game.RestKind{              // camp's rests: until fixed while someone heals or studies, an hour, until night or day
+	d.Rests = []game.RestKind{ // camp's rests: until fixed while someone heals or studies, an hour, until night or day
 		{Text: "Until fixed", Key: 'F', N: pool.RestFix, Fix: true},
 		{Text: "Wait an hour", Key: 'W', N: pool.RestWait},
 		{Text: "Until night", Key: 'N', N: pool.RestUntil, Night: "Until day", NightKey: 'D'},

@@ -30,6 +30,10 @@ const (
 	poiCivic  = 4
 )
 
+// poiInks is each label kind's EGA colour by kind (the one table: Data() hands it
+// to the presenter for every game, as the engine alone defines the kinds).
+var poiInks = [...]int{poiUser: 15, poiShop: 10, poiTemple: 13, poiInn: 14, poiCivic: 11}
+
 type mapLabel struct {
 	text string
 	kind byte

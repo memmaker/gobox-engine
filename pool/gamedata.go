@@ -116,7 +116,8 @@ type artKey struct {
 // loaded now.
 func (e *Engine) Data() game.Data {
 	d := e.gameData
-	d.Adventure = e.adv // the presenter's art (Picture File and Block, Theme.Border) and sound: Adventure is json:"-", so never in gameData
+	d.Adventure = e.adv      // the presenter's art (Picture File and Block, Theme.Border) and sound: Adventure is json:"-", so never in gameData
+	d.LabelInks = poiInks[:] // the engine defines the label kinds, so their colours too (a game with none crashed the map legend)
 	d.Scans = e.journalPicture
 	for i, t := range e.clueChapters() {
 		r := e.ClueRead(i)

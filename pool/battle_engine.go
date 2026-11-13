@@ -102,7 +102,7 @@ func (e *Engine) picPix(im *asset.Image, f int, flip bool, ground int) Picture {
 		out[i-i%w+x] = p
 	}
 	m := uint8(asset.Clear)
-	return Picture{Pix: out, PixW: w, Mask: &m}
+	return Picture{Pix: out, PixW: w, Mask: &m, Palette: im.Palette}
 }
 
 // tilePix is picPix of a combat ground tile, converted once: the board is

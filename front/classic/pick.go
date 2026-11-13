@@ -141,7 +141,11 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 		} else if k.Custom {
 			ed.Poses[p] = k.Icons[p]
 		} else if po := k.Poses[p]; po.Pixels != nil && po.W > 0 {
-			ed.Poses[p] = front.IndexedRGBA(po.Pixels, po.W, po.Clear, ink)
+			if po.Palette != nil {
+				ed.Poses[p] = front.PalettedRGBA(po.Pixels, po.W, po.Palette)
+			} else {
+				ed.Poses[p] = front.IndexedRGBA(po.Pixels, po.W, po.Clear, ink)
+			}
 		}
 	}
 	for i, n := range k.Cells {
