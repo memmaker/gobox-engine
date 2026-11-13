@@ -58,6 +58,7 @@ func (e *Engine) LayTiles(l adventure.TileLoad) {
 	if l.First > 0x7F {
 		return // the original stops with a fatal error
 	}
+	e.tilesChanged()
 	im := e.LoadPic(l.File, e.tileBlock(l))
 	t := e.sqrpaci[0]
 	if im == nil || t == nil {
@@ -112,6 +113,7 @@ func (e *Engine) recolour(im *asset.Image, tt *[16]byte) {
 	if im == nil || im.Count == 0 {
 		return
 	}
+	e.tilesChanged()
 	e.recolour(im.Alt, tt)
 	from := IconPalette
 	d := im.Frame(0)

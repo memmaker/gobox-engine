@@ -96,9 +96,9 @@ func (e *Engine) picPix(im *asset.Image, f int, flip bool, ground int) Picture {
 	return Picture{Pix: out, PixW: w, Mask: &m, Palette: im.Palette}
 }
 
-// tilePix is picPix of a combat ground tile, converted once: the board is
-// rebuilt every frame and its tiles never change (unlike icons, which
-// recolour in place).
+// tilePix is picPix of a combat ground tile, converted once per tile set:
+// the board is rebuilt every frame; laying or recolouring frames in place
+// drops the conversions (tilesChanged).
 func (e *Engine) tilePix(im *asset.Image, f, ground int) Picture {
 	k := tileKey{e.art(im, f), f, ground}
 	if p, ok := e.tiles[k]; ok {
@@ -124,6 +124,11 @@ func (e *Engine) groundOf(im *asset.Image) uint8 {
 	e.grounds[im] = c
 	return c
 }
+
+// tilesChanged drops the tile conversions and ground counts: frames were
+// written in place (LayTiles, recolour, recolourFrame), so the images that
+// key them hold other pixels now.
+func (e *Engine) tilesChanged() { e.tiles, e.grounds = nil, nil }
 
 type tileKey struct {
 	art       *asset.Image // the shown art (DOS or Amiga)

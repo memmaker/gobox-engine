@@ -23,6 +23,7 @@ func (e *Engine) recolourFrame(from, to []byte, frame int, random bool, im *asse
 	if im == nil {
 		return
 	}
+	e.tilesChanged()
 	// the frames change in place: the tiles' pictures follow their pixels (picRGBA)
 	count := 1
 	if frame < 0 {
