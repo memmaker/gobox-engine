@@ -20,11 +20,11 @@
 - `engine.MapCell` reaches `ui` as `game.Data.MapCell` (pixels per map square, set by `importer/games/por_gamedata.go`). Fix: a `ui` constant; drop the field.
 - Not yet checked: `snapshot.go`'s other 100 uses, `ccursor`/`cview` (combat cursor/view corner: engine-only, 19 uses, likely safe to cut once `ui` keeps its own cursor).
 
-**Buck Rogers is cut** (Felix, 2026-11-13). gobox drops buckrogers-go, buckrogers2-go, buckrogers-core and rulesxxvc: the go.mod requires and replaces, the BR launch and front tests in `cmd/gobox`, the BR importer entries, `rules/xxvc`, and every `ui`/`game` type only BR uses (space fight, ship sheet, `Blast`, `Blink`). The sibling repos are left on disk untouched and are no longer built or checked. `game` stays the contract: `ui` still must not import `engine`.
+**Buck Rogers: data folders only** (Felix, 2026-11-13). BR1 and BR2 stay supported, but like the pool games: `data/br1`, `data/br2` adventure folders made by gobox's importer and played by the one `engine`. No own repos, no own binaries (`playbr1`, `playbr2`), no second and third `game.Game` implementation. Today they are ~40k lines in four repos: buckrogers-go 15k and buckrogers2-go 16k (each its own `rules.Engine`, importer, launcher), buckrogers-core 2.6k (shared BR engine parts: space, ships, combat map), rulesxxvc 6k (the XXVc ruleset, already behind the `Ruleset` seam). Direction: `importbr1`/`importbr2` → `importer`; rulesxxvc → a `rules` ruleset; what only BR has (space fight, ships, ship sheet) → `engine`, switched on by adventure data and the ruleset, never by game name; the two BR engines go. A project of its own, after this refactor (B1 below). The T2 rows for BR types (`Blast`, `Blink`, `SpaceFight`, `ShipSheet`) are decided as part of it.
 
 ## Checklist
 
-- [ ] B1 Buck Rogers cut (above); after F1/F2, before P1. The T2 rows for BR-only types go with it
+- [ ] B1 Buck Rogers as data folders (above): plan it as its own checklist once this refactor is done; until then the BR repos keep building against gobox
 
 - [x] T2 Audit `game` for every presentation field (sizes, cells, positions, colours, drawn text runs); list them here, each with its `ui` replacement
 - [x] T1 Test: `ui` does not depend on `gobox/engine` (`go list -deps`), beside TestGameImports
