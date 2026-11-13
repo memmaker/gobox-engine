@@ -51,6 +51,11 @@
 - [ ] Y2 Delete the 5 functions nothing calls (`ecl.NeedsPlainTests`, `importer.CotabScriptLayout`, `SotsbScriptLayout`, `ImportAssets`, `rules.SymbolBlock`)
 - [ ] Y3 Code only the dev scenes reach since D1 (`firstOkay`, `okay`, `blockedRet`, `fileBytes`, `heldOf`, `entryNamed`, `invUp`, `fullPicture`, `firstMonster`, `ecl.ArgsTrace`): delete or move into devviews_engine.go
 - [ ] Y4 Fold the one-file packages `ui/input`, `rules1e/idgen`, `cmd/gobox/winicon` into their parents where no import cycle forces them
+- [ ] E1 `engine` stops importing `asset`/`asset/orig`: pictures leave as IDs (after U1, N2, the A1 remainder); colour constants become the ruling-1 colour names; the remaining original-data reads (`orig.NewLoader` in dataimport.go, `orig.Monster` records, `orig.RulesFile`) move to the importer's output. A test forbids it
+- [ ] E2 `engine` stops importing `audio`: it publishes which song/cue/voice line plays as typed facts in `game`; `ui` (host) drives `audio` (sound.go's `audio.Driver` use, voice.go's Vorbis decoding). A test forbids it
+- [ ] R1 `cmd/gobox` stops importing `rules1e` (`rules1e.Settings{PathSearch}`, `rules1e.ReadRoster`): behind `rules`/`engine`
+- [ ] R2 `engine` reaches the rules only through `rules` (today ~600 uses of `rules1e` types: `Character`, `Item`, classes, slots, directions). Needs its own plan: a ruleset-neutral character and item model in `rules`
+- [ ] D2 `game` and `adventure` both define `Sequence`, `Layer`, `Credit`: one canonical definition (with N2)
 - [ ] Final: full build/vet/test, all repos
 
 ## T2 audit: presentation fields in `game`
