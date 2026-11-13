@@ -50,7 +50,7 @@ type InvItem struct {
 	Type    byte             // base item type
 	Words   []string         // the item's name words, known or not (for its icon)
 	Count   int
-	Readied bool     // it is readied (shown with present.Data.ReadyMark)
+	Readied bool     // it is readied (shown with readiedMark)
 	Slot    bool     // it has a doll slot (it can be readied)
 	Wrong   bool     // the member's class cannot ready it
 	Use     bool     // it has a use (a scroll, a spell of its own)
@@ -90,7 +90,6 @@ type AreaID int
 // the messages and the debug values put there, a line per row.
 type Pane struct {
 	Lines [][]PaneRun
-	Rows  int // >0: the presenter shows Rows lines at a time and a key brings the next lot (0: all)
 }
 
 // PaneRun is text in one colour on a pane line from column X of the pane
@@ -117,7 +116,7 @@ type MapSquares struct {
 type MapSquare struct {
 	Seen   Seen
 	Walls  [4]MapWall
-	Kind   int  // the label's kind: its colour is Data.LabelInks[Kind]
+	Kind   int  // the label's kind: its colour is labelInks[Kind]
 	Letter byte // the label's legend letter
 }
 
@@ -222,7 +221,7 @@ type FrontFullMap struct {
 type MapLabel struct {
 	Letter byte
 	Text   string
-	Kind   int // its colour is Data.LabelInks[Kind]
+	Kind   int // its colour is labelInks[Kind]
 	First  image.Point
 }
 

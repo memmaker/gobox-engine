@@ -13,7 +13,7 @@ import (
 var ahead = [4]image.Point{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
 
 // labelKinds are the label kinds by game.Label.Kind: their colours are
-// Data.LabelInks[kind]; the player's ("") are 0.
+// labelInks[kind]; the player's ("") are 0.
 var labelKinds = map[string]int{"": 0, "shop": 1, "temple": 2, "inn": 3, "civic": 4}
 
 // label is a label on a square of the map, the map's or the player's.

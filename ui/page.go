@@ -405,14 +405,15 @@ func paneImage(img **gpu.Image, pn *Pane, note Note) *gpu.Image {
 }
 
 // viewTextImage draws the text over the view window (ViewText, rows
-// rows from 1, columns of the page) as the window's inside r shows it.
+// rows from 1, each line from the inside's left edge) as the window's
+// inside r shows it.
 func viewTextImage(img **gpu.Image, rows [][]PaneRun, r image.Rectangle, note Note) *gpu.Image {
 	m := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
 	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
 	for y, l := range rows {
 		for _, run := range l {
 			for i := 0; i < len(run.Text); i++ {
-				glyphAt(m, note.Font(run.Text[i], run.Upcase), (run.X+i)*8-r.Min.X, (y+1)*8-r.Min.Y, run.Fg, run.Bg)
+				glyphAt(m, note.Font(run.Text[i], run.Upcase), (run.X+i)*8, (y+1)*8-r.Min.Y, run.Fg, run.Bg)
 			}
 		}
 	}

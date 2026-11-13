@@ -20,8 +20,8 @@ type textCell struct {
 
 // texts is the text the game wrote, by where it goes.
 type texts struct {
-	pane   [TextPaneRows][]textCell // the text pane's rows, from column 0 of the page
-	more   [][]PaneRun              // the pane's earlier lots when its text ran over (pageOn): gobox pages them (Page.PaneRows)
+	pane   [paneRows][]textCell // the text pane's rows, from column 0 of the page
+	more   [][]PaneRun              // the pane's earlier lots when its text ran over (pageOn): gobox pages them
 	prompt []textCell               // the prompt row
 	view   [0xF][]textCell          // the view window's rows 1..15, from column 0
 }
@@ -125,7 +125,7 @@ func (e *Engine) textBlock(x1, y1, x2, y2, colour int, clear bool, s string) {
 }
 
 // pageOn ends a lot of the pane's text where the original asked for a key
-// and cleared the pane: the lot is kept for gobox to page (Page.PaneRows),
+// and cleared the pane: the lot is kept for gobox to page,
 // the pane starts over.
 func (e *Engine) pageOn() {
 	more := append(e.pg.tx.more, e.pane().Lines...)

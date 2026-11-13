@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"image"
 	"testing"
 
 	"gobox/game"
@@ -14,7 +13,7 @@ func TestSceneWindowEmpty(t *testing.T) {
 	if w := windowOf(game.Scene{Text: []string{"YOU NOW FACE AN ENTRANCE"}}); w != game.WindowScene {
 		t.Errorf("scene with no pictures and no view text: window %v, want WindowScene", w)
 	}
-	if w := windowOf(game.Scene{Placed: []game.Placed{{At: image.Pt(2, 5), Text: "RUNES"}}}); w != game.WindowText {
+	if w := windowOf(game.Scene{Placed: [][]game.TextRun{{{Text: "RUNES"}}}}); w != game.WindowText {
 		t.Errorf("scene with view text: window %v, want WindowText", w)
 	}
 }

@@ -8,7 +8,7 @@ import (
 
 // A Blink run shows the highlight at first and its own ink once the swaps are done.
 func TestBlink(t *testing.T) {
-	p := pagePlayed(&game.Page{View: [][]game.TextRun{{{Text: "x", Blink: true, Fg: col(inkGreen)}}}})
+	p, _ := presenterOn(game.Scene{Placed: [][]game.TextRun{{{Text: "x", Blink: true, Fg: game.EGAInk(inkGreen)}}}})
 	if got := p.viewText()[0][0].Fg; got != col(inkWhite) {
 		t.Fatalf("first %v", got)
 	}

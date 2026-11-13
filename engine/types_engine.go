@@ -13,12 +13,13 @@ import (
 // cells around it (Framed).
 type CellRect struct{ X1, Y1, X2, Y2 int }
 
-// PaneRun is text in one colour on a pane line from column X of the pane
-// (0: its left edge); Upcase picks the glyphs as DisplayChar does.
+// PaneRun is text in one colour (EGA Fg on Bg) on a pane line from column
+// X of the pane (0: its left edge); Upcase picks the glyphs as DisplayChar
+// does.
 type PaneRun struct {
 	X      int
 	Text   string
-	Fg, Bg color.RGBA
+	Fg, Bg byte
 	Upcase bool
 }
 

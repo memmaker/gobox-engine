@@ -6,7 +6,7 @@ import (
 
 // waitData is what a wait keeps for its page.
 type waitData struct {
-	greeting [TextPaneRows][]textCell // PendShop, PendTemple: the keeper's greeting, kept on the pane
+	greeting [paneRows][]textCell // PendShop, PendTemple: the keeper's greeting, kept on the pane
 	anim     bool                     // PendLoot: the animation setting to put back
 }
 

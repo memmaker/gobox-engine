@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"hash/fnv"
 	"image"
-	"image/color"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -416,14 +415,6 @@ func canCast(al game.Allowed, n int) bool {
 	return false
 }
 
-// Text colours are gobox's: plain ink, and one per Tone (EGA white, light
-// cyan, light red, yellow, light magenta, white). A game's own Ink is not
-// taken.
-var ink = color.RGBA{255, 255, 255, 255}
-
-var tones = map[game.Tone]color.RGBA{game.ToneText: ink, game.ToneOwn: {85, 255, 255, 255}, game.ToneBad: {255, 85, 85, 255},
-	game.TonePrompt: {255, 255, 85, 255}, game.ToneWarn: {255, 85, 255, 255}, game.ToneLoud: ink}
-
 // run is a line of the rules' text: its colour unset, so the front gives
 // it gobox's body text colour, in the text glyphs (Upcase: fonts.Glyph
 // keeps a font's own lower case, else capitals). Upcase is not the case: a
@@ -439,8 +430,8 @@ func gameWalls(w game.MapWalls) *game.Walls {
 		SunAz: w.SunAz, SunEl: w.SunEl, Backdrop: w.Backdrop}
 }
 
-func (r *frontState) page(sc game.Scene) *game.Page {
-	p := &game.Page{}
+func (r *frontState) page(sc game.Scene) *TextPage {
+	p := &TextPage{View: sc.Placed}
 	if sc.Speaker != "" {
 		p.Pane = append(p.Pane, r.run(sc.Speaker+":"))
 	}
@@ -451,12 +442,6 @@ func (r *frontState) page(sc game.Scene) *game.Page {
 		p.Layers = append(p.Layers, game.Layer{Picture: pic})
 	}
 	p.Layers = append(p.Layers, sc.Layers...)
-	for _, t := range sc.Placed {
-		for len(p.View) < t.At.Y {
-			p.View = append(p.View, nil)
-		}
-		p.View[t.At.Y-1] = append(p.View[t.At.Y-1], game.TextRun{X: t.At.X, Text: t.Text, Fg: tones[t.Tone]})
-	}
 	return p
 }
 
@@ -509,7 +494,7 @@ func (r *frontState) loneAim(f game.Fighting) bool {
 func (r *frontState) combat(f game.Fighting) *game.Combat {
 	r.loneAim(f)
 	b, al := f.Field, f.Allowed
-	c := &game.Combat{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile, Floor: b.Floor,
+	c := &game.Combat{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile,
 		Round: b.Round, Dungeon: b.Dungeon, Reach: al.Moves, Effects: b.Clouds}
 	var spells []game.SpellRef
 	for _, u := range b.Units {
@@ -1322,6 +1307,9 @@ func allowedArrive(al game.Allowed, from, to image.Point, facing int) game.Actio
 // SotSB R540:0BF7); a ship's blink is the hardware's ten 35 ms half-steps.
 const speedStepMs, defaultSpeed, shipMs = 100, 4, 350
 
+// fallHoldMs is how long the replay holds on the batch's last fall.
+const fallHoldMs = 500
+
 // events are the outcome's facts as the old events, at the default speed.
 // engaged is f, a fight as it began, as the EvEngaged event: its board and party.
 func (r *frontState) engaged(f game.Fighting) game.Report {
@@ -1331,7 +1319,7 @@ func (r *frontState) engaged(f game.Fighting) game.Report {
 // eventsAt are the outcome's facts as the old events, a blow or a cast held
 // ms; engaged gives an Engaged fight as the old Combat and party (nil: no EvEngaged).
 func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) (out []game.Report) {
-	strikeMs, castMs := ms, ms
+	strikeMs, castMs, lastFell := ms, ms, -1
 	for _, e := range es {
 		switch e := e.(type) {
 		case game.Narrated:
@@ -1365,7 +1353,7 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 			}
 			out = append(out, ev)
 		case game.CastSpell:
-			ev := game.Report{Kind: game.EvSpell, Unit: e.From, N: e.Spell, Pose: 1, Ms: castMs, StepMs: e.StepMs}
+			ev := game.Report{Kind: game.EvSpell, Unit: e.From, N: e.Spell, Pose: 1, Ms: castMs}
 			if len(e.Ats) > 0 {
 				ev.To = e.Ats[0]
 			}
@@ -1379,7 +1367,8 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 		case game.Healed:
 			out = append(out, game.Report{Kind: game.EvDamage, Unit: e.Unit, Target: e.Unit, N: -e.HP})
 		case game.Fell:
-			out = append(out, game.Report{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit, Picture: e.Body, Ms: e.Ms})
+			lastFell = len(out)
+			out = append(out, game.Report{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit, Picture: e.Body})
 		case game.Fled: // a unit that flees or surrenders leaves the field as one that falls does
 			out = append(out, game.Report{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit})
 		case game.Moved:
@@ -1395,6 +1384,9 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 			out = append(out, game.Report{Kind: game.EvPicture, Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: &f}, Ms: shipMs})
 		}
 		// TimePassed, Gained, Lost, JournalNote: the state shows them.
+	}
+	if lastFell >= 0 { // the batch's last fall holds, so the body the last blow leaves shows before the fight's page (bug class 55)
+		out[lastFell].Ms = fallHoldMs
 	}
 	return out
 }

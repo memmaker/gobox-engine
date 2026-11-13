@@ -40,7 +40,7 @@ type facts struct {
 	PartyCap, PoolItems int
 	Picker              *game.Picker
 	IconEditor          *game.IconEditor
-	Page                *game.Page
+	Page                *textPage
 	Flags               *game.Flags
 	Walls               *game.Walls
 	Intro               *game.Intro
@@ -491,25 +491,6 @@ func gamePicture(p Picture) game.Picture {
 		g.Clear = int(*p.Mask)
 	}
 	return g
-}
-
-func gameRuns(l []PaneRun) []game.TextRun {
-	var r []game.TextRun
-	for _, t := range l {
-		r = append(r, game.TextRun{X: t.X, Text: t.Text, Fg: t.Fg, Bg: t.Bg, Upcase: t.Upcase})
-	}
-	return r
-}
-
-func gameLines(ls [][]PaneRun) [][]game.TextRun {
-	if ls == nil {
-		return nil
-	}
-	r := make([][]game.TextRun, len(ls))
-	for i, l := range ls {
-		r[i] = gameRuns(l)
-	}
-	return r
 }
 
 // Open runs the game (Run: Init and the title) to its first wait; with

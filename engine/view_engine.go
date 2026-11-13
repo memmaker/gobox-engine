@@ -143,9 +143,7 @@ func (e *Engine) identifyItem(id rules.CharID, h rules.ItemHandle) {
 			e.say("I can't tell anything new about your " + card.Name)
 			return
 		}
-		x := e.invItem(id, h) // (extra) the reveal in a pop-up of its own (Shop.Identified)
-		x.Look = card.LookPlain
-		e.snap.identified, e.snap.identN, e.snap.identIt = x, e.snap.identN+1, h
+		e.snap.identN, e.snap.identIt = e.snap.identN+1, h // (extra) the reveal in a pop-up of its own (Shop.Identified)
 		e.say("It looks like some sort of " + card.Name)
 	}
 }

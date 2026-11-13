@@ -1,10 +1,8 @@
 package engine
 
-// The text screen: the original's 40x25, the floor; a larger window gives
-// more cells (resizePage), and every screen lays out to them (textCols,
-// textRows and the rows and columns derived from them). The 3D screen's
-// boxes (ViewWindow, TextPane) keep their places: the remaster draws that
-// screen itself.
+// The text screen: the original's 40x25 (textCols, textRows and the rows
+// and columns derived from them). The 3D screen's boxes (ViewWindow,
+// TextPane) are the original's: gobox lays that screen out itself.
 const (
 	minCols  = 40
 	minRows  = 25
@@ -17,9 +15,8 @@ const (
 	paneBottom = 0x16
 )
 
-// ponytail: package-level page size, one Engine per process; move onto
-// Engine if two of different sizes ever share one.
-var (
+// The page: the original's 40x25 text screen.
+const (
 	textCols   = minCols // characters per line
 	textRows   = minRows
 	lastCol    = textCols - 1
@@ -29,8 +26,14 @@ var (
 	promptRow  = textRows - 1 // the menu and prompt line
 )
 
-// setPageSize sets the text screen's size in cells (never under 40x25).
-func setPageSize(cols, rows int) {
-	textCols, textRows = max(cols, minCols), max(rows, minRows)
-	lastCol, winRight, winBottom, messageRow, promptRow = textCols-1, textCols-2, textRows-3, textRows-2, textRows-1
-}
+// The insides of the original's main screen boxes, at their
+// 40x25 places whatever the page's size: the remaster lays that screen
+// out itself (the text pane as a pop-up, the party as cards).
+var (
+	ViewWindow  = CellRect{X1: 1, Y1: 1, X2: 0xF, Y2: 0xF}
+	InnerWindow = CellRect{X1: 3, Y1: 3, X2: 0xD, Y2: 0xD} // the picture frame
+	TextPane    = CellRect{X1: 1, Y1: msgTop, X2: paneRight, Y2: paneBottom}
+)
+
+// paneRows is the text pane's rows.
+const paneRows = paneBottom - msgTop + 1

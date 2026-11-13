@@ -39,7 +39,7 @@ func TestBlastPlaysAndSpacePasses(t *testing.T) {
 	var p Presenter
 	var evs []Moment
 	for i := 0; i < 5; i++ {
-		evs = append(evs, Moment{Report: game.Report{Page: &game.Page{}}, Ms: 60})
+		evs = append(evs, Moment{Report: game.Report{Screen: &game.Screen{}}, Ms: 60})
 	}
 	p.Play(evs)
 	if p.playing() == nil {

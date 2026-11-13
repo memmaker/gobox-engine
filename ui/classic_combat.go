@@ -112,7 +112,7 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 	ink := egaInk
 	b := &combat.Board{
 		WallTiles: dungeonTiles, StoneTile: 3, TileNames: slices.Clone(c.Tiles),
-		Floor: c.Floor, Dungeon: c.Dungeon,
+		Floor: combatGround, Dungeon: c.Dungeon,
 		Marks: slices.Clone(c.Marks), Targets: slices.Clone(c.Targets), Panel: c.Panel, Log: slices.Clone(c.Log),
 		Area: c.Area, AreaAt: slices.Clone(c.AreaAt), Skipped: slices.Clone(c.Skipped), AimWhy: c.Why,
 		Strike: combat.Strike{Seq: c.Strike.Seq, From: c.Strike.From, To: c.Strike.To, Hit: c.Strike.Hit, Damage: c.Strike.Damage},
@@ -300,3 +300,6 @@ func memberPicture(m game.Member, g game.Unit, pose int) (pic Picture, size imag
 	}
 	return pic, size, ok
 }
+
+// combatGround is the bare ground's colour on a board with no floor tile.
+var combatGround = asset.EGARGBA(0)

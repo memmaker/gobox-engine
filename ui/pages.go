@@ -624,7 +624,7 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 			c.str(at[0]+len(f[0])+1, at[1], inkGreen, f[1])
 		}
 	}
-	if b := cells(s.PortraitAt); b != (CellRect{}) {
+	if b := sheetPortraitBox(s); b != (CellRect{}) {
 		c.border(b.X1, b.Y1, b.X2, b.Y2)
 		if portrait != nil {
 			c.overs = append(c.overs, overlay{Img: portrait, At: fit(portrait.Bounds(), b.Pixels())}) // the whole box: the rope runs outside its cells

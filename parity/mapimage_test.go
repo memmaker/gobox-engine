@@ -51,7 +51,7 @@ func TestMapImage(t *testing.T) {
 		m := ui.MapSquares{Party: rec.Party, Ahead: rec.Ahead}
 		for y, row := range rec.Squares {
 			for x, q := range row {
-				m.Squares[y][x] = ui.MapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index(e.Data().LabelInks, q.Ink), Letter: q.Letter}
+				m.Squares[y][x] = ui.MapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index([]int{15, 10, 13, 14, 11}, q.Ink), Letter: q.Letter}
 			}
 		}
 		r, err := os.Open(strings.TrimSuffix(f, ".json") + ".png")

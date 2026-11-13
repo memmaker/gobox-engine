@@ -18,10 +18,6 @@ func (p *Presenter) Key(k uint16) {
 	if p.askHeld(k) { // NoPick/NoEsc: no path answers the question with Enter, the arrows or Esc
 		defer p.dropAnswers(len(p.inv.acts))
 	}
-	if p.panePaged() { // a key brings the pane's next lot of lines
-		p.paneFrom += p.pane().Rows
-		return
-	}
 	if p.sequenceUp() != nil { // a key ends the animation
 		SequenceStep(p, &p.seq, p.sequenceUp(), true)
 		p.seqMusic(p.seq.Cues)

@@ -15,8 +15,8 @@ func TestMenuKeys(t *testing.T) {
 	e.vm.PC = 0
 	e.vm.Fetch()
 	e.opMenuKeys()
-	if !strings.Contains(e.paneNote(), menuKeysPrompt) {
-		t.Fatalf("pane %q, want the prompt", e.paneNote())
+	if note := strings.Join(paneOf(e), " "); !strings.Contains(note, menuKeysPrompt) {
+		t.Fatalf("pane %q, want the prompt", note)
 	}
 	if e.eclWait == nil {
 		t.Fatal("no menu asked")

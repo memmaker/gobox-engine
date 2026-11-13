@@ -88,7 +88,7 @@ func gameSheetPage(p *SheetPage) *game.SheetPage {
 			Alignment: p.Alignment, Class: p.Class, Stats: p.Stats, Str00: p.Str00, Creating: p.Creating, Levels: p.Levels,
 			Exp: p.Exp, Next: p.Next, AC: p.AC, RearAC: p.RearAC, HP: p.HP, MaxHP: p.MaxHP, THAC0: p.THAC0, Damage: p.Damage, Move: p.Move,
 			Saves: p.Saves, Mods: p.Mods, Status: p.Status, Weapon: p.Weapon, Armour: p.Armour, Encumbrance: p.Encumbrance,
-			Coins: p.Coins, Effects: p.Effects, PortraitAt: gameRect(p.PortraitAt), Portrait: p.Portrait, Icons: p.Icons}
+			Coins: p.Coins, Effects: p.Effects, HasPortrait: p.PortraitAt != (CellRect{}), Portrait: p.Portrait, Icons: p.Icons}
 		for _, r := range p.Rules {
 			k.Rules = append(k.Rules, r)
 		}

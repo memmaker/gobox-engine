@@ -389,7 +389,7 @@ func (p *Presenter) sheetShown() bool {
 // there takes the next head, a dropped PNG becomes the portrait.
 func (p *Presenter) portraitBox() CellRect {
 	if sp := p.sheetPage(); sp != nil {
-		return cells(sp.PortraitAt)
+		return sheetPortraitBox(sp)
 	}
 	return CellRect{}
 }

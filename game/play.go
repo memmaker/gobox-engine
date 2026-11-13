@@ -223,7 +223,6 @@ type Battlefield struct {
 	Squares   []Ground
 	Tiles     []string // Ground.Tile's Data.Art names
 	FloorTile string
-	Floor     color.RGBA
 	Units     []Unit
 	Clouds    []Effect // lasting spell effects on squares
 	Round     int
@@ -250,14 +249,6 @@ const (
 	SceneHeading                   // a heading to pick (overland, rocket): Heading, Leave for Done
 )
 
-// Placed is a line of text at a text cell; Tone says what it means, gobox
-// picks the colour.
-type Placed struct {
-	At   image.Point // column, row from 1
-	Text string
-	Tone Tone
-}
-
 // Scene: a script shows something and waits for the player. The script's
 // place is the game's state; Continue or a Reply moves it on.
 type Scene struct {
@@ -269,7 +260,7 @@ type Scene struct {
 	Handout  string            // SceneHandout: the title
 	Texts    []ReadText        // SceneHandout: the Read's
 	Layers   []Layer           // pictures with their place and frames (Pictures: gobox places them)
-	Placed   []Placed          // text at cells over the window (Text: the message lines)
+	Placed   [][]TextRun       // the lines over the view window in the original's order and wrapping, a blank row an empty line (Text: the message lines); gobox places them
 	Intro    *Intro            // SceneTitle
 	Sequence string            // SceneSequence: the Data.Sequences name
 	Results  *Results          // SceneResults
@@ -392,12 +383,11 @@ type (
 		From   int
 		To     image.Point
 		Art    Picture
-		StepMs int // the flight's time per third of a square, the original's (0: gobox's)
+		StepMs int // the flight's time per third of a square, the original's (10 pointed, 20 tumbling, 50 spinning, 30 a spell; 0: gobox's); gobox scales it by the player's speed
 	}
 	CastSpell struct {
 		From, Spell int
 		Ats         []image.Point
-		StepMs      int // a flight's time per third of a square (0: gobox's)
 	}
 	Engaged struct{ At Fighting }      // a fight began: it before the first turn, board and party (the step's fight events play from it)
 	Struck  struct{ Unit, Damage int } // harm without an attack (a spell, a trap)
@@ -405,7 +395,6 @@ type (
 	Fell    struct {
 		Unit int
 		Body Picture // what it leaves on its square, as Event.Picture on EvDown (empty: nothing)
-		Ms   int     // the replay holds this long on the fall (0: it does not stop)
 	} // down or dead
 	Fled  struct{ Unit int }
 	Moved struct {

@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"image"
-	"image/color"
 	"reflect"
 	"slices"
 	"testing"
@@ -45,7 +44,7 @@ func TestGaps(t *testing.T) {
 		{"story page", game.Scene{Text: []string{"hi"}, Common: allow(game.ContinueAction{})}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool {
 				r := s.Page.Pane[0][0]
-				return s.Holding == game.HoldNone && r.Upcase && r.Fg == (color.RGBA{})
+				return s.Holding == game.HoldNone && r.Upcase && r.Fg == game.InkNone
 			}},
 		{"forget entry", game.Assembling{Common: allow(game.OpenPicker{Kind: 5})}, game.OpenPicker{Kind: 5}, game.OpenPicker{Kind: 5},
 			func(s shown) bool {
@@ -96,11 +95,11 @@ func TestGaps(t *testing.T) {
 			func(s shown) bool { return s.Sequence == "finale" && s.Pending == nil }},
 		{"results", game.Scene{Kind: game.SceneResults, Results: res}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool { return s.Results == res && s.Pending.Kind == game.Continue }},
-		{"placed text", game.Scene{Placed: []game.Placed{{At: image.Pt(3, 2), Text: "Hull", Tone: game.ToneBad}},
+		{"placed text", game.Scene{Placed: [][]game.TextRun{nil, {{Text: "Hull", Fg: game.InkLightRed}}},
 			Layers: []game.Layer{{At: image.Rect(1, 1, 5, 5), FrameMs: 100}}}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool {
 				v := s.Page.View
-				return len(v) == 2 && v[1][0].X == 3 && v[1][0].Fg == tones[game.ToneBad] && s.Page.Layers[0].At.Max.X == 5 && s.Pacing.Pace == game.PaceAnim
+				return len(v) == 2 && v[1][0].Text == "Hull" && v[1][0].Fg == game.InkLightRed && s.Page.Layers[0].At.Max.X == 5 && s.Pacing.Pace == game.PaceAnim
 			}},
 		{"screen", game.Scene{Kind: game.SceneScreen, Screen: &game.Screen{Kind: game.ScreenStarmap}}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool { return s.Screen.Kind == game.ScreenStarmap }},

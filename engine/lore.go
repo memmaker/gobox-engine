@@ -60,17 +60,6 @@ func (e *Engine) noteJournal(t string) {
 	e.ext.notes = append(e.ext.notes, noteRec{Title: t}) // gobox says it was added (State.Lore grew)
 }
 
-// paneNote is the text pane's text as one paragraph ("" none).
-func (e *Engine) paneNote() string {
-	var w []string
-	for _, l := range e.pane().Lines {
-		for _, r := range l {
-			w = append(w, strings.Fields(r.Text)...)
-		}
-	}
-	return strings.Join(w, " ")
-}
-
 // errNoted is a note already in the journal.
 var errNoted = errors.New("Already in the journal")
 

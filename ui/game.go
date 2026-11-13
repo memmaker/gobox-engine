@@ -266,7 +266,7 @@ func withOverlay(sq []game.Ground, at image.Point, o game.Picture) []game.Ground
 // event holds on, and the party's figures then.
 func (g *Game) moments(es []game.Report, fight bool, posed func(game.Report) (*game.Combat, []game.Member), holdMs int) (out []Moment) {
 	for _, e := range es {
-		if e.Screen != nil || e.Page != nil { // a timed typed screen or page: the scene as it stood
+		if e.Screen != nil { // a timed typed screen: the scene as it stood
 			out = append(out, Moment{Report: e, Ms: e.Ms})
 			continue
 		}
@@ -888,7 +888,7 @@ func (g *Game) act(a Action) func() error {
 }
 
 // paneText is the message pane's words on one line: the note ActNote takes.
-func paneText(p *game.Page) string {
+func paneText(p *TextPage) string {
 	if p == nil {
 		return ""
 	}
@@ -904,7 +904,7 @@ func paneText(p *game.Page) string {
 func (g *Game) party() []game.Member { return partyOf(g.r.g.State()) }
 func (g *Game) selected() int        { return g.r.selectedOf(g.r.g.State()) }
 func (g *Game) combat() *game.Combat { return g.r.combatOf(g.r.g.State()) }
-func (g *Game) pane() *game.Page     { return g.r.pageOf(g.r.g.State()) }
+func (g *Game) pane() *TextPage      { return g.r.pageOf(g.r.g.State()) }
 func (g *Game) pace() game.Pace      { return g.r.pacingOf(g.r.g.State()).Pace }
 func (g *Game) itemsUp() bool        { return g.r.itemsUp(g.r.g.State()) != game.ItemsNone }
 
@@ -992,7 +992,7 @@ func yesNoOption(q *game.Ask, k ActKind) int {
 const flightMs = 300
 
 // paneTail is the text pane's last non-empty line (the game's latest message), "" with none.
-func paneTail(p *game.Page) string {
+func paneTail(p *TextPage) string {
 	if p == nil {
 		return ""
 	}
@@ -1008,7 +1008,7 @@ func paneTail(p *game.Page) string {
 	return ""
 }
 
-func paneCount(p *game.Page) int {
+func paneCount(p *TextPage) int {
 	if p == nil {
 		return 0
 	}
