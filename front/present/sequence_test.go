@@ -9,9 +9,6 @@ import (
 	"gobox/game/play"
 )
 
-// seqRules is a game that keeps its actions.
-type seqRules = fake
-
 // seqHost runs the presenter's calls on the classic game.
 type seqHost struct {
 	RuleHost

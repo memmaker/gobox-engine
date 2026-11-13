@@ -191,9 +191,7 @@ type Presenter struct {
 	confirmAt   []image.Rectangle         // ... and its rows on screen
 	noteBtn     image.Rectangle           // the text box's "> Notes" on the window (empty: no text box)
 	q           *front.Question           // the presenter's question up (pace.go)
-	paneSig     string                    // the paged pane's text (panerows.go) ...
 	paneFrom    int                       // ... its first line shown ...
-	blinkSig    string                    // the blinking runs' text (blink.go) ...
 	blinkAt     time.Time                 // ... and when they began
 	sf          sfUI                      // the ship fight's window page, blink and bar (spacefight.go)
 }

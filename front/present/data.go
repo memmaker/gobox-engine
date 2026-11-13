@@ -243,15 +243,12 @@ var (
 	filesDir  string
 )
 
-// daxArt is the game's Data.Art (the overland's terrain and marker).
-var gameArt map[string]game.Picture
-
 var daxMask map[string]int // Data.DaxMask
 
 // gameData overlays the game's declarative game.Data (NewFront's) on what
 // SetData handed in: its series and its spell tips (by spell id).
 func gameData(g game.Data) {
-	gameArt, gameID, daxMask = g.Art, g.ID, g.DaxMask
+	gameID, daxMask = g.ID, g.DaxMask
 	confirms = g.Confirms
 	for k, v := range g.Texts { // NewFront's games name their texts here (SetData's Data.Texts too)
 		if texts == nil {
