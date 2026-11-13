@@ -22,10 +22,10 @@ type GameTables struct {
 	Quests                     []QuestDef           // the quest journal's quests (POR: the commissions); none: an empty journal
 	OriginalSave               rules1e.SaveLayout   // the game's SAVGAMx.DAT format (the original-save import)
 	PurseWhos                  []PurseWho           // the Who commands that spend the party's one purse (POR: the inn, the tavern)
-	Symbols                    []SymbolLoad         // the 8x8 symbol sets Init loads; nil: POR's, sotsb's and cotab's (PorSymbols)
-	Art                        *ArtNames            // the pictures the Engine loads by role; nil: POR's (PorArt)
-	MapLabels                  []MapLabel           // the maps' fixed labels (POR: New Phlan's buildings, PorMapLabels); none: none
-	Music                      *AreaMusic           // the soundtrack by area (POR: PorMusic); nil: none
+	Symbols                    []SymbolLoad         // the 8x8 symbol sets Init loads; nil: the first engine's (DefaultSymbols: POR, sotsb, cotab)
+	Art                        *ArtNames            // the pictures the Engine loads by role; nil: none (every import writes its own)
+	MapLabels                  []MapLabel           // the maps' fixed labels (POR: New Phlan's buildings); none: none
+	Music                      *AreaMusic           // the soundtrack by area (POR's); nil: none
 	MonsterSet                 rules.Set            // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
 }
 
@@ -62,18 +62,6 @@ const (
 	TileBlockAreaSet                 // the area's tile set when 1 or 2, else 0 (pod's WildCom)
 )
 
-// PorArt is POR's ArtNames (Init, ovr11:1244, ovr33:0022).
-var PorArt = ArtNames{
-	TileSheets:    []TileLoad{{File: "SQRPACI", Block: 1}, {File: "SQRPACI", Block: 2, First: 0x80}},
-	DungeonTiles:  []TileLoad{{File: "DUNGCOM", Block: 1, Last: 0x18}, {File: "RANDCOM", Block: 1, First: 0x22, Last: 5}},
-	WildTiles:     []TileLoad{{File: "WILDCOM", Block: 1, Last: 0x21}, {File: "RANDCOM", Block: 1, First: 0x22, Last: 5}},
-	AreaTiles:     []TileLoad{{File: "BACPAC", Block: 1, Last: 0x28}},
-	AreaIcon:      "ICON",
-	CombatSprites: "COMSPR",
-	Title:         "TITLE",
-	BorderCells:   []int{0x114, 0x115, 0x116},
-}
-
 // Files are every file a names (TestArtNamesImported).
 func (a ArtNames) Files() []string {
 	var out []string
@@ -96,8 +84,8 @@ type SymbolLoad struct {
 	Block int
 }
 
-// PorSymbols are the sets POR, sotsb and cotab load (ovr35:003B).
-var PorSymbols = []SymbolLoad{{Set: 4, Block: 202}, {Set: 0, Block: 203}}
+// DefaultSymbols are the sets the first engine's Init loads (ovr35:003B; POR, sotsb, cotab).
+var DefaultSymbols = []SymbolLoad{{Set: 4, Block: 202}, {Set: 0, Block: 203}}
 
 // AreaMonsters are the monsters a fight adds by area screen (Behaviour.AreaMonstersJoin):
 // Count of ByScreen[the area screen], standing aside with Status and Control.

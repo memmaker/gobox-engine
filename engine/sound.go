@@ -56,7 +56,7 @@ var amigaFx = [...]int{5, 9, 8, 10, 12, 11, 6, 11, 4, 7, 0}
 // (never written, so 0) is set. The DOS game has no music.
 func (e *Engine) Music(n int) {
 	s := &e.snd
-	if n >= 0 && n < len(amigaSong) && e.songMusic(amigaSong[n], 0) {
+	if a := e.music().AmigaSongs; n >= 0 && n < len(a) && e.songMusic(a[n], 0) {
 		s.music = n
 		return
 	}
@@ -105,12 +105,6 @@ func (e *Engine) areaMusic() {
 		e.Music(0)
 	}
 }
-
-// amigaSong (extra) maps the Amiga songs Music starts to the soundtrack's:
-// title the title, battle the combat theme, the party menu the training
-// hall, Phlan New Phlan, party killed the game over, the overland map the
-// wilderness.
-var amigaSong = [...]int{0: 0, 1: adventure.SongTitle, 2: adventure.SongCombat, 3: adventure.SongTrainingHall, 4: adventure.SongNewPhlan, 5: adventure.SongGameOver, 6: adventure.SongWilderness}
 
 // music is the game's AreaMusic.
 func (e *Engine) music() adventure.AreaMusic {

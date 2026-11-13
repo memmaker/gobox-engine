@@ -37,7 +37,7 @@ func (e *Engine) artNames() adventure.ArtNames {
 	if a := e.game().Art; a != nil {
 		return *a
 	}
-	return adventure.PorArt
+	return adventure.ArtNames{}
 }
 
 // bareRuleset and bareData are what an Engine made without New (a test's

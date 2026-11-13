@@ -20,7 +20,7 @@ func (e *Engine) Init() {
 	e.prompt(asset.EGALightGreen, "Loading...Please Wait")
 	symbols := e.game().Symbols
 	if symbols == nil {
-		symbols = adventure.PorSymbols
+		symbols = adventure.DefaultSymbols
 	}
 	for _, l := range symbols { // ovr35:003B
 		e.LoadSymbolSet(l)

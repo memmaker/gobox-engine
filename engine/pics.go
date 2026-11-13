@@ -5,7 +5,7 @@ import (
 	"gobox/rules"
 )
 
-// POR's picture numbers as the shared collection's core.PicID (e.pics, the
+// The game's picture numbers (GameTables' portrait tables, CHEAD/CBODY) as the shared collection's core.PicID (e.pics, the
 // adventure's data/pictures.json) and back: PortHead and PortBody index
 // portraitHead and portraitBody, IconHead and IconBody are CHEAD and CBODY
 // blocks (the large icon's 0x40 on). "" and false: no such picture. Number 0

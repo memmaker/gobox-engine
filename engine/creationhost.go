@@ -7,11 +7,11 @@ import (
 	"gobox/rules"
 )
 
-// creationHost is the Engine side of POR's creation (the ruleset's Host):
+// creationHost is the Engine side of the game's creation (the ruleset's Host):
 // the roster files, the picture table and Data's quick party.
 type creationHost struct{ e *Engine }
 
-// Creation is POR's creation rules.
+// Creation is the game's creation rules.
 func (e *Engine) Creation() rules.CreationRules {
 	e.ruleset()
 	return e.create
