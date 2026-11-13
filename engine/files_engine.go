@@ -379,11 +379,3 @@ func (e *Engine) charBase(cID rules.CharID) string {
 
 const charRecSize = int(adventure.RecordLayout)
 
-// fileBytes is v as the bytes of a save file (.mem, .dual) or of a byte field.
-func fileBytes[T ~uint8](v []T) []byte {
-	b := make([]byte, len(v))
-	for i, x := range v {
-		b[i] = byte(x)
-	}
-	return b
-}

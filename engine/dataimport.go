@@ -54,18 +54,6 @@ func (d *gameData) monster(file string, id int) (monsterData, bool) {
 	return r, ok
 }
 
-// firstMonster is the lowest monster id of file; false: none.
-func (d *gameData) firstMonster(file string) (int, bool) {
-	d.monster(file, 0)
-	first, ok := 0, false
-	for id := range d.monsters[file] {
-		if !ok || id < first {
-			first, ok = id, true
-		}
-	}
-	return first, ok
-}
-
 // itemBlock is ITEM archive file's block id, its records (nil: none).
 func (d *gameData) itemBlock(file string, id int) []rules1e.Item {
 	m, ok := d.items[file]

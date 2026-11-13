@@ -9,21 +9,6 @@ import (
 // The view side of the Engine's ruleset (fold step E-R6): one-line helpers
 // that resolve the Engine's characters to ids, until the Engine holds ids.
 
-// okay is whether member i's status is okay.
-func (e *Engine) okay(i int) bool {
-	return e.ruleset().Sheet(e.partyIDs()[i]).Status == rules.StatusOkay
-}
-
-// firstOkay is the first member whose status is okay, or -1.
-func (e *Engine) firstOkay() int {
-	for i := range e.partySize() {
-		if e.okay(i) {
-			return i
-		}
-	}
-	return -1
-}
-
 // spellID is the ruleset's id of por spell number n, "" outside the table.
 func (e *Engine) spellID(n int) rules.SpellID {
 	return e.fact(rules.NoChar, rules.SpellByNumber{N: n}).(rules.SpellID)

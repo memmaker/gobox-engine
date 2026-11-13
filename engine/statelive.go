@@ -16,9 +16,6 @@ func (e *Engine) menuUp() bool {
 	return !e.snap.invOn && !e.view.on && e.onTop() == onMenu && e.powersView() == nil
 }
 
-// invUp: the inventory screen is up (not under a modal).
-func (e *Engine) invUp() bool { return e.snap.invOn }
-
 // battleUp: the combat map is the screen (not under a modal).
 func (e *Engine) battleUp() bool { return e.battleShown() }
 

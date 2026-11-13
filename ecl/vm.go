@@ -230,15 +230,6 @@ func (vm *VM) Arg(k int, h Host) int64 {
 	return 0
 }
 
-// ArgsTrace is a ready Trace printing operands the way the games' scriptTrace does.
-func ArgsTrace(h Host, print func(string)) func(*VM, int) {
-	return func(vm *VM, n int) {
-		for k := 1; k <= n; k++ {
-			print(fmt.Sprintf("    arg%d type %d %d %v = %d\n", k, vm.ArgType[k], vm.ArgN[k], vm.ArgRef[k], vm.Arg(k, h)))
-		}
-	}
-}
-
 // Skip steps over the command at PC using the Args table.
 func (vm *VM) Skip(h Host) {
 	vm.Fetch()
