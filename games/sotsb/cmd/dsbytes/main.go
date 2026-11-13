@@ -9,14 +9,14 @@ import (
 	"os"
 	"strconv"
 
-	"gobox/exe"
+	"gobox/asset/orig"
 )
 
 func main() {
 	if len(os.Args) < 4 {
 		log.Fatal("usage: dsbytes START.EXE OFFSET COUNT [WIDTH]")
 	}
-	img, err := exe.Load(os.Args[1], 3554)
+	img, err := orig.Load(os.Args[1], 3554)
 	if err != nil {
 		log.Fatal(err)
 	}

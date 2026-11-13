@@ -2,13 +2,13 @@ package engine
 
 import (
 	"fmt"
+	"gobox/rules1e"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 	"testing"
 
+	"gobox/asset/orig"
 	"gobox/char"
-	"gobox/dax"
 )
 
 // maxTurnKind is the last row of the turn table; a higher record would read past it.
@@ -40,7 +40,7 @@ func TestMonsterRecordsStayInTables(t *testing.T) {
 		t.Fatalf("no monster files: %v", err)
 	}
 	for _, path := range files {
-		f, err := dax.Open(path)
+		f, err := orig.Open(path)
 		if err != nil {
 			t.Fatal(err)
 		}

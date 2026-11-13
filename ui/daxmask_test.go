@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // Data.DaxMask makes a ref's colour index transparent, wherever it is in the
 // picture; no entry keeps it (skipped without buckrogers-go's data/dos). PNG: $DAXMASK_PNG.
 func TestDaxMask(t *testing.T) {
 	home, _ := os.UserHomeDir()
-	l, err := dax.NewLoader(filepath.Join(home, "Projects", "buckrogers-go", "data", "dos"))
+	l, err := orig.NewLoader(filepath.Join(home, "Projects", "buckrogers-go", "data", "dos"))
 	if err != nil || !l.Exists("CHARS.DAX") {
 		t.Skip("no buckrogers data")
 	}
@@ -27,7 +27,7 @@ func TestDaxMask(t *testing.T) {
 	}
 	daxMask = map[string]int{"CHARS": 8}
 	m := picImage(pc, egaInk)
-	want := dax.ParseVGA(l.BlockShared("CHARS", 0), false, 0)
+	want := orig.ParseVGA(l.BlockShared("CHARS", 0), false, 0)
 	w, clear8, kept := want.Width*8, 0, 0
 	for i, c := range want.Frame(0) {
 		_, _, _, a := m.At(i%w, i/w).RGBA()

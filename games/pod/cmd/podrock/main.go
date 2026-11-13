@@ -16,7 +16,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 const ceilRows, size = 44, 256
@@ -29,12 +29,12 @@ func main() {
 	if len(os.Args) > 2 {
 		pool = os.Args[2]
 	}
-	l, err := dax.NewLoader(game)
+	l, err := orig.NewLoader(game)
 	if err != nil {
 		log.Fatal(err)
 	}
 	b := l.BlockShared("SKYGRND", 4)
-	im := dax.ParseVGA(b, false, 0)
+	im := orig.ParseVGA(b, false, 0)
 	if im == nil || im.Palette == nil {
 		log.Fatal("SKYGRND 4: not a VGA picture")
 	}

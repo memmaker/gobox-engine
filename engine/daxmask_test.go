@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // TestPicturesMasked (BUG-CLASSES 32b): por hands gobox its masked
@@ -18,8 +18,8 @@ func TestPicturesMasked(t *testing.T) {
 	for _, u := range fighting(e).Field.Units {
 		if u.Foe && u.Art.Pixels != nil {
 			foes++
-			if u.Art.Clear != int(dax.Clear) {
-				t.Errorf("foe %s: Clear %d, want %d", u.Name, u.Art.Clear, dax.Clear)
+			if u.Art.Clear != int(orig.Clear) {
+				t.Errorf("foe %s: Clear %d, want %d", u.Name, u.Art.Clear, orig.Clear)
 			}
 		}
 	}
@@ -30,7 +30,7 @@ func TestPicturesMasked(t *testing.T) {
 		if p.File != "" {
 			t.Errorf("%s: by file %s, with no DaxMask", n, p.File)
 		}
-		if strings.HasPrefix(n, "marker/") && p.Clear != int(dax.Clear) {
+		if strings.HasPrefix(n, "marker/") && p.Clear != int(orig.Clear) {
 			t.Errorf("%s: Clear %d", n, p.Clear)
 		}
 	}

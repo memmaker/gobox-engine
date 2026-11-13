@@ -5,7 +5,7 @@ import (
 	"math"
 	"sync"
 
-	"gobox/amiga"
+	"gobox/asset/orig"
 )
 
 // The sound driver of START.EXE (the driver segment differs per game): a sequencer run from the timer
@@ -206,7 +206,7 @@ type sound struct {
 	tickLeft  float64
 	tandy     bool // Tandy sound chip present (config 'T'): render the SN76489
 	sn        sn76489
-	am        *amiga.Player // Config.Amiga given: the Amiga players instead
+	am        *orig.Player // Config.Amiga given: the Amiga players instead
 }
 
 // amigaFx maps PlaySound 2..12 to Amiga effects: the Amiga's effect table parallels the
@@ -343,8 +343,8 @@ func NewPlayer(c Config) (*Player, error) {
 		s.typ = sndNone
 	}
 	s.on = true
-	if len(c.Amiga) == amiga.End-amiga.Base {
-		s.am = amiga.AmigaNew(c.Amiga)
+	if len(c.Amiga) == orig.End-orig.Base {
+		s.am = orig.AmigaNew(c.Amiga)
 		s.am.SongOn = c.AmigaSongOn
 	}
 	if s.typ != sndNone { // soundInit: with a card, the timer interrupt hooked, song 0 on both sets

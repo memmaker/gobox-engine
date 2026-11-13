@@ -17,9 +17,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"gobox/dax"
-	"gobox/fixture"
+	"gobox/asset/orig"
 	"gobox/engine"
+	"gobox/fixture"
 	"gobox/games/por/porgame"
 )
 
@@ -48,7 +48,7 @@ func main() {
 			return s, nil
 		},
 		ECL: func(root string, block int) (int, []byte, error) {
-			l, err := dax.NewLoader(filepath.Join(root, engine.DOSDir))
+			l, err := orig.NewLoader(filepath.Join(root, engine.DOSDir))
 			if err != nil {
 				return 0, nil, err
 			}

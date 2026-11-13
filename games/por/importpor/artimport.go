@@ -4,20 +4,20 @@ import (
 	"gobox/engine"
 	"path/filepath"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // ImportArt is the art import: data's DOS graphics archives, and the Amiga
 // ones standing in for them, as sheets in data/assets/art (dax.ImportArt).
 // Nothing at run time reads the archives' art.
 func ImportArt(data string) error {
-	return dax.ImportArt(filepath.Join(data, engine.DOSDir), filepath.Join(data, engine.AmigaDir), filepath.Join(data, engine.AssetsDir, engine.ArtDir))
+	return orig.ImportArt(filepath.Join(data, engine.DOSDir), filepath.Join(data, engine.AmigaDir), filepath.Join(data, engine.AssetsDir, engine.ArtDir))
 }
 
 // ImportArtIfStale runs ImportArt when the art is missing or was imported
 // from other archives or by another format (dax.ImportArtIfStale).
 func ImportArtIfStale(data string) error {
-	return dax.ImportArtIfStale(filepath.Join(data, engine.DOSDir), filepath.Join(data, engine.AmigaDir), filepath.Join(data, engine.AssetsDir, engine.ArtDir))
+	return orig.ImportArtIfStale(filepath.Join(data, engine.DOSDir), filepath.Join(data, engine.AmigaDir), filepath.Join(data, engine.AssetsDir, engine.ArtDir))
 }
 
 // ImportAssets is the assets import: the art (ImportArt) and the data (ImportData).

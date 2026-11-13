@@ -9,19 +9,19 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/game"
 )
 
 // daxIcon is the games' compositing (cotab rules.charIcon, por BuildCharIcon) of DAX
 // blocks head and body in pose: the body with the head OR'd over it, recoloured,
 // Clear as clearPix.
-func daxIcon(h, b *dax.Image, colours [6]byte, pose int, flip bool) []uint8 {
+func daxIcon(h, b *orig.Image, colours [6]byte, pose int, flip bool) []uint8 {
 	d := slices.Clone(b.Frame(min(pose, b.Count-1)))
 	for i, v := range h.Frame(min(pose, h.Count-1)) {
 		switch {
-		case i >= len(d) || v == dax.Clear:
-		case d[i] == dax.Clear:
+		case i >= len(d) || v == orig.Clear:
+		case d[i] == orig.Clear:
 			d[i] = v
 		default:
 			d[i] |= v
@@ -38,7 +38,7 @@ func daxIcon(h, b *dax.Image, colours [6]byte, pose int, flip bool) []uint8 {
 		if flip {
 			x = w - 1 - x
 		}
-		if v == dax.Clear {
+		if v == orig.Clear {
 			v = clearPix
 		} else {
 			v = to[v&15]
@@ -56,27 +56,27 @@ func TestPoolIconMatchesDAX(t *testing.T) {
 	colours := [6]byte{0x9a, 0x2b, 0x3c, 0x4d, 0x5e, 0x6f}
 	for id, files := range asset.Origins() {
 		dir := filepath.Join(home, "Projects", id+"-go", "data", "dos")
-		hf, err1 := dax.Open(filepath.Join(dir, "CHEAD.DAX"))
-		bf, err2 := dax.Open(filepath.Join(dir, "CBODY.DAX"))
+		hf, err1 := orig.Open(filepath.Join(dir, "CHEAD.DAX"))
+		bf, err2 := orig.Open(filepath.Join(dir, "CBODY.DAX"))
 		if err1 != nil || err2 != nil || id == "pod" { // pod's art is VGA: it keeps its own palette
 			t.Logf("skip %s", id)
 			continue
 		}
-		name := func(file string, e dax.Entry, im *dax.Image, pose int) string {
+		name := func(file string, e orig.Entry, im *orig.Image, pose int) string {
 			ref := fmt.Sprint(e.ID)
 			if im.Count > 1 {
 				ref += fmt.Sprintf(".%d", pose)
 			}
 			return files[file][ref]
 		}
-		var heads []dax.Entry
+		var heads []orig.Entry
 		for _, e := range hf.Entries[:min(len(hf.Entries), 4)] {
 			heads = append(heads, e)
 		}
 		for _, be := range bf.Entries {
-			b, berr := dax.ParseImage(bf.BlockShared(be.ID), true, 0)
+			b, berr := orig.ParseImage(bf.BlockShared(be.ID), true, 0)
 			for _, he := range heads {
-				h, herr := dax.ParseImage(hf.BlockShared(he.ID), true, 0)
+				h, herr := orig.ParseImage(hf.BlockShared(he.ID), true, 0)
 				if herr != nil || berr != nil || h.Width != b.Width {
 					continue
 				}

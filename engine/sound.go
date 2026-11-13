@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gobox/amiga"
+	"gobox/asset/orig"
 	"gobox/audio"
 	"gobox/audio/sounddata"
 	"gobox/game/play"
@@ -213,10 +213,10 @@ func (e *Engine) battleMusic() {
 // SoundParts loads what the driver plays besides the synth, for
 // audio.Driver.Attach: the Amiga players and their effects, the sound pack,
 // the voice-over's speaking and the volume sliders.
-func (e *Engine) SoundParts() (*amiga.Player, []int, interface{ Mix([]byte) }, func() bool, func(string) float64) {
-	var am *amiga.Player
-	if img, err := os.ReadFile(filepath.Join(e.adv, SoundDir, "SOUND.BIN")); err == nil && len(img) == amiga.End-amiga.Base {
-		am = amiga.AmigaNew(img)
+func (e *Engine) SoundParts() (*orig.Player, []int, interface{ Mix([]byte) }, func() bool, func(string) float64) {
+	var am *orig.Player
+	if img, err := os.ReadFile(filepath.Join(e.adv, SoundDir, "SOUND.BIN")); err == nil && len(img) == orig.End-orig.Base {
+		am = orig.AmigaNew(img)
 		am.SongOn = 0x667d5
 	}
 	e.snd.dasp = loadDasp(filepath.Join(e.adv, SoundDir, daspDir))

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ecl/script"
 )
 
@@ -26,7 +26,7 @@ func TestScriptEqualsByteCode(t *testing.T) {
 			if _, err := os.Stat(dos); err != nil {
 				t.Skip("no game data")
 			}
-			l, err := dax.NewLoader(dos)
+			l, err := orig.NewLoader(dos)
 			if err != nil {
 				t.Fatal(err)
 			}

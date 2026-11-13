@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/amiga"
+	"gobox/asset/orig"
 	eclscript "gobox/ecl/script"
 )
 
@@ -20,7 +20,7 @@ func TestAmigaMusic(t *testing.T) {
 	if _, err := os.Stat(dos); err != nil || err1 != nil || err2 != nil {
 		t.Skip("no originals")
 	}
-	m, err := amiga.NewMX(mx, glb)
+	m, err := orig.NewMX(mx, glb)
 	if err != nil {
 		t.Fatal(err)
 	}

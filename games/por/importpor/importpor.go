@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/engine"
 	"gobox/importer"
 )
@@ -109,7 +109,7 @@ func Import(dos, dst string) error {
 		return err
 	}
 	amiga := filepath.Join(filepath.Dir(dos), engine.AmigaDir)
-	if err := dax.ImportArt(dos, amiga, filepath.Join(dst, engine.ArtDir)); err != nil {
+	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, engine.ArtDir)); err != nil {
 		return err
 	}
 	if err := asset.WritePictures("por", dst); err != nil {

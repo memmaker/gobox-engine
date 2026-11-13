@@ -18,7 +18,7 @@ import (
 	"slices"
 	"strings"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ega"
 )
 
@@ -101,18 +101,18 @@ func main() {
 			}
 			for _, f := range files {
 				path := filepath.Join(*root, r.game+"-go", "data", r.dir, f+".DAX")
-				d, err := dax.Open(path)
+				d, err := orig.Open(path)
 				if err != nil {
 					continue
 				}
 				for _, e := range d.Entries {
 					blk := d.BlockShared(e.ID)
-					im, err := dax.ParseImage(blk, s.masked, 0)
+					im, err := orig.ParseImage(blk, s.masked, 0)
 					if err != nil && !vga[r.game] {
 						continue // not a picture block (a font)
 					}
 					if vga[r.game] {
-						im = dax.ParseVGA(blk, s.masked, 0)
+						im = orig.ParseVGA(blk, s.masked, 0)
 					}
 					if im == nil || im.Count == 0 || im.Width == 0 || im.Height == 0 || len(im.Data) < im.Count*im.BPP {
 						continue
@@ -157,7 +157,7 @@ func main() {
 	// amiga_-prefixed names under origins key <game>-amiga, never deduplicated
 	// against the DOS art, so the F12 toggle keeps the two sets apart.
 	for _, g := range games {
-		dos, err := dax.NewLoader(filepath.Join(*root, g+"-go", "data", "dos"))
+		dos, err := orig.NewLoader(filepath.Join(*root, g+"-go", "data", "dos"))
 		if err != nil {
 			continue
 		}
@@ -170,13 +170,13 @@ func main() {
 		games2 = append(games2, ag)
 		for _, s := range sources {
 			for _, base := range slices.Compact(append([]string{strings.TrimRight(s.files[0], "0123456789")}, s.files...)) { // the Amiga keeps one archive per kind, plus a set's own (HEAD5: Curse's 549)
-				d, err := dax.Open(filepath.Join(*root, g+"-go", "data", "amiga", base+".DAX"))
+				d, err := orig.Open(filepath.Join(*root, g+"-go", "data", "amiga", base+".DAX"))
 				if err != nil || s.byFrame {
 					continue
 				}
 				prefix := "amiga_" + s.prefix
 				for _, e := range d.Entries {
-					im, err := dax.ParseImage(dos.BlockShared(base, e.ID), s.masked, 0) // the loader's block: HEAD centred as drawn
+					im, err := orig.ParseImage(dos.BlockShared(base, e.ID), s.masked, 0) // the loader's block: HEAD centred as drawn
 					if err != nil || im == nil || im.Count == 0 || im.Width == 0 || im.Height == 0 || len(im.Data) < im.Count*im.BPP {
 						continue
 					}
@@ -216,7 +216,7 @@ func main() {
 	games = append(games, games2...)
 	b, _ := json.MarshalIndent(origins, "", " ")
 	check(os.WriteFile(filepath.Join(*out, "..", "origins", *series+".json"), append(b, '\n'), 0o644)) // the picture table's (gobox/asset)
-	poses := map[string]string{}                                                                                               // combat head/body frame 0 -> its pose-1 frame (the first origin's)
+	poses := map[string]string{}                                                                       // combat head/body frame 0 -> its pose-1 frame (the first origin's)
 	for _, files := range origins {
 		for _, refs := range files {
 			for ref, name := range refs {
@@ -243,12 +243,12 @@ func main() {
 }
 
 // render is frame fr in RGBA: the image's own palette (VGA) or EGA, Clear transparent.
-func render(im *dax.Image, fr int) *image.NRGBA {
+func render(im *orig.Image, fr int) *image.NRGBA {
 	w := im.Width * 8
 	out := image.NewNRGBA(image.Rect(0, 0, w, im.Height))
 	for i, v := range im.Frame(fr)[:w*im.Height] {
 		switch {
-		case v == dax.Clear && im.Palette == nil:
+		case v == orig.Clear && im.Palette == nil:
 		case v >= ega.AmigaBase && im.Palette == nil:
 			out.SetNRGBA(i%w, i/w, color.NRGBA(ega.AmigaRGBA(v)))
 		case im.Palette != nil:
@@ -264,13 +264,13 @@ func render(im *dax.Image, fr int) *image.NRGBA {
 
 // renderAmiga is an Amiga frame in RGBA as gobox draws it (present.pixelRGBA):
 // EGA below ega.AmigaBase, above it the picture's own palette pal, else ega.Amiga.
-func renderAmiga(im *dax.Image, fr int, pal []byte) *image.NRGBA {
+func renderAmiga(im *orig.Image, fr int, pal []byte) *image.NRGBA {
 	w := im.Width * 8
 	out := image.NewNRGBA(image.Rect(0, 0, w, im.Height))
 	for i, v := range im.Frame(fr)[:w*im.Height] {
 		var c color.RGBA
 		switch n := len(pal) / 3; {
-		case v == dax.Clear:
+		case v == orig.Clear:
 			continue
 		case v < ega.AmigaBase:
 			c = ega.RGBA(int(v))
@@ -289,12 +289,12 @@ func renderAmiga(im *dax.Image, fr int, pal []byte) *image.NRGBA {
 // has 17 palette entries (the 16 colours, then transparent for Clear), VGA
 // art its own palette, Amiga art (values from ega.AmigaBase) those 17 padded
 // with transparent up to the Amiga colours, so it keeps its values too.
-func indexed(im *dax.Image, fr int, apal []byte) *image.Paletted {
+func indexed(im *orig.Image, fr int, apal []byte) *image.Paletted {
 	w := im.Width * 8
 	var pal color.Palette
 	amiga := false
 	for _, v := range im.Frame(fr)[:w*im.Height] {
-		amiga = amiga || im.Palette == nil && v >= ega.AmigaBase && v != dax.Clear
+		amiga = amiga || im.Palette == nil && v >= ega.AmigaBase && v != orig.Clear
 	}
 	if amiga {
 		for i := 0; i < ega.AmigaBase+16*len(ega.Amiga); i++ {
@@ -329,7 +329,7 @@ func indexed(im *dax.Image, fr int, apal []byte) *image.Paletted {
 		switch {
 		case im.Palette != nil:
 			out.Pix[i] = v
-		case v == dax.Clear:
+		case v == orig.Clear:
 			out.Pix[i] = 16
 		default:
 			out.Pix[i] = v & 15

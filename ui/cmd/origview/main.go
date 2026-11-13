@@ -15,7 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ega"
 	"gobox/rules"
 	"image"
@@ -65,28 +65,28 @@ func blockOf(m mapKey, n int) (int, int) {
 // view holds what Draw3dWorld reads.
 type view struct {
 	m     *rules.Map
-	walls [16][]byte        // wall value -> its 0x9C symbol ids, relocated as LoadWalldef does
-	sets  [16][4]*dax.Image // wall value -> symbol sets 0..3 (VGA: one image, raw ids)
-	raw   [16][]byte        // unrelocated ids (VGA lookups)
+	walls [16][]byte         // wall value -> its 0x9C symbol ids, relocated as LoadWalldef does
+	sets  [16][4]*orig.Image // wall value -> symbol sets 0..3 (VGA: one image, raw ids)
+	raw   [16][]byte         // unrelocated ids (VGA lookups)
 	px    *image.NRGBA
 }
 
-func pic(l *dax.Loader, name string, id int) *dax.Image {
+func pic(l *orig.Loader, name string, id int) *orig.Image {
 	b := l.BlockShared(name, id)
 	if b == nil {
 		return nil
 	}
-	if im := dax.ParseVGA(b, true, 0xD); im != nil {
+	if im := orig.ParseVGA(b, true, 0xD); im != nil {
 		return im
 	}
-	im, err := dax.ParseImage(b, true, 0xD)
+	im, err := orig.ParseImage(b, true, 0xD)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return im
 }
 
-func load(l *dax.Loader, m mapKey) (*view, error) {
+func load(l *orig.Loader, m mapKey) (*view, error) {
 	gb := l.BlockShared(fmt.Sprintf("GEO%d", m.disk), m.geo)
 	gm, err := rules.ParseMap(gb)
 	if err != nil {
@@ -116,7 +116,7 @@ func load(l *dax.Loader, m mapKey) (*view, error) {
 		}
 		v.walls[n], v.raw[n] = rel, raw
 		if one := pic(l, sname, blk); one != nil && one.Palette != nil {
-			v.sets[n] = [4]*dax.Image{one} // VGA (Buck Rogers): one block, indexed by id
+			v.sets[n] = [4]*orig.Image{one} // VGA (Buck Rogers): one block, indexed by id
 			continue
 		}
 		v.sets[n][0] = base
@@ -142,7 +142,7 @@ func (v *view) fill(y0, h int, c byte) {
 }
 
 // blit draws a picture's frame with its top-left at viewport (x, y), clipped.
-func (v *view) blit(im *dax.Image, frame, x, y int) {
+func (v *view) blit(im *orig.Image, frame, x, y int) {
 	if im == nil || frame < 0 || frame >= im.Count {
 		return
 	}
@@ -155,7 +155,7 @@ func (v *view) blit(im *dax.Image, frame, x, y int) {
 				continue
 			}
 			col = color.NRGBA{p.R, p.G, p.B, 255}
-		} else if c >= dax.Clear {
+		} else if c >= orig.Clear {
 			continue
 		} else {
 			col = rgb(c)
@@ -280,7 +280,7 @@ func (v *view) draw(dir, px, py int) {
 // ponytail: the sky colour comes from area words the ECL sets at run time;
 // here it is the usual cyan (11) under the open sky and black under a roof
 // (cell >= 0x80), band 7, ground 6 (ovr30:0155's defaults).
-func (v *view) backdrop(l *dax.Loader, m mapKey, dir, x, y int) {
+func (v *view) backdrop(l *orig.Loader, m mapKey, dir, x, y int) {
 	roof := v.m.MapCell(x, y) >= 0x80
 	if back := fmt.Sprintf("BACK%d", m.disk); l.Exists(back+".DAX") && !l.Exists("SKYGRND.DAX") { // (Pools of Darkness has a BACK1 of its own use)
 		// Buck Rogers: LoadWalldef loads BACKn block b (under a roof) and b+128 (open sky)
@@ -323,7 +323,7 @@ func (v *view) backdrop(l *dax.Loader, m mapKey, dir, x, y int) {
 	}
 }
 
-func Render(l *dax.Loader, m mapKey, x, y, dir int) (*image.NRGBA, error) {
+func Render(l *orig.Loader, m mapKey, x, y, dir int) (*image.NRGBA, error) {
 	v, err := load(l, m)
 	if err != nil {
 		return nil, err
@@ -347,7 +347,7 @@ func scaled(im *image.NRGBA, s int) *image.NRGBA {
 func main() {
 	scale := flag.Int("scale", 4, "pixel scale")
 	flag.Parse()
-	loaders := map[string]*dax.Loader{}
+	loaders := map[string]*orig.Loader{}
 	sc := bufio.NewScanner(os.Stdin)
 	for sc.Scan() {
 		f := strings.Fields(sc.Text())
@@ -365,7 +365,7 @@ func main() {
 		l := loaders[f[0]]
 		if l == nil {
 			var err error
-			if l, err = dax.NewLoader(f[0]); err != nil {
+			if l, err = orig.NewLoader(f[0]); err != nil {
 				log.Fatal(err)
 			}
 			loaders[f[0]] = l

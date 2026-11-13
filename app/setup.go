@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ega"
 )
 
@@ -39,7 +39,7 @@ func CopyFS(fsys fs.FS, root, dst string) error {
 // WriteCover writes out (COVER.PNG for gameimport's label) from the title
 // picture: block 2 of TITLE.DAX in dosDir, in the EGA palette.
 func WriteCover(dosDir, out string) error {
-	l, err := dax.NewLoader(dosDir)
+	l, err := orig.NewLoader(dosDir)
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func WriteCover(dosDir, out string) error {
 	if b == nil {
 		return errors.New("TITLE.DAX has no title picture")
 	}
-	im, err := dax.ParseImage(b, false, 0)
+	im, err := orig.ParseImage(b, false, 0)
 	if err != nil {
 		return fmt.Errorf("TITLE.DAX block 2: %w", err)
 	}
@@ -70,5 +70,5 @@ func WriteCover(dosDir, out string) error {
 // asset.Dir(dosDir), when missing or stale (dax.ImportArtIfStale). The
 // presenter reads only those.
 func ImportArt(dosDir string) error {
-	return dax.ImportArtIfStale(dosDir, filepath.Join(filepath.Dir(dosDir), "amiga"), asset.Dir(dosDir))
+	return orig.ImportArtIfStale(dosDir, filepath.Join(filepath.Dir(dosDir), "amiga"), asset.Dir(dosDir))
 }

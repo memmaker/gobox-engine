@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"sync"
 
-	"gobox/amiga"
+	"gobox/asset/orig"
 )
 
 // The sound cards of START.EXE's driver (por's DS:5372).
@@ -108,7 +108,7 @@ func NewDriver(data []byte, card byte) (*Driver, error) {
 func (d *Driver) Attach(am Amiga, fx []int, t Tracks, p Pack, speaking func() bool, vol func(kind string) float64) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	if p, ok := am.(*amiga.Player); ok && p == nil {
+	if p, ok := am.(*orig.Player); ok && p == nil {
 		am = nil // a nil *amiga.Player (por's SoundParts without SOUND.BIN)
 	}
 	d.am, d.fx, d.t, d.pack = am, fx, t, p

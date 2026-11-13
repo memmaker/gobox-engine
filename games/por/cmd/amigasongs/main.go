@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"gobox/amiga"
+	"gobox/asset/orig"
 )
 
 const rate = 44100
@@ -38,7 +38,7 @@ func main() {
 		log.Fatal(err)
 	}
 	for song := 1; song <= 7; song++ {
-		p := amiga.AmigaNew(img)
+		p := orig.AmigaNew(img)
 		p.SongOn = 0x667d5
 		p.Song(song)
 		pcm := make([]byte, secs*rate*4) // s16 stereo

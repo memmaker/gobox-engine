@@ -11,8 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"gobox/dax"
-	"gobox/exe"
+	"gobox/asset/orig"
 )
 
 const (
@@ -24,7 +23,7 @@ const (
 )
 
 func main() {
-	img, err := exe.Load(os.Args[1], 3554)
+	img, err := orig.Load(os.Args[1], 3554)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +34,7 @@ func main() {
 	}
 	names := map[byte]map[string]bool{}
 	for _, path := range os.Args[2:] {
-		f, err := dax.Open(path)
+		f, err := orig.Open(path)
 		if err != nil {
 			log.Fatal(err)
 		}

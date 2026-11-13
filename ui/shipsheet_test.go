@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -123,8 +123,8 @@ func saveSheetPNG(t *testing.T, v sfView) {
 		return
 	}
 	home, _ := os.UserHomeDir()
-	var fl *dax.Loader
-	if l, err := dax.NewLoader(filepath.Join(home, "Projects", "buckrogers2-go", "data", "dos")); err == nil {
+	var fl *orig.Loader
+	if l, err := orig.NewLoader(filepath.Join(home, "Projects", "buckrogers2-go", "data", "dos")); err == nil {
 		useArt(t, l.Dir)
 		fl = l
 		clear(daxPics)
@@ -146,7 +146,7 @@ func saveSheetPNG(t *testing.T, v sfView) {
 // brFont is BR2's own text font as its port hands it to gobox (Data.Fonts,
 // buckrogers2-go rules/data.go ownFont): 8X8D1 block 201, a character c at
 // c mod 64 for 0x20..0x7F (a-z the capitals), the symbols from 0x80.
-func brFont(l *dax.Loader) []byte {
+func brFont(l *orig.Loader) []byte {
 	if l == nil {
 		return nil
 	}

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ega"
 )
 
@@ -43,20 +43,20 @@ func importGame(t *testing.T, s Spec) string {
 
 // frames decodes every block of out/NAME.DAX and returns the frame count.
 func frames(t *testing.T, out, name string, sprite bool) (blocks, n int) {
-	f, err := dax.Open(filepath.Join(out, name+".DAX"))
+	f, err := orig.Open(filepath.Join(out, name+".DAX"))
 	if err != nil {
 		t.Fatalf("%s: %v", name, err)
 	}
 	for _, e := range f.Entries {
 		b := f.BlockShared(e.ID)
 		if sprite {
-			fs := dax.ParseSprite(b, true, 0, true)
+			fs := orig.ParseSprite(b, true, 0, true)
 			if len(fs) == 0 || fs[0].Image.Height == 0 {
 				t.Errorf("%s %d: no frames", name, e.ID)
 			}
 			n += len(fs)
 		} else {
-			im, err := dax.ParseImage(b, true, 0)
+			im, err := orig.ParseImage(b, true, 0)
 			if err != nil || im.Count == 0 || len(im.Data) != im.Count*im.BPP {
 				t.Errorf("%s %d: bad picture", name, e.ID)
 				continue
@@ -101,11 +101,11 @@ func TestGames(t *testing.T) {
 // they come back past the first palette slot.
 func TestWide(t *testing.T) {
 	out := importGame(t, games["pod"])
-	f, err := dax.Open(filepath.Join(out, "PIC.DAX"))
+	f, err := orig.Open(filepath.Join(out, "PIC.DAX"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	fs := dax.ParseSprite(f.BlockShared(f.Entries[0].ID), false, 0, true)
+	fs := orig.ParseSprite(f.BlockShared(f.Entries[0].ID), false, 0, true)
 	for _, c := range fs[0].Image.Data {
 		if c >= ega.AmigaBase+16 {
 			return
@@ -143,22 +143,22 @@ func TestFixedPalette(t *testing.T) {
 			s := games[c.game]
 			s.Exe, s.Gfx = c.exe, map[string]Gfx{strings.ToLower(c.name): {Pal: c.pal}}
 			out := importGame(t, s)
-			am, err := dax.Open(filepath.Join(out, c.name+".DAX"))
+			am, err := orig.Open(filepath.Join(out, c.name+".DAX"))
 			if err != nil {
 				t.Fatal(err)
 			}
-			pal, err := dax.Open(filepath.Join(out, c.name+"PAL.DAX"))
+			pal, err := orig.Open(filepath.Join(out, c.name+"PAL.DAX"))
 			if err != nil {
 				t.Fatal(err)
 			}
-			dos, err := dax.Open(filepath.Join(c.dos, c.name+".DAX"))
+			dos, err := orig.Open(filepath.Join(c.dos, c.name+".DAX"))
 			if err != nil {
 				t.Skip("no DOS data")
 			}
 			n := 0
 			for _, e := range dos.Entries {
-				a, aerr := dax.ParseImage(am.BlockShared(e.ID), false, 0)
-				d, derr := dax.ParseImage(dos.BlockShared(e.ID), false, 0)
+				a, aerr := orig.ParseImage(am.BlockShared(e.ID), false, 0)
+				d, derr := orig.ParseImage(dos.BlockShared(e.ID), false, 0)
 				p := pal.BlockShared(e.ID)
 				if aerr != nil || derr != nil || len(a.Data) != len(d.Data) || len(p) != 48 {
 					t.Fatalf("block %d: no picture or palette", e.ID)

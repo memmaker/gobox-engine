@@ -4,15 +4,15 @@ import (
 	"encoding/binary"
 	"fmt"
 	"gobox/char"
+	"gobox/rules1e"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 	"slices"
 	"strings"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ecl/script"
 )
 
@@ -21,7 +21,7 @@ import (
 // game's layout, the area's over it and the area's constant tables.
 func TestLayoutCoversScripts(t *testing.T) {
 	const scripts = "../data/por/sources/assets/scripts"
-	if _, err := dax.NewLoader("../data/por/sources/dos"); err != nil {
+	if _, err := orig.NewLoader("../data/por/sources/dos"); err != nil {
 		t.Skip(err)
 	}
 	dir := scripts // imported, special cases applied, by the TestMain import (por-go cmd/importstale)

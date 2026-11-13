@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // useArt points the presenter at the art the game in dosDir imports
@@ -20,7 +20,7 @@ func useArt(t *testing.T, dosDir string) bool {
 	if _, err := os.Stat(dosDir); err != nil {
 		return false
 	}
-	if err := dax.ImportArtIfStale(dosDir, filepath.Join(filepath.Dir(dosDir), "amiga"), asset.Dir(dosDir)); err != nil {
+	if err := orig.ImportArtIfStale(dosDir, filepath.Join(filepath.Dir(dosDir), "amiga"), asset.Dir(dosDir)); err != nil {
 		t.Fatal(err)
 	}
 	old := daxArt
@@ -43,7 +43,7 @@ func TestArtEqualsDAX(t *testing.T) {
 			t.Logf("skip %s: no data", g)
 			continue
 		}
-		l, err := dax.NewLoader(dir)
+		l, err := orig.NewLoader(dir)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -96,10 +96,10 @@ func sameRGBA(a, b *image.RGBA) bool {
 
 // daxDecode is every frame daxMasked decoded from the archives before the
 // art import (unmasked), until the first it had none for.
-func daxDecode(l *dax.Loader, file string, block int) []*image.RGBA {
+func daxDecode(l *orig.Loader, file string, block int) []*image.RGBA {
 	var out []*image.RGBA
 	b := l.BlockShared(file, block)
-	rgba := func(im *dax.Image, px []byte, colour func(c byte) (color.RGBA, bool)) *image.RGBA {
+	rgba := func(im *orig.Image, px []byte, colour func(c byte) (color.RGBA, bool)) *image.RGBA {
 		w := im.Width * 8
 		m := image.NewRGBA(image.Rect(0, 0, w, im.Height))
 		for i, c := range px {
@@ -109,13 +109,13 @@ func daxDecode(l *dax.Loader, file string, block int) []*image.RGBA {
 		}
 		return m
 	}
-	if im := dax.ParseVGA(b, false, 0); im != nil {
+	if im := orig.ParseVGA(b, false, 0); im != nil {
 		for f := range im.Count {
 			out = append(out, rgba(im, im.Frame(f), func(c byte) (color.RGBA, bool) { return im.Palette[c], true }))
 		}
 		return out
 	}
-	if fs, _ := dax.ParseVGAAnim(b); fs != nil {
+	if fs, _ := orig.ParseVGAAnim(b); fs != nil {
 		sprite := strings.HasPrefix(strings.ToUpper(file), "SPRIT")
 		for _, f := range fs {
 			im := f.Image
@@ -132,9 +132,9 @@ func daxDecode(l *dax.Loader, file string, block int) []*image.RGBA {
 		return out
 	}
 	pal := l.AmigaPalette(file, block)
-	ega := func(c byte) (color.RGBA, bool) { return pixelRGBA(c, pal), c < dax.Clear }
+	ega := func(c byte) (color.RGBA, bool) { return pixelRGBA(c, pal), c < orig.Clear }
 	if len(b) < 17 || (int(b[0])|int(b[1])<<8)*(int(b[2])|int(b[3])<<8)*int(b[8])*4 > len(b) { // ParseImage allocates what the header says
-	} else if im, err := dax.ParseImage(b, false, 0); err == nil && im.Width > 0 && im.Count > 0 {
+	} else if im, err := orig.ParseImage(b, false, 0); err == nil && im.Width > 0 && im.Count > 0 {
 		for f := range im.Count {
 			out = append(out, rgba(im, im.Frame(f), ega))
 		}
@@ -143,7 +143,7 @@ func daxDecode(l *dax.Loader, file string, block int) []*image.RGBA {
 	if !saneSprite(b) {
 		return out
 	}
-	for _, f := range dax.ParseSprite(b, false, 0, dax.XORed(file)) {
+	for _, f := range orig.ParseSprite(b, false, 0, orig.XORed(file)) {
 		if f.Image.Width == 0 {
 			break
 		}

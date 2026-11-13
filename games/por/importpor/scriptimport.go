@@ -2,13 +2,13 @@ package importpor
 
 import (
 	"errors"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ecl/script"
+	"gobox/games/por"
+	"gobox/games/por/importsrc"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"gobox/games/por"
-	"gobox/games/por/importsrc"
 )
 
 // ScriptData is the checked-in script names and layout, the decompiler's
@@ -45,7 +45,7 @@ func writeScriptData(dir string) error {
 // cases (scriptFixes). It is the import path: nothing at run time
 // decompiles (script.Library only reads the texts).
 func ImportScripts(dos, dir string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func ImportIfStale(dos, dir string) error {
 	if err := writeScriptData(dir); err != nil {
 		return err
 	}
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}

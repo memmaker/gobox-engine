@@ -8,11 +8,9 @@ import (
 	"path/filepath"
 
 	"gobox/asset"
+	"gobox/asset/orig"
 	"gobox/char"
-	"gobox/dax"
 	"gobox/engine"
-	"gobox/exe"
-	"gobox/exe/tablespec"
 	"gobox/games/sotsb"
 )
 
@@ -20,17 +18,17 @@ import (
 // dos into dst (gobox/dax ImportData over this game's record types) and
 // writes the base item table ITEMS as dax.ItemTableFile (as POR's import).
 func ImportDataTo(dos, dst string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := dax.ImportData[charRecord, affectRecord, itemRecord](l, dst, char.SheetOfRecord[charRecord], char.ItemOfRecord[itemRecord]); err != nil {
+	if err := orig.ImportData[charRecord, affectRecord, itemRecord](l, dst, char.SheetOfRecord[charRecord], char.ItemOfRecord[itemRecord]); err != nil {
 		return err
 	}
-	return dax.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, dax.Counted)
+	return orig.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, orig.Counted)
 }
 
 // ImportTo writes the adventure folder dst from the DOS originals in dos
@@ -58,7 +56,7 @@ func ImportTo(dos, dst string) error {
 		return err
 	}
 	amiga := filepath.Join(filepath.Dir(dos), "amiga")
-	if err := dax.ImportArt(dos, amiga, filepath.Join(dst, artDir)); err != nil {
+	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, artDir)); err != nil {
 		return err
 	}
 	if err := copyFiles(dos, filepath.Join(dst, savesDir), savePatterns...); err != nil {
@@ -106,18 +104,18 @@ func copyFiles(src, dst string, patterns ...string) error {
 // the affect ids and the creation start (rules1e.Tables.WithRules, laid out
 // as Rules1eLayout).
 func ImportRulesTo(dos, dst string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
-	im, err := exe.Load(l.Path("START.EXE"), 3554)
+	im, err := orig.Load(l.Path("START.EXE"), 3554)
 	if err != nil {
 		return err
 	}
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	return tablespec.WriteRulesWith(sotsb.TablesJSON, dst, []tablespec.Extra{{Name: "affectIds", Value: rules1e.SotsbAffectIDs}, {Name: "spellIds", Value: rules1e.SotsbSpellIDs}, {Name: "itemSpellCode", Value: rules1e.SevenBitItemSpell}, {Name: "spellClasses", Value: rules1e.SotsbSpellClasses}, {Name: "affectVariants", Value: rules1e.SotsbAffectVariants}, {Name: "affectGroups", Value: rules1e.SotsbAffectGroups}, {Name: "giantRule", Value: rules1e.LaterGiants}, {Name: "magicResistance", Value: rules1e.SotsbMagicResist}, {Name: "oldAge", Value: rules1e.SotsbOldAge}, {Name: "casterLevel", Value: rules1e.SotsbCasterLevel}, {Name: "itemPowers", Value: rules1e.SotsbItemPowers}, {Name: "creationStart", Value: CreationStart()}, {Name: "town", Value: Town()}, {Name: "combatGround", Value: CombatGround()}, {Name: "groundIds", Value: rules1e.SotsbGroundIDs}, {Name: "itemKinds", Value: rules1e.SotsbItemKinds}, {Name: "spiritualHammer", Value: rules1e.SotsbHammer}, {Name: "randomTreasure", Value: rules1e.SotsbTreasure()}, {Name: "appraisal", Value: rules1e.SotsbAppraisal}}, im)
+	return orig.WriteRulesWith(sotsb.TablesJSON, dst, []orig.Extra{{Name: "affectIds", Value: rules1e.SotsbAffectIDs}, {Name: "spellIds", Value: rules1e.SotsbSpellIDs}, {Name: "itemSpellCode", Value: rules1e.SevenBitItemSpell}, {Name: "spellClasses", Value: rules1e.SotsbSpellClasses}, {Name: "affectVariants", Value: rules1e.SotsbAffectVariants}, {Name: "affectGroups", Value: rules1e.SotsbAffectGroups}, {Name: "giantRule", Value: rules1e.LaterGiants}, {Name: "magicResistance", Value: rules1e.SotsbMagicResist}, {Name: "oldAge", Value: rules1e.SotsbOldAge}, {Name: "casterLevel", Value: rules1e.SotsbCasterLevel}, {Name: "itemPowers", Value: rules1e.SotsbItemPowers}, {Name: "creationStart", Value: CreationStart()}, {Name: "town", Value: Town()}, {Name: "combatGround", Value: CombatGround()}, {Name: "groundIds", Value: rules1e.SotsbGroundIDs}, {Name: "itemKinds", Value: rules1e.SotsbItemKinds}, {Name: "spiritualHammer", Value: rules1e.SotsbHammer}, {Name: "randomTreasure", Value: rules1e.SotsbTreasure()}, {Name: "appraisal", Value: rules1e.SotsbAppraisal}}, im)
 }
 
 // ImportGameTablesTo writes the game's data (pool.GameDataFile), the Engine's game tables (pool.GameTablesFile)

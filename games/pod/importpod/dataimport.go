@@ -2,8 +2,8 @@ package importpod
 
 import (
 	"gobox/asset"
+	"gobox/asset/orig"
 	"gobox/char"
-	"gobox/dax"
 	"gobox/rules1e"
 	"os"
 	"path/filepath"
@@ -13,17 +13,17 @@ import (
 // dos into dst (gobox/dax ImportData over this game's record types) and
 // writes the base item table ITEMS as dax.ItemTableFile (as POR's import).
 func ImportDataTo(dos, dst string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := dax.ImportData[charRecord, affectRecord, libraryRecord](l, dst, char.SheetOfRecord[charRecord], char.ItemOfRecord[libraryRecord]); err != nil {
+	if err := orig.ImportData[charRecord, affectRecord, libraryRecord](l, dst, char.SheetOfRecord[charRecord], char.ItemOfRecord[libraryRecord]); err != nil {
 		return err
 	}
-	return dax.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, dax.Bare)
+	return orig.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, orig.Bare)
 }
 
 // The originals' sound and animation files the folder carries as they are
@@ -55,7 +55,7 @@ func ImportTo(dos, dst string) error {
 	if err := asset.WritePictures("pod", dst); err != nil {
 		return err
 	}
-	if err := dax.ImportArt(dos, filepath.Join(filepath.Dir(dos), "amiga"), filepath.Join(dst, artDir)); err != nil {
+	if err := orig.ImportArt(dos, filepath.Join(filepath.Dir(dos), "amiga"), filepath.Join(dst, artDir)); err != nil {
 		return err
 	}
 	if save := filepath.Join(dos, "SAVE"); exists(save) {

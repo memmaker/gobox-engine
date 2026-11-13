@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/rules"
 )
 
@@ -16,7 +16,7 @@ import (
 // game draws (artFiles) is there.
 func TestArtEqualsDAX(t *testing.T) {
 	data := filepath.Join("..", "data", "por", "sources")
-	l, err := dax.NewLoader(filepath.Join(data, DOSDir))
+	l, err := orig.NewLoader(filepath.Join(data, DOSDir))
 	if err != nil {
 		t.Skip("no game files")
 	}
@@ -46,7 +46,7 @@ func TestArtEqualsDAX(t *testing.T) {
 				for _, m := range []int{asset.NoMask, 0, 13} {
 					masked := m != asset.NoMask
 					if blk.Kind == asset.Still {
-						want, err := dax.ParseImage(b, masked, byte(max(m, 0)))
+						want, err := orig.ParseImage(b, masked, byte(max(m, 0)))
 						if err != nil {
 							t.Fatalf("%s %s %d: %v", v, f.Name, id, err)
 						}
@@ -56,7 +56,7 @@ func TestArtEqualsDAX(t *testing.T) {
 						}
 						continue
 					}
-					want, got := dax.ParseSprite(b, masked, byte(max(m, 0)), dax.XORed(f.Name)), blk.Anim(m)
+					want, got := orig.ParseSprite(b, masked, byte(max(m, 0)), orig.XORed(f.Name)), blk.Anim(m)
 					if len(want) != len(got) {
 						t.Fatalf("%s %s %d: %d frames, want %d", v, f.Name, id, len(got), len(want))
 					}

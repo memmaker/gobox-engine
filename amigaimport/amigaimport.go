@@ -21,9 +21,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/adf"
-	"gobox/amiga"
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // Logf reports everything the import leaves out (a file, a block, a frame):
@@ -79,13 +77,13 @@ func (s Spec) archive(name string) string {
 
 // Import reads the .adf images under src and writes to out.
 func Import(src, out string, s Spec) error {
-	var disk []adf.AdfFile
+	var disk []orig.AdfFile
 	var snd []byte
 	var title image.Image
 	var exe []byte
 	extra := map[string][]byte{}
 	look := func(img []byte) bool {
-		vol, files, err := adf.Read(img)
+		vol, files, err := orig.Read(img)
 		if err != nil {
 			return false
 		}
@@ -98,7 +96,7 @@ func Import(src, out string, s Spec) error {
 		n := 0
 		for _, f := range files {
 			if s.Program != "" && strings.EqualFold(f.Path, s.Program) && snd == nil {
-				snd = amiga.AmigaProgramImage(f.Data)
+				snd = orig.AmigaProgramImage(f.Data)
 			}
 			if s.Exe != "" && strings.EqualFold(f.Path, s.Exe) && exe == nil {
 				exe = f.Data
@@ -109,7 +107,7 @@ func Import(src, out string, s Spec) error {
 				}
 			}
 			if s.Intro != "" && strings.EqualFold(f.Path, s.Intro) && title == nil {
-				title = amiga.Title(f.Data)
+				title = orig.Title(f.Data)
 			}
 			if _, ok := s.Gfx[strings.TrimSuffix(strings.ToLower(f.Path), ".dax")]; ok {
 				n++
@@ -217,11 +215,11 @@ func Import(src, out string, s Spec) error {
 				}
 			}
 		}
-		if err := os.WriteFile(filepath.Join(out, strings.ToUpper(name)+".DAX"), dax.WriteDOS(b), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(out, strings.ToUpper(name)+".DAX"), orig.WriteDOS(b), 0o644); err != nil {
 			return err
 		}
 		if len(pals[name]) > 0 {
-			if err := os.WriteFile(filepath.Join(out, strings.ToUpper(name)+"PAL.DAX"), dax.WriteDOS(pals[name]), 0o644); err != nil {
+			if err := os.WriteFile(filepath.Join(out, strings.ToUpper(name)+"PAL.DAX"), orig.WriteDOS(pals[name]), 0o644); err != nil {
 				return err
 			}
 		}
@@ -263,7 +261,7 @@ var osDirs = map[string]bool{"c": true, "devs": true, "l": true, "libs": true, "
 // logSkipped reports the data disks' files that were neither converted nor
 // copied, with the game's reason (Spec.Skip). AmigaOS files, icons, saved
 // games (save) and files without an extension (programs) are not game data.
-func logSkipped(disk []adf.AdfFile, s Spec) {
+func logSkipped(disk []orig.AdfFile, s Spec) {
 	for _, f := range disk {
 		dir, _, _ := strings.Cut(strings.ToLower(f.Path), "/")
 		base := f.Path[strings.LastIndex(f.Path, "/")+1:]
@@ -297,7 +295,7 @@ func firstReason(reasons ...string) (string, bool) {
 }
 
 // marked: the disk's volume or one of its files is a marker.
-func marked(vol string, files []adf.AdfFile, marks []string) bool {
+func marked(vol string, files []orig.AdfFile, marks []string) bool {
 	for _, m := range marks {
 		if strings.EqualFold(vol, m) {
 			return true
@@ -313,7 +311,7 @@ func marked(vol string, files []adf.AdfFile, marks []string) bool {
 
 // daxBlocks converts a Pool of Radiance .dax archive.
 func daxBlocks(name string, data []byte, g Gfx, blocks map[int][]byte) {
-	a := dax.OpenAmiga(data)
+	a := orig.OpenAmiga(data)
 	for _, e := range a.Entries {
 		b := a.BlockShared(e.ID)
 		if len(b) < 16 || e.ID > 255 {
@@ -321,9 +319,9 @@ func daxBlocks(name string, data []byte, g Gfx, blocks map[int][]byte) {
 			continue
 		}
 		if g.Sprite {
-			blocks[e.ID] = dax.AmigaSprite(b, g.XOR, g.Slot)
+			blocks[e.ID] = orig.AmigaSprite(b, g.XOR, g.Slot)
 		} else {
-			blocks[e.ID] = dax.AmigaImage(b, g.Split, g.Slot)
+			blocks[e.ID] = orig.AmigaImage(b, g.Split, g.Slot)
 		}
 	}
 }

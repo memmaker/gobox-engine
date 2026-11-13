@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/importer"
 )
 
@@ -30,7 +30,7 @@ func TestImportEqualsDecode(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dst, importer.ManifestFile)); err != nil {
 		t.Fatal(err)
 	}
-	if err := dax.ImportArtIfStale(dos, filepath.Join(filepath.Dir(dos), "amiga"), asset.Dir(dos)); err != nil {
+	if err := orig.ImportArtIfStale(dos, filepath.Join(filepath.Dir(dos), "amiga"), asset.Dir(dos)); err != nil {
 		t.Fatal(err)
 	}
 	if err := importer.SameTree(filepath.Join(dst, "art"), filepath.Join("..", "..", "..", "data", "cotab", "sources", "assets", "art")); err != nil {

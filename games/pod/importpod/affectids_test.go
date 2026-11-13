@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/rules1e"
 )
 
@@ -13,14 +13,14 @@ import (
 // SPC) use is in the game's affectIds. Items' +0x3E is an item property
 // that also indexes the affect handlers: not covered yet (fold T4b note).
 func TestAffectIDsCoverData(t *testing.T) {
-	l, err := dax.NewLoader(filepath.Join("..", "..", "..", "data", "pod", "sources", "dos"))
+	l, err := orig.NewLoader(filepath.Join("..", "..", "..", "data", "pod", "sources", "dos"))
 	if err != nil {
 		t.Skip("no originals:", err)
 	}
 	var affects []rules1e.AffectFile
 	for set := range 10 {
 		for id := range 256 {
-			affects = append(affects, dax.Records[rules1e.AffectFile](l.BlockShared(fmt.Sprintf("MON%dSPC", set), id))...)
+			affects = append(affects, orig.Records[rules1e.AffectFile](l.BlockShared(fmt.Sprintf("MON%dSPC", set), id))...)
 		}
 	}
 	if len(affects) == 0 {
@@ -34,16 +34,16 @@ func TestAffectIDsCoverData(t *testing.T) {
 // TestItemPowersCoverData: every item power code (+0x3E above 0x7F) of the
 // game's items (ITEM0..9, MON ITM) is in its itemPowers.
 func TestItemPowersCoverData(t *testing.T) {
-	l, err := dax.NewLoader(filepath.Join("..", "..", "..", "data", "pod", "sources", "dos"))
+	l, err := orig.NewLoader(filepath.Join("..", "..", "..", "data", "pod", "sources", "dos"))
 	if err != nil {
 		t.Skip("no originals:", err)
 	}
 	var items []rules1e.ItemFile
 	for set := range 10 {
 		for id := range 256 {
-			items = append(items, dax.Records[rules1e.ItemFile](l.BlockShared(fmt.Sprintf("MON%dITM", set), id))...)
+			items = append(items, orig.Records[rules1e.ItemFile](l.BlockShared(fmt.Sprintf("MON%dITM", set), id))...)
 		}
-		for _, its := range dax.ItemBlocks[rules1e.ItemFile](l, fmt.Sprintf("ITEM%d", set)) {
+		for _, its := range orig.ItemBlocks[rules1e.ItemFile](l, fmt.Sprintf("ITEM%d", set)) {
 			items = append(items, its...)
 		}
 	}

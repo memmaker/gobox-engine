@@ -6,14 +6,14 @@ import (
 	"os"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // Pins one view (wall-compare POD-M1-01): Pools of Darkness GEO1 block 16,
 // walls block 1, square 3,0 facing west.
 func TestPinnedView(t *testing.T) {
 	dir := "../../../data/pod/sources/dos"
-	l, err := dax.NewLoader(dir)
+	l, err := orig.NewLoader(dir)
 	if err != nil || !l.Exists("GEO1.DAX") {
 		t.Skip("no data/pod/sources/dos")
 	}
@@ -31,7 +31,7 @@ const want = "046f2dfc2b665b1810621fad37d4416bd71d0d021fa70ecdfc75fd527da77d98"
 // Pins a Buck Rogers view under the open sky (wall-compare BR-M9-01): the
 // BACK4 block 10+128 backdrop behind GEO4 block 65, walls block 10, square 1,5 facing north.
 func TestPinnedBuckRogersView(t *testing.T) {
-	l, err := dax.NewLoader(os.Getenv("HOME") + "/Projects/buckrogers-go/data/dos")
+	l, err := orig.NewLoader(os.Getenv("HOME") + "/Projects/buckrogers-go/data/dos")
 	if err != nil || !l.Exists("BACK4.DAX") {
 		t.Skip("no buckrogers-go data")
 	}

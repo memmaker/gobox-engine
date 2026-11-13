@@ -12,13 +12,10 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"gobox/audio/glbr"
+	"gobox/asset/orig"
 	"gobox/audio/sounddata"
-	"gobox/dax"
 	"gobox/ecl/script"
 	"gobox/engine"
-	"gobox/exe"
-	"gobox/exe/tablespec"
 	"gobox/games/pod"
 	"gobox/importer"
 	"gobox/rules"
@@ -44,7 +41,7 @@ func Import(dos, dst string) error {
 	if err != nil {
 		return err
 	}
-	if _, err := glbr.WriteSongs(music, 0, filepath.Join(dst, glbr.MusicDir)); err != nil {
+	if _, err := orig.WriteSongs(music, 0, filepath.Join(dst, orig.MusicDir)); err != nil {
 		return err
 	}
 	if err := importRules(dos, filepath.Join(dst, "data")); err != nil {
@@ -113,13 +110,13 @@ func writeSwitchData(dst string) error {
 // importRules writes GAME.EXE's tables (tables.json, data segment paragraph
 // 2535) into dst/rules.json.
 func importRules(dos, dst string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
-	im, err := exe.Load(l.Path("GAME.EXE"), 2535)
+	im, err := orig.Load(l.Path("GAME.EXE"), 2535)
 	if err != nil {
 		return err
 	}
-	return tablespec.WriteRulesWith(pod.TablesJSON, dst, []tablespec.Extra{{Name: "affectIds", Value: rules1e.PodAffectIDs}, {Name: "spellIds", Value: rules1e.PodSpellIDs}, {Name: "spellsGone", Value: rules1e.PodSpellsGone}, {Name: "itemSpellCode", Value: rules1e.SevenBitItemSpell}, {Name: "spellClasses", Value: rules1e.PodSpellClasses}, {Name: "affectVariants", Value: rules1e.PodAffectVariants}, {Name: "affectGroups", Value: rules1e.PodAffectGroups}, {Name: "giantRule", Value: rules1e.LaterGiants}, {Name: "magicResistance", Value: rules1e.PodMagicResist}, {Name: "spiritualHammer", Value: rules1e.PodHammer}, {Name: "oldAge", Value: rules1e.PodOldAge}, {Name: "casterLevel", Value: rules1e.PodCasterLevel}, {Name: "affectRule", Value: rules1e.PodAffectRule}, {Name: "itemPowers", Value: rules1e.PodItemPowers}, {Name: "creationStart", Value: CreationStart(filepath.Dir(dst))}, {Name: "town", Value: Town()}, {Name: "combatGround", Value: CombatGround()}, {Name: "groundIds", Value: rules1e.PodGroundIDs}, {Name: "itemKinds", Value: rules1e.SotsbItemKinds}, {Name: "moraleUncapped", Value: true}, {Name: "itemLibrary", Value: ItemLibrary(filepath.Dir(dst))}, {Name: "randomScroll", Value: RandomScroll()}, {Name: "appraisal", Value: rules1e.SotsbAppraisal}}, im) // dst is the adventure's data folder
+	return orig.WriteRulesWith(pod.TablesJSON, dst, []orig.Extra{{Name: "affectIds", Value: rules1e.PodAffectIDs}, {Name: "spellIds", Value: rules1e.PodSpellIDs}, {Name: "spellsGone", Value: rules1e.PodSpellsGone}, {Name: "itemSpellCode", Value: rules1e.SevenBitItemSpell}, {Name: "spellClasses", Value: rules1e.PodSpellClasses}, {Name: "affectVariants", Value: rules1e.PodAffectVariants}, {Name: "affectGroups", Value: rules1e.PodAffectGroups}, {Name: "giantRule", Value: rules1e.LaterGiants}, {Name: "magicResistance", Value: rules1e.PodMagicResist}, {Name: "spiritualHammer", Value: rules1e.PodHammer}, {Name: "oldAge", Value: rules1e.PodOldAge}, {Name: "casterLevel", Value: rules1e.PodCasterLevel}, {Name: "affectRule", Value: rules1e.PodAffectRule}, {Name: "itemPowers", Value: rules1e.PodItemPowers}, {Name: "creationStart", Value: CreationStart(filepath.Dir(dst))}, {Name: "town", Value: Town()}, {Name: "combatGround", Value: CombatGround()}, {Name: "groundIds", Value: rules1e.PodGroundIDs}, {Name: "itemKinds", Value: rules1e.SotsbItemKinds}, {Name: "moraleUncapped", Value: true}, {Name: "itemLibrary", Value: ItemLibrary(filepath.Dir(dst))}, {Name: "randomScroll", Value: RandomScroll()}, {Name: "appraisal", Value: rules1e.SotsbAppraisal}}, im) // dst is the adventure's data folder
 }

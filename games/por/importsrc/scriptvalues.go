@@ -9,15 +9,15 @@ import (
 	"strings"
 	"unicode"
 
+	"gobox/asset/orig"
 	"gobox/char"
-	"gobox/dax"
 	"gobox/ecl/script"
 )
 
 // DataValues names set's monsters (MON<set>CHA records) and item types
 // (the items of ITEM<set>), for names/values.txt. A name two numbers
 // share gets the number on.
-func DataValues(l *dax.Loader, set int) []script.Value {
+func DataValues(l *orig.Loader, set int) []script.Value {
 	var out []script.Value
 	add := func(kind string, names map[int]string) {
 		count := map[string]int{}
@@ -75,7 +75,7 @@ func DataValues(l *dax.Loader, set int) []script.Value {
 }
 
 // TreasureItems lists the items of set's ITEM block, for a comment.
-func TreasureItems(l *dax.Loader, set, block int) string {
+func TreasureItems(l *orig.Loader, set, block int) string {
 	var s []string
 	for _, it := range char.ReadItems(l.BlockShared(fmt.Sprintf("ITEM%d", set), block)) {
 		n := itemFullName(&it)
@@ -122,7 +122,7 @@ func camelName(s string) string {
 }
 
 // ImportSource is the game data the script import reads.
-func ImportSource(l *dax.Loader) script.Source {
+func ImportSource(l *orig.Loader) script.Source {
 	return script.Source{
 		Block: func(disk, block int) []byte {
 			name := fmt.Sprintf("ECL%d", disk)

@@ -6,19 +6,19 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // A VGA DAX picture (PoD's TITLE) is drawn in its own palette, not decoded as EGA
 // (skipped without pod-go's data/dos). PNG: $VGAPIC_PNG.
 func TestDAXPictureVGA(t *testing.T) {
-	l, err := dax.NewLoader(filepath.Join("..", "data", "pod", "sources", "dos"))
+	l, err := orig.NewLoader(filepath.Join("..", "data", "pod", "sources", "dos"))
 	if err != nil || !l.Exists("TITLE.DAX") {
 		t.Skip("no pod data")
 	}
 	useArt(t, l.Dir)
 	clear(daxPics)
-	want := dax.ParseVGA(l.BlockShared("TITLE", 1), false, 0)
+	want := orig.ParseVGA(l.BlockShared("TITLE", 1), false, 0)
 	m := daxImage("TITLE", 1, 0)
 	if p := os.Getenv("VGAPIC_PNG"); p != "" && m != nil {
 		f, _ := os.Create(p)

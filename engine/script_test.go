@@ -10,14 +10,14 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // TestScriptRoundTrip: every area's byte code, written as a script and
 // parsed back, is the same Script (cmd/import's output parses to the
 // byte code's commands).
 func TestScriptRoundTrip(t *testing.T) {
-	l, err := dax.NewLoader("../data/por/sources/dos")
+	l, err := orig.NewLoader("../data/por/sources/dos")
 	if err != nil {
 		t.Skip(err)
 	}

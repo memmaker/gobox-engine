@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // headerWord starts a script text's first line: "version <id> <revision>
@@ -192,7 +192,7 @@ func ImportIfStale(v *Version, src Source, data fs.FS, dir string, fold Folding,
 }
 
 // DAXSource reads the blocks of the game's ECL*.DAX, for the import.
-func DAXSource(l *dax.Loader) Source {
+func DAXSource(l *orig.Loader) Source {
 	return Source{Block: func(disk, block int) []byte {
 		name := fmt.Sprintf("ECL%d", disk)
 		if !l.Exists(name + ".DAX") {
@@ -206,7 +206,7 @@ func DAXSource(l *dax.Loader) Source {
 // scripts dir (ImportFolder with the DAX source and gate folding): the
 // games' importer step.
 func ImportDAXFolder(v *Version, dos string, data fs.FS, dir string, fixes []Fix) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}

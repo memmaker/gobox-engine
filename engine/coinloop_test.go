@@ -2,11 +2,11 @@ package engine
 
 import (
 	"fmt"
-	"os"
 	"gobox/rules1e"
+	"os"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ecl/script"
 )
 
@@ -16,7 +16,7 @@ import (
 // same purse and cost in both, and the purse and the cost left are equal.
 func TestArea9CoinLoop(t *testing.T) {
 	const scripts, area = "../data/por/sources/assets/scripts", 9
-	l, err := dax.NewLoader("../data/por/sources/dos")
+	l, err := orig.NewLoader("../data/por/sources/dos")
 	if err != nil {
 		t.Skip(err)
 	}

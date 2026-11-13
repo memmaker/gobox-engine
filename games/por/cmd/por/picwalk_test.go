@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/game"
 	"gobox/game/play"
 
@@ -55,7 +55,7 @@ func TestFightPicturesResolve(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		ref, err := dax.NewLoader("../../../../data/por/sources/" + engine.DOSDir) // the reference decoder: a picture's block is in the archives
+		ref, err := orig.NewLoader("../../../../data/por/sources/" + engine.DOSDir) // the reference decoder: a picture's block is in the archives
 		if err != nil {
 			t.Fatal(err)
 		}

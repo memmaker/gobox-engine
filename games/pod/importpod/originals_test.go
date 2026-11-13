@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"gobox/asset"
+	"gobox/asset/orig"
 	"gobox/char"
-	"gobox/dax"
-	"gobox/importer"
 	"gobox/engine"
+	"gobox/importer"
 	"gobox/rules1e"
 )
 
@@ -41,19 +41,19 @@ func TestOriginals(t *testing.T) {
 		t.Fatal(err)
 	}
 	var items []rules1e.ItemBase // the base item table as pool reads it
-	if ok, err := asset.ReadJSON(filepath.Join(dst, "data"), dax.ItemTableFile, &items); !ok || err != nil || len(items) != engine.ItemTypes {
-		t.Fatalf("%s.json: %d items, %v %v", dax.ItemTableFile, len(items), ok, err)
+	if ok, err := asset.ReadJSON(filepath.Join(dst, "data"), orig.ItemTableFile, &items); !ok || err != nil || len(items) != engine.ItemTypes {
+		t.Fatalf("%s.json: %d items, %v %v", orig.ItemTableFile, len(items), ok, err)
 	}
-	ld, err := dax.NewLoader(dos)
+	ld, err := orig.NewLoader(dos)
 	if err != nil {
 		t.Fatal(err)
 	}
 	var data []rules1e.ItemFile
 	for set := range 10 {
 		for id := range 256 {
-			data = append(data, dax.Records[rules1e.ItemFile](ld.BlockShared(fmt.Sprintf("MON%dITM", set), id))...)
+			data = append(data, orig.Records[rules1e.ItemFile](ld.BlockShared(fmt.Sprintf("MON%dITM", set), id))...)
 		}
-		for _, its := range dax.ItemBlocks[rules1e.ItemFile](ld, fmt.Sprintf("ITEM%d", set)) {
+		for _, its := range orig.ItemBlocks[rules1e.ItemFile](ld, fmt.Sprintf("ITEM%d", set)) {
 			data = append(data, its...)
 		}
 	}

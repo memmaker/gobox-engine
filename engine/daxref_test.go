@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // refLoaders are the tests' reference decoders by data directory: the
@@ -14,15 +14,15 @@ var refLoaders sync.Map
 
 // refDAX is the DOS archives of e's data directory with the Amiga ones
 // standing in, as the import reads them.
-func refDAX(e *Engine) *dax.Loader {
+func refDAX(e *Engine) *orig.Loader {
 	if l, ok := refLoaders.Load(e.data); ok {
-		return l.(*dax.Loader)
+		return l.(*orig.Loader)
 	}
-	l, err := dax.NewLoader(filepath.Join(e.data, DOSDir))
+	l, err := orig.NewLoader(filepath.Join(e.data, DOSDir))
 	if err != nil {
 		panic(err) // the tests that call it have the game files
 	}
 	l.UseAmiga(filepath.Join(e.data, AmigaDir))
 	actual, _ := refLoaders.LoadOrStore(e.data, l)
-	return actual.(*dax.Loader)
+	return actual.(*orig.Loader)
 }

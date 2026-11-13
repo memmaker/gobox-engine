@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"gobox/asset/orig"
 	"gobox/audio/sounddata"
-	"gobox/dax"
 	"gobox/importer"
 )
 
@@ -67,7 +67,7 @@ const SoundFile = "sound.json"
 
 // importSound decodes START.EXE's sound tables into dst/SoundFile.
 func importSound(dos, dst string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}

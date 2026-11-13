@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -163,8 +163,8 @@ func savePNG(t *testing.T, _ *cellPage, v sfView) {
 		return
 	}
 	home, _ := os.UserHomeDir()
-	var fl *dax.Loader
-	if l, err := dax.NewLoader(filepath.Join(home, "Projects", "buckrogers2-go", "data", "dos")); err == nil {
+	var fl *orig.Loader
+	if l, err := orig.NewLoader(filepath.Join(home, "Projects", "buckrogers2-go", "data", "dos")); err == nil {
 		useArt(t, l.Dir)
 		fl = l
 		clear(daxPics)

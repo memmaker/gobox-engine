@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"gobox/amiga"
+	"gobox/asset/orig"
 	"gobox/audio"
 	"gobox/game"
 	"gobox/gpu"
@@ -292,8 +292,8 @@ func newDriver() *audio.Driver {
 	var fx []int
 	if amigaMX != nil {
 		am, fx = amigaMX, amigaFx
-	} else if len(amigaSound) == amiga.End-amiga.Base {
-		am = amiga.AmigaNew(amigaSound)
+	} else if len(amigaSound) == orig.End-orig.Base {
+		am = orig.AmigaNew(amigaSound)
 	}
 	d.Attach(am, fx, nil, nil, nil, nil)
 	d.Wait(0)

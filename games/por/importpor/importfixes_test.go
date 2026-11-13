@@ -4,14 +4,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ecl/script"
 	"gobox/games/por/importsrc"
 )
 
 // TestImportAppliesFixes: the game data decompiles and every special case (scriptFixes) applies.
 func TestImportAppliesFixes(t *testing.T) {
-	l, err := dax.NewLoader("../../../data/por/sources/dos")
+	l, err := orig.NewLoader("../../../data/por/sources/dos")
 	if err != nil {
 		t.Skip(err)
 	}

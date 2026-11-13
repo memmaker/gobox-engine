@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -97,7 +97,7 @@ func TestPointBuy(t *testing.T) {
 // gobox's copy where they are not installed.
 func brBits() []byte {
 	home, _ := os.UserHomeDir()
-	if l, err := dax.NewLoader(filepath.Join(home, "Projects", "buckrogers2-go", "data", "dos")); err == nil {
+	if l, err := orig.NewLoader(filepath.Join(home, "Projects", "buckrogers2-go", "data", "dos")); err == nil {
 		if b := brFont(l); b != nil {
 			return b
 		}

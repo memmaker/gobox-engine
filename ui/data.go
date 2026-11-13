@@ -15,8 +15,8 @@ import (
 	"strings"
 	"testing/fstest"
 
-	"gobox/amiga"
 	"gobox/asset"
+	"gobox/asset/orig"
 	"gobox/audio"
 	"gobox/game"
 )
@@ -181,7 +181,7 @@ type Entry struct {
 
 // amigaMX and amigaFx are Data.AmigaMusic's player and effect table (newDriver).
 var (
-	amigaMX *amiga.MX
+	amigaMX *orig.MX
 	amigaFx []int
 )
 
@@ -300,7 +300,7 @@ func gameData(g game.Data) {
 		}
 		mx, _ := os.ReadFile(filepath.Join(dir, m.Songs))
 		glb, _ := os.ReadFile(filepath.Join(dir, m.Effects))
-		if p, err := amiga.NewMX(mx, glb); err == nil {
+		if p, err := orig.NewMX(mx, glb); err == nil {
 			p.Songs, amigaMX, amigaFx = m.SongOf, p, m.EffectOf
 		}
 	}

@@ -18,7 +18,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/fixture"
 
 	"gobox/games/sotsb/importsotsb"
@@ -44,7 +44,7 @@ func main() {
 			return fixture.OpenRawSave(sv, fixture.RawLayout{Vars: vars, Size: 0x3351, Disk: 0, Area: 1, Game: 0x801, ECL: 0x1401, ECLSize: 0x1E00, Pos: 0x3201, Count: 0x3208, Names: 0x3209, NameSize: 0x29, GameSymSet: 0x624, AreaBlock: 0x1E4, AreaGeo: 0x18A, AreaWallBlock: 0x3F4, AreaWallSlot: 0x3FA})
 		},
 		ECL: func(root string, block int) (int, []byte, error) {
-			l, err := dax.NewLoader(root)
+			l, err := orig.NewLoader(root)
 			if err != nil {
 				return 0, nil, err
 			}

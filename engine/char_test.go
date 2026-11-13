@@ -3,8 +3,8 @@ package engine
 import (
 	"bytes"
 	"encoding/binary"
+	"gobox/asset/orig"
 	"gobox/char"
-	"gobox/dax"
 	"gobox/rules1e"
 	"testing"
 	"unsafe"
@@ -82,7 +82,7 @@ func TestRecolourAmigaIcon(t *testing.T) {
 	if len(seen) != 16 {
 		t.Fatal("amigaIconColour is not a permutation")
 	}
-	im := &dax.Image{Data: []byte{48 + 9, 48 + 1, 48 + 6, 3}, Mask: 16}
+	im := &orig.Image{Data: []byte{48 + 9, 48 + 1, 48 + 6, 3}, Mask: 16}
 	var to [16]byte
 	for i := range to {
 		to[i] = byte(i)
@@ -97,7 +97,7 @@ func TestRecolourAmigaIcon(t *testing.T) {
 		t.Fatalf("got %v", im.Data)
 	}
 	// a chained change (1 -> 3 -> 5) chains on DOS pixels only
-	im = &dax.Image{Data: []byte{1, 48 + 9}, Mask: 16}
+	im = &orig.Image{Data: []byte{1, 48 + 9}, Mask: 16}
 	for i := range to {
 		to[i] = byte(i)
 	}

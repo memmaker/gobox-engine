@@ -10,14 +10,14 @@ import (
 	"os"
 	"strconv"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 func main() {
 	if len(os.Args) != 4 {
 		log.Fatal("usage: geodump DATA AREA BLOCK")
 	}
-	l, err := dax.NewLoader(os.Args[1])
+	l, err := orig.NewLoader(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"testing"
 
+	"gobox/asset/orig"
 	"gobox/audio"
 	"gobox/audio/sounddata"
 	"gobox/char"
-	"gobox/dax"
 	"gobox/rules"
 )
 
@@ -20,7 +20,7 @@ import (
 // back from the imported data (gdata) as the archives decode them.
 func TestDataEqualsDAX(t *testing.T) {
 	data := filepath.Join("..", "data", "por", "sources")
-	l, err := dax.NewLoader(filepath.Join(data, DOSDir))
+	l, err := orig.NewLoader(filepath.Join(data, DOSDir))
 	if err != nil {
 		t.Skip("no game files")
 	}

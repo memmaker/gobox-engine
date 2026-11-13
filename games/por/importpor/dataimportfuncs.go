@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"gobox/asset"
+	"gobox/asset/orig"
 	"gobox/audio/sounddata"
 	"gobox/char"
-	"gobox/dax"
 	"gobox/engine"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -75,17 +75,17 @@ func ImportData(data string) error {
 // ImportDataTo is ImportData from the DOS files in dos into dst; it clears
 // nothing (the adventure import writes beside it, pictures.PicturesFile).
 func ImportDataTo(dos, dst string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := dax.ImportData[engine.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, char.SheetOfRecord[engine.CharRecord], char.ItemOfRecord[rules1e.ItemFile]); err != nil {
+	if err := orig.ImportData[engine.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, char.SheetOfRecord[engine.CharRecord], char.ItemOfRecord[rules1e.ItemFile]); err != nil {
 		return err
 	}
-	if err := dax.ImportItemTable[rules1e.ItemBase](l, dst, engine.ItemTypes, dax.Counted); err != nil {
+	if err := orig.ImportItemTable[rules1e.ItemBase](l, dst, engine.ItemTypes, orig.Counted); err != nil {
 		return err
 	}
 	exe, err := os.ReadFile(l.Path("START.EXE"))
@@ -115,7 +115,7 @@ func ImportDataTo(dos, dst string) error {
 	if err := writeJournal(filepath.Join(filepath.Dir(dst), engine.JournalDir)); err != nil {
 		return err
 	}
-	key, err := dax.SourceKey(dataFormat, dos)
+	key, err := orig.SourceKey(dataFormat, dos)
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func ImportDataIfStale(data string) error {
 	if _, err := os.Stat(filepath.Join(data, engine.DOSDir)); errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
-	key, err := dax.SourceKey(dataFormat, filepath.Join(data, engine.DOSDir))
+	key, err := orig.SourceKey(dataFormat, filepath.Join(data, engine.DOSDir))
 	if err != nil {
 		return err
 	}

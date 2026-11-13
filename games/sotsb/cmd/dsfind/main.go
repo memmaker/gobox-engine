@@ -8,11 +8,11 @@ import (
 	"os"
 	"strconv"
 
-	"gobox/exe"
+	"gobox/asset/orig"
 )
 
 func main() {
-	img, err := exe.Load(os.Args[1], 3554)
+	img, err := orig.Load(os.Args[1], 3554)
 	if err != nil {
 		fmt.Println(err)
 		return

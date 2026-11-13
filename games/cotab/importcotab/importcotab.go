@@ -11,11 +11,9 @@ import (
 
 	"gobox/games/cotab"
 
+	"gobox/asset/orig"
 	"gobox/audio/sounddata"
-	"gobox/dax"
 	"gobox/engine"
-	"gobox/exe"
-	"gobox/exe/tablespec"
 	"gobox/importer"
 	"gobox/rules"
 )
@@ -150,20 +148,20 @@ var gameTables = engine.GameTables{
 // importRules writes START.EXE's tables (tables.json, data segment paragraph
 // 2750) into dst/json.
 func importRules(dos, dst string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
-	im, err := exe.Load(l.Path("START.EXE"), 2750)
+	im, err := orig.Load(l.Path("START.EXE"), 2750)
 	if err != nil {
 		return err
 	}
-	return tablespec.WriteRulesWith(cotab.TablesJSON, dst, []tablespec.Extra{{Name: "affectIds", Value: rules1e.CotabAffectIDs}, {Name: "spellIds", Value: rules1e.CotabSpellIDs}, {Name: "spellsGone", Value: rules1e.CotabSpellsGone}, {Name: "spellClasses", Value: rules1e.CotabSpellClasses}, {Name: "affectVariants", Value: rules1e.CotabAffectVariants}, {Name: "affectGroups", Value: rules1e.CotabAffectGroups}, {Name: "giantRule", Value: rules1e.LaterGiants}, {Name: "casterLevel", Value: rules1e.CotabCasterLevel}, {Name: "affectRule", Value: rules1e.CotabAffectRule}, {Name: "itemPowers", Value: rules1e.CotabItemPowers}, {Name: "creationStart", Value: CreationStart()}, {Name: "importFlag", Value: true}, {Name: "town", Value: Town()}, {Name: "combatGround", Value: CombatGround()}, {Name: "groundIds", Value: rules1e.CotabGroundIDs}, {Name: "randomTreasure", Value: rules1e.CotabTreasure()}}, im)
+	return orig.WriteRulesWith(cotab.TablesJSON, dst, []orig.Extra{{Name: "affectIds", Value: rules1e.CotabAffectIDs}, {Name: "spellIds", Value: rules1e.CotabSpellIDs}, {Name: "spellsGone", Value: rules1e.CotabSpellsGone}, {Name: "spellClasses", Value: rules1e.CotabSpellClasses}, {Name: "affectVariants", Value: rules1e.CotabAffectVariants}, {Name: "affectGroups", Value: rules1e.CotabAffectGroups}, {Name: "giantRule", Value: rules1e.LaterGiants}, {Name: "casterLevel", Value: rules1e.CotabCasterLevel}, {Name: "affectRule", Value: rules1e.CotabAffectRule}, {Name: "itemPowers", Value: rules1e.CotabItemPowers}, {Name: "creationStart", Value: CreationStart()}, {Name: "importFlag", Value: true}, {Name: "town", Value: Town()}, {Name: "combatGround", Value: CombatGround()}, {Name: "groundIds", Value: rules1e.CotabGroundIDs}, {Name: "randomTreasure", Value: rules1e.CotabTreasure()}}, im)
 }
 
 // importSound decodes START.EXE's sound tables into dst/SoundFile.
 func importSound(dos, dst string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}

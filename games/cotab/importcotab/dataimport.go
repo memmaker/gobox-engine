@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	"gobox/asset"
+	"gobox/asset/orig"
 	"gobox/char"
-	"gobox/dax"
 )
 
 // ImportTo writes the adventure folder dst from the DOS originals in dos
@@ -28,7 +28,7 @@ func ImportTo(dos, dst string) error {
 		return err
 	}
 	amiga := filepath.Join(filepath.Dir(dos), "amiga")
-	if err := dax.ImportArt(dos, amiga, filepath.Join(dst, artDir)); err != nil {
+	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, artDir)); err != nil {
 		return err
 	}
 	if err := copyIfThere(filepath.Join(dst, saveDir), os.DirFS(filepath.Join(dos, "SAVE"))); err != nil {
@@ -59,17 +59,17 @@ func copyIfThere(dir string, src fs.FS) error {
 // dos into dst (gobox/dax ImportData over this game's record types) and
 // writes the base item table ITEMS as dax.ItemTableFile (as POR's import).
 func ImportDataTo(dos, dst string) error {
-	l, err := dax.NewLoader(dos)
+	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := dax.ImportData[charRecord, affectRecord, Item](l, dst, char.SheetOfRecord[charRecord], char.ItemOfRecord[Item]); err != nil {
+	if err := orig.ImportData[charRecord, affectRecord, Item](l, dst, char.SheetOfRecord[charRecord], char.ItemOfRecord[Item]); err != nil {
 		return err
 	}
-	return dax.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, dax.Counted)
+	return orig.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, orig.Counted)
 }
 
 // SoundFile is the sound tables in the data dir (gobox audio's JSON,

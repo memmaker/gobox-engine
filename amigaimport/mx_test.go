@@ -7,7 +7,7 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/amiga"
+	"gobox/asset/orig"
 )
 
 // SotSB's Amiga music and effects: Spec.Files copies SECRET.MX and
@@ -21,7 +21,7 @@ func TestSotSBMusic(t *testing.T) {
 	}
 	const rate = 44100
 	song := func(n int) (secs int, pcm []byte) {
-		m, err := amiga.NewMX(mx, glb)
+		m, err := orig.NewMX(mx, glb)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -48,7 +48,7 @@ func TestSotSBMusic(t *testing.T) {
 			}
 		}
 	}
-	m, _ := amiga.NewMX(mx, glb)
+	m, _ := orig.NewMX(mx, glb)
 	for e := range 11 {
 		m.Effect(e)
 		buf := make([]byte, 4*rate)

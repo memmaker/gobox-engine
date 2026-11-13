@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // glyph is the games' decoder (cotab cmd/cotab/combat.go glyph, sotsb
@@ -24,7 +24,7 @@ func TestPool(t *testing.T) {
 		{"/Users/felix/Projects/cotab-re/gog", "8X8D1", "Gold_Box_8x8D1"},
 		{"/Users/felix/Projects/sotsb-re/gog", "8X8D5", "Gold_Box_8x8D1"},
 	} {
-		l, err := dax.NewLoader(c.dir)
+		l, err := orig.NewLoader(c.dir)
 		if err != nil {
 			t.Skip(err)
 		}

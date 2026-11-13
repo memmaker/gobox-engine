@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ecl/script"
 )
 
@@ -18,7 +18,7 @@ func main() {
 	}
 	disk, _ := strconv.Atoi(os.Args[1])
 	block, _ := strconv.Atoi(os.Args[2])
-	l, err := dax.NewLoader("../../data/por/sources/dos")
+	l, err := orig.NewLoader("../../data/por/sources/dos")
 	if err != nil {
 		log.Fatal(err)
 	}

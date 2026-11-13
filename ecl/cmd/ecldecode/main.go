@@ -11,7 +11,7 @@ import (
 	"slices"
 	"strconv"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ecl/script"
 )
 
@@ -24,7 +24,7 @@ func main() {
 		log.Fatalf("no version %q", os.Args[1])
 	}
 	v := script.Versions[script.VersionID(id)]
-	l, err := dax.NewLoader(os.Args[2])
+	l, err := orig.NewLoader(os.Args[2])
 	if err != nil {
 		log.Fatal(err)
 	}

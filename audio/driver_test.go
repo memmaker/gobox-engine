@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	_ "embed"
 	"fmt"
-	"gobox/amiga"
+	"gobox/asset/orig"
 	"testing"
 )
 
@@ -141,7 +141,7 @@ func TestSongNext(t *testing.T) {
 // *amiga.Player (por without SOUND.BIN) leaves the DOS driver.
 func TestDriverMX(t *testing.T) {
 	d := newDriver(t, 'T')
-	d.Attach((*amiga.Player)(nil), nil, nil, nil, nil, nil)
+	d.Attach((*orig.Player)(nil), nil, nil, nil, nil, nil)
 	d.Effect(3, false)
 	if d.am != nil {
 		t.Fatal("nil *amiga.Player kept")
@@ -154,7 +154,7 @@ func TestDriverMX(t *testing.T) {
 		mx = append(mx, byte(int8(min(1, max(-1, 16-i))*100)))
 	}
 	glb := []byte("GLIB\x00\x00\x00\x00\x00\x01\x00\x00DIG8\x00\x00\x00\x18\x00\x00\x00\x20" + "\x1c\xfa\x00\x00\x00\x02\x40\x40")
-	m, err := amiga.NewMX(mx, glb)
+	m, err := orig.NewMX(mx, glb)
 	if err != nil {
 		t.Fatal(err)
 	}

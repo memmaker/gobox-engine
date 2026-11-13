@@ -2,8 +2,8 @@ package importpod
 
 import (
 	"gobox/asset"
+	"gobox/asset/orig"
 	"gobox/char"
-	"gobox/dax"
 	"path/filepath"
 )
 
@@ -26,10 +26,10 @@ type libraryRecord [libraryItemSize]byte
 // sheets and its maps and records.
 type Folder struct {
 	Art  *asset.Art
-	Data *dax.Data[char.Sheet, affectRecord, char.Item] // as dax.ImportData writes them
+	Data *orig.Data[char.Sheet, affectRecord, char.Item] // as dax.ImportData writes them
 }
 
 // OpenFolder is the adventure folder adv.
 func OpenFolder(adv string) Folder {
-	return Folder{Art: asset.OpenArt(filepath.Join(adv, artDir)), Data: dax.OpenData[char.Sheet, affectRecord, char.Item](filepath.Join(adv, dataDir))}
+	return Folder{Art: asset.OpenArt(filepath.Join(adv, artDir)), Data: orig.OpenData[char.Sheet, affectRecord, char.Item](filepath.Join(adv, dataDir))}
 }

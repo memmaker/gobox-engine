@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/fixture"
 
 	"gobox/games/cotab/importcotab"
@@ -39,7 +39,7 @@ func main() {
 				GameSymSet: 0x624, AreaBlock: 0x1E4, AreaGeo: 0x18A, AreaWallBlock: 0x3F4, AreaWallSlot: 0x3FA})
 		},
 		ECL: func(root string, block int) (int, []byte, error) {
-			l, err := dax.NewLoader(root)
+			l, err := orig.NewLoader(root)
 			if err != nil {
 				return 0, nil, err
 			}

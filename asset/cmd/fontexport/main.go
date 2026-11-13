@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 const block = 201
@@ -42,7 +42,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "usage: fontexport FILE.DAX out.f8")
 		os.Exit(2)
 	}
-	f, err := dax.Open(os.Args[1])
+	f, err := orig.Open(os.Args[1])
 	if err == nil {
 		b := f.Block(block)
 		if len(b) < 512 || len(b)%8 != 0 {

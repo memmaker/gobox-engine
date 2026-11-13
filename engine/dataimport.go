@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 )
 
 // DataDir is the imported game data under the assets (ImportData): the
@@ -15,7 +15,7 @@ import (
 const DataDir = "data"
 
 // monsterData is a monster's records (MON<n>CHA, SPC, ITM block id).
-type monsterData = dax.Monster[char.Sheet, char.AffectRecord, char.Item]
+type monsterData = orig.Monster[char.Sheet, char.AffectRecord, char.Item]
 
 // sets are the data sets the engine reads (Set.file).
 const sets = 8
@@ -83,7 +83,7 @@ func (d *gameData) itemBlock(file string, id int) []char.Item {
 // itemTable is the ITEMS table (nil: the game data has none).
 func (d *gameData) itemTable() []char.ItemBase {
 	if d.table == nil {
-		readJSON(d.dir, dax.ItemTableFile, &d.table)
+		readJSON(d.dir, orig.ItemTableFile, &d.table)
 	}
 	return d.table
 }

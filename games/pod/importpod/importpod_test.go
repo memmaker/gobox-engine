@@ -1,13 +1,12 @@
 package importpod
 
 import (
-	"gobox/audio/glbr"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/importer"
 )
 
@@ -25,7 +24,7 @@ func TestImportEqualsDecode(t *testing.T) {
 	}
 	dst := filepath.Join(root, "pod")
 	for _, f := range []string{"1.mid", "1.opl.json", "8.mid"} { // MUSIC.DAX's songs (glbr.WriteSongs; TestMIDIEqualsAdLib checks them)
-		if _, err := os.Stat(filepath.Join(dst, glbr.MusicDir, f)); err != nil {
+		if _, err := os.Stat(filepath.Join(dst, orig.MusicDir, f)); err != nil {
 			t.Error(err)
 		}
 	}
@@ -35,7 +34,7 @@ func TestImportEqualsDecode(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dst, importer.ManifestFile)); err != nil {
 		t.Fatal(err)
 	}
-	if err := dax.ImportArtIfStale(dos, filepath.Join(filepath.Dir(dos), "amiga"), asset.Dir(dos)); err != nil {
+	if err := orig.ImportArtIfStale(dos, filepath.Join(filepath.Dir(dos), "amiga"), asset.Dir(dos)); err != nil {
 		t.Fatal(err)
 	}
 	if err := importer.SameTree(filepath.Join(dst, "art"), filepath.Join("..", "..", "..", "data", "pod", "sources", "assets", "art")); err != nil {

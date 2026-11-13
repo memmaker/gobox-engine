@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/rules"
 
 	"gobox/games/por/presentdata"
@@ -18,7 +18,7 @@ import (
 // State's Inside reads, on all but at most one cell): -open, with no game to
 // say Inside, shows the cave's rock, not clouds.
 func TestMapCeilingInside(t *testing.T) {
-	l, err := dax.NewLoader("../../../data/por/sources/dos")
+	l, err := orig.NewLoader("../../../data/por/sources/dos")
 	if err != nil {
 		t.Skip("no game files")
 	}

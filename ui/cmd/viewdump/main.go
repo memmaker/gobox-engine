@@ -13,7 +13,7 @@ import (
 	"flag"
 	"fmt"
 	"gobox/asset"
-	"gobox/dax"
+	"gobox/asset/orig"
 	"gobox/ega"
 	"image"
 	"image/color"
@@ -54,7 +54,7 @@ func main() {
 	if err := os.MkdirAll(out, 0o755); err != nil {
 		log.Fatal(err)
 	}
-	l, err := dax.NewLoader(dir)
+	l, err := orig.NewLoader(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,11 +71,11 @@ func main() {
 			// The block loaded into wall slot 1, as LoadWalldef does: set 0
 			// is 8X8D1 block 203 (loaded at start, init.go), chunk k's
 			// symbols are set k.
-			var sets [4]*dax.Image
+			var sets [4]*orig.Image
 			sets[0] = pic(l, "8X8D1", 203)
 			if one := pic(l, sname, en.ID); one != nil && one.Palette != nil {
 				// VGA (Buck Rogers): one block of the same id holds every symbol, indexed by id
-				sets = [4]*dax.Image{one}
+				sets = [4]*orig.Image{one}
 			}
 			for k := 1; k <= chunks && k <= 3; k++ {
 				sb := en.ID
@@ -106,15 +106,15 @@ func main() {
 }
 
 // pic loads a symbol set as the engine does (masked on colour 13).
-func pic(l *dax.Loader, name string, id int) *dax.Image {
+func pic(l *orig.Loader, name string, id int) *orig.Image {
 	b := l.BlockShared(name, id)
 	if b == nil {
 		return nil
 	}
-	if im := dax.ParseVGA(b, true, 0xD); im != nil { // a VGA block (Buck Rogers): its own palette, as present decodes it
+	if im := orig.ParseVGA(b, true, 0xD); im != nil { // a VGA block (Buck Rogers): its own palette, as present decodes it
 		return im
 	}
-	im, err := dax.ParseImage(b, true, 0xD)
+	im, err := orig.ParseImage(b, true, 0xD)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -129,7 +129,7 @@ var groundRows = [3]struct {
 	colour byte
 }{{0x3B - 24, 0}, {0x3C - 24, 7}, {0x3E - 24, 6}}
 
-func writeWall(path string, def []byte, sets [4]*dax.Image, scale int, ground bool) error {
+func writeWall(path string, def []byte, sets [4]*orig.Image, scale int, ground bool) error {
 	img := image.NewNRGBA(image.Rect(0, 0, partW[nearFront]*8*scale, partH[nearFront]*8*scale))
 	if ground {
 		for _, band := range groundRows {
@@ -163,7 +163,7 @@ func writeWall(path string, def []byte, sets [4]*dax.Image, scale int, ground bo
 						continue
 					}
 					col = color.NRGBA{p.R, p.G, p.B, 255}
-				} else if c >= dax.Clear {
+				} else if c >= orig.Clear {
 					continue
 				} else {
 					p := ega.Palette[c&15]

@@ -11,12 +11,12 @@ import (
 
 	"github.com/memmaker/opl2"
 
-	"gobox/audio/glbr"
+	"gobox/asset/orig"
 )
 
 // render is sequencer s's register writes, tick by tick to its end, and the
 // first sec seconds of their PCM (opl2 at adlibRate, as AdLib.Mix).
-func render(mk func(w func(int, byte)) *glbr.Sequencer, sec int) (regs []int, pcm []byte) {
+func render(mk func(w func(int, byte)) *orig.Sequencer, sec int) (regs []int, pcm []byte) {
 	chip := opl2.New()
 	rs := opl2.NewResampler(chip, adlibRate)
 	tick := 0
@@ -52,22 +52,22 @@ func TestMIDIEqualsAdLib(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		music, err := glbr.GlbrBlocks(dax)
+		music, err := orig.GlbrBlocks(dax)
 		if err != nil {
 			t.Fatal(f, err)
 		}
 		n := 0
 		for id, b := range music {
-			if glbr.GlbrNew(b, 0, func(int, byte) {}, false) == nil {
+			if orig.GlbrNew(b, 0, func(int, byte) {}, false) == nil {
 				continue
 			}
-			mid, voices, err := glbr.SongMIDI(b, 0)
+			mid, voices, err := orig.SongMIDI(b, 0)
 			if err != nil {
 				t.Fatal(f, id, err)
 			}
-			wantR, wantP := render(func(w func(int, byte)) *glbr.Sequencer { return glbr.GlbrNew(b, 0, w, false) }, 5)
-			gotR, gotP := render(func(w func(int, byte)) *glbr.Sequencer {
-				s, err := glbr.NewMIDI(mid, voices, w)
+			wantR, wantP := render(func(w func(int, byte)) *orig.Sequencer { return orig.GlbrNew(b, 0, w, false) }, 5)
+			gotR, gotP := render(func(w func(int, byte)) *orig.Sequencer {
+				s, err := orig.NewMIDI(mid, voices, w)
 				if err != nil {
 					t.Fatal(f, id, err)
 				}
