@@ -27,7 +27,6 @@ func (e *Engine) battle() *Battle {
 	g := e.fact(rules.NoChar, rules.GroundFact{}).(rules.Ground)
 	b.Ground = g.Squares
 	ground := e.groundOf(e.art(e.sqrpaci[0], 0)) // the shown art's (F12): 0 on DOS, a grey on the Amiga
-	b.Floor = e.pal.RGBA(ground)
 	b.TilePix = make([]Picture, 0x100)
 	for t, im := range e.sqrpaci {
 		for f := 0; im != nil && f < min(im.Count, 0x80); f++ {

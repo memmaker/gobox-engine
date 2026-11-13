@@ -273,7 +273,6 @@ type Battle struct {
 	TilePix   []Picture     // Tiles as the game's pixels in Ink, or DAX refs (File, Block, Frame), the presenter's to make into Tiles
 	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here); used where Icon is nil
 	EffectPix []Picture     // Effects' pictures so, by effect; used where Pic is nil
-	Floor     color.RGBA    // the ground's colour
 	Dungeon   bool          // tiles 0..DungeonTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
 	Units     []Unit
 	Marks     []image.Point                // squares framed for a choice (reach of a move, an area of effect)
