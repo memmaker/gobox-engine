@@ -244,8 +244,12 @@ square).
 ## blobber
 
 The host fills the textures: `Textures map[string]image.Image` by name (the
-remastered PNGs, with the game's WALLDEF front view as the fallback); the
-embedded PoR walls and `walls.txt` stay with por-go. Faces are
+remastered PNGs, with the game's WALLDEF front view as the fallback); every
+pool game, POR included, draws the engine's live map (`game.MapWalls`)
+through ui's `wallScene`: wall textures from `importer/walls/<game>.txt`,
+the areas' flats and scenery (water, ponds, sea, props, wells, two-sided
+walls) from `<game>_areas.txt`, both imported into `GameTables.Walls`.
+Faces are
 `Faces[{x,y,side}][]FacePart{Tex, T1, U1}` with Edges, NoMap, Water, Pond.
 CotAB's sky (`celestial.go`: sun by the hour, night, northern mountains) and
 the per-square floor/sky flats (`SetFlats`) move from package globals onto

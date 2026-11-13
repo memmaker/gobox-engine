@@ -1,5 +1,7 @@
 # Remastering a Pool of Radiance map in the Blobber engine
 
+> **Superseded (f89fc5d):** POR's hand-made `.map` files, `walls.txt`, `ParseScene`/`LoadMap` and `areaMaps` are gone. POR's 3D view now comes from the engine's live map like every pool game: `importer/walls/por.txt` (wall textures) and `por_areas.txt` (flats and scenery), drawn by ui `wallScene`. The map sections below are history.
+
 How New Phlan (GEO3 block 0) and Valhingen Graveyard (GEO4 block 10) were
 brought into the BlobberRPG copy in `gobox-engine/blobber/`, written as a recipe
 for every other map. Run everything from `phlan-poc/`. `~/Projects/BlobberRPG`

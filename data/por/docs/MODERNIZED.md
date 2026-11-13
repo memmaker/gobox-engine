@@ -1,5 +1,7 @@
 # MODERNIZED.md: what the port changes from the original, and how to do it again
 
+> **Superseded (f89fc5d):** POR's hand-made `.map` files, `walls.txt`, `ParseScene`/`LoadMap` and `areaMaps` are gone. POR's 3D view now comes from the engine's live map like every pool game: `importer/walls/por.txt` (wall textures) and `por_areas.txt` (flats and scenery), drawn by ui `wallScene`. The map sections below are history.
+
 This is the write-up of everything the Go port of *Pool of Radiance* changes
 from the DOS game to streamline and modernize it, with the method, the tools,
 the files and the constants, so that another agent can repeat the work on

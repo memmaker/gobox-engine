@@ -1,5 +1,7 @@
 # Remaster integration plan: Blobber view in PoR
 
+> **Superseded (f89fc5d):** POR's hand-made `.map` files, `walls.txt`, `ParseScene`/`LoadMap` and `areaMaps` are gone. POR's 3D view now comes from the engine's live map like every pool game: `importer/walls/por.txt` (wall textures) and `por_areas.txt` (flats and scenery), drawn by ui `wallScene`. The map sections below are history.
+
 Status: proposal, awaiting review. No code changed yet.
 
 ## 1. Principles
@@ -203,16 +205,9 @@ Checks:
 - **Pop-ups:** they now centre in the space left of the cards, and their whole-number scale also fits that width.
 - **Check:** the 6-character GAME A party at the trainer and at the sign, at 1920x1440.
 
-## 16. Milestone 7 (waiting)
+## 16. Milestone 7 (done differently)
 
-Waiting until the engine runs a second Gold Box game. For now it loads only Pool of Radiance, so a per-game area table would have nothing to map.
-
-When a second game runs:
-- add its identity to `rules.View`;
-- key `areaMaps` by game and `AreaID`;
-- have `make_map.py` write each game's table.
-
-The rest of the seam stays as it is.
+Instead of a per-game `areaMaps`, the area maps were dropped (f89fc5d): every game draws its live map through `GameTables.Walls` (`importer/walls/<game>.txt`, `<game>_areas.txt`).
 
 ## 17. Remaster polish (after milestone 6)
 

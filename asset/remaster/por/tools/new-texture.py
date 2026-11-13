@@ -3,11 +3,12 @@
   python3 tools/new-texture.py                      interactive
   python3 tools/new-texture.py KIND NAME "DESC"...  one or more textures, no questions
 Uses $OPENAI_API_KEY or ~/.config/blobber/openai_key, else the Gemini key new-monster.py keeps. Writes
-assets/walls/<kind>_<name>.png (256x256; the model is asked for seamless output, nothing is post-processed). A wall also gets a map character in
-assets/walls/walls.txt, so it shows up in the editor's material palette; floors and ceilings show up
-in the editor's floor/ceiling row (a map picks one with a "floor NAME" / "ceiling NAME" line).
+asset/walls/series/pool/<kind>_<name>.png (256x256; the model is asked for seamless output, nothing is post-processed).
+A game uses it through its importer table: a wall by a "SET BLOCK CHUNK WALL TEXTURE" line in
+importer/walls/<game>.txt, a floor or ceiling by "SET GEO floor NAME" / "SET GEO ceiling NAME" in
+importer/walls/<game>_areas.txt (then re-import the game).
 OPENAI_IMAGE_MODEL overrides the model."""
-import base64, io, json, os, re, string, sys, urllib.error, urllib.request
+import base64, io, json, os, re, sys, urllib.error, urllib.request
 from pathlib import Path
 from PIL import Image
 
@@ -15,11 +16,9 @@ MODEL = os.environ.get("OPENAI_IMAGE_MODEL", "gpt-image-2")
 KEYFILE = Path.home() / ".config/blobber/openai_key"
 GEMINI_KEYFILE = Path.home() / ".config/blobber/gemini_key"
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / "assets/walls"
-TABLE = OUT / "walls.txt"
+OUT = ROOT.parent.parent / "walls/series/pool"
 RAW = Path.home() / "Pictures/blobber-textures"  # untouched originals and tiled previews
 SIZE = 256
-RESERVED = set(".#DLBMWI")  # floor, stone, door, locked door, generated materials
 
 PROMPT = ("Give me a slick square, repeatable dungeon {kind} texture: {desc}. Make it bearable to look "
           "at even with infinite repetition. {view} Seamless tiling on all four edges, even flat lighting, "
@@ -66,11 +65,6 @@ def generate(key, prompt, size="1024x1024"):
         sys.exit(f"OpenAI error {e.code}: {e.read().decode()}")
 
 
-def free_char():
-    used = RESERVED | {l.split()[0] for l in TABLE.read_text().splitlines() if l.strip() and not l.startswith("#")}
-    return next(c for c in string.ascii_uppercase + string.digits if c not in used)
-
-
 def create(key, kind=None, name=None, desc=None):
     batch = kind is not None
     if not batch:
@@ -104,15 +98,9 @@ def create(key, kind=None, name=None, desc=None):
         if batch or input("Regenerate? [y/N] ").strip().lower() != "y":
             break
     if kind == "wall":
-        rows = {l.split()[1]: l.split()[0] for l in TABLE.read_text().splitlines() if l.strip() and not l.startswith("#")}
-        ch = rows.get(dest.stem)
-        if not ch:
-            ch = free_char()
-            with TABLE.open("a") as f:
-                f.write(f"{ch} {dest.stem}\n")
-        print(f"Wall material '{ch}': paint it in the editor, or use {ch} in a .map grid.")
+        print(f"Use it with a \"SET BLOCK CHUNK WALL {dest.stem}\" line in importer/walls/<game>.txt.")
     else:
-        print(f"Pick it in the editor's floor/ceiling row, or add \"{kind} {name}\" to a .map file.")
+        print(f"Use it with a \"SET GEO {kind} {name}\" line in importer/walls/<game>_areas.txt.")
 
 
 def main():

@@ -1,6 +1,6 @@
 # Roadmap: from demo to a complete Might & Magic 3-5 style engine
 
-Goal: a content creator writes `.map` + `.evt` files, data tables and assets, and ships a full game
+Goal: a content creator writes map + `.evt` files, data tables and assets, and ships a full game
 with a story, quests and an ending. Content tooling stays at the level of the originals (tile events
 with opcodes, fixed monster placement, data tables); the engine side (graphics, movement, UI) may be better.
 
@@ -30,7 +30,7 @@ with opcodes, fixed monster placement, data tables); the engine side (graphics, 
 - [x] Default party is compiled in (`newParty` in `cmd/blobber/game.go`); move it into `maps/world.txt`.
 - [ ] Opcode lab (`maps/lab`) does not yet show `win`, `gameover`, doors or the inn.
 - [ ] Editor cannot place objects, items or decorations, or edit `world.txt`.
-- [ ] Revert the test monsters: `maps/demo.map` and the cave guardian all use the ice giant.
+- [x] Revert the test monsters: moot, `maps/demo.map` is deleted.
 
 ## What exists today
 
@@ -129,7 +129,7 @@ with opcodes, fixed monster placement, data tables); the engine side (graphics, 
 - [ ] Message log (scrollable history of event and combat text).
 - [ ] Options screen: volume, key bindings, movement speed, dither, fullscreen (partly in the Esc menu).
 - [x] Monster poses (idle / attack / hurt); see op-codes.md.
-- [x] Painted textures from `assets/walls/`: walls by map character (`walls.txt`), floor and ceiling per map (`floor NAME` / `ceiling NAME`), generated with `create_textures.sh`.
+- [x] Painted textures from `assets/walls/`: now by WALLDEF wall (`importer/walls/<game>.txt`), floor and ceiling per area (`<game>_areas.txt`), generated with `create_textures.sh`.
 - [ ] Smooth day/night lighting outdoors; weather is optional.
 - [ ] Quest markers on the map screen for known quest tiles (optional, not in the originals).
 - [ ] Portrait expressions by condition (poisoned, asleep, dead) or at least condition icons on the HUD.
