@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/front/classic"
 	"gobox/front/present"
 	"por/playpor"
 	"por/porgame"
@@ -19,8 +18,8 @@ func noTitle(t *testing.T, f *present.Front, n int) {
 	for i := range n {
 		f.Frame(1280, 800)
 		f.Tick()
-		if v := f.Game.View(); f.TitleDrawn() {
-			t.Fatalf("frame %d: the title's picture drawn (menu %v hall %v exploring %v door %v)", i, v.MainMenu != nil, v.Hall, v.Exploring, v.Door != nil)
+		if s := f.P.Shown(); f.TitleDrawn() {
+			t.Fatalf("frame %d: the title's picture drawn (menu %v hall %v exploring %v door %v)", i, s.MainMenu, f.Game.Where().Hall, f.Game.Flags().Exploring, s.Door != nil)
 		}
 	}
 }
@@ -55,26 +54,26 @@ func TestLockedDoorOverView(t *testing.T) {
 	seed := uint32(1)
 	eng.FixedSeed = &seed
 	data := playpor.Data(eng)
-	f := present.NewFront(classic.NewGame(eng, data), data)
+	f := present.NewFront(present.NewGame(eng, data), data)
 	f.Start("back-for-good")
 	f.Frame(1280, 800)
 	f.Game.SequenceDone("intro")
 	f.Game.TitleDone()
 	f.Game.Settle()
-	for i := 0; i < 600 && !f.Game.View().Exploring; i++ {
+	for i := 0; i < 600 && !f.Game.Flags().Exploring; i++ {
 		f.Frame(1280, 800)
 		f.Tick()
 	}
-	if v := f.Game.View(); !v.Exploring || v.Area != 18 {
-		t.Fatalf("exploring %v area %d: the save did not load", v.Exploring, v.Area)
+	if ex, area := f.Game.Flags().Exploring, f.Game.Where().Area; !ex || area != "18" {
+		t.Fatalf("exploring %v area %s: the save did not load", ex, area)
 	}
 	noTitle(t, f, 10)
 	f.Key(0x4800) // the first key opens the Front (Key: !started)
 	f.Frame(1280, 800)
 	f.Key(0x4800) // north: the door
 	noTitle(t, f, 30)
-	if v := f.Game.View(); !v.Exploring || v.Door == nil || v.MainMenu != nil {
-		t.Fatalf("exploring %v door %v menu %v: not the locked door over the 3D view", v.Exploring, v.Door != nil, v.MainMenu != nil)
+	if ex, s := f.Game.Flags().Exploring, f.P.Shown(); !ex || s.Door == nil || s.MainMenu {
+		t.Fatalf("exploring %v door %v menu %v: not the locked door over the 3D view", ex, s.Door != nil, s.MainMenu)
 	}
 }
 
@@ -96,17 +95,18 @@ func TestHallNoTitle(t *testing.T) {
 	seed := uint32(1)
 	eng.FixedSeed = &seed
 	data := playpor.Data(eng)
-	f := present.NewFront(classic.NewGame(eng, data), data)
+	f := present.NewFront(present.NewGame(eng, data), data)
 	f.Start("")
 	f.Frame(1280, 800)
 	f.Game.SequenceDone("intro")
 	f.Game.TitleDone()
 	f.Game.Settle()
-	for i := 0; i < 600 && !f.Game.View().Hall; i++ {
+	inHall := func() bool { return f.Game.Where().Hall && f.P.Shown().MainMenu } // the hall's party menu
+	for i := 0; i < 600 && !inHall(); i++ {
 		f.Frame(1280, 800)
 		f.Tick()
 	}
-	if !f.Game.View().Hall {
+	if !inHall() {
 		t.Fatal("never in the hall")
 	}
 	noTitle(t, f, 30)

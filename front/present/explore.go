@@ -2,6 +2,7 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 	"image"
 
@@ -10,7 +11,7 @@ import (
 )
 
 // The adventuring commands: the presenter's own list, each a decision
-// sent for the selected member (View.Exploring).
+// sent for the selected member (Exploring).
 
 type command struct {
 	text string
@@ -18,10 +19,10 @@ type command struct {
 	act  front.ActKind
 }
 
-// commands are the decisions the command menu offers on v.
-func commands(v front.View) []command {
+// commands are the decisions the command menu offers on the state up.
+func (p *Presenter) commands() []command {
 	var c []command
-	if v.Interact { // Explicit Interactions: the square's event waits (Space)
+	if p.flags().Interact { // Explicit Interactions: the square's event waits (Space)
 		c = append(c, command{"Interact", ' ', front.ActInteract})
 	}
 	if blobber.Settings.NoGrid { // No Grid's right click is mouselook: the options for the mouse
@@ -41,9 +42,9 @@ func commands(v front.View) []command {
 // memberCommands are the selected member's keys while exploring, kept
 // off the command menu (a card's context menu has them for the mouse and
 // the pad).
-func memberCommands(v front.View) []command {
+func (p *Presenter) memberCommands() []command {
 	c := []command{{"Items", 'I', front.ActInventory}, {"View", 'V', front.ActMember}}
-	if v.CanCast {
+	if p.flags().CanCast {
 		c = append(c, command{"Cast", 'C', front.ActCastPick})
 	}
 	return c
@@ -64,19 +65,19 @@ func (p *Presenter) runCommand(i int) {
 func (p *Presenter) runAct(a front.ActKind) {
 	switch a {
 	case actJournal:
-		p.openJournal(p.shownView)
+		p.openJournal()
 		return
 	case front.ActOverview:
 		p.overview = true
 		return
 	case front.ActHelp:
-		p.openHelp(p.shownView)
+		p.openHelp()
 		return
 	case front.ActMap:
-		p.openMap(p.shownView)
+		p.openMap()
 		return
 	case actClueBook:
-		p.openClue(p.shownView)
+		p.openClue()
 		return
 	case actOptions:
 		p.menu = false
@@ -88,7 +89,7 @@ func (p *Presenter) runAct(a front.ActKind) {
 
 // exploreKey turns key k into an adventuring decision; false when k is
 // not one.
-func (p *Presenter) exploreKey(k uint16, v front.View) bool {
+func (p *Presenter) exploreKey(k uint16) bool {
 	c := byte(k)
 	if c >= 'a' && c <= 'z' {
 		c -= 'a' - 'A'
@@ -97,7 +98,7 @@ func (p *Presenter) exploreKey(k uint16, v front.View) bool {
 	if kp := keypad(k); kp != input.None { // the digits: the keypad's arrows
 		a = kp
 	}
-	if v.Window == front.WinAreaMap { // the area map: a step each way
+	if p.window() == game.WindowMap { // the area map: a step each way
 		if d, ok := map[input.Act]int{input.Up: 0, input.Right: 1, input.Down: 2, input.Left: 3}[a]; ok {
 			p.send(front.ActGo, d)
 			return true
@@ -112,7 +113,7 @@ func (p *Presenter) exploreKey(k uint16, v front.View) bool {
 	if k >= 128 {
 		return false
 	}
-	for _, cm := range append(commands(v), memberCommands(v)...) {
+	for _, cm := range append(p.commands(), p.memberCommands()...) {
 		if cm.key == c {
 			p.runAct(cm.act)
 			return true
@@ -124,9 +125,9 @@ func (p *Presenter) exploreKey(k uint16, v front.View) bool {
 // exploreClick takes a left click at (x, y) on the 3D view while the party
 // explores (no menu up): the minimap opens the full map, anywhere else
 // opens the command menu. The mouse never walks or turns.
-func (p *Presenter) exploreClick(x, y int, v front.View) {
-	if v.Map != nil && p.mapAt.Min.X < p.mapAt.Max.X && image.Pt(x, y).In(p.mapAt) {
-		p.openMap(v)
+func (p *Presenter) exploreClick(x, y int) {
+	if _, m := p.minimap(); m != nil && p.mapAt.Min.X < p.mapAt.Max.X && image.Pt(x, y).In(p.mapAt) {
+		p.openMap()
 		return
 	}
 	p.menu, p.sel = true, 0

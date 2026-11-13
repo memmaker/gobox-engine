@@ -13,11 +13,11 @@ type decider int
 
 const (
 	onNone    decider = iota
-	onExplore         // View.Exploring: the adventuring commands (exploreVerb)
-	onMenu            // View.MainMenu: the party menu (rule calls)
-	onCamp            // View.Camp: camp (rule calls)
-	onWait            // View.Pending: a script waits (pending.go)
-	onAsk             // View.Ask: a question waits for its answer (eclask.go)
+	onExplore         // Exploring: the adventuring commands (exploreVerb)
+	onMenu            // MainMenu: the party menu (rule calls)
+	onCamp            // Camp: camp (rule calls)
+	onWait            // Pending: a script waits (pending.go)
+	onAsk             // the Ask: a question waits for its answer (eclask.go)
 )
 
 // top is the slot opened last of those open.

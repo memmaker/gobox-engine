@@ -328,7 +328,7 @@ func (e *Engine) aimFinished(th aimThen, found bool, t aimTarget) {
 	}
 }
 
-// members is the party's cards (View.Party).
+// members is the party's cards (Party).
 func (e *Engine) members() []Member {
 	var out []Member
 	sel := e.rosterSel() // a member pick shows its candidate

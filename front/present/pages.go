@@ -1,7 +1,9 @@
 package present
 
 import (
+	"fmt"
 	"gobox/front"
+	"gobox/game"
 	"gobox/ui"
 	"image"
 	"image/color"
@@ -47,17 +49,18 @@ type cellPage struct {
 	ink        [16]color.RGBA
 	cells      [][]cell
 	pics       []front.Picture  // the View's pictures, then the cells cleared (fills)
-	boxes      []front.CellRect // DrawBorder's insides: the border's cells round them (View.Border)
+	boxes      []front.CellRect // DrawBorder's insides: the border's cells round them (the window border)
 	overs      []overlay
 }
 
-func newCellPage(v front.View) *cellPage {
-	c := &cellPage{cols: max(v.Cells.X, 40), rows: max(v.Cells.Y, 25), ink: v.Ink}
+// newCellPage is a blank page cells in size (40x25 at least) in ink, under pics.
+func newCellPage(cells image.Point, ink [16]color.RGBA, pics []front.Picture) *cellPage {
+	c := &cellPage{cols: max(cells.X, 40), rows: max(cells.Y, 25), ink: ink}
 	c.cells = make([][]cell, c.rows)
 	for y := range c.cells {
 		c.cells[y] = make([]cell, c.cols)
 	}
-	c.pics = append(c.pics, v.Pictures...)
+	c.pics = append(c.pics, pics...)
 	return c
 }
 
@@ -147,15 +150,16 @@ func (c *cellPage) lines() [][]front.PaneRun {
 // engine's page: the picker's pictures in their cells, the portrait and
 // combat icon on the sheets; never a frame or a fill (the credits sit on
 // black, not over the title picture).
-func contentPictures(v front.View) []front.Picture {
+func (p *Presenter) contentPictures() []front.Picture {
 	var in []image.Rectangle
+	pk, ed := p.picker(p.ink()), p.iconEditor(p.ink())
 	switch {
-	case v.Slots != nil, v.IconEditor != nil && v.Picker == nil:
-	case v.Picker != nil:
-		return v.Picker.Pics
+	case p.slotsView() != nil, ed != nil && pk == nil:
+	case pk != nil:
+		return pk.Pics
 	default:
-		boxes := []front.CellRect{v.Portrait, v.IconBox}
-		if cr := v.Creation; cr != nil {
+		var boxes []front.CellRect
+		if cr := p.creation(); cr != nil {
 			boxes = append(boxes, cr.Head, cr.Body, cr.Icon)
 		}
 		for _, b := range boxes {
@@ -165,8 +169,8 @@ func contentPictures(v front.View) []front.Picture {
 		}
 	}
 	var out []front.Picture
-	for _, pc := range v.Pictures {
-		if pc.Img == nil && pc.Pix == nil || pc.File == "" && pc.Name == "" { // the pool's (PoolPortrait, PoolIcon) have a Name, no File
+	for _, pc := range p.pictures() {
+		if pc.Img == nil && pc.Pix == nil || pc.File == "" && pc.Name == "" { // the pool's (withPoolPortrait, withPoolIcon) have a Name, no File
 			continue
 		}
 		if slices.ContainsFunc(in, func(r image.Rectangle) bool { return !r.Empty() && pc.At.Overlaps(r) }) {
@@ -176,38 +180,49 @@ func contentPictures(v front.View) []front.Picture {
 	return out
 }
 
-func screenPage(v front.View) *cellPage {
-	v.Pictures = contentPictures(v) // nothing of the engine's page: only the art in the screen's own places
-	if v.Slots != nil {
-		v.SheetPage, v.Picker, v.IconEditor = nil, nil, nil
+func (p *Presenter) screenPage() *cellPage {
+	sl := p.slotsView()
+	cr, pk, ed := p.creation(), p.picker(p.ink()), p.iconEditor(p.ink())
+	var sp *game.SheetPage
+	var portrait image.Image
+	if sl == nil {
+		sp = p.sheetPage()
+		portrait = p.sheetPortrait(sp)
+	} else {
+		pk, ed = nil, nil
 	}
-	if v.IconEditor != nil || v.Picker != nil { // also a picker over the icon editor, in its palette: no grey cells
-		v.Ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
+	pics, ink := p.contentPictures(), p.ink() // nothing of the engine's page: only the art in the screen's own places
+	if ed != nil || pk != nil {               // also a picker over the icon editor, in its palette: no grey cells
+		ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
 	}
-	if cr := v.Creation; cr != nil && v.Picker == nil && v.Slots == nil { // the combat icon on grey, as in the icon editor: its black parts show
-		v.Pictures = append([]front.Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: col(inkDark)}}, v.Pictures...)
+	if cr != nil && pk == nil && sl == nil { // the combat icon on grey, as in the icon editor: its black parts show
+		pics = append([]front.Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: col(inkDark)}}, pics...)
 	}
-	c := newCellPage(v)
-	if cr := v.Creation; cr != nil && cr.Scale > 1 && v.Picker == nil && v.Slots == nil {
+	c := newCellPage(p.cells(), ink, pics)
+	if cr != nil && cr.Scale > 1 && pk == nil && sl == nil {
 		c.pics = c.scaled(cr)
 	}
-	c.texts(v)
-	if s := v.SheetPage; s != nil {
-		c.sheet(s, v)
+	c.texts(p.prompt(), p.flags(), p.barShown(sl))
+	if sp != nil {
+		d, colour := p.sheetDraft(), nameColour(p.sheetOwn())
+		if d != nil {
+			colour = 11 // the member being made: as a well one's
+		}
+		c.sheet(sp, d, colour, portrait, cr)
 	}
-	if pk := v.Picker; pk != nil {
+	if pk != nil {
 		c.picker(pk)
 	}
-	if ed := v.IconEditor; ed != nil {
+	if ed != nil {
 		c.iconEditor(ed)
 	}
-	if barShown(v) { // the bar on the prompt row
-		for _, w := range barWords(v) {
+	if p.barShown(sl) { // the bar on the prompt row
+		for _, w := range p.barWords() {
 			c.str(w.x, c.rows-1, inkWhite, w.label[:1])
 			c.str(w.x+1, c.rows-1, inkGreen, w.label[1:])
 		}
 	}
-	if sl := v.Slots; sl != nil {
+	if sl != nil {
 		c.box(1, 1, c.cols-2, c.rows-2, inkWhite, "Saved Games")
 		if len(sl.Names) > 0 { // the column heads above the rows (slotList: text from column 3)
 			w, lc := slotCols(c.cols)
@@ -227,8 +242,8 @@ func screenPage(v front.View) *cellPage {
 }
 
 // barShown is whether the special screen's bar is on the prompt row.
-func barShown(v front.View) bool {
-	return (v.Creation != nil || v.IconEditor != nil) && v.Picker == nil && v.Slots == nil
+func (p *Presenter) barShown(sl *front.Slots) bool {
+	return (p.creation() != nil || p.iconEditor(p.ink()) != nil) && p.picker(p.ink()) == nil && sl == nil
 }
 
 // footWord is a word of the slot page's footer: its text, the key it
@@ -269,19 +284,19 @@ func slotFooter(sl *front.Slots, cols int) []footWord {
 // texts lays out the game's text: the text pane, the prompt row, the view
 // window's text, the party panel (roster, status line), after-combat and
 // the credits.
-func (c *cellPage) texts(v front.View) {
-	for _, r := range v.Prompt {
-		if barShown(v) { // the bar owns the row: a prompt under it shows through its gaps
+func (c *cellPage) texts(prompt []front.PaneRun, f *game.Flags, bar bool) {
+	for _, r := range prompt {
+		if bar { // the bar owns the row: a prompt under it shows through its gaps
 			break
 		}
 		c.run(r, c.rows-1)
 	}
-	if v.Credits && creditBoxes == nil { // one frame on the page's edges, the lines laid out over the page inside it
+	if f.Credits && creditBoxes == nil { // one frame on the page's edges, the lines laid out over the page inside it
 		c.border(1, 1, c.cols-2, c.rows-2)
 		var page []Credit
 		x1, x2, y2 := c.cols, 0, 1
 		for _, l := range credits {
-			if l.Page == v.CreditPage {
+			if l.Page == f.CreditPage {
 				page = append(page, l)
 				x1, x2, y2 = min(x1, l.X), max(x2, l.X+len(l.Text)), max(y2, l.Y)
 			}
@@ -318,7 +333,7 @@ func (c *cellPage) texts(v front.View) {
 		c.remasterCredit()
 		return
 	}
-	if v.Credits { // the original's boxes, an edge on its page's following this page's
+	if f.Credits { // the original's boxes, an edge on its page's following this page's
 		for _, b := range creditBoxes {
 			x2, y2 := b.Max.X, b.Max.Y
 			if x2 >= 38 {
@@ -335,7 +350,7 @@ func (c *cellPage) texts(v front.View) {
 		dx, gaps := max(0, (c.cols-40)/2), 0
 		var page []Credit
 		for _, l := range credits {
-			if l.Page == v.CreditPage {
+			if l.Page == f.CreditPage {
 				page = append(page, l)
 			}
 		}
@@ -416,12 +431,12 @@ func capOr(b [ui.Places]image.Image, cap, side int) int {
 	return side
 }
 
-// cellBorder draws View.Border's cells into m round the cells of r. The
+// cellBorder draws the window border's cells into m round the cells of r. The
 // page boxes are text-grid cells drawn into the page's CPU image (uploaded
 // once per View, cropped by the adventure frame), not window()'s GPU pass.
-func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
+func cellBorder(m *image.RGBA, wb windowBorder, cells image.Point, r front.CellRect) {
 	f := r.Framed()
-	b := borderPieces(v)
+	b := wb.pieces
 	tile := func(i, x, y int) {
 		if t := b[i]; t != nil {
 			draw.Draw(m, image.Rect(x*8, y*8, x*8+8, y*8+8), t, t.Bounds().Min, draw.Over)
@@ -446,7 +461,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		tile(l, f.X1, y)
 		tile(r, f.X2, y)
 	}
-	if v.Border != ([8]image.Image{}) {
+	if wb.own {
 		return // the game's own pieces
 	}
 	all := borderEdges()
@@ -468,7 +483,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		}
 	}
 	h, w := f.Y2-f.Y1+1, f.X2-f.X1+1
-	cols := v.Cells.X
+	cols := cells.X
 	if cols == 0 {
 		cols = 40
 	}
@@ -488,7 +503,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		key, outer string
 		y          int
 		outerRow   bool
-	}{{"rule", "top", f.Y1, f.Y1 == 0}, {"rule", "bottom", f.Y2, f.Y2 >= v.Cells.Y-1}} {
+	}{{"rule", "top", f.Y1, f.Y1 == 0}, {"rule", "bottom", f.Y2, f.Y2 >= cells.Y-1}} {
 		key := edge.key
 		if edge.outerRow {
 			key = edge.outer
@@ -501,10 +516,10 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 
 // draw draws the page into m (its pictures, the borders' cells, the text
 // in the game's font).
-func (c *cellPage) draw(m *image.RGBA, v front.View, note Note) {
+func (c *cellPage) draw(m *image.RGBA, wb windowBorder, cells image.Point, note Note) {
 	drawPictures(m, c.pics, image.Point{})
 	for _, r := range c.boxes {
-		cellBorder(m, v, r)
+		cellBorder(m, wb, cells, r)
 	}
 	for y, row := range c.cells {
 		for x, k := range row {
@@ -526,17 +541,19 @@ func fit(b, r image.Rectangle) image.Rectangle {
 }
 
 // sheet lays the character sheet out (ovr20:004A CharacterSheet).
-func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
+// d is the draft being made (nil: a member's sheet), nameColour the name's
+// ink and portrait the PNG or default head in the portrait's box.
+func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, portrait image.Image, cr *front.Creation) {
 	right, bottom := c.cols-2, c.rows-3
 	c.unset(image.Rect(0, 0, c.cols*8, (bottom+2)*8)) // the sheet's page: ClearScreen came first (the 3D view's status line once wrote over it)
 	c.border(1, 1, right, bottom)
-	c.str(1, 1, s.NameColour, s.Name)
+	c.str(1, 1, nameColour, s.Name)
 	if s.NPC {
 		c.str(len(s.Name)+3, 1, inkGreen, "(NPC)")
 	}
-	if s.FieldRows != nil {
-		for i, f := range s.FieldRows {
-			c.str(1, 3+i, inkWhite, f)
+	if d != nil && rowFields(d) {
+		for i, f := range d.Fields {
+			c.str(1, 3+i, inkWhite, picked(f))
 		}
 	} else {
 		x := 1
@@ -548,7 +565,7 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 		c.str(1, 4, inkWhite, s.Alignment)
 		c.str(1, 5, inkWhite, s.Class)
 	}
-	if s.StatRows == nil {
+	if d == nil || len(d.Stats) == 0 {
 		for i, l := range []string{"STR ", "INT ", "WIS ", "DEX ", "CON ", "CHA "} { // and showStat
 			y := i + 7
 			c.str(1, y, inkGreen, l)
@@ -563,11 +580,13 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 			}
 		}
 	}
-	for i, r := range s.StatRows { // the game's own abilities, as given
-		y, x := i+7, front.StatCol(r.Name)
-		c.str(1, y, inkGreen, r.Name+" ")
-		c.clear(x, y, x+6, y)
-		c.str(x, y, inkGreen, r.Value)
+	if d != nil {
+		for i, r := range d.Stats { // the game's own abilities, as given
+			y, x := i+7, front.StatCol(r.Label)
+			c.str(1, y, inkGreen, r.Label+" ")
+			c.clear(x, y, x+6, y)
+			c.str(x, y, inkGreen, fmt.Sprintf("%2d", r.Value)+r.Extra)
+		}
 	}
 	if s.Saves[0] > 0 { // extra: the saving throws beside the abilities
 		for i, l := range []string{"Paralyze", "Petrify", "Rod", "Breath", "Spell"} {
@@ -588,12 +607,12 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 		}
 	}
 	y := 0x11 // showCombatStats
-	if s.Derived != nil {
+	if d != nil && d.Derived != nil {
 		// the game's figures in order, two to a row
-		for i, f := range s.Derived {
+		for i, f := range d.Derived {
 			x, fy := 1+16*(i%2), y+i/2
-			c.str(x, fy, inkWhite, f.Name)
-			c.str(x+len(f.Name)+1, fy, inkGreen, f.Value)
+			c.str(x, fy, inkWhite, f.Label)
+			c.str(x+len(f.Label)+1, fy, inkGreen, f.Value)
 		}
 	} else {
 		c.str(1, y, inkWhite, "AC    ")
@@ -620,32 +639,32 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 			c.str(9, 0x13, inkGreen, s.Effects)
 		}
 	}
-	for j, f := range extraFields(s) { // the cells of each: Weapon, Armour, Load, Coins
+	for j, f := range extraFields(s.Weapon, s.Armour, s.Encumbrance, s.Coins) { // the cells of each: Weapon, Armour, Load, Coins
 		at := [...][2]int{{1, 13}, {1, 14}, {1, 21}, {17, 21}}[j]
 		if f[1] != "" {
 			c.str(at[0], at[1], inkWhite, f[0])
 			c.str(at[0]+len(f[0])+1, at[1], inkGreen, f[1])
 		}
 	}
-	if b := s.PortraitAt; b != (front.CellRect{}) {
+	if b := cells(s.PortraitAt); b != (front.CellRect{}) {
 		c.border(b.X1, b.Y1, b.X2, b.Y2)
-		if s.Portrait != nil {
-			c.overs = append(c.overs, overlay{Img: s.Portrait, At: fit(s.Portrait.Bounds(), b.Pixels())}) // the whole box: the rope runs outside its cells
+		if portrait != nil {
+			c.overs = append(c.overs, overlay{Img: portrait, At: fit(portrait.Bounds(), b.Pixels())}) // the whole box: the rope runs outside its cells
 		}
 	}
-	k := 1
-	if cr := v.Creation; cr != nil {
-		k = max(1, cr.Scale)
+	k, box := 1, front.CellRect{}
+	if cr != nil { // the creation's combat icon, from a PNG
+		k, box = max(1, cr.Scale), cr.Icon
 	}
 	for p, im := range s.Icons {
 		if im != nil {
-			x, y := v.IconBox.X1+5*k*p, v.IconBox.Y1
+			x, y := box.X1+5*k*p, box.Y1
 			c.overs = append(c.overs, overlay{Img: im, At: image.Rect(x*8, y*8, x*8+24*k, y*8+24*k)})
 		}
 	}
 	if s.Spells != "" { // SpellList's title over the name row
 		c.box(1, 1, right, 1, inkBlack, "")
-		c.str(1, 1, s.NameColour, s.Name+"'s")
+		c.str(1, 1, nameColour, s.Name+"'s")
 		c.str(len(s.Name)+4, 1, inkGreen, s.Spells)
 	}
 }
@@ -765,23 +784,23 @@ func iconClick(ed *front.IconEditor, cx, cy int) (front.Action, bool) {
 	in := func(r front.CellRect) bool { return cx >= r.X1 && cx <= r.X2 && cy >= r.Y1 && cy <= r.Y2 }
 	if ed.Custom {
 		if in(ed.Remove) {
-			return front.Action{Kind: front.ActIconRemove}, true
+			return front.Action{Kind: ActIconRemove}, true
 		}
 		return front.Action{}, false
 	}
-	head, weapon := front.Action{Kind: front.ActPicker, N: front.PickIconHead}, front.Action{Kind: front.ActPicker, N: front.PickWeapon}
+	head, weapon := front.Action{Kind: ActPicker, N: front.PickIconHead}, front.Action{Kind: ActPicker, N: front.PickWeapon}
 	switch {
 	case in(ed.Head):
 		return head, true
 	case in(ed.Weapon):
 		return weapon, true
 	case in(ed.Size):
-		return front.Action{Kind: front.ActIconSize}, true
+		return front.Action{Kind: ActIconSize}, true
 	case in(ed.Parts):
-		return front.Action{Kind: front.ActIconColour, N: cy - ed.Parts.Y1, X: (cx - ed.Parts.X1) / 3, Y: -1}, true
+		return front.Action{Kind: ActIconColour, N: cy - ed.Parts.Y1, X: (cx - ed.Parts.X1) / 3, Y: -1}, true
 	case in(ed.Palette):
 		if v := ed.Colours[(cy-ed.Palette.Y1)*8+(cx-ed.Palette.X1)/2]; v >= 0 {
-			return front.Action{Kind: front.ActIconColour, N: ed.Part, X: ed.Shade, Y: v}, true
+			return front.Action{Kind: ActIconColour, N: ed.Part, X: ed.Shade, Y: v}, true
 		}
 		return front.Action{}, false
 	}
@@ -795,11 +814,4 @@ func iconClick(ed *front.IconEditor, cx, cy int) (front.Action, bool) {
 		}
 	}
 	return front.Action{}, false
-}
-
-// extraFields: the sheet's extra fields, label and value (empty: not
-// drawn), which both sheet layouts draw: the readied weapon and armour, the
-// load and the coins.
-func extraFields(s *front.SheetPage) [4][2]string {
-	return [4][2]string{{"Weapon", s.Weapon}, {"Armour", s.Armour}, {"Load", s.Encumbrance}, {"Coins", s.Coins}}
 }

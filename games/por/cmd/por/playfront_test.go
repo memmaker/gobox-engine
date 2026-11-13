@@ -1,10 +1,10 @@
 package main
 
 import (
+	"gobox/front/present"
 	"testing"
 	"time"
 
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 
@@ -24,7 +24,7 @@ func TestPlayFront(t *testing.T) {
 	eng.FixedSeed = &seed
 	eng.Explore = true
 	data := playpor.Data(eng)
-	g := classic.NewGame(eng, data)
+	g := present.NewGame(eng, data)
 	g.Open("")
 	for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ { // the title, as the front ends it
 		g.TitleDone()
@@ -32,7 +32,7 @@ func TestPlayFront(t *testing.T) {
 	if g.Mode() != game.ModeExplore || len(g.Party()) == 0 {
 		t.Fatalf("mode %v, %d members, want exploring with a party", g.Mode(), len(g.Party()))
 	}
-	if !g.View().Exploring {
+	if !g.Flags().Exploring {
 		t.Fatal("no walk map")
 	}
 	f := (g.Where().Facing + 2) % 8
@@ -68,7 +68,7 @@ func TestPlayFrontWalk(t *testing.T) {
 	eng.FixedSeed = &seed
 	eng.Explore = true
 	data := playpor.Data(eng)
-	g := classic.NewGame(eng, data)
+	g := present.NewGame(eng, data)
 	g.Open("")
 	for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ {
 		g.TitleDone()

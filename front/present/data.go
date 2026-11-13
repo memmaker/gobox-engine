@@ -6,7 +6,6 @@ package present
 
 import (
 	"cmp"
-	"gobox/front/classic"
 	"image"
 	"image/color"
 	"io/fs"
@@ -38,7 +37,7 @@ type Data struct {
 
 	PaneBox, ViewWindow, InnerWindow front.CellRect // the original's main screen boxes at their 40x25 places
 
-	MapCell      int // pixels a square of View.Map
+	MapCell      int // pixels a square of Map
 	DungeonTiles int // the tiles at the start of the combat set
 
 	Theme   *Theme            // the look (nil: DefaultTheme)
@@ -46,12 +45,12 @@ type Data struct {
 	Entries []Entry           // the game's own main menu entries, after the default list (nil: none)
 
 	DoorRGBA  color.RGBA // a door's colour on the maps
-	LabelInks []int      // a map label's palette index (View.Ink) by its kind
+	LabelInks []int      // a map label's palette index (Ink) by its kind
 	SelectInk color.RGBA // the frame round the selected box (selectOutline)
 
 	Rests []Rest // camp's rests, in the menu's order
 
-	Logo LogoCut // how the main menu's lettering is cut from View.Logo
+	Logo LogoCut // how the main menu's lettering is cut from Logo
 
 	Credits    []Credit
 	CreditGaps []int // the credits' rows a blank row follows on a tall page, as many as fit from the first (nil: 4, 5, 6)
@@ -93,7 +92,7 @@ var (
 	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
 	openAt                           string
 	dollPNG                          = defaultDoll
-	mapSide                          int // View.Map's side in pixels
+	mapSide                          int // Map's side in pixels
 	sounds                           []byte
 	amigaSound                       []byte
 	adLib                            *audio.AdLibData
@@ -123,7 +122,7 @@ func SetData(d Data) {
 	dollBoxes, slotNames, readiedMark = defaultDollBoxes, defaultSlotNames, cmp.Or(d.ReadyMark, "*")
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
 	dollPNG = defaultDoll
-	classic.AmigaArt = amigaShown // the members' pool portraits and icons follow F12 too
+	AmigaArt = amigaShown // the members' pool portraits and icons follow F12 too
 	if art == nil {
 		art = fstest.MapFS{} // no remastered maps: every area falls back to its original view
 	}
@@ -206,11 +205,11 @@ func confirmOf(act string, def game.Confirm) game.Confirm {
 // the most specific the game gives, else "Drop" or "Sell". Sell's are
 // SellMany (a stack), SellFree (no price) and SellFreeMany; Drop's
 // DropScribe (a scroll being scribed).
-func itemConfirm(k front.ActKind, it *front.InvItem) string {
+func itemConfirm(k front.ActKind, it game.Item) string {
 	base, keys := "Drop", []string{}
 	if k == front.ActSell {
 		base = "Sell"
-		free := it.Price == (front.Money{})
+		free := salePrice(it) == (front.Money{})
 		switch {
 		case free && it.Count > 1:
 			keys = []string{"SellFreeMany", "SellFree"}
@@ -219,7 +218,7 @@ func itemConfirm(k front.ActKind, it *front.InvItem) string {
 		case it.Count > 1:
 			keys = []string{"SellMany"}
 		}
-	} else if it.Scribe {
+	} else if scribing(it) {
 		keys = []string{"DropScribe"}
 	}
 	for _, c := range keys {
@@ -238,7 +237,7 @@ func confirmText(ask, name, price string) string {
 // Text is the game's named text (Data.Texts; "": none).
 func Text(name string) string { return texts[name] }
 
-// sequences and filesDir are the game's Data.Sequences and Data.Files (View.Sequence).
+// sequences and filesDir are the game's Data.Sequences and Data.Files (Sequence).
 var (
 	sequences []game.Sequence
 	filesDir  string
@@ -261,13 +260,13 @@ func gameData(g game.Data) {
 		texts[k] = v
 	}
 	sequences, filesDir = g.Sequences, g.AnimDir()
-	classic.GameID, classic.Amiga = g.ID, amigaShown
-	classic.AmigaArt = classic.Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
+	GameID, Amiga = g.ID, amigaShown
+	AmigaArt = Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
 	if g.Series != "" {
 		series = g.Series
 	}
-	classic.Series = series
-	classic.Coin = cmp.Or(g.Coin, game.Gold)
+	Series = series
+	Coin = cmp.Or(g.Coin, game.Gold)
 	if g.Font != "" || g.Border != nil { // the game's look, as plain data
 		t := theme
 		if g.Font != "" {

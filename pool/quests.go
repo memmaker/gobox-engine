@@ -8,7 +8,7 @@ import (
 // Quest journal (extra): the commissions the party has been given
 // (e.ext.quests, kept with the save), each with who gave it where and its
 // giver's words from the original dialogue (brief), published as
-// View.Quests. A quest is recorded when a script hands it over (Quest,
+// Quests. A quest is recorded when a script hands it over (Quest,
 // the import's questFixes at each handover): most of the clerk's
 // commissions set no flag when offered (area8 OfferLoop). It is also
 // listed once a script flag says it was offered (given) or it is done.

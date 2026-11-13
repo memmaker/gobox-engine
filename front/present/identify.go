@@ -12,24 +12,36 @@ import (
 	"gobox/ui"
 )
 
-// The shop's Id (View.Shop.Identified): what it revealed in a pop-up of
+// The shop's Id (play.Trading.Known): what it revealed in a pop-up of
 // its own over the dimmed screen, the icon large, the name and every line
 // of what the item does in colour. Any key or click closes it.
 
 // identified is the reveal still to show (nil: none).
-func (p *Presenter) identified(v front.View) *front.InvItem {
-	if s := v.Shop; s != nil && s.Identified != nil && s.IdentifiedN != p.idSeen {
-		return s.Identified
+func (p *Presenter) identified() *front.InvItem {
+	s := p.state()
+	sh := shopOf(s)
+	if sh == nil || sh.Identified == nil {
+		p.camp.idShut = false // the next reveal is a new one
+		return nil
 	}
-	return nil
+	if p.camp.idShut && p.camp.idSeen == *sh.Identified {
+		return nil
+	}
+	it := itemOf(partyOf(s), *sh.Identified)
+	if it == nil {
+		return nil
+	}
+	x := invItem(*it)
+	x.Look = lines(it.Text)
+	return &x
 }
 
 // identDone closes the reveal's pop-up if one is up; it reports whether one was.
-func (p *Presenter) identDone(v front.View) bool {
-	if p.identified(v) == nil {
+func (p *Presenter) identDone() bool {
+	if p.identified() == nil {
 		return false
 	}
-	p.idSeen = v.Shop.IdentifiedN
+	p.camp.idSeen, p.camp.idShut = *shopOf(p.state()).Identified, true
 	return true
 }
 
@@ -51,7 +63,7 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 		ui.DrawText(m, glyph, title[i:i+1], x0+8*i, 8, ega.RGBA(sparkle[i%len(sparkle)]))
 	}
 	y := 24
-	if ic := p.inv.iconImage(it); ic != nil { // the icon on the pop-up's black
+	if ic := p.inv.iconImage(it.Name, it.Words); ic != nil { // the icon on the pop-up's black
 		b := ic.Bounds()
 		iw, ih := iconH, iconH // any atlas cell, scaled to the box
 		at := image.Rect((cw*8-iw)/2, y, (cw*8+iw)/2, y+ih)
@@ -74,7 +86,7 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 	ui.DrawText(m, glyph, hint, centre(hint), y+8, ega.RGBA(inkWhite))
 
 	img := upload(&p.idImg, m)
-	window(img, p.border.tiles, gpu.GeoM{}, cw, ch, nil)
+	window(img, p.border.val.tiles, gpu.GeoM{}, cw, ch, nil)
 	b := dst.Bounds()
 	vector.DrawFilledRect(dst, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
 	k := fitScale(scale(dst), 1, func(k float64) bool { // K, as far as it fits
@@ -84,4 +96,10 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 	op.GeoM.Scale(k, k)
 	op.GeoM.Translate((float64(b.Dx())-k*float64(cw*8))/2, (float64(b.Dy())-k*float64(ch*8))/2)
 	dst.DrawImage(img, op)
+}
+
+// alpha: c is not see-through.
+func alpha(c interface{ RGBA() (r, g, b, a uint32) }) bool {
+	_, _, _, a := c.RGBA()
+	return a > 0x8000
 }

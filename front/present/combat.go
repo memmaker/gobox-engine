@@ -2,6 +2,8 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"image"
 	"slices"
 
@@ -41,107 +43,53 @@ func toAction(d combat.Decision) front.Action {
 	return front.Action{Kind: engineKinds[d.Kind], N: d.N, X: d.X, Y: d.Y}
 }
 
-// toBoard is the engine's snapshot as the tabletop's.
-func toBoard(b *front.Battle) *combat.Board {
-	if b == nil {
-		return nil
-	}
-	o := &combat.Board{
-		Tiles: b.Tiles, TileNames: b.TileNames, FloorTile: b.FloorImg, WallTiles: dungeonTiles, StoneTile: 3, Floor: b.Floor, Dungeon: b.Dungeon,
-		Cursor: b.Cursor, CursorOn: b.CursorOn, CursorAt: b.CursorAt, Marks: b.Marks, Reach: b.Reach,
-		Targets: b.Targets, Panel: b.Panel, Log: b.Log, Area: b.Area, AreaAt: b.AreaAt, AimArea: b.AimArea, Skipped: b.Skipped,
-		AimWhy: b.AimWhy, View: b.View, Strike: combat.Strike(b.Strike),
-	}
-	if b.CursorOn && len(b.CursorAt) == 0 { // a game that sets only Cursor: the square (a large unit's footprint)
-		o.CursorAt = []image.Point{b.Cursor}
-		for _, u := range b.Units {
-			if slices.Contains(u.Squares, b.Cursor) {
-				o.CursorAt = u.Squares
-			}
-		}
-	}
-	for y := range b.Ground {
-		for x, s := range b.Ground[y] {
-			o.Ground[y][x] = combat.Square(s)
-		}
-	}
-	for _, u := range b.Units {
-		o.Units = append(o.Units, combat.Unit(u))
-	}
-	if b.Paths != nil {
-		o.Paths = map[image.Point][]combat.Step{}
-		for k, p := range b.Paths {
-			for _, s := range p {
-				o.Paths[k] = append(o.Paths[k], combat.Step(s))
-			}
-		}
-	}
-	for _, f := range b.Effects {
-		o.Effects = append(o.Effects, combat.Effect(f))
-	}
-	if t := b.Turn; t != nil {
-		o.Turn = &combat.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Casting, Moves: t.Moves, CastDirect: len(t.Spells) == 0}
-		for _, k := range t.Can {
-			if c, ok := combatKinds[k]; ok {
-				o.Turn.Can = append(o.Turn.Can, c)
-			}
-		}
-		for _, op := range t.Options { // the game's own: its acts as the tabletop's, the rest by index
-			k, ok := combatKinds[op.Kind]
-			if !ok || op.Kind == 0 {
-				k = combat.ActOption
-			}
-			o.Turn.Options = append(o.Turn.Options, combat.Option{Label: op.Label, Key: op.Key, Kind: k, Chords: op.Chords})
-		}
-	}
-	return o
-}
-
 // keypadSteps are the keypad's directions (ActDir N) by square offset.
 var keypadSteps = map[image.Point]int{{0, -1}: 8, {1, -1}: 9, {1, 0}: 6, {1, 1}: 3, {0, 1}: 2, {-1, 1}: 1, {-1, 0}: 4, {-1, -1}: 7}
 
-// askedTurn: v's question is a turn the tabletop answers (AskSquare: an
+// askedTurn: the question up is a turn the tabletop answers (AskSquare: an
 // aim, whatever Turn the rules publish; AskMove: a step at a time, where they
 // publish none).
-func askedTurn(v front.View) bool {
-	return v.Battle != nil && v.Ask != nil && (v.Ask.Kind == front.AskSquare || v.Ask.Kind == front.AskMove && v.Battle.Turn == nil)
+func (p *Presenter) askedTurn() bool {
+	q := p.askUp()
+	return p.board != nil && q != nil && (q.Kind == front.AskSquare || q.Kind == front.AskMove && p.board.Turn == nil)
 }
 
-// askedBattle is v's battle, with the active unit's turn its question asks
-// for (askedTurn): an aim, or a move whose reach is the open squares next
-// to the unit and whose End ends it.
-func askedBattle(v front.View) *front.Battle {
-	if !askedTurn(v) {
-		return v.Battle
+// askedBoard is b with the active unit's turn the question asks for
+// (askedTurn): an aim, or a move whose reach is the open squares next to the
+// unit and whose End ends it. c is the fight b is of.
+func (p *Presenter) askedBoard(b *combat.Board, c *play.Combat) *combat.Board {
+	if !p.askedTurn() {
+		return b
 	}
-	b := *v.Battle
-	t := &front.Turn{Aim: v.Ask.Kind == front.AskSquare, Can: []front.ActKind{front.ActAim}}
-	if pt := v.Battle.Turn; pt != nil { // the game's turn, now aiming (a spell's square): its unit and casting, the aim's acts only
-		t.Casting, t.Weapon, t.Missile = pt.Casting, pt.Weapon, pt.Missile
+	o := *b
+	aim := p.askUp().Kind == front.AskSquare
+	t := &combat.Turn{Aim: aim, Can: []combat.Kind{combat.ActAim}, CastDirect: true}
+	if pt := c.Turn; pt != nil { // the game's turn, now aiming (a spell's square): its casting only
+		t.Casting = pt.Spell
 	}
 	var at image.Point
-	for _, u := range b.Units {
+	for _, u := range o.Units {
 		if u.Active {
 			t.Unit, at = u.ID, image.Pt(u.X, u.Y)
 		}
 	}
-	if !t.Aim {
-		t.Can, b.Reach, b.Paths = []front.ActKind{front.ActEnd}, nil, nil
+	if !aim {
+		t.Can, o.Reach, o.Paths = []combat.Kind{combat.ActEnd}, nil, nil
 		for d := range keypadSteps {
-			if q := at.Add(d); q.In(image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))) && !b.Ground[q.Y][q.X].Wall {
-				b.Reach = append(b.Reach, q)
+			if q := at.Add(d); q.In(image.Rect(0, 0, len(o.Ground[0]), len(o.Ground))) && !o.Ground[q.Y][q.X].Wall {
+				o.Reach = append(o.Reach, q)
 			}
 		}
 	}
-	b.Turn = t
-	return &b
+	o.Turn = t
+	return &o
 }
 
-// askAction is the tabletop's decision d as the answer to v's question:
+// askAction is the tabletop's decision d as the answer to the question up:
 // on a move (askedTurn) a square walked to is that step (ActDir), End is
 // done (ActOK); otherwise toAction's.
-func askAction(v front.View, d combat.Decision) front.Action {
-	if !askedTurn(v) || v.Ask.Kind != front.AskMove {
+func (p *Presenter) askAction(d combat.Decision) front.Action {
+	if !p.askedTurn() || p.askUp().Kind != front.AskMove {
 		return toAction(d)
 	}
 	switch d.Kind {
@@ -150,8 +98,8 @@ func askAction(v front.View, d combat.Decision) front.Action {
 	case combat.ActStep:
 		return front.Action{Kind: front.ActDir, N: d.N}
 	case combat.ActWalk:
-		for _, u := range v.Battle.Units {
-			if n, ok := keypadSteps[image.Pt(d.X-u.X, d.Y-u.Y)]; u.Active && ok {
+		for _, u := range p.board.Units {
+			if n, ok := keypadSteps[image.Pt(d.X-u.At.X, d.Y-u.At.Y)]; u.Active && ok {
 				return front.Action{Kind: front.ActDir, N: n}
 			}
 		}
@@ -160,29 +108,30 @@ func askAction(v front.View, d combat.Decision) front.Action {
 	return toAction(d)
 }
 
-// keepFallen is b with the units of the board drawn before the events now
-// playing that b has dropped, each kept until its own fall (EvDied) plays:
-// the blows land on figures, not on empty squares. Outside the replay b is
-// the board kept for the next one.
-func (p *Presenter) keepFallen(b *front.Battle) *front.Battle {
-	if b == nil || !p.Playing() {
-		p.lastBattle = b
-		return b
+// keepFallen is c with the units of the fight drawn before the moments now
+// playing that c has dropped, each kept until its own fall (EvDown) plays:
+// the blows land on figures, not on empty squares. Outside the replay c is
+// the fight kept for the next one.
+func (p *Presenter) keepFallen(c *play.Combat) *play.Combat {
+	if c == nil || !p.Playing() {
+		p.lastBoard = c
+		return c
 	}
-	last := p.lastBattle
+	last := p.lastBoard
 	if last == nil {
-		return b
+		return c
 	}
-	o := *b
-	for i, u := range last.Units {
-		if slices.ContainsFunc(o.Units, func(x front.Unit) bool { return x.ID == u.ID }) ||
-			!slices.ContainsFunc(p.replay.q[1:], func(e front.CombatEvent) bool { return e.Kind == front.EvDied && e.Unit == u.ID }) { // the fall showing now (q[0]) is played: the unit is down
+	o := *c
+	o.Units = slices.Clone(c.Units)
+	for _, u := range last.Units {
+		if u.Gone || !slices.ContainsFunc(p.replay.q[1:], func(e frame) bool { return e.Kind == game.EvDown && e.Unit == u.ID }) { // the fall showing now (q[0]) is played: the unit is down
 			continue
 		}
-		if len(o.IconPix) == len(o.Units) && i < len(last.IconPix) {
-			o.IconPix = append(slices.Clone(o.IconPix), last.IconPix[i])
+		if i := slices.IndexFunc(o.Units, func(x game.Unit) bool { return x.ID == u.ID }); i < 0 {
+			o.Units = append(o.Units, u)
+		} else if o.Units[i].Gone {
+			o.Units[i] = u
 		}
-		o.Units = append(slices.Clone(o.Units), u)
 	}
 	return &o
 }

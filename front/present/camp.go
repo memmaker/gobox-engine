@@ -1,7 +1,6 @@
 package present
 
 import (
-	"cmp"
 	"fmt"
 	"gobox/front"
 	"image"
@@ -19,7 +18,7 @@ import (
 	"gobox/input"
 )
 
-// Camp (View.Camp): the presenter's own screens over camp's state, each
+// Camp (Camp): the presenter's own screens over camp's state, each
 // choice a decision for the selected member.
 
 // Camp screens.
@@ -28,7 +27,6 @@ const (
 	campMemorize // the spell levels
 	campLevel    // one level's spells to memorize
 	campScribe
-	campBestiary
 	campDrop // the drop's confirmation
 
 	templeHeal // the temple's services (temple.go)
@@ -40,25 +38,21 @@ const (
 )
 
 type campUI struct {
-	screen    int
-	sel       int
-	top       int             // the first line shown of a list too long for the screen
-	byDanger  bool            // the bestiary's order
-	beast     string          // the entry shown
-	beastAt   string          // the entry beastY scrolls
-	beastY    int             // the entry's first pixel row shown
-	beastMax  int             // its last beastY
-	beastPane image.Rectangle // the entry on the window (the wheel scrolls it there)
-	pointer   image.Point     // the pointer on the window (Hover), for the wheel
-	wheeled   time.Time       // the last line the wheel moved the bestiary's list
-	pick      int             // the temple's cure or the shop's item asked about
-	rowsWere  []string        // the rows' texts as last shown (follow)
-	rowsOf    int             // ... and their screen
-	ids       []int           // the spell lists' lines: each one's spell (0: a level, Exit)
-	unset     []bool          // the spell lists' lines with none memorized (grey)
-	level     string          // the level campLevel lists; the power pick's member and pick (powerItems)
-	dropAsk   int             // the drop's question asked (Data.Confirms["DropMember"].Asks)
-	rows      map[int][2]int  // each screen left for a submenu: its highlighted row and first line shown, for back
+	screen   int
+	sel      int
+	top      int            // the first line shown of a list too long for the screen
+	pointer  image.Point    // the pointer on the window (Hover), for the wheel
+	wheeled  time.Time      // the last line the wheel moved a list
+	pick     int            // the temple's cure or the shop's item asked about
+	rowsWere []string       // the rows' texts as last shown (follow)
+	rowsOf   int            // ... and their screen
+	ids      []int          // the spell lists' lines: each one's spell (0: a level, Exit)
+	unset    []bool         // the spell lists' lines with none memorized (grey)
+	level    string         // the level campLevel lists; the power pick's member and pick (powerItems)
+	dropAsk  int            // the drop's question asked (Data.Confirms["DropMember"].Asks)
+	rows     map[int][2]int // each screen left for a submenu: its highlighted row and first line shown, for back
+	idSeen   game.ItemRef   // the shop's Id reveal closed last (identify.go) ...
+	idShut   bool           // ... while this holds
 }
 
 // to opens screen n (a submenu, or a question on row sel), keeping the
@@ -95,67 +89,65 @@ func (c *campUI) follow(items []ui.MenuRow) {
 
 // campItems are the lines of the camp screen up, and its title.
 // The temple, the shop and training share the camp's screens.
-func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
+func (p *Presenter) campItems() (string, []ui.MenuRow) {
 	switch {
-	case v.Temple != nil:
-		return p.templeItems(v)
-	case v.Shop != nil:
-		return p.shopItems(v)
-	case v.Training != nil:
-		return p.trainItems(v)
-	case v.Powers != nil:
-		return p.powerItems(v)
+	case p.templeUp():
+		return p.templeItems()
+	case p.shopUp():
+		return p.shopItems()
+	case p.trainingUp() != nil:
+		return p.trainItems()
+	case p.powerPick() != nil:
+		return p.powerItems()
 	}
-	c := &p.camp
-	cp := v.Camp
+	c, s := &p.camp, p.state()
+	party, sel := partyOf(s), p.selected()
+	var m game.Member // the selected member: whose spells the lists show
+	if sel >= 0 && sel < len(party) {
+		m = party[sel]
+	}
+	book := campBook(m)
+	heals, studies := restOf(s)
+	noRest := allowedOf(s)["NoRest"] // camp with no AdvanceTimeBy
 	act := func(k front.ActKind, n int) func() { return func() { p.send(k, n) } }
 	switch c.screen {
 	case campMemorize: // the levels, each its own submenu
 		var it []ui.MenuRow
 		c.ids, c.unset = c.ids[:0], c.unset[:0]
-		for i, s := range cp.Book {
-			if i == 0 || cp.Book[i-1].Level != s.Level {
-				it, c.ids = append(it, ui.MenuRow{Text: fmt.Sprintf("%-26s %d/%d", s.Level, s.Planned, s.Slots), Key: 0, Do: func() { c.level = s.Level; c.to(campLevel, 0)() }}), append(c.ids, 0)
+		for i, sp := range book {
+			if level, planned, slots := bookLine(m, book, sp); i == 0 || levelName(book[i-1].Level) != level {
+				it, c.ids = append(it, ui.MenuRow{Text: fmt.Sprintf("%-26s %d/%d", level, planned, slots), Key: 0, Do: func() { c.level = level; c.to(campLevel, 0)() }}), append(c.ids, 0)
 			}
 		}
 		return "Spells to memorize", append(it, ui.MenuRow{Text: "Exit", Key: 0, Do: c.back(campMain)})
 	case campLevel, campScribe:
-		list, title := cp.Scrolls, "Spells to scribe"
+		var list []game.SpellRef // the scribe list is empty: the state names no scrolls' spells
+		title := "Spells to scribe"
 		if c.screen == campLevel {
-			list, title = nil, c.level
-			for _, s := range cp.Book {
-				if s.Level == c.level {
-					list, title = append(list, s), fmt.Sprintf("%c%s%c %d/%d", ui.InkHead, s.Level, ui.InkHead, s.Planned, s.Slots)
+			title = c.level
+			for _, sp := range book {
+				if level, planned, slots := bookLine(m, book, sp); level == c.level {
+					list, title = append(list, sp), fmt.Sprintf("%c%s%c %d/%d", ui.InkHead, level, ui.InkHead, planned, slots)
 				}
 			}
 		}
 		var it []ui.MenuRow
 		c.ids, c.unset = c.ids[:0], c.unset[:0]
-		for _, s := range list {
-			text := fmt.Sprintf("%-26s x%d", s.Name, s.Count)
+		for _, sp := range list {
+			text := fmt.Sprintf("%-26s x%d", sp.Name, sp.Planned)
 			if c.screen == campScribe {
-				text = s.Name
-				if s.Count > 0 {
+				text = sp.Name
+				if sp.Planned > 0 {
 					text += " *"
 				}
 			}
-			it, c.ids, c.unset = append(it, ui.MenuRow{Text: text, Key: 0, Do: func() { p.campSpell(s.ID, 1) }}), append(c.ids, s.ID), append(c.unset, c.screen == campLevel && s.Count == 0)
+			it, c.ids, c.unset = append(it, ui.MenuRow{Text: text, Key: 0, Do: func() { p.campSpell(sp.ID, 1) }}), append(c.ids, sp.ID), append(c.unset, c.screen == campLevel && sp.Planned == 0)
 		}
 		back := c.back(campMain)
 		if c.screen == campLevel {
 			back = c.back(campMemorize)
 		}
 		return title, append(it, ui.MenuRow{Text: "Exit", Key: 0, Do: back}) // no hotkeys: the lines are spells
-	case campBestiary:
-		sort := "Sort by danger"
-		if c.byDanger {
-			sort = "Sort by name"
-		}
-		it := []ui.MenuRow{{Text: sort, Key: 0, Do: func() { c.byDanger = !c.byDanger }}}
-		for _, b := range p.beasts(v) {
-			it = append(it, ui.MenuRow{Text: b.Name, Key: 0, Do: func() { c.beast = b.Name }}) // shown beside the list (drawBestiary)
-		}
-		return "Bestiary", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: c.back(campMain)})
 	case campDrop:
 		cf := confirmOf("DropMember", game.Confirm{Asks: []string{"Drop %s from the party?"}})
 		n := min(c.dropAsk, len(cf.Asks)-1)
@@ -165,19 +157,19 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 				return
 			}
 			c.dropAsk = 0
-			p.send(front.ActDropMember, selectedIndex(v))
+			p.send(front.ActDropMember, p.selectedIndex())
 			c.back(campMain)()
 		}
 		no := func() { c.dropAsk = 0; c.back(campMain)() }
-		return confirmText(cf.Asks[n], selectedName(v), ""), []ui.MenuRow{{Text: "Yes", Key: 'Y', Do: yes}, {Text: "No", Key: 'N', Do: no}}
+		return confirmText(cf.Asks[n], p.selectedName(), ""), []ui.MenuRow{{Text: "Yes", Key: 'Y', Do: yes}, {Text: "No", Key: 'N', Do: no}}
 	}
 	var it []ui.MenuRow // the party's, the rests first: each member's own are on their card's menu (drawCampMenus)
 	for _, r := range rests {
-		if r.Fix && !cp.Healing && !cp.Studying || r.Duration && cp.NoRest {
+		if r.Fix && !heals && !studies || r.Duration && noRest {
 			continue
 		}
 		text, key := r.Text, r.Key
-		if !v.Day && r.Night != "" {
+		if !p.flags().Day && r.Night != "" {
 			text, key = r.Night, r.NightKey
 		}
 		do := act(front.ActRest, r.N)
@@ -186,25 +178,38 @@ func (p *Presenter) campItems(v front.View) (string, []ui.MenuRow) {
 		}
 		it = append(it, ui.MenuRow{Text: text, Key: key, Do: do})
 	}
-	if len(cp.Bestiary) > 0 {
-		it = append(it, ui.MenuRow{Text: "Bestiary", Key: 'B', Do: c.to(campBestiary, 0)})
-	}
-	it = append(it, ui.MenuRow{Text: "Save", Key: 'S', Do: act(front.ActSaveGame, 0)}) // the slot screen says whether the rules let it save
+	it = append(it, ui.MenuRow{Text: "Save", Key: 'S', Do: act(ActSaveGame, 0)}) // the slot screen says whether the rules let it save
 	return "Camp", append(it, ui.MenuRow{Text: "Exit", Key: 'E', Do: act(front.ActClose, 0)})
+}
+
+// campBook is m's spells to memorize at the next rest, in their order.
+func campBook(m game.Member) []game.SpellRef {
+	return slices.DeleteFunc(slices.Clone(m.Spells), func(sp game.SpellRef) bool { return sp.Memorized })
+}
+
+// bookLine is where spell sp of m's book is listed: its level's heading,
+// the spells planned in its group and the group's slots.
+func bookLine(m game.Member, book []game.SpellRef, sp game.SpellRef) (level string, planned, slots int) {
+	for _, x := range book {
+		if x.Group == sp.Group {
+			planned += x.Planned
+		}
+	}
+	return levelName(sp.Level), planned, m.SlotsMax[sp.Group]
 }
 
 // campHome: camp's own screen is up, the members' menus beside their
 // cards (drawCampMenus).
-func (p *Presenter) campHome(v front.View) bool {
-	return v.Camp != nil && p.camp.screen == campMain && screenUp(v)
+func (p *Presenter) campHome() bool {
+	return p.campUp() && p.camp.screen == campMain && p.screenUp()
 }
 
 // drawCampMenus draws every member's context menu at once beside their
 // card; the one with the keys (ctx) shows its highlight.
-func (p *Presenter) drawCampMenus(dst *gpu.Image, v front.View) {
+func (p *Presenter) drawCampMenus(dst *gpu.Image) {
 	p.campCtx = p.campCtx[:0]
-	for i := range min(len(v.Party), len(p.cards)) {
-		lines, acts, keys := powerLines(v.Party[i].Powers)
+	for i := range min(len(p.party()), len(p.cards)) {
+		lines, acts, keys := powerLines(p.cardPowers()[i])
 		sel := -1
 		if p.ctx == 1+i {
 			sel = p.ctxSel
@@ -232,15 +237,15 @@ func (p *Presenter) drawCampMenus(dst *gpu.Image, v front.View) {
 // F9 to the party's menu, Left/Right (the pad's d-pad) and Tab round them
 // in the screen's order: the first half of the members (the left column,
 // or the row's left half), the party's menu, the rest.
-func (p *Presenter) campFocus(v front.View, k uint16, m int) {
+func (p *Presenter) campFocus(k uint16, m int) {
 	order := []int{} // ctx values: 0 the party's menu, 1+i member i's
-	for i := range v.Party {
-		if i == (len(v.Party)+1)/2 {
+	for i := range p.party() {
+		if i == (len(p.party())+1)/2 {
 			order = append(order, 0)
 		}
 		order = append(order, 1+i)
 	}
-	if len(v.Party) < 2 {
+	if len(p.party()) < 2 {
 		order = append(order, 0)
 	}
 	n, at := len(order), slices.Index(order, p.ctx)
@@ -264,7 +269,7 @@ func (p *Presenter) campFocus(v front.View, k uint16, m int) {
 // campHover gives the focus to the camp window under the pointer (x, y)
 // and its line the highlight: the party's menu, or a member's (who is
 // then selected).
-func (p *Presenter) campHover(v front.View, x, y int) {
+func (p *Presenter) campHover(x, y int) {
 	if i := slices.IndexFunc(p.menuRects, image.Pt(x, y).In); i >= 0 {
 		p.ctx, p.camp.sel = 0, p.camp.top+i
 		return
@@ -303,39 +308,12 @@ func (p *Presenter) campSpell(id, n int) {
 	p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActPlan, N: -1, X: id, Y: n})
 }
 
-// beasts is the bestiary in the order chosen.
-func (p *Presenter) beasts(v front.View) []front.Beast {
-	b := slices.Clone(v.Camp.Bestiary)
-	if p.camp.byDanger {
-		slices.SortStableFunc(b, func(x, y front.Beast) int { return cmp.Compare(x.Danger, y.Danger) })
-	} else {
-		slices.SortStableFunc(b, func(x, y front.Beast) int { return cmp.Compare(x.Name, y.Name) })
-	}
-	return b
-}
-
 var roman = [...]string{"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII"}
-
-func selectedIndex(v front.View) int {
-	for i, m := range v.Party {
-		if m.Selected {
-			return i
-		}
-	}
-	return -1
-}
-
-func selectedName(v front.View) string {
-	if i := selectedIndex(v); i >= 0 {
-		return v.Party[i].Name
-	}
-	return ""
-}
 
 // drawCamp draws the camp screen up at scale k, centred on cx, its top at
 // top; a bestiary entry's icon goes over its box.
-func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, v front.View, k float64, cx, top, bottom int) {
-	title, items := p.campItems(v)
+func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, k float64, cx, top, bottom int) {
+	title, items := p.campItems()
 	p.camp.follow(items)
 	lines, keys, off := make([]string, len(items)), p.campKeys(items), ui.RowsOff(items)
 	for i, it := range items {
@@ -345,16 +323,13 @@ func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, v front.V
 		}
 	}
 	p.camp.sel = min(max(p.camp.sel, 0), len(items)-1)
-	var icons []image.Image // the rows' icons: the items' (the shop's Identify), the creatures' (the bestiary)
+	var icons []image.Image // the rows' icons: the items' (the shop's Identify)
 	switch {
-	case v.Shop != nil && p.camp.screen == shopID:
-		for _, u := range v.Shop.Unknown {
-			icons = append(icons, p.inv.iconImage(u.Icon))
-		}
-	case p.camp.screen == campBestiary && v.Camp != nil:
-		icons = []image.Image{nil} // the sort row
-		for _, b := range p.beasts(v) {
-			icons = append(icons, b.Icon)
+	case p.shopUp() && p.camp.screen == shopID:
+		s := p.state()
+		for _, u := range p.eng.r.derived().unknown {
+			it := itemOf(partyOf(s), u)
+			icons = append(icons, p.inv.iconImage(it.Name, it.Words))
 		}
 	}
 	if icons != nil {
@@ -387,16 +362,16 @@ func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, v front.V
 		return
 	}
 	sel := c.sel - c.top
-	if p.campHome(v) && p.ctx > 0 { // a member's menu has the focus: no highlight, no white hotkeys here
+	if p.campHome() && p.ctx > 0 { // a member's menu has the focus: no highlight, no white hotkeys here
 		sel, p.menuGrey, keys = -1, true, nil
 	}
 	p.drawMenuIcons(dst, glyph, title, lines, keys, off, icons, sel, k, cx, top)
 	p.menuGrey = false
 	p.menuBar(dst, p.menuRects, n, len(lines), &c.top, &c.sel, k)
-	if (p.spellList(v) || v.Training != nil && len(v.Training.Learn) > 0) && c.sel < len(c.ids) && len(p.menuRects) > 0 {
+	if (p.spellList() || len(p.learning()) > 0) && c.sel < len(c.ids) && len(p.menuRects) > 0 {
 		p.drawSpellTip(dst, c.ids[c.sel], k, cx)
 	}
-	if pp := v.Powers; pp != nil && c.sel < len(pp.Options) && len(p.menuRects) > 0 {
+	if pp := p.powerPick(); pp != nil && c.sel < len(pp.Options) && len(p.menuRects) > 0 {
 		p.drawTip(dst, ui.WrapWords(pp.Options[c.sel].Tip, 36), k, cx)
 	}
 }
@@ -443,42 +418,36 @@ func (p *Presenter) drawTip(dst *gpu.Image, lines []string, k float64, cx int) {
 
 // spellList: a camp spell list is up (its rules drawn by it, the picture
 // hidden under them).
-func (p *Presenter) spellList(v front.View) bool {
+func (p *Presenter) spellList() bool {
 	s := p.camp.screen
-	return v.Camp != nil && (s == campMemorize || s == campLevel || s == campScribe)
+	return p.campUp() && (s == campMemorize || s == campLevel || s == campScribe)
 }
 
 // campKey takes key k on a camp screen.
-func (p *Presenter) campKey(k uint16, v front.View) bool {
+func (p *Presenter) campKey(k uint16) bool {
 	c := &p.camp
-	_, items := p.campItems(v)
+	_, items := p.campItems()
 	c.follow(items)
 	n := len(items)
-	spells := p.spellList(v)
-	m, member := memberKey(k, selectedIndex(v), len(v.Party), true)
+	spells := p.spellList()
+	m, member := memberKey(k, p.selectedIndex(), len(p.party()), true)
 	switch a := actOf(k); {
-	case c.screen == campBestiary && (a == input.PgUp || a == input.PgDn): // the entry, eight lines a step
-		step := 80
-		if a == input.PgUp {
-			step = -step
-		}
-		c.beastY = min(max(c.beastY+step, 0), c.beastMax)
 	case spells && (a == input.Less || a == input.Backspace) && c.sel < n-1: // -, Backspace: one less
-		p.campSpellAt(v, c.sel, -1)
+		p.campSpellAt(c.sel, -1)
 	case spells && a == input.More && c.sel < n-1: // +: one more
-		p.campSpellAt(v, c.sel, 1)
+		p.campSpellAt(c.sel, 1)
 	case actOf(k) == input.PartyMenu:
-	case (member || actOf(k) == input.Minimap) && p.campHome(v): // another menu takes the keys
-		p.campFocus(v, k, m)
+	case (member || actOf(k) == input.Minimap) && p.campHome(): // another menu takes the keys
+		p.campFocus(k, m)
 	case member && !yesNo(p.campKeys(items)): // the member camp acts for (not under a question about one)
 		p.send(front.ActLead, m)
 	default:
 		switch i, back, ok := ui.MenuNav(actOf(k), k, &c.sel, p.campKeys(items)); {
 		case back:
-			p.campBack(v)
+			p.campBack()
 		case i >= 0:
-			p.campPick(v, i)
-		case !ok && p.campHome(v) && p.cardKey(v, k):
+			p.campPick(i)
+		case !ok && p.campHome() && p.cardKey(k):
 		case !ok:
 			return !globalKey(k) // help, the minimap, save/load ... go on (keyAct); other keys would act on the view under the screen
 		}
@@ -488,12 +457,12 @@ func (p *Presenter) campKey(k uint16, v front.View) bool {
 
 // cardKey acts the selected member's card line whose hotkey is k (camp:
 // a card's verbs answer their keys without Tab to its menu first).
-func (p *Presenter) cardKey(v front.View, k uint16) bool {
-	n := selectedIndex(v)
-	if n < 0 || n >= len(v.Party) || k >= 128 {
+func (p *Presenter) cardKey(k uint16) bool {
+	n := p.selectedIndex()
+	if n < 0 || n >= len(p.party()) || k >= 128 {
 		return false
 	}
-	_, acts, keys := powerLines(v.Party[n].Powers)
+	_, acts, keys := powerLines(p.cardPowers()[n])
 	if j := slices.Index(keys, byte(unicode.ToUpper(rune(k)))); j >= 0 && keys[j] != 0 {
 		p.memberAct(acts[j], n)
 		return true
@@ -503,10 +472,10 @@ func (p *Presenter) cardKey(v front.View, k uint16) bool {
 
 // campBack goes back one level: the screen's Exit or No row, else the
 // screen closes. It never picks a list's line.
-func (p *Presenter) campBack(v front.View) {
-	_, items := p.campItems(v)
+func (p *Presenter) campBack() {
+	_, items := p.campItems()
 	if n := len(items); n > 0 && slices.Contains([]string{"Exit", "No"}, items[n-1].Text) {
-		p.campPick(v, n-1)
+		p.campPick(n - 1)
 		return
 	}
 	p.send(front.ActClose, 0)
@@ -522,49 +491,50 @@ func (p *Presenter) campKeys(items []ui.MenuRow) []byte {
 }
 
 // campSpellAt changes the plan of the spell on line i.
-func (p *Presenter) campSpellAt(v front.View, i, n int) {
+func (p *Presenter) campSpellAt(i, n int) {
 	if c := &p.camp; i < len(c.ids) && c.ids[i] != 0 {
 		p.campSpell(c.ids[i], n)
 	}
 }
 
 // campPick picks line i of the camp screen up.
-func (p *Presenter) campPick(v front.View, i int) {
-	if _, items := p.campItems(v); i >= 0 && i < len(items) && items[i].Do != nil { // a heading picks nothing
+func (p *Presenter) campPick(i int) {
+	if _, items := p.campItems(); i >= 0 && i < len(items) && items[i].Do != nil { // a heading picks nothing
 		p.camp.sel = i
 		items[i].Do()
 	}
 }
 
 // screenUp: one of the camp-style screens is up (camp, temple, shop, training, a power pick).
-func screenUp(v front.View) bool {
-	return (v.Camp != nil || v.Temple != nil || v.Shop != nil || v.Training != nil || v.Powers != nil) && askMenu(v) == nil && v.SheetPage == nil // a member viewed: the sheet over the screen
+func (p *Presenter) screenUp() bool {
+	return (p.campUp() || p.templeUp() || p.shopUp() || p.trainingUp() != nil || p.powerPick() != nil) && p.askMenu() == nil && p.sheetPage() == nil // a member viewed: the sheet over the screen
 }
 
 // sendX sends a decision with an X.
 func (p *Presenter) sendX(k front.ActKind, n, x int) { p.sendA(front.Action{Kind: k, N: n, X: x}) }
 
 // appraiseItems is the appraise screen; back goes to the screen before.
-func (p *Presenter) appraiseItems(a front.Appraise, back func()) (string, []ui.MenuRow) {
-	if a.Valued > 0 {
+func (p *Presenter) appraiseItems(purse map[string]int, offers []game.Offer, back func()) (string, []ui.MenuRow) {
+	if len(offers) > 0 && offers[0].Value > 0 {
+		o := offers[0]
 		what := "Gem"
-		if a.Jewel {
+		if o.Kind == game.Jewelry {
 			what = "Jewel"
 		}
 		var it []ui.MenuRow
-		if a.CanKeep {
-			it = append(it, ui.MenuRow{Text: "Keep", Key: 'K', Do: func() { p.call(func(e front.Game) { e.KeepAppraised(true) }) }})
+		if o.CanKeep {
+			it = append(it, ui.MenuRow{Text: "Keep", Key: 'K', Do: func() { p.call(func(e *classicGame) { e.KeepAppraised(true) }) }})
 		}
-		sell := func() { p.call(func(e front.Game) { e.KeepAppraised(false) }) }
-		return fmt.Sprintf("The %s is valued at %s. Leaving sells it.", what, price(front.Money{Gold: a.Valued})), append(it, ui.MenuRow{Text: "Sell", Key: 'S', Do: sell},
+		sell := func() { p.call(func(e *classicGame) { e.KeepAppraised(false) }) }
+		return fmt.Sprintf("The %s is valued at %s. Leaving sells it.", what, price(front.Money{Gold: o.Value})), append(it, ui.MenuRow{Text: "Sell", Key: 'S', Do: sell},
 			ui.MenuRow{Text: "Exit", Key: 'E', Do: sell}) // back to the list: the original's leaving sells (Esc too, campBack), the shop stays
 	}
 	var it []ui.MenuRow
-	if a.Gems > 0 {
-		it = append(it, ui.MenuRow{Text: fmt.Sprintf("Gems (%d)", a.Gems), Key: 'G', Do: func() { p.call(func(e front.Game) { e.Appraise(false) }) }})
+	if n := purse[game.Gems]; n > 0 {
+		it = append(it, ui.MenuRow{Text: fmt.Sprintf("Gems (%d)", n), Key: 'G', Do: func() { p.call(func(e *classicGame) { e.Appraise(false) }) }})
 	}
-	if a.Jewelry > 0 {
-		it = append(it, ui.MenuRow{Text: fmt.Sprintf("Jewelry (%d)", a.Jewelry), Key: 'J', Do: func() { p.call(func(e front.Game) { e.Appraise(true) }) }})
+	if n := purse[game.Jewelry]; n > 0 {
+		it = append(it, ui.MenuRow{Text: fmt.Sprintf("Jewelry (%d)", n), Key: 'J', Do: func() { p.call(func(e *classicGame) { e.Appraise(true) }) }})
 	}
 	title := "You have a fine collection"
 	if len(it) == 0 {

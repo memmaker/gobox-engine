@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"gobox/front/classic"
 	"gobox/front/present"
+	"gobox/game/play"
 	"por/playpor"
 	"por/porgame"
 )
@@ -30,7 +30,7 @@ func frameFront(b *testing.B, dev string) *present.Front {
 	seed := uint32(1)
 	eng.FixedSeed = &seed
 	data := playpor.Data(eng)
-	f := present.NewFront(classic.NewGame(eng, data), data)
+	f := present.NewFront(present.NewGame(eng, data), data)
 	f.Start("")
 	f.Frame(1280, 800)
 	f.Game.SequenceDone("intro")
@@ -40,14 +40,14 @@ func frameFront(b *testing.B, dev string) *present.Front {
 }
 
 // A frame of walking the 3D view: a step or a turn every 60 frames. A
-// regression in what runs per frame (the View and the State built again,
+// regression in what runs per frame (the State built again,
 // uploads) shows here; the window's GPU time does not.
 func BenchmarkExploreFrame(b *testing.B) {
 	f := frameFront(b, "")
-	for i := 0; i < 600 && !f.Game.View().Exploring; i++ {
+	for i := 0; i < 600 && !f.Game.Flags().Exploring; i++ {
 		f.Frame(1280, 800)
 	}
-	if !f.Game.View().Exploring {
+	if !f.Game.Flags().Exploring {
 		b.Fatal("never in the 3D view")
 	}
 	for range 60 { // the first textures decode and upload
@@ -67,10 +67,11 @@ func BenchmarkExploreFrame(b *testing.B) {
 // A frame of a fight (autocombat: the computer fights for the party).
 func BenchmarkCombatFrame(b *testing.B) {
 	f := frameFront(b, "autocombat")
-	for i := 0; i < 600 && f.Game.View().Battle == nil; i++ {
+	fighting := func() bool { _, ok := f.Game.G.State().(play.Fighting); return ok }
+	for i := 0; i < 600 && !fighting(); i++ {
 		f.Frame(1280, 800)
 	}
-	if f.Game.View().Battle == nil {
+	if !fighting() {
 		b.Skip("no fight")
 	}
 	for range 60 {

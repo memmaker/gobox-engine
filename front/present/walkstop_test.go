@@ -4,8 +4,6 @@ import (
 	"image"
 	"testing"
 
-	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -19,6 +17,8 @@ func (openMap) Departure(image.Point, int) bool { return false }
 func (openMap) Event(image.Point) bool          { return false }
 
 type walkerGame struct{ sent []play.Action }
+
+func (w *walkerGame) Version() uint64 { return fresh() }
 
 func (w *walkerGame) State() play.State {
 	return play.Exploring{Map: play.ExploreMap{Walk: openMap{}}}
@@ -40,21 +40,19 @@ func TestAnyInputStopsWalk(t *testing.T) {
 		"view":  func(f *Front) { f.ViewClick(10, 10) },
 	} {
 		w := &walkerGame{}
-		f := &Front{Game: classic.NewGame(w, game.Data{}), started: true}
+		f := &Front{Game: &classicGame{Game: NewGame(w, game.Data{})}, started: true}
 		f.P.SetEngine(f.Game)
 		if !f.Game.WalkTo(3, 0) {
 			t.Fatal("no walk")
 		}
-		f.stale()
-		if f.view().Pace != front.PaceWalk {
+		if f.P.pacing().Pace != game.PaceWalk {
 			t.Fatal("not walking")
 		}
 		input(f)
 		for _, c := range f.P.Calls() {
 			c(f.Game)
 		}
-		f.stale()
-		if f.view().Pace == front.PaceWalk {
+		if f.P.pacing().Pace == game.PaceWalk {
 			t.Errorf("%s did not stop the walk", name)
 		}
 		if len(w.sent) != 0 {

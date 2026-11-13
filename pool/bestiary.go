@@ -6,7 +6,7 @@ import (
 )
 
 // Bestiary (extra): the monster kinds the party has met (e.ext.met, kept
-// with the save), published in camp (View.Camp.Bestiary).
+// with the save), published in camp (Camp.Bestiary).
 
 // beast is a bestiary entry: name, danger level (I..VIII) and description
 // (por-bestiary.tsv); also are the other MON*CHA names of the kind (the

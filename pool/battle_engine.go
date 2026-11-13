@@ -80,7 +80,7 @@ func (e *Engine) battle() *Battle {
 }
 
 // picPix is frame f of im (or its DOS twin) as View pixels in the screen's
-// current palette (View.Ink; combat swaps colours 0 and 8), mirrored with
+// current palette (Ink; combat swaps colours 0 and 8), mirrored with
 // flip: Clear pixels (and with ground, that colour) transparent, the
 // values 17..AmigaBase-1 their colour register's, as the screen shows them.
 func (e *Engine) picPix(im *asset.Image, f int, flip bool, ground int) Picture {

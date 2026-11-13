@@ -25,36 +25,19 @@ type word struct {
 	r    image.Rectangle
 }
 
-// itemAt is the inventory's item i, nil if none.
-func itemAt(in *front.Inventory, i core.ItemHandle) *front.InvItem {
-	if i == core.NoItem {
-		return nil
-	}
-	for _, it := range in.Doll {
-		if it != nil && it.Item == i {
-			return it
-		}
-	}
-	for k := range in.Pool {
-		if in.Pool[k].Item == i {
-			return &in.Pool[k]
-		}
-	}
-	return nil
-}
-
 // menu is the menu row for the highlighted item.
-func (inv *inventory) menu(in *front.Inventory) []word {
-	it := itemAt(in, inv.sel)
+func (inv *inventory) menu() []word {
+	in := inv.up
+	it := inv.itemAt(inv.sel)
 	if inv.ask != nil { // the question has its Yes and No
 		return nil
 	}
-	if in.Loot { // the loot: take a piece of treasure
-		t := in.Treasure
+	if in.kind == invLoot { // the loot: take a piece of treasure
+		t := in.treasure
 		if t == nil {
 			t = &front.Loot{}
 		}
-		w := []word{{text: "Take", act: front.ActBuy, on: wareAt(in, inv.ware) != nil}, {text: "All", act: front.ActTakeAll, on: len(in.Wares) > 0 || len(t.Money) > 0}}
+		w := []word{{text: "Take", act: front.ActBuy, on: inv.wareAt(inv.ware) != nil}, {text: "All", act: front.ActTakeAll, on: len(in.wares) > 0 || len(t.Money) > 0}}
 		for _, o := range []struct {
 			on   bool
 			text string
@@ -66,35 +49,35 @@ func (inv *inventory) menu(in *front.Inventory) []word {
 		}
 		return append(w, word{text: "Exit", act: front.ActClose, on: true})
 	}
-	if in.Wares != nil { // the shop: buy a ware, sell an item
-		w := []word{{text: "Buy", act: front.ActBuy, on: wareAt(in, inv.ware) != nil}, {text: "Sell", act: front.ActSell, on: it != nil && in.Sell}}
-		if in.Reload {
+	if in.kind != invOwn { // the shop: buy a ware, sell an item
+		w := []word{{text: "Buy", act: front.ActBuy, on: inv.wareAt(inv.ware) != nil}, {text: "Sell", act: front.ActSell, on: it != nil && in.sell}}
+		if in.reload {
 			w = append(w, word{text: "Reload", act: front.ActReload, on: it != nil})
 		}
 		w = append(w, word{text: "View", act: front.ActSheet, on: true}) // look-only: the member's sheet
-		if in.PoolCoins {
+		if in.pooled {
 			w = append(w, word{text: "Pool", act: front.ActLootPool, on: true})
 		}
 		return append(w, word{text: "Exit", act: front.ActClose, on: true})
 	}
-	w := []word{{text: "Ready", act: front.ActReady, on: it != nil && it.Slot}}
-	if in.Use {
-		w = append(w, word{text: "Use", act: front.ActUse, on: it != nil && it.Use})
+	w := []word{{text: "Ready", act: front.ActReady, on: it != nil && slotted(*it)}}
+	if in.use {
+		w = append(w, word{text: "Use", act: front.ActUse, on: it != nil && it.Usable})
 	}
 	for _, o := range []struct {
 		on   bool
 		text string
 		act  front.ActKind
-	}{{in.Trade, "Trade", front.ActTrade}, {in.Halve, "Halve", front.ActHalve}, {in.Join, "Join", front.ActJoin}} {
+	}{{in.trade, "Trade", front.ActTrade}, {in.halve, "Halve", front.ActHalve}, {in.join, "Join", front.ActJoin}} {
 		if o.on {
 			w = append(w, word{text: o.text, act: o.act, on: it != nil})
 		}
 	}
 	w = append(w, word{text: "Drop", act: front.ActDrop, on: it != nil})
-	if in.Sell {
+	if in.sell {
 		w = append(w, word{text: "Sell", act: front.ActSell, on: it != nil})
 	}
-	for _, pw := range in.Powers {
+	for _, pw := range in.powers {
 		w = append(w, word{text: pw.Name, act: pw.Kind, on: true})
 	}
 	return w // Tab is the sheet, Esc leaves
@@ -102,52 +85,53 @@ func (inv *inventory) menu(in *front.Inventory) []word {
 
 // Inventory draws the inventory screen when the game shows it, and
 // reports whether it did.
-func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
+func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
+	p.sync()
 	inv := &p.inv
 	inv.shown = false
-	in := v.Inventory
-	if p.own(v).Ask != nil && p.q == nil { // the game's question (Heal whom?, Use it?): Draw asks it, never hidden under the items; the presenter's own (Trade to whom?) is asked over the items
+	in := p.inventory()
+	party := p.party()
+	if p.q == nil && p.askUp() != nil { // the game's question (Heal whom?, Use it?): Draw asks it, never hidden under the items; the presenter's own (Trade to whom?) is asked over the items
 		return false
 	}
 	if p.playing() != nil { // an event to show (Draw plays it); this also drops the played ones, else Playing holds every key
 		return false
 	}
 	if in == nil {
-		inv.ask, inv.view = nil, nil
+		inv.ask, inv.up = nil, nil
 		return false
 	}
-	p.shownView = p.own(v) // the decisions are made on the inventory, not on the screen under it
 	inv.load()
-	if inv.view == nil || in.Member != inv.member {
+	if inv.up == nil || in.member != inv.member {
 		inv.sel, inv.list.top, inv.carry, inv.keep.row = core.NoItem, 0, nil, -1 // a new member: nothing highlighted or on the cursor
 	}
-	if inv.view == nil || (inv.view.Wares == nil) != (in.Wares == nil) {
+	if inv.up == nil || (inv.up.kind == invOwn) != (in.kind == invOwn) {
 		inv.ware, inv.wares.top = core.NoItem, 0
 	}
-	inv.shown, inv.member, inv.count, inv.glyph, inv.view = true, in.Member, len(v.Party), note.Glyph, in
-	if shown, k := inv.list.shown(in.Pool), inv.keep; k.row >= 0 && (len(shown) != k.n || shown[k.row].Item != k.i || k.id != "" && itemID(shown[k.row]) != k.id) { // the sold, dropped or readied item is gone (a swap puts another in its place)
+	inv.shown, inv.member, inv.count, inv.glyph, inv.up = true, in.member, len(party), note.Glyph, in
+	if shown, k := inv.list.shown(in.pool), inv.keep; k.row >= 0 && (len(shown) != k.n || shown[k.row].Handle != k.i || k.id != "" && itemID(shown[k.row]) != k.id) { // the sold, dropped or readied item is gone (a swap puts another in its place)
 		inv.sel = core.NoItem
-		if j := slices.IndexFunc(shown, func(it front.InvItem) bool { return k.id != "" && itemID(it) == k.id }); j >= 0 { // a readied or unreadied item moved: it stays highlighted
-			inv.sel = shown[j].Item
+		if j := slices.IndexFunc(shown, func(it game.Item) bool { return k.id != "" && itemID(it) == k.id }); j >= 0 { // a readied or unreadied item moved: it stays highlighted
+			inv.sel = shown[j].Handle
 		} else if len(shown) > 0 {
-			inv.sel = shown[min(inv.keep.row, len(shown)-1)].Item
+			inv.sel = shown[min(inv.keep.row, len(shown)-1)].Handle
 		}
 		inv.keep.row = -1
 	}
-	if itemAt(in, inv.sel) == nil {
+	if inv.itemAt(inv.sel) == nil {
 		inv.sel = core.NoItem
 	}
-	if wareAt(in, inv.ware) == nil {
+	if inv.wareAt(inv.ware) == nil {
 		inv.ware = core.NoItem
 	}
 	if o := inv.order(); inv.ware == core.NoItem && inv.sel == core.NoItem && len(o) > 0 { // something is always highlighted: the keys reach every item
 		inv.choose(o[0].ware, o[0].i)
 	}
-	shop := in.Wares != nil
+	shop := in.kind != invOwn
 	split := leftCells // the left box's width in cells, with its border
 	busy := inv.ask != nil
-	p.setup(note, v)
-	t := p.border.tiles
+	p.setup(note)
+	t := p.border.val.tiles
 
 	b := dst.Bounds()
 	var cw, ch int
@@ -168,33 +152,33 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	inv.facePNG = nil
 	if shop {
 		inv.drawTabs(&inv.wares, lx, busy)
-		inv.drawPane(&inv.wares, inv.wares.shown(in.Wares), inv.ware, true, !in.Loot, busy, lx, (split-1)*8, bottom) // the loot has no prices; a shop's goods do
+		inv.drawPane(&inv.wares, inv.wares.shown(in.wares), inv.ware, true, in.kind != invLoot, busy, lx, (split-1)*8, bottom) // the loot has no prices; a shop's goods do
 	} else {
 		inv.wares.tabs = [len(tabNames)]image.Rectangle{} // no shop: no tabs to click
-		p.drawMember(in, v, lx, lw, bottom, busy)
+		p.drawMember(lx, lw, bottom, busy)
 	}
 
 	// the party inventory: its title and fill, the lines, the scroll bar
 	rx, rr := split*8, (cw-1)*8 // a cell inside the shared divider
 	inv.drawTabs(&inv.list, rx, busy)
 	fillc := green
-	fill := strconv.Itoa(len(in.Pool))
-	if in.Cap > 0 { // 0: no limit (play.Common.PartyCap), the count alone; else the pack's slots, readied gear not counted
-		fill = strconv.Itoa(in.Used) + "/" + strconv.Itoa(in.Cap)
-		if in.Used >= in.Cap {
+	fill := strconv.Itoa(len(in.pool))
+	if in.capacity > 0 { // 0: no limit (play.Common.PartyCap), the count alone; else the pack's slots, readied gear not counted
+		fill = strconv.Itoa(in.used) + "/" + strconv.Itoa(in.capacity)
+		if in.used >= in.capacity {
 			fillc = red
 		}
 	}
-	inv.drawPane(&inv.list, inv.list.shown(in.Pool), inv.sel, false, shop && !in.Loot, busy, rx, rr, bottom) // the shop prices the party's items (it buys them); the loot does not
+	inv.drawPane(&inv.list, inv.list.shown(in.pool), inv.sel, false, shop && in.kind != invLoot, busy, rx, rr, bottom) // the shop prices the party's items (it buys them); the loot does not
 
 	// an item dragged, or the stack picked up, under the pointer
 	if inv.carry != nil && inv.carriedItem() == nil { // gone (used, dropped, another member)
 		inv.carry = nil
 	}
 	if inv.dragging && inv.press != nil {
-		inv.drawIcon(&inv.press.item, image.Rectangle{inv.hover, inv.hover}.Inset(-rowH/2))
+		inv.drawIcon(inv.press.item.Name, inv.press.item.Words, image.Rectangle{inv.hover, inv.hover}.Inset(-rowH/2))
 	} else if c := inv.carry; c != nil {
-		inv.drawIcon(&c.icon, image.Rectangle{inv.hover, inv.hover}.Inset(-rowH/2))
+		inv.drawIcon(c.icon.Name, c.icon.Words, image.Rectangle{inv.hover, inv.hover}.Inset(-rowH/2))
 		if c.n > 1 {
 			inv.text(strconv.Itoa(c.n), inv.hover.X+rowH/2-8*len(strconv.Itoa(c.n))+2, inv.hover.Y+rowH/2-8, white)
 		}
@@ -202,7 +186,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 
 	// the menu row under the boxes; the toast (noteLine) takes its place while it shows
 	rowY := (ch - 1) * 8
-	inv.words = inv.menu(in)
+	inv.words = inv.menu()
 	toast := note.Show && note.Text != ""
 	if toast {
 		noteLine(inv.px, note, rowY)
@@ -212,9 +196,9 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 		x += 8 * (len(w.text) + 1)
 	}
 	x = (inv.w - x + 8) / 2
-	if shop && !toast && in.Member >= 0 && in.Member < len(v.Party) { // the shop: the choices left, the buyer right
+	if shop && !toast && in.member >= 0 && in.member < len(party) { // the shop: the choices left, the buyer right
 		x = 8
-		m := v.Party[in.Member]
+		m := party[in.member]
 		s := m.Name + " " + m.Class
 		inv.text(m.Name, inv.w-8-8*len(s), rowY, white)
 		inv.text(m.Class, inv.w-8-8*len(m.Class), rowY, gray)
@@ -243,17 +227,17 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 
 	// the question over the list
 	var box []string
-	switch it := itemAt(in, inv.sel); {
+	switch it := inv.itemAt(inv.sel); {
 	case inv.ask != nil && it != nil && inv.ask.Kind == front.ActDrop:
-		box = strings.Split(confirmText(confirmOf(itemConfirm(front.ActDrop, it), game.Confirm{Asks: []string{"Your %s\nwill be gone forever.\n\nDrop it?"}}).Asks[0], strings.TrimSpace(it.Name), ""), "\n")
+		box = strings.Split(confirmText(confirmOf(itemConfirm(front.ActDrop, *it), game.Confirm{Asks: []string{"Your %s\nwill be gone forever.\n\nDrop it?"}}).Asks[0], strings.TrimSpace(it.Name), ""), "\n")
 	case inv.ask != nil && inv.ask.Kind == front.ActBuy:
-		if w := wareAt(in, inv.ware); w != nil {
-			box = []string{strings.TrimSpace(w.Name), "costs " + price(w.Price) + ".", "", "Buy it?"}
+		if w := inv.wareAt(inv.ware); w != nil {
+			box = []string{strings.TrimSpace(w.Name), "costs " + price(warePrice(*w)) + ".", "", "Buy it?"}
 		}
 	case inv.ask != nil && it != nil:
 		box = strings.Split(sellAsk(it), "\n")
 	}
-	if it := itemAt(in, inv.sel); box != nil && it != nil && it.Scribe && inv.ask.Kind != front.ActBuy && (inv.ask.Kind != front.ActDrop || confirms["DropScribe"].Asks == nil) { // ovr20:0D70's question (a game's own DropScribe words it whole)
+	if it := inv.itemAt(inv.sel); box != nil && it != nil && scribing(*it) && inv.ask.Kind != front.ActBuy && (inv.ask.Kind != front.ActDrop || confirms["DropScribe"].Asks == nil) { // ovr20:0D70's question (a game's own DropScribe words it whole)
 		box = append([]string{"Someone was going to", "scribe from it.", ""}, box...)
 	}
 
@@ -266,32 +250,32 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	window(inv.img, t, g, cw-split+1, ch-1, nil)
 	divider(inv.img, t, g, ch-1)
 	switch { // the headings on the top border, the party's money on the shop's bottom one
-	case in.Loot:
+	case in.kind == invLoot:
 		onBorder(inv.img, inv.glyph, lx, 0, true, []string{"Loot"}, []color.RGBA{white})
-		if t := in.Treasure; t != nil && len(t.Money) > 0 {
+		if t := in.treasure; t != nil && len(t.Money) > 0 {
 			onBorder(inv.img, inv.glyph, rr, (ch-1)*8-8, false, []string{strings.Join(t.Money, ", ")}, []color.RGBA{col(inkYellow)})
 		}
 	case shop:
 		onBorder(inv.img, inv.glyph, lx, 0, true, []string{"Shop"}, []color.RGBA{white})
-		onBorder(inv.img, inv.glyph, rr, (ch-1)*8-8, false, []string{"party " + price(front.Money{Gold: in.Gold, Copper: in.Copper})}, []color.RGBA{col(inkYellow)})
+		onBorder(inv.img, inv.glyph, rr, (ch-1)*8-8, false, []string{"party " + price(front.Money{Gold: in.gold, Copper: in.copper})}, []color.RGBA{col(inkYellow)})
 	}
-	if !shop && in.Member >= 0 && in.Member < len(v.Party) {
-		paneName(inv.img, inv.glyph, v.Party[in.Member].Name)
-		if in.Stats && !in.Loot { // the member's AC and THAC0 under its items, as the sheet's
+	if !shop && in.member >= 0 && in.member < len(party) {
+		paneName(inv.img, inv.glyph, party[in.member].Name)
+		if in.stats && in.kind != invLoot { // the member's AC and THAC0 under its items, as the sheet's
 			onBorder(inv.img, inv.glyph, lx, (ch-1)*8-8, true, []string{invStats(in)}, []color.RGBA{col(inkYellow)})
 		}
 	}
 	head := "Party Items"
 	switch {
-	case shop && in.Member >= 0 && in.Member < len(v.Party): // the shop shows the shopper's items only
-		head = v.Party[in.Member].Name
-	case v.Battle != nil: // a fight's Use: the acting member's own items, never the party's
+	case shop && in.member >= 0 && in.member < len(party): // the shop shows the shopper's items only
+		head = party[in.member].Name
+	case p.board != nil: // a fight's Use: the acting member's own items, never the party's
 		head = "Items"
 	}
 	onBorder(inv.img, inv.glyph, rx, 0, true, []string{head}, []color.RGBA{white})
 	onBorder(inv.img, inv.glyph, rr, 0, false, []string{fill}, []color.RGBA{fillc})
 	if box == nil && !inv.dragging {
-		inv.tooltip(t, in)
+		inv.tooltip(t)
 	}
 
 	// onto the whole screen
@@ -315,7 +299,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	if q := p.q; q != nil && q.Ask.Kind == front.AskMember { // the presenter's member pick over the items: the members by their number keys
 		var names []string
 		var keys []byte
-		for i, m := range v.Party {
+		for i, m := range party {
 			names, keys = append(names, m.Name), append(keys, byte('1'+i))
 		}
 		p.keyWindow(dst, q.Ask.Prompt, names, keys, nil, q.Cand, false)
@@ -325,27 +309,28 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 
 // drawMember draws the member's name, portrait, hit points and paper doll
 // with the readied items in the left box.
-func (p *Presenter) drawMember(in *front.Inventory, v front.View, lx, lw, bottom int, busy bool) {
+func (p *Presenter) drawMember(lx, lw, bottom int, busy bool) {
 	inv := &p.inv
+	in := inv.up
 	inv.face, inv.facePNG = image.Rectangle{}, nil
-	if in.Member >= 0 && in.Member < len(v.Party) {
-		inv.face, inv.facePNG = p.memberPane(inv.px, inv.glyph, v.Party[in.Member], bottom)
+	if party := p.party(); in.member >= 0 && in.member < len(party) {
+		inv.face, inv.facePNG = p.memberPane(inv.px, inv.glyph, party[in.member], bottom)
 	}
 
 	// the doll and the readied items
 	db := inv.doll.Bounds()
 	inv.dollAt = db.Add(image.Pt(lx+(lw-db.Dx())/2, bottom-db.Dy()-4)) // on the box's bottom, under the portrait
 	draw.Draw(inv.px, inv.dollAt, inv.doll, db.Min, draw.Src)
-	for s, it := range in.Doll {
+	for s, it := range in.doll {
 		if s >= len(dollBoxes) { // a game without a paper doll (no DollBoxes: Silver Blades, Curse) draws no slots; its readied items are on the list
 			break
 		}
 		box := dollBoxes[s].Add(inv.dollAt.Min)
 		if it != nil {
-			inv.drawIcon(it, box.Inset(1))
+			inv.drawIcon(it.Name, it.Words, box.Inset(1))
 			inv.lines = append(inv.lines, hit{r: box, item: *it, doll: true})
 		}
-		if it != nil && it.Item == inv.sel || inv.hover.In(box) && !busy {
+		if it != nil && it.Handle == inv.sel || inv.hover.In(box) && !busy {
 			selectOutline(box, 1, inv.fill)
 		}
 	}
@@ -379,23 +364,24 @@ func onBorder(dst *gpu.Image, glyph func(byte) [8]byte, x, y int, left bool, tex
 
 // tooltip tells what the pointer is on: a doll slot's item (or what goes
 // there), an item's name, what it does and what it costs or sells for.
-func (inv *inventory) tooltip(t ui.Ribbon, in *front.Inventory) {
-	var lines []string
-	describe := func(it *front.InvItem, price string) {
-		lines = []string{strings.TrimSpace(it.Name), ""}
-		for _, l := range it.Look {
+func (inv *inventory) tooltip(t ui.Ribbon) {
+	in := inv.up
+	var text []string
+	describe := func(it *game.Item, price string) {
+		text = []string{strings.TrimSpace(it.Name), ""}
+		for _, l := range lines(it.Text) {
 			if !strings.HasPrefix(l, "Price ") || price == "" { // the shop's own price instead of the list price
-				lines = append(lines, l)
+				text = append(text, l)
 			}
 		}
 		if price != "" {
-			lines = append(lines, price)
+			text = append(text, price)
 		}
 	}
 	for i, r := range dollBoxes {
 		if inv.hover.In(r.Add(inv.dollAt.Min)) {
-			lines = []string{slotNames[i]}
-			if it := in.Doll[i]; it != nil {
+			text = []string{slotNames[i]}
+			if it := in.doll[i]; it != nil {
 				describe(it, "")
 			}
 		}
@@ -405,20 +391,20 @@ func (inv *inventory) tooltip(t ui.Ribbon, in *front.Inventory) {
 			continue
 		}
 		switch {
-		case l.ware && in.Loot:
+		case l.ware && in.kind == invLoot:
 			describe(&l.item, "")
 		case l.ware:
-			describe(&l.item, "Costs "+price(l.item.Price))
-		case in.Sell:
-			describe(&l.item, "Sells for "+price(l.item.Price))
+			describe(&l.item, "Costs "+price(warePrice(l.item)))
+		case in.sell:
+			describe(&l.item, "Sells for "+price(salePrice(l.item)))
 		default:
 			describe(&l.item, "")
 		}
 	}
-	if len(lines) == 0 {
+	if len(text) == 0 {
 		return
 	}
-	inv.panel(t, lines, func(w, h int) image.Point { // beside the pointer, inside the screen
+	inv.panel(t, text, func(w, h int) image.Point { // beside the pointer, inside the screen
 		x := max(0, min(inv.hover.X+8, inv.w-w))
 		y := inv.hover.Y + 12
 		if y+h > inv.h {
@@ -467,16 +453,42 @@ func (inv *inventory) panel(t ui.Ribbon, lines []string, at func(w, h int) image
 }
 
 // invStats is the items page's AC and THAC0 line.
-func invStats(in *front.Inventory) string {
-	return "AC " + strconv.Itoa(in.AC) + "  THAC0 " + strconv.Itoa(in.THAC0)
+func invStats(in *invUp) string {
+	return "AC " + strconv.Itoa(in.ac) + "  THAC0 " + strconv.Itoa(in.thac0)
 }
 
 // sellAsk is the shop's sale question for it: the offer, then the game's
 // ask (Data.Confirms), a game's ask that is the question alone too.
-func sellAsk(it *front.InvItem) string {
-	ask := confirmOf(itemConfirm(front.ActSell, it), game.Confirm{Asks: []string{"I'll give you %p\nfor your %s.\n\nIs it a deal?"}}).Asks[0]
-	if it.Price != (front.Money{}) && !strings.Contains(ask, "%p") {
+func sellAsk(it *game.Item) string {
+	ask := confirmOf(itemConfirm(front.ActSell, *it), game.Confirm{Asks: []string{"I'll give you %p\nfor your %s.\n\nIs it a deal?"}}).Asks[0]
+	if salePrice(*it) != (front.Money{}) && !strings.Contains(ask, "%p") {
 		ask = "I'll give you %p\nfor your %s.\n\n" + ask
 	}
-	return confirmText(ask, strings.TrimSpace(it.Name), price(it.Price))
+	return confirmText(ask, strings.TrimSpace(it.Name), price(salePrice(*it)))
 }
+
+// inventory is the inventory screen up (nil: none or no game).
+func (p *Presenter) inventory() *invUp {
+	if p.eng == nil || p.pickerOver() {
+		return nil
+	}
+	return p.lay.inventory.get(p.uiKey(), func() *invUp { return p.eng.r.inventoryOf(p.state()) })
+}
+
+// inventoryKind is which inventory screen is up.
+func (p *Presenter) inventoryKind() invKind {
+	if p.eng == nil || p.pickerOver() {
+		return invNone
+	}
+	if in := p.inventory(); in != nil {
+		return in.kind
+	}
+	return invNone
+}
+
+// inventoryUp: an inventory screen is up.
+func (p *Presenter) inventoryUp() bool { return p.inventoryKind() != invNone }
+
+// pickerOver: a picker or the icon editor is up over the screens under it
+// (ownPicker puts the sheet, the items and the party menu away).
+func (p *Presenter) pickerOver() bool { return p.gridPick != nil || p.icon != nil }

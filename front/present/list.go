@@ -13,7 +13,7 @@ import (
 	"gobox/input"
 )
 
-// Lists (View.Ask (AskList)): the presenter scrolls and highlights the lines; the
+// Lists (the Ask (AskList)): the presenter scrolls and highlights the lines; the
 // question's options follow them. A line picked is ActChoose -1, an option
 // ActChoose N, each with the line highlighted as X.
 
@@ -28,12 +28,12 @@ type listUI struct {
 }
 
 // listOpts are the options offered with line i: those it does not leave out.
-func listOpts(v front.View, i int) []int {
+func (p *Presenter) listOpts(i int) []int {
 	var out []int
 outer:
-	for n, it := range askMenu(v).Commands {
-		if i >= 0 && i < len(askList(v)) {
-			for _, w := range askList(v)[i].Without {
+	for n, it := range p.askMenu().Commands {
+		if i >= 0 && i < len(p.askList()) {
+			for _, w := range p.askList()[i].Without {
 				if w == it.Text {
 					continue outer
 				}
@@ -45,14 +45,14 @@ outer:
 }
 
 // listLine is the line the highlight is on or was last on.
-func (p *Presenter) listLine(v front.View) int {
-	return min(p.list.sel, len(askList(v))-1)
+func (p *Presenter) listLine() int {
+	return min(p.list.sel, len(p.askList())-1)
 }
 
-func (p *Presenter) drawList(dst *gpu.Image, glyph func(byte) [8]byte, v front.View, k float64, cx, top int) {
+func (p *Presenter) drawList(dst *gpu.Image, glyph func(byte) [8]byte, k float64, cx, top int) {
 	l := &p.list
-	n := len(askList(v))
-	l.opts = listOpts(v, p.listLine(v))
+	n := len(p.askList())
+	l.opts = p.listOpts(p.listLine())
 	l.sel = min(max(l.sel, 0), n+len(l.opts)-1)
 	if l.sel < n {
 		l.top = min(max(l.top, l.sel-listRows+1), l.sel)
@@ -60,41 +60,41 @@ func (p *Presenter) drawList(dst *gpu.Image, glyph func(byte) [8]byte, v front.V
 	l.top = max(0, min(l.top, n-listRows))
 	var lines []string
 	var off []bool
-	keys := slices.Clone(p.listKeys(v)[l.top:min(n, l.top+listRows)])
-	for _, ln := range askList(v)[l.top:min(n, l.top+listRows)] {
+	keys := slices.Clone(p.listKeys()[l.top:min(n, l.top+listRows)])
+	for _, ln := range p.askList()[l.top:min(n, l.top+listRows)] {
 		lines, off = append(lines, ln.Text), append(off, ln.Off)
 	}
-	w, all := 0, p.listKeys(v) // the blank row as wide as the widest line of the whole list: the box keeps one width while it scrolls
-	for i, ln := range askList(v) {
+	w, all := 0, p.listKeys() // the blank row as wide as the widest line of the whole list: the box keeps one width while it scrolls
+	for i, ln := range p.askList() {
 		t, _ := ui.HotText(ln.Text, all[i])
 		w = max(w, ui.VisLen(t))
 	}
 	lines, keys = append(lines, strings.Repeat(" ", w)), append(keys, 0)
 	for _, o := range l.opts {
-		lines, keys = append(lines, askMenu(v).Commands[o].Text), append(keys, askMenu(v).Commands[o].Key)
+		lines, keys = append(lines, p.askMenu().Commands[o].Text), append(keys, p.askMenu().Commands[o].Key)
 	}
-	p.drawMenu(dst, glyph, askMenu(v).Prompt, lines, keys, off, p.listRow(n), k, cx, top)
+	p.drawMenu(dst, glyph, p.askMenu().Prompt, lines, keys, off, p.listRow(n), k, cx, top)
 	var sel *int
 	if l.sel < n {
 		sel = &l.sel
 	}
 	p.menuBar(dst, p.menuRects, n, min(n, listRows), &l.top, sel, k)
-	if i := p.listLine(v); i >= 0 && askList(v)[i].Spell != 0 && len(p.menuRects) > 0 {
-		p.drawSpellTip(dst, askList(v)[i].Spell, k, cx)
+	if i := p.listLine(); i >= 0 && p.askList()[i].Spell != 0 && len(p.menuRects) > 0 {
+		p.drawSpellTip(dst, p.askList()[i].Spell, k, cx)
 	}
 }
 
 // listKeys are the hotkeys of the list's lines then its options: the
 // options' letters, digits on the lines that can be picked; none at all
 // when more than nine lines can be (the first nine only would be uneven).
-func (p *Presenter) listKeys(v front.View) []byte {
-	n := len(askList(v))
+func (p *Presenter) listKeys() []byte {
+	n := len(p.askList())
 	keys := make([]byte, n, n+len(p.list.opts))
 	for _, o := range p.list.opts {
-		keys = append(keys, askMenu(v).Commands[o].Key)
+		keys = append(keys, p.askMenu().Commands[o].Key)
 	}
 	on := 0
-	for _, l := range askList(v) {
+	for _, l := range p.askList() {
 		if !l.Off {
 			on++
 		}
@@ -102,7 +102,7 @@ func (p *Presenter) listKeys(v front.View) []byte {
 	if on > 9 {
 		return keys
 	}
-	return ui.DigitKeys(keys, func(i int) bool { return i < n && !askList(v)[i].Off })
+	return ui.DigitKeys(keys, func(i int) bool { return i < n && !p.askList()[i].Off })
 }
 
 // listRow is the drawn row of the highlight.
@@ -114,23 +114,23 @@ func (p *Presenter) listRow(n int) int {
 }
 
 // listPick takes the row sel: a line or an option.
-func (p *Presenter) listPick(v front.View, sel int) {
-	n := len(askList(v))
-	if modifying(v) { // a line, or Raise and Lower: that line up or down; the game's options as a list's
+func (p *Presenter) listPick(sel int) {
+	n := len(p.askList())
+	if p.modifying() { // a line, or Raise and Lower: that line up or down; the game's options as a list's
 		switch o := sel - n; {
-		case sel < n && !askList(v)[sel].Off:
+		case sel < n && !p.askList()[sel].Off:
 			p.raise(sel, 1)
 			return
-		case o >= 0 && o < len(p.list.opts) && p.list.opts[o] >= len(v.Ask.Commands):
-			p.raise(p.listLine(v), 1-2*(p.list.opts[o]-len(v.Ask.Commands)))
+		case o >= 0 && o < len(p.list.opts) && p.list.opts[o] >= len(p.askUp().Commands):
+			p.raise(p.listLine(), 1-2*(p.list.opts[o]-len(p.askUp().Commands)))
 			return
 		}
 	}
 	switch {
-	case sel < n && !askList(v)[sel].Off:
+	case sel < n && !p.askList()[sel].Off:
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActChoose, N: -1, X: sel})
 	case sel >= n && sel-n < len(p.list.opts):
-		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActChoose, N: p.list.opts[sel-n], X: p.listLine(v)})
+		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActChoose, N: p.list.opts[sel-n], X: p.listLine()})
 	default:
 		return
 	}
@@ -146,24 +146,24 @@ func (p *Presenter) raise(i, d int) {
 
 // listKey takes key k on a list: the standard menu's keys (menuNav) over
 // the lines and the options; a move passes over the lines left out (Off).
-func (p *Presenter) listKey(k uint16, v front.View) bool {
+func (p *Presenter) listKey(k uint16) bool {
 	l := &p.list
-	n := len(askList(v))
-	if _, ok := memberKey(k, 0, len(v.Party), false); ok { // the member the list is for (keyAct)
+	n := len(p.askList())
+	if _, ok := memberKey(k, 0, len(p.party()), false); ok { // the member the list is for (keyAct)
 		return false
 	}
-	if a := actOf(k); modifying(v) && (a == input.Left || a == input.Right) && l.sel < n { // the line highlighted down or up
+	if a := actOf(k); p.modifying() && (a == input.Left || a == input.Right) && l.sel < n { // the line highlighted down or up
 		p.raise(l.sel, map[input.Act]int{input.Left: -1, input.Right: 1}[a])
 		return true
 	}
-	keys := p.listKeys(v)
+	keys := p.listKeys()
 	i, back, ok := ui.MenuNav(actOf(k), k, &l.sel, keys)
 	d := 1
 	if a := actOf(k); a == input.Up || a == input.PgUp || a == input.End {
 		d = -1
 	}
 	for range len(keys) {
-		if l.sel >= n || !askList(v)[l.sel].Off {
+		if l.sel >= n || !p.askList()[l.sel].Off {
 			break
 		}
 		l.sel = (l.sel + d + len(keys)) % len(keys)
@@ -172,15 +172,15 @@ func (p *Presenter) listKey(k uint16, v front.View) bool {
 	case back:
 		p.send(front.ActClose, 0)
 	case i >= 0:
-		p.listPick(v, i)
+		p.listPick(i)
 	}
 	return ok
 }
 
 // listAt is the row (a line, then the options) drawn as menu row r, -1 the
 // blank between them.
-func (p *Presenter) listAt(v front.View, r int) int {
-	n := len(askList(v))
+func (p *Presenter) listAt(r int) int {
+	n := len(p.askList())
 	shown := min(n, listRows)
 	switch {
 	case r < shown:
@@ -192,24 +192,24 @@ func (p *Presenter) listAt(v front.View, r int) int {
 }
 
 // listClick takes a click on a drawn row; outside the popup it is back.
-func (p *Presenter) listClick(x, y int, v front.View) {
+func (p *Presenter) listClick(x, y int) {
 	r := slices.IndexFunc(p.menuRects, image.Pt(x, y).In)
 	switch {
 	case r < 0:
 		p.send(front.ActClose, 0)
-	case p.listAt(v, r) >= 0:
-		p.listPick(v, p.listAt(v, r))
+	case p.listAt(r) >= 0:
+		p.listPick(p.listAt(r))
 	}
 }
 
 // listHover highlights the row under (x, y) when the pointer moved.
-func (p *Presenter) listHover(x, y int, v front.View) {
+func (p *Presenter) listHover(x, y int) {
 	if image.Pt(x, y) == p.list.at {
 		return
 	}
 	p.list.at = image.Pt(x, y)
 	if r := slices.IndexFunc(p.menuRects, image.Pt(x, y).In); r >= 0 {
-		if i := p.listAt(v, r); i >= 0 && (i >= len(askList(v)) || !askList(v)[i].Off) {
+		if i := p.listAt(r); i >= 0 && (i >= len(p.askList()) || !p.askList()[i].Off) {
 			p.list.sel = i
 		}
 	}
@@ -217,15 +217,15 @@ func (p *Presenter) listHover(x, y int, v front.View) {
 
 // drawPageMenu pops a page's question (its options or its list) up over
 // the bottom of the page.
-func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
-	if sfOf(v) != nil { // the ship fight's bar is on its page (spacefight.go)
+func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note) {
+	if p.sfOf() != nil { // the ship fight's bar is on its page (spacefight.go)
 		return
 	}
-	if pageScreen(v) {
+	if p.pageScreen() {
 		p.pageMenu = true
-		p.drawScreen(dst, v)
-		if t := typing(v); t != nil && t.Prompt != "" { // the game's typed line (the name after creation's Keep): over the screen, never under it
-			p.drawTyping(dst, note, v, math.Max(1, math.Floor(scale(dst))), dst.Bounds().Dx()/2, 0)
+		p.drawScreen(dst)
+		if t := p.typingAsk(); t != nil && t.Prompt != "" { // the game's typed line (the name after creation's Keep): over the screen, never under it
+			p.drawTyping(dst, note, math.Max(1, math.Floor(scale(dst))), dst.Bounds().Dx()/2, 0)
 		}
 		return
 	}
@@ -236,18 +236,18 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 		}
 		return
 	}
-	if t := typing(v); t != nil && t.Prompt == "" && !p.pageMenu { // a line whose question is the text box's own: the line alone, never invisible (a prompted one is drawn by the screen's own path)
-		p.drawTyping(dst, note, v, math.Max(1, math.Floor(scale(dst))), dst.Bounds().Dx()/2, 0)
+	if t := p.typingAsk(); t != nil && t.Prompt == "" && !p.pageMenu { // a line whose question is the text box's own: the line alone, never invisible (a prompted one is drawn by the screen's own path)
+		p.drawTyping(dst, note, math.Max(1, math.Floor(scale(dst))), dst.Bounds().Dx()/2, 0)
 	}
-	m := askMenu(v)
-	if m == nil || typing(v) != nil || choosing(v) {
+	m := p.askMenu()
+	if m == nil || p.typingAsk() != nil || p.choosing() {
 		return
 	}
-	if askList(v) != nil {
+	if p.askList() != nil {
 		b := dst.Bounds()
 		k := math.Max(1, math.Floor(scale(dst)))
-		p.asking(v, func() {
-			p.drawList(dst, note.Glyph, v, k, b.Dx()/2, b.Dy()/2-int(k*float64(min(len(askList(v)), listRows)+len(m.Commands)+6)*4))
+		p.asking(func() {
+			p.drawList(dst, note.Glyph, k, b.Dx()/2, b.Dy()/2-int(k*float64(min(len(p.askList()), listRows)+len(m.Commands)+6)*4))
 		})
 		return
 	}
@@ -261,7 +261,7 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 		return
 	}
 	if id := menuID(m); id != p.pageAsked { // its own: the page clears p.asked every frame, which put the highlight back on the default after every arrow
-		p.pageAsked, p.sel = id, askDefault(v)
+		p.pageAsked, p.sel = id, p.askDefault()
 	}
 	p.pageMenu = true
 	rows := itemRows(m)
@@ -270,7 +270,7 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 		lines[i] = r.Text
 	}
 	p.sel = min(max(p.sel, 0), len(lines)-1)
-	p.asking(v, func() { p.keyWindow(dst, m.Prompt, lines, keys, nil, p.sel, true) })
+	p.asking(func() { p.keyWindow(dst, m.Prompt, lines, keys, nil, p.sel, true) })
 }
 
 // drawMapMenu draws m as the full map's cursor cell's context menu,
@@ -299,17 +299,17 @@ func (p *Presenter) drawMapMenu(dst *gpu.Image, m *front.Menu) {
 
 // pageMenuKey takes key k on a page's question: the standard menu's keys
 // (menuNav).
-func (p *Presenter) pageMenuKey(k uint16, v front.View) bool {
-	if pageScreen(v) {
-		return p.screenKey(k, v)
+func (p *Presenter) pageMenuKey(k uint16) bool {
+	if p.pageScreen() {
+		return p.screenKey(k)
 	}
-	if sheetUp(v) {
-		return p.sheetKey(k, v)
+	if p.sheetUp() {
+		return p.sheetKey(k)
 	}
-	if askHeld(v, k) {
+	if p.askHeld(k) {
 		return true
 	}
-	switch i, back, ok := ui.MenuNav(actOf(k), k, &p.sel, ui.RowKeys(itemRows(askMenu(v)))); {
+	switch i, back, ok := ui.MenuNav(actOf(k), k, &p.sel, ui.RowKeys(itemRows(p.askMenu()))); {
 	case back:
 		return false // ActClose (keyAct)
 	case i >= 0:
@@ -334,8 +334,10 @@ func itemRows(m *front.Menu) []ui.MenuRow {
 
 // openList: a list opens at its first line; the same list asked again (after
 // an act on a line: Ready, Drop) stays on the line acted on.
-func (p *Presenter) openList(v front.View) {
-	if askList(v) != nil && askList(p.shownView) == nil && v.Ask.Prompt != p.list.of {
-		p.list = listUI{sel: max(0, slices.IndexFunc(askList(v), func(l front.Entry) bool { return !l.Off })), of: v.Ask.Prompt}
+func (p *Presenter) openList() {
+	up := p.askList() != nil
+	if up && !p.listWas && p.askUp().Prompt != p.list.of {
+		p.list = listUI{sel: max(0, slices.IndexFunc(p.askList(), func(l front.Entry) bool { return !l.Off })), of: p.askUp().Prompt}
 	}
+	p.listWas = up
 }

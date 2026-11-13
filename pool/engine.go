@@ -83,7 +83,7 @@ type Engine struct {
 	restShown int          // steps since the rest time was last drawn (RestStep)
 	tempSel   core.CharID  // selectTemp: selected but not in the party
 	temps     []tempSel    // the selections selectTemp replaced
-	creation  *creation    // the creation sheet up (View.Creation)
+	creation  *creation    // the creation sheet up (Creation)
 	sel       int          // the selected member: whom the screens show and the player's commands name, handed to the rules as their actor (as)
 	aiKey     core.AutoKey // the key pressed for the next computer turn (takeKey): play.Manual, play.QuickMagic
 	soundNow  bool         // PlayEventSound: the sound plays now, not as an event
@@ -132,15 +132,16 @@ type Engine struct {
 	resets         int                        // unwindReset calls: a continuation dropped the game
 	cs             combatState                // the fight's rounds and turn (combatflow.go)
 	ps             play.State                 // State: built after each change (rebuild)
+	lootSeen       bool                       // the treasure's "You found some loot!" was acknowledged (Continue); cleared when the treasure goes
 	StateBuilds    int                        // the States built (the frame tests count them)
 	events         []play.Event               // the facts not yet handed out (Do's outcome)
 	hitTo          int                        // the unit the last hit struck, its harm still to come (0 none): Attacked carries it
 	looking, over  bool                       // GameLoop: in its look and camp loop; a script quit the game
 	addFrom        string                     // the game whose characters the PickAddFrom picker lists
-	picker         *picker                    // the grid picker up (View.Picker)
+	picker         *picker                    // the grid picker up (Picker)
 	iconEd         *iconEdit                  // the combat icon designed (EditIcon)
 	valued         core.ItemHandle            // an appraised gem or jewel, sold or kept next (play.Keep)
-	pending        Pending                    // what the script's wait screen waits on (View.Pending)
+	pending        Pending                    // what the script's wait screen waits on (Pending)
 	pw             waitData                   // what the wait screen keeps (pending.go)
 	waitSeq        int                        // when the wait opened (top)
 	readSeq        int                        // the last Read's Seq: up by one each new text, for the engine's life

@@ -3,22 +3,33 @@ package present
 import (
 	"testing"
 
-	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 )
+
+// shopState is a shop up for one member, the party allowed these actions.
+func shopState(allowed ...play.Action) play.Trading {
+	return play.Trading{Common: play.Common{Party: []game.Member{{Name: "A"}}, Allowed: play.Allowed{Plain: allowed}}}
+}
 
 // TestShopRowAppears: the shop's Take appears above Pool once credits are
 // pooled; the highlight stays on the row it was on (Pool), so Down, Down,
 // Enter from there picks what is drawn (Exit), not a row shifted by one.
 func TestShopRowAppears(t *testing.T) {
-	v := front.View{Shop: &front.Shop{Pool: true, Share: true}, Party: []front.Member{{Name: "A", Selected: true}}}
+	g, f := playGame(shopState(play.PoolCoins{}, play.LootShare{}))
 	p := &Presenter{}
-	p.campKey('P', v) // Pool: Buy View Pool Share Exit, the highlight on Pool
+	p.SetEngine(g)
+	p.campKey('P') // Pool: Buy View Pool Share Exit, the highlight on Pool
 	p.inv.acts = nil
-	v.Shop = &front.Shop{Take: true, Pool: true, Share: true} // pooled: Take comes in above
+	f.st = shopState(play.Take{}, play.PoolCoins{}, play.LootShare{}) // pooled: Take comes in above
 	for _, k := range []uint16{keyDown, keyDown, '\r'} {
-		p.campKey(k, v)
+		p.campKey(k)
 	}
-	if a := p.inv.acts; len(a) != 1 || a[0].Kind != front.ActClose {
-		t.Fatalf("Pool, then Down Down Enter with Take in: %+v, want Exit (ActClose)", a)
+	f.sent = nil
+	for _, c := range p.Calls() {
+		c(g)
+	}
+	if len(f.sent) != 1 || f.sent[0] != (play.Leave{}) {
+		t.Fatalf("Pool, then Down Down Enter with Take in: %+v, want Exit (Leave)", f.sent)
 	}
 }

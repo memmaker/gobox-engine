@@ -9,8 +9,6 @@ import (
 
 	"gobox/ega"
 	"gobox/front"
-	"gobox/front/classic"
-	"gobox/game"
 )
 
 type pixKey struct {
@@ -109,119 +107,6 @@ func indexedPictures(ps []front.Picture, ink [16]color.RGBA) []front.Picture {
 		return ps
 	}
 	return out
-}
-
-// pixView is v with the pictures given as pixels (the ...Pix fields)
-// coloured into their images, and an unset Ink the EGA's; the game's own structs are copied, not changed.
-func pixView(v front.View) front.View {
-	if v.Ink == ([16]color.RGBA{}) { // unset: the EGA's own
-		v.Ink = egaInk
-	}
-	ink := v.Ink
-	if v.BorderPix[0].Pix != nil {
-		for i, pc := range v.BorderPix {
-			if v.Border[i] == nil {
-				v.Border[i] = pixImage(pc, egaInk)
-			}
-		}
-		for i, pc := range v.BorderCapsPix {
-			if v.BorderCaps[i] == nil {
-				v.BorderCaps[i] = pixImage(pc, egaInk)
-			}
-		}
-	}
-	if m := v.AreaMap; m != nil && m.SquarePix != nil && m.Squares == nil {
-		c := *m
-		c.Squares = make([][]image.Image, len(m.SquarePix))
-		for y, row := range m.SquarePix {
-			c.Squares[y] = make([]image.Image, len(row))
-			for x, pc := range row {
-				c.Squares[y][x] = picImage(pc, ink)
-			}
-		}
-		c.Marker = picImage(m.MarkerPix, ink)
-		v.AreaMap = &c
-	}
-	v.Battle = pixBattle(v.Battle, ink)
-	if w := v.Walls; w != nil && w.FrontPix != nil && w.Fronts == nil {
-		c := *w
-		c.Fronts = make(map[int]image.Image, len(w.FrontPix))
-		for k, pc := range w.FrontPix {
-			c.Fronts[k] = picImage(pc, ink)
-		}
-		v.Walls = &c
-	}
-	if w := v.Walls; w != nil && w.Backdrop != nil && w.Backdrop.Img == nil {
-		c, b := *w, *w.Backdrop
-		b.Img = picImage(b, ink)
-		c.Backdrop = &b
-		v.Walls = &c
-	}
-	if pixParty(v.Party) {
-		v.Party = append([]front.Member(nil), v.Party...)
-		for i := range v.Party {
-			if m := &v.Party[i]; m.Head == nil {
-				m.Head = pixImage(m.HeadPix, egaInk)
-			}
-		}
-	}
-	if c := v.Camp; c != nil && len(c.Bestiary) > 0 && c.Bestiary[0].Icon == nil {
-		cc := *c
-		cc.Bestiary = append([]front.Beast(nil), c.Bestiary...)
-		for i := range cc.Bestiary {
-			b := &cc.Bestiary[i]
-			if b.Icon == nil {
-				b.Icon = pixImage(b.IconPix, ink)
-			}
-			if b.Pic == nil {
-				b.Pic = pixImage(b.PicPix, ink)
-			}
-		}
-		v.Camp = &cc
-	}
-	return v
-}
-
-func pixParty(ms []front.Member) bool {
-	for _, m := range ms {
-		if m.Head == nil && m.HeadPix.Pix != nil {
-			return true
-		}
-	}
-	return false
-}
-
-// pixBattle is b with its pictures given as pixels coloured in ink.
-func pixBattle(b *front.Battle, ink [16]color.RGBA) *front.Battle {
-	if b == nil || b.TilePix == nil && b.IconPix == nil && b.EffectPix == nil {
-		return b
-	}
-	c := *b
-	if b.Tiles == nil && b.TilePix != nil {
-		c.Tiles = make([]image.Image, len(b.TilePix))
-		for i, pc := range b.TilePix {
-			c.Tiles[i] = textured(picImage(pc, ink))
-		}
-	}
-	c.Units = append([]front.Unit(nil), b.Units...)
-	for i := range c.Units {
-		if u := &c.Units[i]; u.Icon == nil && i < len(b.IconPix) {
-			u.Icon = picImage(b.IconPix[i], ink)
-			if pc := b.IconPix[i]; u.Icon == nil && (pc.File != "" || pc.Name != "" || pc.Pix != nil) { // a picture that does not load (a DAX block the file lacks): gobox's default figure, never an empty square
-				u.Icon = classic.PickIcon(game.Member{}, "", "") // ponytail: one stand-in for every lost picture; a per-kind monster stand-in when the pool has one
-			}
-			if u.IconSize == (image.Point{}) {
-				u.IconSize = nativeSize(b.IconPix[i])
-			}
-		}
-	}
-	c.Effects = append([]front.Effect(nil), b.Effects...)
-	for i := range c.Effects {
-		if f := &c.Effects[i]; f.Pic == nil && i < len(b.EffectPix) {
-			f.Pic = picImage(b.EffectPix[i], ink)
-		}
-	}
-	return &c
 }
 
 // textured is t, or where t is one flat colour (a Pool floor tile is a

@@ -3,27 +3,28 @@ package present
 import (
 	"gobox/blobber"
 	"gobox/front"
+	"gobox/game"
 )
 
 // Free reports whether No Grid walking has the move keys: the party
-// explores the 3D view (v) with no menu up.
-func (p *Presenter) Free(v front.View) bool {
+// explores the 3D view with no menu up.
+func (p *Presenter) Free() bool {
 	return blobber.Settings.NoGrid && p.active && p.view != nil && p.shown != "" && !p.menu && !p.view.OptionsOpen() &&
-		v.Exploring && v.Window != front.WinAreaMap
+		p.exploring() && p.window() != game.WindowMap
 }
 
 // ViewClick is a click on No Grid's view, taken on its release (no drag):
 // as a click on the view without No Grid.
 func (p *Presenter) ViewClick(x, y int) {
-	if v := p.shownView; p.Free(v) {
-		p.exploreClick(x, y, v)
+	if p.Free() {
+		p.exploreClick(x, y)
 	}
 }
 
 // FreeWalk moves No Grid's camera by one tick of in, and sends the step or
 // turn it asks for: a step aside or back keeps the facing, a turn is quiet
 // (the mouse turns a lot).
-func (p *Presenter) FreeWalk(in blobber.FreeInput, v front.View) {
+func (p *Presenter) FreeWalk(in blobber.FreeInput) {
 	if p.view == nil {
 		return
 	}
@@ -31,9 +32,9 @@ func (p *Presenter) FreeWalk(in blobber.FreeInput, v front.View) {
 		p.view.FreeOff()
 		return
 	}
-	ready := p.Free(v) && len(p.inv.acts) == 0
-	at := blobber.Camera{X: v.X, Y: v.Y, Dir: int(v.Facing)}
-	c := p.view.Walk(at, v.Open, in, ready)
+	ready := p.Free() && len(p.inv.acts) == 0
+	at := cameraOf(p.where())
+	c := p.view.Walk(at, p.open(), in, ready)
 	if !ready {
 		return
 	}

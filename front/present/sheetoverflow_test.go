@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 )
 
@@ -17,12 +17,11 @@ func TestSheetLongRulesStopAboveFooter(t *testing.T) {
 	var drawn strings.Builder
 	g := func(c byte) [8]byte { drawn.WriteByte(c); return [8]byte{} }
 	note := Note{Glyph: g, Font: func(c byte, _ bool) [8]byte { return g(c) }}
-	var rules []front.Stat
+	var rules []game.Stat
 	for i := range 40 {
-		rules = append(rules, front.Stat{Name: "SKILL" + strconv.Itoa(i), Value: "1"})
+		rules = append(rules, game.Stat{Name: "SKILL" + strconv.Itoa(i), Value: "1"})
 	}
-	v := front.View{Party: []front.Member{{Name: "A", HP: 5, MaxHP: 5, Selected: true}}, SheetPage: &front.SheetPage{Rules: rules, THAC0: 9}, Sheet: &front.Sheet{}}
-	(&Presenter{bars: gpu.NewImageFromImage(barArt())}).drawSheet(dst, note, v)
+	sheetOn(&game.SheetPage{Rules: rules, THAC0: 9}).drawSheet(dst, note)
 	if s := drawn.String(); strings.Contains(s, "SKILL39") || !strings.Contains(s, "more") {
 		t.Errorf("long list drawn to the end, into the footer")
 	}
@@ -36,12 +35,11 @@ func TestSheetNineSkills(t *testing.T) {
 	var drawn strings.Builder
 	g := func(c byte) [8]byte { drawn.WriteByte(c); return [8]byte{} }
 	note := Note{Glyph: g, Font: func(c byte, _ bool) [8]byte { return g(c) }}
-	var rules []front.Stat
+	var rules []game.Stat
 	for i := range 9 {
-		rules = append(rules, front.Stat{Name: "SKILL" + strconv.Itoa(i), Value: "1"})
+		rules = append(rules, game.Stat{Name: "SKILL" + strconv.Itoa(i), Value: "1"})
 	}
-	v := front.View{Party: []front.Member{{Name: "A", HP: 5, MaxHP: 5, Selected: true}}, SheetPage: &front.SheetPage{Rules: rules, THAC0: 9}, Sheet: &front.Sheet{}}
-	(&Presenter{bars: gpu.NewImageFromImage(barArt())}).drawSheet(dst, note, v)
+	sheetOn(&game.SheetPage{Rules: rules, THAC0: 9}).drawSheet(dst, note)
 	if s := drawn.String(); !strings.Contains(s, "SKILL8") || strings.Contains(s, "more") {
 		t.Errorf("9 skills don't fit")
 	}

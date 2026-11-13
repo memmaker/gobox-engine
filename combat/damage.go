@@ -9,8 +9,8 @@ import (
 	"gobox/gpu"
 )
 
-// Floating damage numbers (Graphics, Damage Numbers): the engine's EvDamage
-// and EvHeal, as the host plays them, rise and fade over the unit's head.
+// Floating damage numbers (Graphics, Damage Numbers): the engine's EvDamage,
+// as the host plays them, rise and fade over the unit's head.
 
 const floatLife = 1.2 // seconds a number shows
 
@@ -21,17 +21,13 @@ type floater struct {
 	life float64
 }
 
-// Float starts number n over unit id's head: hit points lost, green when heal.
-func (p *Presenter) Float(id, n int, heal bool) {
+// Float starts number n over unit id's head: hit points lost.
+func (p *Presenter) Float(id, n int) {
 	at, ok := p.tops[id]
 	if !ok || p.Glyph == nil || n <= 0 {
 		return
 	}
-	c := p.Theme.Hurt
-	if heal {
-		c = p.Theme.Heal
-	}
-	p.floats = append(p.floats, floater{at: at, img: gpu.NewImageFromImage(textImage(p.Glyph, strconv.Itoa(n), c, p.Theme.TextOutline))})
+	p.floats = append(p.floats, floater{at: at, img: gpu.NewImageFromImage(textImage(p.Glyph, strconv.Itoa(n), p.Theme.Hurt, p.Theme.TextOutline))})
 }
 
 // FloatText starts word s (MISS) over unit id's head, in the text colour.

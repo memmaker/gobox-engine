@@ -1,7 +1,10 @@
 package present
 
 import (
+	"cmp"
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"image"
 	"image/color"
 	"image/draw"
@@ -15,28 +18,81 @@ import (
 	"gobox/input"
 )
 
-// The character sheet (View.Sheet): the page is the engine's; its View
+// The character sheet (Sheet): the page is the engine's; its View
 // menu is the presenter's.
-func (p *Presenter) sheetItems(v front.View) []ui.MenuRow {
+func (p *Presenter) sheetItems() []ui.MenuRow {
 	var it []ui.MenuRow // the powers, then the reactions' policies (each pick turns to the next): Tab is the inventory, Esc leaves
-	for _, pw := range v.Sheet.Powers {
+	s := p.state()
+	r := p.eng.r
+	if _, ok := r.lookMember(s); ok { // the look-only sheet: no powers
+		return it
+	}
+	sh := r.sheetOf(play.CommonOf(s))
+	if sh == nil {
+		return it
+	}
+	for _, pw := range powers(sh.Powers) {
 		it = append(it, ui.MenuRow{Text: pw.Name, Key: pw.Name[0], Do: func() { p.send(pw.Kind, -1) }})
 	}
-	for _, r := range v.Sheet.Reactions {
-		it = append(it, ui.MenuRow{Text: r.Name + " " + r.Policy.String(), Key: r.Name[0], Do: func() {
-			p.call(func(e front.Game) { e.SetPolicy(r.ID, r.Policy+1) })
+	for _, re := range sh.Reactions {
+		pol := front.Policy(re.Policy)
+		it = append(it, ui.MenuRow{Text: re.Name + " " + pol.String(), Key: re.Name[0], Do: func() {
+			p.call(func(e *classicGame) { e.SetPolicy(re.ID, pol+1) })
 		}})
 	}
 	return it
 }
 
 // sheetUp: the sheet's menu is the page's question.
-func sheetUp(v front.View) bool { return v.Sheet != nil && askMenu(v) == nil && v.Inventory == nil }
+func (p *Presenter) sheetUp() bool {
+	return p.sheetShown() && p.askMenu() == nil && !p.inventoryUp()
+}
+
+// sheetPage is the character sheet's page up: the look-only member's in a
+// fight, the member's whose sheet is up, the creation's draft (nil: none, or
+// a picker covers it).
+func (p *Presenter) sheetPage() *game.SheetPage {
+	if p.eng == nil || p.pickerOver() {
+		return nil
+	}
+	return p.lay.sheet.get(p.uiKey(), p.layoutSheetPage)
+}
+
+// lookMember is the member whose look-only sheet is up in a fight (a View
+// there: no powers, the member's own page and items).
+func (r *rules) lookMember(ps play.State) (int, bool) {
+	n := r.lookSheet - 1
+	return n, n >= 0 && n < len(play.CommonOf(ps).Party) && r.combatOf(ps) != nil
+}
+
+// layoutSheetPage is sheetPage from the state.
+func (p *Presenter) layoutSheetPage() *game.SheetPage {
+	r, s := p.eng.r, p.state()
+	party := partyOf(s)
+	if n, ok := r.lookMember(s); ok {
+		return cmp.Or(party[n].Page, game.MemberPage(party[n]))
+	}
+	page := r.sheetPageOf(s, party)
+	mode := r.modeOf(s)
+	if c := creationOf(s); Drafting(mode, c) {
+		return draftPage(c, page) // the creation sheet: gobox lays it out from the draft, with the rules' figures when they give a page
+	}
+	return page
+}
+
+// sheetUpOf: the state puts a member's sheet up, the look-only one in a fight too.
+func (r *rules) sheetUpOf(ps play.State) bool {
+	if _, ok := r.lookMember(ps); ok {
+		return true
+	}
+	return r.sheetOf(play.CommonOf(ps)) != nil
+}
 
 // sheetKey takes key k on the sheet: the menu's keys, the member keys another member.
-func (p *Presenter) sheetKey(k uint16, v front.View) bool {
-	items := p.sheetItems(v)
-	if m, ok := memberKey(k, selectedIndex(v), len(v.Party), true); ok {
+func (p *Presenter) sheetKey(k uint16) bool {
+	items := p.sheetItems()
+	s := p.state()
+	if m, ok := memberKey(k, p.eng.r.selectedOf(s), len(play.CommonOf(s).Party), true); ok {
 		p.send(front.ActMember, m)
 		return true
 	}
@@ -66,13 +122,15 @@ type sheetCanvas struct {
 }
 
 // drawSheet draws the sheet (sheetUp) over the whole window.
-func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
-	sp, i := v.SheetPage, selectedIndex(v)
-	if i < 0 {
+func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
+	s, rl := p.state(), p.eng.r
+	party := p.party()
+	sp, i := p.sheetPage(), rl.selectedOf(s) // the look-only sheet and the creation's draft included
+	if i < 0 || i >= len(party) || sp == nil {
 		return
 	}
-	m, sc := v.Party[i], &p.sheet
-	p.setup(note, v)
+	m, sc := party[i], &p.sheet
+	p.setup(note)
 	p.pageMenu = true
 	b := dst.Bounds()
 	k, cw, ch := ui.FullPageCells(b) // K and the cells
@@ -177,7 +235,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 		line(st.Name, st.Value, r, st.Help)
 		r++
 	}
-	for _, f := range extraFields(sp) { // the game's extra fields (POD fills them), after a blank line
+	for _, f := range extraFields(sp.Weapon, sp.Armour, sp.Encumbrance, sp.Coins) { // the game's extra fields (POD fills them), after a blank line
 		if f[1] != "" && fits(r+1) {
 			text(f[0], rx, row(r+1), white)
 			text(f[1], rr-8*len(f[1]), row(r+1), green)
@@ -207,7 +265,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 
 	// the powers on the bottom row; the toast takes it while it shows
-	items := p.sheetItems(v)
+	items := p.sheetItems()
 	rowY := (ch - 1) * 8
 	p.winRects = p.winRects[:0]
 	var words []image.Rectangle
@@ -235,7 +293,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 
 	sc.img.WritePixels(sc.px.Pix)
-	t := p.border.tiles
+	t := p.border.val.tiles
 	window(sc.img, t, gpu.GeoM{}, leftCells, ch-1, nil)
 	var g gpu.GeoM
 	g.Translate(float64(leftCells-1)*8, 0)
@@ -247,7 +305,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 	p.bar(sc.img, lx-5, hpY, lw+10, m.HP, m.MaxHP, fill)
 	if !sp.Creating && m.NextExp > 0 {
-		p.bar(sc.img, lx-5, expY, lw+10, m.Exp-m.LevelExp, m.NextExp-m.LevelExp, goldFill)
+		p.bar(sc.img, lx-5, expY, lw+10, expOf(m)-m.LevelExp, m.NextExp-m.LevelExp, goldFill)
 	}
 	kx, ky := p.fit(dst, sc.img, sc.w, sc.h)
 	sc.faceAt = image.Rect(int(float64(face.Min.X)*kx), int(float64(face.Min.Y)*ky), int(float64(face.Max.X)*kx), int(float64(face.Max.Y)*ky))
@@ -256,7 +314,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 		op.GeoM.Translate(float64(face.Min.X)*kx, float64(face.Min.Y)*ky)
 		dst.DrawImage(p.hiFace(png, int(float64(face.Dx())*kx)), op)
 	}
-	if x, y := gpu.CursorPosition(); askMenu(v) == nil { // the tooltip of the line under the pointer
+	if x, y := gpu.CursorPosition(); p.askMenu() == nil { // the tooltip of the line under the pointer
 		pt := image.Pt(int(float64(x)/kx), int(float64(y)/ky))
 		for _, t := range tips {
 			if pt.In(t.r) && len(t.help) > 0 {
@@ -277,7 +335,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 // pane's inner bottom), aspect kept. The portrait (the PNG or the
 // paper-doll head) is returned to be drawn at the window's resolution
 // with hiFace: crisp pixels, never the canvas's stretch.
-func (p *Presenter) memberPane(px *image.RGBA, glyph func(byte) [8]byte, m front.Member, bottom int) (face image.Rectangle, png image.Image) {
+func (p *Presenter) memberPane(px *image.RGBA, glyph func(byte) [8]byte, m game.Member, bottom int) (face image.Rectangle, png image.Image) {
 	p.inv.load()
 	lx, lw := 8, (leftCells-2)*8
 	y := 10
@@ -287,7 +345,7 @@ func (p *Presenter) memberPane(px *image.RGBA, glyph func(byte) [8]byte, m front
 	}
 	n := max(0, min(lw, bottom-y-4-p.inv.doll.Bounds().Dy()-8))
 	face = image.Rect(lx+(lw-n)/2, y+4, lx+(lw+n)/2, y+4+n)
-	png = m.Portrait
+	png = m.Dropped
 	if png == nil {
 		png = p.portrait(m) // the paper-doll head
 	}
@@ -316,4 +374,35 @@ var bottomHelp = [3][]string{
 	{"Armour class: lower is", "better. Armour, shield,", "DEX and magic lower it."},
 	{"To hit armour class 0: roll", "a d20 of THAC0 minus the", "target's AC or more.", "Lower is better."},
 	{"Damage of the readied", "weapon, STR bonus included."},
+}
+
+// extraFields: the sheet's extra fields, label and value (empty: not
+// drawn), which both sheet layouts draw: the readied weapon and armour, the
+// load and the coins.
+func extraFields(weapon, armour, load, coins string) [4][2]string {
+	return [4][2]string{{"Weapon", weapon}, {"Armour", armour}, {"Load", load}, {"Coins", coins}}
+}
+
+// sheetShown: a member's sheet is up (the look-only one in a fight too), the
+// items or a question over it or not.
+func (p *Presenter) sheetShown() bool {
+	return p.eng != nil && !p.pickerOver() && p.lay.sheetUp.get(p.uiKey(), func() bool { return p.eng.r.sheetUpOf(p.state()) })
+}
+
+// portraitBox is the sheet's portrait box in cells (zero: none): Shift-click
+// there takes the next head, a dropped PNG becomes the portrait.
+func (p *Presenter) portraitBox() front.CellRect {
+	if sp := p.sheetPage(); sp != nil {
+		return cells(sp.PortraitAt)
+	}
+	return front.CellRect{}
+}
+
+// iconBox is the creation sheet's combat icon box in cells (zero: none): a
+// PNG dropped on it becomes the icon.
+func (p *Presenter) iconBox() front.CellRect {
+	if cr := p.creation(); cr != nil {
+		return cr.Icon
+	}
+	return front.CellRect{}
 }

@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -13,17 +15,22 @@ func TestReadyKeepsItemHighlighted(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{} }, Font: func(byte, bool) [8]byte { return [8]byte{} }}
-	mace := front.InvItem{Item: 1, Name: "Mace", Type: 1, Slot: true}
-	sling := front.InvItem{Item: 2, Name: "Sling", Type: 2, Slot: true}
-	v := front.View{Party: []front.Member{{Name: "A", Selected: true}}, Inventory: &front.Inventory{Pool: []front.InvItem{mace, sling}}}
+	mace := game.Item{Handle: 1, Name: "Mace", Type: 1, Kind: "weapon"}
+	sling := game.Item{Handle: 2, Name: "Sling", Type: 2, Kind: "weapon"}
+	party := func(items ...game.Item) play.State {
+		return play.Exploring{Common: play.Common{Party: []game.Member{{Name: "A", Items: items}}}}
+	}
+	g, f := playGame(party(mace, sling))
+	g.r.items = game.ItemsOwn
 	p := &Presenter{}
-	p.Inventory(dst, note, v)
+	p.SetEngine(g)
+	p.Inventory(dst, note)
 	p.inv.choose(false, 2)
 	p.inv.removeX(front.ActReady, 2, 0)
 	sling.Readied = true // the rules list readied gear first (each keeps its handle)
-	v.Inventory = &front.Inventory{Pool: []front.InvItem{sling, mace}}
-	p.Inventory(dst, note, v)
-	if it := itemAt(v.Inventory, p.inv.sel); it == nil || it.Name != "Sling" {
+	f.st = party(sling, mace)
+	p.Inventory(dst, note)
+	if it := p.inv.itemAt(p.inv.sel); it == nil || it.Name != "Sling" {
 		t.Fatalf("highlight on %+v, want the Sling", it)
 	}
 }

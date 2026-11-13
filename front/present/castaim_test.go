@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -17,6 +16,8 @@ type castGame struct {
 	sent []play.Action
 	lone bool
 }
+
+func (r *castGame) Version() uint64 { return fresh() }
 
 func (r *castGame) State() play.State {
 	sq := []image.Point{{1, 1}, {2, 1}, {3, 1}, {4, 1}}
@@ -63,7 +64,7 @@ func TestRulesAimWithTurn(t *testing.T) {
 // aimKeys moves the cursor two squares east and presses Enter, after a cast
 // of spell 7 when cast.
 func aimKeys(r *castGame, cast bool) {
-	f := &Front{Game: classic.NewGame(r, game.Data{}), started: true}
+	f := &Front{Game: &classicGame{Game: NewGame(r, game.Data{})}, started: true}
 	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
 	f.P.SetEngine(f.Game)
 	dst := gpu.NewImage(640, 400)

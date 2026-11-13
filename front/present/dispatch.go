@@ -15,22 +15,22 @@ import (
 // Key turns window key k into actions (Actions hands them over). When the
 // remastered view is up, Enter opens the vertical menu in place of the
 // menu bar and Esc on the command bar the renderer's options.
-func (p *Presenter) Key(k uint16, v front.View) {
-	v = p.own(v)
-	if askHeld(v, k) { // NoPick/NoEsc: no path answers the question with Enter, the arrows or Esc
+func (p *Presenter) Key(k uint16) {
+	p.sync()
+	if p.askHeld(k) { // NoPick/NoEsc: no path answers the question with Enter, the arrows or Esc
 		defer p.dropAnswers(len(p.inv.acts))
 	}
-	if p.paneMore { // a key brings the pane's next lot of lines
-		p.paneFrom += v.Pane.Rows
+	if p.panePaged() { // a key brings the pane's next lot of lines
+		p.paneFrom += p.pane().Rows
 		return
 	}
-	if v.Sequence != nil { // a key ends the animation
-		front.SequenceStep(p, &p.seq, v.Sequence, true)
+	if p.sequenceUp() != nil { // a key ends the animation
+		SequenceStep(p, &p.seq, p.sequenceUp(), true)
 		p.seqMusic(p.seq.Cues)
 		return
 	}
-	if v.Intro != nil { // a key cuts the title's phase short
-		front.IntroStep(p, &p.intro, v.Intro, true)
+	if p.introUp() != nil { // a key cuts the title's phase short
+		IntroStep(p, &p.intro, p.introUp(), true)
 		return
 	}
 	if p.Playing() && p.fight && p.battle.Camera(combatAct(k)) { // the camera turns while the fight's events play too (only Space, Enter, Esc cut them short)
@@ -40,14 +40,14 @@ func (p *Presenter) Key(k uint16, v front.View) {
 		p.replay.skip, p.replay.fast = true, p.replay.fast || k == ' '
 		return
 	}
-	if frontOnly(k) && confirm(v) != "" { // the game's yes/no is up: as the originals, no other screen opens over it
+	if frontOnly(k) && p.confirm() != "" { // the game's yes/no is up: as the originals, no other screen opens over it
 		return
 	}
-	if p.sfKey(k, v) { // the ship fight's window and bar
+	if p.sfKey(k) { // the ship fight's window and bar
 		return
 	}
-	if typing(v) != nil { // the game's typed line owns the keyboard over any screen: every letter is the line's (a screen's hotkey, the menu under it, the options' keys none)
-		p.keyAct(k, v)
+	if p.typingAsk() != nil { // the game's typed line owns the keyboard over any screen: every letter is the line's (a screen's hotkey, the menu under it, the options' keys none)
+		p.keyAct(k)
 		return
 	}
 	if p.overview { // any key closes the party overview
@@ -55,7 +55,7 @@ func (p *Presenter) Key(k uint16, v front.View) {
 		return
 	}
 	if p.pager != nil {
-		p.pagerKey(k, v)
+		p.pagerKey(k)
 		return
 	}
 	if p.fullMap != nil {
@@ -66,41 +66,41 @@ func (p *Presenter) Key(k uint16, v front.View) {
 		p.clueKey(k)
 		return
 	}
-	if !p.key(k, v) {
-		p.keyAct(k, v)
+	if !p.key(k) {
+		p.keyAct(k)
 	}
 }
 
 // key takes k on the remastered screens; false leaves it to keyAct.
-func (p *Presenter) key(k uint16, v front.View) bool {
+func (p *Presenter) key(k uint16) bool {
 	if actOf(k) == input.Note { // the text box's "> Notes"
 		if !p.noteBtn.Empty() {
 			p.send(front.ActNote, 0)
 		}
 		return true
 	}
-	if p.journal.open && v.Exploring {
-		p.journalKey(k, v)
+	if p.journal.open && p.exploring() {
+		p.journalKey(k)
 		return true
 	}
-	if p.identDone(v) { // the Id's pop-up: any key closes it
+	if p.identDone() { // the Id's pop-up: any key closes it
 		return true
 	}
-	if confirm(v) != "" {
+	if p.confirm() != "" {
 		return p.confirmKey(k)
 	}
-	if v.MainMenu != nil && !p.main { // the menu is not drawn yet: no key picks from it
+	if p.mainMenuUp() && !p.main { // the menu is not drawn yet: no key picks from it
 		return true
 	}
 	if p.main {
-		if p.mm.skip(p.shownView.Hall) && (k == '\r' || k == ' ') { // a key ends the title's fade and still acts (an arrow or a hotkey right as the menu appears is not lost); Enter and Space, the title's own skip keys, only end it, so one held through the intro picks nothing
+		if p.mm.skip(p.mainMenu().Hall) && (k == '\r' || k == ' ') { // a key ends the title's fade and still acts (an arrow or a hotkey right as the menu appears is not lost); Enter and Space, the title's own skip keys, only end it, so one held through the intro picks nothing
 			return true
 		}
-		if p.mm.key(p, k, mainView(v)) {
+		if p.mm.key(p, k, p.mainMenu()) {
 			return true
 		}
 	}
-	if a := v.Ask; a != nil && a.Dirs && !pageScreen(v) { // the arrows answer the question (ActDir), the bars do not take them (keyAct); a page over it (the slots) keeps them
+	if a := p.askUp(); a != nil && a.Kind == front.AskMove && !p.pageScreen() { // the arrows answer the heading (ActDir), the bars do not take them (keyAct); a page over it (the slots) keeps them
 		if _, ok := keypadDirs[actOf(k)]; ok {
 			return false
 		}
@@ -108,24 +108,24 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if p.pickKey(k) {
 		return true
 	}
-	if askList(v) != nil && askMenu(v) != nil && !choosing(v) {
-		return p.listKey(k, v)
+	if p.askList() != nil && p.askMenu() != nil && !p.choosing() {
+		return p.listKey(k)
 	}
-	if (p.pageMenu || v.Picker != nil) && typing(v) == nil && !(p.q != nil && choosing(v)) && p.pageMenuKey(k, v) { // a picker's keys never wait on the frame that sets pageMenu // a line being typed (a map label) takes its keys in keyAct // the presenter's own member pick over a page (Trade to whom?) takes the arrows and Enter in keyAct
+	if (p.pageMenu || p.picker(p.ink()) != nil) && p.typingAsk() == nil && !(p.q != nil && p.choosing()) && p.pageMenuKey(k) { // a picker's keys never wait on the frame that sets pageMenu // a line being typed (a map label) takes its keys in keyAct // the presenter's own member pick over a page (Trade to whom?) takes the arrows and Enter in keyAct
 		return true
 	}
-	if v.Inventory != nil && p.inv.view != nil && !choosing(v) {
+	if p.inventoryUp() && p.inv.up != nil && !p.choosing() {
 		return p.inventoryKey(k)
 	}
 	if p.fight {
 		return p.fightKey(k)
 	}
 	if p.ctx > 0 { // the card's context menu: the arrows, Enter, a hotkey or Esc, as the game's menus
-		if m, ok := memberKey(k, p.ctx-1, len(v.Party), true); p.campHome(v) && (ok || actOf(k) == input.PartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
-			p.campFocus(v, k, m)
+		if m, ok := memberKey(k, p.ctx-1, len(p.party()), true); p.campHome() && (ok || actOf(k) == input.PartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
+			p.campFocus(k, m)
 			return true
 		}
-		if _, ok := memberKey(k, 0, len(v.Party), false); ok { // another member: selected (keyAct), their menu opens instead
+		if _, ok := memberKey(k, 0, len(p.party()), false); ok { // another member: selected (keyAct), their menu opens instead
 			p.ctx = 0
 			return false
 		}
@@ -147,10 +147,10 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if p.view.OptionsOpen() {
 		return true
 	}
-	if screenUp(v) {
-		return p.campKey(k, v)
+	if p.screenUp() {
+		return p.campKey(k)
 	}
-	if v.Exploring {
+	if p.exploring() {
 		if !p.menu {
 			switch actOf(k) {
 			case input.Enter, input.PadA:
@@ -158,11 +158,11 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 			case input.Esc:
 				p.view.OpenOptions()
 			default:
-				return p.exploreKey(k, v)
+				return p.exploreKey(k)
 			}
 			return true
 		}
-		cmds := commands(v)
+		cmds := p.commands()
 		keys := make([]byte, len(cmds))
 		for i, c := range cmds {
 			keys[i] = c.key
@@ -175,20 +175,20 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 			p.runCommand(i)
 		case !ok:
 			p.menu = false
-			return p.exploreKey(k, v)
+			return p.exploreKey(k)
 		}
 		return true
 	}
-	m := askMenu(v)
+	m := p.askMenu()
 	if !p.menu {
 		switch {
-		case choosing(v): // a member pick has no menu: every key goes to the portraits (keyAct)
+		case p.choosing(): // a member pick has no menu: every key goes to the portraits (keyAct)
 			return false
-		case actOf(k) == input.Enter && noChoice(v): // "press enter to continue": nothing to pick
+		case actOf(k) == input.Enter && p.noChoice(): // "press enter to continue": nothing to pick
 			return false
 		case actOf(k) == input.Enter && m != nil:
 			p.menu, p.menuFor, p.sel = true, menuID(m), 0
-		case actOf(k) == input.Esc && v.Exploring:
+		case actOf(k) == input.Esc && p.exploring():
 			p.view.OpenOptions()
 		default:
 			return false
@@ -199,7 +199,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		p.menu = false
 		return false
 	}
-	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), true); ok { // the member the bar is for (camp, the temple)
+	if n, ok := memberKey(k, p.selectedIndex(), len(p.party()), true); ok { // the member the bar is for (camp, the temple)
 		p.send(front.ActLead, n)
 		return true
 	}
@@ -207,11 +207,11 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	for i, it := range m.Commands {
 		keys[i] = it.Key
 	}
-	if askHeld(v, k) {
+	if p.askHeld(k) {
 		return true
 	}
 	switch i, back, ok := ui.MenuNav(actOf(k), k, &p.sel, keys); {
-	case back && v.Exploring: // the command bar has no Exit item: the popup alone closes
+	case back && p.exploring(): // the command bar has no Exit item: the popup alone closes
 		p.menu = false
 	case back: // the game leaves the menu (its Exit item): hiding the popup alone left the game waiting in it
 		p.send(front.ActClose, 0)
@@ -232,13 +232,13 @@ func (p *Presenter) Click(x, y int) bool {
 		p.replay.skip = true
 		return true
 	}
-	if p.shownView.Sequence != nil { // a click ends the animation
-		front.SequenceStep(p, &p.seq, p.shownView.Sequence, true)
+	if p.sequenceUp() != nil { // a click ends the animation
+		SequenceStep(p, &p.seq, p.sequenceUp(), true)
 		p.seqMusic(p.seq.Cues)
 		return true
 	}
-	if p.shownView.Intro != nil { // a click cuts the title's phase short
-		front.IntroStep(p, &p.intro, p.shownView.Intro, true)
+	if p.introUp() != nil { // a click cuts the title's phase short
+		IntroStep(p, &p.intro, p.introUp(), true)
 		return true
 	}
 	if p.overview { // a click closes the party overview
@@ -265,55 +265,55 @@ func (p *Presenter) Click(x, y int) bool {
 		p.send(front.ActNote, 0)
 		return true
 	}
-	if sheetUp(p.shownView) && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(x, y).In(p.sheet.faceAt) { // Shift-click on the sheet's portrait: the next head
+	if p.sheetUp() && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(x, y).In(p.sheet.faceAt) { // Shift-click on the sheet's portrait: the next head
 		p.send(front.ActHead, -1)
 		return true
 	}
 	if p.journal.open { // the journal's own pointer (Mouse)
-		p.journalMouse(image.Pt(x, y), true, false, 0, p.shownView)
+		p.journalMouse(image.Pt(x, y), true, false, 0)
 		return true
 	}
-	if p.identDone(p.shownView) { // the Id's pop-up: any click closes it
+	if p.identDone() { // the Id's pop-up: any click closes it
 		return true
 	}
 	if p.scrolls.Click(x, y) {
 		return true
 	}
-	if confirm(p.shownView) != "" { // the yes/no question: its rows (or the battle bar's Yes, No); a click outside is No
+	if p.confirm() != "" { // the yes/no question: its rows (or the battle bar's Yes, No); a click outside is No
 		if p.fight && p.battle.Click(x, y) {
 			return true
 		}
 		p.confirmPick(slices.IndexFunc(p.confirmAt, image.Pt(x, y).In))
 		return true
 	}
-	if v := p.shownView; v.Ask != nil && v.Ask.Reselect && cardUnder(p.cards, x, y) >= 0 && cardUnder(p.cards, x, y) < len(v.Party) { // another member while the question stays up
+	if p.askUp() != nil && p.askUp().Reselect && cardUnder(p.cards, x, y) >= 0 && cardUnder(p.cards, x, y) < len(p.party()) { // another member while the question stays up
 		p.send(front.ActLead, cardUnder(p.cards, x, y))
 		return true
 	}
-	if v := p.shownView; askList(v) != nil && askMenu(v) != nil && !choosing(v) && cardUnder(p.cards, x, y) < 0 { // a card is the member the list is for (below)
-		p.listClick(x, y, v)
+	if p.askList() != nil && p.askMenu() != nil && !p.choosing() && cardUnder(p.cards, x, y) < 0 { // a card is the member the list is for (below)
+		p.listClick(x, y)
 		return true
 	}
-	if v := p.shownView; p.pageMenu && pageScreen(v) {
-		if h := p.slotFootAt(v, x, y); h != 0 {
-			p.slotKey(v, h)
+	if p.pageMenu && p.pageScreen() {
+		if h := p.slotFootAt(x, y); h != 0 {
+			p.slotKey(h)
 			return true
 		}
 		for i, r := range p.winRects {
 			if image.Pt(x, y).In(r) {
-				p.screenPick(v, i)
+				p.screenPick(i)
 				return true
 			}
 		}
-		if s := p.scr.sub; screenName(v) == "slots" || s == scrAsk || s == scrField || s == scrPowers { // outside a popup: back (the creation sheet, the pickers and the icon editor take their page's clicks: Mouse)
-			p.screenKey(27, v)
+		if s := p.scr.sub; p.screenName() == "slots" || s == scrAsk || s == scrField || s == scrPowers { // outside a popup: back (the creation sheet, the pickers and the icon editor take their page's clicks: Mouse)
+			p.screenKey(27)
 			return true
 		}
 	}
 	if p.pageMenu {
 		for i, r := range p.winRects {
-			if image.Pt(x, y).In(r) && sheetUp(p.shownView) {
-				p.sheetItems(p.shownView)[i].Do()
+			if image.Pt(x, y).In(r) && p.sheetUp() {
+				p.sheetItems()[i].Do()
 				return true
 			}
 			if image.Pt(x, y).In(r) {
@@ -321,24 +321,24 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if v := p.shownView; !pageScreen(v) && !sheetUp(v) && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
+		if !p.pageScreen() && !p.sheetUp() && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
 			p.send(front.ActClose, 0)
 			return true
 		}
 	}
 	if p.main {
-		if p.mm.skip(p.shownView.Hall) {
+		if p.mm.skip(p.mainMenu().Hall) {
 			return true
 		}
-		return p.mm.click(p, mainView(p.shownView), x, y)
+		return p.mm.click(p, p.mainMenu(), x, y)
 	}
 	if p.pickClick(x, y) {
 		return true
 	}
-	if v := p.shownView; p.campHome(v) && p.active { // camp: a line of any member's menu
+	if p.campHome() && p.active { // camp: a line of any member's menu
 		for i, rs := range p.campCtx {
-			if j := slices.IndexFunc(rs, image.Pt(x, y).In); j >= 0 && i < len(v.Party) {
-				if _, acts, _ := powerLines(v.Party[i].Powers); j < len(acts) { // the lines as drawn (powerLines leaves Icon out), not Powers' indexes
+			if j := slices.IndexFunc(rs, image.Pt(x, y).In); j >= 0 && i < len(p.party()) {
+				if _, acts, _ := powerLines(p.cardPowers()[i]); j < len(acts) { // the lines as drawn (powerLines leaves Icon out), not Powers' indexes
 					p.ctx = 0
 					p.memberAct(acts[j], i)
 				}
@@ -369,21 +369,21 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if v := p.shownView; screenUp(v) && p.active && !p.view.OptionsOpen() {
+		if p.screenUp() && p.active && !p.view.OptionsOpen() {
 			for i, r := range p.menuRects {
 				if image.Pt(x, y).In(r) {
-					p.campPick(v, p.camp.top+i)
+					p.campPick(p.camp.top + i)
 					return true
 				}
 			}
-			p.campBack(v) // a click outside: back
+			p.campBack() // a click outside: back
 			return true
 		}
-		if v := p.shownView; v.Exploring && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
-			if p.Free(v) { // No Grid: a press on the view may be a drag to look; ViewClick on its release
+		if p.exploring() && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
+			if p.Free() { // No Grid: a press on the view may be a drag to look; ViewClick on its release
 				return false
 			}
-			p.exploreClick(x, y, v)
+			p.exploreClick(x, y)
 			return true
 		}
 		if !p.menu || !p.active || p.view == nil || p.view.OptionsOpen() {
@@ -400,7 +400,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		p.key(keyOf(input.Esc), p.shownView) // a click outside: back, as Esc
+		p.key(keyOf(input.Esc)) // a click outside: back, as Esc
 		return true
 	}
 	return p.fightClick(x, y)
@@ -416,13 +416,13 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		return
 	}
 	if p.journal.open {
-		p.journalMouse(image.Pt(x, y), false, false, 0, p.shownView)
+		p.journalMouse(image.Pt(x, y), false, false, 0)
 		return
 	}
 	if p.scrolls.Hover(y, down) {
 		return
 	}
-	if confirm(p.shownView) != "" { // the yes/no question takes a moved pointer (in combat the bar's hover goes on below)
+	if p.confirm() != "" { // the yes/no question takes a moved pointer (in combat the bar's hover goes on below)
 		if pt := image.Pt(x, y); pt != p.pointer {
 			p.pointer = pt
 			if i := slices.IndexFunc(p.confirmAt, pt.In); i >= 0 {
@@ -433,8 +433,8 @@ func (p *Presenter) Hover(x, y int, down bool) {
 			return
 		}
 	}
-	if v := p.shownView; askList(v) != nil && askMenu(v) != nil && !choosing(v) {
-		p.listHover(x, y, v)
+	if p.askList() != nil && p.askMenu() != nil && !p.choosing() {
+		p.listHover(x, y)
 	}
 	if p.main {
 		p.mm.hover(p, x, y)
@@ -453,7 +453,7 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		p.pointer = image.Pt(x, y)
 		if i := slices.IndexFunc(p.winRects, p.pointer.In); i >= 0 {
 			switch {
-			case !pageScreen(p.shownView):
+			case !p.pageScreen():
 				p.sel = i
 			case p.scr.sub != scrType:
 				p.scr.sel = p.scr.top + i
@@ -480,12 +480,12 @@ func (p *Presenter) Hover(x, y int, down bool) {
 			p.dragFrom = 0
 		}
 	}
-	if p.campHome(p.shownView) && image.Pt(x, y) != p.pointer { // camp: the window under the pointer takes the focus
+	if p.campHome() && image.Pt(x, y) != p.pointer { // camp: the window under the pointer takes the focus
 		p.pointer = image.Pt(x, y)
-		p.campHover(p.shownView, x, y)
+		p.campHover(x, y)
 		return
 	}
-	if screenUp(p.shownView) && p.ctx == 0 && image.Pt(x, y) != p.pointer { // camp-style screens highlight under the pointer too
+	if p.screenUp() && p.ctx == 0 && image.Pt(x, y) != p.pointer { // camp-style screens highlight under the pointer too
 		p.pointer = image.Pt(x, y)
 		if i := slices.IndexFunc(p.menuRects, p.pointer.In); i >= 0 {
 			p.camp.sel = p.camp.top + i
@@ -544,16 +544,16 @@ func (p *Presenter) ctxSend(j int) {
 // it is the member's inventory; while the party is ordered it only selects.
 func (p *Presenter) cardClick(i int) {
 	switch {
-	case noChoice(p.shownView): // a script's unseen "press Enter" wait (PressToContinue before its text): the card continues, as a click elsewhere
+	case p.noChoice(): // a script's unseen "press Enter" wait (PressToContinue before its text): the card continues, as a click elsewhere
 		p.send(front.ActOK, 0)
-	case choosing(p.shownView): // a member pick (a spell's target): the card is the pick, exploring or not
+	case p.choosing(): // a member pick (a spell's target): the card is the pick, exploring or not
 		p.send(front.ActMember, i)
 	case p.ordering:
 		p.send(front.ActLead, i)
-	case p.command, p.campHome(p.shownView): // camp: the keys go to its menu
+	case p.command, p.campHome(): // camp: the keys go to its menu
 		p.send(front.ActLead, i)
 		p.ctx, p.ctxSel = 1+i, 0 // the first line highlighted: Enter acts at once
-	case screenUp(p.shownView) && (p.shownView.Temple != nil || p.shownView.Training != nil): // the temple, the training hall: the member they act for, as F1-F8
+	case p.screenUp() && (p.templeUp() || p.trainingUp() != nil): // the temple, the training hall: the member they act for, as F1-F8
 		p.send(front.ActLead, i)
 	default:
 		p.send(front.ActInventory, i)

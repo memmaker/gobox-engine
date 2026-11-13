@@ -300,6 +300,7 @@ func TestPlayLootLeave(t *testing.T) {
 	if _, ok := e.build().(play.Looting); !ok {
 		t.Skipf("loot scene: %T", e.build())
 	}
+	seeLoot(t, e)
 	if _, err := e.doNow(play.Leave{}); err != nil {
 		t.Fatal("Leave:", err)
 	}

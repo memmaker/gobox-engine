@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"gobox/front/classic"
 	"gobox/front/present"
 	"por/playpor"
 	"por/porgame"
@@ -43,18 +42,18 @@ func TestLoadedExploreStateBuilds(t *testing.T) {
 	seed := uint32(1)
 	eng.FixedSeed = &seed
 	data := playpor.Data(eng)
-	f := present.NewFront(classic.NewGame(eng, data), data)
+	f := present.NewFront(present.NewGame(eng, data), data)
 	f.Start("back-for-good")
 	f.Frame(1280, 800)
 	f.Game.SequenceDone("intro")
 	f.Game.TitleDone()
 	f.Game.Settle()
-	for i := 0; i < 600 && !f.Game.View().Exploring; i++ {
+	for i := 0; i < 600 && !f.Game.Flags().Exploring; i++ {
 		f.Frame(1280, 800)
 		f.Tick()
 	}
-	if v := f.Game.View(); !v.Exploring || v.Area != 18 {
-		t.Fatalf("exploring %v area %d: the save did not load", v.Exploring, v.Area)
+	if ex, area := f.Game.Flags().Exploring, f.Game.Where().Area; !ex || area != "18" {
+		t.Fatalf("exploring %v area %s: the save did not load", ex, area)
 	}
 	frames := func(n int) int {
 		built := eng.StateBuilds

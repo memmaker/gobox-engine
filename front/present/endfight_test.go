@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -14,6 +13,8 @@ import (
 // endGame is a fight one Quick ends: the Outcome carries its blows and the
 // state after it is the result page.
 type endGame struct{ over bool }
+
+func (r *endGame) Version() uint64 { return fresh() }
 
 func (r *endGame) State() play.State {
 	if r.over {
@@ -42,7 +43,7 @@ func (r *endGame) Load([]byte) error     { return nil }
 func TestEndingEventsPlay(t *testing.T) {
 	defer func(s bool, n int64) { Scripted, frames = s, n }(Scripted, frames)
 	r := &endGame{}
-	f := &Front{Game: classic.NewGame(r, game.Data{}), started: true}
+	f := &Front{Game: &classicGame{Game: NewGame(r, game.Data{})}, started: true}
 	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
 	f.P.SetEngine(f.Game)
 	dst := gpu.NewImage(640, 400)
@@ -50,7 +51,7 @@ func TestEndingEventsPlay(t *testing.T) {
 	f.Draw(dst)
 	f.Tick()
 	f.Game.Answer(front.Action{Kind: front.ActQuick})
-	f.P.Play(f.Game.Settle().Events)
+	f.P.Play(f.Game.Settle())
 	fight, page := 0, -1
 	for i := range 600 {
 		f.Act()

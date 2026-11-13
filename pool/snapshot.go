@@ -24,7 +24,7 @@ var (
 // TextPaneRows is the text pane's rows.
 const TextPaneRows = paneBottom - msgTop + 1
 
-// MapCell is the size of a square in View.Map, in pixels.
+// MapCell is the size of a square in Map, in pixels.
 const MapCell = mapCell
 
 const mapCell = 10
@@ -32,24 +32,24 @@ const mapCell = 10
 // snapState is the engine's side of the seam.
 type snapState struct {
 	quiet      bool                        // a play action is running: no scene is published for the events
-	invOn      bool                        // ItemsMenu waits: View.Inventory is up
-	shop       bool                        // ... as the shop's Browse: View.Inventory.Wares
-	identified *core.ItemCard              // the item the shop's Id last revealed (View.Shop.Identified)
+	invOn      bool                        // ItemsMenu waits: Inventory is up
+	shop       bool                        // ... as the shop's Browse: Inventory.Wares
+	identified *core.ItemCard              // the item the shop's Id last revealed (Shop.Identified)
 	identN     int                         // ... counted: a new reveal is a new number
 	identIt    core.ItemHandle             // ... the item itself (State's Shop.Identified)
 	saves      bool                        // there are saved games (the party menu's Load)
 	logo       *Picture                    // titleLogo, once read
 	win        Window                      // set by whatever drew into the view window last
 	heads      map[int]Picture             // HEAD blocks' pixels by id
-	tiles      [3]Picture                  // DrawBorder style 0's corner, side and top cells, once taken (View.BorderPix)
+	tiles      [3]Picture                  // DrawBorder style 0's corner, side and top cells, once taken (BorderPix)
 	cursor     image.Point                 // drawCursor's last square
 	cursorOn   bool                        // the cursor icon is on the page (drawn, not yet erased or drawn over)
 	cmapOn     bool                        // the combat map is set up (cmapShown) and shown
 	sheetOn    bool                        // a character sheet is up over the combat map
 	portrait   CellRect                    // the sheet's portrait box while a sheet is up
-	sheet      *SheetPage                  // the character sheet's page while it is up (View.SheetPage)
-	results    *Results                    // the after-combat page while it is up (View.Results)
-	full       bool                        // a whole-screen picture is up (View.Full)
+	sheet      *SheetPage                  // the character sheet's page while it is up (SheetPage)
+	results    *Results                    // the after-combat page while it is up (Results)
+	full       bool                        // a whole-screen picture is up (Full)
 	iconDrop   func([]byte)                // the icon editor, or the creation sheet, takes a dropped PNG while it is up (nil elsewhere)
 	iconBox    CellRect                    // the creation sheet's icon: the cells that take the drop (zero: the whole screen)
 	dungeon    bool                        // the combat tiles are DungCom's stone walls (else WildCom's outdoors)

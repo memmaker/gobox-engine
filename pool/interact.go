@@ -11,7 +11,7 @@ import (
 // Interactions", Engine.Explicit): a step onto a square whose event is a
 // harmless one (a description, a shop, a talk, a question) stops the
 // square's script where that event starts. The HUD says so
-// (View.Interact) and RunEvent runs it. Dangerous events
+// (Interact) and RunEvent runs it. Dangerous events
 // (ambushes, traps) and the ones not tied to a square (wandering
 // monsters) run on stepping as ever. data/assets/scripts/interactions.txt
 // names the events' labels, per area.

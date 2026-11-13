@@ -43,7 +43,7 @@ type Results struct {
 
 // SheetPage is what the character sheet's page shows (CharacterSheet),
 // laid out by the presenter, in the colours of
-// View.Ink. The DAX portrait is among View.Pictures.
+// Ink. The DAX portrait is among Pictures.
 type SheetPage struct {
 	Name               string
 	NameColour         int    // red when not okay, yellow a monster, else cyan (displayName)
@@ -74,7 +74,7 @@ type SheetPage struct {
 	Effects            string         // the spell effects, as many as fit the row
 	PortraitAt         CellRect       // the portrait's box (zero: no portrait)
 	Portrait           image.Image    // a dropped PNG in the box, in place of the DAX portrait (nil: none)
-	Icons              [2]image.Image // the creation's combat icon from a PNG, ready and action poses, in View.IconBox (nil: the DAX icon among the pictures)
+	Icons              [2]image.Image // the creation's combat icon from a PNG, ready and action poses, in IconBox (nil: the DAX icon among the pictures)
 }
 
 // Member is one party member as the party list shows them.
@@ -88,7 +88,7 @@ type Member struct {
 	Selected bool        // the selected member, or the candidate while a member is picked (SelectCharacter)
 	Colour   int         // the roster's EGA colour for the name when not Selected: red not okay, yellow a monster, magenta ready for a level, else cyan
 	Head     image.Image // the paper-doll head the player chose, in EGA colours (nil if missing)
-	HeadPix  Picture     // Head as the game's pixels in the EGA's own colours, not View.Ink (the presenter colours it)
+	HeadPix  Picture     // Head as the game's pixels in the EGA's own colours, not Ink (the presenter colours it)
 	Portrait image.Image // extra: the PNG the player dropped on the sheet, in place of Head (nil: none)
 	Powers   []Power     // extra: what the member can do now out of combat (a card's context menu): View, Items, then powers'; Kind with the member's index acts
 	Exp      int         // extra: experience, what the level took (LevelExp) and what the next takes (NextExp; 0: it can rise no further)
@@ -105,7 +105,7 @@ type Beast struct {
 	Text            string
 	Icon            image.Image // the combat icon (nil: none)
 	Pic             image.Image // the picture window's when first met (nil: none)
-	IconPix, PicPix Picture     // Icon and Pic as the game's pixels in View.Ink (the presenter colours them)
+	IconPix, PicPix Picture     // Icon and Pic as the game's pixels in Ink (the presenter colours them)
 }
 
 // Sheet is what the character sheet offers besides the page.
@@ -174,7 +174,7 @@ type Picture struct {
 	Name         string      // a pool portrait name ("head_003"); with File, drawn from the pool when it resolves
 	Img          image.Image // nil for a fill, or for a picture front/present decodes from File, Block, Frame
 	Mask         *uint8      // with File: this colour index is transparent too, as the mask (nil: only asset.Clear)
-	Pix          []uint8     // the game's own pixels, PixW wide, Img nil: front/present converts them in View.Ink (IndexedRGBA)
+	Pix          []uint8     // the game's own pixels, PixW wide, Img nil: front/present converts them in Ink (IndexedRGBA)
 	PixW         int
 	Palette      []color.RGBA // with Pix: Pix are indices into it (a VGA picture; alpha 0 transparent), not EGA; nil: EGA
 	At           image.Rectangle
@@ -211,7 +211,7 @@ type Spell struct {
 	Name string
 }
 
-// Pending is what the game waits on (View.Pending): a shop or temple a
+// Pending is what the game waits on (Pending): a shop or temple a
 // suspended ECL script opened, a fight, the finale, the treasure after a
 // fight, a locked door met while walking. A rule call answers it (Leave,
 // LootLeave, TryDoor) and the game goes on.
@@ -224,7 +224,7 @@ const (
 	PendFight            // a fight: CombatStep, TurnChoice
 	PendStory            // (unused: POR's finale is the manifest's End; the front's numbering keeps the place)
 	PendLoot             // the treasure after a fight (State.Loot, gobox's loot screen): TakeLoot, LootDetect; LootLeave
-	PendDoor             // a locked door (View.Door): TryDoor
+	PendDoor             // a locked door (Door): TryDoor
 	PendSequence         // a full-screen animation (State.Sequence): Continue
 )
 
@@ -262,7 +262,7 @@ type Strike struct {
 	Damage   int
 }
 
-// DoorOpts is a locked door's options besides Exit (View.Door).
+// DoorOpts is a locked door's options besides Exit (Door).
 type DoorOpts struct{ Bash, Pick, Knock bool }
 
 // DoorWay is what TryDoor does with a locked door.
@@ -279,7 +279,7 @@ const (
 type Battle struct {
 	Ground    [25][50]core.Square
 	Tiles     []image.Image // the tile set by tile number, in combat's colours
-	TilePix   []Picture     // Tiles as the game's pixels in View.Ink, or DAX refs (File, Block, Frame), the presenter's to make into Tiles
+	TilePix   []Picture     // Tiles as the game's pixels in Ink, or DAX refs (File, Block, Frame), the presenter's to make into Tiles
 	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here); used where Icon is nil
 	EffectPix []Picture     // Effects' pictures so, by effect; used where Pic is nil
 	Floor     color.RGBA    // the ground's colour
@@ -331,7 +331,7 @@ type Effect struct {
 // Inventory is the inventory screen (ItemsMenu) as the remastered one
 // draws it. Its items' Index is what play's Item names.
 type Inventory struct {
-	Member int              // index into View.Party
+	Member int              // index into Party
 	Doll   []*core.ItemCard // the readied items by doll slot (the game's slots, nil: empty)
 	Pool   []core.ItemCard  // the party inventory
 	Cap    int              // the party inventory's slots

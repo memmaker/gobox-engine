@@ -93,11 +93,11 @@ type extras struct {
 	// fullmap.go
 	labels map[int]map[int]mapLabel // per area: square -> label
 	pq     *playQuestion            // a play action's question up (playask.go)
-	read   *Read                    // the journal text being read (View.Read)
+	read   *Read                    // the journal text being read (Read)
 	levels map[string]slotLevelAt   // the slots' levels as last read (slotLevelOf)
 	ending bool                     // the manifest's End is up as a title-like scene (title.end) until Continue
 	endRun bool                     // the run ends with it (pod: the save, then the end); else the script goes on
-	intro  bool                     // the title is up (View.Intro) until TitleDone
+	intro  bool                     // the title is up (Intro) until TitleDone
 	door   *doorWait                // game.go: the locked door waiting (PendDoor)
 	back   int                      // how far (0 2 4 6) round from the facing the next step goes: a step back or aside (moveDir)
 

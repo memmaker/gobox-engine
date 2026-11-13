@@ -62,7 +62,7 @@ func (p *Presenter) buyItems(cr *front.Creation) (string, []ui.MenuRow) {
 		ui.MenuRow{Text: "Done", Key: 'D', Do: func() {
 			scores := slices.Clone(s.buy)
 			s.open(scrMain)
-			p.Edit(func(e front.Game) {
+			p.Edit(func(e *classicGame) {
 				if err := e.PointBuy(scores); err != nil {
 					e.Refuse(err.Error())
 				}

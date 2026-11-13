@@ -6,7 +6,7 @@ import (
 	"slices"
 )
 
-// The sheet (View.Sheet) and the inventory (View.Inventory) are the
+// The sheet (Sheet) and the inventory (Inventory) are the
 // presenter's screens: it opens and closes them (OpenSheet, OpenItems,
 // CloseItems, CloseSheet) and its decisions on them are rule calls
 // (ShowMember, Ready, UseItem, Drop, Sell, Buy, TakeAll; the powers:

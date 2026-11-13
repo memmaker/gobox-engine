@@ -7,6 +7,7 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game"
 	"image"
 
 	"gobox/input"
@@ -23,15 +24,16 @@ type fullMapUI struct {
 
 // openMap puts the full map up over the 3D view, the cursor on the
 // party; where it is not allowed the engine says "Not Here".
-func (p *Presenter) openMap(v front.View) {
-	if p.eng == nil || !v.Exploring || mapBarred(v) {
+func (p *Presenter) openMap() {
+	if p.eng == nil || !p.exploring() || mapBarred(p.automap()) {
 		return
 	}
-	if p.eng.FullMapView(image.Pt(v.X, v.Y), nil) == nil {
-		p.call(func(e front.Game) { e.Refuse("Not Here") })
+	at := squareOf(p.where())
+	if p.eng.FullMapView(at, nil) == nil {
+		p.call(func(e *classicGame) { e.Refuse("Not Here") })
 		return
 	}
-	p.fullMap = &fullMapUI{cursor: image.Pt(v.X, v.Y)}
+	p.fullMap = &fullMapUI{cursor: at}
 }
 
 // fm is the full map as the engine draws it; nil with none up.
@@ -39,7 +41,7 @@ func (p *Presenter) fm() *front.FullMap {
 	if p.fullMap == nil || p.eng == nil {
 		return nil
 	}
-	return layFullMap(p.eng.FullMapView(p.fullMap.cursor, p.fullMap.label), p.shownView.Cells)
+	return layFullMap(p.eng.FullMapView(p.fullMap.cursor, p.fullMap.label), p.ui().grid)
 }
 
 // Full map geometry: 16x16 squares as large as the page's height under
@@ -88,7 +90,7 @@ func (p *Presenter) mapPick(i int) {
 	c := f.cursor
 	switch m.Commands[i].Key {
 	case 'W':
-		p.call(func(e front.Game) {
+		p.call(func(e *classicGame) {
 			if e.WalkTo(c.X, c.Y) {
 				p.fullMap = nil
 			}
@@ -97,7 +99,7 @@ func (p *Presenter) mapPick(i int) {
 		s := ""
 		f.label, f.cur = &s, 0
 	case 'R':
-		p.call(func(e front.Game) { e.Unmark(c.X, c.Y) })
+		p.call(func(e *classicGame) { e.Unmark(c.X, c.Y) })
 	}
 }
 
@@ -115,7 +117,7 @@ func (p *Presenter) mapKey(k uint16) {
 		switch done, cancel, _ := editKey(k, f.label, &f.cur, 0x20, false); {
 		case done:
 			c, s := f.cursor, *f.label
-			p.call(func(e front.Game) { e.Mark(c.X, c.Y, s) })
+			p.call(func(e *classicGame) { e.Mark(c.X, c.Y, s) })
 			f.label = nil
 		case cancel:
 			f.label = nil
@@ -178,5 +180,5 @@ func (p *Presenter) mapMouse(cx, cy int, in, left, right bool) {
 	}
 }
 
-// mapBarred: v's area is marked unmappable and the No Map Zones option is on.
-func mapBarred(v front.View) bool { return v.NoMap && Host.NoMapZones }
+// mapBarred: a's area is marked unmappable and the No Map Zones option is on.
+func mapBarred(a game.Automap) bool { return a.NoMap && Host.NoMapZones }

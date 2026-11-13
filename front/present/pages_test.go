@@ -2,8 +2,9 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"image"
-	"image/color"
 	"slices"
 	"testing"
 )
@@ -11,12 +12,10 @@ import (
 // The spell lists' title replaces the sheet's name row (SpellList: a box
 // over row 1, the name's, the title after it), and the PNG portrait goes.
 func TestSheetSpellsTitle(t *testing.T) {
-	var ink [16]color.RGBA
-	for i := range ink {
-		ink[i] = col(i)
-	}
-	v := front.View{Cells: image.Pt(40, 25), Ink: ink, SheetPage: &front.SheetPage{Name: "Mirelle", NameColour: inkCyan, Spells: "Spells in Memory"}}
-	c := screenPage(v)
+	p := partyOn(game.Member{Name: "Mirelle", Okay: true, Page: &game.SheetPage{Name: "Mirelle", Spells: "Spells in Memory"}})
+	p.eng.r.sheet = 0
+	ink := p.ink()
+	c := p.screenPage()
 	got := c.lines()[1]
 	want := []front.PaneRun{{X: 1, Text: "Mirelle's", Fg: ink[inkCyan], Bg: ink[0], Upcase: true}, {X: 11, Text: "Spells in Memory", Fg: ink[inkGreen], Bg: ink[0], Upcase: true}}
 	if !slices.Equal(got, want) {
@@ -45,8 +44,8 @@ func TestNearestSpot(t *testing.T) {
 // The after-combat page is a screen of its own: drawn with no page under
 // it (no classic page, no engine pictures).
 func TestResultsOwnScreen(t *testing.T) {
-	v := front.View{Cells: image.Pt(40, 25), Results: &front.Results{Outcome: "The party has won."}}
-	if (&Presenter{}).ownLayout(v) {
+	p, _ := presenterOn(play.Scene{Kind: play.SceneResults, Results: &game.Results{Outcome: "The party has won."}})
+	if p.ownLayout() {
 		t.Fatal("the after-combat page still lays out on the classic page")
 	}
 }

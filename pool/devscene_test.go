@@ -361,6 +361,7 @@ func devLootOn(t *testing.T, e *Engine) *Engine {
 	e.Start(e.Play)
 	for range 40 {
 		if _, ok := e.build().(play.Looting); ok {
+			seeLoot(t, e)
 			return e
 		}
 		e.Step()
@@ -534,6 +535,16 @@ func TestStepNoRepeat(t *testing.T) {
 			if i > 0 && out.Events[i-1] == ev {
 				t.Fatalf("%q twice with nothing between", n.Text)
 			}
+		}
+	}
+}
+
+// seeLoot passes the treasure's "You found some loot!" (Looting.Announce).
+func seeLoot(t *testing.T, e *Engine) {
+	t.Helper()
+	if l, ok := e.build().(play.Looting); ok && l.Announce {
+		if _, err := e.doNow(play.Continue{}); err != nil {
+			t.Fatal("Continue on the found treasure:", err)
 		}
 	}
 }

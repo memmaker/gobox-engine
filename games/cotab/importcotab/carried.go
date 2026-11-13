@@ -50,7 +50,7 @@ const DungeonTiles = 0x18 + 1
 // Camp's rests (CampRest), as por numbers them (present.Data).
 const (
 	RestFix   = iota // Fix: the clerics heal the party
-	RestWait         // Rest: the original's rest menu (Days, Hours ..., View.Ask)
+	RestWait         // Rest: the original's rest menu (Days, Hours ..., the Ask)
 	RestUntil        // until day or night: not the original's, refused
 )
 

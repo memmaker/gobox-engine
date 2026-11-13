@@ -13,7 +13,7 @@ import (
 )
 
 // Questions (docs/engine-redesign.md, M4): an instruction or rule that
-// needs the player does not wait. It records what it asks (View.Ask)
+// needs the player does not wait. It records what it asks (the Ask)
 // and how the answer completes it (eclWait), and returns; RunECL then
 // opens it (openAsk), answer completes the instruction on the answering
 // decision, and the VM goes on with the next one. A completion may ask
@@ -114,7 +114,7 @@ type animSave struct {
 	under *animSave
 }
 
-// openAsk opens the pending ask (View.Ask).
+// openAsk opens the pending ask (the Ask).
 func (e *Engine) openAsk() {
 	w := e.eclWait
 	w.save = &animSave{anim: e.animInput, last: e.pic.last}
@@ -203,7 +203,7 @@ func (e *Engine) showAsk() {
 	e.animInput = w.anim
 }
 
-// listLines are the lines of list as View.Ask shows them.
+// listLines are the lines of list as the Ask shows them.
 func listLines(list []*ListNode) []game.Line {
 	l := make([]game.Line, len(list))
 	for i, n := range list {

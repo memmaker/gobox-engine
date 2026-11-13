@@ -13,7 +13,7 @@ func (e *Engine) ClearScreen() {
 	e.clearPage()
 }
 
-// CharacterSheet = ovr20:004A: the selected member's sheet (View.SheetPage,
+// CharacterSheet = ovr20:004A: the selected member's sheet (SheetPage,
 // laid out by the presenter).
 func (e *Engine) CharacterSheet() {
 	id := e.selected()
@@ -144,7 +144,7 @@ func (e *Engine) identifyItem(id core.CharID, h core.ItemHandle) {
 			e.say("I can't tell anything new about your " + card.Name)
 			return
 		}
-		x := e.invItem(id, h) // (extra) the reveal in a pop-up of its own (View.Shop.Identified)
+		x := e.invItem(id, h) // (extra) the reveal in a pop-up of its own (Shop.Identified)
 		x.Look = card.LookPlain
 		e.snap.identified, e.snap.identN, e.snap.identIt = x, e.snap.identN+1, h
 		e.say("It looks like some sort of " + card.Name)

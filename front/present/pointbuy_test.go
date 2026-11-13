@@ -10,31 +10,20 @@ import (
 
 	"gobox/dax"
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 	"gobox/input"
 	"gobox/ui/fonts"
 )
 
-// pointsGame is the engine as the point buy asks it: the scores it was handed.
-type pointsGame struct {
-	front.Game
-	scores  []int
-	refused string
-	cr      *front.Creation
-}
-
-func (g *pointsGame) CreateCharacter() error        { return nil }
-func (g *pointsGame) PointBuy(s []int) error        { g.scores = s; return nil }
-func (g *pointsGame) Refuse(s string)               { g.refused = s }
-func (g *pointsGame) CreationView() *front.Creation { return g.cr }
-func (g *pointsGame) Resets() int                   { return 0 }
-
-func buyView(names []string) front.View {
-	cr := &front.Creation{StatNames: names, Name: front.CellRect{X1: 1, Y1: 1, X2: 4, Y2: 1}}
-	for i := range names {
-		cr.Stats = append(cr.Stats, front.CellRect{X1: 1, Y1: 7 + i, X2: 8, Y2: 7 + i})
+// buyDraft is a draft whose sheet has the abilities names (nil: STR .. CHA).
+func buyDraft(names []string) *play.Draft {
+	d := &play.Draft{}
+	for _, n := range names {
+		d.Stats = append(d.Stats, game.StatDef{Label: n})
 	}
-	return front.View{Creation: cr}
+	return d
 }
 
 // A new character is asked Roll or Point Buy; the point buy raises and
@@ -49,55 +38,58 @@ func TestPointBuy(t *testing.T) {
 		{"br", []string{"STR", "DEX", "CON", "INT", "WIS", "CHA", "TECH"}, brBits},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			g := &pointsGame{}
-			p := &Presenter{}
-			p.SetEngine(g)
+			p, f := draftOn(buyDraft(tc.stats))
+			g := p.eng
 			dst := gpu.NewImage(640, 400)
 			defer dst.Deallocate()
 			bits := tc.font()
 			gl := func(ch byte) [8]byte { r, _ := fonts.Glyph(bits, ch, true); return r }
 			note := Note{Glyph: gl, Font: func(ch byte, text bool) [8]byte { r, _ := fonts.Glyph(bits, ch, text); return r }}
-			v := buyView(tc.stats)
-			g.cr = v.Creation
 			p.send(front.ActCreate, 0)
-			p.Draw(dst, note, v)
+			p.Draw(dst, note)
 			if p.scr.sub != scrHow {
 				t.Fatalf("sub %d, want the Roll or Point Buy question", p.scr.sub)
 			}
-			p.Key('P', v)
+			p.Key('P')
 			if p.scr.sub != scrBuy || len(p.scr.buy) != len(tc.stats) {
 				t.Fatalf("sub %d buy %v", p.scr.sub, p.scr.buy)
 			}
 			right, left, down := keyOf(input.Right), keyOf(input.Left), keyOf(input.Down)
 			for range 12 { // STR to 18 (16 points), no further
-				p.Key(right, v)
+				p.Key(right)
 			}
-			p.Key(down, v)
+			p.Key(down)
 			for range 8 { // INT to 16 (10), back to 15 (8)
-				p.Key(right, v)
+				p.Key(right)
 			}
-			p.Key(left, v)
-			p.Key(down, v)
+			p.Key(left)
+			p.Key(down)
 			for range 10 { // the next to 14: 6 left over were 8, 2 more stop it at 13 (5)... budget 32-24=8: 14 costs 6, 15 costs 8
-				p.Key(right, v)
+				p.Key(right)
 			}
 			want := append([]int{18, 15, 15}, slices.Repeat([]int{8}, len(tc.stats)-3)...)
 			if !slices.Equal(p.scr.buy, want) {
 				t.Fatalf("bought %v, want %v", p.scr.buy, want)
 			}
-			p.Key('-', v) // Lower: the row last highlighted
+			p.Key('-') // Lower: the row last highlighted
 			want[2] = 14
 			if !slices.Equal(p.scr.buy, want) {
 				t.Fatalf("after Lower %v, want %v", p.scr.buy, want)
 			}
-			p.Draw(dst, note, v)
+			p.Draw(dst, note)
 			saveBuyPNG(t, dst, tc.name)
-			p.Key('D', v)
-			for _, f := range p.Calls() {
-				f(g)
+			p.Key('D')
+			for _, c := range p.Calls() {
+				c(g)
 			}
-			if !slices.Equal(g.scores, want) || g.refused != "" {
-				t.Fatalf("game got %v (%q), want %v", g.scores, g.refused, want)
+			var got []int
+			for _, a := range f.sent {
+				if b, ok := a.(play.PointBuy); ok {
+					got = b.Scores
+				}
+			}
+			if !slices.Equal(got, want) || g.r.toast.Text != "" {
+				t.Fatalf("game got %v (%q), want %v", got, g.r.toast.Text, want)
 			}
 		})
 	}

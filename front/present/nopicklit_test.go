@@ -3,7 +3,8 @@ package present
 import (
 	"testing"
 
-	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -15,9 +16,8 @@ func TestNoPickNoHighlight(t *testing.T) {
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	blue := func(noPick bool) (n int) {
 		dst.Clear()
-		v := front.View{Ask: &front.Ask{Kind: front.AskMenu, NoPick: noPick}}
-		p := &Presenter{}
-		p.asking(v, func() { p.drawMenu(dst, full, "Take", []string{"Yes", "No"}, []byte{'Y', 'N'}, nil, 0, 1, 320, 100) })
+		p := askedOn(&play.Ask{Kind: game.Choice, NoPick: noPick})
+		p.asking(func() { p.drawMenu(dst, full, "Take", []string{"Yes", "No"}, []byte{'Y', 'N'}, nil, 0, 1, 320, 100) })
 		px := make([]byte, 4*640*400)
 		dst.ReadPixels(px)
 		s := menuTheme.Sel

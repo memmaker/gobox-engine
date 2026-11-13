@@ -1,7 +1,7 @@
 package pool
 
 // Lists (ovr26:0D9A, remade): a script's list (askList) publishes the
-// lines as View.Ask (AskList); scrolling, paging and the highlight are the
+// lines as the Ask (AskList); scrolling, paging and the highlight are the
 // presenter's.
 
 // ListNode is a line of a list: header lines (Flag non-zero) and Dim ones

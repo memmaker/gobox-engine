@@ -80,7 +80,7 @@ func (e *Engine) paladinCures(cID core.CharID) bool {
 
 // nameColour = 00BA:1816 displayName's colour: red when not okay,
 // yellow for monsters, cyan otherwise. (00BA:08EF displayAC and 00BA:0973
-// displayHP are the presenter's: the roster, View.Party.)
+// displayHP are the presenter's: the roster, Party.)
 func (e *Engine) nameColour(id core.CharID) int {
 	switch {
 	case !bool(e.fact(id, core.FactActive).(core.Yes)):

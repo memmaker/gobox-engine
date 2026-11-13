@@ -11,6 +11,7 @@ import (
 	"gobox/dax"
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/input"
 	"gobox/ui/fonts"
 )
@@ -31,21 +32,40 @@ func testFight() *game.SpaceFight {
 	}
 }
 
-func crewMenu() *front.Ask {
-	a := &front.Ask{Kind: front.AskMenu, Break: 5}
+func crewMenu() *play.Ask {
+	a := &play.Ask{Kind: game.Choice, Break: 5}
 	for _, s := range []string{"Fire", "Target", "Load", "Quit", "View", "Command", "Aid", "Sensors"} {
-		a.Commands = append(a.Commands, front.Command{Text: s, Key: s[0]})
+		a.Options = append(a.Options, play.Option{Label: s, Key: rune(s[0])})
 	}
 	return a
 }
 
-func fightPage(p *Presenter, v front.View) *cellPage {
-	c := newCellPage(v)
-	c.spaceFight(sfOf(v), p.sfState(v, sfOf(v)), v.Ask, v.Screen)
+// sfView is a fight screen up and the question on its bar.
+type sfView struct {
+	Screen *game.Screen
+	Ask    *play.Ask
+}
+
+// show puts v up on p: its screen a moment's, its question the game's.
+func (v sfView) show(p *Presenter) *Presenter {
+	if p.eng == nil {
+		g, _ := playGame(play.Exploring{})
+		p.SetEngine(g)
+	}
+	p.played = &frame{Moment: Moment{Report: play.Report{Screen: v.Screen}}}
+	p.eng.r.refusalAsk = v.Ask
+	return p
+}
+
+// fightPage is p's page with v up.
+func fightPage(p *Presenter, v sfView) *cellPage {
+	v.show(p)
+	c := newCellPage(image.Point{}, p.ink(), nil)
+	c.spaceFight(p.sfOf(), p.sfState(p.sfOf()), p.askUp(), p.gameScreen())
 	return c
 }
 
-func at(t *testing.T, c *cellPage, x, y int, s string, fg, bg int) {
+func cellAt(t *testing.T, c *cellPage, x, y int, s string, fg, bg int) {
 	t.Helper()
 	for i := 0; i < len(s); i++ {
 		k := c.cells[y][x+i]
@@ -57,49 +77,49 @@ func at(t *testing.T, c *cellPage, x, y int, s string, fg, bg int) {
 
 func TestSpaceFightLayout(t *testing.T) {
 	p := &Presenter{}
-	v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: testFight()}, Ask: crewMenu()}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: testFight()}, Ask: crewMenu()}
 	c := fightPage(p, v)
-	at(t, c, 1, 1, "Closing    ", 12, 0)
-	at(t, c, 1, 2, "Range: 3", 12, 0)
-	at(t, c, 29, 1, "Hull:  100", 11, 8)
-	at(t, c, 29, 3, "Sens:    0", 12, 8) // zero: red
-	at(t, c, 10, 12, "    0", 12, 0)
-	at(t, c, 10, 13, "   20", 10, 0)
-	at(t, c, 29, 14, "Weapons:", 10, 8)
-	at(t, c, 29, 15, "LASER", 10, 8)
-	at(t, c, 37, 15, " 2", 10, 8)
-	at(t, c, 29, 16, "MISSILE", 14, 8) // a mount down
-	at(t, c, 37, 16, " 1", 14, 8)
+	cellAt(t, c, 1, 1, "Closing    ", 12, 0)
+	cellAt(t, c, 1, 2, "Range: 3", 12, 0)
+	cellAt(t, c, 29, 1, "Hull:  100", 11, 8)
+	cellAt(t, c, 29, 3, "Sens:    0", 12, 8) // zero: red
+	cellAt(t, c, 10, 12, "    0", 12, 0)
+	cellAt(t, c, 10, 13, "   20", 10, 0)
+	cellAt(t, c, 29, 14, "Weapons:", 10, 8)
+	cellAt(t, c, 29, 15, "LASER", 10, 8)
+	cellAt(t, c, 37, 15, " 2", 10, 8)
+	cellAt(t, c, 29, 16, "MISSILE", 14, 8) // a mount down
+	cellAt(t, c, 37, 16, " 1", 14, 8)
 	// the first log line wraps at the last space before column 37: 3 rows + 2 + the prompt padded = 2 pages
-	sh := p.sfState(v, sfOf(v))
+	sh := p.sfState(p.sfOf())
 	if len(sh.Pages) != 2 || !sh.More {
 		t.Fatalf("pages %d more %v, want 2 and a pause", len(sh.Pages), sh.More)
 	}
-	at(t, c, 1, 19, "BUCK fires lasers and hits for 12", 11, 0)
-	at(t, c, 1, 20, "points of damage on the pirate ship!", 11, 0)
-	at(t, c, 1, 21, "The pirate fires missiles and misses.", 14, 0)
-	at(t, c, 0, 24, sfPause, 15, 0)
+	cellAt(t, c, 1, 19, "BUCK fires lasers and hits for 12", 11, 0)
+	cellAt(t, c, 1, 20, "points of damage on the pirate ship!", 11, 0)
+	cellAt(t, c, 1, 21, "The pirate fires missiles and misses.", 14, 0)
+	cellAt(t, c, 0, 24, sfPause, 15, 0)
 	if c.cells[23][0].set && c.cells[23][0].ch != ' ' {
 		t.Fatal("the bar is up during the pause")
 	}
 	// a key: the next page, the prompt on row 21, the bar on rows 23-24
-	if !p.sfKey('x', v) {
+	if !p.sfKey('x') {
 		t.Fatal("the pause took no key")
 	}
 	c = fightPage(p, v)
-	at(t, c, 1, 19, "WILMA is dead!!", 12, 0)
-	at(t, c, 1, 21, "what does BUCK want to do?", 13, 0)
-	at(t, c, 0, 23, "Fire", 0, 15) // the highlight
-	at(t, c, 5, 23, "T", 15, 0)
-	at(t, c, 6, 23, "arget", 10, 0)
-	at(t, c, 0, 24, "C", 15, 0)
-	if p.sfKey(keyOf(input.Down), v); p.sf.sel != 5 {
+	cellAt(t, c, 1, 19, "WILMA is dead!!", 12, 0)
+	cellAt(t, c, 1, 21, "what does BUCK want to do?", 13, 0)
+	cellAt(t, c, 0, 23, "Fire", 0, 15) // the highlight
+	cellAt(t, c, 5, 23, "T", 15, 0)
+	cellAt(t, c, 6, 23, "arget", 10, 0)
+	cellAt(t, c, 0, 24, "C", 15, 0)
+	if p.sfKey(keyOf(input.Down)); p.sf.sel != 5 {
 		t.Fatalf("Down: highlight %d, want 5 (Command)", p.sf.sel)
 	}
 	c = fightPage(p, v)
-	at(t, c, 0, 24, "Command", 0, 15)
-	p.sfKey(keyOf(input.Esc), v)
-	p.sfKey('a', v)
+	cellAt(t, c, 0, 24, "Command", 0, 15)
+	p.sfKey(keyOf(input.Esc))
+	p.sfKey('a')
 	if n := len(p.inv.acts); n != 2 || p.inv.acts[0] != (front.Action{Kind: front.ActClose}) || p.inv.acts[1] != (front.Action{Kind: front.ActChoose, N: 6}) {
 		t.Fatalf("acts %v, want Esc ActClose and A ActChoose 6", p.inv.acts)
 	}
@@ -107,15 +127,15 @@ func TestSpaceFightLayout(t *testing.T) {
 	f := testFight()
 	f.Log = append(f.Log, game.Message{Text: "a"}, game.Message{Text: "b"})
 	v.Screen.SpaceFight, v.Ask = f, nil
-	if sh := p.sfState(v, f); sh.Page != 1 || !sh.More {
+	if sh := p.sfState(f); sh.Page != 1 || !sh.More {
 		t.Fatalf("grown log: page %d more %v", sh.Page, sh.More)
 	}
 	// Sensors out: the foe's panel is the notice alone
 	f = testFight()
 	f.SensorsOut = true
-	v = front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}}
+	v = sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}}
 	c = fightPage(&Presenter{}, v)
-	at(t, c, 4, 14, "Sensors Destroyed", 12, 8)
+	cellAt(t, c, 4, 14, "Sensors Destroyed", 12, 8)
 	if c.cells[12][10].set {
 		t.Fatal("foe figures shown with the sensors out")
 	}
@@ -139,7 +159,7 @@ func TestSfWrapPad(t *testing.T) {
 
 // savePNG renders the page (with the game's art when BR2's data is there)
 // to SPACEFIGHT_PNG.
-func savePNG(t *testing.T, _ *cellPage, v front.View) {
+func savePNG(t *testing.T, _ *cellPage, v sfView) {
 	out := os.Getenv("SPACEFIGHT_PNG")
 	if out == "" {
 		return
@@ -155,12 +175,12 @@ func savePNG(t *testing.T, _ *cellPage, v front.View) {
 	font := func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(bits, ch, text); return g } // as fontmenu.go hands the page the game's font
 	for i, f := range []*game.SpaceFight{testFight(), v.Screen.SpaceFight} {
 		f.Blink = game.Blink{}
-		v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: crewMenu()}
+		v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: crewMenu()}
 		p := &Presenter{}
 		p.sf.page = 9
 		c := fightPage(p, v)
 		m := image.NewRGBA(image.Rect(0, 0, 320, 200))
-		c.draw(m, v, Note{Font: font})
+		c.draw(m, (&Presenter{}).windowBorder(), image.Point{}, Note{Font: font})
 		name := strings.TrimSuffix(out, ".png") + string(rune('0'+i)) + ".png"
 		fh, _ := os.Create(name)
 		png.Encode(fh, m)

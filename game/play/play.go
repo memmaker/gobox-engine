@@ -20,6 +20,7 @@ import (
 // Game is what every game implements.
 type Game interface {
 	State() State               // what is true now: built once per change (Do, Load), shared; read-only
+	Version() uint64            // the held State's build number: it changes iff State() changes (the front draws from a kept State until it does)
 	Do(Action) (Outcome, error) // the only way anything changes; error: refused, nothing changed
 	Save() ([]byte, error)      // the whole game, for a slot file gobox keeps
 	Load([]byte) error          // back to what Save gave; error: refused, nothing changed
@@ -172,9 +173,10 @@ type Draft struct {
 // Exploring: the party walks a map (dungeon, town or wilderness).
 type Exploring struct {
 	Common
-	Map  ExploreMap
-	Day  bool       // daylight as the rules see it (the sky they paint)
-	Door *game.Door // a door the party stands at, with the ways through (TryDoor); nil none
+	Map      ExploreMap
+	Day      bool       // daylight as the rules see it (the sky they paint)
+	Interact bool       // the square's event waits for the player (Explicit Interactions): ActInteract runs it
+	Door     *game.Door // a door the party stands at, with the ways through (TryDoor); nil none
 }
 
 // ExploreMap is what gobox needs to walk, draw the 3D view and the
@@ -317,9 +319,10 @@ type Trading struct {
 // Looting: treasure lies before the party.
 type Looting struct {
 	Common
-	Items  []game.Item
-	Money  map[string]int
-	Status bool // LootStatus is offered (the ship sheet over the fight)
+	Items    []game.Item
+	Money    map[string]int
+	Status   bool // LootStatus is offered (the ship sheet over the fight)
+	Announce bool // "You found some loot!" is up over the treasure: Continue opens it (the only action allowed)
 }
 
 // Camping: the party has made camp (rest, memorize, scribe, fix, order).

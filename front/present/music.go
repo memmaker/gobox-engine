@@ -6,7 +6,6 @@ package present
 
 import (
 	"errors"
-	"gobox/front/classic"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
@@ -28,7 +27,7 @@ var musicTriggers = []string{
 
 // musicChain is the triggers for s, most specific first: the place's own
 // (Where.Music) before the generic.
-func musicChain(s classic.MusicCue) []string {
+func musicChain(s MusicCue) []string {
 	place := s.Where.Music
 	kind := "exploring"
 	switch m := s.Where.Mode; {
@@ -128,8 +127,9 @@ func newOwnMusic(dir string, places []string) (*ownMusic, error) {
 }
 
 // Want plays the first trigger of chain with files, a song of the trigger
-// playing going on; none: silence, the game's songs heard again.
-func (m *ownMusic) Want(chain []string) {
+// playing going on; none: silence, the game's songs heard again. It is the
+// trigger now playing ("": none).
+func (m *ownMusic) Want(chain []string) string {
 	t := ""
 	for _, c := range chain {
 		if len(m.pools[c]) > 0 {
@@ -139,11 +139,11 @@ func (m *ownMusic) Want(chain []string) {
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	if t == m.trig {
-		return
+	if t != m.trig {
+		m.trig = t
+		m.next()
 	}
-	m.trig = t
-	m.next()
+	return t
 }
 
 // next starts a random song of the trigger's pool, another than the last when it can (mu held).

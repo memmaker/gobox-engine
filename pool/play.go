@@ -40,10 +40,22 @@ func (e *Engine) State() play.State {
 	return e.ps
 }
 
+// Version is the build number of the State held: it changes whenever State
+// is built anew (rebuild), and only then.
+func (e *Engine) Version() uint64 {
+	if e.ps == nil {
+		e.rebuild()
+	}
+	return uint64(e.StateBuilds)
+}
+
 // rebuild builds State anew: every call that changes the engine (Do, Load,
 // LoadSlot, Start, Step) ends with it.
 func (e *Engine) rebuild() {
 	e.ps = e.build()
+	if _, ok := e.ps.(play.Looting); !ok { // a new treasure is announced again
+		e.lootSeen = false
+	}
 	e.StateBuilds++
 }
 
@@ -96,7 +108,7 @@ func (e *Engine) build() play.State {
 		return a
 	case game.ModeExplore:
 		x := play.Exploring{Common: cm, Map: play.ExploreMap{Automap: s.Map, Walk: e.walkMap(), Overland: e.viewMode != 1}, Door: s.Door,
-			Day: s.Flags != nil && s.Flags.Day} // the sky drawView paints, not the clock
+			Day: s.Flags != nil && s.Flags.Day, Interact: s.Flags != nil && s.Flags.Interact} // the sky drawView paints, not the clock
 		if w := walls(s); w != nil {
 			x.Map.Walls = *w
 		}
@@ -123,6 +135,7 @@ func (e *Engine) build() play.State {
 		l := play.Looting{Common: cm}
 		if s.Loot != nil {
 			l.Items, l.Money, l.Status = s.Loot.Items, s.Loot.Money, s.Loot.Status
+			l.Announce = !e.lootSeen
 		}
 		return l
 	case game.ModeCamp:
@@ -534,6 +547,10 @@ func (e *Engine) allowed(s facts) play.Allowed {
 		}
 		items()
 	case game.ModeLoot:
+		if s.Loot != nil && !e.lootSeen { // "You found some loot!" first: Continue opens the treasure
+			add(play.Continue{})
+			return a
+		}
 		add(play.Leave{}, play.Take{Item: core.NoItem}, play.Take{Item: core.NoItem, All: true})
 		if s.Loot != nil {
 			for _, g := range s.Loot.Items {
@@ -667,6 +684,10 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 	}
 	if !allows(al, a) {
 		return play.Outcome{}, errNotAllowed
+	}
+	if l, ok := st.(play.Looting); ok && l.Announce { // allows: Continue only
+		e.lootSeen = true
+		return play.Outcome{}, nil
 	}
 	var out play.Outcome
 	native := func(f func() error) error { // a play action the engine takes itself, run on to its next wait

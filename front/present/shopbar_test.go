@@ -4,7 +4,6 @@ import (
 	"gobox/core"
 	"testing"
 
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -14,6 +13,8 @@ type shopPlay struct {
 	st   play.State
 	sent []play.Action
 }
+
+func (s *shopPlay) Version() uint64 { return fresh() }
 
 func (s *shopPlay) State() play.State { return s.st }
 func (s *shopPlay) Do(a play.Action) (play.Outcome, error) {
@@ -32,7 +33,7 @@ func TestShopBarReachesGame(t *testing.T) {
 		{"BP", play.PoolCoins{Member: 1}}, {"BEE", play.Leave{}}} {
 		sp := &shopPlay{st: play.Trading{Common: play.Common{Party: []game.Member{{Name: "A"}, {Name: "B"}}, Selected: 1,
 			Allowed: play.Allowed{Plain: []play.Action{play.PoolCoins{Member: 1}, play.Take{}, play.LootShare{}, play.Leave{}}}}}}
-		f := &Front{Game: classic.NewGame(sp, game.Data{}), started: true}
+		f := &Front{Game: &classicGame{Game: NewGame(sp, game.Data{})}, started: true}
 		f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
 		f.P.SetEngine(f.Game)
 		dst := gpu.NewImage(640, 400)

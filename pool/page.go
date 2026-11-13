@@ -223,7 +223,7 @@ func (e *Engine) layerPicture(l *layer) Picture {
 	return s
 }
 
-// ink is the text colours (EGA 0..15) in the palette now (View.Ink).
+// ink is the text colours (EGA 0..15) in the palette now (Ink).
 func (e *Engine) ink() (k [16]color.RGBA) {
 	for i := range k {
 		k[i] = e.pal.RGBA(byte(i))

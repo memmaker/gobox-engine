@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gobox/blobber"
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 	"gobox/gpu/vector"
 	"gobox/ui"
@@ -21,7 +22,7 @@ import (
 
 // mapRect is where the map goes: a square in the top right corner, a card
 // gap from the edges, mapPx on a side.
-func mapRect(dst *gpu.Image, _ int) image.Rectangle {
+func mapRect(dst *gpu.Image) image.Rectangle {
 	b := dst.Bounds()
 	gap, side := cardGap*cardBase(dst), mapPx(dst)
 	return image.Rect(b.Dx()-gap-side, gap, b.Dx()-gap, gap+side)
@@ -40,10 +41,11 @@ func mapPx(dst *gpu.Image) int {
 // fitScale is ui.FitScale: unit (K) times a whole size step that fits.
 func fitScale(unit, s float64, ok func(k float64) bool) float64 { return ui.FitScale(unit, s, ok) }
 
-// drawMap shows the map as the full map draws it (View.Map) in mapRect.
-func (p *Presenter) drawMap(dst *gpu.Image, v front.View, font func(byte, bool) [8]byte) {
+// drawMap shows the map as the full map draws it (the state's automap) in mapRect, in ink.
+func (p *Presenter) drawMap(dst *gpu.Image, ink [16]color.RGBA, font func(byte, bool) [8]byte) {
 	p.mapAt = image.Rectangle{}
-	if v.Map == nil || Host.MapOff || mapBarred(v) {
+	am, m := p.minimap()
+	if m == nil || Host.MapOff || mapBarred(am) {
 		return
 	}
 	if p.mapImg == nil {
@@ -53,12 +55,11 @@ func (p *Presenter) drawMap(dst *gpu.Image, v front.View, font func(byte, bool) 
 	if p.fonts != nil {
 		cur = p.fonts.Cur
 	}
-	if p.mapSrc == nil || *v.Map != *p.mapSrc || v.Ink != p.mapInk || cur != p.mapFont { // the map changed: upload it once (not every View, which builds a new one)
-		p.mapImg.WritePixels(mapImage(v.Map, mapCell, v.Ink, font).Pix)
-		m := *v.Map
-		p.mapSrc, p.mapInk, p.mapFont = &m, v.Ink, cur
+	if m != p.mapSrc || ink != p.mapInk || cur != p.mapFont { // the map changed: upload it once (not every frame)
+		p.mapImg.WritePixels(mapImage(m, mapCell, ink, font).Pix)
+		p.mapSrc, p.mapInk, p.mapFont = m, ink, cur
 	}
-	r := mapRect(dst, len(v.Party))
+	r := mapRect(dst)
 	p.mapAt = r
 	a := float32(Host.MapAlpha) // the opacity slider (Esc, Options)
 	vector.StrokeRect(dst, float32(r.Min.X)+.5, float32(r.Min.Y)+.5, float32(r.Dx())-1, float32(r.Dy())-1, 1, color.NRGBA{0x80, 0x80, 0x80, uint8(255 * a)})
@@ -71,34 +72,52 @@ func (p *Presenter) drawMap(dst *gpu.Image, v front.View, font func(byte, bool) 
 	dst.DrawImage(p.mapImg, op)
 }
 
-// scene is the remastered map of the area v shows, or nil for an area
+// scene is the remastered map of the area the state shows, or nil for an area
 // without one (logged once: there is no other view of it).
-func (p *Presenter) scene(v front.View) *blobber.Scene {
-	if v.Walls != nil {
-		p.behind = p.wallScene(v.Walls)
-		return p.behind
-	}
-	if _, ok := areaMaps[v.Area]; !ok && v.Walls == nil && !v.Exploring { // no 3D view: no map to look up
+func (p *Presenter) scene() *blobber.Scene {
+	if p.eng == nil {
 		return nil
 	}
-	p.behind = p.sceneNamed(sceneName(v))
+	if w := p.walls(); w != nil {
+		p.behind = p.wallScene(w, p.eng.art())
+		return p.behind
+	}
+	if _, ok := areaMaps[p.areaID()]; !ok && !p.exploring() { // no 3D view: no map to look up
+		return nil
+	}
+	p.behind = p.sceneNamed(p.sceneName())
 	return p.behind
 }
 
-// sceneName names the scene v shows: the rules' map's (View.Walls), or the remastered map's.
-func sceneName(v front.View) string {
-	if v.Walls != nil {
-		return "walls:" + v.Walls.Key
-	}
-	if name, ok := areaMaps[v.Area]; ok {
-		return name
-	}
-	return fmt.Sprintf("area%d", v.Area)
+// areaID is the GEO block the party's area is drawn from.
+func (p *Presenter) areaID() front.AreaID {
+	n, _ := strconv.Atoi(p.where().Area)
+	return front.AreaID(n)
 }
 
-// wallScene is the scene of the rules' own map w: a face and a thin wall on
+// sceneName names the scene the state shows: the rules' map's (Walls), or the remastered map's.
+func (p *Presenter) sceneName() string {
+	if w := p.walls(); w != nil {
+		return "walls:" + w.Key
+	}
+	if name, ok := areaMaps[p.areaID()]; ok {
+		return name
+	}
+	return fmt.Sprintf("area%d", p.areaID())
+}
+
+// wallPic is picture pc of the walls' art as an image (its pixels in the EGA's colours, or the DAX picture it names).
+func wallPic(pc game.Picture) image.Image {
+	fp := pix(pc)
+	if fp.Pix == nil && pc.File != "" {
+		fp = front.Picture{File: pc.File, Block: pc.Block, Frame: pc.Frame}
+	}
+	return picImage(fp, egaInk)
+}
+
+// wallScene is the scene of the rules' own map w (its art from art): a face and a thin wall on
 // every side that holds a wall value, built once a Key.
-func (p *Presenter) wallScene(w *front.Walls) *blobber.Scene {
+func (p *Presenter) wallScene(w *game.Walls, art map[string]game.Picture) *blobber.Scene {
 	p.newView()
 	name := "walls:" + w.Key
 	if sc, ok := p.scenes[name]; ok {
@@ -111,13 +130,17 @@ func (p *Presenter) wallScene(w *front.Walls) *blobber.Scene {
 	}
 	sc := &blobber.Scene{Rows: rows, Faces: map[[3]int][]blobber.FacePart{}, Edges: map[[3]int]bool{},
 		NoMap: map[[3]int]bool{}, Water: map[[2]int]bool{}, Pond: map[[2]int]bool{}, Floor: w.Floor, Ceiling: w.Sky, FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA}
-	if w.Backdrop != nil && !flatsPainted(w) { // the classic picture only where the series lacks the flats
-		sc.Backdrop = w.Backdrop.Img
+	var backdrop image.Image
+	if w.Backdrop != nil {
+		backdrop = wallPic(*w.Backdrop)
+	}
+	if backdrop != nil && !flatsPainted(w, backdrop) { // the classic picture only where the series lacks the flats
+		sc.Backdrop = backdrop
 	}
 	for y, row := range w.Side {
 		for x, sides := range row {
 			for d, n := range sides {
-				tex := p.wallTexture(w, n)
+				tex := p.wallTexture(w, art, n)
 				if tex == "" {
 					continue
 				}
@@ -132,25 +155,29 @@ func (p *Presenter) wallScene(w *front.Walls) *blobber.Scene {
 }
 
 // flatsPainted says whether the view draws its own floor and sky over
-// Backdrop: when either named flat resolves (the other takes the pool's,
-// each on its own), or Backdrop is a flat fill (never shown flat).
-func flatsPainted(w *front.Walls) bool {
-	if _, flat := flatColour(w.Backdrop.Img); flat {
+// the backdrop: when either named flat resolves (the other takes the pool's,
+// each on its own), or the backdrop is a flat fill (never shown flat).
+func flatsPainted(w *game.Walls, backdrop image.Image) bool {
+	if _, flat := flatColour(backdrop); flat {
 		return true
 	}
 	return w.Floor != "" && walls.Has(series, "floor_"+w.Floor) || w.Sky != "" && walls.Has(series, "ceiling_"+w.Sky)
 }
 
 // wallTexture is the texture of wall value n of w: its remastered one from
-// the pool, else its picture under a name of w's own ("": none).
-func (p *Presenter) wallTexture(w *front.Walls, n int) string {
+// the pool, else its picture (art's, under a name of w's own; "": none).
+func (p *Presenter) wallTexture(w *game.Walls, art map[string]game.Picture, n int) string {
 	if n == 0 {
 		return ""
 	}
-	if t := w.Pool[n]; t != "" && walls.Has(series, t) { // decoded on first draw (View.Load)
+	if t := w.Pool[n]; t != "" && walls.Has(series, t) { // decoded on first draw (Load)
 		return t
 	}
-	im := w.Fronts[n]
+	pc, ok := art[w.Fronts[n]]
+	if !ok {
+		return ""
+	}
+	im := wallPic(pc)
 	if im == nil {
 		return ""
 	}
@@ -184,11 +211,11 @@ func (p *Presenter) drawOpen(dst *gpu.Image) {
 	p.view.Draw(dst)
 }
 
-// wallImage is View.Load: a texture of the game's series of the shared pool,
+// wallImage is Load: a texture of the game's series of the shared pool,
 // decoded when first drawn (the maps name their textures; walls.txt is the character table).
 func wallImage(name string) image.Image { return walls.Image(series, name) }
 
-// paintedWalls is View.Painted, from assets/walls/walls.txt: map character, then texture name.
+// paintedWalls is Painted, from assets/walls/walls.txt: map character, then texture name.
 func paintedWalls() map[byte]string {
 	out := map[byte]string{}
 	b, _ := fs.ReadFile(art, "assets/walls/walls.txt")

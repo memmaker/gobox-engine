@@ -1,10 +1,10 @@
 package main
 
 import (
+	"gobox/front/present"
 	"testing"
 
-	"gobox/front"
-	"gobox/front/classic"
+	"gobox/game"
 	"gobox/game/play"
 
 	"por/playpor"
@@ -12,7 +12,7 @@ import (
 )
 
 // TestTourPausesTimed: Rolf's tour (area 0 CityTour) walks itself: each
-// DELAY reaches the presenter as a timed pause (front.AskPause with its Ms),
+// DELAY reaches the presenter as a timed pause (a Continue with its Ms),
 // not a bare story page that waits for a key. play.Question had no Ms, so
 // the pause's time was dropped between pool and the front.
 func TestTourPausesTimed(t *testing.T) {
@@ -23,7 +23,7 @@ func TestTourPausesTimed(t *testing.T) {
 	eng.Cfg.SaveDir = t.TempDir()
 	seed := uint32(7)
 	eng.FixedSeed = &seed
-	g := classic.NewGame(eng, playpor.Data(eng))
+	g := present.NewGame(eng, playpor.Data(eng))
 	g.Open("")
 	for i := 0; i < 5; i++ {
 		g.TitleDone()
@@ -36,17 +36,14 @@ func TestTourPausesTimed(t *testing.T) {
 	}
 	pauses := 0
 	for range 40 { // the greeting's two Approaches, then the walk's first stops
-		v := g.View()
-		if v.Window == front.WinText && len(v.ViewText) == 0 || v.Window == front.WinPicture && len(v.Pictures) == 0 {
-			t.Fatalf("at %d,%d window %v with nothing in it", v.X, v.Y, v.Window)
+		w, pg, a, at := g.Window(), g.Page(), g.Asked(), g.Where()
+		if w == game.WindowText && len(pg.View) == 0 || w == game.WindowPicture && len(pg.Layers) == 0 {
+			t.Fatalf("at %d,%d window %v with nothing in it", at.X, at.Y, w)
 		}
 		switch {
-		case v.Ask == nil:
-			t.Fatalf("at %d,%d nothing asked: a story page waiting for a key", v.X, v.Y)
-		case v.Ask.Kind == front.AskPause:
-			if v.Ask.Ms <= 0 {
-				t.Fatalf("pause of %d ms", v.Ask.Ms)
-			}
+		case a == nil:
+			t.Fatalf("at %d,%d nothing asked: a story page waiting for a key", at.X, at.Y)
+		case a.Kind == game.Continue && a.Ms > 0: // a timed pause
 			pauses++
 			g.Send(play.Continue{})
 		default:

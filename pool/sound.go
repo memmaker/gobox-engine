@@ -257,7 +257,7 @@ func (e *Engine) SetSound(d audio.Sound) {
 // soundWait(n) unhooks the interrupt.
 func (e *Engine) PlaySound(n int) { e.playSound(n, string(daspFx[n])) }
 
-// cue (extra) is PlaySound(n) out of a fight as an event (View.Events):
+// cue (extra) is PlaySound(n) out of a fight as an event (Events):
 // the presenter plays it when it draws the View that follows
 // (PlayEventSound), as it does a fight's.
 func (e *Engine) cue(c core.SoundCue) {

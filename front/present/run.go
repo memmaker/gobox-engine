@@ -1,4 +1,4 @@
-// run.go: Front, the ready-made front end over a front.Game: the shell
+// run.go: Front, the ready-made front end over a *classicGame: the shell
 // (gobox/app, Config.Front) drives the presenter's screens with it, and the
 // game's rules run on the screens' decisions.
 
@@ -23,7 +23,7 @@ import (
 
 // Front is an app.Front: the presenter's screens over Game.
 type Front struct {
-	Game front.Game
+	Game *classicGame
 	P    Presenter
 
 	// Glyph is a character's pattern in the game's font now, Font a pane
@@ -39,20 +39,16 @@ type Front struct {
 	slot    string     // the save to start from (Open)
 	started bool       // the game has put its first screen up (Act)
 	off     *gpu.Image // Frame's offscreen picture
-	v       front.View // the Game's View, kept while fresh (view)
-	fresh   bool
-	drawn   string   // screenSig of the View last drawn
-	held    []uint16 // keys pressed on a screen not drawn yet: they act once it is (Draw)
+	drawn   string     // screenSig of the View last drawn
+	held    []uint16   // keys pressed on a screen not drawn yet: they act once it is (Draw)
 
-	viewed     bool   // GOBOX_TIMING: a View was logged
-	lastScreen string // and what it showed
 }
 
 // NewFront is a Front over g, with the game's declarative data over what
 // SetData handed in. It plays sound through snd (the game's own driver,
 // one instance shared with its rules), or else through a Driver it builds
 // from Data.Sounds and Data.AmigaSound, on the Tandy, and plays out itself.
-func NewFront(g front.Game, data game.Data, snd ...audio.Sound) *Front {
+func NewFront(g *Game, data game.Data, snd ...audio.Sound) *Front {
 	gpu.Mark("NewFront")
 	gameData(data)
 	f := &Front{}
@@ -62,7 +58,7 @@ func NewFront(g front.Game, data game.Data, snd ...audio.Sound) *Front {
 	}
 	f.chooseFonts(data.Fonts)
 	gpu.Mark("NewFront: fonts")
-	f.Game = WithRules(g, &f.P)
+	f.Game = &classicGame{g, &f.P}
 	if len(snd) > 0 {
 		f.P.Snd = snd[0]
 	} else if d := newDriver(); d != nil {
@@ -102,38 +98,24 @@ func (f *Front) Start(slot string) {
 	f.slot = slot
 }
 
-// view is the Game's View, built once and kept until something may change
-// it (stale): the shell asks for it several times a frame (Screen, Free,
-// Act, Draw), and each build is the rules' whole State.
-func (f *Front) view() front.View {
-	if !f.fresh {
-		if gpu.Timing {
-			defer f.timedView(time.Now())
-		}
-		f.v, f.fresh = f.Game.View(), true
+// Screen names the screen up: it changes whenever a screen opens or
+// closes, or a question pops up (the latch's Screen).
+func (f *Front) Screen() string {
+	p := f.P
+	ask, kind := front.AskKind(-1), game.ScreenKind(0)
+	if a := p.askUp(); a != nil {
+		ask = a.Kind
 	}
-	return f.v
-}
-
-// timedView logs the first View and each change of screen (GOBOX_TIMING).
-func (f *Front) timedView(at time.Time) {
-	v := f.v
-	s := fmt.Sprintf("exploring %v, fight %v, party menu %v, intro %v, page %v, area %d", v.Exploring, v.Battle != nil, v.MainMenu != nil, v.Intro != nil, v.Pane != nil, v.Area)
-	if !f.viewed || s != f.lastScreen {
-		gpu.Mark("View (%.1f ms to build): %s", float64(time.Since(at).Microseconds())/1000, s)
+	if sc := p.gameScreen(); sc != nil {
+		kind = sc.Kind
 	}
-	f.viewed, f.lastScreen = true, s
+	return fmt.Sprint(p.Screens(), kind, p.campUp(), p.templeUp(), p.shopUp(), p.trainingUp() != nil, p.powerPick() != nil,
+		p.readUp() != nil, p.results() != nil, p.flags().Credits, ask, p.mainMenuUp())
 }
-
-// stale drops the kept View: every call that may change the game or the screens makes it.
-func (f *Front) stale() { f.fresh = false }
-
-func (f *Front) Screen() string { return front.ScreenOf(f.view(), f.P.Screens()) }
 func (f *Front) Key(k uint16) {
 	if !f.started { // the game opens (on its -slot) before it takes a key: the first one is not for the screen before
 		f.Act()
 	}
-	defer f.stale()
 	if f.stopWalk() {
 		return
 	}
@@ -141,34 +123,34 @@ func (f *Front) Key(k uint16) {
 		f.held = append(f.held, k)
 		return
 	}
-	if v := f.view(); f.drawn != "" && screenSig(v) != f.drawn { // the screen changed and is not on show yet: the key waits for it, never acting on the one before
+	if f.drawn != "" && f.screenSig() != f.drawn { // the screen changed and is not on show yet: the key waits for it, never acting on the one before
 		f.held = append(f.held, k)
 		return
 	}
-	f.P.Key(k, f.view())
+	f.P.Key(k)
 }
 
 // screenSig is what screen v is, as far as keys go: a key acts on the one drawn.
-func screenSig(v front.View) string {
+func (f *Front) screenSig() string {
 	ask := front.AskKind(-1)
-	if v.Ask != nil {
-		ask = v.Ask.Kind
+	if a := f.P.askUp(); a != nil {
+		ask = a.Kind
 	}
-	turn := v.Battle != nil && v.Battle.Turn != nil
-	return fmt.Sprint(v.Battle != nil, turn, ask, v.Inventory != nil, v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, v.MainMenu != nil, v.Exploring, v.Training != nil)
+	c := f.P.liveCombat()
+	turn := c != nil && c.Turn != nil
+	return fmt.Sprint(c != nil, turn, ask, f.P.inventoryUp(), f.P.sheetShown(), f.P.campUp(), f.P.templeUp(), f.P.shopUp(), f.P.mainMenuUp(), f.P.exploring(), f.P.trainingUp() != nil)
 }
 func (f *Front) Tick() { Scripted = true; f.P.Tick() } // only a script ticks: its clock is the frames
 
 func (f *Front) Options() bool       { return f.P.Options() }
-func (f *Front) UpdateOptions()      { f.stale(); f.P.UpdateOptions() }
-func (f *Front) OptionsPad(k uint16) { f.stale(); f.P.OptionsPad(k) }
+func (f *Front) UpdateOptions()      { f.P.UpdateOptions() }
+func (f *Front) OptionsPad(k uint16) { f.P.OptionsPad(k) }
 func (f *Front) OptionsMouse(x, y int, left, right bool, wheel float64) {
-	f.stale()
 	f.P.OptionsMouse(x, y, left, right, wheel)
 }
 
 func (f *Front) PadKeys() []ui.PadKey  { return PadKeys(f.P.CombatPad()) } // the binding table's buttons (bindings.go)
-func (f *Front) PadStick(x, y float64) { f.stale(); f.P.PadStick(x, y) }
+func (f *Front) PadStick(x, y float64) { f.P.PadStick(x, y) }
 
 // Idle: the front waits for input; nothing goes on with time (a paced
 // fight, rest, story or walk, a timed pause) and the 3D view stands still.
@@ -177,45 +159,40 @@ func (f *Front) Idle() bool {
 	if f.P.Playing() { // the fight's events still play: a script's next key (or its end) waits for them
 		return false
 	}
-	v := f.view()
-	if v.Pace != front.PaceNone && v.Pace != front.PaceAnim || v.Ask != nil && v.Ask.Kind == front.AskPause {
+	if pace := f.P.pacing().Pace; pace != game.PaceNone && pace != game.PaceAnim || f.P.askUp() != nil && f.P.askUp().Kind == front.AskPause {
 		return false
 	}
 	return f.P.view == nil || !f.P.view.Moving()
 }
 
-func (f *Front) Free() bool { return f.P.Free(f.view()) }
+func (f *Front) Free() bool { return f.P.Free() }
 func (f *Front) Flow(held uint16, ready bool) (bool, bool) {
 	return f.P.Flow(held, ready)
 }
-func (f *Front) FreeWalk(in blobber.FreeInput) { f.P.FreeWalk(in, f.view()) }
+func (f *Front) FreeWalk(in blobber.FreeInput) { f.P.FreeWalk(in) }
 
 func (f *Front) InventoryShown() bool { return f.P.InventoryShown() }
 func (f *Front) InventoryMouse(x, y int, down, right bool, wheel float64) {
-	f.stale()
 	f.P.InventoryMouse(x, y, down, right, wheel)
 }
-func (f *Front) Hover(x, y int, down bool) { f.stale(); f.P.Hover(x, y, down) }
+func (f *Front) Hover(x, y int, down bool) { f.P.Hover(x, y, down) }
 
 // Click is a left click at window pixel x, y. On the title or a sequence it
-// is the key Enter is, on the view the front has now (the presenter's
-// shownView lags before the first draw, so early clicks were lost).
+// is the key Enter is.
 func (f *Front) Click(x, y int) bool {
 	if !f.started {
 		f.Act()
 	}
-	if v := f.P.own(f.view()); v.Intro != nil || v.Sequence != nil {
+	if f.P.sync(); f.P.introUp() != nil || f.P.sequenceUp() != nil {
 		f.Key('\r')
 		return true
 	}
-	f.stale()
 	if f.stopWalk() {
 		return true
 	}
 	return f.P.Click(x, y)
 }
 func (f *Front) ViewClick(x, y int) {
-	f.stale()
 	if !f.stopWalk() {
 		f.P.ViewClick(x, y)
 	}
@@ -224,19 +201,17 @@ func (f *Front) ViewClick(x, y int) {
 // stopWalk stops the auto-walk under way (any key or click does; that input
 // acts on nothing else); false: none is.
 func (f *Front) stopWalk() bool {
-	if f.view().Pace != front.PaceWalk {
+	if f.P.pacing().Pace != game.PaceWalk {
 		return false
 	}
-	f.P.call(func(e front.Game) { e.StopWalk() })
+	f.P.call(func(e *classicGame) { e.StopWalk() })
 	return true
 }
 func (f *Front) Mouse(cx, cy int, in, left, right bool, wheel int) {
-	defer f.stale()
-	f.P.Mouse(cx, cy, in, left, right, wheel, f.view())
+	f.P.Mouse(cx, cy, in, left, right, wheel)
 }
 func (f *Front) Drop(path string, cx, cy int, in bool) {
-	defer f.stale()
-	f.P.Drop(path, cx, cy, in, f.view())
+	f.P.Drop(path, cx, cy, in)
 }
 
 // Act runs the game on the screens' decisions (Answer, then Settle, which
@@ -247,20 +222,18 @@ func (f *Front) Act() {
 	if !f.started { // the title, on the render loop's (locked) thread that runs the game
 		f.started = true
 		g.Open(f.slot)
-		f.P.Play(g.Settle().Events)
-		f.stale()
+		f.P.Play(g.Settle())
 	}
 	if f.P.Playing() { // the fight's events play first: the game waits, decisions are held
 		return
 	}
 	as := f.P.Actions() // first: the turn's decisions become rule calls
-	f.P.Pace(f.view())
+	f.P.Pace()
 	calls := f.P.Calls()
 	for _, c := range calls { // the rule calls, then the actions not yet rule calls
 		c(g)
 	}
 	if len(as) > 0 || len(calls) > 0 || f.ArtNew {
-		f.stale() // the game runs: Draw builds the View again
 		if f.ArtNew {
 			f.P.ran++ // the picker and icon editor lay their pages out again, in the new art
 		}
@@ -268,7 +241,7 @@ func (f *Front) Act() {
 		for _, a := range as {
 			g.Answer(a)
 		}
-		f.P.Play(g.Settle().Events)
+		f.P.Play(g.Settle())
 	}
 }
 
@@ -281,29 +254,27 @@ func (f *Front) Cell(x, y float64) (int, int, bool) {
 	if x < p.X || y < p.Y || x >= p.X+p.W || y >= p.Y+p.H {
 		return 0, 0, false
 	}
-	v := f.view()
-	cols, rows := 40, 25
-	if v.Cells.X > 0 {
-		cols, rows = v.Cells.X, v.Cells.Y
-	}
+	cols, rows := f.Game.r.grid.X, f.Game.r.grid.Y
 	return int((x - p.X) * float64(cols) / p.W), int((y - p.Y) * float64(rows) / p.H), true
 }
 
-// Draw draws the screens, the status line's toast (View.Note) on the
+// Draw draws the screens, the status line's toast (Note) on the
 // bottom row while it is fresh.
 func (f *Front) Draw(dst *gpu.Image) {
-	v := f.view()
-	n := v.Note
+	if ownMus != nil && f.P.eng != nil { // wanted again when the state or the front's own changes, not every frame
+		f.P.lay.music.get(f.P.uiKey(), func() string { return ownMus.Want(musicChain(f.Game.MusicCue())) })
+	}
+	n := f.P.note()
 	if f.P.fontNote != "" && time.Since(f.P.fontAt) < 2*time.Second { // Ctrl-F's font name
 		n.Text, n.At = f.P.fontNote, f.P.fontAt
 	}
 	note := Note{Text: n.Text, Show: time.Since(n.At) < time.Second+time.Duration(len(n.Text))*80*time.Millisecond, Glyph: f.Glyph, Font: f.Font}
-	if f.P.Inventory(dst, note, v) { // the inventory screen
+	if f.P.Inventory(dst, note) { // the inventory screen
 		f.pic = Rect{}
 	} else {
-		f.pic = f.P.Draw(dst, note, v)
+		f.pic = f.P.Draw(dst, note)
 	}
-	f.drawn = screenSig(v)
+	f.drawn = f.screenSig()
 	if held := f.held; len(held) > 0 { // the keys pressed before this screen showed, now on it
 		f.held = nil
 		for _, k := range held {

@@ -29,6 +29,7 @@ func TestVault(t *testing.T) {
 	gold := st.Purse.Gold
 	e.push(cont{kind: kNop})
 	e.Start(e.Vault)
+	seeLoot(t, e)
 	if l, ok := e.build().(play.Looting); !ok || len(l.Items) != 2 {
 		t.Fatalf("state %T: want the treasure screen with the vault's 2 items", e.build())
 	}
@@ -80,6 +81,7 @@ func TestVault(t *testing.T) {
 	}
 	e.push(cont{kind: kNop})
 	e.Start(e.Vault) // reopened: the money is still there, and Take banks it
+	seeLoot(t, e)
 	if _, err := e.doNow(play.Take{Item: core.NoItem}); err != nil {
 		t.Fatal(err)
 	}
@@ -99,6 +101,7 @@ func TestNoSaveInVault(t *testing.T) {
 	}
 	e.push(cont{kind: kNop})
 	e.Start(e.Vault)
+	seeLoot(t, e)
 	if e.canSave(false) || e.SaveNamed("VAULTSAVE") == nil {
 		t.Fatal("saved with the vault open")
 	}

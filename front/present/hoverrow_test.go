@@ -4,7 +4,7 @@ import (
 	"image"
 	"testing"
 
-	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 )
 
@@ -14,9 +14,9 @@ func TestHoverRowNotSelected(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{} }, Font: func(byte, bool) [8]byte { return [8]byte{} }}
-	v := front.View{Party: []front.Member{{Name: "Kade", Selected: true}}, Inventory: &front.Inventory{Member: 0, Pool: []front.InvItem{{Item: 1, Name: "Mace"}, {Item: 2, Name: "Sling"}}}}
-	p := &Presenter{}
-	p.Inventory(dst, note, v)
+	p := partyOn(game.Member{Name: "Kade", Items: []game.Item{{Handle: 1, Name: "Mace"}, {Handle: 2, Name: "Sling"}}})
+	p.eng.r.items = game.ItemsOwn
+	p.Inventory(dst, note)
 	var rows []image.Rectangle
 	for _, h := range p.inv.lines {
 		if !h.doll {
@@ -28,7 +28,7 @@ func TestHoverRowNotSelected(t *testing.T) {
 	}
 	mid := func(r image.Rectangle) image.Point { return image.Pt(r.Max.X-3, (r.Min.Y+r.Max.Y)/2) }
 	p.inv.hover = mid(rows[1])
-	p.Inventory(dst, note, v)
+	p.Inventory(dst, note)
 	blue := col(inkBlue)
 	if c := p.inv.px.RGBAAt(mid(rows[0]).X, mid(rows[0]).Y); c != blue {
 		t.Fatalf("selected row %v, want %v", c, blue)

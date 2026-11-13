@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"gobox/dax"
-	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/ui/fonts"
 )
 
@@ -20,54 +20,54 @@ func testSheet(own bool) *game.ShipSheet {
 }
 
 func TestShipSheetFoeUnknown(t *testing.T) {
-	v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: testFight(), ShipSheet: testSheet(false)}, Ask: &front.Ask{Kind: front.AskMenu}}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: testFight(), ShipSheet: testSheet(false)}, Ask: &play.Ask{Kind: game.Choice}}
 	c := fightPage(&Presenter{}, v)
-	at(t, c, 1, 1, "name:", 14, 8)
-	at(t, c, 10, 1, "MAELSTROM RIG", 15, 8)
-	at(t, c, 1, 4, "tonnage:", 14, 8)
-	at(t, c, 10, 4, "  400 tons", 15, 8)
-	at(t, c, 10, 5, "  120 feet", 15, 8)
-	at(t, c, 7, 9, "    ?", 12, 8)
-	at(t, c, 13, 9, "crew:", 14, 8)
-	at(t, c, 20, 9, "    ?", 12, 8)
-	at(t, c, 7, 10, "    ?", 12, 8)
-	at(t, c, 20, 10, "    ?", 12, 8)
-	at(t, c, 1, 11, "range:", 14, 8)
-	at(t, c, 10, 11, "ramming", 14, 8)
-	at(t, c, 1, 13, "Weapons:", 10, 8)
-	at(t, c, 13, 13, "Ammo", 10, 8)
-	at(t, c, 18, 13, "Reloads", 10, 8)
-	at(t, c, 1, 14, "LASER", 10, 8)
-	at(t, c, 9, 14, " 2", 10, 8) // the working count only
-	at(t, c, 11, 14, "    ?", 12, 8)
-	at(t, c, 1, 15, "MISSILE", 14, 8)
-	at(t, c, 9, 15, " 1", 14, 8)
-	at(t, c, 29, 1, "Hull:  100", 11, 8) // the fight's own panel stays
-	at(t, c, 0, 24, sfPause, 15, 0)
+	cellAt(t, c, 1, 1, "name:", 14, 8)
+	cellAt(t, c, 10, 1, "MAELSTROM RIG", 15, 8)
+	cellAt(t, c, 1, 4, "tonnage:", 14, 8)
+	cellAt(t, c, 10, 4, "  400 tons", 15, 8)
+	cellAt(t, c, 10, 5, "  120 feet", 15, 8)
+	cellAt(t, c, 7, 9, "    ?", 12, 8)
+	cellAt(t, c, 13, 9, "crew:", 14, 8)
+	cellAt(t, c, 20, 9, "    ?", 12, 8)
+	cellAt(t, c, 7, 10, "    ?", 12, 8)
+	cellAt(t, c, 20, 10, "    ?", 12, 8)
+	cellAt(t, c, 1, 11, "range:", 14, 8)
+	cellAt(t, c, 10, 11, "ramming", 14, 8)
+	cellAt(t, c, 1, 13, "Weapons:", 10, 8)
+	cellAt(t, c, 13, 13, "Ammo", 10, 8)
+	cellAt(t, c, 18, 13, "Reloads", 10, 8)
+	cellAt(t, c, 1, 14, "LASER", 10, 8)
+	cellAt(t, c, 9, 14, " 2", 10, 8) // the working count only
+	cellAt(t, c, 11, 14, "    ?", 12, 8)
+	cellAt(t, c, 1, 15, "MISSILE", 14, 8)
+	cellAt(t, c, 9, 15, " 1", 14, 8)
+	cellAt(t, c, 29, 1, "Hull:  100", 11, 8) // the fight's own panel stays
+	cellAt(t, c, 0, 24, sfPause, 15, 0)
 	v.Screen.ShipSheet.Known, v.Screen.ShipSheet.Range = true, game.RangeLong
 	c = fightPage(&Presenter{}, v)
-	at(t, c, 7, 9, "    5", 15, 8)
-	at(t, c, 17, 15, "    2", 15, 8)
-	at(t, c, 10, 11, "long", 15, 8)
+	cellAt(t, c, 7, 9, "    5", 15, 8)
+	cellAt(t, c, 17, 15, "    2", 15, 8)
+	cellAt(t, c, 10, 11, "long", 15, 8)
 }
 
 // The rocket's R: the own sheet in place of the left half, the own panel and weapons beside it.
 func TestShipSheetRocket(t *testing.T) {
 	f := testFight()
 	f.Log, f.Pause = nil, "Press button or enter to continue"
-	v := front.View{Screen: &game.Screen{Kind: game.ScreenShipSheet, SpaceFight: f, ShipSheet: testSheet(true)}, Ask: &front.Ask{Kind: front.AskMenu}}
-	if sfOf(v) == nil {
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenShipSheet, SpaceFight: f, ShipSheet: testSheet(true)}, Ask: &play.Ask{Kind: game.Choice}}
+	if v.show(&Presenter{}).sfOf() == nil {
 		t.Fatal("no fight screen for the sheet")
 	}
 	c := fightPage(&Presenter{}, v)
-	at(t, c, 1, 1, "name:", 11, 8)
-	at(t, c, 7, 9, "    5", 15, 8)
-	at(t, c, 1, 11, "medical supplies:", 11, 8)
-	at(t, c, 20, 11, "    7", 15, 8)
-	at(t, c, 11, 15, "    4", 15, 8)
-	at(t, c, 29, 1, "Hull:  100", 11, 8)
-	at(t, c, 29, 15, "LASER", 10, 8)
-	at(t, c, 0, 24, f.Pause, 15, 0)
+	cellAt(t, c, 1, 1, "name:", 11, 8)
+	cellAt(t, c, 7, 9, "    5", 15, 8)
+	cellAt(t, c, 1, 11, "medical supplies:", 11, 8)
+	cellAt(t, c, 20, 11, "    7", 15, 8)
+	cellAt(t, c, 11, 15, "    4", 15, 8)
+	cellAt(t, c, 29, 1, "Hull:  100", 11, 8)
+	cellAt(t, c, 29, 15, "LASER", 10, 8)
+	cellAt(t, c, 0, 24, f.Pause, 15, 0)
 	if k := c.cells[24][len(f.Pause)]; k.set && k.ch != ' ' {
 		t.Fatalf("pause text runs on: %q", k.ch)
 	}
@@ -88,19 +88,19 @@ func TestSpaceFightStatusLineAndPad(t *testing.T) {
 	f := testFight()
 	f.Log = []game.Message{{Text: "one"}, {Text: "two"}}
 	f.StatusLine = "Your Teammate is Dying!"
-	v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: crewMenu()}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: crewMenu()}
 	c := fightPage(&Presenter{}, v)
-	at(t, c, 0, 24, f.StatusLine, 10, 0)
+	cellAt(t, c, 0, 24, f.StatusLine, 10, 0)
 	if k := c.cells[23][0]; k.set && k.ch != ' ' {
 		t.Fatal("bar under the status line")
 	}
 	// the crew menu's padding comes with Break only
 	f.StatusLine = ""
-	v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Commands: []front.Command{{Text: "Hull"}, {Text: "Sens"}}}}
+	v.Ask = &play.Ask{Kind: game.Choice, Options: []play.Option{{Label: "Hull"}, {Label: "Sens"}}}
 	c = fightPage(&Presenter{}, v)
-	at(t, c, 1, 19, "one", 10, 0)
-	at(t, c, 1, 20, "two", 10, 0)
-	at(t, c, 0, 24, "Hull", 0, 15)
+	cellAt(t, c, 1, 19, "one", 10, 0)
+	cellAt(t, c, 1, 20, "two", 10, 0)
+	cellAt(t, c, 0, 24, "Hull", 0, 15)
 }
 
 // The after-combat message: one Loud line in the window (row 19) over the fight, the key pause on row 24.
@@ -108,16 +108,16 @@ func TestSpaceFightDestroyedPause(t *testing.T) {
 	f := testFight()
 	f.Log = []game.Message{{Tone: game.ToneLoud, Text: "Enemy ship destroyed."}}
 	f.Pause = "Press button or enter to continue"
-	v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: &front.Ask{Kind: front.AskMenu}}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: &play.Ask{Kind: game.Choice}}
 	c := fightPage(&Presenter{}, v)
-	at(t, c, 1, 19, "Enemy ship destroyed.", 15, 0)
-	at(t, c, 0, 24, f.Pause, 15, 0)
-	at(t, c, 29, 1, "Hull:  100", 11, 8)
+	cellAt(t, c, 1, 19, "Enemy ship destroyed.", 15, 0)
+	cellAt(t, c, 0, 24, f.Pause, 15, 0)
+	cellAt(t, c, 29, 1, "Hull:  100", 11, 8)
 	saveSheetPNG(t, v)
 }
 
 // saveSheetPNG renders v with BR2's art to SHIPSHEET_PNG.
-func saveSheetPNG(t *testing.T, v front.View) {
+func saveSheetPNG(t *testing.T, v sfView) {
 	out := os.Getenv("SHIPSHEET_PNG")
 	if out == "" {
 		return
@@ -136,7 +136,7 @@ func saveSheetPNG(t *testing.T, v front.View) {
 		w.Screen = sc
 		c := fightPage(&Presenter{}, w)
 		m := image.NewRGBA(image.Rect(0, 0, 320, 200))
-		c.draw(m, w, Note{Font: font})
+		c.draw(m, (&Presenter{}).windowBorder(), image.Point{}, Note{Font: font})
 		fh, _ := os.Create(filepath.Join(out, "sheet"+string(rune('0'+i))+".png"))
 		png.Encode(fh, m)
 		fh.Close()

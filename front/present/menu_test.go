@@ -5,6 +5,8 @@ import (
 	"go/parser"
 	"go/token"
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -21,16 +23,17 @@ import (
 
 // Esc closes the command menu (Enter opened it).
 func TestEscClosesCommandMenu(t *testing.T) {
+	g, _ := playGame(play.Exploring{})
 	p := &Presenter{active: true, view: &blobber.View{}}
-	v := front.View{Exploring: true}
-	if !p.key(13, v) || !p.menu {
+	p.SetEngine(g)
+	if !p.key(13) || !p.menu {
 		t.Fatal("Enter did not open the menu")
 	}
-	if !p.key(27, v) || p.menu {
+	if !p.key(27) || p.menu {
 		t.Fatal("Esc did not close the menu")
 	}
-	p.key(13, v)
-	p.Mouse(0, 0, false, false, true, 0, v)
+	p.key(13)
+	p.Mouse(0, 0, false, false, true, 0)
 	if p.menu {
 		t.Fatal("a right click did not close the menu")
 	}
@@ -125,18 +128,26 @@ func TestMemberKey(t *testing.T) {
 	}
 }
 
+// askedOn is a Presenter with the game's question a up (as a refusal's:
+// over any screen).
+func askedOn(a *play.Ask) *Presenter {
+	p, _ := presenterOn(play.Scene{})
+	p.eng.r.refusalAsk = a
+	return p
+}
+
 // The engine's yes/no question: Y, N, Esc, Enter (on No first) answer it
 // with ActYes or ActNo; the arrows move to Yes.
 func TestConfirmKeys(t *testing.T) {
-	v := front.View{Ask: &front.Ask{Kind: front.AskConfirm, Menu: front.Menu{Prompt: "Flee?"}}}
 	for _, c := range []struct {
 		keys []uint16
 		want front.ActKind
 	}{{[]uint16{'y'}, front.ActYes}, {[]uint16{'n'}, front.ActNo}, {[]uint16{27}, front.ActNo},
 		{[]uint16{13}, front.ActNo}, {[]uint16{0x4800, KeyPadSelect}, front.ActYes}} {
-		p := &Presenter{confirmSel: 1}
+		p := askedOn(&play.Ask{Kind: game.YesNo, Prompt: "Flee?"})
+		p.confirmSel = 1
 		for _, k := range c.keys {
-			p.key(k, v)
+			p.key(k)
 		}
 		if a := p.Actions(); len(a) != 1 || a[0].Kind != c.want {
 			t.Errorf("keys %x: %v", c.keys, a)
@@ -240,7 +251,7 @@ func TestKeyDispatch(t *testing.T) {
 // "YOUR COVER IS BLOWN."): a card's click continues it, as a click elsewhere,
 // instead of asking for the inventory the engine refuses.
 func TestCardClickContinues(t *testing.T) {
-	p := &Presenter{shownView: front.View{Ask: &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Commands: []front.Command{{Text: "PRESS <ENTER>"}}}}}}
+	p := askedOn(&play.Ask{Kind: game.Continue})
 	p.cardClick(2)
 	if a := p.Actions(); len(a) != 1 || a[0].Kind != front.ActOK {
 		t.Errorf("card click on a press-Enter wait: %v", a)
@@ -250,21 +261,22 @@ func TestCardClickContinues(t *testing.T) {
 // A member pick while exploring (a spell's target): a card's click is the
 // pick, not the command bar's select and context menu.
 func TestCardClickPicksMember(t *testing.T) {
-	p := &Presenter{command: true, shownView: front.View{Exploring: true, Ask: &front.Ask{Kind: front.AskMember}}}
+	p := askedOn(&play.Ask{Kind: game.PickMember})
+	p.command = true
 	p.cardClick(6)
 	if a := p.Actions(); len(a) != 1 || a[0].Kind != front.ActMember || a[0].N != 6 || p.ctx != 0 {
 		t.Errorf("card click on a member pick: %v, ctx %d", a, p.ctx)
 	}
 }
 
-// A question with Dirs takes the arrows as ActDir, not the command bar.
+// A heading to pick (AskMove) takes the arrows as ActDir, not the command bar.
 func TestDirsAskTakesArrows(t *testing.T) {
-	p := &Presenter{active: true, view: &blobber.View{}, menu: true}
-	v := front.View{Exploring: true, Ask: &front.Ask{Kind: front.AskMenu, Dirs: true}}
-	if p.key(0x4800, v) {
+	p := askedOn(&play.Ask{Kind: game.Direction})
+	p.active, p.view, p.menu = true, &blobber.View{}, true
+	if p.key(0x4800) {
 		t.Fatal("the bar took an arrow the question answers")
 	}
-	p.keyAct(0x4800, v)
+	p.keyAct(0x4800)
 	if len(p.inv.acts) != 1 || p.inv.acts[0].Kind != front.ActDir || p.inv.acts[0].N != 8 {
 		t.Fatal(p.inv.acts)
 	}
@@ -273,14 +285,14 @@ func TestDirsAskTakesArrows(t *testing.T) {
 // A game's own menu (AskMenu "Continue Battle:") in a fight is answered by
 // its keys and Esc, not left hanging.
 func TestFightMenuKeys(t *testing.T) {
-	v := front.View{Ask: &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "Continue Battle:",
-		Commands: []front.Command{{Text: "Yes", Key: 'Y'}, {Text: "No", Key: 'N'}}}}}
+	menu := &play.Ask{Kind: game.Choice, Prompt: "Continue Battle:", Options: []play.Option{{Label: "Yes", Key: 'Y'}, {Label: "No", Key: 'N'}}}
 	for _, c := range []struct {
 		k    uint16
 		want front.ActKind
 	}{{'y', front.ActChoose}, {27, front.ActClose}} {
-		p := &Presenter{fight: true, shownView: v}
-		p.key(c.k, v)
+		p := askedOn(menu)
+		p.fight = true
+		p.key(c.k)
 		if a := p.Actions(); len(a) != 1 || a[0].Kind != c.want {
 			t.Errorf("key %x: %v", c.k, a)
 		}
@@ -306,9 +318,9 @@ func TestConfirmStart(t *testing.T) {
 // answers nothing; on others it is No.
 func TestConfirmNoEsc(t *testing.T) {
 	for _, keep := range []bool{true, false} {
-		v := front.View{Ask: &front.Ask{Kind: front.AskConfirm, Menu: front.Menu{Prompt: "Claim it?"}, NoEsc: keep}}
-		p := &Presenter{confirmSel: 0, shownView: v}
-		p.key(27, v)
+		p := askedOn(&play.Ask{Kind: game.YesNo, Prompt: "Claim it?", NoEsc: keep})
+		p.confirmSel = 0
+		p.key(27)
 		if a := p.Actions(); keep && len(a) != 0 || !keep && (len(a) != 1 || a[0].Kind != front.ActNo) {
 			t.Errorf("NoEsc %v: %v", keep, a)
 		}
@@ -323,13 +335,13 @@ func TestConfirmNoPick(t *testing.T) {
 	if confirmStart(a) != -1 {
 		t.Error("a row is lit")
 	}
-	v := front.View{Ask: a}
 	for _, c := range []struct {
 		k    uint16
 		want []front.ActKind
 	}{{13, nil}, {0x4800, nil}, {27, nil}, {'y', []front.ActKind{front.ActYes}}, {'N', []front.ActKind{front.ActNo}}} {
-		p := &Presenter{confirmSel: -1, shownView: v}
-		p.key(c.k, v)
+		p := askedOn(&play.Ask{Kind: game.YesNo, Prompt: "Pay?", NoPick: true, NoEsc: true})
+		p.confirmSel = -1
+		p.key(c.k)
 		var got []front.ActKind
 		for _, x := range p.Actions() {
 			got = append(got, x.Kind)

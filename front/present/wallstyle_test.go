@@ -10,7 +10,7 @@ import (
 	"testing/fstest"
 
 	"gobox/blobber"
-	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 	"gobox/walls"
 )
@@ -36,10 +36,10 @@ func TestWallStyleSwapsTextures(t *testing.T) {
 	defer func() { series, Host = old, oldHost; walls.SetStyle("hd") }()
 
 	var p Presenter
-	w := &front.Walls{Key: "styletest", Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}
+	w := &game.Walls{Key: "styletest", Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}
 	dst := gpu.NewImage(blobber.W, blobber.H)
 	frame := func() (red, blue int) { // the wall's pixels of either colour
-		sc := p.wallScene(w)
+		sc := p.wallScene(w, nil)
 		if p.shown != "s" {
 			p.view.Show(sc, blobber.Camera{})
 			p.shown = "s"
@@ -61,11 +61,11 @@ func TestWallStyleSwapsTextures(t *testing.T) {
 	if r, b := frame(); r == 0 || b != 0 {
 		t.Fatalf("hi-def: %d red, %d blue pixels, want the red wall", r, b)
 	}
-	p.keyAct(KeyShiftF12, front.View{})
+	p.keyAct(KeyShiftF12)
 	if r, b := frame(); b == 0 || r != 0 || walls.Style() != "pixel" || !Host.PixelWalls {
 		t.Fatalf("pixel: %d red, %d blue pixels (style %s), want the blue wall", r, b, walls.Style())
 	}
-	p.keyAct(KeyShiftF12, front.View{})
+	p.keyAct(KeyShiftF12)
 	if r, b := frame(); r == 0 || b != 0 || walls.Style() != "hd" {
 		t.Fatalf("back to hi-def: %d red, %d blue pixels, want the red wall", r, b)
 	}
@@ -81,8 +81,8 @@ func TestWallSceneFirstFrameFlats(t *testing.T) {
 	defer func() { series, Host = old, oldHost }()
 
 	var p Presenter
-	w := &front.Walls{Key: "firstframe", Side: openGrid(), Floor: "br1_venus", Sky: "br1_greendome"}
-	p.view.Show(p.wallScene(w), blobber.Camera{X: 2, Y: 4})
+	w := &game.Walls{Key: "firstframe", Side: openGrid(), Floor: "br1_venus", Sky: "br1_greendome"}
+	p.view.Show(p.wallScene(w, nil), blobber.Camera{X: 2, Y: 4})
 	dst := gpu.NewImage(blobber.W, blobber.H)
 	p.view.Draw(dst)
 	for _, y := range []int{blobber.H / 8, blobber.H * 7 / 8} { // ceiling, floor

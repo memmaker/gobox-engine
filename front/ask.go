@@ -4,8 +4,6 @@ package front
 // rule call that ask for something first (Confirm, PickMember, PickSpell):
 // the screen asks, then makes the call again with the answer.
 
-import "errors"
-
 // AskKind is what a question waits for.
 type AskKind int
 
@@ -42,7 +40,7 @@ const (
 	RoleBackground
 )
 
-// Ask is the question waiting for the player (View.Ask): every one is
+// Ask is the question waiting for the player (the Ask): every one is
 // published the same way, whoever asks (the engine's prompts, a script
 // instruction).
 type Ask struct {
@@ -58,7 +56,6 @@ type Ask struct {
 	Default  int  // the option (or entry) highlighted first
 	Break    int  // >0: Commands[Break:] go on the bar's second row (play.Ask.Break)
 	Yes      bool // AskConfirm: the highlight starts on Yes (false: on No)
-	Dirs     bool // the direction keys answer too (ActDir N, the keypad's 1..9), as a one-option menu's keypad
 	Reselect bool // ActLead N selects another member while the question stays up
 	View     bool // V opens the View menu on the member selected (ActView -1) while the question stays up
 
@@ -78,31 +75,6 @@ type ConfirmNo string
 
 func (q ConfirmNo) Error() string { return string(q) }
 
-// AskSure asks err's question when it is a Confirm or a ConfirmNo, and
-// calls again on the answer that goes on; false: err is neither.
-func AskSure(h Host, err error, again func()) bool {
-	var yes Confirm
-	var no ConfirmNo
-	switch {
-	case errors.As(err, &yes):
-		AskYes(h, string(yes), again)
-	case errors.As(err, &no):
-		h.Ask(&Question{Ask: Ask{Kind: AskConfirm, Menu: Menu{Prompt: string(no)}}, Answer: func(a Action) bool {
-			switch a.Kind {
-			case ActNo:
-				again()
-			case ActYes, ActClose:
-			default:
-				return false
-			}
-			return true
-		}})
-	default:
-		return false
-	}
-	return true
-}
-
 // PickMember is a rule call's refusal: a party member is to be picked
 // (the prompt); the call is made again with the member.
 type PickMember string
@@ -121,7 +93,7 @@ type Menu struct {
 	Commands []Command // the options (ActChoose N); none: a message to acknowledge (ActOK)
 }
 
-// Entry is a line of View.Ask (AskList, AskSpell): what its commands act on.
+// Entry is a line of the Ask (AskList, AskSpell): what its commands act on.
 type Entry struct {
 	Text    string
 	Header  bool     // a heading
