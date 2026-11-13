@@ -19,19 +19,13 @@ const ArtF12 = 0x8600
 // game is idle, so a blow can be shot mid-air.
 const ScriptTimed Key = 0xE000
 
-// F12Key is the code of window key k when it is F12 (shift: Shift-F12, the wall style).
-func F12Key(k gpu.Key, shift bool) (code uint16, ok bool) {
-	switch {
-	case k != gpu.KeyF12:
-		return 0, false
-	case shift:
-		return ShiftF12, true
-	}
-	return ArtF12, true
-}
-
 func BIOSKey(k gpu.Key) (code uint16, ok bool) {
 	switch k {
+	case gpu.KeyF12:
+		if gpu.IsKeyPressed(gpu.KeyShift) {
+			return ShiftF12, true
+		}
+		return ArtF12, true
 	case gpu.KeyEnter, gpu.KeyKPEnter:
 		return 13, true
 	case gpu.KeyEscape:

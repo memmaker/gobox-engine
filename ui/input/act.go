@@ -65,6 +65,7 @@ const (
 	Log
 
 	WallStyle // any time: the walls hi-def or pixel art (Shift-F12)
+	ArtStyle  // any time: DOS or Amiga art (F12)
 )
 
 // Members is how many member keys there are (F1-F8).
