@@ -57,7 +57,7 @@ func TestImportedTablesLoad(t *testing.T) {
 		t.Error("char.Rules1e builds no rules")
 	}
 
-	book, err := game.LoadJournal(os.DirFS(filepath.Join(dst, "data", adventure.JournalDir)), "JOURNAL.TXT")
+	book, err := game.LoadJournal(os.DirFS(filepath.Join(dst, adventure.JournalDir)), "JOURNAL.TXT")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -20,7 +20,7 @@ import (
 func init() {
 	Register(Game{
 		Cover: true,
-		ID:    "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: CotabRecordLayout, Version: 16, // 16: GameTables.GameSet, FirstBlock (the start); 15: GameTables.Walls (the 3D view's wall textures); 14: credits' Colour a game.Ink (C1); 13: data/look.json (ReadyMark "Yes "); 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's)
+		ID:    "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: CotabRecordLayout, Version: 17, // 17: the journal in the adventure's journal/ (it went to data/journal: the engine found none) and GameTables.BigPictures; 16: GameTables.GameSet, FirstBlock (the start); 15: GameTables.Walls (the 3D view's wall textures); 14: credits' Colour a game.Ink (C1); 13: data/look.json (ReadyMark "Yes "); 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's)
 		Window: Size{W: asset.ScreenW, H: asset.ScreenH}, UserSaves: true, Foreign: []string{"por"},
 		Sources: []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR"},
 		Import:  CotabImport, Amiga: &cotabAmiga,
@@ -106,7 +106,7 @@ func CotabImport(dos, dst string) error {
 	if err := cotabImportRules(dos, filepath.Join(dst, "data")); err != nil {
 		return err
 	}
-	if err := ImportJournal("cotab", filepath.Join(dst, "data", adventure.JournalDir)); err != nil {
+	if err := ImportJournal("cotab", filepath.Join(dst, adventure.JournalDir)); err != nil {
 		return err
 	}
 	data := filepath.Join(dst, "data")
