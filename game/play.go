@@ -383,12 +383,11 @@ type (
 		From   int
 		To     image.Point
 		Art    Picture
-		StepMs int // the flight's time per third of a square, the original's (0: gobox's)
+		StepMs int // the flight's time per third of a square, the original's (10 pointed, 20 tumbling, 50 spinning, 30 a spell; 0: gobox's); gobox scales it by the player's speed
 	}
 	CastSpell struct {
 		From, Spell int
 		Ats         []image.Point
-		StepMs      int // a flight's time per third of a square (0: gobox's)
 	}
 	Engaged struct{ At Fighting }      // a fight began: it before the first turn, board and party (the step's fight events play from it)
 	Struck  struct{ Unit, Damage int } // harm without an attack (a spell, a trap)

@@ -1,7 +1,12 @@
 // Package game is the UI-free contract between a Gold Box game and gobox.
 // A game states domain facts (State), asks domain questions (Ask), accepts
 // rule verbs (Decision) and reports Events. It never says how anything is
-// drawn: no colours, cells, rects, inks or positions. Modelled on pod's
+// drawn: no cells, rects or positions, and colours only as the original's
+// text inks by EGA name (Ink) and art's own palettes. Not yet so, each
+// with its own refactor item: the pictures placed on the page (Layer: the
+// title, ending and story screens), the fonts (Data.Font, Fonts,
+// TextRun.Upcase), the menu logo's cut (Data.Logo) and the credits page's
+// cells (Credit, Data.CreditBoxes, CreditGaps). Modelled on pod's
 // rules.State / Decision / Apply / Pending / Event. Stdlib only.
 package game
 
@@ -852,7 +857,8 @@ const (
 	EvEngaged // a fight began: Combat is its board before the first turn (the step's events play from it)
 )
 
-// Data is declarative overrides only; no drawing, no positions. A game's
+// Data is declarative overrides only; no drawing, no positions (the
+// exceptions are the package doc's). A game's
 // rules package exports it as func Data() Data, and its cmd hands gobox
 // the rules and the data together (ui.Launch).
 type Data struct {

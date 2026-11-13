@@ -1377,7 +1377,7 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 			}
 			out = append(out, ev)
 		case game.CastSpell:
-			ev := game.Report{Kind: game.EvSpell, Unit: e.From, N: e.Spell, Pose: 1, Ms: castMs, StepMs: e.StepMs}
+			ev := game.Report{Kind: game.EvSpell, Unit: e.From, N: e.Spell, Pose: 1, Ms: castMs}
 			if len(e.Ats) > 0 {
 				ev.To = e.Ats[0]
 			}
