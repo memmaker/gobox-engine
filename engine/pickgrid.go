@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/rules"
 	"image"
 	"slices"
@@ -131,7 +132,7 @@ func (e *Engine) Pick(i int) (done bool) {
 	case PickAddFrom:
 		done = e.addForeign(p, i)
 	case PickForget:
-		base := MakeFileName(rules.RemoveSubstr(p.labels[i], "."))
+		base := adventure.MakeFileName(rules.RemoveSubstr(p.labels[i], "."))
 		for _, ext := range []string{".cha", ".itm", ".spc", ".mem", ".dual", ".pow", ".png", ".icon.png"} {
 			e.removeSaved(e.savePath(base + ext))
 		}

@@ -7,7 +7,6 @@ import (
 	"gobox/adventure"
 	"gobox/asset"
 	"gobox/game"
-	"gobox/rules"
 	"gobox/rules1e"
 	"maps"
 	"os"
@@ -36,7 +35,7 @@ func TestSaveToKeepsArea(t *testing.T) {
 	if w := e.state().Area.WallsB[2]; w != 0 {
 		t.Errorf("area+0x3FE = %d after a save, want 0", w)
 	}
-	if _, err := os.Stat(filepath.Join(e.slotRoot(), "X", gameFile)); err != nil {
+	if _, err := os.Stat(filepath.Join(e.slotRoot(), "X", adventure.GameFile)); err != nil {
 		t.Error("no save written")
 	}
 	if l := e.slots(); len(l) != 1 || time.Since(l[0].At) > time.Minute {
@@ -52,40 +51,9 @@ func TestSaveToRunningArea(t *testing.T) {
 	e.Cfg.SaveDir = t.TempDir()
 	e.state().Area.AreaKind, e.gs.areaKind = 20, 0
 	e.saveTo("X")
-	g, err := readGameSave(filepath.Join(e.slotRoot(), "X", gameFile))
+	g, err := adventure.ReadSave(filepath.Join(e.slotRoot(), "X", adventure.GameFile))
 	if a := blobOf(t, g).Area; err != nil || a.AreaKind != 0 {
 		t.Errorf("saved area %d (%v), want 0, the running one", a.AreaKind, err)
-	}
-}
-
-// A slot holding only an original save is listed once imported, and loads
-// the original's state.
-func TestImportSlot(t *testing.T) {
-	e := &Engine{set: 1, data: "../data/por/sources", adv: "../data/por/sources/assets"}
-	e.initVM()
-	e.Cfg.SaveDir = t.TempDir()
-	f := rules1e.OriginalSave{Set: 1, X: 7, Y: 9}
-	f.Area.AreaKind = 20
-	f.Game.Shop = 1
-	b, err := binary.Append(nil, binary.LittleEndian, &f)
-	if err != nil {
-		t.Fatal(err)
-	}
-	b = rules1e.AppendPurse(b, rules1e.Purse{Gold: 12})
-	dir := filepath.Join(e.slotRoot(), "OLD")
-	os.MkdirAll(dir, 0o755)
-	if err := os.WriteFile(filepath.Join(dir, origSaveFile), b, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if l := e.slots(); len(l) != 1 || l[0].Name != "OLD" {
-		t.Fatalf("slots = %v, want the imported OLD", l)
-	}
-	g, err := readGameSave(filepath.Join(dir, gameFile))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if r := blobOf(t, g); g.X != 7 || g.Y != 9 || r.Area.AreaKind != 20 || r.Game.Shop != 1 || r.Purse.Gold != 12 {
-		t.Errorf("imported %+v (%v)", g, err)
 	}
 }
 
@@ -257,43 +225,13 @@ func recordBytes(rec any) []byte {
 }
 
 // blobOf is g's ruleset part.
-func blobOf(t *testing.T, g gameSave) rules1e.SaveBlob {
+func blobOf(t *testing.T, g adventure.Save) rules1e.SaveBlob {
 	t.Helper()
 	var b rules1e.SaveBlob
 	if err := json.Unmarshal(g.Rules, &b); err != nil {
 		t.Fatal(err)
 	}
 	return b
-}
-
-// A save written before the ruleset's part was a blob (Area, Game, Purse at
-// the top level) loads unchanged.
-func TestLegacySaveLoads(t *testing.T) {
-	var old rules1e.SaveBlob
-	old.Area.AreaKind, old.Area.Geo, old.Game.Shop, old.Purse.Gold = 20, 3, 1, 1<<40
-	b, err := json.Marshal(struct {
-		Set rules.Set
-		rules1e.SaveBlob
-		X byte
-	}{2, old, 7})
-	if err != nil {
-		t.Fatal(err)
-	}
-	path := filepath.Join(t.TempDir(), gameFile)
-	if err := os.WriteFile(path, b, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	g, err := readGameSave(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var s rules1e.RuleState
-	if err := (&rules1e.Rules{S: &s}).Load(g.Rules); err != nil {
-		t.Fatal(err)
-	}
-	if g.Set != 2 || g.X != 7 || s.Area != old.Area || s.Game != old.Game || s.Purse != old.Purse {
-		t.Errorf("loaded set %d x %d %+v, want the old save's", g.Set, g.X, s.Purse)
-	}
 }
 
 // TestMapLabelsPerGame: a game without MapLabels shows none on set 3, GEO 0

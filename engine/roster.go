@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gobox/adventure"
 	"gobox/rules"
 	"gobox/rules1e"
 )
@@ -20,7 +21,7 @@ const rosterNextFile = "rosternext"
 
 // rosterFile is the .cha of roster entry name (charlist.txt's, "* " marks it joined).
 func (e *Engine) rosterFile(name string) string {
-	return e.savePath(MakeFileName(strings.TrimPrefix(name, "* ")) + ".cha")
+	return e.savePath(adventure.MakeFileName(strings.TrimPrefix(name, "* ")) + ".cha")
 }
 
 // newRosterID gives the next roster number and counts it in rosternext.

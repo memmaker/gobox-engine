@@ -12,7 +12,7 @@ import (
 // have no padding. The named fields are the words the engine itself uses,
 // each with its byte offset in the record (the "area+0x186" of the
 // listings); the Vxxxx arrays are the script-only words, named by the
-// script address of their first word. The canonical save (savegame.go)
+// script address of their first word. The canonical save (adventure/save.go)
 // keeps only the named words: the script words travel as the fields.
 
 // AreaVars = the area record (es:[DS:49D2]). Despite its name it is kept

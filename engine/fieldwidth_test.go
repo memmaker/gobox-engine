@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/ecl"
 )
 
@@ -23,11 +24,11 @@ func TestFieldWidths(t *testing.T) {
 	e.setVar(dword, 0x12345)
 	e.setVar(byt, 0x10101)
 	e.setVar(word, 0x10002)
-	path := filepath.Join(t.TempDir(), gameFile)
-	if err := writeGameSave(path, gameSave{Fields: e.vars, Locals: e.locals}); err != nil {
+	path := filepath.Join(t.TempDir(), adventure.GameFile)
+	if err := adventure.WriteSave(path, adventure.Save{Fields: e.vars, Locals: e.locals}); err != nil {
 		t.Fatal(err)
 	}
-	g, err := readGameSave(path)
+	g, err := adventure.ReadSave(path)
 	if err != nil {
 		t.Fatal(err)
 	}

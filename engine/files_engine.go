@@ -170,7 +170,7 @@ func (e *Engine) exportFiles(cID rules.CharID, game bool) rules1e.Files {
 // LoadCharacter = ovr18:0AEC (name, c, useSav): the new character, false
 // when the file is missing.
 func (e *Engine) LoadCharacter(name string, useSav bool) (rules.CharID, bool) {
-	nm := MakeFileName(name)
+	nm := adventure.MakeFileName(name)
 	ext := ".cha"
 	if useSav {
 		ext = ".sav"
@@ -257,12 +257,12 @@ func (e *Engine) eraseRosterCopies(cID rules.CharID, nested bool) error {
 }
 
 // loadSlot is the original's LoadGame (ovr18:1602) after the prompt: a
-// slot's canonical save (savegame.go) and its party (CHRDATA1..).
+// slot's canonical save (adventure.Save) and its party (CHRDATA1..).
 func (e *Engine) loadSlot() bool {
 	f, err := e.readSlotSave()
 	if err != nil {
 		log.Printf("load: %v", err)
-		e.fileError("read", e.savePath(gameFile))
+		e.fileError("read", e.savePath(adventure.GameFile))
 		return false
 	}
 	e.clearPrompt()
@@ -270,7 +270,7 @@ func (e *Engine) loadSlot() bool {
 	e.set = f.Set
 	if err := e.ruleset().Load(f.Rules); err != nil {
 		log.Printf("load: %v", err)
-		e.fileError("read", e.savePath(gameFile))
+		e.fileError("read", e.savePath(adventure.GameFile))
 		return false
 	}
 	taken, err := e.ruleset().Resolve(nil, rules.TakeSavedWalls{}, nil)
@@ -350,16 +350,16 @@ func (e *Engine) saveSlot() error {
 	if err != nil {
 		panic(err) // the ruleset's part always marshals
 	}
-	f := gameSave{Set: e.set, Rules: blob, Fields: e.vars, Locals: e.locals}
+	f := adventure.Save{Set: e.set, Rules: blob, Fields: e.vars, Locals: e.locals}
 	f.X, f.Y, f.Facing, f.Pos3, f.Pos4 = byte(e.posX), byte(e.posY), byte(e.facing), e.pos3, e.pos4
 	f.ViewMode, f.BeginFlag = byte(e.viewMode), byte(e.beginFlag())
 	for i := range e.partyIDs() {
 		f.Party = append(f.Party, "CHRDATA"+strconv.Itoa(i+1))
 	}
-	path := e.savePath(gameFile)
+	path := e.savePath(adventure.GameFile)
 	failed := os.MkdirAll(e.Cfg.SaveDir, 0o755)
 	if failed == nil {
-		failed = writeGameSave(path, f)
+		failed = adventure.WriteSave(path, f)
 	}
 	if failed != nil {
 		log.Printf("save: %v", failed)
@@ -372,9 +372,9 @@ func (e *Engine) saveSlot() error {
 	return failed
 }
 
-// charBase = savePath + MakeFileName(RemoveSubstr(name,'.')) for roster files.
+// charBase = savePath + adventure.MakeFileName(RemoveSubstr(name,'.')) for roster files.
 func (e *Engine) charBase(cID rules.CharID) string {
-	return MakeFileName(rules.RemoveSubstr(e.ruleset().Sheet(cID).Name, "."))
+	return adventure.MakeFileName(rules.RemoveSubstr(e.ruleset().Sheet(cID).Name, "."))
 }
 
 const charRecSize = int(adventure.RecordLayout)

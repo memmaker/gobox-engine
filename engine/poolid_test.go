@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"gobox/adventure"
 	"gobox/rules1e"
 	"os"
 	"testing"
@@ -16,7 +17,7 @@ func TestPoolIDs(t *testing.T) {
 			t.Fatal("load", name)
 		}
 		c := e.member(id)
-		b, _ := os.ReadFile(e.savePath(MakeFileName(name) + ".sav"))
+		b, _ := os.ReadFile(e.savePath(adventure.MakeFileName(name) + ".sav"))
 		return c, b
 	}
 
