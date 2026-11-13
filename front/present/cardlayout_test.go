@@ -31,7 +31,7 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 		for _, row := range []bool{false, true} {
 			for _, off := range []bool{false, true} {
 				Host.PartyRow, Host.MapOff = row, off
-				p := &Presenter{}
+				p := campPresenter()
 				p.Draw(dst, note, v)
 				dump(t, dst, fmt.Sprintf("camp-%dx%d-row%v-off%v", sz[0], sz[1], row, off))
 				var rs []image.Rectangle // the cards, then each menu's lines

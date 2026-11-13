@@ -162,7 +162,7 @@ func (g *Game) View() front.View {
 		g.r.lookSheet = 0
 	}
 	amap, allowed, loot, shop := r.automapOf(ps), allowedOf(ps), lootOf(ps), shopOf(ps)
-	services, offers := templeOf(ps)
+	services, _ := templeOf(ps)
 	training, draft := trainingOf(ps), creationOf(ps)
 	own := OwnSubject(mode, draft, party, sel)
 	v := front.View{Exploring: mode == game.ModeExplore, NoMap: amap.NoMap}
@@ -191,10 +191,8 @@ func (g *Game) View() front.View {
 	if mode == game.ModeCamp {
 		v.Camp = &front.Camp{}
 	}
-	heals, studies := restOf(ps)
 	v.MainMenu, v.Hall = PartyMenu(mode, training, pending, c.Where.Hall)
-	v.Map, v.Camp = Map(v.Map, amap, c.Where), Camp(v.Camp, party, sel, heals, studies, allowed["NoRest"], nil)
-	v.Temple, v.Shop = Temple(v.Temple, services, offers, c.Purse, allowed, party, sel), Shop(v.Shop, shop, c.Purse, allowed, party)
+	v.Map = Map(v.Map, amap, c.Where)
 	v.Inventory = Inventory(v.Inventory, mode, party, sel, c.PartyCap, c.PoolItems, c.Purse, allowed, shop, loot)
 	v = askOver(v, mode, pending, loot != nil || training != nil)
 	if mode == game.ModeLoot && loot != nil && announced(ps) { // the treasure's picture under a message; Enter or Space opens it

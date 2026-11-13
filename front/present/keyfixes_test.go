@@ -113,7 +113,7 @@ func TestTypedLineOnce(t *testing.T) {
 
 // Camp offers Save beside the rests, as the original's camp does.
 func TestCampSave(t *testing.T) {
-	p := &Presenter{}
+	p := campPresenter()
 	_, it := p.campItems(front.View{Camp: &front.Camp{}})
 	if !slices.ContainsFunc(it, func(r ui.MenuRow) bool { return r.Text == "Save" }) {
 		t.Fatal("no Save in camp")

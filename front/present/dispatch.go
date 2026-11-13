@@ -83,7 +83,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		p.journalKey(k, v)
 		return true
 	}
-	if p.identDone(v) { // the Id's pop-up: any key closes it
+	if p.identDone() { // the Id's pop-up: any key closes it
 		return true
 	}
 	if confirm(v) != "" {
@@ -273,7 +273,7 @@ func (p *Presenter) Click(x, y int) bool {
 		p.journalMouse(image.Pt(x, y), true, false, 0, p.shownView)
 		return true
 	}
-	if p.identDone(p.shownView) { // the Id's pop-up: any click closes it
+	if p.identDone() { // the Id's pop-up: any click closes it
 		return true
 	}
 	if p.scrolls.Click(x, y) {
