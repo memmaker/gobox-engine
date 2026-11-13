@@ -46,7 +46,7 @@ func (p *Presenter) Shown() Shown {
 	if v.Inventory != nil {
 		t = v.Inventory.Treasure
 	}
-	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: v.Battle != nil,
+	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: p.board != nil,
 		Camp: v.Camp != nil, MainMenu: v.MainMenu != nil, Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(v.Party)}
 }
 

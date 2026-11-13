@@ -18,6 +18,8 @@ import (
 	"gobox/dax/vace"
 	"gobox/ega"
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 	"gobox/input"
 	"gobox/ui"
@@ -100,8 +102,12 @@ type Presenter struct {
 	mapBottom   int                         // screen rows above this are the 3D map
 	fight       bool                        // the last frame was the 3D combat map
 	inv         inventory                   // the inventory screen (inventory.go)
-	fightView   *front.Battle               // the combat map last drawn
-	lastBattle  *front.Battle               // the board before the events now playing (keepFallen)
+	board       *play.Combat                // the fight this frame shows: the live one, or the one a replayed moment holds (nil: none)
+	boardParty  []game.Member               // the party's figures on board
+	fightView   *play.Combat                // board with the fallen kept until their fall plays (keepFallen)
+	fightBoard  *combat.Board               // fightView as the tabletop draws it, aims put in
+	fly         *flight                     // a shot's sprite over board (a replayed missile frame)
+	lastBoard   *play.Combat                // the fight before the moments now playing (keepFallen)
 	lastFight   *front.View                 // the fight's view last drawn: a Result's events that end the fight play on it
 	inkAsk      *front.Ask                  // the question whose menu is being drawn: its colours (asking)
 	replay      replay                      // the fight's events still to play
@@ -216,18 +222,26 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.intro.NoCredits = len(credits) == 0
 	IntroStep(p, &p.intro, v.Intro, false)
 	ev := p.playing()
-	if ev != nil && ev.Kind == front.EvMoved && ev.Ms > 0 { // a step's hold is how long the figure takes for it
+	if ev != nil && ev.Kind == game.EvMove && ev.Ms > 0 { // a step's hold is how long the figure takes for it
 		p.battle.StepTime = float64(ev.Ms) / 1000
 	}
-	if ev != nil && ev.Scene != nil { // the page as it stood at the pause played
-		v = *ev.Scene
-	} else if ev != nil { // the fight as it stood at the event played
-		if v.Battle == nil && p.lastFight != nil { // the Result ended the fight: its events play on the fight they happened in, the page after them
+	live := p.liveCombat()
+	p.board, p.boardParty, p.fly = live, partyOf(p.state()), nil
+	if ev != nil && (ev.Page != nil || ev.Screen != nil) { // the page or screen as it stood at the pause played, over the live state
+		if ev.Page != nil {
+			v = Page(v, ev.Page, nil)
+		}
+		if ev.Screen != nil {
+			v.Screen = ev.Screen
+		}
+	} else if ev != nil { // the fight as it stood at the moment played
+		if live == nil && p.lastFight != nil { // the Result ended the fight: its moments play on the fight they happened in, the page after them
 			v = *p.lastFight
 		}
-		v.Battle, v.Party = ev.Battle, ev.Party
+		p.board, p.boardParty, p.fly = ev.Board, ev.Party, ev.fly
+		v.Party = nil
 		v.Ask = nil
-	} else if v.Battle != nil {
+	} else if live != nil {
 		p.lastFight = &v
 	} else {
 		p.lastFight = nil
@@ -313,8 +327,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if !p.active {
 		p.ctx = 0
 	}
-	p.fight = v.Battle != nil && !(sheetUp(v) && v.SheetPage != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
-	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1    // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
+	p.fight = p.board != nil && !(sheetUp(v) && v.SheetPage != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
+	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1   // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
 	p.resize(dst, v)
 	p.syncRead(v)
 	p.overview = p.overview && p.exploring()
@@ -330,11 +344,12 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if p.fight {
 		p.shown, p.active, p.menu = "", false, false
-		p.fightView = p.keepFallen(askedBattle(v))
+		p.fightView = p.keepFallen(p.board)
+		p.fightBoard = p.askedBoard(p.aimPreview(p.boardOf(p.fightView, p.boardParty, p.fly)), p.fightView)
 		p.battle.Glyph, p.battle.K = note.Glyph, int(scale(dst))
 		p.syncBattle()
-		p.battle.Draw(dst, toBoard(p.fightView))
-		p.drawFight(dst, note, v)
+		p.battle.Draw(dst, p.fightBoard)
+		p.drawFight(dst, note)
 		if p.view != nil {
 			p.view.DrawMenu(dst) // the Esc menu over the battle
 		}

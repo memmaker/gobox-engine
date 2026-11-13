@@ -19,9 +19,8 @@ func TestLoneAimWithLeave(t *testing.T) {
 		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: foe}}}}
 	f := &fake{st: fight}
 	g := NewGame(f, game.Data{})
-	v := g.View()
-	if v.Battle == nil || v.Battle.Turn == nil || !v.Battle.Turn.Aim || v.Battle.Cursor != foe {
-		t.Fatalf("not aiming at the first target: %+v", v.Battle)
+	if b := liveBoard(g); b == nil || b.Turn == nil || !b.Turn.Aim || b.Cursor != foe {
+		t.Fatalf("not aiming at the first target: %+v", b)
 	}
 	if err := g.Answer(front.Action{Kind: front.ActAim, X: foe.X, Y: foe.Y}); err != nil {
 		t.Fatal(err)
@@ -46,7 +45,7 @@ func TestAimTargetsBigFoe(t *testing.T) {
 		Aimed: []play.Aimed{{Action: play.Attack{}, Squares: []image.Point{in}, Targets: 1}}}},
 		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: image.Pt(4, 2), Squares: []image.Point{{4, 2}, in}, Size: 2}}}}
 	g := NewGame(&fake{st: fight}, game.Data{})
-	if v := g.View(); v.Battle == nil || len(v.Battle.Targets) != 1 {
-		t.Fatalf("targets %+v", v.Battle)
+	if b := liveBoard(g); b == nil || len(b.Targets) != 1 {
+		t.Fatalf("targets %+v", b)
 	}
 }

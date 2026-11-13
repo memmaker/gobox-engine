@@ -79,7 +79,7 @@ func TestMinimapUploadsOnChange(t *testing.T) {
 func TestKeyDuringPlayKept(t *testing.T) {
 	g, _ := countGame()
 	f := &Front{Game: g, started: true}
-	f.P.Play([]front.CombatEvent{{Ms: 5000, Battle: &front.Battle{}}})
+	f.P.Play([]Moment{{Ms: 5000, Board: &play.Combat{}}})
 	f.Key('x')
 	if len(f.held) != 1 || f.held[0] != 'x' || !f.P.Playing() {
 		t.Fatalf("held %v, playing %v", f.held, f.P.Playing())
@@ -96,7 +96,7 @@ func TestCameraKeyDuringPlay(t *testing.T) {
 	g, _ := countGame()
 	f := &Front{Game: g, started: true}
 	f.P.fight = true
-	f.P.Play([]front.CombatEvent{{Ms: 5000, Battle: &front.Battle{}}})
+	f.P.Play([]Moment{{Ms: 5000, Board: &play.Combat{}}})
 	f.Key('q')
 	if len(f.held) != 0 || !f.P.Playing() || f.P.replay.skip {
 		t.Fatalf("held %v, playing %v, skip %v", f.held, f.P.Playing(), f.P.replay.skip)

@@ -20,21 +20,21 @@ func TestBlowShows(t *testing.T) {
 	if err := g.Answer(front.Action{Kind: front.ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
 	}
-	v := g.legacySettle()
-	var kinds []front.EventKind
+	_, evs := settled(g)
+	var kinds []game.EventKind
 	dmg, line := 0, false
-	for _, e := range v.Events {
+	for _, e := range evs {
 		kinds = append(kinds, e.Kind)
-		if e.Kind == front.EvDamage && e.Unit == 2 { // over the one struck
-			dmg = e.Amount
+		if e.Kind == game.EvDamage && e.Unit == 2 { // over the one struck
+			dmg = e.N
 		}
-		line = line || e.Kind == front.EvMessage && e.Text == "ARIN HITS FOR 5"
+		line = line || e.Kind == game.EvMessage && e.Text == "ARIN HITS FOR 5"
 	}
-	if !slices.Contains(kinds, front.EvAttack) || !slices.Contains(kinds, front.EvHit) || dmg != 5 || !line {
-		t.Fatalf("events %+v", v.Events)
+	if !slices.Contains(kinds, game.EvAttack) || !slices.Contains(kinds, game.EvHit) || dmg != 5 || !line {
+		t.Fatalf("events %+v", evs)
 	}
-	if v.Battle == nil || !slices.Contains(v.Battle.Log, "ARIN HITS FOR 5") {
-		t.Fatalf("log %v", v.Battle != nil)
+	if c := g.combat(); c == nil || !slices.Contains(c.Log, "ARIN HITS FOR 5") {
+		t.Fatalf("log %v", c != nil)
 	}
 }
 

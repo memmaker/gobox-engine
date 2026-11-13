@@ -11,8 +11,8 @@ import (
 func TestPosedEvent(t *testing.T) {
 	var got play.Report
 	posed := func(e play.Report) (*play.Combat, []game.Member) { got = e; return &play.Combat{}, nil }
-	out := playedEvents([]play.Report{{Kind: game.EvAttack, Unit: 3, Ms: 100, Pose: 1}, {Kind: game.EvAttack, Unit: 4}}, true, posed, 0)
-	if len(out) != 2 || out[0].Ms != 100 || out[0].Battle == nil || got.Unit != 3 || out[1].Battle != nil {
+	out := played([]play.Report{{Kind: game.EvAttack, Unit: 3, Ms: 100, Pose: 1}, {Kind: game.EvAttack, Unit: 4}}, true, posed, 0)
+	if len(out) != 2 || out[0].Ms != 100 || boardOfFrame(out[0]) == nil || got.Unit != 3 || boardOfFrame(out[1]) != nil {
 		t.Fatalf("posed events: %+v", out)
 	}
 }

@@ -18,11 +18,11 @@ func TestPageRowsFrames(t *testing.T) {
 	}
 }
 
-// A game event with a Page becomes a timed EvFrame whose Scene is that page.
+// A game event with a Page is a timed moment holding that page.
 func TestCombatEventsPage(t *testing.T) {
 	pg := &game.Page{Layers: []game.Layer{{FrameMs: 1}}}
-	out := playedEvents([]play.Report{{Ms: 60, Page: pg}}, false, nil, 0)
-	if len(out) != 1 || out[0].Ms != 60 || out[0].Scene == nil || len(out[0].Scene.Pictures) != 1 {
+	out := played([]play.Report{{Ms: 60, Page: pg}}, false, nil, 0)
+	if len(out) != 1 || out[0].Ms != 60 || out[0].Page != pg {
 		t.Fatalf("%+v", out)
 	}
 }

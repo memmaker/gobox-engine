@@ -20,7 +20,7 @@ func TestOwnPNGsReachTheFront(t *testing.T) {
 	}
 	st := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "A"}}},
 		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0, Icon: [2]image.Image{icon, strike}, Pose: 1}}}}
-	b := NewGame(&fake{st: st}, game.Data{}).View().Battle
+	b := liveBoard(NewGame(&fake{st: st}, game.Data{}))
 	if b == nil || len(b.Units) != 1 || b.Units[0].Icon != strike {
 		t.Fatal("the board unit in its action pose does not show its own PNG's action icon")
 	}

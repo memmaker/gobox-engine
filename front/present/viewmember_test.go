@@ -44,33 +44,33 @@ func TestFightView(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "ARIN"}, {Name: "MAREN"}}, Allowed: allow(play.EndTurn{}).Allowed},
 		Field: play.Battlefield{Turn: 2, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: 1}}}}
 	f := &fake{st: fight}
-	if v := NewGame(f, game.Data{}).View(); slices.ContainsFunc(v.Battle.Turn.Options, func(o front.TurnOption) bool { return o.Label == "View" }) {
+	if g0 := NewGame(f, game.Data{}); slices.ContainsFunc(turnOptions(g0.combat(), g0.D), func(o play.Option) bool { return o.Label == "View" }) {
 		t.Fatal("View the series doesn't key")
 	}
 	g := NewGame(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}})
 	n := -1
-	for i, o := range g.View().Battle.Turn.Options {
+	for i, o := range turnOptions(g.combat(), g.D) {
 		if o.Label == "View" {
 			n = i
 		}
 	}
 	if n < 0 {
-		t.Fatalf("no View in %+v", g.View().Battle.Turn.Options)
+		t.Fatalf("no View in %+v", turnOptions(g.combat(), g.D))
 	}
-	if o := NewGame(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}, VerbOrder: []string{"View", "End"}}).View().Battle.Turn.Options; o[0].Label != "View" {
+	if o := turnOptsOf(NewGame(f, game.Data{VerbKeys: map[string]rune{"View": 'V'}, VerbOrder: []string{"View", "End"}})); o[0].Label != "View" {
 		t.Errorf("VerbOrder: %+v, want View first", o)
 	}
 	g.Answer(front.Action{Kind: front.ActOption, N: n})
-	if v := g.View(); v.SheetPage == nil || v.Sheet == nil || v.Battle == nil || v.Battle.Turn == nil || len(f.sent) != 0 {
-		t.Fatalf("sheet %v, battle %v, sent %v", v.SheetPage != nil, v.Battle != nil, f.sent)
+	if v := g.View(); v.SheetPage == nil || v.Sheet == nil || g.combat() == nil || g.combat().Turn == nil || len(f.sent) != 0 {
+		t.Fatalf("sheet %v, battle %v, sent %v", v.SheetPage != nil, g.combat() != nil, f.sent)
 	}
 	g.CloseSheet()
-	if v := g.View(); v.SheetPage != nil || v.Battle == nil || v.Battle.Turn == nil || v.Battle.Turn.Unit != 2 {
+	if v := g.View(); v.SheetPage != nil || g.combat() == nil || g.combat().Turn == nil || g.combat().Turn.Unit != 2 {
 		t.Fatal("not back on the turn")
 	}
 	f.st = play.Fighting{Common: play.Common{Party: fight.Party, Allowed: allow(play.ViewTarget{}).Allowed}, Field: fight.Field}
 	views := 0
-	for _, o := range g.View().Battle.Turn.Options {
+	for _, o := range turnOptions(g.combat(), g.D) {
 		if o.Label == "View" {
 			views++
 		}
@@ -157,7 +157,7 @@ func TestSpeedMenu(t *testing.T) {
 func TestVerbOrderWords(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "ARIN"}}, Allowed: allow(play.EndTurn{}, play.UseItem{}, play.Delay{}).Allowed},
 		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}}}}
-	o := NewGame(&fake{st: fight}, game.Data{VerbOrder: []string{"Aim", "Done", "Delay", "Use"}}).View().Battle.Turn.Options
+	o := turnOptsOf(NewGame(&fake{st: fight}, game.Data{VerbOrder: []string{"Aim", "Done", "Delay", "Use"}}))
 	var ls []string
 	for _, x := range o {
 		ls = append(ls, x.Label)
@@ -172,7 +172,7 @@ func TestVerbOrderWords(t *testing.T) {
 func TestFreeAimInOrder(t *testing.T) {
 	fight := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "ARIN"}}, Allowed: allow(play.EndTurn{}, play.UseItem{}).Allowed},
 		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}}}}
-	o := NewGame(&fake{st: fight}, game.Data{VerbKeys: map[string]rune{"Aim": 'A'}, VerbOrder: []string{"Aim", "Use", "Done"}}).View().Battle.Turn.Options
+	o := turnOptsOf(NewGame(&fake{st: fight}, game.Data{VerbKeys: map[string]rune{"Aim": 'A'}, VerbOrder: []string{"Aim", "Use", "Done"}}))
 	if len(o) == 0 || o[0].Label != "Aim" {
 		t.Errorf("bar %+v, want Aim first", o)
 	}
@@ -193,3 +193,6 @@ func TestPickViewMember(t *testing.T) {
 		t.Fatalf("sent %v, sheet %v", f.sent, shownOf(r).SheetPage != nil)
 	}
 }
+
+// turnOptsOf is g's fight's turn options as the bar offers them.
+func turnOptsOf(g *Game) []play.Option { return turnOptions(g.combat(), g.D) }
