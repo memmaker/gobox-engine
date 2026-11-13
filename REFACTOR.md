@@ -44,6 +44,13 @@
 - [ ] G1 `facts`/`known()` removed
 - [ ] G2 One state: the engine keeps the player-visible state in `game` types and writes it where it changes; `rebuild()`/`build()` and the per-mode copies go
 - [x] G3 `game`'s non-contract parts out: journal layout → `ui`, point-buy maths → `rules`, `held.go`/`memberpage.go` checked
+- [ ] N1 Shared font pool: the importer adds each game's fonts to one pool; `ui` cycles through all; `Data.Font`/`Fonts`, `TextRun.Upcase` leave `game` (ruling 2)
+- [ ] N2 Title, ending and story screens as declarative scripts plus exported picture elements; `ui` composes them (ruling 3); `Layer` leaves `game`
+- [ ] N3 The importer cuts the menu logo into a finished image; `Data.Logo` goes (ruling 10)
+- [ ] Y1 Ponytail audit (2026-11-13): delete production functions only tests call (~140, ~1.5–2k lines; list: deadcode without -test, minus `fixture/`), with the tests that only test them; true test helpers move to `_test.go`
+- [ ] Y2 Delete the 5 functions nothing calls (`ecl.NeedsPlainTests`, `importer.CotabScriptLayout`, `SotsbScriptLayout`, `ImportAssets`, `rules.SymbolBlock`)
+- [ ] Y3 Code only the dev scenes reach since D1 (`firstOkay`, `okay`, `blockedRet`, `fileBytes`, `heldOf`, `entryNamed`, `invUp`, `fullPicture`, `firstMonster`, `ecl.ArgsTrace`): delete or move into devviews_engine.go
+- [ ] Y4 Fold the one-file packages `ui/input`, `rules1e/idgen`, `cmd/gobox/winicon` into their parents where no import cycle forces them
 - [ ] Final: full build/vet/test, all repos
 
 ## T2 audit: presentation fields in `game`
@@ -65,7 +72,7 @@
 2. Fonts: the importer adds each game's fonts to one shared font pool; `ui` lets the player cycle through all of them. Upper-case glyphs are a property of a font's glyph table; `TextRun.Upcase` goes.
 3. Title, ending and story screens: the importer decodes them into declarative scripts (steps referring to picture elements exported separately); `ui` composes the elements from the script, reproducing the original flow and look. `Layer.At` leaves `game`.
 4. Text over the 3D view: the engine keeps the original line wrapping (lines in order); `ui` decides placement. `Placed.At` goes.
-5. Timed holds: open, see below.
+5. Timed holds: holds from the original stay as typed facts with the original duration (`ui` scales them by the player's speed); gobox-invented holds (`Fell.Ms`/`fallHoldMs`) go. Details below.
 6. Blink: kept as a text property (the originals use it); `ui` draws it.
 7. A map's own flat floor/ceiling colour stays as a palette index in the map data; the combat fallback colour goes.
 8. `Data.ReadyMark` goes; `ui` owns the glyph.
