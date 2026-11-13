@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"gobox/audio"
 	"gobox/gpu"
 )
 
@@ -55,6 +56,9 @@ func Flags(esc map[byte]Key) func() Capture {
 	return func() Capture {
 		c := Capture{Shot: *shot, Keys: ParseKeys(*keys, esc), Freeze: *freeze, Quit: *quit, Slot: *slot, PNG: *png,
 			Dev: DevFlags{Fight: *fight, FreeTrain: *freeTrain, ECLTrace: *eclTrace, Saves: *saves}}
+		if c.Keys != nil || *shot != "" || *quit || *fps || *cpuprofile != "" || *glitch != "" {
+			audio.Silent = true // a scripted or measured run is never heard
+		}
 		if *at != "" {
 			var a At
 			if _, err := fmt.Sscanf(*at, "%d,%d,%d", &a.Block, &a.X, &a.Y); err != nil {

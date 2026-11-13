@@ -38,7 +38,10 @@ replace gobox/ui => ../ui
 
 replace gobox/ega => ../ega
 
-require gobox/dax v0.0.0
+require (
+	gobox/audio v0.0.0
+	gobox/dax v0.0.0
+)
 
 require (
 	gobox/asset v0.0.0
@@ -65,4 +68,13 @@ replace gobox/asset => ../asset
 
 replace gobox/core => ../core
 
-require gobox/core v0.0.0 // indirect
+require (
+	github.com/ebitengine/oto/v3 v3.5.0 // indirect
+	github.com/ebitengine/purego v0.11.0 // indirect
+	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
+	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
+	github.com/jfreymuth/vorbis v1.0.2 // indirect
+	github.com/memmaker/opl2 v0.1.0 // indirect
+	gobox/amiga v0.0.0 // indirect
+	gobox/core v0.0.0 // indirect
+)
