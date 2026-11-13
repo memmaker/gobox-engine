@@ -14,7 +14,7 @@ import (
 // runs in pool under that dialect.
 func TestGoldenECLCommands(t *testing.T) {
 	for game, v := range map[string]*script.Version{"sotsb": script.V2, "pod": script.V3, "cotab": script.V2} {
-		b, err := os.ReadFile(filepath.Join("..", "..", "rules1e", "testdata", game, "eclcommands.golden.json"))
+		b, err := os.ReadFile(filepath.Join("..", "rules1e", "testdata", game, "eclcommands.golden.json"))
 		if err != nil {
 			t.Fatal(err)
 		}

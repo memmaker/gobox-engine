@@ -37,13 +37,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer out.Close()
 	n := uint32(len(pcm) * 2)
 	hdr := []any{[4]byte{'R', 'I', 'F', 'F'}, 36 + n, [4]byte{'W', 'A', 'V', 'E'}, [4]byte{'f', 'm', 't', ' '},
 		uint32(16), uint16(1), uint16(1), uint32(opl2.Rate), uint32(opl2.Rate * 2), uint16(2), uint16(16),
 		[4]byte{'d', 'a', 't', 'a'}, n}
 	for _, h := range hdr {
-		binary.Write(out, binary.LittleEndian, h)
+		if err := binary.Write(out, binary.LittleEndian, h); err != nil {
+			panic(err)
+		}
 	}
-	binary.Write(out, binary.LittleEndian, pcm)
+	if err := binary.Write(out, binary.LittleEndian, pcm); err != nil {
+		panic(err)
+	}
+	if err := out.Close(); err != nil {
+		panic(err)
+	}
 }
