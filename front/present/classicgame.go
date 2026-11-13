@@ -2,6 +2,7 @@ package present
 
 import (
 	"image"
+	"image/color"
 
 	"gobox/front"
 )
@@ -44,8 +45,7 @@ func (g classicGame) pickerView(page int) *front.Picker {
 }
 
 // IconEditorView is the icon designer on the presenter's page.
-func (g classicGame) IconEditorView() *front.IconEditor {
-	ink := g.Game.View().Ink
+func (g classicGame) IconEditorView(ink [16]color.RGBA) *front.IconEditor {
 	return g.Game.IconEditorOn(&ink, g.p.grid[0], g.p.grid[1])
 }
 

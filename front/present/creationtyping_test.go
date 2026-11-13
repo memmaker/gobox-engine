@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -15,8 +16,8 @@ func TestCreationTyping(t *testing.T) {
 	litWith := func(ask *front.Ask) int {
 		dst := gpu.NewImage(1280, 800)
 		defer dst.Deallocate()
-		p := &Presenter{}
-		p.Draw(dst, note, front.View{Creation: &front.Creation{}, Ask: ask})
+		p, _ := draftOn(&play.Draft{})
+		p.Draw(dst, note, front.View{Ask: ask})
 		return lit(dst)
 	}
 	bare := litWith(nil)

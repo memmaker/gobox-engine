@@ -27,7 +27,44 @@ var iconPartRows = [6]int{1, 2, 3, 4, 6, 7}
 // recoloured by colours (low nibble the low colour, high nibble the high one;
 // fewer than six: as drawn; VGA art the same, by index). EGA art comes back as indices (Palette nil),
 // other art as indices into its own Palette. ok is false when a picture is missing.
-func poolIcon(head, body string, colours []byte, pose int, flip bool) (pic front.Picture, ok bool) {
+func poolIcon(head, body string, colours []byte, pose int, flip bool) (front.Picture, bool) {
+	k := poolIconKey{Series, AmigaArt != nil && AmigaArt(), head, body, string(colours), pose, flip}
+	poolIcons.Lock()
+	defer poolIcons.Unlock()
+	if r, ok := poolIcons.m[k]; ok {
+		return r.pic, r.ok
+	}
+	if poolIcons.m == nil || len(poolIcons.m) > 512 { // the icons a player's picks make; the art changing (F12, a new series) is in the key
+		poolIcons.m = map[poolIconKey]poolIconResult{}
+	}
+	pic, ok := composeIcon(head, body, colours, pose, flip)
+	poolIcons.m[k] = poolIconResult{pic, ok}
+	return pic, ok
+}
+
+// poolIconKey is what poolIcon's picture is made of.
+type poolIconKey struct {
+	series     string
+	amiga      bool
+	head, body string
+	colours    string
+	pose       int
+	flip       bool
+}
+
+type poolIconResult struct {
+	pic front.Picture
+	ok  bool
+}
+
+// poolIcons keeps the icons composed: a picture is composed once, not on every look at the sheet.
+var poolIcons struct {
+	sync.Mutex
+	m map[poolIconKey]poolIconResult
+}
+
+// composeIcon is poolIcon, composed.
+func composeIcon(head, body string, colours []byte, pose int, flip bool) (pic front.Picture, ok bool) {
 	load := func(name string) *image.Paletted {
 		if pose == 1 {
 			if p := sprites.Pose(Series, name); p != "" {
@@ -131,8 +168,8 @@ func memberIcon(m game.Member) (head, body string) {
 
 // PoolIcon is v with the creation draft's combat icon (pool ids, else its Icon numbers) in the
 // sheet's Icon box, in place of the game's picture there (v itself when the draft has none).
-func PoolIcon(v front.View, own game.Member, sheet *game.SheetPage) front.View {
-	cr, m := v.Creation, subject(own)
+func PoolIcon(v front.View, cr *front.Creation, own game.Member, sheet *game.SheetPage) front.View {
+	m := subject(own)
 	if cr == nil {
 		return v
 	}

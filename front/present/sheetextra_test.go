@@ -56,3 +56,11 @@ func menuOn(funcs ...string) *Presenter {
 	p.SetEngine(g)
 	return p
 }
+
+// draftOn is a presenter whose game is making a character: its draft d.
+func draftOn(d *play.Draft) (*Presenter, *fake) {
+	g, f := playGame(play.Assembling{Draft: d})
+	p := &Presenter{}
+	p.SetEngine(g)
+	return p, f
+}

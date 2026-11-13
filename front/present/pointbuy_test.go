@@ -10,18 +10,20 @@ import (
 
 	"gobox/dax"
 	"gobox/front"
+	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
 	"gobox/input"
 	"gobox/ui/fonts"
 )
 
-func buyView(names []string) front.View {
-	cr := &front.Creation{StatNames: names, Name: front.CellRect{X1: 1, Y1: 1, X2: 4, Y2: 1}}
-	for i := range names {
-		cr.Stats = append(cr.Stats, front.CellRect{X1: 1, Y1: 7 + i, X2: 8, Y2: 7 + i})
+// buyDraft is a draft whose sheet has the abilities names (nil: STR .. CHA).
+func buyDraft(names []string) *play.Draft {
+	d := &play.Draft{}
+	for _, n := range names {
+		d.Stats = append(d.Stats, game.StatDef{Label: n})
 	}
-	return front.View{Creation: cr}
+	return d
 }
 
 // A new character is asked Roll or Point Buy; the point buy raises and
@@ -36,15 +38,14 @@ func TestPointBuy(t *testing.T) {
 		{"br", []string{"STR", "DEX", "CON", "INT", "WIS", "CHA", "TECH"}, brBits},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			g, f := playGame(play.Assembling{Draft: &play.Draft{}})
-			p := &Presenter{}
-			p.SetEngine(g)
+			p, f := draftOn(buyDraft(tc.stats))
+			g := p.eng
 			dst := gpu.NewImage(640, 400)
 			defer dst.Deallocate()
 			bits := tc.font()
 			gl := func(ch byte) [8]byte { r, _ := fonts.Glyph(bits, ch, true); return r }
 			note := Note{Glyph: gl, Font: func(ch byte, text bool) [8]byte { r, _ := fonts.Glyph(bits, ch, text); return r }}
-			v := buyView(tc.stats)
+			v := front.View{}
 			p.send(front.ActCreate, 0)
 			p.Draw(dst, note, v)
 			if p.scr.sub != scrHow {

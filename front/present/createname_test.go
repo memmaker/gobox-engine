@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game/play"
 )
 
 // TestCreateNameTyped: the name asked over the creation sheet takes the
 // typed letters and sends the whole line once, on Enter.
 func TestCreateNameTyped(t *testing.T) {
-	v := front.View{Creation: &front.Creation{}, Ask: &front.Ask{Kind: front.AskText, Max: 15, Menu: front.Menu{Prompt: "Character name:"}}}
-	p := &Presenter{}
+	v := front.View{Ask: &front.Ask{Kind: front.AskText, Max: 15, Menu: front.Menu{Prompt: "Character name:"}}}
+	p, _ := draftOn(&play.Draft{})
 	for _, k := range []uint16{'B', 'u', 'c', 'k', '\r'} {
 		p.Key(k, v)
 	}

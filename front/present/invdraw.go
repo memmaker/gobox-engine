@@ -472,7 +472,7 @@ func (p *Presenter) inventory() *invUp {
 	if p.eng == nil || p.pickerOver() {
 		return nil
 	}
-	return p.eng.r.inventoryOf(p.state())
+	return p.lay.inventory.get(p.uiKey(), func() *invUp { return p.eng.r.inventoryOf(p.state()) })
 }
 
 // inventoryKind is which inventory screen is up.
@@ -480,7 +480,10 @@ func (p *Presenter) inventoryKind() invKind {
 	if p.eng == nil || p.pickerOver() {
 		return invNone
 	}
-	return p.eng.r.inventoryKind(p.state())
+	if in := p.inventory(); in != nil {
+		return in.kind
+	}
+	return invNone
 }
 
 // inventoryUp: an inventory screen is up.

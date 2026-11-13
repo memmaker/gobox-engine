@@ -168,6 +168,7 @@ type Presenter struct {
 	mapPointer  image.Point               // the full map: the pointer's last cell (a move there moves the cursor)
 	fullMap     *fullMapUI                // the full map up (fullmap.go)
 	resets      int                       // the engine's Resets when own last looked
+	lay         layouts                   // the page screens laid out from the state (layout.go)
 	gridPick    *PickUI                   // a grid picker up (picker.go)
 	creating    bool                      // the creation sheet up (creation.go)
 	training    bool                      // the training hall up over the party menu (shop.go serviceAct)
@@ -412,8 +413,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		return Rect{}
 	}
 	sc := p.scene()
-	area := v.AreaMap != nil                                                                                                                                                                                                                                                                                                    // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
-	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure || p.sheetUp(v) && p.sheetPage() != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
+	area := v.AreaMap != nil                                                                                                                                                                                                                                                                                                           // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
+	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || p.iconEditor(v.Ink) != nil || !choosing(v) && !v.Adventure || p.sheetUp(v) && p.sheetPage() != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
 		if screenUp(v) { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			switch {                      // over the location as it stands, never black
@@ -898,7 +899,7 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 // (the special screens, the pagers and maps, the after-combat page, the
 // credits); every other page is drawGeneric's.
 func (p *Presenter) ownLayout(v front.View) bool {
-	return p.pageScreen(v) || sfOf(v) != nil || p.modal() || p.sheetPage() != nil || v.Creation != nil || v.Credits
+	return p.pageScreen(v) || sfOf(v) != nil || p.modal() || p.sheetPage() != nil || p.creation() != nil || v.Credits
 }
 
 // seqMusic plays an animation's music cues on the AdLib player's songs

@@ -149,13 +149,14 @@ func (c *cellPage) lines() [][]front.PaneRun {
 // black, not over the title picture).
 func (p *Presenter) contentPictures(v front.View) []front.Picture {
 	var in []image.Rectangle
+	pk, ed := p.picker(v.Ink), p.iconEditor(v.Ink)
 	switch {
-	case p.slotsView() != nil, v.IconEditor != nil && v.Picker == nil:
-	case v.Picker != nil:
-		return v.Picker.Pics
+	case p.slotsView() != nil, ed != nil && pk == nil:
+	case pk != nil:
+		return pk.Pics
 	default:
-		boxes := []front.CellRect{v.Portrait, v.IconBox}
-		if cr := v.Creation; cr != nil {
+		var boxes []front.CellRect
+		if cr := p.creation(); cr != nil {
 			boxes = append(boxes, cr.Head, cr.Body, cr.Icon)
 		}
 		for _, b := range boxes {
@@ -179,31 +180,32 @@ func (p *Presenter) contentPictures(v front.View) []front.Picture {
 func (p *Presenter) screenPage(v front.View) *cellPage {
 	sl := p.slotsView()
 	v.Pictures = p.contentPictures(v) // nothing of the engine's page: only the art in the screen's own places
+	cr, pk, ed := p.creation(), p.picker(v.Ink), p.iconEditor(v.Ink)
 	if sl != nil {
-		v.SheetPage, v.Picker, v.IconEditor = nil, nil, nil
+		v.SheetPage, pk, ed = nil, nil, nil
 	}
-	if v.IconEditor != nil || v.Picker != nil { // also a picker over the icon editor, in its palette: no grey cells
+	if ed != nil || pk != nil { // also a picker over the icon editor, in its palette: no grey cells
 		v.Ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
 	}
-	if cr := v.Creation; cr != nil && v.Picker == nil && sl == nil { // the combat icon on grey, as in the icon editor: its black parts show
+	if cr != nil && pk == nil && sl == nil { // the combat icon on grey, as in the icon editor: its black parts show
 		v.Pictures = append([]front.Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: col(inkDark)}}, v.Pictures...)
 	}
 	c := newCellPage(v)
-	if cr := v.Creation; cr != nil && cr.Scale > 1 && v.Picker == nil && sl == nil {
+	if cr != nil && cr.Scale > 1 && pk == nil && sl == nil {
 		c.pics = c.scaled(cr)
 	}
-	c.texts(v, barShown(v, sl))
+	c.texts(v, p.barShown(v, sl))
 	if s := v.SheetPage; s != nil {
-		c.sheet(s, v)
+		c.sheet(s, cr)
 	}
-	if pk := v.Picker; pk != nil {
+	if pk != nil {
 		c.picker(pk)
 	}
-	if ed := v.IconEditor; ed != nil {
+	if ed != nil {
 		c.iconEditor(ed)
 	}
-	if barShown(v, sl) { // the bar on the prompt row
-		for _, w := range barWords(v) {
+	if p.barShown(v, sl) { // the bar on the prompt row
+		for _, w := range p.barWords(v) {
 			c.str(w.x, c.rows-1, inkWhite, w.label[:1])
 			c.str(w.x+1, c.rows-1, inkGreen, w.label[1:])
 		}
@@ -228,8 +230,8 @@ func (p *Presenter) screenPage(v front.View) *cellPage {
 }
 
 // barShown is whether the special screen's bar is on the prompt row.
-func barShown(v front.View, sl *front.Slots) bool {
-	return (v.Creation != nil || v.IconEditor != nil) && v.Picker == nil && sl == nil
+func (p *Presenter) barShown(v front.View, sl *front.Slots) bool {
+	return (p.creation() != nil || p.iconEditor(v.Ink) != nil) && p.picker(v.Ink) == nil && sl == nil
 }
 
 // footWord is a word of the slot page's footer: its text, the key it
@@ -527,7 +529,7 @@ func fit(b, r image.Rectangle) image.Rectangle {
 }
 
 // sheet lays the character sheet out (ovr20:004A CharacterSheet).
-func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
+func (c *cellPage) sheet(s *front.SheetPage, cr *front.Creation) {
 	right, bottom := c.cols-2, c.rows-3
 	c.unset(image.Rect(0, 0, c.cols*8, (bottom+2)*8)) // the sheet's page: ClearScreen came first (the 3D view's status line once wrote over it)
 	c.border(1, 1, right, bottom)
@@ -634,13 +636,13 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 			c.overs = append(c.overs, overlay{Img: s.Portrait, At: fit(s.Portrait.Bounds(), b.Pixels())}) // the whole box: the rope runs outside its cells
 		}
 	}
-	k := 1
-	if cr := v.Creation; cr != nil {
-		k = max(1, cr.Scale)
+	k, box := 1, front.CellRect{}
+	if cr != nil { // the creation's combat icon, from a PNG
+		k, box = max(1, cr.Scale), cr.Icon
 	}
 	for p, im := range s.Icons {
 		if im != nil {
-			x, y := v.IconBox.X1+5*k*p, v.IconBox.Y1
+			x, y := box.X1+5*k*p, box.Y1
 			c.overs = append(c.overs, overlay{Img: im, At: image.Rect(x*8, y*8, x*8+24*k, y*8+24*k)})
 		}
 	}

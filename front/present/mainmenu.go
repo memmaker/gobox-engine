@@ -428,6 +428,12 @@ func (p *Presenter) mainMenu() front.MainMenu {
 	if p.eng == nil || p.slots != nil || p.pickerOver() {
 		return front.MainMenu{}
 	}
+	k := menuKey{p.uiKey(), p.ran, p.training, p.creating, p.slots != nil, p.pickerOver(), p.cardSelected()}
+	return p.lay.menu.get(k, p.layoutMainMenu)
+}
+
+// layoutMainMenu is mainMenu from the state.
+func (p *Presenter) layoutMainMenu() front.MainMenu {
 	r, s := p.eng.r, p.state()
 	mode := r.modeOf(s)
 	if r.refusalAsk != nil {

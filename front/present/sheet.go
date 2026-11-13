@@ -45,7 +45,7 @@ func (p *Presenter) sheetItems() []ui.MenuRow {
 
 // sheetUp: the sheet's menu is the page's question.
 func (p *Presenter) sheetUp(v front.View) bool {
-	return p.eng != nil && !p.pickerOver() && p.eng.r.sheetUpOf(p.state()) && askMenu(v) == nil && !p.inventoryUp()
+	return p.eng != nil && !p.pickerOver() && p.lay.sheetUp.get(p.uiKey(), func() bool { return p.eng.r.sheetUpOf(p.state()) }) && askMenu(v) == nil && !p.inventoryUp()
 }
 
 // sheetPage is the character sheet's page up: the look-only member's in a
@@ -55,6 +55,11 @@ func (p *Presenter) sheetPage() *game.SheetPage {
 	if p.eng == nil || p.pickerOver() {
 		return nil
 	}
+	return p.lay.sheet.get(p.uiKey(), p.layoutSheetPage)
+}
+
+// layoutSheetPage is sheetPage from the state.
+func (p *Presenter) layoutSheetPage() *game.SheetPage {
 	r, s := p.eng.r, p.state()
 	party := partyOf(s)
 	if n := r.lookSheet - 1; n >= 0 && n < len(party) && r.combatOf(s) != nil {

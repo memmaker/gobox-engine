@@ -124,8 +124,8 @@ func (g *Game) Subject() game.Member {
 }
 
 // SheetIcon is v with the draft's combat icon in the creation sheet's box.
-func (g *Game) SheetIcon(v front.View) front.View {
-	return PoolIcon(v, g.Subject(), g.r.sheetPageOf(g.r.g.State(), g.party()))
+func (g *Game) SheetIcon(v front.View, cr *front.Creation) front.View {
+	return PoolIcon(v, cr, g.Subject(), g.r.sheetPageOf(g.r.g.State(), g.party()))
 }
 
 // PickerOf is the game's grid picker, page page on cols by rows cells.
@@ -223,8 +223,8 @@ func (g *Game) View() front.View {
 		v.Note = g.r.toast
 	}
 	v.Creation = Creation(mode, draft, pending, g.r.grid.X, g.r.grid.Y)
-	v = PoolPortrait(v, own)
-	v = PoolIcon(v, own, page)
+	v = PoolPortrait(v, v.Creation, own)
+	v = PoolIcon(v, v.Creation, own, page)
 	v.Training = Training(training, party, sel, c.Purse)
 	v.Picker = Picker(c.Picker, image.Point{}, 0, g.r.grid.X, g.r.grid.Y)
 	v.IconEditor = IconEditor(c.IconEditor, nil, own, &v.Ink, g.r.grid.X, g.r.grid.Y)

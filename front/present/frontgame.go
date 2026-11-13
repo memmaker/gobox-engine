@@ -23,11 +23,11 @@ func (p *Presenter) Edit(f func(*classicGame)) { p.edit(func(e *classicGame) { f
 // ownCreation puts the creation sheet up in v, over the party menu.
 func (p *Presenter) ownCreation(v front.View) front.View {
 	if p.creating && p.eng != nil {
-		v.Creation = p.eng.CreationView()
-		if p.creating = v.Creation != nil; !p.creating { // the game ended it itself (a step after Keep, a save): the party menu is back
+		cr := p.layoutCreation()
+		if p.creating = cr != nil; !p.creating { // the game ended it itself (a step after Keep, a save): the party menu is back
 			return v
 		}
-		v = p.eng.SheetIcon(v) // its icon boxes take the draft's combat icon
+		v = p.eng.SheetIcon(v, cr) // its icon boxes take the draft's combat icon
 		v.MainMenu, v.Logo = nil, nil
 	}
 	return v
@@ -95,22 +95,7 @@ func (p *Presenter) ownPicker(v front.View) front.View {
 	if p.eng == nil || p.gridPick == nil && p.icon == nil {
 		return v
 	}
-	key := [2]any{p.ran, p.ui().grid}
-	v.Creation, v.SheetPage, v.Camp, v.MainMenu, v.Sheet, v.Inventory = nil, nil, nil, nil, nil, nil
-	v.Portrait, v.IconBox, v.Logo = front.CellRect{}, front.CellRect{}, nil
-	if p.icon != nil {
-		if ed := p.icon.Layout(p.eng, key); ed != nil {
-			v.IconEditor, v.IconDrop = ed, true
-		}
-	}
-	if p.gridPick != nil {
-		v.Picker, v.IconEditor, v.IconDrop = p.gridPick.Layout(p.eng, key), nil, false
-		if v.Picker != nil { // pictures named by DAX ref, as View.Pictures
-			pk := *v.Picker
-			pk.Pics = daxPictures(indexedPictures(pk.Pics, v.Ink))
-			v.Picker = &pk
-		}
-	}
+	v.SheetPage, v.Camp, v.MainMenu, v.Sheet, v.Logo = nil, nil, nil, nil, nil // the screens under it
 	return v
 }
 
@@ -226,4 +211,4 @@ func (p *Presenter) Point(x, y int) bool {
 func (p *Presenter) Calls() []func(*classicGame) { return p.calls.Take() }
 
 // SetEngine gives the presenter the game its queries (JournalPage) ask.
-func (p *Presenter) SetEngine(e *classicGame) { p.eng = e }
+func (p *Presenter) SetEngine(e *classicGame) { p.eng, p.lay = e, layouts{} }

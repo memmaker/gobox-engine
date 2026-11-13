@@ -131,11 +131,11 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 		sh = p.sfState(v, sf)
 		own += fmt.Sprintf("%v%+v%+v", *sf, sh, v.Screen.ShipSheet)
 	}
-	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(v.IconEditor) && (p.changes() == pg.seq || !p.modal() && !p.ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
+	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(p.iconEditor(v.Ink)) && (p.changes() == pg.seq || !p.modal() && !p.ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
 		pg.seq = p.changes()
 		return pg.img
 	}
-	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, p.changes(), note.Show, own, iconKey(v.IconEditor)
+	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, p.changes(), note.Show, own, iconKey(p.iconEditor(v.Ink))
 	pg.page, pg.text = append(pg.page[:0], v.Pictures...), pageText(v)
 	m := pg.px
 	if p.modal() { // help, the journal, the maps, the overview: from their data alone, nothing of the page under them
@@ -169,7 +169,7 @@ func iconKey(e *front.IconEditor) string {
 // ownPage: v shows a screen the presenter lays out from its data
 // (screenPage), drawn anew with each View.
 func (p *Presenter) ownPage(v front.View) bool {
-	return v.SheetPage != nil || v.Picker != nil || p.slotsView() != nil || v.IconEditor != nil
+	return v.SheetPage != nil || p.picker(v.Ink) != nil || p.slotsView() != nil || p.iconEditor(v.Ink) != nil
 }
 
 // modal: v shows a screen over the whole page (help, the journal, the
