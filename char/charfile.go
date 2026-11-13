@@ -125,14 +125,6 @@ func Unpack285(b core.CharacterFile, game bool) (Files, error) {
 	return f, nil
 }
 
-func pointers[T any](v []T) []*T {
-	var out []*T
-	for i := range v {
-		out = append(out, &v[i])
-	}
-	return out
-}
-
 // SheetOf reads a record in the 0x11D layout (short data leaves the rest zero).
 func SheetOf(b []byte) rules1e.Sheet { return sheetOf(Decode[Record285](b)) }
 
@@ -552,10 +544,4 @@ func slots285(s rules1e.SpellSlots) (r [6]rules1e.Count) {
 	copy(r[0:3], s[rules1e.SpellClassCleric][:3])
 	copy(r[3:6], s[rules1e.SpellClassMage][:3])
 	return r
-}
-
-// IsIDTrailer tells whether t (the bytes after a record) opens with a
-// port's id trailer: PoolTrailer's, or COTAB's old one.
-func IsIDTrailer(t []byte) bool {
-	return bytes.HasPrefix(t, []byte(rules1e.PoolMagic)) || bytes.HasPrefix(t, []byte(cotabIDMagic))
 }

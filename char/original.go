@@ -59,9 +59,6 @@ func AppendPurse(b []byte, p rules1e.Purse) []byte {
 	return b
 }
 
-// originalSaveFile is the file ImportOriginal reads (ovr18 SaveGame).
-const originalSaveFile = "SAVGAMA.DAT"
-
 // SaveLayout is a game's SAVGAMx.DAT format (its LoadGame/SaveGame), the
 // import's data: a lead byte, the records, the code image, the position and
 // states, the wall slots, then the party's count and file names.
