@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"gobox/adventure"
-	"gobox/asset"
 	"gobox/game"
 	"gobox/rules1e"
 	"maps"
@@ -17,7 +16,7 @@ import (
 
 func TestSlotName(t *testing.T) {
 	for in, want := range map[string]string{"Before Boss": "Before Boss", "../x/y": "xy", " a:B ": "aB", "": ""} {
-		if got := asset.Name(in); got != want {
+		if got := adventure.SlotName(in); got != want {
 			t.Errorf("saves.Name(%q) = %q, want %q", in, got, want)
 		}
 	}

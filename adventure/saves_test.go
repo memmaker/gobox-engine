@@ -1,4 +1,4 @@
-package asset
+package adventure
 
 import (
 	"bytes"
@@ -33,7 +33,7 @@ func TestStore(t *testing.T) {
 	if s.Index("b") != -1 || s.Index("a") != 0 {
 		t.Fatal(s.List())
 	}
-	if n := Name(" Ab/c:1! "); n != "Abc1!" {
+	if n := SlotName(" Ab/c:1! "); n != "Abc1!" {
 		t.Fatal(n)
 	}
 }

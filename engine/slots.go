@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"gobox/adventure"
-	"gobox/asset"
 	"gobox/ecl"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -66,12 +65,12 @@ func (e *Engine) unwindReset() {
 func (e *Engine) slotRoot() string { return filepath.Join(e.Cfg.SaveDir, adventure.SlotsDir) }
 
 // store is the slot folders (gobox app/saves): a slot holds save A.
-func (e *Engine) store() asset.Store {
-	return asset.Store{Dir: e.slotRoot(), Marker: adventure.GameFile}
+func (e *Engine) store() adventure.Store {
+	return adventure.Store{Dir: e.slotRoot(), Marker: adventure.GameFile}
 }
 
 // slots lists the saved games, newest first.
-func (e *Engine) slots() []asset.Slot {
+func (e *Engine) slots() []adventure.Slot {
 	return e.store().List()
 }
 
@@ -93,7 +92,7 @@ func (e *Engine) readSlotSave() (adventure.Save, error) {
 }
 
 // slotLevelOf is slotLevel of sl, read again only when the slot was written again.
-func (e *Engine) slotLevelOf(sl asset.Slot) int {
+func (e *Engine) slotLevelOf(sl adventure.Slot) int {
 	if c, ok := e.ext.levels[sl.Name]; ok && c.at.Equal(sl.At) {
 		return c.level
 	}
@@ -294,11 +293,11 @@ func (e *Engine) SlotsView(loadOnly bool) *rules.Slots {
 
 // SaveNamed saves the game in slot name, over a slot of that name in any case.
 func (e *Engine) SaveNamed(name string) error {
-	if name = asset.Name(name); !e.canSave(false) || name == "" {
+	if name = adventure.SlotName(name); !e.canSave(false) || name == "" {
 		return rules.ErrNotNow
 	}
 	// one slot per name in any case (the folders may not tell case apart)
-	if i := slices.IndexFunc(e.slots(), func(s asset.Slot) bool { return strings.EqualFold(s.Name, name) }); i >= 0 {
+	if i := slices.IndexFunc(e.slots(), func(s adventure.Slot) bool { return strings.EqualFold(s.Name, name) }); i >= 0 {
 		if err := os.RemoveAll(e.store().Path(e.slots()[i].Name)); err != nil {
 			return err
 		}

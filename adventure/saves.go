@@ -3,7 +3,7 @@
 // swapped in only once complete. The game writes its own files into the
 // folder (Write); saves never reads them.
 
-package asset
+package adventure
 
 import (
 	"encoding/json"
@@ -156,8 +156,8 @@ func removeTmp(tmp string, cause error) error {
 	return cause
 }
 
-// Name keeps what a slot's folder name may hold: letters, digits and " -_!'".
-func Name(s string) string {
+// SlotName keeps what a slot's folder name may hold: letters, digits and " -_!'".
+func SlotName(s string) string {
 	s = strings.Map(func(r rune) rune {
 		if r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || strings.ContainsRune(" -_!'", r) {
 			return r
