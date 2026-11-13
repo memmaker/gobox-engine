@@ -8,4 +8,4 @@
 - [x] T: dev dump cmds removed (keep importstale: gate.sh; keep ui/cmd/viewdump: remaster.json dump), fixture cmds folded into one
 - [x] L: per-game launchers gone; Amiga specs are importer.Game.Amiga (`gobox import -amiga`), por play tests in games/por/playtest. Open: COVER.PNG (gameimport label) no longer written
 - [x] Docs: stale root docs folded into DESIGN.md and ONE-BINARY.md, rest dropped
-- [ ] Final: full build/vet/test on main
+- [x] Final: full build/vet/test on main (sibling buckrogers tests: pre-existing walls/ path failures)

@@ -122,12 +122,9 @@ func TestPassive(t *testing.T) {
 	}
 }
 
-// oldPathImports and oldPathNames are the old path: no Go file of gobox or a
-// game may import or name them.
-var (
-	oldPathImports = []string{"gobox/front/playrules"}
-	oldPathNames   = map[string][]string{"game": {"Rules", "Mapped", "State", "Decision", "Option", "Ask", "Refusal", "Turn", "Combat", "Event", "Result"}}
-)
+// oldPathImports are the old path: no Go file of gobox or a game may import
+// them. (Its names are game's own since game/play merged into game.)
+var oldPathImports = []string{"gobox/front/playrules"}
 
 // TestNoOldPath fails on any reference to the removed rules path.
 func TestNoOldPath(t *testing.T) {
@@ -147,14 +144,6 @@ func TestNoOldPath(t *testing.T) {
 					t.Errorf("%s imports %s", p, im.Path.Value)
 				}
 			}
-			ast.Inspect(af, func(n ast.Node) bool {
-				if s, ok := n.(*ast.SelectorExpr); ok {
-					if x, ok := s.X.(*ast.Ident); ok && slices.Contains(oldPathNames[x.Name], s.Sel.Name) {
-						t.Errorf("%s names %s.%s", p, x.Name, s.Sel.Name)
-					}
-				}
-				return true
-			})
 			return nil
 		})
 		if err != nil {

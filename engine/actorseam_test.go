@@ -20,7 +20,7 @@ import (
 // and no function but as, follow and RuleState's methods names who. Detects
 // a rule reading a selection the presenter changed without passing it.
 func TestActorSeam(t *testing.T) {
-	dir, err := exec.Command("go", "list", "-f", "{{.Dir}}", "rules1e").Output()
+	dir, err := exec.Command("go", "list", "-f", "{{.Dir}}", "gobox/rules1e").Output()
 	if err != nil {
 		t.Fatal(err)
 	}
