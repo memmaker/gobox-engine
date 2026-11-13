@@ -8,6 +8,7 @@ import (
 
 	"gobox/gpu"
 	"gobox/ui/blobber"
+	"gobox/ui/input"
 )
 
 // frontPort is a game's screens as the shell's input reader drives them
@@ -186,13 +187,13 @@ func (g *frontGame) keys() {
 			continue
 		}
 		if code, ok := BIOSKey(k); ok {
-			g.f.Key(code)
-		} else if k == gpu.KeyF12 && gpu.IsKeyPressed(gpu.KeyShift) {
-			g.f.Key(ShiftF12) // the wall style
-		} else if k == gpu.KeyF12 && g.cfg.Art != nil { // the other art (Draw fades it in)
-			g.cfg.Art.Toggle()
-			if OnSettings != nil {
-				OnSettings(Settings)
+			if actOf(code) != input.ArtStyle {
+				g.f.Key(code)
+			} else if g.cfg.Art != nil { // the other art (Draw fades it in): the shell's, never the front's
+				g.cfg.Art.Toggle()
+				if OnSettings != nil {
+					OnSettings(Settings)
+				}
 			}
 		} else if k == gpu.KeyF && gpu.IsKeyPressed(gpu.KeyControl) && gpu.IsKeyPressed(gpu.KeyShift) {
 			if g.cfg.FontPrev != 0 {

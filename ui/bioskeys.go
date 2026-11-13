@@ -11,8 +11,21 @@ import "gobox/gpu"
 // (BIOSKey maps unshifted keys only).
 const ShiftF12 = 0x8800
 
+// ArtF12 is the BIOS code of F12, which the window itself takes: the other art.
+const ArtF12 = 0x8600
+
+// ScriptTimed is a script's \t<ms> wait (a synthetic key, not a BIOS one): the low
+// 12 bits are frames (60 Hz), taken at once and counted whether or not the
+// game is idle, so a blow can be shot mid-air.
+const ScriptTimed Key = 0xE000
+
 func BIOSKey(k gpu.Key) (code uint16, ok bool) {
 	switch k {
+	case gpu.KeyF12:
+		if gpu.IsKeyPressed(gpu.KeyShift) {
+			return ShiftF12, true
+		}
+		return ArtF12, true
 	case gpu.KeyEnter, gpu.KeyKPEnter:
 		return 13, true
 	case gpu.KeyEscape:

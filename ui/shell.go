@@ -41,10 +41,6 @@ type Key = uint16
 // nothing.
 const ScriptRight, ScriptLeft, ScriptNext, ScriptWait, ScriptHold, ScriptSnap Key = 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05, 0xFF06
 
-// ScriptTimed is a \t<ms> wait: the low 12 bits are frames (60 Hz), taken at once
-// and counted whether or not the game is idle, so a blow can be shot mid-air.
-const ScriptTimed Key = 0xE000
-
 // ScriptAlt is a \A<c> chord: the low byte c typed with Alt held.
 const ScriptAlt Key = 0xD000
 

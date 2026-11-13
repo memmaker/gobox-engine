@@ -23,6 +23,7 @@ const (
 	KeyF9          = 0x4300   // camp: the party's menu
 	KeyF10         = 0x4400   // save / load
 	KeyShiftF12    = ShiftF12 // the walls: hi-def, pixel art
+	KeyArtF12      = ArtF12   // the art: DOS, Amiga
 	KeyFontPrev    = 0xFD00   // Ctrl-Shift-F (Ctrl-F is ASCII 6)
 	KeyPadSelect   = 0xE000   // gamepad: choose the highlighted (as Enter)
 	KeyPadMinimap  = 0xE100   // as Tab
@@ -165,6 +166,8 @@ var bindings = []Binding{
 		Codes: []Code{{K: KeyF10, A: input.SaveLoad}}},
 	{Ctx: ctxAnytime, Keys: "Shift-F12", Desc: "walls: hi-def, pixel", Gap: "the wall style has no mouse or pad way",
 		Codes: []Code{{K: KeyShiftF12, A: input.WallStyle}}},
+	{Ctx: ctxAnytime, Keys: "F12", Desc: "art: DOS, Amiga", Gap: "the art has no mouse or pad way",
+		Codes: []Code{{K: KeyArtF12, A: input.ArtStyle}}},
 	{Ctx: ctxAnytime, Keys: "L D", Desc: "saves: load, delete", Mouse: "click footer", Pad: "X Y"},
 	{Ctx: ctxAnytime, Keys: "Ctrl-S", Desc: "sound on, off", Mouse: "Esc > Audio", Pad: "B, then pick",
 		Codes: []Code{{K: keyCtrlS, A: input.Sound}}},
