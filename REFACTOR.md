@@ -14,7 +14,7 @@
 
 **All old UI code goes** (screen drawing, snapshot, picker layout, combat cursor and view, pixel and row sizes), replaced in `ui` where the player still needs it. Where `ui` still reads it today (the fix lands with the cut):
 - `game.Page` (`Pane`, `Prompt`, `View` text runs and `Layers` of pictures): the engine's drawn screen is still in the contract, and `ui` draws it (combat reports `f.Page`, `ui/frame.go` timed pages). Fix: replace each use with typed facts (messages, the report's lines, the picture by ID) and let `ui` lay them out; then `page.go` and `game.Page` go.
-- Picker: `ui/picker.go`, `poolpick.go`, `parts.go`, `act.go`, `game.go`, `rules.go` call the engine's `OpenPicker`/`PickerView`, which lay out columns, rows and pages. Fix: `game.Picker` lists the candidates (ID, name, picture); `ui` lays out the grid and pager; `pickgrid.go` goes.
+- Picker: not a `ui` dependency. `ui` has its own `OpenPicker`/`PickerView` (ui/game.go): it sends the `game.OpenPicker` action and lays the grid out itself from `game.Picker`. The engine's `pickgrid.go` still keeps a second layout (`layout`, `perPage`, `pages`: columns, rows, pages; `iconRect` pixel rects). Fix: the engine fills `game.Picker` with the candidates only; its layout code goes.
 - `engine.MapCell` reaches `ui` as `game.Data.MapCell` (pixels per map square, set by `importer/games/por_gamedata.go`). Fix: a `ui` constant; drop the field.
 - Not yet checked: `snapshot.go`'s other 100 uses, `ccursor`/`cview` (combat cursor/view corner: engine-only, 19 uses, likely safe to cut once `ui` keeps its own cursor).
 
@@ -30,7 +30,7 @@
 - [ ] P1 POR-named files (`porpics.go`, `porcreation.go`, `soundtrack.go`, `PorArt`, `PorMusic`, `PorMapLabels`): check each one's users; rename and unify what every pool game uses, make game-only parts adventure data
 - [ ] D1 `devviews_engine.go` → build tag or test helper
 - [ ] U1 `game.Page` replaced by typed facts in `ui`; `page.go` cut
-- [ ] U2 Picker layout to `ui`; `pickgrid.go` cut
+- [ ] U2 The engine's duplicate picker layout cut (`pickgrid.go` keeps only filling `game.Picker` and taking the pick)
 - [ ] U3 `snapshot.go`, `TextPaneRows`, `MapCell` cut
 - [ ] U4 `ccursor`, `cview` cut
 - [ ] G1 `facts`/`known()` removed
