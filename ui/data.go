@@ -353,11 +353,9 @@ func gameData(g game.Data) {
 		applyLook(g.Adventure)
 		menuLogo = readLogo(filepath.Join(g.Adventure, adventure.ArtDir, adventure.LogoFile))
 	}
-	if g.AreaMaps != nil {
-		areaMaps = map[AreaID]string{}
-		for id, n := range g.AreaMaps {
-			areaMaps[AreaID(id)] = n
-		}
+	areaMaps, art = map[AreaID]string{}, fstest.MapFS{} // the game's own, none kept from the game before
+	for id, n := range g.AreaMaps {
+		areaMaps[AreaID(id)] = n
 	}
 	if g.Remaster != nil {
 		art = g.Remaster

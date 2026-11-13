@@ -373,7 +373,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 	}
 	sc := p.scene()
 	area := p.areaMapUp()                                                                                                                                                                                                                                                                                                                                       // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
-	if sc == nil && !area && !p.campUp() || p.flags().Full && len(p.pictures()) > 0 && p.introUp() == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || p.sfOf() != nil || p.results() != nil || p.iconEditor(p.ink()) != nil || !p.choosing() && !p.flags().Adventure || p.sheetUp() && p.sheetPage() != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
+	if sc == nil && !area && !p.campUp() && !p.exploring() || p.flags().Full && len(p.pictures()) > 0 && p.introUp() == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || p.sfOf() != nil || p.results() != nil || p.iconEditor(p.ink()) != nil || !p.choosing() && !p.flags().Adventure || p.sheetUp() && p.sheetPage() != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
 		if p.screenUp() { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			switch {                      // over the location as it stands, never black
@@ -415,7 +415,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		p.drawAreaMap(dst)
 	} else if sc != nil {
 		p.draw3D(dst, sc, note)
-	} else { // camp with no 3D view (the original shows none there): black under the cards, the picture and the menus
+	} else { // camp, or an area without a remastered map (no 3D view): black under the cards, the picture and the menus
 		p.shown = ""
 		dst.Fill(color.Black)
 	}
