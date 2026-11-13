@@ -38,7 +38,7 @@
 - [x] P1 POR-named files (`porpics.go`, `porcreation.go`, `soundtrack.go`, `PorArt`, `PorMusic`, `PorMapLabels`): check each one's users; rename and unify what every pool game uses, make game-only parts adventure data
 - [x] D1 `devviews_engine.go` and the `-dev` wiring are left out of a release build by `-tags nodev` (opt-out, so the tests that use the scenes stay in the default run); `go build -tags nodev ./...` joins the checks
 - [ ] U1 `game.Page` replaced by typed facts in `ui`; `page.go` cut
-- [ ] U2 The engine's duplicate picker layout cut (`pickgrid.go` keeps only filling `game.Picker` and taking the pick)
+- [x] U2 The engine's duplicate picker layout cut (`pickgrid.go` keeps only filling `game.Picker` and taking the pick)
 - [ ] U3 `snapshot.go`, `TextPaneRows`, `MapCell` cut
 - [ ] U4 `ccursor`, `cview` cut
 - [ ] G1 `facts`/`known()` removed
