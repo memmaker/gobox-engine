@@ -23,17 +23,3 @@ func TestLatch(t *testing.T) {
 		t.Fatal("a held input on an unchanged screen was dropped")
 	}
 }
-
-// Calls hands the queued calls over once, in order.
-func TestCalls(t *testing.T) {
-	var c Calls[*[]int]
-	c.Add(func(s *[]int) { *s = append(*s, 1) })
-	c.Add(func(s *[]int) { *s = append(*s, 2) })
-	var got []int
-	for _, f := range c.Take() {
-		f(&got)
-	}
-	if len(got) != 2 || got[0] != 1 || got[1] != 2 || c.Take() != nil {
-		t.Fatal(got)
-	}
-}

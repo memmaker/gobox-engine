@@ -185,7 +185,7 @@ func (p *Presenter) Screens() string {
 }
 
 // call queues a rule call on the engine (Calls).
-func (p *Presenter) call(f func(*classicGame)) { p.calls.Add(f) }
+func (p *Presenter) call(f func(*classicGame)) { p.calls = append(p.calls, f) }
 
 // Actions hands over the actions the screens made since the last call.
 func (p *Presenter) Actions() []front.Action {

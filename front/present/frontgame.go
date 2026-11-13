@@ -136,7 +136,11 @@ func (p *Presenter) Point(x, y int) bool {
 
 // Calls hands over the rule calls the screens made since the last call
 // (call); the game runs them on its rules before the actions.
-func (p *Presenter) Calls() []func(*classicGame) { return p.calls.Take() }
+func (p *Presenter) Calls() []func(*classicGame) {
+	c := p.calls
+	p.calls = nil
+	return c
+}
 
 // SetEngine gives the presenter the game its queries (JournalPage) ask.
 func (p *Presenter) SetEngine(e *classicGame) { p.eng, p.lay = e, layouts{} }

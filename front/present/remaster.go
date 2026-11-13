@@ -36,15 +36,15 @@ import (
 type Presenter struct {
 	pg page // the original's screen, drawn from the View
 
-	calls     front.Calls[*classicGame] // rule calls not yet run (Calls)
-	overview  bool                      // the party overview is up (any key or click closes it)
-	pager     *pager                    // the help or a Read is up (pager.go)
-	eng       *classicGame              // for queries (SetEngine)
-	pool      *poolPick                 // gobox's own pool picker is up (poolpick.go)
-	fonts     *fonts.Chooser            // the text fonts (fontmenu.go; nil: the game's own)
-	fontNote  string                    // the font's name, shown for a moment after Ctrl-F
-	fontAt    time.Time                 // ... since then
-	fontLabel string                    // the game's own font's name in the list
+	calls     []func(*classicGame) // rule calls not yet run (Calls)
+	overview  bool                 // the party overview is up (any key or click closes it)
+	pager     *pager               // the help or a Read is up (pager.go)
+	eng       *classicGame         // for queries (SetEngine)
+	pool      *poolPick            // gobox's own pool picker is up (poolpick.go)
+	fonts     *fonts.Chooser       // the text fonts (fontmenu.go; nil: the game's own)
+	fontNote  string               // the font's name, shown for a moment after Ctrl-F
+	fontAt    time.Time            // ... since then
+	fontLabel string               // the game's own font's name in the list
 
 	pauseFrom time.Time // a script's pause (AskPause) began; zero: none up
 
