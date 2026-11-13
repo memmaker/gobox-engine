@@ -24,7 +24,7 @@ func (p *Presenter) sheetItems() []ui.MenuRow {
 	var it []ui.MenuRow // the powers, then the reactions' policies (each pick turns to the next): Tab is the inventory, Esc leaves
 	s := p.state()
 	r := p.eng.r
-	if r.lookSheet > 0 && r.combatOf(s) != nil { // the look-only sheet: no powers
+	if _, ok := r.lookMember(s); ok { // the look-only sheet: no powers
 		return it
 	}
 	sh := r.sheetOf(play.CommonOf(s))
@@ -58,18 +58,22 @@ func (p *Presenter) sheetPage() *game.SheetPage {
 	return p.lay.sheet.get(p.uiKey(), p.layoutSheetPage)
 }
 
+// lookMember is the member whose look-only sheet is up in a fight (a View
+// there: no powers, the member's own page and items).
+func (r *rules) lookMember(ps play.State) (int, bool) {
+	n := r.lookSheet - 1
+	return n, n >= 0 && n < len(play.CommonOf(ps).Party) && r.combatOf(ps) != nil
+}
+
 // layoutSheetPage is sheetPage from the state.
 func (p *Presenter) layoutSheetPage() *game.SheetPage {
 	r, s := p.eng.r, p.state()
 	party := partyOf(s)
-	if n := r.lookSheet - 1; n >= 0 && n < len(party) && r.combatOf(s) != nil {
+	if n, ok := r.lookMember(s); ok {
 		return cmp.Or(party[n].Page, game.MemberPage(party[n]))
 	}
 	page := r.sheetPageOf(s, party)
 	mode := r.modeOf(s)
-	if r.refusalAsk != nil {
-		mode = game.ModeAsk
-	}
 	if c := creationOf(s); Drafting(mode, c) {
 		return draftPage(c, page) // the creation sheet: gobox lays it out from the draft, with the rules' figures when they give a page
 	}
@@ -78,11 +82,10 @@ func (p *Presenter) layoutSheetPage() *game.SheetPage {
 
 // sheetUpOf: the state puts a member's sheet up, the look-only one in a fight too.
 func (r *rules) sheetUpOf(ps play.State) bool {
-	c := play.CommonOf(ps)
-	if n := r.lookSheet - 1; n >= 0 && n < len(c.Party) && r.combatOf(ps) != nil {
+	if _, ok := r.lookMember(ps); ok {
 		return true
 	}
-	return r.sheetOf(c) != nil
+	return r.sheetOf(play.CommonOf(ps)) != nil
 }
 
 // sheetKey takes key k on the sheet: the menu's keys, the member keys another member.
@@ -122,10 +125,7 @@ type sheetCanvas struct {
 func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	s, rl := p.state(), p.eng.r
 	party := partyOf(s)
-	sp, i := rl.sheetPageOf(s, party), rl.selectedOf(s)
-	if n := rl.lookSheet - 1; n >= 0 && n < len(party) && rl.combatOf(s) != nil { // the look-only sheet: the member's page
-		i, sp = n, cmp.Or(party[n].Page, game.MemberPage(party[n]))
-	}
+	sp, i := p.sheetPage(), rl.selectedOf(s) // the look-only sheet and the creation's draft included
 	if i < 0 || i >= len(party) || sp == nil {
 		return
 	}
@@ -305,7 +305,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 	p.bar(sc.img, lx-5, hpY, lw+10, m.HP, m.MaxHP, fill)
 	if !sp.Creating && m.NextExp > 0 {
-		p.bar(sc.img, lx-5, expY, lw+10, int(int32(m.Exp))-m.LevelExp, m.NextExp-m.LevelExp, goldFill)
+		p.bar(sc.img, lx-5, expY, lw+10, expOf(m)-m.LevelExp, m.NextExp-m.LevelExp, goldFill)
 	}
 	kx, ky := p.fit(dst, sc.img, sc.w, sc.h)
 	sc.faceAt = image.Rect(int(float64(face.Min.X)*kx), int(float64(face.Min.Y)*ky), int(float64(face.Max.X)*kx), int(float64(face.Max.Y)*ky))

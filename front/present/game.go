@@ -62,6 +62,7 @@ func (g *Game) run(what string, step func() play.Result) error {
 	done := g.r.held.Change() // the step may write the saves
 	res := step()
 	done()
+	g.dropLook()
 	g.trace(what, res)
 	if g.combat() == nil && g.itemsUp() { // over the items the text pane is hidden: its new line (BR2's "Doc buys a ...", "not enough credits") is the toast
 		if t := paneTail(g.pane()); t != "" && (t != paneWas || paneCount(g.pane()) != linesWere) { // a new line, or the same one said again
@@ -111,7 +112,16 @@ func (g *Game) step() error {
 		g.trace("step", res)
 	}
 	g.events = append(g.events, res.Events...)
+	g.dropLook()
 	return res.Err
+}
+
+// dropLook ends a look-only sheet the fight no longer holds (it ended, or
+// the member is gone), so it does not come back with the next fight.
+func (g *Game) dropLook() {
+	if _, ok := g.r.lookMember(g.r.g.State()); !ok {
+		g.r.lookSheet = 0
+	}
 }
 
 // View is the page classic builds from State.
@@ -150,16 +160,10 @@ func (g *Game) View() front.View {
 	c := play.CommonOf(ps)
 	art := g.art()
 	mode, pending := r.modeOf(ps), r.asking(ps)
-	if g.r.refusalAsk != nil {
-		mode = game.ModeAsk
-	}
 	party, sel := partyOf(ps), r.selectedOf(ps)
 	sheet, page := r.sheetOf(c), r.sheetPageOf(ps, party)
-	combat := r.combatOf(ps)
-	if n := g.r.lookSheet - 1; n >= 0 && n < len(party) && combat != nil { // the look-only sheet: the member's page, no powers
-		sel, sheet, page = n, &game.Sheet{}, cmp.Or(party[n].Page, game.MemberPage(party[n]))
-	} else {
-		g.r.lookSheet = 0
+	if n, ok := r.lookMember(ps); ok { // the look-only sheet: the member's page, no powers
+		sheet, page = &game.Sheet{}, cmp.Or(party[n].Page, game.MemberPage(party[n]))
 	}
 	amap, allowed, loot, shop := r.automapOf(ps), allowedOf(ps), lootOf(ps), shopOf(ps)
 	services, _ := templeOf(ps)
@@ -1060,9 +1064,6 @@ func (g *Game) pending() *play.Ask {
 
 // mode is the screen up, a Refusal's question counted.
 func (g *Game) mode() game.Mode {
-	if g.r.refusalAsk != nil {
-		return game.ModeAsk
-	}
 	return g.r.modeOf(g.r.g.State())
 }
 

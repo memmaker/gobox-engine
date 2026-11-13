@@ -503,16 +503,13 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	p.drawParty(dst, partyOf(p.state()), p.cardSelected(), at)
 	p.view.DrawMenu(dst) // over the map and cards
-	p.cards = p.cards[:0]
-	for i := range v.Party {
-		p.cards = append(p.cards, cardAt(dst)(i, len(v.Party)))
-	}
+	p.layCards(dst)
 	if p.ctx == 0 && !p.campHome(v) { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
 		p.drawCardTip(dst)
 	}
 	k := scale(dst)
 	b := dst.Bounds()
-	if n := len(v.Party); n > 0 && Host.PartyRow { // pop-ups go over the card row
+	if n := len(p.cards); n > 0 && Host.PartyRow { // pop-ups go over the card row
 		b.Max.Y = cardAt(dst)(0, n).Min.Y
 	} else if n > 0 { // pop-ups go between the card columns
 		b.Min.X = cardAt(dst)(0, n).Max.X

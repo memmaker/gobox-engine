@@ -295,9 +295,6 @@ type invUp struct {
 func (r *rules) inventoryKind(ps play.State) invKind {
 	c := play.CommonOf(ps)
 	mode, loot := r.modeOf(ps), lootOf(ps)
-	if r.refusalAsk != nil {
-		mode = game.ModeAsk
-	}
 	wares := false
 	switch r.itemsUp(ps) {
 	case game.ItemsOwn:
@@ -328,9 +325,6 @@ func (r *rules) inventoryOf(ps play.State) *invUp {
 		return u
 	}
 	m, allowed, shop, loot, mode := party[sel], allowedOf(ps), shopOf(ps), lootOf(ps), r.modeOf(ps)
-	if r.refusalAsk != nil {
-		mode = game.ModeAsk
-	}
 	u.member, u.pool = sel, m.Items
 	u.use, u.sell, u.reload, u.switchable = allowed["UseItem"], allowed["Sell"], shop != nil && shop.Reloads, allowed["Select"]
 	u.trade, u.halve, u.join, u.pooled = allowed["Trade"], allowed["Halve"], allowed["Join"], shop != nil && allowed["PoolCoins"]
@@ -341,7 +335,7 @@ func (r *rules) inventoryOf(ps play.State) *invUp {
 		}
 	}
 	for i, it := range m.Items {
-		if d := dollSlot(it, u.doll[0] != nil); it.Readied && d >= 0 && u.doll[d] == nil {
+		if d := dollSlot(it, u.doll[core.DollWeapon] != nil); it.Readied && d >= 0 && u.doll[d] == nil {
 			u.doll[d] = &m.Items[i]
 		}
 	}

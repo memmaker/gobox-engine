@@ -145,7 +145,7 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func
 		d := p.cardImgs[i]
 		key := cardKey{i == sel, m.HP, m.MaxHP, m.Status, p.portrait(m), m.Dropped != nil, 0, 0, p.border.tiles[0], m.Memo}
 		if m.NextExp > 0 && (p.expShown || gpu.IsKeyPressed(gpu.KeyControl)) {
-			key.exp, key.nextExp = int(int32(m.Exp))-m.LevelExp, m.NextExp-m.LevelExp
+			key.exp, key.nextExp = expOf(m)-m.LevelExp, m.NextExp-m.LevelExp
 		}
 		if key != p.cardKeys[i] { // the card's picture changed: redraw it (a card is a render target of its own, a pass each)
 			p.cardKeys[i] = key
@@ -186,7 +186,7 @@ func (p *Presenter) drawCardTip(dst *gpu.Image) {
 		return
 	}
 	m := party[i]
-	exp := int(int32(m.Exp))
+	exp := expOf(m)
 	lines, sel := []string{m.Name, m.Class}, -1
 	if m.NextExp > 0 { // the experience and what the next level takes
 		lines = append(lines, "Exp "+strconv.Itoa(exp)+" / "+strconv.Itoa(m.NextExp))
@@ -634,9 +634,23 @@ func nameLines(name string, w, rows int) []string {
 	return out[:min(len(out), rows)]
 }
 
-// cardOf is member i alone, with the PNG portrait img (nil: its own).
+// layCards puts the party's cards on dst (p.cards): the ones drawParty draws.
+func (p *Presenter) layCards(dst *gpu.Image) {
+	n := len(play.CommonOf(p.state()).Party)
+	p.cards = p.cards[:0]
+	for i := range n {
+		p.cards = append(p.cards, cardAt(dst)(i, n))
+	}
+}
+
+// cardOf is member i alone, with the PNG portrait img (nil: its own); none
+// when there is no member i.
 func (p *Presenter) cardOf(i int, img image.Image) []game.Member {
-	m := partyOf(p.state())[i]
+	party := partyOf(p.state())
+	if i < 0 || i >= len(party) {
+		return nil
+	}
+	m := party[i]
 	if img != nil {
 		m.Dropped = img
 	}

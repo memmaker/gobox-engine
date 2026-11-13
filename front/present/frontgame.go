@@ -181,14 +181,10 @@ func (p *Presenter) WinRects() []image.Rectangle { return p.winRects }
 // DrawCards draws the party's cards where the 3D view has them, exp the
 // way to the next level under each, and the tip of the one pointed at.
 func (p *Presenter) DrawCards(dst *gpu.Image, exp bool) []image.Rectangle {
-	v := p.shownView
 	p.expShown = exp
 	p.drawParty(dst, partyOf(p.state()), p.cardSelected(), cardAt(dst))
 	p.expShown = false
-	p.cards = p.cards[:0]
-	for i := range v.Party {
-		p.cards = append(p.cards, cardAt(dst)(i, len(v.Party)))
-	}
+	p.layCards(dst)
 	p.drawCardTip(dst)
 	return p.cards
 }

@@ -72,7 +72,7 @@ func Inventory(v *front.Inventory, mode game.Mode, party []game.Member, sel, slo
 		x := invItem(it)
 		x.Slot, x.Wrong, x.Use, x.Look, x.Scribe = slotted(it), it.Wrong, it.Usable, lines(it.Text), slices.ContainsFunc(it.Scroll, func(s game.ScrollSpell) bool { return s.Scribing })
 		x.Price = front.Money{Gold: it.Sale[Coin], Copper: it.Sale[game.Copper]}
-		if d := dollSlot(it, n.Doll[0] != nil); it.Readied && d >= 0 && n.Doll[d] == nil {
+		if d := dollSlot(it, n.Doll[core.DollWeapon] != nil); it.Readied && d >= 0 && n.Doll[d] == nil {
 			y := x
 			n.Doll[d] = &y
 		}

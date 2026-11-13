@@ -36,7 +36,7 @@ func Party(party []game.Member, cards []memberCard, sel int) []front.Member {
 		}
 		out = append(out, front.Member{Head: headOf(m), Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
 			Selected: c.Chosen || !marked && i == sel, Colour: nameColour(m), Portrait: m.Dropped, Powers: powers(c.Menu),
-			Exp: int(int32(m.Exp)), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
+			Exp: expOf(m), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
 	}
 	return out
 }
@@ -63,3 +63,6 @@ func nameColour(m game.Member) int {
 	}
 	return 11
 }
+
+// expOf is m's experience as the cards and the sheet show it (a signed count: a level drained below 0).
+func expOf(m game.Member) int { return int(int32(m.Exp)) }

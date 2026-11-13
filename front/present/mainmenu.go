@@ -436,9 +436,6 @@ func (p *Presenter) mainMenu() front.MainMenu {
 func (p *Presenter) layoutMainMenu() front.MainMenu {
 	r, s := p.eng.r, p.state()
 	mode := r.modeOf(s)
-	if r.refusalAsk != nil {
-		mode = game.ModeAsk
-	}
 	c := play.CommonOf(s)
 	if p.training && trainingOf(s) != nil || p.creating && Drafting(mode, creationOf(s)) {
 		return front.MainMenu{}

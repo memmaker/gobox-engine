@@ -37,9 +37,12 @@ func cardsOf(ps play.State) []memberCard {
 	return out
 }
 
-// selectedOf is the member the screens act on: in a fight with the items up,
-// whose items they are.
+// selectedOf is the member the screens act on: the one whose look-only sheet
+// is up in a fight, else with the items up whose items they are.
 func (r *rules) selectedOf(ps play.State) int {
+	if n, ok := r.lookMember(ps); ok { // a fight's look-only sheet: that member's, and its items
+		return n
+	}
 	c := play.CommonOf(ps)
 	if f, ok := ps.(play.Fighting); ok {
 		if m := cmp.Or(r.itemsOf+1, activeMember(f.Field)+1) - 1; r.items != game.ItemsNone && m >= 0 && m < len(c.Party) {
@@ -257,6 +260,9 @@ func (r *rules) readOf(ps play.State) *game.Read {
 
 // modeOf is the screen ps puts up, a question over it counted.
 func (r *rules) modeOf(ps play.State) game.Mode {
+	if r.refusalAsk != nil { // a Refusal's question is up
+		return game.ModeAsk
+	}
 	var m game.Mode
 	c := play.CommonOf(ps)
 	switch t := ps.(type) {
