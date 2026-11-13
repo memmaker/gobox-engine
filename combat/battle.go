@@ -55,6 +55,7 @@ type Presenter struct {
 	Picking       bool         // the spell list is up (Cast): the bar is off
 	PickKind      Kind         // the list Picking shows: ActCast's spells or ActManeuver's maneuvers
 	Asking        bool         // a yes/no question (View.Ask, AskConfirm) waits: the bar shows Yes and No
+	K             int          // the UI's glyph scale (gobox ui.K), set by the host before Draw: the damage numbers' size
 	Pointer       image.Point  // the mouse on the screen, as the host last saw it (the bar's hover; captures script it)
 	pointed       image.Point  // the square the aim was last pointed at
 	aimAt         *image.Point // the aim cursor (front state, aimTo; nil: the game's Cursor)

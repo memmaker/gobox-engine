@@ -150,8 +150,8 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	t := p.border.tiles
 
 	b := dst.Bounds()
-	inv.k = max(1, min(b.Dx()/invW, b.Dy()/invH))
-	cw, ch := max(invW, b.Dx()/inv.k)/8, max(invH, b.Dy()/inv.k)/8
+	var cw, ch int
+	inv.k, cw, ch = ui.FullPageCells(b)
 	if shop { // the goods and the party inventory share the screen
 		split = (cw + 1) / 2
 	}

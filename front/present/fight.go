@@ -46,7 +46,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 						continue
 					}
 				}
-				ck := max(1, int(k)/2) // as the bar
+				ck := max(1, int(k)/2) // the portrait card: its own scale (cards are not K)
 				y := p.mapBottom - (cardH+cardGap)*ck + cardFoot*ck
 				p.fightCard = image.Rect(cardGap*ck, y, cardGap*ck+cardW*ck, y+cardH*ck)
 				p.drawParty(dst, []front.Member{m}, func(int, int) image.Rectangle { return p.fightCard })
@@ -72,11 +72,11 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 	}
 	p.syncBattle()
 	p.battle.Pointer = p.pointer
-	p.battle.DrawBar(dst, glyph, toBoard(b), max(1, int(k)/2), p.mapBottom)
+	p.battle.DrawBar(dst, glyph, toBoard(b), int(k), p.mapBottom) // the bar and its words at K
 	if ck, r, ok := p.battle.Hovered(); ok && b.Turn != nil {
 		kind := engineKinds[ck] // the readied weapon over Attack and Ranged: what it does, its rules
 		if it := map[front.ActKind]*front.InvItem{front.ActAttack: b.Turn.Weapon, front.ActRanged: b.Turn.Missile}[kind]; it != nil {
-			p.drawTipOver(dst, it.Name, append(slices.Clone(it.Look), it.Rules...), max(1, int(k)/2), r)
+			p.drawTipOver(dst, it.Name, append(slices.Clone(it.Look), it.Rules...), int(k), r)
 		}
 		if kind == front.ActBandage {
 			p.drawTipOver(dst, "Bandage", []string{
@@ -86,7 +86,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 				"stop bleeding; the Dying die",
 				"after 10 rounds unbandaged.",
 				"Uses this character's turn.",
-			}, max(1, int(k)/2), r)
+			}, int(k), r)
 		}
 	}
 	p.drawFightRows(dst, note, b, k)

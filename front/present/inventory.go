@@ -7,6 +7,7 @@ import (
 	"gobox/core"
 	"gobox/front"
 	"gobox/game"
+	"gobox/ui"
 	"image"
 	"image/color"
 	"slices"
@@ -28,7 +29,7 @@ import (
 // Layout, in canvas pixels. The canvas is at least invW x invH; the list
 // takes what the window gives beyond that.
 const (
-	invW, invH = 400, 250
+	invW, invH = ui.PageW, ui.PageH
 	leftCells  = 22                    // the doll box's width in cells, with its border
 	rowH       = 20                    // a party inventory line: a whole icon high
 	listTop    = 24                    // the first line, under the box's title

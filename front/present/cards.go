@@ -226,7 +226,7 @@ func powerLines(ps []front.Power) (lines []string, acts []front.ActKind, keys []
 // box beside member i's card, on the side away from the edge; it returns
 // the lines' rectangles and the box's top edge.
 func (p *Presenter) cardMenu(dst *gpu.Image, i int, lines []string, keys []byte, sel int) ([]image.Rectangle, image.Rectangle) {
-	r, k := p.cards[i], cardScale(dst)
+	r, k := p.cards[i], cardScale(dst) // part of the card layout (each card's slot holds its menu, camp shows them all): at the card's scale, not K
 	w := 0
 	for _, l := range lines {
 		w = max(w, int(k*8*float64(len(l)+4))) // the box: a border and a blank column each side

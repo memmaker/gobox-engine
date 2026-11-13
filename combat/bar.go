@@ -257,7 +257,7 @@ func turnItems(b *Board, asking bool) (items []barItem) {
 	return items
 }
 
-// DrawBar draws b's buttons as the action bar at scale k, its bottom at bottom,
+// DrawBar draws b's buttons as the action bar at scale k (K, shrunk as far as it must to fit), its bottom at bottom,
 // in the game's font (glyph).
 func (p *Presenter) DrawBar(dst *gpu.Image, glyph func(byte) [8]byte, b *Board, k, bottom int) {
 	br := &p.bar
@@ -280,12 +280,20 @@ func (p *Presenter) DrawBar(dst *gpu.Image, glyph func(byte) [8]byte, b *Board, 
 	if lit < 0 && br.focus > 0 {
 		lit = br.focus - 1
 	}
-	n, bw := len(items), face*k/2+4*k
+	n := len(items)
 	caption := ""
 	if b.Turn != nil && b.Turn.Aim && b.Turn.Casting != "" { // the spell being aimed, under Cancel
 		caption = "Casting " + b.Turn.Casting
 	}
-	w, h := max(n*(bw+4*k), 7*8*k+bw, (len(caption)*8+6)*k), (promptH+labelH)*k+bw
+	width := func(k int) int {
+		bw := face*k/2 + 4*k
+		return max(n*(bw+4*k), 7*8*k+bw, (len(caption)*8+6)*k)
+	}
+	for k > 1 && width(k) > dst.Bounds().Dx() { // K, shrunk only as far as the bar needs to fit the window
+		k--
+	}
+	bw := face*k/2 + 4*k
+	w, h := width(k), (promptH+labelH)*k+bw
 	id := strconv.Itoa(k) + "|" + strconv.Itoa(lit) + "|" + p.IconKey + "|" + caption
 	for _, it := range items {
 		id += "|" + it.Text

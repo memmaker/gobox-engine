@@ -65,8 +65,7 @@ func textImage(glyph func(byte) [8]byte, s string, c, outline color.RGBA) *image
 
 // drawDamage moves, fades and draws the numbers at the UI's glyph size.
 func (p *Presenter) drawDamage(dst *gpu.Image, vp gpu.Mat4, dt float64) {
-	r := dst.Bounds()
-	k := float64(max(1, min(r.Dx()/400, r.Dy()/250)))
+	k := float64(max(1, p.K))
 	live := p.floats[:0]
 	for _, f := range p.floats {
 		f.life += dt
