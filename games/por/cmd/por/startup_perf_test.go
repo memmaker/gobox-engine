@@ -31,7 +31,6 @@ func TestStartupTiming(t *testing.T) {
 	}
 	eng.Cfg.SaveDir = t.TempDir()
 	lap("pool.New")
-	eng.Tracks = present.NewSoundtrack(eng.SoundtrackDir(), pool.SoundtrackFiles)
 	tables, err := eng.SoundData()
 	if err != nil {
 		t.Fatal(err)
@@ -40,7 +39,8 @@ func TestStartupTiming(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	drv.Attach(eng.SoundParts())
+	am, fx, pack, speaking, vol := eng.SoundParts()
+	drv.Attach(am, fx, present.NewSoundtrack(eng.SoundtrackDir(), pool.SoundtrackFiles), pack, speaking, vol)
 	eng.SetSound(drv)
 	lap("sound")
 	data := playpor.Data(eng)

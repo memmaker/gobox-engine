@@ -158,10 +158,9 @@ type Engine struct {
 	eclWait        *eclWait              // the script instruction waiting for its answer (eclask.go)
 
 	// H
-	areaIconTick byte   // DS:6DDC area map party icon pose counter
-	snd          sound  // PC speaker driver (08AE)
-	Tracks       Tracks // the soundtrack's recordings (*present.Soundtrack satisfies Tracks; nil: none), set before SoundReader
-	vox          voice  // voice.go: the voice-over
+	areaIconTick byte  // DS:6DDC area map party icon pose counter
+	snd          sound // PC speaker driver (08AE)
+	vox          voice // voice.go: the voice-over
 
 	entryTable map[script.EntryID]script.Entry // the long texts by id (entries)
 	books      map[string]*journal.Book        // the game's journal books by file name (book); nil: none

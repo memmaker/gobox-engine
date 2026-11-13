@@ -97,7 +97,6 @@ func Play(s app.Start, gm Game) error {
 		eng.NoSteps.Store(!h.Steps)
 		pool.SetVolumes(h.Music, h.Effects, h.Voice)
 	}
-	eng.Tracks = present.NewSoundtrack(eng.SoundtrackDir(), pool.SoundtrackFiles) // the presenter decodes and plays the recordings
 	tables, err := eng.SoundData()
 	if err != nil {
 		return err
@@ -106,7 +105,8 @@ func Play(s app.Start, gm Game) error {
 	if err != nil {
 		return err
 	}
-	drv.Attach(eng.SoundParts())
+	am, fx, pack, speaking, vol := eng.SoundParts()
+	drv.Attach(am, fx, present.NewSoundtrack(eng.SoundtrackDir(), pool.SoundtrackFiles), pack, speaking, vol) // the presenter decodes and plays the recordings
 	eng.SetSound(drv)
 	audio.Output(drv) // speaker and voice share one context
 	audio.Output(eng.VoiceReader())

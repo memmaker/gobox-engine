@@ -7,7 +7,7 @@ import "path/filepath"
 // of the Amiga's. They are free music from OpenGameArt, converted to Ogg
 // Vorbis at 44100 Hz and levelled to -20 LUFS; CREDITS.txt there names them.
 // A song without its file is silent. The recordings play in the presenter
-// (present.Soundtrack, Engine.Tracks); the rules choose the song.
+// (present.Soundtrack); the rules choose the song.
 
 const soundtrackDir = "soundtrack"
 
@@ -24,18 +24,6 @@ var SoundtrackFiles = map[int]string{
 
 // SoundtrackDir is where the recordings are.
 func (e *Engine) SoundtrackDir() string { return filepath.Join(e.adv, soundtrackDir) }
-
-// Tracks plays the soundtrack's recordings (present.Soundtrack): the
-// presenter decodes and renders them, the driver says which song.
-type Tracks interface {
-	Len() int
-	Has(n int) bool
-	Song() int // the song started last
-	Reset()
-	Start(n int)
-	Playing() bool
-	Mix(m []byte, loop bool)
-}
 
 // SetSoundtrack turns the soundtrack on or off, restarting the song for
 // where the party is in the music now chosen.

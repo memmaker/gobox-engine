@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"gobox/amiga"
+	"gobox/audio"
 	"gobox/audio/sounddata"
 	"gobox/core"
 	"gobox/game/play"
@@ -43,7 +44,7 @@ const (
 // sound is the rules' side of the driver: the calls go to d (nil until
 // SetSound), DS:5372..5374 stay here.
 type sound struct {
-	d     Sound
+	d     audio.Sound
 	typ   int  // DS:5372: sndTandy, sndSpeaker or sndNone
 	saved int  // DS:5373: typ before Ctrl-S turned the sound off
 	wait  int  // DS:5374
@@ -210,9 +211,9 @@ func (e *Engine) battleMusic() {
 }
 
 // SoundParts loads what the driver plays besides the synth, for
-// audio.Driver.Attach: the Amiga players and their effects, the soundtrack,
-// the sound pack, the voice-over's speaking and the volume sliders.
-func (e *Engine) SoundParts() (*amiga.Player, []int, Tracks, interface{ Mix([]byte) }, func() bool, func(string) float64) {
+// audio.Driver.Attach: the Amiga players and their effects, the sound pack,
+// the voice-over's speaking and the volume sliders.
+func (e *Engine) SoundParts() (*amiga.Player, []int, interface{ Mix([]byte) }, func() bool, func(string) float64) {
 	var am *amiga.Player
 	if img, err := os.ReadFile(filepath.Join(e.adv, SoundDir, "SOUND.BIN")); err == nil && len(img) == amiga.End-amiga.Base {
 		am = amiga.New(img)
@@ -223,12 +224,12 @@ func (e *Engine) SoundParts() (*amiga.Player, []int, Tracks, interface{ Mix([]by
 	if e.snd.dasp != nil {
 		pack = e.snd.dasp
 	}
-	return am, amigaFx[:], e.Tracks, pack, e.vox.speaking, volume
+	return am, amigaFx[:], pack, e.vox.speaking, volume
 }
 
 // SetSound hands the rules the attached driver (audio.Driver, made on
 // Cfg.Sound): main 0x4574 picks the card, SOUND.OFF keeps Ctrl-S's.
-func (e *Engine) SetSound(d Sound) {
+func (e *Engine) SetSound(d audio.Sound) {
 	s := &e.snd
 	s.d = d
 	switch e.Cfg.Sound { // main 0x4574
