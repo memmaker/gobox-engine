@@ -260,10 +260,10 @@ func (r *Rules) factParty(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 	case rules.FactControl:
 		return rules.Number(c.Control), true, nil
 	case rules.FactRace:
-		if int(c.Race) >= len(RecordRace) {
-			return rules.Number(c.Race), true, nil // outside the table: the record's own byte, as the original reads it
+		if c.Race == RaceMonster && int(c.MonsterRace) >= len(RecordRace) {
+			return rules.Number(c.MonsterRace), true, nil // outside the table: the record's own byte, as the original reads it
 		}
-		return RecordRace[c.Race], true, nil
+		return c.Race, true, nil
 	case rules.FactAlignment:
 		if int(c.Alignment) >= len(RecordAlignment) {
 			return rules.Number(c.Alignment), true, nil // SpecialReadZ1 $D8 reads the raw byte
@@ -439,7 +439,7 @@ func kindNamed(k rules.PickKind) (Kind, error) {
 	if race < 0 || sex < 0 || class < 0 || align < 0 {
 		return Kind{}, fmt.Errorf("no kind %+v", k)
 	}
-	return Kind{Race: RaceID(race), Sex: byte(sex), Class: ClassID(class), Align: byte(align)}, nil
+	return Kind{Race: RecordRace[race], Sex: byte(sex), Class: ClassID(class), Align: byte(align)}, nil
 }
 
 // inPartyAt is the index of the first member of who's name and random id, or -1.

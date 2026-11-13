@@ -88,7 +88,7 @@ func runGoldenPodDamage(tb *Tables, k goldenPodCase) string {
 	atk := &Character{}
 	atk.MaxLevel, atk.Race = k.MaxLevel, RaceHuman
 	if k.Monster {
-		atk.Race = 0 // the monster race
+		atk.Race = RaceMonster
 	}
 	if k.Weapon {
 		w := &Item{}

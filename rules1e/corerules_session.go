@@ -80,11 +80,6 @@ func (r *Rules) Import(b rules.CharacterFile) (rules.CharID, error) {
 	if err := r.S.toIDs(f.Affects, f.Items); err != nil {
 		return rules.NoChar, fmt.Errorf("Import: %w", err)
 	}
-	race, err := r.S.T().raceID(f.Sheet.Race)
-	if err != nil {
-		return rules.NoChar, fmt.Errorf("Import: %w", err)
-	}
-	f.Sheet.Race = race
 	if err := sheetSpells(&f.Sheet, f.Plan, r.S.T().spellNumber); err != nil {
 		return rules.NoChar, fmt.Errorf("Import: %w", err)
 	}
@@ -138,11 +133,6 @@ func (r *Rules) Export(id rules.CharID) (rules.CharacterFile, error) {
 	if err := r.S.toGame(nil, f.Pool); err != nil {
 		return nil, fmt.Errorf("Export %d: %w", id, err)
 	}
-	race, err := r.S.T().gameRace(f.Sheet.Race)
-	if err != nil {
-		return nil, fmt.Errorf("Export %d: %w", id, err)
-	}
-	f.Sheet.Race = race
 	plan := c.Plan
 	f.Plan = &plan
 	if err := sheetSpells(&f.Sheet, f.Plan, r.S.T().gameSpellNumber); err != nil {

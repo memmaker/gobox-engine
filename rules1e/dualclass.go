@@ -115,7 +115,7 @@ func NewClasses(c *Character) []int {
 		return nil
 	}
 	var out []int
-	for _, b := range RaceCareers(CoreRaceHuman) {
+	for _, b := range RaceCareers(RaceHuman) {
 		cl := int(b)
 		if cl == cur || cl > ClsMonk || !mayTakeClass(c, cur, cl) {
 			continue

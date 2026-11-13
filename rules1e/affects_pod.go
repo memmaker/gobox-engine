@@ -269,7 +269,7 @@ func (e *RuleState) needsWeaponPlusPod(plus int) {
 		}
 		return
 	}
-	if sel.Race == raceMonster {
+	if sel.raceNumber() == 0 {
 		if (plus-1)*monsterDicePerPlusPod+monsterDiceForPlus1Pod > int(sel.MaxLevel) {
 			e.Rv.Damage = 0
 		}

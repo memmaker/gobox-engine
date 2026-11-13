@@ -63,7 +63,7 @@ func KindOf(d rules.Draft) Kind {
 func (p Creation) Fields(d rules.Draft) []rules.FieldDef {
 	races := make([]string, len(PickRaces))
 	for i, r := range PickRaces {
-		races[i] = RaceNames[r]
+		races[i] = RaceName(r)
 	}
 	classes := PickClasses()
 	cls := make([]string, len(classes))
@@ -263,7 +263,7 @@ func (p Creation) DraftOf(c *Character, of rules.CharID) rules.Draft {
 		Of:   of, Purse: rules.Copper(uint64(c.Coins[CoinGold]) * copperPerGold), HitRoll: int32(c.HPRoll) * classCount(c), Ident: uint32(c.RandomID),
 	}
 	d.Head, d.Body = p.Host.Portrait(picsOf(c))
-	d.Sheet.Race, d.Sheet.Sex, d.Sheet.Age = RecordRace[c.Race], []rules.Sex{rules.Male, rules.Female}[c.Sex&1], int32(c.Age)
+	d.Sheet.Race, d.Sheet.Sex, d.Sheet.Age = c.Race, []rules.Sex{rules.Male, rules.Female}[c.Sex&1], int32(c.Age)
 	d.Sheet.HP, d.Sheet.MaxHP = int32(c.HP), int32(c.MaxHP)
 	d.Sheet.Scores = map[rules.Ability]int32{rules.StrengthPercent: int32(c.Str00)}
 	for i, a := range Abilities {

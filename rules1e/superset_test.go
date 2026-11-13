@@ -8,7 +8,7 @@ import (
 
 // TestThiefItems pins COTAB's items of thievery and free action (O0FE:0AEA).
 func TestThiefItems(t *testing.T) {
-	skills := func(lvl int, p ItemPowers) [8]int { return ThiefSkills(lvl, CoreRaceHuman, 12, p) }
+	skills := func(lvl int, p ItemPowers) [8]int { return ThiefSkills(lvl, RaceHuman, 12, p) }
 	low := skills(1, ItemPowers{Thievery: true})
 	if low[0] != skills(5, ItemPowers{})[0] || low[1] != skills(7, ItemPowers{})[1] || low[2] != skills(1, ItemPowers{})[2] {
 		t.Errorf("thievery at 1 lifts the first two skills' levels only: %v", low)
@@ -40,14 +40,14 @@ func TestAffectNames(t *testing.T) {
 func TestConSave(t *testing.T) {
 	para := func(r Who) int { return ClassStats(r).Saves[SaveParalysis] }
 	lv := map[rules.Class]int{ClassFighter: 1}
-	base := para(Who{Levels: lv, Race: CoreRaceHuman, Con: 18})
-	if got := para(Who{Levels: lv, Race: CoreRaceDwarf, Con: 18}); got != base-5 {
+	base := para(Who{Levels: lv, Race: RaceHuman, Con: 18})
+	if got := para(Who{Levels: lv, Race: RaceDwarf, Con: 18}); got != base-5 {
 		t.Errorf("dwarf con 18: %d, want %d", got, base-5)
 	}
-	if got := para(Who{Levels: lv, Race: CoreRaceHuman, Con: 18, Powers: ItemPowers{SaveBonus: true}}); got != base-5 {
+	if got := para(Who{Levels: lv, Race: RaceHuman, Con: 18, Powers: ItemPowers{SaveBonus: true}}); got != base-5 {
 		t.Errorf("save-bonus item con 18: %d, want %d", got, base-5)
 	}
-	if got := para(Who{Levels: lv, Race: CoreRaceHalfling, Con: 19}); got != base-1 {
+	if got := para(Who{Levels: lv, Race: RaceHalfling, Con: 19}); got != base-1 {
 		t.Errorf("halfling con 19: %d, want %d (19 is past the low table)", got, base-1)
 	}
 }

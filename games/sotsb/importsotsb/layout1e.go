@@ -6,13 +6,9 @@ import (
 	"gobox/rules1e"
 )
 
-// races is the race of each race row of the game's tables ("": the
-// placeholder row 0).
-var races = [...]rules.Race{"", rules1e.CoreRaceElf, rules1e.CoreRaceHalfElf, rules1e.CoreRaceDwarf, rules1e.CoreRaceGnome, rules1e.CoreRaceHalfling, rules1e.CoreRaceHuman, rules1e.CoreRaceMonster}
-
 // Layout1e is the shape of this game's tables (the imported data/rules.json's
 // flat slot tables, the race rows), written as data/layout.json.
-var Layout1e = rules1e.Layout{SlotStride: spellLevels, Races: races[:]}
+var Layout1e = rules1e.Layout{SlotStride: spellLevels, Races: rules1e.RaceNumbers(rules1e.Layout439)}
 
 // GameTables is the game's pool.GameTables, written as data/gametables.json:
 // the second engine's dialect, an NPC loads its combat icon, the duel sounds

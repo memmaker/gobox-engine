@@ -121,13 +121,13 @@ func (e *RuleState) CanTrain(c *Character) bool {
 // have none): those past their race's limit die, ten years before it they
 // look very old.
 type OldAgeRule struct {
-	Limits  map[RaceID]uint16 `json:"limits"`
-	Warning uint16            `json:"warning"`
+	Limits  map[rules.Race]uint16 `json:"limits"`
+	Warning uint16                `json:"warning"`
 }
 
 var (
-	SotsbOldAge = OldAgeRule{Limits: map[RaceID]uint16{RaceElf: 1600, RaceHalfElf: 325, RaceDwarf: 525, RaceGnome: 750, RaceHalfling: 199, RaceHuman: 120}, Warning: 10}
-	PodOldAge   = OldAgeRule{Limits: map[RaceID]uint16{RaceElf: 1600, RaceHalfElf: 325, RaceDwarf: 525, RaceGnome: 525, RaceHalfling: 199, RaceHuman: 120}, Warning: 10}
+	SotsbOldAge = OldAgeRule{Limits: map[rules.Race]uint16{RaceElf: 1600, RaceHalfElf: 325, RaceDwarf: 525, RaceGnome: 750, RaceHalfling: 199, RaceHuman: 120}, Warning: 10}
+	PodOldAge   = OldAgeRule{Limits: map[rules.Race]uint16{RaceElf: 1600, RaceHalfElf: 325, RaceDwarf: 525, RaceGnome: 525, RaceHalfling: 199, RaceHuman: 120}, Warning: 10}
 )
 
 // oldAgeDeaths: after a fight in which someone aged, the members past the

@@ -34,7 +34,8 @@ func TestWindowAgainstPascal(t *testing.T) {
 		c := e.member(e.selected())
 		if strings.HasPrefix(line, "rd ") {
 			r := byte(k[0])
-			c.Race, c.Stats[rules1e.StatCon], c.Saves[1], c.Control, c.Alignment, c.Okay, c.Move = rules1e.RaceID(r), rules1e.Score(10+r), rules1e.Score(5+r), r, r, r%2, 6+r
+			c.SetPorRace(r)
+			c.Stats[rules1e.StatCon], c.Saves[1], c.Control, c.Alignment, c.Okay, c.Move = rules1e.Score(10+r), rules1e.Score(5+r), r, r, r%2, 6+r
 			for i := range c.Thief {
 				c.Thief[i] = rules1e.Percent(21 + byte(i) + r)
 			}

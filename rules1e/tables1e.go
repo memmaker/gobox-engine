@@ -38,7 +38,7 @@ type Tables struct {
 	RaceLimits      []raceLimit
 	TurnUndead      [][]int8
 	Spells          [][]SpellProp              // spell records, by unified spell id (SpellMap)
-	Races           []rules.Race               // the race of each of the game's race numbers (Layout.Races); nil: POR, its numbers are RaceIDs
+	Races           []rules.Race               // the race of each of the game's race numbers (Layout.Races); nil: POR order (RecordRace)
 	CasterLevel     CasterLevelRule            // the game's caster-level rule (rules.json casterLevel); zero: POR's
 	OldAge          *OldAgeRule                // death of old age after a fight (rules.json oldAge); nil: none (POR, CotAB)
 	Hammer          *Item                      // the Spiritual Hammer (rules.json spiritualHammer); nil: POR's

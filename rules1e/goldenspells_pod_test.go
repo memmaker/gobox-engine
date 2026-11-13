@@ -52,7 +52,8 @@ func TestGoldenSpellsPod(t *testing.T) {
 		var ts []*Character
 		for i, s := range scene {
 			c := &Character{Combat: &CombatInfo{}}
-			c.HP, c.MaxHP, c.MaxLevel, c.Size, c.Side, c.Status, c.Race = s.HP, s.MaxHP, s.MaxLevel, s.Size, s.Side, s.Status, RaceID(s.Race)
+			c.HP, c.MaxHP, c.MaxLevel, c.Size, c.Side, c.Status = s.HP, s.MaxHP, s.MaxLevel, s.Size, s.Side, s.Status
+			c.SetPorRace(s.Race)
 			c.Stats[StatCon] = Score(s.Con)
 			c.MonsterFlags = MonsterFlags(s.MonsterFlags)
 			c.AC = [2]ArmourClass{50, 50}

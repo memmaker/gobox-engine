@@ -24,10 +24,10 @@ func TestPaladinRanger(t *testing.T) {
 	if rules1e.XPForLevel(rules1e.ClassPaladin, 9) != -1 || rules1e.XPForLevel(rules1e.ClassRanger, 8) != -1 || rules1e.XPForLevel(rules1e.ClassRanger, 7) != 90001 {
 		t.Error("level caps")
 	}
-	if len(rules1e.RaceCareers(rules1e.CoreRaceHuman)) != 6 || len(rules1e.RaceCareers(rules1e.CoreRaceHalfElf)) != 13 || len(rules1e.CareerAlignments(rules1e.CareerRanger)) != 3 {
+	if len(rules1e.RaceCareers(rules1e.RaceHuman)) != 6 || len(rules1e.RaceCareers(rules1e.RaceHalfElf)) != 13 || len(rules1e.CareerAlignments(rules1e.CareerRanger)) != 3 {
 		t.Error("class lists")
 	}
-	if !rules1e.LevelBlocked(4, 0x11, rules1e.ClsRanger, 7) || rules1e.LevelBlocked(7, 0x11, rules1e.ClsRanger, 7) {
+	if !rules1e.LevelBlocked(rules1e.RaceHalfElf, 0x11, rules1e.ClsRanger, 7) || rules1e.LevelBlocked(rules1e.RaceHuman, 0x11, rules1e.ClsRanger, 7) {
 		t.Error("half-elf ranger limit")
 	}
 }

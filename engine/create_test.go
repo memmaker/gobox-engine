@@ -55,20 +55,20 @@ func TestCreateSheet(t *testing.T) {
 	}
 	c := e.member(e.selected())
 	if c.Name() != "No-One" || c.Race != rules1e.RaceHuman || c.Class != rules1e.ClsFighter || c.Stats[0] == 0 || c.MaxHP == 0 {
-		t.Fatalf("sample: %s %d %d stats %v hp %d", c.Name(), c.Race, c.Class, c.Stats, c.MaxHP)
+		t.Fatalf("sample: %s %s %d stats %v hp %d", c.Name(), c.Race, c.Class, c.Stats, c.MaxHP)
 	}
 	e.SetField(rules1e.FieldClass, option(rules1e.FieldClass, rules1e.ClassNames[rules1e.ClsMage]))
 	if c = e.member(e.selected()); c.Class != rules1e.ClsMage {
 		t.Fatalf("class %d, want a magic-user", c.Class)
 	}
 	// Dwarf does not fit a magic-user: it forces the class to fighter.
-	dw := option(rules1e.FieldRace, rules1e.RaceNames[rules1e.RaceDwarf])
+	dw := option(rules1e.FieldRace, rules1e.RaceName(rules1e.RaceDwarf))
 	if draft().Fields[rules1e.FieldRace].Fits[dw] {
 		t.Error("a dwarf magic-user fits")
 	}
 	e.SetField(rules1e.FieldRace, dw)
 	if c = e.member(e.selected()); c.Race != rules1e.RaceDwarf || c.Class != rules1e.ClsFighter || c.IconSize != 1 {
-		t.Fatalf("race %d class %d size %d, want a dwarf fighter", c.Race, c.Class, c.IconSize)
+		t.Fatalf("race %s class %d size %d, want a dwarf fighter", c.Race, c.Class, c.IconSize)
 	}
 	e.setStat(rules1e.StatCha, "9")
 	if c = e.member(e.selected()); c.Stats[rules1e.StatCha] != 9 {
@@ -124,7 +124,7 @@ func TestCreateSheet(t *testing.T) {
 	id, ok := e.LoadCharacter("Brok", false)
 	d := e.member(id)
 	if !ok || d.Race != rules1e.RaceDwarf || d.PortHead != 2 || d.Icon == nil || d.Portrait == nil {
-		t.Errorf("saved: %v race %d head %d icon %v portrait %v", d.Name(), d.Race, d.PortHead, d.Icon != nil, d.Portrait != nil)
+		t.Errorf("saved: %v race %s head %d icon %v portrait %v", d.Name(), d.Race, d.PortHead, d.Icon != nil, d.Portrait != nil)
 	}
 	// Add: the saved characters as cards (the portrait PNG the presenter's);
 	// a pick adds one, the picker stays until verbClose.

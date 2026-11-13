@@ -759,7 +759,7 @@ func (e *RuleState) thieveryItemCotab(c *Character, a *Affect, flag byte) {
 	if earlierClassActive(c, ClsMonk) {
 		lvl += int8(c.OldLevels[ClsThief])
 	}
-	skills := e.T().ThiefSkills(int(lvl), RecordRace[c.Race], int(c.Stats[StatDex]), p)
+	skills := e.T().ThiefSkills(int(lvl), c.Race, int(c.Stats[StatDex]), p)
 	for i := range skills {
 		c.Thief[i] = Percent(skills[i])
 	}

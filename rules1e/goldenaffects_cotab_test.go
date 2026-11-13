@@ -149,7 +149,7 @@ func TestGoldenAffectsCotab(t *testing.T) {
 		t.Fatal(err)
 	}
 	tb := loadGoldenTables(t, dir)
-	_ = CoreRaceHuman
+	_ = RaceHuman
 	for i, k := range cases {
 		if !goldenCotabSame(runGoldenCotab(&tb, k), k) {
 			t.Errorf("case %d affect %d differs from the golden", i, k.Affect)

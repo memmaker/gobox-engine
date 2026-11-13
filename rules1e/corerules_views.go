@@ -15,7 +15,7 @@ import (
 func word(c *Character, w rules.WordFact) (rules.Value, error) {
 	switch w.Of {
 	case rules.FactRace:
-		return rules.Text(RaceNames[int8(c.Race)]), nil
+		return rules.Text(RaceName(c.Race)), nil
 	case rules.FactSex:
 		return rules.Text(GenderNames[c.Sex]), nil
 	case rules.FactAlignment:

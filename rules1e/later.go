@@ -63,7 +63,9 @@ func UnpackLater[R Later](b rules.CharacterFile, itemSize int) (LaterFiles, erro
 	if c.Kept == nil || int(c.Kept.Layout) != len(Encode(r)) {
 		return LaterFiles{}, fmt.Errorf("UnpackLater: kept record is not a %T", r)
 	}
-	laterOfSheet(&r, c)
+	if err := laterOfSheet(&r, c); err != nil {
+		return LaterFiles{}, fmt.Errorf("UnpackLater: %w", err)
+	}
 	f := LaterFiles{Record: append(withBlanks[R](Encode(r), orig), PoolTrailer(c.PoolIDs)...), ItemSize: itemSize}
 	pad := make([]byte, itemSize-ItemSize)
 	for _, it := range c.Items {
@@ -95,7 +97,7 @@ func withBlanks[R Record](enc, orig []byte) []byte {
 var laterByHand = map[string]bool{
 	"PName": true, "Stats": true, "Str00": true, "Memorized": true,
 	"SpellSlots": true, "Coins": true, "Pad86": true, "OldLevels": true,
-	"MulticlassLevel": true, "CanTrain": true,
+	"MulticlassLevel": true, "CanTrain": true, "Race": true, "MonsterRace": true,
 }
 
 // laterAlias: a later record's name for a Sheet field, either way round.
@@ -171,6 +173,7 @@ func commonOf(r any) common {
 
 func sheetOfLater[R Later](c *CharacterJSON, r R) {
 	copySame(reflect.ValueOf(&c.Sheet).Elem(), reflect.ValueOf(r))
+	c.Sheet.Race, c.Sheet.MonsterRace = RaceOfRecord(layoutOf[R](), reflect.ValueOf(r).FieldByName("Race").Interface().(byte))
 	m := commonOf(&r)
 	n := min(int(m.name[0]), 15)
 	c.Sheet.CharName = string(m.name[1 : 1+n])
@@ -194,9 +197,14 @@ func sheetOfLater[R Later](c *CharacterJSON, r R) {
 	}
 }
 
-func laterOfSheet[R Later](r *R, c CharacterJSON) {
+func laterOfSheet[R Later](r *R, c CharacterJSON) error {
 	v := reflect.ValueOf(r).Elem()
 	copySame(v, reflect.ValueOf(c.Sheet))
+	race, ok := recordRaceByte(layoutOf[R](), c.Sheet.Race, c.Sheet.MonsterRace)
+	if !ok {
+		return fmt.Errorf("race %q has no number in a %T record", c.Sheet.Race, *r)
+	}
+	v.FieldByName("Race").SetUint(uint64(race))
 	m := commonOf(r)
 	if n := min(int(m.name[0]), 15); string(m.name[1:1+n]) != c.Sheet.CharName { // a new name: the stale letters after it go
 		*m.name = [16]byte{}
@@ -227,7 +235,11 @@ func laterOfSheet[R Later](r *R, c CharacterJSON) {
 		p.Pad402[0] = c.Sheet.ScriptFlag
 		p.Pad86 = [2]byte{c.Sheet.Pad86, c.Sheet.Pad87}
 	}
+	return nil
 }
+
+// layoutOf is the record layout of R.
+func layoutOf[R Later]() rules.RecordLayout { return rules.RecordLayout(len(Encode(*new(R)))) }
 
 // CheckLater is f through PackLater, rules1e's Import and Export over the
 // game's tables tb and base item table items, and UnpackLater: nil when the

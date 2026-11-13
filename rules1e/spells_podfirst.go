@@ -75,7 +75,7 @@ func (e *RuleState) fxDestructionPod() {
 // race but none, and no constitution lost.
 func (e *RuleState) fxResurrectionPod() {
 	t := e.tgt(1)
-	if t.Status == StatusDead && t.Stats[StatCon] > 0 && t.Race > 0 {
+	if t.Status == StatusDead && t.Stats[StatCon] > 0 && t.raceNumber() != 0 {
 		e.Rv.Cure = 1
 		e.RemoveAffect(t, AffPoisoned, nil)
 		e.Rv.Cure = 0

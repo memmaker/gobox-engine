@@ -120,7 +120,7 @@ func (t *Tables) ClassStats(w Who) Stats {
 	// bonus, subtracted so it helps; POR's roll-time affect 0x5A is not given
 	// and dropped from loaded records, so it counts once).
 	con := byte(w.Con)
-	if w.Race == CoreRaceDwarf || w.Race == CoreRaceHalfling || w.Powers.SaveBonus {
+	if w.Race == RaceDwarf || w.Race == RaceHalfling || w.Powers.SaveBonus {
 		s.Saves[SaveParalysis] -= int(rules.ConSaveLow(con))
 	}
 	s.Saves[SaveParalysis] -= int(rules.ConSaveHigh(con))

@@ -132,23 +132,23 @@ func (e *RuleState) rollHitDice(c *Character, mask int) int {
 }
 
 // LevelBlocked: the race's level limit stops class i at level lv.
-func LevelBlocked(race RaceID, str Score, i int, lv Level) bool {
+func LevelBlocked(race rules.Race, str Score, i int, lv Level) bool {
 	// Level limits of the races.
 	skip := false
 	switch race {
-	case 1:
+	case RaceDwarf:
 		skip = i == 2 && (lv == 8 && str == 0x11 || lv == 7 && str < 0x11)
-	case 2:
+	case RaceElf:
 		skip = i == 2 && (lv == 7 || lv == 6 && str == 0x11 || lv == 5 && str < 0x11)
-	case 3:
+	case RaceGnome:
 		skip = i == 2 && (lv == 6 || lv == 5 && str < 0x12)
-	case 4:
+	case RaceHalfElf:
 		if i == 0 && lv == 5 {
 			skip = true
 		} else if i == 2 || i == ClsRanger { // the half-elf ranger as the fighter (CotAB)
 			skip = lv == 8 || lv == 7 && str == 0x11 || lv == 6 && str < 0x11
 		}
-	case 5:
+	case RaceHalfling:
 		skip = i == 2 && (lv == 6 || lv == 5 && str == 0x11 || lv == 4 && str < 0x11)
 	}
 	return skip

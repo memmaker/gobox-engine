@@ -8,12 +8,9 @@ import (
 	"path/filepath"
 )
 
-// races is the race of each race row.
-var races = [...]rules.Race{rules1e.CoreRaceElf, rules1e.CoreRaceHalfElf, rules1e.CoreRaceDwarf, rules1e.CoreRaceGnome, rules1e.CoreRaceHalfling, rules1e.CoreRaceHuman, rules1e.CoreRaceMonster}
-
 // Layout1e is the shape of this game's slot tables (rules1e.Layout).
 func Layout1e() rules1e.Layout {
-	return rules1e.Layout{SlotStride: spellLevels, SlotTotals: true, RangerMageColumn: rangerMageColumn, Races: races[:]}
+	return rules1e.Layout{SlotStride: spellLevels, SlotTotals: true, RangerMageColumn: rangerMageColumn, Races: rules1e.RaceNumbers(rules1e.Layout510)}
 }
 
 // SoundKind is what SOUND's operand n plays: song n&^128 of the music, the

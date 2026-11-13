@@ -526,7 +526,7 @@ func (e *RuleState) plainWeaponsImmuneSotsb(c *Character, a *Affect, flag byte) 
 	if w := e.readiedWeapon(sel); w != nil && w.Plus != 0 {
 		return
 	}
-	if sel.Race != raceMonster && sel.Race <= RaceHuman || int8(sel.MaxLevel) < sotsbPlainLevel {
+	if sel.Race != RaceMonster || int8(sel.MaxLevel) < sotsbPlainLevel {
 		e.Rv.Damage = 0
 	}
 }

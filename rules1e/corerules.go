@@ -232,11 +232,6 @@ func (r *Rules) monster(id rules.MonsterID) (Monster, error) {
 	if err := r.S.toIDs(m.Affects, m.Items); err != nil {
 		return Monster{}, fmt.Errorf("monster %d: %w", id, err)
 	}
-	race, err := r.S.T().raceID(m.Sheet.Race)
-	if err != nil {
-		return Monster{}, fmt.Errorf("monster %d: %w", id, err)
-	}
-	m.Sheet.Race = race
 	if err := sheetSpells(&m.Sheet, nil, r.S.T().spellNumber); err != nil {
 		return Monster{}, fmt.Errorf("monster %d: %w", id, err)
 	}

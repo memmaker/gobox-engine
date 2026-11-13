@@ -16,7 +16,7 @@ import (
 // A difference is a bug, or a row of gobox-engine/CHANGES-FROM-ORIGINAL.md.
 var (
 	vecClass = [8]rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, ClassRanger, ClassMage, ClassThief, ClassMonk}
-	vecRace  = [8]rules.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
+	vecRace  = [8]rules.Race{RaceMonster, RaceDwarf, RaceElf, RaceGnome, RaceHalfElf, RaceHalfling, RaceHalfOrc, RaceHuman}
 	vecCon   = 19 // the Pascal's stat vectors read no constitution; 19 shows the bonus every race gets
 	vecSave  = [5]rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
 )
@@ -53,8 +53,8 @@ func documented(key []string, want, got []int) bool {
 	case "stat":
 		return statDocumented(k, want, got)
 	case "careers":
-		return vecRace[k[0]] == CoreRaceHalfElf && slices.Equal(got, []int{0, 2, 4, 5, 6, 8, 9, 10, 11, 13, 14, 15, 16}) ||
-			vecRace[k[0]] == CoreRaceHuman && slices.Equal(got, []int{0, 2, 3, 4, 5, 6})
+		return vecRace[k[0]] == RaceHalfElf && slices.Equal(got, []int{0, 2, 4, 5, 6, 8, 9, 10, 11, 13, 14, 15, 16}) ||
+			vecRace[k[0]] == RaceHuman && slices.Equal(got, []int{0, 2, 3, 4, 5, 6})
 	case "age":
 		return k[0] == 4 && k[1] == 4 // half-elf ranger takes the half-elf fighter's
 	case "aligns":
@@ -208,7 +208,7 @@ func ours(kind string, k []int) string {
 		if k[2] != k[0] {
 			levels[vecClass[k[2]]] = k[3]
 		}
-		st := ClassStats(Who{Levels: levels, Race: CoreRaceHuman, Dex: 12, Wis: k[4], Con: vecCon,
+		st := ClassStats(Who{Levels: levels, Race: RaceHuman, Dex: 12, Wis: k[4], Con: vecCon,
 			ClericSlots: LevelSlots{7, 7, 7}, MageSlots: LevelSlots{7, 7, 7}})
 		v := []int{st.Thac0Base, st.Highest, st.Attacks}
 		v = append(v, st.ClericSlots[:3]...) // the Pascal has three levels

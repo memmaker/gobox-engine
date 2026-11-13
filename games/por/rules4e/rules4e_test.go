@@ -95,7 +95,7 @@ func TestPicks(t *testing.T) {
 		}
 	}
 	h := member(map[rules1e.Class]byte{rules1e.Fighter: 3})
-	h.Race = 7 // human
+	h.Race = rules1e.RaceHuman
 	n := 0
 	for ps := r.Picks(e, h); len(ps) > 0; ps = r.Picks(e, h) {
 		h.Powers, n = append(h.Powers, ps[0].Options[0].ID), n+1

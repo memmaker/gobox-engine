@@ -77,7 +77,7 @@ type Record285 struct {
 	Memorized  [21]byte       // 0x17 spell numbers, +0x80 = still to be memorised (rules1e.SpellOfByte)
 	Study      byte           // 0x2C hours of study the pending spells need (0/4/6)
 	Thac0Base  byte           // 0x2D THAC0 base, from the DS:3C7C table
-	Race       RaceID         // 0x2E
+	Race       byte           // 0x2E
 	Class      ClassID        // 0x2F
 	Age        uint16         // 0x30
 	MaxHP      byte           // 0x32

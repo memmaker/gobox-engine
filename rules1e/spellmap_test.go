@@ -33,23 +33,22 @@ func TestGameSpellIDs(t *testing.T) {
 	}
 }
 
-// TestRaceMap: SotSB's race numbers (0: its placeholder row) come back.
+// TestRaceMap: every race byte of every layout comes back as it was, and
+// SotSB's byte 3 is a dwarf (0: its placeholder row, kept as the monster's number).
 func TestRaceMap(t *testing.T) {
-	tb := Tables{Races: []rules.Race{"", CoreRaceElf, CoreRaceHalfElf, CoreRaceDwarf, CoreRaceGnome, CoreRaceHalfling, CoreRaceHuman, CoreRaceMonster}}
-	for n := RaceID(1); n < 8; n++ {
-		id, err := tb.raceID(n)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if back, err := tb.gameRace(id); err != nil || back != n {
-			t.Errorf("%d -> %d -> %d (%v)", n, id, back, err)
+	for _, l := range []rules.RecordLayout{Layout285, Layout422, Layout439, Layout510} {
+		for b := range 256 {
+			race, monster := RaceOfRecord(l, byte(b))
+			if back, ok := recordRaceByte(l, race, monster); !ok || back != byte(b) {
+				t.Errorf("layout %d: %d -> %q %d -> %d (%v)", l, b, race, monster, back, ok)
+			}
 		}
 	}
-	if id, _ := tb.raceID(3); id != RaceID(raceRow[CoreRaceDwarf]) {
-		t.Errorf("dwarf %d", id)
+	if race, _ := RaceOfRecord(Layout439, 3); race != RaceDwarf {
+		t.Errorf("silver blades byte 3: %q", race)
 	}
-	if _, err := tb.raceID(0); err == nil {
-		t.Error("the placeholder row passed")
+	if _, ok := recordRaceByte(Layout439, RaceHalfOrc, 0); ok {
+		t.Error("a half-orc has a silver blades number")
 	}
 }
 

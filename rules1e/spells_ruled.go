@@ -399,7 +399,7 @@ func (e *RuleState) fxCharmPersonOrMammal() {
 	if t == nil {
 		return
 	}
-	if t.Race != raceMonster || t.CreatureFlags&creatureCharmable != 0 {
+	if t.raceNumber() != 0 || t.CreatureFlags&creatureCharmable != 0 {
 		lvl := e.cappedCasterLevel(int(e.CurSpell))
 		e.applySpell(int(e.CurSpell), (int(e.Acting().Side)<<7+lvl)&0xFF, 1, 0, 0, "is charmed")
 		if a := e.FindAffect(t, AffCharmed); a != nil {

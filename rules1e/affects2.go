@@ -670,7 +670,7 @@ func (e *RuleState) onlyMagicOrStrong(c *Character, a *Affect, flag byte) {
 		return
 	}
 	s := e.Acting()
-	if int8(s.Race) > raceMonster || int8(s.MaxLevel) < 4 {
+	if s.raceNumber() > 0 || int8(s.MaxLevel) < 4 {
 		e.Rv.Damage = 0
 	}
 }

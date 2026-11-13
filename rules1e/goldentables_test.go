@@ -26,7 +26,7 @@ var goldenGames = []string{"sotsb", "pod", "cotab"}
 
 var (
 	goldenClasses = []rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, ClassRanger, ClassMage, ClassThief, ClassMonk}
-	goldenRaces   = []rules.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
+	goldenRaces   = []rules.Race{RaceMonster, RaceDwarf, RaceElf, RaceGnome, RaceHalfElf, RaceHalfling, RaceHalfOrc, RaceHuman}
 	goldenSaves   = []rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
 	goldenSkills  = thiefSkillOrder
 )
@@ -125,7 +125,7 @@ func dumpTables(tb *Tables) goldenTables {
 			g.Ability[race] = append(g.Ability[race], [2]int{lo, hi})
 		}
 		g.StrCap[race] = tb.ExceptionalStrengthCap(race)
-		if race != CoreRaceMonster { // its career row is no list
+		if race != RaceMonster { // its career row is no list
 			g.Careers[race] = tb.RaceCareers(race)
 		}
 		for c := range goldenCareers {
@@ -148,7 +148,7 @@ func dumpTables(tb *Tables) goldenTables {
 		for lvl := 1; lvl <= tb.SlotLevels; lvl++ {
 			var byScore [][3][]int
 			for score := 3; score < goldenScores; score++ {
-				s := tb.ClassStats(Who{Levels: map[rules.Class]int{class: lvl}, Race: CoreRaceHuman, Wis: score, Int: score})
+				s := tb.ClassStats(Who{Levels: map[rules.Class]int{class: lvl}, Race: RaceHuman, Wis: score, Int: score})
 				byScore = append(byScore, [3][]int{s.ClericSlots[:], s.DruidSlots[:], s.MageSlots[:]})
 			}
 			g.Stats[class] = append(g.Stats[class], byScore)

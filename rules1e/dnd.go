@@ -7,14 +7,14 @@ package rules1e
 import "gobox/rules"
 
 const (
-	CoreRaceDwarf    rules.Race = "dwarf"
-	CoreRaceElf      rules.Race = "elf"
-	CoreRaceGnome    rules.Race = "gnome"
-	CoreRaceHalfElf  rules.Race = "half-elf"
-	CoreRaceHalfling rules.Race = "halfling"
-	CoreRaceHalfOrc  rules.Race = "half-orc"
-	CoreRaceHuman    rules.Race = "human"
-	CoreRaceMonster  rules.Race = "monster" // por Race 0: a record without a player race
+	RaceDwarf    rules.Race = "dwarf"
+	RaceElf      rules.Race = "elf"
+	RaceGnome    rules.Race = "gnome"
+	RaceHalfElf  rules.Race = "half-elf"
+	RaceHalfling rules.Race = "halfling"
+	RaceHalfOrc  rules.Race = "half-orc"
+	RaceHuman    rules.Race = "human"
+	RaceMonster             = rules.RaceMonster // por Race 0: a record without a player race
 )
 
 const (

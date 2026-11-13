@@ -11,7 +11,8 @@ import (
 func TestSelRaceAlignmentOutOfTable(t *testing.T) {
 	e := &Engine{}
 	c := &rules1e.Character{}
-	c.Race, c.Alignment = 9, 200
+	c.SetPorRace(9)
+	c.Alignment = 200
 	e.state().Party = []*rules1e.Character{c}
 	f := e.newEngineFields()
 	for _, c := range []struct {

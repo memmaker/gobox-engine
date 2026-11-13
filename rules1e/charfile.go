@@ -102,7 +102,11 @@ func Unpack285(b rules.CharacterFile, game bool) (Files, error) {
 	if game {
 		items = append(items, c.Pool...)
 	}
-	f := Files{Record: append(SheetBytes(c.Sheet), PoolTrailer(c.PoolIDs)...), Portrait: c.Portrait, Icon: c.Icon, Powers: powerBytes(c)}
+	rec, err := recordOf(c.Sheet)
+	if err != nil {
+		return Files{}, fmt.Errorf("Unpack285: %w", err)
+	}
+	f := Files{Record: append(Encode(rec), PoolTrailer(c.PoolIDs)...), Portrait: c.Portrait, Icon: c.Icon, Powers: powerBytes(c)}
 	f.Items = WriteItems(items)
 	f.Affects = WriteAffects(c.Affects)
 	if c.Plan != nil {
@@ -117,8 +121,15 @@ func Unpack285(b rules.CharacterFile, game bool) (Files, error) {
 // SheetOf reads a record in the 0x11D layout (short data leaves the rest zero).
 func SheetOf(b []byte) Sheet { return sheetOf(Decode[Record285](b)) }
 
-// SheetBytes is the sheet as a 0x11D record (pointers zero).
-func SheetBytes(s Sheet) []byte { return Encode(recordOf(s)) }
+// SheetBytes is the sheet as a 0x11D record (pointers zero); it panics on a
+// race POR's record has no number for (Unpack285 reports that as an error).
+func SheetBytes(s Sheet) []byte {
+	r, err := recordOf(s)
+	if err != nil {
+		panic(err)
+	}
+	return Encode(r)
+}
 
 // ReadRecords reads the n-byte records in b (a partial last one is dropped).
 // n must be positive: a zero size would never advance through b.
@@ -378,85 +389,91 @@ func PoolTrailer(p PoolIDs) []byte {
 // sheetOf is the record's character fields (the name up to its 15 letters).
 func sheetOf(r Record285) Sheet {
 	n := min(int(r.PName[0]), 15)
+	race, monster := RaceOfRecord(Layout285, r.Race)
 	return Sheet{
-		CharName:   string(r.PName[1 : 1+n]),
-		Pad86:      r.Pad86[0],
-		Pad87:      r.Pad86[1],
-		Stats:      r.Stats,
-		Str00:      r.Str00,
-		Memorized:  memorySheet(r.Memorized[:]),
-		Study:      r.Study,
-		Thac0Base:  r.Thac0Base,
-		Race:       r.Race,
-		Class:      r.Class,
-		Age:        r.Age,
-		MaxHP:      r.MaxHP,
-		SpellBook:  bookSheet(r.SpellBook[:]),
-		FightLevel: r.FightLevel,
-		Size:       r.Size,
-		Saves:      r.Saves,
-		BaseMove:   r.BaseMove,
-		MaxLevel:   r.MaxLevel,
-		Kept74:     r.Kept74,
-		Kept75:     r.Kept75,
-		Undead:     r.Undead,
-		Thief:      r.Thief,
-		Pad83:      r.Pad83,
-		Control:    r.Control,
-		Share:      r.Share,
-		Coins:      r.Coins,
-		Levels:     r.Levels,
-		Sex:        r.Sex,
-		Kind:       r.Kind,
-		Alignment:  r.Alignment,
-		BaseAttack: r.BaseAttack,
-		BaseDice:   r.BaseDice,
-		BaseSides:  r.BaseSides,
-		BaseBonus:  r.BaseBonus,
-		BaseAC:     r.BaseAC,
-		StrBonus:   r.StrBonus,
-		RandomID:   r.RandomID,
-		Exp:        r.Exp,
-		ClassMask:  r.ClassMask,
-		HPRoll:     r.HPRoll,
-		SpellSlots: slotsOf285(r.SpellSlots),
-		ExpValue:   r.ExpValue,
-		ExpPerHP:   r.ExpPerHP,
-		PortHead:   r.PortHead,
-		PortBody:   r.PortBody,
-		IconHead:   r.IconHead,
-		IconBody:   r.IconBody,
-		Order:      r.Order,
-		IconSize:   r.IconSize,
-		IconColour: r.IconColour,
-		ItemCount:  r.ItemCount,
-		Hands:      r.Hands,
-		SaveBonus:  r.SaveBonus,
-		Weight:     r.Weight,
-		Status:     r.Status,
-		Okay:       r.Okay,
-		Side:       r.Side,
-		Auto:       r.Auto,
-		THAC0:      r.THAC0,
-		AC:         r.AC,
-		Attacks:    r.Attacks,
-		Dice:       r.Dice,
-		Sides:      r.Sides,
-		Bonus:      r.Bonus,
-		HP:         r.HP,
-		Move:       r.Move,
+		Race:        race,
+		MonsterRace: monster,
+		CharName:    string(r.PName[1 : 1+n]),
+		Pad86:       r.Pad86[0],
+		Pad87:       r.Pad86[1],
+		Stats:       r.Stats,
+		Str00:       r.Str00,
+		Memorized:   memorySheet(r.Memorized[:]),
+		Study:       r.Study,
+		Thac0Base:   r.Thac0Base,
+		Class:       r.Class,
+		Age:         r.Age,
+		MaxHP:       r.MaxHP,
+		SpellBook:   bookSheet(r.SpellBook[:]),
+		FightLevel:  r.FightLevel,
+		Size:        r.Size,
+		Saves:       r.Saves,
+		BaseMove:    r.BaseMove,
+		MaxLevel:    r.MaxLevel,
+		Kept74:      r.Kept74,
+		Kept75:      r.Kept75,
+		Undead:      r.Undead,
+		Thief:       r.Thief,
+		Pad83:       r.Pad83,
+		Control:     r.Control,
+		Share:       r.Share,
+		Coins:       r.Coins,
+		Levels:      r.Levels,
+		Sex:         r.Sex,
+		Kind:        r.Kind,
+		Alignment:   r.Alignment,
+		BaseAttack:  r.BaseAttack,
+		BaseDice:    r.BaseDice,
+		BaseSides:   r.BaseSides,
+		BaseBonus:   r.BaseBonus,
+		BaseAC:      r.BaseAC,
+		StrBonus:    r.StrBonus,
+		RandomID:    r.RandomID,
+		Exp:         r.Exp,
+		ClassMask:   r.ClassMask,
+		HPRoll:      r.HPRoll,
+		SpellSlots:  slotsOf285(r.SpellSlots),
+		ExpValue:    r.ExpValue,
+		ExpPerHP:    r.ExpPerHP,
+		PortHead:    r.PortHead,
+		PortBody:    r.PortBody,
+		IconHead:    r.IconHead,
+		IconBody:    r.IconBody,
+		Order:       r.Order,
+		IconSize:    r.IconSize,
+		IconColour:  r.IconColour,
+		ItemCount:   r.ItemCount,
+		Hands:       r.Hands,
+		SaveBonus:   r.SaveBonus,
+		Weight:      r.Weight,
+		Status:      r.Status,
+		Okay:        r.Okay,
+		Side:        r.Side,
+		Auto:        r.Auto,
+		THAC0:       r.THAC0,
+		AC:          r.AC,
+		Attacks:     r.Attacks,
+		Dice:        r.Dice,
+		Sides:       r.Sides,
+		Bonus:       r.Bonus,
+		HP:          r.HP,
+		Move:        r.Move,
 	}
 }
 
 // recordOf is the sheet in the record's layout (pointers zero).
-func recordOf(s Sheet) Record285 {
+func recordOf(s Sheet) (Record285, error) {
+	race, ok := recordRaceByte(Layout285, s.Race, s.MonsterRace)
+	if !ok {
+		return Record285{}, fmt.Errorf("race %q has no number in a Pool of Radiance record", s.Race)
+	}
 	r := Record285{
 		Pad86:      [2]byte{s.Pad86, s.Pad87},
 		Stats:      s.Stats,
 		Str00:      s.Str00,
 		Study:      s.Study,
 		Thac0Base:  s.Thac0Base,
-		Race:       s.Race,
+		Race:       race,
 		Class:      s.Class,
 		Age:        s.Age,
 		MaxHP:      s.MaxHP,
@@ -517,7 +534,7 @@ func recordOf(s Sheet) Record285 {
 	memoryBytes(r.Memorized[:], s.Memorized[:])
 	bytesOf(r.SpellBook[:], s.SpellBook[:])
 	r.PName[0] = byte(copy(r.PName[1:], s.CharName[:min(len(s.CharName), 15)]))
-	return r
+	return r, nil
 }
 
 // slotsOf285 and slots285 move the 0x11D record's slots (cleric 1..3,

@@ -67,33 +67,6 @@ func spellsByID(table [][]SpellProp, m, gone SpellMap) ([][]SpellProp, error) {
 // spellRecord is a spell table record's length.
 const spellRecord = 16
 
-// raceID is the game's race number n as rules1e's RaceID (raceRow's order);
-// nil Races (POR): n is the id.
-func (t *Tables) raceID(n RaceID) (RaceID, error) {
-	if t.Races == nil {
-		return n, nil
-	}
-	if int(n) < len(t.Races) {
-		if row, ok := raceRow[t.Races[n]]; ok {
-			return RaceID(row), nil
-		}
-	}
-	return 0, fmt.Errorf("rules1e: race number %d has no race in the game", n)
-}
-
-// gameRace is raceID's inverse.
-func (t *Tables) gameRace(id RaceID) (RaceID, error) {
-	if t.Races == nil {
-		return id, nil
-	}
-	for n, race := range t.Races {
-		if row, ok := raceRow[race]; ok && row == int(id) {
-			return RaceID(n), nil
-		}
-	}
-	return 0, fmt.Errorf("rules1e: race %d has no number in the game", id)
-}
-
 // scrollsIn rewrites the spells of items between the game's file bytes
 // and unified ids: a scroll's (number, +0x80 being scribed) with
 // ScrollScribing, and the spell its own use casts (castsSpell) from the

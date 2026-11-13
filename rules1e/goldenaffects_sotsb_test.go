@@ -90,7 +90,8 @@ func runGoldenAffect(tb *Tables, k goldenAffCase) goldenAffSnap {
 	var cs []*Character
 	for _, w := range k.Who {
 		c := &Character{}
-		c.HP, c.MaxHP, c.Side, c.Control, c.Auto, c.MaxLevel, c.Race = w.HP, w.MaxHP, w.Side, w.Control, w.Auto, w.MaxLevel, RaceID(w.Race)
+		c.HP, c.MaxHP, c.Side, c.Control, c.Auto, c.MaxLevel = w.HP, w.MaxHP, w.Side, w.Control, w.Auto, w.MaxLevel
+		c.SetPorRace(w.Race)
 		c.Stats[StatCon] = Score(w.Con)
 		c.Levels[ClsRanger] = Level(w.Ranger)
 		c.AC = [2]ArmourClass{ArmourClass(w.AC[0]), ArmourClass(w.AC[1])}

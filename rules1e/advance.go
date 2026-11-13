@@ -12,8 +12,8 @@ var classRow = map[rules.Class]int{
 }
 
 var raceRow = map[rules.Race]int{
-	CoreRaceMonster: 0, CoreRaceDwarf: 1, CoreRaceElf: 2, CoreRaceGnome: 3,
-	CoreRaceHalfElf: 4, CoreRaceHalfling: 5, CoreRaceHalfOrc: 6, CoreRaceHuman: 7,
+	RaceMonster: 0, RaceDwarf: 1, RaceElf: 2, RaceGnome: 3,
+	RaceHalfElf: 4, RaceHalfling: 5, RaceHalfOrc: 6, RaceHuman: 7,
 }
 
 var saveColumn = map[rules.Save]int{

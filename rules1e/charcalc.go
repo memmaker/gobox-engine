@@ -48,10 +48,6 @@ func who(c *Character) Who {
 	for i, class := range PorClass {
 		levels[class], old[class] = int(int8(c.Levels[i])), int(int8(c.OldLevels[i]))
 	}
-	race := CoreRaceMonster // monster records carry other race numbers
-	if int(c.Race) < len(RecordRace) {
-		race = RecordRace[c.Race]
-	}
 	var powers ItemPowers
 	for _, it := range c.Items {
 		if it.Readied != 0 && it.Spells[2] == ItemPower(itemPowerWizardry) { // the later games' ring of wizardry (POR's items have none)
@@ -62,7 +58,7 @@ func who(c *Character) Who {
 		}
 	}
 	return Who{
-		Race: race, OldLevels: old, Powers: powers,
+		Race: c.Race, OldLevels: old, Powers: powers,
 		Levels: levels, Dex: int(c.Stats[StatDex]), Wis: int(c.Stats[StatWis]), Con: int(c.Stats[StatCon]),
 		Int:         int(c.Stats[StatInt]),
 		ClericSlots: intSlots(c.SpellSlots[SpellClassCleric]),
@@ -83,7 +79,7 @@ func (e *RuleState) savingThrows(c *Character) {
 // thiefSkills = ovr24:0329: level table DS:3CF3 plus race DS:3D3B, plus
 // dexterity DS:3D4E for the first five skills.
 func (e *RuleState) thiefSkills(c *Character) {
-	skills := e.T().ThiefSkills(int(int8(c.Levels[ClsThief])), RecordRace[c.Race], int(c.Stats[StatDex]), ItemPowers{})
+	skills := e.T().ThiefSkills(int(int8(c.Levels[ClsThief])), c.Race, int(c.Stats[StatDex]), ItemPowers{})
 	for i := range skills {
 		c.Thief[i] = Percent(skills[i])
 	}
@@ -254,7 +250,7 @@ func (e *RuleState) ApplyItems(c *Character) {
 		c.AC[0] += ArmourClass(ac[i])
 	}
 	c.AC[1] = ArmourClass(int(ac[4]) + int(ac[2]) + int(ac[3]) - 2)
-	if FighterKind(c) && int8(c.Race) > 0 {
+	if FighterKind(c) && c.raceNumber() > 0 {
 		c.FightLevel = byte(max(c.Levels[ClsFighter], c.Levels[ClsPaladin], c.Levels[ClsRanger]))
 	} else {
 		c.FightLevel = 1

@@ -51,7 +51,8 @@ func TestGoldenSpellsSotsb(t *testing.T) {
 		e.RandSeed = k.Seed
 		mk := func(w goldenAffWho) *Character {
 			c := &Character{}
-			c.HP, c.MaxHP, c.Side, c.MaxLevel, c.Race = w.HP, w.MaxHP, w.Side, w.MaxLevel, RaceID(w.Race)
+			c.HP, c.MaxHP, c.Side, c.MaxLevel = w.HP, w.MaxHP, w.Side, w.MaxLevel
+			c.SetPorRace(w.Race)
 			c.AC = [2]ArmourClass{ArmourClass(w.AC[0]), ArmourClass(w.AC[1])}
 			c.CreatureFlags, c.MonsterFlags = CreatureFlags(w.Creature), MonsterFlags(w.Monster)
 			c.Levels[ClsMage], c.Levels[ClsCleric] = goldenSotsbCasterLevel, goldenSotsbCasterLevel
