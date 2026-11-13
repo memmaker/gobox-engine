@@ -38,7 +38,7 @@
 - [ ] U4 `ccursor`, `cview` cut
 - [ ] G1 `facts`/`known()` removed
 - [ ] G2 One state: the engine keeps the player-visible state in `game` types and writes it where it changes; `rebuild()`/`build()` and the per-mode copies go
-- [ ] G3 `game`'s non-contract parts out: journal layout → `ui`, point-buy maths → `rules`, `held.go`/`memberpage.go` checked
+- [x] G3 `game`'s non-contract parts out: journal layout → `ui`, point-buy maths → `rules`, `held.go`/`memberpage.go` checked
 - [ ] Final: full build/vet/test, all repos
 
 ## T2 audit: presentation fields in `game`
