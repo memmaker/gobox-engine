@@ -17,12 +17,12 @@ DRAFT for Felix's review, revision 4: his 11 rulings, the 21 variation rulings, 
 
 | Part | Package | What |
 |---|---|---|
-| Assets | `asset` | every runtime data reader: adventure art sheets, walls (`asset/walls`), sprites (`asset/sprites`), fonts (`asset/fonts`), picture table (`asset/origins`), save slots |
+| Assets | `asset` | every runtime data reader: adventure art sheets, walls (`asset/walls`), sprites (`asset/sprites`), fonts (`asset/fonts`), picture table (`asset/origins`), save slots, remastered art by game id (`asset.Remaster`, data in `asset/remaster/<id>/`) |
 | | `asset/orig` | decoders of the original games' files: DAX (incl. `ImportArt`), Amiga, ADF, EXE and its table specs, GLBR songs; tools in `asset/orig/cmd` |
 | UI | `ui` | the front and presenter, widgets, key bindings, combat tabletop, blobber 3D view, VACE; tools in `ui/cmd`. Also `gpu`, `app`, `audio` (with SID) |
 | Rules | `rules` | the contract (`Rules`, `Adventure`, ids, RNG) plus the shared Gold Box mechanics and GEO parsing; `rules/xxvc` |
-| | `rules1e` | the 1st edition ruleset with its character files; `rulesxxvc` is its Buck Rogers sibling (own repo) |
-| Engine and state | `engine` | the Gold Box engine (with the shared rules and the creation flow); `engine/playpool` (plays any pool game from its manifest: title, window, saves, foreign rosters) |
+| | `rules1e` | the 1st edition ruleset with its character files; `rules4e` is the optional "4e Combat" ruleset over it (offered when the manifest says `Combat4e`); `rulesxxvc` is its Buck Rogers sibling (own repo) |
+| Engine and state | `engine` | the Gold Box engine (with the shared rules and the creation flow; `engine.NewPool` is the Engine of a rules1e game); `engine/playpool` (plays any pool game from its manifest: title, window, saves, foreign rosters, 4e combat) |
 | | `game`, `ecl`, `importer`, `importer/games`, `fixture`, `parity`, `cmd/gobox`, `games/<game>` | script machine, import, the four pool games' importers in one package (`<game>_*.go`, data in `importer/games/<game>/`), the one binary, per-game decompiler tools |
 
 **One binary, adventures are data (Felix 2026-11-11).** There is no per-game executable and no per-game repo at the end: `por-go`, `cotab-go`, `sotsb-go`, `pod-go`, `buckrogers*-go` are wound down. One `gobox` binary lists the adventure folders under its data directory (`adventures/<id>/`) and plays any of them. An adventure folder holds only imported, canonical data: a manifest (id, title, ruleset, start sequence, declared custom fields), scripts, the PNG atlases, map `.bin`+`.txt`, JSON records and text, sound as MIDI and JSON synth data. The binary needs nothing else at run time: no original file, no POOL.CFG, no check that one exists; a folder without a valid manifest is not listed. Consequences:
