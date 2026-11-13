@@ -278,17 +278,6 @@ func (e *RuleState) QuickOne(c *Character) {
 	}
 }
 
-// combatItems (extra): c carries an item its items menu could Use (when
-// it may use items this round).
-func (e *RuleState) combatItems(c *Character) bool {
-	for _, it := range e.Carried(c) {
-		if c.Combat.CanUse != 0 && (e.IsScroll(it) || castsSpell(e, it)) {
-			return true
-		}
-	}
-	return false
-}
-
 // PathNextTo (extra) is the safest walk in reach that brings c, armed for
 // melee, next to foe t: fewest free attacks on the way, then fewest foes
 // next to where it ends, then fewest steps (nil: t is in reach of its

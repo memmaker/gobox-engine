@@ -21,16 +21,6 @@ import (
 // typed lines and the questions are the presenter's. The original's four
 // menus, name prompt, Head/Body stepping and icon editor states are gone.
 
-// FreeCharacter = ovr17:0000 (var c): disposes the combat block, the item
-// and affect lists and the record, then nils the pointer. Go's collector
-// does the freeing.
-func (e *RuleState) FreeCharacter(c **Character) {
-	if *c != nil {
-		(*c).Combat, (*c).Items, (*c).Affects = nil, nil, nil
-	}
-	*c = nil
-}
-
 // Kind is what the player chooses; the rest of the record follows from it.
 type Kind struct {
 	Race  RaceID
@@ -476,28 +466,6 @@ func unStrScore(i, v int) (st, pct int32) {
 	return int32(v / 100), 0
 }
 
-// minimumsText is the minimums as rollMinimal reads them.
-func (e *RuleState) minimumsText() string {
-	var f []string
-	for i, v := range e.MinStats {
-		f = append(f, fmtMin(i, v))
-	}
-	return strings.Join(f, " ")
-}
-
-// MinimumsMap is minStats keyed as gobox wants ("str"...); STR in whole
-// points (18/xx shows as 18). ponytail: gobox's map has no 18/xx form.
-func (e *RuleState) MinimumsMap() map[string]int {
-	m := map[string]int{}
-	for i, v := range e.MinStats {
-		if i == 0 && v > 100 {
-			v /= 100
-		}
-		m[[6]string{"str", "int", "wis", "dex", "con", "cha"}[i]] = v
-	}
-	return m
-}
-
 var statNames = [6]string{"STR", "INT", "WIS", "DEX", "CON", "CHA"}
 
 // SetStat gives ability i the score st (STR: x its 18/xx, 100 = 18/00),
@@ -687,13 +655,6 @@ func (e *RuleState) MeetsMinStats(c *Character) bool {
 		}
 	}
 	return true
-}
-
-func fmtMin(i, v int) string {
-	if i == 0 {
-		return fmtStr(v)
-	}
-	return strconv.Itoa(v)
 }
 
 func fmtStr(v int) string {

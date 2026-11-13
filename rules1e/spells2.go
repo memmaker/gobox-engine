@@ -8,11 +8,6 @@ import "gobox/core"
 // spell globals: spellID (DS:681B), spellN/spellList (DS:6C94/6C91, list
 // entry 1 is DS:6C95, the first target).
 
-// spellTableByte reads a byte of the spell record (16 bytes at DS:31FA+16*spell).
-func (e *RuleState) spellTableByte(spell, ofs int) byte {
-	return byte(e.T().Spells[spell][ofs])
-}
-
 // spellBless = ovr23:100F: Bless, "is Blessed" on the selected character's side.
 func (e *RuleState) spellBless() {
 	e.applySpellToSide(int(e.Acting().Side), "is Blessed")

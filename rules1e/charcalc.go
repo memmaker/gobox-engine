@@ -378,32 +378,6 @@ func (e *RuleState) IsHelpless(c *Character) bool {
 	return found
 }
 
-// atRaceLimit = 00BA:2F57 (char, class): the demihuman level limit is
-// reached (fighter limits depend on strength 17/18; race 4 clerics stop at 5).
-func atRaceLimit(c *Character, class int) bool {
-	lvl, str := int8(c.Levels[class]), c.Stats[StatStr]
-	if lvl <= 0 {
-		return false
-	}
-	fighter := class == ClsFighter
-	switch c.Race {
-	case RaceDwarf:
-		return fighter && (lvl == 8 && str == 0x11 || lvl == 7 && str < 0x11)
-	case RaceElf:
-		return fighter && (lvl == 7 || lvl == 6 && str == 0x11 || lvl == 5 && str < 0x11)
-	case RaceGnome:
-		return fighter && (lvl == 6 || lvl == 5 && str < 0x12)
-	case RaceHalfElf:
-		if class == ClsCleric {
-			return lvl == 5
-		}
-		return fighter && (lvl == 8 || lvl == 7 && str == 0x11 || lvl == 6 && str < 0x11)
-	case RaceHalfling:
-		return fighter && (lvl == 6 || lvl == 5 && str == 0x11 || lvl == 4 && str < 0x11)
-	}
-	return false
-}
-
 // intSlots and countSlots move one spell class's slots between the record's bytes and ClassStats' ints.
 func intSlots(c [MaxSpellLevel]Count) (s LevelSlots) {
 	for i, n := range c {

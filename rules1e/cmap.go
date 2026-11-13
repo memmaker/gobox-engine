@@ -3,7 +3,6 @@ package rules1e
 import (
 	"gobox/core"
 	"gobox/core/grid"
-	"image"
 )
 
 // The combat map (ovr31, ovr32, ovr33). The original drew 7x7 squares of
@@ -85,34 +84,6 @@ func (e *RuleState) MapAt(x, y int) (Slot, Ground) {
 		return 0, 0
 	}
 	return e.Occ[y][x], e.Cmap.Ground[y][x]
-}
-
-// combatOnScreen = ovr32:071A (char, all): any (or with all, every) square
-// of the combatant in view; view is the Engine's window (top left square, size).
-func (e *RuleState) combatOnScreen(c *Character, all bool, at image.Point, view grid.View) bool {
-	idx := e.CombatIndex(c)
-	if e.Cpos[idx].Size == 0 {
-		return false
-	}
-	r := true
-	for part := 0; part <= 3; part++ {
-		dx, dy, ok := e.Footprint(int(e.Cpos[idx].Size), part)
-		if !ok {
-			continue
-		}
-		if !view.In(int(e.Cpos[idx].X)+dx-at.X, int(e.Cpos[idx].Y)+dy-at.Y) {
-			r = false
-			if all {
-				return r
-			}
-		} else {
-			r = true
-			if !all {
-				return r
-			}
-		}
-	}
-	return r
 }
 
 // TurnTo is c facing dir, standing: the rule's part of combatTurn (pose 0,

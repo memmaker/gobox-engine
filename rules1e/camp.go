@@ -167,21 +167,6 @@ func (e *RuleState) MarkScribe(c *Character, it *Item, k int) {
 	e.Camp.scriber[it] = by
 }
 
-// willStudy (extra): a rest would have someone memorize or scribe a
-// spell, the planned spells taken up first as a rest does (on copies).
-func (e *RuleState) willStudy() bool {
-	for _, c := range e.Party {
-		mem, study := c.Memorized, c.Study
-		e.PlanSpells(c)
-		t := e.StudyTime(c)
-		c.Memorized, c.Study = mem, study
-		if t > 0 {
-			return true
-		}
-	}
-	return false
-}
-
 func (e *RuleState) PartyStudy() int {
 	most := 0
 	for _, c := range e.Party {

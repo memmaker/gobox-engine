@@ -19,9 +19,3 @@ import "gobox/core/grid"
 
 // DirDX/DirDY = DS:2736 / DS:273F, indexed by direction 0..8 (0 N, 2 E, 4 S, 6 W).
 var DirDX, DirDY = grid.StepX, grid.StepY
-
-// OffMapSolid is the guard shared by the ovr30 accessors: off the map the
-// answer is 0 (no wall, no way through). extra: in every area; the original
-// did so only when DS:84DC was 0 or 0xA and wrapped the coordinates
-// elsewhere (ovr30:037B), an oversight the port does not keep.
-func (e *RuleState) OffMapSolid(x, y int) bool { return !grid.OnMap(x, y) }

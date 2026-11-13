@@ -20,13 +20,6 @@ func (e *RuleState) PartyIndex(c *Character) int { // ovr08:0756
 	return len(e.Party)
 }
 
-func unpackChar(c byte) byte { // ovr08:06D3
-	if c <= 0x1F {
-		return c + 0x40
-	}
-	return c
-}
-
 // ItemSave = ovr08:1DF0 (c, pct): each item is lost with chance pct.
 // extra: no reductions for heavy items (items weigh nothing), and the
 // party inventory takes its chance with the first member.

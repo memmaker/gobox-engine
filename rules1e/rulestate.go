@@ -90,10 +90,6 @@ func (e *RuleState) Dice(n, sides int) int { return goldbox.Dice(e, n, sides) }
 // then the high word mod n. The seed advances even for n = 0, which returns 0.
 func (e *RuleState) Random(n int) int { return goldbox.Random(&e.RandSeed, n) }
 
-// Delay = 0A40:029C (Turbo Pascal Delay, milliseconds).
-// ClearKeyboard does nothing: the original's drain loop is dead code (0899:0104 jumps straight to its exit).
-func (e *RuleState) ClearKeyboard() {}
-
 // MaxCombatants is the size of the original's combatant tables; tables
 // indexed by combatant number (1-based) have one entry more.
 const MaxCombatants = 0x48

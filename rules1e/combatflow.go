@@ -76,6 +76,3 @@ func (e *RuleState) aimNow(c *Character, rng, allowGround int) (found bool, t Ai
 	}
 	return
 }
-
-// stepMs is how long the presenter shows each combat step (EvMoved).
-const stepMs = 160
