@@ -6,9 +6,9 @@ import (
 	"slices"
 )
 
-// Cure is temple cure x for member n (n < 0: the selected one), the
+// cure is temple cure x for member n (n < 0: the selected one), the
 // player agreed to the price.
-func (e *Engine) Cure(n, x int) error {
+func (e *Engine) cure(n, x int) error {
 	sv, ok := e.templeService(core.NoChar, x)
 	if !e.waiting(PendTemple) || !ok {
 		return core.ErrNotNow
@@ -34,8 +34,8 @@ func (e *Engine) Cure(n, x int) error {
 	return nil
 }
 
-// ViewMember = the temple's View: member n's sheet (n < 0: the selected one).
-func (e *Engine) ViewMember(n int) error {
+// viewMember = the temple's View: member n's sheet (n < 0: the selected one).
+func (e *Engine) viewMember(n int) error {
 	fight := e.waiting(PendFight) && e.cs.turn != nil && e.cs.actor != core.NoChar
 	if !fight && !e.waiting(PendTemple, PendShop) { // BUG-CLASSES 36: the shop's and the fight's View too, the game's own sheet (State.SheetPage) in full
 		return core.ErrNotNow

@@ -9,14 +9,14 @@ import (
 	"slices"
 )
 
-// ModifyCharacter = ovr17:209E, redone (extra) as the creation sheet on
+// modifyCharacter = ovr17:209E, redone (extra) as the creation sheet on
 // the selected character with no experience of its own (as the original,
 // Felix's R3 ruling 16; ErrNotNow else): Roll, Minimal, the fields
 // and the pictures change it as at the creation; Keep keeps it, Esc puts
 // the old character back. (The original raised and lowered the abilities
 // and hit points within the race and class limits, and only for a
 // character without experience.)
-func (e *Engine) ModifyCharacter(n int) error {
+func (e *Engine) modifyCharacter(n int) error {
 	if e.partySize() == 0 || e.creation != nil {
 		return core.ErrNotNow
 	}
@@ -35,10 +35,10 @@ func (e *Engine) ModifyCharacter(n int) error {
 	return nil
 }
 
-// OpenTraining = ovr17:29AC: the training hall's offer for member n (n <
+// openTraining = ovr17:29AC: the training hall's offer for member n (n <
 // 0: the selected one), from the party menu, until CloseTraining (or the
 // training is over).
-func (e *Engine) OpenTraining(n int) error {
+func (e *Engine) openTraining(n int) error {
 	if open, _ := e.hallOpen(); open || !e.menu.on || !slices.Contains(e.partyFunctions(), partyTraining) {
 		return core.ErrNotNow
 	}
@@ -46,9 +46,9 @@ func (e *Engine) OpenTraining(n int) error {
 	return err
 }
 
-// Train trains the member: a level in each class it may rise in; a mage
+// train trains the member: a level in each class it may rise in; a mage
 // level gained leaves the hall open for the new spell (Learn).
-func (e *Engine) Train() error {
+func (e *Engine) train() error {
 	if open, learning := e.hallOpen(); !open || learning {
 		return core.ErrNotNow
 	}
@@ -67,8 +67,8 @@ func (e *Engine) Train() error {
 	return nil
 }
 
-// Learn adds spell id, one of the learnable, to the book; the hall closes.
-func (e *Engine) Learn(id int) error {
+// learn adds spell id, one of the learnable, to the book; the hall closes.
+func (e *Engine) learn(id int) error {
 	if open, learning := e.hallOpen(); !open || !learning {
 		return core.ErrNotNow
 	}
@@ -78,8 +78,8 @@ func (e *Engine) Learn(id int) error {
 	return e.CloseHall()
 }
 
-// CloseTraining leaves the hall (not while the new spell is owed).
-func (e *Engine) CloseTraining() error {
+// closeTraining leaves the hall (not while the new spell is owed).
+func (e *Engine) closeTraining() error {
 	if open, learning := e.hallOpen(); !open || learning {
 		return core.ErrNotNow
 	}

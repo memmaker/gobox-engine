@@ -224,7 +224,7 @@ func (e *Engine) DevScene(name string) func() {
 			e.CampMenu()
 			if name == "resting" {
 				e.fixture(core.FixtureHurt, core.NoChar)
-				e.CampRest(RestFix)
+				e.campRest(RestFix)
 			}
 		}
 	case "sheet", "items", "usable", "paladin", "drop": // drop: items with a dagger to drop (Drop It?); the selected member's sheet; items: and its inventory over it; usable: with a potion to drink as the last item; paladin: a paladin of level 3 (its powers)

@@ -28,13 +28,13 @@ func TestHallTrain(t *testing.T) {
 		t.Fatalf("hall's menu: %T hall %v", e.build(), e.ext.hall)
 	}
 	training := func() bool { tr, ok := e.build().(play.Trading); return ok && tr.Kind == play.TradeTraining }
-	if err := e.OpenTraining(0); err != nil || !training() || commonOf(e.build()).Adventure {
+	if err := e.openTraining(0); err != nil || !training() || commonOf(e.build()).Adventure {
 		t.Fatalf("Train: %v, training %v", err, training())
 	}
-	if err := e.CloseTraining(); err != nil || training() {
+	if err := e.closeTraining(); err != nil || training() {
 		t.Fatalf("CloseTraining: %v", err)
 	}
-	e.Begin()
+	e.begin()
 	e.Advance()
 	_, exploring := e.build().(play.Exploring)
 	adventure := commonOf(e.build()).Adventure
@@ -131,10 +131,10 @@ func TestShopTemplePending(t *testing.T) {
 	if e.pending != PendShop || !trading(play.TradeShop) || exploring() {
 		t.Fatalf("shop: pending %v, %T", e.pending, e.build())
 	}
-	if e.Cure(0, 2) == nil {
+	if e.cure(0, 2) == nil {
 		t.Error("a temple's cure in the shop")
 	}
-	if err := e.Browse(0); err != nil || !e.invUp() || !e.snap.shop {
+	if err := e.browse(0); err != nil || !e.invUp() || !e.snap.shop {
 		t.Fatalf("Browse: %v", err)
 	}
 	if e.Leave() == nil {
@@ -152,7 +152,7 @@ func TestShopTemplePending(t *testing.T) {
 	e.push(cont{kind: kNop})
 	e.Temple()
 	e.state().Purse.Gold = 0
-	if !trading(play.TradeTemple) || e.Cure(0, 2) == nil {
+	if !trading(play.TradeTemple) || e.cure(0, 2) == nil {
 		t.Fatal("temple: a cure without money")
 	}
 	if err := e.Leave(); err != nil || !left() || trading(play.TradeTemple) {
@@ -182,7 +182,7 @@ func TestTempleWords(t *testing.T) {
 	}
 	e.state().Purse.Gold = 10000
 	e.state().Party[0].HP = 1 // a wound cure is given only to the hurt
-	if err := e.Cure(0, 2); err != nil {
+	if err := e.cure(0, 2); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.HasSuffix(e.ext.note, "is healed") {

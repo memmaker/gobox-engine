@@ -56,10 +56,10 @@ func (e *Engine) creationSheet(cID core.CharID) {
 	}
 }
 
-// CreateCharacter = ovr17:056C, redone as one screen (see the top of the
+// createCharacter = ovr17:056C, redone as one screen (see the top of the
 // file): the sheet of a sample character whose parts are picked in place;
 // Keep saves it, Leave abandons it.
-func (e *Engine) CreateCharacter() error {
+func (e *Engine) createCharacter() error {
 	if e.creation != nil {
 		return core.ErrNotNow
 	}
@@ -143,9 +143,9 @@ func (e *Engine) EndCreation(keep bool) error {
 	return err
 }
 
-// Roll rolls the creation's abilities, to the minimums typed (mins:
+// roll rolls the creation's abilities, to the minimums typed (mins:
 // "STR INT WIS DEX CON CHA") when minimal.
-func (e *Engine) Roll(minimal bool, mins string) error {
+func (e *Engine) roll(minimal bool, mins string) error {
 	return e.creationEdit(func(cr *creation) error {
 		if !minimal {
 			return cr.d.Roll(core.RollFull)
@@ -156,9 +156,9 @@ func (e *Engine) Roll(minimal bool, mins string) error {
 	})
 }
 
-// PointBuy (extra: gobox's Point Buy) gives the created character the
+// pointBuy (extra: gobox's Point Buy) gives the created character the
 // abilities bought, STR .. CHA, then the post-roll rules and hit points.
-func (e *Engine) PointBuy(scores []int) error {
+func (e *Engine) pointBuy(scores []int) error {
 	if e.creation == nil {
 		return errors.New("Point buy is for a new character")
 	}
@@ -172,8 +172,8 @@ func (e *Engine) PointBuy(scores []int) error {
 	return e.creationEdit(func(cr *creation) error { return cr.d.PointBuy(bases) })
 }
 
-// Rename names the character created (0709:09E3, extra: case kept).
-func (e *Engine) Rename(name string) error {
+// rename names the character created (0709:09E3, extra: case kept).
+func (e *Engine) rename(name string) error {
 	return e.creationEdit(func(cr *creation) error {
 		if cr.d.Rename(name); cr.d.D.Name != "" {
 			cr.unnamed = false
@@ -182,8 +182,8 @@ func (e *Engine) Rename(name string) error {
 	})
 }
 
-// SetStat sets the created character's ability i (STR .. CHA) as typed (STR as 18/xx).
-func (e *Engine) SetStat(i int, typed string) error {
+// setStat sets the created character's ability i (STR .. CHA) as typed (STR as 18/xx).
+func (e *Engine) setStat(i int, typed string) error {
 	if i < 0 || i >= len(abilities) {
 		return nil
 	}

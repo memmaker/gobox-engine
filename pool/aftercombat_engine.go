@@ -165,9 +165,9 @@ func (e *Engine) takeLoot(a core.TakeLoot) error {
 	return err
 }
 
-// LootDetect = the treasure screen's Detect: the selected member casts
+// lootDetect = the treasure screen's Detect: the selected member casts
 // Detect Magic on it.
-func (e *Engine) LootDetect() error {
+func (e *Engine) lootDetect() error {
 	if !e.waiting(PendLoot) {
 		return core.ErrNotNow
 	}

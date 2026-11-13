@@ -146,7 +146,7 @@ func TestPlayParty(t *testing.T) {
 	if e.member(e.creation.c).PoolIDs.IconHeadID != "pool-head-3" {
 		t.Error("the draft's pool pick not taken")
 	}
-	e.Rename("TESTER")
+	e.rename("TESTER")
 	if _, err := e.doNow(play.KeepCharacter{}); err != nil {
 		t.Fatal("KeepCharacter:", err)
 	}

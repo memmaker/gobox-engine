@@ -147,8 +147,8 @@ func (e *Engine) closeParty() {
 	}
 }
 
-// Begin = the party menu's BEGIN Adventuring (the hall's Leave).
-func (e *Engine) Begin() error {
+// begin = the party menu's BEGIN Adventuring (the hall's Leave).
+func (e *Engine) begin() error {
 	if !e.inParty() || !slices.Contains(e.partyFunctions(), partyBegin) {
 		return core.ErrNotNow
 	}
@@ -159,9 +159,9 @@ func (e *Engine) Begin() error {
 	return nil
 }
 
-// RemoveMember = the party menu's Remove: member n (< 0: the selected
+// removeMember = the party menu's Remove: member n (< 0: the selected
 // one) goes back to the saved characters.
-func (e *Engine) RemoveMember(n int) error {
+func (e *Engine) removeMember(n int) error {
 	if !e.inParty() || e.partySize() == 0 {
 		return core.ErrNotNow
 	}
@@ -172,8 +172,8 @@ func (e *Engine) RemoveMember(n int) error {
 	return nil
 }
 
-// Lead makes member n the selected one (the party menu, camp, a wait).
-func (e *Engine) Lead(n int) error {
+// lead makes member n the selected one (the party menu, camp, a wait).
+func (e *Engine) lead(n int) error {
 	if n < 0 || n >= e.partySize() || e.worldWord(core.WordBeginFlag) == 5 {
 		return core.ErrNotNow
 	}

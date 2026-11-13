@@ -49,7 +49,7 @@ func TestCreateSheet(t *testing.T) {
 		}
 		return i
 	}
-	e.CreateCharacter()
+	e.createCharacter()
 	if d := draft(); d == nil || len(d.Fields) != rules1e.FieldClass+1 {
 		t.Fatalf("creation %+v", d)
 	}
@@ -70,16 +70,16 @@ func TestCreateSheet(t *testing.T) {
 	if c = e.member(e.selected()); c.Race != rules1e.RaceDwarf || c.Class != rules1e.ClsFighter || c.IconSize != 1 {
 		t.Fatalf("race %d class %d size %d, want a dwarf fighter", c.Race, c.Class, c.IconSize)
 	}
-	e.SetStat(rules1e.StatCha, "9")
+	e.setStat(rules1e.StatCha, "9")
 	if c = e.member(e.selected()); c.Stats[rules1e.StatCha] != 9 {
 		t.Errorf("charisma %d, want 9", c.Stats[rules1e.StatCha])
 	}
 	var ref *play.Refusal // typed text that is no number is refused, never kept silently
-	if err := e.SetStat(rules1e.StatCha, "x"); !errors.As(err, &ref) || ref.Text != "not a number" {
+	if err := e.setStat(rules1e.StatCha, "x"); !errors.As(err, &ref) || ref.Text != "not a number" {
 		t.Errorf("SetStat x: %v, want the refusal not a number", err)
 	}
-	e.Rename("Brok")
-	e.Roll(true, "3 3 3 3 3 3")
+	e.rename("Brok")
+	e.roll(true, "3 3 3 3 3 3")
 	if c = e.member(e.selected()); c.Name() != "Brok" || !e.state().MeetsMinStats(c) {
 		t.Errorf("name %q, minimums %v", c.Name(), e.state().MinStats)
 	}
@@ -140,15 +140,15 @@ func TestCreateSheet(t *testing.T) {
 	// Modify: the creation sheet on a member with no experience of its
 	// own (Felix's R3 ruling 16), Keep keeps the changes.
 	e.state().Party[0].Exp = 500
-	if err := e.ModifyCharacter(-1); err == nil || draft() != nil {
+	if err := e.modifyCharacter(-1); err == nil || draft() != nil {
 		t.Fatal("modify: an experienced member was modifiable")
 	}
 	e.state().Party[0].Exp = 0
-	e.ModifyCharacter(-1)
+	e.modifyCharacter(-1)
 	if draft() == nil || e.creation.abandon != "Discard the changes?" {
 		t.Fatalf("modify: %+v", draft())
 	}
-	e.SetStat(rules1e.StatCha, "7")
+	e.setStat(rules1e.StatCha, "7")
 	e.EndCreation(true)
 	if m := e.state().Party[0]; m.Stats[rules1e.StatCha] != 7 || m.Share != 1 {
 		t.Errorf("modified: charisma %d share %d", m.Stats[rules1e.StatCha], m.Share)
@@ -166,7 +166,7 @@ func TestCreateSheet(t *testing.T) {
 	if e.CloseSheet(); !e.menuUp() {
 		t.Fatal("back from the sheet: no party menu")
 	}
-	e.Begin()
+	e.begin()
 	if e.state().BeginFlag != 4 || e.menu.on {
 		t.Errorf("begin flag %d, screens %d", e.state().BeginFlag, e.top())
 	}
@@ -192,17 +192,17 @@ func TestPointBuy(t *testing.T) {
 	if e.doNow(play.PointBuy{Scores: buy}); e.creation != nil {
 		t.Fatal("a draft appeared")
 	}
-	if err := e.PointBuy(buy); err == nil {
+	if err := e.pointBuy(buy); err == nil {
 		t.Error("point buy outside a draft")
 	}
-	e.CreateCharacter()
-	if err := e.PointBuy(buy[:5]); err == nil {
+	e.createCharacter()
+	if err := e.pointBuy(buy[:5]); err == nil {
 		t.Error("five scores taken")
 	}
-	if err := e.PointBuy([]int{18, 18, 18, 8, 8, 8}); err == nil {
+	if err := e.pointBuy([]int{18, 18, 18, 8, 8, 8}); err == nil {
 		t.Error("over budget taken")
 	}
-	if err := e.PointBuy(buy); err != nil {
+	if err := e.pointBuy(buy); err != nil {
 		t.Fatal(err)
 	}
 	c := e.member(e.selected())

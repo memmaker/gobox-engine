@@ -55,8 +55,8 @@ func (e *Engine) picksOpen() bool {
 	return e.exploring() || e.menu.on && !hall
 }
 
-// PickPower takes the pick owed now (Powers): power id.
-func (e *Engine) PickPower(id int) error {
+// pickPower takes the pick owed now (Powers): power id.
+func (e *Engine) pickPower(id int) error {
 	who, p := e.owing()
 	if who == core.NoChar || !e.picksOpen() || !slices.ContainsFunc(p.Options, func(m core.ManeuverCard) bool { return int(m.ID) == id }) {
 		return core.ErrNotNow

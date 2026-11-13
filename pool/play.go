@@ -743,13 +743,13 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 	case play.Adjust:
 		err = native(func() error { return e.adjustStat(a.Stat, a.By) })
 	case play.PickPower:
-		err = native(func() error { return e.PickPower(a.ID) })
+		err = native(func() error { return e.pickPower(a.ID) })
 	case play.StopRest:
-		err = native(e.StopRest)
+		err = native(e.stopRest)
 	case play.LootDetect:
-		err = native(e.LootDetect)
+		err = native(e.lootDetect)
 	case play.Learn:
-		err = native(func() error { return e.Learn(a.Spell) })
+		err = native(func() error { return e.learn(a.Spell) })
 	case play.SetPolicy:
 		err = native(func() error {
 			_, err := e.ruleset().Resolve(nil, core.SetPolicy{Who: e.selected(), Reaction: a.ID, Policy: core.Policy(a.Policy)}, nil)
@@ -902,7 +902,7 @@ func (e *Engine) browsing(n int, f func() error) error {
 		}
 		return f()
 	}
-	if err := e.Browse(n); err != nil {
+	if err := e.browse(n); err != nil {
 		return err
 	}
 	defer e.CloseItems(false)
@@ -1051,9 +1051,9 @@ func (e *Engine) noteResult() play.Result {
 func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error) error) (bool, error) {
 	switch a := a.(type) {
 	case play.Begin:
-		return true, native(e.Begin)
+		return true, native(e.begin)
 	case play.NewCharacter:
-		return true, native(e.CreateCharacter)
+		return true, native(e.createCharacter)
 	case play.QuickStart:
 		return true, native(func() error {
 			if e.partySize() > 0 { // BUG-CLASSES 64: a party already there would be doubled
@@ -1095,7 +1095,7 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 			return refuseIf(e.partySize() == n, "not added") // already in, full, or refused to join (BUG-CLASSES 31)
 		})
 	case play.RemoveCharacter: // Roster: the party index
-		return true, native(func() error { return e.RemoveMember(a.Roster) })
+		return true, native(func() error { return e.removeMember(a.Roster) })
 	case play.DropMember: // ovr16:196E in camp, ovr17:1F5A on the menu: gobox asks first
 		return true, native(func() error {
 			if a.Member < 0 || a.Member >= e.partySize() || !e.inCamp() && !e.inParty() {
@@ -1105,15 +1105,15 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 			return e.DropMember(a.Member)
 		})
 	case play.Modify:
-		return true, native(func() error { return e.ModifyCharacter(a.Member) })
+		return true, native(func() error { return e.modifyCharacter(a.Member) })
 	case play.ChangeClass:
 		return true, native(func() error { return e.runCall(pendingCall{kind: callClass, member: a.Member, target: a.Class}) })
 	case play.Reroll:
-		return true, native(func() error { return e.Roll(false, "") })
+		return true, native(func() error { return e.roll(false, "") })
 	case play.PointBuy:
-		return true, native(func() error { return e.PointBuy(a.Scores) })
+		return true, native(func() error { return e.pointBuy(a.Scores) })
 	case play.SetStat:
-		return true, native(func() error { return e.SetStat(a.Stat, a.Text) })
+		return true, native(func() error { return e.setStat(a.Stat, a.Text) })
 	case play.KeepCharacter:
 		return true, native(func() error {
 			if cr := e.creation; cr != nil && cr.unnamed { // no name typed yet: ask it before saving (BUG-CLASSES 59)
@@ -1186,17 +1186,17 @@ func (e *Engine) frontDo(a play.Action, native func(func() error) error) (bool, 
 	case play.EndIcon:
 		return true, native(func() error { e.EndIcon(a.Keep); return nil })
 	case play.OpenTraining:
-		return true, native(func() error { return e.OpenTraining(a.Member) })
+		return true, native(func() error { return e.openTraining(a.Member) })
 	case play.CloseTraining:
-		return true, native(e.CloseTraining)
+		return true, native(e.closeTraining)
 	case play.Train:
 		return true, native(func() error {
 			if !e.trainingOpen() {
-				if err := e.OpenTraining(a.Member); err != nil {
+				if err := e.openTraining(a.Member); err != nil {
 					return err
 				}
 			}
-			return e.Train()
+			return e.train()
 		})
 	case play.TryDoor: // the old front's numbering, 0 exit
 		return true, native(func() error { return e.TryDoor(a.Way) })
@@ -1226,7 +1226,7 @@ func (e *Engine) answerPlay(n int, text string) error {
 		return nil
 	}
 	if cr := e.creation; cr != nil && cr.naming { // Keep's name question: a name keeps the character, a blank asks again
-		if e.Rename(text); cr.unnamed {
+		if e.rename(text); cr.unnamed {
 			return &play.Refusal{Text: "a name is needed"}
 		}
 		cr.naming = false
@@ -1242,7 +1242,7 @@ func (e *Engine) answerPlay(n int, text string) error {
 	if e.waiting(PendShop) {
 		switch n {
 		case 0:
-			return e.Browse(-1)
+			return e.browse(-1)
 		case 1:
 			return e.Leave()
 		}
@@ -1286,16 +1286,16 @@ func (e *Engine) campDo(a play.Action, out *play.Outcome, native func(func() err
 		return true, native(e.LeaveCamp)
 	case play.AdvanceTimeBy: // the original's Rest: until all are healed and the spells learned (RestFix)
 		err := native(func() error {
-			return e.CampRest(RestFix)
+			return e.campRest(RestFix)
 		})
 		if err == nil {
 			out.Events = append(out.Events, play.TimePassed{D: a.D})
 		}
 		return true, err
 	case play.Fix:
-		return true, native(func() error { return e.CampRest(RestFix) })
+		return true, native(func() error { return e.campRest(RestFix) })
 	case play.CampRest:
-		return true, native(func() error { return e.CampRest(a.Kind) })
+		return true, native(func() error { return e.campRest(a.Kind) })
 	case play.Order:
 		return true, native(func() error {
 			if err := e.moveMember(a.From, a.To); err != nil {
@@ -1305,11 +1305,11 @@ func (e *Engine) campDo(a play.Action, out *play.Outcome, native func(func() err
 			return nil
 		})
 	case play.Memorize:
-		return true, native(func() error { return e.PlanSpell(a.Member, a.Spell, 1) })
+		return true, native(func() error { return e.planSpell(a.Member, a.Spell, 1) })
 	case play.Plan:
-		return true, native(func() error { return e.PlanSpell(a.Member, a.Spell, a.Count) })
+		return true, native(func() error { return e.planSpell(a.Member, a.Spell, a.Count) })
 	case play.Scribe:
-		return true, native(func() error { return e.Scribe(a.Member, a.Spell) })
+		return true, native(func() error { return e.scribe(a.Member, a.Spell) })
 	}
 	return false, nil
 }
@@ -1326,7 +1326,7 @@ func (e *Engine) itemDo(a play.Action, native func(func() error) error) (bool, e
 	case play.Unready:
 		return shown(a.Member, func() error { return e.Unready(a.Item) })
 	case play.Drop: // ovr20's "Drop It?" is gobox's (BUG-CLASSES 47)
-		return shown(a.Member, func() error { return e.Drop(a.Item) })
+		return shown(a.Member, func() error { return e.drop(a.Item) })
 	case play.SelectMember:
 		return true, native(func() error {
 			if a.Member < 0 || a.Member >= e.partySize() {
@@ -1356,9 +1356,9 @@ func (e *Engine) itemDo(a play.Action, native func(func() error) error) (bool, e
 			})
 		})
 	case play.Sell:
-		return true, native(func() error { return e.browsing(a.Member, func() error { return e.Sell(a.Item) }) })
+		return true, native(func() error { return e.browsing(a.Member, func() error { return e.sell(a.Item) }) })
 	case play.Identify:
-		return true, native(func() error { return e.Identify(a.Member, a.Item) })
+		return true, native(func() error { return e.identify(a.Member, a.Item) })
 	case play.Appraise: // values one; with one valued, keeps or sells it
 		return true, native(func() error {
 			if e.valued != core.NoItem {
@@ -1367,7 +1367,7 @@ func (e *Engine) itemDo(a play.Action, native func(func() error) error) (bool, e
 			return e.Appraise(a.Offer == game.OfferJewel)
 		})
 	case play.Heal:
-		return true, native(func() error { return e.Cure(a.Member, a.Service) })
+		return true, native(func() error { return e.cure(a.Member, a.Service) })
 	case play.Take:
 		return true, native(func() error { return e.TakeLoot(a.Item, a.All) })
 	}

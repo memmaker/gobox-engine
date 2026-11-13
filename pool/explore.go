@@ -95,7 +95,7 @@ func (e *Engine) adjustStat(stat, by int) error {
 		if sc[core.Strength] != 18 || n < 1 || n > 100 {
 			return &play.Refusal{Text: "no exceptional strength"}
 		}
-		return e.SetStat(0, fmt.Sprintf("18/%02d", n%100))
+		return e.setStat(0, fmt.Sprintf("18/%02d", n%100))
 	}
-	return e.SetStat(stat, strconv.Itoa(int(e.ruleset().Sheet(cr.c).Scores[abilities[stat]])+by))
+	return e.setStat(stat, strconv.Itoa(int(e.ruleset().Sheet(cr.c).Scores[abilities[stat]])+by))
 }

@@ -26,9 +26,9 @@ func (e *Engine) Shop() {
 	e.wait(PendShop)
 }
 
-// Browse = the shop's Buy (extra: the goods beside member n's inventory,
+// browse = the shop's Buy (extra: the goods beside member n's inventory,
 // n < 0 the selected one).
-func (e *Engine) Browse(n int) error {
+func (e *Engine) browse(n int) error {
 	if !e.waiting(PendShop) {
 		return core.ErrNotNow
 	}
@@ -37,9 +37,9 @@ func (e *Engine) Browse(n int) error {
 	return nil
 }
 
-// Identify = the shop's Id (extra: the shop's, not the item menu's): item
+// identify = the shop's Id (extra: the shop's, not the item menu's): item
 // h of member n's (identifiable), the player agreed to the price.
-func (e *Engine) Identify(n int, h core.ItemHandle) error {
+func (e *Engine) identify(n int, h core.ItemHandle) error {
 	if !e.waiting(PendShop) || n < 0 || n >= e.partySize() {
 		return core.ErrNotNow
 	}

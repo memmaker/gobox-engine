@@ -183,9 +183,9 @@ func (e *Engine) LeaveCamp() error {
 	return nil
 }
 
-// PlanSpell plans member n's (< 0: the selected one) spell to be
+// planSpell plans member n's (< 0: the selected one) spell to be
 // memorized count times on the next rest.
-func (e *Engine) PlanSpell(n, spell, count int) error {
+func (e *Engine) planSpell(n, spell, count int) error {
 	if !e.inCamp() {
 		return core.ErrNotNow
 	}
@@ -194,8 +194,8 @@ func (e *Engine) PlanSpell(n, spell, count int) error {
 	return nil
 }
 
-// Scribe has member n scribe spell from a scroll on the next rest (again: not).
-func (e *Engine) Scribe(n, spell int) error {
+// scribe has member n scribe spell from a scroll on the next rest (again: not).
+func (e *Engine) scribe(n, spell int) error {
 	if !e.inCamp() {
 		return core.ErrNotNow
 	}
@@ -223,9 +223,9 @@ func (e *Engine) DropMember(n int) error {
 	return nil
 }
 
-// CampRest = camp's Rest: RestFix, RestWait or RestUntil. The rest goes
+// campRest = camp's Rest: RestFix, RestWait or RestUntil. The rest goes
 // on in RestStep, and ends in rested.
-func (e *Engine) CampRest(kind int) error {
+func (e *Engine) campRest(kind int) error {
 	if !e.inCamp() {
 		return core.ErrNotNow
 	}
@@ -319,9 +319,9 @@ func (e *Engine) RestStep() error {
 	return nil
 }
 
-// StopRest = keyHit's "Stop resting?" answered Yes (the presenter asks):
+// stopRest = keyHit's "Stop resting?" answered Yes (the presenter asks):
 // the rest ends at its next step.
-func (e *Engine) StopRest() error {
+func (e *Engine) stopRest() error {
 	if e.resting == nil {
 		return core.ErrNotNow
 	}

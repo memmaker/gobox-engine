@@ -204,8 +204,8 @@ func (e *Engine) Unready(h core.ItemHandle) error {
 	return e.Ready(h, 0)
 }
 
-// Drop drops item h (the front asked ovr20's "Drop It?").
-func (e *Engine) Drop(h core.ItemHandle) error {
+// drop drops item h (the front asked ovr20's "drop It?").
+func (e *Engine) drop(h core.ItemHandle) error {
 	cID, h := e.carriedBy(h)
 	if h == core.NoItem {
 		return core.ErrNotNow
@@ -218,8 +218,8 @@ func (e *Engine) Drop(h core.ItemHandle) error {
 	return err
 }
 
-// Sell sells item h where the inventory sells (the shop's; confirmed).
-func (e *Engine) Sell(h core.ItemHandle) error {
+// sell sells item h where the inventory sells (the shop's; confirmed).
+func (e *Engine) sell(h core.ItemHandle) error {
 	cID, h := e.carriedBy(h)
 	if h == core.NoItem || !e.inventoryView(cID).Sell {
 		return core.ErrNotNow
