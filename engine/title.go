@@ -31,7 +31,7 @@ func (e *Engine) titleDone() {
 // title is the adventure's Start sequence as the engine shows it (SetStart):
 // which steps play; gobox composes them from the script.
 type title struct {
-	full, short game.Scene         // the title Scene with the Full intro option on, and off
+	start       adventure.Sequence // the Start, its title Scene made as the state is read (startScene): its steps follow the art showing (F12)
 	endAnim     bool               // the End starts with an animation (adventure.SeqEnding)
 	end         *game.Scene        // the end sequence of pictures (SetEnd)
 	after       []adventure.Effect // what the end leaves in the game (SetEnd)
@@ -93,13 +93,14 @@ func (e *Engine) SetStart(s *adventure.Sequence) error {
 	if s == nil {
 		s = &adventure.Sequence{}
 	}
-	t := title{endAnim: e.title.endAnim, end: e.title.end, after: e.title.after, note: e.title.note} // SetEnd's stay
-	var err error
-	if t.full, err = e.titleScene(*s, true); err != nil {
-		return err
-	}
-	if t.short, err = e.titleScene(*s, false); err != nil {
-		return err
+	t := title{start: *s, endAnim: e.title.endAnim, end: e.title.end, after: e.title.after, note: e.title.note} // SetEnd's stay
+	for _, full := range []bool{true, false} { // its pictures checked with the art showing now, its steps with either art
+		if _, err := e.titleScene(*s, full); err != nil {
+			return err
+		}
+		if _, _, err := adventure.TitleIntro(*s, full, !e.amigaUp(), e.graphics()); err != nil {
+			return err
+		}
 	}
 	for _, l := range s.Backdrop {
 		if err := e.hasArt(l.Art); err != nil {
@@ -130,4 +131,15 @@ func (e *Engine) hasArt(a adventure.Art) error {
 		return fmt.Errorf("%s %d: %w", a.File, a.Block, errNoArt)
 	}
 	return fmt.Errorf("art kind %d: %w", a.Kind, errNoArt)
+}
+
+// startScene is the title Scene of the Start as it plays now: with the Full
+// intro option, and the steps of the art showing (an Amiga-only step not
+// with the DOS art). SetStart checked the sequence.
+func (e *Engine) startScene() game.Scene {
+	in, whole, err := adventure.TitleIntro(e.title.start, e.FullIntro.Load(), e.amigaUp(), e.graphics())
+	if err != nil {
+		panic(fmt.Sprintf("title checked by SetStart: %v", err)) // SetStart refuses a sequence TitleIntro fails on
+	}
+	return game.Scene{Kind: game.SceneTitle, Intro: in, Full: whole}
 }

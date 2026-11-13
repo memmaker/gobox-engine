@@ -78,10 +78,7 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 	case e.ext.ending && e.title.end != nil: // the end's pictures, as the title's steps
 		return e.endScene(cm)
 	case e.ext.intro: // the title is up: State's Scene is the adventure's Start (SetStart)
-		sc := e.title.short
-		if e.FullIntro.Load() {
-			sc = e.title.full
-		}
+		sc := e.startScene()
 		sc.Common = cm
 		return sc
 	case e.sequence != "":
