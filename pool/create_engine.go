@@ -185,7 +185,7 @@ func (e *Engine) rename(name string) error {
 // setStat sets the created character's ability i (STR .. CHA) as typed (STR as 18/xx).
 func (e *Engine) setStat(i int, typed string) error {
 	if i < 0 || i >= len(abilities) {
-		return nil
+		return &play.Refusal{Text: "no such stat"}
 	}
 	return e.creationEdit(func(cr *creation) error {
 		err := cr.d.SetScore(abilities[i], typed)
