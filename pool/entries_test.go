@@ -32,7 +32,7 @@ func TestEntriesInBooks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if in := sc.Code[0]; in.Op != script.OpJournal || len(in.Args) != 1 || in.Args[0].N != 1003 {
+	if in := sc.Code[0]; in.Op != script.OpJournal || len(in.Args) != 1 || in.Args[0].Type != script.ArgWord || in.Args[0].N != 1003 { // a word: a byte operand reads as its low byte
 		t.Errorf("Journal(TavernTale3) is %+v, want the pager on entry 1003", in)
 	}
 }

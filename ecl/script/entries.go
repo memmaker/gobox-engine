@@ -47,3 +47,28 @@ func ReadEntries(data fs.FS) ([]Entry, error) {
 	}
 	return es, nil
 }
+
+// checkOperands is the load-time check of a parsed script against its data:
+// every immediate fits its encoding (a byte operand is read as its low byte)
+// and every Journal names an entry of EntriesFile.
+func checkOperands(s *Script, data fs.FS) error {
+	es, err := ReadEntries(data)
+	if err != nil {
+		return err
+	}
+	ids := map[EntryID]bool{}
+	for _, e := range es {
+		ids[e.ID] = true
+	}
+	for _, in := range s.Code {
+		for _, a := range in.Args {
+			if a.Type == ArgByte && !a.Label && (a.N < 0 || a.N > 0xFF) {
+				return fmt.Errorf("%d: byte operand %d out of range", in.Line, a.N)
+			}
+		}
+		if in.Op == OpJournal && len(in.Args) == 1 && (in.Args[0].Type == ArgByte || in.Args[0].Type == ArgWord) && !ids[EntryID(in.Args[0].N)] {
+			return fmt.Errorf("%d: Journal(%d): no such entry in %s", in.Line, in.Args[0].N, EntriesFile)
+		}
+	}
+	return nil
+}

@@ -1505,6 +1505,19 @@ func unnamedLong(name string) (Arg, bool) {
 	return Arg{}, false
 }
 
+// immediate is a named value as the narrowest immediate that holds it, a
+// byte or a word: an entry ID 4002 is no byte (the VM reads a byte operand
+// as its low byte, 0xA2).
+func immediate(name string, v int) (Arg, error) {
+	switch {
+	case v >= 0 && v <= 0xFF:
+		return Arg{N: v}, nil
+	case v >= 0 && v <= 0xFFFF:
+		return Arg{Type: ArgWord, N: v}, nil
+	}
+	return Arg{}, fmt.Errorf("%s is %d: out of a word's range", name, v)
+}
+
 // resolve is operand o as an Arg: a number, a string, a variable, label,
 // table or area by name, a value of kind, or a value or bits of the
 // variable beside under op.
@@ -1562,11 +1575,11 @@ func (p *parser) resolve(o opnd, kind, beside, op string) (Arg, error) {
 		return a, nil
 	}
 	if v, ok := p.names.kindValue(kind, o.name); ok {
-		return Arg{N: v}, nil
+		return immediate(o.name, v)
 	}
 	if beside != "" {
 		if v, ok := p.names.varNumber(beside, o.name); ok {
-			return Arg{N: v}, nil
+			return immediate(o.name, v)
 		}
 	}
 	if strings.HasPrefix(o.name, "V_") {
