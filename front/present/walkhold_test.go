@@ -23,7 +23,7 @@ func TestWalkPlaysStepByStep(t *testing.T) {
 		t.Fatal(err)
 	}
 	var at []image.Point
-	for _, e := range g.Settle().Events {
+	for _, e := range g.legacySettle().Events {
 		if e.Kind != front.EvMoved {
 			continue
 		}

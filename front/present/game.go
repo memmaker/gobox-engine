@@ -274,8 +274,9 @@ func ViewVerb(b *front.Battle, d game.Data) *front.Battle {
 	return &c
 }
 
-// Settle goes on to the next wait; the View carries the fight's events since.
-func (g *Game) Settle() front.View {
+// Settle goes on to the next wait and returns what happened since, as the
+// moments the presenter plays.
+func (g *Game) Settle() []Moment {
 	if g.pace() == game.PaceNone { // a paced step is the front's call (CombatStep ..)
 		if c := g.combat(); c != nil && g.lastCombat == nil { // a fight already up before its first step (a dev start): its events play from it too
 			g.lastCombat = c
@@ -283,8 +284,7 @@ func (g *Game) Settle() front.View {
 		g.lastParty = g.party()
 		g.step()
 	}
-	v := g.View()
-	posed := g.posedBattle
+	posed := g.posedBoard
 	for _, e := range g.events {
 		if e.Kind == game.EvEngaged && e.Combat != nil { // the fight began in the step: its events play from its first board
 			g.lastCombat, g.lastParty = e.Combat, e.Party
@@ -294,11 +294,11 @@ func (g *Game) Settle() front.View {
 		c := *g.lastCombat
 		c.Units, c.Squares = slices.Clone(c.Units), slices.Clone(c.Squares)
 		g.ended = &c
-		posed = g.stepBattle
+		posed = g.stepBoard
 	}
-	v.Events = combatEvents(g.events, v, posed, g.messageMs())
+	ms := g.moments(g.events, g.combat() != nil, posed, g.messageMs())
 	g.events, g.lastCombat = nil, g.combat()
-	return v
+	return ms
 }
 
 // A combat step holds minStepMs and stepShare of the message delay: the
@@ -318,10 +318,11 @@ func (g *Game) messageMs() int {
 	return g.r.Speed() * 100
 }
 
-// stepBattle is the fight as the step found it (g.ended), for each of its
+// stepBoard is the fight as the step found it (g.ended), for each of its
 // events in turn: every one is held on the board the events before it left
-// (a walk moved, a fall dropped), with its unit in its pose.
-func (g *Game) stepBattle(e play.Report) *front.Battle {
+// (a walk moved, a fall dropped), with its unit in its pose; and the
+// party's figures then.
+func (g *Game) stepBoard(e play.Report) (*play.Combat, []game.Member) {
 	if e.Kind == game.EvMove && !e.Turn { // a step: held on the square it reaches
 		for k := range g.ended.Units {
 			if u := &g.ended.Units[k]; u.ID == e.Unit {
@@ -346,7 +347,7 @@ func (g *Game) stepBattle(e play.Report) *front.Battle {
 			c.Units[k].Pose = e.Pose
 		}
 	}
-	b := BattleOf(&c, g.lastParty, g.art())
+	party := g.lastParty
 	for k := range g.ended.Units { // the board after e, for the events that follow
 		switch u := &g.ended.Units[k]; {
 		case u.ID == e.Unit && e.Kind == game.EvMove && e.Turn:
@@ -357,7 +358,7 @@ func (g *Game) stepBattle(e play.Report) *front.Battle {
 			u.Dead, u.Gone, u.HP = true, true, 0 // off the map, as EvDied plays it
 		}
 	}
-	return b
+	return &c, party
 }
 
 // hasPic is whether p is a picture at all.
@@ -372,16 +373,64 @@ func withOverlay(sq []game.Ground, at image.Point, o game.Picture) []game.Ground
 	return append(sq, game.Ground{At: at, Overlay: o})
 }
 
-// combatEvents are the fight's events as the presenter plays them; the
-// kinds with no moment to play (pictures) are left out. Outside fights too:
-// every step's events come through here (songs, sounds).
-func combatEvents(es []play.Report, v front.View, posed func(play.Report) *front.Battle, holdMs int) (out []front.CombatEvent) {
+// moments are the step's reports as the presenter plays them; the kinds
+// with no moment to play (pictures) are left out. Outside fights too: every
+// step's events come through here (songs, sounds). posed is the board an
+// event holds on, and the party's figures then.
+func (g *Game) moments(es []play.Report, fight bool, posed func(play.Report) (*play.Combat, []game.Member), holdMs int) (out []Moment) {
+	for _, e := range es {
+		if e.Screen != nil || e.Page != nil { // a timed typed screen or page: the scene as it stood
+			out = append(out, Moment{Report: e, Ms: e.Ms})
+			continue
+		}
+		if !momentKind(e.Kind) {
+			continue
+		}
+		m := Moment{Report: e}
+		hold := func(ms int) { m.Ms = ms; m.Board, m.Party = posed(e) }
+		switch {
+		case !fight: // the fight over: every event on the board the ones before it left
+			if b, p := posed(e); e.Ms > 0 {
+				m.Ms, m.Board, m.Party = e.Ms, b, p
+			}
+		case e.Kind == game.EvDown && hasPic(e.Picture): // a fall that leaves a body is held with the body down (with no moment, the shot before it kept the figure standing up to the page)
+			hold(cmp.Or(e.Ms, holdMs))
+		case e.Kind == game.EvMove && !e.Turn: // a step held on the board it leaves, so a walk plays square by square (the figure walks it: combat.Presenter.StepTime)
+			hold(stepMs(holdMs))
+		case e.Pose > 0 && e.Ms > 0: // the moment held with the unit in its pose
+			hold(e.Ms)
+		case e.Text != "" && e.Ms == 0: // a fight's message stays up the game-speed delay before what follows, as the originals'
+			hold(holdMs)
+		}
+		if e.Kind == game.EvMissile && len(e.Sprite) > 0 && m.Board == nil && fight { // a shot the game gave no moment of its own: it flies on the board as it stands
+			hold(cmp.Or(e.Ms, flightMs))
+		}
+		out = append(out, m)
+	}
+	return out
+}
+
+// momentKind is whether a report of kind k is a moment to play.
+func momentKind(k game.EventKind) bool {
+	switch k {
+	case game.EvAttack, game.EvHit, game.EvMiss, game.EvDamage, game.EvDown, game.EvSpell, game.EvMove, game.EvMissile,
+		game.EvMessage, game.EvSound, game.EvSong, game.EvSaves:
+		return true
+	}
+	return false
+}
+
+// legacyEvents is ms as the old player takes them (front.CombatEvent: the
+// board as a front.Battle, a scene as a whole View v). view-cut: removed by
+// slice 2, which plays the Moments.
+func (g *Game) legacyEvents(ms []Moment, v front.View) (out []front.CombatEvent) {
 	kinds := map[game.EventKind]front.EventKind{
 		game.EvAttack: front.EvAttack, game.EvHit: front.EvHit, game.EvMiss: front.EvMiss, game.EvDamage: front.EvDamage,
 		game.EvDown: front.EvDied, game.EvSpell: front.EvSpell, game.EvMove: front.EvMoved, game.EvMissile: front.EvMissile,
 		game.EvMessage: front.EvMessage, game.EvSound: front.EvSound, game.EvSong: front.EvSong, game.EvSaves: front.EvSaves,
 	}
-	for _, e := range es {
+	for _, m := range ms {
+		e := m.Report
 		if e.Screen != nil { // a timed typed screen: the scene with the screen as it stood
 			sc := v
 			sc.Screen = e.Screen
@@ -393,35 +442,28 @@ func combatEvents(es []play.Report, v front.View, posed func(play.Report) *front
 			out = append(out, front.CombatEvent{Kind: front.EvFrame, Ms: e.Ms, Scene: &sc})
 			continue
 		}
-		if k, ok := kinds[e.Kind]; ok {
-			ce := front.CombatEvent{Kind: k, Unit: e.Unit, Target: e.Target, Amount: e.N, From: e.At, To: e.To, Text: e.Text}
-			if n, err := strconv.Atoi(e.Sound); err == nil && ce.Amount == 0 && (k == front.EvSound || k == front.EvSong) { // the sound or song ref as a number
-				ce.Amount = n
-			}
-			if v.Battle == nil && posed != nil { // the fight over: every event on the board the ones before it left
-				if b := posed(e); e.Ms > 0 {
-					ce.Ms, ce.Battle = e.Ms, b
-				}
-			} else if e.Kind == game.EvDown && hasPic(e.Picture) && posed != nil { // a fall that leaves a body is held with the body down (with no moment, the shot before it kept the figure standing up to the page)
-				ce.Ms, ce.Battle = cmp.Or(e.Ms, holdMs), posed(e)
-			} else if e.Kind == game.EvMove && !e.Turn && v.Battle != nil && posed != nil { // a step held on the board it leaves, so a walk plays square by square (the figure walks it: combat.Presenter.StepTime)
-				ce.Ms, ce.Battle = stepMs(holdMs), posed(e)
-			} else if e.Pose > 0 && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose
-				ce.Ms, ce.Battle = e.Ms, posed(e)
-			} else if e.Text != "" && e.Ms == 0 && v.Battle != nil && posed != nil { // a fight's message stays up the game-speed delay before what follows, as the originals'
-				ce.Ms, ce.Battle = holdMs, posed(e)
-			}
-			if k == front.EvMissile && len(e.Sprite) > 0 && ce.Battle == nil && v.Battle != nil && posed != nil { // a shot the game gave no moment of its own: it flies on the board as it stands
-				ce.Ms, ce.Battle = cmp.Or(e.Ms, flightMs), posed(e)
-			}
-			if k == front.EvMissile && len(e.Sprite) > 0 && ce.Battle != nil { // the shot flies: its sprite square by square from the shooter, in thirds, over the moment
-				out = append(out, missileFlight(ce, e.Sprite[0], e.StepMs)...)
-				continue
-			}
-			out = append(out, ce)
+		k := kinds[e.Kind]
+		ce := front.CombatEvent{Kind: k, Unit: e.Unit, Target: e.Target, Amount: e.N, From: e.At, To: e.To, Text: e.Text, Ms: m.Ms}
+		if n, err := strconv.Atoi(e.Sound); err == nil && ce.Amount == 0 && (k == front.EvSound || k == front.EvSong) { // the sound or song ref as a number
+			ce.Amount = n
 		}
+		ce.Battle = BattleOf(m.Board, m.Party, g.art())
+		if k == front.EvMissile && len(e.Sprite) > 0 && ce.Battle != nil { // the shot flies: its sprite square by square from the shooter, in thirds, over the moment
+			out = append(out, missileFlight(ce, e.Sprite[0], e.StepMs)...)
+			continue
+		}
+		out = append(out, ce)
 	}
 	return out
+}
+
+// legacySettle is Settle with its moments as the old View's Events, for
+// the tests of the old player. view-cut: removed by slice 2.
+func (g *Game) legacySettle() front.View {
+	ms := g.Settle()
+	v := g.View()
+	v.Events = g.legacyEvents(ms, v)
+	return v
 }
 
 // missileFlight is the moment ce (a missile held on its Battle) as the
@@ -454,12 +496,12 @@ func missileFlight(ce front.CombatEvent, art game.Picture, step int) []front.Com
 	return out
 }
 
-// posedBattle is the fight as it stands with e's Unit in e's Pose (nil:
-// no fight).
-func (g *Game) posedBattle(e play.Report) *front.Battle {
+// posedBoard is the fight as it stands with e's Unit in e's Pose, and the
+// party now (nil: no fight).
+func (g *Game) posedBoard(e play.Report) (*play.Combat, []game.Member) {
 	now := g.combat()
 	if now == nil {
-		return nil
+		return nil, nil
 	}
 	c := *now
 	c.Units, c.Squares = slices.Clone(c.Units), slices.Clone(c.Squares)
@@ -476,7 +518,7 @@ func (g *Game) posedBattle(e play.Report) *front.Battle {
 		}
 		c.Units = slices.DeleteFunc(c.Units, func(u game.Unit) bool { return u.ID == e.Unit })
 	}
-	return BattleOf(&c, g.party(), g.art())
+	return &c, g.party()
 }
 
 // Open starts the rules on save slot slot ("" none) when they take it.

@@ -34,7 +34,7 @@ func TestEndingEventsPlayClassic(t *testing.T) {
 	g := NewGame(r, game.Data{})
 	g.Settle() // the fight shown
 	g.Answer(front.Action{Kind: front.ActQuick})
-	v := g.Settle()
+	v := g.legacySettle()
 	if v.Battle != nil || len(v.Events) != 3 {
 		t.Fatalf("battle %v, %d events", v.Battle != nil, len(v.Events))
 	}
@@ -53,7 +53,7 @@ func TestEndingEventsMove(t *testing.T) {
 	g := NewGame(r, game.Data{})
 	g.Settle()
 	g.Answer(front.Action{Kind: front.ActQuick})
-	es := g.Settle().Events
+	es := g.legacySettle().Events
 	if len(es) != 5 || es[1].Battle == nil || es[4].Battle == nil {
 		t.Fatalf("%d events", len(es))
 	}

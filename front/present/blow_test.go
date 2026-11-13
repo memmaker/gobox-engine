@@ -20,7 +20,7 @@ func TestBlowShows(t *testing.T) {
 	if err := g.Answer(front.Action{Kind: front.ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
 	}
-	v := g.Settle()
+	v := g.legacySettle()
 	var kinds []front.EventKind
 	dmg, line := 0, false
 	for _, e := range v.Events {
