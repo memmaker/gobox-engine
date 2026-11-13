@@ -329,11 +329,6 @@ func MusicPlaces() []string {
 	return l
 }
 
-// daxRef is DAX file's block, frame f (Clear is only for raw Pixels).
-func daxRef(file string, block, f int) game.Picture {
-	return game.Picture{File: file, Block: block, Frame: f}
-}
-
 // The temple's services (DS:00BD).
 var templeServices = [10]string{"Cure Blindness", "Cure Disease", "Cure Light Wounds", "Cure Serious Wounds",
 	"Cure Critical Wounds", "Heal", "Neutralize Poison", "Raise Dead", "Remove Curse", "Stone to Flesh"}
@@ -346,12 +341,7 @@ var templePrices = [10]uint16{1000, 1000, 100, 350, 600, 5000, 1000, 5500, 3500,
 var templeNot = [10]string{0: "is not blind.", 1: "is not Diseased.", 6: "is not poisoned.", 7: "is not dead.", 8: "is not cursed.", 9: "is not stoned."}
 
 // Title pictures in TITLE.DAX (Data.Art's title pieces).
-const (
-	titleSSILogo   = 1
-	titleHeroine   = 2
-	titleCurseLogo = 3
-	titleBanner    = 4
-)
+const ()
 
 // Item powers itemReadyEffect knows beyond classcalc.go's.
 const (

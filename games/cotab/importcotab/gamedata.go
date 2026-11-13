@@ -17,17 +17,6 @@ var soundNames = map[int]string{sndStop: "stop", sndMute: "mute", sndUnmute: "un
 	sndMagicHit: "magic hit", sndFall: "fall", sndMissile: "missile", sndBump: "bump", sndSpell51: "spell 51", sndMiss: "miss",
 	sndStep: "step", sndSpell47: "spell 47", sndMissileEnd: "missile end", sndTitle: "title", sndCountdown: "countdown"}
 
-// dataArt is Data's art: the title's and the frame's pieces.
-func dataArt() map[string]game.Picture {
-	return map[string]game.Picture{
-		"title.ssi":     daxRef("TITLE", titleSSILogo, 0),
-		"title.picture": daxRef("TITLE", titleHeroine, 0),
-		"title.logo":    daxRef("TITLE", titleCurseLogo, 0),
-		"title.banner":  daxRef("TITLE", titleBanner, 0),
-		"symbols":       daxRef("8X8D1", 202, 0), // the area map's and the frame's pieces
-	}
-}
-
 // StaticData is cotab's data that needs no folder: the series and id, the
 // games it adds characters from, the spell tips, the Quick Start party, the
 // confirms and texts in the original's words, the party menu, the sounds by
