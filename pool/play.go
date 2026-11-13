@@ -40,6 +40,15 @@ func (e *Engine) State() play.State {
 	return e.ps
 }
 
+// Version is the build number of the State held: it changes whenever State
+// is built anew (rebuild), and only then.
+func (e *Engine) Version() uint64 {
+	if e.ps == nil {
+		e.rebuild()
+	}
+	return uint64(e.StateBuilds)
+}
+
 // rebuild builds State anew: every call that changes the engine (Do, Load,
 // LoadSlot, Start, Step) ends with it.
 func (e *Engine) rebuild() {

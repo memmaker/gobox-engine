@@ -18,6 +18,8 @@ func (openMap) Event(image.Point) bool          { return false }
 
 type walkerGame struct{ sent []play.Action }
 
+func (w *walkerGame) Version() uint64 { return fresh() }
+
 func (w *walkerGame) State() play.State {
 	return play.Exploring{Map: play.ExploreMap{Walk: openMap{}}}
 }

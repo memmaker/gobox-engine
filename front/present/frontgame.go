@@ -233,4 +233,4 @@ func (p *Presenter) Point(x, y int) bool {
 func (p *Presenter) Calls() []func(*classicGame) { return p.calls.Take() }
 
 // SetEngine gives the presenter the game its queries (JournalPage) ask.
-func (p *Presenter) SetEngine(e *classicGame) { p.eng, p.rev = e, p.rev+1 }
+func (p *Presenter) SetEngine(e *classicGame) { p.eng = e }

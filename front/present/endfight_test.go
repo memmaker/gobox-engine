@@ -14,6 +14,8 @@ import (
 // state after it is the result page.
 type endGame struct{ over bool }
 
+func (r *endGame) Version() uint64 { return fresh() }
+
 func (r *endGame) State() play.State {
 	if r.over {
 		return play.Scene{Common: play.Common{Status: "DONE"}}

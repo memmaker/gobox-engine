@@ -102,9 +102,8 @@ type Presenter struct {
 	mapBottom   int                         // screen rows above this are the 3D map
 	fight       bool                        // the last frame was the 3D combat map
 	inv         inventory                   // the inventory screen (inventory.go)
-	rev         uint64                      // counts what may have changed the game (Front.stale, SetEngine): the fight read from it is kept until then
-	live        struct {                    // the fight and party read from the game at rev (liveFight)
-		rev   uint64
+	live        struct {                    // the fight and party read from the game at key (liveFight)
+		key   fightSource
 		ok    bool
 		c     *play.Combat
 		party []game.Member

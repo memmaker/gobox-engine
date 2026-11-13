@@ -650,15 +650,16 @@ func blowFloat(m Moment) (id, n int, word string) {
 var traceOn = os.Getenv("GOBOX_TRACE") != ""
 
 // liveFight is the fight up in the game's state (nil: none, or no game) and
-// the party's figures: read again only when something may have changed the
-// game (rev, Front.stale), not every frame.
+// the party's figures: read again only when the game's State was built anew
+// or gobox's own part of the fight changed (fightSource), not every frame.
 func (p *Presenter) liveFight() (*play.Combat, []game.Member) {
 	if p.eng == nil {
 		return nil, nil
 	}
-	if !p.live.ok || p.live.rev != p.rev {
+	if !p.live.ok || p.live.key != p.fightSource() {
 		s := p.state()
-		p.live.c, p.live.party, p.live.rev, p.live.ok = p.eng.r.combatOf(s), partyOf(s), p.rev, true
+		p.live.c, p.live.party = p.eng.r.combatOf(s), partyOf(s)
+		p.live.key, p.live.ok = p.fightSource(), true // after the build: it may start the lone aim
 	}
 	return p.live.c, p.live.party
 }
@@ -676,10 +677,31 @@ type lists struct {
 	spells, maneuvers []front.Spell  // nil: none
 }
 
+// fightSource is what the live fight is read from: the game's State (its
+// build number) and gobox's own part of it, the aim, its cursor and the log
+// (rules.combat folds them in).
+type fightSource struct {
+	version uint64
+	aim     *squareAim
+	ats     int
+	cursor  image.Point
+	log     int
+}
+
+// fightSource is the source of the fight now.
+func (p *Presenter) fightSource() fightSource {
+	r := p.eng.r
+	k := fightSource{version: p.eng.G.Version(), aim: r.aim, cursor: r.cursor, log: len(r.log)}
+	if r.aim != nil {
+		k.ats = len(r.aim.ats)
+	}
+	return k
+}
+
 // boardKey is what the drawn fight board is made from: it is built again
 // only when one of them changes (not every frame; the game is turn-based).
 type boardKey struct {
-	rev    uint64        // the game may have changed (Front.stale)
+	live   fightSource   // the game's State and gobox's part of the fight
 	board  *play.Combat  // the live fight, or the replayed moment's
 	fly    *flight       // a missile's square
 	queued int           // the moments still to play (keepFallen)
@@ -690,7 +712,7 @@ type boardKey struct {
 // drawnBoard makes fightView and fightBoard from p.board, when what they
 // are made from has changed.
 func (p *Presenter) drawnBoard() {
-	k := boardKey{rev: p.rev, board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim}
+	k := boardKey{live: p.live.key, board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim}
 	if q := p.shownView.Ask; q != nil {
 		k.ask = q.Kind
 	}

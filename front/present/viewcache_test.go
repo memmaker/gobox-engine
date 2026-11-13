@@ -112,7 +112,7 @@ type artCounting struct {
 func (f *artCounting) Art() map[string]game.Picture { f.arts++; return nil }
 
 // The game is turn-based: idle frames of a fight draw the board built once;
-// a change of the game (stale) builds it again.
+// a new State of the game (its Version) builds it again.
 func TestFightBoardBuiltOncePerChange(t *testing.T) {
 	fight := play.Fighting{Common: allow(play.EndTurn{}),
 		Field: play.Battlefield{Turn: 1, Size: image.Pt(8, 8), Units: []game.Unit{{ID: 1, Member: -1}}}}
@@ -132,6 +132,8 @@ func TestFightBoardBuiltOncePerChange(t *testing.T) {
 	if g.arts != one || f.P.fightBoard != board {
 		t.Fatalf("idle draws rebuilt: %d Art reads, want %d", g.arts, one)
 	}
+	fight.Field.Units = append(fight.Field.Units, game.Unit{ID: 2, Member: -1, Foe: true})
+	g.st = fight // the game's State is built anew: a new Version
 	f.stale()
 	f.Draw(dst)
 	if f.P.fightBoard == board {
