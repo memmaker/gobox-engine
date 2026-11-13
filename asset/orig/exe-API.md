@@ -13,9 +13,9 @@ Dropped (no callers): PString, Long, LoadCurse, LoadBlades.
 go.mod: `require gobox v0.0.0`, `replace gobox => ../gobox-engine` and `replace gobox/rules => ../gobox-engine/rules` (one module: every package below imports as `gobox/<dir>`). Import
 `gobox/asset/orig`; delete the game's exe/ dir (move its exe_test.go away, the package has it).
 
-- sotsb-go: `exe.LoadBlades(p)` -> `exe.Load(p, 3554)`  (bladesDataSegment; used in cmd/dsfind, tablegen, tablefind, dsbytes, itemdump)
+- sotsb-go: `exe.LoadBlades(p)` -> `exe.Load(p, 3554)`  (bladesDataSegment; used in cmd/tablegen)
 - cotab-go: `exe.LoadCurse(p)` -> `exe.Load(p, 2750)`   (cotabDataSegment; cmd/tablegen)
-  and sotsb-go cmd/tablegen, tablefind also use LoadCurse -> `exe.Load(p, 2750)`
+  and sotsb-go cmd/tablegen also use LoadCurse -> `exe.Load(p, 2750)`
 - por-go:   `exe.Load(p)` -> `exe.Load(p, 0xC7C)`       (=3196, old DS 0xC7C0 bytes; cmd/sounddata only uses Mem)
 - cotab-go/sotsb-go cmd/sounddata: `exe.Load(p)` -> `exe.Load(p, 0)` (only Mem is used; DS irrelevant)
 

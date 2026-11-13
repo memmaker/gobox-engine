@@ -152,5 +152,5 @@ GAME.OVR rebuilt byte-identical), over cotab-go's (and so por-go's) engine
 shape. Each Go function names its SotSB address (Onnn:xxxx / Rnnn:xxxx).
 Porting aids in sotsb-re: tools/procmatch.py (SotSB to CotAB pairs),
 tools/dsmap.py (data addresses), tools/xref.py (work list and uncovered
-procedures). Here: gobox exe/cmd/tablefind, cmd/dsfind, cmd/dsbytes, cmd/itemdump.
+procedures)..
 Style: ~/notes/c-to-go.md (idiomatic Go, no emulation, no magic numbers).

@@ -5,7 +5,7 @@
 - [x] Stale worktree agent-a372c521a57fd0f1e removed (no unmerged commits)
 - [ ] D: dead code (deadcode -test list, rules1e stats accessors, unused spell-ID consts, engine.lead/viewMember, xinput packet), tracked poolsprites binary + sprites/, empty blobber/
 - [ ] M: package merges gpu/vector→gpu, game/play+game/journal→game, ecl/script→ecl, audio/sounddata→audio
-- [ ] T: dev dump cmds removed (keep importstale: gate.sh), fixture cmds folded into one
+- [x] T: dev dump cmds removed (keep importstale: gate.sh), fixture cmds folded into one
 - [ ] L: per-game launchers → cmd/gobox `import` subcommand + manifest Amiga specs
 - [x] Docs: stale root docs folded into DESIGN.md and ONE-BINARY.md, rest dropped
 - [ ] Final: full build/vet/test on main

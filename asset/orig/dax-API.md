@@ -20,12 +20,6 @@ import `por/dax` | `cotab/dax` | `sotsb/dax` -> `gobox/asset/orig`; delete the g
 ## Migrate
 - `NewLoader` no longer looks for a DISK2 subdir. A game that kept Amiga archives there calls `l.UseAmiga(filepath.Join(dir, "DISK2"))` (cotab, sotsb) right after `NewLoader`.
 
-## cmd (dev tools)
-- `dax/cmd/blockdump FILE.DAX ID` (was cmd/fontdump, identical in cotab and sotsb): block to stdout.
-- `dax/cmd/ecldump [-onedisk] DATA [AREA [BLOCK]]` (was cmd/ecldump): counts ECL commands. cotab's copy hard-coded OneDisk=true: pass `-onedisk`.
 
-## Migrate (tools)
-- cotab-go, sotsb-go: delete cmd/fontdump and cmd/ecldump; run `go run gobox/asset/orig/cmd/blockdump` / `ecldump` from the gobox module (cotab: add `-onedisk`).
-- The tools also need nothing in the game's go.mod.
 - cotab-go, sotsb-go engine/records.go: `wordAt`/`putWord` are not moved; switch to `binary.LittleEndian.Uint16(b[o:])` / `binary.LittleEndian.PutUint16(b[o:], v)` and delete them.
 - Left in the games, not moved: engine/porstate.go `eclRun` (ovr04 interpreter globals still read by por-derived combat/camp/treasure code, in cotab-go and sotsb-go; por-go has no porstate.go).
