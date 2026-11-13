@@ -119,11 +119,7 @@ func PorImport(dos, dst string) error {
 	if err := writeLogo(filepath.Join(dst, adventure.ArtDir)); err != nil {
 		return err
 	}
-	look, err := porLook(filepath.Join(dst, adventure.ArtDir))
-	if err != nil {
-		return err
-	}
-	if err := writeLook(filepath.Join(dst, adventure.DataDir), look); err != nil {
+	if err := writePorLook(dst); err != nil {
 		return err
 	}
 	if err := asset.WritePictures("por", dst); err != nil {
@@ -179,4 +175,13 @@ func writeLogo(artDir string) error {
 		return err
 	}
 	return asset.WritePNG(filepath.Join(artDir, adventure.LogoFile), logo)
+}
+
+// writePorLook writes the adventure adv's look file from its imported art.
+func writePorLook(adv string) error {
+	look, err := porLook(filepath.Join(adv, adventure.ArtDir))
+	if err != nil {
+		return err
+	}
+	return writeLook(filepath.Join(adv, adventure.DataDir), look)
 }
