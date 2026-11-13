@@ -52,3 +52,15 @@ func frameOf(im *Image, i int) *Image {
 	copy(f.Data, im.Frame(i))
 	return f
 }
+
+// TestAnimOwnColours: an Amiga animation block (cotab's PIC 10, the marked
+// sword arm) plays in its own palette (Block.colours, as a still); it fell back to POR's
+// asset.Amiga slots (tan skin, green and blue speckles).
+func TestAnimOwnColours(t *testing.T) {
+	rgb := []byte{0, 0, 0, 0xaa, 0x88, 0x00} // colour 1: the fixed palette's olive
+	b := Block{Kind: Anim, ColourBase: AmigaBase, Palette: rgb, Frames: []Frame{{Image: NewImage(1, 1, 1)}}}
+	want := color.RGBA{0xaa, 0x88, 0x00, 255}
+	if got := b.Anim(NoMask)[0].Image.Palette; got == nil || got[AmigaBase+1] != want {
+		t.Fatalf("animation: colour %d not the block's own (palette %v)", AmigaBase+1, got == nil)
+	}
+}

@@ -75,12 +75,19 @@ func (b *Block) Image(mask int) *Image {
 	for i, fr := range b.Frames {
 		copy(im.Frame(i), fr.Image.Data)
 	}
-	im.Palette = b.vgaPalette()
-	if im.Palette == nil {
-		im.Palette = b.ownColours()
-	}
+	im.Palette = b.colours()
 	b.masked(im, mask)
 	return im
+}
+
+// colours is the block's own colours as an Image.Palette, for its still
+// and its animation alike: VGA's, else an Amiga block's (nil: EGA and the
+// asset.Amiga slots).
+func (b *Block) colours() []color.RGBA {
+	if pal := b.vgaPalette(); pal != nil {
+		return pal
+	}
+	return b.ownColours()
 }
 
 // ownColours is an Amiga block's own colours (cotab, sotsb, pod) as an
@@ -106,7 +113,7 @@ func (b *Block) Anim(mask int) []Frame {
 		return nil
 	}
 	out := make([]Frame, len(b.Frames))
-	pal := b.vgaPalette()
+	pal := b.colours()
 	for i, f := range b.Frames {
 		im := *f.Image
 		im.Palette = pal
