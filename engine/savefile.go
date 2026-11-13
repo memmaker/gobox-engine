@@ -15,11 +15,10 @@ import (
 // builds the trace scenarios' save fixtures with it.
 type SaveEditor struct {
 	e *Engine // the game's fields, by name (SetVar)
-	g gameSave
+	g adventure.Save
 }
 
-// OpenSave reads the canonical save of the slot folder dir (an original
-// save there is imported); adv is the adventure folder, whose script
+// OpenSave reads the canonical save of the slot folder dir; adv is the adventure folder, whose script
 // layouts name the fields SetVar sets; rules builds the ruleset.
 func OpenSave(ruleset Ruleset, dir, adv string) (*SaveEditor, error) {
 	e := &Engine{newRules: ruleset, adv: adv}
@@ -36,7 +35,7 @@ func OpenSave(ruleset Ruleset, dir, adv string) (*SaveEditor, error) {
 }
 
 // File is the save's file name in a slot.
-func (s *SaveEditor) File() string { return gameFile }
+func (s *SaveEditor) File() string { return adventure.GameFile }
 
 // Bytes is the edited save.
 func (s *SaveEditor) Bytes() []byte {
@@ -45,16 +44,16 @@ func (s *SaveEditor) Bytes() []byte {
 		panic(err) // the ruleset's part always marshals
 	}
 	s.g.Rules = blob
-	b, err := marshalGameSave(s.g)
+	b, err := adventure.MarshalSave(s.g)
 	if err != nil {
-		panic(err) // a gameSave always marshals
+		panic(err) // a adventure.Save always marshals
 	}
 	return b
 }
 
 // SetVar sets the game's word name (layout/: a field's element 0 or a named element), as a script would.
 func (s *SaveEditor) SetVar(name string, v uint16) error {
-	fields, err := layoutGameFields(os.DirFS(s.e.scriptDir()))
+	fields, err := ecl.GameFields(os.DirFS(s.e.scriptDir()))
 	if err != nil {
 		return err
 	}

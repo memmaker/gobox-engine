@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"gobox/adventure"
+	"gobox/importer"
 	"gobox/rules1e"
 	"io/fs"
 	"os"
@@ -238,11 +239,11 @@ func TestSaveKeepsFields(t *testing.T) {
 		}
 	}
 	// the canonical save, by name
-	path := filepath.Join(t.TempDir(), gameFile)
-	if err := writeGameSave(path, gameSave{Fields: e.vars, Locals: e.locals}); err != nil {
+	path := filepath.Join(t.TempDir(), adventure.GameFile)
+	if err := adventure.WriteSave(path, adventure.Save{Fields: e.vars, Locals: e.locals}); err != nil {
 		t.Fatal(err)
 	}
-	g, err := readGameSave(path)
+	g, err := adventure.ReadSave(path)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,7 +272,7 @@ func TestSaveKeepsFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, err = e.importSave(b); err != nil {
+	if g, err = importer.ImportSave(b, e.game().OriginalSave, os.DirFS(e.scriptDir())); err != nil {
 		t.Fatal(err)
 	}
 	r := blobOf(t, g)

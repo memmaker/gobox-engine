@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/game"
 	"gobox/rules"
 	"slices"
@@ -28,7 +29,7 @@ func addChar(t *testing.T, e *Engine) {
 		t.Fatal(err)
 	}
 	for _, c := range e.state().Party {
-		e.SaveCharacter(e.charID(c), MakeFileName(c.Name()))
+		e.SaveCharacter(e.charID(c), adventure.MakeFileName(c.Name()))
 	}
 	e.state().Party = e.state().Party[:0]
 	if len(e.BuildCharList()) == 0 {

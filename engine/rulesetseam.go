@@ -89,10 +89,6 @@ func (e *Engine) setSelFact(f rules.Fact, v int64) {
 	e.setSelValue(f, rules.Number(v))
 }
 
-// scriptSide is the Side word's number of each side (SpecialReadZ1 268);
-// writing any other number changes nothing.
-var scriptSide = map[rules.Side]uint16{rules.SideParty: 0, rules.SideAuto: 0x80, rules.SideMonsters: 0x81}
-
 // selValue is the selected member's Fact f.
 func (e *Engine) selValue(f rules.Fact) rules.Value {
 	v, err := e.ruleset().Fact(e.selected(), f)

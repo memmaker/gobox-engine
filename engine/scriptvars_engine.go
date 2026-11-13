@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
@@ -74,12 +75,12 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			}
 			return 0x80, true
 		}, set: func(_ int, v int64) {
-			if v >= 0x80 || v == canonStatusOkay {
+			if v >= 0x80 || v == adventure.CanonStatusOkay {
 				st := rules.StatusInactive
 				switch v {
-				case canonStatusStoned:
+				case adventure.CanonStatusStoned:
 					st = rules.StatusStoned
-				case canonStatusOkay: // Okay revives the member (sotsb, pod; POR's scripts never write it)
+				case adventure.CanonStatusOkay: // Okay revives the member (sotsb, pod; POR's scripts never write it)
 					st = rules.StatusOkay
 				}
 				a := rules.SetStatusAction{Who: e.selected(), Status: st}
@@ -92,9 +93,9 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			}
 		}},
 		"SelSide": {stored: true, get: func(int) (int64, bool) {
-			return int64(scriptSide[e.selValue(rules.FactSide).(rules.Side)]), true
+			return int64(adventure.ScriptSide[e.selValue(rules.FactSide).(rules.Side)]), true
 		}, set: func(_ int, v int64) {
-			for side, n := range scriptSide {
+			for side, n := range adventure.ScriptSide {
 				if int64(n) == v {
 					e.setSelValue(rules.FactSide, side)
 				}

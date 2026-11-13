@@ -159,6 +159,9 @@ func Run(id, src, root string) error {
 	if err := g.Import(src, dst); err != nil {
 		return fmt.Errorf("import %s: %w", id, err)
 	}
+	if err := importSaves(dst); err != nil {
+		return fmt.Errorf("import %s: saves: %w", id, err)
+	}
 	if g.Cover {
 		if err := writeCover(src, filepath.Join(dst, CoverFile)); err != nil {
 			return fmt.Errorf("import %s: cover: %w", id, err)

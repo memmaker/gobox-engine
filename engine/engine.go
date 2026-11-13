@@ -92,7 +92,6 @@ type Engine struct {
 	vars               fieldCells             // the other fields' cells: the game's saved state (DS:49D2/49D6/49DA records)
 	locals             fieldCells             // and the area's scratch, cleared by a fresh area
 	savedFields        []ecl.Field            // every area's saved fields (savecodec.go)
-	slotsImported      bool                   // importSlots ran
 	loadedLocals       fieldCells             // a loaded game's locals until its area's script is in
 	vm                 *ecl.VM                // the script machine (DS:49ED its PC, here an instruction number)
 	host               eclHost                // what vm asks of the engine

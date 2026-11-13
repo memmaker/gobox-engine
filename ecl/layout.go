@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"regexp"
 	"slices"
 	"strconv"
@@ -311,4 +312,39 @@ func (l *Layout) nameElement(from, name string) error {
 	}
 	f.Elements[i] = name
 	return nil
+}
+
+// GameFields are the fields other than the locals of the layouts in
+// data (global.txt and every area<N>.txt over it), each name once.
+func GameFields(data fs.FS) ([]Field, error) {
+	names, err := fs.Glob(data, "layout/area*.txt")
+	if err != nil {
+		return nil, err
+	}
+	areas := []int{0}
+	for _, n := range names {
+		a, err := strconv.Atoi(strings.TrimSuffix(strings.TrimPrefix(n, "layout/area"), ".txt"))
+		if err != nil {
+			return nil, fmt.Errorf("layout file %s: %w", n, err)
+		}
+		areas = append(areas, a)
+	}
+	var out []Field
+	seen := map[string]bool{}
+	for _, a := range areas {
+		l, err := ReadLayout(data, a)
+		if err != nil {
+			return nil, err
+		}
+		if l == nil {
+			return nil, errors.New("no layout/global.txt")
+		}
+		for _, f := range l.Fields {
+			if f.Owner != OwnerLocal && !seen[f.Name] {
+				seen[f.Name] = true
+				out = append(out, f)
+			}
+		}
+	}
+	return out, nil
 }

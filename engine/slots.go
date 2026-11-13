@@ -5,10 +5,12 @@ import (
 	"cmp"
 	"encoding/gob"
 	"fmt"
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/ecl"
 	"gobox/rules"
 	"gobox/rules1e"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -18,11 +20,10 @@ import (
 
 // Named save slots (extra), F10 at any prompt once a game is under way, and
 // the party menu's Load (loading only). They replace the original's lettered
-// saves A-J: Save is gone from camp and the party menu, and lettered saves
-// in the save directory (an imported game's) become slots "GAME A".."GAME J".
+// saves A-J: Save is gone from camp and the party menu; the importer turns
+// an original's lettered saves into slots "GAME A".."GAME J".
 // A slot is a folder <SaveDir>/saves/<name> holding the canonical save
-// (GAME.JSON, savegame.go) and its CHRDATA* files; a slot holding an
-// original savgamA.dat is imported once (importSlots).
+// (adventure.GameFile) and its members' files.
 // Loading unwinds whatever is running (a menu, a script, a battle) back to
 // adventure, which resumes from the loaded game like the party menu's Load.
 // Saving during combat is refused: the battle is not part of the format.
@@ -59,15 +60,33 @@ func (e *Engine) unwindReset() {
 	e.loadedGame = e.beginFlag() != 0 // DS:49F8, as the party menu's Load
 }
 
-func (e *Engine) slotRoot() string { return filepath.Join(e.Cfg.SaveDir, "saves") }
+func (e *Engine) slotRoot() string { return filepath.Join(e.Cfg.SaveDir, adventure.SlotsDir) }
 
 // store is the slot folders (gobox app/saves): a slot holds save A.
-func (e *Engine) store() asset.Store { return asset.Store{Dir: e.slotRoot(), Marker: gameFile} }
+func (e *Engine) store() asset.Store {
+	return asset.Store{Dir: e.slotRoot(), Marker: adventure.GameFile}
+}
 
 // slots lists the saved games, newest first.
 func (e *Engine) slots() []asset.Slot {
-	e.importSlots()
 	return e.store().List()
+}
+
+// readSlotSave is the canonical save of the save directory, its fields as
+// the engine keeps them: an element saved under its own name folded into its
+// array, and only the fields the engine saves (an imported save also holds
+// the ones the engine binds without keeping cells).
+func (e *Engine) readSlotSave() (adventure.Save, error) {
+	g, err := adventure.ReadSave(e.savePath(adventure.GameFile))
+	if err != nil {
+		return g, err
+	}
+	fields := e.gameFields()
+	foldElements(g.Fields, fields)
+	maps.DeleteFunc(g.Fields, func(n string, _ []int64) bool {
+		return !slices.ContainsFunc(fields, func(f ecl.Field) bool { return f.Name == n })
+	})
+	return g, nil
 }
 
 // slotLevelOf is slotLevel of sl, read again only when the slot was written again.
