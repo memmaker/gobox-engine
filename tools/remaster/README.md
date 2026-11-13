@@ -14,7 +14,7 @@ with `area()/src()/origin()` in scope), `maps.txt` (optional: per-map walls + `i
     python3 tools/remaster/make_floor.py ../cotab-go [RAW...]   # RAW: only those entries; a raw output already there is reused, no API call
 
 Both refuse to replace an existing, different texture unless given `--force` (`out` may be the shared pool).
-    por-go:   same with ../por-go (remaster.json: dump ["go","run","./cmd/viewdump","-transparent",".","{out}"], trim [0,170,170], no maps.txt)
+    por-go:   same with ../por-go (remaster.json: dump ["go","-C","../gobox-engine","run","./ui/cmd/viewdump","-transparent","{data}","{out}"], trim [0,170,170], no maps.txt)
     sotsb-go: same with ../sotsb-go
 
 Moving a game over: split its `areas.py` into `areas_data.py` (the AREAS entries only; helpers live here) and
