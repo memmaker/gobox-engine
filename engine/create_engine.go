@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
 )
@@ -47,7 +48,7 @@ func (e *Engine) creationSheet(cID rules.CharID) {
 		e.erase(r)
 		if ic.PNG != nil { // a PNG: the presenter's, over the page at the window's resolution
 			if sp := e.snap.sheet; sp != nil {
-				sp.Icons[p] = iconPose(e.pngImage(ic.PNG), p, false)
+				sp.Icons[p] = asset.IconPose(e.pngImage(ic.PNG), p, false)
 			}
 		} else if im := e.icons[e.fact(cID, rules.IconFact{}).(rules.Number)][p]; im != nil {
 			e.picture(sheetIconCol(p)*8, sheetIconRow()*8, im.Width*8, im.Height, im.Frame(0), im.Mask, im, 0)

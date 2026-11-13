@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/asset"
 	"io/fs"
 
 	"gobox/rules"
@@ -34,7 +35,7 @@ func (e *Engine) portraitPNG(path string) {
 // droppedPNG is the PNG file dropped at path, or false after saying why it
 // is none.
 func (e *Engine) droppedPNG(path string) ([]byte, bool) {
-	b, err := readPNG(path)
+	b, err := asset.ReadPNG(path)
 	if err == nil && b == nil {
 		err = fs.ErrNotExist
 	}

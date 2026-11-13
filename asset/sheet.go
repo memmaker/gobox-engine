@@ -62,7 +62,8 @@ type Block struct {
 	Frames     []Frame
 }
 
-// Image is the still block as a picture; with mask >= 0 that colour is
+// Image is the still block as a picture in its own colours (VGA, an Amiga
+// block's own: Image.Palette); with mask >= 0 that colour is
 // transparent (Clear), the original's masked load.
 func (b *Block) Image(mask int) *Image {
 	if !b.Kind.Pictured() || len(b.Frames) == 0 {
@@ -75,8 +76,28 @@ func (b *Block) Image(mask int) *Image {
 		copy(im.Frame(i), fr.Image.Data)
 	}
 	im.Palette = b.vgaPalette()
+	if im.Palette == nil {
+		im.Palette = b.ownColours()
+	}
 	b.masked(im, mask)
 	return im
+}
+
+// ownColours is an Amiga block's own colours (cotab, sotsb, pod) as an
+// Image.Palette: the block's from its ColourBase on, EGA below, Clear
+// transparent; nil: none of its own (POR's Amiga art: the Amiga slots).
+func (b *Block) ownColours() []color.RGBA {
+	if len(b.Palette) == 0 || b.ColourBase < AmigaBase {
+		return nil
+	}
+	pal := make([]color.RGBA, 256)
+	for i := range 16 {
+		pal[i] = EGARGBA(i)
+	}
+	for i := 0; i+2 < len(b.Palette) && b.ColourBase+i/3 < len(pal); i += 3 {
+		pal[b.ColourBase+i/3] = color.RGBA{b.Palette[i], b.Palette[i+1], b.Palette[i+2], 255}
+	}
+	return pal
 }
 
 // Anim is the animation block's frames, each a copy; mask as Image.

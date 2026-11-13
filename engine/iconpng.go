@@ -1,14 +1,10 @@
 package engine
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
+	"gobox/asset"
 	"gobox/rules"
 	"image"
-	"image/png"
-	"io/fs"
-	"os"
 )
 
 // The combat icon from a PNG (extra): a file dropped on the icon editor,
@@ -27,33 +23,8 @@ type iconPoseKey struct {
 	pose, flip int
 }
 
-// decodePNG is b as a picture, or why it is not a PNG.
-func decodePNG(b []byte) (image.Image, error) {
-	im, err := png.Decode(bytes.NewReader(b))
-	if err != nil {
-		return nil, fmt.Errorf("not a PNG: %w", err)
-	}
-	return im, nil
-}
-
-// readPNG is the PNG file at path, its bytes checked to decode; nil, nil
-// when there is no file.
-func readPNG(path string) ([]byte, error) {
-	b, err := os.ReadFile(path)
-	if errors.Is(err, fs.ErrNotExist) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	if _, err := decodePNG(b); err != nil {
-		return nil, fmt.Errorf("%s: %w", path, err)
-	}
-	return b, nil
-}
-
 // pngImage is the picture of b, a PNG a character holds (checked when it
-// came in: readPNG, iconShape); nil for none.
+// came in: asset.ReadPNG, asset.IconShape); nil for none.
 func (e *Engine) pngImage(b []byte) image.Image {
 	if b == nil {
 		return nil
@@ -61,7 +32,7 @@ func (e *Engine) pngImage(b []byte) image.Image {
 	if im, ok := e.pngs[pngKey(b)]; ok {
 		return im
 	}
-	im, err := decodePNG(b)
+	im, err := asset.DecodePNG(b)
 	if err != nil {
 		panic(fmt.Sprintf("a character's PNG was not checked when it came in: %v", err))
 	}
@@ -70,21 +41,6 @@ func (e *Engine) pngImage(b []byte) image.Image {
 	}
 	e.pngs[pngKey(b)] = im
 	return im
-}
-
-// errIconShape: a PNG icon is square or twice as wide as high.
-var errIconShape = errors.New("not a PNG, square or twice as wide as high")
-
-// iconShape checks that b is a PNG a combat icon can be cut from.
-func iconShape(b []byte) error {
-	im, err := decodePNG(b)
-	if err != nil {
-		return err
-	}
-	if r := im.Bounds(); r.Dx() != r.Dy() && r.Dx() != 2*r.Dy() {
-		return errIconShape
-	}
-	return nil
 }
 
 // takeIconPNG makes the PNG b c's combat icon, or says why not (the icon
@@ -101,8 +57,8 @@ func (e *Engine) takeIconPNG(cID rules.CharID, b []byte) bool {
 
 // iconOK is whether b is a combat icon's PNG, or says why not.
 func (e *Engine) iconOK(b []byte) bool {
-	if err := iconShape(b); err != nil {
-		e.say(errIconShape.Error())
+	if err := asset.IconShape(b); err != nil {
+		e.say(asset.ErrIconShape.Error())
 		return false
 	}
 	return true
@@ -131,25 +87,6 @@ func (e *Engine) iconPNG(cID rules.CharID, pose int, flip bool) image.Image {
 	if e.iconPoses == nil {
 		e.iconPoses = map[iconPoseKey]image.Image{}
 	}
-	e.iconPoses[k] = iconPose(im, pose, flip)
+	e.iconPoses[k] = asset.IconPose(im, pose, flip)
 	return e.iconPoses[k]
-}
-
-// iconPose cuts pose (0 left, 1 right; the same square when im is square)
-// out of im, mirrored when flip.
-func iconPose(im image.Image, pose int, flip bool) image.Image {
-	b := im.Bounds()
-	w := b.Dy()
-	x0 := b.Min.X + pose*(b.Dx()-w)
-	out := image.NewRGBA(image.Rect(0, 0, w, w))
-	for y := 0; y < w; y++ {
-		for x := 0; x < w; x++ {
-			sx := x0 + x
-			if flip {
-				sx = x0 + w - 1 - x
-			}
-			out.Set(x, y, im.At(sx, b.Min.Y+y))
-		}
-	}
-	return out
 }
