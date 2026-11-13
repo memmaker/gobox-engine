@@ -397,13 +397,3 @@ type Loot struct {
 	Drop   bool     // the party's items can be left in the treasure (ActDrop: the vault's Deposit)
 	Money  []string // the treasure's money, "120 gold" (the loot inventory's border; ActTakeMoney)
 }
-
-// DoorWay is what TryDoor does with a locked door.
-type DoorWay int
-
-const (
-	DoorExit  DoorWay = iota // leave it
-	DoorBash                 // force it
-	DoorPick                 // pick the lock
-	DoorKnock                // cast Knock
-)

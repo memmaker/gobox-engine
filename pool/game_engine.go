@@ -6,6 +6,7 @@ import (
 	"gobox/core/dnd"
 	"gobox/core/grid"
 	"gobox/ega"
+	"gobox/game/play"
 	"slices"
 )
 
@@ -587,21 +588,21 @@ func (e *Engine) lockedDoor(wizard bool) {
 
 // TryDoor = the locked door's Bash, Pick, Knock or Exit: the party goes
 // through or not, and the step goes on.
-func (e *Engine) TryDoor(k DoorWay) error {
+func (e *Engine) TryDoor(k play.DoorWay) error {
 	w := e.ext.door
 	if !e.waiting(PendDoor) || w == nil ||
-		k == DoorBash && !w.opts.Bash || k == DoorPick && !w.opts.Pick || k == DoorKnock && !w.opts.Knock {
+		k == play.DoorBash && !w.opts.Bash || k == play.DoorPick && !w.opts.Pick || k == play.DoorKnock && !w.opts.Knock {
 		return core.ErrNotNow
 	}
 	switch k {
-	case DoorBash:
+	case play.DoorBash:
 		if w.through = e.bashDoor(); !w.through {
 			e.emit(core.Sounded{Cue: core.SoundCue("hitwall")})
 			e.DisplayMessageWait(ega.Yellow, "The door holds.") // extra: the original only bumped
 		} else {
 			e.emit(core.Sounded{Cue: core.SoundCue("shutdoor")}) // a slam
 		}
-	case DoorPick:
+	case play.DoorPick:
 		switch {
 		case w.wizard:
 			e.run.doorTry[1] = 0
@@ -612,7 +613,7 @@ func (e *Engine) TryDoor(k DoorWay) error {
 			e.emit(core.Sounded{Cue: core.SoundCue("lockpick")})
 			w.through = true
 		}
-	case DoorKnock:
+	case play.DoorKnock:
 		w.through = e.knock()
 	}
 	e.resume()

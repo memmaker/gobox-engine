@@ -265,16 +265,6 @@ type Strike struct {
 // DoorOpts is a locked door's options besides Exit (Door).
 type DoorOpts struct{ Bash, Pick, Knock bool }
 
-// DoorWay is what TryDoor does with a locked door.
-type DoorWay int
-
-const (
-	DoorExit  DoorWay = iota // leave it
-	DoorBash                 // force it
-	DoorPick                 // pick the lock
-	DoorKnock                // cast Knock
-)
-
 // Battle is the combat map as the remaster's 3D view needs it.
 type Battle struct {
 	Ground    [25][50]core.Square
@@ -347,7 +337,6 @@ type Inventory struct {
 	Halve  bool // ... Halve
 	Join   bool // ... Join
 }
-
 
 // AreaMap (extra) is the whole area map for a screen of its own: every
 // square's picture (Squares[y][x], nil: none drawn), Tile pixels square,

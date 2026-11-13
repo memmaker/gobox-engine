@@ -464,8 +464,8 @@ func (g *Game) LootLeave(sure bool) error {
 	}
 	return err
 }
-func (g *Game) TryDoor(k front.DoorWay) error {
-	return g.do(play.TryDoor{Way: doorWays[int(k)]})
+func (g *Game) TryDoor(k play.DoorWay) error {
+	return g.do(play.TryDoor{Way: k})
 }
 
 // Pickers and the icon designer.

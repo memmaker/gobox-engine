@@ -9,6 +9,7 @@ import (
 	"errors"
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"slices"
 )
 
@@ -187,7 +188,7 @@ func Gate(h RuleHost, l *front.Loot, d *game.Door) (string, []GateItem) {
 			items = append(items, GateItem{text, do})
 		}
 	}
-	door := func(k front.DoorWay) func(e *classicGame) { return func(e *classicGame) { e.TryDoor(k) } }
+	door := func(k play.DoorWay) func(e *classicGame) { return func(e *classicGame) { e.TryDoor(k) } }
 	switch {
 	case l != nil:
 		add(true, "View", func(e *classicGame) { e.LootView(-1) })
@@ -207,10 +208,10 @@ func Gate(h RuleHost, l *front.Loot, d *game.Door) (string, []GateItem) {
 		})
 		return "", items
 	case d != nil:
-		add(d.Bash, "Bash", door(front.DoorBash))
-		add(d.Pick, "Pick", door(front.DoorPick))
-		add(d.Knock, "Knock", door(front.DoorKnock))
-		add(true, "Exit", door(front.DoorExit))
+		add(d.Bash, "Bash", door(play.DoorBash))
+		add(d.Pick, "Pick", door(play.DoorPick))
+		add(d.Knock, "Knock", door(play.DoorKnock))
+		add(true, "Exit", door(play.DoorExit))
 		return "Locked.", items
 	}
 	return "", nil

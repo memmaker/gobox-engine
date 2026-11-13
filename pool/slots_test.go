@@ -7,6 +7,7 @@ import (
 	"gobox/app/saves"
 	"gobox/char"
 	"gobox/core/goldbox"
+	"gobox/game/play"
 	"maps"
 	"os"
 	"path/filepath"
@@ -237,10 +238,10 @@ func TestDoorWait(t *testing.T) {
 	if d := e.ext.door.opts; e.pending != PendDoor || !d.Bash || d.Pick || e.top() == onAsk {
 		t.Fatalf("door %+v pending %d", d, e.pending)
 	}
-	if e.TryDoor(DoorPick) == nil {
+	if e.TryDoor(play.DoorPick) == nil {
 		t.Error("Pick taken where it is not offered")
 	}
-	if err := e.TryDoor(DoorExit); err != nil || e.ext.doorThrough || e.pending != PendNone {
+	if err := e.TryDoor(play.DoorExit); err != nil || e.ext.doorThrough || e.pending != PendNone {
 		t.Errorf("Exit: err %v through %v pending %d", err, e.ext.doorThrough, e.pending)
 	}
 }

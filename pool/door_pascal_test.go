@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"gobox/core/grid"
+	"gobox/game/play"
 	"os"
 	"rules1e"
 	"strings"
@@ -60,9 +61,9 @@ func TestDoorAgainstPascal(t *testing.T) {
 		e.lockedDoor(kind == 3)
 		walled := e.pending != PendDoor
 		if !walled {
-			way := [3]DoorWay{DoorExit, DoorPick, DoorKnock}[attempt]
+			way := [3]play.DoorWay{play.DoorExit, play.DoorPick, play.DoorKnock}[attempt]
 			if e.TryDoor(way) != nil {
-				if err := e.TryDoor(DoorExit); err != nil {
+				if err := e.TryDoor(play.DoorExit); err != nil {
 					t.Fatalf("%s: Exit refused: %v", line, err)
 				}
 			}

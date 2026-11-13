@@ -918,9 +918,6 @@ func (r *rules) setField(field, option int) play.Result {
 	return play.Result{Err: errors.New("no such field")}
 }
 
-// doorWays are the front's door ways (front.DoorExit ..) as play's.
-var doorWays = map[int]play.DoorWay{0: play.DoorExit, 1: play.DoorBash, 2: play.DoorPick, 3: play.DoorKnock}
-
 // facing is the step from a to b as a facing, else f (a step off the map).
 
 // answer answers gobox's own ask, or the scene's.

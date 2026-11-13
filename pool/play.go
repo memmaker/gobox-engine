@@ -1199,7 +1199,7 @@ func (e *Engine) frontDo(a play.Action, native func(func() error) error) (bool, 
 			return e.Train()
 		})
 	case play.TryDoor: // the old front's numbering, 0 exit
-		return true, native(func() error { return e.TryDoor(DoorWay(a.Way)) })
+		return true, native(func() error { return e.TryDoor(a.Way) })
 	}
 	return false, nil
 }
