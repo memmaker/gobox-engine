@@ -70,5 +70,5 @@ func ImportScriptsTo(dos, dir string) error {
 	if err != nil {
 		return err
 	}
-	return eclscript.ImportFolder(eclscript.V3, eclscript.DAXSource(l), scriptData(), dir, eclscript.FoldGates, nil)
+	return eclscript.ImportFolder(eclscript.V3, eclscript.DAXSource(l), scriptData(), dir, eclscript.FoldGates, scriptFixes)
 }

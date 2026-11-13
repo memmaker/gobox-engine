@@ -21,7 +21,7 @@ func TestScriptsGoldOnly(t *testing.T) {
 	if err := ImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	bad, err := eclscript.MovedCoins(eclscript.V3, dir, scriptData(), nil)
+	bad, err := eclscript.MovedCoins(eclscript.V3, dir, scriptData(), scriptFixes)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestNoScalarTables(t *testing.T) {
 	if err := ImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	bad, err := eclscript.ScalarTables(eclscript.V3, dir, scriptData(), nil)
+	bad, err := eclscript.ScalarTables(eclscript.V3, dir, scriptData(), scriptFixes)
 	if err != nil {
 		t.Fatal(err)
 	}
