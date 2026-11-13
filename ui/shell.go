@@ -1,7 +1,7 @@
-// Package app is the app shell: the window, the frame loop,
-// fullscreen and the window's shape, and a scripted capture's clock and
-// screenshots. The game supplies its ticks and frames (Game); Run runs it.
-package app
+// shell.go is the host window (Play): the frame loop, fullscreen and the
+// window's shape, and a scripted capture's clock and screenshots.
+
+package ui
 
 import (
 	"fmt"
@@ -13,11 +13,10 @@ import (
 	"time"
 
 	"gobox/gpu"
-	"gobox/ui"
 )
 
-// Game is what a game gives the shell.
-type Game interface {
+// shellGame is what a game gives the shell.
+type shellGame interface {
 	// Update is one tick of the game (TPS a second). During a scripted run
 	// (Capture.Scripted) the user's input must not reach the game.
 	Update()
@@ -39,27 +38,27 @@ type Key = uint16
 // The script's own keys: \M and \C a right and a left click at the
 // pointer, \P the pointer on to the next position, \w a quarter second of
 // nothing.
-const Right, Left, Next, Wait, Hold, Snap Key = 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05, 0xFF06
+const ScriptRight, ScriptLeft, ScriptNext, ScriptWait, ScriptHold, ScriptSnap Key = 0xFF01, 0xFF02, 0xFF03, 0xFF04, 0xFF05, 0xFF06
 
-// Timed is a \t<ms> wait: the low 12 bits are frames (60 Hz), taken at once
+// ScriptTimed is a \t<ms> wait: the low 12 bits are frames (60 Hz), taken at once
 // and counted whether or not the game is idle, so a blow can be shot mid-air.
-const Timed Key = 0xE000
+const ScriptTimed Key = 0xE000
 
-// AltKey is a \A<c> chord: the low byte c typed with Alt held.
-const AltKey Key = 0xD000
+// ScriptAlt is a \A<c> chord: the low byte c typed with Alt held.
+const ScriptAlt Key = 0xD000
 
 // Ticks is the least frames between a script's keys: a quarter second at
 // 60 Hz. A key waits on past it until the game is Idle, at most MaxWait.
 const Ticks, MaxWait = 15, 40 * Ticks
 
-// Theme is the game's look of the window.
-type Theme struct {
+// shellTheme is the game's look of the window.
+type shellTheme struct {
 	Title string
 	W, H  int // the window's size at scale 1, and its shape (16:10: the title pictures fill it)
 }
 
-// Settings is how the window opens.
-type Settings struct {
+// WindowMode is how the window opens.
+type WindowMode struct {
 	Scale      int  // the window is Theme.W x Theme.H times Scale
 	Fullscreen bool // the screen at its own resolution instead of a window
 	Window     bool // a window whatever Fullscreen or the Esc menu says
@@ -68,12 +67,12 @@ type Settings struct {
 // Capture is a scripted run: keys in, frames out, the user's input ignored.
 type Capture struct {
 	Shot    string     // FILE.png: the window after the keys, then exit; with %d every frame while the keys play
-	Keys    []Key      // the script (ParseKeys)
+	Keys    []Key      // the script (cmd/gobox parseKeys)
 	Freeze  bool       // time stands still after the keys
 	Quit    bool       // the run ends after the keys
 	Window  [2]int     // W, H (points): a window of that size and any shape; 0: Theme's
 	GPU     gpu.Config // gpu's measuring and capture switches
-	Slot    string     // a save slot to start from instead of the game's own start ("": none); passed to a Starter
+	Slot    string     // a save slot to start from instead of the game's own start ("": none); passed to a starter
 	Pointer [][2]int   // with Shot: the pointer at these window pixels, one after another (Next)
 	PNG     string     // a picture a dev scene uses (e.g. a portrait); the game's to read
 	Dev     DevFlags   // every game's debug switches
@@ -95,70 +94,26 @@ type At struct{ Block, X, Y int }
 // Scripted says whether the run is scripted: the user's input is ignored.
 func (c Capture) Scripted() bool { return c.Shot != "" || c.Freeze || c.Quit }
 
-// Starter is a Game told before the first tick which save slot to start
+// starter is a Game told before the first tick which save slot to start
 // from (Capture.Slot, "" none); what that means is the game's.
-type Starter interface{ Start(slot string) }
+type starter interface{ Start(slot string) }
 
-// Config is the app: the game and how it runs.
-type Config struct {
-	Game     Game // or Front: the shell reads the input for the game's screens
-	Front    Front
-	Art      *Art  // with Front: two arts, cross-faded (nil: one)
-	FontPrev Key   // with Front: the code Ctrl-Shift-F sends (0: none)
-	Menu     *Menu // the Esc menu's settings (nil: blobber's own)
-	Theme    Theme
-	Settings Settings
+// shellConfig is the app: the game and how it runs.
+type shellConfig struct {
+	Game     shellGame // or Front: the shell reads the input for the game's screens
+	Front    frontPort
+	Art      *Arts      // with Front: two arts, cross-faded (nil: one)
+	FontPrev Key        // with Front: the code Ctrl-Shift-F sends (0: none)
+	Menu     *shellMenu // the Esc menu's settings (nil: blobber's own)
+	Theme    shellTheme
+	Settings WindowMode
 	Capture  Capture
 	TPS      int // Update calls a second; 0: 60
 }
 
-// ParseKeys reads a script: \M \C \P \w \B are the shell's (Right,
-// Left, Next, Wait, Hold: the left button down until the next \B, so
-// \B\P\B drags), and gobox's own keys are \r Enter, \e Esc, \t Tab,
-// \U \D \L \R the arrows, \G \H PgDn PgUp, \F F10, \A<c> c with Alt
-// held (\Aq\Aa: alt+q, alt+a); esc may add a
-// game's own, and any other byte is its own code.
-func ParseKeys(s string, esc map[byte]Key) []Key {
-	all := map[byte]Key{'M': Right, 'C': Left, 'P': Next, 'w': Wait, 'B': Hold, 'S': Snap,
-		'r': 13, 'e': 27, 't': 9, 'U': 0x4800, 'D': 0x5000, 'L': 0x4B00, 'R': 0x4D00, 'G': 0x5100, 'H': 0x4900, 'F': 0x4400}
-	for b, k := range esc {
-		all[b] = k
-	}
-	var out []Key
-	for i := 0; i < len(s); i++ {
-		if j := i + 2; s[i] == '\\' && i+1 < len(s) && s[i+1] == 't' && j < len(s) && s[j] >= '0' && s[j] <= '9' { // \t<ms>: a timed wait (\t alone is Tab)
-			ms := 0
-			for ; j < len(s) && s[j] >= '0' && s[j] <= '9'; j++ {
-				ms = ms*10 + int(s[j]-'0')
-			}
-			out = append(out, Timed|Key(min(0xFFF, max(1, ms*60/1000))))
-			i = j - 1
-			continue
-		}
-		if s[i] == '\\' && i+2 < len(s) && s[i+1] == 'A' { // \A<c>: c with Alt held
-			out = append(out, AltKey|Key(s[i+2]))
-			i += 2
-			continue
-		}
-		if c, ok := all[s[min(i+1, len(s)-1)]]; s[i] == '\\' && i+1 < len(s) && ok {
-			out = append(out, c)
-			i++
-		} else {
-			out = append(out, Key(s[i]))
-		}
-	}
-	return out
-}
-
-// ParseSize reads "WxH".
-func ParseSize(s string) (w, h int, err error) {
-	_, err = fmt.Sscanf(s, "%dx%d", &w, &h)
-	return
-}
-
 // shell runs a game on gpu.
 type shell struct {
-	cfg    Config
+	cfg    shellConfig
 	ticks  int  // scripted frames
 	fed    int  // the script's keys given so far
 	gap    int  // frames since the last key
@@ -168,19 +123,43 @@ type shell struct {
 	snaps  int  // \S shots taken
 }
 
-// Run opens the window and runs the game until it ends.
-func Run(cfg Config) error {
-	gpu.Mark("app.Run")
+// Play opens the window and runs the started game l in it until it ends:
+// the one host loop every game runs in. w is how the window opens, c a
+// scripted run's capture (zero: none).
+func Play(l Launch, w WindowMode, c Capture) error {
+	Scripted = c.Scripted()
+	return run(shellConfig{
+		Front:    l.Front,
+		Art:      l.Art,
+		FontPrev: l.FontPrev,
+		Menu: &shellMenu{
+			Prefs:    prefs{Dir: l.SettingsDir},
+			Extra:    l.Extra,
+			Rows:     l.Rows,
+			Apply:    l.Apply,
+			SaveLoad: l.SaveLoad,
+			MainMenu: l.MainMenu,
+		},
+		Theme:    shellTheme{Title: l.Title, W: l.W, H: l.H},
+		Settings: w,
+		Capture:  c,
+		TPS:      l.TPS,
+	})
+}
+
+// run opens the window and runs the game until it ends.
+func run(cfg shellConfig) error {
+	gpu.Mark("ui.Play")
 	if cfg.TPS <= 0 { // unset: the game would never tick after its first frame (a black, deaf window)
 		cfg.TPS = 60
 	}
 	t := cfg.Theme
-	ui.Shooting = cfg.Capture.Shot != "" // -shot: the 3D view ignores the keyboard
+	Shooting = cfg.Capture.Shot != "" // -shot: the 3D view ignores the keyboard
 	var fg *frontGame
 	if a, ok := cfg.Front.(interface{ Arts() (bool, func(bool)) }); ok && cfg.Art == nil {
 		if dos, set := a.Arts(); set != nil { // the front's own two arts (F12), DOS first
 			want := dos
-			cfg.Art = &Art{Want: func() bool { return want }, Toggle: func() { want = !want }, Set: set}
+			cfg.Art = &Arts{Want: func() bool { return want }, Toggle: func() { want = !want }, Set: set}
 		}
 	}
 	if cfg.Front != nil {
@@ -197,7 +176,7 @@ func Run(cfg Config) error {
 			cfg.Menu.FontNames, cfg.Menu.FontAt, cfg.Menu.SetFont, cfg.Menu.FontGlyph = h.FontMenu()
 		}
 		cfg.Menu.setup(held, cfg.TPS)
-		cfg.Settings.Fullscreen = cfg.Settings.Fullscreen || ui.Settings.Fullscreen
+		cfg.Settings.Fullscreen = cfg.Settings.Fullscreen || Settings.Fullscreen
 	}
 	if fg != nil && cfg.Art != nil {
 		fg.art = cfg.Art.Want()
@@ -210,17 +189,17 @@ func Run(cfg Config) error {
 	}
 	gpu.SetWindowTitle(t.Title)
 	gpu.SetTPS(cfg.TPS)
-	if len(cfg.Capture.Keys) > 0 { // a scripted run never takes focus, however it was launched (audio.Silent: never heard, set by Flags before any sound starts)
+	if len(cfg.Capture.Keys) > 0 { // a scripted run never takes focus, however it was launched (audio.Silent: never heard, set by cmd/gobox captureFlags before any sound starts)
 		os.Setenv("GOBOX_BACKGROUND", "1")
 	}
 	gpu.SetFullscreen(cfg.Settings.Fullscreen && !cfg.Settings.Window && len(cfg.Capture.Keys) == 0) // a scripted run (-keys) stays a window
 	gpu.SetConfig(cfg.Capture.GPU)
-	if st, ok := cfg.Game.(Starter); ok {
+	if st, ok := cfg.Game.(starter); ok {
 		st.Start(cfg.Capture.Slot)
-	} else if st, ok := cfg.Front.(Starter); ok {
+	} else if st, ok := cfg.Front.(starter); ok {
 		st.Start(cfg.Capture.Slot)
 	}
-	gpu.Mark("app.Run: settings and fonts read, the window next")
+	gpu.Mark("ui.Play: settings and fonts read, the window next")
 	return gpu.RunGame(&shell{cfg: cfg})
 }
 
@@ -249,18 +228,18 @@ func (s *shell) step() {
 	var k Key
 	if s.fed < len(c.Keys) && s.ticks >= s.until {
 		next := c.Keys[s.fed]
-		timed := next&0xF000 == Timed
+		timed := next&0xF000 == ScriptTimed
 		switch {
 		case timed: // at once, idle or not
 			s.until, s.fed, s.gap = s.ticks+int(next&0xFFF), s.fed+1, 0
-		case next == Snap: // at once: the frame as it is now
+		case next == ScriptSnap: // at once: the frame as it is now
 			s.snap, s.fed, s.gap = true, s.fed+1, 0
-		case s.gap >= Ticks && (next == Wait || s.cfg.Game.Idle() || s.gap >= MaxWait):
+		case s.gap >= Ticks && (next == ScriptWait || s.cfg.Game.Idle() || s.gap >= MaxWait):
 			k, s.fed, s.gap = next, s.fed+1, 0
 			fmt.Fprintf(os.Stderr, "%s key %d/%d %#x tick %d\n", time.Now().Format("15:04:05.000"), s.fed, len(c.Keys), next, s.ticks) // each scripted key in the run's log, to tie the trace's acts to keys
 		}
 	}
-	alt := k&0xF000 == AltKey
+	alt := k&0xF000 == ScriptAlt
 	if alt {
 		k &= 0xFF
 	}

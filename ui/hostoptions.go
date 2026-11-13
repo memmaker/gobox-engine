@@ -2,7 +2,7 @@ package ui
 
 // HostOptions are the settings the Esc menu of gobox's blobber does not keep
 // itself (it keeps only its own view options): the host writes them to
-// SETTINGS.JSON beside blobber.Options (app.Menu.Extra) and puts their rows
+// SETTINGS.JSON beside blobber.Options (Launch.Extra) and puts their rows
 // back with HostOptionRows. The engine reads them through the host's apply.
 type HostOptions struct {
 	Options                       // the presenter's own: minimap, portraits, picture box, zoom, damage numbers

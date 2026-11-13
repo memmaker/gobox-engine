@@ -828,7 +828,7 @@ const (
 
 // Data is declarative overrides only; no drawing, no positions. A game's
 // rules package exports it as func Data() Data, and its cmd hands gobox
-// the rules and the data together: app.Run(rules, data).
+// the rules and the data together (ui.Launch).
 type Data struct {
 	Commands    []PartyCommand // the party menu's extra entries; play.Assembling.Commands[i] does entry i
 	SaveDir     string         `json:"-"` // where gobox writes slot files ("": UserConfigDir/gobox/<ID>/saves)

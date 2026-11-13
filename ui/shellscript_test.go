@@ -1,4 +1,4 @@
-package app
+package ui
 
 import (
 	"testing"
@@ -25,7 +25,7 @@ func (g *busyGame) Step(k Key) {
 	if k == 0 {
 		return
 	}
-	g.early = g.early || g.left > 0 && k != Wait
+	g.early = g.early || g.left > 0 && k != ScriptWait
 	g.left = g.busy[len(g.keys)%len(g.busy)]
 	g.keys = append(g.keys, k)
 }
@@ -33,10 +33,10 @@ func (g *busyGame) Step(k Key) {
 // The same script ends the same way however long the game is busy: every
 // key waits for the game to be idle.
 func TestScriptWaitsIdle(t *testing.T) {
-	keys := []Key{'a', Wait, 'b', 'c'}
+	keys := []Key{'a', ScriptWait, 'b', 'c'}
 	for _, busy := range [][]int{{0}, {50, 3, 100, 7}} {
 		g := &busyGame{busy: busy}
-		s := &shell{cfg: Config{Game: g, Capture: Capture{Keys: keys}}}
+		s := &shell{cfg: shellConfig{Game: g, Capture: Capture{Keys: keys}}}
 		for i := 0; i < 10000 && !s.done(); i++ {
 			s.step()
 		}
@@ -62,7 +62,7 @@ func (g *altGame) Step(k Key) {
 // \A<c> types c with Alt held, and only c.
 func TestAltEscape(t *testing.T) {
 	g := &altGame{busyGame: busyGame{busy: []int{0}}}
-	s := &shell{cfg: Config{Game: g, Capture: Capture{Keys: ParseKeys(`\Aqx\Aa`, nil)}}}
+	s := &shell{cfg: shellConfig{Game: g, Capture: Capture{Keys: []Key{ScriptAlt | 'q', 'x', ScriptAlt | 'a'} /* \Aqx\Aa */}}}
 	for i := 0; i < 1000 && !s.done(); i++ {
 		s.step()
 	}
@@ -74,7 +74,7 @@ func TestAltEscape(t *testing.T) {
 // A script ending on \t<ms> runs that long before it is done (its shot).
 func TestTimedEndWaits(t *testing.T) {
 	g := &busyGame{busy: []int{0}}
-	s := &shell{cfg: Config{Game: g, Capture: Capture{Keys: ParseKeys(`\t2000`, nil)}}}
+	s := &shell{cfg: shellConfig{Game: g, Capture: Capture{Keys: []Key{ScriptTimed | 120} /* \t2000 */}}}
 	n := 0
 	for ; n < 10000 && !s.done(); n++ {
 		s.step()

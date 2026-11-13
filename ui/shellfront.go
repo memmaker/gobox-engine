@@ -1,4 +1,4 @@
-package app
+package ui
 
 import (
 	"math"
@@ -7,15 +7,14 @@ import (
 	"time"
 
 	"gobox/gpu"
-	"gobox/ui"
 	"gobox/ui/blobber"
 )
 
-// Front is a game's screens as the shell's input reader drives them
-// (Config.Front): the shell reads the keyboard, the mouse and the pads,
+// frontPort is a game's screens as the shell's input reader drives them
+// (shellConfig.Front): the shell reads the keyboard, the mouse and the pads,
 // passes them through the latch (front.Latch) and hands the screens their
-// keys, clicks and No Grid walk. Key codes are the BIOS's (ui.BIOSKey).
-type Front interface {
+// keys, clicks and No Grid walk. Key codes are the BIOS's (BIOSKey).
+type frontPort interface {
 	Screen() string // names the screen shown: a change latches the inputs held (front.Latch)
 	Key(k Key)      // a key code for the screens
 	Act()           // a tick's end: the game runs on the screens' decisions
@@ -29,7 +28,7 @@ type Front interface {
 	OptionsPad(k Key)
 	OptionsMouse(x, y int, left, right bool, wheel float64)
 
-	PadKeys() []ui.PadKey  // the pad's buttons now (the binding table's)
+	PadKeys() []PadKey     // the pad's buttons now (the binding table's)
 	PadStick(x, y float64) // the right stick
 
 	Free() bool                                   // No Grid's view is up: W A S D and the arrows walk
@@ -46,21 +45,13 @@ type Front interface {
 	Drop(path string, cx, cy int, in bool)
 }
 
-// Art is a game with two arts (e.g. two ports' pictures), cross-faded when
-// the one asked for changes (F12 toggles it).
-type Art struct {
-	Want   func() bool // the art asked for
-	Toggle func()      // F12: ask for the other
-	Set    func(bool)  // the game now shows this art
-}
-
 // artFade is how long the pictures take to cross-fade from one art to the other.
 const artFade = 600 * time.Millisecond
 
 // frontGame is the Game the shell makes of a Front.
 type frontGame struct {
-	f   Front
-	cfg Config
+	f   frontPort
+	cfg shellConfig
 	tps int
 
 	pads    []gpu.GamepadID // input buffers, reused each tick
@@ -76,9 +67,9 @@ type frontGame struct {
 	leftHold  bool       // \B: the left button held (a drag)
 	pointer   int        // Capture.Pointer's position in use
 	hoverAt   [3]int     // the pointer as Hover last had it (x, y, 1 once seen): a pointer that never moved moves no highlight
-	latch     ui.Latch   // the inputs held through a screen change: ignored until let go
+	latch     Latch      // the inputs held through a screen change: ignored until let go
 	look      [2]float64 // No Grid: the turn and pitch the mouse and the right stick gave this tick
-	drag      *drag      // No Grid: the left button held to look, nil while up
+	drag      *freeDrag  // No Grid: the left button held to look, nil while up
 	mlook     bool       // No Grid: mouselook is on (right click): the cursor captured, the mouse looks
 	art       bool       // the art shown (Art.Set)
 	old       *gpu.Image // the last frame in the other art, faded out over the new one
@@ -133,13 +124,13 @@ func (g *frontGame) Step(k Key) {
 	g.f.Tick()
 	switch k {
 	case 0:
-	case Right, Left: // \M, \C: a click at the pointer
-		g.rightOnce, g.leftOnce = k == Right, k == Left
-	case Next: // \P: the pointer moves on to the next of Capture.Pointer
+	case ScriptRight, ScriptLeft: // \M, \C: a click at the pointer
+		g.rightOnce, g.leftOnce = k == ScriptRight, k == ScriptLeft
+	case ScriptNext: // \P: the pointer moves on to the next of Capture.Pointer
 		g.pointer++
-	case Hold: // \B: the left button down, or up again (\B\P\B drags)
+	case ScriptHold: // \B: the left button down, or up again (\B\P\B drags)
 		g.leftHold = !g.leftHold
-	case Wait: // \w
+	case ScriptWait: // \w
 	default:
 		if g.f.Options() { // the Esc menu reads its keys as the pad's, as Update hands them
 			g.f.OptionsPad(k)
@@ -159,7 +150,7 @@ var repeatKeys = []gpu.Key{
 	gpu.KeyPageUp, gpu.KeyPageDown,
 }
 
-func (g *frontGame) repeats(d int) bool { return ui.Repeat(d, g.tps) }
+func (g *frontGame) repeats(d int) bool { return Repeat(d, g.tps) }
 
 // keys passes the keyboard to the screens.
 func (g *frontGame) keys() {
@@ -171,7 +162,7 @@ func (g *frontGame) keys() {
 	var held uint16
 	for _, k := range repeatKeys[:8] {
 		if d := gpu.KeyPressDuration(k); g.latch.Down(k, d > 0) && d >= g.tps/5 {
-			held, _ = ui.BIOSKey(k)
+			held, _ = BIOSKey(k)
 		}
 	}
 	if !free {
@@ -186,7 +177,7 @@ func (g *frontGame) keys() {
 			continue
 		}
 		if d := gpu.KeyPressDuration(k); g.latch.Down(k, d > 1) && g.repeats(d) {
-			code, _ := ui.BIOSKey(k)
+			code, _ := BIOSKey(k)
 			g.f.Key(code)
 		}
 	}
@@ -194,14 +185,14 @@ func (g *frontGame) keys() {
 		if free && slices.Contains(repeatKeys[:8], k) { // No Grid walks and turns with them (free)
 			continue
 		}
-		if code, ok := ui.BIOSKey(k); ok {
+		if code, ok := BIOSKey(k); ok {
 			g.f.Key(code)
 		} else if k == gpu.KeyF12 && gpu.IsKeyPressed(gpu.KeyShift) {
-			g.f.Key(ui.ShiftF12) // the wall style
+			g.f.Key(ShiftF12) // the wall style
 		} else if k == gpu.KeyF12 && g.cfg.Art != nil { // the other art (Draw fades it in)
 			g.cfg.Art.Toggle()
-			if ui.OnSettings != nil {
-				ui.OnSettings(ui.Settings)
+			if OnSettings != nil {
+				OnSettings(Settings)
 			}
 		} else if k == gpu.KeyF && gpu.IsKeyPressed(gpu.KeyControl) && gpu.IsKeyPressed(gpu.KeyShift) {
 			if g.cfg.FontPrev != 0 {
@@ -225,9 +216,9 @@ func (g *frontGame) keys() {
 	}
 }
 
-// drag is the left button held on No Grid's view, and how far the mouse
+// freeDrag is the left button held on No Grid's view, and how far the mouse
 // has moved since (a click moves less than 6 pixels).
-type drag struct{ moved float64 }
+type freeDrag struct{ moved float64 }
 
 // No Grid's look speeds: radians per pointer pixel dragged, per tick at the stick's full tilt.
 const freeMouse, freeStick = 0.005, 0.05
@@ -320,7 +311,7 @@ func (g *frontGame) mouse() {
 		left = left && g.scripted()
 		switch held := g.latch.Down(gpu.MouseButtonLeft, gpu.IsMouseButtonPressed(gpu.MouseButtonLeft)); {
 		case held && g.drag == nil:
-			g.drag = &drag{}
+			g.drag = &freeDrag{}
 		case held:
 			dx, dy := gpu.MouseDelta() // the mouse's own movement: the captured cursor stands still
 			g.look[0] += dx * freeMouse

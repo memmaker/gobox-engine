@@ -1,10 +1,10 @@
-package app
+package ui
 
 import "testing"
 
 // hoverFront counts the Hovers it is given.
 type hoverFront struct {
-	Front
+	frontPort
 	hovers int // Hover and Mouse calls
 }
 
@@ -17,7 +17,7 @@ func (f *hoverFront) Click(x, y int) bool       { return false }
 // pick it under the keys); a moved one does.
 func TestStillPointerNoHover(t *testing.T) {
 	f := &hoverFront{}
-	g := &frontGame{f: f, cfg: Config{Capture: Capture{Shot: "x.png", Pointer: [][2]int{{100, 100}, {200, 200}}}}}
+	g := &frontGame{f: f, cfg: shellConfig{Capture: Capture{Shot: "x.png", Pointer: [][2]int{{100, 100}, {200, 200}}}}}
 	for range 3 {
 		g.mouse()
 	}

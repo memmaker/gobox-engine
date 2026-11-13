@@ -1,5 +1,5 @@
 // run.go: Front, the ready-made front end over a *classicGame: the shell
-// (gobox/app, Config.Front) drives the presenter's screens with it, and the
+// (ui.Play) drives the presenter's screens with it, and the
 // game's rules run on the screens' decisions.
 
 package ui

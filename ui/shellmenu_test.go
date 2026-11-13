@@ -1,23 +1,13 @@
-package app
+package ui
 
 import (
 	"encoding/json"
-	"gobox/ui"
 	"os"
-	"slices"
 	"testing"
 )
 
-func TestParseKeys(t *testing.T) {
-	got := ParseKeys(`a\r\M\C\P\w\x\`, map[byte]Key{'r': 13})
-	want := []Key{'a', 13, Right, Left, Next, Wait, '\\', 'x', '\\'}
-	if !slices.Equal(got, want) {
-		t.Fatalf("%x, want %x", got, want)
-	}
-}
-
 func TestPrefs(t *testing.T) {
-	p := Prefs{Dir: t.TempDir() + "/sub"}
+	p := prefs{Dir: t.TempDir() + "/sub"}
 	type opts struct{ A, B int }
 	o := opts{A: 1, B: 2}
 	if p.Load(&o) {
@@ -37,12 +27,12 @@ func TestPrefs(t *testing.T) {
 // The Esc menu's file holds the game's options beside blobber's, at the top level, in order.
 func TestMenuBoth(t *testing.T) {
 	type Extra struct{ Zoom float64 }
-	m := Menu{Extra: &Extra{2}}
-	var o ui.MenuOptions
+	m := shellMenu{Extra: &Extra{2}}
+	var o MenuOptions
 	o.Torch = 1
 	got, _ := json.Marshal(m.both(o))
 	want, _ := json.Marshal(struct {
-		ui.MenuOptions
+		MenuOptions
 		Extra
 	}{o, Extra{2}})
 	if string(got) != string(want) {

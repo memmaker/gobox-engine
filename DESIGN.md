@@ -61,7 +61,7 @@ fonts into the pool and selects by name.
   lists, input dispatch, the input latch) lives in gobox; a game keeps its
   engine, Theme/Data values and the glue to front's Game interface.
 - Map, minimap and exploration HUD: gobox front (por's as the template); a game supplies only map data, marks and styling.
-- The presenter is gobox's (`front/present`), whole: 3D view hosting, combat board adapter, panes, frames, key bindings. A game keeps no present package and no drawing in cmd; its cmd only hands present.Data to app.Run.
+- The presenter is gobox's (`front/present`), whole: 3D view hosting, combat board adapter, panes, frames, key bindings. A game keeps no present package and no drawing in cmd; its play package hands its data to ui.Play (ui.Launch) through cmd/gobox.
 - The combat bar and the health bars are gobox's: a game publishes only which actions are possible (Turn.Can) and the HP numbers. Its words are gobox's own (POR's); gobox picks the buttons, hotkeys (unique, off the camera keys) and digits.
 - The inventory, buy, sell and shop screens are gobox's and shared: a game publishes View.Inventory (items, Wares) and View.Shop and answers the Acts (ActBuy, ActSell, ActTrade ...); it draws no item or shop screen of its own, as text menus or pages.
 - Import: every game ships an `import.toml` for ~/Projects/gameimport's `cmd/gameimport` (por-go/import.toml is the template); its `run` steps call the game's own setup commands. goplay is not supported.
@@ -94,10 +94,10 @@ Packages, the same names in every repo:
 - `game.Data`: everything declarative: font, border, files, sound tables,
   AdLib songs, rests, credits, labels, art, sequences. It holds values, tables
   and DAX refs, never drawing.
-- `cmd/<game>`: main.go only wires it: flags, `rules.New`, then
-  `app.Run(classic.NewGame(e.Rules(), e.Data()))`, plus a `-setup` step that
-  gameimport's import.toml runs. cmd/<game> is the only package that may
-  import gobox app, present and classic (scripts/check-game-imports.sh,
+- no `cmd/<game>`: gobox's one binary (cmd/gobox) starts every game; a game
+  outside gobox gives it a `play<game>.Play(ui.Boot) (ui.Launch, error)` and
+  cmd/gobox runs it in ui.Play, the one host loop. Only cmd/ mains may import
+  gobox/ui and gobox/gpu (scripts/check-game-imports.sh,
   game/testdata/violations.txt, which may only shrink). Data tools (dumps,
   finders) may sit beside it in cmd/, with no drawing.
 - adventure data: the original files plus derived declarative files (tables.json,
@@ -105,7 +105,7 @@ Packages, the same names in every repo:
   data file can hold.
 
 Control flow, the same in every game:
-1. app.Run drives gobox's classic front frame by frame; the game owns no loop.
+1. ui.Play drives gobox's classic front frame by frame; the game owns no loop.
 2. classic reads `game.State` from the rules after every step and builds each
    screen, window, menu, pane and question from it. The game never sees a
    View.

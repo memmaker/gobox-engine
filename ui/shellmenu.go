@@ -1,23 +1,22 @@
-package app
+package ui
 
 import (
 	"log"
 	"reflect"
 
 	"gobox/gpu"
-	"gobox/ui"
 )
 
-// Menu is the Esc menu (the Esc menu's settings) as the game fills it: its own
-// options kept beside ui.Settings in the settings file, its rows, and
+// shellMenu is the Esc menu (the Esc menu's settings) as the game fills it: its own
+// options kept beside Settings in the settings file, its rows, and
 // what the menu's lines do.
-type Menu struct {
-	Prefs Prefs
-	Extra any                 // a pointer to the game's own options struct: loaded and saved beside ui.Settings (its fields at the file's top level)
-	Rows  map[string][]ui.Row // ui.ExtraRows
-	Apply func()              // the options changed (once after loading too): the game takes them up
+type shellMenu struct {
+	Prefs prefs
+	Extra any              // a pointer to the game's own options struct: loaded and saved beside Settings (its fields at the file's top level)
+	Rows  map[string][]Row // ExtraRows
+	Apply func()           // the options changed (once after loading too): the game takes them up
 
-	SaveLoad, MainMenu func() // ui.OnSaveLoad, OnMainMenu
+	SaveLoad, MainMenu func() // OnSaveLoad, OnMainMenu
 
 	// blobber's Font list (FontNames, FontAt, SetFont, FontGlyph); nil keeps blobber's
 	FontNames func() []string
@@ -35,11 +34,11 @@ type fontHost interface {
 
 // setup loads the settings file and hands blobber the menu; held is the
 // latch (no key held through a screen change repeats), tps the tick rate.
-func (m *Menu) setup(held func(any) bool, tps int) {
+func (m *shellMenu) setup(held func(any) bool, tps int) {
 	if m.FontNames != nil {
-		ui.FontNames, ui.FontAt, ui.SetFont, ui.FontGlyph = m.FontNames, m.FontAt, m.SetFont, m.FontGlyph
+		FontNames, FontAt, SetFont, FontGlyph = m.FontNames, m.FontAt, m.SetFont, m.FontGlyph
 	}
-	dst := []any{&ui.Settings}
+	dst := []any{&Settings}
 	if m.Extra != nil {
 		dst = append(dst, m.Extra)
 	}
@@ -47,7 +46,7 @@ func (m *Menu) setup(held func(any) bool, tps int) {
 	if m.Apply != nil {
 		m.Apply()
 	}
-	ui.OnSettings = func(o ui.MenuOptions) {
+	OnSettings = func(o MenuOptions) {
 		if m.Apply != nil {
 			m.Apply()
 		}
@@ -55,15 +54,15 @@ func (m *Menu) setup(held func(any) bool, tps int) {
 			log.Printf("settings not kept: %v", err)
 		}
 	}
-	ui.ExtraRows = m.Rows
-	ui.Repeats = func(d int) bool { return ui.Repeat(d, tps) } // held keys and buttons repeat at the game's one rate
-	ui.OnMainMenu, ui.OnSaveLoad = m.MainMenu, m.SaveLoad
-	ui.Held = func(k gpu.Key) bool { return held(k) }
+	ExtraRows = m.Rows
+	Repeats = func(d int) bool { return Repeat(d, tps) } // held keys and buttons repeat at the game's one rate
+	OnMainMenu, OnSaveLoad = m.MainMenu, m.SaveLoad
+	Held = func(k gpu.Key) bool { return held(k) }
 }
 
 // both is o and *Extra as one struct embedding both, so the file holds
 // their fields at its top level in their order.
-func (m *Menu) both(o ui.MenuOptions) any {
+func (m *shellMenu) both(o MenuOptions) any {
 	if m.Extra == nil {
 		return o
 	}

@@ -15,7 +15,6 @@ import (
 	"path/filepath"
 	"slices"
 
-	"gobox/app"
 	"gobox/asset"
 	"gobox/audio"
 	"gobox/engine"
@@ -37,28 +36,28 @@ func poolData(eng *engine.Engine, id string) game.Data {
 	return d
 }
 
-// Play runs the game of the adventure folder s.Adventure until the window closes.
-func playPool(s app.Start) error {
+// playPool starts the game of the adventure folder s.Adventure.
+func playPool(s start) (ui.Launch, error) {
 	s.Explore = s.Explore || s.Capture.Slot != "" // -slot starts play from that save (Explore reads it), -explore or not
 
-	host := ui.DefaultHostOptions // the settings in use; app.Menu reads them from SETTINGS.JSON
+	host := ui.DefaultHostOptions // the settings in use; Menu reads them from SETTINGS.JSON
 	f, err := importer.Read(s.Adventure)
 	if err != nil {
-		return err
+		return ui.Launch{}, err
 	}
 	if f.Record == rules.NoRecord {
-		return fmt.Errorf("adventure %s: manifest has no character record layout: re-import it", f.Dir)
+		return ui.Launch{}, fmt.Errorf("adventure %s: manifest has no character record layout: re-import it", f.Dir)
 	}
 	host.FullIntro = f.Manifest.Start != nil && f.Manifest.Start.Full // the adventure's default
 	ui.Host = &host.Options
 	eng, err := engine.NewPool(s.Adventure, s.Data)
 	if err != nil {
-		return err
+		return ui.Launch{}, err
 	}
 	if f.UserSaves {
 		saves, err := homeSaves(f.ID, s.Adventure)
 		if err != nil {
-			return err
+			return ui.Launch{}, err
 		}
 		eng.Cfg.SaveDir = saves
 	}
@@ -69,10 +68,10 @@ func playPool(s app.Start) error {
 		eng.Cfg.Foreign = homeRosters(filepath.Dir(s.Adventure), f.Foreign)
 	}
 	if err := eng.SetStart(f.Manifest.Start); err != nil {
-		return err
+		return ui.Launch{}, err
 	}
 	if err := eng.SetEnd(f.Manifest.End); err != nil {
-		return err
+		return ui.Launch{}, err
 	}
 	apply := func() { // the Esc menu's options (minimap, picture box, speed, fullscreen ...) kept across runs
 		h := host
@@ -93,11 +92,11 @@ func playPool(s app.Start) error {
 	}
 	tables, err := eng.SoundData()
 	if err != nil {
-		return err
+		return ui.Launch{}, err
 	}
 	drv, err := audio.NewDriver(tables, eng.Cfg.Sound)
 	if err != nil {
-		return err
+		return ui.Launch{}, err
 	}
 	am, fx, pack, speaking, vol := eng.SoundParts()
 	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), engine.SoundtrackFiles), pack, speaking, vol) // the presenter decodes and plays the recordings
@@ -115,7 +114,7 @@ func playPool(s app.Start) error {
 			_, err = png.Decode(bytes.NewReader(b))
 		}
 		if err != nil {
-			return fmt.Errorf("-png: %w", err)
+			return ui.Launch{}, fmt.Errorf("-png: %w", err)
 		}
 		eng.DevPortrait = b
 	}
@@ -149,28 +148,25 @@ func playPool(s app.Start) error {
 	g := ui.NewFront(cg, data, drv) // the rules' data (series, spell tips, overland art); one driver: the rules' calls and the fight's events
 	g.OnStart = func() { engine.DOSArt.Store(host.DOSArt) }
 	g.P.Sound = eng.PlayEventSound // a fight's sounds with what they belong to
-	ui.Scripted = capt.Scripted()
-	return app.Run(app.Config{
+	return ui.Launch{
 		Front: g,
-		Art: &app.Art{ // the Amiga or the DOS art (F12, the Graphics page)
+		Title: f.Title,
+		W:     f.Window.W,
+		H:     f.Window.H,
+		Art: &ui.Arts{ // the Amiga or the DOS art (F12, the Graphics page)
 			Want:   func() bool { return host.DOSArt },
 			Toggle: func() { host.DOSArt = !host.DOSArt },
 			Set:    func(dos bool) { engine.DOSArt.Store(dos); g.ArtNew = true },
 		},
-		FontPrev: ui.KeyFontPrev,
-		Menu: &app.Menu{
-			Prefs:    app.Prefs{Dir: eng.Cfg.SaveDir},
-			Extra:    &host,
-			Rows:     ui.HostRows(&host.Options, ui.HostOptionRows(&host, eng.ToggleVoice)...),
-			Apply:    apply,
-			SaveLoad: func() { g.P.OpenSlots() }, // as F10
-			MainMenu: func() { cg.EndGame() },    // through classic, so its view is fresh
-		},
-		Theme:    app.Theme{Title: f.Title, W: f.Window.W, H: f.Window.H},
-		Settings: s.Settings,
-		Capture:  capt,
-		TPS:      tps,
-	})
+		FontPrev:    ui.KeyFontPrev,
+		SettingsDir: eng.Cfg.SaveDir,
+		Extra:       &host,
+		Rows:        ui.HostRows(&host.Options, ui.HostOptionRows(&host, eng.ToggleVoice)...),
+		Apply:       apply,
+		SaveLoad:    func() { g.P.OpenSlots() }, // as F10
+		MainMenu:    func() { cg.EndGame() },    // through classic, so its view is fresh
+		TPS:         tps,
+	}, nil
 }
 
 // HomeSaves is the save folder of game id under the user's config dir
