@@ -64,7 +64,7 @@ func (e *Engine) SetEnd(s *importer.Sequence) error {
 		return nil
 	}
 	e.title.after, e.title.note = s.After, s.Note
-	if q := play.LeadingAnim(*s, seqEnding); q != nil {
+	if q := LeadingAnim(*s, seqEnding); q != nil {
 		e.title.seqs = append(e.title.seqs, *q)
 		return nil
 	}
@@ -73,7 +73,7 @@ func (e *Engine) SetEnd(s *importer.Sequence) error {
 		g = importer.GraphicsEGA
 	}
 	shown := s.Shown(e.amigaUp())
-	sc, err := play.TitleScene(shown, true, g, play.Common{}, e.titleArt)
+	sc, err := TitleScene(shown, true, g, play.Common{}, e.titleArt)
 	if err != nil {
 		return fmt.Errorf("end: %w", err)
 	}
@@ -100,13 +100,13 @@ func (e *Engine) SetStart(s *importer.Sequence) error {
 	if e.Cfg.Graphics == 'E' { // DS:4A1E: the EGA driver
 		g = importer.GraphicsEGA
 	}
-	if t.full, err = play.TitleScene(*s, true, g, play.Common{}, e.titleArt); err != nil {
+	if t.full, err = TitleScene(*s, true, g, play.Common{}, e.titleArt); err != nil {
 		return err
 	}
-	if t.short, err = play.TitleScene(*s, false, g, play.Common{}, e.titleArt); err != nil {
+	if t.short, err = TitleScene(*s, false, g, play.Common{}, e.titleArt); err != nil {
 		return err
 	}
-	if t.credits, t.boxes, t.backdrop, err = play.TitleData(*s, e.titleArt); err != nil {
+	if t.credits, t.boxes, t.backdrop, err = TitleData(*s, e.titleArt); err != nil {
 		return err
 	}
 	e.title = t

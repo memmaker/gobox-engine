@@ -1,4 +1,4 @@
-package play
+package pool
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/importer"
 )
 
@@ -18,11 +19,11 @@ func TestTitleScene(t *testing.T) {
 		{Kind: importer.StepCredits, Page: 0},
 	}}
 	pic := func(a importer.Art) (game.Picture, error) { return game.Picture{File: a.File, Block: a.Block}, nil }
-	got, err := TitleScene(seq, true, importer.GraphicsEGA, Common{}, pic)
+	got, err := TitleScene(seq, true, importer.GraphicsEGA, play.Common{}, pic)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := Scene{Kind: SceneTitle, Full: true, Intro: &game.Intro{Full: true, Pictures: []int{1, 2, -1}, Lightning: true}, Steps: map[int]TitleStep{
+	want := play.Scene{Kind: play.SceneTitle, Full: true, Intro: &game.Intro{Full: true, Pictures: []int{1, 2, -1}, Lightning: true}, Steps: map[int]play.TitleStep{
 		1: {Song: "3", Layers: []game.Layer{{Picture: game.Picture{File: "TITLE", Block: 1}, At: image.Rect(0, 0, 320, 200)}}},
 		2: {Layers: []game.Layer{{Picture: game.Picture{File: "TITLE", Block: 2}, At: image.Rect(8, 16, 32, 40), Frames: []int{0, 1}, FrameMs: 100}}},
 	}}
@@ -30,15 +31,15 @@ func TestTitleScene(t *testing.T) {
 		t.Fatalf("got %+v\nwant %+v", got, want)
 	}
 	seq.Short = []int{0} // the short intro: the first step alone
-	short, err := TitleScene(seq, false, importer.GraphicsEGA, Common{}, pic)
+	short, err := TitleScene(seq, false, importer.GraphicsEGA, play.Common{}, pic)
 	if err != nil || !slices.Equal(short.Intro.Pictures, []int{1}) || len(short.Steps) != 1 {
 		t.Fatalf("short %+v, %v", short.Intro, err)
 	}
-	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepCredits}, {Kind: importer.StepAnim}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrStepKind) {
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepCredits}, {Kind: importer.StepAnim}}}, true, importer.GraphicsEGA, play.Common{}, pic); !errors.Is(err, ErrStepKind) {
 		t.Fatalf("anim step: %v", err)
 	}
 	lead := importer.Sequence{Steps: append([]importer.SequenceStep{{Kind: importer.StepAnim, Anim: "INTRO", Song: "P1"}}, seq.Steps...)}
-	led, err := TitleScene(lead, true, importer.GraphicsEGA, Common{}, pic)
+	led, err := TitleScene(lead, true, importer.GraphicsEGA, play.Common{}, pic)
 	if err != nil || !slices.Equal(led.Intro.Pictures, []int{2, 3, -1}) || !reflect.DeepEqual(led.Steps[2], want.Steps[1]) {
 		t.Fatalf("leading anim: %+v, %v", led.Intro, err)
 	}
@@ -48,10 +49,10 @@ func TestTitleScene(t *testing.T) {
 	if LeadingAnim(seq, "intro") != nil {
 		t.Fatal("LeadingAnim without an anim")
 	}
-	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{HoldMs: 1}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrNotCarried) {
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{HoldMs: 1}}}, true, importer.GraphicsEGA, play.Common{}, pic); !errors.Is(err, ErrNotCarried) {
 		t.Errorf("hold: %v", err)
 	}
-	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Whole: true}, {}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrNotCarried) {
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Whole: true}, {}}}, true, importer.GraphicsEGA, play.Common{}, pic); !errors.Is(err, ErrNotCarried) {
 		t.Errorf("mixed whole: %v", err)
 	}
 	lines, boxes, bd, err := TitleData(importer.Sequence{Credits: []importer.Credit{{X: 2, Y: 3, Colour: 4, Text: "a", Page: 1}}, Boxes: []importer.Cells{{X1: 1, Y1: 1, X2: 38, Y2: 3}},
@@ -77,7 +78,7 @@ func TestTitleSceneText(t *testing.T) {
 		{Kind: importer.StepPicture, Text: []string{"two"}, Layers: []importer.Layer{{Art: importer.Art{File: "F", Block: 1}, MinParty: 2, MsgDelayed: true}}},
 	}}
 	pic := func(a importer.Art) (game.Picture, error) { return game.Picture{File: a.File, Block: a.Block}, nil }
-	sc, err := TitleScene(seq, true, importer.GraphicsEGA, Common{}, pic)
+	sc, err := TitleScene(seq, true, importer.GraphicsEGA, play.Common{}, pic)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +88,7 @@ func TestTitleSceneText(t *testing.T) {
 	if l := sc.Steps[2].Layers[0]; !slices.Equal(sc.Steps[2].Text, []string{"two"}) || l.MinParty != 2 || !l.MsgDelayed {
 		t.Fatalf("picture step: %+v", sc.Steps[2])
 	}
-	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepText}}}, true, importer.GraphicsEGA, Common{}, pic); !errors.Is(err, ErrStepKind) {
+	if _, err := TitleScene(importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepText}}}, true, importer.GraphicsEGA, play.Common{}, pic); !errors.Is(err, ErrStepKind) {
 		t.Errorf("empty text step: %v", err)
 	}
 }

@@ -1,4 +1,4 @@
-package play
+package pool
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	"slices"
 
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/importer"
 )
 
@@ -27,9 +28,9 @@ var ErrNotCarried = errors.New("sequence field not carried yet")
 // A step whose Lightning is On in graphics mode g makes the intro flash. The rest of s goes to the
 // game's Data (TitleData). A leading StepAnim is not a title step (step 1
 // stays its number): it plays before the title as LeadingAnim's sequence.
-func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, pic func(importer.Art) (game.Picture, error)) (Scene, error) {
+func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm play.Common, pic func(importer.Art) (game.Picture, error)) (play.Scene, error) {
 	in := &game.Intro{Full: true}
-	steps := map[int]TitleStep{}
+	steps := map[int]play.TitleStep{}
 	pics := 0
 	whole := 0
 	for i, st := range s.Steps {
@@ -41,18 +42,18 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 			continue
 		}
 		if st.Edition != importer.EditionAny {
-			return Scene{}, fmt.Errorf("step %d Edition %d (not passed through Sequence.Shown): %w", n, st.Edition, ErrNotCarried)
+			return play.Scene{}, fmt.Errorf("step %d Edition %d (not passed through Sequence.Shown): %w", n, st.Edition, ErrNotCarried)
 		}
 		if st.HoldMs != 0 {
-			return Scene{}, fmt.Errorf("step %d HoldMs: %w", n, ErrNotCarried)
+			return play.Scene{}, fmt.Errorf("step %d HoldMs: %w", n, ErrNotCarried)
 		}
 		switch st.Kind {
 		case importer.StepPicture:
-			ts := TitleStep{Song: st.Song, Text: st.Text, Credits: st.Credits}
+			ts := play.TitleStep{Song: st.Song, Text: st.Text, Credits: st.Credits}
 			for _, l := range st.Layers {
 				p, err := pic(l.Art)
 				if err != nil {
-					return Scene{}, fmt.Errorf("step %d: %w", n, err)
+					return play.Scene{}, fmt.Errorf("step %d: %w", n, err)
 				}
 				ts.Layers = append(ts.Layers, game.Layer{Picture: p, At: placed(l, p.W, p.H), Frames: l.Frames, FrameMs: l.FrameMs, MinParty: l.MinParty, MsgDelayed: l.MsgDelayed})
 			}
@@ -64,21 +65,21 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 			}
 		case importer.StepText:
 			if len(st.Layers) != 0 || len(st.Text) == 0 {
-				return Scene{}, fmt.Errorf("step %d: a text step has text and no layers: %w", n, ErrStepKind)
+				return play.Scene{}, fmt.Errorf("step %d: a text step has text and no layers: %w", n, ErrStepKind)
 			}
-			steps[n] = TitleStep{Song: st.Song, Text: st.Text}
+			steps[n] = play.TitleStep{Song: st.Song, Text: st.Text}
 			in.Pictures = append(in.Pictures, n)
 		case importer.StepCredits:
 			in.Pictures = append(in.Pictures, -(st.Page + 1))
 		default:
-			return Scene{}, fmt.Errorf("step %d: %w", n, ErrStepKind)
+			return play.Scene{}, fmt.Errorf("step %d: %w", n, ErrStepKind)
 		}
 		in.Lightning = in.Lightning || st.Lightning.On(g)
 	}
 	if whole != 0 && whole != pics {
-		return Scene{}, fmt.Errorf("Whole on some picture steps only: %w", ErrNotCarried)
+		return play.Scene{}, fmt.Errorf("Whole on some picture steps only: %w", ErrNotCarried)
 	}
-	return Scene{Common: cm, Kind: SceneTitle, Intro: in, Full: whole != 0, Steps: steps}, nil
+	return play.Scene{Common: cm, Kind: play.SceneTitle, Intro: in, Full: whole != 0, Steps: steps}, nil
 }
 
 // LeadingAnim is s's leading StepAnim as the game.Sequence name plays
@@ -142,7 +143,7 @@ func placed(l importer.Layer, w, h int) image.Rectangle {
 // d's TitleBackdrop, Credits d's
 // CreditLines. Pictures compare by File and Block (pixels
 // unloaded, Clear -1); a Centred layer takes today's size. Songs are not compared. For the importers' tests.
-func TitleDiffs(s importer.Sequence, today Scene, d game.Data) (diffs []string) {
+func TitleDiffs(s importer.Sequence, today play.Scene, d game.Data) (diffs []string) {
 	layers := func(ls []importer.Layer, today []game.Layer) (out []game.Layer) {
 		for i, l := range ls {
 			var size image.Point
