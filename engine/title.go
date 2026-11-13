@@ -130,20 +130,3 @@ func (e *Engine) titleArt(a adventure.Art) (game.Picture, error) {
 	}
 	return game.Picture{}, fmt.Errorf("art kind %d: %w", a.Kind, errNoArt)
 }
-
-// Title logo (extra): the remastered main menu shows the title picture's
-// lettering on black, cut by the presenter (presentdata's LogoCut) from
-// TITLE picture 2's pixels.
-
-// titleLogo is TITLE picture 2's pixels (nil if missing), read once.
-func (e *Engine) titleLogo() *Picture {
-	if e.snap.logo != nil {
-		return e.snap.logo
-	}
-	im := e.LoadPic(e.artNames().Title, 2)
-	if im == nil {
-		return nil
-	}
-	e.snap.logo = &Picture{Pix: im.Frame(0), PixW: im.Width * 8}
-	return e.snap.logo
-}

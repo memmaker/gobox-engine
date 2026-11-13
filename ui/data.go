@@ -6,6 +6,7 @@ package ui
 
 import (
 	"cmp"
+	"fmt"
 	"image"
 	"image/color"
 	"io/fs"
@@ -15,6 +16,7 @@ import (
 	"strings"
 	"testing/fstest"
 
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/audio"
@@ -43,8 +45,6 @@ type Data struct {
 
 	Rests []Rest // camp's rests, in the menu's order
 
-	Logo LogoCut // how the main menu's lettering is cut from Logo
-
 	Credits    []Credit
 	CreditGaps []int // the credits' rows a blank row follows on a tall page, as many as fit from the first (nil: 4, 5, 6)
 	IconParts  []string
@@ -59,6 +59,20 @@ type Data struct {
 	Sounds     []byte           // the sound driver's tables (gobox/audio NewSynth's data: songs, scripts, vibrato waveforms; nil: none)
 	AdLib      *audio.AdLibData // the AdLib player's music and effects (nil: none); NewFront attaches it to the driver as the soundtrack
 	AmigaSound []byte           // the Amiga's SOUND.BIN (amiga.Base..End; nil: the DOS driver), for the Driver NewFront builds
+}
+
+// readLogo is the lettering PNG at path; nil when the game has none. A file
+// that is not a PNG is a broken import: it panics.
+func readLogo(path string) image.Image {
+	b, err := asset.ReadPNG(path)
+	if err != nil {
+		panic(fmt.Sprintf("%v (run the import again)", err))
+	}
+	if b == nil {
+		return nil
+	}
+	im, _ := asset.DecodePNG(b)
+	return im
 }
 
 var (
@@ -83,7 +97,7 @@ var (
 	amigaSound                       []byte
 	adLib                            *audio.AdLibData
 	series                           = "pool"
-	logoCut                          LogoCut // Data.Logo
+	menuLogo                         image.Image // the imported lettering (adventure.LogoFile); nil: none
 )
 
 // The maps' and lists' looks, gobox's for every game: an area map
@@ -300,8 +314,8 @@ func gameData(g game.Data) {
 	if g.IconParts != nil {
 		iconParts = g.IconParts
 	}
-	if l := g.Logo; l != nil {
-		logoCut = LogoCut(*l)
+	if g.Adventure != "" {
+		menuLogo = readLogo(filepath.Join(g.Adventure, adventure.ArtDir, adventure.LogoFile))
 	}
 	if g.AreaMaps != nil {
 		areaMaps = map[AreaID]string{}

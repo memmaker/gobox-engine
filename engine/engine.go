@@ -213,7 +213,6 @@ type snapState struct {
 	identN   int                          // ... counted: a new reveal is a new number
 	identIt  rules.ItemHandle             // ... the item itself (State's Shop.Identified)
 	saves    bool                         // there are saved games (the party menu's Load)
-	logo     *Picture                     // titleLogo, once read
 	win      Window                       // set by whatever drew into the view window last
 	heads    map[int]Picture              // HEAD blocks' pixels by id
 	tiles    [3]Picture                   // DrawBorder style 0's corner, side and top cells, once taken (BorderPix)

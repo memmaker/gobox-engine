@@ -9,15 +9,14 @@ import (
 )
 
 // overlandArt is the overland's and the title's pictures for game.Data.Art: "terrain/<id>"
-// for each terrain tile id, "border/<place>" for the window border and "marker/<facing>" for the party marker, "title/logo" for the party menu.
+// for each terrain tile id, "border/<place>" for the window border and "marker/<facing>" for the party marker.
 func (e *Engine) overlandArt() map[string]game.Picture {
-	logo := e.titleLogo()
 	border := e.borderTiles()
 	var heads []byte
 	for _, id := range e.partySide() {
 		heads = append(heads, byte(e.fact(id, rules.PortraitFact{}).(rules.Portrait).Head))
 	}
-	k := artKey{e.sqrpaci, e.icons[9][0], DOSArt.Load(), logo, border[0].Pix != nil, string(heads)}
+	k := artKey{e.sqrpaci, e.icons[9][0], DOSArt.Load(), border[0].Pix != nil, string(heads)}
 	if e.ext.art != nil && e.ext.artKey == k {
 		return e.ext.art
 	}
@@ -37,9 +36,6 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 			art["border/"+strconv.Itoa(i)] = gamePicture(p)
 		}
 	}
-	if logo != nil { // the title under the party menu
-		art["title/logo"] = gamePicture(*logo)
-	}
 	for _, id := range e.partySide() { // the party's heads on the cards
 		if n := e.headArt(id); n != "" {
 			art[n] = gamePicture(e.charHead(id))
@@ -54,7 +50,6 @@ type artKey struct {
 	tiles  [2]*asset.Image
 	marker *asset.Image
 	dos    bool
-	logo   *Picture
 	border bool   // the border's tiles are loaded
 	heads  string // the party's PortHead numbers
 }

@@ -237,7 +237,10 @@ func (m *mainUI) drawMainUI(h MainHost, dst *gpu.Image, v MainMenu) {
 	}
 	menuH := float64(len(lines)+2) * 8 * mk
 	var lh, lk int
-	logo := logoImage(v.Logo)
+	var logo image.Image
+	if v.Logo {
+		logo = menuLogo
+	}
 	if logo != nil {
 		lb := logo.Bounds()
 		lk = max(1, min(b.Dx()*3/4/lb.Dx(), (b.Dy()-int(menuH))*2/3/lb.Dy()))
@@ -439,7 +442,7 @@ func (p *Presenter) layoutMainMenu() MainMenu {
 	}
 	m := MainMenu{Open: open, Hall: hall, Party: len(c.Party), Selected: -1}
 	if !hall && c.PowerPick == nil {
-		m.Logo = Title(nil, p.eng.art())
+		m.Logo = true
 	}
 	if i := p.cardSelected(); i >= 0 && i < len(c.Party) {
 		m.Selected, m.Name = i, c.Party[i].Name

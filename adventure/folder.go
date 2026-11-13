@@ -70,6 +70,11 @@ const DataDir = "data"
 // and, after the Amiga import, amiga/.
 const ArtDir = "art"
 
+// LogoFile is the menu lettering, finished, in the adventure's ArtDir (PNG,
+// transparent round the letters), written by the game's import; absent: the
+// game has none (its title backdrop carries its own).
+const LogoFile = "LOGO.png"
+
 // SoundDir is the adventure's Amiga sound (SOUND.BIN) and the sound pack (daspDir).
 const SoundDir = "sound"
 
