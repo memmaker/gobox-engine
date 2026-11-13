@@ -7,12 +7,11 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/asset/orig"
 )
 
 // TestImportEqualsDecode imports the originals in ../data/dos and checks the
 // folder: the scripts, saves and AdLib music are there, the art equals
-// data/assets/art (dax.ImportArtIfStale).
+// data/assets/art (the art import).
 func TestSotsbImportEqualsDecode(t *testing.T) {
 	dos := filepath.Join("..", "..", "data", "sotsb", "sources", "dos")
 	if _, err := os.Stat(dos); err != nil {
@@ -38,10 +37,7 @@ func TestSotsbImportEqualsDecode(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dst, "sound", "SOUND.DAX")); err != nil {
 		t.Error("sound:", err)
 	}
-	if err := orig.ImportArtIfStale(dos, filepath.Join(filepath.Dir(dos), "amiga"), asset.Dir(dos)); err != nil {
-		t.Fatal(err)
-	}
-	if err := SameTree(filepath.Join(dst, "art"), filepath.Join("..", "..", "data", "sotsb", "sources", "assets", "art")); err != nil {
+	if err := SameTree(filepath.Join(dst, "art"), asset.Dir(dos)); err != nil {
 		t.Error("art:", err)
 	}
 	want, err := os.ReadFile("sotsb/sounddata.json")

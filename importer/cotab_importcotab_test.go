@@ -7,12 +7,11 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/asset/orig"
 )
 
 // TestImportEqualsDecode imports the originals in ../data/dos and checks the
 // folder: its contents, the art equal to data/assets/art
-// (dax.ImportArtIfStale), the sound tables to testdata/s.
+// (the art import), the sound tables to testdata/s.
 func TestCotabImportEqualsDecode(t *testing.T) {
 	dos := filepath.Join("..", "..", "data", "cotab", "sources", "dos")
 	if _, err := os.Stat(dos); err != nil {
@@ -29,10 +28,7 @@ func TestCotabImportEqualsDecode(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dst, ManifestFile)); err != nil {
 		t.Fatal(err)
 	}
-	if err := orig.ImportArtIfStale(dos, filepath.Join(filepath.Dir(dos), "amiga"), asset.Dir(dos)); err != nil {
-		t.Fatal(err)
-	}
-	if err := SameTree(filepath.Join(dst, "art"), filepath.Join("..", "..", "data", "cotab", "sources", "assets", "art")); err != nil {
+	if err := SameTree(filepath.Join(dst, "art"), asset.Dir(dos)); err != nil {
 		t.Error("art:", err)
 	}
 	want, err := os.ReadFile(filepath.Join("cotab", "testdata", "sounddata.json"))

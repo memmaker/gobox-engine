@@ -12,16 +12,12 @@ import (
 	"gobox/asset/orig"
 )
 
-// useArt points the presenter at the art the game in dosDir imports
-// (dax.ImportArtIfStale, as the game's start does) until the test ends;
-// false: no such game files.
+// useArt points the presenter at the art the game in dosDir imported
+// (the import, read only) until the test ends; false: no such game files.
 func useArt(t *testing.T, dosDir string) bool {
 	t.Helper()
 	if _, err := os.Stat(dosDir); err != nil {
 		return false
-	}
-	if err := orig.ImportArtIfStale(dosDir, filepath.Join(filepath.Dir(dosDir), "amiga"), asset.Dir(dosDir)); err != nil {
-		t.Fatal(err)
 	}
 	old := daxArt
 	daxArt.art, daxArt.amiga = asset.OpenArt(asset.Dir(dosDir)), false
