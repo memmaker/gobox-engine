@@ -1,7 +1,10 @@
 package present
 
 import (
+	"cmp"
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"image"
 	"image/color"
 	"image/draw"
@@ -17,14 +20,24 @@ import (
 
 // The character sheet (View.Sheet): the page is the engine's; its View
 // menu is the presenter's.
-func (p *Presenter) sheetItems(v front.View) []ui.MenuRow {
+func (p *Presenter) sheetItems() []ui.MenuRow {
 	var it []ui.MenuRow // the powers, then the reactions' policies (each pick turns to the next): Tab is the inventory, Esc leaves
-	for _, pw := range v.Sheet.Powers {
+	s := p.state()
+	r := p.eng.r
+	if r.lookSheet > 0 && r.combatOf(s) != nil { // the look-only sheet: no powers
+		return it
+	}
+	sh := r.sheetOf(play.CommonOf(s))
+	if sh == nil {
+		return it
+	}
+	for _, pw := range powers(sh.Powers) {
 		it = append(it, ui.MenuRow{Text: pw.Name, Key: pw.Name[0], Do: func() { p.send(pw.Kind, -1) }})
 	}
-	for _, r := range v.Sheet.Reactions {
-		it = append(it, ui.MenuRow{Text: r.Name + " " + r.Policy.String(), Key: r.Name[0], Do: func() {
-			p.call(func(e *classicGame) { e.SetPolicy(r.ID, r.Policy+1) })
+	for _, re := range sh.Reactions {
+		pol := front.Policy(re.Policy)
+		it = append(it, ui.MenuRow{Text: re.Name + " " + pol.String(), Key: re.Name[0], Do: func() {
+			p.call(func(e *classicGame) { e.SetPolicy(re.ID, pol+1) })
 		}})
 	}
 	return it
@@ -34,9 +47,10 @@ func (p *Presenter) sheetItems(v front.View) []ui.MenuRow {
 func sheetUp(v front.View) bool { return v.Sheet != nil && askMenu(v) == nil && v.Inventory == nil }
 
 // sheetKey takes key k on the sheet: the menu's keys, the member keys another member.
-func (p *Presenter) sheetKey(k uint16, v front.View) bool {
-	items := p.sheetItems(v)
-	if m, ok := memberKey(k, selectedIndex(v), len(v.Party), true); ok {
+func (p *Presenter) sheetKey(k uint16) bool {
+	items := p.sheetItems()
+	s := p.state()
+	if m, ok := memberKey(k, p.eng.r.selectedOf(s), len(play.CommonOf(s).Party), true); ok {
 		p.send(front.ActMember, m)
 		return true
 	}
@@ -67,11 +81,16 @@ type sheetCanvas struct {
 
 // drawSheet draws the sheet (sheetUp) over the whole window.
 func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
-	sp, i := v.SheetPage, selectedIndex(v)
-	if i < 0 {
+	s, rl := p.state(), p.eng.r
+	party := partyOf(s)
+	sp, i := rl.sheetPageOf(s, party), rl.selectedOf(s)
+	if n := rl.lookSheet - 1; n >= 0 && n < len(party) && rl.combatOf(s) != nil { // the look-only sheet: the member's page
+		i, sp = n, cmp.Or(party[n].Page, game.MemberPage(party[n]))
+	}
+	if i < 0 || i >= len(party) || sp == nil {
 		return
 	}
-	m, sc := v.Party[i], &p.sheet
+	m, sc := party[i], &p.sheet
 	p.setup(note, v)
 	p.pageMenu = true
 	b := dst.Bounds()
@@ -177,7 +196,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 		line(st.Name, st.Value, r, st.Help)
 		r++
 	}
-	for _, f := range extraFields(sp) { // the game's extra fields (POD fills them), after a blank line
+	for _, f := range extraFields(sp.Weapon, sp.Armour, sp.Encumbrance, sp.Coins) { // the game's extra fields (POD fills them), after a blank line
 		if f[1] != "" && fits(r+1) {
 			text(f[0], rx, row(r+1), white)
 			text(f[1], rr-8*len(f[1]), row(r+1), green)
@@ -207,7 +226,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 
 	// the powers on the bottom row; the toast takes it while it shows
-	items := p.sheetItems(v)
+	items := p.sheetItems()
 	rowY := (ch - 1) * 8
 	p.winRects = p.winRects[:0]
 	var words []image.Rectangle
@@ -247,7 +266,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	}
 	p.bar(sc.img, lx-5, hpY, lw+10, m.HP, m.MaxHP, fill)
 	if !sp.Creating && m.NextExp > 0 {
-		p.bar(sc.img, lx-5, expY, lw+10, m.Exp-m.LevelExp, m.NextExp-m.LevelExp, goldFill)
+		p.bar(sc.img, lx-5, expY, lw+10, int(int32(m.Exp))-m.LevelExp, m.NextExp-m.LevelExp, goldFill)
 	}
 	kx, ky := p.fit(dst, sc.img, sc.w, sc.h)
 	sc.faceAt = image.Rect(int(float64(face.Min.X)*kx), int(float64(face.Min.Y)*ky), int(float64(face.Max.X)*kx), int(float64(face.Max.Y)*ky))
@@ -277,7 +296,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 // pane's inner bottom), aspect kept. The portrait (the PNG or the
 // paper-doll head) is returned to be drawn at the window's resolution
 // with hiFace: crisp pixels, never the canvas's stretch.
-func (p *Presenter) memberPane(px *image.RGBA, glyph func(byte) [8]byte, m front.Member, bottom int) (face image.Rectangle, png image.Image) {
+func (p *Presenter) memberPane(px *image.RGBA, glyph func(byte) [8]byte, m game.Member, bottom int) (face image.Rectangle, png image.Image) {
 	p.inv.load()
 	lx, lw := 8, (leftCells-2)*8
 	y := 10
@@ -287,7 +306,7 @@ func (p *Presenter) memberPane(px *image.RGBA, glyph func(byte) [8]byte, m front
 	}
 	n := max(0, min(lw, bottom-y-4-p.inv.doll.Bounds().Dy()-8))
 	face = image.Rect(lx+(lw-n)/2, y+4, lx+(lw+n)/2, y+4+n)
-	png = m.Portrait
+	png = m.Dropped
 	if png == nil {
 		png = p.portrait(m) // the paper-doll head
 	}
@@ -316,4 +335,11 @@ var bottomHelp = [3][]string{
 	{"Armour class: lower is", "better. Armour, shield,", "DEX and magic lower it."},
 	{"To hit armour class 0: roll", "a d20 of THAC0 minus the", "target's AC or more.", "Lower is better."},
 	{"Damage of the readied", "weapon, STR bonus included."},
+}
+
+// extraFields: the sheet's extra fields, label and value (empty: not
+// drawn), which both sheet layouts draw: the readied weapon and armour, the
+// load and the coins.
+func extraFields(weapon, armour, load, coins string) [4][2]string {
+	return [4][2]string{{"Weapon", weapon}, {"Armour", armour}, {"Load", load}, {"Coins", coins}}
 }

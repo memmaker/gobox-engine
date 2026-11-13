@@ -1,10 +1,8 @@
 package present
 
 import (
-	"cmp"
 	"gobox/front"
 	"gobox/game"
-	"image"
 	"slices"
 )
 
@@ -36,14 +34,7 @@ func Party(party []game.Member, cards []memberCard, sel int) []front.Member {
 		if i < len(cards) {
 			c = cards[i]
 		}
-		var head image.Image
-		if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
-			head = poolPicture("portraits", m.PortraitHeadID)
-		}
-		if head == nil && m.Dropped == nil { // no portrait: the combat icon (Buck Rogers' members have only that), else the card names the member
-			head = poolPicture("combat", cmp.Or(m.IconBodyID, m.IconHeadID))
-		}
-		out = append(out, front.Member{Head: head, Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
+		out = append(out, front.Member{Head: headOf(m), Name: m.Name, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Status: m.Status, Class: m.Class,
 			Selected: c.Chosen || !marked && i == sel, Colour: nameColour(m), Portrait: m.Dropped, Powers: powers(c.Menu),
 			Exp: int(int32(m.Exp)), LevelExp: m.LevelExp, NextExp: m.NextExp, Spells: m.SpellsReady, Memo: m.Memo})
 	}

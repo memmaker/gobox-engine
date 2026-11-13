@@ -479,14 +479,14 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			return r
 		}
 	}
-	p.drawParty(dst, v.Party, at)
+	p.drawParty(dst, partyOf(p.state()), p.cardSelected(), at)
 	p.view.DrawMenu(dst) // over the map and cards
 	p.cards = p.cards[:0]
 	for i := range v.Party {
 		p.cards = append(p.cards, cardAt(dst)(i, len(v.Party)))
 	}
 	if p.ctx == 0 && !p.campHome(v) { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
-		p.drawCardTip(dst, v)
+		p.drawCardTip(dst)
 	}
 	k := scale(dst)
 	b := dst.Bounds()
@@ -620,7 +620,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		dst.DrawImage(upload(&p.pg.toast, m), op)
 	}
 	if p.ctx > 0 && !p.campHome(v) { // the context menu: on top, nothing dimmed
-		p.drawCardTip(dst, v)
+		p.drawCardTip(dst)
 	}
 	return Rect{}
 }

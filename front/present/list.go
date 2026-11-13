@@ -304,7 +304,7 @@ func (p *Presenter) pageMenuKey(k uint16, v front.View) bool {
 		return p.screenKey(k, v)
 	}
 	if sheetUp(v) {
-		return p.sheetKey(k, v)
+		return p.sheetKey(k)
 	}
 	if askHeld(v, k) {
 		return true

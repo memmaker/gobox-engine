@@ -34,7 +34,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 	b, k := askedBattle(v), scale(dst)
 	p.mapBottom = dst.Bounds().Dy() - int(math.Ceil(k*8*fightRows)) // the line is drawn at k, whole or not
 	if b.Turn != nil {
-		for _, m := range v.Party { // whose turn: the portrait card, bottom left
+		for i, m := range v.Party { // whose turn: the portrait card, bottom left
 			if m.Selected {
 				if m.Portrait == nil && m.Head == nil { // no portrait: the member's combat icon, else no box
 					for _, u := range b.Units {
@@ -49,7 +49,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 				ck := max(1, int(k)/2) // the portrait card: its own scale (cards are not K)
 				y := p.mapBottom - (cardH+cardGap)*ck + cardFoot*ck
 				p.fightCard = image.Rect(cardGap*ck, y, cardGap*ck+cardW*ck, y+cardH*ck)
-				p.drawParty(dst, []front.Member{m}, func(int, int) image.Rectangle { return p.fightCard })
+				p.drawParty(dst, p.cardOf(i, m.Portrait), 0, func(int, int) image.Rectangle { return p.fightCard })
 			}
 		}
 	}

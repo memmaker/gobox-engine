@@ -620,7 +620,7 @@ func (c *cellPage) sheet(s *front.SheetPage, v front.View) {
 			c.str(9, 0x13, inkGreen, s.Effects)
 		}
 	}
-	for j, f := range extraFields(s) { // the cells of each: Weapon, Armour, Load, Coins
+	for j, f := range extraFields(s.Weapon, s.Armour, s.Encumbrance, s.Coins) { // the cells of each: Weapon, Armour, Load, Coins
 		at := [...][2]int{{1, 13}, {1, 14}, {1, 21}, {17, 21}}[j]
 		if f[1] != "" {
 			c.str(at[0], at[1], inkWhite, f[0])
@@ -795,11 +795,4 @@ func iconClick(ed *front.IconEditor, cx, cy int) (front.Action, bool) {
 		}
 	}
 	return front.Action{}, false
-}
-
-// extraFields: the sheet's extra fields, label and value (empty: not
-// drawn), which both sheet layouts draw: the readied weapon and armour, the
-// load and the coins.
-func extraFields(s *front.SheetPage) [4][2]string {
-	return [4][2]string{{"Weapon", s.Weapon}, {"Armour", s.Armour}, {"Load", s.Encumbrance}, {"Coins", s.Coins}}
 }

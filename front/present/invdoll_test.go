@@ -16,7 +16,7 @@ func TestDrawMemberNoDoll(t *testing.T) {
 	var p Presenter
 	p.inv.px, p.inv.doll = image.NewRGBA(image.Rect(0, 0, 200, 200)), image.NewRGBA(image.Rect(0, 0, 10, 10))
 	in := &front.Inventory{Member: -1, Doll: []*front.InvItem{{Item: 2, Name: "Sword"}}}
-	p.drawMember(in, front.View{Inventory: in}, 0, 100, 150, false)
+	p.drawMember(in, 0, 100, 150, false)
 }
 
 // The paper doll is there without SetData: NewFront (gameData) is the

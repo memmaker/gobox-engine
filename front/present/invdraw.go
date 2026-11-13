@@ -106,6 +106,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	inv := &p.inv
 	inv.shown = false
 	in := v.Inventory
+	party := partyOf(p.state())
 	if p.own(v).Ask != nil && p.q == nil { // the game's question (Heal whom?, Use it?): Draw asks it, never hidden under the items; the presenter's own (Trade to whom?) is asked over the items
 		return false
 	}
@@ -124,7 +125,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	if inv.view == nil || (inv.view.Wares == nil) != (in.Wares == nil) {
 		inv.ware, inv.wares.top = core.NoItem, 0
 	}
-	inv.shown, inv.member, inv.count, inv.glyph, inv.view = true, in.Member, len(v.Party), note.Glyph, in
+	inv.shown, inv.member, inv.count, inv.glyph, inv.view = true, in.Member, len(party), note.Glyph, in
 	if shown, k := inv.list.shown(in.Pool), inv.keep; k.row >= 0 && (len(shown) != k.n || shown[k.row].Item != k.i || k.id != "" && itemID(shown[k.row]) != k.id) { // the sold, dropped or readied item is gone (a swap puts another in its place)
 		inv.sel = core.NoItem
 		if j := slices.IndexFunc(shown, func(it front.InvItem) bool { return k.id != "" && itemID(it) == k.id }); j >= 0 { // a readied or unreadied item moved: it stays highlighted
@@ -171,7 +172,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 		inv.drawPane(&inv.wares, inv.wares.shown(in.Wares), inv.ware, true, !in.Loot, busy, lx, (split-1)*8, bottom) // the loot has no prices; a shop's goods do
 	} else {
 		inv.wares.tabs = [len(tabNames)]image.Rectangle{} // no shop: no tabs to click
-		p.drawMember(in, v, lx, lw, bottom, busy)
+		p.drawMember(in, lx, lw, bottom, busy)
 	}
 
 	// the party inventory: its title and fill, the lines, the scroll bar
@@ -212,9 +213,9 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 		x += 8 * (len(w.text) + 1)
 	}
 	x = (inv.w - x + 8) / 2
-	if shop && !toast && in.Member >= 0 && in.Member < len(v.Party) { // the shop: the choices left, the buyer right
+	if shop && !toast && in.Member >= 0 && in.Member < len(party) { // the shop: the choices left, the buyer right
 		x = 8
-		m := v.Party[in.Member]
+		m := party[in.Member]
 		s := m.Name + " " + m.Class
 		inv.text(m.Name, inv.w-8-8*len(s), rowY, white)
 		inv.text(m.Class, inv.w-8-8*len(m.Class), rowY, gray)
@@ -275,16 +276,16 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 		onBorder(inv.img, inv.glyph, lx, 0, true, []string{"Shop"}, []color.RGBA{white})
 		onBorder(inv.img, inv.glyph, rr, (ch-1)*8-8, false, []string{"party " + price(front.Money{Gold: in.Gold, Copper: in.Copper})}, []color.RGBA{col(inkYellow)})
 	}
-	if !shop && in.Member >= 0 && in.Member < len(v.Party) {
-		paneName(inv.img, inv.glyph, v.Party[in.Member].Name)
+	if !shop && in.Member >= 0 && in.Member < len(party) {
+		paneName(inv.img, inv.glyph, party[in.Member].Name)
 		if in.Stats && !in.Loot { // the member's AC and THAC0 under its items, as the sheet's
 			onBorder(inv.img, inv.glyph, lx, (ch-1)*8-8, true, []string{invStats(in)}, []color.RGBA{col(inkYellow)})
 		}
 	}
 	head := "Party Items"
 	switch {
-	case shop && in.Member >= 0 && in.Member < len(v.Party): // the shop shows the shopper's items only
-		head = v.Party[in.Member].Name
+	case shop && in.Member >= 0 && in.Member < len(party): // the shop shows the shopper's items only
+		head = party[in.Member].Name
 	case v.Battle != nil: // a fight's Use: the acting member's own items, never the party's
 		head = "Items"
 	}
@@ -315,7 +316,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	if q := p.q; q != nil && q.Ask.Kind == front.AskMember { // the presenter's member pick over the items: the members by their number keys
 		var names []string
 		var keys []byte
-		for i, m := range v.Party {
+		for i, m := range party {
 			names, keys = append(names, m.Name), append(keys, byte('1'+i))
 		}
 		p.keyWindow(dst, q.Ask.Prompt, names, keys, nil, q.Cand, false)
@@ -325,11 +326,11 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 
 // drawMember draws the member's name, portrait, hit points and paper doll
 // with the readied items in the left box.
-func (p *Presenter) drawMember(in *front.Inventory, v front.View, lx, lw, bottom int, busy bool) {
+func (p *Presenter) drawMember(in *front.Inventory, lx, lw, bottom int, busy bool) {
 	inv := &p.inv
 	inv.face, inv.facePNG = image.Rectangle{}, nil
-	if in.Member >= 0 && in.Member < len(v.Party) {
-		inv.face, inv.facePNG = p.memberPane(inv.px, inv.glyph, v.Party[in.Member], bottom)
+	if party := partyOf(p.state()); in.Member >= 0 && in.Member < len(party) {
+		inv.face, inv.facePNG = p.memberPane(inv.px, inv.glyph, party[in.Member], bottom)
 	}
 
 	// the doll and the readied items

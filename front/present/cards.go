@@ -1,8 +1,11 @@
 package present
 
 import (
+	"cmp"
 	_ "embed"
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"image"
 	"image/color"
 	"image/draw"
@@ -114,8 +117,8 @@ func (p *Presenter) setup(note Note, v front.View) {
 	p.glyph, blobber.Glyph = note.Glyph, note.Glyph
 	p.border.update(borderPieces(v))
 	menuChars = 0 // the row's spacing: the widest context menu line
-	for _, m := range v.Party {
-		lines, _, _ := powerLines(m.Powers)
+	for _, c := range cardsOf(p.state()) {
+		lines, _, _ := powerLines(powers(c.Menu))
 		for _, l := range lines {
 			menuChars = max(menuChars, len(l))
 		}
@@ -127,7 +130,7 @@ func (p *Presenter) setup(note Note, v front.View) {
 }
 
 // drawParty draws the members' cards where at puts them.
-func (p *Presenter) drawParty(dst *gpu.Image, ms []front.Member, at func(i, n int) image.Rectangle) {
+func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func(i, n int) image.Rectangle) {
 	if p.border.tiles[0] == nil {
 		return
 	}
@@ -140,9 +143,9 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []front.Member, at func(i, n in
 	}
 	for i, m := range ms {
 		d := p.cardImgs[i]
-		key := cardKey{m.Selected, m.HP, m.MaxHP, m.Status, p.portrait(m), m.Portrait != nil, 0, 0, p.border.tiles[0], m.Memo}
+		key := cardKey{i == sel, m.HP, m.MaxHP, m.Status, p.portrait(m), m.Dropped != nil, 0, 0, p.border.tiles[0], m.Memo}
 		if m.NextExp > 0 && (p.expShown || gpu.IsKeyPressed(gpu.KeyControl)) {
-			key.exp, key.nextExp = m.Exp-m.LevelExp, m.NextExp-m.LevelExp
+			key.exp, key.nextExp = int(int32(m.Exp))-m.LevelExp, m.NextExp-m.LevelExp
 		}
 		if key != p.cardKeys[i] { // the card's picture changed: redraw it (a card is a render target of its own, a pass each)
 			p.cardKeys[i] = key
@@ -154,13 +157,13 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []front.Member, at func(i, n in
 		op.GeoM.Scale(k, k)
 		op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
 		dst.DrawImage(d, op)
-		if m.Portrait != nil { // the PNG at the window's resolution (the card's 48 pixels lose its detail), the status over it
+		if m.Dropped != nil { // the PNG at the window's resolution (the card's 48 pixels lose its detail), the status over it
 			op := &gpu.DrawImageOptions{}
 			op.GeoM.Translate(float64(r.Min.X)+cardFace*k, float64(r.Min.Y)+cardFace*k)
 			if m.HP <= 0 {
 				op.ColorScale.Scale(0.35, 0.35, 0.35, 1)
 			}
-			dst.DrawImage(p.hiFace(m.Portrait, max(1, int(portraitSize*k))), op)
+			dst.DrawImage(p.hiFace(m.Dropped, max(1, int(portraitSize*k))), op)
 			if s := cardLabels[m.Status]; s != "" {
 				p.label(dst, s, r.Min.X+int((cardFace+1)*k), r.Min.Y+int((cardFace+portraitSize-9)*k), k)
 			}
@@ -172,24 +175,27 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []front.Member, at func(i, n in
 // name and class in a box beside the card, on the side away from the edge.
 // After a right click (ctx) the box is the member's context menu instead:
 // the lines of Member.Powers, the pointer's highlighted (Click acts).
-func (p *Presenter) drawCardTip(dst *gpu.Image, v front.View) {
+func (p *Presenter) drawCardTip(dst *gpu.Image) {
 	i := p.cardHover - 1
 	if p.ctx > 0 {
 		i = p.ctx - 1
 	}
-	if i < 0 || i >= len(p.cards) || i >= len(v.Party) {
+	s := p.state()
+	party := partyOf(s)
+	if i < 0 || i >= len(p.cards) || i >= len(party) {
 		return
 	}
-	m := v.Party[i]
+	m := party[i]
+	exp := int(int32(m.Exp))
 	lines, sel := []string{m.Name, m.Class}, -1
 	if m.NextExp > 0 { // the experience and what the next level takes
-		lines = append(lines, "Exp "+strconv.Itoa(m.Exp)+" / "+strconv.Itoa(m.NextExp))
+		lines = append(lines, "Exp "+strconv.Itoa(exp)+" / "+strconv.Itoa(m.NextExp))
 	} else {
-		lines = append(lines, "Exp "+strconv.Itoa(m.Exp))
+		lines = append(lines, "Exp "+strconv.Itoa(exp))
 	}
 	var keys []byte
 	if p.ctx > 0 {
-		lines, p.ctxActs, keys = powerLines(m.Powers)
+		lines, p.ctxActs, keys = powerLines(powers(cardsOf(s)[i].Menu))
 		sel, p.ctxKeys = p.ctxSel, keys
 		if len(lines) == 0 { // nothing to do (a fight began)
 			p.ctx = 0
@@ -352,14 +358,14 @@ type cardKey struct {
 }
 
 // drawCard draws m's card into d (scale 1): border, face, status, bars.
-func (p *Presenter) drawCard(d *gpu.Image, m front.Member, key cardKey) {
+func (p *Presenter) drawCard(d *gpu.Image, m game.Member, key cardKey) {
 	d.Clear()
 	t := p.border.tiles
-	if !m.Selected {
+	if !key.selected {
 		t = p.border.grey
 	}
 	window(d, t, gpu.GeoM{}, cardW/8, frameH/8, color.Black)
-	if f := p.portrait(m); f != nil && m.Portrait == nil { // a PNG is drawn at the window's resolution below
+	if f := p.portrait(m); f != nil && m.Dropped == nil { // a PNG is drawn at the window's resolution below
 		g, ok := p.faceImgs[f]
 		if !ok {
 			g = gpu.NewImageFromImage(f)
@@ -371,12 +377,12 @@ func (p *Presenter) drawCard(d *gpu.Image, m front.Member, key cardKey) {
 			op.ColorScale.Scale(0.35, 0.35, 0.35, 1)
 		}
 		d.DrawImage(g, op)
-	} else if m.Portrait == nil { // no face yet: the name, so a member pick works before portraits exist
+	} else if m.Dropped == nil { // no face yet: the name, so a member pick works before portraits exist
 		for i, l := range nameLines(m.Name, portraitSize/8, portraitSize/10) {
 			p.label(d, l, cardFace, cardFace+10*i, 1)
 		}
 	}
-	if s := cardLabels[m.Status]; s != "" && m.Portrait == nil {
+	if s := cardLabels[m.Status]; s != "" && m.Dropped == nil {
 		p.label(d, s, cardFace+1, cardFace+portraitSize-9, 1)
 	}
 	if m.Memo != "" { // on the portrait's bottom border, centred
@@ -498,16 +504,40 @@ var cardLabels = map[string]string{
 
 // portrait is m's card art: the PNG the player dropped on the sheet, fitted
 // into the PortraitSize square, on its bottom edge (cached), else the paper-doll head's face.
-func (p *Presenter) portrait(m front.Member) image.Image {
-	if m.Portrait == nil {
-		return p.face(m.Head)
+func (p *Presenter) portrait(m game.Member) image.Image {
+	if m.Dropped == nil {
+		return p.face(headOf(m))
 	}
-	if f, ok := p.faces[m.Portrait]; ok {
+	if f, ok := p.faces[m.Dropped]; ok {
 		return f
 	}
-	f := fitSquare(m.Portrait, portraitSize)
-	p.faces[m.Portrait] = f
+	f := fitSquare(m.Dropped, portraitSize)
+	p.faces[m.Dropped] = f
 	return f
+}
+
+// headOf is the paper-doll head the card shows: the pool's face (a default
+// pick when none is chosen), else the combat icon (Buck Rogers' members have
+// only that), nil when the member has a PNG portrait or no art.
+func headOf(m game.Member) image.Image {
+	m = defaultPortrait(m)
+	var head image.Image
+	if m.Dropped == nil && m.PortraitHeadID != "" { // the card shows the face: the head alone, its lit part filling the square (present's face), not the whole wide head fitted
+		head = poolPicture("portraits", m.PortraitHeadID)
+	}
+	if head == nil && m.Dropped == nil {
+		head = poolPicture("combat", cmp.Or(m.IconBodyID, m.IconHeadID))
+	}
+	return head
+}
+
+// cardSelected is the card drawn marked: the candidate while a member is
+// picked (the presenter's question), else the selected member.
+func (p *Presenter) cardSelected() int {
+	if q := p.q; q != nil && q.Ask.Kind == front.AskMember {
+		return q.Cand
+	}
+	return play.CommonOf(p.state()).Selected
 }
 
 // hiFace is a PNG portrait at n pixels square for a card at the window's
@@ -602,4 +632,13 @@ func nameLines(name string, w, rows int) []string {
 		}
 	}
 	return out[:min(len(out), rows)]
+}
+
+// cardOf is member i alone, with the PNG portrait img (nil: its own).
+func (p *Presenter) cardOf(i int, img image.Image) []game.Member {
+	m := partyOf(p.state())[i]
+	if img != nil {
+		m.Dropped = img
+	}
+	return []game.Member{m}
 }

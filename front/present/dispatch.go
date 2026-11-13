@@ -313,7 +313,7 @@ func (p *Presenter) Click(x, y int) bool {
 	if p.pageMenu {
 		for i, r := range p.winRects {
 			if image.Pt(x, y).In(r) && sheetUp(p.shownView) {
-				p.sheetItems(p.shownView)[i].Do()
+				p.sheetItems()[i].Do()
 				return true
 			}
 			if image.Pt(x, y).In(r) {

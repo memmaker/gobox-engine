@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 )
 
@@ -14,8 +15,8 @@ func TestHoverRowNotSelected(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{} }, Font: func(byte, bool) [8]byte { return [8]byte{} }}
-	v := front.View{Party: []front.Member{{Name: "Kade", Selected: true}}, Inventory: &front.Inventory{Member: 0, Pool: []front.InvItem{{Item: 1, Name: "Mace"}, {Item: 2, Name: "Sling"}}}}
-	p := &Presenter{}
+	v := front.View{Inventory: &front.Inventory{Member: 0, Pool: []front.InvItem{{Item: 1, Name: "Mace"}, {Item: 2, Name: "Sling"}}}}
+	p := partyOn(game.Member{Name: "Kade"})
 	p.Inventory(dst, note, v)
 	var rows []image.Rectangle
 	for _, h := range p.inv.lines {

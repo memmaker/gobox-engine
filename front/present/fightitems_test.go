@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 )
 
@@ -16,8 +17,8 @@ func TestFightItemsTitle(t *testing.T) {
 	var drawn strings.Builder
 	g := func(c byte) [8]byte { drawn.WriteByte(c); return [8]byte{} }
 	note := Note{Glyph: g, Font: func(c byte, _ bool) [8]byte { return g(c) }}
-	v := front.View{Party: []front.Member{{Name: "Kade", Selected: true}}, Battle: &front.Battle{}, Inventory: &front.Inventory{Member: 0}}
-	(&Presenter{}).Inventory(dst, note, v)
+	v := front.View{Battle: &front.Battle{}, Inventory: &front.Inventory{Member: 0}}
+	partyOn(game.Member{Name: "Kade"}).Inventory(dst, note, v)
 	if s := strings.ToUpper(drawn.String()); !strings.Contains(s, "ITEMS") || strings.Contains(s, "PARTY ITEMS") {
 		t.Fatalf("drawn %q", drawn.String())
 	}
