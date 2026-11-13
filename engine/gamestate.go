@@ -21,7 +21,7 @@ func (e *Engine) partyState() (party []game.Member, selected int) {
 			LevelExp: m.LevelExp, NextExp: m.NextExp, SpellsReady: m.Spells, Memo: m.Memo}
 		if i < e.partySize() {
 			id := e.partyIDs()[i]
-			poolState(e.fact(id, rules.PoolPicsFact{}).(rules.PoolPics), &gm)
+			poolState(e.poolPics(id), &gm)
 			e.iconState(id, &gm)
 			gm.Stats = map[string]int{}
 			scores := e.ruleset().Sheet(id).Scores
@@ -369,7 +369,7 @@ func (e *Engine) creationState(cr *creation) *game.Draft {
 	e.applyItems(id)
 	e.combatStats(id, &sp)
 	d.AC, d.THAC0, d.Move, d.Age = sp.AC, sp.THAC0, sp.Move, int(sh.Age)
-	poolState(e.fact(id, rules.PoolPicsFact{}).(rules.PoolPics), &d)
+	poolState(e.poolPics(id), &d)
 	e.iconState(id, &d)
 	cl := e.Creation()
 	mins := map[string]int{}
