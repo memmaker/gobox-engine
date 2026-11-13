@@ -11,7 +11,7 @@ import (
 // under the main menu.
 func StartSequence() *importer.Sequence {
 	pic := func(b int) importer.SequenceStep {
-		return importer.SequenceStep{Kind: importer.StepPicture, Whole: true, Layers: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: b}, At: wholePage}}}
+		return importer.SequenceStep{Kind: importer.StepPicture, Whole: true, Credits: b == titleCredits, Layers: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: b}, At: wholePage}}}
 	}
 	return &importer.Sequence{
 		Steps:    []importer.SequenceStep{{Kind: importer.StepAnim, Anim: "INTRO", Song: "P1"}, pic(3), pic(1), pic(2)},
@@ -24,6 +24,9 @@ func StartSequence() *importer.Sequence {
 func EndSequence() *importer.Sequence {
 	return &importer.Sequence{Steps: []importer.SequenceStep{{Kind: importer.StepAnim, Anim: "FINAL", Song: "P3"}}}
 }
+
+// titleCredits is the TITLE block that is the credits picture.
+const titleCredits = 3
 
 // wholePage is the 40x25 page.
 var wholePage = importer.Cells{X2: 39, Y2: 24}

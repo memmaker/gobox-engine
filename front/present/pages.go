@@ -315,11 +315,7 @@ func (c *cellPage) texts(v front.View) {
 			}
 			c.str(l.X+dx, y, l.Colour, l.Text) // a row above 1 (a title on the frame's top edge) stays where it is
 		}
-		if c.rows-6 > y2 { // on a page taller than the original's
-			for i, s := range remasterCredit {
-				c.str((c.cols-len(s))/2, c.rows-3+i, inkYellow, s)
-			}
-		}
+		c.remasterCredit()
 		return
 	}
 	if v.Credits { // the original's boxes, an edge on its page's following this page's
@@ -385,11 +381,30 @@ func (c *cellPage) texts(v front.View) {
 			}
 			c.str(l.X+dx, y, l.Colour, l.Text)
 		}
-		if c.rows-3 >= last.Y+gaps+extra+2 { // the remaster's own lines, on a page tall enough
-			for i, s := range remasterCredit {
-				c.str((c.cols-len(s))/2, c.rows-4+i, inkYellow, s)
-			}
-		}
+		c.remasterCredit()
+	}
+}
+
+// remasterLines is the remaster's one credit line, gobox's for every game: on
+// every credits page and over every credits picture. Split in two where the
+// window is too narrow for it in one row.
+var remasterLines = [2]string{"Opinionated Remaster", "directed by Felix Ruzzoli using Claude"}
+
+// remasterRows is remasterLines in the rows a page cols cells wide shows
+// them: one, or two when the whole line does not fit with a cell each side.
+func remasterRows(cols int) []string {
+	if s := remasterLines[0] + " " + remasterLines[1]; len(s) <= cols-2 {
+		return []string{s}
+	}
+	return remasterLines[:]
+}
+
+// remasterCredit puts the remaster credit centred in yellow, its last row
+// the one above the frame's bottom edge (rows-3).
+func (c *cellPage) remasterCredit() {
+	rows := remasterRows(c.cols)
+	for i, s := range rows {
+		c.str((c.cols-len(s))/2, c.rows-2-len(rows)+i, inkYellow, s)
 	}
 }
 

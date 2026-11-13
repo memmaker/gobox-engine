@@ -11,12 +11,11 @@ import (
 
 // The "edges" credits: one frame closing on the page's edges, the original's
 // rows spread over the taller page, the block centred, the remaster's lines
-// in the two rows above the bottom frame.
+// in the rows above the bottom frame.
 func TestCreditEdges(t *testing.T) {
-	old, oldBoxes, oldRC := credits, creditBoxes, remasterCredit
-	defer func() { credits, creditBoxes, remasterCredit = old, oldBoxes, oldRC }()
+	old, oldBoxes := credits, creditBoxes
+	defer func() { credits, creditBoxes = old, oldBoxes }()
 	credits, creditBoxes = []Credit{{X: 2, Y: 1, Colour: 14, Text: "TITLE"}, {X: 2, Y: 3, Colour: 15, Text: "LEFT"}, {X: 21, Y: 3, Colour: 15, Text: "RIGHT COLUMN"}, {X: 2, Y: 23, Colour: 10, Text: "LAST"}}, nil
-	remasterCredit = [2]string{"Opinionated Remaster", "directed by"}
 	c := screenPage(front.View{Cells: image.Pt(60, 40), Credits: true})
 	if !slices.Contains(c.boxes, front.CellRect{X1: 1, Y1: 1, X2: 58, Y2: 38}) {
 		t.Fatalf("no frame on the page's edges: %v", c.boxes)
@@ -38,7 +37,7 @@ func TestCreditEdges(t *testing.T) {
 	if at["TITLE"] != image.Pt(14, 1) || at["LAST"] != image.Pt(14, 34) || at["RIGHT COLUMN"].X != 33 {
 		t.Errorf("lines at %v", at)
 	}
-	if at["Opinionated Remaster"] != image.Pt(20, 37) || at["directed by"].Y != 38 {
+	if at[remasterLines[0]] != image.Pt(20, 36) || at[remasterLines[1]].Y != 37 { // 60 cells: too narrow for one row
 		t.Errorf("remaster lines at %v", at)
 	}
 }

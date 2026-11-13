@@ -52,8 +52,8 @@ func TestStartIsPORTitle(t *testing.T) {
 		t.Errorf("short intro %+v", short.Intro)
 	}
 	d := e.Data()
-	if len(d.CreditLines) != len(seq.Credits) || len(d.CreditBoxes) != 2 || d.RemasterCredit != seq.Remaster {
-		t.Errorf("credits %d lines, boxes %v, remaster %q", len(d.CreditLines), d.CreditBoxes, d.RemasterCredit)
+	if len(d.CreditLines) != len(seq.Credits) || len(d.CreditBoxes) != 2 {
+		t.Errorf("credits %d lines, boxes %v", len(d.CreditLines), d.CreditBoxes)
 	}
 }
 
@@ -84,7 +84,7 @@ func TestEndIsPORFinale(t *testing.T) {
 
 // TestImportedStartCarriesCredits: the imported manifest's Start (data/por,
 // written by `gobox import`) carries start()'s credits page: its step, lines,
-// boxes and the remaster's lines.
+// boxes.
 func TestImportedStartCarriesCredits(t *testing.T) {
 	b, err := os.ReadFile("../../../data/por/manifest.json")
 	if err != nil {
@@ -98,7 +98,7 @@ func TestImportedStartCarriesCredits(t *testing.T) {
 	if m.Start == nil || !slices.ContainsFunc(m.Start.Steps, func(s importer.SequenceStep) bool { return s.Kind == importer.StepCredits }) {
 		t.Fatalf("imported Start has no credits step: %+v", m.Start)
 	}
-	if !reflect.DeepEqual(m.Start.Credits, want.Credits) || !reflect.DeepEqual(m.Start.Boxes, want.Boxes) || m.Start.Remaster != want.Remaster {
-		t.Errorf("imported credits %+v %+v %q\nwant %+v %+v %q (reimport)", m.Start.Credits, m.Start.Boxes, m.Start.Remaster, want.Credits, want.Boxes, want.Remaster)
+	if !reflect.DeepEqual(m.Start.Credits, want.Credits) || !reflect.DeepEqual(m.Start.Boxes, want.Boxes) {
+		t.Errorf("imported credits %+v %+v\nwant %+v %+v (reimport)", m.Start.Credits, m.Start.Boxes, want.Credits, want.Boxes)
 	}
 }

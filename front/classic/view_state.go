@@ -101,10 +101,7 @@ func (r *rules) pageOf(ps play.State) *game.Page {
 	if t, ok := ps.(play.Scene); ok {
 		pg := r.page(t)
 		if t.Kind == play.SceneTitle && !r.title.credits {
-			n := r.title.n
-			if n == 0 && t.Intro != nil && len(t.Intro.Pictures) > 0 { // before gobox's first step: that step's picture already
-				n = t.Intro.Pictures[0]
-			}
+			n := r.titleStep(t)
 			pg.Layers = append(pg.Layers, t.Steps[n].Layers...)
 			for _, line := range t.Steps[n].Text { // the step's words, over its picture
 				pg.Pane = append(pg.Pane, r.run(line))
@@ -129,6 +126,7 @@ func (r *rules) flagsOf(ps play.State, party []game.Member) *game.Flags {
 		f.Full = t.Full
 		if t.Kind == play.SceneTitle {
 			f.Credits, f.CreditPage = r.title.credits, r.title.page
+			f.CreditsPic = !r.title.credits && t.Steps[r.titleStep(t)].Credits
 		}
 	}
 	return f
@@ -442,3 +440,12 @@ func (g *Game) SheetUp() *game.SheetPage { return g.r.sheetPageOf(g.r.g.State(),
 func (g *Game) Shop() *game.Shop         { return shopOf(g.r.g.State()) }
 func (g *Game) Training() *game.Training { return trainingOf(g.r.g.State()) }
 func (g *Game) ItemsUp() game.ItemsUp    { return g.r.itemsUp(g.r.g.State()) }
+
+// titleStep is the Steps key of the title step shown: before gobox's first
+// step, that step's picture already.
+func (r *rules) titleStep(t play.Scene) int {
+	if n := r.title.n; n != 0 || t.Intro == nil || len(t.Intro.Pictures) == 0 {
+		return n
+	}
+	return t.Intro.Pictures[0]
+}

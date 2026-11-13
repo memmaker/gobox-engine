@@ -258,6 +258,7 @@ type Flags struct {
 	Inside     bool // the party stands on an inside square
 	Ordering   bool // the camp's party order bar is up
 	Credits    bool // the title's credits page
+	CreditsPic bool `json:",omitempty"` // the title step shows the game's credits as a picture (TitleStep.Credits)
 	CreditPage int  `json:",omitempty"` // which one (Credit.Page) while Credits
 	Full       bool // the pictures are one whole-screen picture
 	IconDrop   bool // the combat icon designer is up
@@ -874,7 +875,6 @@ type Data struct {
 
 	DoorInk, SelectInk color.RGBA     // a door's colour on the maps; the frame round the selected box (zero: gobox's)
 	Logo               *Logo          // how the main menu's lettering is cut from the title picture (nil: none)
-	RemasterCredit     [2]string      `json:"-"` // the remaster's own lines at the bottom of the credits page
 	TitleBackdrop      []Layer        `json:"-"` // the title's picture under the main menu, none of Intro.Pictures' timed steps: gobox draws it once the title is done, fitted, and zooms the menu in over it (nil: none)
 	AreaMaps           map[int]string `json:"-"` // the remastered 3D map (Remaster maps/NAME.map) of each area id
 	Remaster           fs.FS          `json:"-"` // the remastered art: maps/NAME.map and assets/walls/walls.txt

@@ -53,11 +53,10 @@ type Data struct {
 
 	Logo LogoCut // how the main menu's lettering is cut from View.Logo
 
-	Credits        []Credit
-	RemasterCredit [2]string
-	CreditGaps     []int // the credits' rows a blank row follows on a tall page, as many as fit from the first (nil: 4, 5, 6)
-	IconParts      []string
-	SpellRules     []string // what each spell does, by spell id (the camp's spell tips; "" none)
+	Credits    []Credit
+	CreditGaps []int // the credits' rows a blank row follows on a tall page, as many as fit from the first (nil: 4, 5, 6)
+	IconParts  []string
+	SpellRules []string // what each spell does, by spell id (the camp's spell tips; "" none)
 
 	ReadyMark string // shown before a readied item's name (InvItem.Readied), "": "*")
 
@@ -82,7 +81,6 @@ var (
 	selectInk                        color.RGBA
 	rests                            []Rest
 	credits                          []Credit
-	remasterCredit                   [2]string
 	creditGaps                       []int
 	creditBoxes                      []image.Rectangle // game.Data.CreditBoxes
 	titleBackdrop                    []game.Layer      // game.Data.TitleBackdrop
@@ -118,7 +116,7 @@ func SetData(d Data) {
 	}
 	doorRGBA, labelInks, selectInk = d.DoorRGBA, d.LabelInks, d.SelectInk
 	rests = d.Rests
-	credits, remasterCredit, iconParts, spellRules = d.Credits, d.RemasterCredit, d.IconParts, d.SpellRules
+	credits, iconParts, spellRules = d.Credits, d.IconParts, d.SpellRules
 	if creditGaps = d.CreditGaps; creditGaps == nil {
 		creditGaps = []int{4, 5, 6}
 	}
@@ -357,9 +355,6 @@ func gameData(g game.Data) {
 	}
 	if l := g.Logo; l != nil {
 		logoCut = LogoCut(*l)
-	}
-	if g.RemasterCredit != ([2]string{}) {
-		remasterCredit = g.RemasterCredit
 	}
 	if g.AreaMaps != nil {
 		areaMaps = map[front.AreaID]string{}

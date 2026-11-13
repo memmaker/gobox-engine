@@ -271,9 +271,10 @@ type Scene struct {
 
 // TitleStep is one title picture step: its layers and the tune it starts.
 type TitleStep struct {
-	Layers []game.Layer
-	Song   string   // the song's name, or its number as text ("3": the game's song 3, as EvSong N)
-	Text   []string // the paragraphs said over the step (colours are gobox's)
+	Layers  []game.Layer
+	Song    string   // the song's name, or its number as text ("3": the game's song 3, as EvSong N)
+	Text    []string // the paragraphs said over the step (colours are gobox's)
+	Credits bool     // the picture is the game's credits (importer.SequenceStep.Credits)
 }
 
 // DoorWay is a way to try a door.

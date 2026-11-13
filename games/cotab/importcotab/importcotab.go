@@ -23,7 +23,7 @@ import (
 
 func init() {
 	importer.Register(importer.Game{
-		ID: "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: RecordLayout, Version: 10, // 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb)
+		ID: "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: RecordLayout, Version: 11, // 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's)
 		Sources: []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR"},
 		Import:  Import,
 		Start:   importer.Fixed(start()),
@@ -51,7 +51,6 @@ func start() *importer.Sequence {
 		},
 		Backdrop: []importer.Layer{painting, {Art: importer.Art{File: "TITLE", Block: 3}, At: importer.Cells{X1: 6, Y1: 11, X2: 35, Y2: 24}}},
 		Credits:  credits,
-		Remaster: [2]string{"Opinionated Remaster", "directed by Felix Ruzzoli using Claude"}, // the remaster's own lines, as POR's and Buck Rogers'
 		Short:    []int{0},
 		Full:     true, // CURSE.CFG's default; the host's Full intro option starts from it
 	}

@@ -48,7 +48,7 @@ func TitleScene(s importer.Sequence, full bool, g importer.Graphics, cm Common, 
 		}
 		switch st.Kind {
 		case importer.StepPicture:
-			ts := TitleStep{Song: st.Song, Text: st.Text}
+			ts := TitleStep{Song: st.Song, Text: st.Text, Credits: st.Credits}
 			for _, l := range st.Layers {
 				p, err := pic(l.Art)
 				if err != nil {
@@ -139,8 +139,8 @@ func placed(l importer.Layer, w, h int) image.Rectangle {
 // it today (Scene today, Data d): picture step i has the layers of
 // today.Steps[today.Intro.Pictures[i]] (with the credits page 0 gobox adds
 // after two or more pictures, front/title.go), a credits step its page, Backdrop
-// d's TitleBackdrop, Credits and Remaster d's
-// CreditLines and RemasterCredit. Pictures compare by File and Block (pixels
+// d's TitleBackdrop, Credits d's
+// CreditLines. Pictures compare by File and Block (pixels
 // unloaded, Clear -1); a Centred layer takes today's size. Songs are not compared. For the importers' tests.
 func TitleDiffs(s importer.Sequence, today Scene, d game.Data) (diffs []string) {
 	layers := func(ls []importer.Layer, today []game.Layer) (out []game.Layer) {
@@ -192,8 +192,8 @@ func TitleDiffs(s importer.Sequence, today Scene, d game.Data) (diffs []string) 
 	for _, c := range s.Credits {
 		lines = append(lines, game.Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
 	}
-	if !reflect.DeepEqual(lines, d.CreditLines) || s.Remaster != d.RemasterCredit {
-		diffs = append(diffs, fmt.Sprintf("credits %q %+v\nwant %q %+v", s.Remaster, lines, d.RemasterCredit, d.CreditLines))
+	if !reflect.DeepEqual(lines, d.CreditLines) {
+		diffs = append(diffs, fmt.Sprintf("credits %+v\nwant %+v", lines, d.CreditLines))
 	}
 	return diffs
 }

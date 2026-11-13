@@ -46,7 +46,6 @@ type title struct {
 	credits     []game.Credit
 	boxes       []image.Rectangle
 	backdrop    []game.Layer
-	remaster    [2]string
 	seqs        []game.Sequence   // the full-screen animations State.Sequence names (SetEnd)
 	end         *play.Scene       // the end sequence of pictures (SetEnd)
 	after       []importer.Effect // what the end leaves in the game (SetEnd)
@@ -110,7 +109,6 @@ func (e *Engine) SetStart(s *importer.Sequence) error {
 	if t.credits, t.boxes, t.backdrop, err = play.TitleData(*s, e.titleArt); err != nil {
 		return err
 	}
-	t.remaster = s.Remaster
 	e.title = t
 	return nil
 }

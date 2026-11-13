@@ -516,7 +516,8 @@ type View struct {
 	ViewText      [][]PaneRun    // text over the view window (WinText: opProtection's runes), rows from 1, X the page's column
 	Results       *Results       // the after-combat page (in a box round the window)
 	CreditPage    int            // which credits page (Credit.Page) while Credits
-	Credits       bool           // the title's credits page (Credits, RemasterCredit)
+	Credits       bool           // the title's credits page (Credits)
+	CreditsPic    bool           // the title step is the game's credits as a picture: the presenter adds its remaster credit line
 	Sequence      *Sequence      // a full-screen animation plays (SequenceStep, SequenceDone)
 	Intro         *Intro         // the title waits to be played (TitlePicture, TitleCredits, TitleDone)
 	Full          bool           // Pictures are one whole-screen picture (the title's): fitted to the window

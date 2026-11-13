@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"gobox/gpu"
+	"gobox/ui"
 )
 
 // drawGeneric draws a page that has no screen of its own (a script's
@@ -29,11 +30,20 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 		}
 	}
 	if (v.Full && (v.Pane == nil || !v.Pane.Shown()) || v.Intro != nil) && len(art) > 0 { // a whole-screen picture, a title's: fitted, its aspect kept, centred, sharp (bars only on a screen of another shape)
-		s := math.Min(float64(b.Dx())/float64(box.Dx()), float64(b.Dy())/float64(box.Dy()))
+		area := b
+		var strip image.Rectangle
+		if v.CreditsPic { // the game's credits picture: the picture above a K-sized row of the remaster credit, so it covers none of the picture's text
+			strip = creditStrip(b)
+			area.Max.Y = strip.Min.Y
+		}
+		s := math.Min(float64(area.Dx())/float64(box.Dx()), float64(area.Dy())/float64(box.Dy()))
 		op := &gpu.DrawImageOptions{}
 		op.GeoM.Scale(s, s)
-		op.GeoM.Translate((float64(b.Dx())-s*float64(box.Dx()))/2, (float64(b.Dy())-s*float64(box.Dy()))/2)
+		op.GeoM.Translate((float64(area.Dx())-s*float64(box.Dx()))/2, (float64(area.Dy())-s*float64(box.Dy()))/2)
 		dst.DrawImage(pictureBox(&p.pg.pic, art, box), op)
+		if v.CreditsPic {
+			p.drawCreditStrip(dst, note, strip)
+		}
 		p.drawPageMenu(dst, note, v)
 		return Rect{0, 0, float64(b.Dx()), float64(b.Dy())}
 	}
@@ -85,4 +95,36 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, v front.View, note Note) Rect {
 		p.drawMenu(dst, note.Glyph, "", []string{text}, nil, nil, -1, mk, cx, int(float64(b.Dy()-int(th))/2)-int(mk*12))
 	}
 	return Rect{0, 0, float64(b.Dx()), float64(b.Dy())}
+}
+
+// creditStrip is where the remaster credit goes over a credits picture on
+// window b: the bottom rows of cells, 8*K pixels each, as wide as the grid.
+func creditStrip(b image.Rectangle) image.Rectangle {
+	k := int(ui.Scale(b))
+	cols := b.Dx() / (8 * k)
+	h := len(remasterRows(cols)) * 8 * k
+	w := cols * 8 * k
+	return image.Rect(b.Min.X+(b.Dx()-w)/2, b.Max.Y-h, b.Min.X+(b.Dx()+w)/2, b.Max.Y)
+}
+
+// drawCreditStrip draws the remaster credit, yellow on black, at K into strip.
+func (p *Presenter) drawCreditStrip(dst *gpu.Image, note Note, strip image.Rectangle) {
+	k := int(scale(dst))
+	cols := strip.Dx() / (8 * k)
+	rows := remasterRows(cols)
+	m := image.NewRGBA(image.Rect(0, 0, cols*8, len(rows)*8))
+	for y, s := range rows {
+		for i := range s {
+			glyphAt(m, note.Font(s[i], true), ((cols-len(s))/2+i)*8, y*8, egaInk[inkYellow], egaInk[inkBlack])
+		}
+	}
+	gpu.Sized(&p.pg.credit, m.Rect.Dx(), m.Rect.Dy())
+	p.pg.credit.WritePixels(m.Pix)
+	if drawnAt != nil {
+		drawnAt(drawnPage, dst, float64(k))
+	}
+	op := &gpu.DrawImageOptions{}
+	op.GeoM.Scale(float64(k), float64(k))
+	op.GeoM.Translate(float64(strip.Min.X), float64(strip.Min.Y))
+	dst.DrawImage(p.pg.credit, op)
 }

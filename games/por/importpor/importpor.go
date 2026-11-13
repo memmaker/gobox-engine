@@ -17,7 +17,8 @@ import (
 
 func init() {
 	importer.Register(importer.Game{
-		ID: "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: pool.RecordLayout,
+		ID: "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: pool.RecordLayout, Version: 1, // 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
+
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},
 		Import:  Import,
 		Start:   importer.Fixed(start()),
@@ -43,8 +44,7 @@ func start() *importer.Sequence {
 		Boxes:    []importer.Cells{{X1: 1, Y1: 1, X2: 38, Y2: 3}, {X1: 1, Y1: 5, X2: 38, Y2: 23}},
 		Backdrop: []importer.Layer{{Art: importer.Art{File: "TITLE.PNG", Kind: importer.ArtPNG}, At: whole}},
 		Short:    []int{0},
-		Full:     true,                                                                        // POOL.CFG's default
-		Remaster: [2]string{"Opinionated Remaster", "directed by Felix Ruzzoli using Claude"}, // extra: centred, yellow, from three rows over the prompt row, on a page tall enough for them
+		Full:     true, // POOL.CFG's default
 		Credits:  credits,
 	}
 	return q

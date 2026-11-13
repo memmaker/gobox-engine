@@ -17,7 +17,7 @@ import (
 // Bonds' characters, rules/charimport.go), its font and window border.
 func GameData(adv string) game.Data {
 	d := game.Data{Series: "pool", ID: "sotsb", Adventure: adv, SpellRules: spellTips(), Imports: []string{"cotab"}, QuickParty: quickParty, TitleBackdrop: titleLayers[titleBanner],
-		LabelInks: PoiColour[:], MapCell: 10, CreditLines: Credits, RemasterCredit: RemasterCredit, MusicPlaces: MusicPlaces(), Scans: book().Picture, // the credits page (0x36e) on the screen frame alone, its lines at their cells (the two boxes put a divider through them)
+		LabelInks: PoiColour[:], MapCell: 10, CreditLines: Credits, MusicPlaces: MusicPlaces(), Scans: book().Picture, // the credits page (0x36e) on the screen frame alone, its lines at their cells (the two boxes put a divider through them)
 		Font: "Gold_Box_8x8D1",
 		Confirms: map[string]game.Confirm{ // the original's words: O100:0994, O100:2C77, O0EF:23DA (both on No)
 			"Drop":         {Asks: []string{"Your %s\nwill be gone forever\n\nDrop It?"}},
@@ -189,10 +189,6 @@ const (
 // 2 waits for the song): inferred, the effects' meanings were not traced.
 var AmigaMusic = &game.AmigaMusic{Songs: "SECRET.MX", Effects: "sounds.glb",
 	SongOf: map[int]int{titleSongN: 0, songCombat: 1, songTreasure: 2, songTraining: 3, songPartyDead: 4, songPicture75: 5, songPicture76: 6}, EffectOf: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}}
-
-// RemasterCredit is the remaster's own lines, centred in the credits page's
-// two bottom rows (as POR's rules.RemasterCredit).
-var RemasterCredit = [2]string{"Opinionated Remaster", "directed by Felix Ruzzoli using Claude"}
 
 // partyCommands are the game's own party commands.
 var partyCommands = []play.Option{{Label: "Add from Curse", Key: 'U', Do: play.AddCharacter{Roster: -1, From: "cotab"}}}

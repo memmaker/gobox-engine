@@ -15,7 +15,7 @@ import (
 
 func init() {
 	importer.Register(importer.Game{
-		ID: "sotsb", Title: "Secret of the Silver Blades", Release: 1990, Ruleset: "rules1e", Record: RecordLayout, Version: 10, // 1: imported for pool (Sw-sotsb); 2: MON records as the rules' Sheet (Pf); 3: GameTables.Art, items as char.Item (Pg); 4: Hold tips (Rz); 5: groundIds, itemKinds, spiritualHammer (Ph); 6: randomTreasure, appraisal (Pi); 7: scripts gold only (Gc); 8: randomTreasure from rules1e's treasure/sotsb.json (Ct); 9: area 16 gem trade 1 per 500 gold (Df); 10: Word7B90, Word7BC2 16-cell text arrays (Tb)
+		ID: "sotsb", Title: "Secret of the Silver Blades", Release: 1990, Ruleset: "rules1e", Record: RecordLayout, Version: 11, // 1: imported for pool (Sw-sotsb); 2: MON records as the rules' Sheet (Pf); 3: GameTables.Art, items as char.Item (Pg); 4: Hold tips (Rz); 5: groundIds, itemKinds, spiritualHammer (Ph); 6: randomTreasure, appraisal (Pi); 7: scripts gold only (Gc); 8: randomTreasure from rules1e's treasure/sotsb.json (Ct); 9: area 16 gem trade 1 per 500 gold (Df); 10: Word7B90, Word7BC2 16-cell text arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits on the Amiga card
 		Sources: []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR"},
 		Import:  Import,
 		Start:   importer.Fixed(start()),
@@ -38,12 +38,11 @@ func start() *importer.Sequence {
 		Steps: []importer.SequenceStep{
 			{Kind: importer.StepPicture, Layers: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: 1}, At: whole}}, Song: "2"},
 			{Kind: importer.StepCredits},
-			{Kind: importer.StepPicture, Layers: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: 5}, At: importer.Cells{X1: 4, Y1: 2, X2: 35, Y2: 22}, Centred: true}}, Edition: importer.EditionAmiga},
+			{Kind: importer.StepPicture, Layers: []importer.Layer{{Art: importer.Art{File: "TITLE", Block: 5}, At: importer.Cells{X1: 4, Y1: 2, X2: 35, Y2: 22}, Centred: true}}, Edition: importer.EditionAmiga, Credits: true},
 			{Kind: importer.StepPicture, Layers: []importer.Layer{painting}},
 			{Kind: importer.StepPicture, Layers: []importer.Layer{painting, {Art: importer.Art{File: "TITLE", Block: 3}, At: importer.Cells{X1: 2, Y1: 5, X2: 37, Y2: 15}}}},
 		},
 		Backdrop: []importer.Layer{painting, {Art: importer.Art{File: "TITLE", Block: 4}, At: importer.Cells{X1: 5, Y1: 5, X2: 35, Y2: 15}}},
-		Remaster: RemasterCredit,
 	}
 	for _, c := range Credits {
 		q.Credits = append(q.Credits, importer.Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})

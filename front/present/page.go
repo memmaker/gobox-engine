@@ -34,22 +34,23 @@ type Note struct {
 // page is the engine's screen (pageSize: 320x200 at least) drawn from the
 // View's Page and Text.
 type page struct {
-	img   *gpu.Image
-	px    *image.RGBA
-	seq   uint64
-	noted bool
-	own   string // the presenter's screens it shows (Screens)
-	edit  string // the icon editor's content it shows (iconKey)
-	drawn bool
-	page  []front.Picture      // what img shows: the View's pictures...
-	text  string               // ...and text (pageText)
-	overs []overlay            // the screens' portraits over the page
-	scans map[image.Image]scan // the overlays on the GPU
-	fit   *gpu.Image           // fit's whole-scale copy
-	pane  *gpu.Image           // the text pane (paneImage)
-	pic   *gpu.Image           // the picture window (pictureBox)
-	toast *gpu.Image           // the note's line over the 3D view
-	notes *gpu.Image           // the text box's "> Notes" (paneBox)
+	img    *gpu.Image
+	px     *image.RGBA
+	seq    uint64
+	noted  bool
+	own    string // the presenter's screens it shows (Screens)
+	edit   string // the icon editor's content it shows (iconKey)
+	drawn  bool
+	page   []front.Picture      // what img shows: the View's pictures...
+	text   string               // ...and text (pageText)
+	overs  []overlay            // the screens' portraits over the page
+	scans  map[image.Image]scan // the overlays on the GPU
+	fit    *gpu.Image           // fit's whole-scale copy
+	pane   *gpu.Image           // the text pane (paneImage)
+	pic    *gpu.Image           // the picture window (pictureBox)
+	toast  *gpu.Image           // the note's line over the 3D view
+	credit *gpu.Image           // the remaster credit over a credits picture
+	notes  *gpu.Image           // the text box's "> Notes" (paneBox)
 }
 
 // pageSize is v's page in pixels: its text cells, 8 by 8 (the original's

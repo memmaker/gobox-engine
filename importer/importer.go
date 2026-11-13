@@ -260,14 +260,13 @@ func SameTree(a, b string) error {
 // ends a step's hold and goes no further (front/latch.go).
 type Sequence struct {
 	Steps    []SequenceStep
-	Credits  []Credit  `json:",omitempty"` // the credits pages' lines, placed
-	Boxes    []Cells   `json:",omitempty"` // the credits' boxes (nil: one frame on the page's edges)
-	Backdrop []Layer   `json:",omitempty"` // under the main menu after the steps (COTAB: painting and logo), the menu zooming and fading in over it
-	Remaster [2]string `json:",omitempty"` // two lines as game.Data.RemasterCredit: the remaster's own lines at the bottom of the credits page (game.Data.RemasterCredit)
-	Short    []int     `json:",omitempty"` // the steps (indexes) a short intro plays (COTAB: SSI logo only unless the config asks); nil: all
-	Full     bool      `json:",omitempty"` // the full intro by default (the original's config: POR's POOL.CFG); the host's "Full intro" option overrides it
-	After    []Effect  `json:",omitempty"` // what an end sequence leaves in the game once it is over (the ruleset does it)
-	Note     string    `json:",omitempty"` // an end sequence's closing note, shown once it is over
+	Credits  []Credit `json:",omitempty"` // the credits pages' lines, placed
+	Boxes    []Cells  `json:",omitempty"` // the credits' boxes (nil: one frame on the page's edges)
+	Backdrop []Layer  `json:",omitempty"` // under the main menu after the steps (COTAB: painting and logo), the menu zooming and fading in over it
+	Short    []int    `json:",omitempty"` // the steps (indexes) a short intro plays (COTAB: SSI logo only unless the config asks); nil: all
+	Full     bool     `json:",omitempty"` // the full intro by default (the original's config: POR's POOL.CFG); the host's "Full intro" option overrides it
+	After    []Effect `json:",omitempty"` // what an end sequence leaves in the game once it is over (the ruleset does it)
+	Note     string   `json:",omitempty"` // an end sequence's closing note, shown once it is over
 }
 
 // Effect is what an end sequence does to the game when it is over; the ruleset
@@ -300,6 +299,7 @@ type SequenceStep struct {
 	HoldMs    int      `json:",omitempty"` // 0: until a key or click
 	Lightning Flash    `json:",omitempty"` // when the picture flashes (POR TITLE 2: FlashEGA)
 	Whole     bool     `json:",omitempty"` // the layers are one whole-screen page
+	Credits   bool     `json:",omitempty"` // StepPicture: the picture is the game's credits (PoD TITLE 3, SotSB's Amiga card): gobox adds its remaster credit line over it, as to a StepCredits page
 	Edition   Edition  `json:",omitempty"` // the art it is shown with (SotSB's Amiga credits card: EditionAmiga)
 }
 
