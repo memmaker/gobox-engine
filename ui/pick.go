@@ -59,7 +59,10 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *FrontPicke
 	}
 	page = min(max(page, 0), pages-1)
 	v := &FrontPicker{N: n, Page: page, Pages: pages, PerPage: per, Cols: nc, Cur: cur, Bottom: bot, Labels: k.Labels, Ask: k.Ask,
-		Classes: k.Classes, Portraits: k.Portraits}
+		Classes: k.Classes}
+	for _, b := range k.Portraits {
+		v.Portraits = append(v.Portraits, ownPNG(b))
+	}
 	if len(k.Labels) > 0 {
 		v.Title = "Saved Characters"
 	}
@@ -144,7 +147,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 				ed.Poses[p] = IndexedRGBA(pic.Pix, pic.PixW, -1, ink)
 			}
 		} else if k.Custom {
-			ed.Poses[p] = k.Icons[p]
+			ed.Poses[p] = ownPose(k.IconPNG, p, false)
 		} else if po := k.Poses[p]; po.Pixels != nil && po.W > 0 {
 			if po.Palette != nil {
 				ed.Poses[p] = PalettedRGBA(po.Pixels, po.W, po.Palette)

@@ -341,9 +341,9 @@ func (p *Presenter) memberPane(px *image.RGBA, glyph func(byte) [8]byte, m game.
 	}
 	n := max(0, min(lw, bottom-y-4-p.inv.doll.Bounds().Dy()-8))
 	face = image.Rect(lx+(lw-n)/2, y+4, lx+(lw+n)/2, y+4+n)
-	png = m.Dropped
+	png = ownPNG(m.Dropped)
 	if png == nil {
-		png = p.portrait(m) // the paper-doll head
+		png = p.portrait(m, nil) // the paper-doll head
 	}
 	return face, png
 }

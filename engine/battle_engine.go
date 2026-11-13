@@ -65,9 +65,6 @@ func (e *Engine) battle() *Battle {
 		if im := e.icons[p.Icon][0]; im != nil {
 			icon, u.IconSize = e.picPix(im, 0, u.Facing > 3, -1), image.Pt(im.Width*8, im.Height)
 		}
-		if im := e.iconPNG(p.ID, 0, u.Facing > 3); im != nil { // the dropped PNG (iconpng.go)
-			u.Icon, icon = im, Picture{}
-		}
 		b.Units = append(b.Units, u)
 		b.IconPix = append(b.IconPix, icon)
 	}

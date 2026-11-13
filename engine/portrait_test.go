@@ -25,7 +25,7 @@ func TestPortraitRoundTrip(t *testing.T) {
 		t.Fatal("not loaded")
 	}
 	d := e.member(id)
-	if d.Portrait == nil || e.pngImage(d.Portrait).Bounds() != image.Rect(0, 0, 4, 6) || d.PortHead != 3 {
+	if d.Portrait == nil || pngBounds(t, d.Portrait) != image.Rect(0, 0, 4, 6) || d.PortHead != 3 {
 		t.Errorf("portrait %v head %d after the round trip", d.Portrait, d.PortHead)
 	}
 	c.Portrait = nil
@@ -59,4 +59,13 @@ func pngOf(t *testing.T, im image.Image) []byte {
 		t.Fatal(err)
 	}
 	return b.Bytes()
+}
+
+// pngBounds is the size of the PNG b.
+func pngBounds(t *testing.T, b []byte) image.Rectangle {
+	im, err := png.Decode(bytes.NewReader(b))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return im.Bounds()
 }

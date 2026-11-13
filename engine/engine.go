@@ -28,26 +28,24 @@ type Config struct {
 
 // Engine holds the global state the DOS program kept in its data segment.
 type Engine struct {
-	tiles              map[tileKey]Picture         // the combat ground tiles converted (tilePix)
-	grounds            map[*asset.Image]uint8      // each combat tile set's ground colour (groundOf)
-	pngs               map[pngKey]image.Image      // the characters' PNGs decoded (pngImage)
-	iconPoses          map[iconPoseKey]image.Image // the cuts of PNG icons (iconPNG)
-	newRules           Ruleset                     // builds rules (New; bareRuleset when nil)
-	sequence           string                      // the full-screen animation playing (adventure.SeqEnding; "": none)
-	vault              *vault                      // the open vault (Vault)
-	given              *adventure.GameTables       // the game's GameTables (New; bareData when nil)
-	eclVersion         *ecl.Version                // the game's ECL dialect (initVM)
-	rules              rules.Rules                 // the ruleset; it owns the rules' state (state) (rulesetseam.go)
-	create             rules.CreationRules         // the ruleset's creation, made with rules
-	posX, posY, facing int                         // the party's map square and facing 0..7 (DS:6AAD, 6AAE, 6AAF): world navigation, the Engine's; saves keep them (files_engine.go)
-	campSavedFlag      int                         // beginFlag as camp found it
-	campSavedAnim      bool                        // the picture's animation as camp found it
-	campInterrupted    bool                        // a rest was interrupted (camp closes)
-	campSeq            int                         // when camp opened (top); the rules keep camp up (core.WordCampOn)
-	fx                 []rules.Effect              // the effects queued and not yet shown (emit, present)
-	resting            *restRun                    // the camp rest going on (RestStep), nil none
-	adv                string                      // New's adventure folder: scripts, art, data
-	data               string                      // New's host data directory: AssetsDir, AmigaDir, SaveDir
+	tiles              map[tileKey]Picture    // the combat ground tiles converted (tilePix)
+	grounds            map[*asset.Image]uint8 // each combat tile set's ground colour (groundOf)
+	newRules           Ruleset                // builds rules (New; bareRuleset when nil)
+	sequence           string                 // the full-screen animation playing (adventure.SeqEnding; "": none)
+	vault              *vault                 // the open vault (Vault)
+	given              *adventure.GameTables  // the game's GameTables (New; bareData when nil)
+	eclVersion         *ecl.Version           // the game's ECL dialect (initVM)
+	rules              rules.Rules            // the ruleset; it owns the rules' state (state) (rulesetseam.go)
+	create             rules.CreationRules    // the ruleset's creation, made with rules
+	posX, posY, facing int                    // the party's map square and facing 0..7 (DS:6AAD, 6AAE, 6AAF): world navigation, the Engine's; saves keep them (files_engine.go)
+	campSavedFlag      int                    // beginFlag as camp found it
+	campSavedAnim      bool                   // the picture's animation as camp found it
+	campInterrupted    bool                   // a rest was interrupted (camp closes)
+	campSeq            int                    // when camp opened (top); the rules keep camp up (core.WordCampOn)
+	fx                 []rules.Effect         // the effects queued and not yet shown (emit, present)
+	resting            *restRun               // the camp rest going on (RestStep), nil none
+	adv                string                 // New's adventure folder: scripts, art, data
+	data               string                 // New's host data directory: AssetsDir, AmigaDir, SaveDir
 
 	pics     asset.Pictures // the adventure's picture table (data/pictures.json): DAX picture -> collection entry
 	arts     *asset.Art     // the imported art of data (artFolder)

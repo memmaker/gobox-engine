@@ -170,7 +170,7 @@ func withPoolIcon(pics []Picture, cr *FrontCreation, own game.Member, sheet *gam
 	if cr == nil {
 		return pics
 	}
-	if p := sheet; p != nil && p.Icons[0] != nil { // a dropped PNG: the sheet draws it
+	if p := sheet; p != nil && p.IconPNG != nil { // a dropped PNG: the sheet draws it
 		return pics
 	}
 	box := cr.Icon.Pixels()

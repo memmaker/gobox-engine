@@ -635,8 +635,8 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 	if cr != nil { // the creation's combat icon, from a PNG
 		k, box = max(1, cr.Scale), cr.Icon
 	}
-	for p, im := range s.Icons {
-		if im != nil {
+	for p := range 2 {
+		if im := ownPose(s.IconPNG, p, false); im != nil {
 			x, y := box.X1+5*k*p, box.Y1
 			c.overs = append(c.overs, overlay{Img: im, At: image.Rect(x*8, y*8, x*8+24*k, y*8+24*k)})
 		}

@@ -70,12 +70,12 @@ type SheetPage struct {
 	Mods               [6]int         // extra: the rule set's ability modifiers, STR .. CHA (shown with Rules)
 	Rules              []rules.Figure // extra: the rule set's own figures (CombatRules.Sheet; nil: none, and no Mods)
 	Status             string
-	Weapon, Armour     string         // extra: the readied weapon and armour ("": none shown; POR shows them on its inventory)
-	Encumbrance, Coins string         // extra: the load carried and the coins held, as the game writes them ("": not shown)
-	Effects            string         // the spell effects, as many as fit the row
-	PortraitAt         CellRect       // the portrait's box (zero: no portrait)
-	Portrait           image.Image    // a dropped PNG in the box, in place of the DAX portrait (nil: none)
-	Icons              [2]image.Image // the creation's combat icon from a PNG, ready and action poses, in IconBox (nil: the DAX icon among the pictures)
+	Weapon, Armour     string   // extra: the readied weapon and armour ("": none shown; POR shows them on its inventory)
+	Encumbrance, Coins string   // extra: the load carried and the coins held, as the game writes them ("": not shown)
+	Effects            string   // the spell effects, as many as fit the row
+	PortraitAt         CellRect // the portrait's box (zero: no portrait)
+	Portrait           []byte   // a dropped PNG's bytes in the box, in place of the DAX portrait (nil: none)
+	IconPNG            []byte   // the creation's combat icon from a PNG, its bytes, in IconBox (nil: the DAX icon among the pictures)
 }
 
 // Member is one party member as the party list shows them.
@@ -90,7 +90,7 @@ type Member struct {
 	Colour   game.Ink    // the roster's EGA colour for the name when not Selected: red not okay, yellow a monster, magenta ready for a level, else cyan
 	Head     image.Image // the paper-doll head the player chose, in EGA colours (nil if missing)
 	HeadPix  Picture     // Head as the game's pixels in the EGA's own colours, not Ink (the presenter colours it)
-	Portrait image.Image // extra: the PNG the player dropped on the sheet, in place of Head (nil: none)
+	Portrait []byte      // extra: the PNG's bytes the player dropped on the sheet, in place of Head (nil: none)
 	Powers   []Power     // extra: what the member can do now out of combat (a card's context menu): View, Items, then powers'; Kind with the member's index acts
 	Exp      int         // extra: experience, what the level took (LevelExp) and what the next takes (NextExp; 0: it can rise no further)
 	LevelExp int
@@ -298,7 +298,6 @@ type Unit struct {
 	Squares    []image.Point // the squares it stands on (a large combatant's footprint)
 	Party      bool
 	Facing     int         // 0..7
-	Icon       image.Image // the combat icon, facing and pose (striking) as the original draws it
 	IconSize   image.Point // the built icon's size in pixels, 24 a square: what the figure's size and footprint follow (a PNG icon keeps it at its own resolution)
 	Active     bool        // whose turn it is
 	Name       string

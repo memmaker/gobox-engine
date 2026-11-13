@@ -340,7 +340,7 @@ func (e *Engine) members() []Member {
 		out = append(out, Member{
 			Name: sh.Name, HP: int(sh.HP), MaxHP: int(sh.MaxHP),
 			AC: int(sh.AC), Status: e.statusName(id), Selected: i == sel, Colour: e.rosterColour(id),
-			Class: card.Class, HeadPix: e.charHead(id), Portrait: e.pngImage(card.Portrait), Powers: e.memberPowers(id),
+			Class: card.Class, HeadPix: e.charHead(id), Portrait: card.Portrait, Powers: e.memberPowers(id),
 		})
 		m := &out[len(out)-1]
 		m.Exp, m.LevelExp, m.NextExp = int(sh.Exp), int(sh.LevelExp), int(sh.NextExp)

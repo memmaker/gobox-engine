@@ -74,9 +74,7 @@ func (e *Engine) fightState() *game.Combat {
 			if g.Member < 0 {
 				g.Member = e.partySize()
 			}
-			for pose := range g.Icon { // a dropped PNG, both poses: the front draws the one the blow shows
-				g.Icon[pose] = e.iconPNG(id, pose, u.Facing > 3)
-			}
+			g.IconPNG = e.iconPics(id).PNG // a dropped PNG: the front cuts the pose the blow shows, facing as the unit
 		}
 		c.Units = append(c.Units, g)
 	}

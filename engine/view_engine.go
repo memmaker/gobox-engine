@@ -115,7 +115,7 @@ func (e *Engine) SheetPortrait() {
 	e.blank(box.X1, box.Y1, box.X2, box.Y2)
 	e.snap.portrait = box // Shift-click and a dropped PNG land here
 	if sp := e.snap.sheet; sp != nil {
-		sp.PortraitAt, sp.Portrait = box, e.pngImage(pt.PNG) // extra: the dropped PNG, fitted into the box at the window's resolution
+		sp.PortraitAt, sp.Portrait = box, pt.PNG // extra: the dropped PNG, fitted into the box at the window's resolution
 	}
 	if pt.PNG != nil {
 		return

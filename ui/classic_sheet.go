@@ -44,7 +44,7 @@ func (p *Presenter) sheetPortrait(sp *game.SheetPage) image.Image {
 		if sp == nil {
 			return nil
 		}
-		return sp.Portrait
+		return ownPNG(sp.Portrait)
 	}
 	own := p.sheetOwn()
 	if own.PortraitHeadID == "" && pictured(p.pictures(), sheetPortraitBox(sp).Pixels()) {

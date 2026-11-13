@@ -115,8 +115,10 @@ func (p *Presenter) setup(note Note) {
 	}
 }
 
-// drawParty draws the members' cards where at puts them.
-func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func(i, n int) image.Rectangle) {
+// drawParty draws the members' cards where at puts them; stand, when not
+// nil, is drawn as the first member's own PNG (the fight's portrait card
+// shows a member without a face by its combat icon).
+func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func(i, n int) image.Rectangle, stand image.Image) {
 	if p.border.val.tiles[0] == nil {
 		return
 	}
@@ -129,7 +131,11 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func
 	}
 	for i, m := range ms {
 		d := p.cardImgs[i]
-		key := cardKey{i == sel, m.HP, m.MaxHP, m.Status, p.portrait(m), m.Dropped != nil, 0, 0, p.border.val.tiles[0], m.Memo}
+		own := ownPNG(m.Dropped)
+		if i == 0 && stand != nil {
+			own = stand
+		}
+		key := cardKey{i == sel, m.HP, m.MaxHP, m.Status, p.portrait(m, own), own != nil, 0, 0, p.border.val.tiles[0], m.Memo}
 		if m.NextExp > 0 && (p.expShown || gpu.IsKeyPressed(gpu.KeyControl)) {
 			key.exp, key.nextExp = expOf(m)-m.LevelExp, m.NextExp-m.LevelExp
 		}
@@ -143,13 +149,13 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func
 		op.GeoM.Scale(k, k)
 		op.GeoM.Translate(float64(r.Min.X), float64(r.Min.Y))
 		dst.DrawImage(d, op)
-		if m.Dropped != nil { // the PNG at the window's resolution (the card's 48 pixels lose its detail), the status over it
+		if own != nil { // the PNG at the window's resolution (the card's 48 pixels lose its detail), the status over it
 			op := &gpu.DrawImageOptions{}
 			op.GeoM.Translate(float64(r.Min.X)+cardFace*k, float64(r.Min.Y)+cardFace*k)
 			if m.HP <= 0 {
 				op.ColorScale.Scale(0.35, 0.35, 0.35, 1)
 			}
-			dst.DrawImage(p.hiFace(m.Dropped, max(1, int(portraitSize*k))), op)
+			dst.DrawImage(p.hiFace(own, max(1, int(portraitSize*k))), op)
 			if s := cardLabels[m.Status]; s != "" {
 				p.label(dst, s, r.Min.X+int((cardFace+1)*k), r.Min.Y+int((cardFace+portraitSize-9)*k), k)
 			}
@@ -350,7 +356,7 @@ func (p *Presenter) drawCard(d *gpu.Image, m game.Member, key cardKey) {
 		t = p.border.val.grey
 	}
 	window(d, t, gpu.GeoM{}, cardW/8, frameH/8, color.Black)
-	if f := p.portrait(m); f != nil && m.Dropped == nil { // a PNG is drawn at the window's resolution below
+	if f := key.face; f != nil && !key.png { // a PNG is drawn at the window's resolution below
 		g, ok := p.faceImgs[f]
 		if !ok {
 			g = gpu.NewImageFromImage(f)
@@ -362,12 +368,12 @@ func (p *Presenter) drawCard(d *gpu.Image, m game.Member, key cardKey) {
 			op.ColorScale.Scale(0.35, 0.35, 0.35, 1)
 		}
 		d.DrawImage(g, op)
-	} else if m.Dropped == nil { // no face yet: the name, so a member pick works before portraits exist
+	} else if !key.png { // no face yet: the name, so a member pick works before portraits exist
 		for i, l := range nameLines(m.Name, portraitSize/8, portraitSize/10) {
 			p.label(d, l, cardFace, cardFace+10*i, 1)
 		}
 	}
-	if s := cardLabels[m.Status]; s != "" && m.Dropped == nil {
+	if s := cardLabels[m.Status]; s != "" && !key.png {
 		p.label(d, s, cardFace+1, cardFace+portraitSize-9, 1)
 	}
 	if m.Memo != "" { // on the portrait's bottom border, centred
@@ -487,17 +493,18 @@ var cardLabels = map[string]string{
 	"Gone":        "gone",
 }
 
-// portrait is m's card art: the PNG the player dropped on the sheet, fitted
-// into the PortraitSize square, on its bottom edge (cached), else the paper-doll head's face.
-func (p *Presenter) portrait(m game.Member) image.Image {
-	if m.Dropped == nil {
+// portrait is m's card art: own, the PNG the player dropped on the sheet
+// (ownPNG), fitted into the PortraitSize square, on its bottom edge
+// (cached), else (own nil) the paper-doll head's face.
+func (p *Presenter) portrait(m game.Member, own image.Image) image.Image {
+	if own == nil {
 		return p.face(headOf(m))
 	}
-	if f, ok := p.faces[m.Dropped]; ok {
+	if f, ok := p.faces[own]; ok {
 		return f
 	}
-	f := fitSquare(m.Dropped, portraitSize)
-	p.faces[m.Dropped] = f
+	f := fitSquare(own, portraitSize)
+	p.faces[own] = f
 	return f
 }
 
@@ -656,18 +663,4 @@ func (p *Presenter) layCards(dst *gpu.Image) {
 	for i := range n {
 		p.cards = append(p.cards, cardAt(dst)(i, n))
 	}
-}
-
-// cardOf is member i alone, with the PNG portrait img (nil: its own); none
-// when there is no member i.
-func (p *Presenter) cardOf(i int, img image.Image) []game.Member {
-	party := p.party()
-	if i < 0 || i >= len(party) {
-		return nil
-	}
-	m := party[i]
-	if img != nil {
-		m.Dropped = img
-	}
-	return []game.Member{m}
 }

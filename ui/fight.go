@@ -46,7 +46,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 				ck := max(1, int(k)/2) // the portrait card: its own scale (cards are not K)
 				y := p.mapBottom - (cardH+cardGap)*ck + cardFoot*ck
 				p.fightCard = image.Rect(cardGap*ck, y, cardGap*ck+cardW*ck, y+cardH*ck)
-				p.drawParty(dst, p.cardOf(i, icon), 0, func(int, int) image.Rectangle { return p.fightCard })
+				p.drawParty(dst, p.party()[i:i+1], 0, func(int, int) image.Rectangle { return p.fightCard }, icon)
 			}
 		}
 	}

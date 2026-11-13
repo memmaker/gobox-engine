@@ -249,9 +249,9 @@ type SheetPage struct {
 	Status                      string
 	Weapon, Armour              string
 	Encumbrance, Coins, Effects string
-	HasPortrait                 bool           // the member has a portrait (a head and body, or a dropped PNG): the sheet shows its box
-	Portrait                    image.Image    // a dropped PNG in the box
-	Icons                       [2]image.Image // the creation's icon poses from a PNG
+	HasPortrait                 bool   // the member has a portrait (a head and body, or a dropped PNG): the sheet shows its box
+	Portrait                    []byte // a dropped PNG in the box, its bytes (gobox decodes it)
+	IconPNG                     []byte // the creation's combat icon from a PNG, its bytes (gobox cuts the ready and action poses)
 }
 
 // Flags are the plain yes/no facts of the screen the front shows or takes
@@ -324,23 +324,23 @@ type Drawn struct {
 // parts, the saved characters): every picture it holds, in order; the front
 // lays them out in pages.
 type Picker struct {
-	Cur       int           // the picture it opens on
-	Pics      []Picture     // one per picture; Pixels nil where it has none (W, H in pixels, the DAX ref as loaded)
-	Labels    []string      // the pictures' names (saved characters)
-	Classes   []string      // ... their classes ("": the files are gone)
-	Portraits []image.Image // ... their PNG portraits (nil: none; the DAX head is among Pics)
-	Ask       string        // the question before a pick (%s: the label), "" none
+	Cur       int       // the picture it opens on
+	Pics      []Picture // one per picture; Pixels nil where it has none (W, H in pixels, the DAX ref as loaded)
+	Labels    []string  // the pictures' names (saved characters)
+	Classes   []string  // ... their classes ("": the files are gone)
+	Portraits [][]byte  // ... their PNG portraits' bytes (nil: none; the DAX head is among Pics)
+	Ask       string    // the question before a pick (%s: the label), "" none
 }
 
 // IconEditor is the combat icon designer: the icon built so far and the
 // colours its six parts take. Colours name palette entries (Looks), in the
 // same index space as Picture.Pixels.
 type IconEditor struct {
-	Large, Custom bool           // Custom: the poses are a dropped PNG (Icons), no parts or colours
-	Poses         [2]Picture     // ready and action poses (Pixels nil: none)
-	Icons         [2]image.Image // Custom: the PNG's poses
-	Colour        [6][2]int      // each part's two colour numbers (0..15)
-	Looks         [16]byte       // the palette entry each colour number shows as
+	Large, Custom bool       // Custom: the poses are a dropped PNG (IconPNG), no parts or colours
+	Poses         [2]Picture // ready and action poses (Pixels nil: none)
+	IconPNG       []byte     // Custom: the PNG's bytes (gobox cuts its poses)
+	Colour        [6][2]int  // each part's two colour numbers (0..15)
+	Looks         [16]byte   // the palette entry each colour number shows as
 }
 
 // Beast is a bestiary entry.
@@ -387,7 +387,7 @@ type Member struct {
 	Items                                []Item // in the rules' order; gobox keeps it
 	Spells                               []SpellRef
 	Portrait                             Picture
-	Dropped                              image.Image    // the member's own PNG portrait (dropped on the sheet), drawn in place of the pool head; nil none
+	Dropped                              []byte         // the member's own PNG portrait's bytes (dropped on the sheet), drawn in place of the pool head; nil none
 	Icon                                 map[string]int // icon designer choices as numbers
 	PortraitHeadID, PortraitBodyID       string         // gobox's opaque shared-pool picks, one pool name each ("head_NNN", "body_NNN"); the game only stores and states them back ("": none, gobox falls back to Portrait)
 	IconHeadID, IconBodyID               string         // likewise the combat icon's ("combat_head_NNN", "combat_body_NNN"; "": none, gobox falls back to Icon)
@@ -601,12 +601,12 @@ type Unit struct {
 	Squares    []image.Point // squares covered
 	AC         int
 	Status     string
-	Dmg        string         // the unit's damage, e.g. "1d8+6"
-	Member     int            // party index of a party unit, -1 for a monster
-	Active     bool           // it is the unit the player acts for
-	Hit        int            // the active unit's chance in percent to hit it with one blow, 0 not a target
-	Pose       int            // its icon's pose: 0 ready, 1 action
-	Icon       [2]image.Image // a member's own PNG icon in its facing, ready and action pose (nil: composed from its icon picks)
+	Dmg        string // the unit's damage, e.g. "1d8+6"
+	Member     int    // party index of a party unit, -1 for a monster
+	Active     bool   // it is the unit the player acts for
+	Hit        int    // the active unit's chance in percent to hit it with one blow, 0 not a target
+	Pose       int    // its icon's pose: 0 ready, 1 action
+	IconPNG    []byte // a member's own PNG icon's bytes: gobox cuts the pose and faces it by Facing (nil: composed from its icon picks)
 }
 
 // Weapon is a Turn's weapon: its icon (Type, Words) and tooltip.

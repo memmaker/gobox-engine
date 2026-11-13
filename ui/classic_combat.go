@@ -207,7 +207,7 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 		}
 		icon, size := figureOf(g, party)
 		u.IconSize = size
-		if im := g.Icon[g.Pose&1]; im != nil {
+		if im := ownPose(g.IconPNG, g.Pose&1, g.Facing > 3); im != nil {
 			u.Icon, u.IconSize = im, ownIconSize
 		}
 		if u.Icon == nil {
@@ -277,7 +277,7 @@ func figureOf(g game.Unit, party []game.Member) (icon Picture, size image.Point)
 	if g.Art.W > 0 { // a DAX ref's size is the decoded picture's (the presenter's nativeSize)
 		size = image.Pt(g.Art.W, g.Art.H)
 	}
-	if m := g.Member; g.Icon[g.Pose&1] == nil && !g.Foe && m >= 0 && m < len(party) {
+	if m := g.Member; g.IconPNG == nil && !g.Foe && m >= 0 && m < len(party) {
 		if pic, sz, ok := memberPicture(party[m], g, g.Pose); ok {
 			icon, size = pic, sz
 		}

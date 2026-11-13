@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"image"
 	"slices"
 
 	"gobox/adventure"
@@ -31,9 +30,9 @@ func (e *Engine) pickState() (pk *game.Picker, ed *game.IconEditor) {
 func (e *Engine) pickerState(p *picker) *game.Picker {
 	k := &game.Picker{Labels: slices.Clone(p.labels), Ask: p.ask}
 	for _, id := range p.chars {
-		cl, im := "", image.Image(nil)
+		cl, im := "", []byte(nil)
 		if pt, ok := e.portrait(id); ok {
-			cl, im = e.word(id, rules.FactClasses), e.pngImage(pt.PNG)
+			cl, im = e.word(id, rules.FactClasses), pt.PNG
 		}
 		k.Classes, k.Portraits = append(k.Classes, cl), append(k.Portraits, im)
 	}
@@ -53,11 +52,9 @@ func (e *Engine) pickerState(p *picker) *game.Picker {
 func (e *Engine) iconEditorState(edit *iconEdit) *game.IconEditor {
 	c := e.iconPics(edit.who)
 	amiga := e.iconAmiga()
-	k := &game.IconEditor{Large: c.Size == 2, Custom: c.PNG != nil}
+	k := &game.IconEditor{Large: c.Size == 2, Custom: c.PNG != nil, IconPNG: c.PNG}
 	for p := range 2 {
-		if c.PNG != nil {
-			k.Icons[p] = asset.IconPose(e.pngImage(c.PNG), p, false)
-		} else if im := e.icons[0xC][p]; im != nil {
+		if im := e.icons[0xC][p]; c.PNG == nil && im != nil { // a PNG: the front cuts its poses
 			w := im.Width * 8
 			k.Poses[p] = game.Picture{W: w, H: len(im.Frame(0)) / w, Pixels: slices.Clone(im.Frame(0)), Palette: im.Palette, Clear: im.Mask}
 		}
