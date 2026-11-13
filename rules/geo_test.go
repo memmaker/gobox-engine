@@ -46,9 +46,6 @@ func TestWalldef(t *testing.T) {
 	if err != nil || len(w.Sets) != 2 {
 		t.Fatal(err, len(w.Sets))
 	}
-	if SymbolBlock(7, 2, 2) != 72 || SymbolBlock(7, 1, 1) != 7 {
-		t.Fatal("symbolblock")
-	}
 	if w, err := ParseWalldef(b[:10]); err != nil || len(w.Sets) != 0 {
 		t.Fatal("short")
 	}

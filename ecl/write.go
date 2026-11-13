@@ -23,16 +23,6 @@ func Write(s *Script, names *Names) (string, error) {
 	return text, err
 }
 
-// NeedsPlainTests reports whether Write falls back to plain flag tests for s.
-func NeedsPlainTests(s *Script, names *Names) bool {
-	text, err := write(s, names, true)
-	if err != nil {
-		return false
-	}
-	_, perr := Parse(text, names)
-	return errors.Is(perr, errNoComparison)
-}
-
 func write(s *Script, names *Names, callTests bool) (string, error) {
 	w := &scriptWriter{callTests: callTests, s: s, names: names, taken: map[string]bool{}, table: map[int]string{},
 		labelsAt: map[int][]string{}, refs: map[int][]ref{}, events: map[int]int{}, defs: map[int]bool{}}

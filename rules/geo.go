@@ -116,12 +116,3 @@ func (w *Walldef) Wall(k, i int) []byte { return w.Sets[k][i*WallSize : (i+1)*Wa
 
 // ValidWallSlot is the set {1,2,3}.
 func ValidWallSlot(s int) bool { return s >= 1 && s <= 3 }
-
-// SymbolBlock is the 8X8D block for chunk k (1-based) of an n-chunk WALLDEF
-// block: block*10+k (as a byte) when n>1, else block.
-func SymbolBlock(block, k, n int) int {
-	if n > 1 {
-		return int(byte(block*10 + k))
-	}
-	return block
-}
