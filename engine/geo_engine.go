@@ -27,11 +27,20 @@ func (e *Engine) Draw3DView(x, y, dir int) {
 }
 
 // LoadWalldef = ovr30:0E08 (block, slot): WALLDEF<n>.DAX block into wall
-// slot 1..3. Only the slot's block is recorded (the save file keeps it);
-// the walls are the remaster's.
+// slot 1..3. A block of several wall sets (chunks) fills the slots from
+// slot on, each cleared, and only slot records the block (por-re view3d.pas
+// LoadWallSet: wallSetCache[..].wallDefId := -1, then [wsSlot] := fileId;
+// the save file keeps them); the walls are the remaster's.
 func (e *Engine) LoadWalldef(block, slot int) {
 	if !rules.ValidWallSlot(slot) {
 		return
+	}
+	chunks := 1
+	if w, _ := rules.ParseWalldef(e.gdata().geoBlock(e.set.File("WALLDEF"), block)); len(w.Sets) > 1 {
+		chunks = len(w.Sets)
+	}
+	for s := slot; s < slot+chunks && rules.ValidWallSlot(s); s++ {
+		e.mapPairA[s-1], e.mapPairB[s-1] = -1, -1
 	}
 	e.mapPairA[slot-1], e.mapPairB[slot-1] = walldefRecorded(block), slot
 }
