@@ -19,12 +19,12 @@ import (
 const fontFile = "FONT.CFG"
 
 // chooseFonts lists the font pool beside data's adventure folder, the
-// game's own font (the pool's for data.ID, else the theme's) first.
+// game's own font (the pool's for the adventure folder's game, else the theme's) first.
 func (f *Front) chooseFonts(data game.Data) {
 	var pooled []asset.Font
 	own := theme.Font
 	if data.Adventure != "" {
-		l, name, err := asset.PoolFonts(filepath.Dir(data.Adventure), data.ID)
+		l, name, err := asset.PoolFonts(filepath.Split(filepath.Clean(data.Adventure))) // the folder's name is the import's game ID
 		if err != nil {
 			panic(fmt.Sprintf("%v (run the import again)", err))
 		}
