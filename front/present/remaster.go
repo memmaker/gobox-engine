@@ -153,6 +153,9 @@ type Presenter struct {
 	cmds        []command                 // the command menu's commands (explore.go), as last drawn
 	camp        campUI                    // the camp screens (camp.go)
 	screenWas   bool                      // a camp-style screen was up when last drawn: one opening starts on its main screen
+	backAt      still                     // the location as last shown: what a menu screen draws over (backdrop.go)
+	back        memo[uint64, *Presenter]  // draws backAt, keyed on its Version
+	backdrop    bool                      // this presenter draws a backdrop: no question, no text
 	listWas     bool                      // a list was asked when last drawn (openList)
 	played      *frame                    // the moment Draw plays (nil: none)
 	list        listUI                    // the Ask (AskList)'s highlight (list.go)
@@ -293,6 +296,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		}
 	}
 	p.screenWas = p.screenUp()
+	p.keepBackdrop()
 	p.openList()
 	p.mm.titleDrawn = false
 	p.main = p.mainMenuUp() // before the pages, which return early: a stale main menu would take their keys
@@ -381,6 +385,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		if p.screenUp() { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			switch {                      // over the location as it stands, never black
+			case p.backP() != nil: // as last shown: its picture, the 3D view, the cards; the menu takes the text's place
+				p.backP().draw(dst, note)
 			case sc != nil:
 				p.draw3D(dst, sc, note)
 			case len(p.pictures()) > 0:

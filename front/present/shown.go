@@ -191,6 +191,9 @@ func (p *Presenter) blinkedLines(ls [][]front.PaneRun) [][]front.PaneRun {
 // pane is the text pane under the 3D view as shown: its Rows lines from
 // paneFrom (nil: none).
 func (p *Presenter) pane() *front.Pane {
+	if p.backdrop { // the menu over the backdrop takes the text's place
+		return nil
+	}
 	pn := p.laid().pane
 	if pn == nil {
 		return nil
@@ -251,6 +254,9 @@ func (p *Presenter) pictures() []front.Picture {
 // askUp is the question up: the presenter's own (Ask), else the state's, else
 // the locked door's menu (nil: none, or a fight's moment holds the screen).
 func (p *Presenter) askUp() *front.Ask {
+	if p.backdrop { // the backdrop draws no question
+		return nil
+	}
 	if p.q != nil {
 		return &p.q.Ask
 	}
