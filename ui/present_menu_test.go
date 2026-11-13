@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/blobber"
 	"gobox/ui/input"
 	"os"
 	"path/filepath"
@@ -20,7 +21,7 @@ import (
 // Esc closes the command menu (Enter opened it).
 func TestEscClosesCommandMenu(t *testing.T) {
 	g, _ := playGame(play.Exploring{})
-	p := &Presenter{active: true, view: &View{}}
+	p := &Presenter{active: true, view: &blobber.View{}}
 	p.SetEngine(g)
 	if !p.key(13) || !p.menu {
 		t.Fatal("Enter did not open the menu")
@@ -284,7 +285,7 @@ func TestCardClickPicksMember(t *testing.T) {
 // A heading to pick (AskMove) takes the arrows as ActDir, not the command bar.
 func TestDirsAskTakesArrows(t *testing.T) {
 	p := askedOn(&play.Ask{Kind: game.Direction})
-	p.active, p.view, p.menu = true, &View{}, true
+	p.active, p.view, p.menu = true, &blobber.View{}, true
 	if p.key(0x4800) {
 		t.Fatal("the bar took an arrow the question answers")
 	}

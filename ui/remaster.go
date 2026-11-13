@@ -20,6 +20,7 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
+	"gobox/ui/blobber"
 	"gobox/ui/combat"
 	"gobox/ui/input"
 )
@@ -42,9 +43,9 @@ type Presenter struct {
 
 	pauseFrom time.Time // a script's pause (AskPause) began; zero: none up
 
-	view        *View
+	view        *blobber.View
 	opts        optionsMenu                        // the Esc menu (options.go)
-	scenes      map[string]*Scene                  // parsed maps by name
+	scenes      map[string]*blobber.Scene          // parsed maps by name
 	shown       string                             // the scene the view shows
 	last        time.Time                          // when the animation last advanced
 	ticks       float64                            // animation time not yet run, in 1/60 s ticks
@@ -129,7 +130,7 @@ type Presenter struct {
 	ctx         int                       // 1 + the card whose context menu a right click opened (0 none): drawCardTip
 	ctxSel      int                       // its highlighted line
 	ctxActs     []ActKind                 // its lines' actions, for the member
-	behind      *Scene                    // the last 3D scene shown
+	behind      *blobber.Scene            // the last 3D scene shown
 	ctxKeys     []byte                    // its lines' hotkeys (the first letters)
 	campCtx     [][]image.Rectangle       // in camp every member's context menu lines (drawCampMenus)
 	campImg     []*gpu.Image              // drawCampMenus: each member's menu image
@@ -810,7 +811,7 @@ func (s *srcImage) of(src image.Image) *gpu.Image {
 }
 
 // draw3D draws the 3D view of the area and its minimap.
-func (p *Presenter) draw3D(dst *gpu.Image, sc *Scene, note Note) {
+func (p *Presenter) draw3D(dst *gpu.Image, sc *blobber.Scene, note Note) {
 	where := p.where()
 	cam := cameraOf(where)
 	area, _ := strconv.Atoi(where.Area)
@@ -828,9 +829,9 @@ func (p *Presenter) draw3D(dst *gpu.Image, sc *Scene, note Note) {
 	if p.flags().Inside != p.inside { // indoors the original shows the inside sky: here, a ceiling
 		p.inside = p.flags().Inside
 		if p.inside {
-			SetFlats(sc.Floor, "")
+			blobber.SetFlats(sc.Floor, "")
 		} else {
-			SetFlats(sc.Floor, sc.Ceiling)
+			blobber.SetFlats(sc.Floor, sc.Ceiling)
 		}
 	}
 	p.view.Night = !p.flags().Day

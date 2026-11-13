@@ -1,11 +1,11 @@
-package ui
+package blobber
 
 import "testing"
 
 // TestWalk: the free camera stops at a closed side, asks for the step
 // through an open one, and backs off a refused one.
 func TestWalk(t *testing.T) {
-	v := &View{g: &BlobberGame{}}
+	v := &View{g: &Game{}}
 	at := Camera{5, 5, 0} // facing north
 	north := FreeInput{Forward: 1}
 	closed, open := [4]bool{}, [4]bool{true, false, false, false}

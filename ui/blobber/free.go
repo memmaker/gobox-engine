@@ -1,4 +1,4 @@
-package ui
+package blobber
 
 import "math"
 
@@ -59,7 +59,7 @@ func (v *View) Walk(at Camera, open [4]bool, in FreeInput, ready bool) Camera {
 	// the square's sides: a closed one (or the one just refused) keeps the camera its radius off it
 	lo, hi := [2]float64{float64(sq[0]), float64(sq[1])}, [2]float64{float64(sq[0] + 1), float64(sq[1] + 1)}
 	p := [2]*float64{&f.x, &f.z}
-	for side, d := range blobberDirs {
+	for side, d := range dirs {
 		a := 0 // the axis the side is across
 		if d[0] == 0 {
 			a = 1
@@ -91,7 +91,7 @@ func (v *View) Walk(at Camera, open [4]bool, in FreeInput, ready bool) Camera {
 	}
 	c := v.asks()
 	if c.X != at.X || c.Y != at.Y {
-		for side, d := range blobberDirs {
+		for side, d := range dirs {
 			if d == [2]int{c.X - at.X, c.Y - at.Y} {
 				f.tried = side
 			}

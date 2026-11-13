@@ -2,6 +2,7 @@ package ui
 
 import (
 	"gobox/game"
+	"gobox/ui/blobber"
 )
 
 // Free reports whether No Grid walking has the move keys: the party
@@ -22,7 +23,7 @@ func (p *Presenter) ViewClick(x, y int) {
 // FreeWalk moves No Grid's camera by one tick of in, and sends the step or
 // turn it asks for: a step aside or back keeps the facing, a turn is quiet
 // (the mouse turns a lot).
-func (p *Presenter) FreeWalk(in FreeInput) {
+func (p *Presenter) FreeWalk(in blobber.FreeInput) {
 	if p.view == nil {
 		return
 	}

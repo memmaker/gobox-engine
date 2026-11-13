@@ -2,7 +2,7 @@
 // No 3D pipeline: every surface is a flat quad, transformed by hand, painted far-to-near.
 // The texture shader adds Deepnight's look (look.go): stepped darkness into fog, light maps, glows.
 
-package ui
+package blobber
 
 import (
 	"image"
@@ -83,27 +83,27 @@ var Objects []*Object
 
 // Map cells: '.' is floor, anything else is a wall whose character picks the material (see mats).
 func wall(x, y int) bool {
-	ch := blobberCell(x, y)
-	return ch != '.' && ch != BlobberDoor
+	ch := cell(x, y)
+	return ch != '.' && ch != Door
 }
 
-// BlobberDoor is the map character of an open doorway: a passable gap in a wall.
+// Door is the map character of an open doorway: a passable gap in a wall.
 // Locked is a door that is still a wall; scripts open it with `altercell X Y D`.
-const BlobberDoor, Locked = 'D', 'L'
+const Door, Locked = 'D', 'L'
 
 var Faces = map[[3]int][]FacePart{}
 
-// BlobberEdges  are thin walls: key {x, y, side} blocks stepping out of cell x, y towards
+// Edges  are thin walls: key {x, y, side} blocks stepping out of cell x, y towards
 // dirs[side]. With Faces they give a map edge walls of no thickness, one-sided like the original's.
-var BlobberEdges = map[[3]int]bool{}
+var Edges = map[[3]int]bool{}
 
 // NoMap  are faces the minimap leaves out: objects the party walks through, like graves.
 var NoMap = map[[3]int]bool{}
 
 // blocked: a wall cell at x+dx, y+dy, or a thin wall on the way there.
 func blocked(x, y, dx, dy int) bool {
-	for i, d := range blobberDirs {
-		if d == [2]int{dx, dy} && BlobberEdges[[3]int{x, y, i}] {
+	for i, d := range dirs {
+		if d == [2]int{dx, dy} && Edges[[3]int{x, y, i}] {
 			return true
 		}
 	}
@@ -191,13 +191,13 @@ type FacePart struct {
 	Tex            string // a painted texture by name (View.Textures[TEX]), instead of Mat
 }
 
-var texMats = map[string]*blobberMat{} // FacePart.Tex materials, loaded on first use
+var texMats = map[string]*surface{} // FacePart.Tex materials, loaded on first use
 
-func texMat(name string) *blobberMat {
+func texMat(name string) *surface {
 	m, ok := texMats[name]
 	if !ok {
 		if t := wallTexture(name); t != nil {
-			m = &blobberMat{img: t, lit: wallTexture(name + "_light")}
+			m = &surface{img: t, lit: wallTexture(name + "_light")}
 		}
 		texMats[name] = m
 	}
@@ -205,7 +205,7 @@ func texMat(name string) *blobberMat {
 }
 
 // material returns the texture of the wall at (x, y); unknown chars use stone.
-func material(x, y int) *blobberMat {
+func material(x, y int) *surface {
 	if y >= 0 && y < len(level) && x >= 0 && x < len(level[y]) {
 		if m := mats[level[y][x]]; m != nil {
 			return m
@@ -275,9 +275,9 @@ var MatColors = map[byte][2][3]float64{
 	'I': {{95, 100, 115}, {50, 52, 60}}, // iron
 }
 
-var mats = map[byte]*blobberMat{}
+var mats = map[byte]*surface{}
 
-var genMats map[byte]*blobberMat // mats as generated, before the painted ones
+var genMats map[byte]*surface    // mats as generated, before the painted ones
 var genFloor, genCeil *gpu.Image // the generated floor and ceiling
 
 // paintMats lays the painted textures over the generated materials, floor and ceiling.
@@ -285,12 +285,12 @@ func paintMats() {
 	clear(mats)
 	maps.Copy(mats, genMats)
 	painted := map[byte]string{'#': "stone"} // painted textures, each with an optional NAME_light.png
-	for ch, name := range blobberPaintedWalls() {
+	for ch, name := range paintedWalls() {
 		painted[ch] = name
 	}
 	for ch, name := range painted {
 		if t := wallTexture(name); t != nil {
-			mats[ch] = &blobberMat{img: t, lit: wallTexture(name + "_light")}
+			mats[ch] = &surface{img: t, lit: wallTexture(name + "_light")}
 		}
 	}
 	texFloor, texCeil = genFloor, genCeil
@@ -307,8 +307,8 @@ func paintMats() {
 func genTextures() {
 	rng.Seed(7)
 	worldChanged()
-	stoneMat := func(bw, bh int, offset bool, c [2][3]float64) *blobberMat {
-		return &blobberMat{
+	stoneMat := func(bw, bh int, offset bool, c [2][3]float64) *surface {
+		return &surface{
 			img:   genStone(bw, bh, offset, c[0], c[1], 0.3, -1),
 			right: genStone(bw, bh, offset, c[0], c[1], 1, -0.4),  // wall on our left, face points right
 			left:  genStone(bw, bh, offset, c[0], c[1], -1, -0.4), // wall on our right, face points left
@@ -318,7 +318,7 @@ func genTextures() {
 		mats[ch] = stoneMat(64, 32, true, c)
 	}
 	door := stoneMat(16, 128, false, MatColors['W']) // vertical planks
-	mats[BlobberDoor], mats[Locked] = door, door
+	mats[Door], mats[Locked] = door, door
 	genMats = maps.Clone(mats)
 	genFloor = genStone(64, 64, false, [3]float64{115, 110, 105}, [3]float64{60, 58, 55}, 0.4, -1)
 	genCeil = genStone(64, 64, false, [3]float64{70, 66, 72}, [3]float64{40, 38, 42}, 0.4, 1)
@@ -336,7 +336,7 @@ func genTextures() {
 
 // ---------- game state ----------
 
-type BlobberGame struct {
+type Game struct {
 	x, y, dir int
 	// smooth movement tween
 	fx, fz, fa, tx, tz, ta float64 // from/to pos & angle
@@ -362,9 +362,9 @@ type BlobberGame struct {
 	free       free      // No Grid's camera (free.go)
 }
 
-var blobberDirs = [4][2]int{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
+var dirs = [4][2]int{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
 
-func (g *BlobberGame) startMove(nx, ny, ndir int, sway float64) {
+func (g *Game) startMove(nx, ny, ndir int, sway float64) {
 	g.fx, g.fz, g.fa = g.tx, g.tz, g.ta
 	g.walk = nx != g.x || ny != g.y
 	g.x, g.y, g.dir = nx, ny, ndir
@@ -385,7 +385,7 @@ const walkSpeed, turnSpeed, walkAccel = 5.0, 7.0, 70.0 // a turn (13 frames) a l
 // tween advances a step or turn by one frame: full speed while its key is held (and, for a step, the
 // next cell is free), flowing on into the next one; otherwise braking to stop exactly on the cell or
 // facing. Without smooth movement a move is done at once.
-func (g *BlobberGame) tween() {
+func (g *Game) tween() {
 	const dt = 1.0 / 60
 	if !g.moving {
 		return
@@ -435,7 +435,7 @@ func (g *BlobberGame) tween() {
 // camera for this frame
 type cam struct{ x, z, ang, roll, fwx, fwz, rtx, rtz, pitch float64 } // pitch: the horizon's shift up, a share of H
 
-func (g *BlobberGame) camera() cam {
+func (g *Game) camera() cam {
 	if f := g.free; opt.NoGrid && f.on { // No Grid: the eye where the party walks (free.go)
 		c := cam{x: f.x, z: f.z, ang: f.yaw, pitch: f.pitch}
 		c.fwx, c.fwz = math.Sin(c.ang), -math.Cos(c.ang)
@@ -516,7 +516,7 @@ var nightTint = []float32{0.42, 0.48, 0.72}
 // texNightSky, texStars : ceiling_sky_night and ceiling_night_stars, loaded with texClouds.
 var texNightSky, texStars *gpu.Image
 
-func (g *BlobberGame) drawSky(dst *gpu.Image, c cam) {
+func (g *Game) drawSky(dst *gpu.Image, c cam) {
 	hy := horizon(c)
 	if texClouds != nil && night() {
 		b := texNightSky.Bounds()
@@ -556,7 +556,7 @@ func (g *BlobberGame) drawSky(dst *gpu.Image, c cam) {
 func horizon(c cam) float64 { return float64(H) * (0.5 + c.pitch) }
 
 // resize makes the view w by h pixels.
-func (g *BlobberGame) resize(w, h int) {
+func (g *Game) resize(w, h int) {
 	if w != W || h != H {
 		W, H, focal = w, h, float64(w)*focalW
 		g.scene = gpu.NewImage(W, H)
@@ -578,26 +578,26 @@ fn Fragment(dstPos: vec4f, srcPos: vec2f, color: vec4f, custom: vec4f) -> vec4f 
 }
 `
 
-// blobberGame is the one Game, the View's.
-var blobberGame *BlobberGame
+// theGame is the one Game, the View's.
+var theGame *Game
 
 // SetMap swaps the level and places the party at (x, y) without a tween, keeping the facing.
 func SetMap(lvl []string, x, y int) {
 	level = lvl
 	visCache.cells = nil
 	worldChanged()
-	if blobberGame == nil {
-		blobberGame = &BlobberGame{t: 1}
+	if theGame == nil {
+		theGame = &Game{t: 1}
 	}
-	g := blobberGame
+	g := theGame
 	g.x, g.y = x, y
 	g.tx, g.tz = float64(x)+0.5, float64(y)+0.5
 	g.fx, g.fz, g.fa = g.tx, g.tz, g.ta
 	g.t, g.moving = 1, false
 }
 
-// blobberCell returns the map character at x,y, or 0 outside the map.
-func blobberCell(x, y int) byte {
+// cell returns the map character at x,y, or 0 outside the map.
+func cell(x, y int) byte {
 	if y < 0 || y >= len(level) || x < 0 || x >= len(level[y]) {
 		return 0
 	}
@@ -606,14 +606,14 @@ func blobberCell(x, y int) byte {
 
 // Face turns the party to dir without a tween.
 func Face(dir int) {
-	g := blobberGame
+	g := theGame
 	g.dir = dir
 	g.ta = float64(dir) * math.Pi / 2
 	g.fa = g.ta
 }
 
-// ViewOptions are the view's settings (the host's Esc menu sets them).
-type ViewOptions struct {
+// Options are the view's settings (the host's Esc menu sets them).
+type Options struct {
 	Smooth, Fluid, Dither bool // Fluid: a held key walks or turns on without slowing at each cell
 	Torch                 float64
 	Speed                 float64 // walk and turn speed, MinSpeed to MaxSpeed times the normal
@@ -624,10 +624,10 @@ type ViewOptions struct {
 const MinSpeed, MaxSpeed = 0.5, 2.0
 
 // opt are the options in use: the host's, handed to NewView (the defaults until then).
-var opt = &ViewOptions{Smooth: true, Fluid: true, Dither: true, Torch: 1, Speed: 1}
+var opt = &Options{Smooth: true, Fluid: true, Dither: true, Torch: 1, Speed: 1}
 
 // newGame makes the textures and shaders and the one Game, facing dir.
-func newGame(dir int) (*BlobberGame, error) {
+func newGame(dir int) (*Game, error) {
 	genTextures()
 	tsh, err := gpu.NewMeshShader(meshSrc)
 	if err != nil {
@@ -637,8 +637,8 @@ func newGame(dir int) (*BlobberGame, error) {
 	if err != nil {
 		return nil, err
 	}
-	g := &BlobberGame{scene: gpu.NewImage(W, H), shader: sh, meshShader: tsh}
-	blobberGame = g
+	g := &Game{scene: gpu.NewImage(W, H), shader: sh, meshShader: tsh}
+	theGame = g
 	g.ta = float64(dir) * math.Pi / 2
 	g.dir = dir
 	return g, nil

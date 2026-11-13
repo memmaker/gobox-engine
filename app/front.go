@@ -8,6 +8,7 @@ import (
 
 	"gobox/gpu"
 	"gobox/ui"
+	"gobox/ui/blobber"
 )
 
 // Front is a game's screens as the shell's input reader drives them
@@ -33,7 +34,7 @@ type Front interface {
 
 	Free() bool                                   // No Grid's view is up: W A S D and the arrows walk
 	Flow(held Key, ready bool) (send, paced bool) // fluid movement: the held move key, ask whether to send it
-	FreeWalk(in ui.FreeInput)
+	FreeWalk(in blobber.FreeInput)
 
 	InventoryShown() bool
 	InventoryMouse(x, y int, down, right bool, wheel float64)
@@ -234,7 +235,7 @@ const freeMouse, freeStick = 0.005, 0.05
 // free gives No Grid's camera this tick: W A S D and the arrows walk and
 // turn, the look the mouse and the stick gave turns and pitches.
 func (g *frontGame) free() {
-	var in ui.FreeInput
+	var in blobber.FreeInput
 	if g.f.Free() {
 		key := func(ks ...gpu.Key) float64 {
 			for _, k := range ks {

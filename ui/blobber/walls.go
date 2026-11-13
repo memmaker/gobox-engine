@@ -1,4 +1,4 @@
-package ui
+package blobber
 
 import (
 	"image"
@@ -37,8 +37,8 @@ func wallTexture(name string) *gpu.Image {
 	return t
 }
 
-// blobberPaintedWalls is View.Painted: map character -> texture name.
-func blobberPaintedWalls() map[byte]string {
+// paintedWalls is View.Painted: map character -> texture name.
+func paintedWalls() map[byte]string {
 	if cur != nil {
 		return cur.Painted
 	}

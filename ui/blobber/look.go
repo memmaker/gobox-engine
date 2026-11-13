@@ -1,4 +1,4 @@
-package ui
+package blobber
 
 // Deepnight's "Labyrinth" look on the 3D quads: everything darkens in hard, dithered bands toward a
 // purple fog instead of fading smoothly to black. Light maps (NAME_light.png) keep parts of a wall
@@ -14,9 +14,9 @@ import (
 
 var fogCol = color.RGBA{0x16, 0x10, 0x23, 255}
 
-// blobberMat is a wall material: its front texture, the generated ones' left and right lit variants
+// surface is a wall material: its front texture, the generated ones' left and right lit variants
 // (nil for painted textures, which use img on every face), and an optional light map.
-type blobberMat struct {
+type surface struct {
 	img, right, left, lit *gpu.Image
 	loaded                bool
 	// light map summary (TextureAtlas): average colour weighted by brightness, the glow's height
@@ -26,7 +26,7 @@ type blobberMat struct {
 }
 
 // face picks the texture for a face whose normal's lateral component in camera space is nx.
-func (m *blobberMat) face(nx float64) *gpu.Image {
+func (m *surface) face(nx float64) *gpu.Image {
 	if nx > 0.5 && m.right != nil {
 		return m.right
 	} else if nx < -0.5 && m.left != nil {
@@ -38,7 +38,7 @@ func (m *blobberMat) face(nx float64) *gpu.Image {
 func lum(r, g, b byte) float64 { return (0.299*float64(r) + 0.587*float64(g) + 0.114*float64(b)) / 255 }
 
 // load reads the light map back once for its summary; a light map of another size is dropped.
-func (m *blobberMat) load() *blobberMat {
+func (m *surface) load() *surface {
 	if m.loaded {
 		return m
 	}
@@ -73,7 +73,7 @@ func (m *blobberMat) load() *blobberMat {
 
 // darkMul is how strongly distance darkens: 1 at torch 1, less with a brighter torch or a Light
 // spell, 0 in daylight.
-func (g *BlobberGame) darkMul() float64 {
+func (g *Game) darkMul() float64 {
 	if openSky {
 		return 0
 	}
@@ -81,13 +81,13 @@ func (g *BlobberGame) darkMul() float64 {
 }
 
 // flicker is the torch's brightness factor: a few incommensurate sines, so it never visibly repeats.
-func (g *BlobberGame) flicker() float64 {
+func (g *Game) flicker() float64 {
 	t := g.time
 	return 1 + 0.06*math.Sin(t*7.3) + 0.04*math.Sin(t*13.1+1) + 0.03*math.Sin(t*23.7+2)
 }
 
 // torchPow is the torch's intensity, flickering; it saturates within arm's length.
-func (g *BlobberGame) torchPow() float64 {
+func (g *Game) torchPow() float64 {
 	if openSky {
 		return 1e3
 	}
@@ -96,7 +96,7 @@ func (g *BlobberGame) torchPow() float64 {
 
 // torchRange is the distance where the inverse-square falloff 1/(1+d²/R²) has halved: further with
 // the torch setting or a Light spell.
-func (g *BlobberGame) torchRange() float64 {
+func (g *Game) torchRange() float64 {
 	if openSky {
 		return 1e3
 	}
@@ -104,7 +104,7 @@ func (g *BlobberGame) torchRange() float64 {
 }
 
 // torchLight is how much torch light reaches distance d, facing it head on (0..1). The shader has a copy.
-func (g *BlobberGame) torchLight(d float64) float64 {
+func (g *Game) torchLight(d float64) float64 {
 	r := g.torchRange()
 	return math.Min(1, g.torchPow()/(1+d*d/(r*r)))
 }

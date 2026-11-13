@@ -5,6 +5,7 @@ import (
 
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/blobber"
 )
 
 // where is the party's place in the state up (zero with no game).
@@ -24,9 +25,9 @@ func squareOf(w game.Where) image.Point {
 }
 
 // cameraOf is the 3D view's camera at w.
-func cameraOf(w game.Where) Camera {
+func cameraOf(w game.Where) blobber.Camera {
 	q := squareOf(w)
-	return Camera{X: q.X, Y: q.Y, Dir: w.Facing / 2 & 3}
+	return blobber.Camera{X: q.X, Y: q.Y, Dir: w.Facing / 2 & 3}
 }
 
 // window is what the view window shows (the first, the 3D view, with no game).

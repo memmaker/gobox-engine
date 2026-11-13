@@ -7,6 +7,7 @@ package ui
 import (
 	"fmt"
 	"gobox/asset"
+	"gobox/ui/blobber"
 	"gobox/ui/input"
 	"log"
 	"path/filepath"
@@ -166,7 +167,7 @@ func (f *Front) Free() bool { return f.P.Free() }
 func (f *Front) Flow(held uint16, ready bool) (bool, bool) {
 	return f.P.Flow(held, ready)
 }
-func (f *Front) FreeWalk(in FreeInput) { f.P.FreeWalk(in) }
+func (f *Front) FreeWalk(in blobber.FreeInput) { f.P.FreeWalk(in) }
 
 func (f *Front) InventoryShown() bool { return f.P.InventoryShown() }
 func (f *Front) InventoryMouse(x, y int, down, right bool, wheel float64) {

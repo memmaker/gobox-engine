@@ -1,4 +1,4 @@
-package ui
+package blobber
 
 // The 3D view as meshes . The walls, floor, ceiling and water of
 // a map are built once into one vertex buffer (buildWorld) and drawn in a few
@@ -182,19 +182,19 @@ func mv(p pt, ctr [3]float32, col [4]float32) gpu.MeshVertex {
 		NX: ctr[0], NY: ctr[1], NZ: ctr[2], R: col[0], G: col[1], B: col[2], A: col[3]}
 }
 
-// blobberQuad appends the two triangles of a blobberQuad.
-func blobberQuad(vs []gpu.MeshVertex, a, b, c, d pt, ctr [3]float32, col [4]float32) []gpu.MeshVertex {
+// quad appends the two triangles of a quad.
+func quad(vs []gpu.MeshVertex, a, b, c, d pt, ctr [3]float32, col [4]float32) []gpu.MeshVertex {
 	return append(vs, mv(a, ctr, col), mv(b, ctr, col), mv(c, ctr, col), mv(a, ctr, col), mv(c, ctr, col), mv(d, ctr, col))
 }
 
-func blobberCentre(x, z float64) [3]float32 { return [3]float32{float32(x), 0, float32(z)} }
+func centre(x, z float64) [3]float32 { return [3]float32{float32(x), 0, float32(z)} }
 
-// blobberAhead is a quad of the plane at height y that fills the view from just before the eye to
-// reach cells blobberAhead, whatever the roll; its uv is the world position times k. It lies wholly
+// ahead is a quad of the plane at height y that fills the view from just before the eye to
+// reach cells ahead, whatever the roll; its uv is the world position times k. It lies wholly
 // in front of the camera: with the painter's depth nothing is clipped at the near plane, and a
 // plane centred under the eye (a triangle edge passing beneath it, two corners 4000 cells
 // behind) lost its near half for a frame at one facing on Windows 7's AMD.
-func blobberAhead(c cam, y, reach, k float64) (a, b, cc, d pt) {
+func ahead(c cam, y, reach, k float64) (a, b, cc, d pt) {
 	const near = 0.05
 	h := 1.2 * math.Hypot(float64(W), float64(H)) / (2 * focal) // half width per cell ahead, with a margin
 	p := func(t, s float64) pt {
@@ -219,7 +219,7 @@ type world struct {
 }
 
 type wallGroup struct {
-	m     *blobberMat
+	m     *surface
 	side  int
 	faces [][4]pt // every face of the map with this material on this side; those in view go into the frame's mesh
 }
@@ -270,12 +270,12 @@ func buildWorld() *world {
 			for cx := 0; cx < wd; cx++ {
 				x0, z0 := float64(cx), float64(cz)
 				x1, z1 := x0+1, z0+1
-				vs = blobberQuad(vs, pt{x0, y, z0, x0, z0}, pt{x1, y, z0, x1, z0}, pt{x1, y, z1, x1, z1}, pt{x0, y, z1, x0, z1}, layer(l), white4)
+				vs = quad(vs, pt{x0, y, z0, x0, z0}, pt{x1, y, z0, x1, z0}, pt{x1, y, z1, x1, z1}, pt{x0, y, z1, x0, z1}, layer(l), white4)
 			}
 		}
 		if m > 0 {
 			x0, z0, x1, z1 := float64(-m), float64(-m), float64(wd+m), float64(h+m)
-			vs = blobberQuad(vs, pt{x0, y, z0, x0, z0}, pt{x1, y, z0, x1, z0}, pt{x1, y, z1, x1, z1}, pt{x0, y, z1, x0, z1}, layer(layerSky), white4)
+			vs = quad(vs, pt{x0, y, z0, x0, z0}, pt{x1, y, z0, x1, z0}, pt{x1, y, z1, x1, z1}, pt{x0, y, z1, x0, z1}, layer(layerSky), white4)
 		}
 		return [2]int{first, len(vs) - first}
 	}
@@ -288,7 +288,7 @@ func buildWorld() *world {
 	wq := func(cx, cz int) {
 		x0, z0 := float64(cx), float64(cz)
 		x1, z1 := x0+1, z0+1
-		vs = blobberQuad(vs, pt{x0, 0.5, z0, x0 / 2, z0 / 2}, pt{x1, 0.5, z0, x1 / 2, z0 / 2}, pt{x1, 0.5, z1, x1 / 2, z1 / 2}, pt{x0, 0.5, z1, x0 / 2, z1 / 2}, layer(layerWater), white4)
+		vs = quad(vs, pt{x0, 0.5, z0, x0 / 2, z0 / 2}, pt{x1, 0.5, z0, x1 / 2, z0 / 2}, pt{x1, 0.5, z1, x1 / 2, z1 / 2}, pt{x0, 0.5, z1, x0 / 2, z1 / 2}, layer(layerWater), white4)
 	}
 	for cell := range Water {
 		wq(cell[0], cell[1])
@@ -321,7 +321,7 @@ func buildWorld() *world {
 		for _, cell := range muds[t] {
 			x0, z0 := float64(cell[0]), float64(cell[1])
 			x1, z1 := x0+1, z0+1
-			vs = blobberQuad(vs, pt{x0, 0.5, z0, 0, 0}, pt{x1, 0.5, z0, 1, 0}, pt{x1, 0.5, z1, 1, 1}, pt{x0, 0.5, z1, 0, 1}, layer(layerMud), white4)
+			vs = quad(vs, pt{x0, 0.5, z0, 0, 0}, pt{x1, 0.5, z0, 1, 0}, pt{x1, 0.5, z1, 1, 1}, pt{x0, 0.5, z1, 0, 1}, layer(layerMud), white4)
 		}
 		w.mud = append(w.mud, texRange{t, first, len(vs) - first})
 	}
@@ -340,14 +340,14 @@ func buildWorld() *world {
 			if Pond[[2]int{cell[0] + d[0], cell[1] + d[1]}] {
 				ex, ez := float64(d[0]), float64(d[1])
 				px, pz := ez*cur.PondNeck, ex*cur.PondNeck
-				vs = blobberQuad(vs, wv(mx-px, mz-pz), wv(mx+px, mz+pz), wv(mx+px+ex, mz+pz+ez), wv(mx-px+ex, mz-pz+ez), layer(layerPond), white4)
+				vs = quad(vs, wv(mx-px, mz-pz), wv(mx+px, mz+pz), wv(mx+px+ex, mz+pz+ez), wv(mx-px+ex, mz-pz+ez), layer(layerPond), white4)
 			}
 		}
 	}
 	w.pond = [2]int{first, len(vs) - first}
 	// the walls, grouped by material and side (the texture is picked per side as the camera turns)
 	type key struct {
-		m    *blobberMat
+		m    *surface
 		side int
 	}
 	faces := map[key][][4]pt{}
@@ -360,19 +360,19 @@ func buildWorld() *world {
 			for i, s := range sides(float64(cx), float64(cy), float64(cx+1), float64(cy+1)) {
 				parts := Faces[[3]int{cx, cy, i}] // a face of its own, also in front of a passable cell
 				if parts == nil {
-					if !wall(cx+blobberDirs[i][0], cy+blobberDirs[i][1]) || !inMap(cx+blobberDirs[i][0], cy+blobberDirs[i][1]) { // no wall around the map
+					if !wall(cx+dirs[i][0], cy+dirs[i][1]) || !inMap(cx+dirs[i][0], cy+dirs[i][1]) { // no wall around the map
 						continue
 					}
 					parts = []FacePart{{Mat: 0, T1: 1, U1: 1}}
 				}
-				var m *blobberMat
+				var m *surface
 				for _, p := range parts {
 					m = mats[p.Mat]
 					if p.Tex != "" {
 						m = texMat(p.Tex)
 					}
 					if m == nil {
-						m = material(cx+blobberDirs[i][0], cy+blobberDirs[i][1])
+						m = material(cx+dirs[i][0], cy+dirs[i][1])
 					}
 					m = m.load()
 					ax, az := s.ax+(s.bx-s.ax)*p.T0, s.az+(s.bz-s.az)*p.T0
@@ -384,7 +384,7 @@ func buildWorld() *world {
 					faces[k] = append(faces[k], [4]pt{{ax, wallTop, az, p.U0, 0}, {bx, wallTop, bz, p.U1, 0}, {bx, 0.5, bz, p.U1, 1}, {ax, 0.5, az, p.U0, 1}})
 				}
 				if m.lightPow > 0 { // a flickering glow in front of a light-mapped face
-					d := blobberDirs[i]
+					d := dirs[i]
 					k := 0.5 + 0.1*m.lightPow
 					wx, wz := float64(cx+d[0])+0.5, float64(cy+d[1])+0.5
 					w.torches = append(w.torches, torch{wx - float64(d[0])*k, 0.5 - m.lightHei, wz - float64(d[1])*k, 1.5 * m.lightPow, m.lightCol, float64(cx*7 + cy*13 + i), [2]int{cx, cy}})
@@ -422,7 +422,7 @@ const (
 
 // frameUniforms fills g.uni with the frame's share of the shader's uniforms: the camera, the torch,
 // the haze and the four nearest moving lights.
-func (g *BlobberGame) frameUniforms(c cam, vp gpu.Mat4) {
+func (g *Game) frameUniforms(c cam, vp gpu.Mat4) {
 	u := append(g.uni[:0], vp[:]...)
 	u = append(u, float32(c.x), 0, float32(c.z), 0)
 	u = append(u, float32(c.fwx), float32(c.fwz), projA, projB)
@@ -463,7 +463,7 @@ type glowSrc struct {
 }
 
 // draw3D draws the scene from camera c: the 3D view alone, at the size W, H.
-func (g *BlobberGame) draw3D(screen *gpu.Image, c cam) {
+func (g *Game) draw3D(screen *gpu.Image, c cam) {
 	dst := screen
 	if opt.Dither {
 		dst = g.scene
@@ -510,15 +510,15 @@ func (g *BlobberGame) draw3D(screen *gpu.Image, c cam) {
 	board := func(x, y, z, wid, hgt float64, tex *gpu.Image, bias float64, mode int) { // wid by hgt, its foot centred at x y z, facing us
 		hx, hz := c.rtx*wid/2, c.rtz*wid/2
 		first := len(dyn)
-		dyn = blobberQuad(dyn, pt{x - hx, y - hgt, z - hz, 0, 0}, pt{x + hx, y - hgt, z + hz, 1, 0}, pt{x + hx, y, z + hz, 1, 1}, pt{x - hx, y, z - hz, 0, 1}, blobberCentre(x, z), white4)
+		dyn = quad(dyn, pt{x - hx, y - hgt, z - hz, 0, 0}, pt{x + hx, y - hgt, z + hz, 1, 0}, pt{x + hx, y, z + hz, 1, 1}, pt{x - hx, y, z - hz, 0, 1}, centre(x, z), white4)
 		bills = append(bills, bill{first, 6, tex, bias, mode})
 	}
 	clouds := [2]int{}
 	if openSky { // a cloud layer high above, so the sky moves with every step and turn
 		const hgt, span, size = -6.0, 130.0, 14.0 // height, reach and cloud tile size in cells
-		a, b, cc, d := blobberAhead(c, hgt, span, 1/size)
+		a, b, cc, d := ahead(c, hgt, span, 1/size)
 		clouds[0] = len(dyn)
-		dyn = blobberQuad(dyn, a, b, cc, d, layer(layerSky), white4)
+		dyn = quad(dyn, a, b, cc, d, layer(layerSky), white4)
 		clouds[1] = 6
 	}
 	ground := [2]int{} // under everything, out to the horizon (the sea on a coast), so no sky shows below it
@@ -528,9 +528,9 @@ func (g *BlobberGame) draw3D(screen *gpu.Image, c cam) {
 		if len(Water) > 0 || Sea {
 			groundK = 0.5
 		}
-		a, b, cc, d := blobberAhead(c, 0.5, span, groundK)
+		a, b, cc, d := ahead(c, 0.5, span, groundK)
 		ground[0] = len(dyn)
-		dyn = blobberQuad(dyn, a, b, cc, d, layer(layerSky), white4)
+		dyn = quad(dyn, a, b, cc, d, layer(layerSky), white4)
 		ground[1] = 6
 	}
 	// the lights' glows: the torches on the walls and the moving lights, with their light circles
@@ -554,10 +554,10 @@ func (g *BlobberGame) draw3D(screen *gpu.Image, c cam) {
 			tint := [4]float32{float32(s.col[0] * k), float32(s.col[1] * k), float32(s.col[2] * k), 0}
 			r := s.w / 2
 			if flat {
-				dyn = blobberQuad(dyn, pt{s.x - r, s.y, s.z - r, 0, 0}, pt{s.x + r, s.y, s.z - r, 1, 0}, pt{s.x + r, s.y, s.z + r, 1, 1}, pt{s.x - r, s.y, s.z + r, 0, 1}, layer(layerCircle), tint)
+				dyn = quad(dyn, pt{s.x - r, s.y, s.z - r, 0, 0}, pt{s.x + r, s.y, s.z - r, 1, 0}, pt{s.x + r, s.y, s.z + r, 1, 1}, pt{s.x - r, s.y, s.z + r, 0, 1}, layer(layerCircle), tint)
 			} else {
 				hx, hz := c.rtx*r, c.rtz*r
-				dyn = blobberQuad(dyn, pt{s.x - hx, s.y - r, s.z - hz, 0, 0}, pt{s.x + hx, s.y - r, s.z + hz, 1, 0}, pt{s.x + hx, s.y + r, s.z + hz, 1, 1}, pt{s.x - hx, s.y + r, s.z - hz, 0, 1}, blobberCentre(s.x, s.z), tint)
+				dyn = quad(dyn, pt{s.x - hx, s.y - r, s.z - hz, 0, 0}, pt{s.x + hx, s.y - r, s.z + hz, 1, 0}, pt{s.x + hx, s.y + r, s.z + hz, 1, 1}, pt{s.x - hx, s.y + r, s.z - hz, 0, 1}, centre(s.x, s.z), tint)
 			}
 		}
 		return [2]int{first, len(dyn) - first}
@@ -608,7 +608,7 @@ func (g *BlobberGame) draw3D(screen *gpu.Image, c cam) {
 				X0, Z0 := at(i, r[2])
 				X1, Z1 := at(i+1, r[2])
 				du := math.Hypot((X1+x1-X0-x0)/2, (Z1+z1-Z0-z0)/2) / tile
-				dyn = blobberQuad(dyn, pt{x0, 0.5, z0, u, 0}, pt{x1, 0.5, z1, u + du, 0}, pt{X1, 0.5, Z1, u + du, 1}, pt{X0, 0.5, Z0, u, 1}, layer(layerPond), white4)
+				dyn = quad(dyn, pt{x0, 0.5, z0, u, 0}, pt{x1, 0.5, z1, u + du, 0}, pt{X1, 0.5, Z1, u + du, 1}, pt{X0, 0.5, Z0, u, 1}, layer(layerPond), white4)
 				u += du
 			}
 			bills = append(bills, bill{first, len(dyn) - first, o.Img, 0, modeShaded})
@@ -629,7 +629,7 @@ func (g *BlobberGame) draw3D(screen *gpu.Image, c cam) {
 			if s.nx*(mx-c.x)+s.nz*(mz-c.z) >= 0 || !inView(vp, q) {
 				continue
 			}
-			dyn = blobberQuad(dyn, q[0], q[1], q[2], q[3], blobberCentre(mx, mz), white4)
+			dyn = quad(dyn, q[0], q[1], q[2], q[3], centre(mx, mz), white4)
 		}
 		if n := len(dyn) - first; n > 0 {
 			walls = append(walls, wallRange{gi, first, n})

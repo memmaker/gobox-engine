@@ -14,13 +14,14 @@ import (
 
 	"gobox/gpu"
 	"gobox/gpu/vector"
+	"gobox/ui/blobber"
 	"image/color"
 )
 
 // MenuOptions are the settings on the Esc menu's pages: the 3D view's and the
 // window's. The settings file holds their fields at its top level.
 type MenuOptions struct {
-	ViewOptions
+	blobber.Options
 	Fullscreen bool
 }
 
@@ -28,7 +29,7 @@ type MenuOptions struct {
 // part (NewView); set them before it is made (from a settings file).
 // OnSettings is called with the new options whenever the player changes one.
 var (
-	Settings   = MenuOptions{ViewOptions: ViewOptions{Smooth: true, Fluid: true, Dither: true, Torch: 1, Speed: 1}, Fullscreen: true}
+	Settings   = MenuOptions{Options: blobber.Options{Smooth: true, Fluid: true, Dither: true, Torch: 1, Speed: 1}, Fullscreen: true}
 	OnSettings func(MenuOptions)
 )
 
@@ -242,7 +243,7 @@ func (m *optionsMenu) menuOptions() []menuLine {
 			{label: "No", change: func(m *optionsMenu, _ int) { m.back() }}}
 	}
 	exit := menuLine{label: "Exit", change: func(m *optionsMenu, _ int) { m.back() }} // a settings page's way back, as Esc
-	s := &Settings.ViewOptions
+	s := &Settings.Options
 	switch m.page {
 	case "Graphics":
 		return withExtra("Graphics", []menuLine{
@@ -263,8 +264,10 @@ func (m *optionsMenu) menuOptions() []menuLine {
 			{"Fluid movement", onOffOf(&s.Fluid), flip(&s.Fluid)},
 			{"No Grid", onOffOf(&s.NoGrid), flip(&s.NoGrid)},
 			{"Walk speed", func(*optionsMenu) string {
-				return settingBar(s.Speed, MinSpeed, MaxSpeed, 0.25) + fmt.Sprintf(" %.2fx", s.Speed)
-			}, func(_ *optionsMenu, d int) { s.Speed = settingStep(s.Speed, MinSpeed, MaxSpeed, 0.25, d) }},
+				return settingBar(s.Speed, blobber.MinSpeed, blobber.MaxSpeed, 0.25) + fmt.Sprintf(" %.2fx", s.Speed)
+			}, func(_ *optionsMenu, d int) {
+				s.Speed = settingStep(s.Speed, blobber.MinSpeed, blobber.MaxSpeed, 0.25, d)
+			}},
 		}, exit)
 	}
 	if rows, ok := ExtraRows[m.page]; ok && m.page != "" {

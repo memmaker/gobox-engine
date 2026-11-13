@@ -1,4 +1,4 @@
-package ui
+package blobber
 
 import (
 	"image"
@@ -15,7 +15,7 @@ import (
 // state. Make them per-View when two views must
 // draw at once.
 type View struct {
-	g *BlobberGame
+	g *Game
 
 	// Textures are the wall, floor and ceiling images by name (FacePart.Tex,
 	// "floor_NAME", "ceiling_NAME"); the host fills them, and calls
@@ -51,7 +51,7 @@ type Camera struct{ X, Y, Dir int }
 // textures is View.Textures (nil: only the generated materials); o are the
 // host's options, read as they change (the host owns them).
 // The host sets View.Night to start at night.
-func NewView(textures map[string]image.Image, o *ViewOptions) (*View, error) {
+func NewView(textures map[string]image.Image, o *Options) (*View, error) {
 	opt = o
 	v := &View{Textures: textures, PondHalf: 0.46, PondNeck: 0.36, PondMud: 0.12}
 	cur = v
@@ -129,7 +129,7 @@ func oneMove(l, c Camera) bool {
 }
 
 // followStep animates the move to c, or jumps there when it is not one.
-func (g *BlobberGame) followStep(c Camera) {
+func (g *Game) followStep(c Camera) {
 	if !oneMove(Camera{g.x, g.y, g.dir}, c) {
 		SetMap(level, c.X, c.Y)
 		Face(c.Dir)
@@ -137,7 +137,7 @@ func (g *BlobberGame) followStep(c Camera) {
 	}
 	dx, dy := c.X-g.x, c.Y-g.y
 	sway := 0.0 // a sidestep rolls the view, as the player's own does
-	if r := blobberDirs[(g.dir+1)%4]; [2]int{dx, dy} == r {
+	if r := dirs[(g.dir+1)%4]; [2]int{dx, dy} == r {
 		sway = 1
 	} else if [2]int{dx, dy} == [2]int{-r[0], -r[1]} {
 		sway = -1

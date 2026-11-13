@@ -8,6 +8,7 @@ import (
 	"gobox/game"
 	"gobox/gpu"
 	"gobox/gpu/vector"
+	"gobox/ui/blobber"
 	"image"
 	"image/color"
 	"io/fs"
@@ -71,7 +72,7 @@ func (p *Presenter) drawMap(dst *gpu.Image, ink [16]color.RGBA, font func(byte, 
 
 // scene is the remastered map of the area the state shows, or nil for an area
 // without one (logged once: there is no other view of it).
-func (p *Presenter) scene() *Scene {
+func (p *Presenter) scene() *blobber.Scene {
 	if p.eng == nil {
 		return nil
 	}
@@ -114,7 +115,7 @@ func wallPic(pc game.Picture) image.Image {
 
 // wallScene is the scene of the rules' own map w (its art from art): a face and a thin wall on
 // every side that holds a wall value, built once a Key.
-func (p *Presenter) wallScene(w *game.Walls, art map[string]game.Picture) *Scene {
+func (p *Presenter) wallScene(w *game.Walls, art map[string]game.Picture) *blobber.Scene {
 	p.newView()
 	name := "walls:" + w.Key
 	if sc, ok := p.scenes[name]; ok {
@@ -125,7 +126,7 @@ func (p *Presenter) wallScene(w *game.Walls, art map[string]game.Picture) *Scene
 	for y := range rows {
 		rows[y] = strings.Repeat(".", len(w.Side[y]))
 	}
-	sc := &Scene{Rows: rows, Faces: map[[3]int][]FacePart{}, Edges: map[[3]int]bool{},
+	sc := &blobber.Scene{Rows: rows, Faces: map[[3]int][]blobber.FacePart{}, Edges: map[[3]int]bool{},
 		NoMap: map[[3]int]bool{}, Water: map[[2]int]bool{}, Pond: map[[2]int]bool{}, Floor: w.Floor, Ceiling: w.Sky, FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA}
 	var backdrop image.Image
 	if w.Backdrop != nil {
@@ -142,7 +143,7 @@ func (p *Presenter) wallScene(w *game.Walls, art map[string]game.Picture) *Scene
 					continue
 				}
 				k := [3]int{x, y, d}
-				sc.Faces[k] = []FacePart{{Tex: tex, T1: 1, U1: 1}}
+				sc.Faces[k] = []blobber.FacePart{{Tex: tex, T1: 1, U1: 1}}
 				sc.Edges[k] = true
 			}
 		}
@@ -200,9 +201,9 @@ func (p *Presenter) drawOpen(dst *gpu.Image) {
 		log.Fatalf("open at %q: no map %s", openAt, f[1])
 	}
 	if p.shown != f[1] {
-		p.view.Show(sc, Camera{X: x, Y: y, Dir: d})
+		p.view.Show(sc, blobber.Camera{X: x, Y: y, Dir: d})
 		p.shown = f[1]
-		SetFlats(sc.Floor, sc.Ceiling)
+		blobber.SetFlats(sc.Floor, sc.Ceiling)
 	}
 	p.animate()
 	p.view.Draw(dst)
@@ -225,18 +226,18 @@ func paintedWalls() map[byte]string {
 }
 
 // sceneNamed is the remastered map NAME, or nil (logged once).
-func (p *Presenter) sceneNamed(name string) *Scene {
+func (p *Presenter) sceneNamed(name string) *blobber.Scene {
 	p.newView()
 	if sc, ok := p.scenes[name]; ok {
 		return sc
 	}
-	var sc *Scene
+	var sc *blobber.Scene
 	gpu.Note("scene %s parsed", name)
 	if f, err := art.Open("maps/" + name + ".map"); err != nil {
 		log.Println("remaster:", err)
 	} else {
 		defer f.Close()
-		if sc, _, err = ParseScene(f); err != nil {
+		if sc, _, err = blobber.ParseScene(f); err != nil {
 			log.Printf("remaster: %s.map: %v", name, err)
 		}
 	}
@@ -268,12 +269,12 @@ func (p *Presenter) wallStyle() {
 func (p *Presenter) newView() {
 	p.wallStyle()
 	if p.scenes == nil {
-		p.scenes = map[string]*Scene{}
+		p.scenes = map[string]*blobber.Scene{}
 	}
 	if p.view == nil {
 		gpu.Note("3D view made")
 		var err error
-		if p.view, err = NewView(map[string]image.Image{}, &Settings.ViewOptions); err != nil {
+		if p.view, err = blobber.NewView(map[string]image.Image{}, &Settings.Options); err != nil {
 			log.Fatalln("remaster:", err)
 		}
 		p.view.Load = wallImage

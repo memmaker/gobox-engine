@@ -12,6 +12,7 @@ import (
 	"gobox/asset"
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/ui/blobber"
 )
 
 // F11's style swap: the 3D view's next frame draws the pixel wall (and back),
@@ -36,16 +37,16 @@ func TestWallStyleSwapsTextures(t *testing.T) {
 
 	var p Presenter
 	w := &game.Walls{Key: "styletest", Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}
-	dst := gpu.NewImage(W, H)
+	dst := gpu.NewImage(blobber.W, blobber.H)
 	frame := func() (red, blue int) { // the wall's pixels of either colour
 		sc := p.wallScene(w, nil)
 		if p.shown != "s" {
-			p.view.Show(sc, Camera{})
+			p.view.Show(sc, blobber.Camera{})
 			p.shown = "s"
 		}
 		p.view.Draw(dst)
-		for y := 0; y < H; y += 10 {
-			for x := 0; x < W; x += 10 {
+		for y := 0; y < blobber.H; y += 10 {
+			for x := 0; x < blobber.W; x += 10 {
 				r, _, b, _ := dst.At(x, y).RGBA()
 				if r>>8 > 150 && b == 0 { // lit or in the torch's shade
 					red++
@@ -81,11 +82,11 @@ func TestWallSceneFirstFrameFlats(t *testing.T) {
 
 	var p Presenter
 	w := &game.Walls{Key: "firstframe", Side: openGrid(), Floor: "br1_venus", Sky: "br1_greendome"}
-	p.view.Show(p.wallScene(w, nil), Camera{X: 2, Y: 4})
-	dst := gpu.NewImage(W, H)
+	p.view.Show(p.wallScene(w, nil), blobber.Camera{X: 2, Y: 4})
+	dst := gpu.NewImage(blobber.W, blobber.H)
 	p.view.Draw(dst)
-	for _, y := range []int{H / 8, H * 7 / 8} { // ceiling, floor
-		if r, g, _, _ := dst.At(W/2, y).RGBA(); r|g == 0 { // the fog is blue only
+	for _, y := range []int{blobber.H / 8, blobber.H * 7 / 8} { // ceiling, floor
+		if r, g, _, _ := dst.At(blobber.W/2, y).RGBA(); r|g == 0 { // the fog is blue only
 			t.Errorf("first frame: row %d is the fog, not a flat", y)
 		}
 	}
