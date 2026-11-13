@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"gobox/adventure"
-	"gobox/asset/orig"
 	"gobox/game"
 	"gobox/rules"
 )
@@ -141,16 +140,11 @@ func (e *Engine) battleMusic() {
 }
 
 // SoundParts is what the driver plays besides the synth, for
-// audio.Driver.Attach: the Amiga player (nil without SOUND.BIN) and its
+// audio.Driver.Attach: the Amiga player's SOUND.BIN (audio.LoadAmiga) and its
 // effects, the sound pack's folder (audio.LoadSoundPack) and the volume
 // sliders ("music", "sfx", "voice").
-func (e *Engine) SoundParts() (*orig.Player, []int, string, func(string) float64) {
-	var am *orig.Player
-	if img, err := os.ReadFile(filepath.Join(e.adv, adventure.SoundDir, "SOUND.BIN")); err == nil && len(img) == orig.End-orig.Base {
-		am = orig.NewPlayer(img)
-		am.SongOn = 0x667d5
-	}
-	return am, amigaFx[:], filepath.Join(e.adv, adventure.SoundDir, daspDir), volume
+func (e *Engine) SoundParts() (string, []int, string, func(string) float64) {
+	return filepath.Join(e.adv, adventure.SoundDir, "SOUND.BIN"), amigaFx[:], filepath.Join(e.adv, adventure.SoundDir, daspDir), volume
 }
 
 // SetSound hands the rules the attached driver (audio.Driver, made on

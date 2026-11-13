@@ -88,7 +88,10 @@ func playPool(s start) (ui.Launch, error) {
 	if err != nil {
 		return ui.Launch{}, err
 	}
-	vox := attachSound(eng, drv)
+	vox, err := attachSound(eng, drv)
+	if err != nil {
+		return ui.Launch{}, err
+	}
 	audio.Output(drv) // speaker and voice share one context
 	audio.Output(vox)
 	eng.Cfg.Param = s.Param
@@ -174,8 +177,12 @@ func homeRosters(root string, names []string) func(string) ([]rules.CharacterFil
 // attachSound attaches the driver's parts and hands the engine the driver,
 // the sound pack and the voice-over, which the engine plays through
 // (game.Sound, game.SoundPack, game.Voice); the voice is an audio.Output source.
-func attachSound(eng *engine.Engine, drv *audio.Driver) *audio.Voice {
-	am, fx, packDir, vol := eng.SoundParts()
+func attachSound(eng *engine.Engine, drv *audio.Driver) (*audio.Voice, error) {
+	bin, fx, packDir, vol := eng.SoundParts()
+	am, err := audio.LoadAmiga(bin)
+	if err != nil {
+		return nil, err
+	}
 	vox := audio.NewVoice(func() float64 { return vol("voice") })
 	var pack audio.Pack
 	var play game.SoundPack
@@ -184,5 +191,5 @@ func attachSound(eng *engine.Engine, drv *audio.Driver) *audio.Voice {
 	}
 	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), eng.SoundtrackFiles()), pack, vox.Speaking, vol) // the presenter decodes and plays the recordings
 	eng.SetSound(drv, play, vox)
-	return vox
+	return vox, nil
 }

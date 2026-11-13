@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"gobox/asset/orig"
+	"path/filepath"
 	"testing"
 )
 
@@ -138,13 +139,17 @@ func TestSongNext(t *testing.T) {
 }
 
 // A Music-X player (amiga.MX) plays through the Driver's Amiga hooks; a nil
-// *amiga.Player (por without SOUND.BIN) leaves the DOS driver.
+// LoadAmiga without a SOUND.BIN is none: the DOS driver stays.
 func TestDriverMX(t *testing.T) {
 	d := newDriver(t, 'T')
-	d.Attach((*orig.Player)(nil), nil, nil, nil, nil, nil)
+	am, err := LoadAmiga(filepath.Join(t.TempDir(), "SOUND.BIN"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	d.Attach(am, nil, nil, nil, nil, nil)
 	d.Effect(3, false)
 	if d.am != nil {
-		t.Fatal("nil *amiga.Player kept")
+		t.Fatal("no SOUND.BIN, yet an Amiga player")
 	}
 	// one song: note 60 (channel 0, velocity 0x40) for a quarter, end; one looped 32-byte square instrument
 	mx := []byte("MXTX\x00\x78\x00\x00\x00\x01\x00\x00\x00\x02" +

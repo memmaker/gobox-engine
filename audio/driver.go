@@ -2,6 +2,10 @@ package audio
 
 import (
 	"encoding/binary"
+	"errors"
+	"fmt"
+	"io/fs"
+	"os"
 	"sync"
 
 	"gobox/asset/orig"
@@ -93,9 +97,6 @@ func NewDriver(data []byte, card byte) (*Driver, error) {
 func (d *Driver) Attach(am Amiga, fx []int, t Tracks, p Pack, speaking func() bool, vol func(kind string) float64) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	if p, ok := am.(*orig.Player); ok && p == nil {
-		am = nil // a nil *amiga.Player (por's SoundParts without SOUND.BIN)
-	}
 	d.am, d.fx, d.t, d.pack = am, fx, t, p
 	if speaking != nil {
 		d.speaking = speaking
@@ -393,3 +394,21 @@ func (d *Driver) SetOwnMusic(playing func() bool) {
 
 // quiet: the game's songs play on unheard (a voice-over, the player's own music).
 func (d *Driver) quiet() bool { return d.speaking() || d.own != nil && d.own() }
+
+// LoadAmiga is the Amiga player of the SOUND.BIN at path; nil and no error:
+// the adventure has none.
+func LoadAmiga(path string) (Amiga, error) {
+	img, err := os.ReadFile(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if len(img) != orig.End-orig.Base {
+		return nil, fmt.Errorf("%s: %d bytes, want %d (run the import again)", path, len(img), orig.End-orig.Base)
+	}
+	p := orig.NewPlayer(img)
+	p.SongOn = 0x667d5
+	return p, nil
+}

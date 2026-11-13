@@ -36,7 +36,9 @@ func TestStartupTiming(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	attachSound(eng, drv)
+	if _, err := attachSound(eng, drv); err != nil {
+		t.Fatal(err)
+	}
 	lap("sound")
 	data := poolData(eng, "por")
 	lap("Data")
