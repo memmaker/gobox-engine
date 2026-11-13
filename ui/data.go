@@ -71,7 +71,10 @@ func readLogo(path string) image.Image {
 	if b == nil {
 		return nil
 	}
-	im, _ := asset.DecodePNG(b)
+	im, err := asset.DecodePNG(b)
+	if err != nil {
+		panic(fmt.Sprintf("%s: %v (run the import again)", path, err))
+	}
 	return im
 }
 
