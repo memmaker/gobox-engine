@@ -172,15 +172,6 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 	return ed
 }
 
-// Title is the title picture under the party menu: art's "title/logo"
-// (the picture's pixels), else logo (the game's).
-func Title(logo *Picture, art map[string]game.Picture) *Picture {
-	if p := pix(art["title/logo"]); p.Pix != nil {
-		logo = &p
-	}
-	return logo
-}
-
 // subject is the member whose portrait and icon are on show: the creation's
 // draft, else the selected one, with gobox's defaults where it names none.
 func subject(own game.Member) game.Member { return defaultIcon(defaultPortrait(own)) }

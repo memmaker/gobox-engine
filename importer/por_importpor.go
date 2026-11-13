@@ -1,8 +1,10 @@
 package importer
 
 import (
+	"errors"
 	"gobox/adventure"
 	"gobox/asset"
+	"image/color"
 	"os"
 	"path/filepath"
 
@@ -17,7 +19,7 @@ import (
 func init() {
 	Register(Game{
 		Cover: true,
-		ID:    "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: adventure.RecordLayout, Combat4e: true, Version: 3, // 3: Combat4e in the manifest (playpool offers rules4e on it); 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
+		ID:    "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: adventure.RecordLayout, Combat4e: true, Version: 4, // 4: art/LOGO.png, the cut menu lettering (Data.Logo gone); 3: Combat4e in the manifest (playpool offers rules4e on it); 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
 
 		Window:  Size{W: asset.ScreenW, H: asset.ScreenH},
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},
@@ -113,6 +115,9 @@ func PorImport(dos, dst string) error {
 	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, adventure.ArtDir)); err != nil {
 		return err
 	}
+	if err := writeLogo(filepath.Join(dst, adventure.ArtDir)); err != nil {
+		return err
+	}
 	if err := asset.WritePictures("por", dst); err != nil {
 		return err
 	}
@@ -141,4 +146,29 @@ func copyEntry(src, dst string) error {
 		return err
 	}
 	return os.WriteFile(dst, b, 0o644)
+}
+
+// porLogo cuts TITLE picture 2's "Pool of Radiance" (yellow with a light blue
+// shadow, above row 108) and its subtitle (light magenta, rows 108 to 160) in
+// the Amiga intro's colours: gold (0xF90) with a dark red (0x600) outline, the
+// intro's credits palette entries 2 and 1.
+var porLogo = asset.LogoCut{Sub: 108, Bottom: 160, Keep: []uint8{asset.EGAYellow, asset.EGALightBlue}, SubInk: asset.EGALightMagenta,
+	Gold: color.RGBA{0xff, 0x99, 0, 0xff}, Outline: color.RGBA{0x66, 0, 0, 0xff}}
+
+// writeLogo cuts the menu lettering from the imported art in artDir
+// (TITLE 2, DOS) and writes it as adventure.LogoFile.
+func writeLogo(artDir string) error {
+	b := asset.OpenArt(artDir).Block(asset.DOS, "TITLE", 2)
+	if b == nil {
+		return errors.New("no TITLE 2 in the imported art for the menu logo")
+	}
+	im := b.Image(asset.NoMask)
+	if im == nil {
+		return errors.New("TITLE 2 is no picture")
+	}
+	logo, err := asset.CutLogo(im.Frame(0), im.Width*8, porLogo)
+	if err != nil {
+		return err
+	}
+	return asset.WritePNG(filepath.Join(artDir, adventure.LogoFile), logo)
 }

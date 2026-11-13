@@ -5,7 +5,7 @@
 // text inks by EGA name (Ink) and art's own palettes. Not yet so, each
 // with its own refactor item: the pictures placed on the page (Layer: the
 // title, ending and story screens), the fonts (Data.Font, Fonts,
-// TextRun.Upcase), the menu logo's cut (Data.Logo) and the credits page's
+// TextRun.Upcase), the credits page's
 // cells (Credit, Data.CreditBoxes, CreditGaps). Modelled on pod's
 // rules.State / Decision / Apply / Pending / Event. Stdlib only.
 package game
@@ -903,22 +903,11 @@ type Data struct {
 	CreditGaps    []int             `json:"-"` // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
 	CreditBoxes   []image.Rectangle `json:"-"` // the original's credits boxes in 40x25 cells, Min and Max the corner cells; an edge on the page's (x 38, y 23) follows the page's. The lines go in at their cells with CreditGaps. nil: one frame on the page's edges, the lines spread over it
 	IconParts     []string          // the combat icon designer's parts
-	Logo          *Logo             // how the main menu's lettering is cut from the title picture (nil: none)
 	TitleBackdrop []Layer           `json:"-"` // the title's picture under the main menu, none of Intro.Pictures' timed steps: gobox draws it once the title is done, fitted, and zooms the menu in over it (nil: none)
 	AreaMaps      map[int]string    `json:"-"` // the remastered 3D map (Remaster maps/NAME.map) of each area id
 	Remaster      fs.FS             `json:"-"` // the remastered art: maps/NAME.map and assets/walls/walls.txt
 	OpenAt        string            `json:"-"` // debug: map:NAME:X:Y:D shows that remastered map alone
 	Bindings      []Binding         // the game's own help rows, after the Any time Ctrl-F row
-}
-
-// Logo is how the title picture's lettering is cut out: EGA colours Keep
-// above row Sub stay, from Sub to Bottom the SubInk pixels are drawn in Gold
-// with an Outline round them; everything else is transparent.
-type Logo struct {
-	Sub, Bottom   int
-	Keep          []uint8
-	SubInk        uint8
-	Gold, Outline color.RGBA
 }
 
 // Binding is one row of the help: in context Ctx, Keys (and Mouse, Pad) do Desc.

@@ -7,25 +7,6 @@ import (
 	"gobox/asset"
 )
 
-// TestLogoNone: a game with no Data.Logo (cotab, sotsb, pod: their backdrop
-// carries the lettering) cuts none from the title picture the engine hands
-// in (it divided by zero in drawMainUI); a cut that finds nothing panics.
-func TestLogoNone(t *testing.T) {
-	defer func(l LogoCut) { logoCut, logoCache.pix = l, nil }(logoCut)
-	pic := &Picture{Pix: make([]uint8, 320*200), PixW: 320}
-	logoCut = LogoCut{}
-	if m := logoImage(pic); m != nil {
-		t.Fatalf("no Data.Logo: lettering %v", m.Bounds())
-	}
-	logoCut = LogoCut{Sub: 108, Bottom: 160, Keep: []uint8{asset.EGAYellow}, SubInk: asset.EGALightMagenta}
-	defer func() {
-		if recover() == nil {
-			t.Error("an empty cut did not panic")
-		}
-	}()
-	logoImage(pic)
-}
-
 // TestAmigaRef: an Amiga block named by file and block (ColourBase 32, its
 // own palette) decodes opaque in that palette (artRGBA left every Amiga
 // pixel out: c < asset.Clear).
