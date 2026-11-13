@@ -1,4 +1,4 @@
-package playpool
+package main
 
 import (
 	"os"
@@ -13,14 +13,14 @@ func TestHomeSaves(t *testing.T) {
 	adv := t.TempDir()
 	os.MkdirAll(filepath.Join(adv, "saves"), 0o755)
 	os.WriteFile(filepath.Join(adv, "saves", "A.PC"), []byte("x"), 0o644)
-	d, err := HomeSaves("pod", adv)
+	d, err := homeSaves("pod", adv)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(filepath.Join(d, "A.PC")); err != nil {
 		t.Fatal(err)
 	}
-	if again, err := HomeSaves("pod", adv); err != nil || again != d {
+	if again, err := homeSaves("pod", adv); err != nil || again != d {
 		t.Fatal("second call moved", again, err)
 	}
 }

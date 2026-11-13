@@ -27,7 +27,6 @@ import (
 	"buckrogers/playbr1"
 	"buckrogers2/playbr2"
 	"gobox/app"
-	"gobox/engine/playpool"
 	"gobox/importer"
 	"gobox/ui"
 
@@ -36,7 +35,7 @@ import (
 	_ "gobox/importer/games"
 )
 
-// players start the games that are not on rules1e's pool host (playpool.Play
+// players start the games that are not on rules1e's pool host (playPool
 // reads everything else of a rules1e game from its manifest). ponytail: one
 // engine per game until the engine loop is gobox's (Track R4/R5).
 var players = map[string]func(app.Start) error{
@@ -50,7 +49,7 @@ const ruleset1e = "rules1e"
 // play starts the adventure folder f in the engine of its game.
 func play(s app.Start, f importer.Folder) error {
 	if f.Ruleset == ruleset1e {
-		return playpool.Play(s)
+		return playPool(s)
 	}
 	return players[f.ID](s)
 }

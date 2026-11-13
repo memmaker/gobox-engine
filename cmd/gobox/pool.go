@@ -1,8 +1,8 @@
-// Package playpool starts a Gold Box game's pool engine (engine.New over
-// rules1e) on an imported adventure folder for cmd/gobox: the one host loop
+// pool.go starts a Gold Box game's pool engine (engine.New over
+// rules1e) on an imported adventure folder: the one host loop
 // every game on pool shares. What differs between games is the manifest's
 // (importer.Manifest).
-package playpool
+package main
 
 import (
 	"bytes"
@@ -31,14 +31,14 @@ import (
 const tps = 120
 
 // Data is the engine's game.Data with the remastered art (asset.Remaster) of game id, if it has any.
-func Data(eng *engine.Engine, id string) game.Data {
+func poolData(eng *engine.Engine, id string) game.Data {
 	d := eng.Data()
 	d.Remaster, d.AreaMaps = asset.Remaster(id)
 	return d
 }
 
 // Play runs the game of the adventure folder s.Adventure until the window closes.
-func Play(s app.Start) error {
+func playPool(s app.Start) error {
 	s.Explore = s.Explore || s.Capture.Slot != "" // -slot starts play from that save (Explore reads it), -explore or not
 
 	host := ui.DefaultHostOptions // the settings in use; app.Menu reads them from SETTINGS.JSON
@@ -56,7 +56,7 @@ func Play(s app.Start) error {
 		return err
 	}
 	if f.UserSaves {
-		saves, err := HomeSaves(f.ID, s.Adventure)
+		saves, err := homeSaves(f.ID, s.Adventure)
 		if err != nil {
 			return err
 		}
@@ -142,7 +142,7 @@ func Play(s app.Start) error {
 		eng.FixedSeed = &seed
 	}
 
-	data := Data(eng, f.ID)
+	data := poolData(eng, f.ID)
 	data.OpenAt = s.Open
 	data.OwnMusic = filepath.Join(s.Data, "music") // the player's own music, by trigger
 	cg := ui.NewGame(eng, data)
@@ -176,7 +176,7 @@ func Play(s app.Start) error {
 // HomeSaves is the save folder of game id under the user's config dir
 // (gobox/<id>); the first time it is seeded with the adventure adv's shipped
 // characters and saves (its saves/); the adventure folder is never written.
-func HomeSaves(id, adv string) (string, error) {
+func homeSaves(id, adv string) (string, error) {
 	cfg, err := os.UserConfigDir()
 	if err != nil {
 		return "", err

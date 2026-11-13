@@ -1,4 +1,4 @@
-package playpool
+package main
 
 import (
 	"image"

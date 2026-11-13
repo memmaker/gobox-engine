@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"gobox/engine/playpool"
 	"gobox/ui"
 )
 
@@ -41,7 +40,7 @@ func TestLoadedExploreStateBuilds(t *testing.T) {
 	eng.FullIntro.Store(false)
 	seed := uint32(1)
 	eng.FixedSeed = &seed
-	data := playpool.Data(eng, "por")
+	data := poolData(eng, "por")
 	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("back-for-good")
 	f.Frame(1280, 800)

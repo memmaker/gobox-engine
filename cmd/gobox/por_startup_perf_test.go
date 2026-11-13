@@ -7,7 +7,6 @@ import (
 
 	"gobox/audio"
 	"gobox/engine"
-	"gobox/engine/playpool"
 	"gobox/ui"
 )
 
@@ -41,7 +40,7 @@ func TestStartupTiming(t *testing.T) {
 	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), engine.SoundtrackFiles), pack, speaking, vol)
 	eng.SetSound(drv)
 	lap("sound")
-	data := playpool.Data(eng, "por")
+	data := poolData(eng, "por")
 	lap("Data")
 	g := ui.NewFront(ui.NewGame(eng, data), data, drv)
 	lap("NewFront")
