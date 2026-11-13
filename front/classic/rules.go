@@ -198,7 +198,7 @@ func (r *rules) question(q *play.Question, list bool) *play.Ask {
 	a := &play.Ask{Kind: game.Choice, Prompt: q.Text, Default: q.Default, Max: q.Max, NoEsc: q.NoEsc, NoPick: q.NoPick}
 	switch {
 	case q.Continue:
-		a.Kind = game.Continue
+		a.Kind, a.Ms = game.Continue, q.Ms
 	case q.Heading:
 		a.Kind, a.Options = game.Direction, []play.Option{{Label: "Done", Key: 'D', Do: play.Leave{}}}
 		return a
@@ -315,8 +315,11 @@ func (r *rules) options(labels []string, list bool) []play.Option {
 // name) or over the creation sheet (Common.Ask): the old front shows a
 // question only in ModeAsk, so in ModeStory or ModeCreate it stayed hidden.
 func askMode(m game.Mode, a *play.Ask, ps play.State) game.Mode {
-	if a == nil || a.Kind == game.Continue {
+	if a == nil || a.Kind == game.Continue && a.Ms == 0 {
 		return m
+	}
+	if a.Kind == game.Continue { // a timed pause: the presenter's to pace (AskPause)
+		return game.ModeAsk
 	}
 	switch {
 	case m == game.ModeStory:

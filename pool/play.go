@@ -137,6 +137,8 @@ func (e *Engine) State() play.State {
 		}
 		q := &play.Question{Text: sc.Status, List: sc.Status != "" || a.List, NoPick: a.NoPick, NoEsc: a.NoEsc, Esc: a.Esc, Keys: a.Keys} // bug class 49 on the Scene path
 		switch {
+		case a.Continue && a.Ms > 0: // a timed pause: the Scene carries it, so the presenter paces it
+			sc.Ask, q.Continue, q.Ms = q, true, a.Ms
 		case a.Continue:
 		case a.Typed:
 			sc.Kind, sc.Ask, q.Typed, q.Max = play.SceneTalk, q, true, 40
@@ -160,11 +162,11 @@ func ask(s facts) *play.Question {
 	if s.ShopMenu { // the shop's own Buy, Leave: Trading's Buy and Leave
 		return nil
 	}
-	if a == nil || s.Door != nil || a.Continue || s.Mode == game.ModeNone || s.Mode == game.ModeParty || s.Mode == game.ModeCreate {
+	if a == nil || s.Door != nil || a.Continue && a.Ms == 0 || s.Mode == game.ModeNone || s.Mode == game.ModeParty || s.Mode == game.ModeCreate {
 		return nil
 	}
 	q := &play.Question{Text: a.Text, Default: a.Default, Max: a.Max, NoEsc: a.NoEsc, NoPick: a.NoPick, YesNo: a.YesNo,
-		Typed: a.Typed, Number: a.Number, Keys: a.Keys, Esc: a.Esc}
+		Typed: a.Typed, Number: a.Number, Keys: a.Keys, Esc: a.Esc, Continue: a.Continue, Ms: a.Ms}
 	if !a.Typed && !a.Number {
 		for _, r := range a.Replies {
 			q.Replies = append(q.Replies, strings.TrimSpace(r))

@@ -56,9 +56,18 @@ func Combat(series string) fs.FS {
 	return f
 }
 
-// Names lists the sprite names of a series' kind, sorted.
+// names is Names' lists, made once each: the embedded files never change
+// (the portrait pick lists them every frame).
+var names sync.Map // series/kind -> []string
+
+// Names lists the sprite names of a series' kind, sorted. The list is
+// shared: callers must not change it.
 func Names(series, kind string) []string {
-	es, _ := fsys.ReadDir("series/" + series + "/" + kind)
+	dir := "series/" + series + "/" + kind
+	if out, ok := names.Load(dir); ok {
+		return out.([]string)
+	}
+	es, _ := fsys.ReadDir(dir)
 	var out []string
 	for _, e := range es {
 		if n, ok := strings.CutSuffix(e.Name(), ".png"); ok {
@@ -66,6 +75,7 @@ func Names(series, kind string) []string {
 		}
 	}
 	sort.Strings(out)
+	names.Store(dir, out)
 	return out
 }
 

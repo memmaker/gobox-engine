@@ -472,6 +472,9 @@ func (e *Engine) question() *play.Question {
 	if len(q.Replies) == 0 && !q.Typed && !q.Number {
 		q.Continue = true
 	}
+	if w.shape == shPause { // DELAY and the other timed pauses: the presenter paces them (play.Question.Ms)
+		q.Ms = w.ms
+	}
 	return &q
 }
 

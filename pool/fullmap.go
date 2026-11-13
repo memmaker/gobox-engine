@@ -7,6 +7,7 @@ import (
 	"gobox/core/goldbox"
 	"gobox/core/grid"
 	"gobox/ecl/script"
+	"log"
 	"os"
 	"sort"
 	"strings"
@@ -177,8 +178,14 @@ func (e *Engine) Unmark(x, y int) {
 // mapName is the current map's name in words, from the scripts' names of
 // the GEO blocks (names/pictures.txt), or "Map".
 func (e *Engine) mapName() string {
-	vals, _ := script.ReadValues(os.DirFS(e.scriptDir()), "names/pictures.txt", nil)
-	n := script.ValueName(vals, "Map", int(e.set), e.worldWord(core.WordGeo))
+	if !e.mapNamesRead {
+		vals, err := script.ReadValues(os.DirFS(e.scriptDir()), "names/pictures.txt", nil)
+		if err != nil {
+			log.Printf("map names: %v", err)
+		}
+		e.mapNames, e.mapNamesRead = vals, true
+	}
+	n := script.ValueName(e.mapNames, "Map", int(e.set), e.worldWord(core.WordGeo))
 	if n == "" {
 		return "Map"
 	}

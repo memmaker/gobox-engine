@@ -517,9 +517,11 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			py = int(gap + pp*ph/2)
 			cy = py + int(pp*ph/2+gap+tk*th/2)
 		}
-		inside := viewTextImage(&p.pg.pic, v.ViewText, pic.Pixels().Inset(8), note) // text over the whole view window (WinText)
+		var inside *gpu.Image
 		if v.Window == front.WinPicture {
 			inside = pictureBox(&p.pg.pic, v.Pictures, pic.Pixels().Inset(8))
+		} else {
+			inside = viewTextImage(&p.pg.pic, v.ViewText, pic.Pixels().Inset(8), note) // text over the whole view window (WinText)
 		}
 		drawBox(dst, inside, p.border.tiles, pic, pp, cx, py)
 		picBottom = py + int(pp*ph/2)
