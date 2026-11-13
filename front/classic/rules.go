@@ -41,8 +41,42 @@ func saveDir(d game.Data) string {
 	return filepath.Join(c, "gobox", cmp.Or(d.ID, "game"), "saves")
 }
 
+// memoGame is the game with its State built once until the game may have
+// changed: State is the rules' whole state built anew (pool: every member's
+// item cards, milliseconds for a level-5 party), and classic reads it
+// piecewise many times a frame and a step. Do is the only way anything
+// changes (play.Game), so Do and Load drop it; so does
+// fresh, which every call that may change the game outside Do and Load
+// makes (LoadSlot, Open, SetSpeed) and each of the front's entries that
+// starts a frame's or a decision's work (View, Answer): what the
+// game changed on its own (a setting's toggle, the clock) shows by then.
+type memoGame struct {
+	play.Game
+	ps play.State
+}
+
+func (m *memoGame) State() play.State {
+	if m.ps == nil {
+		m.ps = m.Game.State()
+	}
+	return m.ps
+}
+
+func (m *memoGame) Do(a play.Action) (play.Outcome, error) {
+	defer m.fresh()
+	return m.Game.Do(a)
+}
+
+func (m *memoGame) Load(b []byte) error {
+	defer m.fresh()
+	return m.Game.Load(b)
+}
+
+// fresh drops the kept State: the next State builds it again.
+func (m *memoGame) fresh() { m.ps = nil }
+
 type rules struct {
-	g       play.Game
+	g       *memoGame
 	dir     string
 	items   game.ItemsUp
 	ask     *play.Ask     // gobox's own question up (a maneuver pick), nil none
@@ -80,7 +114,7 @@ type squareAim struct {
 
 // newRules is the front state over g; d is the game's Data.
 func newRules(g play.Game, d game.Data) *rules {
-	return &rules{g: g, dir: saveDir(d), sheet: -1, data: d, speed: defaultSpeed, now: time.Now}
+	return &rules{g: &memoGame{Game: g}, dir: saveDir(d), sheet: -1, data: d, speed: defaultSpeed, now: time.Now}
 }
 
 // who is n, or the selected member when n is -1.
@@ -103,8 +137,12 @@ func restCap(al play.Allowed) (time.Duration, bool) {
 
 // Map is the game's walkable map while the party explores and no question
 // is up  gobox walks on it.
-func (r *rules) Map() game.Map {
-	if t, ok := r.g.State().(play.Exploring); ok && r.ask == nil && t.Map.Walk != nil {
+func (r *rules) Map() game.Map { return r.mapOf(r.g.State()) }
+
+// mapOf is Map in state ps (a caller that has the State already: State is
+// the rules' whole state, built anew on each call).
+func (r *rules) mapOf(ps play.State) game.Map {
+	if t, ok := ps.(play.Exploring); ok && r.ask == nil && t.Map.Walk != nil {
 		return t.Map.Walk
 	}
 	return nil
@@ -1479,7 +1517,7 @@ func (r *rules) remove(name string) error {
 func (r *rules) load(slot int) play.Result {
 	own := r.ownSaves()
 	var err error
-	switch gs, ok := r.g.(play.Slots); {
+	switch gs, ok := r.g.Game.(play.Slots); {
 	case slot >= 0 && slot < len(own):
 		var p string
 		var b []byte
@@ -1490,6 +1528,7 @@ func (r *rules) load(slot int) play.Result {
 		}
 	case ok && slot >= len(own) && slot < len(own)+len(gs.Slots()):
 		err = gs.LoadSlot(slot - len(own))
+		r.g.fresh()
 	default:
 		err = errors.New("no such slot")
 	}
@@ -1512,7 +1551,7 @@ type slotsKey struct{}
 // readSaves is saves read from the disk.
 func (r *rules) readSaves() []game.SaveSlot {
 	sl := r.ownSaves()
-	if gs, ok := r.g.(play.Slots); ok {
+	if gs, ok := r.g.Game.(play.Slots); ok {
 		sl = append(sl, gs.Slots()...)
 	}
 	return sl
@@ -1559,7 +1598,7 @@ func onward(al play.Allowed) play.Action {
 // Art is the game's art read live: what the game's own Art gives (its art
 // changes as the party moves), else Data.Art.
 func (r *rules) Art() map[string]game.Picture {
-	if a, ok := r.g.(interface {
+	if a, ok := r.g.Game.(interface {
 		Art() map[string]game.Picture
 	}); ok {
 		return a.Art()
@@ -1571,8 +1610,9 @@ func (r *rules) Art() map[string]game.Picture {
 // replay delay, and the rules' own where they take it.
 func (r *rules) setSpeed(n int) {
 	r.speed = min(max(n, 0), 9)
-	if g, ok := r.g.(interface{ SetSpeed(int) }); ok {
+	if g, ok := r.g.Game.(interface{ SetSpeed(int) }); ok {
 		g.SetSpeed(r.speed)
+		r.g.fresh()
 	}
 }
 

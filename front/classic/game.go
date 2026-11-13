@@ -156,6 +156,7 @@ func (g *Game) art() map[string]game.Picture {
 }
 
 func (g *Game) View() front.View {
+	g.r.g.fresh() // a frame's View: what changed since shows
 	r, ps := g.r, g.r.g.State()
 	c := play.CommonOf(ps)
 	art := g.art()
@@ -228,13 +229,13 @@ func (g *Game) View() front.View {
 	v.Battle = ViewVerb(v.Battle, g.D)
 	v = Page(v, r.pageOf(ps), storyOf(c))
 	v = Flags(v, r.flagsOf(ps, party), OverMenu(mode, pending))
-	if m := g.walkMap(); m != nil {
+	if m := r.mapOf(ps); m != nil {
 		v.Open = openSides(m, c.Where)
 	}
 	v = Place(v, c.Where, windowOf(ps))
 	v.Quests, v.Lore = Quests(c.Quests), Lore(c.Lore)
 	v = Waits(v, game.Hold(holding(ps)), doorOf(ps), c.PowerPick)
-	v.Party, v.Purse = Party(party, cardsOf(g.r.g.State()), sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
+	v.Party, v.Purse = Party(party, cardsOf(ps), sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
 	v = Sheet(v, sheet, image.Rectangle{}, image.Rectangle{}, page, Drafting(mode, draft), draft, own)
 	v = Border(v, art)
 	v = Walls(v, r.wallsOf(ps), art)
@@ -492,8 +493,9 @@ func (g *Game) posedBattle(e play.Report) *front.Battle {
 
 // Open starts the rules on save slot slot ("" none) when they take it.
 func (g *Game) Open(slot string) {
-	if o, ok := g.G.(interface{ Open(string) }); ok {
+	if o, ok := g.r.g.Game.(interface{ Open(string) }); ok {
 		o.Open(slot)
+		g.r.g.fresh()
 	}
 }
 
@@ -658,7 +660,7 @@ func (g *Game) Pick(i int) bool {
 // SetChoice sends gobox's pool pick field (the portrait's or the icon's) to
 // the game: it takes it for the selected member or the draft.
 func (g *Game) SetChoice(field, id string) error {
-	_, err := g.G.Do(play.SetChoice{Field: field, Text: id})
+	_, err := g.r.g.Do(play.SetChoice{Field: field, Text: id})
 	return err
 }
 func (g *Game) ClosePicker()   { g.tiles = false; g.do(play.ClosePicker{}) }
@@ -877,6 +879,7 @@ func (g *Game) ClueRead(i int) *front.Read {
 
 // Answer does the Decision a names; ActResize is the front's own (the page's size).
 func (g *Game) Answer(a front.Action) error {
+	g.r.g.fresh() // a decision: what changed since the frame's View shows
 	if traceOn {
 		fmt.Fprintf(os.Stderr, "trace %s act %+v\n", traceStamp(), a)
 	}

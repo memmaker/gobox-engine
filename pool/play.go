@@ -253,13 +253,14 @@ func (e *Engine) common(s facts) play.Common {
 	return cm
 }
 
-// readyAct is the item's Ready, or its Unready when it is readied (a fight's
-// item menu toggles, so Ready only).
-func (e *Engine) readyAct(n int, h core.ItemHandle) play.Action {
-	if n >= 0 && n < e.partySize() && !e.battleUp() && e.itemCard(e.partyIDs()[n], h).Readied {
-		return play.Unready{Member: n, Item: h}
+// readyAct is member n's item it (from State's Items, its card already
+// read) as Ready, or Unready when it is readied (a fight's item menu
+// toggles, so Ready only).
+func (e *Engine) readyAct(n int, it game.Item) play.Action {
+	if it.Readied && !e.battleUp() {
+		return play.Unready{Member: n, Item: it.Handle}
 	}
-	return play.Ready{Member: n, Item: h}
+	return play.Ready{Member: n, Item: it.Handle}
 }
 
 // allowed is what the state lets the player do now.
@@ -276,7 +277,7 @@ func (e *Engine) allowed(s facts) play.Allowed {
 	items := func() {
 		for n, m := range s.Party {
 			for _, it := range m.Items {
-				add(e.readyAct(n, it.Handle), play.Drop{Member: n, Item: it.Handle})
+				add(e.readyAct(n, it), play.Drop{Member: n, Item: it.Handle})
 				if len(e.ruleset().Allowed(core.UsingItem{Who: e.partyIDs()[n], Item: it.Handle}).Offers) > 0 { // an item with no use is not offered Use (UseItem refused it "not now")
 					add(play.UseItem{Member: n, Item: it.Handle})
 				}
@@ -474,7 +475,7 @@ func (e *Engine) allowed(s facts) play.Allowed {
 				if slices.Contains(can, VerbItems) {
 					add(play.UseItem{Member: s.Selected, Item: it.Handle})
 				}
-				add(e.readyAct(s.Selected, it.Handle), play.Drop{Member: s.Selected, Item: it.Handle}) // the fight's View: Ready and Drop (BUG-CLASSES 47)
+				add(e.readyAct(s.Selected, it), play.Drop{Member: s.Selected, Item: it.Handle}) // the fight's View: Ready and Drop (BUG-CLASSES 47)
 			}
 		}
 		for _, v := range []struct { // in a fixed order: State is the same on every call (BUG-CLASSES 33)

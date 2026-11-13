@@ -316,6 +316,7 @@ func TestStudyRestAndSaveDir(t *testing.T) {
 		t.Fatalf("rest %v dir %q", r.rest, r.dir)
 	}
 	g.st = play.Camping{Common: play.Common{NoSave: true, NoLoad: true}}
+	r.g.fresh() // the fake changed outside Do
 	if f := shownOf(r).Flags; f == nil || !f.NoSave || !f.NoLoad {
 		t.Fatal("NoSave/NoLoad not published")
 	}
