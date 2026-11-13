@@ -119,6 +119,7 @@ type Question struct {
 	NoPick       bool        // no highlight, Enter and the arrows do not answer it; only the hotkeys (a YesNo: Y and N) do
 	NoEsc        bool        // Esc does not answer it (the question stays up), as the original's ask that ignores Esc
 	Continue     bool        // a key to go on (Continue answers it); Common.Status may say so
+	Ms           int         // Continue: a timed pause of Ms milliseconds the presenter paces, then Continue (0: wait for a key)
 	Heading      bool        // a heading to pick (the overland): Heading{Dir}, Leave for Done
 	List         bool        // Replies are a pick from a list (a roster, a town's places), not a command menu
 	Keys         []rune      // the game's own hotkey per reply (0: from the label); nil: all from the labels
