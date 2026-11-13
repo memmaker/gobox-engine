@@ -6,8 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/asset/orig"
 	"gobox/game"
+	"gobox/importer"
 	"gobox/ui"
 
 	"buckrogers/presentdata"
@@ -22,7 +24,18 @@ func br1NewGame(t *testing.T) *ui.Game {
 	if err != nil {
 		t.Skip(err)
 	}
+	ui.SetScripts(br1Start(t), nil)
 	return ui.NewGame(e, presentdata.Data(br1Adv()))
+}
+
+// br1Start is the imported adventure's Start script (its manifest's).
+func br1Start(t *testing.T) *adventure.Sequence {
+	t.Helper()
+	f, err := importer.Read(br1Adv())
+	if err != nil {
+		t.Skip(err)
+	}
+	return f.Manifest.Start
 }
 
 // TestTitle plays the title as gobox's front does (front.IntroStep's
@@ -31,14 +44,14 @@ func br1NewGame(t *testing.T) *ui.Game {
 func TestBR1Title(t *testing.T) {
 	g := br1NewGame(t)
 	intro := br1TitleIntro(g)
-	if intro == nil || len(intro.Pictures) != 2 {
+	if intro == nil || len(intro.Pictures) != 3 { // TITLE 1, TITLE 2 and 3, the credits page
 		t.Fatalf("no title to play: %+v", intro)
 	}
 	l, err := orig.NewLoader(br1Dos)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, n := range intro.Pictures {
+	for _, n := range intro.Pictures[:2] {
 		g.TitlePicture(n)
 		ps := g.Page().Layers
 		if len(ps) == 0 {
@@ -51,7 +64,7 @@ func TestBR1Title(t *testing.T) {
 			}
 		}
 	}
-	if len(g.D.CreditLines) == 0 {
+	if len(br1Start(t).Credits) == 0 {
 		t.Error("no credits")
 	}
 	g.TitleCredits(0)
@@ -172,20 +185,12 @@ func TestBR1Font(t *testing.T) {
 }
 
 // TestMenuTitle: TITLE 4 is gobox's backdrop under the team menu
-// (Data.TitleBackdrop, O030:05BE), not an intro step; TitlePicture(4) puts
-// it up while the title plays.
+// (the Start's Backdrop, O030:05BE), not an intro step.
 func TestBR1MenuTitle(t *testing.T) {
 	g := br1NewGame(t)
-	if b := g.D.TitleBackdrop; len(b) != 1 || b[0].File != "TITLE" || b[0].Block != 4 || slices.Contains(br1TitleIntro(g).Pictures, 4) {
-		t.Fatalf("backdrop %v, intro %v", g.D.TitleBackdrop, br1TitleIntro(g).Pictures)
+	if b := br1Start(t).Backdrop; len(b) != 1 || b[0].File != "TITLE" || b[0].Block != 4 || slices.Contains(br1TitleIntro(g).Pictures, 4) {
+		t.Fatalf("backdrop %v, intro %v", b, br1TitleIntro(g).Pictures)
 	}
-	g.TitlePicture(4)
-	for _, p := range g.Page().Layers {
-		if p.File == "TITLE" && p.Block == 4 {
-			return
-		}
-	}
-	t.Fatalf("TitlePicture(4): %+v", g.Page().Layers)
 }
 
 // TestPartyMenuKeys drives gobox's main menu as the player does, by keys

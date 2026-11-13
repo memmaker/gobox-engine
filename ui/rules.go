@@ -436,9 +436,11 @@ func (r *frontState) page(sc game.Scene) *TextPage {
 		p.Pane = append(p.Pane, r.run(t))
 	}
 	for _, pic := range sc.Pictures {
-		p.Layers = append(p.Layers, game.Layer{Picture: pic})
+		p.Layers = append(p.Layers, drawnPicture(pic, image.Rectangle{}))
 	}
-	p.Layers = append(p.Layers, sc.Layers...)
+	for _, d := range sc.Layers {
+		p.Layers = append(p.Layers, drawnPicture(d.Picture, d.At))
+	}
 	return p
 }
 
@@ -795,12 +797,14 @@ func (r *frontState) showMember(member int) game.Result {
 	return res
 }
 
-// titlePicture steps the title over the scene's Steps.
+// titlePicture steps the title to the script's step n.
 func (r *frontState) titlePicture(n int) game.Result {
 	r.title.n, r.title.credits = n, false
 	r.seq++
-	if sc, ok := r.g.State().(game.Scene); ok && sc.Steps[n].Song != "" {
-		return game.Result{Events: []game.Report{{Kind: game.EvSong, Sound: sc.Steps[n].Song}}}
+	if sc, ok := r.g.State().(game.Scene); ok {
+		if st := scriptOf(sc.Intro).Step(n); st != nil && st.Song != "" {
+			return game.Result{Events: []game.Report{{Kind: game.EvSong, Sound: st.Song}}}
+		}
 	}
 	return game.Result{}
 }

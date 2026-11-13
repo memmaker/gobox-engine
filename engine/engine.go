@@ -33,7 +33,7 @@ type Engine struct {
 	pngs               map[pngKey]image.Image      // the characters' PNGs decoded (pngImage)
 	iconPoses          map[iconPoseKey]image.Image // the cuts of PNG icons (iconPNG)
 	newRules           Ruleset                     // builds rules (New; bareRuleset when nil)
-	sequence           string                      // the full-screen animation playing (title.seqs: seqEnding; "": none)
+	sequence           string                      // the full-screen animation playing (adventure.SeqEnding; "": none)
 	vault              *vault                      // the open vault (Vault)
 	given              *adventure.GameTables       // the game's GameTables (New; bareData when nil)
 	eclVersion         *ecl.Version                // the game's ECL dialect (initVM)

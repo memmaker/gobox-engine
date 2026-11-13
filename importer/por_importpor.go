@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gobox/adventure"
 	"gobox/asset"
+	"gobox/game"
 	"image/color"
 	"os"
 	"path/filepath"
@@ -19,7 +20,7 @@ import (
 func init() {
 	Register(Game{
 		Cover: true,
-		ID:    "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: adventure.RecordLayout, Combat4e: true, Version: 5, // 5: data/look.json (door colour, Amiga combat ground); 4: art/LOGO.png, the cut menu lettering (Data.Logo gone); 3: Combat4e in the manifest (playpool offers rules4e on it); 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
+		ID:    "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: adventure.RecordLayout, Combat4e: true, Version: 6, // 6: credits' Colour a game.Ink (C1); 5: data/look.json (door colour, Amiga combat ground); 4: art/LOGO.png, the cut menu lettering (Data.Logo gone); 3: Combat4e in the manifest (playpool offers rules4e on it); 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
 
 		Window:  Size{W: asset.ScreenW, H: asset.ScreenH},
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},
@@ -56,39 +57,39 @@ func porStart() *adventure.Sequence {
 // credits is ovr02:0206's page: each Text at cell X, Y in EGA colour Colour
 // (DisplayString's way, upcased).
 var porCredits = []adventure.Credit{
-	{X: 5, Y: 1, Colour: 0xa, Text: "scenario created by:"},
-	{X: 0x1a, Y: 1, Colour: 0xe, Text: "tsr, inc."},
-	{X: 0xf, Y: 2, Colour: 0xa, Text: "jim ward"},
-	{X: 2, Y: 3, Colour: 0xa, Text: "david cook,steve winter,mike breault"},
-	{X: 1, Y: 5, Colour: 0xa, Text: "game created by:"},
-	{X: 0x12, Y: 5, Colour: 0xe, Text: "ssi special projects"},
-	{X: 0xe, Y: 6, Colour: 0xb, Text: "version 1.3"},
-	{X: 2, Y: 7, Colour: 0xe, Text: "programming:"},
-	{X: 0x14, Y: 7, Colour: 0xe, Text: "original"},
-	{X: 2, Y: 8, Colour: 0xb, Text: "scot bayless"},
-	{X: 0x14, Y: 8, Colour: 0xe, Text: "programming:"},
-	{X: 2, Y: 9, Colour: 0xb, Text: "brad myers"},
-	{X: 0x14, Y: 9, Colour: 0xb, Text: "keith brors"},
-	{X: 2, Y: 0xa, Colour: 0xb, Text: "russ brown"},
-	{X: 0x14, Y: 0xa, Colour: 0xb, Text: "brad myers"},
-	{X: 2, Y: 0xb, Colour: 0xb, Text: "ted greer"},
-	{X: 2, Y: 0xd, Colour: 0xe, Text: "graphic arts:"},
-	{X: 0x14, Y: 0xd, Colour: 0xe, Text: "encounter coding:"},
-	{X: 2, Y: 0xe, Colour: 0xb, Text: "tom wahl"},
-	{X: 0x14, Y: 0xe, Colour: 0xb, Text: "paul murray"},
-	{X: 2, Y: 0xf, Colour: 0xb, Text: "fred butts"},
-	{X: 0x14, Y: 0xf, Colour: 0xb, Text: "russ brown"},
-	{X: 2, Y: 0x10, Colour: 0xb, Text: "darla marasco"},
-	{X: 0x14, Y: 0x10, Colour: 0xb, Text: "victor penman"},
-	{X: 2, Y: 0x11, Colour: 0xb, Text: "susan halbleib"},
-	{X: 0x14, Y: 0x11, Colour: 0xb, Text: "dave shelley"},
-	{X: 2, Y: 0x13, Colour: 0xe, Text: "project manager"},
-	{X: 0x14, Y: 0x13, Colour: 0xe, Text: "developer:"},
-	{X: 2, Y: 0x14, Colour: 0xb, Text: "victor penman"},
-	{X: 0x14, Y: 0x14, Colour: 0xb, Text: "george mac donald"},
-	{X: 2, Y: 0x16, Colour: 0xe, Text: "testing:"},
-	{X: 0xb, Y: 0x16, Colour: 0xb, Text: "joel billings,steve salyer"},
-	{X: 2, Y: 0x17, Colour: 0xb, Text: "james kucera,robert daly,rick white"},
+	{X: 5, Y: 1, Colour: game.InkLightGreen, Text: "scenario created by:"},
+	{X: 0x1a, Y: 1, Colour: game.InkYellow, Text: "tsr, inc."},
+	{X: 0xf, Y: 2, Colour: game.InkLightGreen, Text: "jim ward"},
+	{X: 2, Y: 3, Colour: game.InkLightGreen, Text: "david cook,steve winter,mike breault"},
+	{X: 1, Y: 5, Colour: game.InkLightGreen, Text: "game created by:"},
+	{X: 0x12, Y: 5, Colour: game.InkYellow, Text: "ssi special projects"},
+	{X: 0xe, Y: 6, Colour: game.InkLightCyan, Text: "version 1.3"},
+	{X: 2, Y: 7, Colour: game.InkYellow, Text: "programming:"},
+	{X: 0x14, Y: 7, Colour: game.InkYellow, Text: "original"},
+	{X: 2, Y: 8, Colour: game.InkLightCyan, Text: "scot bayless"},
+	{X: 0x14, Y: 8, Colour: game.InkYellow, Text: "programming:"},
+	{X: 2, Y: 9, Colour: game.InkLightCyan, Text: "brad myers"},
+	{X: 0x14, Y: 9, Colour: game.InkLightCyan, Text: "keith brors"},
+	{X: 2, Y: 0xa, Colour: game.InkLightCyan, Text: "russ brown"},
+	{X: 0x14, Y: 0xa, Colour: game.InkLightCyan, Text: "brad myers"},
+	{X: 2, Y: 0xb, Colour: game.InkLightCyan, Text: "ted greer"},
+	{X: 2, Y: 0xd, Colour: game.InkYellow, Text: "graphic arts:"},
+	{X: 0x14, Y: 0xd, Colour: game.InkYellow, Text: "encounter coding:"},
+	{X: 2, Y: 0xe, Colour: game.InkLightCyan, Text: "tom wahl"},
+	{X: 0x14, Y: 0xe, Colour: game.InkLightCyan, Text: "paul murray"},
+	{X: 2, Y: 0xf, Colour: game.InkLightCyan, Text: "fred butts"},
+	{X: 0x14, Y: 0xf, Colour: game.InkLightCyan, Text: "russ brown"},
+	{X: 2, Y: 0x10, Colour: game.InkLightCyan, Text: "darla marasco"},
+	{X: 0x14, Y: 0x10, Colour: game.InkLightCyan, Text: "victor penman"},
+	{X: 2, Y: 0x11, Colour: game.InkLightCyan, Text: "susan halbleib"},
+	{X: 0x14, Y: 0x11, Colour: game.InkLightCyan, Text: "dave shelley"},
+	{X: 2, Y: 0x13, Colour: game.InkYellow, Text: "project manager"},
+	{X: 0x14, Y: 0x13, Colour: game.InkYellow, Text: "developer:"},
+	{X: 2, Y: 0x14, Colour: game.InkLightCyan, Text: "victor penman"},
+	{X: 0x14, Y: 0x14, Colour: game.InkLightCyan, Text: "george mac donald"},
+	{X: 2, Y: 0x16, Colour: game.InkYellow, Text: "testing:"},
+	{X: 0xb, Y: 0x16, Colour: game.InkLightCyan, Text: "joel billings,steve salyer"},
+	{X: 2, Y: 0x17, Colour: game.InkLightCyan, Text: "james kucera,robert daly,rick white"},
 }
 
 // hostFiles are the port's own files beside the originals (the host -data

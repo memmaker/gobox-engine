@@ -197,7 +197,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note) Rect {
 	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && p.AdLib.SID() != Host.SIDMusic { // the Music card option
 		d.Do(func() { p.AdLib.SetSID(Host.SIDMusic) })
 	}
-	if f := SequenceStep(p, &p.seq, p.sequenceUp(), false); p.sequenceUp() != nil { // the animation: full screen, over everything
+	if f := SequenceStep(p, &p.seq, p.sequenceUp(), false); p.sequenceUp() != "" { // the animation: full screen, over everything
 		p.seqMusic(p.seq.Cues)
 		dst.Fill(color.Black)
 		if f != nil {
@@ -211,9 +211,9 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note) Rect {
 		return Rect{}
 	}
 	if p.introUp() != nil && p.mm.title == nil { // the picture the main menu comes in over
-		p.mm.title, p.mm.painted = layersImage(titleBackdrop), paintedLayers(titleBackdrop)
+		p.mm.title, p.mm.painted = layersImage(titleBackdrop()), paintedLayers(titleBackdrop())
 	}
-	p.intro.NoCredits = len(credits) == 0
+	p.intro.NoCredits = len(credits()) == 0
 	IntroStep(p, &p.intro, p.introUp(), false)
 	ev := p.playing()
 	p.played = ev

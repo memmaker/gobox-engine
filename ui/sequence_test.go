@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"gobox/adventure"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,21 +17,32 @@ type seqHost struct {
 
 func (h seqHost) Call(f func(*classicGame)) { f(h.g) }
 
+// withScripts makes start and end the adventure's scripts for the test.
+func withScripts(t *testing.T, start, end *adventure.Sequence) {
+	s, e := startSeq, endSeq
+	t.Cleanup(func() { startSeq, endSeq = s, e })
+	SetScripts(start, end)
+}
+
+// introAnim is a Start that plays the INTRO animation first.
+var introAnim = &adventure.Sequence{Steps: []adventure.SequenceStep{{Kind: adventure.StepAnim, Anim: "INTRO"}}}
+
 // sequenceIn is the sequence g's state plays, with g's data the game's.
-func sequenceIn(t *testing.T, g *Game) *game.Sequence {
-	s, d := sequences, filesDir
-	t.Cleanup(func() { sequences, filesDir = s, d })
-	sequences, filesDir = g.D.Sequences, g.D.AnimDir()
+func sequenceIn(t *testing.T, g *Game) string {
+	d := filesDir
+	t.Cleanup(func() { filesDir = d })
+	filesDir = g.D.AnimDir()
+	withScripts(t, introAnim, nil)
 	return presenterOf(g).sequenceUp()
 }
 
 // A skip ends State.Sequence with SequenceDone, once, even with no files to play.
 func TestSequenceSkip(t *testing.T) {
-	r := &fake{st: game.Scene{Kind: game.SceneSequence, Sequence: "INTRO", Common: allow(game.ContinueAction{})}}
-	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: t.TempDir()})
+	r := &fake{st: game.Scene{Kind: game.SceneSequence, Sequence: adventure.SeqIntro, Common: allow(game.ContinueAction{})}}
+	g := NewGame(r, game.Data{Files: t.TempDir()})
 	sq := sequenceIn(t, g)
-	if sq == nil || sq.Anim != "INTRO" {
-		t.Fatalf("sequence %+v", sq)
+	if sq != adventure.SeqIntro || seqAnim(sq).Anim != "INTRO" {
+		t.Fatalf("sequence %q", sq)
 	}
 	var ui SequenceUI
 	h := seqHost{g: &classicGame{Game: g}}
@@ -47,8 +59,8 @@ func TestSequenceSkipPlaying(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dir, "INTRO.BMA")); err != nil {
 		t.Skip("no Pools of Darkness files")
 	}
-	r := &fake{st: game.Scene{Kind: game.SceneSequence, Sequence: "INTRO", Common: allow(game.ContinueAction{})}}
-	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: dir})
+	r := &fake{st: game.Scene{Kind: game.SceneSequence, Sequence: adventure.SeqIntro, Common: allow(game.ContinueAction{})}}
+	g := NewGame(r, game.Data{Files: dir})
 	sq := sequenceIn(t, g)
 	var ui SequenceUI
 	h := seqHost{g: &classicGame{Game: g}}

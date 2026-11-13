@@ -62,34 +62,8 @@ type Edition uint8
 
 const (
 	EditionAny   Edition = iota // shown with every art
-	EditionAmiga                // shown only while the Amiga art is up
+	EditionAmiga                // shown only while the Amiga art is up (TitleIntro)
 )
-
-// Shown is s as played with the Amiga art up (amiga) or not: the steps of
-// another edition dropped, Short's indexes moved with them, every Edition
-// EditionAny. play.TitleScene takes only a sequence passed through Shown.
-func (s Sequence) Shown(amiga bool) Sequence {
-	out := s
-	out.Steps, out.Short = nil, nil
-	at := map[int]int{} // old step index -> new
-	for i, st := range s.Steps {
-		if st.Edition == EditionAmiga && !amiga {
-			continue
-		}
-		at[i] = len(out.Steps)
-		st.Edition = EditionAny
-		out.Steps = append(out.Steps, st)
-	}
-	for _, i := range s.Short {
-		if n, ok := at[i]; ok {
-			out.Short = append(out.Short, n)
-		}
-	}
-	if s.Short != nil && out.Short == nil {
-		out.Short = []int{}
-	}
-	return out
-}
 
 // Flash is when a step's picture flashes with lightning.
 type Flash int
@@ -140,116 +114,94 @@ type Layer struct {
 // Cells is a box in 40x25 cells, Min and Max the corner cells (inclusive).
 type Cells struct{ X1, Y1, X2, Y2 int }
 
-// Credit is a credits line at its cell and colour (an EGA index), on page Page.
+// Credit is a credits line at its cell and colour, on page Page.
 type Credit struct {
-	X, Y, Colour int
-	Text         string
-	Page         int `json:",omitempty"`
+	X, Y   int
+	Colour game.Ink
+	Text   string
+	Page   int `json:",omitempty"`
 }
 
 // cellPx is a 40x25 cell's size in page pixels (320x200).
 const cellPx = 8
 
-// ErrStepKind: a sequence step a title Scene cannot show (a StepAnim after
-// the first step; a leading one plays first as SceneSequence, LeadingAnim).
-var ErrStepKind = errors.New("step kind not in a title scene")
+// The full-screen animations' names (game.Scene.Sequence, game.MenuItem.Sequence):
+// the Start's and the End's leading StepAnim.
+const (
+	SeqIntro  = "intro"
+	SeqEnding = "ending"
+)
+
+// ErrStepKind: a sequence step a title cannot show (a StepAnim after
+// the first step; a leading one plays first, LeadingAnim).
+var ErrStepKind = errors.New("step kind not in a title")
 
 // ErrNotCarried: a Sequence field gobox does not carry yet.
 var ErrNotCarried = errors.New("sequence field not carried yet")
 
-// TitleScene is the title Scene of sequence s's steps: step i (from 1) its
-// layers, loaded by pic, and its tune; the credits steps show their page.
-// Without full (the host's Full intro option) only s.Short's steps play.
-// A step whose Lightning is On in graphics mode g makes the intro flash. The rest of s goes to the
-// game's Data (TitleData). A leading StepAnim is not a title step (step 1
-// stays its number): it plays before the title as LeadingAnim's sequence.
-func TitleScene(s Sequence, full bool, g Graphics, cm game.Common, pic func(Art) (game.Picture, error)) (game.Scene, error) {
-	in := &game.Intro{Full: true}
-	steps := map[int]game.TitleStep{}
-	pics := 0
-	whole := 0
+// TitleIntro is the title of sequence s as played: step N of Pictures is
+// s.Steps[N-1] (gobox reads the step from the script), -N credits page N-1.
+// Without full (the host's Full intro option) only s.Short's steps play;
+// without amiga (the Amiga art up) no EditionAmiga step. A step whose
+// Lightning is On in graphics mode g makes the intro flash. whole: the
+// picture steps are whole-screen pages. A leading StepAnim is not a title
+// step: it plays before the title (LeadingAnim).
+func TitleIntro(s Sequence, full, amiga bool, g Graphics) (in *game.Intro, whole bool, err error) {
+	in = &game.Intro{Full: true}
+	pics, wholes := 0, 0
 	for i, st := range s.Steps {
 		n := i + 1
 		if i == 0 && st.Kind == StepAnim {
 			continue
 		}
+		if st.Edition == EditionAmiga && !amiga {
+			continue
+		}
 		if !full && s.Short != nil && !slices.Contains(s.Short, i) {
 			continue
 		}
-		if st.Edition != EditionAny {
-			return game.Scene{}, fmt.Errorf("step %d Edition %d (not passed through Sequence.Shown): %w", n, st.Edition, ErrNotCarried)
-		}
 		if st.HoldMs != 0 {
-			return game.Scene{}, fmt.Errorf("step %d HoldMs: %w", n, ErrNotCarried)
+			return nil, false, fmt.Errorf("step %d HoldMs: %w", n, ErrNotCarried)
 		}
 		switch st.Kind {
 		case StepPicture:
-			ts := game.TitleStep{Song: st.Song, Text: st.Text, Credits: st.Credits}
-			for _, l := range st.Layers {
-				p, err := pic(l.Art)
-				if err != nil {
-					return game.Scene{}, fmt.Errorf("step %d: %w", n, err)
-				}
-				ts.Layers = append(ts.Layers, game.Layer{Picture: p, At: l.Placed(p.W, p.H), Frames: l.Frames, FrameMs: l.FrameMs, MinParty: l.MinParty, MsgDelayed: l.MsgDelayed})
-			}
-			steps[n] = ts
 			in.Pictures = append(in.Pictures, n)
 			pics++
 			if st.Whole {
-				whole++
+				wholes++
 			}
 		case StepText:
 			if len(st.Layers) != 0 || len(st.Text) == 0 {
-				return game.Scene{}, fmt.Errorf("step %d: a text step has text and no layers: %w", n, ErrStepKind)
+				return nil, false, fmt.Errorf("step %d: a text step has text and no layers: %w", n, ErrStepKind)
 			}
-			steps[n] = game.TitleStep{Song: st.Song, Text: st.Text}
 			in.Pictures = append(in.Pictures, n)
 		case StepCredits:
 			in.Pictures = append(in.Pictures, -(st.Page + 1))
 		default:
-			return game.Scene{}, fmt.Errorf("step %d: %w", n, ErrStepKind)
+			return nil, false, fmt.Errorf("step %d: %w", n, ErrStepKind)
 		}
 		in.Lightning = in.Lightning || st.Lightning.On(g)
 	}
-	if whole != 0 && whole != pics {
-		return game.Scene{}, fmt.Errorf("Whole on some picture steps only: %w", ErrNotCarried)
+	if wholes != 0 && wholes != pics {
+		return nil, false, fmt.Errorf("Whole on some picture steps only: %w", ErrNotCarried)
 	}
-	return game.Scene{Common: cm, Kind: game.SceneTitle, Intro: in, Full: whole != 0, Steps: steps}, nil
+	return in, wholes != 0, nil
 }
 
-// LeadingAnim is s's leading StepAnim as the game.Sequence name plays
-// (Anim, its Song as the Music), for game.Data.Sequences; nil: s starts with
-// no animation.
-func LeadingAnim(s Sequence, name string) *game.Sequence {
-	if len(s.Steps) == 0 || s.Steps[0].Kind != StepAnim {
+// LeadingAnim is s's leading StepAnim (nil: s is nil or starts with no animation).
+func (s *Sequence) LeadingAnim() *SequenceStep {
+	if s == nil || len(s.Steps) == 0 || s.Steps[0].Kind != StepAnim {
 		return nil
 	}
-	st := s.Steps[0]
-	q := &game.Sequence{Name: name, Anim: st.Anim}
-	if st.Song != "" {
-		q.Music = []string{st.Song}
-	}
-	return q
+	return &s.Steps[0]
 }
 
-// TitleData is s's credits lines, boxes and backdrop as game.Data's
-// CreditLines, CreditBoxes and TitleBackdrop, the backdrop's pictures loaded
-// by pic.
-func TitleData(s Sequence, pic func(Art) (game.Picture, error)) (lines []game.Credit, boxes []image.Rectangle, backdrop []game.Layer, err error) {
-	for _, c := range s.Credits {
-		lines = append(lines, game.Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
+// Step is the step N of a game.Intro's Pictures (nil: none such).
+func (s *Sequence) Step(n int) *SequenceStep {
+	if s == nil || n < 1 || n > len(s.Steps) {
+		return nil
 	}
-	for _, b := range s.Boxes {
-		boxes = append(boxes, image.Rect(b.X1, b.Y1, b.X2, b.Y2))
-	}
-	for _, l := range s.Backdrop {
-		p, err := pic(l.Art)
-		if err != nil {
-			return nil, nil, nil, fmt.Errorf("backdrop: %w", err)
-		}
-		backdrop = append(backdrop, game.Layer{Picture: p, At: l.Placed(p.W, p.H), Frames: l.Frames, FrameMs: l.FrameMs})
-	}
-	return lines, boxes, backdrop, nil
+	return &s.Steps[n-1]
 }
 
 // pixRect is cell box c in page pixels, Max exclusive.

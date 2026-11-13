@@ -2,6 +2,7 @@ package ui
 
 import (
 	"errors"
+	"gobox/adventure"
 	"image"
 	"reflect"
 	"slices"
@@ -162,11 +163,13 @@ func TestYesNoDefault(t *testing.T) {
 // Before gobox's first title step the page already has that step's
 // picture: no black frame between the intro and the title.
 func TestTitleFirstStepBeforeStepping(t *testing.T) {
-	pic := game.Layer{Picture: game.Picture{File: "TITLE", Block: 3}} // the first step
-	f := &fake{st: game.Scene{Kind: game.SceneTitle, Intro: &game.Intro{Pictures: []int{3, 1}},
-		Steps: map[int]game.TitleStep{3: {Layers: []game.Layer{pic}}}}}
+	pic := func(b int) adventure.SequenceStep {
+		return adventure.SequenceStep{Kind: adventure.StepPicture, Layers: []adventure.Layer{{Art: adventure.Art{File: "TITLE", Block: b}}}}
+	}
+	withScripts(t, &adventure.Sequence{Steps: []adventure.SequenceStep{pic(1), pic(2), pic(3)}}, nil)
+	f := &fake{st: game.Scene{Kind: game.SceneTitle, Intro: &game.Intro{Pictures: []int{3, 1}}}} // the first step: TITLE 3
 	s := shownOf(newRules(f, game.Data{}))
-	if s.Page == nil || len(s.Page.Layers) == 0 || s.Page.Layers[len(s.Page.Layers)-1].Picture.Block != 3 {
+	if s.Page == nil || len(s.Page.Layers) == 0 || s.Page.Layers[len(s.Page.Layers)-1].Block != 3 {
 		t.Fatalf("no first step picture: %+v", s.Page)
 	}
 }

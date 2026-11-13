@@ -2,6 +2,7 @@ package importer
 
 import (
 	"gobox/adventure"
+	"gobox/game"
 	"gobox/rules1e"
 	"os"
 	"path/filepath"
@@ -19,7 +20,7 @@ import (
 func init() {
 	Register(Game{
 		Cover: true,
-		ID:    "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: CotabRecordLayout, Version: 13, // 13: data/look.json (ReadyMark "Yes "); 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's)
+		ID:    "cotab", Title: "Curse of the Azure Bonds", Release: 1989, Ruleset: "rules1e", Record: CotabRecordLayout, Version: 14, // 14: credits' Colour a game.Ink (C1); 13: data/look.json (ReadyMark "Yes "); 12: Window, UserSaves, Foreign in the manifest (playpool reads them); 11: 1: imported for pool (Sw-cotab); 2: MON records as the rules' Sheet (Pf); 3: start money in gold (Rz); 4: GameTables.Art (Pg); 5: spellsGone, no Restoration (Rz); 6: groundIds (Ph); 7: randomTreasure, cotab's own (Ct); 8: scripts gold only (Gc); 9: randomTreasure from rules1e's treasure/cotab.json, one roller for every game (Ct); 10: Locals, Scratch, CheckpointGuards arrays (Tb); 11: no Sequence.Remaster (the remaster credit line is gobox's)
 		Window: Size{W: asset.ScreenW, H: asset.ScreenH}, UserSaves: true, Foreign: []string{"por"},
 		Sources: []string{"*.DAX", "ITEMS", "START.EXE", "GAME.OVR"},
 		Import:  CotabImport, Amiga: &cotabAmiga,
@@ -57,40 +58,40 @@ func cotabStart() *adventure.Sequence {
 // credits are the title's credits page (O039:01DD): the lines in the order
 // DisplayString prints them, at its places and in its colours.
 var cotabCredits = []adventure.Credit{
-	{X: 2, Y: 1, Colour: 0xa, Text: `based on the tsr novel "azure bonds"`},
-	{X: 6, Y: 2, Colour: 0xa, Text: "by:"},
-	{X: 9, Y: 2, Colour: 0xb, Text: "kate novak"},
-	{X: 20, Y: 2, Colour: 0xa, Text: "and"},
-	{X: 24, Y: 2, Colour: 0xb, Text: "jeff grubb"},
-	{X: 10, Y: 4, Colour: 0xa, Text: "scenario created by:"},
-	{X: 11, Y: 5, Colour: 0xe, Text: "tsr, inc."},
-	{X: 21, Y: 5, Colour: 0xa, Text: "and"},
-	{X: 25, Y: 5, Colour: 0xe, Text: "ssi"},
-	{X: 14, Y: 6, Colour: 0xb, Text: "jeff grubb"},
-	{X: 11, Y: 7, Colour: 0xb, Text: "george mac donald"},
-	{X: 1, Y: 9, Colour: 0xa, Text: "game created by:"},
-	{X: 18, Y: 9, Colour: 0xe, Text: "ssi special projects"},
-	{X: 2, Y: 11, Colour: 0xe, Text: "project leader:"},
-	{X: 2, Y: 12, Colour: 0xb, Text: "george mac donald"},
-	{X: 2, Y: 14, Colour: 0xe, Text: "programming:"},
-	{X: 2, Y: 15, Colour: 0xb, Text: "scot bayless"},
-	{X: 2, Y: 16, Colour: 0xb, Text: "russ brown"},
-	{X: 2, Y: 17, Colour: 0xb, Text: "michael mancuso"},
-	{X: 2, Y: 19, Colour: 0xe, Text: "development:"},
-	{X: 2, Y: 20, Colour: 0xb, Text: "david shelley"},
-	{X: 2, Y: 21, Colour: 0xb, Text: "michael mancuso"},
-	{X: 2, Y: 22, Colour: 0xb, Text: "oran kangas"},
-	{X: 22, Y: 11, Colour: 0xe, Text: "graphic arts:"},
-	{X: 22, Y: 12, Colour: 0xb, Text: "tom wahl"},
-	{X: 22, Y: 13, Colour: 0xb, Text: "fred butts"},
-	{X: 22, Y: 14, Colour: 0xb, Text: "susan manley"},
-	{X: 22, Y: 15, Colour: 0xb, Text: "mark johnson"},
-	{X: 22, Y: 16, Colour: 0xb, Text: "cyrus lum"},
-	{X: 22, Y: 18, Colour: 0xe, Text: "playtesting:"},
-	{X: 22, Y: 19, Colour: 0xb, Text: "jim jennings"},
-	{X: 22, Y: 20, Colour: 0xb, Text: "james kucera"},
-	{X: 22, Y: 21, Colour: 0xb, Text: "rick white"},
-	{X: 22, Y: 22, Colour: 0xb, Text: "robert daly"},
+	{X: 2, Y: 1, Colour: game.InkLightGreen, Text: `based on the tsr novel "azure bonds"`},
+	{X: 6, Y: 2, Colour: game.InkLightGreen, Text: "by:"},
+	{X: 9, Y: 2, Colour: game.InkLightCyan, Text: "kate novak"},
+	{X: 20, Y: 2, Colour: game.InkLightGreen, Text: "and"},
+	{X: 24, Y: 2, Colour: game.InkLightCyan, Text: "jeff grubb"},
+	{X: 10, Y: 4, Colour: game.InkLightGreen, Text: "scenario created by:"},
+	{X: 11, Y: 5, Colour: game.InkYellow, Text: "tsr, inc."},
+	{X: 21, Y: 5, Colour: game.InkLightGreen, Text: "and"},
+	{X: 25, Y: 5, Colour: game.InkYellow, Text: "ssi"},
+	{X: 14, Y: 6, Colour: game.InkLightCyan, Text: "jeff grubb"},
+	{X: 11, Y: 7, Colour: game.InkLightCyan, Text: "george mac donald"},
+	{X: 1, Y: 9, Colour: game.InkLightGreen, Text: "game created by:"},
+	{X: 18, Y: 9, Colour: game.InkYellow, Text: "ssi special projects"},
+	{X: 2, Y: 11, Colour: game.InkYellow, Text: "project leader:"},
+	{X: 2, Y: 12, Colour: game.InkLightCyan, Text: "george mac donald"},
+	{X: 2, Y: 14, Colour: game.InkYellow, Text: "programming:"},
+	{X: 2, Y: 15, Colour: game.InkLightCyan, Text: "scot bayless"},
+	{X: 2, Y: 16, Colour: game.InkLightCyan, Text: "russ brown"},
+	{X: 2, Y: 17, Colour: game.InkLightCyan, Text: "michael mancuso"},
+	{X: 2, Y: 19, Colour: game.InkYellow, Text: "development:"},
+	{X: 2, Y: 20, Colour: game.InkLightCyan, Text: "david shelley"},
+	{X: 2, Y: 21, Colour: game.InkLightCyan, Text: "michael mancuso"},
+	{X: 2, Y: 22, Colour: game.InkLightCyan, Text: "oran kangas"},
+	{X: 22, Y: 11, Colour: game.InkYellow, Text: "graphic arts:"},
+	{X: 22, Y: 12, Colour: game.InkLightCyan, Text: "tom wahl"},
+	{X: 22, Y: 13, Colour: game.InkLightCyan, Text: "fred butts"},
+	{X: 22, Y: 14, Colour: game.InkLightCyan, Text: "susan manley"},
+	{X: 22, Y: 15, Colour: game.InkLightCyan, Text: "mark johnson"},
+	{X: 22, Y: 16, Colour: game.InkLightCyan, Text: "cyrus lum"},
+	{X: 22, Y: 18, Colour: game.InkYellow, Text: "playtesting:"},
+	{X: 22, Y: 19, Colour: game.InkLightCyan, Text: "jim jennings"},
+	{X: 22, Y: 20, Colour: game.InkLightCyan, Text: "james kucera"},
+	{X: 22, Y: 21, Colour: game.InkLightCyan, Text: "rick white"},
+	{X: 22, Y: 22, Colour: game.InkLightCyan, Text: "robert daly"},
 }
 
 // Import writes the folder dst from the DOS originals in dos: the engine's

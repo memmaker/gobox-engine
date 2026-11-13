@@ -21,9 +21,9 @@ type textCell struct {
 // texts is the text the game wrote, by where it goes.
 type texts struct {
 	pane   [paneRows][]textCell // the text pane's rows, from column 0 of the page
-	more   [][]PaneRun              // the pane's earlier lots when its text ran over (pageOn): gobox pages them
-	prompt []textCell               // the prompt row
-	view   [0xF][]textCell          // the view window's rows 1..15, from column 0
+	more   [][]PaneRun          // the pane's earlier lots when its text ran over (pageOn): gobox pages them
+	prompt []textCell           // the prompt row
+	view   [0xF][]textCell      // the view window's rows 1..15, from column 0
 }
 
 // row is the text row of the page's row y (nil: text written there is not kept).

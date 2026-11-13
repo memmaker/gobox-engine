@@ -2,10 +2,10 @@
 // A game states domain facts (State), asks domain questions (Ask), accepts
 // rule verbs (Decision) and reports Events. It never says how anything is
 // drawn: no cells, rects or positions, and colours only as the original's
-// text inks by EGA name (Ink) and art's own palettes. Not yet so, each
-// with its own refactor item: the pictures placed on the page (Layer: the
-// title, ending and story screens), the credits page's
-// cells (Credit, Data.CreditBoxes, CreditGaps). Modelled on pod's
+// text inks by EGA name (Ink) and art's own palettes. The title, ending
+// and credits are the adventure folder's scripts (gobox/adventure.Sequence),
+// which gobox composes; State names only the step up (Intro). Not yet so: the live page's
+// pictures where the original drew them (Drawn). Modelled on pod's
 // rules.State / Decision / Apply / Pending / Event. Stdlib only.
 package game
 
@@ -78,20 +78,15 @@ type Walls struct {
 	Backdrop *Picture `json:",omitempty"`
 }
 
-// Intro is the title waiting to be played.
+// Intro is the title (or the end) waiting to be played: the steps of the
+// adventure's Start script (End with End), gobox's to compose.
 type Intro struct {
 	Full      bool  // picture 2 and the credits follow picture 1 (when Pictures is nil)
-	Pictures  []int // the steps: N > 0 picture N, -N credits page N-1 (nil: 1, with Full 1 and 2; with no -N step the credits follow the last picture)
+	Pictures  []int // the steps: N > 0 the script's step N (adventure.Sequence.Step), -N credits page N-1 (nil: 1, with Full 1 and 2; with no -N step the credits follow the last picture)
 	Lightning bool  // picture 2 flashes
-}
-
-// Sequence is a full-screen animation gobox plays (State.Sequence names
-// it): Anim the base name of its files in Data.AnimDir (e.g. "INTRO": INTRO.ACF
-// and INTRO.BMA), Music the songs it cues.
-type Sequence struct {
-	Name  string
-	Anim  string
-	Music []string
+	End       bool  // the End script's steps, not the Start's
+	Party     int   // the party's members: a layer with a higher MinParty is not shown (End)
+	MsgDelay  int   // the game's message delay: a MsgDelayed layer's frames are paced by it (End)
 }
 
 // Note is a toast for the status line: Text, put up at At (zero: none).
@@ -273,8 +268,8 @@ type Flags struct {
 	Inside     bool // the party stands on an inside square
 	Ordering   bool // the camp's party order bar is up
 	Credits    bool // the title's credits page
-	CreditsPic bool `json:",omitempty"` // the title step shows the game's credits as a picture (TitleStep.Credits)
-	CreditPage int  `json:",omitempty"` // which one (Credit.Page) while Credits
+	CreditsPic bool `json:",omitempty"` // the title step shows the game's credits as a picture (adventure.SequenceStep.Credits)
+	CreditPage int  `json:",omitempty"` // which one (adventure.Credit.Page) while Credits
 	Full       bool // the pictures are one whole-screen picture
 	IconDrop   bool // the combat icon designer is up
 }
@@ -317,14 +312,12 @@ func EGAInk(n int) Ink { return InkBlack + Ink(n&15) }
 // EGA is the ink's EGA colour number (0..15); ok false for InkNone.
 func (k Ink) EGA() (n int, ok bool) { return int(k) - int(InkBlack), k != InkNone }
 
-// Layer is a picture placed on the page: At in pixels of the page.
-type Layer struct {
+// Drawn is a picture where the original drew it on its 320x200 page, At
+// in that page's pixels: the live script's page (Common.Layers). gobox
+// does not place these yet (REFACTOR N2's remainder).
+type Drawn struct {
 	Picture
-	At         image.Rectangle
-	Frames     []int // with FrameMs: the front cycles the picture through these frames (empty: static)
-	FrameMs    int   // the milliseconds each of Frames shows (0: static)
-	MinParty   int   // shown only with at least this many party members (0: always); the game filters it before it is passed on
-	MsgDelayed bool  // FrameMs is as at the default message delay: the game scales it by its own before it passes it on
+	At image.Rectangle
 }
 
 // Picker is a grid picker up (the creation's heads and bodies, the icon's
@@ -886,24 +879,19 @@ type Data struct {
 	Scans       func(name string) image.Image `json:"-"` // the picture a Read's line "\x01name" shows (nil: none)
 	Border      *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
-	Sequences     []Sequence        `json:"-"`          // the full-screen animations State.Sequence names (nil: none)
-	DaxMask       map[string]int    `json:",omitempty"` // a DAX file's transparent colour index, as the original's loader takes it (File, e.g. "CHARS", "CPIC3"; no entry: none)
-	Files         string            `json:"-"`          // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
-	Adventure     string            `json:"-"`          // the imported adventure folder (gobox import): Picture File and Block from its art/, AmigaMusic's and AdLib's files from its sound/ (SoundDir), Sequences' from its anim/ (AnimDir); set, Files is not read ("": none)
-	SoundTables   []byte            `json:"-"`          // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
-	AdLib         *AdLib            // the AdLib music and effects (nil: none)
-	AmigaMusic    *AmigaMusic       // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)
-	DungeonTiles  int               // the tiles at the start of the combat set
-	Rests         []RestKind        // camp's rests, in the menu's order (nil: none)
-	CreditLines   []Credit          `json:"-"` // the title's credits page, placed (nil: Credits as plain lines)
-	CreditGaps    []int             `json:"-"` // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
-	CreditBoxes   []image.Rectangle `json:"-"` // the original's credits boxes in 40x25 cells, Min and Max the corner cells; an edge on the page's (x 38, y 23) follows the page's. The lines go in at their cells with CreditGaps. nil: one frame on the page's edges, the lines spread over it
-	IconParts     []string          // the combat icon designer's parts
-	TitleBackdrop []Layer           `json:"-"` // the title's picture under the main menu, none of Intro.Pictures' timed steps: gobox draws it once the title is done, fitted, and zooms the menu in over it (nil: none)
-	AreaMaps      map[int]string    `json:"-"` // the remastered 3D map (Remaster maps/NAME.map) of each area id
-	Remaster      fs.FS             `json:"-"` // the remastered art: maps/NAME.map and assets/walls/walls.txt
-	OpenAt        string            `json:"-"` // debug: map:NAME:X:Y:D shows that remastered map alone
-	Bindings      []Binding         // the game's own help rows, after the Any time Ctrl-F row
+	DaxMask      map[string]int `json:",omitempty"` // a DAX file's transparent colour index, as the original's loader takes it (File, e.g. "CHARS", "CPIC3"; no entry: none)
+	Files        string         `json:"-"`          // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
+	Adventure    string         `json:"-"`          // the imported adventure folder (gobox import): Picture File and Block from its art/, AmigaMusic's and AdLib's files from its sound/ (SoundDir), the sequences' animations from its anim/ (AnimDir); set, Files is not read ("": none)
+	SoundTables  []byte         `json:"-"`          // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
+	AdLib        *AdLib         // the AdLib music and effects (nil: none)
+	AmigaMusic   *AmigaMusic    // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)
+	DungeonTiles int            // the tiles at the start of the combat set
+	Rests        []RestKind     // camp's rests, in the menu's order (nil: none)
+	IconParts    []string       // the combat icon designer's parts
+	AreaMaps     map[int]string `json:"-"` // the remastered 3D map (Remaster maps/NAME.map) of each area id
+	Remaster     fs.FS          `json:"-"` // the remastered art: maps/NAME.map and assets/walls/walls.txt
+	OpenAt       string         `json:"-"` // debug: map:NAME:X:Y:D shows that remastered map alone
+	Bindings     []Binding      // the game's own help rows, after the Any time Ctrl-F row
 }
 
 // Binding is one row of the help: in context Ctx, Keys (and Mouse, Pad) do Desc.
@@ -945,13 +933,6 @@ type RestKind struct {
 	Night    string
 	NightKey byte
 	Duration bool
-}
-
-// Credit is one line of the title's credits page at cell X, Y in EGA colour Colour.
-type Credit struct {
-	X, Y, Colour int
-	Text         string
-	Page         int // the credits page it is on (0: the first)
 }
 
 // Border is the window border as frames of block Block of DAX file File:
@@ -1111,8 +1092,8 @@ type MenuKey struct {
 	Key   rune
 }
 
-// MenuItem is a main menu line of the game's: gobox plays Sequence (a
-// Data.Sequences name) full screen and comes back to the menu; no game code runs.
+// MenuItem is a main menu line of the game's: gobox plays Sequence (an
+// adventure.SeqIntro or SeqEnding animation) full screen and comes back to the menu; no game code runs.
 type MenuItem struct {
 	Label    string
 	Key      rune

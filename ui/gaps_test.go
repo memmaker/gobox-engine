@@ -38,7 +38,7 @@ func TestGaps(t *testing.T) {
 			func(s shown) bool { return s.Shop.IdentifyPrice == 20 && len(s.Shop.Unknown) == 1 }},
 		{"training learn", game.Trading{Kind: game.TradeTraining, Training: &game.Training{Learning: true}}, game.Learn{Spell: 4}, game.Learn{Spell: 4},
 			func(s shown) bool { return s.Mode == game.ModeTraining && s.Training.Learning }},
-		{"handout esc leaves", game.Scene{Kind: game.SceneHandout, Handout: "Journal", Layers: []game.Layer{{}}, Common: allow(game.Leave{})}, game.Cancel{}, game.Leave{},
+		{"handout esc leaves", game.Scene{Kind: game.SceneHandout, Handout: "Journal", Layers: []game.Drawn{{}}, Common: allow(game.Leave{})}, game.Cancel{}, game.Leave{},
 			func(s shown) bool { return s.Read != nil && len(s.Page.Layers) == 1 && s.Holding == game.HoldNone }},
 		{"handout read out", game.Scene{Kind: game.SceneHandout, Common: allow(game.Leave{})}, tAnswer{N: 2}, game.Leave{}, nil},
 		{"story page", game.Scene{Text: []string{"hi"}, Common: allow(game.ContinueAction{})}, tAnswer{}, game.ContinueAction{},
@@ -96,10 +96,10 @@ func TestGaps(t *testing.T) {
 		{"results", game.Scene{Kind: game.SceneResults, Results: res}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool { return s.Results == res && s.Pending.Kind == game.Continue }},
 		{"placed text", game.Scene{Placed: [][]game.TextRun{nil, {{Text: "Hull", Fg: game.InkLightRed}}},
-			Layers: []game.Layer{{At: image.Rect(1, 1, 5, 5), FrameMs: 100}}}, tAnswer{}, game.ContinueAction{},
+			Layers: []game.Drawn{{At: image.Rect(1, 1, 5, 5)}}}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool {
 				v := s.Page.View
-				return len(v) == 2 && v[1][0].Text == "Hull" && v[1][0].Fg == game.InkLightRed && s.Page.Layers[0].At.Max.X == 5 && s.Pacing.Pace == game.PaceAnim
+				return len(v) == 2 && v[1][0].Text == "Hull" && v[1][0].Fg == game.InkLightRed && s.Page.Layers[0].At.Max.X == 5
 			}},
 		{"screen", game.Scene{Kind: game.SceneScreen, Screen: &game.Screen{Kind: game.ScreenStarmap}}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool { return s.Screen.Kind == game.ScreenStarmap }},

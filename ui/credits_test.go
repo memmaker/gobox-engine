@@ -3,9 +3,13 @@ package ui
 import (
 	"bytes"
 	"encoding/json"
+	"gobox/adventure"
 	"gobox/game"
 	"image"
+	"image/draw"
+	"image/png"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -24,11 +28,11 @@ const remasterCreditText = "Opinionated Remaster directed by Felix Ruzzoli using
 // checkCreditsPage lays the credits page out at every size and checks it: at
 // K, inside the window, the credits above the remaster credit, the remaster credit exactly once
 // below them, alone on its rows (one row or two), above the frame's edge.
-func checkCreditsPage(t *testing.T, name string, lines []Credit, boxes []image.Rectangle) {
-	defer func(l []Credit, b []image.Rectangle, g []int) {
-		credits, creditBoxes, creditGaps, drawnAt = l, b, g, nil
-	}(credits, creditBoxes, creditGaps)
-	credits, creditBoxes = lines, boxes
+func checkCreditsPage(t *testing.T, name string, lines []adventure.Credit, boxes []adventure.Cells) {
+	defer func(s *adventure.Sequence, g []int) {
+		startSeq, creditGaps, drawnAt = s, g, nil
+	}(startSeq, creditGaps)
+	startSeq = &adventure.Sequence{Credits: lines, Boxes: boxes}
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{255} }, Font: func(byte, bool) [8]byte { return [8]byte{255} }}
 	for _, sz := range creditSizes {
 		dst := gpu.NewImage(sz[0], sz[1])
@@ -109,18 +113,18 @@ func checkCreditsPage(t *testing.T, name string, lines []Credit, boxes []image.R
 func TestCreditsCellSize(t *testing.T) {
 	defer func(g []int) { creditGaps = g }(creditGaps)
 	creditGaps = []int{4, 5, 6}
-	abridged := []Credit{ // POR's (ovr02:0206), abridged: the sections and their blank rows
-		{X: 5, Y: 1, Colour: 0xa, Text: "scenario created by:"},
-		{X: 2, Y: 3, Colour: 0xa, Text: "david cook"},
-		{X: 1, Y: 5, Colour: 0xa, Text: "game created by:"},
-		{X: 0xe, Y: 6, Colour: 0xb, Text: "version 1.3"},
-		{X: 2, Y: 7, Colour: 0xe, Text: "programming:"},
-		{X: 2, Y: 0xb, Colour: 0xb, Text: "ted greer"},
-		{X: 2, Y: 0xd, Colour: 0xe, Text: "graphic arts:"},
-		{X: 2, Y: 0x13, Colour: 0xe, Text: "project manager"},
-		{X: 2, Y: 0x17, Colour: 0xb, Text: "james kucera"},
+	abridged := []adventure.Credit{ // POR's (ovr02:0206), abridged: the sections and their blank rows
+		{X: 5, Y: 1, Colour: game.InkLightGreen, Text: "scenario created by:"},
+		{X: 2, Y: 3, Colour: game.InkLightGreen, Text: "david cook"},
+		{X: 1, Y: 5, Colour: game.InkLightGreen, Text: "game created by:"},
+		{X: 0xe, Y: 6, Colour: game.InkLightCyan, Text: "version 1.3"},
+		{X: 2, Y: 7, Colour: game.InkYellow, Text: "programming:"},
+		{X: 2, Y: 0xb, Colour: game.InkLightCyan, Text: "ted greer"},
+		{X: 2, Y: 0xd, Colour: game.InkYellow, Text: "graphic arts:"},
+		{X: 2, Y: 0x13, Colour: game.InkYellow, Text: "project manager"},
+		{X: 2, Y: 0x17, Colour: game.InkLightCyan, Text: "james kucera"},
 	}
-	porBoxes := []image.Rectangle{{Min: image.Pt(1, 1), Max: image.Pt(38, 3)}, {Min: image.Pt(1, 5), Max: image.Pt(38, 23)}}
+	porBoxes := []adventure.Cells{{X1: 1, Y1: 1, X2: 38, Y2: 3}, {X1: 1, Y1: 5, X2: 38, Y2: 23}}
 	checkCreditsPage(t, "abridged boxed", abridged, porBoxes)
 	checkCreditsPage(t, "abridged edges", abridged, nil)
 	for _, id := range creditsGames {
@@ -136,15 +140,7 @@ func TestCreditsCellSize(t *testing.T) {
 		if m.Start == nil || len(m.Start.Credits) == 0 {
 			continue // a credits picture (pod): TestCreditsPicture
 		}
-		var lines []Credit
-		for _, c := range m.Start.Credits {
-			lines = append(lines, Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
-		}
-		var boxes []image.Rectangle
-		for _, c := range m.Start.Boxes {
-			boxes = append(boxes, image.Rect(c.X1, c.Y1, c.X2, c.Y2))
-		}
-		checkCreditsPage(t, id, lines, boxes)
+		checkCreditsPage(t, id, m.Start.Credits, m.Start.Boxes)
 	}
 }
 
@@ -154,6 +150,23 @@ func TestCreditsCellSize(t *testing.T) {
 // fitted into what remains so it covers none of the picture.
 func TestCreditsPicture(t *testing.T) {
 	defer func() { drawnAt = nil }()
+	dir := t.TempDir() // the credits picture: a white PNG in the adventure's art/
+	if err := os.MkdirAll(filepath.Join(dir, adventure.ArtDir), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	white := image.NewRGBA(image.Rect(0, 0, 320, 200))
+	draw.Draw(white, white.Bounds(), image.White, image.Point{}, draw.Src)
+	var b bytes.Buffer
+	if err := png.Encode(&b, white); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, adventure.ArtDir, "CREDITS.PNG"), b.Bytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	defer func(d string) { advDir = d }(advDir)
+	advDir = dir
+	withScripts(t, &adventure.Sequence{Steps: []adventure.SequenceStep{{Kind: adventure.StepPicture, Credits: true,
+		Layers: []adventure.Layer{{Art: adventure.Art{File: "CREDITS.PNG", Kind: adventure.ArtPNG}, At: adventure.Cells{X2: 39, Y2: 24}}}}}}, nil)
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{255} }, Font: func(byte, bool) [8]byte { return [8]byte{255} }}
 	for _, sz := range creditSizes {
 		dst := gpu.NewImage(sz[0], sz[1])
@@ -172,10 +185,7 @@ func TestCreditsPicture(t *testing.T) {
 				}
 			}
 		}
-		white := bytes.Repeat([]byte{15}, 320*200)
-		title := game.Layer{Picture: game.Picture{File: "TITLE", W: 320, H: 200, Pixels: white, Clear: -1}, At: image.Rect(0, 0, 320, 200)}
-		p, _ := presenterOn(game.Scene{Kind: game.SceneTitle, Full: true, Intro: &game.Intro{},
-			Steps: map[int]game.TitleStep{0: {Credits: true, Layers: []game.Layer{title}}}})
+		p, _ := presenterOn(game.Scene{Kind: game.SceneTitle, Full: true, Intro: &game.Intro{Pictures: []int{1}}})
 		p.drawGeneric(dst, note)
 		if strips != 1 {
 			t.Errorf("%v: %d strips drawn", sz, strips)
