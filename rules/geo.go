@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	Size        = 0x402    // GEO block: 2-byte header + 4 planes
-	WallSize    = 0x9C     // one wall's symbol ids
-	SetSize     = 5 * 0x9C // 0x30C: one WALLDEF chunk (5 walls)
-	SymWallBase = 0x2D     // symbol ids >= this are relocated per slot
-	WallSlots   = 3        // wall slots 1..3, 5 walls each (wall values 1..15)
+	Size        = 0x402           // GEO block: 2-byte header + 4 planes
+	WallSize    = 0x9C            // one wall's symbol ids
+	SetWalls    = 5               // walls in one WALLDEF chunk (a wall slot's)
+	SetSize     = SetWalls * 0x9C // 0x30C: one WALLDEF chunk (5 walls)
+	SymWallBase = 0x2D            // symbol ids >= this are relocated per slot
+	WallSlots   = 3               // wall slots 1..3, 5 walls each (wall values 1..15)
 )
 
 // Map is a 16x16 area map; planes are indexed y*16+x.
@@ -107,8 +108,6 @@ func ParseWalldef(b []byte) (*Walldef, error) {
 	}
 	return w, nil
 }
-
-
 
 // Wall returns wall i (0..4) of chunk k as WallSize symbol ids
 // (wall value v: chunk (v-1)/5 of the slot set, index (v-1)%5).

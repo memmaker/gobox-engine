@@ -114,7 +114,7 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 		}
 		return a
 	case game.ModeExplore:
-		return game.Exploring{Common: cm, Map: game.ExploreMap{Automap: cm.Automap, Walk: e.walkMap(), Overland: e.viewMode != 1}, Door: door,
+		return game.Exploring{Common: cm, Map: game.ExploreMap{Automap: cm.Automap, Walk: e.walkMap(), Overland: e.viewMode != 1, Walls: e.mapWalls()}, Door: door,
 			Day: cm.Day, Interact: e.exploring() && e.interactHere()} // the sky drawView paints, not the clock
 	case game.ModeCombat:
 		f := game.Fighting{Common: cm}

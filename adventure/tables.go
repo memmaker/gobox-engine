@@ -27,6 +27,22 @@ type GameTables struct {
 	MapLabels                  []MapLabel           // the maps' fixed labels (POR: New Phlan's buildings); none: none
 	Music                      *AreaMusic           // the soundtrack by area (POR's); nil: none
 	MonsterSet                 rules.Set            // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
+	Walls                      *WallTextures        // the 3D view's remastered wall textures; nil: none (POR: its remastered area maps)
+}
+
+// WallTextures are the remastered textures of the WALLDEF walls the 3D view
+// draws, and its flats (floor_<Floor>, ceiling_<Sky> in the pool series).
+type WallTextures struct {
+	Floor, Sky string
+	Walls      []WallTexture
+}
+
+// WallTexture is wall Wall (1..rules.SetWalls) of chunk Chunk (1-based) of
+// block Block of set Set's WALLDEF archive: the pool series texture Texture.
+type WallTexture struct {
+	Set                rules.Set
+	Block, Chunk, Wall int
+	Texture            string
 }
 
 // ArtNames are the picture files the Engine loads by role, each game's own
