@@ -10,23 +10,28 @@ import (
 
 // podScriptData is the scripts' data (gobox ecl Library.Data): the
 // layout, made from pod-re's Pascal (scripts/layout/global.txt), and the
-// journal's entries.
-func podScriptData() fs.FS { return withEntries{embeddedScripts("pod")} }
-
-// withEntries adds the journal's entries (JournalEntries, made from the
-// book, not checked in) to the scripts' data as EntriesFile, the file the
-// import writes: every reader of scriptData checks Journal against them.
-type withEntries struct{ fs.FS }
-
-func (w withEntries) Open(name string) (fs.File, error) {
-	if name != ecl.EntriesFile {
-		return w.FS.Open(name)
-	}
-	b, err := json.Marshal(JournalEntries())
+// journal's entries (JournalEntries, made from the book, not checked in) as
+// EntriesFile. Every file is listed, so the import copies and keys the same
+// files the engine reads from the folder.
+func podScriptData() fs.FS {
+	data := fstest.MapFS{}
+	err := fs.WalkDir(embeddedScripts("pod"), ".", func(p string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		b, err := fs.ReadFile(embeddedScripts("pod"), p)
+		data[p] = &fstest.MapFile{Data: b}
+		return err
+	})
 	if err != nil {
-		return nil, err
+		panic(err) // the embedded files
 	}
-	return fstest.MapFS{name: {Data: b}}.Open(name)
+	b, err := json.MarshalIndent(JournalEntries(), "", " ")
+	if err != nil {
+		panic(err) // plain data
+	}
+	data[ecl.EntriesFile] = &fstest.MapFile{Data: b}
+	return data
 }
 
 // The ECL script machine: operands, variables, texts, calls (unit O055 of
