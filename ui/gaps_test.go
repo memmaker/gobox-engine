@@ -44,7 +44,7 @@ func TestGaps(t *testing.T) {
 		{"story page", game.Scene{Text: []string{"hi"}, Common: allow(game.ContinueAction{})}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool {
 				r := s.Page.Pane[0][0]
-				return s.Holding == game.HoldNone && r.Upcase && r.Fg == game.InkNone
+				return s.Holding == game.HoldNone && r.Fg == game.InkNone
 			}},
 		{"forget entry", game.Assembling{Common: allow(game.OpenPicker{Kind: 5})}, game.OpenPicker{Kind: 5}, game.OpenPicker{Kind: 5},
 			func(s shown) bool {

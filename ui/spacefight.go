@@ -290,7 +290,7 @@ func sfHotkey(it Command) byte {
 func (c *cellPage) put(x, y, fg, bg int, s string) {
 	for i := 0; i < len(s) && x+i < c.cols && y < c.rows; i++ {
 		if x+i >= 0 && y >= 0 {
-			c.cells[y][x+i] = cell{true, true, s[i], egaInk[fg], egaInk[bg]}
+			c.cells[y][x+i] = cell{true, s[i], egaInk[fg], egaInk[bg]}
 		}
 	}
 }

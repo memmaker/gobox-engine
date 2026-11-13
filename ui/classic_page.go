@@ -31,7 +31,7 @@ func paneRuns(l []game.TextRun, ink [16]color.RGBA) []PaneRun {
 		if n, ok := t.Bg.EGA(); ok {
 			bg = ink[n]
 		}
-		r = append(r, PaneRun{X: x, Text: t.Text, Fg: fg, Bg: bg, Upcase: t.Upcase, Blink: t.Blink})
+		r = append(r, PaneRun{X: x, Text: t.Text, Fg: fg, Bg: bg, Blink: t.Blink})
 		x += len(t.Text)
 	}
 	return r

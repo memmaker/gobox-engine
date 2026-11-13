@@ -18,7 +18,6 @@ import (
 func GameData(adv string) game.Data {
 	d := game.Data{Series: "pool", ID: "sotsb", Adventure: adv, SpellRules: sotsbSpellTips(), Imports: []string{"cotab"}, QuickParty: sotsbQuickParty, TitleBackdrop: titleLayers[titleBanner],
 		CreditLines: Credits, MusicPlaces: SotsbMusicPlaces(), Scans: book().Picture, // the credits page (0x36e) on the screen frame alone, its lines at their cells (the two boxes put a divider through them)
-		Font: "Gold_Box_8x8D1",
 		Confirms: map[string]game.Confirm{ // the original's words: O100:0994, O100:2C77, O0EF:23DA (both on No)
 			"Drop":         {Asks: []string{"Your %s\nwill be gone forever\n\nDrop It?"}},
 			"Sell":         {Asks: []string{"I'll give you %p\nfor your %s\n\nWill you sell it?"}},

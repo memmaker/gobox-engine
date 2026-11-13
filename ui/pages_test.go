@@ -15,7 +15,7 @@ func TestSheetSpellsTitle(t *testing.T) {
 	ink := p.ink()
 	c := p.screenPage()
 	got := c.lines()[1]
-	want := []PaneRun{{X: 1, Text: "Mirelle's", Fg: ink[inkCyan], Bg: ink[0], Upcase: true}, {X: 11, Text: "Spells in Memory", Fg: ink[inkGreen], Bg: ink[0], Upcase: true}}
+	want := []PaneRun{{X: 1, Text: "Mirelle's", Fg: ink[inkCyan], Bg: ink[0]}, {X: 11, Text: "Spells in Memory", Fg: ink[inkGreen], Bg: ink[0]}}
 	if !slices.Equal(got, want) {
 		t.Errorf("row 1: %+v, want %+v", got, want)
 	}
@@ -57,11 +57,11 @@ func (c *cellPage) lines() [][]PaneRun {
 			if !k.set {
 				continue
 			}
-			if n := len(l) - 1; n >= 0 && l[n].X+len(l[n].Text) == x && l[n].Fg == k.fg && l[n].Bg == k.bg && l[n].Upcase == k.upcase {
+			if n := len(l) - 1; n >= 0 && l[n].X+len(l[n].Text) == x && l[n].Fg == k.fg && l[n].Bg == k.bg {
 				l[n].Text += string(k.ch)
 				continue
 			}
-			l = append(l, PaneRun{X: x, Text: string(k.ch), Fg: k.fg, Bg: k.bg, Upcase: k.upcase})
+			l = append(l, PaneRun{X: x, Text: string(k.ch), Fg: k.fg, Bg: k.bg})
 		}
 		ls[y] = l
 	}

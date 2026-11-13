@@ -86,5 +86,5 @@ func wrapLine(l []PaneRun, cols int) [][]PaneRun {
 }
 
 func sameStyle(a, b PaneRun) bool {
-	return a.Fg == b.Fg && a.Bg == b.Bg && a.Upcase == b.Upcase && a.Blink == b.Blink
+	return a.Fg == b.Fg && a.Bg == b.Bg && a.Blink == b.Blink
 }

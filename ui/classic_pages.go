@@ -91,7 +91,7 @@ func SpeakKeys(texts []game.ReadText, scan func(string) image.Image, n, cols, ro
 // textRun is s at column x in colour: on black, upcased, cut at the page's edge.
 func (p pageCut) textRun(x, colour int, s string) PaneRun {
 	s = s[:max(0, min(len(s), 255, p.cols-x))]
-	return PaneRun{X: x, Text: s, Fg: p.ink[colour], Bg: p.ink[0], Upcase: true}
+	return PaneRun{X: x, Text: s, Fg: p.ink[colour], Bg: p.ink[0]}
 }
 
 // boxTitle is the title centred on the top row of a box round the whole page.

@@ -17,7 +17,7 @@ func TestSotsbGameDataFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.ID != "sotsb" || got.AdLib == nil || got.AmigaMusic != nil || got.Font != "Gold_Box_8x8D1" || len(got.Rests) != 2 || len(got.QuickParty) == 0 {
+	if got.ID != "sotsb" || got.AdLib == nil || got.AmigaMusic != nil || len(got.Rests) != 2 || len(got.QuickParty) == 0 {
 		t.Errorf("game data %+v", got)
 	}
 }

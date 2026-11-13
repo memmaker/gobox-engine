@@ -28,12 +28,12 @@ func TestPool(t *testing.T) {
 		if err != nil {
 			t.Skip(err)
 		}
-		blk := l.Block(c.dax, block) // what the game gets
+		blk := l.Block(c.dax, asset.FontBlock) // what the game gets
 		pool := asset.Get(c.name)
 		if len(blk) != 1416 || len(pool) != 2048 {
 			t.Fatal(c.name, len(blk), len(pool))
 		}
-		if string(pool) != string(toF8(blk)) {
+		if string(pool) != string(asset.F8(blk)) {
 			t.Fatal(c.name, "pool file differs from the exporter")
 		}
 		for ch := 0x20; ch < 0x80; ch++ {

@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"cmp"
+	"fmt"
 	"log"
 	"path/filepath"
 	"time"
@@ -9,29 +11,29 @@ import (
 	"gobox/game"
 )
 
-// The text fonts (Data.Fonts): Ctrl-F cycles from the game's own font
-// through the game's fonts and the pool, Ctrl-Shift-F goes back, the Esc
-// menu's Font list picks one. The choice is kept in FONT.CFG beside the
-// settings (KeepFonts).
+// The text fonts: Ctrl-F cycles from the game's own font through the
+// font pool (every imported game's font, asset.PoolFonts, then gobox's),
+// Ctrl-Shift-F goes back, the Esc menu's Font list picks one. The choice is
+// kept in FONT.CFG beside the settings (KeepFonts).
 
 const fontFile = "FONT.CFG"
 
-// chooseFonts lists the game's fonts (nil Data.Fonts: the game does its own).
-func (f *Front) chooseFonts(own []game.Typeface) {
-	if own == nil {
-		return
+// chooseFonts lists the font pool beside data's adventure folder, the
+// game's own font (the pool's for data.ID, else the theme's) first.
+func (f *Front) chooseFonts(data game.Data) {
+	var pooled []asset.Font
+	own := theme.Font
+	if data.Adventure != "" {
+		l, name, err := asset.PoolFonts(filepath.Dir(data.Adventure), data.ID)
+		if err != nil {
+			panic(fmt.Sprintf("%v (run the import again)", err))
+		}
+		pooled = l
+		own = cmp.Or(name, own)
 	}
-	var l []asset.Font
-	for _, t := range own {
-		l = append(l, asset.Font{Name: t.Name, Bits: t.Bits})
-	}
-	first := ""
-	if len(l) > 0 {
-		first = l[0].Name
-	}
-	c := asset.NewChooserOf(l, first)
+	c := asset.NewChooserOf(pooled, own)
 	f.P.fonts = c
-	game := asset.Get(theme.Font) // the game's own font: the theme's, else gobox's
+	game := c.Bits(asset.Find(c.List, own) + 1) // nil (not found): gobox's GameFont
 	bits := func() []byte {
 		if b := c.Bits(c.Cur); b != nil {
 			return b

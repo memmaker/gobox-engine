@@ -11,7 +11,7 @@ import (
 // Theme is a game's look in the presenter: the font, the text colours by
 // role and the ribbon border.
 type Theme struct {
-	Font   string // the ui/fonts pool name of the default font
+	Font   string // the embedded font (asset.Get) of a game without one pooled
 	Border Border
 }
 

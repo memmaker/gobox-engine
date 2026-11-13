@@ -47,7 +47,6 @@ func podGameData(adv string) game.Data {
 		VerbChords:  map[string]string{"Quick All": "alt+q,alt+a"},                        // the combat menu's Alt+Q / Alt+A (O05F:0CF2, scan codes 16, 30): the whole party to the computer; plain Q is the member's own (O05F:0B43)
 		MenuItems:   []game.MenuItem{{Label: "Play intro", Key: 'I', Sequence: seqIntro}}, // gobox replays the intro from the main menu
 		MusicPlaces: musicPlaceList(),
-		Font:        "Pools_of_Darkness",   // PoD's own 8X8D0.DAX font
 		Scans:       journalBook().Picture, // the journal's pictures a Read shows
 		// the screen frame (R142:0000, O17E:02E6): BORDERS.DAX block 0, corners TL TR BL BR,
 		// top and bottom, the sides, masked on colour 13 (O17E:004B)

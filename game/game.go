@@ -4,8 +4,7 @@
 // drawn: no cells, rects or positions, and colours only as the original's
 // text inks by EGA name (Ink) and art's own palettes. Not yet so, each
 // with its own refactor item: the pictures placed on the page (Layer: the
-// title, ending and story screens), the fonts (Data.Font, Fonts,
-// TextRun.Upcase), the credits page's
+// title, ending and story screens), the credits page's
 // cells (Credit, Data.CreditBoxes, CreditGaps). Modelled on pod's
 // rules.State / Decision / Apply / Pending / Event. Stdlib only.
 package game
@@ -64,15 +63,15 @@ const (
 // Walls are the facts of a 3D view seen from the party's square: a wall
 // face on every side. Fronts name the wall art (Data.Art), read live.
 type Walls struct {
-	Key                 string         // what the scene is built from: a new Key builds it again
-	Side                [][][4]int     // a square's wall value by side (N E S W), rows from the top (0: open)
-	Fronts              map[int]string // a wall value's art name in Data.Art
-	Pool                map[int]string // a wall value's remastered texture name, in place of Fronts
-	Floor, Sky          string         // the flats' pool names
-	FloorInk, CeilInk Ink // plain flat colours, EGA inks (InkNone: none)
-	Sun                 bool           // by day outside: the sun up, at SunAz
-	SunAz, SunEl        float64        // the sun's bearing (0 north, pi/2 east) and height
-	Mountains           bool           // by day outside: the mountain range on the horizon
+	Key               string         // what the scene is built from: a new Key builds it again
+	Side              [][][4]int     // a square's wall value by side (N E S W), rows from the top (0: open)
+	Fronts            map[int]string // a wall value's art name in Data.Art
+	Pool              map[int]string // a wall value's remastered texture name, in place of Fronts
+	Floor, Sky        string         // the flats' pool names
+	FloorInk, CeilInk Ink            // plain flat colours, EGA inks (InkNone: none)
+	Sun               bool           // by day outside: the sun up, at SunAz
+	SunAz, SunEl      float64        // the sun's bearing (0 north, pi/2 east) and height
+	Mountains         bool           // by day outside: the mountain range on the horizon
 	// Backdrop, when set, is drawn opaque over the whole 3D view behind the
 	// walls, stretched with nearest-neighbour filtering, in place of the sky
 	// and floor flats (nil: none, the flats and CeilInk/FloorInk fills show).
@@ -281,11 +280,10 @@ type Flags struct {
 }
 
 // TextRun is text in one of the original's colours, a run of a line
-// (Upcase: the glyphs of a game that upcases what it writes).
+// (a game font draws its own capitals; the text keeps its case).
 type TextRun struct {
 	Text   string
 	Fg, Bg Ink
-	Upcase bool
 	Blink  bool // the front alternates the run's ink with its highlight colour a few times, ending on normal
 }
 
@@ -886,8 +884,6 @@ type Data struct {
 	QuickParty  []QuickPick                   // the party menu's Quick Start party (every game offers it while the party is empty)
 	Clues       []Clue                        `json:"-"` // the clue book's chapters (nil: the game has none)
 	Scans       func(name string) image.Image `json:"-"` // the picture a Read's line "\x01name" shows (nil: none)
-	Font        string                        // the ui/fonts pool name of the game's font ("": gobox's default)
-	Fonts       []Typeface                    `json:"-"` // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
 	Border      *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
 	Sequences     []Sequence        `json:"-"`          // the full-screen animations State.Sequence names (nil: none)
@@ -914,12 +910,6 @@ type Data struct {
 type Binding struct {
 	Ctx, Desc        string
 	Keys, Mouse, Pad string
-}
-
-// Typeface is an 8x8 text font: 256 glyphs of 8 rows, bit 7 leftmost.
-type Typeface struct {
-	Name string
-	Bits []byte
 }
 
 // AdLib is the AdLib songs (file Music, song N its block N) and effects

@@ -93,12 +93,11 @@ type Pane struct {
 }
 
 // PaneRun is text in one colour on a pane line from column X of the pane
-// (0: its left edge); Upcase picks the glyphs as DisplayChar does.
+// (0: its left edge), in the text glyphs of the font in use.
 type PaneRun struct {
 	X      int
 	Text   string
 	Fg, Bg color.RGBA
-	Upcase bool
 	Blink  bool // the presenter alternates Fg with the highlight colour a few times (blink.go)
 }
 
