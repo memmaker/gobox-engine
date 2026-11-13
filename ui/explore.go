@@ -78,7 +78,7 @@ func (p *Presenter) runAct(a ActKind) {
 		return
 	case actOptions:
 		p.menu = false
-		p.view.OpenOptions()
+		p.openOptions()
 		return
 	}
 	p.send(a, -1)

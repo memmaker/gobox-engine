@@ -312,7 +312,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int) {
 	case p.screenUp(): // back one level, as Esc
 		p.campBack()
 	case p.exploring() && !p.menu && p.active && p.view != nil: // as Esc: the options
-		p.view.OpenOptions()
+		p.openOptions()
 	default:
 		p.send(ActClose, 0)
 	}

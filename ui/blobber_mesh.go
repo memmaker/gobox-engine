@@ -426,7 +426,7 @@ func (g *BlobberGame) frameUniforms(c cam, vp gpu.Mat4) {
 	u := append(g.uni[:0], vp[:]...)
 	u = append(u, float32(c.x), 0, float32(c.z), 0)
 	u = append(u, float32(c.fwx), float32(c.fwz), projA, projB)
-	u = append(u, float32(g.torchPow()), float32(g.torchRange()), float32(btof(g.dither)), float32(math.Max(1, float64(W)/500)))
+	u = append(u, float32(g.torchPow()), float32(g.torchRange()), float32(btof(opt.Dither)), float32(math.Max(1, float64(W)/500)))
 	hc, haze := hazeCol(), float32(0)
 	if openSky {
 		haze = hazeCells
@@ -465,7 +465,7 @@ type glowSrc struct {
 // draw3D draws the scene from camera c: the 3D view alone, at the size W, H.
 func (g *BlobberGame) draw3D(screen *gpu.Image, c cam) {
 	dst := screen
-	if g.dither {
+	if opt.Dither {
 		dst = g.scene
 	}
 	if !gpu.Skip("fill") {
@@ -710,7 +710,7 @@ func (g *BlobberGame) draw3D(screen *gpu.Image, c cam) {
 		draw(g.dyn2, [2]int{b.first, b.n}, b.tex, nil, b.mode, 0, 0, b.bias, 0, gpu.BlendSourceOver)
 	}
 	draw(g.dyn2, halos, texGlow, nil, modeGlow, 0, 0, biasFront, 0, gpu.BlendLighter)
-	if g.dither && !gpu.Skip("dither") {
+	if opt.Dither && !gpu.Skip("dither") {
 		op := &gpu.DrawRectShaderOptions{}
 		op.Images[0] = g.scene
 		screen.DrawRectShader(W, H, g.shader, op)

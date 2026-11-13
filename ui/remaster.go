@@ -43,6 +43,7 @@ type Presenter struct {
 	pauseFrom time.Time // a script's pause (AskPause) began; zero: none up
 
 	view        *View
+	opts        optionsMenu                        // the Esc menu (options.go)
 	scenes      map[string]*Scene                  // parsed maps by name
 	shown       string                             // the scene the view shows
 	last        time.Time                          // when the animation last advanced
@@ -324,7 +325,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		p.battle.Draw(dst, p.fightBoard)
 		p.drawFight(dst, note)
 		if p.view != nil {
-			p.view.DrawMenu(dst) // the Esc menu over the battle
+			p.drawOptions(dst) // the Esc menu over the battle
 		}
 		return Rect{}
 	}
@@ -453,7 +454,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		}
 	}
 	p.drawParty(dst, p.shownParty(), p.cardSelected(), at)
-	p.view.DrawMenu(dst) // over the map and cards
+	p.drawOptions(dst) // over the map and cards
 	p.layCards(dst)
 	if p.ctx == 0 && !p.campHome() { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
 		p.drawCardTip(dst)
@@ -615,7 +616,7 @@ func (p *Presenter) textPane() string {
 // reports whether to send code now (ready: the game waits for a key), and
 // whether the view paces held keys at all (else they repeat as typed).
 func (p *Presenter) Flow(code uint16, ready bool) (send, paced bool) {
-	if !p.active || p.view == nil || p.menu || p.view.OptionsOpen() {
+	if !p.active || p.view == nil || p.menu || p.optionsOpen() {
 		if p.view != nil {
 			p.view.Flow(false, false)
 		}
@@ -626,10 +627,7 @@ func (p *Presenter) Flow(code uint16, ready bool) (send, paced bool) {
 
 // Options reports whether the renderer's options page is up; while it is,
 // UpdateOptions reads the keyboard for it and the game gets no keys.
-func (p *Presenter) Options() bool { return p.view != nil && p.view.OptionsOpen() }
-
-// UpdateOptions runs the options page for one frame.
-func (p *Presenter) UpdateOptions() { p.view.UpdateOptions() }
+func (p *Presenter) Options() bool { return p.optionsOpen() }
 
 // optionsKeys: the pad's acts as the options page reads them.
 var optionsKeys = map[input.Act]gpu.Key{input.Up: gpu.KeyUp, input.Down: gpu.KeyDown, input.InputLeft: gpu.KeyLeft, input.InputRight: gpu.KeyRight,
@@ -640,7 +638,7 @@ var optionsKeys = map[input.Act]gpu.Key{input.Up: gpu.KeyUp, input.Down: gpu.Key
 // for the next UpdateOptions.
 func (p *Presenter) OptionsPad(k uint16) {
 	if gk, ok := optionsKeys[actOf(k)]; ok && p.view != nil {
-		p.view.PadKey(gk)
+		padKeys[gk] = true
 	}
 }
 
@@ -654,7 +652,7 @@ func (p *Presenter) OptionsMouse(x, y int, left, right bool, wheel float64) {
 			line = i
 		}
 	}
-	p.view.PointOptions(line, left, right, int(math.Copysign(math.Ceil(math.Abs(wheel)), wheel)))
+	p.pointOptions(line, left, right, int(math.Copysign(math.Ceil(math.Abs(wheel)), wheel)))
 }
 
 // noChoice reports a question with one answer ("press enter to continue"):

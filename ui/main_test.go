@@ -9,7 +9,6 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	Glyph = func(byte) [8]byte { return [8]byte{0xFF} } // a stub font: a bar atop each cell
 	os.Exit(m.Run())
 }
 
@@ -24,7 +23,7 @@ func TestCore(t *testing.T) {
 	if _, err := gpu.NewMeshShader(meshSrc); err != nil {
 		t.Fatal("mesh shader:", err)
 	}
-	g := &BlobberGame{x: 1, y: 1, dir: 0, smooth: true, t: 1, tx: 1.5, tz: 1.5}
+	g := &BlobberGame{x: 1, y: 1, dir: 0, t: 1, tx: 1.5, tz: 1.5}
 	g.startMove(1, 1, 3, 0) // turn N->W wraps angle the short way
 	if !g.moving || math.Abs(g.ta-g.fa) > math.Pi+1e-9 {
 		t.Fatalf("turn tween wrong: moving=%v fa=%v ta=%v", g.moving, g.fa, g.ta)

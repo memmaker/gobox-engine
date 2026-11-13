@@ -5,7 +5,6 @@
 package ui
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"io"
@@ -13,11 +12,9 @@ import (
 	"math"
 	"math/rand"
 	"reflect"
-	"slices"
 	"strings"
 
 	"gobox/gpu"
-	"gobox/gpu/vector"
 )
 
 var (
@@ -83,10 +80,6 @@ var texBlack *gpu.Image
 
 // Objects is the host-maintained list of objects on the current map.
 var Objects []*Object
-
-// BlobberWindow, when set, draws the Esc menu's text window in the host's look; nil keeps the plain built-in one.
-// keys[i] (0 none) is lines[i]'s hotkey.
-var BlobberWindow func(screen *gpu.Image, title string, lines []string, keys []byte, sel int, bottom bool)
 
 // Map cells: '.' is floor, anything else is a wall whose character picks the material (see mats).
 func wall(x, y int) bool {
@@ -353,28 +346,20 @@ type BlobberGame struct {
 	hold, asked            bool     // follow mode: the host's move key is held; its next move was asked for
 	// a step (not a turn) moves at speed v (steps per second) instead of easing, and flows into the
 	// next one while the host holds its move key, so walking doesn't slow down at every cell
-	walk bool
-	v    float64
-	time float64
-	// settings
-	dither, smooth, menu, quit bool
-	page                       string    // the Esc menu's settings page shown, "" the root
-	confirm                    *question // the yes/no the Esc menu asks, or nil
-	pageSel, askSel            int       // the root's row that opened the page, the question: back restores it
-	lastPoint                  int       // the Esc menu line the mouse was last on (-1 none)
-	torch                      float64
-	sel                        int
-	scene                      *gpu.Image
-	shader                     *gpu.Shader      // the dither pass
-	meshShader                 *gpu.MeshShader  // the 3D faces (mesh.go)
-	world                      *world           // the map's standing geometry
-	dyn                        []gpu.MeshVertex // the frame's moving faces, and their buffer
-	wallRanges                 []wallRange      // the walls in view, by group
-	dyn2                       *gpu.Mesh
-	bills                      []bill
-	glows                      []glowSrc
-	uni                        []float32 // the frame's uniforms
-	free                       free      // No Grid's camera (free.go)
+	walk       bool
+	v          float64
+	time       float64
+	scene      *gpu.Image
+	shader     *gpu.Shader      // the dither pass
+	meshShader *gpu.MeshShader  // the 3D faces (mesh.go)
+	world      *world           // the map's standing geometry
+	dyn        []gpu.MeshVertex // the frame's moving faces, and their buffer
+	wallRanges []wallRange      // the walls in view, by group
+	dyn2       *gpu.Mesh
+	bills      []bill
+	glows      []glowSrc
+	uni        []float32 // the frame's uniforms
+	free       free      // No Grid's camera (free.go)
 }
 
 var blobberDirs = [4][2]int{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
@@ -405,18 +390,18 @@ func (g *BlobberGame) tween() {
 	if !g.moving {
 		return
 	}
-	if !g.smooth { // snap: done at once
+	if !opt.Smooth { // snap: done at once
 		g.t, g.v, g.moving = 1, 0, false
 		return
 	}
-	sp := math.Max(minSpeed, math.Min(maxSpeed, Settings.Speed))
+	sp := math.Max(MinSpeed, math.Min(MaxSpeed, opt.Speed))
 	top, acc := turnSpeed*sp, walkAccel*sp*sp // acceleration scales with speed², so the ease takes the same share of a step
 	if g.walk {
 		top = walkSpeed * sp
 	}
 	d := [2]int{int(math.Round(g.tx - g.fx)), int(math.Round(g.tz - g.fz))}
 	// the host's next move is known (or, fluid, on its way): flow into it, faster while they pile up
-	on := len(g.next) > 0 || Settings.Fluid && g.hold && (!g.walk || !blocked(g.x, g.y, d[0], d[1]))
+	on := len(g.next) > 0 || opt.Fluid && g.hold && (!g.walk || !blocked(g.x, g.y, d[0], d[1]))
 	top *= float64(1 + len(g.next)/2)
 	if !on && g.v*g.v >= 2*acc*(1-g.t) { // brake: v²/2a is the distance braking takes
 		g.v = math.Max(0.5, g.v-acc*dt)
@@ -445,325 +430,25 @@ func (g *BlobberGame) tween() {
 	g.t, g.v = 1, 0
 }
 
-// updateMenu runs the Esc menu for one frame and reports true when Quit was confirmed.
-func (g *BlobberGame) updateMenu() bool {
-	items := g.menuOptions()
-	n := len(items)
-	for i, k := range menuKeys(items) { // a hotkey (a letter, else a digit) picks its line
-		if g.page != "Font" && (k >= '1' && k <= '9' && KeyJustPressed(gpu.Key1+gpu.Key(k-'1')) || k >= 'A' && k <= 'Z' && KeyJustPressed(gpu.KeyA+gpu.Key(k-'A'))) {
-			g.sel = i
-			items[i].change(g, 0)
-			return g.quit
-		}
-	}
-	if KeyRepeated(gpu.KeyUp) {
-		g.sel = (g.sel + n - 1) % n
-	}
-	if KeyRepeated(gpu.KeyDown) {
-		g.sel = (g.sel + 1) % n
-	}
-	switch { // as the host's menus (remaster menuNav): PgUp/PgDn ten lines, Home/End the ends
-	case KeyRepeated(gpu.KeyPageUp):
-		g.sel = max(0, g.sel-10)
-	case KeyRepeated(gpu.KeyPageDown):
-		g.sel = min(n-1, g.sel+10)
-	case KeyJustPressed(gpu.KeyHome):
-		g.sel = 0
-	case KeyJustPressed(gpu.KeyEnd):
-		g.sel = n - 1
-	}
-	g.sel %= n
-	if g.page == "Font" && g.sel != FontAt() { // the highlighted font is in use at once (the pointer's too)
-		SetFont(g.sel)
-	}
-	d, ok := 0, KeyJustPressed(gpu.KeyEnter) || KeyJustPressed(gpu.KeySpace)
-	if g.page != "" && g.confirm == nil { // Left and Right step a page's settings
-		switch {
-		case KeyRepeated(gpu.KeyLeft):
-			d, ok = -1, true
-		case KeyRepeated(gpu.KeyRight):
-			d, ok = 1, true
-		}
-	}
-	if !ok {
-		return false
-	}
-	items[g.sel].change(g, d)
-	if g.page != "" {
-		Settings.Smooth, Settings.Dither, Settings.Fullscreen, Settings.Torch = g.smooth, g.dither, gpu.IsFullscreen(), g.torch
-		if OnSettings != nil {
-			OnSettings(Settings)
-		}
-	}
-	return g.quit
-}
-
-// back is Esc in the menu: a page or a question goes back to the root (true), the root closes (false).
-func (g *BlobberGame) back() bool {
-	if g.page == "" && g.confirm == nil {
-		return false
-	}
-	if g.page == "Font" {
-		g.page = "Graphics"
-		g.sel = g.fontRow()
-		return true
-	}
-	if g.confirm != nil { // back to the row the question or the page was opened from
-		g.sel = g.askSel
-	} else {
-		g.sel = g.pageSel
-	}
-	g.page, g.confirm = "", nil
-	return true
-}
-
-// menuLine is one line of the Esc menu: change runs it (d: 0 Enter, -1 Left, 1 Right); value, when
-// set, is shown after the label.
-type menuLine struct {
-	label  string
-	value  func(g *BlobberGame) string
-	change func(g *BlobberGame, d int)
-}
-
-// Row is a host row on an Esc menu page: Get is the value shown, Change runs on Enter (0), Left (-1)
-// and Right (1). At is the built-in row it goes before (rows of equal At keep their order).
-type Row struct {
-	Label  string
-	At     int
-	Get    func() string
-	Change func(d int)
-}
-
-// ExtraRows are the host's rows by page ("Gameplay", "Graphics"); any other key is a page of its own,
-// listed on the root menu after Graphics (sorted by title), with every row's At ignored.
-var ExtraRows map[string][]Row
-
-// withExtra is the built-in rows of page with the host's inserted, then exit.
-func withExtra(page string, rows []menuLine, exit menuLine) []menuLine {
-	var o []menuLine
-	extra := ExtraRows[page]
-	for i := 0; i <= len(rows); i++ {
-		for _, r := range extra {
-			if r.At == i {
-				o = append(o, r.line())
-			}
-		}
-		if i < len(rows) {
-			o = append(o, rows[i])
-		}
-	}
-	return append(o, exit)
-}
-
-func (r Row) line() menuLine {
-	l := menuLine{label: r.Label, change: func(_ *BlobberGame, d int) {
-		if r.Change != nil {
-			r.Change(d)
-		}
-	}}
-	if r.Get != nil {
-		l.value = func(*BlobberGame) string { return r.Get() }
-	}
-	return l
-}
-
-func flip(p *bool) func(*BlobberGame, int) { return func(*BlobberGame, int) { *p = !*p } }
-
-// blobberStep moves v by s within lo..hi: Left down, Right up, Enter up and round to lo past hi.
-func blobberStep(v, lo, hi, s float64, d int) float64 {
-	switch {
-	case d < 0:
-		v -= s
-	case v+s > hi+s/2:
-		if d == 0 {
-			return lo
-		}
-	default:
-		v += s
-	}
-	return math.Round(math.Max(lo, math.Min(hi, v))/s) * s
-}
-
-// blobberBar draws v in lo..hi (step s) as a slider.
-func blobberBar(v, lo, hi, s float64) string {
-	i, n := int(math.Round((v-lo)/s)), int(math.Round((hi-lo)/s))
-	return strings.Repeat("#", i+1) + strings.Repeat("-", n-i)
-}
-
-func onOffOf(p *bool) func(*BlobberGame) string {
-	return func(*BlobberGame) string { return onOff(*p) }
-}
-
-// menuOptions are the lines of the menu page shown: the root, a settings page, or a yes/no question.
-func (g *BlobberGame) menuOptions() []menuLine {
-	if g.confirm != nil {
-		do := g.confirm.do
-		return []menuLine{{label: "Yes", change: func(g *BlobberGame, _ int) { g.back(); do() }},
-			{label: "No", change: func(g *BlobberGame, _ int) { g.back() }}}
-	}
-	exit := menuLine{label: "Exit", change: func(g *BlobberGame, _ int) { g.back() }} // a settings page's way back, as Esc
-	switch g.page {
-	case "Graphics":
-		return withExtra("Graphics", []menuLine{
-			{"Fullscreen", func(*BlobberGame) string { return onOff(gpu.IsFullscreen()) }, func(*BlobberGame, int) { gpu.SetFullscreen(!gpu.IsFullscreen()) }},
-			{"Dithered darkness", func(g *BlobberGame) string { return onOff(g.dither) }, func(g *BlobberGame, _ int) { g.dither = !g.dither }},
-			{"Torch intensity", func(g *BlobberGame) string { return fmt.Sprintf("%.1f", g.torch) }, func(g *BlobberGame, d int) { g.torch = blobberStep(g.torch, 0.5, 1.5, 0.5, d) }},
-			{"Font", func(*BlobberGame) string { return FontNames()[FontAt()] }, func(g *BlobberGame, _ int) { g.page, g.sel = "Font", FontAt() }},
-		}, exit)
-	case "Font": // every font, each line in its own; the highlighted one is in use at once
-		var o []menuLine
-		for _, n := range FontNames() {
-			o = append(o, menuLine{label: n, change: func(g *BlobberGame, _ int) { g.page = "Graphics"; g.sel = g.fontRow() }})
-		}
-		return o
-	case "Gameplay":
-		return withExtra("Gameplay", []menuLine{
-			{"Smooth movement", func(g *BlobberGame) string { return onOff(g.smooth) }, func(g *BlobberGame, _ int) { g.smooth = !g.smooth }},
-			{"Fluid movement", onOffOf(&Settings.Fluid), flip(&Settings.Fluid)},
-			{"No Grid", onOffOf(&Settings.NoGrid), flip(&Settings.NoGrid)},
-			{"Walk speed", func(*BlobberGame) string {
-				return blobberBar(Settings.Speed, minSpeed, maxSpeed, 0.25) + fmt.Sprintf(" %.2fx", Settings.Speed)
-			}, func(_ *BlobberGame, d int) { Settings.Speed = blobberStep(Settings.Speed, minSpeed, maxSpeed, 0.25, d) }},
-		}, exit)
-	}
-	if rows, ok := ExtraRows[g.page]; ok && g.page != "" {
-		var o []menuLine
-		for _, r := range rows {
-			o = append(o, r.line())
-		}
-		return append(o, exit)
-	}
-	page := func(p string) menuLine {
-		return menuLine{label: p, change: func(g *BlobberGame, _ int) { g.pageSel, g.page, g.sel = g.sel, p, 0 }}
-	}
-	ask := func(label, q string, do func()) menuLine {
-		return menuLine{label: label, change: func(g *BlobberGame, _ int) { g.askSel, g.confirm, g.sel = g.sel, &question{q, do}, 1 }}
-	}
-	o := []menuLine{{label: "Resume", change: func(g *BlobberGame, _ int) { g.menu = false }}}
-	if OnSaveLoad != nil {
-		o = append(o, menuLine{label: "Save / Load", change: func(g *BlobberGame, _ int) { g.menu = false; OnSaveLoad() }})
-	}
-	o = append(o, page("Gameplay"), page("Graphics"))
-	var pages []string
-	for p := range ExtraRows {
-		if p != "Gameplay" && p != "Graphics" {
-			pages = append(pages, p)
-		}
-	}
-	slices.Sort(pages)
-	for _, p := range pages {
-		o = append(o, page(p))
-	}
-	if OnMainMenu != nil {
-		o = append(o, ask("Back to Main Menu", "Back to the main menu? Unsaved progress is lost.", func() { g.menu = false; OnMainMenu() }))
-	}
-	return append(o, ask(QuitRow, QuitQuestion, func() { g.quit = true }))
-}
-
-// question is a yes/no the menu asks before do.
-type question struct {
-	q  string
-	do func()
-}
-
-// FontNames, FontAt, SetFont and FontGlyph are the host's text fonts (the
-// Graphics page's Font line opens their list); MenuGlyph, while the list is
-// drawn, is line's glyph of ch for Window.
-var (
-	FontNames = func() []string { return []string{"Default"} }
-	FontAt    = func() int { return 0 }
-	SetFont   = func(int) {}
-	FontGlyph func(font int, ch byte) [8]byte
-	MenuGlyph func(line int, ch byte) [8]byte
-)
-
-// fontRow is the Font line's row on the Graphics page.
-func (g *BlobberGame) fontRow() int {
-	save := g.page
-	g.page = "Graphics"
-	defer func() { g.page = save }()
-	for i, l := range g.menuOptions() {
-		if l.label == "Font" {
-			return i
-		}
-	}
-	return 0
-}
-
-// OnSaveLoad, when set, adds "Save / Load" to the Esc menu (the host's save slots); OnMainMenu
-// adds "Back to Main Menu" (asked first).
-var OnSaveLoad, OnMainMenu func()
-
-// menuItems are the lines of the menu page shown.
-// menuKeys are the Esc menu lines' hotkeys (Hotkeys), the digits 1-9 on
-// lines left without a letter (as the host's digitKeys; blobber cannot
-// import it: the host imports blobber).
-func menuKeys(items []menuLine) []byte {
-	var labels []string
-	for _, o := range items {
-		labels = append(labels, o.label)
-	}
-	keys, d := Hotkeys(labels), byte('1')
-	for i := range keys {
-		if keys[i] == 0 && d <= '9' {
-			keys[i], d = d, d+1
-		}
-	}
-	return keys
-}
-
-// Hotkeys gives each label its first letter not taken by a label above (0: none left).
-func Hotkeys(labels []string) []byte {
-	var keys []byte
-	taken := map[byte]bool{'E': slices.Contains(labels, "Exit")} // Exit is E on every screen
-	for _, l := range labels {
-		var k byte
-		if l == "Exit" {
-			keys = append(keys, 'E')
-			continue
-		}
-		for _, c := range []byte(strings.ToUpper(l)) {
-			if c >= 'A' && c <= 'Z' && !taken[c] {
-				k, taken[c] = c, true
-				break
-			}
-		}
-		keys = append(keys, k)
-	}
-	return keys
-}
-
-func (g *BlobberGame) menuItems() []string {
-	var out []string
-	for _, o := range g.menuOptions() {
-		s := o.label
-		if o.value != nil {
-			s = fmt.Sprintf("%-23s%s", o.label+":", o.value(g))
-		}
-		out = append(out, s)
-	}
-	return out
-}
-
 // ---------- rendering ----------
 
 // camera for this frame
 type cam struct{ x, z, ang, roll, fwx, fwz, rtx, rtz, pitch float64 } // pitch: the horizon's shift up, a share of H
 
 func (g *BlobberGame) camera() cam {
-	if f := g.free; Settings.NoGrid && f.on { // No Grid: the eye where the party walks (free.go)
+	if f := g.free; opt.NoGrid && f.on { // No Grid: the eye where the party walks (free.go)
 		c := cam{x: f.x, z: f.z, ang: f.yaw, pitch: f.pitch}
 		c.fwx, c.fwz = math.Sin(c.ang), -math.Cos(c.ang)
 		c.rtx, c.rtz = math.Cos(c.ang), math.Sin(c.ang)
 		return c
 	}
 	e := g.t // tween eases by speed
-	if !g.smooth {
+	if !opt.Smooth {
 		e = 1
 	}
 	c := cam{x: g.fx + (g.tx-g.fx)*e, z: g.fz + (g.tz-g.fz)*e, ang: g.fa + (g.ta-g.fa)*e}
-	if g.moving && g.smooth {
-		s := g.v / (walkSpeed * Settings.Speed) // a strafe leans with its speed: in as it starts, steady, out as it stops
+	if g.moving && opt.Smooth {
+		s := g.v / (walkSpeed * opt.Speed) // a strafe leans with its speed: in as it starts, steady, out as it stops
 		c.ang += 0.025 * s * g.sway
 		c.roll = 0.012 * s * g.sway
 	}
@@ -870,46 +555,6 @@ func (g *BlobberGame) drawSky(dst *gpu.Image, c cam) {
 // horizon is the screen row of the horizon: the middle, shifted by the pitch.
 func horizon(c cam) float64 { return float64(H) * (0.5 + c.pitch) }
 
-func onOff(b bool) string {
-	if b {
-		return "ON"
-	}
-	return "OFF"
-}
-
-func (g *BlobberGame) drawMenu(screen *gpu.Image) {
-	items, title := g.menuItems(), ""
-	switch {
-	case g.confirm != nil:
-		title = g.confirm.q
-	case g.page != "":
-		title = strings.ToUpper(g.page)
-	}
-	if BlobberWindow == nil || g.confirm == nil { // the game dims under the menu; Window dims under a question itself
-		b := screen.Bounds()
-		vector.DrawFilledRect(screen, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
-	}
-	if BlobberWindow != nil {
-		keys := menuKeys(g.menuOptions())
-		if g.page == "Font" && FontGlyph != nil {
-			MenuGlyph = FontGlyph
-			defer func() { MenuGlyph = nil }()
-			keys = nil // the font names' letters would pick fonts at a keystroke
-		}
-		BlobberWindow(screen, title, items, keys, g.sel, false)
-		return
-	}
-	vector.DrawFilledRect(screen, float32(W/2-130), float32(H/2-60), 260, 152, color.RGBA{0, 0, 0, 200})
-	Print(screen, title, W/2-120, H/2-50)
-	for i, s := range items {
-		cur := "  "
-		if i == g.sel {
-			cur = "> "
-		}
-		Print(screen, cur+s, W/2-120, H/2-20+i*16)
-	}
-}
-
 // resize makes the view w by h pixels.
 func (g *BlobberGame) resize(w, h int) {
 	if w != W || h != H {
@@ -967,22 +612,19 @@ func Face(dir int) {
 	g.fa = g.ta
 }
 
-// BlobberOptions are the settings on the Esc menu's pages.
-type BlobberOptions struct {
-	Smooth, Fluid, Dither, Fullscreen bool // Fluid: a held key walks or turns on without slowing at each cell
-	Torch                             float64
-	Speed                             float64 // walk and turn speed, minSpeed to maxSpeed times the normal
-	NoGrid                            bool    // free walking: W A S D and mouselook, the host told each square entered (free.go)
+// ViewOptions are the view's settings (the host's Esc menu sets them).
+type ViewOptions struct {
+	Smooth, Fluid, Dither bool // Fluid: a held key walks or turns on without slowing at each cell
+	Torch                 float64
+	Speed                 float64 // walk and turn speed, MinSpeed to MaxSpeed times the normal
+	NoGrid                bool    // free walking: W A S D and mouselook, the host told each square entered (free.go)
 }
 
-const minSpeed, maxSpeed = 0.5, 2.0
+// MinSpeed and MaxSpeed bound ViewOptions.Speed.
+const MinSpeed, MaxSpeed = 0.5, 2.0
 
-// Settings are the options the view starts with; set them before NewView (from a settings file).
-// OnSettings is called with the new options whenever the player changes one.
-var (
-	Settings   = BlobberOptions{Smooth: true, Fluid: true, Dither: true, Fullscreen: true, Torch: 1, Speed: 1}
-	OnSettings func(BlobberOptions)
-)
+// opt are the options in use: the host's, handed to NewView (the defaults until then).
+var opt = &ViewOptions{Smooth: true, Fluid: true, Dither: true, Torch: 1, Speed: 1}
 
 // newGame makes the textures and shaders and the one Game, facing dir.
 func newGame(dir int) (*BlobberGame, error) {
@@ -995,13 +637,9 @@ func newGame(dir int) (*BlobberGame, error) {
 	if err != nil {
 		return nil, err
 	}
-	g := &BlobberGame{dither: Settings.Dither, smooth: Settings.Smooth, torch: Settings.Torch, scene: gpu.NewImage(W, H), shader: sh, meshShader: tsh}
+	g := &BlobberGame{scene: gpu.NewImage(W, H), shader: sh, meshShader: tsh}
 	blobberGame = g
 	g.ta = float64(dir) * math.Pi / 2
 	g.dir = dir
 	return g, nil
 }
-
-// QuitRow and QuitQuestion are the one quit row and question, on the Esc
-// menu and por's main menu.
-const QuitRow, QuitQuestion = "Quit to DOS", "Quit to DOS? Unsaved progress is lost."

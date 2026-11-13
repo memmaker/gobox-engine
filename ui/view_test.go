@@ -7,6 +7,8 @@ import (
 
 // Follow animates a step or a turn and jumps anything further; held keys never move a View.
 func TestViewFollow(t *testing.T) {
+	defer func(s bool) { opt.Smooth = s }(opt.Smooth)
+	opt.Smooth = false // snapping moves
 	g := &BlobberGame{t: 1}
 	blobberGame = g
 	v := &View{g: g}
@@ -33,7 +35,7 @@ func TestViewFollow(t *testing.T) {
 
 // Moves that come while one is animating queue up and flow on without braking.
 func TestViewFollowQueue(t *testing.T) {
-	g := &BlobberGame{smooth: true, t: 1}
+	g := &BlobberGame{t: 1}
 	blobberGame = g
 	v := &View{g: g}
 	v.Show(&Scene{Rows: []string{"######", "#....#", "######"}}, Camera{1, 1, 1})
@@ -57,8 +59,8 @@ func TestViewFollowQueue(t *testing.T) {
 // a move that arrives while the view waits at the cell keeps its speed,
 // for turns as for steps.
 func TestViewFlow(t *testing.T) {
-	Settings.Fluid = true
-	g := &BlobberGame{smooth: true, t: 1}
+	opt.Fluid = true
+	g := &BlobberGame{t: 1}
 	blobberGame = g
 	v := &View{g: g}
 	v.Show(&Scene{Rows: []string{"######", "#....#", "######"}}, Camera{1, 1, 1})

@@ -292,7 +292,7 @@ func (p *Presenter) fightKey(k uint16) bool {
 		return true
 	}
 	if a == input.InputOptions && p.view != nil {
-		p.view.OpenOptions()
+		p.openOptions()
 		return true
 	}
 	if a == input.PadA { // pad A: as Enter
@@ -317,7 +317,7 @@ func (p *Presenter) fightKey(k uint16) bool {
 		return true
 	}
 	if a == input.Esc && p.view != nil { // Esc with nothing to give up: the options
-		p.view.OpenOptions()
+		p.openOptions()
 		return true
 	}
 	return false

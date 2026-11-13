@@ -7,7 +7,7 @@ import (
 // Free reports whether No Grid walking has the move keys: the party
 // explores the 3D view with no menu up.
 func (p *Presenter) Free() bool {
-	return Settings.NoGrid && p.active && p.view != nil && p.shown != "" && !p.menu && !p.view.OptionsOpen() &&
+	return Settings.NoGrid && p.active && p.view != nil && p.shown != "" && !p.menu && !p.optionsOpen() &&
 		p.exploring() && p.window() != game.WindowMap
 }
 

@@ -142,7 +142,7 @@ func (p *Presenter) key(k uint16) bool {
 		p.menu = false
 		return false
 	}
-	if p.view.OptionsOpen() {
+	if p.optionsOpen() {
 		return true
 	}
 	if p.screenUp() {
@@ -154,7 +154,7 @@ func (p *Presenter) key(k uint16) bool {
 			case input.Enter, input.PadA:
 				p.menu, p.sel = true, 0
 			case input.Esc:
-				p.view.OpenOptions()
+				p.openOptions()
 			default:
 				return p.exploreKey(k)
 			}
@@ -187,7 +187,7 @@ func (p *Presenter) key(k uint16) bool {
 		case actOf(k) == input.Enter && m != nil:
 			p.menu, p.menuFor, p.sel = true, menuID(m), 0
 		case actOf(k) == input.Esc && p.exploring():
-			p.view.OpenOptions()
+			p.openOptions()
 		default:
 			return false
 		}
@@ -367,7 +367,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if p.screenUp() && p.active && !p.view.OptionsOpen() {
+		if p.screenUp() && p.active && !p.optionsOpen() {
 			for i, r := range p.menuRects {
 				if image.Pt(x, y).In(r) {
 					p.campPick(p.camp.top + i)
@@ -377,14 +377,14 @@ func (p *Presenter) Click(x, y int) bool {
 			p.campBack() // a click outside: back
 			return true
 		}
-		if p.exploring() && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
+		if p.exploring() && !p.menu && p.active && p.view != nil && !p.optionsOpen() { // the view: walk, turn, the command menu
 			if p.Free() { // No Grid: a press on the view may be a drag to look; ViewClick on its release
 				return false
 			}
 			p.exploreClick(x, y)
 			return true
 		}
-		if !p.menu || !p.active || p.view == nil || p.view.OptionsOpen() {
+		if !p.menu || !p.active || p.view == nil || p.optionsOpen() {
 			return false
 		}
 		for i, r := range p.menuRects {

@@ -2,7 +2,6 @@ package ui
 
 import (
 	"image"
-	"os"
 
 	"gobox/gpu"
 )
@@ -10,7 +9,7 @@ import (
 // View is the renderer for a host that owns the game loop and the rules
 // (a remaster): it draws a Scene from a Camera the host
 // moves, into the host's image, and animates each step and turn. Nothing
-// here reads the keyboard but the Esc menu (UpdateOptions).
+// here reads the keyboard.
 //
 // ponytail: one View per process; the scene and camera live in package
 // state. Make them per-View when two views must
@@ -49,9 +48,11 @@ var cur *View
 type Camera struct{ X, Y, Dir int }
 
 // NewView makes the textures and shaders. Call it once the window runs.
-// textures is View.Textures (nil: only the generated materials).
+// textures is View.Textures (nil: only the generated materials); o are the
+// host's options, read as they change (the host owns them).
 // The host sets View.Night to start at night.
-func NewView(textures map[string]image.Image) (*View, error) {
+func NewView(textures map[string]image.Image, o *ViewOptions) (*View, error) {
+	opt = o
 	v := &View{Textures: textures, PondHalf: 0.46, PondNeck: 0.36, PondMud: 0.12}
 	cur = v
 	g, err := newGame(0)
@@ -106,14 +107,14 @@ func (v *View) Follow(c Camera) {
 	if c == last {
 		return
 	}
-	g.asked = false      // the move asked for came
-	if Settings.NoGrid { // the free camera walks (free.go): no steps queue up behind it
+	g.asked = false // the move asked for came
+	if opt.NoGrid { // the free camera walks (free.go): no steps queue up behind it
 		g.next = g.next[:0]
 		SetMap(level, c.X, c.Y)
 		Face(c.Dir)
 		return
 	}
-	if g.moving && g.smooth && len(g.next) < 8 && oneMove(last, c) {
+	if g.moving && opt.Smooth && len(g.next) < 8 && oneMove(last, c) {
 		g.next = append(g.next, c)
 		return
 	}
@@ -156,7 +157,7 @@ func (v *View) Flow(held, ready bool) bool {
 		g.asked = false
 		return false
 	}
-	if !ready || !Settings.Fluid || !g.smooth || g.asked || len(g.next) > 0 || g.moving && g.t < 0.5 { // idle (a fast step ended before the key counted as held): ask now
+	if !ready || !opt.Fluid || !opt.Smooth || g.asked || len(g.next) > 0 || g.moving && g.t < 0.5 { // idle (a fast step ended before the key counted as held): ask now
 		return false
 	}
 	g.asked = true
@@ -168,77 +169,7 @@ func (v *View) Flow(held, ready bool) bool {
 func (v *View) Moving() bool { return v != nil && v.g != nil && (v.g.moving || len(v.g.next) > 0) }
 
 // Fluid reports whether held keys are paced by Flow.
-func (v *View) Fluid() bool { return Settings.Fluid && v.g.smooth }
-
-// OpenOptions opens the Esc (pause) menu at its root; while OptionsOpen,
-// UpdateOptions reads the keyboard and the gamepads for it.
-func (v *View) OpenOptions() {
-	v.g.menu, v.g.page, v.g.confirm, v.g.sel, v.g.lastPoint = true, "", nil, 0, -1
-}
-
-// PadKey hands the Esc menu a key from the host's gamepad, for the next
-// UpdateOptions: Enter, Esc, the arrows, Page Up / Down, Home, End.
-func (v *View) PadKey(k gpu.Key) { padKeys[k] = true }
-
-// OptionsOpen reports whether the Esc menu is up.
-func (v *View) OptionsOpen() bool { return v != nil && v.g != nil && v.g.menu } // no view (a picture scene): no menu
-
-// UpdateOptions runs the Esc menu for one frame: arrows and Enter pick and
-// change, Esc goes back to the root or closes it. Quit exits the program.
-func (v *View) UpdateOptions() {
-	defer clear(padKeys)
-	if KeyJustPressed(gpu.KeyEscape) {
-		if !v.g.back() {
-			v.g.menu = false
-		}
-		return
-	}
-	if v.g.updateMenu() {
-		os.Exit(0)
-	}
-}
-
-// PointOptions is the mouse on the Esc menu: line (-1: none) is under the
-// pointer and highlights; click picks it (Enter), back goes back (Esc),
-// wheel steps a setting (Left / Right).
-func (v *View) PointOptions(line int, click, back bool, wheel int) {
-	g := v.g
-	if back {
-		if !g.back() {
-			g.menu = false
-		}
-		return
-	}
-	items := g.menuOptions()
-	if line < 0 || line >= len(items) {
-		return
-	}
-	if line != g.lastPoint { // only a move highlights, so the keys keep theirs
-		g.sel, g.lastPoint = line, line
-	}
-	d := 0
-	switch {
-	case click:
-	case wheel != 0 && g.page != "" && g.confirm == nil:
-		d = 1 // wheel up: more
-		if wheel < 0 {
-			d = -1
-		}
-	default:
-		return
-	}
-	g.sel, g.lastPoint = line, -1 // a new page highlights under the pointer once it moves
-	items[line].change(g, d)
-	if g.page != "" {
-		Settings.Smooth, Settings.Dither, Settings.Fullscreen, Settings.Torch = g.smooth, g.dither, gpu.IsFullscreen(), g.torch
-		if OnSettings != nil {
-			OnSettings(Settings)
-		}
-	}
-	if g.quit {
-		os.Exit(0)
-	}
-}
+func (v *View) Fluid() bool { return opt.Fluid && opt.Smooth }
 
 // Update advances the animation by one tick (1/60 s).
 func (v *View) Update() {
@@ -253,11 +184,4 @@ func (v *View) Draw(dst *gpu.Image) {
 	n := gpu.Stats.Draws
 	v.g.draw3D(dst, v.g.camera())
 	gpu.Stats.Draws3D += gpu.Stats.Draws - n
-}
-
-// DrawMenu draws the Esc menu, when it is open, over what the host drew on the view.
-func (v *View) DrawMenu(dst *gpu.Image) {
-	if v.g.menu {
-		v.g.drawMenu(dst)
-	}
 }

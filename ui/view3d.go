@@ -273,14 +273,11 @@ func (p *Presenter) newView() {
 	if p.view == nil {
 		gpu.Note("3D view made")
 		var err error
-		if p.view, err = NewView(map[string]image.Image{}); err != nil {
+		if p.view, err = NewView(map[string]image.Image{}, &Settings.ViewOptions); err != nil {
 			log.Fatalln("remaster:", err)
 		}
 		p.view.Load = wallImage
 		p.view.Painted = paintedWalls()
-		BlobberWindow = func(d *gpu.Image, t string, l []string, k []byte, sel int, b bool) { // its menu and options in the game's box
-			p.keyWindow(d, t, l, k, nil, sel, b)
-		}
 	}
 }
 

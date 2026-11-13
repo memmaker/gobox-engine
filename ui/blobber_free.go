@@ -2,7 +2,7 @@ package ui
 
 import "math"
 
-// No Grid (Settings.NoGrid): the camera walks freely and looks around; the
+// No Grid (opt.NoGrid): the camera walks freely and looks around; the
 // host's game still moves square by square. Walk keeps the camera inside
 // the host's square, lets it lean out through an open side, and asks for
 // the step once it crosses; the host's answer moves the square on (or,
@@ -53,7 +53,7 @@ func (v *View) Walk(at Camera, open [4]bool, in FreeInput, ready bool) Camera {
 	if n := math.Hypot(fw, rt); n > 1 {
 		fw, rt = fw/n, rt/n
 	}
-	s := freeSpeed * math.Max(minSpeed, math.Min(maxSpeed, Settings.Speed)) * dt
+	s := freeSpeed * math.Max(MinSpeed, math.Min(MaxSpeed, opt.Speed)) * dt
 	f.x += (math.Sin(f.yaw)*fw + math.Cos(f.yaw)*rt) * s
 	f.z += (-math.Cos(f.yaw)*fw + math.Sin(f.yaw)*rt) * s
 	// the square's sides: a closed one (or the one just refused) keeps the camera its radius off it
