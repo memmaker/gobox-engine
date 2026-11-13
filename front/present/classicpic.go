@@ -228,6 +228,29 @@ func pixBattle(b *front.Battle, ink [16]color.RGBA) *front.Battle {
 // plain fill) the series' floor texture tinted to that colour: no combat
 // square is ever a flat fill.
 func textured(t image.Image) image.Image {
+	if t == nil {
+		return nil
+	}
+	k := texturedKey{t, series}
+	if m, ok := texturedTiles[k]; ok { // the board is rebuilt every frame: each tile is looked at once
+		return m
+	}
+	if len(texturedTiles) > 4096 { // ponytail: whole cache dropped when big, as pixPics
+		clear(texturedTiles)
+	}
+	m := texturedOnce(t)
+	texturedTiles[k] = m
+	return m
+}
+
+type texturedKey struct {
+	tile   image.Image
+	series string
+}
+
+var texturedTiles = map[texturedKey]image.Image{}
+
+func texturedOnce(t image.Image) image.Image {
 	c, ok := flatColour(t)
 	if !ok {
 		return t

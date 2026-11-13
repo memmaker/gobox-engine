@@ -38,6 +38,11 @@ func Register(name string, files fs.FS) {
 	mu.Lock()
 	defer mu.Unlock()
 	series[name] = files
+	for k := range images {
+		if k.series == name {
+			delete(images, k)
+		}
+	}
 }
 
 func open(s string) fs.FS {
@@ -112,17 +117,37 @@ func file(s, name string) ([]byte, error) {
 }
 
 // Image decodes texture name (no extension) of series; nil if absent.
+// Each file is read and decoded once (per style): callers draw it every
+// frame and must not change it.
 func Image(series, name string) image.Image {
-	b, err := file(series, name)
-	if err != nil {
+	f := open(series)
+	if f == nil {
 		return nil
 	}
-	img, err := png.Decode(bytes.NewReader(b))
-	if err != nil {
-		return nil
+	mu.Lock()
+	k := imageKey{series, name, pixel}
+	img, ok := images[k]
+	mu.Unlock()
+	if ok {
+		return img
 	}
+	if b, err := fs.ReadFile(f, path(f, name)); err == nil {
+		if m, err := png.Decode(bytes.NewReader(b)); err == nil {
+			img = m
+		}
+	}
+	mu.Lock()
+	images[k] = img // nil too: an absent texture is looked for once
+	mu.Unlock()
 	return img
 }
+
+type imageKey struct {
+	series, name string
+	pixel        bool
+}
+
+var images = map[imageKey]image.Image{} // Image's decoded textures (guarded by mu)
 
 // Has says whether series has texture name, without decoding it.
 func Has(s, name string) bool {
