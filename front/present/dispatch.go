@@ -79,7 +79,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		}
 		return true
 	}
-	if p.journal.open && v.Exploring {
+	if p.journal.open && p.exploring() {
 		p.journalKey(k, v)
 		return true
 	}
@@ -150,7 +150,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if screenUp(v) {
 		return p.campKey(k, v)
 	}
-	if v.Exploring {
+	if p.exploring() {
 		if !p.menu {
 			switch actOf(k) {
 			case input.Enter, input.PadA:
@@ -188,7 +188,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 			return false
 		case actOf(k) == input.Enter && m != nil:
 			p.menu, p.menuFor, p.sel = true, menuID(m), 0
-		case actOf(k) == input.Esc && v.Exploring:
+		case actOf(k) == input.Esc && p.exploring():
 			p.view.OpenOptions()
 		default:
 			return false
@@ -211,7 +211,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		return true
 	}
 	switch i, back, ok := ui.MenuNav(actOf(k), k, &p.sel, keys); {
-	case back && v.Exploring: // the command bar has no Exit item: the popup alone closes
+	case back && p.exploring(): // the command bar has no Exit item: the popup alone closes
 		p.menu = false
 	case back: // the game leaves the menu (its Exit item): hiding the popup alone left the game waiting in it
 		p.send(front.ActClose, 0)
@@ -379,7 +379,7 @@ func (p *Presenter) Click(x, y int) bool {
 			p.campBack(v) // a click outside: back
 			return true
 		}
-		if v := p.shownView; v.Exploring && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
+		if v := p.shownView; p.exploring() && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
 			if p.Free(v) { // No Grid: a press on the view may be a drag to look; ViewClick on its release
 				return false
 			}

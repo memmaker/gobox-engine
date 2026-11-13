@@ -5,6 +5,7 @@ import (
 	"go/parser"
 	"go/token"
 	"gobox/front"
+	"gobox/game/play"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -21,8 +22,10 @@ import (
 
 // Esc closes the command menu (Enter opened it).
 func TestEscClosesCommandMenu(t *testing.T) {
+	g, _ := playGame(play.Exploring{})
 	p := &Presenter{active: true, view: &blobber.View{}}
-	v := front.View{Exploring: true}
+	p.SetEngine(g)
+	v := g.View()
 	if !p.key(13, v) || !p.menu {
 		t.Fatal("Enter did not open the menu")
 	}

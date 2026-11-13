@@ -87,12 +87,12 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		default:
 			return !slices.Contains(viewPasses, k)
 		}
-	case k == front.ActMember && (v.Exploring || v.Camp != nil || v.MainMenu != nil || turn), k == front.ActView && turn: // the bar's View in a turn: the active member's sheet, as a portrait's
+	case k == front.ActMember && (p.exploring() || v.Camp != nil || v.MainMenu != nil || turn), k == front.ActView && turn: // the bar's View in a turn: the active member's sheet, as a portrait's
 		if turn {
 			n = -1
 		}
 		do(func(e *classicGame) error { return e.OpenSheet(n) })
-	case k == front.ActInventory && (v.Exploring || v.Camp != nil):
+	case k == front.ActInventory && (p.exploring() || v.Camp != nil):
 		do(func(e *classicGame) error { return e.OpenItems(n, true) })
 	case k == front.ActItems && turn:
 		do(func(e *classicGame) error { return e.OpenItems(-1, false) })

@@ -149,9 +149,9 @@ func (g *Game) View() front.View {
 	r, ps := g.r, g.r.g.State()
 	c := play.CommonOf(ps)
 	art := g.art()
-	mode, pending := r.modeOf(ps), r.pending(ps)
+	mode, pending := r.modeOf(ps), r.asking(ps)
 	if g.r.refusalAsk != nil {
-		mode, pending = game.ModeAsk, g.r.refusalAsk
+		mode = game.ModeAsk
 	}
 	party, sel := partyOf(ps), r.selectedOf(ps)
 	sheet, page := r.sheetOf(c), r.sheetPageOf(ps, party)

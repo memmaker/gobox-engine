@@ -289,7 +289,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.screen = dst.Bounds()
 	p.picBottom = 0
 	p.setup(note, v)
-	p.command = v.Exploring
+	p.command = p.exploring()
 	if screenUp(v) && !screenUp(p.shownView) { // camp, the temple, the shop, training start on their main screen
 		p.camp.screen, p.camp.sel, p.camp.rows = campMain, 0, nil
 		if t := v.Training; t != nil && len(t.Learn) == 0 && t.Why == "" { // the training question starts on No
@@ -307,7 +307,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.main = v.MainMenu != nil // before the pages, which return early: a stale main menu would take their keys
 	p.pace(v)
 	p.pageMenu = false
-	if !v.Exploring {
+	if !p.exploring() {
 		p.fullMap = nil
 	}
 	p.cmds = commands(v)
@@ -318,7 +318,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1    // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
 	p.resize(dst, v)
 	p.syncRead(v)
-	p.overview = p.overview && v.Exploring
+	p.overview = p.overview && p.exploring()
 	if p.overview || p.pager != nil || p.fullMap != nil || p.slots != nil { // the party overview, help, a Read, the full map, the slots: a page of its own over the whole window
 		p.shown, p.active, p.menu, p.cards = "", false, false, nil
 		r := p.drawPage(dst, v, note)
@@ -360,7 +360,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.mm.drawMain(p, dst, mainView(v))
 		return Rect{}
 	}
-	p.journal.open = p.journal.open && v.Exploring
+	p.journal.open = p.journal.open && p.exploring()
 	if p.journal.open { // the quest journal: a page of its own over the whole window
 		p.shown, p.active, p.menu = "", true, false
 		dst.Fill(color.Black)
@@ -371,7 +371,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		}
 		return Rect{}
 	}
-	if !v.Exploring {
+	if !p.exploring() {
 		p.clue = nil
 	}
 	if p.clue != nil { // the clue book's chapters, over the 3D view
@@ -526,7 +526,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		picBottom = py + int(pp*ph/2)
 		p.picBottom = picBottom
 	}
-	pane, asking := textPane(v), askMenu(v) != nil && !v.Exploring && !noChoice(v)
+	pane, asking := textPane(v), askMenu(v) != nil && !p.exploring() && !noChoice(v)
 	if asking {
 		p.answered = pane
 	}
@@ -535,7 +535,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	shown = shown && !ask && !(askList(v) != nil && askMenu(v).Prompt != "")                  // a vertical menu's prompt is the list's own title
 	shown = shown && !(v.Shop != nil && p.camp.screen != campMain)                            // the shop's submenus (identify, appraise) stand alone, the greeting gone
 	p.paneRect = image.Rectangle{}
-	if shown && v.Exploring && v.Window != front.WinPicture && v.Window != front.WinText { // the text under the command bar: along the bottom edge
+	if shown && p.exploring() && v.Window != front.WinPicture && v.Window != front.WinText { // the text under the command bar: along the bottom edge
 		p.paneBox(dst, note, v, tk, cx, b.Dy()-int(tk*th/2))
 		p.menuFloor = b.Dy() - int(tk*th) // the camp's member menus stop above the text
 		defer func() { p.menuFloor = 0 }()
@@ -546,7 +546,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			p.picBottom = picBottom // a yes/no and the spell pick too: the bottom lines, not over the picture or its text
 		}
 	}
-	if askMenu(v) != nil && !v.Exploring && !noChoice(v) && !choosing(v) { // a question: its choices pop up at once
+	if askMenu(v) != nil && !p.exploring() && !noChoice(v) && !choosing(v) { // a question: its choices pop up at once
 		if id := menuID(askMenu(v)); id != p.asked { // not the menu just answered
 			p.asked, p.menu, p.menuFor, p.sel = id, true, id, askDefault(v)
 		}
@@ -570,7 +570,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		if p.campHome(v) {
 			p.drawCampMenus(dst, v)
 		}
-	} else if v.Exploring && p.menu { // the command menu (explore.go)
+	} else if p.exploring() && p.menu { // the command menu (explore.go)
 		cmds := commands(v)
 		lines, keys := make([]string, len(cmds)), make([]byte, len(cmds))
 		for i, c := range cmds {
@@ -600,7 +600,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		}
 		p.sel = min(p.sel, len(lines)-1)
 		top := cy + int(tk*th/2) + int(pk*8)
-		if v.Exploring || !shown { // no text box above: in the middle
+		if p.exploring() || !shown { // no text box above: in the middle
 			top = b.Dy()/2 - int(mk*float64(len(lines)+4)*4)
 			if picBottom > 0 { // never over the picture: right under it
 				top = max(top, picBottom+int(pk*4))

@@ -77,3 +77,32 @@ func (p *Presenter) ui() *UI {
 	}
 	return &p.eng.r.UI
 }
+
+// asking is the question up over the state: a Refusal's, else the game's
+// or gobox's own (nil: none).
+func (r *rules) asking(ps play.State) *play.Ask {
+	if r.refusalAsk != nil {
+		return r.refusalAsk
+	}
+	return r.pending(ps)
+}
+
+// exploring is whether the party explores and nothing asks: the adventuring
+// decisions (ActForward .. ActCastPick) are taken. A question or the door
+// menu over the view, or a yes/no over it, takes the keys instead.
+func (r *rules) exploring(ps play.State) bool {
+	if _, ok := ps.(play.Exploring); !ok || play.CommonOf(ps).Ask != nil || doorOf(ps) != nil {
+		return false
+	}
+	mode := r.modeOf(ps)
+	if r.refusalAsk != nil {
+		mode = game.ModeAsk
+	}
+	return !OverMenu(mode, r.asking(ps))
+}
+
+// exploring is r.exploring over the game's state now, and no question of
+// the presenter's own up (Ask, the gate).
+func (p *Presenter) exploring() bool {
+	return p.eng != nil && p.q == nil && p.eng.r.exploring(p.state())
+}

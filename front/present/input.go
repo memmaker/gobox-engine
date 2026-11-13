@@ -126,7 +126,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 	if screenUp(v) && p.campKey(k, v) {
 		return
 	}
-	if v.Exploring && p.exploreKey(k, v) {
+	if p.exploring() && p.exploreKey(k, v) {
 		return
 	}
 	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), false); ok { // F1-F8, the stick buttons: select the member (exploring: and open their context menu, as a card's click)
@@ -151,7 +151,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		if blobber.OnSettings != nil {
 			blobber.OnSettings(blobber.Settings)
 		}
-	case a == input.Overview && v.Exploring:
+	case a == input.Overview && p.exploring():
 		p.overview = true
 	case a == input.Overview:
 		p.send(front.ActOverview, 0)
@@ -181,7 +181,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		p.send(front.ActChoose, menuIndex(askMenu(v), c))
 	case a == input.Map:
 		p.openMap(v)
-	case a == input.Party && v.Exploring:
+	case a == input.Party && p.exploring():
 		p.overview = true
 	case a == input.Party:
 		p.send(front.ActOverview, 0)
@@ -315,11 +315,11 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 	case askMenu(v) != nil && len(askMenu(v).Commands) == 1 && typing(v) == nil: // "PRESS <ENTER> TO CONTINUE" takes no Esc: the right button continues too
 		p.menu = false
 		p.send(front.ActOK, 0)
-	case p.menu && v.Exploring: // the command bar's popup: it alone closes (key)
+	case p.menu && p.exploring(): // the command bar's popup: it alone closes (key)
 		p.menu = false
 	case screenUp(v): // back one level, as Esc
 		p.campBack(v)
-	case v.Exploring && !p.menu && p.active && p.view != nil: // as Esc: the options
+	case p.exploring() && !p.menu && p.active && p.view != nil: // as Esc: the options
 		p.view.OpenOptions()
 	default:
 		p.send(front.ActClose, 0)
