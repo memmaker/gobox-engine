@@ -51,7 +51,7 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 		ui.DrawText(m, glyph, title[i:i+1], x0+8*i, 8, ega.RGBA(sparkle[i%len(sparkle)]))
 	}
 	y := 24
-	if ic := p.inv.iconImage(it); ic != nil { // the icon on the pop-up's black
+	if ic := p.inv.iconImage(it.Name, it.Words); ic != nil { // the icon on the pop-up's black
 		b := ic.Bounds()
 		iw, ih := iconH, iconH // any atlas cell, scaled to the box
 		at := image.Rect((cw*8-iw)/2, y, (cw*8+iw)/2, y+ih)

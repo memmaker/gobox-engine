@@ -44,7 +44,18 @@ func (p *Presenter) sheetItems() []ui.MenuRow {
 }
 
 // sheetUp: the sheet's menu is the page's question.
-func sheetUp(v front.View) bool { return v.Sheet != nil && askMenu(v) == nil && v.Inventory == nil }
+func (p *Presenter) sheetUp(v front.View) bool {
+	return p.eng != nil && !p.pickerOver() && p.eng.r.sheetUpOf(p.state()) && askMenu(v) == nil && !p.inventoryUp()
+}
+
+// sheetUpOf: the state puts a member's sheet up, the look-only one in a fight too.
+func (r *rules) sheetUpOf(ps play.State) bool {
+	c := play.CommonOf(ps)
+	if n := r.lookSheet - 1; n >= 0 && n < len(c.Party) && r.combatOf(ps) != nil {
+		return true
+	}
+	return r.sheetOf(c) != nil
+}
 
 // sheetKey takes key k on the sheet: the menu's keys, the member keys another member.
 func (p *Presenter) sheetKey(k uint16) bool {

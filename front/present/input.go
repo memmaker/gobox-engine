@@ -205,7 +205,7 @@ func (p *Presenter) Drop(path string, cx, cy int, in bool, v front.View) {
 		IconAct(p, &p.icon, front.Action{Kind: front.ActIcon, Text: path})
 	case v.IconDrop || in && r != (front.CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActIcon, Text: path})
-	case v.Portrait != (front.CellRect{}) || v.Inventory != nil && v.Inventory.Wares == nil: // the sheet or the member's inventory
+	case v.Portrait != (front.CellRect{}) || p.inventoryKind() == invOwn: // the sheet or the member's inventory
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActPortrait, N: -1, Text: path})
 	}
 }

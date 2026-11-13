@@ -298,7 +298,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	p.openList(v)
 	p.shownView = v
-	if !screenUp(v) && v.Inventory == nil && v.Shop == nil && v.Temple == nil { // the location as last shown, without its question and text: what a shop's or temple's menu draws over
+	if !screenUp(v) && !p.inventoryUp() && v.Shop == nil && v.Temple == nil { // the location as last shown, without its question and text: what a shop's or temple's menu draws over
 		b := v
 		b.Ask, b.Pane = nil, nil
 		p.backView = &b
@@ -314,8 +314,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if !p.active {
 		p.ctx = 0
 	}
-	p.fight = v.Battle != nil && !(sheetUp(v) && v.SheetPage != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
-	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1    // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
+	p.fight = v.Battle != nil && !(p.sheetUp(v) && v.SheetPage != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
+	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1      // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
 	p.resize(dst, v)
 	p.syncRead(v)
 	p.overview = p.overview && p.exploring()
@@ -391,8 +391,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		return Rect{}
 	}
 	sc := p.scene(v)
-	area := v.AreaMap != nil                                                                                                                                                                                                                                                                                                // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
-	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure || sheetUp(v) && v.SheetPage != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
+	area := v.AreaMap != nil                                                                                                                                                                                                                                                                                                  // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
+	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure || p.sheetUp(v) && v.SheetPage != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
 		if screenUp(v) { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			switch {                      // over the location as it stands, never black
@@ -414,9 +414,9 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			p.drawCamp(dst, note.Glyph, v, scale(dst), b.Dx()/2, b.Dy()/4, b.Max.Y)
 			return Rect{}
 		}
-		p.shown, p.active, p.menu, p.cards = "", false, false, nil        // back from elsewhere: no tween from where the view was
-		p.asked = ""                                                      // and a question still waiting on return (View from the loot menu) pops up again
-		if sheetUp(v) && v.SheetPage != nil && v.SheetPage.Spells == "" { // the sheet: the presenter's, at the inventory's scale
+		p.shown, p.active, p.menu, p.cards = "", false, false, nil          // back from elsewhere: no tween from where the view was
+		p.asked = ""                                                        // and a question still waiting on return (View from the loot menu) pops up again
+		if p.sheetUp(v) && v.SheetPage != nil && v.SheetPage.Spells == "" { // the sheet: the presenter's, at the inventory's scale
 			dst.Fill(color.Black)
 			p.drawSheet(dst, note, v)
 			return Rect{}

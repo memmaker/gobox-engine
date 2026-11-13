@@ -43,10 +43,10 @@ func (p *Presenter) Asking() *front.Question { return p.q }
 func (p *Presenter) Shown() Shown {
 	v := p.shownView
 	var t *front.Loot
-	if v.Inventory != nil {
-		t = v.Inventory.Treasure
+	if in := p.inventory(); in != nil {
+		t = in.treasure
 	}
-	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: v.Inventory != nil, Battle: v.Battle != nil,
+	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: p.inventoryUp(), Battle: v.Battle != nil,
 		Camp: v.Camp != nil, MainMenu: v.MainMenu != nil, Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(v.Party)}
 }
 
@@ -55,7 +55,7 @@ func (p *Presenter) ownQuestion(v front.View) front.View {
 	q := p.q
 	if q == nil && v.Ask == nil {
 		l := v.Loot
-		if v.Inventory != nil { // the loot screen's item list is the treasure: its Take, All, Exit, not the gate menu over it
+		if p.inventoryUp() { // the loot screen's item list is the treasure: its Take, All, Exit, not the gate menu over it
 			l = nil
 		}
 		q = GateQuestion(p, l, v.Door)

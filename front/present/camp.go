@@ -349,7 +349,7 @@ func (p *Presenter) drawCamp(dst *gpu.Image, glyph func(byte) [8]byte, v front.V
 	switch {
 	case v.Shop != nil && p.camp.screen == shopID:
 		for _, u := range v.Shop.Unknown {
-			icons = append(icons, p.inv.iconImage(u.Icon))
+			icons = append(icons, p.inv.iconImage(u.Icon.Name, u.Icon.Words))
 		}
 	case p.camp.screen == campBestiary && v.Camp != nil:
 		icons = []image.Image{nil} // the sort row

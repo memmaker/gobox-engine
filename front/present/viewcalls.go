@@ -30,7 +30,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 	n := a.N
 	do := func(f func(e *classicGame) error) { p.call(func(e *classicGame) { f(e) }) }
 	switch k := a.Kind; {
-	case v.Inventory != nil:
+	case p.inventoryUp():
 		switch k {
 		case front.ActClose:
 			do(func(e *classicGame) error { return e.CloseItems(true) })

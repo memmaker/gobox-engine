@@ -41,3 +41,10 @@ func partyOn(ms ...game.Member) *Presenter {
 	p.SetEngine(g)
 	return p
 }
+
+// upOf is the inventory screen the state st puts up when the game has items up.
+func upOf(st play.State, items game.ItemsUp) *invUp {
+	g, _ := playGame(st)
+	g.r.items = items
+	return g.r.inventoryOf(g.r.g.State())
+}

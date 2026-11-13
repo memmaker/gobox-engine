@@ -114,7 +114,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if (p.pageMenu || v.Picker != nil) && typing(v) == nil && !(p.q != nil && choosing(v)) && p.pageMenuKey(k, v) { // a picker's keys never wait on the frame that sets pageMenu // a line being typed (a map label) takes its keys in keyAct // the presenter's own member pick over a page (Trade to whom?) takes the arrows and Enter in keyAct
 		return true
 	}
-	if v.Inventory != nil && p.inv.view != nil && !choosing(v) {
+	if p.inventoryUp() && p.inv.up != nil && !choosing(v) {
 		return p.inventoryKey(k)
 	}
 	if p.fight {
@@ -265,7 +265,7 @@ func (p *Presenter) Click(x, y int) bool {
 		p.send(front.ActNote, 0)
 		return true
 	}
-	if sheetUp(p.shownView) && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(x, y).In(p.sheet.faceAt) { // Shift-click on the sheet's portrait: the next head
+	if p.sheetUp(p.shownView) && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(x, y).In(p.sheet.faceAt) { // Shift-click on the sheet's portrait: the next head
 		p.send(front.ActHead, -1)
 		return true
 	}
@@ -312,7 +312,7 @@ func (p *Presenter) Click(x, y int) bool {
 	}
 	if p.pageMenu {
 		for i, r := range p.winRects {
-			if image.Pt(x, y).In(r) && sheetUp(p.shownView) {
+			if image.Pt(x, y).In(r) && p.sheetUp(p.shownView) {
 				p.sheetItems()[i].Do()
 				return true
 			}
@@ -321,7 +321,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if v := p.shownView; !pageScreen(v) && !sheetUp(v) && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
+		if v := p.shownView; !pageScreen(v) && !p.sheetUp(v) && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
 			p.send(front.ActClose, 0)
 			return true
 		}

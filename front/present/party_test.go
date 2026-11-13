@@ -23,10 +23,9 @@ func TestPartyIconHead(t *testing.T) {
 // TestInventoryListsReadied: a readied item is on the doll and in the
 // list, marked readied, so the keys reach it.
 func TestInventoryListsReadied(t *testing.T) {
-	s := shown{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Kind: "weapon", Slot: "weapon", Readied: true}}}}}
-	in := Inventory(&front.Inventory{}, s.Mode, s.Party, s.Selected, s.PartyCap, s.PoolItems, s.Purse, s.Allowed, s.Shop, s.Loot)
-	if in.Doll[0] == nil || len(in.Pool) != 1 || !in.Pool[0].Readied {
-		t.Fatalf("doll %v pool %+v", in.Doll[0], in.Pool)
+	in := upOf(play.Exploring{Common: play.Common{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Kind: "weapon", Slot: "weapon", Readied: true}}}}}}, game.ItemsOwn)
+	if in.doll[0] == nil || len(in.pool) != 1 || !in.pool[0].Readied {
+		t.Fatalf("doll %v pool %+v", in.doll[0], in.pool)
 	}
 }
 

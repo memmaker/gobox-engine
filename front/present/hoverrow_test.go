@@ -15,8 +15,9 @@ func TestHoverRowNotSelected(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{} }, Font: func(byte, bool) [8]byte { return [8]byte{} }}
-	v := front.View{Inventory: &front.Inventory{Member: 0, Pool: []front.InvItem{{Item: 1, Name: "Mace"}, {Item: 2, Name: "Sling"}}}}
-	p := partyOn(game.Member{Name: "Kade"})
+	v := front.View{}
+	p := partyOn(game.Member{Name: "Kade", Items: []game.Item{{Handle: 1, Name: "Mace"}, {Handle: 2, Name: "Sling"}}})
+	p.eng.r.items = game.ItemsOwn
 	p.Inventory(dst, note, v)
 	var rows []image.Rectangle
 	for _, h := range p.inv.lines {

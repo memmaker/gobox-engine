@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 )
 
@@ -62,9 +63,10 @@ func TestGenericTyping(t *testing.T) {
 func TestInventoryGameAsk(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
-	p := &Presenter{}
+	p := partyOn(game.Member{Name: "A"})
+	p.eng.r.items = game.ItemsOwn
 	ask := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "Use it? ", Commands: []front.Command{{Text: "Yes"}, {Text: "No"}}}}
-	if p.Inventory(dst, Note{}, front.View{Inventory: &front.Inventory{}, Ask: ask}) {
+	if p.Inventory(dst, Note{}, front.View{Ask: ask}) {
 		t.Fatal("the items hide the game's question")
 	}
 }

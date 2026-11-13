@@ -15,12 +15,12 @@ import (
 var DollSlots = append(core.DollNames[:], "launcher")
 
 // dollSlot is the Doll index for it, -1 for none.
-func dollSlot(it game.Item, doll []*front.InvItem) int {
+func dollSlot(it game.Item, weaponTaken bool) int {
 	switch it.Slot {
 	case "bolts":
 		return slices.Index(DollSlots, "arrows")
 	case "weapon":
-		if doll[0] != nil {
+		if weaponTaken {
 			return slices.Index(DollSlots, "launcher")
 		}
 	}
@@ -72,7 +72,7 @@ func Inventory(v *front.Inventory, mode game.Mode, party []game.Member, sel, slo
 		x := invItem(it)
 		x.Slot, x.Wrong, x.Use, x.Look, x.Scribe = slotted(it), it.Wrong, it.Usable, lines(it.Text), slices.ContainsFunc(it.Scroll, func(s game.ScrollSpell) bool { return s.Scribing })
 		x.Price = front.Money{Gold: it.Sale[Coin], Copper: it.Sale[game.Copper]}
-		if d := dollSlot(it, n.Doll); it.Readied && d >= 0 && n.Doll[d] == nil {
+		if d := dollSlot(it, n.Doll[0] != nil); it.Readied && d >= 0 && n.Doll[d] == nil {
 			y := x
 			n.Doll[d] = &y
 		}
