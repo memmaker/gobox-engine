@@ -71,3 +71,17 @@ func TestEngineNotImporter(t *testing.T) {
 		}
 	}
 }
+
+// TestGoboxNotRules1e: cmd/gobox reaches rules1e only through engine
+// (REFACTOR.md R1); direct imports, tests included.
+func TestGoboxNotRules1e(t *testing.T) {
+	out, err := exec.Command("go", "list", "-test", "-f", `{{join .Imports " "}} {{join .TestImports " "}} {{join .XTestImports " "}}`, "gobox/cmd/gobox").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range strings.Fields(string(out)) {
+		if p == "gobox/rules1e" {
+			t.Errorf("gobox/cmd/gobox imports %s", p)
+		}
+	}
+}

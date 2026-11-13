@@ -7,7 +7,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"gobox/rules1e"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -76,11 +75,11 @@ func playPool(s start) (ui.Launch, error) {
 		eng.QuickSearch.Store(h.QuickSearch)
 		eng.DaySky.Store(h.DaySky)
 		eng.FullIntro.Store(h.FullIntro && !s.Explore)
-		rs := rules1e.Settings{PathSearch: h.PathSearch}
 		if h.Combat4e && f.Combat4e {
-			rs.Combat = rules4e.New()
+			eng.HandIn(engine.PoolSettings(h.PathSearch, rules4e.New()))
+		} else {
+			eng.HandIn(engine.PoolSettings(h.PathSearch, nil))
 		}
-		eng.HandIn(rs)
 		eng.Dasp.Store(h.Dasp)
 		eng.SetSoundtrack(h.Soundtrack)
 		eng.NoSteps.Store(!h.Steps)
@@ -174,6 +173,6 @@ func homeRosters(root string, names []string) func(string) ([]rules.CharacterFil
 		if err != nil {
 			return nil, err
 		}
-		return rules1e.ReadRoster(other.Record, filepath.Join(cfg, "gobox", from))
+		return engine.ReadRoster(other.Record, filepath.Join(cfg, "gobox", from))
 	}
 }

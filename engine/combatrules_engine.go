@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"gobox/rules"
+	"gobox/rules1e"
 	"slices"
 )
 
@@ -148,4 +149,17 @@ func (e *Engine) maneuverAimed(th aimThen, found bool, t aimTarget) {
 // squares are the squares a walk of move squares takes id to.
 func (e *Engine) squares(id rules.CharID, move int) rules.Squares {
 	return e.fact(id, rules.SquaresFact{Move: move}).(rules.Squares)
+}
+
+// PoolSettings are the settings of a rules1e game: path search on or off and
+// the combat rule set (nil: the original's). The frontend hands them in with
+// HandIn without importing rules1e.
+func PoolSettings(pathSearch bool, combat rules1e.CombatRules) rules.Settings {
+	return rules1e.Settings{Combat: combat, PathSearch: pathSearch}
+}
+
+// ReadRoster is the characters another game of record layout l saved in dir,
+// as canonical files (Config.Foreign).
+func ReadRoster(l rules.RecordLayout, dir string) ([]rules.CharacterFile, error) {
+	return rules1e.ReadRoster(l, dir)
 }
