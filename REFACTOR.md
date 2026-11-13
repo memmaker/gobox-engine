@@ -92,4 +92,9 @@
 10. The importer cuts the menu logo into a finished image; `Data.Logo` goes.
 Settled from the code: `Results.EndAt` goes (no `ui` reader); `Data.Palette` moves to the art data.
 
+**Decided without Felix (he was away, 2026-11-13; revisit if wrong):**
+- C1 credits: the credit colour stays as an `Ink`; the importer writes the credits as an N2 declarative script carrying the column placement; the `Credit`/`CreditBoxes`/`CreditGaps` fields leave `game` with N2.
+- U5 per-game look values (cotab ready mark, door colour, Amiga bare-ground grey): shipped as data in each adventure folder that `ui` reads without knowing the game (gobox stays game-agnostic and the originals' look comes back).
+- K2 `SOUND.OFF`: the read goes (nothing writes it; the sound on/off is the host setting).
+
 **5. Timed holds, what each is:** `Shot.StepMs`/`Report.StepMs`: the original's missile pace per projectile (10 pointed, 20 tumbling, 50 spinning, 30 a spell; BR O08F:2B26) — needed for accurate playback. `Ask.Ms`: the script pause op (BR op 58: game speed × 100 ms; pool from the script wait) — a script event, needed. `Fell.Ms`: `fallHoldMs = 500`, gobox's own replay hold — not original. BR space fight `Report.Ms`: unchecked. Recommendation: keep the original-sourced ones as typed facts (the original duration, `ui` scales by the player's speed), drop gobox-invented holds (`Fell.Ms`).
