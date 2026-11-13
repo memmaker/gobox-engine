@@ -16,7 +16,7 @@ func frameFront(b *testing.B, dev string) *ui.Front {
 		b.Skip(err)
 	}
 	b.Cleanup(func() { os.Chdir("playtest") })
-	eng, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
+	eng, err := engine.NewPool("../../data/por", "../../data/por/sources")
 	if err != nil {
 		b.Skip(err)
 	}

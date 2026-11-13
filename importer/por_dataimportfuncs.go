@@ -3,14 +3,11 @@ package importer
 import (
 	_ "embed"
 	"encoding/json"
-	"errors"
 	"gobox/adventure"
-	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/audio"
 	"gobox/rules"
 	"gobox/rules1e"
-	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -49,25 +46,8 @@ var porGameTables = adventure.GameTables{GameSet: 3, // DS:5376 = 3
 	},
 }
 
-// dataFormat changes when the files ImportData writes change.
+// dataFormat changes when the files PorImportDataTo writes change.
 const dataFormat = "24" // 24: GameTables.Walls (walls/por.txt, por_areas.txt); 23: GameTables.GameSet; 22: no View or Aim on the combat bar (Felix 2026-11-13); 21: data/look.json (writePorLook, as PorImport); 20: GameTables.Music.Files, AmigaSongs (P1); 19: Sheet.Race is the typed race (a name), MonsterRace the record byte of a monster; 12: MON<n>.json records as the rules' Sheet (char.SheetOfRecord); 13: GameTables.Art (Pg); 14: no Restoration tip (Rz); 15: GameTables.MapLabels, Music (Ph); 16: script fixes gold only (Gc); 17: area 0 wager text in gold (Df)
-
-// ImportData is the data import: data's GEO, MON and ITEM archives, the
-// ITEMS table and START.EXE's sound tables (soundFile) as data/assets/data (DataDir).
-// It clears the old data first and writes the picture table as the por import does.
-func ImportData(data string) error {
-	adv := filepath.Join(data, adventure.AssetsDir)
-	if err := os.RemoveAll(filepath.Join(adv, adventure.DataDir)); err != nil {
-		return err
-	}
-	if err := PorImportDataTo(filepath.Join(data, adventure.DOSDir), filepath.Join(adv, adventure.DataDir)); err != nil {
-		return err
-	}
-	if err := writePorLook(adv); err != nil {
-		return err
-	}
-	return asset.WritePictures("por", adv)
-}
 
 // ImportDataTo is ImportData from the DOS files in dos into dst; it clears
 // nothing (the adventure import writes beside it, pictures.PicturesFile).
@@ -117,26 +97,6 @@ func PorImportDataTo(dos, dst string) error {
 		return err
 	}
 	return os.WriteFile(filepath.Join(dst, "key.txt"), []byte(key), 0o644)
-}
-
-// ImportDataIfStale runs ImportData when the data is missing or was
-// imported from other archives or by another format.
-func ImportDataIfStale(data string) error {
-	if _, err := os.Stat(filepath.Join(data, adventure.DOSDir)); errors.Is(err, fs.ErrNotExist) {
-		return nil
-	}
-	key, err := orig.SourceKey(dataFormat, filepath.Join(data, adventure.DOSDir))
-	if err != nil {
-		return err
-	}
-	have, err := os.ReadFile(filepath.Join(data, adventure.AssetsDir, adventure.DataDir, "key.txt"))
-	if err == nil && string(have) == key {
-		return nil
-	}
-	if err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return err
-	}
-	return ImportData(data)
 }
 
 // porAreaKind is the area record's AreaKind word (rules1e.AreaVars +0x1E4) in script addresses.

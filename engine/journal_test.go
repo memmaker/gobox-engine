@@ -20,7 +20,7 @@ import (
 // (Parse resolves the Entry values).
 func TestJournalSitesNamed(t *testing.T) {
 	ref := regexp.MustCompile(`\b(?:ENTRY\s*\d|ENTRIES\s*\d|PROCLAMATIONS?\s*(?:[IVXLC]+\b|"))`)
-	files, err := filepath.Glob("../data/por/sources/assets/scripts/area*.txt")
+	files, err := filepath.Glob("../data/por/scripts/area*.txt")
 	if err != nil || len(files) == 0 {
 		t.Skip("no imported scripts", err)
 	}

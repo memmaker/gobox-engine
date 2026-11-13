@@ -12,7 +12,7 @@ import (
 // giver's words.
 func TestQuestGiven(t *testing.T) {
 	e := &Engine{}
-	e.adv = "../data/por/sources/assets" // the quest table's fields (layout/)
+	e.adv = "../data/por" // the quest table's fields (layout/)
 	e.initVM()
 	e.questGiven(1)
 	e.questGiven(4)
@@ -30,7 +30,7 @@ func TestQuestGiven(t *testing.T) {
 // text): names/quests.txt names exactly the quests of gametables.json, and every
 // quest is handed over by a Quest command of the imported scripts.
 func TestQuestSitesNamed(t *testing.T) {
-	vals, err := ecl.ReadValues(os.DirFS("../data/por/sources/assets/scripts"), "names/quests.txt", nil)
+	vals, err := ecl.ReadValues(os.DirFS("../data/por/scripts"), "names/quests.txt", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestQuestSitesNamed(t *testing.T) {
 		}
 		named[questID(v.N)] = v.Name
 	}
-	files, _ := filepath.Glob("../data/por/sources/assets/scripts/area*.txt")
+	files, _ := filepath.Glob("../data/por/scripts/area*.txt")
 	if len(files) == 0 {
 		t.Skip("no imported scripts")
 	}
@@ -82,7 +82,7 @@ func TestQuestFromFlags(t *testing.T) {
 // Each quest's words are the original dialogue's, verbatim: every line is
 // a text of the scripts (data/assets/scripts).
 func TestQuestBriefsVerbatim(t *testing.T) {
-	files, _ := filepath.Glob("../data/por/sources/assets/scripts/area*.txt")
+	files, _ := filepath.Glob("../data/por/scripts/area*.txt")
 	if len(files) == 0 {
 		t.Skip("no scripts")
 	}

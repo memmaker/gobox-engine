@@ -15,7 +15,7 @@ func testEngine(t *testing.T) *Engine {
 	if _, err := os.Stat("../data/por/sources/dos/TITLE.DAX"); err != nil {
 		t.Skip("no game files")
 	}
-	e, err := New(rules1e.Rules1e, porTables, "../data/por/sources/assets", "../data/por/sources")
+	e, err := New(rules1e.Rules1e, porTables, "../data/por", "../data/por/sources")
 	if err != nil {
 		t.Fatal(err)
 	}

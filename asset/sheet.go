@@ -326,6 +326,6 @@ func (a *Art) FirstID(v Version, file string) (int, bool) {
 	return slices.Min(ids), true
 }
 
-// Dir is the imported art of a game whose original archives are in dosDir:
-// assets/art beside it (as the Amiga's amiga/).
-func Dir(dosDir string) string { return filepath.Join(filepath.Dir(dosDir), "assets", "art") }
+// Dir is the imported art of a game whose original archives are in dosDir
+// (data/<game>/sources/dos): the game's art, data/<game>/art.
+func Dir(dosDir string) string { return filepath.Join(filepath.Dir(filepath.Dir(dosDir)), "art") }

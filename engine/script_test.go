@@ -20,7 +20,7 @@ func TestScriptRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	dir := "../data/por/sources/assets/scripts"
+	dir := "../data/por/scripts"
 	out := os.Getenv("POR_SCRIPTS_OUT") // write the scripts there too
 	for set := 1; set <= 8; set++ {
 		for block := 0; block < 40; block++ {
@@ -136,7 +136,7 @@ func where(s *ecl.Script, i int) string {
 
 // TestParseForms: the forms the writer makes, by hand.
 func TestParseForms(t *testing.T) {
-	names, err := ecl.ReadNames(os.DirFS("../data/por/sources/assets/scripts"), 0, false, ecl.V1)
+	names, err := ecl.ReadNames(os.DirFS("../data/por/scripts"), 0, false, ecl.V1)
 	if err != nil {
 		t.Fatal(err)
 	}

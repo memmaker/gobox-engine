@@ -20,11 +20,11 @@ import (
 // pager keeps a voiced paragraph whole).
 func TestPhlanHistory(t *testing.T) {
 	e := testEngine(t)
-	names, err := ecl.ReadNames(os.DirFS("../data/por/sources/assets/scripts"), 0, true, ecl.V1)
+	names, err := ecl.ReadNames(os.DirFS("../data/por/scripts"), 0, true, ecl.V1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	b, _ := os.ReadFile("../data/por/sources/assets/scripts/area0.txt")
+	b, _ := os.ReadFile("../data/por/scripts/area0.txt")
 	s, err := ecl.Parse(string(b), names)
 	if err != nil {
 		t.Fatal(err)
@@ -34,7 +34,7 @@ func TestPhlanHistory(t *testing.T) {
 			t.Error("area 0 has no label", l)
 		}
 	}
-	es, err := ecl.ReadEntries(os.DirFS("../data/por/sources/assets/scripts"))
+	es, err := ecl.ReadEntries(os.DirFS("../data/por/scripts"))
 	if err != nil {
 		t.Fatal(err)
 	}

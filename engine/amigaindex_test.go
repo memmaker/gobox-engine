@@ -17,7 +17,7 @@ func TestAmigaArtIndex(t *testing.T) {
 	ran := 0
 	for _, game := range []string{"por", "cotab", "sotsb", "pod"} {
 		data := filepath.Join("..", "data", game, "sources")
-		key, err := os.ReadFile(filepath.Join(data, adventure.AssetsDir, adventure.ArtDir, "key.txt"))
+		key, err := os.ReadFile(filepath.Join("..", "data", game, adventure.ArtDir, "key.txt"))
 		if err != nil {
 			t.Logf("%s: no imported art, skipped", game)
 			continue
@@ -35,7 +35,7 @@ func TestAmigaArtIndex(t *testing.T) {
 				t.Errorf("%s: %s is %d bytes, the art index read %s (stale art: run the game once)", game, f[0], fi.Size(), f[1])
 			}
 		}
-		sheets := filepath.Join(data, adventure.AssetsDir, adventure.ArtDir, adventure.AmigaDir)
+		sheets := filepath.Join("..", "data", game, adventure.ArtDir, adventure.AmigaDir)
 		ents, err := os.ReadDir(sheets)
 		if err != nil {
 			t.Errorf("%s: %v", game, err)

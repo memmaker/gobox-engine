@@ -12,7 +12,7 @@ import (
 // The classic front on the game.Game : Open starts the engine,
 // exploring shows the party, a turn turns it, camp opens and closes.
 func TestPlayFront(t *testing.T) {
-	eng, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
+	eng, err := engine.NewPool("../../data/por", "../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}
@@ -56,7 +56,7 @@ func TestPlayFront(t *testing.T) {
 // The auto-walk is gobox's (WalkTo: Face, RunEvent, Arrive through Do over
 // the play state's Map.Walk): a square at a time to the square, by Step alone.
 func TestPlayFrontWalk(t *testing.T) {
-	eng, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
+	eng, err := engine.NewPool("../../data/por", "../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}

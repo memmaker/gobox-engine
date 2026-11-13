@@ -11,7 +11,7 @@ import (
 // the game's import wrote (ReadGameTables). Without the game files there are
 // none, and the tests that need them skip (testEngine).
 var porTables = func() adventure.GameTables {
-	t, _ := adventure.ReadGameTables("../data/por/sources/assets")
+	t, _ := adventure.ReadGameTables("../data/por")
 	return t
 }()
 

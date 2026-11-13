@@ -12,7 +12,7 @@ import (
 // import rewrote them (ecl.GoldCoins), the area 9 fixes the coin loop.
 // Detect the class elsewhere: a layout field holding money has coins=, and each game runs this test.
 func TestPorScriptsGoldOnly(t *testing.T) {
-	const dir = "../data/por/sources/assets/scripts"
+	const dir = "../data/por/scripts"
 	if err := ImportIfStale("../data/por/sources/dos", dir); err != nil {
 		t.Fatal(err)
 	}

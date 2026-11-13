@@ -13,9 +13,9 @@ import (
 // an import missing, it fails with a clear message; it cannot tell a stale
 // import (por's the por import decides that), so the gate runs the import first.
 func TestMain(m *testing.M) {
-	const por = "../data/por/sources"
-	if _, err := os.Stat(filepath.Join(por, "dos", "TITLE.DAX")); err == nil {
-		for _, f := range []string{"assets/data/key.txt", "assets/data/portraits.json", "assets/scripts/area1.txt"} {
+	const por = "../data/por" // the imported adventure; its originals in sources/
+	if _, err := os.Stat(filepath.Join(por, "sources", "dos", "TITLE.DAX")); err == nil {
+		for _, f := range []string{"data/key.txt", "data/portraits.json", "scripts/area1.txt"} {
 			if _, err := os.Stat(filepath.Join(por, f)); err != nil {
 				fmt.Fprintf(os.Stderr, "missing %s: run por's import (go run ./cmd/importstale in games/por) before these tests\n", f)
 				os.Exit(1)

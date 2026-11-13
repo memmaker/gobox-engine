@@ -39,7 +39,7 @@ func TestPortraitRoundTrip(t *testing.T) {
 
 // A named save carries the party's portraits: CHRDATA<n>.png in the slot.
 func TestPortraitSavedWithSlot(t *testing.T) {
-	e := &Engine{set: 1, data: "../data/por/sources", adv: "../data/por/sources/assets"} // the save needs the script layout (data/assets/scripts)
+	e := &Engine{set: 1, data: "../data/por/sources", adv: "../data/por"} // the save needs the script layout (data/assets/scripts)
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
 	c := &rules1e.Character{}

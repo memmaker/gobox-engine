@@ -21,7 +21,7 @@ import (
 // (imported afresh, its special cases applied) resolves (ecl.ResolveRefs) in the
 // game's layout, the area's over it and the area's constant tables.
 func TestLayoutCoversScripts(t *testing.T) {
-	const scripts = "../data/por/sources/assets/scripts"
+	const scripts = "../data/por/scripts"
 	if _, err := orig.NewLoader("../data/por/sources/dos"); err != nil {
 		t.Skip(err)
 	}
@@ -78,7 +78,7 @@ func resolved(t *testing.T, s *ecl.Script, area int) *ecl.Script {
 // area's.
 func resolvedOver(t *testing.T, s *ecl.Script, area int, over string) *ecl.Script {
 	t.Helper()
-	l, err := ecl.ReadLayout(os.DirFS("../data/por/sources/assets/scripts"), area)
+	l, err := ecl.ReadLayout(os.DirFS("../data/por/scripts"), area)
 	if err != nil {
 		t.Fatal(err)
 	}

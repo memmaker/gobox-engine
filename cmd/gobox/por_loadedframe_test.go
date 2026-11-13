@@ -24,7 +24,7 @@ func TestLoadedExploreStateBuilds(t *testing.T) {
 	if _, err := os.Stat(src); err != nil {
 		t.Skip(err)
 	}
-	eng, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
+	eng, err := engine.NewPool("../../data/por", "../../data/por/sources")
 	if err != nil {
 		t.Skip(err)
 	}

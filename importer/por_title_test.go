@@ -2,11 +2,9 @@ package importer_test
 
 import (
 	"encoding/json"
-	"errors"
 	"gobox/adventure"
 	"gobox/engine"
 	"gobox/importer"
-	"io/fs"
 	"os"
 	"reflect"
 	"slices"
@@ -19,16 +17,12 @@ import (
 // steps 1 and 2 (TITLE 1 and 2), the credits page after them, the
 // lightning in EGA, TITLE 1 alone without the Full intro.
 func TestStartIsPORTitle(t *testing.T) {
-	e, err := engine.NewPool("../data/por/sources/assets", "../data/por/sources")
+	e, err := engine.NewPool("../data/por", "../data/por/sources")
 	if err != nil {
 		t.Skip("no game files:", err)
 	}
 	e.Cfg.Graphics = 'E'
 	seq := *importer.PorStart()
-	if err := e.SetStart(&seq); !errors.Is(err, fs.ErrNotExist) { // the test folder has no art/TITLE.PNG (the import copies it)
-		t.Fatalf("SetStart without TITLE.PNG: %v", err)
-	}
-	seq.Backdrop = nil
 	if err := e.SetStart(&seq); err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +53,7 @@ func TestStartIsPORTitle(t *testing.T) {
 // TestEndIsPORFinale: the engine takes end() (the manifest's End) as the finale's pictures,
 // three steps with their pixels loaded and the animations' frames.
 func TestEndIsPORFinale(t *testing.T) {
-	e, err := engine.NewPool("../data/por/sources/assets", "../data/por/sources")
+	e, err := engine.NewPool("../data/por", "../data/por/sources")
 	if err != nil {
 		t.Skip("no game files:", err)
 	}

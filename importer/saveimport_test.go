@@ -14,7 +14,7 @@ import (
 // An original lettered save in the saves becomes the slot GAME A, with its
 // members' files, holding the original's state; the original is gone.
 func TestImportSaves(t *testing.T) {
-	scripts, err := filepath.Abs("../data/por/sources/assets/scripts")
+	scripts, err := filepath.Abs("../data/por/scripts")
 	if err != nil {
 		t.Fatal(err)
 	}
