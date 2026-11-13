@@ -181,7 +181,7 @@ func (r *frontState) question(q *game.Question, list bool) *game.Ask {
 	a := &game.Ask{Kind: game.Choice, Prompt: q.Text, Default: q.Default, Max: q.Max, NoEsc: q.NoEsc, NoPick: q.NoPick}
 	switch {
 	case q.Continue:
-		a.Kind, a.Ms = game.Continue, q.Ms
+		a.Kind, a.Ms = game.Continue, paced(q.Ms, r.speed*speedStepMs)
 	case q.Heading:
 		a.Kind, a.Options = game.Direction, []game.Option{{Label: "Done", Key: 'D', Do: game.Leave{}}}
 		return a
@@ -319,7 +319,7 @@ func askMode(m game.Mode, a *game.Ask, ps game.State) game.Mode {
 // wallsKey names w's look: a new one has the 3D view built again.
 func wallsKey(w game.MapWalls) string {
 	h := fnv.New64a()
-	fmt.Fprint(h, w.Side, w.Fronts, w.Pool, w.Floor, w.Sky, w.FloorRGBA, w.CeilRGBA, w.Backdrop)
+	fmt.Fprint(h, w.Side, w.Fronts, w.Pool, w.Floor, w.Sky, w.FloorInk, w.CeilInk, w.Backdrop)
 	return strconv.FormatUint(h.Sum64(), 36)
 }
 
@@ -426,7 +426,7 @@ func (r *frontState) run(t string) []game.TextRun {
 
 func gameWalls(w game.MapWalls) *game.Walls {
 	return &game.Walls{Key: wallsKey(w), Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
-		FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA, Sun: w.Sun, Mountains: w.Mountains,
+		FloorInk: w.FloorInk, CeilInk: w.CeilInk, Sun: w.Sun, Mountains: w.Mountains,
 		SunAz: w.SunAz, SunEl: w.SunEl, Backdrop: w.Backdrop}
 }
 
@@ -1307,6 +1307,15 @@ func allowedArrive(al game.Allowed, from, to image.Point, facing int) game.Actio
 // SotSB R540:0BF7); a ship's blink is the hardware's ten 35 ms half-steps.
 const speedStepMs, defaultSpeed, shipMs = 100, 4, 350
 
+// paced is an original's hold of ms (made at the default speed) at the game speed
+// whose message delay is holdMs: the fastest speed keeps 1 ms; ms 0 stays 0.
+func paced(ms, holdMs int) int {
+	if ms <= 0 {
+		return 0
+	}
+	return max(ms*holdMs/(defaultSpeed*speedStepMs), 1)
+}
+
 // fallHoldMs is how long the replay holds on the batch's last fall.
 const fallHoldMs = 500
 
@@ -1347,7 +1356,7 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 			out = append(out, game.Report{Kind: game.EvHit, Unit: e.From, Target: e.To},
 				game.Report{Kind: game.EvDamage, Unit: e.To, Target: e.To, N: e.Damage}) // Unit: who takes it (its number floats there)
 		case game.Shot:
-			ev := game.Report{Kind: game.EvMissile, Unit: e.From, To: e.To, Pose: 1, Ms: strikeMs, StepMs: e.StepMs}
+			ev := game.Report{Kind: game.EvMissile, Unit: e.From, To: e.To, Pose: 1, Ms: strikeMs, StepMs: paced(e.StepMs, ms)}
 			if e.Art.File != "" || e.Art.Pixels != nil || e.Art.Name != "" { // a shot with no art flies nothing
 				ev.Sprite = []game.Picture{e.Art}
 			}

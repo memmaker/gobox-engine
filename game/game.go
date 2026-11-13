@@ -69,13 +69,13 @@ type Walls struct {
 	Fronts              map[int]string // a wall value's art name in Data.Art
 	Pool                map[int]string // a wall value's remastered texture name, in place of Fronts
 	Floor, Sky          string         // the flats' pool names
-	FloorRGBA, CeilRGBA *color.RGBA    // plain flat colours (nil: none)
+	FloorInk, CeilInk Ink // plain flat colours, EGA inks (InkNone: none)
 	Sun                 bool           // by day outside: the sun up, at SunAz
 	SunAz, SunEl        float64        // the sun's bearing (0 north, pi/2 east) and height
 	Mountains           bool           // by day outside: the mountain range on the horizon
 	// Backdrop, when set, is drawn opaque over the whole 3D view behind the
 	// walls, stretched with nearest-neighbour filtering, in place of the sky
-	// and floor flats (nil: none, the flats and CeilRGBA/FloorRGBA fills show).
+	// and floor flats (nil: none, the flats and CeilInk/FloorInk fills show).
 	Backdrop *Picture `json:",omitempty"`
 }
 
