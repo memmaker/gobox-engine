@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,7 +30,7 @@ func TestQuestGiven(t *testing.T) {
 // text): names/quests.txt names exactly the quests of gametables.json, and every
 // quest is handed over by a Quest command of the imported scripts.
 func TestQuestSitesNamed(t *testing.T) {
-	vals, err := script.ReadValues(os.DirFS("../data/por/sources/assets/scripts"), "names/quests.txt", nil)
+	vals, err := ecl.ReadValues(os.DirFS("../data/por/sources/assets/scripts"), "names/quests.txt", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

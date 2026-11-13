@@ -1,18 +1,18 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules1e"
 	"testing"
 )
 
 // opArgs runs one instruction with the operands n on the engine's VM.
 func opArgs(e *Engine, op func(), n ...int) {
-	args := make([]script.Arg, len(n))
+	args := make([]ecl.Arg, len(n))
 	for i, v := range n {
-		args[i] = script.Arg{N: v}
+		args[i] = ecl.Arg{N: v}
 	}
-	e.vm.Script = &script.Script{Code: []script.Instr{{Args: args}}, Layout: e.vm.Script.Layout}
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: args}}, Layout: e.vm.Script.Layout}
 	e.vm.PC = 0
 	e.vm.Fetch()
 	op()

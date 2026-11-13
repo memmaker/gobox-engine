@@ -1,12 +1,12 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 )
 
 // sotsbCodecs are sotsb's encodings of canonical fields (its layout's enc=).
-var sotsbCodecs = map[script.Encoding]codec{
+var sotsbCodecs = map[ecl.Encoding]codec{
 	// SpecialReadZ1 $100 (sotsb-re eclmenu.pas) reads the status 1..7; SpecialWriteZ1 $100 acts
 	// only on 1 (okay and enabled: the canonical revive); any other write only stores.
 	"SotsbSelStatus": {

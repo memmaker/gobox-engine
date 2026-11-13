@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"slices"
 	"testing"
@@ -91,7 +91,7 @@ func TestSceneYesNoOrder(t *testing.T) {
 // TestMenuEscForced: a menu naming no exit row takes no Esc: the choice is forced.
 func TestMenuEscForced(t *testing.T) {
 	e := quickStarted(t)
-	e.vm.Script = &script.Script{Code: []script.Instr{{Op: script.OpHMenu}}}
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Op: ecl.OpHMenu}}}
 	e.askChoice("", "~BUY ~EXIT", false, false, askDone{})
 	e.scriptExit()
 	e.openAsk()
@@ -113,7 +113,7 @@ func TestMenuEscForced(t *testing.T) {
 func TestMenuEscHint(t *testing.T) {
 	e := quickStarted(t)
 	v := testField(t, e, fieldSurprise)
-	e.vm.Script = &script.Script{Code: []script.Instr{{Op: script.OpHMenu, Exit: game.EscTo(0)}}, Layout: e.vm.Script.Layout}
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Op: ecl.OpHMenu, Exit: game.EscTo(0)}}, Layout: e.vm.Script.Layout}
 	e.host.Set(v, 7)
 	e.askChoice("", "~STAY ~GO", false, false, askDone{kind: dChoiceVar, dst: v})
 	e.scriptExit()
@@ -143,12 +143,12 @@ func TestScriptExitHints(t *testing.T) {
 				continue
 			}
 			hints++
-			rows := script.MenuLabels(in)
+			rows := ecl.MenuLabels(in)
 			if row >= len(rows) {
 				t.Errorf("area %d command %d: row %d of %d", area, i, row, len(rows))
 				continue
 			}
-			if in.Op != script.OpHMenu {
+			if in.Op != ecl.OpHMenu {
 				continue
 			}
 			menu := ""
@@ -171,7 +171,7 @@ func TestPurseWho(t *testing.T) {
 	e.loadScript(0)
 	var got []string
 	for i, in := range e.vm.Script.Code {
-		if e.purseWho[i] && in.Op == script.OpNamed("Who") {
+		if e.purseWho[i] && in.Op == ecl.OpNamed("Who") {
 			got = append(got, in.Args[0].S)
 		}
 	}

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"gobox/audio"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/engine"
 	"gobox/game"
 	"gobox/rules"
@@ -18,7 +18,7 @@ import (
 )
 
 // TestSwitchData: the folder writeSwitchData writes loads through the shared
-// engine's readers (pool.ReadGameTables, rules1e.ReadLayout, script.ReadEntries,
+// engine's readers (pool.ReadGameTables, rules1e.ReadLayout, ecl.ReadEntries,
 // game.Load) with the values pod's own engine uses (the pod import).
 func TestSwitchData(t *testing.T) {
 	dst := t.TempDir()
@@ -43,10 +43,10 @@ func TestSwitchData(t *testing.T) {
 	if _, err := audio.NewDriver(snd, 'P'); err != nil { // AdLib only: the tables are silent, but valid
 		t.Errorf("sound.json: %v", err)
 	}
-	if g.Script != script.V3 || g.Dialect != Dialect || !g.AddNPCIcon {
+	if g.Script != ecl.V3 || g.Dialect != Dialect || !g.AddNPCIcon {
 		t.Errorf("dialect %v script %p AddNPCIcon %v", g.Dialect, g.Script, g.AddNPCIcon)
 	}
-	if got := g.Script.Behaviour.NoMonsterCombat; !reflect.DeepEqual(got, []script.CombatScreen{script.CombatVault, script.CombatTemple}) || !g.Script.Behaviour.AreaMonstersJoin {
+	if got := g.Script.Behaviour.NoMonsterCombat; !reflect.DeepEqual(got, []ecl.CombatScreen{ecl.CombatVault, ecl.CombatTemple}) || !g.Script.Behaviour.AreaMonstersJoin {
 		t.Errorf("behaviour %+v", g.Script.Behaviour)
 	}
 	monsters, icons, count, status, control := AreaMonsterTable()
@@ -77,7 +77,7 @@ func TestSwitchData(t *testing.T) {
 	}
 	rules1e.Rules1e("", nil, nil, nil, nil) // the ruleset the layout and the tables go to builds
 
-	es, err := script.ReadEntries(os.DirFS(filepath.Join(dst, "scripts")))
+	es, err := ecl.ReadEntries(os.DirFS(filepath.Join(dst, "scripts")))
 	if err != nil {
 		t.Fatal(err)
 	}

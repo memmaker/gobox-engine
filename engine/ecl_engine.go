@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gobox/asset"
 	"gobox/ecl"
-	"gobox/ecl/script"
 	"gobox/rules"
 )
 
@@ -114,10 +113,10 @@ func (e *Engine) initVM() {
 	e.vm = ecl.New(e.host, e.eclLayout(), make([]byte, e.game().OriginalSave.CodeSize))
 	e.eclVersion = e.game().Script
 	if e.eclVersion == nil {
-		e.eclVersion = script.V1
+		e.eclVersion = ecl.V1
 	}
 	e.vm.SetVersion(e.eclVersion)
-	e.vm.Script = &script.Script{}
+	e.vm.Script = &ecl.Script{}
 	for b, c := range e.eclVersion.Cmds {
 		if op := eclOps[c.Op]; c.Known && op != nil {
 			e.vm.Ops[b] = func(*ecl.VM, ecl.Host) { op(e) }
@@ -157,12 +156,12 @@ const (
 )
 
 // eclLayout: the VM needs only the code image's range, the game's (GameTables.OriginalSave).
-func (e *Engine) eclLayout() ecl.Layout {
+func (e *Engine) eclLayout() ecl.AddrLayout {
 	s := e.game().OriginalSave
 	if s.CodeSize == 0 {
 		panic("gametables.json OriginalSave: no code image (run the game's import)")
 	}
-	return ecl.Layout{Code: ecl.Range{First: uint16(s.CodeBase), Last: uint16(s.CodeBase + s.CodeSize - 1)}}
+	return ecl.AddrLayout{Code: ecl.Range{First: uint16(s.CodeBase), Last: uint16(s.CodeBase + s.CodeSize - 1)}}
 }
 
 // eclState mirrors the DS globals used by the interpreter.
@@ -202,13 +201,13 @@ type holdKind int
 // eclHost is what the shared VM asks of the game.
 type eclHost struct{ e *Engine }
 
-func (h eclHost) Get(r script.Ref) int64 { return h.e.getVar(r) }
+func (h eclHost) Get(r ecl.Ref) int64 { return h.e.getVar(r) }
 
-func (h eclHost) Set(r script.Ref, v int64) { h.e.setVar(r, v) } // cut to the field's width
+func (h eclHost) Set(r ecl.Ref, v int64) { h.e.setVar(r, v) } // cut to the field's width
 
-func (h eclHost) Text(r script.Ref) string { return h.e.getText(r) }
+func (h eclHost) Text(r ecl.Ref) string { return h.e.getText(r) }
 
-func (h eclHost) SetText(r script.Ref, s string) { h.e.setText(r, s) }
+func (h eclHost) SetText(r ecl.Ref, s string) { h.e.setText(r, s) }
 
 func (h eclHost) Random(n int) int { return h.e.rollRandom(n) }
 

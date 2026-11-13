@@ -10,14 +10,14 @@ import (
 	"unicode"
 
 	"gobox/asset/orig"
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // DataValues names set's monsters (MON<set>CHA records) and item types
 // (the items of ITEM<set>), for names/values.txt. A name two numbers
 // share gets the number on.
-func DataValues(l *orig.Loader, set int) []script.Value {
-	var out []script.Value
+func DataValues(l *orig.Loader, set int) []ecl.Value {
+	var out []ecl.Value
 	add := func(kind string, names map[int]string) {
 		count := map[string]int{}
 		for _, n := range names {
@@ -33,7 +33,7 @@ func DataValues(l *orig.Loader, set int) []script.Value {
 			if count[n] > 1 {
 				n += strconv.Itoa(id)
 			}
-			out = append(out, script.Value{Kind: kind, Set: set, N: id, Name: n})
+			out = append(out, ecl.Value{Kind: kind, Set: set, N: id, Name: n})
 		}
 	}
 	mons := map[int]string{}
@@ -67,7 +67,7 @@ func DataValues(l *orig.Loader, set int) []script.Value {
 			s = append(s, n)
 		}
 		if len(s) > 0 && !slices.Contains(s, "") {
-			out = append(out, script.Value{Kind: "Stock", Set: set, N: id, Name: strings.Join(s, ",")})
+			out = append(out, ecl.Value{Kind: "Stock", Set: set, N: id, Name: strings.Join(s, ",")})
 		}
 	}
 	return out
@@ -121,8 +121,8 @@ func camelName(s string) string {
 }
 
 // ImportSource is the game data the script import reads.
-func ImportSource(l *orig.Loader) script.Source {
-	return script.Source{
+func ImportSource(l *orig.Loader) ecl.Source {
+	return ecl.Source{
 		Block: func(disk, block int) []byte {
 			name := fmt.Sprintf("ECL%d", disk)
 			if !l.Exists(name + ".DAX") {

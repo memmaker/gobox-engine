@@ -11,12 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // field is the loaded script's field called name, for tests on POR's scripts: a test that
 // names a field the game lacks fails here. Shared code reads fields only through layoutField.
-func (e *Engine) field(name string) script.Ref {
+func (e *Engine) field(name string) ecl.Ref {
 	r, ok := e.layoutField(name)
 	if !ok {
 		panic("no field " + name)

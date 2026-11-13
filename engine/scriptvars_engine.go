@@ -6,7 +6,7 @@ import (
 	"gobox/rules1e"
 	"slices"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // newEngineFields is the engine's table of the fields it gives a meaning.
@@ -173,8 +173,8 @@ func (e *Engine) memberGoneIf(v uint16) {
 
 // cells is the store of field f: the scratch for a local, the game's
 // saved state otherwise.
-func (e *Engine) cells(f *script.Field) fieldCells {
-	if f.Owner == script.OwnerLocal {
+func (e *Engine) cells(f *ecl.Field) fieldCells {
+	if f.Owner == ecl.OwnerLocal {
 		return e.locals
 	}
 	return e.vars
@@ -182,18 +182,18 @@ func (e *Engine) cells(f *script.Field) fieldCells {
 
 // varField is the field r names in the running script's layout; an
 // element past a number field's end is a layout too short for its script.
-func (e *Engine) varField(r script.Ref) *script.Field {
+func (e *Engine) varField(r ecl.Ref) *ecl.Field {
 	f := e.vm.Script.Layout.Field(r)
-	if f.Owner == script.OwnerCall {
+	if f.Owner == ecl.OwnerCall {
 		panic(fmt.Sprintf("script: %s is not a variable", f.Name))
 	}
 	return f
 }
 
 // getVar = ReadGbvm (ovr08:0E0C) on a Ref.
-func (e *Engine) getVar(r script.Ref) int64 {
+func (e *Engine) getVar(r ecl.Ref) int64 {
 	f := e.varField(r)
-	if f.Owner == script.OwnerConst { // a table in the script's own code (the code image at OriginalSave.CodeBase)
+	if f.Owner == ecl.OwnerConst { // a table in the script's own code (the code image at OriginalSave.CodeBase)
 		e.inField(f, r.Index)
 		return int64(e.vm.CodeByte(uint16(f.From + r.Index)))
 	}
@@ -206,7 +206,7 @@ func (e *Engine) getVar(r script.Ref) int64 {
 	if bound && !ef.stored {
 		panic(fmt.Sprintf("script: %s has no value to read", f.Name))
 	}
-	if f.Width != script.WidthText {
+	if f.Width != ecl.WidthText {
 		e.inField(f, r.Index)
 	}
 	if c := e.cells(f)[f.Name]; r.Index < len(c) {
@@ -216,7 +216,7 @@ func (e *Engine) getVar(r script.Ref) int64 {
 }
 
 // setVar = WriteGbvm (ovr08:0C77) on a Ref.
-func (e *Engine) setVar(r script.Ref, v int64) {
+func (e *Engine) setVar(r ecl.Ref, v int64) {
 	f := e.varField(r)
 	if f.ReadOnly {
 		panic(fmt.Sprintf("script: %s is read-only", f.Name))
@@ -224,7 +224,7 @@ func (e *Engine) setVar(r script.Ref, v int64) {
 	v = cutToWidth(f.Width, v)
 	ef, bi, bound := e.binding(f, r.Index)
 	if !bound || ef.stored {
-		if f.Width != script.WidthText {
+		if f.Width != ecl.WidthText {
 			e.inField(f, r.Index)
 		}
 		e.storeCells(f, r.Index, []int64{v})
@@ -242,7 +242,7 @@ func (e *Engine) setVar(r script.Ref, v int64) {
 // binding is the engine's own field for element i of f and the element it
 // reads there: a named element's binding (Boss, element 13 of POR's
 // QuestTable) as its element 0, else f's at f's canonical element i.
-func (e *Engine) binding(f *script.Field, i int) (engineField, int, bool) {
+func (e *Engine) binding(f *ecl.Field, i int) (engineField, int, bool) {
 	if n := f.ElementName(i); n != "" {
 		if ef, ok := e.engineFields[n]; ok {
 			return ef, 0, true
@@ -254,13 +254,13 @@ func (e *Engine) binding(f *script.Field, i int) (engineField, int, bool) {
 
 // boundElement: element i of f is a named element the engine binds (it keeps
 // no cell of f's).
-func (e *Engine) boundElement(f *script.Field, i int) bool {
+func (e *Engine) boundElement(f *ecl.Field, i int) bool {
 	_, ok := e.engineFields[f.ElementName(i)]
 	return ok && f.ElementName(i) != ""
 }
 
 // storeCells writes vs into f's cells from element i on.
-func (e *Engine) storeCells(f *script.Field, i int, vs []int64) {
+func (e *Engine) storeCells(f *ecl.Field, i int, vs []int64) {
 	m := e.cells(f)
 	c := m[f.Name]
 	if n := max(f.Len, i+len(vs)); len(c) < n {
@@ -271,7 +271,7 @@ func (e *Engine) storeCells(f *script.Field, i int, vs []int64) {
 }
 
 // getText = ovr08:12FB: the text in r, up to its NUL.
-func (e *Engine) getText(r script.Ref) string {
+func (e *Engine) getText(r ecl.Ref) string {
 	f := e.varField(r)
 	if ef, ok := e.engineFields[f.Name]; ok && ef.text != nil {
 		return ef.text()
@@ -288,7 +288,7 @@ func (e *Engine) getText(r script.Ref) string {
 }
 
 // setText = ovr08:0F53: s and its NUL into r.
-func (e *Engine) setText(r script.Ref, s string) {
+func (e *Engine) setText(r ecl.Ref, s string) {
 	f := e.varField(r)
 	if ef, ok := e.engineFields[f.Name]; ok && ef.setText != nil {
 		ef.setText(s)
@@ -302,8 +302,8 @@ func (e *Engine) setText(r script.Ref, s string) {
 	e.storeCells(f, r.Index, vs)
 }
 
-func (e *Engine) textField(f *script.Field) {
-	if f.Width != script.WidthText {
+func (e *Engine) textField(f *ecl.Field) {
+	if f.Width != ecl.WidthText {
 		panic(fmt.Sprintf("script: %s is no text field", f.Name))
 	}
 }
@@ -352,7 +352,7 @@ func (e *Engine) gameWord(name string) (field string, i int) {
 }
 
 // wordIn finds the word name in fields: a field's element 0 or a named element.
-func wordIn(fields []script.Field, name string) (field string, i int, ok bool) {
+func wordIn(fields []ecl.Field, name string) (field string, i int, ok bool) {
 	for _, f := range fields {
 		if f.Name == name {
 			return f.Name, 0, true
@@ -393,7 +393,7 @@ func fact(r func() uint16, w func(v uint16)) engineField {
 }
 
 // selCoin is the fact of SelCoins element i: copper (0) and gold (6), the
-// money the import leaves the scripts (script.GoldCoins), then the unappraised
+// money the import leaves the scripts (ecl.GoldCoins), then the unappraised
 // gems (10) and jewelry (12), items. Any other element is no field.
 func selCoin(i int) (rules.Fact, bool) {
 	switch i {
@@ -447,17 +447,17 @@ func charismaReaction(v byte) uint16 {
 // zone (0-2 are word cells; zone 3, the code, is the const fields'), so a
 // byte, word or text field holds a word: the layout's byte is the operand's
 // type, not the cell's. A dword holds 32 bits.
-func cutToWidth(w script.Width, v int64) int64 {
+func cutToWidth(w ecl.Width, v int64) int64 {
 	switch w {
-	case script.WidthByte, script.WidthWord, script.WidthText:
+	case ecl.WidthByte, ecl.WidthWord, ecl.WidthText:
 		return int64(uint16(v))
-	case script.WidthDword:
+	case ecl.WidthDword:
 		return int64(uint32(v))
 	}
 	panic(fmt.Sprintf("script: width %d", w))
 }
 
-func (e *Engine) inField(f *script.Field, i int) {
+func (e *Engine) inField(f *ecl.Field, i int) {
 	if i < 0 || i >= f.Len {
 		panic(fmt.Sprintf("script: %s[%d] is past the field's %d (layout too short)", f.Name, i, f.Len))
 	}

@@ -5,14 +5,14 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TestFoldElements: a save written while QuestSokalKeep, Word7B91 were
 // fields of their own loads into the arrays they are now elements of; a
 // name that is still a field stays.
 func TestFoldElements(t *testing.T) {
-	l, err := script.ParseLayout(strings.NewReader(`4AA6 26 byte game QuestTable
+	l, err := ecl.ParseLayout(strings.NewReader(`4AA6 26 byte game QuestTable
 4AA7 = QuestSokalKeep
 4AB3 = Boss
 7B90 16 text game Word7B90

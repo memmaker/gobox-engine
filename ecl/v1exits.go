@@ -1,4 +1,4 @@
-package script
+package ecl
 
 // v1ExitOverrides correct the heuristic by area and decoded instruction number:
 // the row, or NoExitRow where every row is a real choice.

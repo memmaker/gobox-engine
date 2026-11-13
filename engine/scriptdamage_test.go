@@ -3,7 +3,7 @@ package engine
 import (
 	"testing"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TestScriptDamage: DAMAGE goes through the rules' ScriptDamage. Everyone
@@ -16,7 +16,7 @@ func TestScriptDamage(t *testing.T) {
 		for i, c := range e.state().Party {
 			before[i] = int(c.HP)
 		}
-		e.vm.Script = &script.Script{Code: []script.Instr{{Op: 0x2E, Args: []script.Arg{{N: flags}, {N: 1}, {N: 1}, {N: 2}, {N: 0}}}, {Op: script.OpExit}}}
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Op: 0x2E, Args: []ecl.Arg{{N: flags}, {N: 1}, {N: 1}, {N: 2}, {N: 0}}}, {Op: ecl.OpExit}}}
 		e.vm.PC, e.vm.Stop = 0, false
 		e.eclRun()
 		for i, c := range e.state().Party {

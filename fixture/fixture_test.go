@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 func TestRunRawSave(t *testing.T) {
@@ -50,8 +50,8 @@ var testLayout = RawLayout{Size: svSize, Disk: svDisk, Area: svArea, Game: svGam
 	AreaBlock: 0x1E4, AreaGeo: 0x18A, AreaWallBlock: 0x3F4, AreaWallSlot: 0x3FA, Vars: testVars}
 
 // testVars is an example script layout: one field at 0x4A05.
-var testVars = func() *script.Layout {
-	l, err := script.ParseLayout(strings.NewReader("4A05 1 word game Flag\n"))
+var testVars = func() *ecl.Layout {
+	l, err := ecl.ParseLayout(strings.NewReader("4A05 1 word game Flag\n"))
 	if err != nil {
 		panic(err)
 	}

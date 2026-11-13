@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules1e"
 	"testing"
 )
@@ -39,7 +39,7 @@ func TestAddNPCFullParty(t *testing.T) {
 	}
 	e.sel = 3
 	e.state().Game.PartyCount = 8
-	e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{N: 1}, {N: 100}}}}}
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: 1}, {N: 100}}}}}
 	e.opAddNPC()
 	if len(e.state().Party) != 8 || e.state().Party[3].Control != 0 {
 		t.Errorf("%d members, member 3 control %#x", len(e.state().Party), e.state().Party[3].Control)

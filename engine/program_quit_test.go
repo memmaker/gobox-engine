@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/game"
 	"gobox/importer"
 	"gobox/rules"
@@ -13,10 +13,10 @@ import (
 // (game.Ended); Program 1 offers the save screen, then the ending.
 func TestProgramQuit(t *testing.T) {
 	e := quickStarted(t)
-	e.eclVersion = script.V3
+	e.eclVersion = ecl.V3
 	program := func(n int) {
 		e.events = nil
-		e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{N: n}}}}, Layout: e.vm.Script.Layout}
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: n}}}}, Layout: e.vm.Script.Layout}
 		e.vm.PC = 0
 		e.vm.Fetch()
 		e.opProgram()
@@ -35,8 +35,8 @@ func TestProgramQuit(t *testing.T) {
 // sequence (Continue ends it) or, with none, ends the run at once; never a finale of its own.
 func TestProgramSaveQuitEnding(t *testing.T) {
 	e := quickStarted(t)
-	e.eclVersion = script.V3
-	e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{N: 1}}}}, Layout: e.vm.Script.Layout}
+	e.eclVersion = ecl.V3
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: 1}}}}, Layout: e.vm.Script.Layout}
 	e.vm.PC = 0
 	e.vm.Fetch()
 	e.title.seqs = []game.Sequence{{Name: seqEnding}}
@@ -60,7 +60,7 @@ func TestProgramEnding(t *testing.T) {
 	e := quickStarted(t)
 	program := func() {
 		e.events = nil
-		e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{N: 8}}}}, Layout: e.vm.Script.Layout}
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: 8}}}}, Layout: e.vm.Script.Layout}
 		e.vm.PC = 0
 		e.vm.Fetch()
 		e.opProgram()

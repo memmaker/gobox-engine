@@ -1,7 +1,7 @@
 package games
 
 import (
-	eclscript "gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"gobox/rules1e"
 )
@@ -34,11 +34,11 @@ const Dialect = rules.DialectPOD
 
 // JournalEntries maps each journal entry the book has (no 13) to its text:
 // the scripts' Journal n.
-func JournalEntries() []eclscript.Entry {
-	var es []eclscript.Entry
+func JournalEntries() []ecl.Entry {
+	var es []ecl.Entry
 	for n := 1; n <= journalEntryMax; n++ {
 		if t := journalTitle(byte(n)); journalBook().Has(t) {
-			es = append(es, eclscript.Entry{ID: eclscript.EntryID(n), Name: "JournalEntry" + itoa(n), Book: journalFile, Title: t, Box: journalBox})
+			es = append(es, ecl.Entry{ID: ecl.EntryID(n), Name: "JournalEntry" + itoa(n), Book: journalFile, Title: t, Box: journalBox})
 		}
 	}
 	return es

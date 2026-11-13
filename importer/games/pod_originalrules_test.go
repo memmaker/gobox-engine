@@ -2,7 +2,7 @@ package games
 
 import (
 	"encoding/json"
-	eclscript "gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/engine"
 	"gobox/rules1e"
 	"os"
@@ -18,7 +18,7 @@ func TestOriginalRules(t *testing.T) {
 	if err != nil {
 		t.Skip("no save:", err)
 	}
-	l, err := eclscript.ReadLayout(podScriptData(), 0)
+	l, err := ecl.ReadLayout(podScriptData(), 0)
 	if err != nil {
 		t.Fatal(err)
 	}

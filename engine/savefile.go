@@ -5,7 +5,7 @@ import (
 	"os"
 	"slices"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"gobox/rules1e"
 )
@@ -58,11 +58,11 @@ func (s *SaveEditor) SetVar(name string, v uint16) error {
 		return err
 	}
 	field, _, ok := wordIn(fields, name)
-	i := slices.IndexFunc(fields, func(f script.Field) bool { return f.Name == field })
+	i := slices.IndexFunc(fields, func(f ecl.Field) bool { return f.Name == field })
 	if !ok {
 		return fmt.Errorf("no game field %s", name)
 	}
-	if fields[i].Owner == script.OwnerMember {
+	if fields[i].Owner == ecl.OwnerMember {
 		return fmt.Errorf("%s is a member's, not the save's", name)
 	}
 	e := s.e

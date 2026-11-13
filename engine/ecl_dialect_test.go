@@ -2,19 +2,19 @@ package engine
 
 import (
 	"gobox/asset"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"testing"
 )
 
 // runOp runs op as the dialect v's instruction with these immediate operands.
-func runOp(e *Engine, v *script.Version, op func(), args ...int) {
+func runOp(e *Engine, v *ecl.Version, op func(), args ...int) {
 	e.eclVersion = v
-	in := script.Instr{}
+	in := ecl.Instr{}
 	for _, a := range args {
-		in.Args = append(in.Args, script.Arg{N: a})
+		in.Args = append(in.Args, ecl.Arg{N: a})
 	}
-	e.vm.Script = &script.Script{Code: []script.Instr{in}, Layout: e.vm.Script.Layout}
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{in}, Layout: e.vm.Script.Layout}
 	e.vm.PC = 0
 	e.vm.Fetch()
 	op()
@@ -25,11 +25,11 @@ func TestLoadAreaOp(t *testing.T) {
 	e := quickStarted(t)
 	e.setWorldWord(rules.WordIn3D, 1)
 	e.setWorldWord(rules.WordGeo, 9)
-	runOp(e, script.V3, e.opLoadArea, geoNone, wallsNone)
+	runOp(e, ecl.V3, e.opLoadArea, geoNone, wallsNone)
 	if g := e.worldWord(rules.WordGeo); g != 9 {
 		t.Fatalf("map 127 loaded: geo %d", g)
 	}
-	runOp(e, script.V3, e.opLoadArea, 1, wallsNone)
+	runOp(e, ecl.V3, e.opLoadArea, 1, wallsNone)
 	if g := e.worldWord(rules.WordGeo); g != 1 {
 		t.Fatalf("map 1: geo %d", g)
 	}
@@ -39,7 +39,7 @@ func TestLoadAreaOp(t *testing.T) {
 func TestSetupMonsterSides(t *testing.T) {
 	e := quickStarted(t)
 	e.setWorldWord(rules.WordIn3D, 0)
-	runOp(e, script.V3, e.opSetupMonster, 1, 1, 1, 5)
+	runOp(e, ecl.V3, e.opSetupMonster, 1, 1, 1, 5)
 	if e.run.monsterSides != 5 || e.vm.PC != 1 {
 		t.Fatalf("sides %d, PC %d", e.run.monsterSides, e.vm.PC)
 	}
@@ -52,7 +52,7 @@ func TestSetupMonsterSides(t *testing.T) {
 func TestNewECLSavesLastBlock(t *testing.T) {
 	e := quickStarted(t)
 	e.gs.areaKind = 7
-	runOp(e, script.V1, e.opNewECL, 1)
+	runOp(e, ecl.V1, e.opNewECL, 1)
 	if b := e.worldWord(rules.WordLastBlock); b != 7 {
 		t.Fatalf("last block %d", b)
 	}
@@ -61,7 +61,7 @@ func TestNewECLSavesLastBlock(t *testing.T) {
 // TestNoMonsterCombat: Combat with no monsters opens the dialect's first screen whose word is set, clearing it.
 func TestNoMonsterCombat(t *testing.T) {
 	e := quickStarted(t)
-	e.eclVersion = script.V1
+	e.eclVersion = ecl.V1
 	e.setWorldWord(rules.WordTemple, 1)
 	if e.noMonsterScreen() == nil || e.worldWord(rules.WordTemple) != 0 {
 		t.Fatal("temple not opened")
@@ -69,7 +69,7 @@ func TestNoMonsterCombat(t *testing.T) {
 	if e.noMonsterScreen() != nil {
 		t.Fatal("opened with no word set")
 	}
-	if got := script.V3.Behaviour.NoMonsterCombat; len(got) != 2 || got[0] != script.CombatVault || got[1] != script.CombatTemple {
+	if got := ecl.V3.Behaviour.NoMonsterCombat; len(got) != 2 || got[0] != ecl.CombatVault || got[1] != ecl.CombatTemple {
 		t.Fatalf("pod: %v", got)
 	}
 }
@@ -88,11 +88,11 @@ func TestAreaMonsterFor(t *testing.T) {
 // TestInputStringMax: the line is as long as the text window, or pod's operand.
 func TestInputStringMax(t *testing.T) {
 	e := quickStarted(t)
-	runOp(e, script.V1, e.opInputString, 0, 0)
+	runOp(e, ecl.V1, e.opInputString, 0, 0)
 	if m := e.eclWait.maxlen; m != textCols {
 		t.Fatalf("POR max %d", m)
 	}
-	runOp(e, script.V3, e.opInputString, 12, 0)
+	runOp(e, ecl.V3, e.opInputString, 12, 0)
 	if m := e.eclWait.maxlen; m != 12 {
 		t.Fatalf("pod max %d", m)
 	}
@@ -103,7 +103,7 @@ func TestSelectMemberNoDrop(t *testing.T) {
 	e := quickStarted(t)
 	n := e.partySize()
 	e.es.memberDied, e.es.memberGone = 1, 1
-	runOp(e, script.V3, e.opLoadCharacter, 0x81)
+	runOp(e, ecl.V3, e.opLoadCharacter, 0x81)
 	if e.sel != 1 || e.partySize() != n || e.es.memberDied != 1 {
 		t.Fatalf("sel %d, party %d", e.sel, e.partySize())
 	}
@@ -118,7 +118,7 @@ func TestAddNPCIcon(t *testing.T) {
 	for d := rules.Set(1); d <= 8 && refDAX(e).BlockShared(e.set.File("MON")+"CHA", 5) == nil; d++ {
 		e.set = d // a set that has monster 5
 	}
-	runOp(e, script.V3, e.opAddNPC, 5, 100)
+	runOp(e, ecl.V3, e.opAddNPC, 5, 100)
 	if e.icons[e.partyIndex(e.selected())] == [2]*asset.Image{} {
 		t.Fatal("no icon")
 	}
@@ -127,20 +127,20 @@ func TestAddNPCIcon(t *testing.T) {
 // TestPodDelayAndNextFrame: pod's byte 58 is Delay (the game's pause), and its CALL 3 steps the
 // view picture's frame, wrapping at the frame count.
 func TestPodDelayAndNextFrame(t *testing.T) {
-	if c := script.V3.Cmds[58]; c.Op != script.OpDelay || c.Fixed != 0 {
+	if c := ecl.V3.Cmds[58]; c.Op != ecl.OpDelay || c.Fixed != 0 {
 		t.Fatalf("pod byte 58: %+v, want Delay with no operands", c)
 	}
 	e := quickStarted(t)
 	im := func() asset.Frame { return asset.Frame{Image: &asset.Image{Width: 1, Height: 1}} }
 	e.pic.frames, e.pic.cur = []asset.Frame{im(), im(), im()}, 2
 	for _, want := range []int{3, 1, 2} {
-		runOp(e, script.V3, e.opCall, 3)
+		runOp(e, ecl.V3, e.opCall, 3)
 		if e.pic.cur != want {
 			t.Fatalf("frame %d, want %d", e.pic.cur, want)
 		}
 	}
 	e.pic.frames = nil
-	runOp(e, script.V3, e.opCall, 3) // no picture: nothing to step
+	runOp(e, ecl.V3, e.opCall, 3) // no picture: nothing to step
 }
 
 // TestGameTablesWords: the layout fields GameTables.Words names are the game's last block (NewECL)
@@ -148,15 +148,15 @@ func TestPodDelayAndNextFrame(t *testing.T) {
 // the layout lacks is a loud failure.
 func TestCanonicalWords(t *testing.T) {
 	e := quickStarted(t)
-	lay := &script.Layout{Fields: []script.Field{{Name: "Other", Owner: script.OwnerGame, Width: script.WidthByte, From: 21, Len: 1}}}
+	lay := &ecl.Layout{Fields: []ecl.Field{{Name: "Other", Owner: ecl.OwnerGame, Width: ecl.WidthByte, From: 21, Len: 1}}}
 	e.vm.Script.Layout = lay
 	e.bindWords()
-	if e.vm.Remainder != (script.Ref{}) {
+	if e.vm.Remainder != (ecl.Ref{}) {
 		t.Fatal("remainder bound without DivideRemainder")
 	}
 	lay.Fields = append(lay.Fields,
-		script.Field{Name: fieldLastBlock, Owner: script.OwnerGame, Width: script.WidthByte, From: 22, Len: 1},
-		script.Field{Name: fieldRemainder, Owner: script.OwnerGame, Width: script.WidthByte, From: 40, Len: 1})
+		ecl.Field{Name: fieldLastBlock, Owner: ecl.OwnerGame, Width: ecl.WidthByte, From: 22, Len: 1},
+		ecl.Field{Name: fieldRemainder, Owner: ecl.OwnerGame, Width: ecl.WidthByte, From: 40, Len: 1})
 	e.bindWords()
 	rest, _ := lay.Named(fieldRemainder)
 	if e.vm.Remainder != rest {

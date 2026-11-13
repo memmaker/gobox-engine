@@ -3,7 +3,6 @@ package engine
 import (
 	"fmt"
 	"gobox/ecl"
-	"gobox/ecl/script"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -29,23 +28,23 @@ func TestScriptRoundTrip(t *testing.T) {
 			if len(b) < 2 {
 				continue
 			}
-			names, err := script.ReadNames(os.DirFS(dir), block, true, script.V1)
+			names, err := ecl.ReadNames(os.DirFS(dir), block, true, ecl.V1)
 			if err != nil {
 				t.Fatal(err)
 			}
 			if names.Set != set {
 				continue
 			}
-			want, err := script.Decode(b[2:], names)
+			want, err := ecl.Decode(b[2:], names)
 			if err != nil {
 				t.Fatalf("area %d: decode: %v", block, err)
 			}
 			want.DropNextGotos() // the text's goto before a label is no jump (a few originals have one: it does nothing)
-			script.MarkExits(want, block, script.V1)
-			if f := script.FoldVendorGates(want, block, names); len(f) > 0 {
+			ecl.MarkExits(want, block, ecl.V1)
+			if f := ecl.FoldVendorGates(want, block, names); len(f) > 0 {
 				t.Logf("area %d folded %+v", block, f)
 			}
-			text, err := script.Write(want, names)
+			text, err := ecl.Write(want, names)
 			if err != nil {
 				t.Errorf("area %d: write: %v", block, err)
 				continue
@@ -53,7 +52,7 @@ func TestScriptRoundTrip(t *testing.T) {
 			if out != "" {
 				os.WriteFile(filepath.Join(out, fmt.Sprintf("area%d.txt", block)), []byte(text), 0o644)
 			}
-			got, err := script.Parse(text, names)
+			got, err := ecl.Parse(text, names)
 			if err != nil {
 				t.Errorf("area %d: parse: %v", block, err)
 				continue
@@ -67,7 +66,7 @@ func TestScriptRoundTrip(t *testing.T) {
 				plainLoadMap(&want.Code[i])
 			}
 			if out != "" && len(got.Code) != len(want.Code) {
-				back, _ := script.Write(got, names)
+				back, _ := ecl.Write(got, names)
 				os.WriteFile(filepath.Join(out, fmt.Sprintf("area%d.got.txt", block)), []byte(back), 0o644)
 			}
 			for i := range want.Code {
@@ -99,23 +98,23 @@ func TestScriptRoundTrip(t *testing.T) {
 // plainLoadMap drops what the original never reads from a LoadMap: its
 // second operand, and which value not 255 the third has (any loads the
 // icons; the script writes it as one name).
-func plainLoadMap(in *script.Instr) {
-	if in.Op == script.OpLoadMap && len(in.Args) == 3 {
-		in.Args[1] = script.Arg{}
-		if in.Args[2] != (script.Arg{N: 0xFF}) {
-			in.Args[2] = script.Arg{N: 0x7F}
+func plainLoadMap(in *ecl.Instr) {
+	if in.Op == ecl.OpLoadMap && len(in.Args) == 3 {
+		in.Args[1] = ecl.Arg{}
+		if in.Args[2] != (ecl.Arg{N: 0xFF}) {
+			in.Args[2] = ecl.Arg{N: 0x7F}
 		}
 	}
 }
 
 // namedLabels are s's labels but the loops' (for X = A to B {} names
 // its own).
-func namedLabels(s *script.Script) map[string]int {
+func namedLabels(s *ecl.Script) map[string]int {
 	out := map[string]int{}
 	for l, i := range s.Labels {
 		loop := false
 		for g, in := range s.Code {
-			if in.Op == script.OpGoto && in.Args[0].N == i && g >= 3 && script.IsIf(s.Code[g-1].Op) && s.Code[g-2].Op == script.OpCompare && s.Code[g-3].Op == script.OpAdd {
+			if in.Op == ecl.OpGoto && in.Args[0].N == i && g >= 3 && ecl.IsIf(s.Code[g-1].Op) && s.Code[g-2].Op == ecl.OpCompare && s.Code[g-3].Op == ecl.OpAdd {
 				loop = true
 			}
 		}
@@ -126,7 +125,7 @@ func namedLabels(s *script.Script) map[string]int {
 	return out
 }
 
-func where(s *script.Script, i int) string {
+func where(s *ecl.Script, i int) string {
 	for j := i; j >= 0; j-- {
 		if l := s.At[j]; l != "" {
 			return fmt.Sprintf("%s+%d", l, i-j)
@@ -137,11 +136,11 @@ func where(s *script.Script, i int) string {
 
 // TestParseForms: the forms the writer makes, by hand.
 func TestParseForms(t *testing.T) {
-	names, err := script.ReadNames(os.DirFS("../data/por/sources/assets/scripts"), 0, false, script.V1)
+	names, err := ecl.ReadNames(os.DirFS("../data/por/sources/assets/scripts"), 0, false, ecl.V1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	names.Values = []script.Value{
+	names.Values = []ecl.Value{
 		{Kind: "Facing", Set: 0, N: 2, Name: "South"}, {Kind: "CastleFlags", Set: 0, N: 1, Name: "Disguised"}, {Kind: "CastleFlags", Set: 0, N: 2, Name: "HallSeen"},
 		{Kind: "Monster", Set: 0, N: 3, Name: "Kobold"}, {Kind: "Icon", Set: 0, N: 5, Name: "KoboldIcon"}, {Kind: "Item", Set: 0, N: 7, Name: "LongSword"},
 		{Kind: "Map", Set: 0, N: 255, Name: "Keep"}, {Kind: "MapIcons", Set: 0, N: 127, Name: "Overland"},
@@ -154,7 +153,7 @@ func TestParseForms(t *testing.T) {
 	for a, n := range names.Vars {
 		vars[n] = a
 	}
-	v := func(n string) script.Arg { return script.Arg{Type: 1, N: vars[n]} }
+	v := func(n string) ecl.Arg { return ecl.Arg{Type: 1, N: vars[n]} }
 	src := `
 on load { exit }
 on move { exit }
@@ -204,43 +203,43 @@ def Ask() {
 # tables
 Kinds = [1, 2, 3]
 `
-	s, err := script.Parse(script.V1.Header()+src, names)
+	s, err := ecl.Parse(ecl.V1.Header()+src, names)
 	if err != nil {
 		t.Fatal(err)
 	}
-	ahead, later, kinds := s.Labels["Ahead"], s.Labels["Later"], script.Arg{Type: 1, N: porTables.OriginalSave.CodeBase}
+	ahead, later, kinds := s.Labels["Ahead"], s.Labels["Later"], ecl.Arg{Type: 1, N: porTables.OriginalSave.CodeBase}
 	done, count, ask := s.Labels["Done"], s.Labels["Count"], s.Labels["Ask"]
-	call := func(l int) script.Instr {
-		return script.Instr{Op: script.OpGosub, Args: []script.Arg{{Type: 1, N: l, Label: true}}}
+	call := func(l int) ecl.Instr {
+		return ecl.Instr{Op: ecl.OpGosub, Args: []ecl.Arg{{Type: 1, N: l, Label: true}}}
 	}
-	want := []script.Instr{
-		{Op: script.OpExit}, {Op: script.OpExit}, {Op: script.OpExit}, {Op: script.OpExit},
-		{Op: script.OpCompare, Args: []script.Arg{v("Facing"), {N: 2}}}, {Op: script.OpIfEq}, {Op: script.OpGoto, Args: []script.Arg{{Type: 1, N: ahead, Label: true}}},
-		{Op: script.OpCompare, Args: []script.Arg{v("Facing"), {N: 2}}},
-		{Op: script.OpIfLt}, {Op: script.OpSave, Args: []script.Arg{{N: 3}, v("Sky")}}, {Op: script.OpIfLt}, {Op: script.OpAdd, Args: []script.Arg{{N: 1}, v("Sky"), v("Sky")}},
-		{Op: script.OpIfGt}, {Op: script.OpSave, Args: []script.Arg{{N: 4}, v("Sky")}},
-		{Op: script.OpIfLe}, {Op: script.OpOr, Args: []script.Arg{v("CastleFlags"), {N: 3}, v("CastleFlags")}},
-		{Op: script.OpAnd, Args: []script.Arg{v("CastleFlags"), {N: 1}, v("Scratch10")}}, {Op: script.OpIfNe}, call(done),
-		{Op: script.OpFindItem, Args: []script.Arg{{N: 7}}}, {Op: script.OpIfEq}, {Op: script.OpPrintClear, Args: []script.Arg{{Type: 0x80, N: 3, S: "YES"}}},
-		{Op: script.OpAnd, Args: []script.Arg{v("Scratch2"), {N: 7}, v("Scratch1")}}, {Op: script.OpIfNe}, {Op: script.OpPrint, Args: []script.Arg{v("Scratch1")}},
-		call(done), {Op: script.OpIfEq}, {Op: script.OpExit},
-		call(done), {Op: script.OpIfNe}, {Op: script.OpSave, Args: []script.Arg{{N: 5}, v("Sky")}},
-		call(count), {Op: script.OpIfGe}, {Op: script.OpExit},
-		call(ask), {Op: script.OpIfEq}, {Op: script.OpExit},
-		{Op: script.OpCompare, Args: []script.Arg{v("Facing"), {N: 2}}}, {Op: script.OpSave, Args: []script.Arg{{N: 6}, v("Sky")}}, {Op: script.OpIfEq}, {Op: script.OpExit},
-		{Op: script.OpLoadMap, Args: []script.Arg{{N: 255}, {N: 255}, {N: 127}}},
-		{Op: script.OpSave, Args: []script.Arg{{N: 0}, v("Scratch3")}},
-		{Op: script.OpGetTable, Args: []script.Arg{kinds, v("Scratch3"), v("Scratch4")}},
-		{Op: script.OpAdd, Args: []script.Arg{{N: 1}, v("Scratch3"), v("Scratch3")}}, {Op: script.OpCompare, Args: []script.Arg{v("Scratch3"), {N: 4}}}, {Op: script.OpIfLe},
-		{Op: script.OpGoto, Args: []script.Arg{{Type: 1, N: 43, Label: true}}},
-		{Op: 0x0B, Args: []script.Arg{{N: 3}, {N: 8}, {N: 5}}},
-		{Op: script.OpOnGoto, Args: []script.Arg{v("Scratch1"), {N: 2}, {Type: 1, N: ahead, Label: true}, {Type: 1, N: later, Label: true}}},
-		{Op: script.OpTreasure, Args: []script.Arg{{}, {}, {}, {N: 5}, {}, {}, {}, {N: 0x82}}}, {Op: script.OpExit},
-		{Op: script.OpExit},
-		{Op: script.OpCompare, Args: []script.Arg{v("Facing"), v("Scratch7")}}, {Op: script.OpReturn},
-		{Op: script.OpRandom, Args: []script.Arg{{N: 3}, v("Scratch5")}}, {Op: script.OpCompare, Args: []script.Arg{v("Scratch5"), {N: 2}}}, {Op: script.OpReturn},
-		{Op: script.OpHMenu, Args: []script.Arg{v("Scratch6"), {N: 2}, {Type: 0x80, N: 3, S: "YES"}, {Type: 0x80, N: 2, S: "NO"}}},
-		{Op: script.OpCompare, Args: []script.Arg{v("Scratch6"), {N: 1}}}, {Op: script.OpReturn},
+	want := []ecl.Instr{
+		{Op: ecl.OpExit}, {Op: ecl.OpExit}, {Op: ecl.OpExit}, {Op: ecl.OpExit},
+		{Op: ecl.OpCompare, Args: []ecl.Arg{v("Facing"), {N: 2}}}, {Op: ecl.OpIfEq}, {Op: ecl.OpGoto, Args: []ecl.Arg{{Type: 1, N: ahead, Label: true}}},
+		{Op: ecl.OpCompare, Args: []ecl.Arg{v("Facing"), {N: 2}}},
+		{Op: ecl.OpIfLt}, {Op: ecl.OpSave, Args: []ecl.Arg{{N: 3}, v("Sky")}}, {Op: ecl.OpIfLt}, {Op: ecl.OpAdd, Args: []ecl.Arg{{N: 1}, v("Sky"), v("Sky")}},
+		{Op: ecl.OpIfGt}, {Op: ecl.OpSave, Args: []ecl.Arg{{N: 4}, v("Sky")}},
+		{Op: ecl.OpIfLe}, {Op: ecl.OpOr, Args: []ecl.Arg{v("CastleFlags"), {N: 3}, v("CastleFlags")}},
+		{Op: ecl.OpAnd, Args: []ecl.Arg{v("CastleFlags"), {N: 1}, v("Scratch10")}}, {Op: ecl.OpIfNe}, call(done),
+		{Op: ecl.OpFindItem, Args: []ecl.Arg{{N: 7}}}, {Op: ecl.OpIfEq}, {Op: ecl.OpPrintClear, Args: []ecl.Arg{{Type: 0x80, N: 3, S: "YES"}}},
+		{Op: ecl.OpAnd, Args: []ecl.Arg{v("Scratch2"), {N: 7}, v("Scratch1")}}, {Op: ecl.OpIfNe}, {Op: ecl.OpPrint, Args: []ecl.Arg{v("Scratch1")}},
+		call(done), {Op: ecl.OpIfEq}, {Op: ecl.OpExit},
+		call(done), {Op: ecl.OpIfNe}, {Op: ecl.OpSave, Args: []ecl.Arg{{N: 5}, v("Sky")}},
+		call(count), {Op: ecl.OpIfGe}, {Op: ecl.OpExit},
+		call(ask), {Op: ecl.OpIfEq}, {Op: ecl.OpExit},
+		{Op: ecl.OpCompare, Args: []ecl.Arg{v("Facing"), {N: 2}}}, {Op: ecl.OpSave, Args: []ecl.Arg{{N: 6}, v("Sky")}}, {Op: ecl.OpIfEq}, {Op: ecl.OpExit},
+		{Op: ecl.OpLoadMap, Args: []ecl.Arg{{N: 255}, {N: 255}, {N: 127}}},
+		{Op: ecl.OpSave, Args: []ecl.Arg{{N: 0}, v("Scratch3")}},
+		{Op: ecl.OpGetTable, Args: []ecl.Arg{kinds, v("Scratch3"), v("Scratch4")}},
+		{Op: ecl.OpAdd, Args: []ecl.Arg{{N: 1}, v("Scratch3"), v("Scratch3")}}, {Op: ecl.OpCompare, Args: []ecl.Arg{v("Scratch3"), {N: 4}}}, {Op: ecl.OpIfLe},
+		{Op: ecl.OpGoto, Args: []ecl.Arg{{Type: 1, N: 43, Label: true}}},
+		{Op: 0x0B, Args: []ecl.Arg{{N: 3}, {N: 8}, {N: 5}}},
+		{Op: ecl.OpOnGoto, Args: []ecl.Arg{v("Scratch1"), {N: 2}, {Type: 1, N: ahead, Label: true}, {Type: 1, N: later, Label: true}}},
+		{Op: ecl.OpTreasure, Args: []ecl.Arg{{}, {}, {}, {N: 5}, {}, {}, {}, {N: 0x82}}}, {Op: ecl.OpExit},
+		{Op: ecl.OpExit},
+		{Op: ecl.OpCompare, Args: []ecl.Arg{v("Facing"), v("Scratch7")}}, {Op: ecl.OpReturn},
+		{Op: ecl.OpRandom, Args: []ecl.Arg{{N: 3}, v("Scratch5")}}, {Op: ecl.OpCompare, Args: []ecl.Arg{v("Scratch5"), {N: 2}}}, {Op: ecl.OpReturn},
+		{Op: ecl.OpHMenu, Args: []ecl.Arg{v("Scratch6"), {N: 2}, {Type: 0x80, N: 3, S: "YES"}, {Type: 0x80, N: 2, S: "NO"}}},
+		{Op: ecl.OpCompare, Args: []ecl.Arg{v("Scratch6"), {N: 1}}}, {Op: ecl.OpReturn},
 	}
 	for i := range s.Code {
 		s.Code[i].Line = 0
@@ -257,7 +256,7 @@ Kinds = [1, 2, 3]
 	if len(s.Code) != len(want) || string(s.Data) != "\x01\x02\x03" {
 		t.Fatalf("%d commands, want %d; data %v", len(s.Code), len(want), s.Data)
 	}
-	text, err := script.Write(s, names)
+	text, err := ecl.Write(s, names)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -292,7 +291,7 @@ func TestScriptMonstersInTheirSet(t *testing.T) {
 		}
 		e.LoadArea(area)
 		for _, in := range e.vm.Script.Code {
-			if in.Op != opLoadMonster || in.Args[0].Type != ecl.ArgImmediate {
+			if in.Op != opLoadMonster || in.Args[0].Type != ecl.ArgByte {
 				continue
 			}
 			if refDAX(e).BlockShared(fmt.Sprintf("MON%dCHA", set), in.Args[0].N) == nil {

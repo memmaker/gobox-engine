@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/game"
 )
 
@@ -95,20 +95,20 @@ func (e *Engine) read(r *Read) {
 }
 
 // opJournal is the pager command (gobox ecl Journal, Felix 2026-11-11): the
-// long text entry n of the adventure's text data (script.Entry) in the
+// long text entry n of the adventure's text data (ecl.Entry) in the
 // pager. A voiced entry is voiced every time it is asked for.
 func (e *Engine) opJournal() {
 	e.vm.ReadArgs(1)
-	e.showEntry(script.EntryID(e.vm.Arg(1, e.host)))
+	e.showEntry(ecl.EntryID(e.vm.Arg(1, e.host)))
 }
 
 // showEntry shows entry id in the pager, after the entries already up in the
 // same box (one script's Journal commands are read together), and notes a
 // journal text (noteJournal). The text window stays as the script left it.
-func (e *Engine) showEntry(id script.EntryID) {
+func (e *Engine) showEntry(id ecl.EntryID) {
 	en, ok := e.entries()[id]
 	if !ok {
-		panic(fmt.Sprintf("script: no text entry %d (%s)", id, script.EntriesFile)) // a script naming no entry: a broken game folder
+		panic(fmt.Sprintf("script: no text entry %d (%s)", id, ecl.EntriesFile)) // a script naming no entry: a broken game folder
 	}
 	lines := e.journalLayout(en.Book, []string{en.Title}, en.Voiced)
 	if en.Voiced {
@@ -134,7 +134,7 @@ func (e *Engine) showEntry(id script.EntryID) {
 }
 
 // entryNamed is the id of the entry the scripts call name (a dev view's).
-func (e *Engine) entryNamed(name string) script.EntryID {
+func (e *Engine) entryNamed(name string) ecl.EntryID {
 	for id, en := range e.entries() {
 		if en.Name == name {
 			return id
@@ -144,13 +144,13 @@ func (e *Engine) entryNamed(name string) script.EntryID {
 }
 
 // entries are the adventure's long texts by id, read once.
-func (e *Engine) entries() map[script.EntryID]script.Entry {
+func (e *Engine) entries() map[ecl.EntryID]ecl.Entry {
 	if e.entryTable == nil {
-		es, err := script.ReadEntries(os.DirFS(e.scriptDir()))
+		es, err := ecl.ReadEntries(os.DirFS(e.scriptDir()))
 		if err != nil {
 			panic(err) // a broken game folder
 		}
-		e.entryTable = map[script.EntryID]script.Entry{}
+		e.entryTable = map[ecl.EntryID]ecl.Entry{}
 		for _, en := range es {
 			e.entryTable[en.ID] = en
 		}

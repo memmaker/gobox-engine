@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
 	"slices"
@@ -16,7 +16,7 @@ func TestSoundOp(t *testing.T) {
 	e.given = &g
 	sound := func(n int) {
 		e.events = nil
-		e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{N: n}}}}, Layout: e.vm.Script.Layout}
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: n}}}}, Layout: e.vm.Script.Layout}
 		e.vm.PC = 0
 		e.vm.Fetch()
 		e.opSound()
@@ -39,13 +39,13 @@ func TestDuelSound(t *testing.T) {
 	e.given = &g
 	var addr uint16
 	for a, c := range e.eclVersion.Calls {
-		if c == script.CallDuelSound {
+		if c == ecl.CallDuelSound {
 			addr = a
 		}
 	}
 	call := func(n uint16) {
 		e.events, e.es.soundVar = nil, n
-		e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{N: int(addr)}}}}, Layout: e.vm.Script.Layout}
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: int(addr)}}}}, Layout: e.vm.Script.Layout}
 		e.vm.PC = 0
 		e.vm.Fetch()
 		e.opCall()

@@ -3,15 +3,15 @@ package games
 import (
 	"slices"
 
-	eclscript "gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // scriptFixes are all of COTAB's import special cases: the journal's and the coins'.
 var cotabScriptFixes = slices.Concat(JournalFixes, coinFixes)
 
-// coinFixes: the sites where the import's gold (eclscript.GoldCoins) cannot
+// coinFixes: the sites where the import's gold (ecl.GoldCoins) cannot
 // keep the original's byte arithmetic on the platinum word.
-var coinFixes = []eclscript.Fix{
+var coinFixes = []ecl.Fix{
 	// area 35: the original added the winnings one platinum at a time to the word's low byte, carrying at
 	// 255 into its high byte (Word7CC4); in gold the carry would reset the purse at 1275 gold.
 	// CHANGES: COTAB script, area 35 winnings in gold.

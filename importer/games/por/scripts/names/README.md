@@ -2,7 +2,7 @@
 
 `cmd/import` reads these when it writes `../area<N>.txt`
 (`go run ./cmd/import` from the repo root):
-the variables are named by the layout (`../layout/`, gobox ecl/script
+the variables are named by the layout (`../layout/`, gobox ecl
 Layout: a field its name, element i of an array `Name_i`), the one source of
 their names. `area<N>.txt` names one area's constant tables (its code-space
 data) and `labels/area<N>.txt` its jump labels. Lines are `XXXX Name  # evidence`:

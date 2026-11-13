@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"gobox/asset/orig"
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TestImportAppliesFixes: the game data decompiles and every special case (scriptFixes) applies.
@@ -15,7 +15,7 @@ func TestImportAppliesFixes(t *testing.T) {
 		t.Skip(err)
 	}
 	dir := t.TempDir()
-	if _, err := script.Import(script.V1, ImportSource(l), ScriptData(), dir, script.FoldGates, porScriptFixes); err != nil {
+	if _, err := ecl.Import(ecl.V1, ImportSource(l), ScriptData(), dir, ecl.FoldGates, porScriptFixes); err != nil {
 		t.Fatal(err)
 	}
 	if files, _ := filepath.Glob(filepath.Join(dir, "area*.txt")); len(files) == 0 {

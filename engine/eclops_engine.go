@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gobox/asset"
 	"gobox/ecl"
-	"gobox/ecl/script"
 	"gobox/rules"
 	"gobox/rules1e"
 	"os"
@@ -119,7 +118,7 @@ func (e *Engine) opCompare() {
 	a := e.vm.Arg(1, e.host)
 	b := e.vm.Arg(2, e.host)
 	hours, hasHours := e.layoutField(fieldHours)
-	if hasHours && (e.vm.ArgType[1] == ecl.ArgVarByte || e.vm.ArgType[1] == ecl.ArgVarWord) && e.vm.Ref(1) == hours && e.vm.ArgType[2] == ecl.ArgImmediate && b == 14 && e.DaySky.Load() {
+	if hasHours && (e.vm.ArgType[1] == ecl.ArgVar || e.vm.ArgType[1] == ecl.ArgVarWord) && e.vm.Ref(1) == hours && e.vm.ArgType[2] == ecl.ArgByte && b == 14 && e.DaySky.Load() {
 		// option (U3): the scripts pick the day sky by hour < 14; day is 6:00-20:00 instead.
 		// Night is 15, not 14, so the pier's "Hours > 14" (no ship picture after dark) holds too.
 		a = 15
@@ -279,7 +278,7 @@ func (e *Engine) opPrint() {
 	if e.vm.ArgType[1] < 0x80 {
 		e.vm.Text[1] = strconv.Itoa(int(e.vm.Arg(1, e.host))) // 00BA:1073
 	}
-	e.scriptText(e.cmdIs(script.OpPrintClear), e.vm.Text[1])
+	e.scriptText(e.cmdIs(ecl.OpPrintClear), e.vm.Text[1])
 }
 
 // scriptText is opPrint's text: clear starts the text window over.
@@ -325,7 +324,7 @@ func (e *Engine) opVMenu() {
 }
 
 // listAnswered completes VMenu: line i of list is the result.
-func (e *Engine) listAnswered(dst script.Ref, i int) {
+func (e *Engine) listAnswered(dst ecl.Ref, i int) {
 	e.host.Set(dst, int64(uint16(i)))
 	e.clearPane()
 }
@@ -376,7 +375,7 @@ func (e *Engine) opLoadFiles() {
 	for i := 1; i <= 3; i++ {
 		a[i] = int(byte(e.vm.Arg(i, e.host)))
 	}
-	if e.cmdIs(script.OpLoadMap) {
+	if e.cmdIs(ecl.OpLoadMap) {
 		e.run.geoSet = 1
 		if a[1] != 0xFF && a[1] != 0x7F && e.worldWord(rules.WordIn3D) != 0 {
 			e.setWorldWord(rules.WordGeo, int(a[1]))
@@ -486,7 +485,7 @@ func (e *Engine) opCheckParty() {
 		}
 	}
 	special := byte(e.vm.Arg(2, e.host))
-	var dst [7]script.Ref
+	var dst [7]ecl.Ref
 	for i := 3; i <= 6; i++ {
 		dst[i] = e.vm.Ref(i)
 	}
@@ -591,11 +590,11 @@ func (e *Engine) noMonsterScreen() func() {
 		}
 		e.setWorldWord(w, 0)
 		switch s {
-		case script.CombatShop:
+		case ecl.CombatShop:
 			return e.Shop // ovr07:053E
-		case script.CombatTemple:
+		case ecl.CombatTemple:
 			return e.Temple // ovr05:0D09
-		case script.CombatVault:
+		case ecl.CombatVault:
 			return e.Vault
 		default:
 			panic(fmt.Sprintf("ecl: Combat: no screen for %v", s))
@@ -605,8 +604,8 @@ func (e *Engine) noMonsterScreen() func() {
 }
 
 // combatScreenWords is the world word that asks for each screen.
-var combatScreenWords = map[script.CombatScreen]rules.WorldWord{
-	script.CombatShop: rules.WordShop, script.CombatTemple: rules.WordTemple, script.CombatVault: rules.WordVault}
+var combatScreenWords = map[ecl.CombatScreen]rules.WorldWord{
+	ecl.CombatShop: rules.WordShop, ecl.CombatTemple: rules.WordTemple, ecl.CombatVault: rules.WordVault}
 
 // areaMonsterFor is the monster the area screen adds to a fight; none past the table.
 func (t AreaMonsters) areaMonsterFor(screen int) (AreaMonster, bool) {
@@ -734,30 +733,30 @@ type eclRun struct {
 
 func init() {
 	eclOps = map[byte]eclOp{
-		script.OpExit: (*Engine).opExit, script.OpCompare: (*Engine).opCompare,
-		script.OpSelectMember: (*Engine).opLoadCharacter, script.OpLoadMonster: (*Engine).opLoadMonster,
-		script.OpSetupMonster: (*Engine).opSetupMonster, script.OpApproach: (*Engine).opApproach, script.OpPicture: (*Engine).opPicture,
-		script.OpInputNumber: (*Engine).opInputNumber, script.OpInputString: (*Engine).opInputString, script.OpPrint: (*Engine).opPrint,
-		script.OpPrintClear: (*Engine).opPrint, script.OpVMenu: (*Engine).opVMenu,
-		script.OpClearMonsters: (*Engine).opClearMonsters, script.OpPartyStr: (*Engine).opPartyStrength,
-		script.OpCheckParty: (*Engine).opCheckParty, script.OpJournal: (*Engine).opJournal, script.OpNewECL: (*Engine).opNewECL,
-		script.OpLoadMap: (*Engine).opLoadFiles, script.OpPartySurprise: (*Engine).opPartySurprise, script.OpSurprise: (*Engine).opSurprise,
-		script.OpCombat: (*Engine).opCombat, script.OpGetTable: (*Engine).opGetTable, script.OpHMenu: (*Engine).opHMenu,
-		script.OpLoadWalls: (*Engine).opLoadFiles, script.OpLoadArea: (*Engine).opLoadArea,
-		script.OpQuest: (*Engine).opQuest, // the port's (gobox ecl V1)
+		ecl.OpExit: (*Engine).opExit, ecl.OpCompare: (*Engine).opCompare,
+		ecl.OpSelectMember: (*Engine).opLoadCharacter, ecl.OpLoadMonster: (*Engine).opLoadMonster,
+		ecl.OpSetupMonster: (*Engine).opSetupMonster, ecl.OpApproach: (*Engine).opApproach, ecl.OpPicture: (*Engine).opPicture,
+		ecl.OpInputNumber: (*Engine).opInputNumber, ecl.OpInputString: (*Engine).opInputString, ecl.OpPrint: (*Engine).opPrint,
+		ecl.OpPrintClear: (*Engine).opPrint, ecl.OpVMenu: (*Engine).opVMenu,
+		ecl.OpClearMonsters: (*Engine).opClearMonsters, ecl.OpPartyStr: (*Engine).opPartyStrength,
+		ecl.OpCheckParty: (*Engine).opCheckParty, ecl.OpJournal: (*Engine).opJournal, ecl.OpNewECL: (*Engine).opNewECL,
+		ecl.OpLoadMap: (*Engine).opLoadFiles, ecl.OpPartySurprise: (*Engine).opPartySurprise, ecl.OpSurprise: (*Engine).opSurprise,
+		ecl.OpCombat: (*Engine).opCombat, ecl.OpGetTable: (*Engine).opGetTable, ecl.OpHMenu: (*Engine).opHMenu,
+		ecl.OpLoadWalls: (*Engine).opLoadFiles, ecl.OpLoadArea: (*Engine).opLoadArea,
+		ecl.OpQuest: (*Engine).opQuest, // the port's (gobox ecl V1)
 		// ovr04 0x25..0x3D (eclops2_engine.go)
-		script.OpRob: (*Engine).opRob, script.OpEncounterMenu: (*Engine).opEncounterMenu, script.OpParlay: (*Engine).opParlay,
-		script.OpCall: (*Engine).opCall, script.OpDamage: (*Engine).opDamage, script.OpRedrawView: (*Engine).opRedrawView,
-		script.OpTreasure: (*Engine).opTreasure, script.OpTreasureOf: (*Engine).opTreasureOf, script.OpItemSet: (*Engine).opItemSet,
-		script.OpFindItem: (*Engine).opFindItem, script.OpFindAffect: (*Engine).opFindAffect, script.OpNewLine: (*Engine).opNewLine, script.OpClock: (*Engine).opClock,
-		script.OpAddNPC: (*Engine).opAddNPC, script.OpProgram: (*Engine).opProgram, script.OpWho: (*Engine).opWho,
-		script.OpDelay: (*Engine).opDelay, script.OpProtection: (*Engine).opProtection,
-		script.OpClearBox: (*Engine).opClearBox,
+		ecl.OpRob: (*Engine).opRob, ecl.OpEncounterMenu: (*Engine).opEncounterMenu, ecl.OpParlay: (*Engine).opParlay,
+		ecl.OpCall: (*Engine).opCall, ecl.OpDamage: (*Engine).opDamage, ecl.OpRedrawView: (*Engine).opRedrawView,
+		ecl.OpTreasure: (*Engine).opTreasure, ecl.OpTreasureOf: (*Engine).opTreasureOf, ecl.OpItemSet: (*Engine).opItemSet,
+		ecl.OpFindItem: (*Engine).opFindItem, ecl.OpFindAffect: (*Engine).opFindAffect, ecl.OpNewLine: (*Engine).opNewLine, ecl.OpClock: (*Engine).opClock,
+		ecl.OpAddNPC: (*Engine).opAddNPC, ecl.OpProgram: (*Engine).opProgram, ecl.OpWho: (*Engine).opWho,
+		ecl.OpDelay: (*Engine).opDelay, ecl.OpProtection: (*Engine).opProtection,
+		ecl.OpClearBox: (*Engine).opClearBox,
 		// the later dialects' (fold S2): SpriteOff is the first engine's 0x31
-		script.OpSpriteOff: (*Engine).opRedrawView, script.OpNoOp: (*Engine).opNoOp, script.OpPressKey: (*Engine).opPressKey,
-		script.OpYesNo: (*Engine).opYesNo, script.OpClearExit: (*Engine).opClearExit, script.OpGainExp: (*Engine).opGainExperience,
-		script.OpSpell: (*Engine).opSpell, script.OpDestroy: (*Engine).opDestroyItems, script.OpDump: (*Engine).opDump,
-		script.OpFindNPC: (*Engine).opFindNPC, script.OpSound: (*Engine).opSound, script.OpMenuKeys: (*Engine).opMenuKeys,
+		ecl.OpSpriteOff: (*Engine).opRedrawView, ecl.OpNoOp: (*Engine).opNoOp, ecl.OpPressKey: (*Engine).opPressKey,
+		ecl.OpYesNo: (*Engine).opYesNo, ecl.OpClearExit: (*Engine).opClearExit, ecl.OpGainExp: (*Engine).opGainExperience,
+		ecl.OpSpell: (*Engine).opSpell, ecl.OpDestroy: (*Engine).opDestroyItems, ecl.OpDump: (*Engine).opDump,
+		ecl.OpFindNPC: (*Engine).opFindNPC, ecl.OpSound: (*Engine).opSound, ecl.OpMenuKeys: (*Engine).opMenuKeys,
 	}
 }
 

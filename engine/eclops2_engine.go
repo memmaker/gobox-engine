@@ -3,7 +3,7 @@ package engine
 import (
 	"fmt"
 	"gobox/asset"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -294,29 +294,29 @@ func (e *Engine) opParlay() {
 }
 
 // opCall = ovr04:2CCF (addr): runs the engine routine the dialect names
-// for the operand (script.Version.Calls).
+// for the operand (ecl.Version.Calls).
 func (e *Engine) opCall() {
 	e.vm.ReadArgs(1)
 	switch e.eclVersion.Calls[uint16(e.vm.ArgN[1])] { // a routine number, not memory
-	case script.CallRedrawView:
+	case ecl.CallRedrawView:
 		e.redrawChanged()
-	case script.CallDuelWin:
+	case ecl.CallDuelWin:
 		e.DuelSetup(1) // ovr08:1A6F
-	case script.CallDuelLose:
+	case ecl.CallDuelLose:
 		e.DuelSetup(0)
-	case script.CallDuelSound:
+	case ecl.CallDuelSound:
 		if s, ok := e.game().scriptSound(byte(e.es.soundVar)); ok { // the game's duel sounds (DS:2612's numbers)
 			e.cue(s.Cue)
 		}
-	case script.CallStepForward:
+	case ecl.CallStepForward:
 		e.StepForward()
-	case script.CallWallAhead:
+	case ecl.CallWallAhead:
 		if e.viewMode == 1 {
 			e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
 		}
-	case script.CallPause: // cotab gameDelay, sotsb pauseForMessage
+	case ecl.CallPause: // cotab gameDelay, sotsb pauseForMessage
 		e.askPause(int(e.msgDelay)*0xE1, askDone{})
-	case script.CallNextFrame: // pod: the picture's next frame, wrapping at its frame count
+	case ecl.CallNextFrame: // pod: the picture's next frame, wrapping at its frame count
 		e.nextPictureFrame()
 	}
 }
@@ -584,7 +584,7 @@ func (e *Engine) opAddNPC() {
 	e.applyItems(id) // 00BA:0BB8
 }
 
-// opProgram = ovr04:2E10 (n): the sub-command the dialect names (script.Version.Programs).
+// opProgram = ovr04:2E10 (n): the sub-command the dialect names (ecl.Version.Programs).
 func (e *Engine) opProgram() {
 	e.vm.ReadArgs(1)
 	v := byte(e.vm.Arg(1, e.host))
@@ -593,15 +593,15 @@ func (e *Engine) opProgram() {
 		e.run.restoreSel = false
 	}
 	switch e.eclVersion.Programs[v] { // the screens put up suspend the VM until they are gone
-	case script.ProgramPartyMenu:
+	case ecl.ProgramPartyMenu:
 		e.es.hold = holdPartyMenu
-	case script.ProgramEnding: // POR 8 (ovr19:02A4), COTAB's ending: the manifest's End, then the script goes on
+	case ecl.ProgramEnding: // POR 8 (ovr19:02A4), COTAB's ending: the manifest's End, then the script goes on
 		e.ending(false)
-	case script.ProgramCamp:
+	case ecl.ProgramCamp:
 		e.es.hold, e.es.holdPC = holdEncamp, int(e.vm.PC)
-	case script.ProgramQuit: // cotab 3, pod 2 (O040:1F1F): back to DOS; the front ends the run (game.Ended), as pod's Exit
+	case ecl.ProgramQuit: // cotab 3, pod 2 (O040:1F1F): back to DOS; the front ends the run (game.Ended), as pod's Exit
 		e.event(game.Ended{})
-	case script.ProgramSaveQuit: // pod 1 (O043:0000): the save screen (the player picks the slot), then the ending
+	case ecl.ProgramSaveQuit: // pod 1 (O043:0000): the save screen (the player picks the slot), then the ending
 		e.event(game.SaveOffered{})
 		e.ending(true)
 	}
@@ -683,7 +683,7 @@ func runeLetter(g byte) byte {
 // encounter is the approach menu's state while it is asked: the
 // instruction's operands and what the party's strength was.
 type encounter struct {
-	dst      script.Ref
+	dst      ecl.Ref
 	react    [5]byte
 	texts    [4]string
 	fleeAt   int

@@ -5,7 +5,6 @@ package engine
 
 import (
 	"gobox/ecl"
-	"gobox/ecl/script"
 	"gobox/game"
 	"gobox/rules"
 	"image"
@@ -36,7 +35,7 @@ type Engine struct {
 	sequence           string                      // the full-screen animation playing (title.seqs: seqEnding; "": none)
 	vault              *vault                      // the open vault (Vault)
 	given              *GameTables                 // the game's GameTables (New; bareData when nil)
-	eclVersion         *script.Version             // the game's ECL dialect (initVM)
+	eclVersion         *ecl.Version                // the game's ECL dialect (initVM)
 	rules              rules.Rules                 // the ruleset; it owns the rules' state (state) (corerules_engine.go)
 	create             rules.CreationRules         // the ruleset's creation, made with rules
 	posX, posY, facing int                         // the party's map square and facing 0..7 (DS:6AAD, 6AAE, 6AAF): world navigation, the Engine's; saves keep them (files_engine.go)
@@ -91,7 +90,7 @@ type Engine struct {
 	engineFields       map[string]engineField // the script fields the engine gives a meaning (scriptvars.go)
 	vars               fieldCells             // the other fields' cells: the game's saved state (DS:49D2/49D6/49DA records)
 	locals             fieldCells             // and the area's scratch, cleared by a fresh area
-	savedFields        []script.Field         // every area's saved fields (savecodec.go)
+	savedFields        []ecl.Field            // every area's saved fields (savecodec.go)
 	slotsImported      bool                   // importSlots ran
 	loadedLocals       fieldCells             // a loaded game's locals until its area's script is in
 	vm                 *ecl.VM                // the script machine (DS:49ED its PC, here an instruction number)
@@ -158,9 +157,9 @@ type Engine struct {
 	snd          sound // PC speaker driver (08AE)
 	vox          voice // voice.go: the voice-over
 
-	entryTable map[script.EntryID]script.Entry // the long texts by id (entries)
-	books      map[string]*game.JournalBook    // the game's journal books by file name (book); nil: none
-	jtexts     map[string][]string             // journalTexts, once
+	entryTable map[ecl.EntryID]ecl.Entry    // the long texts by id (entries)
+	books      map[string]*game.JournalBook // the game's journal books by file name (book); nil: none
+	jtexts     map[string][]string          // journalTexts, once
 
 	DevAction    func() // run once at the next adventuring command prompt (-dev)
 	DevMonster   int    // the combat dev scene's monster (-fight; 0: the area's first)

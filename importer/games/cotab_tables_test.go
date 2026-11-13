@@ -6,7 +6,7 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
@@ -32,10 +32,10 @@ func TestImportedTablesLoad(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g.Script != script.V2 || g.AddNPCIcon || g.ScriptSounds[8].Cue != rules.CueStep || g.ScriptSounds[10].Cue != rules.CueFireball || len(g.ScriptSounds) != 2 {
+	if g.Script != ecl.V2 || g.AddNPCIcon || g.ScriptSounds[8].Cue != rules.CueStep || g.ScriptSounds[10].Cue != rules.CueFireball || len(g.ScriptSounds) != 2 {
 		t.Errorf("game tables %+v", g)
 	}
-	if want := []script.CombatScreen{script.CombatShop, script.CombatTemple}; !slices.Equal(g.Script.Behaviour.NoMonsterCombat, want) {
+	if want := []ecl.CombatScreen{ecl.CombatShop, ecl.CombatTemple}; !slices.Equal(g.Script.Behaviour.NoMonsterCombat, want) {
 		t.Errorf("NoMonsterCombat %v, want %v", g.Script.Behaviour.NoMonsterCombat, want)
 	}
 
@@ -62,7 +62,7 @@ func TestImportedTablesLoad(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	es, err := script.ReadEntries(os.DirFS(filepath.Join(dst, "scripts")))
+	es, err := ecl.ReadEntries(os.DirFS(filepath.Join(dst, "scripts")))
 	if err != nil || len(es) == 0 {
 		t.Fatal("entries:", len(es), err)
 	}

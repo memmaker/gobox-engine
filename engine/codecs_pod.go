@@ -3,7 +3,7 @@ package engine
 import (
 	"fmt"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 )
 
@@ -23,7 +23,7 @@ var podStatus = map[rules.Status]int64{
 }
 
 // podCodecs are pod's encodings of canonical fields (its layout's enc=).
-var podCodecs = map[script.Encoding]codec{
+var podCodecs = map[ecl.Encoding]codec{
 	"PodSelControl": {ignoreWrites: true}, // SpecialWriteZ1 has no case for it
 	// TCharRecord.status, 0..8 (OKAY 0); SpecialWriteZ1 $1ED: inPlay = status = OKAY.
 	"PodSelStatus": {
@@ -48,7 +48,7 @@ var podCodecs = map[script.Encoding]codec{
 		},
 	},
 	// TCharRecord.coins[0..2]: platinum, gems, jewelry, words at bytes 0, 2, 4. The import rewrote the
-	// platinum word to gold (script.GoldCoins): the canonical elements 6 (gold), 10 and 12 (selCoin),
+	// platinum word to gold (ecl.GoldCoins): the canonical elements 6 (gold), 10 and 12 (selCoin),
 	// the high bytes the odd elements after them.
 	"PodSelCoins": {element: func(i int) int {
 		if i < 2 {

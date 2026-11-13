@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"gobox/asset/orig"
-	"gobox/ecl/script"
 )
 
 // TestScriptEqualsByteCode: for every game and every command of its ECL
@@ -19,8 +18,8 @@ import (
 func TestScriptEqualsByteCode(t *testing.T) {
 	for _, g := range []struct {
 		dir string // the game's data: dos/ is its originals
-		v   *script.Version
-	}{{"../data/por/sources", script.V1}, {"../data/cotab/sources", script.V2}, {"../data/sotsb/sources", script.V2}, {"../data/pod/sources", script.V3}, {"../../buckrogers-go/data", script.V4}, {"../../buckrogers2-go/data", script.V4}} {
+		v   *Version
+	}{{"../data/por/sources", V1}, {"../data/cotab/sources", V2}, {"../data/sotsb/sources", V2}, {"../data/pod/sources", V3}, {"../../buckrogers-go/data", V4}, {"../../buckrogers2-go/data", V4}} {
 		t.Run(g.dir, func(t *testing.T) {
 			dos := filepath.Join(g.dir, "dos")
 			if _, err := os.Stat(dos); err != nil {
@@ -50,34 +49,34 @@ func TestScriptEqualsByteCode(t *testing.T) {
 	}
 }
 
-func compareBlock(t *testing.T, v *script.Version, block int, code []byte) int {
-	names := &script.Names{Version: v, Vars: map[int]string{}}
-	d, err := script.Decode(code, names)
+func compareBlock(t *testing.T, v *Version, block int, code []byte) int {
+	names := &Names{Version: v, Vars: map[int]string{}}
+	d, err := Decode(code, names)
 	if err != nil {
 		t.Fatalf("area %d: %v", block, err)
 	}
-	text, err := script.Write(d, names)
+	text, err := Write(d, names)
 	if err != nil {
 		t.Fatalf("area %d: %v", block, err)
 	}
-	s, err := script.Parse(text, names)
+	s, err := Parse(text, names)
 	if err != nil {
 		t.Fatalf("area %d: %v", block, err)
 	}
 	_, lines, _ := v.Walk(code)
-	pcs := script.SortedPCs(lines)
+	pcs := SortedPCs(lines)
 	index := map[int]int{} // a command's number by its address
 	i := 0
 	for at, pc := range pcs {
 		l := lines[pc]
-		if i < len(s.Code) && s.Code[i].Op == script.OpExit && l.Cmd.Op != script.OpExit {
+		if i < len(s.Code) && s.Code[i].Op == OpExit && l.Cmd.Op != OpExit {
 			i++ // the text's Exit where the original runs into data
 		}
 		if i == len(s.Code) || s.Code[i].Op != l.Cmd.Op {
-			if l.Cmd.Op == script.OpGoto && len(l.Targets) == 1 && at+1 < len(pcs) && l.Targets[0] == pcs[at+1] {
+			if l.Cmd.Op == OpGoto && len(l.Targets) == 1 && at+1 < len(pcs) && l.Targets[0] == pcs[at+1] {
 				continue // a jump to the next command is left out
 			}
-			t.Fatalf("area %d: %04X %s is not in the script (command %d)", block, pc, script.OpName(l.Cmd.Op), i)
+			t.Fatalf("area %d: %04X %s is not in the script (command %d)", block, pc, OpName(l.Cmd.Op), i)
 		}
 		index[pc] = i
 		i++
@@ -87,31 +86,31 @@ func compareBlock(t *testing.T, v *script.Version, block int, code []byte) int {
 		l, in := lines[pc], s.Code[at]
 		n++
 		if len(l.Args) != len(in.Args) {
-			if in.Op == script.OpLoadMap && v.LoadMapSecondUnused {
+			if in.Op == OpLoadMap && v.LoadMapSecondUnused {
 				continue
 			}
-			t.Errorf("area %d %04X %s: %d operands, %d", block, pc, script.OpName(in.Op), len(l.Args), len(in.Args))
+			t.Errorf("area %d %04X %s: %d operands, %d", block, pc, OpName(in.Op), len(l.Args), len(in.Args))
 			continue
 		}
 		for k, a := range l.Args {
 			b := in.Args[k]
 			if a.Type != b.Type || a.S != b.S {
-				t.Errorf("area %d %04X %s operand %d: %+v, %+v", block, pc, script.OpName(in.Op), k, a, b)
+				t.Errorf("area %d %04X %s operand %d: %+v, %+v", block, pc, OpName(in.Op), k, a, b)
 				continue
 			}
 			switch {
 			case b.Label:
 				if want, ok := index[a.N]; ok && want != b.N {
-					t.Errorf("area %d %04X %s jump to %04X: command %d, want %d", block, pc, script.OpName(in.Op), a.N, b.N, want)
+					t.Errorf("area %d %04X %s jump to %04X: command %d, want %d", block, pc, OpName(in.Op), a.N, b.N, want)
 				}
-			case a.N == b.N || a.Type == script.ArgText:
+			case a.N == b.N || a.Type == ArgText:
 			case a.N >= v.Base && a.N-v.Base < len(code) && b.N >= v.Base && b.N-v.Base < len(s.Data):
 				if code[a.N-v.Base] != s.Data[b.N-v.Base] {
-					t.Errorf("area %d %04X %s table %04X moved to %04X: its byte differs", block, pc, script.OpName(in.Op), a.N, b.N)
+					t.Errorf("area %d %04X %s table %04X moved to %04X: its byte differs", block, pc, OpName(in.Op), a.N, b.N)
 				}
-			case in.Op == script.OpLoadMap && v.LoadMapSecondUnused && k == 1:
+			case in.Op == OpLoadMap && v.LoadMapSecondUnused && k == 1:
 			default:
-				t.Errorf("area %d %04X %s operand %d: %+v, %+v", block, pc, script.OpName(in.Op), k, a, b)
+				t.Errorf("area %d %04X %s operand %d: %+v, %+v", block, pc, OpName(in.Op), k, a, b)
 			}
 		}
 	}

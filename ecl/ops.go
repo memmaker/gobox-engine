@@ -1,7 +1,5 @@
 package ecl
 
-import "gobox/ecl/script"
-
 // Command numbers (the first byte of each command), the same in both games.
 const (
 	CmdExit       = 0
@@ -88,7 +86,7 @@ func opArithmetic(vm *VM, h Host) {
 	case CmdDivide:
 		if b != 0 {
 			r = a / b
-			if vm.Remainder != (script.Ref{}) {
+			if vm.Remainder != (Ref{}) {
 				h.Set(vm.Remainder, a%b)
 			}
 		}

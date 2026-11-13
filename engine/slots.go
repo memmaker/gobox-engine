@@ -6,7 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"gobox/asset"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"gobox/rules1e"
 	"os"
@@ -205,14 +205,14 @@ func (e *Engine) seenByMap(old map[int]*[256]uint8) map[int]*[256]uint8 {
 	return seen
 }
 
-func (e *Engine) scriptAreas() []script.Area {
-	areas, _ := script.ReadAreas(os.DirFS(e.scriptDir()), "names/areas.txt")
+func (e *Engine) scriptAreas() []ecl.Area {
+	areas, _ := ecl.ReadAreas(os.DirFS(e.scriptDir()), "names/areas.txt")
 	return areas
 }
 
 // mapOfArea turns an old key (script area and GEO block) into areaKey's
 // (data set and GEO block) by the scripts' areas (names/areas.txt).
-func mapOfArea(areas []script.Area, k int) int {
+func mapOfArea(areas []ecl.Area, k int) int {
 	set := k >> 16 // unknown: the area number stands (nothing pools)
 	for _, a := range areas {
 		if a.ID == k>>16 {

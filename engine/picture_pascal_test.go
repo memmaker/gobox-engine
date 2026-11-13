@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TestPictureAgainstPascal compares opPicture's flags with EclVm.EclPicture
@@ -31,7 +31,7 @@ func TestPictureAgainstPascal(t *testing.T) {
 		}
 		key, val, _ := strings.Cut(line, " = ")
 		k := atois(t, strings.Fields(key)[1:])
-		e.vm.Script = &script.Script{Code: []script.Instr{{Op: 0x0F, Args: []script.Arg{{Type: 0, N: k[0]}}}}}
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Op: 0x0F, Args: []ecl.Arg{{Type: 0, N: k[0]}}}}}
 		e.vm.PC = 0
 		e.vm.Fetch()
 		e.prevViewMode, e.viewMode = k[1], k[2]

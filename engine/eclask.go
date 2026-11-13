@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
 )
@@ -77,7 +77,7 @@ const (
 // askDone is what the answer completes, with what it needs.
 type askDone struct {
 	kind doneKind
-	dst  script.Ref
+	dst  ecl.Ref
 	r    [5]byte
 	who  rules.CharID
 }

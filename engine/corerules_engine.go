@@ -3,7 +3,7 @@ package engine
 import (
 	"fmt"
 	"gobox/asset/orig"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"gobox/rules1e"
 	"os"
@@ -27,14 +27,14 @@ type Ruleset func(
 // GameTables is the game's data the Engine shows, handed in by the game at New.
 type GameTables struct {
 	PortraitHead, PortraitBody []rules.PortraitPic  // portrait number -> its picture, 1-based ([0] unused)
-	Script                     *script.Version      `json:"-"` // the game's ECL dialect; nil: the first engine's (V1)
+	Script                     *ecl.Version         `json:"-"` // the game's ECL dialect; nil: the first engine's (V1)
 	ScriptSounds               map[byte]ScriptSound // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays DefaultSound
 	DefaultSound               *ScriptSound         // what a number ScriptSounds does not list plays; nil: nothing
 	AddNPCIcon                 bool                 // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
 	AreaMonsters               AreaMonsters         // the area's own monsters a fight adds (pod); zero: none
 	Dialect                    rules.Dialect        // the game's script byte-code dialect (ReadGameTables sets Script from it)
 	TreasureSets               [][]int32            // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
-	ScriptFixes                []script.Fix         // the game's decompiler special cases (script.Library.Fixes): the import's, for the texts' key
+	ScriptFixes                []ecl.Fix            // the game's decompiler special cases (ecl.Library.Fixes): the import's, for the texts' key
 	Natives                    []NativeAt           // the labels a native script runs at (POR: the tavern game, CAST KNOCK); none: no native
 	Quests                     []QuestDef           // the quest journal's quests (POR: the commissions); none: an empty journal
 	OriginalSave               rules1e.SaveLayout   // the game's SAVGAMx.DAT format (the original-save import)

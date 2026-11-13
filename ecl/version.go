@@ -3,7 +3,7 @@
 // and Parse carry it as text, MarkExits and FoldVendorGates add what the
 // frontend needs. The differences between the games' byte code are data: a
 // typed Version, chosen at import; nothing here knows a game.
-package script
+package ecl
 
 // FormatRevision is the text form's revision; a change makes every import stale.
 const FormatRevision = 2

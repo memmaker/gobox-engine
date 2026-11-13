@@ -1,10 +1,10 @@
 package games
 
-import eclscript "gobox/ecl/script"
+import "gobox/ecl"
 
-// scriptFixes are pod's special cases in its decompiler (eclscript.Fix: the
+// scriptFixes are pod's special cases in its decompiler (ecl.Fix: the
 // site exactly once or the import fails).
-var podScriptFixes = []eclscript.Fix{
+var podScriptFixes = []ecl.Fix{
 	// area 1: the developer debug menu "PARTY PLUS WHAT OFFSET? ( >= 750 EXITS ROUTINE)" poked MonsterHit[&Word00C1] (a raw write into bank 0 at offset 1+n, n 0..749).
 	// Why: Felix 2026-11-13: remove the whole debug branch (the "SET ANY PARTY VARIABLES?" question and the poke loop); the routine just returns.
 	{Area: 1, Old: `L_887C:

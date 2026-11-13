@@ -1,8 +1,8 @@
 package games
 
-import eclscript "gobox/ecl/script"
+import "gobox/ecl"
 
-// journalFixes are the import's special cases (eclscript.Fix: the site
+// journalFixes are the import's special cases (ecl.Fix: the site
 // exactly once or the import fails) at each site where the original named
 // an entry of the printed Adventurer's Journal by its number ("AND YOU
 // RECORD IT AS JOURNAL ENTRY", the number often a PRINT of its own after a
@@ -12,7 +12,7 @@ import eclscript "gobox/ecl/script"
 // PRINTs as the text window did; TestJournalSitesNamed checks no reference
 // is left without its Journal. CHANGES: COTAB/SotSB script, journal
 // references.
-var journalFixes = []eclscript.Fix{
+var journalFixes = []ecl.Fix{
 	// area 16: the original printed "... JOURNAL ENTRY " then "37.", a reference to the printed Adventurer's Journal.
 	{Area: 16, Old: `    L_9B39()
     Print("37.")

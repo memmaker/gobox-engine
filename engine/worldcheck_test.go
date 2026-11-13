@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"gobox/rules1e"
 	"testing"
@@ -11,13 +11,13 @@ import (
 // opCheckParty, opPartySurprise) answer as the Pascal's loops over the party.
 func TestWorldChecks(t *testing.T) {
 	e := quickStarted(t)
-	out := [4]script.Ref{}
+	out := [4]ecl.Ref{}
 	for i, n := range []string{"Scratch1", "Scratch2", "Scratch3", "Scratch4"} {
 		out[i] = testField(t, e, n)
 	}
-	v := func(r script.Ref) script.Arg { return script.Arg{Type: 1, Ref: r} }
-	run := func(op func(), args ...script.Arg) {
-		e.vm.Script = &script.Script{Code: []script.Instr{{Args: args}}, Layout: e.vm.Script.Layout}
+	v := func(r ecl.Ref) ecl.Arg { return ecl.Arg{Type: 1, Ref: r} }
+	run := func(op func(), args ...ecl.Arg) {
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: args}}, Layout: e.vm.Script.Layout}
 		e.vm.PC = 0
 		e.vm.Fetch()
 		op()
@@ -34,21 +34,21 @@ func TestWorldChecks(t *testing.T) {
 		t.Errorf("PartyStrength %d, want %d", get(0), want)
 	}
 
-	checkParty := func(what script.Arg) {
-		run(e.opCheckParty, what, script.Arg{N: 19}, v(out[0]), v(out[1]), v(out[2]), v(out[3]))
+	checkParty := func(what ecl.Arg) {
+		run(e.opCheckParty, what, ecl.Arg{N: 19}, v(out[0]), v(out[1]), v(out[2]), v(out[3]))
 	}
-	checkParty(script.Arg{N: 0})
+	checkParty(ecl.Arg{N: 0})
 	if get(3) != 0 {
 		t.Errorf("CheckParty find traps: found %d with no affect", get(3))
 	}
 	e.state().AddAffect(e.state().Party[len(e.state().Party)-1], 0x13, 0, 0, 0)
-	checkParty(script.Arg{N: 0})
+	checkParty(ecl.Arg{N: 0})
 	if get(0) != 0 || get(1) != 0 || get(2) != 0 || get(3) != 1 {
 		t.Errorf("CheckParty find traps: %d %d %d found %d", get(0), get(1), get(2), get(3))
 	}
 	// the fourth result is the count (S-diffs 12): area13's `Scratch1 != 0` branches as found did
 	e.state().AddAffect(e.state().Party[0], 0x13, 0, 0, 0)
-	checkParty(script.Arg{N: 0})
+	checkParty(ecl.Arg{N: 0})
 	if get(3) != 2 {
 		t.Errorf("CheckParty find traps: count %d, want 2", get(3))
 	}
@@ -85,11 +85,11 @@ func TestWorldChecks(t *testing.T) {
 // member's skill fact.
 func TestCheckPartyThiefSkills(t *testing.T) {
 	e := quickStarted(t)
-	out := [4]script.Ref{}
+	out := [4]ecl.Ref{}
 	for i, n := range []string{"Scratch1", "Scratch2", "Scratch3", "Scratch4"} {
 		out[i] = testField(t, e, n)
 	}
-	e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{Type: 1, Ref: testField(t, e, "SelPickPockets")}, {N: 0},
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{Type: 1, Ref: testField(t, e, "SelPickPockets")}, {N: 0},
 		{Type: 1, Ref: out[0]}, {Type: 1, Ref: out[1]}, {Type: 1, Ref: out[2]}, {Type: 1, Ref: out[3]}}}}, Layout: e.vm.Script.Layout}
 	e.vm.PC = 0
 	e.vm.Fetch()

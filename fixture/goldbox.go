@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // RawLayout describes a game's SAVGAMx.DAT byte layout; the game passes it (offsets are data).
@@ -21,7 +21,7 @@ type RawLayout struct {
 	GameSymSet                  int            // in Game: the symbol set byte
 	AreaBlock, AreaGeo          int            // in Area: u16 each
 	AreaWallBlock, AreaWallSlot int            // in Area: 3 u16 each
-	Vars                        *script.Layout // the game's script fields (layout/global.txt): SetVar's names
+	Vars                        *ecl.Layout // the game's script fields (layout/global.txt): SetVar's names
 }
 
 // RawSave edits a SAVGAMA.DAT in place; it is a State.

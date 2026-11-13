@@ -10,7 +10,7 @@ import (
 
 	"gobox/asset/orig"
 	"gobox/audio/sounddata"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/engine"
 	"gobox/importer"
 	"gobox/rules"
@@ -104,7 +104,7 @@ func writeSwitchData(dst string) error {
 	if err := ImportJournal("pod", filepath.Join(dst, engine.JournalDir)); err != nil {
 		return err
 	}
-	return importer.WriteJSON(filepath.Join(dst, "scripts", script.EntriesFile), JournalEntries())
+	return importer.WriteJSON(filepath.Join(dst, "scripts", ecl.EntriesFile), JournalEntries())
 }
 
 // importRules writes GAME.EXE's tables (tables.json, data segment paragraph

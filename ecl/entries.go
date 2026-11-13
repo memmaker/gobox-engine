@@ -1,4 +1,4 @@
-package script
+package ecl
 
 import (
 	"encoding/json"

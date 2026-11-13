@@ -2,7 +2,7 @@ package engine
 
 import (
 	"encoding/json"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,7 +13,7 @@ import (
 // each was equal to its dialect's Known set but 65 and 66, the games' own)
 // runs in pool under that dialect.
 func TestGoldenECLCommands(t *testing.T) {
-	for game, v := range map[string]*script.Version{"sotsb": script.V2, "pod": script.V3, "cotab": script.V2} {
+	for game, v := range map[string]*ecl.Version{"sotsb": ecl.V2, "pod": ecl.V3, "cotab": ecl.V2} {
 		b, err := os.ReadFile(filepath.Join("..", "rules1e", "testdata", game, "eclcommands.golden.json"))
 		if err != nil {
 			t.Fatal(err)
@@ -26,7 +26,7 @@ func TestGoldenECLCommands(t *testing.T) {
 		e.initVM()
 		for _, c := range handled {
 			if e.vm.Ops[c] == nil {
-				t.Errorf("%s: command %d (%s) is dispatched by the game, not by pool", game, c, script.OpName(v.Cmds[c].Op))
+				t.Errorf("%s: command %d (%s) is dispatched by the game, not by pool", game, c, ecl.OpName(v.Cmds[c].Op))
 			}
 		}
 		if e.vm.Args != v.Skip {

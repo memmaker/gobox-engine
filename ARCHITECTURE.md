@@ -370,7 +370,7 @@ Goal: the bug-fixed Pascal (`por-re` branch `bugfixed-rules`, `src/pure`) is the
 - [x] 2. U1 ROB: `EclRob` reads var 3 for the per-item chance
 - [ ] 3. Group C: [x] U2 option, [x] U3 option, [x] U4 kept (whenCast; every listed spell has a combat handler), [ ] U5 Pascal display fix (with viewchar, item 6), [x] U6-U8 rows, [x] U9, [x] U10 (saveimport.go)
 - [ ] 1b. Typed script references (Felix d1-d4): no address ranges in gobox ecl or any game; each gated step builds and passes
-  - [x] a. Layout table format in gobox ecl/script: per dialect, data; field, member-field, array (typed index, bounds), local, const-table, engine fact; unknown address fails import
+  - [x] a. Layout table format in gobox ecl: per dialect, data; field, member-field, array (typed index, bounds), local, const-table, engine fact; unknown address fails import
   - [x] b. (data in por-go c0e080d; coverage test with c) POR layout table from por-re's Pascal record types (TCharRecord, zones, specials)
   - [x] c. Importer: every operand resolved to a typed `Ref`; computed addresses to arrays; code-space tables to const tables; text format names refs
     - [x] `ResolveRefs`, `ConstLayout`, `replaces` (an area field over a game field); por-go `TestLayoutCoversScripts` resolves every patched script; area 9 coins are `SelCoins[i]`; area 26 `RiverState` replaces CouncilMeeting (patch and CHANGES row go with d); $6BF2 stays unmapped (`SelWindowF2`)

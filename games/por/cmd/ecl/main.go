@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"gobox/asset/orig"
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 func main() {
@@ -26,5 +26,5 @@ func main() {
 	if len(b) < 2 {
 		log.Fatalf("ECL%d has no block %d", disk, block)
 	}
-	script.V1.List(b[2:], os.Stdout)
+	ecl.V1.List(b[2:], os.Stdout)
 }

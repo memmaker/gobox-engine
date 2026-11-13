@@ -6,10 +6,10 @@ are handed in.
 
 ## API
 
-- `Layout{Area, Area2, Aux, Code Range}`, `Layout.KindOf(a)` -> `AddrArea|AddrArea2|AddrAux|AddrCode|AddrSpecial`.
+- `AddrLayout{Area, Area2, Aux, Code Range}`, `AddrLayout.KindOf(a)` -> `AddrArea|AddrArea2|AddrAux|AddrCode|AddrSpecial`.
   Both games: Area 19200..20223, Aux 31232..31743, Area2 31744..32767, Code 32768..40447.
 - `Host` (the game implements): `Get(ref)`, `Set(ref, v)`, `Text(ref)`, `SetText(ref, s)`, `Random(n)`, `Exit(vm)`.
-  A `script.Ref` is a field of the running script's layout (`vm.Script.Layout`, set by `script.ResolveRefs`); a variable
+  A `Ref` is a field of the running script's layout (`vm.Script.Layout`, set by `ResolveRefs`); a variable
   operand without one panics (the script was not resolved). Games whose state is still the original's memory map a Ref
   back with `Layout.Address`.
 - `New(host, layout, code) *VM`; `vm.Code` is the script bytes (Code[0] is address Code.First),

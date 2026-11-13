@@ -3,7 +3,7 @@ package games
 import (
 	"errors"
 	"gobox/asset/orig"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -41,13 +41,13 @@ func writeScriptData(dir string) error {
 // ImportScripts decompiles the game's event scripts (ECL*.DAX in dos) into
 // dir, the scripts folder with its names/ and layout/, with POR's special
 // cases (scriptFixes). It is the import path: nothing at run time
-// decompiles (script.Library only reads the texts).
+// decompiles (ecl.Library only reads the texts).
 func ImportScripts(dos, dir string) error {
 	l, err := orig.NewLoader(dos)
 	if err != nil {
 		return err
 	}
-	_, err = script.Import(script.V1, ImportSource(l), os.DirFS(dir), dir, script.FoldGates, porScriptFixes)
+	_, err = ecl.Import(ecl.V1, ImportSource(l), os.DirFS(dir), dir, ecl.FoldGates, porScriptFixes)
 	return err
 }
 
@@ -65,5 +65,5 @@ func ImportIfStale(dos, dir string) error {
 	if err != nil {
 		return err
 	}
-	return script.ImportIfStale(script.V1, ImportSource(l), os.DirFS(dir), dir, script.FoldGates, porScriptFixes)
+	return ecl.ImportIfStale(ecl.V1, ImportSource(l), os.DirFS(dir), dir, ecl.FoldGates, porScriptFixes)
 }
