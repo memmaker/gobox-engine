@@ -43,3 +43,17 @@ func TestGameImports(t *testing.T) {
 		t.Fatal("\n" + strings.Join(bad, "\n"))
 	}
 }
+
+// TestUINotEngine: ui reads games only through this contract, never the pool
+// engine (REFACTOR.md).
+func TestUINotEngine(t *testing.T) {
+	out, err := exec.Command("go", "list", "-test", "-deps", "gobox/ui").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range strings.Fields(string(out)) {
+		if p == "gobox/engine" || strings.HasPrefix(p, "gobox/engine/") {
+			t.Errorf("gobox/ui depends on %s", p)
+		}
+	}
+}
