@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/game"
+	"gobox/rules"
 	"image"
 	"image/color"
 	"strings"
@@ -65,9 +65,9 @@ type SheetPage struct {
 	THAC0              int
 	Damage             string
 	Move               int
-	Saves              [5]int        // extra: the saving throw targets, paralysis, petrification, rod, breath, spell (0: not shown)
-	Mods               [6]int        // extra: the rule set's ability modifiers, STR .. CHA (shown with Rules)
-	Rules              []core.Figure // extra: the rule set's own figures (CombatRules.Sheet; nil: none, and no Mods)
+	Saves              [5]int         // extra: the saving throw targets, paralysis, petrification, rod, breath, spell (0: not shown)
+	Mods               [6]int         // extra: the rule set's ability modifiers, STR .. CHA (shown with Rules)
+	Rules              []rules.Figure // extra: the rule set's own figures (CombatRules.Sheet; nil: none, and no Mods)
 	Status             string
 	Weapon, Armour     string         // extra: the readied weapon and armour ("": none shown; POR shows them on its inventory)
 	Encumbrance, Coins string         // extra: the load carried and the coins held, as the game writes them ("": not shown)
@@ -110,8 +110,8 @@ type Beast struct {
 
 // Sheet is what the character sheet offers besides the page.
 type Sheet struct {
-	Powers    []Power         // Spells, Magic, Heal, Cure
-	Reactions []core.Reaction // extra: the rule set's reactions and the member's policy for each (SetPolicy)
+	Powers    []Power          // Spells, Magic, Heal, Cure
+	Reactions []rules.Reaction // extra: the rule set's reactions and the member's policy for each (SetPolicy)
 }
 
 // Dir is a facing: N, E, S, W.
@@ -237,20 +237,20 @@ type Quest struct {
 
 // Turn is what the acting member may do (the original's combat menu).
 type Turn struct {
-	Unit      int                 // whose turn
-	Can       []TurnVerb          // the actions offered, in the menu's order
-	Spells    []Spell             // what verbCast casts
-	Maneuvers []core.ManeuverCard // extra: what verbManeuver does (the rule set's; empty under the original's)
-	Aim       bool                // aiming: verbAim takes a square, verbPoint previews one, verbClose gives up
-	Casting   string              // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
-	Weapon    *core.ItemCard      // extra: the weapon in hand (its icon on the Attack button), or nil
-	Moves     int                 // squares of move left
+	Unit      int                  // whose turn
+	Can       []TurnVerb           // the actions offered, in the menu's order
+	Spells    []Spell              // what verbCast casts
+	Maneuvers []rules.ManeuverCard // extra: what verbManeuver does (the rule set's; empty under the original's)
+	Aim       bool                 // aiming: verbAim takes a square, verbPoint previews one, verbClose gives up
+	Casting   string               // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
+	Weapon    *rules.ItemCard      // extra: the weapon in hand (its icon on the Attack button), or nil
+	Moves     int                  // squares of move left
 }
 
 // PowerPick is the pick screen: Name chooses What, one of Options (PickPower).
 type PowerPick struct {
 	Name, What string
-	Options    core.ManeuverCards
+	Options    rules.ManeuverCards
 }
 
 // Strike is one weapon attack, for views that show it (the original only
@@ -267,7 +267,7 @@ type DoorOpts struct{ Bash, Pick, Knock bool }
 
 // Battle is the combat map as the remaster's 3D view needs it.
 type Battle struct {
-	Ground    [25][50]core.Square
+	Ground    [25][50]rules.Square
 	Tiles     []image.Image // the tile set by tile number, in combat's colours
 	TilePix   []Picture     // Tiles as the game's pixels in Ink, or DAX refs (File, Block, Frame), the presenter's to make into Tiles
 	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here); used where Icon is nil
@@ -275,23 +275,23 @@ type Battle struct {
 	Floor     color.RGBA    // the ground's colour
 	Dungeon   bool          // tiles 0..DungeonTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
 	Units     []Unit
-	Cursor    image.Point                 // the square the cursor was last drawn on
-	CursorOn  bool                        // the cursor icon is up (aiming, looking)
-	CursorAt  []image.Point               // the squares the cursor covers (a large combatant's footprint)
-	Marks     []image.Point               // squares framed for a choice (reach of a move, an area of effect)
-	Reach     []image.Point               // squares a click walks to from the main menu (the active unit's move)
-	Paths     map[image.Point][]core.Step // the walk to each Reach square, from the unit's own square
-	Targets   []int                       // units (by ID) verbAttack takes on the turn; aiming: the foes Tab cycles through
-	Turn      *Turn                       // the player's turn waits for an action (nil: no one to act for). The game fills it on every player's turn, even one whose only offer is Can: the presenter builds a Turn itself only for an AskSquare or AskMove question (askedBattle), since pace, the bar, the Cast list and the status row all read this one field
-	Panel     int                         // the unit the status row shows (who acts, or is being hit)
-	Log       []string                    // this battle's messages, oldest first
-	Area      bool                        // Marks are a spell's area (else a move's reach or a choice)
-	AreaAt    []image.Point               // the squares a spell's area covers round the aimed square
-	Skipped   []image.Point               // squares of allies in the area the spell passes over (Bless: an enemy next to them)
-	AimWhy    string                      // aiming: why the aimed square cannot be taken ("" when it can); views draw the aim red
-	Effects   []Effect                    // sprites over the map: a missile, a hit, a fall
-	View      image.Point                 // top left square of the scrolled view window the original showed (what the camera follows)
-	Strike    Strike                      // the last weapon attack
+	Cursor    image.Point                  // the square the cursor was last drawn on
+	CursorOn  bool                         // the cursor icon is up (aiming, looking)
+	CursorAt  []image.Point                // the squares the cursor covers (a large combatant's footprint)
+	Marks     []image.Point                // squares framed for a choice (reach of a move, an area of effect)
+	Reach     []image.Point                // squares a click walks to from the main menu (the active unit's move)
+	Paths     map[image.Point][]rules.Step // the walk to each Reach square, from the unit's own square
+	Targets   []int                        // units (by ID) verbAttack takes on the turn; aiming: the foes Tab cycles through
+	Turn      *Turn                        // the player's turn waits for an action (nil: no one to act for). The game fills it on every player's turn, even one whose only offer is Can: the presenter builds a Turn itself only for an AskSquare or AskMove question (askedBattle), since pace, the bar, the Cast list and the status row all read this one field
+	Panel     int                          // the unit the status row shows (who acts, or is being hit)
+	Log       []string                     // this battle's messages, oldest first
+	Area      bool                         // Marks are a spell's area (else a move's reach or a choice)
+	AreaAt    []image.Point                // the squares a spell's area covers round the aimed square
+	Skipped   []image.Point                // squares of allies in the area the spell passes over (Bless: an enemy next to them)
+	AimWhy    string                       // aiming: why the aimed square cannot be taken ("" when it can); views draw the aim red
+	Effects   []Effect                     // sprites over the map: a missile, a hit, a fall
+	View      image.Point                  // top left square of the scrolled view window the original showed (what the camera follows)
+	Strike    Strike                       // the last weapon attack
 }
 
 // Unit is one combatant on the map.
@@ -321,17 +321,17 @@ type Effect struct {
 // Inventory is the inventory screen (ItemsMenu) as the remastered one
 // draws it. Its items' Index is what play's Item names.
 type Inventory struct {
-	Member int              // index into Party
-	Doll   []*core.ItemCard // the readied items by doll slot (the game's slots, nil: empty)
-	Pool   []core.ItemCard  // the party inventory
-	Cap    int              // the party inventory's slots
-	Use    bool             // items can be used here (UseItem)
-	Sell   bool             // a shop buys them (Sell)
-	Switch bool             // partyView shows another member (not in combat)
-	Powers []Power          // what the member can do besides items (the View menu's)
-	Wares  []core.ItemCard  // the shop's goods (Browse; nil elsewhere): Index is what Buy takes, Price what it costs
-	Loot   bool             // Wares are a fight's treasure (the Loot screen): Buy takes one for nothing
-	Gold   int              // the party's money, with Wares
+	Member int               // index into Party
+	Doll   []*rules.ItemCard // the readied items by doll slot (the game's slots, nil: empty)
+	Pool   []rules.ItemCard  // the party inventory
+	Cap    int               // the party inventory's slots
+	Use    bool              // items can be used here (UseItem)
+	Sell   bool              // a shop buys them (Sell)
+	Switch bool              // partyView shows another member (not in combat)
+	Powers []Power           // what the member can do besides items (the View menu's)
+	Wares  []rules.ItemCard  // the shop's goods (Browse; nil elsewhere): Index is what Buy takes, Price what it costs
+	Loot   bool              // Wares are a fight's treasure (the Loot screen): Buy takes one for nothing
+	Gold   int               // the party's money, with Wares
 	Copper int
 	Trade  bool // the menu offers Trade
 	Halve  bool // ... Halve

@@ -2,7 +2,7 @@ package rules1e
 
 import (
 	"errors"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
@@ -48,27 +48,27 @@ func (c *Character) SetPolicy(id int, p Policy) {
 }
 
 // Reactions are the rule set's Reactions c has, if it lists any.
-func (e *RuleState) Reactions(c *Character) []core.Reaction {
+func (e *RuleState) Reactions(c *Character) []rules.Reaction {
 	r, ok := e.Rules().(interface {
-		Reactions(*Character) []core.Reaction
+		Reactions(*Character) []rules.Reaction
 	})
 	if !ok {
 		return nil
 	}
 	rs := r.Reactions(c)
 	for i := range rs {
-		rs[i].Policy = core.Policy(c.Policy(rs[i].ID))
+		rs[i].Policy = rules.Policy(c.Policy(rs[i].ID))
 	}
 	return rs
 }
 
 // setPolicy = SetPolicy for a.Who (core.SetPolicy; Policy counts as core's).
-func (r *Rules) setPolicy(a core.SetPolicy) error {
+func (r *Rules) setPolicy(a rules.SetPolicy) error {
 	c := r.chars[a.Who]
 	if c == nil {
 		return errNoChar
 	}
-	if !slices.ContainsFunc(r.S.Reactions(c), func(x core.Reaction) bool { return x.ID == a.Reaction }) {
+	if !slices.ContainsFunc(r.S.Reactions(c), func(x rules.Reaction) bool { return x.ID == a.Reaction }) {
 		return errors.New("no such reaction")
 	}
 	c.SetPolicy(a.Reaction, Policy(a.Policy))

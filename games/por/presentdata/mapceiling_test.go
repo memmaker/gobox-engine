@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"gobox/dax"
-	"gobox/geo"
+	"gobox/rules"
 
 	"gobox/games/por/presentdata"
 	"gobox/games/por/presentdata/blobberart"
@@ -28,10 +28,10 @@ func TestMapCeilingInside(t *testing.T) {
 		for s := 1; s <= 8 && b == nil; s++ { // the set whose GEO file holds the map (ovr30:10C7 reads the area's set alone)
 			b = l.BlockShared(fmt.Sprintf("GEO%d", s), g)
 		}
-		if len(b) < geo.Size {
+		if len(b) < rules.Size {
 			t.Fatalf("%s: no GEO block %d", name, g)
 		}
-		m, err := geo.ParseMap(b[:geo.Size])
+		m, err := rules.ParseMap(b[:rules.Size])
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -5,7 +5,7 @@ import (
 	"math/rand/v2"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // RoundTrip checks that b decodes and encodes back to itself, blank fields aside.
@@ -19,7 +19,7 @@ func RoundTrip[R Record](t *testing.T, b []byte) {
 
 func TestRecordRoundTrip(t *testing.T) {
 	r := rand.New(rand.NewPCG(1, 2))
-	fill := func(l core.RecordLayout) []byte {
+	fill := func(l rules.RecordLayout) []byte {
 		b := make([]byte, l)
 		for i := range b {
 			b[i] = byte(r.Uint32())

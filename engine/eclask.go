@@ -5,11 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl/script"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // Questions (docs/engine-redesign.md, M4): an instruction or rule that
@@ -81,15 +80,15 @@ type askDone struct {
 	kind doneKind
 	dst  script.Ref
 	r    [5]byte
-	who  core.CharID
+	who  rules.CharID
 }
 
 // ansv is the answer: a menu place or index, a line, a member.
 type ansv struct {
 	n    int
 	s    string
-	who  core.CharID // NoChar: none
-	list []*ListNode // a list's nodes
+	who  rules.CharID // NoChar: none
+	list []*ListNode  // a list's nodes
 }
 
 // choosing: a member pick waits (the roster highlights its candidate).
@@ -147,7 +146,7 @@ func (e *Engine) answer(r play.Action) {
 	}
 	e.complete(w.done, v)
 	if w.member {
-		e.rosterHi, e.rosterNone = core.NoChar, false
+		e.rosterHi, e.rosterNone = rules.NoChar, false
 	}
 	switch n := e.eclWait; {
 	case n == w:
@@ -184,13 +183,13 @@ func (e *Engine) leaveAsk(q *play.Question) error {
 	var r play.Action
 	switch {
 	case e.choosing(), q.YesNo, q.NoEsc:
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	case q.Typed, q.Number:
 		r = play.Reply{}
 	case q.Continue, e.eclWait.enter:
 		r = play.Continue{}
 	default:
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.answer(r)
 	return nil
@@ -293,17 +292,17 @@ func (e *Engine) askNumber(d askDone) { e.askLine(6, true, d) }
 // askMember asks for a party member (SelectCharacter without Exit),
 // starting at who; the candidate is the selected member as it steps (the
 // var of opWho is the selection itself). With no party d completes at once.
-func (e *Engine) askMember(prompt string, whoID core.CharID, d askDone) {
+func (e *Engine) askMember(prompt string, whoID rules.CharID, d askDone) {
 	ids := e.partyIDs()
 	if len(ids) == 0 {
 		e.complete(d, ansv{})
 		return
 	}
-	if whoID == core.NoChar {
+	if whoID == rules.NoChar {
 		whoID = ids[0]
 	}
 	e.rosterHi, e.rosterNone = whoID, false
-	q := &play.Question{Text: strings.TrimSpace(goldbox.Cut(prompt, textCols) + " "), List: true}
+	q := &play.Question{Text: strings.TrimSpace(rules.Cut(prompt, textCols) + " "), List: true}
 	for _, id := range ids {
 		q.Replies = append(q.Replies, e.ruleset().Sheet(id).Name)
 	}
@@ -414,7 +413,7 @@ func (e *Engine) complete(d askDone, v ansv) {
 		}
 	case dWho:
 		who := v.who
-		if who == core.NoChar { // Esc then Enter stores nil; the harness pins it to the op's start
+		if who == rules.NoChar { // Esc then Enter stores nil; the harness pins it to the op's start
 			who = d.who
 		}
 		e.selectChar(who)

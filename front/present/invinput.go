@@ -3,11 +3,11 @@
 package present
 
 import (
-	"gobox/core"
 	"gobox/front"
 	"gobox/game"
 	"gobox/gpu"
 	"gobox/input"
+	"gobox/rules"
 	"gobox/ui"
 	"image"
 	"slices"
@@ -34,7 +34,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		if len(order) == 0 {
 			return
 		}
-		i := slices.Index(order, pick{inv.ware != core.NoItem, max(inv.ware, inv.sel)})
+		i := slices.Index(order, pick{inv.ware != rules.NoItem, max(inv.ware, inv.sel)})
 		if i < 0 && d < 0 {
 			i = 0
 		}
@@ -55,7 +55,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		inv.do(front.ActSheet)
 	case a == input.Minimap: // the shop and the loot: the next tab of the highlighted item's list
 		pn := &inv.list
-		if inv.ware != core.NoItem {
+		if inv.ware != rules.NoItem {
 			pn = &inv.wares
 		}
 		pn.tab, pn.top = (pn.tab+1)%len(tabNames), 0
@@ -76,7 +76,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		inv.choose(order[len(order)-1].ware, order[len(order)-1].i)
 	case (a == input.PgUp || a == input.PgDn) && len(order) > 0: // PgUp/PgDn, the pad's shoulders: a page of the highlighted pane
 		pn := &inv.list
-		if inv.ware != core.NoItem {
+		if inv.ware != rules.NoItem {
 			pn = &inv.wares
 		}
 		sign := 1
@@ -84,7 +84,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 			sign = -1
 		}
 		d := sign * max(1, pn.rows)
-		i := max(0, slices.Index(order, pick{inv.ware != core.NoItem, max(inv.ware, inv.sel)}))
+		i := max(0, slices.Index(order, pick{inv.ware != rules.NoItem, max(inv.ware, inv.sel)}))
 		j := min(max(i+d, 0), len(order)-1)
 		for order[j].ware != order[i].ware { // within the pane
 			j -= sign
@@ -94,7 +94,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		if w := inv.words[inv.focus-1]; w.on {
 			inv.do(w.act)
 		}
-	case a == input.Enter && inv.ware != core.NoItem:
+	case a == input.Enter && inv.ware != rules.NoItem:
 		inv.do(front.ActBuy)
 	case a == input.Enter && inv.up.kind != invOwn && inv.up.sell:
 		inv.do(front.ActSell)
@@ -119,7 +119,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 // pick is an item on the inventory screen: a ware of the shop or the member's.
 type pick struct {
 	ware bool
-	i    core.ItemHandle
+	i    rules.ItemHandle
 }
 
 // order is the items as the screen shows them: the goods or the doll, then the list.

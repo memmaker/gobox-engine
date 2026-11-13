@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestGoldenSpellsSotsb: rules1e's SpellEffect on the spells sotsb has first
@@ -83,7 +83,7 @@ func TestGoldenSpellsSotsb(t *testing.T) {
 			got.Chars = append(got.Chars, cc)
 		}
 		for _, f := range e.Fx {
-			if n, ok := f.(core.Narrated); ok {
+			if n, ok := f.(rules.Narrated); ok {
 				got.Msgs = append(got.Msgs, strings.TrimSpace(n.Text))
 			}
 		}

@@ -15,10 +15,9 @@ import (
 	"flag"
 	"fmt"
 	"gobox/asset"
-	"gobox/core/goldbox"
 	"gobox/dax"
 	"gobox/ega"
-	"gobox/geo"
+	"gobox/rules"
 	"image"
 	"image/color"
 	"log"
@@ -65,7 +64,7 @@ func blockOf(m mapKey, n int) (int, int) {
 
 // view holds what Draw3dWorld reads.
 type view struct {
-	m     *geo.Map
+	m     *rules.Map
 	walls [16][]byte        // wall value -> its 0x9C symbol ids, relocated as LoadWalldef does
 	sets  [16][4]*dax.Image // wall value -> symbol sets 0..3 (VGA: one image, raw ids)
 	raw   [16][]byte        // unrelocated ids (VGA lookups)
@@ -89,7 +88,7 @@ func pic(l *dax.Loader, name string, id int) *dax.Image {
 
 func load(l *dax.Loader, m mapKey) (*view, error) {
 	gb := l.BlockShared(fmt.Sprintf("GEO%d", m.disk), m.geo)
-	gm, err := geo.ParseMap(gb)
+	gm, err := rules.ParseMap(gb)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +101,7 @@ func load(l *dax.Loader, m mapKey) (*view, error) {
 			continue
 		}
 		wb := l.BlockShared(wname, blk)
-		wd, err := geo.ParseWalldef(wb)
+		wd, err := rules.ParseWalldef(wb)
 		if err != nil || chunk > len(wd.Sets) {
 			continue
 		}
@@ -111,7 +110,7 @@ func load(l *dax.Loader, m mapKey) (*view, error) {
 		delta := symFix[slot-(chunk-1)] - symFix[1] // the block went into slot slot-(chunk-1)
 		rel := append([]byte(nil), raw...)
 		for i, id := range rel {
-			if id >= geo.SymWallBase {
+			if id >= rules.SymWallBase {
 				rel[i] = id + byte(delta)
 			}
 		}
@@ -126,7 +125,7 @@ func load(l *dax.Loader, m mapKey) (*view, error) {
 			if s > 3 {
 				break
 			}
-			v.sets[n][s] = pic(l, sname, geo.SymbolBlock(blk, k, len(wd.Sets)))
+			v.sets[n][s] = pic(l, sname, rules.SymbolBlock(blk, k, len(wd.Sets)))
 		}
 	}
 	return v, nil
@@ -210,7 +209,7 @@ func (v *view) draw(dir, px, py int) {
 				tx, ty, col, prev := x, y, 0, 0
 				for range 4 {
 					w := v.wall(dir, tx, ty)
-					if !goldbox.OnMap(tx, ty) && v.wall(side.other, tx, ty) == 0 {
+					if !rules.OnMap(tx, ty) && v.wall(side.other, tx, ty) == 0 {
 						prev = 0
 					}
 					if w != 0 {

@@ -5,10 +5,9 @@ import (
 	"image"
 	"slices"
 
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // A question a play action asks before it is taken (a fight's Flee? or
@@ -45,8 +44,8 @@ type pendingCall struct {
 	kind                  callKind
 	acts                  []TurnAct // callTurn
 	member, spell, target int
-	item                  core.ItemHandle
-	class                 core.Class // callClass
+	item                  rules.ItemHandle
+	class                 rules.Class // callClass
 	power                 game.PowerKind
 	sure                  bool
 	choice                int32 // callCastChoice: the reply's index
@@ -146,10 +145,10 @@ func (e *Engine) askTarget(text string, p pendingCall) error {
 }
 
 // askClass asks member n's new class among the rules' offers (NewClass, "Pick New Class:").
-func (e *Engine) askClass(offers []core.Offer, n int) error {
+func (e *Engine) askClass(offers []rules.Offer, n int) error {
 	pq := &playQuestion{q: play.Question{Text: "Pick New Class:"}}
 	for _, o := range offers {
-		pq.q.Replies, pq.calls = append(pq.q.Replies, o.Name), append(pq.calls, pendingCall{kind: callClass, member: n, class: o.Action.(core.ChangeClass).To})
+		pq.q.Replies, pq.calls = append(pq.q.Replies, o.Name), append(pq.calls, pendingCall{kind: callClass, member: n, class: o.Action.(rules.ChangeClass).To})
 	}
 	e.ext.pq = pq
 	return errAsked
@@ -159,7 +158,7 @@ func (e *Engine) askClass(offers []core.Offer, n int) error {
 // a question the turn asks becomes the pending one, its Yes the rest sure.
 func (e *Engine) turnActs(as []TurnAct, sure bool) error {
 	if !e.battleUp() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	for i, x := range as {
 		if err := e.TurnChoice(x, sure && i == 0); err != nil {
@@ -222,13 +221,13 @@ func (e *Engine) withItems(n int, f func() error) error {
 // flees, into a foe attacks it, into an ally aims at it (which asks
 // Attack Ally?, BUG-CLASSES 41), as moveAttack's (ovr09:09DF).
 func (e *Engine) moveActs(to image.Point, reach []game.Reach) ([]TurnAct, error) {
-	if c := e.cs.actor; c != core.NoChar && e.battleUp() {
-		at := e.fact(c, core.AtFact{}).(core.BoardPos)
+	if c := e.cs.actor; c != rules.NoChar && e.battleUp() {
+		at := e.fact(c, rules.AtFact{}).(rules.BoardPos)
 		for dir := 0; dir < 8; dir++ {
-			if to != image.Pt(at.X+goldbox.StepX[dir], at.Y+goldbox.StepY[dir]) {
+			if to != image.Pt(at.X+rules.StepX[dir], at.Y+rules.StepY[dir]) {
 				continue
 			}
-			st := e.fact(c, core.StepFact{Dir: dir}).(core.StepInfo)
+			st := e.fact(c, rules.StepFact{Dir: dir}).(rules.StepInfo)
 			switch {
 			case st.Unit == 0 && st.Ground == 0:
 				return []TurnAct{{Verb: VerbFlee}}, nil

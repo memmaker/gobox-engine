@@ -1,8 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // DevPlace sets the fight up for a live check before its first turn (a
@@ -10,31 +9,31 @@ import (
 // next to each member (moving the member first when it is boxed in), else
 // each member goes to the nearest free square beside the map's edge.
 func (e *RuleState) DevPlace(melee bool) {
-	free := func(p core.BoardPos) bool {
+	free := func(p rules.BoardPos) bool {
 		o, g := e.MapAt(p.X, p.Y)
 		return o == 0 && g > 0 && e.GroundInfo(g)[0] < 0xFF
 	}
-	near := func(p core.BoardPos, ok func(core.BoardPos) bool) (core.BoardPos, bool) {
+	near := func(p rules.BoardPos, ok func(rules.BoardPos) bool) (rules.BoardPos, bool) {
 		best, bd := p, 1<<30
 		for y := 0; y < 25; y++ {
 			for x := 0; x < 50; x++ {
-				q := core.BoardPos{X: x, Y: y}
-				if d := max(goldbox.Abs(x-p.X), goldbox.Abs(y-p.Y)); d < bd && ok(q) {
+				q := rules.BoardPos{X: x, Y: y}
+				if d := max(rules.Abs(x-p.X), rules.Abs(y-p.Y)); d < bd && ok(q) {
 					best, bd = q, d
 				}
 			}
 		}
 		return best, bd < 1<<30
 	}
-	beside := func(p core.BoardPos, ok func(core.BoardPos) bool) (core.BoardPos, bool) {
+	beside := func(p rules.BoardPos, ok func(rules.BoardPos) bool) (rules.BoardPos, bool) {
 		for dir := 0; dir < 8; dir++ {
-			if q := p.Add(core.BoardPos{X: DirDX[dir], Y: DirDY[dir]}); ok(q) {
+			if q := p.Add(rules.BoardPos{X: DirDX[dir], Y: DirDY[dir]}); ok(q) {
 				return q, true
 			}
 		}
 		return p, false
 	}
-	put := func(i int, p core.BoardPos) {
+	put := func(i int, p rules.BoardPos) {
 		e.Cpos[i].X, e.Cpos[i].Y = byte(p.X), byte(p.Y)
 		e.CombatRedrawMap()
 	}
@@ -44,16 +43,16 @@ func (e *RuleState) DevPlace(melee bool) {
 			foes = append(foes, i)
 		}
 	}
-	offMap := func(p core.BoardPos) bool { _, g := e.MapAt(p.X, p.Y); return g == 0 }
+	offMap := func(p rules.BoardPos) bool { _, g := e.MapAt(p.X, p.Y); return g == 0 }
 	for _, c := range e.Party {
 		m := e.CombatIndex(c)
 		if m == 0 {
 			continue
 		}
-		at := core.BoardPos{X: int(e.Cpos[m].X), Y: int(e.Cpos[m].Y)}
+		at := rules.BoardPos{X: int(e.Cpos[m].X), Y: int(e.Cpos[m].Y)}
 		if !melee {
 			if _, ok := beside(at, offMap); !ok {
-				if q, ok := near(at, func(q core.BoardPos) bool { _, ok := beside(q, offMap); return ok && free(q) }); ok {
+				if q, ok := near(at, func(q rules.BoardPos) bool { _, ok := beside(q, offMap); return ok && free(q) }); ok {
 					put(m, q)
 				}
 			}
@@ -63,7 +62,7 @@ func (e *RuleState) DevPlace(melee bool) {
 			return
 		}
 		if _, ok := beside(at, free); !ok {
-			q, ok := near(at, func(q core.BoardPos) bool { _, ok := beside(q, free); return ok && free(q) })
+			q, ok := near(at, func(q rules.BoardPos) bool { _, ok := beside(q, free); return ok && free(q) })
 			if !ok {
 				continue
 			}

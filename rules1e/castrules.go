@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core/goldbox"
+import "gobox/rules"
 
 // OldLevelRule: how a dual-classed human's old class levels count toward
 // the level a spell is cast at, while the earlier class is active.
@@ -138,7 +138,7 @@ var (
 // time, data, call, saveMode, saved, message): the affect unless blocked
 // or negated by the save; one already there is replaced when the new one lasts longer or for good, else kept (no stacking).
 func (e *RuleState) AddAffectMsg(c *Character, typ AffectType, time int, data, call, saveMode byte, saved bool, msg string) {
-	msg = goldbox.Cut(msg, msgMax)
+	msg = rules.Cut(msg, msgMax)
 	e.Rv.AffVal = typ
 	e.AffectGroup(c, grpAddAffect)
 	if e.Rv.AffVal == 0 || saved && saveMode == saveNegate {

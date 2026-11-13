@@ -1,15 +1,15 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 )
 
 // PoolIDs are gobox's opaque shared-pool picks for a character: the game only
 // stores them and states them back (Member.PortraitHeadID, PortraitBodyID,
 // IconHeadID, IconBodyID); "" is none.
 type PoolIDs struct {
-	PortraitHeadID, PortraitBodyID, IconHeadID, IconBodyID core.PicID
-	Roster                                                 core.RosterID // the roster character's own number ("rosterid"; NoRoster: none yet)
+	PortraitHeadID, PortraitBodyID, IconHeadID, IconBodyID rules.PicID
+	Roster                                                 rules.RosterID // the roster character's own number ("rosterid"; NoRoster: none yet)
 }
 
 // PoolMagic opens the Go-side trailer after the original record bytes of a
@@ -25,18 +25,18 @@ const RosterKey = "rosterid" // the trailer's RosterID, decimal
 
 var PoolKeys = []string{"portraithead", "portraitbody", "iconhead", "iconbody"} // the write order
 
-func (p *PoolIDs) Fields() map[string]*core.PicID {
-	return map[string]*core.PicID{"portraithead": &p.PortraitHeadID, "portraitbody": &p.PortraitBodyID, "iconhead": &p.IconHeadID, "iconbody": &p.IconBodyID}
+func (p *PoolIDs) Fields() map[string]*rules.PicID {
+	return map[string]*rules.PicID{"portraithead": &p.PortraitHeadID, "portraitbody": &p.PortraitBodyID, "iconhead": &p.IconHeadID, "iconbody": &p.IconBodyID}
 }
 
 // SetPoolID stores id as c's pool id of the field (a poolKeys name).
-func (c *Character) SetPoolID(field string, id core.PicID) {
+func (c *Character) SetPoolID(field string, id rules.PicID) {
 	if dst := c.PoolIDs.Fields()[field]; dst != nil {
 		*dst = id
 	}
 }
 
 // pic is the pool id of pick k.
-func (p *PoolIDs) pic(k core.PoolPic) *core.PicID {
-	return [...]*core.PicID{core.PoolPortraitHead: &p.PortraitHeadID, core.PoolPortraitBody: &p.PortraitBodyID, core.PoolIconHead: &p.IconHeadID, core.PoolIconBody: &p.IconBodyID}[k]
+func (p *PoolIDs) pic(k rules.PoolPic) *rules.PicID {
+	return [...]*rules.PicID{rules.PoolPortraitHead: &p.PortraitHeadID, rules.PoolPortraitBody: &p.PortraitBodyID, rules.PoolIconHead: &p.IconHeadID, rules.PoolIconBody: &p.IconBodyID}[k]
 }

@@ -1,8 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // RuleState is the rules' state, the Go counterpart of the pure Pascal's
@@ -19,7 +18,7 @@ type RuleState struct {
 	Pool                            []*Item                       // extra: the party inventory (pool.go)
 	Who                             int                           // DS:5D92 the acting character: set per call from the caller's argument (Engine.as) or by the fight's turn
 	Items                           []ItemBase                    // DS:5582: base item records by type
-	Fx                              []core.Effect                 // what the rules showed, not yet presented (present.go)
+	Fx                              []rules.Effect                // what the rules showed, not yet presented (present.go)
 	Loot                            Purse                         // DS:67F4 money found, taken after the fight
 	UsingItem                       bool                          // DS:6DBF
 	UsedScroll                      *Item                         // DS:6B80
@@ -84,11 +83,11 @@ type Board struct {
 
 // Dice = ovr25:0DE3 Dice(n, sides): sum of n rolls of 1..sides, kept in a
 // byte like the original (wraps at 256).
-func (e *RuleState) Dice(n, sides int) int { return goldbox.DiceSum(e, n, sides) }
+func (e *RuleState) Dice(n, sides int) int { return rules.DiceSum(e, n, sides) }
 
 // Random = Turbo Pascal Random(n) (0AF8:11C0): RandSeed = RandSeed*0x08088405+1,
 // then the high word mod n. The seed advances even for n = 0, which returns 0.
-func (e *RuleState) Random(n int) int { return goldbox.Random(&e.RandSeed, n) }
+func (e *RuleState) Random(n int) int { return rules.Random(&e.RandSeed, n) }
 
 // MaxCombatants is the size of the original's combatant tables; tables
 // indexed by combatant number (1-based) have one entry more.
@@ -96,4 +95,4 @@ const MaxCombatants = 0x48
 
 // ErrNotNow is the refusal of a rule call the game does not allow now:
 // core.ErrNotNow, so the Engine tests it through core.
-var ErrNotNow = core.ErrNotNow
+var ErrNotNow = rules.ErrNotNow

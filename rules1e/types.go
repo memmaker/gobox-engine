@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 )
 
 // Types the rules fill and the game package does not have: rules-local
@@ -18,10 +18,10 @@ type BookSpell struct {
 }
 
 // Slots is the save slot screen (core's).
-type Slots = core.Slots
+type Slots = rules.Slots
 
 // Stat is one of a rule set's figures on the sheet (game.Stat).
-type Stat = core.Figure
+type Stat = rules.Figure
 
 // The creation's fields (SetField).
 const (
@@ -42,7 +42,7 @@ const (
 )
 
 // Step is one square of a walk; Free: leaving it lets an enemy take a free attack.
-type Step = core.Step
+type Step = rules.Step
 
 // Maneuver is one of the bar's Maneuver list.
 type Maneuver struct {
@@ -56,7 +56,7 @@ type Maneuver struct {
 }
 
 // Square is one map square.
-type Square = core.Square
+type Square = rules.Square
 
 // Aim is what a maneuver aims at.
 type Aim int

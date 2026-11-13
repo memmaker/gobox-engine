@@ -3,7 +3,7 @@ package rules1e
 import (
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestGameSpellIDs: each game's map covers every number of its spell table
@@ -35,7 +35,7 @@ func TestGameSpellIDs(t *testing.T) {
 
 // TestRaceMap: SotSB's race numbers (0: its placeholder row) come back.
 func TestRaceMap(t *testing.T) {
-	tb := Tables{Races: []core.Race{"", CoreRaceElf, CoreRaceHalfElf, CoreRaceDwarf, CoreRaceGnome, CoreRaceHalfling, CoreRaceHuman, CoreRaceMonster}}
+	tb := Tables{Races: []rules.Race{"", CoreRaceElf, CoreRaceHalfElf, CoreRaceDwarf, CoreRaceGnome, CoreRaceHalfling, CoreRaceHuman, CoreRaceMonster}}
 	for n := RaceID(1); n < 8; n++ {
 		id, err := tb.raceID(n)
 		if err != nil {

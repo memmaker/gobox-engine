@@ -1,11 +1,10 @@
 package engine
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/game/play"
-	"image"
+	"gobox/rules"
 	"gobox/rules1e"
+	"image"
 	"testing"
 )
 
@@ -25,7 +24,7 @@ func TestDepartureAtWalls(t *testing.T) {
 func TestDepartureAtWallsCOTAB(t *testing.T) {
 	e := quickStartedOn(t, advEngine(t, advEnvCOTAB))
 	n := 0
-	for s := goldbox.Set(1); s <= sets; s++ {
+	for s := rules.Set(1); s <= sets; s++ {
 		for id := range 256 {
 			if len(e.gdata().geoBlock(s.File("GEO"), id)) < geoSize {
 				continue
@@ -60,7 +59,7 @@ func departureAtWalls(t *testing.T, e *Engine) {
 		}
 	}
 	if n == 0 {
-		t.Fatalf("no walls in geo %d", e.worldWord(core.WordGeo))
+		t.Fatalf("no walls in geo %d", e.worldWord(rules.WordGeo))
 	}
 }
 

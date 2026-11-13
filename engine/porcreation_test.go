@@ -2,13 +2,13 @@ package engine
 
 import (
 	"errors"
-	"reflect"
 	"gobox/rules1e"
+	"reflect"
 	"slices"
 	"testing"
 
 	"gobox/char"
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestPorCreation: the gobox flow over porCreation draws the dice
@@ -17,7 +17,7 @@ import (
 func TestPorCreation(t *testing.T) {
 	e := testEngine(t)
 	p := e.r1e().Creation()
-	same := func(what string, want *rules1e.Character, d core.Draft) {
+	same := func(what string, want *rules1e.Character, d rules.Draft) {
 		t.Helper()
 		got := p.CharOf(d)
 		if !reflect.DeepEqual(char.SheetBytes(got.Sheet), char.SheetBytes(want.Sheet)) || !reflect.DeepEqual(got.Powers, want.Powers) {
@@ -30,7 +30,7 @@ func TestPorCreation(t *testing.T) {
 	e.state().RollCharacter(old)
 	after := e.state().RandSeed
 
-	r := &core.RNG{State: seed}
+	r := &rules.RNG{State: seed}
 	d, err := NewDraft(p, r)
 	if err != nil {
 		t.Fatal(err)
@@ -51,14 +51,14 @@ func TestPorCreation(t *testing.T) {
 	if r.State != e.state().RandSeed {
 		t.Fatal("SetField drew differently")
 	}
-	if err := d.SetScore(core.Intelligence, "17"); err != nil {
+	if err := d.SetScore(rules.Intelligence, "17"); err != nil {
 		t.Fatal(err)
 	}
-	if d.D.Sheet.Scores[core.Intelligence] != 17 {
-		t.Fatalf("int %d", d.D.Sheet.Scores[core.Intelligence])
+	if d.D.Sheet.Scores[rules.Intelligence] != 17 {
+		t.Fatalf("int %d", d.D.Sheet.Scores[rules.Intelligence])
 	}
-	d.Roll(core.RollFull)
-	same("rolled", p.CharOf(d.D), p.DraftOf(p.CharOf(d.D), core.NoChar))
+	d.Roll(rules.RollFull)
+	same("rolled", p.CharOf(d.D), p.DraftOf(p.CharOf(d.D), rules.NoChar))
 }
 
 // TestSetScoreBaseline pins c70cbee's setStatTyped and rollMinimal: a typed
@@ -68,22 +68,22 @@ func TestPorCreation(t *testing.T) {
 func TestSetScoreBaseline(t *testing.T) {
 	e := testEngine(t)
 	p := e.r1e().Creation()
-	d, err := NewDraft(p, &core.RNG{State: 7})
+	d, err := NewDraft(p, &rules.RNG{State: 7})
 	if err != nil {
 		t.Fatal(err)
 	}
 	c := p.CharOf(d.D)
-	if err := d.SetScore(core.Constitution, "25"); err != nil || d.D.Sheet.Scores[core.Constitution] != int32(rules1e.LimitStat(c, rules1e.StatCon, 25)) {
-		t.Errorf("25 not clamped: %v %d", err, d.D.Sheet.Scores[core.Constitution])
+	if err := d.SetScore(rules.Constitution, "25"); err != nil || d.D.Sheet.Scores[rules.Constitution] != int32(rules1e.LimitStat(c, rules1e.StatCon, 25)) {
+		t.Errorf("25 not clamped: %v %d", err, d.D.Sheet.Scores[rules.Constitution])
 	}
-	if err := d.SetScore(core.Strength, "18/5"); err != nil || d.D.Sheet.Scores[core.Strength] != 18 || d.D.Sheet.Scores[core.StrengthPercent] != 5 {
+	if err := d.SetScore(rules.Strength, "18/5"); err != nil || d.D.Sheet.Scores[rules.Strength] != 18 || d.D.Sheet.Scores[rules.StrengthPercent] != 5 {
 		t.Errorf("18/5: %v %v", err, d.D.Sheet.Scores)
 	}
-	if !errors.Is(d.SetScore(core.Strength, "x"), ErrScore) || d.D.Sheet.Scores[core.StrengthPercent] != 5 {
+	if !errors.Is(d.SetScore(rules.Strength, "x"), ErrScore) || d.D.Sheet.Scores[rules.StrengthPercent] != 5 {
 		t.Error("no score changed it")
 	}
 	d.SetField(rules1e.FieldClass, slices.Index(rules1e.PickClasses(), rules1e.ClsMage))
-	if err := d.SetScore(core.Strength, "18/50"); err != nil || d.D.Sheet.Scores[core.StrengthPercent] != 0 {
+	if err := d.SetScore(rules.Strength, "18/50"); err != nil || d.D.Sheet.Scores[rules.StrengthPercent] != 0 {
 		t.Errorf("mage 18/50: %v %v", err, d.D.Sheet.Scores)
 	}
 	if got := rules1e.MinimumError(0, 1850, 1800, 0).Error(); got != "STR 18/xx is for fighters only, max 18" {

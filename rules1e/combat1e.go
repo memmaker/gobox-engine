@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core"
+import "gobox/rules"
 
 // naturalAttackMax counts as 100, so that a 20 always reaches its need.
 const naturalAttackMax = 100
@@ -8,7 +8,7 @@ const naturalAttackMax = 100
 // AttackDie is the die of FxEngine.AttackRoll and AttackRollNoAttacker: d20, a
 // natural 20 counting 100. The effects a roll triggers then change it, by the
 // caller, before AttackHits or TrapHits judges it.
-func AttackDie(rng *core.RNG) int {
+func AttackDie(rng *rules.RNG) int {
 	roll := RollDice(rng, 1, 20)
 	if roll == 20 {
 		return naturalAttackMax

@@ -1,10 +1,10 @@
 package rules1e
 
-import "gobox/core"
+import "gobox/rules"
 
 // dungeonMap = ovr11:0810: every cell within 6 east-west and 2 north-south
 // of the party becomes a 6x5 block of tiles, rows skewed 5 squares.
-func (r *Rules) dungeonMap(g core.BuildGround) {
+func (r *Rules) dungeonMap(g rules.BuildGround) {
 	if r.straight {
 		r.dungeonMapFlat(g)
 		return
@@ -150,7 +150,7 @@ func (r *Rules) dungeonMap(g core.BuildGround) {
 }
 
 // floorClutter = ovr11:0000: now and then something lies on open ground.
-func (r *Rules) floorClutter(g core.BuildGround) {
+func (r *Rules) floorClutter(g rules.BuildGround) {
 	cl := r.S.T().Gen.Clutter
 	if cl == nil {
 		return
@@ -180,7 +180,7 @@ func (r *Rules) floorClutter(g core.BuildGround) {
 }
 
 // dungeonMapFlat is dungeonMap without the skew.
-func (r *Rules) dungeonMapFlat(g core.BuildGround) {
+func (r *Rules) dungeonMapFlat(g rules.BuildGround) {
 	for dr := -2; dr <= 2; dr++ {
 		for c := -4; c <= 4; c++ {
 			x, y := r.S.PosX+c, r.S.PosY+dr
@@ -251,7 +251,7 @@ func (r *Rules) openAt(w *WildGen, x, y int) bool {
 }
 
 // wildMap = ovr11:11B4: the grass, then the game's passes in order.
-func (r *Rules) wildMap(g core.BuildGround) {
+func (r *Rules) wildMap(g rules.BuildGround) {
 	w := r.S.T().Gen.Wild
 	if w == nil {
 		return
@@ -280,11 +280,11 @@ func (r *Rules) wildMap(g core.BuildGround) {
 }
 
 // WildRoad = ovr11:0BDE: POR's strip with no engine terms.
-func (r *Rules) WildRoad() { r.strip(r.S.T().Gen.Wild.Strip, core.BuildGround{}) }
+func (r *Rules) WildRoad() { r.strip(r.S.T().Gen.Wild.Strip, rules.BuildGround{}) }
 
 // strip lays the road, cliff or river down the map: it starts at a column
 // 34 - 5d4, moved west to one of the table's, and leans one column east a row.
-func (r *Rules) strip(sg *StripGen, g core.BuildGround) {
+func (r *Rules) strip(sg *StripGen, g rules.BuildGround) {
 	if sg == nil {
 		return
 	}
@@ -610,7 +610,7 @@ var rubbleSpread = [4][2]int{{0, -1}, {1, 0}, {0, 1}, {-1, 0}}
 
 // buildGround = combatMapSetup's map half (ovr11:1244): a fresh combat map,
 // the dungeon's walls or the wilderness' terrain, then clutter.
-func (r *Rules) buildGround(g core.BuildGround) {
+func (r *Rules) buildGround(g rules.BuildGround) {
 	r.S.Cmap = &CombatMap{}
 	r.S.Dungeon = g.Dungeon
 	if g.Dungeon {

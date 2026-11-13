@@ -3,7 +3,7 @@ package engine
 import (
 	"encoding/json"
 	"fmt"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"os"
 )
 
@@ -19,7 +19,7 @@ const gameFile = "GAME.JSON"
 
 // gameSave is the canonical save.
 type gameSave struct {
-	Set                      goldbox.Set
+	Set                      rules.Set
 	Rules                    json.RawMessage // the ruleset's part (the ruleset's Save)
 	Fields                   fieldCells      // the game's fields, by name
 	Locals                   fieldCells      // the running area's locals, by name

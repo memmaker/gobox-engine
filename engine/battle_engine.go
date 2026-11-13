@@ -5,13 +5,13 @@ import (
 	"slices"
 
 	"gobox/asset"
-	"gobox/core"
 	"gobox/ega"
+	"gobox/rules"
 )
 
 // battleShown: the combat map is up (battle builds it).
 func (e *Engine) battleShown() bool {
-	return e.worldWord(core.WordBeginFlag) == 5 && e.sqrpaci[0] != nil && e.ruleset().Check(core.BoardUp{}, nil).Yes && e.snap.cmapOn && !e.snap.sheetOn
+	return e.worldWord(rules.WordBeginFlag) == 5 && e.sqrpaci[0] != nil && e.ruleset().Check(rules.BoardUp{}, nil).Yes && e.snap.cmapOn && !e.snap.sheetOn
 }
 
 // battle builds the snapshot's Battle (nil outside combat).
@@ -26,7 +26,7 @@ func (e *Engine) battle() *Battle {
 		Marks: s.marks, Reach: s.reach, Paths: s.paths, Targets: s.targets, Turn: s.turn, Area: e.ext.aoe != 0, AreaAt: s.area, Skipped: s.skipped, AimWhy: s.aimWhy, Dungeon: s.dungeon, View: e.cview,
 		Strike: s.strike, Log: slices.Clone(e.ext.battleLog[max(0, len(e.ext.battleLog)-100):]),
 	}
-	g := e.fact(core.NoChar, core.GroundFact{}).(core.Ground)
+	g := e.fact(rules.NoChar, rules.GroundFact{}).(rules.Ground)
 	for _, d := range g.Footprints[e.ccursor.size] {
 		b.CursorAt = append(b.CursorAt, s.cursor.Add(image.Pt(d.X, d.Y)))
 	}
@@ -39,11 +39,11 @@ func (e *Engine) battle() *Battle {
 			b.TilePix[t*0x80+f] = e.tilePix(im, f, int(ground))
 		}
 	}
-	active := core.NoChar
+	active := rules.NoChar
 	if e.sel < e.partySize() {
 		active = e.partyIDs()[e.sel]
 	}
-	for _, p := range e.fact(core.NoChar, core.UnitsFact{}).(core.Units) {
+	for _, p := range e.fact(rules.NoChar, rules.UnitsFact{}).(rules.Units) {
 		i := p.Number
 		switch p.ID {
 		case s.striker[0]:

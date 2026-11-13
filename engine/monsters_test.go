@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // TestMonstersLoad (bug class: pool read every game's MON records in POR's 285-byte
@@ -55,7 +55,7 @@ func itemsLoad(t *testing.T, e *Engine) {
 func monstersLoad(t *testing.T, e *Engine) {
 	t.Helper()
 	n := 0
-	for s := goldbox.Set(1); s <= sets; s++ {
+	for s := rules.Set(1); s <= sets; s++ {
 		e.set = s
 		for id := range 256 {
 			if _, ok := e.gdata().monster(s.File("MON"), id); !ok {

@@ -8,9 +8,9 @@ package present
 import (
 	"cmp"
 	"errors"
-	"gobox/core"
 	"gobox/front"
 	"gobox/game/play"
+	"gobox/rules"
 	"slices"
 )
 
@@ -49,7 +49,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		case front.ActBuy:
 			do(func(e *classicGame) error { return e.Buy(a.Item) })
 		case front.ActTakeAll:
-			do(func(e *classicGame) error { return e.do(play.Take{Item: core.NoItem, All: true}) })
+			do(func(e *classicGame) error { return e.do(play.Take{Item: rules.NoItem, All: true}) })
 		case front.ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
 			if a.Y == 1 {
 				return false
@@ -122,7 +122,7 @@ func (p *Presenter) combatCast() {
 
 // useCall calls UseItem on item i; a pick or question it is refused with
 // is asked, and the call made again with the answer.
-func (p *Presenter) useCall(i core.ItemHandle, spell, target int, sure bool) {
+func (p *Presenter) useCall(i rules.ItemHandle, spell, target int, sure bool) {
 	p.call(func(e *classicGame) {
 		var (
 			who  front.PickMember

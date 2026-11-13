@@ -2,11 +2,10 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl/script"
 	"gobox/ega"
 	"gobox/game/play"
+	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
 )
@@ -20,11 +19,11 @@ func (e *Engine) opTreasure() {
 	for i := range coins {
 		coins[i] = uint16(e.vm.Arg(i+1, e.host))
 	}
-	e.do(core.SetLoot{Coins: coins}) // DS:67F4
+	e.do(rules.SetLoot{Coins: coins}) // DS:67F4
 	v := int(byte(e.vm.Arg(8, e.host)))
 	switch {
 	case v < 0x80:
-		if _, err := e.ruleset().Resolve(nil, core.AddTreasureBlock{Block: int32(v)}, nil); err != nil {
+		if _, err := e.ruleset().Resolve(nil, rules.AddTreasureBlock{Block: int32(v)}, nil); err != nil {
 			e.PromptRow24(ega.White, "Unable to find item file")
 			e.Exit()
 		}
@@ -32,7 +31,7 @@ func (e *Engine) opTreasure() {
 	case v == 0xFF:
 		return
 	}
-	e.do(core.AddRandomTreasure{N: int32(v - 0x80), Who: e.selected()})
+	e.do(rules.AddRandomTreasure{N: int32(v - 0x80), Who: e.selected()})
 }
 
 // treasureOfCoins are TreasureOf's coin operands: platinum, gems, jewelry, the last three of the seven kinds.
@@ -49,7 +48,7 @@ func (e *Engine) opTreasureOf() {
 	for k := range treasureOfCoins {
 		coins[firstOfCoins+k] = uint64(uint16(e.vm.Arg(k+1, e.host)))
 	}
-	e.do(core.AddLoot{Loot: core.FromCoins(coins, goldbox.GoldBoxRates)}) // platinum by value
+	e.do(rules.AddLoot{Loot: rules.FromCoins(coins, rules.GoldBoxRates)}) // platinum by value
 	n := int(byte(e.vm.Arg(treasureOfCoins+1, e.host)))
 	e.vm.PC--
 	e.vm.ReadArgs(n)
@@ -57,7 +56,7 @@ func (e *Engine) opTreasureOf() {
 	for k := range ids {
 		ids[k] = int32(byte(e.vm.Arg(k+1, e.host)))
 	}
-	e.do(core.AddLibraryItems{IDs: ids})
+	e.do(rules.AddLibraryItems{IDs: ids})
 }
 
 // opItemSet = pod O040:251F (set): the set's library items, their names known, are all the
@@ -70,7 +69,7 @@ func (e *Engine) opItemSet() {
 	if n < 1 || n >= len(sets) {
 		n = 1
 	}
-	e.do(core.AddLibraryItems{IDs: sets[n], Known: true})
+	e.do(rules.AddLibraryItems{IDs: sets[n], Known: true})
 	e.takeover()
 	e.push(cont{kind: kOpCombatEnd})
 	e.Shop()
@@ -85,12 +84,12 @@ func (e *Engine) opRob() {
 	who := byte(e.vm.Arg(1, e.host))
 	pct := int(byte(e.vm.Arg(2, e.host)))
 	itemPct := int(byte(e.vm.Arg(3, e.host)))
-	robbed := core.Party{e.selected()}
+	robbed := rules.Party{e.selected()}
 	if who != 0 {
 		robbed = e.partyIDs()
 	}
-	e.setWorldWord(core.WordWho, e.sel)
-	e.do(core.Rob{Robbed: robbed, Pct: int32(pct), ItemPct: int32(itemPct)})
+	e.setWorldWord(rules.WordWho, e.sel)
+	e.do(rules.Rob{Robbed: robbed, Pct: int32(pct), ItemPct: int32(itemPct)})
 }
 
 // opEncounterMenu = ovr04:1EF8 (sprite, max dist, picture, result, 5
@@ -100,11 +99,11 @@ func (e *Engine) opEncounterMenu() {
 	e.es.inEncounterMenu = 1
 	e.songMusic(songEncounter, 0) // extra
 	e.run.textCleared = 0
-	mr := e.ruleset().Check(core.MoveExtremes{}, nil)
+	mr := e.ruleset().Check(rules.MoveExtremes{}, nil)
 	hi, lo := int(mr.High), int(mr.Low)
 	e.vm.ReadArgs(14)
 	e.run.sprite = int(byte(e.vm.Arg(1, e.host)))
-	e.setWorldWord(core.WordMaxDist, int(e.vm.Arg(2, e.host)))
+	e.setWorldWord(rules.WordMaxDist, int(e.vm.Arg(2, e.host)))
 	e.run.closeup = int(byte(e.vm.Arg(3, e.host)))
 	dst := e.vm.Ref(4)
 	var react [5]byte
@@ -117,23 +116,23 @@ func (e *Engine) opEncounterMenu() {
 	}
 	e.es.enc = &encounter{dst: dst, react: react, texts: texts, hi: hi, lo: lo,
 		fleeAt: int(byte(e.vm.Arg(13, e.host))), strength: int(byte(e.vm.Arg(14, e.host)))}
-	e.setWorldWord(core.WordMonsterDist, int(e.FreeSteps(e.posX, e.posY, e.facing)))
-	if e.worldWord(core.WordMaxDist) < e.worldWord(core.WordMonsterDist) {
-		e.setWorldWord(core.WordMonsterDist, int(e.worldWord(core.WordMaxDist)))
+	e.setWorldWord(rules.WordMonsterDist, int(e.FreeSteps(e.posX, e.posY, e.facing)))
+	if e.worldWord(rules.WordMaxDist) < e.worldWord(rules.WordMonsterDist) {
+		e.setWorldWord(rules.WordMonsterDist, int(e.worldWord(rules.WordMaxDist)))
 	}
 	e.encShow()
 	e.encRound()
 }
 
 func (e *Engine) encShow() {
-	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(core.WordMonsterDist))), &e.es.encounterShown)
+	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(rules.WordMonsterDist))), &e.es.encounterShown)
 }
 
 func (e *Engine) encApproach() bool {
-	if e.worldWord(core.WordMonsterDist) == 0 {
+	if e.worldWord(rules.WordMonsterDist) == 0 {
 		return false
 	}
-	e.setWorldWord(core.WordMonsterDist, e.worldWord(core.WordMonsterDist)-1)
+	e.setWorldWord(rules.WordMonsterDist, e.worldWord(rules.WordMonsterDist)-1)
 	e.encShow()
 	return true
 }
@@ -152,7 +151,7 @@ func (e *Engine) encFlee() {
 // (again after WAIT or a step closer).
 func (e *Engine) encRound() {
 	en := e.es.enc
-	dist := func() int { return e.worldWord(core.WordMonsterDist) }
+	dist := func() int { return e.worldWord(rules.WordMonsterDist) }
 	txt := ""
 	anim := e.es.picShown != 0 && e.es.picAnimating != 0
 	clear := true
@@ -187,7 +186,7 @@ func (e *Engine) encRound() {
 		clear = false
 	}
 	e.paneText(ega.LightGreen, clear, txt)
-	en.parlay = dist() == 0 || e.worldWord(core.WordIn3D) == 0
+	en.parlay = dist() == 0 || e.worldWord(rules.WordIn3D) == 0
 	menu := "~COMBAT ~WAIT ~FLEE ~ADVANCE"
 	if en.parlay {
 		menu = "~COMBAT ~WAIT ~FLEE ~PARLAY"
@@ -210,7 +209,7 @@ func (e *Engine) encounterAnswered(choice int) {
 	again := false
 	// advance: PARLAY at distance 0, else one step closer.
 	advance := func() {
-		if e.worldWord(core.WordMonsterDist) == 0 {
+		if e.worldWord(rules.WordMonsterDist) == 0 {
 			e.host.Set(dst, 3)
 			return
 		}
@@ -363,10 +362,10 @@ func (e *Engine) opGainExperience() {
 	whom := e.partyIDs()
 	text := "Congratulations the party gains experience!"
 	if byte(e.vm.Arg(1, e.host)) == 0 {
-		whom = core.Party{e.selected()}
+		whom = rules.Party{e.selected()}
 		text = "Congratulations " + e.name(e.selected()) + " gains experience!"
 	}
-	e.do(core.GainExperience{Whom: whom, Points: int32(uint16(e.vm.Arg(2, e.host)))})
+	e.do(rules.GainExperience{Whom: whom, Points: int32(uint16(e.vm.Arg(2, e.host)))})
 	e.scriptText(true, text)
 	e.askPause(int(e.msgDelay)*0xE1, askDone{})
 }
@@ -378,7 +377,7 @@ func (e *Engine) opGainExperience() {
 func (e *Engine) opSpell() {
 	e.vm.ReadArgs(3)
 	ids := e.partyIDs()
-	a := e.ruleset().Check(core.Memorized{Party: ids, Spell: e.scriptSpell(int(byte(e.vm.Arg(1, e.host))))}, nil)
+	a := e.ruleset().Check(rules.Memorized{Party: ids, Spell: e.scriptSpell(int(byte(e.vm.Arg(1, e.host))))}, nil)
 	slot, who := int64(spellNone), max(len(ids)-1, 0)
 	if a.Yes {
 		slot, who = int64(a.Value), slices.Index(ids, a.Who)
@@ -406,7 +405,7 @@ func (e *Engine) opDestroyItems() {
 	if err != nil { // an item type without an id: no one carries it (as opFindItem)
 		return
 	}
-	e.do(core.DestroyItems{Whom: e.partyIDs(), Item: id, MagicalOnly: v&destroyMagicalOnly != 0})
+	e.do(rules.DestroyItems{Whom: e.partyIDs(), Item: id, MagicalOnly: v&destroyMagicalOnly != 0})
 }
 
 // opDump = cotab O03C:3249: the selected member leaves the party; the one
@@ -440,7 +439,7 @@ func (e *Engine) opDamage() {
 	e.vm.ReadArgs(5)
 	flags := byte(e.vm.Arg(1, e.host))
 	save := byte(e.vm.Arg(5, e.host))
-	d := core.ScriptDamage{
+	d := rules.ScriptDamage{
 		Dice: int32(byte(e.vm.Arg(2, e.host))), Sides: int32(byte(e.vm.Arg(3, e.host))), Bonus: int32(byte(e.vm.Arg(4, e.host))),
 		All: flags&damageAll != 0,
 	}
@@ -463,18 +462,18 @@ func (e *Engine) opDamage() {
 			d.Save = rules1e.SaveOrder[typ]
 		}
 	}
-	o, err := e.ruleset().Resolve(core.Scripted{Party: e.partyIDs()}, d, nil)
+	o, err := e.ruleset().Resolve(rules.Scripted{Party: e.partyIDs()}, d, nil)
 	if err != nil {
 		panic(fmt.Sprintf("script: Damage: %v", err))
 	}
 	for _, f := range o.Effects {
-		if h, ok := f.(core.Hurt); ok {
+		if h, ok := f.(rules.Hurt); ok {
 			e.HitMessage(h)
 		}
 	}
 	e.run.quit = true
 	for _, id := range e.partyIDs() {
-		if e.fact(id, core.FactActive) == core.Yes(true) {
+		if e.fact(id, rules.FactActive) == rules.Yes(true) {
 			e.run.quit = false
 		}
 	}
@@ -513,7 +512,7 @@ func (e *Engine) opFindItem() {
 	if err != nil {
 		return
 	}
-	if e.ruleset().Check(core.HasItem{Whom: e.partyIDs(), Item: id}, nil).Yes {
+	if e.ruleset().Check(rules.HasItem{Whom: e.partyIDs(), Item: id}, nil).Yes {
 		e.vm.Flags[0], e.vm.Flags[1] = true, false
 	}
 }
@@ -523,10 +522,10 @@ func (e *Engine) opFindItem() {
 // through the game's affect numbering).
 func (e *Engine) opFindAffect() {
 	e.vm.ReadArgs(1)
-	n := core.ScriptAffect(e.vm.Arg(1, e.host))
+	n := rules.ScriptAffect(e.vm.Arg(1, e.host))
 	e.vm.Flags = [6]bool{}
 	e.vm.Flags[1] = true
-	if e.ruleset().Check(core.HasAffect{Whom: []core.CharID{e.selected()}, Affect: n}, nil).Yes {
+	if e.ruleset().Check(rules.HasAffect{Whom: []rules.CharID{e.selected()}, Affect: n}, nil).Yes {
 		e.vm.Flags[0], e.vm.Flags[1] = true, false
 	}
 }
@@ -553,7 +552,7 @@ func (e *Engine) opClock() {
 		unit = int32(int8(byte(e.vm.Arg(2, e.host))))
 	}
 	e.as(e.sel)
-	e.do(core.AdvanceClock{Count: int32(byte(e.vm.Arg(1, e.host))), Unit: unit})
+	e.do(rules.AdvanceClock{Count: int32(byte(e.vm.Arg(1, e.host))), Unit: unit})
 }
 
 // clockMinutes is CLOCK's unit for minutes (the clock's field 1).
@@ -572,14 +571,14 @@ func (e *Engine) opAddNPC() {
 	if e.game().AddNPCIcon {
 		e.LoadIconPic("CPIC", v, e.partyIndex(id))
 	}
-	if err := e.ruleset().SetFact(id, core.FactControl, core.Number(byte(e.vm.Arg(2, e.host))>>1|0x80)); err != nil {
+	if err := e.ruleset().SetFact(id, rules.FactControl, rules.Number(byte(e.vm.Arg(2, e.host))>>1|0x80)); err != nil {
 		panic("opAddNPC: " + err.Error())
 	}
-	side := core.SideParty
+	side := rules.SideParty
 	if v == 0x18 {
-		side = core.SideMonsters
+		side = rules.SideMonsters
 	}
-	if err := e.ruleset().SetFact(id, core.FactSideOnly, side); err != nil {
+	if err := e.ruleset().SetFact(id, rules.FactSideOnly, side); err != nil {
 		panic("opAddNPC: " + err.Error())
 	}
 	e.applyItems(id) // 00BA:0BB8
@@ -618,9 +617,9 @@ func (e *Engine) opWho() {
 	if e.purseWho[e.vm.Cur()] {
 		pick := -1
 		ids := e.partyIDs()
-		active := func(id core.CharID) bool { return e.fact(id, core.FactActive) == core.Yes(true) }
+		active := func(id rules.CharID) bool { return e.fact(id, rules.FactActive) == rules.Yes(true) }
 		for i, id := range ids {
-			if e.fact(id, core.FactControl).(core.Number) < 0x80 && (pick < 0 || active(id) && !active(ids[pick])) {
+			if e.fact(id, rules.FactControl).(rules.Number) < 0x80 && (pick < 0 || active(id) && !active(ids[pick])) {
 				pick = i
 			}
 		}
@@ -706,9 +705,9 @@ func (e *Engine) opFindNPC() {
 	e.vm.ReadArgs(2)
 	name, r := e.strAt(1), int64(npcNotFound)
 	for i, id := range e.partyIDs() {
-		if e.name(id) == name && e.fact(id, core.FactControl).(core.Number) >= npcControl {
+		if e.name(id) == name && e.fact(id, rules.FactControl).(rules.Number) >= npcControl {
 			r = int64(i)
-			if e.fact(id, core.FactActive) != core.Yes(true) {
+			if e.fact(id, rules.FactActive) != rules.Yes(true) {
 				r |= npcNotOkay
 			}
 			break

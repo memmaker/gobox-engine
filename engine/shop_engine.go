@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
@@ -18,10 +18,10 @@ func (e *Engine) shopBrowse() {
 func (e *Engine) Shop() {
 	e.songMusic(songShop, 0) // extra
 	greeting := e.paneCopy() // extra: the merchant's greeting comes back after each redraw (the original cleared it)
-	e.must(core.EnterShop{})
+	e.must(rules.EnterShop{})
 	e.DrawMainScreen()
 	e.keepPane(greeting)
-	e.must(core.StockShop{})
+	e.must(rules.StockShop{})
 	e.pw.greeting = greeting
 	e.wait(PendShop)
 }
@@ -30,7 +30,7 @@ func (e *Engine) Shop() {
 // n < 0 the selected one).
 func (e *Engine) browse(n int) error {
 	if !e.waiting(PendShop) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.actor(n)
 	e.shopBrowse()
@@ -39,13 +39,13 @@ func (e *Engine) browse(n int) error {
 
 // identify = the shop's Id (extra: the shop's, not the item menu's): item
 // h of member n's (identifiable), the player agreed to the price.
-func (e *Engine) identify(n int, h core.ItemHandle) error {
+func (e *Engine) identify(n int, h rules.ItemHandle) error {
 	if !e.waiting(PendShop) || n < 0 || n >= e.partySize() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	id := e.partyIDs()[n]
-	if !slices.Contains(e.listedItems(id), h) || !slices.Contains(e.fact(id, core.IdentifiableFact{}).(core.Handles), h) || e.itemCard(id, h).Identified {
-		return core.ErrNotNow
+	if !slices.Contains(e.listedItems(id), h) || !slices.Contains(e.fact(id, rules.IdentifiableFact{}).(rules.Handles), h) || e.itemCard(id, h).Identified {
+		return rules.ErrNotNow
 	}
 	e.identifyItem(id, h)
 	return nil

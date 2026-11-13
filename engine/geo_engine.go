@@ -1,13 +1,12 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/ega"
-	"gobox/geo"
+	"gobox/rules"
 )
 
 // gmap is the area map; por's edges are always solid (see offMapSolid).
-func (e *Engine) gmap() *geo.Map { e.gs.geo.SolidEdges = true; return &e.gs.geo }
+func (e *Engine) gmap() *rules.Map { e.gs.geo.SolidEdges = true; return &e.gs.geo }
 
 // WallAt = ovr30:047B (x, y, dir): wall value 0..15 on that side of the cell.
 func (e *Engine) WallAt(x, y, dir int) byte { return e.gmap().WallAt(x, y, dir) }
@@ -31,7 +30,7 @@ func (e *Engine) Draw3DView(x, y, dir int) {
 // slot 1..3. Only the slot's block is recorded (the save file keeps it);
 // the walls are the remaster's.
 func (e *Engine) LoadWalldef(block, slot int) {
-	if !geo.ValidWallSlot(slot) {
+	if !rules.ValidWallSlot(slot) {
 		return
 	}
 	if block == 0xA { // ovr30:1061: block 10 is recorded as 0 (quirk)
@@ -47,17 +46,17 @@ func (e *Engine) LoadGeo(n int) {
 		e.PromptRow24(ega.White, "Unable to load geo in Load3DMap.")
 	}
 	if len(b) >= geoSize { // a longer block is cut to its size
-		if m, err := geo.ParseMap(b[:geoSize]); err == nil {
+		if m, err := rules.ParseMap(b[:geoSize]); err == nil {
 			e.gs.geo.Plane = m.Plane
 		}
 	}
-	e.setWorldWord(core.WordGeo, n)
+	e.setWorldWord(rules.WordGeo, n)
 	e.reopenDoors()
 }
 
-const geoSize = geo.Size // GEO block: 2-byte header + 4 planes
+const geoSize = rules.Size // GEO block: 2-byte header + 4 planes
 
 type geoState struct {
-	geo      geo.Map // DS:6A5C
-	areaKind byte    // DS:84DC: 0 or 0xA = map edges are solid
+	geo      rules.Map // DS:6A5C
+	areaKind byte      // DS:84DC: 0 or 0xA = map edges are solid
 }

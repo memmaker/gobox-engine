@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core/goldbox"
+import "gobox/rules"
 
 // The combat map's size in squares.
 const (
@@ -34,7 +34,7 @@ func clampToMap(x, y *int) {
 // stopped by walls, and walked; widths 2 and 3 add the lines to the squares
 // beside its end. Everyone found but the caster becomes a target.
 func (e *RuleState) coneTargets(x0, y0, x1, y1, width, length int) {
-	l := goldbox.NewLine(x0, y0, x1, y1)
+	l := rules.NewLine(x0, y0, x1, y1)
 	var dirs []Dir
 	for l.Step() {
 		dirs = append(dirs, Dir(l.Dir))
@@ -71,7 +71,7 @@ func (e *RuleState) coneTargets(x0, y0, x1, y1, width, length int) {
 	n := 1
 	dup := false
 	var lastDir Dir
-	l = goldbox.NewLine(x0, y0, x1, y1)
+	l = rules.NewLine(x0, y0, x1, y1)
 	for l.Step() {
 		who, _ := e.MapAt(l.X, l.Y)
 		if who > 0 {
@@ -92,7 +92,7 @@ func (e *RuleState) coneTargets(x0, y0, x1, y1, width, length int) {
 		}
 	}
 	side := func(sx, sy int) {
-		s := goldbox.NewLine(x0, y0, sx, sy)
+		s := rules.NewLine(x0, y0, sx, sy)
 		for s.Step() {
 			who, _ := e.MapAt(s.X, s.Y)
 			if who == 0 {

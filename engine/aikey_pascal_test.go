@@ -3,13 +3,13 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"gobox/rules1e"
+	"os"
 	"strings"
 	"testing"
 
-	"gobox/core"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // TestAiKeysAgainstPascal compares aiKeys with CombatAi.CheckKeystroke
@@ -65,9 +65,9 @@ func TestAiKeyActions(t *testing.T) {
 	run := func(f func() error) error { return f() }
 	for _, c := range []struct {
 		a    play.Action
-		want core.AutoKey
-	}{{play.Manual{}, core.AutoKeyTakeOver}, {play.QuickMagic{}, core.AutoKeyQuickMagic}} {
-		e.aiKey = core.AutoKeyNone
+		want rules.AutoKey
+	}{{play.Manual{}, rules.AutoKeyTakeOver}, {play.QuickMagic{}, rules.AutoKeyQuickMagic}} {
+		e.aiKey = rules.AutoKeyNone
 		if ok, err := e.combatDo(c.a, play.Allowed{}, run); !ok || err != nil || e.aiKey != c.want {
 			t.Errorf("%T: taken %v, err %v, key %d", c.a, ok, err, e.aiKey)
 		}

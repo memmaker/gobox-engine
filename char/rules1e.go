@@ -2,10 +2,9 @@ package char
 
 import (
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
-	"path/filepath"
+	"gobox/rules"
 	"gobox/rules1e"
+	"path/filepath"
 )
 
 // Rules1e builds the first engine's ruleset, rules1e, from the Engine's
@@ -18,11 +17,11 @@ import (
 // panics: run the game's import); else on rules1e.POR.
 func Rules1e(
 	rulesFile string,
-	monster func(core.MonsterID) (Sheet, []AffectRecord, []Item, bool),
+	monster func(rules.MonsterID) (Sheet, []AffectRecord, []Item, bool),
 	items func() []ItemBase,
 	treasure func(block int) []Item,
-	host goldbox.CreationHost,
-) (core.Rules, core.CreationRules) {
+	host rules.CreationHost,
+) (rules.Rules, rules.CreationRules) {
 	r := &rules1e.Rules{S: &rules1e.RuleState{}}
 	if rulesFile != "" {
 		l, err := rules1e.ReadLayout(filepath.Join(filepath.Dir(rulesFile), rules1e.LayoutFile))
@@ -35,13 +34,13 @@ func Rules1e(
 		}
 		r.S.Tables = t
 	}
-	r.Monsters = func(id core.MonsterID) (rules1e.Monster, bool) {
+	r.Monsters = func(id rules.MonsterID) (rules1e.Monster, bool) {
 		rec, affects, its, ok := monster(id)
 		return rules1e.Monster{Sheet: rec, Affects: affects, Items: its}, ok
 	}
 	r.ItemTable = items
 	r.TreasureBlock = treasure
-	r.ItemRecords = func(items []Item) core.ItemRecords { return WriteItems(items) }
+	r.ItemRecords = func(items []Item) rules.ItemRecords { return WriteItems(items) }
 	r.Host = host
 	return r, r.Creation()
 }

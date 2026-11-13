@@ -7,9 +7,9 @@ import (
 	"slices"
 	"strconv"
 
-	"gobox/core"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // turnDecisions are the combat menu's actions as the Decisions they do,
@@ -41,7 +41,7 @@ func (e *Engine) combatState(s *facts) {
 		return
 	}
 	b := e.battle()
-	c := &play.Combat{Size: image.Pt(len(b.Ground[0]), len(b.Ground)), Round: int(e.ruleset().Check(core.FightRound{}, nil).Value), Dungeon: b.Dungeon,
+	c := &play.Combat{Size: image.Pt(len(b.Ground[0]), len(b.Ground)), Round: int(e.ruleset().Check(rules.FightRound{}, nil).Value), Dungeon: b.Dungeon,
 		Targets: slices.Clone(b.Targets), Panel: b.Panel, Marks: slices.Clone(b.Marks), Area: b.Area,
 		AreaAt: slices.Clone(b.AreaAt), Skipped: slices.Clone(b.Skipped), Why: b.AimWhy,
 		Floor: b.Floor, Cursor: b.Cursor, CursorOn: b.CursorOn, CursorAt: slices.Clone(b.CursorAt), View: b.View,
@@ -106,17 +106,17 @@ func (e *Engine) combatState(s *facts) {
 		for _, sp := range t.Spells {
 			ref := game.SpellRef{ID: sp.ID, Name: sp.Name}
 			c.Spells = append(c.Spells, ref)
-			if ch == core.NoChar {
+			if ch == rules.NoChar {
 				continue
 			}
 			e.as(e.sel)
-			aim := e.fact(ch, core.SpellAimFact{Spell: e.spellID(sp.ID)}).(core.SpellAim)
-			if aim.Kind != core.SpellAimNone { // the spells that take a square
+			aim := e.fact(ch, rules.SpellAimFact{Spell: e.spellID(sp.ID)}).(rules.SpellAim)
+			if aim.Kind != rules.SpellAimNone { // the spells that take a square
 				ref.Targets = 1
 				switch aim.Kind {
-				case core.SpellAimArea:
+				case rules.SpellAimArea:
 					ref.Area = aim.Area - 1
-				case core.SpellAimTargets:
+				case rules.SpellAimTargets:
 					ref.Targets = aim.Targets
 				}
 				ref.Range = aim.Range
@@ -128,7 +128,7 @@ func (e *Engine) combatState(s *facts) {
 }
 
 // gameWeapon is a Turn's weapon in the State (nil: none).
-func gameWeapon(w *core.ItemCard) *game.Weapon {
+func gameWeapon(w *rules.ItemCard) *game.Weapon {
 	if w == nil {
 		return nil
 	}

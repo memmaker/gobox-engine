@@ -18,7 +18,7 @@ import (
 	"slices"
 	"strings"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // Format is the manifest's format version; it changes when Manifest does.
@@ -49,13 +49,13 @@ func CheckContents(dir string) error {
 
 // Game is one game's importer.
 type Game struct {
-	ID      string            // the folder's name, adventures/<ID>
-	Title   string            // shown in the list of adventures
-	Release int               // the original's release year: the list of adventures runs in this order
-	Ruleset string            // the ruleset compiled into the binary that plays it (rules1e, rulesxxvc)
-	Record  core.RecordLayout // the layout of the adventure's character records (core.NoRecord: none)
-	Version int               // the game's import version: bumped when what Import writes changes, so older folders read as stale (Read)
-	Sources []string          // the originals' file patterns the import reads (filepath.Match, case-insensitive), EXE files included
+	ID      string             // the folder's name, adventures/<ID>
+	Title   string             // shown in the list of adventures
+	Release int                // the original's release year: the list of adventures runs in this order
+	Ruleset string             // the ruleset compiled into the binary that plays it (rules1e, rulesxxvc)
+	Record  rules.RecordLayout // the layout of the adventure's character records (core.NoRecord: none)
+	Version int                // the game's import version: bumped when what Import writes changes, so older folders read as stale (Read)
+	Sources []string           // the originals' file patterns the import reads (filepath.Match, case-insensitive), EXE files included
 	// Import writes the folder's files from the originals in dir src into
 	// dir dst (empty, existing).
 	Import func(src, dst string) error
@@ -83,11 +83,11 @@ type Manifest struct {
 	Title   string
 	Ruleset string
 	Format  int
-	Version int               `json:",omitempty"` // the game's import version (Game.Version) it was written by
-	Record  core.RecordLayout `json:",omitempty"` // the character records' layout (gobox/char's codec)
-	Start   *Sequence         `json:",omitempty"` // the title sequence
-	End     *Sequence         `json:",omitempty"` // the end sequence
-	Source  map[string]string // each original read: its name, its SHA-256
+	Version int                `json:",omitempty"` // the game's import version (Game.Version) it was written by
+	Record  rules.RecordLayout `json:",omitempty"` // the character records' layout (gobox/char's codec)
+	Start   *Sequence          `json:",omitempty"` // the title sequence
+	End     *Sequence          `json:",omitempty"` // the end sequence
+	Source  map[string]string  // each original read: its name, its SHA-256
 }
 
 var games = map[string]Game{}

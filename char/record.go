@@ -6,16 +6,16 @@ import (
 	"fmt"
 	"reflect"
 
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
 // The layouts (core.RecordLayout), here for the codecs' users.
 const (
-	Layout285 = core.Layout285
-	Layout422 = core.Layout422
-	Layout439 = core.Layout439
-	Layout510 = core.Layout510
+	Layout285 = rules.Layout285
+	Layout422 = rules.Layout422
+	Layout439 = rules.Layout439
+	Layout510 = rules.Layout510
 )
 
 // Record is one of the layouts' structs.
@@ -377,7 +377,7 @@ type Record510 struct {
 
 func init() {
 	for _, c := range []struct {
-		l core.RecordLayout
+		l rules.RecordLayout
 		n int
 	}{{Layout285, binary.Size(Record285{})}, {Layout422, binary.Size(Record422{})}, {Layout439, binary.Size(Record439{})}, {Layout510, binary.Size(Record510{})}} {
 		if int(c.l) != c.n {

@@ -8,8 +8,8 @@ import (
 	"gobox/amiga"
 	"gobox/audio"
 	"gobox/audio/sounddata"
-	"gobox/core"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // SoundFile is the driver's songs, scripts and vibrato waveforms, decoded from
@@ -195,7 +195,7 @@ func (e *Engine) areaSong() int {
 			return l.Song
 		}
 	}
-	return e.music().Songs[e.worldWord(core.WordGeo)]
+	return e.music().Songs[e.worldWord(rules.WordGeo)]
 }
 
 // battleMusic (extra) starts a battle's music: A Battle Begins into the
@@ -203,7 +203,7 @@ func (e *Engine) areaSong() int {
 // without the soundtrack.
 func (e *Engine) battleMusic() {
 	switch {
-	case e.music().BattleSongs[e.worldWord(core.WordGeo)] != 0 && e.songMusic(e.music().BattleSongs[e.worldWord(core.WordGeo)], 0):
+	case e.music().BattleSongs[e.worldWord(rules.WordGeo)] != 0 && e.songMusic(e.music().BattleSongs[e.worldWord(rules.WordGeo)], 0):
 	case e.songMusic(songBattleBegins, songCombat):
 	default:
 		e.Music(2) // Amiga 0x364E2
@@ -260,7 +260,7 @@ func (e *Engine) PlaySound(n int) { e.playSound(n, string(daspFx[n])) }
 // cue (extra) is PlaySound(n) out of a fight as an event (Events):
 // the presenter plays it when it draws the View that follows
 // (PlayEventSound), as it does a fight's.
-func (e *Engine) cue(c core.SoundCue) {
+func (e *Engine) cue(c rules.SoundCue) {
 	e.event(play.Sounded{Sound: string(c)})
 }
 
@@ -268,7 +268,7 @@ func (e *Engine) cue(c core.SoundCue) {
 // sound n: the pack plays it, and the pacing stays the original's.
 func (e *Engine) playSound(n int, event string) {
 	if e.inFight() && !e.soundNow && n > sndUnmute && n != sndStop { // in a fight: when the presenter plays the events up to here
-		e.emit(core.Sounded{Cue: core.SoundCue(event)})
+		e.emit(rules.Sounded{Cue: rules.SoundCue(event)})
 		return
 	}
 	s := &e.snd
@@ -369,15 +369,15 @@ const (
 
 // daspFx is the sound pack's event that replaces each sound number; the
 // rest (a step) keep the original's sound.
-var daspFx = map[int]core.SoundCue{
-	sndSpell:      core.CueSpell,
-	sndHit:        core.CueHit,
-	sndMagicHit:   core.CueMagicHit,
-	sndFall:       core.CueFall,
-	sndMissile:    core.CueMissile,
-	sndBump:       core.CueBump,
-	sndSpell51:    core.CueLightning,
-	sndMiss:       core.CueMiss,
-	sndSpell47:    core.CueFireball,
-	sndMissileEnd: core.CueMissileEnd,
+var daspFx = map[int]rules.SoundCue{
+	sndSpell:      rules.CueSpell,
+	sndHit:        rules.CueHit,
+	sndMagicHit:   rules.CueMagicHit,
+	sndFall:       rules.CueFall,
+	sndMissile:    rules.CueMissile,
+	sndBump:       rules.CueBump,
+	sndSpell51:    rules.CueLightning,
+	sndMiss:       rules.CueMiss,
+	sndSpell47:    rules.CueFireball,
+	sndMissileEnd: rules.CueMissileEnd,
 }

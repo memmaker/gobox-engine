@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"strings"
 	"testing"
 )
@@ -30,7 +30,7 @@ func TestOldAgeDeaths(t *testing.T) {
 			t.Errorf("rule %v: old status %d, young %d", k.rule, old.Status, young.Status)
 		}
 		if k.dies {
-			last := e.Fx[len(e.Fx)-1].(core.Narrated).Text
+			last := e.Fx[len(e.Fx)-1].(rules.Narrated).Text
 			if last != "YOUNG weeps at the loss of such a venerable companion." {
 				t.Errorf("mourning %q", last)
 			}

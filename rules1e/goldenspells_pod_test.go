@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestGoldenSpellsPod: rules1e's ports of POD's own spells (128..145 and the
@@ -69,7 +69,7 @@ func TestGoldenSpellsPod(t *testing.T) {
 		r.SpellEffect(id)
 		var said []string
 		for _, f := range r.Fx {
-			if n, ok := f.(core.Narrated); ok {
+			if n, ok := f.(rules.Narrated); ok {
 				said = append(said, n.Text)
 			}
 		}

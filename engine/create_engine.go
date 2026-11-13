@@ -2,8 +2,8 @@ package engine
 
 import (
 	"errors"
-	"gobox/core"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // tempSel is a selection selectTemp replaced: the selected member and the party's size.
@@ -11,9 +11,9 @@ type tempSel struct{ sel, size int }
 
 // selectTemp makes c the selected character (DS:5D92 = c) although it is not
 // in the party; unselectTemp restores the old selection.
-func (e *Engine) selectTemp(cID core.CharID) {
+func (e *Engine) selectTemp(cID rules.CharID) {
 	e.temps = append(e.temps, tempSel{sel: e.sel, size: e.partySize()})
-	e.do(core.SeatTemp{Who: cID})
+	e.do(rules.SeatTemp{Who: cID})
 	e.sel = e.partySize() - 1
 	e.tempSel = cID
 }
@@ -21,17 +21,17 @@ func (e *Engine) selectTemp(cID core.CharID) {
 func (e *Engine) unselectTemp() {
 	t := e.temps[len(e.temps)-1]
 	e.temps = e.temps[:len(e.temps)-1]
-	e.do(core.TrimParty{Size: int32(t.size)})
+	e.do(rules.TrimParty{Size: int32(t.size)})
 	e.sel = t.sel
-	e.tempSel = core.NoChar
+	e.tempSel = rules.NoChar
 }
 
 // creationSheet draws the sheet for the creation: without level, experience,
 // party items and status, with the combat icon under the portrait. A PNG
 // dropped on the icon becomes the icon, as in the icon editor (one dropped
 // on the portrait the portrait, as on the sheet in play: portraitPNG).
-func (e *Engine) creationSheet(cID core.CharID) {
-	ic := e.fact(cID, core.IconPicsFact{}).(core.IconPics)
+func (e *Engine) creationSheet(cID rules.CharID) {
+	ic := e.fact(cID, rules.IconPicsFact{}).(rules.IconPics)
 	e.CharacterSheet()
 	e.snap.iconBox = sheetIconBox()
 	e.snap.iconDrop = func(b []byte) {
@@ -49,7 +49,7 @@ func (e *Engine) creationSheet(cID core.CharID) {
 			if sp := e.snap.sheet; sp != nil {
 				sp.Icons[p] = iconPose(e.pngImage(ic.PNG), p, false)
 			}
-		} else if im := e.icons[e.fact(cID, core.IconFact{}).(core.Number)][p]; im != nil {
+		} else if im := e.icons[e.fact(cID, rules.IconFact{}).(rules.Number)][p]; im != nil {
 			e.picture(sheetIconCol(p)*8, sheetIconRow()*8, im.Width*8, im.Height, im.Frame(0), im.Mask, im, 0)
 		}
 	}
@@ -60,7 +60,7 @@ func (e *Engine) creationSheet(cID core.CharID) {
 // Keep saves it, Leave abandons it.
 func (e *Engine) createCharacter() error {
 	if e.creation != nil {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	d, err := NewDraft(e.Creation(), nil) // nil: the Engine's own seed draws
 	if err != nil {
@@ -74,7 +74,7 @@ func (e *Engine) createCharacter() error {
 }
 
 // pushCreation (extra) puts the creation sheet up on draft d, drawn as c.
-func (e *Engine) pushCreation(d *Draft, cID core.CharID, abandon string) {
+func (e *Engine) pushCreation(d *Draft, cID rules.CharID, abandon string) {
 	cr := &creation{d: d, c: cID, abandon: abandon}
 	e.creation = cr
 	e.ext.creating = true
@@ -83,8 +83,8 @@ func (e *Engine) pushCreation(d *Draft, cID core.CharID, abandon string) {
 }
 
 // sheetDraft is the character d draws as on the sheet (core.SheetDraft).
-func (e *Engine) sheetDraft(d core.Draft) core.CharID {
-	o, err := e.ruleset().Resolve(nil, core.SheetDraft{Draft: d}, nil)
+func (e *Engine) sheetDraft(d rules.Draft) rules.CharID {
+	o, err := e.ruleset().Resolve(nil, rules.SheetDraft{Draft: d}, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -93,9 +93,9 @@ func (e *Engine) sheetDraft(d core.Draft) core.CharID {
 
 // creationReplaced: the creation's character c was replaced by a fresh
 // one, which takes its place.
-func (e *Engine) creationReplaced(cr *creation, cID core.CharID) {
+func (e *Engine) creationReplaced(cr *creation, cID rules.CharID) {
 	if cr.modify {
-		e.do(core.ReplaceMember{At: int32(cr.idx), Who: cID})
+		e.do(rules.ReplaceMember{At: int32(cr.idx), Who: cID})
 		cr.d.D.Of = cID // the draft names the member now in the slot (ids name characters, not positions)
 		return
 	}
@@ -115,8 +115,8 @@ func (e *Engine) creationDone(cr *creation, kept bool) error {
 		return err
 	}
 	if cr.modify {
-		e.do(core.RestoreCopy{Who: cr.orig})
-		e.do(core.ReplaceMember{At: int32(cr.idx), Who: cr.orig})
+		e.do(rules.RestoreCopy{Who: cr.orig})
+		e.do(rules.ReplaceMember{At: int32(cr.idx), Who: cr.orig})
 		e.applyItems(cr.orig) // 00BA:0BB8
 		return nil
 	}
@@ -130,7 +130,7 @@ func (e *Engine) creationDone(cr *creation, kept bool) error {
 func (e *Engine) EndCreation(keep bool) error {
 	cr := e.creation
 	if cr == nil {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	err := e.creationDone(cr, keep) // the creation still up: charOf takes its record's DAX pictures
 	e.popRedraw()
@@ -147,11 +147,11 @@ func (e *Engine) EndCreation(keep bool) error {
 func (e *Engine) roll(minimal bool, mins string) error {
 	return e.creationEdit(func(cr *creation) error {
 		if !minimal {
-			return cr.d.Roll(core.RollFull)
+			return cr.d.Roll(rules.RollFull)
 		}
-		e.do(core.SetMinimums{Text: mins})
+		e.do(rules.SetMinimums{Text: mins})
 		cr.d.D.Lows = e.Creation().Minimums(cr.d.D)
-		return cr.d.Roll(core.RollMinimal)
+		return cr.d.Roll(rules.RollMinimal)
 	})
 }
 
@@ -164,7 +164,7 @@ func (e *Engine) pointBuy(scores []int) error {
 	if len(scores) != 6 {
 		return errors.New("Point buy needs 6 scores")
 	}
-	bases := map[core.Ability]int32{}
+	bases := map[rules.Ability]int32{}
 	for i, a := range abilities { // scores are in Creation.StatNames' order: STR .. CHA
 		bases[a] = int32(scores[i])
 	}
@@ -198,7 +198,7 @@ func (e *Engine) setStat(i int, typed string) error {
 // SetField gives creation field f (FieldSex ..) its option x.
 func (e *Engine) SetField(f, x int) error {
 	return e.creationEdit(func(cr *creation) error {
-		cr.d.SetField(core.FieldID(f), x)
+		cr.d.SetField(rules.FieldID(f), x)
 		return nil
 	})
 }
@@ -249,12 +249,12 @@ func sheetIconBox() CellRect {
 // creation is the creation sheet up: c, a character of kind k.
 type creation struct {
 	d       *Draft // the draft (gobox's one flow); c is drawn from it (charOf)
-	c       core.CharID
+	c       rules.CharID
 	abandon string
 	asking  bool // Esc or Exit asked abandon (Pending); Yes abandons, No back to the sheet
 	unnamed bool // a new character no name was typed for: Keep asks "Character name:" first (ovr17's name prompt, BUG-CLASSES 59)
 	naming  bool // Keep asked the name (Pending); the typed name keeps it, Esc back to the sheet
 	modify  bool // ModifyCharacter's: the party member idx (was: as it was), not a new one
 	idx     int
-	orig    core.CharID // the member modified, as it was held (core.HoldCopy)
+	orig    rules.CharID // the member modified, as it was held (core.HoldCopy)
 }

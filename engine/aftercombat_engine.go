@@ -3,9 +3,8 @@ package engine
 import (
 	"errors"
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/game/play"
+	"gobox/rules"
 	"slices"
 	"strconv"
 	"strings"
@@ -18,21 +17,21 @@ func (e *Engine) duel() bool { return e.run.duelMode != 0 }
 // and what the results page reads kept (ac).
 func (e *Engine) endFight() {
 	before := e.partyIDs()
-	icons := make([]core.Number, len(before))
+	icons := make([]rules.Number, len(before))
 	for i, id := range before {
-		icons[i] = e.fact(id, core.IconFact{}).(core.Number)
+		icons[i] = e.fact(id, rules.IconFact{}).(rules.Number)
 	}
 	e.as(e.sel) // a duel's experience is the selected member's level
-	res := e.ruleset().EndFight(core.Fight{Terms: core.FightTerms{Duel: e.duel()}}, nil)
+	res := e.ruleset().EndFight(rules.Fight{Terms: rules.FightTerms{Duel: e.duel()}}, nil)
 	after := e.partyIDs()
 	for i, id := range before {
 		if !slices.Contains(after, id) {
 			e.freeIcon(byte(icons[i])) // ovr33:014E
 		}
 	}
-	e.run.quit = res.Verdict == core.PartyLost && !e.duel()
-	e.ac.won = res.Verdict == core.PartyWon
-	e.ac.fled = res.Verdict == core.PartyFled
+	e.run.quit = res.Verdict == rules.PartyLost && !e.duel()
+	e.ac.won = res.Verdict == rules.PartyWon
+	e.ac.fled = res.Verdict == rules.PartyFled
 	e.ac.monsters = res.Foes
 	e.ac.shared, e.ac.sharers, e.ac.loot = res.Shared, res.Sharers, res.Items
 	if e.ac.won {
@@ -86,7 +85,7 @@ func (e *Engine) showResult(exp int32) {
 	if e.duel() {
 		s = "The duelist receives "
 	}
-	r.Exp = goldbox.Cut(s+strconv.Itoa(int(exp)), 0xFF)
+	r.Exp = rules.Cut(s+strconv.Itoa(int(exp)), 0xFF)
 	if l := e.purse(true); !l.Empty() {
 		var got []string
 		if l.Gold > 0 || l.Copper > 0 {
@@ -105,10 +104,10 @@ func (e *Engine) showResult(exp int32) {
 	for _, id := range e.partyIDs() { // extra: who came out of the fight dead or worse, or with harmful effects on them
 		sh := e.ruleset().Sheet(id)
 		var what []string
-		if st := e.statusName(id); sh.Status != core.StatusOkay && sh.Status != core.StatusRunning && st != "" {
+		if st := e.statusName(id); sh.Status != rules.StatusOkay && sh.Status != rules.StatusRunning && st != "" {
 			what = append(what, st)
 		}
-		if h := e.word(id, core.FactHarmed); h != "" {
+		if h := e.word(id, rules.FactHarmed); h != "" {
 			what = append(what, h)
 		}
 		if len(what) > 0 {
@@ -138,30 +137,30 @@ func (e *Engine) lootRedraw() {
 // selected member; all: every piece in turn until one does not fit. The
 // money (NoItem) is the party's already (the purse is shared), so there is
 // none to take; the vault's is banked by Take.
-func (e *Engine) TakeLoot(h core.ItemHandle, all bool) error {
+func (e *Engine) TakeLoot(h rules.ItemHandle, all bool) error {
 	if !e.waiting(PendLoot) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
-	if e.vault != nil && (all || h == core.NoItem) { // the vault's money is left there until taken
-		e.must(core.BankLoot{})
+	if e.vault != nil && (all || h == rules.NoItem) { // the vault's money is left there until taken
+		e.must(rules.BankLoot{})
 	}
 	if all {
-		return e.takeLoot(core.TakeLoot{Who: e.selected(), All: true})
+		return e.takeLoot(rules.TakeLoot{Who: e.selected(), All: true})
 	}
-	if h == core.NoItem && e.vault != nil {
+	if h == rules.NoItem && e.vault != nil {
 		return nil
 	}
-	if h == core.NoItem {
+	if h == rules.NoItem {
 		return &play.Refusal{} // the money line: the purse is shared, nothing to take, no toast
 	}
 	if !slices.Contains(e.goods(), h) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
-	return e.takeLoot(core.TakeLoot{Who: e.selected(), Item: h})
+	return e.takeLoot(rules.TakeLoot{Who: e.selected(), Item: h})
 }
 
-func (e *Engine) takeLoot(a core.TakeLoot) error {
-	_, err := e.ruleset().Resolve(core.Fight{}, a, nil)
+func (e *Engine) takeLoot(a rules.TakeLoot) error {
+	_, err := e.ruleset().Resolve(rules.Fight{}, a, nil)
 	return err
 }
 
@@ -169,10 +168,10 @@ func (e *Engine) takeLoot(a core.TakeLoot) error {
 // Detect Magic on it.
 func (e *Engine) lootDetect() error {
 	if !e.waiting(PendLoot) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.as(e.sel)
-	if _, err := e.ruleset().Resolve(nil, core.DetectLoot{}, nil); errors.Is(err, core.ErrNotNow) {
+	if _, err := e.ruleset().Resolve(nil, rules.DetectLoot{}, nil); errors.Is(err, rules.ErrNotNow) {
 		return err
 	} else if err != nil {
 		panic(fmt.Sprintf("detect loot: %v", err))
@@ -185,7 +184,7 @@ func (e *Engine) lootDetect() error {
 // it asks ovr06's question first (askSure) until the player is sure.
 func (e *Engine) LootLeave(sure bool) error {
 	if !e.waiting(PendLoot) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	if len(e.goods()) > 0 && !sure && e.vault == nil { // the vault keeps what is left
 		return e.askSure("There is still treasure left.  Do you want to go back and claim your treasure?", pendingCall{kind: callLoot}) // ovr06:0E7D, 0E9D
@@ -196,14 +195,14 @@ func (e *Engine) LootLeave(sure bool) error {
 
 // pushAfterCombat = AfterCombat (ovr06:1527): the results, then the treasure screen, which ends it.
 func (e *Engine) pushAfterCombat() {
-	e.setWorldWord(core.WordBeginFlag, 6)
+	e.setWorldWord(rules.WordBeginFlag, 6)
 	e.endFight()
 	if !e.run.quit || e.duel() {
 		e.push(cont{kind: kAfterShared})
 		e.hiredShare()
 		return
 	}
-	e.setWorldWord(core.WordCombatEnd, 0x80)
+	e.setWorldWord(rules.WordCombatEnd, 0x80)
 	e.Music(5) // Amiga 0x4602E
 	e.newPage()
 	e.blank(1, 1, winRight, winBottom)
@@ -215,7 +214,7 @@ func (e *Engine) pushAfterCombat() {
 // afterShared: the hired shares are taken; the results page.
 func (e *Engine) afterShared() {
 	e.showResult(e.ac.exp)
-	if _, err := e.ruleset().Resolve(nil, core.BankLoot{}, nil); err != nil {
+	if _, err := e.ruleset().Resolve(nil, rules.BankLoot{}, nil); err != nil {
 		panic(fmt.Sprintf("bank loot: %v", err))
 	}
 	e.push(cont{kind: kAfterResults})
@@ -234,7 +233,7 @@ func (e *Engine) afterResults() {
 
 // afterEnd ends AfterCombat; then what follows it.
 func (e *Engine) afterEnd() {
-	for _, w := range []core.WorldWord{core.WordMonsterHit, core.WordPartyHit, core.WordPartyMove, core.WordNoLoot, core.WordDuel} {
+	for _, w := range []rules.WorldWord{rules.WordMonsterHit, rules.WordPartyHit, rules.WordPartyMove, rules.WordNoLoot, rules.WordDuel} {
 		e.setWorldWord(w, 0)
 	}
 	e.ret()
@@ -254,6 +253,6 @@ type afterCombat struct {
 	exp      int32 // DS:84D6
 	won      bool  // DS:84DA
 	shared   bool  // hired NPCs took shares (EndFight): their page
-	sharers  []core.CharID
-	loot     []core.ItemHandle // the treasure EndFight left (FightResult.Items)
+	sharers  []rules.CharID
+	loot     []rules.ItemHandle // the treasure EndFight left (FightResult.Items)
 }

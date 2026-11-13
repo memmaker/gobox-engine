@@ -3,10 +3,10 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"gobox/core/goldbox"
 	"gobox/game/play"
-	"os"
+	"gobox/rules"
 	"gobox/rules1e"
+	"os"
 	"strings"
 	"testing"
 )
@@ -71,7 +71,7 @@ func TestDoorAgainstPascal(t *testing.T) {
 		through := e.ext.doorThrough
 		if w[4] == 1 { // the Pascal's Knock opened the door ahead (1): so must Go's
 			x, y, d := e.posX, e.posY, e.moveDir()
-			if !goldbox.OnMap(x, y) || e.gs.geo.Plane[0x300+y<<4+x]>>uint(d)&3 != 1 {
+			if !rules.OnMap(x, y) || e.gs.geo.Plane[0x300+y<<4+x]>>uint(d)&3 != 1 {
 				t.Errorf("%s: Go left the door shut", line)
 			}
 		}

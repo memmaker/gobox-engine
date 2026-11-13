@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 )
 
 // DASP (extra): the Dubtrain Angband Sound Pack, in data/assets/dasp (its
@@ -74,10 +74,10 @@ func (e *RuleState) MoneySound(p Purse) {
 	switch {
 	case p.Gold == 0 && p.Copper == 0:
 	case p.Gold < 200:
-		e.Emit(core.Sounded{Cue: core.SoundCue("money1")})
+		e.Emit(rules.Sounded{Cue: rules.SoundCue("money1")})
 	case p.Gold < 600:
-		e.Emit(core.Sounded{Cue: core.SoundCue("money2")})
+		e.Emit(rules.Sounded{Cue: rules.SoundCue("money2")})
 	default:
-		e.Emit(core.Sounded{Cue: core.SoundCue("money3")})
+		e.Emit(rules.Sounded{Cue: rules.SoundCue("money3")})
 	}
 }

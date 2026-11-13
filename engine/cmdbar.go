@@ -1,6 +1,6 @@
 package engine
 
-import "gobox/core"
+import "gobox/rules"
 
 // The context-sensitive command bar: Cast is
 // offered only when the selected member could cast a spell.
@@ -9,7 +9,7 @@ import "gobox/core"
 // CastMenu, without their messages).
 func (e *Engine) canCastNow() bool {
 	id := e.selected()
-	if e.worldWord(core.WordNoMagic) > 0 || e.ruleset().Sheet(id).Status != core.StatusOkay || !e.ruleset().Check(core.Fit{Who: id}, nil).Yes {
+	if e.worldWord(rules.WordNoMagic) > 0 || e.ruleset().Sheet(id).Status != rules.StatusOkay || !e.ruleset().Check(rules.Fit{Who: id}, nil).Yes {
 		return false
 	}
 	list, ids := e.spellList, e.spellIDs

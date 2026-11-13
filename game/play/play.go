@@ -9,7 +9,7 @@
 package play
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"image"
 	"image/color"
 	"time"
@@ -453,32 +453,32 @@ type (
 	// Anywhere a member's goods are shown.
 	Ready struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 		Count  int // of a stack (0: all)
 	}
 	Unready struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 	}
 	Drop struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 	}
 	Give struct {
 		From, To int
-		Item     core.ItemHandle
+		Item     rules.ItemHandle
 	}
 	Halve struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 	}
 	Join struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 	}
 	UseItem struct { // Item NoItem in a fight's Allowed: the pack is open to the turn (gobox offers Items) though nothing in it is usable
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 		Target int
 		Ats    []image.Point
 		Spell  int // a scroll's spell, 0 the first
@@ -623,15 +623,15 @@ type (
 	// Trading.
 	Buy struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 	}
 	Sell struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 	}
 	Identify struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 	}
 	Appraise struct {
 		Member int
@@ -640,11 +640,11 @@ type (
 	}
 	Repair struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 	}
 	Reload struct {
 		Member int
-		Item   core.ItemHandle
+		Item   rules.ItemHandle
 	}
 	Train         struct{ Member int }
 	Heal          struct{ Service, Member int }
@@ -655,8 +655,8 @@ type (
 
 	// Looting, and Trading where the shop holds pooled coins (Take, LootShare).
 	Take struct {
-		Item core.ItemHandle // NoItem: the money only
-		All  bool            // the money and every item
+		Item rules.ItemHandle // NoItem: the money only
+		All  bool             // the money and every item
 	}
 
 	LootDetect struct{}

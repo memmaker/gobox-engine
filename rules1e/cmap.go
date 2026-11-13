@@ -1,8 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // The combat map (ovr31, ovr32, ovr33). The original drew 7x7 squares of
@@ -90,7 +89,7 @@ func (e *RuleState) MapAt(x, y int) (Slot, Ground) {
 // shown); present draws it (Turned).
 func (e *RuleState) TurnTo(c *Character, dir byte) {
 	c.Combat.Facing = dir
-	e.Emit(core.Turned{Unit: unit(e.CombatIndex(c)), Facing: core.Facing(dir)})
+	e.Emit(rules.Turned{Unit: unit(e.CombatIndex(c)), Facing: rules.Facing(dir)})
 }
 
 func (e *RuleState) CombatX(c *Character) int    { return int(e.Cpos[e.CombatIndex(c)].X) }    // ovr32:0BE7
@@ -217,24 +216,24 @@ func (e *RuleState) combatSquareFree(c *Character, x, y int, uncover bool) bool 
 
 // nearSort = ovr31:002E: order the near list by distance.
 func (e *RuleState) nearSort() {
-	goldbox.NearSort(e.Near, func(n NearEntry) (byte, byte) { return n.dist, n.dir })
+	rules.NearSort(e.Near, func(n NearEntry) (byte, byte) { return n.dist, n.dir })
 }
 
 // LineOfSight = ovr31:0422 (map, var range, var tx, var ty, x, y): walk from
 // (x,y) towards (tx,ty) until the target, a wall higher than the line or
 // the range (in half squares) stops it.
 func (e *RuleState) LineOfSight(rng *int, tx, ty *int, x, y int) bool {
-	s := goldbox.Sight{SeeAll: e.Cmap.seeAll != 0, Height: func(x, y int) (int, int) {
+	s := rules.Sight{SeeAll: e.Cmap.seeAll != 0, Height: func(x, y int) (int, int) {
 		g := e.GroundInfo(e.Cmap.Ground[y][x])
 		return int(g[1]), int(g[2])
 	}}
-	return goldbox.LineOfSight(s, rng, tx, ty, x, y)
+	return rules.LineOfSight(s, rng, tx, ty, x, y)
 }
 
 // InArc = ovr31:057B (x1, y1, x2, y2, dir): (x2,y2) lies in the quarter
 // facing dir from (x1,y1) (dir 8: anywhere).
 func (e *RuleState) InArc(x1, y1, x2, y2, dir int) bool {
-	return goldbox.InArc(len(e.Occ[0]), len(e.Occ), x1, y1, x2, y2, dir)
+	return rules.InArc(len(e.Occ[0]), len(e.Occ), x1, y1, x2, y2, dir)
 }
 
 // BuildNear = ovr31:0909 (x, y, range, dir, size, map): every combatant on

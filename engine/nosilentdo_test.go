@@ -2,10 +2,10 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
+	"gobox/rules1e"
 	"image"
 	"reflect"
-	"gobox/rules1e"
 	"slices"
 	"strings"
 	"testing"
@@ -41,7 +41,7 @@ func TestNoSilentDo(t *testing.T) {
 			e.Init()
 			e.Start(e.Play)
 			for range 400 { // up to the first party turn or a still view
-				if e.cs.turn != nil && e.cs.actor != core.NoChar || name != "combat" && e.exploring() {
+				if e.cs.turn != nil && e.cs.actor != rules.NoChar || name != "combat" && e.exploring() {
 					break
 				}
 				if e.waiting(PendFight) {

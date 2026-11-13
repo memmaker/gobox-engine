@@ -1,12 +1,12 @@
 package engine
 
 import (
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"testing"
 )
 
 func TestLine(t *testing.T) {
-	l := goldbox.NewLine(0, 0, 6, -3)
+	l := rules.NewLine(0, 0, 6, -3)
 	var dirs []byte
 	for l.Step() {
 		dirs = append(dirs, l.Dir)

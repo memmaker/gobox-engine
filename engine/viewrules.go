@@ -2,14 +2,14 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 )
 
 // word is the ruleset's sheet word for c's fact f (core.WordFact).
-func (e *Engine) word(cID core.CharID, f core.PlainFact) string {
-	v, err := e.ruleset().Fact(cID, core.WordFact{Of: f})
+func (e *Engine) word(cID rules.CharID, f rules.PlainFact) string {
+	v, err := e.ruleset().Fact(cID, rules.WordFact{Of: f})
 	if err != nil {
 		panic(fmt.Sprintf("sheet: word %v: %v", f, err))
 	}
-	return string(v.(core.Text))
+	return string(v.(rules.Text))
 }

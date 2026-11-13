@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 	"testing"
 )
@@ -44,7 +44,7 @@ func TestBracersSwapArmor(t *testing.T) {
 	e.state().ApplyItems(c)
 	e.state().AddItemCopy(c, &rules1e.Item{Type: rules1e.ItemBracers, Plus: 4})
 	b := e.state().Pool[0]
-	if e.state().DollSlot(c, b) != core.DollArmor || e.state().InTheWay(c, b) != plate {
+	if e.state().DollSlot(c, b) != rules.DollArmor || e.state().InTheWay(c, b) != plate {
 		t.Fatalf("bracers: doll slot %d, in the way %v", e.state().DollSlot(c, b), e.state().InTheWay(c, b))
 	}
 	e.state().SwapReady(c, b)

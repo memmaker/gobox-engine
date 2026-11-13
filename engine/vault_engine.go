@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"gobox/char"
-	"gobox/core"
+	"gobox/rules"
 	"math"
 	"os"
 	"slices"
@@ -36,10 +36,10 @@ func (e *Engine) Vault() {
 		panic(fmt.Sprintf("vault: %v", err))
 	}
 	e.vault = &vault{items: items}
-	e.do(core.ClearLoot{})
-	e.do(core.AddLoot{Loot: core.Purse{Gold: coins[0], Copper: coins[1], Gems: coins[2], Jewelry: coins[3]}})
+	e.do(rules.ClearLoot{})
+	e.do(rules.AddLoot{Loot: rules.Purse{Gold: coins[0], Copper: coins[1], Gems: coins[2], Jewelry: coins[3]}})
 	if len(items) > 0 {
-		e.do(core.AddTreasureBlock{Block: vaultBlock})
+		e.do(rules.AddTreasureBlock{Block: vaultBlock})
 	}
 	e.push(cont{kind: kVaultDone})
 	e.lootMenu()
@@ -48,9 +48,9 @@ func (e *Engine) Vault() {
 // vaultDone: the vault is left; the money and items not taken are written back.
 func (e *Engine) vaultDone() {
 	e.vault = nil
-	records := e.fact(core.NoChar, core.TreasureRecordsFact{}).(core.ItemRecords)
+	records := e.fact(rules.NoChar, rules.TreasureRecordsFact{}).(rules.ItemRecords)
 	loot := e.purse(true)
-	e.do(core.ClearLoot{}) // and the treasure
+	e.do(rules.ClearLoot{}) // and the treasure
 	if err := writeVault(e.savePath(vaultFile), loot, records); err != nil {
 		e.say("Can't save the vault: " + err.Error())
 	}
@@ -79,7 +79,7 @@ func readVault(path string) ([vaultCoins]uint64, []char.Item, error) {
 }
 
 // writeVault writes vault.dat: the pool's gold, copper, gems and jewelry, then the item records.
-func writeVault(path string, loot core.Purse, records core.ItemRecords) error {
+func writeVault(path string, loot rules.Purse, records rules.ItemRecords) error {
 	head := make([]byte, 0, vaultCoins*4)
 	for _, n := range []uint64{loot.Gold, loot.Copper, loot.Gems, loot.Jewelry} {
 		head = binary.LittleEndian.AppendUint32(head, uint32(min(n, math.MaxInt32)))

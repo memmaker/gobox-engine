@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
@@ -12,7 +12,7 @@ func (e *Engine) rosterSel() int {
 	switch {
 	case e.rosterNone:
 		return -1
-	case e.rosterHi != core.NoChar:
+	case e.rosterHi != rules.NoChar:
 		return slices.Index(e.partyIDs(), e.rosterHi)
 	}
 	return e.sel
@@ -21,13 +21,13 @@ func (e *Engine) rosterSel() int {
 // selected is the selected member, an empty one in an empty party: the
 // Engine's one placeholder, emptied on each call, so its CharID is one id
 // and never a new registry entry.
-func (e *Engine) selected() core.CharID {
+func (e *Engine) selected() rules.CharID {
 	if e.partySize() == 0 {
-		o, err := e.ruleset().Resolve(nil, core.EmptyMember{}, nil)
+		o, err := e.ruleset().Resolve(nil, rules.EmptyMember{}, nil)
 		if err != nil {
 			panic(fmt.Sprintf("selected: %v", err)) // never refused
 		}
-		return o.Effects[0].(core.EmptyMemberIs).Who
+		return o.Effects[0].(rules.EmptyMemberIs).Who
 	}
 	return e.partyIDs()[e.sel]
 }
@@ -41,23 +41,23 @@ func (e *Engine) selectMember(n int) {
 }
 
 // actor selects member n (if there is one) and returns the selected member.
-func (e *Engine) actor(n int) core.CharID {
+func (e *Engine) actor(n int) rules.CharID {
 	e.selectMember(n)
 	return e.selected()
 }
 
 // as hands member n to the rules as the actor of the next call (WordWho).
-func (e *Engine) as(n int) { e.setWorldWord(core.WordWho, n) }
+func (e *Engine) as(n int) { e.setWorldWord(rules.WordWho, n) }
 
 // join adds c to the party as the rules' AddToParty, which makes it the
 // actor (DS:5D92), and selects it.
-func (e *Engine) join(cID core.CharID) {
-	e.do(core.JoinParty{Who: cID})
+func (e *Engine) join(cID rules.CharID) {
+	e.do(rules.JoinParty{Who: cID})
 	e.follow()
 }
 
 // follow selects the rules' actor after a call that moved it.
-func (e *Engine) follow() { e.sel = e.worldWord(core.WordWho) }
+func (e *Engine) follow() { e.sel = e.worldWord(rules.WordWho) }
 
 // PartyMenu = ovr17:0161: the party menu takes decisions (MainMenu)
 // until the player begins adventuring or loads a game that starts play
@@ -89,7 +89,7 @@ func (e *Engine) partyMenu(hall, chain bool) {
 			}
 		}
 		if e.partySize() > 0 {
-			e.setWorldWord(core.WordBeginFlag, 4)
+			e.setWorldWord(rules.WordBeginFlag, 4)
 			if chain {
 				e.ret()
 			}
@@ -100,16 +100,16 @@ func (e *Engine) partyMenu(hall, chain bool) {
 	if e.FreeTraining { // -freetrain
 		debug = 1
 	}
-	e.setWorldWord(core.WordDebug, debug)
+	e.setWorldWord(rules.WordDebug, debug)
 	e.ext.hall = hall // a script's (the training hall): the game goes on under it
-	e.setWorldWord(core.WordBeginFlag, 0)
+	e.setWorldWord(rules.WordBeginFlag, 0)
 	e.partyRedraw()
 	e.menu.on, e.menu.chain, e.menu.seq = true, chain, e.opens()
 }
 
 // inParty: the party menu's own decisions are open.
 func (e *Engine) inParty() bool {
-	return e.onTop() == onMenu && !e.view.on && !e.snap.invOn && e.creation == nil && e.worldWord(core.WordTraining) == 0 && e.eclWait == nil
+	return e.onTop() == onMenu && !e.view.on && !e.snap.invOn && e.creation == nil && e.worldWord(rules.WordTraining) == 0 && e.eclWait == nil
 }
 
 // onTop is camp's or the party menu's on flag when it is up with nothing
@@ -122,7 +122,7 @@ func (e *Engine) onTop() decider {
 }
 
 // campOn: camp is up (CampMenu).
-func (e *Engine) campOn() bool { return e.worldWord(core.WordCampOn) != 0 }
+func (e *Engine) campOn() bool { return e.worldWord(rules.WordCampOn) != 0 }
 
 // stateRedraw draws camp or the party menu again when what was over
 // it went; false: neither is on top.
@@ -150,9 +150,9 @@ func (e *Engine) closeParty() {
 // begin = the party menu's BEGIN Adventuring (the hall's Leave).
 func (e *Engine) begin() error {
 	if !e.inParty() || !slices.Contains(e.partyFunctions(), partyBegin) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
-	e.setWorldWord(core.WordBeginFlag, 4)
+	e.setWorldWord(rules.WordBeginFlag, 4)
 	e.ext.hall = false
 	e.clearPrompt()
 	e.closeParty()
@@ -163,7 +163,7 @@ func (e *Engine) begin() error {
 // one) goes back to the saved characters.
 func (e *Engine) removeMember(n int) error {
 	if !e.inParty() || e.partySize() == 0 {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	if err := e.SaveCharacter(e.actor(n), ""); err != nil {
 		return err // not saved: the character stays in the party
@@ -174,8 +174,8 @@ func (e *Engine) removeMember(n int) error {
 
 // lead makes member n the selected one (the party menu, camp, a wait).
 func (e *Engine) lead(n int) error {
-	if n < 0 || n >= e.partySize() || e.worldWord(core.WordBeginFlag) == 5 {
-		return core.ErrNotNow
+	if n < 0 || n >= e.partySize() || e.worldWord(rules.WordBeginFlag) == 5 {
+		return rules.ErrNotNow
 	}
 	e.selectMember(n)
 	return nil
@@ -184,7 +184,7 @@ func (e *Engine) lead(n int) error {
 // QuitGame = the party menu's Quit (the player confirmed).
 func (e *Engine) QuitGame() error {
 	if !e.inParty() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.Exit()
 	return nil
@@ -209,7 +209,7 @@ func (e *Engine) partyFunctions() []partyFn {
 		return fs
 	}
 	fs := []partyFn{partyBegin, partyAdd, partyCreate, partyDrop, partyModify}
-	if e.mayTrain() && (e.worldWord(core.WordTrainable) > 0 || e.worldWord(core.WordDebug) != 0) { // only when the selected member would rise
+	if e.mayTrain() && (e.worldWord(rules.WordTrainable) > 0 || e.worldWord(rules.WordDebug) != 0) { // only when the selected member would rise
 		fs = append(fs, partyTraining)
 	}
 	if e.ext.hall && len(e.classOffers(e.selected())) > 0 {
@@ -230,7 +230,7 @@ func (e *Engine) RemoveSelected(keepCount, freeIcon bool) {
 		return
 	}
 	if freeIcon {
-		e.freeIcon(byte(e.fact(e.partyIDs()[i], core.IconFact{}).(core.Number))) // ovr33:014E
+		e.freeIcon(byte(e.fact(e.partyIDs()[i], rules.IconFact{}).(rules.Number))) // ovr33:014E
 	}
 	e.ruleset().Dismiss(e.partyIDs()[i])
 	if i > 0 {
@@ -239,7 +239,7 @@ func (e *Engine) RemoveSelected(keepCount, freeIcon bool) {
 		e.sel = 0
 	}
 	if !keepCount {
-		e.setWorldWord(core.WordPartyCount, e.worldWord(core.WordPartyCount)-1)
+		e.setWorldWord(rules.WordPartyCount, e.worldWord(rules.WordPartyCount)-1)
 	}
 }
 
@@ -253,11 +253,11 @@ type partyMenu struct {
 
 // mayTrain is whether the selected member would rise at the training hall now.
 func (e *Engine) mayTrain() bool {
-	return e.fact(e.selected(), core.TrainFact{}).(core.TrainCard).Rises
+	return e.fact(e.selected(), rules.TrainFact{}).(rules.TrainCard).Rises
 }
 
 // applyItems = por ApplyItems (00BA:0BB8) on id, the selected member acting.
-func (e *Engine) applyItems(id core.CharID) {
-	e.setWorldWord(core.WordWho, e.sel)
-	e.must(core.ApplyItems{Who: id})
+func (e *Engine) applyItems(id rules.CharID) {
+	e.setWorldWord(rules.WordWho, e.sel)
+	e.must(rules.ApplyItems{Who: id})
 }

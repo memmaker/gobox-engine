@@ -9,7 +9,7 @@ package engine
 // the area, the ones it strikes the marks.
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"image"
 )
 
@@ -19,14 +19,14 @@ func (e *Engine) aoeMarks(x, y int) {
 	if e.ext.aoe == 0 {
 		return
 	}
-	var spell core.SpellID
+	var spell rules.SpellID
 	if e.ext.aoeSpell != 0 {
 		spell = e.spellID(e.ext.aoeSpell)
 	}
 	e.as(e.sel)
-	a := e.fact(e.selected(), core.AreaFact{Spell: spell, At: core.BoardPos{X: x, Y: y}, Area: e.ext.aoe}).(core.AreaPreview)
+	a := e.fact(e.selected(), rules.AreaFact{Spell: spell, At: rules.BoardPos{X: x, Y: y}, Area: e.ext.aoe}).(rules.AreaPreview)
 	e.snap.area, e.snap.skipped = points(a.Area), points(a.Skipped)
-	marks := map[core.BoardPos]bool{}
+	marks := map[rules.BoardPos]bool{}
 	for _, p := range a.Hit {
 		if p.X != x || p.Y != y || !e.ccursor.icon { // the cursor marks its own square
 			marks[p] = true

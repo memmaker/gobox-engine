@@ -3,9 +3,8 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl/script"
+	"gobox/rules"
 	"log"
 	"os"
 	"sort"
@@ -129,7 +128,7 @@ func (e *Engine) readLabels(path string) {
 			continue
 		}
 		var text string
-		if n, _ := fmt.Sscanf(line, "%d %d %d", &x, &y, &kind); n == 3 && cur != nil && goldbox.OnMap(x, y) && kind >= 0 && kind <= poiCivic {
+		if n, _ := fmt.Sscanf(line, "%d %d %d", &x, &y, &kind); n == 3 && cur != nil && rules.OnMap(x, y) && kind >= 0 && kind <= poiCivic {
 			if f := strings.SplitN(line, " ", 4); len(f) == 4 {
 				text = f[3]
 			}
@@ -166,14 +165,14 @@ func (e *Engine) writeLabels(path string) error {
 // Mark labels square x, y of the current map with text (the player's
 // label; "" marks nothing).
 func (e *Engine) Mark(x, y int, text string) {
-	if text = strings.TrimSpace(text); text != "" && goldbox.OnMap(x, y) {
-		e.userLabels()[y<<4|x] = mapLabel{goldbox.Cut(text, 0x20), poiUser}
+	if text = strings.TrimSpace(text); text != "" && rules.OnMap(x, y) {
+		e.userLabels()[y<<4|x] = mapLabel{rules.Cut(text, 0x20), poiUser}
 	}
 }
 
 // Unmark removes the player's label from square x, y of the current map.
 func (e *Engine) Unmark(x, y int) {
-	if goldbox.OnMap(x, y) {
+	if rules.OnMap(x, y) {
 		delete(e.userLabels(), y<<4|x)
 	}
 }
@@ -185,7 +184,7 @@ func (e *Engine) mapName() string {
 	if err != nil {
 		log.Printf("map names: %v", err)
 	}
-	n := script.ValueName(vals, "Map", int(e.set), e.worldWord(core.WordGeo))
+	n := script.ValueName(vals, "Map", int(e.set), e.worldWord(rules.WordGeo))
 	if n == "" {
 		return "Map"
 	}

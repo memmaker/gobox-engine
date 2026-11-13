@@ -16,7 +16,7 @@ require (
 	github.com/jfreymuth/oggvorbis v1.0.5
 	github.com/memmaker/opl2 v0.1.0
 	github.com/qmuntal/gltf v0.29.0
-	gobox/core v0.0.0
+	gobox/rules v0.0.0
 	golang.org/x/image v0.47.0
 )
 
@@ -31,7 +31,7 @@ require (
 )
 
 // gobox/core is its own module: rulesxxvc depends on it alone (the rules seam)
-replace gobox/core => ./core
+replace gobox/rules => ./rules
 
 replace github.com/gogpu/wgpu => ../gogpu-wgpu
 

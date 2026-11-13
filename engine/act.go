@@ -1,11 +1,10 @@
 package engine
 
 import (
-	"gobox/core"
 	"time"
 
-	"gobox/core/goldbox"
 	"gobox/game"
+	"gobox/rules"
 )
 
 // partyFn is a function of the party menu (partyFunctions).
@@ -65,7 +64,7 @@ func (e *Engine) Pace() Pace { return e.pace() }
 // pace is the loop that goes on now.
 func (e *Engine) pace() Pace {
 	switch {
-	case e.waiting(PendFight) && e.cs.actor == core.NoChar:
+	case e.waiting(PendFight) && e.cs.actor == rules.NoChar:
 		return PaceFight
 	case e.resting != nil:
 		return PaceRest
@@ -93,4 +92,4 @@ func (e *Engine) Step() {
 
 // say shows s as the window's note: what a direct action reports instead
 // of the original's message line. It is cut to the bottom line (noteCols).
-func (e *Engine) say(s string) { e.ext.note, e.ext.noteAt = goldbox.Cut(s, noteCols), time.Now() }
+func (e *Engine) say(s string) { e.ext.note, e.ext.noteAt = rules.Cut(s, noteCols), time.Now() }

@@ -1,7 +1,7 @@
 package rules4e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
 	"strconv"
@@ -523,7 +523,7 @@ var powers = []power{
 		use: func(r *Rules, e *rules1e.RuleState, c, t *rules1e.Character) bool {
 			e.Say(c, "causes fear")
 			if r.attack(e, c, t, rules1e.Wisdom, will) {
-				var far core.BoardPos
+				var far rules.BoardPos
 				d := -1
 				for _, p := range e.Squares(t, e.Speed(t)+max(e.Mod(c, rules1e.Charisma), 0)) {
 					if v := p.Sub(e.At(c)); max(v.X, -v.X, v.Y, -v.Y) > d {

@@ -1,78 +1,78 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
 // Camp: resting, healing, studying (core/camp.go).
 
 // checkCamp answers the Checks of the camp topic.
-func (r *Rules) checkCamp(k core.Check) (core.Answer, bool) {
+func (r *Rules) checkCamp(k rules.Check) (rules.Answer, bool) {
 	s := r.S
 	switch k := k.(type) {
-	case core.HealMinutes:
-		return core.Answer{Value: int32(s.HealMinutes())}, true
-	case core.PartyStudy:
-		return core.Answer{Value: int32(s.PartyStudy())}, true
-	case core.HealClerics:
-		return core.Answer{Value: int32(len(s.HealClerics()))}, true
-	case core.SpellsAllowed:
-		return core.Answer{Yes: s.SpellsAllowed()}, true
-	case core.RestUnit:
-		return core.Answer{Value: int32(s.Camp.Rest[k.Unit])}, true
-	case core.SkyDay:
-		return core.Answer{Yes: s.SkyDay(k.Inside)}, true
-	case core.RestDone:
-		return core.Answer{Yes: s.RestDone(k.UntilHealed)}, true
+	case rules.HealMinutes:
+		return rules.Answer{Value: int32(s.HealMinutes())}, true
+	case rules.PartyStudy:
+		return rules.Answer{Value: int32(s.PartyStudy())}, true
+	case rules.HealClerics:
+		return rules.Answer{Value: int32(len(s.HealClerics()))}, true
+	case rules.SpellsAllowed:
+		return rules.Answer{Yes: s.SpellsAllowed()}, true
+	case rules.RestUnit:
+		return rules.Answer{Value: int32(s.Camp.Rest[k.Unit])}, true
+	case rules.SkyDay:
+		return rules.Answer{Yes: s.SkyDay(k.Inside)}, true
+	case rules.RestDone:
+		return rules.Answer{Yes: s.RestDone(k.UntilHealed)}, true
 	default:
-		return core.Answer{}, false
+		return rules.Answer{}, false
 	}
 }
 
 // resolveCamp answers the Actions of the camp topic.
-func (r *Rules) resolveCamp(a core.Action) (core.Outcome, bool, error) {
+func (r *Rules) resolveCamp(a rules.Action) (rules.Outcome, bool, error) {
 	s := r.S
 	switch a := a.(type) {
-	case core.CampOpen:
+	case rules.CampOpen:
 		s.Camp.Heal = 0
 		s.Camp.Rest = [7]int{}
-	case core.ClearStudy:
+	case rules.ClearStudy:
 		s.ClearStudy()
-	case core.CampClose:
+	case rules.CampClose:
 		for _, c := range s.Party {
 			s.PlanSpells(c)
 		}
 		s.SpellCaster = nil
-	case core.PlanParty:
+	case rules.PlanParty:
 		for _, c := range s.Party {
 			s.PlanSpells(c)
 		}
-	case core.ForgetCures:
+	case rules.ForgetCures:
 		for _, c := range s.HealClerics() {
 			s.ForgetCures(c)
 			s.PlanSpells(c)
 		}
-	case core.MemorizeCures:
+	case rules.MemorizeCures:
 		for _, c := range s.HealClerics() {
 			s.MemorizeCures(c)
 		}
-	case core.CastCures:
+	case rules.CastCures:
 		s.CastCures()
-	case core.SetRest:
+	case rules.SetRest:
 		s.Camp.Rest = [7]int{}
 		s.Camp.Rest[1] = int(a.Minutes)
 		s.NormalizeRest()
-	case core.BeginRest:
+	case rules.BeginRest:
 		s.BeginRest()
-	case core.StopRest:
+	case rules.StopRest:
 		s.Camp.StopRest = true
-	case core.Plan:
+	case rules.Plan:
 		s.PlanSpell(r.chars[a.Who], max(slices.Index(SpellIDs[:], a.Spell), 0), int(a.Count))
-	case core.Scribe:
+	case rules.Scribe:
 		s.Scribe(r.chars[a.Who], max(slices.Index(SpellIDs[:], a.Spell), 0))
 	default:
-		return core.Outcome{}, false, nil
+		return rules.Outcome{}, false, nil
 	}
-	return core.Outcome{}, true, nil
+	return rules.Outcome{}, true, nil
 }

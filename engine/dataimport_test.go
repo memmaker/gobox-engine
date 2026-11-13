@@ -3,17 +3,17 @@ package engine
 import (
 	"bytes"
 	"encoding/binary"
+	"gobox/rules1e"
 	"os"
 	"path/filepath"
 	"reflect"
-	"gobox/rules1e"
 	"testing"
 
 	"gobox/audio"
 	"gobox/audio/sounddata"
 	"gobox/char"
-	"gobox/core/goldbox"
 	"gobox/dax"
+	"gobox/rules"
 )
 
 // TestDataEqualsDAX: every GEO, MON and ITEM block and the ITEMS table read
@@ -27,7 +27,7 @@ func TestDataEqualsDAX(t *testing.T) {
 	e := &Engine{adv: filepath.Join(data, AssetsDir)}
 	d := e.gdata()
 	n := 0
-	for s := goldbox.Set(1); s <= sets; s++ {
+	for s := rules.Set(1); s <= sets; s++ {
 		for id := range 256 {
 			if b, got := l.BlockShared(s.File("GEO"), id), d.geoBlock(s.File("GEO"), id); !bytes.Equal(b, got) || (b == nil) != (got == nil) {
 				t.Fatalf("%s %d: differs", s.File("GEO"), id)

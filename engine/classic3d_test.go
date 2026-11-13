@@ -2,14 +2,13 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core/goldbox"
 	"gobox/ega"
-	"gobox/geo"
+	"gobox/rules"
+	"gobox/rules1e"
 	"image"
 	"image/draw"
 	"image/png"
 	"os"
-	"gobox/rules1e"
 	"strconv"
 	"strings"
 	"testing"
@@ -103,7 +102,7 @@ func (e *Engine) classicView(x, y, dir int) {
 				var prev byte
 				for i := 0; i < 4; i++ {
 					front := e.WallAt(px, py, dir)
-					if !goldbox.OnMap(px, py) && e.WallAt(px, py, (side.dir+4)%8) == 0 {
+					if !rules.OnMap(px, py) && e.WallAt(px, py, (side.dir+4)%8) == 0 {
 						prev = 0
 					}
 					if front != 0 {
@@ -195,7 +194,7 @@ func (e *Engine) classicWalldefLoad(block, slot int) error {
 	}
 	for k := 1; k <= n; k++ {
 		s := slot + k - 1
-		if !geo.ValidWallSlot(s) {
+		if !rules.ValidWallSlot(s) {
 			continue
 		}
 		for i := (s - 1) * walldefSet; i < s*walldefSet; i++ {
@@ -266,7 +265,7 @@ func TestClassicViews(t *testing.T) {
 		}
 		return n
 	}
-	e.set = goldbox.Set(num(f[0]))
+	e.set = rules.Set(num(f[0]))
 	e.LoadSymbolSet(SymbolLoad{Set: 4, Block: 202})
 	e.LoadSymbolSet(SymbolLoad{Set: 0, Block: 203})
 	e.LoadGeo(num(f[1]))

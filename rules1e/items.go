@@ -3,8 +3,7 @@ package rules1e
 // Items: names, lists and the START helpers around them.
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"slices"
 	"strconv"
 )
@@ -26,7 +25,7 @@ func (it *Item) Name() string {
 const itemNameMax = 0x28
 
 func (it *Item) setName(s string) {
-	s = goldbox.Cut(s, itemNameMax)
+	s = rules.Cut(s, itemNameMax)
 	it.PName[0] = Letter(len(s))
 	copy(it.PName[1:itemNameMax+1], []Letter(s))
 }
@@ -54,10 +53,10 @@ func (e *RuleState) ItemName(c *Character, it *Item, readied bool) {
 		}
 	}
 	if detect && (int8(it.Plus) > 0 || int8(it.Plus2) > 0 || it.Cursed != 0) {
-		name = goldbox.Cut(name+"* ", itemNameMax)
+		name = rules.Cut(name+"* ", itemNameMax)
 	}
 	if it.Count > 0 {
-		name = goldbox.Cut(name+strconv.Itoa(int(it.Count))+" ", itemNameMax)
+		name = rules.Cut(name+strconv.Itoa(int(it.Count))+" ", itemNameMax)
 	}
 	mask := 0
 	for i := 1; i <= 3; i++ {
@@ -70,7 +69,7 @@ func (e *RuleState) ItemName(c *Character, it *Item, readied bool) {
 		if (mask>>(i-1))&1 == 0 {
 			continue
 		}
-		name = goldbox.Cut(name+e.itemWord(it.Words[i-1]), itemNameMax)
+		name = rules.Cut(name+e.itemWord(it.Words[i-1]), itemNameMax)
 		s := " "
 		if it.Count >= 2 && !plural {
 			typ := it.Type
@@ -84,7 +83,7 @@ func (e *RuleState) ItemName(c *Character, it *Item, readied bool) {
 				plural = true
 			}
 		}
-		name = goldbox.Cut(name+s, itemNameMax)
+		name = rules.Cut(name+s, itemNameMax)
 	}
 	it.setName(name + e.ItemStats(it))
 }
@@ -133,7 +132,7 @@ func (e *RuleState) RemoveItem(c *Character, it *Item) {
 // DestroyItems = pod O040:2066 for one member: every carried item of id
 // (with a plus when magicalOnly) goes, a readied one put away first (as c
 // acting), then c's items are applied again.
-func (e *RuleState) DestroyItems(c *Character, id core.ItemID, magicalOnly bool) {
+func (e *RuleState) DestroyItems(c *Character, id rules.ItemID, magicalOnly bool) {
 	who := e.Who
 	if i := e.PartyIndex(c); i < len(e.Party) {
 		e.Who = i

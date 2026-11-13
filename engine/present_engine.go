@@ -1,15 +1,15 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/game"
 	"gobox/game/play"
-	"image"
+	"gobox/rules"
 	"gobox/rules1e"
+	"image"
 )
 
 // present applies the effects recorded and not yet shown, then fx, in order.
-func (e *Engine) present(fx ...core.Effect) {
+func (e *Engine) present(fx ...rules.Effect) {
 	pending := append(e.takePending(), fx...)
 	for _, f := range pending {
 		e.apply(f)
@@ -18,23 +18,23 @@ func (e *Engine) present(fx ...core.Effect) {
 
 // emit queues an effect the Engine makes (a door's sound) after those the
 // rules queued, for present to show (design W3: not the rules' Emit).
-func (e *Engine) emit(f core.Effect) { e.fx = append(e.takePending(), f) }
+func (e *Engine) emit(f rules.Effect) { e.fx = append(e.takePending(), f) }
 
 // takePending takes the queued effects: the Engine's, with the rules' after them.
 // ponytail: takes the rules' Pending until every rule call returns an Outcome (then core.Pending or nothing).
-func (e *Engine) takePending() []core.Effect {
-	fx := append(e.fx, e.ruleset().(core.Pending).TakePending()...)
+func (e *Engine) takePending() []rules.Effect {
+	fx := append(e.fx, e.ruleset().(rules.Pending).TakePending()...)
 	e.fx = nil
 	return fx
 }
 
 // apply shows one effect.
-func (e *Engine) apply(f core.Effect) {
+func (e *Engine) apply(f rules.Effect) {
 	switch f := f.(type) {
-	case core.Narrated: // in a fight: the battle log (Log) and the window's note
+	case rules.Narrated: // in a fight: the battle log (Log) and the window's note
 		if f.More && len(e.ext.battleLog) > 0 {
 			l := &e.ext.battleLog[len(e.ext.battleLog)-1]
-			*l = core.LogJoin(*l, f.Text)
+			*l = rules.LogJoin(*l, f.Text)
 			return
 		}
 		e.ext.battleLog = append(e.ext.battleLog, f.Text)
@@ -42,49 +42,49 @@ func (e *Engine) apply(f core.Effect) {
 			return
 		}
 		e.say(f.Text)
-	case core.Turned: // the presenter turns the icon (the original's combatTurn)
+	case rules.Turned: // the presenter turns the icon (the original's combatTurn)
 		e.event(play.Turned{Unit: int(f.Unit), Facing: int(f.Facing)})
-	case core.Casting:
+	case rules.Casting:
 		e.ext.panel = e.unitChar(f.From) // the side pane shows the caster
 		e.event(play.CastSpell{From: int(f.From), Spell: e.spellNumber(f.Spell), Ats: points(f.Ats)})
-	case core.Shot:
+	case rules.Shot:
 		frames, delay := e.missileArt(f)
 		ev := play.Shot{From: int(f.From), To: point(f.To), StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
 		if frames > 0 && e.spr != nil {                                    // the original's art choice, the frame hitColours put in the sprite
 			ev.Art = gamePicture(e.picPix(e.spr, 0, false, -1))
 		}
 		e.event(ev)
-	case core.Sounded: // in a fight: when the presenter plays the events up to here; else now
+	case rules.Sounded: // in a fight: when the presenter plays the events up to here; else now
 		if e.inFight() {
 			e.event(play.Sounded{Sound: string(f.Cue)})
 			return
 		}
 		e.dasp(string(f.Cue))
-	case core.Walked:
+	case rules.Walked:
 		w := play.Walked{Unit: int(f.Unit)}
 		for _, p := range f.Path {
 			w.Path = append(w.Path, game.Step{At: point(p)})
 		}
 		e.event(w)
-	case core.Attacked:
+	case rules.Attacked:
 		s := &e.snap // the snapshot's last weapon attack
 		s.strike = Strike{Seq: s.strike.Seq + 1, Hit: f.Hit, Damage: int(f.Damage)}
-		s.striker = [2]core.CharID{e.unitChar(f.From), e.unitChar(f.To)}
+		s.striker = [2]rules.CharID{e.unitChar(f.From), e.unitChar(f.To)}
 		e.ext.panel = s.striker[0] // the side pane shows the attacker, as the original's
 		e.event(play.Attacked{From: int(f.From), To: int(f.To), Hit: f.Hit, Damage: int(f.Damage)})
 		e.hitTo = 0
 		if f.Hit {
 			e.hitTo = int(f.To)
 		}
-	case core.Struck:
+	case rules.Struck:
 		if int(f.Unit) == e.hitTo {
 			e.hitTo = 0
 			return
 		}
 		e.event(play.Struck{Unit: int(f.Unit), Damage: int(f.Damage)})
-	case core.Fell: // with the body ovr32:0E11 leaves for a fight the blow ends (class 55)
+	case rules.Fell: // with the body ovr32:0E11 leaves for a fight the blow ends (class 55)
 		ev := play.Fell{Unit: int(f.Unit)}
-		b := e.ruleset().Check(core.UnitBody{Unit: f.Unit}, nil)
+		b := e.ruleset().Check(rules.UnitBody{Unit: f.Unit}, nil)
 		if x, y := int(b.Low), int(b.High); !e.inView(x, y) {
 			e.recentre(x, y, 3) // ovr32:0E11: the fall brought into view
 		}
@@ -101,7 +101,7 @@ func (e *Engine) apply(f core.Effect) {
 // missileArt puts what flies in the sprite (DS:6E36) and gives its frames
 // and pace: a weapon as attackAnimation (ovr14:26B0) chose, a spell or power
 // as its caller (hitColours slot, then flyMissile's frames and delay).
-func (e *Engine) missileArt(f core.Shot) (frames, delay int) {
+func (e *Engine) missileArt(f rules.Shot) (frames, delay int) {
 	switch f.Spell {
 	case "":
 	case rules1e.SpellStoneGaze, rules1e.SpellCharmGaze:
@@ -117,7 +117,7 @@ func (e *Engine) missileArt(f core.Shot) (frames, delay int) {
 		e.hitColours(0x12)
 		return 4, 0x1E
 	}
-	dir := int(e.ruleset().Check(core.ArcDir{Start: f.Start, To: f.To}, nil).Value)
+	dir := int(e.ruleset().Check(rules.ArcDir{Start: f.Start, To: f.To}, nil).Value)
 	typ := f.Item // an item with no flight art flies as the default
 	frames, delay, base := 1, 0xA, 0xD
 	switch {
@@ -148,8 +148,8 @@ func (e *Engine) missileArt(f core.Shot) (frames, delay int) {
 }
 
 // spellNumber is the spell number of a dnd spell id.
-func (e *Engine) spellNumber(id core.SpellID) int {
-	n := e.ruleset().Check(core.SpellNumber{Spell: id}, nil)
+func (e *Engine) spellNumber(id rules.SpellID) int {
+	n := e.ruleset().Check(rules.SpellNumber{Spell: id}, nil)
 	if id == "" || !n.Yes {
 		panic("present: no spell number for " + string(id))
 	}
@@ -157,10 +157,10 @@ func (e *Engine) spellNumber(id core.SpellID) int {
 }
 
 // point is a board square as the presenter's image.Point.
-func point(p core.BoardPos) image.Point { return image.Pt(p.X, p.Y) }
+func point(p rules.BoardPos) image.Point { return image.Pt(p.X, p.Y) }
 
 // points are board squares as the presenter's.
-func points(ps []core.BoardPos) []image.Point {
+func points(ps []rules.BoardPos) []image.Point {
 	var out []image.Point
 	for _, p := range ps {
 		out = append(out, point(p))
@@ -169,6 +169,6 @@ func points(ps []core.BoardPos) []image.Point {
 }
 
 // unitChar is who board unit u is (core.UnitCharFact; NoChar: none).
-func (e *Engine) unitChar(u core.UnitID) core.CharID {
-	return e.fact(core.NoChar, core.UnitCharFact{Unit: u}).(core.UnitChar).Who
+func (e *Engine) unitChar(u rules.UnitID) rules.CharID {
+	return e.fact(rules.NoChar, rules.UnitCharFact{Unit: u}).(rules.UnitChar).Who
 }

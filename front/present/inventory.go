@@ -4,10 +4,10 @@ package present
 
 import (
 	"fmt"
-	"gobox/core"
 	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/rules"
 	"gobox/ui"
 	"image"
 	"image/color"
@@ -57,11 +57,11 @@ type inventory struct {
 	img, tip    *gpu.Image     // the canvas and the tooltip on the GPU
 	glyph       func(byte) [8]byte
 
-	shown bool            // the last frame was the inventory
-	sel   core.ItemHandle // the highlighted item, NoItem for none
+	shown bool             // the last frame was the inventory
+	sel   rules.ItemHandle // the highlighted item, NoItem for none
 	keep  struct {
 		row, n int
-		i      core.ItemHandle
+		i      rules.ItemHandle
 		id     string
 	} // a sold, dropped or readied item's line, the list's length and its Index then: the line after it is highlighted once it is gone (row -1 none)
 	ask     *front.Action     // a Drop or Sell waits for Yes
@@ -76,7 +76,7 @@ type inventory struct {
 	w, h    int               // canvas size
 	list    pane              // the party inventory
 	wares   pane              // the shop's goods (Browse)
-	ware    core.ItemHandle   // the highlighted ware, NoItem for none
+	ware    rules.ItemHandle  // the highlighted ware, NoItem for none
 	lines   []hit             // the items' rectangles (canvas)
 	dollAt  image.Rectangle
 	face    image.Rectangle // the portrait on the canvas, when facePNG is drawn over it at the window's resolution
@@ -229,12 +229,12 @@ func (inv *inventory) do(k front.ActKind) {
 // engine's Index of every later item shifts and the list is sorted, so the
 // highlight is kept on the line, not the Index: selling down a list, or
 // readying out of the party inventory, stays in place.
-func (inv *inventory) remove(k front.ActKind, i core.ItemHandle) {
+func (inv *inventory) remove(k front.ActKind, i rules.ItemHandle) {
 	inv.removeX(k, i, 0)
 }
 
 // removeX is remove with the action's X (Ready's count).
-func (inv *inventory) removeX(k front.ActKind, i core.ItemHandle, x int) {
+func (inv *inventory) removeX(k front.ActKind, i rules.ItemHandle, x int) {
 	inv.acts = append(inv.acts, front.Action{Kind: k, Item: i, X: x})
 	if k != front.ActSell && k != front.ActDrop && k != front.ActReady {
 		return
@@ -253,8 +253,8 @@ func itemID(it game.Item) string {
 }
 
 // choose highlights ware i of the shop or item i of the member's.
-func (inv *inventory) choose(ware bool, i core.ItemHandle) {
-	inv.sel, inv.ware, inv.keep.row = core.NoItem, core.NoItem, -1
+func (inv *inventory) choose(ware bool, i rules.ItemHandle) {
+	inv.sel, inv.ware, inv.keep.row = rules.NoItem, rules.NoItem, -1
 	if ware {
 		inv.ware = i
 	} else {
@@ -335,7 +335,7 @@ func (r *frontState) inventoryOf(ps play.State) *invUp {
 		}
 	}
 	for i, it := range m.Items {
-		if d := dollSlot(it, u.doll[core.DollWeapon] != nil); it.Readied && d >= 0 && u.doll[d] == nil {
+		if d := dollSlot(it, u.doll[rules.DollWeapon] != nil); it.Readied && d >= 0 && u.doll[d] == nil {
 			u.doll[d] = &m.Items[i]
 		}
 	}
@@ -352,8 +352,8 @@ func (r *frontState) inventoryOf(ps play.State) *invUp {
 }
 
 // itemAt is the screen's item h, nil if none.
-func (inv *inventory) itemAt(h core.ItemHandle) *game.Item {
-	if h == core.NoItem {
+func (inv *inventory) itemAt(h rules.ItemHandle) *game.Item {
+	if h == rules.NoItem {
 		return nil
 	}
 	for _, it := range inv.up.doll {
@@ -370,8 +370,8 @@ func (inv *inventory) itemAt(h core.ItemHandle) *game.Item {
 }
 
 // wareAt is the shop's ware h, nil if none.
-func (inv *inventory) wareAt(h core.ItemHandle) *game.Item {
-	if h == core.NoItem {
+func (inv *inventory) wareAt(h rules.ItemHandle) *game.Item {
+	if h == rules.NoItem {
 		return nil
 	}
 	for k := range inv.up.wares {

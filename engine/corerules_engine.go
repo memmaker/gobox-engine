@@ -3,10 +3,9 @@ package engine
 import (
 	"fmt"
 	"gobox/char"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl/script"
 	"gobox/exe/tablespec"
+	"gobox/rules"
 	"os"
 	"path/filepath"
 	"slices"
@@ -19,32 +18,32 @@ import (
 // needs nothing of this package.
 type Ruleset func(
 	rules string,
-	monster func(core.MonsterID) (char.Sheet, []char.AffectRecord, []char.Item, bool),
+	monster func(rules.MonsterID) (char.Sheet, []char.AffectRecord, []char.Item, bool),
 	items func() []char.ItemBase,
 	treasure func(block int) []char.Item,
-	host goldbox.CreationHost,
-) (core.Rules, core.CreationRules)
+	host rules.CreationHost,
+) (rules.Rules, rules.CreationRules)
 
 // GameTables is the game's data the Engine shows, handed in by the game at New.
 type GameTables struct {
-	PortraitHead, PortraitBody []goldbox.PortraitPic // portrait number -> its picture, 1-based ([0] unused)
-	Script                     *script.Version       `json:"-"` // the game's ECL dialect; nil: the first engine's (V1)
-	ScriptSounds               map[byte]ScriptSound  // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays DefaultSound
-	DefaultSound               *ScriptSound          // what a number ScriptSounds does not list plays; nil: nothing
-	AddNPCIcon                 bool                  // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
-	AreaMonsters               AreaMonsters          // the area's own monsters a fight adds (pod); zero: none
-	Dialect                    core.Dialect          // the game's script byte-code dialect (ReadGameTables sets Script from it)
-	TreasureSets               [][]int32             // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
-	ScriptFixes                []script.Fix          // the game's decompiler special cases (script.Library.Fixes): the import's, for the texts' key
-	Natives                    []NativeAt            // the labels a native script runs at (POR: the tavern game, CAST KNOCK); none: no native
-	Quests                     []QuestDef            // the quest journal's quests (POR: the commissions); none: an empty journal
-	OriginalSave               char.SaveLayout       // the game's SAVGAMx.DAT format (the original-save import)
-	PurseWhos                  []PurseWho            // the Who commands that spend the party's one purse (POR: the inn, the tavern)
-	Symbols                    []SymbolLoad          // the 8x8 symbol sets Init loads; nil: POR's, sotsb's and cotab's (PorSymbols)
-	Art                        *ArtNames             // the pictures the Engine loads by role; nil: POR's (PorArt)
-	MapLabels                  []MapLabel            // the maps' fixed labels (POR: New Phlan's buildings, PorMapLabels); none: none
-	Music                      *AreaMusic            // the soundtrack by area (POR: PorMusic); nil: none
-	MonsterSet                 goldbox.Set           // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
+	PortraitHead, PortraitBody []rules.PortraitPic  // portrait number -> its picture, 1-based ([0] unused)
+	Script                     *script.Version      `json:"-"` // the game's ECL dialect; nil: the first engine's (V1)
+	ScriptSounds               map[byte]ScriptSound // the Sound command's numbers (pod: 2..14 digitized, 128+n song n); one not listed plays DefaultSound
+	DefaultSound               *ScriptSound         // what a number ScriptSounds does not list plays; nil: nothing
+	AddNPCIcon                 bool                 // AddNPC loads the NPC's combat icon (sotsb, pod; not cotab)
+	AreaMonsters               AreaMonsters         // the area's own monsters a fight adds (pod); zero: none
+	Dialect                    rules.Dialect        // the game's script byte-code dialect (ReadGameTables sets Script from it)
+	TreasureSets               [][]int32            // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
+	ScriptFixes                []script.Fix         // the game's decompiler special cases (script.Library.Fixes): the import's, for the texts' key
+	Natives                    []NativeAt           // the labels a native script runs at (POR: the tavern game, CAST KNOCK); none: no native
+	Quests                     []QuestDef           // the quest journal's quests (POR: the commissions); none: an empty journal
+	OriginalSave               char.SaveLayout      // the game's SAVGAMx.DAT format (the original-save import)
+	PurseWhos                  []PurseWho           // the Who commands that spend the party's one purse (POR: the inn, the tavern)
+	Symbols                    []SymbolLoad         // the 8x8 symbol sets Init loads; nil: POR's, sotsb's and cotab's (PorSymbols)
+	Art                        *ArtNames            // the pictures the Engine loads by role; nil: POR's (PorArt)
+	MapLabels                  []MapLabel           // the maps' fixed labels (POR: New Phlan's buildings, PorMapLabels); none: none
+	Music                      *AreaMusic           // the soundtrack by area (POR: PorMusic); nil: none
+	MonsterSet                 rules.Set            // the set whose MON and CPIC archives hold the monsters (sotsb, pod: 1); 0: the current set (POR, cotab: the disk)
 }
 
 // ArtNames are the picture files the Engine loads by role, each game's own
@@ -107,7 +106,7 @@ func (a ArtNames) Files() []string {
 }
 
 // monsterSet is the set the monsters' MON and CPIC archives are read from.
-func (e *Engine) monsterSet() goldbox.Set {
+func (e *Engine) monsterSet() rules.Set {
 	if s := e.game().MonsterSet; s != 0 {
 		return s
 	}
@@ -157,9 +156,9 @@ func (g GameTables) scriptSound(n byte) (ScriptSound, bool) {
 
 // ScriptSound is what one Sound command number plays: a song or a cue.
 type ScriptSound struct {
-	Music bool          // Song, not Cue
-	Song  int           // the soundtrack's song
-	Cue   core.SoundCue // the sound pack's event
+	Music bool           // Song, not Cue
+	Song  int            // the soundtrack's song
+	Cue   rules.SoundCue // the sound pack's event
 }
 
 // bareRuleset and bareData are what an Engine made without New (a test's
@@ -171,13 +170,13 @@ var (
 
 // ruleset is the Engine's ruleset, owner of the rules' state (fold step E-R6), made
 // at first use by the game's Ruleset: the Engine reaches the rules through it.
-func (e *Engine) ruleset() core.Rules {
+func (e *Engine) ruleset() rules.Rules {
 	if e.rules == nil {
 		build := e.newRules
 		if build == nil {
 			build = bareRuleset
 		}
-		monster := func(id core.MonsterID) (char.Sheet, []char.AffectRecord, []char.Item, bool) {
+		monster := func(id rules.MonsterID) (char.Sheet, []char.AffectRecord, []char.Item, bool) {
 			m, ok := e.gdata().monster(e.monsterSet().File("MON"), int(id))
 			return m.Record, m.Affects, m.Items, ok
 		}
@@ -202,21 +201,21 @@ func (e *Engine) game() GameTables {
 
 // selFact is the selected member's Fact f as a number; a Fact the ruleset
 // does not hold is a bug of the script table.
-func (e *Engine) selFact(f core.Fact) int64 {
-	return int64(e.selValue(f).(core.Number))
+func (e *Engine) selFact(f rules.Fact) int64 {
+	return int64(e.selValue(f).(rules.Number))
 }
 
 // setSelFact writes the selected member's Fact f.
-func (e *Engine) setSelFact(f core.Fact, v int64) {
-	e.setSelValue(f, core.Number(v))
+func (e *Engine) setSelFact(f rules.Fact, v int64) {
+	e.setSelValue(f, rules.Number(v))
 }
 
 // scriptSide is the Side word's number of each side (SpecialReadZ1 268);
 // writing any other number changes nothing.
-var scriptSide = map[core.Side]uint16{core.SideParty: 0, core.SideAuto: 0x80, core.SideMonsters: 0x81}
+var scriptSide = map[rules.Side]uint16{rules.SideParty: 0, rules.SideAuto: 0x80, rules.SideMonsters: 0x81}
 
 // selValue is the selected member's Fact f.
-func (e *Engine) selValue(f core.Fact) core.Value {
+func (e *Engine) selValue(f rules.Fact) rules.Value {
 	v, err := e.ruleset().Fact(e.selected(), f)
 	if err != nil {
 		panic(fmt.Sprintf("script: fact %v: %v", f, err))
@@ -225,7 +224,7 @@ func (e *Engine) selValue(f core.Fact) core.Value {
 }
 
 // setSelValue writes the selected member's Fact f.
-func (e *Engine) setSelValue(f core.Fact, v core.Value) {
+func (e *Engine) setSelValue(f rules.Fact, v rules.Value) {
 	if err := e.ruleset().SetFact(e.selected(), f, v); err != nil {
 		panic(fmt.Sprintf("script: fact %v: %v", f, err))
 	}
@@ -234,9 +233,9 @@ func (e *Engine) setSelValue(f core.Fact, v core.Value) {
 // selIndex is the selected member's typed Fact f as the script's number: its
 // place in the record's table of f's values. A record byte outside the table
 // comes back as a core.Number and is read as it stands (SpecialReadZ1).
-func selIndex[V comparable](e *Engine, f core.Fact, table []V) int {
+func selIndex[V comparable](e *Engine, f rules.Fact, table []V) int {
 	switch v := e.selValue(f).(type) {
-	case core.Number:
+	case rules.Number:
 		return int(v)
 	case V:
 		return slices.Index(table, v)
@@ -246,8 +245,8 @@ func selIndex[V comparable](e *Engine, f core.Fact, table []V) int {
 
 // worldWord is the world word w's value (core.WordIs); a word the rules do not
 // keep is a bug of the Engine.
-func (e *Engine) worldWord(w core.WorldWord) int {
-	a := e.ruleset().Check(core.WordIs{Word: w}, nil)
+func (e *Engine) worldWord(w rules.WorldWord) int {
+	a := e.ruleset().Check(rules.WordIs{Word: w}, nil)
 	if !a.Yes {
 		panic(fmt.Sprintf("rules keep no world word %d", w))
 	}
@@ -255,16 +254,18 @@ func (e *Engine) worldWord(w core.WorldWord) int {
 }
 
 // setWorldWord stores v in the world word w (core.SetWord).
-func (e *Engine) setWorldWord(w core.WorldWord, v int) { e.do(core.SetWord{Word: w, Value: int32(v)}) }
+func (e *Engine) setWorldWord(w rules.WorldWord, v int) {
+	e.do(rules.SetWord{Word: w, Value: int32(v)})
+}
 
 // rollDice is n dice of sides from the rules' generator (core.RollDice).
 func (e *Engine) rollDice(n, sides int) int {
-	return int(e.ruleset().Check(core.RollDice{N: int32(n), Sides: int32(sides)}, nil).Value)
+	return int(e.ruleset().Check(rules.RollDice{N: int32(n), Sides: int32(sides)}, nil).Value)
 }
 
 // rollRandom is the rules' Random(n) (core.RollRandom).
 func (e *Engine) rollRandom(n int) int {
-	return int(e.ruleset().Check(core.RollRandom{N: int32(n)}, nil).Value)
+	return int(e.ruleset().Check(rules.RollRandom{N: int32(n)}, nil).Value)
 }
 
 // rulesFile is the adventure's rules.json (tablespec.RulesFile in its data folder), "" when it has none.

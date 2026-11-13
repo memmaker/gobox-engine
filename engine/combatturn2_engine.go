@@ -2,23 +2,23 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"image"
 )
 
 // aimConfirm = ovr14:2C3D (c, cand, mode): take cand as the target. With
 // mode 1 (a missile attack) the attack is made at once, after "Attack
 // Ally?" (mayAttack) for a friend; the results are found and the target.
-func (e *Engine) aimConfirm(cID, candID core.CharID, mode int) (found bool, t aimTarget) {
+func (e *Engine) aimConfirm(cID, candID rules.CharID, mode int) (found bool, t aimTarget) {
 	t = aimTarget{C: candID, At: e.at(candID)}
 	found = true
 	if mode == 1 { // the blow is core.Rules Resolve(Attack); an ally asks first
-		var a core.Action = core.Attack{Target: candID}
+		var a rules.Action = rules.Attack{Target: candID}
 		if e.cs.sure { // the call asks first (cs.ask: turnActs makes it the pending one)
-			a = core.Confirmed{Action: a}
+			a = rules.Confirmed{Action: a}
 		}
 		e.as(e.sel)
-		out, err := e.ruleset().Resolve(core.Fight{Actor: cID}, a, nil)
+		out, err := e.ruleset().Resolve(rules.Fight{Actor: cID}, a, nil)
 		if err != nil {
 			panic(fmt.Sprintf("attack: %v", err))
 		}
@@ -38,8 +38,8 @@ func (e *Engine) aimConfirm(cID, candID core.CharID, mode int) (found bool, t ai
 
 // aimTarget is an aim's result: the square, and who stood there (NoChar: nobody).
 type aimTarget struct {
-	C  core.CharID
-	At core.BoardPos
+	C  rules.CharID
+	At rules.BoardPos
 }
 
 // playerAim = ovr14:3558 (c, rng, showRange, allowGround, var found, var t):
@@ -49,9 +49,9 @@ type aimTarget struct {
 // (with a weapon: the ones it can hit, while there are any): the rules'
 // AimFact. rng 0xFF takes the range of the readied weapon. The aim is a
 // phase of the turn (cs.aim): then gets the results once it is gone (aimFinished).
-func (e *Engine) playerAim(cID core.CharID, rangeArg, showRange, allowGround int, then aimThen) {
+func (e *Engine) playerAim(cID rules.CharID, rangeArg, showRange, allowGround int, then aimThen) {
 	e.as(e.sel)
-	o := e.fact(cID, core.AimFact{Range: rangeArg, ShowRange: showRange, FoesOnly: e.ext.enemiesOnly}).(core.AimOffer)
+	o := e.fact(cID, rules.AimFact{Range: rangeArg, ShowRange: showRange, FoesOnly: e.ext.enemiesOnly}).(rules.AimOffer)
 	if len(o.Near) == 0 { // extra: nobody to aim at
 		e.aimFinished(then, false, aimTarget{})
 		return
@@ -68,7 +68,7 @@ func (e *Engine) playerAim(cID core.CharID, rangeArg, showRange, allowGround int
 	}
 	e.snap.turn = &Turn{Unit: e.unit(cID), Aim: true}
 	if e.ext.aoeSpell != 0 { // aimSpell's: which spell is being aimed
-		e.snap.turn.Casting = e.fact(cID, core.SpellAimFact{Spell: e.spellID(e.ext.aoeSpell)}).(core.SpellAim).Name
+		e.snap.turn.Casting = e.fact(cID, rules.SpellAimFact{Spell: e.spellID(e.ext.aoeSpell)}).(rules.SpellAim).Name
 	}
 	at := cID
 	if len(o.Targets) > 0 {
@@ -83,10 +83,10 @@ func (e *Engine) playerAim(cID core.CharID, rangeArg, showRange, allowGround int
 // (cs.aim); then says what the results go on with.
 type aimRun struct {
 	e                      *Engine
-	c                      core.CharID
+	c                      rules.CharID
 	rng                    int
 	showRange, allowGround int
-	list                   []core.CharID // those in sight (AimOffer.Near)
+	list                   []rules.CharID // those in sight (AimOffer.Near)
 	t                      aimTarget
 	found, finished        bool  // finished: the target taken after the question over the aim
 	marked                 bool  // the area preview's marks are up
@@ -97,13 +97,13 @@ type aimRun struct {
 }
 
 // point moves the aim to (x, y): who would be the target and why not.
-func (h *aimRun) point(x, y int) core.AimCheck {
+func (h *aimRun) point(x, y int) rules.AimCheck {
 	e := h.e
 	if h.marked {
 		e.aoeUnmark()
 	}
 	e.as(e.sel)
-	a := e.fact(h.c, core.AimCheckFact{Near: h.list, At: core.BoardPos{X: x, Y: y}, Range: h.rng, ShowRange: h.showRange, Ground: h.allowGround != 0}).(core.AimCheck)
+	a := e.fact(h.c, rules.AimCheckFact{Near: h.list, At: rules.BoardPos{X: x, Y: y}, Range: h.rng, ShowRange: h.showRange, Ground: h.allowGround != 0}).(rules.AimCheck)
 	why := a.Why
 	e.ccursor = combatCursor{icon: true, size: 1}
 	e.snap.cursor, e.snap.cursorOn, e.snap.aimWhy = image.Pt(x, y), true, why
@@ -130,8 +130,8 @@ func (h *aimRun) apply(a TurnAct) bool {
 		e.refuse(ck.Why)
 		return false
 	}
-	h.t = aimTarget{C: ck.Target, At: core.BoardPos{X: a.X, Y: a.Y}}
-	if h.showRange == 1 || ck.Target != core.NoChar && ck.Occupied {
+	h.t = aimTarget{C: ck.Target, At: rules.BoardPos{X: a.X, Y: a.Y}}
+	if h.showRange == 1 || ck.Target != rules.NoChar && ck.Occupied {
 		f, at := e.aimConfirm(h.c, ck.Target, h.showRange) // ovr14:2C3D: the target's own square; a weapon strikes
 		h.found, h.finished = f, f
 		if f {

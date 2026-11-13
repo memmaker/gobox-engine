@@ -4,13 +4,12 @@
 package engine
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl"
 	"gobox/ecl/script"
 	"gobox/ega"
 	"gobox/game"
 	"gobox/importer/pictures"
+	"gobox/rules"
 	"image"
 	"os"
 	"path/filepath"
@@ -27,8 +26,8 @@ import (
 type Config struct {
 	Graphics, Sound byte
 	SaveDir         string
-	Foreign         func(from string) ([]core.CharacterFile, error) // another game's saved characters by its id (game.Data.Imports), as canonical files (char.ReadRoster); nil: none
-	Param           string                                          // ParamStr(1): "STING" unlocked the original's 'J' debug key (not on the party menu's bar, so never picked)
+	Foreign         func(from string) ([]rules.CharacterFile, error) // another game's saved characters by its id (game.Data.Imports), as canonical files (char.ReadRoster); nil: none
+	Param           string                                           // ParamStr(1): "STING" unlocked the original's 'J' debug key (not on the party menu's bar, so never picked)
 }
 
 // Engine holds the global state the DOS program kept in its data segment.
@@ -42,8 +41,8 @@ type Engine struct {
 	vault              *vault                      // the open vault (Vault)
 	given              *GameTables                 // the game's GameTables (New; bareData when nil)
 	eclVersion         *script.Version             // the game's ECL dialect (initVM)
-	rules              core.Rules                  // the ruleset; it owns the rules' state (state) (corerules_engine.go)
-	create             core.CreationRules          // the ruleset's creation, made with rules
+	rules              rules.Rules                 // the ruleset; it owns the rules' state (state) (corerules_engine.go)
+	create             rules.CreationRules         // the ruleset's creation, made with rules
 	posX, posY, facing int                         // the party's map square and facing 0..7 (DS:6AAD, 6AAE, 6AAF): world navigation, the Engine's; saves keep them (files_engine.go)
 	campSavedFlag      int                         // beginFlag as camp found it
 	campSavedAnim      bool                        // the picture's animation as camp found it
@@ -51,7 +50,7 @@ type Engine struct {
 	campSeq            int                         // when camp opened (top); the rules keep camp up (core.WordCampOn)
 	ccursor            combatCursor                // the combat cursor (cmap +4/+5): presentation, the Engine's
 	cview              image.Point                 // the combat view's top left map square ([DS:6716]+2/+3): presentation, the Engine's
-	fx                 []core.Effect               // the effects queued and not yet shown (emit, present)
+	fx                 []rules.Effect              // the effects queued and not yet shown (emit, present)
 	resting            *restRun                    // the camp rest going on (RestStep), nil none
 	adv                string                      // New's adventure folder: scripts, art, data
 	data               string                      // New's host data directory: AssetsDir, AmigaDir, SaveDir
@@ -65,33 +64,33 @@ type Engine struct {
 
 	pal         ega.Regs // EGA palette registers (SetPaletteColor)
 	Cfg         Config
-	FixedSeed   *uint32                       // if set, Randomize uses it instead of the clock (-seed)
-	Dasp        atomic.Bool                   // extra: the Dubtrain sound pack's effects (dasp.go), the Esc menu's "DASP Sfx"
-	NoSteps     atomic.Bool                   // extra: no step and turn sound (sndStep), the Esc menu's "Step sounds" off
-	Explicit    atomic.Bool                   // extra: a square's harmless event waits for RunEvent (interact.go), the Esc menu's "Explicit Interactions"
-	QuickSearch atomic.Bool                   // option (Gameplay "Quick search", ruling U2, default off): a sweeping step or a Look takes 3 minutes instead of the original's turn
-	FullIntro   atomic.Bool                   // the host's "Full intro" (its default the adventure's Start.Full): TITLE 2 with its lightning after TITLE 1 (DS:49D1)
-	DaySky      atomic.Bool                   // option (Gameplay "Day sky by clock", ruling U3, default off): the scripts' hour < 14 sky check follows day 6:00-20:00 (isDay)
-	handedIn    atomic.Pointer[core.Settings] // the rules' settings from the frontend, taken at the next decision point (HandIn)
-	Deskew      atomic.Bool                   // extra: dungeon combat maps on a square grid instead of the original's skewed perspective (combatsetup.go); read at each fight's setup
+	FixedSeed   *uint32                        // if set, Randomize uses it instead of the clock (-seed)
+	Dasp        atomic.Bool                    // extra: the Dubtrain sound pack's effects (dasp.go), the Esc menu's "DASP Sfx"
+	NoSteps     atomic.Bool                    // extra: no step and turn sound (sndStep), the Esc menu's "Step sounds" off
+	Explicit    atomic.Bool                    // extra: a square's harmless event waits for RunEvent (interact.go), the Esc menu's "Explicit Interactions"
+	QuickSearch atomic.Bool                    // option (Gameplay "Quick search", ruling U2, default off): a sweeping step or a Look takes 3 minutes instead of the original's turn
+	FullIntro   atomic.Bool                    // the host's "Full intro" (its default the adventure's Start.Full): TITLE 2 with its lightning after TITLE 1 (DS:49D1)
+	DaySky      atomic.Bool                    // option (Gameplay "Day sky by clock", ruling U3, default off): the scripts' hour < 14 sky check follows day 6:00-20:00 (isDay)
+	handedIn    atomic.Pointer[rules.Settings] // the rules' settings from the frontend, taken at the next decision point (HandIn)
+	Deskew      atomic.Bool                    // extra: dungeon combat maps on a square grid instead of the original's skewed perspective (combatsetup.go); read at each fight's setup
 
 	sym   [5]*asset.Image // DS:5E3A symbol sets
-	set   goldbox.Set     // DS:5376: the data set the current area reads
+	set   rules.Set       // DS:5376: the data set the current area reads
 	start time.Time
 
-	restLine  bool         // DS:6DDA (ovr21 rest): the rest time is on row 17, messages go below it
-	restShown int          // steps since the rest time was last drawn (RestStep)
-	tempSel   core.CharID  // selectTemp: selected but not in the party
-	temps     []tempSel    // the selections selectTemp replaced
-	creation  *creation    // the creation sheet up (Creation)
-	sel       int          // the selected member: whom the screens show and the player's commands name, handed to the rules as their actor (as)
-	aiKey     core.AutoKey // the key pressed for the next computer turn (takeKey): play.Manual, play.QuickMagic
-	soundNow  bool         // PlayEventSound: the sound plays now, not as an event
-	msgDelay  byte         // DS:49E2, message delay factor (ovr12 sets 1)
+	restLine  bool          // DS:6DDA (ovr21 rest): the rest time is on row 17, messages go below it
+	restShown int           // steps since the rest time was last drawn (RestStep)
+	tempSel   rules.CharID  // selectTemp: selected but not in the party
+	temps     []tempSel     // the selections selectTemp replaced
+	creation  *creation     // the creation sheet up (Creation)
+	sel       int           // the selected member: whom the screens show and the player's commands name, handed to the rules as their actor (as)
+	aiKey     rules.AutoKey // the key pressed for the next computer turn (takeKey): play.Manual, play.QuickMagic
+	soundNow  bool          // PlayEventSound: the sound plays now, not as an event
+	msgDelay  byte          // DS:49E2, message delay factor (ovr12 sets 1)
 
-	rosterHi   core.CharID // SelectCharacter: 00BA:0767 highlights this one (nil: sel)
-	rosterNone bool        // ... or no one (who = nil)
-	loadedGame bool        // DS:49F8
+	rosterHi   rules.CharID // SelectCharacter: 00BA:0767 highlights this one (nil: sel)
+	rosterNone bool         // ... or no one (who = nil)
+	loadedGame bool         // DS:49F8
 
 	engineFields       map[string]engineField // the script fields the engine gives a meaning (scriptvars.go)
 	vars               fieldCells             // the other fields' cells: the game's saved state (DS:49D2/49D6/49DA records)
@@ -140,7 +139,7 @@ type Engine struct {
 	addFrom        string                     // the game whose characters the PickAddFrom picker lists
 	picker         *picker                    // the grid picker up (Picker)
 	iconEd         *iconEdit                  // the combat icon designed (EditIcon)
-	valued         core.ItemHandle            // an appraised gem or jewel, sold or kept next (play.Keep)
+	valued         rules.ItemHandle           // an appraised gem or jewel, sold or kept next (play.Keep)
 	pending        Pending                    // what the script's wait screen waits on (Pending)
 	pw             waitData                   // what the wait screen keeps (pending.go)
 	waitSeq        int                        // when the wait opened (top)
@@ -152,11 +151,11 @@ type Engine struct {
 	spr            *asset.Image               // DS:6E36, 4 frame missile/hit sprite
 
 	// combat overlays (ovr10/13/14/23)
-	spellList      []*ListNode           // DS:4766 spell menu lines (ovr23)
-	spellIDs       []byte                // DS:476A spell of each non-header line
-	spellItems     [0x31]core.ItemHandle // DS:477F scroll of each line
-	spellItemCount int                   // DS:4843
-	eclWait        *eclWait              // the script instruction waiting for its answer (eclask.go)
+	spellList      []*ListNode            // DS:4766 spell menu lines (ovr23)
+	spellIDs       []byte                 // DS:476A spell of each non-header line
+	spellItems     [0x31]rules.ItemHandle // DS:477F scroll of each line
+	spellItemCount int                    // DS:4843
+	eclWait        *eclWait               // the script instruction waiting for its answer (eclask.go)
 
 	// H
 	areaIconTick byte  // DS:6DDC area map party icon pose counter

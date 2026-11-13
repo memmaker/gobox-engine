@@ -2,9 +2,8 @@ package engine
 
 import (
 	"gobox/asset"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl/script"
+	"gobox/rules"
 	"testing"
 )
 
@@ -24,14 +23,14 @@ func runOp(e *Engine, v *script.Version, op func(), args ...int) {
 // TestLoadAreaOp: pod's LoadFiles (map, walls) loads the 3D map, and none from 127 on.
 func TestLoadAreaOp(t *testing.T) {
 	e := quickStarted(t)
-	e.setWorldWord(core.WordIn3D, 1)
-	e.setWorldWord(core.WordGeo, 9)
+	e.setWorldWord(rules.WordIn3D, 1)
+	e.setWorldWord(rules.WordGeo, 9)
 	runOp(e, script.V3, e.opLoadArea, geoNone, wallsNone)
-	if g := e.worldWord(core.WordGeo); g != 9 {
+	if g := e.worldWord(rules.WordGeo); g != 9 {
 		t.Fatalf("map 127 loaded: geo %d", g)
 	}
 	runOp(e, script.V3, e.opLoadArea, 1, wallsNone)
-	if g := e.worldWord(core.WordGeo); g != 1 {
+	if g := e.worldWord(rules.WordGeo); g != 1 {
 		t.Fatalf("map 1: geo %d", g)
 	}
 }
@@ -39,12 +38,12 @@ func TestLoadAreaOp(t *testing.T) {
 // TestSetupMonsterSides: pod's 4th operand is the sides; outdoors the asked distance becomes 2.
 func TestSetupMonsterSides(t *testing.T) {
 	e := quickStarted(t)
-	e.setWorldWord(core.WordIn3D, 0)
+	e.setWorldWord(rules.WordIn3D, 0)
 	runOp(e, script.V3, e.opSetupMonster, 1, 1, 1, 5)
 	if e.run.monsterSides != 5 || e.vm.PC != 1 {
 		t.Fatalf("sides %d, PC %d", e.run.monsterSides, e.vm.PC)
 	}
-	if d := e.worldWord(core.WordMaxDist); d != maxEncounterDist {
+	if d := e.worldWord(rules.WordMaxDist); d != maxEncounterDist {
 		t.Fatalf("max distance %d", d)
 	}
 }
@@ -54,7 +53,7 @@ func TestNewECLSavesLastBlock(t *testing.T) {
 	e := quickStarted(t)
 	e.gs.areaKind = 7
 	runOp(e, script.V1, e.opNewECL, 1)
-	if b := e.worldWord(core.WordLastBlock); b != 7 {
+	if b := e.worldWord(rules.WordLastBlock); b != 7 {
 		t.Fatalf("last block %d", b)
 	}
 }
@@ -63,8 +62,8 @@ func TestNewECLSavesLastBlock(t *testing.T) {
 func TestNoMonsterCombat(t *testing.T) {
 	e := quickStarted(t)
 	e.eclVersion = script.V1
-	e.setWorldWord(core.WordTemple, 1)
-	if e.noMonsterScreen() == nil || e.worldWord(core.WordTemple) != 0 {
+	e.setWorldWord(rules.WordTemple, 1)
+	if e.noMonsterScreen() == nil || e.worldWord(rules.WordTemple) != 0 {
 		t.Fatal("temple not opened")
 	}
 	if e.noMonsterScreen() != nil {
@@ -116,7 +115,7 @@ func TestAddNPCIcon(t *testing.T) {
 	g := e.game()
 	g.AddNPCIcon = true
 	e.given = &g
-	for d := goldbox.Set(1); d <= 8 && refDAX(e).BlockShared(e.set.File("MON")+"CHA", 5) == nil; d++ {
+	for d := rules.Set(1); d <= 8 && refDAX(e).BlockShared(e.set.File("MON")+"CHA", 5) == nil; d++ {
 		e.set = d // a set that has monster 5
 	}
 	runOp(e, script.V3, e.opAddNPC, 5, 100)

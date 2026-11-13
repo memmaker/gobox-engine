@@ -2,7 +2,7 @@ package rules1e
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 	"strconv"
 	"strings"
@@ -12,29 +12,29 @@ import (
 // menus and shops read of a character, as words and numbers.
 
 // word is c's sheet word for w (por sheetPage).
-func word(c *Character, w core.WordFact) (core.Value, error) {
+func word(c *Character, w rules.WordFact) (rules.Value, error) {
 	switch w.Of {
-	case core.FactRace:
-		return core.Text(RaceNames[int8(c.Race)]), nil
-	case core.FactSex:
-		return core.Text(GenderNames[c.Sex]), nil
-	case core.FactAlignment:
-		return core.Text(AlignmentNames[int8(c.Alignment)]), nil
-	case core.FactClasses:
-		return core.Text(ClassName(c.Class)), nil
-	case core.FactExceptional: // shown after an 18: "(57)", "(00)"
+	case rules.FactRace:
+		return rules.Text(RaceNames[int8(c.Race)]), nil
+	case rules.FactSex:
+		return rules.Text(GenderNames[c.Sex]), nil
+	case rules.FactAlignment:
+		return rules.Text(AlignmentNames[int8(c.Alignment)]), nil
+	case rules.FactClasses:
+		return rules.Text(ClassName(c.Class)), nil
+	case rules.FactExceptional: // shown after an 18: "(57)", "(00)"
 		if c.Stats[0] != 0x12 || c.Str00 == 0 {
-			return core.Text(""), nil
+			return rules.Text(""), nil
 		}
-		return core.Text(fmt.Sprintf("(%02d)", c.Str00%100)), nil
+		return rules.Text(fmt.Sprintf("(%02d)", c.Str00%100)), nil
 	}
 	return nil, errNoFact
 }
 
 // PorStatus is core's status of each record status (the DS:1047 order).
-var PorStatus = [...]core.Status{StatusOkay: core.StatusOkay, StatusAnimated: core.StatusAnimated, statusTempGone: core.StatusTempGone,
-	StatusRunning: core.StatusRunning, StatusUnconscious: core.StatusUnconscious, StatusDying: core.StatusDying,
-	StatusDead: core.StatusDead, StatusStoned: core.StatusStoned, StatusGone: core.StatusGone}
+var PorStatus = [...]rules.Status{StatusOkay: rules.StatusOkay, StatusAnimated: rules.StatusAnimated, statusTempGone: rules.StatusTempGone,
+	StatusRunning: rules.StatusRunning, StatusUnconscious: rules.StatusUnconscious, StatusDying: rules.StatusDying,
+	StatusDead: rules.StatusDead, StatusStoned: rules.StatusStoned, StatusGone: rules.StatusGone}
 
 // levelSpan (extra): the experience c's level took and its next level
 // takes, for the class with the nearest next level; to is 0 when it can
@@ -209,32 +209,32 @@ func (it *Item) Unknown() bool {
 const loseFightMorale = 50
 
 // fixture is a dev scene's set-up (por DevScene, unchanged).
-func (r *Rules) fixture(f core.Fixture) error {
+func (r *Rules) fixture(f rules.Fixture) error {
 	s := r.S
 	switch f.ID {
-	case core.FixtureShop:
+	case rules.FixtureShop:
 		s.Treasure = nil
 		s.Treasure = s.devItems(ItemGauntlets, ItemJavelin, ItemArrow, ItemMageScroll, ItemLeatherArmor, ItemBillGuisarme)
 		if len(s.Party) > 2 { // unknown items for Id
 			s.Party[0].Items = append(s.Party[0].Items, s.devItems(ItemJavelin)...)
 			s.Party[2].Items = append(s.Party[2].Items, s.devItems(ItemLeatherArmor, ItemBillGuisarme)...)
 		}
-	case core.FixtureHall, core.FixtureHallPoor:
+	case rules.FixtureHall, rules.FixtureHallPoor:
 		s.Game.PartyExp = 0xFF
 		s.Party[0].Exp, s.Purse.Gold = 1<<20, 1<<20
-		if f.ID == core.FixtureHallPoor {
+		if f.ID == rules.FixtureHallPoor {
 			s.Purse.Gold = 0
 		}
-	case core.FixtureTemple:
+	case rules.FixtureTemple:
 		c := r.chars[f.Who]
 		if c == nil {
 			return errNoChar
 		}
 		s.Purse.Gold = 10000
 		c.HP = 1
-	case core.FixtureAppraise:
+	case rules.FixtureAppraise:
 		s.Purse.Gems, s.Purse.Jewelry = 3, 2
-	case core.FixtureMissile: // items for everyone: a sling, a bow and arrows, javelins
+	case rules.FixtureMissile: // items for everyone: a sling, a bow and arrows, javelins
 		launchers := []ItemType{ItemSling, ItemShortBow} // the first two who may: a sling, a bow with arrows (hands freed)
 		fits := func(t ItemType, c *Character) bool {    // the game's type of t's kind is c's
 			g, ok := s.devType(t)
@@ -271,35 +271,35 @@ func (r *Rules) fixture(f core.Fixture) error {
 			}
 			s.ApplyItems(c)
 		}
-	case core.FixtureCastFight: // every member has Cure Light Wounds memorized
+	case rules.FixtureCastFight: // every member has Cure Light Wounds memorized
 		for _, c := range s.Party {
 			c.Memorized[0] = SpCureLightWounds
 		}
-	case core.FixtureAutoCombat: // as Quick for everyone
+	case rules.FixtureAutoCombat: // as Quick for everyone
 		for _, c := range s.Party {
 			c.Auto = 1
 		}
-	case core.FixtureWinFight, core.FixtureLoseFight: // the placed foes at 1 hp (win), or at 250 against a party of 1 hp (lose)
+	case rules.FixtureWinFight, rules.FixtureLoseFight: // the placed foes at 1 hp (win), or at 250 against a party of 1 hp (lose)
 		for _, c := range s.CombatantSlots[:s.Ncomb] {
 			switch {
 			case c == nil:
-			case f.ID == core.FixtureWinFight && c.Side != s.Party[0].Side:
+			case f.ID == rules.FixtureWinFight && c.Side != s.Party[0].Side:
 				c.HP = 1
-			case f.ID == core.FixtureLoseFight && c.Side != s.Party[0].Side:
+			case f.ID == rules.FixtureLoseFight && c.Side != s.Party[0].Side:
 				c.HP = 250
 				if c.Control > 0x7F { // a monster of morale 0 flees (aiFleeCheck: PoD's bulettes got away), so the foes hold: 50, a roll of 100
 					c.Control = 0x80 | loseFightMorale
 				}
-			case f.ID == core.FixtureLoseFight:
+			case f.ID == rules.FixtureLoseFight:
 				c.HP = 1
 			}
 		}
-	case core.FixtureCast, core.FixtureCastKO: // Cure Light Wounds memorized by every able member and Who; castko: Who unconscious
+	case rules.FixtureCast, rules.FixtureCastKO: // Cure Light Wounds memorized by every able member and Who; castko: Who unconscious
 		c := r.chars[f.Who]
 		if c == nil {
 			return errNoChar
 		}
-		if f.ID == core.FixtureCastKO {
+		if f.ID == rules.FixtureCastKO {
 			c.Status, c.Okay = StatusUnconscious, 0
 		}
 		for _, m := range s.Party {
@@ -308,16 +308,16 @@ func (r *Rules) fixture(f core.Fixture) error {
 			}
 		}
 		c.Memorized[0] = SpCureLightWounds
-	case core.FixtureSheetCast, core.FixtureLootDetect: // Who has Cure Light Wounds (sheetcast) or Detect Magic (lootdetect) memorized
+	case rules.FixtureSheetCast, rules.FixtureLootDetect: // Who has Cure Light Wounds (sheetcast) or Detect Magic (lootdetect) memorized
 		c := r.chars[f.Who]
 		if c == nil {
 			return errNoChar
 		}
 		c.Memorized[0] = SpCureLightWounds
-		if f.ID == core.FixtureLootDetect {
+		if f.ID == rules.FixtureLootDetect {
 			c.Memorized[0] = SpDetectMagicCl
 		}
-	case core.FixtureEffects: // spell effects for the View page: many on member 1, one on member 2, items for the inventory
+	case rules.FixtureEffects: // spell effects for the View page: many on member 1, one on member 2, items for the inventory
 		for _, t := range []AffectType{AffBless, AffCurse, AffMonsterInvisible, AffPoisoned, AffRegenerating, AffFireResistance} {
 			s.AddAffectNow(s.Party[0], t, 0, 100)
 		}
@@ -327,7 +327,7 @@ func (r *Rules) fixture(f core.Fixture) error {
 		}
 		s.ApplyItems(s.Party[0])
 		s.ApplyItems(s.Party[1])
-	case core.FixtureInventory: // member 1 fully equipped, a party inventory to scroll
+	case rules.FixtureInventory: // member 1 fully equipped, a party inventory to scroll
 		c := s.Party[0]
 		for _, it := range c.Items { // the save's own gear joins the party inventory
 			it.Readied = 0
@@ -340,36 +340,36 @@ func (r *Rules) fixture(f core.Fixture) error {
 			s.AddItemCopy(c, it)
 		}
 		s.ApplyItems(c)
-	case core.FixtureNoPicker: // no one can pick a lock
+	case rules.FixtureNoPicker: // no one can pick a lock
 		for _, c := range s.Party {
 			c.Thief[1] = 0
 		}
-	case core.FixtureDual: // member 1 a human fighter who may change class
+	case rules.FixtureDual: // member 1 a human fighter who may change class
 		c := s.Party[0]
 		c.Race, c.Class, c.Alignment = RaceHuman, ClsFighter, 0
 		c.Stats = [6]Score{17, 17, 17, 17, 17, 17}
-	case core.FixtureHurt: // member 1 at 1 hp
+	case rules.FixtureHurt: // member 1 at 1 hp
 		s.Party[0].HP = 1
-	case core.FixtureLearn: // member 5 ready to rise
+	case rules.FixtureLearn: // member 5 ready to rise
 		s.Party[4].Exp = 1 << 20
-	case core.FixturePaladin, core.FixtureDrop, core.FixtureUsable: // Who a paladin of level 3; with a dagger to drop; with a potion to drink
+	case rules.FixturePaladin, rules.FixtureDrop, rules.FixtureUsable: // Who a paladin of level 3; with a dagger to drop; with a potion to drink
 		c := r.chars[f.Who]
 		if c == nil {
 			return errNoChar
 		}
 		switch f.ID {
-		case core.FixturePaladin:
+		case rules.FixturePaladin:
 			c.Class, c.Levels[ClsPaladin] = ClsPaladin, 3
-		case core.FixtureDrop:
+		case rules.FixtureDrop:
 			for _, it := range s.devItems(ItemDagger) {
 				s.AddItemCopy(c, it)
 			}
-		case core.FixtureUsable:
+		case rules.FixtureUsable:
 			for _, it := range s.devItems(ItemStrengthPotion) {
 				s.AddItemCopy(c, it)
 			}
 		}
-	case core.FixtureLoot: // a fight's leavings to take
+	case rules.FixtureLoot: // a fight's leavings to take
 		s.Treasure = s.devItems(ItemGauntlets, ItemJavelin, ItemArrow)
 		s.Loot = Purse{Gold: 156, Gems: 7}
 	default:
@@ -379,7 +379,7 @@ func (r *Rules) fixture(f core.Fixture) error {
 }
 
 // learn adds a learnable spell to the book (por Learn, the hall's pick).
-func (r *Rules) learn(a core.Learn) error {
+func (r *Rules) learn(a rules.Learn) error {
 	c := r.chars[a.Who]
 	if c == nil {
 		return errNoChar
@@ -395,15 +395,15 @@ func (r *Rules) learn(a core.Learn) error {
 // Handle is it's ItemHandle, given at its first use and kept while it
 // lives; nil is core.NoItem. Until the Engine holds handles itself, it names
 // its items through Handle.
-func (r *Rules) Handle(it *Item) core.ItemHandle {
+func (r *Rules) Handle(it *Item) rules.ItemHandle {
 	if it == nil {
-		return core.NoItem
+		return rules.NoItem
 	}
 	if h, ok := r.handles[it]; ok {
 		return h
 	}
 	if r.handles == nil {
-		r.handles, r.items = map[*Item]core.ItemHandle{}, map[core.ItemHandle]*Item{}
+		r.handles, r.items = map[*Item]rules.ItemHandle{}, map[rules.ItemHandle]*Item{}
 	}
 	r.nextItem++
 	r.handles[it], r.items[r.nextItem] = r.nextItem, it
@@ -412,7 +412,7 @@ func (r *Rules) Handle(it *Item) core.ItemHandle {
 
 // Held is the item of handle h, nil for core.NoItem (goes when the Engine
 // holds handles).
-func (r *Rules) Held(h core.ItemHandle) *Item { return r.items[h] }
+func (r *Rules) Held(h rules.ItemHandle) *Item { return r.items[h] }
 
 // SellValue = ovr20:1CEE (item): what selling it pays, in copper (200 a
 // gold piece, so half the value; a twentieth per piece of a stack).
@@ -428,7 +428,7 @@ func (it *Item) SellValue() uint32 {
 
 // sheetView fills the sheet's view figures of c (por showCombatStats,
 // ovr20:0608): THAC0 as shown, movement, the effects, whether it can cast.
-func (r *Rules) sheetView(c *Character, s *core.Sheet) {
+func (r *Rules) sheetView(c *Character, s *rules.Sheet) {
 	s.Age, s.THAC0 = int32(c.Age), int32(byte(0x3C-c.THAC0))
 	m := c.Move
 	// ruling U5, a display fix: the original (ovr20:086A) doubled under Slow and halved under Haste; the Pascal fix lands with viewchar in src/pure
@@ -460,35 +460,35 @@ func (e *RuleState) TrainsTo(c *Character, mask byte) []string {
 // has no match: "").
 func (e *RuleState) dollSlotName(it *Item, d int) string {
 	switch {
-	case d == core.DollArrows && e.isKind(it.Type, ItemIDArrow):
+	case d == rules.DollArrows && e.isKind(it.Type, ItemIDArrow):
 		return "arrows"
-	case d == core.DollArrows && e.isKind(it.Type, ItemIDQuarrel):
+	case d == rules.DollArrows && e.isKind(it.Type, ItemIDQuarrel):
 		return "bolts"
 	}
-	if d == core.DollArrows {
+	if d == rules.DollArrows {
 		return "" // a thrown weapon has no ammunition slot name
 	}
-	return core.DollNames[d]
+	return rules.DollNames[d]
 }
 
 // ItemKindOf is the item's tab: what the weapon hand holds (and its
 // ammunition), what is worn, else the rest (rings among them).
-func (e *RuleState) ItemKindOf(c *Character, it *Item) core.InvTab {
+func (e *RuleState) ItemKindOf(c *Character, it *Item) rules.InvTab {
 	switch d := e.DollSlot(c, it); {
-	case d == core.DollWeapon || d == core.DollArrows:
-		return core.TabWeapon
-	case d >= 0 && d != core.DollRing1 && d != core.DollRing2:
-		return core.TabArmor
+	case d == rules.DollWeapon || d == rules.DollArrows:
+		return rules.TabWeapon
+	case d >= 0 && d != rules.DollRing1 && d != rules.DollRing2:
+		return rules.TabArmor
 	}
-	return core.TabMisc
+	return rules.TabMisc
 }
 
 // ItemTab is it's inventory tab as c sees it ("weapon", "armor", "ring",
 // else "misc") and, readied, the shared Item.Slot it is readied in.
 func (e *RuleState) ItemTab(c *Character, it *Item) (tab, slot string) {
 	d := e.DollSlot(c, it)
-	tab = [...]string{core.TabMisc: "misc", core.TabWeapon: "weapon", core.TabArmor: "armor"}[e.ItemKindOf(c, it)]
-	if d == core.DollRing1 || d == core.DollRing2 {
+	tab = [...]string{rules.TabMisc: "misc", rules.TabWeapon: "weapon", rules.TabArmor: "armor"}[e.ItemKindOf(c, it)]
+	if d == rules.DollRing1 || d == rules.DollRing2 {
 		tab = "ring"
 	}
 	if it.Readied != 0 && d >= 0 {

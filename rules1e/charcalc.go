@@ -1,8 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // Derived character values, ported from ovr24.
@@ -45,7 +44,7 @@ func (e *RuleState) wisdomSlots(c *Character) {
 
 // who is what ClassStats reads from c.
 func who(c *Character) Who {
-	levels, old := map[core.Class]int{}, map[core.Class]int{}
+	levels, old := map[rules.Class]int{}, map[rules.Class]int{}
 	for i, class := range PorClass {
 		levels[class], old[class] = int(int8(c.Levels[i])), int(int8(c.OldLevels[i]))
 	}
@@ -226,7 +225,7 @@ func (e *RuleState) ApplyItems(c *Character) {
 	c.AC[0] = ArmourClass(c.BaseAC)
 	c.Move = c.BaseMove
 	c.THAC0 = c.Thac0Base
-	ac[0] = goldbox.DexAC(byte(c.Stats[StatDex]))
+	ac[0] = rules.DexAC(byte(c.Stats[StatDex]))
 	if c.Slots[SlotWeapon] == nil {
 		c.THAC0 += byte(strHit(c))
 		c.Bonus[0] += Modifier(strDamage(c))
@@ -272,7 +271,7 @@ func (e *RuleState) weaponStats(c *Character) {
 	flags := e.Base(typ).Usage
 	c.THAC0 = c.Thac0Base
 	if flags&2 != 0 { // missile
-		c.THAC0 += byte(goldbox.DexMissile(byte(c.Stats[StatDex])))
+		c.THAC0 += byte(rules.DexMissile(byte(c.Stats[StatDex])))
 	}
 	c.Bonus[0] = Modifier(e.Base(typ).Bonus)
 	if flags&4 != 0 { // strength applies

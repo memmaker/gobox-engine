@@ -1,14 +1,14 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 )
 
 // ItemKinds is the dnd id of each of a game's base item types (rules.json
 // itemKinds; nil: POR's, ItemIDs). The rules test an item's kind through it,
 // never a POR item-type number: SotSB and PoD number their types otherwise
 // (SotSB's 0x24 is armour).
-type ItemKinds map[ItemType]core.ItemID
+type ItemKinds map[ItemType]rules.ItemID
 
 // SotsbItemKinds are SotSB's base item types (sotsb-re: money.pas
 // GenerateRandomItem, charhlp.pas's elf bonus 18, 19, 22..26, cbtacts.pas's
@@ -37,10 +37,10 @@ func (e *RuleState) kinds() ItemKinds {
 }
 
 // kind is the dnd id of item type t (0: the game names none).
-func (e *RuleState) kind(t ItemType) core.ItemID { return e.kinds()[t] }
+func (e *RuleState) kind(t ItemType) rules.ItemID { return e.kinds()[t] }
 
 // isKind: item type t is one of ids.
-func (e *RuleState) isKind(t ItemType, ids ...core.ItemID) bool {
+func (e *RuleState) isKind(t ItemType, ids ...rules.ItemID) bool {
 	k := e.kind(t)
 	for _, id := range ids {
 		if k != 0 && k == id {
@@ -51,7 +51,7 @@ func (e *RuleState) isKind(t ItemType, ids ...core.ItemID) bool {
 }
 
 // typeOf is the game's lowest item type of kind id (0: none).
-func (e *RuleState) typeOf(id core.ItemID) ItemType {
+func (e *RuleState) typeOf(id rules.ItemID) ItemType {
 	for t := range ItemType(0xFF) {
 		if t > 0 && e.kind(t) == id {
 			return t

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestGoldenAffectsPodShared: POD's affects that rules1e plays with a
@@ -111,7 +111,7 @@ func runGoldenPodShared(tb *Tables, k goldenPodSharedCase) goldenPodSnap {
 	s.Damage, s.HitRoll, s.Save, s.Seed = int(r.Rv.Damage), r.Rv.HitRoll, r.Rv.Save, r.RandSeed
 	s.Data, s.Attacks1, s.CanUse, s.CanCast = a.Data, byte(cs[0].Attacks[1]), cs[0].Combat.CanUse, cs[0].Combat.CanCast
 	for _, f := range r.Fx {
-		if n, ok := f.(core.Narrated); ok {
+		if n, ok := f.(rules.Narrated); ok {
 			s.Msgs = append(s.Msgs, strings.ToLower(strings.TrimSpace(n.Text)))
 		}
 	}

@@ -1,9 +1,8 @@
 package engine
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ega"
+	"gobox/rules"
 )
 
 // Items: names, lists and the START helpers around them.
@@ -20,9 +19,9 @@ func (e *Engine) refuse(s string) { e.bottomMessage(s, ega.LightRed) }
 // window's note (a toast the remaster shows on every page; the original's
 // row 24 is under the text box there, and its delay held the game).
 func (e *Engine) bottomMessage(s string, colour int) {
-	s = goldbox.Cut(s, textCols)
+	s = rules.Cut(s, textCols)
 	e.say(s)
-	if e.beginFlag() == 5 && e.ruleset().Check(core.BoardUp{}, nil).Yes {
-		e.do(core.CombatSay{Text: s})
+	if e.beginFlag() == 5 && e.ruleset().Check(rules.BoardUp{}, nil).Yes {
+		e.do(rules.CombatSay{Text: s})
 	}
 }

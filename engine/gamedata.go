@@ -3,7 +3,7 @@ package engine
 import (
 	"encoding/json"
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -68,7 +68,7 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 	border := e.borderTiles()
 	var heads []byte
 	for _, id := range e.partySide() {
-		heads = append(heads, byte(e.fact(id, core.PortraitFact{}).(core.Portrait).Head))
+		heads = append(heads, byte(e.fact(id, rules.PortraitFact{}).(rules.Portrait).Head))
 	}
 	k := artKey{e.sqrpaci, e.icons[9][0], DOSArt.Load(), logo, border[0].Pix != nil, string(heads)}
 	if e.ext.art != nil && e.ext.artKey == k {

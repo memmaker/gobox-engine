@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/game"
+	"gobox/rules"
 	"slices"
 	"testing"
 
@@ -87,7 +87,7 @@ func TestAddFromOtherGame(t *testing.T) {
 	if _, err := e.doNow(play.QuickStart{}); err != nil {
 		t.Fatal(err)
 	}
-	var files []core.CharacterFile
+	var files []rules.CharacterFile
 	for _, c := range e.state().Party[:2] {
 		f, err := e.ruleset().Export(e.charID(c))
 		if err != nil {
@@ -101,7 +101,7 @@ func TestAddFromOtherGame(t *testing.T) {
 	if _, err := e.doNow(play.AddCharacter{Roster: -1, From: "other"}); err == nil {
 		t.Fatal("a host with no source was accepted")
 	}
-	e.Cfg.Foreign = func(from string) ([]core.CharacterFile, error) { return files, nil }
+	e.Cfg.Foreign = func(from string) ([]rules.CharacterFile, error) { return files, nil }
 	if _, err := e.doNow(play.AddCharacter{Roster: -1, From: "elsewhere"}); err == nil {
 		t.Error("a game the data does not list was accepted")
 	}

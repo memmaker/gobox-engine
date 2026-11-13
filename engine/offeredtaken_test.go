@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"gobox/core"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // TestOfferedTaken (bug class: offered, then refused "not now"): every
@@ -26,7 +26,7 @@ func TestOfferedTakenAdv(t *testing.T) {
 }
 
 func offeredTaken(t *testing.T, base func(*testing.T) *Engine) {
-	notNow := error(refusal(core.ErrNotNow))
+	notNow := error(refusal(rules.ErrNotNow))
 	for _, name := range []string{"shop", "temple", "hall", "hallpoor", "appraise"} {
 		acts := commonOf(devPlayOn(t, base(t), name).build()).Allowed.Plain
 		if len(acts) == 0 {

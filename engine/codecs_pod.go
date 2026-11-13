@@ -3,8 +3,8 @@ package engine
 import (
 	"fmt"
 
-	"gobox/core"
 	"gobox/ecl/script"
+	"gobox/rules"
 )
 
 // pod's values (pod-re C_Status, TCharRecord.side) and POR's canonical ones.
@@ -17,9 +17,9 @@ const (
 )
 
 // podStatus is C_Status's number for each status (pod-re includes/c_status.pas; 2 has no name).
-var podStatus = map[core.Status]int64{
-	core.StatusOkay: 0, core.StatusAnimated: 1, core.StatusRunning: 3, core.StatusUnconscious: 4,
-	core.StatusDying: 5, core.StatusDead: 6, core.StatusStoned: 7, core.StatusGone: 8,
+var podStatus = map[rules.Status]int64{
+	rules.StatusOkay: 0, rules.StatusAnimated: 1, rules.StatusRunning: 3, rules.StatusUnconscious: 4,
+	rules.StatusDying: 5, rules.StatusDead: 6, rules.StatusStoned: 7, rules.StatusGone: 8,
 }
 
 // podCodecs are pod's encodings of canonical fields (its layout's enc=).
@@ -37,11 +37,11 @@ var podCodecs = map[script.Encoding]codec{
 		},
 		toCanon: func(_ *Engine, g int64) int64 {
 			switch g {
-			case podStatus[core.StatusOkay]:
+			case podStatus[rules.StatusOkay]:
 				return canonStatusOkay // the revive
-			case podStatus[core.StatusDead]:
+			case podStatus[rules.StatusDead]:
 				return canonStatusDied
-			case podStatus[core.StatusStoned]:
+			case podStatus[rules.StatusStoned]:
 				return canonStatusStoned
 			}
 			return canonStatusOut
@@ -61,7 +61,7 @@ var podCodecs = map[script.Encoding]codec{
 	// ReadGbvm $10: facing div 2 in a dungeon, the raw 0..7 on the area map; the write (0..3, less 4 till it
 	// fits) is the canonical one.
 	"PodFacing": {toGame: func(e *Engine, c int64) int64 {
-		if e.worldWord(core.WordIn3D) == 0 {
+		if e.worldWord(rules.WordIn3D) == 0 {
 			return int64(e.facing)
 		}
 		return c
@@ -79,7 +79,7 @@ var podCodecs = map[script.Encoding]codec{
 	// TCharRecord.side: 0 the party's, 1 the other; the canonical 0 party, 0x80 auto (party), 0x81 monsters.
 	"PodSelSide": {
 		toGame: func(_ *Engine, c int64) int64 {
-			if c == int64(scriptSide[core.SideMonsters]) {
+			if c == int64(scriptSide[rules.SideMonsters]) {
 				return podSideOther
 			}
 			return podSideParty
@@ -87,9 +87,9 @@ var podCodecs = map[script.Encoding]codec{
 		toCanon: func(_ *Engine, g int64) int64 {
 			switch g {
 			case podSideParty:
-				return int64(scriptSide[core.SideParty])
+				return int64(scriptSide[rules.SideParty])
 			case podSideOther:
-				return int64(scriptSide[core.SideMonsters])
+				return int64(scriptSide[rules.SideMonsters])
 			}
 			panic(fmt.Sprintf("pod: SelSide %d", g))
 		},

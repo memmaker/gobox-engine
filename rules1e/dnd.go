@@ -3,85 +3,85 @@
 // are the ruleset's. MonsterID and ItemID rosters are generated at import.
 package rules1e
 
-import "gobox/core"
+import "gobox/rules"
 
 const (
-	CoreRaceDwarf    core.Race = "dwarf"
-	CoreRaceElf      core.Race = "elf"
-	CoreRaceGnome    core.Race = "gnome"
-	CoreRaceHalfElf  core.Race = "half-elf"
-	CoreRaceHalfling core.Race = "halfling"
-	CoreRaceHalfOrc  core.Race = "half-orc"
-	CoreRaceHuman    core.Race = "human"
-	CoreRaceMonster  core.Race = "monster" // por Race 0: a record without a player race
+	CoreRaceDwarf    rules.Race = "dwarf"
+	CoreRaceElf      rules.Race = "elf"
+	CoreRaceGnome    rules.Race = "gnome"
+	CoreRaceHalfElf  rules.Race = "half-elf"
+	CoreRaceHalfling rules.Race = "halfling"
+	CoreRaceHalfOrc  rules.Race = "half-orc"
+	CoreRaceHuman    rules.Race = "human"
+	CoreRaceMonster  rules.Race = "monster" // por Race 0: a record without a player race
 )
 
 const (
-	CoreClassCleric  core.Class = "cleric"
-	CoreClassDruid   core.Class = "druid"
-	CoreClassFighter core.Class = "fighter"
-	CoreClassPaladin core.Class = "paladin"
-	CoreClassRanger  core.Class = "ranger"
-	CoreClassMage    core.Class = "mage"
-	CoreClassThief   core.Class = "thief"
-	CoreClassMonk    core.Class = "monk"
+	CoreClassCleric  rules.Class = "cleric"
+	CoreClassDruid   rules.Class = "druid"
+	CoreClassFighter rules.Class = "fighter"
+	CoreClassPaladin rules.Class = "paladin"
+	CoreClassRanger  rules.Class = "ranger"
+	CoreClassMage    rules.Class = "mage"
+	CoreClassThief   rules.Class = "thief"
+	CoreClassMonk    rules.Class = "monk"
 )
 
 const (
-	LawfulGood     core.Alignment = "lawful-good"
-	LawfulNeutral  core.Alignment = "lawful-neutral"
-	LawfulEvil     core.Alignment = "lawful-evil"
-	NeutralGood    core.Alignment = "neutral-good"
-	TrueNeutral    core.Alignment = "true-neutral"
-	NeutralEvil    core.Alignment = "neutral-evil"
-	ChaoticGood    core.Alignment = "chaotic-good"
-	ChaoticNeutral core.Alignment = "chaotic-neutral"
-	ChaoticEvil    core.Alignment = "chaotic-evil"
+	LawfulGood     rules.Alignment = "lawful-good"
+	LawfulNeutral  rules.Alignment = "lawful-neutral"
+	LawfulEvil     rules.Alignment = "lawful-evil"
+	NeutralGood    rules.Alignment = "neutral-good"
+	TrueNeutral    rules.Alignment = "true-neutral"
+	NeutralEvil    rules.Alignment = "neutral-evil"
+	ChaoticGood    rules.Alignment = "chaotic-good"
+	ChaoticNeutral rules.Alignment = "chaotic-neutral"
+	ChaoticEvil    rules.Alignment = "chaotic-evil"
 )
 
 // por Thief[0..7].
 const (
-	PickPockets   core.Skill = "pick-pockets"
-	OpenLocks     core.Skill = "open-locks"
-	FindTraps     core.Skill = "find-traps"
-	MoveQuietly   core.Skill = "move-quietly"
-	Hide          core.Skill = "hide"
-	Hear          core.Skill = "hear"
-	Climb         core.Skill = "climb"
-	ReadLanguages core.Skill = "read-languages"
+	PickPockets   rules.Skill = "pick-pockets"
+	OpenLocks     rules.Skill = "open-locks"
+	FindTraps     rules.Skill = "find-traps"
+	MoveQuietly   rules.Skill = "move-quietly"
+	Hide          rules.Skill = "hide"
+	Hear          rules.Skill = "hear"
+	Climb         rules.Skill = "climb"
+	ReadLanguages rules.Skill = "read-languages"
 )
 
 const (
-	SaveParalysis core.Save = "paralysis"
-	SavePetrify   core.Save = "petrification"
-	SaveRod       core.Save = "rod"
-	SaveBreath    core.Save = "breath"
-	SaveSpell     core.Save = "spell"
+	SaveParalysis rules.Save = "paralysis"
+	SavePetrify   rules.Save = "petrification"
+	SaveRod       rules.Save = "rod"
+	SaveBreath    rules.Save = "breath"
+	SaveSpell     rules.Save = "spell"
 )
 
 // The conditions scripts ask about; the 125-142 others stay private to the ruleset.
 const (
-	CondFindTraps     core.Condition = "find-traps"       // por CheckParty 19
-	CondResistFire    core.Condition = "resist-fire"      // cotab FindAffect 20
-	CondSticksSnakes  core.Condition = "sticks-to-snakes" // sotsb CheckParty 3
-	CondInvisible     core.Condition = "invisible"        // pod FindAffect 25
-	CondInvisibleRing core.Condition = "invisible-ring"   // pod FindAffect 56
-	CondMirrorImage   core.Condition = "mirror-image"     // pod FindAffect 72
-	CondGazeImmune    core.Condition = "gaze-immune"      // pod FindAffect 126
-	CondDetectMagic   core.Condition = "detect-magic"     // pod gameMagicCheck
-	CondDancing       core.Condition = "dancing"          // AC -4, every save fails, die still rolled: pod affects.go:1606, rules.go:461
-	CondFeatherFall   core.Condition = "feather-fall"     // por effectTable 0x4900 (eclops.go)
+	CondFindTraps     rules.Condition = "find-traps"       // por CheckParty 19
+	CondResistFire    rules.Condition = "resist-fire"      // cotab FindAffect 20
+	CondSticksSnakes  rules.Condition = "sticks-to-snakes" // sotsb CheckParty 3
+	CondInvisible     rules.Condition = "invisible"        // pod FindAffect 25
+	CondInvisibleRing rules.Condition = "invisible-ring"   // pod FindAffect 56
+	CondMirrorImage   rules.Condition = "mirror-image"     // pod FindAffect 72
+	CondGazeImmune    rules.Condition = "gaze-immune"      // pod FindAffect 126
+	CondDetectMagic   rules.Condition = "detect-magic"     // pod gameMagicCheck
+	CondDancing       rules.Condition = "dancing"          // AC -4, every save fails, die still rolled: pod affects.go:1606, rules.go:461
+	CondFeatherFall   rules.Condition = "feather-fall"     // por effectTable 0x4900 (eclops.go)
 )
 
 const (
-	Copper = core.CoinCopper
-	Gold   = core.CoinGold
+	Copper = rules.CoinCopper
+	Gold   = rules.CoinGold
 )
 
 // A sample of the rosters the importer generates, numbers assigned once
 // (MON*CHA; a name with differing stat blocks gets one id per block).
 const (
-	Hobgoblin core.MonsterID = 1
-	Kobold    core.MonsterID = 2
-	LongSword core.ItemID    = 1
+	Hobgoblin rules.MonsterID = 1
+	Kobold    rules.MonsterID = 2
+	LongSword rules.ItemID    = 1
 )

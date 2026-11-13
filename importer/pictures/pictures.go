@@ -14,7 +14,7 @@ import (
 	"sort"
 	"strconv"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // DAXRef is one original picture: its DAX file ("HEAD2.DAX") and block (and
@@ -45,14 +45,14 @@ const NoFrame = -1
 // (portraits head and body, combat icon head and body). It is written into
 // the adventure as data/pictures.json; old saves and the creation grid
 // convert their DAX numbers through it.
-type Pictures map[DAXRef]core.PicID
+type Pictures map[DAXRef]rules.PicID
 
 // PicturesFile is the adventure data path of the table.
 const PicturesFile = "data/pictures.json"
 
 type pictureEntry struct {
 	DAXRef
-	ID core.PicID
+	ID rules.PicID
 }
 
 // GamePictures is game id's table, built from its series' origins.json:
@@ -64,7 +64,7 @@ func GamePictures(game string) Pictures {
 			for k, name := range blocks {
 				r := parseRef(file, k)
 				r.Platform = pl
-				p[r] = core.PicID(name)
+				p[r] = rules.PicID(name)
 			}
 		}
 	}
@@ -85,7 +85,7 @@ func parseRef(file, key string) DAXRef {
 }
 
 // ID is ref's entry: the frame's, else the whole block's ("" if none).
-func (p Pictures) ID(ref DAXRef) core.PicID {
+func (p Pictures) ID(ref DAXRef) rules.PicID {
 	if id, ok := p[ref]; ok {
 		return id
 	}
@@ -184,7 +184,7 @@ func Origins() map[string]map[string]map[string]string {
 
 // Pick is one picture of a character as a draft holds it: its pool pick,
 // else the PicID of the game's own picture number (own).
-func Pick(pool, own core.PicID) core.PicID {
+func Pick(pool, own rules.PicID) rules.PicID {
 	if pool != "" {
 		return pool
 	}
@@ -196,7 +196,7 @@ func Pick(pool, own core.PicID) core.PicID {
 // pick; any other is the pool pick, and the number becomes none so the
 // record holds no second, stale source for the picture. of is a number's
 // PicID, inv its inverse.
-func Set(id core.PicID, num *byte, none byte, pool *core.PicID, of func(byte) core.PicID, inv func(core.PicID) (byte, bool)) {
+func Set(id rules.PicID, num *byte, none byte, pool *rules.PicID, of func(byte) rules.PicID, inv func(rules.PicID) (byte, bool)) {
 	*pool = ""
 	if of(*num) == id {
 		return

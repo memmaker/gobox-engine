@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
+	"gobox/rules"
 )
 
 // waitData is what a wait keeps for its page.
@@ -38,7 +38,7 @@ func (e *Engine) leaveWait() {
 		}
 		e.ext.door = nil
 	case PendShop:
-		e.emit(core.Sounded{Cue: core.SoundCue("store_leave")})
+		e.emit(rules.Sounded{Cue: rules.SoundCue("store_leave")})
 	case PendTemple:
 		e.blank(0, 0, lastCol, promptRow) // ovr05:0C18
 		e.DrawMainScreen()
@@ -84,7 +84,7 @@ func (e *Engine) waiting(ps ...Pending) bool {
 // sold and the script goes on.
 func (e *Engine) Leave() error {
 	if !e.waiting(PendShop, PendTemple) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.sellValued()
 	e.resume()
@@ -94,7 +94,7 @@ func (e *Engine) Leave() error {
 // Appraise values a gem (jewelry: a jewel) in the shop or the temple.
 func (e *Engine) Appraise(jewelry bool) error {
 	if !e.waiting(PendShop, PendTemple) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.appraiseValue(jewelry)
 	e.waited()
@@ -104,7 +104,7 @@ func (e *Engine) Appraise(jewelry bool) error {
 // KeepAppraised keeps (keep) or sells the one appraised.
 func (e *Engine) KeepAppraised(keep bool) error {
 	if !e.waiting(PendShop, PendTemple) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.keepValued(keep)
 	e.waited()

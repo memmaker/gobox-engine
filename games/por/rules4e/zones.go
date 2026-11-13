@@ -1,7 +1,7 @@
 package rules4e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -12,7 +12,7 @@ import (
 
 // zone is a power's area: the squares within r of at.
 type zone struct {
-	at    core.BoardPos
+	at    rules.BoardPos
 	r     int
 	by    *rules1e.Character
 	dmg   int  // to who enters or starts its turn there; 0: difficult terrain

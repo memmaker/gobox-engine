@@ -2,7 +2,7 @@ package rules1e
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 )
 
 // ovr17 (second half): Modify, Train and Add on the party screen, the
@@ -236,7 +236,7 @@ func (e *RuleState) Learnable(c *Character) []SpellID {
 // learning (the original's spell pick, ovr20:299C, came before the hit
 // points; it rolls no dice).
 func (e *RuleState) TrainLevels(c *Character, mask byte) {
-	e.Emit(core.Sounded{Cue: core.SoundCue("level")})
+	e.Emit(rules.Sounded{Cue: rules.SoundCue("level")})
 	e.narrate("Congratulations...")
 	if !e.Debug {
 		e.Purse.Gold -= uint64(e.T().Town.TrainPrice)

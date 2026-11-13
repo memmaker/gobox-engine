@@ -3,8 +3,8 @@ package engine
 import (
 	"flag"
 	"fmt"
-	"gobox/core/goldbox"
 	"gobox/ecl/script"
+	"gobox/rules"
 	"os"
 	"slices"
 	"strings"
@@ -23,7 +23,7 @@ func TestBeastPics(t *testing.T) {
 	e.Init() // the item table: a monster's items map through it (rules1e Rules.monster)
 	count := map[string]map[int]int{}
 	for disk := 1; disk <= 8; disk++ { // each set's ECL and MON files hold its own blocks (ovr18:0EC4 reads the set's alone)
-		e.set = goldbox.Set(disk)
+		e.set = rules.Set(disk)
 		for block := 1; block < 0x40; block++ {
 			b := refDAX(e).BlockShared(fmt.Sprintf("ECL%d", disk), block)
 			if len(b) < 2 {

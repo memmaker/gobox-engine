@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"gobox/core"
 	"gobox/game"
+	"gobox/rules"
 )
 
 // TestQuickPartyData: e.gameData.QuickParty is the old quickParty table.
@@ -37,6 +37,6 @@ func TestQuickPartyData(t *testing.T) {
 
 // isPort: the template's picture id is POR's own portrait number want.
 func (e *Engine) isPort(family, id string, want int) bool {
-	b, ok := e.portByte(family, core.PicID(id))
+	b, ok := e.portByte(family, rules.PicID(id))
 	return ok && int(b) == want
 }

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"gobox/char"
-	"gobox/core"
+	"gobox/rules"
 )
 
 // The roster's RosterIDs (core.RosterID, approved 2026-11-11): each roster
@@ -25,22 +25,22 @@ func (e *Engine) rosterFile(name string) string {
 
 // newRosterID gives the next roster number and counts it in rosternext.
 // The id is used even when the counter could not be kept (the error is returned).
-func (e *Engine) newRosterID() (core.RosterID, error) {
+func (e *Engine) newRosterID() (rules.RosterID, error) {
 	next := e.rosterNext()
 	return next, e.setRosterNext(next + 1)
 }
 
 // rosterNext is rosternext's number (1 when there is none yet).
-func (e *Engine) rosterNext() core.RosterID {
+func (e *Engine) rosterNext() rules.RosterID {
 	if b, err := os.ReadFile(e.savePath(rosterNextFile)); err == nil {
 		if n, err := strconv.ParseUint(strings.TrimSpace(string(b)), 10, 32); err == nil && n > 0 {
-			return core.RosterID(n)
+			return rules.RosterID(n)
 		}
 	}
 	return 1
 }
 
-func (e *Engine) setRosterNext(n core.RosterID) error {
+func (e *Engine) setRosterNext(n rules.RosterID) error {
 	return e.writeFile(e.savePath(rosterNextFile), []byte(strconv.FormatUint(uint64(n), 10)))
 }
 
@@ -48,14 +48,14 @@ func (e *Engine) setRosterNext(n core.RosterID) error {
 // the highest number held (and rosternext), each is rewritten once with it.
 func (e *Engine) migrateRoster(names []string) {
 	old := map[string][]byte{} // path -> its bytes
-	most := core.NoRoster
+	most := rules.NoRoster
 	for _, n := range names {
 		p := e.rosterFile(n)
 		b, err := os.ReadFile(p)
 		if err != nil || len(b) < charRecSize {
 			continue
 		}
-		if id := char.ReadPoolIDs(b).Roster; id == core.NoRoster {
+		if id := char.ReadPoolIDs(b).Roster; id == rules.NoRoster {
 			old[p] = b
 		} else {
 			most = max(most, id)
@@ -85,7 +85,7 @@ func (e *Engine) migrateRoster(names []string) {
 }
 
 // joinRoster puts roster character id in the party (the Add command's join).
-func (e *Engine) joinRoster(id core.RosterID) (core.CharID, error) {
+func (e *Engine) joinRoster(id rules.RosterID) (rules.CharID, error) {
 	for _, n := range e.BuildCharList() {
 		b, err := os.ReadFile(e.rosterFile(n))
 		if err != nil || char.ReadPoolIDs(b).Roster != id {
@@ -93,10 +93,10 @@ func (e *Engine) joinRoster(id core.RosterID) (core.CharID, error) {
 		}
 		c, ok := e.LoadCharacter(strings.TrimPrefix(n, "* "), false) // ovr18:0AEC
 		if !ok {
-			return core.NoChar, errors.New("roster character unreadable")
+			return rules.NoChar, errors.New("roster character unreadable")
 		}
 		e.join(c) // ovr18:1446
 		return e.partyIDs()[e.partySize()-1], nil
 	}
-	return core.NoChar, errors.New("no such roster character")
+	return rules.NoChar, errors.New("no such roster character")
 }

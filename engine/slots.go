@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"gobox/app/saves"
 	"gobox/char"
-	"gobox/core"
 	"gobox/ecl/script"
+	"gobox/rules"
 	"os"
 	"path/filepath"
 	"slices"
@@ -45,10 +45,10 @@ func (e *Engine) unwindReset() {
 	x := &e.ext
 	x.read = nil
 	x.back, x.aoe, x.enemiesOnly = 0, 0, false
-	x.panel = core.NoChar
+	x.panel = rules.NoChar
 	e.k = nil
 	x.explore, e.eclWait = false, nil
-	e.do(core.EndSession{})
+	e.do(rules.EndSession{})
 	e.resting, e.menu, e.es.hold = nil, partyMenu{}, holdNone
 	x.redraws, e.temps = nil, nil
 	e.view.on, e.view.chain = false, false
@@ -262,11 +262,11 @@ func (e *Engine) canSave(loadOnly bool) bool {
 
 // SlotsView is the save slots, newest first, for the presenter's F10
 // screen (nil on the title); loadOnly is the party menu's Load.
-func (e *Engine) SlotsView(loadOnly bool) *core.Slots {
+func (e *Engine) SlotsView(loadOnly bool) *rules.Slots {
 	if e.ext.intro {
 		return nil
 	}
-	v := &core.Slots{CanSave: e.canSave(loadOnly), LoadOnly: loadOnly}
+	v := &rules.Slots{CanSave: e.canSave(loadOnly), LoadOnly: loadOnly}
 	for _, sl := range e.slots() {
 		v.Names, v.Times = append(v.Names, sl.Name), append(v.Times, sl.At.Format("Jan 02 15:04"))
 		v.Levels = append(v.Levels, e.slotLevel(sl.Name))
@@ -280,7 +280,7 @@ func (e *Engine) SlotsView(loadOnly bool) *core.Slots {
 // SaveNamed saves the game in slot name, over a slot of that name in any case.
 func (e *Engine) SaveNamed(name string) error {
 	if name = saves.Name(name); !e.canSave(false) || name == "" {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	// one slot per name in any case (the folders may not tell case apart)
 	if i := slices.IndexFunc(e.slots(), func(s saves.Slot) bool { return strings.EqualFold(s.Name, name) }); i >= 0 {

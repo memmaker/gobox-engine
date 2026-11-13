@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strconv"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // Human dual-classing (extra, after Secret of the Silver Blades' "Human
@@ -139,8 +139,8 @@ func mayTakeClass(c *Character, cur, class int) bool {
 
 // classOffers: in a hall that allows it, a ChangeClass for every party
 // member and class it may change to, named by the class.
-func (r *Rules) classOffers(t core.Training) core.Allowed {
-	var out core.Allowed
+func (r *Rules) classOffers(t rules.Training) rules.Allowed {
+	var out rules.Allowed
 	if !t.DualClass {
 		return out
 	}
@@ -150,14 +150,14 @@ func (r *Rules) classOffers(t core.Training) core.Allowed {
 			continue
 		}
 		for _, cl := range NewClasses(c) {
-			out.Offers = append(out.Offers, core.Offer{Action: core.ChangeClass{Who: id, To: PorClass[cl]}, Name: ClassNames[cl]})
+			out.Offers = append(out.Offers, rules.Offer{Action: rules.ChangeClass{Who: id, To: PorClass[cl]}, Name: ClassNames[cl]})
 		}
 	}
 	return out
 }
 
 // changeClass resolves a ChangeClass the member may take (classOffers).
-func (r *Rules) changeClass(a core.ChangeClass) error {
+func (r *Rules) changeClass(a rules.ChangeClass) error {
 	c := r.chars[a.Who]
 	if c == nil {
 		return errNoChar

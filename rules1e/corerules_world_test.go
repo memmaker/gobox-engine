@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"testing"
 )
 
@@ -14,22 +14,22 @@ func TestCheckWorld(t *testing.T) {
 	b := &Character{}
 	b.HP, b.Move, b.Class = 9, 6, ClsMage
 	b.Levels[ClsMage] = 2
-	p := core.Party{r.ID(a), r.ID(b)}
+	p := rules.Party{r.ID(a), r.ID(b)}
 	// a: (30+10+10+12)/10 = 6; b: (9+16)/10 = 2
-	if v := r.Check(core.PartyStrength{Party: p}, nil).Value; v != 8 {
+	if v := r.Check(rules.PartyStrength{Party: p}, nil).Value; v != 8 {
 		t.Errorf("PartyStrength %d, want 8", v)
 	}
-	if c := r.Check(core.Census{Party: p, Fact: core.FactMove}, nil); c.Low != 6 || c.High != 12 || c.Avg != 9 {
+	if c := r.Check(rules.Census{Party: p, Fact: rules.FactMove}, nil); c.Low != 6 || c.High != 12 || c.Avg != 9 {
 		t.Errorf("Census %+v", c)
 	}
-	if c := r.Check(core.Census{Fact: core.FactMove}, nil); c.Low != 0xFF || c.High != 0 || c.Avg != 0 {
+	if c := r.Check(rules.Census{Fact: rules.FactMove}, nil); c.Low != 0xFF || c.High != 0 || c.Avg != 0 {
 		t.Errorf("empty Census %+v", c)
 	}
-	if !r.Check(core.HasClass{Party: p, Class: CoreClassRanger}, nil).Yes || r.Check(core.HasClass{Party: p[1:], Class: CoreClassRanger}, nil).Yes {
+	if !r.Check(rules.HasClass{Party: p, Class: CoreClassRanger}, nil).Yes || r.Check(rules.HasClass{Party: p[1:], Class: CoreClassRanger}, nil).Yes {
 		t.Error("HasClass ranger")
 	}
 	b.Items = []*Item{{Type: 0x4B}}
-	if w := r.Check(core.HasItem{Whom: p, Item: ItemIDBrassKey}, nil); !w.Yes || w.Who != p[1] || r.Check(core.HasItem{Whom: p[:1], Item: ItemIDBrassKey}, nil).Yes {
+	if w := r.Check(rules.HasItem{Whom: p, Item: ItemIDBrassKey}, nil); !w.Yes || w.Who != p[1] || r.Check(rules.HasItem{Whom: p[:1], Item: ItemIDBrassKey}, nil).Yes {
 		t.Errorf("HasItem brass key %+v", w)
 	}
 }
@@ -40,7 +40,7 @@ func TestDuelClone(t *testing.T) {
 	a.HP = 12
 	a.Items = []*Item{{Type: 1}, {Type: 2}}
 	r.S.Party = []*Character{a}
-	if _, err := r.Resolve(nil, core.DuelClone{Of: r.ID(a), Name: "ROLF", Icon: 7}, nil); err != nil {
+	if _, err := r.Resolve(nil, rules.DuelClone{Of: r.ID(a), Name: "ROLF", Icon: 7}, nil); err != nil {
 		t.Fatal(err)
 	}
 	cl := r.S.Party[1]
@@ -51,7 +51,7 @@ func TestDuelClone(t *testing.T) {
 
 // TestMemoSlots: core.MemoSlots is the slots the rules use (PORMemory).
 func TestMemoSlots(t *testing.T) {
-	if MemorySlots != core.MemoSlots {
+	if MemorySlots != rules.MemoSlots {
 		t.Error("core.MemoSlots")
 	}
 }
@@ -63,14 +63,14 @@ func TestLibraryLoot(t *testing.T) {
 	tb.Scroll = &RandomScroll{Type: 39, Last: 6, Mage: []SpellID{2, 5}}
 	r := &Rules{S: &RuleState{Tables: &tb, Items: make([]ItemBase, 1)}}
 	for range 2 {
-		if _, err := r.Resolve(nil, core.AddLoot{Loot: CoinsToPurse([7]uint16{4: 2, 5: 3})}, nil); err != nil {
+		if _, err := r.Resolve(nil, rules.AddLoot{Loot: CoinsToPurse([7]uint16{4: 2, 5: 3})}, nil); err != nil {
 			t.Fatal(err)
 		}
 	}
 	if want := CoinsToPurse([7]uint16{4: 4, 5: 6}); r.S.Loot != want {
 		t.Errorf("loot %+v, want %+v", r.S.Loot, want)
 	}
-	if _, err := r.Resolve(nil, core.AddLibraryItems{IDs: []int32{1, 2, 9, core.RandomScrollItem}, Known: true}, nil); err != nil {
+	if _, err := r.Resolve(nil, rules.AddLibraryItems{IDs: []int32{1, 2, 9, rules.RandomScrollItem}, Known: true}, nil); err != nil {
 		t.Fatal(err)
 	}
 	tr := r.S.Treasure
@@ -83,7 +83,7 @@ func TestLibraryLoot(t *testing.T) {
 		}
 	}
 	r.S.Tables = &POR
-	if _, err := r.Resolve(nil, core.AddLibraryItems{IDs: []int32{1}}, nil); err == nil {
+	if _, err := r.Resolve(nil, rules.AddLibraryItems{IDs: []int32{1}}, nil); err == nil {
 		t.Error("POR has no library: want an error")
 	}
 }

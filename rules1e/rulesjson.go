@@ -8,7 +8,7 @@ import (
 	"os"
 	"slices"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // rulesJSON is the part of an imported game's data/rules.json (tablespec,
@@ -77,11 +77,11 @@ type rulesJSON struct {
 
 // Layout is what a game's rules.json does not say about its tables' shape.
 type Layout struct {
-	SlotStride       int         // spell levels per slot row (COTAB 5, SotSB 7, POD 9)
-	SlotTotals       bool        // the slot rows hold totals at a level (POD), not gains
-	RangerMageColumn int         // the ranger row's column of magic-user level 1 (POD 5); 0: 4, after druid 1..3
-	SlotLevels       int         // the last class level the slot tables hold before other data (COTAB 12); 0: the tables' end
-	Races            []core.Race // the race of each race row; nil = POR's order; "" = a row of no race (SotSB's placeholder 0)
+	SlotStride       int          // spell levels per slot row (COTAB 5, SotSB 7, POD 9)
+	SlotTotals       bool         // the slot rows hold totals at a level (POD), not gains
+	RangerMageColumn int          // the ranger row's column of magic-user level 1 (POD 5); 0: 4, after druid 1..3
+	SlotLevels       int          // the last class level the slot tables hold before other data (COTAB 12); 0: the tables' end
+	Races            []rules.Race // the race of each race row; nil = POR's order; "" = a row of no race (SotSB's placeholder 0)
 }
 
 // Table geometry of the cotab family's flat tables.
@@ -437,7 +437,7 @@ func raceLimits(raw [][]int16) []raceLimit {
 
 // byRace puts the game's race rows at raceRow's places; nil races = the
 // same order. A POR row the game has no race for stays base's.
-func byRace[T any](base, rows []T, races []core.Race) []T {
+func byRace[T any](base, rows []T, races []rules.Race) []T {
 	if races == nil {
 		return rows
 	}

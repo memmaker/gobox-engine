@@ -3,8 +3,7 @@ package engine
 import (
 	"testing"
 
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -29,7 +28,7 @@ func spellsGone(t *testing.T, e *Engine, gone ...int) {
 		id &^= rules1e.SpellPending
 		return id == rules1e.NoSpell || int(id) < len(rules1e.SpellIDs) && rules1e.SpellIDs[id] != ""
 	}
-	for s := goldbox.Set(1); s <= sets; s++ {
+	for s := rules.Set(1); s <= sets; s++ {
 		e.set = s
 		for id := range 256 {
 			if _, ok := e.gdata().monster(s.File("MON"), id); !ok {
@@ -67,11 +66,11 @@ func itemSpells(t *testing.T, e *Engine, known func(rules1e.SpellID) bool) {
 		if len(r.TreasureBlock(b)) == 0 {
 			continue
 		}
-		if _, err := r.Resolve(nil, core.AddTreasureBlock{Block: int32(b)}, nil); err != nil {
+		if _, err := r.Resolve(nil, rules.AddTreasureBlock{Block: int32(b)}, nil); err != nil {
 			t.Fatalf("treasure block %d: %v", b, err)
 		}
 	}
-	if _, err := r.Resolve(nil, core.AddRandomTreasure{N: 60}, nil); err != nil {
+	if _, err := r.Resolve(nil, rules.AddRandomTreasure{N: 60}, nil); err != nil {
 		t.Fatalf("random treasure: %v", err)
 	}
 	for _, it := range s.Treasure {

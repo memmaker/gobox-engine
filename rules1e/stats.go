@@ -1,22 +1,21 @@
 package rules1e
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // Who is what ClassStats reads: levels, race, abilities, and the slots the
 // character holds now, which stay where no row applies.
 type Who struct {
-	Levels      map[core.Class]int
-	Race        core.Race
+	Levels      map[rules.Class]int
+	Race        rules.Race
 	Dex, Wis    int
 	Int         int // magic-user spells of levels 6..9 need it (IntelligenceLimit)
 	Con         int // the constitution save bonus (COTAB O0FE:07FB) reads it
 	ClericSlots LevelSlots
 	MageSlots   LevelSlots
 	DruidSlots  LevelSlots
-	OldLevels   map[core.Class]int // a dual-classed character's levels in the class left
+	OldLevels   map[rules.Class]int // a dual-classed character's levels in the class left
 	Powers      ItemPowers
 }
 
@@ -34,7 +33,7 @@ type Stats struct {
 	ClericSlots LevelSlots
 	MageSlots   LevelSlots
 	DruidSlots  LevelSlots // a ranger's, from RangerSpells
-	Saves       map[core.Save]int
+	Saves       map[rules.Save]int
 	Skills      [8]int
 }
 
@@ -42,7 +41,7 @@ type Stats struct {
 type LevelSlots [MaxSpellLevel]int
 
 // classOrder is the order later classes overwrite earlier ones' attacks.
-var classOrder = [8]core.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
+var classOrder = [8]rules.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
 
 // ClassStats is ClassCal.RecalcClassStats over POR's tables.
 func ClassStats(w Who) Stats { return POR.ClassStats(w) }
@@ -52,7 +51,7 @@ func ClassStats(w Who) Stats { return POR.ClassStats(w) }
 // and ranger spells, the monk's old-level saves, items of thievery, free
 // action and wizardry. Differences are in gobox-engine/CHANGES-FROM-ORIGINAL.md.
 func (t *Tables) ClassStats(w Who) Stats {
-	s := Stats{ClericSlots: w.ClericSlots, MageSlots: w.MageSlots, DruidSlots: w.DruidSlots, Saves: map[core.Save]int{}}
+	s := Stats{ClericSlots: w.ClericSlots, MageSlots: w.MageSlots, DruidSlots: w.DruidSlots, Saves: map[rules.Save]int{}}
 	fresh := false // the magic-user slots were set from a row
 	for _, class := range classOrder {
 		lvl := w.Levels[class]
@@ -106,7 +105,7 @@ func (t *Tables) ClassStats(w Who) Stats {
 			s.MageSlots[i] *= 2
 		}
 	}
-	for _, save := range []core.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell} {
+	for _, save := range []rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell} {
 		s.Saves[save] = 20
 		for _, class := range classOrder {
 			if lvl := w.Levels[class]; lvl > 0 {
@@ -122,9 +121,9 @@ func (t *Tables) ClassStats(w Who) Stats {
 	// and dropped from loaded records, so it counts once).
 	con := byte(w.Con)
 	if w.Race == CoreRaceDwarf || w.Race == CoreRaceHalfling || w.Powers.SaveBonus {
-		s.Saves[SaveParalysis] -= int(goldbox.ConSaveLow(con))
+		s.Saves[SaveParalysis] -= int(rules.ConSaveLow(con))
 	}
-	s.Saves[SaveParalysis] -= int(goldbox.ConSaveHigh(con))
+	s.Saves[SaveParalysis] -= int(rules.ConSaveHigh(con))
 	if lvl := w.Levels[CoreClassThief]; lvl > 0 {
 		s.Skills = t.ThiefSkills(lvl, w.Race, w.Dex, w.Powers)
 	}
@@ -190,7 +189,7 @@ func IntelligenceLimit(slots LevelSlots, intel int) LevelSlots {
 }
 
 // RollDice is FxEngine.RollDice: the sum in a byte, as the Pascal keeps it.
-func RollDice(rng *core.RNG, n, sides int) int {
+func RollDice(rng *rules.RNG, n, sides int) int {
 	var total uint8
 	for range n {
 		total += uint8(rng.N(sides) + 1)

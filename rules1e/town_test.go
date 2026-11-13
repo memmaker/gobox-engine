@@ -2,7 +2,7 @@ package rules1e
 
 import (
 	"encoding/json"
-	"gobox/core"
+	"gobox/rules"
 	"strings"
 	"testing"
 )
@@ -71,8 +71,8 @@ func TestTempleWound(t *testing.T) {
 	if s.CureNeeded(c, 0) || s.CureNeeded(c, 1) {
 		t.Error("an unhurt member needs no wound cure")
 	}
-	r := &Rules{S: s, chars: map[core.CharID]*Character{1: c}}
-	if _, err := r.Resolve(nil, core.GiveTempleCure{Who: 1, Cure: 0}, nil); err == nil {
+	r := &Rules{S: s, chars: map[rules.CharID]*Character{1: c}}
+	if _, err := r.Resolve(nil, rules.GiveTempleCure{Who: 1, Cure: 0}, nil); err == nil {
 		t.Error("a wound cure was given to an unhurt member")
 	}
 	c.Base[StatInt], c.Base[StatWis] = 15, 14 // the own scores (statAffects)

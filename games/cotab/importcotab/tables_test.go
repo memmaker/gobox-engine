@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"gobox/char"
-	"gobox/core"
 	"gobox/ecl/script"
+	"gobox/engine"
 	"gobox/game/journal"
 	"gobox/importer"
-	"gobox/engine"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -33,7 +33,7 @@ func TestImportedTablesLoad(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g.Script != script.V2 || g.AddNPCIcon || g.ScriptSounds[8].Cue != core.CueStep || g.ScriptSounds[10].Cue != core.CueFireball || len(g.ScriptSounds) != 2 {
+	if g.Script != script.V2 || g.AddNPCIcon || g.ScriptSounds[8].Cue != rules.CueStep || g.ScriptSounds[10].Cue != rules.CueFireball || len(g.ScriptSounds) != 2 {
 		t.Errorf("game tables %+v", g)
 	}
 	if want := []script.CombatScreen{script.CombatShop, script.CombatTemple}; !slices.Equal(g.Script.Behaviour.NoMonsterCombat, want) {

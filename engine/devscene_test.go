@@ -1,9 +1,9 @@
 package engine
 
 import (
-	"gobox/core"
-	"image"
+	"gobox/rules"
 	"gobox/rules1e"
+	"image"
 	"testing"
 
 	"gobox/game/play"
@@ -28,7 +28,7 @@ func devFirstTurnOn(t *testing.T, e *Engine, name string, deskew bool) *Engine {
 	e.Init()
 	e.Start(e.Play)
 	for range 400 {
-		if e.cs.turn != nil && e.cs.actor != core.NoChar {
+		if e.cs.turn != nil && e.cs.actor != rules.NoChar {
 			break
 		}
 		if e.waiting(PendFight) {
@@ -37,7 +37,7 @@ func devFirstTurnOn(t *testing.T, e *Engine, name string, deskew bool) *Engine {
 			press(e)
 		}
 	}
-	if e.cs.turn == nil || e.cs.actor == core.NoChar {
+	if e.cs.turn == nil || e.cs.actor == rules.NoChar {
 		t.Fatalf("%s: no party turn", name)
 	}
 	return e

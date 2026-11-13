@@ -1,6 +1,6 @@
 package engine
 
-import "gobox/core"
+import "gobox/rules"
 
 // The adventure screen: the view window and what the screen is rebuilt with.
 // Ported from 00BA:272A/27D9/290B and ovr27.
@@ -8,7 +8,7 @@ import "gobox/core"
 // Redraw = ovr27:016D: redraw the view window for the current view mode.
 func (e *Engine) Redraw() {
 	mode := e.viewMode
-	if e.worldWord(core.WordIn3D) != 0 {
+	if e.worldWord(rules.WordIn3D) != 0 {
 		mode = 1
 	}
 	switch {
@@ -18,8 +18,8 @@ func (e *Engine) Redraw() {
 		e.viewDrawn()
 	case mode >= 2 && mode <= 4:
 		// ovr27:0250/0272: byte locals, signed clamps
-		x := min(max(int(int8(int(ViewModeShift[mode])+e.worldWord(core.WordMapX)-2)), 0), 0x27)
-		y := min(max(int(int8(e.worldWord(core.WordMapY)-2)), 0), 0x1F)
+		x := min(max(int(int8(int(ViewModeShift[mode])+e.worldWord(rules.WordMapX)-2)), 0), 0x27)
+		y := min(max(int(int8(e.worldWord(rules.WordMapY)-2)), 0), 0x1F)
 		e.DrawAreaMap(x, y)
 		e.drawAreaMapParty()
 	}

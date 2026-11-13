@@ -1,8 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"image"
 	"slices"
 	"strings"
@@ -25,7 +24,7 @@ type picker struct {
 	kind, n, cw, ch, cur int
 	pic                  func(i int) (im *asset.Image, mask int) // picture i (nil: none)
 	labels               []string                                // the pictures' names (saved characters)
-	chars                []core.CharID                           // ... the characters (core.NoChar where the files are gone)
+	chars                []rules.CharID                          // ... the characters (core.NoChar where the files are gone)
 	ask                  string                                  // asked before a pick (%s: the label)
 
 	cols, rows, gap, x0, y0, bot, pager, page int // the layout, from the page's size
@@ -73,7 +72,7 @@ func (e *Engine) OpenPicker(kind int) bool {
 		// the name and class beside it; a character whose files are gone
 		// (nil) is its name alone.
 		var names []string
-		var chars []core.CharID
+		var chars []rules.CharID
 		if kind == PickAddFrom {
 			if names, chars = e.foreignChars(e.addFrom); len(names) == 0 {
 				return false
@@ -87,8 +86,8 @@ func (e *Engine) OpenPicker(kind int) bool {
 		w := 0
 		for i, c := range chars {
 			w = max(w, len(names[i]))
-			if c != core.NoChar {
-				w = max(w, len(e.word(c, core.FactClasses)))
+			if c != rules.NoChar {
+				w = max(w, len(e.word(c, rules.FactClasses)))
 			}
 		}
 		p = &picker{n: len(chars), cw: 12 + w, ch: 5, labels: names, chars: chars}
@@ -132,7 +131,7 @@ func (e *Engine) Pick(i int) (done bool) {
 	case PickAddFrom:
 		done = e.addForeign(p, i)
 	case PickForget:
-		base := MakeFileName(goldbox.RemoveSubstr(p.labels[i], "."))
+		base := MakeFileName(rules.RemoveSubstr(p.labels[i], "."))
 		for _, ext := range []string{".cha", ".itm", ".spc", ".mem", ".dual", ".pow", ".png", ".icon.png"} {
 			e.removeSaved(e.savePath(base + ext))
 		}
@@ -151,8 +150,8 @@ func (e *Engine) Pick(i int) (done bool) {
 func (e *Engine) ClosePicker() { e.picker = nil }
 
 // loadSaved loads the saved characters named (core.NoChar where the files are gone).
-func (e *Engine) loadSaved(names []string) []core.CharID {
-	chars := make([]core.CharID, len(names))
+func (e *Engine) loadSaved(names []string) []rules.CharID {
+	chars := make([]rules.CharID, len(names))
 	for i, n := range names {
 		chars[i] = e.loadChar(strings.TrimPrefix(n, "* ")) // ovr18:0AEC
 	}
@@ -164,7 +163,7 @@ func iconRect(x, y int) image.Rectangle { return image.Rect(x*8, y*8, x*8+24, y*
 
 // foreignChars are the characters another game saved (Config.Foreign) taken into the
 // ruleset, flagged as added from another game (core.MarkImported), with their names.
-func (e *Engine) foreignChars(from string) (names []string, chars []core.CharID) {
+func (e *Engine) foreignChars(from string) (names []string, chars []rules.CharID) {
 	if e.Cfg.Foreign == nil {
 		return nil, nil
 	}
@@ -174,13 +173,13 @@ func (e *Engine) foreignChars(from string) (names []string, chars []core.CharID)
 		return nil, nil
 	}
 	for _, f := range files {
-		e.setWorldWord(core.WordWho, e.sel) // ImportCharacter's member
+		e.setWorldWord(rules.WordWho, e.sel) // ImportCharacter's member
 		id, err := e.ruleset().Import(f)
 		if err != nil {
 			e.fileError("read", from)
 			continue
 		}
-		e.do(core.MarkImported{Who: id})
+		e.do(rules.MarkImported{Who: id})
 		names, chars = append(names, e.ruleset().Sheet(id).Name), append(chars, id)
 	}
 	return names, chars
@@ -189,13 +188,13 @@ func (e *Engine) foreignChars(from string) (names []string, chars []core.CharID)
 // addForeign is the pick of character i of the PickAddFrom picker: it joins the party as a saved one does;
 // the list marks it ("* "), done when the party is full.
 func (e *Engine) addForeign(p *picker, i int) bool {
-	if id := p.chars[i]; id != core.NoChar && !strings.HasPrefix(p.labels[i], "*") {
-		p.labels[i] = goldbox.Cut("* "+p.labels[i], textCols)
+	if id := p.chars[i]; id != rules.NoChar && !strings.HasPrefix(p.labels[i], "*") {
+		p.labels[i] = rules.Cut("* "+p.labels[i], textCols)
 		refused, count := e.joinPicked(id)
 		if refused {
 			p.labels[i] = p.labels[i][2:]
 		}
-		return count > 5 || e.worldWord(core.WordPartyCount) > 7
+		return count > 5 || e.worldWord(rules.WordPartyCount) > 7
 	}
-	return e.worldWord(core.WordPartyCount) > 7
+	return e.worldWord(rules.WordPartyCount) > 7
 }

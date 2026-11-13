@@ -2,8 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
 
@@ -25,11 +24,11 @@ func (e *Engine) newEngineFields() map[string]engineField {
 	m := map[string]engineField{
 		"SymbolSet": { // ovr08:07BC/0A74 +0x312: the symbol set (0802:094A)
 			get: func(int) (int64, bool) { return int64(e.set), true },
-			set: func(_ int, v int64) { e.setWorldWord(core.WordSymbolSet, int(v)); e.set = goldbox.Set(v) },
+			set: func(_ int, v int64) { e.setWorldWord(rules.WordSymbolSet, int(v)); e.set = rules.Set(v) },
 		},
 		"PartyCount": {
-			get: func(int) (int64, bool) { return int64(e.worldWord(core.WordPartyCount)), true },
-			set: func(_ int, v int64) { e.setWorldWord(core.WordPartyCount, int(v)) },
+			get: func(int) (int64, bool) { return int64(e.worldWord(rules.WordPartyCount)), true },
+			set: func(_ int, v int64) { e.setWorldWord(rules.WordPartyCount, int(v)) },
 		},
 		"WallSlot1": e.wallSlot(1), "WallSlot2": e.wallSlot(2), "WallSlot3": e.wallSlot(3),
 		// the selected member's window (SpecialReadZ1/WriteZ1)
@@ -37,25 +36,25 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			stored:  true,
 			set:     func(_ int, v int64) { e.memberGoneIf(uint16(v)) },
 			text:    func() string { return e.ruleset().Sheet(e.selected()).Name },
-			setText: func(s string) { e.setSelValue(core.FactName, core.Text(s)) },
+			setText: func(s string) { e.setSelValue(rules.FactName, rules.Text(s)) },
 		},
-		"SelCon":  reads(func() uint16 { return uint16(e.selFact(core.AbilityFact{Ability: core.Constitution})) }),
-		"SelRace": reads(func() uint16 { return uint16(selIndex(e, core.FactRace, rules1e.RecordRace[:])) }), // a fix of the Pascal's (SpecialReadZ1): the race checks read 0
+		"SelCon":  reads(func() uint16 { return uint16(e.selFact(rules.AbilityFact{Ability: rules.Constitution})) }),
+		"SelRace": reads(func() uint16 { return uint16(selIndex(e, rules.FactRace, rules1e.RecordRace[:])) }), // a fix of the Pascal's (SpecialReadZ1): the race checks read 0
 		"SelMemorized": {stored: true, set: func(i int, v int64) { // slot i+1 (slot 0 has no address)
-			if k := i + 1; k < core.MemoSlots {
-				e.setSelValue(core.MemoFact{Slot: k}, core.Number(byte(v))) // the byte as SpecialWriteZ1 stores it
+			if k := i + 1; k < rules.MemoSlots {
+				e.setSelValue(rules.MemoFact{Slot: k}, rules.Number(byte(v))) // the byte as SpecialWriteZ1 stores it
 			}
 		}},
-		"SelSaveVsPetrify": reads(func() uint16 { return uint16(e.selFact(core.SaveFact{Save: rules1e.SavePetrify})) }),
-		"SelPickPockets":   reads(func() uint16 { return uint16(e.selFact(core.SkillFact{Skill: rules1e.PickPockets})) }),
-		fieldSelFindTraps:  reads(func() uint16 { return uint16(e.selFact(core.SkillFact{Skill: rules1e.FindTraps})) }),
-		"SelThiefSkill6":   reads(func() uint16 { return uint16(e.selFact(core.SkillFact{Skill: rules1e.Climb})) }),
-		"SelControl": {stored: true, get: func(int) (int64, bool) { return e.selFact(core.FactControl), true },
+		"SelSaveVsPetrify": reads(func() uint16 { return uint16(e.selFact(rules.SaveFact{Save: rules1e.SavePetrify})) }),
+		"SelPickPockets":   reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules1e.PickPockets})) }),
+		fieldSelFindTraps:  reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules1e.FindTraps})) }),
+		"SelThiefSkill6":   reads(func() uint16 { return uint16(e.selFact(rules.SkillFact{Skill: rules1e.Climb})) }),
+		"SelControl": {stored: true, get: func(int) (int64, bool) { return e.selFact(rules.FactControl), true },
 			set: func(_ int, v int64) {
 				if v > 0xB2 {
 					v -= 0x32
 				}
-				e.setSelFact(core.FactControl, v)
+				e.setSelFact(rules.FactControl, v)
 			}},
 		"SelCoins": {stored: true, get: coin, set: func(i int, v int64) {
 			if f, ok := selCoin(i); ok {
@@ -63,27 +62,27 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			}
 		}},
 		"SelAlignment": {stored: true, get: func(int) (int64, bool) {
-			return int64(signedByte(selIndex(e, core.FactAlignment, rules1e.RecordAlignment[:]))), true
-		}, set: func(_ int, v int64) { e.setSelFact(core.FactAlignment, int64(uint8(v))) }}, // the record's byte (alignmentNameTable index)
-		"SelExpValue": {stored: true, get: func(int) (int64, bool) { return e.selFact(core.FactExpValue), true },
-			set: func(_ int, v int64) { e.setSelFact(core.FactExpValue, v) }},
-		"SelExpPerHP": {stored: true, get: func(int) (int64, bool) { return e.selFact(core.FactExpPerHP), true },
-			set: func(_ int, v int64) { e.setSelFact(core.FactExpPerHP, v) }},
+			return int64(signedByte(selIndex(e, rules.FactAlignment, rules1e.RecordAlignment[:]))), true
+		}, set: func(_ int, v int64) { e.setSelFact(rules.FactAlignment, int64(uint8(v))) }}, // the record's byte (alignmentNameTable index)
+		"SelExpValue": {stored: true, get: func(int) (int64, bool) { return e.selFact(rules.FactExpValue), true },
+			set: func(_ int, v int64) { e.setSelFact(rules.FactExpValue, v) }},
+		"SelExpPerHP": {stored: true, get: func(int) (int64, bool) { return e.selFact(rules.FactExpPerHP), true },
+			set: func(_ int, v int64) { e.setSelFact(rules.FactExpPerHP, v) }},
 		"SelStatus": {stored: true, get: func(int) (int64, bool) {
-			if e.selValue(core.FactActive).(core.Yes) {
+			if e.selValue(rules.FactActive).(rules.Yes) {
 				return 1, true
 			}
 			return 0x80, true
 		}, set: func(_ int, v int64) {
 			if v >= 0x80 || v == canonStatusOkay {
-				st := core.StatusInactive
+				st := rules.StatusInactive
 				switch v {
 				case canonStatusStoned:
-					st = core.StatusStoned
+					st = rules.StatusStoned
 				case canonStatusOkay: // Okay revives the member (sotsb, pod; POR's scripts never write it)
-					st = core.StatusOkay
+					st = rules.StatusOkay
 				}
-				a := core.SetStatusAction{Who: e.selected(), Status: st}
+				a := rules.SetStatusAction{Who: e.selected(), Status: st}
 				if _, err := e.ruleset().Resolve(nil, a, nil); err != nil {
 					panic(fmt.Sprintf("script: SelStatus %#x: %v", v, err))
 				}
@@ -93,18 +92,18 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			}
 		}},
 		"SelSide": {stored: true, get: func(int) (int64, bool) {
-			return int64(scriptSide[e.selValue(core.FactSide).(core.Side)]), true
+			return int64(scriptSide[e.selValue(rules.FactSide).(rules.Side)]), true
 		}, set: func(_ int, v int64) {
 			for side, n := range scriptSide {
 				if int64(n) == v {
-					e.setSelValue(core.FactSide, side)
+					e.setSelValue(rules.FactSide, side)
 				}
 			}
 		}},
-		fieldSelMove:     reads(func() uint16 { return uint16(e.selFact(core.FactMove)) }),
+		fieldSelMove:     reads(func() uint16 { return uint16(e.selFact(rules.FactMove)) }),
 		"SelPartyIndex":  reads(func() uint16 { return uint16(e.partyIndex(e.selected())) }),
 		"SelPartyIndex2": reads(func() uint16 { return uint16(e.partyIndex(e.selected())) }),
-		"SelReaction":    reads(func() uint16 { return charismaReaction(byte(e.selFact(core.AbilityFact{Ability: core.Charisma}))) }),
+		"SelReaction":    reads(func() uint16 { return charismaReaction(byte(e.selFact(rules.AbilityFact{Ability: rules.Charisma}))) }),
 		// the engine facts outside the records (ReadGbvm/WriteGbvm's specials)
 		"ProbeCell":   fact(func() uint16 { return e.es.specialB1 }, nil),
 		"UnusedB8":    fact(nil, func(v uint16) { e.es.scriptVarB8 = v }),
@@ -396,16 +395,16 @@ func fact(r func() uint16, w func(v uint16)) engineField {
 // selCoin is the fact of SelCoins element i: copper (0) and gold (6), the
 // money the import leaves the scripts (script.GoldCoins), then the unappraised
 // gems (10) and jewelry (12), items. Any other element is no field.
-func selCoin(i int) (core.Fact, bool) {
+func selCoin(i int) (rules.Fact, bool) {
 	switch i {
 	case 0:
-		return core.CoinFact{Coin: rules1e.Copper}, true
+		return rules.CoinFact{Coin: rules1e.Copper}, true
 	case 6:
-		return core.CoinFact{Coin: rules1e.Gold}, true
+		return rules.CoinFact{Coin: rules1e.Gold}, true
 	case 10:
-		return core.PiecesFact{}, true
+		return rules.PiecesFact{}, true
 	case 12:
-		return core.PiecesFact{Jewel: true}, true
+		return rules.PiecesFact{Jewel: true}, true
 	}
 	return nil, false
 }
@@ -465,7 +464,7 @@ func (e *Engine) inField(f *script.Field, i int) {
 }
 
 // wordField is the script field of the ruleset's word n.
-func (e *Engine) wordField(n core.WorldWord) engineField {
+func (e *Engine) wordField(n rules.WorldWord) engineField {
 	return engineField{
 		get: func(int) (int64, bool) { return int64(e.worldWord(n)), true },
 		set: func(_ int, v int64) { e.setWorldWord(n, int(v)) },
@@ -474,12 +473,12 @@ func (e *Engine) wordField(n core.WorldWord) engineField {
 
 // effect is entry i of the party's affect table.
 func (e *Engine) effect(i int) (uint16, bool) {
-	a := e.ruleset().Check(core.WordIs{Word: core.WordEffect, Index: i}, nil)
+	a := e.ruleset().Check(rules.WordIs{Word: rules.WordEffect, Index: i}, nil)
 	return uint16(a.Value), a.Yes
 }
 
 // partyIndex is c's place in the party, the party's size when it is not in it (ovr08:0756).
-func (e *Engine) partyIndex(id core.CharID) int {
+func (e *Engine) partyIndex(id rules.CharID) int {
 	ids := e.partyIDs()
 	if i := slices.Index(ids, id); i >= 0 {
 		return i
@@ -489,51 +488,51 @@ func (e *Engine) partyIndex(id core.CharID) int {
 
 // scriptWords are the plain record words a script reads and writes, by the
 // name its layout gives them (data -> the typed word, once, here).
-var scriptWords = map[string]core.WorldWord{
-	"MapX":         core.WordMapX,
-	"MapY":         core.WordMapY,
-	"Geo":          core.WordGeo,
-	"TenMinutes":   core.WordTenMinutes,
-	"Hours":        core.WordHours,
-	"NoMagic":      core.WordNoMagic,
-	"In3D":         core.WordIn3D,
-	"WallSplitA":   core.WordWallSplitA,
-	"WallSplitB":   core.WordWallSplitB,
-	"PrevX":        core.WordPrevX,
-	"PrevY":        core.WordPrevY,
-	"AreaKind":     core.WordAreaKind,
-	"NoCoords":     core.WordNoCoords,
-	"MsgDelay":     core.WordMsgDelay,
-	"ViewFlags":    core.WordViewFlags,
-	"MarkFlags4":   core.WordMarkFlags4,
-	"Mark3":        core.WordMark3,
-	"Mark4Off":     core.WordMark4Off,
-	"MarkFlags57":  core.WordMarkFlags57,
-	"RiverOpen":    core.WordRiverOpen,
-	"Boss":         core.WordBoss,
-	"Mark4":        core.WordMark4,
-	"PartyExp":     core.WordTrainable,
-	"MaxDist":      core.WordMaxDist,
-	"MonsterDist":  core.WordMonsterDist,
-	"Morale":       core.WordMorale,
-	"CombatEnd":    core.WordCombatEnd,
-	"Beaten":       core.WordBeaten,
-	"HoldMove":     core.WordHoldMove,
-	"Search":       core.WordSearch,
-	"Surprise":     core.WordSurprise,
-	"RestEvery":    core.WordRestEvery,
-	"RestChance":   core.WordRestChance,
-	"LeftMap":      core.WordLeftMap,
-	"Portrait":     core.WordPortrait,
-	"Temple":       core.WordTemple,
-	"NoLoot":       core.WordNoLoot,
-	"Duel":         core.WordDuel,
-	"AttackedAlly": core.WordAttackedAlly,
-	"Shop":         core.WordShop,
-	"MonsterHit":   core.WordMonsterHit,
-	"PartyHit":     core.WordPartyHit,
-	"PartyMove":    core.WordPartyMove,
+var scriptWords = map[string]rules.WorldWord{
+	"MapX":         rules.WordMapX,
+	"MapY":         rules.WordMapY,
+	"Geo":          rules.WordGeo,
+	"TenMinutes":   rules.WordTenMinutes,
+	"Hours":        rules.WordHours,
+	"NoMagic":      rules.WordNoMagic,
+	"In3D":         rules.WordIn3D,
+	"WallSplitA":   rules.WordWallSplitA,
+	"WallSplitB":   rules.WordWallSplitB,
+	"PrevX":        rules.WordPrevX,
+	"PrevY":        rules.WordPrevY,
+	"AreaKind":     rules.WordAreaKind,
+	"NoCoords":     rules.WordNoCoords,
+	"MsgDelay":     rules.WordMsgDelay,
+	"ViewFlags":    rules.WordViewFlags,
+	"MarkFlags4":   rules.WordMarkFlags4,
+	"Mark3":        rules.WordMark3,
+	"Mark4Off":     rules.WordMark4Off,
+	"MarkFlags57":  rules.WordMarkFlags57,
+	"RiverOpen":    rules.WordRiverOpen,
+	"Boss":         rules.WordBoss,
+	"Mark4":        rules.WordMark4,
+	"PartyExp":     rules.WordTrainable,
+	"MaxDist":      rules.WordMaxDist,
+	"MonsterDist":  rules.WordMonsterDist,
+	"Morale":       rules.WordMorale,
+	"CombatEnd":    rules.WordCombatEnd,
+	"Beaten":       rules.WordBeaten,
+	"HoldMove":     rules.WordHoldMove,
+	"Search":       rules.WordSearch,
+	"Surprise":     rules.WordSurprise,
+	"RestEvery":    rules.WordRestEvery,
+	"RestChance":   rules.WordRestChance,
+	"LeftMap":      rules.WordLeftMap,
+	"Portrait":     rules.WordPortrait,
+	"Temple":       rules.WordTemple,
+	"NoLoot":       rules.WordNoLoot,
+	"Duel":         rules.WordDuel,
+	"AttackedAlly": rules.WordAttackedAlly,
+	"Shop":         rules.WordShop,
+	"MonsterHit":   rules.WordMonsterHit,
+	"PartyHit":     rules.WordPartyHit,
+	"PartyMove":    rules.WordPartyMove,
 }
 
 // portraitWords are the sky words: a write redraws the portrait.
-var portraitWords = map[string]core.WorldWord{"Sky": core.WordSky, "SkyInside": core.WordSkyInside}
+var portraitWords = map[string]rules.WorldWord{"Sky": rules.WordSky, "SkyInside": rules.WordSkyInside}

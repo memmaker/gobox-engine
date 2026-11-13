@@ -5,8 +5,8 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/core"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // TestLootContract: the treasure after a fight is play's Looting, no
@@ -41,7 +41,7 @@ func TestLootContract(t *testing.T) {
 	if n := items(); n != 2 || len(e.state().Pool) != held+1 {
 		t.Fatalf("after one: %d left, %d held, want 2 and %d", n, len(e.state().Pool), held+1)
 	}
-	if _, err := e.doNow(play.Take{Item: core.NoItem}); err == nil || items() != 2 { // BUG-CLASSES 31: nothing to take is a refusal
+	if _, err := e.doNow(play.Take{Item: rules.NoItem}); err == nil || items() != 2 { // BUG-CLASSES 31: nothing to take is a refusal
 		t.Fatalf("the money (none) took items or was accepted: %v", err)
 	}
 	if _, err := e.doNow(play.Leave{}); err != nil || left() {
@@ -54,7 +54,7 @@ func TestLootContract(t *testing.T) {
 	if _, err := e.doNow(play.Reply{N: 1}); err != nil || left() || items() != 2 { // Yes: back to the treasure
 		t.Fatalf("Yes: %v, left %v, %d pieces", err, left(), items())
 	}
-	if _, err := e.doNow(play.Take{Item: core.NoItem, All: true}); err != nil || len(e.state().Treasure) != 0 {
+	if _, err := e.doNow(play.Take{Item: rules.NoItem, All: true}); err != nil || len(e.state().Treasure) != 0 {
 		t.Fatalf("all: %v, %d left", err, len(e.state().Treasure))
 	}
 	if _, err := e.doNow(play.Leave{}); err != nil || !left() || items() >= 0 {

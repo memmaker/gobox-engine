@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"testing"
 )
 
@@ -28,7 +28,7 @@ func (e *RuleState) factAttack(a, b *Character, hit bool, shown int) {
 	if !e.Fight.On {
 		return
 	}
-	e.Emit(core.Attacked{From: unit(e.CombatIndex(a)), To: unit(e.CombatIndex(b)), Hit: hit, Damage: int32(shown)})
+	e.Emit(rules.Attacked{From: unit(e.CombatIndex(a)), To: unit(e.CombatIndex(b)), Hit: hit, Damage: int32(shown)})
 }
 
 // factHarm records c's harm: a spell's, a trap's; a hit's own is its Attacked.
@@ -36,7 +36,7 @@ func (e *RuleState) factHarm(c *Character, dmg int) {
 	if !e.Fight.On {
 		return
 	}
-	e.Emit(core.Struck{Unit: unit(e.CombatIndex(c)), Damage: int32(dmg)})
+	e.Emit(rules.Struck{Unit: unit(e.CombatIndex(c)), Damage: int32(dmg)})
 }
 
 // factFell records c's fall.
@@ -44,20 +44,20 @@ func (e *RuleState) factFell(c *Character) {
 	if !e.Fight.On {
 		return
 	}
-	e.Emit(core.Fell{Unit: unit(e.CombatIndex(c))})
+	e.Emit(rules.Fell{Unit: unit(e.CombatIndex(c))})
 }
 
 // FightState is the fight's part of the rule state: whether one is up, the
 // aims a spell was given, the maneuver armed, the forced and free moves.
 type FightState struct {
-	On     bool          // a fight is up
-	Aims   []AimAnswer   // the aims taken before a spell is cast, in the order its targeting asks for them
-	Choice int32         // extra: the reply to the spell's own question (core.SpellAim.Choices), carried in like Aims
-	Armed  Armed         // extra: the maneuver the actor's next weapon attack carries (combatrules.go)
-	Aimed  core.BoardPos // extra: the square an AimArea maneuver was aimed at (Aimed)
-	forced bool          // extra: MoveTo's steps: no Moved hook, no moves spent
-	free   bool          // extra: a free attack (an opportunity attack) is being made (Opportunity)
-	Key    AiKey         // the key the computer turn's polls take (computerTurn, aiKeys)
+	On     bool           // a fight is up
+	Aims   []AimAnswer    // the aims taken before a spell is cast, in the order its targeting asks for them
+	Choice int32          // extra: the reply to the spell's own question (core.SpellAim.Choices), carried in like Aims
+	Armed  Armed          // extra: the maneuver the actor's next weapon attack carries (combatrules.go)
+	Aimed  rules.BoardPos // extra: the square an AimArea maneuver was aimed at (Aimed)
+	forced bool           // extra: MoveTo's steps: no Moved hook, no moves spent
+	free   bool           // extra: a free attack (an opportunity attack) is being made (Opportunity)
+	Key    AiKey          // the key the computer turn's polls take (computerTurn, aiKeys)
 }
 
 // AimAnswer is one aim the player took (playerAim's results).

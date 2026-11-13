@@ -5,9 +5,9 @@ package present
 import (
 	"bufio"
 	"bytes"
-	"gobox/core"
 	"gobox/front"
 	"gobox/game"
+	"gobox/rules"
 	"gobox/sprites"
 	"gobox/ui"
 	"image"
@@ -56,11 +56,11 @@ func (inv *inventory) drawTabs(pn *pane, x int, busy bool) {
 
 // pane is a scrolled list of items: the party inventory or the shop's goods.
 type pane struct {
-	top, rows, n int             // the first line shown, the lines shown, the lines
-	seen         core.ItemHandle // the highlight the list last scrolled to
-	at           image.Rectangle // the lines' area
-	scroll       image.Rectangle // the scroll bar
-	tab          int             // its tab (tabNames)
+	top, rows, n int              // the first line shown, the lines shown, the lines
+	seen         rules.ItemHandle // the highlight the list last scrolled to
+	at           image.Rectangle  // the lines' area
+	scroll       image.Rectangle  // the scroll bar
+	tab          int              // its tab (tabNames)
 	tabs         [len(tabNames)]image.Rectangle
 }
 
@@ -70,7 +70,7 @@ func (pn *pane) clamp() { pn.top = max(0, min(pn.top, pn.n-pn.rows)) }
 // drawPane draws items as lines of icon and name (and price) from x0 to x1,
 // listTop to bottom, the highlighted one (sel) in blue, with a scroll bar
 // when they do not fit.
-func (inv *inventory) drawPane(pn *pane, items []game.Item, sel core.ItemHandle, ware, priced, busy bool, x0, x1, bottom int) {
+func (inv *inventory) drawPane(pn *pane, items []game.Item, sel rules.ItemHandle, ware, priced, busy bool, x0, x1, bottom int) {
 	pn.n, pn.rows = len(items), max(1, (bottom-listTop)/rowH)
 	for i, it := range items { // keep a newly highlighted line in sight (the wheel scrolls freely)
 		if it.Handle == sel && sel != pn.seen {

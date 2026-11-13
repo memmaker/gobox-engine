@@ -5,11 +5,11 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/core"
 	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/input"
+	"gobox/rules"
 )
 
 // Down then B on the shop's wares buys the highlighted ware (a rule call);
@@ -20,7 +20,7 @@ func TestInventoryActs(t *testing.T) {
 	g.r.items = game.ItemsShop
 	var p Presenter
 	p.SetEngine(g)
-	p.inv.up, p.inv.ware, p.inv.sel = in, core.NoItem, core.NoItem
+	p.inv.up, p.inv.ware, p.inv.sel = in, rules.NoItem, rules.NoItem
 	p.inventoryKey(keyOf(input.Down))
 	p.inventoryKey(0x42)
 	as := p.Actions()
@@ -46,7 +46,7 @@ func TestShopKeys(t *testing.T) {
 	g.r.items = game.ItemsShop
 	var p Presenter
 	p.SetEngine(g)
-	p.inv.up, p.inv.ware, p.inv.sel = in, core.NoItem, 1
+	p.inv.up, p.inv.ware, p.inv.sel = in, rules.NoItem, 1
 	p.inventoryKey(keyOf(input.Left))
 	p.inventoryKey(keyOf(input.Enter))
 	p.Actions()
@@ -68,7 +68,7 @@ func TestInventoryDrag(t *testing.T) {
 	in := &invUp{kind: invOwn, doll: []*game.Item{&gun}, pool: []game.Item{gun}}
 	var p Presenter
 	inv := &p.inv
-	inv.k, inv.kx, inv.ky, inv.up, inv.sel, inv.ware = 1, 1, 1, in, core.NoItem, core.NoItem
+	inv.k, inv.kx, inv.ky, inv.up, inv.sel, inv.ware = 1, 1, 1, in, rules.NoItem, rules.NoItem
 	inv.dollAt = image.Rect(0, 0, 100, 100)
 	drag := func(from hit, x, y int) []front.Action {
 		inv.lines = []hit{from}
@@ -106,12 +106,12 @@ func TestInventoryKeysReachAll(t *testing.T) {
 	gun := game.Item{Handle: 1, Name: "Gun", Readied: true}
 	pool := []game.Item{gun}
 	for i := 1; i < 16; i++ {
-		pool = append(pool, game.Item{Handle: core.ItemHandle(i + 1), Name: "Knife"})
+		pool = append(pool, game.Item{Handle: rules.ItemHandle(i + 1), Name: "Knife"})
 	}
 	in := &invUp{kind: invOwn, doll: []*game.Item{&gun}, pool: pool}
 	var p Presenter
-	p.inv.up, p.inv.ware, p.inv.sel, p.inv.list.rows = in, core.NoItem, 1, 10
-	seen := map[core.ItemHandle]bool{}
+	p.inv.up, p.inv.ware, p.inv.sel, p.inv.list.rows = in, rules.NoItem, 1, 10
+	seen := map[rules.ItemHandle]bool{}
 	for range 16 {
 		p.inventoryKey(keyOf(input.Down))
 		seen[p.inv.sel] = true
@@ -157,7 +157,7 @@ func TestLootDropWord(t *testing.T) {
 	in := &invUp{kind: invLoot, treasure: &front.Loot{Drop: true}, wares: []game.Item{{Handle: 4, Name: "Sword"}},
 		pool: []game.Item{{Handle: 1, Name: "Gun"}}}
 	var p Presenter
-	p.inv.up, p.inv.ware, p.inv.sel = in, core.NoItem, 1
+	p.inv.up, p.inv.ware, p.inv.sel = in, rules.NoItem, 1
 	if !slices.ContainsFunc(p.inv.menu(), func(w word) bool { return w.act == front.ActDrop && w.on }) {
 		t.Fatal("no live Drop word in the loot menu")
 	}

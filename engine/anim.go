@@ -2,9 +2,8 @@ package engine
 
 import (
 	"gobox/asset"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ega"
+	"gobox/rules"
 )
 
 // Pictures shown in the view window, ported from ovr29: animated PIC /
@@ -22,8 +21,8 @@ type animPic struct {
 
 // portrait = DS:6B00..6B09: the cached HEAD and BODY pictures.
 type portrait struct {
-	headID, bodyID   int         // DS:6B00 / 6B05 (-1 = none)
-	headSet, bodySet goldbox.Set // the sets they came from
+	headID, bodyID   int       // DS:6B00 / 6B05 (-1 = none)
+	headSet, bodySet rules.Set // the sets they came from
 	head, body       *asset.Image
 }
 
@@ -129,7 +128,7 @@ func (e *Engine) DrawAnimFirst() {
 
 // LoadPortrait = ovr29:05D9 (head, body): set's HEAD/BODY blocks, kept
 // while they do not change; 0xFF leaves that half alone.
-func (e *Engine) LoadPortrait(set goldbox.Set, head, body int) {
+func (e *Engine) LoadPortrait(set rules.Set, head, body int) {
 	p := &e.port
 	if head != 0xFF && (p.headID != head || p.headSet != set) {
 		p.head = e.LoadPic(set.File("HEAD"), head)
@@ -179,7 +178,7 @@ func (e *Engine) ShowEncounter(sprite, pic, dist int, flags *[2]byte) {
 			e.DrawAnimFrame(2)
 		}
 	}
-	face := uint16(e.worldWord(core.WordPortrait))
+	face := uint16(e.worldWord(rules.WordPortrait))
 	if flags[1] != 0 && uint16(e.es.shownFace) == face {
 		return
 	}

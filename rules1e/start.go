@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core/goldbox"
+import "gobox/rules"
 
 // A new character's per-adventure start (Felix's R3 rulings 3, 4, 7, 8, 11):
 // one rule reads it, each game's importer writes its own values into
@@ -59,7 +59,7 @@ func kitOf(c *Character) int {
 }
 
 // copperPerGold is a gold piece in copper.
-var copperPerGold = goldbox.GoldBoxRates.Coin[CoinGold]
+var copperPerGold = rules.GoldBoxRates.Coin[CoinGold]
 
 // startMoney rolls c's starting money (before the hit points, as POR).
 func (e *RuleState) startMoney(c *Character, count byte) {

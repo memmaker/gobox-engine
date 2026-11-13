@@ -3,7 +3,7 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"os"
 	"strings"
 	"testing"
@@ -35,7 +35,7 @@ func TestWhoAgainstPascal(t *testing.T) {
 		k := atois(t, strings.Fields(key)[1:])
 		e.selectMember(k[0] - 1)
 		start := e.selected()
-		pick := core.NoChar
+		pick := rules.NoChar
 		if k[1] > 0 {
 			pick = e.partyIDs()[k[1]-1]
 		}

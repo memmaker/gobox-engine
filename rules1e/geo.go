@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core/goldbox"
+import "gobox/rules"
 
 // Area map (GEO) and the 3D view's state, ported from ovr30. The view
 // itself is the remaster's (presentdata, gobox-engine/blobber): the
@@ -18,4 +18,4 @@ import "gobox/core/goldbox"
 // slots; only the slots' block numbers are kept (the save file holds them).
 
 // DirDX/DirDY = DS:2736 / DS:273F, indexed by direction 0..8 (0 N, 2 E, 4 S, 6 W).
-var DirDX, DirDY = goldbox.StepX, goldbox.StepY
+var DirDX, DirDY = rules.StepX, rules.StepY

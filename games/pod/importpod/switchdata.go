@@ -1,15 +1,15 @@
 package importpod
 
 import (
-	"gobox/core"
 	eclscript "gobox/ecl/script"
+	"gobox/rules"
+	"gobox/rules1e"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 )
 
 // races is the race of each race row.
-var races = [...]core.Race{rules1e.CoreRaceElf, rules1e.CoreRaceHalfElf, rules1e.CoreRaceDwarf, rules1e.CoreRaceGnome, rules1e.CoreRaceHalfling, rules1e.CoreRaceHuman, rules1e.CoreRaceMonster}
+var races = [...]rules.Race{rules1e.CoreRaceElf, rules1e.CoreRaceHalfElf, rules1e.CoreRaceDwarf, rules1e.CoreRaceGnome, rules1e.CoreRaceHalfling, rules1e.CoreRaceHuman, rules1e.CoreRaceMonster}
 
 // Layout1e is the shape of this game's slot tables (rules1e.Layout).
 func Layout1e() rules1e.Layout {
@@ -35,7 +35,7 @@ func AreaMonsterTable() (monsters, icons []byte, count, status, control int) {
 }
 
 // Dialect is the game's script byte-code dialect.
-const Dialect = core.DialectPOD
+const Dialect = rules.DialectPOD
 
 // JournalEntries maps each journal entry the book has (no 13) to its text:
 // the scripts' Journal n.

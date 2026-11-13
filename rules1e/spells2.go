@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core"
+import "gobox/rules"
 
 // Spell effect routines of ovr23 (0x100F..0x2540). CastSpell (ovr23:0C20)
 // calls them through the table DS:6B84 filled by ovr23:3413, indexed by the
@@ -177,7 +177,7 @@ func (e *RuleState) holdTargets(bonus int8, msg string) {
 			continue
 		}
 		if i < e.NSpellTargets {
-			e.Sound(string(core.CueSpell))
+			e.Sound(string(rules.CueSpell))
 			sel := e.Acting()
 			e.shoot(e.CombatX(sel), e.CombatY(sel), e.CombatX(t), e.CombatY(t), 0, SpellIDs[spell])
 		}

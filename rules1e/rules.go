@@ -4,8 +4,7 @@ package rules1e
 // from ovr25 and the START helpers it leans on (00BA:16EC ... 2637).
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"slices"
 	"strconv"
 )
@@ -36,7 +35,7 @@ type CombatInfo struct {
 // Rule globals (DS:6816..682A).
 type ruleVars struct {
 	// Save DS:6816 saving throw total, DiceN DS:681C, HitRoll DS:6822, SaveType DS:682A.
-	goldbox.Roll
+	rules.Roll
 	AffVal  AffectType // DS:6817 affect being added (0 = blocked)
 	Damage  int16      // DS:6818 (a signed word, as PoD has it; POR and the others kept a byte)
 	DmgType byte       // DS:6819 1 fire 2 cold 4 electricity 8 magic 0x10 acid
@@ -101,7 +100,7 @@ func (e *RuleState) RemoveAffect(c *Character, typ AffectType, a *Affect) {
 func (e *RuleState) AddAffect(c *Character, typ AffectType, time int, data, call byte) {
 	a := &Affect{AffectRecord: AffectRecord{Type: typ, Time: uint16(time), Data: data, Call: call}}
 	c.Affects = append(c.Affects, a)
-	e.Emit(core.Sounded{Cue: core.SoundCue(daspAffects[typ])})
+	e.Emit(rules.Sounded{Cue: rules.SoundCue(daspAffects[typ])})
 }
 
 // auraAffects = ovr25 cs:0140: affects that also work on everyone near the
@@ -328,7 +327,7 @@ func (e *RuleState) RollHit(c *Character, bonus int) bool {
 
 // attackDie rolls the attack die into e.rv.HitRoll; false: a natural 1.
 func (e *RuleState) attackDie() bool {
-	rng := core.RNG{State: e.RandSeed}
+	rng := rules.RNG{State: e.RandSeed}
 	die := AttackDie(&rng)
 	e.RandSeed = rng.State
 	e.Rv.HitRoll = int8(die)
@@ -360,7 +359,7 @@ func (e *RuleState) AttackHits(att, def *Character, need int) bool {
 // saves, otherwise d20 + bonus + the character's save bonus must reach the
 // target for the type (0 paralysis ... 4 spells).
 func (e *RuleState) SavingThrow(c *Character, typ, bonus int) bool {
-	rng := core.RNG{State: e.RandSeed}
+	rng := rules.RNG{State: e.RandSeed}
 	die := RollDice(&rng, 1, 20)
 	e.RandSeed = rng.State
 	e.Rv.Save = byte(die)
@@ -377,11 +376,11 @@ func (e *RuleState) SavingThrow(c *Character, typ, bonus int) bool {
 }
 
 // RollDice = ovr25:0E2E (n, sides): Dice that also remembers n (DS:681C).
-func (e *RuleState) RollDice(n, sides int) int { return goldbox.RollCounted(&e.Rv.Roll, e, n, sides) }
+func (e *RuleState) RollDice(n, sides int) int { return rules.RollCounted(&e.Rv.Roll, e, n, sides) }
 
 // KillCharacter = ovr25:0F06 (char, status, message).
 func (e *RuleState) KillCharacter(c *Character, status byte, msg string) {
-	msg = goldbox.Cut(msg, msgMax)
+	msg = rules.Cut(msg, msgMax)
 	if c.Okay == 0 {
 		return
 	}

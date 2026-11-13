@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"image"
 	"image/png"
 	"io/fs"
@@ -89,13 +89,13 @@ func iconShape(b []byte) error {
 
 // takeIconPNG makes the PNG b c's combat icon, or says why not (the icon
 // editor, a PNG dropped on the creation sheet's icon).
-func (e *Engine) takeIconPNG(cID core.CharID, b []byte) bool {
+func (e *Engine) takeIconPNG(cID rules.CharID, b []byte) bool {
 	if !e.iconOK(b) {
 		return false
 	}
 	p := e.iconPics(cID)
 	p.PNG = b
-	e.do(core.SetIconPics{Who: cID, Pics: p})
+	e.do(rules.SetIconPics{Who: cID, Pics: p})
 	return true
 }
 
@@ -111,7 +111,7 @@ func (e *Engine) iconOK(b []byte) bool {
 // iconPNG is c's PNG icon for pose (0 ready, 1 action), flipped to face
 // left when flip; nil without a PNG. The cuts are kept: the battle's
 // figures are cached by image.
-func (e *Engine) iconPNG(cID core.CharID, pose int, flip bool) image.Image {
+func (e *Engine) iconPNG(cID rules.CharID, pose int, flip bool) image.Image {
 	png := e.iconPics(cID).PNG
 	im := e.pngImage(png)
 	if im == nil {

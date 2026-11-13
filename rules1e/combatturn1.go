@@ -7,8 +7,7 @@ package rules1e
 // ds2 reads the word at DS:ofs of the exe image.
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"strconv"
 )
 
@@ -23,7 +22,7 @@ func (e *RuleState) TurnSetup(c *Character) {
 	c.Attacks[1] = Count(AttacksFromRate(int(e.turnValue), int(e.CombatRound)))
 	cb.Sweeps = c.FightLevel
 	if c.Okay != 0 {
-		cb.Delay = byte(int(goldbox.DexMissile(byte(c.Stats[StatDex]))) + e.Dice(1, 6))
+		cb.Delay = byte(int(rules.DexMissile(byte(c.Stats[StatDex]))) + e.Dice(1, 6))
 		if int8(cb.Delay) < 1 {
 			cb.Delay = 1
 		}
@@ -180,11 +179,11 @@ func (e *RuleState) stepSquare(c *Character, dir int) {
 	ny := oy + byte(DirDY[dir])
 	e.Cpos[idx].X, e.Cpos[idx].Y = nx, ny
 	if e.Fight.On {
-		e.Emit(core.Walked{Unit: unit(idx), Path: []core.BoardPos{{X: int(nx), Y: int(ny)}}}) // extra: each step held, so a walk (the computer's too: Quick, monsters) plays square by square
+		e.Emit(rules.Walked{Unit: unit(idx), Path: []rules.BoardPos{{X: int(nx), Y: int(ny)}}}) // extra: each step held, so a walk (the computer's too: Quick, monsters) plays square by square
 	}
 	e.CombatRedrawMap()
 	cb.Attackers, cb.Flank = 0, 0
-	e.Sound(string(core.CueStep))
+	e.Sound(string(rules.CueStep))
 	e.Rules().Entered(e, c) // extra: the rule set's (a zone)
 	e.waitingFoesStrike(c)
 	if c.Okay == 0 || e.IsHelpless(c) {
@@ -540,7 +539,7 @@ func (e *RuleState) attackSlots(a, b *Character, w int) (done bool) {
 			}
 		}
 		if !any {
-			e.Sound(string(core.CueMiss))
+			e.Sound(string(rules.CueMiss))
 			e.attackText(a, b, mode, 0, 0, 0)
 		}
 		done = true

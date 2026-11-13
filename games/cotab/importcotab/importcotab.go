@@ -5,19 +5,19 @@
 package importcotab
 
 import (
+	"gobox/rules1e"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 
 	"gobox/games/cotab"
 
 	"gobox/audio/sounddata"
-	"gobox/core"
 	"gobox/dax"
+	"gobox/engine"
 	"gobox/exe"
 	"gobox/exe/tablespec"
 	"gobox/importer"
-	"gobox/engine"
+	"gobox/rules"
 )
 
 func init() {
@@ -129,13 +129,13 @@ func importJournal(dir string) error { return os.CopyFS(dir, JournalFS()) }
 // DS:2612 table: 8 a step, 10 the fireball; any other plays a step). The portrait tables stay
 // empty: COTAB's portraits come from the shared collection.
 var gameTables = engine.GameTables{
-	Dialect: core.DialectCOTAB,
+	Dialect: rules.DialectCOTAB,
 	ScriptSounds: map[byte]engine.ScriptSound{
-		8:  {Cue: core.CueStep},
-		10: {Cue: core.CueFireball},
+		8:  {Cue: rules.CueStep},
+		10: {Cue: rules.CueFireball},
 	},
 	AddNPCIcon:   false,
-	DefaultSound: &engine.ScriptSound{Cue: core.CueStep},
+	DefaultSound: &engine.ScriptSound{Cue: rules.CueStep},
 	ScriptFixes:  scriptFixes,
 	OriginalSave: OriginalSave,
 	Art: &engine.ArtNames{ // copyprot's and LoadCombatTileSet's Load24x24Set (cotab-re combatst.pas)

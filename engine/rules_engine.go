@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/ega"
+	"gobox/rules"
 )
 
 // Rules: affects, to-hit rolls, saving throws, damage and healing, ported
@@ -10,9 +10,9 @@ import (
 
 // CharMessage = 00BA:16EC (char, message, row, wait): the name and a
 // message in the combat side panel, or in the box under the view.
-func (e *Engine) CharMessage(cID core.CharID, msg string, wait bool) {
+func (e *Engine) CharMessage(cID rules.CharID, msg string, wait bool) {
 	if e.beginFlag() == 5 {
-		e.do(core.CombatSay{Who: cID, Text: msg}) // extra: under the view, not in the side pane; the status row's latest line, as bottomMessage's: no stale note over it
+		e.do(rules.CombatSay{Who: cID, Text: msg}) // extra: under the view, not in the side pane; the status row's latest line, as bottomMessage's: no stale note over it
 	} else if wait { // extra: the original's flash of the text (MsgDelay, then cleared) is a toast
 		e.say(e.ruleset().Sheet(cID).Name + " " + msg)
 		return

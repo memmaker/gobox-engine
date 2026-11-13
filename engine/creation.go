@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // Name limits as POR's inlineInput: printable 0x20..0x7A, at most NameMax.
@@ -22,16 +22,16 @@ const (
 
 // Draft is one character on the sheet.
 type Draft struct {
-	R      core.CreationRules
-	RNG    *core.RNG
-	D      core.Draft
-	Fields []core.FieldDef
+	R      rules.CreationRules
+	RNG    *rules.RNG
+	D      rules.Draft
+	Fields []rules.FieldDef
 }
 
 // NewDraft is a fresh character: the ruleset's start (Draft(NoChar): POR a
 // human male fighter), each field enforced, rolled.
-func NewDraft(r core.CreationRules, rng *core.RNG) (*Draft, error) {
-	start, err := r.Draft(core.NoChar)
+func NewDraft(r rules.CreationRules, rng *rules.RNG) (*Draft, error) {
+	start, err := r.Draft(rules.NoChar)
 	if err != nil {
 		return nil, err
 	}
@@ -41,25 +41,25 @@ func NewDraft(r core.CreationRules, rng *core.RNG) (*Draft, error) {
 // begin is a new draft from picks: each field enforced in the ruleset's
 // order (a ruleset may build and roll on the first, POR's fresh), then rolled
 // unless that rolled already. A field picks lacks starts on its first option.
-func begin(r core.CreationRules, rng *core.RNG, picks map[core.FieldID]int) (*Draft, error) {
+func begin(r rules.CreationRules, rng *rules.RNG, picks map[rules.FieldID]int) (*Draft, error) {
 	d := &Draft{R: r, RNG: rng}
-	d.D.Of = core.NoChar
-	d.D.Picks = map[core.FieldID]int{}
-	d.D.Points = map[core.FieldID][]int32{}
+	d.D.Of = rules.NoChar
+	d.D.Picks = map[rules.FieldID]int{}
+	d.D.Points = map[rules.FieldID][]int32{}
 	d.Fields = r.Fields(d.D)
 	for _, f := range d.Fields {
-		if f.Kind == core.FieldChoice {
+		if f.Kind == rules.FieldChoice {
 			d.D.Picks[f.ID] = picks[f.ID]
 		}
 	}
 	for _, f := range d.Fields {
-		if f.Kind == core.FieldChoice {
+		if f.Kind == rules.FieldChoice {
 			d.SetField(f.ID, d.D.Picks[f.ID])
 		}
 	}
 	d.sizeSkills()
 	if d.D.Sheet.Scores == nil {
-		if err := d.Roll(core.RollFull); err != nil {
+		if err := d.Roll(rules.RollFull); err != nil {
 			return nil, err
 		}
 	}
@@ -67,7 +67,7 @@ func begin(r core.CreationRules, rng *core.RNG, picks map[core.FieldID]int) (*Dr
 }
 
 // Modify opens character c on the sheet.
-func Modify(r core.CreationRules, rng *core.RNG, c core.CharID) (*Draft, error) {
+func Modify(r rules.CreationRules, rng *rules.RNG, c rules.CharID) (*Draft, error) {
 	cd, err := r.Draft(c)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func Modify(r core.CreationRules, rng *core.RNG, c core.CharID) (*Draft, error) 
 }
 
 // Fits lists which options of field f are legal for the draft (grey: not).
-func (d *Draft) Fits(f core.FieldDef) []bool {
+func (d *Draft) Fits(f rules.FieldDef) []bool {
 	out := make([]bool, len(f.Options))
 	for o := range out {
 		out[o] = d.R.Fits(d.D, f.ID, o)
@@ -86,7 +86,7 @@ func (d *Draft) Fits(f core.FieldDef) []bool {
 }
 
 // SetField picks option o of f; dependants that no longer fit move (Enforce).
-func (d *Draft) SetField(f core.FieldID, o int) {
+func (d *Draft) SetField(f rules.FieldID, o int) {
 	d.D = d.R.Enforce(d.D, f, o, d.RNG)
 	d.Fields = d.R.Fields(d.D)
 	d.sizeSkills()
@@ -95,10 +95,10 @@ func (d *Draft) SetField(f core.FieldID, o int) {
 // sizeSkills starts a skills field the picks brought (BR career skills) unspent.
 func (d *Draft) sizeSkills() {
 	if d.D.Points == nil {
-		d.D.Points = map[core.FieldID][]int32{}
+		d.D.Points = map[rules.FieldID][]int32{}
 	}
 	for _, fd := range d.Fields {
-		if fd.Kind == core.FieldSkills && len(d.D.Points[fd.ID]) != len(fd.Options) {
+		if fd.Kind == rules.FieldSkills && len(d.D.Points[fd.ID]) != len(fd.Options) {
 			d.D.Points[fd.ID] = make([]int32, len(fd.Options))
 		}
 	}
@@ -106,20 +106,20 @@ func (d *Draft) sizeSkills() {
 
 // Roll rolls the abilities and hit points; a minimum the ruleset cannot
 // meet is a *core.MinimumError, the draft unchanged.
-func (d *Draft) Roll(k core.RollKind) error { return d.R.Roll(&d.D, k, d.RNG) }
+func (d *Draft) Roll(k rules.RollKind) error { return d.R.Roll(&d.D, k, d.RNG) }
 
 // ErrPointBuy: bought scores outside core's point-buy range or budget.
 var ErrPointBuy = errors.New("Point buy over budget or out of range")
 
 // PointBuy makes the abilities from the bases bought (core.PointBuySpent),
 // then the ruleset's roll rules (Roll(RollPointBuy)); refused, the draft stays.
-func (d *Draft) PointBuy(bases map[core.Ability]int32) error {
-	if _, ok := core.PointBuySpent(bases); !ok || len(bases) == 0 {
+func (d *Draft) PointBuy(bases map[rules.Ability]int32) error {
+	if _, ok := rules.PointBuySpent(bases); !ok || len(bases) == 0 {
 		return ErrPointBuy
 	}
 	was := d.D.Buy
 	d.D.Buy = bases
-	err := d.Roll(core.RollPointBuy)
+	err := d.Roll(rules.RollPointBuy)
 	d.D.Buy = was
 	return err
 }
@@ -128,7 +128,7 @@ func (d *Draft) PointBuy(bases map[core.Ability]int32) error {
 var ErrBudget = errors.New("no points left")
 
 // Spend moves n points (negative: refunds) onto option o of skills field f.
-func (d *Draft) Spend(f core.FieldDef, o int, n int32) error {
+func (d *Draft) Spend(f rules.FieldDef, o int, n int32) error {
 	p := d.D.Points[f.ID]
 	var spent int32
 	for _, v := range p {
@@ -157,7 +157,7 @@ var ErrScore = errors.New("not a score")
 
 // SetScore sets ability a from its typed text: "15", or for strength "18/50"
 // ("18/00" is 100).
-func (d *Draft) SetScore(a core.Ability, typed string) error {
+func (d *Draft) SetScore(a rules.Ability, typed string) error {
 	v, pct, err := ParseScore(typed)
 	if err != nil {
 		return err
@@ -166,8 +166,8 @@ func (d *Draft) SetScore(a core.Ability, typed string) error {
 	if err != nil {
 		return err
 	}
-	if a == core.Strength {
-		if nd, err = d.R.SetScore(nd, core.StrengthPercent, pct); err != nil {
+	if a == rules.Strength {
+		if nd, err = d.R.SetScore(nd, rules.StrengthPercent, pct); err != nil {
 			return err
 		}
 	}
@@ -208,19 +208,19 @@ func FormatScore(v, pct int32) string {
 // Keep makes the character (POR SaveCharacter).
 // A new character goes to the roster (its RosterID), a modified one stays
 // the member it is (its CharID).
-func (d *Draft) Keep() (core.CharID, core.RosterID, error) { return d.R.Make(d.D) }
+func (d *Draft) Keep() (rules.CharID, rules.RosterID, error) { return d.R.Make(d.D) }
 
 // QuickParty makes the ruleset's ready-made party: each member from its
 // template, rerolled until its Need is met, kept to the roster and joined.
-func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
-	var out []core.CharID
+func QuickParty(r rules.CreationRules, rng *rules.RNG) ([]rules.CharID, error) {
+	var out []rules.CharID
 	for _, t := range r.QuickParty() {
 		d, err := begin(r, rng, t.Picks)
 		if err != nil {
 			return out, err
 		}
 		for _, f := range d.Fields { // a pick the template leaves open (POR 4e powers): its first fitting option (POR defaultPowers)
-			if _, ok := t.Picks[f.ID]; ok || f.Kind != core.FieldChoice || d.D.Picks[f.ID] >= 0 {
+			if _, ok := t.Picks[f.ID]; ok || f.Kind != rules.FieldChoice || d.D.Picks[f.ID] >= 0 {
 				continue
 			}
 			if o := slices.Index(d.Fits(f), true); o >= 0 {
@@ -228,7 +228,7 @@ func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
 			}
 		}
 		for i := 0; i < r.QuickRerolls() && !meets(d.D, t.Need); i++ {
-			if err := d.Roll(core.RollFull); err != nil {
+			if err := d.Roll(rules.RollFull); err != nil {
 				return out, err
 			}
 		}
@@ -246,7 +246,7 @@ func QuickParty(r core.CreationRules, rng *core.RNG) ([]core.CharID, error) {
 	return out, nil
 }
 
-func meets(d core.Draft, need map[core.Ability]int32) bool {
+func meets(d rules.Draft, need map[rules.Ability]int32) bool {
 	for a, v := range need {
 		if d.Sheet.Scores[a] < v {
 			return false

@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 	"strconv"
 )
@@ -241,9 +241,9 @@ func (e *RuleState) directionTo(from, to *Character) int {
 // attackAnimation = ovr14:26B0 (from, to, weapon): the weapon flies from
 // one combatant to the other (its sprite is present's missileArt).
 func (e *RuleState) attackAnimation(from, to *Character, weapon *Item) {
-	e.Sound(string(core.CueMissile))
+	e.Sound(string(rules.CueMissile))
 	e.shoot(e.CombatX(from), e.CombatY(from), e.CombatX(to), e.CombatY(to), e.kind(weapon.Type), "")
-	e.Sound(string(core.CueMissileEnd))
+	e.Sound(string(rules.CueMissileEnd))
 }
 
 // FoesHealthPercent = ovr14:2879: DS:6E2F = the monsters' remaining hit points in

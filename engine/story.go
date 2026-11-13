@@ -2,7 +2,7 @@ package engine
 
 import (
 	"gobox/asset"
-	"gobox/core"
+	"gobox/rules"
 )
 
 // Story and housekeeping routines of ovr18, ovr19 and ovr34, and the duel
@@ -10,7 +10,7 @@ import (
 
 // StoryStep is front.Game's finale pass: POR's finale is its manifest's End now (SetEnd,
 // ending), so no pass is ever due.
-func (e *Engine) StoryStep() error { return core.ErrNotNow }
+func (e *Engine) StoryStep() error { return rules.ErrNotNow }
 
 // recolourFrame = 0464:1E5C (from, to, frame, random, image), the EGA
 // path (DS:4A1E = 1) on chunky pixels: for each of the 16 colours whose
@@ -100,18 +100,18 @@ func (e *Engine) recolourSquare(from, to []byte, v byte, random bool) {
 // copies of the member's items, in reverse order.
 func (e *Engine) DuelSetup(n int) {
 	e.run.duelMode = 1
-	e.setWorldWord(core.WordDuel, int(int16(int8(n))))
+	e.setWorldWord(rules.WordDuel, int(int16(int8(n))))
 	selName := e.ruleset().Sheet(e.selected()).Name // selected() is never NoChar
 	for _, id := range e.partyIDs() {
 		if e.ruleset().Sheet(id).Name != selName { // 0AF8:0C10 compares the name strings
-			e.do(core.SetInactive{Who: id})
+			e.do(rules.SetInactive{Who: id})
 		}
 	}
 	if n == 0 {
 		return
 	}
 	e.LoadIconPic("CPIC", 0xB, int(e.es.cloneIcon)) // ovr33:01C8
-	if _, err := e.ruleset().Resolve(nil, core.DuelClone{Of: e.selected(), Name: "ROLF", Icon: int32(e.es.cloneIcon)}, nil); err != nil {
+	if _, err := e.ruleset().Resolve(nil, rules.DuelClone{Of: e.selected(), Name: "ROLF", Icon: int32(e.es.cloneIcon)}, nil); err != nil {
 		panic(err) // sel is a member
 	}
 }

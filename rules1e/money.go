@@ -1,8 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // The party's money. The original gave every character a purse of seven
@@ -11,7 +10,7 @@ import (
 
 // Purse is the party's money (see grules.Purse): gold pieces, copper (under
 // 200, a gold piece), gems and jewelry.
-type Purse = goldbox.Purse
+type Purse = rules.Purse
 
 func (e *RuleState) ClearLoot() { e.Loot = Purse{} } // DS:67F4
 
@@ -23,7 +22,7 @@ func CoinsToPurse(c [7]uint16) Purse {
 	for i, v := range c {
 		w[i] = uint64(v)
 	}
-	return goldbox.FromCoins(w, goldbox.GoldBoxRates)
+	return rules.FromCoins(w, rules.GoldBoxRates)
 }
 
 // takeRecordCoins moves the coins in a character record (starting gold,
@@ -35,7 +34,7 @@ func (e *RuleState) takeRecordCoins(c *Character) {
 		c.Coins[i] = 0
 	}
 	e.MoneySound(CoinsToPurse(coins))
-	e.Purse.Add(CoinsToPurse(coins), goldbox.GoldBoxRates)
+	e.Purse.Add(CoinsToPurse(coins), rules.GoldBoxRates)
 }
 
 // Pay takes gold from the purse; false (and a message) when there is not enough.
@@ -49,7 +48,7 @@ func (e *RuleState) Pay(gold uint64) bool {
 
 // purseCoin is the purse's word of coin c: its gold or its copper, the only
 // money there is (the scripts' other coins became gold at import, script.GoldCoins).
-func purseCoin(p *Purse, c core.Coin) (*uint64, bool) {
+func purseCoin(p *Purse, c rules.Coin) (*uint64, bool) {
 	switch c {
 	case Gold:
 		return &p.Gold, true

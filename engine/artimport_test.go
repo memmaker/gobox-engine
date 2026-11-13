@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/core/goldbox"
 	"gobox/dax"
+	"gobox/rules"
 )
 
 // TestArtEqualsDAX: every block of the imported art reads back as the
@@ -84,7 +84,7 @@ const fontBlock = 201
 func artFiles() []struct{ Name string } {
 	var out []struct{ Name string }
 	add := func(n string) { out = append(out, struct{ Name string }{n}) }
-	for s := goldbox.Set(1); s <= 8; s++ {
+	for s := rules.Set(1); s <= 8; s++ {
 		for _, f := range []string{"8X8D", "BODY", "CPIC", "HEAD", "PIC", "FINAL", "SPRIT"} {
 			add(s.File(f))
 		}

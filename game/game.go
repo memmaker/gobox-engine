@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // Picture is an art ref: a DAX File/Block/Frame (Block -1: none), or a Name,
@@ -215,7 +215,7 @@ type Sheet struct {
 }
 
 // Stat is one of a rule set's figures on the sheet, with its tooltip lines.
-type Stat = core.Figure
+type Stat = rules.Figure
 
 // SheetPage is what the character sheet's page shows.
 type SheetPage struct {
@@ -402,7 +402,7 @@ type SpellRef struct {
 
 // Item is one item.
 type Item struct {
-	Handle                      core.ItemHandle // names it in the item verbs (play.Drop's Item ...); NoItem never
+	Handle                      rules.ItemHandle // names it in the item verbs (play.Drop's Item ...); NoItem never
 	Name                        string
 	Readied, Identified, Cursed bool
 	Charges, Price, Weight      int
@@ -433,10 +433,10 @@ func ByPosition(items []Item) []Item {
 }
 
 // PositionHandle is the handle ByPosition gives place i.
-func PositionHandle(i int) core.ItemHandle { return core.ItemHandle(i + 1) }
+func PositionHandle(i int) rules.ItemHandle { return rules.ItemHandle(i + 1) }
 
 // Position is the place PositionHandle gave h (-1 for NoItem).
-func Position(h core.ItemHandle) int { return int(h) - 1 }
+func Position(h rules.ItemHandle) int { return int(h) - 1 }
 
 // Quest is a quest fact.
 type Quest struct {
@@ -627,7 +627,7 @@ const (
 // ItemRef names one member's item.
 type ItemRef struct {
 	Member int
-	Item   core.ItemHandle
+	Item   rules.ItemHandle
 }
 
 type Shop struct {

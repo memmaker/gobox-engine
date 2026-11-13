@@ -2,8 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"image"
 	"slices"
 	"strconv"
@@ -58,7 +57,7 @@ type facts struct {
 func (e *Engine) known() facts {
 	note, _ := e.Note()
 	pick := e.powersView() // a pick owed stands in for the commands and the party menu
-	exploring, sweeping := e.exploring(), e.exploring() && e.worldWord(core.WordSearch)&1 != 0
+	exploring, sweeping := e.exploring(), e.exploring() && e.worldWord(rules.WordSearch)&1 != 0
 	px, py := e.posX, e.posY
 	inside := e.MapCell(px, py) > 0x7F
 	s := facts{
@@ -71,9 +70,9 @@ func (e *Engine) known() facts {
 			CanCast: exploring && pick == nil && e.canCastNow(), Adventure: e.adventure(), Day: e.flagDay(inside), Inside: inside,
 			Ordering: e.campOn(), Full: e.snap.full, IconDrop: e.snap.iconDrop != nil && e.snap.iconBox == (CellRect{})},
 		Where: game.Where{
-			Area: strconv.Itoa(int(AreaID(e.worldWord(core.WordGeo)))), X: px, Y: py, Facing: int(Dir(e.facing/2&3)) * 2,
+			Area: strconv.Itoa(int(AreaID(e.worldWord(rules.WordGeo)))), X: px, Y: py, Facing: int(Dir(e.facing/2&3)) * 2,
 			Inside: inside, Searching: sweeping,
-			Mode: map[bool]string{true: "dungeon", false: "wilderness"}[e.worldWord(core.WordIn3D) != 0],
+			Mode: map[bool]string{true: "dungeon", false: "wilderness"}[e.worldWord(rules.WordIn3D) != 0],
 		},
 	}
 	members, quests := e.members(), e.questsView()
@@ -81,15 +80,15 @@ func (e *Engine) known() facts {
 		gm := game.Member{Name: m.Name, Class: m.Class, Status: m.Status, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Exp: uint32(m.Exp), Dropped: m.Portrait}
 		if i < e.partySize() {
 			id := e.partyIDs()[i]
-			poolState(e.fact(id, core.PoolPicsFact{}).(core.PoolPics), &gm)
+			poolState(e.fact(id, rules.PoolPicsFact{}).(rules.PoolPics), &gm)
 			e.iconState(id, &gm)
 			gm.Stats = map[string]int{}
 			scores := e.ruleset().Sheet(id).Scores
-			for n, a := range map[string]core.Ability{"str": core.Strength, "int": core.Intelligence, "wis": core.Wisdom,
-				"dex": core.Dexterity, "con": core.Constitution, "cha": core.Charisma} {
+			for n, a := range map[string]rules.Ability{"str": rules.Strength, "int": rules.Intelligence, "wis": rules.Wisdom,
+				"dex": rules.Dexterity, "con": rules.Constitution, "cha": rules.Charisma} {
 				gm.Stats[n] = int(scores[a])
 			}
-			book := e.fact(id, core.BookFact{}).(core.Book)
+			book := e.fact(id, rules.BookFact{}).(rules.Book)
 			for _, sp := range book.Known { // the book: the spells id knows
 				gm.Spells = append(gm.Spells, game.SpellRef{ID: int(sp.Number), Name: sp.Name, Level: int(sp.Level),
 					Planned: int(sp.Planned), Group: spellGroup(sp.Class, byte(sp.Level))})
@@ -97,7 +96,7 @@ func (e *Engine) known() facts {
 			gm.SlotsMax = map[string]int{}
 			for cls, levels := range book.Slots {
 				for lvl, n := range levels {
-					gm.SlotsMax[spellGroup(core.SpellClass(cls), byte(lvl+1))] = int(n)
+					gm.SlotsMax[spellGroup(rules.SpellClass(cls), byte(lvl+1))] = int(n)
 				}
 			}
 			sel := e.sel
@@ -140,11 +139,11 @@ func (e *Engine) known() facts {
 	for _, q := range quests {
 		s.Quests = append(s.Quests, game.Quest{ID: q.Name, Text: fmt.Sprint(q.Text), Done: q.Done})
 	}
-	s.PartyCap = int(e.ruleset().Check(core.PoolCap{}, nil).Value)
+	s.PartyCap = int(e.ruleset().Check(rules.PoolCap{}, nil).Value)
 	e.placeState(&s)
 	e.mapState(&s)
 	e.combatState(&s)
-	s.Where.Hour, s.Where.Minute = e.worldWord(core.WordClockMinutes)/60, e.worldWord(core.WordClockMinutes)%60
+	s.Where.Hour, s.Where.Minute = e.worldWord(rules.WordClockMinutes)/60, e.worldWord(rules.WordClockMinutes)%60
 	s.Where.Hall = e.ext.hall // the party menu is the training hall's
 	if cr := e.creation; cr != nil {
 		s.Creation = e.creationState(cr)
@@ -167,44 +166,44 @@ func (e *Engine) placeState(s *facts) {
 	var goods []game.Item // as the wares list them, Wrong for the selected member
 	sel := e.selected()
 	for _, h := range e.goods() {
-		none := e.itemCard(core.NoChar, h) // the goods are named for no one
+		none := e.itemCard(rules.NoChar, h) // the goods are named for no one
 		g := game.Item{Handle: h, Name: none.Name, Price: int(none.Price)}
-		if sel != core.NoChar {
+		if sel != rules.NoChar {
 			card := e.itemCard(sel, h)
 			g, g.Wrong = gameItem(h, card), card.CannotUse
-			g.Name = e.itemCard(core.NoChar, h).Name
+			g.Name = e.itemCard(rules.NoChar, h).Name
 		}
 		goods = append(goods, g)
 	}
 	switch e.pending {
 	case PendShop:
 		for i := range goods {
-			goods[i].Price = int(e.shopPrice(int32(goods[i].Price), e.itemCard(core.NoChar, goods[i].Handle).Count))
+			goods[i].Price = int(e.shopPrice(int32(goods[i].Price), e.itemCard(rules.NoChar, goods[i].Handle).Count))
 		}
 		s.Shop = &game.Shop{Goods: goods, Buys: true}
 		s.Shop.Offers, s.Shop.IdentifyPrice = e.offers(s.Selected), 200
 		identified := e.snap.identIt
 		for i, id := range e.partyIDs() {
 			l := e.listedItems(id)
-			for _, h := range e.fact(id, core.IdentifiableFact{}).(core.Handles) {
+			for _, h := range e.fact(id, rules.IdentifiableFact{}).(rules.Handles) {
 				if !e.itemCard(id, h).Identified && i < len(s.Party) && slices.Contains(l, h) {
 					s.Shop.Unknown = append(s.Shop.Unknown, game.ItemRef{Member: i, Item: h})
 				}
 			}
-			if identified != core.NoItem && slices.Contains(e.fact(id, core.IdentifiableFact{}).(core.Handles), identified) {
+			if identified != rules.NoItem && slices.Contains(e.fact(id, rules.IdentifiableFact{}).(rules.Handles), identified) {
 				s.Shop.Identified = &game.ItemRef{Member: i, Item: identified}
 			}
 		}
 		s.Shop.Identifies = e.snap.identN
 	case PendTemple:
 		for i := 0; ; i++ {
-			c, ok := e.templeService(core.NoChar, i)
+			c, ok := e.templeService(rules.NoChar, i)
 			if !ok {
 				break
 			}
 			sv := game.Service{Name: c.Name, Price: int(c.Price), Not: map[int]string{}, Declines: c.Declines, Only: c.Only}
 			for k, id := range e.partyIDs() {
-				if e.fact(id, core.TempleCureFact{Cure: i}).(core.TempleCure).Needed {
+				if e.fact(id, rules.TempleCureFact{Cure: i}).(rules.TempleCure).Needed {
 					sv.Needs = append(sv.Needs, k)
 				}
 				sv.Not[k] = c.Not // the temple words it so for anyone it would not help
@@ -223,10 +222,10 @@ func (e *Engine) placeState(s *facts) {
 	if !open {
 		return
 	}
-	t := &game.Training{Cost: int(e.ruleset().Check(core.TrainFee{}, nil).Value), Trains: map[int]string{}, Becomes: map[int][]string{}, Why: map[int]string{}, Learning: learning}
+	t := &game.Training{Cost: int(e.ruleset().Check(rules.TrainFee{}, nil).Value), Trains: map[int]string{}, Becomes: map[int][]string{}, Why: map[int]string{}, Learning: learning}
 	s.Training = t
 	for i, id := range e.partyIDs() {
-		card := e.fact(id, core.TrainFact{}).(core.TrainCard)
+		card := e.fact(id, rules.TrainFact{}).(rules.TrainCard)
 		if t.Becomes[i] = card.Becomes; card.Why != "" {
 			t.Why[i] = card.Why
 			continue
@@ -235,14 +234,14 @@ func (e *Engine) placeState(s *facts) {
 		t.Trains[i] = strings.Join(card.Becomes, " and ")
 	}
 	if learning {
-		for _, sp := range e.fact(e.selected(), core.LearnableFact{}).(core.SpellCards) {
+		for _, sp := range e.fact(e.selected(), rules.LearnableFact{}).(rules.SpellCards) {
 			t.Learn = append(t.Learn, game.SpellRef{ID: int(sp.Number), Name: sp.Name, Level: int(sp.Level)})
 		}
 	}
 }
 
 // purseMoney is p as gobox's coin map.
-func purseMoney(p core.Purse) map[string]int {
+func purseMoney(p rules.Purse) map[string]int {
 	return map[string]int{game.Gold: int(p.Gold), game.Copper: int(p.Copper), game.Gems: int(p.Gems), game.Jewelry: int(p.Jewelry)}
 }
 
@@ -250,10 +249,10 @@ func purseMoney(p core.Purse) map[string]int {
 // valued, with its value and whether there is room to keep it (Appraise).
 func (e *Engine) offers(m int) []game.Offer {
 	id := e.selected()
-	if it := e.valued; it != core.NoItem {
+	if it := e.valued; it != rules.NoItem {
 		e.applyItems(id) // Overloaded applies the items first
-		o := game.Offer{Member: m, Offer: game.OfferGem, Kind: game.Gems, Value: int(e.itemCard(id, it).Price), CanKeep: e.ruleset().Check(core.HasRoom{Who: id, Item: it}, nil).Yes}
-		if e.ruleset().Check(core.ValuedItem{}, nil).Yes { // a jewel's name word
+		o := game.Offer{Member: m, Offer: game.OfferGem, Kind: game.Gems, Value: int(e.itemCard(id, it).Price), CanKeep: e.ruleset().Check(rules.HasRoom{Who: id, Item: it}, nil).Yes}
+		if e.ruleset().Check(rules.ValuedItem{}, nil).Yes { // a jewel's name word
 			o.Offer, o.Kind = game.OfferJewel, game.Jewelry
 		}
 		return []game.Offer{o}
@@ -272,7 +271,7 @@ func (e *Engine) offers(m int) []game.Offer {
 // itemsState is what id carries (the party inventory after its own) in
 // the order the inventory lists it: names as known, the body slot it is
 // readied in, what Look tells of it, what a shop pays.
-func (e *Engine) itemsState(id core.CharID) []game.Item {
+func (e *Engine) itemsState(id rules.CharID) []game.Item {
 	var l []game.Item
 	for _, h := range e.listedItems(id) {
 		card := e.itemCard(id, h)
@@ -293,7 +292,7 @@ func (e *Engine) itemsState(id core.CharID) []game.Item {
 // gameItem is card (of h) as gobox's item: its tab ("ring" for a ring, else as
 // the item's kind), the slot it is readied in, its name's words, what Look
 // tells of it, whether it is used, and its real name while unidentified.
-func gameItem(h core.ItemHandle, card core.ItemCard) game.Item {
+func gameItem(h rules.ItemHandle, card rules.ItemCard) game.Item {
 	return game.Item{Handle: h, Name: card.Name, Readied: card.Readied, Identified: card.Identified, Price: int(card.Price), Weight: int(card.Weight),
 		Type: int(card.Type), Count: int(card.Count), Text: strings.Join(card.Look, "\n"), Usable: card.Usable,
 		Kind: card.Tab, Slot: card.Slot, Words: card.Words, Hidden: card.Hidden}
@@ -305,12 +304,12 @@ func gameItem(h core.ItemHandle, card core.ItemCard) game.Item {
 // player's) as Marked and Notes, Area the map's name.
 func (e *Engine) mapState(s *facts) {
 	if !e.mapView() {
-		if e.worldWord(core.WordIn3D) == 0 && e.adventure() { // the overland: its terrain
+		if e.worldWord(rules.WordIn3D) == 0 && e.adventure() { // the overland: its terrain
 			m := game.Automap{Area: e.mapName(), Size: image.Pt(44, 36)}
 			for y := range 36 {
 				for x := range 44 {
 					m.Known = append(m.Known, image.Pt(x, y)) // the whole map is shown
-					m.Terrain = append(m.Terrain, int(e.ruleset().Check(core.AreaTileIs{X: int32(x), Y: int32(y)}, nil).Value))
+					m.Terrain = append(m.Terrain, int(e.ruleset().Check(rules.AreaTileIs{X: int32(x), Y: int32(y)}, nil).Value))
 				}
 			}
 			s.Map = m
@@ -319,7 +318,7 @@ func (e *Engine) mapState(s *facts) {
 		}
 		return
 	}
-	m := game.Automap{Area: e.mapName(), Size: image.Pt(16, 16), NoMap: e.worldWord(core.WordNoCoords) != 0}
+	m := game.Automap{Area: e.mapName(), Size: image.Pt(16, 16), NoMap: e.worldWord(rules.WordNoCoords) != 0}
 	seen, mine, built := e.ext.seen[e.areaKey()], e.userLabels(), e.builtinLabels(e.areaKey())
 	for y := range 16 {
 		for x := range 16 {
@@ -358,8 +357,8 @@ func (e *Engine) mapState(s *facts) {
 func (e *Engine) creationState(cr *creation) *game.Creation {
 	id := cr.c
 	sh := e.ruleset().Sheet(id)
-	d := game.Member{Name: sh.Name, Race: e.word(id, core.FactRace), Class: e.word(id, core.FactClasses), Alignment: e.word(id, core.FactAlignment),
-		HP: int(sh.HP), MaxHP: int(sh.MaxHP), Stats: map[string]int{}, Str00: int(sh.Scores[core.StrengthPercent])}
+	d := game.Member{Name: sh.Name, Race: e.word(id, rules.FactRace), Class: e.word(id, rules.FactClasses), Alignment: e.word(id, rules.FactAlignment),
+		HP: int(sh.HP), MaxHP: int(sh.MaxHP), Stats: map[string]int{}, Str00: int(sh.Scores[rules.StrengthPercent])}
 	for k, n := range game.StatKeys[:6] {
 		d.Stats[n] = int(sh.Scores[abilities[k]])
 	}
@@ -367,7 +366,7 @@ func (e *Engine) creationState(cr *creation) *game.Creation {
 	e.applyItems(id)
 	e.combatStats(id, &sp)
 	d.AC, d.THAC0, d.Move, d.Age = sp.AC, sp.THAC0, sp.Move, int(sh.Age)
-	poolState(e.fact(id, core.PoolPicsFact{}).(core.PoolPics), &d)
+	poolState(e.fact(id, rules.PoolPicsFact{}).(rules.PoolPics), &d)
 	e.iconState(id, &d)
 	cl := e.Creation()
 	mins := map[string]int{}
@@ -434,7 +433,7 @@ func (e *Engine) pendingAsk() *play.Question {
 // dirOf is the direction (0 2 4 6) of a one-square step v, or -1.
 func dirOf(v image.Point) int {
 	for d := 0; d < 8; d += 2 {
-		if v == image.Pt(goldbox.StepX[d], goldbox.StepY[d]) {
+		if v == image.Pt(rules.StepX[d], rules.StepY[d]) {
 			return d
 		}
 	}
@@ -478,7 +477,7 @@ var labelKinds = [...]string{poiUser: "", poiShop: "shop", poiTemple: "temple", 
 
 // spellGroup is the level group a spell of class cls and level lvl is
 // listed under (SpellRef.Group, the SlotsMax keys): "cleric 1", "mage 2".
-func spellGroup(cls core.SpellClass, lvl byte) string {
+func spellGroup(cls rules.SpellClass, lvl byte) string {
 	return cls.String() + " " + strconv.Itoa(int(lvl))
 }
 
@@ -524,8 +523,8 @@ func (e *Engine) Open(slot string) {
 
 // iconState puts c's original combat icon numbers (the CHEAD and CBODY blocks) and colours
 // in a State member: gobox composes the icon from them (or from its pool ids).
-func (e *Engine) iconState(id core.CharID, m *game.Member) {
-	ic := e.fact(id, core.IconPicsFact{}).(core.IconPics)
+func (e *Engine) iconState(id rules.CharID, m *game.Member) {
+	ic := e.fact(id, rules.IconPicsFact{}).(rules.IconPics)
 	off := 0
 	if ic.Size == 2 { // the T files' blocks follow the S ones' by 0x40 (LoadIconPic)
 		off = 0x40
@@ -539,5 +538,5 @@ func (e *Engine) iconState(id core.CharID, m *game.Member) {
 // overlandSquare is the party's square on the overland (Where.X, Y there);
 // PosX, PosY stay the 3D view's.
 func (e *Engine) overlandSquare() image.Point {
-	return image.Pt(int(ViewModeShift[e.viewMode])+e.worldWord(core.WordMapX), e.worldWord(core.WordMapY))
+	return image.Pt(int(ViewModeShift[e.viewMode])+e.worldWord(rules.WordMapX), e.worldWord(rules.WordMapY))
 }

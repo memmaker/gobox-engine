@@ -1,7 +1,7 @@
 package rules4e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
 )
@@ -27,7 +27,7 @@ func shiftFoe(e *rules1e.RuleState, b *rules1e.Character, n int) { slide(e, b, n
 
 // slide is shift's move, for anyone.
 func slide(e *rules1e.RuleState, c *rules1e.Character, n int, keep *rules1e.Character) bool {
-	room := func(p core.BoardPos) int { // the distance to the nearest foe
+	room := func(p rules.BoardPos) int { // the distance to the nearest foe
 		d := 1 << 30
 		for _, f := range within(e, c, 1<<30, false) {
 			d = min(d, cheb(p, e.At(f)))
@@ -48,7 +48,7 @@ func slide(e *rules1e.RuleState, c *rules1e.Character, n int, keep *rules1e.Char
 }
 
 // cheb is the squares between p and q (diagonals count one).
-func cheb(p, q core.BoardPos) int {
+func cheb(p, q rules.BoardPos) int {
 	v := p.Sub(q)
 	return max(v.X, -v.X, v.Y, -v.Y)
 }
@@ -122,16 +122,16 @@ func (r *Rules) Hits(e *rules1e.RuleState, a, b *rules1e.Character, over int) bo
 }
 
 // Reactions are c's reactions that spend a power, which its policy answers.
-func (r *Rules) Reactions(c *rules1e.Character) []core.Reaction {
-	var out []core.Reaction
+func (r *Rules) Reactions(c *rules1e.Character) []rules.Reaction {
+	var out []rules.Reaction
 	if fox := powerOf(foxsCunning); !c.Foe() && slices.Contains(c.Powers, fox.ID) && r.ofClass(c, fox) {
-		out = append(out, core.Reaction{ID: fox.ID, Name: "Fox"})
+		out = append(out, rules.Reaction{ID: fox.ID, Name: "Fox"})
 	}
 	if picked(c, staffMastery) {
-		out = append(out, core.Reaction{ID: staffMastery, Name: "Staff"})
+		out = append(out, rules.Reaction{ID: staffMastery, Name: "Staff"})
 	}
 	if picked(c, wandMastery) {
-		out = append(out, core.Reaction{ID: wandMastery, Name: "Wand"})
+		out = append(out, rules.Reaction{ID: wandMastery, Name: "Wand"})
 	}
 	return out
 }

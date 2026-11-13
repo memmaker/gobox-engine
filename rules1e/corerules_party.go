@@ -2,7 +2,7 @@ package rules1e
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 	"strings"
 )
@@ -10,32 +10,32 @@ import (
 // The party and its roster: members, monsters, hired NPCs, reactions, creation picks (core/party.go).
 
 // checkParty answers the Checks of the party topic.
-func (r *Rules) checkParty(k core.Check) (core.Answer, bool) {
+func (r *Rules) checkParty(k rules.Check) (rules.Answer, bool) {
 	s := r.S
 	switch k := k.(type) {
-	case core.Modifiable:
+	case rules.Modifiable:
 		c := r.chars[k.Who]
-		return core.Answer{Yes: c != nil && s.Modifiable(c)}, true
-	case core.PaladinCan:
+		return rules.Answer{Yes: c != nil && s.Modifiable(c)}, true
+	case rules.PaladinCan:
 		c := r.chars[k.Who]
 		used := AffLaidOnHands
 		if k.Cure {
 			used = AffCuredDisease
 		}
-		return core.Answer{Yes: c != nil && s.PaladinCan(c, used)}, true
-	case core.PartySize:
-		return core.Answer{Value: int32(len(s.Party))}, true
-	case core.PartyAuto:
-		return core.Answer{Yes: s.PartyAuto()}, true
-	case core.CanJoin:
+		return rules.Answer{Yes: c != nil && s.PaladinCan(c, used)}, true
+	case rules.PartySize:
+		return rules.Answer{Value: int32(len(s.Party))}, true
+	case rules.PartyAuto:
+		return rules.Answer{Yes: s.PartyAuto()}, true
+	case rules.CanJoin:
 		if c := r.chars[k.Who]; c != nil {
-			return core.Answer{Yes: !s.JoinRefused(c)}, true
+			return rules.Answer{Yes: !s.JoinRefused(c)}, true
 		}
-		return core.Answer{}, true
-	case core.InParty:
-		return core.Answer{Yes: r.inPartyAt(k.Who) >= 0}, true
-	case core.ControlledBefore:
-		var a core.Answer
+		return rules.Answer{}, true
+	case rules.InParty:
+		return rules.Answer{Yes: r.inPartyAt(k.Who) >= 0}, true
+	case rules.ControlledBefore:
+		var a rules.Answer
 		if r.chars[k.Who] == nil {
 			return a, true
 		}
@@ -49,16 +49,16 @@ func (r *Rules) checkParty(k core.Check) (core.Answer, bool) {
 			}
 		}
 		return a, true
-	case core.MoveExtremes:
+	case rules.MoveExtremes:
 		hi, lo := s.MoveExtremes()
-		return core.Answer{High: int32(hi), Low: int32(lo)}, true
-	case core.Diseased:
+		return rules.Answer{High: int32(hi), Low: int32(lo)}, true
+	case rules.Diseased:
 		c := r.chars[k.Who]
-		return core.Answer{Yes: c != nil && slices.ContainsFunc(Diseases[:], func(d AffectType) bool { return s.FindAffect(c, d) != nil })}, true
-	case core.PartyHasSkill:
-		return core.Answer{Yes: s.PartyHasSkill(k.N)}, true
+		return rules.Answer{Yes: c != nil && slices.ContainsFunc(Diseases[:], func(d AffectType) bool { return s.FindAffect(c, d) != nil })}, true
+	case rules.PartyHasSkill:
+		return rules.Answer{Yes: s.PartyHasSkill(k.N)}, true
 	default:
-		return core.Answer{}, false
+		return rules.Answer{}, false
 	}
 }
 
@@ -66,120 +66,120 @@ func (r *Rules) checkParty(k core.Check) (core.Answer, bool) {
 const ImportedFlag = 1
 
 // resolveParty answers the Actions of the party topic.
-func (r *Rules) resolveParty(a core.Action) (core.Outcome, bool, error) {
+func (r *Rules) resolveParty(a rules.Action) (rules.Outcome, bool, error) {
 	s := r.S
 	switch a := a.(type) {
-	case core.MarkImported:
+	case rules.MarkImported:
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		if s.T().ImportFlag {
 			c.ScriptFlag |= ImportedFlag
 		}
-	case core.SetPoolPic:
+	case rules.SetPoolPic:
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		*c.PoolIDs.pic(a.Pic) = a.ID
-	case core.SetIconPics:
+	case rules.SetIconPics:
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		p := a.Pics
 		c.IconHead, c.IconBody, c.IconSize, c.Icon = byte(p.Head), byte(p.Body), byte(p.Size), p.PNG
 		for i, k := range p.Colours {
 			c.IconColour[i] = Colours(k.Low&0xF | k.High<<4)
 		}
-	case core.SetPortrait:
+	case rules.SetPortrait:
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		c.Portrait = a.PNG
-	case core.SetStatusAction:
-		return core.Outcome{}, true, r.setStatus(a)
-	case core.SetPolicy:
-		return core.Outcome{}, true, r.setPolicy(a)
-	case core.NewGroup:
+	case rules.SetStatusAction:
+		return rules.Outcome{}, true, r.setStatus(a)
+	case rules.SetPolicy:
+		return rules.Outcome{}, true, r.setPolicy(a)
+	case rules.NewGroup:
 		r.tmpl = nil
-	case core.EmptyParty:
+	case rules.EmptyParty:
 		s.SetPartyCount(0)
-	case core.JoinParty:
+	case rules.JoinParty:
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		s.AddToParty(c)
-	case core.SetInactive:
+	case rules.SetInactive:
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		c.Okay = 0
-	case core.MoveMember:
-		return core.Outcome{}, true, s.MoveMember(r.inPartyAt(a.Who), int(a.To))
-	case core.SetOrder:
+	case rules.MoveMember:
+		return rules.Outcome{}, true, s.MoveMember(r.inPartyAt(a.Who), int(a.To))
+	case rules.SetOrder:
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		c.Order = byte(a.Order)
-	case core.ForgetParty:
+	case rules.ForgetParty:
 		s.Party, s.Pool = nil, nil
-	case core.GainExperience:
+	case rules.GainExperience:
 		for _, c := range r.party(a.Whom) {
 			s.GainExperience(c, a.Points)
 		}
-	case core.PickKind:
+	case rules.PickKind:
 		k, err := kindNamed(a)
 		if err != nil {
-			return core.Outcome{}, true, err
+			return rules.Outcome{}, true, err
 		}
-		picks := map[core.FieldID]int{FieldSex: int(k.Sex), FieldRace: slices.Index(PickRaces, k.Race),
+		picks := map[rules.FieldID]int{FieldSex: int(k.Sex), FieldRace: slices.Index(PickRaces, k.Race),
 			FieldAlign: int(k.Align), FieldClass: slices.Index(PickClasses(), k.Class)}
-		return core.Outcome{Effects: []core.Effect{core.Picked{Picks: picks}}}, true, nil
-	case core.MakeMonster:
+		return rules.Outcome{Effects: []rules.Effect{rules.Picked{Picks: picks}}}, true, nil
+	case rules.MakeMonster:
 		m, err := r.monster(a.Of)
 		if err != nil {
-			return core.Outcome{}, true, fmt.Errorf("MakeMonster: %w", err)
+			return rules.Outcome{}, true, fmt.Errorf("MakeMonster: %w", err)
 		}
 		c := &Character{}
 		r.S.MakeMonster(c, m)
-		return core.Outcome{Effects: []core.Effect{core.MonsterMade{Who: r.ID(c)}}}, true, nil
-	case core.DressNPC:
+		return rules.Outcome{Effects: []rules.Effect{rules.MonsterMade{Who: r.ID(c)}}}, true, nil
+	case rules.DressNPC:
 		c := r.chars[a.Who]
 		if c == nil {
 			c = &Character{}
 		}
 		r.S.dressNPC(c)
-		return core.Outcome{Effects: []core.Effect{core.NPCDressed{Who: r.ID(c)}}}, true, nil
-	case core.SetRoster:
+		return rules.Outcome{Effects: []rules.Effect{rules.NPCDressed{Who: r.ID(c)}}}, true, nil
+	case rules.SetRoster:
 		r.chars[a.Who].PoolIDs.Roster = a.Roster
-	case core.EmptyMember:
+	case rules.EmptyMember:
 		if r.empty == nil {
 			r.empty = &Character{}
 		}
 		*r.empty = Character{}
-		return core.Outcome{Effects: []core.Effect{core.EmptyMemberIs{Who: r.ID(r.empty)}}}, true, nil
-	case core.PaladinHeal:
+		return rules.Outcome{Effects: []rules.Effect{rules.EmptyMemberIs{Who: r.ID(r.empty)}}}, true, nil
+	case rules.PaladinHeal:
 		c, t := r.chars[a.Who], r.chars[a.Target]
 		if c == nil || t == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		s.Who = s.PartyIndex(c)
-		var o core.Outcome
+		var o rules.Outcome
 		if hp := 2 * int(c.Levels[ClsPaladin]); s.Heal(t, hp, true) {
-			o.Effects = append(o.Effects, core.Healed{Unit: a.Target, HP: int32(hp)})
+			o.Effects = append(o.Effects, rules.Healed{Unit: a.Target, HP: int32(hp)})
 		}
 		s.AddAffect(c, AffLaidOnHands, 1440, 0, 0)
 		return o, true, nil
-	case core.PaladinCure:
+	case rules.PaladinCure:
 		c, t := r.chars[a.Who], r.chars[a.Target]
 		if c == nil || t == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		s.Who = s.PartyIndex(c)
 		s.Rv.Cure = 1
@@ -188,184 +188,184 @@ func (r *Rules) resolveParty(a core.Action) (core.Outcome, bool, error) {
 		}
 		s.Rv.Cure = 0
 		s.AddAffect(c, AffCuredDisease, 0x2760, 0, 0)
-		return core.Outcome{}, true, nil
-	case core.HealParty:
+		return rules.Outcome{}, true, nil
+	case rules.HealParty:
 		for _, c := range s.Party {
 			c.HP, c.Status, c.Okay = c.MaxHP, StatusOkay, 1
 		}
-		return core.Outcome{}, true, nil
-	case core.Toughen:
+		return rules.Outcome{}, true, nil
+	case rules.Toughen:
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		s.Toughen(c)
-		return core.Outcome{}, true, nil
-	case core.TakePower:
+		return rules.Outcome{}, true, nil
+	case rules.TakePower:
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		c.Powers = append(c.Powers, a.Power)
-		return core.Outcome{}, true, nil
+		return rules.Outcome{}, true, nil
 	default:
-		return core.Outcome{}, false, nil
+		return rules.Outcome{}, false, nil
 	}
-	return core.Outcome{}, true, nil
+	return rules.Outcome{}, true, nil
 }
 
 // factParty answers the Facts of the party topic.
-func (r *Rules) factParty(id core.CharID, f core.Fact) (core.Value, bool, error) {
+func (r *Rules) factParty(id rules.CharID, f rules.Fact) (rules.Value, bool, error) {
 	s, c := r.S, r.chars[id]
 	switch f := f.(type) {
-	case core.PartyFact:
-		p := make(core.Party, len(s.Party))
+	case rules.PartyFact:
+		p := make(rules.Party, len(s.Party))
 		for i, m := range s.Party {
 			p[i] = r.ID(m)
 		}
 		return p, true, nil
-	case core.ClassByNumber:
+	case rules.ClassByNumber:
 		if f.N < 0 || f.N >= len(PorClass) {
-			return core.ClassNone, true, nil
+			return rules.ClassNone, true, nil
 		}
 		return PorClass[f.N], true, nil
-	case core.ModFact:
+	case rules.ModFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		a := slices.Index(core.Abilities[:], f.Ability)
+		a := slices.Index(rules.Abilities[:], f.Ability)
 		if a < 0 {
 			return nil, true, errNoFact
 		}
-		return core.Number(s.Mod(c, Ability(a))), true, nil
+		return rules.Number(s.Mod(c, Ability(a))), true, nil
 	}
 	switch f {
-	case core.AbilityFact{Ability: core.Constitution}, core.AbilityFact{Ability: core.Charisma}, core.FactExpValue, core.FactExpPerHP,
-		core.FactMove, core.FactControl, core.FactRace, core.FactAlignment, core.FactActive, core.FactLevelReady, core.FactSide:
+	case rules.AbilityFact{Ability: rules.Constitution}, rules.AbilityFact{Ability: rules.Charisma}, rules.FactExpValue, rules.FactExpPerHP,
+		rules.FactMove, rules.FactControl, rules.FactRace, rules.FactAlignment, rules.FactActive, rules.FactLevelReady, rules.FactSide:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 	}
 	switch f {
-	case core.AbilityFact{Ability: core.Constitution}:
-		return core.Number(c.Stats[StatCon]), true, nil
-	case core.AbilityFact{Ability: core.Charisma}:
-		return core.Number(c.Stats[StatCha]), true, nil
-	case core.FactExpValue:
-		return core.Number(c.ExpValue), true, nil
-	case core.FactExpPerHP:
-		return core.Number(c.ExpPerHP), true, nil
-	case core.FactMove:
-		return core.Number(c.Move), true, nil
-	case core.FactControl:
-		return core.Number(c.Control), true, nil
-	case core.FactRace:
+	case rules.AbilityFact{Ability: rules.Constitution}:
+		return rules.Number(c.Stats[StatCon]), true, nil
+	case rules.AbilityFact{Ability: rules.Charisma}:
+		return rules.Number(c.Stats[StatCha]), true, nil
+	case rules.FactExpValue:
+		return rules.Number(c.ExpValue), true, nil
+	case rules.FactExpPerHP:
+		return rules.Number(c.ExpPerHP), true, nil
+	case rules.FactMove:
+		return rules.Number(c.Move), true, nil
+	case rules.FactControl:
+		return rules.Number(c.Control), true, nil
+	case rules.FactRace:
 		if int(c.Race) >= len(RecordRace) {
-			return core.Number(c.Race), true, nil // outside the table: the record's own byte, as the original reads it
+			return rules.Number(c.Race), true, nil // outside the table: the record's own byte, as the original reads it
 		}
 		return RecordRace[c.Race], true, nil
-	case core.FactAlignment:
+	case rules.FactAlignment:
 		if int(c.Alignment) >= len(RecordAlignment) {
-			return core.Number(c.Alignment), true, nil // SpecialReadZ1 $D8 reads the raw byte
+			return rules.Number(c.Alignment), true, nil // SpecialReadZ1 $D8 reads the raw byte
 		}
 		return RecordAlignment[c.Alignment], true, nil
-	case core.FactActive:
-		return core.Yes(c.Okay != 0), true, nil
-	case core.FactLevelReady:
-		return core.Yes(levelReady(c)), true, nil
-	case core.FactSide:
+	case rules.FactActive:
+		return rules.Yes(c.Okay != 0), true, nil
+	case rules.FactLevelReady:
+		return rules.Yes(levelReady(c)), true, nil
+	case rules.FactSide:
 		switch {
 		case c.Side == SideMonsters:
-			return core.SideMonsters, true, nil
+			return rules.SideMonsters, true, nil
 		case c.Side == SideParty && c.Auto != 0:
-			return core.SideAuto, true, nil
+			return rules.SideAuto, true, nil
 		}
-		return core.SideParty, true, nil
+		return rules.SideParty, true, nil
 	}
 	switch f := f.(type) {
-	case core.PoolPicsFact:
+	case rules.PoolPicsFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 		p := c.PoolIDs
-		return core.PoolPics{PortraitHead: p.PortraitHeadID, PortraitBody: p.PortraitBodyID, IconHead: p.IconHeadID, IconBody: p.IconBodyID}, true, nil
-	case core.DraftIconFact:
+		return rules.PoolPics{PortraitHead: p.PortraitHeadID, PortraitBody: p.PortraitBodyID, IconHead: p.IconHeadID, IconBody: p.IconBodyID}, true, nil
+	case rules.DraftIconFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 		return r.Creation().IconOf(c), true, nil
-	case core.IconPicsFact:
+	case rules.IconPicsFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		ic := core.IconPics{Head: int(c.IconHead), Body: int(c.IconBody), Size: int(c.IconSize), PNG: c.Icon}
+		ic := rules.IconPics{Head: int(c.IconHead), Body: int(c.IconBody), Size: int(c.IconSize), PNG: c.Icon}
 		for i, b := range c.IconColour {
 			ic.Colours[i] = iconColour(b)
 		}
 		return ic, true, nil
-	case core.FiguresFact:
+	case rules.FiguresFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		return core.Figures(s.Rules().Sheet(s, c)), true, nil
-	case core.PortraitFact:
+		return rules.Figures(s.Rules().Sheet(s, c)), true, nil
+	case rules.PortraitFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		return core.Portrait{PNG: c.Portrait, Head: int(c.PortHead), Body: int(c.PortBody)}, true, nil
-	case core.SaveFact:
+		return rules.Portrait{PNG: c.Portrait, Head: int(c.PortHead), Body: int(c.PortBody)}, true, nil
+	case rules.SaveFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 		for i, s := range porSave {
 			if s == f.Save {
-				return core.Number(c.Saves[i]), true, nil
+				return rules.Number(c.Saves[i]), true, nil
 			}
 		}
 		return nil, true, errNoFact
-	case core.SkillFact:
+	case rules.SkillFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 		for i, s := range porSkill {
 			if s == f.Skill {
-				return core.Number(c.Thief[i]), true, nil
+				return rules.Number(c.Thief[i]), true, nil
 			}
 		}
 		return nil, true, errNoFact
-	case core.WordFact:
+	case rules.WordFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 		switch f.Of {
-		case core.FactStatus:
-			return core.Text(s.StatusName(c)), true, nil
-		case core.FactHarmed:
+		case rules.FactStatus:
+			return rules.Text(s.StatusName(c)), true, nil
+		case rules.FactHarmed:
 			var what []string
 			for _, a := range c.Affects {
 				if name := s.HarmfulAffect(a.Type); name != "" {
 					what = append(what, name)
 				}
 			}
-			return core.Text(strings.Join(what, ", ")), true, nil
+			return rules.Text(strings.Join(what, ", ")), true, nil
 		}
 		v, err := word(c, f)
 		return v, true, err
-	case core.IconFact:
+	case rules.IconFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		return core.Number(c.Order), true, nil
-	case core.ReactionsFact:
+		return rules.Number(c.Order), true, nil
+	case rules.ReactionsFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		return core.Reactions(s.Reactions(c)), true, nil
-	case core.MemberCardFact:
+		return rules.Reactions(s.Reactions(c)), true, nil
+	case rules.MemberCardFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		m := core.MemberCard{Party: IsParty(c), Class: ClassName(c.Class), Portrait: c.Portrait}
+		m := rules.MemberCard{Party: IsParty(c), Class: ClassName(c.Class), Portrait: c.Portrait}
 		for _, s := range c.Memorized {
 			if s.Held() {
 				m.Ready++
@@ -377,15 +377,15 @@ func (r *Rules) factParty(id core.CharID, f core.Fact) (core.Value, bool, error)
 			}
 		}
 		return m, true, nil
-	case core.OwedFact:
+	case rules.OwedFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		var o core.PowerOwed
+		var o rules.PowerOwed
 		if ps := r.S.Rules().Picks(r.S, c); len(ps) > 0 {
 			o.What = ps[0].What
 			for _, m := range ps[0].Options {
-				o.Options = append(o.Options, core.ManeuverCard{ID: core.ManeuverID(m.ID), Name: m.Name, Tip: m.Tip, Aim: core.ManeuverAim(m.Aim), Range: m.Range, Area: m.Area, Move: m.Move})
+				o.Options = append(o.Options, rules.ManeuverCard{ID: rules.ManeuverID(m.ID), Name: m.Name, Tip: m.Tip, Aim: rules.ManeuverAim(m.Aim), Range: m.Range, Area: m.Area, Move: m.Move})
 			}
 		}
 		return o, true, nil
@@ -433,7 +433,7 @@ func (e *RuleState) dressNPC(c *Character) {
 }
 
 // kindNamed is the kind the names in k stand for.
-func kindNamed(k core.PickKind) (Kind, error) {
+func kindNamed(k rules.PickKind) (Kind, error) {
 	race, sex := slices.Index(RaceNames[:], k.Race), slices.Index(GenderNames[:], k.Gender)
 	class, align := slices.Index(ClassNames[:], k.Class), slices.Index(AlignmentNames[:], k.Align)
 	if race < 0 || sex < 0 || class < 0 || align < 0 {
@@ -443,7 +443,7 @@ func kindNamed(k core.PickKind) (Kind, error) {
 }
 
 // inPartyAt is the index of the first member of who's name and random id, or -1.
-func (r *Rules) inPartyAt(who core.CharID) int {
+func (r *Rules) inPartyAt(who rules.CharID) int {
 	c := r.chars[who]
 	if c == nil {
 		return -1

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // ECL opcodes 0x25..0x3D, ported from ovr04 (continued from eclops.go).
@@ -36,7 +36,7 @@ func (e *RuleState) AddLibraryItems(ids []int32, known bool) error {
 	for _, id := range ids {
 		var it *Item
 		switch {
-		case id == core.RandomScrollItem:
+		case id == rules.RandomScrollItem:
 			if t.Scroll == nil {
 				return errNoLibrary
 			}

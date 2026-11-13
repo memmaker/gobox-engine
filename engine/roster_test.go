@@ -2,13 +2,13 @@ package engine
 
 import (
 	"errors"
+	"gobox/rules1e"
 	"io/fs"
 	"os"
-	"gobox/rules1e"
 	"testing"
 
 	"gobox/char"
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestRosterIDs: a roster save gets its own RosterID, kept across saves; a
@@ -55,7 +55,7 @@ func TestRosterIDs(t *testing.T) {
 	if n := e.ruleset().Sheet(id); n.Name != "Beta" {
 		t.Fatalf("sheet of the joined id: %q", n.Name)
 	}
-	if _, err := e.Creation().Join(core.RosterID(9)); err == nil {
+	if _, err := e.Creation().Join(rules.RosterID(9)); err == nil {
 		t.Error("joined a number no one holds")
 	}
 }

@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"math"
 	"slices"
 	"strconv"
@@ -61,7 +61,7 @@ const (
 // party in Scratch6, or at NoKnock. It was the Spell command and the script
 // clearing the slot itself.
 func (e *Engine) castKnock() {
-	out, err := e.ruleset().Resolve(nil, core.SpendKnock{}, nil)
+	out, err := e.ruleset().Resolve(nil, rules.SpendKnock{}, nil)
 	if err != nil {
 		panic(fmt.Sprintf("native: Knock: %v", err)) // the action never refuses
 	}
@@ -69,7 +69,7 @@ func (e *Engine) castKnock() {
 		e.vm.PC = uint16(e.scriptLabel("NoKnock"))
 		return
 	}
-	c := out.Effects[0].(core.KnockCast).Who
+	c := out.Effects[0].(rules.KnockCast).Who
 	if r, ok := e.layoutField(fieldScratch6); ok {
 		e.host.Set(r, int64(uint16(slices.Index(e.partyIDs(), c))))
 	}
@@ -78,11 +78,11 @@ func (e *Engine) castKnock() {
 
 // gold is the party's gold pieces.
 func (e *Engine) gold() uint64 {
-	v, err := e.ruleset().Fact(core.NoChar, core.PurseFact{})
+	v, err := e.ruleset().Fact(rules.NoChar, rules.PurseFact{})
 	if err != nil {
 		panic(fmt.Sprintf("native: purse: %v", err)) // the purse is always held
 	}
-	return v.(core.Purse).Gold
+	return v.(rules.Purse).Gold
 }
 
 func (e *Engine) nativeScript() func(*Engine) { return e.native[int(e.vm.PC)] }
@@ -101,7 +101,7 @@ const tavernHouseLimit = 5000
 // the wager back; 0-2 red, the wager lost. The script counted the selected
 // member's platinum in a 16-bit word; here it is the party's gold.
 func (e *Engine) tavernGamble() {
-	if !e.ruleset().Check(core.Fit{Who: e.selected()}, nil).Yes { // [6C00] is 1 for an okay member
+	if !e.ruleset().Check(rules.Fit{Who: e.selected()}, nil).Yes { // [6C00] is 1 for an okay member
 		e.scriptText(true, "NO ONE IS WILLING TO GAMBLE WITH SOMEONE WHO LOOKS THAT BAD.")
 		e.vm.PC = uint16(e.scriptLabel("TavernEvent"))
 		return
@@ -130,10 +130,10 @@ func (e *Engine) tavernSpun(s string) {
 	wager := uint64(uint16(n))
 	r := 0
 	if tavernWagerOK(e.gold(), wager) {
-		r = int(e.ruleset().Check(core.RollRandom{N: 10}, nil).Value)
+		r = int(e.ruleset().Check(rules.RollRandom{N: 10}, nil).Value)
 	}
 	gold, text := tavernSpin(e.gold(), wager, r)
-	e.do(core.SetPurseGold{Gold: gold})
+	e.do(rules.SetPurseGold{Gold: gold})
 	e.scriptText(true, text)
 	e.askContinue(askDone{kind: dTavernAsk})
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // ruledRecords are the spell records the ruled tests need: CotAB's rows
@@ -55,7 +55,7 @@ func ruledScene(t *testing.T, foes ...*Character) *RuleState {
 func said(e *RuleState) string {
 	var b []string
 	for _, f := range e.Fx {
-		if n, ok := f.(core.Narrated); ok {
+		if n, ok := f.(rules.Narrated); ok {
 			b = append(b, n.Text)
 		}
 	}

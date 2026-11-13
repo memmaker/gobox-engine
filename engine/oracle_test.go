@@ -5,7 +5,7 @@ package engine
 // scripted RNG as rules on a char.Rec, and compared.
 
 import (
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -83,7 +83,7 @@ func (c *oc) same(t *testing.T, r *char.Rec, what string) {
 // ---- originals ----
 
 // cotab-go/engine/rules.go:335 and sotsb-go/engine/rules.go (identical): unsigned compare.
-func oracleSaveUnsigned(rv *goldbox.Roll, rng goldbox.GameRNG, c *oc, typ, bonus int) bool {
+func oracleSaveUnsigned(rv *rules.Roll, rng rules.GameRNG, c *oc, typ, bonus int) bool {
 	rv.SaveMade = true
 	rv.Save = byte(rng.Dice(1, 20))
 	switch rv.Save {
@@ -100,7 +100,7 @@ func oracleSaveUnsigned(rv *goldbox.Roll, rng goldbox.GameRNG, c *oc, typ, bonus
 }
 
 // por-go/engine/rules.go:253 (signed compare).
-func oracleSavePor(rv *goldbox.Roll, rng goldbox.GameRNG, c *oc, typ, bonus int) bool {
+func oracleSavePor(rv *rules.Roll, rng rules.GameRNG, c *oc, typ, bonus int) bool {
 	rv.Save = byte(rng.Dice(1, 20))
 	switch rv.Save {
 	case 1:
@@ -114,7 +114,7 @@ func oracleSavePor(rv *goldbox.Roll, rng goldbox.GameRNG, c *oc, typ, bonus int)
 }
 
 // cotab-go/engine/rules.go:314 (side adjustment passed in).
-func oracleAttackCotab(rv *goldbox.Roll, rng goldbox.GameRNG, att *oc, adj int, need int) bool {
+func oracleAttackCotab(rv *rules.Roll, rng rules.GameRNG, att *oc, adj int, need int) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false
@@ -126,7 +126,7 @@ func oracleAttackCotab(rv *goldbox.Roll, rng goldbox.GameRNG, att *oc, adj int, 
 }
 
 // por-go/engine/rules.go:231 with the rules4e Hits hook.
-func oracleAttackPor(rv *goldbox.Roll, rng goldbox.GameRNG, att *oc, adj int, need int, hits func(int) bool) bool {
+func oracleAttackPor(rv *rules.Roll, rng rules.GameRNG, att *oc, adj int, need int, hits func(int) bool) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false
@@ -139,7 +139,7 @@ func oracleAttackPor(rv *goldbox.Roll, rng goldbox.GameRNG, att *oc, adj int, ne
 }
 
 // cotab-go/engine/damage.go:21 trapHits; por RollHit (rules.go:217) is the same with byte(bonus).
-func oracleTrapHits(rv *goldbox.Roll, rng goldbox.GameRNG, c *oc, bonus byte) bool {
+func oracleTrapHits(rv *rules.Roll, rng rules.GameRNG, c *oc, bonus byte) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false
@@ -235,7 +235,7 @@ func TestSavingThrow(t *testing.T) {
 		for i, r := range recs(t, f, 600) {
 			typ, bonus := i%5, i%61-30
 			a, b, c := newSeq(int64(i)), newSeq(int64(i)), newSeq(int64(i))
-			var rv, ov, up goldbox.Roll
+			var rv, ov, up rules.Roll
 			groups := 0
 			got := SavingThrow(&rv, a, r, typ, bonus, Hooks{Group: func() { groups++ }})
 			want := oracleSavePor(&ov, b, load(r), typ, bonus)
@@ -269,7 +269,7 @@ func TestAttackAndTrapHits(t *testing.T) {
 			adj, need := i%21-10, i%40
 			for _, hit := range []func(int) bool{nil, func(o int) bool { return o%2 == 0 }} {
 				a, b := newSeq(int64(i)), newSeq(int64(i))
-				var rv, ov goldbox.Roll
+				var rv, ov rules.Roll
 				got := AttackHits(&rv, a, r, adj, need, Hooks{Hit: hit})
 				var want bool
 				if hit == nil {
@@ -282,7 +282,7 @@ func TestAttackAndTrapHits(t *testing.T) {
 				}
 			}
 			a, b := newSeq(int64(i)), newSeq(int64(i))
-			var rv, ov goldbox.Roll
+			var rv, ov rules.Roll
 			if got, want := TrapHits(&rv, a, r, byte(i), Hooks{}), oracleTrapHits(&ov, b, load(r), byte(i)); got != want || rv != ov {
 				t.Fatalf("trap %d", i)
 			}

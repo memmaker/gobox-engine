@@ -1,8 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // combat placement directions, by party direction and side (DS:02D2).
@@ -47,7 +46,7 @@ func (r *Rules) combatBlocks() {
 
 // cellSide = ovr11:012B (x, y, dir): 1 wall, 0 open, 3 door. Off the
 // 16x16 map only the party's row is open east and west.
-func CellSide(m core.MapSides, posY, x, y, dir int) byte {
+func CellSide(m rules.MapSides, posY, x, y, dir int) byte {
 	if x >= 0 && x <= 0xF && y >= 0 && y <= 0xF {
 		if m.DoorAt(x, y, dir) == 0 {
 			return 1
@@ -64,7 +63,7 @@ func CellSide(m core.MapSides, posY, x, y, dir int) byte {
 }
 
 // cellEdge = ovr11:01AD (x, y, dir): the side seen from both cells.
-func CellEdge(m core.MapSides, posY, x, y, dir int) byte {
+func CellEdge(m rules.MapSides, posY, x, y, dir int) byte {
 	dx, dy := DirDX[dir], DirDY[dir]
 	return CellSide(m, posY, x, y, dir) | CellSide(m, posY, x+dx, y+dy, (dir+4)%8)
 }
@@ -79,8 +78,8 @@ func (r *Rules) facingDir(f int) byte {
 }
 
 // placeCombatants = ovr11:19F5.
-func (r *Rules) placeCombatants(m core.MapSides) []core.Effect {
-	var left []core.Effect
+func (r *Rules) placeCombatants(m rules.MapSides) []rules.Effect {
+	var left []rules.Effect
 	r.S.CountSides()
 	r.S.Cpos = [MaxCombatants + 1]CombatPos{}
 	r.S.CombatantSlots = make([]*Character, MaxCombatants)
@@ -151,7 +150,7 @@ func (r *Rules) placeCombatants(m core.MapSides) []core.Effect {
 		r.S.Cpos[idx].Size = 0
 		if c.Combat.Extra == 1 { // no room: the extra leaves
 			r.S.CombatantSlots[idx-1] = nil
-			left = append(left, core.Left{Unit: r.ID(c)})
+			left = append(left, rules.Left{Unit: r.ID(c)})
 			r.Dismiss(r.ID(c)) // por RemoveSelected(keepCount): the party count stays
 			i--
 			continue
@@ -186,7 +185,7 @@ func (r *Rules) placeAt(idx, x, y, ox, oy, team int) bool {
 // placeOne = ovr11:1577 (idx): walk the formation of the combatant's side,
 // row by row outwards from the middle, falling back on the other teams
 // (blocks beside the first) until a free slot takes it.
-func (r *Rules) placeOne(m core.MapSides, idx int) bool {
+func (r *Rules) placeOne(m rules.MapSides, idx int) bool {
 	p := &r.S.Place
 	s := p.Side
 	first, fail, state := true, false, 1
@@ -233,7 +232,7 @@ func (r *Rules) placeOne(m core.MapSides, idx int) bool {
 		// line, so no slot is left. The original only stopped at a corner, off both
 		// ways, which its slanted rows always reach; Deskew's rows run straight along
 		// one axis and never do: with every slot taken they ran off for ever (a hang).
-		edge := out && (goldbox.FormationEdge(x, y, formationW, formationH) || x == bx && y == by)
+		edge := out && (rules.FormationEdge(x, y, formationW, formationH) || x == bx && y == by)
 		if state > 1 {
 			full := out && !edge
 			if !full {

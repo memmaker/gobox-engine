@@ -1,10 +1,10 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/importer"
+	"gobox/rules"
 	"maps"
 )
 
@@ -20,7 +20,7 @@ const msgDelayTicks = 3
 func (e *Engine) endScene(cm play.Common) play.Scene {
 	sc := *e.title.end
 	sc.Common = cm
-	party := e.worldWord(core.WordPartyCount)
+	party := e.worldWord(rules.WordPartyCount)
 	sc.Steps = maps.Clone(sc.Steps)
 	for n, st := range sc.Steps {
 		var layers []game.Layer
@@ -82,9 +82,9 @@ func (e *Engine) endEffects() {
 	for _, f := range e.title.after {
 		switch f {
 		case importer.EffectHealParty:
-			e.do(core.HealParty{})
+			e.do(rules.HealParty{})
 		case importer.EffectOpenHall:
-			e.setWorldWord(core.WordTraining, trainAll)
+			e.setWorldWord(rules.WordTraining, trainAll)
 		}
 	}
 	if e.title.note != "" {

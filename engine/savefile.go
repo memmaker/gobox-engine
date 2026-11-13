@@ -6,9 +6,8 @@ import (
 	"slices"
 
 	"gobox/char"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl/script"
+	"gobox/rules"
 )
 
 // SaveEditor edits a slot's canonical save outside the game: cmd/fixture
@@ -82,10 +81,10 @@ func (s *SaveEditor) SetVar(name string, v uint16) error {
 // block's script, so ecl is not kept.
 func (s *SaveEditor) EnterArea(disk, block, geo int, _ []byte, walls [3]int) {
 	g := &s.g
-	g.Set = goldbox.Set(disk)
-	s.e.setWorldWord(core.WordSymbolSet, disk)
-	s.e.setWorldWord(core.WordGeo, geo)
-	v := core.RecordView{AreaKind: uint16(block)}
+	g.Set = rules.Set(disk)
+	s.e.setWorldWord(rules.WordSymbolSet, disk)
+	s.e.setWorldWord(rules.WordGeo, geo)
+	v := rules.RecordView{AreaKind: uint16(block)}
 	for i, id := range walls {
 		blk, slot := id, i+1
 		if id == 0xFF {

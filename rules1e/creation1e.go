@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // Creation is POR's core.CreationRules (ONE-BINARY.md Track C): the
@@ -21,7 +20,7 @@ type Creation struct {
 }
 
 // CreationHost is goldbox.CreationHost (the engine side of the creation).
-type CreationHost = goldbox.CreationHost
+type CreationHost = rules.CreationHost
 
 // as hands the selected member to the rules as the actor.
 func (p Creation) as() *RuleState {
@@ -30,19 +29,19 @@ func (p Creation) as() *RuleState {
 }
 
 // firstPower is the FieldID of the first power pick (extra: rules4e); pick i is firstPower+i.
-const firstPower core.FieldID = FieldClass + 1
+const firstPower rules.FieldID = FieldClass + 1
 
 // noPick is a power pick not answered yet (powerSlot.pick -1).
 const noPick = -1
 
 // index is the party position of the member c names (the ruleset's ids, as every core.Rules call).
-func (p Creation) index(c core.CharID) (int, bool) {
+func (p Creation) index(c rules.CharID) (int, bool) {
 	i := slices.Index(p.S.Party, p.r.Char(c))
-	return i, c != core.NoChar && i >= 0
+	return i, c != rules.NoChar && i >= 0
 }
 
 // with runs f on the RNG r (the Engine's Turbo Pascal seed is the same generator).
-func (p Creation) with(r *core.RNG, f func()) {
+func (p Creation) with(r *rules.RNG, f func()) {
 	if r != nil {
 		p.S.RandSeed = r.State
 	}
@@ -52,7 +51,7 @@ func (p Creation) with(r *core.RNG, f func()) {
 	}
 }
 
-func KindOf(d core.Draft) Kind {
+func KindOf(d rules.Draft) Kind {
 	return Kind{
 		Race:  PickRaces[d.Picks[FieldRace]],
 		Sex:   byte(d.Picks[FieldSex]),
@@ -61,7 +60,7 @@ func KindOf(d core.Draft) Kind {
 	}
 }
 
-func (p Creation) Fields(d core.Draft) []core.FieldDef {
+func (p Creation) Fields(d rules.Draft) []rules.FieldDef {
 	races := make([]string, len(PickRaces))
 	for i, r := range PickRaces {
 		races[i] = RaceNames[r]
@@ -71,7 +70,7 @@ func (p Creation) Fields(d core.Draft) []core.FieldDef {
 	for i, cl := range classes {
 		cls[i] = ClassNames[cl]
 	}
-	out := []core.FieldDef{
+	out := []rules.FieldDef{
 		{ID: FieldSex, Label: "Gender", Options: GenderNames[:]},
 		{ID: FieldRace, Label: "Race", Options: races},
 		{ID: FieldAlign, Label: "Alignment", Options: AlignmentNames[:]},
@@ -85,12 +84,12 @@ func (p Creation) Fields(d core.Draft) []core.FieldDef {
 		for x, m := range s.Options {
 			names[x] = m.Name
 		}
-		out = append(out, core.FieldDef{ID: firstPower + core.FieldID(i), Label: s.What, Options: names})
+		out = append(out, rules.FieldDef{ID: firstPower + rules.FieldID(i), Label: s.What, Options: names})
 	}
 	return out
 }
 
-func (p Creation) Fits(d core.Draft, f core.FieldID, o int) bool {
+func (p Creation) Fits(d rules.Draft, f rules.FieldID, o int) bool {
 	k := KindOf(d)
 	switch f {
 	case FieldSex:
@@ -113,12 +112,12 @@ func (p Creation) Fits(d core.Draft, f core.FieldID, o int) bool {
 	return !slices.Contains(c.Powers, id) || (ss[i].Pick >= 0 && ss[i].Options[ss[i].Pick].ID == id)
 }
 
-func (p Creation) Enforce(d core.Draft, f core.FieldID, o int, r *core.RNG) core.Draft {
-	var out core.Draft
+func (p Creation) Enforce(d rules.Draft, f rules.FieldID, o int, r *rules.RNG) rules.Draft {
+	var out rules.Draft
 	p.with(r, func() {
 		if d.Sheet.Race == "" { // nothing built yet (Quick Start): the kind's fresh character, rolled
 			d.Picks[f] = o
-			pi := map[core.FieldID]int{FieldRace: FRace, FieldSex: FSex, FieldClass: FClass, FieldAlign: FAlign}[f]
+			pi := map[rules.FieldID]int{FieldRace: FRace, FieldSex: FSex, FieldClass: FClass, FieldAlign: FAlign}[f]
 			c := p.S.Fresh(KindOf(d).Enforce(pi), nil)
 			p.S.RollCharacter(c)
 			out = p.DraftOf(c, d.Of)
@@ -133,8 +132,8 @@ func (p Creation) Enforce(d core.Draft, f core.FieldID, o int, r *core.RNG) core
 	return out
 }
 
-func (p Creation) Roll(d *core.Draft, k core.RollKind, r *core.RNG) (err error) {
-	if k == core.RollPointBuy {
+func (p Creation) Roll(d *rules.Draft, k rules.RollKind, r *rules.RNG) (err error) {
+	if k == rules.RollPointBuy {
 		for _, a := range Abilities {
 			if _, ok := d.Buy[a]; !ok {
 				return fmt.Errorf("point buy: no %v bought", a)
@@ -144,16 +143,16 @@ func (p Creation) Roll(d *core.Draft, k core.RollKind, r *core.RNG) (err error) 
 	p.with(r, func() {
 		c := p.CharOf(*d)
 		switch {
-		case k == core.RollPointBuy: // the bought bases, then the roll's rules and hit points (extra: gobox's Point Buy)
+		case k == rules.RollPointBuy: // the bought bases, then the roll's rules and hit points (extra: gobox's Point Buy)
 			p.S.SetBaseStats(c, func(i int) byte { return byte(d.Buy[Abilities[i]]) })
 			p.S.RollHP(c)
-		case k == core.RollMinimal:
+		case k == rules.RollMinimal:
 			was := p.S.MinStats
 			for i, a := range Abilities {
 				if v, ok := d.Lows[a]; ok {
 					p.S.MinStats[i] = int(v)
 					if i == 0 {
-						p.S.MinStats[0] = StrScore(Score(v), byte(d.Lows[core.StrengthPercent]))
+						p.S.MinStats[0] = StrScore(Score(v), byte(d.Lows[rules.StrengthPercent]))
 					}
 				}
 			}
@@ -169,15 +168,15 @@ func (p Creation) Roll(d *core.Draft, k core.RollKind, r *core.RNG) (err error) 
 	return err
 }
 
-func (p Creation) Minimums(core.Draft) map[core.Ability]int32 {
-	m := map[core.Ability]int32{}
+func (p Creation) Minimums(rules.Draft) map[rules.Ability]int32 {
+	m := map[rules.Ability]int32{}
 	for i, v := range p.S.MinStats {
 		if i == 0 {
 			st, x := v/100, 0
 			if v > 1800 && v <= 1900 {
 				st, x = 18, v-1800
 			}
-			m[core.Strength], m[core.StrengthPercent] = int32(st), int32(x)
+			m[rules.Strength], m[rules.StrengthPercent] = int32(st), int32(x)
 			continue
 		}
 		m[Abilities[i]] = int32(v)
@@ -190,17 +189,17 @@ func (p Creation) QuickRerolls() int { return quickRerolls }
 
 const quickRerolls = 2000
 
-func (p Creation) QuickParty() []core.Template {
+func (p Creation) QuickParty() []rules.Template {
 	return p.Host.QuickParty()
 }
 
-var _ core.CreationRules = Creation{}
+var _ rules.CreationRules = Creation{}
 
 // SetScore sets the typed score, kept within the race and class limits as
 // the baseline's setStatTyped did (clamped, never refused).
-func (p Creation) SetScore(d core.Draft, a core.Ability, v int32) (core.Draft, error) {
+func (p Creation) SetScore(d rules.Draft, a rules.Ability, v int32) (rules.Draft, error) {
 	c := p.CharOf(d)
-	if a == core.StrengthPercent {
+	if a == rules.StrengthPercent {
 		p.as().SetStat(c, 0, Score(byte(c.Stats[0])), byte(v))
 		return p.DraftOf(c, d.Of), nil
 	}
@@ -212,35 +211,35 @@ func (p Creation) SetScore(d core.Draft, a core.Ability, v int32) (core.Draft, e
 	return p.DraftOf(c, d.Of), nil
 }
 
-func (p Creation) Make(d core.Draft) (core.CharID, core.RosterID, error) {
+func (p Creation) Make(d rules.Draft) (rules.CharID, rules.RosterID, error) {
 	c := p.CharOf(d)
 	i, ok := p.index(d.Of)
 	if !ok { // a new character goes to the roster (SaveCharacter), not the party
 		if err := p.S.startKit(c); err != nil { // POD's kit, given on keeping (ruling 11)
-			return core.NoChar, core.NoRoster, err
+			return rules.NoChar, rules.NoRoster, err
 		}
 		if err := p.Host.Keep(p.r.ID(c)); err != nil { // ovr18:069E
-			return core.NoChar, core.NoRoster, err
+			return rules.NoChar, rules.NoRoster, err
 		}
-		return core.NoChar, c.PoolIDs.Roster, nil
+		return rules.NoChar, c.PoolIDs.Roster, nil
 	}
 	c.Share = 1
 	*p.S.Party[i] = *c
 	p.S.Who = i
 	p.S.ApplyItems(p.S.Party[i]) // 00BA:0BB8
-	return d.Of, core.NoRoster, nil
+	return d.Of, rules.NoRoster, nil
 }
 
-func (p Creation) Join(id core.RosterID) (core.CharID, error) { return p.Host.Join(id) }
+func (p Creation) Join(id rules.RosterID) (rules.CharID, error) { return p.Host.Join(id) }
 
-func (p Creation) Draft(id core.CharID) (core.Draft, error) {
-	if id == core.NoChar { // CreateCharacter's start: a human male fighter (Enforce builds and rolls it)
-		return core.Draft{Picks: map[core.FieldID]int{FieldRace: slices.Index(PickRaces, RaceHuman),
+func (p Creation) Draft(id rules.CharID) (rules.Draft, error) {
+	if id == rules.NoChar { // CreateCharacter's start: a human male fighter (Enforce builds and rolls it)
+		return rules.Draft{Picks: map[rules.FieldID]int{FieldRace: slices.Index(PickRaces, RaceHuman),
 			FieldClass: slices.Index(PickClasses(), ClsFighter)}}, nil
 	}
 	i, ok := p.index(id)
 	if !ok {
-		return core.Draft{}, errors.New("no such member")
+		return rules.Draft{}, errors.New("no such member")
 	}
 	return p.DraftOf(p.S.Party[i], id), nil
 }
@@ -256,24 +255,24 @@ func classCount(c *Character) (n int32) {
 }
 
 // draftOf is c as a draft; of is the member it modifies (NoChar: new).
-func (p Creation) DraftOf(c *Character, of core.CharID) core.Draft {
-	d := core.Draft{
-		Picks: map[core.FieldID]int{FieldSex: int(c.Sex), FieldRace: slices.Index(PickRaces, c.Race),
+func (p Creation) DraftOf(c *Character, of rules.CharID) rules.Draft {
+	d := rules.Draft{
+		Picks: map[rules.FieldID]int{FieldSex: int(c.Sex), FieldRace: slices.Index(PickRaces, c.Race),
 			FieldAlign: int(c.Alignment), FieldClass: slices.Index(PickClasses(), c.Class)},
 		Name: c.Name(),
-		Of:   of, Purse: core.Copper(uint64(c.Coins[CoinGold]) * copperPerGold), HitRoll: int32(c.HPRoll) * classCount(c), Ident: uint32(c.RandomID),
+		Of:   of, Purse: rules.Copper(uint64(c.Coins[CoinGold]) * copperPerGold), HitRoll: int32(c.HPRoll) * classCount(c), Ident: uint32(c.RandomID),
 	}
 	d.Head, d.Body = p.Host.Portrait(picsOf(c))
-	d.Sheet.Race, d.Sheet.Sex, d.Sheet.Age = RecordRace[c.Race], []core.Sex{core.Male, core.Female}[c.Sex&1], int32(c.Age)
+	d.Sheet.Race, d.Sheet.Sex, d.Sheet.Age = RecordRace[c.Race], []rules.Sex{rules.Male, rules.Female}[c.Sex&1], int32(c.Age)
 	d.Sheet.HP, d.Sheet.MaxHP = int32(c.HP), int32(c.MaxHP)
-	d.Sheet.Scores = map[core.Ability]int32{core.StrengthPercent: int32(c.Str00)}
+	d.Sheet.Scores = map[rules.Ability]int32{rules.StrengthPercent: int32(c.Str00)}
 	for i, a := range Abilities {
 		d.Sheet.Scores[a] = int32(c.Stats[i])
 	}
 	d.MinHP, d.MaxHP = int32(p.as().MinHitPoints(c)), int32(p.as().MaxHitPoints(c))
 	d.Lows = p.Minimums(d)
 	for i, s := range p.S.PowerSlots(c) {
-		d.Picks[firstPower+core.FieldID(i)] = s.Pick
+		d.Picks[firstPower+rules.FieldID(i)] = s.Pick
 	}
 	d.Icon = p.IconOf(c)
 	d.Portrait = c.Portrait
@@ -281,11 +280,11 @@ func (p Creation) DraftOf(c *Character, of core.CharID) core.Draft {
 }
 
 // iconOf is c's combat icon as the draft holds it.
-func (p Creation) IconOf(c *Character) core.Icon {
-	ic := core.Icon{Size: core.IconSmall}
+func (p Creation) IconOf(c *Character) rules.Icon {
+	ic := rules.Icon{Size: rules.IconSmall}
 	ic.Head, ic.Body = p.Host.IconPics(picsOf(c))
 	if c.IconSize == 2 {
-		ic.Size = core.IconLarge
+		ic.Size = rules.IconLarge
 	}
 	for i, b := range c.IconColour {
 		ic.Colours[i] = iconColour(b)
@@ -297,7 +296,7 @@ func (p Creation) IconOf(c *Character) core.Icon {
 // charOf is d as a Character, drawing no dice: the member it modifies with
 // the sheet's changes while race and class stand, else the kind's record
 // with the draft's rolled values (keeping the member's items, as fresh).
-func (p Creation) CharOf(d core.Draft) *Character {
+func (p Creation) CharOf(d rules.Draft) *Character {
 	k := KindOf(d)
 	var m *Character
 	if i, ok := p.index(d.Of); ok {
@@ -309,8 +308,8 @@ func (p Creation) CharOf(d core.Draft) *Character {
 		c = &cp
 		c.Sex, c.Alignment = k.Sex, k.Align
 		for i, a := range Abilities {
-			if st := Score(d.Sheet.Scores[a]); st != c.Stats[i] || (i == 0 && byte(d.Sheet.Scores[core.StrengthPercent]) != c.Str00) {
-				p.as().SetStat(c, i, st, byte(d.Sheet.Scores[core.StrengthPercent]))
+			if st := Score(d.Sheet.Scores[a]); st != c.Stats[i] || (i == 0 && byte(d.Sheet.Scores[rules.StrengthPercent]) != c.Str00) {
+				p.as().SetStat(c, i, st, byte(d.Sheet.Scores[rules.StrengthPercent]))
 			}
 		}
 	} else {
@@ -319,7 +318,7 @@ func (p Creation) CharOf(d core.Draft) *Character {
 		for i, a := range Abilities {
 			c.Stats[i] = Score(d.Sheet.Scores[a])
 		}
-		c.Str00 = byte(d.Sheet.Scores[core.StrengthPercent])
+		c.Str00 = byte(d.Sheet.Scores[rules.StrengthPercent])
 		count := p.S.FirstLevel(c)
 		p.S.startExperience(c, count, false) // the levels, without their dice: the hit points are the draft's
 		c.Coins[CoinGold] = uint16(uint64(d.Purse) / copperPerGold)
@@ -330,7 +329,7 @@ func (p Creation) CharOf(d core.Draft) *Character {
 		c.SetName(d.Name)
 	}
 	c.IconSize = 1
-	if d.Icon.Size == core.IconLarge {
+	if d.Icon.Size == rules.IconLarge {
 		c.IconSize = 2
 	}
 	pics := picsOf(c)
@@ -342,7 +341,7 @@ func (p Creation) CharOf(d core.Draft) *Character {
 	c.Portrait, c.Icon = d.Portrait, d.Icon.PNG // checked when they came in (readPNG, iconShape)
 	c.Powers = nil                              // the picks in their order (draftOf states every one)
 	for i := 0; ; i++ {
-		x, ok := d.Picks[firstPower+core.FieldID(i)]
+		x, ok := d.Picks[firstPower+rules.FieldID(i)]
 		if !ok {
 			break
 		}
@@ -357,18 +356,18 @@ func (p Creation) CharOf(d core.Draft) *Character {
 func (r *Rules) Creation() Creation { return Creation{S: r.S, Host: r.Host, r: r} }
 
 // picsOf is c's pictures for the host; setPics takes them back.
-func picsOf(c *Character) goldbox.Pics {
+func picsOf(c *Character) rules.Pics {
 	p := c.PoolIDs
-	return goldbox.Pics{PortHead: c.PortHead, PortBody: c.PortBody, IconHead: c.IconHead, IconBody: c.IconBody, IconSize: c.IconSize,
-		Pool: core.PoolPics{PortraitHead: p.PortraitHeadID, PortraitBody: p.PortraitBodyID, IconHead: p.IconHeadID, IconBody: p.IconBodyID}}
+	return rules.Pics{PortHead: c.PortHead, PortBody: c.PortBody, IconHead: c.IconHead, IconBody: c.IconBody, IconSize: c.IconSize,
+		Pool: rules.PoolPics{PortraitHead: p.PortraitHeadID, PortraitBody: p.PortraitBodyID, IconHead: p.IconHeadID, IconBody: p.IconBodyID}}
 }
 
-func setPics(c *Character, p goldbox.Pics) {
+func setPics(c *Character, p rules.Pics) {
 	c.PortHead, c.PortBody, c.IconHead, c.IconBody = p.PortHead, p.PortBody, p.IconHead, p.IconBody
 	c.PoolIDs.PortraitHeadID, c.PoolIDs.PortraitBodyID, c.PoolIDs.IconHeadID, c.PoolIDs.IconBodyID = p.Pool.PortraitHead, p.Pool.PortraitBody, p.Pool.IconHead, p.Pool.IconBody
 }
 
 // iconColour is a record's icon part colours as core's (low nibble, high nibble).
-func iconColour(b Colours) core.IconColour {
-	return core.IconColour{Low: uint8(b & 0xF), High: uint8(b >> 4)}
+func iconColour(b Colours) rules.IconColour {
+	return rules.IconColour{Low: uint8(b & 0xF), High: uint8(b >> 4)}
 }

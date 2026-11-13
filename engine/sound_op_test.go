@@ -1,9 +1,9 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/ecl/script"
 	"gobox/game/play"
+	"gobox/rules"
 	"slices"
 	"testing"
 )
@@ -12,7 +12,7 @@ import (
 func TestSoundOp(t *testing.T) {
 	e := quickStarted(t)
 	g := e.game()
-	g.ScriptSounds = map[byte]ScriptSound{3: {Cue: core.SoundCue("3")}}
+	g.ScriptSounds = map[byte]ScriptSound{3: {Cue: rules.SoundCue("3")}}
 	e.given = &g
 	sound := func(n int) {
 		e.events = nil
@@ -35,7 +35,7 @@ func TestSoundOp(t *testing.T) {
 func TestDuelSound(t *testing.T) {
 	e := quickStarted(t)
 	g := e.game()
-	g.ScriptSounds = map[byte]ScriptSound{8: {Cue: core.SoundCue("step8")}}
+	g.ScriptSounds = map[byte]ScriptSound{8: {Cue: rules.SoundCue("step8")}}
 	e.given = &g
 	var addr uint16
 	for a, c := range e.eclVersion.Calls {
@@ -58,7 +58,7 @@ func TestDuelSound(t *testing.T) {
 	if len(e.events) != 0 {
 		t.Fatalf("unlisted duel sound 9: events %v", e.events)
 	}
-	g.DefaultSound = &ScriptSound{Cue: core.SoundCue("dflt")}
+	g.DefaultSound = &ScriptSound{Cue: rules.SoundCue("dflt")}
 	call(9)
 	if !slices.Contains(e.events, play.Event(play.Sounded{Sound: "dflt"})) {
 		t.Fatalf("unlisted duel sound 9 with DefaultSound: events %v", e.events)

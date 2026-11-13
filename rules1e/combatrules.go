@@ -1,8 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"slices"
 )
 
@@ -186,7 +185,7 @@ func (e *RuleState) WeaponAbility(c *Character) (hit, dmg int, missile bool) {
 	}
 	flags := e.Base(w.Type).Usage
 	if flags&2 != 0 {
-		hit, missile = int(goldbox.DexMissile(byte(c.Stats[StatDex]))), true
+		hit, missile = int(rules.DexMissile(byte(c.Stats[StatDex]))), true
 	}
 	if flags&4 != 0 {
 		hit, dmg = hit+int(strHit(c)), int(strDamage(c))
@@ -220,14 +219,14 @@ func (e *RuleState) Push(a, b *Character) bool {
 }
 
 // PushFrom is Push away from square p, wherever b stands.
-func (e *RuleState) PushFrom(p core.BoardPos, b *Character) bool {
+func (e *RuleState) PushFrom(p rules.BoardPos, b *Character) bool {
 	idx := e.CombatIndex(b)
 	v := e.At(b).Sub(p)
-	if idx == 0 || e.CombatSize(b) != 1 || v == (core.BoardPos{}) {
+	if idx == 0 || e.CombatSize(b) != 1 || v == (rules.BoardPos{}) {
 		return false
 	}
 	d := 0
-	for d < 8 && (DirDX[d] != goldbox.Sign(v.X) || DirDY[d] != goldbox.Sign(v.Y)) {
+	for d < 8 && (DirDX[d] != rules.Sign(v.X) || DirDY[d] != rules.Sign(v.Y)) {
 		d++
 	}
 	who, ground := e.GroundAt(b, d)
@@ -238,7 +237,7 @@ func (e *RuleState) PushFrom(p core.BoardPos, b *Character) bool {
 	nx, ny := ox+byte(DirDX[d]), oy+byte(DirDY[d])
 	e.Cpos[idx].X, e.Cpos[idx].Y = nx, ny
 	if e.Fight.On {
-		e.Emit(core.Walked{Unit: unit(idx), Path: []core.BoardPos{{X: int(nx), Y: int(ny)}}})
+		e.Emit(rules.Walked{Unit: unit(idx), Path: []rules.BoardPos{{X: int(nx), Y: int(ny)}}})
 	}
 	e.CombatRedrawMap()
 	b.Combat.Attackers, b.Combat.Flank = 0, 0
@@ -246,18 +245,18 @@ func (e *RuleState) PushFrom(p core.BoardPos, b *Character) bool {
 }
 
 // Aimed is the square an AimArea maneuver was aimed at.
-func (e *RuleState) Aimed() core.BoardPos { return e.Fight.Aimed }
+func (e *RuleState) Aimed() rules.BoardPos { return e.Fight.Aimed }
 
 // At is c's square, (-1, -1) off the map.
-func (e *RuleState) At(c *Character) core.BoardPos {
+func (e *RuleState) At(c *Character) rules.BoardPos {
 	if e.CombatIndex(c) == 0 {
-		return core.BoardPos{X: -1, Y: -1}
+		return rules.BoardPos{X: -1, Y: -1}
 	}
-	return core.BoardPos{X: e.CombatX(c), Y: e.CombatY(c)}
+	return rules.BoardPos{X: e.CombatX(c), Y: e.CombatY(c)}
 }
 
 // Burst are the standing combatants within r squares of p, walls aside.
-func (e *RuleState) Burst(p core.BoardPos, r int) []*Character {
+func (e *RuleState) Burst(p rules.BoardPos, r int) []*Character {
 	var out []*Character
 	for _, c := range e.Combatants() {
 		if d := e.At(c).Sub(p); max(d.X, -d.X, d.Y, -d.Y) <= r {
@@ -293,7 +292,7 @@ func (e *RuleState) Strike(a, b *Character) (hit bool) {
 		mode = 2
 	}
 	if !e.AttackHits(a, b, need) {
-		e.Sound(string(core.CueMiss))
+		e.Sound(string(rules.CueMiss))
 		e.attackText(a, b, mode, 0, 0, 0)
 		return false
 	}
@@ -315,17 +314,17 @@ func (e *RuleState) open(x, y int) bool {
 // paths are the shortest ways of steps (directions) from c's square to
 // each open square within n squares, a diagonal one, round others; nil
 // for a combatant larger than a square.
-func (e *RuleState) paths(c *Character, n int) map[core.BoardPos][]int {
+func (e *RuleState) paths(c *Character, n int) map[rules.BoardPos][]int {
 	if e.CombatSize(c) != 1 {
 		return nil
 	}
 	from := e.At(c)
-	out := map[core.BoardPos][]int{from: nil}
-	for edge := []core.BoardPos{from}; n > 0 && len(edge) > 0; n-- {
-		var next []core.BoardPos
+	out := map[rules.BoardPos][]int{from: nil}
+	for edge := []rules.BoardPos{from}; n > 0 && len(edge) > 0; n-- {
+		var next []rules.BoardPos
 		for _, p := range edge {
 			for d := 0; d < 8; d++ {
-				q := p.Add(core.BoardPos{X: DirDX[d], Y: DirDY[d]})
+				q := p.Add(rules.BoardPos{X: DirDX[d], Y: DirDY[d]})
 				if _, seen := out[q]; seen || !e.open(q.X, q.Y) {
 					continue
 				}
@@ -340,19 +339,19 @@ func (e *RuleState) paths(c *Character, n int) map[core.BoardPos][]int {
 }
 
 // Squares are the open squares c could get to within n squares (Choose's marks).
-func (e *RuleState) Squares(c *Character, n int) []core.BoardPos {
-	var out []core.BoardPos
+func (e *RuleState) Squares(c *Character, n int) []rules.BoardPos {
+	var out []rules.BoardPos
 	for p := range e.paths(c, n) {
 		out = append(out, p)
 	}
-	slices.SortFunc(out, func(a, b core.BoardPos) int { return a.Y*64 + a.X - b.Y*64 - b.X })
+	slices.SortFunc(out, func(a, b rules.BoardPos) int { return a.Y*64 + a.X - b.Y*64 - b.X })
 	return out
 }
 
 // MoveTo takes c to p (one of Squares) step by step, spending no moves:
 // a shift or forced movement. provoke: leaving a foe's side lets it strike
 // (a forced move that provokes); false when it did not get there.
-func (e *RuleState) MoveTo(c *Character, p core.BoardPos, provoke bool) bool {
+func (e *RuleState) MoveTo(c *Character, p rules.BoardPos, provoke bool) bool {
 	path, ok := e.paths(c, 0x7F)[p]
 	if !ok {
 		return false
@@ -382,8 +381,8 @@ func (e *RuleState) Swap(a, b *Character) bool {
 	pa, pb := e.Cpos[i], e.Cpos[j]
 	e.Cpos[i].X, e.Cpos[i].Y, e.Cpos[j].X, e.Cpos[j].Y = pb.X, pb.Y, pa.X, pa.Y
 	if e.Fight.On {
-		e.Emit(core.Walked{Unit: unit(i), Path: []core.BoardPos{{X: int(pb.X), Y: int(pb.Y)}}})
-		e.Emit(core.Walked{Unit: unit(j), Path: []core.BoardPos{{X: int(pa.X), Y: int(pa.Y)}}})
+		e.Emit(rules.Walked{Unit: unit(i), Path: []rules.BoardPos{{X: int(pb.X), Y: int(pb.Y)}}})
+		e.Emit(rules.Walked{Unit: unit(j), Path: []rules.BoardPos{{X: int(pa.X), Y: int(pa.Y)}}})
 	}
 	e.CombatRedrawMap()
 	return true

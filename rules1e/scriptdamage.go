@@ -3,7 +3,7 @@ package rules1e
 import (
 	"slices"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // deathMargin: a hit more than HP+10 kills outright ("dies.", ovr08:20CC).
@@ -12,7 +12,7 @@ const deathMargin = 10
 // scriptDamage = por opDamage (ovr04:2400) under ruling 3, cotab's DAMAGE
 // (O03C:2958) for all games: a made save spares unless SaveHurts; one
 // damage roll for the flagged forms, one per member for the random one.
-func (r *Rules) scriptDamage(a core.ScriptDamage) core.Outcome {
+func (r *Rules) scriptDamage(a rules.ScriptDamage) rules.Outcome {
 	s := r.S
 	if i := slices.Index(s.Party, r.chars[a.Selected]); i >= 0 {
 		s.Who = i // the selected member is the actor (e.as(e.sel))
@@ -26,16 +26,16 @@ func (r *Rules) scriptDamage(a core.ScriptDamage) core.Outcome {
 	member := func(k int) *Character { // k is 1-based; the walk stops at the end
 		return s.Party[max(1, min(k, len(s.Party)))-1]
 	}
-	var o core.Outcome
+	var o rules.Outcome
 	hit := func(c *Character) {
 		if c.Status == StatusDead { // ovr08:20CC skips the dead alone; ApplyDamage leaves a statue whole
 			return
 		}
-		o.Effects = append(o.Effects, core.Hurt{Unit: r.ID(c), Damage: int32(dmg), Dies: int(c.HP)+deathMargin < dmg})
+		o.Effects = append(o.Effects, rules.Hurt{Unit: r.ID(c), Damage: int32(dmg), Dies: int(c.HP)+deathMargin < dmg})
 		s.ApplyDamage(c, dmg&0xFF) // 00BA:2228
 	}
 	// spared: c saves and a made save spares (the save is rolled even when it hurts anyway).
-	spared := func(c *Character, save core.Save) bool {
+	spared := func(c *Character, save rules.Save) bool {
 		if save == "" {
 			return false
 		}

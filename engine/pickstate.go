@@ -4,9 +4,9 @@ import (
 	"image"
 	"slices"
 
-	"gobox/core"
 	"gobox/ega"
 	"gobox/game"
+	"gobox/rules"
 )
 
 // pickState is the grid picker and the icon designer up, as State holds
@@ -31,7 +31,7 @@ func (e *Engine) pickerState(p *picker) *game.Picker {
 	for _, id := range p.chars {
 		cl, im := "", image.Image(nil)
 		if pt, ok := e.portrait(id); ok {
-			cl, im = e.word(id, core.FactClasses), e.pngImage(pt.PNG)
+			cl, im = e.word(id, rules.FactClasses), e.pngImage(pt.PNG)
 		}
 		k.Classes, k.Portraits = append(k.Classes, cl), append(k.Portraits, im)
 	}

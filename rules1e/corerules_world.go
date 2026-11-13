@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
@@ -9,84 +9,84 @@ import (
 // questions about the party.
 
 // checkWorld answers the Checks por's script asks (eclops.go).
-func (r *Rules) checkWorld(k core.Check) core.Answer {
+func (r *Rules) checkWorld(k rules.Check) rules.Answer {
 	switch k := k.(type) {
-	case core.WordIs:
+	case rules.WordIs:
 		return r.word(k)
-	case core.AreaTileIs:
-		return core.Answer{Value: int32(r.S.AreaTile(int(k.X), int(k.Y)))}
-	case core.PartyStrength:
-		return core.Answer{Value: int32(r.partyStrength(k.Party))}
-	case core.Census:
+	case rules.AreaTileIs:
+		return rules.Answer{Value: int32(r.S.AreaTile(int(k.X), int(k.Y)))}
+	case rules.PartyStrength:
+		return rules.Answer{Value: int32(r.partyStrength(k.Party))}
+	case rules.Census:
 		return r.census(k)
-	case core.HasClass:
+	case rules.HasClass:
 		for _, c := range r.party(k.Party) {
 			if slices.Contains(porClassesOf[k.Class], c.Class) {
-				return core.Answer{Yes: true, Who: r.ID(c)}
+				return rules.Answer{Yes: true, Who: r.ID(c)}
 			}
 		}
-	case core.HasCondition:
+	case rules.HasCondition:
 		aff, ok := conditionAffects[k.Condition]
 		if !ok {
 			panic("rules1e: no affect for condition " + string(k.Condition))
 		}
 		for _, id := range k.Whom {
-			if c := r.party(core.Party{id})[0]; r.S.FindAffect(c, aff) != nil { // opCheckParty 00BA:2199: any status
-				return core.Answer{Yes: true, Who: id}
+			if c := r.party(rules.Party{id})[0]; r.S.FindAffect(c, aff) != nil { // opCheckParty 00BA:2199: any status
+				return rules.Answer{Yes: true, Who: id}
 			}
 		}
-	case core.HasAffect:
+	case rules.HasAffect:
 		aff, err := r.S.T().affectID(byte(k.Affect))
 		if err != nil {
 			panic(err) // a script names an affect the importer's affectIds lacks: a data bug
 		}
 		for _, id := range k.Whom {
-			if r.S.FindAffect(r.party(core.Party{id})[0], aff) != nil { // 00BA:2199: any status
-				return core.Answer{Yes: true, Who: id}
+			if r.S.FindAffect(r.party(rules.Party{id})[0], aff) != nil { // 00BA:2199: any status
+				return rules.Answer{Yes: true, Who: id}
 			}
 		}
-	case core.HasItem:
+	case rules.HasItem:
 		for _, id := range k.Whom { // opFindItem ovr04:266A: any status, the pool too
-			for _, it := range r.S.Carried(r.party(core.Party{id})[0]) {
+			for _, it := range r.S.Carried(r.party(rules.Party{id})[0]) {
 				if r.S.kind(it.Type) == k.Item {
-					return core.Answer{Yes: true, Who: id}
+					return rules.Answer{Yes: true, Who: id}
 				}
 			}
 		}
-	case core.HasMemorized:
+	case rules.HasMemorized:
 		k1 := slices.Index(SpellIDs[:], k.Spell)
 		if k1 <= 0 {
 			panic("rules1e: no spell number for " + string(k.Spell))
 		}
 		for _, c := range r.party(k.Party) {
 			if c.Status == StatusOkay && SpellSlot(c, SpellID(k1)) != 0xFF { // FindCaster
-				return core.Answer{Yes: true, Who: r.ID(c)}
+				return rules.Answer{Yes: true, Who: r.ID(c)}
 			}
 		}
-	case core.RollDice:
-		return core.Answer{Value: int32(r.S.Dice(int(k.N), int(k.Sides)))}
-	case core.RollRandom:
-		return core.Answer{Value: int32(r.S.Random(int(k.N)))}
-	case core.IsDay:
-		return core.Answer{Yes: r.S.IsDay()}
-	case core.MapTerrain:
-		return core.Answer{Value: int32(r.S.MapTerrain(k.X, k.Y))}
+	case rules.RollDice:
+		return rules.Answer{Value: int32(r.S.Dice(int(k.N), int(k.Sides)))}
+	case rules.RollRandom:
+		return rules.Answer{Value: int32(r.S.Random(int(k.N)))}
+	case rules.IsDay:
+		return rules.Answer{Yes: r.S.IsDay()}
+	case rules.MapTerrain:
+		return rules.Answer{Value: int32(r.S.MapTerrain(k.X, k.Y))}
 	}
-	return core.Answer{}
+	return rules.Answer{}
 }
 
 // elapse is a camp rest's time passing in its five-minute steps (stepRest,
 // RestStep ovr21:0C9A): core.PartyHealed when the whole party healed,
 // core.RestInterrupted (and no more steps) when a monster interrupted.
 // The party is the rules' marching order (e.Party), as the original's.
-func (r *Rules) elapse(minutes int32) (o core.Outcome) {
+func (r *Rules) elapse(minutes int32) (o rules.Outcome) {
 	for range minutes / 5 {
 		s := r.S.stepRest()
 		if s.Healed {
-			o.Effects = append(o.Effects, core.PartyHealed{})
+			o.Effects = append(o.Effects, rules.PartyHealed{})
 		}
 		if s.Interrupted {
-			o.Effects = append(o.Effects, core.RestInterrupted{})
+			o.Effects = append(o.Effects, rules.RestInterrupted{})
 			return o
 		}
 	}
@@ -100,12 +100,12 @@ func (e *RuleState) SetLootCoins(coins [7]uint16) { e.Loot = CoinsToPurse(coins)
 // conditionAffects is the affect each Condition a script asks about is
 // (HasCondition): por's CheckParty 19 (0x13).
 // ponytail: the one scripts use; add conditions when a script asks.
-var conditionAffects = map[core.Condition]AffectType{CondFindTraps: affFindTraps}
+var conditionAffects = map[rules.Condition]AffectType{CondFindTraps: affFindTraps}
 
 // partyStrength = opPartyStrength: a tenth of HP + 5 x (AC
 // better than 0) + 5 x (THAC0 better than 0) + 8 x mage level + 4 x cleric
 // level per member, summed into a byte (it wraps, as the original's).
-func (r *Rules) partyStrength(p core.Party) byte {
+func (r *Rules) partyStrength(p rules.Party) byte {
 	var total byte
 	for _, c := range r.party(p) {
 		ac, th := int(c.AC[0]), int(c.THAC0)
@@ -127,18 +127,18 @@ func (r *Rules) partyStrength(p core.Party) byte {
 
 // census = opCheckParty ovr04:1435's low, high and average of a byte fact
 // over the party; an empty party leaves low 0xFF, high and average 0.
-func (r *Rules) census(k core.Census) core.Answer {
+func (r *Rules) census(k rules.Census) rules.Answer {
 	lo, hi, sum, n := byte(0xFF), byte(0), 0, 0
 	for _, id := range k.Party {
 		f, err := r.Fact(id, k.Fact)
 		if err != nil {
 			panic("rules1e: census of " + err.Error())
 		}
-		v := byte(f.(core.Number))
+		v := byte(f.(rules.Number))
 		n++
 		lo, hi, sum = min(lo, v), max(hi, v), sum+int(v)
 	}
-	a := core.Answer{Low: int32(lo), High: int32(hi)}
+	a := rules.Answer{Low: int32(lo), High: int32(hi)}
 	if n > 0 {
 		a.Avg = int32(byte(sum / n))
 	}
@@ -146,7 +146,7 @@ func (r *Rules) census(k core.Census) core.Answer {
 }
 
 // party is p's characters; an id the rules do not hold is a bug.
-func (r *Rules) party(p core.Party) []*Character {
+func (r *Rules) party(p rules.Party) []*Character {
 	cs := make([]*Character, len(p))
 	for i, id := range p {
 		if cs[i] = r.chars[id]; cs[i] == nil {
@@ -158,29 +158,29 @@ func (r *Rules) party(p core.Party) []*Character {
 
 // porClassesOf is the record classes that have a class (HasClass).
 // ponytail: ranger only (opPartySurprise); add classes when a script asks.
-var porClassesOf = map[core.Class][]ClassID{CoreClassRanger: {ClsRanger, ClsClericRanger}}
+var porClassesOf = map[rules.Class][]ClassID{CoreClassRanger: {ClsRanger, ClsClericRanger}}
 
 // resolveWorld resolves the world's actions; ok: a was one of them.
-func (r *Rules) resolveWorld(s core.Situation, a core.Action) (o core.Outcome, ok bool, err error) {
+func (r *Rules) resolveWorld(s rules.Situation, a rules.Action) (o rules.Outcome, ok bool, err error) {
 	switch a := a.(type) {
-	case core.AdvanceClock:
+	case rules.AdvanceClock:
 		r.S.AdvanceClock(int(a.Count), int(a.Unit))
 		return o, true, nil
-	case core.Fixture:
+	case rules.Fixture:
 		return o, true, r.fixture(a)
-	case core.SetWord:
+	case rules.SetWord:
 		return o, true, r.setWord(a)
-	case core.DevPlace:
+	case rules.DevPlace:
 		r.S.DevPlace(a.Melee)
 		return o, true, nil
-	case core.DuelClone:
+	case rules.DuelClone:
 		return o, true, r.duelClone(a)
-	case core.ScriptDamage:
+	case rules.ScriptDamage:
 		return r.scriptDamage(a), true, nil
-	case core.ChangeClass:
+	case rules.ChangeClass:
 		return o, true, r.changeClass(a)
-	case core.BashDoor:
-		at, isDoor := s.(core.AtDoor)
+	case rules.BashDoor:
+		at, isDoor := s.(rules.AtDoor)
 		if !isDoor {
 			return o, true, ErrNotNow
 		}
@@ -188,16 +188,16 @@ func (r *Rules) resolveWorld(s core.Situation, a core.Action) (o core.Outcome, o
 		if c == nil {
 			return o, true, errNoChar
 		}
-		opened, spent := r.S.bashDoor(c, at.Door.State == core.DoorMagic)
+		opened, spent := r.S.bashDoor(c, at.Door.State == rules.DoorMagic)
 		if spent {
-			o.Effects = append(o.Effects, core.DoorTriesSpent{})
+			o.Effects = append(o.Effects, rules.DoorTriesSpent{})
 		}
 		if opened {
-			o.Effects = append(o.Effects, core.DoorGaveWay{Who: a.Who})
+			o.Effects = append(o.Effects, rules.DoorGaveWay{Who: a.Who})
 		}
 		return o, true, nil
-	case core.PickLock:
-		if _, isDoor := s.(core.AtDoor); !isDoor {
+	case rules.PickLock:
+		if _, isDoor := s.(rules.AtDoor); !isDoor {
 			return o, true, ErrNotNow
 		}
 		c := r.chars[a.Who]
@@ -205,7 +205,7 @@ func (r *Rules) resolveWorld(s core.Situation, a core.Action) (o core.Outcome, o
 			return o, true, errNoChar
 		}
 		if r.S.Dice(1, 100) <= int(c.Thief[1]) && c.Status == StatusOkay { // pickLock ovr15:04DF: the dice roll for the dead too
-			o.Effects = append(o.Effects, core.DoorGaveWay{Who: a.Who})
+			o.Effects = append(o.Effects, rules.DoorGaveWay{Who: a.Who})
 		}
 		return o, true, nil
 	}
@@ -267,7 +267,7 @@ func (e *RuleState) bashDoor(c *Character, magic bool) (opened, spent bool) {
 
 // duelClone = DuelSetup's opponent (story.go): Of's sheet, no affects,
 // copies of its items in reverse order, on the monsters' side.
-func (r *Rules) duelClone(a core.DuelClone) error {
+func (r *Rules) duelClone(a rules.DuelClone) error {
 	of := r.chars[a.Of]
 	if of == nil {
 		return errNoChar

@@ -4,7 +4,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"image"
 	"image/color"
 	"os"
@@ -562,10 +562,10 @@ func (g *Game) CloseItems(all bool) error {
 	}
 	return g.run("closeItems", func() play.Result { return g.r.closeItems(all) })
 }
-func (g *Game) UseItem(h core.ItemHandle, spell, target int, sure bool) error {
+func (g *Game) UseItem(h rules.ItemHandle, spell, target int, sure bool) error {
 	return g.asking(g.do(play.UseItem{Member: g.sel(-1), Item: h, Spell: spell, Target: target}))
 }
-func (g *Game) Buy(h core.ItemHandle) error {
+func (g *Game) Buy(h rules.ItemHandle) error {
 	if lootOf(g.r.g.State()) != nil { // the loot screen's Take, as the act mapping does
 		return g.do(play.Take{Item: h})
 	}
@@ -804,9 +804,9 @@ func (g *Game) act(a front.Action) func() error {
 		}
 		return send(play.Buy{Member: g.sel(-1), Item: a.Item})
 	case front.ActTakeAll:
-		return send(play.Take{Item: core.NoItem, All: true})
+		return send(play.Take{Item: rules.NoItem, All: true})
 	case front.ActTakeMoney:
-		return send(play.Take{Item: core.NoItem})
+		return send(play.Take{Item: rules.NoItem})
 	case front.ActLootPool: // a shop's Pool (the treasure's goes through Gate)
 		return send(play.PoolCoins{Member: g.sel(-1)}) // the selected member's coins
 	case front.ActLootShare:

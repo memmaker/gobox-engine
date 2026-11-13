@@ -2,7 +2,7 @@ package engine
 
 import (
 	"gobox/char"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"gobox/rules1e"
 	"testing"
 )
@@ -17,8 +17,8 @@ func TestPurse(t *testing.T) {
 	}
 	// 150 copper twice is a gold piece and 100 copper, not rounded per pile
 	var p rules1e.Purse
-	p.Add(rules1e.CoinsToPurse([7]uint16{150}), goldbox.GoldBoxRates)
-	p.Add(rules1e.CoinsToPurse([7]uint16{150}), goldbox.GoldBoxRates)
+	p.Add(rules1e.CoinsToPurse([7]uint16{150}), rules.GoldBoxRates)
+	p.Add(rules1e.CoinsToPurse([7]uint16{150}), rules.GoldBoxRates)
 	if p != (rules1e.Purse{Gold: 1, Copper: 100}) {
 		t.Fatalf("two piles = %+v", p)
 	}

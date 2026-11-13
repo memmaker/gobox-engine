@@ -1,10 +1,10 @@
 package engine
 
 import (
-	"gobox/core"
+	"gobox/rules"
+	"gobox/rules1e"
 	"image"
 	"reflect"
-	"gobox/rules1e"
 	"slices"
 	"testing"
 	"time"
@@ -230,7 +230,7 @@ func TestPlayReplyLeave(t *testing.T) {
 func toTurn(t *testing.T, e *Engine) {
 	t.Helper()
 	for range 400 {
-		if e.cs.turn != nil && e.cs.actor != core.NoChar && e.cs.aim == nil {
+		if e.cs.turn != nil && e.cs.actor != rules.NoChar && e.cs.aim == nil {
 			return
 		}
 		if e.waiting(PendFight) {

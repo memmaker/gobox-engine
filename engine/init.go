@@ -3,8 +3,8 @@ package engine
 import (
 	"gobox/asset"
 	"gobox/char"
-	"gobox/core"
 	"gobox/ega"
+	"gobox/rules"
 	"log"
 	"slices"
 )
@@ -37,10 +37,10 @@ func (e *Engine) Init() {
 		e.LoadIconPic(spr, i, i+0xD) // ovr33:01C8
 	}
 	e.LoadIconPic(spr, 0x19, 0x19)
-	e.do(core.LoadItemTable{}) // ITEMS file, 2-byte header then the records → DS:5582
+	e.do(rules.LoadItemTable{}) // ITEMS file, 2-byte header then the records → DS:5582
 	e.clearPrompt()
-	e.Randomize()          // 0AF8:1247
-	e.do(core.InitRules{}) // ovr23:3413 and the affect handler table
+	e.Randomize()           // 0AF8:1247
+	e.do(rules.InitRules{}) // ovr23:3413 and the affect handler table
 }
 
 // resetAdventure puts the adventure's state back to a new game's: the
@@ -51,7 +51,7 @@ func (e *Engine) Init() {
 // (a wipe on the first square after an area change loaded the old area,
 // whose block still named it, at the new one's square: inside the water).
 func (e *Engine) resetAdventure() {
-	e.do(core.NewAdventure{})                     // game and area records DS:49D6, 49D2, an empty purse
+	e.do(rules.NewAdventure{})                    // game and area records DS:49D6, 49D2, an empty purse
 	e.posX, e.posY, e.facing = 0xF, 1, 6          // the start square DS:6AAD/6AAE/6AAF (the Engine's)
 	e.vars, e.locals = fieldCells{}, fieldCells{} // DS:49DA
 	e.gs.areaKind = 0

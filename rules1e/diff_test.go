@@ -9,17 +9,16 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // The vectors come from the pure Pascal (por-re bugfixed-rules, vectors-pure.sh).
 // A difference is a bug, or a row of gobox-engine/CHANGES-FROM-ORIGINAL.md.
 var (
-	vecClass = [8]core.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
-	vecRace  = [8]core.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
+	vecClass = [8]rules.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
+	vecRace  = [8]rules.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
 	vecCon   = 19 // the Pascal's stat vectors read no constitution; 19 shows the bonus every race gets
-	vecSave  = [5]core.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
+	vecSave  = [5]rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
 )
 
 // documented says whether a difference is a row of CHANGES-FROM-ORIGINAL.md:
@@ -49,7 +48,7 @@ func documented(key []string, want, got []int) bool {
 		return k[0]&0x90 == 0x90
 	case "savethrow":
 		// ruling 1: the Pascal's Byte total wraps below 0 and saves; ours fails.
-		rng := core.RNG{State: uint32(int32(k[0]))}
+		rng := rules.RNG{State: uint32(int32(k[0]))}
 		return want[0] == 1 && got[0] == 0 && want[1] == got[1] && RollDice(&rng, 1, 20)+k[3]+k[2] < 0
 	case "stat":
 		return statDocumented(k, want, got)
@@ -80,7 +79,7 @@ func documented(key []string, want, got []int) bool {
 // statDocumented applies the listed differences to the Pascal's stat vector.
 // Vector: thac0, highest, attacks, 3 cleric, 3 mage, 5 saves, 8 skills.
 func statDocumented(k, want, got []int) bool {
-	level := func(c core.Class) int {
+	level := func(c rules.Class) int {
 		switch {
 		case vecClass[k[0]] == c:
 			return k[1]
@@ -124,7 +123,7 @@ func statDocumented(k, want, got []int) bool {
 	// 4. the constitution bonus is in the stored paralysis save (Felix: COTAB's, for all; POR's
 	// roll-time affect 0x5A is gone): everyone's from 19 (vecCon), a dwarf's or halfling's from 4 (TestConSave).
 	if !copied {
-		fixed[9] -= int(goldbox.ConSaveHigh(byte(vecCon)))
+		fixed[9] -= int(rules.ConSaveHigh(byte(vecCon)))
 	}
 	return slices.Equal(fixed, got)
 }
@@ -136,7 +135,7 @@ func b2i(b bool) int {
 	return 0
 }
 
-func savethrow(rng *core.RNG, target, modifier, bonus int) bool {
+func savethrow(rng *rules.RNG, target, modifier, bonus int) bool {
 	die := RollDice(rng, 1, 20)
 	if made, fixed := SaveFixed(die); fixed {
 		return made
@@ -176,15 +175,15 @@ func ours(kind string, k []int) string {
 	case "con":
 		return join(ConHP(k[0]))
 	case "attack":
-		rng := core.RNG{State: uint32(int32(k[0]))}
+		rng := rules.RNG{State: uint32(int32(k[0]))}
 		die := AttackDie(&rng)
 		return join(b2i(!AttackMissed(die) && AttackHits(die, k[1], k[2], k[3])), int(int32(rng.State)))
 	case "trap":
-		rng := core.RNG{State: uint32(int32(k[0]))}
+		rng := rules.RNG{State: uint32(int32(k[0]))}
 		die := AttackDie(&rng)
 		return join(b2i(!AttackMissed(die) && TrapHits(die, k[1], k[2])), int(int32(rng.State)))
 	case "savethrow":
-		rng := core.RNG{State: uint32(int32(k[0]))}
+		rng := rules.RNG{State: uint32(int32(k[0]))}
 		return join(b2i(savethrow(&rng, k[1], k[2], k[3])), int(int32(rng.State)))
 	case "strength":
 		i := StrengthIndex(k[0], k[1])
@@ -194,18 +193,18 @@ func ours(kind string, k []int) string {
 	case "attacks":
 		return join(AttacksFromRate(k[0], k[1]))
 	case "turnundead":
-		rng := core.RNG{State: uint32(int32(k[0]))}
+		rng := rules.RNG{State: uint32(int32(k[0]))}
 		RollDice(&rng, 1, 12) // how many it can affect; one target here
 		roll := RollDice(&rng, 1, 20)
 		need := TurnNeed(k[2], TurnColumn(k[1]))
 		success := roll >= max(need, -need)
 		return join(b2i(success && need > 0), b2i(success && need <= 0), int(int32(rng.State)))
 	case "dice":
-		rng := core.RNG{State: uint32(int32(k[0]))}
+		rng := rules.RNG{State: uint32(int32(k[0]))}
 		r := RollDice(&rng, k[1], k[2])
 		return join(r, int(int32(rng.State)))
 	case "stat":
-		levels := map[core.Class]int{vecClass[k[0]]: k[1]}
+		levels := map[rules.Class]int{vecClass[k[0]]: k[1]}
 		if k[2] != k[0] {
 			levels[vecClass[k[2]]] = k[3]
 		}

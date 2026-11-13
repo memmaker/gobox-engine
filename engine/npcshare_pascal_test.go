@@ -2,9 +2,9 @@ package engine
 
 import (
 	"bufio"
-	"gobox/core/goldbox"
-	"os"
+	"gobox/rules"
 	"gobox/rules1e"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -20,7 +20,7 @@ func TestNpcShareAgainstPascal(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer f.Close()
-	rate := goldbox.GoldBoxRates.Coin
+	rate := rules.GoldBoxRates.Coin
 	sc := bufio.NewScanner(f)
 	cases := 0
 	for sc.Scan() {

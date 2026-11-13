@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
@@ -12,12 +12,12 @@ import (
 // engine's Decide then Resolve, compared at whole turns (TestDecideAgainstPascal).
 // key is the key the player pressed before it, which the turn's first poll
 // takes (aiKeys).
-func (e *RuleState) ComputerTurn(c *Character, key AiKey) core.Outcome {
+func (e *RuleState) ComputerTurn(c *Character, key AiKey) rules.Outcome {
 	n := len(e.Fx)
 	e.Fight.Key = key
 	e.aiTurn(c)
 	e.Fight.Key = AiKeyNone
-	out := core.Outcome{Effects: slices.Clone(e.Fx[n:])}
+	out := rules.Outcome{Effects: slices.Clone(e.Fx[n:])}
 	e.Fx = e.Fx[:n]
 	return out
 }
@@ -44,7 +44,7 @@ func (e *RuleState) aiTurn(c *Character) {
 		done = e.aiFleeCheck(c)
 	}
 	if ci.Fleeing != 0 && ci.Turned == 0 {
-		e.Emit(core.Sounded{Cue: "flee"})
+		e.Emit(rules.Sounded{Cue: "flee"})
 		e.CombatSay(c, "flees in panic", true)
 	}
 	if done {

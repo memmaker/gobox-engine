@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core"
+import "gobox/rules"
 
 // Career is a character's class or multi-class, POR's C_Class number: saves hold it.
 type Career int
@@ -45,7 +45,7 @@ type ageDice struct {
 }
 
 // AbilityRange is race's lowest and highest ability a.
-func (t *Tables) AbilityRange(race core.Race, a Ability) (lo, hi int) {
+func (t *Tables) AbilityRange(race rules.Race, a Ability) (lo, hi int) {
 	r := t.RaceLimits[raceRow[race]]
 	if a == Strength {
 		return int(r.StrMin), int(r.StrMax)
@@ -54,12 +54,12 @@ func (t *Tables) AbilityRange(race core.Race, a Ability) (lo, hi int) {
 }
 
 // ExceptionalStrengthCap is the most percent race's fighter has at Str 18.
-func (t *Tables) ExceptionalStrengthCap(race core.Race) int {
+func (t *Tables) ExceptionalStrengthCap(race rules.Race) int {
 	return int(t.RaceLimits[raceRow[race]].Str00Max)
 }
 
 // RaceCareers lists what race may be, in table order.
-func (t *Tables) RaceCareers(race core.Race) []Career {
+func (t *Tables) RaceCareers(race rules.Race) []Career {
 	row := t.RaceClasses[raceRow[race]]
 	out := make([]Career, row[0])
 	for i := range out {
@@ -85,10 +85,12 @@ func (t *Tables) CareerAlignments(c Career) []AlignmentNumber {
 func (t *Tables) CareerMinimum(c Career, a Ability) int { return int(t.ClassMinStats[c][a]) }
 
 // StartingAge is the base and dice of race's starting age for a single class.
-func (t *Tables) StartingAge(race core.Race, c Career) (base, count, sides int) {
+func (t *Tables) StartingAge(race rules.Race, c Career) (base, count, sides int) {
 	a := t.StartAge[raceRow[race]][c]
 	return int(a.Base), int(a.Count), int(a.Sides)
 }
 
 // AgeStep is the age race reaches its category step (1..5) at.
-func (t *Tables) AgeStep(race core.Race, step int) int { return int(t.AgeSteps[raceRow[race]][step-1]) }
+func (t *Tables) AgeStep(race rules.Race, step int) int {
+	return int(t.AgeSteps[raceRow[race]][step-1])
+}

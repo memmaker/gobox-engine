@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"testing"
 
 	"gobox/game/play"
@@ -49,7 +49,7 @@ func TestWatchFightTurn(t *testing.T) {
 			}
 			turn := playOn(e, 400, func(s play.State) bool {
 				f, ok := s.(play.Fighting)
-				return ok && f.Field.Turn != 0 && e.cs.actor != core.NoChar
+				return ok && f.Field.Turn != 0 && e.cs.actor != rules.NoChar
 			})
 			if !turn {
 				t.Errorf("deskew %v seed %d: the watch fight ended with no party turn", deskew, sd)

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
@@ -14,30 +14,30 @@ import (
 // answers ErrNotPorted until that concern moves here.
 type Rules struct {
 	S        *RuleState
-	campaign core.Campaign
-	options  core.Options
-	ids      map[*Character]core.CharID
-	chars    map[core.CharID]*Character
-	next     core.CharID
-	handles  map[*Item]core.ItemHandle
-	items    map[core.ItemHandle]*Item
-	nextItem core.ItemHandle
+	campaign rules.Campaign
+	options  rules.Options
+	ids      map[*Character]rules.CharID
+	chars    map[rules.CharID]*Character
+	next     rules.CharID
+	handles  map[*Item]rules.ItemHandle
+	items    map[rules.ItemHandle]*Item
+	nextItem rules.ItemHandle
 	valued   *Item // the appraised gem or jewel, kept or sold next (core.Valuate)
 	// Monsters is the current data set's monster records (por LoadMonster's
 	// MON<n>CHA/SPC/ITM), filled by whoever holds the adventure's files.
-	Monsters func(core.MonsterID) (Monster, bool)
+	Monsters func(rules.MonsterID) (Monster, bool)
 	// ItemTable is the base item records (por's ITEMS file), read by core.LoadItemTable.
 	ItemTable func() []ItemBase
 	// TreasureBlock is the data set's item block n (empty: none), read by core.AddTreasureBlock.
 	TreasureBlock func(n int) []Item
 	// ItemRecords is items as the game's file records (core.TreasureRecordsFact); the rules hold no bytes.
-	ItemRecords func([]Item) core.ItemRecords
+	ItemRecords func([]Item) rules.ItemRecords
 	// Host is the engine's side of the creation (Creation), set by whoever holds the roster and picture files.
 	Host     CreationHost
-	held     map[core.CharID]Character // HoldCopy's copies
-	tmpl     *Character                // the group's first monster, which Spawn copies
-	empty    *Character                // the placeholder EmptyMember empties (core.EmptyMember)
-	tmplID   core.MonsterID
+	held     map[rules.CharID]Character // HoldCopy's copies
+	tmpl     *Character                 // the group's first monster, which Spawn copies
+	empty    *Character                 // the placeholder EmptyMember empties (core.EmptyMember)
+	tmplID   rules.MonsterID
 	view     *SaveView // SetSaveView
 	straight bool      // BeginFight's Board.Straight: the board is deskewed
 	duel     bool      // BeginFight's Terms.Duel
@@ -45,15 +45,15 @@ type Rules struct {
 
 // ID is c's CharID, given at its first use and kept while c lives. Until the
 // Engine holds CharIDs itself, it names its characters through ID.
-func (r *Rules) ID(c *Character) core.CharID {
+func (r *Rules) ID(c *Character) rules.CharID {
 	if c == nil {
-		return core.NoChar
+		return rules.NoChar
 	}
 	if id, ok := r.ids[c]; ok {
 		return id
 	}
 	if r.ids == nil {
-		r.ids, r.chars = map[*Character]core.CharID{}, map[core.CharID]*Character{}
+		r.ids, r.chars = map[*Character]rules.CharID{}, map[rules.CharID]*Character{}
 	}
 	r.next++
 	id := r.next
@@ -68,32 +68,32 @@ var errNotFight = errors.New("rules1e: not in a fight")
 var errNoFact = errors.New("rules1e: fact not held")
 var errBadValue = errors.New("rules1e: record value outside its table")
 
-var _ core.Rules = (*Rules)(nil)
+var _ rules.Rules = (*Rules)(nil)
 
 // ErrNotPorted is a core.Rules method whose por code is still in the Engine.
 var ErrNotPorted = errors.New("rules1e: not behind core.Rules yet")
 
-func (r *Rules) Catalog() core.Catalog { return core.Catalog{} }
+func (r *Rules) Catalog() rules.Catalog { return rules.Catalog{} }
 
-func (r *Rules) Begin(c core.Campaign, o core.Options) { r.campaign, r.options = c, o }
+func (r *Rules) Begin(c rules.Campaign, o rules.Options) { r.campaign, r.options = c, o }
 
 // Ships: 1st edition has no ship fights.
-func (r *Rules) Ships() core.ShipRules { return nil }
+func (r *Rules) Ships() rules.ShipRules { return nil }
 
-func (r *Rules) Allowed(sit core.Situation) core.Allowed {
-	if f, ok := sit.(core.Fight); ok {
+func (r *Rules) Allowed(sit rules.Situation) rules.Allowed {
+	if f, ok := sit.(rules.Fight); ok {
 		return r.fightAllowed(f)
 	}
-	if t, ok := sit.(core.Training); ok {
+	if t, ok := sit.(rules.Training); ok {
 		return r.classOffers(t)
 	}
-	if u, ok := sit.(core.UsingItem); ok {
+	if u, ok := sit.(rules.UsingItem); ok {
 		return r.usingItem(u)
 	}
-	return core.Allowed{}
+	return rules.Allowed{}
 }
-func (r *Rules) Resolve(sit core.Situation, a core.Action, _ *core.RNG) (core.Outcome, error) {
-	if u, ok := a.(core.UseItem); ok && !inFight(sit) {
+func (r *Rules) Resolve(sit rules.Situation, a rules.Action, _ *rules.RNG) (rules.Outcome, error) {
+	if u, ok := a.(rules.UseItem); ok && !inFight(sit) {
 		return r.useItemOutside(u)
 	}
 	if o, ok, err := r.resolveItems(sit, a); ok {
@@ -123,23 +123,23 @@ func (r *Rules) Resolve(sit core.Situation, a core.Action, _ *core.RNG) (core.Ou
 	if o, ok, err := r.resolveWorld(sit, a); ok {
 		return o, err
 	}
-	return core.Outcome{}, ErrNotPorted
+	return rules.Outcome{}, ErrNotPorted
 }
 
 // setStatus is SpecialWriteZ1 0x100: every status but okay takes the member
 // out of the active ones (Okay 0); stoned (0x87) also stones; StatusInactive
 // is the script's other numbers >= 0x80 (the record's status kept).
-func (r *Rules) setStatus(a core.SetStatusAction) error {
+func (r *Rules) setStatus(a rules.SetStatusAction) error {
 	c := r.chars[a.Who]
 	if c == nil {
 		return errNoChar
 	}
 	switch a.Status {
-	case core.StatusOkay: // revived: okay and in play (sotsb, pod SpecialWriteZ1 $100; no POR script writes it)
+	case rules.StatusOkay: // revived: okay and in play (sotsb, pod SpecialWriteZ1 $100; no POR script writes it)
 		c.Okay, c.Status = 1, StatusOkay
-	case core.StatusStoned:
+	case rules.StatusStoned:
 		c.Okay, c.Status = 0, StatusStoned
-	case core.StatusInactive:
+	case rules.StatusInactive:
 		c.Okay = 0
 	default:
 		return errBadValue
@@ -148,7 +148,7 @@ func (r *Rules) setStatus(a core.SetStatusAction) error {
 }
 
 // Elapse: por stepRest (camp.go), memTick.
-func (r *Rules) Elapse(_ core.Party, minutes int32, _ *core.RNG) (o core.Outcome) {
+func (r *Rules) Elapse(_ rules.Party, minutes int32, _ *rules.RNG) (o rules.Outcome) {
 	return r.elapse(minutes)
 }
 
@@ -192,7 +192,7 @@ func (r *Rules) Load(b []byte) error {
 // and rolled (MakeMonster, RuleState's dice: the *core.RNG is unused so POR's
 // dice stay); each later one of the same id is a byte copy of it, its item and
 // affect lists reversed (ovr04:063E..07E7). It joins S.Party.
-func (r *Rules) Spawn(id core.MonsterID, _ *core.RNG) (core.CharID, error) {
+func (r *Rules) Spawn(id rules.MonsterID, _ *rules.RNG) (rules.CharID, error) {
 	c := &Character{}
 	if t := r.tmpl; t != nil && r.tmplID == id {
 		c.Sheet, c.Slots, c.Combat = t.Sheet, t.Slots, t.Combat
@@ -220,7 +220,7 @@ var errNoMonster = errors.New("rules1e: no such monster")
 
 // monster is monster id's records in the rules' ids: the game's race, spell and affect
 // numbers mapped as Import maps a character's (the one way a monster is read).
-func (r *Rules) monster(id core.MonsterID) (Monster, error) {
+func (r *Rules) monster(id rules.MonsterID) (Monster, error) {
 	if r.Monsters == nil {
 		return Monster{}, errNoMonster
 	}
@@ -280,10 +280,10 @@ func (e *RuleState) MakeMonster(c *Character, m Monster) {
 }
 
 // Item: the base table DS:5582 (RuleState.Items).
-func (r *Rules) Item(core.ItemRef) (core.Item, error) { return core.Item{}, ErrNotPorted }
+func (r *Rules) Item(rules.ItemRef) (rules.Item, error) { return rules.Item{}, ErrNotPorted }
 
 // Dismiss is RemoveSelected's rules: id leaves S.Party and is forgotten.
-func (r *Rules) Dismiss(id core.CharID) {
+func (r *Rules) Dismiss(id rules.CharID) {
 	c := r.chars[id]
 	if i := slices.Index(r.S.Party, c); c != nil && i >= 0 {
 		r.S.Party = append(r.S.Party[:i], r.S.Party[i+1:]...) // as RemoveSelected: the tail stays in the backing array
@@ -293,17 +293,17 @@ func (r *Rules) Dismiss(id core.CharID) {
 }
 
 // abilities are core's names of Stats' indexes (StatStr..StatCha).
-var abilities = [6]core.Ability{core.Strength, core.Intelligence, core.Wisdom, core.Dexterity, core.Constitution, core.Charisma}
+var abilities = [6]rules.Ability{rules.Strength, rules.Intelligence, rules.Wisdom, rules.Dexterity, rules.Constitution, rules.Charisma}
 
 // Sheet is a character's facts for the screens: por members
 // (combatflow_engine.go), playfacts.go. AC is as displayed (60 - the record's).
-func (r *Rules) Sheet(id core.CharID) core.Sheet {
+func (r *Rules) Sheet(id rules.CharID) rules.Sheet {
 	c := r.chars[id]
 	if c == nil {
-		return core.Sheet{}
+		return rules.Sheet{}
 	}
-	s := core.Sheet{Name: c.Name(), HP: int32(c.HP), MaxHP: int32(c.MaxHP), AC: 60 - int32(c.AC[0]), RearAC: 60 - int32(c.AC[1]),
-		Exp: int64(int32(c.Exp)), Scores: map[core.Ability]int32{core.StrengthPercent: int32(c.Str00)}}
+	s := rules.Sheet{Name: c.Name(), HP: int32(c.HP), MaxHP: int32(c.MaxHP), AC: 60 - int32(c.AC[0]), RearAC: 60 - int32(c.AC[1]),
+		Exp: int64(int32(c.Exp)), Scores: map[rules.Ability]int32{rules.StrengthPercent: int32(c.Str00)}}
 	for i, a := range abilities {
 		s.Scores[a] = int32(c.Stats[i])
 	}
@@ -316,20 +316,20 @@ func (r *Rules) Sheet(id core.CharID) core.Sheet {
 }
 
 // Draft: por porcreation.go (rules1e.Creation is the creation rules).
-func (r *Rules) Draft() *core.Draft { return nil }
+func (r *Rules) Draft() *rules.Draft { return nil }
 
 // Purse: por purseCoin.
-func (r *Rules) Purse(core.CharID) core.Copper { return 0 }
+func (r *Rules) Purse(rules.CharID) rules.Copper { return 0 }
 
 // Shared: the party inventory (RuleState.Pool).
-func (r *Rules) Shared() []core.Carried { return nil }
+func (r *Rules) Shared() []rules.Carried { return nil }
 
-func (r *Rules) Spell(core.SpellID) (core.Spell, error) { return core.Spell{}, ErrNotPorted }
+func (r *Rules) Spell(rules.SpellID) (rules.Spell, error) { return rules.Spell{}, ErrNotPorted }
 
 // Fact, SetFact: the selected member's words of por's script (SpecialReadZ1,
 // SpecialWriteZ1; por-go scriptvars_engine.go). Values are the record's own
 // numbers; the script's encodings stay with the engine.
-func (r *Rules) Fact(id core.CharID, f core.Fact) (core.Value, error) {
+func (r *Rules) Fact(id rules.CharID, f rules.Fact) (rules.Value, error) {
 	if v, ok, err := r.factItems(id, f); ok {
 		return v, err
 	}
@@ -351,55 +351,55 @@ func (r *Rules) Fact(id core.CharID, f core.Fact) (core.Value, error) {
 	return nil, errNoFact
 }
 
-func (r *Rules) SetFact(id core.CharID, f core.Fact, v core.Value) error {
+func (r *Rules) SetFact(id rules.CharID, f rules.Fact, v rules.Value) error {
 	c := r.chars[id]
 	if c == nil {
 		return errNoChar
 	}
-	if f == core.FactSide {
+	if f == rules.FactSide {
 		switch v {
-		case core.SideParty:
+		case rules.SideParty:
 			c.Side, c.Auto = SideParty, 0
-		case core.SideAuto:
+		case rules.SideAuto:
 			c.Side, c.Auto = SideParty, 1
-		case core.SideMonsters:
+		case rules.SideMonsters:
 			c.Side, c.Auto = SideMonsters, 1
 		default:
 			return errBadValue
 		}
 		return nil
 	}
-	if f == core.FactSideOnly {
+	if f == rules.FactSideOnly {
 		switch v {
-		case core.SideParty:
+		case rules.SideParty:
 			c.Side = SideParty
-		case core.SideMonsters:
+		case rules.SideMonsters:
 			c.Side = SideMonsters
 		default:
 			return errBadValue
 		}
 		return nil
 	}
-	if f, ok := f.(core.MemoFact); ok {
+	if f, ok := f.(rules.MemoFact); ok {
 		return setMemo(r.S.T(), c, f.Slot, v)
 	}
-	if f == core.FactName {
-		t, ok := v.(core.Text)
+	if f == rules.FactName {
+		t, ok := v.(rules.Text)
 		if !ok {
 			return errBadValue
 		}
 		c.SetName(string(t))
 		return nil
 	}
-	n, ok := v.(core.Number)
+	n, ok := v.(rules.Number)
 	if !ok {
 		return errNoFact
 	}
-	if f, ok := f.(core.PiecesFact); ok {
+	if f, ok := f.(rules.PiecesFact); ok {
 		*pursePieces(&r.S.Purse, f.Jewel) = uint64(uint16(n))
 		return nil
 	}
-	if f, ok := f.(core.CoinFact); ok {
+	if f, ok := f.(rules.CoinFact); ok {
 		v, ok := purseCoin(&r.S.Purse, f.Coin)
 		if !ok {
 			return errNoFact
@@ -408,13 +408,13 @@ func (r *Rules) SetFact(id core.CharID, f core.Fact, v core.Value) error {
 		return nil
 	}
 	switch f {
-	case core.FactExpValue:
+	case rules.FactExpValue:
 		c.ExpValue = uint16(n)
-	case core.FactExpPerHP:
+	case rules.FactExpPerHP:
 		c.ExpPerHP = byte(n)
-	case core.FactControl:
+	case rules.FactControl:
 		c.Control = byte(n)
-	case core.FactAlignment: // the record's byte, as a read gives it
+	case rules.FactAlignment: // the record's byte, as a read gives it
 		c.Alignment = byte(n)
 	default:
 		return errNoFact
@@ -423,7 +423,7 @@ func (r *Rules) SetFact(id core.CharID, f core.Fact, v core.Value) error {
 }
 
 // Check: por opCheckParty, opPartyStrength, opPartySurprise.
-func (r *Rules) Check(k core.Check, _ *core.RNG) core.Answer {
+func (r *Rules) Check(k rules.Check, _ *rules.RNG) rules.Answer {
 	if a, ok := r.checkItems(k); ok {
 		return a
 	}
@@ -451,46 +451,46 @@ func (r *Rules) Check(k core.Check, _ *core.RNG) core.Answer {
 // BeginRound = por stepFight's round start (ovr09): the sides counted,
 // every combatant's TurnSetup (initiative, RuleState dice), surprise over.
 // The actor (Who) is whoever the engine selected.
-func (r *Rules) BeginRound(core.Fight, *core.RNG) core.Outcome {
+func (r *Rules) BeginRound(rules.Fight, *rules.RNG) rules.Outcome {
 	r.S.CountSides()
 	for _, c := range r.S.Party {
 		r.S.TurnSetup(c)
 	}
 	r.S.Game.Surprise = 0
-	return core.Outcome{}
+	return rules.Outcome{}
 }
 
 // NextActor = por NextCombatant (ovr09:0131): the highest initiative left,
 // RuleState's dice for the ties (the *core.RNG is not used: coordinator ruling).
-func (r *Rules) NextActor(core.Fight, *core.RNG) (core.CharID, bool) {
+func (r *Rules) NextActor(rules.Fight, *rules.RNG) (rules.CharID, bool) {
 	c := r.S.NextCombatant()
 	if c == nil {
-		return core.NoChar, false
+		return rules.NoChar, false
 	}
 	return r.ID(c), true
 }
 
 // Char is the character id names, nil if none: the Engine's way back from
 // a CharID until it holds ids itself.
-func (r *Rules) Char(id core.CharID) *Character { return r.chars[id] }
+func (r *Rules) Char(id rules.CharID) *Character { return r.chars[id] }
 
 // Decide = por computerTurn: one AutoTurn, the whole turn played by Resolve
 // (the engine fills in its Key).
-func (r *Rules) Decide(core.Fight, core.CharID, *core.RNG) core.Action { return core.AutoTurn{} }
+func (r *Rules) Decide(rules.Fight, rules.CharID, *rules.RNG) rules.Action { return rules.AutoTurn{} }
 
 // EndTurn = por endTurn's rules part: the rule set's TurnEnd (extra).
-func (r *Rules) EndTurn(_ core.Fight, id core.CharID, _ *core.RNG) core.Outcome {
+func (r *Rules) EndTurn(_ rules.Fight, id rules.CharID, _ *rules.RNG) rules.Outcome {
 	if c := r.chars[id]; c != nil {
 		r.S.Rules().TurnEnd(r.S, c)
 	}
-	return core.Outcome{}
+	return rules.Outcome{}
 }
 
 // EndRound = por endRound's rules part (ovr09): a round of the clock,
 // affect group 0x13 and stinking cloud on everyone, the dying a round
 // nearer death (dead after 10), a dying teammate called out (Bandage).
 // The actor (Who) is whoever the engine selected.
-func (r *Rules) EndRound(core.Fight, *core.RNG) core.Outcome {
+func (r *Rules) EndRound(rules.Fight, *rules.RNG) rules.Outcome {
 	s := r.S
 	s.AdvanceClock(1, 1)
 	s.CombatRound++
@@ -505,9 +505,9 @@ func (r *Rules) EndRound(core.Fight, *core.RNG) core.Outcome {
 			}
 		}
 	}
-	var o core.Outcome
+	var o rules.Outcome
 	if s.Bandage(false) {
-		o.Effects = append(o.Effects, core.Narrated{Text: "Your Teammate is Dying"})
+		o.Effects = append(o.Effects, rules.Narrated{Text: "Your Teammate is Dying"})
 	}
 	return o
 }
@@ -515,26 +515,26 @@ func (r *Rules) EndRound(core.Fight, *core.RNG) core.Outcome {
 // Verdict = por sidesCheck (CountSides, 00BA:23DB): the fight is over when a
 // side has nobody standing. A party side down is PartyLost whether its
 // members fell or fled; the engine tells them apart afterwards (AfterCombat).
-func (r *Rules) Verdict(core.Fight) core.Verdict {
+func (r *Rules) Verdict(rules.Fight) rules.Verdict {
 	r.S.CountSides()
 	switch {
 	case r.S.Rv.Side[0] == 0:
-		return core.PartyLost
+		return rules.PartyLost
 	case r.S.Rv.Side[1] == 0:
-		return core.PartyWon
+		return rules.PartyWon
 	}
-	return core.FightOn
+	return rules.FightOn
 }
 
 // setMemo writes memory slot `slot` (SpecialWriteZ1 0x1F..0x70). A core.Number
 // is a byte no typed Memo names (a spell number outside SpellIDs), stored as
 // the original stores it.
-func setMemo(t *Tables, c *Character, slot int, v core.Value) error {
+func setMemo(t *Tables, c *Character, slot int, v rules.Value) error {
 	if slot < 0 || slot >= MemorySlots {
 		return errBadValue
 	}
 	switch v := v.(type) {
-	case core.Memo:
+	case rules.Memo:
 		k := slices.Index(SpellIDs[:], v.Spell)
 		if k < 0 {
 			return errBadValue
@@ -543,7 +543,7 @@ func setMemo(t *Tables, c *Character, slot int, v core.Value) error {
 		if v.Pending {
 			c.Memorized[slot] |= SpellPending
 		}
-	case core.Number: // the game's byte: its number mapped, the flag kept
+	case rules.Number: // the game's byte: its number mapped, the flag kept
 		s := SpellOfByte(byte(v))
 		id, err := t.spellNumber(s.Spell())
 		if err != nil {

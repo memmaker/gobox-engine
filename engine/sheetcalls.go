@@ -2,7 +2,7 @@ package engine
 
 import (
 	"errors"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
@@ -55,14 +55,14 @@ func (e *Engine) viewable() bool {
 	if e.partySize() == 0 || e.snap.invOn || e.view.on && e.inFight() {
 		return false
 	}
-	return !e.inFight() || e.waiting(PendFight) && e.cs.actor != core.NoChar && e.cs.aim == nil
+	return !e.inFight() || e.waiting(PendFight) && e.cs.actor != rules.NoChar && e.cs.aim == nil
 }
 
 // OpenSheet puts member n's (< 0: the selected one; in a fight the one
 // whose turn it is) sheet up.
 func (e *Engine) OpenSheet(n int) error {
 	if !e.viewable() || e.view.on {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	if !e.inFight() {
 		e.actor(n)
@@ -76,7 +76,7 @@ func (e *Engine) OpenSheet(n int) error {
 // under it and goes with it. Without items: "No items" (direct only).
 func (e *Engine) OpenItems(n int, direct bool) error {
 	if !e.viewable() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	if !e.inFight() {
 		e.actor(n)
@@ -84,7 +84,7 @@ func (e *Engine) OpenItems(n int, direct bool) error {
 	if direct && !e.view.on {
 		if e.carryCount(e.selected()) == 0 {
 			e.say("No items")
-			return core.ErrNotNow
+			return rules.ErrNotNow
 		}
 		e.openSheet()
 		e.view.leave = true
@@ -97,7 +97,7 @@ func (e *Engine) OpenItems(n int, direct bool) error {
 // that goes too, and so does one opened under it, direct).
 func (e *Engine) CloseItems(all bool) error {
 	if !e.snap.invOn {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.snap.invOn = false
 	switch {
@@ -114,7 +114,7 @@ func (e *Engine) CloseItems(all bool) error {
 // CloseSheet = the sheet's Exit (the inventory over it goes too).
 func (e *Engine) CloseSheet() error {
 	if !e.view.on {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.closeViews()
 	e.viewClosed()
@@ -153,10 +153,10 @@ func (e *Engine) viewClosed() {
 // fight: the sheet is the fighter's).
 func (e *Engine) ShowMember(n int) error {
 	if !e.view.on && !e.snap.invOn || n < 0 || n >= e.partySize() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
-	if e.inFight() && (e.cs.actor == core.NoChar || e.partyIDs()[n] != e.cs.actor) { // a fight: only the member whose turn it is (BUG-CLASSES 40)
-		return core.ErrNotNow
+	if e.inFight() && (e.cs.actor == rules.NoChar || e.partyIDs()[n] != e.cs.actor) { // a fight: only the member whose turn it is (BUG-CLASSES 40)
+		return rules.ErrNotNow
 	}
 	e.selectMember(n)
 	if e.snap.invOn {
@@ -169,86 +169,86 @@ func (e *Engine) ShowMember(n int) error {
 
 // carriedBy is h when it is one of the selected member's items with the
 // inventory up (NoItem: not).
-func (e *Engine) carriedBy(h core.ItemHandle) (core.CharID, core.ItemHandle) {
+func (e *Engine) carriedBy(h rules.ItemHandle) (rules.CharID, rules.ItemHandle) {
 	id := e.selected()
 	if !e.snap.invOn || !slices.Contains(e.listedItems(id), h) {
-		return id, core.NoItem
+		return id, rules.NoItem
 	}
 	return id, h
 }
 
 // Ready readies or unreadies item h (x of the stack, 0: all of it).
-func (e *Engine) Ready(h core.ItemHandle, x int) error {
+func (e *Engine) Ready(h rules.ItemHandle, x int) error {
 	cID, h := e.carriedBy(h)
-	if h == core.NoItem {
-		return core.ErrNotNow
+	if h == rules.NoItem {
+		return rules.ErrNotNow
 	}
-	if _, err := e.ruleset().Resolve(nil, core.Ready{Who: cID, Item: h, Count: int32(x)}, nil); err != nil {
+	if _, err := e.ruleset().Resolve(nil, rules.Ready{Who: cID, Item: h, Count: int32(x)}, nil); err != nil {
 		return err
 	}
 	if t := e.snap.turn; t != nil && cID == e.cs.actor { // the turn's weapon follows (BUG-CLASSES 40), as turnChoices sets it
 		t.Weapon = nil
-		if w := e.weapon(cID); w != core.NoItem {
+		if w := e.weapon(cID); w != rules.NoItem {
 			t.Weapon = e.invItem(cID, w)
-			t.Weapon.Rules = []string(e.fact(cID, core.WeaponRulesFact{}).(core.Lines))
+			t.Weapon.Rules = []string(e.fact(cID, rules.WeaponRulesFact{}).(rules.Lines))
 		}
 	}
 	return nil
 }
 
 // Unready unreadies item h, refused when it is not readied.
-func (e *Engine) Unready(h core.ItemHandle) error {
-	if id, h := e.carriedBy(h); h != core.NoItem && !e.itemCard(id, h).Readied {
+func (e *Engine) Unready(h rules.ItemHandle) error {
+	if id, h := e.carriedBy(h); h != rules.NoItem && !e.itemCard(id, h).Readied {
 		return errors.New("not readied")
 	}
 	return e.Ready(h, 0)
 }
 
 // drop drops item h (the front asked ovr20's "drop It?").
-func (e *Engine) drop(h core.ItemHandle) error {
+func (e *Engine) drop(h rules.ItemHandle) error {
 	cID, h := e.carriedBy(h)
-	if h == core.NoItem {
-		return core.ErrNotNow
+	if h == rules.NoItem {
+		return rules.ErrNotNow
 	}
 	if e.vault != nil { // Deposit: the item stays in the vault (pod's dropItem)
-		_, err := e.ruleset().Resolve(nil, core.DepositItem{Who: cID, Item: h}, nil)
+		_, err := e.ruleset().Resolve(nil, rules.DepositItem{Who: cID, Item: h}, nil)
 		return err
 	}
-	_, err := e.ruleset().Resolve(nil, core.DropItem{Who: cID, Item: h}, nil)
+	_, err := e.ruleset().Resolve(nil, rules.DropItem{Who: cID, Item: h}, nil)
 	return err
 }
 
 // sell sells item h where the inventory sells (the shop's; confirmed).
-func (e *Engine) sell(h core.ItemHandle) error {
+func (e *Engine) sell(h rules.ItemHandle) error {
 	cID, h := e.carriedBy(h)
-	if h == core.NoItem || !e.inventoryView(cID).Sell {
-		return core.ErrNotNow
+	if h == rules.NoItem || !e.inventoryView(cID).Sell {
+		return rules.ErrNotNow
 	}
-	o, err := e.ruleset().Resolve(nil, core.Sell{Who: cID, Item: h}, nil)
+	o, err := e.ruleset().Resolve(nil, rules.Sell{Who: cID, Item: h}, nil)
 	e.traded(o, "Sold!")
 	return err
 }
 
 // Buy buys ware h of the shop's (Inventory.Wares).
-func (e *Engine) Buy(h core.ItemHandle) error {
+func (e *Engine) Buy(h rules.ItemHandle) error {
 	if !e.snap.invOn || !e.snap.shop || !slices.Contains(e.goods(), h) {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
-	card := e.itemCard(core.NoChar, h)
-	o, err := e.ruleset().Resolve(nil, core.Buy{Who: e.selected(), Item: h, Price: e.shopPrice(card.Price, card.Count)}, nil)
+	card := e.itemCard(rules.NoChar, h)
+	o, err := e.ruleset().Resolve(nil, rules.Buy{Who: e.selected(), Item: h, Price: e.shopPrice(card.Price, card.Count)}, nil)
 	e.traded(o, "Bought!")
 	return err
 }
 
 // traded says done when the trade went through (core.Traded), or the
 // refusal of a purse that could not pay.
-func (e *Engine) traded(o core.Outcome, done string) {
+func (e *Engine) traded(o rules.Outcome, done string) {
 	for _, f := range o.Effects {
 		switch f := f.(type) {
-		case core.Traded:
+		case rules.Traded:
 			e.say(done)
-		case core.Refused:
-			if f.Why == core.NoMoney {
+		case rules.Refused:
+			if f.Why == rules.NoMoney {
 				e.refuse("Not enough Money.")
 			}
 		}
@@ -259,36 +259,36 @@ func (e *Engine) traded(o core.Outcome, done string) {
 // (+0x3D, charges +0x3C). spell, target, sure are the picks it asked
 // for (a scroll's spell; the target and the yes/no as UsePower). In a fight the inventory and the sheet close, the spell aims
 // (a phase of the turn) and a use ends the turn.
-func (e *Engine) UseItem(h core.ItemHandle, spell, target int, sure bool) error {
+func (e *Engine) UseItem(h rules.ItemHandle, spell, target int, sure bool) error {
 	cID, h := e.carriedBy(h)
-	uses := e.ruleset().Allowed(core.UsingItem{Who: cID, Item: h}).Offers
+	uses := e.ruleset().Allowed(rules.UsingItem{Who: cID, Item: h}).Offers
 	if len(uses) == 1 && uses[0].Not != "" {
 		e.refuse(uses[0].Not)
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	if len(uses) == 0 {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	p := pendingCall{kind: callItem, member: e.sel, item: h, spell: spell, target: target}
-	own := uses[0].Action.(core.UseItem).Spell == ""
+	own := uses[0].Action.(rules.UseItem).Spell == ""
 	if own {
 		spell = int(e.itemCard(cID, h).Casts)
-	} else if !slices.ContainsFunc(uses, func(o core.Offer) bool { return o.Action.(core.UseItem).Spell == e.spellID(spell) }) {
+	} else if !slices.ContainsFunc(uses, func(o rules.Offer) bool { return o.Action.(rules.UseItem).Spell == e.spellID(spell) }) {
 		spells := make([]Spell, len(uses))
 		for k, o := range uses {
-			spells[k] = Spell{ID: e.spellNumber(o.Action.(core.UseItem).Spell), Name: o.Name}
+			spells[k] = Spell{ID: e.spellNumber(o.Action.(rules.UseItem).Spell), Name: o.Name}
 		}
 		return e.askSpell(spells, p)
 	}
 	s := byte(spell)
 	if !e.inFight() {
-		e.do(core.StopUsingItem{})
+		e.do(rules.StopUsingItem{})
 		p.spell = spell
 		yes, on, err := e.castAsk(int(s), true, target, sure, p)
 		if err != nil {
 			return err
 		}
-		u := core.UseItem{User: cID, Item: h, Target: on, Sure: yes}
+		u := rules.UseItem{User: cID, Item: h, Target: on, Sure: yes}
 		if !own {
 			u.Spell = e.spellID(spell)
 		}
@@ -298,7 +298,7 @@ func (e *Engine) UseItem(h core.ItemHandle, spell, target int, sure bool) error 
 	}
 	e.closeViews() // the turn goes on once, after the aim (turnOn below)
 	run := castWhat{kind: cwItem, c: cID, n: spell, it: h, own: own}
-	if e.fact(cID, core.FactSide).(core.Side) == core.SideParty { // castAsk: the aims first
+	if e.fact(cID, rules.FactSide).(rules.Side) == rules.SideParty { // castAsk: the aims first
 		e.aimSpell(cID, int(s), run)
 	} else {
 		e.castRun(run, nil)
@@ -316,9 +316,9 @@ func (e *Engine) uncovered() {
 	switch {
 	case e.stateRedraw():
 	case e.waiting(PendFight):
-		if e.cs.actor != core.NoChar {
-			e.setWorldWord(core.WordWho, e.sel)
-			e.do(core.SetSpeed{Who: e.cs.actor})
+		if e.cs.actor != rules.NoChar {
+			e.setWorldWord(rules.WordWho, e.sel)
+			e.do(rules.SetSpeed{Who: e.cs.actor})
 		}
 		e.turnOn()
 	case e.top() == onWait:

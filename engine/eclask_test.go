@@ -1,9 +1,8 @@
 package engine
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl/script"
+	"gobox/rules"
 	"slices"
 	"testing"
 
@@ -49,7 +48,7 @@ func TestScriptAsks(t *testing.T) {
 		t.Fatalf("number %d", e.host.Get(v))
 	}
 
-	e.askMember("WHO?", core.NoChar, askDone{kind: dWho})
+	e.askMember("WHO?", rules.NoChar, askDone{kind: dWho})
 	if !answer(e, play.Reply{N: 1}) || e.member(e.selected()) != e.state().Party[1] {
 		t.Fatal("the member pick did not take member 2")
 	}
@@ -156,7 +155,7 @@ func TestScriptExitHints(t *testing.T) {
 			for _, r := range rows {
 				menu += "~" + r + " "
 			}
-			if _, ids := hotMenu("", goldbox.Cut(menu, 0x32)); slices.Index(ids, row) < 0 {
+			if _, ids := hotMenu("", rules.Cut(menu, 0x32)); slices.Index(ids, row) < 0 {
 				t.Errorf("area %d command %d: %q has no key of its own in %q", area, i, rows[row], rows)
 			}
 		}

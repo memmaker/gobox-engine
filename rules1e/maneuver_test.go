@@ -2,7 +2,7 @@ package rules1e
 
 import (
 	"errors"
-	"gobox/core"
+	"gobox/rules"
 	"testing"
 )
 
@@ -15,7 +15,7 @@ type moveRules struct {
 type useCall struct {
 	id    int
 	t     *Character
-	aimed core.BoardPos
+	aimed rules.BoardPos
 }
 
 const (
@@ -44,32 +44,32 @@ func TestManeuverAims(t *testing.T) {
 	r := &Rules{S: s}
 	c, foe, ally := &Character{}, &Character{}, &Character{}
 	c.Side, foe.Side, ally.Side = SideParty, SideMonsters, SideParty
-	f := core.Fight{Actor: r.ID(c)}
-	do := func(a core.Maneuver) (core.Outcome, error) { return r.Resolve(f, a, nil) }
+	f := rules.Fight{Actor: r.ID(c)}
+	do := func(a rules.Maneuver) (rules.Outcome, error) { return r.Resolve(f, a, nil) }
 
-	to := core.BoardPos{X: 4, Y: 5}
-	if o, err := do(core.Maneuver{ID: mvWeapon, Ats: []core.BoardPos{to}}); err != nil || o.TurnOver {
+	to := rules.BoardPos{X: 4, Y: 5}
+	if o, err := do(rules.Maneuver{ID: mvWeapon, Ats: []rules.BoardPos{to}}); err != nil || o.TurnOver {
 		t.Fatalf("move: %v %+v", err, o)
 	}
-	if len(used) != 1 || used[0].aimed != to || s.Fight.Armed != (Armed{C: c, ID: mvWeapon}) || s.Aimed() != (core.BoardPos{X: -1, Y: -1}) {
+	if len(used) != 1 || used[0].aimed != to || s.Fight.Armed != (Armed{C: c, ID: mvWeapon}) || s.Aimed() != (rules.BoardPos{X: -1, Y: -1}) {
 		t.Fatalf("move: used %+v armed %+v aimed %v", used, s.Fight.Armed, s.Aimed())
 	}
-	if _, err := do(core.Maneuver{ID: mvWeapon, Cancel: true}); err != nil || s.Fight.Armed != (Armed{}) || len(used) != 1 {
+	if _, err := do(rules.Maneuver{ID: mvWeapon, Cancel: true}); err != nil || s.Fight.Armed != (Armed{}) || len(used) != 1 {
 		t.Fatalf("cancel: %v armed %+v used %d", err, s.Fight.Armed, len(used))
 	}
 
-	at := core.BoardPos{X: 7, Y: 2}
-	if o, err := do(core.Maneuver{ID: mvArea, Ats: []core.BoardPos{at}}); err != nil || !o.TurnOver || used[1].aimed != at || used[1].t != nil {
+	at := rules.BoardPos{X: 7, Y: 2}
+	if o, err := do(rules.Maneuver{ID: mvArea, Ats: []rules.BoardPos{at}}); err != nil || !o.TurnOver || used[1].aimed != at || used[1].t != nil {
 		t.Fatalf("area: %v %+v %+v", err, o, used)
 	}
 
-	if _, err := do(core.Maneuver{ID: mvFoe, Target: r.ID(ally)}); !errors.Is(err, ErrNotNow) || len(used) != 2 {
+	if _, err := do(rules.Maneuver{ID: mvFoe, Target: r.ID(ally)}); !errors.Is(err, ErrNotNow) || len(used) != 2 {
 		t.Fatalf("ally as a foe: %v, used %d", err, len(used))
 	}
-	if o, err := do(core.Maneuver{ID: mvFoe, Target: r.ID(foe)}); err != nil || !o.TurnOver || used[2].t != foe {
+	if o, err := do(rules.Maneuver{ID: mvFoe, Target: r.ID(foe)}); err != nil || !o.TurnOver || used[2].t != foe {
 		t.Fatalf("foe: %v %+v %+v", err, o, used)
 	}
-	if _, err := do(core.Maneuver{ID: 99}); !errors.Is(err, ErrNotNow) {
+	if _, err := do(rules.Maneuver{ID: 99}); !errors.Is(err, ErrNotNow) {
 		t.Fatalf("unknown maneuver: %v", err)
 	}
 }

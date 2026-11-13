@@ -2,14 +2,14 @@ package importsotsb
 
 import (
 	"gobox/char"
-	"gobox/core"
 	"gobox/engine"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
 // races is the race of each race row of the game's tables ("": the
 // placeholder row 0).
-var races = [...]core.Race{"", rules1e.CoreRaceElf, rules1e.CoreRaceHalfElf, rules1e.CoreRaceDwarf, rules1e.CoreRaceGnome, rules1e.CoreRaceHalfling, rules1e.CoreRaceHuman, rules1e.CoreRaceMonster}
+var races = [...]rules.Race{"", rules1e.CoreRaceElf, rules1e.CoreRaceHalfElf, rules1e.CoreRaceDwarf, rules1e.CoreRaceGnome, rules1e.CoreRaceHalfling, rules1e.CoreRaceHuman, rules1e.CoreRaceMonster}
 
 // Layout1e is the shape of this game's tables (the imported data/rules.json's
 // flat slot tables, the race rows), written as data/layout.json.
@@ -19,13 +19,13 @@ var Layout1e = rules1e.Layout{SlotStride: spellLevels, Races: races[:]}
 // the second engine's dialect, an NPC loads its combat icon, the duel sounds
 // (callSound); the portrait tables stay empty.
 var GameTables = engine.GameTables{
-	Dialect:    core.DialectCOTAB,
+	Dialect:    rules.DialectCOTAB,
 	AddNPCIcon: true,
 	ScriptSounds: map[byte]engine.ScriptSound{
-		soundDuelA: {Cue: core.CueStep},
-		soundDuelB: {Cue: core.CueFireball},
+		soundDuelA: {Cue: rules.CueStep},
+		soundDuelB: {Cue: rules.CueFireball},
 	},
-	DefaultSound: &engine.ScriptSound{Cue: core.CueStep}, // callSound's default
+	DefaultSound: &engine.ScriptSound{Cue: rules.CueStep}, // callSound's default
 	ScriptFixes:  journalFixes,
 	OriginalSave: OriginalSave,
 	MonsterSet:   1, // LoadCreatureData's MON1, LoadIconAnim's CPIC1

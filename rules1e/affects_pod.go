@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"strconv"
 )
 
@@ -107,7 +107,7 @@ func (e *RuleState) weaponSequencePod(c *Character, a *Affect, flag byte) {
 	}
 	w := weaponSequencePodWeapons[blow-1]
 	e.Rv.Damage = int16(int(strDamage(c)) + e.Dice(w.dice, w.sides) + sequencePlusPod)
-	e.Emit(core.Narrated{Text: w.name + "+" + strconv.Itoa(sequencePlusPod), More: true})
+	e.Emit(rules.Narrated{Text: w.name + "+" + strconv.Itoa(sequencePlusPod), More: true})
 }
 
 // acStepPod is the armour class dancing costs and iron skin gives (O07C:30DF,

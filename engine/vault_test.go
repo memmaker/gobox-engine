@@ -3,10 +3,10 @@ package engine
 import (
 	"encoding/binary"
 	"gobox/char"
-	"gobox/core"
 	"gobox/game/play"
-	"os"
+	"gobox/rules"
 	"gobox/rules1e"
+	"os"
 	"slices"
 	"testing"
 )
@@ -39,14 +39,14 @@ func TestVault(t *testing.T) {
 	if _, err := e.doNow(play.Take{Item: e.goods()[0]}); err != nil {
 		t.Fatal(err)
 	}
-	mine := core.NoItem
+	mine := rules.NoItem
 	for _, h := range e.listedItems(e.selected()) {
 		if !e.itemCard(e.selected(), h).Readied {
 			mine = h
 			break
 		}
 	}
-	if mine == core.NoItem {
+	if mine == rules.NoItem {
 		t.Fatal("the member has no unreadied item to deposit")
 	}
 	if !slices.ContainsFunc(play.CommonOf(e.build()).Allowed.Plain, func(a play.Action) bool { _, ok := a.(play.Drop); return ok }) {
@@ -82,7 +82,7 @@ func TestVault(t *testing.T) {
 	e.push(cont{kind: kNop})
 	e.Start(e.Vault) // reopened: the money is still there, and Take banks it
 	seeLoot(t, e)
-	if _, err := e.doNow(play.Take{Item: core.NoItem}); err != nil {
+	if _, err := e.doNow(play.Take{Item: rules.NoItem}); err != nil {
 		t.Fatal(err)
 	}
 	if st.Purse.Gold <= gold {

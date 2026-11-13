@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core"
+import "gobox/rules"
 
 // Item Look (extra): the shop's Look shows what an item does under the
 // game's rules, read from its base record (DS:5582 + 16*type) and the
@@ -55,8 +55,8 @@ func (e *RuleState) ReadiedLike(c *Character, it *Item) *Item {
 	if it.Readied != 0 || s < 0 {
 		return nil
 	}
-	if s == core.DollArrows && e.Base(it.Type).Usage&0x14 == 0x14 {
-		s = core.DollWeapon
+	if s == rules.DollArrows && e.Base(it.Type).Usage&0x14 == 0x14 {
+		s = rules.DollWeapon
 	}
 	for _, o := range c.Items {
 		if o.Readied != 0 && o != it && e.DollSlot(c, o) == s {

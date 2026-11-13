@@ -1,6 +1,6 @@
 package front
 
-import "gobox/core"
+import "gobox/rules"
 
 // Actions: the remastered screens act on the game through typed actions
 // instead of keys; the game publishes what each screen shows and takes the
@@ -135,7 +135,7 @@ const (
 type Action struct {
 	Kind ActKind
 	N    int
-	Item core.ItemHandle // the item of an item act (ActReady, ActUse, ActDrop, ActSell, ActBuy, ActTrade, ActHalve, ActJoin, ActReload)
-	X, Y int             // a combat map square, a text cell (ActSpot)
-	Text string          // ActText
+	Item rules.ItemHandle // the item of an item act (ActReady, ActUse, ActDrop, ActSell, ActBuy, ActTrade, ActHalve, ActJoin, ActReload)
+	X, Y int              // a combat map square, a text cell (ActSpot)
+	Text string           // ActText
 }

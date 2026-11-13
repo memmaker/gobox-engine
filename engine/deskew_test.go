@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"image"
 	"testing"
 )
@@ -17,8 +17,8 @@ func TestDeskewGrid(t *testing.T) {
 	}
 	e.gs.geo.Plane[0x300+8*16+8] = 1 << 6 // cell (8,8): its west side a door
 	e.posX, e.posY = 8, 8
-	e.ruleset().BeginFight(core.Fight{Board: core.Board{Straight: true}, Terms: core.FightTerms{PartyAt: image.Pt(8, 8)}}, nil)
-	if _, err := e.ruleset().Resolve(core.Fight{}, core.BuildGround{Walls: e.gmap(), Dungeon: true}, nil); err != nil {
+	e.ruleset().BeginFight(rules.Fight{Board: rules.Board{Straight: true}, Terms: rules.FightTerms{PartyAt: image.Pt(8, 8)}}, nil)
+	if _, err := e.ruleset().Resolve(rules.Fight{}, rules.BuildGround{Walls: e.gmap(), Dungeon: true}, nil); err != nil {
 		t.Fatal(err)
 	}
 	for y := range 25 {

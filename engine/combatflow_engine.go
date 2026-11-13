@@ -2,8 +2,8 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
 	"gobox/game/play"
+	"gobox/rules"
 	"slices"
 	"strconv"
 )
@@ -17,15 +17,15 @@ func (e *Engine) event(ev play.Event) {
 // pushCombat = Combat (ovr09:007A): set up the battle, then rounds until
 // one side is down (or the party stops fighting), a timed screen.
 func (e *Engine) pushCombat() {
-	e.setWorldWord(core.WordBeginFlag, 5)
+	e.setWorldWord(rules.WordBeginFlag, 5)
 	e.present() // what the last fight left
-	e.ext.battleLog, e.ext.panel = nil, core.NoChar
+	e.ext.battleLog, e.ext.panel = nil, rules.NoChar
 	e.cs = combatState{}
 	e.combatSetup()
 	if f, ok := e.build().(play.Fighting); ok { // the board before the first turn: the step's fight events play from it
 		e.event(play.Engaged{At: f})
 	}
-	if e.ruleset().Verdict(core.Fight{}) != core.FightOn {
+	if e.ruleset().Verdict(rules.Fight{}) != rules.FightOn {
 		e.cs.phase = fightOver
 	}
 	e.wait(PendFight)
@@ -36,8 +36,8 @@ func (e *Engine) pushCombat() {
 // the script goes on.
 func (e *Engine) CombatStep() error {
 	e.takeSettings()
-	if !e.waiting(PendFight) || e.cs.actor != core.NoChar {
-		return core.ErrNotNow
+	if !e.waiting(PendFight) || e.cs.actor != rules.NoChar {
+		return rules.ErrNotNow
 	}
 	if e.stepFight() {
 		e.resume()
@@ -54,17 +54,17 @@ func (e *Engine) stepFight() bool {
 			return true
 		case fightRound:
 			e.as(e.sel) // the round's actor
-			e.ruleset().BeginRound(core.Fight{}, nil)
+			e.ruleset().BeginRound(rules.Fight{}, nil)
 			e.cs.phase = fightTurn
 		case fightTurn:
-			id, ok := e.ruleset().NextActor(core.Fight{}, nil)
+			id, ok := e.ruleset().NextActor(rules.Fight{}, nil)
 			if !ok {
 				e.cs.phase = fightEnd
 				continue
 			}
 			m := e.ext.opened
 			if !e.takeTurn(id) {
-				e.ruleset().EndTurn(core.Fight{}, id, nil)
+				e.ruleset().EndTurn(rules.Fight{}, id, nil)
 				e.sidesCheck()
 				continue
 			}
@@ -77,7 +77,7 @@ func (e *Engine) stepFight() bool {
 		case fightEnd:
 			e.cs.phase = fightRound
 			if e.endRound() {
-				if e.ruleset().Verdict(core.Fight{}) == core.PartyWon { // ovr09:0971: the foes gone, "Continue Battle:" (Yes plays on)
+				if e.ruleset().Verdict(rules.Fight{}) == rules.PartyWon { // ovr09:0971: the foes gone, "Continue Battle:" (Yes plays on)
 					e.cs.phase = fightAsk
 					e.askYesNo(yesNo("Continue Battle:", true), false, askDone{kind: dContinueFight}) // ovr09:099E asks through ovr26:10D1, Y/N only
 					e.openAsk()
@@ -93,15 +93,15 @@ func (e *Engine) stepFight() bool {
 }
 
 // endTurn = takeTurn's end: the cursor off; the last one down ends the round.
-func (e *Engine) endTurn(cID core.CharID) {
-	e.ruleset().EndTurn(core.Fight{}, cID, nil) // extra: the rule set's
+func (e *Engine) endTurn(cID rules.CharID) {
+	e.ruleset().EndTurn(rules.Fight{}, cID, nil) // extra: the rule set's
 	e.eraseCursor(e.at(cID).X, e.at(cID).Y)
 	e.sidesCheck()
 }
 
 // sidesCheck: extra: the last one down ends the battle at once (the round ends).
 func (e *Engine) sidesCheck() {
-	if e.ruleset().Verdict(core.Fight{}) != core.FightOn {
+	if e.ruleset().Verdict(rules.Fight{}) != rules.FightOn {
 		e.cs.phase = fightEnd
 	}
 }
@@ -119,7 +119,7 @@ func (e *Engine) resumed() bool {
 	case rClear:
 		return r.ok && e.clearCombat(r.c)
 	case rFlee:
-		return e.turnVerb(r.c, core.Confirmed{Action: core.Flee{}})
+		return e.turnVerb(r.c, rules.Confirmed{Action: rules.Flee{}})
 	}
 	return false
 }
@@ -130,8 +130,8 @@ func (e *Engine) resumed() bool {
 // the same call asked (cs.ask, turnActs makes it the pending one).
 func (e *Engine) TurnChoice(a TurnAct, sure bool) error {
 	c := e.cs.actor
-	if !e.waiting(PendFight) || c == core.NoChar {
-		return core.ErrNotNow
+	if !e.waiting(PendFight) || c == rules.NoChar {
+		return rules.ErrNotNow
 	}
 	e.cs.sure = sure
 	defer func() { e.cs.sure = false }()
@@ -171,7 +171,7 @@ func (e *Engine) turnDone() {
 // (the inventory, the sheet) going: its menu again, or its end.
 func (e *Engine) turnOn() {
 	c := e.cs.actor
-	if c == core.NoChar || e.cs.aim != nil || e.cs.choice != nil || e.top() != onWait {
+	if c == rules.NoChar || e.cs.aim != nil || e.cs.choice != nil || e.top() != onWait {
 		return
 	}
 	if t := e.cs.turn; t != nil {
@@ -182,7 +182,7 @@ func (e *Engine) turnOn() {
 			return
 		}
 	}
-	e.cs.actor = core.NoChar
+	e.cs.actor = rules.NoChar
 	e.endTurn(c)
 }
 
@@ -190,18 +190,18 @@ func (e *Engine) turnOn() {
 // the player aiming) before cast casts it, which then takes them in order:
 // the rules run straight through, in the same order and with the same
 // dice as when they asked in the middle.
-func (e *Engine) aimSpell(cID core.CharID, spell int, cast castWhat) {
-	aim := e.fact(cID, core.SpellAimFact{Spell: e.spellID(spell)}).(core.SpellAim)
-	if aim.Kind == core.SpellAimNone {
+func (e *Engine) aimSpell(cID rules.CharID, spell int, cast castWhat) {
+	aim := e.fact(cID, rules.SpellAimFact{Spell: e.spellID(spell)}).(rules.SpellAim)
+	if aim.Kind == rules.SpellAimNone {
 		e.castRun(cast, nil)
 		return
 	}
 	sa := &spellAim{c: cID, spell: spell, cast: cast, kind: aim.Kind, aoe: max(1, aim.Area)}
 	e.cs.sa = sa
 	switch aim.Kind {
-	case core.SpellAimOne:
+	case rules.SpellAimOne:
 		e.aimOne(0)
-	case core.SpellAimArea:
+	case rules.SpellAimArea:
 		e.aimOne(1)
 	default: // up to Targets different targets, as chooseSpellTargets' loop
 		sa.left = aim.Targets
@@ -214,7 +214,7 @@ func (e *Engine) aimOne(allowGround int) {
 	sa := e.cs.sa
 	e.ext.aoe, e.ext.aoeSpell = sa.aoe, sa.spell // the area preview, as chooseSpellTargets shows it
 	e.as(e.sel)
-	aim := e.fact(sa.c, core.SpellAimFact{Spell: e.spellID(sa.spell)}).(core.SpellAim)
+	aim := e.fact(sa.c, rules.SpellAimFact{Spell: e.spellID(sa.spell)}).(rules.SpellAim)
 	e.ext.enemiesOnly = aim.FoesOnly
 	e.playerAim(sa.c, aim.Range, 0, allowGround, aimThen{kind: atSpell})
 }
@@ -239,9 +239,9 @@ func (e *Engine) aimsDone() {
 func (e *Engine) aimSpellTaken(found bool, t aimTarget) {
 	sa := e.cs.sa
 	e.ext.aoe, e.ext.aoeSpell, e.ext.enemiesOnly = 0, 0, false
-	sa.aims = append(sa.aims, core.Aim{Found: found, Target: t.C, At: t.At})
+	sa.aims = append(sa.aims, rules.Aim{Found: found, Target: t.C, At: t.At})
 	switch {
-	case sa.kind == core.SpellAimOne, sa.kind == core.SpellAimArea:
+	case sa.kind == rules.SpellAimOne, sa.kind == rules.SpellAimArea:
 		e.aimsDone()
 		return
 	case !found:
@@ -256,29 +256,29 @@ func (e *Engine) aimSpellTaken(found bool, t aimTarget) {
 }
 
 // castRun is the cast an aim led to, through core.Rules Resolve(Cast/UseItem).
-func (e *Engine) castRun(w castWhat, aims []core.Aim) {
+func (e *Engine) castRun(w castWhat, aims []rules.Aim) {
 	if w.kind != cwItem && !w.chosen {
-		if aim := e.fact(w.c, core.SpellAimFact{Spell: e.spellID(w.n)}).(core.SpellAim); aim.Choose != "" && (w.kind == cwInfo || aim.Now) {
+		if aim := e.fact(w.c, rules.SpellAimFact{Spell: e.spellID(w.n)}).(rules.SpellAim); aim.Choose != "" && (w.kind == cwInfo || aim.Now) {
 			e.askCastChoice(w, aims, aim)
 			return
 		}
 	}
-	var a core.Action
+	var a rules.Action
 	switch w.kind {
 	case cwInfo, cwTurn:
-		a = core.Cast{Caster: w.c, Spell: e.spellID(w.n), Aims: aims, Begun: w.kind == cwInfo, Choice: w.choice}
+		a = rules.Cast{Caster: w.c, Spell: e.spellID(w.n), Aims: aims, Begun: w.kind == cwInfo, Choice: w.choice}
 	case cwItem:
-		if !e.fact(w.c, core.FightCardFact{}).(core.FightCard).Auto {
+		if !e.fact(w.c, rules.FightCardFact{}).(rules.FightCard).Auto {
 			e.combatUseHook() // 00BA:2B88: the player's use goes back to the combat map
 		}
-		u := core.UseItem{User: w.c, Item: w.it, Aims: aims}
+		u := rules.UseItem{User: w.c, Item: w.it, Aims: aims}
 		if !w.own {
 			u.Spell = e.spellID(w.n)
 		}
 		a = u
 	}
 	e.as(e.sel)
-	out, err := e.ruleset().Resolve(core.Fight{Actor: w.c}, a, nil)
+	out, err := e.ruleset().Resolve(rules.Fight{Actor: w.c}, a, nil)
 	if err != nil {
 		panic(fmt.Sprintf("cast %T: %v", a, err))
 	}
@@ -289,7 +289,7 @@ func (e *Engine) castRun(w castWhat, aims []core.Aim) {
 
 // askCastChoice puts the spell's own question up (the pending one, which
 // must be answered); its reply casts w (castChosen).
-func (e *Engine) askCastChoice(w castWhat, aims []core.Aim, aim core.SpellAim) {
+func (e *Engine) askCastChoice(w castWhat, aims []rules.Aim, aim rules.SpellAim) {
 	e.cs.choice = &castChoice{w: w, aims: aims}
 	pq := &playQuestion{q: play.Question{Text: aim.Choose, Replies: aim.Choices, NoEsc: true}}
 	for i := range aim.Choices {
@@ -333,7 +333,7 @@ func (e *Engine) members() []Member {
 	var out []Member
 	sel := e.rosterSel() // a member pick shows its candidate
 	for i, id := range e.partyIDs() {
-		card := e.fact(id, core.MemberCardFact{}).(core.MemberCard)
+		card := e.fact(id, rules.MemberCardFact{}).(rules.MemberCard)
 		if !card.Party { // the monsters loaded for a fight sit on the same list: no cards for them
 			continue
 		}
@@ -401,21 +401,21 @@ const (
 // combatState is the fight's own state: where in the round it is and whose
 // turn has screens up.
 type combatState struct {
-	phase  fightPhase  // what the next frame does
-	actor  core.CharID // the member whose turn is on (it ends when its turn and aim are done)
-	turn   *turnState  // the player's turn menu waits (TurnChoice)
-	aim    *aimRun     // the player aims (playerAim; TurnChoice's verbPoint, verbAim, verbClose)
-	sure   bool        // the call is sure: the question it asked (ask) is answered Yes
-	ask    string      // the yes/no question the turn call asked (Flee:, Attack Ally?): turnActs makes it the pending one
-	resume resume      // what a choice left for the turn (later)
-	sa     *spellAim   // the aims a spell takes before it is cast (aimSpell)
-	choice *castChoice // a spell's own question is up (askCastChoice): the cast and the turn wait for its reply
+	phase  fightPhase   // what the next frame does
+	actor  rules.CharID // the member whose turn is on (it ends when its turn and aim are done)
+	turn   *turnState   // the player's turn menu waits (TurnChoice)
+	aim    *aimRun      // the player aims (playerAim; TurnChoice's verbPoint, verbAim, verbClose)
+	sure   bool         // the call is sure: the question it asked (ask) is answered Yes
+	ask    string       // the yes/no question the turn call asked (Flee:, Attack Ally?): turnActs makes it the pending one
+	resume resume       // what a choice left for the turn (later)
+	sa     *spellAim    // the aims a spell takes before it is cast (aimSpell)
+	choice *castChoice  // a spell's own question is up (askCastChoice): the cast and the turn wait for its reply
 }
 
 // castChoice is a cast waiting for the reply to its spell's question.
 type castChoice struct {
 	w    castWhat
-	aims []core.Aim
+	aims []rules.Aim
 }
 
 type fightPhase int
@@ -426,20 +426,20 @@ type fightPhase int
 type resume struct {
 	kind resumeKind
 	ok   bool
-	c    core.CharID
+	c    rules.CharID
 }
 
 type resumeKind byte
 
 // turnState is the player's turn menu: where the walk up to each foe ends.
-type turnState struct{ walks map[int]core.BoardPos }
+type turnState struct{ walks map[int]rules.BoardPos }
 
 // castWhat is the cast an aim leads to.
 type castWhat struct {
 	kind castKind
-	c    core.CharID
-	n    int             // the spell (cwInfo, cwTurn) or the scroll's spell byte (cwItem)
-	it   core.ItemHandle // cwItem
+	c    rules.CharID
+	n    int              // the spell (cwInfo, cwTurn) or the scroll's spell byte (cwItem)
+	it   rules.ItemHandle // cwItem
 	own  bool
 	// chosen: the spell's own question (SpellAim.Choose) is answered, choice
 	// the reply's index.
@@ -451,22 +451,22 @@ type castKind byte
 
 // spellAim is aimSpell's state while the player aims: the aims taken so far.
 type spellAim struct {
-	c      core.CharID
+	c      rules.CharID
 	spell  int
 	cast   castWhat
-	kind   core.SpellAimKind
+	kind   rules.SpellAimKind
 	aoe    int
-	aims   []core.Aim
+	aims   []rules.Aim
 	left   int // targets still to aim (kinds up to 8)
-	picked []core.CharID
+	picked []rules.CharID
 }
 
 // aimThen is what the results of an aim go on with.
 type aimThen struct {
 	kind aimThenKind
-	c    core.CharID
-	id   int           // the maneuver
-	from core.BoardPos // the square the maneuver began on
+	c    rules.CharID
+	id   int            // the maneuver
+	from rules.BoardPos // the square the maneuver began on
 }
 
 type aimThenKind byte

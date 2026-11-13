@@ -1,6 +1,6 @@
 package engine
 
-import "gobox/core"
+import "gobox/rules"
 
 // DrawAreaMap = ovr28:0000 (x, y): the 5x5 tiles of the area map starting at
 // map square (x,y), each drawn as a 3x3 cell tile. Landmark squares listed in
@@ -10,7 +10,7 @@ func (e *Engine) DrawAreaMap(x, y int) {
 	e.snap.win = WinAreaMap
 	for row := 0; row < 5; row++ {
 		for col := 0; col < 5; col++ {
-			e.drawTile(3*col, 3*row, byte(e.ruleset().Check(core.AreaTileIs{X: int32(col + x), Y: int32(row + y)}, nil).Value))
+			e.drawTile(3*col, 3*row, byte(e.ruleset().Check(rules.AreaTileIs{X: int32(col + x), Y: int32(row + y)}, nil).Value))
 		}
 	}
 }
@@ -32,7 +32,7 @@ func (e *Engine) terrainPix(v byte) Picture {
 // marker square is the party position relative to the shown window, pinned
 // to the border squares; the icon animates through 6 poses (DS:6DDC).
 func (e *Engine) drawAreaMapParty() {
-	v := int8(int(ViewModeShift[e.viewMode]) + e.worldWord(core.WordMapX))
+	v := int8(int(ViewModeShift[e.viewMode]) + e.worldWord(rules.WordMapX))
 	switch {
 	case v < 2:
 	case v < 0x2A:
@@ -43,7 +43,7 @@ func (e *Engine) drawAreaMapParty() {
 		v = 4
 	}
 	var y byte
-	switch w := e.worldWord(core.WordMapY); {
+	switch w := e.worldWord(rules.WordMapY); {
 	case w < 2:
 		y = byte(w)
 	case w < 0x22:
@@ -68,7 +68,7 @@ func (e *Engine) areaMapInit() {
 
 // areaMapIcons = 00BA:2B5E: switch to the area map view and draw it.
 func (e *Engine) areaMapIcons() {
-	e.setWorldWord(core.WordBeginFlag, 3)
+	e.setWorldWord(rules.WordBeginFlag, 3)
 	e.areaMapInit()
 	e.Redraw()
 	e.drawAreaMapParty()

@@ -9,8 +9,7 @@ package rules1e
 
 import (
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // tgt / setTgt = DS:6C91 + 4*i: the spell target list (1-based). Slot 1 is
@@ -91,7 +90,7 @@ func (e *RuleState) spellAmount(spell int) int {
 // level 0 means the caster level; dmg is also the flag that sets the damage
 // type (DS:6819); dmg is cleared for the rest when an attack misses.
 func (e *RuleState) applySpell(spell, level, call, dmg, dmgType int, msg string) {
-	msg = goldbox.Cut(msg, msgMax)
+	msg = rules.Cut(msg, msgMax)
 	if dmg == 0 {
 		e.Rv.DmgType = 0
 	} else {
@@ -202,7 +201,7 @@ func (e *RuleState) spellTargetSetup(spell, mode int, on *Character) (ok bool) {
 // (and, for Bless in combat, those with an enemy next to them), then
 // applies the spell record to the rest.
 func (e *RuleState) applySpellToSide(side int, msg string) {
-	msg = goldbox.Cut(msg, msgMax)
+	msg = rules.Cut(msg, msgMax)
 	e.areaSpell = 1
 	for i := 1; i <= e.NSpellTargets; i++ {
 		t := e.tgt(i)
@@ -250,16 +249,16 @@ func (e *RuleState) CastSpell(spell SpellID, mode, b byte, r CastReply, quit *bo
 				}
 				e.TurnTo(caster, byte(dir)) // the cast's pose is the presenter's (CastSpell)
 				if e.Fight.On {             // BUG-CLASSES 37b: the pose before the flight, as the original's
-					e.Emit(core.Casting{From: unit(e.CombatIndex(caster)), Spell: SpellIDs[spell], Ats: []core.BoardPos{{X: e.TgtX, Y: e.TgtY}}})
+					e.Emit(rules.Casting{From: unit(e.CombatIndex(caster)), Spell: SpellIDs[spell], Ats: []rules.BoardPos{{X: e.TgtX, Y: e.TgtY}}})
 					posed = true
 				}
 				switch spell {
 				case 0x2F:
-					e.Sound(string(core.CueFireball))
+					e.Sound(string(rules.CueFireball))
 				case 0x33:
-					e.Sound(string(core.CueLightning))
+					e.Sound(string(rules.CueLightning))
 				default:
-					e.Sound(string(core.CueSpell))
+					e.Sound(string(rules.CueSpell))
 				}
 				e.shoot(x, y, e.TgtX, e.TgtY, 0, SpellIDs[spell])
 			}
@@ -270,7 +269,7 @@ func (e *RuleState) CastSpell(spell SpellID, mode, b byte, r CastReply, quit *bo
 			}
 			e.CurSpell = spell
 			if e.Fight.On && !posed {
-				e.Emit(core.Casting{From: unit(e.CombatIndex(caster)), Spell: SpellIDs[spell], Ats: []core.BoardPos{{X: e.TgtX, Y: e.TgtY}}}) // no name: the original's combat cast skips its lookup (ovr23:0C37), 57-67 are powers with none
+				e.Emit(rules.Casting{From: unit(e.CombatIndex(caster)), Spell: SpellIDs[spell], Ats: []rules.BoardPos{{X: e.TgtX, Y: e.TgtY}}}) // no name: the original's combat cast skips its lookup (ovr23:0C37), 57-67 are powers with none
 			}
 			e.spellEffect(spell)
 			if e.spellKept && slot >= 0 {
@@ -349,7 +348,7 @@ func (e *RuleState) fxFireball() {
 // targets of that side lose the affect; the others are dropped. A nil
 // target (garbage in the asm) is dropped as well.
 func (e *RuleState) removeAffectFromSide(typ AffectType, side int, msg string) {
-	msg = goldbox.Cut(msg, msgMax)
+	msg = rules.Cut(msg, msgMax)
 	e.areaSpell = 1
 	lvl := byte(e.casterLevel(int(e.CurSpell)))
 	for i := 1; i <= e.NSpellTargets; i++ {
@@ -397,7 +396,7 @@ func (e *RuleState) strikeSquare(x, y, dmg, saveType int) bool {
 // each square; where it is stopped it comes back toward the caster (once,
 // when bounce is set, those squares count extra) with the direction
 // reversed.
-func (e *RuleState) boltPath(reach, dmg, saveType, bounce int, what core.SpellID) {
+func (e *RuleState) boltPath(reach, dmg, saveType, bounce int, what rules.SpellID) {
 	if sel := e.Acting(); e.CombatX(sel) == e.TgtX && e.CombatY(sel) == e.TgtY {
 		return
 	}
@@ -431,7 +430,7 @@ func (e *RuleState) BoltWalk(reach, bounce int, step func(x, y int), strike func
 		x0, y0 := e.TgtX, e.TgtY
 		x1 := int(int16(e.TgtX + (e.TgtX-cx)*dirSign*int(r)))
 		y1 := int(int16(e.TgtY + (e.TgtY-cy)*dirSign*int(r)))
-		l := goldbox.NewLine(x0, y0, x1, y1)
+		l := rules.NewLine(x0, y0, x1, y1)
 		for {
 			lastX, lastY := byte(l.X), byte(l.Y)
 			if !(x0 == x1 && y0 == y1) {
@@ -462,7 +461,7 @@ func (e *RuleState) BoltWalk(reach, bounce int, step func(x, y int), strike func
 			blocked := strike(int(lastX), int(lastY), int(byte(l.X)), int(byte(l.Y)))
 			if blocked {
 				e.TgtX, e.TgtY = int(byte(l.X)), int(byte(l.Y))
-				back := goldbox.NewLine(e.TgtX, e.TgtY, cx, cy)
+				back := rules.NewLine(e.TgtX, e.TgtY, cx, cy)
 				for back.Step() {
 				}
 				if flag != 0 && byte(back.Steps) <= 8 {
@@ -562,11 +561,11 @@ func (e *RuleState) BreathWeapon(c *Character, a *Affect, flag int) {
 		return
 	}
 	cx, cy := e.CombatX(c), e.CombatY(c)
-	e.Emit(core.Sounded{Cue: "breathe_fire"})
+	e.Emit(rules.Sounded{Cue: "breathe_fire"})
 	e.CombatSay(c, "Breathes!", true)
 	e.spellTargetHook(SpLightningBolt, 1, CastReply{Fight: true}) // aimed like a bolt; the result (DS:70C6) is not used
-	e.TgtX = cx + goldbox.Sign(e.TgtX-cx)
-	e.TgtY = cy + goldbox.Sign(e.TgtY-cy)
+	e.TgtX = cx + rules.Sign(e.TgtX-cx)
+	e.TgtY = cy + rules.Sign(e.TgtY-cy)
 	if cx+1 == e.TgtX {
 		e.TgtX++
 	}
@@ -619,11 +618,11 @@ func (e *RuleState) scrollUsed(c *Character, it *Item, spell SpellID) {
 func (e *RuleState) announceCast(c *Character, msg string, spell int) {
 	switch {
 	case msg != "casts":
-		e.Emit(core.Sounded{Cue: core.SoundCue("study")}) // memorized, scribed
+		e.Emit(rules.Sounded{Cue: rules.SoundCue("study")}) // memorized, scribed
 	case e.BeginFlag != 5:
-		e.Emit(core.Sounded{Cue: core.SoundCue("cast_spell")}) // in combat the spell's flight has the sound
+		e.Emit(rules.Sounded{Cue: rules.SoundCue("cast_spell")}) // in combat the spell's flight has the sound
 	}
-	msg = goldbox.Cut(msg, msgMax)
+	msg = rules.Cut(msg, msgMax)
 	if e.BeginFlag == 5 {
 		e.CombatSay(c, "Casts a Spell", true)
 		e.CombatSay(nil, "Spell: "+e.SpellName(spell), true)

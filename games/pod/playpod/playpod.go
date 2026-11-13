@@ -5,8 +5,8 @@ package playpod
 
 import (
 	"gobox/app"
-	"gobox/core"
 	"gobox/engine/playpool"
+	"gobox/rules"
 )
 
 // Play runs the game of s.Adventure until the window closes; the saves are
@@ -17,8 +17,8 @@ func Play(s app.Start) error {
 		return err
 	}
 	return playpool.Play(s, playpool.Game{
-		Title: "Pools of Darkness", W: 80 * 8, H: 50 * 8, Record: core.Layout510,
+		Title: "Pools of Darkness", W: 80 * 8, H: 50 * 8, Record: rules.Layout510,
 		SaveDir: saves,
-		Foreign: playpool.HomeRosters(map[string]core.RecordLayout{"sotsb": core.Layout439}),
+		Foreign: playpool.HomeRosters(map[string]rules.RecordLayout{"sotsb": rules.Layout439}),
 	})
 }

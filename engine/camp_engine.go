@@ -1,15 +1,15 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/ega"
+	"gobox/rules"
 	"strconv"
 )
 
 // restFor (extra) rests mins minutes or until stop says so; then follows
 // (restOver), getting whether a monster interrupted.
 func (e *Engine) restFor(mins int, untilHealed bool, then restThen) {
-	e.must(core.SetRest{Minutes: int32(mins)})
+	e.must(rules.SetRest{Minutes: int32(mins)})
 	e.Rest(untilHealed, then)
 }
 
@@ -39,7 +39,7 @@ func (e *Engine) healPlanned() {
 		e.healNatural()
 		return
 	}
-	e.must(core.ForgetCures{})
+	e.must(rules.ForgetCures{})
 	if most := e.partyStudy(); most > 0 {
 		e.restFor(most, false, restThen{kind: thHealPlanned})
 		return
@@ -50,11 +50,11 @@ func (e *Engine) healPlanned() {
 // healCures: while the cures are not enough the clerics memorize them,
 // rest to learn them and cast again.
 func (e *Engine) healCures() {
-	if !(e.healClerics() > 0 && e.healMinutes() > 0 && e.ruleset().Check(core.SpellsAllowed{}, nil).Yes) {
+	if !(e.healClerics() > 0 && e.healMinutes() > 0 && e.ruleset().Check(rules.SpellsAllowed{}, nil).Yes) {
 		e.healPlanned()
 		return
 	}
-	e.must(core.MemorizeCures{})
+	e.must(rules.MemorizeCures{})
 	e.restFor(e.partyStudy(), false, restThen{kind: thHealCured, n: e.healMinutes()})
 }
 
@@ -100,9 +100,9 @@ func (e *Engine) restStudy(interrupted bool) {
 // Until rests by, so its label and its rest agree), else the sky's.
 func (e *Engine) flagDay(inside bool) bool {
 	if e.campUp() {
-		return e.ruleset().Check(core.IsDay{}, nil).Yes
+		return e.ruleset().Check(rules.IsDay{}, nil).Yes
 	}
-	return e.ruleset().Check(core.SkyDay{Inside: inside}, nil).Yes
+	return e.ruleset().Check(rules.SkyDay{Inside: inside}, nil).Yes
 }
 
 // dropMember = ovr16:18E5 (the player confirmed): member n leaves the
@@ -118,7 +118,7 @@ func (e *Engine) dropMember(n int) {
 		e.Exit()
 		return
 	}
-	if c.Status == core.StatusOkay {
+	if c.Status == rules.StatusOkay {
 		e.say(c.Name + " bids you farewell")
 	} else {
 		e.say(c.Name + " is dumped in a ditch")
@@ -134,15 +134,15 @@ func (e *Engine) CampMenu() {
 	if !e.songMusic(songInn, 0) { // extra: the inn theme for camp
 		e.Music(1) // Amiga 0x17FBC .. 0x1813C
 	}
-	e.campSavedFlag = e.worldWord(core.WordBeginFlag)
-	e.setWorldWord(core.WordBeginFlag, 2)
-	e.must(core.CampOpen{})
+	e.campSavedFlag = e.worldWord(rules.WordBeginFlag)
+	e.setWorldWord(rules.WordBeginFlag, 2)
+	e.must(rules.CampOpen{})
 	e.DrawMainScreen()
-	e.must(core.ClearStudy{})
+	e.must(rules.ClearStudy{})
 	e.campInterrupted = false
 	e.campSavedAnim = e.animInput
 	e.animInput = true // the camp picture's fire burns while camp is up (the camp bar's anim, ovr06:101F)
-	e.setWorldWord(core.WordCampOn, 1)
+	e.setWorldWord(rules.WordCampOn, 1)
 	e.campSeq = e.opens()
 }
 
@@ -156,9 +156,9 @@ func (e *Engine) leaveCamp() {
 	if !e.campOn() {
 		return
 	}
-	e.setWorldWord(core.WordCampOn, 0)
-	e.must(core.CampClose{}) // the plans hold: the next rest learns them
-	e.setWorldWord(core.WordBeginFlag, e.campSavedFlag)
+	e.setWorldWord(rules.WordCampOn, 0)
+	e.must(rules.CampClose{}) // the plans hold: the next rest learns them
+	e.setWorldWord(rules.WordBeginFlag, e.campSavedFlag)
 	e.animInput = e.campSavedAnim
 	e.ClearMessageArea()
 	e.clearPrompt()
@@ -177,7 +177,7 @@ func (e *Engine) rested(interrupted bool) {
 // LeaveCamp = camp's Exit.
 func (e *Engine) LeaveCamp() error {
 	if !e.inCamp() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	e.leaveCamp()
 	return nil
@@ -187,20 +187,20 @@ func (e *Engine) LeaveCamp() error {
 // memorized count times on the next rest.
 func (e *Engine) planSpell(n, spell, count int) error {
 	if !e.inCamp() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
-	e.setWorldWord(core.WordWho, e.sel) // the rules' actor is the one selected before n
-	e.must(core.Plan{Who: e.actor(n), Spell: e.spellID(spell), Count: int32(count)})
+	e.setWorldWord(rules.WordWho, e.sel) // the rules' actor is the one selected before n
+	e.must(rules.Plan{Who: e.actor(n), Spell: e.spellID(spell), Count: int32(count)})
 	return nil
 }
 
 // scribe has member n scribe spell from a scroll on the next rest (again: not).
 func (e *Engine) scribe(n, spell int) error {
 	if !e.inCamp() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
-	e.setWorldWord(core.WordWho, e.sel) // the rules' actor is the one selected before n
-	e.must(core.Scribe{Who: e.actor(n), Spell: e.spellID(spell)})
+	e.setWorldWord(rules.WordWho, e.sel) // the rules' actor is the one selected before n
+	e.must(rules.Scribe{Who: e.actor(n), Spell: e.spellID(spell)})
 	return nil
 }
 
@@ -211,14 +211,14 @@ func (e *Engine) DropMember(n int) error {
 		e.dropMember(n)
 	case e.inParty():
 		c := e.ruleset().Sheet(e.actor(n))
-		if c.Status != core.StatusOkay {
+		if c.Status != rules.StatusOkay {
 			e.say("You dump " + c.Name + " out back.")
 		} else {
 			e.say(c.Name + " bids you farewell.")
 		}
 		e.RemoveSelected(false, true) // ovr17:3291
 	default:
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	return nil
 }
@@ -227,9 +227,9 @@ func (e *Engine) DropMember(n int) error {
 // on in RestStep, and ends in rested.
 func (e *Engine) campRest(kind int) error {
 	if !e.inCamp() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
-	e.must(core.PlanParty{}) // extra: the planned spells are learned on any rest
+	e.must(rules.PlanParty{}) // extra: the planned spells are learned on any rest
 	switch kind {
 	case RestFix:
 		if e.healMinutes() == 0 && e.partyStudy() == 0 {
@@ -245,12 +245,12 @@ func (e *Engine) campRest(kind int) error {
 		e.restFor(60, false, restThen{kind: thRested})
 	case RestUntil:
 		until := 20 * 60
-		if !e.ruleset().Check(core.IsDay{}, nil).Yes {
+		if !e.ruleset().Check(rules.IsDay{}, nil).Yes {
 			until = 6 * 60
 		}
-		e.restFor(((until-e.worldWord(core.WordClockMinutes))%(24*60)+24*60)%(24*60), false, restThen{kind: thRested})
+		e.restFor(((until-e.worldWord(rules.WordClockMinutes))%(24*60)+24*60)%(24*60), false, restThen{kind: thRested})
 	default:
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	return nil
 }
@@ -280,7 +280,7 @@ func (e *Engine) showRest(unit int) {
 // The loop is the presenter's to pace (RestStep), a key asks to stop it
 // (StopRest).
 func (e *Engine) Rest(untilHealed bool, then restThen) {
-	e.must(core.BeginRest{})
+	e.must(rules.BeginRest{})
 	e.clearPane()
 	e.showRest(0)
 	e.restLine, e.restShown = true, 0
@@ -292,7 +292,7 @@ func (e *Engine) Rest(untilHealed bool, then restThen) {
 func (e *Engine) RestStep() error {
 	run := e.resting
 	if run == nil {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	s := e.restTick(run.untilHealed)
 	if e.restShown++; e.restShown >= 5 { // the rest's time on the page
@@ -313,7 +313,7 @@ func (e *Engine) RestStep() error {
 		e.resting = nil
 		e.clearPane()
 		e.restLine = false
-		e.must(core.SetRest{})
+		e.must(rules.SetRest{})
 		e.restOver(run.then, s.interrupted)
 	}
 	return nil
@@ -323,9 +323,9 @@ func (e *Engine) RestStep() error {
 // the rest ends at its next step.
 func (e *Engine) stopRest() error {
 	if e.resting == nil {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
-	e.must(core.StopRest{})
+	e.must(rules.StopRest{})
 	return nil
 }
 
@@ -360,15 +360,15 @@ type restStep struct {
 // restTick is StepRest ovr21:0C9A's five minutes: over before the step
 // (RestDone), else the rules' Elapse.
 func (e *Engine) restTick(untilHealed bool) (s restStep) {
-	if e.ruleset().Check(core.RestDone{UntilHealed: untilHealed}, nil).Yes {
+	if e.ruleset().Check(rules.RestDone{UntilHealed: untilHealed}, nil).Yes {
 		s.over = true
 		return
 	}
 	for _, f := range e.ruleset().Elapse(e.partyIDs(), 5, nil).Effects {
 		switch f.(type) {
-		case core.PartyHealed:
+		case rules.PartyHealed:
 			s.healed = true
-		case core.RestInterrupted:
+		case rules.RestInterrupted:
 			s.over, s.interrupted = true, true
 		}
 	}
@@ -384,7 +384,7 @@ const (
 
 // restUnit is unit i of the rest time left (core.RestUnit: 1 minutes, 2 tens, 3 hours, 4 days).
 func (e *Engine) restUnit(i int) int {
-	return int(e.ruleset().Check(core.RestUnit{Unit: int32(i)}, nil).Value)
+	return int(e.ruleset().Check(rules.RestUnit{Unit: int32(i)}, nil).Value)
 }
 
 // twoDigits = ovr21:0565.
@@ -398,18 +398,18 @@ func twoDigits(n int) string {
 
 // castCures has the clerics cast Cure Light Wounds, the member selected the actor.
 func (e *Engine) castCures() {
-	e.setWorldWord(core.WordWho, e.sel)
-	e.must(core.CastCures{})
+	e.setWorldWord(rules.WordWho, e.sel)
+	e.must(rules.CastCures{})
 }
 
 func (e *Engine) healMinutes() int {
-	return int(e.ruleset().Check(core.HealMinutes{}, nil).Value)
+	return int(e.ruleset().Check(rules.HealMinutes{}, nil).Value)
 }
 
 func (e *Engine) partyStudy() int {
-	return int(e.ruleset().Check(core.PartyStudy{}, nil).Value)
+	return int(e.ruleset().Check(rules.PartyStudy{}, nil).Value)
 }
 
 func (e *Engine) healClerics() int {
-	return int(e.ruleset().Check(core.HealClerics{}, nil).Value)
+	return int(e.ruleset().Check(rules.HealClerics{}, nil).Value)
 }

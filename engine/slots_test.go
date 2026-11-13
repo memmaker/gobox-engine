@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"gobox/app/saves"
 	"gobox/char"
-	"gobox/core/goldbox"
 	"gobox/game/play"
+	"gobox/rules"
+	"gobox/rules1e"
 	"maps"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 	"testing"
 	"time"
 )
@@ -272,7 +272,7 @@ func TestLegacySaveLoads(t *testing.T) {
 	var old rules1e.SaveBlob
 	old.Area.AreaKind, old.Area.Geo, old.Game.Shop, old.Purse.Gold = 20, 3, 1, 1<<40
 	b, err := json.Marshal(struct {
-		Set goldbox.Set
+		Set rules.Set
 		rules1e.SaveBlob
 		X byte
 	}{2, old, 7})

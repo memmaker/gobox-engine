@@ -6,14 +6,14 @@ import (
 	"errors"
 	"gobox/audio/sounddata"
 	"gobox/char"
-	"gobox/core"
 	"gobox/dax"
-	"gobox/importer/pictures"
 	"gobox/engine"
+	"gobox/importer/pictures"
+	"gobox/rules"
+	"gobox/rules1e"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 )
 
 // portraits is POR's portrait tables (which HEADn/BODYn.DAX block shows each
@@ -36,8 +36,8 @@ var journalFS embed.FS
 // The import's script fixes; the native scripts of the tavern game and the cabinets'
 // CAST KNOCK; the inn's and the tavern's Who commands spend the one purse (ECL3 A1B4, ahead of A501).
 var gameTables = engine.GameTables{ScriptSounds: map[byte]engine.ScriptSound{
-	8:  {Cue: core.CueStep},
-	10: {Cue: core.CueFireball},
+	8:  {Cue: rules.CueStep},
+	10: {Cue: rules.CueFireball},
 },
 	ScriptFixes:  scriptFixes,
 	OriginalSave: porSave,

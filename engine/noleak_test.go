@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"testing"
 )
 
@@ -14,7 +14,7 @@ func TestEmptyPartyIDStable(t *testing.T) {
 	if a != b {
 		t.Errorf("placeholder ids %d, %d: a new entry per call", a, b)
 	}
-	if e.charID(nil) != core.NoChar || e.itemHandle(nil) != core.NoItem {
+	if e.charID(nil) != rules.NoChar || e.itemHandle(nil) != rules.NoItem {
 		t.Error("nil got an id")
 	}
 }

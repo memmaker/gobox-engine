@@ -3,11 +3,11 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 )
 
 // SpellIDs is the dnd id of each spell number (empty: none).
-var SpellIDs = [146]core.SpellID{
+var SpellIDs = [146]rules.SpellID{
 	1:   SpellBless,
 	2:   SpellCurse,
 	3:   SpellCureLightWounds,
@@ -153,7 +153,7 @@ var SpellIDs = [146]core.SpellID{
 }
 
 // ItemIDs is the dnd id of each base item type named.
-var ItemIDs = map[ItemType]core.ItemID{
+var ItemIDs = map[ItemType]rules.ItemID{
 	0x01: ItemIDBattleAxe,
 	0x02: ItemIDHandAxe,
 	0x03: ItemIDBardiche,

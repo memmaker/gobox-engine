@@ -1,14 +1,14 @@
 package rules1e
 
-import "gobox/core"
+import "gobox/rules"
 
 // Character is a party member or a monster: its record (Sheet), its item
 // and affect lists, its combat block and readied items.
 type Character struct {
 	Sheet
-	Portrait        core.PNG             // extra: the encoded PNG dropped on the sheet, shown everywhere in place of the paper-doll head (saved as NAME.png beside the record; nil: none)
+	Portrait        rules.PNG            // extra: the encoded PNG dropped on the sheet, shown everywhere in place of the paper-doll head (saved as NAME.png beside the record; nil: none)
 	PoolIDs                              // extra: gobox's opaque pool picks (poolid.go; saved in the .cha/.sav trailer)
-	Icon            core.PNG             // extra: the encoded PNG dropped on the icon editor, the combat icon in battle (iconpng.go; saved as NAME.icon.png; nil: the built icon)
+	Icon            rules.PNG            // extra: the encoded PNG dropped on the icon editor, the combat icon in battle (iconpng.go; saved as NAME.icon.png; nil: the built icon)
 	Plan            [MemorySlots]SpellID // extra: the spells memorized on every rest (camp.go memorizeMenu; saved as NAME.mem)
 	OldLevels       [8]Level             // extra: a dual-classed human's levels in the class left (dualclass.go; saved as NAME.dual)
 	Powers          []int                // extra: the rule set's powers chosen (powers.go; saved as NAME.pow)

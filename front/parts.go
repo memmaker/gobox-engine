@@ -1,8 +1,8 @@
 package front
 
 import (
-	"gobox/core"
 	"gobox/game"
+	"gobox/rules"
 	"image"
 	"image/color"
 	"strings"
@@ -35,7 +35,7 @@ type AreaMap struct {
 type Read = game.Read
 
 // Money is core.Money: an amount the front end shows (as "12g 50c").
-type Money = core.Money
+type Money = rules.Money
 
 // Power is a member's action of the View menu the inventory offers too.
 type Power struct {
@@ -45,10 +45,10 @@ type Power struct {
 
 // InvItem is one item of the inventory.
 type InvItem struct {
-	Item    core.ItemHandle // names it (Action.Item)
-	Name    string          // as the list shows it
-	Type    byte            // base item type
-	Words   []string        // the item's name words, known or not (for its icon)
+	Item    rules.ItemHandle // names it (Action.Item)
+	Name    string           // as the list shows it
+	Type    byte             // base item type
+	Words   []string         // the item's name words, known or not (for its icon)
 	Count   int
 	Readied bool     // it is readied (shown with present.Data.ReadyMark)
 	Slot    bool     // it has a doll slot (it can be readied)

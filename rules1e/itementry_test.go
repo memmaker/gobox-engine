@@ -2,7 +2,7 @@ package rules1e
 
 import (
 	"encoding/json"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 	"testing"
 )
@@ -20,7 +20,7 @@ func TestItemsEnterConverted(t *testing.T) {
 	tb.Start.Kit[kitOther] = game
 	s := &RuleState{Tables: &tb, Items: make([]ItemBase, 1)}
 	r := &Rules{S: s,
-		Monsters:      func(core.MonsterID) (Monster, bool) { return Monster{Items: game}, true },
+		Monsters:      func(rules.MonsterID) (Monster, bool) { return Monster{Items: game}, true },
 		TreasureBlock: func(int) []Item { return game }}
 	check := func(path string, got []*Item) {
 		t.Helper()
@@ -52,7 +52,7 @@ func TestItemsEnterConverted(t *testing.T) {
 		t.Fatal(err)
 	}
 	check("Spawn", r.chars[m].Items)
-	if _, err := r.Resolve(nil, core.AddTreasureBlock{Block: 1}, nil); err != nil {
+	if _, err := r.Resolve(nil, rules.AddTreasureBlock{Block: 1}, nil); err != nil {
 		t.Fatal(err)
 	}
 	check("TreasureBlock", s.Treasure)

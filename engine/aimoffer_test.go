@@ -1,9 +1,9 @@
 package engine
 
 import (
-	"gobox/core"
-	"image"
+	"gobox/rules"
 	"gobox/rules1e"
+	"image"
 	"testing"
 
 	"gobox/game/play"
@@ -23,7 +23,7 @@ func testAimOffersAccepted(t *testing.T, mk func(*testing.T) *Engine) {
 	e.Init()
 	e.Start(e.Play)
 	for range 400 {
-		if e.cs.turn != nil && e.cs.actor != core.NoChar && e.cs.aim == nil {
+		if e.cs.turn != nil && e.cs.actor != rules.NoChar && e.cs.aim == nil {
 			break
 		}
 		if e.waiting(PendFight) {
@@ -89,7 +89,7 @@ func TestAllyAskKeepsAim(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	for range 400 {
-		if e.cs.turn != nil && e.cs.actor != core.NoChar && e.cs.aim == nil {
+		if e.cs.turn != nil && e.cs.actor != rules.NoChar && e.cs.aim == nil {
 			break
 		}
 		if e.waiting(PendFight) {

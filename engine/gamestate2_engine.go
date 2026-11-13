@@ -4,16 +4,16 @@ import (
 	"image"
 	"strconv"
 
-	"gobox/core"
 	"gobox/game"
+	"gobox/rules"
 )
 
 // headArt is the Data.Art name of the head c chose ("" none).
-func (e *Engine) headArt(cID core.CharID) string {
+func (e *Engine) headArt(cID rules.CharID) string {
 	if e.charHead(cID).Pix == nil {
 		return ""
 	}
-	return "head/" + strconv.Itoa(e.fact(cID, core.PortraitFact{}).(core.Portrait).Head)
+	return "head/" + strconv.Itoa(e.fact(cID, rules.PortraitFact{}).(rules.Portrait).Head)
 }
 
 // fillState2 adds to s the facts of the window, the journal, what the game
@@ -47,7 +47,7 @@ func (e *Engine) fillState2(s *facts, members []Member, quests []Quest, pick *Po
 			g.Page = gameSheetPage(e.sheetPage(chars[i])) // BUG-CLASSES 36: gobox's look-only sheet (a fight's, a shop's View)
 		}
 	}
-	s.PoolItems = int(e.ruleset().Check(core.PoolCount{}, nil).Value)
+	s.PoolItems = int(e.ruleset().Check(rules.PoolCount{}, nil).Value)
 	var sh *Sheet
 	if e.sheetUp() {
 		sh = e.sheetView()

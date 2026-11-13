@@ -11,10 +11,10 @@ import (
 
 	"gobox/audio"
 	"gobox/char"
-	"gobox/core"
 	"gobox/ecl/script"
-	"gobox/game/journal"
 	"gobox/engine"
+	"gobox/game/journal"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -65,7 +65,7 @@ func TestSwitchData(t *testing.T) {
 		s, ok := g.ScriptSounds[byte(n)]
 		want := engine.ScriptSound{Music: music, Song: song}
 		if digitized {
-			want.Cue = core.SoundCue(strconv.Itoa(n))
+			want.Cue = rules.SoundCue(strconv.Itoa(n))
 		}
 		if ok != (music || digitized) || (ok && s != want) {
 			t.Errorf("sound %d: %+v (%v), want %+v", n, s, ok, want)

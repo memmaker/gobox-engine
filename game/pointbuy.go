@@ -1,18 +1,18 @@
 package game
 
-import "gobox/core"
+import "gobox/rules"
 
 // Point buy's table is core's (core.PointBuyCost); these take the stats in a
 // game's order for the old per-game paths.
 // ponytail: goes once every game's PointBuy is core.RollPointBuy (por-go rules, B8).
 const (
-	PointBuyBudget = int(core.PointBuyBudget)
-	PointBuyMin    = int(core.PointBuyMin)
-	PointBuyMax    = int(core.PointBuyMax)
+	PointBuyBudget = int(rules.PointBuyBudget)
+	PointBuyMin    = int(rules.PointBuyMin)
+	PointBuyMax    = int(rules.PointBuyMax)
 )
 
 // PointBuyCost is the points a final score costs (-1: outside the range).
-func PointBuyCost(score int) int { return int(core.PointBuyCost(int32(score))) }
+func PointBuyCost(score int) int { return int(rules.PointBuyCost(int32(score))) }
 
 // PointBuySpent is the points scores cost together; ok is false when one
 // is outside the range or they cost more than the budget.

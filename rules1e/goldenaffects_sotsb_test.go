@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestGoldenAffectsSotsb: every case of sotsb's affect-handler parity
@@ -130,7 +130,7 @@ func runGoldenAffect(tb *Tables, k goldenAffCase) goldenAffSnap {
 		s.Chars = append(s.Chars, cc)
 	}
 	for _, f := range e.Fx {
-		if n, ok := f.(core.Narrated); ok {
+		if n, ok := f.(rules.Narrated); ok {
 			s.Msgs = append(s.Msgs, strings.ToLower(strings.TrimSpace(n.Text)))
 		}
 	}

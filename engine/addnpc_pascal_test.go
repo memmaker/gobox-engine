@@ -3,14 +3,13 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"gobox/rules1e"
+	"os"
 	"strings"
 	"testing"
 
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl/script"
+	"gobox/rules"
 )
 
 // TestAddNPCAgainstPascal compares ADD NPC (opAddNPC) with EclVm.EclAddNpc
@@ -37,7 +36,7 @@ func TestAddNPCAgainstPascal(t *testing.T) {
 			continue
 		}
 		e := quickStarted(t)
-		for d := goldbox.Set(1); d <= 8 && refDAX(e).BlockShared(e.set.File("MON")+"CHA", k[2]) == nil; d++ {
+		for d := rules.Set(1); d <= 8 && refDAX(e).BlockShared(e.set.File("MON")+"CHA", k[2]) == nil; d++ {
 			e.set = d // a set that has monster k[2]
 		}
 		members := e.state().Party
@@ -46,7 +45,7 @@ func TestAddNPCAgainstPascal(t *testing.T) {
 			members = append(members, &c)
 		}
 		e.state().Party = members[:k[0]]
-		e.setWorldWord(core.WordPartyCount, k[0])
+		e.setWorldWord(rules.WordPartyCount, k[0])
 		e.selectMember(0)
 		first := e.member(e.selected())
 		e.vm.Script = &script.Script{Code: []script.Instr{{Op: 0x36, Args: []script.Arg{{Type: 0, N: k[2]}, {Type: 0, N: 100}}}}}

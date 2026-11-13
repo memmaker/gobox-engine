@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestGoldenAffectsCotab: each affect handler of cotab's own (captured before
@@ -108,7 +108,7 @@ func goldenCotabOutcomeOf(r *RuleState, rc [3]*Character) goldenCotabOutcome {
 	ci := rc[1].Combat
 	o.Delay, o.Moves, o.Turned, o.Can = int(ci.Delay), int(ci.Moves), int(ci.Turned), int(ci.CanCast)
 	for _, f := range r.Fx {
-		if n, ok := f.(core.Narrated); ok {
+		if n, ok := f.(rules.Narrated); ok {
 			o.Text = append(o.Text, n.Text)
 		}
 	}

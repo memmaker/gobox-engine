@@ -2,30 +2,30 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
 // owing is the first member owing a pick, and the pick (no Options: none).
-func (e *Engine) owing() (core.CharID, core.PowerOwed) {
+func (e *Engine) owing() (rules.CharID, rules.PowerOwed) {
 	for _, id := range e.partyIDs() {
-		if p := e.fact(id, core.OwedFact{}).(core.PowerOwed); len(p.Options) > 0 {
+		if p := e.fact(id, rules.OwedFact{}).(rules.PowerOwed); len(p.Options) > 0 {
 			return id, p
 		}
 	}
-	return core.NoChar, core.PowerOwed{}
+	return rules.NoChar, rules.PowerOwed{}
 }
 
 // toughen keeps the ruleset's Toughness in id's hit points.
-func (e *Engine) toughen(id core.CharID) {
-	if _, err := e.ruleset().Resolve(nil, core.Toughen{Who: id}, nil); err != nil {
+func (e *Engine) toughen(id rules.CharID) {
+	if _, err := e.ruleset().Resolve(nil, rules.Toughen{Who: id}, nil); err != nil {
 		panic(fmt.Sprintf("toughen: %v", err))
 	}
 }
 
 // takePower adds power id to member who's picks.
-func (e *Engine) takePower(who core.CharID, id int) {
-	if _, err := e.ruleset().Resolve(nil, core.TakePower{Who: who, Power: id}, nil); err != nil {
+func (e *Engine) takePower(who rules.CharID, id int) {
+	if _, err := e.ruleset().Resolve(nil, rules.TakePower{Who: who, Power: id}, nil); err != nil {
 		panic(fmt.Sprintf("take power: %v", err))
 	}
 }
@@ -41,7 +41,7 @@ func (e *Engine) offerPicks() {
 	}
 	for {
 		id, p := e.owing()
-		if id == core.NoChar || e.fact(id, core.FactControl).(core.Number) <= 0x7F {
+		if id == rules.NoChar || e.fact(id, rules.FactControl).(rules.Number) <= 0x7F {
 			return
 		}
 		e.takePower(id, int(p.Options[0].ID))
@@ -58,8 +58,8 @@ func (e *Engine) picksOpen() bool {
 // pickPower takes the pick owed now (Powers): power id.
 func (e *Engine) pickPower(id int) error {
 	who, p := e.owing()
-	if who == core.NoChar || !e.picksOpen() || !slices.ContainsFunc(p.Options, func(m core.ManeuverCard) bool { return int(m.ID) == id }) {
-		return core.ErrNotNow
+	if who == rules.NoChar || !e.picksOpen() || !slices.ContainsFunc(p.Options, func(m rules.ManeuverCard) bool { return int(m.ID) == id }) {
+		return rules.ErrNotNow
 	}
 	e.takePower(who, id)
 	e.toughen(who)
@@ -69,7 +69,7 @@ func (e *Engine) pickPower(id int) error {
 // powersView is the pick screen's.
 func (e *Engine) powersView() *PowerPick {
 	id, p := e.owing()
-	if id == core.NoChar || !e.picksOpen() {
+	if id == rules.NoChar || !e.picksOpen() {
 		return nil
 	}
 	return &PowerPick{Name: e.ruleset().Sheet(id).Name, What: p.What, Options: p.Options}

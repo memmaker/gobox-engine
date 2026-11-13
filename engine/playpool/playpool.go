@@ -8,20 +8,20 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"gobox/rules1e"
 	"image/png"
 	"io/fs"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 
 	"gobox/app"
 	"gobox/audio"
 	"gobox/char"
-	"gobox/core"
+	"gobox/engine"
 	"gobox/front/present"
 	"gobox/game"
 	"gobox/importer"
-	"gobox/engine"
+	"gobox/rules"
 )
 
 // tps: Update runs 120 times a second, so a key waits at most ~8 ms before
@@ -30,13 +30,13 @@ const tps = 120
 
 // Game is what one game's host differs in.
 type Game struct {
-	Title    string                                          // the window's title
-	W, H     int                                             // the window's size at scale 1 (app.Theme)
-	Record   core.RecordLayout                               // the adventure's character records (importer.Game.Record)
-	Combat4e rules1e.CombatRules                             // the Gameplay page's "4e Combat" (nil: the option does nothing)
-	SaveDir  string                                          // the saves ("": the host data dir's pool.SaveDir)
-	Foreign  func(from string) ([]core.CharacterFile, error) // pool.Config.Foreign (nil: none)
-	Data     func(*engine.Engine) game.Data                    // the presenter's data (nil: the engine's Data)
+	Title    string                                           // the window's title
+	W, H     int                                              // the window's size at scale 1 (app.Theme)
+	Record   rules.RecordLayout                               // the adventure's character records (importer.Game.Record)
+	Combat4e rules1e.CombatRules                              // the Gameplay page's "4e Combat" (nil: the option does nothing)
+	SaveDir  string                                           // the saves ("": the host data dir's pool.SaveDir)
+	Foreign  func(from string) ([]rules.CharacterFile, error) // pool.Config.Foreign (nil: none)
+	Data     func(*engine.Engine) game.Data                   // the presenter's data (nil: the engine's Data)
 }
 
 // New is the game's Engine on the adventure folder adv and the host data directory data.
@@ -204,8 +204,8 @@ func HomeSaves(id, adv string) (string, error) {
 
 // HomeRosters is a pool.Config.Foreign over the other games' save folders
 // under the user's config dir (gobox/<id>), each read by its record layout.
-func HomeRosters(layouts map[string]core.RecordLayout) func(string) ([]core.CharacterFile, error) {
-	return func(from string) ([]core.CharacterFile, error) {
+func HomeRosters(layouts map[string]rules.RecordLayout) func(string) ([]rules.CharacterFile, error) {
+	return func(from string) ([]rules.CharacterFile, error) {
 		l, ok := layouts[from]
 		if !ok {
 			return nil, fmt.Errorf("no roster known of game %q", from)

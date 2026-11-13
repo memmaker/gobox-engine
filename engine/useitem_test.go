@@ -3,7 +3,7 @@ package engine
 import (
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -12,7 +12,7 @@ import (
 func TestUseItemOutside(t *testing.T) {
 	e := quickStarted(t)
 	e.CampMenu()
-	e.fixture(core.FixtureUsable, e.selected())
+	e.fixture(rules.FixtureUsable, e.selected())
 	e.OpenSheet(-1)
 	e.OpenItems(-1, false)
 	n := len(e.state().Carried(e.member(e.selected())))
@@ -48,7 +48,7 @@ func TestUsingItemPure(t *testing.T) {
 	it.Readied = 1
 	s.AddItemCopy(c, it)
 	held := s.Carried(c)[len(s.Carried(c))-1]
-	q := core.UsingItem{Who: e.charID(c), Item: e.itemHandle(held)}
+	q := rules.UsingItem{Who: e.charID(c), Item: e.itemHandle(held)}
 	for range 2 {
 		if o := e.ruleset().Allowed(q).Offers; len(o) == 0 || o[0].Not != "" {
 			t.Fatal("the cleric reads no spell off the scroll")

@@ -1,8 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"gobox/rules1e"
 	"strconv"
 	"strings"
@@ -28,17 +27,17 @@ func (e *Engine) CharacterSheet() {
 // sheetPage is c's sheet page as CharacterSheet shows it, its portrait
 // aside (SheetPortrait); with no side effect, so State builds it for every
 // member (game.Member.Page, BUG-CLASSES 36).
-func (e *Engine) sheetPage(id core.CharID) *SheetPage {
+func (e *Engine) sheetPage(id rules.CharID) *SheetPage {
 	sh := e.ruleset().Sheet(id)
-	sp := &SheetPage{Name: sh.Name, NameColour: e.nameColour(id), NPC: e.fact(id, core.FactControl).(core.Number) > 0x7F,
-		Sex: e.word(id, core.FactSex), Race: e.word(id, core.FactRace), Age: int(sh.Age),
-		Alignment: e.word(id, core.FactAlignment), Class: e.word(id, core.FactClasses), Str00: e.word(id, core.FactExceptional), Creating: e.ext.creating}
-	for i, a := range [...]core.Ability{core.Strength, core.Intelligence, core.Wisdom, core.Dexterity, core.Constitution, core.Charisma} {
+	sp := &SheetPage{Name: sh.Name, NameColour: e.nameColour(id), NPC: e.fact(id, rules.FactControl).(rules.Number) > 0x7F,
+		Sex: e.word(id, rules.FactSex), Race: e.word(id, rules.FactRace), Age: int(sh.Age),
+		Alignment: e.word(id, rules.FactAlignment), Class: e.word(id, rules.FactClasses), Str00: e.word(id, rules.FactExceptional), Creating: e.ext.creating}
+	for i, a := range [...]rules.Ability{rules.Strength, rules.Intelligence, rules.Wisdom, rules.Dexterity, rules.Constitution, rules.Charisma} {
 		sp.Stats[i] = int(sh.Scores[a])
 	}
 	e.combatStats(id, sp)
 	if !e.ext.creating { // extra: the creation's sheet: no level, experience or status yet (create.go)
-		for _, l := range e.fact(id, core.BookFact{}).(core.Book).Levels[:8] {
+		for _, l := range e.fact(id, rules.BookFact{}).(rules.Book).Levels[:8] {
 			if int8(l) > 0 {
 				if sp.Levels != "" {
 					sp.Levels += "/"
@@ -50,8 +49,8 @@ func (e *Engine) sheetPage(id core.CharID) *SheetPage {
 		if need := sh.NextExp; need > 0 { // extra: the experience the next level takes, green once it is there
 			sp.Next = int(need)
 		}
-		for i, v := range [...]core.Save{rules1e.SaveParalysis, rules1e.SavePetrify, rules1e.SaveRod, rules1e.SaveBreath, rules1e.SaveSpell} { // extra: the saving throws
-			sp.Saves[i] = int(e.fact(id, core.SaveFact{Save: v}).(core.Number))
+		for i, v := range [...]rules.Save{rules1e.SaveParalysis, rules1e.SavePetrify, rules1e.SaveRod, rules1e.SaveBreath, rules1e.SaveSpell} { // extra: the saving throws
+			sp.Saves[i] = int(e.fact(id, rules.SaveFact{Save: v}).(rules.Number))
 		}
 		sp.Status = e.statusName(id)
 		sp.Effects, _ = e.effectsLine(id)
@@ -62,7 +61,7 @@ func (e *Engine) sheetPage(id core.CharID) *SheetPage {
 // Extra: the sheet lists the spell effects on the character (the camp
 // menu's Display, which is not offered) on the free row under HP. When they
 // do not all fit, the View menu offers Magic with the whole list.
-func (e *Engine) effectsLine(id core.CharID) (string, bool) {
+func (e *Engine) effectsLine(id rules.CharID) (string, bool) {
 	names := e.ruleset().Sheet(id).Effects
 	if len(names) == 0 {
 		return "", true
@@ -81,15 +80,15 @@ func (e *Engine) effectsLine(id core.CharID) (string, bool) {
 	return strings.Join(names[:n], ", ") + ", +" + strconv.Itoa(len(names)-n) + " more", false
 }
 
-func (e *Engine) effectsFit(id core.CharID) bool { _, ok := e.effectsLine(id); return ok }
+func (e *Engine) effectsFit(id rules.CharID) bool { _, ok := e.effectsLine(id); return ok }
 
 // combatStats = showCombatStats (ovr20:0608): AC, HP, THAC0, damage,
 // party items, movement.
-func (e *Engine) combatStats(id core.CharID, sp *SheetPage) {
+func (e *Engine) combatStats(id rules.CharID, sp *SheetPage) {
 	sh := e.ruleset().Sheet(id)
 	sp.AC, sp.RearAC, sp.HP, sp.MaxHP = int(sh.AC), int(sh.RearAC), int(sh.HP), int(sh.MaxHP)
-	sp.THAC0, sp.Damage, sp.Move = int(sh.THAC0), goldbox.Cut(string(e.fact(id, core.DamageFact{}).(core.Text)), textCols), int(sh.Move)
-	if sp.Rules = e.fact(id, core.FiguresFact{}).(core.Figures); sp.Rules != nil { // extra: the rule set's modifiers and figures
+	sp.THAC0, sp.Damage, sp.Move = int(sh.THAC0), rules.Cut(string(e.fact(id, rules.DamageFact{}).(rules.Text)), textCols), int(sh.Move)
+	if sp.Rules = e.fact(id, rules.FiguresFact{}).(rules.Figures); sp.Rules != nil { // extra: the rule set's modifiers and figures
 		for a := range sp.Mods {
 			sp.Mods[a] = e.mod(id, a)
 		}
@@ -99,13 +98,13 @@ func (e *Engine) combatStats(id core.CharID, sp *SheetPage) {
 // sheetView is the sheet's decisions for the View.
 func (e *Engine) sheetView() *Sheet {
 	id := e.selected()
-	return &Sheet{Powers: e.powers(id), Reactions: e.fact(id, core.ReactionsFact{}).(core.Reactions)}
+	return &Sheet{Powers: e.powers(id), Reactions: e.fact(id, rules.ReactionsFact{}).(rules.Reactions)}
 }
 
 // SheetPortrait = ovr29:04F9: the character's head and body in a box at
 // the top right of the sheet (SheetPage.PortraitAt; the presenter frames it).
 func (e *Engine) SheetPortrait() {
-	pt := e.fact(e.selected(), core.PortraitFact{}).(core.Portrait)
+	pt := e.fact(e.selected(), rules.PortraitFact{}).(rules.Portrait)
 	if pt.PNG == nil && (pt.Head == 0 || pt.Body == 0) {
 		return
 	}
@@ -133,9 +132,9 @@ func (e *Engine) SheetPortrait() {
 
 // identifyItem = ovr20:1F52 (item): 200 gp shows the hidden words (the
 // player took the deal).
-func (e *Engine) identifyItem(id core.CharID, h core.ItemHandle) {
-	for _, f := range e.resolve(core.IdentifyItem{Who: id, Item: h}).Effects {
-		done, ok := f.(core.ItemIdentified)
+func (e *Engine) identifyItem(id rules.CharID, h rules.ItemHandle) {
+	for _, f := range e.resolve(rules.IdentifyItem{Who: id, Item: h}).Effects {
+		done, ok := f.(rules.ItemIdentified)
 		if !ok {
 			continue
 		}
@@ -153,7 +152,7 @@ func (e *Engine) identifyItem(id core.CharID, h core.ItemHandle) {
 
 // powers is what c can do besides items: the View menu's Spells, Magic,
 // Heal and Cure (the inventory offers them too).
-func (e *Engine) powers(id core.CharID) []Power {
+func (e *Engine) powers(id rules.CharID) []Power {
 	var ps []Power
 	if e.ruleset().Sheet(id).CanCast { // memorized, not still to be learned
 		ps = append(ps, Power{Name: "Cast", Kind: PowerSpells})
@@ -173,7 +172,7 @@ func (e *Engine) powers(id core.CharID) []Power {
 // memberPowers (extra) is a card's context menu out of combat: View, Items
 // when c carries any, then powers; in camp also what c does there
 // (Memorize and Scribe open the presenter's lists, Drop its question).
-func (e *Engine) memberPowers(id core.CharID) []Power {
+func (e *Engine) memberPowers(id rules.CharID) []Power {
 	if e.inFight() {
 		return nil
 	}
@@ -185,7 +184,7 @@ func (e *Engine) memberPowers(id core.CharID) []Power {
 	if !e.campOn() {
 		return ps
 	}
-	study := e.fact(id, core.StudyFact{}).(core.Study)
+	study := e.fact(id, rules.StudyFact{}).(rules.Study)
 	if study.Book > 0 {
 		ps = append(ps, Power{Name: "Memorize", Kind: PowerPlan})
 	}
@@ -202,10 +201,10 @@ type viewState struct {
 }
 
 // portrait is id's portrait; false when id is no character.
-func (e *Engine) portrait(id core.CharID) (core.Portrait, bool) {
-	v, err := e.ruleset().Fact(id, core.PortraitFact{})
+func (e *Engine) portrait(id rules.CharID) (rules.Portrait, bool) {
+	v, err := e.ruleset().Fact(id, rules.PortraitFact{})
 	if err != nil {
-		return core.Portrait{}, false
+		return rules.Portrait{}, false
 	}
-	return v.(core.Portrait), true
+	return v.(rules.Portrait), true
 }

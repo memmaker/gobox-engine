@@ -3,36 +3,36 @@ package rules1e
 import (
 	"encoding/json"
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 )
 
 // The session: init, new game, save records and character files (core/session.go).
 
 // resolveSession answers the Actions of the session topic.
-func (r *Rules) resolveSession(a core.Action) (core.Outcome, bool, error) {
+func (r *Rules) resolveSession(a rules.Action) (rules.Outcome, bool, error) {
 	s := r.S
 	switch a := a.(type) {
-	case core.InitRules:
+	case rules.InitRules:
 		s.SpellTableInit() // ovr23:3413; ovr13:31A2's affect handler table is Tables.Affects (callAffect)
-	case core.SetSeed:
+	case rules.SetSeed:
 		s.RandSeed = a.Seed
-	case core.LoadItemTable:
+	case rules.LoadItemTable:
 		s.Items = r.ItemTable()
-	case core.NewAdventure:
+	case rules.NewAdventure:
 		s.Game, s.Area = GameVars{}, AreaVars{} // DS:49D6, 49D2
 		s.Purse, s.Loot, s.Pool = Purse{}, Purse{}, nil
-	case core.EndSession:
+	case rules.EndSession:
 		s.Camp.On, s.Training, s.Learning = false, false, false
-	case core.RecordView:
+	case rules.RecordView:
 		r.SetSaveView(SaveView{AreaKind: a.AreaKind, WallsA: a.WallsA, WallsB: a.WallsB})
-	case core.TakeSavedWalls:
-		w := core.SavedWalls{A: s.Area.WallsA, B: s.Area.WallsB}
+	case rules.TakeSavedWalls:
+		w := rules.SavedWalls{A: s.Area.WallsA, B: s.Area.WallsB}
 		s.Area.WallsA, s.Area.WallsB = [3]uint16{}, [3]uint16{}
-		return core.Outcome{Effects: []core.Effect{w}}, true, nil
+		return rules.Outcome{Effects: []rules.Effect{w}}, true, nil
 	default:
-		return core.Outcome{}, false, nil
+		return rules.Outcome{}, false, nil
 	}
-	return core.Outcome{}, true, nil
+	return rules.Outcome{}, true, nil
 }
 
 // CharacterJSON is a character between adventures: its record's fields and
@@ -42,7 +42,7 @@ func (r *Rules) resolveSession(a core.Action) (core.Outcome, bool, error) {
 type CharacterJSON struct {
 	Sheet          Sheet
 	PoolIDs        PoolIDs
-	Portrait, Icon core.PNG
+	Portrait, Icon rules.PNG
 	Plan           *[MemorySlots]SpellID // nil: none saved (the spells held are the plan)
 	OldLevels      [8]Level
 	Powers         []int
@@ -65,28 +65,28 @@ type CharacterJSON struct {
 // the fields rules1e does not model ride along so the codec writes the file
 // back byte-equal; the modelled ones are written over it from the Sheet.
 type KeptRecord struct {
-	Layout core.RecordLayout
-	Image  core.RecordImage
+	Layout rules.RecordLayout
+	Image  rules.RecordImage
 }
 
 // Import = por LoadCharacter's rules part (ovr18:0AEC): the record, the
 // items and affects mended as ImportCharacter does for the member WordWho
 // names, then the extras.
-func (r *Rules) Import(b core.CharacterFile) (core.CharID, error) {
+func (r *Rules) Import(b rules.CharacterFile) (rules.CharID, error) {
 	var f CharacterJSON
 	if err := json.Unmarshal(b, &f); err != nil {
-		return core.NoChar, fmt.Errorf("Import: %w", err)
+		return rules.NoChar, fmt.Errorf("Import: %w", err)
 	}
 	if err := r.S.toIDs(f.Affects, f.Items); err != nil {
-		return core.NoChar, fmt.Errorf("Import: %w", err)
+		return rules.NoChar, fmt.Errorf("Import: %w", err)
 	}
 	race, err := r.S.T().raceID(f.Sheet.Race)
 	if err != nil {
-		return core.NoChar, fmt.Errorf("Import: %w", err)
+		return rules.NoChar, fmt.Errorf("Import: %w", err)
 	}
 	f.Sheet.Race = race
 	if err := sheetSpells(&f.Sheet, f.Plan, r.S.T().spellNumber); err != nil {
-		return core.NoChar, fmt.Errorf("Import: %w", err)
+		return rules.NoChar, fmt.Errorf("Import: %w", err)
 	}
 	c := &Character{Sheet: f.Sheet, PoolIDs: f.PoolIDs}
 	for _, it := range f.Items {
@@ -113,7 +113,7 @@ func (r *Rules) Import(b core.CharacterFile) (core.CharID, error) {
 }
 
 // Export is the character id as Import reads it.
-func (r *Rules) Export(id core.CharID) (core.CharacterFile, error) {
+func (r *Rules) Export(id rules.CharID) (rules.CharacterFile, error) {
 	c := r.chars[id]
 	if c == nil {
 		return nil, fmt.Errorf("Export %d: no character", id)
@@ -152,7 +152,7 @@ func (r *Rules) Export(id core.CharID) (core.CharacterFile, error) {
 }
 
 // TakePending takes the effects queued outside Resolve (core.Pending).
-func (r *Rules) TakePending() []core.Effect {
+func (r *Rules) TakePending() []rules.Effect {
 	fx := r.S.Fx
 	r.S.Fx = nil
 	return fx

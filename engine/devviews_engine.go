@@ -3,10 +3,9 @@ package engine
 import (
 	"fmt"
 	"gobox/asset"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl"
 	"gobox/ega"
+	"gobox/rules"
 	"os"
 )
 
@@ -16,7 +15,7 @@ func (e *Engine) DevScene(name string) func() {
 	switch name {
 	case "shop":
 		return func() {
-			e.fixture(core.FixtureShop, core.NoChar)
+			e.fixture(rules.FixtureShop, rules.NoChar)
 			if h, ok := e.artFolder().FirstID(asset.DOS, e.set.File("HEAD")); ok {
 				if b, ok := e.artFolder().FirstID(asset.DOS, e.set.File("BODY")); ok {
 					e.ShowPortrait(h, b) // a shopkeeper's both halves, as a shop's script shows them (no 0, no body block 0)
@@ -27,38 +26,38 @@ func (e *Engine) DevScene(name string) func() {
 		}
 	case "hall", "hallpoor": // the training hall's party menu (hallpoor: no gold for the fee)
 		return func() {
-			f := core.FixtureHall
+			f := rules.FixtureHall
 			if name == "hallpoor" {
-				f = core.FixtureHallPoor
+				f = rules.FixtureHallPoor
 			}
-			e.fixture(f, core.NoChar)
+			e.fixture(f, rules.NoChar)
 			e.push(cont{kind: kDrawMain})
 			e.partyMenu(true, true)
 		}
 	case "temple":
 		return func() {
-			e.fixture(core.FixtureTemple, e.selected())
+			e.fixture(rules.FixtureTemple, e.selected())
 			e.push(cont{kind: kDevBack})
 			e.Temple()
 		}
 	case "appraise":
 		return func() {
-			e.fixture(core.FixtureAppraise, core.NoChar)
+			e.fixture(rules.FixtureAppraise, rules.NoChar)
 			e.push(cont{kind: kDevBack})
 			e.Shop()
 		}
 	case "combat", "wildcombat", "castfight", "missile", "autocombat", "meleefight", "fleefight", "winfight", "losefight": // losefight: a foe of 250 hp next to every member of 1 hp (the party falls: the last blow's body, the monsters' page, the party menu); winfight: one foe of 1 hp next to the party (a hit wins, the round's end asks Continue Battle:); meleefight: a foe next to every member (a bump attack on the first turn); fleefight: every member on a square beside the map's edge (a step off it asks Flee:); castfight: every member has Cure Light Wounds memorized (the inventory's Spells in a fight); missile: items for everyone (a sling, a bow and arrows, javelins), so the bar shows Use; autocombat: the computer fights for the party against eight (measuring the battle view)
 		return func() {
 			if name == "missile" {
-				e.fixture(core.FixtureMissile, core.NoChar)
+				e.fixture(rules.FixtureMissile, rules.NoChar)
 				e.selectMember(0)
 			}
 			if name == "wildcombat" { // the overland's terrain, from the dungeon save
 				e.viewMode = 2
 			}
 			if name == "castfight" {
-				e.fixture(core.FixtureCastFight, core.NoChar)
-				e.do(core.SetPortrait{Who: e.selected(), PNG: e.DevPortrait}) // the sheet's portrait, when DevPortrait is set
+				e.fixture(rules.FixtureCastFight, rules.NoChar)
+				e.do(rules.SetPortrait{Who: e.selected(), PNG: e.DevPortrait}) // the sheet's portrait, when DevPortrait is set
 			}
 			// Block 1 exists only in MON2CHA; take the first monster of
 			// the current set (DS:5376) so any save can start a fight.
@@ -78,19 +77,19 @@ func (e *Engine) DevScene(name string) func() {
 			}
 			if name == "autocombat" {
 				count = 8
-				e.fixture(core.FixtureAutoCombat, core.NoChar)
+				e.fixture(rules.FixtureAutoCombat, rules.NoChar)
 			}
 			e.addMonsters(idx, count, 1)
 			// as opSetupMonster with max distance 1: the monsters stand off
 			// a block (a fresh game's distance is 0, right among the party)
-			e.setWorldWord(core.WordMonsterDist, min(e.FreeSteps(e.posX, e.posY, e.facing), 1))
+			e.setWorldWord(rules.WordMonsterDist, min(e.FreeSteps(e.posX, e.posY, e.facing), 1))
 			open := e.pushCombat
 			if name == "meleefight" || name == "fleefight" || name == "winfight" || name == "losefight" {
 				open = func() {
 					e.pushCombat()
-					e.do(core.DevPlace{Melee: name != "fleefight"})
+					e.do(rules.DevPlace{Melee: name != "fleefight"})
 					if name == "winfight" || name == "losefight" {
-						e.fixture(map[string]core.FixtureID{"winfight": core.FixtureWinFight, "losefight": core.FixtureLoseFight}[name], core.NoChar)
+						e.fixture(map[string]rules.FixtureID{"winfight": rules.FixtureWinFight, "losefight": rules.FixtureLoseFight}[name], rules.NoChar)
 					}
 				}
 			}
@@ -99,11 +98,11 @@ func (e *Engine) DevScene(name string) func() {
 		}
 	case "overland": // the wilderness map, the party on it
 		return func() {
-			e.setWorldWord(core.WordBeginFlag, 4)
-			e.setWorldWord(core.WordIn3D, 0)
+			e.setWorldWord(rules.WordBeginFlag, 4)
+			e.setWorldWord(rules.WordIn3D, 0)
 			e.viewMode = 2
-			e.setWorldWord(core.WordMapX, 7)
-			e.setWorldWord(core.WordMapY, 29)
+			e.setWorldWord(rules.WordMapX, 7)
+			e.setWorldWord(rules.WordMapY, 29)
 			e.loadAreaIcon(0, 9)
 			e.areaMapIcons()
 		}
@@ -126,7 +125,7 @@ func (e *Engine) DevScene(name string) func() {
 				}
 			}
 			e.es.inEncounterMenu = 1
-			e.setWorldWord(core.WordPortrait, 0xFF)
+			e.setWorldWord(rules.WordPortrait, 0xFF)
 			e.ShowEncounter(sprite, pic, 0, &e.es.encounterShown)
 			e.msgCol, e.msgRow = 1, 0x11
 			e.paneText(ega.LightGreen, true, "A band of kobolds blocks the way.")
@@ -143,21 +142,21 @@ func (e *Engine) DevScene(name string) func() {
 		}
 	case "portrait": // the DevPortrait (-png) as the selected member's portrait: the sheet, then the view with the cards
 		return func() {
-			e.do(core.SetPortrait{Who: e.selected(), PNG: e.DevPortrait})
+			e.do(rules.SetPortrait{Who: e.selected(), PNG: e.DevPortrait})
 			e.openThen(false, cont{kind: kDevLoot})
 		}
 	case "sheetcast": // the sheet's Spells with the DevPortrait (-png) as the portrait: the list is a page of its own (no portrait overlay, no tall row)
 		return func() {
 			e.selectMember(e.firstOkay())
-			e.do(core.SetPortrait{Who: e.selected(), PNG: e.DevPortrait})
-			e.fixture(core.FixtureSheetCast, e.selected())
+			e.do(rules.SetPortrait{Who: e.selected(), PNG: e.DevPortrait})
+			e.fixture(rules.FixtureSheetCast, e.selected())
 			e.openThen(false, cont{kind: kDrawMain})
 		}
 	case "cast", "castko": // Cast on the command bar with Cure Light Wounds memorized; castko with the selected member unconscious
 		return func() {
-			f := core.FixtureCastKO
+			f := rules.FixtureCastKO
 			if name == "cast" { // an able caster
-				f = core.FixtureCast
+				f = rules.FixtureCast
 				if i := e.firstOkay(); i >= 0 {
 					e.selectMember(i)
 				}
@@ -165,10 +164,10 @@ func (e *Engine) DevScene(name string) func() {
 			e.fixture(f, e.selected())
 		}
 	case "who": // a member pick on the view, as a script's "Who will search?"
-		return func() { e.askMember("Who will search?", core.NoChar, askDone{kind: dWho}); e.openAsk() }
+		return func() { e.askMember("Who will search?", rules.NoChar, askDone{kind: dWho}); e.openAsk() }
 	case "effects":
 		return func() { // spell effects for the View page: many on member 1, one on member 2
-			e.fixture(core.FixtureEffects, core.NoChar)
+			e.fixture(rules.FixtureEffects, rules.NoChar)
 		}
 	case "journal": // a text window naming journal entries, as ECL3 block 0 prints them
 		return func() {
@@ -198,39 +197,39 @@ func (e *Engine) DevScene(name string) func() {
 		}
 	case "inventory": // member 1 fully equipped, a party inventory to scroll
 		return func() {
-			e.fixture(core.FixtureInventory, core.NoChar)
+			e.fixture(rules.FixtureInventory, rules.NoChar)
 		}
 	case "lockeddoor": // a locked door ahead that no one can pick (the Pick menu's failure)
 		return func() {
 			for d := 0; d < 8; d += 2 { // face a wall
-				if e.WallAt(e.posX, e.posY, d) != 0 && goldbox.OnMap(e.posX+goldbox.StepX[d], e.posY+goldbox.StepY[d]) {
+				if e.WallAt(e.posX, e.posY, d) != 0 && rules.OnMap(e.posX+rules.StepX[d], e.posY+rules.StepY[d]) {
 					e.facing = d
 					break
 				}
 			}
 			e.setDoor(e.posX, e.posY, e.facing, 2)
-			e.setDoor(e.posX+goldbox.StepX[e.facing], e.posY+goldbox.StepY[e.facing], (e.facing+4)%8, 2)
+			e.setDoor(e.posX+rules.StepX[e.facing], e.posY+rules.StepY[e.facing], (e.facing+4)%8, 2)
 			e.run.doorTry = [3]byte{1, 1, 1}
-			e.fixture(core.FixtureNoPicker, core.NoChar)
+			e.fixture(rules.FixtureNoPicker, rules.NoChar)
 			e.Redraw()
 		}
 	case "dual": // the training hall with a human fighter who may change class (NewClass)
 		return func() {
-			e.fixture(core.FixtureDual, core.NoChar)
+			e.fixture(rules.FixtureDual, rules.NoChar)
 			e.DevScene("hall")()
 		}
 	case "camp", "resting": // camp up; resting: a member is hurt and the rest has begun (StopRest)
 		return func() {
 			e.CampMenu()
 			if name == "resting" {
-				e.fixture(core.FixtureHurt, core.NoChar)
+				e.fixture(rules.FixtureHurt, rules.NoChar)
 				e.campRest(RestFix)
 			}
 		}
 	case "sheet", "items", "usable", "paladin", "drop": // drop: items with a dagger to drop (Drop It?); the selected member's sheet; items: and its inventory over it; usable: with a potion to drink as the last item; paladin: a paladin of level 3 (its powers)
 		return func() {
 			if name == "paladin" || name == "drop" || name == "usable" {
-				e.fixture(map[string]core.FixtureID{"paladin": core.FixturePaladin, "drop": core.FixtureDrop, "usable": core.FixtureUsable}[name], e.selected())
+				e.fixture(map[string]rules.FixtureID{"paladin": rules.FixturePaladin, "drop": rules.FixtureDrop, "usable": rules.FixtureUsable}[name], e.selected())
 			}
 			e.OpenSheet(-1)
 			if name != "sheet" && name != "paladin" {
@@ -239,16 +238,16 @@ func (e *Engine) DevScene(name string) func() {
 		}
 	case "learn": // the training hall with the hall's magic-user ready to rise (Train, then Learn)
 		return func() {
-			e.fixture(core.FixtureLearn, core.NoChar)
+			e.fixture(rules.FixtureLearn, rules.NoChar)
 			e.sel = 4
 			e.DevScene("hall")()
 		}
 	case "loot", "lootdetect": // lootdetect: the selected member has Detect Magic memorized
 		return func() {
 			if name == "lootdetect" {
-				e.fixture(core.FixtureLootDetect, e.selected())
+				e.fixture(rules.FixtureLootDetect, e.selected())
 			}
-			e.fixture(core.FixtureLoot, core.NoChar)
+			e.fixture(rules.FixtureLoot, rules.NoChar)
 			e.push(cont{kind: kDevFightEnd})
 			e.pushAfterCombat()
 		}
@@ -258,7 +257,7 @@ func (e *Engine) DevScene(name string) func() {
 
 // devBack: as opCombat after a shop or temple, the 3D view comes back.
 func (e *Engine) devBack() {
-	e.setWorldWord(core.WordBeginFlag, 4)
+	e.setWorldWord(rules.WordBeginFlag, 4)
 	e.DrawMainScreen()
 	e.ret()
 }
@@ -292,8 +291,8 @@ func (e *Engine) devParlayAnswered(c int) {
 
 // fixture has the ruleset set the party up for a dev scene (core.Fixture);
 // who is the selected member, for the temple.
-func (e *Engine) fixture(id core.FixtureID, who core.CharID) {
-	if _, err := e.ruleset().Resolve(nil, core.Fixture{ID: id, Who: who}, nil); err != nil {
+func (e *Engine) fixture(id rules.FixtureID, who rules.CharID) {
+	if _, err := e.ruleset().Resolve(nil, rules.Fixture{ID: id, Who: who}, nil); err != nil {
 		panic(fmt.Sprintf("dev scene %v: %v", id, err))
 	}
 }

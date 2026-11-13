@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
+	"gobox/rules"
 )
 
 // What follows a flow is data, not a closure: a cont on the engine's
@@ -57,7 +57,7 @@ type cont struct {
 	kind contKind
 	flag bool
 	n    [3]int
-	sel  core.CharID
+	sel  rules.CharID
 	pre  *preStep
 }
 
@@ -84,7 +84,7 @@ func (e *Engine) ret() {
 	case kSearched:
 		e.searched(c.n[0], c.n[1], c.n[2])
 	case kSearchRestore:
-		e.setWorldWord(core.WordSearch, int(e.run.searchSave))
+		e.setWorldWord(rules.WordSearch, int(e.run.searchSave))
 		e.lookDone()
 	case kStepPre:
 		e.stepPre(c.flag)
@@ -142,7 +142,7 @@ func (e *Engine) ret() {
 		e.snap.shop = false
 		e.uncovered()
 	case kDevLoot:
-		e.do(core.DevTreasure{})
+		e.do(rules.DevTreasure{})
 		e.push(cont{kind: kDrawMain})
 		e.lootMenu()
 	case kNop:
@@ -152,7 +152,7 @@ func (e *Engine) ret() {
 	case kAfterResults:
 		e.afterResults()
 	case kLootDone:
-		e.do(core.ClearTreasure{})
+		e.do(rules.ClearTreasure{})
 		e.afterEnd()
 	case kAfterEnd:
 		e.afterEnd()

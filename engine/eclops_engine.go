@@ -2,12 +2,12 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
 	"gobox/ecl"
 	"gobox/ecl/script"
 	"gobox/ega"
-	"os"
+	"gobox/rules"
 	"gobox/rules1e"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -92,7 +92,7 @@ func (e *Engine) opExit() {
 	if e.es.textInView != 0 {
 		e.newPage()
 		e.blank(1, 1, 15, 15)
-		if e.worldWord(core.WordIn3D) != 0 {
+		if e.worldWord(rules.WordIn3D) != 0 {
 			e.blank(3, 3, 13, 13)
 		}
 	}
@@ -123,7 +123,7 @@ func (e *Engine) opCompare() {
 		// option (U3): the scripts pick the day sky by hour < 14; day is 6:00-20:00 instead.
 		// Night is 15, not 14, so the pier's "Hours > 14" (no ship picture after dark) holds too.
 		a = 15
-		if e.ruleset().Check(core.IsDay{}, nil).Yes {
+		if e.ruleset().Check(rules.IsDay{}, nil).Yes {
 			a = 0
 		}
 	}
@@ -166,10 +166,10 @@ func (e *Engine) addMonsters(idx, count, icon int) {
 		count = 1
 	}
 	r := e.ruleset()
-	if _, err := r.Resolve(nil, core.NewGroup{}, nil); err != nil {
+	if _, err := r.Resolve(nil, rules.NewGroup{}, nil); err != nil {
 		panic(err)
 	}
-	if _, err := r.Spawn(core.MonsterID(idx), nil); err != nil { // ovr08:0411
+	if _, err := r.Spawn(rules.MonsterID(idx), nil); err != nil { // ovr08:0411
 		e.PromptRow24(ega.White, "Unable to load monster")
 		e.Exit()
 		return
@@ -179,10 +179,10 @@ func (e *Engine) addMonsters(idx, count, icon int) {
 	e.meetMonster(e.ruleset().Sheet(tmplID).Name, e.monsterSet().File("CPIC"), icon)
 	// The template itself is the first monster (ovr04:055B); each clone is
 	// a copy of it made by Spawn (its Order too).
-	e.do(core.SetOrder{Who: tmplID, Order: int32(e.es.cloneIcon)})
+	e.do(rules.SetOrder{Who: tmplID, Order: int32(e.es.cloneIcon)})
 	e.run.monCount++
 	for i := 2; i <= count && e.run.monCount < 0x3F; i++ {
-		if _, err := r.Spawn(core.MonsterID(idx), nil); err != nil {
+		if _, err := r.Spawn(rules.MonsterID(idx), nil); err != nil {
 			panic(err)
 		}
 		e.run.monCount++
@@ -202,16 +202,16 @@ func (e *Engine) opSetupMonster() {
 		e.vm.ReadArgs(3)
 	}
 	e.run.sprite = int(byte(e.vm.Arg(1, e.host)))
-	e.setWorldWord(core.WordMaxDist, int(e.vm.Arg(2, e.host)))
+	e.setWorldWord(rules.WordMaxDist, int(e.vm.Arg(2, e.host)))
 	e.run.closeup = int(byte(e.vm.Arg(3, e.host)))
-	e.setWorldWord(core.WordMonsterDist, int(e.FreeSteps(e.posX, e.posY, e.facing)))
-	if sides && e.worldWord(core.WordIn3D) == 0 { // outdoors the distance asked becomes 2 (pod O055:03D7)
-		e.setWorldWord(core.WordMaxDist, maxEncounterDist)
+	e.setWorldWord(rules.WordMonsterDist, int(e.FreeSteps(e.posX, e.posY, e.facing)))
+	if sides && e.worldWord(rules.WordIn3D) == 0 { // outdoors the distance asked becomes 2 (pod O055:03D7)
+		e.setWorldWord(rules.WordMaxDist, maxEncounterDist)
 	}
-	if e.worldWord(core.WordMaxDist) < e.worldWord(core.WordMonsterDist) {
-		e.setWorldWord(core.WordMonsterDist, int(e.worldWord(core.WordMaxDist)))
+	if e.worldWord(rules.WordMaxDist) < e.worldWord(rules.WordMonsterDist) {
+		e.setWorldWord(rules.WordMonsterDist, int(e.worldWord(rules.WordMaxDist)))
 	}
-	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(core.WordMonsterDist))), &e.es.encounterShown)
+	e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(rules.WordMonsterDist))), &e.es.encounterShown)
 }
 
 // maxEncounterDist: an encounter is at most two squares away (FreeSteps).
@@ -219,9 +219,9 @@ const maxEncounterDist = 2
 
 // opApproach = ovr04:0817: the monster comes one step closer.
 func (e *Engine) opApproach() {
-	if d := e.worldWord(core.WordMonsterDist); d > 0 {
-		e.setWorldWord(core.WordMonsterDist, int(d-1))
-		e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(core.WordMonsterDist))), &e.es.encounterShown)
+	if d := e.worldWord(rules.WordMonsterDist); d > 0 {
+		e.setWorldWord(rules.WordMonsterDist, int(d-1))
+		e.ShowEncounter(e.run.sprite, e.run.closeup, int(byte(e.worldWord(rules.WordMonsterDist))), &e.es.encounterShown)
 	}
 	e.vm.PC++
 }
@@ -231,13 +231,13 @@ func (e *Engine) opApproach() {
 func (e *Engine) opPicture() {
 	e.vm.ReadArgs(1)
 	v := int(byte(e.vm.Arg(1, e.host)))
-	if e.worldWord(core.WordIn3D) == 0 && v != 0xFF {
+	if e.worldWord(rules.WordIn3D) == 0 && v != 0xFF {
 		e.blank(3, 3, 13, 13)
 	}
 	if v != 0xFF {
 		e.es.encounterShown[1] = 1
 		e.es.picShown = 1
-		if face := e.worldWord(core.WordPortrait); face == 0xFF {
+		if face := e.worldWord(rules.WordPortrait); face == 0xFF {
 			e.LoadAnimPic("PIC", v, false)
 			e.DrawAnimFirst()
 		} else {
@@ -352,10 +352,10 @@ func (e *Engine) opLoadArea() {
 	e.vm.ReadArgs(2)
 	e.run.scriptLoad, e.run.geoSet, e.run.walldefSet = 1, 1, 1
 	geo, walls := int(byte(e.vm.Arg(1, e.host))), int(byte(e.vm.Arg(2, e.host)))
-	if geo < geoNone && e.worldWord(core.WordIn3D) != 0 {
-		e.setWorldWord(core.WordGeo, geo)
+	if geo < geoNone && e.worldWord(rules.WordIn3D) != 0 {
+		e.setWorldWord(rules.WordGeo, geo)
 		e.LoadGeo(geo)
-		e.setWorldWord(core.WordHoldMove, 0)
+		e.setWorldWord(rules.WordHoldMove, 0)
 	}
 	if walls != wallsNone && walls != e.mapPairA[0] {
 		e.LoadWalldef(walls, 1)
@@ -378,12 +378,12 @@ func (e *Engine) opLoadFiles() {
 	}
 	if e.cmdIs(script.OpLoadMap) {
 		e.run.geoSet = 1
-		if a[1] != 0xFF && a[1] != 0x7F && e.worldWord(core.WordIn3D) != 0 {
-			e.setWorldWord(core.WordGeo, int(a[1]))
+		if a[1] != 0xFF && a[1] != 0x7F && e.worldWord(rules.WordIn3D) != 0 {
+			e.setWorldWord(rules.WordGeo, int(a[1]))
 			e.LoadGeo(a[1])
-			e.setWorldWord(core.WordHoldMove, 0)
+			e.setWorldWord(rules.WordHoldMove, 0)
 		}
-		if a[3] != 0xFF && e.worldWord(core.WordIn3D) == 0 {
+		if a[3] != 0xFF && e.worldWord(rules.WordIn3D) == 0 {
 			e.layAreaTiles() // ovr33:0022
 		}
 	} else {
@@ -391,7 +391,7 @@ func (e *Engine) opLoadFiles() {
 		switch {
 		case a[1] == 0x7F:
 			e.LoadWalldef(0, 1)
-		case e.worldWord(core.WordWallSplitA) != 0 && e.worldWord(core.WordWallSplitB) != 0:
+		case e.worldWord(rules.WordWallSplitA) != 0 && e.worldWord(rules.WordWallSplitB) != 0:
 			e.LoadWalldef(a[1], 1)
 			e.LoadWalldef(a[3], 3)
 		default:
@@ -453,13 +453,13 @@ func (e *Engine) clearTreasure() {
 	e.run.monCount = 0
 	e.run.monstersLoaded = 0
 	e.es.cloneIcon = 8
-	e.do(core.ClearLoot{})
+	e.do(rules.ClearLoot{})
 }
 
 // opPartyStrength = ovr04:12C6.
 func (e *Engine) opPartyStrength() {
 	e.vm.ReadArgs(1)
-	total := e.ruleset().Check(core.PartyStrength{Party: e.partyIDs()}, nil).Value
+	total := e.ruleset().Check(rules.PartyStrength{Party: e.partyIDs()}, nil).Value
 	e.host.Set(e.vm.Ref(1), int64(uint16(total)))
 }
 
@@ -472,7 +472,7 @@ func (e *Engine) opPartyStrength() {
 func (e *Engine) opCheckParty() {
 	e.vm.ReadArgs(6)
 	what := censusNone
-	var fact core.Fact
+	var fact rules.Fact
 	switch {
 	case e.vm.ArgType[1] != 1:
 		if e.vm.Arg(1, e.host) == 0 {
@@ -497,16 +497,16 @@ func (e *Engine) opCheckParty() {
 		e.host.Set(dst[5], int64(uint16(avg)))
 		e.host.Set(dst[6], int64(uint16(count)))
 	}
-	census := func(f core.Fact) {
+	census := func(f rules.Fact) {
 		party := e.partyIDs()
-		a := e.ruleset().Check(core.Census{Party: party, Fact: f}, nil)
+		a := e.ruleset().Check(rules.Census{Party: party, Fact: f}, nil)
 		lo, hi, avg, count = byte(a.Low), byte(a.High), byte(a.Avg), len(party)
 		store()
 	}
 	switch what {
 	case censusSpecial:
 		for _, id := range e.partyIDs() {
-			if e.ruleset().Check(core.HasAffect{Whom: []core.CharID{id}, Affect: core.ScriptAffect(special)}, nil).Yes { // 00BA:2199
+			if e.ruleset().Check(rules.HasAffect{Whom: []rules.CharID{id}, Affect: rules.ScriptAffect(special)}, nil).Yes { // 00BA:2199
 				count++
 			}
 		}
@@ -522,7 +522,7 @@ func (e *Engine) opCheckParty() {
 func (e *Engine) opPartySurprise() {
 	e.vm.ReadArgs(2)
 	var a byte
-	if e.ruleset().Check(core.HasClass{Party: e.partyIDs(), Class: rules1e.CoreClassRanger}, nil).Yes {
+	if e.ruleset().Check(rules.HasClass{Party: e.partyIDs(), Class: rules1e.CoreClassRanger}, nil).Yes {
 		a = 1
 	}
 	e.host.Set(e.vm.Ref(1), int64(uint16(a)))
@@ -552,7 +552,7 @@ func (e *Engine) opSurprise() {
 	if d2 <= s2 {
 		r = 2
 	}
-	e.setWorldWord(core.WordSurprise, int(r))
+	e.setWorldWord(rules.WordSurprise, int(r))
 }
 
 // opCombat = ovr04:179B: run the fight (or the shop/temple/after-combat
@@ -574,8 +574,8 @@ func (e *Engine) opCombat() {
 		e.addAreaMonsters()
 	}
 	d := e.FreeSteps(e.posX, e.posY, e.facing)
-	if d < e.worldWord(core.WordMonsterDist) {
-		e.setWorldWord(core.WordMonsterDist, int(d))
+	if d < e.worldWord(rules.WordMonsterDist) {
+		e.setWorldWord(rules.WordMonsterDist, int(d))
 	}
 	e.push(cont{kind: kOpFought})
 	e.pushCombat() // ovr09:007A
@@ -605,8 +605,8 @@ func (e *Engine) noMonsterScreen() func() {
 }
 
 // combatScreenWords is the world word that asks for each screen.
-var combatScreenWords = map[script.CombatScreen]core.WorldWord{
-	script.CombatShop: core.WordShop, script.CombatTemple: core.WordTemple, script.CombatVault: core.WordVault}
+var combatScreenWords = map[script.CombatScreen]rules.WorldWord{
+	script.CombatShop: rules.WordShop, script.CombatTemple: rules.WordTemple, script.CombatVault: rules.WordVault}
 
 // areaMonsterFor is the monster the area screen adds to a fight; none past the table.
 func (t AreaMonsters) areaMonsterFor(screen int) (AreaMonster, bool) {
@@ -619,18 +619,18 @@ func (t AreaMonsters) areaMonsterFor(screen int) (AreaMonster, bool) {
 // addAreaMonsters = pod O055:1740: the area screen's own monsters join the fight, standing aside.
 func (e *Engine) addAreaMonsters() {
 	t := e.game().AreaMonsters
-	m, ok := t.areaMonsterFor(e.worldWord(core.WordAreaScreen))
+	m, ok := t.areaMonsterFor(e.worldWord(rules.WordAreaScreen))
 	if !ok {
 		return
 	}
 	e.addMonsters(m.Monster, t.Count, m.Icon)
 	ids := e.partyIDs()
 	for _, id := range ids[len(ids)-t.Count:] {
-		if err := e.ruleset().SetFact(id, core.FactStatus, core.Number(t.Status)); err != nil {
+		if err := e.ruleset().SetFact(id, rules.FactStatus, rules.Number(t.Status)); err != nil {
 			panic("addAreaMonsters: " + err.Error())
 		}
-		control := e.fact(id, core.FactControl).(core.Number)
-		if err := e.ruleset().SetFact(id, core.FactControl, control|core.Number(t.Control)); err != nil {
+		control := e.fact(id, rules.FactControl).(rules.Number)
+		if err := e.ruleset().SetFact(id, rules.FactControl, control|rules.Number(t.Control)); err != nil {
 			panic("addAreaMonsters: " + err.Error())
 		}
 	}
@@ -644,7 +644,7 @@ func (e *Engine) opFought() {
 
 // opAfterFight: AfterCombat is over.
 func (e *Engine) opAfterFight() {
-	if e.worldWord(core.WordIn3D) == 0 {
+	if e.worldWord(rules.WordIn3D) == 0 {
 		e.layAreaTiles()
 		e.loadAreaIcon(0, 9)
 		e.loadAreaIcon(1, 0xA)
@@ -657,11 +657,11 @@ func (e *Engine) opAfterFight() {
 // opCombatEnd is opCombat's end, after its screens.
 func (e *Engine) opCombatEnd() {
 	if e.viewMode == 1 {
-		e.setWorldWord(core.WordBeginFlag, 4)
+		e.setWorldWord(rules.WordBeginFlag, 4)
 	} else {
-		e.setWorldWord(core.WordBeginFlag, 3)
+		e.setWorldWord(rules.WordBeginFlag, 3)
 	}
-	e.setWorldWord(core.WordSearch, e.worldWord(core.WordSearch)&1)
+	e.setWorldWord(rules.WordSearch, e.worldWord(rules.WordSearch)&1)
 	e.es.encounterShown = [2]byte{}
 	e.es.picShown = 0
 	e.DrawMainScreen()
@@ -698,11 +698,11 @@ const (
 // layout's name: the thief skills the game's scripts name and the movement
 // (por SelFindTraps 0x6BA7, SelMove 0x6C1B; cotab's census covers all eight
 // thief skills, cvThiefFirst..Last).
-var censusFacts = map[string]core.Fact{
-	"SelPickPockets":  core.SkillFact{Skill: rules1e.PickPockets},
-	fieldSelFindTraps: core.SkillFact{Skill: rules1e.FindTraps},
-	"SelThiefSkill6":  core.SkillFact{Skill: rules1e.Climb},
-	fieldSelMove:      core.FactMove,
+var censusFacts = map[string]rules.Fact{
+	"SelPickPockets":  rules.SkillFact{Skill: rules1e.PickPockets},
+	fieldSelFindTraps: rules.SkillFact{Skill: rules1e.FindTraps},
+	"SelThiefSkill6":  rules.SkillFact{Skill: rules1e.Climb},
+	fieldSelMove:      rules.FactMove,
 }
 
 // eclOps are the commands the engine runs by name (the rest are
@@ -711,25 +711,25 @@ var eclOps map[byte]eclOp
 
 // eclRun holds the ovr04 globals that are not part of the ovr08 interpreter.
 type eclRun struct {
-	restoreSel     bool        // DS:4430: put DS:4436 back as the selected character
-	savedSel       core.CharID // DS:4436
-	scriptLoad     byte        // DS:4431
-	needFrame      byte        // DS:4432: main screen not drawn yet
-	walldefSet     byte        // DS:4433
-	geoSet         byte        // DS:4434
-	monCount       byte        // DS:4435: monsters appended to the party list
-	areaChanged    bool        // DS:442F
-	quit           bool        // DS:49FF
-	searchSave     byte        // DS:84DD
-	textInBox      byte        // DS:84DE
-	textCleared    byte        // DS:84E4
-	monstersLoaded byte        // monsters were loaded; DS:84E7
-	duelMode       byte        // DS:84D4
-	sprite         int         // DS:6F81
-	closeup        int         // DS:6F82
-	doorTry        [3]byte     // DS:6DDE..6DE0: bash, pick, knock still allowed
-	lineHasText    byte        // DS:84DF
-	monsterSides   byte        // SetupMonster's sides (pod; bits 0..3): where the monsters come from in combat
+	restoreSel     bool         // DS:4430: put DS:4436 back as the selected character
+	savedSel       rules.CharID // DS:4436
+	scriptLoad     byte         // DS:4431
+	needFrame      byte         // DS:4432: main screen not drawn yet
+	walldefSet     byte         // DS:4433
+	geoSet         byte         // DS:4434
+	monCount       byte         // DS:4435: monsters appended to the party list
+	areaChanged    bool         // DS:442F
+	quit           bool         // DS:49FF
+	searchSave     byte         // DS:84DD
+	textInBox      byte         // DS:84DE
+	textCleared    byte         // DS:84E4
+	monstersLoaded byte         // monsters were loaded; DS:84E7
+	duelMode       byte         // DS:84D4
+	sprite         int          // DS:6F81
+	closeup        int          // DS:6F82
+	doorTry        [3]byte      // DS:6DDE..6DE0: bash, pick, knock still allowed
+	lineHasText    byte         // DS:84DF
+	monsterSides   byte         // SetupMonster's sides (pod; bits 0..3): where the monsters come from in combat
 }
 
 func init() {

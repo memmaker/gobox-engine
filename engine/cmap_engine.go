@@ -6,8 +6,7 @@ import (
 	"strings"
 
 	"gobox/asset"
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // drawPage = 0464:0D71 draws a frame at page cell (x,y), clipped to the
@@ -78,7 +77,7 @@ func (e *Engine) tileBlock(l TileLoad) int {
 	case TileBlockWalls:
 		return e.mapPairA[0] & 0xFF
 	case TileBlockAreaSet:
-		if s := e.worldWord(core.WordAreaScreen); s == 1 || s == 2 {
+		if s := e.worldWord(rules.WordAreaScreen); s == 1 || s == 2 {
 			return s
 		}
 		return 0
@@ -228,7 +227,7 @@ func (e *Engine) eraseCursor(x, y int) { e.snap.cursorOn = false }
 
 // combatView is the combat view window (extra): 12 x 7 squares, scrolled as
 // the original scrolled its 7x7 (recentre); the battle view's camera follows it.
-var combatView = goldbox.View{W: 12, H: 7}
+var combatView = rules.View{W: 12, H: 7}
 
 // inView = ovr32:06E9 on map squares: (x, y) lies in the view at cview.
 func (e *Engine) inView(x, y int) bool { return combatView.In(x-e.cview.X, y-e.cview.Y) }
@@ -272,7 +271,7 @@ func (e *Engine) recentre(x, y, r int) bool {
 // combatCentre = ovr32:0996 (x, y, margin, dir): bring the square next to
 // (x,y) in direction dir (8 = itself) into view and put the cursor there.
 func (e *Engine) combatCentre(x, y, r, dir int) {
-	nx, ny := x+goldbox.StepX[dir], y+goldbox.StepY[dir]
+	nx, ny := x+rules.StepX[dir], y+rules.StepY[dir]
 	e.recentre(nx, ny, r)
 	e.eraseCursor(x, y)
 	if !e.inView(nx, ny) {
@@ -284,8 +283,8 @@ func (e *Engine) combatCentre(x, y, r, dir int) {
 
 // combatRedrawChar = ovr32:1298 (char, margin, cursor): centre on the
 // combatant, with the cursor icon over all its squares when asked.
-func (e *Engine) combatRedrawChar(cID core.CharID, r int, cursor byte) {
-	e.ccursor = combatCursor{icon: cursor != 0, size: int(e.fact(cID, core.SizeFact{}).(core.Number))}
+func (e *Engine) combatRedrawChar(cID rules.CharID, r int, cursor byte) {
+	e.ccursor = combatCursor{icon: cursor != 0, size: int(e.fact(cID, rules.SizeFact{}).(rules.Number))}
 	at := e.at(cID)
 	e.combatCentre(at.X, at.Y, r, 8)
 	e.ccursor = freshCursor

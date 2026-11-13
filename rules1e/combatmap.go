@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
@@ -21,12 +21,12 @@ func (e *RuleState) Combatant(i byte) *Character {
 
 // shoot = flyMissile (00BA:1A29): something flies from square (x1, y1)
 // to (x2, y2), a missile item or a spell or power; present draws it (Shot).
-func (e *RuleState) shoot(x1, y1, x2, y2 int, item core.ItemID, spell core.SpellID) {
+func (e *RuleState) shoot(x1, y1, x2, y2 int, item rules.ItemID, spell rules.SpellID) {
 	if !e.Fight.On || x1 == x2 && y1 == y2 { // the original's line of fewer than two steps: nothing flies
 		return
 	}
 	who, _ := e.MapAt(x1, y1) // the shooter stands where it flies from
-	e.Emit(core.Shot{From: unit(int(who)), Start: core.BoardPos{X: x1, Y: y1}, To: core.BoardPos{X: x2, Y: y2}, Item: item, Spell: spell})
+	e.Emit(rules.Shot{From: unit(int(who)), Start: rules.BoardPos{X: x1, Y: y1}, To: rules.BoardPos{X: x2, Y: y2}, Item: item, Spell: spell})
 }
 
 // IsParty = 00BA:23B7 (char): true for the party side.

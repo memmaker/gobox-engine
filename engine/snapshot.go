@@ -1,8 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"image"
 	"slices"
 )
@@ -31,46 +30,46 @@ const mapCell = 10
 
 // snapState is the engine's side of the seam.
 type snapState struct {
-	quiet      bool                        // a play action is running: no scene is published for the events
-	invOn      bool                        // ItemsMenu waits: Inventory is up
-	shop       bool                        // ... as the shop's Browse: Inventory.Wares
-	identified *core.ItemCard              // the item the shop's Id last revealed (Shop.Identified)
-	identN     int                         // ... counted: a new reveal is a new number
-	identIt    core.ItemHandle             // ... the item itself (State's Shop.Identified)
-	saves      bool                        // there are saved games (the party menu's Load)
-	logo       *Picture                    // titleLogo, once read
-	win        Window                      // set by whatever drew into the view window last
-	heads      map[int]Picture             // HEAD blocks' pixels by id
-	tiles      [3]Picture                  // DrawBorder style 0's corner, side and top cells, once taken (BorderPix)
-	cursor     image.Point                 // drawCursor's last square
-	cursorOn   bool                        // the cursor icon is on the page (drawn, not yet erased or drawn over)
-	cmapOn     bool                        // the combat map is set up (cmapShown) and shown
-	sheetOn    bool                        // a character sheet is up over the combat map
-	portrait   CellRect                    // the sheet's portrait box while a sheet is up
-	sheet      *SheetPage                  // the character sheet's page while it is up (SheetPage)
-	results    *Results                    // the after-combat page while it is up (Results)
-	full       bool                        // a whole-screen picture is up (Full)
-	iconDrop   func([]byte)                // the icon editor, or the creation sheet, takes a dropped PNG while it is up (nil elsewhere)
-	iconBox    CellRect                    // the creation sheet's icon: the cells that take the drop (zero: the whole screen)
-	dungeon    bool                        // the combat tiles are DungCom's stone walls (else WildCom's outdoors)
-	marks      []image.Point               // squares markReach framed
-	reach      []image.Point               // squares a click on the main combat menu walks to
-	paths      map[image.Point][]core.Step // the walk to each of them
-	hits       map[int]int                 // each of targets' chance to be hit, in percent
-	area       []image.Point               // squares aoeMarks covers
-	skipped    []image.Point               // squares of allies in the area the spell passes over (Bless: an enemy next to them)
-	aimWhy     string                      // aiming: why the aimed square cannot be taken ("" when it can)
-	turn       *Turn                       // the player's turn waits in act
-	targets    []int                       // combatants verbAttack takes; aiming: the foes to cycle through
-	strike     Strike                      // the last weapon attack (From/To filled in by battle)
-	striker    [2]core.CharID              // its attacker and target
+	quiet      bool                         // a play action is running: no scene is published for the events
+	invOn      bool                         // ItemsMenu waits: Inventory is up
+	shop       bool                         // ... as the shop's Browse: Inventory.Wares
+	identified *rules.ItemCard              // the item the shop's Id last revealed (Shop.Identified)
+	identN     int                          // ... counted: a new reveal is a new number
+	identIt    rules.ItemHandle             // ... the item itself (State's Shop.Identified)
+	saves      bool                         // there are saved games (the party menu's Load)
+	logo       *Picture                     // titleLogo, once read
+	win        Window                       // set by whatever drew into the view window last
+	heads      map[int]Picture              // HEAD blocks' pixels by id
+	tiles      [3]Picture                   // DrawBorder style 0's corner, side and top cells, once taken (BorderPix)
+	cursor     image.Point                  // drawCursor's last square
+	cursorOn   bool                         // the cursor icon is on the page (drawn, not yet erased or drawn over)
+	cmapOn     bool                         // the combat map is set up (cmapShown) and shown
+	sheetOn    bool                         // a character sheet is up over the combat map
+	portrait   CellRect                     // the sheet's portrait box while a sheet is up
+	sheet      *SheetPage                   // the character sheet's page while it is up (SheetPage)
+	results    *Results                     // the after-combat page while it is up (Results)
+	full       bool                         // a whole-screen picture is up (Full)
+	iconDrop   func([]byte)                 // the icon editor, or the creation sheet, takes a dropped PNG while it is up (nil elsewhere)
+	iconBox    CellRect                     // the creation sheet's icon: the cells that take the drop (zero: the whole screen)
+	dungeon    bool                         // the combat tiles are DungCom's stone walls (else WildCom's outdoors)
+	marks      []image.Point                // squares markReach framed
+	reach      []image.Point                // squares a click on the main combat menu walks to
+	paths      map[image.Point][]rules.Step // the walk to each of them
+	hits       map[int]int                  // each of targets' chance to be hit, in percent
+	area       []image.Point                // squares aoeMarks covers
+	skipped    []image.Point                // squares of allies in the area the spell passes over (Bless: an enemy next to them)
+	aimWhy     string                       // aiming: why the aimed square cannot be taken ("" when it can)
+	turn       *Turn                        // the player's turn waits in act
+	targets    []int                        // combatants verbAttack takes; aiming: the foes to cycle through
+	strike     Strike                       // the last weapon attack (From/To filled in by battle)
+	striker    [2]rules.CharID              // its attacker and target
 }
 
 // charHead is the head the player chose for c, as the sheet shows it
 // (SheetPortrait), as View pixels in the EGA's own colours (Member.HeadPix;
 // none without one).
-func (e *Engine) charHead(cID core.CharID) Picture {
-	h := e.fact(cID, core.PortraitFact{}).(core.Portrait).Head
+func (e *Engine) charHead(cID rules.CharID) Picture {
+	h := e.fact(cID, rules.PortraitFact{}).(rules.Portrait).Head
 	if h == 0 || h >= len(e.game().PortraitHead) {
 		return Picture{}
 	}
@@ -79,7 +78,7 @@ func (e *Engine) charHead(cID core.CharID) Picture {
 
 // head is portrait head p's pixels (cached by id, one picture in every
 // set; none if missing).
-func (e *Engine) head(p goldbox.PortraitPic) Picture {
+func (e *Engine) head(p rules.PortraitPic) Picture {
 	id := int(p.Id)
 	if DOSArt.Load() {
 		id |= 1 << 16 // the DOS twin's

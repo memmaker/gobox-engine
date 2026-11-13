@@ -2,9 +2,9 @@ package engine
 
 import (
 	"gobox/char"
-	"gobox/core"
-	"os"
+	"gobox/rules"
 	"gobox/rules1e"
+	"os"
 	"slices"
 	"testing"
 )
@@ -21,7 +21,7 @@ func testEngine(t *testing.T) *Engine {
 		t.Fatal(err)
 	}
 	e.Cfg.SaveDir = t.TempDir()
-	if _, err := e.r1e().Resolve(nil, core.LoadItemTable{}, nil); err != nil { // RandomItem converts through it
+	if _, err := e.r1e().Resolve(nil, rules.LoadItemTable{}, nil); err != nil { // RandomItem converts through it
 		t.Fatal(err)
 	}
 	return e
@@ -70,7 +70,7 @@ func TestNoMissileSlot(t *testing.T) {
 		}
 	}
 	j := e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemJavelin))
-	if e.state().DollSlot(c, j) != core.DollWeapon {
+	if e.state().DollSlot(c, j) != rules.DollWeapon {
 		t.Errorf("javelin: doll slot %d, want the weapon hand", e.state().DollSlot(c, j))
 	}
 	r.ReadyItem(j)

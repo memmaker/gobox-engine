@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"hash/fnv"
 	"image"
 	"testing"
@@ -32,9 +32,9 @@ func TestClutterDice(t *testing.T) {
 		e.posX, e.posY = 8, 8
 		e.viewMode = c.viewMode
 		e.gs.areaKind = c.areaKind
-		e.ruleset().BeginFight(core.Fight{Terms: core.FightTerms{PartyAt: image.Pt(8, 8)}}, nil)
+		e.ruleset().BeginFight(rules.Fight{Terms: rules.FightTerms{PartyAt: image.Pt(8, 8)}}, nil)
 		e.state().RandSeed = 12345
-		if _, err := e.ruleset().Resolve(core.Fight{}, e.groundTerms(), nil); err != nil {
+		if _, err := e.ruleset().Resolve(rules.Fight{}, e.groundTerms(), nil); err != nil {
 			t.Fatal(err)
 		}
 		h := fnv.New64a()

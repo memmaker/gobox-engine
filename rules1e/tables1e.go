@@ -1,7 +1,7 @@
 // Package rules1e is the 1st edition ruleset. It imports only gobox/core.
 package rules1e
 
-import "gobox/core"
+import "gobox/rules"
 
 // Tables are a 1st edition game's rule tables; POR is the first instance.
 // Rows run on past their levels into neighbouring data as in the original.
@@ -36,7 +36,7 @@ type Tables struct {
 	RaceLimits      []raceLimit
 	TurnUndead      [][]int8
 	Spells          [][]SpellProp              // spell records, by unified spell id (SpellMap)
-	Races           []core.Race                // the race of each of the game's race numbers (Layout.Races); nil: POR, its numbers are RaceIDs
+	Races           []rules.Race               // the race of each of the game's race numbers (Layout.Races); nil: POR, its numbers are RaceIDs
 	CasterLevel     CasterLevelRule            // the game's caster-level rule (rules.json casterLevel); zero: POR's
 	OldAge          *OldAgeRule                // death of old age after a fight (rules.json oldAge); nil: none (POR, CotAB)
 	Hammer          *Item                      // the Spiritual Hammer (rules.json spiritualHammer); nil: POR's
@@ -550,27 +550,27 @@ var POR = Tables{
 }
 
 // The free functions read POR: callers without a RuleState (the Engine, the other games' charcalc) keep them until they hold a Tables.
-func XPForLevel(class core.Class, level int) int32           { return POR.XPForLevel(class, level) }
-func Thac0At(class core.Class, level int) int                { return POR.Thac0At(class, level) }
-func TrainingDie(class core.Class) (count, sides int)        { return POR.TrainingDie(class) }
-func SaveAt(class core.Class, level int, save core.Save) int { return POR.SaveAt(class, level, save) }
-func ThiefBase(level int, skill core.Skill) int              { return POR.ThiefBase(level, skill) }
-func ThiefRace(race core.Race, skill core.Skill) int         { return POR.ThiefRace(race, skill) }
-func ThiefDex(dex int, skill core.Skill) int                 { return POR.ThiefDex(dex, skill) }
-func ThiefSkills(level int, race core.Race, dex int, p ItemPowers) [8]int {
+func XPForLevel(class rules.Class, level int) int32            { return POR.XPForLevel(class, level) }
+func Thac0At(class rules.Class, level int) int                 { return POR.Thac0At(class, level) }
+func TrainingDie(class rules.Class) (count, sides int)         { return POR.TrainingDie(class) }
+func SaveAt(class rules.Class, level int, save rules.Save) int { return POR.SaveAt(class, level, save) }
+func ThiefBase(level int, skill rules.Skill) int               { return POR.ThiefBase(level, skill) }
+func ThiefRace(race rules.Race, skill rules.Skill) int         { return POR.ThiefRace(race, skill) }
+func ThiefDex(dex int, skill rules.Skill) int                  { return POR.ThiefDex(dex, skill) }
+func ThiefSkills(level int, race rules.Race, dex int, p ItemPowers) [8]int {
 	return POR.ThiefSkills(level, race, dex, p)
 }
-func ConHP(con int) int                                             { return POR.ConHP(con) }
-func ClericSlots(level int) LevelSlots                              { return POR.ClericSlots(level) }
-func MageSlots(level int) LevelSlots                                { return POR.MageSlots(level) }
-func TurnNeed(undead, column int) int                               { return POR.TurnNeed(undead, column) }
-func AbilityRange(race core.Race, a Ability) (lo, hi int)           { return POR.AbilityRange(race, a) }
-func ExceptionalStrengthCap(race core.Race) int                     { return POR.ExceptionalStrengthCap(race) }
-func RaceCareers(race core.Race) []Career                           { return POR.RaceCareers(race) }
-func CareerAlignments(c Career) []AlignmentNumber                   { return POR.CareerAlignments(c) }
-func CareerMinimum(c Career, a Ability) int                         { return POR.CareerMinimum(c, a) }
-func StartingAge(race core.Race, c Career) (base, count, sides int) { return POR.StartingAge(race, c) }
-func AgeStep(race core.Race, step int) int                          { return POR.AgeStep(race, step) }
+func ConHP(con int) int                                              { return POR.ConHP(con) }
+func ClericSlots(level int) LevelSlots                               { return POR.ClericSlots(level) }
+func MageSlots(level int) LevelSlots                                 { return POR.MageSlots(level) }
+func TurnNeed(undead, column int) int                                { return POR.TurnNeed(undead, column) }
+func AbilityRange(race rules.Race, a Ability) (lo, hi int)           { return POR.AbilityRange(race, a) }
+func ExceptionalStrengthCap(race rules.Race) int                     { return POR.ExceptionalStrengthCap(race) }
+func RaceCareers(race rules.Race) []Career                           { return POR.RaceCareers(race) }
+func CareerAlignments(c Career) []AlignmentNumber                    { return POR.CareerAlignments(c) }
+func CareerMinimum(c Career, a Ability) int                          { return POR.CareerMinimum(c, a) }
+func StartingAge(race rules.Race, c Career) (base, count, sides int) { return POR.StartingAge(race, c) }
+func AgeStep(race rules.Race, step int) int                          { return POR.AgeStep(race, step) }
 
 // T is the rule tables e plays by: e.Tables, or POR when none is set.
 func (e *RuleState) T() *Tables {

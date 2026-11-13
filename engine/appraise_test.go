@@ -3,9 +3,9 @@ package engine
 import (
 	"testing"
 
-	"gobox/core"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // valuedOffer is the state's offer with a value (nil: none).
@@ -88,7 +88,7 @@ func TestAppraiseFlow(t *testing.T) {
 			if _, err := e.doNow(play.Leave{}); err != nil {
 				t.Fatal("leave:", err)
 			}
-			if e.state().Purse.Gold <= gold || e.valued != core.NoItem {
+			if e.state().Purse.Gold <= gold || e.valued != rules.NoItem {
 				t.Fatalf("leaving did not sell: gold %d->%d", gold, e.state().Purse.Gold)
 			}
 		})

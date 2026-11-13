@@ -2,10 +2,9 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ega"
 	"gobox/game/play"
+	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
 )
@@ -21,12 +20,12 @@ func (e *Engine) GameLoop() {
 	r.restoreSel = false
 	r.scriptLoad = 0
 	r.needFrame = 1
-	e.setWorldWord(core.WordBeginFlag, 4)
+	e.setWorldWord(rules.WordBeginFlag, 4)
 	r.areaChanged = false
-	e.gs.areaKind = byte(e.worldWord(core.WordAreaKind))
+	e.gs.areaKind = byte(e.worldWord(rules.WordAreaKind))
 	fresh := !e.loadedGame // extra: a new adventure, not a loaded game
-	if k := e.gs.areaKind; (k == 0x19 || k == 0x1A || k == 0x1B) && e.worldWord(core.WordIn3D) == 0 {
-		e.setWorldWord(core.WordBeginFlag, 3)
+	if k := e.gs.areaKind; (k == 0x19 || k == 0x1A || k == 0x1B) && e.worldWord(rules.WordIn3D) == 0 {
+		e.setWorldWord(rules.WordBeginFlag, 3)
 	}
 	// the area's text script, also for a loaded game (whose save holds
 	// the byte code)
@@ -45,7 +44,7 @@ func (e *Engine) GameLoop() {
 // gameBegan: the area's start events are done; exploring opens.
 func (e *Engine) gameBegan(fresh bool) {
 	r := &e.run
-	if e.worldWord(core.WordBeginFlag) != 3 {
+	if e.worldWord(rules.WordBeginFlag) != 3 {
 		if r.needFrame == 1 {
 			e.DrawMainScreen()
 			r.needFrame = 0
@@ -55,7 +54,7 @@ func (e *Engine) gameBegan(fresh bool) {
 	if fresh {
 		e.Music(4) // extra: the party first enters Phlan (the Amiga never plays song 4)
 	}
-	e.setWorldWord(core.WordAreaKind, int(uint16(e.gs.areaKind)))
+	e.setWorldWord(rules.WordAreaKind, int(uint16(e.gs.areaKind)))
 	e.looking, e.over = false, false
 	e.ext.explore, e.ext.exploreSeq = true, e.opens()
 	e.commandBegin()
@@ -68,7 +67,7 @@ func (e *Engine) afterCommand(encamp bool) {
 	r := &e.run
 	r.savedSel = e.selected()
 	if !e.looking {
-		e.setWorldWord(core.WordAreaKind, int(uint16(e.gs.areaKind)))
+		e.setWorldWord(rules.WordAreaKind, int(uint16(e.gs.areaKind)))
 	}
 	if e.ext.interacting { // extra: Space on a square whose event waits (interact.go)
 		e.ext.interacting = false
@@ -87,15 +86,15 @@ func (e *Engine) afterCommand(encamp bool) {
 		return
 	}
 	// Look / encamp: repeat while the last command was one of them.
-	if (e.worldWord(core.WordSearch) > 1 || encamp) && !r.quit {
+	if (e.worldWord(rules.WordSearch) > 1 || encamp) && !r.quit {
 		e.looking = true
 		if encamp {
 			e.push(cont{kind: kLookDone})
 			e.Encamp()
 			return
 		}
-		r.searchSave = byte(e.worldWord(core.WordSearch) & 1)
-		e.setWorldWord(core.WordSearch, 1)
+		r.searchSave = byte(e.worldWord(rules.WordSearch) & 1)
+		e.setWorldWord(rules.WordSearch, 1)
 		e.Redraw()
 		e.push(cont{kind: kSearched, n: [3]int{e.ext.opened, e.posX, e.posY}})
 		e.RunECL(e.es.events[1])
@@ -132,7 +131,7 @@ func (e *Engine) stepDone() {
 	p := e.ext.pre
 	e.ext.pre = nil
 	if split && p != nil && p.ran && p.x == e.posX && p.y == e.posY && p.side == e.moveDir() {
-		e.setWorldWord(core.WordHoldMove, int(p.hold)) // RunEvent{Before} ran the pre-step script for this step
+		e.setWorldWord(rules.WordHoldMove, int(p.hold)) // RunEvent{Before} ran the pre-step script for this step
 		e.stepMove(split)
 		return
 	}
@@ -160,8 +159,8 @@ func (e *Engine) stepPre(split bool) {
 
 // stepMove is the step's move, then its events.
 func (e *Engine) stepMove(split bool) {
-	e.setWorldWord(core.WordPrevX, int(uint16(int16(int8(e.posX)))))
-	e.setWorldWord(core.WordPrevY, int(uint16(int16(int8(e.posY)))))
+	e.setWorldWord(rules.WordPrevX, int(uint16(int16(int8(e.posX)))))
+	e.setWorldWord(rules.WordPrevY, int(uint16(int16(int8(e.posY)))))
 	e.push(cont{kind: kMoved, flag: split})
 	e.Move()
 }
@@ -169,8 +168,8 @@ func (e *Engine) stepMove(split bool) {
 // moved: the step is made.
 func (e *Engine) moved(split bool) {
 	e.Redraw()
-	if e.worldWord(core.WordPrevX) != e.posX || e.worldWord(core.WordPrevY) != e.posY {
-		e.cue(core.CueStep)
+	if e.worldWord(rules.WordPrevX) != e.posX || e.worldWord(rules.WordPrevY) != e.posY {
+		e.cue(rules.CueStep)
 	}
 	if split {
 		e.ext.owed = &[2]int{e.posX, e.posY}
@@ -218,7 +217,7 @@ func (e *Engine) preEnd(p *preStep, kept int) {
 		e.ext.pre = nil
 		e.stepEnd()
 	default:
-		p.hold = uint16(e.worldWord(core.WordHoldMove))
+		p.hold = uint16(e.worldWord(rules.WordHoldMove))
 		if e.viewMode != 1 && e.facing == p.side {
 			e.facing = kept // the facing shows the step's way only once Arrive takes it
 		}
@@ -250,7 +249,7 @@ func (e *Engine) areaChanged() {
 // area's start events and settle the view mode; then what follows.
 func (e *Engine) AreaChange() {
 	e.es.cell = e.MapCell(e.posX, e.posY)
-	e.setWorldWord(core.WordLeftMap, 0)
+	e.setWorldWord(rules.WordLeftMap, 0)
 	e.ruleset()         // charID
 	sel := e.selected() // DS:5D92 kept at bp-4 (ovr04:31D5)
 	e.prevViewMode = e.viewMode
@@ -260,23 +259,23 @@ func (e *Engine) AreaChange() {
 }
 
 // areaStart: the new area's start events are done.
-func (e *Engine) areaStart(sel core.CharID) {
+func (e *Engine) areaStart(sel rules.CharID) {
 	r := &e.run
-	e.setWorldWord(core.WordBeginFlag, 4)
-	if e.worldWord(core.WordIn3D) == 0 {
+	e.setWorldWord(rules.WordBeginFlag, 4)
+	if e.worldWord(rules.WordIn3D) == 0 {
 		switch e.gs.areaKind {
 		case 0x19:
 			e.viewMode = 2
-			e.setWorldWord(core.WordBeginFlag, 3)
+			e.setWorldWord(rules.WordBeginFlag, 3)
 		case 0x1A:
 			e.viewMode = 3
-			e.setWorldWord(core.WordBeginFlag, 3)
-			if e.worldWord(core.WordBoss) == 0xFE && e.worldWord(core.WordRiverOpen) == 0 {
+			e.setWorldWord(rules.WordBeginFlag, 3)
+			if e.worldWord(rules.WordBoss) == 0xFE && e.worldWord(rules.WordRiverOpen) == 0 {
 				e.EndgameHook(1)
 			}
 		case 0x1B:
 			e.viewMode = 4
-			e.setWorldWord(core.WordBeginFlag, 3)
+			e.setWorldWord(rules.WordBeginFlag, 3)
 		}
 	}
 	if e.prevViewMode > 1 && e.viewMode == 1 {
@@ -292,7 +291,7 @@ func (e *Engine) areaStart(sel core.CharID) {
 }
 
 // areaStep: the new area's step events are done.
-func (e *Engine) areaStep(sel core.CharID) {
+func (e *Engine) areaStep(sel rules.CharID) {
 	if e.run.areaChanged {
 		e.AreaChange()
 		return
@@ -302,7 +301,7 @@ func (e *Engine) areaStep(sel core.CharID) {
 }
 
 // areaSettled: the area's square events are done.
-func (e *Engine) areaSettled(sel core.CharID) {
+func (e *Engine) areaSettled(sel rules.CharID) {
 	e.selectChar(sel)
 	if e.run.areaChanged {
 		e.AreaChange()
@@ -339,7 +338,7 @@ func (e *Engine) campOver() {
 // screen then waits for the adventuring decisions until one ends input
 // (camp, search here, a step: commandEnd).
 func (e *Engine) commandBegin() {
-	e.setWorldWord(core.WordHoldMove, 0)
+	e.setWorldWord(rules.WordHoldMove, 0)
 	e.areaMusic()
 	e.unback() // a backward step the scripts ended
 	if e.viewMode >= 2 && e.viewMode <= 4 && e.prevViewMode < 2 {
@@ -378,7 +377,7 @@ func (e *Engine) commandEnd() {
 // game over (a script quit), exploring ends.
 func (e *Engine) exploreVerb(verb func() (ends, encamp bool)) error {
 	if !e.exploring() {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	if ends, encamp := verb(); ends {
 		e.commandEnd()
@@ -441,7 +440,7 @@ func (e *Engine) interactCmd() (ends, encamp bool) {
 
 // lookCmd is the original's Look: search this square once.
 func (e *Engine) lookCmd() (ends, encamp bool) {
-	e.setWorldWord(core.WordSearch, int(e.worldWord(core.WordSearch)|2))
+	e.setWorldWord(rules.WordSearch, int(e.worldWord(rules.WordSearch)|2))
 	e.searchTime()
 	e.vm.PC = uint16(e.es.events[1])
 	return true, false
@@ -449,8 +448,8 @@ func (e *Engine) lookCmd() (ends, encamp bool) {
 
 // sweepCmd is the original's Search: the slow, searching pace on or off.
 func (e *Engine) sweepCmd() (ends, encamp bool) {
-	e.setWorldWord(core.WordSearch, int(e.worldWord(core.WordSearch)^1))
-	e.say(map[bool]string{true: "Sweeping", false: "Sweeping off"}[e.worldWord(core.WordSearch)&1 != 0]) // extra: the toggle shows
+	e.setWorldWord(rules.WordSearch, int(e.worldWord(rules.WordSearch)^1))
+	e.say(map[bool]string{true: "Sweeping", false: "Sweeping off"}[e.worldWord(rules.WordSearch)&1 != 0]) // extra: the toggle shows
 	return false, false
 }
 
@@ -458,7 +457,7 @@ func (e *Engine) sweepCmd() (ends, encamp bool) {
 func (e *Engine) turn(d int, sound bool) {
 	e.facing = (e.facing + d) % 8
 	if sound {
-		e.cue(core.CueStep)
+		e.cue(rules.CueStep)
 	}
 	e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
 	e.Draw3DView(e.posX, e.posY, e.facing)
@@ -469,27 +468,27 @@ func (e *Engine) turn(d int, sound bool) {
 // side would leave the map.
 func (e *Engine) checkEdge() {
 	x, y := e.posX, e.posY
-	e.setWorldWord(core.WordLeftMap, 0)
+	e.setWorldWord(rules.WordLeftMap, 0)
 	if e.DoorAt(x, y, e.moveDir()) == 0 {
 		return
 	}
-	x += goldbox.StepX[e.moveDir()]
-	y += goldbox.StepY[e.moveDir()]
+	x += rules.StepX[e.moveDir()]
+	y += rules.StepY[e.moveDir()]
 	if x > 15 {
 		e.posX = 15
-		e.setWorldWord(core.WordLeftMap, 1)
+		e.setWorldWord(rules.WordLeftMap, 1)
 	}
 	if x < 0 {
 		e.posX = 0
-		e.setWorldWord(core.WordLeftMap, 1)
+		e.setWorldWord(rules.WordLeftMap, 1)
 	}
 	if y > 15 {
 		e.posY = 15
-		e.setWorldWord(core.WordLeftMap, 1)
+		e.setWorldWord(rules.WordLeftMap, 1)
 	}
 	if y < 0 {
 		e.posY = 0
-		e.setWorldWord(core.WordLeftMap, 1)
+		e.setWorldWord(rules.WordLeftMap, 1)
 	}
 }
 
@@ -512,14 +511,14 @@ func (e *Engine) unback() {
 func (e *Engine) Move() {
 	switch {
 	case e.viewMode == 1:
-		if e.worldWord(core.WordHoldMove) >= 0xFF {
-			e.setWorldWord(core.WordHoldMove, 0)
+		if e.worldWord(rules.WordHoldMove) >= 0xFF {
+			e.setWorldWord(rules.WordHoldMove, 0)
 			break
 		}
 		switch e.DoorAt(e.posX, e.posY, e.moveDir()) {
 		case 1:
 			if e.WallAt(e.posX, e.posY, e.moveDir()) != 0 {
-				e.emit(core.Sounded{Cue: core.SoundCue("opendoor")})
+				e.emit(rules.Sounded{Cue: rules.SoundCue("opendoor")})
 			}
 			e.moveStep(true)
 		case 2, 3:
@@ -530,10 +529,10 @@ func (e *Engine) Move() {
 		}
 		return
 	case e.viewMode >= 2 && e.viewMode <= 4:
-		if e.worldWord(core.WordHoldMove) < 0xFF {
+		if e.worldWord(rules.WordHoldMove) < 0xFF {
 			e.mapMove()
 		} else {
-			e.setWorldWord(core.WordHoldMove, 0)
+			e.setWorldWord(rules.WordHoldMove, 0)
 		}
 	}
 	e.moveEnd()
@@ -543,10 +542,10 @@ func (e *Engine) Move() {
 // through it).
 func (e *Engine) moveStep(moved bool) {
 	// extra: a way off the map no script caught bumps (the original wrapped)
-	if moved && goldbox.OnMap(e.posX+goldbox.StepX[e.moveDir()], e.posY+goldbox.StepY[e.moveDir()]) {
+	if moved && rules.OnMap(e.posX+rules.StepX[e.moveDir()], e.posY+rules.StepY[e.moveDir()]) {
 		e.stepAhead()
 	} else {
-		e.cue(core.CueBump)
+		e.cue(rules.CueBump)
 	}
 	e.unback()
 	e.moveEnd()
@@ -567,12 +566,12 @@ func (e *Engine) moveEnd() {
 func (e *Engine) lockedDoor(wizard bool) {
 	var d DoorOpts
 	d.Bash = e.run.doorTry[0] != 0
-	d.Pick = e.run.doorTry[1] != 0 && e.ruleset().Check(core.PartyHasSkill{N: 6}, nil).Yes
+	d.Pick = e.run.doorTry[1] != 0 && e.ruleset().Check(rules.PartyHasSkill{N: 6}, nil).Yes
 	knock := false
 	if wizard {
-		knock = e.ruleset().Check(core.PartyHasSkill{N: 5}, nil).Yes
+		knock = e.ruleset().Check(rules.PartyHasSkill{N: 5}, nil).Yes
 	} else {
-		knock = e.ruleset().Check(core.HasMemorized{Party: e.partyIDs(), Spell: rules1e.SpellKnock}, nil).Yes
+		knock = e.ruleset().Check(rules.HasMemorized{Party: e.partyIDs(), Spell: rules1e.SpellKnock}, nil).Yes
 	}
 	d.Knock = e.run.doorTry[2] != 0 && knock
 	if d == (DoorOpts{}) {
@@ -592,25 +591,25 @@ func (e *Engine) TryDoor(k play.DoorWay) error {
 	w := e.ext.door
 	if !e.waiting(PendDoor) || w == nil ||
 		k == play.DoorBash && !w.opts.Bash || k == play.DoorPick && !w.opts.Pick || k == play.DoorKnock && !w.opts.Knock {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	switch k {
 	case play.DoorBash:
 		if w.through = e.bashDoor(); !w.through {
-			e.emit(core.Sounded{Cue: core.SoundCue("hitwall")})
+			e.emit(rules.Sounded{Cue: rules.SoundCue("hitwall")})
 			e.DisplayMessageWait(ega.Yellow, "The door holds.") // extra: the original only bumped
 		} else {
-			e.emit(core.Sounded{Cue: core.SoundCue("shutdoor")}) // a slam
+			e.emit(rules.Sounded{Cue: rules.SoundCue("shutdoor")}) // a slam
 		}
 	case play.DoorPick:
 		switch {
 		case w.wizard:
 			e.run.doorTry[1] = 0
 		case !e.pickLock():
-			e.emit(core.Sounded{Cue: core.SoundCue("lockpick_fail")})
+			e.emit(rules.Sounded{Cue: rules.SoundCue("lockpick_fail")})
 			e.DisplayMessageWait(ega.Yellow, "The lock holds.") // extra: the original only bumped
 		default:
-			e.emit(core.Sounded{Cue: core.SoundCue("lockpick")})
+			e.emit(rules.Sounded{Cue: rules.SoundCue("lockpick")})
 			w.through = true
 		}
 	case play.DoorKnock:
@@ -623,7 +622,7 @@ func (e *Engine) TryDoor(k play.DoorWay) error {
 // setDoor = ovr15:0000 (state 0) and ovr15:0109 (state 1): set the door
 // bits of one side of a cell. 0109 ignores cells off the map.
 func (e *Engine) setDoor(x, y, dir int, state byte) {
-	if !goldbox.OnMap(x, y) {
+	if !rules.OnMap(x, y) {
 		return
 	}
 	shift := uint(dir) // N 0, E 2, S 4, W 6
@@ -636,9 +635,9 @@ func (e *Engine) setDoor(x, y, dir int, state byte) {
 // save (DOORS.GOB) and put back whenever the map is loaded (reopenDoors).
 func (e *Engine) openDoor() {
 	x, y, d := e.posX, e.posY, e.moveDir()
-	for _, s := range [2][3]int{{x, y, d}, {x + goldbox.StepX[d], y + goldbox.StepY[d], (d + 4) % 8}} {
+	for _, s := range [2][3]int{{x, y, d}, {x + rules.StepX[d], y + rules.StepY[d], (d + 4) % 8}} {
 		e.setDoor(s[0], s[1], s[2], 1)
-		if !goldbox.OnMap(s[0], s[1]) {
+		if !rules.OnMap(s[0], s[1]) {
 			continue
 		}
 		if e.ext.doors == nil {
@@ -660,24 +659,24 @@ func (e *Engine) reopenDoors() {
 
 // bashDoor = ovr15:0294: each member in turn tries to force the door.
 func (e *Engine) bashDoor() bool {
-	door := core.Door{State: core.DoorLocked}
+	door := rules.Door{State: rules.DoorLocked}
 	if e.DoorAt(e.posX, e.posY, e.moveDir()) == 3 {
-		door.State = core.DoorMagic
+		door.State = rules.DoorMagic
 	}
-	return e.tryDoor(door, func(id core.CharID) core.Action { return core.BashDoor{Who: id} })
+	return e.tryDoor(door, func(id rules.CharID) rules.Action { return rules.BashDoor{Who: id} })
 }
 
 // pickLock = ovr15:04DF: d100 against each healthy member's +0x78 skill.
 func (e *Engine) pickLock() bool {
-	ok := e.tryDoor(core.Door{State: core.DoorLocked}, func(id core.CharID) core.Action { return core.PickLock{Who: id} })
+	ok := e.tryDoor(rules.Door{State: rules.DoorLocked}, func(id rules.CharID) rules.Action { return rules.PickLock{Who: id} })
 	e.run.doorTry[1] = 0
 	return ok
 }
 
 // tryDoor has each member in turn try the door ahead until it gives way,
 // and opens it then.
-func (e *Engine) tryDoor(door core.Door, try func(core.CharID) core.Action) bool {
-	at := core.AtDoor{Party: e.partyIDs(), Door: door}
+func (e *Engine) tryDoor(door rules.Door, try func(rules.CharID) rules.Action) bool {
+	at := rules.AtDoor{Party: e.partyIDs(), Door: door}
 	for _, id := range at.Party {
 		o, err := e.ruleset().Resolve(at, try(id), nil)
 		if err != nil {
@@ -685,9 +684,9 @@ func (e *Engine) tryDoor(door core.Door, try func(core.CharID) core.Action) bool
 		}
 		for _, f := range o.Effects {
 			switch f.(type) {
-			case core.DoorTriesSpent:
+			case rules.DoorTriesSpent:
 				e.run.doorTry[0] = 0
-			case core.DoorGaveWay:
+			case rules.DoorGaveWay:
 				e.openDoor()
 				return true
 			}
@@ -698,7 +697,7 @@ func (e *Engine) tryDoor(door core.Door, try func(core.CharID) core.Action) bool
 
 // knock = ovr15:0648: use up a memorized Knock on the door ahead.
 func (e *Engine) knock() bool {
-	out, err := e.ruleset().Resolve(nil, core.SpendKnock{}, nil)
+	out, err := e.ruleset().Resolve(nil, rules.SpendKnock{}, nil)
 	if err != nil {
 		panic(fmt.Sprintf("knock: %v", err)) // the action never refuses
 	}
@@ -713,41 +712,41 @@ func (e *Engine) knock() bool {
 // the original wrapped an off-map step to the far edge; Move blocks it.
 func (e *Engine) stepAhead() {
 	// the step sound plays once the loop sees the square change (ovr04:3395)
-	e.posX += goldbox.StepX[e.moveDir()]
-	e.posY += goldbox.StepY[e.moveDir()]
+	e.posX += rules.StepX[e.moveDir()]
+	e.posY += rules.StepY[e.moveDir()]
 	e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
 	e.run.doorTry = [3]byte{1, 1, 1}
 	e.es.cell = e.MapCell(e.posX, e.posY)
-	if e.worldWord(core.WordSearch)&1 != 0 {
+	if e.worldWord(rules.WordSearch)&1 != 0 {
 		e.searchTime()
 	} else {
 		e.as(e.sel)
-		e.do(core.AdvanceClock{Count: 1, Unit: clockMinute})
+		e.do(rules.AdvanceClock{Count: 1, Unit: clockMinute})
 	}
 }
 
 // mapMove = ovr15:0818: one step on the area map, unless the target square
 // is impassable (DS:3648 map, 0x2C bytes a row).
 func (e *Engine) mapMove() {
-	x := min(max(int(int8(byte(e.worldWord(core.WordMapX)+goldbox.StepX[e.facing]))), 0), 0xF)
-	y := min(max(int(int8(byte(e.worldWord(core.WordMapY)+goldbox.StepY[e.facing]))), 0), 0x23)
+	x := min(max(int(int8(byte(e.worldWord(rules.WordMapX)+rules.StepX[e.facing]))), 0), 0xF)
+	y := min(max(int(int8(byte(e.worldWord(rules.WordMapY)+rules.StepY[e.facing]))), 0), 0x23)
 	col := int(int8(byte(int(ViewModeShift[e.viewMode]) + x)))
-	t := e.ruleset().Check(core.MapTerrain{X: col, Y: y}, nil).Value
+	t := e.ruleset().Check(rules.MapTerrain{X: col, Y: y}, nil).Value
 	switch {
 	case t == 0x4E, t >= 0x7E && t <= 0x80, t >= 0x82 && t <= 0x84,
 		t >= 0xA8 && t <= 0xAC, t >= 0xAE && t <= 0xB3, t == 0xBC,
 		t >= 0xDD && t <= 0xDE, t >= 0xE1 && t <= 0xE9, t == 0xF5:
 		return
 	case t >= 0x66 && t <= 0x6C, t == 0x72:
-		if e.worldWord(core.WordRiverOpen) == 0 {
+		if e.worldWord(rules.WordRiverOpen) == 0 {
 			e.DisplayMessageWait(ega.Yellow, "The river's stench drives you back.")
 			return
 		}
 	}
-	e.setWorldWord(core.WordMapX, int(uint16(int16(x))))
-	e.setWorldWord(core.WordMapY, int(uint16(int16(y))))
+	e.setWorldWord(rules.WordMapX, int(uint16(int16(x))))
+	e.setWorldWord(rules.WordMapY, int(uint16(int16(y))))
 	e.as(e.sel)
-	e.do(core.AdvanceClock{Count: 0xC, Unit: 3})
+	e.do(rules.AdvanceClock{Count: 0xC, Unit: 3})
 }
 
 // searchTime is a searching step's or a Look's time: one turn, as the
@@ -755,11 +754,11 @@ func (e *Engine) mapMove() {
 func (e *Engine) searchTime() {
 	if e.QuickSearch.Load() {
 		e.as(e.sel)
-		e.do(core.AdvanceClock{Count: 3, Unit: clockMinute})
+		e.do(rules.AdvanceClock{Count: 3, Unit: clockMinute})
 		return
 	}
 	e.as(e.sel)
-	e.do(core.AdvanceClock{Count: 1, Unit: clockTurn})
+	e.do(rules.AdvanceClock{Count: 1, Unit: clockTurn})
 }
 
 // exploring: the adventuring commands wait (nothing over them).

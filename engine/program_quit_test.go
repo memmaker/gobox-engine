@@ -1,11 +1,11 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/ecl/script"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/importer"
+	"gobox/rules"
 	"slices"
 	"testing"
 )
@@ -91,7 +91,7 @@ func TestEndScene(t *testing.T) {
 	e.title.end = &play.Scene{Kind: play.SceneTitle, Steps: map[int]play.TitleStep{1: {Text: []string{"x"}, Layers: []game.Layer{layer(0, 0), layer(2, 0), layer(0, 160)}}}}
 	e.msgDelay = 5 // (5+3)/(1+3) = twice the default
 	for _, members := range []int{1, 3} {
-		e.setWorldWord(core.WordPartyCount, members)
+		e.setWorldWord(rules.WordPartyCount, members)
 		st := e.endScene(play.Common{}).Steps[1]
 		want := 2
 		if members >= 2 {
@@ -114,7 +114,7 @@ func TestEndScene(t *testing.T) {
 func TestEndEffects(t *testing.T) {
 	e := quickStarted(t)
 	id := e.partyIDs()[0]
-	e.ruleset().Resolve(nil, core.SetWord{Word: core.WordTraining, Value: 0}, nil)
+	e.ruleset().Resolve(nil, rules.SetWord{Word: rules.WordTraining, Value: 0}, nil)
 	before := e.ruleset().Sheet(id)
 	if before.HP == 0 {
 		t.Fatal("no member to heal")
@@ -122,7 +122,7 @@ func TestEndEffects(t *testing.T) {
 	e.title.after = []importer.Effect{importer.EffectHealParty, importer.EffectOpenHall}
 	e.title.note = "You've won."
 	e.endEffects()
-	if a := e.ruleset().Check(core.WordIs{Word: core.WordTraining}, nil); !a.Yes || a.Value == 0 {
+	if a := e.ruleset().Check(rules.WordIs{Word: rules.WordTraining}, nil); !a.Yes || a.Value == 0 {
 		t.Fatalf("training word %+v: want open", a)
 	}
 	if got := e.ruleset().Sheet(id); got.HP != got.MaxHP {

@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"image"
 	"os"
 	"path/filepath"
@@ -307,7 +307,7 @@ func (e *Engine) allowed(s facts) play.Allowed {
 		for n, m := range s.Party {
 			for _, it := range m.Items {
 				add(e.readyAct(n, it), play.Drop{Member: n, Item: it.Handle})
-				if len(e.ruleset().Allowed(core.UsingItem{Who: e.partyIDs()[n], Item: it.Handle}).Offers) > 0 { // an item with no use is not offered Use (UseItem refused it "not now")
+				if len(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[n], Item: it.Handle}).Offers) > 0 { // an item with no use is not offered Use (UseItem refused it "not now")
 					add(play.UseItem{Member: n, Item: it.Handle})
 				}
 			}
@@ -410,7 +410,7 @@ func (e *Engine) allowed(s facts) play.Allowed {
 				case partyRemove:
 					add(play.RemoveCharacter{Roster: n})
 				case partyModify:
-					if e.ruleset().Check(core.Modifiable{Who: e.partyIDs()[n]}, nil).Yes { // greyed (not allowed) for a character with experience of its own
+					if e.ruleset().Check(rules.Modifiable{Who: e.partyIDs()[n]}, nil).Yes { // greyed (not allowed) for a character with experience of its own
 						add(play.Modify{Member: n})
 					}
 					add(play.EditIcon{Member: n})
@@ -468,7 +468,7 @@ func (e *Engine) allowed(s facts) play.Allowed {
 			a.Aimed = append(a.Aimed, play.Aimed{Action: act, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
 			break
 		}
-		if e.battleUp() && e.ruleset().Check(core.PartyAuto{}, nil).Yes && (b == nil || b.Turn == nil) { // the keys a computer turn polls (aiKeys): Space and Alt-M
+		if e.battleUp() && e.ruleset().Check(rules.PartyAuto{}, nil).Yes && (b == nil || b.Turn == nil) { // the keys a computer turn polls (aiKeys): Space and Alt-M
 			add(play.Manual{}, play.QuickMagic{})
 		}
 		if b == nil || b.Turn == nil || !e.battleUp() || e.battle().Turn == nil {
@@ -498,7 +498,7 @@ func (e *Engine) allowed(s facts) play.Allowed {
 		}
 		if s.Selected >= 0 && s.Selected < len(s.Party) { // the acting member's items (the sheet's View, O089's Use)
 			if slices.Contains(can, VerbItems) {
-				add(play.UseItem{Member: s.Selected, Item: core.NoItem})
+				add(play.UseItem{Member: s.Selected, Item: rules.NoItem})
 			}
 			for _, it := range s.Party[s.Selected].Items {
 				if slices.Contains(can, VerbItems) {
@@ -551,7 +551,7 @@ func (e *Engine) allowed(s facts) play.Allowed {
 			add(play.Continue{})
 			return a
 		}
-		add(play.Leave{}, play.Take{Item: core.NoItem}, play.Take{Item: core.NoItem, All: true})
+		add(play.Leave{}, play.Take{Item: rules.NoItem}, play.Take{Item: rules.NoItem, All: true})
 		if s.Loot != nil {
 			for _, g := range s.Loot.Items {
 				add(play.Take{Item: g.Handle})
@@ -675,11 +675,11 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 	st := e.State()
 	al := play.CommonOf(st).Allowed
 	if v, ok := a.(play.SetChoice); ok && v.Text != "" && e.creation == nil && e.sel >= 0 && e.sel < e.partySize() {
-		pic, ok := core.PoolPicNamed(v.Field)
+		pic, ok := rules.PoolPicNamed(v.Field)
 		if !ok {
 			return play.Outcome{}, errNotAllowed
 		}
-		e.do(core.SetPoolPic{Who: e.partyIDs()[e.sel], Pic: pic, ID: core.PicID(v.Text)}) // gobox's pool picker on the selected member, any screen
+		e.do(rules.SetPoolPic{Who: e.partyIDs()[e.sel], Pic: pic, ID: rules.PicID(v.Text)}) // gobox's pool picker on the selected member, any screen
 		return play.Outcome{}, nil
 	}
 	if !allows(al, a) {
@@ -752,7 +752,7 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 		err = native(func() error { return e.learn(a.Spell) })
 	case play.SetPolicy:
 		err = native(func() error {
-			_, err := e.ruleset().Resolve(nil, core.SetPolicy{Who: e.selected(), Reaction: a.ID, Policy: core.Policy(a.Policy)}, nil)
+			_, err := e.ruleset().Resolve(nil, rules.SetPolicy{Who: e.selected(), Reaction: a.ID, Policy: rules.Policy(a.Policy)}, nil)
 			return err
 		})
 	case play.Continue:
@@ -835,9 +835,9 @@ func (e *Engine) combatDo(a play.Action, al play.Allowed, native func(func() err
 	case play.Quick:
 		return turn(TurnAct{Verb: VerbQuick})
 	case play.Manual:
-		return true, native(func() error { e.aiKey = core.AutoKeyTakeOver; return nil })
+		return true, native(func() error { e.aiKey = rules.AutoKeyTakeOver; return nil })
 	case play.QuickMagic:
-		return true, native(func() error { e.aiKey = core.AutoKeyQuickMagic; return nil })
+		return true, native(func() error { e.aiKey = rules.AutoKeyQuickMagic; return nil })
 	case play.Bandage:
 		return turn(TurnAct{Verb: VerbBandage})
 	case play.EndTurn:
@@ -1057,7 +1057,7 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 	case play.QuickStart:
 		return true, native(func() error {
 			if e.partySize() > 0 { // BUG-CLASSES 64: a party already there would be doubled
-				return core.ErrNotNow
+				return rules.ErrNotNow
 			}
 			return e.QuickStart()
 		})
@@ -1066,7 +1066,7 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 	case play.EndGame:
 		return true, native(func() error {
 			if e.inParty() {
-				return core.ErrNotNow
+				return rules.ErrNotNow
 			}
 			e.mainMenu()
 			return nil
@@ -1075,7 +1075,7 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 		return true, native(func() error {
 			if a.From != "" { // another game's characters: Roster < 0 opens the list, else adds that one
 				if !e.menuUp() || !slices.Contains(e.gameData.Imports, a.From) {
-					return core.ErrNotNow
+					return rules.ErrNotNow
 				}
 				e.addFrom = a.From
 				if !e.OpenPicker(PickAddFrom) || a.Roster >= e.picker.n {
@@ -1099,7 +1099,7 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 	case play.DropMember: // ovr16:196E in camp, ovr17:1F5A on the menu: gobox asks first
 		return true, native(func() error {
 			if a.Member < 0 || a.Member >= e.partySize() || !e.inCamp() && !e.inParty() {
-				return core.ErrNotNow
+				return rules.ErrNotNow
 			}
 			e.selectMember(a.Member)
 			return e.DropMember(a.Member)
@@ -1138,7 +1138,7 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 				if dst == nil {
 					return &play.Refusal{Text: "no such field"}
 				}
-				*dst = core.PicID(a.Text)
+				*dst = rules.PicID(a.Text)
 				return nil
 			})
 		})
@@ -1165,7 +1165,7 @@ func (e *Engine) frontDo(a play.Action, native func(func() error) error) (bool, 
 	case play.EditIcon:
 		return true, native(func() error {
 			if e.iconEd != nil || e.partySize() == 0 {
-				return core.ErrNotNow
+				return rules.ErrNotNow
 			}
 			e.EditIcon(a.Member)
 			return nil
@@ -1248,7 +1248,7 @@ func (e *Engine) answerPlay(n int, text string) error {
 		}
 		return &play.Refusal{Text: "no such option"}
 	}
-	return core.ErrNotNow
+	return rules.ErrNotNow
 }
 
 // leave backs out of what is up: the aim (back to the turn's menu,
@@ -1269,7 +1269,7 @@ func (e *Engine) leave() error {
 	case e.waiting(PendShop, PendTemple), e.trainingOpen(): // the temple's Exit too (Leave takes both)
 		return e.Leave()
 	default:
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	return nil
 }
@@ -1330,7 +1330,7 @@ func (e *Engine) itemDo(a play.Action, native func(func() error) error) (bool, e
 	case play.SelectMember:
 		return true, native(func() error {
 			if a.Member < 0 || a.Member >= e.partySize() {
-				return core.ErrNotNow
+				return rules.ErrNotNow
 			}
 			if e.question() != nil && (!e.battleUp() || e.choosing()) { // a question's own step: a member pick's candidate, the selected member (not in a fight)
 				e.answer(play.SelectMember{Member: a.Member})
@@ -1361,7 +1361,7 @@ func (e *Engine) itemDo(a play.Action, native func(func() error) error) (bool, e
 		return true, native(func() error { return e.identify(a.Member, a.Item) })
 	case play.Appraise: // values one; with one valued, keeps or sells it
 		return true, native(func() error {
-			if e.valued != core.NoItem {
+			if e.valued != rules.NoItem {
 				return e.KeepAppraised(a.Keep)
 			}
 			return e.Appraise(a.Offer == game.OfferJewel)

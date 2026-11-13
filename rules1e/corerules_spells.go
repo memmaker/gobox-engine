@@ -1,85 +1,85 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
 // Spells: the book, aims, the spell menu, Knock (core/spells.go).
 
 // checkSpells answers the Checks of the spells topic.
-func (r *Rules) checkSpells(k core.Check) (core.Answer, bool) {
+func (r *Rules) checkSpells(k rules.Check) (rules.Answer, bool) {
 	switch k := k.(type) {
-	case core.SpellNumber:
+	case rules.SpellNumber:
 		for n, id := range SpellIDs {
 			if id == k.Spell {
-				return core.Answer{Yes: true, Value: int32(n)}, true
+				return rules.Answer{Yes: true, Value: int32(n)}, true
 			}
 		}
-		return core.Answer{}, true
-	case core.Memorized:
+		return rules.Answer{}, true
+	case rules.Memorized:
 		for _, c := range r.party(k.Party) {
 			for slot, sp := range c.Memorized {
 				if r.S.T().hasSpell(sp) && SpellIDs[sp] == k.Spell {
-					return core.Answer{Yes: true, Who: r.ID(c), Value: int32(slot)}, true
+					return rules.Answer{Yes: true, Who: r.ID(c), Value: int32(slot)}, true
 				}
 			}
 		}
-		return core.Answer{}, true
+		return rules.Answer{}, true
 	default:
-		return core.Answer{}, false
+		return rules.Answer{}, false
 	}
 }
 
 // resolveSpells answers the Actions of the spells topic.
-func (r *Rules) resolveSpells(sit core.Situation, a core.Action) (core.Outcome, bool, error) {
+func (r *Rules) resolveSpells(sit rules.Situation, a rules.Action) (rules.Outcome, bool, error) {
 	s := r.S
 	switch a := a.(type) {
-	case core.OpenCast: // camp's Cast opens
+	case rules.OpenCast: // camp's Cast opens
 		c := r.chars[a.Who]
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		s.SpellCaster = nil // DS:6DB5
 		s.Who = s.PartyIndex(c)
 		if !s.CanStudy(1) {
-			return core.Outcome{}, true, core.ErrNotNow
+			return rules.Outcome{}, true, rules.ErrNotNow
 		}
-	case core.CampCast:
+	case rules.CampCast:
 		c := r.chars[a.Who]
 		n := slices.Index(SpellIDs[:], a.Spell)
 		if c == nil {
-			return core.Outcome{}, true, errNoChar
+			return rules.Outcome{}, true, errNoChar
 		}
 		if n <= 0 {
-			return core.Outcome{}, true, errBadValue
+			return rules.Outcome{}, true, errBadValue
 		}
 		s.Who = s.PartyIndex(c)
 		var quit bool
 		s.CastSpell(SpellID(n), 0, 1, CastReply{Fight: s.Fight.On, Yes: a.Sure, On: r.chars[a.Target]}, &quit)
-	case core.Learn:
-		return core.Outcome{}, true, r.learn(a)
-	case core.Cast:
+	case rules.Learn:
+		return rules.Outcome{}, true, r.learn(a)
+	case rules.Cast:
 		o, err := r.cast(sit, a)
 		return o, true, err
-	case core.Maneuver:
+	case rules.Maneuver:
 		o, err := r.maneuver(sit, a)
 		return o, true, err
-	case core.SpendKnock:
+	case rules.SpendKnock:
 		if c := s.SpendKnock(); c != nil {
-			return core.Outcome{Effects: []core.Effect{core.KnockCast{Who: r.ID(c)}}}, true, nil
+			return rules.Outcome{Effects: []rules.Effect{rules.KnockCast{Who: r.ID(c)}}}, true, nil
 		}
 	default:
-		return core.Outcome{}, false, nil
+		return rules.Outcome{}, false, nil
 	}
-	return core.Outcome{}, true, nil
+	return rules.Outcome{}, true, nil
 }
 
 // factSpells answers the Facts of the spells topic.
-func (r *Rules) factSpells(id core.CharID, f core.Fact) (core.Value, bool, error) {
+func (r *Rules) factSpells(id rules.CharID, f rules.Fact) (rules.Value, bool, error) {
 	s, c := r.S, r.chars[id]
 	switch f := f.(type) {
-	case core.SpellByNumber:
+	case rules.SpellByNumber:
 		if f.Game && f.N > 0 && f.N <= 0xFF {
 			id, err := s.T().spellID(byte(f.N))
 			if err != nil {
@@ -88,49 +88,49 @@ func (r *Rules) factSpells(id core.CharID, f core.Fact) (core.Value, bool, error
 			f.N = int(id)
 		}
 		if f.N < 0 || f.N > LastSpellID || !s.T().hasSpell(SpellID(f.N)) && f.N != 0 {
-			return core.SpellID(""), true, nil
+			return rules.SpellID(""), true, nil
 		}
 		return SpellIDs[f.N], true, nil
-	case core.CastCardFact: // no holder
-		card := core.CastCard{Name: s.SpellName(f.Number)}
+	case rules.CastCardFact: // no holder
+		card := rules.CastCard{Name: s.SpellName(f.Number)}
 		switch s.SpellRec(SpellID(f.Number), 7) {
 		case 0:
-			card.Aim = core.CastAimCombatOnly
+			card.Aim = rules.CastAimCombatOnly
 		case 2:
-			card.Aim = core.CastAimMember
+			card.Aim = rules.CastAimMember
 		}
 		return card, true, nil
-	case core.StudyFact:
+	case rules.StudyFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 		book, scrolls := s.SpellLists(c)
-		return core.Study{Book: int32(len(book)), Scrolls: int32(len(scrolls))}, true, nil
-	case core.LearnableFact:
+		return rules.Study{Book: int32(len(book)), Scrolls: int32(len(scrolls))}, true, nil
+	case rules.LearnableFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
-		var l core.SpellCards
+		var l rules.SpellCards
 		for _, sp := range s.Learnable(c) {
-			l = append(l, core.SpellCard{Spell: SpellIDs[sp], Number: int32(sp), Name: s.SpellName(int(sp)), Level: int32(s.SpellRec(SpellID(sp), 1))})
+			l = append(l, rules.SpellCard{Spell: SpellIDs[sp], Number: int32(sp), Name: s.SpellName(int(sp)), Level: int32(s.SpellRec(SpellID(sp), 1))})
 		}
 		return l, true, nil
-	case core.BookFact:
+	case rules.BookFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 		return r.book(c), true, nil
-	case core.AreaFact:
+	case rules.AreaFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 		return r.areaPreview(c, f), true, nil
-	case core.SpellAimFact:
+	case rules.SpellAimFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 		return r.spellAim(f.Spell), true, nil
-	case core.SpellMenuFact:
+	case rules.SpellMenuFact:
 		if c == nil {
 			return nil, true, errNoChar
 		}
@@ -146,7 +146,7 @@ var bolts = map[int][2]int{SpLightningBolt: {8, 1}, 60: {3, 0}}
 
 // areaPreview = por aoeMarks: who the area aimed at f.At would hit; the
 // near, target and aim squares are kept.
-func (r *Rules) areaPreview(c *Character, f core.AreaFact) core.AreaPreview {
+func (r *Rules) areaPreview(c *Character, f rules.AreaFact) rules.AreaPreview {
 	s := r.S
 	x, y, aoe := f.At.X, f.At.Y, f.Area
 	n := slices.Index(SpellIDs[:], f.Spell)
@@ -154,7 +154,7 @@ func (r *Rules) areaPreview(c *Character, f core.AreaFact) core.AreaPreview {
 		n = 0
 	}
 	var hit []int // combatant numbers
-	var out core.AreaPreview
+	var out rules.AreaPreview
 	if b := bolts[n]; b[0] > 0 {
 		hit, out.Area = r.boltPreview(x, y, b[0], b[1])
 	} else {
@@ -170,14 +170,14 @@ func (r *Rules) areaPreview(c *Character, f core.AreaFact) core.AreaPreview {
 			for sx := max(0, x-aoe+1); sx <= min(49, x+aoe-1); sx++ {
 				rr, ax, ay := aoe-1, sx, sy
 				if s.LineOfSight(&rr, &ax, &ay, x, y) {
-					out.Area = append(out.Area, core.BoardPos{X: sx, Y: sy})
+					out.Area = append(out.Area, rules.BoardPos{X: sx, Y: sy})
 				}
 			}
 		}
 	}
 	for _, i := range hit {
 		p := s.Cpos[i]
-		at := core.BoardPos{X: int(p.X), Y: int(p.Y)}
+		at := rules.BoardPos{X: int(p.X), Y: int(p.Y)}
 		if t := s.Combatant(byte(i)); t != nil && t.Side == c.Side && n == SpBless && r.blessSkips(t) {
 			out.Skipped = append(out.Skipped, at) // left out by the cast: shown apart, not counted
 			continue
@@ -191,7 +191,7 @@ func (r *Rules) areaPreview(c *Character, f core.AreaFact) core.AreaPreview {
 // square, then boltPath(reach, ..., bounce)) without striking: who it hits
 // (each once) and the squares it crosses. ponytail: the occupants stay
 // put, so a foe the cast would kill still stops the line.
-func (r *Rules) boltPreview(x, y, reach, bounce int) (hit []int, line core.Squares) {
+func (r *Rules) boltPreview(x, y, reach, bounce int) (hit []int, line rules.Squares) {
 	s := r.S
 	tx, ty := s.TgtX, s.TgtY
 	defer func() { s.TgtX, s.TgtY = tx, ty }()
@@ -204,8 +204,8 @@ func (r *Rules) boltPreview(x, y, reach, bounce int) (hit []int, line core.Squar
 		}
 	}
 	strike(x, y)
-	line = append(line, core.BoardPos{X: x, Y: y})
-	s.BoltWalk(reach, bounce, func(x, y int) { line = append(line, core.BoardPos{X: x, Y: y}) }, func(_, _, x, y int) bool {
+	line = append(line, rules.BoardPos{X: x, Y: y})
+	s.BoltWalk(reach, bounce, func(x, y int) { line = append(line, rules.BoardPos{X: x, Y: y}) }, func(_, _, x, y int) bool {
 		strike(x, y)
 		_, ground := s.MapAt(x, y)
 		return ground > 0 && s.GroundInfo(Ground(ground))[0] == 0xFF
@@ -214,23 +214,23 @@ func (r *Rules) boltPreview(x, y, reach, bounce int) (hit []int, line core.Squar
 }
 
 // spellAim is how spell aims in a fight (por aimSpell, aimOne).
-func (r *Rules) spellAim(id core.SpellID) core.SpellAim {
+func (r *Rules) spellAim(id rules.SpellID) rules.SpellAim {
 	s := r.S
 	n := slices.Index(SpellIDs[:], id)
 	if n <= 0 {
-		return core.SpellAim{}
+		return rules.SpellAim{}
 	}
 	kind := s.SpellData(n, 0) & 0xF
-	a := core.SpellAim{Name: s.SpellName(n), Range: s.SpellDuration(n), FoesOnly: s.T().Spells[n&0xFF][7] == 0, Now: s.SpellData(n, 6)/3 == 0}
+	a := rules.SpellAim{Name: s.SpellName(n), Range: s.SpellDuration(n), FoesOnly: s.T().Spells[n&0xFF][7] == 0, Now: s.SpellData(n, 6)/3 == 0}
 	switch {
 	case !s.Fight.On || kind == 0:
-		a.Kind = core.SpellAimNone
+		a.Kind = rules.SpellAimNone
 	case kind == 0xF:
-		a.Kind = core.SpellAimOne
+		a.Kind = rules.SpellAimOne
 	case kind >= 8 && kind <= 0xE:
-		a.Kind, a.Area = core.SpellAimArea, int(kind&7)+1
+		a.Kind, a.Area = rules.SpellAimArea, int(kind&7)+1
 	default: // up to (kind&3)+1 different targets, as chooseSpellTargets' loop
-		a.Kind, a.Targets = core.SpellAimTargets, int(kind&3)+1
+		a.Kind, a.Targets = rules.SpellAimTargets, int(kind&3)+1
 	}
 	if SpellID(n) == spDelayedBlastFireball && s.Fight.On {
 		a.Choose, a.Choices = "Blast Delay in rounds?", delayedBlastChoices
@@ -242,9 +242,9 @@ func (r *Rules) spellAim(id core.SpellID) core.SpellAim {
 }
 
 // spellMenu = por buildSpellList (ovr23:059C) for c: the lines of kind.
-func (r *Rules) spellMenu(c *Character, kind int) core.SpellMenu {
+func (r *Rules) spellMenu(c *Character, kind int) rules.SpellMenu {
 	s := r.S
-	var out core.SpellMenu
+	var out rules.SpellMenu
 	var ids []SpellID
 	// addSpellLine = ovr23:028D: behind a class header when the group changes
 	add := func(spell SpellID, pending bool, item *Item) {
@@ -253,9 +253,9 @@ func (r *Rules) spellMenu(c *Character, kind int) core.SpellMenu {
 			group = s.SpellRec(ids[n-1], 1)
 		}
 		if g := s.SpellRec(spell, 1); g != group {
-			out = append(out, core.SpellLine{Header: true, Text: SpellGroups[g], Planned: -1, Slots: -1})
+			out = append(out, rules.SpellLine{Header: true, Text: SpellGroups[g], Planned: -1, Slots: -1})
 		}
-		l := core.SpellLine{Text: s.SpellName(int(spell)), Number: int(spell), Memo: pending}
+		l := rules.SpellLine{Text: s.SpellName(int(spell)), Number: int(spell), Memo: pending}
 		if item != nil {
 			l.Item = r.Handle(item)
 		}
@@ -327,16 +327,16 @@ func (r *Rules) spellMenu(c *Character, kind int) core.SpellMenu {
 }
 
 // coreSpellClass is a SpellClass as core names it.
-var coreSpellClass = [...]core.SpellClass{SpellClassCleric: core.SpellCleric, SpellClassMage: core.SpellMage, SpellClassDruid: core.SpellDruid, SpellClassPower: core.SpellPower}
+var coreSpellClass = [...]rules.SpellClass{SpellClassCleric: rules.SpellCleric, SpellClassMage: rules.SpellMage, SpellClassDruid: rules.SpellDruid, SpellClassPower: rules.SpellPower}
 
 // book is c's spells (por the roster cards' known, planned and memorized).
-func (r *Rules) book(c *Character) core.Book {
+func (r *Rules) book(c *Character) rules.Book {
 	s := r.S
-	var b core.Book
+	var b rules.Book
 	for i, n := range c.SpellBook { // the book: the spells c knows
 		if id := i + 1; n != 0 && s.inBook(c, SpellID(id)) {
 			cl, lv, planned := s.BookSpell(c, id)
-			b.Known = append(b.Known, core.BookSpell{Spell: SpellIDs[id], Number: int32(id), Name: s.SpellName(id), Class: coreSpellClass[cl], Level: int32(lv), Planned: int32(planned)})
+			b.Known = append(b.Known, rules.BookSpell{Spell: SpellIDs[id], Number: int32(id), Name: s.SpellName(id), Class: coreSpellClass[cl], Level: int32(lv), Planned: int32(planned)})
 		}
 	}
 	for cls, levels := range c.SpellSlots {
@@ -346,7 +346,7 @@ func (r *Rules) book(c *Character) core.Book {
 	}
 	for _, sp := range c.Memorized {
 		if sp.Held() {
-			b.Memorized = append(b.Memorized, core.BookSpell{Spell: SpellIDs[sp], Number: int32(sp), Name: s.SpellName(int(sp))})
+			b.Memorized = append(b.Memorized, rules.BookSpell{Spell: SpellIDs[sp], Number: int32(sp), Name: s.SpellName(int(sp))})
 		}
 	}
 	for _, l := range c.Levels {

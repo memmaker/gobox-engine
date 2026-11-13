@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/geo"
+	"gobox/rules"
 	"testing"
 )
 
@@ -13,7 +13,7 @@ func TestDoorsStayOpen(t *testing.T) {
 	e.posX, e.posY, e.facing = 3, 4, 2
 	e.setDoor(3, 4, 2, 2)
 	e.openDoor()
-	e.gs.geo = geo.Map{} // the reload
+	e.gs.geo = rules.Map{} // the reload
 	e.setDoor(3, 4, 2, 2)
 	e.reopenDoors()
 	if d := e.gs.geo.Plane[0x300+4<<4+3] >> 2 & 3; d != 1 {

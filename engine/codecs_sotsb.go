@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/ecl/script"
+	"gobox/rules"
 )
 
 // sotsbCodecs are sotsb's encodings of canonical fields (its layout's enc=).
@@ -12,12 +12,12 @@ var sotsbCodecs = map[script.Encoding]codec{
 	"SotsbSelStatus": {
 		toGame: func(e *Engine, canonical int64) int64 {
 			if canonical == 1 {
-				return sotsbStatus[core.StatusOkay]
+				return sotsbStatus[rules.StatusOkay]
 			}
 			return sotsbStatus[e.ruleset().Sheet(e.selected()).Status] // a status with no row reads 0, as the Pascal's else
 		},
 		toCanon: func(_ *Engine, g int64) int64 {
-			if g == sotsbStatus[core.StatusOkay] {
+			if g == sotsbStatus[rules.StatusOkay] {
 				return canonStatusOkay
 			}
 			return canonStatusStore
@@ -30,7 +30,7 @@ var sotsbCodecs = map[script.Encoding]codec{
 }
 
 // sotsbStatus is SpecialReadZ1 $100's number for each status.
-var sotsbStatus = map[core.Status]int64{
-	core.StatusOkay: 1, core.StatusGone: 2, core.StatusDead: 3, core.StatusDying: 4,
-	core.StatusUnconscious: 5, core.StatusRunning: 6, core.StatusStoned: 7,
+var sotsbStatus = map[rules.Status]int64{
+	rules.StatusOkay: 1, rules.StatusGone: 2, rules.StatusDead: 3, rules.StatusDying: 4,
+	rules.StatusUnconscious: 5, rules.StatusRunning: 6, rules.StatusStoned: 7,
 }

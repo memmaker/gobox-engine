@@ -3,7 +3,7 @@ package engine
 import (
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestDevFlags: -freetrain turns the debug flag on at the party menu (the hall
@@ -13,7 +13,7 @@ func TestDevFlags(t *testing.T) {
 	e.FreeTraining = true
 	e.push(cont{kind: kNop})
 	e.partyMenu(true, true)
-	if e.worldWord(core.WordDebug) == 0 {
+	if e.worldWord(rules.WordDebug) == 0 {
 		t.Error("-freetrain: the debug flag is off at the party menu")
 	}
 	e = quickStarted(t)

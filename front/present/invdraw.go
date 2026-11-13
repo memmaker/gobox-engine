@@ -3,10 +3,10 @@
 package present
 
 import (
-	"gobox/core"
 	"gobox/front"
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/rules"
 	"gobox/ui"
 	"image"
 	"image/color"
@@ -103,14 +103,14 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 	}
 	inv.load()
 	if inv.up == nil || in.member != inv.member {
-		inv.sel, inv.list.top, inv.carry, inv.keep.row = core.NoItem, 0, nil, -1 // a new member: nothing highlighted or on the cursor
+		inv.sel, inv.list.top, inv.carry, inv.keep.row = rules.NoItem, 0, nil, -1 // a new member: nothing highlighted or on the cursor
 	}
 	if inv.up == nil || (inv.up.kind == invOwn) != (in.kind == invOwn) {
-		inv.ware, inv.wares.top = core.NoItem, 0
+		inv.ware, inv.wares.top = rules.NoItem, 0
 	}
 	inv.shown, inv.member, inv.count, inv.glyph, inv.up = true, in.member, len(party), note.Glyph, in
 	if shown, k := inv.list.shown(in.pool), inv.keep; k.row >= 0 && (len(shown) != k.n || shown[k.row].Handle != k.i || k.id != "" && itemID(shown[k.row]) != k.id) { // the sold, dropped or readied item is gone (a swap puts another in its place)
-		inv.sel = core.NoItem
+		inv.sel = rules.NoItem
 		if j := slices.IndexFunc(shown, func(it game.Item) bool { return k.id != "" && itemID(it) == k.id }); j >= 0 { // a readied or unreadied item moved: it stays highlighted
 			inv.sel = shown[j].Handle
 		} else if len(shown) > 0 {
@@ -119,12 +119,12 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 		inv.keep.row = -1
 	}
 	if inv.itemAt(inv.sel) == nil {
-		inv.sel = core.NoItem
+		inv.sel = rules.NoItem
 	}
 	if inv.wareAt(inv.ware) == nil {
-		inv.ware = core.NoItem
+		inv.ware = rules.NoItem
 	}
-	if o := inv.order(); inv.ware == core.NoItem && inv.sel == core.NoItem && len(o) > 0 { // something is always highlighted: the keys reach every item
+	if o := inv.order(); inv.ware == rules.NoItem && inv.sel == rules.NoItem && len(o) > 0 { // something is always highlighted: the keys reach every item
 		inv.choose(o[0].ware, o[0].i)
 	}
 	shop := in.kind != invOwn

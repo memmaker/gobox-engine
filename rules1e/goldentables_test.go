@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // The golden tables: for each of the three imported games (sotsb, pod,
@@ -25,9 +25,9 @@ var updateGolden = flag.Bool("update", false, "rewrite testdata/<game>/tables.go
 var goldenGames = []string{"sotsb", "pod", "cotab"}
 
 var (
-	goldenClasses = []core.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
-	goldenRaces   = []core.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
-	goldenSaves   = []core.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
+	goldenClasses = []rules.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
+	goldenRaces   = []rules.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
+	goldenSaves   = []rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
 	goldenSkills  = thiefSkillOrder
 )
 
@@ -39,20 +39,20 @@ const (
 
 // goldenTables is every value read through Tables' accessors.
 type goldenTables struct {
-	Thac0     map[core.Class][]int
-	Saves     map[core.Class][][]int // by level, by save
-	XP        map[core.Class][]int32 // levels 2..41
-	HitDice   map[core.Class][2]int
+	Thac0     map[rules.Class][]int
+	Saves     map[rules.Class][][]int // by level, by save
+	XP        map[rules.Class][]int32 // levels 2..41
+	HitDice   map[rules.Class][2]int
 	Cleric    [][]int // slots by class level, slot level 1..
 	Mage      [][]int
 	ThiefBase [][]int // by level, by skill
-	ThiefRace map[core.Race][]int
+	ThiefRace map[rules.Race][]int
 	ThiefDex  [][]int
-	Ability   map[core.Race][][2]int // strength, then abilities 1..5
-	StrCap    map[core.Race]int
-	Careers   map[core.Race][]Career
-	Ages      map[core.Race][][3]int // by career
-	AgeSteps  map[core.Race][]int
+	Ability   map[rules.Race][][2]int // strength, then abilities 1..5
+	StrCap    map[rules.Race]int
+	Careers   map[rules.Race][]Career
+	Ages      map[rules.Race][][3]int // by career
+	AgeSteps  map[rules.Race][]int
 	CareerMin [][]int
 	CareerAl  [][]AlignmentNumber
 	ConHP     []int8
@@ -60,14 +60,14 @@ type goldenTables struct {
 	Ranger    [][]int16
 	MonkOld   [][]int16
 	Spells    [][]SpellProp
-	Stats     map[core.Class][][][3][]int // by level 1..SlotLevels, by score, cleric/druid/mage slots by level
+	Stats     map[rules.Class][][][3][]int // by level 1..SlotLevels, by score, cleric/druid/mage slots by level
 }
 
 func dumpTables(tb *Tables) goldenTables {
-	g := goldenTables{Thac0: map[core.Class][]int{}, Saves: map[core.Class][][]int{}, XP: map[core.Class][]int32{},
-		HitDice: map[core.Class][2]int{}, ThiefRace: map[core.Race][]int{}, Ability: map[core.Race][][2]int{}, StrCap: map[core.Race]int{},
-		Careers: map[core.Race][]Career{}, Ages: map[core.Race][][3]int{}, AgeSteps: map[core.Race][]int{},
-		Stats: map[core.Class][][][3][]int{}, ConHP: tb.ConHPByScore, Paladin: tb.PaladinSpells, Ranger: tb.RangerSpells,
+	g := goldenTables{Thac0: map[rules.Class][]int{}, Saves: map[rules.Class][][]int{}, XP: map[rules.Class][]int32{},
+		HitDice: map[rules.Class][2]int{}, ThiefRace: map[rules.Race][]int{}, Ability: map[rules.Race][][2]int{}, StrCap: map[rules.Race]int{},
+		Careers: map[rules.Race][]Career{}, Ages: map[rules.Race][][3]int{}, AgeSteps: map[rules.Race][]int{},
+		Stats: map[rules.Class][][][3][]int{}, ConHP: tb.ConHPByScore, Paladin: tb.PaladinSpells, Ranger: tb.RangerSpells,
 		MonkOld: tb.MonkOldSaves, Spells: tb.Spells}
 	for k, class := range goldenClasses {
 		if k >= len(tb.Thac0) {
@@ -144,11 +144,11 @@ func dumpTables(tb *Tables) goldenTables {
 		g.CareerMin = append(g.CareerMin, row)
 		g.CareerAl = append(g.CareerAl, tb.CareerAlignments(Career(c)))
 	}
-	for _, class := range []core.Class{CoreClassCleric, CoreClassDruid, CoreClassPaladin, CoreClassRanger, CoreClassMage} {
+	for _, class := range []rules.Class{CoreClassCleric, CoreClassDruid, CoreClassPaladin, CoreClassRanger, CoreClassMage} {
 		for lvl := 1; lvl <= tb.SlotLevels; lvl++ {
 			var byScore [][3][]int
 			for score := 3; score < goldenScores; score++ {
-				s := tb.ClassStats(Who{Levels: map[core.Class]int{class: lvl}, Race: CoreRaceHuman, Wis: score, Int: score})
+				s := tb.ClassStats(Who{Levels: map[rules.Class]int{class: lvl}, Race: CoreRaceHuman, Wis: score, Int: score})
 				byScore = append(byScore, [3][]int{s.ClericSlots[:], s.DruidSlots[:], s.MageSlots[:]})
 			}
 			g.Stats[class] = append(g.Stats[class], byScore)

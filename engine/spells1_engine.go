@@ -9,8 +9,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
+	"gobox/rules"
 )
 
 // buildSpellList = ovr23:059C (kind): fills the menu list with the
@@ -22,14 +21,14 @@ func (e *Engine) buildSpellList(kind int) bool {
 	e.spellList = nil
 	e.spellIDs = nil
 	if kind == 3 || kind == 6 {
-		e.spellItems = [0x31]core.ItemHandle{}
+		e.spellItems = [0x31]rules.ItemHandle{}
 		e.spellItemCount = 0
 	}
-	for _, l := range e.fact(e.selected(), core.SpellMenuFact{Kind: kind}).(core.SpellMenu) {
+	for _, l := range e.fact(e.selected(), rules.SpellMenuFact{Kind: kind}).(rules.SpellMenu) {
 		if l.Header {
-			text := goldbox.Cut(l.Text, textCols)
+			text := rules.Cut(l.Text, textCols)
 			if l.Slots >= 0 { // extra: the level headers carry the slots planned
-				text = goldbox.Cut(fmt.Sprintf("%s  %d/%d", text, l.Planned, l.Slots), textCols)
+				text = rules.Cut(fmt.Sprintf("%s  %d/%d", text, l.Planned, l.Slots), textCols)
 			}
 			e.spellList = append(e.spellList, &ListNode{Text: text, Flag: 1})
 			continue
@@ -38,13 +37,13 @@ func (e *Engine) buildSpellList(kind int) bool {
 		if l.Memo { // bit 7: to be memorised
 			prefix = " *"
 		}
-		text := goldbox.Cut(prefix+l.Text, textCols)
+		text := rules.Cut(prefix+l.Text, textCols)
 		if l.Count > 0 { // extra: how often it is memorized on a rest (memorizeMenu)
-			text = goldbox.Cut(fmt.Sprintf("%-30s x%d", text, l.Count), 0x25)
+			text = rules.Cut(fmt.Sprintf("%-30s x%d", text, l.Count), 0x25)
 		}
 		e.spellList = append(e.spellList, &ListNode{Text: text, Spell: l.Number})
 		e.spellIDs = append(e.spellIDs, byte(l.Number))
-		if l.Item != core.NoItem {
+		if l.Item != rules.NoItem {
 			if e.spellItemCount < len(e.spellItems) {
 				e.spellItems[e.spellItemCount] = l.Item
 			}

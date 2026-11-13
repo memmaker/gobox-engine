@@ -1,9 +1,8 @@
 package engine
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ega"
+	"gobox/rules"
 	"time"
 )
 
@@ -19,7 +18,7 @@ func (e *Engine) Run() {
 // Play is the rest of main after the title (Start(e.Play) after Init):
 // Apply puts the party menu up, then the adventure.
 func (e *Engine) Play() {
-	if e.ruleset().Check(core.ItemTableMissing{}, nil).Yes {
+	if e.ruleset().Check(rules.ItemTableMissing{}, nil).Yes {
 		e.PromptRow24(ega.Yellow, "ITEMS missing: import the game again") // extra (readItems): shown until a key
 	}
 }
@@ -28,8 +27,8 @@ func (e *Engine) Play() {
 // DX = sec:hundredths high word).
 func (e *Engine) Randomize() {
 	var seed uint32
-	goldbox.Randomize(&seed, e.FixedSeed)
-	e.do(core.SetSeed{Seed: seed})
+	rules.Randomize(&seed, e.FixedSeed)
+	e.do(rules.SetSeed{Seed: seed})
 }
 
 // Ticks = 0709:0C3F, time in hundredths of a second.

@@ -3,7 +3,7 @@ package rules1e
 // The combat main loop and the player's command menus (ovr09).
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 	"strconv"
 )
@@ -90,7 +90,7 @@ func (e *RuleState) Walk(c *Character, path []int) (done bool) {
 // CombatSay (extra) is combat text for the View's Log: fresh starts a new
 // message, otherwise it goes on the current one; c (if any) is named first.
 func (e *RuleState) CombatSay(c *Character, msg string, fresh bool) {
-	e.Emit(core.Narrated{Text: say1(c, msg), More: !fresh})
+	e.Emit(rules.Narrated{Text: say1(c, msg), More: !fresh})
 }
 
 func name(c *Character) string {
@@ -149,11 +149,11 @@ func (e *RuleState) MoveReach(c *Character) map[[2]int][]int {
 // each marked when leaving it lets an enemy take a free attack.
 func (e *RuleState) WalkSteps(c *Character, path []int) []Step {
 	at := [2]int{e.CombatX(c), e.CombatY(c)}
-	out := []Step{{At: core.BoardPos{X: at[0], Y: at[1]}}}
+	out := []Step{{At: rules.BoardPos{X: at[0], Y: at[1]}}}
 	for _, d := range path {
 		out[len(out)-1].Free = e.provokes(c, at, d)
 		at = [2]int{at[0] + DirDX[d], at[1] + DirDY[d]}
-		out = append(out, Step{At: core.BoardPos{X: at[0], Y: at[1]}})
+		out = append(out, Step{At: rules.BoardPos{X: at[0], Y: at[1]}})
 	}
 	return out
 }

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -21,7 +21,7 @@ func TestReadRoster(t *testing.T) {
 		t.Fatal(err)
 	}
 	os.WriteFile(filepath.Join(dir, "SAVE.SAV"), Encode(r), 0o644)
-	got, err := ReadRoster(core.Layout422, dir)
+	got, err := ReadRoster(rules.Layout422, dir)
 	if err != nil || len(got) != 1 {
 		t.Fatalf("%d characters, %v", len(got), err)
 	}
@@ -29,10 +29,10 @@ func TestReadRoster(t *testing.T) {
 	if err := json.Unmarshal(got[0], &c); err != nil {
 		t.Fatal(err)
 	}
-	if c.Sheet.CharName != "Ilan" || c.Sheet.ScriptFlag != 1 || c.Kept == nil || c.Kept.Layout != core.Layout422 {
+	if c.Sheet.CharName != "Ilan" || c.Sheet.ScriptFlag != 1 || c.Kept == nil || c.Kept.Layout != rules.Layout422 {
 		t.Errorf("character %+v", c.Sheet)
 	}
-	if _, err := ReadRoster(core.RecordLayout(7), dir); err == nil {
+	if _, err := ReadRoster(rules.RecordLayout(7), dir); err == nil {
 		t.Error("an unknown layout read")
 	}
 }

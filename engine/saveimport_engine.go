@@ -3,7 +3,7 @@ package engine
 import (
 	"errors"
 	"gobox/char"
-	"gobox/core/goldbox"
+	"gobox/rules"
 	"io/fs"
 	"log"
 	"os"
@@ -74,7 +74,7 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 		return gameSave{}, err
 	}
 	g := gameSave{
-		Set: goldbox.Set(o.Set), Rules: o.Rules, Fields: fieldCells{}, Locals: fieldCells{},
+		Set: rules.Set(o.Set), Rules: o.Rules, Fields: fieldCells{}, Locals: fieldCells{},
 		X: o.X, Y: o.Y, Facing: o.Facing, Pos3: o.Pos3, Pos4: o.Pos4,
 		ViewMode: o.ViewMode, BeginFlag: o.BeginFlag,
 	}
@@ -100,7 +100,7 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 		}
 	}
 	for _, n := range o.Party {
-		g.Party = append(g.Party, MakeFileName(goldbox.RemoveSubstr(n, ".")))
+		g.Party = append(g.Party, MakeFileName(rules.RemoveSubstr(n, ".")))
 	}
 	return g, nil
 }

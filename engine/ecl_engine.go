@@ -2,11 +2,10 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ecl"
 	"gobox/ecl/script"
 	"gobox/ega"
+	"gobox/rules"
 )
 
 // InitAreaScript = ovr08:01B6.
@@ -18,12 +17,12 @@ func (e *Engine) InitAreaScript() {
 	s.cloneIcon = 8
 	e.vm.Calls = nil
 	e.vm.Flags = [6]bool{}
-	e.setWorldWord(core.WordPortrait, 0xFF)
-	e.setWorldWord(core.WordRestEvery, 0)
-	e.setWorldWord(core.WordRestChance, 0)
-	e.setWorldWord(core.WordNoMagic, 0)
+	e.setWorldWord(rules.WordPortrait, 0xFF)
+	e.setWorldWord(rules.WordRestEvery, 0)
+	e.setWorldWord(rules.WordRestChance, 0)
+	e.setWorldWord(rules.WordNoMagic, 0)
 	s.events = e.vm.Script.Events
-	e.setWorldWord(core.WordIn3D, 1)
+	e.setWorldWord(rules.WordIn3D, 1)
 	if !e.loadedGame {
 		e.locals = fieldCells{} // area words 0x4A00..0x4A1F and game words 0x6E79..0x6E82
 	} else if e.loadedLocals != nil { // nil: a load that kept the running game's state (slots.go)
@@ -48,8 +47,8 @@ func (e *Engine) LoadArea(areaID int) {
 
 // FreeSteps = ovr08:0482.
 func (e *Engine) FreeSteps(x, y, dir int) int {
-	if e.worldWord(core.WordIn3D) == 0 {
-		e.setWorldWord(core.WordMonsterDist, 2)
+	if e.worldWord(rules.WordIn3D) == 0 {
+		e.setWorldWord(rules.WordMonsterDist, 2)
 		return 2
 	}
 	n := 0
@@ -78,8 +77,8 @@ func (e *Engine) FreeSteps(x, y, dir int) int {
 // that is the entry square the next area keeps (west out of Phlan, in at
 // the east edge): an area change, not a wrap within the map.
 func (e *Engine) StepForward() {
-	x, y := e.posX+goldbox.StepX[e.moveDir()], e.posY+goldbox.StepY[e.moveDir()]
-	if e.worldWord(core.WordLeftMap) != 0 {
+	x, y := e.posX+rules.StepX[e.moveDir()], e.posY+rules.StepY[e.moveDir()]
+	if e.worldWord(rules.WordLeftMap) != 0 {
 		x, y = (x+16)%16, (y+16)%16
 	}
 	if x >= 0 && x <= 15 && y >= 0 && y <= 15 {
@@ -90,7 +89,7 @@ func (e *Engine) StepForward() {
 }
 
 // HitMessage = ovr08:20CC (c, dmg).
-func (e *Engine) HitMessage(h core.Hurt) {
+func (e *Engine) HitMessage(h rules.Hurt) {
 	var msg string
 	if h.Dies {
 		msg = "  " + e.ruleset().Sheet(h.Unit).Name + " dies. "
@@ -134,7 +133,7 @@ func extractHotkeys(menu string) (hot, out string) {
 		c := b[i]
 		if c == '~' {
 			if i+1 < len(b) {
-				h := goldbox.Upper(b[i+1])
+				h := rules.Upper(b[i+1])
 				if len(hot) < 0x28 {
 					hot += string(h)
 				}

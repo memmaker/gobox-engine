@@ -1,9 +1,9 @@
 package engine
 
 import (
-	"gobox/core"
-	"image"
+	"gobox/rules"
 	"gobox/rules1e"
+	"image"
 	"slices"
 	"strings"
 	"testing"
@@ -31,7 +31,7 @@ func partyTurnSceneOn(t *testing.T, e *Engine) *Engine {
 	e.Init()
 	e.Start(e.Play)
 	for range 400 {
-		if e.cs.turn != nil && e.cs.actor != core.NoChar {
+		if e.cs.turn != nil && e.cs.actor != rules.NoChar {
 			break
 		}
 		if e.waiting(PendFight) {
@@ -379,7 +379,7 @@ func TestMoveStep(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	for range 400 {
-		if e.cs.turn != nil && e.cs.actor != core.NoChar {
+		if e.cs.turn != nil && e.cs.actor != rules.NoChar {
 			break
 		}
 		if e.waiting(PendFight) {

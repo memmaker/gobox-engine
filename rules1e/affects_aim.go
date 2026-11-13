@@ -1,7 +1,7 @@
 package rules1e
 
 import (
-	"gobox/core"
+	"gobox/rules"
 )
 
 // Monster attacks that aim with a spell's targeting (fold T4d, M1): the
@@ -29,13 +29,13 @@ func (e *RuleState) aimWithSpell(spell SpellID) *Character {
 }
 
 // shootAt: the attack flies from one combatant to another.
-func (e *RuleState) shootAt(from, to *Character, look core.SpellID) {
+func (e *RuleState) shootAt(from, to *Character, look rules.SpellID) {
 	e.shoot(e.CombatX(from), e.CombatY(from), e.CombatX(to), e.CombatY(to), 0, look)
 }
 
 // faceAndShoot: c turns to the first target and its attack flies to the
 // target square.
-func (e *RuleState) faceAndShoot(c *Character, look core.SpellID) {
+func (e *RuleState) faceAndShoot(c *Character, look rules.SpellID) {
 	e.TurnTo(c, byte(e.directionTo(c, e.spellTarget)))
 	e.shoot(e.CombatX(c), e.CombatY(c), e.TgtX, e.TgtY, 0, look)
 }

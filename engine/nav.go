@@ -3,7 +3,7 @@ package engine
 import (
 	"io/fs"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // portraitPNG (extra): the PNG at path is the selected member's portrait, only
@@ -24,7 +24,7 @@ func (e *Engine) portraitPNG(path string) {
 		return
 	}
 	if ok {
-		e.do(core.SetPortrait{Who: e.selected(), PNG: b})
+		e.do(rules.SetPortrait{Who: e.selected(), PNG: b})
 	}
 	if e.view.on && !e.snap.invOn {
 		e.SheetPortrait()

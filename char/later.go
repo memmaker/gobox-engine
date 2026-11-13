@@ -11,7 +11,7 @@ import (
 	"reflect"
 	"strings"
 
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -33,11 +33,11 @@ type LaterFiles struct {
 // the Sheet and the extras, the record itself kept for the rest. Memorized
 // and SpellBook hold the game's spell numbers; rules1e's Import maps them
 // to the unified ids.
-func PackLater[R Later](f LaterFiles) (core.CharacterFile, error) {
+func PackLater[R Later](f LaterFiles) (rules.CharacterFile, error) {
 	n := len(Encode(*new(R)))
 	rec, ids := SplitPoolIDs(f.Record, n)
 	r := Decode[R](rec)
-	c := rules1e.CharacterJSON{PoolIDs: ids, Kept: &rules1e.KeptRecord{Layout: core.RecordLayout(n), Image: core.RecordImage(bytes.Clone(rec))}}
+	c := rules1e.CharacterJSON{PoolIDs: ids, Kept: &rules1e.KeptRecord{Layout: rules.RecordLayout(n), Image: rules.RecordImage(bytes.Clone(rec))}}
 	sheetOfLater(&c, r)
 	c.Items = readItems(f.Items, f.ItemSize)
 	c.Affects = ReadAffects(f.Affects)
@@ -51,7 +51,7 @@ func PackLater[R Later](f LaterFiles) (core.CharacterFile, error) {
 // UnpackLater is the canonical character as its files: the kept record with
 // the modelled fields written over it (unchanged ones give the file back
 // byte for byte, the DOS pointers included).
-func UnpackLater[R Later](b core.CharacterFile, itemSize int) (LaterFiles, error) {
+func UnpackLater[R Later](b rules.CharacterFile, itemSize int) (LaterFiles, error) {
 	var c rules1e.CharacterJSON
 	if err := json.Unmarshal(b, &c); err != nil {
 		return LaterFiles{}, fmt.Errorf("UnpackLater: %w", err)

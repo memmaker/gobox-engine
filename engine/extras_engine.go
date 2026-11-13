@@ -1,16 +1,15 @@
 package engine
 
 import (
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/game"
+	"gobox/rules"
 	"time"
 )
 
 // areaKey identifies the current map: data set and GEO block (New Phlan's
 // three scripts share one map).
 func (e *Engine) areaKey() int {
-	return int(e.set)<<16 | e.worldWord(core.WordGeo)
+	return int(e.set)<<16 | e.worldWord(rules.WordGeo)
 }
 
 // markSeen records the party's cell as visited and the cells in view
@@ -29,7 +28,7 @@ func (e *Engine) markSeen() {
 		e.ext.seen[k] = m
 	}
 	x, y := e.posX, e.posY
-	if !goldbox.OnMap(x, y) {
+	if !rules.OnMap(x, y) {
 		return
 	}
 	m[y<<4|x] = seenVisited
@@ -37,8 +36,8 @@ func (e *Engine) markSeen() {
 		if e.WallAt(x, y, e.facing) != 0 {
 			break
 		}
-		x, y = x+goldbox.StepX[e.facing], y+goldbox.StepY[e.facing]
-		if !goldbox.OnMap(x, y) {
+		x, y = x+rules.StepX[e.facing], y+rules.StepY[e.facing]
+		if !rules.OnMap(x, y) {
 			break
 		}
 		if m[y<<4|x] == 0 {
@@ -50,12 +49,12 @@ func (e *Engine) markSeen() {
 // mapView: the party is in the 3D view out of camp, where the game's Area
 // command could show a map (in camp the panel keeps the party). Whether
 // the area allows one (noMap) is gobox's "No Map Zones" option's call.
-func (e *Engine) mapView() bool { return e.viewMode == 1 && e.worldWord(core.WordBeginFlag) != 2 }
+func (e *Engine) mapView() bool { return e.viewMode == 1 && e.worldWord(rules.WordBeginFlag) != 2 }
 
 // statusName = DS:1047 + 0xD*n, the status words. extra: dead with the
 // poison still in (0x37, Slow Poison can still raise) reads "Poisoned".
-func (e *Engine) statusName(cID core.CharID) string {
-	return e.word(cID, core.FactStatus)
+func (e *Engine) statusName(cID rules.CharID) string {
+	return e.word(cID, rules.FactStatus)
 }
 
 // viewDrawn runs after the 3D view is drawn: remember what the party saw
@@ -120,10 +119,10 @@ type extras struct {
 	noteAt     time.Time
 
 	// journal.go
-	printed   string      // the text window's text since it was cleared
-	battleLog []string    // the combat messages of this battle (Log)
-	noteSent  time.Time   // the note's noteAt when result last sent it
-	panel     core.CharID // whose line the combat status row shows
+	printed   string       // the text window's text since it was cleared
+	battleLog []string     // the combat messages of this battle (Log)
+	noteSent  time.Time    // the note's noteAt when result last sent it
+	panel     rules.CharID // whose line the combat status row shows
 }
 
 // preStep is a step's pre-step script run ahead of its Arrive.

@@ -2,8 +2,8 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
 	"gobox/ega"
+	"gobox/rules"
 )
 
 // The view side of the Engine's ruleset (fold step E-R6): one-line helpers
@@ -11,7 +11,7 @@ import (
 
 // okay is whether member i's status is okay.
 func (e *Engine) okay(i int) bool {
-	return e.ruleset().Sheet(e.partyIDs()[i]).Status == core.StatusOkay
+	return e.ruleset().Sheet(e.partyIDs()[i]).Status == rules.StatusOkay
 }
 
 // firstOkay is the first member whose status is okay, or -1.
@@ -25,13 +25,13 @@ func (e *Engine) firstOkay() int {
 }
 
 // spellID is the ruleset's id of por spell number n, "" outside the table.
-func (e *Engine) spellID(n int) core.SpellID {
-	return e.fact(core.NoChar, core.SpellByNumber{N: n}).(core.SpellID)
+func (e *Engine) spellID(n int) rules.SpellID {
+	return e.fact(rules.NoChar, rules.SpellByNumber{N: n}).(rules.SpellID)
 }
 
 // scriptSpell is the ruleset's id of a script's spell number n (the game's).
-func (e *Engine) scriptSpell(n int) core.SpellID {
-	return e.fact(core.NoChar, core.SpellByNumber{N: n, Game: true}).(core.SpellID)
+func (e *Engine) scriptSpell(n int) rules.SpellID {
+	return e.fact(rules.NoChar, rules.SpellByNumber{N: n, Game: true}).(rules.SpellID)
 }
 
 // UnknownItemType is a script's item number with no ruleset id (ids.txt).
@@ -43,49 +43,49 @@ func (u UnknownItemType) Error() string {
 
 // itemID is the ruleset's id of por item type n (a script's number);
 // UnknownItemType when ids.txt has none.
-func (e *Engine) itemID(n int) (core.ItemID, error) {
-	v, err := e.ruleset().Fact(core.NoChar, core.ItemByNumber{N: n})
+func (e *Engine) itemID(n int) (rules.ItemID, error) {
+	v, err := e.ruleset().Fact(rules.NoChar, rules.ItemByNumber{N: n})
 	if err != nil {
 		return 0, UnknownItemType{n}
 	}
-	return v.(core.ItemID), nil
+	return v.(rules.ItemID), nil
 }
 
 // weapon is the item cID has readied as its weapon, core.NoItem none.
-func (e *Engine) weapon(cID core.CharID) core.ItemHandle {
-	if w := e.fact(cID, core.WeaponFact{}).(core.Handles); len(w) > 0 {
+func (e *Engine) weapon(cID rules.CharID) rules.ItemHandle {
+	if w := e.fact(cID, rules.WeaponFact{}).(rules.Handles); len(w) > 0 {
 		return w[0]
 	}
-	return core.NoItem
+	return rules.NoItem
 }
 
 // loadChar loads the saved character named, core.NoChar when its files are gone.
-func (e *Engine) loadChar(name string) core.CharID {
+func (e *Engine) loadChar(name string) rules.CharID {
 	id, _ := e.LoadCharacter(name, false)
 	return id
 }
 
 // mod is the modifier of c's ability a (0 strength .. 5 charisma).
-func (e *Engine) mod(cID core.CharID, a int) int {
-	return int(e.fact(cID, core.ModFact{Ability: core.Abilities[a]}).(core.Number))
+func (e *Engine) mod(cID rules.CharID, a int) int {
+	return int(e.fact(cID, rules.ModFact{Ability: rules.Abilities[a]}).(rules.Number))
 }
 
 // paladinHeals and paladinCures are whether c may lay on hands, cure disease now.
-func (e *Engine) paladinHeals(cID core.CharID) bool {
-	return e.ruleset().Check(core.PaladinCan{Who: cID}, nil).Yes
+func (e *Engine) paladinHeals(cID rules.CharID) bool {
+	return e.ruleset().Check(rules.PaladinCan{Who: cID}, nil).Yes
 }
-func (e *Engine) paladinCures(cID core.CharID) bool {
-	return e.ruleset().Check(core.PaladinCan{Who: cID, Cure: true}, nil).Yes
+func (e *Engine) paladinCures(cID rules.CharID) bool {
+	return e.ruleset().Check(rules.PaladinCan{Who: cID, Cure: true}, nil).Yes
 }
 
 // nameColour = 00BA:1816 displayName's colour: red when not okay,
 // yellow for monsters, cyan otherwise. (00BA:08EF displayAC and 00BA:0973
 // displayHP are the presenter's: the roster, Party.)
-func (e *Engine) nameColour(id core.CharID) int {
+func (e *Engine) nameColour(id rules.CharID) int {
 	switch {
-	case !bool(e.fact(id, core.FactActive).(core.Yes)):
+	case !bool(e.fact(id, rules.FactActive).(rules.Yes)):
 		return ega.LightRed
-	case e.fact(id, core.FactSide).(core.Side) == core.SideMonsters:
+	case e.fact(id, rules.FactSide).(rules.Side) == rules.SideMonsters:
 		return ega.Yellow
 	}
 	return ega.LightCyan
@@ -93,22 +93,22 @@ func (e *Engine) nameColour(id core.CharID) int {
 
 // rosterColour is the roster's colour for id's name when it is not the one
 // highlighted: magenta ready for a level (extra), else nameColour.
-func (e *Engine) rosterColour(id core.CharID) int {
-	if e.fact(id, core.FactActive).(core.Yes) && e.fact(id, core.FactSide).(core.Side) != core.SideMonsters &&
-		e.fact(id, core.FactLevelReady).(core.Yes) {
+func (e *Engine) rosterColour(id rules.CharID) int {
+	if e.fact(id, rules.FactActive).(rules.Yes) && e.fact(id, rules.FactSide).(rules.Side) != rules.SideMonsters &&
+		e.fact(id, rules.FactLevelReady).(rules.Yes) {
 		return ega.LightMagenta
 	}
 	return e.nameColour(id)
 }
 
 // name is id's name.
-func (e *Engine) name(id core.CharID) string { return e.ruleset().Sheet(id).Name }
+func (e *Engine) name(id rules.CharID) string { return e.ruleset().Sheet(id).Name }
 
 // partySide is the party's members that fight on its side (not monsters), in marching order.
-func (e *Engine) partySide() core.Party {
-	var out core.Party
+func (e *Engine) partySide() rules.Party {
+	var out rules.Party
 	for _, id := range e.partyIDs() {
-		if e.fact(id, core.FactSide).(core.Side) != core.SideMonsters {
+		if e.fact(id, rules.FactSide).(rules.Side) != rules.SideMonsters {
 			out = append(out, id)
 		}
 	}

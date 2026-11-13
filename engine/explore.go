@@ -5,9 +5,9 @@ import (
 	"image"
 	"strconv"
 
-	"gobox/core"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/rules"
 )
 
 // The exploring verbs as gobox walks: RunEvent{Before} runs the pre-step
@@ -19,7 +19,7 @@ import (
 func (e *Engine) runEvent(before bool, side int) error {
 	if before {
 		if !e.exploring() || side&1 != 0 {
-			return core.ErrNotNow
+			return rules.ErrNotNow
 		}
 		e.ext.pre = &preStep{x: e.posX, y: e.posY, side: side & 6}
 	}
@@ -32,7 +32,7 @@ func (e *Engine) arrive(from, to image.Point, facing int) error {
 	e.ext.owed = nil
 	way := dirOf(to.Sub(from))
 	if p := e.ext.pre; p == nil || !p.ran || p.x != e.posX || p.y != e.posY || p.side != way {
-		return core.ErrNotNow // no RunEvent{Before} ran the pre-step script for this step: Arrive runs none
+		return rules.ErrNotNow // no RunEvent{Before} ran the pre-step script for this step: Arrive runs none
 	}
 	if e.viewMode != 1 { // the area map and overland: a step that way
 		e.ext.arriving = true
@@ -81,7 +81,7 @@ func (e *Engine) turnBy(d int) error {
 func (e *Engine) adjustStat(stat, by int) error {
 	cr := e.creation
 	if cr == nil {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	if stat < 0 || stat >= len(game.StatKeys) {
 		return &play.Refusal{Text: "no such stat"}
@@ -91,8 +91,8 @@ func (e *Engine) adjustStat(stat, by int) error {
 	}
 	if game.StatKeys[stat] == "str00" { // typed as strength 18/NN, 18/00 for 100
 		sc := e.ruleset().Sheet(cr.c).Scores
-		n := int(sc[core.StrengthPercent]) + by
-		if sc[core.Strength] != 18 || n < 1 || n > 100 {
+		n := int(sc[rules.StrengthPercent]) + by
+		if sc[rules.Strength] != 18 || n < 1 || n > 100 {
 			return &play.Refusal{Text: "no exceptional strength"}
 		}
 		return e.setStat(0, fmt.Sprintf("18/%02d", n%100))

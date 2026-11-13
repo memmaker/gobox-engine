@@ -6,9 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"gobox/char"
-	"gobox/core"
-	"gobox/core/goldbox"
 	"gobox/ega"
+	"gobox/rules"
 	"io/fs"
 	"log"
 	"os"
@@ -121,16 +120,16 @@ func (e *Engine) WriteCharList(list []string) error {
 // SaveCharacter = ovr18:069E (c, name): name "" = roster save (.cha, listed
 // in charlist.txt), else <name>.sav as used by SaveGame. A write that fails
 // shows the game's "Cannot write" and is the error returned (the first one).
-func (e *Engine) SaveCharacter(cID core.CharID, name string) error {
+func (e *Engine) SaveCharacter(cID rules.CharID, name string) error {
 	var base, ext string
 	var listFailed error
 	if name == "" {
 		list := append(e.BuildCharList(), e.ruleset().Sheet(cID).Name)
 		listFailed = e.WriteCharList(list)
-		if char.ReadPoolIDs(e.exportFiles(cID, false).Record).Roster == core.NoRoster {
+		if char.ReadPoolIDs(e.exportFiles(cID, false).Record).Roster == rules.NoRoster {
 			id, err := e.newRosterID()
 			listFailed = cmp.Or(listFailed, err)
-			e.do(core.SetRoster{Who: cID, Roster: id})
+			e.do(rules.SetRoster{Who: cID, Roster: id})
 		}
 		base, ext = e.charBase(cID), ".cha"
 	} else {
@@ -155,7 +154,7 @@ func (e *Engine) SaveCharacter(cID core.CharID, name string) error {
 }
 
 // exportFiles are cID's files (game: a game save's).
-func (e *Engine) exportFiles(cID core.CharID, game bool) char.Files {
+func (e *Engine) exportFiles(cID rules.CharID, game bool) char.Files {
 	b, err := e.ruleset().Export(cID)
 	if err != nil {
 		panic(fmt.Sprintf("save: %v", err)) // a member always exports
@@ -169,7 +168,7 @@ func (e *Engine) exportFiles(cID core.CharID, game bool) char.Files {
 
 // LoadCharacter = ovr18:0AEC (name, c, useSav): the new character, false
 // when the file is missing.
-func (e *Engine) LoadCharacter(name string, useSav bool) (core.CharID, bool) {
+func (e *Engine) LoadCharacter(name string, useSav bool) (rules.CharID, bool) {
 	nm := MakeFileName(name)
 	ext := ".cha"
 	if useSav {
@@ -180,7 +179,7 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (core.CharID, bool) {
 	var err error
 	if f.Record, err = os.ReadFile(path); err != nil {
 		e.fileError("read", path)
-		return core.NoChar, false
+		return rules.NoChar, false
 	}
 	read := func(ext string) []byte {
 		b, err := os.ReadFile(e.savePath(nm + ext))
@@ -203,8 +202,8 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (core.CharID, bool) {
 	}
 	b, err := char.Pack285(f)
 	if err == nil {
-		e.setWorldWord(core.WordWho, e.sel) // ImportCharacter's member
-		var id core.CharID
+		e.setWorldWord(rules.WordWho, e.sel) // ImportCharacter's member
+		var id rules.CharID
 		if id, err = e.ruleset().Import(b); err == nil {
 			return id, true
 		}
@@ -214,37 +213,37 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (core.CharID, bool) {
 
 // LoadMonster = ovr18:0EC4 (index): MON<n>CHA/SPC/ITM.DAX block index as a
 // new character.
-func (e *Engine) LoadMonster(index int) (core.CharID, bool) {
+func (e *Engine) LoadMonster(index int) (rules.CharID, bool) {
 	if _, ok := e.gdata().monster(e.monsterSet().File("MON"), index); !ok {
 		e.PromptRow24(ega.White, "Unable to load monster")
 		e.Exit()
-		return core.NoChar, false
+		return rules.NoChar, false
 	}
 	e.loadingMonster = true // DS:557C
-	o, err := e.ruleset().Resolve(nil, core.MakeMonster{Of: core.MonsterID(index)}, nil)
+	o, err := e.ruleset().Resolve(nil, rules.MakeMonster{Of: rules.MonsterID(index)}, nil)
 	e.loadingMonster = false
 	if err != nil {
 		panic(fmt.Sprintf("LoadMonster: %v", err)) // the data has it
 	}
-	return o.Effects[0].(core.MonsterMade).Who, true
+	return o.Effects[0].(rules.MonsterMade).Who, true
 }
 
 // AddMonsterToParty = ovr18:1262 (index): NPC joins the party.
 func (e *Engine) AddMonsterToParty(index int) {
-	if e.worldWord(core.WordPartyCount) > 7 {
+	if e.worldWord(rules.WordPartyCount) > 7 {
 		return
 	}
 	id, _ := e.LoadMonster(index) // a failed load dresses a blank one, as the original
-	o, err := e.ruleset().Resolve(nil, core.DressNPC{Who: id}, nil)
+	o, err := e.ruleset().Resolve(nil, rules.DressNPC{Who: id}, nil)
 	if err != nil {
 		panic(fmt.Sprintf("AddMonsterToParty: %v", err)) // never refused
 	}
-	e.join(o.Effects[0].(core.NPCDressed).Who)
+	e.join(o.Effects[0].(rules.NPCDressed).Who)
 }
 
 // eraseRosterCopies deletes <name>.cha/.itm/.spc (nested check as in LoadGame
 // when nested is true, independent checks as in SaveGame otherwise).
-func (e *Engine) eraseRosterCopies(cID core.CharID, nested bool) error {
+func (e *Engine) eraseRosterCopies(cID rules.CharID, nested bool) error {
 	base := e.charBase(cID)
 	cha := e.savePath(base + ".cha")
 	var failed error
@@ -273,11 +272,11 @@ func (e *Engine) loadSlot() bool {
 		e.fileError("read", e.savePath(gameFile))
 		return false
 	}
-	taken, err := e.ruleset().Resolve(nil, core.TakeSavedWalls{}, nil)
+	taken, err := e.ruleset().Resolve(nil, rules.TakeSavedWalls{}, nil)
 	if err != nil {
 		panic(fmt.Sprintf("load: %v", err)) // the action never refuses
 	}
-	walls := taken.Effects[0].(core.SavedWalls)
+	walls := taken.Effects[0].(rules.SavedWalls)
 	e.vars, e.loadedLocals = f.Fields, f.Locals
 	if e.vars == nil {
 		e.vars = fieldCells{}
@@ -289,12 +288,12 @@ func (e *Engine) loadSlot() bool {
 	e.run.doorTry = [3]byte{1, 1, 1} // extra: else a game loaded at a locked door offers only Exit, which walls it up
 	e.pos3, e.pos4 = f.Pos3, f.Pos4
 	e.viewMode = int(f.ViewMode)
-	e.setWorldWord(core.WordBeginFlag, int(f.BeginFlag))
-	w := uint16(e.worldWord(core.WordViewFlags))
+	e.setWorldWord(rules.WordBeginFlag, int(f.BeginFlag))
+	w := uint16(e.worldWord(rules.WordViewFlags))
 	e.viewBit1, e.viewBit0 = byte(w>>1), byte(w&1)
-	e.msgDelay = byte(e.worldWord(core.WordMsgDelay))
-	e.do(core.EmptyParty{})
-	e.do(core.ForgetParty{})
+	e.msgDelay = byte(e.worldWord(rules.WordMsgDelay))
+	e.do(rules.EmptyParty{})
+	e.do(rules.ForgetParty{})
 	e.sel = 0
 	for _, nm := range f.Party {
 		if e.fileExists(e.savePath(nm + ".sav")) {
@@ -307,9 +306,9 @@ func (e *Engine) loadSlot() bool {
 		e.eraseRosterCopies(id, true)
 	}
 	e.sel = 0
-	e.set = goldbox.Set(e.worldWord(core.WordSymbolSet))
+	e.set = rules.Set(e.worldWord(rules.WordSymbolSet))
 	if e.viewMode < 2 {
-		e.LoadGeo(int(byte(e.worldWord(core.WordGeo)))) // ovr30:10C7
+		e.LoadGeo(int(byte(e.worldWord(rules.WordGeo)))) // ovr30:10C7
 	}
 	if e.viewMode > 1 {
 		e.loadAreaIcon(0, 0xB) // ovr33:01C8
@@ -322,7 +321,7 @@ func (e *Engine) loadSlot() bool {
 			}
 		}
 	}
-	if e.worldWord(core.WordRiverOpen) != 0 {
+	if e.worldWord(rules.WordRiverOpen) != 0 {
 		e.EndgameHook(0) // ovr19:06B3
 	}
 	e.clearPrompt()
@@ -334,13 +333,13 @@ func (e *Engine) loadSlot() bool {
 func (e *Engine) saveSlot() error {
 	e.clearPrompt()
 	e.prompt(ega.LightGreen, "Saving...Please Wait")
-	e.setWorldWord(core.WordMsgDelay, int(e.msgDelay))
-	e.setWorldWord(core.WordViewFlags, int(e.viewBit1)*2+int(e.viewBit0))
-	e.setWorldWord(core.WordSymbolSet, int(e.set))
+	e.setWorldWord(rules.WordMsgDelay, int(e.msgDelay))
+	e.setWorldWord(rules.WordViewFlags, int(e.viewBit1)*2+int(e.viewBit0))
+	e.setWorldWord(rules.WordSymbolSet, int(e.set))
 	// the running area: after an area change the area block still names the
 	// one left (opNewECL; the game loop copies the new one after the next
 	// command), but the load reloads the running script (GameLoop)
-	v := core.RecordView{AreaKind: uint16(e.gs.areaKind)}
+	v := rules.RecordView{AreaKind: uint16(e.gs.areaKind)}
 	for i := range 3 {
 		v.WallsA[i] = uint16(e.mapPairA[i])
 		v.WallsB[i] = uint16(e.mapPairB[i])
@@ -373,8 +372,8 @@ func (e *Engine) saveSlot() error {
 }
 
 // charBase = savePath + MakeFileName(RemoveSubstr(name,'.')) for roster files.
-func (e *Engine) charBase(cID core.CharID) string {
-	return MakeFileName(goldbox.RemoveSubstr(e.ruleset().Sheet(cID).Name, "."))
+func (e *Engine) charBase(cID rules.CharID) string {
+	return MakeFileName(rules.RemoveSubstr(e.ruleset().Sheet(cID).Name, "."))
 }
 
 // CharRecord is the 0x11D-byte DOS character record (gobox/char's shared

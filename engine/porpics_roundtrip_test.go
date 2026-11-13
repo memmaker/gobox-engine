@@ -5,7 +5,7 @@ import (
 	"gobox/rules1e"
 	"testing"
 
-	"gobox/core"
+	"gobox/rules"
 )
 
 // TestForeignPicRoundTrip: a picture with no POR number saves as the pool
@@ -15,8 +15,8 @@ func TestForeignPicRoundTrip(t *testing.T) {
 	c := e.state().Fresh(rules1e.Kind{Race: rules1e.RaceHuman, Class: rules1e.ClsFighter}, nil)
 	c.SetName("Gamma")
 	c.PortHead = 5
-	const foreign core.PicID = "pool:foreign-head"
-	pictures.Set(foreign, &c.PortHead, 0, &c.PoolIDs.PortraitHeadID, func(b byte) core.PicID { return e.portPic("HEAD", b) }, func(id core.PicID) (byte, bool) { return e.portByte("HEAD", id) })
+	const foreign rules.PicID = "pool:foreign-head"
+	pictures.Set(foreign, &c.PortHead, 0, &c.PoolIDs.PortraitHeadID, func(b byte) rules.PicID { return e.portPic("HEAD", b) }, func(id rules.PicID) (byte, bool) { return e.portByte("HEAD", id) })
 	if c.PortHead != 0 {
 		t.Fatalf("stale head byte %d", c.PortHead)
 	}

@@ -2,43 +2,43 @@ package engine
 
 import (
 	"errors"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 )
 
 // cure is temple cure x for member n (n < 0: the selected one), the
 // player agreed to the price.
 func (e *Engine) cure(n, x int) error {
-	sv, ok := e.templeService(core.NoChar, x)
+	sv, ok := e.templeService(rules.NoChar, x)
 	if !e.waiting(PendTemple) || !ok {
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	cID := e.actor(n)
 	defer e.waited()
 	if sv.Price > 0 { // a temple that heals free has no price to pay
-		if o, err := e.ruleset().Resolve(nil, core.Pay{Gold: uint64(sv.Price)}, nil); err != nil { // ovr05:00BF
-			if slices.Contains(o.Effects, core.Effect(core.Refused{Why: core.NoMoney})) {
+		if o, err := e.ruleset().Resolve(nil, rules.Pay{Gold: uint64(sv.Price)}, nil); err != nil { // ovr05:00BF
+			if slices.Contains(o.Effects, rules.Effect(rules.Refused{Why: rules.NoMoney})) {
 				return errNoMoney
 			}
 			return err
 		}
 	}
-	e.emit(core.Sounded{Cue: core.SoundCue("recover")})
+	e.emit(rules.Sounded{Cue: rules.SoundCue("recover")})
 	done := sv.Done
 	if done == "" {
 		done = "is cured."
 	}
 	e.say(e.ruleset().Sheet(cID).Name + " " + done)
-	e.setWorldWord(core.WordWho, e.sel)
-	e.do(core.GiveTempleCure{Who: cID, Cure: int32(x)})
+	e.setWorldWord(rules.WordWho, e.sel)
+	e.do(rules.GiveTempleCure{Who: cID, Cure: int32(x)})
 	return nil
 }
 
 // viewMember = the temple's View: member n's sheet (n < 0: the selected one).
 func (e *Engine) viewMember(n int) error {
-	fight := e.waiting(PendFight) && e.cs.turn != nil && e.cs.actor != core.NoChar
+	fight := e.waiting(PendFight) && e.cs.turn != nil && e.cs.actor != rules.NoChar
 	if !fight && !e.waiting(PendTemple, PendShop) { // BUG-CLASSES 36: the shop's and the fight's View too, the game's own sheet (State.SheetPage) in full
-		return core.ErrNotNow
+		return rules.ErrNotNow
 	}
 	if fight {
 		n = e.partyIndex(e.cs.actor) // the fight's View: the active member's
@@ -53,7 +53,7 @@ func (e *Engine) viewMember(n int) error {
 func (e *Engine) Temple() {
 	e.songMusic(songTemple, 0) // extra
 	greeting := e.paneCopy()   // extra: the priests' greeting stays, as the shop
-	e.setWorldWord(core.WordBeginFlag, 1)
+	e.setWorldWord(rules.WordBeginFlag, 1)
 	e.DrawMainScreen()
 	e.keepPane(greeting)
 	e.pw.greeting = greeting
@@ -62,12 +62,12 @@ func (e *Engine) Temple() {
 
 // templeService is the temple's service x as member who needs it (core.NoChar: for no one);
 // false when the game's temple has no such service (rules.json town).
-func (e *Engine) templeService(who core.CharID, x int) (core.TempleCure, bool) {
-	v, err := e.ruleset().Fact(who, core.TempleCureFact{Cure: x})
+func (e *Engine) templeService(who rules.CharID, x int) (rules.TempleCure, bool) {
+	v, err := e.ruleset().Fact(who, rules.TempleCureFact{Cure: x})
 	if err != nil {
-		return core.TempleCure{}, false
+		return rules.TempleCure{}, false
 	}
-	return v.(core.TempleCure), true
+	return v.(rules.TempleCure), true
 }
 
 // errNoMoney is a payment the purse cannot meet (core.NoMoney), as the temple words it.

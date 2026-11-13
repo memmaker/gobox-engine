@@ -35,7 +35,7 @@ func parseDir(t *testing.T, dir string) []*ast.File {
 // method, and for facts also the PlainFact constants.
 func coreNames(t *testing.T) map[string]string {
 	t.Helper()
-	out, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "gobox/core").Output()
+	out, err := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "gobox/rules").Output()
 	if err != nil {
 		t.Fatal(err)
 	}

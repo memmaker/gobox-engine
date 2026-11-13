@@ -2,7 +2,7 @@ package rules1e
 
 import (
 	"fmt"
-	"gobox/core"
+	"gobox/rules"
 	"slices"
 	"strconv"
 	"strings"
@@ -447,8 +447,8 @@ func (e *RuleState) RollMinimal(c *Character) error {
 
 // MinimumError is rollMinimal's refusal: minimum want of stat i above best
 // (strength as strScore), or not met in tries rolls.
-func MinimumError(i, want, best, tries int) *core.MinimumError {
-	m := &core.MinimumError{Ability: Abilities[i], Tries: tries}
+func MinimumError(i, want, best, tries int) *rules.MinimumError {
+	m := &rules.MinimumError{Ability: Abilities[i], Tries: tries}
 	m.Want, m.WantPct = unStrScore(i, want)
 	m.Best, m.BestPct = unStrScore(i, best)
 	return m

@@ -5,8 +5,8 @@ package playcotab
 
 import (
 	"gobox/app"
-	"gobox/core"
 	"gobox/engine/playpool"
+	"gobox/rules"
 )
 
 // Play runs the game of s.Adventure until the window closes; the saves are
@@ -17,8 +17,8 @@ func Play(s app.Start) error {
 		return err
 	}
 	return playpool.Play(s, playpool.Game{
-		Title: "Curse of the Azure Bonds", W: 320, H: 200, Record: core.Layout422,
+		Title: "Curse of the Azure Bonds", W: 320, H: 200, Record: rules.Layout422,
 		SaveDir: saves,
-		Foreign: playpool.HomeRosters(map[string]core.RecordLayout{"por": core.Layout285}),
+		Foreign: playpool.HomeRosters(map[string]rules.RecordLayout{"por": rules.Layout285}),
 	})
 }

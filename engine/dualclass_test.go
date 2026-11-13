@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 	"testing"
 )
@@ -23,7 +23,7 @@ func TestChangeClass(t *testing.T) {
 	if len(offers) != 1 || offers[0].Name != rules1e.ClassNames[rules1e.ClsMage] {
 		t.Fatalf("offers %+v, want the magic-user", offers)
 	}
-	if _, err := e.ruleset().Resolve(core.Training{Party: e.partyIDs(), DualClass: true}, offers[0].Action, nil); err != nil {
+	if _, err := e.ruleset().Resolve(rules.Training{Party: e.partyIDs(), DualClass: true}, offers[0].Action, nil); err != nil {
 		t.Fatal(err)
 	}
 	if c.Levels[rules1e.ClsFighter] != 0 || c.OldLevels[rules1e.ClsFighter] != 5 || c.Levels[rules1e.ClsMage] != 1 || c.Exp != 0 || rules1e.NewClasses(c) != nil {

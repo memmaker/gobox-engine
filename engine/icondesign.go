@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"gobox/core"
 	"gobox/ega"
+	"gobox/rules"
 	"slices"
 )
 
@@ -30,22 +30,22 @@ var IconParts = [6]string{"Body", "Arm", "Leg", "Hair/Face", "Shield", "Weapon"}
 // iconEdit is the icon being designed (EditIcon): the character and what
 // it had, put back unless kept.
 type iconEdit struct {
-	who  core.CharID
-	orig core.IconPics
+	who  rules.CharID
+	orig rules.IconPics
 	anim bool
 }
 
 // iconPics is who's own combat icon (core.IconPicsFact).
-func (e *Engine) iconPics(who core.CharID) core.IconPics {
-	return e.fact(who, core.IconPicsFact{}).(core.IconPics)
+func (e *Engine) iconPics(who rules.CharID) rules.IconPics {
+	return e.fact(who, rules.IconPicsFact{}).(rules.IconPics)
 }
 
 // editIcon changes the designed icon by f.
-func (e *Engine) editIcon(f func(p *core.IconPics)) {
+func (e *Engine) editIcon(f func(p *rules.IconPics)) {
 	if ed := e.iconEd; ed != nil {
 		p := e.iconPics(ed.who)
 		f(&p)
-		e.do(core.SetIconPics{Who: ed.who, Pics: p})
+		e.do(rules.SetIconPics{Who: ed.who, Pics: p})
 	}
 }
 
@@ -104,7 +104,7 @@ const noCell = 0xFF
 
 // IconSize toggles the icon designed between small and large.
 func (e *Engine) IconSize() {
-	e.editIcon(func(p *core.IconPics) {
+	e.editIcon(func(p *rules.IconPics) {
 		if p.Size == 2 {
 			p.Size = 1
 		} else {
@@ -115,8 +115,8 @@ func (e *Engine) IconSize() {
 
 // IconColour gives part's colour shade (0 low, 1 high) colour number v.
 func (e *Engine) IconColour(part, shade, v int) {
-	if part >= 0 && part < core.IconParts && shade >= 0 && shade < 2 && v >= 0 && v < 16 {
-		e.editIcon(func(p *core.IconPics) {
+	if part >= 0 && part < rules.IconParts && shade >= 0 && shade < 2 && v >= 0 && v < 16 {
+		e.editIcon(func(p *rules.IconPics) {
 			if shade == 0 {
 				p.Colours[part].Low = uint8(v)
 			} else {
@@ -129,7 +129,7 @@ func (e *Engine) IconColour(part, shade, v int) {
 // IconRemove drops the PNG icon: the game's own icon again (the save
 // drops NAME.icon.png).
 func (e *Engine) IconRemove() {
-	e.editIcon(func(p *core.IconPics) { p.PNG = nil })
+	e.editIcon(func(p *rules.IconPics) { p.PNG = nil })
 }
 
 // EndIcon ends the designer: keep takes the icon, else the old one is
@@ -142,12 +142,12 @@ func (e *Engine) EndIcon(keep bool) {
 	if keep {
 		e.Music(3) // Amiga 0x2F33E
 	} else {
-		e.do(core.SetIconPics{Who: ed.who, Pics: ed.orig})
+		e.do(rules.SetIconPics{Who: ed.who, Pics: ed.orig})
 	}
 	e.iconEd = nil
 	e.animInput = ed.anim
 	if cr := e.creation; cr != nil && ed.who == cr.c { // the creation's icon: its draft takes the result, the sheet is drawn from it
-		icon := e.fact(cr.c, core.DraftIconFact{}).(core.Icon)
+		icon := e.fact(cr.c, rules.DraftIconFact{}).(rules.Icon)
 		e.creationEdit(func(cr *creation) error { cr.d.D.Icon = icon; return nil })
 	}
 	e.clearPrompt()

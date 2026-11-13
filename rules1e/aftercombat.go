@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core"
+import "gobox/rules"
 
 // After combat, ported from ovr06: the fight's outcome, experience, the
 // hired NPCs' share and the treasure screen. ECL COMBAT without monsters
@@ -151,12 +151,12 @@ func (e *RuleState) oldAgeDeaths() {
 			}
 			continue
 		}
-		e.Emit(core.Narrated{Text: "The strain of this last battle has worn heavily on " + c.Name() + ".  "})
+		e.Emit(rules.Narrated{Text: "The strain of this last battle has worn heavily on " + c.Name() + ".  "})
 		pronoun := "He"
 		if c.Sex != 0 {
 			pronoun = "She"
 		}
-		e.Emit(core.Narrated{Text: pronoun + " breathes deeply one last time and crumples to the ground."})
+		e.Emit(rules.Narrated{Text: pronoun + " breathes deeply one last time and crumples to the ground."})
 		e.killWithMessage(c, StatusGone, "dies from age")
 		mourners := 0
 		var mourner *Character
@@ -168,11 +168,11 @@ func (e *RuleState) oldAgeDeaths() {
 		}
 		switch mourners {
 		case 0:
-			e.Emit(core.Narrated{Text: "Sadly, no party member witnesses the passing of the champion."})
+			e.Emit(rules.Narrated{Text: "Sadly, no party member witnesses the passing of the champion."})
 		case 1:
-			e.Emit(core.Narrated{Text: mourner.Name() + " weeps at the loss of such a venerable companion."})
+			e.Emit(rules.Narrated{Text: mourner.Name() + " weeps at the loss of such a venerable companion."})
 		default:
-			e.Emit(core.Narrated{Text: " The remaining party members are overcome with grief as they search " + c.Name() + "'s body for valuables."})
+			e.Emit(rules.Narrated{Text: " The remaining party members are overcome with grief as they search " + c.Name() + "'s body for valuables."})
 		}
 	}
 }

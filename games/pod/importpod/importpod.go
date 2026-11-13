@@ -6,22 +6,22 @@ package importpod
 
 import (
 	"encoding/json"
+	"gobox/rules1e"
 	"math"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 	"strconv"
 
 	"gobox/audio/glbr"
 	"gobox/audio/sounddata"
-	"gobox/core"
 	"gobox/dax"
 	"gobox/ecl/script"
+	"gobox/engine"
 	"gobox/exe"
 	"gobox/exe/tablespec"
-	"gobox/importer"
-	"gobox/engine"
 	"gobox/games/pod"
+	"gobox/importer"
+	"gobox/rules"
 )
 
 func init() {
@@ -77,14 +77,14 @@ func writeSwitchData(dst string) error {
 		case music:
 			sounds[byte(n)] = engine.ScriptSound{Music: true, Song: song}
 		case digitized:
-			sounds[byte(n)] = engine.ScriptSound{Cue: core.SoundCue(strconv.Itoa(n))}
+			sounds[byte(n)] = engine.ScriptSound{Cue: rules.SoundCue(strconv.Itoa(n))}
 		}
 	}
 	tables := engine.GameTables{
 		Dialect: Dialect, AddNPCIcon: true, AreaMonsters: area, ScriptSounds: sounds,
 		OriginalSave: OriginalSave,
 		Symbols:      []engine.SymbolLoad{{Set: 4, File: "8X8D0", Block: 202}}, // gameinit's Load8x8Set(202, 1): POD's symbols are 8X8D0's, not the content set's file
-		MonsterSet:   1,                                                      // LoadCreatureData's MON1, LoadIconAnim's CPIC1
+		MonsterSet:   1,                                                        // LoadCreatureData's MON1, LoadIconAnim's CPIC1
 		Art: &engine.ArtNames{ // LoadCombatTileSet's Load24x24Set (pod-re combatst.pas)
 			DungeonTiles:  []engine.TileLoad{{File: "DUNGCOM", From: engine.TileBlockWalls, Last: 24}},
 			WildTiles:     []engine.TileLoad{{File: "WILDCOM", From: engine.TileBlockAreaSet, Last: 38}},

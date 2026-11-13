@@ -2,8 +2,8 @@ package engine
 
 import (
 	"fmt"
-	"gobox/core"
 	"gobox/ecl/script"
+	"gobox/rules"
 	"io/fs"
 	"slices"
 )
@@ -39,7 +39,7 @@ func (e *Engine) setLastBlock(block int) {
 		e.host.Set(r, int64(block))
 		return
 	}
-	e.setWorldWord(core.WordLastBlock, block)
+	e.setWorldWord(rules.WordLastBlock, block)
 }
 
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
@@ -95,7 +95,7 @@ func (e *Engine) shopPrice(price, count int32) int32 {
 	if r, ok := e.layoutField(fieldPriceScale); ok {
 		price = scalePrice(price, int32(e.host.Get(r)))
 	}
-	if count > 1 && e.ruleset().Check(core.BundlePrices{}, nil).Yes {
+	if count > 1 && e.ruleset().Check(rules.BundlePrices{}, nil).Yes {
 		price *= count
 	}
 	return price

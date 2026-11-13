@@ -1,6 +1,6 @@
 package rules1e
 
-import "gobox/core/goldbox"
+import "gobox/rules"
 
 // Affect handlers of ovr13, offsets 0x0000..0x1C00. Each handler is a
 // DS:6828 table entry: handler(char, affect, flag); flag 1 = removing.
@@ -60,7 +60,7 @@ func (e *RuleState) AddAffectNow(c *Character, typ AffectType, data byte, time i
 const msgPoisonDeath = "dies from poison"
 
 func (e *RuleState) killWithMessage(c *Character, status byte, msg string) {
-	msg = goldbox.Cut(msg, msgMax)
+	msg = rules.Cut(msg, msgMax)
 	e.CombatSay(c, msg, true)
 	if s := c.Status; s == StatusStoned || s == StatusDead || s == StatusGone {
 		return

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/core"
+	"gobox/rules"
 	"gobox/rules1e"
 )
 
@@ -85,7 +85,7 @@ type Files struct {
 }
 
 // Pack285 is f as the canonical character (rules1e.CharacterFile's JSON).
-func Pack285(f Files) (core.CharacterFile, error) {
+func Pack285(f Files) (rules.CharacterFile, error) {
 	c := rules1e.CharacterJSON{Sheet: SheetOf(f.Record), PoolIDs: ReadPoolIDs(f.Record), Portrait: f.Portrait, Icon: f.Icon}
 	c.Items = ReadItems(f.Items)
 	c.Affects = ReadAffects(f.Affects)
@@ -104,7 +104,7 @@ func Pack285(f Files) (core.CharacterFile, error) {
 
 // Unpack285 is the canonical character as its files; a game save's items
 // file (game) carries the shared pack the party's first member holds.
-func Unpack285(b core.CharacterFile, game bool) (Files, error) {
+func Unpack285(b rules.CharacterFile, game bool) (Files, error) {
 	var c rules1e.CharacterJSON
 	if err := json.Unmarshal(b, &c); err != nil {
 		return Files{}, fmt.Errorf("Unpack285: %w", err)
@@ -316,9 +316,9 @@ func SplitPoolIDs(b []byte, n int) ([]byte, rules1e.PoolIDs) {
 			break
 		}
 		if dst := f[k]; dst != nil {
-			*dst = core.PicID(v)
+			*dst = rules.PicID(v)
 		} else if n, err := strconv.ParseUint(v, 10, 32); k == rules1e.RosterKey && err == nil {
-			p.Roster = core.RosterID(n)
+			p.Roster = rules.RosterID(n)
 		}
 		t = rest
 	}
@@ -333,16 +333,16 @@ const cotabIDMagic = "GOBXID"
 // PoolKeys order as uint16 length and bytes, then the RosterID in decimal.
 func oldIDs(t []byte) (p rules1e.PoolIDs) {
 	f := p.Fields()
-	ids := []*core.PicID{f[rules1e.PoolKeys[0]], f[rules1e.PoolKeys[1]], f[rules1e.PoolKeys[2]], f[rules1e.PoolKeys[3]]}
+	ids := []*rules.PicID{f[rules1e.PoolKeys[0]], f[rules1e.PoolKeys[1]], f[rules1e.PoolKeys[2]], f[rules1e.PoolKeys[3]]}
 	for i := 0; ; i++ {
 		v, rest, ok := readStr(t)
 		if !ok {
 			return
 		}
 		if i < len(ids) {
-			*ids[i] = core.PicID(v)
+			*ids[i] = rules.PicID(v)
 		} else if n, err := strconv.ParseUint(v, 10, 32); err == nil {
-			p.Roster = core.RosterID(n)
+			p.Roster = rules.RosterID(n)
 			return
 		}
 		t = rest
@@ -356,9 +356,9 @@ func ReadIDsFile(b []byte) (p rules1e.PoolIDs) {
 	lines := strings.Split(strings.TrimSuffix(string(b), "\n"), "\n")
 	for i, l := range lines {
 		if i < len(rules1e.PoolKeys) {
-			*f[rules1e.PoolKeys[i]] = core.PicID(l)
+			*f[rules1e.PoolKeys[i]] = rules.PicID(l)
 		} else if n, err := strconv.ParseUint(l, 10, 32); err == nil {
-			p.Roster = core.RosterID(n)
+			p.Roster = rules.RosterID(n)
 		}
 	}
 	return
@@ -377,7 +377,7 @@ func PoolTrailer(p rules1e.PoolIDs) []byte {
 			b = appendStr(appendStr(b, k), string(v))
 		}
 	}
-	if p.Roster != core.NoRoster {
+	if p.Roster != rules.NoRoster {
 		b = appendStr(appendStr(b, rules1e.RosterKey), strconv.FormatUint(uint64(p.Roster), 10))
 	}
 	if b == nil {
