@@ -1,7 +1,7 @@
 package games
 
 import (
-	"embed"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"gobox/asset"
@@ -22,13 +22,6 @@ import (
 //
 //go:embed por/portraits.json
 var portraits []byte
-
-// journalFS is POR's journal books (JOURNAL, HISTORY, CLUEBOOK and the pictures
-// they show), written to the adventure folder's pool.JournalDir by the import; the
-// engine reads the game's own books from there.
-//
-//go:embed por/journal
-var porJournalFS embed.FS
 
 // gameTables is POR's pool.GameTables other than its portraits (data/gametables.json):
 // the duel sounds of CALL 0xBA03 (8 a step, 10 the fireball, DS:2612's numbers); any other plays nothing.
@@ -111,7 +104,7 @@ func PorImportDataTo(dos, dst string) error {
 	if err := engine.WriteGameData(dst, porGameData()); err != nil {
 		return err
 	}
-	if err := writeJournal(filepath.Join(filepath.Dir(dst), engine.JournalDir)); err != nil {
+	if err := ImportJournal("por", filepath.Join(filepath.Dir(dst), engine.JournalDir)); err != nil {
 		return err
 	}
 	key, err := orig.SourceKey(dataFormat, dos)
@@ -139,27 +132,6 @@ func ImportDataIfStale(data string) error {
 		return err
 	}
 	return ImportData(data)
-}
-
-// writeJournal writes the embedded journal books to dir.
-func writeJournal(dir string) error {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
-	files, err := porJournalFS.ReadDir("por/journal")
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		b, err := porJournalFS.ReadFile("por/journal/" + f.Name())
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(filepath.Join(dir, f.Name()), b, 0o644); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // porAreaKind is the area record's AreaKind word (rules1e.AreaVars +0x1E4) in script addresses.

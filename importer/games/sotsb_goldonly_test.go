@@ -21,7 +21,7 @@ func TestSotsbScriptsGoldOnly(t *testing.T) {
 	if err := SotsbImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	bad, err := eclscript.MovedCoins(eclscript.V2, dir, sotsbScriptData(), journalFixes)
+	bad, err := eclscript.MovedCoins(eclscript.V2, dir, embeddedScripts("sotsb"), journalFixes)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestSotsbNoScalarTables(t *testing.T) {
 	if err := SotsbImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	bad, err := eclscript.ScalarTables(eclscript.V2, dir, sotsbScriptData(), journalFixes)
+	bad, err := eclscript.ScalarTables(eclscript.V2, dir, embeddedScripts("sotsb"), journalFixes)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,22 +1,17 @@
 package games
 
 import (
-	"embed"
 	"gobox/game/journal"
-	"io/fs"
 	"sync"
 )
 
 // The Adventurer's Journal's texts (journal/JOURNAL.TXT), which PoD's
 // JOURNAL command names by number only ("recorded as journal entry N").
 //
-//go:embed pod/journal
-var podJournalFS embed.FS
 
 // journalBook is JOURNAL.TXT, loaded once.
 var journalBook = sync.OnceValue(func() *journal.Book {
-	sub, _ := fs.Sub(podJournalFS, "pod/journal")
-	b, err := journal.Load(sub, journalFile)
+	b, err := journal.Load(embeddedJournal("pod"), journalFile)
 	if err != nil {
 		panic(err)
 	}

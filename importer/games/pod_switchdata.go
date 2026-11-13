@@ -4,8 +4,6 @@ import (
 	eclscript "gobox/ecl/script"
 	"gobox/rules"
 	"gobox/rules1e"
-	"os"
-	"path/filepath"
 )
 
 // Layout1e is the shape of this game's slot tables (rules1e.Layout).
@@ -44,25 +42,4 @@ func JournalEntries() []eclscript.Entry {
 		}
 	}
 	return es
-}
-
-// WriteJournal copies the journal book and its pictures into dir.
-func WriteJournal(dir string) error {
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
-	files, err := podJournalFS.ReadDir("pod/journal")
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		b, err := podJournalFS.ReadFile("pod/journal/" + f.Name())
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(filepath.Join(dir, f.Name()), b, 0o644); err != nil {
-			return err
-		}
-	}
-	return nil
 }

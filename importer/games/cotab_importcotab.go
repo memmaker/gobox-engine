@@ -105,7 +105,7 @@ func CotabImport(dos, dst string) error {
 	if err := cotabImportRules(dos, filepath.Join(dst, "data")); err != nil {
 		return err
 	}
-	if err := importJournal(filepath.Join(dst, "data", engine.JournalDir)); err != nil {
+	if err := ImportJournal("cotab", filepath.Join(dst, "data", engine.JournalDir)); err != nil {
 		return err
 	}
 	data := filepath.Join(dst, "data")
@@ -117,10 +117,6 @@ func CotabImport(dos, dst string) error {
 	}
 	return importer.WriteJSON(filepath.Join(data, rules1e.LayoutFile), CotabLayout1e)
 }
-
-// importJournal writes COTAB's journal books and pictures (JournalFS, gobox's journal format) into dir.
-// The entries file (names/entries.json) comes with the scripts.
-func importJournal(dir string) error { return os.CopyFS(dir, JournalFS()) }
 
 // gameTables is COTAB's pool.GameTables: the second engine's dialect (its NoMonsterCombat is the
 // dialect's: shop, then temple), no NPC combat icon, the duel sounds' numbers (CALL 0xB200's

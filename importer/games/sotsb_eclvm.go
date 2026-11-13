@@ -1,25 +1,9 @@
 package games
 
 import (
-	"embed"
 	"gobox/ecl"
 	eclscript "gobox/ecl/script"
-	"io/fs"
 )
-
-// scriptFS is the scripts' data (gobox ecl/script Library.Data): the
-// layout, made from sotsb-re's Pascal (scripts/layout/global.txt).
-//
-//go:embed sotsb/scripts
-var sotsbScriptFS embed.FS
-
-func sotsbScriptData() fs.FS {
-	d, err := fs.Sub(sotsbScriptFS, "sotsb/scripts")
-	if err != nil {
-		panic(err) // a constant, valid path
-	}
-	return d
-}
 
 // The ECL script machine: operands, variables, strings, comparisons, calls
 // (unit O04C of the reconstruction). Script addresses are 16-bit:
@@ -45,12 +29,12 @@ const (
 
 // ScriptLayout is the game's script fields (scripts/layout/global.txt).
 func SotsbScriptLayout() (*eclscript.Layout, error) {
-	return eclscript.ReadLayout(sotsbScriptData(), 0)
+	return eclscript.ReadLayout(embeddedScripts("sotsb"), 0)
 }
 
 // ImportScriptsTo decompiles the game's ECL*.DAX in dos into an adventure
 // folder's scripts dir, with the script data beside them (the importer's
 // step; eclscript.ImportDAXFolder).
 func SotsbImportScriptsTo(dos, dir string) error {
-	return eclscript.ImportDAXFolder(eclscript.V2, dos, sotsbScriptData(), dir, journalFixes)
+	return eclscript.ImportDAXFolder(eclscript.V2, dos, embeddedScripts("sotsb"), dir, journalFixes)
 }

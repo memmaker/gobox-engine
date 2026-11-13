@@ -101,7 +101,7 @@ func writeSwitchData(dst string) error {
 	if err := importer.WriteJSON(filepath.Join(data, rules1e.LayoutFile), PodLayout1e()); err != nil {
 		return err
 	}
-	if err := WriteJournal(filepath.Join(dst, engine.JournalDir)); err != nil {
+	if err := ImportJournal("pod", filepath.Join(dst, engine.JournalDir)); err != nil {
 		return err
 	}
 	return importer.WriteJSON(filepath.Join(dst, "scripts", script.EntriesFile), JournalEntries())

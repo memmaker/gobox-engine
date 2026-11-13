@@ -3,7 +3,6 @@ package games
 import (
 	"encoding/json"
 	"gobox/rules1e"
-	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -50,7 +49,7 @@ func SotsbImportTo(dos, dst string) error {
 	if err := ImportGameTablesTo(filepath.Join(dst, dataDir)); err != nil {
 		return err
 	}
-	if err := ImportJournalTo(filepath.Join(dst, journalDir)); err != nil {
+	if err := ImportJournal("sotsb", filepath.Join(dst, journalDir)); err != nil {
 		return err
 	}
 	amiga := filepath.Join(filepath.Dir(dos), "amiga")
@@ -142,23 +141,4 @@ func ImportGameTablesTo(dst string) error {
 		}
 	}
 	return nil
-}
-
-// ImportJournalTo writes the Adventurer's Journal's text and pictures (the
-// built-in journal/, gobox's journal format) into dst; the entries that
-// name them are the scripts' names/entries.json.
-func ImportJournalTo(dst string) error {
-	if err := os.MkdirAll(dst, 0o755); err != nil {
-		return err
-	}
-	return fs.WalkDir(sotsbJournalFS, "sotsb/journal", func(p string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return err
-		}
-		b, err := sotsbJournalFS.ReadFile(p)
-		if err != nil {
-			return err
-		}
-		return os.WriteFile(filepath.Join(dst, filepath.Base(p)), b, 0o644)
-	})
 }

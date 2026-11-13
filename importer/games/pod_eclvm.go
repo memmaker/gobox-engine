@@ -1,7 +1,6 @@
 package games
 
 import (
-	"embed"
 	"encoding/json"
 	"gobox/ecl"
 	eclscript "gobox/ecl/script"
@@ -9,19 +8,10 @@ import (
 	"testing/fstest"
 )
 
-// scriptFS is the scripts' data (gobox ecl/script Library.Data): the
-// layout, made from pod-re's Pascal (scripts/layout/global.txt).
-//
-//go:embed pod/scripts
-var podScriptFS embed.FS
-
-func podScriptData() fs.FS {
-	d, err := fs.Sub(podScriptFS, "pod/scripts")
-	if err != nil {
-		panic(err) // a constant, valid path
-	}
-	return withEntries{d}
-}
+// podScriptData is the scripts' data (gobox ecl/script Library.Data): the
+// layout, made from pod-re's Pascal (scripts/layout/global.txt), and the
+// journal's entries.
+func podScriptData() fs.FS { return withEntries{embeddedScripts("pod")} }
 
 // withEntries adds the journal's entries (JournalEntries, made from the
 // book, not checked in) to the scripts' data as EntriesFile, the file the

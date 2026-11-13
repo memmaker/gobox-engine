@@ -1,34 +1,18 @@
 package games
 
 import (
-	"embed"
 	eclscript "gobox/ecl/script"
 	"gobox/game"
 	"gobox/rules1e"
-	"io/fs"
 	"slices"
 )
 
 // RecordLayout is the layout of the game's character records (its adventure's manifest names it).
 const CotabRecordLayout = rules1e.Layout422
 
-// scriptFS is the scripts' data (gobox ecl/script Library.Data): the
-// layout, made from cotab-re's Pascal (scripts/layout/global.txt).
-//
-//go:embed cotab/scripts
-var cotabScriptFS embed.FS
-
-func cotabScriptData() fs.FS {
-	d, err := fs.Sub(cotabScriptFS, "cotab/scripts")
-	if err != nil {
-		panic(err) // a constant, valid path
-	}
-	return d
-}
-
 // ScriptLayout is the game's script fields (scripts/layout/global.txt).
 func CotabScriptLayout() (*eclscript.Layout, error) {
-	return eclscript.ReadLayout(cotabScriptData(), 0)
+	return eclscript.ReadLayout(embeddedScripts("cotab"), 0)
 }
 
 // OriginalSave is savgamX.dat as above (unit O0A1): the area byte, the area, area2 and aux
@@ -141,7 +125,7 @@ const (
 // folder's scripts dir, with the script data beside them (the importer's
 // step; eclscript.ImportDAXFolder).
 func CotabImportScriptsTo(dos, dir string) error {
-	return eclscript.ImportDAXFolder(eclscript.V2, dos, cotabScriptData(), dir, cotabScriptFixes)
+	return eclscript.ImportDAXFolder(eclscript.V2, dos, embeddedScripts("cotab"), dir, cotabScriptFixes)
 }
 
 // Item and Affect are the raw list nodes (next pointers live in the slices).

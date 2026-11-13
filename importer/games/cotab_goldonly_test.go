@@ -21,7 +21,7 @@ func TestCotabScriptsGoldOnly(t *testing.T) {
 	if err := CotabImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	bad, err := eclscript.MovedCoins(eclscript.V2, dir, cotabScriptData(), cotabScriptFixes)
+	bad, err := eclscript.MovedCoins(eclscript.V2, dir, embeddedScripts("cotab"), cotabScriptFixes)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestCotabNoScalarTables(t *testing.T) {
 	if err := CotabImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	bad, err := eclscript.ScalarTables(eclscript.V2, dir, cotabScriptData(), cotabScriptFixes)
+	bad, err := eclscript.ScalarTables(eclscript.V2, dir, embeddedScripts("cotab"), cotabScriptFixes)
 	if err != nil {
 		t.Fatal(err)
 	}
