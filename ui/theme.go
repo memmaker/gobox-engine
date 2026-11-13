@@ -141,9 +141,11 @@ func (p *Presenter) windowBorder() windowBorder {
 // borderOf is the game's border pieces from its art ("border/<place>",
 // 0..7, ui.TopLeft ..; "border/cap/<n>", 0..3, ui.LeftTopCap ..; in the
 // EGA's colours), or Theme.Border's decoded for symbol set set when the
-// art has no first piece.
+// art has no first piece or the Amiga frame shows (it is the Amiga's whole
+// border, over the DOS pieces a game's art has: POR's symbols).
 func borderOf(art map[string]game.Picture, set int) windowBorder {
-	if pix(art["border/0"]).Pix != nil {
+	amigaFrameShown := theme.Border.Amiga != nil && amigaShown()
+	if pix(art["border/0"]).Pix != nil && !amigaFrameShown {
 		var t [Places]image.Image
 		for i := range LeftTopCap {
 			t[i] = pixImage(pix(art["border/"+strconv.Itoa(i)]), egaInk)

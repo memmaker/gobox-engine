@@ -26,7 +26,21 @@ var porAmiga = amigaimport.Spec{
 		"pic": {Slot: asset.AmigaView, Sprite: true, XOR: true}, "final": {Slot: asset.AmigaView, Sprite: true, XOR: true}, "sprit": {Slot: asset.AmigaPortrait, Sprite: true},
 	},
 	Disks: []string{"poolgame", "POOLDATA"}, Program: "program", Intro: "intro", Font: "fonts/poolrad/8",
-	Skip: map[string]string{"8x8d.dax": "the Amiga set is laid out for its own wall renderer and does not match WALLDEF's symbol numbers: the 3D view stays DOS (porAmiga)"},
+	Skip:       map[string]string{"8x8d.dax": "the Amiga set is laid out for its own wall renderer and does not match WALLDEF's symbol numbers: the 3D view stays DOS (porAmiga)"},
+	ProgramGfx: map[string]amigaimport.ProgramGfx{porFrameFile: {Slot: asset.AmigaView, Blocks: porFrameBitMaps}},
+}
+
+// porFrameBitMaps are the window frame's pieces: no disk file holds them,
+// the program does (struct BitMaps in code hunk 27, 0x5c000; their planes
+// in data hunk 28, 0x65000). The frame routine 0x576d4 blits each with
+// BltBitMap (0x5a9a0, minterm 0xC0) from its top-left: the bars as wide
+// as the window, the sides and the corner 8 pixels wide.
+var porFrameBitMaps = map[int]amigaimport.BitMap{
+	porFrameTop:    {Addr: 0x637ec},                   // 320x8, blitted at 0x57750
+	porFrameBottom: {Addr: 0x63810},                   // 320x8, 0x577a6
+	porFrameRight:  {Addr: 0x63834, Width: frameCell}, // 16x190, 0x57856
+	porFrameLeft:   {Addr: 0x63858, Width: frameCell}, // 16x190, 0x57800
+	porFrameCorner: {Addr: 0x6387c, Width: frameCell}, // 16x8, all four corners, 0x5789c..0x57966
 }
 
 // laterGfx is how the later Pool games' Amiga archives decode: pal is the

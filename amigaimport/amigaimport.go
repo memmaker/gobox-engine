@@ -67,7 +67,23 @@ type Spec struct {
 	// Alias merges a library into another archive, by base name: Pools of
 	// Darkness' disk 1 8X8DA.TLB holds the 8X8D symbols of its own disk.
 	Alias map[string]string
+	// ProgramGfx are archives made of pictures the program holds
+	// (Spec.Program's image, orig.AmigaProgramImage), by archive name.
+	ProgramGfx map[string]ProgramGfx
 }
+
+// ProgramGfx is an archive of the program's own pictures: its blocks by
+// id, coloured from palette slot Slot (asset.Amiga...).
+type ProgramGfx struct {
+	Slot   byte
+	Blocks map[int]BitMap
+}
+
+// BitMap is a picture the program holds as an AmigaOS struct BitMap
+// (u16 BytesPerRow, u16 Rows, u8 Flags, u8 Depth, u16 pad, the plane
+// pointers) at address Addr of its image (orig.Base..orig.End); Width is
+// the pixels from its left edge that the program blits of it (0: all).
+type BitMap struct{ Addr, Width int }
 
 // archive is the name a disk file's pictures are written under.
 func (s Spec) archive(name string) string {
@@ -215,6 +231,19 @@ func Import(src, out string, s Spec) error {
 		}
 	}
 	logSkipped(disk, s)
+	for name, pg := range s.ProgramGfx {
+		if snd == nil {
+			return fmt.Errorf("%s: no program image (Spec.Program %q) to read its pictures from", name, s.Program)
+		}
+		blocks[name] = map[int][]byte{}
+		for id, bm := range pg.Blocks {
+			b, err := bitMapBlock(snd, bm, pg.Slot)
+			if err != nil {
+				return fmt.Errorf("%s block %d: %w", name, id, err)
+			}
+			blocks[name][id] = b
+		}
+	}
 	setArchives(blocks, pals)
 	for name, b := range blocks {
 		if p := s.Gfx[strings.TrimRight(name, "0123456789")].Pal; p > 0 && p+32 <= len(exe) {
@@ -362,4 +391,50 @@ func setArchives(blocks, pals map[string]map[int][]byte) {
 			delete(pals[name], id)
 		}
 	}
+}
+
+// bitMapDepth is the planes a program picture has: the four of the game's
+// 16-colour screen.
+const bitMapDepth = 4
+
+// bitMapBlock is the picture of BitMap bm of the program image img
+// (orig.Base..) as a DOS-layout block (orig.AmigaImage), slot its palette.
+func bitMapBlock(img []byte, bm BitMap, slot byte) ([]byte, error) {
+	at := func(a, n int) ([]byte, error) {
+		o := a - orig.Base
+		if o < 0 || o+n > len(img) {
+			return nil, fmt.Errorf("address %#x+%d outside the program image %#x..%#x", a, n, orig.Base, orig.End)
+		}
+		return img[o : o+n], nil
+	}
+	hdr, err := at(bm.Addr, 8+4*bitMapDepth)
+	if err != nil {
+		return nil, err
+	}
+	bpr, rows, depth := be16(hdr, 0), be16(hdr, 2), int(hdr[5])
+	if depth != bitMapDepth {
+		return nil, fmt.Errorf("BitMap %#x has %d planes, want %d", bm.Addr, depth, bitMapDepth)
+	}
+	w := bpr // in bytes: 8-pixel cells
+	if bm.Width > 0 {
+		w = bm.Width / 8
+	}
+	stride := (w + 1) / 2 * 2 // orig.AmigaImage's rows: whole 16-pixel words
+	if stride > bpr {
+		return nil, fmt.Errorf("BitMap %#x: width %d past its %d bytes a row", bm.Addr, bm.Width, bpr)
+	}
+	raw := make([]byte, 12, 12+bitMapDepth*rows*stride)
+	for i, v := range []int{rows, w, 0, 0, 1, rows * stride} { // h, w, x, y, frames, plane size
+		raw[2*i], raw[2*i+1] = byte(v>>8), byte(v)
+	}
+	for p := range bitMapDepth {
+		plane, err := at(be32(hdr, 8+4*p), bpr*rows)
+		if err != nil {
+			return nil, fmt.Errorf("BitMap %#x plane %d: %w", bm.Addr, p, err)
+		}
+		for y := range rows {
+			raw = append(raw, plane[y*bpr:y*bpr+stride]...)
+		}
+	}
+	return orig.AmigaImage(raw, false, slot), nil
 }

@@ -9,7 +9,68 @@ import (
 
 	"gobox/adventure"
 	"gobox/asset"
+	"gobox/game"
 )
+
+// TestAmigaFrameOverOwnPieces: POR's DOS border is the engine's own pieces
+// (art "border/<n>"); under Amiga art the Amiga frame replaces them, every
+// piece and edge cell inked, and under DOS art the own pieces stay.
+func TestAmigaFrameOverOwnPieces(t *testing.T) {
+	defer func(a *asset.Art, am bool, th Theme) {
+		daxArt.art, daxArt.amiga = a, am
+		clear(daxPics)
+		clear(amigaScreens)
+		applyTheme(th)
+	}(daxArt.art, daxArt.amiga, theme)
+	adv := filepath.Join("..", "data", "por")
+	d, err := adventure.ReadGameData(adv)
+	if err != nil {
+		t.Skipf("por: %v", err)
+	}
+	if d.Border == nil || d.Border.Amiga == nil {
+		t.Fatal("por: no Amiga frame in the game data")
+	}
+	daxArt.art = asset.OpenArt(filepath.Join(adv, "art"))
+	if !daxArt.art.Has(asset.Amiga) {
+		t.Skip("por: no imported Amiga art")
+	}
+	th := theme
+	th.Border = Border{Amiga: d.Border.Amiga}
+	applyTheme(th)
+	const ownInk = 15
+	own := game.Picture{W: frameCell, H: frameCell, Pixels: bytes.Repeat([]byte{ownInk}, frameCell*frameCell)}
+	art := map[string]game.Picture{}
+	for i := range LeftTopCap {
+		art["border/"+string(rune('0'+i))] = own
+	}
+	for _, amiga := range []bool{false, true} {
+		daxArt.amiga = amiga
+		clear(daxPics)
+		clear(amigaScreens)
+		wb := borderOf(art, 0)
+		if wb.own == amiga {
+			t.Fatalf("amiga %v: own pieces %v", amiga, wb.own)
+		}
+		if !amiga {
+			continue
+		}
+		for i, m := range wb.pieces[:LeftTopCap] {
+			if !hasInk(m) {
+				t.Errorf("piece %d empty", i)
+			}
+		}
+		if len(wb.edges) != len(d.Border.Amiga.Edges) {
+			t.Errorf("%d edges, want %d", len(wb.edges), len(d.Border.Amiga.Edges))
+		}
+		for k, cells := range wb.edges {
+			for i, m := range cells {
+				if !hasInk(m) {
+					t.Errorf("edge %q cell %d empty", k, i)
+				}
+			}
+		}
+	}
+}
 
 // TestBorderSources: under each art (F12) and in every frame set, every
 // border cell the front draws (the ribbon's pieces, each edge's cells) is

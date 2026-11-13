@@ -132,3 +132,31 @@ func TestAmigaFrameLayout(t *testing.T) {
 		}
 	}
 }
+
+// TestPorAmigaFrame: the Amiga Pool's frame pieces imported from the
+// program's BitMaps (porFrameBitMaps) have the sizes its frame routine
+// 0x576d4 blits, and an edge n cells long is the corner, the bar's first
+// n-2 cells from the window's own corner, the corner.
+func TestPorAmigaFrame(t *testing.T) {
+	art := asset.OpenArt(filepath.Join("..", "data", "por", "art"))
+	if !art.Has(asset.Amiga) {
+		t.Skip("por: no imported Amiga art")
+	}
+	f := porAmigaFrame()
+	sizes := map[int][2]int{porFrameTop: {320, 8}, porFrameBottom: {320, 8}, porFrameRight: {8, 190}, porFrameLeft: {8, 190}, porFrameCorner: {8, 8}}
+	for block, wh := range sizes {
+		b := art.Block(asset.Amiga, f.File, block)
+		if b == nil || len(b.Frames) != 1 {
+			t.Errorf("%s block %d: not one frame imported", f.File, block)
+			continue
+		}
+		if im := b.Frames[0].Image; im.Width*8 != wh[0] || im.Height != wh[1] {
+			t.Errorf("%s block %d: %dx%d, want %dx%d", f.File, block, im.Width*8, im.Height, wh[0], wh[1])
+		}
+	}
+	top := f.Edges["top@5"]
+	want := []game.FrameCell{{Col: 0}, {Col: 1}, {Col: 2}, {Col: 3}, {Col: porScreenX1}}
+	if !reflect.DeepEqual(top, want) {
+		t.Errorf("top@5 %v, want %v", top, want)
+	}
+}
