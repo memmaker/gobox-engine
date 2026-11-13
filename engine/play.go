@@ -981,7 +981,7 @@ func walls(s facts) *game.MapWalls {
 		return nil
 	}
 	return &game.MapWalls{Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
-		FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA, Backdrop: w.Backdrop, Outside: !s.Where.Inside, Sun: w.Sun, Mountains: w.Mountains, SunAz: w.SunAz, SunEl: w.SunEl}
+		FloorInk: w.FloorInk, CeilInk: w.CeilInk, Backdrop: w.Backdrop, Outside: !s.Where.Inside, Sun: w.Sun, Mountains: w.Mountains, SunAz: w.SunAz, SunEl: w.SunEl}
 }
 
 // native runs f, an engine call a play action names, as Apply runs a

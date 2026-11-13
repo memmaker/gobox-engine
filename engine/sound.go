@@ -159,7 +159,7 @@ func (e *Engine) SoundParts() (*orig.Player, []int, interface{ Mix([]byte) }, fu
 }
 
 // SetSound hands the rules the attached driver (audio.Driver, made on
-// Cfg.Sound): main 0x4574 picks the card, SOUND.OFF keeps Ctrl-S's.
+// Cfg.Sound): main 0x4574 picks the card.
 func (e *Engine) SetSound(d audio.Sound) {
 	s := &e.snd
 	s.d = d
@@ -173,9 +173,6 @@ func (e *Engine) SetSound(d audio.Sound) {
 	}
 	s.wait = 100 // soundWait(100) at start-up
 	d.Wait(100)
-	if e.marked(soundOffFile) { // Ctrl-S from the last run
-		s.saved, s.typ = s.typ, sndNone
-	}
 	d.SetCard(s.typ)
 	if s.stOn {
 		e.SetSoundtrack(true)
@@ -225,9 +222,6 @@ func (e *Engine) SoundReset() {
 		s.d.Reset()
 	}
 }
-
-// soundOffFile in the save folder marks the sound as switched off (Ctrl-S).
-const soundOffFile = "SOUND.OFF"
 
 // SoundData is the driver's tables (soundFile), for audio.NewDriver; Data's
 // SoundTables after it.

@@ -126,7 +126,7 @@ func (p *Presenter) wallScene(w *game.Walls, art map[string]game.Picture) *blobb
 		rows[y] = strings.Repeat(".", len(w.Side[y]))
 	}
 	sc := &blobber.Scene{Rows: rows, Faces: map[[3]int][]blobber.FacePart{}, Edges: map[[3]int]bool{},
-		NoMap: map[[3]int]bool{}, Water: map[[2]int]bool{}, Pond: map[[2]int]bool{}, Floor: w.Floor, Ceiling: w.Sky, FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA}
+		NoMap: map[[3]int]bool{}, Water: map[[2]int]bool{}, Pond: map[[2]int]bool{}, Floor: w.Floor, Ceiling: w.Sky, FloorRGBA: inkRGBA(w.FloorInk), CeilRGBA: inkRGBA(w.CeilInk)}
 	var backdrop image.Image
 	if w.Backdrop != nil {
 		backdrop = wallPic(*w.Backdrop)
@@ -316,4 +316,13 @@ func drawBox(dst, inside *gpu.Image, tiles Ribbon, r CellRect, k float64, cx, cy
 	op.GeoM.Scale(k, k)
 	op.GeoM.Translate(float64(in.Min.X), float64(in.Min.Y))
 	dst.DrawImage(inside, op)
+}
+
+// inkRGBA is the EGA ink as a flat colour (nil: InkNone).
+func inkRGBA(k game.Ink) *color.RGBA {
+	n, ok := k.EGA()
+	if !ok {
+		return nil
+	}
+	return &egaInk[n]
 }

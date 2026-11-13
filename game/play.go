@@ -11,7 +11,6 @@ package game
 import (
 	"gobox/rules"
 	"image"
-	"image/color"
 	"time"
 )
 
@@ -203,7 +202,7 @@ type MapWalls struct {
 	Fronts              map[int]string // a wall value's art name in Data.Art
 	Pool                map[int]string // a wall value's remastered texture, in place of Fronts
 	Floor, Sky          string
-	FloorRGBA, CeilRGBA *color.RGBA
+	FloorInk, CeilInk Ink
 	Backdrop            *Picture
 	Outside             bool    // under the sky
 	Sun                 bool    // the sun is up in the sky the rules paint

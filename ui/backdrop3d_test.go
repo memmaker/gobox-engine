@@ -14,7 +14,6 @@ import (
 func TestWallsBackdrop(t *testing.T) {
 	quad := []color.RGBA{{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}, {255, 255, 0, 255}}
 	m := game.Picture{W: 2, Pixels: []byte{0, 1, 2, 3}, Palette: quad, Clear: -1}
-	fill := color.RGBA{200, 0, 200, 255}
 	open := [][][4]int{{{0, 0, 0, 0}}}
 	dst := gpu.NewImage(blobber.W, blobber.H)
 	draw := func(w *game.Walls) {
@@ -22,7 +21,7 @@ func TestWallsBackdrop(t *testing.T) {
 		p.view.Show(p.wallScene(w, nil), blobber.Camera{})
 		p.view.Draw(dst)
 	}
-	draw(&game.Walls{Key: "bd", Side: open, FloorRGBA: &fill, CeilRGBA: &fill, Backdrop: &m})
+	draw(&game.Walls{Key: "bd", Side: open, FloorInk: game.InkMagenta, CeilInk: game.InkMagenta, Backdrop: &m})
 	for y := 0; y < blobber.H; y += 7 {
 		for x := 0; x < blobber.W; x += 7 {
 			want := quad[(y*2/blobber.H)*2+x*2/blobber.W]
@@ -31,7 +30,7 @@ func TestWallsBackdrop(t *testing.T) {
 			}
 		}
 	}
-	draw(&game.Walls{Key: "nobd", Side: open, FloorRGBA: &fill, CeilRGBA: &fill})
+	draw(&game.Walls{Key: "nobd", Side: open, FloorInk: game.InkMagenta, CeilInk: game.InkMagenta})
 	if r, g, b, _ := dst.At(blobber.W/2, 2).RGBA(); r>>8 < 100 || g != 0 || b>>8 < 100 { // the ceiling's fill, shaded
 		t.Fatalf("nil backdrop: top %v, want the fill", dst.At(blobber.W/2, 2))
 	}
