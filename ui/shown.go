@@ -224,7 +224,7 @@ func (p *Presenter) pictures() []Picture {
 			break
 		}
 	}
-	return daxPictures(ps)
+	return daxPictures(indexedPictures(ps, p.ink())) // a game frame swapped in comes as pixels
 }
 
 // askUp is the question up: the presenter's own (Ask), else the state's, else

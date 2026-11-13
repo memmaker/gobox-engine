@@ -61,8 +61,8 @@ func TestArtPixels(t *testing.T) {
 		}
 		own := ps[0]
 		own.Img = nil
-		if ps[0].Img != nil && ps[0].Img != pixImage(own, f.P.ink()) {
-			t.Errorf("DOS %v: the picture drawn from the archive, not the game's pixels", dos)
+		if ps[0].Img == nil || ps[0].Img != pixImage(own, f.P.ink()) {
+			t.Errorf("DOS %v: the picture not drawn from the game's pixels (the archive's, or none)", dos)
 		}
 	}
 }
