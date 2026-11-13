@@ -15,7 +15,6 @@ type Board struct {
 	StoneTile int           // the wall tile whose face is the stone texture (a plain one)
 	Floor     color.RGBA    // the ground's colour
 	FloorTile image.Image   // the plain floor's picture, tiled on every floor square (nil: Floor's colour with grain)
-	GroundTex image.Image   // the bare ground under a tile with no base ground of its own (nil: Floor's colour with grain)
 	Dungeon   bool
 	Units     []Unit
 	Cursor    image.Point

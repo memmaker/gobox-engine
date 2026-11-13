@@ -128,7 +128,6 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 	if c.FloorTile != "" {
 		b.FloorTile = asset.SpriteImage(Series, "combat", c.FloorTile)
 	}
-	b.GroundTex = wallImage("floor") // the bare ground: the series floor texture, never a fallback colour (ruling 7)
 	slot, slots := len(c.Tiles), map[string]int{} // a square's own Art: a tile slot of its own past the named tiles, one per picture
 	slotOf := func(a game.Picture) (int, bool) {  // a's tile slot, made on first use
 		if !hasPic(a) {
@@ -304,10 +303,11 @@ func memberPicture(m game.Member, g game.Unit, pose int) (pic Picture, size imag
 }
 
 // combatGround is the bare ground's colour on a board with no floor tile:
-// the shown art's (black in the DOS art, the look file's in the Amiga's).
+// the shown art's (the look file's in the Amiga's; in the DOS art colour 0,
+// which SetCombatPalette, cbtmap.pas, shows as dark grey in a fight).
 func combatGround() color.RGBA {
 	if amigaGround != nil && Amiga() {
 		return *amigaGround
 	}
-	return asset.EGARGBA(0)
+	return asset.EGARGBA(asset.EGADarkGrey)
 }
