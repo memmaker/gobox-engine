@@ -339,8 +339,8 @@ func (p *Presenter) fightClick(x, y int) bool {
 	if p.pickClick(x, y) {
 		return true
 	}
-	if image.Pt(x, y).In(p.fightCard) && p.fightView != nil && p.fightView.Turn != nil { // the active member's inventory
-		p.send(front.ActItems, 0)
+	if image.Pt(x, y).In(p.fightCard) && p.fightView != nil && p.fightView.Turn != nil { // the active member's sheet (View has no button: Felix's ruling 2026-11-13)
+		p.send(front.ActView, -1)
 		return true
 	}
 	return p.battle.Click(x, y)

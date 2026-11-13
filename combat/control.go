@@ -3,6 +3,7 @@
 package combat
 
 import (
+	"cmp"
 	"gobox/gpu"
 	"gobox/input"
 	"image"
@@ -40,15 +41,23 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 	aiming := b != nil && b.Turn != nil && b.Turn.Aim
 	cycle := a == input.Tab || a == input.PgUp || a == input.PgDn
 	back := a == input.PgUp || a == input.Tab && p.Shift
+	keyed := bar{}
+	if b != nil && !p.Picking {
+		keyed = keyedItems(b, p.Asking) // the buttonless acts' keys (M, V ...), after the bar's
+	}
+	either := func(f func(*bar) *barItem) *barItem { return cmp.Or(f(&p.bar), f(&keyed)) }
+	chord := either(func(b *bar) *barItem { return b.chordKey(k, p.Alt, p.Shift) })
+	game := either(func(b *bar) *barItem { return b.gameKey(k) })
+	table := either(func(b *bar) *barItem { return b.tableKey(k) })
 	switch {
-	case p.bar.chordKey(k, p.Alt, p.Shift) != nil: // the game's own chords (Alt-Q, Space) first
-		p.press(*p.bar.chordKey(k, p.Alt, p.Shift))
+	case chord != nil: // the game's own chords (Alt-Q, Space) first
+		p.press(*chord)
 	case k == 'u' && p.Shift && p.bar.hotkey(a, k) != nil: // Shift-U: Quick for the whole party
 		p.act(Decision{Kind: ActQuick, N: 1})
-	case p.bar.gameKey(k) != nil: // the game's own hotkey wins over the camera's (Q, E, W ...)
-		p.press(*p.bar.gameKey(k))
-	case p.bar.tableKey(k) != nil: // the remaster's letter for the same act (F Attack, U Quick), where the game gave its own
-		p.press(*p.bar.tableKey(k))
+	case game != nil: // the game's own hotkey wins over the camera's (Q, E, W ...)
+		p.press(*game)
+	case table != nil: // the remaster's letter for the same act (F Attack, U Quick), where the game gave its own
+		p.press(*table)
 	case p.Camera(a):
 	case a >= input.CursorUp && a <= input.CursorRight && p.stepUnit(cursorDirs[a]): // the arrows step the turn's unit, as the original's
 	case a >= input.CursorUp && a <= input.CursorRight: // the square cursor (the pad's d-pad and left stick send these too)
@@ -58,8 +67,8 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 		if i := (int(k) - '0' + 9) % 10; i < len(p.bar.rects) { // 1 is the first button, 0 the tenth
 			p.press(p.bar.items[i])
 		}
-	case p.bar.hotkey(a, k) != nil:
-		p.press(*p.bar.hotkey(a, k))
+	case either(func(b *bar) *barItem { return b.hotkey(a, k) }) != nil:
+		p.press(*either(func(b *bar) *barItem { return b.hotkey(a, k) }))
 	case cycle && aiming && len(b.Targets) > 0: // Tab, Shift-Tab, the pad's shoulders: the next, previous target
 		p.cycleTarget(back)
 	case a == input.Space:
@@ -78,6 +87,7 @@ func (p *Presenter) Key(a input.Act, k uint16) bool {
 		p.press(p.bar.items[p.bar.focus-1])
 	case a == input.Enter && p.free != nil: // the square cursor: as a click there
 		return p.clickSquare(*p.free)
+	case a == input.Enter && p.lookCursor(): // no cursor yet: it starts on the turn's unit (Move had it), the arrows then move it
 	case a == input.Esc && aiming:
 		p.act(Decision{Kind: ActClose})
 	default:
@@ -156,6 +166,10 @@ func (p *Presenter) moveCursor(d [2]float64) {
 		at = *p.free
 	}
 	at = at.Add(step)
+	if u, ok := p.activeUnit(); ok && !b.Turn.Aim && *p.free == image.Pt(u.X, u.Y) && !onBoard(at) { // the cursor on the unit, pushed off the board's edge: a step off, the flee
+		p.act(Decision{Kind: ActFlee})
+		return
+	}
 	at = image.Pt(min(max(at.X, 0), len(p.ground[0])-1), min(max(at.Y, 0), len(p.ground)-1))
 	if b.Turn.Aim {
 		p.aimTo(at)
@@ -183,10 +197,16 @@ func (p *Presenter) stepUnit(d [2]float64) bool {
 	}
 	for _, u := range b.Units {
 		if u.Active {
-			if p.free != nil && *p.free != image.Pt(u.X, u.Y) { // the cursor moved off the unit: the arrows move it
+			if p.free != nil && (*p.free != image.Pt(u.X, u.Y) || p.moving != u.ID) { // the look cursor (Enter started it, or it moved off the unit): the arrows move it
 				return false
 			}
-			if to := image.Pt(u.X, u.Y).Add(p.screenStep(d)); p.moving == u.ID || slices.Contains(b.Reach, to) {
+			to := image.Pt(u.X, u.Y).Add(p.screenStep(d))
+			if !onBoard(to) { // a step off the board's edge: the flee (the game asks, or refuses away from its edge)
+				p.free = nil
+				p.act(Decision{Kind: ActFlee})
+				return true
+			}
+			if p.moving == u.ID || slices.Contains(b.Reach, to) {
 				p.free = nil // Move's cursor, still on the unit: the arrows step it, as the original's
 				p.act(Decision{Kind: ActWalk, X: to.X, Y: to.Y})
 				return true
@@ -194,6 +214,33 @@ func (p *Presenter) stepUnit(d [2]float64) bool {
 		}
 	}
 	return false
+}
+
+// onBoard is whether sq is on the board.
+func onBoard(sq image.Point) bool { return sq.In(image.Rect(0, 0, len(Board{}.Ground[0]), len(Board{}.Ground))) }
+
+// activeUnit is the unit whose turn it is (ok false: none).
+func (p *Presenter) activeUnit() (Unit, bool) {
+	if p.b != nil {
+		for _, u := range p.b.Units {
+			if u.Active {
+				return u, true
+			}
+		}
+	}
+	return Unit{}, false
+}
+
+// lookCursor starts the square cursor on the turn's unit, outside an aim,
+// a question and a pick; the arrows then move it and Enter takes the
+// square it is on (clickSquare). It reports whether it started.
+func (p *Presenter) lookCursor() bool {
+	u, ok := p.activeUnit()
+	if !ok || p.b.Turn == nil || p.b.Turn.Aim || p.Asking || p.Picking {
+		return false
+	}
+	p.free, p.moving = &image.Point{u.X, u.Y}, 0
+	return true
 }
 
 // targetAt: a foe a click attacks stands on sq.
@@ -255,11 +302,19 @@ func (p *Presenter) initCamera() {
 
 // Pick is the map square under screen pixel (x, y), as last drawn.
 func (p *Presenter) Pick(x, y int) (int, int, bool) {
+	sq, hit := p.pickPlane(x, y)
+	return sq.X, sq.Y, hit && onBoard(sq)
+}
+
+// pickPlane is the square under screen pixel (x, y) on the board's plane,
+// on the board or past its edge (hit false: the pixel shows no ground).
+func (p *Presenter) pickPlane(x, y int) (image.Point, bool) {
 	r := p.screen
 	if r.Empty() || !image.Pt(x, y).In(r) {
-		return 0, 0, false
+		return image.Point{}, false
 	}
-	return p.cam.pick(2*float64(x-r.Min.X)/float64(r.Dx())-1, 1-2*float64(y-r.Min.Y)/float64(r.Dy()))
+	sx, sz, hit := p.cam.plane(2*float64(x-r.Min.X)/float64(r.Dx())-1, 1-2*float64(y-r.Min.Y)/float64(r.Dy()))
+	return image.Pt(sx, sz), hit
 }
 
 // unitCentre is the middle of the squares u stands on (its footprint).

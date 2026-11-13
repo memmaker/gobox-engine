@@ -198,11 +198,29 @@ func (p *Presenter) overBar(x, y int) bool {
 	return false
 }
 
-// shownItems are the buttons for b, XCOM 2 style: a question's Yes and
+// boardKinds are the acts the board itself takes, with no button (Felix's
+// ruling 2026-11-13): an empty square walks (Move), a foe is attacked (Aim),
+// a step off the board's edge flees, the active unit's square or a
+// portrait opens its sheet (View). Their keys (M, V, A, R) still work.
+var boardKinds = map[Kind]bool{ActWalk: true, ActStep: true, ActView: true, ActAim: true, ActFlee: true}
+
+// shownItems are b's buttons: turnItems without the board's own acts.
+func shownItems(b *Board, asking bool) []barItem {
+	return slices.DeleteFunc(turnItems(b, asking), func(it barItem) bool { return boardKinds[it.Kind] })
+}
+
+// keyedItems are the board's own acts the turn offers (boardKinds), with no
+// button: only their keys reach them.
+func keyedItems(b *Board, asking bool) bar {
+	its := slices.DeleteFunc(turnItems(b, asking), func(it barItem) bool { return !boardKinds[it.Kind] })
+	return bar{items: its, rects: make([]image.Rectangle, len(its))}
+}
+
+// turnItems are the buttons for b, XCOM 2 style: a question's Yes and
 // No; aiming only Cancel (Tab cycles the targets, a click or Enter takes
 // one); else the turn's actions in the menu's order (a click on the map
 // walks or attacks, Attack aims first).
-func shownItems(b *Board, asking bool) (items []barItem) {
+func turnItems(b *Board, asking bool) (items []barItem) {
 	switch t := b.Turn; {
 	case asking:
 		return []barItem{{'Y', "Yes", ActYes, 0, 0, ""}, {'N', "No", ActNo, 0, 0, ""}}
@@ -310,8 +328,11 @@ func (p *Presenter) Click(x, y int) bool {
 	if u, ok := p.unitUnder(x, y); ok { // a unit stands in front of the floor behind it: the click is on the unit
 		return p.clickSquare(image.Pt(u.X, u.Y))
 	}
-	sx, sy, ok := p.Pick(x, y)
-	return ok && p.clickSquare(image.Pt(sx, sy))
+	sq, hit := p.pickPlane(x, y)
+	if u, ok := p.activeUnit(); hit && ok && !onBoard(sq) { // past the board: only the square beside the turn's unit, off the edge, takes (the step off it)
+		return max(abs(sq.X-u.X), abs(sq.Y-u.Y)) == 1 && p.clickSquare(sq)
+	}
+	return hit && p.clickSquare(sq)
 }
 
 // unitUnder is the unit whose standing figure (a square wide, a square tall,
@@ -359,7 +380,17 @@ func (p *Presenter) clickSquare(sq image.Point) bool {
 		}
 	}
 	if slices.Contains(b.Reach, sq) {
+		p.free = nil // the arrows step the unit from where it walks to
 		p.act(Decision{Kind: ActWalk, X: sx, Y: sy})
+		return true
+	}
+	if u, ok := p.activeUnit(); ok && image.Pt(u.X, u.Y) == sq { // the turn's own unit: its sheet, as its portrait's
+		p.free = nil
+		p.act(Decision{Kind: ActView, N: -1})
+		return true
+	}
+	if !onBoard(sq) { // a square past the board's edge: the flee (the game refuses away from its edge)
+		p.act(Decision{Kind: ActFlee})
 		return true
 	}
 	return false
@@ -515,6 +546,8 @@ func (p *Presenter) hoverSquare() (int, int, bool) {
 	}
 	return 0, 0, false
 }
+
+func abs(n int) int { return max(n, -n) }
 
 // cameraKey is whether letter c is one of the camera's keys (W A S D Q E).
 func cameraKey(c byte) bool { return strings.IndexByte("wasdqe", c|0x20) >= 0 }

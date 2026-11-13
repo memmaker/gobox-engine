@@ -110,7 +110,7 @@ type Presenter struct {
 	fightLog    bool                        // the battle Log is up (fight.go)
 	blowLine    string                      // the last line a blow's replay said, shown on the pane a while
 	blowAt      time.Time
-	fightCard   image.Rectangle           // the active member's card (fight.go): left click the inventory, right click the sheet
+	fightCard   image.Rectangle           // the active member's card (fight.go): a click the sheet
 	rowsImg     *gpu.Image                // the combat rows, drawn at scale 1
 	rowsKey     string                    // what they show
 	typing      bool                      // a line is being typed (input.go) ...

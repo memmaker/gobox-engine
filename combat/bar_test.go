@@ -9,7 +9,10 @@ func TestShownItemsLabels(t *testing.T) {
 	b := &Board{Turn: &Turn{Can: []Kind{ActStep, ActView, ActAim, ActTurn, ActQuick, ActEnd, Kind(999)},
 		Labels: map[Kind]string{ActEnd: "Done"}}}
 	items := shownItems(b, false)
-	want := []string{"Move", "View", "Aim", "Turn", "Quick", "Done"}
+	want := []string{"Turn", "Quick", "Done"} // Move, View, Aim: the board's, no button (boardKinds)
+	if k := keyedItems(b, false); len(k.items) != 3 || k.items[0].Text != "Move" || k.items[1].Text != "View" || k.items[2].Text != "Aim" {
+		t.Errorf("keyed %v", k.items)
+	}
 	if len(items) != len(want) {
 		t.Fatalf("items %v", items)
 	}

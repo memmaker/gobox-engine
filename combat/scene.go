@@ -395,6 +395,13 @@ func (c camera) ndc(w vec) (nx, ny float64, ok bool) {
 // pick is the map square under screen point (nx, ny) in -1..1 (y up), on
 // the floor; ok is false off the map.
 func (c camera) pick(nx, ny float64) (x, z int, ok bool) {
+	x, z, hit := c.plane(nx, ny)
+	return x, z, hit && onBoard(image.Pt(x, z))
+}
+
+// plane is the square of the ground's plane at (nx, ny), on the board or
+// past it (hit false: the ray misses the plane).
+func (c camera) plane(nx, ny float64) (x, z int, hit bool) {
 	r, u, f := c.basis()
 	t := math.Tan(c.fovy / 2)
 	d := f.add(r.mul(nx * t * c.aspect)).add(u.mul(ny * t))
@@ -402,6 +409,5 @@ func (c camera) pick(nx, ny float64) (x, z int, ok bool) {
 		return 0, 0, false
 	}
 	p := c.eye.add(d.mul(-c.eye[1] / d[1]))
-	x, z = int(math.Floor(p[0])), int(math.Floor(p[2]))
-	return x, z, x >= 0 && z >= 0 && x < 50 && z < 25
+	return int(math.Floor(p[0])), int(math.Floor(p[2])), true
 }
