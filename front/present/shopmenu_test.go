@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game/play"
 	"gobox/ui"
 )
 
@@ -12,20 +13,22 @@ import (
 // Pool and Share as allowed, so each game gets its original's bar.
 func TestShopMenuFromAllowed(t *testing.T) {
 	for _, c := range []struct {
-		shop front.Shop
-		want []string
+		allowed []play.Action
+		want    []string
 	}{
-		{front.Shop{}, []string{"Buy", "View", "Exit"}},
-		{front.Shop{Take: true, Pool: true, Share: true}, []string{"Buy", "View", "Take", "Pool", "Share", "Exit"}},
+		{nil, []string{"Buy", "View", "Exit"}},
+		{[]play.Action{play.Take{}, play.PoolCoins{}, play.LootShare{}}, []string{"Buy", "View", "Take", "Pool", "Share", "Exit"}},
 	} {
-		var p Presenter
-		_, rows := p.shopItems(front.View{Shop: &c.shop})
+		g, _ := playGame(shopState(c.allowed...))
+		p := &Presenter{}
+		p.SetEngine(g)
+		_, rows := p.shopItems()
 		var got []string
 		for _, r := range rows {
 			got = append(got, r.Text)
 		}
 		if !slices.Equal(got, c.want) {
-			t.Errorf("%+v: %v, want %v", c.shop, got, c.want)
+			t.Errorf("%v: %v, want %v", c.allowed, got, c.want)
 		}
 	}
 }
@@ -33,8 +36,10 @@ func TestShopMenuFromAllowed(t *testing.T) {
 // TestTempleMenuFromAllowed: the temple offers the money acts its game
 // allows (SotSB's Pool), each with its key.
 func TestTempleMenuFromAllowed(t *testing.T) {
-	var p Presenter
-	_, rows := p.templeItems(front.View{Temple: &front.Temple{Money: front.Money3{Pool: true}}})
+	g, _ := playGame(play.Trading{Kind: play.TradeTemple, Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.PoolCoins{}}}}})
+	p := &Presenter{}
+	p.SetEngine(g)
+	_, rows := p.templeItems()
 	i := slices.IndexFunc(rows, func(r ui.MenuRow) bool { return r.Text == "Pool" })
 	if i < 0 || rows[i].Key != 'P' {
 		t.Fatalf("rows %v", rows)

@@ -595,57 +595,11 @@ type Sheet struct {
 	Reactions []Reaction // extra: the rule set's reactions and the member's policy for each (SetPolicy)
 }
 
-// Temple is a temple's services for the selected member.
-type Temple struct {
-	Cures    []Cure // Cure X is the index
-	Gold     int    // the party's gold
-	Appraise Appraise
-	Money    Money3 // the money acts the game allows here (Allowed Take, PoolCoins, LootShare)
-}
+// Temple is a temple being up (presence only: the services are play.Trading's).
+type Temple struct{}
 
-// Money3 is the money acts a place's game allows: take, pool, share.
-type Money3 struct{ Take, Pool, Share bool }
-
-// Cure is a temple service.
-type Cure struct {
-	Name     string
-	Price    int    // gold
-	Needed   bool   // false: Not says why, and the player is asked to pay anyway
-	Not      string // "is not blind."
-	Declines bool   // the temple says Not and does not ask to cast anyway
-	Only     bool   // not Needed: the row cannot be picked (the wound cures)
-}
-
-// Appraise is the gems and jewelry to appraise (Appraise, false a gem,
-// 1 a jewel).
-type Appraise struct {
-	Gems, Jewelry int
-	Valued        int  // the gold piece value of the one appraised, to sell or keep (ActKeep N 0 sells, 1 keeps); 0: none
-	Jewel         bool // ... it is a jewel
-	CanKeep       bool // ... there is room to keep it
-}
-
-// Shop is a shop's services besides its goods (Inventory.Wares).
-type Shop struct {
-	Unknown     []Unknown // the party's items Id tells something about
-	IDPrice     int       // gold an Id costs
-	Gold        int
-	Pooled      int  // gold pooled with the shop (0: none)
-	Pool        bool // the game lets the party pool its coins here (ActLootPool; Allowed PoolCoins)
-	Take        bool // ... take the pooled coins back (ActTakeMoney; Allowed Take)
-	Share       bool // ... share the pooled coins out (ActLootShare; Allowed LootShare)
-	Appraise    Appraise
-	Identified  *InvItem // (extra) the item Id last revealed, its Look lines what it does
-	IdentifiedN int      // counts the reveals: the presenter shows a new number once
-}
-
-// Unknown is an item to identify: Identify(Member, Item).
-type Unknown struct {
-	Member      int             // the member (0: with the party inventory)
-	Item        core.ItemHandle // the item
-	Owner, Name string
-	Icon        *InvItem // its type and words: the icon
-}
+// Shop is a shop being up (presence only: its goods and services are play.Trading's).
+type Shop struct{}
 
 // Training is the training hall's offer to the selected member.
 type Training struct {
@@ -659,24 +613,10 @@ type Training struct {
 	Learn   []BookSpell // a mage level was gained: the spell for the book (Learn), chosen before leaving
 }
 
-// Camp is what camp shows of the selected member and the party.
+// Camp is camp being up; Bestiary is the monster kinds met (the rest of
+// camp is play.Camping's).
 type Camp struct {
-	CanCast  bool        // the selected member has a spell to cast (ActCastPick)
-	Book     []BookSpell // the selected member's spell book: how often each is memorized on a rest (ActPlan)
-	Scrolls  []BookSpell // the spells on their scrolls: Count 1 while being scribed (ActScribe)
-	Healing  bool        // someone resting can heal (RestFix)
-	NoRest   bool        // the game allows no timed rest here (Allowed has no Rest): the Duration rests are not offered
-	Studying bool        // someone resting would memorize or scribe a spell (RestFix)
-	Bestiary []Beast     // the monster kinds met
-	Settings []Setting   // the game's numeric options, a row each that steps the value on (ActAlter)
-}
-
-// Setting is a numeric option the game publishes in camp: Value 0..Max,
-// shown as Names[Value] when Names has it, else as the number.
-type Setting struct {
-	Name       string
-	Value, Max int
-	Names      []string
+	Bestiary []Beast
 }
 
 // BookSpell is a spell with a count, and the slots of its level.

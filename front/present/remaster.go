@@ -250,7 +250,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	} else {
 		p.confirmFor, p.confirmAt = "", nil
 	}
-	if it := p.identified(v); it != nil { // the shop's Id: what it revealed, over everything
+	if it := p.identified(); it != nil { // the shop's Id: what it revealed, over everything
 		p.drawIdentified(dst, note.Glyph, it)
 	}
 	p.pick = spellPick(v)
