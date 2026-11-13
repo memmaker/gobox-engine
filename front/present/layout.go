@@ -57,6 +57,7 @@ type layouts struct {
 	picker    memo[pageKey, *front.Picker]     // the game's own picker
 	icon      memo[pageKey, *front.IconEditor] // the game's own icon editor
 	page      memo[laidKey, *laidPage]         // the text page laid out (shown.go)
+	music     memo[uiKey, string]              // the own music's trigger playing, wanted on the state up (Front.Draw)
 	ask       memo[uiKey, *front.Ask]          // the state's question, or the door's menu
 	training  memo[uiKey, *front.Training]
 	flags     memo[flagsKey, *game.Flags]

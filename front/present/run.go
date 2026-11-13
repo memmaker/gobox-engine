@@ -261,8 +261,8 @@ func (f *Front) Cell(x, y float64) (int, int, bool) {
 // Draw draws the screens, the status line's toast (Note) on the
 // bottom row while it is fresh.
 func (f *Front) Draw(dst *gpu.Image) {
-	if ownMus != nil {
-		ownMus.Want(musicChain(f.Game.MusicCue()))
+	if ownMus != nil && f.P.eng != nil { // wanted again when the state or the front's own changes, not every frame
+		f.P.lay.music.get(f.P.uiKey(), func() string { return ownMus.Want(musicChain(f.Game.MusicCue())) })
 	}
 	n := f.P.note()
 	if f.P.fontNote != "" && time.Since(f.P.fontAt) < 2*time.Second { // Ctrl-F's font name
