@@ -1,11 +1,14 @@
 package importer
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
 
+	"gobox/amigaimport"
 	"gobox/asset"
 	"gobox/asset/orig"
 )
@@ -16,8 +19,17 @@ var fontFiles = []string{"8X8D*.DAX"}
 
 // poolFont adds g's text font, block asset.FontBlock of whichever of the
 // originals in src holds it, to root's font pool (asset.AddFont), named
-// after g's title; originals without one add none.
+// after g's title; originals without one add none. The Amiga release's
+// (amigaimport.FontFile in AmigaDir, when imported) is pooled as the
+// font of g's Amiga twin (asset.PlatformID), named <title>_Amiga.
 func poolFont(g Game, src, root string) error {
+	if b, err := os.ReadFile(filepath.Join(root, g.ID, AmigaDir, amigaimport.FontFile)); err == nil {
+		if err := asset.AddFont(root, asset.PlatformID(g.ID, asset.PlatformAmiga), fontName(g.Title)+"_Amiga", b); err != nil {
+			return err
+		}
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
 	ents, err := os.ReadDir(src)
 	if err != nil {
 		return err

@@ -22,9 +22,14 @@ const fontFile = "FONT.CFG"
 // game's own font (the pool's for the adventure folder's game, else the theme's) first.
 func (f *Front) chooseFonts(data game.Data) {
 	var pooled []asset.Font
-	own := theme.Font
+	own, amiga := theme.Font, ""
 	if data.Adventure != "" {
-		l, name, err := asset.PoolFonts(filepath.Split(filepath.Clean(data.Adventure))) // the folder's name is the import's game ID
+		root, id := filepath.Split(filepath.Clean(data.Adventure)) // the folder's name is the import's game ID
+		l, name, err := asset.PoolFonts(root, id)
+		if err != nil {
+			panic(fmt.Sprintf("%v (run the import again)", err))
+		}
+		_, amiga, err = asset.PoolFonts(root, asset.PlatformID(id, asset.PlatformAmiga))
 		if err != nil {
 			panic(fmt.Sprintf("%v (run the import again)", err))
 		}
@@ -34,9 +39,13 @@ func (f *Front) chooseFonts(data game.Data) {
 	c := asset.NewChooserOf(pooled, own)
 	f.P.fonts = c
 	game := c.Bits(asset.Find(c.List, own) + 1) // nil (not found): gobox's GameFont
+	amigaGame := c.Bits(asset.Find(c.List, amiga) + 1)
 	bits := func() []byte {
 		if b := c.Bits(c.Cur); b != nil {
 			return b
+		}
+		if amigaGame != nil && amigaShown() { // the game's own font follows the art (F12): the Amiga release's with its art
+			return amigaGame
 		}
 		return game
 	}

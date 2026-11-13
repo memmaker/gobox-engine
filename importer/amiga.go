@@ -25,7 +25,7 @@ var porAmiga = amigaimport.Spec{
 		"head": {Slot: asset.AmigaPortrait}, "body": {Slot: asset.AmigaPortrait}, "chead": {Slot: asset.AmigaTerrain}, "cbody": {Slot: asset.AmigaTerrain},
 		"pic": {Slot: asset.AmigaView, Sprite: true, XOR: true}, "final": {Slot: asset.AmigaView, Sprite: true, XOR: true}, "sprit": {Slot: asset.AmigaPortrait, Sprite: true},
 	},
-	Disks: []string{"poolgame", "POOLDATA"}, Program: "program", Intro: "intro",
+	Disks: []string{"poolgame", "POOLDATA"}, Program: "program", Intro: "intro", Font: "fonts/poolrad/8",
 	Skip: map[string]string{"8x8d.dax": "the Amiga set is laid out for its own wall renderer and does not match WALLDEF's symbol numbers: the 3D view stays DOS (porAmiga)"},
 }
 
@@ -47,12 +47,12 @@ func laterGfx(pal int, mask byte) map[string]amigaimport.Gfx {
 }
 
 // cotabAmiga: the two Curse disks; SOUNDS.GLB the sampled effects (CotabAmigaMusic).
-var cotabAmiga = amigaimport.Spec{Gfx: laterGfx(0x47410, 0xD), Disks: []string{"CurseA", "CurseB"}, Exe: "Curse", Files: []string{"SOUNDS.GLB"}}
+var cotabAmiga = amigaimport.Spec{Gfx: laterGfx(0x47410, 0xD), Disks: []string{"CurseA", "CurseB"}, Exe: "Curse", Font: "DISKA/CURSE.FON", Files: []string{"SOUNDS.GLB"}}
 
 // podAmiga: the three Pools of Darkness disks; the music (pod.mx) and the
 // sampled effects (SOUNDS.GLB) copied as they are.
-var podAmiga = amigaimport.Spec{Gfx: laterGfx(0x51354, 0), Disks: []string{"POD_Disk1_v.1.00", "POD_Disk2_v.1.00", "POD_Disk3_v.1.00"}, Exe: "Pools of Darkness",
+var podAmiga = amigaimport.Spec{Gfx: laterGfx(0x51354, 0), Disks: []string{"POD_Disk1_v.1.00", "POD_Disk2_v.1.00", "POD_Disk3_v.1.00"}, Exe: "Pools of Darkness", Font: "DISK1/pod.fon",
 	Files: []string{"pod.mx", "SOUNDS.GLB"}, Alias: map[string]string{"8x8da": "8x8d"}}
 
 // sotsbAmiga: the two Silver Blades disks with their music.
-var sotsbAmiga = amigaimport.Spec{Gfx: laterGfx(0x4fdea, 0), Exe: "Secret", Disks: []string{"Secret 1", "Secret 2"}, Files: []string{SotsbAmigaMusic.Songs, SotsbAmigaMusic.Effects}}
+var sotsbAmiga = amigaimport.Spec{Gfx: laterGfx(0x4fdea, 0), Exe: "Secret", Font: "DISK1/SECRET.FON", Disks: []string{"Secret 1", "Secret 2"}, Files: []string{SotsbAmigaMusic.Songs, SotsbAmigaMusic.Effects}}

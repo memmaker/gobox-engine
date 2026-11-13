@@ -39,6 +39,9 @@ const (
 // originSuffix is each Platform's origins.json key suffix.
 var originSuffix = map[Platform]string{PlatformDOS: "", PlatformAmiga: "-amiga"}
 
+// PlatformID is game id's key for platform p (origins.json, the font pool's games.json).
+func PlatformID(id string, p Platform) string { return id + originSuffix[p] }
+
 // NoFrame is a DAXRef of a whole block.
 const NoFrame = -1
 

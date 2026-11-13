@@ -10,6 +10,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"errors"
+	"fmt"
 	"image"
 	"image/png"
 	"io"
@@ -50,6 +51,7 @@ type Spec struct {
 	Program string         // file holding the sound players ("program")
 	Intro   string         // file holding the painted title ("intro")
 	Exe     string         // file holding the fixed palettes (Gfx.Pal)
+	Font    string         // file holding the text font (written as FontFile; "": none)
 	// Files are more files copied as they are, by base name, case-insensitive
 	// (SotSB: "SECRET.MX", "sounds.glb"); each is written under the name given.
 	Files []string
@@ -80,7 +82,7 @@ func Import(src, out string, s Spec) error {
 	var disk []orig.AdfFile
 	var snd []byte
 	var title image.Image
-	var exe []byte
+	var exe, fnt []byte
 	extra := map[string][]byte{}
 	look := func(img []byte) bool {
 		vol, files, err := orig.Read(img)
@@ -97,6 +99,9 @@ func Import(src, out string, s Spec) error {
 		for _, f := range files {
 			if s.Program != "" && strings.EqualFold(f.Path, s.Program) && snd == nil {
 				snd = orig.AmigaProgramImage(f.Data)
+			}
+			if s.Font != "" && strings.EqualFold(f.Path, s.Font) && fnt == nil {
+				fnt = f.Data
 			}
 			if s.Exe != "" && strings.EqualFold(f.Path, s.Exe) && exe == nil {
 				exe = f.Data
@@ -166,6 +171,15 @@ func Import(src, out string, s Spec) error {
 	}
 	for n, b := range extra {
 		if err := os.WriteFile(filepath.Join(out, n), b, 0o644); err != nil {
+			return err
+		}
+	}
+	if s.Font != "" {
+		b, err := font(fnt)
+		if err != nil {
+			return fmt.Errorf("%s: %w", s.Font, err)
+		}
+		if err := os.WriteFile(filepath.Join(out, FontFile), b, 0o644); err != nil {
 			return err
 		}
 	}
@@ -241,9 +255,6 @@ var skipReason = map[string]string{
 	"items.dat":   "item table (game data): gobox import reads it from the DOS originals",
 	"item.dat":    "item table (game data): gobox import reads it from the DOS originals",
 	"strings.glb": "text strings (game data): the DOS originals' text is the source",
-	"curse.fon":   "the Amiga's bitmap font: gobox's fonts are its own",
-	"secret.fon":  "the Amiga's bitmap font: gobox's fonts are its own",
-	"pod.fon":     "the Amiga's bitmap font: gobox's fonts are its own",
 	"curse.slb":   "SLBR sound library of the Amiga's player: not read (the songs, where the disks have them, are the .mx file)",
 	"secret.slb":  "SLBR sound library of the Amiga's player: not read (the songs are SECRET.MX)",
 	"ecl.dax":     "game data, not art or sound: gobox import reads it from the DOS originals",
@@ -269,6 +280,9 @@ func logSkipped(disk []orig.AdfFile, s Spec) {
 		name := strings.TrimSuffix(lower, ext)
 		if _, gfx := s.Gfx[s.archive(name)]; gfx && (ext == ".tlb" || ext == ".dax") || ext == ".info" || ext == "" || osDirs[dir] || dir == "save" {
 			continue
+		}
+		if strings.EqualFold(f.Path, s.Font) {
+			continue // the text font (FontFile)
 		}
 		if slices.ContainsFunc(s.Disks, func(m string) bool { return strings.EqualFold(f.Path, m) }) {
 			continue // the disk's marker file
