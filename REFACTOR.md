@@ -37,9 +37,9 @@
 - [x] A2 Sound: keep "which sound/song plays"; check `sound.go`'s driver calls against `audio` and move what is `audio`'s
 - [x] P1 POR-named files (`porpics.go`, `porcreation.go`, `soundtrack.go`, `PorArt`, `PorMusic`, `PorMapLabels`): check each one's users; rename and unify what every pool game uses, make game-only parts adventure data
 - [x] D1 `devviews_engine.go` and the `-dev` wiring are left out of a release build by `-tags nodev` (opt-out, so the tests that use the scenes stay in the default run); `go build -tags nodev ./...` joins the checks
-- [ ] U1 `game.Page` replaced by typed facts in `ui`; `page.go` cut
+- [x] U1 `game.Page` replaced by typed facts in `ui`; `page.go` cut
 - [x] U2 The engine's duplicate picker layout cut (`pickgrid.go` keeps only filling `game.Picker` and taking the pick)
-- [ ] U3 `snapshot.go`, `TextPaneRows`, `MapCell` cut
+- [x] U3 `snapshot.go`, `TextPaneRows`, `MapCell` cut
 - [x] U4 `ccursor`, `cview` cut
 - [ ] G1 `facts`/`known()` removed
 - [ ] G2 One state: the engine keeps the player-visible state in `game` types and writes it where it changes; `rebuild()`/`build()` and the per-mode copies go
@@ -57,8 +57,11 @@
 - [ ] R3 `rules4e` imports `engine` (so `engine` cannot pick the 4e combat rules itself and `cmd/gobox` hands it in): a ruleset must depend on `rules` only; then `cmd/gobox` passes a `Combat4e` setting
 - [ ] R2 `engine` reaches the rules only through `rules` (today ~600 uses of `rules1e` types: `Character`, `Item`, classes, slots, directions). Needs its own plan: a ruleset-neutral character and item model in `rules`
 - [ ] D2 `game` and `adventure` both define `Sequence`, `Layer`, `Credit`: one canonical definition (with N2)
-- [ ] K1 `TestKeyDispatch` fails since the app → ui merge: `ui/shell.go` (`ScriptTimed`) and `ui/shellfront.go` (F12, Shift-F12) name key codes instead of dispatching through the key table
+- [x] K1 `TestKeyDispatch` fails since the app → ui merge: `ui/shell.go` (`ScriptTimed`) and `ui/shellfront.go` (F12, Shift-F12) name key codes instead of dispatching through the key table
 - [ ] K2 `SOUND.OFF` is read at start (engine/sound.go) but nothing writes it since `soundToggle` was cut as unreachable: drop the read or wire the toggle
+- [ ] C1 Credits: `Credit.X/Y/Colour`, `Data.CreditBoxes`, `CreditGaps` (original two-column credits; ruling needed)
+- [ ] U5 Per-game values U1 flattened to one ui constant (cotab ready mark, door colour, Amiga combat ground grey): restore the originals' values
+- [ ] U6 `ui` does not scale `StepMs`/`Ask.Ms` by the player's speed (ruling 5); `Walls.FloorRGBA/CeilRGBA` still RGBA, not a palette index (ruling 7)
 - [ ] Final: full build/vet/test, all repos
 
 ## T2 audit: presentation fields in `game`
