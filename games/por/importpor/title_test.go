@@ -1,12 +1,16 @@
 package importpor
 
 import (
+	"encoding/json"
 	"errors"
 	"io/fs"
+	"os"
+	"slices"
 	"reflect"
 	"testing"
 
 	"gobox/game/play"
+	"gobox/importer"
 	"por/porgame"
 )
 
@@ -75,5 +79,26 @@ func TestEndIsPORFinale(t *testing.T) {
 	}
 	if ends != 3 || len(end().Steps) != 3 {
 		t.Errorf("%d animations in %d steps", ends, len(end().Steps))
+	}
+}
+
+// TestImportedStartCarriesCredits: the imported manifest's Start (data/por,
+// written by `gobox import`) carries start()'s credits page: its step, lines,
+// boxes and the remaster's lines.
+func TestImportedStartCarriesCredits(t *testing.T) {
+	b, err := os.ReadFile("../../../data/por/manifest.json")
+	if err != nil {
+		t.Skip("no imported POR:", err)
+	}
+	var m importer.Manifest
+	if err := json.Unmarshal(b, &m); err != nil {
+		t.Fatal(err)
+	}
+	want := start()
+	if m.Start == nil || !slices.ContainsFunc(m.Start.Steps, func(s importer.SequenceStep) bool { return s.Kind == importer.StepCredits }) {
+		t.Fatalf("imported Start has no credits step: %+v", m.Start)
+	}
+	if !reflect.DeepEqual(m.Start.Credits, want.Credits) || !reflect.DeepEqual(m.Start.Boxes, want.Boxes) || m.Start.Remaster != want.Remaster {
+		t.Errorf("imported credits %+v %+v %q\nwant %+v %+v %q (reimport)", m.Start.Credits, m.Start.Boxes, m.Start.Remaster, want.Credits, want.Boxes, want.Remaster)
 	}
 }

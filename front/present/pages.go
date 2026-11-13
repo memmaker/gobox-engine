@@ -348,6 +348,29 @@ func (c *cellPage) texts(v front.View) {
 		}
 		last := page[len(page)-1]
 		gaps = min(len(creditGaps), max(0, c.rows-2-last.Y)) // as many as fit: the first ones, so no row stays on the lower box's border
+		// On a page taller still, the blank rows between the sections under
+		// the gaps grow, shared out evenly, so the lines fill the box down to
+		// a blank row over the remaster's (the 30-row credits, por-go
+		// b77c46ea): sections stay together, the box is never half empty.
+		used := map[int]bool{}
+		for _, l := range page {
+			used[l.Y] = true
+		}
+		var blanks []int
+		for y := last.Y; gaps == len(creditGaps) && gaps > 0 && y > slices.Max(creditGaps); y-- { // only once every gap is in
+			if !used[y] {
+				blanks = append(blanks, y)
+			}
+		}
+		extra := 0
+		if len(blanks) > 0 {
+			extra = max(0, c.rows-6-(last.Y+gaps))
+		}
+		slices.Reverse(blanks)
+		grow := map[int]int{}
+		for i, y := range blanks {
+			grow[y] = extra*(i+1)/len(blanks) - extra*i/len(blanks)
+		}
 		for _, l := range page {
 			y := l.Y
 			for _, g := range creditGaps[:gaps] {
@@ -355,9 +378,14 @@ func (c *cellPage) texts(v front.View) {
 					y++
 				}
 			}
+			for _, b := range blanks {
+				if b < l.Y {
+					y += grow[b]
+				}
+			}
 			c.str(l.X+dx, y, l.Colour, l.Text)
 		}
-		if c.rows-3 >= last.Y+gaps+2 { // the remaster's own lines, on a page tall enough
+		if c.rows-3 >= last.Y+gaps+extra+2 { // the remaster's own lines, on a page tall enough
 			for i, s := range remasterCredit {
 				c.str((c.cols-len(s))/2, c.rows-4+i, inkYellow, s)
 			}

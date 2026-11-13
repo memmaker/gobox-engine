@@ -78,6 +78,9 @@ func grid(dst *gpu.Image) (cols, rows int) {
 func (p *Presenter) fit(dst, img *gpu.Image, w, h int) (kx, ky float64) {
 	b := dst.Bounds()
 	k := max(1, min(b.Dx()/w, b.Dy()/h))
+	if drawnAt != nil {
+		drawnAt(drawnPage, dst, float64(k))
+	}
 	kx, ky = float64(b.Dx())/float64(w), float64(b.Dy())/float64(h)
 	op := &gpu.DrawImageOptions{}
 	if kx == float64(k) && ky == float64(k) {
@@ -447,6 +450,9 @@ func (p *Presenter) drawPage(dst *gpu.Image, v front.View, note Note) Rect {
 		r = Rect{0, 0, kx * float64(w), ky * float64(h)}
 	} else {
 		k := math.Max(1, math.Floor(math.Min(float64(b.Dx())/float64(w), float64(b.Dy())/float64(h))))
+		if drawnAt != nil {
+			drawnAt(drawnPage, dst, k)
+		}
 		r = Rect{(float64(b.Dx()) - k*float64(w)) / 2, (float64(b.Dy()) - k*float64(h)) / 2, k * float64(w), k * float64(h)}
 		op := &gpu.DrawImageOptions{}
 		op.GeoM.Scale(k, k)

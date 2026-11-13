@@ -72,12 +72,14 @@ func (p *Presenter) asking(v front.View, draw func()) {
 
 // drawnKind is what drawnAt saw drawn: a menu (every menu, pop-up,
 // question and tooltip: at K) or a box (a text pane, a picture or view
-// window: its ribbon at a whole multiple of K).
+// window: its ribbon at a whole multiple of K) or a cell page (the
+// credits: its glyphs and ribbon tiles at its whole scale).
 type drawnKind int
 
 const (
 	drawnMenu drawnKind = iota
 	drawnBox
+	drawnPage
 )
 
 // drawnAt, when set (TestOneCellSize), sees the scale every menu and box
