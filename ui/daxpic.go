@@ -145,7 +145,7 @@ func daxPictures(ps []Picture) []Picture {
 			continue
 		}
 		m := poolImage(pc)
-		if m == nil && pc.File != "" {
+		if m == nil && pc.File != "" && pc.Pix == nil { // the game's own pixels are what it shows (F12's art too), never the archive's
 			m = daxMasked(pc.File, pc.Block, pc.Frame, refMask(pc))
 		}
 		if m != nil {
