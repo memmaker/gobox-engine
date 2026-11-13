@@ -3,6 +3,7 @@ package engine
 import (
 	"gobox/asset"
 	"gobox/rules"
+	"slices"
 )
 
 // The game's picture numbers (GameTables' portrait tables, CHEAD/CBODY) as the shared collection's core.PicID (e.pics, the
@@ -59,4 +60,51 @@ func (e *Engine) iconByte(file string, id rules.PicID, size byte) (byte, bool) {
 		}
 	}
 	return 0, false
+}
+
+// charHead is the head the player chose for c, as the sheet shows it
+// (SheetPortrait), as View pixels in the EGA's own colours (Member.HeadPix;
+// none without one).
+func (e *Engine) charHead(cID rules.CharID) Picture {
+	h := e.fact(cID, rules.PortraitFact{}).(rules.Portrait).Head
+	if h == 0 || h >= len(e.game().PortraitHead) {
+		return Picture{}
+	}
+	return e.head(e.game().PortraitHead[h])
+}
+
+// head is portrait head p's pixels (cached by id, one picture in every
+// set; none if missing).
+func (e *Engine) head(p rules.PortraitPic) Picture {
+	id := int(p.Id)
+	if DOSArt.Load() {
+		id |= 1 << 16 // the DOS twin's
+	}
+	if pc, ok := e.snap.heads[id]; ok {
+		return pc
+	}
+	if e.snap.heads == nil {
+		e.snap.heads = map[int]Picture{}
+	}
+	var out Picture
+	im := e.art(e.LoadPic(p.Set.File("HEAD"), int(p.Id)), 0)
+	if im != nil && im.Count > 0 {
+		out = Picture{Pix: slices.Clone(im.Frame(0)), PixW: im.Width * 8, Palette: im.Palette}
+	}
+	e.snap.heads[id] = out
+	return out
+}
+
+// borderTiles is DrawBorder's style 0 cells (0x114 corner, 0x115 side,
+// 0x116 top), taken once the symbols are loaded, as the border's pieces by
+// place (ui.TopLeft ..): View pixels in the EGA's own colours.
+func (e *Engine) borderTiles() [8]Picture {
+	if cells := e.artNames().BorderCells; e.snap.tiles[0].Pix == nil && e.sym[4] != nil && len(cells) == len(e.snap.tiles) {
+		im := e.sym[4]
+		for i, c := range cells {
+			e.snap.tiles[i] = Picture{Pix: slices.Clone(im.Frame(c - symFix[4])), PixW: im.Width * 8, Palette: im.Palette}
+		}
+	}
+	c, side, top := e.snap.tiles[0], e.snap.tiles[1], e.snap.tiles[2]
+	return [8]Picture{c, c, c, c, top, top, side, side}
 }

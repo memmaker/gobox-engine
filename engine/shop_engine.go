@@ -54,7 +54,7 @@ func (e *Engine) identify(n int, h rules.ItemHandle) error {
 
 // keepPane (extra) puts the text pane's text back as it was in pane
 // (paneCopy).
-func (e *Engine) keepPane(pane [TextPaneRows][]textCell) {
+func (e *Engine) keepPane(pane [paneRows][]textCell) {
 	for i, row := range pane {
 		for x, c := range row {
 			if c.set {
@@ -65,8 +65,8 @@ func (e *Engine) keepPane(pane [TextPaneRows][]textCell) {
 }
 
 // paneCopy is a copy of the text pane's text (keepPane).
-func (e *Engine) paneCopy() [TextPaneRows][]textCell {
-	var p [TextPaneRows][]textCell
+func (e *Engine) paneCopy() [paneRows][]textCell {
+	var p [paneRows][]textCell
 	for i, row := range e.pg.tx.pane {
 		p[i] = append([]textCell(nil), row...)
 	}

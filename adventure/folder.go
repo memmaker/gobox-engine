@@ -160,6 +160,3 @@ func ReadGameData(adv string) (game.Data, error) {
 	}
 	return d, nil
 }
-
-// MapCell is the size of a square of the area map, in pixels.
-const MapCell = 10

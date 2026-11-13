@@ -165,7 +165,7 @@ func (e *Engine) pageText() [][]PaneRun {
 
 // pane is the text pane's text as runs.
 func (e *Engine) pane() *Pane {
-	p := &Pane{Lines: make([][]PaneRun, TextPaneRows)}
+	p := &Pane{Lines: make([][]PaneRun, paneRows)}
 	for i, row := range e.pg.tx.pane {
 		if len(row) > TextPane.X1 {
 			p.Lines[i] = e.runs(row[TextPane.X1:])
