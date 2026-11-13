@@ -108,18 +108,7 @@ func ParseWalldef(b []byte) (*Walldef, error) {
 	return w, nil
 }
 
-// Fits reports whether the chunks fit in slots slot..3.
-func (w *Walldef) Fits(slot int) bool { return ValidWallSlot(slot) && slot+len(w.Sets) <= 4 }
 
-// Relocate adds delta to every symbol id >= SymWallBase of chunk k
-// The game computes delta from its own per-slot symbol base table (data it owns); geo holds no table.
-func (w *Walldef) Relocate(k int, delta byte) {
-	for i, v := range w.Sets[k] {
-		if v >= SymWallBase {
-			w.Sets[k][i] = v + delta
-		}
-	}
-}
 
 // Wall returns wall i (0..4) of chunk k as WallSize symbol ids
 // (wall value v: chunk (v-1)/5 of the slot set, index (v-1)%5).

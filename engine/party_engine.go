@@ -172,14 +172,6 @@ func (e *Engine) removeMember(n int) error {
 	return nil
 }
 
-// lead makes member n the selected one (the party menu, camp, a wait).
-func (e *Engine) lead(n int) error {
-	if n < 0 || n >= e.partySize() || e.worldWord(rules.WordBeginFlag) == 5 {
-		return rules.ErrNotNow
-	}
-	e.selectMember(n)
-	return nil
-}
 
 // QuitGame = the party menu's Quit (the player confirmed).
 func (e *Engine) QuitGame() error {

@@ -556,9 +556,6 @@ func XPForLevel(class rules.Class, level int) int32            { return POR.XPFo
 func Thac0At(class rules.Class, level int) int                 { return POR.Thac0At(class, level) }
 func TrainingDie(class rules.Class) (count, sides int)         { return POR.TrainingDie(class) }
 func SaveAt(class rules.Class, level int, save rules.Save) int { return POR.SaveAt(class, level, save) }
-func ThiefBase(level int, skill rules.Skill) int               { return POR.ThiefBase(level, skill) }
-func ThiefRace(race rules.Race, skill rules.Skill) int         { return POR.ThiefRace(race, skill) }
-func ThiefDex(dex int, skill rules.Skill) int                  { return POR.ThiefDex(dex, skill) }
 func ThiefSkills(level int, race rules.Race, dex int, p ItemPowers) [8]int {
 	return POR.ThiefSkills(level, race, dex, p)
 }

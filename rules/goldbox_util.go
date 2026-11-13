@@ -19,13 +19,6 @@ func Sign(n int) int {
 	return 0
 }
 
-// B2i is 1 for true, 0 for false.
-func B2i(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
-}
 
 // Cut limits s to n bytes.
 func Cut(s string, n int) string {

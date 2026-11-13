@@ -64,10 +64,3 @@ func WriteCover(dosDir, out string) error {
 	return asset.WritePNG(out, img)
 }
 
-// ImportArt is a game's art import, run at its start: the DAX archives in
-// dosDir (with the Amiga ones in amiga/ beside it) as gobox/asset sheets in
-// asset.Dir(dosDir), when missing or stale (dax.ImportArtIfStale). The
-// presenter reads only those.
-func ImportArt(dosDir string) error {
-	return orig.ImportArtIfStale(dosDir, filepath.Join(filepath.Dir(dosDir), "amiga"), asset.Dir(dosDir))
-}

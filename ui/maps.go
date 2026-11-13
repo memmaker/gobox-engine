@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"slices"
-	"strconv"
 	"strings"
 
 	"gobox/game"
@@ -111,45 +110,6 @@ func pix(p game.Picture) Picture {
 		return Picture{File: p.File, Block: p.Block, Frame: p.Frame, Name: p.Name}
 	}
 	return PixelsOf(p)
-}
-
-// AreaMap is m (the game's) with the overland's squares and marker from
-// s.Map.Terrain and art (Data.Art: "terrain/<id>", "marker/<facing>"), and
-// the squares seen from s.Map.Known. m where it is nil, s has no overland
-// or art has none of it.
-func AreaMap(m *FrontAreaMap, a game.Automap, where game.Where, art map[string]game.Picture) *FrontAreaMap {
-	if m == nil || len(a.Terrain) == 0 || len(art) == 0 || len(a.Terrain) != a.Size.X*a.Size.Y {
-		return m
-	}
-	c := *m
-	c.SquarePix = make([][]Picture, a.Size.Y)
-	for y := range c.SquarePix {
-		c.SquarePix[y] = make([]Picture, a.Size.X)
-		for x := range c.SquarePix[y] {
-			p := art["terrain/"+strconv.Itoa(a.Terrain[y*a.Size.X+x])]
-			c.SquarePix[y][x] = pix(p)
-			c.Tile = max(c.Tile, p.W)
-		}
-	}
-	c.Party = image.Pt(where.X, where.Y)
-	mk := a.Marker
-	if mk == "" {
-		mk = "marker"
-	}
-	c.MarkerPix = pix(art[mk+"/"+strconv.Itoa(where.Facing)])
-	c.Seen = nil
-	if len(a.Known) < len(a.Terrain) { // else every square is seen
-		c.Seen = make([][]bool, a.Size.Y)
-		for y := range c.Seen {
-			c.Seen[y] = make([]bool, a.Size.X)
-		}
-		for _, p := range a.Known {
-			if p.In(image.Rectangle{Max: a.Size}) {
-				c.Seen[p.Y][p.X] = true
-			}
-		}
-	}
-	return &c
 }
 
 // FullMap is f (the game's) with its map (Map), name, legend, and the

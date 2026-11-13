@@ -8,9 +8,6 @@ import (
 	"image/color"
 )
 
-// IconClick is the action a click on cell cx, cy of the icon editor takes.
-func IconClick(ed *FrontIconEditor, cx, cy int) (Action, bool) { return iconClick(ed, cx, cy) }
-
 // MapImage draws m at cell pixels a square in the colours ink.
 func MapImage(m *MapSquares, cell int, ink [16]color.RGBA, glyph func(byte, bool) [8]byte) *image.RGBA {
 	return mapImage(m, cell, ink, glyph)

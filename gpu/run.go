@@ -100,8 +100,6 @@ func SetCursorCaptured(on bool) {
 	}
 }
 
-// IsCursorCaptured reports whether SetCursorCaptured has captured the cursor.
-func IsCursorCaptured() bool { return win.locked }
 
 // DeviceScaleFactor is framebuffer pixels per window unit.
 func DeviceScaleFactor() float64 {

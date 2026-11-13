@@ -62,8 +62,3 @@ func (l *List) Page(forward bool) {
 	l.Index = l.Top + rel
 	l.SkipRows(forward)
 }
-
-// HasNext and HasPrev: there is a page after / before (leadingHdr: header
-// rows that start the list, which Prev does not return to).
-func (l *List) HasNext() bool               { return l.Total-l.Rows > l.Top }
-func (l *List) HasPrev(leadingHdr int) bool { return l.Top > leadingHdr }
