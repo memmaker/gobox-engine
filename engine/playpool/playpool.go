@@ -1,7 +1,7 @@
 // Package playpool starts a Gold Box game's pool engine (engine.New over
 // rules1e) on an imported adventure folder for cmd/gobox: the one host loop
 // every game on pool shares. What differs between games is the manifest's
-// (importer.Manifest) or Extras.
+// (importer.Manifest).
 package playpool
 
 import (
@@ -22,18 +22,13 @@ import (
 	"gobox/game"
 	"gobox/importer"
 	"gobox/rules"
+	"gobox/rules4e"
 	"gobox/ui"
 )
 
 // tps: Update runs 120 times a second, so a key waits at most ~8 ms before
 // the engine sees it.
 const tps = 120
-
-// Extras are what a game adds in code, the rest of its host settings being
-// its manifest's (importer.Manifest: title, window, saves, foreign rosters).
-type Extras struct {
-	Combat4e rules1e.CombatRules // the Gameplay page's "4e Combat" (nil: the option does nothing)
-}
 
 // Data is the engine's game.Data with the remastered art (asset.Remaster) of game id, if it has any.
 func Data(eng *engine.Engine, id string) game.Data {
@@ -43,7 +38,7 @@ func Data(eng *engine.Engine, id string) game.Data {
 }
 
 // Play runs the game of the adventure folder s.Adventure until the window closes.
-func Play(s app.Start, gm Extras) error {
+func Play(s app.Start) error {
 	s.Explore = s.Explore || s.Capture.Slot != "" // -slot starts play from that save (Explore reads it), -explore or not
 
 	host := ui.DefaultHostOptions // the settings in use; app.Menu reads them from SETTINGS.JSON
@@ -87,8 +82,8 @@ func Play(s app.Start, gm Extras) error {
 		eng.DaySky.Store(h.DaySky)
 		eng.FullIntro.Store(h.FullIntro && !s.Explore)
 		rs := rules1e.Settings{PathSearch: h.PathSearch}
-		if h.Combat4e {
-			rs.Combat = gm.Combat4e
+		if h.Combat4e && f.Combat4e {
+			rs.Combat = rules4e.New()
 		}
 		eng.HandIn(rs)
 		eng.Dasp.Store(h.Dasp)

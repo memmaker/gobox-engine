@@ -17,7 +17,7 @@ import (
 // amiga beside the originals when there is one (POR's data/dos, data/amiga).
 func init() {
 	importer.Register(importer.Game{
-		ID: "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: engine.RecordLayout, Version: 2, // 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
+		ID: "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: engine.RecordLayout, Combat4e: true, Version: 3, // 3: Combat4e in the manifest (playpool offers rules4e on it); 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
 
 		Window:  importer.Size{W: asset.ScreenW, H: asset.ScreenH},
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},

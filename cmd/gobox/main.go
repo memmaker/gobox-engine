@@ -29,7 +29,6 @@ import (
 	"gobox/app"
 	"gobox/engine/playpool"
 	"gobox/importer"
-	"gobox/rules4e"
 	"gobox/ui"
 
 	_ "buckrogers/importbr1"
@@ -48,15 +47,10 @@ var players = map[string]func(app.Start) error{
 // ruleset1e is the manifest Ruleset the pool host plays.
 const ruleset1e = "rules1e"
 
-// extras are what a pool game adds in code: POR's remastered art and its 4e combat.
-var extras = map[string]playpool.Extras{
-	"por": {Combat4e: rules4e.New()},
-}
-
 // play starts the adventure folder f in the engine of its game.
 func play(s app.Start, f importer.Folder) error {
 	if f.Ruleset == ruleset1e {
-		return playpool.Play(s, extras[f.ID])
+		return playpool.Play(s)
 	}
 	return players[f.ID](s)
 }

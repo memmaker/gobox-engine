@@ -57,6 +57,7 @@ type Game struct {
 	Window  Size               // the window's size at scale 1 (zero: the host's default)
 	// UserSaves: the saves live in the user's config dir, seeded from the folder's saves/ (else the host data dir's)
 	UserSaves bool
+	Combat4e  bool     // the Gameplay page's "4e Combat" (rules4e) is on offer
 	Foreign   []string // the games whose rosters "Add from" can read (their manifests' Record is each layout)
 	Version   int      // the game's import version: bumped when what Import writes changes, so older folders read as stale (Read)
 	Sources   []string // the originals' file patterns the import reads (filepath.Match, case-insensitive), EXE files included
@@ -95,6 +96,7 @@ type Manifest struct {
 	Window    Size               `json:",omitempty"` // the window's size at scale 1 (Game.Window)
 	UserSaves bool               `json:",omitempty"` // Game.UserSaves
 	Foreign   []string           `json:",omitempty"` // Game.Foreign
+	Combat4e  bool               `json:",omitempty"` // Game.Combat4e
 	Start     *Sequence          `json:",omitempty"` // the title sequence
 	End       *Sequence          `json:",omitempty"` // the end sequence
 	Source    map[string]string  // each original read: its name, its SHA-256
@@ -150,7 +152,7 @@ func Run(id, src, root string) error {
 	if err != nil {
 		return fmt.Errorf("import %s: end: %w", id, err)
 	}
-	b, err := json.MarshalIndent(Manifest{ID: g.ID, Title: g.Title, Ruleset: g.Ruleset, Format: Format, Version: g.Version, Record: g.Record, Window: g.Window, UserSaves: g.UserSaves, Foreign: g.Foreign, Start: start, End: end, Source: key}, "", "\t")
+	b, err := json.MarshalIndent(Manifest{ID: g.ID, Title: g.Title, Ruleset: g.Ruleset, Format: Format, Version: g.Version, Record: g.Record, Window: g.Window, UserSaves: g.UserSaves, Foreign: g.Foreign, Combat4e: g.Combat4e, Start: start, End: end, Source: key}, "", "\t")
 	if err != nil {
 		return err
 	}

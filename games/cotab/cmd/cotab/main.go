@@ -37,7 +37,7 @@ func main() {
 		return
 	}
 	s := app.Start{Adventure: *adv, Data: "../../data/cotab/sources", Settings: app.Settings{Scale: *scale}, Capture: captureOf(), Seed: *seed}
-	if err := playpool.Play(s, playpool.Extras{}); err != nil {
+	if err := playpool.Play(s); err != nil {
 		log.Fatal(err)
 	}
 }
