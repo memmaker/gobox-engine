@@ -2,6 +2,7 @@ package orig
 
 import (
 	"encoding/json"
+	"gobox/adventure"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,7 +51,7 @@ func TestWriteRules(t *testing.T) {
 	if err := WriteRulesWith([]byte(`[{"name":"a","at":0,"len":2,"kind":"bytes"},{"name":"o","at":0,"len":1,"kind":"bytes","img":1}]`), dir, nil, im); err != nil {
 		t.Fatal(err)
 	}
-	b, err := os.ReadFile(filepath.Join(dir, RulesFile))
+	b, err := os.ReadFile(filepath.Join(dir, adventure.RulesFile))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"gobox/adventure"
-	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/rules1e"
 )
@@ -39,8 +38,8 @@ func TestCotabOriginals(t *testing.T) {
 		t.Fatal(err)
 	}
 	var items []rules1e.ItemBase // the base item table as pool reads it
-	if ok, err := asset.ReadJSON(filepath.Join(dst, "data"), orig.ItemTableFile, &items); !ok || err != nil || len(items) != adventure.ItemTypes {
-		t.Fatalf("%s.json: %d items, %v %v", orig.ItemTableFile, len(items), ok, err)
+	if ok, err := adventure.ReadJSON(filepath.Join(dst, "data"), adventure.ItemTableFile, &items); !ok || err != nil || len(items) != adventure.ItemTypes {
+		t.Fatalf("%s.json: %d items, %v %v", adventure.ItemTableFile, len(items), ok, err)
 	}
 	ld, err := orig.NewLoader(dos)
 	if err != nil {

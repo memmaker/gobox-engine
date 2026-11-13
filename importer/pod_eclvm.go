@@ -2,6 +2,7 @@ package importer
 
 import (
 	"encoding/json"
+	"gobox/asset/orig"
 	"gobox/ecl"
 	"io/fs"
 	"testing/fstest"
@@ -52,7 +53,7 @@ const podScriptCodeSize = 40447 - 32768 + 1
 
 // ImportScriptsTo decompiles the game's ECL*.DAX in dos into an adventure
 // folder's scripts dir, with the script data beside them (the importer's
-// step; ecl.ImportDAXFolder).
+// step; orig.ImportDAXFolder).
 func PodImportScriptsTo(dos, dir string) error {
-	return ecl.ImportDAXFolder(ecl.V3, dos, podScriptData(), dir, podScriptFixes)
+	return orig.ImportDAXFolder(ecl.V3, dos, podScriptData(), dir, podScriptFixes)
 }

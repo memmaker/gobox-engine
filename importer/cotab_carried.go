@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"gobox/asset/orig"
 	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules1e"
@@ -113,9 +114,9 @@ const (
 
 // ImportScriptsTo decompiles the game's ECL*.DAX in dos into an adventure
 // folder's scripts dir, with the script data beside them (the importer's
-// step; ecl.ImportDAXFolder).
+// step; orig.ImportDAXFolder).
 func CotabImportScriptsTo(dos, dir string) error {
-	return ecl.ImportDAXFolder(ecl.V2, dos, embeddedScripts("cotab"), dir, cotabScriptFixes)
+	return orig.ImportDAXFolder(ecl.V2, dos, embeddedScripts("cotab"), dir, cotabScriptFixes)
 }
 
 // Item and Affect are the raw list nodes (next pointers live in the slices).

@@ -4,26 +4,16 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"gobox/adventure"
 	"os"
 	"strconv"
 	"sync"
-
-	"gobox/asset"
 )
 
 // The Gold Box data import shared by every game: each area set's GEO maps as
-// blocks (asset.WriteBlocks) and its MON and ITEM records as JSON in the
+// blocks (adventure.WriteBlocks) and its MON and ITEM records as JSON in the
 // game's own record types (C character, A affect, I item: fixed-size structs
 // in the DOS layout, read with encoding/binary).
-
-// Monster is a monster's records: MON<set>CHA, SPC (affects) and ITM (items)
-// blocks of one id. MON<n>.json holds it with the record as the rules' sheet
-// (ImportData's sheet), so every game's monsters read the same.
-type Monster[C, A, I any] struct {
-	Record  C
-	Affects []A `json:",omitempty"`
-	Items   []I `json:",omitempty"`
-}
 
 // blockIDs are the ids a DAX archive can hold.
 const blockIDs = 256
@@ -39,21 +29,21 @@ func ImportData[C, A, I, S, T any](l *Loader, dst string, sheet func(C) S, item 
 	for s := range sets {
 		n := strconv.Itoa(s)
 		if l.Exists("GEO" + n + ".DAX") {
-			if err := asset.WriteBlocks(dst, "GEO"+n, "GEO"+n+".bin: GEO blocks, one after another (gobox/dax ImportData)", Blocks(l, "GEO"+n)); err != nil {
+			if err := adventure.WriteBlocks(dst, "GEO"+n, "GEO"+n+".bin: GEO blocks, one after another (gobox/dax ImportData)", Blocks(l, "GEO"+n)); err != nil {
 				return err
 			}
 		}
 		if l.Exists("WALLDEF" + n + ".DAX") {
-			if err := asset.WriteBlocks(dst, "WALLDEF"+n, "WALLDEF"+n+".bin: WALLDEF blocks, one after another (gobox/dax ImportData)", Blocks(l, "WALLDEF"+n)); err != nil {
+			if err := adventure.WriteBlocks(dst, "WALLDEF"+n, "WALLDEF"+n+".bin: WALLDEF blocks, one after another (gobox/dax ImportData)", Blocks(l, "WALLDEF"+n)); err != nil {
 				return err
 			}
 		}
 		if l.Exists("MON" + n + "CHA.DAX") {
-			out := map[int]Monster[S, A, T]{}
+			out := map[int]adventure.Monster[S, A, T]{}
 			for id, m := range Monsters[C, A, I](l, "MON"+n) {
-				out[id] = Monster[S, A, T]{Record: sheet(m.Record), Affects: m.Affects, Items: items(m.Items, item)}
+				out[id] = adventure.Monster[S, A, T]{Record: sheet(m.Record), Affects: m.Affects, Items: items(m.Items, item)}
 			}
-			if err := asset.WriteJSON(dst, "MON"+n, out); err != nil {
+			if err := adventure.WriteJSON(dst, "MON"+n, out); err != nil {
 				return err
 			}
 		}
@@ -62,7 +52,7 @@ func ImportData[C, A, I, S, T any](l *Loader, dst string, sheet func(C) S, item 
 			for id, its := range ItemBlocks[I](l, "ITEM"+n) {
 				out[id] = items(its, item)
 			}
-			if err := asset.WriteJSON(dst, "ITEM"+n, out); err != nil {
+			if err := adventure.WriteJSON(dst, "ITEM"+n, out); err != nil {
 				return err
 			}
 		}
@@ -93,13 +83,13 @@ func Blocks(l *Loader, name string) map[int][]byte {
 // Monsters decodes the monsters of family ("MON<n>"): one per non-empty CHA
 // block. An empty block is no monster (the originals' "Unable to load
 // monster"), so it has no entry.
-func Monsters[C, A, I any](l *Loader, family string) map[int]Monster[C, A, I] {
-	out := map[int]Monster[C, A, I]{}
+func Monsters[C, A, I any](l *Loader, family string) map[int]adventure.Monster[C, A, I] {
+	out := map[int]adventure.Monster[C, A, I]{}
 	for id, b := range Blocks(l, family+"CHA") {
 		if len(b) == 0 {
 			continue
 		}
-		var m Monster[C, A, I]
+		var m adventure.Monster[C, A, I]
 		rec := make([]byte, binary.Size(&m.Record))
 		copy(rec, b) // a short block reads as zero-padded
 		binary.Read(bytes.NewReader(rec), binary.LittleEndian, &m.Record)
@@ -156,11 +146,8 @@ func Table[T any](path string, n int, head TableHead) ([]T, error) {
 	return out, err
 }
 
-// ItemTableFile is the base item table in an import's data dir (JSON).
-const ItemTableFile = "ITEMS"
-
 // ImportItemTable writes the originals' ITEMS (n T records, head as the
-// game's file starts) to dst as ItemTableFile; no ITEMS: nothing.
+// game's file starts) to dst as adventure.ItemTableFile; no ITEMS: nothing.
 func ImportItemTable[T any](l *Loader, dst string, n int, head TableHead) error {
 	if !l.Exists("ITEMS") {
 		return nil
@@ -169,7 +156,7 @@ func ImportItemTable[T any](l *Loader, dst string, n int, head TableHead) error 
 	if err != nil {
 		return err
 	}
-	return asset.WriteJSON(dst, ItemTableFile, items)
+	return adventure.WriteJSON(dst, adventure.ItemTableFile, items)
 }
 
 // Data is an adventure's imported maps and records (ImportData's files in
@@ -179,13 +166,13 @@ type Data[C, A, I any] struct {
 	dir      string
 	mu       sync.Mutex
 	blocks   map[string]map[int][]byte
-	monsters map[string]map[int]Monster[C, A, I]
+	monsters map[string]map[int]adventure.Monster[C, A, I]
 	items    map[string]map[int][]I
 }
 
 // OpenData is the imported data in dir.
 func OpenData[C, A, I any](dir string) *Data[C, A, I] {
-	return &Data[C, A, I]{dir: dir, blocks: map[string]map[int][]byte{}, monsters: map[string]map[int]Monster[C, A, I]{}, items: map[string]map[int][]I{}}
+	return &Data[C, A, I]{dir: dir, blocks: map[string]map[int][]byte{}, monsters: map[string]map[int]adventure.Monster[C, A, I]{}, items: map[string]map[int][]I{}}
 }
 
 // Block is block id of a block file ("GEO2", "WALLDEF3"); nil: none. The
@@ -196,7 +183,7 @@ func (d *Data[C, A, I]) Block(file string, id int) []byte {
 	m, ok := d.blocks[file]
 	if !ok {
 		var err error
-		if m, err = asset.ReadBlocks(d.dir, file); err != nil {
+		if m, err = adventure.ReadBlocks(d.dir, file); err != nil {
 			panic(fmt.Sprintf("data %s: %v (run the import again)", file, err))
 		}
 		d.blocks[file] = m
@@ -205,12 +192,12 @@ func (d *Data[C, A, I]) Block(file string, id int) []byte {
 }
 
 // Monster is monster id of family ("MON2"); false: none.
-func (d *Data[C, A, I]) Monster(family string, id int) (Monster[C, A, I], bool) {
+func (d *Data[C, A, I]) Monster(family string, id int) (adventure.Monster[C, A, I], bool) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	m, ok := d.monsters[family]
 	if !ok {
-		m = readJSON[map[int]Monster[C, A, I]](d.dir, family)
+		m = readJSON[map[int]adventure.Monster[C, A, I]](d.dir, family)
 		d.monsters[family] = m
 	}
 	r, ok := m[id]
@@ -232,7 +219,7 @@ func (d *Data[C, A, I]) Items(file string, id int) []I {
 // readJSON is dir/name.json (zero: none); a broken one panics.
 func readJSON[T any](dir, name string) T {
 	var v T
-	if _, err := asset.ReadJSON(dir, name, &v); err != nil {
+	if _, err := adventure.ReadJSON(dir, name, &v); err != nil {
 		panic(fmt.Sprintf("data %s: %v (run the import again)", name, err))
 	}
 	return v

@@ -1,4 +1,4 @@
-package asset
+package adventure
 
 import (
 	"bufio"
@@ -91,3 +91,18 @@ func ReadJSON(dir, name string, v any) (bool, error) {
 	}
 	return true, json.Unmarshal(b, v)
 }
+
+// Monster is a monster's records: MON<set>CHA, SPC (affects) and ITM (items)
+// blocks of one id. MON<n>.json holds it with the record as the rules' sheet
+// (orig.ImportData's sheet), so every game's monsters read the same.
+type Monster[C, A, I any] struct {
+	Record  C
+	Affects []A `json:",omitempty"`
+	Items   []I `json:",omitempty"`
+}
+
+// ItemTableFile is the base item table in an import's data dir (JSON).
+const ItemTableFile = "ITEMS"
+
+// RulesFile is the ruleset's tables in an imported game's data folder.
+const RulesFile = "rules.json"

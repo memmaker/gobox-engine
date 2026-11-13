@@ -3,7 +3,6 @@ package engine
 import (
 	"fmt"
 	"gobox/adventure"
-	"gobox/asset/orig"
 	"gobox/rules"
 	"gobox/rules1e"
 	"os"
@@ -145,7 +144,7 @@ func (e *Engine) rollRandom(n int) int {
 
 // rulesFile is the adventure's rules.json (tablespec.RulesFile in its data folder), "" when it has none.
 func (e *Engine) rulesFile() string {
-	p := filepath.Join(e.adv, adventure.DataDir, orig.RulesFile)
+	p := filepath.Join(e.adv, adventure.DataDir, adventure.RulesFile)
 	if _, err := os.Stat(p); err != nil {
 		return ""
 	}

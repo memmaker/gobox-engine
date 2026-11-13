@@ -5,13 +5,10 @@ import (
 	"gobox/adventure"
 	"gobox/rules1e"
 	"path/filepath"
-
-	"gobox/asset"
-	"gobox/asset/orig"
 )
 
 // monsterData is a monster's records (MON<n>CHA, SPC, ITM block id).
-type monsterData = orig.Monster[rules1e.Sheet, rules1e.AffectRecord, rules1e.Item]
+type monsterData = adventure.Monster[rules1e.Sheet, rules1e.AffectRecord, rules1e.Item]
 
 // sets are the data sets the engine reads (Set.file).
 const sets = 8
@@ -67,7 +64,7 @@ func (d *gameData) itemBlock(file string, id int) []rules1e.Item {
 // itemTable is the ITEMS table (nil: the game data has none).
 func (d *gameData) itemTable() []rules1e.ItemBase {
 	if d.table == nil {
-		readJSON(d.dir, orig.ItemTableFile, &d.table)
+		readJSON(d.dir, adventure.ItemTableFile, &d.table)
 	}
 	return d.table
 }
@@ -75,14 +72,14 @@ func (d *gameData) itemTable() []rules1e.ItemBase {
 // readJSON reads dir/name.json into v; a missing file leaves v as it is, a
 // broken one is a broken import: it panics.
 func readJSON(dir, name string, v any) {
-	if _, err := asset.ReadJSON(dir, name, v); err != nil {
+	if _, err := adventure.ReadJSON(dir, name, v); err != nil {
 		panic(fmt.Sprintf("data %s: %v (run the import again)", name, err))
 	}
 }
 
 // readMaps reads dir/file.bin and .txt (nil: none); broken ones panic.
 func readMaps(dir, file string) map[int][]byte {
-	m, err := asset.ReadBlocks(dir, file)
+	m, err := adventure.ReadBlocks(dir, file)
 	if err != nil {
 		panic(fmt.Sprintf("data %s: %v (run the import again)", file, err))
 	}

@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/format"
+	"gobox/adventure"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -174,9 +175,6 @@ func jsonWith(tables []TableSpec, extra []Extra, imgs ...*ExeImage) ([]byte, err
 	return b.Bytes(), nil
 }
 
-// RulesFile is the ruleset's tables in an imported game's data folder.
-const RulesFile = "rules.json"
-
 // WriteRulesWith is WriteRules with extra's entries after the tables.
 func WriteRulesWith(spec []byte, dir string, extra []Extra, imgs ...*ExeImage) error {
 	var all, tables []TableSpec
@@ -192,7 +190,7 @@ func WriteRulesWith(spec []byte, dir string, extra []Extra, imgs ...*ExeImage) e
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(dir, RulesFile), b, 0o644)
+	return os.WriteFile(filepath.Join(dir, adventure.RulesFile), b, 0o644)
 }
 
 // Generate writes the Go source of package pkg declaring every table, read

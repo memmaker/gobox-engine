@@ -1,11 +1,10 @@
 package orig
 
 import (
+	"gobox/adventure"
 	"os"
 	"path/filepath"
 	"testing"
-
-	"gobox/asset"
 )
 
 type rec struct {
@@ -30,13 +29,13 @@ func TestRecords(t *testing.T) {
 // are not there are none.
 func TestData(t *testing.T) {
 	dir := t.TempDir()
-	if err := asset.WriteBlocks(dir, "GEO2", "test", map[int][]byte{3: {7, 8}}); err != nil {
+	if err := adventure.WriteBlocks(dir, "GEO2", "test", map[int][]byte{3: {7, 8}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := asset.WriteJSON(dir, "MON2", map[int]Monster[rec, rec, rec]{5: {Record: rec{1, 2}, Items: []rec{{3, 4}}}}); err != nil {
+	if err := adventure.WriteJSON(dir, "MON2", map[int]adventure.Monster[rec, rec, rec]{5: {Record: rec{1, 2}, Items: []rec{{3, 4}}}}); err != nil {
 		t.Fatal(err)
 	}
-	if err := asset.WriteJSON(dir, "ITEM2", map[int][]rec{1: {{9, 9}}}); err != nil {
+	if err := adventure.WriteJSON(dir, "ITEM2", map[int][]rec{1: {{9, 9}}}); err != nil {
 		t.Fatal(err)
 	}
 	d := OpenData[rec, rec, rec](dir)
