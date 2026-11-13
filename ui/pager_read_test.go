@@ -9,7 +9,7 @@ import (
 // The pager stays on its page while the game's Read is up (the same pointer
 // every frame), and closes once it is gone.
 func TestSyncReadKeepsPage(t *testing.T) {
-	g, f := playGame(game.Scene{Kind: game.SceneHandout, Handout: "J", Lines: []string{"a", "b"}})
+	g, f := playGame(game.Scene{Kind: game.SceneHandout, Handout: "J", Texts: []game.ReadText{{Title: "a"}, {Title: "b"}}})
 	p := &Presenter{}
 	p.SetEngine(g)
 	p.syncRead()

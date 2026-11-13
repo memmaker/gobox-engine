@@ -66,7 +66,7 @@ func (p *Presenter) layoutSheetPage() *game.SheetPage {
 	r, s := p.eng.r, p.state()
 	party := partyOf(s)
 	if n, ok := r.lookMember(s); ok {
-		return cmp.Or(party[n].Page, game.MemberPage(party[n]))
+		return cmp.Or(party[n].Page, memberPage(party[n]))
 	}
 	page := r.sheetPageOf(s, party)
 	mode := r.modeOf(s)

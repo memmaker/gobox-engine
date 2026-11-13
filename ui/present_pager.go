@@ -69,7 +69,7 @@ func (p *Presenter) syncRead() {
 // speak voices the journal page up (the engine's SpeakPage).
 func (p *Presenter) speak() {
 	if r, n := p.pager.read, p.pager.P; r != nil {
-		p.call(func(e *classicGame) { e.SpeakPage(r.Lines, n) })
+		p.call(func(e *classicGame) { e.SpeakPage(r.Texts, n) })
 	}
 }
 
@@ -89,7 +89,7 @@ func (p *Presenter) pagesAt(n, off int) (*Pages, int) {
 	case pg == nil:
 		return nil, 0
 	case pg.read != nil && p.eng != nil:
-		return p.eng.JournalPage(pg.read.Title, pg.read.Lines, n, off)
+		return p.eng.JournalPage(pg.read.Title, pg.read.Texts, n, off)
 	case pg.read != nil:
 		return nil, 0
 	}

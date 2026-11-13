@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"gobox/asset"
+	"gobox/game"
 )
 
-// The journal pageCut's lines (a Read's Lines): "\x00T" a title, "\x01N" a
+// The journal pageCut's lines (a Read's Texts laid out): "\x00T" a title, "\x01N" a
 // picture N whose rows follow as "\x02", "\x03K\x03text" a voiced paragraph's
 // first line (speech clip K), else plain text.
 const (
@@ -25,18 +26,18 @@ type pageCut struct {
 
 func (p pageCut) jrRows() int { return p.rows - 3 - jrTop }
 
-// JournalPage is page n of the journal text lines under the box title title
+// JournalPage is page n of the journal texts under the box title title
 // on a cols by rows page in colours ink (all zero: the EGA's own), its tall
 // picture scrolled off pixels down, the pictures from scan, and how far that
 // picture scrolls (0: none). n past the last page is the last page.
-func JournalPage(title string, lines []string, n, off, cols, rows int, ink [16]color.RGBA, scan func(string) image.Image) (*Pages, int) {
+func JournalPage(title string, texts []game.ReadText, n, off, cols, rows int, ink [16]color.RGBA, scan func(string) image.Image) (*Pages, int) {
 	p := pageCut{cols: max(cols, 40), rows: max(rows, 25), ink: ink}
 	if ink == ([16]color.RGBA{}) {
 		for i := range p.ink {
 			p.ink[i] = asset.EGARGBA(i)
 		}
 	}
-	pages := p.pages(lines)
+	pages := p.pages(p.layout(texts, scan))
 	n = max(min(n, len(pages)-1), 0)
 	page := pages[n]
 	v := &Pages{Title: p.boxTitle(title), Top: jrTop, Page: n, Pages: len(pages)}
@@ -70,10 +71,11 @@ func JournalPage(title string, lines []string, n, off, cols, rows int, ink [16]c
 	return v, maxOff
 }
 
-// SpeakKeys are the speech clips of page n of the journal text lines, in
+// SpeakKeys are the speech clips of page n of the journal texts, in
 // order: its title (spaces as "_") and the paragraphs that start on it.
-func SpeakKeys(lines []string, n, cols, rows int) (keys []string) {
-	pages := pageCut{cols: max(cols, 40), rows: max(rows, 25)}.pages(lines)
+func SpeakKeys(texts []game.ReadText, scan func(string) image.Image, n, cols, rows int) (keys []string) {
+	p := pageCut{cols: max(cols, 40), rows: max(rows, 25)}
+	pages := p.pages(p.layout(texts, scan))
 	for _, l := range pages[max(min(n, len(pages)-1), 0)] {
 		switch {
 		case strings.HasPrefix(l, "\x00"):

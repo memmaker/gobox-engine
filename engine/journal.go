@@ -44,10 +44,9 @@ func (e *Engine) book(name string) *game.JournalBook {
 	return b
 }
 
-// journalLayout is the texts titled titles of book name laid out for the
-// pager (game.Book.Layout's markers); voiced marks each paragraph with
-// its own recording's key.
-func (e *Engine) journalLayout(name string, titles []string, voiced bool) []string {
+// journalReadTexts is the texts titled titles of book name for the pager;
+// voiced marks each paragraph with its own recording's key.
+func (e *Engine) journalReadTexts(name string, titles []string, voiced bool) []game.ReadText {
 	var voice func(string) string
 	if voiced {
 		voice = voiceKey
@@ -56,7 +55,7 @@ func (e *Engine) journalLayout(name string, titles []string, voiced bool) []stri
 	if b == nil {
 		panic(fmt.Sprintf("script: no journal book %s in %s", name, filepath.Join(e.adv, JournalDir))) // a broken game folder
 	}
-	return b.Layout(titles, jrWidth, jrRows(), voice)
+	return b.Texts(titles, voice)
 }
 
 // journalPicture is a picture of the game's journal (Data.Scans); nil if missing.
@@ -67,20 +66,12 @@ func (e *Engine) journalPicture(name string) image.Image {
 	return nil
 }
 
-// The pager: the text inside a full-screen box, jrRows lines a page from
-// row jrTop (under the journal's title and a blank row) to two rows above
-// the "press a key" line (messageRow); a taller page holds more lines.
-const (
-	journalBox = "Adventurer's Journal"
-	jrWidth    = 0x24
-	jrTop      = 3
-)
-
-func jrRows() int { return messageRow - 1 - jrTop }
+// journalBox is the pager's box title.
+const journalBox = "Adventurer's Journal"
 
 // showJournal has the player read lines under the box title box.
-func (e *Engine) showJournal(box string, lines []string) {
-	e.read(&Read{Title: box, Lines: lines})
+func (e *Engine) showJournal(box string, texts []game.ReadText) {
+	e.read(&Read{Title: box, Texts: texts})
 }
 
 // read publishes r (State.Read) with the next Seq; nothing waits on it
@@ -107,16 +98,15 @@ func (e *Engine) showEntry(id ecl.EntryID) {
 	if !ok {
 		panic(fmt.Sprintf("script: no text entry %d (%s)", id, ecl.EntriesFile)) // a script naming no entry: a broken game folder
 	}
-	lines := e.journalLayout(en.Book, []string{en.Title}, en.Voiced)
+	texts := e.journalReadTexts(en.Book, []string{en.Title}, en.Voiced)
 	if en.Voiced {
 		e.ext.again = map[string]bool{}
-		for _, l := range lines {
-			switch {
-			case strings.HasPrefix(l, "\x00"):
-				e.ext.again[strings.ReplaceAll(l[1:], " ", "_")] = true
-			case strings.HasPrefix(l, "\x03"):
-				key, _, _ := strings.Cut(l[1:], "\x03")
-				e.ext.again[key] = true
+		for _, t := range texts {
+			e.ext.again[strings.ReplaceAll(t.Title, " ", "_")] = true
+			for _, p := range t.Paras {
+				if p.Voice != "" {
+					e.ext.again[p.Voice] = true
+				}
 			}
 		}
 	}
@@ -124,10 +114,10 @@ func (e *Engine) showEntry(id ecl.EntryID) {
 		e.noteJournal(en.Title)
 	}
 	if r := e.ext.read; r != nil && r.Title == en.Box {
-		r.Lines = append(append(r.Lines, ""), lines...) // as game.Book.Layout of both titles
+		r.Texts = append(r.Texts, texts...)
 		return
 	}
-	e.showJournal(en.Box, lines)
+	e.showJournal(en.Box, texts)
 }
 
 // entryNamed is the id of the entry the scripts call name (a dev view's).

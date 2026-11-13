@@ -79,7 +79,7 @@ func (e *Engine) build() game.State {
 	}
 	if s.Read != nil { // a handout over any state: its Scene, Leave puts it away
 		cm.Ask = nil
-		return game.Scene{Common: cm, Kind: game.SceneHandout, Handout: s.Read.Title, Lines: s.Read.Lines}
+		return game.Scene{Common: cm, Kind: game.SceneHandout, Handout: s.Read.Title, Texts: s.Read.Texts}
 	}
 	mode := s.Mode
 	if mode == game.ModeAsk && s.Combat != nil { // a question in a fight is the Fighting's Ask over the field (classic draws it over the map)
@@ -158,7 +158,7 @@ func (e *Engine) build() game.State {
 	sc.Pictures = append(sc.Pictures, s.Story...)
 	sc.Walls = walls(s) // the 3D view under the page (the opening's come before any exploring)
 	if s.Read != nil {
-		sc.Kind, sc.Handout, sc.Lines = game.SceneHandout, s.Read.Title, s.Read.Lines
+		sc.Kind, sc.Handout, sc.Texts = game.SceneHandout, s.Read.Title, s.Read.Texts
 	} else if a := s.Pending; a != nil {
 		if a.Text != "" {
 			sc.Text = append(sc.Text, a.Text)

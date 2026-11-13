@@ -1,14 +1,16 @@
-package game
+package ui
 
 import (
 	"cmp"
 	"strconv"
 	"strings"
+
+	"gobox/game"
 )
 
-// MemberPage is m's sheet page from the Member alone, for rules that publish none.
-func MemberPage(m Member) *SheetPage {
-	p := &SheetPage{Name: m.Name, Race: m.Race, Alignment: m.Alignment, Class: m.Class, Status: m.Status,
+// memberPage is m's sheet page from the Member alone, for rules that publish none.
+func memberPage(m game.Member) *game.SheetPage {
+	p := &game.SheetPage{Name: m.Name, Race: m.Race, Alignment: m.Alignment, Class: m.Class, Status: m.Status,
 		AC: m.AC, HP: m.HP, MaxHP: m.MaxHP, THAC0: m.THAC0, Move: m.Move, Age: m.Age, Exp: int(m.Exp), Next: m.NextExp,
 		Levels: m.LevelText}
 	if p.Levels == "" { // "3/2": every class's level

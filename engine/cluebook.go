@@ -17,5 +17,5 @@ func (e *Engine) clueChapters() []string {
 func (e *Engine) ClueRead(i int) *Read {
 	titles := e.clueChapters()
 	i = min(max(i, 0), len(titles)-1)
-	return &Read{Title: "Clue Book", Lines: e.journalLayout("CLUEBOOK.TXT", titles[i:], false)}
+	return &Read{Title: "Clue Book", Texts: e.journalReadTexts("CLUEBOOK.TXT", titles[i:], false)}
 }

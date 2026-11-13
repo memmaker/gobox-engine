@@ -24,8 +24,17 @@ func PointBuyCost(score int32) int32 {
 // PointBuySpent is the points scores cost together; ok is false when one
 // is outside the range or they cost more than the budget.
 func PointBuySpent(scores map[Ability]int32) (spent int32, ok bool) {
+	all := make([]int32, 0, len(scores))
 	for _, s := range scores {
-		c := PointBuyCost(s)
+		all = append(all, s)
+	}
+	return PointBuyTotal(all)
+}
+
+// PointBuyTotal is PointBuySpent for scores in a game's own order and integer type.
+func PointBuyTotal[S ~int | ~int32](scores []S) (spent int32, ok bool) {
+	for _, s := range scores {
+		c := PointBuyCost(int32(s))
 		if c < 0 {
 			return 0, false
 		}
