@@ -32,7 +32,7 @@ func GameData(adv string) game.Data {
 		Border:       &game.Border{File: "8X8D1", Block: 202, Pieces: [8]int{55, 55, 55, 55, 55, 55, 53, 53}, Caps: []int{52, 54, 52, 54}},
 		SoundTables:  soundData,
 		AdLib:        &game.AdLib{Music: "SOUND.DAX", Tempo: 0x76},
-		DungeonTiles: SotsbDungeonTiles,
+		DungeonTiles: adventure.DungeonTiles,
 		// camp's rests: the timed one in days and hours (Rest), and Fix (CampRest Kind restFix)
 		Rests:     []game.RestKind{{Text: "Rest", Key: 'R', N: 0, Duration: true}, {Text: "Fix", Key: 'F', N: restFix, Fix: true}},
 		IconParts: IconPartNames[:],
@@ -62,9 +62,6 @@ func SotsbStaticData() game.Data {
 //
 //go:embed sotsb/sounddata.json
 var soundData []byte
-
-// DungeonTiles is how many of DungCom's tiles are wall pieces (dungeonMap's 0 .. 0x18).
-const SotsbDungeonTiles = 0x18 + 1
 
 // spellEffects is what a spell does beyond the numbers of its table record,
 // where the cast routine (spells1.go, spells2.go: fx...) fixes it.

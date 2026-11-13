@@ -1,8 +1,8 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/game"
-	"gobox/importer"
 	"gobox/rules"
 	"maps"
 )
@@ -75,14 +75,14 @@ func (e *Engine) endDone() error {
 // trainAll is the training hall's word once the game is won: it teaches every class (the original's 255).
 const trainAll = 255
 
-// endEffects carries out what the end sequence leaves in the game (importer.Sequence.After), through the
+// endEffects carries out what the end sequence leaves in the game (adventure.Sequence.After), through the
 // ruleset, and says its closing note.
 func (e *Engine) endEffects() {
 	for _, f := range e.title.after {
 		switch f {
-		case importer.EffectHealParty:
+		case adventure.EffectHealParty:
 			e.do(rules.HealParty{})
-		case importer.EffectOpenHall:
+		case adventure.EffectOpenHall:
 			e.setWorldWord(rules.WordTraining, trainAll)
 		}
 	}

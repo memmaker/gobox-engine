@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"gobox/adventure"
 	"os"
 	"path/filepath"
 
@@ -24,7 +25,7 @@ func init() {
 }
 
 // whole is the 40x25 page.
-var sotsbWhole = Cells{X2: 39, Y2: 24}
+var sotsbWhole = adventure.Cells{X2: 39, Y2: 24}
 
 // start is SotSB's DOS title (GAME.OVR 0x644 title_screen, rules/title.go):
 // TITLE 1 (SSI) with the title song (titleSongN 2), the credits page (0x36e,
@@ -33,20 +34,20 @@ var sotsbWhole = Cells{X2: 39, Y2: 24}
 // (TITLE 4 at cell 5, 5) stays under the main menu. With the Amiga art up
 // the port's credits card (the Amiga TITLE 5, 256x161, centred) follows the
 // credits page (EditionAmiga).
-func sotsbStart() *Sequence {
-	painting := Layer{Art: Art{File: "TITLE", Block: 2}, At: sotsbWhole}
-	q := &Sequence{
-		Steps: []SequenceStep{
-			{Kind: StepPicture, Layers: []Layer{{Art: Art{File: "TITLE", Block: 1}, At: sotsbWhole}}, Song: "2"},
-			{Kind: StepCredits},
-			{Kind: StepPicture, Layers: []Layer{{Art: Art{File: "TITLE", Block: 5}, At: Cells{X1: 4, Y1: 2, X2: 35, Y2: 22}, Centred: true}}, Edition: EditionAmiga, Credits: true},
-			{Kind: StepPicture, Layers: []Layer{painting}},
-			{Kind: StepPicture, Layers: []Layer{painting, {Art: Art{File: "TITLE", Block: 3}, At: Cells{X1: 2, Y1: 5, X2: 37, Y2: 15}}}},
+func sotsbStart() *adventure.Sequence {
+	painting := adventure.Layer{Art: adventure.Art{File: "TITLE", Block: 2}, At: sotsbWhole}
+	q := &adventure.Sequence{
+		Steps: []adventure.SequenceStep{
+			{Kind: adventure.StepPicture, Layers: []adventure.Layer{{Art: adventure.Art{File: "TITLE", Block: 1}, At: sotsbWhole}}, Song: "2"},
+			{Kind: adventure.StepCredits},
+			{Kind: adventure.StepPicture, Layers: []adventure.Layer{{Art: adventure.Art{File: "TITLE", Block: 5}, At: adventure.Cells{X1: 4, Y1: 2, X2: 35, Y2: 22}, Centred: true}}, Edition: adventure.EditionAmiga, Credits: true},
+			{Kind: adventure.StepPicture, Layers: []adventure.Layer{painting}},
+			{Kind: adventure.StepPicture, Layers: []adventure.Layer{painting, {Art: adventure.Art{File: "TITLE", Block: 3}, At: adventure.Cells{X1: 2, Y1: 5, X2: 37, Y2: 15}}}},
 		},
-		Backdrop: []Layer{painting, {Art: Art{File: "TITLE", Block: 4}, At: Cells{X1: 5, Y1: 5, X2: 35, Y2: 15}}},
+		Backdrop: []adventure.Layer{painting, {Art: adventure.Art{File: "TITLE", Block: 4}, At: adventure.Cells{X1: 5, Y1: 5, X2: 35, Y2: 15}}},
 	}
 	for _, c := range Credits {
-		q.Credits = append(q.Credits, Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
+		q.Credits = append(q.Credits, adventure.Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
 	}
 	return q
 }

@@ -29,7 +29,7 @@ func init() {
 }
 
 // whole is the 40x25 page.
-var cotabWhole = Cells{X2: 39, Y2: 24}
+var cotabWhole = adventure.Cells{X2: 39, Y2: 24}
 
 // start is COTAB's title (O039:0632 title_screen, rules/title.go): the SSI
 // logo (TITLE 1), the credits page (O039:01DD, credits), the
@@ -37,16 +37,16 @@ var cotabWhole = Cells{X2: 39, Y2: 24}
 // at cell 0, 11) and its tune (titleSound 13); the painting with the Curse
 // logo (TITLE 3 at cell 6, 11) stays under the main menu. A short intro
 // (CURSE.CFG's, the host's Full intro option off) is the SSI logo only.
-func cotabStart() *Sequence {
-	painting := Layer{Art: Art{File: "TITLE", Block: 2}, At: cotabWhole}
-	q := &Sequence{
-		Steps: []SequenceStep{
-			{Kind: StepPicture, Layers: []Layer{{Art: Art{File: "TITLE", Block: 1}, At: cotabWhole}}},
-			{Kind: StepCredits},
-			{Kind: StepPicture, Layers: []Layer{painting}},
-			{Kind: StepPicture, Layers: []Layer{painting, {Art: Art{File: "TITLE", Block: 4}, At: Cells{X1: 0, Y1: 11, X2: 39, Y2: 24}}}, Song: "13"},
+func cotabStart() *adventure.Sequence {
+	painting := adventure.Layer{Art: adventure.Art{File: "TITLE", Block: 2}, At: cotabWhole}
+	q := &adventure.Sequence{
+		Steps: []adventure.SequenceStep{
+			{Kind: adventure.StepPicture, Layers: []adventure.Layer{{Art: adventure.Art{File: "TITLE", Block: 1}, At: cotabWhole}}},
+			{Kind: adventure.StepCredits},
+			{Kind: adventure.StepPicture, Layers: []adventure.Layer{painting}},
+			{Kind: adventure.StepPicture, Layers: []adventure.Layer{painting, {Art: adventure.Art{File: "TITLE", Block: 4}, At: adventure.Cells{X1: 0, Y1: 11, X2: 39, Y2: 24}}}, Song: "13"},
 		},
-		Backdrop: []Layer{painting, {Art: Art{File: "TITLE", Block: 3}, At: Cells{X1: 6, Y1: 11, X2: 35, Y2: 24}}},
+		Backdrop: []adventure.Layer{painting, {Art: adventure.Art{File: "TITLE", Block: 3}, At: adventure.Cells{X1: 6, Y1: 11, X2: 35, Y2: 24}}},
 		Credits:  cotabCredits,
 		Short:    []int{0},
 		Full:     true, // CURSE.CFG's default; the host's Full intro option starts from it
@@ -56,7 +56,7 @@ func cotabStart() *Sequence {
 
 // credits are the title's credits page (O039:01DD): the lines in the order
 // DisplayString prints them, at its places and in its colours.
-var cotabCredits = []Credit{
+var cotabCredits = []adventure.Credit{
 	{X: 2, Y: 1, Colour: 0xa, Text: `based on the tsr novel "azure bonds"`},
 	{X: 6, Y: 2, Colour: 0xa, Text: "by:"},
 	{X: 9, Y: 2, Colour: 0xb, Text: "kate novak"},

@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"gobox/adventure"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -49,7 +50,7 @@ func TestEndPictures(t *testing.T) {
 // TestEndEffects: the ending heals the party and opens the hall, and says it is won.
 func TestEndEffects(t *testing.T) {
 	e := cotabEnd()
-	if !slices.Equal(e.After, []Effect{EffectHealParty, EffectOpenHall}) || e.Note != endNote {
+	if !slices.Equal(e.After, []adventure.Effect{adventure.EffectHealParty, adventure.EffectOpenHall}) || e.Note != endNote {
 		t.Fatalf("After %v, Note %q", e.After, e.Note)
 	}
 }

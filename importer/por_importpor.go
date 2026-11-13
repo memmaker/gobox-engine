@@ -28,22 +28,22 @@ func init() {
 }
 
 // whole is the 40x25 page.
-var porWhole = Cells{X1: 0, Y1: 0, X2: 39, Y2: 24}
+var porWhole = adventure.Cells{X1: 0, Y1: 0, X2: 39, Y2: 24}
 
 // start is POR's title (ovr02:0626 title_screen, as pool.Engine.State's
 // SceneTitle builds it): TITLE 1 with the Amiga intro's song (titleSong 1),
 // TITLE 2 with its lightning, the credits page (ovr02:0206: credits in
 // its two boxes); a short intro (POOL.CFG's, Intro.Full off) is TITLE 1
 // only. The Amiga painting art/TITLE.PNG lies under the main menu.
-func porStart() *Sequence {
-	q := &Sequence{
-		Steps: []SequenceStep{
-			{Kind: StepPicture, Layers: []Layer{{Art: Art{File: "TITLE", Block: 1}, At: porWhole}}, Song: "1", Whole: true},
-			{Kind: StepPicture, Layers: []Layer{{Art: Art{File: "TITLE", Block: 2}, At: porWhole}}, Whole: true, Lightning: FlashEGA},
-			{Kind: StepCredits, Page: 0},
+func porStart() *adventure.Sequence {
+	q := &adventure.Sequence{
+		Steps: []adventure.SequenceStep{
+			{Kind: adventure.StepPicture, Layers: []adventure.Layer{{Art: adventure.Art{File: "TITLE", Block: 1}, At: porWhole}}, Song: "1", Whole: true},
+			{Kind: adventure.StepPicture, Layers: []adventure.Layer{{Art: adventure.Art{File: "TITLE", Block: 2}, At: porWhole}}, Whole: true, Lightning: adventure.FlashEGA},
+			{Kind: adventure.StepCredits, Page: 0},
 		},
-		Boxes:    []Cells{{X1: 1, Y1: 1, X2: 38, Y2: 3}, {X1: 1, Y1: 5, X2: 38, Y2: 23}},
-		Backdrop: []Layer{{Art: Art{File: "TITLE.PNG", Kind: ArtPNG}, At: porWhole}},
+		Boxes:    []adventure.Cells{{X1: 1, Y1: 1, X2: 38, Y2: 3}, {X1: 1, Y1: 5, X2: 38, Y2: 23}},
+		Backdrop: []adventure.Layer{{Art: adventure.Art{File: "TITLE.PNG", Kind: adventure.ArtPNG}, At: porWhole}},
 		Short:    []int{0},
 		Full:     true, // POOL.CFG's default
 		Credits:  porCredits,
@@ -53,7 +53,7 @@ func porStart() *Sequence {
 
 // credits is ovr02:0206's page: each Text at cell X, Y in EGA colour Colour
 // (DisplayString's way, upcased).
-var porCredits = []Credit{
+var porCredits = []adventure.Credit{
 	{X: 5, Y: 1, Colour: 0xa, Text: "scenario created by:"},
 	{X: 0x1a, Y: 1, Colour: 0xe, Text: "tsr, inc."},
 	{X: 0xf, Y: 2, Colour: 0xa, Text: "jim ward"},

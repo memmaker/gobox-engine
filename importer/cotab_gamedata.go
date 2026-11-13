@@ -43,7 +43,7 @@ func CotabStaticData() game.Data {
 	d.Font = "Gold_Box_8x8D1" // the gobox/ui/fonts pool font of cotab's pages (8X8D1 block 201 re-laid out)
 	d.Border = &border
 	d.AmigaMusic = CotabAmigaMusic                                                // the Amiga's sampled effects, when the import found them (pool.ReadGameData); else the Tandy's
-	d.DungeonTiles = CotabDungeonTiles                                            // the stone wall pieces at the start of the combat set (cubes on the board)
+	d.DungeonTiles = adventure.DungeonTiles                                       // the stone wall pieces at the start of the combat set (cubes on the board)
 	d.ReadyMark = "Yes "                                                          // the item list's readied column (ItemName)
 	d.IconParts = []string{"Body", "Arm", "Leg", "Hair/Face", "Shield", "Weapon"} // as the original's icon editor names them
 	// camp's Fix and Rest; Rest is a Duration rest: gobox asks the days and hours

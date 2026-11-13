@@ -57,3 +57,17 @@ func TestUINotEngine(t *testing.T) {
 		}
 	}
 }
+
+// TestEngineNotImporter: the engine reads an adventure folder (package
+// adventure), never the importer that writes it (REFACTOR.md).
+func TestEngineNotImporter(t *testing.T) {
+	out, err := exec.Command("go", "list", "-deps", "gobox/engine").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range strings.Fields(string(out)) {
+		if p == "gobox/importer" || strings.HasPrefix(p, "gobox/importer/") {
+			t.Errorf("gobox/engine depends on %s", p)
+		}
+	}
+}

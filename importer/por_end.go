@@ -1,5 +1,7 @@
 package importer
 
+import "gobox/adventure"
+
 // songEnding is the finale's song (pool songEnding).
 const songEnding = "15"
 
@@ -9,12 +11,12 @@ const songEnding = "15"
 // Each step says its text over the pictures; the party pictures show only for as many members
 // as the party has (Layer.MinParty), the animations' frames last as the message delay says
 // (Layer.MsgDelayed).
-func porEnd() *Sequence {
-	at := func(x, y int) Cells { return Cells{X1: x, Y1: y, X2: 39, Y2: 24} }
-	page := func(block, x, y int) Layer {
-		return Layer{Art: Art{File: finalFile, Block: block}, At: at(x, y)}
+func porEnd() *adventure.Sequence {
+	at := func(x, y int) adventure.Cells { return adventure.Cells{X1: x, Y1: y, X2: 39, Y2: 24} }
+	page := func(block, x, y int) adventure.Layer {
+		return adventure.Layer{Art: adventure.Art{File: finalFile, Block: block}, At: at(x, y)}
 	}
-	anim := func(block, x, y, frames int) Layer {
+	anim := func(block, x, y, frames int) adventure.Layer {
 		l := page(block, x, y)
 		for f := range frames {
 			l.Frames = append(l.Frames, f)
@@ -23,18 +25,18 @@ func porEnd() *Sequence {
 		l.MsgDelayed = true
 		return l
 	}
-	member := func(block, x, y, of int) Layer { // shown with at least of members
+	member := func(block, x, y, of int) adventure.Layer { // shown with at least of members
 		l := page(block, x, y)
 		l.MinParty = of
 		return l
 	}
-	party := []Layer{page(3, 0, 0), member(4, 0, 0xB, 2), member(5, 0xD, 9, 3), member(6, 0, 9, 4)}
-	return &Sequence{Steps: []SequenceStep{
-		{Kind: StepPicture, Layers: []Layer{page(1, 0, 0), anim(2, 2, 4, 4)}, Song: songEnding,
+	party := []adventure.Layer{page(3, 0, 0), member(4, 0, 0xB, 2), member(5, 0xD, 9, 3), member(6, 0, 9, 4)}
+	return &adventure.Sequence{Steps: []adventure.SequenceStep{
+		{Kind: adventure.StepPicture, Layers: []adventure.Layer{page(1, 0, 0), anim(2, 2, 4, 4)}, Song: songEnding,
 			Text: []string{"Mortally wounded, the dragon roars! The spirit of Tyranthraxus flares up from the dragon's body."}},
-		{Kind: StepPicture, Layers: append(append([]Layer{}, party...), anim(7, 2, 0, 6)),
+		{Kind: adventure.StepPicture, Layers: append(append([]adventure.Layer{}, party...), anim(7, 2, 0, 6)),
 			Text: []string{"\"Fools, you have but slain the body I possessed.  I cannot be defeated!\" With the power of the pool of radiance which I moved here, to my lair, I will still rule, by possessing one of you!\""}},
-		{Kind: StepPicture, Layers: append(append([]Layer{}, party...), anim(8, 2, 0, 6)),
+		{Kind: adventure.StepPicture, Layers: append(append([]adventure.Layer{}, party...), anim(8, 2, 0, 6)),
 			Text: []string{"\"No Lord Bane!  I can still rule here!  I have not failed.  Do not call me back through the pool!\" Noooo..."}},
 	}}
 }

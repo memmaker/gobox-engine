@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"gobox/adventure"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestPodStartCreditsPicture(t *testing.T) {
 	for _, s := range StartSequence().Steps {
 		if s.Credits {
 			n++
-			if s.Kind != StepPicture || s.Layers[0].Block != 3 {
+			if s.Kind != adventure.StepPicture || s.Layers[0].Block != 3 {
 				t.Errorf("credits step %+v", s)
 			}
 		}

@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"gobox/adventure"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestSotsbStartCreditsPicture(t *testing.T) {
 	for _, s := range sotsbStart().Steps {
 		if s.Credits {
 			n++
-			if s.Kind != StepPicture || s.Layers[0].Block != titleAmigaCredits || s.Edition != EditionAmiga {
+			if s.Kind != adventure.StepPicture || s.Layers[0].Block != titleAmigaCredits || s.Edition != adventure.EditionAmiga {
 				t.Errorf("credits step %+v", s)
 			}
 		}

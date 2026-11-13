@@ -20,7 +20,7 @@ type HostOptions struct {
 	DaySky                bool    // the scripts' day sky follows day 6:00-20:00 instead of their hour < 14
 	Explicit              bool    // the harmless square events wait for Space instead of running on stepping
 	DOSArt                bool    // the pictures, portraits and combat icons in the DOS art instead of the Amiga's (F12)
-	FullIntro             bool    // the full title (its default the adventure's, importer.Sequence.Full); off: its Short steps
+	FullIntro             bool    // the full title (its default the adventure's, adventure.Sequence.Full); off: its Short steps
 }
 
 // DefaultHostOptions are the host settings before SETTINGS.JSON is read.

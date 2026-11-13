@@ -1,9 +1,5 @@
 package importer
 
-// DungeonTiles is how many tiles at the start of DungCom are wall pieces:
-// dungeonMap puts tiles 0..0x18 as walls (0x16 the plain wall, 0x18 the highest).
-const PodDungeonTiles = 0x18 + 1
-
 // tileOpenGround: the groundInfo tile of open ground (things may be put there).
 const podTileOpenGround = 22
 

@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"gobox/adventure"
 	"gobox/game"
 	"sort"
 	"strings"
@@ -53,7 +54,7 @@ func podGameData(adv string) game.Data {
 		DaxMask:      daxMask,
 		Border:       &game.Border{File: "BORDERS", Block: 0, Pieces: [8]int{0, 1, 2, 3, 4, 4, 5, 5}, Mask: &podBorderMask},
 		AdLib:        &game.AdLib{Music: adLibMusic, Sounds: adLibSounds, Effects: effects, Rate: 9000},
-		DungeonTiles: PodDungeonTiles,
+		DungeonTiles: adventure.DungeonTiles,
 		Rests:        []game.RestKind{{Text: "Rest", Key: 'R', N: 0, Duration: true}, {Text: "Fix", Key: 'F', N: 1, Fix: true}},
 		Commands:     game.CommandEntries(podPartyCommands),
 		ReadyMark:    "*",

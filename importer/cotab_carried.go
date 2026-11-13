@@ -30,9 +30,6 @@ var CotabOriginalSave = rules1e.SaveLayout{
 	WallBytes: 3 * 4,
 }
 
-// DungeonTiles is how many tiles DungCom puts at the start of the set.
-const CotabDungeonTiles = 0x18 + 1
-
 // charRecord is the game's character record, the shared 422-byte layout
 // (gobox/char, field for field: CHRDATA/SAVGAM and the monster records).
 type cotabCharRecord = rules1e.Record422

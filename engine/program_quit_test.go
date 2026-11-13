@@ -1,9 +1,9 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/ecl"
 	"gobox/game"
-	"gobox/importer"
 	"gobox/rules"
 	"slices"
 	"testing"
@@ -118,7 +118,7 @@ func TestEndEffects(t *testing.T) {
 	if before.HP == 0 {
 		t.Fatal("no member to heal")
 	}
-	e.title.after = []importer.Effect{importer.EffectHealParty, importer.EffectOpenHall}
+	e.title.after = []adventure.Effect{adventure.EffectHealParty, adventure.EffectOpenHall}
 	e.title.note = "You've won."
 	e.endEffects()
 	if a := e.ruleset().Check(rules.WordIs{Word: rules.WordTraining}, nil); !a.Yes || a.Value == 0 {

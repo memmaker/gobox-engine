@@ -11,7 +11,6 @@ import (
 	"gobox/adventure"
 	"gobox/asset"
 	"gobox/game"
-	"gobox/importer"
 )
 
 // fullPicture draws a whole-screen picture (320x200) in the middle of the
@@ -46,10 +45,10 @@ type title struct {
 	credits     []game.Credit
 	boxes       []image.Rectangle
 	backdrop    []game.Layer
-	seqs        []game.Sequence   // the full-screen animations State.Sequence names (SetEnd)
-	end         *game.Scene       // the end sequence of pictures (SetEnd)
-	after       []importer.Effect // what the end leaves in the game (SetEnd)
-	note        string            // the end's closing note (SetEnd)
+	seqs        []game.Sequence    // the full-screen animations State.Sequence names (SetEnd)
+	end         *game.Scene        // the end sequence of pictures (SetEnd)
+	after       []adventure.Effect // what the end leaves in the game (SetEnd)
+	note        string             // the end's closing note (SetEnd)
 }
 
 // seqEnding is the name of the end sequence (game.Data.Sequences).
@@ -58,22 +57,22 @@ const seqEnding = "ending"
 // SetEnd takes the adventure's end sequence (its manifest's End; nil: none): what
 // PROGRAM's ending and pod's save-and-quit play. A leading animation plays as a full-screen
 // sequence (seqEnding), picture steps as a scene of their own (title.end).
-func (e *Engine) SetEnd(s *importer.Sequence) error {
+func (e *Engine) SetEnd(s *adventure.Sequence) error {
 	e.title.seqs, e.title.end, e.title.after, e.title.note = nil, nil, nil, ""
 	if s == nil {
 		return nil
 	}
 	e.title.after, e.title.note = s.After, s.Note
-	if q := importer.LeadingAnim(*s, seqEnding); q != nil {
+	if q := adventure.LeadingAnim(*s, seqEnding); q != nil {
 		e.title.seqs = append(e.title.seqs, *q)
 		return nil
 	}
-	g := importer.GraphicsOther
+	g := adventure.GraphicsOther
 	if e.Cfg.Graphics == 'E' {
-		g = importer.GraphicsEGA
+		g = adventure.GraphicsEGA
 	}
 	shown := s.Shown(e.amigaUp())
-	sc, err := importer.TitleScene(shown, true, g, game.Common{}, e.titleArt)
+	sc, err := adventure.TitleScene(shown, true, g, game.Common{}, e.titleArt)
 	if err != nil {
 		return fmt.Errorf("end: %w", err)
 	}
@@ -88,25 +87,25 @@ func (e *Engine) hasSequence(name string) bool {
 
 // SetStart takes the adventure's title sequence (its manifest's Start; nil:
 // none, the title waits for Continue with no steps). Its pictures load now.
-func (e *Engine) SetStart(s *importer.Sequence) error {
+func (e *Engine) SetStart(s *adventure.Sequence) error {
 	if s == nil {
-		s = &importer.Sequence{}
+		s = &adventure.Sequence{}
 	}
 	shown := s.Shown(e.amigaUp()) // the steps of the art up (an Amiga-only card is dropped under the DOS art)
 	s = &shown
 	t := title{seqs: e.title.seqs, end: e.title.end} // SetEnd's stay
 	var err error
-	g := importer.GraphicsOther
+	g := adventure.GraphicsOther
 	if e.Cfg.Graphics == 'E' { // DS:4A1E: the EGA driver
-		g = importer.GraphicsEGA
+		g = adventure.GraphicsEGA
 	}
-	if t.full, err = importer.TitleScene(*s, true, g, game.Common{}, e.titleArt); err != nil {
+	if t.full, err = adventure.TitleScene(*s, true, g, game.Common{}, e.titleArt); err != nil {
 		return err
 	}
-	if t.short, err = importer.TitleScene(*s, false, g, game.Common{}, e.titleArt); err != nil {
+	if t.short, err = adventure.TitleScene(*s, false, g, game.Common{}, e.titleArt); err != nil {
 		return err
 	}
-	if t.credits, t.boxes, t.backdrop, err = importer.TitleData(*s, e.titleArt); err != nil {
+	if t.credits, t.boxes, t.backdrop, err = adventure.TitleData(*s, e.titleArt); err != nil {
 		return err
 	}
 	e.title = t
@@ -118,15 +117,15 @@ var errNoArt = errors.New("no such picture in the adventure's art")
 
 // titleArt loads a title sequence's picture: a DAX block, or a PNG in the
 // adventure's art/.
-func (e *Engine) titleArt(a importer.Art) (game.Picture, error) {
+func (e *Engine) titleArt(a adventure.Art) (game.Picture, error) {
 	switch a.Kind {
-	case importer.ArtPNG:
+	case adventure.ArtPNG:
 		p := filepath.Join(e.adv, adventure.ArtDir, a.File)
 		if _, err := os.Stat(p); err != nil {
 			return game.Picture{}, err
 		}
 		return game.Picture{Source: game.SourcePNG, File: p}, nil
-	case importer.ArtDAX:
+	case adventure.ArtDAX:
 		im := e.LoadPic(a.File, a.Block)
 		if b, _ := e.artBlocks(a.File, a.Block); im == nil && b != nil && b.Kind == asset.Anim { // an animation's first frame stands for it
 			if fr := b.Anim(asset.NoMask); len(fr) > 0 {

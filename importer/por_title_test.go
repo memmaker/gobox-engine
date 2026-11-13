@@ -3,6 +3,7 @@ package importer_test
 import (
 	"encoding/json"
 	"errors"
+	"gobox/adventure"
 	"gobox/engine"
 	"gobox/importer"
 	"io/fs"
@@ -94,7 +95,7 @@ func TestImportedStartCarriesCredits(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := importer.PorStart()
-	if m.Start == nil || !slices.ContainsFunc(m.Start.Steps, func(s importer.SequenceStep) bool { return s.Kind == importer.StepCredits }) {
+	if m.Start == nil || !slices.ContainsFunc(m.Start.Steps, func(s adventure.SequenceStep) bool { return s.Kind == adventure.StepCredits }) {
 		t.Fatalf("imported Start has no credits step: %+v", m.Start)
 	}
 	if !reflect.DeepEqual(m.Start.Credits, want.Credits) || !reflect.DeepEqual(m.Start.Boxes, want.Boxes) {

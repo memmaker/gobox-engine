@@ -41,7 +41,7 @@ func porGameData() game.Data {
 	// (0xF90) with a dark red (0x600) outline, the intro's credits palette entries 2 and 1.
 	d.Logo = &game.Logo{Sub: 108, Bottom: 160, Keep: []uint8{asset.EGAYellow, asset.EGALightBlue}, SubInk: asset.EGALightMagenta,
 		Gold: color.RGBA{0xff, 0x99, 0, 0xff}, Outline: color.RGBA{0x66, 0, 0, 0xff}}
-	d.Bindings = []game.Binding{{Ctx: "Any time", Keys: "F12", Desc: "art: Amiga, DOS", Mouse: "Esc>Graphics", Pad: "B, then pick"}}
+	d.Bindings = []game.Binding{{Ctx: "Any time", Keys: "F12", Desc: "art: Amiga, DOS", Mouse: "Esc>adventure.Graphics", Pad: "B, then pick"}}
 	for id, t := range SpellRules {
 		if t != "" {
 			d.SpellRules[id] = t
