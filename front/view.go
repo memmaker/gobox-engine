@@ -198,14 +198,6 @@ type Maneuver struct {
 // the same pointer every View while the same text is up.
 type Read = game.Read
 
-// Lore is a note in the journal: ID is its number for ActNoteRemove (-1: not
-// removable), Place where the player read it ("" a journal text).
-type Lore struct {
-	Title, Place string
-	Text         []string
-	ID           int
-}
-
 // Money is core.Money: an amount the front end shows (as "12g 50c").
 type Money = core.Money
 
@@ -307,13 +299,6 @@ type Reaction struct {
 	ID     int
 	Name   string
 	Policy Policy
-}
-
-// Quest is a journal entry: Text is what its giver said, paragraph by paragraph.
-type Quest struct {
-	Name, Giver, Place string
-	Text               []string
-	Done               bool
 }
 
 // Walls is a 3D view the presenter builds from the rules' own map
@@ -463,8 +448,6 @@ type View struct {
 	Facing        Dir
 	Day           bool        // 6:00 to 20:00, when the scripts show the day sky
 	Inside        bool        // the party stands on an inside square (the original's inside sky colour)
-	Quests        []Quest     // the quest journal
-	Lore          []Lore      // the journal's Notes
 	Exploring     bool        // the party explores: the adventuring decisions (ActForward .. ActCastPick) are taken
 	Sweeping      bool        // ... at the slow, searching pace (ActSweep): the HUD says so
 	Interact      bool        // ... on a square whose event waits for ActInteract: the HUD says so

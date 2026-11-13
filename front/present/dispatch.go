@@ -80,7 +80,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		return true
 	}
 	if p.journal.open && p.exploring() {
-		p.journalKey(k, v)
+		p.journalKey(k)
 		return true
 	}
 	if p.identDone(v) { // the Id's pop-up: any key closes it
@@ -270,7 +270,7 @@ func (p *Presenter) Click(x, y int) bool {
 		return true
 	}
 	if p.journal.open { // the journal's own pointer (Mouse)
-		p.journalMouse(image.Pt(x, y), true, false, 0, p.shownView)
+		p.journalMouse(image.Pt(x, y), true, false, 0)
 		return true
 	}
 	if p.identDone(p.shownView) { // the Id's pop-up: any click closes it
@@ -416,7 +416,7 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		return
 	}
 	if p.journal.open {
-		p.journalMouse(image.Pt(x, y), false, false, 0, p.shownView)
+		p.journalMouse(image.Pt(x, y), false, false, 0)
 		return
 	}
 	if p.scrolls.Hover(y, down) {

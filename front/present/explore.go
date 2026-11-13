@@ -65,7 +65,7 @@ func (p *Presenter) runCommand(i int) {
 func (p *Presenter) runAct(a front.ActKind) {
 	switch a {
 	case actJournal:
-		p.openJournal(p.shownView)
+		p.openJournal()
 		return
 	case front.ActOverview:
 		p.overview = true

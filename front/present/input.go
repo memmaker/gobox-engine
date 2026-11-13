@@ -232,7 +232,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 		return
 	}
 	if p.journal.open { // its rows on the window's pixels (Hover, Click)
-		p.journalMouse(p.camp.pointer, false, right, wheel, v)
+		p.journalMouse(p.camp.pointer, false, right, wheel)
 		return
 	}
 	if p.overview { // its clicks are Click's

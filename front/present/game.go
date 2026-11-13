@@ -215,7 +215,6 @@ func (g *Game) View() front.View {
 	v = Page(v, r.pageOf(ps), storyOf(c))
 	v = Flags(v, r.flagsOf(ps, party), OverMenu(mode, pending))
 	v = Place(v, c.Where, windowOf(ps))
-	v.Quests, v.Lore = Quests(c.Quests), Lore(c.Lore)
 	v = Waits(v, game.Hold(holding(ps)), doorOf(ps), c.PowerPick)
 	v.Party, v.Purse = Party(party, cardsOf(ps), sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
 	v = Sheet(v, sheet, image.Rectangle{}, image.Rectangle{}, page, Drafting(mode, draft), draft, own)

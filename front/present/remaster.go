@@ -364,7 +364,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if p.journal.open { // the quest journal: a page of its own over the whole window
 		p.shown, p.active, p.menu = "", true, false
 		dst.Fill(color.Black)
-		p.drawJournal(dst, note, v)
+		p.drawJournal(dst, note)
 		if j := &p.journal; j.ask {
 			p.keyWindow(dst, "Remove this note?", []string{"Yes", "No"}, yesNoKeys, nil, j.askSel, false)
 			j.askAt = slices.Clone(p.winRects)
