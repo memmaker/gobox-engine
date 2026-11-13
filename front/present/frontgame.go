@@ -47,7 +47,7 @@ func (p *Presenter) Shown() Shown {
 		t = in.treasure
 	}
 	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: p.inventoryUp(), Battle: v.Battle != nil,
-		Camp: v.Camp != nil, MainMenu: v.MainMenu != nil, Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(v.Party)}
+		Camp: v.Camp != nil, MainMenu: p.mainMenuUp(), Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(v.Party)}
 }
 
 // ownQuestion is v with the presenter's question up.
@@ -173,12 +173,6 @@ func (p *Presenter) frontScreens() string {
 		front.ScreenUp{Name: front.ScreenIconEditor, On: p.icon != nil},
 		front.ScreenUp{Name: front.ScreenCreation, On: p.creating},
 		front.ScreenUp{Name: front.ScreenQuestion, On: p.q != nil})
-}
-
-// mainView is v's party menu as the main menu takes it.
-func mainView(v front.View) front.MainMenu {
-	return front.MainMenu{Open: v.MainMenu, Hall: v.Hall, Logo: v.Logo,
-		Party: len(v.Party), Selected: selectedIndex(v), Name: selectedName(v)}
 }
 
 // Send sends the action k, N n (send).

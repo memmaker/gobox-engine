@@ -89,14 +89,14 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if confirm(v) != "" {
 		return p.confirmKey(k)
 	}
-	if v.MainMenu != nil && !p.main { // the menu is not drawn yet: no key picks from it
+	if p.mainMenuUp() && !p.main { // the menu is not drawn yet: no key picks from it
 		return true
 	}
 	if p.main {
-		if p.mm.skip(p.shownView.Hall) && (k == '\r' || k == ' ') { // a key ends the title's fade and still acts (an arrow or a hotkey right as the menu appears is not lost); Enter and Space, the title's own skip keys, only end it, so one held through the intro picks nothing
+		if p.mm.skip(p.mainMenu().Hall) && (k == '\r' || k == ' ') { // a key ends the title's fade and still acts (an arrow or a hotkey right as the menu appears is not lost); Enter and Space, the title's own skip keys, only end it, so one held through the intro picks nothing
 			return true
 		}
-		if p.mm.key(p, k, mainView(v)) {
+		if p.mm.key(p, k, p.mainMenu()) {
 			return true
 		}
 	}
@@ -327,10 +327,10 @@ func (p *Presenter) Click(x, y int) bool {
 		}
 	}
 	if p.main {
-		if p.mm.skip(p.shownView.Hall) {
+		if p.mm.skip(p.mainMenu().Hall) {
 			return true
 		}
-		return p.mm.click(p, mainView(p.shownView), x, y)
+		return p.mm.click(p, p.mainMenu(), x, y)
 	}
 	if p.pickClick(x, y) {
 		return true

@@ -48,3 +48,11 @@ func upOf(st play.State, items game.ItemsUp) *invUp {
 	g.r.items = items
 	return g.r.inventoryOf(g.r.g.State())
 }
+
+// menuOn is a presenter whose game waits on the party menu offering the functions named (by their gobox names).
+func menuOn(funcs ...string) *Presenter {
+	g, _ := playGame(play.Assembling{Common: play.Common{Ask: &play.Question{Replies: funcs}}})
+	p := &Presenter{}
+	p.SetEngine(g)
+	return p
+}

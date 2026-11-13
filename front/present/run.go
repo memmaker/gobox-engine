@@ -118,7 +118,7 @@ func (f *Front) view() front.View {
 // timedView logs the first View and each change of screen (GOBOX_TIMING).
 func (f *Front) timedView(at time.Time) {
 	v := f.v
-	s := fmt.Sprintf("exploring %v, fight %v, party menu %v, intro %v, page %v, area %d", f.P.exploring(), v.Battle != nil, v.MainMenu != nil, v.Intro != nil, v.Pane != nil, v.Area)
+	s := fmt.Sprintf("exploring %v, fight %v, party menu %v, intro %v, page %v, area %d", f.P.exploring(), v.Battle != nil, f.P.mainMenuUp(), v.Intro != nil, v.Pane != nil, v.Area)
 	if !f.viewed || s != f.lastScreen {
 		gpu.Mark("View (%.1f ms to build): %s", float64(time.Since(at).Microseconds())/1000, s)
 	}
@@ -155,7 +155,7 @@ func (f *Front) screenSig(v front.View) string {
 		ask = v.Ask.Kind
 	}
 	turn := v.Battle != nil && v.Battle.Turn != nil
-	return fmt.Sprint(v.Battle != nil, turn, ask, f.P.inventoryUp(), v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, v.MainMenu != nil, f.P.exploring(), v.Training != nil)
+	return fmt.Sprint(v.Battle != nil, turn, ask, f.P.inventoryUp(), v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, f.P.mainMenuUp(), f.P.exploring(), v.Training != nil)
 }
 func (f *Front) Tick() { Scripted = true; f.P.Tick() } // only a script ticks: its clock is the frames
 

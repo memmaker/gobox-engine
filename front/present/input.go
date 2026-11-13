@@ -187,7 +187,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		p.send(front.ActOverview, 0)
 	case keypad(k) != input.None:
 		p.arrow(keypad(k), v)
-	case c == ' ' || askMenu(v) == nil && v.MainMenu == nil: // "press any key" (the party menu ignores keys it has no row for)
+	case c == ' ' || askMenu(v) == nil && !p.mainMenuUp(): // "press any key" (the party menu ignores keys it has no row for)
 		p.send(front.ActOK, 0)
 	}
 }

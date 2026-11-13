@@ -48,6 +48,29 @@ func (p *Presenter) sheetUp(v front.View) bool {
 	return p.eng != nil && !p.pickerOver() && p.eng.r.sheetUpOf(p.state()) && askMenu(v) == nil && !p.inventoryUp()
 }
 
+// sheetPage is the character sheet's page up: the look-only member's in a
+// fight, the member's whose sheet is up, the creation's draft (nil: none, or
+// a picker covers it).
+func (p *Presenter) sheetPage() *game.SheetPage {
+	if p.eng == nil || p.pickerOver() {
+		return nil
+	}
+	r, s := p.eng.r, p.state()
+	party := partyOf(s)
+	if n := r.lookSheet - 1; n >= 0 && n < len(party) && r.combatOf(s) != nil {
+		return cmp.Or(party[n].Page, game.MemberPage(party[n]))
+	}
+	page := r.sheetPageOf(s, party)
+	mode := r.modeOf(s)
+	if r.refusalAsk != nil {
+		mode = game.ModeAsk
+	}
+	if c := creationOf(s); Drafting(mode, c) {
+		return draftPage(c, page) // the creation sheet: gobox lays it out from the draft, with the rules' figures when they give a page
+	}
+	return page
+}
+
 // sheetUpOf: the state puts a member's sheet up, the look-only one in a fight too.
 func (r *rules) sheetUpOf(ps play.State) bool {
 	c := play.CommonOf(ps)

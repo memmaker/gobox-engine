@@ -87,7 +87,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		default:
 			return !slices.Contains(viewPasses, k)
 		}
-	case k == front.ActMember && (p.exploring() || v.Camp != nil || v.MainMenu != nil || turn), k == front.ActView && turn: // the bar's View in a turn: the active member's sheet, as a portrait's
+	case k == front.ActMember && (p.exploring() || v.Camp != nil || p.mainMenuUp() || turn), k == front.ActView && turn: // the bar's View in a turn: the active member's sheet, as a portrait's
 		if turn {
 			n = -1
 		}

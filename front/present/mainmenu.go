@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 	"gobox/gpu/vector"
 	"gobox/ui"
@@ -419,3 +420,36 @@ func layersImage(ls []game.Layer) image.Image {
 	drawPictures(m, pics, box.Min)
 	return m
 }
+
+// mainMenu is the party menu the state puts up: its open functions, whether
+// it is the training hall's, the title picture and the members (Open nil:
+// not up; the hall's own screen, the creation, the slots or a picker cover it).
+func (p *Presenter) mainMenu() front.MainMenu {
+	if p.eng == nil || p.slots != nil || p.pickerOver() {
+		return front.MainMenu{}
+	}
+	r, s := p.eng.r, p.state()
+	mode := r.modeOf(s)
+	if r.refusalAsk != nil {
+		mode = game.ModeAsk
+	}
+	c := play.CommonOf(s)
+	if p.training && trainingOf(s) != nil || p.creating && Drafting(mode, creationOf(s)) {
+		return front.MainMenu{}
+	}
+	open, hall := PartyMenu(mode, trainingOf(s), r.asking(s), c.Where.Hall)
+	if len(open) == 0 {
+		return front.MainMenu{}
+	}
+	m := front.MainMenu{Open: open, Hall: hall, Party: len(c.Party), Selected: -1}
+	if !hall && c.PowerPick == nil {
+		m.Logo = Title(nil, p.eng.art())
+	}
+	if i := p.cardSelected(); i >= 0 && i < len(c.Party) {
+		m.Selected, m.Name = i, c.Party[i].Name
+	}
+	return m
+}
+
+// mainMenuUp: the party menu is up.
+func (p *Presenter) mainMenuUp() bool { return p.mainMenu().Open != nil }
