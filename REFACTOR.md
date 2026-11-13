@@ -60,14 +60,17 @@
 
 **Domain, keep:** map coordinates and sizes, picture IDs/pixels, names and IDs, `Walls` names and map facts, `Intro.Pictures`, sounds and music, hotkeys and bindings, `Tone`, `Texts`.
 
-**Open (ask Felix before U1–U4):**
-1. Does `Tone` cover every text colour the pool games use?
-2. `Upcase`, `Font`/`Fonts`: per-game style must not live in gobox; ship as adventure asset data (new mechanism)?
-3. `Layer.At` stacks (title/ending): importer composes one `Picture`, or `ui` stacks a z-ordered list?
-4. `Placed` text over the 3D view: row position or flowable content?
-5. `ReadyMark` glyph: `ui`'s?
-6. `Report.Ms`/`Ask.Ms`/`Fell.Ms`: which are real game waits?
-7. Floor/ceiling colours with no tile: content fact?
-8. `IconEditor.Cells` palette grid: layout?
-9. `Results.EndAt` dead? (confirm)
-10. `Data.Palette` readers: `game` or `asset` palettes?
+**Rulings (Felix, 2026-11-13):**
+1. Text colours: text keeps its original colour as an EGA colour name (a typed enum in `game`), not raw ink numbers; `ui` maps names to its palette.
+2. Fonts: the importer adds each game's fonts to one shared font pool; `ui` lets the player cycle through all of them. Upper-case glyphs are a property of a font's glyph table; `TextRun.Upcase` goes.
+3. Title, ending and story screens: the importer decodes them into declarative scripts (steps referring to picture elements exported separately); `ui` composes the elements from the script, reproducing the original flow and look. `Layer.At` leaves `game`.
+4. Text over the 3D view: the engine keeps the original line wrapping (lines in order); `ui` decides placement. `Placed.At` goes.
+5. Timed holds: open, see below.
+6. Blink: kept as a text property (the originals use it); `ui` draws it.
+7. A map's own flat floor/ceiling colour stays as a palette index in the map data; the combat fallback colour goes.
+8. `Data.ReadyMark` goes; `ui` owns the glyph.
+9. `IconEditor.Cells` goes; colours and choices stay.
+10. The importer cuts the menu logo into a finished image; `Data.Logo` goes.
+Settled from the code: `Results.EndAt` goes (no `ui` reader); `Data.Palette` moves to the art data.
+
+**5. Timed holds, what each is:** `Shot.StepMs`/`Report.StepMs`: the original's missile pace per projectile (10 pointed, 20 tumbling, 50 spinning, 30 a spell; BR O08F:2B26) — needed for accurate playback. `Ask.Ms`: the script pause op (BR op 58: game speed × 100 ms; pool from the script wait) — a script event, needed. `Fell.Ms`: `fallHoldMs = 500`, gobox's own replay hold — not original. BR space fight `Report.Ms`: unchecked. Recommendation: keep the original-sourced ones as typed facts (the original duration, `ui` scales by the player's speed), drop gobox-invented holds (`Fell.Ms`).
