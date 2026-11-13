@@ -3,6 +3,7 @@ package present
 import (
 	"fmt"
 	"gobox/front"
+	"gobox/game"
 	"image"
 	"math"
 	"os"
@@ -346,69 +347,133 @@ func (p *Presenter) fightClick(x, y int) bool {
 	return p.battle.Click(x, y)
 }
 
-// replay is the events still to play (Play): one held for Ms (or until a
-// key: Key) shows the fight or the page (Scene) it carries; the engine waits until all are played (no
-// ActTick, no decisions: Playing), then the live View is drawn again.
+// replay is the moments still to play (Play): one held for Ms (or until a
+// key: Key) shows the fight (Board) or the page or screen it carries; the
+// engine waits until all are played (no ActTick, no decisions: Playing),
+// then the live state is drawn again.
 type replay struct {
-	q    []front.CombatEvent
-	from time.Time // the shown event began
-	skip bool      // a key cut the shown event short
-	fast bool      // Space: the rest of the queued timed events pass at once (the computer's turn sped up)
+	q    []frame
+	from time.Time // the shown moment began
+	skip bool      // a key cut the shown moment short
+	fast bool      // Space: the rest of the queued timed moments pass at once (the computer's turn sped up)
 }
 
-// lastBoard: the shown event is the last held one queued (the board the
+// frame is a Moment queued to play, with its Board drawn: the board's
+// pictures made once (the live board's, BattleOf and pixBattle), not on
+// every frame.
+type frame struct {
+	Moment
+	battle *front.Battle // Board as it is drawn (nil: no board)
+}
+
+// held is whether f holds the screen: a board, page or screen shown for Ms
+// or until a key.
+func (f *frame) held() bool {
+	return f.battle != nil || f.Page != nil || f.Screen != nil
+}
+
+// lastBoard: the shown moment is the last held one queued (the board the
 // rest leave): Space never skips it, so the fight reaches its end state.
 func (r *replay) lastBoard() bool {
 	for _, e := range r.q[1:] {
-		if (e.Key || e.Ms > 0) && (e.Battle != nil || e.Scene != nil) {
+		if (e.Key || e.Ms > 0) && e.held() {
 			return false
 		}
 	}
 	return true
 }
 
-// Play queues the fight's events Apply handed out.
-// Their snapshots' pictures are made here, as View.Battle's are (pixView).
-func (p *Presenter) Play(evs []front.CombatEvent) {
-	for _, ev := range evs {
-		ev.Battle = pixBattle(ev.Battle, egaInk)
-		p.replay.q = append(p.replay.q, ev)
+// Play queues the moments Settle handed out. A board is drawn as the live
+// one is (BattleOf over the game's art); a shot with a sprite plays as its
+// flight.
+func (p *Presenter) Play(ms []Moment) {
+	var art map[string]game.Picture
+	if p.eng != nil {
+		art = p.eng.art()
+	}
+	for _, m := range ms {
+		f := frame{Moment: m, battle: BattleOf(m.Board, m.Party, art)}
+		if m.Kind == game.EvMissile && len(m.Sprite) > 0 && f.battle != nil { // the shot flies: its sprite square by square from the shooter, in thirds, over the moment
+			for _, fl := range missileFlight(f, m.Sprite[0], m.StepMs) {
+				fl.battle = pixBattle(fl.battle, egaInk)
+				p.replay.q = append(p.replay.q, fl)
+			}
+			continue
+		}
+		f.battle = pixBattle(f.battle, egaInk)
+		p.replay.q = append(p.replay.q, f)
 	}
 }
 
-// Playing: the fight's events are still being played.
+// missileFlight is the moment f (a missile held on its board) as the
+// sprite's flight from f.Unit's square (else At) to To, a frame a third of
+// a square, the moment's time shared among them.
+func missileFlight(f frame, art game.Picture, step int) []frame {
+	from := f.At
+	for _, u := range f.battle.Units {
+		if u.ID == f.Unit {
+			from = image.Pt(u.X, u.Y)
+		}
+	}
+	d := f.To.Sub(from)
+	n := 3 * max(d.X, -d.X, d.Y, -d.Y, 1)
+	out := make([]frame, 0, n+1)
+	for i := 0; i <= n; i++ {
+		o := f
+		b := *f.battle
+		b.Effects = append(slices.Clone(b.Effects), front.Effect{X: float64(from.X) + float64(d.X*i)/float64(n), Y: float64(from.Y) + float64(d.Y*i)/float64(n)})
+		b.EffectPix = append(slices.Clone(b.EffectPix), pix(art))
+		o.battle, o.Ms, o.At = &b, max(f.Ms/(n+1), 1), from
+		if step > 0 { // the game's own pace, whatever the game speed
+			o.Ms = step
+		}
+		out = append(out, o)
+	}
+	return out
+}
+
+// Playing: the fight's moments are still being played.
 func (p *Presenter) Playing() bool { return len(p.replay.q) > 0 }
 
-// playing is the event to show now (nil: none), the ones played dropped.
-func (p *Presenter) playing() *front.CombatEvent {
+// soundNo is the number of the sound or song m starts: its N, else its
+// Sound ref read as a number.
+func soundNo(m Moment) int {
+	if n, err := strconv.Atoi(m.Sound); err == nil && m.N == 0 {
+		return n
+	}
+	return m.N
+}
+
+// playing is the moment to show now (nil: none), the ones played dropped.
+func (p *Presenter) playing() *frame {
 	r := &p.replay
 	for len(r.q) > 0 {
 		if ev := &r.q[0]; r.from.IsZero() {
 			switch {
-			case ev.Kind == front.EvSound && p.Sound != nil:
-				p.Sound(ev.Amount, ev.Text)
-			case ev.Kind == front.EvSound && p.adLibEffect(ev.Amount):
-			case ev.Kind == front.EvSound && p.Snd != nil:
-				p.Snd.Effect(ev.Amount, false)
-			case ev.Kind == front.EvSong && p.AdLib != nil && p.Snd != nil && p.Snd.Song(ev.Amount, 0, false): // the AdLib song, as the driver's soundtrack
-			case ev.Kind == front.EvSong && p.Snd != nil:
-				p.Snd.AmigaSong(ev.Amount)
-			case ev.Kind == front.EvSaves && p.slots == nil:
+			case ev.Kind == game.EvSound && p.Sound != nil:
+				p.Sound(soundNo(ev.Moment), ev.Text)
+			case ev.Kind == game.EvSound && p.adLibEffect(soundNo(ev.Moment)):
+			case ev.Kind == game.EvSound && p.Snd != nil:
+				p.Snd.Effect(soundNo(ev.Moment), false)
+			case ev.Kind == game.EvSong && p.AdLib != nil && p.Snd != nil && p.Snd.Song(soundNo(ev.Moment), 0, false): // the AdLib song, as the driver's soundtrack
+			case ev.Kind == game.EvSong && p.Snd != nil:
+				p.Snd.AmigaSong(soundNo(ev.Moment))
+			case ev.Kind == game.EvSaves && p.slots == nil:
 				p.openSlots(p.shownView, false)
 			}
 		}
 		if ev := &r.q[0]; r.from.IsZero() {
-			if ev.Kind == front.EvMessage && strings.TrimSpace(ev.Text) != "" {
+			if ev.Kind == game.EvMessage && strings.TrimSpace(ev.Text) != "" {
 				p.blowLine, p.blowAt = ev.Text, now()
 			}
-			switch id, n, word := blowFloat(*ev); {
+			switch id, n, word := blowFloat(ev.Moment); {
 			case word != "":
 				p.battle.FloatText(id, word)
 			case n > 0 && Host.DamageNumbers:
-				p.battle.Float(id, n, ev.Kind == front.EvHeal)
+				p.battle.Float(id, n, false)
 			}
 		}
-		if ev := &r.q[0]; (ev.Key || ev.Ms > 0 && (!r.fast || r.lastBoard())) && (ev.Battle != nil || ev.Scene != nil) && !r.skip {
+		if ev := &r.q[0]; (ev.Key || ev.Ms > 0 && (!r.fast || r.lastBoard())) && ev.held() && !r.skip {
 			if r.from.IsZero() {
 				r.from = now()
 			}
@@ -581,15 +646,15 @@ func (p *Presenter) adLibEffect(n int) bool {
 // blowLineFor is how long a blow's line stays on the pane.
 const blowLineFor = 2500 * time.Millisecond
 
-// blowFloat is what ev floats over unit id: number n or word (none: n 0,
+// blowFloat is what m floats over unit id: number n or word (none: n 0,
 // word ""). One blow floats once: only EvMiss says MISS (not the EvAttack
-// swing), only EvDamage/EvHeal carry the number (not EvHit, not Strike).
-func blowFloat(ev front.CombatEvent) (id, n int, word string) {
-	switch ev.Kind {
-	case front.EvMiss:
-		return ev.Target, 0, "MISS"
-	case front.EvDamage, front.EvHeal:
-		return ev.Unit, ev.Amount, ""
+// swing), only EvDamage carries the number (not EvHit, not Strike).
+func blowFloat(m Moment) (id, n int, word string) {
+	switch m.Kind {
+	case game.EvMiss:
+		return m.Target, 0, "MISS"
+	case game.EvDamage:
+		return m.Unit, m.N, ""
 	}
 	return 0, 0, ""
 }

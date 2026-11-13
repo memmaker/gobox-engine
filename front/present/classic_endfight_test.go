@@ -34,13 +34,13 @@ func TestEndingEventsPlayClassic(t *testing.T) {
 	g := NewGame(r, game.Data{})
 	g.Settle() // the fight shown
 	g.Answer(front.Action{Kind: front.ActQuick})
-	v := g.legacySettle()
-	if v.Battle != nil || len(v.Events) != 3 {
-		t.Fatalf("battle %v, %d events", v.Battle != nil, len(v.Events))
+	v, evs := settled(g)
+	if v.Battle != nil || len(evs) != 3 {
+		t.Fatalf("battle %v, %d events", v.Battle != nil, len(evs))
 	}
-	for _, e := range []front.CombatEvent{v.Events[0], v.Events[2]} { // the blow and the fall; a miss has no moment
-		if e.Battle == nil {
-			t.Errorf("event %v not held on the fight (battle %v, ms %d)", e.Kind, e.Battle != nil, e.Ms)
+	for _, e := range []frame{evs[0], evs[2]} { // the blow and the fall; a miss has no moment
+		if e.battle == nil {
+			t.Errorf("event %v not held on the fight (battle %v, ms %d)", e.Kind, e.battle != nil, e.Ms)
 		}
 	}
 }
@@ -53,8 +53,8 @@ func TestEndingEventsMove(t *testing.T) {
 	g := NewGame(r, game.Data{})
 	g.Settle()
 	g.Answer(front.Action{Kind: front.ActQuick})
-	es := g.legacySettle().Events
-	if len(es) != 5 || es[1].Battle == nil || es[4].Battle == nil {
+	_, es := settled(g)
+	if len(es) != 5 || es[1].battle == nil || es[4].battle == nil {
 		t.Fatalf("%d events", len(es))
 	}
 	unit := func(b *front.Battle, id int) *front.Unit {
@@ -65,16 +65,16 @@ func TestEndingEventsMove(t *testing.T) {
 		}
 		return nil
 	}
-	if u := unit(es[1].Battle, 1); u == nil || u.X != 2 || u.Y != 1 {
+	if u := unit(es[1].battle, 1); u == nil || u.X != 2 || u.Y != 1 {
 		t.Errorf("walker %+v, want at 2,1", u)
 	}
-	if unit(es[3].Battle, 2) == nil {
+	if unit(es[3].battle, 2) == nil {
 		t.Error("the fall's own moment has no faller")
 	}
-	if u := unit(es[4].Battle, 2); u != nil {
+	if u := unit(es[4].battle, 2); u != nil {
 		t.Errorf("fallen still on the board: %+v", u)
 	}
-	if es[4].Kind != front.EvMissile || es[4].To != image.Pt(3, 3) {
+	if es[4].Kind != game.EvMissile || es[4].To != image.Pt(3, 3) {
 		t.Errorf("shot %+v", es[4])
 	}
 }

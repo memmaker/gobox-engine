@@ -18,6 +18,7 @@ import (
 	"gobox/dax/vace"
 	"gobox/ega"
 	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 	"gobox/input"
 	"gobox/ui"
@@ -217,16 +218,21 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.intro.NoCredits = len(credits) == 0
 	IntroStep(p, &p.intro, v.Intro, false)
 	ev := p.playing()
-	if ev != nil && ev.Kind == front.EvMoved && ev.Ms > 0 { // a step's hold is how long the figure takes for it
+	if ev != nil && ev.Kind == game.EvMove && ev.Ms > 0 { // a step's hold is how long the figure takes for it
 		p.battle.StepTime = float64(ev.Ms) / 1000
 	}
-	if ev != nil && ev.Scene != nil { // the page as it stood at the pause played
-		v = *ev.Scene
-	} else if ev != nil { // the fight as it stood at the event played
-		if v.Battle == nil && p.lastFight != nil { // the Result ended the fight: its events play on the fight they happened in, the page after them
+	if ev != nil && (ev.Page != nil || ev.Screen != nil) { // the page or screen as it stood at the pause played, over the live state
+		if ev.Page != nil {
+			v = Page(v, ev.Page, nil)
+		}
+		if ev.Screen != nil {
+			v.Screen = ev.Screen
+		}
+	} else if ev != nil { // the fight as it stood at the moment played
+		if v.Battle == nil && p.lastFight != nil { // the Result ended the fight: its moments play on the fight they happened in, the page after them
 			v = *p.lastFight
 		}
-		v.Battle, v.Party = ev.Battle, ev.Party
+		v.Battle, v.Party = ev.battle, nil
 		v.Ask = nil
 	} else if v.Battle != nil {
 		p.lastFight = &v

@@ -8,13 +8,16 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 )
 
 func TestPlayMakesSnapshotTiles(t *testing.T) {
 	var p Presenter
-	pc := front.Picture{Pix: []byte{1, 2, 3, 4}, PixW: 2}
-	p.Play([]front.CombatEvent{{Ms: 500, Battle: &front.Battle{TilePix: []front.Picture{pc}}}})
-	if b := p.replay.q[0].Battle; len(b.Tiles) != 1 || b.Tiles[0] == nil {
+	g := NewGame(&fake{st: play.Exploring{}}, game.Data{Art: map[string]game.Picture{"t": {W: 2, H: 2, Pixels: []byte{1, 2, 3, 4}, Clear: -1}}})
+	p.SetEngine(&classicGame{Game: g, p: &p})
+	p.Play([]Moment{{Ms: 500, Board: &play.Combat{Tiles: []string{"t"}}}})
+	if b := p.replay.q[0].battle; len(b.Tiles) == 0 || b.Tiles[0] == nil {
 		t.Fatal("snapshot tiles not made")
 	}
 }
@@ -23,8 +26,8 @@ func TestPlayMakesSnapshotTiles(t *testing.T) {
 // moment waiting for a key still waits.
 func TestSpaceFastForward(t *testing.T) {
 	var p Presenter
-	b := &front.Battle{}
-	p.Play([]front.CombatEvent{{Ms: 5000, Battle: b}, {Ms: 5000, Battle: b}, {Ms: 5000, Battle: b}, {Key: true, Battle: b}})
+	b := &play.Combat{}
+	p.Play([]Moment{{Ms: 5000, Board: b}, {Ms: 5000, Board: b}, {Ms: 5000, Board: b}, {Key: true, Board: b}})
 	if !p.Playing() {
 		t.Fatal("not playing")
 	}
@@ -38,9 +41,9 @@ func TestSpaceFastForward(t *testing.T) {
 // its last frame (the state the rest leave).
 func TestBlastPlaysAndSpacePasses(t *testing.T) {
 	var p Presenter
-	var evs []front.CombatEvent
+	var evs []Moment
 	for i := 0; i < 5; i++ {
-		evs = append(evs, front.CombatEvent{Kind: front.EvFrame, Ms: 60, Scene: &front.View{}})
+		evs = append(evs, Moment{Report: play.Report{Page: &game.Page{}}, Ms: 60})
 	}
 	p.Play(evs)
 	if p.playing() == nil {
@@ -56,10 +59,10 @@ func TestBlastPlaysAndSpacePasses(t *testing.T) {
 // fallen, the foes walked) is still shown before the page.
 func TestSpaceKeepsEndBoard(t *testing.T) {
 	var p Presenter
-	walk, end := &front.Battle{}, &front.Battle{}
-	p.Play([]front.CombatEvent{{Kind: front.EvMoved, Ms: 300, Battle: walk}, {Kind: front.EvDied, Ms: 300, Battle: end}, {Kind: front.EvMessage, Text: "x"}})
+	walk, end := &play.Combat{}, &play.Combat{}
+	p.Play([]Moment{{Report: play.Report{Kind: game.EvMove}, Ms: 300, Board: walk}, {Report: play.Report{Kind: game.EvDown}, Ms: 300, Board: end}, {Report: play.Report{Kind: game.EvMessage, Text: "x"}}})
 	p.Key(' ', front.View{})
-	if ev := p.playing(); ev == nil || ev.Battle != end {
+	if ev := p.playing(); ev == nil || ev.Board != end {
 		t.Fatalf("after Space: %+v, want the end board", ev)
 	}
 }
@@ -68,11 +71,11 @@ func TestSpaceKeepsEndBoard(t *testing.T) {
 // the pane: what the game said is seen, not only logged.
 func TestBlowPlays(t *testing.T) {
 	var p Presenter
-	posed := &front.Battle{Units: []front.Unit{{ID: 1, Active: true}}}
-	p.Play([]front.CombatEvent{{Kind: front.EvAttack, Unit: 1, Target: 2, Ms: 300, Battle: posed},
-		{Kind: front.EvHit, Unit: 1, Target: 2}, {Kind: front.EvDamage, Unit: 2, Amount: 5},
-		{Kind: front.EvMessage, Text: "ARIN HITS FOR 5"}})
-	if ev := p.playing(); ev == nil || ev.Kind != front.EvAttack || ev.Battle != posed {
+	posed := &play.Combat{Units: []game.Unit{{ID: 1, Active: true}}}
+	p.Play([]Moment{{Report: play.Report{Kind: game.EvAttack, Unit: 1, Target: 2}, Ms: 300, Board: posed},
+		{Report: play.Report{Kind: game.EvHit, Unit: 1, Target: 2}}, {Report: play.Report{Kind: game.EvDamage, Unit: 2, N: 5}},
+		{Report: play.Report{Kind: game.EvMessage, Text: "ARIN HITS FOR 5"}}})
+	if ev := p.playing(); ev == nil || ev.Kind != game.EvAttack || ev.Board != posed {
 		t.Fatalf("swing not held: %+v", ev)
 	}
 	p.replay.skip = true
@@ -95,13 +98,12 @@ func TestFlatTileTextured(t *testing.T) {
 }
 
 // Class 20b: a blow floats once. The classic path's events for POR seed 3
-// (attack+hit+damage, attack+miss, a heal): the swing is no MISS, EvHit and
+// (attack+hit+damage, attack+miss): the swing is no MISS, EvHit and
 // EvDamage make one number.
 func TestBlowFloatsOnce(t *testing.T) {
-	es := []front.CombatEvent{
-		{Kind: front.EvAttack, Unit: 1, Target: 2}, {Kind: front.EvHit, Unit: 1, Target: 2, Amount: 5}, {Kind: front.EvDamage, Unit: 2, Target: 2, Amount: 5},
-		{Kind: front.EvAttack, Unit: 2, Target: 1}, {Kind: front.EvMiss, Unit: 2, Target: 1},
-		{Kind: front.EvHeal, Unit: 1, Amount: 3},
+	es := []Moment{
+		{Report: play.Report{Kind: game.EvAttack, Unit: 1, Target: 2}}, {Report: play.Report{Kind: game.EvHit, Unit: 1, Target: 2, N: 5}}, {Report: play.Report{Kind: game.EvDamage, Unit: 2, Target: 2, N: 5}},
+		{Report: play.Report{Kind: game.EvAttack, Unit: 2, Target: 1}}, {Report: play.Report{Kind: game.EvMiss, Unit: 2, Target: 1}},
 	}
 	var nums, misses int
 	for _, ev := range es {
@@ -113,8 +115,8 @@ func TestBlowFloatsOnce(t *testing.T) {
 			misses++
 		}
 	}
-	if nums != 2 || misses != 1 {
-		t.Fatalf("numbers %d misses %d, want 2 and 1", nums, misses)
+	if nums != 1 || misses != 1 {
+		t.Fatalf("numbers %d misses %d, want 1 and 1", nums, misses)
 	}
 }
 

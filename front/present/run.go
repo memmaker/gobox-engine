@@ -247,7 +247,7 @@ func (f *Front) Act() {
 	if !f.started { // the title, on the render loop's (locked) thread that runs the game
 		f.started = true
 		g.Open(f.slot)
-		f.P.Play(g.legacyEvents(g.Settle(), g.Game.View()))
+		f.P.Play(g.Settle())
 		f.stale()
 	}
 	if f.P.Playing() { // the fight's events play first: the game waits, decisions are held
@@ -268,7 +268,7 @@ func (f *Front) Act() {
 		for _, a := range as {
 			g.Answer(a)
 		}
-		f.P.Play(g.legacyEvents(g.Settle(), g.Game.View()))
+		f.P.Play(g.Settle())
 	}
 }
 

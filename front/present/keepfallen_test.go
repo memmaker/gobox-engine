@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 )
 
 // A tick where 3 foes are hit and fall: each figure is drawn until its own
@@ -14,15 +16,15 @@ func TestKeepFallenUntilDied(t *testing.T) {
 	before := &front.Battle{Units: []front.Unit{{ID: 1}, {ID: 2}, {ID: 3}, {ID: 4}}}
 	p.keepFallen(before) // drawn before the tick
 	after := &front.Battle{Units: []front.Unit{{ID: 1}}}
-	var q []front.CombatEvent
+	var q []frame
 	for id := 2; id <= 4; id++ {
-		q = append(q, front.CombatEvent{Kind: front.EvMiss, Unit: 1, Target: id}, front.CombatEvent{Kind: front.EvDied, Unit: id})
+		q = append(q, frame{Moment: Moment{Report: play.Report{Kind: game.EvMiss, Unit: 1, Target: id}}}, frame{Moment: Moment{Report: play.Report{Kind: game.EvDown, Unit: id}}})
 	}
 	p.replay.q = q
 	for len(p.replay.q) > 0 {
 		left := 0
 		for _, e := range p.replay.q[1:] {
-			if e.Kind == front.EvDied {
+			if e.Kind == game.EvDown {
 				left++
 			}
 		}

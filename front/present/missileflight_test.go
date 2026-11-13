@@ -4,7 +4,6 @@ import (
 	"image"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -14,12 +13,12 @@ import (
 func TestMissileFlies(t *testing.T) {
 	b := &play.Combat{Units: []game.Unit{{ID: 1, At: image.Pt(27, 14)}}}
 	es := []play.Report{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Pose: 1, Ms: 300, Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
-	out := playedEvents(es, true, func(play.Report) (*play.Combat, []game.Member) { return b, nil }, 0)
-	if len(out) != 7 || out[0].Kind != front.EvMissile {
+	out := played(es, true, func(play.Report) (*play.Combat, []game.Member) { return b, nil }, 0)
+	if len(out) != 7 || out[0].Kind != game.EvMissile {
 		t.Fatalf("%d frames", len(out))
 	}
-	first, last := out[0].Battle.Effects, out[6].Battle.Effects
-	if len(first) != 1 || first[0].Y != 14 || last[0].Y != 12 || len(out[6].Battle.EffectPix) != 1 {
+	first, last := out[0].battle.Effects, out[6].battle.Effects
+	if len(first) != 1 || first[0].Y != 14 || last[0].Y != 12 || len(out[6].battle.EffectPix) != 1 {
 		t.Fatalf("flight %v .. %v", first, last)
 	}
 }
@@ -29,7 +28,7 @@ func TestMissileFlies(t *testing.T) {
 func TestMissileStepMs(t *testing.T) {
 	b := &play.Combat{Units: []game.Unit{{ID: 1, At: image.Pt(27, 14)}}}
 	es := []play.Report{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Pose: 1, Ms: 300, StepMs: 20, Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
-	for _, f := range playedEvents(es, true, func(play.Report) (*play.Combat, []game.Member) { return b, nil }, 0) {
+	for _, f := range played(es, true, func(play.Report) (*play.Combat, []game.Member) { return b, nil }, 0) {
 		if f.Ms != 20 {
 			t.Fatalf("frame %d ms, want 20", f.Ms)
 		}
@@ -41,8 +40,8 @@ func TestMissileStepMs(t *testing.T) {
 func TestMissileNoMoment(t *testing.T) {
 	b := &play.Combat{Units: []game.Unit{{ID: 1, At: image.Pt(27, 14)}}}
 	es := []play.Report{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
-	out := playedEvents(es, true, func(play.Report) (*play.Combat, []game.Member) { return b, nil }, 0)
-	if len(out) != 7 || out[0].Battle == nil || len(out[0].Battle.Effects) != 1 {
+	out := played(es, true, func(play.Report) (*play.Combat, []game.Member) { return b, nil }, 0)
+	if len(out) != 7 || out[0].battle == nil || len(out[0].battle.Effects) != 1 {
 		t.Fatalf("%d frames", len(out))
 	}
 }

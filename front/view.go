@@ -132,44 +132,6 @@ type Unit struct {
 	Down       bool   // dead or out, left on the map: drawn as a body lying on its square
 }
 
-// EventKind is what a CombatEvent reports.
-type EventKind int
-
-const (
-	EvFrame   EventKind = iota // a moment of the fight to show for Ms (a missile's step, a blow drawn)
-	EvMessage                  // Text went to the Log: shown for Ms to be read
-	EvMoved                    // Unit stepped From -> To
-	EvAttack                   // Unit attacks Target
-	EvHit                      // Unit hits Target for Amount
-	EvMiss                     // Unit misses Target
-	EvDamage                   // Unit takes Amount damage
-	EvHeal                     // Unit regains Amount hit points
-	EvSpell                    // Unit casts spell Amount (Text: its name)
-	EvMissile                  // a missile flies From -> To
-	EvDied                     // Unit fell (off the map)
-	EvFled                     // Unit got away
-	EvSound                    // sound Amount (Text: the sound pack's event) goes off here (extra: with what it belongs to, PlayEventSound)
-	EvSong                     // the Amiga song Amount starts (0 stops), for a front that plays its own Sound
-	EvSaves                    // the save screen goes up (game.EvSaves)
-)
-
-// CombatEvent is one thing that happened in a fight, in order (View.Events,
-// handed out by Apply once). An event held for Ms carries the map and the
-// party as they stood (Battle, Party): the presenter shows that while it
-// plays the event, the live View when it has played them all.
-type CombatEvent struct {
-	Kind         EventKind
-	Unit, Target int // combatant IDs (Unit.ID; 0: none)
-	Amount       int
-	From, To     image.Point
-	Text         string
-	Ms           int
-	Key          bool // held until a key ("press any key"), not for Ms
-	Battle       *Battle
-	Party        []Member
-	Scene        *View // outside a fight: the whole page as it stood, shown while the event plays
-}
-
 // Aim is what a maneuver aims at.
 type Aim int
 
@@ -492,7 +454,6 @@ type View struct {
 	BorderCapsPix [4]Picture     // BorderCaps as the game's pixels, as BorderPix
 	Battle        *Battle        // the combat map (nil outside combat)
 	Walls         *Walls         // the 3D view built from the rules' own map (nil: the remastered map Data.AreaMaps names)
-	Events        []CombatEvent  // what happened in the fight since the last Apply, in order (Apply's View only)
 	Note          Note           // the status line's toast, shown on the bottom row a while after At
 	Inventory     *Inventory     // the inventory screen is up (nil otherwise)
 	Map           *MapSquares    // the current map, drawn by the presenter at MapCell pixels a square (nil where the game has no map)

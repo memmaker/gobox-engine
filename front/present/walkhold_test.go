@@ -22,15 +22,16 @@ func TestWalkPlaysStepByStep(t *testing.T) {
 	if err := g.Answer(front.Action{Kind: front.ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
 	}
+	_, evs := settled(g)
 	var at []image.Point
-	for _, e := range g.legacySettle().Events {
-		if e.Kind != front.EvMoved {
+	for _, e := range evs {
+		if e.Kind != game.EvMove {
 			continue
 		}
-		if e.Ms <= 0 || e.Battle == nil {
+		if e.Ms <= 0 || e.battle == nil {
 			t.Fatalf("step not held: %+v", e)
 		}
-		for _, u := range e.Battle.Units {
+		for _, u := range e.battle.Units {
 			if u.ID == 2 {
 				at = append(at, image.Pt(u.X, u.Y))
 			}
