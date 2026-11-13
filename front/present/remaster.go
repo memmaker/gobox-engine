@@ -53,7 +53,6 @@ type Presenter struct {
 	ticks       float64                     // animation time not yet run, in 1/60 s ticks
 	border      borders                     // the game's window border
 	bars        *gpu.Image                  // bars.png
-	idSeen      int                         // the shop's last Id reveal shown and closed (identify.go)
 	idImg       *gpu.Image                  // its pop-up
 	expShown    bool                        // drawParty: every card's experience bar, Ctrl or not (the training hall)
 	cardImgs    []*gpu.Image                // the cards, drawn at scale 1...
