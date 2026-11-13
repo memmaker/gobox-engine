@@ -156,7 +156,6 @@ func (g *Game) art() map[string]game.Picture {
 }
 
 func (g *Game) View() front.View {
-	g.r.g.fresh() // a frame's View: what changed since shows
 	r, ps := g.r, g.r.g.State()
 	c := play.CommonOf(ps)
 	art := g.art()
@@ -501,7 +500,6 @@ func (g *Game) Open(slot string) {
 
 func (g *Game) Resets() int       { return g.resets }
 func (g *Game) Refuse(s string)   { g.note = front.Note{Text: s, At: time.Now()} }
-func (g *Game) Animate()          { g.step() }
 func (g *Game) CombatStep() error { return g.step() }
 func (g *Game) RestStep() error   { return g.step() }
 func (g *Game) StoryStep() error  { return g.step() }
@@ -879,7 +877,6 @@ func (g *Game) ClueRead(i int) *front.Read {
 
 // Answer does the Decision a names; ActResize is the front's own (the page's size).
 func (g *Game) Answer(a front.Action) error {
-	g.r.g.fresh() // a decision: what changed since the frame's View shows
 	if traceOn {
 		fmt.Fprintf(os.Stderr, "trace %s act %+v\n", traceStamp(), a)
 	}

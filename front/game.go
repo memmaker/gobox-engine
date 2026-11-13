@@ -77,7 +77,6 @@ type Game interface {
 	Load(name string, loadOnly bool) bool
 
 	// Paced steps (View.Pace).
-	Animate()
 	CombatStep() error
 	RestStep() error
 	StoryStep() error

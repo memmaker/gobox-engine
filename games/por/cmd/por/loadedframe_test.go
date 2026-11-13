@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"gobox/front/classic"
 	"gobox/front/present"
@@ -77,9 +78,11 @@ func TestLoadedExploreStateBuilds(t *testing.T) {
 		return c.states
 	}
 	frames(60)
-	if n := frames(120); n > 150 { // one a frame's View, a few for a paced step the game settles; before: three a frame
-		t.Errorf("%d State builds in 120 steady frames, want about one a frame", n)
+	at := time.Now()
+	if n := frames(120); n != 0 { // nothing changed: the State built for the last change still stands
+		t.Errorf("%d State builds in 120 idle frames, want 0", n)
 	}
+	t.Logf("%.2f ms a frame idle", float64(time.Since(at).Microseconds())/1000/120)
 	c.states = 0
 	f.Key(0x4B00) // a turn: a step's decision, the walk and its settle
 	n := c.states

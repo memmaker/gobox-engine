@@ -45,11 +45,10 @@ func saveDir(d game.Data) string {
 // changed: State is the rules' whole state built anew (pool: every member's
 // item cards, milliseconds for a level-5 party), and classic reads it
 // piecewise many times a frame and a step. Do is the only way anything
-// changes (play.Game), so Do and Load drop it; so does
-// fresh, which every call that may change the game outside Do and Load
-// makes (LoadSlot, Open, SetSpeed) and each of the front's entries that
-// starts a frame's or a decision's work (View, Answer): what the
-// game changed on its own (a setting's toggle, the clock) shows by then.
+// changes (play.Game), so Do and Load drop it; so does fresh, which every
+// call that may change the game outside Do and Load makes (LoadSlot, Open,
+// SetSpeed). Nothing else does: a frame with no input builds no State
+// (TestLoadedExploreStateBuilds); time's steps (rest, walk) are Do's.
 type memoGame struct {
 	play.Game
 	ps play.State

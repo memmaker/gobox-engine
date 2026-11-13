@@ -157,7 +157,7 @@ func screenSig(v front.View) string {
 	turn := v.Battle != nil && v.Battle.Turn != nil
 	return fmt.Sprint(v.Battle != nil, turn, ask, v.Inventory != nil, v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, v.MainMenu != nil, v.Exploring, v.Training != nil)
 }
-func (f *Front) Tick() { Scripted = true; f.stale(); f.P.Tick() } // only a script ticks: its clock is the frames
+func (f *Front) Tick() { Scripted = true; f.P.Tick() } // only a script ticks: its clock is the frames
 
 func (f *Front) Options() bool       { return f.P.Options() }
 func (f *Front) UpdateOptions()      { f.stale(); f.P.UpdateOptions() }
@@ -186,10 +186,9 @@ func (f *Front) Idle() bool {
 
 func (f *Front) Free() bool { return f.P.Free(f.view()) }
 func (f *Front) Flow(held uint16, ready bool) (bool, bool) {
-	defer f.stale()
 	return f.P.Flow(held, ready)
 }
-func (f *Front) FreeWalk(in blobber.FreeInput) { defer f.stale(); f.P.FreeWalk(in, f.view()) }
+func (f *Front) FreeWalk(in blobber.FreeInput) { f.P.FreeWalk(in, f.view()) }
 
 func (f *Front) InventoryShown() bool { return f.P.InventoryShown() }
 func (f *Front) InventoryMouse(x, y int, down, right bool, wheel float64) {
@@ -245,7 +244,6 @@ func (f *Front) Drop(path string, cx, cy int, in bool) {
 // with time (Pace). The fight's events Settle hands back are played.
 func (f *Front) Act() {
 	g := f.Game
-	f.stale()       // the time and the screens' pacing move on: this frame's View is built here once
 	if !f.started { // the title, on the render loop's (locked) thread that runs the game
 		f.started = true
 		g.Open(f.slot)

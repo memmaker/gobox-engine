@@ -6,7 +6,8 @@ import (
 )
 
 // The presenter paces what goes on with time (View.Pace: the fight's
-// turns, camp's rest, the finale, the auto-walk, the picture) and asks the
+// turns, camp's rest, the finale, the auto-walk; a picture's frames
+// animate in the draw, from the View's FrameMs, no call) and asks the
 // yes/no questions the rules need answered (Flee?, Attack Ally?, Stop
 // resting?) itself.
 
@@ -25,8 +26,6 @@ func (p *Presenter) Pace(v front.View) {
 		p.call(func(e front.Game) { e.StoryStep() })
 	case front.PaceWalk:
 		p.call(func(e front.Game) { e.WalkStep() })
-	case front.PaceAnim:
-		p.call(func(e front.Game) { e.Animate() })
 	}
 }
 
