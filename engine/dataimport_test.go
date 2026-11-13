@@ -11,7 +11,6 @@ import (
 
 	"gobox/asset/orig"
 	"gobox/audio"
-	"gobox/audio/sounddata"
 	"gobox/rules"
 )
 
@@ -86,7 +85,7 @@ func TestSoundEqualsEXE(t *testing.T) {
 	if err != nil {
 		t.Skip("no START.EXE")
 	}
-	want, err := sounddata.Decode(exe, SoundLayout)
+	want, err := audio.DecodeSoundData(exe, SoundLayout)
 	if err != nil {
 		t.Fatal(err)
 	}

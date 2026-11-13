@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"gobox/asset/orig"
-	"gobox/audio/sounddata"
+	"gobox/audio"
 	"gobox/ecl"
 	"gobox/engine"
 	"gobox/importer"
@@ -92,7 +92,7 @@ func writeSwitchData(dst string) error {
 	if err := engine.WriteGameData(data, PodStaticData()); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(data, engine.SoundFile), []byte(sounddata.Silent), 0o644); err != nil { // AdLib only: no speaker or Tandy tables
+	if err := os.WriteFile(filepath.Join(data, engine.SoundFile), []byte(audio.SilentSoundData), 0o644); err != nil { // AdLib only: no speaker or Tandy tables
 		return err
 	}
 	if err := importer.WriteJSON(filepath.Join(data, engine.GameTablesFile), tables); err != nil {

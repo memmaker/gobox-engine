@@ -1,4 +1,4 @@
-// Package sounddata decodes a game's sound tables (the PC speaker's and the Tandy's
+// Sound data (sounddata.go) decodes a game's sound tables (the PC speaker's and the Tandy's
 // songs, their scripts, the vibrato waveforms and, with Notes, the envelopes and note
 // periods) from START.EXE's sound driver into the JSON audio.NewDriver plays. A game's
 // import writes it into its assets; nothing at run time reads the executable.
@@ -6,7 +6,7 @@
 // Every address is an offset in the driver's segment; the per-game values are in
 // audio/API.md. Decode checks that the scripts use only what the player implements;
 // without Notes (games with no notes) no notes, and the fields only notes read are dropped.
-package sounddata
+package audio
 
 import (
 	"encoding/binary"
@@ -17,14 +17,13 @@ import (
 )
 
 const (
-	channelSize   = 48
-	channels      = 4
-	envelopeSteps = 8
-	firstCommand  = 250
+	channelSize  = 48
+	channels     = 4
+	firstCommand = 250
 )
 
-// Layout is where a game's driver keeps its tables.
-type Layout struct {
+// SoundDataLayout is where a game's driver keeps its tables.
+type SoundDataLayout struct {
 	Segment                      int // the driver's segment, in paragraphs of the load image
 	JumpTable                    int // the script commands' handler table, from command 250 on
 	SpeakerSet, TandySet         int // each card's four channels
@@ -52,8 +51,8 @@ type op struct {
 	length     int // a note's
 }
 
-// Decode is the sound tables of exe, an EXEPACK-packed START.EXE, as JSON.
-func Decode(exe []byte, l Layout) ([]byte, error) {
+// DecodeSoundData is the sound tables of exe, an EXEPACK-packed START.EXE, as JSON.
+func DecodeSoundData(exe []byte, l SoundDataLayout) ([]byte, error) {
 	if l.Segment == 0 || len(l.Commands) == 0 {
 		return nil, errors.New("sounddata: no segment or commands")
 	}
@@ -370,7 +369,7 @@ func unpack(b []byte) ([]byte, error) {
 	return out, nil
 }
 
-// Silent is the sound tables of a game with no PC speaker or Tandy music (Pools
+// SilentSoundData is the sound tables of a game with no PC speaker or Tandy music (Pools
 // of Darkness plays AdLib only): the one song every game has, song 0, which ends
 // every channel. audio.NewDriver takes it, and every song after it plays nothing.
-const Silent = `{"program":[{}],"speaker":[[0,0,0,0]],"tandy":[[0,0,0,0]],"vibratos":[],"envelopes":[]}`
+const SilentSoundData = `{"program":[{}],"speaker":[[0,0,0,0]],"tandy":[[0,0,0,0]],"vibratos":[],"envelopes":[]}`

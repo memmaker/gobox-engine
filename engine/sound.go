@@ -7,7 +7,6 @@ import (
 
 	"gobox/asset/orig"
 	"gobox/audio"
-	"gobox/audio/sounddata"
 	"gobox/game"
 	"gobox/rules"
 )
@@ -18,7 +17,7 @@ import (
 const SoundFile = "sound.json"
 
 // SoundLayout is where START.EXE's driver (segment 08AE) keeps its tables (gobox audio API.md).
-var SoundLayout = sounddata.Layout{Segment: 0x8AE, JumpTable: 545, SpeakerSet: 557, TandySet: 967,
+var SoundLayout = audio.SoundDataLayout{Segment: 0x8AE, JumpTable: 545, SpeakerSet: 557, TandySet: 967,
 	SpeakerSongs: 1375, TandySongs: 1543, Songs: 21, Enabled: 525,
 	Commands: map[int]string{5710: "reset", 5804: "return", 5811: "call", 5701: "switch", 5678: "loop", 5759: "set"}}
 
