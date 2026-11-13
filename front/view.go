@@ -143,24 +143,6 @@ type Reaction struct {
 	Policy Policy
 }
 
-// Walls is a 3D view the presenter builds from the rules' own map
-// (View.Walls), seen from View.X, Y, Facing: a wall face on every side
-// Side[y][x][d] (N E S W) that holds a wall value, textured with that
-// value's picture.
-type Walls struct {
-	Key                 string              // what the scene is built from (map, wall sets): a new Key builds it again
-	Side                [][][4]int          // a square's wall value by side, rows from the top (0: open)
-	Fronts              map[int]image.Image // a wall value's picture: the original's front view of it
-	FrontPix            map[int]Picture     // Fronts as the game's pixels (Picture.Pix, in View.Ink) or DAX refs (File, Block, Frame), the presenter's to make into Fronts
-	Pool                map[int]string      // a wall value's remastered texture by gobox/walls pool name, in place of Fronts
-	Floor, Sky          string              // the flats' pool names (floor_NAME, ceiling_NAME); outside (not View.Inside) the sky shows
-	FloorRGBA, CeilRGBA *color.RGBA         // plain flat colours (nil: none), used where Floor or Sky is "": the pool's floor and ceiling are not
-	Sun                 bool                // by day outside: the sun up, at SunAz
-	SunAz, SunEl        float64             // the sun's bearing (compass radians, 0 north, pi/2 east) and height above the horizon
-	Mountains           bool                // by day outside: the mountain range on the horizon
-	Backdrop            *Picture            // over the whole view behind the walls, opaque and stretched, in place of the flats (nil: none): Img, or the game's pixels or DAX ref the presenter decodes into Img
-}
-
 // Dir is a facing: N, E, S, W.
 type Dir int
 
@@ -308,7 +290,6 @@ type View struct {
 	Picker     *Picker     // a grid picker (the page): ActPicked, ActPage; ActClose leaves
 	Ask        *Ask        // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
 	Party      []Member
-	Walls      *Walls         // the 3D view built from the rules' own map (nil: the remastered map Data.AreaMaps names)
 	Note       Note           // the status line's toast, shown on the bottom row a while after At
 	Inventory  *Inventory     // the inventory screen is up (nil otherwise)
 	Pictures   []Picture      // the screen's pictures, symbols and fills, bottom first

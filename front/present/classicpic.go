@@ -128,20 +128,6 @@ func pixView(v front.View) front.View {
 		c.Marker = picImage(m.MarkerPix, ink)
 		v.AreaMap = &c
 	}
-	if w := v.Walls; w != nil && w.FrontPix != nil && w.Fronts == nil {
-		c := *w
-		c.Fronts = make(map[int]image.Image, len(w.FrontPix))
-		for k, pc := range w.FrontPix {
-			c.Fronts[k] = picImage(pc, ink)
-		}
-		v.Walls = &c
-	}
-	if w := v.Walls; w != nil && w.Backdrop != nil && w.Backdrop.Img == nil {
-		c, b := *w, *w.Backdrop
-		b.Img = picImage(b, ink)
-		c.Backdrop = &b
-		v.Walls = &c
-	}
 	if pixParty(v.Party) {
 		v.Party = append([]front.Member(nil), v.Party...)
 		for i := range v.Party {

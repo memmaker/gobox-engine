@@ -26,8 +26,7 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 	for i := range 8 {
 		party = append(party, front.Member{Name: fmt.Sprint("M", i), HP: 1, MaxHP: 1, Powers: pw})
 	}
-	v := front.View{Party: party, Exploring: true, Adventure: true, Camp: &front.Camp{}, Sweeping: true, Interact: true,
-		Walls: &front.Walls{Key: "layout", Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}
+	v := front.View{Party: party, Exploring: true, Adventure: true, Camp: &front.Camp{}, Sweeping: true, Interact: true}
 	presenter := func() *Presenter { // over the 3D view and its minimap the state gives
 		g, _ := playGame(play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
 			Walls: play.Walls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}})

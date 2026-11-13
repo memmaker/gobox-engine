@@ -59,17 +59,15 @@ func allowedOf(ps play.State) map[string]bool {
 	return m
 }
 
-// automapOf is the map of where the party is; camp keeps the one explored.
-func (r *rules) automapOf(ps play.State) game.Automap {
+// automapOf is the map of where the party is; camp keeps the explored one.
+func automapOf(ps play.State, explored game.Automap) game.Automap {
 	c := play.CommonOf(ps)
 	a := c.Automap
 	if x, ok := ps.(play.Exploring); ok && a.Size == (image.Point{}) {
 		a = x.Map.Automap
 	}
-	if _, ok := ps.(play.Exploring); ok {
-		r.camMap = a
-	} else if _, ok := ps.(play.Camping); ok && len(a.Known) == 0 && len(r.camMap.Known) > 0 {
-		a = r.camMap
+	if _, ok := ps.(play.Camping); ok && len(a.Known) == 0 && len(explored.Known) > 0 {
+		a = explored
 	}
 	if a.Area == "" {
 		a.Area = c.Area
@@ -222,24 +220,25 @@ func (r *rules) pacingOf(ps play.State) *game.Pacing {
 	return p
 }
 
-// wallsOf is the 3D view up: camp and a scene keep the one last explored; a
-// fight or the party menu drops it.
-func (r *rules) wallsOf(ps play.State) *game.Walls {
+// wallsOf is the 3D view up (shown) and the one last explored (kept): camp
+// and a scene keep it; a fight or the party menu drops it.
+func wallsOf(ps play.State, kept *game.Walls) (shown, keep *game.Walls) {
 	switch t := ps.(type) {
 	case play.Exploring:
-		r.walls = nil
 		if w := t.Map.Walls; w.Side != nil { // no squares: no 3D view (the overland)
-			r.walls = gameWalls(w)
+			kept = gameWalls(w)
+		} else {
+			kept = nil
 		}
 	case play.Scene:
 		if t.Walls != nil && t.Walls.Side != nil {
-			return gameWalls(*t.Walls)
+			return gameWalls(*t.Walls), kept
 		}
 	case play.Camping:
 	default:
-		r.walls = nil
+		kept = nil
 	}
-	return r.walls
+	return kept, kept
 }
 
 // readOf is the handout up, kept so the pointer holds while it does.
@@ -430,9 +429,9 @@ func (g *Game) Party() []game.Member     { return g.party() }
 func (g *Game) Fight() *play.Combat      { return g.combat() }
 func (g *Game) Pace() game.Pace          { return g.pace() }
 func (g *Game) Common() play.Common      { return play.CommonOf(g.r.g.State()) }
-func (g *Game) Walls() *game.Walls       { return g.r.wallsOf(g.r.g.State()) }
+func (g *Game) Walls() *game.Walls       { return g.r.derived().walls }
 func (g *Game) Loot() *game.Loot         { return lootOf(g.r.g.State()) }
-func (g *Game) Automap() game.Automap    { return g.r.automapOf(g.r.g.State()) }
+func (g *Game) Automap() game.Automap    { return g.r.derived().automap }
 func (g *Game) Page() *game.Page         { return g.pane() }
 func (g *Game) Results() *game.Results   { return resultsOf(g.r.g.State()) }
 func (g *Game) Flags() *game.Flags       { return g.r.flagsOf(g.r.g.State(), g.party()) }

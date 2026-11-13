@@ -70,10 +70,10 @@ func shownOf(r *rules) shown {
 	c := play.CommonOf(ps)
 	party := partyOf(ps)
 	s := shown{Mode: r.modeOf(ps), Pending: r.pending(ps), Party: party, Selected: r.selectedOf(ps), Where: c.Where,
-		Story: storyOf(c), Purse: c.Purse, Quests: c.Quests, Map: r.automapOf(ps), Combat: r.combatOf(ps), Shop: shopOf(ps),
+		Story: storyOf(c), Purse: c.Purse, Quests: c.Quests, Map: r.derived().automap, Combat: r.combatOf(ps), Shop: shopOf(ps),
 		Training: trainingOf(ps), Loot: lootOf(ps), Door: doorOf(ps), Creation: creationOf(ps), Allowed: allowedOf(ps),
 		PartyCap: c.PartyCap, Picker: c.Picker, IconEditor: c.IconEditor, Page: r.pageOf(ps), Flags: r.flagsOf(ps, party),
-		Walls: r.wallsOf(ps), Intro: introOf(ps), Sequence: sequenceOf(ps), Note: r.note, Results: resultsOf(ps), Read: r.readOf(ps),
+		Walls: r.derived().walls, Intro: introOf(ps), Sequence: sequenceOf(ps), Note: r.note, Results: resultsOf(ps), Read: r.readOf(ps),
 		Pacing: r.pacingOf(ps), Window: windowOf(ps), Holding: holding(ps), Lore: c.Lore, PowerPick: c.PowerPick, PoolItems: c.PoolItems,
 		Sheet: r.sheetOf(c), Items: r.itemsUp(ps), SheetPage: r.sheetPageOf(ps, party), Screen: screenOf(ps)}
 	s.Temple, s.TempleOffers = templeOf(ps)

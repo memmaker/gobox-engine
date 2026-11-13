@@ -114,7 +114,7 @@ func (p *Presenter) drawAreaMap(dst *gpu.Image) {
 	if p.eng == nil {
 		return
 	}
-	am, art, where := p.eng.r.automapOf(p.state()), p.eng.art(), p.where()
+	am, art, where := p.eng.r.derived().automap, p.eng.art(), p.where()
 	if len(am.Terrain) == 0 || len(art) == 0 || len(am.Terrain) != am.Size.X*am.Size.Y {
 		return
 	}

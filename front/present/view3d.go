@@ -41,11 +41,11 @@ func mapPx(dst *gpu.Image) int {
 // fitScale is ui.FitScale: unit (K) times a whole size step that fits.
 func fitScale(unit, s float64, ok func(k float64) bool) float64 { return ui.FitScale(unit, s, ok) }
 
-// drawMap shows the map as the full map draws it (the state's automap) in mapRect.
-func (p *Presenter) drawMap(dst *gpu.Image, font func(byte, bool) [8]byte) {
+// drawMap shows the map as the full map draws it (the state's automap) in mapRect, in ink.
+func (p *Presenter) drawMap(dst *gpu.Image, ink [16]color.RGBA, font func(byte, bool) [8]byte) {
 	p.mapAt = image.Rectangle{}
-	am, ok := p.minimap()
-	if !ok || Host.MapOff || mapBarred(am) {
+	am, m := p.minimap()
+	if m == nil || Host.MapOff || mapBarred(am) {
 		return
 	}
 	if p.mapImg == nil {
@@ -55,10 +55,9 @@ func (p *Presenter) drawMap(dst *gpu.Image, font func(byte, bool) [8]byte) {
 	if p.fonts != nil {
 		cur = p.fonts.Cur
 	}
-	m := Map(&front.MapSquares{}, am, p.where())
-	if p.mapSrc == nil || *m != *p.mapSrc || cur != p.mapFont { // the map changed: upload it once (not every frame)
-		p.mapImg.WritePixels(mapImage(m, mapCell, egaInk, font).Pix)
-		p.mapSrc, p.mapFont = m, cur
+	if m != p.mapSrc || ink != p.mapInk || cur != p.mapFont { // the map changed: upload it once (not every frame)
+		p.mapImg.WritePixels(mapImage(m, mapCell, ink, font).Pix)
+		p.mapSrc, p.mapInk, p.mapFont = m, ink, cur
 	}
 	r := mapRect(dst)
 	p.mapAt = r
@@ -79,7 +78,7 @@ func (p *Presenter) scene() *blobber.Scene {
 	if p.eng == nil {
 		return nil
 	}
-	if w := p.eng.r.wallsOf(p.state()); w != nil {
+	if w := p.walls(); w != nil {
 		p.behind = p.wallScene(w, p.eng.art())
 		return p.behind
 	}
@@ -98,10 +97,8 @@ func (p *Presenter) areaID() front.AreaID {
 
 // sceneName names the scene the state shows: the rules' map's (Walls), or the remastered map's.
 func (p *Presenter) sceneName() string {
-	if p.eng != nil {
-		if w := p.eng.r.wallsOf(p.state()); w != nil {
-			return "walls:" + w.Key
-		}
+	if w := p.walls(); w != nil {
+		return "walls:" + w.Key
 	}
 	if name, ok := areaMaps[p.areaID()]; ok {
 		return name

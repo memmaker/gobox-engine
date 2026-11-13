@@ -44,8 +44,8 @@ func TestFrontBuildsViewOncePerFrame(t *testing.T) {
 	}
 	f.Key(' ') // a key may change it: the next ask builds it again
 	f.Screen()
-	if c.reads != 2*one {
-		t.Fatalf("after Key: %d reads, want %d", c.reads, 2*one)
+	if c.reads <= one { // (the derived reads stay: the State is the same)
+		t.Fatalf("after Key: %d reads, want more than %d", c.reads, one)
 	}
 }
 
@@ -60,15 +60,15 @@ func TestMinimapUploadsOnChange(t *testing.T) {
 	}
 	g, f := playGame(st(image.Pt(1, 1)))
 	p.SetEngine(g)
-	p.drawMap(dst, font)
+	p.drawMap(dst, egaInk, font)
 	first := p.mapSrc
 	f.st = st(image.Pt(1, 1))
-	p.drawMap(dst, font)
+	p.drawMap(dst, egaInk, font)
 	if p.mapSrc != first {
 		t.Error("an unchanged map was drawn again")
 	}
 	f.st = st(image.Pt(2, 1))
-	p.drawMap(dst, font)
+	p.drawMap(dst, egaInk, font)
 	if p.mapSrc == first {
 		t.Error("a changed map was not drawn again")
 	}
@@ -138,5 +138,36 @@ func TestFightBoardBuiltOncePerChange(t *testing.T) {
 	f.Draw(dst)
 	if f.P.fightBoard == board {
 		t.Fatal("a change did not rebuild the board")
+	}
+}
+
+// The 3D view's walls and the minimap's squares are derived from the State
+// once per Version: idle frames read the same ones, a new State builds them again.
+func TestWallsAndMinimapBuiltOncePerChange(t *testing.T) {
+	st := func(x int) play.State {
+		return play.Exploring{Common: play.Common{Where: game.Where{X: x}}, Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
+			Walls: play.Walls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}}
+	}
+	g, f := playGame(st(1))
+	var p Presenter
+	p.SetEngine(g)
+	dst := gpu.NewImage(640, 400)
+	font := func(byte, bool) [8]byte { return [8]byte{} }
+	w, m := p.walls(), p.eng.r.derived().minimap
+	if w == nil || m == nil {
+		t.Fatalf("walls %v, minimap %v", w, m)
+	}
+	for range 5 {
+		p.scene()
+		p.sceneName()
+		p.drawMap(dst, egaInk, font)
+	}
+	if p.walls() != w || p.eng.r.derived().minimap != m {
+		t.Fatal("idle frames derived them again")
+	}
+	f.st = st(2)
+	p.scene()
+	if p.walls() == w || p.eng.r.derived().minimap == m {
+		t.Fatal("a new State did not derive them again")
 	}
 }

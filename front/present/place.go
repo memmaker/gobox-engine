@@ -72,11 +72,19 @@ func (p *Presenter) flags() *game.Flags {
 	return p.eng.r.flagsOf(s, partyOf(s))
 }
 
-// minimap is the automap of the state up, and whether it is a 16x16 map to draw.
-func (p *Presenter) minimap() (game.Automap, bool) {
+// minimap is the automap of the state up and its squares, when it is a 16x16 map to draw.
+func (p *Presenter) minimap() (game.Automap, *front.MapSquares) {
 	if p.eng == nil {
-		return game.Automap{}, false
+		return game.Automap{}, nil
 	}
-	a := p.eng.r.automapOf(p.state())
-	return a, a.Size == image.Pt(16, 16)
+	d := p.eng.r.derived()
+	return d.automap, d.minimap
+}
+
+// walls is the 3D view the state shows (nil: none).
+func (p *Presenter) walls() *game.Walls {
+	if p.eng == nil {
+		return nil
+	}
+	return p.eng.r.derived().walls
 }

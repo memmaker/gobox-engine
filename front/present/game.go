@@ -161,7 +161,7 @@ func (g *Game) View() front.View {
 	} else {
 		g.r.lookSheet = 0
 	}
-	amap, allowed, loot, shop := r.automapOf(ps), allowedOf(ps), lootOf(ps), shopOf(ps)
+	amap, allowed, loot, shop := r.derived().automap, allowedOf(ps), lootOf(ps), shopOf(ps)
 	services, _ := templeOf(ps)
 	training, draft := trainingOf(ps), creationOf(ps)
 	own := OwnSubject(mode, draft, party, sel)
@@ -206,7 +206,6 @@ func (g *Game) View() front.View {
 	v = Waits(v, doorOf(ps), c.PowerPick)
 	v.Party, v.Purse = Party(party, cardsOf(ps), sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
 	v = Sheet(v, sheet, image.Rectangle{}, image.Rectangle{}, page, Drafting(mode, draft), draft, own)
-	v = Walls(v, r.wallsOf(ps), art)
 	v = Intro(v, introOf(ps))
 	v = Sequence(v, sequenceOf(ps), g.D.Sequences, g.D.AnimDir())
 	v = NoteView(v, r.note)
@@ -1080,7 +1079,7 @@ func (g *Game) IconEditorOn(ink *[16]color.RGBA, cols, rows int) *front.IconEdit
 // FullMapOf is f with the map of where the party is.
 func (g *Game) FullMapOf(f *front.FullMap) *front.FullMap {
 	ps := g.r.g.State()
-	return FullMap(f, g.r.automapOf(ps), play.CommonOf(ps).Where)
+	return FullMap(f, g.r.derived().automap, play.CommonOf(ps).Where)
 }
 
 // Where is the party's place; Mode the screen up; Dungeon a fight's ground.

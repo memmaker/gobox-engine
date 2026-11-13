@@ -126,7 +126,7 @@ func (p *Presenter) exploreKey(k uint16) bool {
 // explores (no menu up): the minimap opens the full map, anywhere else
 // opens the command menu. The mouse never walks or turns.
 func (p *Presenter) exploreClick(x, y int) {
-	if _, ok := p.minimap(); ok && p.mapAt.Min.X < p.mapAt.Max.X && image.Pt(x, y).In(p.mapAt) {
+	if _, m := p.minimap(); m != nil && p.mapAt.Min.X < p.mapAt.Max.X && image.Pt(x, y).In(p.mapAt) {
 		p.openMap()
 		return
 	}

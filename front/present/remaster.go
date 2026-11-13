@@ -81,7 +81,7 @@ type Presenter struct {
 	answered    string                      // the text pane under the last question: once it is answered, that text is done
 	mapImg      *gpu.Image                  // View.Map on the GPU
 	mapAt       image.Rectangle             // where drawMap last put the minimap (a click there opens the full map)
-	mapSrc      *front.MapSquares           // the View.Map it holds (a copy: each View builds a new one)
+	mapSrc      *front.MapSquares           // the derived minimap it holds (derived)
 	mapInk      [16]color.RGBA              // the ink it was drawn in
 	mapFont     int                         // and the font (fonts.Cur, -1: the game's own)
 	menuRects   []image.Rectangle           // the vertical menu's items on screen, as last drawn
@@ -866,7 +866,8 @@ func (s *srcImage) of(src image.Image) *gpu.Image {
 func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note Note) {
 	cam := blobber.Camera{X: v.X, Y: v.Y, Dir: int(v.Facing)}
 	name := areaMaps[v.Area]
-	if v.Walls != nil {
+	w := p.walls()
+	if w != nil {
 		name = p.sceneName()
 	}
 	if name != p.shown {
@@ -884,14 +885,14 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 		}
 	}
 	p.view.Night = !v.Day
-	if w := v.Walls; w != nil { // the rules' own map: night only outside, the sun and the mountains by day outside
+	if w != nil { // the rules' own map: night only outside, the sun and the mountains by day outside
 		day := v.Day && !v.Inside
 		p.view.Night = !v.Inside && !v.Day
 		p.view.SunUp, p.view.SunAz, p.view.SunEl, p.view.Mountains = w.Sun && day, w.SunAz, w.SunEl, w.Mountains && day
 	}
 	p.animate()
 	p.view.Draw(dst)
-	p.drawMap(dst, note.Font)
+	p.drawMap(dst, v.Ink, note.Font)
 }
 
 // ownLayout: v is a page whose screen lays itself out on the page canvas

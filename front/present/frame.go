@@ -39,8 +39,6 @@ type UI struct {
 	note       game.Note     // the status line's toast: the last refusal
 	toast      front.Note    // the front's own toast (Added to journal, a refusal over the items)
 	lore       int           // journal notes seen (State.Lore), +1; 0: none counted yet
-	walls      *game.Walls   // the 3D view last explored: a scene over it keeps it
-	camMap     game.Automap  // the map last explored: camp keeps it
 	title      struct {      // the title as gobox steps it
 		n       int
 		credits bool
