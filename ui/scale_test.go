@@ -6,10 +6,10 @@ import (
 )
 
 func TestScale(t *testing.T) {
-	if k := Scale(image.Rect(0, 0, 1280, 800), 400, 250); k != 3 {
+	if k := Scale(image.Rect(0, 0, 1280, 800)); k != 3 {
 		t.Fatal(k)
 	}
-	if k := Scale(image.Rect(0, 0, 100, 100), 400, 250); k != 1 {
+	if k := Scale(image.Rect(0, 0, 100, 100)); k != 1 {
 		t.Fatal(k)
 	}
 	if k := FitScale(3, 2, func(k float64) bool { return k <= 4 }); k != 3 {

@@ -18,7 +18,7 @@ import (
 // canvas pixel takes, across and down.
 func (p *Presenter) fullPage(dst *gpu.Image, sc *sheetCanvas, note Note, title string, body func(m *image.RGBA, cw, ch int)) (kx, ky float64) {
 	b := dst.Bounds()
-	_, cw, ch := ui.FullPageCells(b, invW, invH)
+	_, cw, ch := ui.FullPageCells(b)
 	if w, h := cw*8, ch*8; gpu.Sized(&sc.img, w, h) {
 		sc.w, sc.h, sc.px = w, h, image.NewRGBA(image.Rect(0, 0, w, h))
 	}

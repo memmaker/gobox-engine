@@ -75,8 +75,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 	p.setup(note, v)
 	p.pageMenu = true
 	b := dst.Bounds()
-	k := max(1, min(b.Dx()/invW, b.Dy()/invH)) // the inventory's scale and cells
-	cw, ch := max(invW, b.Dx()/k)/8, max(invH, b.Dy()/k)/8
+	k, cw, ch := ui.FullPageCells(b) // K and the cells
 	if w, h := cw*8, ch*8; gpu.Sized(&sc.img, w, h) {
 		sc.w, sc.h, sc.px = w, h, image.NewRGBA(image.Rect(0, 0, w, h))
 	}

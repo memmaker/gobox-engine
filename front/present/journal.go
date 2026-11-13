@@ -240,8 +240,7 @@ func (p *Presenter) drawJournal(dst *gpu.Image, note Note, v front.View) {
 	j := &p.journal
 	sc := &j.page
 	b := dst.Bounds()
-	k := max(1, min(b.Dx()/invW, b.Dy()/invH))
-	cw, ch := max(invW, b.Dx()/k)/8, max(invH, b.Dy()/k)/8
+	_, cw, ch := ui.FullPageCells(b)
 	if w, h := cw*8, ch*8; gpu.Sized(&sc.img, w, h) {
 		sc.w, sc.h, sc.px = w, h, image.NewRGBA(image.Rect(0, 0, w, h))
 	}

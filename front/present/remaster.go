@@ -266,7 +266,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 			h := int(k) * 8 * (len(p.pick) + 4) // drawMenu's box: the border, the title and a blank line
 			top = max(top, min(p.picBottom+int(k)*4, dst.Bounds().Dy()-h))
 		}
-		if at := p.pickAt; at != (image.Rectangle{}) { // from a card's context menu: in its place at its scale, the edge next to the card kept
+		if at := p.pickAt; at != (image.Rectangle{}) { // from a card's context menu: in its place at its scale (the card's), the edge next to the card kept
 			k = cardScale(dst)
 			w := 0
 			for _, s := range p.pick {
@@ -331,7 +331,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if p.fight {
 		p.shown, p.active, p.menu = "", false, false
 		p.fightView = p.keepFallen(askedBattle(v))
-		p.battle.Glyph = note.Glyph
+		p.battle.Glyph, p.battle.K = note.Glyph, int(scale(dst))
 		p.syncBattle()
 		p.battle.Draw(dst, toBoard(p.fightView))
 		p.drawFight(dst, note, v)
@@ -447,7 +447,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	p.labelAt = p.labelAt[:0]
 	if v.Sweeping { // the reminder: under the minimap, else in its corner
-		k := cardScale(dst)
+		k := scale(dst)
 		const s = "Sweeping"
 		w, gap := int(k*float64(8*len(s)+2)), int(k*cardGap)
 		y := gap
@@ -458,7 +458,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.labelAt = append(p.labelAt, image.Rect(dst.Bounds().Dx()-gap-w, y, dst.Bounds().Dx()-gap, y+int(k*10)))
 	}
 	if v.Interact { // Explicit Interactions: the square's event waits for Space (or the command menu's Interact)
-		k := cardScale(dst)
+		k := scale(dst)
 		const s = "<act>"
 		w, gap := int(k*float64(8*len(s)+2)), int(k*cardGap)
 		p.label(dst, s, (dst.Bounds().Dx()-w)/2, gap, k)
@@ -720,7 +720,7 @@ func (p *Presenter) animate() {
 // 1). Every glyph and ribbon tile is 8*K window pixels; a larger window
 // gives more cells, not bigger ones.
 func scale(dst *gpu.Image) float64 {
-	return ui.Scale(dst.Bounds(), invW, invH)
+	return ui.Scale(dst.Bounds())
 }
 
 // window is ui.Window: every window's frame, the ribbon border in tiles t.

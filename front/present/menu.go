@@ -31,6 +31,9 @@ var menuTheme ui.MenuTheme // applyTheme
 // drawMenuIcons is drawMenu with an icon before each row of icons that is
 // not nil (ui.MenuCanvas.Draw), in the theme and the presenter's menu state.
 func (p *Presenter) drawMenuIcons(dst *gpu.Image, glyph func(byte) [8]byte, title string, items []string, keys []byte, off []bool, icons []image.Image, sel int, k float64, cx, top int) {
+	if drawnAt != nil {
+		drawnAt(drawnMenu, dst, k)
+	}
 	st := ui.MenuStyle{Theme: menuTheme, Tiles: p.border.tiles, Edges: edgeTiles, Glyph: glyph, RowGlyph: blobber.MenuGlyph, Tight: p.menuTight, Tip: p.tipping}
 	if p.logGrey {
 		st.Theme.Text = col(inkGrey) // the battle Log's light grey
@@ -66,3 +69,17 @@ func (p *Presenter) asking(v front.View, draw func()) {
 	defer func() { p.inkAsk = nil }()
 	draw()
 }
+
+// drawnKind is what drawnAt saw drawn: a menu (every menu, pop-up,
+// question and tooltip: at K) or a box (a text pane, a picture or view
+// window: its ribbon at a whole multiple of K).
+type drawnKind int
+
+const (
+	drawnMenu drawnKind = iota
+	drawnBox
+)
+
+// drawnAt, when set (TestOneCellSize), sees the scale every menu and box
+// is drawn at on dst.
+var drawnAt func(what drawnKind, dst *gpu.Image, k float64)

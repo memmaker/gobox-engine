@@ -5,14 +5,8 @@ import (
 	"math"
 )
 
-// Scale is K, the UI's one glyph cell size over 8: the largest whole
-// factor a minW x minH page fits b at (at least 1). Every glyph and ribbon
-// tile is 8*K window pixels; a larger window gives more cells, not bigger
-// ones.
-func Scale(b image.Rectangle, minW, minH int) float64 {
-	k, _, _ := FullPageCells(b, minW, minH)
-	return float64(k)
-}
+// Scale is K as a float, for the GeoM scales.
+func Scale(b image.Rectangle) float64 { return float64(K(b)) }
 
 // FitScale is unit (K) times size s (a whole size step: 1x-4x) when
 // ok takes it, else the largest smaller whole step of unit ok takes, else
