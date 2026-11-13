@@ -1221,7 +1221,7 @@ func (e *Engine) leave() error {
 		cr.asking = true
 	case q != nil:
 		return e.leaveAsk(q)
-	case e.waiting(PendShop), e.trainingOpen():
+	case e.waiting(PendShop, PendTemple), e.trainingOpen(): // the temple's Exit too (Leave takes both)
 		return e.Leave()
 	default:
 		return core.ErrNotNow
