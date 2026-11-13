@@ -181,7 +181,7 @@ func (p *Presenter) InventoryShown() bool { return p.inv.shown }
 // Screens names the presenter's own screens up, for the input latch: it
 // changes whenever one opens or closes.
 func (p *Presenter) Screens() string {
-	return fmt.Sprint(p.inv.shown, p.board != nil, p.Options(), p.overview, p.pager != nil, p.fullMap != nil, p.clue != nil, p.training, p.frontScreens())
+	return fmt.Sprint(p.inv.shown, p.board != nil, p.Options(), p.overview, p.pager != nil, p.fullMap != nil, p.clue != nil, p.training, p.frontScreens(), p.stateScreens())
 }
 
 // call queues a rule call on the engine (Calls).

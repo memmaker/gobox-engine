@@ -222,7 +222,7 @@ func bookLine(m game.Member, book []game.SpellRef, sp game.SpellRef) (level stri
 // campHome: camp's own screen is up, the members' menus beside their
 // cards (drawCampMenus).
 func (p *Presenter) campHome(v front.View) bool {
-	return v.Camp != nil && p.camp.screen == campMain && screenUp(v)
+	return v.Camp != nil && p.camp.screen == campMain && p.screenUp(v)
 }
 
 // drawCampMenus draws every member's context menu at once beside their
@@ -565,8 +565,8 @@ func (p *Presenter) campPick(v front.View, i int) {
 }
 
 // screenUp: one of the camp-style screens is up (camp, temple, shop, training, a power pick).
-func screenUp(v front.View) bool {
-	return (v.Camp != nil || v.Temple != nil || v.Shop != nil || v.Training != nil || v.Powers != nil) && askMenu(v) == nil && v.SheetPage == nil // a member viewed: the sheet over the screen
+func (p *Presenter) screenUp(v front.View) bool {
+	return (v.Camp != nil || v.Temple != nil || v.Shop != nil || v.Training != nil || v.Powers != nil) && askMenu(v) == nil && p.sheetPage() == nil // a member viewed: the sheet over the screen
 }
 
 // sendX sends a decision with an X.

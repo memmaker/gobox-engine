@@ -12,41 +12,37 @@ func cells(r image.Rectangle) front.CellRect {
 	return front.CellRect{X1: r.Min.X, Y1: r.Min.Y, X2: r.Max.X, Y2: r.Max.Y}
 }
 
-// Sheet is v with the sheet s holds: what it offers (nil: none), the page
-// (nil: none) and the portrait and icon boxes.
-func Sheet(v front.View, h *game.Sheet, portrait, iconBox image.Rectangle, page *game.SheetPage, drafted bool, draft *game.Creation, own game.Member) front.View {
-	v.Sheet, v.SheetPage = nil, nil
-	if h != nil {
-		v.Sheet = &front.Sheet{Powers: powers(h.Powers)}
-		for _, r := range h.Reactions {
-			v.Sheet.Reactions = append(v.Sheet.Reactions, front.Reaction{ID: r.ID, Name: r.Name, Policy: front.Policy(r.Policy)})
-		}
+// sheetOwn is the member whose sheet is up: the draft being made, else the selected one.
+func (p *Presenter) sheetOwn() game.Member {
+	s, r := p.state(), p.eng.r
+	return OwnSubject(r.modeOf(s), creationOf(s), partyOf(s), r.selectedOf(s))
+}
+
+// sheetDraft is the draft the creation sheet shows (nil: a member's sheet).
+func (p *Presenter) sheetDraft() *game.Creation {
+	s := p.state()
+	if c := creationOf(s); Drafting(p.eng.r.modeOf(s), c) {
+		return c
 	}
-	v.Portrait, v.IconBox = cells(portrait), cells(iconBox)
-	p := page
-	if drafted { // the creation sheet: gobox lays it out from the draft, with the rules' figures when they give a page
-		p = draftPage(draft, page)
+	return nil
+}
+
+// sheetPortrait is the PNG dropped on the sheet, else the pool's head and
+// body of its member in an empty portrait box (v's pictures are the game's:
+// a default fills an empty box only).
+func (p *Presenter) sheetPortrait(v front.View, sp *game.SheetPage) image.Image {
+	if sp == nil || sp.Portrait != nil {
+		if sp == nil {
+			return nil
+		}
+		return sp.Portrait
 	}
-	if p != nil {
-		k := &front.SheetPage{Name: p.Name, NameColour: nameColour(own), NPC: p.NPC, Spells: p.Spells, Sex: p.Sex, Race: p.Race, Age: p.Age,
-			Alignment: p.Alignment, Class: p.Class, Stats: p.Stats, Str00: p.Str00, Creating: p.Creating, Levels: p.Levels,
-			Exp: p.Exp, Next: p.Next, AC: p.AC, RearAC: p.RearAC, HP: p.HP, MaxHP: p.MaxHP, THAC0: p.THAC0, Damage: p.Damage, Move: p.Move,
-			Saves: p.Saves, Mods: p.Mods, Status: p.Status, Weapon: p.Weapon, Armour: p.Armour, Encumbrance: p.Encumbrance,
-			Coins: p.Coins, Effects: p.Effects, PortraitAt: cells(p.PortraitAt), Portrait: p.Portrait, Icons: p.Icons}
-		for _, r := range p.Rules {
-			k.Rules = append(k.Rules, front.Stat(r))
-		}
-		if k.Portrait == nil && (own.PortraitHeadID != "" || !pictured(v, k.PortraitAt.Pixels())) { // a default fills an empty box only
-			m := subject(own)
-			k.Portrait = poolID("portraits", m.PortraitHeadID, m.PortraitBodyID)
-		}
-		if drafted {
-			k.NameColour = 11 // the member being made: as a well one's
-			draftRows(k, draft)
-		}
-		v.SheetPage = k
+	own := p.sheetOwn()
+	if own.PortraitHeadID == "" && pictured(v, cells(sp.PortraitAt).Pixels()) {
+		return nil
 	}
-	return v
+	m := subject(own)
+	return poolID("portraits", m.PortraitHeadID, m.PortraitBodyID)
 }
 
 // draftPage is the creation sheet's page from c's draft (the rules publish
@@ -72,24 +68,4 @@ func draftPage(c *game.Creation, rules *game.SheetPage) *game.SheetPage {
 		p.Str00 = fmt.Sprintf("(%02d)", d.Str00%100)
 	}
 	return p
-}
-
-// draftRows puts c's own fields, abilities and figures on k as given:
-// adnd2-br the fields one per row, the figures in order.
-func draftRows(k *front.SheetPage, c *game.Creation) {
-	if rowFields(c) {
-		k.FieldRows = []string{}
-		for _, f := range c.Fields {
-			k.FieldRows = append(k.FieldRows, picked(f))
-		}
-	}
-	for _, st := range c.Stats {
-		k.StatRows = append(k.StatRows, front.Stat{Name: st.Label, Value: fmt.Sprintf("%2d", st.Value) + st.Extra})
-	}
-	if c.Derived != nil {
-		k.Derived = []front.Stat{}
-		for _, d := range c.Derived {
-			k.Derived = append(k.Derived, front.Stat{Name: d.Label, Value: d.Value})
-		}
-	}
 }

@@ -1,7 +1,6 @@
 package present
 
 import (
-	"image"
 	"testing"
 
 	"gobox/front"
@@ -13,7 +12,7 @@ import (
 func TestSheetFromDraft(t *testing.T) {
 	c := &game.Creation{Draft: game.Member{Name: "Ann", Race: "Human", Class: "Fighter", Stats: map[string]int{"str": 18, "cha": 9}, Str00: 100},
 		Fields: []game.Field{{Name: "gender", Options: []string{"Male", "Female"}, Pick: 1}}}
-	p := Sheet(front.View{}, nil, image.Rectangle{}, image.Rectangle{}, nil, true, c, c.Draft).SheetPage
+	p := draftPage(c, nil)
 	if p == nil || !p.Creating || p.Sex != "Female" || p.Stats[0] != 18 || p.Stats[5] != 9 || p.Str00 != "(00)" || p.Race != "Human" {
 		t.Fatalf("%+v", p)
 	}
@@ -24,7 +23,7 @@ func TestSheetFromDraft(t *testing.T) {
 func TestCreationOnShownPage(t *testing.T) {
 	g := NewGame(&fake{st: play.Assembling{Draft: &play.Draft{}}}, game.Data{})
 	g.Answer(front.Action{Kind: front.ActResize, X: 80, Y: 50})
-	if ic := g.View().Creation.Icon; ic.X2 >= 40 {
+	if ic := presenterOf(g).creation().Icon; ic.X2 >= 40 {
 		t.Errorf("icon %+v off the 40-column page", ic)
 	}
 }

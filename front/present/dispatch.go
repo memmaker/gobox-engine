@@ -147,7 +147,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 	if p.view.OptionsOpen() {
 		return true
 	}
-	if screenUp(v) {
+	if p.screenUp(v) {
 		return p.campKey(k, v)
 	}
 	if p.exploring() {
@@ -369,7 +369,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if v := p.shownView; screenUp(v) && p.active && !p.view.OptionsOpen() {
+		if v := p.shownView; p.screenUp(v) && p.active && !p.view.OptionsOpen() {
 			for i, r := range p.menuRects {
 				if image.Pt(x, y).In(r) {
 					p.campPick(v, p.camp.top+i)
@@ -485,7 +485,7 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		p.campHover(p.shownView, x, y)
 		return
 	}
-	if screenUp(p.shownView) && p.ctx == 0 && image.Pt(x, y) != p.pointer { // camp-style screens highlight under the pointer too
+	if p.screenUp(p.shownView) && p.ctx == 0 && image.Pt(x, y) != p.pointer { // camp-style screens highlight under the pointer too
 		p.pointer = image.Pt(x, y)
 		if i := slices.IndexFunc(p.menuRects, p.pointer.In); i >= 0 {
 			p.camp.sel = p.camp.top + i
@@ -553,7 +553,7 @@ func (p *Presenter) cardClick(i int) {
 	case p.command, p.campHome(p.shownView): // camp: the keys go to its menu
 		p.send(front.ActLead, i)
 		p.ctx, p.ctxSel = 1+i, 0 // the first line highlighted: Enter acts at once
-	case screenUp(p.shownView) && (p.shownView.Temple != nil || p.shownView.Training != nil): // the temple, the training hall: the member they act for, as F1-F8
+	case p.screenUp(p.shownView) && (p.shownView.Temple != nil || p.shownView.Training != nil): // the temple, the training hall: the member they act for, as F1-F8
 		p.send(front.ActLead, i)
 	default:
 		p.send(front.ActInventory, i)

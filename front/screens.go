@@ -54,11 +54,8 @@ func ScreenOf(v View, own string) string {
 	if v.Screen != nil {
 		kind = int(v.Screen.Kind)
 	}
-	return fmt.Sprint(own, kind, v.Inventory != nil, v.Sheet != nil, v.SheetPage != nil, v.Camp != nil, v.Temple != nil,
+	return fmt.Sprint(own, kind, v.Camp != nil, v.Temple != nil,
 		v.Shop != nil, v.Training != nil, v.Powers != nil,
 		v.Read != nil, v.Results != nil, v.Credits, ask, Screens(
-			ScreenUp{Name: ScreenCreation, On: v.Creation != nil},
-			ScreenUp{Name: ScreenPicker, On: v.Picker != nil},
-			ScreenUp{Name: ScreenIconEditor, On: v.IconEditor != nil},
 			ScreenUp{Name: ScreenMainMenu, On: v.MainMenu != nil}))
 }

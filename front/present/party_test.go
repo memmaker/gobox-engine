@@ -1,6 +1,8 @@
 package present
 
 import (
+	"image"
+	"image/color"
 	"testing"
 
 	"gobox/front"
@@ -41,7 +43,7 @@ func TestYesNoOverExplore(t *testing.T) {
 func TestDraftFigures(t *testing.T) {
 	s := shown{Mode: game.ModeCreate, Creation: &game.Creation{Draft: game.Member{Name: "Doc", Stats: map[string]int{"str": 12}}},
 		SheetPage: &game.SheetPage{AC: 4, THAC0: 17, Damage: "1d8"}}
-	k := Sheet(front.View{}, s.Sheet, s.Portrait, s.IconBox, s.SheetPage, Drafting(s.Mode, s.Creation), s.Creation, OwnSubject(s.Mode, s.Creation, s.Party, s.Selected)).SheetPage
+	k := draftPage(s.Creation, s.SheetPage)
 	if k == nil || k.Damage != "1d8" || k.THAC0 != 17 || k.AC != 4 || k.Name != "Doc" || k.Stats[0] != 12 {
 		t.Fatalf("%+v", k)
 	}
@@ -49,9 +51,14 @@ func TestDraftFigures(t *testing.T) {
 
 // The sheet's name colour is gobox's: a draft's name is never black.
 func TestDraftNameColour(t *testing.T) {
-	s := shown{Mode: game.ModeCreate, Creation: &game.Creation{Draft: game.Member{Name: "Doc"}}}
-	if k := Sheet(front.View{}, s.Sheet, s.Portrait, s.IconBox, s.SheetPage, Drafting(s.Mode, s.Creation), s.Creation, OwnSubject(s.Mode, s.Creation, s.Party, s.Selected)).SheetPage; k.NameColour == 0 {
-		t.Fatal("black name")
+	p, _ := draftOn(&play.Draft{Member: game.Member{Name: "Doc"}})
+	var ink [16]color.RGBA
+	for i := range ink {
+		ink[i] = col(i)
+	}
+	c := p.screenPage(front.View{Cells: image.Pt(40, 25), Ink: ink})
+	if runs := c.lines()[1]; len(runs) == 0 || runs[0].Fg == (color.RGBA{}) || runs[0].Fg == ink[0] {
+		t.Fatalf("black name: %+v", runs)
 	}
 }
 

@@ -1,7 +1,9 @@
 package present
 
 import (
+	"fmt"
 	"gobox/front"
+	"gobox/game"
 	"gobox/ui"
 	"image"
 	"image/color"
@@ -179,12 +181,17 @@ func (p *Presenter) contentPictures(v front.View) []front.Picture {
 
 func (p *Presenter) screenPage(v front.View) *cellPage {
 	sl := p.slotsView()
-	v.Pictures = p.contentPictures(v) // nothing of the engine's page: only the art in the screen's own places
 	cr, pk, ed := p.creation(), p.picker(v.Ink), p.iconEditor(v.Ink)
-	if sl != nil {
-		v.SheetPage, pk, ed = nil, nil, nil
+	var sp *game.SheetPage
+	var portrait image.Image
+	if sl == nil {
+		sp = p.sheetPage()
+		portrait = p.sheetPortrait(v, sp)
+	} else {
+		pk, ed = nil, nil
 	}
-	if ed != nil || pk != nil { // also a picker over the icon editor, in its palette: no grey cells
+	v.Pictures = p.contentPictures(v) // nothing of the engine's page: only the art in the screen's own places
+	if ed != nil || pk != nil {       // also a picker over the icon editor, in its palette: no grey cells
 		v.Ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
 	}
 	if cr != nil && pk == nil && sl == nil { // the combat icon on grey, as in the icon editor: its black parts show
@@ -195,8 +202,12 @@ func (p *Presenter) screenPage(v front.View) *cellPage {
 		c.pics = c.scaled(cr)
 	}
 	c.texts(v, p.barShown(v, sl))
-	if s := v.SheetPage; s != nil {
-		c.sheet(s, cr)
+	if sp != nil {
+		d, colour := p.sheetDraft(), nameColour(p.sheetOwn())
+		if d != nil {
+			colour = 11 // the member being made: as a well one's
+		}
+		c.sheet(sp, d, colour, portrait, cr)
 	}
 	if pk != nil {
 		c.picker(pk)
@@ -529,17 +540,19 @@ func fit(b, r image.Rectangle) image.Rectangle {
 }
 
 // sheet lays the character sheet out (ovr20:004A CharacterSheet).
-func (c *cellPage) sheet(s *front.SheetPage, cr *front.Creation) {
+// d is the draft being made (nil: a member's sheet), nameColour the name's
+// ink and portrait the PNG or default head in the portrait's box.
+func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, portrait image.Image, cr *front.Creation) {
 	right, bottom := c.cols-2, c.rows-3
 	c.unset(image.Rect(0, 0, c.cols*8, (bottom+2)*8)) // the sheet's page: ClearScreen came first (the 3D view's status line once wrote over it)
 	c.border(1, 1, right, bottom)
-	c.str(1, 1, s.NameColour, s.Name)
+	c.str(1, 1, nameColour, s.Name)
 	if s.NPC {
 		c.str(len(s.Name)+3, 1, inkGreen, "(NPC)")
 	}
-	if s.FieldRows != nil {
-		for i, f := range s.FieldRows {
-			c.str(1, 3+i, inkWhite, f)
+	if d != nil && rowFields(d) {
+		for i, f := range d.Fields {
+			c.str(1, 3+i, inkWhite, picked(f))
 		}
 	} else {
 		x := 1
@@ -551,7 +564,7 @@ func (c *cellPage) sheet(s *front.SheetPage, cr *front.Creation) {
 		c.str(1, 4, inkWhite, s.Alignment)
 		c.str(1, 5, inkWhite, s.Class)
 	}
-	if s.StatRows == nil {
+	if d == nil || len(d.Stats) == 0 {
 		for i, l := range []string{"STR ", "INT ", "WIS ", "DEX ", "CON ", "CHA "} { // and showStat
 			y := i + 7
 			c.str(1, y, inkGreen, l)
@@ -566,11 +579,13 @@ func (c *cellPage) sheet(s *front.SheetPage, cr *front.Creation) {
 			}
 		}
 	}
-	for i, r := range s.StatRows { // the game's own abilities, as given
-		y, x := i+7, front.StatCol(r.Name)
-		c.str(1, y, inkGreen, r.Name+" ")
-		c.clear(x, y, x+6, y)
-		c.str(x, y, inkGreen, r.Value)
+	if d != nil {
+		for i, r := range d.Stats { // the game's own abilities, as given
+			y, x := i+7, front.StatCol(r.Label)
+			c.str(1, y, inkGreen, r.Label+" ")
+			c.clear(x, y, x+6, y)
+			c.str(x, y, inkGreen, fmt.Sprintf("%2d", r.Value)+r.Extra)
+		}
 	}
 	if s.Saves[0] > 0 { // extra: the saving throws beside the abilities
 		for i, l := range []string{"Paralyze", "Petrify", "Rod", "Breath", "Spell"} {
@@ -591,12 +606,12 @@ func (c *cellPage) sheet(s *front.SheetPage, cr *front.Creation) {
 		}
 	}
 	y := 0x11 // showCombatStats
-	if s.Derived != nil {
+	if d != nil && d.Derived != nil {
 		// the game's figures in order, two to a row
-		for i, f := range s.Derived {
+		for i, f := range d.Derived {
 			x, fy := 1+16*(i%2), y+i/2
-			c.str(x, fy, inkWhite, f.Name)
-			c.str(x+len(f.Name)+1, fy, inkGreen, f.Value)
+			c.str(x, fy, inkWhite, f.Label)
+			c.str(x+len(f.Label)+1, fy, inkGreen, f.Value)
 		}
 	} else {
 		c.str(1, y, inkWhite, "AC    ")
@@ -630,10 +645,10 @@ func (c *cellPage) sheet(s *front.SheetPage, cr *front.Creation) {
 			c.str(at[0]+len(f[0])+1, at[1], inkGreen, f[1])
 		}
 	}
-	if b := s.PortraitAt; b != (front.CellRect{}) {
+	if b := cells(s.PortraitAt); b != (front.CellRect{}) {
 		c.border(b.X1, b.Y1, b.X2, b.Y2)
-		if s.Portrait != nil {
-			c.overs = append(c.overs, overlay{Img: s.Portrait, At: fit(s.Portrait.Bounds(), b.Pixels())}) // the whole box: the rope runs outside its cells
+		if portrait != nil {
+			c.overs = append(c.overs, overlay{Img: portrait, At: fit(portrait.Bounds(), b.Pixels())}) // the whole box: the rope runs outside its cells
 		}
 	}
 	k, box := 1, front.CellRect{}
@@ -648,7 +663,7 @@ func (c *cellPage) sheet(s *front.SheetPage, cr *front.Creation) {
 	}
 	if s.Spells != "" { // SpellList's title over the name row
 		c.box(1, 1, right, 1, inkBlack, "")
-		c.str(1, 1, s.NameColour, s.Name+"'s")
+		c.str(1, 1, nameColour, s.Name+"'s")
 		c.str(len(s.Name)+4, 1, inkGreen, s.Spells)
 	}
 }

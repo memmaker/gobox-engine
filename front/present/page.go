@@ -169,7 +169,7 @@ func iconKey(e *front.IconEditor) string {
 // ownPage: v shows a screen the presenter lays out from its data
 // (screenPage), drawn anew with each View.
 func (p *Presenter) ownPage(v front.View) bool {
-	return v.SheetPage != nil || p.picker(v.Ink) != nil || p.slotsView() != nil || p.iconEditor(v.Ink) != nil
+	return p.sheetPage() != nil || p.picker(v.Ink) != nil || p.slotsView() != nil || p.iconEditor(v.Ink) != nil
 }
 
 // modal: v shows a screen over the whole page (help, the journal, the

@@ -123,7 +123,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 	if askList(v) != nil && askMenu(v) != nil && !choosing(v) && p.listKey(k, v) {
 		return
 	}
-	if screenUp(v) && p.campKey(k, v) {
+	if p.screenUp(v) && p.campKey(k, v) {
 		return
 	}
 	if p.exploring() && p.exploreKey(k) {
@@ -199,13 +199,13 @@ func (p *Presenter) Drop(path string, cx, cy int, in bool, v front.View) {
 	if !strings.EqualFold(filepath.Ext(path), ".png") {
 		return
 	}
-	r := v.IconBox
+	r := p.iconBox()
 	switch {
 	case p.icon != nil:
 		IconAct(p, &p.icon, front.Action{Kind: front.ActIcon, Text: path})
-	case v.IconDrop || in && r != (front.CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
+	case p.iconEditor(v.Ink) != nil || in && r != (front.CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActIcon, Text: path})
-	case v.Portrait != (front.CellRect{}) || p.inventoryKind() == invOwn: // the sheet or the member's inventory
+	case p.portraitBox() != (front.CellRect{}) || p.inventoryKind() == invOwn: // the sheet or the member's inventory
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActPortrait, N: -1, Text: path})
 	}
 }
@@ -271,11 +271,11 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			p.battle.Zoom(wheel > 0, Host.Zoom)
 			continue
 		}
-		if c := &p.camp; screenUp(v) && c.screen == campBestiary && c.pointer.In(c.beastPane) { // over the entry: it scrolls
+		if c := &p.camp; p.screenUp(v) && c.screen == campBestiary && c.pointer.In(c.beastPane) { // over the entry: it scrolls
 			c.beastY = min(max(c.beastY-10*unit(wheel), 0), c.beastMax)
 			continue
 		}
-		if screenUp(v) || askList(v) != nil || p.pageMenu { // over a list: a line at most a pause, the rest of a fling dropped
+		if p.screenUp(v) || askList(v) != nil || p.pageMenu { // over a list: a line at most a pause, the rest of a fling dropped
 			if c := &p.camp; now().Sub(c.wheeled) < 2*wheelPause {
 				break
 			}
@@ -317,14 +317,14 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 		p.send(front.ActOK, 0)
 	case p.menu && p.exploring(): // the command bar's popup: it alone closes (key)
 		p.menu = false
-	case screenUp(v): // back one level, as Esc
+	case p.screenUp(v): // back one level, as Esc
 		p.campBack(v)
 	case p.exploring() && !p.menu && p.active && p.view != nil: // as Esc: the options
 		p.view.OpenOptions()
 	default:
 		p.send(front.ActClose, 0)
 	}
-	if r := v.Portrait; left && in && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)) { // Shift-click on the sheet's portrait: the next head
+	if r := p.portraitBox(); left && in && gpu.IsKeyPressed(gpu.KeyShift) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)) { // Shift-click on the sheet's portrait: the next head
 		p.send(front.ActHead, -1)
 		return
 	}

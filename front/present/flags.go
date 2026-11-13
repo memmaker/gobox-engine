@@ -14,6 +14,6 @@ func Flags(v front.View, f *game.Flags, over bool) front.View {
 	v.Exploring, v.Sweeping, v.Interact, v.CanCast = f.Exploring, f.Sweeping, f.Interact, f.CanCast
 	v.Adventure, v.Day, v.Inside, v.Ordering = f.Adventure, f.Day, f.Inside, f.Ordering
 	v.Exploring = v.Exploring && !over
-	v.Credits, v.CreditPage, v.CreditsPic, v.Full, v.IconDrop = f.Credits, f.CreditPage, f.CreditsPic, f.Full, f.IconDrop
+	v.Credits, v.CreditPage, v.CreditsPic, v.Full = f.Credits, f.CreditPage, f.CreditsPic, f.Full
 	return v
 }

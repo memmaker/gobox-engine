@@ -7,6 +7,7 @@
 package present
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 
@@ -69,7 +70,7 @@ type layouts struct {
 // creationKey is what the creation sheet's layout is made of.
 type creationKey struct {
 	version uint64
-	grid    [2]int
+	grid    image.Point
 	ask     *play.Ask // gobox's own question (Abandon's words)
 	refusal *play.Ask
 }
@@ -78,7 +79,7 @@ type creationKey struct {
 type pageKey struct {
 	version uint64
 	ran     int // the picker's and editor's calls run
-	grid    [2]int
+	grid    image.Point
 	ink     [16]color.RGBA
 	part    int // the icon editor's swatch selected
 	shade   int
@@ -99,9 +100,9 @@ func (p *Presenter) layoutCreation() *front.Creation {
 		return nil
 	}
 	r, s := p.eng.r, p.state()
-	k := creationKey{p.eng.G.Version(), p.grid, r.ask, r.refusalAsk}
+	k := creationKey{p.eng.G.Version(), r.grid, r.ask, r.refusalAsk}
 	return p.lay.creation.get(k, func() *front.Creation {
-		return Creation(r.modeOf(s), creationOf(s), r.pending(s), p.grid[0], p.grid[1])
+		return Creation(r.modeOf(s), creationOf(s), r.pending(s), r.grid.X, r.grid.Y)
 	})
 }
 
@@ -111,13 +112,13 @@ func (p *Presenter) picker(ink [16]color.RGBA) *front.Picker {
 	if p.eng == nil {
 		return nil
 	}
-	k := pageKey{version: p.eng.G.Version(), ran: p.ran, grid: p.grid, ink: ink}
+	k := pageKey{version: p.eng.G.Version(), ran: p.ran, grid: p.eng.r.grid, ink: ink}
 	if pk := p.gridPick; pk != nil {
 		return pk.Layout(p.eng, k)
 	}
 	s := p.state()
 	return p.lay.picker.get(k, func() *front.Picker {
-		return Picker(play.CommonOf(s).Picker, image.Point{}, 0, p.grid[0], p.grid[1])
+		return Picker(play.CommonOf(s).Picker, image.Point{}, 0, p.eng.r.grid.X, p.eng.r.grid.Y)
 	})
 }
 
@@ -127,12 +128,22 @@ func (p *Presenter) iconEditor(ink [16]color.RGBA) *front.IconEditor {
 	if p.eng == nil || p.gridPick != nil {
 		return nil
 	}
-	k := pageKey{version: p.eng.G.Version(), ran: p.ran, grid: p.grid, ink: ink}
+	k := pageKey{version: p.eng.G.Version(), ran: p.ran, grid: p.eng.r.grid, ink: ink}
 	if ic := p.icon; ic != nil {
 		return ic.Layout(p.eng, k)
 	}
 	s := p.state()
 	return p.lay.icon.get(k, func() *front.IconEditor {
-		return IconEditor(play.CommonOf(s).IconEditor, nil, p.eng.Subject(), &ink, p.grid[0], p.grid[1])
+		return IconEditor(play.CommonOf(s).IconEditor, nil, p.eng.Subject(), &ink, p.eng.r.grid.X, p.eng.r.grid.Y)
 	})
+}
+
+// stateScreens names the page screens the state puts up (Screens): the
+// inventory, the sheet, the creation sheet, the picker and the icon editor.
+func (p *Presenter) stateScreens() string {
+	if p.eng == nil {
+		return ""
+	}
+	ink := p.shownView.Ink
+	return fmt.Sprint(p.inventoryKind(), p.sheetShown(), p.sheetPage() != nil, p.creation() != nil, p.picker(ink) != nil, p.iconEditor(ink) != nil)
 }

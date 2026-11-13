@@ -45,7 +45,7 @@ func (p *Presenter) sheetItems() []ui.MenuRow {
 
 // sheetUp: the sheet's menu is the page's question.
 func (p *Presenter) sheetUp(v front.View) bool {
-	return p.eng != nil && !p.pickerOver() && p.lay.sheetUp.get(p.uiKey(), func() bool { return p.eng.r.sheetUpOf(p.state()) }) && askMenu(v) == nil && !p.inventoryUp()
+	return p.sheetShown() && askMenu(v) == nil && !p.inventoryUp()
 }
 
 // sheetPage is the character sheet's page up: the look-only member's in a
@@ -381,4 +381,28 @@ var bottomHelp = [3][]string{
 // load and the coins.
 func extraFields(weapon, armour, load, coins string) [4][2]string {
 	return [4][2]string{{"Weapon", weapon}, {"Armour", armour}, {"Load", load}, {"Coins", coins}}
+}
+
+// sheetShown: a member's sheet is up (the look-only one in a fight too), the
+// items or a question over it or not.
+func (p *Presenter) sheetShown() bool {
+	return p.eng != nil && !p.pickerOver() && p.lay.sheetUp.get(p.uiKey(), func() bool { return p.eng.r.sheetUpOf(p.state()) })
+}
+
+// portraitBox is the sheet's portrait box in cells (zero: none): Shift-click
+// there takes the next head, a dropped PNG becomes the portrait.
+func (p *Presenter) portraitBox() front.CellRect {
+	if sp := p.sheetPage(); sp != nil {
+		return cells(sp.PortraitAt)
+	}
+	return front.CellRect{}
+}
+
+// iconBox is the creation sheet's combat icon box in cells (zero: none): a
+// PNG dropped on it becomes the icon.
+func (p *Presenter) iconBox() front.CellRect {
+	if cr := p.creation(); cr != nil {
+		return cr.Icon
+	}
+	return front.CellRect{}
 }

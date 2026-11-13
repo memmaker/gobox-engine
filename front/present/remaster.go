@@ -312,7 +312,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.picBottom = 0
 	p.setup(note, v)
 	p.command = p.exploring()
-	if screenUp(v) && !screenUp(p.shownView) { // camp, the temple, the shop, training start on their main screen
+	if p.screenUp(v) && !p.screenUp(p.shownView) { // camp, the temple, the shop, training start on their main screen
 		p.camp.screen, p.camp.sel, p.camp.rows = campMain, 0, nil
 		if t := v.Training; t != nil && len(t.Learn) == 0 && t.Why == "" { // the training question starts on No
 			p.camp.sel = 1
@@ -320,7 +320,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	p.openList(v)
 	p.shownView = v
-	if !screenUp(v) && !p.inventoryUp() && v.Shop == nil && v.Temple == nil { // the location as last shown, without its question and text: what a shop's or temple's menu draws over
+	if !p.screenUp(v) && !p.inventoryUp() && v.Shop == nil && v.Temple == nil { // the location as last shown, without its question and text: what a shop's or temple's menu draws over
 		b := v
 		b.Ask, b.Pane = nil, nil
 		p.backView = &b
@@ -406,7 +406,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.drawClue(dst)
 		return Rect{}
 	}
-	if screenUp(v) && v.Camp != nil && p.camp.screen == campBestiary { // the bestiary: a page of its own over the whole window
+	if p.screenUp(v) && v.Camp != nil && p.camp.screen == campBestiary { // the bestiary: a page of its own over the whole window
 		p.shown, p.active, p.menu = "", true, false
 		dst.Fill(color.Black)
 		p.drawBestiary(dst, note, v)
@@ -415,7 +415,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	sc := p.scene()
 	area := v.AreaMap != nil                                                                                                                                                                                                                                                                                                           // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
 	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || p.iconEditor(v.Ink) != nil || !choosing(v) && !v.Adventure || p.sheetUp(v) && p.sheetPage() != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
-		if screenUp(v) { // training from the hall's party menu: over the 3D view
+		if p.screenUp(v) { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			switch {                      // over the location as it stands, never black
 			case p.backView != nil: // as last shown: its picture, the 3D view, the cards; the menu takes the text's place
@@ -583,7 +583,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		rows := len(ui.TitleLines(askMenu(v).Prompt)) + min(len(askList(v)), listRows) + len(askMenu(v).Commands) + 4 // drawMenu's: the title, a blank, the lines, a blank, the options, the border
 		top := max(b.Dy()/2-int(mk*float64(rows)*4), picBottom+int(pk*4))
 		p.asking(v, func() { p.drawList(dst, note.Glyph, v, mk, cx, max(0, min(top, b.Max.Y-int(mk*float64(rows)*8)))) }) // all of it on screen, over the picture's edge if it must
-	} else if screenUp(v) && spellPick(v) == nil { // camp (camp.go), the temple, the shop, training
+	} else if p.screenUp(v) && spellPick(v) == nil { // camp (camp.go), the temple, the shop, training
 		p.menu = false
 		p.drawCamp(dst, note.Glyph, v, mk, cx, max(b.Dy()/4, picBottom+int(pk*4)), p.listFloor(dst))
 		if p.campHome(v) {

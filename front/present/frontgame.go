@@ -20,15 +20,19 @@ func (p *Presenter) Call(f func(*classicGame)) { p.call(func(e *classicGame) { f
 // Edit queues f (edit).
 func (p *Presenter) Edit(f func(*classicGame)) { p.edit(func(e *classicGame) { f(e) }) }
 
-// ownCreation puts the creation sheet up in v, over the party menu.
+// ownCreation is v with the creation sheet's pool portrait and icon in its
+// boxes, over the party menu (the sheet itself is creation()).
 func (p *Presenter) ownCreation(v front.View) front.View {
-	if p.creating && p.eng != nil {
-		cr := p.layoutCreation()
-		if p.creating = cr != nil; !p.creating { // the game ended it itself (a step after Keep, a save): the party menu is back
-			return v
-		}
-		v = p.eng.SheetIcon(v, cr) // its icon boxes take the draft's combat icon
-		v.MainMenu, v.Logo = nil, nil
+	if p.eng == nil {
+		return v
+	}
+	cr := p.layoutCreation()
+	if p.creating = p.creating && cr != nil; cr == nil { // the game ended it itself (a step after Keep, a save): the party menu is back
+		return v
+	}
+	v = p.eng.CreationPictures(v, cr)
+	if p.creating {
+		v.MainMenu = nil
 	}
 	return v
 }
@@ -46,7 +50,7 @@ func (p *Presenter) Shown() Shown {
 	if in := p.inventory(); in != nil {
 		t = in.treasure
 	}
-	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: p.inventoryUp(), Battle: p.board != nil,
+	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: p.sheetShown(), Inventory: p.inventoryUp(), Battle: p.board != nil,
 		Camp: v.Camp != nil, MainMenu: p.mainMenuUp(), Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(v.Party)}
 }
 
@@ -95,7 +99,7 @@ func (p *Presenter) ownPicker(v front.View) front.View {
 	if p.eng == nil || p.gridPick == nil && p.icon == nil {
 		return v
 	}
-	v.SheetPage, v.Camp, v.MainMenu, v.Sheet, v.Logo = nil, nil, nil, nil, nil // the screens under it
+	v.Camp, v.MainMenu = nil, nil // the screens under it
 	return v
 }
 
@@ -127,7 +131,7 @@ func (p *Presenter) own(v front.View) front.View {
 	v.Pictures = daxPictures(indexedPictures(v.Pictures, v.Ink))
 	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
 	if p.slots != nil && p.eng != nil {
-		v.MainMenu, v.Logo = nil, nil // the page covers the party menu: its keys are the page's
+		v.MainMenu = nil // the page covers the party menu: its keys are the page's
 	}
 	return v
 }

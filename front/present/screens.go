@@ -70,7 +70,7 @@ func (p *Presenter) screenName(v front.View) string {
 		return "creation"
 	case p.slotsView() != nil:
 		return "slots"
-	case v.IconDrop && askMenu(v) == nil:
+	case p.iconEditor(v.Ink) != nil && askMenu(v) == nil:
 		return "icon"
 	}
 	return ""

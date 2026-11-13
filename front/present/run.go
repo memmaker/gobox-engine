@@ -156,7 +156,7 @@ func (f *Front) screenSig(v front.View) string {
 	}
 	c := f.P.liveCombat()
 	turn := c != nil && c.Turn != nil
-	return fmt.Sprint(c != nil, turn, ask, f.P.inventoryUp(), v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, f.P.mainMenuUp(), f.P.exploring(), v.Training != nil)
+	return fmt.Sprint(c != nil, turn, ask, f.P.inventoryUp(), f.P.sheetShown(), v.Camp != nil, v.Temple != nil, v.Shop != nil, f.P.mainMenuUp(), f.P.exploring(), v.Training != nil)
 }
 func (f *Front) Tick() { Scripted = true; f.P.Tick() } // only a script ticks: its clock is the frames
 

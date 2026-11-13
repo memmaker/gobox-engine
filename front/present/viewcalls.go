@@ -63,7 +63,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		default:
 			return !slices.Contains(viewPasses, k)
 		}
-	case v.Sheet != nil:
+	case p.sheetShown():
 		switch k {
 		case front.ActClose:
 			do(func(e *classicGame) error { return e.CloseSheet() })
