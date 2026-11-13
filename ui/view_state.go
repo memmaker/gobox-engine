@@ -239,6 +239,10 @@ func wallsOf(ps game.State, kept *game.Walls) (shown, keep *game.Walls) {
 			return gameWalls(*t.Walls), kept
 		}
 	case game.Camping:
+	case game.Trading:
+		if t.Kind != game.TradeTraining { // the training hall stays over the 3D view it was entered from
+			kept = nil
+		}
 	default:
 		kept = nil
 	}
