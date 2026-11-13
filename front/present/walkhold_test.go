@@ -22,7 +22,7 @@ func TestWalkPlaysStepByStep(t *testing.T) {
 	if err := g.Answer(front.Action{Kind: front.ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
 	}
-	_, evs := settled(g)
+	evs := settled(g)
 	var at []image.Point
 	for _, e := range evs {
 		if e.Kind != game.EvMove {

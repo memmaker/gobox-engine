@@ -30,7 +30,7 @@ func TestFightRefusalHeld(t *testing.T) {
 	g := NewGame(r, game.Data{})
 	g.Settle()
 	g.Answer(front.Action{Kind: front.ActWalk, X: 1, Y: 1})
-	_, es := settled(g)
+	es := settled(g)
 	if len(es) != 1 || es[0].Text != "Blocked" || es[0].Ms == 0 {
 		t.Fatalf("events %+v", es)
 	}

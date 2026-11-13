@@ -39,11 +39,14 @@ type UI struct {
 	note       game.Note     // the status line's toast: the last refusal
 	toast      front.Note    // the front's own toast (Added to journal, a refusal over the items)
 	lore       int           // journal notes seen (State.Lore), +1; 0: none counted yet
-	title      struct {      // the title as gobox steps it
-		n       int
-		credits bool
-		page    int
-	}
+	title      titleStep     // the title as gobox steps it
+}
+
+// titleStep is where gobox has the title: its step, the credits and their page.
+type titleStep struct {
+	n       int
+	credits bool
+	page    int
 }
 
 // Moment is one thing that happened, as the presenter plays it: the

@@ -134,14 +134,6 @@ func (g *Game) Subject() game.Member {
 	return OwnSubject(g.r.modeOf(ps), creationOf(ps), partyOf(ps), g.r.selectedOf(ps))
 }
 
-// CreationPictures is v with the draft's pool portrait and combat icon in the
-// creation sheet's boxes (cr), in place of the game's pictures there.
-func (g *Game) CreationPictures(v front.View, cr *front.Creation) front.View {
-	own := g.Subject()
-	v = PoolPortrait(v, cr, own)
-	return PoolIcon(v, cr, own, g.r.sheetPageOf(g.r.g.State(), g.party()))
-}
-
 // PickerOf is the game's grid picker, page page on cols by rows cells.
 func (g *Game) PickerOf(k *game.Picker, page, cols, rows int) *front.Picker {
 	return Picker(k, image.Point{}, page, cols, rows)
@@ -157,59 +149,6 @@ func (g *Game) Art() map[string]game.Picture { return g.art() }
 
 func (g *Game) art() map[string]game.Picture {
 	return g.r.Art()
-}
-
-func (g *Game) View() front.View {
-	r, ps := g.r, g.r.g.State()
-	c := play.CommonOf(ps)
-	art := g.art()
-	mode, pending := r.modeOf(ps), r.asking(ps)
-	party, sel := partyOf(ps), r.selectedOf(ps)
-	amap, loot, shop := r.derived().automap, lootOf(ps), shopOf(ps)
-	services, _ := templeOf(ps)
-	training := trainingOf(ps)
-	v := front.View{Exploring: mode == game.ModeExplore}
-	if len(amap.Terrain) > 0 {
-		v.AreaMap = &front.AreaMap{}
-	}
-	if shop != nil {
-		v.Shop = &front.Shop{}
-	}
-	if services != nil {
-		v.Temple = &front.Temple{}
-	}
-	if mode == game.ModeCamp {
-		v.Camp = &front.Camp{}
-	}
-	v.MainMenu, v.Hall = PartyMenu(mode, training, pending, c.Where.Hall)
-	v = askOver(v, mode, pending, loot != nil || training != nil, r.inventoryKind(ps) != invNone)
-	if mode == game.ModeLoot && loot != nil && announced(ps) { // the treasure's picture under a message; Enter or Space opens it
-		v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}
-	}
-	if v.AreaMap != nil {
-		v.AreaMap = AreaMap(v.AreaMap, amap, c.Where, art)
-	}
-	v = Page(v, r.pageOf(ps), storyOf(c))
-	v = Flags(v, r.flagsOf(ps, party), OverMenu(mode, pending))
-	v = Place(v, c.Where, windowOf(ps))
-	v = Waits(v, doorOf(ps), c.PowerPick)
-	v = Intro(v, introOf(ps))
-	v = Sequence(v, sequenceOf(ps), g.D.Sequences, g.D.AnimDir())
-	v = NoteView(v, r.note)
-	v = Results(v, resultsOf(ps))
-	v = Screen(v, image.Point{}, screenOf(ps), [16]color.RGBA{})
-	v.Read = r.readOf(ps)
-	if n := len(c.Lore) + 1; g.r.lore > 0 && n > g.r.lore { // the journal gained a note: gobox says so, the game prints nothing
-		g.r.toast = front.Note{Text: "Added to journal", At: time.Now()}
-		g.r.lore = n
-	} else if g.r.lore == 0 || n < g.r.lore { // the first look, a load or a new game: no news
-		g.r.lore = n
-	}
-	if v.Note.Text == "" {
-		v.Note = g.r.toast
-	}
-	v.Training = Training(training, party, sel, c.Purse)
-	return v
 }
 
 // Settle goes on to the next wait and returns what happened since, as the
@@ -236,7 +175,19 @@ func (g *Game) Settle() []Moment {
 	}
 	ms := g.moments(g.events, g.combat() != nil, posed, g.messageMs())
 	g.events, g.lastCombat = nil, g.combat()
+	g.loreNews()
 	return ms
+}
+
+// loreNews puts "Added to journal" up when the journal gained a note: gobox
+// says so, the game prints nothing. The first look, a load or a new game is
+// no news.
+func (g *Game) loreNews() {
+	n := len(play.CommonOf(g.r.g.State()).Lore) + 1
+	if g.r.lore > 0 && n > g.r.lore {
+		g.r.toast = front.Note{Text: "Added to journal", At: time.Now()}
+	}
+	g.r.lore = n
 }
 
 // A combat step holds minStepMs and stepShare of the message delay: the
@@ -555,11 +506,7 @@ func (g *Game) SetChoice(field, id string) error {
 }
 func (g *Game) ClosePicker()   { g.r.tiles = false; g.do(play.ClosePicker{}) }
 func (g *Game) EditIcon(n int) { g.do(play.EditIcon{Member: n}) }
-func (g *Game) IconEditorView() *front.IconEditor {
-	ink := g.View().Ink
-	return g.IconEditorOn(&ink, g.r.grid.X, g.r.grid.Y)
-}
-func (g *Game) IconSize() { g.do(play.IconSize{}) }
+func (g *Game) IconSize()      { g.do(play.IconSize{}) }
 func (g *Game) IconColour(part, shade, v int) {
 	g.do(play.IconColour{Part: part, Shade: shade, Value: v})
 }
@@ -1148,21 +1095,6 @@ func (g *Game) PickerOn(page, cols, rows int) *front.Picker {
 
 // Draft is the character being made (nil: none).
 func (g *Game) Draft() *game.Creation { return creationOf(g.r.g.State()) }
-
-// askOver is v with the question up. A place's mode with no screen of its
-// own yet draws its question, never a blank frame.
-func askOver(v front.View, mode game.Mode, pending *play.Ask, screen, items bool) front.View {
-	if q, ok := Ask(mode, pending); ok && q != nil {
-		v.Ask = q
-	}
-	if v.MainMenu == nil && v.Ask == nil && v.Camp == nil && v.Temple == nil && v.Shop == nil && !items && !screen &&
-		pending != nil && mode >= game.ModeCamp && mode <= game.ModeLoot {
-		if q, ok := Ask(game.ModeAsk, pending); ok {
-			v.Ask = q
-		}
-	}
-	return v
-}
 
 // endCreation keeps or discards the character being made.
 func (g *Game) endCreation(keep bool) error {

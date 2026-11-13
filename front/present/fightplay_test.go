@@ -29,7 +29,7 @@ func TestSpaceFastForward(t *testing.T) {
 	if !p.Playing() {
 		t.Fatal("not playing")
 	}
-	p.Key(' ', front.View{})
+	p.Key(' ')
 	if ev := p.playing(); ev == nil || !ev.Key {
 		t.Fatalf("after Space: %+v, want the key moment", ev)
 	}
@@ -47,7 +47,7 @@ func TestBlastPlaysAndSpacePasses(t *testing.T) {
 	if p.playing() == nil {
 		t.Fatal("blast not shown")
 	}
-	p.Key(' ', front.View{})
+	p.Key(' ')
 	if ev := p.playing(); ev == nil || len(p.replay.q) != 1 {
 		t.Fatalf("after Space: %+v, %d left", ev, len(p.replay.q))
 	}
@@ -59,7 +59,7 @@ func TestSpaceKeepsEndBoard(t *testing.T) {
 	var p Presenter
 	walk, end := &play.Combat{}, &play.Combat{}
 	p.Play([]Moment{{Report: play.Report{Kind: game.EvMove}, Ms: 300, Board: walk}, {Report: play.Report{Kind: game.EvDown}, Ms: 300, Board: end}, {Report: play.Report{Kind: game.EvMessage, Text: "x"}}})
-	p.Key(' ', front.View{})
+	p.Key(' ')
 	if ev := p.playing(); ev == nil || ev.Board != end {
 		t.Fatalf("after Space: %+v, want the end board", ev)
 	}

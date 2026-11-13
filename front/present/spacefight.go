@@ -129,8 +129,8 @@ type sfShown struct {
 
 // sfOf is v's fight screen: the fight, or the ship sheet's (the fight's
 // right side beside it, empty when the game gives none).
-func sfOf(v front.View) *game.SpaceFight {
-	s := v.Screen
+func (p *Presenter) sfOf() *game.SpaceFight {
+	s := p.gameScreen()
 	switch {
 	case s == nil:
 	case s.Kind == game.ScreenSpaceFight:
@@ -160,13 +160,13 @@ func sfBar(a *front.Ask) string {
 }
 
 // sfState brings the presenter's state up to v's fight and returns what shows.
-func (p *Presenter) sfState(v front.View, sf *game.SpaceFight) sfShown {
+func (p *Presenter) sfState(sf *game.SpaceFight) sfShown {
 	u := &p.sf
 	if len(sf.Log) < len(u.log) || fmt.Sprint(sf.Log[:len(u.log)]) != fmt.Sprint(u.log) { // not more of the same: a new window
 		u.page = 0
 	}
 	u.log = append(u.log[:0], sf.Log...)
-	pad := v.Ask != nil && v.Ask.Break > 0
+	pad := p.askUp() != nil && p.askUp().Break > 0
 	sh := sfShown{Pages: sfPages(sf.Log, pad)}
 	u.page = min(u.page, len(sh.Pages)-1)
 	sh.Page, sh.More = u.page, u.page < len(sh.Pages)-1
@@ -178,7 +178,7 @@ func (p *Presenter) sfState(v front.View, sf *game.SpaceFight) sfShown {
 	} else {
 		u.blinkSig, sh.Blink = "", sfBlinkSteps
 	}
-	if a := v.Ask; a != nil {
+	if a := p.askUp(); a != nil {
 		sig := sfBar(a)
 		if a.Kind == front.AskConfirm {
 			sig = a.Prompt + "\x00yn"
@@ -198,17 +198,17 @@ func (p *Presenter) sfState(v front.View, sf *game.SpaceFight) sfShown {
 // (10CD: Left/Right move, Up/Down switch rows, Enter takes the highlight,
 // a hotkey its item, Esc ActClose: the game's Answer N -1), Yes/No (2137: Esc ignored) and the
 // explicit pause. false: not the screen's key.
-func (p *Presenter) sfKey(k uint16, v front.View) bool {
-	sf := sfOf(v)
+func (p *Presenter) sfKey(k uint16) bool {
+	sf := p.sfOf()
 	if sf == nil {
 		return false
 	}
-	sh := p.sfState(v, sf)
+	sh := p.sfState(sf)
 	if sh.More {
 		p.sf.page++
 		return true
 	}
-	a := v.Ask
+	a := p.askUp()
 	if a == nil {
 		return false
 	}

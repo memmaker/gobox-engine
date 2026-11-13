@@ -10,7 +10,7 @@ import (
 	"image"
 )
 
-// counting is a fake that counts the State reads (every View build reads it).
+// counting is a fake that counts the State reads.
 type counting struct {
 	*fake
 	reads int
@@ -24,28 +24,23 @@ func countGame() (*classicGame, *counting) {
 	return &classicGame{Game: NewGame(f, game.Data{})}, f
 }
 
-// The shell asks for the View several times a frame (Screen, Free, Act's
-// pacing, Draw): it is built once until something may change it.
-func TestFrontBuildsViewOncePerFrame(t *testing.T) {
+// The shell asks for the screen several times a frame (Screen, Free, Act's
+// pacing): what it derives from the State is read once per Version.
+func TestFrontReadsStateOncePerVersion(t *testing.T) {
 	g, c := countGame()
 	f := &Front{Game: g, started: true}
 	f.Screen()
-	one := c.reads // one View build's reads
+	one := c.reads // one derivation's reads
 	f.Free()
 	f.Free()
 	if c.reads != one {
-		t.Fatalf("Free built the View again: %d reads, want %d", c.reads, one)
+		t.Fatalf("Free read the State again: %d reads, want %d", c.reads, one)
 	}
-	f.Act() // nothing to run: the View stays
+	f.Act() // nothing to run: the State stays
 	f.Screen()
 	f.Free()
 	if c.reads != one {
 		t.Fatalf("after an idle Act: %d reads, want %d", c.reads, one)
-	}
-	f.Key(' ') // a key may change it: the next ask builds it again
-	f.Screen()
-	if c.reads <= one { // (the derived reads stay: the State is the same)
-		t.Fatalf("after Key: %d reads, want more than %d", c.reads, one)
 	}
 }
 
@@ -134,7 +129,6 @@ func TestFightBoardBuiltOncePerChange(t *testing.T) {
 	}
 	fight.Field.Units = append(fight.Field.Units, game.Unit{ID: 2, Member: -1, Foe: true})
 	g.st = fight // the game's State is built anew: a new Version
-	f.stale()
 	f.Draw(dst)
 	if f.P.fightBoard == board {
 		t.Fatal("a change did not rebuild the board")

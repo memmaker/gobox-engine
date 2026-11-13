@@ -2,25 +2,12 @@ package present
 
 import (
 	"image"
-	"strconv"
 
 	"gobox/blobber"
 	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
-
-// Place is v with the view window and the party's place from where: the window
-// (numbered as front.Window), the area, the square and the way it faces.
-func Place(v front.View, where game.Where, window game.Window) front.View {
-	a, _ := strconv.Atoi(where.Area)
-	v.Window, v.Area = front.Window(window), front.AreaID(a)
-	v.X, v.Y, v.Facing = where.X, where.Y, front.Dir(where.Facing/2&3)
-	if q := where.Square; q != nil {
-		v.X, v.Y = q.X, q.Y
-	}
-	return v
-}
 
 // where is the party's place in the state up (zero with no game).
 func (p *Presenter) where() game.Where {
@@ -68,8 +55,8 @@ func (p *Presenter) flags() *game.Flags {
 	if p.eng == nil {
 		return &game.Flags{}
 	}
-	s := p.state()
-	return p.eng.r.flagsOf(s, partyOf(s))
+	r := p.eng.r
+	return p.lay.flags.get(flagsKey{p.eng.G.Version(), r.title}, func() *game.Flags { s := p.state(); return r.flagsOf(s, partyOf(s)) })
 }
 
 // minimap is the automap of the state up and its squares, when it is a 16x16 map to draw.

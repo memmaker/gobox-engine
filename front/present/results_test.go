@@ -3,7 +3,6 @@ package present
 import (
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -18,7 +17,7 @@ func TestResultsDrawnFromState(t *testing.T) {
 	g, _ := playGame(play.Scene{Kind: play.SceneResults, Results: &game.Results{Outcome: "The party has won.", Exp: "Each character receives 120"}})
 	p := &Presenter{}
 	p.SetEngine(g)
-	p.drawResults(dst, front.View{}, note)
+	p.drawResults(dst, note)
 	if n := lit(dst); n == 0 {
 		t.Fatal("nothing drawn")
 	}

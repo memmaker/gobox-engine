@@ -85,12 +85,13 @@ func (inv *inventory) menu() []word {
 
 // Inventory draws the inventory screen when the game shows it, and
 // reports whether it did.
-func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
+func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
+	p.sync()
 	inv := &p.inv
 	inv.shown = false
 	in := p.inventory()
 	party := p.party()
-	if p.own(v).Ask != nil && p.q == nil { // the game's question (Heal whom?, Use it?): Draw asks it, never hidden under the items; the presenter's own (Trade to whom?) is asked over the items
+	if p.q == nil && p.askUp() != nil { // the game's question (Heal whom?, Use it?): Draw asks it, never hidden under the items; the presenter's own (Trade to whom?) is asked over the items
 		return false
 	}
 	if p.playing() != nil { // an event to show (Draw plays it); this also drops the played ones, else Playing holds every key
@@ -100,7 +101,6 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 		inv.ask, inv.up = nil, nil
 		return false
 	}
-	p.shownView = p.own(v) // the decisions are made on the inventory, not on the screen under it
 	inv.load()
 	if inv.up == nil || in.member != inv.member {
 		inv.sel, inv.list.top, inv.carry, inv.keep.row = core.NoItem, 0, nil, -1 // a new member: nothing highlighted or on the cursor
@@ -130,7 +130,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	shop := in.kind != invOwn
 	split := leftCells // the left box's width in cells, with its border
 	busy := inv.ask != nil
-	p.setup(note, v)
+	p.setup(note)
 	t := p.border.tiles
 
 	b := dst.Bounds()

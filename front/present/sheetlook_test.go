@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -25,7 +24,7 @@ func TestSheetDraftPage(t *testing.T) {
 	p := &Presenter{bars: gpu.NewImageFromImage(barArt())}
 	p.SetEngine(gm)
 	gm.r.sheet = 0
-	p.drawSheet(dst, note, front.View{})
+	p.drawSheet(dst, note)
 	if s := drawn.String(); !strings.Contains(s, "ELF") || strings.Contains(s, "DWARF") {
 		t.Fatalf("the sheet drew %q, want the draft's race", s)
 	}

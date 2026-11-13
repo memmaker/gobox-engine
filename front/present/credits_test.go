@@ -1,13 +1,15 @@
 package present
 
 import (
+	"bytes"
 	"encoding/json"
+	"gobox/game"
+	"gobox/game/play"
 	"image"
 	"os"
 	"strings"
 	"testing"
 
-	"gobox/front"
 	"gobox/gpu"
 	"gobox/importer"
 	"gobox/ui"
@@ -42,16 +44,18 @@ func checkCreditsPage(t *testing.T, name string, lines []Credit, boxes []image.R
 				}
 			}
 		}
-		v := front.View{Credits: true, Cells: image.Pt(40, 25)} // the game's page left at 40x25: the presenter lays it out to the window
-		(&Presenter{}).Draw(dst, note, v)
+		p := creditsOn(image.Rect(0, 0, 320, 200)) // the presenter lays the page out to the window it draws in
+		p.Draw(dst, note)
 		if pages != 1 {
 			t.Errorf("%s %v: %d credits pages drawn", name, sz, pages)
 		}
 		dst.Deallocate()
 
-		v.Cells.X, v.Cells.Y = sz[0]/(8*int(K)), sz[1]/(8*int(K))
-		c := newCellPage(v)
-		c.texts(v, false)
+		if p.cells() != image.Pt(sz[0]/(8*int(K)), sz[1]/(8*int(K))) {
+			t.Errorf("%s %v: page %v cells", name, sz, p.cells())
+		}
+		c := newCellPage(p.cells(), p.ink(), nil)
+		c.texts(nil, p.flags(), false)
 		var rows []string
 		for _, r := range c.cells {
 			var b strings.Builder
@@ -170,13 +174,11 @@ func TestCreditsPicture(t *testing.T) {
 				}
 			}
 		}
-		img := image.NewRGBA(image.Rect(0, 0, 320, 200))
-		for i := range img.Pix {
-			img.Pix[i] = 255
-		}
-		v := front.View{CreditsPic: true, Intro: &front.Intro{}, Cells: image.Pt(40, 25),
-			Pictures: []front.Picture{{Img: img, File: "TITLE", At: img.Rect}}}
-		(&Presenter{}).drawGeneric(dst, v, note)
+		white := bytes.Repeat([]byte{15}, 320*200)
+		title := game.Layer{Picture: game.Picture{File: "TITLE", W: 320, H: 200, Pixels: white, Clear: -1}, At: image.Rect(0, 0, 320, 200)}
+		p, _ := presenterOn(play.Scene{Kind: play.SceneTitle, Full: true, Intro: &game.Intro{},
+			Steps: map[int]play.TitleStep{0: {Credits: true, Layers: []game.Layer{title}}}})
+		p.drawGeneric(dst, note)
 		if strips != 1 {
 			t.Errorf("%v: %d strips drawn", sz, strips)
 		}

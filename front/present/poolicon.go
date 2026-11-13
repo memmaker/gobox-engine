@@ -166,27 +166,27 @@ func memberIcon(m game.Member) (head, body string) {
 	return o["CHEAD.DAX"][strconv.Itoa(m.Icon["head"])], o["CBODY.DAX"][strconv.Itoa(m.Icon["body"])]
 }
 
-// PoolIcon is v with the creation draft's combat icon (pool ids, else its Icon numbers) in the
-// sheet's Icon box, in place of the game's picture there (v itself when the draft has none).
-func PoolIcon(v front.View, cr *front.Creation, own game.Member, sheet *game.SheetPage) front.View {
+// withPoolIcon is pics with the creation draft's combat icon (pool ids, else its Icon numbers) in the
+// sheet's Icon box, in place of the game's picture there (pics itself when the draft has none).
+func withPoolIcon(pics []front.Picture, cr *front.Creation, own game.Member, sheet *game.SheetPage) []front.Picture {
 	m := subject(own)
 	if cr == nil {
-		return v
+		return pics
 	}
 	if p := sheet; p != nil && p.Icons[0] != nil { // a dropped PNG: the sheet draws it
-		return v
+		return pics
 	}
 	box := cr.Icon.Pixels()
 	head, body := memberIcon(m)
 	composed := m.IconHeadID == "" && head != ""
 	if head == "" || body == "" {
-		if slices.ContainsFunc(v.Pictures, func(pc front.Picture) bool { return !pc.Fill && pc.At.Overlaps(box) }) {
-			return v // the game's own icon
+		if slices.ContainsFunc(pics, func(pc front.Picture) bool { return !pc.Fill && pc.At.Overlaps(box) }) {
+			return pics // the game's own icon
 		}
 		head, body = "combat_head_000", "combat_body_000" // nothing picked yet: the box still shows an icon, the pool's first
 	}
 	var keep []front.Picture
-	for _, pc := range v.Pictures {
+	for _, pc := range pics {
 		if !pc.Fill && pc.At.Overlaps(box) {
 			continue
 		}
@@ -195,7 +195,7 @@ func PoolIcon(v front.View, cr *front.Creation, own game.Member, sheet *game.She
 	for pose := range 2 {
 		pic, ok := poolIcon(head, body, m.IconColors, pose, false)
 		if !ok {
-			return v
+			return pics
 		}
 		if composed { // composed from the original numbers: drawn from CBODY's block (+128: the action pose)
 			pic.File, pic.Block = "CBODY", m.Icon["body"]+128*pose
@@ -205,8 +205,7 @@ func PoolIcon(v front.View, cr *front.Creation, own game.Member, sheet *game.She
 		pic.At = image.Rectangle{image.Pt(x, box.Min.Y), image.Pt(x+pic.PixW, box.Min.Y+len(pic.Pix)/pic.PixW)}
 		keep = append(keep, pic)
 	}
-	v.Pictures = keep
-	return v
+	return keep
 }
 
 // PickIcon is the subject's combat icon (ready pose) with head or body swapped

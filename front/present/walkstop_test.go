@@ -45,7 +45,6 @@ func TestAnyInputStopsWalk(t *testing.T) {
 		if !f.Game.WalkTo(3, 0) {
 			t.Fatal("no walk")
 		}
-		f.stale()
 		if f.P.pacing().Pace != game.PaceWalk {
 			t.Fatal("not walking")
 		}
@@ -53,7 +52,6 @@ func TestAnyInputStopsWalk(t *testing.T) {
 		for _, c := range f.P.Calls() {
 			c(f.Game)
 		}
-		f.stale()
 		if f.P.pacing().Pace == game.PaceWalk {
 			t.Errorf("%s did not stop the walk", name)
 		}

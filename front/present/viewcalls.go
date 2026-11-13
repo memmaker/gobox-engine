@@ -22,8 +22,7 @@ var viewPasses = []front.ActKind{front.ActHead, front.ActPortrait, front.ActFont
 // viewAct makes a decision on (or opening) the sheet or the inventory a
 // rule call; false leaves it to the others.
 func (p *Presenter) viewAct(a front.Action) bool {
-	v := p.shownView
-	if v.Ask != nil || v.Powers != nil {
+	if p.askUp() != nil || p.powerPick() != nil {
 		return false
 	}
 	turn := p.board != nil && p.board.Turn != nil
@@ -87,12 +86,12 @@ func (p *Presenter) viewAct(a front.Action) bool {
 		default:
 			return !slices.Contains(viewPasses, k)
 		}
-	case k == front.ActMember && (p.exploring() || v.Camp != nil || p.mainMenuUp() || turn), k == front.ActView && turn: // the bar's View in a turn: the active member's sheet, as a portrait's
+	case k == front.ActMember && (p.exploring() || p.campUp() || p.mainMenuUp() || turn), k == front.ActView && turn: // the bar's View in a turn: the active member's sheet, as a portrait's
 		if turn {
 			n = -1
 		}
 		do(func(e *classicGame) error { return e.OpenSheet(n) })
-	case k == front.ActInventory && (p.exploring() || v.Camp != nil):
+	case k == front.ActInventory && (p.exploring() || p.campUp()):
 		do(func(e *classicGame) error { return e.OpenItems(n, true) })
 	case k == front.ActItems && turn:
 		do(func(e *classicGame) error { return e.OpenItems(-1, false) })

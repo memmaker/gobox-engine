@@ -1,28 +1,43 @@
 package present
 
 import (
+	"image"
 	"testing"
 
 	"gobox/combat"
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
 
-// settled is g's Settle: the View after it and the moments queued as the
-// presenter plays them.
-func settled(g *Game) (front.View, []frame) {
+// settled is g's Settle: the moments queued as the presenter plays them.
+func settled(g *Game) []frame {
 	ms := g.Settle()
-	v := g.View()
 	var p Presenter
 	p.Play(ms)
-	return v, p.replay.q
+	return p.replay.q
 }
 
 // presenterOf is a Presenter over g.
 func presenterOf(g *Game) *Presenter {
 	p := &Presenter{}
 	p.SetEngine(&classicGame{Game: g, p: p})
+	return p
+}
+
+// presenterOn is a Presenter over a fake game in state s.
+func presenterOn(s play.State) (*Presenter, *fake) {
+	g, f := playGame(s)
+	p := &Presenter{}
+	p.SetEngine(g)
+	return p, f
+}
+
+// creditsOn is a Presenter on the title's credits page in a window of
+// bounds screen.
+func creditsOn(screen image.Rectangle) *Presenter {
+	p, _ := presenterOn(play.Scene{Kind: play.SceneTitle})
+	p.eng.r.title = titleStep{credits: true}
+	p.screen = screen
 	return p
 }
 

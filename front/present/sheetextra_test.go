@@ -4,7 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -18,7 +17,7 @@ func TestSheetDrawsExtraFields(t *testing.T) {
 	var drawn strings.Builder
 	g := func(c byte) [8]byte { drawn.WriteByte(c); return [8]byte{} }
 	note := Note{Glyph: g, Font: func(c byte, _ bool) [8]byte { return g(c) }}
-	sheetOn(&game.SheetPage{Weapon: "LONGSWORD", Armour: "CHAIN MAIL", Encumbrance: "NORMAL"}).drawSheet(dst, note, front.View{})
+	sheetOn(&game.SheetPage{Weapon: "LONGSWORD", Armour: "CHAIN MAIL", Encumbrance: "NORMAL"}).drawSheet(dst, note)
 	for _, w := range []string{"LONGSWORD", "CHAIN MAIL", "NORMAL", "Load"} {
 		if !strings.Contains(drawn.String(), w) {
 			t.Errorf("%q not drawn", w)
@@ -54,6 +53,12 @@ func menuOn(funcs ...string) *Presenter {
 	g, _ := playGame(play.Assembling{Common: play.Common{Ask: &play.Question{Replies: funcs}}})
 	p := &Presenter{}
 	p.SetEngine(g)
+	return p
+}
+
+// draftAsked is draftOn with q asked over the creation.
+func draftAsked(d *play.Draft, q *play.Question) *Presenter {
+	p, _ := presenterOn(play.Assembling{Common: play.Common{Ask: q}, Draft: d})
 	return p
 }
 

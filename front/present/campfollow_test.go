@@ -3,7 +3,6 @@ package present
 import (
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -20,14 +19,17 @@ func TestShopRowAppears(t *testing.T) {
 	g, f := playGame(shopState(play.PoolCoins{}, play.LootShare{}))
 	p := &Presenter{}
 	p.SetEngine(g)
-	v := front.View{Shop: &front.Shop{}}
-	p.campKey('P', v) // Pool: Buy View Pool Share Exit, the highlight on Pool
+	p.campKey('P') // Pool: Buy View Pool Share Exit, the highlight on Pool
 	p.inv.acts = nil
 	f.st = shopState(play.Take{}, play.PoolCoins{}, play.LootShare{}) // pooled: Take comes in above
 	for _, k := range []uint16{keyDown, keyDown, '\r'} {
-		p.campKey(k, v)
+		p.campKey(k)
 	}
-	if a := p.inv.acts; len(a) != 1 || a[0].Kind != front.ActClose {
-		t.Fatalf("Pool, then Down Down Enter with Take in: %+v, want Exit (ActClose)", a)
+	f.sent = nil
+	for _, c := range p.Calls() {
+		c(g)
+	}
+	if len(f.sent) != 1 || f.sent[0] != (play.Leave{}) {
+		t.Fatalf("Pool, then Down Down Enter with Take in: %+v, want Exit (Leave)", f.sent)
 	}
 }

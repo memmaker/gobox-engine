@@ -36,13 +36,13 @@ func TestFightViewDrawn(t *testing.T) {
 	f.Key('v')
 	frame()
 	frame()
-	if f.P.fight || !f.P.sheetUp(f.P.shownView) {
-		t.Fatalf("sheet %v, fight drawn %v", f.P.sheetUp(f.P.shownView), f.P.fight)
+	if f.P.fight || !f.P.sheetUp() {
+		t.Fatalf("sheet %v, fight drawn %v", f.P.sheetUp(), f.P.fight)
 	}
 	f.Key(27)
 	frame()
 	frame()
-	if f.P.sheetUp(f.P.shownView) || !f.P.fight {
-		t.Fatalf("after Esc: sheet %v, fight drawn %v", f.P.sheetUp(f.P.shownView), f.P.fight)
+	if f.P.sheetUp() || !f.P.fight {
+		t.Fatalf("after Esc: sheet %v, fight drawn %v", f.P.sheetUp(), f.P.fight)
 	}
 }

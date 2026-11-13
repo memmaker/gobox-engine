@@ -55,8 +55,8 @@ func (p *Presenter) learning() []game.SpellRef {
 
 // powerItems is the power pick (View.Powers): one line a power, its rule
 // the tip; no hotkeys (the lines are names) and no Exit (the pick is owed).
-func (p *Presenter) powerItems(v front.View) (string, []ui.MenuRow) {
-	pp := v.Powers
+func (p *Presenter) powerItems() (string, []ui.MenuRow) {
+	pp := p.powerPick()
 	if ask := pp.Name + pp.What; p.camp.level != ask { // the next pick starts on its first line
 		p.camp.level, p.camp.sel, p.camp.top = ask, 0, 0
 	}

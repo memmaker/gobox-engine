@@ -1,9 +1,6 @@
 package front
 
-import (
-	"fmt"
-	"strings"
-)
+import "strings"
 
 // Screen is the name of a front screen up; the input latch tells screens
 // apart by the names up (Screens), so an input held across a change never
@@ -40,22 +37,4 @@ type ScreenUp struct {
 	Name  Screen
 	On    bool
 	State string
-}
-
-// ScreenOf names the screen v shows, with own the presenter's own screens
-// (Presenter.Screens): it changes whenever a screen opens or closes, or a
-// question pops up (the latch's Screen).
-func ScreenOf(v View, own string) string {
-	ask := -1
-	if v.Ask != nil {
-		ask = int(v.Ask.Kind)
-	}
-	kind := 0
-	if v.Screen != nil {
-		kind = int(v.Screen.Kind)
-	}
-	return fmt.Sprint(own, kind, v.Camp != nil, v.Temple != nil,
-		v.Shop != nil, v.Training != nil, v.Powers != nil,
-		v.Read != nil, v.Results != nil, v.Credits, ask, Screens(
-			ScreenUp{Name: ScreenMainMenu, On: v.MainMenu != nil}))
 }

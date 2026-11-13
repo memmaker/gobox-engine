@@ -16,12 +16,11 @@ func TestMainMenuKeys(t *testing.T) {
 	p := menuOn("Begin Adventuring", "Exit to DOS")
 	p.main = true
 	p.mm.title = image.NewRGBA(image.Rect(0, 0, 1, 1))
-	v := front.View{}
-	p.Key('B', v)
+	p.Key('B')
 	if p.mm.fade() < 1 || len(p.Calls()) != 1 { // Begin is a rule call (StateAct)
 		t.Fatalf("first key: fade %v, acts %v", p.mm.fade(), p.inv.acts)
 	}
-	p.Key('x', v)
+	p.Key('x')
 	if len(p.inv.acts) != 0 || len(p.Calls()) != 0 {
 		t.Fatalf("an unknown key sent %v", p.inv.acts)
 	}
@@ -31,15 +30,14 @@ func TestMainMenuKeys(t *testing.T) {
 // that skips the menu's fade-in is used up, and a menu not yet drawn takes
 // no key at all: Load Game (the first row) is not chosen.
 func TestIntroEnterNoFallThrough(t *testing.T) {
-	v := front.View{}
 	p := menuOn("Load Saved Game", "Begin Adventuring")
 	p.mm.title = image.NewRGBA(image.Rect(0, 0, 1, 1))
-	p.Key('\r', v) // the game's View is the menu already, the intro still on screen
+	p.Key('\r') // the game's menu is up already, the intro still on screen
 	if p.slots != nil || len(p.inv.acts) != 0 {
 		t.Fatalf("a key reached the undrawn menu: slots %v, acts %v", p.slots != nil, p.inv.acts)
 	}
-	p.main, p.shownView = true, v // drawn, fading in
-	p.Key('\r', v)
+	p.main = true // drawn, fading in
+	p.Key('\r')
 	if p.mm.fade() < 1 || p.slots != nil || len(p.inv.acts) != 0 {
 		t.Fatalf("the Enter ending the fade picked: fade %v, slots %v, acts %v", p.mm.fade(), p.slots != nil, p.inv.acts)
 	}
@@ -54,9 +52,8 @@ func TestIntroEnterNoFallThrough(t *testing.T) {
 func TestCreationEndedByGame(t *testing.T) {
 	gone, _ := playGame(play.Assembling{}) // no draft: the creation has ended
 	p := &Presenter{creating: true, eng: gone}
-	v := p.own(front.View{MainMenu: []front.ActKind{front.ActCreate}})
-	if p.creating || v.MainMenu == nil {
-		t.Fatalf("creating %v, menu %v", p.creating, v.MainMenu)
+	if p.sync(); p.creating {
+		t.Fatal("still creating")
 	}
 }
 
@@ -101,10 +98,9 @@ func TestPictureNoAt(t *testing.T) {
 
 // A typed line reaches the game whole, once, on Enter: never a line half typed.
 func TestTypedLineOnce(t *testing.T) {
-	p := &Presenter{}
-	v := front.View{Ask: &front.Ask{Kind: front.AskText, Max: 15}}
+	p, _ := presenterOn(play.Scene{Common: play.Common{Ask: &play.Question{Typed: true, Max: 15}}})
 	for _, k := range []uint16{'B', 'o', 'b', '\r'} {
-		p.keyAct(k, v)
+		p.keyAct(k)
 	}
 	if len(p.inv.acts) != 1 || p.inv.acts[0].Kind != front.ActText || p.inv.acts[0].Text != "Bob" {
 		t.Fatalf("acts %+v", p.inv.acts)
@@ -114,7 +110,7 @@ func TestTypedLineOnce(t *testing.T) {
 // Camp offers Save beside the rests, as the original's camp does.
 func TestCampSave(t *testing.T) {
 	p := campPresenter()
-	_, it := p.campItems(front.View{Camp: &front.Camp{}})
+	_, it := p.campItems()
 	if !slices.ContainsFunc(it, func(r ui.MenuRow) bool { return r.Text == "Save" }) {
 		t.Fatal("no Save in camp")
 	}

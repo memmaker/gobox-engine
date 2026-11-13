@@ -38,7 +38,7 @@ func TestLoot(t *testing.T) {
 }
 
 // TestLootScreen: the treasure up opens the one loot screen (the inventory
-// with the treasure, its money and options) without the game's View, and
+// with the treasure, its money and options) and
 // its acts are TakeLoot.
 func TestLootScreen(t *testing.T) {
 	treasure := play.Looting{Common: play.Common{Party: []game.Member{{}}}, Items: []game.Item{{Name: "Gauntlets"}}, Money: map[string]int{game.Gold: 120, game.Gems: 2}}
@@ -47,18 +47,17 @@ func TestLootScreen(t *testing.T) {
 	f := &fake{st: announced}
 	g := NewGame(f, game.Data{})
 	p := presenterOf(g)
-	if v := g.View(); p.inventoryUp() || v.Ask == nil || v.Ask.Menu.Prompt != "You found some loot!" || v.Loot != nil {
-		t.Fatalf("no found message first: %+v", v.Ask)
+	if q := p.askUp(); p.inventoryUp() || q == nil || q.Menu.Prompt != "You found some loot!" {
+		t.Fatalf("no found message first: %+v", q)
 	}
 	g.Answer(front.Action{Kind: front.ActOK})
 	if len(f.sent) != 1 || f.sent[0] != (play.Continue{}) {
 		t.Fatalf("OK on the found message sent %v", f.sent)
 	}
 	f.st = treasure
-	v := g.View()
 	in := p.inventory()
-	if in == nil || in.kind != invLoot || len(in.wares) != 1 || in.treasure == nil || v.Loot != nil {
-		t.Fatalf("no loot screen: %+v loot %+v", in, v.Loot)
+	if in == nil || in.kind != invLoot || len(in.wares) != 1 || in.treasure == nil {
+		t.Fatalf("no loot screen: %+v", in)
 	}
 	if m := in.treasure.Money; len(m) != 2 || m[0] != "120 gold" || m[1] != "2 gems" {
 		t.Errorf("money %q", m)

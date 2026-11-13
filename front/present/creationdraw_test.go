@@ -5,21 +5,25 @@ import (
 	"image/color"
 	"testing"
 
-	"gobox/front"
+	"gobox/game"
 	"gobox/game/play"
 )
 
 // The pool's portrait and icon on the creation sheet (a Name, no File) are
 // content the screen draws, as the game's DAX pictures there are.
 func TestContentPoolPictures(t *testing.T) {
-	v := front.View{Pictures: []front.Picture{
-		{Name: "head_000", Img: image.NewRGBA(image.Rect(0, 0, 88, 40)), At: image.Rect(224, 8, 312, 48)},
-		{Name: "combat_head_000", Pix: make([]uint8, 576), PixW: 24, At: image.Rect(232, 104, 256, 128)},
-		{Pix: make([]uint8, 576), PixW: 24, At: image.Rect(232, 104, 256, 128)}, // a frame: not content
-	}}
-	p, _ := draftOn(&play.Draft{}) // the page's default layout: the portrait at 28,1, the icon at 29,13
-	if n := len(p.contentPictures(v)); n != 2 {
-		t.Fatalf("%d content pictures, want the pool's 2", n)
+	m := game.Member{PortraitHeadID: "head_000", PortraitBodyID: "body_000", IconHeadID: "combat_head_000", IconBodyID: "combat_body_000"}
+	if poolPicture("portraits", m.PortraitHeadID) == nil {
+		t.Skip("no pool art")
+	}
+	p, _ := draftOn(&play.Draft{Member: m}) // the page's default layout: the portrait at 28,1, the icon at 29,13
+	p.creating = true
+	names := map[string]bool{}
+	for _, pc := range p.contentPictures() {
+		names[pc.Name] = true
+	}
+	if !names[m.PortraitHeadID] || !names[m.PortraitBodyID] || !names[m.IconHeadID] || names[""] {
+		t.Fatalf("content pictures %v, want the pool's portrait and icon only", names)
 	}
 }
 

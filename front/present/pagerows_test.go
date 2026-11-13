@@ -1,20 +1,20 @@
 package present
 
 import (
+	"image/color"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
 
-// Page carries PaneRows to the pane and a Layer's Frames and FrameMs to its picture.
+// layPage carries PaneRows to the pane and a Layer's Frames and FrameMs to its picture.
 func TestPageRowsFrames(t *testing.T) {
-	v := Page(front.View{}, &game.Page{
+	l := layPage(&game.Page{
 		Pane: [][]game.TextRun{{{Text: "x"}}}, PaneRows: 4,
-		Layers: []game.Layer{{Frames: []int{1, 2}, FrameMs: 80}}}, nil)
-	if v.Pane.Rows != 4 || len(v.Pictures[0].Frames) != 2 || v.Pictures[0].FrameMs != 80 {
-		t.Fatalf("%+v %+v", v.Pane, v.Pictures)
+		Layers: []game.Layer{{Frames: []int{1, 2}, FrameMs: 80}}}, nil, [16]color.RGBA{})
+	if l.pane.Rows != 4 || len(l.pictures[0].Frames) != 2 || l.pictures[0].FrameMs != 80 {
+		t.Fatalf("%+v %+v", l.pane, l.pictures)
 	}
 }
 

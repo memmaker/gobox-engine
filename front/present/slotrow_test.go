@@ -24,7 +24,7 @@ func TestSlotRowLevelDate(t *testing.T) {
 	g := &classicGame{Game: NewGame(f, game.Data{SaveDir: t.TempDir()})}
 	p := &Presenter{slots: &SlotsUI{LoadOnly: true}}
 	p.SetEngine(g)
-	_, rows := p.screenItems(p.shownView)
+	_, rows := p.screenItems()
 	r := rows[0].Text
 	if !strings.Contains(r, " 5 NOV 6 2026") || len(r) != 34 {
 		t.Fatalf("row %q (%d)", r, len(r))

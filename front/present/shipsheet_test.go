@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"gobox/dax"
-	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/ui/fonts"
 )
 
@@ -20,7 +20,7 @@ func testSheet(own bool) *game.ShipSheet {
 }
 
 func TestShipSheetFoeUnknown(t *testing.T) {
-	v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: testFight(), ShipSheet: testSheet(false)}, Ask: &front.Ask{Kind: front.AskMenu}}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: testFight(), ShipSheet: testSheet(false)}, Ask: &play.Ask{Kind: game.Choice}}
 	c := fightPage(&Presenter{}, v)
 	cellAt(t, c, 1, 1, "name:", 14, 8)
 	cellAt(t, c, 10, 1, "MAELSTROM RIG", 15, 8)
@@ -55,8 +55,8 @@ func TestShipSheetFoeUnknown(t *testing.T) {
 func TestShipSheetRocket(t *testing.T) {
 	f := testFight()
 	f.Log, f.Pause = nil, "Press button or enter to continue"
-	v := front.View{Screen: &game.Screen{Kind: game.ScreenShipSheet, SpaceFight: f, ShipSheet: testSheet(true)}, Ask: &front.Ask{Kind: front.AskMenu}}
-	if sfOf(v) == nil {
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenShipSheet, SpaceFight: f, ShipSheet: testSheet(true)}, Ask: &play.Ask{Kind: game.Choice}}
+	if v.show(&Presenter{}).sfOf() == nil {
 		t.Fatal("no fight screen for the sheet")
 	}
 	c := fightPage(&Presenter{}, v)
@@ -88,7 +88,7 @@ func TestSpaceFightStatusLineAndPad(t *testing.T) {
 	f := testFight()
 	f.Log = []game.Message{{Text: "one"}, {Text: "two"}}
 	f.StatusLine = "Your Teammate is Dying!"
-	v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: crewMenu()}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: crewMenu()}
 	c := fightPage(&Presenter{}, v)
 	cellAt(t, c, 0, 24, f.StatusLine, 10, 0)
 	if k := c.cells[23][0]; k.set && k.ch != ' ' {
@@ -96,7 +96,7 @@ func TestSpaceFightStatusLineAndPad(t *testing.T) {
 	}
 	// the crew menu's padding comes with Break only
 	f.StatusLine = ""
-	v.Ask = &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Commands: []front.Command{{Text: "Hull"}, {Text: "Sens"}}}}
+	v.Ask = &play.Ask{Kind: game.Choice, Options: []play.Option{{Label: "Hull"}, {Label: "Sens"}}}
 	c = fightPage(&Presenter{}, v)
 	cellAt(t, c, 1, 19, "one", 10, 0)
 	cellAt(t, c, 1, 20, "two", 10, 0)
@@ -108,7 +108,7 @@ func TestSpaceFightDestroyedPause(t *testing.T) {
 	f := testFight()
 	f.Log = []game.Message{{Tone: game.ToneLoud, Text: "Enemy ship destroyed."}}
 	f.Pause = "Press button or enter to continue"
-	v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: &front.Ask{Kind: front.AskMenu}}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: &play.Ask{Kind: game.Choice}}
 	c := fightPage(&Presenter{}, v)
 	cellAt(t, c, 1, 19, "Enemy ship destroyed.", 15, 0)
 	cellAt(t, c, 0, 24, f.Pause, 15, 0)
@@ -117,7 +117,7 @@ func TestSpaceFightDestroyedPause(t *testing.T) {
 }
 
 // saveSheetPNG renders v with BR2's art to SHIPSHEET_PNG.
-func saveSheetPNG(t *testing.T, v front.View) {
+func saveSheetPNG(t *testing.T, v sfView) {
 	out := os.Getenv("SHIPSHEET_PNG")
 	if out == "" {
 		return

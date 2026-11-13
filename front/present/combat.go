@@ -50,7 +50,7 @@ var keypadSteps = map[image.Point]int{{0, -1}: 8, {1, -1}: 9, {1, 0}: 6, {1, 1}:
 // aim, whatever Turn the rules publish; AskMove: a step at a time, where they
 // publish none).
 func (p *Presenter) askedTurn() bool {
-	q := p.shownView.Ask
+	q := p.askUp()
 	return p.board != nil && q != nil && (q.Kind == front.AskSquare || q.Kind == front.AskMove && p.board.Turn == nil)
 }
 
@@ -62,7 +62,7 @@ func (p *Presenter) askedBoard(b *combat.Board, c *play.Combat) *combat.Board {
 		return b
 	}
 	o := *b
-	aim := p.shownView.Ask.Kind == front.AskSquare
+	aim := p.askUp().Kind == front.AskSquare
 	t := &combat.Turn{Aim: aim, Can: []combat.Kind{combat.ActAim}, CastDirect: true}
 	if pt := c.Turn; pt != nil { // the game's turn, now aiming (a spell's square): its casting only
 		t.Casting = pt.Spell
@@ -89,7 +89,7 @@ func (p *Presenter) askedBoard(b *combat.Board, c *play.Combat) *combat.Board {
 // on a move (askedTurn) a square walked to is that step (ActDir), End is
 // done (ActOK); otherwise toAction's.
 func (p *Presenter) askAction(d combat.Decision) front.Action {
-	if !p.askedTurn() || p.shownView.Ask.Kind != front.AskMove {
+	if !p.askedTurn() || p.askUp().Kind != front.AskMove {
 		return toAction(d)
 	}
 	switch d.Kind {

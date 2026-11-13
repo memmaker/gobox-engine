@@ -57,10 +57,10 @@ func frontOnly(k uint16) bool {
 
 // arrow turns a cursor key a into its decision on v: the member pick's candidate (ActLead), else a pager's page
 // (ActPage -1 or +1).
-func (p *Presenter) arrow(a input.Act, v front.View) {
+func (p *Presenter) arrow(a input.Act) {
 	back := a == input.Up || a == input.Left || a == input.PgUp || a == input.Home
 	on := a == input.Down || a == input.Right || a == input.PgDn || a == input.End
-	if n := len(p.party()); n > 0 && choosing(v) && (back || on) {
+	if n := len(p.party()); n > 0 && p.choosing() && (back || on) {
 		i := p.selectedIndex()
 		switch {
 		case on:
@@ -74,7 +74,7 @@ func (p *Presenter) arrow(a input.Act, v front.View) {
 		return
 	}
 	switch {
-	case p.picker(v.Ink) != nil: // a picker pages to an absolute page (pickerKey), never by -1 and +1
+	case p.picker(p.ink()) != nil: // a picker pages to an absolute page (pickerKey), never by -1 and +1
 	case back:
 		p.send(front.ActPage, -1)
 	case on:
@@ -87,11 +87,11 @@ func (p *Presenter) send(kind front.ActKind, n int) {
 		p.asked, p.pageAsked = "", ""
 	}
 	if kind == front.ActLoad && p.slots == nil { // the party menu's Load
-		p.openSlots(p.shownView, true)
+		p.openSlots(true)
 		return
 	}
 	if kind == ActSaveGame && p.slots == nil { // the party menu's Save
-		p.openSlots(p.shownView, false)
+		p.openSlots(false)
 		return
 	}
 	if p.slotAct(front.Action{Kind: kind, N: n}) {
@@ -101,8 +101,8 @@ func (p *Presenter) send(kind front.ActKind, n int) {
 }
 
 // keyAct turns key k into the action it stands for on the screen v shows.
-func (p *Presenter) keyAct(k uint16, v front.View) {
-	if t := typing(v); t != nil { // the line being typed is edited here
+func (p *Presenter) keyAct(k uint16) {
+	if t := p.typingAsk(); t != nil { // the line being typed is edited here
 		if !p.typing {
 			p.typed, p.typedCur, p.typing = t.Text, len(t.Text), true
 		}
@@ -117,13 +117,13 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 		return
 	}
 	p.typing = false
-	if p.askAnswered(k, v) {
+	if p.askAnswered(k) {
 		return
 	}
-	if askList(v) != nil && askMenu(v) != nil && !choosing(v) && p.listKey(k, v) {
+	if p.askList() != nil && p.askMenu() != nil && !p.choosing() && p.listKey(k) {
 		return
 	}
-	if p.screenUp(v) && p.campKey(k, v) {
+	if p.screenUp() && p.campKey(k) {
 		return
 	}
 	if p.exploring() && p.exploreKey(k) {
@@ -166,19 +166,19 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 	case a == input.Sound:
 		p.send(front.ActSound, 0)
 	case a == input.SaveLoad:
-		p.openSlots(v, false)
+		p.openSlots(false)
 	case a == input.WallStyle:
 		Host.PixelWalls = !Host.PixelWalls // newView puts it in use
 		if blobber.OnSettings != nil {     // saved with the host's settings
 			blobber.OnSettings(blobber.Settings)
 		}
 	case input.Cursor(a):
-		p.arrow(a, v)
+		p.arrow(a)
 	case a == input.Help:
-		p.openHelp(v)
+		p.openHelp()
 	case k >= 128 || c < ' ': // another key the table binds (or none): nothing here
-	case menuIndex(askMenu(v), c) >= 0:
-		p.send(front.ActChoose, menuIndex(askMenu(v), c))
+	case menuIndex(p.askMenu(), c) >= 0:
+		p.send(front.ActChoose, menuIndex(p.askMenu(), c))
 	case a == input.Map:
 		p.openMap()
 	case a == input.Party && p.exploring():
@@ -186,8 +186,8 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 	case a == input.Party:
 		p.send(front.ActOverview, 0)
 	case keypad(k) != input.None:
-		p.arrow(keypad(k), v)
-	case c == ' ' || askMenu(v) == nil && !p.mainMenuUp(): // "press any key" (the party menu ignores keys it has no row for)
+		p.arrow(keypad(k))
+	case c == ' ' || p.askMenu() == nil && !p.mainMenuUp(): // "press any key" (the party menu ignores keys it has no row for)
 		p.send(front.ActOK, 0)
 	}
 }
@@ -195,7 +195,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 // Drop takes a file dropped on the window: a PNG while the sheet is up
 // becomes the member's portrait, on the icon editor (or dropped on the
 // creation sheet's icon, cell cx, cy) the combat icon.
-func (p *Presenter) Drop(path string, cx, cy int, in bool, v front.View) {
+func (p *Presenter) Drop(path string, cx, cy int, in bool) {
 	if !strings.EqualFold(filepath.Ext(path), ".png") {
 		return
 	}
@@ -203,7 +203,7 @@ func (p *Presenter) Drop(path string, cx, cy int, in bool, v front.View) {
 	switch {
 	case p.icon != nil:
 		IconAct(p, &p.icon, front.Action{Kind: front.ActIcon, Text: path})
-	case p.iconEditor(v.Ink) != nil || in && r != (front.CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
+	case p.iconEditor(p.ink()) != nil || in && r != (front.CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActIcon, Text: path})
 	case p.portraitBox() != (front.CellRect{}) || p.inventoryKind() == invOwn: // the sheet or the member's inventory
 		p.inv.acts = append(p.inv.acts, front.Action{Kind: front.ActPortrait, N: -1, Text: path})
@@ -226,9 +226,9 @@ func menuIndex(m *front.Menu, c byte) int {
 // page at all), a left or right click and wheel steps (up positive): the
 // clicks the screens take, Esc on the right button, the highlight on the
 // wheel; a click elsewhere answers "press a key".
-func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.View) {
-	v = p.own(v)
-	if v.Intro != nil { // its clicks are Click's
+func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int) {
+	p.sync()
+	if p.introUp() != nil { // its clicks are Click's
 		return
 	}
 	if p.journal.open { // its rows on the window's pixels (Hover, Click)
@@ -247,7 +247,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 		return
 	}
 	if pg, _ := p.pages(); pg != nil { // the pager: the wheel and the ◀ ▶ marks page, the right button closes, another click pages on
-		w, h := pageSize(v)
+		w, h := p.pageSize()
 		switch {
 		case wheel != 0:
 			p.pagerTurn(-unit(wheel))
@@ -271,11 +271,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			p.battle.Zoom(wheel > 0, Host.Zoom)
 			continue
 		}
-		if c := &p.camp; p.screenUp(v) && c.screen == campBestiary && c.pointer.In(c.beastPane) { // over the entry: it scrolls
-			c.beastY = min(max(c.beastY-10*unit(wheel), 0), c.beastMax)
-			continue
-		}
-		if p.screenUp(v) || askList(v) != nil || p.pageMenu { // over a list: a line at most a pause, the rest of a fling dropped
+		if p.screenUp() || p.askList() != nil || p.pageMenu { // over a list: a line at most a pause, the rest of a fling dropped
 			if c := &p.camp; now().Sub(c.wheeled) < 2*wheelPause {
 				break
 			}
@@ -284,24 +280,24 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			if wheel > 0 {
 				k = keyOf(input.Up)
 			}
-			p.key(k, v)
+			p.key(k)
 		}
 	}
-	if p.pageScreen(v) && (p.pageMenu || p.picker(v.Ink) != nil) { // the page screens' own pointer (screens.go): the right button is Esc
+	if p.pageScreen() && (p.pageMenu || p.picker(p.ink()) != nil) { // the page screens' own pointer (screens.go): the right button is Esc
 		if right {
-			p.screenKey(keyOf(input.Esc), v)
+			p.screenKey(keyOf(input.Esc))
 			right = false
 		}
-		if p.picker(v.Ink) != nil || p.creation() != nil || p.iconEditor(v.Ink) != nil {
+		if p.picker(p.ink()) != nil || p.creation() != nil || p.iconEditor(p.ink()) != nil {
 			if in {
-				p.screenMouse(cx, cy, left, v)
+				p.screenMouse(cx, cy, left)
 			}
 			return
 		}
 	}
 	switch { // the right button: on a card that member's sheet, else it closes the context menu, else Esc
 	case !right:
-	case confirm(v) != "": // a yes/no question: No
+	case p.confirm() != "": // a yes/no question: No
 		p.confirmPick(1)
 	case p.cardHover > 0 && (p.active || p.main):
 		p.ctx = 0
@@ -312,13 +308,13 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 		p.fightKey(keyOf(input.Esc))
 	case p.ctx > 0:
 		p.ctx = 0
-	case askMenu(v) != nil && len(askMenu(v).Commands) == 1 && typing(v) == nil: // "PRESS <ENTER> TO CONTINUE" takes no Esc: the right button continues too
+	case p.askMenu() != nil && len(p.askMenu().Commands) == 1 && p.typingAsk() == nil: // "PRESS <ENTER> TO CONTINUE" takes no Esc: the right button continues too
 		p.menu = false
 		p.send(front.ActOK, 0)
 	case p.menu && p.exploring(): // the command bar's popup: it alone closes (key)
 		p.menu = false
-	case p.screenUp(v): // back one level, as Esc
-		p.campBack(v)
+	case p.screenUp(): // back one level, as Esc
+		p.campBack()
 	case p.exploring() && !p.menu && p.active && p.view != nil: // as Esc: the options
 		p.view.OpenOptions()
 	default:
@@ -330,7 +326,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 	}
 	switch {
 	case !left || !in:
-	case typing(v) == nil && (askMenu(v) == nil || len(askMenu(v).Commands) == 1): // no bar, or one with nothing to choose (the scripts' "PRESS <ENTER> TO CONTINUE")
+	case p.typingAsk() == nil && (p.askMenu() == nil || len(p.askMenu().Commands) == 1): // no bar, or one with nothing to choose (the scripts' "PRESS <ENTER> TO CONTINUE")
 		p.send(front.ActOK, 0)
 	}
 }
@@ -345,11 +341,11 @@ func unit(n int) int {
 
 // askMenu is the question's prompt and options when v asks for an option,
 // a line of a list or a member (nil otherwise).
-func askMenu(v front.View) *front.Menu {
-	if a := v.Ask; a != nil && a.Kind == front.AskModify { // the options, then the presenter's Raise and Lower (modifyItems) on the line highlighted
+func (p *Presenter) askMenu() *front.Menu {
+	if a := p.askUp(); a != nil && a.Kind == front.AskModify { // the options, then the presenter's Raise and Lower (modifyItems) on the line highlighted
 		return &front.Menu{Prompt: a.Prompt, Commands: append(slices.Clone(a.Commands), modifyItems...)}
 	}
-	if a := v.Ask; a != nil && (a.Kind == front.AskMenu || a.Kind == front.AskList || a.Kind == front.AskMember) {
+	if a := p.askUp(); a != nil && (a.Kind == front.AskMenu || a.Kind == front.AskList || a.Kind == front.AskMember) {
 		return &a.Menu
 	}
 	return nil
@@ -361,19 +357,19 @@ func askMenu(v front.View) *front.Menu {
 var modifyItems = []front.Command{{Text: "Raise", Key: '+'}, {Text: "Lower", Key: '-'}}
 
 // modifying: v asks for a stat raised or lowered (AskModify).
-func modifying(v front.View) bool { return v.Ask != nil && v.Ask.Kind == front.AskModify }
+func (p *Presenter) modifying() bool { return p.askUp() != nil && p.askUp().Kind == front.AskModify }
 
 // askDefault is the option v's question highlights first (Ask.Default).
-func askDefault(v front.View) int {
-	if v.Ask != nil {
-		return v.Ask.Default
+func (p *Presenter) askDefault() int {
+	if p.askUp() != nil {
+		return p.askUp().Default
 	}
 	return 0
 }
 
 // askList is the list v asks a line of (nil: none).
-func askList(v front.View) []front.Entry {
-	if a := v.Ask; a != nil && (a.Kind == front.AskList || a.Kind == front.AskModify) {
+func (p *Presenter) askList() []front.Entry {
+	if a := p.askUp(); a != nil && (a.Kind == front.AskList || a.Kind == front.AskModify) {
 		return a.Entries
 	}
 	return nil
@@ -434,20 +430,20 @@ func caretLine(text string, cur, w int, on bool) string {
 	return text + strings.Repeat(" ", w+1-len(text))
 }
 
-// typing is the line v asks to be typed (nil: none).
-func typing(v front.View) *front.Ask {
-	if a := v.Ask; a != nil && (a.Kind == front.AskText || a.Kind == front.AskNumber) {
+// typingAsk is the line the question asks to be typed (nil: none).
+func (p *Presenter) typingAsk() *front.Ask {
+	if a := p.askUp(); a != nil && (a.Kind == front.AskText || a.Kind == front.AskNumber) {
 		return a
 	}
 	return nil
 }
 
 // choosing: v asks for a party member.
-func choosing(v front.View) bool { return v.Ask != nil && v.Ask.Kind == front.AskMember }
+func (p *Presenter) choosing() bool { return p.askUp() != nil && p.askUp().Kind == front.AskMember }
 
 // spellPick is the spells v asks to pick from (nil: none).
-func spellPick(v front.View) []front.Spell {
-	if a := v.Ask; a != nil && a.Kind == front.AskSpell {
+func (p *Presenter) spellPick() []front.Spell {
+	if a := p.askUp(); a != nil && a.Kind == front.AskSpell {
 		out := make([]front.Spell, len(a.Entries)) // never nil: an empty list still takes Esc
 		for i, e := range a.Entries {
 			out[i] = front.Spell{ID: e.Spell, Name: e.Text}
@@ -458,8 +454,8 @@ func spellPick(v front.View) []front.Spell {
 }
 
 // confirm is v's yes/no question (AskConfirm), "" for none.
-func confirm(v front.View) string {
-	if a := v.Ask; a != nil && a.Kind == front.AskConfirm && sfOf(v) == nil { // the ship fight asks on its bar
+func (p *Presenter) confirm() string {
+	if a := p.askUp(); a != nil && a.Kind == front.AskConfirm && p.sfOf() == nil { // the ship fight asks on its bar
 		return a.Prompt
 	}
 	return ""
@@ -480,8 +476,8 @@ func confirmStart(a *front.Ask) int {
 
 // askHeld: k does nothing on v's question, a choice as a yes/no: Esc
 // under NoEsc, Enter and the arrows under NoPick (only its hotkeys answer).
-func askHeld(v front.View, k uint16) bool {
-	a := v.Ask
+func (p *Presenter) askHeld(k uint16) bool {
+	a := p.askUp()
 	if a == nil {
 		return false
 	}
@@ -501,7 +497,7 @@ var yesNoKeys = []byte{'Y', 'N'}
 // the arrows, Enter, Space, pad A, Y and N; Esc (pad B) is No. Only the
 // global keys go on.
 func (p *Presenter) confirmKey(k uint16) bool {
-	if a := p.shownView.Ask; a != nil && a.NoPick { // no highlight: only Y and N answer (Esc as the game says)
+	if a := p.askUp(); a != nil && a.NoPick { // no highlight: only Y and N answer (Esc as the game says)
 		switch {
 		case k == 'y' || k == 'Y':
 			p.confirmPick(0)
@@ -515,7 +511,7 @@ func (p *Presenter) confirmKey(k uint16) bool {
 		return true
 	}
 	switch i, back, ok := ui.MenuNav(actOf(k), k, &p.confirmSel, yesNoKeys); {
-	case back && p.shownView.Ask != nil && p.shownView.Ask.NoEsc: // the game keeps it up on Esc
+	case back && p.askUp() != nil && p.askUp().NoEsc: // the game keeps it up on Esc
 	case back:
 		p.confirmPick(1)
 	case i >= 0:
@@ -539,14 +535,14 @@ func (p *Presenter) confirmPick(i int) {
 var keypadDirs = map[input.Act]int{input.Up: 8, input.Down: 2, input.Left: 4, input.Right: 6, input.Home: 7, input.PgUp: 9, input.End: 1, input.PgDn: 3}
 
 // askAnswered sends what key k answers on v's question by its data: a
-// direction (Ask.Dirs, AskMove: ActDir), another member (Ask.Reselect,
+// direction (AskMove: ActDir), another member (Ask.Reselect,
 // F1..F8: ActLead); false: k is none of these.
-func (p *Presenter) askAnswered(k uint16, v front.View) bool {
-	a := v.Ask
+func (p *Presenter) askAnswered(k uint16) bool {
+	a := p.askUp()
 	if a == nil {
 		return false
 	}
-	if d, ok := keypadDirs[actOf(k)]; ok && (a.Dirs || a.Kind == front.AskMove) {
+	if d, ok := keypadDirs[actOf(k)]; ok && a.Kind == front.AskMove {
 		p.send(front.ActDir, d)
 		return true
 	}

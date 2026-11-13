@@ -5,7 +5,6 @@ package present
 
 import (
 	"fmt"
-	"gobox/ega"
 	"gobox/front"
 	"gobox/gpu"
 	"image"
@@ -19,23 +18,6 @@ func (p *Presenter) Call(f func(*classicGame)) { p.call(func(e *classicGame) { f
 // Edit queues f (edit).
 func (p *Presenter) Edit(f func(*classicGame)) { p.edit(func(e *classicGame) { f(e) }) }
 
-// ownCreation is v with the creation sheet's pool portrait and icon in its
-// boxes, over the party menu (the sheet itself is creation()).
-func (p *Presenter) ownCreation(v front.View) front.View {
-	if p.eng == nil {
-		return v
-	}
-	cr := p.layoutCreation()
-	if p.creating = p.creating && cr != nil; cr == nil { // the game ended it itself (a step after Keep, a save): the party menu is back
-		return v
-	}
-	v = p.eng.CreationPictures(v, cr)
-	if p.creating {
-		v.MainMenu = nil
-	}
-	return v
-}
-
 // Ask puts q up (nil: none).
 func (p *Presenter) Ask(q *front.Question) { p.q = q }
 
@@ -44,30 +26,12 @@ func (p *Presenter) Asking() *front.Question { return p.q }
 
 // Shown is what the last frame showed, as the screens see it.
 func (p *Presenter) Shown() Shown {
-	v := p.shownView
 	var t *front.Loot
 	if in := p.inventory(); in != nil {
 		t = in.treasure
 	}
-	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: p.sheetShown(), Inventory: p.inventoryUp(), Battle: p.board != nil,
-		Camp: v.Camp != nil, MainMenu: p.mainMenuUp(), Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(p.party())}
-}
-
-// ownQuestion is v with the presenter's question up.
-func (p *Presenter) ownQuestion(v front.View) front.View {
-	q := p.q
-	if q == nil && v.Ask == nil {
-		l := v.Loot
-		if p.inventoryUp() { // the loot screen's item list is the treasure: its Take, All, Exit, not the gate menu over it
-			l = nil
-		}
-		q = GateQuestion(p, l, v.Door)
-	}
-	if q != nil {
-		a := q.Ask
-		v.Ask, v.Exploring, v.CanCast, v.Interact = &a, false, false, false // the question takes the keys
-	}
-	return v
+	return Shown{Treasure: t, Ask: p.askUp() != nil, Powers: p.powerPick() != nil, Sheet: p.sheetShown(), Inventory: p.inventoryUp(), Battle: p.board != nil,
+		Camp: p.campUp(), MainMenu: p.mainMenuUp(), Door: p.door(), Resting: p.pacing().Resting, Party: len(p.party())}
 }
 
 // questionAct takes a while the presenter's question is up, at the gate
@@ -86,19 +50,9 @@ func (p *Presenter) edit(f func(e *classicGame)) {
 	p.call(func(e *classicGame) { f(e); p.ran++ })
 }
 
-// ownPicker puts the picker and the icon editor up in v, over the screens
-// under them (the creation sheet, camp, the party menu).
-func (p *Presenter) ownPicker(v front.View) front.View {
-	if p.eng == nil || p.gridPick == nil && p.icon == nil {
-		return v
-	}
-	v.Camp, v.MainMenu = nil, nil // the screens under it
-	return v
-}
-
 // openSlots puts the slot screen up (F10, the menu's Save/Load), or takes
 // it down when it is up; not over another page of the whole window.
-func (p *Presenter) openSlots(v front.View, loadOnly bool) {
+func (p *Presenter) openSlots(loadOnly bool) {
 	switch {
 	case p.slots != nil:
 		p.slots = nil
@@ -108,26 +62,7 @@ func (p *Presenter) openSlots(v front.View, loadOnly bool) {
 }
 
 // OpenSlots is F10 from the renderer's options (Save/Load).
-func (p *Presenter) OpenSlots() { p.openSlots(p.shownView, false) }
-
-// own is v with the presenter's own screens the engine's View carries:
-// the slots.
-func (p *Presenter) own(v front.View) front.View {
-	if p.eng != nil && p.eng.Resets() != p.resets { // a load or Back to Main Menu closed what they were over
-		p.resets = p.eng.Resets()
-		p.gridPick, p.icon, p.creating, p.training, p.q, p.clue = nil, nil, false, false, nil, nil
-	}
-	v = p.blinked(p.paged(pixView(v)))
-	if v.Intro != nil && len(p.intro.Flash) > 0 { // the title's lightning (ovr02:0626 title_screen): palette entry 1 in the flash step's EGA colour
-		v.Ink[1] = ega.RGBA(p.intro.Flash[0])
-	}
-	v.Pictures = daxPictures(indexedPictures(v.Pictures, v.Ink))
-	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
-	if p.slots != nil && p.eng != nil {
-		v.MainMenu = nil // the page covers the party menu: its keys are the page's
-	}
-	return v
-}
+func (p *Presenter) OpenSlots() { p.openSlots(false) }
 
 // slotAct takes a decision a on the slot screen: false leaves it to the
 // engine.

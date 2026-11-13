@@ -71,13 +71,13 @@ func (p *Presenter) runAct(a front.ActKind) {
 		p.overview = true
 		return
 	case front.ActHelp:
-		p.openHelp(p.shownView)
+		p.openHelp()
 		return
 	case front.ActMap:
 		p.openMap()
 		return
 	case actClueBook:
-		p.openClue(p.shownView)
+		p.openClue()
 		return
 	case actOptions:
 		p.menu = false

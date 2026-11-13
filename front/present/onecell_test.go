@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 	"gobox/ui"
 )
@@ -21,26 +21,31 @@ import (
 func TestOneCellSize(t *testing.T) {
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
-	pane := &front.Pane{Lines: [][]front.PaneRun{{{Text: "THE PARTY HAS WON."}}}}
-	menu := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "PRESS ENTER", Commands: []front.Command{{Text: "CONTINUE"}, {Text: "LEAVE"}}}}
-	yesNo := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "ARE YOU SURE?", Commands: []front.Command{{Text: "YES", Key: 'Y'}, {Text: "NO", Key: 'N'}}}}
-	typing := &front.Ask{Kind: front.AskText, Menu: front.Menu{Prompt: "Character name:"}, Max: 15}
+	pane := []string{"THE PARTY HAS WON."}
+	menu := &play.Question{Text: "PRESS ENTER", Replies: []string{"CONTINUE", "LEAVE"}}
+	yesNo := &play.Question{Text: "ARE YOU SURE?", Replies: []string{"YES", "NO"}, Keys: []rune{'Y', 'N'}}
+	typing := &play.Question{Text: "Character name:", Typed: true, Max: 15}
 	party := []game.Member{{Name: "ANNA", HP: 8, MaxHP: 8}, {Name: "BERT", HP: 5, MaxHP: 9}, {Name: "CARL", HP: 3, MaxHP: 3}}
-	screens := map[string]front.View{
-		"pane":               {Pane: pane},
-		"pane, menu":         {Pane: pane, Ask: menu},
-		"typing":             {Ask: typing},
-		"yes/no":             {Ask: yesNo},
-		"adventure pane":     {Adventure: true, Pane: pane},
-		"adventure menu":     {Adventure: true, Pane: pane, Ask: menu},
-		"adventure question": {Adventure: true, Pane: pane, Ask: yesNo},
-		"adventure typing":   {Adventure: true, Pane: pane, Ask: typing},
+	scene := func(c play.Common) play.State { return play.Scene{Common: c} }
+	adventure := func(c play.Common) play.State { // the cards are the party's
+		c.Adventure, c.Party = true, party
+		return play.Exploring{Common: c}
+	}
+	screens := map[string]play.State{
+		"pane":               scene(play.Common{Text: pane}),
+		"pane, menu":         scene(play.Common{Text: pane, Ask: menu}),
+		"typing":             scene(play.Common{Ask: typing}),
+		"yes/no":             scene(play.Common{Ask: yesNo}),
+		"adventure pane":     adventure(play.Common{Text: pane}),
+		"adventure menu":     adventure(play.Common{Text: pane, Ask: menu}),
+		"adventure question": adventure(play.Common{Text: pane, Ask: yesNo}),
+		"adventure typing":   adventure(play.Common{Text: pane, Ask: typing}),
 	}
 	defer func() { drawnAt = nil }()
 	for _, sz := range [][2]int{{800, 500}, {1280, 800}, {1920, 1200}, {2560, 1600}, {3840, 2400}} {
 		dst := gpu.NewImage(sz[0], sz[1])
 		K := float64(ui.K(dst.Bounds()))
-		for name, v := range screens {
+		for name, st := range screens {
 			n := 0
 			drawnAt = func(what drawnKind, on *gpu.Image, k float64) {
 				if on != dst { // a menu drawn on an image of its own (a card's) is placed by its caller
@@ -51,11 +56,8 @@ func TestOneCellSize(t *testing.T) {
 					t.Errorf("%v %s: a %v drawn at %v, K %v", sz, name, what, k, K)
 				}
 			}
-			p := &Presenter{}
-			if v.Adventure { // the cards are the party's
-				p = partyOn(party...)
-			}
-			p.Draw(dst, note, v)
+			p, _ := presenterOn(st)
+			p.Draw(dst, note)
 			if n == 0 {
 				t.Errorf("%v %s: no menu or box drawn", sz, name)
 			}

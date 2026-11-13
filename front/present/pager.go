@@ -46,8 +46,8 @@ func (p *Presenter) gridCols() int {
 
 // openHelp puts the help up over the screen, unless a line is being
 // typed or a page over the whole window is up already.
-func (p *Presenter) openHelp(v front.View) {
-	if typing(v) != nil || p.modal() {
+func (p *Presenter) openHelp() {
+	if p.typingAsk() != nil || p.modal() {
 		return
 	}
 	p.pager = &pager{}

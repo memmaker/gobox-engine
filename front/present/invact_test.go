@@ -137,12 +137,14 @@ func TestCredits(t *testing.T) {
 
 // After an act the same list comes back on the line acted on.
 func TestListKeepsLine(t *testing.T) {
-	v := front.View{Ask: &front.Ask{Kind: front.AskList, Menu: front.Menu{Prompt: "Items"}, Entries: []front.Entry{{Text: "a"}, {Text: "b"}}}}
-	var p Presenter
-	p.openList(v)
+	listed := play.Scene{Common: play.Common{Ask: &play.Question{List: true, Text: "Items", Replies: []string{"a", "b"}}}}
+	p, f := presenterOn(listed)
+	p.openList()
 	p.list.sel = 1
-	p.shownView = front.View{} // the list gone a moment (Ready)
-	p.openList(v)
+	f.st = play.Scene{} // the list gone a moment (Ready)
+	p.openList()
+	f.st = listed
+	p.openList()
 	if p.list.sel != 1 {
 		t.Fatalf("back on line %d", p.list.sel)
 	}

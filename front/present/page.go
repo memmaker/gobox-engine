@@ -57,11 +57,11 @@ type page struct {
 
 // pageSize is v's page in pixels: its text cells, 8 by 8 (the original's
 // 320x200 for a View without any).
-func pageSize(v front.View) (w, h int) {
-	if v.Cells.X == 0 || v.Cells.Y == 0 {
+func (p *Presenter) pageSize() (w, h int) {
+	if p.cells().X == 0 || p.cells().Y == 0 {
 		return ega.W, ega.H
 	}
-	return v.Cells.X * 8, v.Cells.Y * 8
+	return p.cells().X * 8, p.cells().Y * 8
 }
 
 // grid is the text cells the window holds: 40x25 at least, more at the
@@ -69,8 +69,24 @@ func pageSize(v front.View) (w, h int) {
 // window shows more rather than bigger cells; the engine lays its screens
 // out to it (ActResize).
 func grid(dst *gpu.Image) (cols, rows int) {
-	b, k := dst.Bounds(), int(scale(dst))
-	return max(40, b.Dx()/(8*k)), max(25, b.Dy()/(8*k))
+	g := gridOf(dst.Bounds())
+	return g.X, g.Y
+}
+
+// gridOf is grid for a window of bounds b.
+func gridOf(b image.Rectangle) image.Point {
+	k := int(ui.Scale(b))
+	return image.Pt(max(40, b.Dx()/(8*k)), max(25, b.Dy()/(8*k)))
+}
+
+// cells is the page's size in text cells: the credits fill the window at K
+// (grid), whatever page the game keeps, never the 40x25 page scaled up;
+// every other page is the original's (none given: 40x25).
+func (p *Presenter) cells() image.Point {
+	if !p.flags().Credits {
+		return image.Point{}
+	}
+	return gridOf(p.screen)
 }
 
 // fit draws img, w by h unscaled pixels, over the whole of dst: nearest
@@ -120,38 +136,38 @@ func (p *Presenter) changes() uint64 {
 
 // pageImage draws v's page (only when a new View or the note changed) and
 // returns it.
-func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
+func (p *Presenter) pageImage(note Note) *gpu.Image {
 	pg := &p.pg
-	w, h := pageSize(v)
+	w, h := p.pageSize()
 	if gpu.Sized(&pg.img, w, h) {
 		pg.px, pg.drawn = image.NewRGBA(image.Rect(0, 0, w, h)), false
 	}
 	own := p.pageKey()
 	var sh sfShown
-	sf := sfOf(v)
+	sf := p.sfOf()
 	if sf != nil && !p.modal() {
-		sh = p.sfState(v, sf)
-		own += fmt.Sprintf("%v%+v%+v", *sf, sh, v.Screen.ShipSheet)
+		sh = p.sfState(sf)
+		own += fmt.Sprintf("%v%+v%+v", *sf, sh, p.gameScreen().ShipSheet)
 	}
-	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(p.iconEditor(v.Ink)) && (p.changes() == pg.seq || !p.modal() && !p.ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
+	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(p.iconEditor(p.ink())) && (p.changes() == pg.seq || !p.modal() && !p.ownPage() && p.samePage(pg)) { // the View changed, the page not: no redraw, no upload
 		pg.seq = p.changes()
 		return pg.img
 	}
-	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, p.changes(), note.Show, own, iconKey(p.iconEditor(v.Ink))
-	pg.page, pg.text = append(pg.page[:0], v.Pictures...), pageText(v)
+	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, p.changes(), note.Show, own, iconKey(p.iconEditor(p.ink()))
+	pg.page, pg.text = append(pg.page[:0], p.pictures()...), p.pageText()
 	m := pg.px
 	if p.modal() { // help, the journal, the maps, the overview: from their data alone, nothing of the page under them
 		draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
 		pg.overs = nil
 	} else {
-		c := p.screenPage(v)
+		c := p.screenPage()
 		if sf != nil {
-			c.spaceFight(sf, sh, v.Ask, v.Screen)
+			c.spaceFight(sf, sh, p.askUp(), p.gameScreen())
 		}
-		c.draw(m, p.windowBorder(), v.Cells, note)
+		c.draw(m, p.windowBorder(), p.cells(), note)
 		pg.overs = c.overs
 	}
-	p.drawModal(m, v, note)
+	p.drawModal(m, note)
 	if note.Show {
 		noteLine(m, note, h-8)
 	}
@@ -170,8 +186,8 @@ func iconKey(e *front.IconEditor) string {
 
 // ownPage: v shows a screen the presenter lays out from its data
 // (screenPage), drawn anew with each View.
-func (p *Presenter) ownPage(v front.View) bool {
-	return p.sheetPage() != nil || p.picker(v.Ink) != nil || p.slotsView() != nil || p.iconEditor(v.Ink) != nil
+func (p *Presenter) ownPage() bool {
+	return p.sheetPage() != nil || p.picker(p.ink()) != nil || p.slotsView() != nil || p.iconEditor(p.ink()) != nil
 }
 
 // modal: v shows a screen over the whole page (help, the journal, the
@@ -192,7 +208,7 @@ func pagerMark(pg *front.Pages, cols, d int) (x int, ok bool) {
 
 // drawModal draws v's screen over the whole page (modal) into m as the
 // game draws such a page: a box round it, text in the game's font.
-func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
+func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 	if !p.modal() {
 		return
 	}
@@ -208,7 +224,7 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 	fill := func(r image.Rectangle, c color.RGBA) { draw.Draw(m, r, image.NewUniform(c), image.Point{}, draw.Src) }
 	box := func(x2, y2 int) { // DrawBoxTitled(1, 1, x2, y2): the inside cleared, the border's cells round it
 		fill(image.Rect(8, 8, x2*8+8, y2*8+8), col(inkBlack))
-		cellBorder(m, p.windowBorder(), v.Cells, front.CellRect{X1: 1, Y1: 1, X2: x2, Y2: y2})
+		cellBorder(m, p.windowBorder(), p.cells(), front.CellRect{X1: 1, Y1: 1, X2: x2, Y2: y2})
 	}
 	prompt := func(s string, c int) { // the prompt row cleared, s on it
 		str(0, rows-1, inkBlack, strings.Repeat(" ", cols))
@@ -252,7 +268,7 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 			str(lx+2, fm.LegendAt.Y+i, inkGreen, l.Text[:min(len(l.Text), cols-lx-2)])
 		}
 		str(1, rows-2, inkCyan, fm.Info[:min(len(fm.Info), cols-2)])
-		mi := mapImage(fm.Map, fm.Cell, v.Ink, note.Font)
+		mi := mapImage(fm.Map, fm.Cell, p.ink(), note.Font)
 		draw.Draw(m, mi.Bounds().Add(fm.At), mi, image.Point{}, draw.Over)
 		n, c := fm.Cell, fm.At.Add(fm.Cursor.Mul(fm.Cell))
 		for _, r := range []image.Rectangle{image.Rect(0, 0, n, 1), image.Rect(0, n-1, n, n), image.Rect(0, 0, 1, n), image.Rect(n-1, 0, n, n)} {
@@ -450,11 +466,11 @@ func fontInk(c color.RGBA) color.RGBA {
 // overlays at the window's own resolution; it returns where. A page not yet
 // of the window's grid (the engine has the resize still to do) is shown
 // at a whole scale in the middle meanwhile, so nothing stretches.
-func (p *Presenter) drawPage(dst *gpu.Image, v front.View, note Note) Rect {
-	img := p.pageImage(v, note)
+func (p *Presenter) drawPage(dst *gpu.Image, note Note) Rect {
+	img := p.pageImage(note)
 	dst.Fill(color.Black)
 	b := dst.Bounds()
-	w, h := pageSize(v)
+	w, h := p.pageSize()
 	var r Rect
 	if cols, rows := grid(dst); cols*8 == w && rows*8 == h {
 		kx, ky := p.fit(dst, img, w, h)
@@ -555,11 +571,11 @@ func (p *Presenter) drawOverlays(dst *gpu.Image, os []overlay, r Rect, w, h int)
 // samePage reports whether v's page and text are what pg.img shows. The
 // engine publishes a View every tick, most of them with the page unchanged;
 // a layer's picture is the same when it is the same pixels.
-func samePage(v front.View, pg *page) bool {
-	if len(v.Pictures) != len(pg.page) || pageText(v) != pg.text {
+func (p *Presenter) samePage(pg *page) bool {
+	if len(p.pictures()) != len(pg.page) || p.pageText() != pg.text {
 		return false
 	}
-	for i, s := range v.Pictures {
+	for i, s := range p.pictures() {
 		if o := pg.page[i]; s.At != o.At || s.Fill != o.Fill || s.Colour != o.Colour || !sameImage(s.Img, o.Img) {
 			return false
 		}
@@ -569,14 +585,14 @@ func samePage(v front.View, pg *page) bool {
 
 // pageText is the text v's page shows (screenPage's texts), to tell pages
 // apart.
-func pageText(v front.View) string {
+func (p *Presenter) pageText() string {
 	var b strings.Builder
-	if v.Pane != nil {
-		fmt.Fprint(&b, v.Pane.Lines)
+	if p.pane() != nil {
+		fmt.Fprint(&b, p.pane().Lines)
 	}
-	fmt.Fprint(&b, v.Prompt, v.ViewText, v.Credits, v.Ink)
-	if v.Results != nil {
-		fmt.Fprintf(&b, "%+v", *v.Results)
+	fmt.Fprint(&b, p.prompt(), p.viewText(), p.flags().Credits, p.ink())
+	if p.results() != nil {
+		fmt.Fprintf(&b, "%+v", *p.results())
 	}
 	return b.String()
 }
@@ -595,9 +611,9 @@ func sameImage(a, b image.Image) bool {
 // paneBox draws the text pane in its box at scale k round (cx, cy), and on
 // its bottom border, right, the "> Notes" that puts the text into the
 // journal (ActNote; Ctrl-N, the pad's Back).
-func (p *Presenter) paneBox(dst *gpu.Image, note Note, v front.View, k float64, cx, cy int) {
-	txt := paneCells(v.Pane).Framed()
-	drawBox(dst, paneImage(&p.pg.pane, v.Pane, note), p.border.tiles, txt, k, cx, cy)
+func (p *Presenter) paneBox(dst *gpu.Image, note Note, k float64, cx, cy int) {
+	txt := paneCells(p.pane()).Framed()
+	drawBox(dst, paneImage(&p.pg.pane, p.pane(), note), p.border.tiles, txt, k, cx, cy)
 	const label = " > Notes "
 	m := image.NewRGBA(image.Rect(0, 0, 8*len(label), 8))
 	draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)

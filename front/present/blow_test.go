@@ -20,7 +20,7 @@ func TestBlowShows(t *testing.T) {
 	if err := g.Answer(front.Action{Kind: front.ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
 	}
-	_, evs := settled(g)
+	evs := settled(g)
 	var kinds []game.EventKind
 	dmg, line := 0, false
 	for _, e := range evs {

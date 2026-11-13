@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -100,13 +99,6 @@ func shownOf(r *rules) shown {
 		}
 	}
 	return s
-}
-
-// menusOf is the menus and question s puts up, as Game.View builds them.
-func menusOf(s shown) front.View {
-	var v front.View
-	v.MainMenu, v.Hall = PartyMenu(s.Mode, s.Training, s.Pending, s.Where.Hall)
-	return askOver(v, s.Mode, s.Pending, s.Loot != nil || s.Training != nil, s.Items != game.ItemsNone)
 }
 
 // A test's names for what the front does of its own, sent as send takes them.

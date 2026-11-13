@@ -23,23 +23,23 @@ func poolID(kind, head, body string) image.Image {
 	return out
 }
 
-// PoolPortrait is v with the pool head and body of the creation draft in the sheet's Head and Body
-// boxes, in place of the game's pictures there (v itself when the draft names none).
-func PoolPortrait(v front.View, cr *front.Creation, own game.Member) front.View {
+// withPoolPortrait is pics with the pool head and body of the creation draft in the sheet's Head and Body
+// boxes, in place of the game's pictures there (pics itself when the draft names none).
+func withPoolPortrait(pics []front.Picture, cr *front.Creation, own game.Member) []front.Picture {
 	m := subject(own)
 	if cr == nil || m.PortraitHeadID == "" || m.PortraitBodyID == "" {
-		return v
+		return pics
 	}
 	head, body := poolPicture("portraits", m.PortraitHeadID), poolPicture("portraits", m.PortraitBodyID)
 	if head == nil || body == nil {
-		return v
+		return pics
 	}
 	var keep []front.Picture
 	port := cr.Head.Pixels().Union(cr.Body.Pixels())
-	if own.PortraitHeadID == "" && pictured(v, port) { // a default fills an empty box only
-		return v
+	if own.PortraitHeadID == "" && pictured(pics, port) { // a default fills an empty box only
+		return pics
 	}
-	for _, pc := range v.Pictures {
+	for _, pc := range pics {
 		if !pc.Fill && pc.At.Overlaps(port) {
 			continue
 		}
@@ -53,6 +53,5 @@ func PoolPortrait(v front.View, cr *front.Creation, own game.Member) front.View 
 		at := p.box.Pixels().Min
 		keep = append(keep, front.Picture{Name: p.name, Img: p.im, At: image.Rectangle{at, at.Add(p.im.Bounds().Size())}})
 	}
-	v.Pictures = keep
-	return v
+	return keep
 }

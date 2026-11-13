@@ -39,20 +39,19 @@ func TestSlotsFromMainMenu(t *testing.T) {
 	dst := gpu.NewImage(640, 400)
 	defer dst.Deallocate()
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{} }, Font: func(byte, bool) [8]byte { return [8]byte{} }}
-	v := front.View{MainMenu: []front.ActKind{front.ActLoad, front.ActQuit}}
-	p.Draw(dst, note, v)
+	p.Draw(dst, note)
 	p.send(front.ActLoad, 0)
 	if p.slots == nil {
 		t.Fatal("Load did not open the slot page")
 	}
-	p.Draw(dst, note, v)
+	p.Draw(dst, note)
 	sel := p.scr.sel
-	p.Key(0x5000, v) // Down
-	p.Draw(dst, note, v)
+	p.Key(0x5000) // Down
+	p.Draw(dst, note)
 	if p.scr.sel == sel {
 		t.Fatalf("Down left the highlight on %d", sel)
 	}
-	p.Key(13, v)
+	p.Key(13)
 	for _, c := range p.Calls() {
 		c(g)
 	}

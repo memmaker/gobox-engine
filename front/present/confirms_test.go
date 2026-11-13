@@ -6,6 +6,7 @@ import (
 
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 )
 
 // TestConfirmsDropMember: the game's DropMember confirm asks its texts one
@@ -14,21 +15,32 @@ func TestConfirmsDropMember(t *testing.T) {
 	confirms = map[string]game.Confirm{"DropMember": {Asks: []string{"Drop %s?", "Really drop %s?"}}}
 	defer func() { confirms = nil }()
 	p := campPresenter()
-	v := front.View{Camp: &front.Camp{}}
 	p.memberAct(front.ActDropMember, 0)
-	p.inv.acts = nil
-	title, rows := p.campItems(v)
+	for _, c := range p.Calls() { // the member led first
+		c(p.eng)
+	}
+	p.eng.G.(*fake).sent = nil
+	title, rows := p.campItems()
 	if title != "Drop Ann?" || p.camp.sel != 1 {
 		t.Fatalf("first ask %q on row %d", title, p.camp.sel)
 	}
 	rows[0].Do()
-	title, rows = p.campItems(v)
+	title, rows = p.campItems()
 	if title != "Really drop Ann?" || p.camp.sel != 1 || len(p.inv.acts) != 0 {
 		t.Fatalf("second ask %q on row %d, sent %v", title, p.camp.sel, p.inv.acts)
 	}
+	for _, c := range p.Calls() {
+		c(p.eng)
+	}
+	if sent := p.eng.G.(*fake).sent; len(sent) != 0 {
+		t.Fatalf("sent %v before the last Yes", sent)
+	}
 	rows[0].Do()
-	if len(p.inv.acts) != 1 || p.inv.acts[0].Kind != front.ActDropMember || p.camp.screen != campMain {
-		t.Fatalf("after both: %v screen %d", p.inv.acts, p.camp.screen)
+	for _, c := range p.Calls() {
+		c(p.eng)
+	}
+	if sent := p.eng.G.(*fake).sent; len(sent) != 1 || sent[0] != (play.DropMember{Member: 0}) || p.camp.screen != campMain {
+		t.Fatalf("after both: %v screen %d", sent, p.camp.screen)
 	}
 }
 

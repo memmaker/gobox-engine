@@ -32,7 +32,7 @@ func TestPlayFront(t *testing.T) {
 	if g.Mode() != game.ModeExplore || len(g.Party()) == 0 {
 		t.Fatalf("mode %v, %d members, want exploring with a party", g.Mode(), len(g.Party()))
 	}
-	if !g.View().Exploring {
+	if !g.Flags().Exploring {
 		t.Fatal("no walk map")
 	}
 	f := (g.Where().Facing + 2) % 8

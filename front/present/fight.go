@@ -94,13 +94,13 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 	p.drawFightRows(dst, note, b, k)
 	cx := dst.Bounds().Dx() / 2
 	p.fightAskAt = nil
-	if m := askMenu(p.shownView); m != nil && len(m.Commands) > 0 {
+	if m := p.askMenu(); m != nil && len(m.Commands) > 0 {
 		lines, keys := make([]string, len(m.Commands)), make([]byte, len(m.Commands))
 		for i, it := range m.Commands {
 			lines[i], keys[i] = it.Text, it.Key
 		}
 		if id := menuID(m); id != p.menuFor {
-			p.menuFor, p.sel = id, min(askDefault(p.shownView), len(lines)-1)
+			p.menuFor, p.sel = id, min(p.askDefault(), len(lines)-1)
 		}
 		p.keyWindow(dst, m.Prompt, lines, keys, nil, p.sel, false)
 		p.fightAskAt = slices.Clone(p.winRects)
@@ -260,7 +260,7 @@ func (p *Presenter) CameraKey(k uint16) bool {
 }
 
 func (p *Presenter) fightKey(k uint16) bool {
-	if m := askMenu(p.shownView); m != nil && len(m.Commands) > 0 { // the game's own menu (Continue Battle: Yes/No ...), over the board
+	if m := p.askMenu(); m != nil && len(m.Commands) > 0 { // the game's own menu (Continue Battle: Yes/No ...), over the board
 		keys := make([]byte, len(m.Commands))
 		for i, it := range m.Commands {
 			keys[i] = it.Key
@@ -301,7 +301,7 @@ func (p *Presenter) fightKey(k uint16) bool {
 	if a == input.PadA { // pad A: as Enter
 		a = input.Enter
 	}
-	if p.askedTurn() && p.shownView.Ask.Kind == front.AskMove { // a step at a time, as the original's move mode: the direction keys step, Enter is done, Esc undoes
+	if p.askedTurn() && p.askUp().Kind == front.AskMove { // a step at a time, as the original's move mode: the direction keys step, Enter is done, Esc undoes
 		if d, ok := keypadDirs[actOf(k)]; ok {
 			p.send(front.ActDir, d)
 			return true
@@ -328,7 +328,7 @@ func (p *Presenter) fightKey(k uint16) bool {
 
 // fightClick takes a click at (x, y) on the combat screen.
 func (p *Presenter) fightClick(x, y int) bool {
-	if askMenu(p.shownView) != nil && len(askMenu(p.shownView).Commands) > 0 {
+	if p.askMenu() != nil && len(p.askMenu().Commands) > 0 {
 		if i := slices.IndexFunc(p.fightAskAt, image.Pt(x, y).In); i >= 0 {
 			p.send(front.ActChoose, i)
 		}
@@ -446,7 +446,7 @@ func (p *Presenter) playing() *frame {
 			case ev.Kind == game.EvSong && p.Snd != nil:
 				p.Snd.AmigaSong(soundNo(ev.Moment))
 			case ev.Kind == game.EvSaves && p.slots == nil:
-				p.openSlots(p.shownView, false)
+				p.openSlots(false)
 			}
 		}
 		if ev := &r.q[0]; r.from.IsZero() {
@@ -480,7 +480,7 @@ func (p *Presenter) playing() *frame {
 // CombatPad: the combat map is up with no menu over it (no question, Log
 // or spell list): the gamepad takes the combat bindings (PadKeys).
 func (p *Presenter) CombatPad() bool {
-	return p.fight && confirm(p.shownView) == "" && !p.fightLog && p.pickList() == nil && !p.Options()
+	return p.fight && p.confirm() == "" && !p.fightLog && p.pickList() == nil && !p.Options()
 }
 
 // PadStick hands over the pad's right stick (x right, y down, -1..1): in
@@ -708,7 +708,7 @@ type boardKey struct {
 // are made from has changed.
 func (p *Presenter) drawnBoard() {
 	k := boardKey{live: p.fightSource(), board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim}
-	if q := p.shownView.Ask; q != nil {
+	if q := p.askUp(); q != nil {
 		k.ask = q.Kind
 	}
 	d := p.lay.board.get(k, func() (d fightDrawn) {

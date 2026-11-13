@@ -8,7 +8,7 @@ func TestSaveAsksNameAndConfirm(t *testing.T) {
 	g, _ := slotsGame(t)
 	p := &Presenter{slots: &SlotsUI{}}
 	p.SetEngine(g)
-	_, rows := p.screenItems(p.shownView)
+	_, rows := p.screenItems()
 	rows[0].Do() // New Slot
 	rows[1].Do() // a save
 	if a := p.inv.acts; len(a) != 0 {

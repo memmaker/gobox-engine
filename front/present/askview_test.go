@@ -45,7 +45,6 @@ func TestAimAnswersInFight(t *testing.T) {
 	st := play.Fighting{Common: play.Common{Allowed: play.Allowed{Aimed: []play.Aimed{{Action: play.Shoot{}, Squares: []image.Point{{14, 8}}, Targets: 1}}}}}
 	f := &fake{st: st}
 	g := NewGame(f, game.Data{})
-	g.View()
 	g.Answer(front.Action{Kind: front.ActAim, X: 14, Y: 8})
 	if len(f.sent) != 1 {
 		t.Fatalf("%#v", f.sent)

@@ -9,23 +9,22 @@ import (
 )
 
 // TestPlaceYesNoDrawn: a yes/no the game asks over a place's screen (BR2's
-// "go back and claim it?" over the treasure, a shop's drop) is the view's
+// "go back and claim it?" over the treasure, a shop's drop) is the
 // confirm, the screen staying, never a frame without it.
 func TestPlaceYesNoDrawn(t *testing.T) {
-	for _, m := range []game.Mode{game.ModeLoot, game.ModeShop, game.ModeCamp} {
-		s := shown{Mode: m, Loot: &game.Loot{}, Pending: &play.Ask{Kind: game.YesNo, Prompt: "Do you want to go back and claim it?", Default: 1,
-			Options: []play.Option{{Label: "Yes", Do: play.Reply{N: 1}}, {Label: "No", Do: play.Reply{N: 2}}}}}
-		if v := menusOf(s); v.Ask == nil || v.Ask.Kind != front.AskConfirm {
-			t.Errorf("mode %d: no confirm (%+v)", m, v.Ask)
+	c := play.Common{Ask: &play.Question{Text: "Do you want to go back and claim it?", YesNo: true, Replies: []string{"No", "Yes"}, Default: 1}}
+	for _, st := range []play.State{play.Looting{Common: c, Items: []game.Item{{Name: "Sword"}}}, play.Trading{Common: c}, play.Camping{Common: c}} {
+		if p, _ := presenterOn(st); p.askUp() == nil || p.askUp().Kind != front.AskConfirm {
+			t.Errorf("%T: no confirm (%+v)", st, p.askUp())
 		}
 	}
 }
 
 // TestCreateNameAsked: the name the game asks after creation's Keep is the
-// view's typed line over the sheet (BR2: letters went out as picks).
+// typed line over the sheet (BR2: letters went out as picks).
 func TestCreateNameAsked(t *testing.T) {
-	s := shown{Mode: game.ModeCreate, Creation: &game.Creation{}, Pending: &play.Ask{Kind: game.Name, Prompt: "Character name:", Max: 15}}
-	if v := menusOf(s); v.Ask == nil || v.Ask.Kind != front.AskText {
-		t.Fatalf("no typed line: %+v", v.Ask)
+	p := draftAsked(&play.Draft{}, &play.Question{Text: "Character name:", Typed: true, Max: 15})
+	if a := p.askUp(); a == nil || a.Kind != front.AskText {
+		t.Fatalf("no typed line: %+v", a)
 	}
 }

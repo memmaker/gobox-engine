@@ -109,42 +109,6 @@ func indexedPictures(ps []front.Picture, ink [16]color.RGBA) []front.Picture {
 	return out
 }
 
-// pixView is v with the pictures given as pixels (the ...Pix fields)
-// coloured into their images, and an unset Ink the EGA's; the game's own structs are copied, not changed.
-func pixView(v front.View) front.View {
-	if v.Ink == ([16]color.RGBA{}) { // unset: the EGA's own
-		v.Ink = egaInk
-	}
-	ink := v.Ink
-	if m := v.AreaMap; m != nil && m.SquarePix != nil && m.Squares == nil {
-		c := *m
-		c.Squares = make([][]image.Image, len(m.SquarePix))
-		for y, row := range m.SquarePix {
-			c.Squares[y] = make([]image.Image, len(row))
-			for x, pc := range row {
-				c.Squares[y][x] = picImage(pc, ink)
-			}
-		}
-		c.Marker = picImage(m.MarkerPix, ink)
-		v.AreaMap = &c
-	}
-	if c := v.Camp; c != nil && len(c.Bestiary) > 0 && c.Bestiary[0].Icon == nil {
-		cc := *c
-		cc.Bestiary = append([]front.Beast(nil), c.Bestiary...)
-		for i := range cc.Bestiary {
-			b := &cc.Bestiary[i]
-			if b.Icon == nil {
-				b.Icon = pixImage(b.IconPix, ink)
-			}
-			if b.Pic == nil {
-				b.Pic = pixImage(b.PicPix, ink)
-			}
-		}
-		v.Camp = &cc
-	}
-	return v
-}
-
 // textured is t, or where t is one flat colour (a Pool floor tile is a
 // plain fill) the series' floor texture tinted to that colour: no combat
 // square is ever a flat fill.

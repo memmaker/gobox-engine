@@ -7,7 +7,7 @@
 package present
 
 import (
-	"gobox/front"
+	"gobox/game"
 	"math/rand/v2"
 	"slices"
 	"time"
@@ -35,7 +35,7 @@ type IntroUI struct {
 
 // IntroStep plays the title (nil: none waits) this frame on in; key: a
 // key or click came.
-func IntroStep(h RuleHost, in *IntroUI, intro *front.Intro, key bool) {
+func IntroStep(h RuleHost, in *IntroUI, intro *game.Intro, key bool) {
 	if intro == nil {
 		*in = IntroUI{}
 		return

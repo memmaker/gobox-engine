@@ -29,12 +29,12 @@ func TestAsk(t *testing.T) {
 // A menu the game opens over the 3D view, keeping ModeExplore, is the
 // question up and ends the exploring (Esc closes it, not the options).
 func TestAskOverExplore(t *testing.T) {
-	s := shown{Mode: game.ModeExplore, Pending: &play.Ask{Kind: game.Choice, Options: []play.Option{{Label: "Exit", Key: 'E'}}},
-		Flags: &game.Flags{Exploring: true}}
+	s := shown{Mode: game.ModeExplore, Pending: &play.Ask{Kind: game.Choice, Options: []play.Option{{Label: "Exit", Key: 'E'}}}}
 	if q, ok := Ask(s.Mode, s.Pending); !ok || q == nil || len(q.Commands) != 1 {
 		t.Fatalf("no question over the 3D view: %+v", q)
 	}
-	if Flags(front.View{}, s.Flags, OverMenu(s.Mode, s.Pending)).Exploring {
+	over := play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"Exit"}}}}
+	if (&rules{}).flagsOf(over, nil).Exploring {
 		t.Fatal("still exploring under the menu")
 	}
 }

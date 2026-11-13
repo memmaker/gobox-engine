@@ -121,8 +121,8 @@ func TestViewGearOpensItems(t *testing.T) {
 	}
 	g := NewGame(f, game.Data{})
 	g.r = r
-	if v := g.View(); !presenterOf(g).inventoryUp() || v.Ask != nil { // the items draw, over the question
-		t.Fatalf("inventory %v ask %v", presenterOf(g).inventoryUp(), v.Ask != nil)
+	if p := presenterOf(g); !p.inventoryUp() || p.askUp() != nil { // the items draw, over the question
+		t.Fatalf("inventory %v ask %v", presenterOf(g).inventoryUp(), presenterOf(g).askUp() != nil)
 	}
 	r.send(tCloseItems{})
 	if shownOf(r).Pending == nil {

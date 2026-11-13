@@ -30,7 +30,7 @@ func (p *Presenter) sheetDraft() *game.Creation {
 // sheetPortrait is the PNG dropped on the sheet, else the pool's head and
 // body of its member in an empty portrait box (v's pictures are the game's:
 // a default fills an empty box only).
-func (p *Presenter) sheetPortrait(v front.View, sp *game.SheetPage) image.Image {
+func (p *Presenter) sheetPortrait(sp *game.SheetPage) image.Image {
 	if sp == nil || sp.Portrait != nil {
 		if sp == nil {
 			return nil
@@ -38,7 +38,7 @@ func (p *Presenter) sheetPortrait(v front.View, sp *game.SheetPage) image.Image 
 		return sp.Portrait
 	}
 	own := p.sheetOwn()
-	if own.PortraitHeadID == "" && pictured(v, cells(sp.PortraitAt).Pixels()) {
+	if own.PortraitHeadID == "" && pictured(p.pictures(), cells(sp.PortraitAt).Pixels()) {
 		return nil
 	}
 	m := subject(own)

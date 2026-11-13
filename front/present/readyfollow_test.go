@@ -24,13 +24,12 @@ func TestReadyKeepsItemHighlighted(t *testing.T) {
 	g.r.items = game.ItemsOwn
 	p := &Presenter{}
 	p.SetEngine(g)
-	v := front.View{}
-	p.Inventory(dst, note, v)
+	p.Inventory(dst, note)
 	p.inv.choose(false, 2)
 	p.inv.removeX(front.ActReady, 2, 0)
 	sling.Readied = true // the rules list readied gear first (each keeps its handle)
 	f.st = party(sling, mace)
-	p.Inventory(dst, note, v)
+	p.Inventory(dst, note)
 	if it := p.inv.itemAt(p.inv.sel); it == nil || it.Name != "Sling" {
 		t.Fatalf("highlight on %+v, want the Sling", it)
 	}

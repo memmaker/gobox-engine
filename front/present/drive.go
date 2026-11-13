@@ -10,15 +10,6 @@ import (
 	"gobox/front"
 )
 
-// Decide takes a on the screen shown (as a key, click or pad press would).
-func (p *Presenter) Decide(shown front.View, a front.Action) {
-	p.shownView = shown
-	p.sendA(a)
-}
-
-// Own is v with the presenter's own screens up.
-func (p *Presenter) Own(v front.View) front.View { return p.own(v) }
-
 // IconClick is the action a click on cell cx, cy of the icon editor takes.
 func IconClick(ed *front.IconEditor, cx, cy int) (front.Action, bool) { return iconClick(ed, cx, cy) }
 

@@ -192,8 +192,8 @@ func OwnSubject(mode game.Mode, c *game.Creation, party []game.Member, sel int) 
 }
 
 // pictured: a picture of the game's (not a fill) already covers part of r.
-func pictured(v front.View, r image.Rectangle) bool {
-	for _, pc := range v.Pictures {
+func pictured(pics []front.Picture, r image.Rectangle) bool {
+	for _, pc := range pics {
 		if !pc.Fill && pc.At.Overlaps(r) {
 			return true
 		}

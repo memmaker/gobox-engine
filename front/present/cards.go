@@ -113,7 +113,7 @@ func greyed(m image.Image) *image.RGBA {
 }
 
 // setup takes this frame's font and border tiles from the game.
-func (p *Presenter) setup(note Note, v front.View) {
+func (p *Presenter) setup(note Note) {
 	p.glyph, blobber.Glyph = note.Glyph, note.Glyph
 	p.border.update(p.windowBorder().pieces)
 	menuChars = p.cardMenuChars() // the row's spacing: the widest context menu line

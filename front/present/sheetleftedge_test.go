@@ -3,7 +3,6 @@ package present
 import (
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/gpu"
 )
@@ -21,7 +20,7 @@ func TestSheetLeftValuesClearBorder(t *testing.T) {
 	}
 	note := Note{Glyph: g, Font: func(c byte, _ bool) [8]byte { return g(c) }}
 	p := sheetOn(&game.SheetPage{Status: "####", THAC0: 9})
-	p.drawSheet(dst, note, front.View{})
+	p.drawSheet(dst, note)
 	px, edge := p.sheet.px, (leftCells-1)*8 // the border's inner edge
 	for y := px.Rect.Min.Y; y < px.Rect.Max.Y; y++ {
 		for x := edge - 8; x < edge; x++ {

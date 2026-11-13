@@ -8,6 +8,7 @@ package present
 import (
 	"errors"
 	"gobox/front"
+	"gobox/game"
 	"slices"
 )
 
@@ -107,7 +108,7 @@ func AskAct(h RuleHost, a front.Action) (taken, done bool) {
 			h.Ask(nil)
 		}
 		return true, true
-	case s.Loot != nil && !s.Inventory || s.Door != nil: // the loot screen's item list (Inventory) takes its own keys
+	case s.Door != nil:
 		return GateAct(h, a), true
 	case s.Treasure != nil:
 		if lootAct(h, s.Treasure, a) {
@@ -179,7 +180,7 @@ type GateItem struct {
 
 // Gate is the menu of the treasure screen (loot) or a locked door
 // (door), the last item Exit; nil: neither is up.
-func Gate(h RuleHost, l *front.Loot, d *front.DoorOpts) (string, []GateItem) {
+func Gate(h RuleHost, l *front.Loot, d *game.Door) (string, []GateItem) {
 	var items []GateItem
 	add := func(on bool, text string, do func(e *classicGame)) {
 		if on {
@@ -231,10 +232,9 @@ func lootAct(h RuleHost, l *front.Loot, a front.Action) bool {
 	return false
 }
 
-// GateQuestion is the treasure screen's or the locked door's menu as a
-// question (nil: neither is up).
-func GateQuestion(h RuleHost, l *front.Loot, d *front.DoorOpts) *front.Question {
-	prompt, items := Gate(h, l, d)
+// GateQuestion is the locked door's menu as a question (nil: none is up).
+func GateQuestion(h RuleHost, d *game.Door) *front.Question {
+	prompt, items := Gate(h, nil, d)
 	if items == nil {
 		return nil
 	}
@@ -245,12 +245,10 @@ func GateQuestion(h RuleHost, l *front.Loot, d *front.DoorOpts) *front.Question 
 	return q
 }
 
-// GateAct takes a on the treasure screen or at a locked door: an option
-// (ActChoose N, Esc Exit) is its rule call; F1-F8 and the portraits pick
-// the member the treasure is for.
+// GateAct takes a at a locked door: an option (ActChoose N, Esc Exit) is
+// its rule call.
 func GateAct(h RuleHost, a front.Action) bool {
-	v := h.Shown()
-	_, items := Gate(h, v.Loot, v.Door)
+	_, items := Gate(h, nil, h.Shown().Door)
 	switch a.Kind {
 	case front.ActResize, front.ActFont, front.ActSound:
 		return false
@@ -260,10 +258,6 @@ func GateAct(h RuleHost, a front.Action) bool {
 		}
 	case front.ActClose:
 		h.Call(items[len(items)-1].do)
-	case front.ActLead, front.ActMember:
-		if v.Loot != nil {
-			h.Call(func(e *classicGame) { e.Lead(a.N) })
-		}
 	}
 	return true
 }

@@ -56,6 +56,16 @@ type layouts struct {
 	creation  memo[creationKey, *front.Creation]
 	picker    memo[pageKey, *front.Picker]     // the game's own picker
 	icon      memo[pageKey, *front.IconEditor] // the game's own icon editor
+	page      memo[laidKey, *laidPage]         // the text page laid out (shown.go)
+	ask       memo[uiKey, *front.Ask]          // the state's question, or the door's menu
+	training  memo[uiKey, *front.Training]
+	flags     memo[flagsKey, *game.Flags]
+}
+
+// flagsKey is what the status flags are read from: the build and the title's step.
+type flagsKey struct {
+	version uint64
+	title   titleStep
 }
 
 // creationKey is what the creation sheet's layout is made of.
@@ -135,7 +145,7 @@ func (p *Presenter) stateScreens() string {
 	if p.eng == nil {
 		return ""
 	}
-	ink := p.shownView.Ink
+	ink := p.ink()
 	return fmt.Sprint(p.inventoryKind(), p.sheetShown(), p.sheetPage() != nil, p.creation() != nil, p.picker(ink) != nil, p.iconEditor(ink) != nil)
 }
 

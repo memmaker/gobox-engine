@@ -3,7 +3,7 @@ package present
 import (
 	"testing"
 
-	"gobox/front"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -12,14 +12,16 @@ import (
 func TestBoxQuestionTyping(t *testing.T) {
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
-	draw := func(ask *front.Ask) int {
+	draw := func(ask *play.Question) int {
 		dst := gpu.NewImage(1280, 800)
 		defer dst.Deallocate()
+		g, _ := playGame(play.Exploring{Common: play.Common{Adventure: true, Text: []string{"CHARACTER NAME:"}, Ask: ask}})
 		p := &Presenter{}
-		p.Draw(dst, note, front.View{Adventure: true, Pane: &front.Pane{Lines: [][]front.PaneRun{{{Text: "CHARACTER NAME:"}}}}, Ask: ask})
+		p.SetEngine(g)
+		p.Draw(dst, note)
 		return lit(dst)
 	}
-	if bare, typed := draw(nil), draw(&front.Ask{Kind: front.AskText, Max: 15, Text: "ZED"}); typed <= bare {
+	if bare, typed := draw(nil), draw(&play.Question{Typed: true, Max: 15}); typed <= bare {
 		t.Fatalf("the line being typed is not drawn: %d lit with it, %d without", typed, bare)
 	}
 }

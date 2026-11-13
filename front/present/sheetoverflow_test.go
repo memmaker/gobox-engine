@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/gpu"
 )
@@ -22,7 +21,7 @@ func TestSheetLongRulesStopAboveFooter(t *testing.T) {
 	for i := range 40 {
 		rules = append(rules, game.Stat{Name: "SKILL" + strconv.Itoa(i), Value: "1"})
 	}
-	sheetOn(&game.SheetPage{Rules: rules, THAC0: 9}).drawSheet(dst, note, front.View{})
+	sheetOn(&game.SheetPage{Rules: rules, THAC0: 9}).drawSheet(dst, note)
 	if s := drawn.String(); strings.Contains(s, "SKILL39") || !strings.Contains(s, "more") {
 		t.Errorf("long list drawn to the end, into the footer")
 	}
@@ -40,7 +39,7 @@ func TestSheetNineSkills(t *testing.T) {
 	for i := range 9 {
 		rules = append(rules, game.Stat{Name: "SKILL" + strconv.Itoa(i), Value: "1"})
 	}
-	sheetOn(&game.SheetPage{Rules: rules, THAC0: 9}).drawSheet(dst, note, front.View{})
+	sheetOn(&game.SheetPage{Rules: rules, THAC0: 9}).drawSheet(dst, note)
 	if s := drawn.String(); !strings.Contains(s, "SKILL8") || strings.Contains(s, "more") {
 		t.Errorf("9 skills don't fit")
 	}

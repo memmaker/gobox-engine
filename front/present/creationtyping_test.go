@@ -1,27 +1,24 @@
 package present
 
 import (
+	"strings"
 	"testing"
 
-	"gobox/front"
 	"gobox/game/play"
 	"gobox/gpu"
 )
 
-// TestCreationTyping: a typed question over the creation sheet (the name
-// after Keep) is drawn over it, not hidden under the sheet.
+// TestCreationTyping: a typed question over the creation (the name after
+// Keep) is drawn, not hidden under the sheet.
 func TestCreationTyping(t *testing.T) {
-	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
-	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
-	litWith := func(ask *front.Ask) int {
-		dst := gpu.NewImage(1280, 800)
-		defer dst.Deallocate()
-		p, _ := draftOn(&play.Draft{})
-		p.Draw(dst, note, front.View{Ask: ask})
-		return lit(dst)
-	}
-	bare := litWith(nil)
-	if asked := litWith(&front.Ask{Kind: front.AskText, Max: 15, Menu: front.Menu{Prompt: "Character name: "}}); asked <= bare {
-		t.Fatalf("the name question is not drawn: %d lit with it, %d without", asked, bare)
+	dst := gpu.NewImage(1280, 800)
+	defer dst.Deallocate()
+	var drawn strings.Builder
+	g := func(c byte) [8]byte { drawn.WriteByte(c); return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
+	note := Note{Glyph: g, Font: func(c byte, _ bool) [8]byte { return g(c) }}
+	p := draftAsked(&play.Draft{}, &play.Question{Text: "Character name: ", Typed: true, Max: 15})
+	p.Draw(dst, note)
+	if s := strings.ToUpper(drawn.String()); !strings.Contains(s, "CHARACTER NAME") {
+		t.Fatalf("the name question is not drawn: %q", drawn.String())
 	}
 }

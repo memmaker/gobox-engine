@@ -64,8 +64,8 @@ func roleInk(r front.Role) (int, bool) {
 }
 
 // asking draws with v's question's colours (Ask's roles) while draw runs.
-func (p *Presenter) asking(v front.View, draw func()) {
-	p.inkAsk = v.Ask
+func (p *Presenter) asking(draw func()) {
+	p.inkAsk = p.askUp()
 	defer func() { p.inkAsk = nil }()
 	draw()
 }

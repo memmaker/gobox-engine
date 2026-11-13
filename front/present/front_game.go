@@ -2,6 +2,7 @@ package present
 
 import (
 	"gobox/front"
+	"gobox/game"
 	"log"
 	"sync"
 )
@@ -38,11 +39,10 @@ type RuleHost interface {
 
 // Shown is what a screen needs to know of the view on screen.
 type Shown struct {
-	Ask, Powers, Sheet, Inventory, Battle bool // up
-	Camp, MainMenu                        bool // up
-	Loot                                  *front.Loot
+	Ask, Powers, Sheet, Inventory, Battle bool        // up
+	Camp, MainMenu                        bool        // up
 	Treasure                              *front.Loot // the loot inventory's (Inventory.Treasure)
-	Door                                  *front.DoorOpts
+	Door                                  *game.Door
 	Resting                               bool // camp's rest goes on
 	Party                                 int  // the members
 }

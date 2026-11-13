@@ -441,6 +441,7 @@ func (g *Game) Automap() game.Automap    { return g.r.derived().automap }
 func (g *Game) Page() *game.Page         { return g.pane() }
 func (g *Game) Results() *game.Results   { return resultsOf(g.r.g.State()) }
 func (g *Game) Flags() *game.Flags       { return g.r.flagsOf(g.r.g.State(), g.party()) }
+func (g *Game) Window() game.Window      { return windowOf(g.r.g.State()) }
 func (g *Game) SheetUp() *game.SheetPage { return g.r.sheetPageOf(g.r.g.State(), g.party()) }
 func (g *Game) Shop() *game.Shop         { return shopOf(g.r.g.State()) }
 func (g *Game) Training() *game.Training { return trainingOf(g.r.g.State()) }

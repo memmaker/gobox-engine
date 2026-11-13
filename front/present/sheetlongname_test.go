@@ -4,7 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/gpu"
 )
@@ -23,7 +22,7 @@ func TestSheetLongSkillName(t *testing.T) {
 	note := Note{Glyph: g, Font: func(c byte, _ bool) [8]byte { return g(c) }}
 	name := strings.Repeat("#", 20)
 	p := sheetOn(&game.SheetPage{Rules: []game.Stat{{Name: name, Value: "7"}}, THAC0: 9})
-	p.drawSheet(dst, note, front.View{})
+	p.drawSheet(dst, note)
 	lit := 0
 	for i := 0; i+3 < len(p.sheet.px.Pix); i += 4 {
 		if p.sheet.px.Pix[i] != 0 || p.sheet.px.Pix[i+1] != 0 || p.sheet.px.Pix[i+2] != 0 {
@@ -33,7 +32,7 @@ func TestSheetLongSkillName(t *testing.T) {
 	// what a glyph covers depends on DrawText; the name and value apart cover 21 cells' worth
 	want := 0
 	solo := sheetOn(&game.SheetPage{Rules: []game.Stat{{Name: name, Value: "x"}}, THAC0: 9})
-	solo.drawSheet(dst, note, front.View{})
+	solo.drawSheet(dst, note)
 	for i := 0; i+3 < len(solo.sheet.px.Pix); i += 4 {
 		if solo.sheet.px.Pix[i] != 0 || solo.sheet.px.Pix[i+1] != 0 || solo.sheet.px.Pix[i+2] != 0 {
 			want++

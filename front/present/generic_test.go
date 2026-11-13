@@ -1,11 +1,10 @@
 package present
 
 import (
-	"image/color"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -21,7 +20,7 @@ func lit(dst *gpu.Image) (n int) {
 	return
 }
 
-// A View with only pane text and a "press Enter" Ask (the text after a
+// A state with only pane text and a "press Enter" Ask (the text after a
 // fight, no Adventure, no Battle): the text shows in the pane, the prompt
 // on the page.
 func TestGenericPaneAndPrompt(t *testing.T) {
@@ -29,16 +28,16 @@ func TestGenericPaneAndPrompt(t *testing.T) {
 	defer dst.Deallocate()
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
-	white := color.RGBA{255, 255, 255, 255}
-	pane := &front.Pane{Lines: [][]front.PaneRun{{{Text: "THE PARTY HAS WON.", Fg: white, Bg: color.RGBA{A: 255}}}}}
-	ask := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "PRESS ENTER", Commands: []front.Command{{Text: "CONTINUE"}}}}
-	p := &Presenter{}
-	p.Draw(dst, note, front.View{Pane: pane})
+	won := play.Common{Text: []string{"THE PARTY HAS WON."}}
+	p, f := presenterOn(play.Scene{Common: won})
+	p.Draw(dst, note)
 	textOnly := lit(dst)
 	if textOnly == 0 {
 		t.Fatal("the pane text is not drawn")
 	}
-	p.Draw(dst, note, front.View{Pane: pane, Ask: ask})
+	won.Ask = &play.Question{Text: "PRESS ENTER", Replies: []string{"CONTINUE"}}
+	f.st = play.Scene{Common: won}
+	p.Draw(dst, note)
 	if both := lit(dst); both <= textOnly {
 		t.Fatalf("the prompt is not drawn: %d lit with it, %d without", both, textOnly)
 	}
@@ -51,8 +50,8 @@ func TestGenericTyping(t *testing.T) {
 	defer dst.Deallocate()
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
-	p := &Presenter{}
-	p.Draw(dst, note, front.View{Ask: &front.Ask{Kind: front.AskText, Menu: front.Menu{Prompt: "Character name:"}, Max: 15}})
+	p, _ := presenterOn(play.Scene{Common: play.Common{Ask: &play.Question{Text: "Character name:", Typed: true, Max: 15}}})
+	p.Draw(dst, note)
 	if lit(dst) == 0 {
 		t.Fatal("the name question is not drawn")
 	}
@@ -63,10 +62,9 @@ func TestGenericTyping(t *testing.T) {
 func TestInventoryGameAsk(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
-	p := partyOn(game.Member{Name: "A"})
+	p, _ := presenterOn(play.Exploring{Common: play.Common{Party: []game.Member{{Name: "A"}}, Ask: &play.Question{Text: "Use it? ", Replies: []string{"Yes", "No"}}}})
 	p.eng.r.items = game.ItemsOwn
-	ask := &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "Use it? ", Commands: []front.Command{{Text: "Yes"}, {Text: "No"}}}}
-	if p.Inventory(dst, Note{}, front.View{Ask: ask}) {
+	if p.Inventory(dst, Note{}) {
 		t.Fatal("the items hide the game's question")
 	}
 }

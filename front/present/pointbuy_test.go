@@ -45,41 +45,40 @@ func TestPointBuy(t *testing.T) {
 			bits := tc.font()
 			gl := func(ch byte) [8]byte { r, _ := fonts.Glyph(bits, ch, true); return r }
 			note := Note{Glyph: gl, Font: func(ch byte, text bool) [8]byte { r, _ := fonts.Glyph(bits, ch, text); return r }}
-			v := front.View{}
 			p.send(front.ActCreate, 0)
-			p.Draw(dst, note, v)
+			p.Draw(dst, note)
 			if p.scr.sub != scrHow {
 				t.Fatalf("sub %d, want the Roll or Point Buy question", p.scr.sub)
 			}
-			p.Key('P', v)
+			p.Key('P')
 			if p.scr.sub != scrBuy || len(p.scr.buy) != len(tc.stats) {
 				t.Fatalf("sub %d buy %v", p.scr.sub, p.scr.buy)
 			}
 			right, left, down := keyOf(input.Right), keyOf(input.Left), keyOf(input.Down)
 			for range 12 { // STR to 18 (16 points), no further
-				p.Key(right, v)
+				p.Key(right)
 			}
-			p.Key(down, v)
+			p.Key(down)
 			for range 8 { // INT to 16 (10), back to 15 (8)
-				p.Key(right, v)
+				p.Key(right)
 			}
-			p.Key(left, v)
-			p.Key(down, v)
+			p.Key(left)
+			p.Key(down)
 			for range 10 { // the next to 14: 6 left over were 8, 2 more stop it at 13 (5)... budget 32-24=8: 14 costs 6, 15 costs 8
-				p.Key(right, v)
+				p.Key(right)
 			}
 			want := append([]int{18, 15, 15}, slices.Repeat([]int{8}, len(tc.stats)-3)...)
 			if !slices.Equal(p.scr.buy, want) {
 				t.Fatalf("bought %v, want %v", p.scr.buy, want)
 			}
-			p.Key('-', v) // Lower: the row last highlighted
+			p.Key('-') // Lower: the row last highlighted
 			want[2] = 14
 			if !slices.Equal(p.scr.buy, want) {
 				t.Fatalf("after Lower %v, want %v", p.scr.buy, want)
 			}
-			p.Draw(dst, note, v)
+			p.Draw(dst, note)
 			saveBuyPNG(t, dst, tc.name)
-			p.Key('D', v)
+			p.Key('D')
 			for _, c := range p.Calls() {
 				c(g)
 			}

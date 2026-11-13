@@ -31,31 +31,6 @@ func paneLines(ls [][]game.TextRun) [][]front.PaneRun {
 	return r
 }
 
-// Page is v with the text page p: the pane, the prompt row, the
-// text over the view window and the pictures. v where p is nil.
-func Page(v front.View, p *game.Page, portrait []game.Picture) front.View {
-	if p == nil {
-		return v
-	}
-	if p.Pane != nil {
-		v.Pane = &front.Pane{Lines: paneLines(p.Pane), Rows: p.PaneRows}
-	} else {
-		v.Pane = nil
-	}
-	v.Prompt, v.ViewText = paneRuns(p.Prompt), paneLines(p.View)
-	v.Pictures = make([]front.Picture, 0, len(p.Layers))
-	for _, l := range p.Layers {
-		f := pix(l.Picture)
-		f.File, f.Block, f.Frame, f.At = l.File, l.Block, l.Frame, l.At
-		f.Frames, f.FrameMs = l.Frames, l.FrameMs
-		v.Pictures = append(v.Pictures, f)
-	}
-	if len(p.Layers) == 0 {
-		v.Pictures = append(v.Pictures, story(portrait)...)
-	}
-	return v
-}
-
 // story is a script portrait in the view window: the HEAD at cells 3,3, the
 // BODY five rows below (the Gold Box's ShowPortrait); other pictures stack on.
 func story(pics []game.Picture) []front.Picture {

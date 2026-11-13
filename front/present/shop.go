@@ -81,7 +81,6 @@ func unknownOf(s play.State) []game.ItemRef {
 // hall (and the party menu's Train, which opens the hall) as their rule
 // calls: false leaves a to the engine.
 func (p *Presenter) serviceAct(a front.Action) bool {
-	v := p.shownView
 	switch {
 	case p.training || p.hallUp(): // the hall up, from Train or the game's own (ModeTraining)
 		switch a.Kind {
@@ -94,11 +93,11 @@ func (p *Presenter) serviceAct(a front.Action) bool {
 		}
 	case a.Kind == front.ActTraining && p.mainMenuUp():
 		p.call(func(e *classicGame) { e.OpenTraining(a.N); p.training = p.hallUp() })
-	case v.Shop != nil && a.Kind == front.ActInventory:
+	case p.shopUp() && a.Kind == front.ActInventory:
 		p.call(func(e *classicGame) { e.Browse(a.N) })
-	case (v.Temple != nil || v.Shop != nil) && a.Kind == front.ActMember:
+	case (p.templeUp() || p.shopUp()) && a.Kind == front.ActMember:
 		p.call(func(e *classicGame) { e.ViewMember(a.N) })
-	case (v.Shop != nil || v.Temple != nil) && a.Kind == front.ActClose:
+	case (p.shopUp() || p.templeUp()) && a.Kind == front.ActClose:
 		p.call(func(e *classicGame) { e.Leave() })
 	default:
 		return false
@@ -108,17 +107,6 @@ func (p *Presenter) serviceAct(a front.Action) bool {
 
 // hallUp: the game has the training hall open.
 func (p *Presenter) hallUp() bool { return trainingOf(p.state()) != nil }
-
-// ownTraining puts the training hall up in v, over the party menu.
-func (p *Presenter) ownTraining(v front.View) front.View {
-	if p.training && p.eng != nil {
-		p.training = p.hallUp() // a game loaded closes it
-	}
-	if p.training {
-		v.MainMenu, v.Hall, v.Powers = nil, false, nil
-	}
-	return v
-}
 
 // moneyRows are the money acts allowed offers: Take, Pool, Share.
 func (p *Presenter) moneyRows(al play.Allowed) (it []ui.MenuRow) {

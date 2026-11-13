@@ -82,15 +82,16 @@ func TestTitleScreens(t *testing.T) {
 			dst := gpu.NewImage(w, h)
 			defer dst.Deallocate()
 			k := ui.K(dst.Bounds())
-			credits := false
+			sawCredits := false
 			for step := 0; step < 40 && !fr.TitleDrawn(); step++ {
 				fr.Act()
-				v := fr.Game.View()
+				pg, credits := fr.Game.Page(), fr.Game.Flags().Credits
 				fr.Draw(dst)
 				fr.Draw(dst) // the step's first frame can still be the last one's (the presenter's page caches a frame behind)
-				for _, pc := range v.Pictures {
+				for _, l := range pg.Layers {
+					pc := l.Picture
 					b := art.Block(asset.Amiga, pc.File, pc.Block)
-					if pc.Pix == nil || b == nil || len(b.Palette) == 0 || b.ColourBase < ega.AmigaBase {
+					if pc.Pixels == nil || b == nil || len(b.Palette) == 0 || b.ColourBase < ega.AmigaBase {
 						continue
 					}
 					for i := 0; i < len(b.Palette)/3; i++ {
@@ -100,8 +101,8 @@ func TestTitleScreens(t *testing.T) {
 						}
 					}
 				}
-				if v.Credits {
-					credits = true
+				if credits {
+					sawCredits = true
 					if r := lit(dst); r.Min.X > 16*k || r.Min.Y > 16*k || r.Max.X < w-16*k || r.Max.Y < h-16*k {
 						t.Errorf("step %d: credits lit %v: no frame on the window's edges (K %d)", step, r, k)
 					}
@@ -112,7 +113,7 @@ func TestTitleScreens(t *testing.T) {
 			if !fr.TitleDrawn() {
 				t.Errorf("never reached the main menu")
 			}
-			if m, _ := importer.Read("../../data/" + id); m.Manifest.Start != nil && len(m.Manifest.Start.Credits) > 0 && !credits {
+			if m, _ := importer.Read("../../data/" + id); m.Manifest.Start != nil && len(m.Manifest.Start.Credits) > 0 && !sawCredits {
 				t.Errorf("credits page never shown")
 			}
 		})

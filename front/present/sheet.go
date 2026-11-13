@@ -44,8 +44,8 @@ func (p *Presenter) sheetItems() []ui.MenuRow {
 }
 
 // sheetUp: the sheet's menu is the page's question.
-func (p *Presenter) sheetUp(v front.View) bool {
-	return p.sheetShown() && askMenu(v) == nil && !p.inventoryUp()
+func (p *Presenter) sheetUp() bool {
+	return p.sheetShown() && p.askMenu() == nil && !p.inventoryUp()
 }
 
 // sheetPage is the character sheet's page up: the look-only member's in a
@@ -122,7 +122,7 @@ type sheetCanvas struct {
 }
 
 // drawSheet draws the sheet (sheetUp) over the whole window.
-func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
+func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 	s, rl := p.state(), p.eng.r
 	party := p.party()
 	sp, i := p.sheetPage(), rl.selectedOf(s) // the look-only sheet and the creation's draft included
@@ -130,7 +130,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 		return
 	}
 	m, sc := party[i], &p.sheet
-	p.setup(note, v)
+	p.setup(note)
 	p.pageMenu = true
 	b := dst.Bounds()
 	k, cw, ch := ui.FullPageCells(b) // K and the cells
@@ -314,7 +314,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note, v front.View) {
 		op.GeoM.Translate(float64(face.Min.X)*kx, float64(face.Min.Y)*ky)
 		dst.DrawImage(p.hiFace(png, int(float64(face.Dx())*kx)), op)
 	}
-	if x, y := gpu.CursorPosition(); askMenu(v) == nil { // the tooltip of the line under the pointer
+	if x, y := gpu.CursorPosition(); p.askMenu() == nil { // the tooltip of the line under the pointer
 		pt := image.Pt(int(float64(x)/kx), int(float64(y)/ky))
 		for _, t := range tips {
 			if pt.In(t.r) && len(t.help) > 0 {

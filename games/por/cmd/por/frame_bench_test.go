@@ -40,14 +40,14 @@ func frameFront(b *testing.B, dev string) *present.Front {
 }
 
 // A frame of walking the 3D view: a step or a turn every 60 frames. A
-// regression in what runs per frame (the View and the State built again,
+// regression in what runs per frame (the State built again,
 // uploads) shows here; the window's GPU time does not.
 func BenchmarkExploreFrame(b *testing.B) {
 	f := frameFront(b, "")
-	for i := 0; i < 600 && !f.Game.View().Exploring; i++ {
+	for i := 0; i < 600 && !f.Game.Flags().Exploring; i++ {
 		f.Frame(1280, 800)
 	}
-	if !f.Game.View().Exploring {
+	if !f.Game.Flags().Exploring {
 		b.Fatal("never in the 3D view")
 	}
 	for range 60 { // the first textures decode and upload

@@ -4,7 +4,6 @@ import (
 	"image"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -18,14 +17,10 @@ func campPresenter() *Presenter {
 	return p
 }
 
-func campCardView() front.View {
-	return front.View{Camp: &front.Camp{}}
-}
-
 // TestCampCardKey: camp's card verbs answer their hotkey without Tab.
 func TestCampCardKey(t *testing.T) {
 	p := campPresenter()
-	p.campKey('d', campCardView())
+	p.campKey('d')
 	if p.camp.screen != campDrop {
 		t.Fatalf("d: screen %d, want the drop's question", p.camp.screen)
 	}
@@ -34,9 +29,8 @@ func TestCampCardKey(t *testing.T) {
 // TestCampCardClickRows: a click on a card's line acts the line drawn
 // there (Icon is not drawn on the card, so row 1 is Drop).
 func TestCampCardClickRows(t *testing.T) {
-	v := campCardView()
 	p := campPresenter()
-	p.active, p.shownView = true, v
+	p.active = true
 	p.campCtx = [][]image.Rectangle{{image.Rect(0, 0, 50, 8), image.Rect(0, 8, 50, 16)}}
 	p.Click(10, 12)
 	if p.camp.screen != campDrop {

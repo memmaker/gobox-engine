@@ -2,8 +2,6 @@ package present
 
 import (
 	"testing"
-
-	"gobox/front"
 )
 
 // Tab (pad Y) toggles the minimap in the presenter's Host options and sends
@@ -15,7 +13,7 @@ func TestTabTogglesMinimap(t *testing.T) {
 	defer func() { Host = oldHost }()
 	var p Presenter
 	for _, hidden := range []bool{true, false} {
-		p.keyAct(keyTab, front.View{})
+		p.keyAct(keyTab)
 		if Host.MapOff != hidden {
 			t.Fatalf("MapOff %v after Tab, want %v", Host.MapOff, hidden)
 		}

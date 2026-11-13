@@ -5,7 +5,7 @@
 package present
 
 import (
-	"gobox/front"
+	"gobox/game"
 	"time"
 
 	"gobox/dax/vace"
@@ -25,14 +25,14 @@ type SequenceUI struct {
 
 // SequenceStep plays sq (nil: none) this frame on in and returns the
 // frame to show (nil: none); skip: a key, click or button came.
-func SequenceStep(h RuleHost, in *SequenceUI, sq *front.Sequence, skip bool) *vace.Frame {
+func SequenceStep(h RuleHost, in *SequenceUI, sq *game.Sequence, skip bool) *vace.Frame {
 	if sq == nil {
 		*in = SequenceUI{}
 		return nil
 	}
 	now := time.Now()
 	if in.Name != sq.Name || in.start.IsZero() {
-		a, _ := vace.Load(sq.Dir, sq.Anim)
+		a, _ := vace.Load(filesDir, sq.Anim)
 		*in = SequenceUI{Name: sq.Name, Anim: a, start: now}
 	}
 	in.Cues = nil

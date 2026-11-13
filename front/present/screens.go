@@ -62,22 +62,22 @@ type screenUI struct {
 	buyStat int             // ... and the one Raise and Lower change
 }
 
-func (p *Presenter) screenName(v front.View) string {
+func (p *Presenter) screenName() string {
 	switch {
-	case p.picker(v.Ink) != nil:
+	case p.picker(p.ink()) != nil:
 		return "picker"
 	case p.creation() != nil:
 		return "creation"
 	case p.slotsView() != nil:
 		return "slots"
-	case p.iconEditor(v.Ink) != nil && askMenu(v) == nil:
+	case p.iconEditor(p.ink()) != nil && p.askMenu() == nil:
 		return "icon"
 	}
 	return ""
 }
 
 // pageScreen: one of them is up.
-func (p *Presenter) pageScreen(v front.View) bool { return p.screenName(v) != "" }
+func (p *Presenter) pageScreen() bool { return p.screenName() != "" }
 
 func (p *Presenter) sendA(a front.Action) {
 	if !p.slotAct(a) {
@@ -86,7 +86,7 @@ func (p *Presenter) sendA(a front.Action) {
 }
 
 // screenItems are the lines of the page screen up and its title.
-func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
+func (p *Presenter) screenItems() (string, []ui.MenuRow) {
 	s := &p.scr
 	act := func(k front.ActKind, n int) func() { return func() { p.send(k, n) } }
 	switch s.sub {
@@ -95,7 +95,7 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 	case scrType:
 		return s.prompt, []ui.MenuRow{{Text: caretLine(s.text, s.caret, s.max, p.blink()), Key: 0, Do: nil}}
 	}
-	switch p.screenName(v) {
+	switch p.screenName() {
 	case "creation":
 		cr := p.creation()
 		switch s.sub {
@@ -138,7 +138,7 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 			do := func() { p.typeLine("Save as", "", 20, ActSaveSlot, 0) }
 			it = append(it, ui.MenuRow{Text: "New Slot", Key: 'N', Do: do})
 		}
-		w, lc := slotCols(max(v.Cells.X, 40))
+		w, lc := slotCols(max(p.cells().X, 40))
 		for i, name := range sl.Names {
 			lv := ""
 			if sl.Levels[i] > 0 {
@@ -249,16 +249,16 @@ func (p *Presenter) openField(cr *front.Creation, f int) {
 
 // drawScreen draws the page screen up over its page: its menu, the
 // picker's frame.
-func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
+func (p *Presenter) drawScreen(dst *gpu.Image) {
 	s := &p.scr
-	if n := p.screenName(v); n != s.up {
+	if n := p.screenName(); n != s.up {
 		s.up, s.sub, s.sel, s.top, s.anchor = n, scrMain, 0, 0, nil
 		if n == "creation" && s.newChar {
 			s.sub, s.mainSel = scrHow, 0
 		}
 		s.newChar = false
-		if p.picker(v.Ink) != nil {
-			s.cur = p.picker(v.Ink).Cur
+		if p.picker(p.ink()) != nil {
+			s.cur = p.picker(p.ink()).Cur
 		}
 		if sl := p.slotsView(); sl != nil { // on the game last loaded or saved
 			p.pointer = p.camp.pointer // the resting pointer does not take it; only a moved one does
@@ -271,7 +271,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 		}
 	}
 	p.winRects = p.winRects[:0]
-	if pk := p.picker(v.Ink); pk != nil {
+	if pk := p.picker(p.ink()); pk != nil {
 		s.cur = min(max(s.cur, 0), pk.N-1)
 		if i := s.cur - pk.Page*pk.PerPage; i >= 0 && i < len(pk.Cells) {
 			r := p.cellRect(pk.Cells[i])
@@ -281,13 +281,13 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 			return
 		}
 	}
-	if sp := p.spots(v); sp != nil && s.sub == scrMain { // the sheet's parts and the bar: the focus framed
+	if sp := p.spots(); sp != nil && s.sub == scrMain { // the sheet's parts and the bar: the focus framed
 		s.sel = min(max(s.sel, 0), len(sp)-1)
 		selectOutline(p.cellRect(sp[s.sel].r), max(1, int(s.at.W/float64(s.pw))), func(e image.Rectangle, c color.RGBA) { dst.SubImage(e).(*gpu.Image).Fill(c) })
 		return
 	}
-	title, items := p.screenItems(v)
-	lines, keys, off := make([]string, len(items)), p.screenKeys(v, items), ui.RowsOff(items)
+	title, items := p.screenItems()
+	lines, keys, off := make([]string, len(items)), p.screenKeys(items), ui.RowsOff(items)
 	for i, it := range items {
 		lines[i] = it.Text
 	}
@@ -301,7 +301,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 		}
 	}
 	s.sel = min(max(s.sel, 0), len(lines)-1)
-	if p.screenName(v) == "slots" && s.sub == scrMain {
+	if p.screenName() == "slots" && s.sub == scrMain {
 		p.slotList(dst, lines, keys, off)
 		return
 	}
@@ -334,11 +334,11 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 
 // slotKey does the slot page's footer key h on the selected save: Enter
 // picks the row, L loads, D deletes after a Yes, Esc leaves.
-func (p *Presenter) slotKey(v front.View, h byte) {
+func (p *Presenter) slotKey(h byte) {
 	s, sl := &p.scr, p.slotsView()
 	switch h {
 	case footPick:
-		p.screenPick(v, s.sel-s.top)
+		p.screenPick(s.sel - s.top)
 		return
 	case footBack:
 		p.send(front.ActClose, 0)
@@ -361,7 +361,7 @@ func (p *Presenter) slotKey(v front.View, h byte) {
 }
 
 // slotFootAt is the footer word of the slot page under (x, y), or 0.
-func (p *Presenter) slotFootAt(v front.View, x, y int) byte {
+func (p *Presenter) slotFootAt(x, y int) byte {
 	s, sl := &p.scr, p.slotsView()
 	if sl == nil || s.sub != scrMain || s.pw == 0 {
 		return 0
@@ -377,9 +377,9 @@ func (p *Presenter) slotFootAt(v front.View, x, y int) byte {
 // screenKeys are the hotkeys of the page screen's rows: the saves on the
 // slot list and the training hall's new spells have none (no digits
 // either), the rest as every menu.
-func (p *Presenter) screenKeys(v front.View, items []ui.MenuRow) []byte {
-	learn := v.Training != nil && len(v.Training.Learn) > 0
-	if (p.screenName(v) != "slots" || p.scr.sub != scrMain) && p.scr.sub != scrField && !learn { // the drop-downs: no hotkeys, no digits
+func (p *Presenter) screenKeys(items []ui.MenuRow) []byte {
+	learn := p.trainingUp() != nil && len(p.trainingUp().Learn) > 0
+	if (p.screenName() != "slots" || p.scr.sub != scrMain) && p.scr.sub != scrField && !learn { // the drop-downs: no hotkeys, no digits
 		return ui.RowKeys(items)
 	}
 	k := make([]byte, len(items))
@@ -462,8 +462,8 @@ func (p *Presenter) cellRect(c front.CellRect) image.Rectangle {
 }
 
 // screenPick picks shown line i of the page screen's menu.
-func (p *Presenter) screenPick(v front.View, i int) {
-	_, items := p.screenItems(v)
+func (p *Presenter) screenPick(i int) {
+	_, items := p.screenItems()
 	if i += p.scr.top; i >= 0 && i < len(items) && items[i].Do != nil {
 		p.scr.sel = i
 		items[i].Do()
@@ -471,7 +471,7 @@ func (p *Presenter) screenPick(v front.View, i int) {
 }
 
 // screenKey takes key k on a page screen.
-func (p *Presenter) screenKey(k uint16, v front.View) bool {
+func (p *Presenter) screenKey(k uint16) bool {
 	s := &p.scr
 	if s.sub == scrType {
 		switch done, cancel, _ := editKey(k, &s.text, &s.caret, s.max, false); {
@@ -486,11 +486,11 @@ func (p *Presenter) screenKey(k uint16, v front.View) bool {
 		}
 		return true
 	}
-	if pk := p.picker(v.Ink); pk != nil && s.sub != scrAsk {
+	if pk := p.picker(p.ink()); pk != nil && s.sub != scrAsk {
 		return p.pickerKey(k, pk)
 	}
-	if sp := p.spots(v); sp != nil && s.sub == scrMain {
-		return p.spotKey(k, v, sp)
+	if sp := p.spots(); sp != nil && s.sub == scrMain {
+		return p.spotKey(k, sp)
 	}
 	if sl := p.slotsView(); sl != nil && s.sub == scrMain {
 		h := byte(k)
@@ -504,16 +504,16 @@ func (p *Presenter) screenKey(k uint16, v front.View) bool {
 			h, k = 'D', 'D'
 		}
 		if (h == 'L' && !sl.LoadOnly && !sl.NoLoad || h == 'D') && k < 128 {
-			p.slotKey(v, h)
+			p.slotKey(h)
 			return true
 		}
 	}
 	if s.sub == scrBuy && p.buyKey(k) {
 		return true
 	}
-	_, items := p.screenItems(v)
+	_, items := p.screenItems()
 	n := len(items)
-	keys := p.screenKeys(v, items)
+	keys := p.screenKeys(items)
 	i, back, ok := ui.MenuNav(actOf(k), k, &s.sel, keys)
 	switch {
 	case back && s.sub == scrAsk:
@@ -522,9 +522,9 @@ func (p *Presenter) screenKey(k uint16, v front.View) bool {
 		s.open(scrMain)
 		s.anchor = nil
 	case back:
-		p.screenPick(v, n-1-s.top) // Exit
+		p.screenPick(n - 1 - s.top) // Exit
 	case i >= 0:
-		p.screenPick(v, i-s.top)
+		p.screenPick(i - s.top)
 	}
 	return ok
 }
@@ -590,12 +590,12 @@ func (p *Presenter) pickerTake(pk *front.Picker, i int) {
 // screenMouse takes the pointer on a page screen's page at cell (cx, cy):
 // the picker's pictures and pager, the creation sheet's parts, the icon
 // editor's.
-func (p *Presenter) screenMouse(cx, cy int, left bool, v front.View) bool {
+func (p *Presenter) screenMouse(cx, cy int, left bool) bool {
 	s := &p.scr
 	in := func(r front.CellRect) bool { return image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)) }
 	moved := image.Pt(cx, cy) != s.ptr
 	s.ptr = image.Pt(cx, cy)
-	if pk := p.picker(v.Ink); pk != nil && s.sub == scrMain {
+	if pk := p.picker(p.ink()); pk != nil && s.sub == scrMain {
 		for i, r := range pk.Cells {
 			if in(r) {
 				if moved || left {
@@ -618,7 +618,7 @@ func (p *Presenter) screenMouse(cx, cy int, left bool, v front.View) bool {
 		}
 		return true
 	}
-	sp := p.spots(v)
+	sp := p.spots()
 	if sp == nil || s.sub != scrMain {
 		return false
 	}
@@ -633,7 +633,7 @@ func (p *Presenter) screenMouse(cx, cy int, left bool, v front.View) bool {
 			return true
 		}
 	}
-	if ed := p.iconEditor(v.Ink); ed != nil && left { // the poses: the head above, the weapon below
+	if ed := p.iconEditor(p.ink()); ed != nil && left { // the poses: the head above, the weapon below
 		if a, ok := iconClick(ed, cx, cy); ok {
 			p.sendA(a)
 			return true
@@ -670,12 +670,12 @@ var statNames = [6]string{"STR", "INT", "WIS", "DEX", "CON", "CHA"}
 
 // spots are the special screen's parts, in reading order, the bar's words
 // last; nil on other screens.
-func (p *Presenter) spots(v front.View) []spot {
+func (p *Presenter) spots() []spot {
 	var sp []spot
 	at := func(r front.CellRect, key byte, do func()) { sp = append(sp, spot{r, key, do}) }
 	send := func(k front.ActKind, n int) func() { return func() { p.send(k, n) } }
-	switch ed, cr := p.iconEditor(v.Ink), p.creation(); {
-	case p.picker(v.Ink) != nil:
+	switch ed, cr := p.iconEditor(p.ink()), p.creation(); {
+	case p.picker(p.ink()) != nil:
 		return nil
 	case ed != nil:
 		click := func(x, y int) func() {
@@ -719,8 +719,8 @@ func (p *Presenter) spots(v front.View) []spot {
 		return nil
 	}
 	row := p.scr.ph/8 - 1 // the prompt row
-	for _, w := range p.barWords(v) {
-		at(front.CellRect{X1: w.x, Y1: row, X2: w.x + len(w.label) - 1, Y2: row}, w.key, p.barDo(v, w.key))
+	for _, w := range p.barWords() {
+		at(front.CellRect{X1: w.x, Y1: row, X2: w.x + len(w.label) - 1, Y2: row}, w.key, p.barDo(w.key))
 	}
 	return sp
 }
@@ -728,9 +728,9 @@ func (p *Presenter) spots(v front.View) []spot {
 // barWords are the special screen's bar on the prompt row, as the
 // original's: the creation's Roll, Minimal, Keep, Exit; the icon
 // editor's Keep, Exit.
-func (p *Presenter) barWords(v front.View) []footWord {
+func (p *Presenter) barWords() []footWord {
 	ws := []string{"Keep", "Exit"}
-	if p.iconEditor(v.Ink) == nil {
+	if p.iconEditor(p.ink()) == nil {
 		ws = []string{"Roll", "Minimal", "Keep", "Exit"}
 		if p.creation() != nil && len(p.creation().Powers) > 0 {
 			ws = []string{"Roll", "Minimal", "Powers", "Keep", "Exit"}
@@ -746,7 +746,7 @@ func (p *Presenter) barWords(v front.View) []footWord {
 }
 
 // barDo is what the bar's word with hotkey h does.
-func (p *Presenter) barDo(v front.View, h byte) func() {
+func (p *Presenter) barDo(h byte) func() {
 	return func() {
 		cr := p.creation()
 		switch {
@@ -754,7 +754,7 @@ func (p *Presenter) barDo(v front.View, h byte) func() {
 			p.scr.open(scrPowers) // a power still to pick: the picks first
 		case h == 'K':
 			p.send(front.ActKeep, 0)
-		case h == 'E' && (p.iconEditor(v.Ink) != nil || cr == nil):
+		case h == 'E' && (p.iconEditor(p.ink()) != nil || cr == nil):
 			p.send(front.ActClose, 0)
 		case h == 'E':
 			p.askThen(cr.Abandon, func() { p.send(front.ActClose, 0) })
@@ -769,7 +769,7 @@ func (p *Presenter) barDo(v front.View, h byte) func() {
 // spotKey takes key k on a special screen: the arrows move the focus to
 // the nearest part that way, Tab to the next, Enter does the focused part,
 // a hotkey its part, Esc is the bar's Exit.
-func (p *Presenter) spotKey(k uint16, v front.View, sp []spot) bool {
+func (p *Presenter) spotKey(k uint16, sp []spot) bool {
 	s := &p.scr
 	dir := map[input.Act]image.Point{input.Up: {0, -1}, input.Down: {0, 1}, input.Left: {-1, 0}, input.Right: {1, 0}}
 	switch a := actOf(k); {
@@ -780,7 +780,7 @@ func (p *Presenter) spotKey(k uint16, v front.View, sp []spot) bool {
 	case a == input.Enter || a == input.Space || a == input.PadA:
 		sp[s.sel].do()
 	case a == input.Esc:
-		p.barDo(v, 'E')()
+		p.barDo('E')()
 	case k < 128:
 		h := byte(k) &^ 0x20
 		for i, t := range sp {

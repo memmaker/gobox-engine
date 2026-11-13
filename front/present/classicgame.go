@@ -26,19 +26,6 @@ func (g classicGame) SequenceDone(name string) {
 	g.Game.SequenceDone(name)
 }
 
-func (g classicGame) View() front.View {
-	v := g.Game.View()
-	if ownMus != nil {
-		ownMus.Want(musicChain(g.Game.MusicCue()))
-	}
-	if playSeq != "" && v.Sequence == nil { // a game.MenuItem's animation, gobox's own: the game's state never knows
-		if v = Sequence(v, playSeq, sequences, filesDir); v.Sequence == nil {
-			playSeq = "" // no such sequence
-		}
-	}
-	return v
-}
-
 // pickerView is page page of the grid picker the state holds, else the front's.
 func (g classicGame) pickerView(page int) *front.Picker {
 	return g.Game.PickerOn(page, g.r.grid.X, g.r.grid.Y)

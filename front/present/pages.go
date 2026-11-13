@@ -53,13 +53,14 @@ type cellPage struct {
 	overs      []overlay
 }
 
-func newCellPage(v front.View) *cellPage {
-	c := &cellPage{cols: max(v.Cells.X, 40), rows: max(v.Cells.Y, 25), ink: v.Ink}
+// newCellPage is a blank page cells in size (40x25 at least) in ink, under pics.
+func newCellPage(cells image.Point, ink [16]color.RGBA, pics []front.Picture) *cellPage {
+	c := &cellPage{cols: max(cells.X, 40), rows: max(cells.Y, 25), ink: ink}
 	c.cells = make([][]cell, c.rows)
 	for y := range c.cells {
 		c.cells[y] = make([]cell, c.cols)
 	}
-	c.pics = append(c.pics, v.Pictures...)
+	c.pics = append(c.pics, pics...)
 	return c
 }
 
@@ -149,9 +150,9 @@ func (c *cellPage) lines() [][]front.PaneRun {
 // engine's page: the picker's pictures in their cells, the portrait and
 // combat icon on the sheets; never a frame or a fill (the credits sit on
 // black, not over the title picture).
-func (p *Presenter) contentPictures(v front.View) []front.Picture {
+func (p *Presenter) contentPictures() []front.Picture {
 	var in []image.Rectangle
-	pk, ed := p.picker(v.Ink), p.iconEditor(v.Ink)
+	pk, ed := p.picker(p.ink()), p.iconEditor(p.ink())
 	switch {
 	case p.slotsView() != nil, ed != nil && pk == nil:
 	case pk != nil:
@@ -168,8 +169,8 @@ func (p *Presenter) contentPictures(v front.View) []front.Picture {
 		}
 	}
 	var out []front.Picture
-	for _, pc := range v.Pictures {
-		if pc.Img == nil && pc.Pix == nil || pc.File == "" && pc.Name == "" { // the pool's (PoolPortrait, PoolIcon) have a Name, no File
+	for _, pc := range p.pictures() {
+		if pc.Img == nil && pc.Pix == nil || pc.File == "" && pc.Name == "" { // the pool's (withPoolPortrait, withPoolIcon) have a Name, no File
 			continue
 		}
 		if slices.ContainsFunc(in, func(r image.Rectangle) bool { return !r.Empty() && pc.At.Overlaps(r) }) {
@@ -179,29 +180,29 @@ func (p *Presenter) contentPictures(v front.View) []front.Picture {
 	return out
 }
 
-func (p *Presenter) screenPage(v front.View) *cellPage {
+func (p *Presenter) screenPage() *cellPage {
 	sl := p.slotsView()
-	cr, pk, ed := p.creation(), p.picker(v.Ink), p.iconEditor(v.Ink)
+	cr, pk, ed := p.creation(), p.picker(p.ink()), p.iconEditor(p.ink())
 	var sp *game.SheetPage
 	var portrait image.Image
 	if sl == nil {
 		sp = p.sheetPage()
-		portrait = p.sheetPortrait(v, sp)
+		portrait = p.sheetPortrait(sp)
 	} else {
 		pk, ed = nil, nil
 	}
-	v.Pictures = p.contentPictures(v) // nothing of the engine's page: only the art in the screen's own places
-	if ed != nil || pk != nil {       // also a picker over the icon editor, in its palette: no grey cells
-		v.Ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
+	pics, ink := p.contentPictures(), p.ink() // nothing of the engine's page: only the art in the screen's own places
+	if ed != nil || pk != nil {               // also a picker over the icon editor, in its palette: no grey cells
+		ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
 	}
 	if cr != nil && pk == nil && sl == nil { // the combat icon on grey, as in the icon editor: its black parts show
-		v.Pictures = append([]front.Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: col(inkDark)}}, v.Pictures...)
+		pics = append([]front.Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: col(inkDark)}}, pics...)
 	}
-	c := newCellPage(v)
+	c := newCellPage(p.cells(), ink, pics)
 	if cr != nil && cr.Scale > 1 && pk == nil && sl == nil {
 		c.pics = c.scaled(cr)
 	}
-	c.texts(v, p.barShown(v, sl))
+	c.texts(p.prompt(), p.flags(), p.barShown(sl))
 	if sp != nil {
 		d, colour := p.sheetDraft(), nameColour(p.sheetOwn())
 		if d != nil {
@@ -215,8 +216,8 @@ func (p *Presenter) screenPage(v front.View) *cellPage {
 	if ed != nil {
 		c.iconEditor(ed)
 	}
-	if p.barShown(v, sl) { // the bar on the prompt row
-		for _, w := range p.barWords(v) {
+	if p.barShown(sl) { // the bar on the prompt row
+		for _, w := range p.barWords() {
 			c.str(w.x, c.rows-1, inkWhite, w.label[:1])
 			c.str(w.x+1, c.rows-1, inkGreen, w.label[1:])
 		}
@@ -241,8 +242,8 @@ func (p *Presenter) screenPage(v front.View) *cellPage {
 }
 
 // barShown is whether the special screen's bar is on the prompt row.
-func (p *Presenter) barShown(v front.View, sl *front.Slots) bool {
-	return (p.creation() != nil || p.iconEditor(v.Ink) != nil) && p.picker(v.Ink) == nil && sl == nil
+func (p *Presenter) barShown(sl *front.Slots) bool {
+	return (p.creation() != nil || p.iconEditor(p.ink()) != nil) && p.picker(p.ink()) == nil && sl == nil
 }
 
 // footWord is a word of the slot page's footer: its text, the key it
@@ -283,19 +284,19 @@ func slotFooter(sl *front.Slots, cols int) []footWord {
 // texts lays out the game's text: the text pane, the prompt row, the view
 // window's text, the party panel (roster, status line), after-combat and
 // the credits.
-func (c *cellPage) texts(v front.View, bar bool) {
-	for _, r := range v.Prompt {
+func (c *cellPage) texts(prompt []front.PaneRun, f *game.Flags, bar bool) {
+	for _, r := range prompt {
 		if bar { // the bar owns the row: a prompt under it shows through its gaps
 			break
 		}
 		c.run(r, c.rows-1)
 	}
-	if v.Credits && creditBoxes == nil { // one frame on the page's edges, the lines laid out over the page inside it
+	if f.Credits && creditBoxes == nil { // one frame on the page's edges, the lines laid out over the page inside it
 		c.border(1, 1, c.cols-2, c.rows-2)
 		var page []Credit
 		x1, x2, y2 := c.cols, 0, 1
 		for _, l := range credits {
-			if l.Page == v.CreditPage {
+			if l.Page == f.CreditPage {
 				page = append(page, l)
 				x1, x2, y2 = min(x1, l.X), max(x2, l.X+len(l.Text)), max(y2, l.Y)
 			}
@@ -332,7 +333,7 @@ func (c *cellPage) texts(v front.View, bar bool) {
 		c.remasterCredit()
 		return
 	}
-	if v.Credits { // the original's boxes, an edge on its page's following this page's
+	if f.Credits { // the original's boxes, an edge on its page's following this page's
 		for _, b := range creditBoxes {
 			x2, y2 := b.Max.X, b.Max.Y
 			if x2 >= 38 {
@@ -349,7 +350,7 @@ func (c *cellPage) texts(v front.View, bar bool) {
 		dx, gaps := max(0, (c.cols-40)/2), 0
 		var page []Credit
 		for _, l := range credits {
-			if l.Page == v.CreditPage {
+			if l.Page == f.CreditPage {
 				page = append(page, l)
 			}
 		}

@@ -1,7 +1,6 @@
 package present
 
 import (
-	"image"
 	"image/color"
 	"testing"
 
@@ -51,11 +50,8 @@ func TestDraftFigures(t *testing.T) {
 // The sheet's name colour is gobox's: a draft's name is never black.
 func TestDraftNameColour(t *testing.T) {
 	p, _ := draftOn(&play.Draft{Member: game.Member{Name: "Doc"}})
-	var ink [16]color.RGBA
-	for i := range ink {
-		ink[i] = col(i)
-	}
-	c := p.screenPage(front.View{Cells: image.Pt(40, 25), Ink: ink})
+	ink := p.ink()
+	c := p.screenPage()
 	if runs := c.lines()[1]; len(runs) == 0 || runs[0].Fg == (color.RGBA{}) || runs[0].Fg == ink[0] {
 		t.Fatalf("black name: %+v", runs)
 	}

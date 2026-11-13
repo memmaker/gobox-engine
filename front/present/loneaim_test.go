@@ -31,7 +31,6 @@ func TestLoneAimWithLeave(t *testing.T) {
 	if a, ok := f.sent[0].(play.Attack); !ok || a.At == nil || *a.At != foe {
 		t.Fatalf("sent %#v", f.sent[0])
 	}
-	g.View()
 	if g.Answer(front.Action{Kind: front.ActClose}); len(f.sent) != 2 || f.sent[1] != play.Action(play.Leave{}) {
 		t.Fatalf("Esc sent %#v", f.sent)
 	}

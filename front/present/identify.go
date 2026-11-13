@@ -97,3 +97,9 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 	op.GeoM.Translate((float64(b.Dx())-k*float64(cw*8))/2, (float64(b.Dy())-k*float64(ch*8))/2)
 	dst.DrawImage(img, op)
 }
+
+// alpha: c is not see-through.
+func alpha(c interface{ RGBA() (r, g, b, a uint32) }) bool {
+	_, _, _, a := c.RGBA()
+	return a > 0x8000
+}

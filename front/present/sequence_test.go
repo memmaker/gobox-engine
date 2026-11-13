@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -21,13 +20,21 @@ type seqHost struct {
 
 func (h seqHost) Call(f func(*classicGame)) { f(h.g) }
 
+// sequenceIn is the sequence g's state plays, with g's data the game's.
+func sequenceIn(t *testing.T, g *Game) *game.Sequence {
+	s, d := sequences, filesDir
+	t.Cleanup(func() { sequences, filesDir = s, d })
+	sequences, filesDir = g.D.Sequences, g.D.AnimDir()
+	return presenterOf(g).sequenceUp()
+}
+
 // A skip ends State.Sequence with SequenceDone, once, even with no files to play.
 func TestSequenceSkip(t *testing.T) {
 	r := &fake{st: play.Scene{Kind: play.SceneSequence, Sequence: "INTRO", Common: allow(play.Continue{})}}
 	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: t.TempDir()})
-	sq := Sequence(front.View{}, shownOf(g.r).Sequence, g.D.Sequences, g.D.Files).Sequence
+	sq := sequenceIn(t, g)
 	if sq == nil || sq.Anim != "INTRO" {
-		t.Fatalf("View.Sequence %+v", sq)
+		t.Fatalf("sequence %+v", sq)
 	}
 	var ui SequenceUI
 	h := seqHost{g: &classicGame{Game: g}}
@@ -46,7 +53,7 @@ func TestSequenceSkipPlaying(t *testing.T) {
 	}
 	r := &fake{st: play.Scene{Kind: play.SceneSequence, Sequence: "INTRO", Common: allow(play.Continue{})}}
 	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: dir})
-	sq := Sequence(front.View{}, shownOf(g.r).Sequence, g.D.Sequences, g.D.Files).Sequence
+	sq := sequenceIn(t, g)
 	var ui SequenceUI
 	h := seqHost{g: &classicGame{Game: g}}
 	if f := SequenceStep(h, &ui, sq, false); f == nil || len(r.sent) != 0 {

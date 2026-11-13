@@ -88,7 +88,6 @@ type Presenter struct {
 	scrolls     ui.Bars                     // the scroll bars drawn this frame (scrollbar.go) and the drag
 	logTop      int                         // the battle Log's first line shown
 	sheet       sheetCanvas                 // the character sheet
-	beastPage   sheetCanvas                 // camp's bestiary (drawBestiary)
 	journal     journalUI                   // the quest journal (journal.go)
 	resultsPage sheetCanvas                 // the after-combat page (drawResults)
 	area        ui.AreaMap                  // the overland's map and marker last uploaded (drawAreaMap)
@@ -110,7 +109,6 @@ type Presenter struct {
 	fightBoard  *combat.Board               // fightView as the tabletop draws it, aims put in
 	fly         *flight                     // a shot's sprite over board (a replayed missile frame)
 	lastBoard   *play.Combat                // the fight before the moments now playing (keepFallen)
-	lastFight   *front.View                 // the fight's view last drawn: a Result's events that end the fight play on it
 	inkAsk      *front.Ask                  // the question whose menu is being drawn: its colours (asking)
 	replay      replay                      // the fight's events still to play
 	logGrey     bool                        // drawMenu's plain text light grey, not green (the battle Log)
@@ -137,8 +135,6 @@ type Presenter struct {
 	ctxSel      int                       // its highlighted line
 	ctxActs     []front.ActKind           // its lines' actions, for the member
 	behind      *blobber.Scene            // the last 3D scene shown
-	backP       *Presenter                // draws backView
-	backView    *front.View               // the location as last shown, its question and text left out: what a shop's or temple's menu draws over
 	ctxKeys     []byte                    // its lines' hotkeys (the first letters)
 	campCtx     [][]image.Rectangle       // in camp every member's context menu lines (drawCampMenus)
 	campImg     []*gpu.Image              // drawCampMenus: each member's menu image
@@ -156,7 +152,9 @@ type Presenter struct {
 	command     bool                      // the party explores (View.Exploring), as last drawn
 	cmds        []command                 // the command menu's commands (explore.go), as last drawn
 	camp        campUI                    // the camp screens (camp.go)
-	shownView   front.View                // the View last drawn
+	screenWas   bool                      // a camp-style screen was up when last drawn: one opening starts on its main screen
+	listWas     bool                      // a list was asked when last drawn (openList)
+	played      *frame                    // the moment Draw plays (nil: none)
 	list        listUI                    // View.Ask (AskList)'s highlight (list.go)
 	pageMenu    bool                      // a page's question is up (list.go)
 	mapPointer  image.Point               // the full map: the pointer's last cell (a move there moves the cursor)
@@ -194,20 +192,18 @@ type Presenter struct {
 	paneFrom    int                       // ... its first line shown ...
 	blinkSig    string                    // the blinking runs' text (blink.go) ...
 	blinkAt     time.Time                 // ... and when they began
-	paneMore    bool                      // ... and whether lines are left after those
 	sf          sfUI                      // the ship fight's window page, blink and bar (spacefight.go)
 }
 
 // Draw shows the game on dst and returns where the whole page went
 // (zero when it is not on screen: the mouse then points at nothing).
-func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
-	v = p.own(v)
+func (p *Presenter) Draw(dst *gpu.Image, note Note) Rect {
+	p.sync()
 	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && p.AdLib.SID() != Host.SIDMusic { // the Music card option
 		d.Do(func() { p.AdLib.SetSID(Host.SIDMusic) })
 	}
-	if f := SequenceStep(p, &p.seq, v.Sequence, false); v.Sequence != nil { // the animation: full screen, over everything
+	if f := SequenceStep(p, &p.seq, p.sequenceUp(), false); p.sequenceUp() != nil { // the animation: full screen, over everything
 		p.seqMusic(p.seq.Cues)
-		p.shownView = v
 		dst.Fill(color.Black)
 		if f != nil {
 			b, bb := dst.Bounds(), f.Image.Bounds()
@@ -219,46 +215,31 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 		}
 		return Rect{}
 	}
-	if v.Intro != nil && p.mm.title == nil { // the picture the main menu comes in over
+	if p.introUp() != nil && p.mm.title == nil { // the picture the main menu comes in over
 		p.mm.title, p.mm.painted = layersImage(titleBackdrop), paintedLayers(titleBackdrop)
 	}
 	p.intro.NoCredits = len(credits) == 0
-	IntroStep(p, &p.intro, v.Intro, false)
+	IntroStep(p, &p.intro, p.introUp(), false)
 	ev := p.playing()
+	p.played = ev
 	if ev != nil && ev.Kind == game.EvMove && ev.Ms > 0 { // a step's hold is how long the figure takes for it
 		p.battle.StepTime = float64(ev.Ms) / 1000
 	}
 	live, party := p.liveFight()
 	p.board, p.boardParty, p.fly, p.noCards = live, party, nil, false
-	if ev != nil && (ev.Page != nil || ev.Screen != nil) { // the page or screen as it stood at the pause played, over the live state
-		if ev.Page != nil {
-			v = Page(v, ev.Page, nil)
-		}
-		if ev.Screen != nil {
-			v.Screen = ev.Screen
-		}
-	} else if ev != nil { // the fight as it stood at the moment played
-		if live == nil && p.lastFight != nil { // the Result ended the fight: its moments play on the fight they happened in, the page after them
-			v = *p.lastFight
-		}
+	if p.replaying() { // the fight as it stood at the moment played (a page or screen played is laid, askUp, gameScreen)
 		p.board, p.boardParty, p.fly, p.noCards = ev.Board, ev.Party, ev.fly, true // the cards are the live party's: none while the moment plays
-		v.Ask = nil
-	} else if live != nil {
-		p.lastFight = &v
-	} else {
-		p.lastFight = nil
 	}
-	v = pixView(v) // an event's page or fight as the engine published it
 	p.scrolls.Reset()
 	p.noteBtn = image.Rectangle{}
-	p.battle.Asking = confirm(v) != ""
-	if !p.pageScreen(v) { // none up: the next one opens fresh (F10 on the last save)
+	p.battle.Asking = p.confirm() != ""
+	if !p.pageScreen() { // none up: the next one opens fresh (F10 on the last save)
 		p.scr.up = ""
 	}
-	r := p.draw(dst, note, v)
-	if q := confirm(v); q != "" { // the engine's yes/no question: over everything, starting on No
+	r := p.draw(dst, note)
+	if q := p.confirm(); q != "" { // the engine's yes/no question: over everything, starting on No
 		if q != p.confirmFor {
-			p.confirmFor, p.confirmSel = q, confirmStart(v.Ask)
+			p.confirmFor, p.confirmSel = q, confirmStart(p.askUp())
 		}
 		p.keyWindow(dst, q, []string{"Yes", "No"}, yesNoKeys, nil, p.confirmSel, false)
 		p.confirmAt = slices.Clone(p.winRects)
@@ -268,7 +249,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if it := p.identified(); it != nil { // the shop's Id: what it revealed, over everything
 		p.drawIdentified(dst, note.Glyph, it)
 	}
-	p.pick = spellPick(v)
+	p.pick = p.spellPick()
 	if up := p.pickList() != nil; up != p.picking { // a pick list opens on its first spell
 		p.picking, p.pickSel = up, 0
 	}
@@ -300,27 +281,22 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 }
 
 // draw shows the screen the View is: the page, the main menu, a tall page or the 3D view.
-func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
+func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 	p.screen = dst.Bounds()
 	p.picBottom = 0
-	p.setup(note, v)
+	p.setup(note)
 	p.command = p.exploring()
-	if p.screenUp(v) && !p.screenUp(p.shownView) { // camp, the temple, the shop, training start on their main screen
+	if up := p.screenUp(); up && !p.screenWas { // camp, the temple, the shop, training start on their main screen
 		p.camp.screen, p.camp.sel, p.camp.rows = campMain, 0, nil
-		if t := v.Training; t != nil && len(t.Learn) == 0 && t.Why == "" { // the training question starts on No
+		if t := p.trainingUp(); t != nil && len(t.Learn) == 0 && t.Why == "" { // the training question starts on No
 			p.camp.sel = 1
 		}
 	}
-	p.openList(v)
-	p.shownView = v
-	if !p.screenUp(v) && !p.inventoryUp() && v.Shop == nil && v.Temple == nil { // the location as last shown, without its question and text: what a shop's or temple's menu draws over
-		b := v
-		b.Ask, b.Pane = nil, nil
-		p.backView = &b
-	}
+	p.screenWas = p.screenUp()
+	p.openList()
 	p.mm.titleDrawn = false
 	p.main = p.mainMenuUp() // before the pages, which return early: a stale main menu would take their keys
-	p.pace(v)
+	p.pace()
 	p.pageMenu = false
 	if !p.exploring() {
 		p.fullMap = nil
@@ -329,18 +305,18 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if !p.active {
 		p.ctx = 0
 	}
-	p.fight = p.board != nil && !(p.sheetUp(v) && p.sheetPage() != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
-	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1       // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
-	p.resize(dst, v)
+	p.fight = p.board != nil && !(p.sheetUp() && p.sheetPage() != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
+	p.noMenu = p.askMenu() == nil || len(p.askMenu().Commands) == 1    // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
+	p.resize(dst)
 	p.syncRead()
 	p.overview = p.overview && p.exploring()
 	if p.overview || p.pager != nil || p.fullMap != nil || p.slots != nil { // the party overview, help, a Read, the full map, the slots: a page of its own over the whole window
 		p.shown, p.active, p.menu, p.cards = "", false, false, nil
-		r := p.drawPage(dst, v, note)
+		r := p.drawPage(dst, note)
 		p.scr.at = r
-		p.scr.pw, p.scr.ph = pageSize(v)
+		p.scr.pw, p.scr.ph = p.pageSize()
 		if p.fullMap != nil || p.slots != nil {
-			p.drawPageMenu(dst, note, v)
+			p.drawPageMenu(dst, note)
 		}
 		return r
 	}
@@ -363,7 +339,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if p.main && p.mainMenu().Hall { // the training hall: its menu over the 3D view
 		p.active, p.menu = false, false
 		if sc := p.scene(); sc != nil {
-			p.draw3D(dst, v, sc, note)
+			p.draw3D(dst, sc, note)
 		} else {
 			dst.Fill(color.Black)
 		}
@@ -392,63 +368,47 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if p.clue != nil { // the clue book's chapters, over the 3D view
 		p.shown, p.active, p.menu, p.cards = "", true, false, nil
 		if sc := p.scene(); sc != nil {
-			p.draw3D(dst, v, sc, note)
+			p.draw3D(dst, sc, note)
 		} else {
 			dst.Fill(color.Black)
 		}
 		p.drawClue(dst)
 		return Rect{}
 	}
-	if p.screenUp(v) && v.Camp != nil && p.camp.screen == campBestiary { // the bestiary: a page of its own over the whole window
-		p.shown, p.active, p.menu = "", true, false
-		dst.Fill(color.Black)
-		p.drawBestiary(dst, note, v)
-		return Rect{}
-	}
 	sc := p.scene()
-	area := v.AreaMap != nil                                                                                                                                                                                                                                                                                                           // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
-	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || p.iconEditor(v.Ink) != nil || !choosing(v) && !v.Adventure || p.sheetUp(v) && p.sheetPage() != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
-		if p.screenUp(v) { // training from the hall's party menu: over the 3D view
+	area := p.areaMapUp()                                                                                                                                                                                                                                                                                                                                       // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
+	if sc == nil && !area && !p.campUp() || p.flags().Full && len(p.pictures()) > 0 && p.introUp() == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || p.sfOf() != nil || p.results() != nil || p.iconEditor(p.ink()) != nil || !p.choosing() && !p.flags().Adventure || p.sheetUp() && p.sheetPage() != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
+		if p.screenUp() { // training from the hall's party menu: over the 3D view
 			p.active, p.cards = true, nil // its lines take clicks (Click), no card under them
 			switch {                      // over the location as it stands, never black
-			case p.backView != nil: // as last shown: its picture, the 3D view, the cards; the menu takes the text's place
-				if p.backP == nil { // a presenter of its own draws it, so the menu's state (shownView, camp, pace) stays, and its picture and minimap images are not the menu's
-					c := *p
-					c.pg, c.mapImg, c.mapSrc, c.backP = page{}, nil, nil, nil
-					p.backP = &c
-				}
-				p.backP.draw(dst, note, *p.backView)
 			case sc != nil:
-				p.draw3D(dst, v, sc, note)
-			case len(v.Pictures) > 0:
-				p.drawGeneric(dst, v, note)
+				p.draw3D(dst, sc, note)
+			case len(p.pictures()) > 0:
+				p.drawGeneric(dst, note)
 			default:
 				dst.Fill(color.Black)
 			}
 			b := dst.Bounds()
-			p.drawCamp(dst, note.Glyph, v, scale(dst), b.Dx()/2, b.Dy()/4, b.Max.Y)
+			p.drawCamp(dst, note.Glyph, scale(dst), b.Dx()/2, b.Dy()/4, b.Max.Y)
 			return Rect{}
 		}
-		p.shown, p.active, p.menu, p.cards = "", false, false, nil             // back from elsewhere: no tween from where the view was
-		p.asked = ""                                                           // and a question still waiting on return (View from the loot menu) pops up again
-		if sp := p.sheetPage(); p.sheetUp(v) && sp != nil && sp.Spells == "" { // the sheet: the presenter's, at the inventory's scale
+		p.shown, p.active, p.menu, p.cards = "", false, false, nil            // back from elsewhere: no tween from where the view was
+		p.asked = ""                                                          // and a question still waiting on return (View from the loot menu) pops up again
+		if sp := p.sheetPage(); p.sheetUp() && sp != nil && sp.Spells == "" { // the sheet: the presenter's, at the inventory's scale
 			dst.Fill(color.Black)
-			p.drawSheet(dst, note, v)
+			p.drawSheet(dst, note)
 			return Rect{}
 		}
-		if v.Results != nil {
-			return p.drawResults(dst, v, note)
+		if p.results() != nil {
+			return p.drawResults(dst, note)
 		}
-		if v.Credits { // the credits fill the window at K (grid), whatever page the game keeps: never the 40x25 page scaled up
-			v.Cells.X, v.Cells.Y = grid(dst)
+		if !p.ownLayout() { // nothing of the engine's page: the page's pictures and text in the remaster's layout
+			return p.drawGeneric(dst, note)
 		}
-		if !p.ownLayout(v) { // nothing of the engine's page: the page's pictures and text in the remaster's layout
-			return p.drawGeneric(dst, v, note)
-		}
-		r := p.drawPage(dst, v, note)
+		r := p.drawPage(dst, note)
 		p.scr.at = r
-		p.scr.pw, p.scr.ph = pageSize(v)
-		p.drawPageMenu(dst, note, v)
+		p.scr.pw, p.scr.ph = p.pageSize()
+		p.drawPageMenu(dst, note)
 		return r
 	}
 	p.active = true
@@ -456,13 +416,13 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.shown = ""
 		p.drawAreaMap(dst)
 	} else if sc != nil {
-		p.draw3D(dst, v, sc, note)
+		p.draw3D(dst, sc, note)
 	} else { // camp with no 3D view (the original shows none there): black under the cards, the picture and the menus
 		p.shown = ""
 		dst.Fill(color.Black)
 	}
 	p.labelAt = p.labelAt[:0]
-	if v.Sweeping { // the reminder: under the minimap, else in its corner
+	if p.flags().Sweeping { // the reminder: under the minimap, else in its corner
 		k := scale(dst)
 		const s = "Sweeping"
 		w, gap := int(k*float64(8*len(s)+2)), int(k*cardGap)
@@ -473,14 +433,14 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.label(dst, s, dst.Bounds().Dx()-gap-w, y, k)
 		p.labelAt = append(p.labelAt, image.Rect(dst.Bounds().Dx()-gap-w, y, dst.Bounds().Dx()-gap, y+int(k*10)))
 	}
-	if v.Interact { // Explicit Interactions: the square's event waits for Space (or the command menu's Interact)
+	if p.flags().Interact { // Explicit Interactions: the square's event waits for Space (or the command menu's Interact)
 		k := scale(dst)
 		const s = "<act>"
 		w, gap := int(k*float64(8*len(s)+2)), int(k*cardGap)
 		p.label(dst, s, (dst.Bounds().Dx()-w)/2, gap, k)
 		p.labelAt = append(p.labelAt, image.Rect((dst.Bounds().Dx()-w)/2, gap, (dst.Bounds().Dx()+w)/2, gap+int(k*10)))
 	}
-	p.ordering = v.Ordering
+	p.ordering = p.flags().Ordering
 	if !p.ordering {
 		p.dragFrom = 0
 	}
@@ -497,7 +457,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.drawParty(dst, p.shownParty(), p.cardSelected(), at)
 	p.view.DrawMenu(dst) // over the map and cards
 	p.layCards(dst)
-	if p.ctx == 0 && !p.campHome(v) { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
+	if p.ctx == 0 && !p.campHome() { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
 		p.drawCardTip(dst)
 	}
 	k := scale(dst)
@@ -511,8 +471,8 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		}
 	}
 	// the picture at the top, the text in the middle, an answer's menu right under it
-	pic, txt := innerWindow.Framed(), paneCells(v.Pane).Framed()
-	if v.Window == front.WinText { // text all over the view window, not just the picture frame: its height places it
+	pic, txt := innerWindow.Framed(), paneCells(p.pane()).Framed()
+	if p.window() == game.WindowText { // text all over the view window, not just the picture frame: its height places it
 		pic = viewWindow.Framed()
 	}
 	ph, th := float64(pic.Pixels().Dy()), float64(txt.Pixels().Dy())
@@ -522,65 +482,65 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	tk := fitScale(k, 1, func(k float64) bool { return k*float64(txt.Pixels().Dx()) <= bw && k*th <= bh/2 })
 	mk := fitScale(k, 1, func(k float64) bool { return k*28*8 <= bw && k*12*8 <= bh/2 })
 	cx, cy := (b.Min.X+b.Max.X)/2, b.Dy()/2
-	picBottom := 0                                                                                                   // the bottom of the picture box, when one is up
-	boxUp := v.Window == front.WinPicture && len(v.Pictures) > 0 || v.Window == front.WinText && len(v.ViewText) > 0 // never an empty box
-	if v.Adventure && boxUp && !p.spellList(v) {                                                                     // the spell lists' rules go there; not the page a member pick came from
+	picBottom := 0                                                                                                               // the bottom of the picture box, when one is up
+	boxUp := p.window() == game.WindowPicture && len(p.pictures()) > 0 || p.window() == game.WindowText && len(p.viewText()) > 0 // never an empty box
+	if p.flags().Adventure && boxUp && !p.spellList() {                                                                          // the spell lists' rules go there; not the page a member pick came from
 		var pp float64
 		var py int
 		pp, py, cy = picPlace(pic, pk, tk, mk, th, b)
 		var inside *gpu.Image
-		if v.Window == front.WinPicture {
-			inside = pictureBox(&p.pg.pic, v.Pictures, pic.Pixels().Inset(8))
+		if p.window() == game.WindowPicture {
+			inside = pictureBox(&p.pg.pic, p.pictures(), pic.Pixels().Inset(8))
 		} else {
-			inside = viewTextImage(&p.pg.pic, v.ViewText, pic.Pixels().Inset(8), note) // text over the whole view window (WinText)
+			inside = viewTextImage(&p.pg.pic, p.viewText(), pic.Pixels().Inset(8), note) // text over the whole view window (WinText)
 		}
 		drawBox(dst, inside, p.border.tiles, pic, pp, cx, py)
 		picBottom = py + int(pp*ph/2)
 		p.picBottom = picBottom
 	}
-	pane, asking := textPane(v), askMenu(v) != nil && !p.exploring() && !noChoice(v)
+	pane, asking := p.textPane(), p.askMenu() != nil && !p.exploring() && !p.noChoice()
 	if asking {
 		p.answered = pane
 	}
-	shown := v.Adventure && v.Pane != nil && v.Pane.Shown() && (asking || pane != p.answered) // back from a question with its text unchanged: the encounter is over
-	ask := typing(v) != nil && typing(v).Prompt != ""                                         // a script's input: its question and the line in one pop-up, no text box
-	shown = shown && !ask && !(askList(v) != nil && askMenu(v).Prompt != "")                  // a vertical menu's prompt is the list's own title
-	shown = shown && !(v.Shop != nil && p.camp.screen != campMain)                            // the shop's submenus (identify, appraise) stand alone, the greeting gone
+	shown := p.flags().Adventure && p.pane() != nil && p.pane().Shown() && (asking || pane != p.answered) // back from a question with its text unchanged: the encounter is over
+	ask := p.typingAsk() != nil && p.typingAsk().Prompt != ""                                             // a script's input: its question and the line in one pop-up, no text box
+	shown = shown && !ask && !(p.askList() != nil && p.askMenu().Prompt != "")                            // a vertical menu's prompt is the list's own title
+	shown = shown && !(p.shopUp() && p.camp.screen != campMain)                                           // the shop's submenus (identify, appraise) stand alone, the greeting gone
 	p.paneRect = image.Rectangle{}
-	if shown && p.exploring() && v.Window != front.WinPicture && v.Window != front.WinText { // the text under the command bar: along the bottom edge
-		p.paneBox(dst, note, v, tk, cx, b.Dy()-int(tk*th/2))
+	if shown && p.exploring() && p.window() != game.WindowPicture && p.window() != game.WindowText { // the text under the command bar: along the bottom edge
+		p.paneBox(dst, note, tk, cx, b.Dy()-int(tk*th/2))
 		p.menuFloor = b.Dy() - int(tk*th) // the camp's member menus stop above the text
 		defer func() { p.menuFloor = 0 }()
 	} else if shown { // a question, or a message to confirm (Enter, a click): a box in the middle, its choices under it
-		p.paneBox(dst, note, v, tk, cx, cy)
+		p.paneBox(dst, note, tk, cx, cy)
 		picBottom = max(picBottom, cy+int(tk*th/2)) // the menus go under the text too
 		if p.picBottom > 0 {
 			p.picBottom = picBottom // a yes/no and the spell pick too: the bottom lines, not over the picture or its text
 		}
 	}
-	if askMenu(v) != nil && !p.exploring() && !noChoice(v) && !choosing(v) { // a question: its choices pop up at once
-		if id := menuID(askMenu(v)); id != p.asked { // not the menu just answered
-			p.asked, p.menu, p.menuFor, p.sel = id, true, id, askDefault(v)
+	if p.askMenu() != nil && !p.exploring() && !p.noChoice() && !p.choosing() { // a question: its choices pop up at once
+		if id := menuID(p.askMenu()); id != p.asked { // not the menu just answered
+			p.asked, p.menu, p.menuFor, p.sel = id, true, id, p.askDefault()
 		}
 	} else {
 		p.asked = ""
 	}
-	if choosing(v) && askMenu(v) != nil { // a member pick: the question alone in the middle, the cards round it take the pick (a click, F1-F8, the arrows and Enter; Esc or a right click give up)
+	if p.choosing() && p.askMenu() != nil { // a member pick: the question alone in the middle, the cards round it take the pick (a click, F1-F8, the arrows and Enter; Esc or a right click give up)
 		p.menu = false
-		p.drawMenu(dst, note.Glyph, "", []string{strings.TrimSpace(askMenu(v).Prompt)}, nil, nil, -1, mk, cx, b.Dy()/2-int(mk*12))
+		p.drawMenu(dst, note.Glyph, "", []string{strings.TrimSpace(p.askMenu().Prompt)}, nil, nil, -1, mk, cx, b.Dy()/2-int(mk*12))
 		p.menuRects = p.menuRects[:0]
 	} else if ask { // the question over the line being typed, its cursor blinking
-		p.drawTyping(dst, note, v, mk, cx, picBottom+int(pk*4))
-	} else if askList(v) != nil && askMenu(v) != nil { // a list and its question (list.go)
+		p.drawTyping(dst, note, mk, cx, picBottom+int(pk*4))
+	} else if p.askList() != nil && p.askMenu() != nil { // a list and its question (list.go)
 		p.menu = false
-		rows := len(ui.TitleLines(askMenu(v).Prompt)) + min(len(askList(v)), listRows) + len(askMenu(v).Commands) + 4 // drawMenu's: the title, a blank, the lines, a blank, the options, the border
+		rows := len(ui.TitleLines(p.askMenu().Prompt)) + min(len(p.askList()), listRows) + len(p.askMenu().Commands) + 4 // drawMenu's: the title, a blank, the lines, a blank, the options, the border
 		top := max(b.Dy()/2-int(mk*float64(rows)*4), picBottom+int(pk*4))
-		p.asking(v, func() { p.drawList(dst, note.Glyph, v, mk, cx, max(0, min(top, b.Max.Y-int(mk*float64(rows)*8)))) }) // all of it on screen, over the picture's edge if it must
-	} else if p.screenUp(v) && spellPick(v) == nil { // camp (camp.go), the temple, the shop, training
+		p.asking(func() { p.drawList(dst, note.Glyph, mk, cx, max(0, min(top, b.Max.Y-int(mk*float64(rows)*8)))) }) // all of it on screen, over the picture's edge if it must
+	} else if p.screenUp() && p.spellPick() == nil { // camp (camp.go), the temple, the shop, training
 		p.menu = false
-		p.drawCamp(dst, note.Glyph, v, mk, cx, max(b.Dy()/4, picBottom+int(pk*4)), p.listFloor(dst))
-		if p.campHome(v) {
-			p.drawCampMenus(dst, v)
+		p.drawCamp(dst, note.Glyph, mk, cx, max(b.Dy()/4, picBottom+int(pk*4)), p.listFloor(dst))
+		if p.campHome() {
+			p.drawCampMenus(dst)
 		}
 	} else if p.exploring() && p.menu { // the command menu (explore.go)
 		cmds := p.commands()
@@ -594,20 +554,20 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			top = max(top, picBottom+int(pk*4))
 		}
 		p.drawMenu(dst, note.Glyph, "", lines, keys, nil, p.sel, mk, cx, top)
-	} else if m := askMenu(v); m != nil && len(m.Commands) == 0 && strings.TrimSpace(m.Prompt) != "" && !shown { // a message with no choice ("You found some loot!"), no text box to hold it: the prompt alone until a key, under the picture
+	} else if m := p.askMenu(); m != nil && len(m.Commands) == 0 && strings.TrimSpace(m.Prompt) != "" && !shown { // a message with no choice ("You found some loot!"), no text box to hold it: the prompt alone until a key, under the picture
 		p.menu = false
 		top := b.Dy()/2 - int(mk*12)
 		if picBottom > 0 {
 			top = max(top, picBottom+int(pk*4))
 		}
 		p.drawMenu(dst, note.Glyph, "", []string{strings.TrimSpace(m.Prompt)}, nil, nil, -1, mk, cx, top)
-	} else if askMenu(v) == nil { // "press a key" prompts: nothing to show (the original's prompt line stays off the remastered screens)
+	} else if p.askMenu() == nil { // "press a key" prompts: nothing to show (the original's prompt line stays off the remastered screens)
 		p.menu = false
-	} else if p.menu && menuID(askMenu(v)) != p.menuFor { // the menu the popup was opened for is gone (answered): the next one opens on its own key
+	} else if p.menu && menuID(p.askMenu()) != p.menuFor { // the menu the popup was opened for is gone (answered): the next one opens on its own key
 		p.menu = false
 	} else if p.menu {
-		lines, keys := make([]string, len(askMenu(v).Commands)), make([]byte, len(askMenu(v).Commands))
-		for i, it := range askMenu(v).Commands {
+		lines, keys := make([]string, len(p.askMenu().Commands)), make([]byte, len(p.askMenu().Commands))
+		for i, it := range p.askMenu().Commands {
 			lines[i], keys[i] = it.Text, it.Key
 		}
 		p.sel = min(p.sel, len(lines)-1)
@@ -618,12 +578,12 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 				top = max(top, picBottom+int(pk*4))
 			}
 		}
-		p.asking(v, func() { p.drawMenu(dst, note.Glyph, askMenu(v).Prompt, lines, keys, nil, p.sel, mk, cx, top) })
+		p.asking(func() { p.drawMenu(dst, note.Glyph, p.askMenu().Prompt, lines, keys, nil, p.sel, mk, cx, top) })
 	}
 	if note.Show { // the toast: pageImage's bottom line (noteLine) on a black band along the very bottom of the screen, no border
 		h := int(k * 8) // at K, as every glyph
 		dst.SubImage(image.Rect(b.Min.X, b.Max.Y-h, b.Max.X, b.Max.Y)).(*gpu.Image).Fill(color.Black)
-		pw, _ := pageSize(v)
+		pw, _ := p.pageSize()
 		op := &gpu.DrawImageOptions{}
 		op.GeoM.Scale(k, k)
 		op.GeoM.Translate(float64(cx)-k*float64(pw)/2, float64(b.Max.Y-h))
@@ -631,7 +591,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		noteLine(m, note, 0)
 		dst.DrawImage(upload(&p.pg.toast, m), op)
 	}
-	if p.ctx > 0 && !p.campHome(v) { // the context menu: on top, nothing dimmed
+	if p.ctx > 0 && !p.campHome() { // the context menu: on top, nothing dimmed
 		p.drawCardTip(dst)
 	}
 	return Rect{}
@@ -639,12 +599,12 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 
 // textPane is the text pane's text, to tell a pane apart from the one
 // answered.
-func textPane(v front.View) string {
-	if v.Pane == nil {
+func (p *Presenter) textPane() string {
+	if p.pane() == nil {
 		return ""
 	}
 	var s strings.Builder
-	for _, l := range v.Pane.Lines {
+	for _, l := range p.pane().Lines {
 		for _, r := range l {
 			fmt.Fprintf(&s, "%d:%s|", r.X, r.Text)
 		}
@@ -701,8 +661,8 @@ func (p *Presenter) OptionsMouse(x, y int, left, right bool, wheel float64) {
 
 // noChoice reports a question with one answer ("press enter to continue"):
 // a message, not a choice.
-func noChoice(v front.View) bool {
-	return askMenu(v) != nil && !v.Exploring && len(askMenu(v).Commands) <= 1 && !choosing(v) // a member pick's lone Select is still a choice: whom
+func (p *Presenter) noChoice() bool {
+	return p.askMenu() != nil && !p.exploring() && len(p.askMenu().Commands) <= 1 && !p.choosing() // a member pick's lone Select is still a choice: whom
 }
 
 // Tick advances the renderer's animation one tick (1/60 s) under a script.
@@ -800,9 +760,9 @@ func sizedEdges(edgeMap map[string][]*gpu.Image, cw, ch int) ui.Edges {
 // resize tells the engine the text cells the window holds (grid) when
 // they change, and again now and then while the page is not yet of that
 // size (the action was dropped): the engine lays its screens out to them.
-func (p *Presenter) resize(dst *gpu.Image, v front.View) {
+func (p *Presenter) resize(dst *gpu.Image) {
 	cols, rows := grid(dst)
-	pw, ph := pageSize(v)
+	pw, ph := p.pageSize()
 	p.gridAge++
 	g := [2]int{cols, rows}
 	if g != p.grid {
@@ -822,15 +782,15 @@ func (p *Presenter) Cell(x, y int) (int, int, bool) { return 0, 0, p.noMenu }
 
 // pace ends a script's pause (AskPause) once its time is up: the engine
 // never sleeps, the presenter keeps the time.
-func (p *Presenter) pace(v front.View) {
-	if v.Ask == nil || v.Ask.Kind != front.AskPause {
+func (p *Presenter) pace() {
+	if p.askUp() == nil || p.askUp().Kind != front.AskPause {
 		p.pauseFrom = time.Time{}
 		return
 	}
 	switch {
 	case p.pauseFrom.IsZero():
 		p.pauseFrom = now()
-	case now().Sub(p.pauseFrom) >= time.Duration(v.Ask.Ms)*time.Millisecond:
+	case now().Sub(p.pauseFrom) >= time.Duration(p.askUp().Ms)*time.Millisecond:
 		p.send(front.ActOK, 0)
 		p.pauseFrom = time.Time{}
 	}
@@ -854,43 +814,45 @@ func (s *srcImage) of(src image.Image) *gpu.Image {
 }
 
 // draw3D draws the 3D view of the area and its minimap.
-func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note Note) {
-	cam := blobber.Camera{X: v.X, Y: v.Y, Dir: int(v.Facing)}
-	name := areaMaps[v.Area]
+func (p *Presenter) draw3D(dst *gpu.Image, sc *blobber.Scene, note Note) {
+	where := p.where()
+	cam := cameraOf(where)
+	area, _ := strconv.Atoi(where.Area)
+	name := areaMaps[front.AreaID(area)]
 	w := p.walls()
 	if w != nil {
 		name = p.sceneName()
 	}
 	if name != p.shown {
 		p.view.Show(sc, cam)
-		p.shown, p.inside = name, !v.Inside // a new scene: set its flats below, inside or out
+		p.shown, p.inside = name, !p.flags().Inside // a new scene: set its flats below, inside or out
 	} else {
 		p.view.Follow(cam)
 	}
-	if v.Inside != p.inside { // indoors the original shows the inside sky: here, a ceiling
-		p.inside = v.Inside
+	if p.flags().Inside != p.inside { // indoors the original shows the inside sky: here, a ceiling
+		p.inside = p.flags().Inside
 		if p.inside {
 			blobber.SetFlats(sc.Floor, "")
 		} else {
 			blobber.SetFlats(sc.Floor, sc.Ceiling)
 		}
 	}
-	p.view.Night = !v.Day
+	p.view.Night = !p.flags().Day
 	if w != nil { // the rules' own map: night only outside, the sun and the mountains by day outside
-		day := v.Day && !v.Inside
-		p.view.Night = !v.Inside && !v.Day
+		day := p.flags().Day && !p.flags().Inside
+		p.view.Night = !p.flags().Inside && !p.flags().Day
 		p.view.SunUp, p.view.SunAz, p.view.SunEl, p.view.Mountains = w.Sun && day, w.SunAz, w.SunEl, w.Mountains && day
 	}
 	p.animate()
 	p.view.Draw(dst)
-	p.drawMap(dst, v.Ink, note.Font)
+	p.drawMap(dst, p.ink(), note.Font)
 }
 
 // ownLayout: v is a page whose screen lays itself out on the page canvas
 // (the special screens, the pagers and maps, the after-combat page, the
 // credits); every other page is drawGeneric's.
-func (p *Presenter) ownLayout(v front.View) bool {
-	return p.pageScreen(v) || sfOf(v) != nil || p.modal() || p.sheetPage() != nil || p.creation() != nil || v.Credits
+func (p *Presenter) ownLayout() bool {
+	return p.pageScreen() || p.sfOf() != nil || p.modal() || p.sheetPage() != nil || p.creation() != nil || p.flags().Credits
 }
 
 // seqMusic plays an animation's music cues on the AdLib player's songs
@@ -914,15 +876,15 @@ func (p *Presenter) seqMusic(cues []vace.Cue) {
 
 // drawTyping draws the question over the line being typed, its cursor
 // blinking, in the middle of dst, never above floor (under a picture).
-func (p *Presenter) drawTyping(dst *gpu.Image, note Note, v front.View, mk float64, cx, floor int) {
+func (p *Presenter) drawTyping(dst *gpu.Image, note Note, mk float64, cx, floor int) {
 	p.menu = false
-	t, w := typing(v).Text, min(typing(v).Max, 24)
+	t, w := p.typingAsk().Text, min(p.typingAsk().Max, 24)
 	c := len(t)
 	if p.typing {
 		t, c = p.typed, p.typedCur
 	}
-	top := max(dst.Bounds().Dy()/2-int(mk*float64(len(ui.WrapWords(typing(v).Prompt, 24))+5)*4), floor)
-	p.drawMenu(dst, note.Glyph, typing(v).Prompt, []string{caretLine(t, c, w, p.blink())}, nil, nil, 0, mk, cx, top)
+	top := max(dst.Bounds().Dy()/2-int(mk*float64(len(ui.WrapWords(p.typingAsk().Prompt, 24))+5)*4), floor)
+	p.drawMenu(dst, note.Glyph, p.typingAsk().Prompt, []string{caretLine(t, c, w, p.blink())}, nil, nil, 0, mk, cx, top)
 	p.menuRects = p.menuRects[:0]
 }
 

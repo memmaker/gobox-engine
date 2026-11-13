@@ -27,12 +27,14 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 		members = append(members, game.Member{Name: fmt.Sprint("M", i), HP: 1, MaxHP: 1})
 		allowed.Plain = append(allowed.Plain, play.Ready{Member: i}, play.Cast{Member: i}, play.Memorize{Member: i}, play.DropMember{Member: i})
 	}
-	v := front.View{Exploring: true, Adventure: true, Camp: &front.Camp{}, Sweeping: true, Interact: true}
-	presenter := func() *Presenter { // over the 3D view and its minimap the state gives
-		g, _ := playGame(play.Exploring{Common: play.Common{Party: members, Allowed: allowed}, Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
+	presenter := func() *Presenter { // camp over the 3D view and its minimap the state gave
+		common := play.Common{Party: members, Allowed: allowed, Adventure: true, Where: game.Where{Searching: true}} // the Sweeping label
+		g, f := playGame(play.Exploring{Common: common, Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
 			Walls: play.Walls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}})
 		p := &Presenter{}
 		p.SetEngine(g)
+		p.walls()
+		f.st = play.Camping{Common: common}
 		return p
 	}
 	for _, sz := range [][2]int{{1920, 1200}, {1388, 1190}, {1280, 800}} {
@@ -41,7 +43,7 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 			for _, off := range []bool{false, true} {
 				Host.PartyRow, Host.MapOff = row, off
 				p := presenter()
-				p.Draw(dst, note, v)
+				p.Draw(dst, note)
 				dump(t, dst, fmt.Sprintf("camp-%dx%d-row%v-off%v", sz[0], sz[1], row, off))
 				var rs []image.Rectangle // the cards, then each menu's lines
 				rs = append(rs, p.cards...)
@@ -54,16 +56,16 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 					rs = append(rs, u)
 				}
 				if row { // a spell list from the first card's menu: above the cards, on screen
-					w := v
-					w.Camp, w.Ask = nil, &front.Ask{Kind: front.AskSpell, Entries: make([]front.Entry, 9)}
-					for i := range w.Ask.Entries {
-						w.Ask.Entries[i] = front.Entry{Text: fmt.Sprint("Spell ", i), Spell: 1 + i}
+					spells := front.Ask{Kind: front.AskSpell, Entries: make([]front.Entry, 9)}
+					for i := range spells.Entries {
+						spells.Entries[i] = front.Entry{Text: fmt.Sprint("Spell ", i), Spell: 1 + i}
 					}
 					q := presenter()
-					q.Draw(dst, note, w)
+					q.q = &front.Question{Ask: spells}
+					q.Draw(dst, note)
 					m := rs[len(p.cards)+2] // the first card's menu: the list takes its place (ctxBox)
 					q.pickAt = image.Rect(m.Min.X, m.Min.Y, m.Max.X, m.Min.Y)
-					q.Draw(dst, note, w)
+					q.Draw(dst, note)
 					dump(t, dst, fmt.Sprintf("pick-%dx%d-off%v", sz[0], sz[1], off))
 					var list image.Rectangle
 					for _, l := range q.menuRects {
@@ -81,7 +83,7 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 				if len(p.cards) != 8 || len(p.campCtx) != 8 {
 					t.Fatalf("%v row %v: %d cards, %d menus", sz, row, len(p.cards), len(p.campCtx))
 				}
-				if len(p.labelAt) != 2 {
+				if len(p.labelAt) != 1 {
 					t.Fatalf("%v: %d labels", sz, len(p.labelAt))
 				}
 				for i, a := range rs {
