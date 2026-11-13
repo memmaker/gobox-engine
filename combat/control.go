@@ -287,27 +287,6 @@ func footprint(u Unit) (w, d float32) {
 	return float32(r.Dx()), float32(r.Dy())
 }
 
-// unitAt is where u is shown (sliding to its square) and the squares its icon spans.
-func (p *Presenter) unitAt(u Unit, dt float64) (x, z, sq float32) {
-	c := unitCentre(u)
-	if p.units == nil {
-		p.units = map[int]*[2]float64{}
-	}
-	at, ok := p.units[u.ID]
-	if !ok {
-		at = &[2]float64{c[0], c[1]}
-		p.units[u.ID] = at
-	}
-	if math.Abs(at[0]-c[0])+math.Abs(at[1]-c[1]) > 3 { // a jump (placed, scrolled in): no slide
-		*at = c
-	}
-	k := 1 - math.Exp(-dt*7) // per call: Draw asks twice a frame (shadow, figurine), so half a step each
-	at[0] += (c[0] - at[0]) * k
-	at[1] += (c[1] - at[1]) * k
-	ib := iconSize(u)
-	return float32(at[0]), float32(at[1]), float32(max(ib.X, ib.Y)) / tilePx
-}
-
 // iconSize is the size the figure's footprint follows: the built icon's
 // (IconSize), else the picture's own.
 func iconSize(u Unit) image.Point {

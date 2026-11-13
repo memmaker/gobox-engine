@@ -216,7 +216,11 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	p.intro.NoCredits = len(credits) == 0
 	front.IntroStep(p, &p.intro, v.Intro, false)
-	if ev := p.playing(); ev != nil && ev.Scene != nil { // the page as it stood at the pause played
+	ev := p.playing()
+	if ev != nil && ev.Kind == front.EvMoved && ev.Ms > 0 { // a step's hold is how long the figure takes for it
+		p.battle.StepTime = float64(ev.Ms) / 1000
+	}
+	if ev != nil && ev.Scene != nil { // the page as it stood at the pause played
 		v = *ev.Scene
 	} else if ev != nil { // the fight as it stood at the event played
 		if v.Battle == nil && p.lastFight != nil { // the Result ended the fight: its events play on the fight they happened in, the page after them
