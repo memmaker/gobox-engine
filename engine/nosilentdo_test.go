@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestNoSilentDo (BUG-CLASSES 31): in each state, every action the state
@@ -57,7 +56,7 @@ func TestNoSilentDo(t *testing.T) {
 		"party menu": quick,
 		"creation": func(t *testing.T) *Engine {
 			e := quick(t)
-			if _, err := e.doNow(play.NewCharacter{}); err != nil {
+			if _, err := e.doNow(game.NewCharacter{}); err != nil {
 				t.Fatal(err)
 			}
 			return e
@@ -67,7 +66,7 @@ func TestNoSilentDo(t *testing.T) {
 		"overland":      scene("overland"),
 		"camp": func(t *testing.T) *Engine {
 			e := scene("overland")(t)
-			if _, err := e.doNow(play.MakeCamp{}); err != nil {
+			if _, err := e.doNow(game.MakeCamp{}); err != nil {
 				t.Fatal(err)
 			}
 			return e
@@ -85,14 +84,14 @@ func TestNoSilentDoCOTAB(t *testing.T) {
 		"party menu": quick,
 		"creation": func(t *testing.T) *Engine {
 			e := quick(t)
-			if _, err := e.doNow(play.NewCharacter{}); err != nil {
+			if _, err := e.doNow(game.NewCharacter{}); err != nil {
 				t.Fatal(err)
 			}
 			return e
 		},
 		"explore": func(t *testing.T) *Engine {
 			e := advStarted(t, advEnvCOTAB)
-			for _, a := range []play.Action{play.QuickStart{}, play.Begin{}} {
+			for _, a := range []game.Action{game.QuickStart{}, game.Begin{}} {
 				if _, err := e.doNow(a); err != nil {
 					t.Fatalf("%T: %v", a, err)
 				}
@@ -114,7 +113,7 @@ func noSilentDo(t *testing.T, states map[string]func(t *testing.T) *Engine) {
 		}
 		c := commonOf(s)
 		seen := map[string]bool{}
-		var acts []play.Action
+		var acts []game.Action
 		for _, a := range c.Allowed.Plain {
 			k := fmt.Sprintf("%T%+v", a, a)
 			if seen[k] {
@@ -129,32 +128,32 @@ func noSilentDo(t *testing.T, states map[string]func(t *testing.T) *Engine) {
 			}
 			at := []image.Point{a.Squares[0]}
 			switch x := a.Action.(type) {
-			case play.Cast:
+			case game.Cast:
 				x.Ats = at
 				acts = append(acts, x)
-			case play.Shoot:
+			case game.Shoot:
 				x.Ats = at
 				acts = append(acts, x)
-			case play.UseItem:
+			case game.UseItem:
 				x.Ats = at
 				acts = append(acts, x)
 			}
 		}
 		if c.Ask != nil {
 			for n := range max(len(c.Ask.Replies), 1) {
-				acts = append(acts, play.Reply{N: n})
+				acts = append(acts, game.Reply{N: n})
 			}
 		}
 		for _, a := range acts {
 			switch x := a.(type) {
-			case play.Quit: // exits
+			case game.Quit: // exits
 				continue
-			case play.SelectMember: // the selected one again
+			case game.SelectMember: // the selected one again
 				if x.Member == commonOf(s).Selected {
 					continue
 				}
-			case play.SetChoice: // the field's own pick again: the list's no-op
-				if as, ok := s.(play.Assembling); ok && as.Draft != nil && slices.ContainsFunc(as.Draft.Fields, func(f game.Field) bool { return f.Name == x.Field && f.Pick == x.N }) {
+			case game.SetChoice: // the field's own pick again: the list's no-op
+				if as, ok := s.(game.Assembling); ok && as.Draft != nil && slices.ContainsFunc(as.Draft.Fields, func(f game.Field) bool { return f.Name == x.Field && f.Pick == x.N }) {
 					continue
 				}
 			}
@@ -173,7 +172,7 @@ func noSilentDo(t *testing.T, states map[string]func(t *testing.T) *Engine) {
 	}
 }
 
-func doCatch(e *Engine, a play.Action) (out play.Outcome, err error, panicked any) {
+func doCatch(e *Engine, a game.Action) (out game.Outcome, err error, panicked any) {
 	defer func() { panicked = recover() }()
 	out, err = e.doNow(a)
 	return out, err, nil
@@ -192,19 +191,19 @@ func TestGuardsRefuseCOTAB(t *testing.T) {
 // guardsRefuse is TestGuardsRefuse on the engines base makes.
 func guardsRefuse(t *testing.T, base func(*testing.T) *Engine) {
 	e := quickStartedOn(t, base(t))
-	for _, a := range []play.Action{play.KeepCharacter{}, play.AddNote{}} {
+	for _, a := range []game.Action{game.KeepCharacter{}, game.AddNote{}} {
 		if _, err := e.doNow(a); err == nil {
 			t.Errorf("%T taken", a)
 		}
 	}
-	if _, err := e.doNow(play.NewCharacter{}); err != nil {
+	if _, err := e.doNow(game.NewCharacter{}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := e.doNow(play.NewCharacter{}); err == nil {
+	if _, err := e.doNow(game.NewCharacter{}); err == nil {
 		t.Error("second NewCharacter taken")
 	}
 	e = base(t)
-	if _, err := e.doNow(play.Modify{}); err == nil {
+	if _, err := e.doNow(game.Modify{}); err == nil {
 		t.Error("Modify with no party taken")
 	}
 }

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestOwnPNGsReachTheFront: a member's own PNG portrait (Member.Dropped) is
@@ -14,12 +13,12 @@ import (
 // showed a race/class pool face, the board the pool icon.
 func TestOwnPNGsReachTheFront(t *testing.T) {
 	face, icon, strike := image.NewRGBA(image.Rect(0, 0, 32, 40)), image.NewRGBA(image.Rect(0, 0, 64, 64)), image.NewRGBA(image.Rect(0, 0, 64, 64))
-	ms := partyOf(play.Exploring{Common: play.Common{Party: []game.Member{{Name: "A", Race: "Human", Class: "Fighter", Dropped: face}}}})
+	ms := partyOf(game.Exploring{Common: game.Common{Party: []game.Member{{Name: "A", Race: "Human", Class: "Fighter", Dropped: face}}}})
 	if len(ms) != 1 || ms[0].Dropped != face {
 		t.Errorf("card Portrait is not the dropped PNG")
 	}
-	st := play.Fighting{Common: play.Common{Party: []game.Member{{Name: "A"}}},
-		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0, Icon: [2]image.Image{icon, strike}, Pose: 1}}}}
+	st := game.Fighting{Common: game.Common{Party: []game.Member{{Name: "A"}}},
+		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0, Icon: [2]image.Image{icon, strike}, Pose: 1}}}}
 	b := liveBoard(NewGame(&fake{st: st}, game.Data{}))
 	if b == nil || len(b.Units) != 1 || b.Units[0].Icon != strike {
 		t.Fatal("the board unit in its action pose does not show its own PNG's action icon")

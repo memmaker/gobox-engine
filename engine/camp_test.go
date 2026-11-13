@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules1e"
 	"testing"
 )
@@ -12,7 +12,7 @@ func TestSkyHour(t *testing.T) {
 	e := &Engine{}
 	e.initVM()
 	// Compare [49C9] 14
-	e.vm.Script = resolved(t, &script.Script{Code: []script.Instr{{Op: 0x03, Args: []script.Arg{{Type: 1, N: 0x49C9}, {Type: 0, N: 14}}}}}, 0)
+	e.vm.Script = resolved(t, &ecl.Script{Code: []ecl.Instr{{Op: 0x03, Args: []ecl.Arg{{Type: 1, N: 0x49C9}, {Type: 0, N: 14}}}}}, 0)
 	for _, c := range []struct {
 		hour                 uint16
 		original, byTheClock bool

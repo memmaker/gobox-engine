@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/combat"
 )
 
@@ -25,7 +24,7 @@ func presenterOf(g *Game) *Presenter {
 }
 
 // presenterOn is a Presenter over a fake game in state s.
-func presenterOn(s play.State) (*Presenter, *fake) {
+func presenterOn(s game.State) (*Presenter, *fake) {
 	g, f := playGame(s)
 	p := &Presenter{}
 	p.SetEngine(g)
@@ -35,14 +34,14 @@ func presenterOn(s play.State) (*Presenter, *fake) {
 // creditsOn is a Presenter on the title's credits page in a window of
 // bounds screen.
 func creditsOn(screen image.Rectangle) *Presenter {
-	p, _ := presenterOn(play.Scene{Kind: play.SceneTitle})
+	p, _ := presenterOn(game.Scene{Kind: game.SceneTitle})
 	p.eng.r.title = titleStep{credits: true}
 	p.screen = screen
 	return p
 }
 
 // boardIn is c as the tabletop draws it, over no game.
-func boardIn(c *play.Combat, party []game.Member) *combat.Board {
+func boardIn(c *game.Combat, party []game.Member) *combat.Board {
 	return new(Presenter).boardOf(c, party, nil)
 }
 
@@ -57,20 +56,20 @@ func liveBoard(g *Game) *combat.Board {
 func boardOfFrame(f frame) *combat.Board { return new(Presenter).boardOf(f.Board, f.Party, f.fly) }
 
 // played is es as moments (g.moments) queued as the presenter plays them.
-func played(es []play.Report, fight bool, posed func(play.Report) (*play.Combat, []game.Member), holdMs int) []frame {
+func played(es []game.Report, fight bool, posed func(game.Report) (*game.Combat, []game.Member), holdMs int) []frame {
 	if posed == nil {
-		posed = func(play.Report) (*play.Combat, []game.Member) { return nil, nil }
+		posed = func(game.Report) (*game.Combat, []game.Member) { return nil, nil }
 	}
-	g := NewGame(&fake{st: play.Exploring{}}, game.Data{})
+	g := NewGame(&fake{st: game.Exploring{}}, game.Data{})
 	var p Presenter
 	p.Play(g.moments(es, fight, posed, holdMs))
 	return p.replay.q
 }
 
-// Class 20b: play.Report kinds pass one to one; an EvAttack swing stays a
+// Class 20b: game.Report kinds pass one to one; an EvAttack swing stays a
 // swing (never a miss) and EvHit + EvDamage stay one hit and one damage.
 func TestEventsFold(t *testing.T) {
-	es := []play.Report{{Kind: game.EvAttack, Unit: 1, Target: 2}, {Kind: game.EvHit, Unit: 1, Target: 2},
+	es := []game.Report{{Kind: game.EvAttack, Unit: 1, Target: 2}, {Kind: game.EvHit, Unit: 1, Target: 2},
 		{Kind: game.EvDamage, Unit: 2, Target: 2, N: 5}, {Kind: game.EvAttack, Unit: 2, Target: 1}, {Kind: game.EvMiss, Unit: 2, Target: 1}}
 	want := []game.EventKind{game.EvAttack, game.EvHit, game.EvDamage, game.EvAttack, game.EvMiss}
 	out := played(es, false, nil, 0)

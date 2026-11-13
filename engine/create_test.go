@@ -2,7 +2,7 @@ package engine
 
 import (
 	"errors"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules1e"
 	"image"
 	"image/png"
@@ -40,8 +40,8 @@ func TestKindEnforce(t *testing.T) {
 func TestCreateSheet(t *testing.T) {
 	e := testEngine(t)
 	e.viewBit0 = 1 // the sheet's portrait, as init sets it
-	draft := func() *play.Draft { a, _ := e.build().(play.Assembling); return a.Draft }
-	cm := func() play.Common { return commonOf(e.build()) }
+	draft := func() *game.Draft { a, _ := e.build().(game.Assembling); return a.Draft }
+	cm := func() game.Common { return commonOf(e.build()) }
 	option := func(f int, text string) int {
 		i := slices.Index(draft().Fields[f].Options, text)
 		if i < 0 {
@@ -74,7 +74,7 @@ func TestCreateSheet(t *testing.T) {
 	if c = e.member(e.selected()); c.Stats[rules1e.StatCha] != 9 {
 		t.Errorf("charisma %d, want 9", c.Stats[rules1e.StatCha])
 	}
-	var ref *play.Refusal // typed text that is no number is refused, never kept silently
+	var ref *game.Refusal // typed text that is no number is refused, never kept silently
 	if err := e.setStat(rules1e.StatCha, "x"); !errors.As(err, &ref) || ref.Text != "not a number" {
 		t.Errorf("SetStat x: %v, want the refusal not a number", err)
 	}
@@ -189,7 +189,7 @@ func TestCreateSheet(t *testing.T) {
 func TestPointBuy(t *testing.T) {
 	e := testEngine(t)
 	buy := []int{18, 16, 12, 8, 8, 8}
-	if e.doNow(play.PointBuy{Scores: buy}); e.creation != nil {
+	if e.doNow(game.PointBuy{Scores: buy}); e.creation != nil {
 		t.Fatal("a draft appeared")
 	}
 	if err := e.pointBuy(buy); err == nil {

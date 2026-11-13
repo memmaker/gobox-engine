@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"gobox/asset/orig"
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TreasureItems lists the items of set's ITEM block, for a comment.
@@ -38,8 +38,8 @@ func itemFullName(it *rules1e.Item) string {
 }
 
 // ImportSource is the game data the script import reads.
-func ImportSource(l *orig.Loader) script.Source {
-	return script.Source{
+func ImportSource(l *orig.Loader) ecl.Source {
+	return ecl.Source{
 		Block: func(disk, block int) []byte {
 			name := fmt.Sprintf("ECL%d", disk)
 			if !l.Exists(name + ".DAX") {

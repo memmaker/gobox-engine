@@ -5,12 +5,11 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
 // found is a message with no choice.
-var found = &play.Ask{Kind: game.Choice, Prompt: "You found some loot!"}
+var found = &game.Ask{Kind: game.Choice, Prompt: "You found some loot!"}
 
 // TestPromptOnlyAskDrawn: a message with no choice ("You found some
 // loot!") is drawn until a key, never invisible.

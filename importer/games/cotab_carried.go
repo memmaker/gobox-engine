@@ -1,7 +1,7 @@
 package games
 
 import (
-	eclscript "gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules1e"
 	"slices"
@@ -11,8 +11,8 @@ import (
 const CotabRecordLayout = rules1e.Layout422
 
 // ScriptLayout is the game's script fields (scripts/layout/global.txt).
-func CotabScriptLayout() (*eclscript.Layout, error) {
-	return eclscript.ReadLayout(embeddedScripts("cotab"), 0)
+func CotabScriptLayout() (*ecl.Layout, error) {
+	return ecl.ReadLayout(embeddedScripts("cotab"), 0)
 }
 
 // OriginalSave is savgamX.dat as above (unit O0A1): the area byte, the area, area2 and aux
@@ -123,9 +123,9 @@ const (
 
 // ImportScriptsTo decompiles the game's ECL*.DAX in dos into an adventure
 // folder's scripts dir, with the script data beside them (the importer's
-// step; eclscript.ImportDAXFolder).
+// step; ecl.ImportDAXFolder).
 func CotabImportScriptsTo(dos, dir string) error {
-	return eclscript.ImportDAXFolder(eclscript.V2, dos, embeddedScripts("cotab"), dir, cotabScriptFixes)
+	return ecl.ImportDAXFolder(ecl.V2, dos, embeddedScripts("cotab"), dir, cotabScriptFixes)
 }
 
 // Item and Affect are the raw list nodes (next pointers live in the slices).

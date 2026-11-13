@@ -4,14 +4,13 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // A posed timed event holds the fight with its unit in the pose.
 func TestPosedEvent(t *testing.T) {
-	var got play.Report
-	posed := func(e play.Report) (*play.Combat, []game.Member) { got = e; return &play.Combat{}, nil }
-	out := played([]play.Report{{Kind: game.EvAttack, Unit: 3, Ms: 100, Pose: 1}, {Kind: game.EvAttack, Unit: 4}}, true, posed, 0)
+	var got game.Report
+	posed := func(e game.Report) (*game.Combat, []game.Member) { got = e; return &game.Combat{}, nil }
+	out := played([]game.Report{{Kind: game.EvAttack, Unit: 3, Ms: 100, Pose: 1}, {Kind: game.EvAttack, Unit: 4}}, true, posed, 0)
 	if len(out) != 2 || out[0].Ms != 100 || boardOfFrame(out[0]) == nil || got.Unit != 3 || boardOfFrame(out[1]) != nil {
 		t.Fatalf("posed events: %+v", out)
 	}

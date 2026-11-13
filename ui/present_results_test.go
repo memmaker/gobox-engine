@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -14,7 +13,7 @@ func TestResultsDrawnFromState(t *testing.T) {
 	defer dst.Deallocate()
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
-	g, _ := playGame(play.Scene{Kind: play.SceneResults, Results: &game.Results{Outcome: "The party has won.", Exp: "Each character receives 120"}})
+	g, _ := playGame(game.Scene{Kind: game.SceneResults, Results: &game.Results{Outcome: "The party has won.", Exp: "Each character receives 120"}})
 	p := &Presenter{}
 	p.SetEngine(g)
 	p.drawResults(dst, note)

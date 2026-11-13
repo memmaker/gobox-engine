@@ -6,7 +6,6 @@ import (
 	"slices"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules"
 )
 
@@ -53,7 +52,7 @@ type pendingCall struct {
 
 // playQuestion is the question up and the call each reply makes.
 type playQuestion struct {
-	q     play.Question
+	q     game.Question
 	of    askOf
 	calls []pendingCall
 }
@@ -91,7 +90,7 @@ func (e *Engine) makeCall(p pendingCall) error {
 		e.castChosen(p.choice)
 	case callDrop:
 		if p.target > 0 { // ovr17:1F93: asked again
-			e.ext.pq = &playQuestion{q: play.Question{Text: "Are you sure? ", YesNo: true, Replies: []string{"No", "Yes"}, Default: 1},
+			e.ext.pq = &playQuestion{q: game.Question{Text: "Are you sure? ", YesNo: true, Replies: []string{"No", "Yes"}, Default: 1},
 				calls: []pendingCall{{}, {kind: callDrop, member: p.member}}}
 			return nil
 		}
@@ -112,7 +111,7 @@ func (e *Engine) askSure(text string, p pendingCall) error {
 	case callTurn:
 		no = pendingCall{kind: callAimClose}
 	}
-	q := play.Question{Text: text, YesNo: true, Replies: []string{"No", "Yes"}, Default: 1}
+	q := game.Question{Text: text, YesNo: true, Replies: []string{"No", "Yes"}, Default: 1}
 	if p.kind == callTurn {
 		q.NoEsc, q.NoPick = true, true // Flee:, Attack Ally?: ovr26:10D1, Y/N only
 	}
@@ -122,7 +121,7 @@ func (e *Engine) askSure(text string, p pendingCall) error {
 
 // askSpell asks which of spells call p goes on with.
 func (e *Engine) askSpell(spells []Spell, p pendingCall) error {
-	pq := &playQuestion{q: play.Question{Text: "Which spell?"}, of: askSpell}
+	pq := &playQuestion{q: game.Question{Text: "Which spell?"}, of: askSpell}
 	for _, sp := range spells {
 		c := p
 		c.spell = sp.ID
@@ -134,7 +133,7 @@ func (e *Engine) askSpell(spells []Spell, p pendingCall) error {
 
 // askTarget asks text: the member call p goes on.
 func (e *Engine) askTarget(text string, p pendingCall) error {
-	pq := &playQuestion{q: play.Question{Text: text, List: true}, of: askMember}
+	pq := &playQuestion{q: game.Question{Text: text, List: true}, of: askMember}
 	for i, id := range e.partyIDs() {
 		c := p
 		c.target = i
@@ -146,7 +145,7 @@ func (e *Engine) askTarget(text string, p pendingCall) error {
 
 // askClass asks member n's new class among the rules' offers (NewClass, "Pick New Class:").
 func (e *Engine) askClass(offers []rules.Offer, n int) error {
-	pq := &playQuestion{q: play.Question{Text: "Pick New Class:"}}
+	pq := &playQuestion{q: game.Question{Text: "Pick New Class:"}}
 	for _, o := range offers {
 		pq.q.Replies, pq.calls = append(pq.q.Replies, o.Name), append(pq.calls, pendingCall{kind: callClass, member: n, class: o.Action.(rules.ChangeClass).To})
 	}
@@ -177,7 +176,7 @@ func (e *Engine) turnActs(as []TurnAct, sure bool) error {
 func (e *Engine) replyPending(n int) error {
 	pq := e.ext.pq
 	if n < 0 || n >= len(pq.calls) {
-		return &play.Refusal{Text: "no such option"}
+		return &game.Refusal{Text: "no such option"}
 	}
 	e.ext.pq = nil
 	return e.runCall(pq.calls[n])
@@ -240,7 +239,7 @@ func (e *Engine) moveActs(to image.Point, reach []game.Reach) ([]TurnAct, error)
 				}
 				return as, nil
 			case !slices.ContainsFunc(reach, func(q game.Reach) bool { return q.At == to }):
-				return nil, &play.Refusal{Text: "Blocked"} // ovr09:0C6B, the string at 09D7
+				return nil, &game.Refusal{Text: "Blocked"} // ovr09:0C6B, the string at 09D7
 			}
 		}
 	}

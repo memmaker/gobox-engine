@@ -5,12 +5,11 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 func TestPartyMenu(t *testing.T) {
 	s := shown{Mode: game.ModeParty, Where: game.Where{Hall: true},
-		Pending: &play.Ask{Kind: game.Choice, Options: []play.Option{{Label: "Begin Adventuring"}, {Label: "Forget Character"}, {Label: "Exit to DOS"}}}}
+		Pending: &game.Ask{Kind: game.Choice, Options: []game.Option{{Label: "Begin Adventuring"}, {Label: "Forget Character"}, {Label: "Exit to DOS"}}}}
 	open, hall := PartyMenu(s.Mode, s.Training, s.Pending, s.Where.Hall)
 	if !hall || !slices.Equal(open, []ActKind{ActBegin, ActForget, ActQuit}) {
 		t.Fatal(open, hall)

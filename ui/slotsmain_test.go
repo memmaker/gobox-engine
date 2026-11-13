@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -19,7 +18,7 @@ func (f *numbered) Save() ([]byte, error) { f.n++; return []byte(fmt.Sprint("sav
 
 // slotsGame is the presenter's game with two saves, A and B.
 func slotsGame(t *testing.T) (*classicGame, *numbered) {
-	f := &numbered{fake: &fake{st: play.Exploring{Common: play.Common{Party: []game.Member{{Name: "A"}}}}}}
+	f := &numbered{fake: &fake{st: game.Exploring{Common: game.Common{Party: []game.Member{{Name: "A"}}}}}}
 	g := &classicGame{Game: NewGame(f, game.Data{SaveDir: t.TempDir()})}
 	for _, n := range []string{"A", "B"} {
 		if err := g.Save(n); err != nil {

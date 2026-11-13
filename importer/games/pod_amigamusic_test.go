@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"gobox/asset/orig"
-	eclscript "gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TestAmigaMusic: every Sound n the imported scripts play reaches a pod.mx
@@ -28,10 +28,10 @@ func TestAmigaMusic(t *testing.T) {
 	if err := PodImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	lib := eclscript.Library{Version: eclscript.V3, Dir: dir, Data: podScriptData(), Fixes: podScriptFixes} // the import's own key: PodImportScriptsTo
+	lib := ecl.Library{Version: ecl.V3, Dir: dir, Data: podScriptData(), Fixes: podScriptFixes} // the import's own key: PodImportScriptsTo
 	seen := 0
 	for area := range 256 {
-		if _, err := os.Stat(eclscript.AreaPath(dir, area)); errors.Is(err, fs.ErrNotExist) {
+		if _, err := os.Stat(ecl.AreaPath(dir, area)); errors.Is(err, fs.ErrNotExist) {
 			continue
 		}
 		s, err := lib.Area(area)
@@ -39,7 +39,7 @@ func TestAmigaMusic(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, in := range s.Code {
-			if in.Op != eclscript.OpSound || in.Args[0].Ref != (eclscript.Ref{}) || in.Args[0].Type&0x80 != 0 {
+			if in.Op != ecl.OpSound || in.Args[0].Ref != (ecl.Ref{}) || in.Args[0].Type&0x80 != 0 {
 				continue // only literal operands: a variable's sound is the script's at run time
 			}
 			n := in.Args[0].N

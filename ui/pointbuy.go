@@ -10,7 +10,6 @@ package ui
 import (
 	"fmt"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/input"
 	"slices"
 )
@@ -61,7 +60,7 @@ func (p *Presenter) buyItems(cr *FrontCreation) (string, []MenuRow) {
 			scores := slices.Clone(s.buy)
 			s.open(scrMain)
 			p.Edit(func(e *classicGame) {
-				if err := e.do(play.PointBuy{Scores: scores}); err != nil {
+				if err := e.do(game.PointBuy{Scores: scores}); err != nil {
 					e.Refuse(err.Error())
 				}
 			})

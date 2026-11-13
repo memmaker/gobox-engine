@@ -12,13 +12,14 @@ import (
 	"image/color"
 	"image/draw"
 
-	xdraw "golang.org/x/image/draw"
 	"io/fs"
 	"log"
 	"math"
 	"math/rand/v2"
 	"slices"
 	"time"
+
+	xdraw "golang.org/x/image/draw"
 
 	"gobox/gpu"
 )

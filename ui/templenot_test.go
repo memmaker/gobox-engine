@@ -5,12 +5,11 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // templeState is a temple with these services up for one member.
-func templeState(sv ...game.Service) play.Trading {
-	return play.Trading{Kind: play.TradeTemple, Services: sv, Common: play.Common{Party: []game.Member{{Name: "Ann"}}}}
+func templeState(sv ...game.Service) game.Trading {
+	return game.Trading{Kind: game.TradeTemple, Services: sv, Common: game.Common{Party: []game.Member{{Name: "Ann"}}}}
 }
 
 // TestTempleNotDeclines: a service that helps no one asks "Cast cure anyway?", unless the game's

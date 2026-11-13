@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"slices"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // readSlotSave is the canonical save of the save directory; a slot holding
@@ -83,7 +83,7 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 			g.Fields[fl.Name] = c
 		}
 	}
-	l, err := script.ReadLayout(os.DirFS(e.scriptDir()), int(o.AreaKind))
+	l, err := ecl.ReadLayout(os.DirFS(e.scriptDir()), int(o.AreaKind))
 	if err != nil {
 		return gameSave{}, err
 	}
@@ -93,7 +93,7 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 		}
 	}
 	for _, fl := range l.Fields {
-		if fl.Owner == script.OwnerLocal && e.saved(fl) {
+		if fl.Owner == ecl.OwnerLocal && e.saved(fl) {
 			if c := decodeCells(&o, fl); c != nil {
 				g.Locals[fl.Name] = c
 			}
@@ -112,10 +112,10 @@ const origSaveFile = rules1e.OriginalSaveFile
 // decodeCells are field fl's cells in o's records (a text up to its NUL,
 // a text buffer with named elements all its Len);
 // nil when all are zero.
-func decodeCells(o *rules1e.ImportedSave, fl script.Field) []int64 {
+func decodeCells(o *rules1e.ImportedSave, fl ecl.Field) []int64 {
 	var c []int64
 	n := fl.Len
-	text := fl.Width == script.WidthText && fl.Elements == nil // a text buffer with named elements keeps all its cells
+	text := fl.Width == ecl.WidthText && fl.Elements == nil // a text buffer with named elements keeps all its cells
 	if text {
 		n = 0x100
 	}
@@ -134,11 +134,11 @@ func decodeCells(o *rules1e.ImportedSave, fl script.Field) []int64 {
 
 // canonFields are the canonical values of l's record fields in o (codecs.go), by name: what
 // a save whose records are not rules1e's hands the ruleset (char.RulesFromFields).
-func (e *Engine) canonFields(o *rules1e.ImportedSave, l *script.Layout) map[string][]int64 {
+func (e *Engine) canonFields(o *rules1e.ImportedSave, l *ecl.Layout) map[string][]int64 {
 	out := map[string][]int64{}
 	for i := range l.Fields {
 		fl := &l.Fields[i]
-		if fl.Owner != script.OwnerGame && fl.Owner != script.OwnerArea {
+		if fl.Owner != ecl.OwnerGame && fl.Owner != ecl.OwnerArea {
 			continue
 		}
 		c := decodeCells(o, *fl)
@@ -154,7 +154,7 @@ func (e *Engine) canonFields(o *rules1e.ImportedSave, l *script.Layout) map[stri
 
 // OriginalRules is the ruleset's part of an original save b of the game t whose script
 // fields are l: the import's (importSave), for a game's test against its real saves.
-func OriginalRules(b []byte, t GameTables, l *script.Layout) ([]byte, error) {
+func OriginalRules(b []byte, t GameTables, l *ecl.Layout) ([]byte, error) {
 	o, err := rules1e.ReadOriginalSave(b, t.OriginalSave)
 	if err != nil || t.OriginalSave.RulesRecords {
 		return o.Rules, err

@@ -12,11 +12,11 @@ import (
 	"testing"
 
 	"gobox/asset/orig"
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TestLayoutCoversScripts: every variable operand of every area's script
-// (imported afresh, its special cases applied) resolves (script.ResolveRefs) in the
+// (imported afresh, its special cases applied) resolves (ecl.ResolveRefs) in the
 // game's layout, the area's over it and the area's constant tables.
 func TestLayoutCoversScripts(t *testing.T) {
 	const scripts = "../data/por/sources/assets/scripts"
@@ -37,28 +37,28 @@ func TestLayoutCoversScripts(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		names, err := script.ReadNames(os.DirFS(scripts), area, true, script.V1)
+		names, err := ecl.ReadNames(os.DirFS(scripts), area, true, ecl.V1)
 		if err != nil {
 			t.Fatal(err)
 		}
-		s, err := script.Parse(string(text), names)
+		s, err := ecl.Parse(string(text), names)
 		if err != nil {
 			t.Fatalf("area %d: parse: %v", area, err)
 		}
 		s.Area = area
-		lay, err := script.ReadLayout(os.DirFS(scripts), area)
+		lay, err := ecl.ReadLayout(os.DirFS(scripts), area)
 		if err != nil || lay == nil {
 			t.Fatalf("area %d: %v %v", area, lay, err)
 		}
-		full, err := lay.With(script.ConstLayout(s, script.V1))
+		full, err := lay.With(ecl.ConstLayout(s, ecl.V1))
 		if err != nil {
 			t.Fatalf("area %d: %v", area, err)
 		}
-		if err := script.ResolveRefs(s, full); err != nil {
+		if err := ecl.ResolveRefs(s, full); err != nil {
 			t.Error(err)
 		}
 		for i, in := range s.Code {
-			if in.Op == script.OpNamed("Spell") { // the engine has no Spell (Felix d3: area 14 casts by castKnock)
+			if in.Op == ecl.OpNamed("Spell") { // the engine has no Spell (Felix d3: area 14 casts by castKnock)
 				t.Errorf("area %d instruction %d: Spell", area, i)
 			}
 		}
@@ -67,31 +67,31 @@ func TestLayoutCoversScripts(t *testing.T) {
 
 // resolved is s with its operands resolved in area's layout (and s's
 // tables), as Library.Area gives a script: for a test's own script.
-func resolved(t *testing.T, s *script.Script, area int) *script.Script {
+func resolved(t *testing.T, s *ecl.Script, area int) *ecl.Script {
 	t.Helper()
 	return resolvedOver(t, s, area, "")
 }
 
 // resolvedOver is resolved with the test's own fields (layout text) over
 // area's.
-func resolvedOver(t *testing.T, s *script.Script, area int, over string) *script.Script {
+func resolvedOver(t *testing.T, s *ecl.Script, area int, over string) *ecl.Script {
 	t.Helper()
-	l, err := script.ReadLayout(os.DirFS("../data/por/sources/assets/scripts"), area)
+	l, err := ecl.ReadLayout(os.DirFS("../data/por/sources/assets/scripts"), area)
 	if err != nil {
 		t.Fatal(err)
 	}
-	o, err := script.ParseLayout(strings.NewReader(over))
+	o, err := ecl.ParseLayout(strings.NewReader(over))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if l, err = l.With(o); err != nil {
 		t.Fatal(err)
 	}
-	full, err := l.With(script.ConstLayout(s, script.V1))
+	full, err := l.With(ecl.ConstLayout(s, ecl.V1))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := script.ResolveRefs(s, full); err != nil {
+	if err := ecl.ResolveRefs(s, full); err != nil {
 		t.Fatal(err)
 	}
 	return s
@@ -100,7 +100,7 @@ func resolvedOver(t *testing.T, s *script.Script, area int, over string) *script
 // refAt is the Ref of script address a in the running script's layout
 // (area 0's when none is loaded): the Pascal reference tests give
 // addresses. ok false: no field is there, so no script can reach it.
-func refAt(t *testing.T, e *Engine, a int) (script.Ref, bool) {
+func refAt(t *testing.T, e *Engine, a int) (ecl.Ref, bool) {
 	t.Helper()
 	withLayout(t, e)
 	r, err := e.vm.Script.Layout.Resolve(a)
@@ -108,7 +108,7 @@ func refAt(t *testing.T, e *Engine, a int) (script.Ref, bool) {
 }
 
 // testField is the field called name, in area 0's layout when no script is loaded.
-func testField(t *testing.T, e *Engine, name string) script.Ref {
+func testField(t *testing.T, e *Engine, name string) ecl.Ref {
 	t.Helper()
 	withLayout(t, e)
 	return e.field(name)
@@ -118,11 +118,11 @@ func testField(t *testing.T, e *Engine, name string) script.Ref {
 func withLayout(t *testing.T, e *Engine) {
 	t.Helper()
 	if e.vm.Script.Layout == nil {
-		l, err := script.ReadLayout(os.DirFS(e.scriptDir()), 0)
+		l, err := ecl.ReadLayout(os.DirFS(e.scriptDir()), 0)
 		if err != nil {
 			t.Fatal(err)
 		}
-		e.vm.Script = &script.Script{Layout: l}
+		e.vm.Script = &ecl.Script{Layout: l}
 	}
 }
 
@@ -140,29 +140,29 @@ func TestSavedFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	place := map[string]script.Field{}
+	place := map[string]ecl.Field{}
 	owner := map[int]string{}
 	for _, n := range append(names, "layout/area0.txt") {
 		var a int
 		if _, err := fmt.Sscanf(n, "layout/area%d.txt", &a); err != nil {
 			t.Fatal(err)
 		}
-		l, err := script.ReadLayout(data, a)
+		l, err := ecl.ReadLayout(data, a)
 		if err != nil {
 			t.Fatal(err)
 		}
 		for _, f := range l.Fields {
-			if f.Owner == script.OwnerCall {
+			if f.Owner == ecl.OwnerCall {
 				continue
 			}
 			local := f.From >= 0x4A00 && f.From+f.Len <= 0x4A20 || f.From >= 0x6E79 && f.From+f.Len <= 0x6E83
-			if local != (f.Owner == script.OwnerLocal) {
+			if local != (f.Owner == ecl.OwnerLocal) {
 				t.Errorf("area %d: %s at %04X is %v; the words a fresh area clears are the locals", a, f.Name, f.From, f.Owner)
 			}
-			if _, ok := e.engineFields[f.Name]; !ok && f.Owner == script.OwnerFact {
+			if _, ok := e.engineFields[f.Name]; !ok && f.Owner == ecl.OwnerFact {
 				t.Errorf("%s: a fact the engine gives no meaning", f.Name)
 			}
-			if f.Owner == script.OwnerLocal || f.Replaces {
+			if f.Owner == ecl.OwnerLocal || f.Replaces {
 				continue
 			}
 			if p, ok := place[f.Name]; ok && (p.From != f.From || p.Len != f.Len) {
@@ -186,14 +186,14 @@ func TestSaveKeepsFields(t *testing.T) {
 	e := quickStarted(t)
 	withLayout(t, e)
 	lay := e.vm.Script.Layout
-	var saved []script.Field
+	var saved []ecl.Field
 	for i, fl := range lay.Fields {
 		if !e.saved(fl) {
 			continue
 		}
 		saved = append(saved, fl)
-		r := script.Ref{Field: script.FieldID(i + 1)}
-		if fl.Width == script.WidthText {
+		r := ecl.Ref{Field: ecl.FieldID(i + 1)}
+		if fl.Width == ecl.WidthText {
 			if i+1 < len(lay.Fields) && lay.Fields[i+1].From-fl.From > 3 {
 				e.host.SetText(r, "ABC")
 			}
@@ -208,11 +208,11 @@ func TestSaveKeepsFields(t *testing.T) {
 	values := func() []string {
 		var out []string
 		for i, fl := range lay.Fields {
-			if !slices.ContainsFunc(saved, func(s script.Field) bool { return s.Name == fl.Name }) {
+			if !slices.ContainsFunc(saved, func(s ecl.Field) bool { return s.Name == fl.Name }) {
 				continue
 			}
-			r := script.Ref{Field: script.FieldID(i + 1)}
-			if fl.Width == script.WidthText {
+			r := ecl.Ref{Field: ecl.FieldID(i + 1)}
+			if fl.Width == ecl.WidthText {
 				out = append(out, fl.Name+"="+e.host.Text(r))
 				continue
 			}
@@ -252,12 +252,12 @@ func TestSaveKeepsFields(t *testing.T) {
 	// longer than its field gives way to the field after it)
 	f := rules1e.OriginalSave{Area: e.state().Area, Game: e.state().Game}
 	f.Area.AreaKind = uint16(e.vm.Script.Area)
-	slices.SortStableFunc(saved, func(a, b script.Field) int {
-		return rules1e.B2i(a.Width != script.WidthText) - rules1e.B2i(b.Width != script.WidthText)
+	slices.SortStableFunc(saved, func(a, b ecl.Field) int {
+		return rules1e.B2i(a.Width != ecl.WidthText) - rules1e.B2i(b.Width != ecl.WidthText)
 	})
 	for _, fl := range saved {
 		cells := vars
-		if fl.Owner == script.OwnerLocal {
+		if fl.Owner == ecl.OwnerLocal {
 			cells = locals
 		}
 		for i, v := range cells[fl.Name] {

@@ -2,7 +2,7 @@ package engine
 
 import (
 	"errors"
-	"gobox/game/play"
+	"gobox/game"
 	"slices"
 	"strconv"
 	"strings"
@@ -13,7 +13,7 @@ import (
 // (journal entries, proclamations, tavern tales: showEntry); the
 // player adds what the text window shows (the text box's "> Notes"),
 // kept with the map and square it was read on, and may remove those again
-// (play.RemoveNote). Kept with the save (NOTES.GOB). A save from before the
+// (game.RemoveNote). Kept with the save (NOTES.GOB). A save from before the
 // notes lists the journal texts it has heard (VOICED.GOB).
 
 // noteRec is a note: a journal text by Title, or the player's (User) Text
@@ -77,7 +77,7 @@ var errNoted = errors.New("Already in the journal")
 // noteAdd adds s as the player's note, with the map and square, once.
 func (e *Engine) noteAdd(s string) error {
 	if s == "" {
-		return &play.Refusal{} // nothing typed: refused, no toast
+		return &game.Refusal{} // nothing typed: refused, no toast
 	}
 	if slices.ContainsFunc(e.ext.notes, func(n noteRec) bool { return n.User && slices.Equal(n.Text, []string{s}) }) {
 		return errNoted

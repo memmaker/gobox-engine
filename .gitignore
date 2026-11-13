@@ -17,3 +17,4 @@ asset/cmd/poolsprites/poolsprites
 games/pod/tools/music/render/podmusicrender
 asset/cmd/fontexport/fontexport
 sprites/cmd/poolsprites/poolsprites
+.claude/worktrees/

@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	"gobox/gpu"
-	"gobox/gpu/vector"
 )
 
 // Ribbon pieces: a border's cells by their place (Ribbon).
@@ -38,7 +37,7 @@ func Window(dst *gpu.Image, t Ribbon, g gpu.GeoM, cw, ch int, bg color.Color) im
 	x0, y0 := g.Apply(8, 8)
 	x1, y1 := g.Apply(float64(cw*8-8), float64(ch*8-8))
 	if bg != nil {
-		vector.DrawFilledRect(dst, float32(x0), float32(y0), float32(x1-x0), float32(y1-y0), bg)
+		gpu.DrawFilledRect(dst, float32(x0), float32(y0), float32(x1-x0), float32(y1-y0), bg)
 	}
 	cell := func(i, x, y int) {
 		if t[i] == nil {

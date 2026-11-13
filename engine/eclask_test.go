@@ -1,12 +1,12 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"slices"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // A script's HMENU does not wait: it leaves the VM pending on its menu
@@ -21,42 +21,42 @@ func TestScriptAsks(t *testing.T) {
 	if w := e.eclWait; w == nil || len(w.ask.Replies) != 2 || w.ask.YesNo {
 		t.Fatalf("ask %+v", e.eclWait)
 	}
-	if answer(e, play.Continue{}) {
+	if answer(e, game.ContinueAction{}) {
 		t.Fatal("Enter answered a menu without it")
 	}
-	if !answer(e, play.Reply{N: 1}) || got() != 1 || e.eclWait != nil {
+	if !answer(e, game.Reply{N: 1}) || got() != 1 || e.eclWait != nil {
 		t.Fatalf("NO gave %d, pending %v", got(), e.eclWait != nil)
 	}
 
 	// an encounter's WAIT asks again: the menu stays until another choice
 	e.es.enc = &encounter{dst: v}
 	e.askChoice("", "~COMBAT ~WAIT", false, false, askDone{kind: dDevParlay})
-	if answer(e, play.Reply{N: 1}) || e.eclWait == nil {
+	if answer(e, game.Reply{N: 1}) || e.eclWait == nil {
 		t.Fatal("WAIT ended the menu")
 	}
-	if answer(e, play.Reply{N: 0}) || e.eclWait == nil || len(e.eclWait.ask.Replies) != 5 {
+	if answer(e, game.Reply{N: 0}) || e.eclWait == nil || len(e.eclWait.ask.Replies) != 5 {
 		t.Fatal("COMBAT did not go on to the talk menu")
 	}
-	answer(e, play.Reply{N: 0})
+	answer(e, game.Reply{N: 0})
 
 	e.host.Set(v, 0)
 	e.askNumber(askDone{kind: dNumber, dst: v})
-	if answer(e, play.Reply{Text: "99999"}) {
+	if answer(e, game.Reply{Text: "99999"}) {
 		t.Fatal("99999 taken")
 	}
-	if !answer(e, play.Reply{Text: "42"}) || e.host.Get(v) != 42 {
+	if !answer(e, game.Reply{Text: "42"}) || e.host.Get(v) != 42 {
 		t.Fatalf("number %d", e.host.Get(v))
 	}
 
 	e.askMember("WHO?", rules.NoChar, askDone{kind: dWho})
-	if !answer(e, play.Reply{N: 1}) || e.member(e.selected()) != e.state().Party[1] {
+	if !answer(e, game.Reply{N: 1}) || e.member(e.selected()) != e.state().Party[1] {
 		t.Fatal("the member pick did not take member 2")
 	}
 }
 
 // answer gives a to the open question (opened first if it is not); true
 // when nothing is asked any more.
-func answer(e *Engine, a play.Action) bool {
+func answer(e *Engine, a game.Action) bool {
 	if e.eclWait.seq == 0 {
 		e.openAsk()
 	}
@@ -74,12 +74,12 @@ func TestSceneYesNoOrder(t *testing.T) {
 		e.host.Set(v, 7)
 		e.askYesNo(yesNo("SURE?", false), false, askDone{kind: dChoiceVar, dst: v})
 		e.openAsk()
-		sc, ok := e.build().(play.Scene)
+		sc, ok := e.build().(game.Scene)
 		if !ok || sc.Ask == nil {
 			t.Fatalf("%T, no Scene question", e.build())
 		}
 		n := slices.Index(sc.Ask.Replies, want)
-		if _, err := e.doNow(play.Reply{N: n}); err != nil {
+		if _, err := e.doNow(game.Reply{N: n}); err != nil {
 			t.Fatal(err)
 		}
 		if got := e.host.Get(v) == 1; got != (want == "Yes") {
@@ -91,7 +91,7 @@ func TestSceneYesNoOrder(t *testing.T) {
 // TestMenuEscForced: a menu naming no exit row takes no Esc: the choice is forced.
 func TestMenuEscForced(t *testing.T) {
 	e := quickStarted(t)
-	e.vm.Script = &script.Script{Code: []script.Instr{{Op: script.OpHMenu}}}
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Op: ecl.OpHMenu}}}
 	e.askChoice("", "~BUY ~EXIT", false, false, askDone{})
 	e.scriptExit()
 	e.openAsk()
@@ -113,7 +113,7 @@ func TestMenuEscForced(t *testing.T) {
 func TestMenuEscHint(t *testing.T) {
 	e := quickStarted(t)
 	v := testField(t, e, fieldSurprise)
-	e.vm.Script = &script.Script{Code: []script.Instr{{Op: script.OpHMenu, Exit: play.EscTo(0)}}, Layout: e.vm.Script.Layout}
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Op: ecl.OpHMenu, Exit: game.EscTo(0)}}, Layout: e.vm.Script.Layout}
 	e.host.Set(v, 7)
 	e.askChoice("", "~STAY ~GO", false, false, askDone{kind: dChoiceVar, dst: v})
 	e.scriptExit()
@@ -143,12 +143,12 @@ func TestScriptExitHints(t *testing.T) {
 				continue
 			}
 			hints++
-			rows := script.MenuLabels(in)
+			rows := ecl.MenuLabels(in)
 			if row >= len(rows) {
 				t.Errorf("area %d command %d: row %d of %d", area, i, row, len(rows))
 				continue
 			}
-			if in.Op != script.OpHMenu {
+			if in.Op != ecl.OpHMenu {
 				continue
 			}
 			menu := ""
@@ -171,7 +171,7 @@ func TestPurseWho(t *testing.T) {
 	e.loadScript(0)
 	var got []string
 	for i, in := range e.vm.Script.Code {
-		if e.purseWho[i] && in.Op == script.OpNamed("Who") {
+		if e.purseWho[i] && in.Op == ecl.OpNamed("Who") {
 			got = append(got, in.Args[0].S)
 		}
 	}

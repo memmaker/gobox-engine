@@ -1,5 +1,5 @@
 // frame.go: the switch's skeleton (switch-spec.md). The presenter reads
-// the game's play.State, which the engine built and shares read-only, and
+// the game's game.State, which the engine built and shares read-only, and
 // UI, the front's own state over it; nothing repacks the State.
 
 package ui
@@ -9,20 +9,19 @@ import (
 	"time"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // UI is what gobox has up over the game's state that the rules do not
 // know: its own questions, the aiming, the screens it opened, the paging,
 // the pacing and the toasts. Only the front writes it; game facts never
-// go here (they are play.State's).
+// go here (they are game.State's).
 type UI struct {
 	grid       image.Point   // the page's size in cells (ActResize); 40x25 at least
 	items      game.ItemsUp  // the inventory screen up, gobox's (OpenItems)
 	itemsOf    int           // the member whose items are up (OpenItems), -1: the acting or selected one
-	ask        *play.Ask     // gobox's own question up (a maneuver pick), nil none
-	moves      []play.Action // the actions ask's options stand for
-	refusalAsk *play.Ask     // a Refusal's question put instead (answered by its options' Do)
+	ask        *game.Ask     // gobox's own question up (a maneuver pick), nil none
+	moves      []game.Action // the actions ask's options stand for
+	refusalAsk *game.Ask     // a Refusal's question put instead (answered by its options' Do)
 	aim        *squareAim    // an Aimed action's squares being picked
 	spellAim   *aiming       // a combat spell's squares being picked (Combat.Aims)
 	cursor     image.Point   // the free cursor's square
@@ -55,16 +54,16 @@ type titleStep struct {
 // live state's. A timed page or screen is Report.Page or Report.Screen,
 // drawn over the live state. It replaces front.CombatEvent (switch).
 type Moment struct {
-	play.Report
+	game.Report
 	Ms    int           // how long it holds (0: no moment of its own)
 	Key   bool          // held until a key ("press any key"), not for Ms
-	Board *play.Combat  // in a fight: the board this moment shows
+	Board *game.Combat  // in a fight: the board this moment shows
 	Party []game.Member // with Board: the party's figures then
 }
 
 // state is the game's state now, as the engine built it (read-only; nil:
 // no game set, SetEngine).
-func (p *Presenter) state() play.State {
+func (p *Presenter) state() game.State {
 	if p.eng == nil {
 		return nil
 	}
@@ -75,7 +74,7 @@ func (p *Presenter) state() play.State {
 // own when no game is set).
 func (p *Presenter) selected() int {
 	if p.eng == nil {
-		return play.CommonOf(nil).Selected
+		return game.CommonOf(nil).Selected
 	}
 	return p.eng.r.selectedOf(p.state())
 }
@@ -90,7 +89,7 @@ func (p *Presenter) ui() *UI {
 
 // asking is the question up over the state: a Refusal's, else the game's
 // or gobox's own (nil: none).
-func (r *frontState) asking(ps play.State) *play.Ask {
+func (r *frontState) asking(ps game.State) *game.Ask {
 	if r.refusalAsk != nil {
 		return r.refusalAsk
 	}
@@ -100,8 +99,8 @@ func (r *frontState) asking(ps play.State) *play.Ask {
 // exploring is whether the party explores and nothing asks: the adventuring
 // decisions (ActForward .. ActCastPick) are taken. A question or the door
 // menu over the view, or a yes/no over it, takes the keys instead.
-func (r *frontState) exploring(ps play.State) bool {
-	if _, ok := ps.(play.Exploring); !ok || play.CommonOf(ps).Ask != nil || doorOf(ps) != nil {
+func (r *frontState) exploring(ps game.State) bool {
+	if _, ok := ps.(game.Exploring); !ok || game.CommonOf(ps).Ask != nil || doorOf(ps) != nil {
 		return false
 	}
 	return !OverMenu(r.modeOf(ps), r.asking(ps))

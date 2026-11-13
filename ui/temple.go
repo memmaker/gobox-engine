@@ -5,14 +5,13 @@ import (
 	"slices"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
-// The temple (play.Trading): the presenter asks; Cure comes agreed.
+// The temple (game.Trading): the presenter asks; Cure comes agreed.
 func (p *Presenter) templeItems() (string, []MenuRow) {
 	c, s := &p.camp, p.state()
 	services, offers := templeOf(s)
-	party, sel, purse := partyOf(s), p.selected(), play.CommonOf(s).Purse
+	party, sel, purse := partyOf(s), p.selected(), game.CommonOf(s).Purse
 	name := memberName(party, sel)
 	var cure game.Service
 	if c.pick >= 0 && c.pick < len(services) {
@@ -51,7 +50,7 @@ func (p *Presenter) templeItems() (string, []MenuRow) {
 		return withGold(fmt.Sprintf("%s will only cost %s. Pay for cure?", cure.Name, gold(cure.Price)), purse[Coin]), []MenuRow{
 			{Text: "Yes", Key: 'Y', Do: func() {
 				pick := c.pick
-				p.call(func(e *classicGame) { e.do(play.Heal{Member: -1, Service: pick}) })
+				p.call(func(e *classicGame) { e.do(game.Heal{Member: -1, Service: pick}) })
 				c.back(templeHeal)()
 			}},
 			{Text: "No", Key: 'N', Do: c.back(templeHeal)}}
@@ -59,7 +58,7 @@ func (p *Presenter) templeItems() (string, []MenuRow) {
 		return p.appraiseItems(purse, offers, c.back(campMain))
 	}
 	it := []MenuRow{{Text: "Heal", Key: 'H', Do: c.to(templeHeal, 0)}, {Text: "View", Key: 'V', Do: func() { p.send(ActMember, -1) }}}
-	it = append(it, p.moneyRows(play.CommonOf(s).Allowed)...)
+	it = append(it, p.moneyRows(game.CommonOf(s).Allowed)...)
 	if appraisable(purse, offers) {
 		it = append(it, MenuRow{Text: "Appraise", Key: 'A', Do: c.to(appraise, 0)})
 	}

@@ -7,14 +7,13 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/blobber"
 )
 
 // A replayed board's tiles are made from the game's art when it is drawn.
 func TestPlayMakesSnapshotTiles(t *testing.T) {
-	g := NewGame(&fake{st: play.Exploring{}}, game.Data{Art: map[string]game.Picture{"t": {W: 2, H: 2, Pixels: []byte{1, 2, 3, 4}, Clear: -1}}})
-	if b := presenterOf(g).boardOf(&play.Combat{Tiles: []string{"t"}}, nil, nil); len(b.Tiles) == 0 || b.Tiles[0] == nil {
+	g := NewGame(&fake{st: game.Exploring{}}, game.Data{Art: map[string]game.Picture{"t": {W: 2, H: 2, Pixels: []byte{1, 2, 3, 4}, Clear: -1}}})
+	if b := presenterOf(g).boardOf(&game.Combat{Tiles: []string{"t"}}, nil, nil); len(b.Tiles) == 0 || b.Tiles[0] == nil {
 		t.Fatal("snapshot tiles not made")
 	}
 }
@@ -23,7 +22,7 @@ func TestPlayMakesSnapshotTiles(t *testing.T) {
 // moment waiting for a key still waits.
 func TestSpaceFastForward(t *testing.T) {
 	var p Presenter
-	b := &play.Combat{}
+	b := &game.Combat{}
 	p.Play([]Moment{{Ms: 5000, Board: b}, {Ms: 5000, Board: b}, {Ms: 5000, Board: b}, {Key: true, Board: b}})
 	if !p.Playing() {
 		t.Fatal("not playing")
@@ -40,7 +39,7 @@ func TestBlastPlaysAndSpacePasses(t *testing.T) {
 	var p Presenter
 	var evs []Moment
 	for i := 0; i < 5; i++ {
-		evs = append(evs, Moment{Report: play.Report{Page: &game.Page{}}, Ms: 60})
+		evs = append(evs, Moment{Report: game.Report{Page: &game.Page{}}, Ms: 60})
 	}
 	p.Play(evs)
 	if p.playing() == nil {
@@ -56,8 +55,8 @@ func TestBlastPlaysAndSpacePasses(t *testing.T) {
 // fallen, the foes walked) is still shown before the page.
 func TestSpaceKeepsEndBoard(t *testing.T) {
 	var p Presenter
-	walk, end := &play.Combat{}, &play.Combat{}
-	p.Play([]Moment{{Report: play.Report{Kind: game.EvMove}, Ms: 300, Board: walk}, {Report: play.Report{Kind: game.EvDown}, Ms: 300, Board: end}, {Report: play.Report{Kind: game.EvMessage, Text: "x"}}})
+	walk, end := &game.Combat{}, &game.Combat{}
+	p.Play([]Moment{{Report: game.Report{Kind: game.EvMove}, Ms: 300, Board: walk}, {Report: game.Report{Kind: game.EvDown}, Ms: 300, Board: end}, {Report: game.Report{Kind: game.EvMessage, Text: "x"}}})
 	p.Key(' ')
 	if ev := p.playing(); ev == nil || ev.Board != end {
 		t.Fatalf("after Space: %+v, want the end board", ev)
@@ -68,10 +67,10 @@ func TestSpaceKeepsEndBoard(t *testing.T) {
 // the pane: what the game said is seen, not only logged.
 func TestBlowPlays(t *testing.T) {
 	var p Presenter
-	posed := &play.Combat{Units: []game.Unit{{ID: 1, Active: true}}}
-	p.Play([]Moment{{Report: play.Report{Kind: game.EvAttack, Unit: 1, Target: 2}, Ms: 300, Board: posed},
-		{Report: play.Report{Kind: game.EvHit, Unit: 1, Target: 2}}, {Report: play.Report{Kind: game.EvDamage, Unit: 2, N: 5}},
-		{Report: play.Report{Kind: game.EvMessage, Text: "ARIN HITS FOR 5"}}})
+	posed := &game.Combat{Units: []game.Unit{{ID: 1, Active: true}}}
+	p.Play([]Moment{{Report: game.Report{Kind: game.EvAttack, Unit: 1, Target: 2}, Ms: 300, Board: posed},
+		{Report: game.Report{Kind: game.EvHit, Unit: 1, Target: 2}}, {Report: game.Report{Kind: game.EvDamage, Unit: 2, N: 5}},
+		{Report: game.Report{Kind: game.EvMessage, Text: "ARIN HITS FOR 5"}}})
 	if ev := p.playing(); ev == nil || ev.Kind != game.EvAttack || ev.Board != posed {
 		t.Fatalf("swing not held: %+v", ev)
 	}
@@ -98,8 +97,8 @@ func TestFlatTileTextured(t *testing.T) {
 // EvDamage make one number.
 func TestBlowFloatsOnce(t *testing.T) {
 	es := []Moment{
-		{Report: play.Report{Kind: game.EvAttack, Unit: 1, Target: 2}}, {Report: play.Report{Kind: game.EvHit, Unit: 1, Target: 2, N: 5}}, {Report: play.Report{Kind: game.EvDamage, Unit: 2, Target: 2, N: 5}},
-		{Report: play.Report{Kind: game.EvAttack, Unit: 2, Target: 1}}, {Report: play.Report{Kind: game.EvMiss, Unit: 2, Target: 1}},
+		{Report: game.Report{Kind: game.EvAttack, Unit: 1, Target: 2}}, {Report: game.Report{Kind: game.EvHit, Unit: 1, Target: 2, N: 5}}, {Report: game.Report{Kind: game.EvDamage, Unit: 2, Target: 2, N: 5}},
+		{Report: game.Report{Kind: game.EvAttack, Unit: 2, Target: 1}}, {Report: game.Report{Kind: game.EvMiss, Unit: 2, Target: 1}},
 	}
 	var nums, misses int
 	for _, ev := range es {

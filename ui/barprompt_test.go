@@ -3,13 +3,13 @@ package ui
 import (
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // TestBarOverPrompt: a game prompt on the creation's bar row must not show
 // through the bar's gaps ("ROLLAMINIMALMKEEP EXIT").
 func TestBarOverPrompt(t *testing.T) {
-	g, _ := playGame(play.Assembling{Common: play.Common{Status: "xxxxAxxxxxxxMxxxxxxxxx"}, Draft: &play.Draft{}})
+	g, _ := playGame(game.Assembling{Common: game.Common{Status: "xxxxAxxxxxxxMxxxxxxxxx"}, Draft: &game.Draft{}})
 	p := &Presenter{}
 	p.SetEngine(g)
 	c := p.screenPage()

@@ -5,16 +5,15 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestBlowShows: a blow the game reports (Attacked, Narrated) reaches the
 // front as a swing, a hit, its damage and the line, and the fight's text
 // pane keeps the line even when the game's own Text is blank.
 func TestBlowShows(t *testing.T) {
-	fight := play.Fighting{Common: play.Common{Text: []string{""}, Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}}}},
-		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
-	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Attacked{From: 1, To: 2, Hit: true, Damage: 5}, play.Narrated{Text: "ARIN HITS FOR 5"}}}}
+	fight := game.Fighting{Common: game.Common{Text: []string{""}, Allowed: game.Allowed{Plain: []game.Action{game.Attack{Target: 2}}}},
+		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
+	f := &fake{st: fight, out: game.Outcome{Events: []game.Event{game.Attacked{From: 1, To: 2, Hit: true, Damage: 5}, game.Narrated{Text: "ARIN HITS FOR 5"}}}}
 	g := NewGame(f, game.Data{})
 	if err := g.Answer(Action{Kind: ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
@@ -40,12 +39,12 @@ func TestBlowShows(t *testing.T) {
 // TestBlowHoldsSpeedDelay: a blow is held the game speed's delay (speed ×
 // 100 ms, the originals'), and SetSpeed changes it.
 func TestBlowHoldsSpeedDelay(t *testing.T) {
-	fight := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}}}},
-		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
-	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Attacked{From: 1, To: 2}}}}
+	fight := game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.Attack{Target: 2}}}},
+		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
+	f := &fake{st: fight, out: game.Outcome{Events: []game.Event{game.Attacked{From: 1, To: 2}}}}
 	r := newRules(f, game.Data{})
 	held := func() int {
-		for _, e := range r.send(play.Attack{Target: 2}).Events {
+		for _, e := range r.send(game.Attack{Target: 2}).Events {
 			if e.Kind == game.EvAttack {
 				return e.Ms
 			}

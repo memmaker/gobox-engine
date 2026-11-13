@@ -4,14 +4,13 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // The series' View (VerbKeys) joins a classic turn's bar at its VerbOrder
 // place, as the bar's ActView, when the game offers none.
 func TestViewVerb(t *testing.T) {
 	d := game.Data{VerbKeys: map[string]rune{"View": 'V'}, VerbOrder: []string{"Move", "View", "Aim", "Done"}}
-	c := &play.Combat{Turn: &play.Turn{Options: []play.Option{{Label: "Move"}, {Label: "Aim"}, {Label: "Done"}}}}
+	c := &game.Combat{Turn: &game.Turn{Options: []game.Option{{Label: "Move"}, {Label: "Aim"}, {Label: "Done"}}}}
 	o := turnOptions(c, d)
 	if act, _ := turnAct(o[1].Do); len(o) != 4 || o[1].Label != "View" || act != ActView || o[1].Key != 'V' {
 		t.Fatalf("%+v", o)

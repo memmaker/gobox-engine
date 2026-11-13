@@ -3,7 +3,7 @@ package engine
 import (
 	"errors"
 	"fmt"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 	"slices"
 	"strconv"
@@ -151,7 +151,7 @@ func (e *Engine) TakeLoot(h rules.ItemHandle, all bool) error {
 		return nil
 	}
 	if h == rules.NoItem {
-		return &play.Refusal{} // the money line: the purse is shared, nothing to take, no toast
+		return &game.Refusal{} // the money line: the purse is shared, nothing to take, no toast
 	}
 	if !slices.Contains(e.goods(), h) {
 		return rules.ErrNotNow

@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"reflect"
 	"slices"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // cellPx is a 40x25 cell's size in page pixels (320x200).
@@ -26,9 +26,9 @@ var ErrNotCarried = errors.New("sequence field not carried yet")
 // A step whose Lightning is On in graphics mode g makes the intro flash. The rest of s goes to the
 // game's Data (TitleData). A leading StepAnim is not a title step (step 1
 // stays its number): it plays before the title as LeadingAnim's sequence.
-func TitleScene(s Sequence, full bool, g Graphics, cm play.Common, pic func(Art) (game.Picture, error)) (play.Scene, error) {
+func TitleScene(s Sequence, full bool, g Graphics, cm game.Common, pic func(Art) (game.Picture, error)) (game.Scene, error) {
 	in := &game.Intro{Full: true}
-	steps := map[int]play.TitleStep{}
+	steps := map[int]game.TitleStep{}
 	pics := 0
 	whole := 0
 	for i, st := range s.Steps {
@@ -40,18 +40,18 @@ func TitleScene(s Sequence, full bool, g Graphics, cm play.Common, pic func(Art)
 			continue
 		}
 		if st.Edition != EditionAny {
-			return play.Scene{}, fmt.Errorf("step %d Edition %d (not passed through Sequence.Shown): %w", n, st.Edition, ErrNotCarried)
+			return game.Scene{}, fmt.Errorf("step %d Edition %d (not passed through Sequence.Shown): %w", n, st.Edition, ErrNotCarried)
 		}
 		if st.HoldMs != 0 {
-			return play.Scene{}, fmt.Errorf("step %d HoldMs: %w", n, ErrNotCarried)
+			return game.Scene{}, fmt.Errorf("step %d HoldMs: %w", n, ErrNotCarried)
 		}
 		switch st.Kind {
 		case StepPicture:
-			ts := play.TitleStep{Song: st.Song, Text: st.Text, Credits: st.Credits}
+			ts := game.TitleStep{Song: st.Song, Text: st.Text, Credits: st.Credits}
 			for _, l := range st.Layers {
 				p, err := pic(l.Art)
 				if err != nil {
-					return play.Scene{}, fmt.Errorf("step %d: %w", n, err)
+					return game.Scene{}, fmt.Errorf("step %d: %w", n, err)
 				}
 				ts.Layers = append(ts.Layers, game.Layer{Picture: p, At: placed(l, p.W, p.H), Frames: l.Frames, FrameMs: l.FrameMs, MinParty: l.MinParty, MsgDelayed: l.MsgDelayed})
 			}
@@ -63,21 +63,21 @@ func TitleScene(s Sequence, full bool, g Graphics, cm play.Common, pic func(Art)
 			}
 		case StepText:
 			if len(st.Layers) != 0 || len(st.Text) == 0 {
-				return play.Scene{}, fmt.Errorf("step %d: a text step has text and no layers: %w", n, ErrStepKind)
+				return game.Scene{}, fmt.Errorf("step %d: a text step has text and no layers: %w", n, ErrStepKind)
 			}
-			steps[n] = play.TitleStep{Song: st.Song, Text: st.Text}
+			steps[n] = game.TitleStep{Song: st.Song, Text: st.Text}
 			in.Pictures = append(in.Pictures, n)
 		case StepCredits:
 			in.Pictures = append(in.Pictures, -(st.Page + 1))
 		default:
-			return play.Scene{}, fmt.Errorf("step %d: %w", n, ErrStepKind)
+			return game.Scene{}, fmt.Errorf("step %d: %w", n, ErrStepKind)
 		}
 		in.Lightning = in.Lightning || st.Lightning.On(g)
 	}
 	if whole != 0 && whole != pics {
-		return play.Scene{}, fmt.Errorf("Whole on some picture steps only: %w", ErrNotCarried)
+		return game.Scene{}, fmt.Errorf("Whole on some picture steps only: %w", ErrNotCarried)
 	}
-	return play.Scene{Common: cm, Kind: play.SceneTitle, Intro: in, Full: whole != 0, Steps: steps}, nil
+	return game.Scene{Common: cm, Kind: game.SceneTitle, Intro: in, Full: whole != 0, Steps: steps}, nil
 }
 
 // LeadingAnim is s's leading StepAnim as the game.Sequence name plays
@@ -129,4 +129,70 @@ func placed(l Layer, w, h int) image.Rectangle {
 	}
 	at := box.Min.Add(image.Pt((box.Dx()-w)/2, (box.Dy()-h)/2))
 	return image.Rectangle{Min: at, Max: at.Add(image.Pt(w, h))}
+}
+
+// picSource is each ArtKind's game.PicSource.
+var picSource = map[ArtKind]game.PicSource{ArtDAX: game.SourceDAX, ArtPNG: game.SourcePNG}
+
+// TitleDiffs lists where sequence s differs from a game's title as it states
+// it today (Scene today, Data d): picture step i has the layers of
+// today.Steps[today.Intro.Pictures[i]] (with the credits page 0 gobox adds
+// after two or more pictures, front/title.go), a credits step its page, Backdrop
+// d's TitleBackdrop, Credits d's
+// CreditLines. Pictures compare by File and Block (pixels
+// unloaded, Clear -1); a Centred layer takes today's size. Songs are not compared. For the importers' tests.
+func TitleDiffs(s Sequence, today game.Scene, d game.Data) (diffs []string) {
+	layers := func(ls []Layer, today []game.Layer) (out []game.Layer) {
+		for i, l := range ls {
+			var size image.Point
+			if i < len(today) {
+				size = today[i].At.Size()
+			}
+			out = append(out, game.Layer{Picture: game.Picture{Source: picSource[l.Kind], File: l.File, Block: l.Block, Clear: -1}, At: placed(l, size.X, size.Y), Frames: l.Frames, FrameMs: l.FrameMs})
+		}
+		return out
+	}
+	bare := func(ls []game.Layer) []game.Layer {
+		out := slices.Clone(ls)
+		for i := range out {
+			out[i].Picture = game.Picture{Source: out[i].Source, File: out[i].Picture.File, Block: out[i].Picture.Block, Clear: -1}
+		}
+		return out
+	}
+	if today.Intro == nil {
+		return []string{"no intro today"}
+	}
+	pics := today.Intro.Pictures
+	if len(pics) > 1 && len(d.CreditLines) != 0 && !slices.ContainsFunc(pics, func(n int) bool { return n < 0 }) {
+		pics = append(slices.Clone(pics), -1) // front/title.go (NoCredits: no CreditLines): gobox's credits page 0 after the pictures
+	}
+	if len(s.Steps) != len(pics) {
+		return []string{fmt.Sprintf("%d steps, today's %v", len(s.Steps), pics)}
+	}
+	for i, st := range s.Steps {
+		n := pics[i]
+		switch st.Kind {
+		case StepPicture:
+			if got, want := layers(st.Layers, today.Steps[n].Layers), bare(today.Steps[n].Layers); !reflect.DeepEqual(got, want) {
+				diffs = append(diffs, fmt.Sprintf("step %d:\n got %+v\nwant %+v", i, got, want))
+			}
+		case StepCredits:
+			if n != -(st.Page + 1) {
+				diffs = append(diffs, fmt.Sprintf("step %d: credits page %d, today %d", i, st.Page, n))
+			}
+		default:
+			diffs = append(diffs, fmt.Sprintf("step %d: kind %d", i, st.Kind))
+		}
+	}
+	if got, want := layers(s.Backdrop, d.TitleBackdrop), bare(d.TitleBackdrop); len(s.Backdrop)+len(d.TitleBackdrop) != 0 && !reflect.DeepEqual(got, want) {
+		diffs = append(diffs, fmt.Sprintf("backdrop:\n got %+v\nwant %+v", got, want))
+	}
+	var lines []game.Credit
+	for _, c := range s.Credits {
+		lines = append(lines, game.Credit{X: c.X, Y: c.Y, Colour: c.Colour, Text: c.Text, Page: c.Page})
+	}
+	if !reflect.DeepEqual(lines, d.CreditLines) {
+		diffs = append(diffs, fmt.Sprintf("credits %+v\nwant %+v", lines, d.CreditLines))
+	}
+	return diffs
 }

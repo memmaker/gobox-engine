@@ -2,14 +2,14 @@ package engine
 
 import (
 	"fmt"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 	"slices"
 	"strconv"
 )
 
 // event records ev, after the effects before it (present).
-func (e *Engine) event(ev play.Event) {
+func (e *Engine) event(ev game.Event) {
 	e.present()
 	e.events = append(e.events, ev)
 }
@@ -22,8 +22,8 @@ func (e *Engine) pushCombat() {
 	e.ext.battleLog, e.ext.panel = nil, rules.NoChar
 	e.cs = combatState{}
 	e.combatSetup()
-	if f, ok := e.build().(play.Fighting); ok { // the board before the first turn: the step's fight events play from it
-		e.event(play.Engaged{At: f})
+	if f, ok := e.build().(game.Fighting); ok { // the board before the first turn: the step's fight events play from it
+		e.event(game.Engaged{At: f})
 	}
 	if e.ruleset().Verdict(rules.Fight{}) != rules.FightOn {
 		e.cs.phase = fightOver
@@ -291,7 +291,7 @@ func (e *Engine) castRun(w castWhat, aims []rules.Aim) {
 // must be answered); its reply casts w (castChosen).
 func (e *Engine) askCastChoice(w castWhat, aims []rules.Aim, aim rules.SpellAim) {
 	e.cs.choice = &castChoice{w: w, aims: aims}
-	pq := &playQuestion{q: play.Question{Text: aim.Choose, Replies: aim.Choices, NoEsc: true}}
+	pq := &playQuestion{q: game.Question{Text: aim.Choose, Replies: aim.Choices, NoEsc: true}}
 	for i := range aim.Choices {
 		pq.calls = append(pq.calls, pendingCall{kind: callCastChoice, choice: int32(i)})
 	}

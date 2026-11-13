@@ -10,16 +10,16 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // The game's fields: those of every area's layout but the locals, by name.
 
 // saved: field f keeps cells of its own (an original save's records carry
 // them; saveimport.go).
-func (e *Engine) saved(f script.Field) bool {
+func (e *Engine) saved(f ecl.Field) bool {
 	switch f.Owner {
-	case script.OwnerGame, script.OwnerArea, script.OwnerMember, script.OwnerLocal:
+	case ecl.OwnerGame, ecl.OwnerArea, ecl.OwnerMember, ecl.OwnerLocal:
 	default:
 		return false
 	}
@@ -31,20 +31,20 @@ func (e *Engine) saved(f script.Field) bool {
 
 // gameFields are the saved fields of every area's layout (the game's state
 // is kept across areas), each once.
-func (e *Engine) gameFields() []script.Field {
+func (e *Engine) gameFields() []ecl.Field {
 	if e.savedFields == nil {
 		fields, err := layoutGameFields(os.DirFS(e.scriptDir()))
 		if err != nil {
 			panic(err) // the game's script layout is broken: a broken game folder
 		}
-		e.savedFields = slices.DeleteFunc(fields, func(f script.Field) bool { return !e.saved(f) })
+		e.savedFields = slices.DeleteFunc(fields, func(f ecl.Field) bool { return !e.saved(f) })
 	}
 	return e.savedFields
 }
 
 // layoutGameFields are the fields other than the locals of the layouts in
 // data (global.txt and every area<N>.txt over it), each name once.
-func layoutGameFields(data fs.FS) ([]script.Field, error) {
+func layoutGameFields(data fs.FS) ([]ecl.Field, error) {
 	names, err := fs.Glob(data, "layout/area*.txt")
 	if err != nil {
 		return nil, err
@@ -57,10 +57,10 @@ func layoutGameFields(data fs.FS) ([]script.Field, error) {
 		}
 		areas = append(areas, a)
 	}
-	var out []script.Field
+	var out []ecl.Field
 	seen := map[string]bool{}
 	for _, a := range areas {
-		l, err := script.ReadLayout(data, a)
+		l, err := ecl.ReadLayout(data, a)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +68,7 @@ func layoutGameFields(data fs.FS) ([]script.Field, error) {
 			return nil, errors.New("no layout/global.txt")
 		}
 		for _, f := range l.Fields {
-			if f.Owner != script.OwnerLocal && !seen[f.Name] {
+			if f.Owner != ecl.OwnerLocal && !seen[f.Name] {
 				seen[f.Name] = true
 				out = append(out, f)
 			}
@@ -81,7 +81,7 @@ func layoutGameFields(data fs.FS) ([]script.Field, error) {
 // into its array's cells: a save written while the layout had the element as
 // a field of its own (POR's QuestSokalKeep before QuestTable, cotab's Local00
 // before Locals) loads unchanged. A name some field of fields has stays.
-func foldElements(c fieldCells, fields []script.Field) {
+func foldElements(c fieldCells, fields []ecl.Field) {
 	own := map[string]bool{}
 	for _, f := range fields {
 		own[f.Name] = true

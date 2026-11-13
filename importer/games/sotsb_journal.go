@@ -3,11 +3,11 @@ package games
 import (
 	"sync"
 
-	"gobox/game/journal"
+	"gobox/game"
 )
 
-var book = sync.OnceValue(func() *journal.Book {
-	b, err := journal.Load(embeddedJournal("sotsb"), "JOURNAL.TXT")
+var book = sync.OnceValue(func() *game.JournalBook {
+	b, err := game.LoadJournal(embeddedJournal("sotsb"), "JOURNAL.TXT")
 	if err != nil {
 		panic(err) // built in: never
 	}

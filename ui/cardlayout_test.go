@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -21,19 +20,19 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 	glyph := func(byte) [8]byte { return [8]byte{0x7e, 0x42, 0x42, 0x42, 0x42, 0x42, 0x7e, 0} }
 	note := Note{Glyph: glyph, Font: func(byte, bool) [8]byte { return glyph(0) }}
 	var members []game.Member
-	var allowed play.Allowed // each card's menu: View, Items, Cast, Memorize, Drop
+	var allowed game.Allowed // each card's menu: View, Items, Cast, Memorize, Drop
 	for i := range 8 {
 		members = append(members, game.Member{Name: fmt.Sprint("M", i), HP: 1, MaxHP: 1})
-		allowed.Plain = append(allowed.Plain, play.Ready{Member: i}, play.Cast{Member: i}, play.Memorize{Member: i}, play.DropMember{Member: i})
+		allowed.Plain = append(allowed.Plain, game.Ready{Member: i}, game.Cast{Member: i}, game.Memorize{Member: i}, game.DropMember{Member: i})
 	}
 	presenter := func() *Presenter { // camp over the 3D view and its minimap the state gave
-		common := play.Common{Party: members, Allowed: allowed, Adventure: true, Where: game.Where{Searching: true}} // the Sweeping label
-		g, f := playGame(play.Exploring{Common: common, Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
-			Walls: play.Walls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}})
+		common := game.Common{Party: members, Allowed: allowed, Adventure: true, Where: game.Where{Searching: true}} // the Sweeping label
+		g, f := playGame(game.Exploring{Common: common, Map: game.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
+			Walls: game.MapWalls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}})
 		p := &Presenter{}
 		p.SetEngine(g)
 		p.walls()
-		f.st = play.Camping{Common: common}
+		f.st = game.Camping{Common: common}
 		return p
 	}
 	for _, sz := range [][2]int{{1920, 1200}, {1388, 1190}, {1280, 800}} {

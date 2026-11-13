@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	"gobox/gpu"
-	"gobox/gpu/vector"
 )
 
 // ScrollBar is every scrolled list's bar: N lines, Rows of them shown from
@@ -43,7 +42,7 @@ func (s ScrollBar) Draw(fill func(image.Rectangle, color.RGBA), c BarColors) {
 // DrawOn paints the bar on dst.
 func (s ScrollBar) DrawOn(dst *gpu.Image, c BarColors) {
 	s.Draw(func(r image.Rectangle, c color.RGBA) {
-		vector.DrawFilledRect(dst, float32(r.Min.X), float32(r.Min.Y), float32(r.Dx()), float32(r.Dy()), c)
+		gpu.DrawFilledRect(dst, float32(r.Min.X), float32(r.Min.Y), float32(r.Dx()), float32(r.Dy()), c)
 	}, c)
 }
 

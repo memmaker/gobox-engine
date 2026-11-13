@@ -4,7 +4,7 @@ import (
 	"gobox/rules1e"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // TestStackAndToasts: a second like stack bought joins the first and the
@@ -12,7 +12,7 @@ import (
 // refusal tell it in the outcome, a journal text adds to Lore (BUG-CLASSES 70).
 func TestStackAndToasts(t *testing.T) {
 	e := devPlay(t, "shop")
-	if _, ok := e.build().(play.Trading); !ok {
+	if _, ok := e.build().(game.Trading); !ok {
 		t.Fatalf("shop scene: %T", e.build())
 	}
 	a := e.state().RandomItem(rules1e.ItemArrow)
@@ -30,18 +30,18 @@ func TestStackAndToasts(t *testing.T) {
 		}
 		return name, count, n
 	}
-	said := func(o play.Outcome) string {
+	said := func(o game.Outcome) string {
 		for _, ev := range o.Events {
 			switch ev := ev.(type) {
-			case play.Narrated:
+			case game.Narrated:
 				return ev.Text
-			case play.Refused:
+			case game.Refused:
 				return ev.Why
 			}
 		}
 		return ""
 	}
-	buy := play.Buy{Member: e.sel, Item: e.goods()[0]}
+	buy := game.Buy{Member: e.sel, Item: e.goods()[0]}
 	if o, err := e.doNow(buy); err != nil || said(o) != "Bought!" {
 		t.Errorf("after a buy: %q %v", said(o), err)
 	}

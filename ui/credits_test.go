@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"gobox/game"
-	"gobox/game/play"
 	"image"
 	"os"
 	"strings"
@@ -175,8 +174,8 @@ func TestCreditsPicture(t *testing.T) {
 		}
 		white := bytes.Repeat([]byte{15}, 320*200)
 		title := game.Layer{Picture: game.Picture{File: "TITLE", W: 320, H: 200, Pixels: white, Clear: -1}, At: image.Rect(0, 0, 320, 200)}
-		p, _ := presenterOn(play.Scene{Kind: play.SceneTitle, Full: true, Intro: &game.Intro{},
-			Steps: map[int]play.TitleStep{0: {Credits: true, Layers: []game.Layer{title}}}})
+		p, _ := presenterOn(game.Scene{Kind: game.SceneTitle, Full: true, Intro: &game.Intro{},
+			Steps: map[int]game.TitleStep{0: {Credits: true, Layers: []game.Layer{title}}}})
 		p.drawGeneric(dst, note)
 		if strips != 1 {
 			t.Errorf("%v: %d strips drawn", sz, strips)

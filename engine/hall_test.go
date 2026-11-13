@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // The training hall (opProgram 0) puts the party menu up; Train shows the
@@ -24,10 +24,10 @@ func TestHallTrain(t *testing.T) {
 	e.push(cont{kind: kDrawMain})
 	e.partyMenu(true, true)
 	e.Advance()
-	if _, ok := e.build().(play.Assembling); !ok || !e.ext.hall {
+	if _, ok := e.build().(game.Assembling); !ok || !e.ext.hall {
 		t.Fatalf("hall's menu: %T hall %v", e.build(), e.ext.hall)
 	}
-	training := func() bool { tr, ok := e.build().(play.Trading); return ok && tr.Kind == play.TradeTraining }
+	training := func() bool { tr, ok := e.build().(game.Trading); return ok && tr.Kind == game.TradeTraining }
 	if err := e.openTraining(0); err != nil || !training() || commonOf(e.build()).Adventure {
 		t.Fatalf("Train: %v, training %v", err, training())
 	}
@@ -36,7 +36,7 @@ func TestHallTrain(t *testing.T) {
 	}
 	e.begin()
 	e.Advance()
-	_, exploring := e.build().(play.Exploring)
+	_, exploring := e.build().(game.Exploring)
 	adventure := commonOf(e.build()).Adventure
 	if e.ext.hall {
 		t.Error("still the hall's menu after Begin")
@@ -55,7 +55,7 @@ func TestPicturesAreArt(t *testing.T) {
 	e.Explore = true
 	e.Init()
 	e.Start(e.Play)
-	for _, a := range []play.Action{nil, play.MakeCamp{}, play.BreakCamp{}, play.MakeCamp{}, play.SelectMember{Member: 0}, play.BreakCamp{}} {
+	for _, a := range []game.Action{nil, game.MakeCamp{}, game.BreakCamp{}, game.MakeCamp{}, game.SelectMember{Member: 0}, game.BreakCamp{}} {
 		if a != nil {
 			if _, err := e.doNow(a); err != nil {
 				t.Fatalf("%T: %v", a, err)
@@ -119,16 +119,16 @@ func TestShopTemplePending(t *testing.T) {
 	e.Explore = true
 	e.Init()
 	e.Start(e.Play)
-	trading := func(k play.TradeKind) bool {
+	trading := func(k game.TradeKind) bool {
 		e.Advance()
-		tr, ok := e.build().(play.Trading)
+		tr, ok := e.build().(game.Trading)
 		return ok && tr.Kind == k
 	}
-	exploring := func() bool { _, ok := e.build().(play.Exploring); return ok }
+	exploring := func() bool { _, ok := e.build().(game.Exploring); return ok }
 	left := func() bool { return len(e.k) == 0 } // the cont is done: the script goes on
 	e.push(cont{kind: kNop})
 	e.Shop()
-	if e.pending != PendShop || !trading(play.TradeShop) || exploring() {
+	if e.pending != PendShop || !trading(game.TradeShop) || exploring() {
 		t.Fatalf("shop: pending %v, %T", e.pending, e.build())
 	}
 	if e.cure(0, 2) == nil {
@@ -140,22 +140,22 @@ func TestShopTemplePending(t *testing.T) {
 	if e.Leave() == nil {
 		t.Error("left the shop with the goods up")
 	}
-	if e.CloseItems(true); !trading(play.TradeShop) {
+	if e.CloseItems(true); !trading(game.TradeShop) {
 		t.Fatal("back from the goods: no shop")
 	}
 	if err := e.Leave(); err != nil || !left() {
 		t.Fatalf("Leave: %v, script on %v", err, left())
 	}
-	if e.pending != PendNone || trading(play.TradeShop) || !exploring() {
+	if e.pending != PendNone || trading(game.TradeShop) || !exploring() {
 		t.Fatalf("after the shop: pending %v, %T", e.pending, e.build())
 	}
 	e.push(cont{kind: kNop})
 	e.Temple()
 	e.state().Purse.Gold = 0
-	if !trading(play.TradeTemple) || e.cure(0, 2) == nil {
+	if !trading(game.TradeTemple) || e.cure(0, 2) == nil {
 		t.Fatal("temple: a cure without money")
 	}
-	if err := e.Leave(); err != nil || !left() || trading(play.TradeTemple) {
+	if err := e.Leave(); err != nil || !left() || trading(game.TradeTemple) {
 		t.Fatalf("Leave the temple: %v, script on %v", err, left())
 	}
 }
@@ -176,7 +176,7 @@ func TestTempleWords(t *testing.T) {
 	e.push(cont{kind: kNop})
 	e.Temple()
 	e.Advance()
-	tr, ok := e.build().(play.Trading)
+	tr, ok := e.build().(game.Trading)
 	if !ok || len(tr.Services) < 3 || !tr.Services[2].Declines || tr.Services[1].Declines || !tr.Services[2].Only || tr.Services[0].Only {
 		t.Fatalf("services %+v (%T)", tr.Services, e.build())
 	}

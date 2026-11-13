@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gobox/asset"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"io/fs"
 	"os"
@@ -98,7 +98,7 @@ func ReadGameTables(adv string) (GameTables, error) {
 		return GameTables{}, fmt.Errorf("%s and %s: not found (run the game's import)", GameTablesFile, PortraitsFile)
 	}
 	if t.Dialect != 0 {
-		t.Script = script.Versions[script.VersionID(t.Dialect)]
+		t.Script = ecl.Versions[ecl.VersionID(t.Dialect)]
 	}
 	return t, nil
 }
@@ -106,4 +106,3 @@ func ReadGameTables(adv string) (GameTables, error) {
 // TreasureSetsFile is GameTables.TreasureSets in the adventure's data folder (DataDir),
 // written by the game's import (pod).
 const TreasureSetsFile = "treasuresets.json"
-

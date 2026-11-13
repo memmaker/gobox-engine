@@ -8,7 +8,7 @@ package ui
 import (
 	"cmp"
 	"errors"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 	"slices"
 )
@@ -38,17 +38,17 @@ func (p *Presenter) viewAct(a Action) bool {
 		case ActMember:
 			do(func(e *classicGame) error { return e.ShowMember(n) })
 		case ActReady:
-			do(func(e *classicGame) error { return e.do(play.Ready{Member: e.sel(-1), Item: a.Item, Count: a.X}) })
+			do(func(e *classicGame) error { return e.do(game.Ready{Member: e.sel(-1), Item: a.Item, Count: a.X}) })
 		case ActUse:
 			p.useCall(a.Item, 0, -1, false)
 		case ActDrop:
-			do(func(e *classicGame) error { return e.do(play.Drop{Member: e.sel(-1), Item: a.Item}) })
+			do(func(e *classicGame) error { return e.do(game.Drop{Member: e.sel(-1), Item: a.Item}) })
 		case ActSell:
-			do(func(e *classicGame) error { return e.do(play.Sell{Member: e.sel(-1), Item: a.Item}) })
+			do(func(e *classicGame) error { return e.do(game.Sell{Member: e.sel(-1), Item: a.Item}) })
 		case ActBuy:
 			do(func(e *classicGame) error { return e.Buy(a.Item) })
 		case ActTakeAll:
-			do(func(e *classicGame) error { return e.do(play.Take{Item: rules.NoItem, All: true}) })
+			do(func(e *classicGame) error { return e.do(game.Take{Item: rules.NoItem, All: true}) })
 		case ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
 			if a.Y == 1 {
 				return false
@@ -72,7 +72,7 @@ func (p *Presenter) viewAct(a Action) bool {
 			if k == ActOverview {
 				n = -1
 			}
-			do(func(e *classicGame) error { return e.do(play.OpenItems{Member: n}) })
+			do(func(e *classicGame) error { return e.do(game.OpenItems{Member: n}) })
 		case ActTrade: // to whom (Y 1: asked, X the member), then the game's Trade
 			if a.Y == 1 {
 				return false
@@ -92,9 +92,9 @@ func (p *Presenter) viewAct(a Action) bool {
 		}
 		do(func(e *classicGame) error { return e.OpenSheet(n) })
 	case k == ActInventory && (p.exploring() || p.campUp()):
-		do(func(e *classicGame) error { return e.do(play.OpenItems{Member: n}) })
+		do(func(e *classicGame) error { return e.do(game.OpenItems{Member: n}) })
 	case k == ActItems && turn:
-		do(func(e *classicGame) error { return e.do(play.OpenItems{Member: -1}) })
+		do(func(e *classicGame) error { return e.do(game.OpenItems{Member: -1}) })
 	default:
 		return false
 	}

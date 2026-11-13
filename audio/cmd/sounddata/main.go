@@ -1,9 +1,9 @@
 // Command sounddata writes a game's sound tables as JSON for audio.NewDriver
-// (sounddata.Decode), read from START.EXE's sound driver:
+// (audio.DecodeSoundData), read from START.EXE's sound driver:
 //
 //	go run gobox/audio/cmd/sounddata -segment 0x7E4 -jumptable 354 ... START.EXE > sounddata.json
 //
-// The per-game values are in audio/API.md. A game's import calls sounddata.Decode itself.
+// The per-game values are in audio/API.md. A game's import calls audio.DecodeSoundData itself.
 package main
 
 import (
@@ -14,11 +14,11 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/audio/sounddata"
+	"gobox/audio"
 )
 
 func main() {
-	l := sounddata.Layout{Commands: map[int]string{}}
+	l := audio.SoundDataLayout{Commands: map[int]string{}}
 	// 0x7E4*16 is given as a paragraph: -segment 0x7E4; the rest are byte offsets
 	flag.IntVar(&l.Segment, "segment", 0, "the driver's segment, in paragraphs of the load image")
 	flag.IntVar(&l.JumpTable, "jumptable", 0, "the script commands' handler table, from command 250 on")
@@ -50,7 +50,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	b, err := sounddata.Decode(exe, l)
+	b, err := audio.DecodeSoundData(exe, l)
 	if err != nil {
 		log.Fatal(err)
 	}

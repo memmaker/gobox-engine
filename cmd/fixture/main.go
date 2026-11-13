@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"gobox/asset/orig"
-	eclscript "gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/engine"
 	"gobox/fixture"
 	"gobox/importer/games"
@@ -34,7 +34,7 @@ var rawLayout = fixture.RawLayout{Size: 0x3351, Disk: 0, Area: 1, Game: 0x801, E
 	AreaBlock: 0x1E4, AreaGeo: 0x18A, AreaWallBlock: 0x3F4, AreaWallSlot: 0x3FA}
 
 // rawScriptLayouts names the script fields -set sets, per raw-save game.
-var rawScriptLayouts = map[string]func() (*eclscript.Layout, error){
+var rawScriptLayouts = map[string]func() (*ecl.Layout, error){
 	"cotab": games.CotabScriptLayout,
 	"sotsb": games.SotsbScriptLayout,
 }

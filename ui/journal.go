@@ -2,7 +2,6 @@ package ui
 
 import (
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/input"
 	"image"
 	"image/color"
@@ -75,7 +74,7 @@ func journalRows(qs []game.Quest) []int {
 }
 
 // journalTabRows is the list of tab: the quests or the notes, then Close.
-func journalTabRows(tab int, c play.Common) []int {
+func journalTabRows(tab int, c game.Common) []int {
 	if tab == 0 {
 		return journalRows(c.Quests)
 	}
@@ -87,7 +86,7 @@ func journalTabRows(tab int, c play.Common) []int {
 }
 
 // setTab shows tab t, the highlight on its first row.
-func (j *journalUI) setTab(t int, c play.Common) {
+func (j *journalUI) setTab(t int, c game.Common) {
 	j.tab, j.sel, j.top, j.at = t, 0, 0, -1
 	j.rows = journalTabRows(t, c)
 	j.pick(1)
@@ -107,7 +106,7 @@ func (j *journalUI) pick(d int) {
 }
 
 // common is the state now's Common (zero: no game set).
-func (p *Presenter) common() play.Common { return play.CommonOf(p.state()) }
+func (p *Presenter) common() game.Common { return game.CommonOf(p.state()) }
 
 func (p *Presenter) openJournal() {
 	p.journal.open = true
@@ -150,7 +149,7 @@ func (p *Presenter) journalKey(k uint16) {
 }
 
 // removable is the note under the highlight the player may remove (-1 none).
-func (j *journalUI) removable(c play.Common) int {
+func (j *journalUI) removable(c game.Common) int {
 	if j.tab != 1 || j.sel >= len(j.rows) || j.rows[j.sel] < 0 || j.rows[j.sel] >= len(c.Lore) {
 		return -1
 	}
@@ -158,7 +157,7 @@ func (j *journalUI) removable(c play.Common) int {
 }
 
 // askRemove asks whether to remove the note under the highlight, No first.
-func (j *journalUI) askRemove(c play.Common) {
+func (j *journalUI) askRemove(c game.Common) {
 	if j.removable(c) >= 0 {
 		j.ask, j.askSel = true, 1
 	}

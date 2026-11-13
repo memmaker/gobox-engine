@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	"gobox/asset/orig"
-	"gobox/audio/sounddata"
-	"gobox/ecl/script"
+	"gobox/audio"
+	"gobox/ecl"
 	"gobox/engine"
 	"gobox/importer"
 	"gobox/rules"
@@ -92,7 +92,7 @@ func writeSwitchData(dst string) error {
 	if err := engine.WriteGameData(data, PodStaticData()); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(data, engine.SoundFile), []byte(sounddata.Silent), 0o644); err != nil { // AdLib only: no speaker or Tandy tables
+	if err := os.WriteFile(filepath.Join(data, engine.SoundFile), []byte(audio.SilentSoundData), 0o644); err != nil { // AdLib only: no speaker or Tandy tables
 		return err
 	}
 	if err := importer.WriteJSON(filepath.Join(data, engine.GameTablesFile), tables); err != nil {
@@ -104,7 +104,7 @@ func writeSwitchData(dst string) error {
 	if err := ImportJournal("pod", filepath.Join(dst, engine.JournalDir)); err != nil {
 		return err
 	}
-	return importer.WriteJSON(filepath.Join(dst, "scripts", script.EntriesFile), JournalEntries())
+	return importer.WriteJSON(filepath.Join(dst, "scripts", ecl.EntriesFile), JournalEntries())
 }
 
 // importRules writes GAME.EXE's tables (tables.json, data segment paragraph

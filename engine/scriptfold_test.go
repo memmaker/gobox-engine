@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"os"
 	"testing"
 )
@@ -15,11 +15,11 @@ func TestVendorGatesFolded(t *testing.T) {
 		if err != nil {
 			continue
 		}
-		names, err := script.ReadNames(os.DirFS(e.scriptDir()), area, false, script.V1)
+		names, err := ecl.ReadNames(os.DirFS(e.scriptDir()), area, false, ecl.V1)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if f := script.FoldVendorGates(s, area, names); len(f) != 0 {
+		if f := ecl.FoldVendorGates(s, area, names); len(f) != 0 {
 			t.Errorf("area %d: unfolded %+v", area, f)
 		}
 	}
@@ -33,10 +33,10 @@ func TestVendorGatesFolded(t *testing.T) {
 			t.Fatal(err)
 		}
 		i := s.Labels[c.vendor]
-		for i < len(s.Code) && s.Code[i].Op != script.OpGoto && s.Code[i].Op != script.OpExit {
+		for i < len(s.Code) && s.Code[i].Op != ecl.OpGoto && s.Code[i].Op != ecl.OpExit {
 			i++
 		}
-		if in := s.Code[i]; in.Op != script.OpGoto || in.Args[0].N != s.Labels[c.no] {
+		if in := s.Code[i]; in.Op != ecl.OpGoto || in.Args[0].N != s.Labels[c.no] {
 			t.Errorf("area %d: %s leaves by %+v, not %s", c.area, c.vendor, in, c.no)
 		}
 	}

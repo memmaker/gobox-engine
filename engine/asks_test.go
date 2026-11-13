@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/game/play"
+	"gobox/game"
 	"testing"
 )
 
@@ -16,7 +16,7 @@ func TestTradeRefused(t *testing.T) {
 	e.Explore = true
 	e.Init()
 	e.Start(e.Play)
-	if _, err := e.doNow(play.Give{From: 0, To: 1, Item: 0}); err == nil { // one party inventory: nothing to give
+	if _, err := e.doNow(game.Give{From: 0, To: 1, Item: 0}); err == nil { // one party inventory: nothing to give
 		t.Fatal("Give: no refusal")
 	}
 }

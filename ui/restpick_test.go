@@ -3,7 +3,7 @@ package ui
 import (
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // The rest picker: Hours, Add five times, Mins Up Up Down, Rest: 0d 5h 5m, 305 minutes.
@@ -33,7 +33,7 @@ func TestRestPick(t *testing.T) {
 // are not "Stop resting?".
 func TestRestNotPacedOverTurn(t *testing.T) {
 	var p Presenter
-	p.board = &play.Combat{Turn: &play.Turn{Unit: 1}}
+	p.board = &game.Combat{Turn: &game.Turn{Unit: 1}}
 	p.Pace()
 	if len(p.Calls()) != 0 {
 		t.Fatal("the rest stepped over the member's turn")

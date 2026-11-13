@@ -10,7 +10,6 @@ import (
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/game"
-	"gobox/game/play"
 )
 
 func testSheet(own bool) *game.ShipSheet {
@@ -20,7 +19,7 @@ func testSheet(own bool) *game.ShipSheet {
 }
 
 func TestShipSheetFoeUnknown(t *testing.T) {
-	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: testFight(), ShipSheet: testSheet(false)}, Ask: &play.Ask{Kind: game.Choice}}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: testFight(), ShipSheet: testSheet(false)}, Ask: &game.Ask{Kind: game.Choice}}
 	c := fightPage(&Presenter{}, v)
 	cellAt(t, c, 1, 1, "name:", 14, 8)
 	cellAt(t, c, 10, 1, "MAELSTROM RIG", 15, 8)
@@ -55,7 +54,7 @@ func TestShipSheetFoeUnknown(t *testing.T) {
 func TestShipSheetRocket(t *testing.T) {
 	f := testFight()
 	f.Log, f.Pause = nil, "Press button or enter to continue"
-	v := sfView{Screen: &game.Screen{Kind: game.ScreenShipSheet, SpaceFight: f, ShipSheet: testSheet(true)}, Ask: &play.Ask{Kind: game.Choice}}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenShipSheet, SpaceFight: f, ShipSheet: testSheet(true)}, Ask: &game.Ask{Kind: game.Choice}}
 	if v.show(&Presenter{}).sfOf() == nil {
 		t.Fatal("no fight screen for the sheet")
 	}
@@ -96,7 +95,7 @@ func TestSpaceFightStatusLineAndPad(t *testing.T) {
 	}
 	// the crew menu's padding comes with Break only
 	f.StatusLine = ""
-	v.Ask = &play.Ask{Kind: game.Choice, Options: []play.Option{{Label: "Hull"}, {Label: "Sens"}}}
+	v.Ask = &game.Ask{Kind: game.Choice, Options: []game.Option{{Label: "Hull"}, {Label: "Sens"}}}
 	c = fightPage(&Presenter{}, v)
 	cellAt(t, c, 1, 19, "one", 10, 0)
 	cellAt(t, c, 1, 20, "two", 10, 0)
@@ -108,7 +107,7 @@ func TestSpaceFightDestroyedPause(t *testing.T) {
 	f := testFight()
 	f.Log = []game.Message{{Tone: game.ToneLoud, Text: "Enemy ship destroyed."}}
 	f.Pause = "Press button or enter to continue"
-	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: &play.Ask{Kind: game.Choice}}
+	v := sfView{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}, Ask: &game.Ask{Kind: game.Choice}}
 	c := fightPage(&Presenter{}, v)
 	cellAt(t, c, 1, 19, "Enemy ship destroyed.", 15, 0)
 	cellAt(t, c, 0, 24, f.Pause, 15, 0)

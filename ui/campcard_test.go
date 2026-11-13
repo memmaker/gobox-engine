@@ -5,13 +5,12 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // campPresenter is a presenter over a camp of one member, Ann.
 func campPresenter() *Presenter {
-	g, _ := playGame(play.Camping{Common: play.Common{Party: []game.Member{{Name: "Ann"}},
-		Allowed: play.Allowed{Plain: []play.Action{play.EditIcon{Member: 0}, play.DropMember{Member: 0}}}}}) // the card: View, Icon (not drawn), Drop
+	g, _ := playGame(game.Camping{Common: game.Common{Party: []game.Member{{Name: "Ann"}},
+		Allowed: game.Allowed{Plain: []game.Action{game.EditIcon{Member: 0}, game.DropMember{Member: 0}}}}}) // the card: View, Icon (not drawn), Drop
 	p := &Presenter{}
 	p.SetEngine(g)
 	return p

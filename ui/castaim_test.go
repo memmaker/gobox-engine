@@ -5,31 +5,30 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
 // castGame is a fight whose turn offers an aimed spell; lone: the aim is all
 // the turn allows (BR's Target), which gobox asks for at once.
 type castGame struct {
-	sent []play.Action
+	sent []game.Action
 	lone bool
 }
 
 func (r *castGame) Version() uint64 { return fresh() }
 
-func (r *castGame) State() play.State {
+func (r *castGame) State() game.State {
 	sq := []image.Point{{1, 1}, {2, 1}, {3, 1}, {4, 1}}
-	al := play.Allowed{Aimed: []play.Aimed{{Action: play.Cast{Spell: 7}, Squares: sq, Targets: 1}}, Plain: []play.Action{play.EndTurn{}}}
+	al := game.Allowed{Aimed: []game.Aimed{{Action: game.Cast{Spell: 7}, Squares: sq, Targets: 1}}, Plain: []game.Action{game.EndTurn{}}}
 	if r.lone {
-		al = play.Allowed{Aimed: []play.Aimed{{Action: play.Shoot{}, Squares: sq, Targets: 1}}}
+		al = game.Allowed{Aimed: []game.Aimed{{Action: game.Shoot{}, Squares: sq, Targets: 1}}}
 	}
-	return play.Fighting{Common: play.Common{Allowed: al, Party: []game.Member{{Spells: []game.SpellRef{{ID: 7, Name: "Magic Missile", Range: 6}}}}},
-		Field: play.Battlefield{Size: image.Pt(6, 6), Turn: 1, Units: []game.Unit{{ID: 1, Member: 0, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(3, 1), Foe: true}}}}
+	return game.Fighting{Common: game.Common{Allowed: al, Party: []game.Member{{Spells: []game.SpellRef{{ID: 7, Name: "Magic Missile", Range: 6}}}}},
+		Field: game.Battlefield{Size: image.Pt(6, 6), Turn: 1, Units: []game.Unit{{ID: 1, Member: 0, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(3, 1), Foe: true}}}}
 }
-func (r *castGame) Do(a play.Action) (play.Outcome, error) {
+func (r *castGame) Do(a game.Action) (game.Outcome, error) {
 	r.sent = append(r.sent, a)
-	return play.Outcome{}, nil
+	return game.Outcome{}, nil
 }
 func (r *castGame) Save() ([]byte, error) { return nil, nil }
 func (r *castGame) Load([]byte) error     { return nil }
@@ -40,7 +39,7 @@ func TestCastAimWithTurn(t *testing.T) {
 	r := &castGame{}
 	aimKeys(r, true)
 	for _, a := range r.sent {
-		if c, ok := a.(play.Cast); ok && c.Spell == 7 {
+		if c, ok := a.(game.Cast); ok && c.Spell == 7 {
 			return
 		}
 	}
@@ -53,7 +52,7 @@ func TestRulesAimWithTurn(t *testing.T) {
 	r := &castGame{lone: true}
 	aimKeys(r, false)
 	for _, a := range r.sent {
-		if _, ok := a.(play.Shoot); ok {
+		if _, ok := a.(game.Shoot); ok {
 			return
 		}
 	}

@@ -8,7 +8,6 @@ package ui
 import (
 	"errors"
 	"gobox/game"
-	"gobox/game/play"
 	"slices"
 )
 
@@ -115,7 +114,7 @@ func AskAct(h RuleHost, a Action) (taken, done bool) {
 			return true, true
 		}
 	case s.Resting && !s.Battle && a.Kind != ActPoint && a.Kind != ActResize && a.Kind != ActMainMenu: // a fight's turn takes its own decisions
-		AskYes(h, "Stop resting?", func() { h.Call(func(e *classicGame) { e.do(play.StopRest{}) }) })
+		AskYes(h, "Stop resting?", func() { h.Call(func(e *classicGame) { e.do(game.StopRest{}) }) })
 		return true, true
 	}
 	return false, false
@@ -187,32 +186,32 @@ func Gate(h RuleHost, l *FrontLoot, d *game.Door) (string, []GateItem) {
 			items = append(items, GateItem{text, do})
 		}
 	}
-	door := func(k play.DoorWay) func(e *classicGame) {
-		return func(e *classicGame) { e.do(play.TryDoor{Way: k}) }
+	door := func(k game.DoorWay) func(e *classicGame) {
+		return func(e *classicGame) { e.do(game.TryDoor{Way: k}) }
 	}
 	switch {
 	case l != nil:
 		add(true, "View", func(e *classicGame) { e.LootView(-1) })
 		add(l.Take, "Take", func(e *classicGame) { e.LootTake(-1) })
-		add(l.Detect, "Detect", func(e *classicGame) { e.do(play.LootDetect{}) })
+		add(l.Detect, "Detect", func(e *classicGame) { e.do(game.LootDetect{}) })
 		add(l.Share, "Share", func(e *classicGame) {
-			e.do(play.LootShare{})
+			e.do(game.LootShare{})
 		})
 		add(l.Pool, "Pool", func(e *classicGame) {
-			e.do(play.PoolCoins{Member: e.sel(-1)})
+			e.do(game.PoolCoins{Member: e.sel(-1)})
 		})
 		add(l.Status, "Status", func(e *classicGame) {
-			e.do(play.LootStatus{})
+			e.do(game.LootStatus{})
 		})
 		add(true, "Exit", func(e *classicGame) {
 			AskSure(h, e.LootLeave(false), func() { h.Call(func(e *classicGame) { e.LootLeave(true) }) })
 		})
 		return "", items
 	case d != nil:
-		add(d.Bash, "Bash", door(play.DoorBash))
-		add(d.Pick, "Pick", door(play.DoorPick))
-		add(d.Knock, "Knock", door(play.DoorKnock))
-		add(true, "Exit", door(play.DoorExit))
+		add(d.Bash, "Bash", door(game.DoorBash))
+		add(d.Pick, "Pick", door(game.DoorPick))
+		add(d.Knock, "Knock", door(game.DoorKnock))
+		add(true, "Exit", door(game.DoorExit))
 		return "Locked.", items
 	}
 	return "", nil

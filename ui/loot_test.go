@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules"
 )
 
@@ -40,7 +39,7 @@ func TestLoot(t *testing.T) {
 // with the treasure, its money and options) and
 // its acts are TakeLoot.
 func TestLootScreen(t *testing.T) {
-	treasure := play.Looting{Common: play.Common{Party: []game.Member{{}}}, Items: []game.Item{{Name: "Gauntlets"}}, Money: map[string]int{game.Gold: 120, game.Gems: 2}}
+	treasure := game.Looting{Common: game.Common{Party: []game.Member{{}}}, Items: []game.Item{{Name: "Gauntlets"}}, Money: map[string]int{game.Gold: 120, game.Gems: 2}}
 	announced := treasure
 	announced.Announce = true
 	f := &fake{st: announced}
@@ -50,7 +49,7 @@ func TestLootScreen(t *testing.T) {
 		t.Fatalf("no found message first: %+v", q)
 	}
 	g.Answer(Action{Kind: ActOK})
-	if len(f.sent) != 1 || f.sent[0] != (play.Continue{}) {
+	if len(f.sent) != 1 || f.sent[0] != (game.ContinueAction{}) {
 		t.Fatalf("OK on the found message sent %v", f.sent)
 	}
 	f.st = treasure
@@ -70,12 +69,12 @@ func TestLootScreen(t *testing.T) {
 }
 
 func TestLootDecisions(t *testing.T) {
-	for a, want := range map[Action]play.Action{
-		{Kind: ActBuy, Item: 7}: play.Take{Item: 7},
-		{Kind: ActTakeMoney}:    play.Take{Item: rules.NoItem},
-		{Kind: ActTakeAll}:      play.Take{Item: rules.NoItem, All: true},
+	for a, want := range map[Action]game.Action{
+		{Kind: ActBuy, Item: 7}: game.Take{Item: 7},
+		{Kind: ActTakeMoney}:    game.Take{Item: rules.NoItem},
+		{Kind: ActTakeAll}:      game.Take{Item: rules.NoItem, All: true},
 	} {
-		f := &fake{st: play.Looting{Items: []game.Item{{}, {}, {Handle: 7}}}}
+		f := &fake{st: game.Looting{Items: []game.Item{{}, {}, {Handle: 7}}}}
 		g := NewGame(f, game.Data{})
 		g.Answer(a)
 		if len(f.sent) != 1 || f.sent[0] != want {

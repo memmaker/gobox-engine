@@ -6,7 +6,6 @@ import (
 
 	"gobox/asset"
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestTitleFlash: while the title's lightning flashes (IntroUI.Flash), the
@@ -18,7 +17,7 @@ func TestTitleFlash(t *testing.T) {
 		flash []int
 		want  int
 	}{{nil, 1}, {[]int{15, 11}, 15}} {
-		p, _ := presenterOn(play.Scene{Kind: play.SceneTitle, Intro: &game.Intro{}, Steps: map[int]play.TitleStep{0: {Layers: []game.Layer{pic}}}})
+		p, _ := presenterOn(game.Scene{Kind: game.SceneTitle, Intro: &game.Intro{}, Steps: map[int]game.TitleStep{0: {Layers: []game.Layer{pic}}}})
 		p.intro.Flash = c.flash
 		if got := p.pictures()[0].Img.At(0, 0); got != asset.EGARGBA(c.want) {
 			t.Errorf("flash %v: %v, want EGA %d", c.flash, got, c.want)

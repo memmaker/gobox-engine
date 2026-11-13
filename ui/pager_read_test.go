@@ -3,13 +3,13 @@ package ui
 import (
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // The pager stays on its page while the game's Read is up (the same pointer
 // every frame), and closes once it is gone.
 func TestSyncReadKeepsPage(t *testing.T) {
-	g, f := playGame(play.Scene{Kind: play.SceneHandout, Handout: "J", Lines: []string{"a", "b"}})
+	g, f := playGame(game.Scene{Kind: game.SceneHandout, Handout: "J", Lines: []string{"a", "b"}})
 	p := &Presenter{}
 	p.SetEngine(g)
 	p.syncRead()
@@ -18,7 +18,7 @@ func TestSyncReadKeepsPage(t *testing.T) {
 	if p.pager == nil || p.pager.P != 1 {
 		t.Fatalf("pager reset: %+v", p.pager)
 	}
-	f.st = play.Exploring{}
+	f.st = game.Exploring{}
 	p.syncRead()
 	if p.pager != nil {
 		t.Errorf("pager kept after the read ended")

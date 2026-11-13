@@ -3,7 +3,7 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
 	"os"
@@ -61,9 +61,9 @@ func TestDoorAgainstPascal(t *testing.T) {
 		e.lockedDoor(kind == 3)
 		walled := e.pending != PendDoor
 		if !walled {
-			way := [3]play.DoorWay{play.DoorExit, play.DoorPick, play.DoorKnock}[attempt]
+			way := [3]game.DoorWay{game.DoorExit, game.DoorPick, game.DoorKnock}[attempt]
 			if e.TryDoor(way) != nil {
-				if err := e.TryDoor(play.DoorExit); err != nil {
+				if err := e.TryDoor(game.DoorExit); err != nil {
 					t.Fatalf("%s: Exit refused: %v", line, err)
 				}
 			}

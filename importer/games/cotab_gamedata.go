@@ -8,7 +8,6 @@ import (
 
 	"gobox/asset"
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // soundNames name the sound numbers (sound.go) as game Events and
@@ -49,7 +48,7 @@ func CotabStaticData() game.Data {
 	// camp's Fix and Rest; Rest is a Duration rest: gobox asks the days and hours
 	d.Rests = []game.RestKind{{Text: "Fix", Key: 'F', N: RestFix, Fix: true}, {Text: "Rest", Key: 'R', N: RestWait, Duration: true}}
 	// the Party submenu's human class change (Pool and Hillsfar imports are Imports' Add from where?)
-	d.Commands = append(play.CommandEntries(cotabPartyCommands), game.PartyCommand{Label: "Add from Pool", Key: 'P', From: "por"})
+	d.Commands = append(game.CommandEntries(cotabPartyCommands), game.PartyCommand{Label: "Add from Pool", Key: 'P', From: "por"})
 	// the combat bar's letters, as combatMenu's (Move View Aim Use Cast Turn Quick Done) and otherMenu's
 	// (Guard Delay Quit Bandage Speed Exit) words; Attack is Aim's target, not a word of its own
 	d.VerbKeys = map[string]rune{"Move": 'M', "View": 'V', "Aim": 'A', "Items": 'U', "Cast": 'C', "Turn": 'T', "Quick": 'Q', "End": 'D',
@@ -122,4 +121,4 @@ var border = game.Border{File: "8X8D1", Block: 202, Mask: &cotabBorderMask,
 var CotabAmigaMusic = &game.AmigaMusic{Effects: "SOUNDS.GLB", EffectOf: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}}
 
 // partyCommands are the game's own party commands.
-var cotabPartyCommands = []play.Option{{Label: "New Class", Key: 'N', Do: play.ChangeClass{Member: -1, Class: -1}}}
+var cotabPartyCommands = []game.Option{{Label: "New Class", Key: 'N', Do: game.ChangeClass{Member: -1, Class: -1}}}

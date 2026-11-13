@@ -7,7 +7,7 @@ import (
 
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/audio/sounddata"
+	"gobox/audio"
 	"gobox/engine"
 	"gobox/importer"
 	"gobox/rules"
@@ -165,7 +165,7 @@ func cotabImportSound(dos, dst string) error {
 	if err != nil {
 		return err
 	}
-	snd, err := sounddata.Decode(exe, cotabSoundLayout)
+	snd, err := audio.DecodeSoundData(exe, cotabSoundLayout)
 	if err != nil {
 		return err
 	}
@@ -173,6 +173,6 @@ func cotabImportSound(dos, dst string) error {
 }
 
 // soundLayout is where START.EXE's driver keeps its tables (gobox audio API.md).
-var cotabSoundLayout = sounddata.Layout{Segment: 0x699, JumpTable: 356, SpeakerSet: 368, TandySet: 778,
+var cotabSoundLayout = audio.SoundDataLayout{Segment: 0x699, JumpTable: 356, SpeakerSet: 368, TandySet: 778,
 	SpeakerSongs: 1186, TandySongs: 1354, Songs: 21, Enabled: 336,
 	Commands: map[int]string{5521: "reset", 5615: "return", 5622: "call", 5512: "switch", 5489: "loop", 5570: "set"}}

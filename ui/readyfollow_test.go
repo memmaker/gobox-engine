@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -16,8 +15,8 @@ func TestReadyKeepsItemHighlighted(t *testing.T) {
 	note := Note{Glyph: func(byte) [8]byte { return [8]byte{} }, Font: func(byte, bool) [8]byte { return [8]byte{} }}
 	mace := game.Item{Handle: 1, Name: "Mace", Type: 1, Kind: "weapon"}
 	sling := game.Item{Handle: 2, Name: "Sling", Type: 2, Kind: "weapon"}
-	party := func(items ...game.Item) play.State {
-		return play.Exploring{Common: play.Common{Party: []game.Member{{Name: "A", Items: items}}}}
+	party := func(items ...game.Item) game.State {
+		return game.Exploring{Common: game.Common{Party: []game.Member{{Name: "A", Items: items}}}}
 	}
 	g, f := playGame(party(mace, sling))
 	g.r.items = game.ItemsOwn

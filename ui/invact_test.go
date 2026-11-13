@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules"
 	"gobox/ui/input"
 )
@@ -15,7 +14,7 @@ import (
 // Trade, Halve and Join reach the game's Answer.
 func TestInventoryActs(t *testing.T) {
 	in := &invUp{kind: invShop, wares: []game.Item{{Handle: 4, Name: "Sword"}}, sell: true, trade: true, halve: true, join: true}
-	g, f := playGame(play.Trading{Common: play.Common{Party: []game.Member{{}}}})
+	g, f := playGame(game.Trading{Common: game.Common{Party: []game.Member{{}}}})
 	g.r.items = game.ItemsShop
 	var p Presenter
 	p.SetEngine(g)
@@ -41,7 +40,7 @@ func TestInventoryActs(t *testing.T) {
 // Left highlights the shop's first ware, Enter buys it; a long name wraps.
 func TestShopKeys(t *testing.T) {
 	in := &invUp{kind: invShop, wares: []game.Item{{Handle: 3, Name: "Rope"}}, pool: []game.Item{{Handle: 1, Name: "Gun"}}, sell: true}
-	g, f := playGame(play.Trading{Common: play.Common{Party: []game.Member{{}}}})
+	g, f := playGame(game.Trading{Common: game.Common{Party: []game.Member{{}}}})
 	g.r.items = game.ItemsShop
 	var p Presenter
 	p.SetEngine(g)
@@ -88,7 +87,7 @@ func TestInventoryDrag(t *testing.T) {
 
 // Trade asks the member (drawn over the items).
 func TestTradeAsksOverItems(t *testing.T) {
-	g, _ := playGame(play.Exploring{Common: play.Common{Party: []game.Member{{Items: []game.Item{{Handle: 2, Name: "Gun"}}}, {}}, Allowed: play.Allowed{Plain: []play.Action{play.Give{}}}}})
+	g, _ := playGame(game.Exploring{Common: game.Common{Party: []game.Member{{Items: []game.Item{{Handle: 2, Name: "Gun"}}}, {}}, Allowed: game.Allowed{Plain: []game.Action{game.Give{}}}}})
 	g.r.items = game.ItemsOwn
 	var p Presenter
 	p.SetEngine(g)
@@ -136,11 +135,11 @@ func TestCredits(t *testing.T) {
 
 // After an act the same list comes back on the line acted on.
 func TestListKeepsLine(t *testing.T) {
-	listed := play.Scene{Common: play.Common{Ask: &play.Question{List: true, Text: "Items", Replies: []string{"a", "b"}}}}
+	listed := game.Scene{Common: game.Common{Ask: &game.Question{List: true, Text: "Items", Replies: []string{"a", "b"}}}}
 	p, f := presenterOn(listed)
 	p.openList()
 	p.list.sel = 1
-	f.st = play.Scene{} // the list gone a moment (Ready)
+	f.st = game.Scene{} // the list gone a moment (Ready)
 	p.openList()
 	f.st = listed
 	p.openList()

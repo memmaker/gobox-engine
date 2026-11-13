@@ -6,7 +6,7 @@ import (
 	"image"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 var devSeed = uint32(2) // Felix's R3 rulings 1-2 (3d6+1 abilities, best-of-two creation HP) moved the Quick Start party's dice: seed 1's castfight actor takes no timed spell
@@ -44,30 +44,30 @@ func devFirstTurnOn(t *testing.T, e *Engine, name string, deskew bool) *Engine {
 }
 
 // myTurn: a member's turn is up, its verbs offered.
-func myTurn(s play.State) bool { return playAllows(s, play.EndTurn{}) }
+func myTurn(s game.State) bool { return playAllows(s, game.EndTurn{}) }
 
 // fightQ is the question up in the fight, nil none.
-func fightQ(s play.State) *play.Question {
-	if f, ok := s.(play.Fighting); ok {
+func fightQ(s game.State) *game.Question {
+	if f, ok := s.(game.Fighting); ok {
 		return f.Ask
 	}
 	return nil
 }
 
 // yes is the Reply that answers q yes (play's yes/no: no, yes).
-func yes(q *play.Question) play.Reply {
+func yes(q *game.Question) game.Reply {
 	if q != nil && q.YesNo {
-		return play.Reply{N: 1}
+		return game.Reply{N: 1}
 	}
-	return play.Reply{}
+	return game.Reply{}
 }
 
 // no is the Reply that answers q no.
-func no(q *play.Question) play.Reply {
+func no(q *game.Question) game.Reply {
 	if q != nil && q.YesNo {
-		return play.Reply{}
+		return game.Reply{}
 	}
-	return play.Reply{N: 1}
+	return game.Reply{N: 1}
 }
 
 // TestDevMeleeAndFlee: on the first party turn of -dev meleefight the
@@ -85,12 +85,12 @@ func TestDevMeleeAndFlee(t *testing.T) {
 				switch {
 				case name == "meleefight" && who > 0 && e.state().Combatant(who).Side != a.Side:
 					found = true
-					if _, err := e.doNow(play.Attack{At: &to}); err != nil { // gobox's bump
+					if _, err := e.doNow(game.Attack{At: &to}); err != nil { // gobox's bump
 						t.Errorf("%s deskew %v: bump %v", name, deskew, err)
 					}
 				case name == "fleefight" && who == 0 && g == 0:
 					found = true
-					if _, err := e.doNow(play.Flee{}); err != nil {
+					if _, err := e.doNow(game.Flee{}); err != nil {
 						t.Errorf("%s deskew %v: Flee %v", name, deskew, err)
 					}
 					if q := fightQ(e.build()); q == nil || q.Text != "Flee:" {
@@ -128,7 +128,7 @@ func TestDevDrop(t *testing.T) {
 	m := e.state().PartyIndex(c)
 	e.CloseItems(true) // the items screen is gobox's: Drop opens what it needs
 	n := len(e.state().Carried(c))
-	if _, err := e.doNow(play.Drop{Member: m, Item: h}); err != nil || len(e.state().Carried(c)) != n-1 {
+	if _, err := e.doNow(game.Drop{Member: m, Item: h}); err != nil || len(e.state().Carried(c)) != n-1 {
 		t.Errorf("drop: %v, %d items, want %d (%T)", err, len(e.state().Carried(c)), n-1, e.build())
 	}
 }
@@ -140,7 +140,7 @@ func TestDevMissileShoots(t *testing.T) {
 	e := devFirstTurn(t, "missile", false)
 	for range 400 {
 		s := e.build()
-		if _, ok := s.(play.Fighting); !ok {
+		if _, ok := s.(game.Fighting); !ok {
 			break
 		}
 		if q := fightQ(s); q != nil || !myTurn(s) {
@@ -161,18 +161,18 @@ func TestDevMissileShoots(t *testing.T) {
 			if rng < 3 && e.state().RangedWeapon(a) {
 				t.Fatalf("%s's launcher reaches %d squares", a.Name(), rng)
 			}
-			e.doNow(play.Delay{}) // the foes come closer
+			e.doNow(game.Delay{}) // the foes come closer
 			continue
 		}
 		if rng < 3 {
 			t.Fatalf("%s's launcher reaches %d squares", a.Name(), rng)
 		}
-		out, err := e.doNow(play.Shoot{Ats: []image.Point{image.Pt(e.state().CombatX(foe), e.state().CombatY(foe))}})
+		out, err := e.doNow(game.Shoot{Ats: []image.Point{image.Pt(e.state().CombatX(foe), e.state().CombatY(foe))}})
 		if err != nil {
 			t.Fatal(err)
 		}
 		for _, ev := range out.Events {
-			if s, ok := ev.(play.Shot); ok {
+			if s, ok := ev.(game.Shot); ok {
 				if s.Art.Pixels == nil { // BUG-CLASSES 44: no sprite, nothing flies
 					t.Fatalf("a shot without its sprite: %+v", s)
 				}
@@ -198,14 +198,14 @@ func TestFightAsksKeepCombat(t *testing.T) {
 		}
 	}
 	e := devFirstTurn(t, "fleefight", false)
-	_, err := e.doNow(play.Flee{})
+	_, err := e.doNow(game.Flee{})
 	inFight("Flee:", e, err)
 	e = devFirstTurn(t, "meleefight", false)
 	a := e.member(e.cs.actor)
 	for dir := 0; dir < 8; dir++ {
 		if who, _ := e.state().GroundAt(a, dir); who > 0 && e.state().Combatant(who).Side == a.Side {
 			at := image.Pt(e.state().CombatX(a)+rules1e.DirDX[dir], e.state().CombatY(a)+rules1e.DirDY[dir])
-			_, err := e.doNow(play.Attack{At: &at})
+			_, err := e.doNow(game.Attack{At: &at})
 			inFight("Attack Ally?", e, err)
 			e.doNow(no(fightQ(e.build())))
 			break
@@ -214,9 +214,9 @@ func TestFightAsksKeepCombat(t *testing.T) {
 }
 
 // endTurn ends the turn (play's EndTurn is Done's end: no menu between).
-func endTurn(t *testing.T, e *Engine) play.Outcome {
+func endTurn(t *testing.T, e *Engine) game.Outcome {
 	t.Helper()
-	o, err := e.doNow(play.EndTurn{})
+	o, err := e.doNow(game.EndTurn{})
 	if err != nil {
 		t.Fatal("EndTurn:", err)
 	}
@@ -233,12 +233,12 @@ func TestContinueBattle(t *testing.T) {
 			c.Okay, c.Status = 0, rules1e.StatusDead
 		}
 	}
-	ask := func() *play.Question {
+	ask := func() *game.Question {
 		t.Helper()
 		for range 60 {
 			s := e.build()
 			if q := commonOf(s).Ask; q != nil {
-				if _, ok := s.(play.Fighting); q.Text != "Continue Battle:" || !ok {
+				if _, ok := s.(game.Fighting); q.Text != "Continue Battle:" || !ok {
 					t.Fatalf("asked %q in %T", q.Text, s)
 				}
 				if !q.YesNo || !q.NoEsc || !q.NoPick { // ovr26:10D1 loops on Y/N
@@ -255,12 +255,12 @@ func TestContinueBattle(t *testing.T) {
 		return nil
 	}
 	e.doNow(yes(ask()))
-	if _, ok := e.build().(play.Fighting); !ok {
-		sc, _ := e.build().(play.Scene)
+	if _, ok := e.build().(game.Fighting); !ok {
+		sc, _ := e.build().(game.Scene)
 		t.Fatalf("Yes ended the fight: %T %q %q phase %v flag %d", e.build(), sc.Text, commonOf(sc).Text, e.cs.phase, e.state().BeginFlag)
 	}
 	e.doNow(no(ask()))
-	if _, ok := e.build().(play.Fighting); ok {
+	if _, ok := e.build().(game.Fighting); ok {
 		t.Fatal("No left the fight up")
 	}
 }
@@ -278,7 +278,7 @@ func TestDevWinFight(t *testing.T) {
 		if !myTurn(s) {
 			t.Fatalf("at rest in %T with nothing to do", s)
 		}
-		e.doNow(play.Quick{})
+		e.doNow(game.Quick{})
 	}
 	t.Fatal("winfight: no Continue Battle:")
 }
@@ -302,10 +302,10 @@ func testPartyWipeEnds(t *testing.T, mk func(*testing.T) *Engine) {
 			e.doNow(yes(q))
 		case myTurn(s):
 			endTurn(t, e)
-		case playAllows(s, play.Continue{}):
-			e.doNow(play.Continue{})
+		case playAllows(s, game.ContinueAction{}):
+			e.doNow(game.ContinueAction{})
 		default:
-			if _, ok := s.(play.Exploring); ok {
+			if _, ok := s.(game.Exploring); ok {
 				t.Fatal("a lost party left exploring")
 			}
 			t.Fatalf("at rest in %T with nothing to do", s)
@@ -314,7 +314,7 @@ func testPartyWipeEnds(t *testing.T, mk func(*testing.T) *Engine) {
 	t.Fatal("a lost fight never reached the party menu")
 }
 
-func isAssembling(s play.State) bool { _, ok := s.(play.Assembling); return ok }
+func isAssembling(s game.State) bool { _, ok := s.(game.Assembling); return ok }
 
 // TestLastBlowBody: the blow that ends the fight (the party's last member
 // falls) carries the body it leaves (ovr32:0E11's ground 0x1F, a party
@@ -326,11 +326,11 @@ func testLastBlowBody(t *testing.T, mk func(*testing.T) *Engine) {
 	e := devFirstTurnOn(t, mk(t), "losefight", false)
 	downs := 0
 	for range 300 {
-		var out play.Outcome
+		var out game.Outcome
 		switch s := e.build(); {
 		case myTurn(s):
 			out = endTurn(t, e)
-		case downs > 0 || commonOf(s).Ask != nil || playAllows(s, play.Continue{}):
+		case downs > 0 || commonOf(s).Ask != nil || playAllows(s, game.ContinueAction{}):
 			if downs == 0 {
 				t.Fatal("the fight ended with no Fell")
 			}
@@ -339,7 +339,7 @@ func testLastBlowBody(t *testing.T, mk func(*testing.T) *Engine) {
 			t.Fatalf("at rest in %T with nothing to do", s)
 		}
 		for _, ev := range out.Events {
-			if f, ok := ev.(play.Fell); ok {
+			if f, ok := ev.(game.Fell); ok {
 				downs++
 				if f.Body.Pixels == nil {
 					t.Fatalf("a member's fall without its body: %+v", f)
@@ -360,7 +360,7 @@ func devLootOn(t *testing.T, e *Engine) *Engine {
 	e.Init()
 	e.Start(e.Play)
 	for range 40 {
-		if _, ok := e.build().(play.Looting); ok {
+		if _, ok := e.build().(game.Looting); ok {
 			seeLoot(t, e)
 			return e
 		}
@@ -380,7 +380,7 @@ func TestLootEscLeaves(t *testing.T) { testLootEscLeaves(t, testEngine) }
 func testLootEscLeaves(t *testing.T, mk func(*testing.T) *Engine) {
 	e := devLootOn(t, mk(t))
 	w := commonOf(e.build()).Where
-	if _, err := e.doNow(play.Leave{}); err != nil {
+	if _, err := e.doNow(game.Leave{}); err != nil {
 		t.Fatal("Leave on the treasure:", err)
 	}
 	q := commonOf(e.build()).Ask
@@ -390,7 +390,7 @@ func testLootEscLeaves(t *testing.T, mk func(*testing.T) *Engine) {
 	if _, err := e.doNow(no(q)); err != nil || e.waiting(PendLoot) { // No: leave the treasure
 		t.Fatalf("leave: %v, still on the treasure %v", err, e.waiting(PendLoot))
 	}
-	x, ok := e.build().(play.Exploring)
+	x, ok := e.build().(game.Exploring)
 	if !ok || x.Where.X != w.X || x.Where.Y != w.Y || x.Where.Area != w.Area || x.Ask != nil {
 		t.Errorf("after the scene: %T at %+v ask %+v, want exploring at %+v", e.build(), x.Where, x.Ask, w)
 	}
@@ -404,12 +404,12 @@ func TestTimedCastTaken(t *testing.T) {
 	e := devFirstTurn(t, "castfight", false)
 	a := e.member(e.cs.actor)
 	at := image.Pt(e.state().CombatX(a), e.state().CombatY(a))
-	if _, err := e.doNow(play.Cast{Member: -1, Spell: 3, Ats: []image.Point{at}}); err != nil || a.Combat.Spell == 0 {
+	if _, err := e.doNow(game.Cast{Member: -1, Spell: 3, Ats: []image.Point{at}}); err != nil || a.Combat.Spell == 0 {
 		t.Fatalf("Cast: %v, casting %d", err, a.Combat.Spell)
 	}
 	for range 200 {
 		s := e.build()
-		f, ok := s.(play.Fighting)
+		f, ok := s.(game.Fighting)
 		switch {
 		case !ok:
 			t.Fatalf("the fight ended (%T) before the spell went off", s)
@@ -418,7 +418,7 @@ func TestTimedCastTaken(t *testing.T) {
 				t.Fatalf("the spell's aim is up but nothing aimed is offered: %+v", f.Allowed)
 			}
 			act := f.Allowed.Aimed[0].Action
-			if c, ok := act.(play.Cast); ok {
+			if c, ok := act.(game.Cast); ok {
 				c.Ats = []image.Point{at}
 				act = c
 			}
@@ -447,7 +447,7 @@ func TestOpeningStepsAlone(t *testing.T) {
 	e.FixedSeed = &seed
 	e.Init()
 	e.Start(e.Play)
-	var out play.Outcome
+	var out game.Outcome
 	e.stepOn(&out, nil) // as a Do's run on
 	s := e.build()
 	if q := commonOf(s).Ask; q != nil {
@@ -467,20 +467,20 @@ func TestMovesHaveSquares(t *testing.T) {
 	at := map[int]image.Point{}
 	for range 400 {
 		s := e.build()
-		f, ok := s.(play.Fighting)
+		f, ok := s.(game.Fighting)
 		if !ok {
 			break
 		}
 		for _, u := range f.Field.Units {
 			at[u.ID] = u.At
 		}
-		var out play.Outcome
+		var out game.Outcome
 		var err error
 		switch {
 		case f.Ask != nil:
 			out, err = e.doNow(no(f.Ask))
 		case myTurn(s):
-			out, err = e.doNow(play.Quick{})
+			out, err = e.doNow(game.Quick{})
 		default:
 			t.Fatalf("at rest with nothing to do: %+v", f.Allowed)
 		}
@@ -488,7 +488,7 @@ func TestMovesHaveSquares(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, ev := range out.Events {
-			w, ok := ev.(play.Walked)
+			w, ok := ev.(game.Walked)
 			if !ok {
 				continue
 			}
@@ -514,7 +514,7 @@ func TestStepNoRepeat(t *testing.T) {
 	e := devFirstTurn(t, "losefight", false)
 	notes := 0
 	for range 80 {
-		var out play.Outcome
+		var out game.Outcome
 		switch s := e.build(); {
 		case !myTurn(s) && commonOf(s).Ask == nil:
 			if notes == 0 {
@@ -527,7 +527,7 @@ func TestStepNoRepeat(t *testing.T) {
 			out, _ = e.doNow(yes(commonOf(s).Ask))
 		}
 		for i, ev := range out.Events {
-			n, ok := ev.(play.Narrated)
+			n, ok := ev.(game.Narrated)
 			if !ok {
 				continue
 			}
@@ -542,8 +542,8 @@ func TestStepNoRepeat(t *testing.T) {
 // seeLoot passes the treasure's "You found some loot!" (Looting.Announce).
 func seeLoot(t *testing.T, e *Engine) {
 	t.Helper()
-	if l, ok := e.build().(play.Looting); ok && l.Announce {
-		if _, err := e.doNow(play.Continue{}); err != nil {
+	if l, ok := e.build().(game.Looting); ok && l.Announce {
+		if _, err := e.doNow(game.ContinueAction{}); err != nil {
 			t.Fatal("Continue on the found treasure:", err)
 		}
 	}

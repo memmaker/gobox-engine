@@ -3,8 +3,8 @@ package engine
 import (
 	"testing"
 
-	"gobox/ecl/script"
-	"gobox/game/play"
+	"gobox/ecl"
+	"gobox/game"
 	"gobox/rules1e"
 )
 
@@ -28,7 +28,7 @@ func TestShopPriceFactor(t *testing.T) {
 // shop and the inventory list (Trading.Goods) ask what Buy takes.
 func TestShopBundlesAndWares(t *testing.T) {
 	e := quickStarted(t)
-	e.vm.Script.Layout = &script.Layout{Fields: []script.Field{{Name: fieldPriceScale, Owner: script.OwnerGame, Width: script.WidthByte, From: 39, Len: 1}}}
+	e.vm.Script.Layout = &ecl.Layout{Fields: []ecl.Field{{Name: fieldPriceScale, Owner: ecl.OwnerGame, Width: ecl.WidthByte, From: 39, Len: 1}}}
 	r, _ := e.layoutField(fieldPriceScale)
 	e.host.Set(r, 32) // twice the price
 	if got := e.shopPrice(100, 3); got != 200 {
@@ -47,7 +47,7 @@ func TestShopBundlesAndWares(t *testing.T) {
 	e.push(cont{kind: kNop})
 	e.Shop()
 	e.Advance()
-	tr, ok := e.build().(play.Trading)
+	tr, ok := e.build().(game.Trading)
 	if !ok || len(tr.Goods) != 1 || tr.Goods[0].Price != 600 {
 		t.Fatalf("wares %+v (%T): want one at 600", tr.Goods, e.build())
 	}

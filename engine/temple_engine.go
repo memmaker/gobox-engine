@@ -34,7 +34,6 @@ func (e *Engine) cure(n, x int) error {
 	return nil
 }
 
-
 // Temple = ovr05:0D09: the script waits on the temple (PendTemple) until
 // the party leaves (Leave).
 func (e *Engine) Temple() {

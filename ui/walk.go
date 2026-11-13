@@ -4,7 +4,6 @@ import (
 	"image"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // walks are the moves gobox makes on the game's Map: a step's side
@@ -41,7 +40,7 @@ func (g *Game) walk(k ActKind) error {
 	}
 	where := g.Where()
 	if w.turn {
-		return g.do(play.Face{Facing: (where.Facing + w.side) % 8})
+		return g.do(game.Face{Facing: (where.Facing + w.side) % 8})
 	}
 	return g.stepThrough(m, (where.Facing+w.side)%8)
 }
@@ -64,7 +63,7 @@ func (g *Game) stepThrough(m game.Map, side int) error {
 	// originals run the square's pre-step script on every step (SOTSB
 	// O050:3DB9): it may move the party through that wall.
 	if m.Departure(from, side) {
-		if err := g.do(play.RunEvent{Before: true, Side: side}); err != nil || g.r.refusalAsk != nil {
+		if err := g.do(game.RunEvent{Before: true, Side: side}); err != nil || g.r.refusalAsk != nil {
 			return err
 		}
 		now := g.Where()
@@ -75,11 +74,11 @@ func (g *Game) stepThrough(m game.Map, side int) error {
 	if m.Edge(from, side).Kind == game.EdgeWall {
 		return nil
 	}
-	if err := g.do(play.Arrive{From: from, To: from.Add(steps[side]), Facing: where.Facing}); err != nil || g.r.refusalAsk != nil {
+	if err := g.do(game.Arrive{From: from, To: from.Add(steps[side]), Facing: where.Facing}); err != nil || g.r.refusalAsk != nil {
 		return err
 	}
 	if m := g.walkMap(); m != nil && m.Event(at(g.Where())) { // the square's event: run it
-		return g.do(play.RunEvent{})
+		return g.do(game.RunEvent{})
 	}
 	return nil
 }

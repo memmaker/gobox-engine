@@ -9,7 +9,7 @@ import (
 
 // gameFiles are the games' embedded data: each game's script names and
 // layout (scripts/layout/global.txt, made from the game's Pascal; the data
-// of gobox ecl/script Library.Data) and its Adventurer's Journal books with
+// of gobox ecl Library.Data) and its Adventurer's Journal books with
 // the pictures they show (gobox's journal format).
 //
 //go:embed cotab/scripts pod/scripts sotsb/scripts cotab/journal pod/journal por/journal sotsb/journal

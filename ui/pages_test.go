@@ -2,7 +2,6 @@ package ui
 
 import (
 	"gobox/game"
-	"gobox/game/play"
 	"image"
 	"slices"
 	"testing"
@@ -43,7 +42,7 @@ func TestNearestSpot(t *testing.T) {
 // The after-combat page is a screen of its own: drawn with no page under
 // it (no classic page, no engine pictures).
 func TestResultsOwnScreen(t *testing.T) {
-	p, _ := presenterOn(play.Scene{Kind: play.SceneResults, Results: &game.Results{Outcome: "The party has won."}})
+	p, _ := presenterOn(game.Scene{Kind: game.SceneResults, Results: &game.Results{Outcome: "The party has won."}})
 	if p.ownLayout() {
 		t.Fatal("the after-combat page still lays out on the classic page")
 	}

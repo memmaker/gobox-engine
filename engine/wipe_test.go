@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules1e"
 	"strings"
 	"testing"
@@ -63,7 +63,7 @@ func TestResultPagesWait(t *testing.T) {
 	if r := e.snap.results; r == nil || r.Outcome == "" || e.question() == nil || after() {
 		t.Fatalf("results page: results %+v, question %v, after %v", r, e.question() != nil, after())
 	}
-	sc, _ := e.build().(play.Scene)
+	sc, _ := e.build().(game.Scene)
 	if sc.Results == nil {
 		t.Fatal("results page pending but not published (BUG-CLASSES 14)")
 	}
@@ -92,7 +92,7 @@ func TestAskAllowsAnswersOnly(t *testing.T) {
 	}
 	for _, a := range c.Allowed.Plain {
 		switch a.(type) {
-		case play.Continue, play.Reply:
+		case game.ContinueAction, game.Reply:
 		default:
 			t.Errorf("%T allowed while asking", a)
 		}

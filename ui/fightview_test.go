@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -15,11 +14,11 @@ type viewGame struct{}
 
 func (viewGame) Version() uint64 { return fresh() }
 
-func (viewGame) State() play.State {
-	return play.Fighting{Common: play.Common{Party: []game.Member{{Name: "MAREN"}}, Allowed: play.Allowed{Plain: []play.Action{play.EndTurn{}}}}, Field: play.Battlefield{Size: image.Pt(6, 6), Turn: 1,
+func (viewGame) State() game.State {
+	return game.Fighting{Common: game.Common{Party: []game.Member{{Name: "MAREN"}}, Allowed: game.Allowed{Plain: []game.Action{game.EndTurn{}}}}, Field: game.Battlefield{Size: image.Pt(6, 6), Turn: 1,
 		Units: []game.Unit{{ID: 1, Member: 0, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(3, 1), Foe: true}}}}
 }
-func (viewGame) Do(play.Action) (play.Outcome, error) { return play.Outcome{}, nil }
+func (viewGame) Do(game.Action) (game.Outcome, error) { return game.Outcome{}, nil }
 func (viewGame) Save() ([]byte, error)                { return nil, nil }
 func (viewGame) Load([]byte) error                    { return nil }
 

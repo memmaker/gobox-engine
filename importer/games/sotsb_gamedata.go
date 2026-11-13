@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // GameData is Silver Blades' declarative data for gobox (game.Data) over
@@ -28,7 +27,7 @@ func GameData(adv string) game.Data {
 		},
 		// the screen frame as R19D:0000 draws it: symbol 311 (frame 55) on the top and bottom rows,
 		// corners included, 309 (frame 53) down the sides; symbol set 4 from 256 is 8X8D1 block 202
-		Commands:     play.CommandEntries(sotsbPartyCommands),
+		Commands:     game.CommandEntries(sotsbPartyCommands),
 		Border:       &game.Border{File: "8X8D1", Block: 202, Pieces: [8]int{55, 55, 55, 55, 55, 55, 53, 53}, Caps: []int{52, 54, 52, 54}},
 		SoundTables:  soundData,
 		AdLib:        &game.AdLib{Music: "SOUND.DAX", Tempo: 0x76},
@@ -192,4 +191,4 @@ var SotsbAmigaMusic = &game.AmigaMusic{Songs: "SECRET.MX", Effects: "sounds.glb"
 	SongOf: map[int]int{titleSongN: 0, songCombat: 1, songTreasure: 2, songTraining: 3, songPartyDead: 4, songPicture75: 5, songPicture76: 6}, EffectOf: []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}}
 
 // partyCommands are the game's own party commands.
-var sotsbPartyCommands = []play.Option{{Label: "Add from Curse", Key: 'U', Do: play.AddCharacter{Roster: -1, From: "cotab"}}}
+var sotsbPartyCommands = []game.Option{{Label: "Add from Curse", Key: 'U', Do: game.AddCharacter{Roster: -1, From: "cotab"}}}

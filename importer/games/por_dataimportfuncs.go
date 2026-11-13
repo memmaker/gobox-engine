@@ -6,7 +6,7 @@ import (
 	"errors"
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/audio/sounddata"
+	"gobox/audio"
 	"gobox/engine"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -84,7 +84,7 @@ func PorImportDataTo(dos, dst string) error {
 	if err != nil {
 		return err
 	}
-	snd, err := sounddata.Decode(exe, engine.SoundLayout)
+	snd, err := audio.DecodeSoundData(exe, engine.SoundLayout)
 	if err != nil {
 		return err
 	}

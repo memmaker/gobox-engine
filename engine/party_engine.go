@@ -172,7 +172,6 @@ func (e *Engine) removeMember(n int) error {
 	return nil
 }
 
-
 // QuitGame = the party menu's Quit (the player confirmed).
 func (e *Engine) QuitGame() error {
 	if !e.inParty() {

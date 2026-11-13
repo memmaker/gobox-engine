@@ -8,43 +8,42 @@ import (
 
 	"gobox/asset"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/combat"
 )
 
 // turnAct is the combat menu's action a Decision does (false: not a menu entry).
-func turnAct(d play.Action) (ActKind, bool) {
+func turnAct(d game.Action) (ActKind, bool) {
 	switch d := d.(type) {
-	case play.MoveTo: // the turn's Move: the tabletop's walk (a square picked), never Move{} as it stands
+	case game.MoveTo: // the turn's Move: the tabletop's walk (a square picked), never Move{} as it stands
 		return ActWalk, true
-	case play.Attack:
+	case game.Attack:
 		return ActAttack, true
-	case play.Shoot:
+	case game.Shoot:
 		return ActRanged, true
-	case play.Guard:
+	case game.Guard:
 		return ActGuard, true
-	case play.OpenItems:
+	case game.OpenItems:
 		return ActItems, true
-	case play.Cast:
+	case game.Cast:
 		return ActCast, true
-	case play.DoManeuver:
+	case game.DoManeuver:
 		return ActManeuver, true
-	case play.TurnUndead:
+	case game.TurnUndead:
 		return ActTurn, true
-	case play.Bandage:
+	case game.Bandage:
 		return ActBandage, true
-	case play.Delay:
+	case game.Delay:
 		return ActWait, true
-	case play.EndTurn:
+	case game.EndTurn:
 		return ActEnd, true
-	case play.Quick:
+	case game.Quick:
 		if d.All { // its own entry: the bar sends the option itself
 			return ActOption, true
 		}
 		return ActQuick, true
-	case play.Flee:
+	case game.Flee:
 		return ActFlee, true
-	case play.ViewMember:
+	case game.ViewMember:
 		return ActView, d.Member == viewSelected
 	}
 	return 0, false
@@ -61,15 +60,15 @@ const viewSelected = -1
 // turnOptions are c's turn's options as the bar offers them: the game's,
 // with the series' View (Data.VerbKeys) at its VerbOrder place when the game
 // offers none (nil: no turn).
-func turnOptions(c *play.Combat, d game.Data) []play.Option {
+func turnOptions(c *game.Combat, d game.Data) []game.Option {
 	if c == nil || c.Turn == nil {
 		return nil
 	}
 	ops := c.Turn.Options
 	k, ok := d.VerbKeys["View"]
-	if !ok || len(ops) == 0 || c.Turn.Aim || slices.ContainsFunc(ops, func(o play.Option) bool {
+	if !ok || len(ops) == 0 || c.Turn.Aim || slices.ContainsFunc(ops, func(o game.Option) bool {
 		switch o.Do.(type) {
-		case play.ViewMember, play.ViewTarget:
+		case game.ViewMember, game.ViewTarget:
 			return true
 		}
 		return false
@@ -78,11 +77,11 @@ func turnOptions(c *play.Combat, d game.Data) []play.Option {
 	}
 	at := len(ops)
 	if vi := slices.Index(d.VerbOrder, "View"); vi >= 0 {
-		if i := slices.IndexFunc(ops, func(o play.Option) bool { return slices.Index(d.VerbOrder, o.Label) > vi }); i >= 0 {
+		if i := slices.IndexFunc(ops, func(o game.Option) bool { return slices.Index(d.VerbOrder, o.Label) > vi }); i >= 0 {
 			at = i
 		}
 	}
-	return slices.Insert(slices.Clone(ops), at, play.Option{Label: cmp.Or(d.Texts["View"], "View"), Key: k, Do: play.ViewMember{Member: viewSelected}})
+	return slices.Insert(slices.Clone(ops), at, game.Option{Label: cmp.Or(d.Texts["View"], "View"), Key: k, Do: game.ViewMember{Member: viewSelected}})
 }
 
 // tilePicture is the tile name's art a as a picture to make, the series
@@ -101,7 +100,7 @@ func tilePicture(name string, a game.Picture) Picture {
 // original icon numbers), effects (fly: a shot's sprite over the moment),
 // the turn's bar, the cursor, the walks, the aim, the strike and the log.
 // party are the figures the members stand as then. nil outside a fight.
-func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *combat.Board {
+func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *combat.Board {
 	if c == nil {
 		return nil
 	}

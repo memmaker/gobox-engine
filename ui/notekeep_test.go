@@ -5,13 +5,12 @@ import (
 	"time"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // With no refusal's note the front's own toast shows (the shop's "buys a");
 // a refusal's note goes over it.
 func TestNoteKeepsOwn(t *testing.T) {
-	p, _ := presenterOn(play.Exploring{})
+	p, _ := presenterOn(game.Exploring{})
 	own := FrontNote{Text: "Brann buys a Broad Sword", At: time.Now()}
 	p.eng.r.toast = own
 	if got := p.note().Text; got != own.Text {

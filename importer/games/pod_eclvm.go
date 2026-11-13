@@ -3,12 +3,11 @@ package games
 import (
 	"encoding/json"
 	"gobox/ecl"
-	eclscript "gobox/ecl/script"
 	"io/fs"
 	"testing/fstest"
 )
 
-// podScriptData is the scripts' data (gobox ecl/script Library.Data): the
+// podScriptData is the scripts' data (gobox ecl Library.Data): the
 // layout, made from pod-re's Pascal (scripts/layout/global.txt), and the
 // journal's entries.
 func podScriptData() fs.FS { return withEntries{embeddedScripts("pod")} }
@@ -19,7 +18,7 @@ func podScriptData() fs.FS { return withEntries{embeddedScripts("pod")} }
 type withEntries struct{ fs.FS }
 
 func (w withEntries) Open(name string) (fs.File, error) {
-	if name != eclscript.EntriesFile {
+	if name != ecl.EntriesFile {
 		return w.FS.Open(name)
 	}
 	b, err := json.Marshal(JournalEntries())
@@ -38,7 +37,7 @@ func (w withEntries) Open(name string) (fs.File, error) {
 //
 // Every other address reads 0 and ignores writes. A variable operand says
 // its size: type 1 a byte, 3 (and 128) a word.
-var podEclLayout = ecl.Layout{
+var podEclLayout = ecl.AddrLayout{
 	Area:  noRange,
 	Aux:   noRange,
 	Area2: noRange,
@@ -53,7 +52,7 @@ const podScriptCodeSize = 40447 - 32768 + 1
 
 // ImportScriptsTo decompiles the game's ECL*.DAX in dos into an adventure
 // folder's scripts dir, with the script data beside them (the importer's
-// step; eclscript.ImportDAXFolder).
+// step; ecl.ImportDAXFolder).
 func PodImportScriptsTo(dos, dir string) error {
-	return eclscript.ImportDAXFolder(eclscript.V3, dos, podScriptData(), dir, podScriptFixes)
+	return ecl.ImportDAXFolder(ecl.V3, dos, podScriptData(), dir, podScriptFixes)
 }

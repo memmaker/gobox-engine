@@ -2,7 +2,7 @@ package engine
 
 import (
 	"encoding/binary"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
 	"os"
@@ -29,13 +29,13 @@ func TestVault(t *testing.T) {
 	e.push(cont{kind: kNop})
 	e.Start(e.Vault)
 	seeLoot(t, e)
-	if l, ok := e.build().(play.Looting); !ok || len(l.Items) != 2 {
+	if l, ok := e.build().(game.Looting); !ok || len(l.Items) != 2 {
 		t.Fatalf("state %T: want the treasure screen with the vault's 2 items", e.build())
 	}
 	if st.Purse.Gold != gold {
 		t.Errorf("the vault's money was banked on opening: gold %d, was %d", st.Purse.Gold, gold)
 	}
-	if _, err := e.doNow(play.Take{Item: e.goods()[0]}); err != nil {
+	if _, err := e.doNow(game.Take{Item: e.goods()[0]}); err != nil {
 		t.Fatal(err)
 	}
 	mine := rules.NoItem
@@ -48,19 +48,19 @@ func TestVault(t *testing.T) {
 	if mine == rules.NoItem {
 		t.Fatal("the member has no unreadied item to deposit")
 	}
-	if !slices.ContainsFunc(play.CommonOf(e.build()).Allowed.Plain, func(a play.Action) bool { _, ok := a.(play.Drop); return ok }) {
+	if !slices.ContainsFunc(game.CommonOf(e.build()).Allowed.Plain, func(a game.Action) bool { _, ok := a.(game.Drop); return ok }) {
 		t.Error("no Drop (Deposit) allowed in the vault") // the loot menu offers it from this (front TestLootDropWord)
 	}
-	if _, err := e.doNow(play.Drop{Member: 0, Item: mine}); err != nil { // Deposit
+	if _, err := e.doNow(game.Drop{Member: 0, Item: mine}); err != nil { // Deposit
 		t.Fatal(err)
 	}
 	if len(e.goods()) != 2 {
 		t.Fatalf("%d items in the vault after the deposit, want the one left and the deposit", len(e.goods()))
 	}
-	if _, err := e.doNow(play.Leave{}); err != nil { // the money is left unbanked
+	if _, err := e.doNow(game.Leave{}); err != nil { // the money is left unbanked
 		t.Fatal(err)
 	}
-	if _, ok := e.build().(play.Looting); ok {
+	if _, ok := e.build().(game.Looting); ok {
 		t.Fatal("still in the treasure screen after Leave")
 	}
 	if st.Purse.Gold != gold {
@@ -81,7 +81,7 @@ func TestVault(t *testing.T) {
 	e.push(cont{kind: kNop})
 	e.Start(e.Vault) // reopened: the money is still there, and Take banks it
 	seeLoot(t, e)
-	if _, err := e.doNow(play.Take{Item: rules.NoItem}); err != nil {
+	if _, err := e.doNow(game.Take{Item: rules.NoItem}); err != nil {
 		t.Fatal(err)
 	}
 	if st.Purse.Gold <= gold {
@@ -104,7 +104,7 @@ func TestNoSaveInVault(t *testing.T) {
 	if e.canSave(false) || e.SaveNamed("VAULTSAVE") == nil {
 		t.Fatal("saved with the vault open")
 	}
-	if _, err := e.doNow(play.Leave{}); err != nil {
+	if _, err := e.doNow(game.Leave{}); err != nil {
 		t.Fatal(err)
 	}
 	if !e.canSave(false) {

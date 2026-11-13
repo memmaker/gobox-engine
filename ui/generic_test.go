@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -28,15 +27,15 @@ func TestGenericPaneAndPrompt(t *testing.T) {
 	defer dst.Deallocate()
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
-	won := play.Common{Text: []string{"THE PARTY HAS WON."}}
-	p, f := presenterOn(play.Scene{Common: won})
+	won := game.Common{Text: []string{"THE PARTY HAS WON."}}
+	p, f := presenterOn(game.Scene{Common: won})
 	p.Draw(dst, note)
 	textOnly := lit(dst)
 	if textOnly == 0 {
 		t.Fatal("the pane text is not drawn")
 	}
-	won.Ask = &play.Question{Text: "PRESS ENTER", Replies: []string{"CONTINUE"}}
-	f.st = play.Scene{Common: won}
+	won.Ask = &game.Question{Text: "PRESS ENTER", Replies: []string{"CONTINUE"}}
+	f.st = game.Scene{Common: won}
 	p.Draw(dst, note)
 	if both := lit(dst); both <= textOnly {
 		t.Fatalf("the prompt is not drawn: %d lit with it, %d without", both, textOnly)
@@ -50,7 +49,7 @@ func TestGenericTyping(t *testing.T) {
 	defer dst.Deallocate()
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
-	p, _ := presenterOn(play.Scene{Common: play.Common{Ask: &play.Question{Text: "Character name:", Typed: true, Max: 15}}})
+	p, _ := presenterOn(game.Scene{Common: game.Common{Ask: &game.Question{Text: "Character name:", Typed: true, Max: 15}}})
 	p.Draw(dst, note)
 	if lit(dst) == 0 {
 		t.Fatal("the name question is not drawn")
@@ -62,7 +61,7 @@ func TestGenericTyping(t *testing.T) {
 func TestInventoryGameAsk(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
-	p, _ := presenterOn(play.Exploring{Common: play.Common{Party: []game.Member{{Name: "A"}}, Ask: &play.Question{Text: "Use it? ", Replies: []string{"Yes", "No"}}}})
+	p, _ := presenterOn(game.Exploring{Common: game.Common{Party: []game.Member{{Name: "A"}}, Ask: &game.Question{Text: "Use it? ", Replies: []string{"Yes", "No"}}}})
 	p.eng.r.items = game.ItemsOwn
 	if p.Inventory(dst, Note{}) {
 		t.Fatal("the items hide the game's question")

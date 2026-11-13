@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // The area event scripts are text (data/assets/scripts/area<N>.txt, README.md
@@ -21,12 +21,12 @@ func (e *Engine) scriptDir() string { return filepath.Join(e.adv, "scripts") }
 func (e *Engine) loadScript(area int) {
 	clear(e.vm.Code)
 	s, err := e.parseScriptFile(area)
-	if errors.Is(err, script.ErrNotImported) {
+	if errors.Is(err, ecl.ErrNotImported) {
 		panic(err) // the import must run (ImportScripts): no area plays without its script
 	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "script:", err)
-		s = &script.Script{Area: area, Code: []script.Instr{{Op: 0}}, Labels: map[string]int{}, At: map[int]string{}}
+		s = &ecl.Script{Area: area, Code: []ecl.Instr{{Op: 0}}, Labels: map[string]int{}, At: map[int]string{}}
 	}
 	e.vm.Script = s
 	e.bindWords()
@@ -55,7 +55,7 @@ func (e *Engine) loadScript(area int) {
 	}
 }
 
-func (e *Engine) parseScriptFile(area int) (*script.Script, error) {
-	l := script.Library{Version: e.eclVersion, Dir: e.scriptDir(), Data: os.DirFS(e.scriptDir()), Fixes: e.game().ScriptFixes}
+func (e *Engine) parseScriptFile(area int) (*ecl.Script, error) {
+	l := ecl.Library{Version: e.eclVersion, Dir: e.scriptDir(), Data: os.DirFS(e.scriptDir()), Fixes: e.game().ScriptFixes}
 	return l.Area(area)
 }

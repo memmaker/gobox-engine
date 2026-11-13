@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	eclscript "gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TestScriptsGoldOnly: no imported script reads, writes or compares a silver,
 // electrum or platinum coin (Felix 2026-11-12: gold and copper only); the
-// import rewrote them (eclscript.GoldCoins).
+// import rewrote them (ecl.GoldCoins).
 // Detect the class elsewhere: a layout field holding money has coins=, and each game runs this test.
 func TestSotsbScriptsGoldOnly(t *testing.T) {
 	dos := filepath.Join("..", "..", "data", "sotsb", "sources", "dos")
@@ -21,7 +21,7 @@ func TestSotsbScriptsGoldOnly(t *testing.T) {
 	if err := SotsbImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	bad, err := eclscript.MovedCoins(eclscript.V2, dir, embeddedScripts("sotsb"), journalFixes)
+	bad, err := ecl.MovedCoins(ecl.V2, dir, embeddedScripts("sotsb"), journalFixes)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,7 +31,7 @@ func TestSotsbScriptsGoldOnly(t *testing.T) {
 }
 
 // TestNoScalarTables: no imported script indexes a field of one element
-// (eclscript.ScalarTables; POR's quest table was split into scalars).
+// (ecl.ScalarTables; POR's quest table was split into scalars).
 func TestSotsbNoScalarTables(t *testing.T) {
 	dos := filepath.Join("..", "..", "data", "sotsb", "sources", "dos")
 	if _, err := os.Stat(dos); err != nil {
@@ -41,7 +41,7 @@ func TestSotsbNoScalarTables(t *testing.T) {
 	if err := SotsbImportScriptsTo(dos, dir); err != nil {
 		t.Fatal(err)
 	}
-	bad, err := eclscript.ScalarTables(eclscript.V2, dir, embeddedScripts("sotsb"), journalFixes)
+	bad, err := ecl.ScalarTables(ecl.V2, dir, embeddedScripts("sotsb"), journalFixes)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // TestInnRestCamps: Yes at the Inn opens camp and the script waits for
@@ -25,12 +25,12 @@ func TestInnRestCamps(t *testing.T) {
 	mode := fmt.Sprintf("%T", e.build())
 	stepBy(e, 0)
 	if e.ext.owed != nil {
-		e.doNow(play.RunEvent{})
+		e.doNow(game.RunEvent{})
 	}
 	if commonOf(e.build()).Ask == nil {
 		t.Fatal("no Inn question at (4,13)")
 	}
-	e.doNow(play.Reply{N: 0})
+	e.doNow(game.Reply{N: 0})
 	watch := func() bool {
 		return slices.ContainsFunc(commonOf(e.build()).Text, func(l string) bool { return strings.Contains(l, "ROUSTED") })
 	}
@@ -62,13 +62,13 @@ func TestInnRestNo(t *testing.T) {
 	e.Start(e.Play)
 	stepBy(e, 0)
 	if e.ext.owed != nil {
-		e.doNow(play.RunEvent{})
+		e.doNow(game.RunEvent{})
 	}
 	if q := commonOf(e.build()).Ask; q == nil || len(q.Replies) != 2 || q.Replies[0] != "Yes" {
 		t.Fatalf("Inn question: %+v", q)
 	}
 	for i := 0; i < 5 && commonOf(e.build()).Ask != nil && !e.campUp(); i++ {
-		e.doNow(play.Reply{N: 1})
+		e.doNow(game.Reply{N: 1})
 	}
 	if e.campUp() {
 		t.Fatal("No at the Inn opened camp")

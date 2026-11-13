@@ -4,7 +4,6 @@ import (
 	"image"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // derived is what the screens read of the game's State that is made from it,
@@ -36,11 +35,11 @@ func (r *frontState) derived() *derived {
 		d.unknown = unknownOf(ps)
 		d.border = borderOf(r.Art())
 		d.automap = automapOf(ps, d.explored)
-		if _, ok := ps.(play.Exploring); ok {
+		if _, ok := ps.(game.Exploring); ok {
 			d.explored = d.automap
 		}
 		if am := d.automap; am.Size == image.Pt(16, 16) {
-			d.minimap = Map(&MapSquares{}, am, play.CommonOf(ps).Where)
+			d.minimap = Map(&MapSquares{}, am, game.CommonOf(ps).Where)
 			if old != nil && old.minimap != nil && *d.minimap == *old.minimap { // the same map: the one uploaded
 				d.minimap = old.minimap
 			}

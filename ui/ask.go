@@ -3,10 +3,9 @@ package ui
 import (
 	"cmp"
 	"gobox/game"
-	"gobox/game/play"
 )
 
-// askKinds are the questions classic rebuilds from play.Ask alone.
+// askKinds are the questions classic rebuilds from game.Ask alone.
 var askKinds = map[game.AskKind]AskKind{
 	game.Choice: AskMenu, game.Continue: AskMenu, game.Name: AskText,
 	game.Number: AskNumber, game.PickMember: AskMember, game.PickItem: AskList,
@@ -14,8 +13,8 @@ var askKinds = map[game.AskKind]AskKind{
 }
 
 // Ask is the question from s (nil: none up), and false where classic
-// cannot rebuild it from play.Ask: the game's stays.
-func Ask(mode game.Mode, a *play.Ask) (*FrontAsk, bool) {
+// cannot rebuild it from game.Ask: the game's stays.
+func Ask(mode game.Mode, a *game.Ask) (*FrontAsk, bool) {
 	if a == nil || mode != game.ModeAsk && !OverMenu(mode, a) {
 		return nil, true
 	}
@@ -50,7 +49,7 @@ func Ask(mode game.Mode, a *play.Ask) (*FrontAsk, bool) {
 
 // overMenu: the game keeps ModeExplore under a menu or yes/no it opens over the 3D
 // view (camp's): the menu is up, not the exploring.
-func OverMenu(mode game.Mode, pending *play.Ask) bool {
+func OverMenu(mode game.Mode, pending *game.Ask) bool {
 	return pending != nil && (pending.Kind == game.YesNo || pending.Kind == game.Name || pending.Kind == game.Number) || // a yes/no or a typed line over any screen (the treasure's "claim it?", a shop's drop, the name after creation's Keep)
 		(mode == game.ModeExplore || mode == game.ModeCombat) && pending != nil && (pending.Kind == game.Choice || pending.Kind == game.YesNo) // a fight's own question (a member's View) over the map
 }

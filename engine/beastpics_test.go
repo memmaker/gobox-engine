@@ -3,7 +3,7 @@ package engine
 import (
 	"flag"
 	"fmt"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"os"
 	"slices"
@@ -29,12 +29,12 @@ func TestBeastPics(t *testing.T) {
 			if len(b) < 2 {
 				continue
 			}
-			_, lines, _ := script.V1.Walk(b[2:])
+			_, lines, _ := ecl.V1.Walk(b[2:])
 			pic := -1
-			for _, pc := range script.SortedPCs(lines) {
+			for _, pc := range ecl.SortedPCs(lines) {
 				l := lines[pc]
 				lit := func(i int) int {
-					if i >= len(l.Args) || l.Args[i].Type != script.ArgByte {
+					if i >= len(l.Args) || l.Args[i].Type != ecl.ArgByte {
 						return -1
 					}
 					return l.Args[i].N
@@ -42,7 +42,7 @@ func TestBeastPics(t *testing.T) {
 				switch l.Cmd.Op {
 				case 0x0C:
 					pic = lit(2)
-				case script.OpPicture:
+				case ecl.OpPicture:
 					pic = lit(0)
 				case 0x0B:
 					idx := lit(0)

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -59,16 +59,16 @@ func TestAiKeysAgainstPascal(t *testing.T) {
 	}
 }
 
-// play.Manual and play.QuickMagic set the key the computer turn polls; Quick lasts across battles until taken back.
+// game.Manual and game.QuickMagic set the key the computer turn polls; Quick lasts across battles until taken back.
 func TestAiKeyActions(t *testing.T) {
 	e := quickStarted(t)
 	run := func(f func() error) error { return f() }
 	for _, c := range []struct {
-		a    play.Action
+		a    game.Action
 		want rules.AutoKey
-	}{{play.Manual{}, rules.AutoKeyTakeOver}, {play.QuickMagic{}, rules.AutoKeyQuickMagic}} {
+	}{{game.Manual{}, rules.AutoKeyTakeOver}, {game.QuickMagic{}, rules.AutoKeyQuickMagic}} {
 		e.aiKey = rules.AutoKeyNone
-		if ok, err := e.combatDo(c.a, play.Allowed{}, run); !ok || err != nil || e.aiKey != c.want {
+		if ok, err := e.combatDo(c.a, game.Allowed{}, run); !ok || err != nil || e.aiKey != c.want {
 			t.Errorf("%T: taken %v, err %v, key %d", c.a, ok, err, e.aiKey)
 		}
 	}

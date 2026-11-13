@@ -6,7 +6,7 @@
 package ui
 
 import (
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // CreateAct takes a decision a on the creation sheet (or one opening it),
@@ -15,9 +15,9 @@ func CreateAct(h RuleHost, creating *bool, a Action) bool {
 	if !*creating {
 		switch a.Kind {
 		case ActCreate:
-			h.Edit(func(e *classicGame) { refused(e, e.do(play.NewCharacter{})); *creating = e.CreationView() != nil })
+			h.Edit(func(e *classicGame) { refused(e, e.do(game.NewCharacter{})); *creating = e.CreationView() != nil })
 		case ActModify:
-			h.Edit(func(e *classicGame) { refused(e, e.do(play.Modify{Member: a.N})); *creating = e.CreationView() != nil })
+			h.Edit(func(e *classicGame) { refused(e, e.do(game.Modify{Member: a.N})); *creating = e.CreationView() != nil })
 		default:
 			return false
 		}
@@ -25,11 +25,11 @@ func CreateAct(h RuleHost, creating *bool, a Action) bool {
 	}
 	switch a.Kind {
 	case ActRoll:
-		h.Edit(func(e *classicGame) { refused(e, e.do(play.Reroll{Minimal: a.N == 1})) })
+		h.Edit(func(e *classicGame) { refused(e, e.do(game.Reroll{Minimal: a.N == 1})) })
 	case ActName:
-		h.Edit(func(e *classicGame) { refused(e, e.do(play.Rename{Name: a.Text})) })
+		h.Edit(func(e *classicGame) { refused(e, e.do(game.Rename{Name: a.Text})) })
 	case ActStat:
-		h.Edit(func(e *classicGame) { refused(e, e.do(play.SetStat{Stat: a.N, Text: a.Text})) })
+		h.Edit(func(e *classicGame) { refused(e, e.do(game.SetStat{Stat: a.N, Text: a.Text})) })
 	case ActSetField:
 		h.Edit(func(e *classicGame) { refused(e, e.SetField(a.N, a.X)) })
 	case ActKeep, ActClose: // a refused Keep leaves the sheet up, so Esc still discards

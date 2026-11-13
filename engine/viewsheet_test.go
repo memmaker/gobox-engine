@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestViewSheet (BUG-CLASSES 36): mid-fight and in a shop each member's
@@ -39,7 +38,7 @@ func viewSheetShop(t *testing.T, e *Engine) {
 			t.Fatalf("%s: sheet %+v", what, p)
 		}
 	}
-	if _, ok := e.build().(play.Trading); !ok {
+	if _, ok := e.build().(game.Trading); !ok {
 		t.Fatalf("no shop: %T", e.build())
 	}
 	shop := commonOf(e.build()).Party[1].Page

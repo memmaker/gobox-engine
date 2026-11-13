@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TestFindItemUnknownType: a script item number missing from ids.txt is a
@@ -17,7 +17,7 @@ func TestFindItemUnknownType(t *testing.T) {
 	if _, err := e.itemID(unknown); !errors.As(err, &u) || u.N != unknown {
 		t.Fatalf("itemID(%#x): %v, want UnknownItemType", unknown, err)
 	}
-	e.vm.Script = &script.Script{Code: []script.Instr{{Op: script.OpFindItem, Args: []script.Arg{{N: unknown}}}, {Op: script.OpExit}}}
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Op: ecl.OpFindItem, Args: []ecl.Arg{{N: unknown}}}, {Op: ecl.OpExit}}}
 	e.vm.PC, e.vm.Stop = 0, false
 	e.eclRun()
 	if e.vm.Flags[0] || !e.vm.Flags[1] {

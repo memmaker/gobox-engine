@@ -1,7 +1,7 @@
 package games
 
 import (
-	"gobox/game/journal"
+	"gobox/game"
 	"sync"
 )
 
@@ -10,8 +10,8 @@ import (
 //
 
 // journalBook is JOURNAL.TXT, loaded once.
-var journalBook = sync.OnceValue(func() *journal.Book {
-	b, err := journal.Load(embeddedJournal("pod"), journalFile)
+var journalBook = sync.OnceValue(func() *game.JournalBook {
+	b, err := game.LoadJournal(embeddedJournal("pod"), journalFile)
 	if err != nil {
 		panic(err)
 	}

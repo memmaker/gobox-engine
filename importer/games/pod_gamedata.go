@@ -2,7 +2,6 @@ package games
 
 import (
 	"gobox/game"
-	"gobox/game/play"
 	"sort"
 	"strings"
 )
@@ -56,7 +55,7 @@ func podGameData(adv string) game.Data {
 		AdLib:        &game.AdLib{Music: adLibMusic, Sounds: adLibSounds, Effects: effects, Rate: 9000},
 		DungeonTiles: PodDungeonTiles,
 		Rests:        []game.RestKind{{Text: "Rest", Key: 'R', N: 0, Duration: true}, {Text: "Fix", Key: 'F', N: 1, Fix: true}},
-		Commands:     play.CommandEntries(podPartyCommands),
+		Commands:     game.CommandEntries(podPartyCommands),
 		ReadyMark:    "*",
 	}
 }
@@ -109,4 +108,4 @@ var confirms = map[string]game.Confirm{
 }
 
 // partyCommands are the game's own party commands.
-var podPartyCommands = []play.Option{{Label: "Add from Secret", Key: 'S', Do: play.AddCharacter{Roster: -1, From: importSotSB}}}
+var podPartyCommands = []game.Option{{Label: "Add from Secret", Key: 'S', Do: game.AddCharacter{Roster: -1, From: importSotSB}}}

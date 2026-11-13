@@ -11,14 +11,13 @@ import (
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 	"gobox/ui/input"
 )
 
 // buyDraft is a draft whose sheet has the abilities names (nil: STR .. CHA).
-func buyDraft(names []string) *play.Draft {
-	d := &play.Draft{}
+func buyDraft(names []string) *game.Draft {
+	d := &game.Draft{}
 	for _, n := range names {
 		d.Stats = append(d.Stats, game.StatDef{Label: n})
 	}
@@ -83,7 +82,7 @@ func TestPointBuy(t *testing.T) {
 			}
 			var got []int
 			for _, a := range f.sent {
-				if b, ok := a.(play.PointBuy); ok {
+				if b, ok := a.(game.PointBuy); ok {
 					got = b.Scores
 				}
 			}

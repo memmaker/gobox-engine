@@ -4,11 +4,10 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 func TestAddedToJournal(t *testing.T) {
-	r := play.Exploring{Common: play.Common{Lore: []game.Lore{{Title: "Old"}}}}
+	r := game.Exploring{Common: game.Common{Lore: []game.Lore{{Title: "Old"}}}}
 	f := &fake{st: r}
 	g := NewGame(f, game.Data{})
 	if g.Settle(); g.r.toast.Text != "" {

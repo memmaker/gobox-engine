@@ -1,9 +1,8 @@
 package engine
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/importer"
 	"gobox/rules"
 	"slices"
@@ -11,23 +10,23 @@ import (
 )
 
 // TestProgramQuit: pod's Program 2 tells the front to end the run
-// (play.Ended); Program 1 offers the save screen, then the ending.
+// (game.Ended); Program 1 offers the save screen, then the ending.
 func TestProgramQuit(t *testing.T) {
 	e := quickStarted(t)
-	e.eclVersion = script.V3
+	e.eclVersion = ecl.V3
 	program := func(n int) {
 		e.events = nil
-		e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{N: n}}}}, Layout: e.vm.Script.Layout}
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: n}}}}, Layout: e.vm.Script.Layout}
 		e.vm.PC = 0
 		e.vm.Fetch()
 		e.opProgram()
 	}
 	program(2)
-	if !slices.Contains(e.events, play.Event(play.Ended{})) {
+	if !slices.Contains(e.events, game.Event(game.Ended{})) {
 		t.Fatalf("Quit: events %v", e.events)
 	}
 	program(1)
-	if !slices.Contains(e.events, play.Event(play.SaveOffered{})) || !slices.Contains(e.events, play.Event(play.Ended{})) {
+	if !slices.Contains(e.events, game.Event(game.SaveOffered{})) || !slices.Contains(e.events, game.Event(game.Ended{})) {
 		t.Fatalf("SaveQuit: events %v", e.events)
 	}
 }
@@ -36,21 +35,21 @@ func TestProgramQuit(t *testing.T) {
 // sequence (Continue ends it) or, with none, ends the run at once; never a finale of its own.
 func TestProgramSaveQuitEnding(t *testing.T) {
 	e := quickStarted(t)
-	e.eclVersion = script.V3
-	e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{N: 1}}}}, Layout: e.vm.Script.Layout}
+	e.eclVersion = ecl.V3
+	e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: 1}}}}, Layout: e.vm.Script.Layout}
 	e.vm.PC = 0
 	e.vm.Fetch()
 	e.title.seqs = []game.Sequence{{Name: seqEnding}}
 	e.events = nil
 	e.opProgram()
-	if e.sequence != seqEnding || slices.Contains(e.events, play.Event(play.Ended{})) {
+	if e.sequence != seqEnding || slices.Contains(e.events, game.Event(game.Ended{})) {
 		t.Fatalf("SaveQuit with an end: sequence %q, events %v: want the sequence up, the run on", e.sequence, e.events)
 	}
-	o, err := e.doNow(play.Continue{})
+	o, err := e.doNow(game.ContinueAction{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.Contains(o.Events, play.Event(play.Ended{})) {
+	if !slices.Contains(o.Events, game.Event(game.Ended{})) {
 		t.Fatalf("Continue on the ending: events %v, want Ended", o.Events)
 	}
 }
@@ -61,7 +60,7 @@ func TestProgramEnding(t *testing.T) {
 	e := quickStarted(t)
 	program := func() {
 		e.events = nil
-		e.vm.Script = &script.Script{Code: []script.Instr{{Args: []script.Arg{{N: 8}}}}, Layout: e.vm.Script.Layout}
+		e.vm.Script = &ecl.Script{Code: []ecl.Instr{{Args: []ecl.Arg{{N: 8}}}}, Layout: e.vm.Script.Layout}
 		e.vm.PC = 0
 		e.vm.Fetch()
 		e.opProgram()
@@ -70,13 +69,13 @@ func TestProgramEnding(t *testing.T) {
 	if e.ext.ending || e.waiting(PendSequence) {
 		t.Fatal("an ending with no End waits")
 	}
-	e.title.end = &play.Scene{Kind: play.SceneTitle, Intro: &game.Intro{Full: true}}
+	e.title.end = &game.Scene{Kind: game.SceneTitle, Intro: &game.Intro{Full: true}}
 	program()
-	if sc, ok := e.build().(play.Scene); !ok || sc.Kind != play.SceneTitle || !e.waiting(PendSequence) {
+	if sc, ok := e.build().(game.Scene); !ok || sc.Kind != game.SceneTitle || !e.waiting(PendSequence) {
 		t.Fatalf("the end is up as %T, waiting %v", e.build(), e.waiting(PendSequence))
 	}
-	o, err := e.doNow(play.Continue{})
-	if err != nil || e.ext.ending || e.waiting(PendSequence) || slices.Contains(o.Events, play.Event(play.Ended{})) {
+	o, err := e.doNow(game.ContinueAction{})
+	if err != nil || e.ext.ending || e.waiting(PendSequence) || slices.Contains(o.Events, game.Event(game.Ended{})) {
 		t.Fatalf("Continue: %v, ending %v, events %v: want the script on", err, e.ext.ending, o.Events)
 	}
 }
@@ -88,11 +87,11 @@ func TestEndScene(t *testing.T) {
 	layer := func(min int, ms int) game.Layer {
 		return game.Layer{MinParty: min, FrameMs: ms, MsgDelayed: ms != 0}
 	}
-	e.title.end = &play.Scene{Kind: play.SceneTitle, Steps: map[int]play.TitleStep{1: {Text: []string{"x"}, Layers: []game.Layer{layer(0, 0), layer(2, 0), layer(0, 160)}}}}
+	e.title.end = &game.Scene{Kind: game.SceneTitle, Steps: map[int]game.TitleStep{1: {Text: []string{"x"}, Layers: []game.Layer{layer(0, 0), layer(2, 0), layer(0, 160)}}}}
 	e.msgDelay = 5 // (5+3)/(1+3) = twice the default
 	for _, members := range []int{1, 3} {
 		e.setWorldWord(rules.WordPartyCount, members)
-		st := e.endScene(play.Common{}).Steps[1]
+		st := e.endScene(game.Common{}).Steps[1]
 		want := 2
 		if members >= 2 {
 			want = 3

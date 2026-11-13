@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestPickSpell: Cast out of combat asks for a spell among the member's
@@ -33,7 +32,7 @@ func TestPickSpell(t *testing.T) {
 	if pq := call(rules1e.SpCureLightWounds); pq == nil || pq.of != askMember || len(pq.q.Replies) != len(e.state().Party) {
 		t.Fatalf("no target asked: %+v", pq)
 	}
-	if !slices.Contains(commonOf(e.build()).Allowed.Plain, play.Action(play.Reply{N: 0})) {
+	if !slices.Contains(commonOf(e.build()).Allowed.Plain, game.Action(game.Reply{N: 0})) {
 		t.Error("the target question's reply not allowed")
 	}
 }

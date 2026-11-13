@@ -1,7 +1,7 @@
 package rules
 
 // Action is one thing a character or the party does. The set is closed. These
-// are the rule verbs of gobox/game/play: at migration play's become aliases
+// are the rule verbs of gobox/game: at migration play's become aliases
 // of them, never a second copy.
 type Action interface{ action() }
 

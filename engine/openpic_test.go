@@ -1,16 +1,16 @@
 package engine
 
 import (
-	"gobox/game/play"
+	"gobox/game"
 	"strings"
 	"testing"
 )
 
 // eventPic is the first layer of s's page drawn from a scripted picture
 // (PIC, or a HEAD/BODY portrait), "" none.
-func eventPic(s play.State) string {
+func eventPic(s game.State) string {
 	layers := commonOf(s).Layers
-	if sc, ok := s.(play.Scene); ok {
+	if sc, ok := s.(game.Scene); ok {
 		layers = sc.Layers
 	}
 	for _, l := range layers {
@@ -29,10 +29,10 @@ func TestOpeningPicture(t *testing.T) {
 	e.Start(e.GameLoop)
 	seen := ""
 	for range 200 {
-		e.stepOn(&play.Outcome{}, nil)
+		e.stepOn(&game.Outcome{}, nil)
 		s := e.build()
 		p := eventPic(s)
-		if x, ok := s.(play.Exploring); p != "" {
+		if x, ok := s.(game.Exploring); p != "" {
 			seen = p
 		} else if seen != "" && ok && x.Ask == nil {
 			return

@@ -5,9 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules"
 )
 
@@ -19,11 +18,11 @@ import (
 // again (the encounter's WAIT, a native script's next question): the
 // question stays open until nothing is pending.
 
-// eclWait is the pending question: what it asks (a play.Question) and how
-// the answer (a play.Reply, Continue or SelectMember) completes it.
+// eclWait is the pending question: what it asks (a game.Question) and how
+// the answer (a game.Reply, Continue or SelectMember) completes it.
 type eclWait struct {
-	ask    *play.Question
-	lines  []game.Line // a list's rows with their marks (play.Question has the text only)
+	ask    *game.Question
+	lines  []game.Line // a list's rows with their marks (game.Question has the text only)
 	member bool        // a member pick: the roster highlights its candidate
 	ms     int         // a pause: the presenter paces it
 	anim   bool        // the picture animates while it waits
@@ -78,7 +77,7 @@ const (
 // askDone is what the answer completes, with what it needs.
 type askDone struct {
 	kind doneKind
-	dst  script.Ref
+	dst  ecl.Ref
 	r    [5]byte
 	who  rules.CharID
 }
@@ -96,12 +95,12 @@ func (e *Engine) choosing() bool { return e.eclWait != nil && e.eclWait.member }
 
 // yesNo is a yes/no question (the highlight starts on Yes); strict: only Y
 // and N answer it, not Enter or Esc (ovr26:10D1).
-func yesNo(text string, strict bool) *play.Question {
-	return &play.Question{Text: text, YesNo: true, Default: 1, Replies: []string{"No", "Yes"}, NoEsc: strict, NoPick: strict}
+func yesNo(text string, strict bool) *game.Question {
+	return &game.Question{Text: text, YesNo: true, Default: 1, Replies: []string{"No", "Yes"}, NoEsc: strict, NoPick: strict}
 }
 
 // askYesNo asks q (yesNo's); d gets the answer (n 1 for yes).
-func (e *Engine) askYesNo(q *play.Question, anim bool, d askDone) {
+func (e *Engine) askYesNo(q *game.Question, anim bool, d askDone) {
 	e.eclWait = &eclWait{ask: q, anim: anim, shape: shYesNo, done: d}
 }
 
@@ -130,11 +129,11 @@ func (e *Engine) restoreAnim(s *animSave) {
 	}
 }
 
-// answer gives the reply r (a play.Reply, Continue, Leave or SelectMember)
+// answer gives the reply r (a game.Reply, Continue, Leave or SelectMember)
 // to the open question, which it completes or not. Asked again (the
 // completion set another question), that one goes on in its place; else
 // what follows runs.
-func (e *Engine) answer(r play.Action) {
+func (e *Engine) answer(r game.Action) {
 	w := e.eclWait
 	v, ok := e.accept(w, r)
 	if !ok {
@@ -175,19 +174,19 @@ func (e *Engine) answer(r play.Action) {
 // choice is forced. Felix's rule; the original's MenuInput (ovr08:1684) took
 // Esc on no menu.
 // (Extra: a page's lone press-Enter reply, which the original also holds, takes Esc as Enter.)
-func (e *Engine) leaveAsk(q *play.Question) error {
+func (e *Engine) leaveAsk(q *game.Question) error {
 	if i, ok := q.Esc.Reply(); ok {
-		e.answer(play.Reply{N: i})
+		e.answer(game.Reply{N: i})
 		return nil
 	}
-	var r play.Action
+	var r game.Action
 	switch {
 	case e.choosing(), q.YesNo, q.NoEsc:
 		return rules.ErrNotNow
 	case q.Typed, q.Number:
-		r = play.Reply{}
+		r = game.Reply{}
 	case q.Continue, e.eclWait.enter:
-		r = play.Continue{}
+		r = game.ContinueAction{}
 	default:
 		return rules.ErrNotNow
 	}
@@ -214,9 +213,9 @@ func listLines(list []*ListNode) []game.Line {
 // hotMenu is MenuInput's bar for menu as a question: each word with a hotkey
 // is a reply (its hotkey lit and typed to pick it), and ids[N] the choice
 // of the hotkey's place in the menu.
-func hotMenu(prompt, menu string) (q *play.Question, ids []int) {
+func hotMenu(prompt, menu string) (q *game.Question, ids []int) {
 	hot, shown := extractHotkeys(menu)
-	q = &play.Question{Text: strings.TrimSpace(prompt)}
+	q = &game.Question{Text: strings.TrimSpace(prompt)}
 	for _, w := range strings.Split(shown, " ") {
 		if i := strings.IndexFunc(w, func(r rune) bool { return r < 0x80 && isHotkey(byte(r)) }); i >= 0 {
 			q.Replies, q.Keys = append(q.Replies, optionText(w)), append(q.Keys, rune(w[i]))
@@ -252,7 +251,7 @@ func (e *Engine) scriptExit() {
 		}
 		row = reply
 	}
-	w.ask.Esc, w.ask.NoEsc = play.EscTo(row), false
+	w.ask.Esc, w.ask.NoEsc = game.EscTo(row), false
 }
 
 // askContinue is the scripts' one-item "PRESS <RETURN>" menu; the prompt
@@ -275,14 +274,14 @@ func (e *Engine) keyWait(c cont) {
 // askList asks for a line of list (ListMenu without options): d gets
 // its index, -1 when the player backs out.
 func (e *Engine) askList(list []*ListNode, d askDone) {
-	e.eclWait = &eclWait{ask: &play.Question{List: true}, lines: listLines(list), shape: shList, list: list, done: d}
+	e.eclWait = &eclWait{ask: &game.Question{List: true}, lines: listLines(list), shape: shList, list: list, done: d}
 }
 
 // askLine asks for a typed line of at most maxlen (InputString's, upcased;
 // with number, InputNumber's: asked again until it is 0..65536).
 func (e *Engine) askLine(maxlen int, number bool, d askDone) {
 	e.clearPrompt()
-	q := &play.Question{Text: strings.TrimSpace(e.ext.printed), Typed: !number, Number: number, Max: maxlen} // the question is the text the script printed
+	q := &game.Question{Text: strings.TrimSpace(e.ext.printed), Typed: !number, Number: number, Max: maxlen} // the question is the text the script printed
 	e.eclWait = &eclWait{ask: q, shape: shLine, maxlen: maxlen, done: d}
 }
 
@@ -302,7 +301,7 @@ func (e *Engine) askMember(prompt string, whoID rules.CharID, d askDone) {
 		whoID = ids[0]
 	}
 	e.rosterHi, e.rosterNone = whoID, false
-	q := &play.Question{Text: strings.TrimSpace(rules.Cut(prompt, textCols) + " "), List: true}
+	q := &game.Question{Text: strings.TrimSpace(rules.Cut(prompt, textCols) + " "), List: true}
 	for _, id := range ids {
 		q.Replies = append(q.Replies, e.ruleset().Sheet(id).Name)
 	}
@@ -316,41 +315,41 @@ func (e *Engine) askPause(ms int, d askDone) {
 		e.complete(d, ansv{})
 		return
 	}
-	e.eclWait = &eclWait{ask: &play.Question{Continue: true}, ms: ms, shape: shPause, done: d}
+	e.eclWait = &eclWait{ask: &game.Question{Continue: true}, ms: ms, shape: shPause, done: d}
 }
 
 // accept takes the reply a to w's question: the answer when it completes
 // it, false when it keeps it waiting.
-func (e *Engine) accept(w *eclWait, a play.Action) (ansv, bool) {
+func (e *Engine) accept(w *eclWait, a game.Action) (ansv, bool) {
 	switch w.shape {
 	case shYesNo:
-		if r, ok := a.(play.Reply); ok && r.N >= 0 && r.N <= 1 {
+		if r, ok := a.(game.Reply); ok && r.N >= 0 && r.N <= 1 {
 			return ansv{n: r.N}, true
 		}
 	case shChoice:
 		switch a := a.(type) {
-		case play.Reply:
+		case game.Reply:
 			if a.N >= 0 && a.N < len(w.ids) {
 				return ansv{n: w.ids[a.N]}, true
 			}
-		case play.Continue: // Enter (MenuInput's allowed Enter, 1723), or a lone page's Esc (extra: leaveAsk)
+		case game.ContinueAction: // Enter (MenuInput's allowed Enter, 1723), or a lone page's Esc (extra: leaveAsk)
 			if w.enter {
 				return ansv{}, true
 			}
-		case play.SelectMember:
+		case game.SelectMember:
 			e.selectMember(a.Member)
 		}
 	case shList:
 		switch a := a.(type) {
-		case play.Reply:
+		case game.Reply:
 			if i := a.N; i >= 0 && i < len(w.list) && !w.list[i].skipped() {
 				return ansv{n: i, list: w.list}, true
 			}
-		case play.SelectMember:
+		case game.SelectMember:
 			e.selectMember(a.Member)
 		}
 	case shLine:
-		r, ok := a.(play.Reply)
+		r, ok := a.(game.Reply)
 		if !ok {
 			return ansv{}, false
 		}
@@ -368,21 +367,21 @@ func (e *Engine) accept(w *eclWait, a play.Action) (ansv, bool) {
 		return ansv{s: s}, true
 	case shMember:
 		switch a := a.(type) {
-		case play.Continue: // the highlighted member
+		case game.ContinueAction: // the highlighted member
 			return ansv{who: e.rosterHi}, true
-		case play.Reply: // member N: a portrait
+		case game.Reply: // member N: a portrait
 			if ids := e.partyIDs(); a.N >= 0 && a.N < len(ids) {
 				e.rosterHi = ids[a.N]
 				return ansv{who: e.rosterHi}, true
 			}
-		case play.SelectMember: // SelectMember stepped the candidate
+		case game.SelectMember: // SelectMember stepped the candidate
 			if ids := e.partyIDs(); a.Member >= 0 && a.Member < len(ids) {
 				e.rosterHi, e.rosterNone = ids[a.Member], false
 				e.selectChar(e.rosterHi)
 			}
 		}
 	case shPause:
-		if _, ok := a.(play.Continue); ok {
+		if _, ok := a.(game.ContinueAction); ok {
 			return ansv{}, true
 		}
 	}

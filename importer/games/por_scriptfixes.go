@@ -1,15 +1,15 @@
 package games
 
 import (
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // scriptFixes are POR's special cases in its decompiler: each turns a site of
-// the decompiled text into the port's (script.Fix, the site exactly once or
+// the decompiled text into the port's (ecl.Fix, the site exactly once or
 // the import fails). Each says what the original did, why it changes and its
 // row in gobox-engine/CHANGES-FROM-ORIGINAL.md. They were patches/*.patch,
 // byte for byte the same texts.
-var porScriptFixes = []script.Fix{
+var porScriptFixes = []ecl.Fix{
 	// 0: area 0 InsideTown. Original: nothing here.
 	// Why: fix: the arms shop's south door (wall 3, not 9) was never locked.
 	// CHANGES: POR script, area 0 InsideTown.
@@ -578,7 +578,7 @@ EjectToStreet:
     goto LeaveCastle
 `},
 	// 22a: area 9 CheckMemberMoney. Original: the member's five coins summed in platinum (copper/10 + silver, /10 + electrum, /2 + gold, /5 + platinum).
-	// Why: gold and copper only (Felix 2026-11-12, script.GoldCoins): the same sum, in platinum, of the two coins there are.
+	// Why: gold and copper only (Felix 2026-11-12, ecl.GoldCoins): the same sum, in platinum, of the two coins there are.
 	// CHANGES: POR script, area 9 coins in gold.
 	{Area: 9, Old: `    &Scratch6 = &SelCoins / 10
     &Scratch6 += &SelCoins # coins: rewritten to gold/copper; operands not converted by value

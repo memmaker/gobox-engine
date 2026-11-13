@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // titleHost runs the presenter's calls on a game over a title Scene and
@@ -19,7 +18,7 @@ type titleHost struct {
 }
 
 func newTitleHost(log *[]string) titleHost {
-	f := &fake{st: play.Scene{}}
+	f := &fake{st: game.Scene{}}
 	return titleHost{g: &classicGame{Game: NewGame(f, game.Data{})}, f: f, log: log}
 }
 

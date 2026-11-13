@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"gobox/asset/orig"
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
 // TestArea9CoinLoop: area 9's special cases type the coin loop (SelCoins[i] for
@@ -20,7 +20,7 @@ func TestArea9CoinLoop(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	names, err := script.ReadNames(os.DirFS(scripts), area, true, script.V1)
+	names, err := ecl.ReadNames(os.DirFS(scripts), area, true, ecl.V1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func TestArea9CoinLoop(t *testing.T) {
 			raw = b[2:]
 		}
 	}
-	orig, err := script.Decode(raw, names)
+	orig, err := ecl.Decode(raw, names)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,22 +40,22 @@ func TestArea9CoinLoop(t *testing.T) {
 	// (coinWindow).
 	orig = resolvedOver(t, orig, area, "6B01 1 byte member CoinLoopBase\n")
 	dir := scripts // imported, special cases applied, by the TestMain import (por-go cmd/importstale)
-	text, err := os.ReadFile(script.AreaPath(dir, area))
+	text, err := os.ReadFile(ecl.AreaPath(dir, area))
 	if err != nil {
 		t.Fatal(err)
 	}
-	patched, err := script.Parse(string(text), names)
+	patched, err := ecl.Parse(string(text), names)
 	if err != nil {
 		t.Fatal(err)
 	}
 	patched = resolved(t, patched, area)
-	run := func(s *script.Script, p rules1e.Purse, cost uint16) string {
+	run := func(s *ecl.Script, p rules1e.Purse, cost uint16) string {
 		e := quickStarted(t)
 		at, ok := s.Labels["TakeCoins"]
 		if !ok {
 			t.Fatal("no TakeCoins")
 		}
-		s.Code = append(s.Code, script.Instr{Op: script.OpGosub, Args: []script.Arg{{Type: script.ArgVar, N: at, Label: true}}}, script.Instr{Op: script.OpExit})
+		s.Code = append(s.Code, ecl.Instr{Op: ecl.OpGosub, Args: []ecl.Arg{{Type: ecl.ArgVar, N: at, Label: true}}}, ecl.Instr{Op: ecl.OpExit})
 		defer func() { s.Code = s.Code[:len(s.Code)-2] }()
 		e.vm.Script = s
 		e.engineFields["SelName"] = coinWindow(e, "SelName", 0x6B00)

@@ -2,7 +2,6 @@ package engine
 
 import (
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/importer"
 	"gobox/rules"
 	"maps"
@@ -17,7 +16,7 @@ const msgDelayTicks = 3
 // endScene is the end's pictures as the party and the message delay show them: only as many party
 // pictures as the party has members (game.Layer.MinParty), and the animations' frames paced by the
 // message delay (game.Layer.MsgDelayed), as the original's finale.
-func (e *Engine) endScene(cm play.Common) play.Scene {
+func (e *Engine) endScene(cm game.Common) game.Scene {
 	sc := *e.title.end
 	sc.Common = cm
 	party := e.worldWord(rules.WordPartyCount)
@@ -41,7 +40,7 @@ func (e *Engine) endScene(cm play.Common) play.Scene {
 }
 
 // ending plays the adventure's end (its manifest's End, SetEnd). With ends the run is over
-// after it (pod's save-and-quit: play.Ended), else the script goes on (the finale of
+// after it (pod's save-and-quit: game.Ended), else the script goes on (the finale of
 // POR and COTAB: the game is won and play continues). With no End there is nothing to play.
 // Reports whether it waits.
 func (e *Engine) ending(ends bool) bool {
@@ -53,7 +52,7 @@ func (e *Engine) ending(ends bool) bool {
 		e.ext.ending = true
 	default:
 		if ends {
-			e.event(play.Ended{})
+			e.event(game.Ended{})
 		}
 		return false
 	}
@@ -65,7 +64,7 @@ func (e *Engine) ending(ends bool) bool {
 func (e *Engine) endDone() error {
 	e.sequence, e.ext.ending = "", false
 	if e.ext.endRun {
-		e.event(play.Ended{}) // the run ends: the script stays waiting
+		e.event(game.Ended{}) // the run ends: the script stays waiting
 		return nil
 	}
 	e.endEffects()

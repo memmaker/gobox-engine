@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"maps"
 
-	"gobox/ecl/script"
+	"gobox/ecl"
 )
 
-// codec is a game's encoding of a canonical field (script.Field.Encoding): the engine's
+// codec is a game's encoding of a canonical field (ecl.Field.Encoding): the engine's
 // bindings always see the canonical value and element; the script sees the game's.
 type codec struct {
 	toGame       func(e *Engine, canonical int64) int64 // a read: the canonical value as the game keeps it
@@ -28,8 +28,8 @@ const (
 // codecs are every game's encodings by name; each game's file adds its own.
 var codecs = joinCodecs(sotsbCodecs, cotabCodecs, podCodecs)
 
-func joinCodecs(sets ...map[script.Encoding]codec) map[script.Encoding]codec {
-	all := map[script.Encoding]codec{}
+func joinCodecs(sets ...map[ecl.Encoding]codec) map[ecl.Encoding]codec {
+	all := map[ecl.Encoding]codec{}
 	for _, s := range sets {
 		for n := range s {
 			if _, ok := all[n]; ok {
@@ -42,7 +42,7 @@ func joinCodecs(sets ...map[script.Encoding]codec) map[script.Encoding]codec {
 }
 
 // codecOf is f's codec; ok false for the canonical encoding.
-func codecOf(f *script.Field) (codec, bool) {
+func codecOf(f *ecl.Field) (codec, bool) {
 	if f.Encoding == "" {
 		return codec{}, false
 	}
@@ -54,13 +54,13 @@ func codecOf(f *script.Field) (codec, bool) {
 }
 
 // writesIgnored reports whether f's game ignores a script's write of it.
-func writesIgnored(f *script.Field) bool {
+func writesIgnored(f *ecl.Field) bool {
 	c, ok := codecOf(f)
 	return ok && c.ignoreWrites
 }
 
 // canonElement is f's element i as its binding numbers it.
-func canonElement(f *script.Field, i int) int {
+func canonElement(f *ecl.Field, i int) int {
 	if c, ok := codecOf(f); ok && c.element != nil {
 		return c.element(i)
 	}
@@ -68,7 +68,7 @@ func canonElement(f *script.Field, i int) int {
 }
 
 // gameValue is the canonical value v as f's game keeps it.
-func (e *Engine) gameValue(f *script.Field, v int64) int64 {
+func (e *Engine) gameValue(f *ecl.Field, v int64) int64 {
 	if c, ok := codecOf(f); ok && c.toGame != nil {
 		return c.toGame(e, v)
 	}
@@ -76,7 +76,7 @@ func (e *Engine) gameValue(f *script.Field, v int64) int64 {
 }
 
 // canonValue is the game's value v of f as the canonical one.
-func (e *Engine) canonValue(f *script.Field, v int64) int64 {
+func (e *Engine) canonValue(f *ecl.Field, v int64) int64 {
 	if c, ok := codecOf(f); ok && c.toCanon != nil {
 		return c.toCanon(e, v)
 	}

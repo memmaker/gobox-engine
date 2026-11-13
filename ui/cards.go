@@ -4,7 +4,6 @@ import (
 	"cmp"
 	_ "embed"
 	"gobox/game"
-	"gobox/game/play"
 	"image"
 	"image/color"
 	"image/draw"
@@ -16,7 +15,6 @@ import (
 	xdraw "golang.org/x/image/draw"
 
 	"gobox/gpu"
-	"gobox/gpu/vector"
 )
 
 // The party's portrait cards: each member's face in the game's window
@@ -303,7 +301,7 @@ func (p *Presenter) label(dst *gpu.Image, s string, x, y int, k float64) {
 func (p *Presenter) keyWindow(screen *gpu.Image, title string, lines []string, keys []byte, off []bool, sel int, bottom bool) float64 {
 	if yesNo(keys) { // every Yes/No question: centred over the dimmed view
 		b := screen.Bounds()
-		vector.DrawFilledRect(screen, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
+		gpu.DrawFilledRect(screen, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
 		bottom = false
 	}
 	b := screen.Bounds()
@@ -524,7 +522,7 @@ func (p *Presenter) cardSelected() int {
 	if q := p.q; q != nil && q.Ask.Kind == AskMember {
 		return q.Cand
 	}
-	if n := play.CommonOf(p.state()).Selected; n >= 0 && n < len(p.party()) {
+	if n := game.CommonOf(p.state()).Selected; n >= 0 && n < len(p.party()) {
 		return n
 	}
 	if p.eng == nil {

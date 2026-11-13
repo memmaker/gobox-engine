@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/ecl/script"
+	"gobox/ecl"
 	"gobox/rules"
 	"io/fs"
 	"slices"
@@ -17,10 +17,10 @@ const (
 )
 
 // layoutField is the loaded script's field called name; ok false when the game's layout has none.
-func (e *Engine) layoutField(name string) (script.Ref, bool) {
+func (e *Engine) layoutField(name string) (ecl.Ref, bool) {
 	l := e.vm.Script.Layout
 	if l == nil {
-		return script.Ref{}, false
+		return ecl.Ref{}, false
 	}
 	r, err := l.Named(name)
 	return r, err == nil
@@ -68,7 +68,7 @@ func UnboundFields(data fs.FS) ([]string, error) {
 				return nil, err
 			}
 		}
-		l, err := script.ReadLayout(data, a)
+		l, err := ecl.ReadLayout(data, a)
 		if err != nil {
 			return nil, err
 		}
