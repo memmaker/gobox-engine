@@ -119,18 +119,18 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 	own := p.pageKey()
 	var sh sfShown
 	sf := sfOf(v)
-	if sf != nil && !p.modal(v) {
+	if sf != nil && !p.modal() {
 		sh = p.sfState(v, sf)
 		own += fmt.Sprintf("%v%+v%+v", *sf, sh, v.Screen.ShipSheet)
 	}
-	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(v.IconEditor) && (v.Seq == pg.seq || !p.modal(v) && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
+	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(v.IconEditor) && (v.Seq == pg.seq || !p.modal() && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
 		pg.seq = v.Seq
 		return pg.img
 	}
 	pg.drawn, pg.seq, pg.noted, pg.own, pg.edit = true, v.Seq, note.Show, own, iconKey(v.IconEditor)
 	pg.page, pg.text = append(pg.page[:0], v.Pictures...), pageText(v)
 	m := pg.px
-	if p.modal(v) { // help, the journal, the maps, the overview: from their data alone, nothing of the page under them
+	if p.modal() { // help, the journal, the maps, the overview: from their data alone, nothing of the page under them
 		draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
 		pg.overs = nil
 	} else {
@@ -166,7 +166,7 @@ func ownPage(v front.View) bool {
 
 // modal: v shows a screen over the whole page (help, the journal, the
 // full map, the overview), drawn from its data over the page under it.
-func (p *Presenter) modal(v front.View) bool {
+func (p *Presenter) modal() bool {
 	return p.pager != nil || p.fullMap != nil || p.overview
 }
 
@@ -183,7 +183,7 @@ func pagerMark(pg *front.Pages, cols, d int) (x int, ok bool) {
 // drawModal draws v's screen over the whole page (modal) into m as the
 // game draws such a page: a box round it, text in the game's font.
 func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
-	if !p.modal(v) {
+	if !p.modal() {
 		return
 	}
 	cols, rows := m.Rect.Dx()/8, m.Rect.Dy()/8
@@ -206,7 +206,7 @@ func (p *Presenter) drawModal(m *image.RGBA, v front.View, note Note) {
 	}
 	switch {
 	case p.pager != nil:
-		pg, _ := p.pages(v)
+		pg, _ := p.pages()
 		box(cols-2, rows-2)
 		run(pg.Title, 1)
 		for _, s := range pg.Scans { // the paper; the scan goes over the window (drawOverlays)
@@ -461,7 +461,7 @@ func (p *Presenter) drawPage(dst *gpu.Image, v front.View, note Note) Rect {
 		dst.DrawImage(img, op)
 	}
 	os := append([]overlay(nil), p.pg.overs...)
-	if pg, _ := p.pages(v); pg != nil {
+	if pg, _ := p.pages(); pg != nil {
 		for _, s := range pg.Scans {
 			os = append(os, overlay{Img: s.Img, Src: s.Src, At: s.At})
 		}

@@ -55,7 +55,7 @@ func (p *Presenter) Key(k uint16, v front.View) {
 		return
 	}
 	if p.pager != nil {
-		p.pagerKey(k, v)
+		p.pagerKey(k)
 		return
 	}
 	if p.fullMap != nil {

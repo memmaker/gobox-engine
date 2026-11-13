@@ -120,7 +120,7 @@ func (p *Presenter) openSlots(v front.View, loadOnly bool) {
 	switch {
 	case p.slots != nil:
 		p.slots = nil
-	case p.eng != nil && !p.modal(v) && p.eng.SlotsView(loadOnly) != nil:
+	case p.eng != nil && !p.modal() && p.eng.SlotsView(loadOnly) != nil:
 		p.slots = &SlotsUI{LoadOnly: loadOnly}
 	}
 }

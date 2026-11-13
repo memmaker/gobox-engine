@@ -246,11 +246,11 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 		p.clueMouse(p.camp.pointer, false, right, wheel)
 		return
 	}
-	if pg, _ := p.pages(v); pg != nil { // the pager: the wheel and the ◀ ▶ marks page, the right button closes, another click pages on
+	if pg, _ := p.pages(); pg != nil { // the pager: the wheel and the ◀ ▶ marks page, the right button closes, another click pages on
 		w, h := pageSize(v)
 		switch {
 		case wheel != 0:
-			p.pagerTurn(v, -unit(wheel))
+			p.pagerTurn(-unit(wheel))
 		case right:
 			p.closePager()
 		case left && in:
@@ -258,7 +258,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			if x, ok := pagerMark(pg, w/8, -1); ok && cx == x && cy == h/8-2 {
 				d = -1
 			}
-			p.pagerTurn(v, d)
+			p.pagerTurn(d)
 		}
 		return
 	}
