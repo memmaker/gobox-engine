@@ -20,10 +20,6 @@ import (
 // The game's fixed labels (GameTables.MapLabels; POR: New Phlan's buildings) are always shown;
 // the player's labels go over them and are kept with the save (labelsFile).
 
-// poiInks is each label kind's EGA colour by kind (the one table: Data() hands it
-// to the presenter for every game, as the engine alone defines the kinds).
-var poiInks = [...]int{adventure.PoiUser: 15, adventure.PoiShop: 10, adventure.PoiTemple: 13, adventure.PoiInn: 14, adventure.PoiCivic: 11}
-
 type mapLabel struct {
 	text string
 	kind byte

@@ -531,7 +531,7 @@ func (r *frontState) loneAim(f game.Fighting) bool {
 func (r *frontState) combat(f game.Fighting) *game.Combat {
 	r.loneAim(f)
 	b, al := f.Field, f.Allowed
-	c := &game.Combat{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile, Floor: b.Floor,
+	c := &game.Combat{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile,
 		Round: b.Round, Dungeon: b.Dungeon, Reach: al.Moves, Effects: b.Clouds}
 	var spells []game.SpellRef
 	for _, u := range b.Units {
@@ -1344,6 +1344,9 @@ func allowedArrive(al game.Allowed, from, to image.Point, facing int) game.Actio
 // SotSB R540:0BF7); a ship's blink is the hardware's ten 35 ms half-steps.
 const speedStepMs, defaultSpeed, shipMs = 100, 4, 350
 
+// fallHoldMs is how long the replay holds on the batch's last fall.
+const fallHoldMs = 500
+
 // events are the outcome's facts as the old events, at the default speed.
 // engaged is f, a fight as it began, as the EvEngaged event: its board and party.
 func (r *frontState) engaged(f game.Fighting) game.Report {
@@ -1355,7 +1358,7 @@ func events(es []game.Event) []game.Report { return eventsAt(es, defaultSpeed*sp
 // eventsAt are the outcome's facts as the old events, a blow or a cast held
 // ms; engaged gives an Engaged fight as the old Combat and party (nil: no EvEngaged).
 func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) (out []game.Report) {
-	strikeMs, castMs := ms, ms
+	strikeMs, castMs, lastFell := ms, ms, -1
 	for _, e := range es {
 		switch e := e.(type) {
 		case game.Narrated:
@@ -1403,7 +1406,8 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 		case game.Healed:
 			out = append(out, game.Report{Kind: game.EvDamage, Unit: e.Unit, Target: e.Unit, N: -e.HP})
 		case game.Fell:
-			out = append(out, game.Report{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit, Picture: e.Body, Ms: e.Ms})
+			lastFell = len(out)
+			out = append(out, game.Report{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit, Picture: e.Body})
 		case game.Fled: // a unit that flees or surrenders leaves the field as one that falls does
 			out = append(out, game.Report{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit})
 		case game.Moved:
@@ -1419,6 +1423,9 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 			out = append(out, game.Report{Kind: game.EvPicture, Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: &f}, Ms: shipMs})
 		}
 		// TimePassed, Gained, Lost, JournalNote: the state shows them.
+	}
+	if lastFell >= 0 { // the batch's last fall holds, so the body the last blow leaves shows before the fight's page (bug class 55)
+		out[lastFell].Ms = fallHoldMs
 	}
 	return out
 }

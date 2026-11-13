@@ -105,7 +105,6 @@ type Results struct {
 	Taken   string
 	Harmed  []Harm
 	End     string
-	EndAt   [4]int // the box's cells: X1, Y1, X2, Y2 (inclusive)
 }
 
 // Harm is a member's line on the after-combat page.
@@ -251,9 +250,9 @@ type SheetPage struct {
 	Status                      string
 	Weapon, Armour              string
 	Encumbrance, Coins, Effects string
-	PortraitAt                  image.Rectangle // as State.Portrait
-	Portrait                    image.Image     // a dropped PNG in the box
-	Icons                       [2]image.Image  // the creation's icon poses from a PNG
+	HasPortrait                 bool           // the member has a portrait (a head and body, or a dropped PNG): the sheet shows its box
+	Portrait                    image.Image    // a dropped PNG in the box
+	Icons                       [2]image.Image // the creation's icon poses from a PNG
 }
 
 // Flags are the plain yes/no facts of the screen the front shows or takes
@@ -327,7 +326,6 @@ type IconEditor struct {
 	Poses         [2]Picture     // ready and action poses (Pixels nil: none)
 	Icons         [2]image.Image // Custom: the PNG's poses
 	Colour        [6][2]int      // each part's two colour numbers (0..15)
-	Cells         [16]int        // the colour number in each palette cell, row-major (-1: empty)
 	Looks         [16]byte       // the palette entry each colour number shows as
 }
 
@@ -868,30 +866,25 @@ type Data struct {
 	Fonts       []Typeface                    `json:"-"` // the game's own text fonts (non-nil, even empty: gobox offers the font menu, Ctrl-F and keeps the choice; the first is listed first)
 	Border      *Border                       // the window border's pieces in the game's DAX symbols (nil: gobox's default)
 
-	Sequences    []Sequence        `json:"-"`          // the full-screen animations State.Sequence names (nil: none)
-	DaxMask      map[string]int    `json:",omitempty"` // a DAX file's transparent colour index, as the original's loader takes it (File, e.g. "CHARS", "CPIC3"; no entry: none)
-	Files        string            `json:"-"`          // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
-	Adventure    string            `json:"-"`          // the imported adventure folder (gobox import): Picture File and Block from its art/, AmigaMusic's and AdLib's files from its sound/ (SoundDir), Sequences' from its anim/ (AnimDir); set, Files is not read ("": none)
-	SoundTables  []byte            `json:"-"`          // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
-	AdLib        *AdLib            // the AdLib music and effects (nil: none)
-	AmigaMusic   *AmigaMusic       // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)
-	DungeonTiles int               // the tiles at the start of the combat set
-	Rests        []RestKind        // camp's rests, in the menu's order (nil: none)
-	CreditLines  []Credit          `json:"-"` // the title's credits page, placed (nil: Credits as plain lines)
-	CreditGaps   []int             `json:"-"` // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
-	CreditBoxes  []image.Rectangle `json:"-"` // the original's credits boxes in 40x25 cells, Min and Max the corner cells; an edge on the page's (x 38, y 23) follows the page's. The lines go in at their cells with CreditGaps. nil: one frame on the page's edges, the lines spread over it
-	IconParts    []string          // the combat icon designer's parts
-	ReadyMark    string            // shown before a readied item's name ("": none)
-	LabelInks    []int             // a map label's EGA colour by its kind
-	MapCell      int               // pixels a square of the area map (0: gobox's)
-
-	DoorInk, SelectInk color.RGBA     // a door's colour on the maps; the frame round the selected box (zero: gobox's)
-	Logo               *Logo          // how the main menu's lettering is cut from the title picture (nil: none)
-	TitleBackdrop      []Layer        `json:"-"` // the title's picture under the main menu, none of Intro.Pictures' timed steps: gobox draws it once the title is done, fitted, and zooms the menu in over it (nil: none)
-	AreaMaps           map[int]string `json:"-"` // the remastered 3D map (Remaster maps/NAME.map) of each area id
-	Remaster           fs.FS          `json:"-"` // the remastered art: maps/NAME.map and assets/walls/walls.txt
-	OpenAt             string         `json:"-"` // debug: map:NAME:X:Y:D shows that remastered map alone
-	Bindings           []Binding      // the game's own help rows, after the Any time Ctrl-F row
+	Sequences     []Sequence        `json:"-"`          // the full-screen animations State.Sequence names (nil: none)
+	DaxMask       map[string]int    `json:",omitempty"` // a DAX file's transparent colour index, as the original's loader takes it (File, e.g. "CHARS", "CPIC3"; no entry: none)
+	Files         string            `json:"-"`          // the game's DOS files: the DAX archives Picture File and Block, Border and AdLib name ("": none)
+	Adventure     string            `json:"-"`          // the imported adventure folder (gobox import): Picture File and Block from its art/, AmigaMusic's and AdLib's files from its sound/ (SoundDir), Sequences' from its anim/ (AnimDir); set, Files is not read ("": none)
+	SoundTables   []byte            `json:"-"`          // the sound driver's tables (gobox/audio NewSynth's data; nil: none)
+	AdLib         *AdLib            // the AdLib music and effects (nil: none)
+	AmigaMusic    *AmigaMusic       // the Amiga's Music-X songs and GLIB effects, played instead of the DOS sound (nil: none)
+	DungeonTiles  int               // the tiles at the start of the combat set
+	Rests         []RestKind        // camp's rests, in the menu's order (nil: none)
+	CreditLines   []Credit          `json:"-"` // the title's credits page, placed (nil: Credits as plain lines)
+	CreditGaps    []int             `json:"-"` // the credits' rows a blank row follows on a tall page (nil: 4, 5, 6)
+	CreditBoxes   []image.Rectangle `json:"-"` // the original's credits boxes in 40x25 cells, Min and Max the corner cells; an edge on the page's (x 38, y 23) follows the page's. The lines go in at their cells with CreditGaps. nil: one frame on the page's edges, the lines spread over it
+	IconParts     []string          // the combat icon designer's parts
+	Logo          *Logo             // how the main menu's lettering is cut from the title picture (nil: none)
+	TitleBackdrop []Layer           `json:"-"` // the title's picture under the main menu, none of Intro.Pictures' timed steps: gobox draws it once the title is done, fitted, and zooms the menu in over it (nil: none)
+	AreaMaps      map[int]string    `json:"-"` // the remastered 3D map (Remaster maps/NAME.map) of each area id
+	Remaster      fs.FS             `json:"-"` // the remastered art: maps/NAME.map and assets/walls/walls.txt
+	OpenAt        string            `json:"-"` // debug: map:NAME:X:Y:D shows that remastered map alone
+	Bindings      []Binding         // the game's own help rows, after the Any time Ctrl-F row
 }
 
 // Logo is how the title picture's lettering is cut out: EGA colours Keep

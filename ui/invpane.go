@@ -269,7 +269,7 @@ func gold(n int) string {
 	return string(rune(InkGold)) + price(Money{Gold: n}) + string(rune(InkGold))
 }
 
-// readyMark is Data.ReadyMark before a readied item's name ("": none).
+// readyMark is readiedMark before a readied item's name ("": none).
 func readyMark(readied bool) string {
 	if readied {
 		return readiedMark

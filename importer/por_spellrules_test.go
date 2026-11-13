@@ -32,7 +32,7 @@ func TestPorGameDataFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := porGameData()
-	if got.ID != "por" || len(got.QuickParty) != 6 || !reflect.DeepEqual(got.Rests, want.Rests) || !reflect.DeepEqual(got.VerbOrder, want.VerbOrder) || !reflect.DeepEqual(got.SpellRules, want.SpellRules) || got.DoorInk != want.DoorInk || !reflect.DeepEqual(got.Logo, want.Logo) {
+	if got.ID != "por" || len(got.QuickParty) != 6 || !reflect.DeepEqual(got.Rests, want.Rests) || !reflect.DeepEqual(got.VerbOrder, want.VerbOrder) || !reflect.DeepEqual(got.SpellRules, want.SpellRules) || !reflect.DeepEqual(got.Logo, want.Logo) {
 		t.Errorf("read back %+v", got)
 	}
 }

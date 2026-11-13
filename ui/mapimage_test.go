@@ -11,11 +11,10 @@ func TestMapImage(t *testing.T) {
 	for i := range ink {
 		ink[i] = color.RGBA{uint8(i*16 + 1), uint8(i), 7, 255}
 	}
-	door := color.RGBA{1, 2, 3, 255}
-	doorRGBA, labelInks = door, []int{10}
+	door := doorRGBA
 	m := &MapSquares{Party: image.Pt(1, 1), Ahead: image.Pt(0, -1)}
 	m.Squares[0][0] = MapSquare{Seen: Visited, Walls: [4]MapWall{Wall, Door, NoWall, NoWall}}
-	m.Squares[0][2] = MapSquare{Seen: SeenFar, Kind: 0, Letter: 'A'}
+	m.Squares[0][2] = MapSquare{Seen: SeenFar, Kind: labelKinds["shop"], Letter: 'A'}
 	img := mapImage(m, 8, ink, nil)
 	for _, c := range []struct {
 		p image.Point
@@ -31,6 +30,16 @@ func TestMapImage(t *testing.T) {
 	} {
 		if got := img.RGBAAt(c.p.X, c.p.Y); got != c.w {
 			t.Errorf("%v = %v, want %v", c.p, got, c.w)
+		}
+	}
+}
+
+// Every label kind has its colour (cotab and pod once gave none: the map
+// crashed on any label).
+func TestLabelInksEveryKind(t *testing.T) {
+	for name, k := range labelKinds {
+		if k >= len(labelInks) {
+			t.Errorf("label kind %d (%q) has no colour in labelInks %v", k, name, labelInks)
 		}
 	}
 }

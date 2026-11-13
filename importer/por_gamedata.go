@@ -7,10 +7,6 @@ import (
 	"image/color"
 )
 
-// doorColour is a light brown (Amiga palette 0xA84): it stands out
-// against the white walls and the grey, black and blue floors.
-const doorColour = asset.AmigaBase + 16*asset.AmigaPortrait + 6
-
 // gameData is POR's declarative data for gobox (game.Data), written as
 // data/gamedata.json: the series, the game id and the spell tips (SpellRules by spell id).
 func porGameData() game.Data {
@@ -29,13 +25,12 @@ func porGameData() game.Data {
 		{Race: "Halfling", Gender: "Male", Class: "Fighter/Thief", Align: "Neutral Good", Need: map[string]int{"str": 16, "dex": 17, "con": 15}, Name: "Pip", Head: "head_025", Body: "body_001"},
 	}
 
-	d.IconParts, d.DungeonTiles, d.MapCell = adventure.IconParts[:], adventure.DungeonTiles, adventure.MapCell
+	d.IconParts, d.DungeonTiles = adventure.IconParts[:], adventure.DungeonTiles
 	d.Rests = []game.RestKind{ // camp's rests: until fixed while someone heals or studies, an hour, until night or day
 		{Text: "Until fixed", Key: 'F', N: adventure.RestFix, Fix: true},
 		{Text: "Wait an hour", Key: 'W', N: adventure.RestWait},
 		{Text: "Until night", Key: 'N', N: adventure.RestUntil, Night: "Until day", NightKey: 'D'},
 	}
-	d.DoorInk, d.SelectInk = asset.EGAIdentity.RGBA(doorColour), asset.EGARGBA(10)
 	// TITLE picture 2's "Pool of Radiance" (yellow with a light blue shadow, above row 108)
 	// and its subtitle (light magenta, rows 108 to 160) in the Amiga intro's colours: gold
 	// (0xF90) with a dark red (0x600) outline, the intro's credits palette entries 2 and 1.

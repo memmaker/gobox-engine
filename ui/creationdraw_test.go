@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"image"
-	"image/color"
 	"testing"
 
 	"gobox/game"
@@ -24,16 +22,4 @@ func TestContentPoolPictures(t *testing.T) {
 	if !names[m.PortraitHeadID] || !names[m.PortraitBodyID] || !names[m.IconHeadID] || names[""] {
 		t.Fatalf("content pictures %v, want the pool's portrait and icon only", names)
 	}
-}
-
-// A game naming no SelectInk still gets a visible focus frame.
-func TestSelectOutlineInk(t *testing.T) {
-	old := selectInk
-	defer func() { selectInk = old }()
-	selectInk = color.RGBA{}
-	selectOutline(image.Rect(0, 0, 8, 8), 1, func(_ image.Rectangle, c color.RGBA) {
-		if c.A == 0 {
-			t.Fatal("the focus frame has no colour")
-		}
-	})
 }

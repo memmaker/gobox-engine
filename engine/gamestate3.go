@@ -14,8 +14,7 @@ func (e *Engine) state3(s *facts) {
 	s.Read = e.ext.read // the engine's own: the same pointer while the text is up
 	r := e.snap.results
 	if r != nil {
-		g := &game.Results{Shares: r.Shares, Outcome: r.Outcome, Exp: r.Exp, Taken: r.Taken, End: r.End,
-			EndAt: [4]int{r.EndAt.X1, r.EndAt.Y1, r.EndAt.X2, r.EndAt.Y2}}
+		g := &game.Results{Shares: r.Shares, Outcome: r.Outcome, Exp: r.Exp, Taken: r.Taken, End: r.End}
 		for _, h := range r.Harmed {
 			g.Harmed = append(g.Harmed, game.Harm{Name: h.Name, What: h.What})
 		}

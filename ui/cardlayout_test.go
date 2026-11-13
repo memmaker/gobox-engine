@@ -15,8 +15,7 @@ import (
 // In camp every member's context menu is up at once: in the row and down
 // the sides, with and without the minimap, no two cards or menus meet.
 func TestCampCardsAndMenusApart(t *testing.T) {
-	defer func(o Options, s, c int) { *Host, mapSide, mapCell = o, s, c }(*Host, mapSide, mapCell)
-	mapSide, mapCell = 160, 10
+	defer func(o Options) { *Host = o }(*Host)
 	glyph := func(byte) [8]byte { return [8]byte{0x7e, 0x42, 0x42, 0x42, 0x42, 0x42, 0x7e, 0} }
 	note := Note{Glyph: glyph, Font: func(byte, bool) [8]byte { return glyph(0) }}
 	var members []game.Member

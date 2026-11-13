@@ -4,6 +4,7 @@ import (
 	"hash/fnv"
 	"image"
 	"image/color"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -152,7 +153,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 			}
 		}
 	}
-	for i, n := range k.Cells {
+	for i, n := range iconCells(k.Looks) {
 		ed.Colours[i] = n
 		if n >= 0 {
 			ed.PaletteInk[i] = look(n)
@@ -248,4 +249,35 @@ func poolPickName(m game.Member, kind, prefix string) string {
 		return ""
 	}
 	return ns[int(h.Sum32()%uint32(len(ns)))]
+}
+
+// iconCells are the colour number in each palette cell of the icon
+// designer, row-major (-1: empty), from the colours' looks. The DOS
+// palette's columns put the darker of each pair on top; on Amiga art (the
+// looks are the Amiga terrain palette's slots) the cells are its 15 slots
+// in slot order, as its Next stepped them (slot 0 is left out).
+func iconCells(looks [16]byte) (cells [16]int) {
+	for i := range cells {
+		cells[i] = -1
+	}
+	if slices.ContainsFunc(looks[:], func(v byte) bool { return v >= asset.AmigaBase }) {
+		for n, l := range looks {
+			if s := int(l) - (asset.AmigaBase + 16*asset.AmigaTerrain); s > 0 && s <= len(cells) {
+				cells[s-1] = n
+			}
+		}
+		return cells
+	}
+	lum := func(i int) int {
+		c := asset.EGARGBA(i)
+		return int(c.R) + int(c.G) + int(c.B)
+	}
+	for k := range 8 {
+		a, b := k, k+8
+		if lum(a) > lum(b) {
+			a, b = b, a
+		}
+		cells[k], cells[k+8] = a, b
+	}
+	return cells
 }

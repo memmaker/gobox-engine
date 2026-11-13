@@ -51,7 +51,7 @@ func (e *Engine) pickerState(p *picker) *game.Picker {
 // iconEditorState is the icon designed: its poses, colours and palette.
 func (e *Engine) iconEditorState(edit *iconEdit) *game.IconEditor {
 	c := e.iconPics(edit.who)
-	cells, amiga := e.iconCells()
+	amiga := e.iconAmiga()
 	k := &game.IconEditor{Large: c.Size == 2, Custom: c.PNG != nil}
 	for p := range 2 {
 		if c.PNG != nil {
@@ -65,12 +65,6 @@ func (e *Engine) iconEditorState(edit *iconEdit) *game.IconEditor {
 		k.Looks[n] = byte(n)
 		if amiga {
 			k.Looks[n] = byte(asset.AmigaBase + 16*asset.AmigaTerrain + amigaIconColour[n])
-		}
-	}
-	for i, v := range cells {
-		k.Cells[i] = int(v)
-		if v == noCell {
-			k.Cells[i] = -1
 		}
 	}
 	for i := range adventure.IconParts {

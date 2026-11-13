@@ -59,44 +59,16 @@ func (e *Engine) EditIcon(n int) {
 	e.animInput = false // camp's fire stays off the page while the editor is up
 }
 
-// iconCells are the colour number in each palette cell, row-major
-// (noCell: empty), and whether the icon is Amiga art. The swatches show
-// what a click gives: on Amiga art that is the terrain palette's slot the
-// part's pixels take for the colour number (amigaIconColour: another hue
-// and shade than the EGA colour of that number, magenta is black there),
-// not the EGA colour. The DOS palette's columns put the darker of each
-// pair on top; the Amiga's is its 15 slots in slot order, as its Next
-// stepped them (slot 0 is left out).
-func (e *Engine) iconCells() (cells [16]byte, amiga bool) {
-	im := e.icons[0xC][0]
-	amiga = e.amigaUp() // no combat picture in the slot (the pool composes the icon): the art set says
-	if im != nil {
-		amiga = slices.ContainsFunc(im.Data, func(v byte) bool { return v >= asset.AmigaBase })
+// iconAmiga is whether the icon is Amiga art: a colour number then shows
+// as the terrain palette's slot the part's pixels take for it
+// (amigaIconColour: another hue and shade than the EGA colour of that
+// number, magenta is black there), not the EGA colour (IconEditor.Looks).
+func (e *Engine) iconAmiga() bool {
+	if im := e.icons[0xC][0]; im != nil {
+		return slices.ContainsFunc(im.Data, func(v byte) bool { return v >= asset.AmigaBase })
 	}
-	if amiga {
-		for n, s := range amigaIconColour {
-			if s > 0 {
-				cells[s-1] = byte(n)
-			}
-		}
-		cells[15] = noCell
-		return cells, true
-	}
-	lum := func(i byte) int {
-		c := asset.EGAIdentity.RGBA(i)
-		return int(c.R) + int(c.G) + int(c.B)
-	}
-	for k := 0; k < 8; k++ {
-		a, b := byte(k), byte(k+8)
-		if lum(a) > lum(b) {
-			a, b = b, a
-		}
-		cells[k], cells[k+8] = a, b
-	}
-	return cells, false
+	return e.amigaUp() // no combat picture in the slot (the pool composes the icon): the art set says
 }
-
-const noCell = 0xFF
 
 // IconSize toggles the icon designed between small and large.
 func (e *Engine) IconSize() {

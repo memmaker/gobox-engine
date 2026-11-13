@@ -116,7 +116,7 @@ func (e *Engine) build() game.State {
 	case game.ModeCombat:
 		f := game.Fighting{Common: cm}
 		if b := s.Combat; b != nil {
-			f.Field = game.Battlefield{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile, Floor: b.Floor,
+			f.Field = game.Battlefield{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile,
 				Clouds: b.Effects, Round: b.Round, Dungeon: b.Dungeon}
 			if t := b.Turn; t != nil {
 				f.Field.Turn, f.Field.Moves, f.Field.Casting, f.Field.Weapon, f.Field.Missile, f.Field.Maneuvers = t.Unit, t.Moves, t.Casting, t.Weapon, t.Missile, t.Maneuvers
@@ -910,7 +910,7 @@ func (e *Engine) browsing(n int, f func() error) error {
 }
 
 // facts hands out what the engine did: its note (r, a message), then the
-// facts it recorded (e.events), the last fall held (gobox 0fa83f2).
+// facts it recorded (e.events).
 func (e *Engine) facts(out *game.Outcome, r game.Result) {
 	for _, ev := range r.Events {
 		if ev.Text != "" {
@@ -920,22 +920,10 @@ func (e *Engine) facts(out *game.Outcome, r game.Result) {
 	e.present()
 	out.Events = append(out.Events, e.events...)
 	e.events = nil
-	for i := len(out.Events) - 1; i >= 0; i-- {
-		if f, ok := out.Events[i].(game.Fell); ok {
-			if f.Ms == 0 {
-				f.Ms = fallHoldMs
-				out.Events[i] = f
-			}
-			break
-		}
-	}
 }
 
 // maxSteps bounds Do's run of the engine's own steps.
 const maxSteps = 10000
-
-// fallHoldMs is how long the replay holds on the last fall.
-const fallHoldMs = 500
 
 // playSlot is the save slot Save and Load go through.
 const playSlot = "PLAYSAVE"

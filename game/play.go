@@ -223,7 +223,6 @@ type Battlefield struct {
 	Squares   []Ground
 	Tiles     []string // Ground.Tile's Data.Art names
 	FloorTile string
-	Floor     color.RGBA
 	Units     []Unit
 	Clouds    []Effect // lasting spell effects on squares
 	Round     int
@@ -405,7 +404,6 @@ type (
 	Fell    struct {
 		Unit int
 		Body Picture // what it leaves on its square, as Event.Picture on EvDown (empty: nothing)
-		Ms   int     // the replay holds this long on the fall (0: it does not stop)
 	} // down or dead
 	Fled  struct{ Unit int }
 	Moved struct {

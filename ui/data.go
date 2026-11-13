@@ -35,16 +35,11 @@ type Data struct {
 
 	PaneBox, ViewWindow, InnerWindow CellRect // the original's main screen boxes at their 40x25 places
 
-	MapCell      int // pixels a square of Map
 	DungeonTiles int // the tiles at the start of the combat set
 
 	Theme   *Theme            // the look (nil: DefaultTheme)
 	Texts   map[string]string // the game's named texts and tables beyond Credits, SpellRules and IconParts (Text)
 	Entries []Entry           // the game's own main menu entries, after the default list (nil: none)
-
-	DoorRGBA  color.RGBA // a door's colour on the maps
-	LabelInks []int      // a map label's palette index (Ink) by its kind
-	SelectInk color.RGBA // the frame round the selected box (selectOutline)
 
 	Rests []Rest // camp's rests, in the menu's order
 
@@ -54,8 +49,6 @@ type Data struct {
 	CreditGaps []int // the credits' rows a blank row follows on a tall page, as many as fit from the first (nil: 4, 5, 6)
 	IconParts  []string
 	SpellRules []string // what each spell does, by spell id (the camp's spell tips; "" none)
-
-	ReadyMark string // shown before a readied item's name (InvItem.Readied), "": "*")
 
 	AreaMaps map[AreaID]string // the 3D map (Art maps/NAME.map) of each area
 	Art      fs.FS             // maps/NAME.map and assets/walls/walls.txt
@@ -70,12 +63,9 @@ type Data struct {
 
 var (
 	paneBox, viewWindow, innerWindow CellRect
-	mapCell, dungeonTiles            int
-	doorRGBA                         color.RGBA
+	dungeonTiles                     int
 	menuEntries                      []Entry
 	texts                            map[string]string
-	labelInks                        []int
-	selectInk                        color.RGBA
 	rests                            []Rest
 	credits                          []Credit
 	creditGaps                       []int
@@ -84,18 +74,33 @@ var (
 	iconParts                        []string
 	spellRules                       []string
 	dollBoxes                        = defaultDollBoxes // the doll is every game's, whichever way its data came (SetData or NewFront)
-	readiedMark                      = "*"
 	slotNames                        = defaultSlotNames
 	areaMaps                         map[AreaID]string
 	art                              fs.FS = fstest.MapFS{} // Data.Art; empty until Load (headless: no walls.txt, no maps)
 	openAt                           string
 	dollPNG                          = defaultDoll
-	mapSide                          int // Map's side in pixels
 	sounds                           []byte
 	amigaSound                       []byte
 	adLib                            *audio.AdLibData
 	series                           = "pool"
 	logoCut                          LogoCut // Data.Logo
+)
+
+// The maps' and lists' looks, gobox's for every game: an area map
+// square's pixels (mapCell) and the map's side (mapSide, 16 squares), a
+// door's colour on the maps (light brown, Amiga 0xA84: it stands out
+// against the white walls and the grey, black and blue floors), a map
+// label's EGA colour by its kind (labelKinds), and the mark before a
+// readied item's name.
+const (
+	mapCell     = 10
+	mapSide     = 16 * mapCell
+	readiedMark = "*"
+)
+
+var (
+	doorRGBA  = color.RGBA{0xaa, 0x88, 0x44, 0xff}
+	labelInks = [...]int{15, 10, 13, 14, 11} // the player's, shop, temple, inn, civic
 )
 
 // Rest is one of camp's rests (Data.Rests): Text with its Key sends
@@ -294,24 +299,6 @@ func gameData(g game.Data) {
 	}
 	if g.IconParts != nil {
 		iconParts = g.IconParts
-	}
-	if g.LabelInks != nil {
-		labelInks = g.LabelInks
-	}
-	if g.MapCell != 0 {
-		mapCell = g.MapCell
-	} else if mapCell == 0 {
-		mapCell = 10 // the pool games' area map square
-	}
-	mapSide = 16 * mapCell
-	if g.ReadyMark != "" {
-		readiedMark = g.ReadyMark
-	}
-	if g.DoorInk != (color.RGBA{}) {
-		doorRGBA = g.DoorInk
-	}
-	if g.SelectInk != (color.RGBA{}) {
-		selectInk = g.SelectInk
 	}
 	if l := g.Logo; l != nil {
 		logoCut = LogoCut(*l)

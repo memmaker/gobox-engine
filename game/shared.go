@@ -2,7 +2,6 @@ package game
 
 import (
 	"image"
-	"image/color"
 )
 
 // The questions, turns and results the rules and the classic front share:
@@ -77,11 +76,9 @@ type Combat struct {
 	Why                    string // aiming: why the aimed square cannot be taken, "" when it can
 
 	// The ground as a view draws it: Squares' Tile numbers index Tiles, the
-	// Data.Art names of the tile set (read live; "" a tile with no picture),
-	// Floor is the bare ground's colour.
+	// Data.Art names of the tile set (read live; "" a tile with no picture).
 	Tiles     []string
-	FloorTile string `json:",omitempty"` // the Tiles name (a series combat sprite) of the plain floor, tiled on every floor square; "": the bare ground's Floor colour
-	Floor     color.RGBA
+	FloorTile string   `json:",omitempty"` // the Tiles name (a series combat sprite) of the plain floor, tiled on every floor square; "": bare ground
 	Effects   []Effect // sprites over the map
 	Strike    Strike   // the last weapon attack
 	Log       []string // the battle's messages, oldest first

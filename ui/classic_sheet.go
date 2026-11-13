@@ -11,6 +11,16 @@ func cells(r image.Rectangle) CellRect {
 	return CellRect{X1: r.Min.X, Y1: r.Min.Y, X2: r.Max.X, Y2: r.Max.Y}
 }
 
+// sheetPortraitBox is the sheet's portrait box: 11x11 cells against the
+// right border at the top (the head 5 rows, the body 6), as the original's
+// SheetPortrait (ovr29:04F9); zero when the member has no portrait.
+func sheetPortraitBox(sp *game.SheetPage) CellRect {
+	if sp == nil || !sp.HasPortrait {
+		return CellRect{}
+	}
+	return CellRect{X1: 28, Y1: 1, X2: 38, Y2: 11}
+}
+
 // sheetOwn is the member whose sheet is up: the draft being made, else the selected one.
 func (p *Presenter) sheetOwn() game.Member {
 	s, r := p.state(), p.eng.r
@@ -37,7 +47,7 @@ func (p *Presenter) sheetPortrait(sp *game.SheetPage) image.Image {
 		return sp.Portrait
 	}
 	own := p.sheetOwn()
-	if own.PortraitHeadID == "" && pictured(p.pictures(), cells(sp.PortraitAt).Pixels()) {
+	if own.PortraitHeadID == "" && pictured(p.pictures(), sheetPortraitBox(sp).Pixels()) {
 		return nil
 	}
 	m := subject(own)

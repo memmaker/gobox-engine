@@ -57,7 +57,6 @@ func podGameData(adv string) game.Data {
 		DungeonTiles: adventure.DungeonTiles,
 		Rests:        []game.RestKind{{Text: "Rest", Key: 'R', N: 0, Duration: true}, {Text: "Fix", Key: 'F', N: 1, Fix: true}},
 		Commands:     game.CommandEntries(podPartyCommands),
-		ReadyMark:    "*",
 	}
 }
 
