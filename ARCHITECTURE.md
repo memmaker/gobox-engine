@@ -5,13 +5,25 @@ DRAFT for Felix's review, revision 4: his 11 rulings, the 21 variation rulings, 
 ## Dependencies
 
 ```
- gobox/core        Rules, Adventure, neutral types and id types, RNG; imports nothing of ours
- rules1e     core/xxvc   the concepts of one world: races, classes, spells, monster and item rosters
+ gobox/rules       Rules, Adventure, neutral types and id types, RNG; imports nothing of ours
+ rules1e     rules/xxvc  the concepts of one world: races, classes, spells, monster and item rosters
      |          |
- rules1e    rulesxxvc   adventures: POR, COTAB, SotSB, POD | BR1, BR2     (leaves: core + one world)
+ rules1e    rulesxxvc   adventures: POR, COTAB, SotSB, POD | BR1, BR2     (leaves: rules + one world)
      \________ engine (gobox): main loop, one script machine, combat and ship loops, front, saves ________/
  cmd/gobox: the one binary; starts any adventure from its data folder.   gobox import: originals to canonical, once.
 ```
+
+**Package layout** (one module `gobox`; the only nested modules are `rules` (rulesxxvc depends on it alone) and `games/pod/tools/music/render`). Four parts:
+
+| Part | Package | What |
+|---|---|---|
+| Assets | `asset` | every runtime data reader: adventure art sheets, walls (`asset/walls`), sprites (`asset/sprites`), fonts (`asset/fonts`), picture table (`asset/origins`), save slots |
+| | `asset/orig` | decoders of the original games' files: DAX (incl. `ImportArt`), Amiga, ADF, EXE and its table specs, GLBR songs; tools in `asset/orig/cmd` |
+| UI | `ui` | the front and presenter, widgets, key bindings, combat tabletop, blobber 3D view, VACE; tools in `ui/cmd`. Also `gpu`, `app`, `audio` (with SID) |
+| Rules | `rules` | the contract (`Rules`, `Adventure`, ids, RNG) plus the shared Gold Box mechanics and GEO parsing; `rules/xxvc` |
+| | `rules1e` | the 1st edition ruleset with its character files; `rulesxxvc` is its Buck Rogers sibling (own repo) |
+| Engine and state | `engine` | the Gold Box engine (with the shared rules and the creation flow); `engine/playpool` |
+| | `game`, `ecl`, `importer`, `fixture`, `parity`, `cmd/gobox`, `games/<game>` | script machine, import, the one binary, per-game import and tables |
 
 **One binary, adventures are data (Felix 2026-11-11).** There is no per-game executable and no per-game repo at the end: `por-go`, `cotab-go`, `sotsb-go`, `pod-go`, `buckrogers*-go` are wound down. One `gobox` binary lists the adventure folders under its data directory (`adventures/<id>/`) and plays any of them. An adventure folder holds only imported, canonical data: a manifest (id, title, ruleset, start sequence, declared custom fields), scripts, the PNG atlases, map `.bin`+`.txt`, JSON records and text, sound as MIDI and JSON synth data. The binary needs nothing else at run time: no original file, no POOL.CFG, no check that one exists; a folder without a valid manifest is not listed. Consequences:
 - The adventure "leaf" is no Go code per game: `core.Adventure` has one implementation in gobox that reads an adventure folder. What a game used to do in Go becomes data (scripts, declared fields, the start/end sequences) or a shared engine feature (wilderness travel, the pager, WhoPays, Quest/Journal).
