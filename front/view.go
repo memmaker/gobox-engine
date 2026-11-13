@@ -56,32 +56,8 @@ type Maneuver struct {
 // the same pointer every View while the same text is up.
 type Read = game.Read
 
-// Lore is a note in the journal: ID is its number for ActNoteRemove (-1: not
-// removable), Place where the player read it ("" a journal text).
-type Lore struct {
-	Title, Place string
-	Text         []string
-	ID           int
-}
-
 // Money is core.Money: an amount the front end shows (as "12g 50c").
 type Money = core.Money
-
-// Pending is what the game waits on (View.Pending): a shop or temple a
-// suspended ECL script opened, a fight, the finale, the treasure after a
-// fight, a locked door met while walking. A rule call answers it (Leave,
-// LootLeave, TryDoor) and the game goes on.
-type Pending int
-
-const (
-	PendNone   Pending = iota
-	PendShop           // the shop: Browse, Identify, Appraise, KeepAppraised; Leave
-	PendTemple         // the temple: Cure, ViewMember, Appraise, KeepAppraised; Leave
-	PendFight          // a fight: CombatStep, TurnChoice
-	PendStory          // the finale's pictures: StoryStep
-	PendLoot           // the treasure after a fight (View.Loot): LootView, LootTake, LootDetect, Lead; LootLeave
-	PendDoor           // a locked door (View.Door): TryDoor
-)
 
 // Inventory is the inventory screen (ItemsMenu) as the remastered one
 // draws it. Its items' Index is what an Action's N names.
@@ -165,13 +141,6 @@ type Reaction struct {
 	ID     int
 	Name   string
 	Policy Policy
-}
-
-// Quest is a journal entry: Text is what its giver said, paragraph by paragraph.
-type Quest struct {
-	Name, Giver, Place string
-	Text               []string
-	Done               bool
 }
 
 // Walls is a 3D view the presenter builds from the rules' own map
@@ -313,67 +282,58 @@ type Note struct {
 
 // View is one published snapshot.
 type View struct {
-	Pane          *Pane // the text pane under the 3D view: out adventuring (Adventure), or it holds text (nil otherwise)
-	Window        Window
-	AreaMap       *AreaMap // with WinAreaMap: the whole map, for a screen of its own
-	Area          AreaID
-	X, Y          int
-	Facing        Dir
-	Day           bool        // 6:00 to 20:00, when the scripts show the day sky
-	Inside        bool        // the party stands on an inside square (the original's inside sky colour)
-	Quests        []Quest     // the quest journal
-	Lore          []Lore      // the journal's Notes
-	Exploring     bool        // the party explores: the adventuring decisions (ActForward .. ActCastPick) are taken
-	Sweeping      bool        // ... at the slow, searching pace (ActSweep): the HUD says so
-	Interact      bool        // ... on a square whose event waits for ActInteract: the HUD says so
-	CanCast       bool        // ... and the selected member has a spell to cast (ActCastPick)
-	Camp          *Camp       // the party is in camp: the camp decisions (ActRest .. ActIconEdit) are taken; ActClose leaves
-	Pending       Pending     // what a suspended script waits on
-	Temple        *Temple     // a temple (PendTemple): Cure, ViewMember, Appraise, KeepAppraised, ActLead; Leave
-	Shop          *Shop       // a shop (PendShop): Browse (the goods, ActBuy, ActSell), Identify, Appraise, KeepAppraised, ActLead; Leave
-	Loot          *Loot       // the treasure after a fight (PendLoot): LootView, LootTake, LootDetect, Lead; LootLeave
-	Door          *DoorOpts   // a locked door (PendDoor): TryDoor
-	Training      *Training   // the training hall for the selected member (TrainingView, the presenter's): Train, Learn; CloseTraining
-	Powers        *PowerPick  // a member chooses a power: PickPower
-	Sheet         *Sheet      // the selected member's sheet (the page): ActInventory, ActSpells .. ActCure, ActMember (another member); ActClose leaves
-	IconEditor    *IconEditor // the combat icon editor is up (the page; IconDrop): the presenter lays it out and takes its clicks
-	SheetPage     *SheetPage  // the character sheet's page is up (the sheet, the creation's, the spell lists over it): the presenter draws it
-	Creation      *Creation   // the creation (or Modify) sheet (the page): ActRoll, ActSetField, ActName, ActStat, ActPicker, ActIconEdit, ActKeep; ActClose abandons (the player agreed to Abandon)
-	Picker        *Picker     // a grid picker (the page): ActPicked, ActPage; ActClose leaves
-	Slots         *Slots      // the save slots: never the engine's; the presenter puts its F10 screen here (SlotsView)
-	Ask           *Ask        // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
-	Party         []Member
-	Border        [8]image.Image // the window border's pieces by place (ui.TopLeft ..) in EGA colours; all nil: the presenter decodes Theme.Border
-	BorderPix     [8]Picture     // Border as the game's pixels in the EGA's own colours (the presenter colours them)
-	BorderCaps    [4]image.Image // optional end caps (ui.LeftTopCap ..: left top, left bottom, right top, right bottom), over the side pieces; nil: the side piece
-	BorderCapsPix [4]Picture     // BorderCaps as the game's pixels, as BorderPix
-	Walls         *Walls         // the 3D view built from the rules' own map (nil: the remastered map Data.AreaMaps names)
-	Note          Note           // the status line's toast, shown on the bottom row a while after At
-	Inventory     *Inventory     // the inventory screen is up (nil otherwise)
-	Pictures      []Picture      // the screen's pictures, symbols and fills, bottom first
-	Adventure     bool           // the party is out in the world: the 3D view (or the overland map) is the screen
-	Prompt        []PaneRun      // the prompt row's text (the last row), X the page's column
-	ViewText      [][]PaneRun    // text over the view window (WinText: opProtection's runes), rows from 1, X the page's column
-	Results       *Results       // the after-combat page (in a box round the window)
-	CreditPage    int            // which credits page (Credit.Page) while Credits
-	Credits       bool           // the title's credits page (Credits)
-	CreditsPic    bool           // the title step is the game's credits as a picture: the presenter adds its remaster credit line
-	Sequence      *Sequence      // a full-screen animation plays (SequenceStep, SequenceDone)
-	Intro         *Intro         // the title waits to be played (TitlePicture, TitleCredits, TitleDone)
-	Full          bool           // Pictures are one whole-screen picture (the title's): fitted to the window
-	Cells         image.Point    // the page's size in text cells (40x25 at least; a larger window gives more, ActResize)
-	Ink           [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now (all zero: the EGA's own)
-	Portrait      CellRect       // the sheet's portrait box (zero elsewhere): Shift-click takes the next head (ActHead), a dropped PNG becomes the portrait (ActPortrait)
-	IconDrop      bool           // the combat icon editor is up: a dropped PNG becomes the member's icon (ActIcon)
-	IconBox       CellRect       // the creation sheet's combat icon (zero elsewhere): a PNG dropped on it becomes the icon (ActIcon)
-	Read          *Read          // journal text the game waits to have read: the presenter pages it (JournalPage), then ActOK
-	Purse         *Purse         // the party's money and party items (nil without a party)
-	Ordering      bool           // the camp's Party Order bar is up: a card dragged onto another's place moves the member (ActOrder)
-	MainMenu      []ActKind      // the party menu is up: the functions open now (ActCreate .. ActQuit, ActMember, ActDropMember); ActLead selects a member
-	Logo          *Picture       // with MainMenu: the title picture (Pix) the presenter cuts the lettering from (present.Data.Logo)
-	Hall          bool           // MainMenu is the training hall's: over the 3D view, Begin leaves the hall
-	Screen        *game.Screen   // a game's typed screen is up (nil: none): the presenter draws it from its data, the Ask on its prompt rows
-	Seq           uint64         // counts the Views published: a presenter redraws the page on a new one
+	Pane       *Pane // the text pane under the 3D view: out adventuring (Adventure), or it holds text (nil otherwise)
+	Window     Window
+	AreaMap    *AreaMap // with WinAreaMap: the whole map, for a screen of its own
+	Area       AreaID
+	X, Y       int
+	Facing     Dir
+	Day        bool        // 6:00 to 20:00, when the scripts show the day sky
+	Inside     bool        // the party stands on an inside square (the original's inside sky colour)
+	Exploring  bool        // the party explores: the adventuring decisions (ActForward .. ActCastPick) are taken
+	Sweeping   bool        // ... at the slow, searching pace (ActSweep): the HUD says so
+	Interact   bool        // ... on a square whose event waits for ActInteract: the HUD says so
+	CanCast    bool        // ... and the selected member has a spell to cast (ActCastPick)
+	Camp       *Camp       // the party is in camp: the camp decisions (ActRest .. ActIconEdit) are taken; ActClose leaves
+	Temple     *Temple     // a temple (PendTemple): Cure, ViewMember, Appraise, KeepAppraised, ActLead; Leave
+	Shop       *Shop       // a shop (PendShop): Browse (the goods, ActBuy, ActSell), Identify, Appraise, KeepAppraised, ActLead; Leave
+	Loot       *Loot       // the treasure after a fight (PendLoot): LootView, LootTake, LootDetect, Lead; LootLeave
+	Door       *DoorOpts   // a locked door (PendDoor): TryDoor
+	Training   *Training   // the training hall for the selected member (TrainingView, the presenter's): Train, Learn; CloseTraining
+	Powers     *PowerPick  // a member chooses a power: PickPower
+	Sheet      *Sheet      // the selected member's sheet (the page): ActInventory, ActSpells .. ActCure, ActMember (another member); ActClose leaves
+	IconEditor *IconEditor // the combat icon editor is up (the page; IconDrop): the presenter lays it out and takes its clicks
+	SheetPage  *SheetPage  // the character sheet's page is up (the sheet, the creation's, the spell lists over it): the presenter draws it
+	Creation   *Creation   // the creation (or Modify) sheet (the page): ActRoll, ActSetField, ActName, ActStat, ActPicker, ActIconEdit, ActKeep; ActClose abandons (the player agreed to Abandon)
+	Picker     *Picker     // a grid picker (the page): ActPicked, ActPage; ActClose leaves
+	Ask        *Ask        // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
+	Party      []Member
+	Walls      *Walls         // the 3D view built from the rules' own map (nil: the remastered map Data.AreaMaps names)
+	Note       Note           // the status line's toast, shown on the bottom row a while after At
+	Inventory  *Inventory     // the inventory screen is up (nil otherwise)
+	Pictures   []Picture      // the screen's pictures, symbols and fills, bottom first
+	Adventure  bool           // the party is out in the world: the 3D view (or the overland map) is the screen
+	Prompt     []PaneRun      // the prompt row's text (the last row), X the page's column
+	ViewText   [][]PaneRun    // text over the view window (WinText: opProtection's runes), rows from 1, X the page's column
+	Results    *Results       // the after-combat page (in a box round the window)
+	CreditPage int            // which credits page (Credit.Page) while Credits
+	Credits    bool           // the title's credits page (Credits)
+	CreditsPic bool           // the title step is the game's credits as a picture: the presenter adds its remaster credit line
+	Sequence   *Sequence      // a full-screen animation plays (SequenceStep, SequenceDone)
+	Intro      *Intro         // the title waits to be played (TitlePicture, TitleCredits, TitleDone)
+	Full       bool           // Pictures are one whole-screen picture (the title's): fitted to the window
+	Cells      image.Point    // the page's size in text cells (40x25 at least; a larger window gives more, ActResize)
+	Ink        [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now (all zero: the EGA's own)
+	Portrait   CellRect       // the sheet's portrait box (zero elsewhere): Shift-click takes the next head (ActHead), a dropped PNG becomes the portrait (ActPortrait)
+	IconDrop   bool           // the combat icon editor is up: a dropped PNG becomes the member's icon (ActIcon)
+	IconBox    CellRect       // the creation sheet's combat icon (zero elsewhere): a PNG dropped on it becomes the icon (ActIcon)
+	Read       *Read          // journal text the game waits to have read: the presenter pages it (JournalPage), then ActOK
+	Purse      *Purse         // the party's money and party items (nil without a party)
+	Ordering   bool           // the camp's Party Order bar is up: a card dragged onto another's place moves the member (ActOrder)
+	MainMenu   []ActKind      // the party menu is up: the functions open now (ActCreate .. ActQuit, ActMember, ActDropMember); ActLead selects a member
+	Logo       *Picture       // with MainMenu: the title picture (Pix) the presenter cuts the lettering from (present.Data.Logo)
+	Hall       bool           // MainMenu is the training hall's: over the 3D view, Begin leaves the hall
+	Screen     *game.Screen   // a game's typed screen is up (nil: none): the presenter draws it from its data, the Ask on its prompt rows
 }
 
 // Results is the after-combat page: the hired NPCs hiding their

@@ -1,5 +1,5 @@
 // pager.go is the presenter's pager: the keyboard help (HelpLines) and
-// the journal text the game has the player read (View.Read), a page of
+// the journal text the game has the player read (Scene.Handout), a page of
 // the whole window at a time.
 
 package present
@@ -7,6 +7,7 @@ package present
 import (
 	"fmt"
 	"gobox/front"
+	"gobox/game"
 	"strconv"
 
 	"gobox/input"
@@ -16,7 +17,7 @@ import (
 // pager is the pager up: the help, or the engine's Read.
 type pager struct {
 	ui.Pager                // the page P, and how far its tall picture is scrolled (Off)
-	read     *front.Read    // the text being read (nil: the help); closing answers it with the page reached
+	read     *game.Read     // the text being read (nil: the help); closing answers it with the page reached
 	left     func(page int) // the presenter's own read (the clue book): closing calls it, the engine waits for nothing
 }
 
@@ -35,10 +36,18 @@ func (p *Presenter) pageKey() string {
 	return p.Screens()
 }
 
+// gridCols is the page's width in cells (40 at least; 40 with no game).
+func (p *Presenter) gridCols() int {
+	if u := p.ui(); u != nil {
+		return max(u.grid.X, 40)
+	}
+	return 40
+}
+
 // openHelp puts the help up over the screen, unless a line is being
 // typed or a page over the whole window is up already.
 func (p *Presenter) openHelp(v front.View) {
-	if typing(v) != nil || p.modal(v) {
+	if typing(v) != nil || p.modal() {
 		return
 	}
 	p.pager = &pager{}
@@ -46,11 +55,15 @@ func (p *Presenter) openHelp(v front.View) {
 
 // syncRead opens the pager on a Read the engine waits for, and drops one
 // the engine no longer waits for.
-func (p *Presenter) syncRead(v front.View) {
-	if pg := p.pager; pg != nil && pg.read != nil && pg.left == nil && pg.read != v.Read {
+func (p *Presenter) syncRead() {
+	var read *game.Read
+	if p.eng != nil {
+		read = p.eng.r.readOf(p.state())
+	}
+	if pg := p.pager; pg != nil && pg.read != nil && pg.left == nil && pg.read != read {
 		p.pager = nil
 	}
-	if r := v.Read; r != nil && (p.pager == nil || p.pager.read != r) {
+	if r := read; r != nil && (p.pager == nil || p.pager.read != r) {
 		p.pager = &pager{Pager: ui.Pager{P: r.Page}, read: r}
 		p.speak()
 	}
@@ -65,15 +78,15 @@ func (p *Presenter) speak() {
 
 // pages is the pager's page as drawn, and how far its tall picture
 // scrolls (0: none); nil with no pager up.
-func (p *Presenter) pages(v front.View) (*front.Pages, int) {
+func (p *Presenter) pages() (*front.Pages, int) {
 	if pg := p.pager; pg != nil {
-		return p.pagesAt(v, pg.P, pg.Off)
+		return p.pagesAt(pg.P, pg.Off)
 	}
 	return nil, 0
 }
 
 // pagesAt is page n of the pager's text, its tall picture scrolled off.
-func (p *Presenter) pagesAt(v front.View, n, off int) (*front.Pages, int) {
+func (p *Presenter) pagesAt(n, off int) (*front.Pages, int) {
 	pg := p.pager
 	switch {
 	case pg == nil:
@@ -83,18 +96,15 @@ func (p *Presenter) pagesAt(v front.View, n, off int) (*front.Pages, int) {
 	case pg.read != nil:
 		return nil, 0
 	}
-	return helpPage(v, n), 0
+	return helpPage(p.gridCols(), n), 0
 }
 
 // pageSource is the pager's text for ui.Pager: front.Pages.Page is the
 // page reached, so the clamp holds.
-type pageSource struct {
-	p *Presenter
-	v front.View
-}
+type pageSource struct{ p *Presenter }
 
 func (s pageSource) Page(n, off int) (page, pages, maxOff int, ok bool) {
-	pg, maxOff := s.p.pagesAt(s.v, n, off)
+	pg, maxOff := s.p.pagesAt(n, off)
 	if pg == nil {
 		return 0, 0, 0, false
 	}
@@ -103,11 +113,11 @@ func (s pageSource) Page(n, off int) (page, pages, maxOff int, ok bool) {
 
 // pagerTurn turns the page d (+1 on, -1 back); a tall picture scrolls
 // first. Past the last page the pager closes.
-func (p *Presenter) pagerTurn(v front.View, d int) {
-	if pg, _ := p.pages(v); pg == nil {
+func (p *Presenter) pagerTurn(d int) {
+	if pg, _ := p.pages(); pg == nil {
 		return
 	}
-	if p.pager.Turn(pageSource{p, v}, d) {
+	if p.pager.Turn(pageSource{p}, d) {
 		p.closePager()
 		return
 	}
@@ -129,12 +139,12 @@ func (p *Presenter) closePager() {
 
 // pagerKey takes key k on the pager: Esc closes it, the cursor keys back
 // page (or scroll) back, every other key on.
-func (p *Presenter) pagerKey(k uint16, v front.View) {
+func (p *Presenter) pagerKey(k uint16) {
 	a := actOf(k)
 	if kp := keypad(k); kp != input.None {
 		a = kp
 	}
-	closed, turned := p.pager.Key(a, pageSource{p, v})
+	closed, turned := p.pager.Key(a, pageSource{p})
 	if closed {
 		p.closePager()
 	}
@@ -150,12 +160,11 @@ const (
 	helpRows = 0x14
 )
 
-// helpPage is page n of the help (HelpLines) on v's page: headings in
+// helpPage is page n of the help (HelpLines) on a page cols cells wide: headings in
 // white, keys in yellow, descriptions in light green.
-func helpPage(v front.View, n int) *front.Pages {
+func helpPage(cols, n int) *front.Pages {
 	pages := ui.HelpPages(HelpLines(), helpRows)
 	n = max(min(n, len(pages)-1), 0)
-	cols := max(v.Cells.X, 40)
 	run := func(x, c int, s string) front.PaneRun {
 		s = s[:max(0, min(len(s), cols-x))]
 		return front.PaneRun{X: x, Text: s, Fg: egaInk[c], Bg: egaInk[inkBlack], Upcase: true}

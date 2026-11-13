@@ -10,7 +10,7 @@ import (
 // through the bar's gaps ("ROLLAMINIMALMKEEP EXIT").
 func TestBarOverPrompt(t *testing.T) {
 	v := front.View{Creation: &front.Creation{}, Prompt: []front.PaneRun{{X: 0, Text: "xxxxAxxxxxxxMxxxxxxxxx"}}}
-	c := screenPage(v)
+	c := (&Presenter{}).screenPage(v)
 	row := ""
 	for _, ce := range c.cells[c.rows-1][:22] {
 		if ce.set {

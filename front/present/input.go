@@ -232,7 +232,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 		return
 	}
 	if p.journal.open { // its rows on the window's pixels (Hover, Click)
-		p.journalMouse(p.camp.pointer, false, right, wheel, v)
+		p.journalMouse(p.camp.pointer, false, right, wheel)
 		return
 	}
 	if p.overview { // its clicks are Click's
@@ -246,11 +246,11 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 		p.clueMouse(p.camp.pointer, false, right, wheel)
 		return
 	}
-	if pg, _ := p.pages(v); pg != nil { // the pager: the wheel and the ◀ ▶ marks page, the right button closes, another click pages on
+	if pg, _ := p.pages(); pg != nil { // the pager: the wheel and the ◀ ▶ marks page, the right button closes, another click pages on
 		w, h := pageSize(v)
 		switch {
 		case wheel != 0:
-			p.pagerTurn(v, -unit(wheel))
+			p.pagerTurn(-unit(wheel))
 		case right:
 			p.closePager()
 		case left && in:
@@ -258,7 +258,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			if x, ok := pagerMark(pg, w/8, -1); ok && cx == x && cy == h/8-2 {
 				d = -1
 			}
-			p.pagerTurn(v, d)
+			p.pagerTurn(d)
 		}
 		return
 	}
@@ -287,7 +287,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			p.key(k, v)
 		}
 	}
-	if pageScreen(v) && (p.pageMenu || v.Picker != nil) { // the page screens' own pointer (screens.go): the right button is Esc
+	if p.pageScreen(v) && (p.pageMenu || v.Picker != nil) { // the page screens' own pointer (screens.go): the right button is Esc
 		if right {
 			p.screenKey(keyOf(input.Esc), v)
 			right = false

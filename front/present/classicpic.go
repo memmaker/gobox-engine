@@ -116,18 +116,6 @@ func pixView(v front.View) front.View {
 		v.Ink = egaInk
 	}
 	ink := v.Ink
-	if v.BorderPix[0].Pix != nil {
-		for i, pc := range v.BorderPix {
-			if v.Border[i] == nil {
-				v.Border[i] = pixImage(pc, egaInk)
-			}
-		}
-		for i, pc := range v.BorderCapsPix {
-			if v.BorderCaps[i] == nil {
-				v.BorderCaps[i] = pixImage(pc, egaInk)
-			}
-		}
-	}
 	if m := v.AreaMap; m != nil && m.SquarePix != nil && m.Squares == nil {
 		c := *m
 		c.Squares = make([][]image.Image, len(m.SquarePix))

@@ -203,11 +203,9 @@ func (g *Game) View() front.View {
 	v = Page(v, r.pageOf(ps), storyOf(c))
 	v = Flags(v, r.flagsOf(ps, party), OverMenu(mode, pending))
 	v = Place(v, c.Where, windowOf(ps))
-	v.Quests, v.Lore = Quests(c.Quests), Lore(c.Lore)
-	v = Waits(v, game.Hold(holding(ps)), doorOf(ps), c.PowerPick)
+	v = Waits(v, doorOf(ps), c.PowerPick)
 	v.Party, v.Purse = Party(party, cardsOf(ps), sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
 	v = Sheet(v, sheet, image.Rectangle{}, image.Rectangle{}, page, Drafting(mode, draft), draft, own)
-	v = BorderView(v, art)
 	v = Walls(v, r.wallsOf(ps), art)
 	v = Intro(v, introOf(ps))
 	v = Sequence(v, sequenceOf(ps), g.D.Sequences, g.D.AnimDir())
@@ -215,7 +213,6 @@ func (g *Game) View() front.View {
 	v = Results(v, resultsOf(ps))
 	v = Screen(v, image.Point{}, screenOf(ps), [16]color.RGBA{})
 	v.Read = r.readOf(ps)
-	v = Pacing(v, r.pacingOf(ps))
 	if n := len(c.Lore) + 1; g.r.lore > 0 && n > g.r.lore { // the journal gained a note: gobox says so, the game prints nothing
 		g.r.toast = front.Note{Text: "Added to journal", At: time.Now()}
 		g.r.lore = n

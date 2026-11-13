@@ -17,7 +17,7 @@ func TestContentPoolPictures(t *testing.T) {
 		{Name: "combat_head_000", Pix: make([]uint8, 576), PixW: 24, At: image.Rect(232, 104, 256, 128)},
 		{Pix: make([]uint8, 576), PixW: 24, At: image.Rect(232, 104, 256, 128)}, // a frame: not content
 	}}
-	if n := len(contentPictures(v)); n != 2 {
+	if n := len((&Presenter{}).contentPictures(v)); n != 2 {
 		t.Fatalf("%d content pictures, want the pool's 2", n)
 	}
 }

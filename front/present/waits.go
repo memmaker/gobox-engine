@@ -5,11 +5,10 @@ import (
 	"gobox/game"
 )
 
-// Waits is v with what the game waits on from hold: the pending shop, temple,
-// fight, finale, loot or door (numbered as front.Pending), the locked
-// door's ways through and the power a member must choose.
-func Waits(v front.View, hold game.Hold, d *game.Door, p *game.PowerPick) front.View {
-	v.Pending, v.Door, v.Powers = front.Pending(hold), nil, nil
+// Waits is v with the locked door's ways through and the power a member
+// must choose.
+func Waits(v front.View, d *game.Door, p *game.PowerPick) front.View {
+	v.Door, v.Powers = nil, nil
 	if d != nil {
 		v.Door = &front.DoorOpts{Bash: d.Bash, Pick: d.Pick, Knock: d.Knock}
 	}

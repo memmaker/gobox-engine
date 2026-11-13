@@ -258,7 +258,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.scrolls.Reset()
 	p.noteBtn = image.Rectangle{}
 	p.battle.Asking = confirm(v) != ""
-	if !pageScreen(v) { // none up: the next one opens fresh (F10 on the last save)
+	if !p.pageScreen(v) { // none up: the next one opens fresh (F10 on the last save)
 		p.scr.up = ""
 	}
 	r := p.draw(dst, note, v)
@@ -338,7 +338,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.fight = p.board != nil && !(sheetUp(v) && v.SheetPage != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
 	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1   // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
 	p.resize(dst, v)
-	p.syncRead(v)
+	p.syncRead()
 	p.overview = p.overview && p.exploring()
 	if p.overview || p.pager != nil || p.fullMap != nil || p.slots != nil { // the party overview, help, a Read, the full map, the slots: a page of its own over the whole window
 		p.shown, p.active, p.menu, p.cards = "", false, false, nil
@@ -385,7 +385,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if p.journal.open { // the quest journal: a page of its own over the whole window
 		p.shown, p.active, p.menu = "", true, false
 		dst.Fill(color.Black)
-		p.drawJournal(dst, note, v)
+		p.drawJournal(dst, note)
 		if j := &p.journal; j.ask {
 			p.keyWindow(dst, "Remove this note?", []string{"Yes", "No"}, yesNoKeys, nil, j.askSel, false)
 			j.askAt = slices.Clone(p.winRects)
@@ -898,7 +898,7 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 // (the special screens, the pagers and maps, the after-combat page, the
 // credits); every other page is drawGeneric's.
 func (p *Presenter) ownLayout(v front.View) bool {
-	return pageScreen(v) || sfOf(v) != nil || p.modal(v) || v.SheetPage != nil || v.Creation != nil || v.Credits
+	return p.pageScreen(v) || sfOf(v) != nil || p.modal() || v.SheetPage != nil || v.Creation != nil || v.Credits
 }
 
 // seqMusic plays an animation's music cues on the AdLib player's songs
