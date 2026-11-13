@@ -84,7 +84,7 @@ func PorImportDataTo(dos, dst string) error {
 	if err != nil {
 		return err
 	}
-	snd, err := audio.DecodeSoundData(exe, adventure.SoundLayout)
+	snd, err := audio.DecodeSoundData(exe, porSoundLayout)
 	if err != nil {
 		return err
 	}
@@ -152,3 +152,8 @@ var porSave = rules1e.SaveLayout{
 	AreaKindAt:   &porAreaKind,
 	RulesRecords: true,
 }
+
+// porSoundLayout is where START.EXE's driver (segment 08AE) keeps its tables (gobox audio API.md).
+var porSoundLayout = audio.SoundDataLayout{Segment: 0x8AE, JumpTable: 545, SpeakerSet: 557, TandySet: 967,
+	SpeakerSongs: 1375, TandySongs: 1543, Songs: 21, Enabled: 525,
+	Commands: map[int]string{5710: "reset", 5804: "return", 5811: "call", 5701: "switch", 5678: "loop", 5759: "set"}}

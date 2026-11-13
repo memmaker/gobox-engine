@@ -46,7 +46,7 @@ type Front struct {
 // SetData handed in. It plays sound through snd (the game's own driver,
 // one instance shared with its rules), or else through a Driver it builds
 // from Data.Sounds and Data.AmigaSound, on the Tandy, and plays out itself.
-func NewFront(g *Game, data game.Data, snd ...audio.Sound) *Front {
+func NewFront(g *Game, data game.Data, snd ...game.Sound) *Front {
 	gpu.Mark("NewFront")
 	gameData(data)
 	f := &Front{}
@@ -302,7 +302,7 @@ func newDriver() *audio.Driver {
 	return d
 }
 
-var _ audio.Sound = (*audio.Driver)(nil)
+var _ game.Sound = (*audio.Driver)(nil)
 
 // ownMusicDir is the player's own music folder: Data.OwnMusic, else beside
 // Data.Files ("": none).

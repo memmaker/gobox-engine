@@ -72,6 +72,20 @@ func TestEngineNotImporter(t *testing.T) {
 	}
 }
 
+// TestEngineNotAudio: the engine plays through game.Sound, game.SoundPack
+// and game.Voice; the host drives gobox/audio (REFACTOR.md E2).
+func TestEngineNotAudio(t *testing.T) {
+	out, err := exec.Command("go", "list", "-deps", "gobox/engine").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range strings.Fields(string(out)) {
+		if p == "gobox/audio" || strings.HasPrefix(p, "gobox/audio/") {
+			t.Errorf("gobox/engine depends on %s", p)
+		}
+	}
+}
+
 // TestGoboxNotRules1e: cmd/gobox reaches rules1e and rules4e only through
 // engine (REFACTOR.md R1, R3); direct imports, tests included.
 func TestGoboxNotRules1e(t *testing.T) {

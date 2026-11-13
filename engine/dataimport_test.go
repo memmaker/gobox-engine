@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"gobox/asset/orig"
-	"gobox/audio"
 	"gobox/rules"
 )
 
@@ -76,29 +75,4 @@ func TestDataEqualsDAX(t *testing.T) {
 		t.Fatal("ITEMS differs")
 	}
 	t.Logf("%d monsters", n)
-}
-
-// TestSoundEqualsEXE: the imported sound tables are START.EXE's driver
-// tables as decoded, and the driver plays them.
-func TestSoundEqualsEXE(t *testing.T) {
-	data := filepath.Join("..", "data", "por", "sources")
-	exe, err := os.ReadFile(filepath.Join(data, adventure.DOSDir, "START.EXE"))
-	if err != nil {
-		t.Skip("no START.EXE")
-	}
-	want, err := audio.DecodeSoundData(exe, adventure.SoundLayout)
-	if err != nil {
-		t.Fatal(err)
-	}
-	e := &Engine{adv: filepath.Join(data, adventure.AssetsDir)}
-	got, err := e.SoundData()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(got, want) {
-		t.Fatal("the imported sound tables differ from START.EXE's")
-	}
-	if _, err := audio.NewDriver(got, 'P'); err != nil {
-		t.Fatal(err)
-	}
 }

@@ -88,11 +88,9 @@ func playPool(s start) (ui.Launch, error) {
 	if err != nil {
 		return ui.Launch{}, err
 	}
-	am, fx, pack, speaking, vol := eng.SoundParts()
-	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), eng.SoundtrackFiles()), pack, speaking, vol) // the presenter decodes and plays the recordings
-	eng.SetSound(drv)
+	vox := attachSound(eng, drv)
 	audio.Output(drv) // speaker and voice share one context
-	audio.Output(eng.VoiceReader())
+	audio.Output(vox)
 	eng.Cfg.Param = s.Param
 	if s.Explore {
 		eng.Explore = true
@@ -170,4 +168,20 @@ func homeRosters(root string, names []string) func(string) ([]rules.CharacterFil
 		}
 		return engine.ReadRoster(other.Record, filepath.Join(cfg, "gobox", from))
 	}
+}
+
+// attachSound attaches the driver's parts and hands the engine the driver,
+// the sound pack and the voice-over, which the engine plays through
+// (game.Sound, game.SoundPack, game.Voice); the voice is an audio.Output source.
+func attachSound(eng *engine.Engine, drv *audio.Driver) *audio.Voice {
+	am, fx, packDir, vol := eng.SoundParts()
+	vox := audio.NewVoice(func() float64 { return vol("voice") })
+	var pack audio.Pack
+	var play game.SoundPack
+	if p := audio.LoadSoundPack(packDir, func() float64 { return vol("sfx") }); p != nil {
+		pack, play = p, p
+	}
+	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), eng.SoundtrackFiles()), pack, vox.Speaking, vol) // the presenter decodes and plays the recordings
+	eng.SetSound(drv, play, vox)
+	return vox
 }
