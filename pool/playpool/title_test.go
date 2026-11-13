@@ -9,7 +9,6 @@ import (
 
 	"gobox/asset"
 	"gobox/ega"
-	"gobox/front/classic"
 	"gobox/front/present"
 	"gobox/gpu"
 	"gobox/importer"
@@ -38,7 +37,7 @@ func titleFront(t *testing.T, id string) *present.Front {
 	if data.Adventure != adv {
 		t.Errorf("%s: Data.Adventure %q, want %q (the presenter's art and Theme.Border)", id, data.Adventure, adv)
 	}
-	fr := present.NewFront(classic.NewGame(eng, data), data)
+	fr := present.NewFront(present.NewGame(eng, data), data)
 	fr.Start("")
 	return fr
 }

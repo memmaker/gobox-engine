@@ -45,7 +45,7 @@ func fightPage(p *Presenter, v front.View) *cellPage {
 	return c
 }
 
-func at(t *testing.T, c *cellPage, x, y int, s string, fg, bg int) {
+func cellAt(t *testing.T, c *cellPage, x, y int, s string, fg, bg int) {
 	t.Helper()
 	for i := 0; i < len(s); i++ {
 		k := c.cells[y][x+i]
@@ -59,26 +59,26 @@ func TestSpaceFightLayout(t *testing.T) {
 	p := &Presenter{}
 	v := front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: testFight()}, Ask: crewMenu()}
 	c := fightPage(p, v)
-	at(t, c, 1, 1, "Closing    ", 12, 0)
-	at(t, c, 1, 2, "Range: 3", 12, 0)
-	at(t, c, 29, 1, "Hull:  100", 11, 8)
-	at(t, c, 29, 3, "Sens:    0", 12, 8) // zero: red
-	at(t, c, 10, 12, "    0", 12, 0)
-	at(t, c, 10, 13, "   20", 10, 0)
-	at(t, c, 29, 14, "Weapons:", 10, 8)
-	at(t, c, 29, 15, "LASER", 10, 8)
-	at(t, c, 37, 15, " 2", 10, 8)
-	at(t, c, 29, 16, "MISSILE", 14, 8) // a mount down
-	at(t, c, 37, 16, " 1", 14, 8)
+	cellAt(t, c, 1, 1, "Closing    ", 12, 0)
+	cellAt(t, c, 1, 2, "Range: 3", 12, 0)
+	cellAt(t, c, 29, 1, "Hull:  100", 11, 8)
+	cellAt(t, c, 29, 3, "Sens:    0", 12, 8) // zero: red
+	cellAt(t, c, 10, 12, "    0", 12, 0)
+	cellAt(t, c, 10, 13, "   20", 10, 0)
+	cellAt(t, c, 29, 14, "Weapons:", 10, 8)
+	cellAt(t, c, 29, 15, "LASER", 10, 8)
+	cellAt(t, c, 37, 15, " 2", 10, 8)
+	cellAt(t, c, 29, 16, "MISSILE", 14, 8) // a mount down
+	cellAt(t, c, 37, 16, " 1", 14, 8)
 	// the first log line wraps at the last space before column 37: 3 rows + 2 + the prompt padded = 2 pages
 	sh := p.sfState(v, sfOf(v))
 	if len(sh.Pages) != 2 || !sh.More {
 		t.Fatalf("pages %d more %v, want 2 and a pause", len(sh.Pages), sh.More)
 	}
-	at(t, c, 1, 19, "BUCK fires lasers and hits for 12", 11, 0)
-	at(t, c, 1, 20, "points of damage on the pirate ship!", 11, 0)
-	at(t, c, 1, 21, "The pirate fires missiles and misses.", 14, 0)
-	at(t, c, 0, 24, sfPause, 15, 0)
+	cellAt(t, c, 1, 19, "BUCK fires lasers and hits for 12", 11, 0)
+	cellAt(t, c, 1, 20, "points of damage on the pirate ship!", 11, 0)
+	cellAt(t, c, 1, 21, "The pirate fires missiles and misses.", 14, 0)
+	cellAt(t, c, 0, 24, sfPause, 15, 0)
 	if c.cells[23][0].set && c.cells[23][0].ch != ' ' {
 		t.Fatal("the bar is up during the pause")
 	}
@@ -87,17 +87,17 @@ func TestSpaceFightLayout(t *testing.T) {
 		t.Fatal("the pause took no key")
 	}
 	c = fightPage(p, v)
-	at(t, c, 1, 19, "WILMA is dead!!", 12, 0)
-	at(t, c, 1, 21, "what does BUCK want to do?", 13, 0)
-	at(t, c, 0, 23, "Fire", 0, 15) // the highlight
-	at(t, c, 5, 23, "T", 15, 0)
-	at(t, c, 6, 23, "arget", 10, 0)
-	at(t, c, 0, 24, "C", 15, 0)
+	cellAt(t, c, 1, 19, "WILMA is dead!!", 12, 0)
+	cellAt(t, c, 1, 21, "what does BUCK want to do?", 13, 0)
+	cellAt(t, c, 0, 23, "Fire", 0, 15) // the highlight
+	cellAt(t, c, 5, 23, "T", 15, 0)
+	cellAt(t, c, 6, 23, "arget", 10, 0)
+	cellAt(t, c, 0, 24, "C", 15, 0)
 	if p.sfKey(keyOf(input.Down), v); p.sf.sel != 5 {
 		t.Fatalf("Down: highlight %d, want 5 (Command)", p.sf.sel)
 	}
 	c = fightPage(p, v)
-	at(t, c, 0, 24, "Command", 0, 15)
+	cellAt(t, c, 0, 24, "Command", 0, 15)
 	p.sfKey(keyOf(input.Esc), v)
 	p.sfKey('a', v)
 	if n := len(p.inv.acts); n != 2 || p.inv.acts[0] != (front.Action{Kind: front.ActClose}) || p.inv.acts[1] != (front.Action{Kind: front.ActChoose, N: 6}) {
@@ -115,7 +115,7 @@ func TestSpaceFightLayout(t *testing.T) {
 	f.SensorsOut = true
 	v = front.View{Screen: &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: f}}
 	c = fightPage(&Presenter{}, v)
-	at(t, c, 4, 14, "Sensors Destroyed", 12, 8)
+	cellAt(t, c, 4, 14, "Sensors Destroyed", 12, 8)
 	if c.cells[12][10].set {
 		t.Fatal("foe figures shown with the sensors out")
 	}

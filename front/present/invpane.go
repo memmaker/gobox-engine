@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"gobox/core"
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/sprites"
 	"gobox/ui"
@@ -135,7 +134,7 @@ func (inv *inventory) drawPane(pn *pane, items []front.InvItem, sel core.ItemHan
 // when there is copper.
 func price(m front.Money) string {
 	s := strconv.Itoa(m.Gold) + "g"
-	if classic.Coin == game.Credits {
+	if Coin == game.Credits {
 		s = strconv.Itoa(m.Gold) + "cr"
 	}
 	if m.Copper != 0 {

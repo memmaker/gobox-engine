@@ -6,7 +6,6 @@ package present
 
 import (
 	"errors"
-	"gobox/front/classic"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
@@ -28,7 +27,7 @@ var musicTriggers = []string{
 
 // musicChain is the triggers for s, most specific first: the place's own
 // (Where.Music) before the generic.
-func musicChain(s classic.MusicCue) []string {
+func musicChain(s MusicCue) []string {
 	place := s.Where.Music
 	kind := "exploring"
 	switch m := s.Where.Mode; {

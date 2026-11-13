@@ -6,7 +6,6 @@ package present
 
 import (
 	"cmp"
-	"gobox/front/classic"
 	"image"
 	"image/color"
 	"io/fs"
@@ -123,7 +122,7 @@ func SetData(d Data) {
 	dollBoxes, slotNames, readiedMark = defaultDollBoxes, defaultSlotNames, cmp.Or(d.ReadyMark, "*")
 	areaMaps, art, openAt = d.AreaMaps, d.Art, d.OpenAt
 	dollPNG = defaultDoll
-	classic.AmigaArt = amigaShown // the members' pool portraits and icons follow F12 too
+	AmigaArt = amigaShown // the members' pool portraits and icons follow F12 too
 	if art == nil {
 		art = fstest.MapFS{} // no remastered maps: every area falls back to its original view
 	}
@@ -261,13 +260,13 @@ func gameData(g game.Data) {
 		texts[k] = v
 	}
 	sequences, filesDir = g.Sequences, g.AnimDir()
-	classic.GameID, classic.Amiga = g.ID, amigaShown
-	classic.AmigaArt = classic.Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
+	GameID, Amiga = g.ID, amigaShown
+	AmigaArt = Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
 	if g.Series != "" {
 		series = g.Series
 	}
-	classic.Series = series
-	classic.Coin = cmp.Or(g.Coin, game.Gold)
+	Series = series
+	Coin = cmp.Or(g.Coin, game.Gold)
 	if g.Font != "" || g.Border != nil { // the game's look, as plain data
 		t := theme
 		if g.Font != "" {

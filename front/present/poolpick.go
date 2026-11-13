@@ -9,7 +9,6 @@ import (
 	"image"
 
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/sprites"
 )
@@ -19,7 +18,7 @@ type poolPick struct {
 	field, kind string
 	names       []string
 	cell        image.Point
-	tiles       bool // the bodies by original ref (classic.TilePicker)
+	tiles       bool // the bodies by original ref (TilePicker)
 	amiga       bool // names lists the Amiga set (F12 when it was listed)
 }
 
@@ -40,7 +39,7 @@ func (g classicGame) OpenPicker(kind int) bool {
 	if !has { // the game's own pictures; a portrait or icon part comes from the shared pool, whatever the game offers
 		return ok
 	}
-	if names, _ := classic.BodyTiles(g.Game.Subject()); kind == front.PickWeapon && len(names) > 0 {
+	if names, _ := BodyTiles(g.Game.Subject()); kind == front.PickWeapon && len(names) > 0 {
 		pp.names, pp.tiles = names, true
 		g.p.pool = &pp
 		return true
@@ -78,7 +77,7 @@ func (g classicGame) PickerView(page int) *front.Picker {
 		}
 		k := &game.Picker{Cell: pp.cell, Pics: make([]game.Picture, len(pp.names))}
 		for i := range k.Pics {
-			k.Pics[i].W = 1 // present, no pixels: classic.Picker lays the cell out, the PNG fills it
+			k.Pics[i].W = 1 // present, no pixels: Picker lays the cell out, the PNG fills it
 		}
 		v := g.Game.PickerOf(k, page, g.p.grid[0], g.p.grid[1])
 		if v != nil {
@@ -86,9 +85,9 @@ func (g classicGame) PickerView(page int) *front.Picker {
 			for i, n := range pp.names {
 				switch pp.field { // a combat icon shows whole: the picked part over the member's other one
 				case "iconhead":
-					v.Portraits[i] = classic.PickIcon(g.Game.Subject(), n, "")
+					v.Portraits[i] = PickIcon(g.Game.Subject(), n, "")
 				case "iconbody":
-					v.Portraits[i] = classic.PickIcon(g.Game.Subject(), "", n)
+					v.Portraits[i] = PickIcon(g.Game.Subject(), "", n)
 				default:
 					v.Portraits[i] = sprites.Image(series, pp.kind, n)
 				}

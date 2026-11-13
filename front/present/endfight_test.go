@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -42,7 +41,7 @@ func (r *endGame) Load([]byte) error     { return nil }
 func TestEndingEventsPlay(t *testing.T) {
 	defer func(s bool, n int64) { Scripted, frames = s, n }(Scripted, frames)
 	r := &endGame{}
-	f := &Front{Game: classic.NewGame(r, game.Data{}), started: true}
+	f := &Front{Game: NewGame(r, game.Data{}), started: true}
 	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
 	f.P.SetEngine(f.Game)
 	dst := gpu.NewImage(640, 400)

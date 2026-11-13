@@ -4,13 +4,12 @@ import (
 	"image"
 
 	"gobox/front"
-	"gobox/front/classic"
 )
 
 // classicGame is the classic front with what only the presenter knows: its
 // page's size, the music and a menu item's animation.
 type classicGame struct {
-	*classic.Game
+	*Game
 	p *Presenter
 }
 
@@ -32,7 +31,7 @@ func (g classicGame) View() front.View {
 		ownMus.Want(musicChain(g.Game.MusicCue()))
 	}
 	if playSeq != "" && v.Sequence == nil { // a game.MenuItem's animation, gobox's own: the game's state never knows
-		if v = classic.Sequence(v, playSeq, sequences, filesDir); v.Sequence == nil {
+		if v = Sequence(v, playSeq, sequences, filesDir); v.Sequence == nil {
 			playSeq = "" // no such sequence
 		}
 	}
@@ -62,7 +61,7 @@ func (g classicGame) FullMapView(cursor image.Point, label *string) *front.FullM
 
 // WithRules is g as classicGame (p lays out its page) when it is the classic front.
 func WithRules(g front.Game, p *Presenter) front.Game {
-	if c, ok := g.(*classic.Game); ok {
+	if c, ok := g.(*Game); ok {
 		return classicGame{c, p}
 	}
 	return g

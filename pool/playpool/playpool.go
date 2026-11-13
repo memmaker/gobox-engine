@@ -18,7 +18,6 @@ import (
 	"gobox/audio"
 	"gobox/char"
 	"gobox/core"
-	"gobox/front/classic"
 	"gobox/front/present"
 	"gobox/game"
 	"gobox/importer"
@@ -154,7 +153,7 @@ func Play(s app.Start, gm Game) error {
 	}
 	data.OpenAt = s.Open
 	data.OwnMusic = filepath.Join(s.Data, "music") // the player's own music, by trigger
-	cg := classic.NewGame(eng, data)
+	cg := present.NewGame(eng, data)
 	g := present.NewFront(cg, data, drv) // the rules' data (series, spell tips, overland art); one driver: the rules' calls and the fight's events
 	g.OnStart = func() { pool.DOSArt.Store(host.DOSArt) }
 	g.P.Sound = eng.PlayEventSound // a fight's sounds with what they belong to

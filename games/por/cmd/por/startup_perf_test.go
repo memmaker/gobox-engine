@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"gobox/audio"
-	"gobox/front/classic"
 	"gobox/front/present"
 	"gobox/pool"
 	"por/playpor"
@@ -45,7 +44,7 @@ func TestStartupTiming(t *testing.T) {
 	lap("sound")
 	data := playpor.Data(eng)
 	lap("Data")
-	g := present.NewFront(classic.NewGame(eng, data), data, drv)
+	g := present.NewFront(present.NewGame(eng, data), data, drv)
 	lap("NewFront")
 	g.Start("")
 	for i := range 5 {

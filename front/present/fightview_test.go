@@ -4,7 +4,6 @@ import (
 	"image"
 	"testing"
 
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -25,7 +24,7 @@ func (viewGame) Load([]byte) error                    { return nil }
 // TestFightViewDrawn: V mid-fight puts the member's sheet on screen, and
 // its keys are the sheet's; Esc goes back to the turn's board.
 func TestFightViewDrawn(t *testing.T) {
-	f := &Front{Game: classic.NewGame(viewGame{}, game.Data{VerbKeys: map[string]rune{"View": 'V'}}), started: true}
+	f := &Front{Game: NewGame(viewGame{}, game.Data{VerbKeys: map[string]rune{"View": 'V'}}), started: true}
 	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
 	f.P.SetEngine(f.Game)
 	dst := gpu.NewImage(640, 400)

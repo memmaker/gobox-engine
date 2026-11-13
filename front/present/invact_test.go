@@ -7,7 +7,6 @@ import (
 
 	"gobox/core"
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 	"gobox/input"
 )
@@ -134,8 +133,8 @@ func TestInventoryKeysReachAll(t *testing.T) {
 
 // Buck Rogers' money is credits, shown as cr.
 func TestCredits(t *testing.T) {
-	defer func(s string) { classic.Coin = s }(classic.Coin)
-	classic.Coin = game.Credits
+	defer func(s string) { Coin = s }(Coin)
+	Coin = game.Credits
 	if p := price(front.Money{Gold: 5}); p != "5cr" {
 		t.Fatal(p)
 	}

@@ -9,7 +9,6 @@ import (
 
 	"gobox/ega"
 	"gobox/front"
-	"gobox/front/classic"
 	"gobox/game"
 )
 
@@ -208,7 +207,7 @@ func pixBattle(b *front.Battle, ink [16]color.RGBA) *front.Battle {
 		if u := &c.Units[i]; u.Icon == nil && i < len(b.IconPix) {
 			u.Icon = picImage(b.IconPix[i], ink)
 			if pc := b.IconPix[i]; u.Icon == nil && (pc.File != "" || pc.Name != "" || pc.Pix != nil) { // a picture that does not load (a DAX block the file lacks): gobox's default figure, never an empty square
-				u.Icon = classic.PickIcon(game.Member{}, "", "") // ponytail: one stand-in for every lost picture; a per-kind monster stand-in when the pool has one
+				u.Icon = PickIcon(game.Member{}, "", "") // ponytail: one stand-in for every lost picture; a per-kind monster stand-in when the pool has one
 			}
 			if u.IconSize == (image.Point{}) {
 				u.IconSize = nativeSize(b.IconPix[i])
