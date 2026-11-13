@@ -62,6 +62,7 @@
 - [ ] C1 Credits: `Credit.X/Y/Colour`, `Data.CreditBoxes`, `CreditGaps` (original two-column credits; ruling needed)
 - [ ] U5 Per-game values U1 flattened to one ui constant (cotab ready mark, door colour, Amiga combat ground grey): restore the originals' values
 - [ ] U6 `ui` does not scale `StepMs`/`Ask.Ms` by the player's speed (ruling 5); `Walls.FloorRGBA/CeilRGBA` still RGBA, not a palette index (ruling 7)
+- [ ] L1 Load regression (S1 cut `legacySave`): every shipped/dev slot with Area/Game/Purse at the top of GAME.JSON was refused ("unexpected end of JSON input"). Fixed on disk once (12 por dev slots under data/por/sources/save/saves; backups in the session scratchpad). Bug-class check: a test that loads every slot under data/*/sources/save/saves; also `loadFrom` drops gob decode errors of MAPS/VOICED/BESTIARY/... (golden rule). sotsb home `town.sav` holds an original SAVGAMA.DAT slot (no GAME.JSON): convert it with the importer's save conversion
 - [ ] Final: full build/vet/test, all repos
 
 ## T2 audit: presentation fields in `game`
