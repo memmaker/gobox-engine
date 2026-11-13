@@ -14,16 +14,14 @@ Each game repo keeps a one-line `build_n_run.sh`:
 
 Each game adds an executable `run.sh`. Examples:
 
-por-go/run.sh (files in `data/`, Amiga import and sound pack on first run):
+Pool of Radiance (originals in `data/por/sources/dos`, Amiga conversion on first run, then the import and the one binary):
 
     #!/bin/sh
     set -e
-    [ -f data/dos/TITLE.DAX ] || { echo "no game data: copy your Pool of Radiance files (*.DAX, ITEMS, POOL.CFG) into $(pwd)/data/dos" >&2; exit 1; }
-    go build -o por ./cmd/por
-    [ -d data/amiga ] || ./por -data data -import-disk2 "${ADF_DIR:-$HOME/Downloads}"
-    dasp="${DASP_DIR:-$HOME/Downloads/Dubtrain Angband Sound Pack v3.1.0}"
-    [ -d data/assets/dasp ] || [ ! -f "$dasp/sound.cfg" ] || { mkdir -p data/assets/dasp && cp "$dasp"/* data/assets/dasp/; }
-    exec ./por "$@"
+    go build -o gobox ./cmd/gobox
+    [ -d data/por/sources/amiga ] || ./gobox import -amiga por "${ADF_DIR:-$HOME/Downloads}"
+    ./gobox import por data/por/sources/dos
+    exec ./gobox "$@" por
 
 cotab-go/run.sh and sotsb-go/run.sh (files in the repo itself; `G` is cotab or sotsb; `snap OUT save keys` makes headless screenshots):
 

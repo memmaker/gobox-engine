@@ -9,7 +9,7 @@ exclude  = ["SKY.DAX", "BIGPIC1.DAX"] # Curse of the Azure Bonds
 files    = ["*.DAX", "POOL.CFG", "ITEMS", "START.EXE"] # START.EXE: the sound tables, decoded at import
 dest     = "data/dos"
 upper    = true
-run      = ["./por", "-setup"] # the port's own files (the area scripts) and the cover picture
+run      = ["./gobox", "import", "por", "data/dos"] # the adventure folder data/por
 
 [[source]]
 name     = "the Amiga disks"
@@ -18,7 +18,7 @@ describe = "The Amiga release's .adf disk images (loose or zipped). opool then s
 markers  = ["*.ADF"]
 files    = ["*.ADF"]
 dest     = "data/ADF"
-run      = ["./por", "-import-disk2", "data/ADF", "-data", "data"]
+run      = ["./gobox", "import", "-amiga", "por", "data/ADF"] # into data/por/sources/amiga; the DOS import reads it when run again
 
 [[source]]
 name     = "the voice-over"

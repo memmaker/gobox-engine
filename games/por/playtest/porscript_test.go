@@ -1,4 +1,4 @@
-package main
+package playtest
 
 import (
 	"os"
@@ -15,10 +15,10 @@ import (
 // -explore does; its roster goes to a temp dir, never the game's saves.
 func explore(t *testing.T) *engine.Engine {
 	t.Helper()
-	if _, err := os.Stat("../../../../data/por/sources/dos/TITLE.DAX"); err != nil {
+	if _, err := os.Stat("../../../data/por/sources/dos/TITLE.DAX"); err != nil {
 		t.Skip("no game files")
 	}
-	e, err := engine.NewPool("../../../../data/por/sources/assets", "../../../../data/por/sources")
+	e, err := engine.NewPool("../../../data/por/sources/assets", "../../../data/por/sources")
 	if err != nil {
 		t.Fatal(err)
 	}

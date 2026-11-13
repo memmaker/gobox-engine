@@ -1,4 +1,4 @@
-package main
+package playtest
 
 import (
 	"gobox/engine"
@@ -29,10 +29,10 @@ func noTitle(t *testing.T, f *ui.Front, n int) {
 // view; it was ModeNone, so Assembling, and the front drew the main menu
 // over the title's picture.
 func TestLockedDoorOverView(t *testing.T) {
-	if err := os.Chdir("../.."); err != nil {
+	if err := os.Chdir(".."); err != nil {
 		t.Skip(err)
 	}
-	t.Cleanup(func() { os.Chdir("cmd/por") })
+	t.Cleanup(func() { os.Chdir("playtest") })
 	src := "../../data/por/sources/save/saves/back-for-good"
 	if _, err := os.Stat(src); err != nil {
 		t.Skip(err)
@@ -80,10 +80,10 @@ func TestLockedDoorOverView(t *testing.T) {
 // TestHallNoTitle: the training hall's party menu is over the 3D view,
 // never the title's picture.
 func TestHallNoTitle(t *testing.T) {
-	if err := os.Chdir("../.."); err != nil {
+	if err := os.Chdir(".."); err != nil {
 		t.Skip(err)
 	}
-	t.Cleanup(func() { os.Chdir("cmd/por") })
+	t.Cleanup(func() { os.Chdir("playtest") })
 	eng, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
 	if err != nil {
 		t.Skip(err)

@@ -1,4 +1,4 @@
-package main
+package playtest
 
 import (
 	"gobox/game/play"

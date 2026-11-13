@@ -17,4 +17,4 @@ describe = "The Amiga release's .adf disk images (loose or zipped). F12 then swi
 markers  = ["*.ADF"]
 files    = ["*.ADF"]
 dest     = "ADF"
-run      = ["./cotab", "-import-disk2", "ADF", "-data", "data"]
+run      = ["./gobox", "import", "-amiga", "cotab", "ADF"] # into data/cotab/sources/amiga; the DOS import reads it when run again

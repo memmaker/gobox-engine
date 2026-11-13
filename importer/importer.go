@@ -18,6 +18,7 @@ import (
 	"slices"
 	"strings"
 
+	"gobox/amigaimport"
 	"gobox/rules"
 )
 
@@ -61,6 +62,10 @@ type Game struct {
 	Foreign   []string // the games whose rosters "Add from" can read (their manifests' Record is each layout)
 	Version   int      // the game's import version: bumped when what Import writes changes, so older folders read as stale (Read)
 	Sources   []string // the originals' file patterns the import reads (filepath.Match, case-insensitive), EXE files included
+	// Amiga is how the Amiga release's .adf disks convert into the DOS-layout
+	// archives the import reads beside the originals (sources/amiga; nil: no
+	// Amiga release): `gobox import -amiga <game> <adfdir>`.
+	Amiga *amigaimport.Spec
 	// Import writes the folder's files from the originals in dir src into
 	// dir dst (empty, existing).
 	Import func(src, dst string) error
@@ -210,15 +215,36 @@ func matches(name string, patterns []string) bool {
 	return false
 }
 
-// Main is the import command's body: args are [-out dir] <game> <originals>.
+// AmigaDir is where in a game's folder ImportAmiga writes (sources/amiga,
+// beside the DOS originals in sources/dos).
+const AmigaDir = "sources/amiga"
+
+// ImportAmiga converts game id's Amiga disks among the .adf images under adf
+// (loose or zipped) into root/<id>/AmigaDir, by its Game.Amiga.
+func ImportAmiga(id, adf, root string) error {
+	g, ok := games[id]
+	if !ok {
+		return fmt.Errorf("import: no game %q (have %s)", id, strings.Join(IDs(), ", "))
+	}
+	if g.Amiga == nil {
+		return fmt.Errorf("import %s: no Amiga release", id)
+	}
+	return amigaimport.Import(adf, filepath.Join(root, id, AmigaDir), *g.Amiga)
+}
+
+// Main is the import command's body: args are [-out dir] [-amiga] <game> <originals>.
 func Main(args []string) error {
 	fs := flag.NewFlagSet("import", flag.ContinueOnError)
 	out := fs.String("out", "data", "the games' data directory")
+	amiga := fs.Bool("amiga", false, "<originals> are the Amiga .adf disks: convert them into <out>/<game>/"+AmigaDir+" (before the DOS import, which reads them)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
 	if fs.NArg() != 2 {
-		return fmt.Errorf("usage: import [-out dir] <game> <originals>; games: %s", strings.Join(IDs(), ", "))
+		return fmt.Errorf("usage: import [-out dir] [-amiga] <game> <originals>; games: %s", strings.Join(IDs(), ", "))
+	}
+	if *amiga {
+		return ImportAmiga(fs.Arg(0), fs.Arg(1), *out)
 	}
 	return Run(fs.Arg(0), fs.Arg(1), *out)
 }

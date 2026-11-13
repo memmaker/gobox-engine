@@ -67,7 +67,7 @@ identical in shape; sotsb-re tools/procmatch.py); `docs/ds_map.tsv` maps PoD dat
   PoD's own games (it followed Add's source, Silver Blades by default); v/i open the sheet and items while
   adventuring (rules View in the explore and overland decisions); camp is over the 3D view (View.Adventure) with
   the members' View/Memorize/Scribe/Drop menus and a working rest counter; Save in camp (PoD's camp menu has it,
-  F10's slots page, -keys \F); the TITLE.DAX title (pictures 1..3). gobox gaps: GOBOX_GAPS.md.
+  F10's slots page, gobox -keys \0); the TITLE.DAX title (pictures 1..3). gobox gaps: GOBOX_GAPS.md.
 - [x] M14 fight, loot and training check: Damage 0D0 came from ITEMS read past a false 2-byte header (every
   item field shifted); COMBAT with game byte 19 opens the temple and TREASURE SET the shop; the bar's End, units'
   damage, Aim asks for a square, Continue Battle is the board's yes/no; debug -fight/-seed for captures

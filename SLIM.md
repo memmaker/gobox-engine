@@ -6,6 +6,6 @@
 - [ ] D: dead code (deadcode -test list, rules1e stats accessors, unused spell-ID consts, engine.lead/viewMember, xinput packet), tracked poolsprites binary + sprites/, empty blobber/
 - [ ] M: package merges gpu/vector→gpu, game/play+game/journal→game, ecl/script→ecl, audio/sounddata→audio
 - [x] T: dev dump cmds removed (keep importstale: gate.sh; keep ui/cmd/viewdump: remaster.json dump), fixture cmds folded into one
-- [ ] L: per-game launchers → cmd/gobox `import` subcommand + manifest Amiga specs
+- [x] L: per-game launchers gone; Amiga specs are importer.Game.Amiga (`gobox import -amiga`), por play tests in games/por/playtest. Open: COVER.PNG (gameimport label) no longer written
 - [x] Docs: stale root docs folded into DESIGN.md and ONE-BINARY.md, rest dropped
 - [ ] Final: full build/vet/test on main

@@ -1,4 +1,4 @@
-package main
+package playtest
 
 import (
 	"gobox/engine"
@@ -17,10 +17,10 @@ import (
 // party's items (the 3D view crawled at 77 fps when classic asked for State
 // ~15 times a step). Idle frames build none, a turn exactly one (its Do).
 func TestLoadedExploreStateBuilds(t *testing.T) {
-	if err := os.Chdir("../.."); err != nil {
+	if err := os.Chdir(".."); err != nil {
 		t.Skip(err)
 	}
-	t.Cleanup(func() { os.Chdir("cmd/por") })
+	t.Cleanup(func() { os.Chdir("playtest") })
 	src := "../../data/por/sources/save/saves/back-for-good"
 	if _, err := os.Stat(src); err != nil {
 		t.Skip(err)

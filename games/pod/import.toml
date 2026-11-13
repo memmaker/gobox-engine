@@ -9,7 +9,7 @@ markers  = ["POOL4.CFG", "GAME.OVR", "TITLE.DAX"] # Pool, Curse and Silver Blade
 files    = ["*.DAX", "*.ACF", "*.BMA", "*.SMS", "SOUND.COM", "ITEMS", "POOL4.CFG", "GAME.EXE", "GAME.OVR", "SAVE/*", "SECRET/*"]
 dest     = "data/dos"
 upper    = true
-run      = ["./pod", "-setup", "-data", "data/dos"] # the cover picture (COVER.PNG from TITLE.DAX)
+run      = ["./gobox", "import", "pod", "data/dos"] # the adventure folder data/pod
 
 [[source]]
 name     = "the Amiga disks"
@@ -18,4 +18,4 @@ describe = "The Amiga release's .adf disk images (loose or zipped). F12 then swi
 markers  = ["*.ADF"]
 files    = ["*.ADF"]
 dest     = "data/ADF"
-run      = ["./pod", "-import-disk2", "data/ADF", "-data", "data/dos"]
+run      = ["./gobox", "import", "-amiga", "pod", "data/ADF"] # into data/pod/sources/amiga; the DOS import reads it when run again

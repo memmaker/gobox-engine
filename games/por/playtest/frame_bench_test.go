@@ -1,4 +1,4 @@
-package main
+package playtest
 
 import (
 	"gobox/engine"
@@ -13,10 +13,10 @@ import (
 // frameFront is por as main starts it, headless, past the title: -explore
 // (a Quick Start party in the 3D view) or a dev scene (autocombat: a fight).
 func frameFront(b *testing.B, dev string) *ui.Front {
-	if err := os.Chdir("../.."); err != nil {
+	if err := os.Chdir(".."); err != nil {
 		b.Skip(err)
 	}
-	b.Cleanup(func() { os.Chdir("cmd/por") })
+	b.Cleanup(func() { os.Chdir("playtest") })
 	eng, err := engine.NewPool("../../data/por/sources/assets", "../../data/por/sources")
 	if err != nil {
 		b.Skip(err)

@@ -152,7 +152,7 @@ func main() {
 			}
 		}
 	}
-	// The Amiga art (data/amiga, the game's -import-disk2 of its .adf disks): its own
+	// The Amiga art (data/amiga, gobox import -amiga of its .adf disks): its own
 	// amiga_-prefixed names under origins key <game>-amiga, never deduplicated
 	// against the DOS art, so the F12 toggle keeps the two sets apart.
 	for _, g := range games {

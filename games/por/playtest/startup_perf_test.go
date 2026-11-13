@@ -1,4 +1,4 @@
-package main
+package playtest
 
 import (
 	"os"
@@ -13,7 +13,7 @@ import (
 
 // Start-up as main does it, headless: each step and the first frames must be quick.
 func TestStartupTiming(t *testing.T) {
-	if err := os.Chdir("../.."); err != nil {
+	if err := os.Chdir(".."); err != nil {
 		t.Skip(err)
 	}
 	start, t0 := time.Now(), time.Now()
