@@ -66,6 +66,7 @@ type Behaviour struct {
 	SelectMemberDrop  bool           // SelectMember's bit 7 refreshes and may drop a dead member; otherwise the bit is only masked off
 	NoMonsterCombat   []CombatScreen // Combat with no monsters loaded: the first screen whose word is set opens (it clears the word)
 	AreaMonstersJoin  bool           // Combat with monsters first adds the area's own (GameTables.AreaMonsters)
+	SymbolSetFrames   bool           // the symbol set picks only the frame set (pod's tileSet, pod-re eclmenu.pas:472 $39: Load8x8Set, no other files); otherwise it is the content set too (POR's, cotab's gameArea)
 	PictureAnimates   bool           // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D, pod's alike); otherwise only a step or Picture(255) does (POR's picDrawn, eclvm.pas:371, 1874)
 }
 
@@ -226,7 +227,7 @@ var V3 = func() *Version {
 	// pod renumbered its routines (O040:1E4A)
 	return &Version{ID: 3, Base: 32768, Cmds: t, Skip: skip, Calls: map[uint16]CallFn{1: CallRedrawView, 2: CallStepForward, 3: CallNextFrame},
 		Programs:  map[byte]ProgramFn{0: ProgramPartyMenu, 1: ProgramSaveQuit, 2: ProgramQuit, 9: ProgramCamp},
-		Behaviour: Behaviour{SetupMonsterSides: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, AreaMonstersJoin: true, PictureAnimates: true}}
+		Behaviour: Behaviour{SetupMonsterSides: true, InputTextOperand: true, NoMonsterCombat: []CombatScreen{CombatVault, CombatTemple}, AreaMonstersJoin: true, PictureAnimates: true, SymbolSetFrames: true}}
 }()
 
 // V4 is the Buck Rogers engine's dialect (Countdown to Doomsday, Matrix Cubed).

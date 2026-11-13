@@ -24,8 +24,18 @@ func (e *Engine) newEngineFields() map[string]engineField {
 	}
 	m := map[string]engineField{
 		"SymbolSet": { // ovr08:07BC/0A74 +0x312: the symbol set (0802:094A)
-			get: func(int) (int64, bool) { return int64(e.set), true },
-			set: func(_ int, v int64) { e.setWorldWord(rules.WordSymbolSet, int(v)); e.set = rules.Set(v) },
+			get: func(int) (int64, bool) {
+				if e.eclVersion.Behaviour.SymbolSetFrames {
+					return int64(e.worldWord(rules.WordSymbolSet)), true
+				}
+				return int64(e.set), true
+			},
+			set: func(_ int, v int64) {
+				e.setWorldWord(rules.WordSymbolSet, int(v))
+				if !e.eclVersion.Behaviour.SymbolSetFrames {
+					e.set = rules.Set(v)
+				}
+			},
 		},
 		"PartyCount": {
 			get: func(int) (int64, bool) { return int64(e.worldWord(rules.WordPartyCount)), true },

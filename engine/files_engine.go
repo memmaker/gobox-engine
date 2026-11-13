@@ -308,7 +308,9 @@ func (e *Engine) loadSlot() bool {
 		e.eraseRosterCopies(id, true)
 	}
 	e.sel = 0
-	e.set = rules.Set(e.worldWord(rules.WordSymbolSet))
+	if !e.eclVersion.Behaviour.SymbolSetFrames {
+		e.set = rules.Set(e.worldWord(rules.WordSymbolSet))
+	}
 	if e.viewMode < 2 {
 		e.LoadGeo(int(byte(e.worldWord(rules.WordGeo)))) // ovr30:10C7
 	}
@@ -337,7 +339,9 @@ func (e *Engine) saveSlot() error {
 	e.prompt(game.InkLightGreen, "Saving...Please Wait")
 	e.setWorldWord(rules.WordMsgDelay, int(e.msgDelay))
 	e.setWorldWord(rules.WordViewFlags, int(e.viewBit1)*2+int(e.viewBit0))
-	e.setWorldWord(rules.WordSymbolSet, int(e.set))
+	if !e.eclVersion.Behaviour.SymbolSetFrames {
+		e.setWorldWord(rules.WordSymbolSet, int(e.set))
+	}
 	// the running area: after an area change the area block still names the
 	// one left (opNewECL; the game loop copies the new one after the next
 	// command), but the load reloads the running script (GameLoop)
