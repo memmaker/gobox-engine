@@ -33,6 +33,8 @@ type Config struct {
 
 // Engine holds the global state the DOS program kept in its data segment.
 type Engine struct {
+	tiles              map[tileKey]Picture         // the combat ground tiles converted (tilePix)
+	grounds            map[*asset.Image]uint8      // each combat tile set's ground colour (groundOf)
 	pngs               map[pngKey]image.Image      // the characters' PNGs decoded (pngImage)
 	iconPoses          map[iconPoseKey]image.Image // the cuts of PNG icons (iconPNG)
 	newRules           Ruleset                     // builds rules (New; bareRuleset when nil)

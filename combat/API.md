@@ -15,6 +15,7 @@ Reads a `Board` snapshot, draws figurines on a wooden table, returns `Decision`s
 - `Draw(dst, *Board)`; `DrawBar(dst, glyph, *Board, k, bottom)` the action bar at scale k; `HideBar()`.
 - Input: `Key(act input.Act, k uint16) bool` (W A S D pan, arrows cursor, Q/E turn, Home reset, digits/letters buttons, Tab cycles targets, Enter, Esc = No, Backspace ends turn), `Point(x,y)`, `Click(x,y) bool`, `Zoom(in, speed)`, `Pick(x,y)`, `Hovered()`.
 - Out: `Actions() []Decision` (drain once a frame). `Float(id,n,heal)` starts a damage number.
+- Motion (motion.go): figures walk cell by cell at `StepTime` seconds a step (0: `DefaultStepTime`; front/present sets it from an EvMoved's hold), along the last board's `Paths` else the line of squares; new units rise, dropped ones sink. Never a jump (TestNoTeleport).
 - Fields the host sets: `Theme` (colours, set before the first Draw; `DefaultTheme` is por's current look, games copy and change it), `Shift` (Shift held, set each frame: health bars, Shift-Tab, Shift-U), `Icons map[Kind]image.Image` (overrides the embedded default icon of an action) + `IconKey` (redraw cue), `Glyph`, `Pointer`, `Stick` (pad right stick pans), `Picking`/`PickKind` (spell list up: bar off), `Asking` (bar shows Yes/No).
 
 ## Adapter pattern

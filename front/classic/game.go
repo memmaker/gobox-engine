@@ -312,6 +312,17 @@ func (g *Game) Settle() front.View {
 	return v
 }
 
+// A combat step holds minStepMs and stepShare of the message delay: the
+// game speed paces a walk as it paces the messages, the fastest still
+// walks (extra: the originals redrew the figure on its next square).
+const (
+	minStepMs = 60
+	stepShare = 0.3
+)
+
+// stepMs is how long a combat step holds, for a message delay of holdMs.
+func stepMs(holdMs int) int { return minStepMs + int(float64(holdMs)*stepShare) }
+
 // messageMs is how long a fight's message holds: the game speed × 100 ms,
 // the rules' speed where they keep one (Speed), else g.speed (SetSpeed).
 func (g *Game) messageMs() int {
@@ -322,6 +333,13 @@ func (g *Game) messageMs() int {
 // events in turn: every one is held on the board the events before it left
 // (a walk moved, a fall dropped), with its unit in its pose.
 func (g *Game) stepBattle(e play.Report) *front.Battle {
+	if e.Kind == game.EvMove && !e.Turn { // a step: held on the square it reaches
+		for k := range g.ended.Units {
+			if u := &g.ended.Units[k]; u.ID == e.Unit {
+				u.At = e.To
+			}
+		}
+	}
 	if b := e.Picture; e.Kind == game.EvDown && hasPic(b) { // the body the game leaves (Event.Picture): the fall's moment shows it in the unit's place (standing on it, the figure hid it)
 		for k := range g.ended.Units {
 			u := &g.ended.Units[k]
@@ -397,6 +415,8 @@ func combatEvents(es []play.Report, v front.View, posed func(play.Report) *front
 				}
 			} else if e.Kind == game.EvDown && hasPic(e.Picture) && posed != nil { // a fall that leaves a body is held with the body down (with no moment, the shot before it kept the figure standing up to the page)
 				ce.Ms, ce.Battle = cmp.Or(e.Ms, holdMs), posed(e)
+			} else if e.Kind == game.EvMove && !e.Turn && v.Battle != nil && posed != nil { // a step held on the board it leaves, so a walk plays square by square (the figure walks it: combat.Presenter.StepTime)
+				ce.Ms, ce.Battle = stepMs(holdMs), posed(e)
 			} else if e.Pose > 0 && e.Ms > 0 && posed != nil { // the moment held with the unit in its pose
 				ce.Ms, ce.Battle = e.Ms, posed(e)
 			} else if e.Text != "" && e.Ms == 0 && v.Battle != nil && posed != nil { // a fight's message stays up the game-speed delay before what follows, as the originals'

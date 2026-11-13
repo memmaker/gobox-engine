@@ -31,12 +31,12 @@ func (e *Engine) battle() *Battle {
 		b.CursorAt = append(b.CursorAt, s.cursor.Add(image.Pt(d.X, d.Y)))
 	}
 	b.Ground = g.Squares
-	ground := groundColour(e.art(e.sqrpaci[0], 0)) // the shown art's (F12): 0 on DOS, a grey on the Amiga
+	ground := e.groundOf(e.art(e.sqrpaci[0], 0)) // the shown art's (F12): 0 on DOS, a grey on the Amiga
 	b.Floor = e.pal.RGBA(ground)
 	b.TilePix = make([]Picture, 0x100)
 	for t, im := range e.sqrpaci {
 		for f := 0; im != nil && f < min(im.Count, 0x80); f++ {
-			b.TilePix[t*0x80+f] = e.picPix(im, f, false, int(ground))
+			b.TilePix[t*0x80+f] = e.tilePix(im, f, int(ground))
 		}
 	}
 	active := core.NoChar
@@ -103,6 +103,40 @@ func (e *Engine) picPix(im *asset.Image, f int, flip bool, ground int) Picture {
 	}
 	m := uint8(asset.Clear)
 	return Picture{Pix: out, PixW: w, Mask: &m}
+}
+
+// tilePix is picPix of a combat ground tile, converted once: the board is
+// rebuilt every frame and its tiles never change (unlike icons, which
+// recolour in place).
+func (e *Engine) tilePix(im *asset.Image, f, ground int) Picture {
+	k := tileKey{e.art(im, f), f, ground}
+	if p, ok := e.tiles[k]; ok {
+		return p
+	}
+	if e.tiles == nil {
+		e.tiles = map[tileKey]Picture{}
+	}
+	p := e.picPix(im, f, false, ground)
+	e.tiles[k] = p
+	return p
+}
+
+// groundOf is groundColour(im), counted once per tile set.
+func (e *Engine) groundOf(im *asset.Image) uint8 {
+	if c, ok := e.grounds[im]; ok {
+		return c
+	}
+	if e.grounds == nil {
+		e.grounds = map[*asset.Image]uint8{}
+	}
+	c := groundColour(im)
+	e.grounds[im] = c
+	return c
+}
+
+type tileKey struct {
+	art       *asset.Image // the shown art (DOS or Amiga)
+	f, ground int
 }
 
 // cmapShown notes the combat map is drawn: the view shows it from then on.

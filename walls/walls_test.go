@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/png"
+	"io/fs"
 	"testing"
 	"testing/fstest"
 )
@@ -48,5 +49,28 @@ func TestStyle(t *testing.T) {
 	SetStyle("pixel")
 	if Style() != "pixel" || size("a") != 2 || size("b") != 4 || Names("styled")[0] != "a" || len(Names("styled")) != 2 {
 		t.Fatal("pixel: want pixel/a, hi-def b (no pixel one), names unchanged")
+	}
+}
+
+// openCount counts the files opened in it.
+type openCount struct {
+	fs.FS
+	n *int
+}
+
+func (o openCount) Open(name string) (fs.File, error) { *o.n++; return o.FS.Open(name) }
+
+// Image reads a texture once: the combat board asks for the floor every
+// frame, and a per-frame read and decode was half its CPU (TestImageOnce
+// guards that class: no file is opened for a texture already read).
+func TestImageOnce(t *testing.T) {
+	var b bytes.Buffer
+	png.Encode(&b, image.NewGray(image.Rect(0, 0, 1, 1)))
+	n := 0
+	Register("once", openCount{fstest.MapFS{"floor.png": {Data: b.Bytes()}}, &n})
+	first := Image("once", "floor")
+	opened := n
+	if first == nil || Image("once", "floor") != first || n != opened {
+		t.Errorf("second Image opened %d files", n-opened)
 	}
 }

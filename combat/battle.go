@@ -72,7 +72,10 @@ type Presenter struct {
 	at            vec          // what the camera looks at (eased)
 	cam           camera       // the last frame's camera, for picking
 	screen        image.Rectangle
-	units         map[int]*[2]float64 // each unit's shown position (eased between squares)
+	units         map[int]*walker        // each unit's figure as shown (moveUnits)
+	paths         map[image.Point][]Step // the last board's walks (a move walks the one it offered)
+	started       bool                   // a board was shown: units new after it rise onto the board
+	StepTime      float64                // seconds a figure takes for a step (the host sets it from the game's pace; 0: DefaultStepTime)
 	sparks        []spark
 	sparkMesh     *gpu.Mesh        // all of this frame's sparks, one draw
 	sparkVs       []gpu.MeshVertex // its vertices, reused
@@ -150,6 +153,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		p.strike, p.strikeT, p.burst = b.Strike, 0, false
 	}
 	p.strikeT += dt
+	figs := p.moveUnits(b, dt)
 
 	// where the eye goes: an effect, else the target Tab went to, else whose
 	// turn it is (the aim cursor otherwise is the player's to follow: the camera pans by hand)
@@ -271,22 +275,14 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 	if !gpu.Skip("shadows") {
 		dst.DrawMesh(p.shadows, p.shadow, vp, &shade)
 	}
-	shown := map[int]bool{}
-	for _, u := range b.Units {
-		if u.Icon == nil || gpu.Skip("shadows") {
-			continue
+	for _, f := range figs {
+		if gpu.Skip("shadows") {
+			break
 		}
-		shown[u.ID] = true
-		x, z, _ := p.unitAt(u, dt)
-		fw, fd := footprint(u)
+		fw, fd := footprint(f.u)
 		o := shade
-		o.Model = place(x+.12, 0.004, z+.1, 0, fw+.05, 1, fd+.05)
+		o.Model = place(f.x+.12, 0.004, f.z+.1, 0, (fw+.05)*f.scale, 1, (fd+.05)*f.scale)
 		dst.DrawMesh(p.flatQuad, p.shadow, vp, &o)
-	}
-	for id := range p.units {
-		if !shown[id] {
-			delete(p.units, id)
-		}
 	}
 
 	// frames on the board: choices, the cursor, the square under the mouse
@@ -365,37 +361,39 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 
 	// the figurines
 	var heads []head // where each one's health bar goes (Shift)
-	for _, u := range b.Units {
-		if u.Icon == nil || gpu.Skip("figures") {
-			continue
+	for _, f := range figs {
+		if gpu.Skip("figures") {
+			break
 		}
-		x, z, sq := p.unitAt(u, dt)
+		u, x, z := f.u, f.x, f.z
+		ib := iconSize(u)
+		sq := float32(max(ib.X, ib.Y)) / tilePx * f.scale
 		tint := enemyColour
 		if u.Party {
 			tint = partyColour
 		}
 		fw, fd := footprint(u) // the base covers the squares it stands on, not the icon's size
-		if u.Down { // a body: its icon lying on the floor, no base, as the original leaves the fallen
+		if u.Down {            // a body: its icon lying on the floor, no base, as the original leaves the fallen
 			b := u.Icon.Bounds()
 			o := opts(place(x, 0.015, z, 0, sq*.92*float32(b.Dx())/float32(max(b.Dx(), b.Dy())), 1, sq*.92*float32(b.Dy())/float32(max(b.Dx(), b.Dy()))), [4]float32{.75, .75, .75, 1}, 0)
 			o.Ambient = 0.9
 			dst.DrawMesh(p.flatQuad, p.figure(u.Icon, 0).tex, vp, o)
 			continue
 		}
-		dst.DrawMesh(p.base, p.white, vp, opts(place(x, 0, z, 0, fw-.22, pedestal, fd-.22), tint, 0.25))
+		fw, fd = fw*f.scale, fd*f.scale // rising onto the board, sinking away
+		dst.DrawMesh(p.base, p.white, vp, opts(place(x, 0, z, 0, fw-.22*f.scale, pedestal*f.scale, fd-.22*f.scale), tint, 0.25))
 		if u.Active { // whose turn: a gold ring round the base
-			dst.DrawMesh(p.base, p.white, vp, opts(place(x, 0, z, 0, fw-.14, pedestal*.5, fd-.14),
+			dst.DrawMesh(p.base, p.white, vp, opts(place(x, 0, z, 0, fw-.14*f.scale, pedestal*.5*f.scale, fd-.14*f.scale),
 				[4]float32{0.95 * pulse, 0.72 * pulse, 0.2 * pulse, 1}, 0.9))
 		}
-		ib := iconSize(u)
-		f := p.figure(u.Icon, max(ib.X, ib.Y))
+		fig := p.figure(u.Icon, max(ib.X, ib.Y))
 		size := sq * .92
 		half := size * float32(ib.Y) / float32(max(ib.X, ib.Y)) / 2
 		// the attacker lunges at its target; the target flashes red and sheds sparks when hit, grey ones when missed
 		tint = [4]float32{1, 1, 1, 1}
 		if t := p.strikeT; t < lunge {
 			if to, ok := p.units[p.strike.To]; ok && u.ID == p.strike.From {
-				dx, dz := float32(to[0])-x, float32(to[1])-z
+				dx, dz := float32(to.at[0])-x, float32(to.at[1])-z
 				if n := float32(math.Hypot(float64(dx), float64(dz))); n > 0 {
 					d := float32(math.Sin(math.Pi*t/lunge)) * .35 / n
 					x, z = x+dx*d, z+dz*d
@@ -420,7 +418,7 @@ func (p *Presenter) Draw(dst *gpu.Image, b *Board) {
 		}
 		o := opts(place(x, pedestal+half, z, 0, size, size, size), tint, 0.12)
 		o.Ambient = 0.85 // fixed facing, so its back is lit enough to read from any heading
-		dst.DrawMesh(f.mesh, f.tex, vp, o)
+		dst.DrawMesh(fig.mesh, fig.tex, vp, o)
 		heads = append(heads, head{u, vec{float64(x), float64(pedestal + 2*half + .1), float64(z)}})
 	}
 
@@ -498,6 +496,9 @@ func (p *Presenter) tick() float64 {
 	dt := 0.1
 	if !p.last.IsZero() {
 		dt = min(now.Sub(p.last).Seconds(), 0.1)
+	}
+	if p.last.IsZero() || now.Sub(p.last) > unseenGap { // the board was off the screen (a new fight, a page over it): the figures stand where they are
+		p.units, p.started = nil, false
 	}
 	p.last = now
 	p.clock += dt
