@@ -34,7 +34,7 @@ func TestAskOverExplore(t *testing.T) {
 		t.Fatalf("no question over the 3D view: %+v", q)
 	}
 	over := play.Exploring{Common: play.Common{Ask: &play.Question{Replies: []string{"Exit"}}}}
-	if (&rules{}).flagsOf(over, nil).Exploring {
+	if (&frontState{}).flagsOf(over, nil).Exploring {
 		t.Fatal("still exploring under the menu")
 	}
 }

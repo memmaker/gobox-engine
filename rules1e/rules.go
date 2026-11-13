@@ -377,7 +377,7 @@ func (e *RuleState) SavingThrow(c *Character, typ, bonus int) bool {
 }
 
 // RollDice = ovr25:0E2E (n, sides): Dice that also remembers n (DS:681C).
-func (e *RuleState) RollDice(n, sides int) int { return goldbox.RollDice(&e.Rv.Roll, e, n, sides) }
+func (e *RuleState) RollDice(n, sides int) int { return goldbox.RollCounted(&e.Rv.Roll, e, n, sides) }
 
 // KillCharacter = ovr25:0F06 (char, status, message).
 func (e *RuleState) KillCharacter(c *Character, status byte, msg string) {

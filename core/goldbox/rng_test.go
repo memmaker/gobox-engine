@@ -19,7 +19,7 @@ func TestRandomPinned(t *testing.T) {
 		t.Fatalf("seed %08x", s)
 	}
 	r := &seeded{0x12345678}
-	if got := Dice(r, 1, 20); got != 20 {
+	if got := DiceSum(r, 1, 20); got != 20 {
 		t.Fatalf("Dice(1,20) = %d, want 20", got)
 	}
 	fixed := uint32(7)
@@ -32,7 +32,7 @@ func TestRandomPinned(t *testing.T) {
 // Dice's n and sides are bytes in the originals: 257 dice are one die.
 func TestDiceByteArgs(t *testing.T) {
 	a, b := &seeded{0x12345678}, &seeded{0x12345678}
-	if x, y := Dice(a, 257, 262), Dice(b, 1, 6); x != y || a.s != b.s {
+	if x, y := DiceSum(a, 257, 262), DiceSum(b, 1, 6); x != y || a.s != b.s {
 		t.Fatalf("Dice(257,262) = %d, Dice(1,6) = %d", x, y)
 	}
 }

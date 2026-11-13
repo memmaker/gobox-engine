@@ -84,7 +84,7 @@ type Board struct {
 
 // Dice = ovr25:0DE3 Dice(n, sides): sum of n rolls of 1..sides, kept in a
 // byte like the original (wraps at 256).
-func (e *RuleState) Dice(n, sides int) int { return goldbox.Dice(e, n, sides) }
+func (e *RuleState) Dice(n, sides int) int { return goldbox.DiceSum(e, n, sides) }
 
 // Random = Turbo Pascal Random(n) (0AF8:11C0): RandSeed = RandSeed*0x08088405+1,
 // then the high word mod n. The seed advances even for n = 0, which returns 0.

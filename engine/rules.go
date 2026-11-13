@@ -37,7 +37,7 @@ const (
 )
 
 // hitRoll rolls the d20 the attack and trap rolls share: 1 misses, 20 counts 100.
-func hitRoll(rv *goldbox.Roll, rng goldbox.RNG) bool {
+func hitRoll(rv *goldbox.Roll, rng goldbox.GameRNG) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false
@@ -49,7 +49,7 @@ func hitRoll(rv *goldbox.Roll, rng goldbox.RNG) bool {
 }
 
 // AttackHits: d20 + THAC0 + adj (the side's modifier) must reach need.
-func AttackHits(rv *goldbox.Roll, rng goldbox.RNG, att char.Stats, adj int, need int, h Hooks) bool {
+func AttackHits(rv *goldbox.Roll, rng goldbox.GameRNG, att char.Stats, adj int, need int, h Hooks) bool {
 	if h.Begin != nil {
 		h.Begin()
 	}
@@ -64,7 +64,7 @@ func AttackHits(rv *goldbox.Roll, rng goldbox.RNG, att char.Stats, adj int, need
 }
 
 // TrapHits: a d20 with the defender's affects plus bonus must beat AC 0.
-func TrapHits(rv *goldbox.Roll, rng goldbox.RNG, c char.Stats, bonus byte, h Hooks) bool {
+func TrapHits(rv *goldbox.Roll, rng goldbox.GameRNG, c char.Stats, bonus byte, h Hooks) bool {
 	if !hitRoll(rv, rng) {
 		return false
 	}
@@ -77,7 +77,7 @@ func TrapHits(rv *goldbox.Roll, rng goldbox.RNG, c char.Stats, bonus byte, h Hoo
 // SavingThrow: 1 always fails, 20 always saves, otherwise d20 + bonus + the
 // save bonus must reach the target for the type. One path for all games: the
 // total is compared signed (por's fix), so a penalty below 0 does not wrap.
-func SavingThrow(rv *goldbox.Roll, rng goldbox.RNG, c char.Stats, typ, bonus int, h Hooks) bool {
+func SavingThrow(rv *goldbox.Roll, rng goldbox.GameRNG, c char.Stats, typ, bonus int, h Hooks) bool {
 	rv.SaveMade = true
 	rv.Save = byte(rng.Dice(1, 20))
 	switch rv.Save {

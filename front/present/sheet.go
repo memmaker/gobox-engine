@@ -60,7 +60,7 @@ func (p *Presenter) sheetPage() *game.SheetPage {
 
 // lookMember is the member whose look-only sheet is up in a fight (a View
 // there: no powers, the member's own page and items).
-func (r *rules) lookMember(ps play.State) (int, bool) {
+func (r *frontState) lookMember(ps play.State) (int, bool) {
 	n := r.lookSheet - 1
 	return n, n >= 0 && n < len(play.CommonOf(ps).Party) && r.combatOf(ps) != nil
 }
@@ -81,7 +81,7 @@ func (p *Presenter) layoutSheetPage() *game.SheetPage {
 }
 
 // sheetUpOf: the state puts a member's sheet up, the look-only one in a fight too.
-func (r *rules) sheetUpOf(ps play.State) bool {
+func (r *frontState) sheetUpOf(ps play.State) bool {
 	if _, ok := r.lookMember(ps); ok {
 		return true
 	}

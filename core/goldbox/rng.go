@@ -32,11 +32,11 @@ type Roller interface {
 	Random(n int) int
 }
 
-// Dice = the games' Dice(n, sides): sum of n rolls of 1..sides, kept in a
+// DiceSum = the games' Dice(n, sides): sum of n rolls of 1..sides, kept in a
 // byte like the original (wraps at 256). n and sides are byte parameters in
 // all four Pool games (POR ovr25:0DE3, COTAB O0E3:1381, SOTSB O145:11C6, POD
 // O0E2:1374), so they wrap too.
-func Dice(r Roller, n, sides int) int {
+func DiceSum(r Roller, n, sides int) int {
 	n, sides = int(byte(n)), int(byte(sides))
 	t := 0
 	for i := 0; i < n; i++ {
@@ -48,7 +48,7 @@ func Dice(r Roller, n, sides int) int {
 // RNGDice is Dice over the engine's core.RNG (whose draw is N), for the
 // rulesets that roll from it (rulesxxvc: charhlp.pas RollDice, Byte count,
 // sides and total like the Pool games').
-func RNGDice(r *core.RNG, n, sides int) int { return Dice(coreRoller{r}, n, sides) }
+func RNGDice(r *core.RNG, n, sides int) int { return DiceSum(coreRoller{r}, n, sides) }
 
 type coreRoller struct{ r *core.RNG }
 

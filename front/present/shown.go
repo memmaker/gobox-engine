@@ -277,7 +277,7 @@ func (p *Presenter) askUp() *front.Ask {
 // askOf is the state's question as the presenter asks it. A place's mode
 // with no screen of its own yet draws its question, never a blank frame;
 // the treasure's picture waits under a message (Enter or Space opens it).
-func (r *rules) askOf(ps play.State) *front.Ask {
+func (r *frontState) askOf(ps play.State) *front.Ask {
 	mode, pending := r.modeOf(ps), r.asking(ps)
 	if mode == game.ModeLoot && lootOf(ps) != nil && announced(ps) {
 		return &front.Ask{Kind: front.AskMenu, Menu: front.Menu{Prompt: "You found some loot!"}}

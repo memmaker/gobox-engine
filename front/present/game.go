@@ -24,7 +24,7 @@ import (
 type Game struct {
 	G play.Game
 	D game.Data
-	r *rules // what gobox holds over G
+	r *frontState // what gobox holds over G
 
 	events     []play.Report // the fight's events since the last Settle
 	lastCombat *play.Combat  // the fight before the step: its events play on it (Settle)

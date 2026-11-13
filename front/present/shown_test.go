@@ -64,7 +64,7 @@ type shown struct {
 }
 
 // shownOf reads every reader once, as Game.View does.
-func shownOf(r *rules) shown {
+func shownOf(r *frontState) shown {
 	ps := r.g.State()
 	c := play.CommonOf(ps)
 	party := partyOf(ps)
@@ -137,7 +137,7 @@ type (
 )
 
 // send is d, a play.Action or one of the above, as the front does it.
-func (r *rules) send(d any) play.Result {
+func (r *frontState) send(d any) play.Result {
 	switch d := d.(type) {
 	case play.Action:
 		return r.apply(d)

@@ -39,7 +39,7 @@ func cardsOf(ps play.State) []memberCard {
 
 // selectedOf is the member the screens act on: the one whose look-only sheet
 // is up in a fight, else with the items up whose items they are.
-func (r *rules) selectedOf(ps play.State) int {
+func (r *frontState) selectedOf(ps play.State) int {
 	if n, ok := r.lookMember(ps); ok { // a fight's look-only sheet: that member's, and its items
 		return n
 	}
@@ -87,7 +87,7 @@ func storyOf(c play.Common) []game.Picture {
 }
 
 // pageOf is the text page up.
-func (r *rules) pageOf(ps play.State) *game.Page {
+func (r *frontState) pageOf(ps play.State) *game.Page {
 	c := play.CommonOf(ps)
 	p := &game.Page{Layers: c.Layers}
 	if c.Picture != nil && len(c.Layers) == 0 { // the front draws a page's layers: the picture is the page's only one
@@ -114,7 +114,7 @@ func (r *rules) pageOf(ps play.State) *game.Page {
 }
 
 // flagsOf are the screen's plain status flags.
-func (r *rules) flagsOf(ps play.State, party []game.Member) *game.Flags {
+func (r *frontState) flagsOf(ps play.State, party []game.Member) *game.Flags {
 	c := play.CommonOf(ps)
 	_, camp := ps.(play.Camping)
 	f := &game.Flags{Adventure: c.Adventure, Ordering: camp && allowedOf(ps)["Order"], Sweeping: c.Where.Searching,
@@ -167,7 +167,7 @@ func windowOf(ps play.State) game.Window {
 }
 
 // sheetOf is what the selected member's sheet offers (nil: none up).
-func (r *rules) sheetOf(c play.Common) *game.Sheet {
+func (r *frontState) sheetOf(c play.Common) *game.Sheet {
 	if n := c.Selected; n >= 0 && n < len(c.Party) && (len(c.Party[n].SheetPowers) > 0 || len(c.Party[n].Reactions) > 0) {
 		return &game.Sheet{Powers: c.Party[n].SheetPowers, Reactions: c.Party[n].Reactions}
 	}
@@ -178,7 +178,7 @@ func (r *rules) sheetOf(c play.Common) *game.Sheet {
 }
 
 // sheetPageOf is the sheet's page up: the rules', else gobox's from the member.
-func (r *rules) sheetPageOf(ps play.State, party []game.Member) *game.SheetPage {
+func (r *frontState) sheetPageOf(ps play.State, party []game.Member) *game.SheetPage {
 	c := play.CommonOf(ps)
 	var p *game.SheetPage
 	if n := r.sheet; n >= 0 && n < len(c.Party) {
@@ -208,7 +208,7 @@ func creationOf(ps play.State) *game.Creation {
 }
 
 // pacingOf is what goes on with time.
-func (r *rules) pacingOf(ps play.State) *game.Pacing {
+func (r *frontState) pacingOf(ps play.State) *game.Pacing {
 	p := &game.Pacing{Seq: r.seq}
 	switch {
 	case r.rest > 0:
@@ -245,7 +245,7 @@ func wallsOf(ps play.State, kept *game.Walls) (shown, keep *game.Walls) {
 }
 
 // readOf is the handout up, kept so the pointer holds while it does.
-func (r *rules) readOf(ps play.State) *game.Read {
+func (r *frontState) readOf(ps play.State) *game.Read {
 	t, ok := ps.(play.Scene)
 	if !ok || t.Kind != play.SceneHandout {
 		r.read = nil
@@ -258,7 +258,7 @@ func (r *rules) readOf(ps play.State) *game.Read {
 }
 
 // modeOf is the screen ps puts up, a question over it counted.
-func (r *rules) modeOf(ps play.State) game.Mode {
+func (r *frontState) modeOf(ps play.State) game.Mode {
 	if r.refusalAsk != nil { // a Refusal's question is up
 		return game.ModeAsk
 	}
@@ -306,7 +306,7 @@ func (r *rules) modeOf(ps play.State) game.Mode {
 }
 
 // itemsOf is whose goods the inventory screen shows.
-func (r *rules) itemsUp(ps play.State) game.ItemsUp {
+func (r *frontState) itemsUp(ps play.State) game.ItemsUp {
 	if r.items == game.ItemsNone {
 		return r.items
 	}
@@ -353,7 +353,7 @@ func lootOf(ps play.State) *game.Loot {
 }
 
 // combatOf is the fight up (nil: none).
-func (r *rules) combatOf(ps play.State) *play.Combat {
+func (r *frontState) combatOf(ps play.State) *play.Combat {
 	if f, ok := ps.(play.Fighting); ok {
 		return r.combat(f)
 	}
@@ -449,7 +449,7 @@ func (g *Game) ItemsUp() game.ItemsUp    { return g.r.itemsUp(g.r.g.State()) }
 
 // titleStep is the Steps key of the title step shown: before gobox's first
 // step, that step's picture already.
-func (r *rules) titleStep(t play.Scene) int {
+func (r *frontState) titleStep(t play.Scene) int {
 	if n := r.title.n; n != 0 || t.Intro == nil || len(t.Intro.Pictures) == 0 {
 		return n
 	}

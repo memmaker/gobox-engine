@@ -17,19 +17,19 @@ import (
 // (rules1e.LayoutFile) beside it, which it must then carry too (a missing one
 // panics: run the game's import); else on rules1e.POR.
 func Rules1e(
-	rules string,
+	rulesFile string,
 	monster func(core.MonsterID) (Sheet, []AffectRecord, []Item, bool),
 	items func() []ItemBase,
 	treasure func(block int) []Item,
 	host goldbox.CreationHost,
 ) (core.Rules, core.CreationRules) {
 	r := &rules1e.Rules{S: &rules1e.RuleState{}}
-	if rules != "" {
-		l, err := rules1e.ReadLayout(filepath.Join(filepath.Dir(rules), rules1e.LayoutFile))
+	if rulesFile != "" {
+		l, err := rules1e.ReadLayout(filepath.Join(filepath.Dir(rulesFile), rules1e.LayoutFile))
 		if err != nil {
-			panic(fmt.Sprintf("rules1e: %s needs its layout: %v", rules, err))
+			panic(fmt.Sprintf("rules1e: %s needs its layout: %v", rulesFile, err))
 		}
-		t, err := rules1e.POR.LoadRules(rules, l)
+		t, err := rules1e.POR.LoadRules(rulesFile, l)
 		if err != nil {
 			panic(fmt.Sprintf("rules1e: %v", err))
 		}

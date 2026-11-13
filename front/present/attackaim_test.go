@@ -48,7 +48,7 @@ func TestShootTargets(t *testing.T) {
 // TestQuickAllOption: Quick for the whole party, when Allowed has it, is a
 // bar entry of its own that sends Quick{All: true}.
 func TestQuickAllOption(t *testing.T) {
-	r := rules{data: game.Data{VerbKeys: map[string]rune{"Quick All": 'U'}}}
+	r := frontState{data: game.Data{VerbKeys: map[string]rune{"Quick All": 'U'}}}
 	f := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Quick{}, play.Quick{All: true}}}}}
 	c := r.combat(f)
 	i := slices.IndexFunc(c.Turn.Options, func(o play.Option) bool { return o.Do == any(play.Quick{All: true}) })

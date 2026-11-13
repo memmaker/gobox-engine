@@ -292,7 +292,7 @@ type invUp struct {
 
 // inventoryKind is the inventory screen ps puts up: the items (own,
 // shop's, treasure's), else the treasure when it is up.
-func (r *rules) inventoryKind(ps play.State) invKind {
+func (r *frontState) inventoryKind(ps play.State) invKind {
 	c := play.CommonOf(ps)
 	mode, loot := r.modeOf(ps), lootOf(ps)
 	wares := false
@@ -314,7 +314,7 @@ func (r *rules) inventoryKind(ps play.State) invKind {
 }
 
 // inventoryOf is the inventory screen ps puts up (nil: none).
-func (r *rules) inventoryOf(ps play.State) *invUp {
+func (r *frontState) inventoryOf(ps play.State) *invUp {
 	kind := r.inventoryKind(ps)
 	if kind == invNone {
 		return nil

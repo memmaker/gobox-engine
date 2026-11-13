@@ -21,8 +21,8 @@ type SaveEditor struct {
 // OpenSave reads the canonical save of the slot folder dir (an original
 // save there is imported); adv is the adventure folder, whose script
 // layouts name the fields SetVar sets; rules builds the ruleset.
-func OpenSave(rules Ruleset, dir, adv string) (*SaveEditor, error) {
-	e := &Engine{newRules: rules, adv: adv}
+func OpenSave(ruleset Ruleset, dir, adv string) (*SaveEditor, error) {
+	e := &Engine{newRules: ruleset, adv: adv}
 	e.initVM()
 	e.Cfg.SaveDir = dir
 	g, err := e.readSlotSave()

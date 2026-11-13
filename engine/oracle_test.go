@@ -83,7 +83,7 @@ func (c *oc) same(t *testing.T, r *char.Rec, what string) {
 // ---- originals ----
 
 // cotab-go/engine/rules.go:335 and sotsb-go/engine/rules.go (identical): unsigned compare.
-func oracleSaveUnsigned(rv *goldbox.Roll, rng goldbox.RNG, c *oc, typ, bonus int) bool {
+func oracleSaveUnsigned(rv *goldbox.Roll, rng goldbox.GameRNG, c *oc, typ, bonus int) bool {
 	rv.SaveMade = true
 	rv.Save = byte(rng.Dice(1, 20))
 	switch rv.Save {
@@ -100,7 +100,7 @@ func oracleSaveUnsigned(rv *goldbox.Roll, rng goldbox.RNG, c *oc, typ, bonus int
 }
 
 // por-go/engine/rules.go:253 (signed compare).
-func oracleSavePor(rv *goldbox.Roll, rng goldbox.RNG, c *oc, typ, bonus int) bool {
+func oracleSavePor(rv *goldbox.Roll, rng goldbox.GameRNG, c *oc, typ, bonus int) bool {
 	rv.Save = byte(rng.Dice(1, 20))
 	switch rv.Save {
 	case 1:
@@ -114,7 +114,7 @@ func oracleSavePor(rv *goldbox.Roll, rng goldbox.RNG, c *oc, typ, bonus int) boo
 }
 
 // cotab-go/engine/rules.go:314 (side adjustment passed in).
-func oracleAttackCotab(rv *goldbox.Roll, rng goldbox.RNG, att *oc, adj int, need int) bool {
+func oracleAttackCotab(rv *goldbox.Roll, rng goldbox.GameRNG, att *oc, adj int, need int) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false
@@ -126,7 +126,7 @@ func oracleAttackCotab(rv *goldbox.Roll, rng goldbox.RNG, att *oc, adj int, need
 }
 
 // por-go/engine/rules.go:231 with the rules4e Hits hook.
-func oracleAttackPor(rv *goldbox.Roll, rng goldbox.RNG, att *oc, adj int, need int, hits func(int) bool) bool {
+func oracleAttackPor(rv *goldbox.Roll, rng goldbox.GameRNG, att *oc, adj int, need int, hits func(int) bool) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false
@@ -139,7 +139,7 @@ func oracleAttackPor(rv *goldbox.Roll, rng goldbox.RNG, att *oc, adj int, need i
 }
 
 // cotab-go/engine/damage.go:21 trapHits; por RollHit (rules.go:217) is the same with byte(bonus).
-func oracleTrapHits(rv *goldbox.Roll, rng goldbox.RNG, c *oc, bonus byte) bool {
+func oracleTrapHits(rv *goldbox.Roll, rng goldbox.GameRNG, c *oc, bonus byte) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false

@@ -13,7 +13,7 @@ const (
 	WallSize    = 0x9C     // one wall's symbol ids
 	SetSize     = 5 * 0x9C // 0x30C: one WALLDEF chunk (5 walls)
 	SymWallBase = 0x2D     // symbol ids >= this are relocated per slot
-	Slots       = 3        // wall slots 1..3, 5 walls each (wall values 1..15)
+	WallSlots       = 3        // wall slots 1..3, 5 walls each (wall values 1..15)
 )
 
 // Map is a 16x16 area map; planes are indexed y*16+x.

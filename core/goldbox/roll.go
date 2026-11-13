@@ -1,7 +1,7 @@
 package goldbox
 
-// RNG is the game's own random source (its original-RNG implementation).
-type RNG interface {
+// GameRNG is the game's own random source (its original-GameRNG implementation).
+type GameRNG interface {
 	Dice(n, sides int) int
 }
 
@@ -15,8 +15,8 @@ type Roll struct {
 	HitRoll  int8
 }
 
-// RollDice = Dice that also remembers n (the games' RollDice).
-func RollDice(rv *Roll, rng RNG, n, sides int) int {
+// RollCounted = Dice that also remembers n (the games' RollCounted).
+func RollCounted(rv *Roll, rng GameRNG, n, sides int) int {
 	rv.DiceN = byte(n)
 	return rng.Dice(n, sides)
 }

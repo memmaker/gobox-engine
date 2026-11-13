@@ -55,17 +55,17 @@ func TestAdapter(t *testing.T) {
 		name  string
 		f     *fake
 		d     any
-		check func(t *testing.T, f *fake, r *rules, res play.Result)
+		check func(t *testing.T, f *fake, r *frontState, res play.Result)
 	}{
 		{"wall refused", &fake{st: play.Exploring{}, err: wall},
 			play.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)},
-			func(t *testing.T, f *fake, r *rules, res play.Result) {
+			func(t *testing.T, f *fake, r *frontState, res play.Result) {
 				if res.Err != wall || !slices.Equal(f.sent, []play.Action{play.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)}}) {
 					t.Fatalf("err %v sent %v", res.Err, f.sent)
 				}
 			}},
 		{"scene reply", &fake{st: talk}, tAnswer{N: 1},
-			func(t *testing.T, f *fake, r *rules, res play.Result) {
+			func(t *testing.T, f *fake, r *frontState, res play.Result) {
 				if a := r.pending(r.g.State()); a == nil || a.Kind != game.Choice || len(a.Options) != 2 || a.Options[1].Label != "Foe" {
 					t.Fatalf("pending %+v", a)
 				}
@@ -80,7 +80,7 @@ func TestAdapter(t *testing.T) {
 			play.Walked{Unit: 2, Path: []game.Step{{At: image.Pt(1, 1)}}},
 			play.Attacked{From: 2, To: 1, Hit: true, Damage: 4}, play.Fell{Unit: 1}}}},
 			play.EndTurn{},
-			func(t *testing.T, f *fake, r *rules, res play.Result) {
+			func(t *testing.T, f *fake, r *frontState, res play.Result) {
 				var kinds []game.EventKind
 				for _, e := range res.Events {
 					kinds = append(kinds, e.Kind)
@@ -94,7 +94,7 @@ func TestAdapter(t *testing.T) {
 				}
 			}},
 		{"handout read", &fake{st: hand}, tAnswer{N: 0},
-			func(t *testing.T, f *fake, r *rules, res play.Result) {
+			func(t *testing.T, f *fake, r *frontState, res play.Result) {
 				s, s2 := shownOf(r), shownOf(r)
 				if s.Read == nil || s.Read.Title != "Journal 1" || s.Read != s2.Read || s.Pending != nil {
 					t.Fatalf("read %+v pending %+v", s.Read, s.Pending)
@@ -104,7 +104,7 @@ func TestAdapter(t *testing.T) {
 				}
 			}},
 		{"step is empty", &fake{st: play.Exploring{}}, tSetSpeed{},
-			func(t *testing.T, f *fake, r *rules, res play.Result) {
+			func(t *testing.T, f *fake, r *frontState, res play.Result) {
 				if st := r.Step(); st.Err != nil || len(st.Events) != 0 || len(f.sent) != 0 {
 					t.Fatalf("step %+v sent %v", st, f.sent)
 				}
