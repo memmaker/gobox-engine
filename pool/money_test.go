@@ -3,7 +3,7 @@ package pool
 import (
 	"gobox/char"
 	"gobox/core/goldbox"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

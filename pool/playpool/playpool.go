@@ -12,7 +12,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 
 	"gobox/app"
 	"gobox/audio"

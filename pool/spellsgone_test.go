@@ -5,7 +5,7 @@ import (
 
 	"gobox/core"
 	"gobox/core/goldbox"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // TestSpellsGone (removed spells: POR 56, cotab 56, pod 102 and 103): every

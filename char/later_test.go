@@ -6,7 +6,7 @@ import (
 	"math/rand/v2"
 	"testing"
 
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // LaterRoundTrip checks f through PackLater and UnpackLater: the record

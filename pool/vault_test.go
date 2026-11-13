@@ -6,7 +6,7 @@ import (
 	"gobox/core"
 	"gobox/game/play"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 	"testing"
 )

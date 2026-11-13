@@ -8,8 +8,8 @@ import (
 	"gobox/game/play"
 	"gobox/pool"
 
-	"por/playpor"
-	"por/porgame"
+	"gobox/games/por/playpor"
+	"gobox/games/por/porgame"
 )
 
 // TestBuildingLeaveStays (bug class: a building's cell event re-runs after

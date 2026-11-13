@@ -11,7 +11,7 @@ import (
 
 	"gobox/game/play"
 	"gobox/importer"
-	"por/porgame"
+	"gobox/games/por/porgame"
 )
 
 // TestStartIsPORTitle: the engine shows start() as POR's title (ovr02:0626):

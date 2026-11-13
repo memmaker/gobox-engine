@@ -7,7 +7,7 @@ package main
 import (
 	"log"
 
-	"por/importpor"
+	"gobox/games/por/importpor"
 )
 
 func main() {

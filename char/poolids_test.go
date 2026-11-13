@@ -3,7 +3,7 @@ package char
 import (
 	"testing"
 
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // TestSplitPoolIDs: PoolTrailer, COTAB's old GOBXID, POD's old bare art

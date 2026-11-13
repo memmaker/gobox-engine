@@ -6,7 +6,7 @@ import (
 	"gobox/core/goldbox"
 	"gobox/game/play"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"strings"
 	"testing"
 )

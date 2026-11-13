@@ -2,7 +2,7 @@ package importsrc
 
 import (
 	"fmt"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 	"sort"
 	"strconv"

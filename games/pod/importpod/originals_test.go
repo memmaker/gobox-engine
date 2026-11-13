@@ -12,7 +12,7 @@ import (
 	"gobox/dax"
 	"gobox/importer"
 	"gobox/pool"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // TestOriginals imports the originals in $POD_DATA (skipped when unset)

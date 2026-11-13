@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 
 	"gobox/char"

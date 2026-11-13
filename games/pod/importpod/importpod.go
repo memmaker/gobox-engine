@@ -9,7 +9,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 	"strconv"
 
 	"gobox/audio/glbr"
@@ -21,7 +21,7 @@ import (
 	"gobox/exe/tablespec"
 	"gobox/importer"
 	"gobox/pool"
-	"pod"
+	"gobox/games/pod"
 )
 
 func init() {

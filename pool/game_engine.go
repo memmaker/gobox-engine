@@ -6,7 +6,7 @@ import (
 	"gobox/core/goldbox"
 	"gobox/ega"
 	"gobox/game/play"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 )
 

@@ -1,6 +1,6 @@
 package rules4e
 
-import "rules1e"
+import "gobox/rules1e"
 
 // The monsters' roles in the computer's play (DMG pp. 54-55):
 //   - brutes go for the easiest to hit, soldiers for the best armoured (the

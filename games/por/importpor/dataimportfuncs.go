@@ -13,7 +13,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // portraits is POR's portrait tables (which HEADn/BODYn.DAX block shows each

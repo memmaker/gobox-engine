@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"gobox/core"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // Later is a layout after Pool of Radiance's: COTAB (422), SotSB (439), POD (510).

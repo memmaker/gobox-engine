@@ -7,7 +7,7 @@ import (
 	"gobox/ecl/script"
 	"gobox/ega"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 	"strconv"
 	"strings"

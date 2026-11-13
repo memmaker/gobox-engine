@@ -3,7 +3,7 @@ package pool
 import (
 	"errors"
 	"reflect"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 	"testing"
 

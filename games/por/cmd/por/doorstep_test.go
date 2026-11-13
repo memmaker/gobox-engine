@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"gobox/front/present"
-	"por/playpor"
-	"por/porgame"
+	"gobox/games/por/playpor"
+	"gobox/games/por/porgame"
 )
 
 // noTitle fails when a frame of f draws the title's picture: only the main

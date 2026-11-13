@@ -6,7 +6,7 @@ import (
 
 	"gobox/dax"
 	"gobox/ecl/script"
-	"por/importsrc"
+	"gobox/games/por/importsrc"
 )
 
 // TestImportAppliesFixes: the game data decompiles and every special case (scriptFixes) applies.

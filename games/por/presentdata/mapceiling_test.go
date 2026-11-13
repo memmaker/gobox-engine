@@ -9,8 +9,8 @@ import (
 	"gobox/dax"
 	"gobox/geo"
 
-	"por/presentdata"
-	"por/presentdata/blobberart"
+	"gobox/games/por/presentdata"
+	"gobox/games/por/presentdata/blobberart"
 )
 
 // TestMapCeilingInside: a remastered map's ceiling line is a sky exactly when

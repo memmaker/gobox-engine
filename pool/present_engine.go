@@ -5,7 +5,7 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 	"image"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // present applies the effects recorded and not yet shown, then fx, in order.

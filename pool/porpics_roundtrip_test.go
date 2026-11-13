@@ -2,7 +2,7 @@ package pool
 
 import (
 	"gobox/importer/pictures"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 
 	"gobox/core"

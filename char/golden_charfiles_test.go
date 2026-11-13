@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

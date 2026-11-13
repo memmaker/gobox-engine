@@ -5,7 +5,7 @@ import (
 
 	"gobox/ecl/script"
 	"gobox/game/play"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // TestShopPriceFactor: the shops' factor over 16 (cotab/sotsb/pod's table of 1 2 4 8 32 64 128);

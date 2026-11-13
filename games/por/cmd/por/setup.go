@@ -7,8 +7,8 @@ import (
 	"gobox/app"
 	"gobox/ega"
 	"gobox/pool"
-	"por"
-	"por/importpor"
+	"gobox/games/por"
+	"gobox/games/por/importpor"
 )
 
 // setupData makes an installation whole once gameimport has copied the

@@ -5,7 +5,7 @@ import (
 	"gobox/core/goldbox"
 	"gobox/game/play"
 	"image"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

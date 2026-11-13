@@ -1,6 +1,6 @@
 package rules4e
 
-import "rules1e"
+import "gobox/rules1e"
 
 // def is a defence (PHB p. 274).
 type def int

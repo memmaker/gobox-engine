@@ -6,7 +6,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

@@ -14,7 +14,7 @@ import (
 	"gobox/dax"
 	"gobox/fixture"
 
-	"cotab/importcotab"
+	"gobox/games/cotab/importcotab"
 )
 
 func main() {

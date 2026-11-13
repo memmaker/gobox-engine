@@ -4,7 +4,7 @@ import (
 	"gobox/pool"
 	"path/filepath"
 	"reflect"
-	"rules1e"
+	"gobox/rules1e"
 	"strings"
 	"testing"
 )

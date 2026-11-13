@@ -1,7 +1,7 @@
 package importpod
 
 import (
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // Town is Pools of Darkness' town economy for the shared engine (rules.json

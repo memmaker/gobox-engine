@@ -6,8 +6,8 @@ import (
 
 	"gobox/front/present"
 	"gobox/game/play"
-	"por/playpor"
-	"por/porgame"
+	"gobox/games/por/playpor"
+	"gobox/games/por/porgame"
 )
 
 // frameFront is por as main starts it, headless, past the title: -explore

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"os"
-	"por/importpor"
+	"gobox/games/por/importpor"
 	"testing"
 )
 

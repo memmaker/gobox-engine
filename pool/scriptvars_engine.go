@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gobox/core"
 	"gobox/core/goldbox"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 
 	"gobox/ecl/script"

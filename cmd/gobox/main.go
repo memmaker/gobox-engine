@@ -26,20 +26,20 @@ import (
 
 	"buckrogers/playbr1"
 	"buckrogers2/playbr2"
-	"cotab/playcotab"
+	"gobox/games/cotab/playcotab"
 	"gobox/app"
 	"gobox/front/present"
 	"gobox/importer"
-	"pod/playpod"
-	"por/playpor"
-	"sotsb/playsotsb"
+	"gobox/games/pod/playpod"
+	"gobox/games/por/playpor"
+	"gobox/games/sotsb/playsotsb"
 
 	_ "buckrogers/importbr1"
 	_ "buckrogers2/importbr2"
-	_ "cotab/importcotab"
-	_ "pod/importpod"
-	_ "por/importpor"
-	_ "sotsb/importsotsb"
+	_ "gobox/games/cotab/importcotab"
+	_ "gobox/games/pod/importpod"
+	_ "gobox/games/por/importpor"
+	_ "gobox/games/sotsb/importsotsb"
 )
 
 // players start an adventure's engine by the manifest's ID. ponytail: one

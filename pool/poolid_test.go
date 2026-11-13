@@ -5,7 +5,7 @@ import (
 	"gobox/char"
 	grules "gobox/rules"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

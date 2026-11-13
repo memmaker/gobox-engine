@@ -7,8 +7,8 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 
-	"por/playpor"
-	"por/porgame"
+	"gobox/games/por/playpor"
+	"gobox/games/por/porgame"
 )
 
 // TestTourPausesTimed: Rolf's tour (area 0 CityTour) walks itself: each

@@ -3,7 +3,7 @@ package pool
 import (
 	"testing"
 
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // The fight-based bug classes ported from cotab's own tests (bugclass-cotab: 17, 20,

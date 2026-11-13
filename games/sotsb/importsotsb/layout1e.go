@@ -4,7 +4,7 @@ import (
 	"gobox/char"
 	"gobox/core"
 	"gobox/pool"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // races is the race of each race row of the game's tables ("": the

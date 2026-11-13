@@ -8,8 +8,8 @@ import (
 	"gobox/blobber"
 	"gobox/dax"
 	"gobox/walls"
-	"por/presentdata"
-	"por/presentdata/blobberart"
+	"gobox/games/por/presentdata"
+	"gobox/games/por/presentdata/blobberart"
 )
 
 // Every 3D area of the game (a GEO block) has its remastered map: the

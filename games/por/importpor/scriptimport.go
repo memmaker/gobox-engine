@@ -7,8 +7,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"por"
-	"por/importsrc"
+	"gobox/games/por"
+	"gobox/games/por/importsrc"
 )
 
 // ScriptData is the checked-in script names and layout, the decompiler's

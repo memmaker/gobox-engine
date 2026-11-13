@@ -6,7 +6,7 @@ import (
 	"gobox/pool"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

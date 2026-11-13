@@ -21,7 +21,7 @@ import (
 	"gobox/dax"
 	"gobox/fixture"
 
-	"sotsb/importsotsb"
+	"gobox/games/sotsb/importsotsb"
 )
 
 func main() {

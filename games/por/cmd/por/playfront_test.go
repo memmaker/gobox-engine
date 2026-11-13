@@ -8,8 +8,8 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 
-	"por/playpor"
-	"por/porgame"
+	"gobox/games/por/playpor"
+	"gobox/games/por/porgame"
 )
 
 // The classic front on the play.Game : Open starts the engine,

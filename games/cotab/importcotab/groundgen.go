@@ -1,6 +1,6 @@
 package importcotab
 
-import "rules1e"
+import "gobox/rules1e"
 
 // CombatGround is how CotAB lays its combat ground (rules.json combatGround),
 // from the constants of combatsetup.go.

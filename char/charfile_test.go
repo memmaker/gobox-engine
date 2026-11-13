@@ -1,7 +1,7 @@
 package char
 
 import (
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

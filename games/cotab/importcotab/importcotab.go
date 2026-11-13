@@ -7,9 +7,9 @@ package importcotab
 import (
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 
-	"cotab"
+	"gobox/games/cotab"
 
 	"gobox/audio/sounddata"
 	"gobox/core"

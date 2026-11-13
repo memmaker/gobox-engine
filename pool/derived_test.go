@@ -3,7 +3,7 @@ package pool
 import (
 	"gobox/game"
 	"gobox/game/play"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

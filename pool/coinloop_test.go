@@ -3,7 +3,7 @@ package pool
 import (
 	"fmt"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 
 	"gobox/dax"

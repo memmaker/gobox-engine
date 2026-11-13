@@ -1,7 +1,7 @@
 package rules4e
 
 import (
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 	"testing"
 )

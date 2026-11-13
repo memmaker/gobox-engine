@@ -1,6 +1,6 @@
 package importsotsb
 
-import "rules1e"
+import "gobox/rules1e"
 
 // Town is Silver Blades' town economy for the shared engine (rules.json town):
 // training and the temple's ten services are free (no Pay in train.go or

@@ -8,8 +8,8 @@ import (
 	"gobox/audio"
 	"gobox/front/present"
 	"gobox/pool"
-	"por/playpor"
-	"por/porgame"
+	"gobox/games/por/playpor"
+	"gobox/games/por/porgame"
 )
 
 // Start-up as main does it, headless: each step and the first frames must be quick.

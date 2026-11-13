@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"gobox/dax"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // TestAffectIDsCoverData: every affect number the monsters' affects (MON

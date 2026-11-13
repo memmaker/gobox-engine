@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"gobox/core"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // TestUseItemOutside: drinking a potion in camp goes through Resolve(core.UseItem)

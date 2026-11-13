@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"gobox/char"
 	"gobox/dax"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 	"unsafe"
 )

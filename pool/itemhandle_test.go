@@ -2,7 +2,7 @@ package pool
 
 import (
 	"gobox/core"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // itemHandle is it's handle in the ruleset, heldOf the item of h (tests reach into the rules' records).

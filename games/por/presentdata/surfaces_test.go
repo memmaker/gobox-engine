@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"gobox/walls"
-	"por/presentdata/blobberart"
+	"gobox/games/por/presentdata/blobberart"
 )
 
 // TestSurfacesTextured: every AreaMaps map names a floor, a ceiling or sky and

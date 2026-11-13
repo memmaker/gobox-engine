@@ -4,7 +4,7 @@ import (
 	"gobox/char"
 	"gobox/core"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 	"testing"
 )

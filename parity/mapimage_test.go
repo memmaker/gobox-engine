@@ -14,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	"por/porgame"
+	"gobox/games/por/porgame"
 )
 
 // The maps (the minimap, View.Map, the full map) were pictures the engine

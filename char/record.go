@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	"gobox/core"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // The layouts (core.RecordLayout), here for the codecs' users.

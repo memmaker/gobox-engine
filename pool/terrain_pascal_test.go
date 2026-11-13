@@ -3,7 +3,7 @@ package pool
 import (
 	"bufio"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"strconv"
 	"strings"
 	"testing"

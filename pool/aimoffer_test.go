@@ -3,7 +3,7 @@ package pool
 import (
 	"gobox/core"
 	"image"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 
 	"gobox/game/play"

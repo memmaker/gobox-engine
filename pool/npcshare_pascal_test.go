@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"gobox/core/goldbox"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"strconv"
 	"strings"
 	"testing"

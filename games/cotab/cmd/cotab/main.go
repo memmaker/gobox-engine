@@ -16,7 +16,7 @@ import (
 	"gobox/amigaimport"
 	"gobox/app"
 
-	"cotab/playcotab"
+	"gobox/games/cotab/playcotab"
 )
 
 func main() {

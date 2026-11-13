@@ -20,7 +20,7 @@ import (
 	"gobox/dax"
 	"gobox/fixture"
 	"gobox/pool"
-	"por/porgame"
+	"gobox/games/por/porgame"
 )
 
 func main() {

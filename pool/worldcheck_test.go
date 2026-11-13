@@ -3,7 +3,7 @@ package pool
 import (
 	"gobox/core"
 	"gobox/ecl/script"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

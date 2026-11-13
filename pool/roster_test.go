@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io/fs"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 
 	"gobox/char"

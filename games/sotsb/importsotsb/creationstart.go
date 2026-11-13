@@ -1,6 +1,6 @@
 package importsotsb
 
-import "rules1e"
+import "gobox/rules1e"
 
 // CreationStart is Silver Blades' per-adventure creation start for rules1e
 // (rules.json creationStart, Felix's R3 rulings 3, 7, 8): 2d6 gold for a

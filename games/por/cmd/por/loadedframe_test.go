@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"gobox/front/present"
-	"por/playpor"
-	"por/porgame"
+	"gobox/games/por/playpor"
+	"gobox/games/por/porgame"
 )
 
 // A loaded level-5 party (back-for-good) exploring builds State once per

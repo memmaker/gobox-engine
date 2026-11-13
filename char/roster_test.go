@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"gobox/core"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // TestReadRoster: a later game's characters in its folder come out as canonical files, by name,

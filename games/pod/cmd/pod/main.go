@@ -17,7 +17,7 @@ import (
 
 	"gobox/amigaimport"
 	"gobox/app"
-	"pod/playpod"
+	"gobox/games/pod/playpod"
 )
 
 func main() {

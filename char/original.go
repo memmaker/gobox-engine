@@ -6,7 +6,7 @@ import (
 	"io"
 	"math"
 	"reflect"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // OriginalSave is the fixed part of SAVGAMx.DAT (ovr18 LoadGame/SaveGame),

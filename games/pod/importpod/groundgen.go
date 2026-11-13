@@ -1,6 +1,6 @@
 package importpod
 
-import "rules1e"
+import "gobox/rules1e"
 
 // CombatGround is how PoD lays its combat ground (rules.json combatGround),
 // from the constants of combatsetup.go: a dungeon on open floor, a wilderness

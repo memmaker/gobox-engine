@@ -7,7 +7,7 @@ import (
 	"gobox/ecl/script"
 	"gobox/ega"
 	"gobox/game/play"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 )
 

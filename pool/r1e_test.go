@@ -3,7 +3,7 @@ package pool
 import (
 	"gobox/char"
 	"gobox/core"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // The tests cannot import por (the engine's module does not require the

@@ -5,7 +5,7 @@ import (
 	"gobox/core"
 	"image"
 	"reflect"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 	"strings"
 	"testing"

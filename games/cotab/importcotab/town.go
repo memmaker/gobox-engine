@@ -1,6 +1,6 @@
 package importcotab
 
-import "rules1e"
+import "gobox/rules1e"
 
 // Town is cotab's town economy for the shared engine (rules.json town): the
 // hall's fee and the temple's ten priced services (templeServices, templePrices,

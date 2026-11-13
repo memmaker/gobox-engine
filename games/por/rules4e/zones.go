@@ -2,7 +2,7 @@ package rules4e
 
 import (
 	"gobox/core"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // Zones (PHB p. 273): an area a power leaves on the map until the end of

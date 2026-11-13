@@ -12,7 +12,7 @@ import (
 	"gobox/game/journal"
 	"gobox/importer"
 	"gobox/pool"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // TestImportedTablesLoad: the imported folder's tables load as pool and rules1e

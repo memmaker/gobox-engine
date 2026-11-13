@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"gobox/char"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"strings"
 	"testing"
 )

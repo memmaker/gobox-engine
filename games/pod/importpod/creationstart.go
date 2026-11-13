@@ -1,7 +1,7 @@
 package importpod
 
 import (
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // CreationStart is POD's per-adventure creation start for rules1e

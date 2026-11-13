@@ -3,7 +3,7 @@ package pool
 import (
 	"image"
 	"image/color"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 )
 

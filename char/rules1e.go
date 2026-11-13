@@ -5,7 +5,7 @@ import (
 	"gobox/core"
 	"gobox/core/goldbox"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // Rules1e builds the first engine's ruleset, rules1e, from the Engine's

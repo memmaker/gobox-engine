@@ -9,9 +9,9 @@ import (
 	"gobox/game"
 	"gobox/pool"
 	"gobox/pool/playpool"
-	"por/presentdata"
-	"por/presentdata/blobberart"
-	"por/rules4e"
+	"gobox/games/por/presentdata"
+	"gobox/games/por/presentdata/blobberart"
+	"gobox/games/por/rules4e"
 )
 
 // Play runs the game of s.Adventure until the window closes.

@@ -1,6 +1,6 @@
 package importsotsb
 
-import "rules1e"
+import "gobox/rules1e"
 
 // SotSB's combat ground constants (START.EXE).
 const (

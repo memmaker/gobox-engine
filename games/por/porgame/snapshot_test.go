@@ -8,7 +8,7 @@ import (
 
 	"gobox/game/play"
 	"gobox/pool"
-	"por/porgame"
+	"gobox/games/por/porgame"
 )
 
 // explore: a headless engine (needs the game files in the repo root) that

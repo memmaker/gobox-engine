@@ -5,7 +5,7 @@ import (
 	eclscript "gobox/ecl/script"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // races is the race of each race row.

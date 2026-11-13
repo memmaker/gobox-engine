@@ -6,7 +6,7 @@ import (
 	"gobox/importer/pictures"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // ImportDataTo writes the game's maps and records from the DOS originals in

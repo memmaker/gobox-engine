@@ -9,7 +9,7 @@ import (
 	"image/draw"
 	"image/png"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"strconv"
 	"strings"
 	"testing"

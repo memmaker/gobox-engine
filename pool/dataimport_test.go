@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"rules1e"
+	"gobox/rules1e"
 	"testing"
 
 	"gobox/audio"

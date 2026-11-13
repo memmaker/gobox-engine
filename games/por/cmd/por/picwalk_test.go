@@ -11,7 +11,7 @@ import (
 	"gobox/sprites"
 
 	"gobox/pool"
-	"por/porgame"
+	"gobox/games/por/porgame"
 )
 
 // pictures calls f on every game.Picture reachable from v.

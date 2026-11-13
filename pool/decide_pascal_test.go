@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"rules1e"
+	"gobox/rules1e"
 	"slices"
 	"strconv"
 	"strings"

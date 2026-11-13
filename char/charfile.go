@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"gobox/core"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // The rules' records in their file layouts (encoding/binary): the items of

@@ -15,7 +15,7 @@ import (
 	"gobox/ecl/script"
 	"gobox/game/journal"
 	"gobox/pool"
-	"rules1e"
+	"gobox/rules1e"
 )
 
 // TestSwitchData: the folder writeSwitchData writes loads through the shared

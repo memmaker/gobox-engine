@@ -5,7 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"rules1e"
+	"gobox/rules1e"
 
 	"gobox/char"
 	"gobox/dax"
@@ -13,7 +13,7 @@ import (
 	"gobox/exe/tablespec"
 	"gobox/importer/pictures"
 	"gobox/pool"
-	"sotsb"
+	"gobox/games/sotsb"
 )
 
 // ImportDataTo writes the game's maps and records from the DOS originals in
