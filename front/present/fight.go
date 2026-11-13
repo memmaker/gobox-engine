@@ -33,11 +33,7 @@ const logRows = 20 // the battle Log's lines shown at a time
 // drawFight draws the rows, the bar, whose turn it is, the spell list and the Log over the 3D map.
 func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 	glyph := note.Glyph
-	b, c, k := p.fightBoard, p.fightView, scale(dst)
-	var turn *play.Turn // the game's turn: its weapons and lists (b.Turn may be an aim's own)
-	if c != nil {
-		turn = c.Turn
-	}
+	b, k := p.fightBoard, scale(dst)
 	p.mapBottom = dst.Bounds().Dy() - int(math.Ceil(k*8*fightRows)) // the line is drawn at k, whole or not
 	if b.Turn != nil {
 		for _, m := range p.shownView.Party { // whose turn: the portrait card, bottom left
@@ -60,10 +56,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 		}
 	}
 	p.battle.Icons, p.battle.IconKey = nil, ""
-	var weap, shot *front.InvItem // the weapon in hand and the one shot (nil: none)
-	if turn != nil {
-		weap, shot = weapon(turn.Weapon), weapon(turn.Missile)
-	}
+	weap, shot := p.fightLists.weapon, p.fightLists.missile
 	if b.Turn != nil { // the Attack button shows the weapon in hand, Ranged what it shoots
 		p.inv.load()
 		for kind, it := range map[front.ActKind]*front.InvItem{front.ActAttack: weap, front.ActRanged: shot} {
@@ -510,17 +503,12 @@ func (p *Presenter) pickList() []front.Spell {
 	case p.pick != nil:
 		return p.pick
 	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil && p.battle.PickKind == combat.ActManeuver:
-		out := []front.Spell{} // never nil: an empty list still takes Esc
-		for _, m := range p.fightView.Turn.Maneuvers {
-			out = append(out, front.Spell{ID: m.ID, Name: m.Name})
+		if p.fightLists.maneuvers == nil { // never nil: an empty list still takes Esc
+			return []front.Spell{}
 		}
-		return out
+		return p.fightLists.maneuvers
 	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil:
-		var out []front.Spell // nil without spells: no list
-		for _, sp := range p.fightView.Spells {
-			out = append(out, front.Spell{ID: sp.ID, Name: sp.Name})
-		}
-		return out
+		return p.fightLists.spells
 	}
 	return nil
 }
@@ -661,12 +649,67 @@ func blowFloat(m Moment) (id, n int, word string) {
 // traceOn (GOBOX_TRACE=1): the fight's timed moments say when they end.
 var traceOn = os.Getenv("GOBOX_TRACE") != ""
 
-// liveCombat is the fight up in the game's state (nil: none, or no game).
-func (p *Presenter) liveCombat() *play.Combat {
+// liveFight is the fight up in the game's state (nil: none, or no game) and
+// the party's figures: read again only when something may have changed the
+// game (rev, Front.stale), not every frame.
+func (p *Presenter) liveFight() (*play.Combat, []game.Member) {
 	if p.eng == nil {
-		return nil
+		return nil, nil
 	}
-	return p.eng.r.combatOf(p.state())
+	if !p.live.ok || p.live.rev != p.rev {
+		s := p.state()
+		p.live.c, p.live.party, p.live.rev, p.live.ok = p.eng.r.combatOf(s), partyOf(s), p.rev, true
+	}
+	return p.live.c, p.live.party
+}
+
+// liveCombat is the fight up in the game's state (nil: none).
+func (p *Presenter) liveCombat() *play.Combat {
+	c, _ := p.liveFight()
+	return c
+}
+
+// lists are the turn's weapons and pick lists as the bar and the menus show
+// them, made with the board (drawnBoard).
+type lists struct {
+	weapon, missile   *front.InvItem // the weapon in hand and the one shot (nil: none)
+	spells, maneuvers []front.Spell  // nil: none
+}
+
+// boardKey is what the drawn fight board is made from: it is built again
+// only when one of them changes (not every frame; the game is turn-based).
+type boardKey struct {
+	rev    uint64        // the game may have changed (Front.stale)
+	board  *play.Combat  // the live fight, or the replayed moment's
+	fly    *flight       // a missile's square
+	queued int           // the moments still to play (keepFallen)
+	ask    front.AskKind // the question over the board (-1: none): an aim or a move
+	aim    *aiming       // the spell being aimed
+}
+
+// drawnBoard makes fightView and fightBoard from p.board, when what they
+// are made from has changed.
+func (p *Presenter) drawnBoard() {
+	k := boardKey{rev: p.rev, board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim}
+	if q := p.shownView.Ask; q != nil {
+		k.ask = q.Kind
+	}
+	if p.fightBoard != nil && k == p.boardKey {
+		return
+	}
+	p.fightView = p.keepFallen(p.board)
+	p.fightLists = lists{}
+	if t := p.fightView.Turn; t != nil {
+		p.fightLists.weapon, p.fightLists.missile = weapon(t.Weapon), weapon(t.Missile)
+		for _, m := range t.Maneuvers {
+			p.fightLists.maneuvers = append(p.fightLists.maneuvers, front.Spell{ID: m.ID, Name: m.Name})
+		}
+		for _, sp := range p.fightView.Spells {
+			p.fightLists.spells = append(p.fightLists.spells, front.Spell{ID: sp.ID, Name: sp.Name})
+		}
+	}
+	p.fightBoard = p.askedBoard(p.aimPreview(p.boardOf(p.fightView, p.boardParty, p.fly)), p.fightView)
+	p.boardKey = k
 }
 
 // aimPreview is b with the aimed spell's area washed round the hovered

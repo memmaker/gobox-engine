@@ -126,7 +126,7 @@ func (f *Front) timedView(at time.Time) {
 }
 
 // stale drops the kept View: every call that may change the game or the screens makes it.
-func (f *Front) stale() { f.fresh = false }
+func (f *Front) stale() { f.fresh, f.P.rev = false, f.P.rev+1 }
 
 func (f *Front) Screen() string { return front.ScreenOf(f.view(), f.P.Screens()) }
 func (f *Front) Key(k uint16) {

@@ -102,18 +102,27 @@ type Presenter struct {
 	mapBottom   int                         // screen rows above this are the 3D map
 	fight       bool                        // the last frame was the 3D combat map
 	inv         inventory                   // the inventory screen (inventory.go)
-	board       *play.Combat                // the fight this frame shows: the live one, or the one a replayed moment holds (nil: none)
-	boardParty  []game.Member               // the party's figures on board
-	fightView   *play.Combat                // board with the fallen kept until their fall plays (keepFallen)
-	fightBoard  *combat.Board               // fightView as the tabletop draws it, aims put in
-	fly         *flight                     // a shot's sprite over board (a replayed missile frame)
-	lastBoard   *play.Combat                // the fight before the moments now playing (keepFallen)
-	lastFight   *front.View                 // the fight's view last drawn: a Result's events that end the fight play on it
-	inkAsk      *front.Ask                  // the question whose menu is being drawn: its colours (asking)
-	replay      replay                      // the fight's events still to play
-	logGrey     bool                        // drawMenu's plain text light grey, not green (the battle Log)
-	fightLog    bool                        // the battle Log is up (fight.go)
-	blowLine    string                      // the last line a blow's replay said, shown on the pane a while
+	rev         uint64                      // counts what may have changed the game (Front.stale, SetEngine): the fight read from it is kept until then
+	live        struct {                    // the fight and party read from the game at rev (liveFight)
+		rev   uint64
+		ok    bool
+		c     *play.Combat
+		party []game.Member
+	}
+	fightLists  lists         // the turn's weapons, spells and maneuvers (drawnBoard)
+	boardKey    boardKey      // what fightBoard was made from (drawnBoard)
+	board       *play.Combat  // the fight this frame shows: the live one, or the one a replayed moment holds (nil: none)
+	boardParty  []game.Member // the party's figures on board
+	fightView   *play.Combat  // board with the fallen kept until their fall plays (keepFallen)
+	fightBoard  *combat.Board // fightView as the tabletop draws it, aims put in
+	fly         *flight       // a shot's sprite over board (a replayed missile frame)
+	lastBoard   *play.Combat  // the fight before the moments now playing (keepFallen)
+	lastFight   *front.View   // the fight's view last drawn: a Result's events that end the fight play on it
+	inkAsk      *front.Ask    // the question whose menu is being drawn: its colours (asking)
+	replay      replay        // the fight's events still to play
+	logGrey     bool          // drawMenu's plain text light grey, not green (the battle Log)
+	fightLog    bool          // the battle Log is up (fight.go)
+	blowLine    string        // the last line a blow's replay said, shown on the pane a while
 	blowAt      time.Time
 	fightCard   image.Rectangle           // the active member's card (fight.go): a click the sheet
 	rowsImg     *gpu.Image                // the combat rows, drawn at scale 1
@@ -225,8 +234,8 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if ev != nil && ev.Kind == game.EvMove && ev.Ms > 0 { // a step's hold is how long the figure takes for it
 		p.battle.StepTime = float64(ev.Ms) / 1000
 	}
-	live := p.liveCombat()
-	p.board, p.boardParty, p.fly = live, partyOf(p.state()), nil
+	live, party := p.liveFight()
+	p.board, p.boardParty, p.fly = live, party, nil
 	if ev != nil && (ev.Page != nil || ev.Screen != nil) { // the page or screen as it stood at the pause played, over the live state
 		if ev.Page != nil {
 			v = Page(v, ev.Page, nil)
@@ -344,8 +353,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if p.fight {
 		p.shown, p.active, p.menu = "", false, false
-		p.fightView = p.keepFallen(p.board)
-		p.fightBoard = p.askedBoard(p.aimPreview(p.boardOf(p.fightView, p.boardParty, p.fly)), p.fightView)
+		p.drawnBoard()
 		p.battle.Glyph, p.battle.K = note.Glyph, int(scale(dst))
 		p.syncBattle()
 		p.battle.Draw(dst, p.fightBoard)
