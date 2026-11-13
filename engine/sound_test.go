@@ -52,20 +52,6 @@ func TestSoundCut(t *testing.T) {
 	}
 }
 
-// Ctrl-S mutes the card and stops the song, again restores the card.
-func TestSoundToggle(t *testing.T) {
-	e, f := soundEngine(t, 'T')
-	e.Cfg.SaveDir = t.TempDir()
-	e.soundToggle()
-	if e.snd.typ != sndNone || f.card != sndNone {
-		t.Fatalf("Ctrl-S: typ %d card %d", e.snd.typ, f.card)
-	}
-	e.soundToggle()
-	if e.snd.typ != sndTandy || f.card != sndTandy {
-		t.Fatalf("Ctrl-S again: typ %d card %d", e.snd.typ, f.card)
-	}
-}
-
 // With "Step sounds" off a step or a turn is silent.
 func TestNoSteps(t *testing.T) {
 	e, f := soundEngine(t, 'P')
@@ -74,4 +60,16 @@ func TestNoSteps(t *testing.T) {
 	if len(f.calls) != 0 {
 		t.Fatalf("a step sounds with Step sounds off: %v", f.calls)
 	}
+}
+
+// soundWait = 08AE:01A5 (n): 0 hooks the timer interrupt so sounds play
+// while the caller animates; n > 0 unhooks it (when it was hooked) and sets
+// the cut-after-0.1 s mode used by PlaySound.
+func (e *Engine) soundWait(n int) {
+	s := &e.snd
+	if s.d == nil || s.typ == sndNone {
+		return
+	}
+	s.d.Wait(n)
+	s.wait = n
 }

@@ -198,14 +198,6 @@ func ParseScore(s string) (v, pct int32, err error) {
 	return int32(n), int32(p), nil
 }
 
-// FormatScore is ParseScore's inverse.
-func FormatScore(v, pct int32) string {
-	if pct == 0 {
-		return strconv.Itoa(int(v))
-	}
-	return strconv.Itoa(int(v)) + "/" + strconv.Itoa(int(pct%100)/10) + strconv.Itoa(int(pct%10))
-}
-
 // Keep makes the character (POR SaveCharacter).
 // A new character goes to the roster (its RosterID), a modified one stays
 // the member it is (its CharID).

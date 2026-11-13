@@ -216,18 +216,6 @@ func (e *Engine) playSound(n int, event string) {
 	}
 }
 
-// soundWait = 08AE:01A5 (n): 0 hooks the timer interrupt so sounds play
-// while the caller animates; n > 0 unhooks it (when it was hooked) and sets
-// the cut-after-0.1 s mode used by PlaySound.
-func (e *Engine) soundWait(n int) {
-	s := &e.snd
-	if s.d == nil || s.typ == sndNone {
-		return
-	}
-	s.d.Wait(n)
-	s.wait = n
-}
-
 // SoundReset = 08AE:017B: silence everything (used by the sound toggle and
 // at start-up). It also copies DS:5372 to DS:5373.
 func (e *Engine) SoundReset() {
@@ -240,32 +228,6 @@ func (e *Engine) SoundReset() {
 
 // soundOffFile in the save folder marks the sound as switched off (Ctrl-S).
 const soundOffFile = "SOUND.OFF"
-
-// soundToggle = 0899:006E (Ctrl-S in the key reader): sound on means
-// remember DS:5372 in DS:5373, stop the song (PlaySound(sndStop))
-// and set 5372 to sndNone, which mutes every driver call; off again restores the
-// saved type (the set test [0,1] always holds) and resets the driver.
-func (e *Engine) soundToggle() {
-	s := &e.snd
-	defer func() { e.mark(soundOffFile, s.typ == sndNone) }()
-	if s.typ != sndNone {
-		s.saved = s.typ
-		e.PlaySound(sndStop)
-		s.setCard(sndNone)
-		return
-	}
-	if s.saved == sndTandy || s.saved == sndSpeaker {
-		s.setCard(s.saved)
-		e.SoundReset()
-	}
-}
-
-func (s *sound) setCard(c int) {
-	s.typ = c
-	if s.d != nil {
-		s.d.SetCard(c)
-	}
-}
 
 // SoundData is the driver's tables (soundFile), for audio.NewDriver; Data's
 // SoundTables after it.

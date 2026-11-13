@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"strconv"
 	"testing"
 
 	"gobox/rules"
@@ -142,4 +143,12 @@ func TestDraftPointBuy(t *testing.T) {
 	if d.D.Sheet.Scores[rules.Strength] != 19 || d.D.Sheet.Scores[rules.Intelligence] != 17 || d.D.Buy != nil {
 		t.Fatalf("scores %v, buy %v", d.D.Sheet.Scores, d.D.Buy)
 	}
+}
+
+// FormatScore is ParseScore's inverse.
+func FormatScore(v, pct int32) string {
+	if pct == 0 {
+		return strconv.Itoa(int(v))
+	}
+	return strconv.Itoa(int(v)) + "/" + strconv.Itoa(int(pct%100)/10) + strconv.Itoa(int(pct%10))
 }

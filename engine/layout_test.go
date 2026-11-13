@@ -302,3 +302,10 @@ const (
 	gameVarBase = 0x6B00
 	auxVarBase  = 0x9700
 )
+
+// boundElement: element i of f is a named element the engine binds (it keeps
+// no cell of f's).
+func (e *Engine) boundElement(f *ecl.Field, i int) bool {
+	_, ok := e.engineFields[f.ElementName(i)]
+	return ok && f.ElementName(i) != ""
+}

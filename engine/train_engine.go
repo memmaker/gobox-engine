@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"gobox/asset"
 	"gobox/rules"
 	"slices"
 )
@@ -136,36 +135,6 @@ func (e *Engine) joinPicked(id rules.CharID) (refused bool, count int) {
 		}
 	}
 	return refused, count
-}
-
-// recolourIcon = 0464:1E5C (identity, to, 0, 0, icon): colour i becomes
-// to[i] for i = 0..15 in turn, so a pixel already moved to a later colour
-// moves again (3 -> 15 -> to[15]). Mask pixels are left alone. Amiga
-// pixels (extra) go through amigaIconColour, and once only: the Amiga's
-// routine (0x63240) looks each pixel's colour up a single time.
-func recolourIcon(im *asset.Image, to [16]byte) {
-	if im == nil {
-		return
-	}
-	var f, am [16]byte
-	for c := range f {
-		x := byte(c)
-		for i := x; i < 16; i++ {
-			if x == i {
-				x = to[i]
-			}
-		}
-		f[c] = x
-		am[amigaIconColour[c]] = amigaIconColour[to[c]]
-	}
-	for k, v := range im.Data {
-		switch {
-		case v < 16 && int(v) != im.Mask:
-			im.Data[k] = f[v]
-		case v >= asset.AmigaBase:
-			im.Data[k] = v&^0xF | am[v&0xF]
-		}
-	}
 }
 
 // amigaIconColour (extra): the Amiga palette slot for each EGA colour
