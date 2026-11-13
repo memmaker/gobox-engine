@@ -229,6 +229,9 @@ func (vm *VM) Arg(k int, h Host) int64 {
 	case ArgImmediate:
 		return int64(byte(vm.ArgN[k]))
 	case ArgVarByte, ArgVarWord:
+		if vm.ArgRef[k] == (script.Ref{}) { // a label (ReadArgs resolves every variable to a field): its address
+			return int64(uint16(vm.ArgN[k]))
+		}
 		return h.Get(vm.ArgRef[k])
 	case ArgAddress:
 		return int64(uint16(vm.ArgN[k]))
