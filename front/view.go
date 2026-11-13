@@ -28,110 +28,6 @@ type AreaMap struct {
 	MarkerPix Picture     // Marker so, or a DAX ref
 }
 
-// Battle is the combat map as the remaster's 3D view needs it.
-type Battle struct {
-	Ground    [25][50]Square
-	Tiles     []image.Image // the tile set by tile number, in combat's colours
-	FloorImg  image.Image   // the plain floor's picture, tiled on every floor square (nil: Floor's colour)
-	TileNames []string      // Tiles' sprite names ("": none); a tile named so may have a 3D model
-	TilePix   []Picture     // Tiles as the game's pixels in View.Ink, or DAX refs (File, Block, Frame), the presenter's to make into Tiles
-	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here); used where Icon is nil
-	EffectPix []Picture     // Effects' pictures so, by effect; used where Pic is nil
-	Floor     color.RGBA    // the ground's colour
-	Dungeon   bool          // tiles 0..DungeonTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
-	Units     []Unit
-	Cursor    image.Point            // the square the cursor was last drawn on
-	CursorOn  bool                   // the cursor icon is up (aiming, looking)
-	CursorAt  []image.Point          // the squares the cursor covers (a large combatant's footprint)
-	Marks     []image.Point          // squares framed for a choice (reach of a move, an area of effect)
-	Reach     []image.Point          // squares a click walks to from the main menu (the active unit's move)
-	Paths     map[image.Point][]Step // the walk to each Reach square, from the unit's own square
-	Targets   []int                  // units (by ID) ActAttack takes on the turn; aiming: the foes Tab cycles through
-	Turn      *Turn                  // the player's turn waits for an action (nil: no one to act for). The game fills it on every player's turn, even one whose only offer is Can: the presenter builds a Turn itself only for an AskSquare or AskMove question (askedBattle), since pace, the bar, the Cast list and the status row all read this one field
-	Panel     int                    // the unit the status row shows (who acts, or is being hit)
-	Log       []string               // this battle's messages, oldest first
-	Area      bool                   // Marks are a spell's area (else a move's reach or a choice)
-	AreaAt    []image.Point          // the squares a spell's area covers round the aimed square
-	AimArea   int                    // aiming a spell with no AreaAt: the area's radius round the hovered square, washed as a preview (0 none; radius+1)
-	Skipped   []image.Point          // squares of allies in the area the spell passes over (Bless: an enemy next to them)
-	AimWhy    string                 // aiming: why the aimed square cannot be taken ("" when it can); views draw the aim red
-	Effects   []Effect               // sprites over the map: a missile, a hit, a fall
-	View      image.Point            // top left square of the scrolled view window the original showed (what the camera follows)
-	Strike    Strike                 // the last weapon attack
-}
-
-// Turn is what the acting member may do (the original's combat menu).
-type Turn struct {
-	Unit      int          // whose turn
-	Can       []ActKind    // the actions offered, in the menu's order
-	Spells    []Spell      // what ActCast casts
-	Maneuvers []Maneuver   // extra: what ActManeuver does (the rule set's; empty under the original's)
-	Aim       bool         // aiming: ActAim takes a square, ActPoint previews one, ActClose gives up
-	Casting   string       // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
-	Weapon    *InvItem     // extra: the weapon in hand (its icon on the Attack button), or nil
-	Missile   *InvItem     // extra: the ranged weapon readied (its icon on the Ranged button), or nil
-	Moves     int          // squares of move left
-	Options   []TurnOption // the game's options in its order: the bar is built from these (none: from Can)
-}
-
-// TurnOption is one of the game's turn options: its word, hotkey and the
-// action it is (Kind 0: ActOption N, the game's own).
-type TurnOption struct {
-	Label  string
-	Key    byte
-	Kind   ActKind
-	Chords string // more keys that pick it (alt+q,space)
-}
-
-// Effect is a sprite the original draws over the map for a moment.
-type Effect struct {
-	X, Y float64     // its top left corner, in squares (missiles move in thirds)
-	Pic  image.Image // in combat's colours
-}
-
-// Step is one square of a walk; Free: leaving it lets an enemy take a free attack.
-type Step struct {
-	image.Point
-	Free bool
-}
-
-// Strike is one weapon attack, for views that show it (the original only
-// prints it): Seq counts attacks, so a new one is a new Seq.
-type Strike struct {
-	Seq      int
-	From, To int // unit IDs (0: off the map)
-	Hit      bool
-	Damage   int
-}
-
-// Square is one map square.
-type Square struct {
-	Tile    int
-	Wall    bool // move cost 0xFF
-	Height  int  // blocking height
-	Overlay int  // a picture on the ground over the tile, under the units: its tile number+1 (0 none)
-}
-
-// Unit is one combatant on the map.
-type Unit struct {
-	ID         int // its place on the combat list: the same unit from snapshot to snapshot
-	X, Y, Size int
-	Squares    []image.Point // the squares it stands on (a large combatant's footprint)
-	Party      bool
-	Facing     int         // 0..7
-	Icon       image.Image // the combat icon, facing and pose (striking) as the original draws it
-	IconSize   image.Point // the built icon's size in pixels, 24 a square: what the figure's size and footprint follow (a PNG icon keeps it at its own resolution)
-	Active     bool        // whose turn it is
-	Name       string
-	HP, AC     int
-	MaxHP      int
-	Hit        int    // the active member's chance in percent to hit it with one blow (0: not a target)
-	Dmg        string // the readied attack's damage ("1d8+1")
-	Weapon     string // a member's readied weapon, shown in place of Dmg as the originals do ("": Dmg)
-	Status     string // "" when it can act, else why not ("Helpless", "Unconscious" ...)
-	Down       bool   // dead or out, left on the map: drawn as a body lying on its square
-}
-
 // Aim is what a maneuver aims at.
 type Aim int
 
@@ -452,7 +348,6 @@ type View struct {
 	BorderPix     [8]Picture     // Border as the game's pixels in the EGA's own colours (the presenter colours them)
 	BorderCaps    [4]image.Image // optional end caps (ui.LeftTopCap ..: left top, left bottom, right top, right bottom), over the side pieces; nil: the side piece
 	BorderCapsPix [4]Picture     // BorderCaps as the game's pixels, as BorderPix
-	Battle        *Battle        // the combat map (nil outside combat)
 	Walls         *Walls         // the 3D view built from the rules' own map (nil: the remastered map Data.AreaMaps names)
 	Note          Note           // the status line's toast, shown on the bottom row a while after At
 	Inventory     *Inventory     // the inventory screen is up (nil otherwise)

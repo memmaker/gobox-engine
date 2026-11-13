@@ -3,7 +3,6 @@ package present
 import (
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -13,9 +12,9 @@ import (
 // down (a last blow's fall left the figure standing on its body).
 func TestKeepFallenUntilDied(t *testing.T) {
 	var p Presenter
-	before := &front.Battle{Units: []front.Unit{{ID: 1}, {ID: 2}, {ID: 3}, {ID: 4}}}
+	before := &play.Combat{Units: []game.Unit{{ID: 1}, {ID: 2}, {ID: 3}, {ID: 4}}}
 	p.keepFallen(before) // drawn before the tick
-	after := &front.Battle{Units: []front.Unit{{ID: 1}}}
+	after := &play.Combat{Units: []game.Unit{{ID: 1}}}
 	var q []frame
 	for id := 2; id <= 4; id++ {
 		q = append(q, frame{Moment: Moment{Report: play.Report{Kind: game.EvMiss, Unit: 1, Target: id}}}, frame{Moment: Moment{Report: play.Report{Kind: game.EvDown, Unit: id}}})

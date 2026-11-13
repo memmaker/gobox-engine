@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"gobox/front"
+	"gobox/combat"
 	"gobox/gpu"
 )
 
@@ -15,7 +15,7 @@ func TestFightRowWeaponAndStatus(t *testing.T) {
 	defer dst.Deallocate()
 	var drawn strings.Builder
 	g := func(c byte) [8]byte { drawn.WriteByte(c); return [8]byte{} }
-	b := &front.Battle{Turn: &front.Turn{Unit: 1}, Units: []front.Unit{{ID: 1, Name: "GIZMO", HP: 43, AC: 2, Weapon: "BOLT GUN", Status: "OKAY", Party: true}}}
+	b := &combat.Board{Turn: &combat.Turn{Unit: 1}, Units: []combat.Unit{{ID: 1, Name: "GIZMO", HP: 43, AC: 2, Weapon: "BOLT GUN", Status: "OKAY", Party: true}}}
 	(&Presenter{}).drawFightRows(dst, Note{Glyph: g}, b, 1)
 	if s := drawn.String(); !strings.Contains(s, "BOLT GUN") || !strings.Contains(s, "OKAY") || strings.Index(s, "OKAY") > strings.Index(s, "BOLT GUN") {
 		t.Fatalf("drawn %q", s)

@@ -18,10 +18,10 @@ func TestEndedFightBody(t *testing.T) {
 	body := game.Picture{W: 1, H: 1, Pixels: []byte{5}, Clear: -1}
 	g.events = []play.Report{{Kind: game.EvDown, Unit: 4, Picture: body, Ms: 1}, {Kind: game.EvMessage, Text: "won", Ms: 100}}
 	_, evs := settled(g)
-	if len(evs) != 2 || evs[1].battle == nil {
+	if len(evs) != 2 || boardOfFrame(evs[1]) == nil {
 		t.Fatalf("events %+v", evs)
 	}
-	if b := evs[1].battle; b.Ground[2][3].Overlay == 0 {
+	if b := boardOfFrame(evs[1]); b.Ground[2][3].Overlay == 0 {
 		t.Fatal("no body on the square after the last blow")
 	}
 }
@@ -36,10 +36,10 @@ func TestEndedFightTileBody(t *testing.T) {
 		Units:   []game.Unit{{ID: 1, At: image.Pt(3, 2), Size: 2, HP: 1}}}
 	g.events = []play.Report{{Kind: game.EvDown, Unit: 1, Picture: game.Picture{Name: "venuscom_tile_003"}, Ms: 1}, {Kind: game.EvMessage, Text: "won", Ms: 100}}
 	_, evs := settled(g)
-	if len(evs) != 2 || evs[1].battle == nil {
+	if len(evs) != 2 || boardOfFrame(evs[1]) == nil {
 		t.Fatalf("events %+v", evs)
 	}
-	if o := evs[1].battle.Ground[2][3].Overlay; o != 2 {
+	if o := boardOfFrame(evs[1]).Ground[2][3].Overlay; o != 2 {
 		t.Fatalf("overlay %d, want the tile's slot 1 (+1)", o)
 	}
 }
@@ -58,18 +58,18 @@ func TestEndedFightBeastStays(t *testing.T) {
 		{Kind: game.EvDown, Unit: 7, Target: 7, Picture: game.Picture{Name: "venuscom_tile_003"}, Ms: 500}, {Kind: game.EvMessage, Text: "won", Ms: 100}}
 	_, evs := settled(g)
 	beast := func(i int) bool {
-		for _, u := range evs[i].battle.Units {
+		for _, u := range boardOfFrame(evs[i]).Units {
 			if u.ID == 7 {
 				return u.X == 3 && u.Y == 2
 			}
 		}
 		return false
 	}
-	if len(evs) != 5 || evs[1].battle == nil || !beast(1) {
+	if len(evs) != 5 || boardOfFrame(evs[1]) == nil || !beast(1) {
 		t.Fatal("the beast is not on its square for the blow")
 	}
 	for _, i := range []int{3, 4} { // the fall's own moment shows the body in its place (a figure on it hid it), and after
-		if b := evs[i].battle; beast(i) || b.Ground[2][3].Overlay != 2 {
+		if b := boardOfFrame(evs[i]); beast(i) || b.Ground[2][3].Overlay != 2 {
 			t.Fatalf("event %d: beast %v, overlay %d", i, beast(i), b.Ground[2][3].Overlay)
 		}
 	}
@@ -86,10 +86,10 @@ func TestLiveFallBody(t *testing.T) {
 	body := game.Picture{W: 1, H: 1, Pixels: []byte{5}, Clear: -1}
 	g.events = []play.Report{{Kind: game.EvDown, Unit: 2, Picture: body}}
 	_, evs := settled(g)
-	if len(evs) != 1 || evs[0].Ms == 0 || evs[0].battle == nil {
+	if len(evs) != 1 || evs[0].Ms == 0 || boardOfFrame(evs[0]) == nil {
 		t.Fatalf("the fall has no moment: %+v", evs)
 	}
-	b := evs[0].battle
+	b := boardOfFrame(evs[0])
 	for _, u := range b.Units {
 		if u.ID == 2 {
 			t.Fatal("the fallen unit still stands")

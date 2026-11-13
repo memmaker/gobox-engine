@@ -4,6 +4,7 @@ import (
 	"image"
 	"testing"
 
+	"gobox/combat"
 	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
@@ -34,13 +35,13 @@ func TestEndingEventsPlayClassic(t *testing.T) {
 	g := NewGame(r, game.Data{})
 	g.Settle() // the fight shown
 	g.Answer(front.Action{Kind: front.ActQuick})
-	v, evs := settled(g)
-	if v.Battle != nil || len(evs) != 3 {
-		t.Fatalf("battle %v, %d events", v.Battle != nil, len(evs))
+	_, evs := settled(g)
+	if g.combat() != nil || len(evs) != 3 {
+		t.Fatalf("battle %v, %d events", g.combat() != nil, len(evs))
 	}
 	for _, e := range []frame{evs[0], evs[2]} { // the blow and the fall; a miss has no moment
-		if e.battle == nil {
-			t.Errorf("event %v not held on the fight (battle %v, ms %d)", e.Kind, e.battle != nil, e.Ms)
+		if boardOfFrame(e) == nil {
+			t.Errorf("event %v not held on the fight (battle %v, ms %d)", e.Kind, boardOfFrame(e) != nil, e.Ms)
 		}
 	}
 }
@@ -54,10 +55,10 @@ func TestEndingEventsMove(t *testing.T) {
 	g.Settle()
 	g.Answer(front.Action{Kind: front.ActQuick})
 	_, es := settled(g)
-	if len(es) != 5 || es[1].battle == nil || es[4].battle == nil {
+	if len(es) != 5 || boardOfFrame(es[1]) == nil || boardOfFrame(es[4]) == nil {
 		t.Fatalf("%d events", len(es))
 	}
-	unit := func(b *front.Battle, id int) *front.Unit {
+	unit := func(b *combat.Board, id int) *combat.Unit {
 		for k := range b.Units {
 			if b.Units[k].ID == id {
 				return &b.Units[k]
@@ -65,13 +66,13 @@ func TestEndingEventsMove(t *testing.T) {
 		}
 		return nil
 	}
-	if u := unit(es[1].battle, 1); u == nil || u.X != 2 || u.Y != 1 {
+	if u := unit(boardOfFrame(es[1]), 1); u == nil || u.X != 2 || u.Y != 1 {
 		t.Errorf("walker %+v, want at 2,1", u)
 	}
-	if unit(es[3].battle, 2) == nil {
+	if unit(boardOfFrame(es[3]), 2) == nil {
 		t.Error("the fall's own moment has no faller")
 	}
-	if u := unit(es[4].battle, 2); u != nil {
+	if u := unit(boardOfFrame(es[4]), 2); u != nil {
 		t.Errorf("fallen still on the board: %+v", u)
 	}
 	if es[4].Kind != game.EvMissile || es[4].To != image.Pt(3, 3) {

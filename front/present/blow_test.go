@@ -20,7 +20,7 @@ func TestBlowShows(t *testing.T) {
 	if err := g.Answer(front.Action{Kind: front.ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
 	}
-	v, evs := settled(g)
+	_, evs := settled(g)
 	var kinds []game.EventKind
 	dmg, line := 0, false
 	for _, e := range evs {
@@ -33,8 +33,8 @@ func TestBlowShows(t *testing.T) {
 	if !slices.Contains(kinds, game.EvAttack) || !slices.Contains(kinds, game.EvHit) || dmg != 5 || !line {
 		t.Fatalf("events %+v", evs)
 	}
-	if v.Battle == nil || !slices.Contains(v.Battle.Log, "ARIN HITS FOR 5") {
-		t.Fatalf("log %v", v.Battle != nil)
+	if c := g.combat(); c == nil || !slices.Contains(c.Log, "ARIN HITS FOR 5") {
+		t.Fatalf("log %v", c != nil)
 	}
 }
 

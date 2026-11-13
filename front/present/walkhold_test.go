@@ -28,10 +28,10 @@ func TestWalkPlaysStepByStep(t *testing.T) {
 		if e.Kind != game.EvMove {
 			continue
 		}
-		if e.Ms <= 0 || e.battle == nil {
+		if e.Ms <= 0 || boardOfFrame(e) == nil {
 			t.Fatalf("step not held: %+v", e)
 		}
-		for _, u := range e.battle.Units {
+		for _, u := range boardOfFrame(e).Units {
 			if u.ID == 2 {
 				at = append(at, image.Pt(u.X, u.Y))
 			}

@@ -14,7 +14,7 @@ func TestMessagesHold(t *testing.T) {
 	b := &play.Combat{}
 	es := []play.Report{{Kind: game.EvMessage, Text: "Sylvaine is bandaged"}, {Kind: game.EvMessage, Text: "SWORDSMAN Attacks"}}
 	out := played(es, true, func(play.Report) (*play.Combat, []game.Member) { return b, nil }, 400)
-	if len(out) != 2 || out[0].Ms != 400 || out[1].Ms != 400 || out[0].battle == nil || out[1].battle == nil {
+	if len(out) != 2 || out[0].Ms != 400 || out[1].Ms != 400 || boardOfFrame(out[0]) == nil || boardOfFrame(out[1]) == nil {
 		t.Fatalf("%+v", out)
 	}
 	g := NewGame(&fake{st: play.Exploring{}}, game.Data{})

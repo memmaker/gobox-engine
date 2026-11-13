@@ -17,8 +17,8 @@ func TestMissileFlies(t *testing.T) {
 	if len(out) != 7 || out[0].Kind != game.EvMissile {
 		t.Fatalf("%d frames", len(out))
 	}
-	first, last := out[0].battle.Effects, out[6].battle.Effects
-	if len(first) != 1 || first[0].Y != 14 || last[0].Y != 12 || len(out[6].battle.EffectPix) != 1 {
+	first, last := boardOfFrame(out[0]).Effects, boardOfFrame(out[6]).Effects
+	if len(first) != 1 || first[0].Y != 14 || last[0].Y != 12 {
 		t.Fatalf("flight %v .. %v", first, last)
 	}
 }
@@ -41,7 +41,7 @@ func TestMissileNoMoment(t *testing.T) {
 	b := &play.Combat{Units: []game.Unit{{ID: 1, At: image.Pt(27, 14)}}}
 	es := []play.Report{{Kind: game.EvMissile, Unit: 1, To: image.Pt(27, 12), Sprite: []game.Picture{{File: "SPRIT", Block: 1}}}}
 	out := played(es, true, func(play.Report) (*play.Combat, []game.Member) { return b, nil }, 0)
-	if len(out) != 7 || out[0].battle == nil || len(out[0].battle.Effects) != 1 {
+	if len(out) != 7 || boardOfFrame(out[0]) == nil || len(boardOfFrame(out[0]).Effects) != 1 {
 		t.Fatalf("%d frames", len(out))
 	}
 }

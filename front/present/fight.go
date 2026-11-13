@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gobox/front"
 	"gobox/game"
+	"gobox/game/play"
 	"image"
 	"math"
 	"os"
@@ -22,7 +23,7 @@ import (
 )
 
 // The combat screen's own rows (extra): the original's two rows under the
-// map (the panel and the message line) drawn from View.Battle in its font,
+// map (the panel and the message line) drawn from the fight in its font,
 // colours and border; the spell list Cast opens and the battle Log.
 
 const fightRows = 1 // cells: the status line
@@ -30,12 +31,16 @@ const fightRows = 1 // cells: the status line
 const logRows = 20 // the battle Log's lines shown at a time
 
 // drawFight draws the rows, the bar, whose turn it is, the spell list and the Log over the 3D map.
-func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
+func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 	glyph := note.Glyph
-	b, k := askedBattle(v), scale(dst)
+	b, c, k := p.fightBoard, p.fightView, scale(dst)
+	var turn *play.Turn // the game's turn: its weapons and lists (b.Turn may be an aim's own)
+	if c != nil {
+		turn = c.Turn
+	}
 	p.mapBottom = dst.Bounds().Dy() - int(math.Ceil(k*8*fightRows)) // the line is drawn at k, whole or not
 	if b.Turn != nil {
-		for _, m := range v.Party { // whose turn: the portrait card, bottom left
+		for _, m := range p.shownView.Party { // whose turn: the portrait card, bottom left
 			if m.Selected {
 				if m.Portrait == nil && m.Head == nil { // no portrait: the member's combat icon, else no box
 					for _, u := range b.Units {
@@ -55,9 +60,13 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 		}
 	}
 	p.battle.Icons, p.battle.IconKey = nil, ""
+	var weap, shot *front.InvItem // the weapon in hand and the one shot (nil: none)
+	if turn != nil {
+		weap, shot = weapon(turn.Weapon), weapon(turn.Missile)
+	}
 	if b.Turn != nil { // the Attack button shows the weapon in hand, Ranged what it shoots
 		p.inv.load()
-		for kind, it := range map[front.ActKind]*front.InvItem{front.ActAttack: b.Turn.Weapon, front.ActRanged: b.Turn.Missile} {
+		for kind, it := range map[front.ActKind]*front.InvItem{front.ActAttack: weap, front.ActRanged: shot} {
 			if it == nil {
 				continue
 			}
@@ -73,10 +82,10 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 	}
 	p.syncBattle()
 	p.battle.Pointer = p.pointer
-	p.battle.DrawBar(dst, glyph, toBoard(b), int(k), p.mapBottom) // the bar and its words at K
+	p.battle.DrawBar(dst, glyph, b, int(k), p.mapBottom) // the bar and its words at K
 	if ck, r, ok := p.battle.Hovered(); ok && b.Turn != nil {
 		kind := engineKinds[ck] // the readied weapon over Attack and Ranged: what it does, its rules
-		if it := map[front.ActKind]*front.InvItem{front.ActAttack: b.Turn.Weapon, front.ActRanged: b.Turn.Missile}[kind]; it != nil {
+		if it := map[front.ActKind]*front.InvItem{front.ActAttack: weap, front.ActRanged: shot}[kind]; it != nil {
 			p.drawTipOver(dst, it.Name, append(slices.Clone(it.Look), it.Rules...), int(k), r)
 		}
 		if kind == front.ActBandage {
@@ -93,13 +102,13 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note, v front.View) {
 	p.drawFightRows(dst, note, b, k)
 	cx := dst.Bounds().Dx() / 2
 	p.fightAskAt = nil
-	if m := askMenu(v); m != nil && len(m.Commands) > 0 {
+	if m := askMenu(p.shownView); m != nil && len(m.Commands) > 0 {
 		lines, keys := make([]string, len(m.Commands)), make([]byte, len(m.Commands))
 		for i, it := range m.Commands {
 			lines[i], keys[i] = it.Text, it.Key
 		}
 		if id := menuID(m); id != p.menuFor {
-			p.menuFor, p.sel = id, min(askDefault(v), len(lines)-1)
+			p.menuFor, p.sel = id, min(askDefault(p.shownView), len(lines)-1)
 		}
 		p.keyWindow(dst, m.Prompt, lines, keys, nil, p.sel, false)
 		p.fightAskAt = slices.Clone(p.winRects)
@@ -149,7 +158,7 @@ func (p *Presenter) drawTipOver(dst *gpu.Image, title string, lines []string, k 
 // asked, the aiming help, else the panel (the unit under the pointer, else
 // the one the game names); between the player's turns the last message.
 // All of them are in the Log (L).
-func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *front.Battle, k float64) {
+func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *combat.Board, k float64) {
 	w, h := max(40, int(float64(dst.Bounds().Dx())/k)/8)*8, fightRows*8 // as many cells as the window has
 	glyph := note.Glyph
 	if p.rowsImg == nil || p.rowsImg.Bounds().Dx() != w {
@@ -300,7 +309,7 @@ func (p *Presenter) fightKey(k uint16) bool {
 	if a == input.PadA { // pad A: as Enter
 		a = input.Enter
 	}
-	if v := p.shownView; askedTurn(v) && v.Ask.Kind == front.AskMove { // a step at a time, as the original's move mode: the direction keys step, Enter is done, Esc undoes
+	if p.askedTurn() && p.shownView.Ask.Kind == front.AskMove { // a step at a time, as the original's move mode: the direction keys step, Enter is done, Esc undoes
 		if d, ok := keypadDirs[actOf(k)]; ok {
 			p.send(front.ActDir, d)
 			return true
@@ -340,7 +349,7 @@ func (p *Presenter) fightClick(x, y int) bool {
 	if p.pickClick(x, y) {
 		return true
 	}
-	if image.Pt(x, y).In(p.fightCard) && p.fightView != nil && p.fightView.Turn != nil { // the active member's sheet (View has no button: Felix's ruling 2026-11-13)
+	if image.Pt(x, y).In(p.fightCard) && p.fightBoard != nil && p.fightBoard.Turn != nil { // the active member's sheet (View has no button: Felix's ruling 2026-11-13)
 		p.send(front.ActView, -1)
 		return true
 	}
@@ -358,18 +367,17 @@ type replay struct {
 	fast bool      // Space: the rest of the queued timed moments pass at once (the computer's turn sped up)
 }
 
-// frame is a Moment queued to play, with its Board drawn: the board's
-// pictures made once (the live board's, BattleOf and pixBattle), not on
-// every frame.
+// frame is a Moment queued to play; fly: a missile's sprite over its board,
+// one square of its flight.
 type frame struct {
 	Moment
-	battle *front.Battle // Board as it is drawn (nil: no board)
+	fly *flight
 }
 
 // held is whether f holds the screen: a board, page or screen shown for Ms
 // or until a key.
 func (f *frame) held() bool {
-	return f.battle != nil || f.Page != nil || f.Screen != nil
+	return f.Board != nil || f.Page != nil || f.Screen != nil
 }
 
 // lastBoard: the shown moment is the last held one queued (the board the
@@ -383,47 +391,34 @@ func (r *replay) lastBoard() bool {
 	return true
 }
 
-// Play queues the moments Settle handed out. A board is drawn as the live
-// one is (BattleOf over the game's art); a shot with a sprite plays as its
-// flight.
+// Play queues the moments Settle handed out; a shot with a sprite plays as
+// its flight over its board.
 func (p *Presenter) Play(ms []Moment) {
-	var art map[string]game.Picture
-	if p.eng != nil {
-		art = p.eng.art()
-	}
 	for _, m := range ms {
-		f := frame{Moment: m, battle: BattleOf(m.Board, m.Party, art)}
-		if m.Kind == game.EvMissile && len(m.Sprite) > 0 && f.battle != nil { // the shot flies: its sprite square by square from the shooter, in thirds, over the moment
-			for _, fl := range missileFlight(f, m.Sprite[0], m.StepMs) {
-				fl.battle = pixBattle(fl.battle, egaInk)
-				p.replay.q = append(p.replay.q, fl)
-			}
+		if m.Kind == game.EvMissile && len(m.Sprite) > 0 && m.Board != nil {
+			p.replay.q = append(p.replay.q, missileFlight(m, m.Sprite[0], m.StepMs)...)
 			continue
 		}
-		f.battle = pixBattle(f.battle, egaInk)
-		p.replay.q = append(p.replay.q, f)
+		p.replay.q = append(p.replay.q, frame{Moment: m})
 	}
 }
 
-// missileFlight is the moment f (a missile held on its board) as the
-// sprite's flight from f.Unit's square (else At) to To, a frame a third of
+// missileFlight is the moment m (a missile held on its board) as the
+// sprite's flight from m.Unit's square (else At) to To, a frame a third of
 // a square, the moment's time shared among them.
-func missileFlight(f frame, art game.Picture, step int) []frame {
-	from := f.At
-	for _, u := range f.battle.Units {
-		if u.ID == f.Unit {
-			from = image.Pt(u.X, u.Y)
+func missileFlight(m Moment, art game.Picture, step int) []frame {
+	from := m.At
+	for _, u := range m.Board.Units {
+		if u.ID == m.Unit {
+			from = u.At
 		}
 	}
-	d := f.To.Sub(from)
+	d := m.To.Sub(from)
 	n := 3 * max(d.X, -d.X, d.Y, -d.Y, 1)
 	out := make([]frame, 0, n+1)
 	for i := 0; i <= n; i++ {
-		o := f
-		b := *f.battle
-		b.Effects = append(slices.Clone(b.Effects), front.Effect{X: float64(from.X) + float64(d.X*i)/float64(n), Y: float64(from.Y) + float64(d.Y*i)/float64(n)})
-		b.EffectPix = append(slices.Clone(b.EffectPix), pix(art))
-		o.battle, o.Ms, o.At = &b, max(f.Ms/(n+1), 1), from
+		o := frame{Moment: m, fly: &flight{X: float64(from.X) + float64(d.X*i)/float64(n), Y: float64(from.Y) + float64(d.Y*i)/float64(n), Art: art}}
+		o.At, o.Ms = from, max(m.Ms/(n+1), 1)
 		if step > 0 { // the game's own pace, whatever the game speed
 			o.Ms = step
 		}
@@ -521,7 +516,11 @@ func (p *Presenter) pickList() []front.Spell {
 		}
 		return out
 	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil:
-		return p.fightView.Turn.Spells
+		var out []front.Spell // nil without spells: no list
+		for _, sp := range p.fightView.Spells {
+			out = append(out, front.Spell{ID: sp.ID, Name: sp.Name})
+		}
+		return out
 	}
 	return nil
 }
@@ -661,3 +660,26 @@ func blowFloat(m Moment) (id, n int, word string) {
 
 // traceOn (GOBOX_TRACE=1): the fight's timed moments say when they end.
 var traceOn = os.Getenv("GOBOX_TRACE") != ""
+
+// liveCombat is the fight up in the game's state (nil: none, or no game).
+func (p *Presenter) liveCombat() *play.Combat {
+	if p.eng == nil {
+		return nil
+	}
+	return p.eng.r.combatOf(p.state())
+}
+
+// aimPreview is b with the aimed spell's area washed round the hovered
+// square, while it has none of its own (the live board; a replayed one never
+// aims).
+func (p *Presenter) aimPreview(b *combat.Board) *combat.Board {
+	if p.eng == nil || p.Playing() || p.ui().spellAim == nil || len(b.AreaAt) != 0 {
+		return b
+	}
+	for _, sp := range p.fightView.Aims {
+		if sp.ID == p.ui().spellAim.spell {
+			b.AimArea = sp.Area + 1
+		}
+	}
+	return b
+}

@@ -206,15 +206,6 @@ func (g *Game) View() front.View {
 	if v.MainMenu != nil && !v.Hall && v.Powers == nil {
 		v.Logo = Title(v.Logo, art)
 	}
-	v.Battle = Battle(BattleOf(combat, party, art), combat, party)
-	if m := g.r.spellAim; m != nil && v.Battle != nil && combat != nil && len(v.Battle.AreaAt) == 0 { // the aimed spell's area, previewed
-		for _, sp := range combat.Aims {
-			if sp.ID == m.spell {
-				v.Battle.AimArea = sp.Area + 1
-			}
-		}
-	}
-	v.Battle = ViewVerb(v.Battle, g.D)
 	v = Page(v, r.pageOf(ps), storyOf(c))
 	v = Flags(v, r.flagsOf(ps, party), OverMenu(mode, pending))
 	if m := r.mapOf(ps); m != nil {
@@ -250,28 +241,6 @@ func (g *Game) View() front.View {
 	v.Picker = Picker(c.Picker, image.Point{}, 0, g.r.grid.X, g.r.grid.Y)
 	v.IconEditor = IconEditor(c.IconEditor, nil, own, &v.Ink, g.r.grid.X, g.r.grid.Y)
 	return v
-}
-
-// ViewVerb is b with the series' View (Data.VerbKeys) on the turn's bar,
-// at its VerbOrder place, when the game offers none: the active member's
-// sheet (ActView, as a portrait's ActMember in a turn).
-func ViewVerb(b *front.Battle, d game.Data) *front.Battle {
-	k, ok := d.VerbKeys["View"]
-	if b == nil || b.Turn == nil || !ok || len(b.Turn.Options) == 0 || b.Turn.Aim || slices.ContainsFunc(b.Turn.Options, func(o front.TurnOption) bool { return o.Label == "View" || o.Kind == front.ActView }) {
-		return b
-	}
-	c, t := *b, *b.Turn
-	at := len(t.Options)
-	if vi := slices.Index(d.VerbOrder, "View"); vi >= 0 {
-		at = slices.IndexFunc(t.Options, func(o front.TurnOption) bool { i := slices.Index(d.VerbOrder, o.Label); return i > vi })
-		if at < 0 {
-			at = len(t.Options)
-		}
-	}
-	t.Options = slices.Insert(slices.Clone(t.Options), at, front.TurnOption{Label: cmp.Or(d.Texts["View"], "View"), Key: byte(k), Kind: front.ActView})
-	t.Can = slices.Insert(slices.Clone(t.Can), min(at, len(t.Can)), front.ActView)
-	c.Turn = &t
-	return &c
 }
 
 // Settle goes on to the next wait and returns what happened since, as the
@@ -926,8 +895,8 @@ func (g *Game) act(a front.Action) func() error {
 	}
 	switch a.Kind {
 	case front.ActOption: // the turn's option N, as the game offers it
-		if c := g.combat(); c != nil && c.Turn != nil && a.N >= 0 && a.N < len(c.Turn.Options) && c.Turn.Options[a.N].Do != nil {
-			return send(c.Turn.Options[a.N].Do)
+		if ops := turnOptions(g.combat(), g.D); a.N >= 0 && a.N < len(ops) && ops[a.N].Do != nil {
+			return send(ops[a.N].Do)
 		}
 		return nil
 	case front.ActClose:

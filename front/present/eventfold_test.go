@@ -3,6 +3,7 @@ package present
 import (
 	"testing"
 
+	"gobox/combat"
 	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
@@ -14,10 +15,31 @@ func settled(g *Game) (front.View, []frame) {
 	ms := g.Settle()
 	v := g.View()
 	var p Presenter
-	p.SetEngine(&classicGame{Game: g, p: &p})
 	p.Play(ms)
 	return v, p.replay.q
 }
+
+// presenterOf is a Presenter over g.
+func presenterOf(g *Game) *Presenter {
+	p := &Presenter{}
+	p.SetEngine(&classicGame{Game: g, p: p})
+	return p
+}
+
+// boardIn is c as the tabletop draws it, over no game.
+func boardIn(c *play.Combat, party []game.Member) *combat.Board {
+	return new(Presenter).boardOf(c, party, nil)
+}
+
+// liveBoard is g's fight as the presenter draws it now (nil: none).
+func liveBoard(g *Game) *combat.Board {
+	p := presenterOf(g)
+	p.fightView = g.combat()
+	return p.aimPreview(p.boardOf(p.fightView, g.party(), nil))
+}
+
+// boardOfFrame is the board frame f holds, as drawn.
+func boardOfFrame(f frame) *combat.Board { return new(Presenter).boardOf(f.Board, f.Party, f.fly) }
 
 // played is es as moments (g.moments) queued as the presenter plays them.
 func played(es []play.Report, fight bool, posed func(play.Report) (*play.Combat, []game.Member), holdMs int) []frame {

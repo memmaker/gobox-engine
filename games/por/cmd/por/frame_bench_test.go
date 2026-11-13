@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/front/present"
+	"gobox/game/play"
 	"por/playpor"
 	"por/porgame"
 )
@@ -66,10 +67,11 @@ func BenchmarkExploreFrame(b *testing.B) {
 // A frame of a fight (autocombat: the computer fights for the party).
 func BenchmarkCombatFrame(b *testing.B) {
 	f := frameFront(b, "autocombat")
-	for i := 0; i < 600 && f.Game.View().Battle == nil; i++ {
+	fighting := func() bool { _, ok := f.Game.G.State().(play.Fighting); return ok }
+	for i := 0; i < 600 && !fighting(); i++ {
 		f.Frame(1280, 800)
 	}
-	if f.Game.View().Battle == nil {
+	if !fighting() {
 		b.Skip("no fight")
 	}
 	for range 60 {

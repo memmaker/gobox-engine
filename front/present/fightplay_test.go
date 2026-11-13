@@ -12,12 +12,10 @@ import (
 	"gobox/game/play"
 )
 
+// A replayed board's tiles are made from the game's art when it is drawn.
 func TestPlayMakesSnapshotTiles(t *testing.T) {
-	var p Presenter
 	g := NewGame(&fake{st: play.Exploring{}}, game.Data{Art: map[string]game.Picture{"t": {W: 2, H: 2, Pixels: []byte{1, 2, 3, 4}, Clear: -1}}})
-	p.SetEngine(&classicGame{Game: g, p: &p})
-	p.Play([]Moment{{Ms: 500, Board: &play.Combat{Tiles: []string{"t"}}}})
-	if b := p.replay.q[0].battle; len(b.Tiles) == 0 || b.Tiles[0] == nil {
+	if b := presenterOf(g).boardOf(&play.Combat{Tiles: []string{"t"}}, nil, nil); len(b.Tiles) == 0 || b.Tiles[0] == nil {
 		t.Fatal("snapshot tiles not made")
 	}
 }
@@ -91,8 +89,7 @@ func TestFlatTileTextured(t *testing.T) {
 	pc := front.Picture{Img: image.NewUniform(color.RGBA{130, 65, 45, 255})}
 	flat := image.NewRGBA(image.Rect(0, 0, 24, 24))
 	draw.Draw(flat, flat.Bounds(), pc.Img, image.Point{}, draw.Src)
-	b := pixBattle(&front.Battle{TilePix: []front.Picture{{Img: flat}}}, egaInk)
-	if _, still := flatColour(b.Tiles[0]); still || wallImage("floor") == nil {
+	if _, still := flatColour(textured(flat)); still || wallImage("floor") == nil {
 		t.Fatal("still a flat fill")
 	}
 }
