@@ -221,7 +221,7 @@ func (p *Presenter) drawPageMenu(dst *gpu.Image, note Note, v front.View) {
 	if sfOf(v) != nil { // the ship fight's bar is on its page (spacefight.go)
 		return
 	}
-	if pageScreen(v) {
+	if p.pageScreen(v) {
 		p.pageMenu = true
 		p.drawScreen(dst, v)
 		if t := typing(v); t != nil && t.Prompt != "" { // the game's typed line (the name after creation's Keep): over the screen, never under it
@@ -300,7 +300,7 @@ func (p *Presenter) drawMapMenu(dst *gpu.Image, m *front.Menu) {
 // pageMenuKey takes key k on a page's question: the standard menu's keys
 // (menuNav).
 func (p *Presenter) pageMenuKey(k uint16, v front.View) bool {
-	if pageScreen(v) {
+	if p.pageScreen(v) {
 		return p.screenKey(k, v)
 	}
 	if sheetUp(v) {

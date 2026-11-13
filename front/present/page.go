@@ -131,7 +131,7 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 		sh = p.sfState(v, sf)
 		own += fmt.Sprintf("%v%+v%+v", *sf, sh, v.Screen.ShipSheet)
 	}
-	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(v.IconEditor) && (p.changes() == pg.seq || !p.modal() && !ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
+	if pg.drawn && !note.Show && !pg.noted && pg.own == own && pg.edit == iconKey(v.IconEditor) && (p.changes() == pg.seq || !p.modal() && !p.ownPage(v) && samePage(v, pg)) { // the View changed, the page not: no redraw, no upload
 		pg.seq = p.changes()
 		return pg.img
 	}
@@ -142,7 +142,7 @@ func (p *Presenter) pageImage(v front.View, note Note) *gpu.Image {
 		draw.Draw(m, m.Rect, image.Black, image.Point{}, draw.Src)
 		pg.overs = nil
 	} else {
-		c := screenPage(v)
+		c := p.screenPage(v)
 		if sf != nil {
 			c.spaceFight(sf, sh, v.Ask, v.Screen)
 		}
@@ -168,8 +168,8 @@ func iconKey(e *front.IconEditor) string {
 
 // ownPage: v shows a screen the presenter lays out from its data
 // (screenPage), drawn anew with each View.
-func ownPage(v front.View) bool {
-	return v.SheetPage != nil || v.Picker != nil || v.Slots != nil || v.IconEditor != nil
+func (p *Presenter) ownPage(v front.View) bool {
+	return v.SheetPage != nil || v.Picker != nil || p.slotsView() != nil || v.IconEditor != nil
 }
 
 // modal: v shows a screen over the whole page (help, the journal, the

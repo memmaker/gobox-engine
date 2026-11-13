@@ -1,5 +1,5 @@
 // slots.go is the presenter's save slots (F10, the party menu's Load):
-// the game's SlotsView fills View.Slots while they are up, and Save,
+// the game's SlotsView lists them while they are up (slotsView), and Save,
 // DeleteSlot and Load act.
 
 package present
@@ -12,6 +12,15 @@ const ActSaveSlot, ActDeleteSlot front.ActKind = -3, -4
 
 // ActSaveGame puts the slot screen up to save (the party menu's Save Current *classicGame).
 const ActSaveGame front.ActKind = -11
+
+// slotsView is the slot screen up as the game lists it (nil: none up, or
+// none offered now).
+func (p *Presenter) slotsView() *front.Slots {
+	if p.slots == nil || p.eng == nil {
+		return nil
+	}
+	return p.eng.SlotsView(p.slots.LoadOnly)
+}
 
 // SlotsUI is the slot screen up.
 type SlotsUI struct{ LoadOnly bool }

@@ -287,7 +287,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int, v front.V
 			p.key(k, v)
 		}
 	}
-	if pageScreen(v) && (p.pageMenu || v.Picker != nil) { // the page screens' own pointer (screens.go): the right button is Esc
+	if p.pageScreen(v) && (p.pageMenu || v.Picker != nil) { // the page screens' own pointer (screens.go): the right button is Esc
 		if right {
 			p.screenKey(keyOf(input.Esc), v)
 			right = false

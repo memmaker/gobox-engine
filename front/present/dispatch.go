@@ -100,7 +100,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 			return true
 		}
 	}
-	if a := v.Ask; a != nil && a.Dirs && !pageScreen(v) { // the arrows answer the question (ActDir), the bars do not take them (keyAct); a page over it (the slots) keeps them
+	if a := v.Ask; a != nil && a.Dirs && !p.pageScreen(v) { // the arrows answer the question (ActDir), the bars do not take them (keyAct); a page over it (the slots) keeps them
 		if _, ok := keypadDirs[actOf(k)]; ok {
 			return false
 		}
@@ -294,7 +294,7 @@ func (p *Presenter) Click(x, y int) bool {
 		p.listClick(x, y, v)
 		return true
 	}
-	if v := p.shownView; p.pageMenu && pageScreen(v) {
+	if v := p.shownView; p.pageMenu && p.pageScreen(v) {
 		if h := p.slotFootAt(v, x, y); h != 0 {
 			p.slotKey(v, h)
 			return true
@@ -305,7 +305,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if s := p.scr.sub; screenName(v) == "slots" || s == scrAsk || s == scrField || s == scrPowers { // outside a popup: back (the creation sheet, the pickers and the icon editor take their page's clicks: Mouse)
+		if s := p.scr.sub; p.screenName(v) == "slots" || s == scrAsk || s == scrField || s == scrPowers { // outside a popup: back (the creation sheet, the pickers and the icon editor take their page's clicks: Mouse)
 			p.screenKey(27, v)
 			return true
 		}
@@ -321,7 +321,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if v := p.shownView; !pageScreen(v) && !sheetUp(v) && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
+		if v := p.shownView; !p.pageScreen(v) && !sheetUp(v) && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
 			p.send(front.ActClose, 0)
 			return true
 		}
@@ -453,7 +453,7 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		p.pointer = image.Pt(x, y)
 		if i := slices.IndexFunc(p.winRects, p.pointer.In); i >= 0 {
 			switch {
-			case !pageScreen(p.shownView):
+			case !p.pageScreen(p.shownView):
 				p.sel = i
 			case p.scr.sub != scrType:
 				p.scr.sel = p.scr.top + i

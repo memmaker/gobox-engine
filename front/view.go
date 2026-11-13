@@ -448,7 +448,6 @@ type View struct {
 	SheetPage     *SheetPage  // the character sheet's page is up (the sheet, the creation's, the spell lists over it): the presenter draws it
 	Creation      *Creation   // the creation (or Modify) sheet (the page): ActRoll, ActSetField, ActName, ActStat, ActPicker, ActIconEdit, ActKeep; ActClose abandons (the player agreed to Abandon)
 	Picker        *Picker     // a grid picker (the page): ActPicked, ActPage; ActClose leaves
-	Slots         *Slots      // the save slots: never the engine's; the presenter puts its F10 screen here (SlotsView)
 	Ask           *Ask        // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
 	Party         []Member
 	Border        [8]image.Image // the window border's pieces by place (ui.TopLeft ..) in EGA colours; all nil: the presenter decodes Theme.Border

@@ -19,7 +19,7 @@ import (
 // the creation sheet (View.Creation: its menu, the drop-downs, the typed
 // lines), the grid pickers (View.Picker: the cursor, the frame, the
 // pages), the icon editor's bar (View.IconDrop) and the save slots
-// (View.Slots: the list, the name, Overwrite and Delete).
+// (the slot list, the name, Overwrite and Delete).
 
 // Sub-screens of a page screen.
 const (
@@ -62,13 +62,13 @@ type screenUI struct {
 	buyStat int             // ... and the one Raise and Lower change
 }
 
-func screenName(v front.View) string {
+func (p *Presenter) screenName(v front.View) string {
 	switch {
 	case v.Picker != nil:
 		return "picker"
 	case v.Creation != nil:
 		return "creation"
-	case v.Slots != nil:
+	case p.slotsView() != nil:
 		return "slots"
 	case v.IconDrop && askMenu(v) == nil:
 		return "icon"
@@ -77,7 +77,7 @@ func screenName(v front.View) string {
 }
 
 // pageScreen: one of them is up.
-func pageScreen(v front.View) bool { return screenName(v) != "" }
+func (p *Presenter) pageScreen(v front.View) bool { return p.screenName(v) != "" }
 
 func (p *Presenter) sendA(a front.Action) {
 	if !p.slotAct(a) {
@@ -95,7 +95,7 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 	case scrType:
 		return s.prompt, []ui.MenuRow{{Text: caretLine(s.text, s.caret, s.max, p.blink()), Key: 0, Do: nil}}
 	}
-	switch screenName(v) {
+	switch p.screenName(v) {
 	case "creation":
 		cr := v.Creation
 		switch s.sub {
@@ -129,7 +129,7 @@ func (p *Presenter) screenItems(v front.View) (string, []ui.MenuRow) {
 			return p.buyItems(cr)
 		}
 	case "slots":
-		sl := v.Slots
+		sl := p.slotsView()
 		named := func(k front.ActKind, name string) func() {
 			return func() { s.open(scrMain); p.sendA(front.Action{Kind: k, Text: name}) }
 		}
@@ -251,7 +251,7 @@ func (p *Presenter) openField(cr *front.Creation, f int) {
 // picker's frame.
 func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 	s := &p.scr
-	if n := screenName(v); n != s.up {
+	if n := p.screenName(v); n != s.up {
 		s.up, s.sub, s.sel, s.top, s.anchor = n, scrMain, 0, 0, nil
 		if n == "creation" && s.newChar {
 			s.sub, s.mainSel = scrHow, 0
@@ -260,7 +260,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 		if v.Picker != nil {
 			s.cur = v.Picker.Cur
 		}
-		if sl := v.Slots; sl != nil { // on the game last loaded or saved
+		if sl := p.slotsView(); sl != nil { // on the game last loaded or saved
 			p.pointer = p.camp.pointer // the resting pointer does not take it; only a moved one does
 			if i := slices.Index(sl.Names, sl.Current); i >= 0 && sl.Current != "" {
 				s.sel = i
@@ -301,7 +301,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 		}
 	}
 	s.sel = min(max(s.sel, 0), len(lines)-1)
-	if screenName(v) == "slots" && s.sub == scrMain {
+	if p.screenName(v) == "slots" && s.sub == scrMain {
 		p.slotList(dst, lines, keys, off)
 		return
 	}
@@ -335,7 +335,7 @@ func (p *Presenter) drawScreen(dst *gpu.Image, v front.View) {
 // slotKey does the slot page's footer key h on the selected save: Enter
 // picks the row, L loads, D deletes after a Yes, Esc leaves.
 func (p *Presenter) slotKey(v front.View, h byte) {
-	s, sl := &p.scr, v.Slots
+	s, sl := &p.scr, p.slotsView()
 	switch h {
 	case footPick:
 		p.screenPick(v, s.sel-s.top)
@@ -362,11 +362,11 @@ func (p *Presenter) slotKey(v front.View, h byte) {
 
 // slotFootAt is the footer word of the slot page under (x, y), or 0.
 func (p *Presenter) slotFootAt(v front.View, x, y int) byte {
-	s := &p.scr
-	if v.Slots == nil || s.sub != scrMain || s.pw == 0 {
+	s, sl := &p.scr, p.slotsView()
+	if sl == nil || s.sub != scrMain || s.pw == 0 {
 		return 0
 	}
-	for _, w := range slotFooter(v.Slots, s.pw/8) {
+	for _, w := range slotFooter(sl, s.pw/8) {
 		if image.Pt(x, y).In(p.cellRect(front.CellRect{X1: w.x, Y1: s.ph/8 - 3, X2: w.x + len(w.label) - 1, Y2: s.ph/8 - 3})) {
 			return w.key
 		}
@@ -379,7 +379,7 @@ func (p *Presenter) slotFootAt(v front.View, x, y int) byte {
 // either), the rest as every menu.
 func (p *Presenter) screenKeys(v front.View, items []ui.MenuRow) []byte {
 	learn := v.Training != nil && len(v.Training.Learn) > 0
-	if (screenName(v) != "slots" || p.scr.sub != scrMain) && p.scr.sub != scrField && !learn { // the drop-downs: no hotkeys, no digits
+	if (p.screenName(v) != "slots" || p.scr.sub != scrMain) && p.scr.sub != scrField && !learn { // the drop-downs: no hotkeys, no digits
 		return ui.RowKeys(items)
 	}
 	k := make([]byte, len(items))
@@ -492,7 +492,7 @@ func (p *Presenter) screenKey(k uint16, v front.View) bool {
 	if sp := p.spots(v); sp != nil && s.sub == scrMain {
 		return p.spotKey(k, v, sp)
 	}
-	if sl := v.Slots; sl != nil && s.sub == scrMain {
+	if sl := p.slotsView(); sl != nil && s.sub == scrMain {
 		h := byte(k)
 		if h >= 'a' && h <= 'z' {
 			h -= 'a' - 'A'

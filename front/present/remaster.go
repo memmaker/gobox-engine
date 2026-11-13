@@ -237,7 +237,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.scrolls.Reset()
 	p.noteBtn = image.Rectangle{}
 	p.battle.Asking = confirm(v) != ""
-	if !pageScreen(v) { // none up: the next one opens fresh (F10 on the last save)
+	if !p.pageScreen(v) { // none up: the next one opens fresh (F10 on the last save)
 		p.scr.up = ""
 	}
 	r := p.draw(dst, note, v)
@@ -877,7 +877,7 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 // (the special screens, the pagers and maps, the after-combat page, the
 // credits); every other page is drawGeneric's.
 func (p *Presenter) ownLayout(v front.View) bool {
-	return pageScreen(v) || sfOf(v) != nil || p.modal() || v.SheetPage != nil || v.Creation != nil || v.Credits
+	return p.pageScreen(v) || sfOf(v) != nil || p.modal() || v.SheetPage != nil || v.Creation != nil || v.Credits
 }
 
 // seqMusic plays an animation's music cues on the AdLib player's songs

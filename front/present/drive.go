@@ -34,7 +34,7 @@ func MapImage(m *front.MapSquares, cell int, ink [16]color.RGBA, glyph func(byte
 // frame, place; fills by colour; the border's 8x8 symbols left out) and the
 // PNGs over the page (size, place).
 func ScreenDump(v front.View) string {
-	c := screenPage(v)
+	c := (&Presenter{}).screenPage(v)
 	var b strings.Builder
 	hex := func(c color.RGBA) string { return fmt.Sprintf("%02x%02x%02x", c.R, c.G, c.B) }
 	for y, l := range c.lines() {
