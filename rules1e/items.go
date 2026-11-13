@@ -8,8 +8,14 @@ import (
 	"strconv"
 )
 
-// itemWord = DS:10A7 + 0x15*n.
-func (e *RuleState) itemWord(n WordID) string { return ItemWords[n] }
+// itemWord = DS:10A7 + 0x15*n: word n of the game's table.
+func (e *RuleState) itemWord(n WordID) string {
+	w := ItemWords[:]
+	if e.T().Words != nil {
+		w = e.T().Words
+	}
+	return w[n]
+}
 
 func (it *Item) Name() string {
 	n := int(it.PName[0])

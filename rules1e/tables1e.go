@@ -52,6 +52,7 @@ type Tables struct {
 	Terrain         []TerrainFlag              // the terrain flags of each terrain number (rules.json wildTerrainFlags); POR's: TerrainKinds
 	Gen             GroundGen                  // how the combat ground is laid (rules.json combatGround); POR's: PorGroundGen
 	Kinds           ItemKinds                  // the dnd id of each base item type (rules.json itemKinds); nil: POR's ItemIDs
+	Words           []string                   // the words items' names are made of, by WordID (rules.json itemWords); nil: POR's ItemWords
 	MoraleUncapped  bool                       // a morale roll above 102 stands as it is (rules.json moraleUncapped; PoD CheckMorale); false: read as 0 (POR, CotAB, SotSB)
 	Grounds         GroundIDs                  // the grounds the rules lay (rules.json groundIds); POR's: PorGroundIDs
 	ClassMask       []ClassBits                // class bits, by class

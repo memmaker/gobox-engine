@@ -48,6 +48,7 @@ type rulesJSON struct {
 	WildFlags    []int16                    `json:"wildTerrainFlags"` // the terrain flags by terrain number (CotAB; the others carry their own in combatGround)
 	CombatGround *GroundGen                 `json:"combatGround"`     // the importer's: how the game lays its combat ground
 	Kinds        ItemKinds                  `json:"itemKinds"`        // the importer's: the dnd id of each base item type
+	Words        []string                   `json:"itemWords"`        // the game's item name words, by WordID
 	Morale       *bool                      `json:"moraleUncapped"`   // the importer's: a morale roll above 102 stands (PoD)
 	GroundIDs    *GroundIDs                 `json:"groundIds"`        // the importer's: the grounds the rules lay
 	ImportFlag   *bool                      `json:"importFlag"`       // the importer's: the game flags a character added from another game
@@ -292,6 +293,7 @@ func (base Tables) WithRules(src io.Reader, l Layout) (Tables, error) {
 		t.Groups = r.Groups
 	}
 	set(&t.Library, r.Library)
+	set(&t.Words, r.Words)
 	t.Treasure, t.Appraisal = r.Treasure, r.Appraisal
 	if s := r.Scroll; s != nil {
 		if s.Last < 1 || len(s.Mage) == 0 || slices.ContainsFunc(s.Mage, func(n SpellID) bool { return n < 1 || int(n) > s.Last }) {

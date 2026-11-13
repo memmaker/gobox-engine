@@ -497,12 +497,12 @@ func (e *RuleState) ItemTab(c *Character, it *Item) (tab, slot string) {
 	return tab, slot
 }
 
-// WordNames are the words of its name, known or not.
-func (it *Item) WordNames() []string {
+// wordNames are the words of it's name, known or not.
+func (e *RuleState) wordNames(it *Item) []string {
 	var l []string
 	for _, w := range it.Words {
 		if w != 0 {
-			l = append(l, ItemWords[w])
+			l = append(l, e.itemWord(w))
 		}
 	}
 	return l
