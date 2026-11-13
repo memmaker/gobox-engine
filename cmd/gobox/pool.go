@@ -41,15 +41,14 @@ func playPool(s start) (ui.Launch, error) {
 	if err != nil {
 		return ui.Launch{}, err
 	}
-	if f.UserSaves {
+	if d := s.Capture.Dev.Saves; d != "" { // -saves: there, never the player's own (tests)
+		eng.Cfg.SaveDir = d
+	} else if f.UserSaves {
 		saves, err := homeSaves(f.ID, s.Adventure)
 		if err != nil {
 			return ui.Launch{}, err
 		}
 		eng.Cfg.SaveDir = saves
-	}
-	if d := s.Capture.Dev.Saves; d != "" {
-		eng.Cfg.SaveDir = d
 	}
 	if len(f.Foreign) > 0 {
 		eng.Cfg.Foreign = homeRosters(filepath.Dir(s.Adventure), f.Foreign)
@@ -102,7 +101,15 @@ func playPool(s start) (ui.Launch, error) {
 	ui.SetScripts(f.Manifest.Start, f.Manifest.End) // the title, credits and end gobox composes
 	cg := ui.NewGame(eng, data)
 	g := ui.NewFront(cg, data, drv) // the rules' data (series, spell tips, overland art); one driver: the rules' calls and the fight's events
-	g.OnStart = func() { engine.DOSArt.Store(host.DOSArt) }
+	_, frontArt := g.Arts()         // the front's own art switch (portraits, cards, borders); nil: no Amiga art
+	setArt := func(dos bool) {      // the one art switch: the engine's pictures and the front's alike (F12)
+		engine.DOSArt.Store(dos)
+		if frontArt != nil {
+			frontArt(dos)
+		}
+		g.ArtNew = true
+	}
+	g.OnStart = func() { setArt(host.DOSArt) }
 	g.P.Sound = eng.PlayEventSound // a fight's sounds with what they belong to
 	w, h := window(f)
 	return ui.Launch{
@@ -113,7 +120,7 @@ func playPool(s start) (ui.Launch, error) {
 		Art: &ui.Arts{ // the Amiga or the DOS art (F12, the Graphics page)
 			Want:   func() bool { return host.DOSArt },
 			Toggle: func() { host.DOSArt = !host.DOSArt },
-			Set:    func(dos bool) { engine.DOSArt.Store(dos); g.ArtNew = true },
+			Set:    setArt,
 		},
 		FontPrev: ui.KeyFontPrev,
 		Apply:    apply,
