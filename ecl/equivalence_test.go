@@ -10,16 +10,6 @@ import (
 	"gobox/ecl/script"
 )
 
-// noText answers text variables for both readers alike.
-type noText struct{}
-
-func (noText) Get(script.Ref) int64       { return 0 }
-func (noText) Set(script.Ref, int64)      {}
-func (noText) Text(script.Ref) string     { return "" }
-func (noText) SetText(script.Ref, string) {}
-func (noText) Random(int) int             { return 0 }
-func (noText) Exit(*VM)                   {}
-
 // TestScriptEqualsByteCode: for every game and every command of its ECL
 // byte code, the command number, the operands and the next command the VM
 // gets from the imported text are the byte code's, with jumps and table

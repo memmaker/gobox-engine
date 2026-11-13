@@ -193,12 +193,6 @@ func (vm *VM) CodeByte(a uint16) byte {
 	return vm.Code[int(uint16(a-vm.Layout.Code.First))%n]
 }
 
-// SetCodeByte writes the script byte at address a.
-func (vm *VM) SetCodeByte(a uint16, v byte) {
-	n := int(vm.Layout.Code.Last) - int(vm.Layout.Code.First) + 1
-	vm.Code[int(uint16(a-vm.Layout.Code.First))%n] = v
-}
-
 // Ref is the field operand k names.
 func (vm *VM) Ref(k int) script.Ref { return vm.ArgRef[k] }
 
