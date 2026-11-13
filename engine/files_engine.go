@@ -5,6 +5,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -376,17 +377,7 @@ func (e *Engine) charBase(cID rules.CharID) string {
 	return MakeFileName(rules.RemoveSubstr(e.ruleset().Sheet(cID).Name, "."))
 }
 
-// CharRecord is the 0x11D-byte DOS character record (gobox/char's shared
-// codec): the .SAV files and the MON*CHA blocks (and the imported data's
-// JSON) in their layout. The ruleset holds the record as its Sheet
-// (char.SheetOf, char.SheetBytes).
-type CharRecord = rules1e.Record285
-
-// RecordLayout is the layout of the game's character records (its
-// adventure's manifest names it).
-const RecordLayout = rules1e.Layout285
-
-const charRecSize = int(RecordLayout)
+const charRecSize = int(adventure.RecordLayout)
 
 // fileBytes is v as the bytes of a save file (.mem, .dual) or of a byte field.
 func fileBytes[T ~uint8](v []T) []byte {

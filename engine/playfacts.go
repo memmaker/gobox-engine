@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/rules"
 	"image"
 	"slices"
@@ -472,7 +473,7 @@ func (e *Engine) question() *game.Question {
 }
 
 // labelKinds name the label kinds (game.Label.Kind); the player's are "".
-var labelKinds = [...]string{poiUser: "", poiShop: "shop", poiTemple: "temple", poiInn: "inn", poiCivic: "civic"}
+var labelKinds = [...]string{adventure.PoiUser: "", adventure.PoiShop: "shop", adventure.PoiTemple: "temple", adventure.PoiInn: "inn", adventure.PoiCivic: "civic"}
 
 // spellGroup is the level group a spell of class cls and level lvl is
 // listed under (SpellRef.Group, the SlotsMax keys): "cleric 1", "mage 2".

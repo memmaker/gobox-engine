@@ -2,17 +2,13 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/rules1e"
 	"path/filepath"
 
 	"gobox/asset"
 	"gobox/asset/orig"
 )
-
-// DataDir is the imported game data under the assets (ImportData): the
-// maps as a binary file and a metadata text file per GEO archive, the
-// monsters and items as JSON. Nothing at run time reads the archives' data.
-const DataDir = "data"
 
 // monsterData is a monster's records (MON<n>CHA, SPC, ITM block id).
 type monsterData = orig.Monster[rules1e.Sheet, rules1e.AffectRecord, rules1e.Item]
@@ -32,7 +28,7 @@ type gameData struct {
 // gdata is the engine's imported data, opened on first use.
 func (e *Engine) gdata() *gameData {
 	if e.gd == nil {
-		e.gd = &gameData{dir: filepath.Join(e.adv, DataDir), maps: map[string]map[int][]byte{}, monsters: map[string]map[int]monsterData{}, items: map[string]map[int][]rules1e.Item{}}
+		e.gd = &gameData{dir: filepath.Join(e.adv, adventure.DataDir), maps: map[string]map[int][]byte{}, monsters: map[string]map[int]monsterData{}, items: map[string]map[int][]rules1e.Item{}}
 	}
 	return e.gd
 }

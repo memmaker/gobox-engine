@@ -3,6 +3,7 @@ package engine
 import (
 	"bufio"
 	"fmt"
+	"gobox/adventure"
 	"gobox/ecl"
 	"gobox/rules"
 	"log"
@@ -19,67 +20,14 @@ import (
 // The game's fixed labels (GameTables.MapLabels; POR: New Phlan's buildings) are always shown;
 // the player's labels go over them and are kept with the save (labelsFile).
 
-// Label kinds, each with its colour on the maps (LabelInks, present.Data).
-const (
-	poiUser   = 0
-	poiShop   = 1
-	poiTemple = 2
-	poiInn    = 3
-	poiCivic  = 4
-)
-
 // poiInks is each label kind's EGA colour by kind (the one table: Data() hands it
 // to the presenter for every game, as the engine alone defines the kinds).
-var poiInks = [...]int{poiUser: 15, poiShop: 10, poiTemple: 13, poiInn: 14, poiCivic: 11}
+var poiInks = [...]int{adventure.PoiUser: 15, adventure.PoiShop: 10, adventure.PoiTemple: 13, adventure.PoiInn: 14, adventure.PoiCivic: 11}
 
 type mapLabel struct {
 	text string
 	kind byte
 }
-
-// MapLabel is a fixed label of a map square, the game's data (GameTables.MapLabels;
-// POR: New Phlan's buildings): its text and kind, and the soundtrack song
-// played there (0: the area's).
-type MapLabel struct {
-	Area int // areaKey: data set<<16 | GEO block
-	X, Y int
-	Text string
-	Kind byte // poi*
-	Song int
-}
-
-// PorMapLabels are the buildings of New Phlan (data set 3, GEO block 0;
-// ECL3 block 0): the squares whose event id (cell byte & 0x7F, the
-// script's [6E82]) leads to a shop, temple, inn, tavern or office in the
-// block's step event (ECL 9B4C ONGOTO).
-var PorMapLabels = func() []MapLabel {
-	var m []MapLabel
-	add := func(text string, kind byte, song int, sq ...[2]int) {
-		for _, s := range sq {
-			m = append(m, MapLabel{Area: 3 << 16, X: s[0], Y: s[1], Text: text, Kind: kind, Song: song})
-		}
-	}
-	add("Boats", poiCivic, 0, [2]int{15, 1})                                                // 1
-	add("Harbor master", poiCivic, 0, [2]int{11, 1})                                        // 2
-	add("Bishop Braccio", poiTemple, songTemple, [2]int{10, 5})                             // 5
-	add("Temple of Tyr", poiTemple, songTemple, [2]int{11, 3}, [2]int{8, 4}, [2]int{8, 6})  // 6
-	add("Temple of Sune", poiTemple, songTemple, [2]int{1, 1}, [2]int{3, 1}, [2]int{1, 3})  // 7
-	add("Inn", poiInn, songInn, [2]int{4, 12}, [2]int{6, 12}, [2]int{4, 13}, [2]int{6, 13}, // 9
-		[2]int{0, 14}, [2]int{1, 14}, [2]int{2, 14})
-	add("Training Hall", poiCivic, songTrainingHall, [2]int{5, 0}, [2]int{7, 0}, [2]int{9, 0})  // 10, 17
-	add("Shop", poiShop, songShop, [2]int{15, 8}, [2]int{9, 10}, [2]int{12, 10}, [2]int{9, 11}, // 19
-		[2]int{11, 11})
-	add("Tavern", poiInn, songTavern, [2]int{10, 8}, [2]int{8, 9}, [2]int{14, 10}, [2]int{15, 10}, // 20
-		[2]int{15, 12}, [2]int{15, 13}, [2]int{15, 14})
-	add("Jeweler", poiShop, songShop, [2]int{8, 10})                                       // 21
-	add("Arms and Armor", poiShop, songShop, [2]int{13, 8}, [2]int{8, 11}, [2]int{11, 12}, // 22
-		[2]int{8, 13}, [2]int{9, 13})
-	add("Silver Shop", poiShop, songShop, [2]int{11, 10}, [2]int{10, 13})                            // 23
-	add("Temple of Tempus", poiTemple, songTemple, [2]int{0, 12}, [2]int{2, 12})                     // 24
-	add("Gate to slums", poiCivic, 0, [2]int{0, 4})                                                  // 25
-	add("City Hall", poiCivic, songCityHall, [2]int{4, 4}, [2]int{4, 3}, [2]int{3, 4}, [2]int{5, 4}) // 27, 26
-	return m
-}()
 
 // labelsFile holds a slot's map labels (the player's, by map).
 const labelsFile = "LABELS.TXT"
@@ -128,7 +76,7 @@ func (e *Engine) readLabels(path string) {
 			continue
 		}
 		var text string
-		if n, _ := fmt.Sscanf(line, "%d %d %d", &x, &y, &kind); n == 3 && cur != nil && rules.OnMap(x, y) && kind >= 0 && kind <= poiCivic {
+		if n, _ := fmt.Sscanf(line, "%d %d %d", &x, &y, &kind); n == 3 && cur != nil && rules.OnMap(x, y) && kind >= 0 && kind <= adventure.PoiCivic {
 			if f := strings.SplitN(line, " ", 4); len(f) == 4 {
 				text = f[3]
 			}
@@ -166,7 +114,7 @@ func (e *Engine) writeLabels(path string) error {
 // label; "" marks nothing).
 func (e *Engine) Mark(x, y int, text string) {
 	if text = strings.TrimSpace(text); text != "" && rules.OnMap(x, y) {
-		e.userLabels()[y<<4|x] = mapLabel{rules.Cut(text, 0x20), poiUser}
+		e.userLabels()[y<<4|x] = mapLabel{rules.Cut(text, 0x20), adventure.PoiUser}
 	}
 }
 

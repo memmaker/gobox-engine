@@ -1,6 +1,7 @@
 package games
 
 import (
+	"gobox/adventure"
 	"gobox/rules1e"
 	"os"
 	"path/filepath"
@@ -8,7 +9,6 @@ import (
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/audio"
-	"gobox/engine"
 	"gobox/importer"
 	"gobox/rules"
 )
@@ -106,14 +106,14 @@ func CotabImport(dos, dst string) error {
 	if err := cotabImportRules(dos, filepath.Join(dst, "data")); err != nil {
 		return err
 	}
-	if err := ImportJournal("cotab", filepath.Join(dst, "data", engine.JournalDir)); err != nil {
+	if err := ImportJournal("cotab", filepath.Join(dst, "data", adventure.JournalDir)); err != nil {
 		return err
 	}
 	data := filepath.Join(dst, "data")
-	if err := engine.WriteGameData(data, CotabStaticData()); err != nil {
+	if err := adventure.WriteGameData(data, CotabStaticData()); err != nil {
 		return err
 	}
-	if err := importer.WriteJSON(filepath.Join(data, engine.GameTablesFile), cotabGameTables); err != nil {
+	if err := importer.WriteJSON(filepath.Join(data, adventure.GameTablesFile), cotabGameTables); err != nil {
 		return err
 	}
 	return importer.WriteJSON(filepath.Join(data, rules1e.LayoutFile), CotabLayout1e)
@@ -123,20 +123,20 @@ func CotabImport(dos, dst string) error {
 // dialect's: shop, then temple), no NPC combat icon, the duel sounds' numbers (CALL 0xB200's
 // DS:2612 table: 8 a step, 10 the fireball; any other plays a step). The portrait tables stay
 // empty: COTAB's portraits come from the shared collection.
-var cotabGameTables = engine.GameTables{
+var cotabGameTables = adventure.GameTables{
 	Dialect: rules.DialectCOTAB,
-	ScriptSounds: map[byte]engine.ScriptSound{
+	ScriptSounds: map[byte]adventure.ScriptSound{
 		8:  {Cue: rules.CueStep},
 		10: {Cue: rules.CueFireball},
 	},
 	AddNPCIcon:   false,
-	DefaultSound: &engine.ScriptSound{Cue: rules.CueStep},
+	DefaultSound: &adventure.ScriptSound{Cue: rules.CueStep},
 	ScriptFixes:  cotabScriptFixes,
 	OriginalSave: CotabOriginalSave,
-	Art: &engine.ArtNames{ // copyprot's and LoadCombatTileSet's Load24x24Set (cotab-re combatst.pas)
-		Tiles:         []engine.TileLoad{{File: "TILES", Block: 1, Last: 25}, {File: "TILES", Block: 2, First: 26, Last: 21}},
-		DungeonTiles:  []engine.TileLoad{{File: "DUNGCOM", Block: 1, Last: 24}, {File: "RANDCOM", Block: 1, First: 34, Last: 5}},
-		WildTiles:     []engine.TileLoad{{File: "WILDCOM", Block: 1, Last: 32}, {File: "RANDCOM", Block: 1, First: 34, Last: 5}},
+	Art: &adventure.ArtNames{ // copyprot's and LoadCombatTileSet's Load24x24Set (cotab-re combatst.pas)
+		Tiles:         []adventure.TileLoad{{File: "TILES", Block: 1, Last: 25}, {File: "TILES", Block: 2, First: 26, Last: 21}},
+		DungeonTiles:  []adventure.TileLoad{{File: "DUNGCOM", Block: 1, Last: 24}, {File: "RANDCOM", Block: 1, First: 34, Last: 5}},
+		WildTiles:     []adventure.TileLoad{{File: "WILDCOM", Block: 1, Last: 32}, {File: "RANDCOM", Block: 1, First: 34, Last: 5}},
 		CombatSprites: "COMSPR",
 		Title:         "TITLE",
 	},

@@ -18,6 +18,7 @@ DRAFT for Felix's review, revision 4: his 11 rulings, the 21 variation rulings, 
 | Part | Package | What |
 |---|---|---|
 | Assets | `asset` | every runtime data reader: adventure art sheets, walls (`asset/walls`), sprites (`asset/sprites`), fonts (`asset/fonts`), picture table (`asset/origins`), save slots, remastered art by game id (`asset.Remaster`, data in `asset/remaster/<id>/`) |
+| | `adventure` | the adventure folder's format: dir and file names, `GameTables`, `ArtNames`, `WriteGameData`/`ReadGameData`/`ReadGameTables`; written by `importer`, read by `engine`, neither imports the other |
 | | `asset/orig` | decoders of the original games' files: DAX (incl. `ImportArt`), Amiga, ADF, EXE and its table specs, GLBR songs; tools in `asset/orig/cmd` |
 | UI | `ui` | the front and presenter, the host window and frame loop (`Play(Launch, WindowMode, Capture)`: one loop for every game; was gobox/app), widgets, key bindings, the Esc menu, VACE; tools in `ui/cmd`. Sub-packages ui imports (never the reverse): `ui/blobber` the first-person 3D view (`View`, `Scene`, `Camera`, `Options`), `ui/combat` the 3D combat board and its action bar (`Presenter`, `Board`, `Decision`), `ui/input` the key vocabulary (`Act`). Also `gpu`, `audio` (with SID) |
 | Rules | `rules` | the contract (`Rules`, `Adventure`, ids, RNG) plus the shared Gold Box mechanics and GEO parsing; `rules/xxvc` |

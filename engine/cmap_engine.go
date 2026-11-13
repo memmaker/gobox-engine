@@ -5,6 +5,7 @@ import (
 
 	"strings"
 
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/rules"
 )
@@ -53,7 +54,7 @@ func (e *Engine) drawIcon(x, y int, dir, pose, slot byte) {
 // LayTiles = ovr33:0022 LoadBackpacIcons (name, first, n): block l.Block
 // of l.File copied into the tile set from tile l.First on, frames 0..l.Last
 // (POR's Amiga RANDCOM has two more, which would land on the tiles after it).
-func (e *Engine) LayTiles(l TileLoad) {
+func (e *Engine) LayTiles(l adventure.TileLoad) {
 	if l.First > 0x7F {
 		return // the original stops with a fatal error
 	}
@@ -72,11 +73,11 @@ func (e *Engine) LayTiles(l TileLoad) {
 }
 
 // tileBlock is l's block number in the game's present state.
-func (e *Engine) tileBlock(l TileLoad) int {
+func (e *Engine) tileBlock(l adventure.TileLoad) int {
 	switch l.From {
-	case TileBlockWalls:
+	case adventure.TileBlockWalls:
 		return e.mapPairA[0] & 0xFF
-	case TileBlockAreaSet:
+	case adventure.TileBlockAreaSet:
 		if s := e.worldWord(rules.WordAreaScreen); s == 1 || s == 2 {
 			return s
 		}

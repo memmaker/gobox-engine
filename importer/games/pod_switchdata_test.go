@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/audio"
 	"gobox/ecl"
-	"gobox/engine"
 	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -25,18 +25,18 @@ func TestSwitchData(t *testing.T) {
 	if err := writeSwitchData(dst); err != nil {
 		t.Fatal(err)
 	}
-	g, err := engine.ReadGameTables(dst)
+	g, err := adventure.ReadGameTables(dst)
 	if err != nil {
 		t.Fatal(err)
 	}
-	d, err := engine.ReadGameData(dst)
+	d, err := adventure.ReadGameData(dst)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if d.ID != "pod" || d.Font != "Pools_of_Darkness" || len(d.QuickParty) == 0 || d.AdLib == nil || len(d.Rests) != 2 {
 		t.Errorf("game data %+v", d)
 	}
-	snd, err := os.ReadFile(filepath.Join(dst, engine.DataDir, engine.SoundFile))
+	snd, err := os.ReadFile(filepath.Join(dst, adventure.DataDir, adventure.SoundFile))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func TestSwitchData(t *testing.T) {
 	for n := 0; n <= 255; n++ {
 		song, music, digitized := SoundKind(byte(n))
 		s, ok := g.ScriptSounds[byte(n)]
-		want := engine.ScriptSound{Music: music, Song: song}
+		want := adventure.ScriptSound{Music: music, Song: song}
 		if digitized {
 			want.Cue = rules.SoundCue(strconv.Itoa(n))
 		}
@@ -70,7 +70,7 @@ func TestSwitchData(t *testing.T) {
 			t.Errorf("sound %d: %+v (%v), want %+v", n, s, ok, want)
 		}
 	}
-	data := filepath.Join(dst, engine.DataDir)
+	data := filepath.Join(dst, adventure.DataDir)
 	l, err := rules1e.ReadLayout(filepath.Join(data, rules1e.LayoutFile))
 	if err != nil || !reflect.DeepEqual(l, PodLayout1e()) {
 		t.Errorf("layout %+v (%v), want %+v", l, err, PodLayout1e())
@@ -81,7 +81,7 @@ func TestSwitchData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	book, err := game.LoadJournal(os.DirFS(filepath.Join(dst, engine.JournalDir)), "JOURNAL.TXT")
+	book, err := game.LoadJournal(os.DirFS(filepath.Join(dst, adventure.JournalDir)), "JOURNAL.TXT")
 	if err != nil {
 		t.Fatal(err)
 	}

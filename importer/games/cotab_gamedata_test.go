@@ -1,11 +1,10 @@
 package games
 
 import (
+	"gobox/adventure"
 	"path/filepath"
 	"reflect"
 	"testing"
-
-	"gobox/engine"
 )
 
 // TestGameDataFile: cotab's StaticData goes through data/gamedata.json to the
@@ -13,10 +12,10 @@ import (
 func TestCotabGameDataFile(t *testing.T) {
 	dir := t.TempDir()
 	want := CotabStaticData()
-	if err := engine.WriteGameData(filepath.Join(dir, engine.DataDir), want); err != nil {
+	if err := adventure.WriteGameData(filepath.Join(dir, adventure.DataDir), want); err != nil {
 		t.Fatal(err)
 	}
-	got, err := engine.ReadGameData(dir)
+	got, err := adventure.ReadGameData(dir)
 	if err != nil {
 		t.Fatal(err)
 	}

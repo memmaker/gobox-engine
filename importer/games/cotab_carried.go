@@ -33,13 +33,6 @@ var CotabOriginalSave = rules1e.SaveLayout{
 // DungeonTiles is how many tiles DungCom puts at the start of the set.
 const CotabDungeonTiles = 0x18 + 1
 
-// Camp's rests (CampRest), as por numbers them (present.Data).
-const (
-	RestFix   = iota // Fix: the clerics heal the party
-	RestWait         // Rest: the original's rest menu (Days, Hours ..., the Ask)
-	RestUntil        // until day or night: not the original's, refused
-)
-
 // charRecord is the game's character record, the shared 422-byte layout
 // (gobox/char, field for field: CHRDATA/SAVGAM and the monster records).
 type cotabCharRecord = rules1e.Record422

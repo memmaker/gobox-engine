@@ -3,6 +3,7 @@ package engine
 import (
 	"bytes"
 	"encoding/binary"
+	"gobox/adventure"
 	"gobox/asset/orig"
 	"gobox/rules1e"
 	"testing"
@@ -10,7 +11,7 @@ import (
 )
 
 func TestCharRecordLayout(t *testing.T) {
-	var r CharRecord
+	var r adventure.CharRecord
 	if n := binary.Size(&r); n != charRecSize {
 		t.Fatalf("record is %#x bytes, want %#x", n, charRecSize)
 	}

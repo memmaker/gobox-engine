@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/rules"
 	"image"
 	"slices"
@@ -23,10 +24,8 @@ var (
 // TextPaneRows is the text pane's rows.
 const TextPaneRows = paneBottom - msgTop + 1
 
-// MapCell is the size of a square in Map, in pixels.
-const MapCell = mapCell
-
-const mapCell = 10
+// mapCell is the size of a square in Map, in pixels (the format's MapCell).
+const mapCell = adventure.MapCell
 
 // snapState is the engine's side of the seam.
 type snapState struct {

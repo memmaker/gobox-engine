@@ -5,21 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"gobox/adventure"
 	"gobox/asset/orig"
 	"gobox/audio"
 	"gobox/game"
 	"gobox/rules"
 )
-
-// SoundFile is the driver's songs, scripts and vibrato waveforms, decoded from
-// START.EXE at import (ImportData, sounddata.Decode at soundLayout) and
-// synthesized at run time.
-const SoundFile = "sound.json"
-
-// SoundLayout is where START.EXE's driver (segment 08AE) keeps its tables (gobox audio API.md).
-var SoundLayout = audio.SoundDataLayout{Segment: 0x8AE, JumpTable: 545, SpeakerSet: 557, TandySet: 967,
-	SpeakerSongs: 1375, TandySongs: 1543, Songs: 21, Enabled: 525,
-	Commands: map[int]string{5710: "reset", 5804: "return", 5811: "call", 5701: "switch", 5678: "loop", 5759: "set"}}
 
 // The sound driver of START.EXE (its segment 08AE) is gobox audio's Driver,
 // over the tables in soundFile, which the rules call as Sound;
@@ -79,7 +70,7 @@ func (e *Engine) Music(n int) {
 // when n is a one-shot that ends; false without the soundtrack, so the
 // caller falls back to the Amiga's. A Battle Begins starts again.
 func (e *Engine) songMusic(n, next int) bool {
-	return e.snd.d != nil && e.snd.d.Song(n, next, n == songBattleBegins)
+	return e.snd.d != nil && e.snd.d.Song(n, next, n == adventure.SongBattleBegins)
 }
 
 // titleMusic reports whether the title song plays, which plays on into the
@@ -89,7 +80,7 @@ func (e *Engine) titleMusic() bool {
 		return false
 	}
 	on, song := e.snd.d.Track()
-	return on && song == songTitle
+	return on && song == adventure.SongTitle
 }
 
 // areaMusic (extra; the Amiga program never starts songs 4 and 6): the
@@ -115,77 +106,25 @@ func (e *Engine) areaMusic() {
 	}
 }
 
-// The soundtrack's songs, numbered in the Famicom cartridge's order.
-const (
-	songTitle        = 1
-	songNewPhlan     = 2
-	songDungeon1     = 3
-	songDungeon2     = 4
-	songDiogenes     = 5
-	songDungeon3     = 6
-	songYarash       = 7
-	songGraveyard    = 8
-	songValjevo      = 9 // Stojanow Gate and Valjevo Castle
-	songLair         = 10
-	songCombat       = 11
-	songTyranthraxus = 12
-	songWilderness   = 13
-	songShop         = 14
-	songEnding       = 15
-	songGameOver     = 16
-	songEncounter    = 17
-	songVictory      = 18 // with the fanfare; 19 is the loop alone
-	songTemple       = 20
-	songInn          = 21
-	songTrainingHall = 24 // with the fanfare; 22 is the loop alone
-	songCityHall     = 23
-	songTavern       = 25
-	songGypsy        = 26
-	songBattleBegins = 27 // a two-second sting
-)
-
 // amigaSong (extra) maps the Amiga songs Music starts to the soundtrack's:
 // title the title, battle the combat theme, the party menu the training
 // hall, Phlan New Phlan, party killed the game over, the overland map the
 // wilderness.
-var amigaSong = [...]int{0: 0, 1: songTitle, 2: songCombat, 3: songTrainingHall, 4: songNewPhlan, 5: songGameOver, 6: songWilderness}
-
-// AreaMusic is a game's soundtrack by area (GameTables.Music; nil: none):
-// each GEO block's song, and the songs of the battles fought there.
-type AreaMusic struct {
-	Songs       map[int]int // GEO block -> its song
-	BattleSongs map[int]int // GEO block -> its battles' song; none: A Battle Begins into the combat theme
-}
-
-// PorMusic (extra) is POR's: the cartridge's own area table (bank 59 $8C46)
-// where its areas match the PC's, the themes' names elsewhere; Tyranthraxus's
-// lair (GEO 7) has his own battle song.
-var PorMusic = AreaMusic{
-	Songs: map[int]int{
-		0: songNewPhlan, 1: songDungeon3, 2: songDungeon1,
-		3: songValjevo, 4: songValjevo, 5: songValjevo, 6: songValjevo, 7: songLair,
-		9: songValjevo, 10: songGraveyard, 13: songDungeon1, 14: songDungeon2, 15: songDungeon1,
-		16: songYarash, 17: songGypsy, 18: songDungeon1, 19: songDiogenes, 20: songDungeon1,
-		21: songDungeon2, 22: songYarash, 23: songYarash, 24: songDungeon2,
-		25: songWilderness, 26: songWilderness, 27: songWilderness, 28: songDungeon3,
-		29: songDungeon1, 30: songYarash, 31: songDungeon2, 32: songDungeon1,
-	},
-	BattleSongs: map[int]int{7: songTyranthraxus},
-}
+var amigaSong = [...]int{0: 0, 1: adventure.SongTitle, 2: adventure.SongCombat, 3: adventure.SongTrainingHall, 4: adventure.SongNewPhlan, 5: adventure.SongGameOver, 6: adventure.SongWilderness}
 
 // music is the game's AreaMusic.
-func (e *Engine) music() AreaMusic {
+func (e *Engine) music() adventure.AreaMusic {
 	if m := e.game().Music; m != nil {
 		return *m
 	}
-	return AreaMusic{}
+	return adventure.AreaMusic{}
 }
 
 // areaSong is the song for where the party is: the wilderness on the
 // overland map, a labelled building's (MapLabel.Song), else the area's (0: none).
 func (e *Engine) areaSong() int {
 	if e.viewMode > 1 {
-		return songWilderness
+		return adventure.SongWilderness
 	}
 	k := e.areaKey()
 	for _, l := range e.game().MapLabels {
@@ -202,7 +141,7 @@ func (e *Engine) areaSong() int {
 func (e *Engine) battleMusic() {
 	switch {
 	case e.music().BattleSongs[e.worldWord(rules.WordGeo)] != 0 && e.songMusic(e.music().BattleSongs[e.worldWord(rules.WordGeo)], 0):
-	case e.songMusic(songBattleBegins, songCombat):
+	case e.songMusic(adventure.SongBattleBegins, adventure.SongCombat):
 	default:
 		e.Music(2) // Amiga 0x364E2
 	}
@@ -213,11 +152,11 @@ func (e *Engine) battleMusic() {
 // the voice-over's speaking and the volume sliders.
 func (e *Engine) SoundParts() (*orig.Player, []int, interface{ Mix([]byte) }, func() bool, func(string) float64) {
 	var am *orig.Player
-	if img, err := os.ReadFile(filepath.Join(e.adv, SoundDir, "SOUND.BIN")); err == nil && len(img) == orig.End-orig.Base {
+	if img, err := os.ReadFile(filepath.Join(e.adv, adventure.SoundDir, "SOUND.BIN")); err == nil && len(img) == orig.End-orig.Base {
 		am = orig.NewPlayer(img)
 		am.SongOn = 0x667d5
 	}
-	e.snd.dasp = loadDasp(filepath.Join(e.adv, SoundDir, daspDir))
+	e.snd.dasp = loadDasp(filepath.Join(e.adv, adventure.SoundDir, daspDir))
 	var pack interface{ Mix([]byte) }
 	if e.snd.dasp != nil {
 		pack = e.snd.dasp
@@ -338,7 +277,7 @@ func (s *sound) setCard(c int) {
 // SoundTables after it.
 func (e *Engine) SoundData() ([]byte, error) {
 	if e.sounds == nil {
-		b, err := os.ReadFile(filepath.Join(e.adv, DataDir, SoundFile))
+		b, err := os.ReadFile(filepath.Join(e.adv, adventure.DataDir, adventure.SoundFile))
 		if err != nil {
 			return nil, fmt.Errorf("the sound tables are not imported (run the import): %w", err)
 		}

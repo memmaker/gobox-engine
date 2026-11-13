@@ -2,6 +2,7 @@ package engine
 
 import (
 	"encoding/json"
+	"gobox/adventure"
 	"gobox/ecl"
 	"os"
 	"path/filepath"
@@ -22,7 +23,7 @@ func TestGoldenECLCommands(t *testing.T) {
 		if err := json.Unmarshal(b, &handled); err != nil {
 			t.Fatal(err)
 		}
-		e := &Engine{given: &GameTables{Script: v, OriginalSave: testCode}}
+		e := &Engine{given: &adventure.GameTables{Script: v, OriginalSave: testCode}}
 		e.initVM()
 		for _, c := range handled {
 			if e.vm.Ops[c] == nil {

@@ -2,13 +2,13 @@ package games
 
 import (
 	"encoding/json"
+	"gobox/adventure"
 	"gobox/rules1e"
 	"os"
 	"path/filepath"
 
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/engine"
 )
 
 // ImportDataTo writes the game's maps and records from the DOS originals in
@@ -125,13 +125,13 @@ func ImportGameTablesTo(dst string) error {
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := engine.WriteGameData(dst, SotsbStaticData()); err != nil {
+	if err := adventure.WriteGameData(dst, SotsbStaticData()); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, engine.SoundFile), soundData, 0o644); err != nil { // START.EXE's tables, as pool.SoundData reads them
+	if err := os.WriteFile(filepath.Join(dst, adventure.SoundFile), soundData, 0o644); err != nil { // START.EXE's tables, as pool.SoundData reads them
 		return err
 	}
-	for file, v := range map[string]any{engine.GameTablesFile: GameTables, rules1e.LayoutFile: SotsbLayout1e} {
+	for file, v := range map[string]any{adventure.GameTablesFile: GameTables, rules1e.LayoutFile: SotsbLayout1e} {
 		b, err := json.MarshalIndent(v, "", " ")
 		if err != nil {
 			return err

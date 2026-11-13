@@ -607,18 +607,10 @@ func (e *Engine) noMonsterScreen() func() {
 var combatScreenWords = map[ecl.CombatScreen]rules.WorldWord{
 	ecl.CombatShop: rules.WordShop, ecl.CombatTemple: rules.WordTemple, ecl.CombatVault: rules.WordVault}
 
-// areaMonsterFor is the monster the area screen adds to a fight; none past the table.
-func (t AreaMonsters) areaMonsterFor(screen int) (AreaMonster, bool) {
-	if screen < 0 || screen >= len(t.ByScreen) {
-		return AreaMonster{}, false
-	}
-	return t.ByScreen[screen], true
-}
-
 // addAreaMonsters = pod O055:1740: the area screen's own monsters join the fight, standing aside.
 func (e *Engine) addAreaMonsters() {
 	t := e.game().AreaMonsters
-	m, ok := t.areaMonsterFor(e.worldWord(rules.WordAreaScreen))
+	m, ok := t.For(e.worldWord(rules.WordAreaScreen))
 	if !ok {
 		return
 	}

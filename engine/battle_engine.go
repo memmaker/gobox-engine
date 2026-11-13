@@ -144,9 +144,6 @@ func (e *Engine) cmapShown() {
 	e.snap.cmapOn = true
 }
 
-// DungeonTiles is how many tiles DungCom puts at the start of the set.
-const DungeonTiles = 0x18 + 1
-
 // groundColour is the pixel value the combat tiles paint the bare ground
 // in: their most common one (0 on DOS, a slot's grey on the Amiga).
 func groundColour(im *asset.Image) uint8 {

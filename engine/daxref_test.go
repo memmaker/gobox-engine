@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"gobox/adventure"
 	"gobox/asset/orig"
 )
 
@@ -18,11 +19,11 @@ func refDAX(e *Engine) *orig.Loader {
 	if l, ok := refLoaders.Load(e.data); ok {
 		return l.(*orig.Loader)
 	}
-	l, err := orig.NewLoader(filepath.Join(e.data, DOSDir))
+	l, err := orig.NewLoader(filepath.Join(e.data, adventure.DOSDir))
 	if err != nil {
 		panic(err) // the tests that call it have the game files
 	}
-	l.UseAmiga(filepath.Join(e.data, AmigaDir))
+	l.UseAmiga(filepath.Join(e.data, adventure.AmigaDir))
 	actual, _ := refLoaders.LoadOrStore(e.data, l)
 	return actual.(*orig.Loader)
 }

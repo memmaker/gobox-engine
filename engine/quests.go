@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"slices"
 )
 
@@ -19,27 +20,9 @@ import (
 // questID is a quest's id: its Quest value (names/quests.txt) and a save's questNote.
 type questID int
 
-// QuestDef is a quest (GameTables.Quests, the import's): its id (Quest's value), journal
-// name (at most 19 letters: the list's width), giver and place, the giver's own words (the
-// scripts' texts that hand it over), its done and its offered tests.
-type QuestDef struct {
-	ID                 int
-	Name, Giver, Place string
-	Brief              []string
-	Done, Given        QuestTest
-}
-
-// QuestTest holds when any of its fields is at least its Min; empty never holds.
-type QuestTest []FieldAtLeast
-
-// FieldAtLeast is the game's saved field (layout/) at least Min.
-type FieldAtLeast struct {
-	Field string
-	Min   int64
-}
-
-func (t QuestTest) holds(e *Engine) bool {
-	return slices.ContainsFunc(t, func(f FieldAtLeast) bool { return e.savedWord(f.Field) >= f.Min })
+// questHolds is whether any of t's fields is at least its Min.
+func (e *Engine) questHolds(t adventure.QuestTest) bool {
+	return slices.ContainsFunc(t, func(f adventure.FieldAtLeast) bool { return e.savedWord(f.Field) >= f.Min })
 }
 
 // questNote is a quest the party was given.
@@ -48,11 +31,11 @@ type questNote struct {
 }
 
 // questByID is the quest of id.
-func (e *Engine) questByID(id questID) (QuestDef, bool) {
+func (e *Engine) questByID(id questID) (adventure.QuestDef, bool) {
 	qs := e.game().Quests
-	i := slices.IndexFunc(qs, func(q QuestDef) bool { return questID(q.ID) == id })
+	i := slices.IndexFunc(qs, func(q adventure.QuestDef) bool { return questID(q.ID) == id })
 	if i < 0 {
-		return QuestDef{}, false
+		return adventure.QuestDef{}, false
 	}
 	return qs[i], true
 }
@@ -82,11 +65,11 @@ func (e *Engine) questsView() []Quest {
 		if !ok {
 			continue
 		}
-		out = append(out, Quest{Name: q.Name, Giver: q.Giver, Place: q.Place, Text: q.Brief, Done: q.Done.holds(e)})
+		out = append(out, Quest{Name: q.Name, Giver: q.Giver, Place: q.Place, Text: q.Brief, Done: e.questHolds(q.Done)})
 	}
 	for _, q := range e.game().Quests { // the flags say so, not handed over (a save from before the journal)
 		noted := slices.ContainsFunc(e.ext.quests, func(n questNote) bool { return n.ID == questID(q.ID) })
-		if done := q.Done.holds(e); !noted && (done || q.Given.holds(e)) {
+		if done := e.questHolds(q.Done); !noted && (done || e.questHolds(q.Given)) {
 			out = append(out, Quest{Name: q.Name, Giver: q.Giver, Place: q.Place, Text: q.Brief, Done: done})
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/game"
 )
@@ -46,7 +47,7 @@ func CotabStaticData() game.Data {
 	d.ReadyMark = "Yes "                                                          // the item list's readied column (ItemName)
 	d.IconParts = []string{"Body", "Arm", "Leg", "Hair/Face", "Shield", "Weapon"} // as the original's icon editor names them
 	// camp's Fix and Rest; Rest is a Duration rest: gobox asks the days and hours
-	d.Rests = []game.RestKind{{Text: "Fix", Key: 'F', N: RestFix, Fix: true}, {Text: "Rest", Key: 'R', N: RestWait, Duration: true}}
+	d.Rests = []game.RestKind{{Text: "Fix", Key: 'F', N: adventure.RestFix, Fix: true}, {Text: "Rest", Key: 'R', N: adventure.RestWait, Duration: true}}
 	// the Party submenu's human class change (Pool and Hillsfar imports are Imports' Add from where?)
 	d.Commands = append(game.CommandEntries(cotabPartyCommands), game.PartyCommand{Label: "Add from Pool", Key: 'P', From: "por"})
 	// the combat bar's letters, as combatMenu's (Move View Aim Use Cast Turn Quick Done) and otherMenu's

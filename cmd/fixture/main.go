@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gobox/adventure"
 	"gobox/asset/orig"
 	"gobox/ecl"
 	"gobox/engine"
@@ -111,15 +112,15 @@ func porGame() fixture.Game {
 			return "", nil
 		},
 		Open: func(root, slot string) (fixture.State, error) {
-			slotDir = filepath.Join(root, engine.SaveDir, "saves", slot)
-			s, err := engine.OpenSave(rules1e.Rules1e, slotDir, filepath.Join(root, engine.AssetsDir))
+			slotDir = filepath.Join(root, adventure.SaveDir, "saves", slot)
+			s, err := engine.OpenSave(rules1e.Rules1e, slotDir, filepath.Join(root, adventure.AssetsDir))
 			if err != nil {
 				return nil, fmt.Errorf("slot %s: %v", slot, err)
 			}
 			return s, nil
 		},
 		ECL: func(root string, block int) (int, []byte, error) {
-			l, err := orig.NewLoader(filepath.Join(root, engine.DOSDir))
+			l, err := orig.NewLoader(filepath.Join(root, adventure.DOSDir))
 			if err != nil {
 				return 0, nil, err
 			}

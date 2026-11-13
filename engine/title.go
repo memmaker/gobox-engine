@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"slices"
 
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/game"
 	"gobox/importer"
@@ -120,7 +121,7 @@ var errNoArt = errors.New("no such picture in the adventure's art")
 func (e *Engine) titleArt(a importer.Art) (game.Picture, error) {
 	switch a.Kind {
 	case importer.ArtPNG:
-		p := filepath.Join(e.adv, ArtDir, a.File)
+		p := filepath.Join(e.adv, adventure.ArtDir, a.File)
 		if _, err := os.Stat(p); err != nil {
 			return game.Picture{}, err
 		}

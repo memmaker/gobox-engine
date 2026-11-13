@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/game"
 )
 
@@ -169,7 +170,7 @@ func TestReadPublishOnly(t *testing.T) {
 // books has none of POR's.
 func TestOwnJournalBooks(t *testing.T) {
 	adv := t.TempDir()
-	dir := filepath.Join(adv, JournalDir)
+	dir := filepath.Join(adv, adventure.JournalDir)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
 	}

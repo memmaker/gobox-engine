@@ -51,9 +51,6 @@ func (e *Engine) dasp(event string) bool {
 // daspDir is the pack's folder under the assets.
 const daspDir = "dasp"
 
-// SoundDir is the adventure's Amiga sound (SOUND.BIN) and the sound pack (daspDir).
-const SoundDir = "sound"
-
 // speechDir is the adventure's voice-over, one .ogg per text key.
 const speechDir = "speech"
 

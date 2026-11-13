@@ -3,6 +3,7 @@ package engine
 import (
 	"bytes"
 	"encoding/binary"
+	"gobox/adventure"
 	"gobox/rules1e"
 	"os"
 	"path/filepath"
@@ -18,11 +19,11 @@ import (
 // back from the imported data (gdata) as the archives decode them.
 func TestDataEqualsDAX(t *testing.T) {
 	data := filepath.Join("..", "data", "por", "sources")
-	l, err := orig.NewLoader(filepath.Join(data, DOSDir))
+	l, err := orig.NewLoader(filepath.Join(data, adventure.DOSDir))
 	if err != nil {
 		t.Skip("no game files")
 	}
-	e := &Engine{adv: filepath.Join(data, AssetsDir)}
+	e := &Engine{adv: filepath.Join(data, adventure.AssetsDir)}
 	d := e.gdata()
 	n := 0
 	for s := rules.Set(1); s <= sets; s++ {
@@ -69,8 +70,8 @@ func TestDataEqualsDAX(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := make([]rules1e.ItemBase, ItemTypes)
-	binary.Decode(append(raw[2:], make([]byte, ItemTypes*16)...), binary.LittleEndian, want)
+	want := make([]rules1e.ItemBase, adventure.ItemTypes)
+	binary.Decode(append(raw[2:], make([]byte, adventure.ItemTypes*16)...), binary.LittleEndian, want)
 	if !reflect.DeepEqual(want, d.itemTable()) {
 		t.Fatal("ITEMS differs")
 	}
@@ -81,15 +82,15 @@ func TestDataEqualsDAX(t *testing.T) {
 // tables as decoded, and the driver plays them.
 func TestSoundEqualsEXE(t *testing.T) {
 	data := filepath.Join("..", "data", "por", "sources")
-	exe, err := os.ReadFile(filepath.Join(data, DOSDir, "START.EXE"))
+	exe, err := os.ReadFile(filepath.Join(data, adventure.DOSDir, "START.EXE"))
 	if err != nil {
 		t.Skip("no START.EXE")
 	}
-	want, err := audio.DecodeSoundData(exe, SoundLayout)
+	want, err := audio.DecodeSoundData(exe, adventure.SoundLayout)
 	if err != nil {
 		t.Fatal(err)
 	}
-	e := &Engine{adv: filepath.Join(data, AssetsDir)}
+	e := &Engine{adv: filepath.Join(data, adventure.AssetsDir)}
 	got, err := e.SoundData()
 	if err != nil {
 		t.Fatal(err)

@@ -1,7 +1,7 @@
 package games
 
 import (
-	"gobox/engine"
+	"gobox/adventure"
 	"gobox/rules"
 	"gobox/rules1e"
 )
@@ -13,19 +13,19 @@ var SotsbLayout1e = rules1e.Layout{SlotStride: sotsbSpellLevels, Races: rules1e.
 // GameTables is the game's pool.GameTables, written as data/gametables.json:
 // the second engine's dialect, an NPC loads its combat icon, the duel sounds
 // (callSound); the portrait tables stay empty.
-var GameTables = engine.GameTables{
+var GameTables = adventure.GameTables{
 	Dialect:    rules.DialectCOTAB,
 	AddNPCIcon: true,
-	ScriptSounds: map[byte]engine.ScriptSound{
+	ScriptSounds: map[byte]adventure.ScriptSound{
 		soundDuelA: {Cue: rules.CueStep},
 		soundDuelB: {Cue: rules.CueFireball},
 	},
-	DefaultSound: &engine.ScriptSound{Cue: rules.CueStep}, // callSound's default
+	DefaultSound: &adventure.ScriptSound{Cue: rules.CueStep}, // callSound's default
 	ScriptFixes:  journalFixes,
 	OriginalSave: SotsbOriginalSave,
 	MonsterSet:   1, // LoadCreatureData's MON1, LoadIconAnim's CPIC1
-	Art: &engine.ArtNames{ // LoadCombatTileSet's Load24x24Set (sotsb-re combatst.pas): outdoors it loads none
-		DungeonTiles:  []engine.TileLoad{{File: "DUNGCOM", Block: 1, Last: 31}},
+	Art: &adventure.ArtNames{ // LoadCombatTileSet's Load24x24Set (sotsb-re combatst.pas): outdoors it loads none
+		DungeonTiles:  []adventure.TileLoad{{File: "DUNGCOM", Block: 1, Last: 31}},
 		CombatSprites: "COMSPR",
 		Title:         "TITLE",
 	},

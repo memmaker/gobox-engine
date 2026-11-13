@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/ecl"
 	"gobox/rules1e"
 	"testing"
@@ -10,7 +11,7 @@ import (
 // name, and no byte runs a command its dialect gives another name (fold S2).
 func TestEclOpsByName(t *testing.T) {
 	for _, v := range []*ecl.Version{ecl.V1, ecl.V2, ecl.V3} {
-		e := &Engine{given: &GameTables{Script: v, OriginalSave: testCode}}
+		e := &Engine{given: &adventure.GameTables{Script: v, OriginalSave: testCode}}
 		e.initVM()
 		for b, c := range v.Cmds {
 			_, named := eclOps[c.Op]

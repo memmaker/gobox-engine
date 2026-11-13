@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/rules"
@@ -16,12 +17,12 @@ import (
 // game draws (artFiles) is there.
 func TestArtEqualsDAX(t *testing.T) {
 	data := filepath.Join("..", "data", "por", "sources")
-	l, err := orig.NewLoader(filepath.Join(data, DOSDir))
+	l, err := orig.NewLoader(filepath.Join(data, adventure.DOSDir))
 	if err != nil {
 		t.Skip("no game files")
 	}
-	l.UseAmiga(filepath.Join(data, AmigaDir))
-	art := asset.OpenArt(filepath.Join(data, AssetsDir, ArtDir))
+	l.UseAmiga(filepath.Join(data, adventure.AmigaDir))
+	art := asset.OpenArt(filepath.Join(data, adventure.AssetsDir, adventure.ArtDir))
 	n := 0
 	for _, f := range artFiles() {
 		for _, v := range []asset.Version{asset.DOS, asset.Amiga} {

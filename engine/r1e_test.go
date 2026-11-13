@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/rules"
 	"gobox/rules1e"
 )
@@ -9,8 +10,8 @@ import (
 // game): they build the rules with char.Rules1e and read the portrait tables
 // the game's import wrote (ReadGameTables). Without the game files there are
 // none, and the tests that need them skip (testEngine).
-var porTables = func() GameTables {
-	t, _ := ReadGameTables("../data/por/sources/assets")
+var porTables = func() adventure.GameTables {
+	t, _ := adventure.ReadGameTables("../data/por/sources/assets")
 	return t
 }()
 

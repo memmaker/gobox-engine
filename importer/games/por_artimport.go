@@ -1,9 +1,9 @@
 package games
 
 import (
-	"gobox/engine"
 	"path/filepath"
 
+	"gobox/adventure"
 	"gobox/asset/orig"
 )
 
@@ -11,13 +11,13 @@ import (
 // ones standing in for them, as sheets in data/assets/art (dax.ImportArt).
 // Nothing at run time reads the archives' art.
 func ImportArt(data string) error {
-	return orig.ImportArt(filepath.Join(data, engine.DOSDir), filepath.Join(data, engine.AmigaDir), filepath.Join(data, engine.AssetsDir, engine.ArtDir))
+	return orig.ImportArt(filepath.Join(data, adventure.DOSDir), filepath.Join(data, adventure.AmigaDir), filepath.Join(data, adventure.AssetsDir, adventure.ArtDir))
 }
 
 // ImportArtIfStale runs ImportArt when the art is missing or was imported
 // from other archives or by another format (dax.ImportArtIfStale).
 func ImportArtIfStale(data string) error {
-	return orig.ImportArtIfStale(filepath.Join(data, engine.DOSDir), filepath.Join(data, engine.AmigaDir), filepath.Join(data, engine.AssetsDir, engine.ArtDir))
+	return orig.ImportArtIfStale(filepath.Join(data, adventure.DOSDir), filepath.Join(data, adventure.AmigaDir), filepath.Join(data, adventure.AssetsDir, adventure.ArtDir))
 }
 
 // ImportAssets is the assets import: the art (ImportArt) and the data (ImportData).

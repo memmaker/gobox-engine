@@ -4,10 +4,10 @@ import (
 	_ "embed"
 	"encoding/json"
 	"errors"
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/audio"
-	"gobox/engine"
 	"gobox/rules"
 	"gobox/rules1e"
 	"io/fs"
@@ -27,23 +27,23 @@ var portraits []byte
 // the duel sounds of CALL 0xBA03 (8 a step, 10 the fireball, DS:2612's numbers); any other plays nothing.
 // The import's script fixes; the native scripts of the tavern game and the cabinets'
 // CAST KNOCK; the inn's and the tavern's Who commands spend the one purse (ECL3 A1B4, ahead of A501).
-var porGameTables = engine.GameTables{ScriptSounds: map[byte]engine.ScriptSound{
+var porGameTables = adventure.GameTables{ScriptSounds: map[byte]adventure.ScriptSound{
 	8:  {Cue: rules.CueStep},
 	10: {Cue: rules.CueFireball},
 },
 	ScriptFixes:  porScriptFixes,
 	OriginalSave: porSave,
 	Quests:       porQuests,
-	Art:          &engine.PorArt,
-	MapLabels:    engine.PorMapLabels,
-	Music:        &engine.PorMusic,
-	Natives: []engine.NativeAt{
-		{ScriptAt: engine.ScriptAt{Area: 0, Label: "TavernGamble"}, Native: engine.NativeTavernGamble},
-		{ScriptAt: engine.ScriptAt{Area: 14, Label: "CastKnock"}, Native: engine.NativeCastKnock},
+	Art:          &adventure.PorArt,
+	MapLabels:    adventure.PorMapLabels,
+	Music:        &adventure.PorMusic,
+	Natives: []adventure.NativeAt{
+		{ScriptAt: adventure.ScriptAt{Area: 0, Label: "TavernGamble"}, Native: adventure.NativeTavernGamble},
+		{ScriptAt: adventure.ScriptAt{Area: 14, Label: "CastKnock"}, Native: adventure.NativeCastKnock},
 	},
-	PurseWhos: []engine.PurseWho{
-		{ScriptAt: engine.ScriptAt{Area: 0, Label: "PayPlatinum"}, By: 0},
-		{ScriptAt: engine.ScriptAt{Area: 0, Label: "TavernGamble"}, By: -1},
+	PurseWhos: []adventure.PurseWho{
+		{ScriptAt: adventure.ScriptAt{Area: 0, Label: "PayPlatinum"}, By: 0},
+		{ScriptAt: adventure.ScriptAt{Area: 0, Label: "TavernGamble"}, By: -1},
 	},
 }
 
@@ -54,11 +54,11 @@ const dataFormat = "19" // 19: Sheet.Race is the typed race (a name), MonsterRac
 // ITEMS table and START.EXE's sound tables (soundFile) as data/assets/data (DataDir).
 // It clears the old data first and writes the picture table as the por import does.
 func ImportData(data string) error {
-	adv := filepath.Join(data, engine.AssetsDir)
-	if err := os.RemoveAll(filepath.Join(adv, engine.DataDir)); err != nil {
+	adv := filepath.Join(data, adventure.AssetsDir)
+	if err := os.RemoveAll(filepath.Join(adv, adventure.DataDir)); err != nil {
 		return err
 	}
-	if err := PorImportDataTo(filepath.Join(data, engine.DOSDir), filepath.Join(adv, engine.DataDir)); err != nil {
+	if err := PorImportDataTo(filepath.Join(data, adventure.DOSDir), filepath.Join(adv, adventure.DataDir)); err != nil {
 		return err
 	}
 	return asset.WritePictures("por", adv)
@@ -74,37 +74,37 @@ func PorImportDataTo(dos, dst string) error {
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := orig.ImportData[engine.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, rules1e.SheetOfRecord[engine.CharRecord], rules1e.ItemOfRecord[rules1e.ItemFile]); err != nil {
+	if err := orig.ImportData[adventure.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, rules1e.SheetOfRecord[adventure.CharRecord], rules1e.ItemOfRecord[rules1e.ItemFile]); err != nil {
 		return err
 	}
-	if err := orig.ImportItemTable[rules1e.ItemBase](l, dst, engine.ItemTypes, orig.Counted); err != nil {
+	if err := orig.ImportItemTable[rules1e.ItemBase](l, dst, adventure.ItemTypes, orig.Counted); err != nil {
 		return err
 	}
 	exe, err := os.ReadFile(l.Path("START.EXE"))
 	if err != nil {
 		return err
 	}
-	snd, err := audio.DecodeSoundData(exe, engine.SoundLayout)
+	snd, err := audio.DecodeSoundData(exe, adventure.SoundLayout)
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, engine.SoundFile), snd, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dst, adventure.SoundFile), snd, 0o644); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, engine.PortraitsFile), portraits, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dst, adventure.PortraitsFile), portraits, 0o644); err != nil {
 		return err
 	}
 	b, err := json.MarshalIndent(porGameTables, "", " ")
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, engine.GameTablesFile), b, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dst, adventure.GameTablesFile), b, 0o644); err != nil {
 		return err
 	}
-	if err := engine.WriteGameData(dst, porGameData()); err != nil {
+	if err := adventure.WriteGameData(dst, porGameData()); err != nil {
 		return err
 	}
-	if err := ImportJournal("por", filepath.Join(filepath.Dir(dst), engine.JournalDir)); err != nil {
+	if err := ImportJournal("por", filepath.Join(filepath.Dir(dst), adventure.JournalDir)); err != nil {
 		return err
 	}
 	key, err := orig.SourceKey(dataFormat, dos)
@@ -117,14 +117,14 @@ func PorImportDataTo(dos, dst string) error {
 // ImportDataIfStale runs ImportData when the data is missing or was
 // imported from other archives or by another format.
 func ImportDataIfStale(data string) error {
-	if _, err := os.Stat(filepath.Join(data, engine.DOSDir)); errors.Is(err, fs.ErrNotExist) {
+	if _, err := os.Stat(filepath.Join(data, adventure.DOSDir)); errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
-	key, err := orig.SourceKey(dataFormat, filepath.Join(data, engine.DOSDir))
+	key, err := orig.SourceKey(dataFormat, filepath.Join(data, adventure.DOSDir))
 	if err != nil {
 		return err
 	}
-	have, err := os.ReadFile(filepath.Join(data, engine.AssetsDir, engine.DataDir, "key.txt"))
+	have, err := os.ReadFile(filepath.Join(data, adventure.AssetsDir, adventure.DataDir, "key.txt"))
 	if err == nil && string(have) == key {
 		return nil
 	}

@@ -2,6 +2,7 @@ package games
 
 import (
 	"encoding/json"
+	"gobox/adventure"
 	"gobox/rules1e"
 	"math"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"gobox/asset/orig"
 	"gobox/audio"
 	"gobox/ecl"
-	"gobox/engine"
 	"gobox/importer"
 	"gobox/rules"
 )
@@ -52,7 +52,7 @@ func PodImport(dos, dst string) error {
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(dst, engine.DataDir, engine.TreasureSetsFile), sets, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dst, adventure.DataDir, adventure.TreasureSetsFile), sets, 0o644); err != nil {
 		return err
 	}
 	return writeSwitchData(dst)
@@ -62,47 +62,47 @@ func PodImport(dos, dst string) error {
 // its tables: GameTables (gametables.json), the slot Layout, the journal book
 // and the entries the scripts' Journal n name.
 func writeSwitchData(dst string) error {
-	data := filepath.Join(dst, engine.DataDir)
+	data := filepath.Join(dst, adventure.DataDir)
 	monsters, icons, count, status, control := AreaMonsterTable()
-	area := engine.AreaMonsters{Count: count, Status: status, Control: control}
+	area := adventure.AreaMonsters{Count: count, Status: status, Control: control}
 	for i := range monsters {
-		area.ByScreen = append(area.ByScreen, engine.AreaMonster{Monster: int(monsters[i]), Icon: int(icons[i])})
+		area.ByScreen = append(area.ByScreen, adventure.AreaMonster{Monster: int(monsters[i]), Icon: int(icons[i])})
 	}
-	sounds := map[byte]engine.ScriptSound{}
+	sounds := map[byte]adventure.ScriptSound{}
 	for n := 0; n <= math.MaxUint8; n++ {
 		song, music, digitized := SoundKind(byte(n))
 		switch {
 		case music:
-			sounds[byte(n)] = engine.ScriptSound{Music: true, Song: song}
+			sounds[byte(n)] = adventure.ScriptSound{Music: true, Song: song}
 		case digitized:
-			sounds[byte(n)] = engine.ScriptSound{Cue: rules.SoundCue(strconv.Itoa(n))}
+			sounds[byte(n)] = adventure.ScriptSound{Cue: rules.SoundCue(strconv.Itoa(n))}
 		}
 	}
-	tables := engine.GameTables{
+	tables := adventure.GameTables{
 		Dialect: Dialect, AddNPCIcon: true, AreaMonsters: area, ScriptSounds: sounds,
 		OriginalSave: PodOriginalSave,
-		Symbols:      []engine.SymbolLoad{{Set: 4, File: "8X8D0", Block: 202}}, // gameinit's Load8x8Set(202, 1): POD's symbols are 8X8D0's, not the content set's file
-		MonsterSet:   1,                                                        // LoadCreatureData's MON1, LoadIconAnim's CPIC1
-		Art: &engine.ArtNames{ // LoadCombatTileSet's Load24x24Set (pod-re combatst.pas)
-			DungeonTiles:  []engine.TileLoad{{File: "DUNGCOM", From: engine.TileBlockWalls, Last: 24}},
-			WildTiles:     []engine.TileLoad{{File: "WILDCOM", From: engine.TileBlockAreaSet, Last: 38}},
+		Symbols:      []adventure.SymbolLoad{{Set: 4, File: "8X8D0", Block: 202}}, // gameinit's Load8x8Set(202, 1): POD's symbols are 8X8D0's, not the content set's file
+		MonsterSet:   1,                                                           // LoadCreatureData's MON1, LoadIconAnim's CPIC1
+		Art: &adventure.ArtNames{ // LoadCombatTileSet's Load24x24Set (pod-re combatst.pas)
+			DungeonTiles:  []adventure.TileLoad{{File: "DUNGCOM", From: adventure.TileBlockWalls, Last: 24}},
+			WildTiles:     []adventure.TileLoad{{File: "WILDCOM", From: adventure.TileBlockAreaSet, Last: 38}},
 			CombatSprites: "COMSPR",
 			Title:         "TITLE",
 		},
 	}
-	if err := engine.WriteGameData(data, PodStaticData()); err != nil {
+	if err := adventure.WriteGameData(data, PodStaticData()); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(data, engine.SoundFile), []byte(audio.SilentSoundData), 0o644); err != nil { // AdLib only: no speaker or Tandy tables
+	if err := os.WriteFile(filepath.Join(data, adventure.SoundFile), []byte(audio.SilentSoundData), 0o644); err != nil { // AdLib only: no speaker or Tandy tables
 		return err
 	}
-	if err := importer.WriteJSON(filepath.Join(data, engine.GameTablesFile), tables); err != nil {
+	if err := importer.WriteJSON(filepath.Join(data, adventure.GameTablesFile), tables); err != nil {
 		return err
 	}
 	if err := importer.WriteJSON(filepath.Join(data, rules1e.LayoutFile), PodLayout1e()); err != nil {
 		return err
 	}
-	if err := ImportJournal("pod", filepath.Join(dst, engine.JournalDir)); err != nil {
+	if err := ImportJournal("pod", filepath.Join(dst, adventure.JournalDir)); err != nil {
 		return err
 	}
 	return importer.WriteJSON(filepath.Join(dst, "scripts", ecl.EntriesFile), JournalEntries())

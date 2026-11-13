@@ -1,15 +1,8 @@
 package engine
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
 	"gobox/asset"
-	"gobox/ecl"
 	"gobox/rules"
-	"io/fs"
-	"os"
-	"path/filepath"
 )
 
 // POR's picture numbers as the shared collection's core.PicID (e.pics, the
@@ -67,42 +60,3 @@ func (e *Engine) iconByte(file string, id rules.PicID, size byte) (byte, bool) {
 	}
 	return 0, false
 }
-
-// PortraitsFile is the portrait tables in the adventure's data folder
-// (DataDir), written by the game's import.
-const PortraitsFile = "portraits.json"
-
-// GameTablesFile is the game's GameTables other than its portraits in the adventure's
-// data folder (DataDir), written by the game's import.
-const GameTablesFile = "gametables.json"
-
-// ReadGameTables reads the game's tables from the adventure folder adv, as the
-// game's import wrote them: GameTablesFile and the portrait tables (PortraitsFile);
-// a game writes either or both. Script is the Dialect's.
-func ReadGameTables(adv string) (GameTables, error) {
-	var t GameTables
-	found := false
-	for _, f := range []string{GameTablesFile, PortraitsFile} {
-		b, err := os.ReadFile(filepath.Join(adv, DataDir, f))
-		if errors.Is(err, fs.ErrNotExist) {
-			continue
-		} else if err != nil {
-			return GameTables{}, err
-		}
-		if err := json.Unmarshal(b, &t); err != nil {
-			return GameTables{}, fmt.Errorf("%s: %w", f, err)
-		}
-		found = true
-	}
-	if !found {
-		return GameTables{}, fmt.Errorf("%s and %s: not found (run the game's import)", GameTablesFile, PortraitsFile)
-	}
-	if t.Dialect != 0 {
-		t.Script = ecl.Versions[ecl.VersionID(t.Dialect)]
-	}
-	return t, nil
-}
-
-// TreasureSetsFile is GameTables.TreasureSets in the adventure's data folder (DataDir),
-// written by the game's import (pod).
-const TreasureSetsFile = "treasuresets.json"

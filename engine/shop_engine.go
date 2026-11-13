@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/rules"
 	"slices"
 )
@@ -16,8 +17,8 @@ func (e *Engine) shopBrowse() {
 // Shop = ovr07:053E: the script waits on the shop (PendShop) until the
 // party leaves (Leave).
 func (e *Engine) Shop() {
-	e.songMusic(songShop, 0) // extra
-	greeting := e.paneCopy() // extra: the merchant's greeting comes back after each redraw (the original cleared it)
+	e.songMusic(adventure.SongShop, 0) // extra
+	greeting := e.paneCopy()           // extra: the merchant's greeting comes back after each redraw (the original cleared it)
 	e.must(rules.EnterShop{})
 	e.DrawMainScreen()
 	e.keepPane(greeting)

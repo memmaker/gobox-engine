@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"gobox/adventure"
 	"gobox/rules"
 	"gobox/rules1e"
 	"io/fs"
@@ -154,7 +155,7 @@ func (e *Engine) canonFields(o *rules1e.ImportedSave, l *ecl.Layout) map[string]
 
 // OriginalRules is the ruleset's part of an original save b of the game t whose script
 // fields are l: the import's (importSave), for a game's test against its real saves.
-func OriginalRules(b []byte, t GameTables, l *ecl.Layout) ([]byte, error) {
+func OriginalRules(b []byte, t adventure.GameTables, l *ecl.Layout) ([]byte, error) {
 	o, err := rules1e.ReadOriginalSave(b, t.OriginalSave)
 	if err != nil || t.OriginalSave.RulesRecords {
 		return o.Rules, err

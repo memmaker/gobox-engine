@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/rules"
 	"testing"
 
@@ -26,13 +27,13 @@ func TestWatchFightTurn(t *testing.T) {
 				t.Fatalf("seed %d: not exploring (%T)", sd, e.build())
 			}
 			e.doNow(game.MakeCamp{})
-			if _, err := e.doNow(game.CampRest{Kind: RestWait}); err != nil {
+			if _, err := e.doNow(game.CampRest{Kind: adventure.RestWait}); err != nil {
 				t.Fatal("CampRest:", err)
 			}
 			watch := func(s game.State) bool { q := commonOf(s).Ask; return q != nil && len(q.Replies) == 2 }
 			for i := 0; i < 50 && !watch(e.build()); i++ { // rest on, an hour at a time, till the watch comes
 				if _, ok := e.build().(game.Camping); ok {
-					e.doNow(game.CampRest{Kind: RestWait})
+					e.doNow(game.CampRest{Kind: adventure.RestWait})
 				} else if !playOn(e, 100, watch) {
 					break
 				}

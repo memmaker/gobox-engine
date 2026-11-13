@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/rules"
 	"math"
 	"slices"
@@ -16,37 +17,10 @@ import (
 // gold and copper). RunECL runs one instead of the commands at its label;
 // it leaves vm.PC at the label the script would have gone on to.
 
-// Native names one of the engine's native scripts (GameTables.Natives).
-type Native string
-
-const (
-	NativeTavernGamble Native = "TavernGamble" // POR's New Phlan tavern game
-	NativeCastKnock    Native = "CastKnock"    // POR's cabinets' CAST KNOCK
-)
-
 // natives are the engine's native scripts by name.
-var natives = map[Native]func(*Engine){
-	NativeTavernGamble: (*Engine).tavernGamble,
-	NativeCastKnock:    (*Engine).castKnock,
-}
-
-// ScriptAt is a label of an area script.
-type ScriptAt struct {
-	Area  int    // the area script
-	Label string // its label
-}
-
-// NativeAt runs Native in place of the commands at its label (GameTables.Natives).
-type NativeAt struct {
-	ScriptAt
-	Native Native
-}
-
-// PurseWho is a Who command that spends the party's one purse: the label's
-// instruction plus By (GameTables.PurseWhos).
-type PurseWho struct {
-	ScriptAt
-	By int
+var natives = map[adventure.Native]func(*Engine){
+	adventure.NativeTavernGamble: (*Engine).tavernGamble,
+	adventure.NativeCastKnock:    (*Engine).castKnock,
 }
 
 // The layout fields the engine names itself (layout/global.txt).

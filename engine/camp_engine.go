@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/rules"
 	"strconv"
@@ -131,7 +132,7 @@ func (e *Engine) dropMember(n int) {
 // caller's cont) goes on, camp.interrupted telling whether it was (the
 // caller then runs the encounter).
 func (e *Engine) CampMenu() {
-	if !e.songMusic(songInn, 0) { // extra: the inn theme for camp
+	if !e.songMusic(adventure.SongInn, 0) { // extra: the inn theme for camp
 		e.Music(1) // Amiga 0x17FBC .. 0x1813C
 	}
 	e.campSavedFlag = e.worldWord(rules.WordBeginFlag)
@@ -231,7 +232,7 @@ func (e *Engine) campRest(kind int) error {
 	}
 	e.must(rules.PlanParty{}) // extra: the planned spells are learned on any rest
 	switch kind {
-	case RestFix:
+	case adventure.RestFix:
 		if e.healMinutes() == 0 && e.partyStudy() == 0 {
 			e.say("Nothing to fix")
 			return nil
@@ -241,9 +242,9 @@ func (e *Engine) campRest(kind int) error {
 		} else {
 			e.healParty()
 		}
-	case RestWait:
+	case adventure.RestWait:
 		e.restFor(60, false, restThen{kind: thRested})
-	case RestUntil:
+	case adventure.RestUntil:
 		until := 20 * 60
 		if !e.ruleset().Check(rules.IsDay{}, nil).Yes {
 			until = 6 * 60
@@ -374,13 +375,6 @@ func (e *Engine) restTick(untilHealed bool) (s restStep) {
 	}
 	return
 }
-
-// Rest choices (CampRest).
-const (
-	RestFix   = iota // until everyone is healed (healParty) and the planned spells are learned
-	RestWait         // an hour
-	RestUntil        // until day (at night) or night (by day)
-)
 
 // restUnit is unit i of the rest time left (core.RestUnit: 1 minutes, 2 tens, 3 hours, 4 days).
 func (e *Engine) restUnit(i int) int {

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"gobox/adventure"
 	"gobox/rules"
 	"slices"
 )
@@ -37,8 +38,8 @@ func (e *Engine) cure(n, x int) error {
 // Temple = ovr05:0D09: the script waits on the temple (PendTemple) until
 // the party leaves (Leave).
 func (e *Engine) Temple() {
-	e.songMusic(songTemple, 0) // extra
-	greeting := e.paneCopy()   // extra: the priests' greeting stays, as the shop
+	e.songMusic(adventure.SongTemple, 0) // extra
+	greeting := e.paneCopy()             // extra: the priests' greeting stays, as the shop
 	e.setWorldWord(rules.WordBeginFlag, 1)
 	e.DrawMainScreen()
 	e.keepPane(greeting)

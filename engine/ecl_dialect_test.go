@@ -74,17 +74,6 @@ func TestNoMonsterCombat(t *testing.T) {
 	}
 }
 
-// TestAreaMonsterFor: the area screen picks the monster; past the table none.
-func TestAreaMonsterFor(t *testing.T) {
-	a := AreaMonsters{ByScreen: []AreaMonster{{59, 59}, {6, 6}}}
-	if m, ok := a.areaMonsterFor(1); !ok || m.Monster != 6 {
-		t.Fatalf("screen 1: %v %v", m, ok)
-	}
-	if _, ok := a.areaMonsterFor(2); ok {
-		t.Fatal("screen 2 has a monster")
-	}
-}
-
 // TestInputStringMax: the line is as long as the text window, or pod's operand.
 func TestInputStringMax(t *testing.T) {
 	e := quickStarted(t)

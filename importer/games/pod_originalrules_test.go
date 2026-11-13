@@ -2,6 +2,7 @@ package games
 
 import (
 	"encoding/json"
+	"gobox/adventure"
 	"gobox/ecl"
 	"gobox/engine"
 	"gobox/rules1e"
@@ -22,7 +23,7 @@ func TestOriginalRules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	blob, err := engine.OriginalRules(b, engine.GameTables{OriginalSave: PodOriginalSave}, l)
+	blob, err := engine.OriginalRules(b, adventure.GameTables{OriginalSave: PodOriginalSave}, l)
 	if err != nil {
 		t.Fatal(err)
 	}

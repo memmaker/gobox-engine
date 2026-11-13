@@ -1,6 +1,9 @@
 package engine
 
-import "path/filepath"
+import (
+	"gobox/adventure"
+	"path/filepath"
+)
 
 // The soundtrack (extra, the Esc menu's Audio "Soundtrack"): recordings in
 // data/assets/soundtrack play by area and building (areaSong), in place
@@ -13,13 +16,13 @@ const soundtrackDir = "soundtrack"
 
 // SoundtrackFiles are the recordings' names (without .ogg) by song.
 var SoundtrackFiles = map[int]string{
-	songTitle: "title", songNewPhlan: "newphlan", songDungeon1: "dungeon1", songDungeon2: "dungeon2",
-	songDiogenes: "diogenes", songDungeon3: "dungeon3", songYarash: "yarash", songGraveyard: "graveyard",
-	songValjevo: "valjevo", songLair: "lair", songCombat: "combat", songTyranthraxus: "tyranthraxus",
-	songWilderness: "wilderness", songShop: "shop", songEnding: "ending", songGameOver: "gameover",
-	songEncounter: "encounter", songVictory: "victory", 19: "victory", songTemple: "temple", songInn: "inn",
-	22: "traininghall", songTrainingHall: "traininghall", songCityHall: "cityhall", songTavern: "tavern",
-	songGypsy: "gypsy", songBattleBegins: "battlebegins",
+	adventure.SongTitle: "title", adventure.SongNewPhlan: "newphlan", adventure.SongDungeon1: "dungeon1", adventure.SongDungeon2: "dungeon2",
+	adventure.SongDiogenes: "diogenes", adventure.SongDungeon3: "dungeon3", adventure.SongYarash: "yarash", adventure.SongGraveyard: "graveyard",
+	adventure.SongValjevo: "valjevo", adventure.SongLair: "lair", adventure.SongCombat: "combat", adventure.SongTyranthraxus: "tyranthraxus",
+	adventure.SongWilderness: "wilderness", adventure.SongShop: "shop", adventure.SongEnding: "ending", adventure.SongGameOver: "gameover",
+	adventure.SongEncounter: "encounter", adventure.SongVictory: "victory", 19: "victory", adventure.SongTemple: "temple", adventure.SongInn: "inn",
+	22: "traininghall", adventure.SongTrainingHall: "traininghall", adventure.SongCityHall: "cityhall", adventure.SongTavern: "tavern",
+	adventure.SongGypsy: "gypsy", adventure.SongBattleBegins: "battlebegins",
 }
 
 // SoundtrackDir is where the recordings are.

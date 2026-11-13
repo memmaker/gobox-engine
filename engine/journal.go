@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gobox/adventure"
 	"gobox/ecl"
 	"gobox/game"
 )
@@ -22,16 +23,13 @@ import (
 // own, in the adventure folder's JournalDir, written by its import, in gobox's
 // journal format; gobox (game/journal.go) reads, finds and lays them out.
 
-// JournalDir is the game's journal books and pictures in the adventure folder.
-const JournalDir = "journal"
-
 // book is the game's journal book name (a file of JournalDir), loaded once;
 // nil if the game has none.
 func (e *Engine) book(name string) *game.JournalBook {
 	if b, ok := e.books[name]; ok {
 		return b
 	}
-	b, err := game.LoadJournal(os.DirFS(filepath.Join(e.adv, JournalDir)), name)
+	b, err := game.LoadJournal(os.DirFS(filepath.Join(e.adv, adventure.JournalDir)), name)
 	if errors.Is(err, fs.ErrNotExist) {
 		b = nil
 	} else if err != nil {
@@ -53,7 +51,7 @@ func (e *Engine) journalReadTexts(name string, titles []string, voiced bool) []g
 	}
 	b := e.book(name)
 	if b == nil {
-		panic(fmt.Sprintf("script: no journal book %s in %s", name, filepath.Join(e.adv, JournalDir))) // a broken game folder
+		panic(fmt.Sprintf("script: no journal book %s in %s", name, filepath.Join(e.adv, adventure.JournalDir))) // a broken game folder
 	}
 	return b.Texts(titles, voice)
 }

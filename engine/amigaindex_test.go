@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -16,7 +17,7 @@ func TestAmigaArtIndex(t *testing.T) {
 	ran := 0
 	for _, game := range []string{"por", "cotab", "sotsb", "pod"} {
 		data := filepath.Join("..", "data", game, "sources")
-		key, err := os.ReadFile(filepath.Join(data, AssetsDir, ArtDir, "key.txt"))
+		key, err := os.ReadFile(filepath.Join(data, adventure.AssetsDir, adventure.ArtDir, "key.txt"))
 		if err != nil {
 			t.Logf("%s: no imported art, skipped", game)
 			continue
@@ -24,7 +25,7 @@ func TestAmigaArtIndex(t *testing.T) {
 		ran++
 		for _, line := range strings.Split(string(key), "\n") {
 			f := strings.Fields(line)
-			if len(f) != 3 || !strings.HasPrefix(f[0], AmigaDir+"/") {
+			if len(f) != 3 || !strings.HasPrefix(f[0], adventure.AmigaDir+"/") {
 				continue
 			}
 			fi, err := os.Stat(filepath.Join(data, f[0]))
@@ -34,7 +35,7 @@ func TestAmigaArtIndex(t *testing.T) {
 				t.Errorf("%s: %s is %d bytes, the art index read %s (stale art: run the game once)", game, f[0], fi.Size(), f[1])
 			}
 		}
-		sheets := filepath.Join(data, AssetsDir, ArtDir, AmigaDir)
+		sheets := filepath.Join(data, adventure.AssetsDir, adventure.ArtDir, adventure.AmigaDir)
 		ents, err := os.ReadDir(sheets)
 		if err != nil {
 			t.Errorf("%s: %v", game, err)

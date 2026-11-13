@@ -1,12 +1,12 @@
 package games
 
 import (
+	"gobox/adventure"
 	"gobox/asset"
 	"os"
 	"path/filepath"
 
 	"gobox/asset/orig"
-	"gobox/engine"
 	"gobox/importer"
 )
 
@@ -18,7 +18,7 @@ import (
 func init() {
 	importer.Register(importer.Game{
 		Cover: true,
-		ID:    "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: engine.RecordLayout, Combat4e: true, Version: 3, // 3: Combat4e in the manifest (playpool offers rules4e on it); 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
+		ID:    "por", Title: "Pool of Radiance", Release: 1988, Ruleset: "rules1e", Record: adventure.RecordLayout, Combat4e: true, Version: 3, // 3: Combat4e in the manifest (playpool offers rules4e on it); 2: Window, UserSaves, Foreign in the manifest (playpool reads them); 1: 1: no Sequence.Remaster (the remaster credit line is gobox's), SequenceStep.Credits
 
 		Window:  importer.Size{W: asset.ScreenW, H: asset.ScreenH},
 		Sources: []string{"*.DAX", "ITEMS", "POOL.CFG", "START.EXE"},
@@ -110,8 +110,8 @@ func PorImport(dos, dst string) error {
 	if err := ImportScripts(dos, scripts); err != nil {
 		return err
 	}
-	amiga := filepath.Join(filepath.Dir(dos), engine.AmigaDir)
-	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, engine.ArtDir)); err != nil {
+	amiga := filepath.Join(filepath.Dir(dos), adventure.AmigaDir)
+	if err := orig.ImportArt(dos, amiga, filepath.Join(dst, adventure.ArtDir)); err != nil {
 		return err
 	}
 	if err := asset.WritePictures("por", dst); err != nil {
@@ -122,7 +122,7 @@ func PorImport(dos, dst string) error {
 			return err
 		}
 	}
-	return PorImportDataTo(dos, filepath.Join(dst, engine.DataDir))
+	return PorImportDataTo(dos, filepath.Join(dst, adventure.DataDir))
 }
 
 // copyEntry copies file or directory src to dst.

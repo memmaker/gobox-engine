@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync/atomic"
 
+	"gobox/adventure"
 	"gobox/asset"
 )
 
@@ -40,7 +41,7 @@ var symFix = [5]int{0x001, 0x02E, 0x074, 0x0BA, 0x100}
 
 // LoadSymbolSet = ovr35:003B — load 8X8D<n>.DAX block into set index,
 // masked on colour 13.
-func (e *Engine) LoadSymbolSet(l SymbolLoad) {
+func (e *Engine) LoadSymbolSet(l adventure.SymbolLoad) {
 	if l.Set < 0 || l.Set > 4 {
 		return
 	}
@@ -92,7 +93,7 @@ func (e *Engine) artBlocks(name string, id int) (b, dos *asset.Block) {
 // opened on first use.
 func (e *Engine) artFolder() *asset.Art {
 	if e.arts == nil {
-		e.arts = asset.OpenArt(filepath.Join(e.adv, ArtDir))
+		e.arts = asset.OpenArt(filepath.Join(e.adv, adventure.ArtDir))
 	}
 	return e.arts
 }

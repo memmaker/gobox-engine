@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/engine"
 	"gobox/importer"
 	"gobox/rules1e"
 )
@@ -28,7 +28,7 @@ func TestPodOriginals(t *testing.T) {
 		t.Fatal(err)
 	}
 	dst := filepath.Join(root, "pod")
-	if _, err := engine.ReadGameTables(dst); err != nil {
+	if _, err := adventure.ReadGameTables(dst); err != nil {
 		t.Fatal(err)
 	}
 	l, err := rules1e.ReadLayout(filepath.Join(dst, "data", rules1e.LayoutFile))
@@ -40,7 +40,7 @@ func TestPodOriginals(t *testing.T) {
 		t.Fatal(err)
 	}
 	var items []rules1e.ItemBase // the base item table as pool reads it
-	if ok, err := asset.ReadJSON(filepath.Join(dst, "data"), orig.ItemTableFile, &items); !ok || err != nil || len(items) != engine.ItemTypes {
+	if ok, err := asset.ReadJSON(filepath.Join(dst, "data"), orig.ItemTableFile, &items); !ok || err != nil || len(items) != adventure.ItemTypes {
 		t.Fatalf("%s.json: %d items, %v %v", orig.ItemTableFile, len(items), ok, err)
 	}
 	ld, err := orig.NewLoader(dos)

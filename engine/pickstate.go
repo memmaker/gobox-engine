@@ -4,6 +4,7 @@ import (
 	"image"
 	"slices"
 
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
@@ -72,7 +73,7 @@ func (e *Engine) iconEditorState(edit *iconEdit) *game.IconEditor {
 			k.Cells[i] = -1
 		}
 	}
-	for i := range IconParts {
+	for i := range adventure.IconParts {
 		k.Colour[i] = [2]int{int(c.Colours[i].Low), int(c.Colours[i].High)}
 	}
 	return k

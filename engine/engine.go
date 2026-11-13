@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
@@ -34,9 +35,9 @@ type Engine struct {
 	newRules           Ruleset                     // builds rules (New; bareRuleset when nil)
 	sequence           string                      // the full-screen animation playing (title.seqs: seqEnding; "": none)
 	vault              *vault                      // the open vault (Vault)
-	given              *GameTables                 // the game's GameTables (New; bareData when nil)
+	given              *adventure.GameTables       // the game's GameTables (New; bareData when nil)
 	eclVersion         *ecl.Version                // the game's ECL dialect (initVM)
-	rules              rules.Rules                 // the ruleset; it owns the rules' state (state) (corerules_engine.go)
+	rules              rules.Rules                 // the ruleset; it owns the rules' state (state) (rulesetseam.go)
 	create             rules.CreationRules         // the ruleset's creation, made with rules
 	posX, posY, facing int                         // the party's map square and facing 0..7 (DS:6AAD, 6AAE, 6AAF): world navigation, the Engine's; saves keep them (files_engine.go)
 	campSavedFlag      int                         // beginFlag as camp found it
@@ -169,27 +170,19 @@ type Engine struct {
 	ExploreSlot  string // with Explore: the save to start from (-slot) instead of a Quick Start
 }
 
-// The data directory (New's dir) holds one folder per kind of file.
-const (
-	DOSDir    = "dos"    // the DOS game files the engine reads (*.DAX, ITEMS, POOL.CFG)
-	AmigaDir  = "amiga"  // the Amiga graphics and sound, converted from its disks
-	AssetsDir = "assets" // the host fonts/ (and, for the tests, an adventure folder: scripts/, art/, data/, sound/, speech/, soundtrack/)
-	SaveDir   = "save"   // what the game writes: the saves, FONT.CFG
-)
-
 // New opens the adventure folder adv (its scripts, art and data, written by
 // `gobox import por`) and the host's data directory (the port's own assets
 // under AssetsDir, the Amiga sound and title under AmigaDir, the saves). It
 // reads no original file: the config is the original's POOL.CFG defaults.
 // rules builds the ruleset and d is the game's GameTables.
-func New(ruleset Ruleset, d GameTables, adv, data string) (*Engine, error) {
+func New(ruleset Ruleset, d adventure.GameTables, adv, data string) (*Engine, error) {
 	e := &Engine{newRules: ruleset, given: &d, adv: adv, data: data, pal: asset.EGAIdentity, set: 1, start: time.Now()}
 	var err error
 	e.initVM()
-	e.Cfg = Config{Graphics: 'E', Sound: 'P', SaveDir: filepath.Join(data, SaveDir)}
+	e.Cfg = Config{Graphics: 'E', Sound: 'P', SaveDir: filepath.Join(data, adventure.SaveDir)}
 	e.FullIntro.Store(true) // POOL.CFG's default (DS:49D1) until the host passes its Full intro option
 	e.pic.block = -1
-	if e.gameData, err = ReadGameData(adv); err != nil {
+	if e.gameData, err = adventure.ReadGameData(adv); err != nil {
 		return nil, err
 	}
 	e.port = portrait{headID: 0xFF, bodyID: 0xFF}

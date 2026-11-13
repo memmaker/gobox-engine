@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/asset"
 )
 
@@ -24,7 +25,7 @@ func artNamesImported(t *testing.T, e *Engine) {
 	}
 	a := e.artNames()
 	for _, l := range slices.Concat(a.TileSheets, a.Tiles, a.DungeonTiles, a.WildTiles, a.AreaTiles) {
-		if l.From != TileBlockFixed {
+		if l.From != adventure.TileBlockFixed {
 			continue // a block the game's state picks: Files checks the sheet
 		}
 		if e.artFolder().Block(asset.DOS, l.File, l.Block) == nil {

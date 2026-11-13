@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/rules"
 	"slices"
 )
@@ -72,7 +73,7 @@ func (e *Engine) PartyMenu() {
 // partyMenu puts the party menu up; hall: a script's (the training hall);
 // chain: the cont on top of the stack goes on once it is closed.
 func (e *Engine) partyMenu(hall, chain bool) {
-	if hall || !e.songMusic(songTitle, 0) { // extra: the title plays on under the main menu
+	if hall || !e.songMusic(adventure.SongTitle, 0) { // extra: the title plays on under the main menu
 		e.Music(3) // Amiga 0x2D35C
 	}
 	e.set = 3      // DS:5376 = 3

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"gobox/adventure"
 	"gobox/game"
 )
 
@@ -19,12 +20,12 @@ import (
 // never nil, so gobox offers the font menu.
 func (e *Engine) fontFaces() []game.Typeface {
 	faces := []game.Typeface{}
-	ents, _ := os.ReadDir(filepath.Join(e.data, AssetsDir, "fonts"))
+	ents, _ := os.ReadDir(filepath.Join(e.data, adventure.AssetsDir, "fonts"))
 	for _, d := range ents {
 		if !strings.EqualFold(filepath.Ext(d.Name()), ".f8") {
 			continue
 		}
-		if b, err := os.ReadFile(filepath.Join(e.data, AssetsDir, "fonts", d.Name())); err == nil && len(b) == 256*8 {
+		if b, err := os.ReadFile(filepath.Join(e.data, adventure.AssetsDir, "fonts", d.Name())); err == nil && len(b) == 256*8 {
 			faces = append(faces, game.Typeface{Name: strings.TrimSuffix(d.Name(), filepath.Ext(d.Name())), Bits: b})
 		}
 	}

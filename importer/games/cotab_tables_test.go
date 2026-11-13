@@ -6,8 +6,8 @@ import (
 	"slices"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/ecl"
-	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
 	"gobox/rules"
@@ -28,7 +28,7 @@ func TestImportedTablesLoad(t *testing.T) {
 	}
 	dst := filepath.Join(root, "cotab")
 
-	g, err := engine.ReadGameTables(dst)
+	g, err := adventure.ReadGameTables(dst)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +58,7 @@ func TestImportedTablesLoad(t *testing.T) {
 		t.Error("char.Rules1e builds no rules")
 	}
 
-	book, err := game.LoadJournal(os.DirFS(filepath.Join(dst, "data", engine.JournalDir)), "JOURNAL.TXT")
+	book, err := game.LoadJournal(os.DirFS(filepath.Join(dst, "data", adventure.JournalDir)), "JOURNAL.TXT")
 	if err != nil {
 		t.Fatal(err)
 	}

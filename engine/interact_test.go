@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"path/filepath"
 	"testing"
 )
@@ -9,7 +10,7 @@ import (
 func TestInteractionLabels(t *testing.T) {
 	e := testEngine(t)
 	e.Init()
-	dir := filepath.Join("..", "data", "por", "sources", AssetsDir, "scripts")
+	dir := filepath.Join("..", "data", "por", "sources", adventure.AssetsDir, "scripts")
 	for area, labels := range interactions(dir) {
 		e.LoadArea(area)
 		s := e.vm.Script

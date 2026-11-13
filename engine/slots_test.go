@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"encoding/json"
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
@@ -174,7 +175,7 @@ func TestPhlanLabels(t *testing.T) {
 	if m := e.labels(); m[1<<4|15].text != "Boats" || len(m) != len(e.builtinLabels(3<<16)) {
 		t.Fatalf("fresh New Phlan: %d labels, 15,1 = %q", len(m), m[1<<4|15].text)
 	}
-	e.userLabels()[1<<4|15] = mapLabel{"My boat", poiUser}
+	e.userLabels()[1<<4|15] = mapLabel{"My boat", adventure.PoiUser}
 	e.userLabels()[1<<4|11] = e.builtinLabels(3 << 16)[1<<4|11]
 	e.saveTo("X")
 	path := filepath.Join(e.slotRoot(), "X", labelsFile)
@@ -298,7 +299,7 @@ func TestLegacySaveLoads(t *testing.T) {
 // TestMapLabelsPerGame: a game without MapLabels shows none on set 3, GEO 0
 // (POR's New Phlan labels were on every game's map there).
 func TestMapLabelsPerGame(t *testing.T) {
-	e := &Engine{set: 3, given: &GameTables{}}
+	e := &Engine{set: 3, given: &adventure.GameTables{}}
 	if len(e.builtinLabels(e.areaKey())) != 0 || e.areaSong() != 0 {
 		t.Fatal("another game's area 3/0 has POR's labels or songs")
 	}

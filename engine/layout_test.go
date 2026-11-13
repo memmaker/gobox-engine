@@ -3,6 +3,7 @@ package engine
 import (
 	"encoding/binary"
 	"fmt"
+	"gobox/adventure"
 	"gobox/rules1e"
 	"io/fs"
 	"os"
@@ -135,7 +136,7 @@ func withLayout(t *testing.T, e *Engine) {
 func TestSavedFields(t *testing.T) {
 	e := &Engine{}
 	e.initVM()
-	data := os.DirFS(filepath.Join("..", "data", "por", "sources", AssetsDir, "scripts"))
+	data := os.DirFS(filepath.Join("..", "data", "por", "sources", adventure.AssetsDir, "scripts"))
 	names, err := fs.Glob(data, "layout/area*.txt")
 	if err != nil {
 		t.Fatal(err)

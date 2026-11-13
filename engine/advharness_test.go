@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 
+	"gobox/adventure"
 	"gobox/game"
 	"gobox/importer"
 	"gobox/rules1e"
@@ -31,7 +32,7 @@ func advEngine(t *testing.T, env string) *Engine {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tables, err := ReadGameTables(adv)
+	tables, err := adventure.ReadGameTables(adv)
 	if err != nil {
 		t.Fatal(err)
 	}

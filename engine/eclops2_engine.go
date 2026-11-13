@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/ecl"
 	"gobox/game"
@@ -97,7 +98,7 @@ func (e *Engine) opRob() {
 // menu. result: 0 none, 1 combat, 2 party flees, 3 parlay.
 func (e *Engine) opEncounterMenu() {
 	e.es.inEncounterMenu = 1
-	e.songMusic(songEncounter, 0) // extra
+	e.songMusic(adventure.SongEncounter, 0) // extra
 	e.run.textCleared = 0
 	mr := e.ruleset().Check(rules.MoveExtremes{}, nil)
 	hi, lo := int(mr.High), int(mr.Low)
@@ -305,7 +306,7 @@ func (e *Engine) opCall() {
 	case ecl.CallDuelLose:
 		e.DuelSetup(0)
 	case ecl.CallDuelSound:
-		if s, ok := e.game().scriptSound(byte(e.es.soundVar)); ok { // the game's duel sounds (DS:2612's numbers)
+		if s, ok := e.game().Sound(byte(e.es.soundVar)); ok { // the game's duel sounds (DS:2612's numbers)
 			e.cue(s.Cue)
 		}
 	case ecl.CallStepForward:
@@ -719,7 +720,7 @@ func (e *Engine) opFindNPC() {
 // opSound = pod O040:24CD (n): what the game's number n plays (GameTables.ScriptSounds).
 func (e *Engine) opSound() {
 	e.vm.ReadArgs(1)
-	s, ok := e.game().scriptSound(byte(e.vm.Arg(1, e.host)))
+	s, ok := e.game().Sound(byte(e.vm.Arg(1, e.host)))
 	switch {
 	case !ok:
 	case s.Music && e.songMusic(s.Song, 0):

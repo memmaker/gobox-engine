@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"gobox/adventure"
 	"gobox/rules"
 	"image"
 	"os"
@@ -1285,14 +1286,14 @@ func (e *Engine) campDo(a game.Action, out *game.Outcome, native func(func() err
 		return true, native(e.LeaveCamp)
 	case game.AdvanceTimeBy: // the original's Rest: until all are healed and the spells learned (RestFix)
 		err := native(func() error {
-			return e.campRest(RestFix)
+			return e.campRest(adventure.RestFix)
 		})
 		if err == nil {
 			out.Events = append(out.Events, game.TimePassed{D: a.D})
 		}
 		return true, err
 	case game.Fix:
-		return true, native(func() error { return e.campRest(RestFix) })
+		return true, native(func() error { return e.campRest(adventure.RestFix) })
 	case game.CampRest:
 		return true, native(func() error { return e.campRest(a.Kind) })
 	case game.Order:

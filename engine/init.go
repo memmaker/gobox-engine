@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/adventure"
 	"gobox/asset"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -19,7 +20,7 @@ func (e *Engine) Init() {
 	e.prompt(asset.EGALightGreen, "Loading...Please Wait")
 	symbols := e.game().Symbols
 	if symbols == nil {
-		symbols = PorSymbols
+		symbols = adventure.PorSymbols
 	}
 	for _, l := range symbols { // ovr35:003B
 		e.LoadSymbolSet(l)
@@ -71,7 +72,7 @@ func (e *Engine) readItems() []rules1e.ItemBase {
 	if items == nil {
 		// extra: without the table no class may use any item and nothing has stats
 		log.Println("ITEMS (the base item table) is missing from the game data: import the game again")
-		return make([]rules1e.ItemBase, ItemTypes)
+		return make([]rules1e.ItemBase, adventure.ItemTypes)
 	}
 	return slices.Clone(items)
 }

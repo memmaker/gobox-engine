@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"gobox/adventure"
 	"gobox/game"
 	"gobox/rules"
 	"slices"
@@ -73,7 +74,7 @@ func (e *Engine) showResult(exp int32) {
 			r.Outcome = "You have won the duel."
 		default:
 			r.Outcome = "The party has won."
-			e.songMusic(songVictory, 0) // extra
+			e.songMusic(adventure.SongVictory, 0) // extra
 		}
 	case e.ac.fled:
 		r.Outcome = "The party has fled."

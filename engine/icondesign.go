@@ -23,10 +23,6 @@ import (
 const ()
 
 // Head, Weapon, Size
-// IconParts are the parts in IconColour order (the hair and the face
-// share a part).
-var IconParts = [6]string{"Body", "Arm", "Leg", "Hair/Face", "Shield", "Weapon"}
-
 // iconEdit is the icon being designed (EditIcon): the character and what
 // it had, put back unless kept.
 type iconEdit struct {
