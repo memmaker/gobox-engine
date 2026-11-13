@@ -9,7 +9,7 @@ package core
 // Every method carries the call in today's code that needs it. Everything is
 // plain data both ways: no callbacks, nothing the rules could call back on.
 type Rules interface {
-	// Catalog is what this ruleset handles, for Mismatches at load.
+	// Catalog is what this ruleset handles.
 	Catalog() Catalog
 
 	CharacterRules

@@ -224,12 +224,6 @@ type AttackResult struct {
 	Critical bool
 }
 
-// AttackResolver is what a ruleset's swing goes through. Inside a ruleset;
-// the engine sees only Attacked.
-type AttackResolver interface {
-	Attack(AttackRequest, *RNG) AttackResult
-}
-
 // Check is a question a script asks of the rules. Closed.
 type Check interface{ check() }
 

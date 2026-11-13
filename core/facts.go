@@ -99,36 +99,6 @@ const (
 // a script's CoinFact is a view that converts.
 type Copper int64
 
-// ScriptAddr is a variable's address in a script's own memory map.
-type ScriptAddr uint16
-
-// RawValue is one script number and what it means: 0x87 written to Status is
-// StatusStoned. A number with no row is an error at the moment it is used.
-type RawValue struct {
-	Raw   int32
-	Value Value
-}
-
-// CharBinding says that a script's address reads and writes a Fact of the
-// selected character. Without Values the number is the value.
-//
-// Bits instead splits one address over several facts: BR 268 is FactSide at
-// bit 0, KnownFact at bit 6, FactSideLock at bit 7. The script machine has no
-// character memory: direct or computed (GetTable, SaveTable), an address in the
-// window with no binding is a run-time error, never a byte.
-type CharBinding struct {
-	Addr   ScriptAddr
-	Fact   Fact
-	Values []RawValue
-	Bits   []BitBinding
-}
-
-// BitBinding is one fact in a mask of a packed address.
-type BitBinding struct {
-	Mask int32
-	Fact Fact
-}
-
 // WorldWord is a script variable the rules depend on. The engine keeps script
 // memory; it passes these on in FightTerms.
 type WorldWord int
@@ -195,9 +165,3 @@ const (
 	WordVault        // pod: Combat with no monsters opens the vault (flag)
 	WordAreaScreen   // pod: the area screen that picks the area's own monsters
 )
-
-// WorldBinding names the address of a WorldWord in this adventure's scripts.
-type WorldBinding struct {
-	Addr ScriptAddr
-	Word WorldWord
-}

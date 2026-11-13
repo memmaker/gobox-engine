@@ -1,20 +1,6 @@
 package core
 
-import (
-	"strings"
-	"testing"
-)
-
-func TestMismatches(t *testing.T) {
-	n := Needs{Spells: []SpellID{"knock"}, Facts: []Fact{SkillFact{"climb"}, FactStatus}, Features: []Feature{FeatureSpaceCombat}, Monsters: []MonsterID{7}}
-	got := Mismatches(n, Catalog{Spells: []SpellID{"knock"}, Facts: []Fact{FactStatus}})
-	if len(got) != 3 || !strings.Contains(got[0], "climb") || !strings.Contains(got[1], "space-combat") || !strings.Contains(got[2], "monster 7") {
-		t.Fatal(got)
-	}
-	if got := Mismatches(n, Catalog{Spells: n.Spells, Facts: n.Facts, Features: n.Features, Monsters: n.Monsters}); got != nil {
-		t.Fatal(got)
-	}
-}
+import "testing"
 
 // TestRNGIsTurboPascals: the first values of gobox/rules.Random from seed 1.
 func TestRNGIsTurboPascals(t *testing.T) {

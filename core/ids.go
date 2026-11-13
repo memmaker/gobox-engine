@@ -1,7 +1,7 @@
 // Package core is the types the engine, a ruleset and an adventure share:
-// the two interfaces (Rules, Adventure), the neutral ids, and the plain data
+// the Rules interface, the neutral ids, and the plain data
 // that crosses them. It imports nothing of ours and holds no behaviour but
-// the load check (Mismatches) and the RNG. Concepts of one world are in core/dnd
+// the RNG. Concepts of one world are in core/dnd
 // and core/xxvc; an adventure and its ruleset share one of them.
 //
 // DRAFT for review, nothing uses it yet. See ../ARCHITECTURE.md.
@@ -9,7 +9,7 @@ package core
 
 // Neutral ids are typed string constants: readable in a load error and stable
 // in a save, whatever order anyone's tables have. A ruleset that does not
-// handle one says so in its Catalog, and the adventure fails at load.
+// handle one says so in its Catalog,
 
 // Ability is one of a character's scores.
 type Ability string
