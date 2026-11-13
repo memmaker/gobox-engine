@@ -3,7 +3,7 @@ package ui
 import (
 	"errors"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // A shop's, temple's or camp's menu (no map, no picture of its own) draws
@@ -11,17 +11,17 @@ import (
 // (back) draws that State, its question and text left out, so the menu's
 // state (camp, pace, the page images) stays the menu's.
 
-// still is a play.Game held at one State: the backdrop's, which takes no action.
+// still is a game.Game held at one State: the backdrop's, which takes no action.
 type still struct {
-	st  play.State
+	st  game.State
 	ver uint64
 }
 
 var errStill = errors.New("the backdrop takes no action")
 
-func (s still) State() play.State                    { return s.st }
+func (s still) State() game.State                    { return s.st }
 func (s still) Version() uint64                      { return s.ver }
-func (s still) Do(play.Action) (play.Outcome, error) { return play.Outcome{}, errStill }
+func (s still) Do(game.Action) (game.Outcome, error) { return game.Outcome{}, errStill }
 func (s still) Save() ([]byte, error)                { return nil, errStill }
 func (s still) Load([]byte) error                    { return errStill }
 

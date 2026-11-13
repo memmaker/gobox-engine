@@ -5,7 +5,7 @@ import (
 	"image"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // Sidestep{4} after a step forward walks back to the square, the facing kept.
@@ -67,15 +67,15 @@ func TestSidestepAside(t *testing.T) {
 func stepBy(e *Engine, by int) error {
 	d := (e.facing + by) % 8
 	from := image.Pt(e.posX, e.posY)
-	if _, err := e.doNow(play.RunEvent{Before: true, Side: d}); err != nil {
+	if _, err := e.doNow(game.RunEvent{Before: true, Side: d}); err != nil {
 		return err
 	}
-	_, err := e.doNow(play.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[d], rules1e.DirDY[d])), Facing: e.facing})
+	_, err := e.doNow(game.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[d], rules1e.DirDY[d])), Facing: e.facing})
 	return err
 }
 
 // turnRight is gobox's turn to the right: a Face.
-func turnRight(e *Engine) { e.doNow(play.Face{Facing: (e.facing + 2) % 8}) }
+func turnRight(e *Engine) { e.doNow(game.Face{Facing: (e.facing + 2) % 8}) }
 
 // Arrive moves and leaves the step's events owed (Map.Event); RunEvent runs them.
 func TestArriveThenRunEvent(t *testing.T) {
@@ -97,11 +97,11 @@ func TestArriveThenRunEvent(t *testing.T) {
 			t.Fatal("Arrive left the pre-step script owed")
 		}
 		at := image.Pt(e.posX, e.posY)
-		xs, ok := e.build().(play.Exploring)
+		xs, ok := e.build().(game.Exploring)
 		if e.ext.owed == nil || !ok || xs.Map.Walk == nil || !xs.Map.Walk.Event(at) {
 			t.Fatalf("after Arrive: owed %v, exploring %v", e.ext.owed, ok)
 		}
-		if _, err := e.doNow(play.RunEvent{}); err != nil {
+		if _, err := e.doNow(game.RunEvent{}); err != nil {
 			t.Fatal(err)
 		}
 		if e.ext.owed != nil {
@@ -121,7 +121,7 @@ func TestArriveNeedsBefore(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	from := image.Pt(e.posX, e.posY)
-	_, err := e.doNow(play.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[e.facing], rules1e.DirDY[e.facing])), Facing: e.facing})
+	_, err := e.doNow(game.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[e.facing], rules1e.DirDY[e.facing])), Facing: e.facing})
 	if err == nil || e.posX != from.X || e.posY != from.Y {
 		t.Fatalf("Arrive alone: err %v, at %d,%d", err, e.posX, e.posY)
 	}

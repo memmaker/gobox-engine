@@ -8,7 +8,7 @@ import (
 	"gobox/asset/orig"
 	"gobox/audio"
 	"gobox/audio/sounddata"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -261,7 +261,7 @@ func (e *Engine) PlaySound(n int) { e.playSound(n, string(daspFx[n])) }
 // the presenter plays it when it draws the View that follows
 // (PlayEventSound), as it does a fight's.
 func (e *Engine) cue(c rules.SoundCue) {
-	e.event(play.Sounded{Sound: string(c)})
+	e.event(game.Sounded{Sound: string(c)})
 }
 
 // playSound is PlaySound with the sound pack's event (extra) in place of

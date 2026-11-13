@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"gobox/asset"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
 	"maps"
@@ -237,10 +237,10 @@ func TestDoorWait(t *testing.T) {
 	if d := e.ext.door.opts; e.pending != PendDoor || !d.Bash || d.Pick || e.top() == onAsk {
 		t.Fatalf("door %+v pending %d", d, e.pending)
 	}
-	if e.TryDoor(play.DoorPick) == nil {
+	if e.TryDoor(game.DoorPick) == nil {
 		t.Error("Pick taken where it is not offered")
 	}
-	if err := e.TryDoor(play.DoorExit); err != nil || e.ext.doorThrough || e.pending != PendNone {
+	if err := e.TryDoor(game.DoorExit); err != nil || e.ext.doorThrough || e.pending != PendNone {
 		t.Errorf("Exit: err %v through %v pending %d", err, e.ext.doorThrough, e.pending)
 	}
 }

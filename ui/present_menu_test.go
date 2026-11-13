@@ -5,7 +5,6 @@ import (
 	"go/parser"
 	"go/token"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/blobber"
 	"gobox/ui/input"
 	"os"
@@ -20,7 +19,7 @@ import (
 
 // Esc closes the command menu (Enter opened it).
 func TestEscClosesCommandMenu(t *testing.T) {
-	g, _ := playGame(play.Exploring{})
+	g, _ := playGame(game.Exploring{})
 	p := &Presenter{active: true, view: &blobber.View{}}
 	p.SetEngine(g)
 	if !p.key(13) || !p.menu {
@@ -127,8 +126,8 @@ func TestMemberKey(t *testing.T) {
 
 // askedOn is a Presenter with the game's question a up (as a refusal's:
 // over any screen).
-func askedOn(a *play.Ask) *Presenter {
-	p, _ := presenterOn(play.Scene{})
+func askedOn(a *game.Ask) *Presenter {
+	p, _ := presenterOn(game.Scene{})
 	p.eng.r.refusalAsk = a
 	return p
 }
@@ -141,7 +140,7 @@ func TestConfirmKeys(t *testing.T) {
 		want ActKind
 	}{{[]uint16{'y'}, ActYes}, {[]uint16{'n'}, ActNo}, {[]uint16{27}, ActNo},
 		{[]uint16{13}, ActNo}, {[]uint16{0x4800, KeyPadSelect}, ActYes}} {
-		p := askedOn(&play.Ask{Kind: game.YesNo, Prompt: "Flee?"})
+		p := askedOn(&game.Ask{Kind: game.YesNo, Prompt: "Flee?"})
 		p.confirmSel = 1
 		for _, k := range c.keys {
 			p.key(k)
@@ -264,7 +263,7 @@ func TestKeyDispatch(t *testing.T) {
 // "YOUR COVER IS BLOWN."): a card's click continues it, as a click elsewhere,
 // instead of asking for the inventory the engine refuses.
 func TestCardClickContinues(t *testing.T) {
-	p := askedOn(&play.Ask{Kind: game.Continue})
+	p := askedOn(&game.Ask{Kind: game.Continue})
 	p.cardClick(2)
 	if a := p.Actions(); len(a) != 1 || a[0].Kind != ActOK {
 		t.Errorf("card click on a press-Enter wait: %v", a)
@@ -274,7 +273,7 @@ func TestCardClickContinues(t *testing.T) {
 // A member pick while exploring (a spell's target): a card's click is the
 // pick, not the command bar's select and context menu.
 func TestCardClickPicksMember(t *testing.T) {
-	p := askedOn(&play.Ask{Kind: game.PickMember})
+	p := askedOn(&game.Ask{Kind: game.PickMember})
 	p.command = true
 	p.cardClick(6)
 	if a := p.Actions(); len(a) != 1 || a[0].Kind != ActMember || a[0].N != 6 || p.ctx != 0 {
@@ -284,7 +283,7 @@ func TestCardClickPicksMember(t *testing.T) {
 
 // A heading to pick (AskMove) takes the arrows as ActDir, not the command bar.
 func TestDirsAskTakesArrows(t *testing.T) {
-	p := askedOn(&play.Ask{Kind: game.Direction})
+	p := askedOn(&game.Ask{Kind: game.Direction})
 	p.active, p.view, p.menu = true, &blobber.View{}, true
 	if p.key(0x4800) {
 		t.Fatal("the bar took an arrow the question answers")
@@ -298,7 +297,7 @@ func TestDirsAskTakesArrows(t *testing.T) {
 // A game's own menu (AskMenu "Continue Battle:") in a fight is answered by
 // its keys and Esc, not left hanging.
 func TestFightMenuKeys(t *testing.T) {
-	menu := &play.Ask{Kind: game.Choice, Prompt: "Continue Battle:", Options: []play.Option{{Label: "Yes", Key: 'Y'}, {Label: "No", Key: 'N'}}}
+	menu := &game.Ask{Kind: game.Choice, Prompt: "Continue Battle:", Options: []game.Option{{Label: "Yes", Key: 'Y'}, {Label: "No", Key: 'N'}}}
 	for _, c := range []struct {
 		k    uint16
 		want ActKind
@@ -331,7 +330,7 @@ func TestConfirmStart(t *testing.T) {
 // answers nothing; on others it is No.
 func TestConfirmNoEsc(t *testing.T) {
 	for _, keep := range []bool{true, false} {
-		p := askedOn(&play.Ask{Kind: game.YesNo, Prompt: "Claim it?", NoEsc: keep})
+		p := askedOn(&game.Ask{Kind: game.YesNo, Prompt: "Claim it?", NoEsc: keep})
 		p.confirmSel = 0
 		p.key(27)
 		if a := p.Actions(); keep && len(a) != 0 || !keep && (len(a) != 1 || a[0].Kind != ActNo) {
@@ -352,7 +351,7 @@ func TestConfirmNoPick(t *testing.T) {
 		k    uint16
 		want []ActKind
 	}{{13, nil}, {0x4800, nil}, {27, nil}, {'y', []ActKind{ActYes}}, {'N', []ActKind{ActNo}}} {
-		p := askedOn(&play.Ask{Kind: game.YesNo, Prompt: "Pay?", NoPick: true, NoEsc: true})
+		p := askedOn(&game.Ask{Kind: game.YesNo, Prompt: "Pay?", NoPick: true, NoEsc: true})
 		p.confirmSel = -1
 		p.key(c.k)
 		var got []ActKind

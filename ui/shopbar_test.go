@@ -5,21 +5,20 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
 type shopPlay struct {
-	st   play.State
-	sent []play.Action
+	st   game.State
+	sent []game.Action
 }
 
 func (s *shopPlay) Version() uint64 { return fresh() }
 
-func (s *shopPlay) State() play.State { return s.st }
-func (s *shopPlay) Do(a play.Action) (play.Outcome, error) {
+func (s *shopPlay) State() game.State { return s.st }
+func (s *shopPlay) Do(a game.Action) (game.Outcome, error) {
 	s.sent = append(s.sent, a)
-	return play.Outcome{}, nil
+	return game.Outcome{}, nil
 }
 func (s *shopPlay) Save() ([]byte, error) { return nil, nil }
 func (s *shopPlay) Load([]byte) error     { return nil }
@@ -28,11 +27,11 @@ func (s *shopPlay) Load([]byte) error     { return nil }
 func TestShopBarReachesGame(t *testing.T) {
 	for _, c := range []struct {
 		keys string
-		want play.Action
-	}{{"P", play.PoolCoins{Member: 1}}, {"T", play.Take{Item: rules.NoItem}}, {"S", play.LootShare{}}, {"E", play.Leave{}},
-		{"BP", play.PoolCoins{Member: 1}}, {"BEE", play.Leave{}}} {
-		sp := &shopPlay{st: play.Trading{Common: play.Common{Party: []game.Member{{Name: "A"}, {Name: "B"}}, Selected: 1,
-			Allowed: play.Allowed{Plain: []play.Action{play.PoolCoins{Member: 1}, play.Take{}, play.LootShare{}, play.Leave{}}}}}}
+		want game.Action
+	}{{"P", game.PoolCoins{Member: 1}}, {"T", game.Take{Item: rules.NoItem}}, {"S", game.LootShare{}}, {"E", game.Leave{}},
+		{"BP", game.PoolCoins{Member: 1}}, {"BEE", game.Leave{}}} {
+		sp := &shopPlay{st: game.Trading{Common: game.Common{Party: []game.Member{{Name: "A"}, {Name: "B"}}, Selected: 1,
+			Allowed: game.Allowed{Plain: []game.Action{game.PoolCoins{Member: 1}, game.Take{}, game.LootShare{}, game.Leave{}}}}}}
 		f := &Front{Game: &classicGame{Game: NewGame(sp, game.Data{})}, started: true}
 		f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
 		f.P.SetEngine(f.Game)

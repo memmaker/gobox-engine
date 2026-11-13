@@ -16,15 +16,14 @@ import (
 	"time"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
-// The engine is gobox's typed reactive contract (gobox/game/play): the
+// The engine is gobox's typed reactive contract (gobox/game): the
 // core parks wherever the original waits for the player, State reads where
 // as one of play's states, and Do turns one action into the adapter's
 // decisions and runs it to the next such point (in combat, the monsters'
 // turns with it).
-var _ play.Game = (*Engine)(nil)
+var _ game.Game = (*Engine)(nil)
 
 // Art is the wall art loaded so far (playrules forwards classic's live reads here).
 func (e *Engine) Art() map[string]game.Picture { return e.overlandArt() }
@@ -33,7 +32,7 @@ var errNotAllowed = errors.New("not allowed now")
 
 // State is where the core is parked, as one of play's states: the one
 // built after the last change (rebuild), shared, read-only.
-func (e *Engine) State() play.State {
+func (e *Engine) State() game.State {
 	if e.ps == nil {
 		e.rebuild()
 	}
@@ -53,14 +52,14 @@ func (e *Engine) Version() uint64 {
 // LoadSlot, Start, Step) ends with it.
 func (e *Engine) rebuild() {
 	e.ps = e.build()
-	if _, ok := e.ps.(play.Looting); !ok { // a new treasure is announced again
+	if _, ok := e.ps.(game.Looting); !ok { // a new treasure is announced again
 		e.lootSeen = false
 	}
 	e.StateBuilds++
 }
 
 // build is where the core is parked now, as one of play's states.
-func (e *Engine) build() play.State {
+func (e *Engine) build() game.State {
 	s := e.known()
 	cm := e.common(s)
 	switch {
@@ -74,13 +73,13 @@ func (e *Engine) build() play.State {
 		sc.Common = cm
 		return sc
 	case s.Sequence != "":
-		return play.Scene{Common: cm, Kind: play.SceneSequence, Sequence: s.Sequence}
+		return game.Scene{Common: cm, Kind: game.SceneSequence, Sequence: s.Sequence}
 	case s.Results != nil:
-		return play.Scene{Common: cm, Kind: play.SceneResults, Results: s.Results}
+		return game.Scene{Common: cm, Kind: game.SceneResults, Results: s.Results}
 	}
 	if s.Read != nil { // a handout over any state: its Scene, Leave puts it away
 		cm.Ask = nil
-		return play.Scene{Common: cm, Kind: play.SceneHandout, Handout: s.Read.Title, Lines: s.Read.Lines}
+		return game.Scene{Common: cm, Kind: game.SceneHandout, Handout: s.Read.Title, Lines: s.Read.Lines}
 	}
 	mode := s.Mode
 	if mode == game.ModeAsk && s.Combat != nil { // a question in a fight is the Fighting's Ask over the field (classic draws it over the map)
@@ -88,35 +87,35 @@ func (e *Engine) build() play.State {
 	}
 	switch mode {
 	case game.ModeNone, game.ModeParty, game.ModeCreate:
-		a := play.Assembling{Common: cm}
+		a := game.Assembling{Common: cm}
 		for _, c := range e.gameData.Commands { // the game's own party commands: adding from another game
 			if c.From != "" {
-				a.Commands = append(a.Commands, play.Option{Label: c.Label, Key: c.Key, Do: play.AddCharacter{Roster: -1, From: c.From}})
+				a.Commands = append(a.Commands, game.Option{Label: c.Label, Key: c.Key, Do: game.AddCharacter{Roster: -1, From: c.From}})
 			}
 		}
 		a.Roster = e.BuildCharList()
 		if cr := s.Creation; cr != nil && s.Mode == game.ModeCreate {
-			a.Draft = &play.Draft{Member: cr.Draft, Fields: cr.Fields, MinHP: cr.MinHP, MaxHP: cr.MaxHP, Minimums: cr.Minimums,
+			a.Draft = &game.Draft{Member: cr.Draft, Fields: cr.Fields, MinHP: cr.MinHP, MaxHP: cr.MaxHP, Minimums: cr.Minimums,
 				Step: cr.Step}
 			if len(cr.Choices) > 0 {
-				a.Draft.Ask = &play.Question{Replies: cr.Choices}
+				a.Draft.Ask = &game.Question{Replies: cr.Choices}
 			}
 			if c := e.creation; c != nil && c.naming { // Keep's name question (BUG-CLASSES 59): a Reply with the name keeps it
-				a.Draft.Ask = &play.Question{Text: "Character name:", Typed: true, Max: 0xF}
+				a.Draft.Ask = &game.Question{Text: "Character name:", Typed: true, Max: 0xF}
 			}
 		}
 		return a
 	case game.ModeExplore:
-		x := play.Exploring{Common: cm, Map: play.ExploreMap{Automap: s.Map, Walk: e.walkMap(), Overland: e.viewMode != 1}, Door: s.Door,
+		x := game.Exploring{Common: cm, Map: game.ExploreMap{Automap: s.Map, Walk: e.walkMap(), Overland: e.viewMode != 1}, Door: s.Door,
 			Day: s.Flags != nil && s.Flags.Day, Interact: s.Flags != nil && s.Flags.Interact} // the sky drawView paints, not the clock
 		if w := walls(s); w != nil {
 			x.Map.Walls = *w
 		}
 		return x
 	case game.ModeCombat:
-		f := play.Fighting{Common: cm}
+		f := game.Fighting{Common: cm}
 		if b := s.Combat; b != nil {
-			f.Field = play.Battlefield{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile, Floor: b.Floor,
+			f.Field = game.Battlefield{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile, Floor: b.Floor,
 				Clouds: b.Effects, Round: b.Round, Dungeon: b.Dungeon}
 			if t := b.Turn; t != nil {
 				f.Field.Turn, f.Field.Moves, f.Field.Casting, f.Field.Weapon, f.Field.Missile, f.Field.Maneuvers = t.Unit, t.Moves, t.Casting, t.Weapon, t.Missile, t.Maneuvers
@@ -125,29 +124,29 @@ func (e *Engine) build() play.State {
 		}
 		return f
 	case game.ModeShop, game.ModeTemple, game.ModeTraining, game.ModeVault:
-		t := play.Trading{Common: cm, Kind: tradeKinds[s.Mode], Name: s.TempleName, Services: s.Temple, Training: s.Training, Offers: s.TempleOffers, Vault: s.Vault}
+		t := game.Trading{Common: cm, Kind: tradeKinds[s.Mode], Name: s.TempleName, Services: s.Temple, Training: s.Training, Offers: s.TempleOffers, Vault: s.Vault}
 		if sh := s.Shop; sh != nil {
 			t.Name, t.Goods, t.Buys, t.Offers, t.Pooled = sh.Name, sh.Goods, sh.Buys, sh.Offers, sh.Pooled
 			t.Identify, t.Unknown, t.Known = sh.IdentifyPrice, sh.Unknown, sh.Identified
 		}
 		return t
 	case game.ModeLoot:
-		l := play.Looting{Common: cm}
+		l := game.Looting{Common: cm}
 		if s.Loot != nil {
 			l.Items, l.Money, l.Status = s.Loot.Items, s.Loot.Money, s.Loot.Status
 			l.Announce = !e.lootSeen
 		}
 		return l
 	case game.ModeCamp:
-		return play.Camping{Common: cm}
+		return game.Camping{Common: cm}
 	}
 	cm.Ask = nil // a Scene's own question (below) carries it
 	// the pane, the picture and its layers are Common's (Text, Picture, Layers): the Scene adds only its own
-	sc := play.Scene{Common: cm, Kind: play.SceneText, Full: s.Flags != nil && s.Flags.Full}
+	sc := game.Scene{Common: cm, Kind: game.SceneText, Full: s.Flags != nil && s.Flags.Full}
 	if pg := s.Page; pg != nil {
 		for row, l := range pg.View {
 			for _, t := range l {
-				sc.Placed = append(sc.Placed, play.Placed{At: image.Pt(t.X, row+1), Text: t.Text})
+				sc.Placed = append(sc.Placed, game.Placed{At: image.Pt(t.X, row+1), Text: t.Text})
 			}
 		}
 	}
@@ -159,22 +158,22 @@ func (e *Engine) build() play.State {
 	sc.Pictures = append(sc.Pictures, s.Story...)
 	sc.Walls = walls(s) // the 3D view under the page (the opening's come before any exploring)
 	if s.Read != nil {
-		sc.Kind, sc.Handout, sc.Lines = play.SceneHandout, s.Read.Title, s.Read.Lines
+		sc.Kind, sc.Handout, sc.Lines = game.SceneHandout, s.Read.Title, s.Read.Lines
 	} else if a := s.Pending; a != nil {
 		if a.Text != "" {
 			sc.Text = append(sc.Text, a.Text)
 		}
-		q := &play.Question{Text: sc.Status, List: sc.Status != "" || a.List, NoPick: a.NoPick, NoEsc: a.NoEsc, Esc: a.Esc, Keys: a.Keys} // bug class 49 on the Scene path
+		q := &game.Question{Text: sc.Status, List: sc.Status != "" || a.List, NoPick: a.NoPick, NoEsc: a.NoEsc, Esc: a.Esc, Keys: a.Keys} // bug class 49 on the Scene path
 		switch {
 		case a.Continue && a.Ms > 0: // a timed pause: the Scene carries it, so the presenter paces it
 			sc.Ask, q.Continue, q.Ms = q, true, a.Ms
 		case a.Continue:
 		case a.Typed:
-			sc.Kind, sc.Ask, q.Typed, q.Max = play.SceneTalk, q, true, 40
+			sc.Kind, sc.Ask, q.Typed, q.Max = game.SceneTalk, q, true, 40
 		case a.Number:
-			sc.Kind, sc.Ask, q.Number, q.Max = play.SceneTalk, q, true, a.Max
+			sc.Kind, sc.Ask, q.Number, q.Max = game.SceneTalk, q, true, a.Max
 		default: // a yes/no (No, Yes), a menu, a list, a member pick
-			sc.Kind, sc.Ask = play.SceneTalk, q
+			sc.Kind, sc.Ask = game.SceneTalk, q
 			for _, r := range a.Replies {
 				q.Replies = append(q.Replies, strings.TrimSpace(r))
 			}
@@ -186,7 +185,7 @@ func (e *Engine) build() play.State {
 // ask is the question over a state (a Scene clears it: its Replies);
 // the door, the party menu and creation's steps are play's Door,
 // Assembling and Draft.
-func ask(s facts) *play.Question {
+func ask(s facts) *game.Question {
 	a := s.Pending
 	if s.ShopMenu { // the shop's own Buy, Leave: Trading's Buy and Leave
 		return nil
@@ -194,7 +193,7 @@ func ask(s facts) *play.Question {
 	if a == nil || s.Door != nil || a.Continue && a.Ms == 0 || s.Mode == game.ModeNone || s.Mode == game.ModeParty || s.Mode == game.ModeCreate {
 		return nil
 	}
-	q := &play.Question{Text: a.Text, Default: a.Default, Max: a.Max, NoEsc: a.NoEsc, NoPick: a.NoPick, YesNo: a.YesNo,
+	q := &game.Question{Text: a.Text, Default: a.Default, Max: a.Max, NoEsc: a.NoEsc, NoPick: a.NoPick, YesNo: a.YesNo,
 		Typed: a.Typed, Number: a.Number, Keys: a.Keys, Esc: a.Esc, Continue: a.Continue, Ms: a.Ms}
 	if !a.Typed && !a.Number {
 		for _, r := range a.Replies {
@@ -237,12 +236,12 @@ func paneText(pg *game.Page) (out []string) {
 }
 
 // tradeKinds are the trading places by mode.
-var tradeKinds = map[game.Mode]play.TradeKind{game.ModeShop: play.TradeShop, game.ModeTemple: play.TradeTemple,
-	game.ModeTraining: play.TradeTraining, game.ModeVault: play.TradeVault}
+var tradeKinds = map[game.Mode]game.TradeKind{game.ModeShop: game.TradeShop, game.ModeTemple: game.TradeTemple,
+	game.ModeTraining: game.TradeTraining, game.ModeVault: game.TradeVault}
 
 // common is what every state shows, with the actions allowed now.
-func (e *Engine) common(s facts) play.Common {
-	cm := play.Common{Selected: s.Selected, Purse: s.Purse, PartyCap: s.PartyCap, PoolItems: s.PoolItems, Where: s.Where, Area: s.Map.Area, Lore: s.Lore, Quests: s.Quests,
+func (e *Engine) common(s facts) game.Common {
+	cm := game.Common{Selected: s.Selected, Purse: s.Purse, PartyCap: s.PartyCap, PoolItems: s.PoolItems, Where: s.Where, Area: s.Map.Area, Lore: s.Lore, Quests: s.Quests,
 		PowerPick: s.PowerPick, Picker: s.Picker, IconEditor: s.IconEditor, Automap: s.Map, Text: paneText(s.Page)}
 	if len(cm.Text) == 0 && s.LastText != "" {
 		cm.Text = []string{s.LastText}
@@ -285,46 +284,46 @@ func (e *Engine) common(s facts) play.Common {
 // readyAct is member n's item it (from State's Items, its card already
 // read) as Ready, or Unready when it is readied (a fight's item menu
 // toggles, so Ready only).
-func (e *Engine) readyAct(n int, it game.Item) play.Action {
+func (e *Engine) readyAct(n int, it game.Item) game.Action {
 	if it.Readied && !e.battleUp() {
-		return play.Unready{Member: n, Item: it.Handle}
+		return game.Unready{Member: n, Item: it.Handle}
 	}
-	return play.Ready{Member: n, Item: it.Handle}
+	return game.Ready{Member: n, Item: it.Handle}
 }
 
 // allowed is what the state lets the player do now.
-func (e *Engine) allowed(s facts) play.Allowed {
-	var a play.Allowed
-	add := func(x ...play.Action) { a.Plain = append(a.Plain, x...) }
+func (e *Engine) allowed(s facts) game.Allowed {
+	var a game.Allowed
+	add := func(x ...game.Action) { a.Plain = append(a.Plain, x...) }
 	if pq := e.ext.pq; pq != nil { // a play action's question: its replies, Leave backs out
 		for i := range pq.calls {
-			add(play.Reply{N: i})
+			add(game.Reply{N: i})
 		}
-		add(play.Leave{})
+		add(game.Leave{})
 		return a
 	}
 	items := func() {
 		for n, m := range s.Party {
 			for _, it := range m.Items {
-				add(e.readyAct(n, it), play.Drop{Member: n, Item: it.Handle})
+				add(e.readyAct(n, it), game.Drop{Member: n, Item: it.Handle})
 				if len(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[n], Item: it.Handle}).Offers) > 0 { // an item with no use is not offered Use (UseItem refused it "not now")
-					add(play.UseItem{Member: n, Item: it.Handle})
+					add(game.UseItem{Member: n, Item: it.Handle})
 				}
 			}
-			add(play.SelectMember{Member: n})
+			add(game.SelectMember{Member: n})
 		}
 	}
 	if s.Read != nil {
-		add(play.Leave{})
+		add(game.Leave{})
 		return a
 	}
 	switch {
 	case s.Intro != nil, s.Sequence != "", e.ext.ending, s.Results != nil && s.Pending == nil: // results with a question answer it, as the Scene's Replies say
-		add(play.Continue{})
+		add(game.ContinueAction{})
 		return a
 	case s.Door != nil: // the Locked. menu: its ways, by the old front's numbering (doorWays)
-		for w := range play.DoorWay(4) { // exit, bash, pick, knock: TryDoor checks which are left
-			add(play.TryDoor{Way: w})
+		for w := range game.DoorWay(4) { // exit, bash, pick, knock: TryDoor checks which are left
+			add(game.TryDoor{Way: w})
 		}
 		return a
 	}
@@ -336,40 +335,40 @@ func (e *Engine) allowed(s facts) play.Allowed {
 		mode = game.ModeParty
 	}
 	if s.Training != nil && s.Mode == game.ModeTraining {
-		add(play.CloseTraining{}) // the training box's Exit (and Esc), back to the hall's menu, over any question the box asks
+		add(game.CloseTraining{}) // the training box's Exit (and Esc), back to the hall's menu, over any question the box asks
 	}
 	if q := ask(s); q != nil && sceneless(mode) { // a question over the state: its replies and only them (bug class 18)
 		if q.Typed || q.Number {
-			add(play.Reply{})
+			add(game.Reply{})
 		}
 		for i := range q.Replies {
-			add(play.Reply{N: i})
+			add(game.Reply{N: i})
 		}
 		return a
 	}
 	if s.PowerPick != nil {
-		add(play.PickPower{})
+		add(game.PickPower{})
 	}
 	if s.Picker != nil {
 		for n := range max(len(s.Picker.Pics), len(s.Picker.Labels)) { // every row on every page
-			add(play.Pick{N: n})
+			add(game.Pick{N: n})
 		}
-		add(play.ClosePicker{})
+		add(game.ClosePicker{})
 	}
 	if s.IconEditor != nil {
-		add(play.IconSize{}, play.IconColour{}, play.IconPNG{}, play.EndIcon{}, play.EndIcon{Keep: true})
+		add(game.IconSize{}, game.IconColour{}, game.IconPNG{}, game.EndIcon{}, game.EndIcon{Keep: true})
 	}
 	switch mode {
 	case game.ModeNone, game.ModeParty, game.ModeCreate:
 		if s.Creation != nil && s.Mode == game.ModeCreate {
 			if c := e.creation; c != nil && c.naming {
-				add(play.Reply{}) // the name
+				add(game.Reply{}) // the name
 				break
 			}
-			add(play.Reroll{}, play.KeepCharacter{}, play.DiscardCharacter{})
+			add(game.Reroll{}, game.KeepCharacter{}, game.DiscardCharacter{})
 			for _, f := range s.Creation.Fields {
 				for j := range f.Options {
-					add(play.SetChoice{Field: f.Name, N: j})
+					add(game.SetChoice{Field: f.Name, N: j})
 				}
 			}
 			break
@@ -377,45 +376,45 @@ func (e *Engine) allowed(s facts) play.Allowed {
 		for _, k := range e.partyFunctions() {
 			switch k {
 			case partyBegin:
-				add(play.Begin{})
+				add(game.Begin{})
 			case partyCreate:
-				add(play.NewCharacter{})
+				add(game.NewCharacter{})
 			case partyAdd:
-				add(play.OpenPicker{Kind: PickAdd})
+				add(game.OpenPicker{Kind: PickAdd})
 				for i := range e.BuildCharList() {
-					add(play.AddCharacter{Roster: i})
+					add(game.AddCharacter{Roster: i})
 				}
 				for _, c := range e.gameData.Commands { // adding from another game: its list, then each of its characters
 					if c.From == "" || e.Cfg.Foreign == nil {
 						continue
 					}
-					add(play.AddCharacter{Roster: -1, From: c.From})
+					add(game.AddCharacter{Roster: -1, From: c.From})
 					if p := e.picker; p != nil && p.kind == PickAddFrom && e.addFrom == c.From {
 						for i := range p.n {
-							add(play.AddCharacter{Roster: i, From: c.From})
+							add(game.AddCharacter{Roster: i, From: c.From})
 						}
 					}
 				}
 			case partyForget:
-				add(play.OpenPicker{Kind: PickForget})
+				add(game.OpenPicker{Kind: PickForget})
 			case partyQuickStart:
-				add(play.QuickStart{})
+				add(game.QuickStart{})
 			case partyQuit:
-				add(play.Quit{})
+				add(game.Quit{})
 			}
 			for n := range s.Party {
 				switch k {
 				case partyDrop:
-					add(play.DropMember{Member: n})
+					add(game.DropMember{Member: n})
 				case partyRemove:
-					add(play.RemoveCharacter{Roster: n})
+					add(game.RemoveCharacter{Roster: n})
 				case partyModify:
 					if e.ruleset().Check(rules.Modifiable{Who: e.partyIDs()[n]}, nil).Yes { // greyed (not allowed) for a character with experience of its own
-						add(play.Modify{Member: n})
+						add(game.Modify{Member: n})
 					}
-					add(play.EditIcon{Member: n})
+					add(game.EditIcon{Member: n})
 				case partyTraining:
-					add(play.OpenTraining{Member: n})
+					add(game.OpenTraining{Member: n})
 				}
 			}
 		}
@@ -423,36 +422,36 @@ func (e *Engine) allowed(s facts) play.Allowed {
 		if m := e.walkMap(); m != nil { // gobox walks: the step's parts as the engine waits for them
 			at, f := image.Pt(s.Where.X, s.Where.Y), s.Where.Facing
 			if e.ext.owed != nil {
-				add(play.RunEvent{})
+				add(game.RunEvent{})
 			}
 			for _, d := range [4]int{0, 2, 4, 6} {
-				add(play.RunEvent{Before: true, Side: d})
+				add(game.RunEvent{Before: true, Side: d})
 				if p := e.ext.pre; p != nil && p.ran && p.side == d && m.Edge(at, d).Kind != game.EdgeWall {
-					add(play.Arrive{From: at, To: at.Add(sideSteps[d]), Facing: f})
+					add(game.Arrive{From: at, To: at.Add(sideSteps[d]), Facing: f})
 				}
 				if d != f && e.viewMode == 1 { // the 3D view turns; the map's walk has no facing to change (verbTurn* there do nothing)
-					add(play.Face{Facing: d})
+					add(game.Face{Facing: d})
 				}
 			}
 		}
-		add(play.Search{}, play.Look{}, play.MakeCamp{})
+		add(game.Search{}, game.Look{}, game.MakeCamp{})
 		items()
 	case game.ModeCamp:
-		add(play.AdvanceTimeBy{D: time.Hour}, play.BreakCamp{}, play.Order{})
+		add(game.AdvanceTimeBy{D: time.Hour}, game.BreakCamp{}, game.Order{})
 		for k := range 3 { // RestFix, RestWait, RestUntil
-			add(play.CampRest{Kind: k})
+			add(game.CampRest{Kind: k})
 		}
 		for n, m := range s.Party {
 			if m.CanCast {
-				add(play.Cast{Member: n}, play.Memorize{Member: n}, play.Scribe{Member: n})
+				add(game.Cast{Member: n}, game.Memorize{Member: n}, game.Scribe{Member: n})
 			}
 			if n < e.partySize() { // a paladin's powers, wherever casting is; they ask whom (UsePower)
 				for _, p := range e.powers(e.partyIDs()[n]) {
 					switch p.Kind {
 					case PowerHeal:
-						add(play.UsePower{Member: n, Kind: game.PowerHeal, Target: -1})
+						add(game.UsePower{Member: n, Kind: game.PowerHeal, Target: -1})
 					case PowerCure:
-						add(play.UsePower{Member: n, Kind: game.PowerCure, Target: -1})
+						add(game.UsePower{Member: n, Kind: game.PowerCure, Target: -1})
 					}
 				}
 			}
@@ -461,15 +460,15 @@ func (e *Engine) allowed(s facts) play.Allowed {
 	case game.ModeCombat:
 		b := s.Combat
 		if aim := e.cs.aim; aim != nil && b != nil && aim.turn == nil { // an aim up on its own (a spell cast over rounds going off): its squares
-			var act play.Action = play.Shoot{}
+			var act game.Action = game.Shoot{}
 			if sa := e.cs.sa; aim.then.kind == atSpell && sa != nil {
-				act = play.Cast{Member: s.Selected, Spell: int(sa.spell)}
+				act = game.Cast{Member: s.Selected, Spell: int(sa.spell)}
 			}
-			a.Aimed = append(a.Aimed, play.Aimed{Action: act, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
+			a.Aimed = append(a.Aimed, game.Aimed{Action: act, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
 			break
 		}
 		if e.battleUp() && e.ruleset().Check(rules.PartyAuto{}, nil).Yes && (b == nil || b.Turn == nil) { // the keys a computer turn polls (aiKeys): Space and Alt-M
-			add(play.Manual{}, play.QuickMagic{})
+			add(game.Manual{}, game.QuickMagic{})
 		}
 		if b == nil || b.Turn == nil || !e.battleUp() || e.battle().Turn == nil {
 			break
@@ -477,102 +476,102 @@ func (e *Engine) allowed(s facts) play.Allowed {
 		can := e.battle().Turn.Can
 		a.Moves = b.Reach
 		for _, r := range b.Reach {
-			add(play.MoveTo{To: r.At})
+			add(game.MoveTo{To: r.At})
 		}
-		add(play.Flee{}) // a step off the map, as moveAttack's; the rules refuse it where there is no edge
+		add(game.Flee{}) // a step off the map, as moveAttack's; the rules refuse it where there is no edge
 		if slices.Contains(can, VerbAttack) {
 			for _, t := range b.Targets {
-				add(play.Attack{Target: t})
+				add(game.Attack{Target: t})
 			}
-			a.Aimed = append(a.Aimed, play.Aimed{Action: play.Shoot{}, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
+			a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
 		}
 		if slices.Contains(can, VerbCast) {
 			for _, sp := range b.Spells { // an aimed spell is only Aimed: cast at a square
 				if !slices.ContainsFunc(b.Aims, func(a game.SpellRef) bool { return a.ID == sp.ID }) {
-					add(play.Cast{Member: s.Selected, Spell: sp.ID})
+					add(game.Cast{Member: s.Selected, Spell: sp.ID})
 				}
 			}
 			for _, sp := range b.Aims {
-				a.Aimed = append(a.Aimed, play.Aimed{Action: play.Cast{Member: s.Selected, Spell: sp.ID}, Squares: inRange(b, sp.Range), Targets: max(sp.Targets, 1), Area: sp.Area})
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Cast{Member: s.Selected, Spell: sp.ID}, Squares: inRange(b, sp.Range), Targets: max(sp.Targets, 1), Area: sp.Area})
 			}
 		}
 		if s.Selected >= 0 && s.Selected < len(s.Party) { // the acting member's items (the sheet's View, O089's Use)
 			if slices.Contains(can, VerbItems) {
-				add(play.UseItem{Member: s.Selected, Item: rules.NoItem})
+				add(game.UseItem{Member: s.Selected, Item: rules.NoItem})
 			}
 			for _, it := range s.Party[s.Selected].Items {
 				if slices.Contains(can, VerbItems) {
-					add(play.UseItem{Member: s.Selected, Item: it.Handle})
+					add(game.UseItem{Member: s.Selected, Item: it.Handle})
 				}
-				add(e.readyAct(s.Selected, it), play.Drop{Member: s.Selected, Item: it.Handle}) // the fight's View: Ready and Drop (BUG-CLASSES 47)
+				add(e.readyAct(s.Selected, it), game.Drop{Member: s.Selected, Item: it.Handle}) // the fight's View: Ready and Drop (BUG-CLASSES 47)
 			}
 		}
 		for _, v := range []struct { // in a fixed order: State is the same on every call (BUG-CLASSES 33)
 			k   TurnVerb
-			act play.Action
-		}{{VerbTurn, play.TurnUndead{}}, {VerbQuick, play.Quick{}}, {VerbGuard, play.Guard{}},
-			{VerbWait, play.Delay{}}, {VerbEnd, play.EndTurn{}}, {VerbBandage, play.Bandage{Member: max(s.Selected, 0)}}} {
+			act game.Action
+		}{{VerbTurn, game.TurnUndead{}}, {VerbQuick, game.Quick{}}, {VerbGuard, game.Guard{}},
+			{VerbWait, game.Delay{}}, {VerbEnd, game.EndTurn{}}, {VerbBandage, game.Bandage{Member: max(s.Selected, 0)}}} {
 			if slices.Contains(can, v.k) {
 				add(v.act)
 			}
 		}
 	case game.ModeShop, game.ModeTemple, game.ModeTraining, game.ModeVault:
-		add(play.Leave{})
+		add(game.Leave{})
 		if s.Shop != nil {
-			add(play.AppraiseActions(s.Shop.Offers)...)
+			add(game.AppraiseActions(s.Shop.Offers)...)
 		}
-		add(play.AppraiseActions(s.TempleOffers)...)
+		add(game.AppraiseActions(s.TempleOffers)...)
 		if s.Shop != nil {
 			for _, u := range s.Shop.Unknown { // only what the shop can identify (Identify refused the rest "not now")
-				add(play.Identify{Member: u.Member, Item: u.Item})
+				add(game.Identify{Member: u.Member, Item: u.Item})
 			}
 		}
 		for n, m := range s.Party {
 			if s.Shop != nil {
 				for _, g := range s.Shop.Goods {
-					add(play.Buy{Member: n, Item: g.Handle})
+					add(game.Buy{Member: n, Item: g.Handle})
 				}
 				for _, it := range m.Items {
-					add(play.Sell{Member: n, Item: it.Handle})
+					add(game.Sell{Member: n, Item: it.Handle})
 				}
 			}
 			for k, sv := range s.Temple {
 				if slices.Contains(sv.Needs, n) {
-					add(play.Heal{Service: k, Member: n})
+					add(game.Heal{Service: k, Member: n})
 				}
 			}
 			if t := s.Training; t != nil && slices.Contains(t.Ready, n) {
-				add(play.Train{Member: n})
+				add(game.Train{Member: n})
 			}
 		}
 		items()
 	case game.ModeLoot:
 		if s.Loot != nil && !e.lootSeen { // "You found some loot!" first: Continue opens the treasure
-			add(play.Continue{})
+			add(game.ContinueAction{})
 			return a
 		}
-		add(play.Leave{}, play.Take{Item: rules.NoItem}, play.Take{Item: rules.NoItem, All: true})
+		add(game.Leave{}, game.Take{Item: rules.NoItem}, game.Take{Item: rules.NoItem, All: true})
 		if s.Loot != nil {
 			for _, g := range s.Loot.Items {
-				add(play.Take{Item: g.Handle})
+				add(game.Take{Item: g.Handle})
 			}
 		}
 		items()
 		if e.vault == nil { // Drop is the vault's Deposit: no other treasure takes the party's items
-			a.Plain = slices.DeleteFunc(a.Plain, func(x play.Action) bool { _, ok := x.(play.Drop); return ok })
+			a.Plain = slices.DeleteFunc(a.Plain, func(x game.Action) bool { _, ok := x.(game.Drop); return ok })
 		}
 	default: // a Scene
 		switch {
 		case s.Read != nil:
-			add(play.Leave{})
+			add(game.Leave{})
 		case s.Pending == nil:
 		case s.Pending.Continue:
-			add(play.Continue{})
+			add(game.ContinueAction{})
 		case s.Pending.Typed, s.Pending.Number:
-			add(play.Reply{})
+			add(game.Reply{})
 		default:
 			for i := range s.Pending.Replies {
-				add(play.Reply{N: i})
+				add(game.Reply{N: i})
 			}
 		}
 	}
@@ -583,7 +582,7 @@ func (e *Engine) allowed(s facts) play.Allowed {
 var sideSteps = map[int]image.Point{0: {0, -1}, 2: {1, 0}, 4: {0, 1}, 6: {-1, 0}}
 
 // inRange are the battlefield's squares within r of the turn's unit.
-func inRange(b *play.Combat, r int) []image.Point {
+func inRange(b *game.Combat, r int) []image.Point {
 	var me image.Point
 	for _, u := range b.Units {
 		if b.Turn != nil && u.ID == b.Turn.Unit {
@@ -604,54 +603,54 @@ func inRange(b *play.Combat, r int) []image.Point {
 // allows: the state publishes a (Plain by value; Aimed by its action with
 // the squares cleared; a typed Reply by kind; the free-form ones the rules
 // check themselves).
-func allows(al play.Allowed, a play.Action) bool {
+func allows(al game.Allowed, a game.Action) bool {
 	base := a
 	switch v := a.(type) {
-	case play.Reply:
-		if v.Text != "" || !slices.Contains(al.Plain, a) && !slices.Contains(al.Plain, play.Action(play.Reply{N: 1})) { // typed, or a number as N (bug class 51): the one open Reply (a menu lists its N's)
-			base = play.Reply{}
+	case game.Reply:
+		if v.Text != "" || !slices.Contains(al.Plain, a) && !slices.Contains(al.Plain, game.Action(game.Reply{N: 1})) { // typed, or a number as N (bug class 51): the one open Reply (a menu lists its N's)
+			base = game.Reply{}
 		}
-	case play.Cast:
+	case game.Cast:
 		v.Ats, v.Target = nil, 0
 		base = v
 		if v.Member == -1 { // a fight's cast is the turn's (classic sends Member -1): any of its Aimed or Plain Casts of the spell
 			for _, x := range al.Aimed {
-				if c, ok := x.Action.(play.Cast); ok && c.Spell == v.Spell {
+				if c, ok := x.Action.(game.Cast); ok && c.Spell == v.Spell {
 					return true
 				}
 			}
 		}
-	case play.SetChoice: // a pool pick's id: the rules check the field
+	case game.SetChoice: // a pool pick's id: the rules check the field
 		if v.Text != "" {
 			return true
 		}
-	case play.Shoot:
-		base = play.Shoot{}
-	case play.Attack: // at a square (a bump, an ally): any Attack offered, the rules check the square
+	case game.Shoot:
+		base = game.Shoot{}
+	case game.Attack: // at a square (a bump, an ally): any Attack offered, the rules check the square
 		if v.At != nil {
-			return slices.ContainsFunc(al.Plain, func(x play.Action) bool { _, ok := x.(play.Attack); return ok })
+			return slices.ContainsFunc(al.Plain, func(x game.Action) bool { _, ok := x.(game.Attack); return ok })
 		}
-	case play.IconColour: // any part, shade and value: the core checks them
-		base = play.IconColour{}
-	case play.IconPNG:
-		base = play.IconPNG{}
-	case play.AdvanceTimeBy: // any length: gobox paces camp's rest in chunks
-		base = play.AdvanceTimeBy{D: time.Hour}
-	case play.UseItem:
+	case game.IconColour: // any part, shade and value: the core checks them
+		base = game.IconColour{}
+	case game.IconPNG:
+		base = game.IconPNG{}
+	case game.AdvanceTimeBy: // any length: gobox paces camp's rest in chunks
+		base = game.AdvanceTimeBy{D: time.Hour}
+	case game.UseItem:
 		v.Ats, v.Target, v.Spell = nil, 0, 0
 		base = v
-	case play.Ready:
+	case game.Ready:
 		v.Count = 0
 		base = v
-	case play.EndGame: // gobox's Back to Main Menu, any time: Do refuses it where there is no game to drop
+	case game.EndGame: // gobox's Back to Main Menu, any time: Do refuses it where there is no game to drop
 		return true
-	case play.UsePower, play.SetStat, play.Adjust, play.PointBuy, play.Order, play.AddNote, play.RemoveNote, play.Give, play.ChangeClass,
-		play.Memorize, play.Forget, play.Scribe, play.LayOnHands, play.Halve, play.Join, play.PoolCoins, play.SetDifficulty:
+	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Order, game.AddNote, game.RemoveNote, game.Give, game.ChangeClass,
+		game.Memorize, game.Forget, game.Scribe, game.LayOnHands, game.Halve, game.Join, game.PoolCoins, game.SetDifficulty:
 		return true
 	}
-	if c, ok := base.(play.Cast); ok && c.Spell != 0 { // camp offers a caster's Cast{Member}, the spell the rules' check
+	if c, ok := base.(game.Cast); ok && c.Spell != 0 { // camp offers a caster's Cast{Member}, the spell the rules' check
 		c.Spell = 0
-		if slices.ContainsFunc(al.Plain, func(x play.Action) bool { return reflect.DeepEqual(x, play.Action(c)) }) {
+		if slices.ContainsFunc(al.Plain, func(x game.Action) bool { return reflect.DeepEqual(x, game.Action(c)) }) {
 			return true
 		}
 	}
@@ -669,27 +668,27 @@ func allows(al play.Allowed, a play.Action) bool {
 }
 
 // Do applies a and returns what happened, or refuses it.
-func (e *Engine) Do(a play.Action) (play.Outcome, error) {
+func (e *Engine) Do(a game.Action) (game.Outcome, error) {
 	defer e.rebuild()
 	e.takeSettings()
 	st := e.State()
-	al := play.CommonOf(st).Allowed
-	if v, ok := a.(play.SetChoice); ok && v.Text != "" && e.creation == nil && e.sel >= 0 && e.sel < e.partySize() {
+	al := game.CommonOf(st).Allowed
+	if v, ok := a.(game.SetChoice); ok && v.Text != "" && e.creation == nil && e.sel >= 0 && e.sel < e.partySize() {
 		pic, ok := rules.PoolPicNamed(v.Field)
 		if !ok {
-			return play.Outcome{}, errNotAllowed
+			return game.Outcome{}, errNotAllowed
 		}
 		e.do(rules.SetPoolPic{Who: e.partyIDs()[e.sel], Pic: pic, ID: rules.PicID(v.Text)}) // gobox's pool picker on the selected member, any screen
-		return play.Outcome{}, nil
+		return game.Outcome{}, nil
 	}
 	if !allows(al, a) {
-		return play.Outcome{}, errNotAllowed
+		return game.Outcome{}, errNotAllowed
 	}
-	if l, ok := st.(play.Looting); ok && l.Announce { // allows: Continue only
+	if l, ok := st.(game.Looting); ok && l.Announce { // allows: Continue only
 		e.lootSeen = true
-		return play.Outcome{}, nil
+		return game.Outcome{}, nil
 	}
-	var out play.Outcome
+	var out game.Outcome
 	native := func(f func() error) error { // a play action the engine takes itself, run on to its next wait
 		r := e.runNative(f)
 		e.facts(&out, r)
@@ -703,9 +702,9 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 	}
 	if e.ext.pq != nil {
 		switch a := a.(type) {
-		case play.Reply:
+		case game.Reply:
 			return out, native(func() error { return e.replyPending(a.N) })
-		case play.Leave:
+		case game.Leave:
 			return out, native(e.leavePending)
 		}
 	}
@@ -720,42 +719,42 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 	}
 	var err error
 	switch a := a.(type) {
-	case play.Arrive:
+	case game.Arrive:
 		if err = native(func() error { return e.arrive(a.From, a.To, a.Facing) }); err == nil {
-			out.Events = append(out.Events, play.Moved{To: image.Pt(e.posX, e.posY), Facing: int(Dir(e.facing/2&3)) * 2})
+			out.Events = append(out.Events, game.Moved{To: image.Pt(e.posX, e.posY), Facing: int(Dir(e.facing/2&3)) * 2})
 		}
-	case play.RunEvent:
+	case game.RunEvent:
 		err = native(func() error { return e.runEvent(a.Before, a.Side) })
-	case play.Face:
+	case game.Face:
 		err = native(func() error { return e.faceTo(a.Facing) })
-	case play.Search: // the original's Search: the searching pace
+	case game.Search: // the original's Search: the searching pace
 		err = native(func() error { return e.exploreVerb(e.sweepCmd) })
-	case play.Look: // the original's Look: this square once
+	case game.Look: // the original's Look: this square once
 		err = native(func() error { return e.exploreVerb(e.lookCmd) })
-	case play.AddNote:
+	case game.AddNote:
 		err = native(func() error { return e.noteAdd(a.Text) })
-	case play.RemoveNote: // BUG-CLASSES 31: a refusal, not a silent no-op
+	case game.RemoveNote: // BUG-CLASSES 31: a refusal, not a silent no-op
 		err = native(func() error {
 			n := len(e.ext.notes)
 			e.noteRemove(a.ID)
 			return refuseIf(len(e.ext.notes) == n, "no such note")
 		})
-	case play.Adjust:
+	case game.Adjust:
 		err = native(func() error { return e.adjustStat(a.Stat, a.By) })
-	case play.PickPower:
+	case game.PickPower:
 		err = native(func() error { return e.pickPower(a.ID) })
-	case play.StopRest:
+	case game.StopRest:
 		err = native(e.stopRest)
-	case play.LootDetect:
+	case game.LootDetect:
 		err = native(e.lootDetect)
-	case play.Learn:
+	case game.Learn:
 		err = native(func() error { return e.learn(a.Spell) })
-	case play.SetPolicy:
+	case game.SetPolicy:
 		err = native(func() error {
 			_, err := e.ruleset().Resolve(nil, rules.SetPolicy{Who: e.selected(), Reaction: a.ID, Policy: rules.Policy(a.Policy)}, nil)
 			return err
 		})
-	case play.Continue:
+	case game.ContinueAction:
 		if e.ext.intro {
 			err = native(func() error { e.titleDone(); return nil })
 			break
@@ -765,23 +764,23 @@ func (e *Engine) Do(a play.Action) (play.Outcome, error) {
 			break
 		}
 		err = native(func() error { return e.answerPlay(0, "") })
-	case play.Reply:
+	case game.Reply:
 		err = native(func() error { return e.answerPlay(a.N, a.Text) })
-	case play.Leave:
+	case game.Leave:
 		if e.ext.read != nil { // the handout: Leave puts it away (native clears it)
 			err = native(func() error { return nil })
 			break
 		}
 		err = native(e.leave)
 	default:
-		return play.Outcome{}, fmt.Errorf("Pool of Radiance has no %T", a)
+		return game.Outcome{}, fmt.Errorf("Pool of Radiance has no %T", a)
 	}
 	return out, e.stepOn(&out, err)
 }
 
 // stepOn runs the monsters' turns and the story's steps up to the next
 // wait for the player, after an action taken (err nil); err passes.
-func (e *Engine) stepOn(out *play.Outcome, err error) error {
+func (e *Engine) stepOn(out *game.Outcome, err error) error {
 	for n := 0; err == nil && n < maxSteps; n++ {
 		if p := e.pace(); p != PaceFight && p != PaceStory && p != PaceRest { // gobox paces the outcome, the game runs on
 			break
@@ -801,13 +800,13 @@ func (e *Engine) stepOn(out *play.Outcome, err error) error {
 
 // combatDo takes the fight's verbs and the item and power uses (false: a
 // is none of them); a question one asks is the pending one (playask.go).
-func (e *Engine) combatDo(a play.Action, al play.Allowed, native func(func() error) error) (bool, error) {
+func (e *Engine) combatDo(a game.Action, al game.Allowed, native func(func() error) error) (bool, error) {
 	turn := func(as ...TurnAct) (bool, error) {
 		return true, native(func() error { return e.turnActs(as, false) })
 	}
 	inFight := e.battleUp()
 	switch a := a.(type) {
-	case play.MoveTo:
+	case game.MoveTo:
 		return true, native(func() error {
 			as, err := e.moveActs(a.To, al.Moves)
 			if err != nil {
@@ -815,47 +814,47 @@ func (e *Engine) combatDo(a play.Action, al play.Allowed, native func(func() err
 			}
 			return e.turnActs(as, false)
 		})
-	case play.Attack:
+	case game.Attack:
 		if a.At != nil {
 			return turn(TurnAct{Verb: VerbAttack}, TurnAct{Verb: VerbAim, X: a.At.X, Y: a.At.Y})
 		}
 		return turn(TurnAct{Verb: VerbAttack, N: a.Target})
-	case play.Shoot:
+	case game.Shoot:
 		if len(a.Ats) == 0 {
-			return true, &play.Refusal{Text: "shoot: pick a square"}
+			return true, &game.Refusal{Text: "shoot: pick a square"}
 		}
 		if e.cs.aim != nil { // the aim up already
 			return turn(TurnAct{Verb: VerbAim, X: a.Ats[0].X, Y: a.Ats[0].Y})
 		}
 		return turn(TurnAct{Verb: VerbAttack}, TurnAct{Verb: VerbAim, X: a.Ats[0].X, Y: a.Ats[0].Y})
-	case play.Guard:
+	case game.Guard:
 		return turn(TurnAct{Verb: VerbGuard})
-	case play.Delay:
+	case game.Delay:
 		return turn(TurnAct{Verb: VerbWait})
-	case play.Quick:
+	case game.Quick:
 		return turn(TurnAct{Verb: VerbQuick})
-	case play.Manual:
+	case game.Manual:
 		return true, native(func() error { e.aiKey = rules.AutoKeyTakeOver; return nil })
-	case play.QuickMagic:
+	case game.QuickMagic:
 		return true, native(func() error { e.aiKey = rules.AutoKeyQuickMagic; return nil })
-	case play.Bandage:
+	case game.Bandage:
 		return turn(TurnAct{Verb: VerbBandage})
-	case play.EndTurn:
+	case game.EndTurn:
 		return turn(TurnAct{Verb: VerbEnd})
-	case play.Flee:
+	case game.Flee:
 		return true, native(func() error {
 			actor, turn := e.cs.actor, e.cs.turn
 			if err := e.turnActs([]TurnAct{{Verb: VerbFlee}}, false); err != nil {
 				return err
 			}
 			if e.ext.pq == nil && e.question() == nil && e.cs.actor == actor && e.cs.turn == turn { // no edge beside the actor: Flee: never asked (BUG-CLASSES 31)
-				return &play.Refusal{Text: "Not at the edge"}
+				return &game.Refusal{Text: "Not at the edge"}
 			}
 			return nil
 		})
-	case play.TurnUndead:
+	case game.TurnUndead:
 		return turn(TurnAct{Verb: VerbTurn})
-	case play.Cast:
+	case game.Cast:
 		if !inFight { // camp's Cast: the member it goes on asked (castAsk), Target 0 not given
 			t := a.Target
 			if t == 0 {
@@ -877,15 +876,15 @@ func (e *Engine) combatDo(a play.Action, al play.Allowed, native func(func() err
 			}
 			return e.turnActs(as, false)
 		})
-	case play.UseItem:
+	case game.UseItem:
 		return true, native(func() error {
 			return e.runCall(pendingCall{kind: callItem, member: a.Member, item: a.Item, spell: a.Spell, target: a.Target})
 		})
-	case play.UsePower:
+	case game.UsePower:
 		return true, native(func() error {
 			return e.runCall(pendingCall{kind: callPower, member: a.Member, power: a.Kind, spell: a.Spell, target: a.Target})
 		})
-	case play.Leave:
+	case game.Leave:
 		if e.stateMode() == game.ModeLoot && e.question() == nil { // O072 asks while treasure is left
 			return true, native(func() error { return e.runCall(pendingCall{kind: callLoot}) })
 		}
@@ -911,17 +910,17 @@ func (e *Engine) browsing(n int, f func() error) error {
 
 // facts hands out what the engine did: its note (r, a message), then the
 // facts it recorded (e.events), the last fall held (gobox 0fa83f2).
-func (e *Engine) facts(out *play.Outcome, r play.Result) {
+func (e *Engine) facts(out *game.Outcome, r game.Result) {
 	for _, ev := range r.Events {
 		if ev.Text != "" {
-			out.Events = append(out.Events, play.Narrated{Text: ev.Text})
+			out.Events = append(out.Events, game.Narrated{Text: ev.Text})
 		}
 	}
 	e.present()
 	out.Events = append(out.Events, e.events...)
 	e.events = nil
 	for i := len(out.Events) - 1; i >= 0; i-- {
-		if f, ok := out.Events[i].(play.Fell); ok {
+		if f, ok := out.Events[i].(game.Fell); ok {
 			if f.Ms == 0 {
 				f.Ms = fallHoldMs
 				out.Events[i] = f
@@ -991,7 +990,7 @@ func (e *Engine) Load(b []byte) (err error) {
 	return nil
 }
 
-// Slots are the original's save slots (play.Slots): gobox lists them after its own.
+// Slots are the original's save slots (game.Slots): gobox lists them after its own.
 func (e *Engine) Slots() []game.SaveSlot {
 	var l []game.SaveSlot
 	for _, sl := range e.slots() {
@@ -1008,62 +1007,62 @@ func (e *Engine) LoadSlot(n int) error {
 		name = names[n]
 	}
 	if !e.LoadNamed(name, e.menuUp()) {
-		return &play.Refusal{Text: "load: refused"}
+		return &game.Refusal{Text: "load: refused"}
 	}
 	return nil
 }
 
 // walls is the state's 3D view as play's, nil none.
-func walls(s facts) *play.Walls {
+func walls(s facts) *game.MapWalls {
 	w := s.Walls
 	if w == nil {
 		return nil
 	}
-	return &play.Walls{Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
+	return &game.MapWalls{Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
 		FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA, Backdrop: w.Backdrop, Outside: !s.Where.Inside, Sun: w.Sun, Mountains: w.Mountains, SunAz: w.SunAz, SunEl: w.SunEl}
 }
 
 // native runs f, an engine call a play action names, as Apply runs a
 // decision: the adapter's own asks dropped, then on to the next wait.
-func (e *Engine) runNative(f func() error) play.Result {
+func (e *Engine) runNative(f func() error) game.Result {
 	e.snap.quiet = true
 	defer func() { e.snap.quiet = false }()
 	e.ext.read = nil
 	if err := f(); err != nil {
-		return play.Result{Err: refusal(err)}
+		return game.Result{Err: refusal(err)}
 	}
 	e.advance()
 	return e.noteResult()
 }
 
 // noteResult is the engine's note as a message, once.
-func (e *Engine) noteResult() play.Result {
+func (e *Engine) noteResult() game.Result {
 	note, at := e.Note()
 	if note == "" || at.Equal(e.ext.noteSent) {
-		return play.Result{}
+		return game.Result{}
 	}
 	e.ext.noteSent = at
-	return play.Result{Events: []play.Report{{Kind: game.EvMessage, Text: note}}}
+	return game.Result{Events: []game.Report{{Kind: game.EvMessage, Text: note}}}
 }
 
 // partyDo takes the party menu's and the creation sheet's actions (false:
 // a is none of them). gobox asks any confirmation before it sends them.
-func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error) error) (bool, error) {
+func (e *Engine) partyDo(a game.Action, st game.State, native func(func() error) error) (bool, error) {
 	switch a := a.(type) {
-	case play.Begin:
+	case game.Begin:
 		return true, native(e.begin)
-	case play.NewCharacter:
+	case game.NewCharacter:
 		return true, native(e.createCharacter)
-	case play.QuickStart:
+	case game.QuickStart:
 		return true, native(func() error {
 			if e.partySize() > 0 { // BUG-CLASSES 64: a party already there would be doubled
 				return rules.ErrNotNow
 			}
 			return e.QuickStart()
 		})
-	case play.Quit:
+	case game.Quit:
 		return true, native(e.QuitGame)
-	case play.EndGame:
+	case game.EndGame:
 		return true, native(func() error {
 			if e.inParty() {
 				return rules.ErrNotNow
@@ -1071,7 +1070,7 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 			e.mainMenu()
 			return nil
 		})
-	case play.AddCharacter:
+	case game.AddCharacter:
 		return true, native(func() error {
 			if a.From != "" { // another game's characters: Roster < 0 opens the list, else adds that one
 				if !e.menuUp() || !slices.Contains(e.gameData.Imports, a.From) {
@@ -1080,23 +1079,23 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 				e.addFrom = a.From
 				if !e.OpenPicker(PickAddFrom) || a.Roster >= e.picker.n {
 					e.ClosePicker()
-					return &play.Refusal{Text: "no such character"}
+					return &game.Refusal{Text: "no such character"}
 				}
 				if a.Roster < 0 {
 					return nil
 				}
 			} else if !e.menuUp() || !e.OpenPicker(PickAdd) || a.Roster < 0 || a.Roster >= e.picker.n {
 				e.ClosePicker()
-				return &play.Refusal{Text: "no such character"}
+				return &game.Refusal{Text: "no such character"}
 			}
 			n := e.partySize()
 			e.Pick(a.Roster)
 			e.ClosePicker()
 			return refuseIf(e.partySize() == n, "not added") // already in, full, or refused to join (BUG-CLASSES 31)
 		})
-	case play.RemoveCharacter: // Roster: the party index
+	case game.RemoveCharacter: // Roster: the party index
 		return true, native(func() error { return e.removeMember(a.Roster) })
-	case play.DropMember: // ovr16:196E in camp, ovr17:1F5A on the menu: gobox asks first
+	case game.DropMember: // ovr16:196E in camp, ovr17:1F5A on the menu: gobox asks first
 		return true, native(func() error {
 			if a.Member < 0 || a.Member >= e.partySize() || !e.inCamp() && !e.inParty() {
 				return rules.ErrNotNow
@@ -1104,17 +1103,17 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 			e.selectMember(a.Member)
 			return e.DropMember(a.Member)
 		})
-	case play.Modify:
+	case game.Modify:
 		return true, native(func() error { return e.modifyCharacter(a.Member) })
-	case play.ChangeClass:
+	case game.ChangeClass:
 		return true, native(func() error { return e.runCall(pendingCall{kind: callClass, member: a.Member, target: a.Class}) })
-	case play.Reroll:
+	case game.Reroll:
 		return true, native(func() error { return e.roll(false, "") })
-	case play.PointBuy:
+	case game.PointBuy:
 		return true, native(func() error { return e.pointBuy(a.Scores) })
-	case play.SetStat:
+	case game.SetStat:
 		return true, native(func() error { return e.setStat(a.Stat, a.Text) })
-	case play.KeepCharacter:
+	case game.KeepCharacter:
 		return true, native(func() error {
 			if cr := e.creation; cr != nil && cr.unnamed { // no name typed yet: ask it before saving (BUG-CLASSES 59)
 				cr.naming = true
@@ -1122,10 +1121,10 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 			}
 			return e.EndCreation(true)
 		})
-	case play.DiscardCharacter: // gobox asked abandon
+	case game.DiscardCharacter: // gobox asked abandon
 		return true, native(func() error { return e.EndCreation(false) })
-	case play.SetChoice:
-		as, _ := st.(play.Assembling)
+	case game.SetChoice:
+		as, _ := st.(game.Assembling)
 		if as.Draft == nil {
 			return false, nil
 		}
@@ -1136,7 +1135,7 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 			return e.creationEdit(func(cr *creation) error {
 				dst := cr.d.D.Pics()[a.Field]
 				if dst == nil {
-					return &play.Refusal{Text: "no such field"}
+					return &game.Refusal{Text: "no such field"}
 				}
 				*dst = rules.PicID(a.Text)
 				return nil
@@ -1148,21 +1147,21 @@ func (e *Engine) partyDo(a play.Action, st play.State, native func(func() error)
 
 // frontDo takes the pickers', the icon editor's, the training hall's and
 // the locked door's actions (false: a is none of them).
-func (e *Engine) frontDo(a play.Action, native func(func() error) error) (bool, error) {
+func (e *Engine) frontDo(a game.Action, native func(func() error) error) (bool, error) {
 	switch a := a.(type) {
-	case play.OpenPicker:
+	case game.OpenPicker:
 		return true, native(func() error { return refuseIf(!e.OpenPicker(a.Kind), "no such picker") })
-	case play.Pick:
+	case game.Pick:
 		return true, native(func() error {
 			if e.picker == nil || a.N < 0 || a.N >= e.picker.n {
-				return &play.Refusal{Text: "no such pick"}
+				return &game.Refusal{Text: "no such pick"}
 			}
 			e.Pick(a.N)
 			return nil
 		})
-	case play.ClosePicker:
+	case game.ClosePicker:
 		return true, native(func() error { e.ClosePicker(); return nil })
-	case play.EditIcon:
+	case game.EditIcon:
 		return true, native(func() error {
 			if e.iconEd != nil || e.partySize() == 0 {
 				return rules.ErrNotNow
@@ -1170,11 +1169,11 @@ func (e *Engine) frontDo(a play.Action, native func(func() error) error) (bool, 
 			e.EditIcon(a.Member)
 			return nil
 		})
-	case play.IconSize:
+	case game.IconSize:
 		return true, native(func() error { e.IconSize(); return nil })
-	case play.IconColour:
+	case game.IconColour:
 		return true, native(func() error { e.IconColour(a.Part, a.Shade, a.Value); return nil })
-	case play.IconPNG:
+	case game.IconPNG:
 		return true, native(func() error {
 			if e.iconEd == nil && e.snap.iconDrop == nil { // no icon takes it: a PNG dropped on the sheet is the portrait
 				e.portraitPNG(a.Path)
@@ -1183,13 +1182,13 @@ func (e *Engine) frontDo(a play.Action, native func(func() error) error) (bool, 
 			e.IconPNG(a.Path)
 			return nil
 		})
-	case play.EndIcon:
+	case game.EndIcon:
 		return true, native(func() error { e.EndIcon(a.Keep); return nil })
-	case play.OpenTraining:
+	case game.OpenTraining:
 		return true, native(func() error { return e.openTraining(a.Member) })
-	case play.CloseTraining:
+	case game.CloseTraining:
 		return true, native(e.closeTraining)
-	case play.Train:
+	case game.Train:
 		return true, native(func() error {
 			if !e.trainingOpen() {
 				if err := e.openTraining(a.Member); err != nil {
@@ -1198,7 +1197,7 @@ func (e *Engine) frontDo(a play.Action, native func(func() error) error) (bool, 
 			}
 			return e.train()
 		})
-	case play.TryDoor: // the old front's numbering, 0 exit
+	case game.TryDoor: // the old front's numbering, 0 exit
 		return true, native(func() error { return e.TryDoor(a.Way) })
 	}
 	return false, nil
@@ -1209,25 +1208,25 @@ func (e *Engine) frontDo(a play.Action, native func(func() error) error) (bool, 
 // questions, the shop's Buy or Leave.
 func (e *Engine) answerPlay(n int, text string) error {
 	if q := e.question(); q != nil {
-		var r play.Action = play.Reply{N: n}
+		var r game.Action = game.Reply{N: n}
 		switch {
 		case q.Typed, q.Number:
 			if q.Number && text == "" {
 				text = strconv.Itoa(n)
 			}
-			r = play.Reply{Text: text}
+			r = game.Reply{Text: text}
 		case q.Continue:
 			e.stopVoice() // Enter silences it (voice.go)
-			r = play.Continue{}
+			r = game.ContinueAction{}
 		case n < 0 || n >= len(q.Replies):
-			return &play.Refusal{Text: "no such option"}
+			return &game.Refusal{Text: "no such option"}
 		}
 		e.answer(r)
 		return nil
 	}
 	if cr := e.creation; cr != nil && cr.naming { // Keep's name question: a name keeps the character, a blank asks again
 		if e.rename(text); cr.unnamed {
-			return &play.Refusal{Text: "a name is needed"}
+			return &game.Refusal{Text: "a name is needed"}
 		}
 		cr.naming = false
 		return e.EndCreation(true)
@@ -1246,7 +1245,7 @@ func (e *Engine) answerPlay(n int, text string) error {
 		case 1:
 			return e.Leave()
 		}
-		return &play.Refusal{Text: "no such option"}
+		return &game.Refusal{Text: "no such option"}
 	}
 	return rules.ErrNotNow
 }
@@ -1276,27 +1275,27 @@ func (e *Engine) leave() error {
 
 // campDo takes camp's verbs (false: a is none of them): making and
 // breaking camp, the rest, the marching order, memorizing and scribing.
-func (e *Engine) campDo(a play.Action, out *play.Outcome, native func(func() error) error) (bool, error) {
+func (e *Engine) campDo(a game.Action, out *game.Outcome, native func(func() error) error) (bool, error) {
 	switch a := a.(type) {
-	case play.MakeCamp:
+	case game.MakeCamp:
 		return true, native(func() error {
 			return e.exploreVerb(func() (bool, bool) { return true, true })
 		})
-	case play.BreakCamp:
+	case game.BreakCamp:
 		return true, native(e.LeaveCamp)
-	case play.AdvanceTimeBy: // the original's Rest: until all are healed and the spells learned (RestFix)
+	case game.AdvanceTimeBy: // the original's Rest: until all are healed and the spells learned (RestFix)
 		err := native(func() error {
 			return e.campRest(RestFix)
 		})
 		if err == nil {
-			out.Events = append(out.Events, play.TimePassed{D: a.D})
+			out.Events = append(out.Events, game.TimePassed{D: a.D})
 		}
 		return true, err
-	case play.Fix:
+	case game.Fix:
 		return true, native(func() error { return e.campRest(RestFix) })
-	case play.CampRest:
+	case game.CampRest:
 		return true, native(func() error { return e.campRest(a.Kind) })
-	case play.Order:
+	case game.Order:
 		return true, native(func() error {
 			if err := e.moveMember(a.From, a.To); err != nil {
 				return err
@@ -1304,11 +1303,11 @@ func (e *Engine) campDo(a play.Action, out *play.Outcome, native func(func() err
 			e.selectMember(a.To)
 			return nil
 		})
-	case play.Memorize:
+	case game.Memorize:
 		return true, native(func() error { return e.planSpell(a.Member, a.Spell, 1) })
-	case play.Plan:
+	case game.Plan:
 		return true, native(func() error { return e.planSpell(a.Member, a.Spell, a.Count) })
-	case play.Scribe:
+	case game.Scribe:
 		return true, native(func() error { return e.scribe(a.Member, a.Spell) })
 	}
 	return false, nil
@@ -1316,24 +1315,24 @@ func (e *Engine) campDo(a play.Action, out *play.Outcome, native func(func() err
 
 // itemDo takes the items' and the trading places' verbs (false: a is none
 // of them): ready, drop, the member shown, buy, sell, identify, heal, take.
-func (e *Engine) itemDo(a play.Action, native func(func() error) error) (bool, error) {
+func (e *Engine) itemDo(a game.Action, native func(func() error) error) (bool, error) {
 	shown := func(n int, f func() error) (bool, error) {
 		return true, native(func() error { return e.withItems(n, f) })
 	}
 	switch a := a.(type) {
-	case play.Ready:
+	case game.Ready:
 		return shown(a.Member, func() error { return e.Ready(a.Item, a.Count) })
-	case play.Unready:
+	case game.Unready:
 		return shown(a.Member, func() error { return e.Unready(a.Item) })
-	case play.Drop: // ovr20's "Drop It?" is gobox's (BUG-CLASSES 47)
+	case game.Drop: // ovr20's "Drop It?" is gobox's (BUG-CLASSES 47)
 		return shown(a.Member, func() error { return e.drop(a.Item) })
-	case play.SelectMember:
+	case game.SelectMember:
 		return true, native(func() error {
 			if a.Member < 0 || a.Member >= e.partySize() {
 				return rules.ErrNotNow
 			}
 			if e.question() != nil && (!e.battleUp() || e.choosing()) { // a question's own step: a member pick's candidate, the selected member (not in a fight)
-				e.answer(play.SelectMember{Member: a.Member})
+				e.answer(game.SelectMember{Member: a.Member})
 				return nil
 			}
 			if !e.battleUp() { // camp's menu, exploring: the member is the selected one
@@ -1345,7 +1344,7 @@ func (e *Engine) itemDo(a play.Action, native func(func() error) error) (bool, e
 			}
 			return nil
 		})
-	case play.Buy: // the Buy list opens for the buy and closes after: the state stays Trading
+	case game.Buy: // the Buy list opens for the buy and closes after: the state stays Trading
 		return true, native(func() error {
 			return e.browsing(a.Member, func() error {
 				gold := e.purse(false).Gold
@@ -1355,20 +1354,20 @@ func (e *Engine) itemDo(a play.Action, native func(func() error) error) (bool, e
 				return refuseIf(e.purse(false).Gold == gold, e.ext.note)
 			})
 		})
-	case play.Sell:
+	case game.Sell:
 		return true, native(func() error { return e.browsing(a.Member, func() error { return e.sell(a.Item) }) })
-	case play.Identify:
+	case game.Identify:
 		return true, native(func() error { return e.identify(a.Member, a.Item) })
-	case play.Appraise: // values one; with one valued, keeps or sells it
+	case game.Appraise: // values one; with one valued, keeps or sells it
 		return true, native(func() error {
 			if e.valued != rules.NoItem {
 				return e.KeepAppraised(a.Keep)
 			}
 			return e.Appraise(a.Offer == game.OfferJewel)
 		})
-	case play.Heal:
+	case game.Heal:
 		return true, native(func() error { return e.cure(a.Member, a.Service) })
-	case play.Take:
+	case game.Take:
 		return true, native(func() error { return e.TakeLoot(a.Item, a.All) })
 	}
 	return false, nil

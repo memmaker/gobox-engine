@@ -1,11 +1,11 @@
 package engine
 
-import "gobox/game/play"
+import "gobox/game"
 
 // refuseIf is a refusal with text when no, else nil.
 func refuseIf(no bool, text string) error {
 	if no {
-		return &play.Refusal{Text: text}
+		return &game.Refusal{Text: text}
 	}
 	return nil
 }

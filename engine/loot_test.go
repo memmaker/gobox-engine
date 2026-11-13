@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -22,7 +22,7 @@ func TestLootContract(t *testing.T) {
 	e.Start(e.lootMenu)
 	seeLoot(t, e)
 	items := func() int {
-		l, ok := e.build().(play.Looting)
+		l, ok := e.build().(game.Looting)
 		if !ok {
 			return -1
 		}
@@ -31,33 +31,33 @@ func TestLootContract(t *testing.T) {
 	if n := items(); n != 3 || e.snap.invOn {
 		t.Fatalf("state %T, %d pieces, inventory up %v: want Looting, 3 pieces, none", e.build(), n, e.snap.invOn)
 	}
-	if playAllows(e.build(), play.LootShare{}) {
+	if playAllows(e.build(), game.LootShare{}) {
 		t.Error("Share offered: the money is the party's already")
 	}
 	held := len(e.state().Pool) // taken loot goes to the party inventory
-	if _, err := e.doNow(play.Take{Item: e.goods()[0]}); err != nil {
+	if _, err := e.doNow(game.Take{Item: e.goods()[0]}); err != nil {
 		t.Fatal(err)
 	}
 	if n := items(); n != 2 || len(e.state().Pool) != held+1 {
 		t.Fatalf("after one: %d left, %d held, want 2 and %d", n, len(e.state().Pool), held+1)
 	}
-	if _, err := e.doNow(play.Take{Item: rules.NoItem}); err == nil || items() != 2 { // BUG-CLASSES 31: nothing to take is a refusal
+	if _, err := e.doNow(game.Take{Item: rules.NoItem}); err == nil || items() != 2 { // BUG-CLASSES 31: nothing to take is a refusal
 		t.Fatalf("the money (none) took items or was accepted: %v", err)
 	}
-	if _, err := e.doNow(play.Leave{}); err != nil || left() {
+	if _, err := e.doNow(game.Leave{}); err != nil || left() {
 		t.Fatalf("leave with treasure left: %v, left %v", err, left())
 	}
 	q := commonOf(e.build()).Ask
 	if q == nil || !q.YesNo || q.Text != "There is still treasure left.  Do you want to go back and claim your treasure?" {
 		t.Fatalf("ask %+v: want ovr06's Yes/No", q)
 	}
-	if _, err := e.doNow(play.Reply{N: 1}); err != nil || left() || items() != 2 { // Yes: back to the treasure
+	if _, err := e.doNow(game.Reply{N: 1}); err != nil || left() || items() != 2 { // Yes: back to the treasure
 		t.Fatalf("Yes: %v, left %v, %d pieces", err, left(), items())
 	}
-	if _, err := e.doNow(play.Take{Item: rules.NoItem, All: true}); err != nil || len(e.state().Treasure) != 0 {
+	if _, err := e.doNow(game.Take{Item: rules.NoItem, All: true}); err != nil || len(e.state().Treasure) != 0 {
 		t.Fatalf("all: %v, %d left", err, len(e.state().Treasure))
 	}
-	if _, err := e.doNow(play.Leave{}); err != nil || !left() || items() >= 0 {
+	if _, err := e.doNow(game.Leave{}); err != nil || !left() || items() >= 0 {
 		t.Fatalf("leave with nothing left: %v, left %v, %T", err, left(), e.build())
 	}
 }

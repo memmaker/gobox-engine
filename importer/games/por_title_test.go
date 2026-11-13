@@ -10,7 +10,7 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/importer"
 )
 
@@ -34,8 +34,8 @@ func TestStartIsPORTitle(t *testing.T) {
 	}
 	e.FullIntro.Store(true)
 	e.Start(e.Run)
-	sc, ok := e.State().(play.Scene)
-	if !ok || sc.Kind != play.SceneTitle || !sc.Full {
+	sc, ok := e.State().(game.Scene)
+	if !ok || sc.Kind != game.SceneTitle || !sc.Full {
 		t.Fatalf("not the title: %+v", e.State())
 	}
 	for n := 1; n <= 2; n++ {
@@ -48,7 +48,7 @@ func TestStartIsPORTitle(t *testing.T) {
 	}
 	e.FullIntro.Store(false)
 	e.Start(e.Run) // State is built per change: the setting takes from the next one
-	if short := e.State().(play.Scene); !reflect.DeepEqual(short.Intro.Pictures, []int{1}) {
+	if short := e.State().(game.Scene); !reflect.DeepEqual(short.Intro.Pictures, []int{1}) {
 		t.Errorf("short intro %+v", short.Intro)
 	}
 	d := e.Data()

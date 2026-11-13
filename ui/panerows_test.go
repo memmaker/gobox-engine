@@ -4,13 +4,12 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // pagePlayed is a Presenter playing a moment that holds pg.
 func pagePlayed(pg *game.Page) *Presenter {
-	p, _ := presenterOn(play.Scene{})
-	p.played = &frame{Moment: Moment{Report: play.Report{Page: pg}}}
+	p, _ := presenterOn(game.Scene{})
+	p.played = &frame{Moment: Moment{Report: game.Report{Page: pg}}}
 	return p
 }
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/scanner"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // Parse parses the script text (README.md beside the scripts) into
@@ -956,14 +956,14 @@ func (p *parser) assign() error {
 				return err
 			}
 			var args []Arg
-			exit := play.NoEscReply
+			exit := game.NoEscReply
 			for k, x := range pa {
 				if x.label == exitLabel && a.name != "Parlay" {
 					row := k
 					if a.name == "VMenu" {
 						row = k - 1 // the first operand is the prompt
 					}
-					exit, x.label = play.EscTo(row), ""
+					exit, x.label = game.EscTo(row), ""
 				}
 				if x.isList || x.label != "" {
 					return fmt.Errorf("%s takes plain operands", a.name)

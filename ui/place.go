@@ -4,7 +4,6 @@ import (
 	"image"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/blobber"
 )
 
@@ -13,7 +12,7 @@ func (p *Presenter) where() game.Where {
 	if p.eng == nil {
 		return game.Where{}
 	}
-	return play.CommonOf(p.state()).Where
+	return game.CommonOf(p.state()).Where
 }
 
 // squareOf is the square the party stands on: Square where X, Y is another map's.

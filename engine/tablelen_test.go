@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // TestGroundTableLen (BUG-CLASSES 42): groundTable is START.EXE's DS:2744
@@ -48,7 +48,7 @@ func TestFightArtResolves(t *testing.T) {
 		fights := 0
 		for range 300 {
 			st := e.build()
-			if f, ok := st.(play.Fighting); ok {
+			if f, ok := st.(game.Fighting); ok {
 				fights++
 				c := f.Field
 				art := e.Art()
@@ -73,11 +73,11 @@ func TestFightArtResolves(t *testing.T) {
 			}
 			switch {
 			case commonOf(st).Ask != nil:
-				if _, err := e.doNow(play.Reply{}); err != nil {
-					e.doNow(play.Continue{})
+				if _, err := e.doNow(game.Reply{}); err != nil {
+					e.doNow(game.ContinueAction{})
 				}
-			case playAllows(st, play.Quick{}):
-				e.doNow(play.Quick{})
+			case playAllows(st, game.Quick{}):
+				e.doNow(game.Quick{})
 			default:
 				e.Step()
 				press(e)

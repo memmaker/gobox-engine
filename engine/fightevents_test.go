@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestFightEventsOut (BUG-CLASSES 20): a headless fight (the computer for
@@ -28,8 +27,8 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 	e.FixedSeed = &seed
 	e.Init()
 	e.Start(e.Play)
-	hp := func(s play.State, id int) int {
-		if f, ok := s.(play.Fighting); ok {
+	hp := func(s game.State, id int) int {
+		if f, ok := s.(game.Fighting); ok {
 			for _, u := range f.Field.Units {
 				if u.ID == id {
 					return u.HP
@@ -38,8 +37,8 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 		}
 		return -1
 	}
-	unit := func(s play.State, id int) *game.Unit {
-		if f, ok := s.(play.Fighting); ok {
+	unit := func(s game.State, id int) *game.Unit {
+		if f, ok := s.(game.Fighting); ok {
 			for i := range f.Field.Units {
 				if f.Field.Units[i].ID == id {
 					return &f.Field.Units[i]
@@ -48,19 +47,19 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 		}
 		return nil
 	}
-	kind := func(ev play.Event) string {
+	kind := func(ev game.Event) string {
 		switch ev.(type) {
-		case play.CastSpell:
+		case game.CastSpell:
 			return "spell"
-		case play.Shot:
+		case game.Shot:
 			return "missile"
-		case play.Walked:
+		case game.Walked:
 			return "move"
-		case play.Attacked:
+		case game.Attacked:
 			return "attack"
-		case play.Struck:
+		case game.Struck:
 			return "damage"
-		case play.Fell:
+		case game.Fell:
 			return "down"
 		}
 		return ""
@@ -69,12 +68,12 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 	casts37b, fought := 0, false
 	prev := e.build()
 	for i := 0; i < 2000; i++ {
-		_, fighting := prev.(play.Fighting)
+		_, fighting := prev.(game.Fighting)
 		fought = fought || fighting || seen["attack"] > 0
 		if fought && !fighting {
 			break
 		}
-		var out play.Outcome
+		var out game.Outcome
 		var err error
 		if i == 0 && fighting { // the dev start opens the fight before any Do: it runs on as Do's would
 			err = e.stepOn(&out, nil)
@@ -83,9 +82,9 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 			if q.Text == "Continue Battle:" && !q.YesNo { // No: the fight is won
 				n = 1
 			}
-			out, err = e.doNow(play.Reply{N: n})
-		} else if playAllows(prev, play.Continue{}) {
-			out, err = e.doNow(play.Continue{})
+			out, err = e.doNow(game.Reply{N: n})
+		} else if playAllows(prev, game.ContinueAction{}) {
+			out, err = e.doNow(game.ContinueAction{})
 		} else {
 			t.Fatalf("a fight at rest with nothing to do: %T %+v", prev, commonOf(prev).Allowed) // Do runs the computer's turns on
 		}
@@ -96,32 +95,32 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 		for j, ev := range out.Events {
 			seen[kind(ev)]++
 			switch ev := ev.(type) {
-			case play.Shot: // 20b
+			case game.Shot: // 20b
 				if ev.From == 0 {
 					t.Errorf("missile to %v has no shooter", ev.To)
 				}
-			case play.CastSpell:
+			case game.CastSpell:
 				if len(ev.Ats) == 0 || ev.Ats[0] == (image.Point{}) {
 					t.Errorf("spell %d by %d aimed at (0,0)", ev.Spell, ev.From)
 				}
 				for _, p := range out.Events[:j] { // 37b: the cast's pose before its flight
-					if p, ok := p.(play.Shot); ok && p.From == ev.From && len(ev.Ats) > 0 && p.To == ev.Ats[0] {
+					if p, ok := p.(game.Shot); ok && p.From == ev.From && len(ev.Ats) > 0 && p.To == ev.Ats[0] {
 						t.Errorf("spell %d by %d: its missile flew before the cast", ev.Spell, ev.From)
 						casts37b--
 						break
 					}
 				}
 				casts37b++
-			case play.Attacked:
+			case game.Attacked:
 				if !ev.Hit {
 					break
 				}
 			hit:
 				for _, n := range out.Events[j+1:] { // the hit's damage is its own: no Struck for it before the next action
 					switch n := n.(type) {
-					case play.Attacked, play.CastSpell: // another swing's or a spell's harm is its own (cotab: a spell on the one just hit)
+					case game.Attacked, game.CastSpell: // another swing's or a spell's harm is its own (cotab: a spell on the one just hit)
 						break hit
-					case play.Struck:
+					case game.Struck:
 						if n.Unit == ev.To {
 							t.Errorf("unit %d's hit on %d shows its damage twice", ev.From, ev.To)
 						}
@@ -132,11 +131,11 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 		took, fell := map[int]int{}, map[int]bool{} // the whole outcome's harm, per unit
 		for _, ev := range out.Events {
 			switch ev := ev.(type) {
-			case play.Struck:
+			case game.Struck:
 				took[ev.Unit] += ev.Damage
-			case play.Attacked:
+			case game.Attacked:
 				took[ev.To] += ev.Damage
-			case play.Fell:
+			case game.Fell:
 				fell[ev.Unit] = true
 			}
 		}
@@ -146,7 +145,7 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 			}
 		}
 		for id := range fell {
-			if _, on := s.(play.Fighting); !on {
+			if _, on := s.(game.Fighting); !on {
 				break // the fight is over: no field to look at
 			}
 			if u := unit(s, id); u != nil && !u.Dead && !u.Gone && u.HP > 0 {

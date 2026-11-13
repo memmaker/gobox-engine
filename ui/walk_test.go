@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // yard is an open map of 4x1 unless locked or walled; a script waits on the
@@ -35,39 +34,39 @@ func (y yard) Event(at image.Point) bool               { return y.script[at] }
 
 // walkGame moves the party for real and says what the test tells it to.
 type walkGame struct {
-	x      play.Exploring
-	event  map[image.Point][]play.Event // what the square's event says
-	before map[image.Point][]play.Event // what the script ahead says
-	onEv   map[image.Point]func(*play.Exploring)
+	x      game.Exploring
+	event  map[image.Point][]game.Event // what the square's event says
+	before map[image.Point][]game.Event // what the script ahead says
+	onEv   map[image.Point]func(*game.Exploring)
 	land   map[image.Point]image.Point // a step to the key lands on the value instead
-	sent   []play.Action
+	sent   []game.Action
 }
 
 func (g *walkGame) Version() uint64 { return fresh() }
 
-func (g *walkGame) State() play.State { return g.x }
-func (g *walkGame) Do(a play.Action) (play.Outcome, error) {
+func (g *walkGame) State() game.State { return g.x }
+func (g *walkGame) Do(a game.Action) (game.Outcome, error) {
 	g.sent = append(g.sent, a)
 	at := image.Pt(g.x.Where.X, g.x.Where.Y)
 	switch a := a.(type) {
-	case play.Face:
+	case game.Face:
 		g.x.Where.Facing = a.Facing
-	case play.Arrive:
+	case game.Arrive:
 		to := a.To
 		if l, ok := g.land[to]; ok {
 			to = l
 		}
 		g.x.Where.X, g.x.Where.Y = to.X, to.Y
-	case play.RunEvent:
+	case game.RunEvent:
 		if a.Before {
-			return play.Outcome{Events: g.before[at]}, nil
+			return game.Outcome{Events: g.before[at]}, nil
 		}
 		if f := g.onEv[at]; f != nil {
 			f(&g.x)
 		}
-		return play.Outcome{Events: g.event[at]}, nil
+		return game.Outcome{Events: g.event[at]}, nil
 	}
-	return play.Outcome{}, nil
+	return game.Outcome{}, nil
 }
 func (g *walkGame) Save() ([]byte, error) { return nil, nil }
 func (g *walkGame) Load([]byte) error     { return nil }
@@ -111,7 +110,7 @@ func TestWalkToTheSquare(t *testing.T) {
 func TestWalkScriptOnUnvisited(t *testing.T) {
 	sq := image.Pt(1, 0)
 	g := yardGame(yard{script: map[image.Point]bool{sq: true}})
-	g.event = map[image.Point][]play.Event{sq: {play.Narrated{Text: "A voice calls."}}}
+	g.event = map[image.Point][]game.Event{sq: {game.Narrated{Text: "A voice calls."}}}
 	if at := walkOn(t, g, image.Pt(3, 0)); at != sq {
 		t.Fatalf("at %v, want the script's square", at)
 	}
@@ -123,13 +122,13 @@ func TestWalkTextOnVisited(t *testing.T) {
 	sq := image.Pt(1, 0)
 	g := yardGame(yard{script: map[image.Point]bool{sq: true}})
 	g.x.Map.Automap.Walked = []image.Point{sq}
-	g.event = map[image.Point][]play.Event{sq: {play.Narrated{Text: "A voice calls."}}}
+	g.event = map[image.Point][]game.Event{sq: {game.Narrated{Text: "A voice calls."}}}
 	if at := walkOn(t, g, image.Pt(3, 0)); at != image.Pt(3, 0) {
 		t.Fatalf("at %v, the walk stopped on visited text", at)
 	}
 	g = yardGame(yard{script: map[image.Point]bool{sq: true}})
 	g.x.Map.Automap.Walked = []image.Point{sq}
-	g.event = map[image.Point][]play.Event{sq: {play.Shown{}}}
+	g.event = map[image.Point][]game.Event{sq: {game.Shown{}}}
 	if at := walkOn(t, g, image.Pt(3, 0)); at != sq {
 		t.Fatalf("at %v, a picture must stop it", at)
 	}
@@ -139,7 +138,7 @@ func TestWalkTextOnVisited(t *testing.T) {
 func TestWalkBlankText(t *testing.T) {
 	sq := image.Pt(1, 0)
 	g := yardGame(yard{script: map[image.Point]bool{sq: true}})
-	g.event = map[image.Point][]play.Event{sq: {play.Narrated{Text: "  "}}}
+	g.event = map[image.Point][]game.Event{sq: {game.Narrated{Text: "  "}}}
 	if at := walkOn(t, g, image.Pt(3, 0)); at != image.Pt(3, 0) {
 		t.Fatalf("at %v", at)
 	}
@@ -150,7 +149,7 @@ func TestWalkBlankText(t *testing.T) {
 func TestWalkScriptAhead(t *testing.T) {
 	sq := image.Pt(1, 0)
 	g := yardGame(yard{ahead: map[image.Point]bool{{}: true}})
-	g.before = map[image.Point][]play.Event{{}: {play.Narrated{Text: "You approach the gate."}}}
+	g.before = map[image.Point][]game.Event{{}: {game.Narrated{Text: "You approach the gate."}}}
 	if at := walkOn(t, g, image.Pt(3, 0)); at != sq {
 		t.Fatalf("at %v", at)
 	}
@@ -159,20 +158,20 @@ func TestWalkScriptAhead(t *testing.T) {
 // TestWalkScriptAheadMoves: the script ahead moves the party: no step is made.
 func TestWalkScriptAheadMoves(t *testing.T) {
 	g := yardGame(yard{ahead: map[image.Point]bool{{}: true}})
-	g.Do(play.Face{Facing: 2})
+	g.Do(game.Face{Facing: 2})
 	w := &moveAhead{walkGame: g}
 	r := newRules(w, game.Data{})
 	r.send(tWalkTo{At: image.Pt(3, 0)})
 	r.Step()
-	if r.walk != nil || slices.ContainsFunc(g.sent, func(a play.Action) bool { _, ok := a.(play.Arrive); return ok }) {
+	if r.walk != nil || slices.ContainsFunc(g.sent, func(a game.Action) bool { _, ok := a.(game.Arrive); return ok }) {
 		t.Fatalf("sent %v", g.sent)
 	}
 }
 
 type moveAhead struct{ *walkGame }
 
-func (m *moveAhead) Do(a play.Action) (play.Outcome, error) {
-	if _, ok := a.(play.RunEvent); ok {
+func (m *moveAhead) Do(a game.Action) (game.Outcome, error) {
+	if _, ok := a.(game.RunEvent); ok {
 		m.x.Where.Y = 3
 	}
 	return m.walkGame.Do(a)
@@ -193,13 +192,13 @@ func TestWalkLanding(t *testing.T) {
 // TestWalkMenu: a question or a door coming up stops it, visited or not.
 func TestWalkMenu(t *testing.T) {
 	sq := image.Pt(1, 0)
-	for _, up := range []func(*play.Exploring){
-		func(x *play.Exploring) { x.Ask = &play.Question{} },
-		func(x *play.Exploring) { x.Door = &game.Door{} },
+	for _, up := range []func(*game.Exploring){
+		func(x *game.Exploring) { x.Ask = &game.Question{} },
+		func(x *game.Exploring) { x.Door = &game.Door{} },
 	} {
 		g := yardGame(yard{script: map[image.Point]bool{sq: true}})
 		g.x.Map.Automap.Walked = []image.Point{sq}
-		g.onEv = map[image.Point]func(*play.Exploring){sq: up}
+		g.onEv = map[image.Point]func(*game.Exploring){sq: up}
 		if at := walkOn(t, g, image.Pt(3, 0)); at != sq {
 			t.Fatalf("at %v", at)
 		}
@@ -256,7 +255,7 @@ func TestStopWalk(t *testing.T) {
 		t.Fatalf("pace %v sent %v", p.Pace, g.sent)
 	}
 	r.send(tWalkTo{At: image.Pt(3, 0)})
-	r.send(play.Search{})
+	r.send(game.Search{})
 	if shownOf(r).Pacing.Pace == game.PaceWalk {
 		t.Fatal("a move did not stop it")
 	}
@@ -269,7 +268,7 @@ func TestWalkRoundWall(t *testing.T) {
 	if at := walkOn(t, g, image.Pt(1, 0)); at != image.Pt(1, 0) {
 		t.Fatalf("at %v", at)
 	}
-	if _, ok := g.sent[0].(play.Face); !ok {
+	if _, ok := g.sent[0].(game.Face); !ok {
 		t.Fatalf("sent %v", g.sent)
 	}
 }
@@ -280,19 +279,19 @@ func TestWalkRoundWall(t *testing.T) {
 func TestWalkNoTextStops(t *testing.T) {
 	sq := image.Pt(1, 0)
 	for name, c := range map[string]struct {
-		state func(*play.Exploring)
-		ev    []play.Event
+		state func(*game.Exploring)
+		ev    []game.Event
 		want  image.Point
 	}{
-		"menu":    {state: func(x *play.Exploring) { x.Ask = &play.Question{Replies: []string{"Yes"}} }, want: sq},
-		"picture": {state: func(x *play.Exploring) { x.Picture = &game.Picture{Name: "pic"} }, want: sq},
-		"event":   {ev: []play.Event{play.Shown{}}, want: sq},
+		"menu":    {state: func(x *game.Exploring) { x.Ask = &game.Question{Replies: []string{"Yes"}} }, want: sq},
+		"picture": {state: func(x *game.Exploring) { x.Picture = &game.Picture{Name: "pic"} }, want: sq},
+		"event":   {ev: []game.Event{game.Shown{}}, want: sq},
 		"compute": {want: image.Pt(3, 0)},
 	} {
 		g := yardGame(yard{script: map[image.Point]bool{sq: true}})
-		g.event = map[image.Point][]play.Event{sq: c.ev}
+		g.event = map[image.Point][]game.Event{sq: c.ev}
 		if c.state != nil {
-			g.onEv = map[image.Point]func(*play.Exploring){sq: c.state}
+			g.onEv = map[image.Point]func(*game.Exploring){sq: c.state}
 		}
 		if at := walkOn(t, g, image.Pt(3, 0)); at != c.want {
 			t.Errorf("%s: at %v, want %v", name, at, c.want)

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 	"image"
 )
@@ -15,11 +14,11 @@ type counting struct {
 	reads int
 }
 
-func (f *counting) State() play.State { f.reads++; return f.fake.State() }
+func (f *counting) State() game.State { f.reads++; return f.fake.State() }
 
 // countGame is the presenter's game over a counting fake.
 func countGame() (*classicGame, *counting) {
-	f := &counting{fake: &fake{st: play.Exploring{}}}
+	f := &counting{fake: &fake{st: game.Exploring{}}}
 	return &classicGame{Game: NewGame(f, game.Data{})}, f
 }
 
@@ -49,8 +48,8 @@ func TestMinimapUploadsOnChange(t *testing.T) {
 	var p Presenter
 	dst := gpu.NewImage(640, 400)
 	font := func(byte, bool) [8]byte { return [8]byte{} }
-	st := func(party image.Point) play.State {
-		return play.Exploring{Common: play.Common{Where: game.Where{X: party.X, Y: party.Y}}, Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)}}}
+	st := func(party image.Point) game.State {
+		return game.Exploring{Common: game.Common{Where: game.Where{X: party.X, Y: party.Y}}, Map: game.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)}}}
 	}
 	g, f := playGame(st(image.Pt(1, 1)))
 	p.SetEngine(g)
@@ -73,7 +72,7 @@ func TestMinimapUploadsOnChange(t *testing.T) {
 func TestKeyDuringPlayKept(t *testing.T) {
 	g, _ := countGame()
 	f := &Front{Game: g, started: true}
-	f.P.Play([]Moment{{Ms: 5000, Board: &play.Combat{}}})
+	f.P.Play([]Moment{{Ms: 5000, Board: &game.Combat{}}})
 	f.Key('x')
 	if len(f.held) != 1 || f.held[0] != 'x' || !f.P.Playing() {
 		t.Fatalf("held %v, playing %v", f.held, f.P.Playing())
@@ -90,7 +89,7 @@ func TestCameraKeyDuringPlay(t *testing.T) {
 	g, _ := countGame()
 	f := &Front{Game: g, started: true}
 	f.P.fight = true
-	f.P.Play([]Moment{{Ms: 5000, Board: &play.Combat{}}})
+	f.P.Play([]Moment{{Ms: 5000, Board: &game.Combat{}}})
 	f.Key('q')
 	if len(f.held) != 0 || !f.P.Playing() || f.P.replay.skip {
 		t.Fatalf("held %v, playing %v, skip %v", f.held, f.P.Playing(), f.P.replay.skip)
@@ -108,8 +107,8 @@ func (f *artCounting) Art() map[string]game.Picture { f.arts++; return nil }
 // The game is turn-based: idle frames of a fight draw the board built once;
 // a new State of the game (its Version) builds it again.
 func TestFightBoardBuiltOncePerChange(t *testing.T) {
-	fight := play.Fighting{Common: allow(play.EndTurn{}),
-		Field: play.Battlefield{Turn: 1, Size: image.Pt(8, 8), Units: []game.Unit{{ID: 1, Member: -1}}}}
+	fight := game.Fighting{Common: allow(game.EndTurn{}),
+		Field: game.Battlefield{Turn: 1, Size: image.Pt(8, 8), Units: []game.Unit{{ID: 1, Member: -1}}}}
 	g := &artCounting{fake: &fake{st: fight}}
 	f := &Front{Game: &classicGame{Game: NewGame(g, game.Data{})}, started: true}
 	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
@@ -137,9 +136,9 @@ func TestFightBoardBuiltOncePerChange(t *testing.T) {
 // The 3D view's walls and the minimap's squares are derived from the State
 // once per Version: idle frames read the same ones, a new State builds them again.
 func TestWallsAndMinimapBuiltOncePerChange(t *testing.T) {
-	st := func(x int) play.State {
-		return play.Exploring{Common: play.Common{Where: game.Where{X: x}}, Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
-			Walls: play.Walls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}}
+	st := func(x int) game.State {
+		return game.Exploring{Common: game.Common{Where: game.Where{X: x}}, Map: game.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
+			Walls: game.MapWalls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}}
 	}
 	g, f := playGame(st(1))
 	var p Presenter
@@ -168,7 +167,7 @@ func TestWallsAndMinimapBuiltOncePerChange(t *testing.T) {
 // The window border's pieces are decoded from the art once per Version:
 // the frame's setup and every box ask for them again and again.
 func TestBorderBuiltOncePerChange(t *testing.T) {
-	g := &artCounting{fake: &fake{st: play.Exploring{}}}
+	g := &artCounting{fake: &fake{st: game.Exploring{}}}
 	var p Presenter
 	p.SetEngine(&classicGame{Game: NewGame(g, game.Data{})})
 	p.windowBorder()
@@ -179,7 +178,7 @@ func TestBorderBuiltOncePerChange(t *testing.T) {
 	if g.arts != one {
 		t.Fatalf("idle asks read the art again: %d reads, want %d", g.arts, one)
 	}
-	g.st = play.Exploring{Common: play.Common{Where: game.Where{X: 1}}}
+	g.st = game.Exploring{Common: game.Common{Where: game.Where{X: 1}}}
 	p.windowBorder()
 	if g.arts != one+1 {
 		t.Fatalf("a new State: %d art reads, want %d", g.arts, one+1)
@@ -189,9 +188,9 @@ func TestBorderBuiltOncePerChange(t *testing.T) {
 // The shop's unidentified items and the slot screen are derived once per
 // Version (and, for the slots, per step that may write the saves).
 func TestShopUnknownAndSlotsBuiltOncePerChange(t *testing.T) {
-	st := func(n int) play.State {
-		return play.Trading{Kind: play.TradeShop, Unknown: []game.ItemRef{{Member: 0, Item: 7}},
-			Common: play.Common{Where: game.Where{X: n}, Party: []game.Member{{Name: "A", Items: []game.Item{{Handle: 7}}}}}}
+	st := func(n int) game.State {
+		return game.Trading{Kind: game.TradeShop, Unknown: []game.ItemRef{{Member: 0, Item: 7}},
+			Common: game.Common{Where: game.Where{X: n}, Party: []game.Member{{Name: "A", Items: []game.Item{{Handle: 7}}}}}}
 	}
 	g, f := playGame(st(1))
 	var p Presenter

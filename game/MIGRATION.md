@@ -1,4 +1,4 @@
-# Moving to the typed contract (gobox/game/play)
+# Moving to the typed contract (gobox/game)
 
 Goal: the game is a typed, purely reactive interface. gobox reads `State()`,
 switches over its type, offers the state's `Choices`, sends one `Action` to

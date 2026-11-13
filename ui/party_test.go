@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestPartyIconHead: a member with no portrait (Buck Rogers) shows their
@@ -22,7 +21,7 @@ func TestPartyIconHead(t *testing.T) {
 // TestInventoryListsReadied: a readied item is on the doll and in the
 // list, marked readied, so the keys reach it.
 func TestInventoryListsReadied(t *testing.T) {
-	in := upOf(play.Exploring{Common: play.Common{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Kind: "weapon", Slot: "weapon", Readied: true}}}}}}, game.ItemsOwn)
+	in := upOf(game.Exploring{Common: game.Common{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Kind: "weapon", Slot: "weapon", Readied: true}}}}}}, game.ItemsOwn)
 	if in.doll[0] == nil || len(in.pool) != 1 || !in.pool[0].Readied {
 		t.Fatalf("doll %v pool %+v", in.doll[0], in.pool)
 	}
@@ -30,7 +29,7 @@ func TestInventoryListsReadied(t *testing.T) {
 
 // A yes/no over the 3D view with its question in the message is still asked.
 func TestYesNoOverExplore(t *testing.T) {
-	q, ok := Ask(game.ModeExplore, &play.Ask{Kind: game.YesNo})
+	q, ok := Ask(game.ModeExplore, &game.Ask{Kind: game.YesNo})
 	if !ok || q == nil || q.Kind != AskConfirm || q.Prompt == "" {
 		t.Fatalf("%+v", q)
 	}
@@ -48,7 +47,7 @@ func TestDraftFigures(t *testing.T) {
 
 // The sheet's name colour is gobox's: a draft's name is never black.
 func TestDraftNameColour(t *testing.T) {
-	p, _ := draftOn(&play.Draft{Member: game.Member{Name: "Doc"}})
+	p, _ := draftOn(&game.Draft{Member: game.Member{Name: "Doc"}})
 	ink := p.ink()
 	c := p.screenPage()
 	if runs := c.lines()[1]; len(runs) == 0 || runs[0].Fg == (color.RGBA{}) || runs[0].Fg == ink[0] {

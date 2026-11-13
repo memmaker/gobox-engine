@@ -3,7 +3,7 @@ package script
 import (
 	"strings"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // exitLabel marks a menu's exit row in script text: Menu("ATTACK", exit="LEAVE").
@@ -64,7 +64,7 @@ func MarkExits(s *Script, area int, v *Version) {
 			row, ok = o, o != NoExitRow
 		}
 		if ok {
-			s.Code[i].Exit = play.EscTo(row)
+			s.Code[i].Exit = game.EscTo(row)
 		}
 	}
 }

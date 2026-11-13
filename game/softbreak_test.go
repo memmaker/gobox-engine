@@ -1,4 +1,4 @@
-package journal
+package game
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 
 // TestLoadJoinsBreaks: a word the printed journal broke ("men- ace") loads whole.
 func TestLoadJoinsBreaks(t *testing.T) {
-	b, err := Load(fstest.MapFS{"J.TXT": {Data: []byte("[1]\nhis men- ace, per- haps - no\n")}}, "J.TXT")
+	b, err := LoadJournal(fstest.MapFS{"J.TXT": {Data: []byte("[1]\nhis men- ace, per- haps - no\n")}}, "J.TXT")
 	if err != nil {
 		t.Fatal(err)
 	}

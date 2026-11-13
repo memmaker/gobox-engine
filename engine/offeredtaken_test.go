@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 )
 
@@ -33,7 +33,7 @@ func offeredTaken(t *testing.T, base func(*testing.T) *Engine) {
 			t.Errorf("%s: nothing offered", name)
 		}
 		for _, a := range acts {
-			if _, quit := a.(play.Quit); quit {
+			if _, quit := a.(game.Quit); quit {
 				continue
 			}
 			if _, err := devPlayOn(t, base(t), name).doNow(a); reflect.DeepEqual(err, notNow) {

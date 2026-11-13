@@ -12,7 +12,6 @@ import (
 	"image/color"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // uiKey is what the screens' derivations read besides the game's State:
@@ -21,7 +20,7 @@ type uiKey struct {
 	version                   uint64
 	items                     game.ItemsUp
 	itemsOf, sheet, lookSheet int
-	ask, refusal              *play.Ask
+	ask, refusal              *game.Ask
 	speedUp                   bool
 }
 
@@ -43,7 +42,7 @@ type menuKey struct {
 // screens' facts read from it.
 type layouts struct {
 	slots     memo[slotsFrom, *Slots]         // the slot screen as the game lists it
-	combat    memo[fightSource, *play.Combat] // the live fight read from the State
+	combat    memo[fightSource, *game.Combat] // the live fight read from the State
 	board     memo[boardKey, fightDrawn]      // the drawn fight board
 	party     memo[uint64, []game.Member]     // partyOf, by the State's build
 	powers    memo[uint64, [][]Power]         // each card's context menu
@@ -72,8 +71,8 @@ type flagsKey struct {
 type creationKey struct {
 	version uint64
 	grid    image.Point
-	ask     *play.Ask // gobox's own question (Abandon's words)
-	refusal *play.Ask
+	ask     *game.Ask // gobox's own question (Abandon's words)
+	refusal *game.Ask
 }
 
 // pageKey is what a picker's or the icon editor's layout is made of.
@@ -119,7 +118,7 @@ func (p *Presenter) picker(ink [16]color.RGBA) *FrontPicker {
 	}
 	s := p.state()
 	return p.lay.picker.get(k, func() *FrontPicker {
-		return Picker(play.CommonOf(s).Picker, image.Point{}, 0, p.eng.r.grid.X, p.eng.r.grid.Y)
+		return Picker(game.CommonOf(s).Picker, image.Point{}, 0, p.eng.r.grid.X, p.eng.r.grid.Y)
 	})
 }
 
@@ -135,7 +134,7 @@ func (p *Presenter) iconEditor(ink [16]color.RGBA) *FrontIconEditor {
 	}
 	s := p.state()
 	return p.lay.icon.get(k, func() *FrontIconEditor {
-		return IconEditor(play.CommonOf(s).IconEditor, nil, p.eng.Subject(), &ink, p.eng.r.grid.X, p.eng.r.grid.Y)
+		return IconEditor(game.CommonOf(s).IconEditor, nil, p.eng.Subject(), &ink, p.eng.r.grid.X, p.eng.r.grid.Y)
 	})
 }
 

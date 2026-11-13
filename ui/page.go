@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gobox/asset"
 	"gobox/game"
-	"gobox/game/play"
 	"image"
 	"image/color"
 	"image/draw"
@@ -330,7 +329,7 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 			fill(image.Rect(px, py, px+w*4, py+3), col(hpc))
 			y += 2
 		}
-		if c := play.CommonOf(p.state()); c.Purse != nil { // a blank row between the pairs and before the items
+		if c := game.CommonOf(p.state()); c.Purse != nil { // a blank row between the pairs and before the items
 			str(2, rows-7, inkYellow, fmt.Sprintf("%d gold  %d copper", c.Purse[Coin], c.Purse[game.Copper]))
 			str(2, rows-5, inkYellow, fmt.Sprintf("%d gems  %d jewelry", c.Purse[game.Gems], c.Purse[game.Jewelry]))
 			str(2, rows-3, inkCyan, fmt.Sprintf("Party items %d/%d", c.PoolItems, c.PartyCap))

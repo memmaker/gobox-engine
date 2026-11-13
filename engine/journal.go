@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"gobox/ecl/script"
-	"gobox/game/journal"
+	"gobox/game"
 )
 
 // Journal texts (extra): the game often only names an
@@ -20,32 +20,32 @@ import (
 // pager shows it right there, with its pictures. The books and pictures
 // (pre-scaled to the screen, one shared 16-colour palette) are the game's
 // own, in the adventure folder's JournalDir, written by its import, in gobox's
-// journal format; gobox (game/journal) reads, finds and lays them out.
+// journal format; gobox (game/journal.go) reads, finds and lays them out.
 
 // JournalDir is the game's journal books and pictures in the adventure folder.
 const JournalDir = "journal"
 
 // book is the game's journal book name (a file of JournalDir), loaded once;
 // nil if the game has none.
-func (e *Engine) book(name string) *journal.Book {
+func (e *Engine) book(name string) *game.JournalBook {
 	if b, ok := e.books[name]; ok {
 		return b
 	}
-	b, err := journal.Load(os.DirFS(filepath.Join(e.adv, JournalDir)), name)
+	b, err := game.LoadJournal(os.DirFS(filepath.Join(e.adv, JournalDir)), name)
 	if errors.Is(err, fs.ErrNotExist) {
 		b = nil
 	} else if err != nil {
 		panic(err) // a broken game folder
 	}
 	if e.books == nil {
-		e.books = map[string]*journal.Book{}
+		e.books = map[string]*game.JournalBook{}
 	}
 	e.books[name] = b
 	return b
 }
 
 // journalLayout is the texts titled titles of book name laid out for the
-// pager (journal.Book.Layout's markers); voiced marks each paragraph with
+// pager (game.Book.Layout's markers); voiced marks each paragraph with
 // its own recording's key.
 func (e *Engine) journalLayout(name string, titles []string, voiced bool) []string {
 	var voice func(string) string
@@ -68,7 +68,7 @@ func (e *Engine) journalPicture(name string) image.Image {
 }
 
 // WrapWords breaks s into lines of at most w characters at spaces.
-func WrapWords(s string, w int) []string { return journal.Wrap(s, w) }
+func WrapWords(s string, w int) []string { return game.WrapText(s, w) }
 
 // The pager: the text inside a full-screen box, jrRows lines a page from
 // row jrTop (under the journal's title and a blank row) to two rows above
@@ -127,7 +127,7 @@ func (e *Engine) showEntry(id script.EntryID) {
 		e.noteJournal(en.Title)
 	}
 	if r := e.ext.read; r != nil && r.Title == en.Box {
-		r.Lines = append(append(r.Lines, ""), lines...) // as journal.Book.Layout of both titles
+		r.Lines = append(append(r.Lines, ""), lines...) // as game.Book.Layout of both titles
 		return
 	}
 	e.showJournal(en.Box, lines)

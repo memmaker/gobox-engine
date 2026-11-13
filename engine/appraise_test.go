@@ -4,14 +4,13 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules"
 )
 
 // valuedOffer is the state's offer with a value (nil: none).
 func valuedOffer(t *testing.T, e *Engine) *game.Offer {
 	t.Helper()
-	tr, ok := e.build().(play.Trading)
+	tr, ok := e.build().(game.Trading)
 	if !ok {
 		t.Fatalf("not trading: %T", e.build())
 	}
@@ -42,13 +41,13 @@ func TestAppraiseFlow(t *testing.T) {
 			e.state().Purse.Gems, e.state().Purse.Jewelry = 3, 0
 			st := steps{}
 			st.value = func() error {
-				tr := e.build().(play.Trading)
-				_, err := e.doNow(play.Appraise{Member: tr.Offers[0].Member, Offer: tr.Offers[0].Offer})
+				tr := e.build().(game.Trading)
+				_, err := e.doNow(game.Appraise{Member: tr.Offers[0].Member, Offer: tr.Offers[0].Offer})
 				return err
 			}
 			st.keep = func(k bool) error {
 				o := valuedOffer(t, e)
-				_, err := e.doNow(play.Appraise{Member: o.Member, Offer: o.Offer, Keep: k})
+				_, err := e.doNow(game.Appraise{Member: o.Member, Offer: o.Offer, Keep: k})
 				return err
 			}
 			gold, items := e.state().Purse.Gold, carriedCount(e)
@@ -85,7 +84,7 @@ func TestAppraiseFlow(t *testing.T) {
 			}
 			gold = e.state().Purse.Gold
 			value()
-			if _, err := e.doNow(play.Leave{}); err != nil {
+			if _, err := e.doNow(game.Leave{}); err != nil {
 				t.Fatal("leave:", err)
 			}
 			if e.state().Purse.Gold <= gold || e.valued != rules.NoItem {

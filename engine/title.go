@@ -10,7 +10,6 @@ import (
 
 	"gobox/asset"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/importer"
 )
 
@@ -42,12 +41,12 @@ func (e *Engine) titleDone() {
 
 // title is the adventure's Start sequence as the engine shows it (SetStart).
 type title struct {
-	full, short play.Scene // the title Scene with the Full intro option on, and off
+	full, short game.Scene // the title Scene with the Full intro option on, and off
 	credits     []game.Credit
 	boxes       []image.Rectangle
 	backdrop    []game.Layer
 	seqs        []game.Sequence   // the full-screen animations State.Sequence names (SetEnd)
-	end         *play.Scene       // the end sequence of pictures (SetEnd)
+	end         *game.Scene       // the end sequence of pictures (SetEnd)
 	after       []importer.Effect // what the end leaves in the game (SetEnd)
 	note        string            // the end's closing note (SetEnd)
 }
@@ -73,7 +72,7 @@ func (e *Engine) SetEnd(s *importer.Sequence) error {
 		g = importer.GraphicsEGA
 	}
 	shown := s.Shown(e.amigaUp())
-	sc, err := importer.TitleScene(shown, true, g, play.Common{}, e.titleArt)
+	sc, err := importer.TitleScene(shown, true, g, game.Common{}, e.titleArt)
 	if err != nil {
 		return fmt.Errorf("end: %w", err)
 	}
@@ -100,10 +99,10 @@ func (e *Engine) SetStart(s *importer.Sequence) error {
 	if e.Cfg.Graphics == 'E' { // DS:4A1E: the EGA driver
 		g = importer.GraphicsEGA
 	}
-	if t.full, err = importer.TitleScene(*s, true, g, play.Common{}, e.titleArt); err != nil {
+	if t.full, err = importer.TitleScene(*s, true, g, game.Common{}, e.titleArt); err != nil {
 		return err
 	}
-	if t.short, err = importer.TitleScene(*s, false, g, play.Common{}, e.titleArt); err != nil {
+	if t.short, err = importer.TitleScene(*s, false, g, game.Common{}, e.titleArt); err != nil {
 		return err
 	}
 	if t.credits, t.boxes, t.backdrop, err = importer.TitleData(*s, e.titleArt); err != nil {

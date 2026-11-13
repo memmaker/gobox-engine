@@ -8,12 +8,11 @@ import (
 	"slices"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // partyOf is ps's party as the screens show it.
-func partyOf(ps play.State) []game.Member {
-	c := play.CommonOf(ps)
+func partyOf(ps game.State) []game.Member {
+	c := game.CommonOf(ps)
 	var out []game.Member
 	for i, m := range c.Party {
 		m.CanCast = m.CanCast || canCast(c.Allowed, i)
@@ -29,8 +28,8 @@ type memberCard struct {
 }
 
 // cardsOf are ps's party's cards, by member.
-func cardsOf(ps play.State) []memberCard {
-	c := play.CommonOf(ps)
+func cardsOf(ps game.State) []memberCard {
+	c := game.CommonOf(ps)
 	var out []memberCard
 	for i, m := range partyOf(ps) {
 		out = append(out, memberCard{Chosen: i == c.Selected, Menu: card(m, c.Allowed, i)})
@@ -40,12 +39,12 @@ func cardsOf(ps play.State) []memberCard {
 
 // selectedOf is the member the screens act on: the one whose look-only sheet
 // is up in a fight, else with the items up whose items they are.
-func (r *frontState) selectedOf(ps play.State) int {
+func (r *frontState) selectedOf(ps game.State) int {
 	if n, ok := r.lookMember(ps); ok { // a fight's look-only sheet: that member's, and its items
 		return n
 	}
-	c := play.CommonOf(ps)
-	if f, ok := ps.(play.Fighting); ok {
+	c := game.CommonOf(ps)
+	if f, ok := ps.(game.Fighting); ok {
 		if m := cmp.Or(r.itemsOf+1, activeMember(f.Field)+1) - 1; r.items != game.ItemsNone && m >= 0 && m < len(c.Party) {
 			return m
 		}
@@ -55,22 +54,22 @@ func (r *frontState) selectedOf(ps play.State) int {
 
 // allowedOf is what ps allows by action name, and NoRest where camp has no
 // timed rest.
-func allowedOf(ps play.State) map[string]bool {
-	m := allowedNames(play.CommonOf(ps).Allowed)
-	if _, camp := ps.(play.Camping); camp && !m["Rest"] {
+func allowedOf(ps game.State) map[string]bool {
+	m := allowedNames(game.CommonOf(ps).Allowed)
+	if _, camp := ps.(game.Camping); camp && !m["Rest"] {
 		m["NoRest"] = true
 	}
 	return m
 }
 
 // automapOf is the map of where the party is; camp keeps the explored one.
-func automapOf(ps play.State, explored game.Automap) game.Automap {
-	c := play.CommonOf(ps)
+func automapOf(ps game.State, explored game.Automap) game.Automap {
+	c := game.CommonOf(ps)
 	a := c.Automap
-	if x, ok := ps.(play.Exploring); ok && a.Size == (image.Point{}) {
+	if x, ok := ps.(game.Exploring); ok && a.Size == (image.Point{}) {
 		a = x.Map.Automap
 	}
-	if _, ok := ps.(play.Camping); ok && len(a.Known) == 0 && len(explored.Known) > 0 {
+	if _, ok := ps.(game.Camping); ok && len(a.Known) == 0 && len(explored.Known) > 0 {
 		a = explored
 	}
 	if a.Area == "" {
@@ -80,7 +79,7 @@ func automapOf(ps play.State, explored game.Automap) game.Automap {
 }
 
 // storyOf is the speaker's portrait, head and body.
-func storyOf(c play.Common) []game.Picture {
+func storyOf(c game.Common) []game.Picture {
 	if pt := c.Portrait; pt != nil {
 		return []game.Picture{pt.Head, pt.Body}
 	}
@@ -88,8 +87,8 @@ func storyOf(c play.Common) []game.Picture {
 }
 
 // pageOf is the text page up.
-func (r *frontState) pageOf(ps play.State) *game.Page {
-	c := play.CommonOf(ps)
+func (r *frontState) pageOf(ps game.State) *game.Page {
+	c := game.CommonOf(ps)
 	p := &game.Page{Layers: c.Layers}
 	if c.Picture != nil && len(c.Layers) == 0 { // the front draws a page's layers: the picture is the page's only one
 		p.Layers = []game.Layer{{Picture: *c.Picture}}
@@ -100,9 +99,9 @@ func (r *frontState) pageOf(ps play.State) *game.Page {
 	if c.Status != "" {
 		p.Prompt = r.run(c.Status)
 	}
-	if t, ok := ps.(play.Scene); ok {
+	if t, ok := ps.(game.Scene); ok {
 		pg := r.page(t)
-		if t.Kind == play.SceneTitle && !r.title.credits {
+		if t.Kind == game.SceneTitle && !r.title.credits {
 			n := r.titleStep(t)
 			pg.Layers = append(pg.Layers, t.Steps[n].Layers...)
 			for _, line := range t.Steps[n].Text { // the step's words, over its picture
@@ -115,18 +114,18 @@ func (r *frontState) pageOf(ps play.State) *game.Page {
 }
 
 // flagsOf are the screen's plain status flags.
-func (r *frontState) flagsOf(ps play.State, party []game.Member) *game.Flags {
-	c := play.CommonOf(ps)
-	_, camp := ps.(play.Camping)
+func (r *frontState) flagsOf(ps game.State, party []game.Member) *game.Flags {
+	c := game.CommonOf(ps)
+	_, camp := ps.(game.Camping)
 	f := &game.Flags{Adventure: c.Adventure, Ordering: camp && allowedOf(ps)["Order"], Sweeping: c.Where.Searching,
 		Inside: c.Where.Inside, CanCast: c.Selected >= 0 && c.Selected < len(party) && party[c.Selected].CanCast,
 		IconDrop: c.IconEditor != nil, Day: c.Day, NoSave: c.NoSave, NoLoad: c.NoLoad}
 	switch t := ps.(type) {
-	case play.Exploring:
+	case game.Exploring:
 		f.Exploring, f.Day, f.Interact = c.Ask == nil, t.Day || c.Day, t.Interact && c.Ask == nil // the game's say, never the hour guessed
-	case play.Scene:
+	case game.Scene:
 		f.Full = t.Full
-		if t.Kind == play.SceneTitle {
+		if t.Kind == game.SceneTitle {
 			f.Credits, f.CreditPage = r.title.credits, r.title.page
 			f.CreditsPic = !r.title.credits && t.Steps[r.titleStep(t)].Credits
 		}
@@ -135,11 +134,11 @@ func (r *frontState) flagsOf(ps play.State, party []game.Member) *game.Flags {
 }
 
 // windowOf is what the view window shows.
-func windowOf(ps play.State) game.Window {
-	c := play.CommonOf(ps)
+func windowOf(ps game.State) game.Window {
+	c := game.CommonOf(ps)
 	pictured := c.Picture != nil || len(c.Layers) > 0 || c.Portrait != nil
 	switch t := ps.(type) {
-	case play.Exploring:
+	case game.Exploring:
 		switch {
 		case c.Picture != nil || c.Portrait != nil:
 			return game.WindowPicture
@@ -149,9 +148,9 @@ func windowOf(ps play.State) game.Window {
 			return game.WindowPicture
 		}
 		return game.WindowScene
-	case play.Scene:
+	case game.Scene:
 		switch {
-		case t.Kind == play.SceneTitle, t.Kind == play.SceneSequence:
+		case t.Kind == game.SceneTitle, t.Kind == game.SceneSequence:
 			return game.WindowScene
 		case len(t.Pictures)+len(t.Layers) > 0:
 			return game.WindowPicture
@@ -168,7 +167,7 @@ func windowOf(ps play.State) game.Window {
 }
 
 // sheetOf is what the selected member's sheet offers (nil: none up).
-func (r *frontState) sheetOf(c play.Common) *game.Sheet {
+func (r *frontState) sheetOf(c game.Common) *game.Sheet {
 	if n := c.Selected; n >= 0 && n < len(c.Party) && (len(c.Party[n].SheetPowers) > 0 || len(c.Party[n].Reactions) > 0) {
 		return &game.Sheet{Powers: c.Party[n].SheetPowers, Reactions: c.Party[n].Reactions}
 	}
@@ -179,23 +178,23 @@ func (r *frontState) sheetOf(c play.Common) *game.Sheet {
 }
 
 // sheetPageOf is the sheet's page up: the rules', else gobox's from the member.
-func (r *frontState) sheetPageOf(ps play.State, party []game.Member) *game.SheetPage {
-	c := play.CommonOf(ps)
+func (r *frontState) sheetPageOf(ps game.State, party []game.Member) *game.SheetPage {
+	c := game.CommonOf(ps)
 	var p *game.SheetPage
 	if n := r.sheet; n >= 0 && n < len(c.Party) {
 		if p = c.Party[n].Page; p == nil {
 			p = game.MemberPage(party[n])
 		}
 	}
-	if a, ok := ps.(play.Assembling); ok && a.Draft != nil && a.Draft.Member.Page != nil {
+	if a, ok := ps.(game.Assembling); ok && a.Draft != nil && a.Draft.Member.Page != nil {
 		p = a.Draft.Member.Page // the rules' figures for the sheet being made
 	}
 	return p
 }
 
 // creationOf is the draft up (nil: none).
-func creationOf(ps play.State) *game.Creation {
-	a, ok := ps.(play.Assembling)
+func creationOf(ps game.State) *game.Creation {
+	a, ok := ps.(game.Assembling)
 	if !ok || a.Draft == nil {
 		return nil
 	}
@@ -209,7 +208,7 @@ func creationOf(ps play.State) *game.Creation {
 }
 
 // pacingOf is what goes on with time.
-func (r *frontState) pacingOf(ps play.State) *game.Pacing {
+func (r *frontState) pacingOf(ps game.State) *game.Pacing {
 	p := &game.Pacing{Seq: r.seq}
 	switch {
 	case r.rest > 0:
@@ -217,7 +216,7 @@ func (r *frontState) pacingOf(ps play.State) *game.Pacing {
 	case r.walk != nil:
 		p.Pace = game.PaceWalk
 	default:
-		if t, ok := ps.(play.Scene); ok && slices.ContainsFunc(t.Layers, func(l game.Layer) bool { return l.FrameMs > 0 }) {
+		if t, ok := ps.(game.Scene); ok && slices.ContainsFunc(t.Layers, func(l game.Layer) bool { return l.FrameMs > 0 }) {
 			p.Pace = game.PaceAnim
 		}
 	}
@@ -226,19 +225,19 @@ func (r *frontState) pacingOf(ps play.State) *game.Pacing {
 
 // wallsOf is the 3D view up (shown) and the one last explored (kept): camp
 // and a scene keep it; a fight or the party menu drops it.
-func wallsOf(ps play.State, kept *game.Walls) (shown, keep *game.Walls) {
+func wallsOf(ps game.State, kept *game.Walls) (shown, keep *game.Walls) {
 	switch t := ps.(type) {
-	case play.Exploring:
+	case game.Exploring:
 		if w := t.Map.Walls; w.Side != nil { // no squares: no 3D view (the overland)
 			kept = gameWalls(w)
 		} else {
 			kept = nil
 		}
-	case play.Scene:
+	case game.Scene:
 		if t.Walls != nil && t.Walls.Side != nil {
 			return gameWalls(*t.Walls), kept
 		}
-	case play.Camping:
+	case game.Camping:
 	default:
 		kept = nil
 	}
@@ -246,9 +245,9 @@ func wallsOf(ps play.State, kept *game.Walls) (shown, keep *game.Walls) {
 }
 
 // readOf is the handout up, kept so the pointer holds while it does.
-func (r *frontState) readOf(ps play.State) *game.Read {
-	t, ok := ps.(play.Scene)
-	if !ok || t.Kind != play.SceneHandout {
+func (r *frontState) readOf(ps game.State) *game.Read {
+	t, ok := ps.(game.Scene)
+	if !ok || t.Kind != game.SceneHandout {
 		r.read = nil
 		return nil
 	}
@@ -259,71 +258,71 @@ func (r *frontState) readOf(ps play.State) *game.Read {
 }
 
 // modeOf is the screen ps puts up, a question over it counted.
-func (r *frontState) modeOf(ps play.State) game.Mode {
+func (r *frontState) modeOf(ps game.State) game.Mode {
 	if r.refusalAsk != nil { // a Refusal's question is up
 		return game.ModeAsk
 	}
 	var m game.Mode
-	c := play.CommonOf(ps)
+	c := game.CommonOf(ps)
 	switch t := ps.(type) {
-	case play.Assembling:
+	case game.Assembling:
 		m = game.ModeParty
 		if t.Draft != nil {
 			m = game.ModeCreate
 		}
-	case play.Exploring:
+	case game.Exploring:
 		m = game.ModeExplore
 		if c.Ask != nil && !(c.Ask.Continue && len(c.Ask.Replies) == 0) || t.Door != nil { // a question (or the door menu) over the view
 			m = game.ModeAsk
 		}
-	case play.Camping:
+	case game.Camping:
 		m = game.ModeCamp
-	case play.Fighting:
+	case game.Fighting:
 		m = game.ModeCombat
-	case play.Scene:
+	case game.Scene:
 		m = game.ModeStory
-		if t.Kind == play.SceneTitle {
+		if t.Kind == game.SceneTitle {
 			m = game.ModeTitle
 		}
-	case play.Trading:
+	case game.Trading:
 		switch {
-		case t.Kind == play.TradeVault:
+		case t.Kind == game.TradeVault:
 			m = game.ModeVault
-		case t.Kind == play.TradeTraining, t.Training != nil:
+		case t.Kind == game.TradeTraining, t.Training != nil:
 			m = game.ModeTraining
-		case t.Kind == play.TradeTemple, len(t.Services) > 0:
+		case t.Kind == game.TradeTemple, len(t.Services) > 0:
 			m = game.ModeTemple
 		default:
 			m = game.ModeShop
 		}
-	case play.Looting:
+	case game.Looting:
 		m = game.ModeLoot
-	case play.Over:
+	case game.Over:
 		m = game.ModeTitle
-	case play.ShipFight:
+	case game.ShipFight:
 		m = game.ModeStory
 	}
 	return askMode(m, r.pending(ps), ps)
 }
 
 // itemsOf is whose goods the inventory screen shows.
-func (r *frontState) itemsUp(ps play.State) game.ItemsUp {
+func (r *frontState) itemsUp(ps game.State) game.ItemsUp {
 	if r.items == game.ItemsNone {
 		return r.items
 	}
 	switch ps.(type) {
-	case play.Trading:
+	case game.Trading:
 		return game.ItemsShop
-	case play.Looting:
+	case game.Looting:
 		return game.ItemsLoot
 	}
 	return r.items
 }
 
 // shopOf is the shop up (nil: none); a vault or hall is no shop.
-func shopOf(ps play.State) *game.Shop {
-	t, ok := ps.(play.Trading)
-	if !ok || t.Kind == play.TradeVault || t.Kind == play.TradeTraining || t.Training != nil || t.Kind == play.TradeTemple || len(t.Services) > 0 {
+func shopOf(ps game.State) *game.Shop {
+	t, ok := ps.(game.Trading)
+	if !ok || t.Kind == game.TradeVault || t.Kind == game.TradeTraining || t.Training != nil || t.Kind == game.TradeTemple || len(t.Services) > 0 {
 		return nil
 	}
 	return &game.Shop{Name: t.Name, Goods: t.Goods, Buys: t.Buys, Offers: t.Offers, Pooled: t.Pooled,
@@ -331,72 +330,72 @@ func shopOf(ps play.State) *game.Shop {
 }
 
 // templeOf is the temple up: its services, offers (nil services: none).
-func templeOf(ps play.State) ([]game.Service, []game.Offer) {
-	t, ok := ps.(play.Trading)
-	if !ok || t.Kind == play.TradeVault || t.Kind == play.TradeTraining || t.Training != nil || t.Kind != play.TradeTemple && len(t.Services) == 0 {
+func templeOf(ps game.State) ([]game.Service, []game.Offer) {
+	t, ok := ps.(game.Trading)
+	if !ok || t.Kind == game.TradeVault || t.Kind == game.TradeTraining || t.Training != nil || t.Kind != game.TradeTemple && len(t.Services) == 0 {
 		return nil, nil
 	}
 	return t.Services, t.Offers
 }
 
-func trainingOf(ps play.State) *game.Training {
-	if t, ok := ps.(play.Trading); ok && t.Kind != play.TradeVault {
+func trainingOf(ps game.State) *game.Training {
+	if t, ok := ps.(game.Trading); ok && t.Kind != game.TradeVault {
 		return t.Training
 	}
 	return nil
 }
 
-func lootOf(ps play.State) *game.Loot {
-	if t, ok := ps.(play.Looting); ok {
+func lootOf(ps game.State) *game.Loot {
+	if t, ok := ps.(game.Looting); ok {
 		return &game.Loot{Items: t.Items, Money: t.Money, Status: t.Status}
 	}
 	return nil
 }
 
 // combatOf is the fight up (nil: none).
-func (r *frontState) combatOf(ps play.State) *play.Combat {
-	if f, ok := ps.(play.Fighting); ok {
+func (r *frontState) combatOf(ps game.State) *game.Combat {
+	if f, ok := ps.(game.Fighting); ok {
 		return r.combat(f)
 	}
 	return nil
 }
 
 // doorOf, introOf, sequenceOf, resultsOf, screenOf: the scene's or view's part.
-func doorOf(ps play.State) *game.Door {
-	if x, ok := ps.(play.Exploring); ok {
+func doorOf(ps game.State) *game.Door {
+	if x, ok := ps.(game.Exploring); ok {
 		return x.Door
 	}
 	return nil
 }
 
-func introOf(ps play.State) *game.Intro {
-	if t, ok := ps.(play.Scene); ok && t.Kind == play.SceneTitle {
+func introOf(ps game.State) *game.Intro {
+	if t, ok := ps.(game.Scene); ok && t.Kind == game.SceneTitle {
 		return t.Intro
 	}
 	return nil
 }
 
-func sequenceOf(ps play.State) string {
-	if t, ok := ps.(play.Scene); ok && t.Kind == play.SceneSequence {
+func sequenceOf(ps game.State) string {
+	if t, ok := ps.(game.Scene); ok && t.Kind == game.SceneSequence {
 		return t.Sequence
 	}
 	return ""
 }
 
-func resultsOf(ps play.State) *game.Results {
-	if t, ok := ps.(play.Scene); ok && t.Kind == play.SceneResults {
+func resultsOf(ps game.State) *game.Results {
+	if t, ok := ps.(game.Scene); ok && t.Kind == game.SceneResults {
 		return t.Results
 	}
 	return nil
 }
 
-func screenOf(ps play.State) *game.Screen {
+func screenOf(ps game.State) *game.Screen {
 	switch t := ps.(type) {
-	case play.Scene:
-		if t.Kind == play.SceneScreen {
+	case game.Scene:
+		if t.Kind == game.SceneScreen {
 			return t.Screen
 		}
-	case play.ShipFight:
+	case game.ShipFight:
 		f := t.Fight
 		return &game.Screen{Kind: game.ScreenSpaceFight, SpaceFight: &f, ShipSheet: t.Sheet}
 	}
@@ -404,8 +403,8 @@ func screenOf(ps play.State) *game.Screen {
 }
 
 // rest is what resting now does.
-func restOf(ps play.State) (heals, studies bool) {
-	if t, ok := ps.(play.Camping); ok {
+func restOf(ps game.State) (heals, studies bool) {
+	if t, ok := ps.(game.Camping); ok {
 		return t.Heals, t.Study > 0
 	}
 	return false, false
@@ -426,16 +425,16 @@ type MusicCue struct {
 func (g *Game) MusicCue() MusicCue {
 	ps, m := g.r.g.State(), g.mode()
 	c := g.r.combatOf(ps)
-	return MusicCue{Where: play.CommonOf(ps).Where, Mode: m, Title: sequenceOf(ps) != "" || introOf(ps) != nil || m == game.ModeTitle,
+	return MusicCue{Where: game.CommonOf(ps).Where, Mode: m, Title: sequenceOf(ps) != "" || introOf(ps) != nil || m == game.ModeTitle,
 		Creating: creationOf(ps) != nil || m == game.ModeCreate, Results: resultsOf(ps) != nil,
 		Fighting: c != nil || m == game.ModeCombat, Dungeon: c != nil && c.Dungeon}
 }
 
 // What the sibling screens and a game's front tests read of the state up.
 func (g *Game) Party() []game.Member     { return g.party() }
-func (g *Game) Fight() *play.Combat      { return g.combat() }
+func (g *Game) Fight() *game.Combat      { return g.combat() }
 func (g *Game) Pace() game.Pace          { return g.pace() }
-func (g *Game) Common() play.Common      { return play.CommonOf(g.r.g.State()) }
+func (g *Game) Common() game.Common      { return game.CommonOf(g.r.g.State()) }
 func (g *Game) Walls() *game.Walls       { return g.r.derived().walls }
 func (g *Game) Loot() *game.Loot         { return lootOf(g.r.g.State()) }
 func (g *Game) Automap() game.Automap    { return g.r.derived().automap }
@@ -450,7 +449,7 @@ func (g *Game) ItemsUp() game.ItemsUp    { return g.r.itemsUp(g.r.g.State()) }
 
 // titleStep is the Steps key of the title step shown: before gobox's first
 // step, that step's picture already.
-func (r *frontState) titleStep(t play.Scene) int {
+func (r *frontState) titleStep(t game.Scene) int {
 	if n := r.title.n; n != 0 || t.Intro == nil || len(t.Intro.Pictures) == 0 {
 		return n
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gobox/asset"
 	"gobox/ecl/script"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
@@ -344,7 +344,7 @@ func (e *Engine) opPressKey() {
 // opYesNo = pod O040:1677: equal when the answer is Yes.
 func (e *Engine) opYesNo() {
 	e.vm.PC++
-	e.askYesNo(&play.Question{YesNo: true, Default: 1, Replies: []string{"No", "Yes"}, NoEsc: true}, false, askDone{kind: dYesNo})
+	e.askYesNo(&game.Question{YesNo: true, Default: 1, Replies: []string{"No", "Yes"}, NoEsc: true}, false, askDone{kind: dYesNo})
 }
 
 // opClearExit = pod O040:24AE: the view back, then Exit.
@@ -599,10 +599,10 @@ func (e *Engine) opProgram() {
 		e.ending(false)
 	case script.ProgramCamp:
 		e.es.hold, e.es.holdPC = holdEncamp, int(e.vm.PC)
-	case script.ProgramQuit: // cotab 3, pod 2 (O040:1F1F): back to DOS; the front ends the run (play.Ended), as pod's Exit
-		e.event(play.Ended{})
+	case script.ProgramQuit: // cotab 3, pod 2 (O040:1F1F): back to DOS; the front ends the run (game.Ended), as pod's Exit
+		e.event(game.Ended{})
 	case script.ProgramSaveQuit: // pod 1 (O043:0000): the save screen (the player picks the slot), then the ending
-		e.event(play.SaveOffered{})
+		e.event(game.SaveOffered{})
 		e.ending(true)
 	}
 }

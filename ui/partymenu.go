@@ -1,12 +1,11 @@
 // partymenu.go is gobox's default front: the Gold Box UI built from a
-// game's play.State alone (no game imports, no engine access).
+// game's game.State alone (no game imports, no engine access).
 
 package ui
 
 import (
 	"cmp"
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // partyFunctions are the party menu's functions by their labels.
@@ -21,7 +20,7 @@ var partyFunctions = map[string]ActKind{
 
 // PartyMenu is the party menu's open functions (nil: not up) and whether it
 // is the training hall's.
-func PartyMenu(mode game.Mode, training *game.Training, pending *play.Ask, hallHere bool) (open []ActKind, hall bool) {
+func PartyMenu(mode game.Mode, training *game.Training, pending *game.Ask, hallHere bool) (open []ActKind, hall bool) {
 	inHall := mode == game.ModeTraining && training == nil // the hall's party menu before OpenTraining (SotSB publishes the same Question)
 	if mode != game.ModeParty && !inHall || pending == nil {
 		return nil, false

@@ -12,14 +12,14 @@ import (
 	"gobox/audio"
 	"gobox/ecl/script"
 	"gobox/engine"
-	"gobox/game/journal"
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
 )
 
 // TestSwitchData: the folder writeSwitchData writes loads through the shared
 // engine's readers (pool.ReadGameTables, rules1e.ReadLayout, script.ReadEntries,
-// journal.Load) with the values pod's own engine uses (the pod import).
+// game.Load) with the values pod's own engine uses (the pod import).
 func TestSwitchData(t *testing.T) {
 	dst := t.TempDir()
 	if err := writeSwitchData(dst); err != nil {
@@ -81,7 +81,7 @@ func TestSwitchData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	book, err := journal.Load(os.DirFS(filepath.Join(dst, engine.JournalDir)), "JOURNAL.TXT")
+	book, err := game.LoadJournal(os.DirFS(filepath.Join(dst, engine.JournalDir)), "JOURNAL.TXT")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -41,7 +41,7 @@ Status:
 | Card click opens View; card right-click menu (View, Items, Spells, Magic, Heal, Cure) | G | front/present/cards.go, dispatch.go |
 | One member-pick screen for "whom?" (View.Choosing) | G | front/present/remaster.go |
 | Party overview (P / pad X) | G | front/present/explore.go, input/input.go |
-| Journal pager with the printed journal's pictures, voiced paragraphs | G | game/journal/journal.go, front/present/journal.go; refs as script commands (por-go 38e0ef5) — C |
+| Journal pager with the printed journal's pictures, voiced paragraphs | G | game/journal.go, front/present/journal.go; refs as script commands (por-go 38e0ef5) — C |
 | Clue book | G | front/present/cluebook.go |
 | Voice-over (Kokoro, VOICED.GOB, once per save) | P | por-go rules/voice.go, rules/story.go storySpeak |
 | Bestiary (camp, BESTIARY.GOB) | G | front/present/bestiary.go, front/view.go Bestiary |

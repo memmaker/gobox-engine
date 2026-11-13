@@ -6,7 +6,7 @@
 
 1. **One canonical way per concern.** Games keep no private copies of gobox
    plumbing such as Ask, Question, Decision, Event, Mode or Result. The contract is
-   `gobox/game/play`: `State()`, `Do(Action) (Outcome, error)`, `Save`, `Load`.
+   `gobox/game`: `State()`, `Do(Action) (Outcome, error)`, `Save`, `Load`.
 2. **Games are passive.** A game's resting state is always "waiting for player
    input", never "in the middle of something". `Do` changes state and returns.
    **No callbacks, continuations, coroutines or replay engines.** A pending
@@ -39,7 +39,7 @@
 - **Builders:** give one bounded step at a time (for example "ECL VM only").
   Whole-game passes stalled three times.
 
-## Phases (also in game/play/MIGRATION.md, "Order")
+## Phases (also in game/MIGRATION.md, "Order")
 
 1. **gobox: done.**
    - One `play.Question`.

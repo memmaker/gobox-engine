@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules"
 )
 
@@ -45,7 +44,7 @@ func (e *Engine) arrive(from, to image.Point, facing int) error {
 	}
 	rel := (way - facing + 8) % 8
 	if rel%2 != 0 {
-		return &play.Refusal{Text: "not a step"}
+		return &game.Refusal{Text: "not a step"}
 	}
 	e.ext.arriving = true
 	err := e.exploreVerb(func() (bool, bool) { return e.stepCmd(rel) })
@@ -69,7 +68,7 @@ func (e *Engine) faceTo(f int) error {
 		}
 		return e.turnBy(2)
 	}
-	return &play.Refusal{Text: "not a turn"}
+	return &game.Refusal{Text: "not a turn"}
 }
 
 // turnBy is one turn of the party (turnCmd).
@@ -84,16 +83,16 @@ func (e *Engine) adjustStat(stat, by int) error {
 		return rules.ErrNotNow
 	}
 	if stat < 0 || stat >= len(game.StatKeys) {
-		return &play.Refusal{Text: "no such stat"}
+		return &game.Refusal{Text: "no such stat"}
 	}
 	if game.StatKeys[stat] == "hp" { // ponytail: POR's sheet rolls hit points, never sets them; add with a hit point step on the sheet
-		return &play.Refusal{Text: "not in this game"}
+		return &game.Refusal{Text: "not in this game"}
 	}
 	if game.StatKeys[stat] == "str00" { // typed as strength 18/NN, 18/00 for 100
 		sc := e.ruleset().Sheet(cr.c).Scores
 		n := int(sc[rules.StrengthPercent]) + by
 		if sc[rules.Strength] != 18 || n < 1 || n > 100 {
-			return &play.Refusal{Text: "no exceptional strength"}
+			return &game.Refusal{Text: "no exceptional strength"}
 		}
 		return e.setStat(0, fmt.Sprintf("18/%02d", n%100))
 	}

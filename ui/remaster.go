@@ -1,6 +1,6 @@
 // remaster.go shows the game with the Blobber renderer: the 3D view
 // fills the window, and the original's windows are laid over it. It only
-// reads the game, through play.State and the UI, so drawing never touches the
+// reads the game, through game.State and the UI, so drawing never touches the
 // game's state.
 
 package ui
@@ -18,7 +18,6 @@ import (
 	"gobox/asset"
 	"gobox/audio"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 	"gobox/ui/blobber"
 	"gobox/ui/combat"
@@ -98,13 +97,13 @@ type Presenter struct {
 	fight       bool                               // the last frame was the 3D combat map
 	inv         inventory                          // the inventory screen (inventory.go)
 	fightLists  lists                              // the turn's weapons, spells and maneuvers (drawnBoard)
-	board       *play.Combat                       // the fight this frame shows: the live one, or the one a replayed moment holds (nil: none)
+	board       *game.Combat                       // the fight this frame shows: the live one, or the one a replayed moment holds (nil: none)
 	boardParty  []game.Member                      // the party's figures on board
 	noCards     bool                               // a fight's moment plays: the cards are not drawn
-	fightView   *play.Combat                       // board with the fallen kept until their fall plays (keepFallen)
+	fightView   *game.Combat                       // board with the fallen kept until their fall plays (keepFallen)
 	fightBoard  *combat.Board                      // fightView as the tabletop draws it, aims put in
 	fly         *flight                            // a shot's sprite over board (a replayed missile frame)
-	lastBoard   *play.Combat                       // the fight before the moments now playing (keepFallen)
+	lastBoard   *game.Combat                       // the fight before the moments now playing (keepFallen)
 	inkAsk      *FrontAsk                          // the question whose menu is being drawn: its colours (asking)
 	replay      replay                             // the fight's events still to play
 	logGrey     bool                               // drawMenu's plain text light grey, not green (the battle Log)

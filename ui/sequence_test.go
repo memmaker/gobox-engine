@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // seqHost runs the presenter's calls on the classic game.
@@ -27,7 +26,7 @@ func sequenceIn(t *testing.T, g *Game) *game.Sequence {
 
 // A skip ends State.Sequence with SequenceDone, once, even with no files to play.
 func TestSequenceSkip(t *testing.T) {
-	r := &fake{st: play.Scene{Kind: play.SceneSequence, Sequence: "INTRO", Common: allow(play.Continue{})}}
+	r := &fake{st: game.Scene{Kind: game.SceneSequence, Sequence: "INTRO", Common: allow(game.ContinueAction{})}}
 	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: t.TempDir()})
 	sq := sequenceIn(t, g)
 	if sq == nil || sq.Anim != "INTRO" {
@@ -37,7 +36,7 @@ func TestSequenceSkip(t *testing.T) {
 	h := seqHost{g: &classicGame{Game: g}}
 	SequenceStep(h, &ui, sq, true)
 	SequenceStep(h, &ui, sq, true)
-	if len(r.sent) != 1 || r.sent[0] != (play.Continue{}) {
+	if len(r.sent) != 1 || r.sent[0] != (game.ContinueAction{}) {
 		t.Fatalf("actions %v, want one Continue", r.sent)
 	}
 }
@@ -48,7 +47,7 @@ func TestSequenceSkipPlaying(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dir, "INTRO.BMA")); err != nil {
 		t.Skip("no Pools of Darkness files")
 	}
-	r := &fake{st: play.Scene{Kind: play.SceneSequence, Sequence: "INTRO", Common: allow(play.Continue{})}}
+	r := &fake{st: game.Scene{Kind: game.SceneSequence, Sequence: "INTRO", Common: allow(game.ContinueAction{})}}
 	g := NewGame(r, game.Data{Sequences: []game.Sequence{{Name: "INTRO", Anim: "INTRO"}}, Files: dir})
 	sq := sequenceIn(t, g)
 	var ui SequenceUI
@@ -57,7 +56,7 @@ func TestSequenceSkipPlaying(t *testing.T) {
 		t.Fatalf("first step: frame %v, actions %v", f, r.sent)
 	}
 	SequenceStep(h, &ui, sq, true)
-	if len(r.sent) != 1 || r.sent[0] != (play.Continue{}) {
+	if len(r.sent) != 1 || r.sent[0] != (game.ContinueAction{}) {
 		t.Fatalf("actions %v, want one Continue", r.sent)
 	}
 }

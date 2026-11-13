@@ -4,7 +4,7 @@ import (
 	"gobox/rules"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // TestWatchFightTurn: Quick Start, camp in Phlan, rest until the watch
@@ -18,21 +18,21 @@ func TestWatchFightTurn(t *testing.T) {
 			e.Deskew.Store(deskew)
 			e.FixedSeed = &sd
 			e.Open("")
-			playOn(e, 10, func(s play.State) bool { _, ok := s.(play.Assembling); return ok })
-			e.doNow(play.QuickStart{})
-			e.doNow(play.Begin{})
-			exploring := func(s play.State) bool { x, ok := s.(play.Exploring); return ok && x.Ask == nil }
+			playOn(e, 10, func(s game.State) bool { _, ok := s.(game.Assembling); return ok })
+			e.doNow(game.QuickStart{})
+			e.doNow(game.Begin{})
+			exploring := func(s game.State) bool { x, ok := s.(game.Exploring); return ok && x.Ask == nil }
 			if !playOn(e, 3000, exploring) {
 				t.Fatalf("seed %d: not exploring (%T)", sd, e.build())
 			}
-			e.doNow(play.MakeCamp{})
-			if _, err := e.doNow(play.CampRest{Kind: RestWait}); err != nil {
+			e.doNow(game.MakeCamp{})
+			if _, err := e.doNow(game.CampRest{Kind: RestWait}); err != nil {
 				t.Fatal("CampRest:", err)
 			}
-			watch := func(s play.State) bool { q := commonOf(s).Ask; return q != nil && len(q.Replies) == 2 }
+			watch := func(s game.State) bool { q := commonOf(s).Ask; return q != nil && len(q.Replies) == 2 }
 			for i := 0; i < 50 && !watch(e.build()); i++ { // rest on, an hour at a time, till the watch comes
-				if _, ok := e.build().(play.Camping); ok {
-					e.doNow(play.CampRest{Kind: RestWait})
+				if _, ok := e.build().(game.Camping); ok {
+					e.doNow(game.CampRest{Kind: RestWait})
 				} else if !playOn(e, 100, watch) {
 					break
 				}
@@ -41,14 +41,14 @@ func TestWatchFightTurn(t *testing.T) {
 			if q == nil || len(q.Replies) != 2 || q.Replies[1] != "Stay" {
 				t.Fatalf("deskew %v seed %d: no watch (%+v)", deskew, sd, q)
 			}
-			e.doNow(play.Reply{N: 1})
-			if f, ok := e.build().(play.Fighting); deskew && ok { // BUG-CLASSES 29: distance 0, the sides apart
+			e.doNow(game.Reply{N: 1})
+			if f, ok := e.build().(game.Fighting); deskew && ok { // BUG-CLASSES 29: distance 0, the sides apart
 				if in, box := foesInParty(f.Field.Units); in > 0 {
 					t.Errorf("seed %d: %d of the watch inside the party's box %v", sd, in, box)
 				}
 			}
-			turn := playOn(e, 400, func(s play.State) bool {
-				f, ok := s.(play.Fighting)
+			turn := playOn(e, 400, func(s game.State) bool {
+				f, ok := s.(game.Fighting)
 				return ok && f.Field.Turn != 0 && e.cs.actor != rules.NoChar
 			})
 			if !turn {

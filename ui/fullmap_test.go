@@ -6,13 +6,12 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // mapState is the party out on a 16x16 map; marked has the player's own mark on (3,4).
 var (
-	mapState = play.Exploring{Common: play.Common{Automap: game.Automap{Size: image.Pt(16, 16)}}}
-	marked   = play.Exploring{Common: play.Common{Automap: game.Automap{Size: image.Pt(16, 16), Marked: []image.Point{{3, 4}}, Notes: []string{"hi"}, NoteKinds: []string{""}}}}
+	mapState = game.Exploring{Common: game.Common{Automap: game.Automap{Size: image.Pt(16, 16)}}}
+	marked   = game.Exploring{Common: game.Common{Automap: game.Automap{Size: image.Pt(16, 16), Marked: []image.Point{{3, 4}}, Notes: []string{"hi"}, NoteKinds: []string{""}}}}
 )
 
 // TestFullMapMarkUnmark: the cell menu's Mark types a label that Enter sends
@@ -35,7 +34,7 @@ func TestFullMapMarkUnmark(t *testing.T) {
 	for _, c := range p.Calls() {
 		c(g)
 	}
-	want := []play.Action{play.Mark{At: image.Pt(3, 4), Text: "hi"}, play.Unmark{At: image.Pt(3, 4)}}
+	want := []game.Action{game.Mark{At: image.Pt(3, 4), Text: "hi"}, game.Unmark{At: image.Pt(3, 4)}}
 	if !slices.Equal(f.sent, want) {
 		t.Fatalf("sent %v, want %v", f.sent, want)
 	}

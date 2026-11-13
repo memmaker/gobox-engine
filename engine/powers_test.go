@@ -2,7 +2,6 @@ package engine
 
 import (
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules1e"
 	"slices"
 	"testing"
@@ -75,7 +74,7 @@ func TestCastAsksSpell(t *testing.T) {
 	e := quickStarted(t)
 	i := 0
 	e.state().Party[i].Memorized[0] = 1 // a spell memorized
-	if _, err := e.doNow(play.UsePower{Member: i, Kind: game.PowerCast, Target: -1}); err != nil {
+	if _, err := e.doNow(game.UsePower{Member: i, Kind: game.PowerCast, Target: -1}); err != nil {
 		t.Fatal(err)
 	}
 	if q := commonOf(e.build()).Ask; q == nil || e.ext.pq.of != askSpell || len(q.Replies) == 0 {
@@ -97,7 +96,7 @@ func TestDefaultPowers(t *testing.T) {
 }
 
 // TestPaladinPowerAllowed: in camp, where Cast is, a paladin's Heal is allowed
-// as play.UsePower and asks whom through Do.
+// as game.UsePower and asks whom through Do.
 func TestPaladinPowerAllowed(t *testing.T) {
 	e := testEngine(t)
 	seed := uint32(7)
@@ -107,11 +106,11 @@ func TestPaladinPowerAllowed(t *testing.T) {
 	e.Start(e.Play)
 	e.Advance()
 	e.state().Party[0].Levels[rules1e.ClsPaladin] = 1
-	if _, err := e.doNow(play.MakeCamp{}); err != nil {
+	if _, err := e.doNow(game.MakeCamp{}); err != nil {
 		t.Fatal(err)
 	}
-	heal := play.UsePower{Member: 0, Kind: game.PowerHeal, Target: -1}
-	if !slices.Contains(e.build().(play.Camping).Allowed.Plain, play.Action(heal)) {
+	heal := game.UsePower{Member: 0, Kind: game.PowerHeal, Target: -1}
+	if !slices.Contains(e.build().(game.Camping).Allowed.Plain, game.Action(heal)) {
 		t.Fatal("Heal not allowed in camp")
 	}
 	if _, err := e.doNow(heal); err != nil {

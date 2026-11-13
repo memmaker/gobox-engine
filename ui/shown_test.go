@@ -5,14 +5,13 @@ import (
 	"image/color"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // shown is a test's bag of what the screens read: what each reader of
 // view_state.go says, and the builders' arguments in the table tests.
 type shown struct {
 	Mode                   game.Mode
-	Pending                *play.Ask
+	Pending                *game.Ask
 	Party                  []game.Member
 	Selected               int
 	Where                  game.Where
@@ -23,7 +22,7 @@ type shown struct {
 	Purse                  map[string]int
 	Quests                 []game.Quest
 	Map                    game.Automap
-	Combat                 *play.Combat
+	Combat                 *game.Combat
 	Shop                   *game.Shop
 	Temple                 []game.Service
 	Training               *game.Training
@@ -66,7 +65,7 @@ type shown struct {
 // shownOf reads every reader once, as Game.View does.
 func shownOf(r *frontState) shown {
 	ps := r.g.State()
-	c := play.CommonOf(ps)
+	c := game.CommonOf(ps)
 	party := partyOf(ps)
 	s := shown{Mode: r.modeOf(ps), Pending: r.pending(ps), Party: party, Selected: r.selectedOf(ps), Where: c.Where,
 		Story: storyOf(c), Purse: c.Purse, Quests: c.Quests, Map: r.derived().automap, Combat: r.combatOf(ps), Shop: shopOf(ps),
@@ -85,14 +84,14 @@ func shownOf(r *frontState) shown {
 		s.LastText = c.Text[len(c.Text)-1]
 	}
 	switch t := ps.(type) {
-	case play.Scene:
+	case game.Scene:
 		if len(t.Text) > 0 {
 			s.LastText = t.Text[len(t.Text)-1]
 		}
-	case play.Over:
+	case game.Over:
 		s.LastText = t.Text
-	case play.Trading:
-		if t.Kind == play.TradeVault {
+	case game.Trading:
+		if t.Kind == game.TradeVault {
 			if s.Vault = t.Vault; s.Vault == nil {
 				s.Vault = &game.Vault{}
 			}
@@ -136,17 +135,17 @@ type (
 	tItems struct{}
 )
 
-// send is d, a play.Action or one of the above, as the front does it.
-func (r *frontState) send(d any) play.Result {
+// send is d, a game.Action or one of the above, as the front does it.
+func (r *frontState) send(d any) game.Result {
 	switch d := d.(type) {
-	case play.Action:
+	case game.Action:
 		return r.apply(d)
 	case tAnswer:
 		ps := r.g.State()
 		if d.At != (image.Point{}) {
-			return r.answer(ps, play.Reply{N: d.N, Text: d.Text}, d.At)
+			return r.answer(ps, game.Reply{N: d.N, Text: d.Text}, d.At)
 		}
-		return r.apply(play.Reply{N: d.N, Text: d.Text})
+		return r.apply(game.Reply{N: d.N, Text: d.Text})
 	case tWalkTo:
 		return r.walkTo(r.g.State(), d.At)
 	case tRest:
@@ -178,7 +177,7 @@ func (r *frontState) send(d any) play.Result {
 	case tBrowse, tItems:
 		return r.openItems(-1)
 	case tRoll:
-		return r.apply(play.Reroll{Minimal: d.Minimal})
+		return r.apply(game.Reroll{Minimal: d.Minimal})
 	}
-	return play.Result{}
+	return game.Result{}
 }

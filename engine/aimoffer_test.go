@@ -6,7 +6,7 @@ import (
 	"image"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // TestAimOffersAccepted (BUG-CLASSES 17): in a real fight, every foe the aim
@@ -112,9 +112,9 @@ func TestAllyAskKeepsAim(t *testing.T) {
 		t.Skip("no ally next to the actor")
 	}
 	at := image.Pt(e.state().CombatX(ally), e.state().CombatY(ally))
-	ask := func() *play.Question {
+	ask := func() *game.Question {
 		t.Helper()
-		if _, err := e.doNow(play.Attack{At: &at}); err != nil {
+		if _, err := e.doNow(game.Attack{At: &at}); err != nil {
 			t.Fatalf("Attack at the ally: %v", err)
 		}
 		q := fightQ(e.build())

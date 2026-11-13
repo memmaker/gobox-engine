@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules1e"
 	"testing"
 )
@@ -21,11 +21,11 @@ func teamJoined(t *testing.T, e *Engine) {
 	e.FixedSeed = &seed
 	e.Init()
 	e.Start(e.Play)
-	playOn(e, 20, func(s play.State) bool { _, ok := s.(play.Assembling); return ok })
-	if _, err := e.doNow(play.QuickStart{}); err != nil {
+	playOn(e, 20, func(s game.State) bool { _, ok := s.(game.Assembling); return ok })
+	if _, err := e.doNow(game.QuickStart{}); err != nil {
 		t.Fatalf("QuickStart: %v", err)
 	}
-	if _, err := e.doNow(play.QuickStart{}); err == nil {
+	if _, err := e.doNow(game.QuickStart{}); err == nil {
 		t.Error("QuickStart over a party taken")
 	}
 	if n := len(e.state().Party); n == 0 || e.state().PartyCount() != n || len(commonOf(e.build()).Party) != n {

@@ -5,10 +5,9 @@ import (
 	"strings"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
-// Training (play.Trading): the hall's offer, the question, the new spell.
+// Training (game.Trading): the hall's offer, the question, the new spell.
 func (p *Presenter) trainItems() (string, []MenuRow) {
 	s := p.state()
 	t, party, sel := trainingOf(s), partyOf(s), p.selected()
@@ -21,7 +20,7 @@ func (p *Presenter) trainItems() (string, []MenuRow) {
 		var it []MenuRow
 		p.camp.ids = p.camp.ids[:0]
 		for _, sp := range t.Learn {
-			it = append(it, MenuRow{Text: sp.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.do(play.Learn{Spell: sp.ID}); p.training = p.hallUp() }) }})
+			it = append(it, MenuRow{Text: sp.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.do(game.Learn{Spell: sp.ID}); p.training = p.hallUp() }) }})
 			p.camp.ids = append(p.camp.ids, sp.ID)
 		}
 		return name + " may add a spell to the book", it
@@ -29,7 +28,7 @@ func (p *Presenter) trainItems() (string, []MenuRow) {
 	if why := t.Why[sel]; why != "" {
 		return why, []MenuRow{leave}
 	}
-	have := play.CommonOf(s).Purse[Coin]
+	have := game.CommonOf(s).Purse[Coin]
 	cost := InkGold
 	if have < t.Cost {
 		cost = InkRed
@@ -38,7 +37,7 @@ func (p *Presenter) trainItems() (string, []MenuRow) {
 	will := name + " will become\n" + g(InkGold, strings.Join(t.Becomes[sel], " and ")) + "."
 	return fmt.Sprintf("%s\n\nTraining costs %s.\nThe party has %s.\n\nDo you wish to train?",
 			will, g(cost, price(Money{Gold: t.Cost})), g(InkGold, price(Money{Gold: have}))),
-		[]MenuRow{{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e *classicGame) { e.do(play.Train{Member: e.sel(-1)}); p.training = p.hallUp() }) }}, {Text: "No", Key: 'N', Do: leave.Do}}
+		[]MenuRow{{Text: "Yes", Key: 'Y', Do: func() { p.call(func(e *classicGame) { e.do(game.Train{Member: e.sel(-1)}); p.training = p.hallUp() }) }}, {Text: "No", Key: 'N', Do: leave.Do}}
 }
 
 // learning is the spells the selected member may learn now (nil: the hall
@@ -60,7 +59,7 @@ func (p *Presenter) powerItems() (string, []MenuRow) {
 	}
 	var it []MenuRow
 	for _, m := range pp.Options {
-		it = append(it, MenuRow{Text: m.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.do(play.PickPower{ID: m.ID}) }) }})
+		it = append(it, MenuRow{Text: m.Name, Key: 0, Do: func() { p.call(func(e *classicGame) { e.do(game.PickPower{ID: m.ID}) }) }})
 	}
 	return pp.Name + " chooses " + pp.What, it
 }

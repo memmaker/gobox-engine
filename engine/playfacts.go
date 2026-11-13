@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // facts are the engine's domain facts, read live, as gobox's data types:
@@ -17,7 +16,7 @@ import (
 type facts struct {
 	Mode                game.Mode
 	ShopMenu            bool           // Pending is the shop's own choices, nothing over them
-	Pending             *play.Question // the question up, its replies in play's order (a yes/no: No, Yes)
+	Pending             *game.Question // the question up, its replies in play's order (a yes/no: No, Yes)
 	Party               []game.Member
 	Selected            int
 	Where               game.Where
@@ -27,7 +26,7 @@ type facts struct {
 	Purse               map[string]int
 	Quests              []game.Quest
 	Map                 game.Automap
-	Combat              *play.Combat
+	Combat              *game.Combat
 	Shop                *game.Shop
 	Temple              []game.Service
 	TempleName          string
@@ -404,28 +403,28 @@ func (e *Engine) shopMenu() bool {
 }
 
 // pendingAsk is the engine's question, the party menu or the shop's choices.
-func (e *Engine) pendingAsk() *play.Question {
+func (e *Engine) pendingAsk() *game.Question {
 	if q := e.question(); q != nil {
 		return q
 	}
 	if cr := e.creation; cr != nil { // Esc or Exit on the sheet asked this before abandoning it; the open sheet asks nothing (class 50)
 		if cr.naming {
-			return &play.Question{Text: "Character name:", Typed: true, Max: 0xF} // Rename cuts at 15
+			return &game.Question{Text: "Character name:", Typed: true, Max: 0xF} // Rename cuts at 15
 		}
 		if !cr.asking {
 			return nil
 		}
-		return &play.Question{Text: cr.abandon, YesNo: true, Replies: []string{"No", "Yes"}, Default: 1}
+		return &game.Question{Text: cr.abandon, YesNo: true, Replies: []string{"No", "Yes"}, Default: 1}
 	}
 	if e.menuUp() {
-		q := &play.Question{Text: "Choose a function"}
+		q := &game.Question{Text: "Choose a function"}
 		for _, k := range e.partyFunctions() { // the engine's, not the View's: the front builds its menu from these
 			q.Replies = append(q.Replies, mainMenuLabels[k])
 		}
 		return q
 	}
 	if e.shopMenu() {
-		return &play.Question{Replies: slices.Clone(shopReplies), Esc: play.EscTo(slices.Index(shopReplies, "Leave"))}
+		return &game.Question{Replies: slices.Clone(shopReplies), Esc: game.EscTo(slices.Index(shopReplies, "Leave"))}
 	}
 	return nil
 }
@@ -440,17 +439,17 @@ func dirOf(v image.Point) int {
 	return -1
 }
 
-// refusal is err as a play.Refusal.
-func refusal(err error) *play.Refusal {
-	if f, ok := err.(*play.Refusal); ok {
+// refusal is err as a game.Refusal.
+func refusal(err error) *game.Refusal {
+	if f, ok := err.(*game.Refusal); ok {
 		return f
 	}
-	return &play.Refusal{Text: err.Error()}
+	return &game.Refusal{Text: err.Error()}
 }
 
 // question is the question the engine waits on (the Ask), nil for none: a
 // list's and a member pick's rows are its replies, a menu with none a Continue.
-func (e *Engine) question() *play.Question {
+func (e *Engine) question() *game.Question {
 	w := e.eclWait
 	if e.top() != onAsk || w == nil {
 		return nil
@@ -466,7 +465,7 @@ func (e *Engine) question() *play.Question {
 	if len(q.Replies) == 0 && !q.Typed && !q.Number {
 		q.Continue = true
 	}
-	if w.shape == shPause { // DELAY and the other timed pauses: the presenter paces them (play.Question.Ms)
+	if w.shape == shPause { // DELAY and the other timed pauses: the presenter paces them (game.Question.Ms)
 		q.Ms = w.ms
 	}
 	return &q

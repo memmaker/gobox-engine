@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/combat"
 	"gobox/ui/input"
 	"image"
@@ -648,16 +647,16 @@ var traceOn = os.Getenv("GOBOX_TRACE") != ""
 // liveFight is the fight up in the game's state (nil: none, or no game) and
 // the party's figures: read again only when the game's State was built anew
 // or gobox's own part of the fight changed (fightSource), not every frame.
-func (p *Presenter) liveFight() (*play.Combat, []game.Member) {
+func (p *Presenter) liveFight() (*game.Combat, []game.Member) {
 	if p.eng == nil {
 		return nil, nil
 	}
-	c := p.lay.combat.get(p.fightSource(), func() *play.Combat { return p.eng.r.combatOf(p.state()) })
+	c := p.lay.combat.get(p.fightSource(), func() *game.Combat { return p.eng.r.combatOf(p.state()) })
 	return c, p.party()
 }
 
 // liveCombat is the fight up in the game's state (nil: none).
-func (p *Presenter) liveCombat() *play.Combat {
+func (p *Presenter) liveCombat() *game.Combat {
 	c, _ := p.liveFight()
 	return c
 }
@@ -694,7 +693,7 @@ func (p *Presenter) fightSource() fightSource {
 // only when one of them changes (not every frame; the game is turn-based).
 type boardKey struct {
 	live   fightSource  // the game's State and gobox's part of the fight
-	board  *play.Combat // the live fight, or the replayed moment's
+	board  *game.Combat // the live fight, or the replayed moment's
 	fly    *flight      // a missile's square
 	queued int          // the moments still to play (keepFallen)
 	ask    AskKind      // the question over the board (-1: none): an aim or a move
@@ -728,7 +727,7 @@ func (p *Presenter) drawnBoard() {
 
 // fightDrawn is what the drawn fight is made of (drawnBoard).
 type fightDrawn struct {
-	view  *play.Combat  // the board with the fallen kept until their fall plays
+	view  *game.Combat  // the board with the fallen kept until their fall plays
 	lists lists         // the turn's weapons, spells and maneuvers
 	board *combat.Board // view as the tabletop draws it, aims put in
 }

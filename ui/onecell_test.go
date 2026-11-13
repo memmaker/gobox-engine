@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -21,24 +20,24 @@ func TestOneCellSize(t *testing.T) {
 	full := func(byte) [8]byte { return [8]byte{255, 255, 255, 255, 255, 255, 255, 255} }
 	note := Note{Glyph: full, Font: func(byte, bool) [8]byte { return full(0) }}
 	pane := []string{"THE PARTY HAS WON."}
-	menu := &play.Question{Text: "PRESS ENTER", Replies: []string{"CONTINUE", "LEAVE"}}
-	yesNo := &play.Question{Text: "ARE YOU SURE?", Replies: []string{"YES", "NO"}, Keys: []rune{'Y', 'N'}}
-	typing := &play.Question{Text: "Character name:", Typed: true, Max: 15}
+	menu := &game.Question{Text: "PRESS ENTER", Replies: []string{"CONTINUE", "LEAVE"}}
+	yesNo := &game.Question{Text: "ARE YOU SURE?", Replies: []string{"YES", "NO"}, Keys: []rune{'Y', 'N'}}
+	typing := &game.Question{Text: "Character name:", Typed: true, Max: 15}
 	party := []game.Member{{Name: "ANNA", HP: 8, MaxHP: 8}, {Name: "BERT", HP: 5, MaxHP: 9}, {Name: "CARL", HP: 3, MaxHP: 3}}
-	scene := func(c play.Common) play.State { return play.Scene{Common: c} }
-	adventure := func(c play.Common) play.State { // the cards are the party's
+	scene := func(c game.Common) game.State { return game.Scene{Common: c} }
+	adventure := func(c game.Common) game.State { // the cards are the party's
 		c.Adventure, c.Party = true, party
-		return play.Exploring{Common: c}
+		return game.Exploring{Common: c}
 	}
-	screens := map[string]play.State{
-		"pane":               scene(play.Common{Text: pane}),
-		"pane, menu":         scene(play.Common{Text: pane, Ask: menu}),
-		"typing":             scene(play.Common{Ask: typing}),
-		"yes/no":             scene(play.Common{Ask: yesNo}),
-		"adventure pane":     adventure(play.Common{Text: pane}),
-		"adventure menu":     adventure(play.Common{Text: pane, Ask: menu}),
-		"adventure question": adventure(play.Common{Text: pane, Ask: yesNo}),
-		"adventure typing":   adventure(play.Common{Text: pane, Ask: typing}),
+	screens := map[string]game.State{
+		"pane":               scene(game.Common{Text: pane}),
+		"pane, menu":         scene(game.Common{Text: pane, Ask: menu}),
+		"typing":             scene(game.Common{Ask: typing}),
+		"yes/no":             scene(game.Common{Ask: yesNo}),
+		"adventure pane":     adventure(game.Common{Text: pane}),
+		"adventure menu":     adventure(game.Common{Text: pane, Ask: menu}),
+		"adventure question": adventure(game.Common{Text: pane, Ask: yesNo}),
+		"adventure typing":   adventure(game.Common{Text: pane, Ask: typing}),
 	}
 	defer func() { drawnAt = nil }()
 	for _, sz := range [][2]int{{800, 500}, {1280, 800}, {1920, 1200}, {2560, 1600}, {3840, 2400}} {

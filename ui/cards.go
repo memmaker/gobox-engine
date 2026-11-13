@@ -4,7 +4,6 @@ import (
 	"cmp"
 	_ "embed"
 	"gobox/game"
-	"gobox/game/play"
 	"image"
 	"image/color"
 	"image/draw"
@@ -523,7 +522,7 @@ func (p *Presenter) cardSelected() int {
 	if q := p.q; q != nil && q.Ask.Kind == AskMember {
 		return q.Cand
 	}
-	if n := play.CommonOf(p.state()).Selected; n >= 0 && n < len(p.party()) {
+	if n := game.CommonOf(p.state()).Selected; n >= 0 && n < len(p.party()) {
 		return n
 	}
 	if p.eng == nil {

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // layPage carries PaneRows to the pane and a Layer's Frames and FrameMs to its picture.
@@ -21,7 +20,7 @@ func TestPageRowsFrames(t *testing.T) {
 // A game event with a Page is a timed moment holding that page.
 func TestCombatEventsPage(t *testing.T) {
 	pg := &game.Page{Layers: []game.Layer{{FrameMs: 1}}}
-	out := played([]play.Report{{Ms: 60, Page: pg}}, false, nil, 0)
+	out := played([]game.Report{{Ms: 60, Page: pg}}, false, nil, 0)
 	if len(out) != 1 || out[0].Ms != 60 || out[0].Page != pg {
 		t.Fatalf("%+v", out)
 	}

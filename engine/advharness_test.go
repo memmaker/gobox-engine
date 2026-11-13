@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/importer"
 	"gobox/rules1e"
 )
@@ -61,16 +61,16 @@ func advStarted(t *testing.T, env string) *Engine {
 	return e
 }
 
-// quitEnds: Quit at the party menu ends the run with play.Ended (the engine
+// quitEnds: Quit at the party menu ends the run with game.Ended (the engine
 // never ends the process).
 func quitEnds(t *testing.T, e *Engine) {
 	t.Helper()
-	out, err := e.doNow(play.Quit{})
+	out, err := e.doNow(game.Quit{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.ContainsFunc(out.Events, func(ev play.Event) bool { _, ok := ev.(play.Ended); return ok }) {
-		t.Fatalf("Quit gave %v, want play.Ended", out.Events)
+	if !slices.ContainsFunc(out.Events, func(ev game.Event) bool { _, ok := ev.(game.Ended); return ok }) {
+		t.Fatalf("Quit gave %v, want game.Ended", out.Events)
 	}
 }
 
@@ -78,8 +78,8 @@ func quitEnds(t *testing.T, e *Engine) {
 // state), and quits.
 func smoke(t *testing.T, env string) {
 	e := advStarted(t, env)
-	if _, ok := e.build().(play.Assembling); !ok {
-		t.Fatalf("first wait is %T, want the party menu (play.Assembling)", e.build())
+	if _, ok := e.build().(game.Assembling); !ok {
+		t.Fatalf("first wait is %T, want the party menu (game.Assembling)", e.build())
 	}
 	quitEnds(t, e)
 }
@@ -94,8 +94,8 @@ func TestAdvSmokePOR(t *testing.T) {
 	e.Open("")
 	e.titleDone()
 	e.Advance()
-	if _, ok := e.build().(play.Assembling); !ok {
-		t.Fatalf("first wait is %T, want the party menu (play.Assembling)", e.build())
+	if _, ok := e.build().(game.Assembling); !ok {
+		t.Fatalf("first wait is %T, want the party menu (game.Assembling)", e.build())
 	}
 	quitEnds(t, e)
 }
@@ -114,12 +114,12 @@ func TestAdvBeginCOTAB(t *testing.T) { advBegin(t, advEnvCOTAB) }
 // advBegin: Quick Start and Begin leave the party menu without an error.
 func advBegin(t *testing.T, env string) {
 	e := advStarted(t, env)
-	for _, a := range []play.Action{play.QuickStart{}, play.Begin{}} {
+	for _, a := range []game.Action{game.QuickStart{}, game.Begin{}} {
 		if _, err := e.doNow(a); err != nil {
 			t.Fatalf("%T: %v", a, err)
 		}
 	}
-	if _, ok := e.build().(play.Assembling); ok {
+	if _, ok := e.build().(game.Assembling); ok {
 		t.Fatalf("after Begin still at the party menu")
 	}
 	t.Logf("first wait after Begin: %T", e.build())

@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/game/play"
+	"gobox/game"
 	"strings"
 	"testing"
 )
@@ -17,7 +17,7 @@ func TestShopPortrait(t *testing.T) {
 	e.FixedSeed = &seed
 	e.Init()
 	e.Start(e.Play)
-	if !playOn(e, 200, func(s play.State) bool { _, ok := s.(play.Trading); return ok }) {
+	if !playOn(e, 200, func(s game.State) bool { _, ok := s.(game.Trading); return ok }) {
 		t.Fatal("no shop")
 	}
 	head, body := false, false

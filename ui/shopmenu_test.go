@@ -4,18 +4,18 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // The shop menu is built from what the game allows: View always, Take,
 // Pool and Share as allowed, so each game gets its original's bar.
 func TestShopMenuFromAllowed(t *testing.T) {
 	for _, c := range []struct {
-		allowed []play.Action
+		allowed []game.Action
 		want    []string
 	}{
 		{nil, []string{"Buy", "View", "Exit"}},
-		{[]play.Action{play.Take{}, play.PoolCoins{}, play.LootShare{}}, []string{"Buy", "View", "Take", "Pool", "Share", "Exit"}},
+		{[]game.Action{game.Take{}, game.PoolCoins{}, game.LootShare{}}, []string{"Buy", "View", "Take", "Pool", "Share", "Exit"}},
 	} {
 		g, _ := playGame(shopState(c.allowed...))
 		p := &Presenter{}
@@ -34,7 +34,7 @@ func TestShopMenuFromAllowed(t *testing.T) {
 // TestTempleMenuFromAllowed: the temple offers the money acts its game
 // allows (SotSB's Pool), each with its key.
 func TestTempleMenuFromAllowed(t *testing.T) {
-	g, _ := playGame(play.Trading{Kind: play.TradeTemple, Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.PoolCoins{}}}}})
+	g, _ := playGame(game.Trading{Kind: game.TradeTemple, Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.PoolCoins{}}}}})
 	p := &Presenter{}
 	p.SetEngine(g)
 	_, rows := p.templeItems()

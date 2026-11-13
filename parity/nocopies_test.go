@@ -13,7 +13,7 @@ import (
 
 // plumbing are gobox's game↔UI types: a game's rules package that declares
 // a type of one of these names keeps its own copy of gobox infrastructure
-// (one canonical way: gobox/game/play).
+// (one canonical way: gobox/game).
 var plumbing = []string{"Ask", "AskKind", "Question", "QKind", "Answer", "Decision", "Menu", "MenuItem",
 	"ListLine", "Option", "Row", "Line", "Event", "EventKind", "EvKind", "Mode", "Refusal", "Note", "Result",
 	"Choice", "Pick", "Entry", "Bar"}
@@ -60,7 +60,7 @@ func TestNoPrivatePlumbing(t *testing.T) {
 		want := knownCopies[g]
 		for _, n := range found {
 			if !slices.Contains(want, n) {
-				t.Errorf("%s/rules declares its own %s: use gobox/game/play's", g, n)
+				t.Errorf("%s/rules declares its own %s: use gobox/game's", g, n)
 			}
 		}
 		for _, n := range want {

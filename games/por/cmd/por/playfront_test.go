@@ -7,12 +7,11 @@ import (
 	"time"
 
 	"gobox/game"
-	"gobox/game/play"
 
 	"gobox/engine/playpool"
 )
 
-// The classic front on the play.Game : Open starts the engine,
+// The classic front on the game.Game : Open starts the engine,
 // exploring shows the party, a turn turns it, camp opens and closes.
 func TestPlayFront(t *testing.T) {
 	eng, err := engine.NewPool("../../../../data/por/sources/assets", "../../../../data/por/sources")
@@ -36,19 +35,19 @@ func TestPlayFront(t *testing.T) {
 		t.Fatal("no walk map")
 	}
 	f := (g.Where().Facing + 2) % 8
-	if r := g.Send(play.Face{Facing: f}); r.Err != nil {
+	if r := g.Send(game.Face{Facing: f}); r.Err != nil {
 		t.Fatal("Face:", r.Err)
 	}
 	if got := g.Where().Facing; got != f {
 		t.Errorf("facing %d, want %d", got, f)
 	}
-	if r := g.Send(play.MakeCamp{}); r.Err != nil {
+	if r := g.Send(game.MakeCamp{}); r.Err != nil {
 		t.Fatal("Camp:", r.Err)
 	}
 	if m := g.Mode(); m != game.ModeCamp {
 		t.Errorf("after Camp mode %v, want camp", m)
 	}
-	if r := g.Send(play.BreakCamp{}); r.Err != nil {
+	if r := g.Send(game.BreakCamp{}); r.Err != nil {
 		t.Fatal("LeaveCamp:", r.Err)
 	}
 	if m := g.Mode(); m != game.ModeExplore {

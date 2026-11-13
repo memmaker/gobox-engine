@@ -8,7 +8,7 @@ import (
 
 	"gobox/ecl/script"
 	"gobox/engine"
-	"gobox/game/journal"
+	"gobox/game"
 	"gobox/importer"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -58,7 +58,7 @@ func TestImportedTablesLoad(t *testing.T) {
 		t.Error("char.Rules1e builds no rules")
 	}
 
-	book, err := journal.Load(os.DirFS(filepath.Join(dst, "data", engine.JournalDir)), "JOURNAL.TXT")
+	book, err := game.LoadJournal(os.DirFS(filepath.Join(dst, "data", engine.JournalDir)), "JOURNAL.TXT")
 	if err != nil {
 		t.Fatal(err)
 	}

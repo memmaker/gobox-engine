@@ -3,7 +3,6 @@ package ui
 import (
 	"cmp"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/input"
 	"image"
 	"image/color"
@@ -24,7 +23,7 @@ func (p *Presenter) sheetItems() []MenuRow {
 	if _, ok := r.lookMember(s); ok { // the look-only sheet: no powers
 		return it
 	}
-	sh := r.sheetOf(play.CommonOf(s))
+	sh := r.sheetOf(game.CommonOf(s))
 	if sh == nil {
 		return it
 	}
@@ -34,7 +33,7 @@ func (p *Presenter) sheetItems() []MenuRow {
 	for _, re := range sh.Reactions {
 		pol := Policy(re.Policy)
 		it = append(it, MenuRow{Text: re.Name + " " + pol.String(), Key: re.Name[0], Do: func() {
-			p.call(func(e *classicGame) { e.do(play.SetPolicy{ID: re.ID, Policy: int(pol + 1)}) })
+			p.call(func(e *classicGame) { e.do(game.SetPolicy{ID: re.ID, Policy: int(pol + 1)}) })
 		}})
 	}
 	return it
@@ -57,9 +56,9 @@ func (p *Presenter) sheetPage() *game.SheetPage {
 
 // lookMember is the member whose look-only sheet is up in a fight (a View
 // there: no powers, the member's own page and items).
-func (r *frontState) lookMember(ps play.State) (int, bool) {
+func (r *frontState) lookMember(ps game.State) (int, bool) {
 	n := r.lookSheet - 1
-	return n, n >= 0 && n < len(play.CommonOf(ps).Party) && r.combatOf(ps) != nil
+	return n, n >= 0 && n < len(game.CommonOf(ps).Party) && r.combatOf(ps) != nil
 }
 
 // layoutSheetPage is sheetPage from the state.
@@ -78,18 +77,18 @@ func (p *Presenter) layoutSheetPage() *game.SheetPage {
 }
 
 // sheetUpOf: the state puts a member's sheet up, the look-only one in a fight too.
-func (r *frontState) sheetUpOf(ps play.State) bool {
+func (r *frontState) sheetUpOf(ps game.State) bool {
 	if _, ok := r.lookMember(ps); ok {
 		return true
 	}
-	return r.sheetOf(play.CommonOf(ps)) != nil
+	return r.sheetOf(game.CommonOf(ps)) != nil
 }
 
 // sheetKey takes key k on the sheet: the menu's keys, the member keys another member.
 func (p *Presenter) sheetKey(k uint16) bool {
 	items := p.sheetItems()
 	s := p.state()
-	if m, ok := memberKey(k, p.eng.r.selectedOf(s), len(play.CommonOf(s).Party), true); ok {
+	if m, ok := memberKey(k, p.eng.r.selectedOf(s), len(game.CommonOf(s).Party), true); ok {
 		p.send(ActMember, m)
 		return true
 	}

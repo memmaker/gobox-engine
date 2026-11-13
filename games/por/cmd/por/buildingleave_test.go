@@ -6,14 +6,13 @@ import (
 
 	"gobox/engine"
 	"gobox/game"
-	"gobox/game/play"
 
 	"gobox/engine/playpool"
 )
 
 // TestBuildingLeaveStays (bug class: a building's cell event re-runs after
 // its exit): every shop, temple and hall reached walking New Phlan is left
-// with play.Leave; settling after it must not open the same place again on
+// with game.Leave; settling after it must not open the same place again on
 // the square the party stands on.
 // The party may stand on the shop's square after it (OpenShop, then
 // ResetVisits) or be put back on the square before (the temples' MustLeave:
@@ -21,7 +20,7 @@ import (
 // enters again, which is the original's too.
 func TestBuildingLeaveStays(t *testing.T) {
 	g, eng := porWalker(t)
-	settle := func() (play.Trading, bool) { return settleBuilding(t, g, eng) }
+	settle := func() (game.Trading, bool) { return settleBuilding(t, g, eng) }
 	seen := 0
 	for y := range 16 {
 		for x := range 16 {
@@ -37,7 +36,7 @@ func TestBuildingLeaveStays(t *testing.T) {
 			}
 			seen++
 			at := g.Where()
-			if r := g.Send(play.Leave{}); r.Err != nil {
+			if r := g.Send(game.Leave{}); r.Err != nil {
 				t.Fatalf("%v at %d,%d: Leave: %v", tr.Kind, at.X, at.Y, r.Err)
 			}
 			if _, again := settle(); again {
@@ -71,38 +70,38 @@ func porWalker(t *testing.T) (*ui.Game, *engine.Engine) {
 
 // settleBuilding answers every question with its Esc reply, else its last
 // (no, exit), until the party explores or a building is open.
-func settleBuilding(t *testing.T, g *ui.Game, eng *engine.Engine) (play.Trading, bool) {
+func settleBuilding(t *testing.T, g *ui.Game, eng *engine.Engine) (game.Trading, bool) {
 	t.Helper()
 	for range 300 {
 		g.Settle()
 		switch s := eng.State().(type) {
-		case play.Trading:
+		case game.Trading:
 			return s, true
-		case play.Assembling: // the training hall's party menu or a fall
-			if g.Send(play.Begin{}).Err == nil {
+		case game.Assembling: // the training hall's party menu or a fall
+			if g.Send(game.Begin{}).Err == nil {
 				continue
 			}
-		case play.Exploring:
+		case game.Exploring:
 			if s.Ask == nil {
-				return play.Trading{}, false
+				return game.Trading{}, false
 			}
 		}
-		q := play.CommonOf(eng.State()).Ask
+		q := game.CommonOf(eng.State()).Ask
 		if q != nil && (q.Number || q.Typed) {
-			g.Send(play.Reply{Text: "0"})
+			g.Send(game.Reply{Text: "0"})
 		} else if i, ok := escOf(q); ok {
-			g.Send(play.Reply{N: i})
+			g.Send(game.Reply{N: i})
 		} else if q != nil && len(q.Replies) > 0 {
-			g.Send(play.Reply{N: len(q.Replies) - 1})
-		} else if g.Send(play.Continue{}).Err != nil {
-			g.Send(play.Leave{})
+			g.Send(game.Reply{N: len(q.Replies) - 1})
+		} else if g.Send(game.ContinueAction{}).Err != nil {
+			g.Send(game.Leave{})
 		}
 	}
 	t.Fatalf("settle stuck in %T", eng.State())
-	return play.Trading{}, false
+	return game.Trading{}, false
 }
 
-func escOf(q *play.Question) (int, bool) {
+func escOf(q *game.Question) (int, bool) {
 	if q == nil {
 		return 0, false
 	}
@@ -117,7 +116,7 @@ func TestTavernGambleEnds(t *testing.T) {
 	g, eng := porWalker(t)
 	wagered, gambling := false, false
 	for range 300 {
-		if w := g.Where(); play.CommonOf(eng.State()).Ask == nil && (w.X != 10 || w.Y != 8) {
+		if w := g.Where(); game.CommonOf(eng.State()).Ask == nil && (w.X != 10 || w.Y != 8) {
 			if !g.WalkTo(10, 8) {
 				t.Fatalf("no walk from %d,%d", w.X, w.Y)
 			}
@@ -127,24 +126,24 @@ func TestTavernGambleEnds(t *testing.T) {
 			continue
 		}
 		g.Settle()
-		q := play.CommonOf(eng.State()).Ask
-		switch _, exploring := eng.State().(play.Exploring); {
+		q := game.CommonOf(eng.State()).Ask
+		switch _, exploring := eng.State().(game.Exploring); {
 		case exploring && q == nil && wagered:
 			return
 		case exploring && q == nil:
 			t.Fatal("at the tavern, no gamble")
 		case q.Number:
 			wagered = true
-			g.Send(play.Reply{Text: "10"})
+			g.Send(game.Reply{Text: "10"})
 		case len(q.Replies) == 2 && !gambling: // DOES ANYONE WANT TO GAMBLE? yes
 			gambling = true
-			g.Send(play.Reply{N: 0})
+			g.Send(game.Reply{N: 0})
 		case len(q.Replies) == 2 && wagered: // WILL YOU GO AGAIN? Esc
-			if r := g.Send(play.Cancel{}); r.Err != nil {
+			if r := g.Send(game.Cancel{}); r.Err != nil {
 				t.Fatal("Esc:", r.Err)
 			}
 		default:
-			g.Send(play.Reply{N: 0})
+			g.Send(game.Reply{N: 0})
 		}
 	}
 	t.Fatal("the gamble did not end")

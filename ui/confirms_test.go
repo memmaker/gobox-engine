@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestConfirmsDropMember: the game's DropMember confirm asks its texts one
@@ -38,7 +37,7 @@ func TestConfirmsDropMember(t *testing.T) {
 	for _, c := range p.Calls() {
 		c(p.eng)
 	}
-	if sent := p.eng.G.(*fake).sent; len(sent) != 1 || sent[0] != (play.DropMember{Member: 0}) || p.camp.screen != campMain {
+	if sent := p.eng.G.(*fake).sent; len(sent) != 1 || sent[0] != (game.DropMember{Member: 0}) || p.camp.screen != campMain {
 		t.Fatalf("after both: %v screen %d", sent, p.camp.screen)
 	}
 }

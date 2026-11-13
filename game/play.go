@@ -1,4 +1,4 @@
-// Package play is the typed game contract : what a game offers gobox.
+// The typed game contract (play.go, shared.go): what a game offers gobox.
 //
 // The game is purely reactive. It never does anything by itself: gobox reads
 // State, switches over its type to pick the screen and controls, turns the
@@ -6,15 +6,13 @@
 // to Do. Do refuses an action it does not allow, or applies it and returns
 // the Outcome, which gobox plays (animates, voices, paces) before it reads
 // State again. Questions, menus, waits, paging and screens are all gobox's.
-package play
+package game
 
 import (
 	"gobox/rules"
 	"image"
 	"image/color"
 	"time"
-
-	"gobox/game"
 )
 
 // Game is what every game implements.
@@ -29,7 +27,7 @@ type Game interface {
 // Slots is what a game with save slots of its own (the original's) may
 // also implement: gobox lists them after its own and loads one by index.
 type Slots interface {
-	Slots() []game.SaveSlot
+	Slots() []SaveSlot
 	LoadSlot(n int) error
 }
 
@@ -57,7 +55,7 @@ type Outcome struct {
 type Allowed struct {
 	Plain []Action
 	Aimed []Aimed
-	Moves []game.Reach
+	Moves []Reach
 }
 
 // Aimed is an action that takes squares: gobox lets the player pick Targets
@@ -75,36 +73,36 @@ type Common struct {
 	Portrait  *Portrait // a speaker's portrait up (a shopkeeper), nil none; gobox composes it
 	NoSave    bool      // saving is refused here (the rules say where the party may save)
 	NoLoad    bool      // loading is refused here
-	Party     []game.Member
+	Party     []Member
 	Selected  int
 	Purse     map[string]int
 	PartyCap  int // most items the party carries in all (a shared inventory's slots), 0 no limit
 	PoolItems int // the party inventory's items held (of PartyCap)
-	Where     game.Where
-	Area      string      // the area's name as the player knows it
-	Lore      []game.Lore // the journal, newest first
-	Quests    []game.Quest
+	Where     Where
+	Area      string // the area's name as the player knows it
+	Lore      []Lore // the journal, newest first
+	Quests    []Quest
 	Allowed   Allowed
-	Status    string        // the rules' status line (plain text; "" none)
-	Text      []string      // the rules' message lines in the text pane, oldest first
-	Picture   *game.Picture // the picture or portrait up (in the view while exploring); nil none
-	Layers    []game.Layer  // a picture built of layers (with frames), as Picture
-	Day       bool          // daylight as the rules see it, in every state
-	Automap   game.Automap  // the map of where the party is (the overland, the starmap, ...), any state
-	Ask       *Question     // a question over this state (the view stays); Reply answers it
+	Status    string    // the rules' status line (plain text; "" none)
+	Text      []string  // the rules' message lines in the text pane, oldest first
+	Picture   *Picture  // the picture or portrait up (in the view while exploring); nil none
+	Layers    []Layer   // a picture built of layers (with frames), as Picture
+	Day       bool      // daylight as the rules see it, in every state
+	Automap   Automap   // the map of where the party is (the overland, the starmap, ...), any state
+	Ask       *Question // a question over this state (the view stays); Reply answers it
 
 	// Overlays any state may carry: a question only the rules can put
 	// (a power to choose), the grid picker and the icon designer the
 	// rules fill from their art (nil: none up).
-	PowerPick  *game.PowerPick  // PickPower answers
-	Picker     *game.Picker     // Pick, ClosePicker answer
-	IconEditor *game.IconEditor // IconSize, IconColour, IconRemove, IconPNG, EndIcon act on it
+	PowerPick  *PowerPick  // PickPower answers
+	Picker     *Picker     // Pick, ClosePicker answer
+	IconEditor *IconEditor // IconSize, IconColour, IconRemove, IconPNG, EndIcon act on it
 }
 
 // Portrait is a portrait as the rules name it: the head and body pictures
 // (HEAD2 3, BODY2 3), or gobox pool ids where the game has them.
 type Portrait struct {
-	Head, Body     game.Picture
+	Head, Body     Picture
 	HeadID, BodyID string
 }
 
@@ -116,17 +114,17 @@ type Question struct {
 	YesNo        bool // Replies are no, yes: Reply{N: 1} is yes
 	Typed        bool
 	Number       bool
-	Default, Max int         // Typed: the longest; Number: the default and the largest; YesNo: 1 starts on yes
-	NoPick       bool        // no highlight, Enter and the arrows do not answer it; only the hotkeys (a YesNo: Y and N) do
-	NoEsc        bool        // Esc does not answer it (the question stays up), as the original's ask that ignores Esc
-	Continue     bool        // a key to go on (Continue answers it); Common.Status may say so
-	Ms           int         // Continue: a timed pause of Ms milliseconds the presenter paces, then Continue (0: wait for a key)
-	Heading      bool        // a heading to pick (the overland): Heading{Dir}, Leave for Done
-	List         bool        // Replies are a pick from a list (a roster, a town's places), not a command menu
-	Keys         []rune      // the game's own hotkey per reply (0: from the label); nil: all from the labels
-	Rows         []game.Line // List: per reply, its flags (a heading, dimmed, off, the spell it names); nil: plain rows
-	Do           []Action    // per reply, an action gobox runs in place of Reply (a View's Gear: OpenItems{Member}); nil: Reply
-	Esc          EscReply    // the reply Esc answers (the menu's Exit, as the originals'); zero: none
+	Default, Max int      // Typed: the longest; Number: the default and the largest; YesNo: 1 starts on yes
+	NoPick       bool     // no highlight, Enter and the arrows do not answer it; only the hotkeys (a YesNo: Y and N) do
+	NoEsc        bool     // Esc does not answer it (the question stays up), as the original's ask that ignores Esc
+	Continue     bool     // a key to go on (Continue answers it); Common.Status may say so
+	Ms           int      // Continue: a timed pause of Ms milliseconds the presenter paces, then Continue (0: wait for a key)
+	Heading      bool     // a heading to pick (the overland): Heading{Dir}, Leave for Done
+	List         bool     // Replies are a pick from a list (a roster, a town's places), not a command menu
+	Keys         []rune   // the game's own hotkey per reply (0: from the label); nil: all from the labels
+	Rows         []Line   // List: per reply, its flags (a heading, dimmed, off, the spell it names); nil: plain rows
+	Do           []Action // per reply, an action gobox runs in place of Reply (a View's Gear: OpenItems{Member}); nil: Reply
+	Esc          EscReply // the reply Esc answers (the menu's Exit, as the originals'); zero: none
 }
 
 // EscReply names the reply Esc answers: EscTo(i) is Replies[i]. It is the
@@ -160,43 +158,43 @@ type Assembling struct {
 // Draft is a character being made or changed: the member so far, the
 // fields still to choose and their options.
 type Draft struct {
-	game.Member
-	Fields       []game.Field
+	Member
+	Fields       []Field
 	MinHP, MaxHP int
 	Minimums     map[string]int // the class's lowest ability scores, by Member.Stats key ("str", ...)
 	Step         string         // the creation step the rules are on ("race", "skills", ...), "" any
 	Ask          *Question      // that step's question (its options, a typed name, a number, a yes/no), answered by SetChoice{Field: Step, N or Text}; nil: the sheet's fields
-	Stats        []game.StatDef // the sheet's abilities in the game's order and count (nil: STR .. CHA from Member.Stats)
-	Derived      []game.Derived // the sheet's figures besides the abilities, in the game's order (nil: from Member)
+	Stats        []StatDef      // the sheet's abilities in the game's order and count (nil: STR .. CHA from Member.Stats)
+	Derived      []Derived      // the sheet's figures besides the abilities, in the game's order (nil: from Member)
 }
 
 // Exploring: the party walks a map (dungeon, town or wilderness).
 type Exploring struct {
 	Common
 	Map      ExploreMap
-	Day      bool       // daylight as the rules see it (the sky they paint)
-	Interact bool       // the square's event waits for the player (Explicit Interactions): ActInteract runs it
-	Door     *game.Door // a door the party stands at, with the ways through (TryDoor); nil none
+	Day      bool  // daylight as the rules see it (the sky they paint)
+	Interact bool  // the square's event waits for the player (Explicit Interactions): ActInteract runs it
+	Door     *Door // a door the party stands at, with the ways through (TryDoor); nil none
 }
 
 // ExploreMap is what gobox needs to walk, draw the 3D view and the
 // automap. gobox walks: it asks Walk whether a side lets a step through and
 // where a script waits, then sends RunEvent{Before}, Arrive and RunEvent.
 type ExploreMap struct {
-	Walk     game.Map // the game's answers about its map
-	Overland bool     // the wilderness or city map, not the 3D view
-	Walls    Walls
-	Automap  game.Automap
+	Walk     Map  // the game's answers about its map
+	Overland bool // the wilderness or city map, not the 3D view
+	Walls    MapWalls
+	Automap  Automap
 }
 
-// Walls is the map's walls by square and side and what they look like.
-type Walls struct {
+// MapWalls is the map's walls by square and side and what they look like.
+type MapWalls struct {
 	Side                [][][4]int     // a square's wall value by side (N E S W), rows from the top (0: open)
 	Fronts              map[int]string // a wall value's art name in Data.Art
 	Pool                map[int]string // a wall value's remastered texture, in place of Fronts
 	Floor, Sky          string
 	FloorRGBA, CeilRGBA *color.RGBA
-	Backdrop            *game.Picture
+	Backdrop            *Picture
 	Outside             bool    // under the sky
 	Sun                 bool    // the sun is up in the sky the rules paint
 	Mountains           bool    // the mountain range on the horizon, by day outside
@@ -212,20 +210,20 @@ type Fighting struct {
 // Battlefield is the battle as the rules hold it.
 type Battlefield struct {
 	Size      image.Point
-	Squares   []game.Ground
+	Squares   []Ground
 	Tiles     []string // Ground.Tile's Data.Art names
 	FloorTile string
 	Floor     color.RGBA
-	Units     []game.Unit
-	Clouds    []game.Effect // lasting spell effects on squares
+	Units     []Unit
+	Clouds    []Effect // lasting spell effects on squares
 	Round     int
 	Turn      int // the unit ID whose turn it is
 	Dungeon   bool
-	Moves     int                 // the turn's unit's moves left
-	Casting   int                 // the spell the turn's unit casts over rounds, 0 none
-	Weapon    *game.Weapon        // the turn's weapon in hand (its icon on Attack), nil none
-	Missile   *game.Weapon        // its ranged weapon readied, nil none
-	Maneuvers []game.TurnManeuver // the rule set's maneuvers, by DoManeuver ID
+	Moves     int            // the turn's unit's moves left
+	Casting   int            // the spell the turn's unit casts over rounds, 0 none
+	Weapon    *Weapon        // the turn's weapon in hand (its icon on Attack), nil none
+	Missile   *Weapon        // its ranged weapon readied, nil none
+	Maneuvers []TurnManeuver // the rule set's maneuvers, by DoManeuver ID
 }
 
 // SceneKind says what a Scene is.
@@ -247,7 +245,7 @@ const (
 type Placed struct {
 	At   image.Point // column, row from 1
 	Text string
-	Tone game.Tone
+	Tone Tone
 }
 
 // Scene: a script shows something and waits for the player. The script's
@@ -256,24 +254,24 @@ type Scene struct {
 	Common
 	Kind     SceneKind
 	Speaker  string
-	Pictures []game.Picture
+	Pictures []Picture
 	Text     []string          // plain paragraphs; colours are gobox's
 	Handout  string            // SceneHandout: the title
 	Lines    []string          // SceneHandout: journal.Layout's
-	Layers   []game.Layer      // pictures with their place and frames (Pictures: gobox places them)
+	Layers   []Layer           // pictures with their place and frames (Pictures: gobox places them)
 	Placed   []Placed          // text at cells over the window (Text: the message lines)
-	Intro    *game.Intro       // SceneTitle
+	Intro    *Intro            // SceneTitle
 	Sequence string            // SceneSequence: the Data.Sequences name
-	Results  *game.Results     // SceneResults
-	Screen   *game.Screen      // SceneScreen
+	Results  *Results          // SceneResults
+	Screen   *Screen           // SceneScreen
 	Full     bool              // the pictures are one whole-screen picture
 	Steps    map[int]TitleStep // SceneTitle: Intro.Pictures' step N's pictures and tune; gobox steps through them
-	Walls    *Walls            // the 3D view the scene is over (nil: the one last explored, if any)
+	Walls    *MapWalls         // the 3D view the scene is over (nil: the one last explored, if any)
 }
 
 // TitleStep is one title picture step: its layers and the tune it starts.
 type TitleStep struct {
-	Layers  []game.Layer
+	Layers  []Layer
 	Song    string   // the song's name, or its number as text ("3": the game's song 3, as EvSong N)
 	Text    []string // the paragraphs said over the step (colours are gobox's)
 	Credits bool     // the picture is the game's credits (importer.SequenceStep.Credits)
@@ -304,22 +302,22 @@ type Trading struct {
 	Common
 	Kind     TradeKind
 	Name     string
-	Goods    []game.Item
+	Goods    []Item
 	Buys     bool
-	Offers   []game.Offer // the appraisals of gems and jewels
-	Services []game.Service
-	Training *game.Training
+	Offers   []Offer // the appraisals of gems and jewels
+	Services []Service
+	Training *Training
 	Pooled   map[string]int
-	Vault    *game.Vault    // TradeVault: what is stored
-	Identify int            // the price to identify, 0 none
-	Unknown  []game.ItemRef // the party's items the shop can identify
-	Known    *game.ItemRef  // the item last identified here, nil none
+	Vault    *Vault    // TradeVault: what is stored
+	Identify int       // the price to identify, 0 none
+	Unknown  []ItemRef // the party's items the shop can identify
+	Known    *ItemRef  // the item last identified here, nil none
 }
 
 // Looting: treasure lies before the party.
 type Looting struct {
 	Common
-	Items    []game.Item
+	Items    []Item
 	Money    map[string]int
 	Status   bool // LootStatus is offered (the ship sheet over the fight)
 	Announce bool // "You found some loot!" is up over the treasure: Continue opens it (the only action allowed)
@@ -346,8 +344,8 @@ type Over struct {
 // shown over the fight.
 type ShipFight struct {
 	Common
-	Fight game.SpaceFight
-	Sheet *game.ShipSheet
+	Fight SpaceFight
+	Sheet *ShipSheet
 	Menu  *Question // nil: no crew menu up
 }
 
@@ -365,14 +363,14 @@ func (ShipFight) state()  {}
 type Event interface{ event() }
 
 type (
-	Narrated    struct{ Text string }          // a line of the rules' text
-	Said        struct{ Who, Text string }     // someone speaks
-	Shown       struct{ Picture game.Picture } // a picture comes up
-	Sounded     struct{ Sound string }         // a sound plays
-	MusicChange struct{ Song string }          // the music changes
+	Narrated    struct{ Text string }      // a line of the rules' text
+	Said        struct{ Who, Text string } // someone speaks
+	Shown       struct{ Picture Picture }  // a picture comes up
+	Sounded     struct{ Sound string }     // a sound plays
+	MusicChange struct{ Song string }      // the music changes
 	Walked      struct {
 		Unit int
-		Path []game.Step
+		Path []Step
 	} // a unit walks (combat)
 	Turned   struct{ Unit, Facing int }
 	Attacked struct {
@@ -383,7 +381,7 @@ type (
 	Shot struct {
 		From   int
 		To     image.Point
-		Art    game.Picture
+		Art    Picture
 		StepMs int // the flight's time per third of a square, the original's (0: gobox's)
 	}
 	CastSpell struct {
@@ -396,8 +394,8 @@ type (
 	Healed  struct{ Unit, HP int }
 	Fell    struct {
 		Unit int
-		Body game.Picture // what it leaves on its square, as game.Event.Picture on EvDown (empty: nothing)
-		Ms   int          // the replay holds this long on the fall (0: it does not stop)
+		Body Picture // what it leaves on its square, as Event.Picture on EvDown (empty: nothing)
+		Ms   int     // the replay holds this long on the fall (0: it does not stop)
 	} // down or dead
 	Fled  struct{ Unit int }
 	Moved struct {
@@ -418,7 +416,7 @@ type (
 	Ended       struct{ Won bool }
 	SaveOffered struct{} // a script offers to save the game
 	ShipShown   struct {
-		Fight game.SpaceFight // a moment of the ship fight (a blink, a blast frame)
+		Fight SpaceFight // a moment of the ship fight (a blink, a blast frame)
 	}
 )
 
@@ -534,7 +532,7 @@ type (
 	// The sheet.
 	UsePower struct {
 		Member        int
-		Kind          game.PowerKind
+		Kind          PowerKind
 		Spell, Target int
 	}
 	PickPower struct{ ID int }
@@ -610,8 +608,8 @@ type (
 	Jetpack    struct{}
 
 	// Scene.
-	Continue struct{}
-	Heading  struct{ Dir int } // SceneHeading: 0 N, 2 E, ... odd diagonals
+	ContinueAction struct{}
+	Heading        struct{ Dir int } // SceneHeading: 0 N, 2 E, ... odd diagonals
 
 	// ShipFight.
 	Crew  struct{ N int } // the crew menu's N
@@ -635,7 +633,7 @@ type (
 	}
 	Appraise struct {
 		Member int
-		Offer  game.OfferKind
+		Offer  OfferKind
 		Keep   bool
 	}
 	Repair struct {
@@ -725,7 +723,7 @@ func (Manual) action()           {}
 func (QuickMagic) action()       {}
 func (Flee) action()             {}
 func (EndTurn) action()          {}
-func (Continue) action()         {}
+func (ContinueAction) action()   {}
 func (Reply) action()            {}
 func (Buy) action()              {}
 func (Sell) action()             {}
@@ -778,7 +776,7 @@ func (Jetpack) action()          {}
 
 // AppraiseActions are what the offers allow: valuing each one, and with one
 // valued, selling it and (room for it) keeping it.
-func AppraiseActions(offers []game.Offer) []Action {
+func AppraiseActions(offers []Offer) []Action {
 	var l []Action
 	for _, o := range offers {
 		l = append(l, Appraise{Member: o.Member, Offer: o.Offer})
@@ -814,22 +812,22 @@ func CommonOf(ps State) Common {
 	return Common{}
 }
 
-// ByPosition gives the items of s (the party's, the goods, the vault's, the
-// loot) the handles of their places in their lists (game.ByPosition).
+// ByPositionState gives the items of s (the party's, the goods, the vault's, the
+// loot) the handles of their places in their lists (ByPositionState).
 // ponytail: the play boundary of the games whose items have no handle of
 // their own (cotab, sotsb, pod, buckrogers); it goes when they switch to pool.
-func ByPosition(s State) State {
+func ByPositionState(s State) State {
 	for _, m := range CommonOf(s).Party {
-		game.ByPosition(m.Items)
+		ByPosition(m.Items)
 	}
 	switch t := s.(type) {
 	case Trading:
-		game.ByPosition(t.Goods)
+		ByPosition(t.Goods)
 		if t.Vault != nil {
-			game.ByPosition(t.Vault.Items)
+			ByPosition(t.Vault.Items)
 		}
 	case Looting:
-		game.ByPosition(t.Items)
+		ByPosition(t.Items)
 	}
 	return s
 }

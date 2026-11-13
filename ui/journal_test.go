@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 func TestJournalQuest(t *testing.T) {
@@ -18,7 +17,7 @@ func TestJournalQuest(t *testing.T) {
 
 // The journal lists what the state holds: its quests (open first) and its notes.
 func TestJournalReadsState(t *testing.T) {
-	g, _ := playGame(play.Exploring{Common: play.Common{
+	g, _ := playGame(game.Exploring{Common: game.Common{
 		Quests: []game.Quest{{ID: "Done", Done: true}, {ID: "Open"}},
 		Lore:   []game.Lore{{Title: "Note", ID: 7}}}})
 	p := &Presenter{}

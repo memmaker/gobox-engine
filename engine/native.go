@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // Native scripts (extra): stretches of the ECL scripts rewritten in Go,
@@ -142,7 +142,7 @@ func (e *Engine) tavernSpun(s string) {
 func (e *Engine) tavernAsk() {
 	e.scriptText(true, "WILL YOU GO AGAIN?")
 	e.askChoice("", "~YES ~NO", false, false, askDone{kind: dTavernAgain})
-	e.eclWait.ask.Esc, e.eclWait.ask.NoEsc = play.EscTo(1), false // NO: done gambling
+	e.eclWait.ask.Esc, e.eclWait.ask.NoEsc = game.EscTo(1), false // NO: done gambling
 }
 
 // tavernAgain: the answer c (0: yes) to going again.

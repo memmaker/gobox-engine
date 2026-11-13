@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"gobox/game/play"
+	"gobox/game"
 	"image"
 	"slices"
 	"testing"
@@ -48,7 +48,7 @@ func TestIntroEnterNoFallThrough(t *testing.T) {
 // A creation the game ends itself (a save after Keep) gives the party
 // menu back: the presenter's sheet does not stay over it, eating its keys.
 func TestCreationEndedByGame(t *testing.T) {
-	gone, _ := playGame(play.Assembling{}) // no draft: the creation has ended
+	gone, _ := playGame(game.Assembling{}) // no draft: the creation has ended
 	p := &Presenter{creating: true, eng: gone}
 	if p.sync(); p.creating {
 		t.Fatal("still creating")
@@ -96,7 +96,7 @@ func TestPictureNoAt(t *testing.T) {
 
 // A typed line reaches the game whole, once, on Enter: never a line half typed.
 func TestTypedLineOnce(t *testing.T) {
-	p, _ := presenterOn(play.Scene{Common: play.Common{Ask: &play.Question{Typed: true, Max: 15}}})
+	p, _ := presenterOn(game.Scene{Common: game.Common{Ask: &game.Question{Typed: true, Max: 15}}})
 	for _, k := range []uint16{'B', 'o', 'b', '\r'} {
 		p.keyAct(k)
 	}

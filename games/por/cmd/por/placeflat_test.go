@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gobox/game/play"
+	"gobox/game"
 	"testing"
 )
 
@@ -17,13 +17,13 @@ func TestDeskewPlacement(t *testing.T) {
 	e.FixedSeed = &seed
 	e.Init()
 	e.Start(e.Play)
-	v, ok := settle(e).(play.Fighting)
+	v, ok := settle(e).(game.Fighting)
 	for range 7 {
 		if ok {
 			break
 		}
 		pressKey(t, e)
-		v, ok = settle(e).(play.Fighting)
+		v, ok = settle(e).(game.Fighting)
 	}
 	if !ok {
 		t.Fatal("no fight")

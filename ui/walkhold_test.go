@@ -5,17 +5,16 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestWalkPlaysStepByStep: a walk the game reports in one outcome reaches
 // the front as one held moment a square, each on the board with the unit
 // on that square, so the figure walks it rather than jumping to its end.
 func TestWalkPlaysStepByStep(t *testing.T) {
-	fight := play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Attack{Target: 2}}}},
-		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: image.Pt(1, 1)}}}}
+	fight := game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.Attack{Target: 2}}}},
+		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: image.Pt(1, 1)}}}}
 	path := []game.Step{{At: image.Pt(2, 1)}, {At: image.Pt(3, 2)}, {At: image.Pt(4, 2)}}
-	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Walked{Unit: 2, Path: path}}}}
+	f := &fake{st: fight, out: game.Outcome{Events: []game.Event{game.Walked{Unit: 2, Path: path}}}}
 	g := NewGame(f, game.Data{})
 	g.Settle() // the fight's first board
 	if err := g.Answer(Action{Kind: ActAttack, N: 2}); err != nil {

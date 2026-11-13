@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"gobox/engine"
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // explore: a headless engine (needs the game files in the repo root) that
@@ -28,26 +28,26 @@ func explore(t *testing.T) *engine.Engine {
 }
 
 // common is s's Common.
-func common(s play.State) play.Common {
+func common(s game.State) game.Common {
 	switch s := s.(type) {
-	case play.Assembling:
+	case game.Assembling:
 		return s.Common
-	case play.Exploring:
+	case game.Exploring:
 		return s.Common
-	case play.Camping:
+	case game.Camping:
 		return s.Common
-	case play.Fighting:
+	case game.Fighting:
 		return s.Common
-	case play.Scene:
+	case game.Scene:
 		return s.Common
-	case play.Trading:
+	case game.Trading:
 		return s.Common
-	case play.Looting:
+	case game.Looting:
 		return s.Common
-	case play.Over:
+	case game.Over:
 		return s.Common
 	}
-	return play.Common{}
+	return game.Common{}
 }
 
 // TestScriptInputPrompt: a script's InputString is a typed-line question
@@ -57,7 +57,7 @@ func TestScriptInputPrompt(t *testing.T) {
 	e.DevAction = e.DevScene("password")
 	e.Init()
 	e.Start(e.Play)
-	typed := func() *play.Question {
+	typed := func() *game.Question {
 		if q := common(e.State()).Ask; q != nil && q.Typed {
 			return q
 		}
@@ -69,11 +69,11 @@ func TestScriptInputPrompt(t *testing.T) {
 		}
 		pressKey(t, e)
 	}
-	sc, _ := e.State().(play.Scene) // a Scene's prompt is its last Text
+	sc, _ := e.State().(game.Scene) // a Scene's prompt is its last Text
 	if q := typed(); q == nil || len(sc.Text) == 0 || sc.Text[len(sc.Text)-1] != "WHAT DO YOU SAY? (TYPE A SINGLE WORD)" {
 		t.Fatalf("ask %+v text %q, want the script's typed line", common(e.State()).Ask, sc.Text)
 	}
-	if _, err := e.Do(play.Reply{Text: "ohlo"}); err != nil {
+	if _, err := e.Do(game.Reply{Text: "ohlo"}); err != nil {
 		t.Fatal(err)
 	}
 	if typed() != nil {
@@ -84,7 +84,7 @@ func TestScriptInputPrompt(t *testing.T) {
 // settle steps the engine, as the presenter does once a frame, while
 // something goes on with time, for d at most (default 300 ms: a picture may
 // animate for ever), and returns the State.
-func settle(e *engine.Engine, d ...time.Duration) play.State {
+func settle(e *engine.Engine, d ...time.Duration) game.State {
 	max := 300 * time.Millisecond
 	if len(d) > 0 {
 		max = d[0]
@@ -103,11 +103,11 @@ func pressKey(t *testing.T, e *engine.Engine) {
 	t.Helper()
 	st := e.State()
 	cm, q := common(st), common(st).Ask
-	if sc, ok := st.(play.Scene); ok {
+	if sc, ok := st.(game.Scene); ok {
 		q = sc.Ask
 	}
-	for _, a := range []play.Action{play.Continue{}, play.Reply{N: 0}} {
-		if _, isReply := a.(play.Reply); isReply && (q == nil || len(q.Replies) != 1) {
+	for _, a := range []game.Action{game.ContinueAction{}, game.Reply{N: 0}} {
+		if _, isReply := a.(game.Reply); isReply && (q == nil || len(q.Replies) != 1) {
 			continue
 		}
 		if slices.Contains(cm.Allowed.Plain, a) {

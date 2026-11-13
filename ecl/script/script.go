@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 type Script struct {
@@ -30,7 +30,7 @@ type Instr struct {
 	Args    []Arg
 	Line    int           // in the script file
 	Comment string        // a note from the decoder, written after the command
-	Exit    play.EscReply // a Menu or VMenu: the row Esc picks (exit= in the text; none: Esc does nothing)
+	Exit    game.EscReply // a Menu or VMenu: the row Esc picks (exit= in the text; none: Esc does nothing)
 }
 
 // Arg is one operand in its byte-code form.

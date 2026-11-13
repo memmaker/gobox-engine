@@ -2,7 +2,6 @@ package ui
 
 import (
 	"gobox/game"
-	"gobox/game/play"
 	"slices"
 	"strconv"
 	"strings"
@@ -12,7 +11,7 @@ import (
 // of cols by rows cells: the sheet's text from the top left, the portrait
 // against the right border and the combat icon under it, both at the
 // whole scale the page leaves room for.
-func Creation(mode game.Mode, c *game.Creation, pending *play.Ask, cols, rows int) *FrontCreation {
+func Creation(mode game.Mode, c *game.Creation, pending *game.Ask, cols, rows int) *FrontCreation {
 	if !Drafting(mode, c) {
 		return nil
 	}

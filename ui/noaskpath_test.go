@@ -3,17 +3,17 @@ package ui
 import (
 	"testing"
 
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/ui/input"
 )
 
 // TestNoPickEnterAnyPath: Enter and Esc through the real Key handler never
 // answer a NoPick/NoEsc choice, over a scene's text too; the hotkey does.
 func TestNoPickEnterAnyPath(t *testing.T) {
-	ask := &play.Question{Replies: []string{"Yes", "No"}, Keys: []rune{'Y', 'N'}, NoPick: true, NoEsc: true}
+	ask := &game.Question{Replies: []string{"Yes", "No"}, Keys: []rune{'Y', 'N'}, NoPick: true, NoEsc: true}
 	chest := []string{"A CHEST."}
-	for i, st := range []play.State{play.Scene{Common: play.Common{Ask: ask}}, play.Scene{Common: play.Common{Ask: ask, Text: chest}},
-		play.Exploring{Common: play.Common{Ask: ask, Text: chest}}} {
+	for i, st := range []game.State{game.Scene{Common: game.Common{Ask: ask}}, game.Scene{Common: game.Common{Ask: ask, Text: chest}},
+		game.Exploring{Common: game.Common{Ask: ask, Text: chest}}} {
 		p, _ := presenterOn(st)
 		p.Key(keyOf(input.Enter))
 		p.Key(keyOf(input.Esc))

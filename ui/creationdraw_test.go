@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // The pool's portrait and icon on the creation sheet (a Name, no File) are
@@ -16,7 +15,7 @@ func TestContentPoolPictures(t *testing.T) {
 	if poolPicture("portraits", m.PortraitHeadID) == nil {
 		t.Skip("no pool art")
 	}
-	p, _ := draftOn(&play.Draft{Member: m}) // the page's default layout: the portrait at 28,1, the icon at 29,13
+	p, _ := draftOn(&game.Draft{Member: m}) // the page's default layout: the portrait at 28,1, the icon at 29,13
 	p.creating = true
 	names := map[string]bool{}
 	for _, pc := range p.contentPictures() {

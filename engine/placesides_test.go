@@ -2,7 +2,6 @@ package engine
 
 import (
 	"gobox/game"
-	"gobox/game/play"
 	"image"
 	"testing"
 )
@@ -26,7 +25,7 @@ func TestSidesApart(t *testing.T) {
 			}
 			e.Init()
 			e.Start(e.Play)
-			f, ok := e.build().(play.Fighting)
+			f, ok := e.build().(game.Fighting)
 			if !ok {
 				t.Fatalf("deskew %v dist %d: no fight", deskew, dist)
 			}

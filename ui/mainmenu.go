@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -430,7 +429,7 @@ func (p *Presenter) mainMenu() MainMenu {
 func (p *Presenter) layoutMainMenu() MainMenu {
 	r, s := p.eng.r, p.state()
 	mode := r.modeOf(s)
-	c := play.CommonOf(s)
+	c := game.CommonOf(s)
 	if p.training && trainingOf(s) != nil || p.creating && Drafting(mode, creationOf(s)) {
 		return MainMenu{}
 	}

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // longSlot is a fake with one game save of a long name and date.
@@ -20,7 +19,7 @@ func (longSlot) LoadSlot(int) error { return nil }
 // TestSlotRowLevelDate: a slot row's level and a long date keep a space
 // between them (COTAB's "5NOV 6 2026"), and the row keeps its width.
 func TestSlotRowLevelDate(t *testing.T) {
-	f := &longSlot{fake{st: play.Exploring{}}}
+	f := &longSlot{fake{st: game.Exploring{}}}
 	g := &classicGame{Game: NewGame(f, game.Data{SaveDir: t.TempDir()})}
 	p := &Presenter{slots: &SlotsUI{LoadOnly: true}}
 	p.SetEngine(g)

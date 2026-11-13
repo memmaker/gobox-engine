@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 type openMap struct{}
@@ -16,16 +15,16 @@ func (openMap) Edge(image.Point, int) game.Edge { return game.Edge{} }
 func (openMap) Departure(image.Point, int) bool { return false }
 func (openMap) Event(image.Point) bool          { return false }
 
-type walkerGame struct{ sent []play.Action }
+type walkerGame struct{ sent []game.Action }
 
 func (w *walkerGame) Version() uint64 { return fresh() }
 
-func (w *walkerGame) State() play.State {
-	return play.Exploring{Map: play.ExploreMap{Walk: openMap{}}}
+func (w *walkerGame) State() game.State {
+	return game.Exploring{Map: game.ExploreMap{Walk: openMap{}}}
 }
-func (w *walkerGame) Do(a play.Action) (play.Outcome, error) {
+func (w *walkerGame) Do(a game.Action) (game.Outcome, error) {
 	w.sent = append(w.sent, a)
-	return play.Outcome{}, nil
+	return game.Outcome{}, nil
 }
 func (w *walkerGame) Save() ([]byte, error) { return nil, nil }
 func (w *walkerGame) Load([]byte) error     { return nil }

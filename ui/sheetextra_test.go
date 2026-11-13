@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -35,14 +34,14 @@ func sheetOn(page *game.SheetPage) *Presenter {
 
 // partyOn is a presenter whose game explores with the members ms, the first selected.
 func partyOn(ms ...game.Member) *Presenter {
-	g, _ := playGame(play.Exploring{Common: play.Common{Party: ms}})
+	g, _ := playGame(game.Exploring{Common: game.Common{Party: ms}})
 	p := &Presenter{}
 	p.SetEngine(g)
 	return p
 }
 
 // upOf is the inventory screen the state st puts up when the game has items up.
-func upOf(st play.State, items game.ItemsUp) *invUp {
+func upOf(st game.State, items game.ItemsUp) *invUp {
 	g, _ := playGame(st)
 	g.r.items = items
 	return g.r.inventoryOf(g.r.g.State())
@@ -50,21 +49,21 @@ func upOf(st play.State, items game.ItemsUp) *invUp {
 
 // menuOn is a presenter whose game waits on the party menu offering the functions named (by their gobox names).
 func menuOn(funcs ...string) *Presenter {
-	g, _ := playGame(play.Assembling{Common: play.Common{Ask: &play.Question{Replies: funcs}}})
+	g, _ := playGame(game.Assembling{Common: game.Common{Ask: &game.Question{Replies: funcs}}})
 	p := &Presenter{}
 	p.SetEngine(g)
 	return p
 }
 
 // draftAsked is draftOn with q asked over the creation.
-func draftAsked(d *play.Draft, q *play.Question) *Presenter {
-	p, _ := presenterOn(play.Assembling{Common: play.Common{Ask: q}, Draft: d})
+func draftAsked(d *game.Draft, q *game.Question) *Presenter {
+	p, _ := presenterOn(game.Assembling{Common: game.Common{Ask: q}, Draft: d})
 	return p
 }
 
 // draftOn is a presenter whose game is making a character: its draft d.
-func draftOn(d *play.Draft) (*Presenter, *fake) {
-	g, f := playGame(play.Assembling{Draft: d})
+func draftOn(d *game.Draft) (*Presenter, *fake) {
+	g, f := playGame(game.Assembling{Draft: d})
 	p := &Presenter{}
 	p.SetEngine(g)
 	return p, f

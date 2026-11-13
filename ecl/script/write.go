@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/game/play"
+	"gobox/game"
 )
 
 // Write writes s as the script text (cmd/eclscript). ParseScript
@@ -898,7 +898,7 @@ func (w *scriptWriter) list(a []Arg, kinds []string) string {
 
 // menuRows are a menu's operands: lead (VMenu's prompt), then its rows, the
 // exit row marked exit=.
-func (w *scriptWriter) menuRows(lead, rows []Arg, exit play.EscReply) string {
+func (w *scriptWriter) menuRows(lead, rows []Arg, exit game.EscReply) string {
 	var parts []string
 	for _, x := range lead {
 		parts = append(parts, w.arg(x, "", Arg{}, ""))

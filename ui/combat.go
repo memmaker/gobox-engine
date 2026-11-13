@@ -2,7 +2,6 @@ package ui
 
 import (
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/combat"
 	"image"
 	"slices"
@@ -56,7 +55,7 @@ func (p *Presenter) askedTurn() bool {
 // askedBoard is b with the active unit's turn the question asks for
 // (askedTurn): an aim, or a move whose reach is the open squares next to the
 // unit and whose End ends it. c is the fight b is of.
-func (p *Presenter) askedBoard(b *combat.Board, c *play.Combat) *combat.Board {
+func (p *Presenter) askedBoard(b *combat.Board, c *game.Combat) *combat.Board {
 	if !p.askedTurn() {
 		return b
 	}
@@ -111,7 +110,7 @@ func (p *Presenter) askAction(d combat.Decision) Action {
 // playing that c has dropped, each kept until its own fall (EvDown) plays:
 // the blows land on figures, not on empty squares. Outside the replay c is
 // the fight kept for the next one.
-func (p *Presenter) keepFallen(c *play.Combat) *play.Combat {
+func (p *Presenter) keepFallen(c *game.Combat) *game.Combat {
 	if c == nil || !p.Playing() {
 		p.lastBoard = c
 		return c

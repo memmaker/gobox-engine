@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -19,7 +18,7 @@ func TestFightItemsTitle(t *testing.T) {
 	note := Note{Glyph: g, Font: func(c byte, _ bool) [8]byte { return g(c) }}
 	p := partyOn(game.Member{Name: "Kade"})
 	p.eng.r.items = game.ItemsOwn
-	p.board = &play.Combat{}
+	p.board = &game.Combat{}
 	p.Inventory(dst, note)
 	if s := strings.ToUpper(drawn.String()); !strings.Contains(s, "ITEMS") || strings.Contains(s, "PARTY ITEMS") {
 		t.Fatalf("drawn %q", drawn.String())

@@ -5,7 +5,6 @@ package ui
 import (
 	"fmt"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules"
 	"image"
 	"image/color"
@@ -290,8 +289,8 @@ type invUp struct {
 
 // inventoryKind is the inventory screen ps puts up: the items (own,
 // shop's, treasure's), else the treasure when it is up.
-func (r *frontState) inventoryKind(ps play.State) invKind {
-	c := play.CommonOf(ps)
+func (r *frontState) inventoryKind(ps game.State) invKind {
+	c := game.CommonOf(ps)
 	mode, loot := r.modeOf(ps), lootOf(ps)
 	wares := false
 	switch r.itemsUp(ps) {
@@ -312,12 +311,12 @@ func (r *frontState) inventoryKind(ps play.State) invKind {
 }
 
 // inventoryOf is the inventory screen ps puts up (nil: none).
-func (r *frontState) inventoryOf(ps play.State) *invUp {
+func (r *frontState) inventoryOf(ps game.State) *invUp {
 	kind := r.inventoryKind(ps)
 	if kind == invNone {
 		return nil
 	}
-	c, party, sel := play.CommonOf(ps), partyOf(ps), r.selectedOf(ps)
+	c, party, sel := game.CommonOf(ps), partyOf(ps), r.selectedOf(ps)
 	u := &invUp{kind: kind, capacity: c.PartyCap, used: c.PoolItems, doll: make([]*game.Item, len(DollSlots))}
 	if sel < 0 || sel >= len(party) {
 		return u

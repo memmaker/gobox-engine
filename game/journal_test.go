@@ -1,4 +1,4 @@
-package journal
+package game
 
 import (
 	"reflect"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestLayout(t *testing.T) {
-	b, err := Load(fstest.MapFS{"J.TXT": {Data: []byte("# c\n[Journal Entry 37]\nA short line.\n\nA rather long line that wraps.\n")}}, "J.TXT")
+	b, err := LoadJournal(fstest.MapFS{"J.TXT": {Data: []byte("# c\n[Journal Entry 37]\nA short line.\n\nA rather long line that wraps.\n")}}, "J.TXT")
 	if err != nil || !b.Has("Journal Entry 37") || len(b.Titles()) != 1 || b.Text("Journal Entry 37")[0] != "A short line." {
 		t.Fatal(err)
 	}

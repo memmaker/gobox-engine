@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
 // TestOverlandGoesEachWay: on the overland the arrows are ActGo, a step
@@ -13,7 +12,7 @@ import (
 // turns do not apply there), and the screen is the map even with the page's
 // own small map in its layers, never a picture window (por 31bbc79, d9bc3f9).
 func TestOverlandGoesEachWay(t *testing.T) {
-	x := play.Exploring{Map: play.ExploreMap{Walk: yard{size: image.Pt(9, 9)}, Overland: true}}
+	x := game.Exploring{Map: game.ExploreMap{Walk: yard{size: image.Pt(9, 9)}, Overland: true}}
 	x.Where = game.Where{X: 4, Y: 4, Facing: 6}
 	x.Layers = []game.Layer{{}}
 	if w := windowOf(x); w != game.WindowMap {
@@ -24,7 +23,7 @@ func TestOverlandGoesEachWay(t *testing.T) {
 		if err := NewGame(r, game.Data{}).Answer(Action{Kind: ActGo, N: dir}); err != nil {
 			t.Fatal(err)
 		}
-		if len(r.sent) != 1 || r.sent[0] != (play.Arrive{From: image.Pt(4, 4), To: to, Facing: 6}) {
+		if len(r.sent) != 1 || r.sent[0] != (game.Arrive{From: image.Pt(4, 4), To: to, Facing: 6}) {
 			t.Errorf("ActGo %d sent %v, want Arrive to %v", dir, r.sent, to)
 		}
 	}

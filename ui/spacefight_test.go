@@ -11,7 +11,6 @@ import (
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/ui/input"
 )
 
@@ -31,10 +30,10 @@ func testFight() *game.SpaceFight {
 	}
 }
 
-func crewMenu() *play.Ask {
-	a := &play.Ask{Kind: game.Choice, Break: 5}
+func crewMenu() *game.Ask {
+	a := &game.Ask{Kind: game.Choice, Break: 5}
 	for _, s := range []string{"Fire", "Target", "Load", "Quit", "View", "Command", "Aid", "Sensors"} {
-		a.Options = append(a.Options, play.Option{Label: s, Key: rune(s[0])})
+		a.Options = append(a.Options, game.Option{Label: s, Key: rune(s[0])})
 	}
 	return a
 }
@@ -42,16 +41,16 @@ func crewMenu() *play.Ask {
 // sfView is a fight screen up and the question on its bar.
 type sfView struct {
 	Screen *game.Screen
-	Ask    *play.Ask
+	Ask    *game.Ask
 }
 
 // show puts v up on p: its screen a moment's, its question the game's.
 func (v sfView) show(p *Presenter) *Presenter {
 	if p.eng == nil {
-		g, _ := playGame(play.Exploring{})
+		g, _ := playGame(game.Exploring{})
 		p.SetEngine(g)
 	}
-	p.played = &frame{Moment: Moment{Report: play.Report{Screen: v.Screen}}}
+	p.played = &frame{Moment: Moment{Report: game.Report{Screen: v.Screen}}}
 	p.eng.r.refusalAsk = v.Ask
 	return p
 }

@@ -8,7 +8,6 @@ import (
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/game"
-	"gobox/game/play"
 
 	"gobox/engine"
 )
@@ -68,7 +67,7 @@ func TestFightPicturesResolve(t *testing.T) {
 		e.Start(e.Play)
 		for range 200 {
 			st := e.State()
-			if f, ok := st.(play.Fighting); ok {
+			if f, ok := st.(game.Fighting); ok {
 				pictures(reflect.ValueOf(f), func(p game.Picture) {
 					switch {
 					case p.Pixels != nil || p.File == "" && p.Name == "":
@@ -87,13 +86,13 @@ func TestFightPicturesResolve(t *testing.T) {
 					}
 				}
 			}
-			if _, err := e.Do(play.Reply{}); err == nil { // what it asks, first answer
+			if _, err := e.Do(game.Reply{}); err == nil { // what it asks, first answer
 				continue
 			}
-			if _, err := e.Do(play.Quick{}); err == nil {
+			if _, err := e.Do(game.Quick{}); err == nil {
 				continue
 			}
-			if _, err := e.Do(play.Continue{}); err != nil {
+			if _, err := e.Do(game.ContinueAction{}); err != nil {
 				e.Step()
 			}
 		}

@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules"
 )
 
@@ -22,15 +21,15 @@ import (
 // map flees.
 var turnBar = []struct {
 	can TurnVerb
-	o   play.Option
+	o   game.Option
 }{
-	{VerbNone, play.Option{Label: "Move", Key: 'M', Do: play.MoveTo{}}},
-	{VerbAttack, play.Option{Label: "Aim", Key: 'A', Do: play.Attack{}}},
-	{VerbItems, play.Option{Label: "Use", Key: 'U', Do: play.OpenItems{Member: -1}}},
-	{VerbCast, play.Option{Label: "Cast", Key: 'C', Do: play.Cast{}}},
-	{VerbTurn, play.Option{Label: "Turn", Key: 'T', Do: play.TurnUndead{}}},
-	{VerbQuick, play.Option{Label: "Quick", Key: 'Q', Do: play.Quick{}}},
-	{VerbEnd, play.Option{Label: "Done", Key: 'D', Do: play.EndTurn{}}},
+	{VerbNone, game.Option{Label: "Move", Key: 'M', Do: game.MoveTo{}}},
+	{VerbAttack, game.Option{Label: "Aim", Key: 'A', Do: game.Attack{}}},
+	{VerbItems, game.Option{Label: "Use", Key: 'U', Do: game.OpenItems{Member: -1}}},
+	{VerbCast, game.Option{Label: "Cast", Key: 'C', Do: game.Cast{}}},
+	{VerbTurn, game.Option{Label: "Turn", Key: 'T', Do: game.TurnUndead{}}},
+	{VerbQuick, game.Option{Label: "Quick", Key: 'Q', Do: game.Quick{}}},
+	{VerbEnd, game.Option{Label: "Done", Key: 'D', Do: game.EndTurn{}}},
 }
 
 // combatState is the fight as the View shows it: the combatants with their
@@ -41,7 +40,7 @@ func (e *Engine) combatState(s *facts) {
 		return
 	}
 	b := e.battle()
-	c := &play.Combat{Size: image.Pt(len(b.Ground[0]), len(b.Ground)), Round: int(e.ruleset().Check(rules.FightRound{}, nil).Value), Dungeon: b.Dungeon,
+	c := &game.Combat{Size: image.Pt(len(b.Ground[0]), len(b.Ground)), Round: int(e.ruleset().Check(rules.FightRound{}, nil).Value), Dungeon: b.Dungeon,
 		Targets: slices.Clone(b.Targets), Panel: b.Panel, Marks: slices.Clone(b.Marks), Area: b.Area,
 		AreaAt: slices.Clone(b.AreaAt), Skipped: slices.Clone(b.Skipped), Why: b.AimWhy,
 		Floor: b.Floor, Cursor: b.Cursor, CursorOn: b.CursorOn, CursorAt: slices.Clone(b.CursorAt), View: b.View,
@@ -93,7 +92,7 @@ func (e *Engine) combatState(s *facts) {
 		return cmp.Or(cmp.Compare(a.At.Y, b.At.Y), cmp.Compare(a.At.X, b.At.X))
 	})
 	if t := b.Turn; t != nil {
-		c.Turn = &play.Turn{Unit: t.Unit, Moves: t.Moves, Aim: t.Aim, Spell: t.Casting, Weapon: gameWeapon(t.Weapon)}
+		c.Turn = &game.Turn{Unit: t.Unit, Moves: t.Moves, Aim: t.Aim, Spell: t.Casting, Weapon: gameWeapon(t.Weapon)}
 		for _, m := range t.Maneuvers {
 			c.Turn.Maneuvers = append(c.Turn.Maneuvers, game.TurnManeuver{ID: int(m.ID), Name: m.Name, Tip: m.Tip, Aim: int(m.Aim), Range: m.Range, Area: m.Area, Shift: m.Move})
 		}

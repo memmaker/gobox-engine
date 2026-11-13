@@ -2,7 +2,6 @@ package engine
 
 import (
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/rules"
 	"gobox/rules1e"
 	"image"
@@ -43,25 +42,25 @@ func (e *Engine) apply(f rules.Effect) {
 		}
 		e.say(f.Text)
 	case rules.Turned: // the presenter turns the icon (the original's combatTurn)
-		e.event(play.Turned{Unit: int(f.Unit), Facing: int(f.Facing)})
+		e.event(game.Turned{Unit: int(f.Unit), Facing: int(f.Facing)})
 	case rules.Casting:
 		e.ext.panel = e.unitChar(f.From) // the side pane shows the caster
-		e.event(play.CastSpell{From: int(f.From), Spell: e.spellNumber(f.Spell), Ats: points(f.Ats)})
+		e.event(game.CastSpell{From: int(f.From), Spell: e.spellNumber(f.Spell), Ats: points(f.Ats)})
 	case rules.Shot:
 		frames, delay := e.missileArt(f)
-		ev := play.Shot{From: int(f.From), To: point(f.To), StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
+		ev := game.Shot{From: int(f.From), To: point(f.To), StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
 		if frames > 0 && e.spr != nil {                                    // the original's art choice, the frame hitColours put in the sprite
 			ev.Art = gamePicture(e.picPix(e.spr, 0, false, -1))
 		}
 		e.event(ev)
 	case rules.Sounded: // in a fight: when the presenter plays the events up to here; else now
 		if e.inFight() {
-			e.event(play.Sounded{Sound: string(f.Cue)})
+			e.event(game.Sounded{Sound: string(f.Cue)})
 			return
 		}
 		e.dasp(string(f.Cue))
 	case rules.Walked:
-		w := play.Walked{Unit: int(f.Unit)}
+		w := game.Walked{Unit: int(f.Unit)}
 		for _, p := range f.Path {
 			w.Path = append(w.Path, game.Step{At: point(p)})
 		}
@@ -71,7 +70,7 @@ func (e *Engine) apply(f rules.Effect) {
 		s.strike = Strike{Seq: s.strike.Seq + 1, Hit: f.Hit, Damage: int(f.Damage)}
 		s.striker = [2]rules.CharID{e.unitChar(f.From), e.unitChar(f.To)}
 		e.ext.panel = s.striker[0] // the side pane shows the attacker, as the original's
-		e.event(play.Attacked{From: int(f.From), To: int(f.To), Hit: f.Hit, Damage: int(f.Damage)})
+		e.event(game.Attacked{From: int(f.From), To: int(f.To), Hit: f.Hit, Damage: int(f.Damage)})
 		e.hitTo = 0
 		if f.Hit {
 			e.hitTo = int(f.To)
@@ -81,9 +80,9 @@ func (e *Engine) apply(f rules.Effect) {
 			e.hitTo = 0
 			return
 		}
-		e.event(play.Struck{Unit: int(f.Unit), Damage: int(f.Damage)})
+		e.event(game.Struck{Unit: int(f.Unit), Damage: int(f.Damage)})
 	case rules.Fell: // with the body ovr32:0E11 leaves for a fight the blow ends (class 55)
-		ev := play.Fell{Unit: int(f.Unit)}
+		ev := game.Fell{Unit: int(f.Unit)}
 		b := e.ruleset().Check(rules.UnitBody{Unit: f.Unit}, nil)
 		if x, y := int(b.Low), int(b.High); !e.inView(x, y) {
 			e.recentre(x, y, 3) // ovr32:0E11: the fall brought into view

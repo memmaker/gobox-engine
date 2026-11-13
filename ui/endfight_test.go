@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -15,23 +14,23 @@ type endGame struct{ over bool }
 
 func (r *endGame) Version() uint64 { return fresh() }
 
-func (r *endGame) State() play.State {
+func (r *endGame) State() game.State {
 	if r.over {
-		return play.Scene{Common: play.Common{Status: "DONE"}}
+		return game.Scene{Common: game.Common{Status: "DONE"}}
 	}
-	return play.Fighting{Common: play.Common{Allowed: play.Allowed{Plain: []play.Action{play.Quick{}}}}, Field: play.Battlefield{Size: image.Pt(4, 4),
+	return game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.Quick{}}}}, Field: game.Battlefield{Size: image.Pt(4, 4),
 		Units: []game.Unit{{ID: 1, Member: -1, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(2, 1), Foe: true}}}}
 }
-func (r *endGame) Do(a play.Action) (play.Outcome, error) {
-	if _, ok := a.(play.Quick); !ok {
-		return play.Outcome{}, nil
+func (r *endGame) Do(a game.Action) (game.Outcome, error) {
+	if _, ok := a.(game.Quick); !ok {
+		return game.Outcome{}, nil
 	}
 	r.over = true
-	var evs []play.Event
+	var evs []game.Event
 	for range 5 {
-		evs = append(evs, play.Attacked{From: 1, To: 2})
+		evs = append(evs, game.Attacked{From: 1, To: 2})
 	}
-	return play.Outcome{Events: append(evs, play.Fell{Unit: 2})}, nil
+	return game.Outcome{Events: append(evs, game.Fell{Unit: 2})}, nil
 }
 func (r *endGame) Save() ([]byte, error) { return nil, nil }
 func (r *endGame) Load([]byte) error     { return nil }

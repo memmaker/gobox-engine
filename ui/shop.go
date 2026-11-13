@@ -5,14 +5,13 @@ import (
 	"slices"
 
 	"gobox/game"
-	"gobox/game/play"
 )
 
-// The shop (play.Trading): Browse is the inventory with the goods; the
+// The shop (game.Trading): Browse is the inventory with the goods; the
 // presenter asks before an Id.
 func (p *Presenter) shopItems() (string, []MenuRow) {
 	c, s := &p.camp, p.state()
-	sh, purse := shopOf(s), play.CommonOf(s).Purse
+	sh, purse := shopOf(s), game.CommonOf(s).Purse
 	have := purse[Coin]
 	unknown := p.eng.r.derived().unknown
 	party := partyOf(s)
@@ -34,7 +33,7 @@ func (p *Presenter) shopItems() (string, []MenuRow) {
 		u := unknown[c.pick]
 		return withGold(fmt.Sprintf("Identify %s for %s. Is it a deal?", itemOf(party, u).Name, gold(sh.IdentifyPrice)), have), []MenuRow{
 			{Text: "Yes", Key: 'Y', Do: func() {
-				p.call(func(e *classicGame) { e.do(play.Identify{Member: u.Member, Item: u.Item}) })
+				p.call(func(e *classicGame) { e.do(game.Identify{Member: u.Member, Item: u.Item}) })
 				c.back(shopID)()
 			}},
 			{Text: "No", Key: 'N', Do: c.back(shopID)}}
@@ -43,7 +42,7 @@ func (p *Presenter) shopItems() (string, []MenuRow) {
 	}
 	it := []MenuRow{{Text: "Buy", Key: 'B', Do: func() { p.send(ActInventory, -1) }},
 		{Text: "View", Key: 'V', Do: func() { p.send(ActMember, -1) }}} // look-only: the selected member's sheet
-	it = append(it, p.moneyRows(play.CommonOf(s).Allowed)...)
+	it = append(it, p.moneyRows(game.CommonOf(s).Allowed)...)
 	if appraisable(purse, sh.Offers) {
 		it = append(it, MenuRow{Text: "Appraise", Key: 'A', Do: c.to(appraise, 0)})
 	}
@@ -69,7 +68,7 @@ func itemOf(party []game.Member, r game.ItemRef) *game.Item {
 }
 
 // unknownOf are the party's items the shop's Id would tell something about.
-func unknownOf(s play.State) []game.ItemRef {
+func unknownOf(s game.State) []game.ItemRef {
 	sh := shopOf(s)
 	if sh == nil {
 		return nil
@@ -86,20 +85,20 @@ func (p *Presenter) serviceAct(a Action) bool {
 	case p.training || p.hallUp(): // the hall up, from Train or the game's own (ModeTraining)
 		switch a.Kind {
 		case ActClose:
-			p.call(func(e *classicGame) { e.do(play.CloseTraining{}); p.training = p.hallUp() })
+			p.call(func(e *classicGame) { e.do(game.CloseTraining{}); p.training = p.hallUp() })
 		case ActLead: // another member: the game's training opens for them (Close would leave a hall the game opened)
-			p.call(func(e *classicGame) { e.do(play.OpenTraining{Member: a.N}); p.training = p.hallUp() })
+			p.call(func(e *classicGame) { e.do(game.OpenTraining{Member: a.N}); p.training = p.hallUp() })
 		default:
 			return false
 		}
 	case a.Kind == ActTraining && p.mainMenuUp():
-		p.call(func(e *classicGame) { e.do(play.OpenTraining{Member: a.N}); p.training = p.hallUp() })
+		p.call(func(e *classicGame) { e.do(game.OpenTraining{Member: a.N}); p.training = p.hallUp() })
 	case p.shopUp() && a.Kind == ActInventory:
-		p.call(func(e *classicGame) { e.do(play.OpenItems{Member: -1}) })
+		p.call(func(e *classicGame) { e.do(game.OpenItems{Member: -1}) })
 	case (p.templeUp() || p.shopUp()) && a.Kind == ActMember:
-		p.call(func(e *classicGame) { e.do(play.ViewMember{Member: e.sel(a.N)}) })
+		p.call(func(e *classicGame) { e.do(game.ViewMember{Member: e.sel(a.N)}) })
 	case (p.shopUp() || p.templeUp()) && a.Kind == ActClose:
-		p.call(func(e *classicGame) { e.do(play.Leave{}) })
+		p.call(func(e *classicGame) { e.do(game.Leave{}) })
 	default:
 		return false
 	}
@@ -110,15 +109,15 @@ func (p *Presenter) serviceAct(a Action) bool {
 func (p *Presenter) hallUp() bool { return trainingOf(p.state()) != nil }
 
 // moneyRows are the money acts allowed offers: Take, Pool, Share.
-func (p *Presenter) moneyRows(al play.Allowed) (it []MenuRow) {
+func (p *Presenter) moneyRows(al game.Allowed) (it []MenuRow) {
 	var take, pool, share bool
 	for _, a := range al.Plain {
 		switch a.(type) {
-		case play.Take:
+		case game.Take:
 			take = true
-		case play.PoolCoins:
+		case game.PoolCoins:
 			pool = true
-		case play.LootShare:
+		case game.LootShare:
 			share = true
 		}
 	}

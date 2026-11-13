@@ -12,7 +12,6 @@ import (
 
 	"gobox/asset"
 	"gobox/game"
-	"gobox/game/play"
 )
 
 const (
@@ -76,7 +75,7 @@ func (p *Presenter) laid() *laidPage {
 	k := laidKey{p.eng.G.Version(), mp, cr, p.ink()}
 	return p.lay.page.update(k, func(old *laidPage) *laidPage {
 		s := p.state()
-		pg, portrait := p.eng.r.pageOf(s), storyOf(play.CommonOf(s))
+		pg, portrait := p.eng.r.pageOf(s), storyOf(game.CommonOf(s))
 		if mp != nil {
 			pg, portrait = mp, nil
 		}
@@ -276,7 +275,7 @@ func (p *Presenter) askUp() *FrontAsk {
 // askOf is the state's question as the presenter asks it. A place's mode
 // with no screen of its own yet draws its question, never a blank frame;
 // the treasure's picture waits under a message (Enter or Space opens it).
-func (r *frontState) askOf(ps play.State) *FrontAsk {
+func (r *frontState) askOf(ps game.State) *FrontAsk {
 	mode, pending := r.modeOf(ps), r.asking(ps)
 	if mode == game.ModeLoot && lootOf(ps) != nil && announced(ps) {
 		return &FrontAsk{Kind: AskMenu, Menu: Menu{Prompt: "You found some loot!"}}
@@ -308,7 +307,7 @@ func (p *Presenter) powerPick() *game.PowerPick {
 	if p.eng == nil || p.training {
 		return nil
 	}
-	return play.CommonOf(p.state()).PowerPick
+	return game.CommonOf(p.state()).PowerPick
 }
 
 // campUp is whether camp is up, no picker or icon editor over it.
@@ -333,7 +332,7 @@ func (p *Presenter) trainingUp() *FrontTraining {
 	}
 	return p.lay.training.get(p.uiKey(), func() *FrontTraining {
 		s := p.state()
-		return Training(trainingOf(s), partyOf(s), p.selected(), play.CommonOf(s).Purse)
+		return Training(trainingOf(s), partyOf(s), p.selected(), game.CommonOf(s).Purse)
 	})
 }
 

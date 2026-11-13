@@ -6,14 +6,13 @@ import (
 	"testing"
 
 	"gobox/game"
-	"gobox/game/play"
 
 	"gobox/engine/playpool"
 )
 
 // TestTourPausesTimed: Rolf's tour (area 0 CityTour) walks itself: each
 // DELAY reaches the presenter as a timed pause (a Continue with its Ms),
-// not a bare story page that waits for a key. play.Question had no Ms, so
+// not a bare story page that waits for a key. game.Question had no Ms, so
 // the pause's time was dropped between pool and the front.
 func TestTourPausesTimed(t *testing.T) {
 	eng, err := engine.NewPool("../../../../data/por/sources/assets", "../../../../data/por/sources")
@@ -31,7 +30,7 @@ func TestTourPausesTimed(t *testing.T) {
 	if err := eng.QuickStart(); err != nil {
 		t.Fatal(err)
 	}
-	if r := g.Send(play.Begin{}); r.Err != nil {
+	if r := g.Send(game.Begin{}); r.Err != nil {
 		t.Fatal(r.Err)
 	}
 	pauses := 0
@@ -45,9 +44,9 @@ func TestTourPausesTimed(t *testing.T) {
 			t.Fatalf("at %d,%d nothing asked: a story page waiting for a key", at.X, at.Y)
 		case a.Kind == game.Continue && a.Ms > 0: // a timed pause
 			pauses++
-			g.Send(play.Continue{})
+			g.Send(game.ContinueAction{})
 		default:
-			g.Send(play.Reply{N: 0})
+			g.Send(game.Reply{N: 0})
 		}
 	}
 	if pauses == 0 {

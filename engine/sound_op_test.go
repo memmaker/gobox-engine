@@ -2,7 +2,7 @@ package engine
 
 import (
 	"gobox/ecl/script"
-	"gobox/game/play"
+	"gobox/game"
 	"gobox/rules"
 	"slices"
 	"testing"
@@ -22,7 +22,7 @@ func TestSoundOp(t *testing.T) {
 		e.opSound()
 	}
 	sound(3)
-	if !slices.Contains(e.events, play.Event(play.Sounded{Sound: "3"})) {
+	if !slices.Contains(e.events, game.Event(game.Sounded{Sound: "3"})) {
 		t.Fatalf("sound 3: events %v", e.events)
 	}
 	sound(4)
@@ -51,7 +51,7 @@ func TestDuelSound(t *testing.T) {
 		e.opCall()
 	}
 	call(8)
-	if !slices.Contains(e.events, play.Event(play.Sounded{Sound: "step8"})) {
+	if !slices.Contains(e.events, game.Event(game.Sounded{Sound: "step8"})) {
 		t.Fatalf("duel sound 8: events %v", e.events)
 	}
 	call(9)
@@ -60,7 +60,7 @@ func TestDuelSound(t *testing.T) {
 	}
 	g.DefaultSound = &ScriptSound{Cue: rules.SoundCue("dflt")}
 	call(9)
-	if !slices.Contains(e.events, play.Event(play.Sounded{Sound: "dflt"})) {
+	if !slices.Contains(e.events, game.Event(game.Sounded{Sound: "dflt"})) {
 		t.Fatalf("unlisted duel sound 9 with DefaultSound: events %v", e.events)
 	}
 }
