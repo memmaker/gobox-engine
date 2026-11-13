@@ -552,24 +552,14 @@ var POR = Tables{
 }
 
 // The free functions read POR: callers without a RuleState (the Engine, the other games' charcalc) keep them until they hold a Tables.
-func XPForLevel(class rules.Class, level int) int32            { return POR.XPForLevel(class, level) }
-func Thac0At(class rules.Class, level int) int                 { return POR.Thac0At(class, level) }
-func TrainingDie(class rules.Class) (count, sides int)         { return POR.TrainingDie(class) }
-func SaveAt(class rules.Class, level int, save rules.Save) int { return POR.SaveAt(class, level, save) }
-func ThiefSkills(level int, race rules.Race, dex int, p ItemPowers) [8]int {
-	return POR.ThiefSkills(level, race, dex, p)
-}
-func ConHP(con int) int                                              { return POR.ConHP(con) }
-func ClericSlots(level int) LevelSlots                               { return POR.ClericSlots(level) }
-func MageSlots(level int) LevelSlots                                 { return POR.MageSlots(level) }
-func TurnNeed(undead, column int) int                                { return POR.TurnNeed(undead, column) }
-func AbilityRange(race rules.Race, a Ability) (lo, hi int)           { return POR.AbilityRange(race, a) }
-func ExceptionalStrengthCap(race rules.Race) int                     { return POR.ExceptionalStrengthCap(race) }
-func RaceCareers(race rules.Race) []Career                           { return POR.RaceCareers(race) }
-func CareerAlignments(c Career) []AlignmentNumber                    { return POR.CareerAlignments(c) }
-func CareerMinimum(c Career, a Ability) int                          { return POR.CareerMinimum(c, a) }
-func StartingAge(race rules.Race, c Career) (base, count, sides int) { return POR.StartingAge(race, c) }
-func AgeStep(race rules.Race, step int) int                          { return POR.AgeStep(race, step) }
+func XPForLevel(class rules.Class, level int) int32        { return POR.XPForLevel(class, level) }
+func ConHP(con int) int                                    { return POR.ConHP(con) }
+func AbilityRange(race rules.Race, a Ability) (lo, hi int) { return POR.AbilityRange(race, a) }
+func ExceptionalStrengthCap(race rules.Race) int           { return POR.ExceptionalStrengthCap(race) }
+func RaceCareers(race rules.Race) []Career                 { return POR.RaceCareers(race) }
+func CareerAlignments(c Career) []AlignmentNumber          { return POR.CareerAlignments(c) }
+func CareerMinimum(c Career, a Ability) int                { return POR.CareerMinimum(c, a) }
+func AgeStep(race rules.Race, step int) int                { return POR.AgeStep(race, step) }
 
 // T is the rule tables e plays by: e.Tables, or POR when none is set.
 func (e *RuleState) T() *Tables {

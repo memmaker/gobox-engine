@@ -128,16 +128,6 @@ func rulesOf(o *rules1e.ImportedSave, s rules1e.SaveLayout, l *ecl.Layout) ([]by
 	return rules1e.RulesFromFields(canonFields(o, l), o.Purse)
 }
 
-// originalRules is the ruleset's part of the original save b laid out as s
-// whose script fields are l (a game's test against its real saves).
-func originalRules(b []byte, s rules1e.SaveLayout, l *ecl.Layout) ([]byte, error) {
-	o, err := rules1e.ReadOriginalSave(b, s)
-	if err != nil {
-		return nil, err
-	}
-	return rulesOf(&o, s, l)
-}
-
 // saved: field f keeps cells of its own in a save. The engine also binds
 // some without cells; it drops those on load.
 func saved(f ecl.Field) bool {

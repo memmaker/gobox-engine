@@ -1,7 +1,6 @@
 package rules1e
 
 import (
-	"fmt"
 	"gobox/rules"
 	"slices"
 	"strconv"
@@ -654,13 +653,6 @@ func (e *RuleState) MeetsMinStats(c *Character) bool {
 		}
 	}
 	return true
-}
-
-func fmtStr(v int) string {
-	if v <= 1800 || v > 1900 {
-		return strconv.Itoa(v / 100)
-	}
-	return fmt.Sprintf("18/%02d", (v-1800)%100)
 }
 
 func parseMinStat(s string, str bool) (int, bool) {

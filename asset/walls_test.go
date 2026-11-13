@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 	"testing"
 	"testing/fstest"
 )
@@ -19,7 +18,7 @@ func TestLookups(t *testing.T) {
 	png.Encode(&b, image.NewGray(image.Rect(0, 0, 1, 1)))
 	Register("test", fstest.MapFS{"floor_water.png": {Data: b.Bytes()}})
 	if WallNames("test")[0] != "floor_water" || WallImage("test", "nope") != nil || WallImage("none", "floor_water") != nil ||
-		!Has("test", "floor_water") || Has("test", "nope") {
+		!Has("test", "floor_water") || Has("test", "nope") || len(Textures("test", "floor_water", "nope")) != 1 {
 		t.Error("lookups wrong")
 	}
 }
@@ -79,18 +78,6 @@ func TestImageOnce(t *testing.T) {
 	}
 }
 
-// Register sets series' texture files (in place of Dir's).
-func Register(name string, files fs.FS) {
-	mu.Lock()
-	defer mu.Unlock()
-	series[name] = files
-	for k := range images {
-		if k.series == name {
-			delete(images, k)
-		}
-	}
-}
-
 // Series lists the series under Dir, sorted.
 func Series() []string {
 	es, _ := os.ReadDir(filepath.Join(WallDir, "series"))
@@ -98,23 +85,6 @@ func Series() []string {
 	for _, e := range es {
 		if e.IsDir() {
 			out = append(out, e.Name())
-		}
-	}
-	sort.Strings(out)
-	return out
-}
-
-// WallNames lists every texture name of series, sorted.
-func WallNames(s string) []string {
-	f := open(s)
-	if f == nil {
-		return nil
-	}
-	es, _ := fs.ReadDir(f, ".")
-	var out []string
-	for _, e := range es {
-		if n, ok := strings.CutSuffix(e.Name(), ".png"); ok {
-			out = append(out, n)
 		}
 	}
 	sort.Strings(out)

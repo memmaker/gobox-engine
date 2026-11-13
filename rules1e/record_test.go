@@ -2,7 +2,9 @@ package rules1e
 
 import (
 	"bytes"
+	"encoding/binary"
 	"math/rand/v2"
+	"reflect"
 	"testing"
 
 	"gobox/rules"
@@ -30,4 +32,21 @@ func TestRecordRoundTrip(t *testing.T) {
 	RoundTrip[Record422](t, fill(Layout422))
 	RoundTrip[Record439](t, fill(Layout439))
 	RoundTrip[Record510](t, fill(Layout510))
+}
+
+// Kept is b (one record) with the bytes of R's blank fields (the DOS
+// pointers) zeroed: what Encode(Decode(b)) gives back.
+func Kept[R Record](b []byte) []byte {
+	out := bytes.Clone(b)
+	t := reflect.TypeFor[R]()
+	off := 0
+	for i := range t.NumField() {
+		f := t.Field(i)
+		n := binary.Size(reflect.New(f.Type).Elem().Interface())
+		if f.Name == "_" {
+			clear(out[off : off+n])
+		}
+		off += n
+	}
+	return out
 }

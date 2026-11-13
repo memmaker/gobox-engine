@@ -81,3 +81,6 @@ func TestLoadDropsConAffect(t *testing.T) {
 		t.Errorf("affects after load: %v", c.Affects)
 	}
 }
+
+// ClassStats is ClassCal.RecalcClassStats over POR's tables.
+func ClassStats(w Who) Stats { return POR.ClassStats(w) }

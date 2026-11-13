@@ -298,3 +298,20 @@ func TestAgainstPascal(t *testing.T) {
 	}
 	t.Logf("%d cases, differences by kind: %v", cases, diffs)
 }
+
+func Thac0At(class rules.Class, level int) int { return POR.Thac0At(class, level) }
+
+func TrainingDie(class rules.Class) (count, sides int) { return POR.TrainingDie(class) }
+
+func SaveAt(class rules.Class, level int, save rules.Save) int { return POR.SaveAt(class, level, save) }
+
+func ThiefSkills(level int, race rules.Race, dex int, p ItemPowers) [8]int {
+	return POR.ThiefSkills(level, race, dex, p)
+}
+
+func TurnNeed(undead, column int) int { return POR.TurnNeed(undead, column) }
+
+func StartingAge(race rules.Race, c Career) (base, count, sides int) { return POR.StartingAge(race, c) }
+
+func ClericSlots(level int) LevelSlots { return POR.ClericSlots(level) }
+func MageSlots(level int) LevelSlots   { return POR.MageSlots(level) }

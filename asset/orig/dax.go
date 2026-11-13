@@ -18,6 +18,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 // Entry is one index record.
@@ -118,6 +119,7 @@ type Loader struct {
 	names map[string]string   // lower-case name -> real file name
 	amiga *Loader             // UseAmiga's: Amiga graphics by base name (PIC.DAX for PIC1..8)
 	memo  map[amigaKey][]byte // finished Amiga blocks (name munging and centre done once)
+	dos   atomic.Bool         // SetDOS's: the DOS blocks even where Amiga ones stand in (F12)
 }
 
 type amigaKey struct {
@@ -148,6 +150,10 @@ func (l *Loader) UseAmiga(dir string) {
 
 // HasAmiga reports whether Amiga archives stand in for DOS ones.
 func (l *Loader) HasAmiga() bool { return l != nil && l.amiga != nil }
+
+// SetDOS makes BlockShared give the DOS blocks (true) or the Amiga ones
+// where there are any (false, the default).
+func (l *Loader) SetDOS(dos bool) { l.dos.Store(dos) }
 
 // Path returns the real path for a case-insensitive file name, or "".
 func (l *Loader) Path(name string) string {
@@ -190,8 +196,10 @@ func (l *Loader) BlockShared(name string, id int) []byte {
 	if l == nil {
 		return nil
 	}
-	if b := l.AmigaShared(name, id); b != nil {
-		return b
+	if !l.dos.Load() {
+		if b := l.AmigaShared(name, id); b != nil {
+			return b
+		}
 	}
 	return l.dosBlock(name, id)
 }
@@ -235,7 +243,7 @@ func (l *Loader) AmigaShared(name string, id int) []byte {
 // archive name was drawn in (the import's NAMEPAL.DAX); nil when the DOS
 // art shows or the picture has none.
 func (l *Loader) AmigaPalette(name string, id int) []byte {
-	if l == nil || l.amiga == nil {
+	if l == nil || l.amiga == nil || l.dos.Load() {
 		return nil
 	}
 	base := strings.TrimRight(strings.TrimSuffix(strings.ToUpper(name), ".DAX"), "0123456789")
