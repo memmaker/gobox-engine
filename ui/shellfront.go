@@ -187,9 +187,9 @@ func (g *frontGame) keys() {
 		}
 		if code, ok := BIOSKey(k); ok {
 			g.f.Key(code)
-		} else if k == gpu.KeyF12 && gpu.IsKeyPressed(gpu.KeyShift) {
+		} else if f12, ok := F12Key(k, gpu.IsKeyPressed(gpu.KeyShift)); ok && f12 == ShiftF12 {
 			g.f.Key(ShiftF12) // the wall style
-		} else if k == gpu.KeyF12 && g.cfg.Art != nil { // the other art (Draw fades it in)
+		} else if ok && g.cfg.Art != nil { // the other art (Draw fades it in)
 			g.cfg.Art.Toggle()
 			if OnSettings != nil {
 				OnSettings(Settings)
