@@ -179,3 +179,9 @@ func FullMap(f *front.FullMap, a game.Automap, where game.Where) *front.FullMap 
 	}
 	return &c
 }
+
+// automap is the automap of the state up (zero with no game).
+func (p *Presenter) automap() game.Automap {
+	a, _ := p.minimap()
+	return a
+}

@@ -43,6 +43,8 @@ type walkGame struct {
 	sent   []play.Action
 }
 
+func (g *walkGame) Version() uint64 { return fresh() }
+
 func (g *walkGame) State() play.State { return g.x }
 func (g *walkGame) Do(a play.Action) (play.Outcome, error) {
 	g.sent = append(g.sent, a)

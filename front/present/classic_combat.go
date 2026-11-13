@@ -1,10 +1,12 @@
 package present
 
 import (
+	"cmp"
 	"fmt"
 	"image"
 	"slices"
 
+	"gobox/combat"
 	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
@@ -43,6 +45,8 @@ func turnAct(d play.Action) (front.ActKind, bool) {
 		return front.ActQuick, true
 	case play.Flee:
 		return front.ActFlee, true
+	case play.ViewMember:
+		return front.ActView, d.Member == viewSelected
 	}
 	return 0, false
 }
@@ -51,94 +55,77 @@ func turnAct(d play.Action) (front.ActKind, bool) {
 // at, whatever its pixels: a combat icon's square, as the composed ones.
 var ownIconSize = image.Pt(24, 24)
 
-// Battle is b (the game's) with what s.Combat gives in its place: the
-// combat menu (Turn), each combatant's name, hit points, armor class,
-// damage and status, the squares a move reaches, the foes an attack or aim
-// takes and the aim (marks, area, why not). b's map, icons and effects stay.
-func Battle(b *front.Battle, c *play.Combat, party []game.Member) *front.Battle {
-	if b == nil || c == nil {
-		return b
+// viewSelected is ViewMember's Member for the member whose turn it is (the
+// selected one): the bar's own View, which the series' VerbKeys add.
+const viewSelected = -1
+
+// turnOptions are c's turn's options as the bar offers them: the game's,
+// with the series' View (Data.VerbKeys) at its VerbOrder place when the game
+// offers none (nil: no turn).
+func turnOptions(c *play.Combat, d game.Data) []play.Option {
+	if c == nil || c.Turn == nil {
+		return nil
 	}
-	o := *b
-	o.Units = slices.Clone(b.Units)
-	cloned := false
-	for i, u := range o.Units {
-		if k := slices.IndexFunc(c.Units, func(g game.Unit) bool { return g.ID == u.ID }); k >= 0 {
-			g := c.Units[k]
-			o.Units[i].Party, o.Units[i].Active, o.Units[i].Name = !g.Foe, g.Active, g.Name
-			o.Units[i].HP, o.Units[i].MaxHP, o.Units[i].AC = g.HP, g.MaxHP, g.AC
-			o.Units[i].Hit, o.Units[i].Dmg, o.Units[i].Status = g.Hit, g.Dmg, g.Status
-			if im := g.Icon[g.Pose&1]; im != nil {
-				o.Units[i].Icon, o.Units[i].IconSize = im, ownIconSize
-			} else if m := g.Member; !g.Foe && m >= 0 && m < len(party) {
-				if pic, size, ok := memberPicture(party[m], g, 0); ok {
-					if !cloned { // the game's IconPix by unit, so far
-						o.IconPix, cloned = append(make([]front.Picture, 0, len(o.Units)), b.IconPix...), true
-						o.IconPix = append(o.IconPix, make([]front.Picture, max(0, len(o.Units)-len(o.IconPix)))...)
-					}
-					o.Units[i].Icon, o.IconPix[i] = nil, pic
-					o.Units[i].IconSize = size
-				}
-			}
+	ops := c.Turn.Options
+	k, ok := d.VerbKeys["View"]
+	if !ok || len(ops) == 0 || c.Turn.Aim || slices.ContainsFunc(ops, func(o play.Option) bool { _, view := o.Do.(play.ViewMember); return view || o.Label == "View" }) {
+		return ops
+	}
+	at := len(ops)
+	if vi := slices.Index(d.VerbOrder, "View"); vi >= 0 {
+		if i := slices.IndexFunc(ops, func(o play.Option) bool { return slices.Index(d.VerbOrder, o.Label) > vi }); i >= 0 {
+			at = i
 		}
 	}
-	gone := func(i int) bool { // a unit the combat has off the map is not drawn
-		k := slices.IndexFunc(c.Units, func(g game.Unit) bool { return g.ID == o.Units[i].ID })
-		return k >= 0 && c.Units[k].Gone
-	}
-	for i := len(o.Units) - 1; i >= 0; i-- {
-		if gone(i) {
-			if i < len(o.IconPix) {
-				o.IconPix = slices.Delete(slices.Clone(o.IconPix), i, i+1)
-			}
-			o.Units = slices.Delete(o.Units, i, i+1)
-		}
-	}
-	o.Reach = nil
-	for _, r := range c.Reach {
-		o.Reach = append(o.Reach, r.At)
-	}
-	o.Targets, o.Panel, o.Marks, o.Area = slices.Clone(c.Targets), c.Panel, slices.Clone(c.Marks), c.Area
-	o.AreaAt, o.Skipped, o.AimWhy = slices.Clone(c.AreaAt), slices.Clone(c.Skipped), c.Why
-	o.Turn = nil
-	if t := c.Turn; t != nil {
-		o.Turn = &front.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves}
-		turnExtras(o.Turn, t)
-		o.Turn.Can, o.Turn.Options = turnOptions(t)
-		for _, sp := range c.Spells {
-			o.Turn.Spells = append(o.Turn.Spells, front.Spell{ID: sp.ID, Name: sp.Name})
-		}
-	}
-	return &o
+	return slices.Insert(slices.Clone(ops), at, play.Option{Label: cmp.Or(d.Texts["View"], "View"), Key: k, Do: play.ViewMember{Member: viewSelected}})
 }
 
-// BattleOf is the combat map built from s.Combat alone: the ground with its
-// tiles (Combat.Tiles, read from art), the units with their icons (a foe's
-// Art, a member's composed from its pool ids or original icon numbers),
-// effects, cursor, walks, aim, strike and log. nil outside a fight.
-func BattleOf(c *play.Combat, party []game.Member, art map[string]game.Picture) *front.Battle {
+// tilePicture is the tile name's art a as a picture to make, the series
+// sprite of that name when a has no picture.
+func tilePicture(name string, a game.Picture) front.Picture {
+	pc := pix(a)
+	if im := sprites.Image(Series, "combat", name); a.File == "" && pc.Pix == nil && im != nil { // a series sprite
+		pc.Img = im
+	}
+	return pc
+}
+
+// boardOf is the fight c as the tabletop draws it, its pictures made: the
+// ground with its tiles (Combat.Tiles, read from the game's art), the units
+// with their icons (a foe's Art, a member's composed from its pool ids or
+// original icon numbers), effects (fly: a shot's sprite over the moment),
+// the turn's bar, the cursor, the walks, the aim, the strike and the log.
+// party are the figures the members stand as then. nil outside a fight.
+func (p *Presenter) boardOf(c *play.Combat, party []game.Member, fly *flight) *combat.Board {
 	if c == nil {
 		return nil
 	}
-	b := &front.Battle{
+	var art map[string]game.Picture
+	var d game.Data
+	if p.eng != nil {
+		art, d = p.eng.art(), p.eng.D
+	}
+	ink := egaInk
+	b := &combat.Board{
+		WallTiles: dungeonTiles, StoneTile: 3, TileNames: slices.Clone(c.Tiles),
 		Floor: c.Floor, Dungeon: c.Dungeon, Cursor: c.Cursor, CursorOn: c.CursorOn, CursorAt: slices.Clone(c.CursorAt),
 		Marks: slices.Clone(c.Marks), Targets: slices.Clone(c.Targets), Panel: c.Panel, Log: slices.Clone(c.Log),
 		Area: c.Area, AreaAt: slices.Clone(c.AreaAt), Skipped: slices.Clone(c.Skipped), AimWhy: c.Why, View: c.View,
-		Strike: front.Strike{Seq: c.Strike.Seq, From: c.Strike.From, To: c.Strike.To, Hit: c.Strike.Hit, Damage: c.Strike.Damage},
+		Strike: combat.Strike{Seq: c.Strike.Seq, From: c.Strike.From, To: c.Strike.To, Hit: c.Strike.Hit, Damage: c.Strike.Damage},
 	}
+	grid := image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))
 	for _, g := range c.Squares {
-		if g.At.In(image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))) {
-			b.Ground[g.At.Y][g.At.X] = front.Square{Tile: g.Tile, Wall: g.Block, Height: g.Height}
+		if g.At.In(grid) {
+			b.Ground[g.At.Y][g.At.X] = combat.Square{Tile: g.Tile, Wall: g.Block, Height: g.Height}
 		}
 	}
-	b.TilePix = make([]front.Picture, 0x100)
-	b.TileNames = slices.Clone(c.Tiles)
+	tiles := make([]front.Picture, 0x100)
 	if c.FloorTile != "" {
-		b.FloorImg = sprites.Image(Series, "combat", c.FloorTile)
+		b.FloorTile = sprites.Image(Series, "combat", c.FloorTile)
 	}
 	slot, slots := len(c.Tiles), map[string]int{} // a square's own Art: a tile slot of its own past the named tiles, one per picture
 	slotOf := func(a game.Picture) (int, bool) {  // a's tile slot, made on first use
-		if a.File == "" && a.Pixels == nil && a.Name == "" {
+		if !hasPic(a) {
 			return 0, false
 		}
 		if a.File == "" && a.Pixels == nil { // a name only: a Combat.Tiles tile is its own slot
@@ -149,20 +136,17 @@ func BattleOf(c *play.Combat, party []game.Member, art map[string]game.Picture) 
 		k := fmt.Sprint(a.File, a.Block, a.Frame, a.Name, len(a.Pixels))
 		t, ok := slots[k]
 		if !ok {
-			for len(b.TilePix) <= slot { // past 0x100 (a game naming every tile): more slots, not none
-				b.TilePix = append(b.TilePix, front.Picture{})
+			for len(tiles) <= slot { // past 0x100 (a game naming every tile): more slots, not none
+				tiles = append(tiles, front.Picture{})
 			}
 			t, ok, slots[k] = slot, true, slot
-			b.TilePix[slot] = pix(a)
-			if im := sprites.Image(Series, "combat", a.Name); a.File == "" && a.Pixels == nil && im != nil { // a series sprite by name, as Combat.Tiles' are
-				b.TilePix[slot].Img = im
-			}
+			tiles[slot] = tilePicture(a.Name, a)
 			slot++
 		}
 		return t, ok
 	}
 	for _, g := range c.Squares {
-		if !g.At.In(image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))) {
+		if !g.At.In(grid) {
 			continue
 		}
 		if g.Art.File != "" || g.Art.Pixels != nil {
@@ -175,25 +159,28 @@ func BattleOf(c *play.Combat, party []game.Member, art map[string]game.Picture) 
 		}
 	}
 	for i, n := range c.Tiles {
-		if n != "" && i < len(b.TilePix) {
-			b.TilePix[i] = pix(art[n])
-			if im := sprites.Image(Series, "combat", n); art[n].File == "" && b.TilePix[i].Pix == nil && im != nil { // a series sprite
-				b.TilePix[i].Img = im
-			}
+		if n != "" && i < len(tiles) {
+			tiles[i] = tilePicture(n, art[n])
 		}
 	}
+	b.Tiles = make([]image.Image, len(tiles))
+	for i, pc := range tiles {
+		b.Tiles[i] = textured(picImage(pc, ink))
+	}
 	for _, f := range c.Effects {
-		b.Effects = append(b.Effects, front.Effect{X: float64(f.X) / 3, Y: float64(f.Y) / 3})
-		b.EffectPix = append(b.EffectPix, pix(f.Art))
+		b.Effects = append(b.Effects, combat.Effect{X: float64(f.X) / 3, Y: float64(f.Y) / 3, Pic: picImage(pix(f.Art), ink)})
+	}
+	if fly != nil {
+		b.Effects = append(b.Effects, combat.Effect{X: fly.X, Y: fly.Y, Pic: picImage(pix(fly.Art), ink)})
 	}
 	for _, r := range c.Reach {
 		b.Reach = append(b.Reach, r.At)
 		if b.Paths == nil {
-			b.Paths = map[image.Point][]front.Step{}
+			b.Paths = map[image.Point][]combat.Step{}
 		}
-		var path []front.Step
+		var path []combat.Step
 		for _, st := range r.Path {
-			path = append(path, front.Step{Point: st.At, Free: st.Free})
+			path = append(path, combat.Step{Point: st.At, Free: st.Free})
 		}
 		b.Paths[r.At] = path
 	}
@@ -201,7 +188,7 @@ func BattleOf(c *play.Combat, party []game.Member, art map[string]game.Picture) 
 		if g.Gone {
 			continue
 		}
-		u := front.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
+		u := combat.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
 			Active: g.Active, Name: g.Name, HP: g.HP, MaxHP: g.MaxHP, AC: g.AC, Hit: g.Hit, Dmg: g.Dmg, Status: g.Status, Down: g.Dead}
 		if g.Member >= 0 && g.Member < len(party) {
 			for _, it := range party[g.Member].Items {
@@ -224,44 +211,54 @@ func BattleOf(c *play.Combat, party []game.Member, art map[string]game.Picture) 
 				icon, u.IconSize = pic, size
 			}
 		}
+		if u.Icon == nil {
+			u.Icon = picImage(icon, ink)
+			if u.Icon == nil && (icon.File != "" || icon.Name != "" || icon.Pix != nil) { // a picture that does not load (a DAX block the file lacks): gobox's default figure, never an empty square
+				u.Icon = PickIcon(game.Member{}, "", "") // ponytail: one stand-in for every lost picture; a per-kind monster stand-in when the pool has one
+			}
+			if u.IconSize == (image.Point{}) {
+				u.IconSize = nativeSize(icon)
+			}
+		}
 		b.Units = append(b.Units, u)
-		b.IconPix = append(b.IconPix, icon)
+	}
+	if b.CursorOn && len(b.CursorAt) == 0 { // a game that sets only Cursor: the square (a large unit's footprint)
+		b.CursorAt = []image.Point{b.Cursor}
+		for _, u := range b.Units {
+			if slices.Contains(u.Squares, b.Cursor) {
+				b.CursorAt = u.Squares
+			}
+		}
 	}
 	if t := c.Turn; t != nil {
-		b.Turn = &front.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves}
-		turnExtras(b.Turn, t)
-		b.Turn.Can, b.Turn.Options = turnOptions(t)
-		for _, sp := range c.Spells {
-			b.Turn.Spells = append(b.Turn.Spells, front.Spell{ID: sp.ID, Name: sp.Name})
+		b.Turn = &combat.Turn{Unit: t.Unit, Aim: t.Aim, Casting: t.Spell, Moves: t.Moves, CastDirect: len(c.Spells) == 0}
+		for _, op := range turnOptions(c, d) {
+			act, ok := turnAct(op.Do)
+			if !ok { // a decision with no act of its own (an Answer by hotkey): the bar sends the option itself
+				act = front.ActOption
+			}
+			k, known := combatKinds[act]
+			if known {
+				b.Turn.Can = append(b.Turn.Can, k)
+			}
+			if !known || act == 0 {
+				k = combat.ActOption
+			}
+			key := byte(0)
+			if op.Key > 0 && op.Key < 128 {
+				key = byte(op.Key)
+			}
+			b.Turn.Options = append(b.Turn.Options, combat.Option{Label: op.Label, Key: key, Kind: k, Chords: op.Chords})
 		}
 	}
 	return b
 }
 
-// turnOptions are t's options as the front's acts (Can) and as the bar's
-// buttons, every one the game offers: one without a front act is ActOption.
-func turnOptions(t *play.Turn) (can []front.ActKind, ops []front.TurnOption) {
-	for _, op := range t.Options {
-		act, ok := turnAct(op.Do)
-		if !ok { // a decision with no act of its own (an Answer by hotkey): the bar sends the option itself
-			act = front.ActOption
-		}
-		can = append(can, act)
-		key := byte(0)
-		if op.Key > 0 && op.Key < 128 {
-			key = byte(op.Key)
-		}
-		ops = append(ops, front.TurnOption{Label: op.Label, Key: key, Kind: act, Chords: op.Chords})
-	}
-	return can, ops
-}
-
-// turnExtras gives o the Turn's weapons and maneuvers.
-func turnExtras(o *front.Turn, t *play.Turn) {
-	o.Weapon, o.Missile, o.Maneuvers = weapon(t.Weapon), weapon(t.Missile), nil
-	for _, m := range t.Maneuvers {
-		o.Maneuvers = append(o.Maneuvers, front.Maneuver{ID: m.ID, Name: m.Name, Tip: m.Tip, Aim: front.Aim(m.Aim), Range: m.Range, Area: m.Area, Move: m.Shift})
-	}
+// flight is a shot's sprite at a square (in squares, a third's steps) over
+// the board a moment holds.
+type flight struct {
+	X, Y float64
+	Art  game.Picture
 }
 
 // weapon is w as the bar shows it (nil: none).

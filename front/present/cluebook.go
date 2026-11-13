@@ -26,7 +26,7 @@ type clueUI struct {
 
 // openClue opens the clue book: on the page last left, else the list.
 func (p *Presenter) openClue(v front.View) {
-	if p.eng == nil || !v.Exploring || p.modal(v) {
+	if p.eng == nil || !v.Exploring || p.modal() {
 		return
 	}
 	if r := p.clueRead; r != nil && !p.clueEnd {

@@ -17,6 +17,8 @@ type castGame struct {
 	lone bool
 }
 
+func (r *castGame) Version() uint64 { return fresh() }
+
 func (r *castGame) State() play.State {
 	sq := []image.Point{{1, 1}, {2, 1}, {3, 1}, {4, 1}}
 	al := play.Allowed{Aimed: []play.Aimed{{Action: play.Cast{Spell: 7}, Squares: sq, Targets: 1}}, Plain: []play.Action{play.EndTurn{}}}

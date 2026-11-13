@@ -162,13 +162,10 @@ func (g *Game) View() front.View {
 		g.r.lookSheet = 0
 	}
 	amap, allowed, loot, shop := r.automapOf(ps), allowedOf(ps), lootOf(ps), shopOf(ps)
-	services, offers := templeOf(ps)
+	services, _ := templeOf(ps)
 	training, draft := trainingOf(ps), creationOf(ps)
 	own := OwnSubject(mode, draft, party, sel)
-	v := front.View{Exploring: mode == game.ModeExplore, NoMap: amap.NoMap}
-	if amap.Size == image.Pt(16, 16) {
-		v.Map = &front.MapSquares{}
-	}
+	v := front.View{Exploring: mode == game.ModeExplore}
 	switch r.itemsUp(ps) { // the builders refine a screen the game has up
 	case game.ItemsOwn:
 		v.Inventory = &front.Inventory{}
@@ -191,10 +188,7 @@ func (g *Game) View() front.View {
 	if mode == game.ModeCamp {
 		v.Camp = &front.Camp{}
 	}
-	heals, studies := restOf(ps)
 	v.MainMenu, v.Hall = PartyMenu(mode, training, pending, c.Where.Hall)
-	v.Map, v.Camp = Map(v.Map, amap, c.Where), Camp(v.Camp, party, sel, heals, studies, allowed["NoRest"], nil)
-	v.Temple, v.Shop = Temple(v.Temple, services, offers, c.Purse, allowed, party, sel), Shop(v.Shop, shop, c.Purse, allowed, party)
 	v.Inventory = Inventory(v.Inventory, mode, party, sel, c.PartyCap, c.PoolItems, c.Purse, allowed, shop, loot)
 	v = askOver(v, mode, pending, loot != nil || training != nil)
 	if mode == game.ModeLoot && loot != nil && announced(ps) { // the treasure's picture under a message; Enter or Space opens it
@@ -206,26 +200,12 @@ func (g *Game) View() front.View {
 	if v.MainMenu != nil && !v.Hall && v.Powers == nil {
 		v.Logo = Title(v.Logo, art)
 	}
-	v.Battle = Battle(BattleOf(combat, party, art), combat, party)
-	if m := g.r.spellAim; m != nil && v.Battle != nil && combat != nil && len(v.Battle.AreaAt) == 0 { // the aimed spell's area, previewed
-		for _, sp := range combat.Aims {
-			if sp.ID == m.spell {
-				v.Battle.AimArea = sp.Area + 1
-			}
-		}
-	}
-	v.Battle = ViewVerb(v.Battle, g.D)
 	v = Page(v, r.pageOf(ps), storyOf(c))
 	v = Flags(v, r.flagsOf(ps, party), OverMenu(mode, pending))
-	if m := r.mapOf(ps); m != nil {
-		v.Open = openSides(m, c.Where)
-	}
 	v = Place(v, c.Where, windowOf(ps))
-	v.Quests, v.Lore = Quests(c.Quests), Lore(c.Lore)
-	v = Waits(v, game.Hold(holding(ps)), doorOf(ps), c.PowerPick)
+	v = Waits(v, doorOf(ps), c.PowerPick)
 	v.Party, v.Purse = Party(party, cardsOf(ps), sel), Purse(c.Purse, c.PoolItems, c.PartyCap)
 	v = Sheet(v, sheet, image.Rectangle{}, image.Rectangle{}, page, Drafting(mode, draft), draft, own)
-	v = BorderView(v, art)
 	v = Walls(v, r.wallsOf(ps), art)
 	v = Intro(v, introOf(ps))
 	v = Sequence(v, sequenceOf(ps), g.D.Sequences, g.D.AnimDir())
@@ -233,7 +213,6 @@ func (g *Game) View() front.View {
 	v = Results(v, resultsOf(ps))
 	v = Screen(v, image.Point{}, screenOf(ps), [16]color.RGBA{})
 	v.Read = r.readOf(ps)
-	v = Pacing(v, r.pacingOf(ps))
 	if n := len(c.Lore) + 1; g.r.lore > 0 && n > g.r.lore { // the journal gained a note: gobox says so, the game prints nothing
 		g.r.toast = front.Note{Text: "Added to journal", At: time.Now()}
 		g.r.lore = n
@@ -250,28 +229,6 @@ func (g *Game) View() front.View {
 	v.Picker = Picker(c.Picker, image.Point{}, 0, g.r.grid.X, g.r.grid.Y)
 	v.IconEditor = IconEditor(c.IconEditor, nil, own, &v.Ink, g.r.grid.X, g.r.grid.Y)
 	return v
-}
-
-// ViewVerb is b with the series' View (Data.VerbKeys) on the turn's bar,
-// at its VerbOrder place, when the game offers none: the active member's
-// sheet (ActView, as a portrait's ActMember in a turn).
-func ViewVerb(b *front.Battle, d game.Data) *front.Battle {
-	k, ok := d.VerbKeys["View"]
-	if b == nil || b.Turn == nil || !ok || len(b.Turn.Options) == 0 || b.Turn.Aim || slices.ContainsFunc(b.Turn.Options, func(o front.TurnOption) bool { return o.Label == "View" || o.Kind == front.ActView }) {
-		return b
-	}
-	c, t := *b, *b.Turn
-	at := len(t.Options)
-	if vi := slices.Index(d.VerbOrder, "View"); vi >= 0 {
-		at = slices.IndexFunc(t.Options, func(o front.TurnOption) bool { i := slices.Index(d.VerbOrder, o.Label); return i > vi })
-		if at < 0 {
-			at = len(t.Options)
-		}
-	}
-	t.Options = slices.Insert(slices.Clone(t.Options), at, front.TurnOption{Label: cmp.Or(d.Texts["View"], "View"), Key: byte(k), Kind: front.ActView})
-	t.Can = slices.Insert(slices.Clone(t.Can), min(at, len(t.Can)), front.ActView)
-	c.Turn = &t
-	return &c
 }
 
 // Settle goes on to the next wait and returns what happened since, as the
@@ -418,82 +375,6 @@ func momentKind(k game.EventKind) bool {
 		return true
 	}
 	return false
-}
-
-// legacyEvents is ms as the old player takes them (front.CombatEvent: the
-// board as a front.Battle, a scene as a whole View v). view-cut: removed by
-// slice 2, which plays the Moments.
-func (g *Game) legacyEvents(ms []Moment, v front.View) (out []front.CombatEvent) {
-	kinds := map[game.EventKind]front.EventKind{
-		game.EvAttack: front.EvAttack, game.EvHit: front.EvHit, game.EvMiss: front.EvMiss, game.EvDamage: front.EvDamage,
-		game.EvDown: front.EvDied, game.EvSpell: front.EvSpell, game.EvMove: front.EvMoved, game.EvMissile: front.EvMissile,
-		game.EvMessage: front.EvMessage, game.EvSound: front.EvSound, game.EvSong: front.EvSong, game.EvSaves: front.EvSaves,
-	}
-	for _, m := range ms {
-		e := m.Report
-		if e.Screen != nil { // a timed typed screen: the scene with the screen as it stood
-			sc := v
-			sc.Screen = e.Screen
-			out = append(out, front.CombatEvent{Kind: front.EvFrame, Ms: e.Ms, Scene: &sc})
-			continue
-		}
-		if e.Page != nil { // a timed page: the scene as the page stood
-			sc := Page(v, e.Page, nil)
-			out = append(out, front.CombatEvent{Kind: front.EvFrame, Ms: e.Ms, Scene: &sc})
-			continue
-		}
-		k := kinds[e.Kind]
-		ce := front.CombatEvent{Kind: k, Unit: e.Unit, Target: e.Target, Amount: e.N, From: e.At, To: e.To, Text: e.Text, Ms: m.Ms}
-		if n, err := strconv.Atoi(e.Sound); err == nil && ce.Amount == 0 && (k == front.EvSound || k == front.EvSong) { // the sound or song ref as a number
-			ce.Amount = n
-		}
-		ce.Battle = BattleOf(m.Board, m.Party, g.art())
-		if k == front.EvMissile && len(e.Sprite) > 0 && ce.Battle != nil { // the shot flies: its sprite square by square from the shooter, in thirds, over the moment
-			out = append(out, missileFlight(ce, e.Sprite[0], e.StepMs)...)
-			continue
-		}
-		out = append(out, ce)
-	}
-	return out
-}
-
-// legacySettle is Settle with its moments as the old View's Events, for
-// the tests of the old player. view-cut: removed by slice 2.
-func (g *Game) legacySettle() front.View {
-	ms := g.Settle()
-	v := g.View()
-	v.Events = g.legacyEvents(ms, v)
-	return v
-}
-
-// missileFlight is the moment ce (a missile held on its Battle) as the
-// sprite's flight from ce.Unit's square (else From) to To, a frame a third
-// of a square, the moment's time shared among them.
-func missileFlight(ce front.CombatEvent, art game.Picture, step int) []front.CombatEvent {
-	from := ce.From
-	for _, u := range ce.Battle.Units {
-		if u.ID == ce.Unit {
-			from = image.Pt(u.X, u.Y)
-		}
-	}
-	d := ce.To.Sub(from)
-	n := 3 * max(d.X, -d.X, d.Y, -d.Y, 1)
-	out := make([]front.CombatEvent, 0, n+1)
-	for i := 0; i <= n; i++ {
-		f := ce
-		b := *ce.Battle
-		b.Effects = append(slices.Clone(b.Effects), front.Effect{X: float64(from.X) + float64(d.X*i)/float64(n), Y: float64(from.Y) + float64(d.Y*i)/float64(n)})
-		b.EffectPix = append(slices.Clone(b.EffectPix), pix(art))
-		f.Battle, f.Ms, f.From = &b, max(ce.Ms/(n+1), 1), from
-		if step > 0 { // the game's own pace, whatever the game speed
-			f.Ms = step
-		}
-		if i > 0 {
-			f.Kind = front.EvFrame
-		}
-		out = append(out, f)
-	}
-	return out
 }
 
 // posedBoard is the fight as it stands with e's Unit in e's Pose, and the
@@ -1002,8 +883,8 @@ func (g *Game) act(a front.Action) func() error {
 	}
 	switch a.Kind {
 	case front.ActOption: // the turn's option N, as the game offers it
-		if c := g.combat(); c != nil && c.Turn != nil && a.N >= 0 && a.N < len(c.Turn.Options) && c.Turn.Options[a.N].Do != nil {
-			return send(c.Turn.Options[a.N].Do)
+		if ops := turnOptions(g.combat(), g.D); a.N >= 0 && a.N < len(ops) && ops[a.N].Do != nil {
+			return send(ops[a.N].Do)
 		}
 		return nil
 	case front.ActClose:

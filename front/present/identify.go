@@ -12,24 +12,36 @@ import (
 	"gobox/ui"
 )
 
-// The shop's Id (View.Shop.Identified): what it revealed in a pop-up of
+// The shop's Id (play.Trading.Known): what it revealed in a pop-up of
 // its own over the dimmed screen, the icon large, the name and every line
 // of what the item does in colour. Any key or click closes it.
 
 // identified is the reveal still to show (nil: none).
-func (p *Presenter) identified(v front.View) *front.InvItem {
-	if s := v.Shop; s != nil && s.Identified != nil && s.IdentifiedN != p.idSeen {
-		return s.Identified
+func (p *Presenter) identified() *front.InvItem {
+	s := p.state()
+	sh := shopOf(s)
+	if sh == nil || sh.Identified == nil {
+		p.camp.idShut = false // the next reveal is a new one
+		return nil
 	}
-	return nil
+	if p.camp.idShut && p.camp.idSeen == *sh.Identified {
+		return nil
+	}
+	it := itemOf(partyOf(s), *sh.Identified)
+	if it == nil {
+		return nil
+	}
+	x := invItem(*it)
+	x.Look = lines(it.Text)
+	return &x
 }
 
 // identDone closes the reveal's pop-up if one is up; it reports whether one was.
-func (p *Presenter) identDone(v front.View) bool {
-	if p.identified(v) == nil {
+func (p *Presenter) identDone() bool {
+	if p.identified() == nil {
 		return false
 	}
-	p.idSeen = v.Shop.IdentifiedN
+	p.camp.idSeen, p.camp.idShut = *shopOf(p.state()).Identified, true
 	return true
 }
 

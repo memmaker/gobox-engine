@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
 	"gobox/game/play"
 )
 
@@ -26,12 +27,12 @@ func TestTrainingSwitch(t *testing.T) {
 // TestTrainingSwitchGameHall: the switch works in a hall the game opened
 // (ModeTraining: the View has Training, the front's Train never ran).
 func TestTrainingSwitchGameHall(t *testing.T) {
+	g, f := playGame(play.Trading{Kind: play.TradeTraining, Training: &game.Training{Why: map[int]string{1: "NOT ENOUGH EXPERIENCE"}}})
 	p := &Presenter{}
-	p.shownView.Training = &front.Training{Why: "NOT ENOUGH EXPERIENCE"}
+	p.SetEngine(g)
 	if !p.serviceAct(front.Action{Kind: front.ActLead, N: 1}) {
 		t.Fatal("not taken")
 	}
-	g, f := playGame(play.Trading{})
 	for _, c := range p.Calls() {
 		c(g)
 	}

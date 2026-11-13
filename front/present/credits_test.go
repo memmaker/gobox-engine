@@ -51,7 +51,7 @@ func checkCreditsPage(t *testing.T, name string, lines []Credit, boxes []image.R
 
 		v.Cells.X, v.Cells.Y = sz[0]/(8*int(K)), sz[1]/(8*int(K))
 		c := newCellPage(v)
-		c.texts(v)
+		c.texts(v, false)
 		var rows []string
 		for _, r := range c.cells {
 			var b strings.Builder

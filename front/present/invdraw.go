@@ -269,7 +269,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note, v front.View) bool {
 	switch {
 	case shop && in.member >= 0 && in.member < len(party): // the shop shows the shopper's items only
 		head = party[in.member].Name
-	case v.Battle != nil: // a fight's Use: the acting member's own items, never the party's
+	case p.board != nil: // a fight's Use: the acting member's own items, never the party's
 		head = "Items"
 	}
 	onBorder(inv.img, inv.glyph, rx, 0, true, []string{head}, []color.RGBA{white})

@@ -47,7 +47,7 @@ type cellPage struct {
 	ink        [16]color.RGBA
 	cells      [][]cell
 	pics       []front.Picture  // the View's pictures, then the cells cleared (fills)
-	boxes      []front.CellRect // DrawBorder's insides: the border's cells round them (View.Border)
+	boxes      []front.CellRect // DrawBorder's insides: the border's cells round them (the window border)
 	overs      []overlay
 }
 
@@ -147,10 +147,10 @@ func (c *cellPage) lines() [][]front.PaneRun {
 // engine's page: the picker's pictures in their cells, the portrait and
 // combat icon on the sheets; never a frame or a fill (the credits sit on
 // black, not over the title picture).
-func contentPictures(v front.View) []front.Picture {
+func (p *Presenter) contentPictures(v front.View) []front.Picture {
 	var in []image.Rectangle
 	switch {
-	case v.Slots != nil, v.IconEditor != nil && v.Picker == nil:
+	case p.slotsView() != nil, v.IconEditor != nil && v.Picker == nil:
 	case v.Picker != nil:
 		return v.Picker.Pics
 	default:
@@ -176,22 +176,23 @@ func contentPictures(v front.View) []front.Picture {
 	return out
 }
 
-func screenPage(v front.View) *cellPage {
-	v.Pictures = contentPictures(v) // nothing of the engine's page: only the art in the screen's own places
-	if v.Slots != nil {
+func (p *Presenter) screenPage(v front.View) *cellPage {
+	sl := p.slotsView()
+	v.Pictures = p.contentPictures(v) // nothing of the engine's page: only the art in the screen's own places
+	if sl != nil {
 		v.SheetPage, v.Picker, v.IconEditor = nil, nil, nil
 	}
 	if v.IconEditor != nil || v.Picker != nil { // also a picker over the icon editor, in its palette: no grey cells
 		v.Ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
 	}
-	if cr := v.Creation; cr != nil && v.Picker == nil && v.Slots == nil { // the combat icon on grey, as in the icon editor: its black parts show
+	if cr := v.Creation; cr != nil && v.Picker == nil && sl == nil { // the combat icon on grey, as in the icon editor: its black parts show
 		v.Pictures = append([]front.Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: col(inkDark)}}, v.Pictures...)
 	}
 	c := newCellPage(v)
-	if cr := v.Creation; cr != nil && cr.Scale > 1 && v.Picker == nil && v.Slots == nil {
+	if cr := v.Creation; cr != nil && cr.Scale > 1 && v.Picker == nil && sl == nil {
 		c.pics = c.scaled(cr)
 	}
-	c.texts(v)
+	c.texts(v, barShown(v, sl))
 	if s := v.SheetPage; s != nil {
 		c.sheet(s, v)
 	}
@@ -201,13 +202,13 @@ func screenPage(v front.View) *cellPage {
 	if ed := v.IconEditor; ed != nil {
 		c.iconEditor(ed)
 	}
-	if barShown(v) { // the bar on the prompt row
+	if barShown(v, sl) { // the bar on the prompt row
 		for _, w := range barWords(v) {
 			c.str(w.x, c.rows-1, inkWhite, w.label[:1])
 			c.str(w.x+1, c.rows-1, inkGreen, w.label[1:])
 		}
 	}
-	if sl := v.Slots; sl != nil {
+	if sl != nil {
 		c.box(1, 1, c.cols-2, c.rows-2, inkWhite, "Saved Games")
 		if len(sl.Names) > 0 { // the column heads above the rows (slotList: text from column 3)
 			w, lc := slotCols(c.cols)
@@ -227,8 +228,8 @@ func screenPage(v front.View) *cellPage {
 }
 
 // barShown is whether the special screen's bar is on the prompt row.
-func barShown(v front.View) bool {
-	return (v.Creation != nil || v.IconEditor != nil) && v.Picker == nil && v.Slots == nil
+func barShown(v front.View, sl *front.Slots) bool {
+	return (v.Creation != nil || v.IconEditor != nil) && v.Picker == nil && sl == nil
 }
 
 // footWord is a word of the slot page's footer: its text, the key it
@@ -269,9 +270,9 @@ func slotFooter(sl *front.Slots, cols int) []footWord {
 // texts lays out the game's text: the text pane, the prompt row, the view
 // window's text, the party panel (roster, status line), after-combat and
 // the credits.
-func (c *cellPage) texts(v front.View) {
+func (c *cellPage) texts(v front.View, bar bool) {
 	for _, r := range v.Prompt {
-		if barShown(v) { // the bar owns the row: a prompt under it shows through its gaps
+		if bar { // the bar owns the row: a prompt under it shows through its gaps
 			break
 		}
 		c.run(r, c.rows-1)
@@ -416,12 +417,12 @@ func capOr(b [ui.Places]image.Image, cap, side int) int {
 	return side
 }
 
-// cellBorder draws View.Border's cells into m round the cells of r. The
+// cellBorder draws the window border's cells into m round the cells of r. The
 // page boxes are text-grid cells drawn into the page's CPU image (uploaded
 // once per View, cropped by the adventure frame), not window()'s GPU pass.
-func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
+func cellBorder(m *image.RGBA, wb windowBorder, cells image.Point, r front.CellRect) {
 	f := r.Framed()
-	b := borderPieces(v)
+	b := wb.pieces
 	tile := func(i, x, y int) {
 		if t := b[i]; t != nil {
 			draw.Draw(m, image.Rect(x*8, y*8, x*8+8, y*8+8), t, t.Bounds().Min, draw.Over)
@@ -446,7 +447,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		tile(l, f.X1, y)
 		tile(r, f.X2, y)
 	}
-	if v.Border != ([8]image.Image{}) {
+	if wb.own {
 		return // the game's own pieces
 	}
 	all := borderEdges()
@@ -468,7 +469,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		}
 	}
 	h, w := f.Y2-f.Y1+1, f.X2-f.X1+1
-	cols := v.Cells.X
+	cols := cells.X
 	if cols == 0 {
 		cols = 40
 	}
@@ -488,7 +489,7 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 		key, outer string
 		y          int
 		outerRow   bool
-	}{{"rule", "top", f.Y1, f.Y1 == 0}, {"rule", "bottom", f.Y2, f.Y2 >= v.Cells.Y-1}} {
+	}{{"rule", "top", f.Y1, f.Y1 == 0}, {"rule", "bottom", f.Y2, f.Y2 >= cells.Y-1}} {
 		key := edge.key
 		if edge.outerRow {
 			key = edge.outer
@@ -501,10 +502,10 @@ func cellBorder(m *image.RGBA, v front.View, r front.CellRect) {
 
 // draw draws the page into m (its pictures, the borders' cells, the text
 // in the game's font).
-func (c *cellPage) draw(m *image.RGBA, v front.View, note Note) {
+func (c *cellPage) draw(m *image.RGBA, wb windowBorder, cells image.Point, note Note) {
 	drawPictures(m, c.pics, image.Point{})
 	for _, r := range c.boxes {
-		cellBorder(m, v, r)
+		cellBorder(m, wb, cells, r)
 	}
 	for y, row := range c.cells {
 		for x, k := range row {

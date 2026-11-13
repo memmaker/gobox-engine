@@ -46,7 +46,7 @@ func (p *Presenter) Shown() Shown {
 	if in := p.inventory(); in != nil {
 		t = in.treasure
 	}
-	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: p.inventoryUp(), Battle: v.Battle != nil,
+	return Shown{Treasure: t, Ask: v.Ask != nil, Powers: v.Powers != nil, Sheet: v.Sheet != nil, Inventory: p.inventoryUp(), Battle: p.board != nil,
 		Camp: v.Camp != nil, MainMenu: p.mainMenuUp(), Loot: v.Loot, Door: v.Door, Resting: p.pacing().Resting, Party: len(v.Party)}
 }
 
@@ -120,7 +120,7 @@ func (p *Presenter) openSlots(v front.View, loadOnly bool) {
 	switch {
 	case p.slots != nil:
 		p.slots = nil
-	case p.eng != nil && !p.modal(v) && p.eng.SlotsView(loadOnly) != nil:
+	case p.eng != nil && !p.modal() && p.eng.SlotsView(loadOnly) != nil:
 		p.slots = &SlotsUI{LoadOnly: loadOnly}
 	}
 }
@@ -142,7 +142,6 @@ func (p *Presenter) own(v front.View) front.View {
 	v.Pictures = daxPictures(indexedPictures(v.Pictures, v.Ink))
 	v = p.ownQuestion(p.ownPicker(p.ownCreation(p.ownTraining(v))))
 	if p.slots != nil && p.eng != nil {
-		v.Slots = p.eng.SlotsView(p.slots.LoadOnly)
 		v.MainMenu, v.Logo = nil, nil // the page covers the party menu: its keys are the page's
 	}
 	return v

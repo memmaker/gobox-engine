@@ -18,6 +18,8 @@ import (
 	"gobox/dax/vace"
 	"gobox/ega"
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 	"gobox/input"
 	"gobox/ui"
@@ -53,7 +55,6 @@ type Presenter struct {
 	ticks       float64                     // animation time not yet run, in 1/60 s ticks
 	border      borders                     // the game's window border
 	bars        *gpu.Image                  // bars.png
-	idSeen      int                         // the shop's last Id reveal shown and closed (identify.go)
 	idImg       *gpu.Image                  // its pop-up
 	expShown    bool                        // drawParty: every card's experience bar, Ctrl or not (the training hall)
 	cardImgs    []*gpu.Image                // the cards, drawn at scale 1...
@@ -101,14 +102,26 @@ type Presenter struct {
 	mapBottom   int                         // screen rows above this are the 3D map
 	fight       bool                        // the last frame was the 3D combat map
 	inv         inventory                   // the inventory screen (inventory.go)
-	fightView   *front.Battle               // the combat map last drawn
-	lastBattle  *front.Battle               // the board before the events now playing (keepFallen)
-	lastFight   *front.View                 // the fight's view last drawn: a Result's events that end the fight play on it
-	inkAsk      *front.Ask                  // the question whose menu is being drawn: its colours (asking)
-	replay      replay                      // the fight's events still to play
-	logGrey     bool                        // drawMenu's plain text light grey, not green (the battle Log)
-	fightLog    bool                        // the battle Log is up (fight.go)
-	blowLine    string                      // the last line a blow's replay said, shown on the pane a while
+	live        struct {                    // the fight and party read from the game at key (liveFight)
+		key   fightSource
+		ok    bool
+		c     *play.Combat
+		party []game.Member
+	}
+	fightLists  lists         // the turn's weapons, spells and maneuvers (drawnBoard)
+	boardKey    boardKey      // what fightBoard was made from (drawnBoard)
+	board       *play.Combat  // the fight this frame shows: the live one, or the one a replayed moment holds (nil: none)
+	boardParty  []game.Member // the party's figures on board
+	fightView   *play.Combat  // board with the fallen kept until their fall plays (keepFallen)
+	fightBoard  *combat.Board // fightView as the tabletop draws it, aims put in
+	fly         *flight       // a shot's sprite over board (a replayed missile frame)
+	lastBoard   *play.Combat  // the fight before the moments now playing (keepFallen)
+	lastFight   *front.View   // the fight's view last drawn: a Result's events that end the fight play on it
+	inkAsk      *front.Ask    // the question whose menu is being drawn: its colours (asking)
+	replay      replay        // the fight's events still to play
+	logGrey     bool          // drawMenu's plain text light grey, not green (the battle Log)
+	fightLog    bool          // the battle Log is up (fight.go)
+	blowLine    string        // the last line a blow's replay said, shown on the pane a while
 	blowAt      time.Time
 	fightCard   image.Rectangle           // the active member's card (fight.go): a click the sheet
 	rowsImg     *gpu.Image                // the combat rows, drawn at scale 1
@@ -217,18 +230,26 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.intro.NoCredits = len(credits) == 0
 	IntroStep(p, &p.intro, v.Intro, false)
 	ev := p.playing()
-	if ev != nil && ev.Kind == front.EvMoved && ev.Ms > 0 { // a step's hold is how long the figure takes for it
+	if ev != nil && ev.Kind == game.EvMove && ev.Ms > 0 { // a step's hold is how long the figure takes for it
 		p.battle.StepTime = float64(ev.Ms) / 1000
 	}
-	if ev != nil && ev.Scene != nil { // the page as it stood at the pause played
-		v = *ev.Scene
-	} else if ev != nil { // the fight as it stood at the event played
-		if v.Battle == nil && p.lastFight != nil { // the Result ended the fight: its events play on the fight they happened in, the page after them
+	live, party := p.liveFight()
+	p.board, p.boardParty, p.fly = live, party, nil
+	if ev != nil && (ev.Page != nil || ev.Screen != nil) { // the page or screen as it stood at the pause played, over the live state
+		if ev.Page != nil {
+			v = Page(v, ev.Page, nil)
+		}
+		if ev.Screen != nil {
+			v.Screen = ev.Screen
+		}
+	} else if ev != nil { // the fight as it stood at the moment played
+		if live == nil && p.lastFight != nil { // the Result ended the fight: its moments play on the fight they happened in, the page after them
 			v = *p.lastFight
 		}
-		v.Battle, v.Party = ev.Battle, ev.Party
+		p.board, p.boardParty, p.fly = ev.Board, ev.Party, ev.fly
+		v.Party = nil
 		v.Ask = nil
-	} else if v.Battle != nil {
+	} else if live != nil {
 		p.lastFight = &v
 	} else {
 		p.lastFight = nil
@@ -237,7 +258,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.scrolls.Reset()
 	p.noteBtn = image.Rectangle{}
 	p.battle.Asking = confirm(v) != ""
-	if !pageScreen(v) { // none up: the next one opens fresh (F10 on the last save)
+	if !p.pageScreen(v) { // none up: the next one opens fresh (F10 on the last save)
 		p.scr.up = ""
 	}
 	r := p.draw(dst, note, v)
@@ -250,7 +271,7 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note, v front.View) Rect {
 	} else {
 		p.confirmFor, p.confirmAt = "", nil
 	}
-	if it := p.identified(v); it != nil { // the shop's Id: what it revealed, over everything
+	if it := p.identified(); it != nil { // the shop's Id: what it revealed, over everything
 		p.drawIdentified(dst, note.Glyph, it)
 	}
 	p.pick = spellPick(v)
@@ -310,14 +331,14 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if !p.exploring() {
 		p.fullMap = nil
 	}
-	p.cmds = commands(v)
+	p.cmds = p.commands()
 	if !p.active {
 		p.ctx = 0
 	}
-	p.fight = v.Battle != nil && !(p.sheetUp(v) && p.sheetPage() != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
-	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1        // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
+	p.fight = p.board != nil && !(p.sheetUp(v) && p.sheetPage() != nil) // a member's sheet viewed mid-fight (View) is drawn and keyed over it, as a shop's; the battle view is the only one (the engine has no combat page); under a modal (help, F10 ...) the engine leaves Battle out
+	p.noMenu = askMenu(v) == nil || len(askMenu(v).Commands) == 1       // a one-item bar (PRESS <ENTER> TO CONTINUE) has nothing to pick either
 	p.resize(dst, v)
-	p.syncRead(v)
+	p.syncRead()
 	p.overview = p.overview && p.exploring()
 	if p.overview || p.pager != nil || p.fullMap != nil || p.slots != nil { // the party overview, help, a Read, the full map, the slots: a page of its own over the whole window
 		p.shown, p.active, p.menu, p.cards = "", false, false, nil
@@ -331,11 +352,11 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if p.fight {
 		p.shown, p.active, p.menu = "", false, false
-		p.fightView = p.keepFallen(askedBattle(v))
+		p.drawnBoard()
 		p.battle.Glyph, p.battle.K = note.Glyph, int(scale(dst))
 		p.syncBattle()
-		p.battle.Draw(dst, toBoard(p.fightView))
-		p.drawFight(dst, note, v)
+		p.battle.Draw(dst, p.fightBoard)
+		p.drawFight(dst, note)
 		if p.view != nil {
 			p.view.DrawMenu(dst) // the Esc menu over the battle
 		}
@@ -347,7 +368,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if p.main && p.mainMenu().Hall { // the training hall: its menu over the 3D view
 		p.active, p.menu = false, false
-		if sc := p.scene(v); sc != nil {
+		if sc := p.scene(); sc != nil {
 			p.draw3D(dst, v, sc, note)
 		} else {
 			dst.Fill(color.Black)
@@ -364,7 +385,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if p.journal.open { // the quest journal: a page of its own over the whole window
 		p.shown, p.active, p.menu = "", true, false
 		dst.Fill(color.Black)
-		p.drawJournal(dst, note, v)
+		p.drawJournal(dst, note)
 		if j := &p.journal; j.ask {
 			p.keyWindow(dst, "Remove this note?", []string{"Yes", "No"}, yesNoKeys, nil, j.askSel, false)
 			j.askAt = slices.Clone(p.winRects)
@@ -376,7 +397,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if p.clue != nil { // the clue book's chapters, over the 3D view
 		p.shown, p.active, p.menu, p.cards = "", true, false, nil
-		if sc := p.scene(v); sc != nil {
+		if sc := p.scene(); sc != nil {
 			p.draw3D(dst, v, sc, note)
 		} else {
 			dst.Fill(color.Black)
@@ -390,7 +411,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.drawBestiary(dst, note, v)
 		return Rect{}
 	}
-	sc := p.scene(v)
+	sc := p.scene()
 	area := v.AreaMap != nil                                                                                                                                                                                                                                                                                                    // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
 	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure || p.sheetUp(v) && p.sheetPage() != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
 		if screenUp(v) { // training from the hall's party menu: over the 3D view
@@ -439,7 +460,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.active = true
 	if area {
 		p.shown = ""
-		p.drawAreaMap(dst, v.AreaMap)
+		p.drawAreaMap(dst)
 	} else if sc != nil {
 		p.draw3D(dst, v, sc, note)
 	} else { // camp with no 3D view (the original shows none there): black under the cards, the picture and the menus
@@ -571,7 +592,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			p.drawCampMenus(dst, v)
 		}
 	} else if p.exploring() && p.menu { // the command menu (explore.go)
-		cmds := commands(v)
+		cmds := p.commands()
 		lines, keys := make([]string, len(cmds)), make([]byte, len(cmds))
 		for i, c := range cmds {
 			lines[i], keys[i] = c.text, c.key
@@ -846,7 +867,7 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 	cam := blobber.Camera{X: v.X, Y: v.Y, Dir: int(v.Facing)}
 	name := areaMaps[v.Area]
 	if v.Walls != nil {
-		name = sceneName(v)
+		name = p.sceneName()
 	}
 	if name != p.shown {
 		p.view.Show(sc, cam)
@@ -870,14 +891,14 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 	}
 	p.animate()
 	p.view.Draw(dst)
-	p.drawMap(dst, v, note.Font)
+	p.drawMap(dst, note.Font)
 }
 
 // ownLayout: v is a page whose screen lays itself out on the page canvas
 // (the special screens, the pagers and maps, the after-combat page, the
 // credits); every other page is drawGeneric's.
 func (p *Presenter) ownLayout(v front.View) bool {
-	return pageScreen(v) || sfOf(v) != nil || p.modal(v) || p.sheetPage() != nil || v.Creation != nil || v.Credits
+	return p.pageScreen(v) || sfOf(v) != nil || p.modal() || p.sheetPage() != nil || v.Creation != nil || v.Credits
 }
 
 // seqMusic plays an animation's music cues on the AdLib player's songs

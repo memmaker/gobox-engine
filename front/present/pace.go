@@ -14,8 +14,8 @@ import (
 
 // Pace queues the call that goes on with time now; nothing while one of
 // its questions waits.
-func (p *Presenter) Pace(v front.View) {
-	if p.q != nil || v.Battle != nil && v.Battle.Turn != nil { // a member's turn waits on TurnChoice: nothing goes on with time (a rest the fight broke into never answers it)
+func (p *Presenter) Pace() {
+	if p.q != nil || p.board != nil && p.board.Turn != nil { // a member's turn waits on TurnChoice: nothing goes on with time (a rest the fight broke into never answers it)
 		return
 	}
 	switch p.pacing().Pace {
@@ -38,7 +38,7 @@ var turnActs = []front.ActKind{front.ActWalk, front.ActAttack, front.ActItems, f
 // turnAct makes a decision of the turn up a rule call; false: no turn waits.
 func (p *Presenter) turnAct(a front.Action) bool {
 	v := p.shownView
-	if v.Battle == nil || v.Battle.Turn == nil || p.inventoryUp() || v.Sheet != nil || !slices.Contains(turnActs, a.Kind) {
+	if p.board == nil || p.board.Turn == nil || p.inventoryUp() || v.Sheet != nil || !slices.Contains(turnActs, a.Kind) {
 		return false
 	}
 	p.turnCall(a, false)

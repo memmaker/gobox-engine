@@ -13,7 +13,7 @@ import (
 func TestConfirmsDropMember(t *testing.T) {
 	confirms = map[string]game.Confirm{"DropMember": {Asks: []string{"Drop %s?", "Really drop %s?"}}}
 	defer func() { confirms = nil }()
-	p := &Presenter{}
+	p := campPresenter()
 	v := front.View{Camp: &front.Camp{}, Party: []front.Member{{Name: "Ann", Selected: true}}}
 	p.memberAct(front.ActDropMember, 0)
 	p.inv.acts = nil

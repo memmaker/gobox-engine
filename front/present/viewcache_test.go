@@ -50,22 +50,25 @@ func TestFrontBuildsViewOncePerFrame(t *testing.T) {
 }
 
 // The minimap is drawn and uploaded when the map changes, not for every
-// View (each builds a new MapSquares).
+// frame (each builds a new MapSquares).
 func TestMinimapUploadsOnChange(t *testing.T) {
 	var p Presenter
 	dst := gpu.NewImage(640, 400)
 	font := func(byte, bool) [8]byte { return [8]byte{} }
-	m := &front.MapSquares{Party: image.Pt(1, 1)}
-	p.drawMap(dst, front.View{Map: m}, font)
+	st := func(party image.Point) play.State {
+		return play.Exploring{Common: play.Common{Where: game.Where{X: party.X, Y: party.Y}}, Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)}}}
+	}
+	g, f := playGame(st(image.Pt(1, 1)))
+	p.SetEngine(g)
+	p.drawMap(dst, font)
 	first := p.mapSrc
-	same := *m
-	p.drawMap(dst, front.View{Map: &same}, font)
+	f.st = st(image.Pt(1, 1))
+	p.drawMap(dst, font)
 	if p.mapSrc != first {
 		t.Error("an unchanged map was drawn again")
 	}
-	moved := *m
-	moved.Party.X = 2
-	p.drawMap(dst, front.View{Map: &moved}, font)
+	f.st = st(image.Pt(2, 1))
+	p.drawMap(dst, font)
 	if p.mapSrc == first {
 		t.Error("a changed map was not drawn again")
 	}
@@ -76,7 +79,7 @@ func TestMinimapUploadsOnChange(t *testing.T) {
 func TestKeyDuringPlayKept(t *testing.T) {
 	g, _ := countGame()
 	f := &Front{Game: g, started: true}
-	f.P.Play([]front.CombatEvent{{Ms: 5000, Battle: &front.Battle{}}})
+	f.P.Play([]Moment{{Ms: 5000, Board: &play.Combat{}}})
 	f.Key('x')
 	if len(f.held) != 1 || f.held[0] != 'x' || !f.P.Playing() {
 		t.Fatalf("held %v, playing %v", f.held, f.P.Playing())
@@ -93,9 +96,47 @@ func TestCameraKeyDuringPlay(t *testing.T) {
 	g, _ := countGame()
 	f := &Front{Game: g, started: true}
 	f.P.fight = true
-	f.P.Play([]front.CombatEvent{{Ms: 5000, Battle: &front.Battle{}}})
+	f.P.Play([]Moment{{Ms: 5000, Board: &play.Combat{}}})
 	f.Key('q')
 	if len(f.held) != 0 || !f.P.Playing() || f.P.replay.skip {
 		t.Fatalf("held %v, playing %v, skip %v", f.held, f.P.Playing(), f.P.replay.skip)
+	}
+}
+
+// artCounting is a fake whose Art() is read by every board build and View build.
+type artCounting struct {
+	*fake
+	arts int
+}
+
+func (f *artCounting) Art() map[string]game.Picture { f.arts++; return nil }
+
+// The game is turn-based: idle frames of a fight draw the board built once;
+// a new State of the game (its Version) builds it again.
+func TestFightBoardBuiltOncePerChange(t *testing.T) {
+	fight := play.Fighting{Common: allow(play.EndTurn{}),
+		Field: play.Battlefield{Turn: 1, Size: image.Pt(8, 8), Units: []game.Unit{{ID: 1, Member: -1}}}}
+	g := &artCounting{fake: &fake{st: fight}}
+	f := &Front{Game: &classicGame{Game: NewGame(g, game.Data{})}, started: true}
+	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
+	f.P.SetEngine(f.Game)
+	dst := gpu.NewImage(640, 400)
+	f.Draw(dst)
+	if !f.P.fight {
+		t.Fatal("no fight drawn")
+	}
+	one, board := g.arts, f.P.fightBoard
+	for range 5 {
+		f.Draw(dst)
+	}
+	if g.arts != one || f.P.fightBoard != board {
+		t.Fatalf("idle draws rebuilt: %d Art reads, want %d", g.arts, one)
+	}
+	fight.Field.Units = append(fight.Field.Units, game.Unit{ID: 2, Member: -1, Foe: true})
+	g.st = fight // the game's State is built anew: a new Version
+	f.stale()
+	f.Draw(dst)
+	if f.P.fightBoard == board {
+		t.Fatal("a change did not rebuild the board")
 	}
 }

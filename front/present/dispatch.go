@@ -55,7 +55,7 @@ func (p *Presenter) Key(k uint16, v front.View) {
 		return
 	}
 	if p.pager != nil {
-		p.pagerKey(k, v)
+		p.pagerKey(k)
 		return
 	}
 	if p.fullMap != nil {
@@ -80,10 +80,10 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 		return true
 	}
 	if p.journal.open && p.exploring() {
-		p.journalKey(k, v)
+		p.journalKey(k)
 		return true
 	}
-	if p.identDone(v) { // the Id's pop-up: any key closes it
+	if p.identDone() { // the Id's pop-up: any key closes it
 		return true
 	}
 	if confirm(v) != "" {
@@ -100,7 +100,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 			return true
 		}
 	}
-	if a := v.Ask; a != nil && a.Dirs && !pageScreen(v) { // the arrows answer the question (ActDir), the bars do not take them (keyAct); a page over it (the slots) keeps them
+	if a := v.Ask; a != nil && a.Dirs && !p.pageScreen(v) { // the arrows answer the question (ActDir), the bars do not take them (keyAct); a page over it (the slots) keeps them
 		if _, ok := keypadDirs[actOf(k)]; ok {
 			return false
 		}
@@ -158,11 +158,11 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 			case input.Esc:
 				p.view.OpenOptions()
 			default:
-				return p.exploreKey(k, v)
+				return p.exploreKey(k)
 			}
 			return true
 		}
-		cmds := commands(v)
+		cmds := p.commands()
 		keys := make([]byte, len(cmds))
 		for i, c := range cmds {
 			keys[i] = c.key
@@ -175,7 +175,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 			p.runCommand(i)
 		case !ok:
 			p.menu = false
-			return p.exploreKey(k, v)
+			return p.exploreKey(k)
 		}
 		return true
 	}
@@ -270,10 +270,10 @@ func (p *Presenter) Click(x, y int) bool {
 		return true
 	}
 	if p.journal.open { // the journal's own pointer (Mouse)
-		p.journalMouse(image.Pt(x, y), true, false, 0, p.shownView)
+		p.journalMouse(image.Pt(x, y), true, false, 0)
 		return true
 	}
-	if p.identDone(p.shownView) { // the Id's pop-up: any click closes it
+	if p.identDone() { // the Id's pop-up: any click closes it
 		return true
 	}
 	if p.scrolls.Click(x, y) {
@@ -294,7 +294,7 @@ func (p *Presenter) Click(x, y int) bool {
 		p.listClick(x, y, v)
 		return true
 	}
-	if v := p.shownView; p.pageMenu && pageScreen(v) {
+	if v := p.shownView; p.pageMenu && p.pageScreen(v) {
 		if h := p.slotFootAt(v, x, y); h != 0 {
 			p.slotKey(v, h)
 			return true
@@ -305,7 +305,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if s := p.scr.sub; screenName(v) == "slots" || s == scrAsk || s == scrField || s == scrPowers { // outside a popup: back (the creation sheet, the pickers and the icon editor take their page's clicks: Mouse)
+		if s := p.scr.sub; p.screenName(v) == "slots" || s == scrAsk || s == scrField || s == scrPowers { // outside a popup: back (the creation sheet, the pickers and the icon editor take their page's clicks: Mouse)
 			p.screenKey(27, v)
 			return true
 		}
@@ -321,7 +321,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if v := p.shownView; !pageScreen(v) && !p.sheetUp(v) && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
+		if v := p.shownView; !p.pageScreen(v) && !p.sheetUp(v) && p.pager == nil { // outside a page's question: back (the sheet's portrait, the full map and the pagers take their page's clicks: Mouse)
 			p.send(front.ActClose, 0)
 			return true
 		}
@@ -379,11 +379,11 @@ func (p *Presenter) Click(x, y int) bool {
 			p.campBack(v) // a click outside: back
 			return true
 		}
-		if v := p.shownView; p.exploring() && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
-			if p.Free(v) { // No Grid: a press on the view may be a drag to look; ViewClick on its release
+		if p.exploring() && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
+			if p.Free() { // No Grid: a press on the view may be a drag to look; ViewClick on its release
 				return false
 			}
-			p.exploreClick(x, y, v)
+			p.exploreClick(x, y)
 			return true
 		}
 		if !p.menu || !p.active || p.view == nil || p.view.OptionsOpen() {
@@ -416,7 +416,7 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		return
 	}
 	if p.journal.open {
-		p.journalMouse(image.Pt(x, y), false, false, 0, p.shownView)
+		p.journalMouse(image.Pt(x, y), false, false, 0)
 		return
 	}
 	if p.scrolls.Hover(y, down) {
@@ -453,7 +453,7 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		p.pointer = image.Pt(x, y)
 		if i := slices.IndexFunc(p.winRects, p.pointer.In); i >= 0 {
 			switch {
-			case !pageScreen(p.shownView):
+			case !p.pageScreen(p.shownView):
 				p.sel = i
 			case p.scr.sub != scrType:
 				p.scr.sel = p.scr.top + i

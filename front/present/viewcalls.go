@@ -26,7 +26,7 @@ func (p *Presenter) viewAct(a front.Action) bool {
 	if v.Ask != nil || v.Powers != nil {
 		return false
 	}
-	turn := v.Battle != nil && v.Battle.Turn != nil
+	turn := p.board != nil && p.board.Turn != nil
 	n := a.N
 	do := func(f func(e *classicGame) error) { p.call(func(e *classicGame) { f(e) }) }
 	switch k := a.Kind; {
@@ -105,11 +105,14 @@ func (p *Presenter) viewAct(a front.Action) bool {
 // combatCast is the sheet's and the inventory's Cast in a fight: they
 // close, and the turn's Cast takes the spell picked.
 func (p *Presenter) combatCast() {
-	b := p.shownView.Battle
-	if b == nil || b.Turn == nil || len(b.Turn.Spells) == 0 {
+	c := p.board
+	if c == nil || c.Turn == nil || len(c.Spells) == 0 {
 		return
 	}
-	spells := b.Turn.Spells
+	var spells []front.Spell
+	for _, sp := range c.Spells {
+		spells = append(spells, front.Spell{ID: sp.ID, Name: sp.Name})
+	}
 	p.call(func(e *classicGame) {
 		e.CloseSheet()
 		e.CloseItems(true)

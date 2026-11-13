@@ -1,9 +1,9 @@
 package present
 
 import (
+	"image"
 	"testing"
 
-	"gobox/front"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -17,27 +17,24 @@ func TestBattleOfRefs(t *testing.T) {
 		Tiles: []string{"", "hitek_tile_000"},
 		Units: []game.Unit{{Art: game.Picture{File: "CPIC1", Block: 23, Clear: -1}}},
 	}}
-	b := BattleOf(s.Combat, s.Party, nil)
-	if b.TilePix[1].Img == nil {
+	b := boardIn(s.Combat, s.Party)
+	if b.Tiles[1] == nil {
 		t.Error("tile not read from the series sprites")
 	}
-	if b.FloorImg != nil {
+	if b.FloorTile != nil {
 		t.Error("a floor image with no FloorTile")
 	}
-	if p := b.IconPix[0]; p.File != "CPIC1" || p.Block != 23 {
-		t.Errorf("icon ref lost: %+v", p)
+	if len(b.Units) != 1 {
+		t.Error("the unit is not on the board")
 	}
 }
 
 // A Gone unit is not on the board; a Dead one stays.
 func TestBattleOfGone(t *testing.T) {
 	s := shown{Combat: &play.Combat{Units: []game.Unit{{ID: 1}, {ID: 2, Gone: true}, {ID: 3, Dead: true}}}}
-	b := BattleOf(s.Combat, s.Party, nil)
-	if len(b.Units) != 2 || len(b.IconPix) != 2 || b.Units[1].ID != 3 {
+	b := boardIn(s.Combat, s.Party)
+	if len(b.Units) != 2 || b.Units[1].ID != 3 {
 		t.Errorf("units %+v", b.Units)
-	}
-	if o := Battle(b, &play.Combat{Units: []game.Unit{{ID: 1}, {ID: 2}, {ID: 3, Gone: true}}}, nil); len(o.Units) != 1 || len(o.IconPix) != 1 {
-		t.Errorf("Battle kept a gone unit: %+v", o.Units)
 	}
 }
 
@@ -45,7 +42,7 @@ func TestBattleOfGone(t *testing.T) {
 func TestBattleOfFloorTile(t *testing.T) {
 	Series = "buck-rogers"
 	defer func() { Series = "pool" }()
-	if b := BattleOf(&play.Combat{FloorTile: "hitek_tile_034"}, nil, nil); b.FloorImg == nil {
+	if b := boardIn(&play.Combat{FloorTile: "hitek_tile_034"}, nil); b.FloorTile == nil {
 		t.Error("floor tile not read from the series sprites")
 	}
 }
@@ -54,10 +51,10 @@ func TestBattleOfFloorTile(t *testing.T) {
 // members) is drawn from its Art, as a foe is, not as an empty disc.
 func TestBattleMemberArt(t *testing.T) {
 	s := shown{Party: []game.Member{{Name: "NPC"}}, Combat: &play.Combat{
-		Units: []game.Unit{{ID: 1, Member: 0, Art: game.Picture{File: "CPIC1", Block: 85, Clear: -1}}},
+		Units: []game.Unit{{ID: 1, Member: 0, Art: game.Picture{W: 2, H: 2, Pixels: []byte{1, 2, 3, 4}, Clear: -1}}},
 	}}
-	b := Battle(&front.Battle{Units: []front.Unit{{ID: 1}}, IconPix: []front.Picture{{}}}, s.Combat, s.Party)
-	if p := b.IconPix[0]; p.File != "CPIC1" || p.Block != 85 {
-		t.Fatalf("member drawn from %+v, want its Art", p)
+	b := boardIn(s.Combat, s.Party)
+	if sz := b.Units[0].IconSize; sz != image.Pt(2, 2) {
+		t.Fatalf("member drawn at %v, want its Art's size", sz)
 	}
 }

@@ -14,6 +14,8 @@ import (
 // state after it is the result page.
 type endGame struct{ over bool }
 
+func (r *endGame) Version() uint64 { return fresh() }
+
 func (r *endGame) State() play.State {
 	if r.over {
 		return play.Scene{Common: play.Common{Status: "DONE"}}
@@ -49,7 +51,7 @@ func TestEndingEventsPlay(t *testing.T) {
 	f.Draw(dst)
 	f.Tick()
 	f.Game.Answer(front.Action{Kind: front.ActQuick})
-	f.P.Play(f.Game.legacySettle().Events)
+	f.P.Play(f.Game.Settle())
 	fight, page := 0, -1
 	for i := range 600 {
 		f.Act()

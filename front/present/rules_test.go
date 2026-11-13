@@ -3,6 +3,7 @@ package present
 import (
 	"errors"
 	"image"
+	"reflect"
 	"slices"
 	"testing"
 
@@ -14,6 +15,8 @@ import (
 // Do was sent.
 type fake struct {
 	st   play.State
+	seen play.State // st at the last Version
+	ver  uint64
 	out  play.Outcome
 	err  error
 	sent []play.Action
@@ -21,6 +24,21 @@ type fake struct {
 }
 
 func (f *fake) State() play.State { return f.st }
+
+// Version changes iff the State does (tests assign st directly).
+func (f *fake) Version() uint64 {
+	if !reflect.DeepEqual(f.seen, f.st) {
+		f.seen, f.ver = f.st, f.ver+1
+	}
+	return f.ver
+}
+
+// testVersions numbers the States of the fakes that build theirs on each
+// call: every read is a new one.
+var testVersions uint64
+
+// fresh is the next version of a fake that builds a new State on each read.
+func fresh() uint64 { testVersions++; return testVersions }
 func (f *fake) Do(a play.Action) (play.Outcome, error) {
 	f.sent = append(f.sent, a)
 	return f.out, f.err

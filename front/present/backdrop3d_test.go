@@ -1,12 +1,11 @@
 package present
 
 import (
-	"image"
 	"image/color"
 	"testing"
 
 	"gobox/blobber"
-	"gobox/front"
+	"gobox/game"
 	"gobox/gpu"
 )
 
@@ -14,19 +13,16 @@ import (
 // nearest-neighbour; without it the flats' fills show.
 func TestWallsBackdrop(t *testing.T) {
 	quad := []color.RGBA{{255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255}, {255, 255, 0, 255}}
-	m := image.NewRGBA(image.Rect(0, 0, 2, 2))
-	for i, c := range quad {
-		m.Set(i%2, i/2, c)
-	}
+	m := game.Picture{W: 2, Pixels: []byte{0, 1, 2, 3}, Palette: quad, Clear: -1}
 	fill := color.RGBA{200, 0, 200, 255}
 	open := [][][4]int{{{0, 0, 0, 0}}}
 	dst := gpu.NewImage(blobber.W, blobber.H)
-	draw := func(w *front.Walls) {
+	draw := func(w *game.Walls) {
 		var p Presenter
-		p.view.Show(p.wallScene(w), blobber.Camera{})
+		p.view.Show(p.wallScene(w, nil), blobber.Camera{})
 		p.view.Draw(dst)
 	}
-	draw(&front.Walls{Key: "bd", Side: open, FloorRGBA: &fill, CeilRGBA: &fill, Backdrop: &front.Picture{Img: m}})
+	draw(&game.Walls{Key: "bd", Side: open, FloorRGBA: &fill, CeilRGBA: &fill, Backdrop: &m})
 	for y := 0; y < blobber.H; y += 7 {
 		for x := 0; x < blobber.W; x += 7 {
 			want := quad[(y*2/blobber.H)*2+x*2/blobber.W]
@@ -35,7 +31,7 @@ func TestWallsBackdrop(t *testing.T) {
 			}
 		}
 	}
-	draw(&front.Walls{Key: "nobd", Side: open, FloorRGBA: &fill, CeilRGBA: &fill})
+	draw(&game.Walls{Key: "nobd", Side: open, FloorRGBA: &fill, CeilRGBA: &fill})
 	if r, g, b, _ := dst.At(blobber.W/2, 2).RGBA(); r>>8 < 100 || g != 0 || b>>8 < 100 { // the ceiling's fill, shaded
 		t.Fatalf("nil backdrop: top %v, want the fill", dst.At(blobber.W/2, 2))
 	}
@@ -45,18 +41,16 @@ func TestWallsBackdrop(t *testing.T) {
 // flat Walls names (the other takes the pool's), and keeps a real picture
 // only where neither resolves.
 func TestWallsBackdropFlats(t *testing.T) {
-	pic := image.NewRGBA(image.Rect(0, 0, 2, 2))
-	pic.Pix[0] = 200
-	bd := &front.Picture{Img: pic}
+	bd := &game.Picture{W: 2, Pixels: []byte{0, 1, 1, 1}, Palette: []color.RGBA{{200, 0, 0, 255}, {0, 0, 200, 255}}, Clear: -1}
 	open := [][][4]int{{{0, 0, 0, 0}}}
 	var p Presenter
-	if sc := p.wallScene(&front.Walls{Key: "flats", Side: open, Floor: "cobble", Sky: "sky_phlan", Backdrop: bd}); sc.Backdrop != nil {
+	if sc := p.wallScene(&game.Walls{Key: "flats", Side: open, Floor: "cobble", Sky: "sky_phlan", Backdrop: bd}, nil); sc.Backdrop != nil {
 		t.Error("painted flats: backdrop kept")
 	}
-	if sc := p.wallScene(&front.Walls{Key: "oneflat", Side: open, Floor: "nosuch", Sky: "sky_phlan", Backdrop: bd}); sc.Backdrop != nil {
+	if sc := p.wallScene(&game.Walls{Key: "oneflat", Side: open, Floor: "nosuch", Sky: "sky_phlan", Backdrop: bd}, nil); sc.Backdrop != nil {
 		t.Error("the sky resolves alone: backdrop kept")
 	}
-	if sc := p.wallScene(&front.Walls{Key: "noflat", Side: open, Floor: "nosuch", Sky: "nosuch", Backdrop: bd}); sc.Backdrop == nil {
+	if sc := p.wallScene(&game.Walls{Key: "noflat", Side: open, Floor: "nosuch", Sky: "nosuch", Backdrop: bd}, nil); sc.Backdrop == nil {
 		t.Error("no flat resolves: the picture dropped")
 	}
 }

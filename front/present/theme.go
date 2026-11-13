@@ -3,8 +3,10 @@ package present
 import (
 	"image"
 	"image/color"
+	"strconv"
 
 	"gobox/front"
+	"gobox/game"
 	"gobox/ui"
 )
 
@@ -35,7 +37,7 @@ type Palette struct {
 // Border is the ribbon border's 8x8 pieces as symbols: frame Pieces[p]
 // of block Block of DAX file File for each place p (ui.TopLeft ..
 // ui.Right), decoded in the EGA colours (a frame below 0: no piece). A
-// game that sets View.Border hands its pieces in instead.
+// game that has art "border/<place>" hands its pieces in instead.
 type Border struct {
 	File   string
 	Block  int
@@ -99,15 +101,36 @@ func borderEdges() map[string][]image.Image {
 	return out
 }
 
-// borderPieces is v's border pieces, or Theme.Border's decoded when the
-// game hands none in.
-func borderPieces(v front.View) [ui.Places]image.Image {
-	if v.Border != ([8]image.Image{}) {
-		var t [ui.Places]image.Image
-		copy(t[:], v.Border[:])
-		copy(t[ui.LeftTopCap:], v.BorderCaps[:])
-		return t
+// windowBorder is the window border's pieces by place, and whether the
+// game handed them in (else they are Theme.Border's).
+type windowBorder struct {
+	pieces [ui.Places]image.Image
+	own    bool
+}
+
+// windowBorder is the game's border pieces from its art ("border/<place>",
+// 0..7, ui.TopLeft ..; "border/cap/<n>", 0..3, ui.LeftTopCap ..; in the
+// EGA's colours), or Theme.Border's decoded when the art has none.
+func (p *Presenter) windowBorder() windowBorder {
+	var art map[string]game.Picture
+	if p.eng != nil {
+		art = p.eng.art()
 	}
+	if pix(art["border/0"]).Pix != nil {
+		var t [ui.Places]image.Image
+		for i := range ui.LeftTopCap {
+			t[i] = pixImage(pix(art["border/"+strconv.Itoa(i)]), egaInk)
+		}
+		for i := range 4 {
+			t[ui.LeftTopCap+i] = pixImage(pix(art["border/cap/"+strconv.Itoa(i)]), egaInk)
+		}
+		return windowBorder{t, true}
+	}
+	return windowBorder{pieces: themeBorder()}
+}
+
+// themeBorder is Theme.Border's pieces, decoded.
+func themeBorder() [ui.Places]image.Image {
 	var t [ui.Places]image.Image
 	pics := append(theme.Border.Pics[:], theme.Border.CapPics[:]...)
 	for i, pc := range pics {
@@ -118,7 +141,7 @@ func borderPieces(v front.View) [ui.Places]image.Image {
 		}
 	}
 	if theme.Border.File == "" {
-		return t // the zero value with no Pics: no pieces, as v.Border was
+		return t // the zero value with no Pics: no pieces
 	}
 	frames := append(theme.Border.Pieces[:], theme.Border.Caps...)
 	for i, f := range frames {

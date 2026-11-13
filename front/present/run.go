@@ -118,7 +118,7 @@ func (f *Front) view() front.View {
 // timedView logs the first View and each change of screen (GOBOX_TIMING).
 func (f *Front) timedView(at time.Time) {
 	v := f.v
-	s := fmt.Sprintf("exploring %v, fight %v, party menu %v, intro %v, page %v, area %d", f.P.exploring(), v.Battle != nil, f.P.mainMenuUp(), v.Intro != nil, v.Pane != nil, v.Area)
+	s := fmt.Sprintf("exploring %v, fight %v, party menu %v, intro %v, page %v, area %d", f.P.exploring(), f.P.liveCombat() != nil, f.P.mainMenuUp(), v.Intro != nil, v.Pane != nil, v.Area)
 	if !f.viewed || s != f.lastScreen {
 		gpu.Mark("View (%.1f ms to build): %s", float64(time.Since(at).Microseconds())/1000, s)
 	}
@@ -154,8 +154,9 @@ func (f *Front) screenSig(v front.View) string {
 	if v.Ask != nil {
 		ask = v.Ask.Kind
 	}
-	turn := v.Battle != nil && v.Battle.Turn != nil
-	return fmt.Sprint(v.Battle != nil, turn, ask, f.P.inventoryUp(), v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, f.P.mainMenuUp(), f.P.exploring(), v.Training != nil)
+	c := f.P.liveCombat()
+	turn := c != nil && c.Turn != nil
+	return fmt.Sprint(c != nil, turn, ask, f.P.inventoryUp(), v.Sheet != nil, v.Camp != nil, v.Temple != nil, v.Shop != nil, f.P.mainMenuUp(), f.P.exploring(), v.Training != nil)
 }
 func (f *Front) Tick() { Scripted = true; f.P.Tick() } // only a script ticks: its clock is the frames
 
@@ -184,11 +185,11 @@ func (f *Front) Idle() bool {
 	return f.P.view == nil || !f.P.view.Moving()
 }
 
-func (f *Front) Free() bool { return f.P.Free(f.view()) }
+func (f *Front) Free() bool { return f.P.Free() }
 func (f *Front) Flow(held uint16, ready bool) (bool, bool) {
 	return f.P.Flow(held, ready)
 }
-func (f *Front) FreeWalk(in blobber.FreeInput) { f.P.FreeWalk(in, f.view()) }
+func (f *Front) FreeWalk(in blobber.FreeInput) { f.P.FreeWalk(in) }
 
 func (f *Front) InventoryShown() bool { return f.P.InventoryShown() }
 func (f *Front) InventoryMouse(x, y int, down, right bool, wheel float64) {
@@ -247,14 +248,14 @@ func (f *Front) Act() {
 	if !f.started { // the title, on the render loop's (locked) thread that runs the game
 		f.started = true
 		g.Open(f.slot)
-		f.P.Play(g.legacyEvents(g.Settle(), g.Game.View()))
+		f.P.Play(g.Settle())
 		f.stale()
 	}
 	if f.P.Playing() { // the fight's events play first: the game waits, decisions are held
 		return
 	}
 	as := f.P.Actions() // first: the turn's decisions become rule calls
-	f.P.Pace(f.view())
+	f.P.Pace()
 	calls := f.P.Calls()
 	for _, c := range calls { // the rule calls, then the actions not yet rule calls
 		c(g)
@@ -268,7 +269,7 @@ func (f *Front) Act() {
 		for _, a := range as {
 			g.Answer(a)
 		}
-		f.P.Play(g.legacyEvents(g.Settle(), g.Game.View()))
+		f.P.Play(g.Settle())
 	}
 }
 

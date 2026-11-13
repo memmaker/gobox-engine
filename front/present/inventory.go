@@ -181,7 +181,7 @@ func (p *Presenter) InventoryShown() bool { return p.inv.shown }
 // Screens names the presenter's own screens up, for the input latch: it
 // changes whenever one opens or closes.
 func (p *Presenter) Screens() string {
-	return fmt.Sprint(p.inv.shown, p.Options(), p.overview, p.pager != nil, p.fullMap != nil, p.clue != nil, p.training, p.frontScreens())
+	return fmt.Sprint(p.inv.shown, p.board != nil, p.Options(), p.overview, p.pager != nil, p.fullMap != nil, p.clue != nil, p.training, p.frontScreens())
 }
 
 // call queues a rule call on the engine (Calls).
@@ -190,7 +190,7 @@ func (p *Presenter) call(f func(*classicGame)) { p.calls.Add(f) }
 // Actions hands over the actions the screens made since the last call.
 func (p *Presenter) Actions() []front.Action {
 	for _, a := range p.battle.Actions() {
-		a := askAction(p.shownView, a) // the turn's are rule calls (pace.go)
+		a := p.askAction(a) // the turn's are rule calls (pace.go)
 		p.sendA(a)
 	}
 	var as []front.Action

@@ -14,6 +14,8 @@ type shopPlay struct {
 	sent []play.Action
 }
 
+func (s *shopPlay) Version() uint64 { return fresh() }
+
 func (s *shopPlay) State() play.State { return s.st }
 func (s *shopPlay) Do(a play.Action) (play.Outcome, error) {
 	s.sent = append(s.sent, a)

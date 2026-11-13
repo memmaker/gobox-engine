@@ -17,7 +17,7 @@ func TestUIScaleFits(t *testing.T) {
 				for _, row := range []bool{false, true} {
 					Host.PartyRow = row
 					Host.Cards, Host.Map = c, m
-					mr, at := mapRect(dst, 8), cardAt(dst)
+					mr, at := mapRect(dst), cardAt(dst)
 					for i := range 8 {
 						r := at(i, 8)
 						if !r.In(dst.Bounds()) || r.Overlaps(mr) || i > 0 && (row || i != 4) && r.Overlaps(at(i-1, 8)) {

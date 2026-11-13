@@ -20,6 +20,7 @@ import (
 // Game is what every game implements.
 type Game interface {
 	State() State               // what is true now: built once per change (Do, Load), shared; read-only
+	Version() uint64            // the held State's build number: it changes iff State() changes (the front draws from a kept State until it does)
 	Do(Action) (Outcome, error) // the only way anything changes; error: refused, nothing changed
 	Save() ([]byte, error)      // the whole game, for a slot file gobox keeps
 	Load([]byte) error          // back to what Save gave; error: refused, nothing changed

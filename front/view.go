@@ -28,148 +28,6 @@ type AreaMap struct {
 	MarkerPix Picture     // Marker so, or a DAX ref
 }
 
-// Battle is the combat map as the remaster's 3D view needs it.
-type Battle struct {
-	Ground    [25][50]Square
-	Tiles     []image.Image // the tile set by tile number, in combat's colours
-	FloorImg  image.Image   // the plain floor's picture, tiled on every floor square (nil: Floor's colour)
-	TileNames []string      // Tiles' sprite names ("": none); a tile named so may have a 3D model
-	TilePix   []Picture     // Tiles as the game's pixels in View.Ink, or DAX refs (File, Block, Frame), the presenter's to make into Tiles
-	IconPix   []Picture     // Units' icons so, by unit (combat.Unit mirrors Unit, so they are here); used where Icon is nil
-	EffectPix []Picture     // Effects' pictures so, by effect; used where Pic is nil
-	Floor     color.RGBA    // the ground's colour
-	Dungeon   bool          // tiles 0..DungeonTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
-	Units     []Unit
-	Cursor    image.Point            // the square the cursor was last drawn on
-	CursorOn  bool                   // the cursor icon is up (aiming, looking)
-	CursorAt  []image.Point          // the squares the cursor covers (a large combatant's footprint)
-	Marks     []image.Point          // squares framed for a choice (reach of a move, an area of effect)
-	Reach     []image.Point          // squares a click walks to from the main menu (the active unit's move)
-	Paths     map[image.Point][]Step // the walk to each Reach square, from the unit's own square
-	Targets   []int                  // units (by ID) ActAttack takes on the turn; aiming: the foes Tab cycles through
-	Turn      *Turn                  // the player's turn waits for an action (nil: no one to act for). The game fills it on every player's turn, even one whose only offer is Can: the presenter builds a Turn itself only for an AskSquare or AskMove question (askedBattle), since pace, the bar, the Cast list and the status row all read this one field
-	Panel     int                    // the unit the status row shows (who acts, or is being hit)
-	Log       []string               // this battle's messages, oldest first
-	Area      bool                   // Marks are a spell's area (else a move's reach or a choice)
-	AreaAt    []image.Point          // the squares a spell's area covers round the aimed square
-	AimArea   int                    // aiming a spell with no AreaAt: the area's radius round the hovered square, washed as a preview (0 none; radius+1)
-	Skipped   []image.Point          // squares of allies in the area the spell passes over (Bless: an enemy next to them)
-	AimWhy    string                 // aiming: why the aimed square cannot be taken ("" when it can); views draw the aim red
-	Effects   []Effect               // sprites over the map: a missile, a hit, a fall
-	View      image.Point            // top left square of the scrolled view window the original showed (what the camera follows)
-	Strike    Strike                 // the last weapon attack
-}
-
-// Turn is what the acting member may do (the original's combat menu).
-type Turn struct {
-	Unit      int          // whose turn
-	Can       []ActKind    // the actions offered, in the menu's order
-	Spells    []Spell      // what ActCast casts
-	Maneuvers []Maneuver   // extra: what ActManeuver does (the rule set's; empty under the original's)
-	Aim       bool         // aiming: ActAim takes a square, ActPoint previews one, ActClose gives up
-	Casting   string       // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
-	Weapon    *InvItem     // extra: the weapon in hand (its icon on the Attack button), or nil
-	Missile   *InvItem     // extra: the ranged weapon readied (its icon on the Ranged button), or nil
-	Moves     int          // squares of move left
-	Options   []TurnOption // the game's options in its order: the bar is built from these (none: from Can)
-}
-
-// TurnOption is one of the game's turn options: its word, hotkey and the
-// action it is (Kind 0: ActOption N, the game's own).
-type TurnOption struct {
-	Label  string
-	Key    byte
-	Kind   ActKind
-	Chords string // more keys that pick it (alt+q,space)
-}
-
-// Effect is a sprite the original draws over the map for a moment.
-type Effect struct {
-	X, Y float64     // its top left corner, in squares (missiles move in thirds)
-	Pic  image.Image // in combat's colours
-}
-
-// Step is one square of a walk; Free: leaving it lets an enemy take a free attack.
-type Step struct {
-	image.Point
-	Free bool
-}
-
-// Strike is one weapon attack, for views that show it (the original only
-// prints it): Seq counts attacks, so a new one is a new Seq.
-type Strike struct {
-	Seq      int
-	From, To int // unit IDs (0: off the map)
-	Hit      bool
-	Damage   int
-}
-
-// Square is one map square.
-type Square struct {
-	Tile    int
-	Wall    bool // move cost 0xFF
-	Height  int  // blocking height
-	Overlay int  // a picture on the ground over the tile, under the units: its tile number+1 (0 none)
-}
-
-// Unit is one combatant on the map.
-type Unit struct {
-	ID         int // its place on the combat list: the same unit from snapshot to snapshot
-	X, Y, Size int
-	Squares    []image.Point // the squares it stands on (a large combatant's footprint)
-	Party      bool
-	Facing     int         // 0..7
-	Icon       image.Image // the combat icon, facing and pose (striking) as the original draws it
-	IconSize   image.Point // the built icon's size in pixels, 24 a square: what the figure's size and footprint follow (a PNG icon keeps it at its own resolution)
-	Active     bool        // whose turn it is
-	Name       string
-	HP, AC     int
-	MaxHP      int
-	Hit        int    // the active member's chance in percent to hit it with one blow (0: not a target)
-	Dmg        string // the readied attack's damage ("1d8+1")
-	Weapon     string // a member's readied weapon, shown in place of Dmg as the originals do ("": Dmg)
-	Status     string // "" when it can act, else why not ("Helpless", "Unconscious" ...)
-	Down       bool   // dead or out, left on the map: drawn as a body lying on its square
-}
-
-// EventKind is what a CombatEvent reports.
-type EventKind int
-
-const (
-	EvFrame   EventKind = iota // a moment of the fight to show for Ms (a missile's step, a blow drawn)
-	EvMessage                  // Text went to the Log: shown for Ms to be read
-	EvMoved                    // Unit stepped From -> To
-	EvAttack                   // Unit attacks Target
-	EvHit                      // Unit hits Target for Amount
-	EvMiss                     // Unit misses Target
-	EvDamage                   // Unit takes Amount damage
-	EvHeal                     // Unit regains Amount hit points
-	EvSpell                    // Unit casts spell Amount (Text: its name)
-	EvMissile                  // a missile flies From -> To
-	EvDied                     // Unit fell (off the map)
-	EvFled                     // Unit got away
-	EvSound                    // sound Amount (Text: the sound pack's event) goes off here (extra: with what it belongs to, PlayEventSound)
-	EvSong                     // the Amiga song Amount starts (0 stops), for a front that plays its own Sound
-	EvSaves                    // the save screen goes up (game.EvSaves)
-)
-
-// CombatEvent is one thing that happened in a fight, in order (View.Events,
-// handed out by Apply once). An event held for Ms carries the map and the
-// party as they stood (Battle, Party): the presenter shows that while it
-// plays the event, the live View when it has played them all.
-type CombatEvent struct {
-	Kind         EventKind
-	Unit, Target int // combatant IDs (Unit.ID; 0: none)
-	Amount       int
-	From, To     image.Point
-	Text         string
-	Ms           int
-	Key          bool // held until a key ("press any key"), not for Ms
-	Battle       *Battle
-	Party        []Member
-	Scene        *View // outside a fight: the whole page as it stood, shown while the event plays
-}
-
 // Aim is what a maneuver aims at.
 type Aim int
 
@@ -198,32 +56,8 @@ type Maneuver struct {
 // the same pointer every View while the same text is up.
 type Read = game.Read
 
-// Lore is a note in the journal: ID is its number for ActNoteRemove (-1: not
-// removable), Place where the player read it ("" a journal text).
-type Lore struct {
-	Title, Place string
-	Text         []string
-	ID           int
-}
-
 // Money is core.Money: an amount the front end shows (as "12g 50c").
 type Money = core.Money
-
-// Pending is what the game waits on (View.Pending): a shop or temple a
-// suspended ECL script opened, a fight, the finale, the treasure after a
-// fight, a locked door met while walking. A rule call answers it (Leave,
-// LootLeave, TryDoor) and the game goes on.
-type Pending int
-
-const (
-	PendNone   Pending = iota
-	PendShop           // the shop: Browse, Identify, Appraise, KeepAppraised; Leave
-	PendTemple         // the temple: Cure, ViewMember, Appraise, KeepAppraised; Leave
-	PendFight          // a fight: CombatStep, TurnChoice
-	PendStory          // the finale's pictures: StoryStep
-	PendLoot           // the treasure after a fight (View.Loot): LootView, LootTake, LootDetect, Lead; LootLeave
-	PendDoor           // a locked door (View.Door): TryDoor
-)
 
 // Inventory is the inventory screen (ItemsMenu) as the remastered one
 // draws it. Its items' Index is what an Action's N names.
@@ -307,13 +141,6 @@ type Reaction struct {
 	ID     int
 	Name   string
 	Policy Policy
-}
-
-// Quest is a journal entry: Text is what its giver said, paragraph by paragraph.
-type Quest struct {
-	Name, Giver, Place string
-	Text               []string
-	Done               bool
 }
 
 // Walls is a 3D view the presenter builds from the rules' own map
@@ -455,72 +282,58 @@ type Note struct {
 
 // View is one published snapshot.
 type View struct {
-	Pane          *Pane // the text pane under the 3D view: out adventuring (Adventure), or it holds text (nil otherwise)
-	Window        Window
-	AreaMap       *AreaMap // with WinAreaMap: the whole map, for a screen of its own
-	Area          AreaID
-	X, Y          int
-	Facing        Dir
-	Day           bool        // 6:00 to 20:00, when the scripts show the day sky
-	Inside        bool        // the party stands on an inside square (the original's inside sky colour)
-	Quests        []Quest     // the quest journal
-	Lore          []Lore      // the journal's Notes
-	Exploring     bool        // the party explores: the adventuring decisions (ActForward .. ActCastPick) are taken
-	Sweeping      bool        // ... at the slow, searching pace (ActSweep): the HUD says so
-	Open          [4]bool     // ... the party's square's sides (N E S W) a step may go through: open, or a door to try (No Grid's walls)
-	Interact      bool        // ... on a square whose event waits for ActInteract: the HUD says so
-	CanCast       bool        // ... and the selected member has a spell to cast (ActCastPick)
-	Camp          *Camp       // the party is in camp: the camp decisions (ActRest .. ActIconEdit) are taken; ActClose leaves
-	Pending       Pending     // what a suspended script waits on
-	Temple        *Temple     // a temple (PendTemple): Cure, ViewMember, Appraise, KeepAppraised, ActLead; Leave
-	Shop          *Shop       // a shop (PendShop): Browse (the goods, ActBuy, ActSell), Identify, Appraise, KeepAppraised, ActLead; Leave
-	Loot          *Loot       // the treasure after a fight (PendLoot): LootView, LootTake, LootDetect, Lead; LootLeave
-	Door          *DoorOpts   // a locked door (PendDoor): TryDoor
-	Training      *Training   // the training hall for the selected member (TrainingView, the presenter's): Train, Learn; CloseTraining
-	Powers        *PowerPick  // a member chooses a power: PickPower
-	Sheet         *Sheet      // the selected member's sheet (the page): ActInventory, ActSpells .. ActCure, ActMember (another member); ActClose leaves
-	IconEditor    *IconEditor // the combat icon editor is up (the page; IconDrop): the presenter lays it out and takes its clicks
-	SheetPage     *SheetPage  // the character sheet's page is up (the sheet, the creation's, the spell lists over it): the presenter draws it
-	Creation      *Creation   // the creation (or Modify) sheet (the page): ActRoll, ActSetField, ActName, ActStat, ActPicker, ActIconEdit, ActKeep; ActClose abandons (the player agreed to Abandon)
-	Picker        *Picker     // a grid picker (the page): ActPicked, ActPage; ActClose leaves
-	Slots         *Slots      // the save slots: never the engine's; the presenter puts its F10 screen here (SlotsView)
-	Ask           *Ask        // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
-	Party         []Member
-	Border        [8]image.Image // the window border's pieces by place (ui.TopLeft ..) in EGA colours; all nil: the presenter decodes Theme.Border
-	BorderPix     [8]Picture     // Border as the game's pixels in the EGA's own colours (the presenter colours them)
-	BorderCaps    [4]image.Image // optional end caps (ui.LeftTopCap ..: left top, left bottom, right top, right bottom), over the side pieces; nil: the side piece
-	BorderCapsPix [4]Picture     // BorderCaps as the game's pixels, as BorderPix
-	Battle        *Battle        // the combat map (nil outside combat)
-	Walls         *Walls         // the 3D view built from the rules' own map (nil: the remastered map Data.AreaMaps names)
-	Events        []CombatEvent  // what happened in the fight since the last Apply, in order (Apply's View only)
-	Note          Note           // the status line's toast, shown on the bottom row a while after At
-	Inventory     *Inventory     // the inventory screen is up (nil otherwise)
-	Map           *MapSquares    // the current map, drawn by the presenter at MapCell pixels a square (nil where the game has no map)
-	NoMap         bool           // the game marks this area unmappable (game.Automap.NoMap)
-	Pictures      []Picture      // the screen's pictures, symbols and fills, bottom first
-	Adventure     bool           // the party is out in the world: the 3D view (or the overland map) is the screen
-	Prompt        []PaneRun      // the prompt row's text (the last row), X the page's column
-	ViewText      [][]PaneRun    // text over the view window (WinText: opProtection's runes), rows from 1, X the page's column
-	Results       *Results       // the after-combat page (in a box round the window)
-	CreditPage    int            // which credits page (Credit.Page) while Credits
-	Credits       bool           // the title's credits page (Credits)
-	CreditsPic    bool           // the title step is the game's credits as a picture: the presenter adds its remaster credit line
-	Sequence      *Sequence      // a full-screen animation plays (SequenceStep, SequenceDone)
-	Intro         *Intro         // the title waits to be played (TitlePicture, TitleCredits, TitleDone)
-	Full          bool           // Pictures are one whole-screen picture (the title's): fitted to the window
-	Cells         image.Point    // the page's size in text cells (40x25 at least; a larger window gives more, ActResize)
-	Ink           [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now (all zero: the EGA's own)
-	Portrait      CellRect       // the sheet's portrait box (zero elsewhere): Shift-click takes the next head (ActHead), a dropped PNG becomes the portrait (ActPortrait)
-	IconDrop      bool           // the combat icon editor is up: a dropped PNG becomes the member's icon (ActIcon)
-	IconBox       CellRect       // the creation sheet's combat icon (zero elsewhere): a PNG dropped on it becomes the icon (ActIcon)
-	Read          *Read          // journal text the game waits to have read: the presenter pages it (JournalPage), then ActOK
-	Purse         *Purse         // the party's money and party items (nil without a party)
-	Ordering      bool           // the camp's Party Order bar is up: a card dragged onto another's place moves the member (ActOrder)
-	MainMenu      []ActKind      // the party menu is up: the functions open now (ActCreate .. ActQuit, ActMember, ActDropMember); ActLead selects a member
-	Logo          *Picture       // with MainMenu: the title picture (Pix) the presenter cuts the lettering from (present.Data.Logo)
-	Hall          bool           // MainMenu is the training hall's: over the 3D view, Begin leaves the hall
-	Screen        *game.Screen   // a game's typed screen is up (nil: none): the presenter draws it from its data, the Ask on its prompt rows
-	Seq           uint64         // counts the Views published: a presenter redraws the page on a new one
+	Pane       *Pane // the text pane under the 3D view: out adventuring (Adventure), or it holds text (nil otherwise)
+	Window     Window
+	AreaMap    *AreaMap // with WinAreaMap: the whole map, for a screen of its own
+	Area       AreaID
+	X, Y       int
+	Facing     Dir
+	Day        bool        // 6:00 to 20:00, when the scripts show the day sky
+	Inside     bool        // the party stands on an inside square (the original's inside sky colour)
+	Exploring  bool        // the party explores: the adventuring decisions (ActForward .. ActCastPick) are taken
+	Sweeping   bool        // ... at the slow, searching pace (ActSweep): the HUD says so
+	Interact   bool        // ... on a square whose event waits for ActInteract: the HUD says so
+	CanCast    bool        // ... and the selected member has a spell to cast (ActCastPick)
+	Camp       *Camp       // the party is in camp: the camp decisions (ActRest .. ActIconEdit) are taken; ActClose leaves
+	Temple     *Temple     // a temple (PendTemple): Cure, ViewMember, Appraise, KeepAppraised, ActLead; Leave
+	Shop       *Shop       // a shop (PendShop): Browse (the goods, ActBuy, ActSell), Identify, Appraise, KeepAppraised, ActLead; Leave
+	Loot       *Loot       // the treasure after a fight (PendLoot): LootView, LootTake, LootDetect, Lead; LootLeave
+	Door       *DoorOpts   // a locked door (PendDoor): TryDoor
+	Training   *Training   // the training hall for the selected member (TrainingView, the presenter's): Train, Learn; CloseTraining
+	Powers     *PowerPick  // a member chooses a power: PickPower
+	Sheet      *Sheet      // the selected member's sheet (the page): ActInventory, ActSpells .. ActCure, ActMember (another member); ActClose leaves
+	IconEditor *IconEditor // the combat icon editor is up (the page; IconDrop): the presenter lays it out and takes its clicks
+	SheetPage  *SheetPage  // the character sheet's page is up (the sheet, the creation's, the spell lists over it): the presenter draws it
+	Creation   *Creation   // the creation (or Modify) sheet (the page): ActRoll, ActSetField, ActName, ActStat, ActPicker, ActIconEdit, ActKeep; ActClose abandons (the player agreed to Abandon)
+	Picker     *Picker     // a grid picker (the page): ActPicked, ActPage; ActClose leaves
+	Ask        *Ask        // a question waits for its answer: menu, list, typed line, member, key, pause (the presenter's to pace) or spell
+	Party      []Member
+	Walls      *Walls         // the 3D view built from the rules' own map (nil: the remastered map Data.AreaMaps names)
+	Note       Note           // the status line's toast, shown on the bottom row a while after At
+	Inventory  *Inventory     // the inventory screen is up (nil otherwise)
+	Pictures   []Picture      // the screen's pictures, symbols and fills, bottom first
+	Adventure  bool           // the party is out in the world: the 3D view (or the overland map) is the screen
+	Prompt     []PaneRun      // the prompt row's text (the last row), X the page's column
+	ViewText   [][]PaneRun    // text over the view window (WinText: opProtection's runes), rows from 1, X the page's column
+	Results    *Results       // the after-combat page (in a box round the window)
+	CreditPage int            // which credits page (Credit.Page) while Credits
+	Credits    bool           // the title's credits page (Credits)
+	CreditsPic bool           // the title step is the game's credits as a picture: the presenter adds its remaster credit line
+	Sequence   *Sequence      // a full-screen animation plays (SequenceStep, SequenceDone)
+	Intro      *Intro         // the title waits to be played (TitlePicture, TitleCredits, TitleDone)
+	Full       bool           // Pictures are one whole-screen picture (the title's): fitted to the window
+	Cells      image.Point    // the page's size in text cells (40x25 at least; a larger window gives more, ActResize)
+	Ink        [16]color.RGBA // the text colours (EGA 0..15) in the page's palette now (all zero: the EGA's own)
+	Portrait   CellRect       // the sheet's portrait box (zero elsewhere): Shift-click takes the next head (ActHead), a dropped PNG becomes the portrait (ActPortrait)
+	IconDrop   bool           // the combat icon editor is up: a dropped PNG becomes the member's icon (ActIcon)
+	IconBox    CellRect       // the creation sheet's combat icon (zero elsewhere): a PNG dropped on it becomes the icon (ActIcon)
+	Read       *Read          // journal text the game waits to have read: the presenter pages it (JournalPage), then ActOK
+	Purse      *Purse         // the party's money and party items (nil without a party)
+	Ordering   bool           // the camp's Party Order bar is up: a card dragged onto another's place moves the member (ActOrder)
+	MainMenu   []ActKind      // the party menu is up: the functions open now (ActCreate .. ActQuit, ActMember, ActDropMember); ActLead selects a member
+	Logo       *Picture       // with MainMenu: the title picture (Pix) the presenter cuts the lettering from (present.Data.Logo)
+	Hall       bool           // MainMenu is the training hall's: over the 3D view, Begin leaves the hall
+	Screen     *game.Screen   // a game's typed screen is up (nil: none): the presenter draws it from its data, the Ask on its prompt rows
 }
 
 // Results is the after-combat page: the hired NPCs hiding their
@@ -598,57 +411,11 @@ type Sheet struct {
 	Reactions []Reaction // extra: the rule set's reactions and the member's policy for each (SetPolicy)
 }
 
-// Temple is a temple's services for the selected member.
-type Temple struct {
-	Cures    []Cure // Cure X is the index
-	Gold     int    // the party's gold
-	Appraise Appraise
-	Money    Money3 // the money acts the game allows here (Allowed Take, PoolCoins, LootShare)
-}
+// Temple is a temple being up (presence only: the services are play.Trading's).
+type Temple struct{}
 
-// Money3 is the money acts a place's game allows: take, pool, share.
-type Money3 struct{ Take, Pool, Share bool }
-
-// Cure is a temple service.
-type Cure struct {
-	Name     string
-	Price    int    // gold
-	Needed   bool   // false: Not says why, and the player is asked to pay anyway
-	Not      string // "is not blind."
-	Declines bool   // the temple says Not and does not ask to cast anyway
-	Only     bool   // not Needed: the row cannot be picked (the wound cures)
-}
-
-// Appraise is the gems and jewelry to appraise (Appraise, false a gem,
-// 1 a jewel).
-type Appraise struct {
-	Gems, Jewelry int
-	Valued        int  // the gold piece value of the one appraised, to sell or keep (ActKeep N 0 sells, 1 keeps); 0: none
-	Jewel         bool // ... it is a jewel
-	CanKeep       bool // ... there is room to keep it
-}
-
-// Shop is a shop's services besides its goods (Inventory.Wares).
-type Shop struct {
-	Unknown     []Unknown // the party's items Id tells something about
-	IDPrice     int       // gold an Id costs
-	Gold        int
-	Pooled      int  // gold pooled with the shop (0: none)
-	Pool        bool // the game lets the party pool its coins here (ActLootPool; Allowed PoolCoins)
-	Take        bool // ... take the pooled coins back (ActTakeMoney; Allowed Take)
-	Share       bool // ... share the pooled coins out (ActLootShare; Allowed LootShare)
-	Appraise    Appraise
-	Identified  *InvItem // (extra) the item Id last revealed, its Look lines what it does
-	IdentifiedN int      // counts the reveals: the presenter shows a new number once
-}
-
-// Unknown is an item to identify: Identify(Member, Item).
-type Unknown struct {
-	Member      int             // the member (0: with the party inventory)
-	Item        core.ItemHandle // the item
-	Owner, Name string
-	Icon        *InvItem // its type and words: the icon
-}
+// Shop is a shop being up (presence only: its goods and services are play.Trading's).
+type Shop struct{}
 
 // Training is the training hall's offer to the selected member.
 type Training struct {
@@ -662,24 +429,10 @@ type Training struct {
 	Learn   []BookSpell // a mage level was gained: the spell for the book (Learn), chosen before leaving
 }
 
-// Camp is what camp shows of the selected member and the party.
+// Camp is camp being up; Bestiary is the monster kinds met (the rest of
+// camp is play.Camping's).
 type Camp struct {
-	CanCast  bool        // the selected member has a spell to cast (ActCastPick)
-	Book     []BookSpell // the selected member's spell book: how often each is memorized on a rest (ActPlan)
-	Scrolls  []BookSpell // the spells on their scrolls: Count 1 while being scribed (ActScribe)
-	Healing  bool        // someone resting can heal (RestFix)
-	NoRest   bool        // the game allows no timed rest here (Allowed has no Rest): the Duration rests are not offered
-	Studying bool        // someone resting would memorize or scribe a spell (RestFix)
-	Bestiary []Beast     // the monster kinds met
-	Settings []Setting   // the game's numeric options, a row each that steps the value on (ActAlter)
-}
-
-// Setting is a numeric option the game publishes in camp: Value 0..Max,
-// shown as Names[Value] when Names has it, else as the number.
-type Setting struct {
-	Name       string
-	Value, Max int
-	Names      []string
+	Bestiary []Beast
 }
 
 // BookSpell is a spell with a count, and the slots of its level.
