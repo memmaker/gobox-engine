@@ -11,7 +11,6 @@ import (
 	"slices"
 
 	"gobox/ecl/script"
-	grules "gobox/rules"
 )
 
 // readSlotSave is the canonical save of the save directory; a slot holding
@@ -101,7 +100,7 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 		}
 	}
 	for _, n := range o.Party {
-		g.Party = append(g.Party, grules.MakeFileName(goldbox.RemoveSubstr(n, ".")))
+		g.Party = append(g.Party, MakeFileName(goldbox.RemoveSubstr(n, ".")))
 	}
 	return g, nil
 }

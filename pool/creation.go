@@ -1,8 +1,8 @@
-// Package creation is gobox's one character-creation flow over a ruleset's
+// Package pool is gobox's one character-creation flow over a ruleset's
 // core.CreationRules, for every game: POR c70cbee's sheet (engine/create.go
 // editSheet). The draft lives here; the ruleset only answers legality, rolls
 // and keeps. Drawing is the front's (front/classic/creation.go).
-package creation
+package pool
 
 import (
 	"errors"
@@ -28,9 +28,9 @@ type Draft struct {
 	Fields []core.FieldDef
 }
 
-// New is a fresh character: the ruleset's start (Draft(NoChar): POR a
+// NewDraft is a fresh character: the ruleset's start (Draft(NoChar): POR a
 // human male fighter), each field enforced, rolled.
-func New(r core.CreationRules, rng *core.RNG) (*Draft, error) {
+func NewDraft(r core.CreationRules, rng *core.RNG) (*Draft, error) {
 	start, err := r.Draft(core.NoChar)
 	if err != nil {
 		return nil, err

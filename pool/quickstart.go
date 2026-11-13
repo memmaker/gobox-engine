@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gobox/core"
 
-	gcreation "gobox/creation"
 	"gobox/game"
 )
 
@@ -28,7 +27,7 @@ func (e *Engine) quickPicks(q game.QuickPick) map[core.FieldID]int {
 // (gobox/creation.QuickParty over porCreation: Make to the roster, Join).
 func (e *Engine) QuickStart() error {
 	e.do(core.EmptyParty{})
-	_, err := gcreation.QuickParty(e.Creation(), nil) // nil: the Engine's own seed draws
+	_, err := QuickParty(e.Creation(), nil) // nil: the Engine's own seed draws
 	e.sel = 0
 	return err
 }

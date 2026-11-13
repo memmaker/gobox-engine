@@ -3,7 +3,6 @@ package pool
 import (
 	"bytes"
 	"gobox/char"
-	grules "gobox/rules"
 	"os"
 	"gobox/rules1e"
 	"testing"
@@ -18,7 +17,7 @@ func TestPoolIDs(t *testing.T) {
 			t.Fatal("load", name)
 		}
 		c := e.member(id)
-		b, _ := os.ReadFile(e.savePath(grules.MakeFileName(name) + ".sav"))
+		b, _ := os.ReadFile(e.savePath(MakeFileName(name) + ".sav"))
 		return c, b
 	}
 

@@ -4,7 +4,6 @@ import (
 	"gobox/asset"
 	"gobox/core"
 	"gobox/core/goldbox"
-	gcreation "gobox/creation"
 	"gobox/ega"
 	"slices"
 )
@@ -25,7 +24,7 @@ func (e *Engine) modifyCharacter(n int) error {
 		return core.ErrNotNow
 	}
 	e.do(core.HoldCopy{Who: c})
-	d, err := gcreation.Modify(e.Creation(), nil, c)
+	d, err := Modify(e.Creation(), nil, c)
 	if err != nil {
 		return err
 	}

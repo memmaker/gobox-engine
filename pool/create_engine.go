@@ -3,7 +3,6 @@ package pool
 import (
 	"errors"
 	"gobox/core"
-	gcreation "gobox/creation"
 	"gobox/game/play"
 )
 
@@ -63,7 +62,7 @@ func (e *Engine) createCharacter() error {
 	if e.creation != nil {
 		return core.ErrNotNow
 	}
-	d, err := gcreation.New(e.Creation(), nil) // nil: the Engine's own seed draws
+	d, err := NewDraft(e.Creation(), nil) // nil: the Engine's own seed draws
 	if err != nil {
 		return err
 	}
@@ -75,7 +74,7 @@ func (e *Engine) createCharacter() error {
 }
 
 // pushCreation (extra) puts the creation sheet up on draft d, drawn as c.
-func (e *Engine) pushCreation(d *gcreation.Draft, cID core.CharID, abandon string) {
+func (e *Engine) pushCreation(d *Draft, cID core.CharID, abandon string) {
 	cr := &creation{d: d, c: cID, abandon: abandon}
 	e.creation = cr
 	e.ext.creating = true
@@ -189,7 +188,7 @@ func (e *Engine) setStat(i int, typed string) error {
 	}
 	return e.creationEdit(func(cr *creation) error {
 		err := cr.d.SetScore(abilities[i], typed)
-		if errors.Is(err, gcreation.ErrScore) {
+		if errors.Is(err, ErrScore) {
 			return &play.Refusal{Text: "not a number"}
 		}
 		return err
@@ -249,7 +248,7 @@ func sheetIconBox() CellRect {
 
 // creation is the creation sheet up: c, a character of kind k.
 type creation struct {
-	d       *gcreation.Draft // the draft (gobox's one flow); c is drawn from it (charOf)
+	d       *Draft // the draft (gobox's one flow); c is drawn from it (charOf)
 	c       core.CharID
 	abandon string
 	asking  bool // Esc or Exit asked abandon (Pending); Yes abandons, No back to the sheet

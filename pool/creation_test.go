@@ -1,4 +1,4 @@
-package creation
+package pool
 
 import (
 	"errors"
@@ -76,7 +76,7 @@ func (f *fake) Draft(c core.CharID) (core.Draft, error) {
 
 func TestDraft(t *testing.T) {
 	r := &fake{}
-	d, err := New(r, &core.RNG{})
+	d, err := NewDraft(r, &core.RNG{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -125,8 +125,8 @@ func TestDraft(t *testing.T) {
 
 // TestPointBuy: bought bases go through Roll(RollPointBuy); a buy over the
 // budget or out of range is refused and the draft stays.
-func TestPointBuy(t *testing.T) {
-	d, err := New(&fake{}, &core.RNG{})
+func TestDraftPointBuy(t *testing.T) {
+	d, err := NewDraft(&fake{}, &core.RNG{})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,7 +8,6 @@ import (
 
 	"gobox/char"
 	"gobox/core"
-	grules "gobox/rules"
 )
 
 // The roster's RosterIDs (core.RosterID, approved 2026-11-11): each roster
@@ -21,7 +20,7 @@ const rosterNextFile = "rosternext"
 
 // rosterFile is the .cha of roster entry name (charlist.txt's, "* " marks it joined).
 func (e *Engine) rosterFile(name string) string {
-	return e.savePath(grules.MakeFileName(strings.TrimPrefix(name, "* ")) + ".cha")
+	return e.savePath(MakeFileName(strings.TrimPrefix(name, "* ")) + ".cha")
 }
 
 // newRosterID gives the next roster number and counts it in rosternext.

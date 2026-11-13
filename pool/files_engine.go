@@ -9,7 +9,6 @@ import (
 	"gobox/core"
 	"gobox/core/goldbox"
 	"gobox/ega"
-	grules "gobox/rules"
 	"io/fs"
 	"log"
 	"os"
@@ -171,7 +170,7 @@ func (e *Engine) exportFiles(cID core.CharID, game bool) char.Files {
 // LoadCharacter = ovr18:0AEC (name, c, useSav): the new character, false
 // when the file is missing.
 func (e *Engine) LoadCharacter(name string, useSav bool) (core.CharID, bool) {
-	nm := grules.MakeFileName(name)
+	nm := MakeFileName(name)
 	ext := ".cha"
 	if useSav {
 		ext = ".sav"
@@ -375,7 +374,7 @@ func (e *Engine) saveSlot() error {
 
 // charBase = savePath + MakeFileName(RemoveSubstr(name,'.')) for roster files.
 func (e *Engine) charBase(cID core.CharID) string {
-	return grules.MakeFileName(goldbox.RemoveSubstr(e.ruleset().Sheet(cID).Name, "."))
+	return MakeFileName(goldbox.RemoveSubstr(e.ruleset().Sheet(cID).Name, "."))
 }
 
 // CharRecord is the 0x11D-byte DOS character record (gobox/char's shared

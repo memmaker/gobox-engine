@@ -1,4 +1,4 @@
-package rules
+package pool
 
 // Oracle tests: the original functions are copied here (from cotab-go,
 // sotsb-go and por-go) on plain structs, run on the same inputs and the same

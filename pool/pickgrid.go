@@ -3,7 +3,6 @@ package pool
 import (
 	"gobox/core"
 	"gobox/core/goldbox"
-	grules "gobox/rules"
 	"image"
 	"slices"
 	"strings"
@@ -133,7 +132,7 @@ func (e *Engine) Pick(i int) (done bool) {
 	case PickAddFrom:
 		done = e.addForeign(p, i)
 	case PickForget:
-		base := grules.MakeFileName(goldbox.RemoveSubstr(p.labels[i], "."))
+		base := MakeFileName(goldbox.RemoveSubstr(p.labels[i], "."))
 		for _, ext := range []string{".cha", ".itm", ".spc", ".mem", ".dual", ".pow", ".png", ".icon.png"} {
 			e.removeSaved(e.savePath(base + ext))
 		}

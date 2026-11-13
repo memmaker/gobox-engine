@@ -4,7 +4,6 @@ import (
 	"gobox/ega"
 	"image"
 
-	grules "gobox/rules"
 )
 
 // The game's text (extra): the engine draws no text. What its routines
@@ -116,7 +115,7 @@ func (e *Engine) textBlock(x1, y1, x2, y2, colour int, clear bool, s string) {
 		e.blank(x1, y1, x2, y2)
 		e.msgCol, e.msgRow = x1, y1
 	}
-	grules.Flow(s, x1, y1, x2, y2, &e.msgCol, &e.msgRow, func(x, y int, c byte) { e.char(x, y, colour, c, true) }, func() {
+	Flow(s, x1, y1, x2, y2, &e.msgCol, &e.msgRow, func(x, y int, c byte) { e.char(x, y, colour, c, true) }, func() {
 		if x1 == 1 && y1 == msgTop && x2 == paneRight && y2 == paneBottom { // the pane: gobox pages it (the original's "Press any key to continue")
 			e.pageOn()
 			return

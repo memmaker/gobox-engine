@@ -9,7 +9,6 @@ import (
 
 	"gobox/char"
 	"gobox/core"
-	flow "gobox/creation"
 )
 
 // TestPorCreation: the gobox flow over porCreation draws the dice
@@ -32,7 +31,7 @@ func TestPorCreation(t *testing.T) {
 	after := e.state().RandSeed
 
 	r := &core.RNG{State: seed}
-	d, err := flow.New(p, r)
+	d, err := NewDraft(p, r)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +68,7 @@ func TestPorCreation(t *testing.T) {
 func TestSetScoreBaseline(t *testing.T) {
 	e := testEngine(t)
 	p := e.r1e().Creation()
-	d, err := flow.New(p, &core.RNG{State: 7})
+	d, err := NewDraft(p, &core.RNG{State: 7})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +79,7 @@ func TestSetScoreBaseline(t *testing.T) {
 	if err := d.SetScore(core.Strength, "18/5"); err != nil || d.D.Sheet.Scores[core.Strength] != 18 || d.D.Sheet.Scores[core.StrengthPercent] != 5 {
 		t.Errorf("18/5: %v %v", err, d.D.Sheet.Scores)
 	}
-	if !errors.Is(d.SetScore(core.Strength, "x"), flow.ErrScore) || d.D.Sheet.Scores[core.StrengthPercent] != 5 {
+	if !errors.Is(d.SetScore(core.Strength, "x"), ErrScore) || d.D.Sheet.Scores[core.StrengthPercent] != 5 {
 		t.Error("no score changed it")
 	}
 	d.SetField(rules1e.FieldClass, slices.Index(rules1e.PickClasses(), rules1e.ClsMage))
