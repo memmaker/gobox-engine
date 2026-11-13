@@ -196,7 +196,6 @@ type sound struct {
 	on        bool // a sink is attached (NewPlayer called)
 	isr       bool // the timer interrupt is hooked
 	typ       int  // sndSpeaker, sndTandy or sndNone
-	saved     int  // typ before Ctrl-S turned the sound off
 	installed bool // soundInit ran, PlaySound(sndStop) not since
 	song      int  // the song playing, 0 none
 	enabled   bool // PlaySound(sndUnmute) and (sndMute)

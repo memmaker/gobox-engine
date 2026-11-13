@@ -391,38 +391,6 @@ func (c *Chip) combined(v int, t *[4096]uint16, index int, differ6581 bool) uint
 	return avg
 }
 
-// measuredCombined is the alternative frequency-blended combined-waveform
-// lookup from the original; like there, it is not used by the sample path.
-func (c *Chip) measuredCombined(v, index int, ctrl byte) uint16 {
-	var t *[4096]uint16
-	switch ctrl & 0xf0 {
-	case Triangle | Sawtooth:
-		t = &c.triSaw
-	case Pulse | Triangle:
-		t = &c.pulseTri
-	case Pulse | Sawtooth:
-		t = &c.pulseSaw
-	case Pulse | Triangle | Sawtooth:
-		t = &c.pulseTriSaw
-	default:
-		return 0
-	}
-	vr := c.reg[v*7:]
-	freq := uint16(vr[0]) | uint16(vr[1])<<8
-	fhb := uint16(freq >> 8)
-	if fhb == 0 {
-		fhb = 1
-	}
-	blend := uint16(0x7777 + 0x8888/fhb)
-	entry := t[index>>4]
-	b := (uint32(entry)*uint32(blend) + uint32(c.prevWaveData[v])*uint32(0xffff-blend)) >> 16
-	c.prevWaveData[v] = entry
-	if c.model == MOS6581 && ctrl&Pulse != 0 {
-		b &= 0x7fff
-	}
-	return uint16(b) << 8
-}
-
 // u16 mimics the C++ double->uint16 cast as compiled (via int32).
 func u16(d float64) uint16 { return uint16(int32(d)) }
 
