@@ -433,10 +433,7 @@ func (e *Engine) complete(d askDone, v ansv) {
 		if v.n == 1 {
 			e.cs.phase = fightRound
 		}
-	case dDevParlay:
-		e.devParlayAnswered(v.n)
-	case dDevPassword:
-		e.scriptText(true, "YOU SAY '"+v.s+"'.")
-		e.askContinue(askDone{})
+	default:
+		e.devAnswered(d, v) // the dev scenes' answers (-tags devviews)
 	}
 }

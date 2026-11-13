@@ -122,17 +122,6 @@ func (e *Engine) ret() {
 		e.opFought()
 	case kOpAfterFight:
 		e.opAfterFight()
-	case kDevBack:
-		e.devBack()
-	case kDevFought:
-		e.push(cont{kind: kDevFightEnd})
-		e.pushAfterCombat()
-	case kDevFightEnd:
-		e.devFightEnd()
-	case kDevJournal:
-		e.showEntry(e.entryNamed("JournalEntry26"))
-		e.showEntry(e.entryNamed("JournalEntry4"))
-		e.ret()
 	case kDrawMain:
 		e.DrawMainScreen()
 		e.ret()
@@ -141,10 +130,6 @@ func (e *Engine) ret() {
 	case kShopBrowse:
 		e.snap.shop = false
 		e.uncovered()
-	case kDevLoot:
-		e.do(rules.DevTreasure{})
-		e.push(cont{kind: kDrawMain})
-		e.lootMenu()
 	case kNop:
 		e.ret()
 	case kAfterShared:
@@ -158,5 +143,7 @@ func (e *Engine) ret() {
 		e.afterEnd()
 	case kVaultDone:
 		e.vaultDone()
+	default:
+		e.devCont(c) // the dev scenes' steps (-tags devviews)
 	}
 }

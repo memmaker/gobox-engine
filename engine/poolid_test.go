@@ -1,3 +1,5 @@
+//go:build devviews
+
 package engine
 
 import (
