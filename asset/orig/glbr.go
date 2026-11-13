@@ -35,10 +35,10 @@ type Sequencer struct {
 	end   int              // ... and the tick it ends on
 }
 
-// GlbrNew parses a song block (song 0) and writes the init registers; nil if malformed.
+// NewSequencer parses a song block (song 0) and writes the init registers; nil if malformed.
 // The SLBR starts where the GLBR header's u32 says (PoD 0x1BC, SotSB 0x1B2). div is the
 // tempo divisor (SotSB's driver: 0x76); 0 takes the song header's tempo word / 84 (PoD).
-func GlbrNew(b []byte, div int, w func(int, byte), sid bool) *Sequencer {
+func NewSequencer(b []byte, div int, w func(int, byte), sid bool) *Sequencer {
 	if len(b) < 12 || string(b[:4]) != "GLBR" {
 		return nil
 	}

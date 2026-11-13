@@ -33,7 +33,7 @@ type Credit struct {
 type Data struct {
 	Series string // the asset series whose shared pools the game uses ("pool", "buck-rogers"; "": "pool")
 
-	PaneBox, ViewWindow, InnerWindow FrontCellRect // the original's main screen boxes at their 40x25 places
+	PaneBox, ViewWindow, InnerWindow CellRect // the original's main screen boxes at their 40x25 places
 
 	MapCell      int // pixels a square of Map
 	DungeonTiles int // the tiles at the start of the combat set
@@ -69,7 +69,7 @@ type Data struct {
 }
 
 var (
-	paneBox, viewWindow, innerWindow FrontCellRect
+	paneBox, viewWindow, innerWindow CellRect
 	mapCell, dungeonTiles            int
 	doorRGBA                         color.RGBA
 	menuEntries                      []Entry
@@ -377,8 +377,8 @@ func gameData(g game.Data) {
 	for i, c := range g.Commands {
 		menuEntries = append(menuEntries, Entry{Text: c.Label, Key: byte(c.Key), Act: ActCommand, N: i, Party: true})
 	}
-	if paneBox == (FrontCellRect{}) { // the pool games' main screen: the message pane, the view's frame and its picture
-		paneBox, viewWindow, innerWindow = FrontCellRect{X1: 1, Y1: 17, X2: 38, Y2: 22}, FrontCellRect{X1: 1, Y1: 1, X2: 15, Y2: 15}, FrontCellRect{X1: 3, Y1: 3, X2: 13, Y2: 13}
+	if paneBox == (CellRect{}) { // the pool games' main screen: the message pane, the view's frame and its picture
+		paneBox, viewWindow, innerWindow = CellRect{X1: 1, Y1: 17, X2: 38, Y2: 22}, CellRect{X1: 1, Y1: 1, X2: 15, Y2: 15}, CellRect{X1: 3, Y1: 3, X2: 13, Y2: 13}
 	}
 	if len(table.Rows) == len(bindings) { // no game rows: digits pick members
 		setBindings([]Binding{MemberDigits})

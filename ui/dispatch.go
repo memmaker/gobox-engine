@@ -472,7 +472,7 @@ func (p *Presenter) Hover(x, y int, down bool) {
 		}
 		if !down {
 			if to := p.cardHover; p.dragged && to > 0 && to != p.dragFrom {
-				p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActOrder, N: p.dragFrom - 1, X: to - 1})
+				p.inv.acts = append(p.inv.acts, Action{Kind: ActOrder, N: p.dragFrom - 1, X: to - 1})
 			}
 			p.dragFrom = 0
 		}
@@ -560,7 +560,7 @@ func (p *Presenter) cardClick(i int) {
 // dropAnswers drops the answers to the question sent since the acts were n
 // long (Key under NoPick/NoEsc).
 func (p *Presenter) dropAnswers(n int) {
-	p.inv.acts = append(p.inv.acts[:n], slices.DeleteFunc(p.inv.acts[n:], func(a FrontAction) bool {
+	p.inv.acts = append(p.inv.acts[:n], slices.DeleteFunc(p.inv.acts[n:], func(a Action) bool {
 		switch a.Kind {
 		case ActChoose, ActOK, ActYes, ActNo, ActClose:
 			return true

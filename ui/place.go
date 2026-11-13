@@ -58,7 +58,7 @@ func (p *Presenter) flags() *game.Flags {
 }
 
 // minimap is the automap of the state up and its squares, when it is a 16x16 map to draw.
-func (p *Presenter) minimap() (game.Automap, *FrontMapSquares) {
+func (p *Presenter) minimap() (game.Automap, *MapSquares) {
 	if p.eng == nil {
 		return game.Automap{}, nil
 	}

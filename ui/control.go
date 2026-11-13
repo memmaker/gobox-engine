@@ -52,7 +52,7 @@ func (p *CombatPresenter) Key(a Act, k uint16) bool {
 	case chord != nil: // the game's own chords (Alt-Q, Space) first
 		p.press(*chord)
 	case k == 'u' && p.Shift && p.bar.hotkey(a, k) != nil: // Shift-U: Quick for the whole party
-		p.act(Decision{Kind: CombatActQuick, N: 1})
+		p.act(Decision{Kind: DecideQuick, N: 1})
 	case game != nil: // the game's own hotkey wins over the camera's (Q, E, W ...)
 		p.press(*game)
 	case table != nil: // the remaster's letter for the same act (F Attack, U Quick), where the game gave its own
@@ -75,7 +75,7 @@ func (p *CombatPresenter) Key(a Act, k uint16) bool {
 	case a == Enter && aiming: // a square the game doesn't take leaves the aim up, the view centred on the cursor (the original's Center)
 		t := vec{float64(b.Cursor.X) + .5, 0, float64(b.Cursor.Y) + .5}
 		p.tabTo = &t
-		p.act(Decision{Kind: CombatActAim, X: b.Cursor.X, Y: b.Cursor.Y})
+		p.act(Decision{Kind: DecideAim, X: b.Cursor.X, Y: b.Cursor.Y})
 	case cycle && len(p.bar.rects) > 0: // Tab, Shift-Tab, the pad's shoulders (PgUp, PgDn): the focus
 		d := 1
 		if back {
@@ -88,7 +88,7 @@ func (p *CombatPresenter) Key(a Act, k uint16) bool {
 		return p.clickSquare(*p.free)
 	case a == Enter && p.lookCursor(): // no cursor yet: it starts on the turn's unit (Move had it), the arrows then move it
 	case a == Esc && aiming:
-		p.act(Decision{Kind: CombatActClose})
+		p.act(Decision{Kind: DecideClose})
 	default:
 		return false
 	}
@@ -166,7 +166,7 @@ func (p *CombatPresenter) moveCursor(d [2]float64) {
 	}
 	at = at.Add(step)
 	if u, ok := p.activeUnit(); ok && !b.Turn.Aim && *p.free == image.Pt(u.X, u.Y) && !onBoard(at) { // the cursor on the unit, pushed off the board's edge: a step off, the flee
-		p.act(Decision{Kind: CombatActFlee})
+		p.act(Decision{Kind: DecideFlee})
 		return
 	}
 	at = image.Pt(min(max(at.X, 0), len(p.ground[0])-1), min(max(at.Y, 0), len(p.ground)-1))
@@ -202,12 +202,12 @@ func (p *CombatPresenter) stepUnit(d [2]float64) bool {
 			to := image.Pt(u.X, u.Y).Add(p.screenStep(d))
 			if !onBoard(to) { // a step off the board's edge: the flee (the game asks, or refuses away from its edge)
 				p.free = nil
-				p.act(Decision{Kind: CombatActFlee})
+				p.act(Decision{Kind: DecideFlee})
 				return true
 			}
 			if p.moving == u.ID || slices.Contains(b.Reach, to) {
 				p.free = nil // Move's cursor, still on the unit: the arrows step it, as the original's
-				p.act(Decision{Kind: CombatActWalk, X: to.X, Y: to.Y})
+				p.act(Decision{Kind: DecideWalk, X: to.X, Y: to.Y})
 				return true
 			}
 		}

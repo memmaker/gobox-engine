@@ -99,7 +99,7 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 		inv.do(ActReady)
 	case member:
 		if inv.up.switchable {
-			inv.acts = append(inv.acts, FrontAction{Kind: ActMember, N: m})
+			inv.acts = append(inv.acts, Action{Kind: ActMember, N: m})
 		}
 	case k > ' ' && k < 128:
 		for _, w := range inv.menu() {
@@ -197,7 +197,7 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 	}
 	shift := gpu.IsKeyPressed(gpu.KeyShift)
 	if pressed && shift && inv.up.kind == invOwn && inv.hover.In(inv.face) { // Shift-click on the portrait: the next head
-		inv.acts = append(inv.acts, FrontAction{Kind: ActHead, N: -1})
+		inv.acts = append(inv.acts, Action{Kind: ActHead, N: -1})
 		return
 	}
 	if right && inv.up.kind == invOwn { // a stack on the cursor: one of it (Shift: half) is dropped where the pointer is; else one of the stack under the pointer (Shift: half) is picked up; elsewhere the screen closes
@@ -229,7 +229,7 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 					if l.ware && inv.up.kind == invLoot {
 						inv.do(ActBuy)
 					} else if l.ware {
-						inv.ask, inv.askSel = &FrontAction{Kind: ActBuy, Item: l.item.Handle}, 0
+						inv.ask, inv.askSel = &Action{Kind: ActBuy, Item: l.item.Handle}, 0
 					} else if inv.up.sell {
 						inv.do(ActSell)
 					}
@@ -300,7 +300,7 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 		inv.choose(true, h.item.Handle)
 		switch {
 		case drag && partySide && inv.up.kind != invLoot:
-			inv.ask, inv.askSel = &FrontAction{Kind: ActBuy, Item: h.item.Handle}, 0 // Yes first; a drag asks first (loot is free: no question)
+			inv.ask, inv.askSel = &Action{Kind: ActBuy, Item: h.item.Handle}, 0 // Yes first; a drag asks first (loot is free: no question)
 		case drag && partySide, !drag && was == h.item.Handle:
 			inv.do(ActBuy)
 		}

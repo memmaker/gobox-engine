@@ -21,7 +21,7 @@ func TestSheetFromDraft(t *testing.T) {
 // keeps 40x25 (no Cells) gets its icon on that page, not on the window's grid.
 func TestCreationOnShownPage(t *testing.T) {
 	g := NewGame(&fake{st: play.Assembling{Draft: &play.Draft{}}}, game.Data{})
-	g.Answer(FrontAction{Kind: FrontActResize, X: 80, Y: 50})
+	g.Answer(Action{Kind: ActResize, X: 80, Y: 50})
 	if ic := presenterOf(g).creation().Icon; ic.X2 >= 40 {
 		t.Errorf("icon %+v off the 40-column page", ic)
 	}

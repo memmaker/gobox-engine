@@ -13,12 +13,12 @@ import (
 // The adapter between the engine's combat snapshot and gobox/combat.
 
 var combatKinds = map[ActKind]Kind{
-	ActWalk: CombatActWalk, ActAttack: CombatActAttack, ActAim: CombatActAim, ActPoint: CombatActPoint,
-	ActClose: CombatActClose, ActYes: CombatActYes, ActNo: CombatActNo, ActWait: CombatActWait,
-	ActEnd: CombatActEnd, ActQuick: CombatActQuick, ActGuard: CombatActGuard, ActBandage: CombatActBandage,
-	ActFlee: CombatActFlee, ActTurn: CombatActTurn, ActCast: CombatActCast, ActItems: CombatActItems,
-	ActRanged: CombatActRanged, ActManeuver: CombatActManeuver,
-	ActStep: CombatActStep, ActView: CombatActView, ActOption: CombatActOption,
+	ActWalk: DecideWalk, ActAttack: DecideAttack, ActAim: DecideAim, ActPoint: DecidePoint,
+	ActClose: DecideClose, ActYes: DecideYes, ActNo: DecideNo, ActWait: DecideWait,
+	ActEnd: DecideEnd, ActQuick: DecideQuick, ActGuard: DecideGuard, ActBandage: DecideBandage,
+	ActFlee: DecideFlee, ActTurn: DecideTurn, ActCast: DecideCast, ActItems: DecideItems,
+	ActRanged: DecideRanged, ActManeuver: DecideManeuver,
+	ActStep: DecideStep, ActView: DecideView, ActOption: DecideOption,
 }
 
 var engineKinds = func() map[Kind]ActKind {
@@ -37,8 +37,8 @@ func (p *Presenter) syncBattle() {
 }
 
 // toAction is what the player chose as the engine's action.
-func toAction(d Decision) FrontAction {
-	return FrontAction{Kind: engineKinds[d.Kind], N: d.N, X: d.X, Y: d.Y}
+func toAction(d Decision) Action {
+	return Action{Kind: engineKinds[d.Kind], N: d.N, X: d.X, Y: d.Y}
 }
 
 // keypadSteps are the keypad's directions (ActDir N) by square offset.
@@ -61,7 +61,7 @@ func (p *Presenter) askedBoard(b *Board, c *play.Combat) *Board {
 	}
 	o := *b
 	aim := p.askUp().Kind == AskSquare
-	t := &Turn{Aim: aim, Can: []Kind{CombatActAim}, CastDirect: true}
+	t := &Turn{Aim: aim, Can: []Kind{DecideAim}, CastDirect: true}
 	if pt := c.Turn; pt != nil { // the game's turn, now aiming (a spell's square): its casting only
 		t.Casting = pt.Spell
 	}
@@ -72,7 +72,7 @@ func (p *Presenter) askedBoard(b *Board, c *play.Combat) *Board {
 		}
 	}
 	if !aim {
-		t.Can, o.Reach, o.Paths = []Kind{CombatActEnd}, nil, nil
+		t.Can, o.Reach, o.Paths = []Kind{DecideEnd}, nil, nil
 		for d := range keypadSteps {
 			if q := at.Add(d); q.In(image.Rect(0, 0, len(o.Ground[0]), len(o.Ground))) && !o.Ground[q.Y][q.X].Wall {
 				o.Reach = append(o.Reach, q)
@@ -86,22 +86,22 @@ func (p *Presenter) askedBoard(b *Board, c *play.Combat) *Board {
 // askAction is the tabletop's decision d as the answer to the question up:
 // on a move (askedTurn) a square walked to is that step (ActDir), End is
 // done (ActOK); otherwise toAction's.
-func (p *Presenter) askAction(d Decision) FrontAction {
+func (p *Presenter) askAction(d Decision) Action {
 	if !p.askedTurn() || p.askUp().Kind != AskMove {
 		return toAction(d)
 	}
 	switch d.Kind {
-	case CombatActEnd:
-		return FrontAction{Kind: ActOK}
-	case CombatActStep:
-		return FrontAction{Kind: ActDir, N: d.N}
-	case CombatActWalk:
+	case DecideEnd:
+		return Action{Kind: ActOK}
+	case DecideStep:
+		return Action{Kind: ActDir, N: d.N}
+	case DecideWalk:
 		for _, u := range p.board.Units {
 			if n, ok := keypadSteps[image.Pt(d.X-u.At.X, d.Y-u.At.Y)]; u.Active && ok {
-				return FrontAction{Kind: ActDir, N: n}
+				return Action{Kind: ActDir, N: n}
 			}
 		}
-		return FrontAction{}
+		return Action{}
 	}
 	return toAction(d)
 }

@@ -68,7 +68,7 @@ func TestStoneTexture(t *testing.T) {
 
 func TestKeys(t *testing.T) {
 	p := &CombatPresenter{}
-	b := &Board{Turn: &Turn{Can: []Kind{CombatActAttack, CombatActWait, CombatActEnd, CombatActQuick}}}
+	b := &Board{Turn: &Turn{Can: []Kind{DecideAttack, DecideWait, DecideEnd, DecideQuick}}}
 	p.b = b
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
@@ -77,7 +77,7 @@ func TestKeys(t *testing.T) {
 		k uint16
 	}
 	took := func(k key) []Decision { p.Key(k.a, k.k); return p.Actions() }
-	for k, want := range map[key]Kind{{0, '1'}: CombatActAttack, {0, '2'}: CombatActWait, {EndTurn, 8}: CombatActEnd, {0, 'u'}: CombatActQuick, {0, 'p'}: CombatActWait} {
+	for k, want := range map[key]Kind{{0, '1'}: DecideAttack, {0, '2'}: DecideWait, {EndTurn, 8}: DecideEnd, {0, 'u'}: DecideQuick, {0, 'p'}: DecideWait} {
 		if got := took(k); len(got) != 1 || got[0].Kind != want {
 			t.Errorf("key %v: %+v, want kind %d", k, got, want)
 		}
@@ -99,10 +99,10 @@ func TestKeys(t *testing.T) {
 	if got := took(key{Tab, 9}); len(got) != 0 || b.Cursor != image.Pt(4, 2) { // the aim cursor is front state: no game action
 		t.Errorf("Tab aiming: %+v at %v, want the next target", got, b.Cursor)
 	}
-	if got := took(key{Enter, 13}); len(got) != 1 || got[0] != (Decision{Kind: CombatActAim, X: 4, Y: 2}) {
+	if got := took(key{Enter, 13}); len(got) != 1 || got[0] != (Decision{Kind: DecideAim, X: 4, Y: 2}) {
 		t.Errorf("Enter aiming: %+v", got)
 	}
-	if got := took(key{Esc, 27}); len(got) != 1 || got[0].Kind != CombatActClose {
+	if got := took(key{Esc, 27}); len(got) != 1 || got[0].Kind != DecideClose {
 		t.Errorf("Esc aiming: %+v", got)
 	}
 }
@@ -135,7 +135,7 @@ func TestNDC(t *testing.T) {
 
 func TestBarFocus(t *testing.T) {
 	p := &CombatPresenter{}
-	b := &Board{Turn: &Turn{Can: []Kind{CombatActAttack, CombatActWait, CombatActEnd}}}
+	b := &Board{Turn: &Turn{Can: []Kind{DecideAttack, DecideWait, DecideEnd}}}
 	p.b = b
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
@@ -151,7 +151,7 @@ func TestBarFocus(t *testing.T) {
 			t.Fatalf("key %v: focus %d, want %d", c.a, p.bar.focus, c.focus)
 		}
 	}
-	if p.Key(Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: CombatActWait}}) {
+	if p.Key(Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: DecideWait}}) {
 		t.Error("Enter did not press the focused Wait")
 	}
 	p.bar.focus = 0
@@ -161,7 +161,7 @@ func TestBarFocus(t *testing.T) {
 	}
 	b.Turn = nil
 	p.bar.items = shownItems(b, true)
-	for k, want := range map[uint16]Kind{'y': CombatActYes, 'n': CombatActNo} {
+	for k, want := range map[uint16]Kind{'y': DecideYes, 'n': DecideNo} {
 		if p.Key(0, k); !slices.Equal(p.Actions(), []Decision{{Kind: want}}) {
 			t.Errorf("question key %#x: want kind %d", k, want)
 		}
@@ -182,7 +182,7 @@ func TestCursor(t *testing.T) {
 	if p.Key(CursorUp, 'w'); p.free == nil || *p.free != image.Pt(5, 3) {
 		t.Fatalf("W again: cursor %v, want 5,3", p.free)
 	}
-	if p.Key(Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: CombatActWalk, X: 5, Y: 3}}) {
+	if p.Key(Enter, 13); !slices.Equal(p.Actions(), []Decision{{Kind: DecideWalk, X: 5, Y: 3}}) {
 		t.Error("Enter on a reach square did not walk there")
 	}
 	p.Point(100, 100) // a moved mouse takes over
@@ -201,7 +201,7 @@ func TestCursor(t *testing.T) {
 // A click on a Reach square walks there.
 func TestClickReach(t *testing.T) {
 	p := &CombatPresenter{b: &Board{Turn: &Turn{}, Reach: []image.Point{{3, 4}}}}
-	if !p.clickSquare(image.Pt(3, 4)) || !slices.Equal(p.Actions(), []Decision{{Kind: CombatActWalk, X: 3, Y: 4}}) {
+	if !p.clickSquare(image.Pt(3, 4)) || !slices.Equal(p.Actions(), []Decision{{Kind: DecideWalk, X: 3, Y: 4}}) {
 		t.Error("a click on a Reach square did not return Walk")
 	}
 }
@@ -230,7 +230,7 @@ func TestAimEnterCentres(t *testing.T) {
 	if p.tabTo == nil || *p.tabTo != (vec{9.5, 0, 4.5}) {
 		t.Fatalf("view on %v", p.tabTo)
 	}
-	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: CombatActAim, X: 9, Y: 4}) {
+	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: DecideAim, X: 9, Y: 4}) {
 		t.Fatalf("%+v", got)
 	}
 }

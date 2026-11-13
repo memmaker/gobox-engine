@@ -124,9 +124,9 @@ func (p *Presenter) listPick(sel int) {
 	}
 	switch {
 	case sel < n && !p.askList()[sel].Off:
-		p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActChoose, N: -1, X: sel})
+		p.inv.acts = append(p.inv.acts, Action{Kind: ActChoose, N: -1, X: sel})
 	case sel >= n && sel-n < len(p.list.opts):
-		p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActChoose, N: p.list.opts[sel-n], X: p.listLine()})
+		p.inv.acts = append(p.inv.acts, Action{Kind: ActChoose, N: p.list.opts[sel-n], X: p.listLine()})
 	default:
 		return
 	}
@@ -136,7 +136,7 @@ func (p *Presenter) listPick(sel int) {
 // raise sends line i's value up (d +1) or down (-1) on AskModify.
 func (p *Presenter) raise(i, d int) {
 	if i >= 0 {
-		p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActRaise, N: i, X: d})
+		p.inv.acts = append(p.inv.acts, Action{Kind: ActRaise, N: i, X: d})
 	}
 }
 

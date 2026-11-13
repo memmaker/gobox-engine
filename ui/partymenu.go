@@ -11,7 +11,7 @@ import (
 
 // partyFunctions are the party menu's functions by their labels.
 var partyFunctions = map[string]ActKind{
-	"Create Character": FrontActCreate, "Add Character": ActAdd, "Remove Character": ActRemove,
+	"Create Character": ActCreate, "Add Character": ActAdd, "Remove Character": ActRemove,
 	"Modify Character": ActModify, "Train Character": ActTraining, "View Character": ActMember,
 	"Load Saved Game": ActLoad, "Begin Adventuring": ActBegin, "Exit to DOS": ActQuit,
 	"Drop Character": ActDropMember, "Human Change Class": ActNewClass, "Quick Start": ActQuickStart,

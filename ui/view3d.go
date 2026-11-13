@@ -302,7 +302,7 @@ func now() time.Time {
 
 // drawBox copies box r of the classic frame onto dst at scale k, centred
 // on cx, cy: its inside, in a plain window of tiles' cells.
-func drawBox(dst, inside *gpu.Image, tiles Ribbon, r FrontCellRect, k float64, cx, cy int) {
+func drawBox(dst, inside *gpu.Image, tiles Ribbon, r CellRect, k float64, cx, cy int) {
 	if drawnAt != nil {
 		drawnAt(drawnBox, dst, k)
 	}

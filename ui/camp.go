@@ -297,10 +297,10 @@ func (p *Presenter) memberAct(k ActKind, n int) {
 // its scribing.
 func (p *Presenter) campSpell(id, n int) {
 	if p.camp.screen == campScribe {
-		p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActScribe, N: -1, X: id})
+		p.inv.acts = append(p.inv.acts, Action{Kind: ActScribe, N: -1, X: id})
 		return
 	}
-	p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActPlan, N: -1, X: id, Y: n})
+	p.inv.acts = append(p.inv.acts, Action{Kind: ActPlan, N: -1, X: id, Y: n})
 }
 
 // drawCamp draws the camp screen up at scale k, centred on cx, its top at
@@ -504,7 +504,7 @@ func (p *Presenter) screenUp() bool {
 }
 
 // sendX sends a decision with an X.
-func (p *Presenter) sendX(k ActKind, n, x int) { p.sendA(FrontAction{Kind: k, N: n, X: x}) }
+func (p *Presenter) sendX(k ActKind, n, x int) { p.sendA(Action{Kind: k, N: n, X: x}) }
 
 // appraiseItems is the appraise screen; back goes to the screen before.
 func (p *Presenter) appraiseItems(purse map[string]int, offers []game.Offer, back func()) (string, []MenuRow) {
@@ -548,7 +548,7 @@ func (p *Presenter) askRest(n int) {
 		q.Ask.Prompt = fmt.Sprintf("Rest Time: %d Days %d Hours %d Mins", t[0], t[1], t[2])
 	}
 	set()
-	q.Answer = func(a FrontAction) bool {
+	q.Answer = func(a Action) bool {
 		switch {
 		case a.Kind == ActChoose && a.N < 3:
 			field = a.N
@@ -559,7 +559,7 @@ func (p *Presenter) askRest(n int) {
 		case a.Kind == ActChoose && a.N < 5:
 			t[field] = min(most[field], max(0, t[field]+step[field]*(7-2*a.N)))
 		case a.Kind == ActChoose && a.N == 5, a.Kind == ActOK:
-			p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActRest, N: n, X: t[0]*1440 + t[1]*60 + t[2]})
+			p.inv.acts = append(p.inv.acts, Action{Kind: ActRest, N: n, X: t[0]*1440 + t[1]*60 + t[2]})
 			return true
 		case a.Kind == ActChoose, a.Kind == ActClose:
 			return true

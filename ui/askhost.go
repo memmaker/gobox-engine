@@ -13,7 +13,7 @@ func AskSure(h RuleHost, err error, again func()) bool {
 	case errors.As(err, &yes):
 		AskYes(h, string(yes), again)
 	case errors.As(err, &no):
-		h.Ask(&Question{Ask: FrontAsk{Kind: AskConfirm, Menu: Menu{Prompt: string(no)}}, Answer: func(a FrontAction) bool {
+		h.Ask(&Question{Ask: FrontAsk{Kind: AskConfirm, Menu: Menu{Prompt: string(no)}}, Answer: func(a Action) bool {
 			switch a.Kind {
 			case ActNo:
 				again()

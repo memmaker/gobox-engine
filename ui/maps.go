@@ -64,20 +64,20 @@ func letters(ls []label) (texts []string, l map[string]byte) {
 // Map is m (the game's) with what s.Map gives in its place: how far each
 // square is seen, the party's square and step ahead, the walls and doors
 // and the labels' kinds and letters. nil where m is.
-func Map(m *FrontMapSquares, a game.Automap, where game.Where) *FrontMapSquares {
+func Map(m *MapSquares, a game.Automap, where game.Where) *MapSquares {
 	if m == nil || a.Size != image.Pt(16, 16) {
 		return m
 	}
-	c := FrontMapSquares{Party: image.Pt(where.X, where.Y), Ahead: ahead[where.Facing/2&3]}
+	c := MapSquares{Party: image.Pt(where.X, where.Y), Ahead: ahead[where.Facing/2&3]}
 	on := image.Rect(0, 0, 16, 16)
 	for _, p := range a.Known {
 		if p.In(on) {
-			c.Squares[p.Y][p.X].Seen = FrontSeenFar
+			c.Squares[p.Y][p.X].Seen = SeenFar
 		}
 	}
 	for _, p := range a.Walked {
 		if p.In(on) {
-			c.Squares[p.Y][p.X].Seen = FrontVisited
+			c.Squares[p.Y][p.X].Seen = Visited
 		}
 	}
 	set := func(ws []game.Wall, k func(game.Wall) MapWall) {
@@ -87,12 +87,12 @@ func Map(m *FrontMapSquares, a game.Automap, where game.Where) *FrontMapSquares 
 			}
 		}
 	}
-	set(a.Walls, func(game.Wall) MapWall { return FrontWall })
+	set(a.Walls, func(game.Wall) MapWall { return Wall })
 	set(a.Doors, func(w game.Wall) MapWall {
 		if w.State == game.DoorLocked || w.State == game.DoorWizardLocked {
-			return FrontLockedDoor
+			return LockedDoor
 		}
-		return FrontDoor
+		return Door
 	})
 	ls := labels(a)
 	_, l := letters(ls)
@@ -160,7 +160,7 @@ func FullMap(f *FrontFullMap, a game.Automap, where game.Where) *FrontFullMap {
 	}
 	c := *f
 	if c.Map == nil { // the front's own M asks with no squares yet (Map keeps nil as nil)
-		c.Map = &FrontMapSquares{}
+		c.Map = &MapSquares{}
 	}
 	c.Name, c.Map, c.Labelled, c.Mine, c.Legend = a.Area, Map(c.Map, a, where), false, false, nil
 	c.Info = fmt.Sprintf("%d,%d", f.Cursor.X, f.Cursor.Y)

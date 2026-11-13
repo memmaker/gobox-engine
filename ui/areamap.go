@@ -7,9 +7,9 @@ import (
 	"gobox/gpu"
 )
 
-// UIAreaMap draws the overland's whole map over the window and keeps the
+// AreaMapPainter draws the overland's whole map over the window and keeps the
 // uploaded pictures while their sources stay the same.
-type UIAreaMap struct {
+type AreaMapPainter struct {
 	src, markSrc image.Image
 	img, mark    *gpu.Image
 }
@@ -30,18 +30,18 @@ func AreaGeom(b, mb image.Rectangle, k0 float64, tile int, party image.Point) (k
 
 // Draw draws pic (tiles of tile pixels) with marker (nil: none) on the
 // party's square, at least k0 times its pixels.
-func (a *UIAreaMap) Draw(dst *gpu.Image, pic image.Image, tile int, party image.Point, marker image.Image, k0 float64) {
+func (a *AreaMapPainter) Draw(dst *gpu.Image, pic image.Image, tile int, party image.Point, marker image.Image, k0 float64) {
 	a.draw(dst, image.Point{}, pic, tile, party, marker, k0)
 }
 
 // DrawIn is Draw into the rectangle r of dst only (clipped to it, centred
 // on the party as in a window of r's size).
-func (a *UIAreaMap) DrawIn(dst *gpu.Image, r image.Rectangle, pic image.Image, tile int, party image.Point, marker image.Image, k0 float64) {
+func (a *AreaMapPainter) DrawIn(dst *gpu.Image, r image.Rectangle, pic image.Image, tile int, party image.Point, marker image.Image, k0 float64) {
 	a.draw(dst.SubImage(r).(*gpu.Image), r.Min, pic, tile, party, marker, k0)
 }
 
 // draw draws into dst with its map origin at off.
-func (a *UIAreaMap) draw(dst *gpu.Image, off image.Point, pic image.Image, tile int, party image.Point, marker image.Image, k0 float64) {
+func (a *AreaMapPainter) draw(dst *gpu.Image, off image.Point, pic image.Image, tile int, party image.Point, marker image.Image, k0 float64) {
 	if a.src != pic {
 		if a.img != nil {
 			a.img.Deallocate()

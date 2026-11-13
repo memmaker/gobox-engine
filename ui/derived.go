@@ -15,7 +15,7 @@ type derived struct {
 	kept     *game.Walls      // the one last explored: camp and a scene keep it
 	automap  game.Automap     // the map of where the party is
 	explored game.Automap     // the one last explored (camp)
-	minimap  *FrontMapSquares // automap's squares when it is the 16x16 map (nil: not)
+	minimap  *MapSquares // automap's squares when it is the 16x16 map (nil: not)
 	unknown  []game.ItemRef   // the party's items the shop's Id would tell something about
 	border   windowBorder     // the window border's decoded pieces
 }
@@ -40,7 +40,7 @@ func (r *frontState) derived() *derived {
 			d.explored = d.automap
 		}
 		if am := d.automap; am.Size == image.Pt(16, 16) {
-			d.minimap = Map(&FrontMapSquares{}, am, play.CommonOf(ps).Where)
+			d.minimap = Map(&MapSquares{}, am, play.CommonOf(ps).Where)
 			if old != nil && old.minimap != nil && *d.minimap == *old.minimap { // the same map: the one uploaded
 				d.minimap = old.minimap
 			}

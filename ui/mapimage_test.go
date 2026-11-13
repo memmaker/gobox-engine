@@ -12,10 +12,11 @@ func TestMapImage(t *testing.T) {
 		ink[i] = color.RGBA{uint8(i*16 + 1), uint8(i), 7, 255}
 	}
 	door := color.RGBA{1, 2, 3, 255}
+	doorRGBA, labelInks = door, []int{10}
 	m := &MapSquares{Party: image.Pt(1, 1), Ahead: image.Pt(0, -1)}
-	m.Squares[0][0] = MapSquare{Seen: Visited, Walls: [4]Wall{WallSolid, Door, NoWall, NoWall}}
-	m.Squares[0][2] = MapSquare{Seen: SeenFar, Ink: 10, Letter: 'A'}
-	img := UIMapImage(m, 8, ink, door, nil)
+	m.Squares[0][0] = MapSquare{Seen: Visited, Walls: [4]MapWall{Wall, Door, NoWall, NoWall}}
+	m.Squares[0][2] = MapSquare{Seen: SeenFar, Kind: 0, Letter: 'A'}
+	img := mapImage(m, 8, ink, nil)
 	for _, c := range []struct {
 		p image.Point
 		w color.RGBA

@@ -11,7 +11,7 @@ import (
 // for them alone, no CloseTraining (that leaves a hall the game opened).
 func TestTrainingSwitch(t *testing.T) {
 	p := &Presenter{training: true}
-	if !p.serviceAct(FrontAction{Kind: ActLead, N: 2}) {
+	if !p.serviceAct(Action{Kind: ActLead, N: 2}) {
 		t.Fatal("not taken")
 	}
 	g, f := playGame(play.Trading{})
@@ -29,7 +29,7 @@ func TestTrainingSwitchGameHall(t *testing.T) {
 	g, f := playGame(play.Trading{Kind: play.TradeTraining, Training: &game.Training{Why: map[int]string{1: "NOT ENOUGH EXPERIENCE"}}})
 	p := &Presenter{}
 	p.SetEngine(g)
-	if !p.serviceAct(FrontAction{Kind: ActLead, N: 1}) {
+	if !p.serviceAct(Action{Kind: ActLead, N: 1}) {
 		t.Fatal("not taken")
 	}
 	for _, c := range p.Calls() {

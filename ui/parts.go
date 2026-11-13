@@ -103,41 +103,41 @@ type PaneRun struct {
 	Blink  bool // the presenter alternates Fg with the highlight colour a few times (blink.go)
 }
 
-// FrontMapSquares is a map as the maps show it (minimap, the area map, the
+// MapSquares is a map as the maps show it (minimap, the area map, the
 // full map): squares [y][x], the party's square (off the map: not shown) and
 // the step towards its facing.
-type FrontMapSquares struct {
-	Squares [16][16]FrontMapSquare
+type MapSquares struct {
+	Squares [16][16]MapSquare
 	Party   image.Point
 	Ahead   image.Point
 }
 
-// FrontMapSquare is a square of a map: how far the party has seen it, its
+// MapSquare is a square of a map: how far the party has seen it, its
 // walls (N E S W) and its label (Letter 0: none).
-type FrontMapSquare struct {
-	Seen   FrontSeen
+type MapSquare struct {
+	Seen   Seen
 	Walls  [4]MapWall
 	Kind   int  // the label's kind: its colour is Data.LabelInks[Kind]
 	Letter byte // the label's legend letter
 }
 
-// FrontSeen is how much of a square the party has seen.
-type FrontSeen uint8
+// Seen is how much of a square the party has seen.
+type Seen uint8
 
 const (
-	FrontUnseen  FrontSeen = iota
-	FrontSeenFar           // seen from afar
-	FrontVisited           // walked on
+	Unseen  Seen = iota
+	SeenFar           // seen from afar
+	Visited           // walked on
 )
 
 // MapWall is a wall on a map.
 type MapWall uint8
 
 const (
-	FrontNoWall MapWall = iota
-	FrontWall
-	FrontDoor
-	FrontLockedDoor
+	NoWall MapWall = iota
+	Wall
+	Door
+	LockedDoor
 )
 
 // Shown reports whether the pane holds visible text (runs of blanks, as a
@@ -205,7 +205,7 @@ type Scan struct {
 // cursor cell's context menu has Walk (WalkTo), Mark and Remove.
 type FrontFullMap struct {
 	Name     string           // the map's name, top left
-	Map      *FrontMapSquares // the squares, the legend's letter on each labelled square
+	Map      *MapSquares // the squares, the legend's letter on each labelled square
 	At       image.Point      // the map's top left on the page, in pixels (At, Cell, LegendAt: the presenter lays them out)
 	Cell     int              // pixels a square
 	Cursor   image.Point      // the cursor's square
@@ -250,13 +250,13 @@ type Picture struct {
 	FrameMs      int
 }
 
-// FrontPickHead .. PickForget are the pickers OpenPicker readies (kept in game,
+// PickHead .. PickForget are the pickers OpenPicker readies (kept in game,
 // so a game names them without importing the front).
 const (
-	FrontPickHead     = game.PickHead
-	FrontPickBody     = game.PickBody
-	FrontPickIconHead = game.PickIconHead
-	FrontPickWeapon   = game.PickWeapon
+	PickHead     = game.PickHead
+	PickBody     = game.PickBody
+	PickIconHead = game.PickIconHead
+	PickWeapon   = game.PickWeapon
 	PickAdd           = game.PickAdd
 	PickForget        = game.PickForget
 )
@@ -269,17 +269,17 @@ const (
 // selected swatch (Part, Shade) takes its colour.
 type FrontIconEditor struct {
 	Poses              [2]image.Image // ready and action, drawn over PoseAt at the window's resolution
-	PoseAt             [2]FrontCellRect
+	PoseAt             [2]CellRect
 	Large              bool // Size: large (else small)
-	Head, Weapon, Size FrontCellRect
-	Names              FrontCellRect    // the parts' names, a row each
-	Parts              FrontCellRect    // their two swatches, 2 cells wide and 3 apart
-	Palette            FrontCellRect    // the colours, 8 a row, 2 cells each
+	Head, Weapon, Size CellRect
+	Names              CellRect    // the parts' names, a row each
+	Parts              CellRect    // their two swatches, 2 cells wide and 3 apart
+	Palette            CellRect    // the colours, 8 a row, 2 cells each
 	Colours            [16]int          // the colour number in each palette cell, row-major (-1: empty)
 	Part, Shade        int              // the swatch the palette sets
 	Colour             [6][2]int        // each part's two colour numbers (the swatches)
 	Custom             bool             // the poses are a dropped PNG: no parts or colours, only Remove (ActIconRemove)
-	Remove             FrontCellRect    // the Remove word, when Custom
+	Remove             CellRect    // the Remove word, when Custom
 	Swatch             [6][2]color.RGBA // each part's two colours as they show
 	PaletteInk         [16]color.RGBA   // each palette cell's colour as it shows
 	// Indexed alternative to Poses, Swatch and PaletteInk: with Indexed set the
@@ -295,9 +295,9 @@ type FrontIconEditor struct {
 type FrontPicker struct {
 	N, Page, Pages, PerPage, Cols int
 	Cur                           int             // the picture it opened on
-	Cells                         []FrontCellRect // the pictures on this page: Page*PerPage on
+	Cells                         []CellRect // the pictures on this page: Page*PerPage on
 	Pics                          []Picture       // their pictures, as the page would show them
-	Prev, Next                    FrontCellRect   // the pager's arrows (zero: one page)
+	Prev, Next                    CellRect   // the pager's arrows (zero: one page)
 	Bottom                        int             // the box's inner bottom row (the box: from cell 1, 1 to the page's right)
 	Labels                        []string        // the pictures' names (the saved characters)
 	Classes                       []string        // ... their classes ("": the files are gone)
@@ -328,19 +328,19 @@ type MainMenu struct {
 	Name     string    // ... its name ("" none)
 }
 
-// FrontCellRect is a rectangle of 8x8 text cells, both corners included. For a
+// CellRect is a rectangle of 8x8 text cells, both corners included. For a
 // box it is the inside, as DrawBorder takes it: the border is the ring of
 // cells around it (Framed).
-type FrontCellRect struct{ X1, Y1, X2, Y2 int }
+type CellRect struct{ X1, Y1, X2, Y2 int }
 
 // Pixels is the rectangle in screen pixels.
-func (r FrontCellRect) Pixels() image.Rectangle {
+func (r CellRect) Pixels() image.Rectangle {
 	return image.Rect(r.X1*8, r.Y1*8, r.X2*8+8, r.Y2*8+8)
 }
 
 // Framed is the box with its border.
-func (r FrontCellRect) Framed() FrontCellRect {
-	return FrontCellRect{r.X1 - 1, r.Y1 - 1, r.X2 + 1, r.Y2 + 1}
+func (r CellRect) Framed() CellRect {
+	return CellRect{r.X1 - 1, r.Y1 - 1, r.X2 + 1, r.Y2 + 1}
 }
 
 // FrontCreation is the creation sheet's parts: the drop-down fields, and the
@@ -348,12 +348,12 @@ func (r FrontCellRect) Framed() FrontCellRect {
 type FrontCreation struct {
 	Fields    []Field // the sheet's fields in the game's order (ActSetField N): adnd1 FieldSex, FieldRace, FieldAlign, FieldClass
 	Powers    []Field // the rule set's power picks (ActSetField N len(Fields)+i), off the page: the bar's Powers; Cur -1: none picked yet
-	Name      FrontCellRect
-	Stats     []FrontCellRect // the abilities' cells (ActStat N), STR .. CHA or the game's own
+	Name      CellRect
+	Stats     []CellRect // the abilities' cells (ActStat N), STR .. CHA or the game's own
 	StatNames []string        // their labels
-	Head      FrontCellRect   // the portrait's head (PickHead) ...
-	Body      FrontCellRect   // ... and body (PickBody)
-	Icon      FrontCellRect   // the combat icon (ActIconEdit)
+	Head      CellRect   // the portrait's head (PickHead) ...
+	Body      CellRect   // ... and body (PickBody)
+	Icon      CellRect   // the combat icon (ActIconEdit)
 	Scale     int             // the portrait's and the icon's whole scale: the engine draws them at 1x from Head's and Icon's corners
 	Abandon   string          // what Esc asks before ActClose
 	Minimums  string          // the minimums Minimal last rolled to (ActRoll N 1)
@@ -374,7 +374,7 @@ const (
 // Field is a drop-down of the creation sheet.
 type Field struct {
 	Name    string
-	At      FrontCellRect // its text on the sheet
+	At      CellRect // its text on the sheet
 	Options []Option
 	Cur     int // the option it holds
 }

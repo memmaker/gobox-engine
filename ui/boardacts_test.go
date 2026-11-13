@@ -15,7 +15,7 @@ import (
 // a foe (7) at (3, 8), (1, 8) in reach; the camera looks at the unit.
 func boardScene() *CombatPresenter {
 	foe := Unit{ID: 7, X: 3, Y: 8, Squares: []image.Point{{3, 8}}}
-	opts := []CombatOption{{"Move", 'M', CombatActWalk, ""}, {"View", 'V', CombatActView, ""}, {"Aim", 0, CombatActAim, ""}, {"Cast", 'C', CombatActCast, ""}, {"Flee", 0, CombatActFlee, ""}, {"Done", 'D', CombatActEnd, ""}}
+	opts := []CombatOption{{"Move", 'M', DecideWalk, ""}, {"View", 'V', DecideView, ""}, {"Aim", 0, DecideAim, ""}, {"Cast", 'C', DecideCast, ""}, {"Flee", 0, DecideFlee, ""}, {"Done", 'D', DecideEnd, ""}}
 	b := &Board{Units: []Unit{{ID: 1, X: 0, Y: 8, Squares: []image.Point{{0, 8}}, Party: true, Active: true}, foe}, Targets: []int{7},
 		Reach: []image.Point{{1, 8}}, Turn: &Turn{Options: opts}}
 	p := &CombatPresenter{b: b, screen: image.Rect(0, 0, 800, 600)}
@@ -34,7 +34,7 @@ func TestBarHasNoBoardActs(t *testing.T) {
 	if !slices.Equal(words, []string{"Cast", "Done"}) {
 		t.Errorf("bar %v, want [Cast Done]", words)
 	}
-	if !p.Key(None, 'v') || !slices.Equal(p.Actions(), []Decision{{Kind: CombatActView}}) { // View's key stays
+	if !p.Key(None, 'v') || !slices.Equal(p.Actions(), []Decision{{Kind: DecideView}}) { // View's key stays
 		t.Error("V: no View")
 	}
 }
@@ -51,10 +51,10 @@ func TestBoardActsMouse(t *testing.T) {
 		sq   image.Point
 		want Decision
 	}{
-		{"empty square: move", image.Pt(1, 8), Decision{Kind: CombatActWalk, X: 1, Y: 8}},
-		{"foe: attack", image.Pt(3, 8), Decision{Kind: CombatActAttack, N: 7}},
-		{"own square: view", image.Pt(0, 8), Decision{Kind: CombatActView, N: -1}},
-		{"past the edge: flee", image.Pt(-1, 8), Decision{Kind: CombatActFlee}},
+		{"empty square: move", image.Pt(1, 8), Decision{Kind: DecideWalk, X: 1, Y: 8}},
+		{"foe: attack", image.Pt(3, 8), Decision{Kind: DecideAttack, N: 7}},
+		{"own square: view", image.Pt(0, 8), Decision{Kind: DecideView, N: -1}},
+		{"past the edge: flee", image.Pt(-1, 8), Decision{Kind: DecideFlee}},
 	} {
 		p := boardScene()
 		x, y := screenAt(p, c.sq)
@@ -81,12 +81,12 @@ func TestBoardActsKeys(t *testing.T) {
 		keys []Act
 		want Decision
 	}{
-		{"cursor to empty square: move", []Act{Enter, right, Enter}, Decision{Kind: CombatActWalk, X: 1, Y: 8}},
-		{"cursor onto foe: attack", []Act{Enter, right, right, right, Enter}, Decision{Kind: CombatActAttack, N: 7}},
-		{"cursor on the unit: view", []Act{Enter, Enter}, Decision{Kind: CombatActView, N: -1}},
-		{"step off the edge: flee", []Act{left}, Decision{Kind: CombatActFlee}},
-		{"cursor off the edge: flee", []Act{Enter, left}, Decision{Kind: CombatActFlee}},
-		{"step: move", []Act{right}, Decision{Kind: CombatActWalk, X: 1, Y: 8}},
+		{"cursor to empty square: move", []Act{Enter, right, Enter}, Decision{Kind: DecideWalk, X: 1, Y: 8}},
+		{"cursor onto foe: attack", []Act{Enter, right, right, right, Enter}, Decision{Kind: DecideAttack, N: 7}},
+		{"cursor on the unit: view", []Act{Enter, Enter}, Decision{Kind: DecideView, N: -1}},
+		{"step off the edge: flee", []Act{left}, Decision{Kind: DecideFlee}},
+		{"cursor off the edge: flee", []Act{Enter, left}, Decision{Kind: DecideFlee}},
+		{"step: move", []Act{right}, Decision{Kind: DecideWalk, X: 1, Y: 8}},
 	} {
 		p := boardScene()
 		for _, a := range c.keys {

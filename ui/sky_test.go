@@ -27,7 +27,7 @@ func TestViewTexturesAndSky(t *testing.T) {
 }
 
 // sunAt-like bearings wrap into -pi..pi.
-func BlobberTestWrap(t *testing.T) {
+func TestWrapBearing(t *testing.T) {
 	for _, c := range [][2]float64{{0, 0}, {7, 7 - 6.283185307179586}, {-4, -4 + 6.283185307179586}} {
 		if d := wrap(c[0]) - c[1]; d > 1e-9 || d < -1e-9 {
 			t.Fatalf("wrap(%v) = %v", c[0], wrap(c[0]))

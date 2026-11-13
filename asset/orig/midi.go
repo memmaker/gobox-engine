@@ -69,7 +69,7 @@ var ErrNotSong = errors.New("not a GLBR song")
 // file and its voices.
 func SongMIDI(b []byte, div int) ([]byte, []OPLVoice, error) {
 	var ev []scoreEvent
-	s := GlbrNew(b, div, func(int, byte) {}, false)
+	s := NewSequencer(b, div, func(int, byte) {}, false)
 	if s == nil {
 		return nil, nil, ErrNotSong
 	}

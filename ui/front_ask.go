@@ -120,6 +120,6 @@ type Spell struct {
 // candidate.
 type Question struct {
 	Ask    FrontAsk
-	Answer func(a FrontAction) bool
+	Answer func(a Action) bool
 	Cand   int
 }

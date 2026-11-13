@@ -124,9 +124,9 @@ func hotkeysOf(items []barItem) []hotkey {
 var leftArrow = [8]byte{0x00, 0x10, 0x30, 0x7E, 0x30, 0x10, 0x00, 0x00}
 
 // actWords are the bar's words for the turn's actions.
-var actWords = map[Kind]string{CombatActAttack: "Attack", CombatActRanged: "Ranged", CombatActGuard: "Guard", CombatActItems: "Items",
-	CombatActCast: "Cast", CombatActTurn: "Turn", CombatActBandage: "Bandage", CombatActWait: "Wait", CombatActEnd: "End", CombatActQuick: "Quick", CombatActFlee: "Flee", CombatActManeuver: "Maneuver",
-	CombatActStep: "Move", CombatActWalk: "Move", CombatActView: "View", CombatActAim: "Aim"}
+var actWords = map[Kind]string{DecideAttack: "Attack", DecideRanged: "Ranged", DecideGuard: "Guard", DecideItems: "Items",
+	DecideCast: "Cast", DecideTurn: "Turn", DecideBandage: "Bandage", DecideWait: "Wait", DecideEnd: "End", DecideQuick: "Quick", DecideFlee: "Flee", DecideManeuver: "Maneuver",
+	DecideStep: "Move", DecideWalk: "Move", DecideView: "View", DecideAim: "Aim"}
 
 // hotkey is the button whose hotkey is letter k or the table's key a (nil: none).
 func (b *combatBar) hotkey(a Act, k uint16) *barItem {
@@ -200,7 +200,7 @@ func (p *CombatPresenter) overBar(x, y int) bool {
 // ruling 2026-11-13): an empty square walks (Move), a foe is attacked (Aim),
 // a step off the board's edge flees, the active unit's square or a
 // portrait opens its sheet (View). Their keys (M, V, A, R) still work.
-var boardKinds = map[Kind]bool{CombatActWalk: true, CombatActStep: true, CombatActView: true, CombatActAim: true, CombatActFlee: true}
+var boardKinds = map[Kind]bool{DecideWalk: true, DecideStep: true, DecideView: true, DecideAim: true, DecideFlee: true}
 
 // shownItems are b's buttons: turnItems without the board's own acts.
 func shownItems(b *Board, asking bool) []barItem {
@@ -221,24 +221,24 @@ func keyedItems(b *Board, asking bool) combatBar {
 func turnItems(b *Board, asking bool) (items []barItem) {
 	switch t := b.Turn; {
 	case asking:
-		return []barItem{{'Y', "Yes", CombatActYes, 0, 0, ""}, {'N', "No", CombatActNo, 0, 0, ""}}
+		return []barItem{{'Y', "Yes", DecideYes, 0, 0, ""}, {'N', "No", DecideNo, 0, 0, ""}}
 	case t == nil:
 	case t.Aim:
-		return []barItem{{'E', "Cancel", CombatActClose, 0, 0, ""}}
+		return []barItem{{'E', "Cancel", DecideClose, 0, 0, ""}}
 	case len(t.Options) > 0: // the game's own options, every one, in its order
 		for i, o := range t.Options {
 			w := o.Label
 			if w == "" {
-				w = actWords[o.Kind]
+				w = actWords[o.DecisionKind]
 			}
 			if w == "" {
 				continue
 			}
 			n := 0
-			if o.Kind == CombatActOption {
+			if o.DecisionKind == DecideOption {
 				n = i
 			}
-			items = append(items, barItem{w[0], w, o.Kind, gameHot(int(o.Key)), n, o.Chords})
+			items = append(items, barItem{w[0], w, o.DecisionKind, gameHot(int(o.Key)), n, o.Chords})
 		}
 	default:
 		for _, k := range t.Can {
@@ -376,27 +376,27 @@ func (p *CombatPresenter) clickSquare(sq image.Point) bool {
 	}
 	sx, sy := sq.X, sq.Y
 	if b.Turn.Aim {
-		p.act(Decision{Kind: CombatActAim, X: sx, Y: sy})
+		p.act(Decision{Kind: DecideAim, X: sx, Y: sy})
 		return true
 	}
 	for _, u := range b.Units {
 		if !u.Party && slices.Contains(u.Squares, sq) { // any foe: the game refuses with the reason
-			p.act(Decision{Kind: CombatActAttack, N: u.ID})
+			p.act(Decision{Kind: DecideAttack, N: u.ID})
 			return true
 		}
 	}
 	if slices.Contains(b.Reach, sq) {
 		p.free = nil // the arrows step the unit from where it walks to
-		p.act(Decision{Kind: CombatActWalk, X: sx, Y: sy})
+		p.act(Decision{Kind: DecideWalk, X: sx, Y: sy})
 		return true
 	}
 	if u, ok := p.activeUnit(); ok && image.Pt(u.X, u.Y) == sq { // the turn's own unit: its sheet, as its portrait's
 		p.free = nil
-		p.act(Decision{Kind: CombatActView, N: -1})
+		p.act(Decision{Kind: DecideView, N: -1})
 		return true
 	}
 	if !onBoard(sq) { // a square past the board's edge: the flee (the game refuses away from its edge)
-		p.act(Decision{Kind: CombatActFlee})
+		p.act(Decision{Kind: DecideFlee})
 		return true
 	}
 	return false
@@ -422,7 +422,7 @@ func (p *CombatPresenter) Point(x, y int) {
 // press takes button it: Cast opens the spell list (acts at once with Turn.CastDirect), Maneuver the
 // maneuvers', the others act.
 func (p *CombatPresenter) press(it barItem) {
-	if it.Kind == CombatActWalk || it.Kind == CombatActStep { // Move: the square cursor on the active unit; the keys move it, Enter walks there
+	if it.Kind == DecideWalk || it.Kind == DecideStep { // Move: the square cursor on the active unit; the keys move it, Enter walks there
 		p.free = &image.Point{}
 		for _, u := range p.b.Units {
 			if u.Active {
@@ -431,7 +431,7 @@ func (p *CombatPresenter) press(it barItem) {
 		}
 		return
 	}
-	if it.Kind == CombatActManeuver || it.Kind == CombatActCast && (p.b == nil || p.b.Turn == nil || !p.b.Turn.CastDirect) {
+	if it.Kind == DecideManeuver || it.Kind == DecideCast && (p.b == nil || p.b.Turn == nil || !p.b.Turn.CastDirect) {
 		p.Picking, p.PickKind = true, it.Kind
 		return
 	}
@@ -440,7 +440,7 @@ func (p *CombatPresenter) press(it barItem) {
 
 // act queues a for Actions.
 func (p *CombatPresenter) act(a Decision) {
-	if a.Kind != CombatActWalk {
+	if a.Kind != DecideWalk {
 		p.moving = 0
 	}
 	p.out = append(p.out, a)

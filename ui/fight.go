@@ -496,7 +496,7 @@ func (p *Presenter) pickList() []Spell {
 	switch {
 	case p.pick != nil:
 		return p.pick
-	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil && p.battle.PickKind == CombatActManeuver:
+	case p.fight && p.battle.Picking && p.fightView != nil && p.fightView.Turn != nil && p.battle.PickKind == DecideManeuver:
 		if p.fightLists.maneuvers == nil { // never nil: an empty list still takes Esc
 			return []Spell{}
 		}
@@ -509,7 +509,7 @@ func (p *Presenter) pickList() []Spell {
 
 // maneuvering: the bar's Maneuver list is up (pickList holds maneuvers).
 func (p *Presenter) maneuvering() bool {
-	return p.pick == nil && p.fight && p.battle.Picking && p.battle.PickKind == CombatActManeuver
+	return p.pick == nil && p.fight && p.battle.Picking && p.battle.PickKind == DecideManeuver
 }
 
 // drawPickList draws the spell list (pickList) as a menu with hotkeys, its
@@ -567,7 +567,7 @@ func (p *Presenter) cast(i int) {
 	spells, fromBar := p.pickList(), p.pick == nil
 	p.battle.Picking = false
 	switch {
-	case i >= 0 && i < len(spells) && fromBar && p.battle.PickKind == CombatActManeuver:
+	case i >= 0 && i < len(spells) && fromBar && p.battle.PickKind == DecideManeuver:
 		p.send(ActManeuver, spells[i].ID)
 	case i >= 0 && i < len(spells):
 		p.send(ActCast, spells[i].ID)

@@ -74,7 +74,7 @@ type Presenter struct {
 	answered    string                             // the text pane under the last question: once it is answered, that text is done
 	mapImg      *gpu.Image                         // Map on the GPU
 	mapAt       image.Rectangle                    // where drawMap last put the minimap (a click there opens the full map)
-	mapSrc      *FrontMapSquares                   // the derived minimap it holds (derived)
+	mapSrc      *MapSquares                   // the derived minimap it holds (derived)
 	mapInk      [16]color.RGBA                     // the ink it was drawn in
 	mapFont     int                                // and the font (fonts.Cur, -1: the game's own)
 	menuRects   []image.Rectangle                  // the vertical menu's items on screen, as last drawn
@@ -83,7 +83,7 @@ type Presenter struct {
 	sheet       sheetCanvas                        // the character sheet
 	journal     journalUI                          // the quest journal (journal.go)
 	resultsPage sheetCanvas                        // the after-combat page (drawResults)
-	area        UIAreaMap                          // the overland's map and marker last uploaded (drawAreaMap)
+	area        AreaMapPainter                          // the overland's map and marker last uploaded (drawAreaMap)
 	areaPic     areaPic                            // the overland's picture built from its squares (drawAreaMap)
 	fightAskAt  []image.Rectangle                  // the fight pop-up menu's lines on screen
 	winRects    []image.Rectangle                  // the Esc menu's lines on screen, as last drawn
@@ -768,7 +768,7 @@ func (p *Presenter) resize(dst *gpu.Image) {
 	if g != p.grid || p.gridAge > 30 && p.gridTries < 3 && (pw != cols*8 || ph != rows*8) { // a game that never lays out to it (it does not apply ActResize) is asked three times, not for ever
 		p.grid, p.gridAge = g, 0
 		p.gridTries++
-		p.inv.acts = append(p.inv.acts, FrontAction{Kind: FrontActResize, X: cols, Y: rows})
+		p.inv.acts = append(p.inv.acts, Action{Kind: ActResize, X: cols, Y: rows})
 	}
 }
 
@@ -890,7 +890,7 @@ func (p *Presenter) drawTyping(dst *gpu.Image, note Note, mk float64, cx, floor 
 // box's centre row cy. The picture sits in the middle of the space over the
 // text, else from b's top with the text moved down under it; it never runs
 // off b's top.
-func picPlace(pic FrontCellRect, pk, tk, mk, th float64, b image.Rectangle) (pp float64, py, cy int) {
+func picPlace(pic CellRect, pk, tk, mk, th float64, b image.Rectangle) (pp float64, py, cy int) {
 	ph, pw := float64(pic.Pixels().Dy()), float64(pic.Pixels().Dx())
 	bw, bh := float64(b.Dx()), float64(b.Dy())
 	gap := pk * 4

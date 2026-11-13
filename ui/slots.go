@@ -33,7 +33,7 @@ type SlotsUI struct{ LoadOnly bool }
 
 // SlotsAct takes a decision a on the slot screen up (*slots): false
 // leaves it to the game.
-func SlotsAct(h RuleHost, slots **SlotsUI, a FrontAction) bool {
+func SlotsAct(h RuleHost, slots **SlotsUI, a Action) bool {
 	sl := *slots
 	switch name := a.Text; a.Kind {
 	case ActClose:

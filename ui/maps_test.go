@@ -11,8 +11,8 @@ func TestMap(t *testing.T) {
 	s := shown{Where: game.Where{X: 2, Y: 3, Facing: 2}, Map: game.Automap{Size: image.Pt(16, 16),
 		Walls: []game.Wall{{At: image.Pt(1, 1), Side: 6}}, Doors: []game.Wall{{At: image.Pt(1, 1), Side: 0, State: game.DoorLocked}},
 		Marked: []image.Point{{4, 4}, {5, 5}}, Notes: []string{"inn", "Bank"}}}
-	m := Map(&FrontMapSquares{}, s.Map, s.Where)
-	if q := m.Squares[1][1]; q.Walls != [4]MapWall{FrontLockedDoor, 0, 0, FrontWall} || m.Party != image.Pt(2, 3) || m.Ahead != image.Pt(1, 0) {
+	m := Map(&MapSquares{}, s.Map, s.Where)
+	if q := m.Squares[1][1]; q.Walls != [4]MapWall{LockedDoor, 0, 0, Wall} || m.Party != image.Pt(2, 3) || m.Ahead != image.Pt(1, 0) {
 		t.Errorf("%+v %v %v", q, m.Party, m.Ahead)
 	}
 	if m.Squares[4][4].Letter != 'B' || m.Squares[5][5].Letter != 'A' {

@@ -12,7 +12,7 @@ import (
 func TestLootFirstEsc(t *testing.T) {
 	r := &fake{st: play.Looting{Common: allow(play.Leave{}), Items: []game.Item{{Name: "Gauntlets"}}, Announce: true}}
 	g := NewGame(r, game.Data{})
-	g.Answer(FrontAction{Kind: ActClose})
+	g.Answer(Action{Kind: ActClose})
 	if len(r.sent) != 2 || r.sent[0] != (play.Continue{}) || r.sent[1] != (play.Leave{}) {
 		t.Fatalf("first Esc sent %v", r.sent)
 	}

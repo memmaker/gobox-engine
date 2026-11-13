@@ -16,7 +16,7 @@ func TestCreditEdges(t *testing.T) {
 	defer func() { credits, creditBoxes = old, oldBoxes }()
 	credits, creditBoxes = []Credit{{X: 2, Y: 1, Colour: 14, Text: "TITLE"}, {X: 2, Y: 3, Colour: 15, Text: "LEFT"}, {X: 21, Y: 3, Colour: 15, Text: "RIGHT COLUMN"}, {X: 2, Y: 23, Colour: 10, Text: "LAST"}}, nil
 	c := creditsOn(image.Rect(0, 0, 60*8, 40*8)).screenPage() // 60x40 cells at K 1
-	if !slices.Contains(c.boxes, FrontCellRect{X1: 1, Y1: 1, X2: 58, Y2: 38}) {
+	if !slices.Contains(c.boxes, CellRect{X1: 1, Y1: 1, X2: 58, Y2: 38}) {
 		t.Fatalf("no frame on the page's edges: %v", c.boxes)
 	}
 	var dump []string

@@ -43,7 +43,7 @@ func TestPointBuy(t *testing.T) {
 			bits := tc.font()
 			gl := func(ch byte) [8]byte { r, _ := asset.Glyph(bits, ch, true); return r }
 			note := Note{Glyph: gl, Font: func(ch byte, text bool) [8]byte { r, _ := asset.Glyph(bits, ch, text); return r }}
-			p.send(FrontActCreate, 0)
+			p.send(ActCreate, 0)
 			p.Draw(dst, note)
 			if p.scr.sub != scrHow {
 				t.Fatalf("sub %d, want the Roll or Point Buy question", p.scr.sub)

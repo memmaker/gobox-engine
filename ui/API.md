@@ -13,7 +13,7 @@ Imports only gobox/gpu, gobox/input, gobox/gpu/vector. Tests need no window.
 - Pager{P,Off}: Turn(PageSource,d)->closed, Key(act,src)->(closed,turned).
   PageSource.Page(p,off)->(page,pages,maxOff,ok). HelpPages(lines,rows) cuts help into pages.
 - FullPageCells(bounds,minW,minH)->(k,cw,ch): geometry of a whole-window page.
-- MapImage(*MapSquares,cell,ink[16],doorColour,glyph)->*image.RGBA; DrawText(img,glyph,s,x,y,c).
+- DrawText(img,glyph,s,x,y,c).
 - AreaMap.Draw(dst,pic,tile,party,marker,k0); AreaMap.DrawIn(dst,rect,pic,...) the same clipped into rect of dst (centred as in a window of rect's size); AreaGeom(...) is the pure geometry.
 - BIOSKey(gpu.Key)->(code,ok): the INT 16h table (Enter 13, Esc 27, Bksp 8, Tab 9, F1-F10 0x3B00.., arrows/KP 2468 0x48/50/4B/4D00, Home/End/PgUp/PgDn/KP1379, KP5 0x4C00, Delete 0x5300).
 - input.Repeat(held,delay,rate)->bool (gobox/input, no gpu): held = ticks down (1 = first tick); true on 1, at delay, then every rate. Host sets delay/rate.

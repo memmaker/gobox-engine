@@ -62,11 +62,11 @@ type inventory struct {
 		i      rules.ItemHandle
 		id     string
 	} // a sold, dropped or readied item's line, the list's length and its Index then: the line after it is highlighted once it is gone (row -1 none)
-	ask     *FrontAction      // a Drop or Sell waits for Yes
+	ask     *Action      // a Drop or Sell waits for Yes
 	askSel  int               // the question's highlighted answer: 0 Yes, 1 No
 	askAt   []image.Rectangle // the question's Yes and No on the screen, as last drawn
 	up      *invUp            // what the screen shows, read from the state when it was last drawn (nil: not up)
-	acts    []FrontAction     // to send (Presenter.Actions)
+	acts    []Action     // to send (Presenter.Actions)
 	words   []word            // the menu row's words
 	focus   int               // 1+ the word the keys are on (PgUp/PgDn, the pad's shoulders), 0 none
 	k       int               // canvas scale, whole: what the pixel art is drawn at
@@ -186,12 +186,12 @@ func (p *Presenter) Screens() string {
 func (p *Presenter) call(f func(*classicGame)) { p.calls = append(p.calls, f) }
 
 // Actions hands over the actions the screens made since the last call.
-func (p *Presenter) Actions() []FrontAction {
+func (p *Presenter) Actions() []Action {
 	for _, a := range p.battle.Actions() {
 		a := p.askAction(a) // the turn's are rule calls (pace.go)
 		p.sendA(a)
 	}
-	var as []FrontAction
+	var as []Action
 	for _, a := range p.inv.acts { // the screens' own (the inventory's, a list's) meet the presenter's questions and rule calls too
 		if !p.slotAct(a) {
 			as = append(as, a)
@@ -207,15 +207,15 @@ func (inv *inventory) do(k ActKind) {
 	switch {
 	case k == ActNone:
 	case k == ActClose, k == ActSheet, k == ActTakeAll, k >= ActSpells && k <= ActCure, k >= ActTakeMoney && k <= ActLootStatus:
-		inv.acts = append(inv.acts, FrontAction{Kind: k})
+		inv.acts = append(inv.acts, Action{Kind: k})
 	case k == ActBuy:
 		if w := inv.wareAt(inv.ware); w != nil {
-			inv.acts = append(inv.acts, FrontAction{Kind: k, Item: w.Handle})
+			inv.acts = append(inv.acts, Action{Kind: k, Item: w.Handle})
 		}
 	case it == nil:
 	case inv.ask == nil && (k == ActDrop && inv.up.kind != invLoot || k == ActSell): // leaving an item in the treasure (Deposit) is no loss: no question
 		yes := confirmOf(itemConfirm(k, *it), game.Confirm{Asks: []string{""}, Yes: k == ActSell}).Yes // the game's (Data.Confirms), else a sale on Yes, as the Gold Box's, a drop (gone forever) on No
-		inv.ask, inv.askSel = &FrontAction{Kind: k, Item: it.Handle}, map[bool]int{true: 0, false: 1}[yes]
+		inv.ask, inv.askSel = &Action{Kind: k, Item: it.Handle}, map[bool]int{true: 0, false: 1}[yes]
 		return
 	default:
 		inv.remove(k, it.Handle)
@@ -233,7 +233,7 @@ func (inv *inventory) remove(k ActKind, i rules.ItemHandle) {
 
 // removeX is remove with the action's X (Ready's count).
 func (inv *inventory) removeX(k ActKind, i rules.ItemHandle, x int) {
-	inv.acts = append(inv.acts, FrontAction{Kind: k, Item: i, X: x})
+	inv.acts = append(inv.acts, Action{Kind: k, Item: i, X: x})
 	if k != ActSell && k != ActDrop && k != ActReady {
 		return
 	}

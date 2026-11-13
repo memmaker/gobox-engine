@@ -105,14 +105,14 @@ func (m *mainUI) skip(hall bool) bool {
 // mainNames are the party menu's functions as the menu names them.
 var mainNames = map[ActKind]string{
 	ActBegin: "BEGIN Adventuring", ActLoad: "Load Game", ActQuickStart: "Quick Start", ActQuit: QuitRow,
-	ActAdd: "Add", FrontActCreate: "Create", ActForget: "Forget", ActDropMember: "Drop",
+	ActAdd: "Add", ActCreate: "Create", ActForget: "Forget", ActDropMember: "Drop",
 	ActModify: "Modify", ActTraining: "Train", ActNewClass: "New Class", ActMember: "View", ActRemove: "Remove",
 }
 
 // mainLong are the party menu's functions by their full names, the keys
 // a series renames them by in Data.Texts.
 var mainLong = map[ActKind]string{
-	ActAdd: "Add Character", FrontActCreate: "Create Character", ActForget: "Forget Character", ActDropMember: "Drop Character",
+	ActAdd: "Add Character", ActCreate: "Create Character", ActForget: "Forget Character", ActDropMember: "Drop Character",
 	ActModify: "Modify Character", ActTraining: "Train Character", ActMember: "View Character", ActRemove: "Remove Character",
 }
 
@@ -168,13 +168,13 @@ func (m *mainUI) items(h MainHost, v MainMenu) (string, []MenuRow) {
 		it = append(it, MenuRow{Text: name, Key: key, Do: do})
 	}
 	if v.Hall { // the training hall's: the party's functions and the way out, no title, no submenu
-		for _, k := range []ActKind{ActTraining, ActNewClass, ActMember, ActModify, ActAdd, FrontActCreate, ActRemove, ActDropMember} {
+		for _, k := range []ActKind{ActTraining, ActNewClass, ActMember, ActModify, ActAdd, ActCreate, ActRemove, ActDropMember} {
 			add(k)
 		}
 		return "", append(it, MenuRow{Text: "Leave the Hall", Key: 'L', Do: func() { h.Send(ActBegin, -1) }})
 	}
 	if m.sub {
-		for _, k := range []ActKind{ActAdd, FrontActCreate, ActForget, ActDropMember, ActModify, ActTraining, ActMember, ActRemove} {
+		for _, k := range []ActKind{ActAdd, ActCreate, ActForget, ActDropMember, ActModify, ActTraining, ActMember, ActRemove} {
 			add(k)
 		}
 		it = m.entries(h, it, true)

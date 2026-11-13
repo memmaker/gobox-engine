@@ -36,7 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var tables []orig.TablespecTable
+	var tables []orig.TableSpec
 	if err := json.Unmarshal(raw, &tables); err != nil {
 		log.Fatal(err)
 	}

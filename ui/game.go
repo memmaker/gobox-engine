@@ -426,7 +426,7 @@ func (g *Game) LootLeave(sure bool) error {
 // Pickers and the icon designer.
 func (g *Game) OpenPicker(kind int) bool {
 	ok := g.do(play.OpenPicker{Kind: kind}) == nil
-	if kind == FrontPickWeapon && play.CommonOf(g.r.g.State()).Picker == nil {
+	if kind == PickWeapon && play.CommonOf(g.r.g.State()).Picker == nil {
 		if n, _ := BodyTiles(g.Subject()); len(n) > 0 { // no pictures from the game: the pool's, by original ref
 			g.r.tiles = true
 			return true
@@ -508,7 +508,7 @@ func (g *Game) Load(name string, loadOnly bool) bool {
 }
 
 // TurnChoice is the combat Action as its Decision (the unsure ask is an Ask).
-func (g *Game) TurnChoice(a FrontAction, sure bool) error { return g.Answer(a) }
+func (g *Game) TurnChoice(a Action, sure bool) error { return g.Answer(a) }
 
 // Sheet and inventory.
 // OpenSheet: in a fight the sheet is look-only, gobox's from Member.Page
@@ -646,11 +646,11 @@ func (g *Game) ClueRead(i int) *Read {
 }
 
 // Answer does the Decision a names; ActResize is the front's own (the page's size).
-func (g *Game) Answer(a FrontAction) error {
+func (g *Game) Answer(a Action) error {
 	if traceOn {
 		fmt.Fprintf(os.Stderr, "trace %s act %+v\n", traceStamp(), a)
 	}
-	if a.Kind == FrontActResize {
+	if a.Kind == ActResize {
 		err := error(nil)
 		g.r.grid = image.Pt(40, 25) // the page the game shows: its Cells, else the original's (a game that keeps its page lays nothing out wider)
 		return err
@@ -722,7 +722,7 @@ func (g *Game) Answer(a FrontAction) error {
 }
 
 // act is the step a asks for (nil: none).
-func (g *Game) act(a FrontAction) func() error {
+func (g *Game) act(a Action) func() error {
 	send := func(x play.Action) func() error { return func() error { return g.do(x) } }
 	own := func(what string, step func() play.Result) func() error {
 		return func() error { return g.run(what, step) }
@@ -851,7 +851,7 @@ func (g *Game) act(a FrontAction) func() error {
 		return send(play.IconPNG{Path: a.Text})
 	case ActIconEdit:
 		return send(play.EditIcon{Member: a.N})
-	case FrontActCreate:
+	case ActCreate:
 		return send(play.NewCharacter{})
 	case ActModify:
 		return send(play.Modify{Member: m})

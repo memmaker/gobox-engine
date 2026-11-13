@@ -89,10 +89,10 @@ func (p *Presenter) send(kind ActKind, n int) {
 		p.openSlots(false)
 		return
 	}
-	if p.slotAct(FrontAction{Kind: kind, N: n}) {
+	if p.slotAct(Action{Kind: kind, N: n}) {
 		return
 	}
-	p.inv.acts = append(p.inv.acts, FrontAction{Kind: kind, N: n})
+	p.inv.acts = append(p.inv.acts, Action{Kind: kind, N: n})
 }
 
 // keyAct turns key k into the action it stands for on the screen v shows.
@@ -103,7 +103,7 @@ func (p *Presenter) keyAct(k uint16) {
 		}
 		switch done, cancel, _ := editKey(k, &p.typed, &p.typedCur, t.Max, t.Kind == AskNumber); {
 		case done: // the whole line, once: the game never sees a line half typed
-			p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActText, Text: p.typed})
+			p.inv.acts = append(p.inv.acts, Action{Kind: ActText, Text: p.typed})
 			p.typing = false
 		case cancel:
 			p.send(ActClose, 0)
@@ -197,11 +197,11 @@ func (p *Presenter) Drop(path string, cx, cy int, in bool) {
 	r := p.iconBox()
 	switch {
 	case p.icon != nil:
-		IconAct(p, &p.icon, FrontAction{Kind: ActIcon, Text: path})
-	case p.iconEditor(p.ink()) != nil || in && r != (FrontCellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
-		p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActIcon, Text: path})
-	case p.portraitBox() != (FrontCellRect{}) || p.inventoryKind() == invOwn: // the sheet or the member's inventory
-		p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActPortrait, N: -1, Text: path})
+		IconAct(p, &p.icon, Action{Kind: ActIcon, Text: path})
+	case p.iconEditor(p.ink()) != nil || in && r != (CellRect{}) && image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)):
+		p.inv.acts = append(p.inv.acts, Action{Kind: ActIcon, Text: path})
+	case p.portraitBox() != (CellRect{}) || p.inventoryKind() == invOwn: // the sheet or the member's inventory
+		p.inv.acts = append(p.inv.acts, Action{Kind: ActPortrait, N: -1, Text: path})
 	}
 }
 

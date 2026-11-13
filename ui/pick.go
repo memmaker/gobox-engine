@@ -66,7 +66,7 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *FrontPicke
 	first := page * per
 	for i := first; i < n && i < first+per; i++ {
 		x, y := x0+i%nc*(cw+gap), y0+(i/nc-page*nr)*ch
-		v.Cells = append(v.Cells, FrontCellRect{X1: x, Y1: y, X2: x + cw - 1, Y2: y + ch - 1})
+		v.Cells = append(v.Cells, CellRect{X1: x, Y1: y, X2: x + cw - 1, Y2: y + ch - 1})
 		if p := k.Pics[i]; p.Pixels != nil && p.W > 0 {
 			f := pix(p)
 			f.File, f.Block, f.Frame, f.Name = p.File, p.Block, p.Frame, p.Name
@@ -78,7 +78,7 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *FrontPicke
 		t := "< page " + strconv.Itoa(page+1) + "/" + strconv.Itoa(pages) + " >"
 		x := (textCols - len(t)) / 2
 		h := len(t) / 2 // each half of the pageCut line pages, not only its < and > cells
-		v.Prev, v.Next = FrontCellRect{X1: x, Y1: pageCut, X2: x + h - 1, Y2: pageCut}, FrontCellRect{X1: x + h, Y1: pageCut, X2: x + len(t) - 1, Y2: pageCut}
+		v.Prev, v.Next = CellRect{X1: x, Y1: pageCut, X2: x + h - 1, Y2: pageCut}, CellRect{X1: x + h, Y1: pageCut, X2: x + len(t) - 1, Y2: pageCut}
 	}
 	return v
 }
@@ -103,7 +103,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 	sc := max(1, min((winRight-16)/18, (winBottom-13)/9)) // the poses' whole scale
 	const previewRow, previewCols, partCol, swatchCol, paletteCol = 2, 2, 2, 12, 2
 	wc, pr := previewCols+2*(9*sc+2), previewRow+9*sc+2
-	cell := func(x1, y1, x2, y2 int) FrontCellRect { return FrontCellRect{X1: x1, Y1: y1, X2: x2, Y2: y2} }
+	cell := func(x1, y1, x2, y2 int) CellRect { return CellRect{X1: x1, Y1: y1, X2: x2, Y2: y2} }
 	ed := &FrontIconEditor{Large: k.Large, Custom: k.Custom,
 		Head: cell(wc, previewRow, wc+5, previewRow), Weapon: cell(wc, previewRow+1, wc+5, previewRow+1),
 		Size:  cell(wc, previewRow+2, wc+9, previewRow+2),
@@ -161,7 +161,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 	}
 	if ed.Custom { // a dropped PNG takes no parts or colours: it can only go
 		ed.Remove = cell(wc, previewRow, wc+5, previewRow)
-		ed.Head, ed.Weapon, ed.Size, ed.Names, ed.Parts, ed.Palette = FrontCellRect{}, FrontCellRect{}, FrontCellRect{}, FrontCellRect{}, FrontCellRect{}, FrontCellRect{}
+		ed.Head, ed.Weapon, ed.Size, ed.Names, ed.Parts, ed.Palette = CellRect{}, CellRect{}, CellRect{}, CellRect{}, CellRect{}, CellRect{}
 	}
 	return ed
 }

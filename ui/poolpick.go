@@ -22,10 +22,10 @@ type poolPick struct {
 }
 
 var poolPicks = map[int]poolPick{
-	FrontPickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5), false, false},
-	FrontPickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6), false, false},
-	FrontPickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5), false, false},
-	FrontPickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6), false, false},
+	PickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5), false, false},
+	PickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6), false, false},
+	PickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5), false, false},
+	PickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6), false, false},
 }
 
 // poolPrefix is what the names of a field start with.
@@ -38,7 +38,7 @@ func (g classicGame) OpenPicker(kind int) bool {
 	if !has { // the game's own pictures; a portrait or icon part comes from the shared pool, whatever the game offers
 		return ok
 	}
-	if names, _ := BodyTiles(g.Game.Subject()); kind == FrontPickWeapon && len(names) > 0 {
+	if names, _ := BodyTiles(g.Game.Subject()); kind == PickWeapon && len(names) > 0 {
 		pp.names, pp.tiles = names, true
 		g.p.pool = &pp
 		return true

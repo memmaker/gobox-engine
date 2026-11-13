@@ -12,18 +12,18 @@ func TestRestPick(t *testing.T) {
 	p.askRest(2)
 	q := p.Asking()
 	for _, n := range []int{1, 3, 3, 3, 3, 3} {
-		if q.Answer(FrontAction{Kind: ActChoose, N: n}) {
+		if q.Answer(Action{Kind: ActChoose, N: n}) {
 			t.Fatalf("closed on %d", n)
 		}
 	}
-	q.Answer(FrontAction{Kind: ActChoose, N: 2}) // Mins: Up adds 5, Down takes it back
-	q.Answer(FrontAction{Kind: ActPage, N: -1})
-	q.Answer(FrontAction{Kind: ActPage, N: -1})
-	q.Answer(FrontAction{Kind: ActPage, N: 1})
-	if !q.Answer(FrontAction{Kind: ActChoose, N: 5}) {
+	q.Answer(Action{Kind: ActChoose, N: 2}) // Mins: Up adds 5, Down takes it back
+	q.Answer(Action{Kind: ActPage, N: -1})
+	q.Answer(Action{Kind: ActPage, N: -1})
+	q.Answer(Action{Kind: ActPage, N: 1})
+	if !q.Answer(Action{Kind: ActChoose, N: 5}) {
 		t.Fatal("Rest did not close it")
 	}
-	if a := p.inv.acts; len(a) != 1 || a[0] != (FrontAction{Kind: ActRest, N: 2, X: 305}) {
+	if a := p.inv.acts; len(a) != 1 || a[0] != (Action{Kind: ActRest, N: 2, X: 305}) {
 		t.Fatalf("%+v", a)
 	}
 }

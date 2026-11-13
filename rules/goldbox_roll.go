@@ -1,7 +1,7 @@
 package rules
 
-// GameRNG is the game's own random source (its original-GameRNG implementation).
-type GameRNG interface {
+// DiceSource is what rolls dice: the game's own Dice(n, sides).
+type DiceSource interface {
 	Dice(n, sides int) int
 }
 
@@ -16,7 +16,7 @@ type Roll struct {
 }
 
 // RollCounted = Dice that also remembers n (the games' RollCounted).
-func RollCounted(rv *Roll, rng GameRNG, n, sides int) int {
+func RollCounted(rv *Roll, rng DiceSource, n, sides int) int {
 	rv.DiceN = byte(n)
 	return rng.Dice(n, sides)
 }

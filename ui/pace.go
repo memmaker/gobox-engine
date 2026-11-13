@@ -35,7 +35,7 @@ var turnActs = []ActKind{ActWalk, ActAttack, ActItems, ActMember, ActRanged,
 	ActWait, ActEnd, ActFlee, ActPoint, ActAim, ActClose, ActOption}
 
 // turnAct makes a decision of the turn up a rule call; false: no turn waits.
-func (p *Presenter) turnAct(a FrontAction) bool {
+func (p *Presenter) turnAct(a Action) bool {
 	if p.board == nil || p.board.Turn == nil || p.inventoryUp() || p.sheetShown() || !slices.Contains(turnActs, a.Kind) {
 		return false
 	}
@@ -45,7 +45,7 @@ func (p *Presenter) turnAct(a FrontAction) bool {
 
 // turnCall calls TurnChoice; a question it is refused with is asked, Yes
 // calls it again sure.
-func (p *Presenter) turnCall(a FrontAction, sure bool) {
+func (p *Presenter) turnCall(a Action, sure bool) {
 	p.call(func(e *classicGame) {
 		AskSure(p, e.TurnChoice(a, sure), func() { p.turnCall(a, true) })
 	})

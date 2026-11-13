@@ -12,7 +12,7 @@ import (
 func TestPicPlaceOnScreen(t *testing.T) {
 	txt := paneCells(&Pane{Lines: make([][]PaneRun, 6)}).Framed()
 	th := float64(txt.Pixels().Dy())
-	for _, pic := range []FrontCellRect{innerWindow.Framed(), viewWindow.Framed()} {
+	for _, pic := range []CellRect{innerWindow.Framed(), viewWindow.Framed()} {
 		ph := float64(pic.Pixels().Dy())
 		for _, sz := range []image.Point{{400, 250}, {640, 400}, {1280, 800}, {1920, 1080}, {2560, 1600}, {1000, 330}} {
 			b := image.Rect(0, 0, sz.X, sz.Y)

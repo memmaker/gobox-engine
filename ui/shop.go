@@ -81,7 +81,7 @@ func unknownOf(s play.State) []game.ItemRef {
 // serviceAct takes the decisions of the shop, the temple and the training
 // hall (and the party menu's Train, which opens the hall) as their rule
 // calls: false leaves a to the engine.
-func (p *Presenter) serviceAct(a FrontAction) bool {
+func (p *Presenter) serviceAct(a Action) bool {
 	switch {
 	case p.training || p.hallUp(): // the hall up, from Train or the game's own (ModeTraining)
 		switch a.Kind {

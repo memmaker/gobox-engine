@@ -38,7 +38,7 @@ func TestMapImage(t *testing.T) {
 	for _, f := range files {
 		var rec struct { // as recorded: a label's ink, not its kind
 			Squares [16][16]struct {
-				Seen   ui.FrontSeen
+				Seen   ui.Seen
 				Walls  [4]ui.MapWall
 				Ink    int
 				Letter byte
@@ -49,10 +49,10 @@ func TestMapImage(t *testing.T) {
 		if err := json.Unmarshal(b, &rec); err != nil {
 			t.Fatal(err)
 		}
-		m := ui.FrontMapSquares{Party: rec.Party, Ahead: rec.Ahead}
+		m := ui.MapSquares{Party: rec.Party, Ahead: rec.Ahead}
 		for y, row := range rec.Squares {
 			for x, q := range row {
-				m.Squares[y][x] = ui.FrontMapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index(e.Data().LabelInks, q.Ink), Letter: q.Letter}
+				m.Squares[y][x] = ui.MapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index(e.Data().LabelInks, q.Ink), Letter: q.Letter}
 			}
 		}
 		r, err := os.Open(strings.TrimSuffix(f, ".json") + ".png")

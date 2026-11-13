@@ -18,7 +18,7 @@ func TestWalkPlaysStepByStep(t *testing.T) {
 	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Walked{Unit: 2, Path: path}}}}
 	g := NewGame(f, game.Data{})
 	g.Settle() // the fight's first board
-	if err := g.Answer(FrontAction{Kind: ActAttack, N: 2}); err != nil {
+	if err := g.Answer(Action{Kind: ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
 	}
 	evs := settled(g)

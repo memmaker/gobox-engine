@@ -29,9 +29,9 @@ func TestInventoryActs(t *testing.T) {
 		t.Fatalf("sent %v, passed %v", f.sent, as)
 	}
 	for _, k := range []ActKind{ActHalve, ActJoin} {
-		p.inv.acts = append(p.inv.acts, FrontAction{Kind: k, Item: 2})
+		p.inv.acts = append(p.inv.acts, Action{Kind: k, Item: 2})
 	}
-	p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActTrade, Item: 2, X: 2, Y: 1}) // Trade, its member asked
+	p.inv.acts = append(p.inv.acts, Action{Kind: ActTrade, Item: 2, X: 2, Y: 1}) // Trade, its member asked
 	if as := p.Actions(); len(as) != 3 {
 		t.Fatalf("passed %v", as)
 	}
@@ -68,7 +68,7 @@ func TestInventoryDrag(t *testing.T) {
 	inv := &p.inv
 	inv.k, inv.kx, inv.ky, inv.up, inv.sel, inv.ware = 1, 1, 1, in, rules.NoItem, rules.NoItem
 	inv.dollAt = image.Rect(0, 0, 100, 100)
-	drag := func(from hit, x, y int) []FrontAction {
+	drag := func(from hit, x, y int) []Action {
 		inv.lines = []hit{from}
 		p.InventoryMouse(from.r.Min.X+5, from.r.Min.Y+5, true, false, 0)
 		p.InventoryMouse(x, y, true, false, 0)
@@ -91,7 +91,7 @@ func TestTradeAsksOverItems(t *testing.T) {
 	g.r.items = game.ItemsOwn
 	var p Presenter
 	p.SetEngine(g)
-	p.inv.acts = []FrontAction{{Kind: ActTrade, Item: 2}}
+	p.inv.acts = []Action{{Kind: ActTrade, Item: 2}}
 	p.Actions()
 	if p.q == nil || p.q.Ask.Kind != AskMember {
 		t.Fatal("no member pick")

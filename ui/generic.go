@@ -61,7 +61,7 @@ func (p *Presenter) drawGeneric(dst *gpu.Image, note Note) Rect {
 		s := math.Max(1, math.Floor(math.Min(float64(b.Dx()-2*gap)/float64(r.Dx()), (float64(b.Dy())-th-3*float64(gap))/float64(r.Dy()))))
 		s = math.Min(s, math.Max(1, math.Floor(k)))
 		drawBox(dst, pictureBox(&p.pg.pic, art, r.Inset(8)), p.border.val.tiles, pic, s, cx, gap+int(s*float64(r.Dy())/2))
-	} else if fr := (FrontCellRect{X1: box.Min.X / 8, Y1: box.Min.Y / 8, X2: (box.Max.X - 1) / 8, Y2: (box.Max.Y - 1) / 8}).Framed(); len(art) > 0 && fr.Pixels().Inset(8) == box { // a cell-aligned picture (SotSB's big pictures): in a frame, as the original's screen
+	} else if fr := (CellRect{X1: box.Min.X / 8, Y1: box.Min.Y / 8, X2: (box.Max.X - 1) / 8, Y2: (box.Max.Y - 1) / 8}).Framed(); len(art) > 0 && fr.Pixels().Inset(8) == box { // a cell-aligned picture (SotSB's big pictures): in a frame, as the original's screen
 		r := fr.Pixels()
 		s := fitScale(k, Host.Pic, func(s float64) bool { // the picture box: whole steps of K, as far as it fits over the text (its ribbon at a whole cell)
 			return s*float64(r.Dx()) <= float64(b.Dx()-2*gap) && s*float64(r.Dy()) <= float64(b.Dy())-th-2*float64(gap)

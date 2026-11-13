@@ -83,7 +83,7 @@ func (c *oc) same(t *testing.T, r *rules1e.Rec, what string) {
 // ---- originals ----
 
 // cotab-go/engine/rules.go:335 and sotsb-go/engine/rules.go (identical): unsigned compare.
-func oracleSaveUnsigned(rv *rules.Roll, rng rules.GameRNG, c *oc, typ, bonus int) bool {
+func oracleSaveUnsigned(rv *rules.Roll, rng rules.DiceSource, c *oc, typ, bonus int) bool {
 	rv.SaveMade = true
 	rv.Save = byte(rng.Dice(1, 20))
 	switch rv.Save {
@@ -100,7 +100,7 @@ func oracleSaveUnsigned(rv *rules.Roll, rng rules.GameRNG, c *oc, typ, bonus int
 }
 
 // por-go/engine/rules.go:253 (signed compare).
-func oracleSavePor(rv *rules.Roll, rng rules.GameRNG, c *oc, typ, bonus int) bool {
+func oracleSavePor(rv *rules.Roll, rng rules.DiceSource, c *oc, typ, bonus int) bool {
 	rv.Save = byte(rng.Dice(1, 20))
 	switch rv.Save {
 	case 1:
@@ -114,7 +114,7 @@ func oracleSavePor(rv *rules.Roll, rng rules.GameRNG, c *oc, typ, bonus int) boo
 }
 
 // cotab-go/engine/rules.go:314 (side adjustment passed in).
-func oracleAttackCotab(rv *rules.Roll, rng rules.GameRNG, att *oc, adj int, need int) bool {
+func oracleAttackCotab(rv *rules.Roll, rng rules.DiceSource, att *oc, adj int, need int) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false
@@ -126,7 +126,7 @@ func oracleAttackCotab(rv *rules.Roll, rng rules.GameRNG, att *oc, adj int, need
 }
 
 // por-go/engine/rules.go:231 with the rules4e Hits hook.
-func oracleAttackPor(rv *rules.Roll, rng rules.GameRNG, att *oc, adj int, need int, hits func(int) bool) bool {
+func oracleAttackPor(rv *rules.Roll, rng rules.DiceSource, att *oc, adj int, need int, hits func(int) bool) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false
@@ -139,7 +139,7 @@ func oracleAttackPor(rv *rules.Roll, rng rules.GameRNG, att *oc, adj int, need i
 }
 
 // cotab-go/engine/damage.go:21 trapHits; por RollHit (rules.go:217) is the same with byte(bonus).
-func oracleTrapHits(rv *rules.Roll, rng rules.GameRNG, c *oc, bonus byte) bool {
+func oracleTrapHits(rv *rules.Roll, rng rules.DiceSource, c *oc, bonus byte) bool {
 	rv.HitRoll = int8(rng.Dice(1, 20))
 	if rv.HitRoll <= 1 {
 		return false

@@ -46,7 +46,7 @@ func withPoolPortrait(pics []Picture, cr *FrontCreation, own game.Member) []Pict
 	}
 	for _, p := range []struct {
 		im   image.Image
-		box  FrontCellRect
+		box  CellRect
 		name string
 	}{{head, cr.Head, m.PortraitHeadID}, {body, cr.Body, m.PortraitBodyID}} {
 		at := p.box.Pixels().Min

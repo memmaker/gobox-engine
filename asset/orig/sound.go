@@ -40,8 +40,8 @@ type voice struct {
 	pos          float64
 }
 
-// AmigaNew wants the bytes from Base to End.
-func AmigaNew(img []byte) *Player {
+// NewPlayer wants the bytes from Base to End.
+func NewPlayer(img []byte) *Player {
 	return &Player{m: append([]byte(nil), img...)}
 }
 

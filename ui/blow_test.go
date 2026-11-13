@@ -16,7 +16,7 @@ func TestBlowShows(t *testing.T) {
 		Field: play.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true}}}}
 	f := &fake{st: fight, out: play.Outcome{Events: []play.Event{play.Attacked{From: 1, To: 2, Hit: true, Damage: 5}, play.Narrated{Text: "ARIN HITS FOR 5"}}}}
 	g := NewGame(f, game.Data{})
-	if err := g.Answer(FrontAction{Kind: ActAttack, N: 2}); err != nil {
+	if err := g.Answer(Action{Kind: ActAttack, N: 2}); err != nil {
 		t.Fatal(err)
 	}
 	evs := settled(g)

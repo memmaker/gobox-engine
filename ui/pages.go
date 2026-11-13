@@ -47,7 +47,7 @@ type cellPage struct {
 	ink        [16]color.RGBA
 	cells      [][]cell
 	pics       []Picture       // the View's pictures, then the cells cleared (fills)
-	boxes      []FrontCellRect // DrawBorder's insides: the border's cells round them (the window border)
+	boxes      []CellRect // DrawBorder's insides: the border's cells round them (the window border)
 	overs      []overlay
 }
 
@@ -102,7 +102,7 @@ func (c *cellPage) unset(r image.Rectangle) {
 
 // border = DrawBorder: the border's cells round the cells x1..x2, y1..y2.
 func (c *cellPage) border(x1, y1, x2, y2 int) {
-	r := FrontCellRect{X1: x1, Y1: y1, X2: x2, Y2: y2}
+	r := CellRect{X1: x1, Y1: y1, X2: x2, Y2: y2}
 	c.boxes = append(c.boxes, r)
 	f := r.Framed().Pixels()
 	for _, e := range []image.Rectangle{{f.Min, image.Pt(f.Max.X, f.Min.Y+8)}, {image.Pt(f.Min.X, f.Max.Y-8), f.Max}, {f.Min, image.Pt(f.Min.X+8, f.Max.Y)}, {image.Pt(f.Max.X-8, f.Min.Y), f.Max}} {
@@ -156,12 +156,12 @@ func (p *Presenter) contentPictures() []Picture {
 	case pk != nil:
 		return pk.Pics
 	default:
-		var boxes []FrontCellRect
+		var boxes []CellRect
 		if cr := p.creation(); cr != nil {
 			boxes = append(boxes, cr.Head, cr.Body, cr.Icon)
 		}
 		for _, b := range boxes {
-			if b != (FrontCellRect{}) { // a box the screen has: not one at the origin
+			if b != (CellRect{}) { // a box the screen has: not one at the origin
 				in = append(in, b.Pixels())
 			}
 		}
@@ -432,7 +432,7 @@ func capOr(b [Places]image.Image, cap, side int) int {
 // cellBorder draws the window border's cells into m round the cells of r. The
 // page boxes are text-grid cells drawn into the page's CPU image (uploaded
 // once per View, cropped by the adventure frame), not window()'s GPU pass.
-func cellBorder(m *image.RGBA, wb windowBorder, cells image.Point, r FrontCellRect) {
+func cellBorder(m *image.RGBA, wb windowBorder, cells image.Point, r CellRect) {
 	f := r.Framed()
 	b := wb.pieces
 	tile := func(i, x, y int) {
@@ -644,13 +644,13 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 			c.str(at[0]+len(f[0])+1, at[1], inkGreen, f[1])
 		}
 	}
-	if b := cells(s.PortraitAt); b != (FrontCellRect{}) {
+	if b := cells(s.PortraitAt); b != (CellRect{}) {
 		c.border(b.X1, b.Y1, b.X2, b.Y2)
 		if portrait != nil {
 			c.overs = append(c.overs, overlay{Img: portrait, At: fit(portrait.Bounds(), b.Pixels())}) // the whole box: the rope runs outside its cells
 		}
 	}
-	k, box := 1, FrontCellRect{}
+	k, box := 1, CellRect{}
 	if cr != nil { // the creation's combat icon, from a PNG
 		k, box = max(1, cr.Scale), cr.Icon
 	}
@@ -706,7 +706,7 @@ func (c *cellPage) picker(pk *FrontPicker) {
 	for k, r := range pk.Cells {
 		i := pk.Page*pk.PerPage + k
 		if i < len(pk.Portraits) && pk.Portraits[i] != nil {
-			c.overs = append(c.overs, overlay{Img: pk.Portraits[i], At: fit(pk.Portraits[i].Bounds(), FrontCellRect{X1: r.X1, Y1: r.Y1, X2: r.X1 + 10, Y2: r.Y1 + 4}.Pixels()), Crisp: true}) // nearest neighbour
+			c.overs = append(c.overs, overlay{Img: pk.Portraits[i], At: fit(pk.Portraits[i].Bounds(), CellRect{X1: r.X1, Y1: r.Y1, X2: r.X1 + 10, Y2: r.Y1 + 4}.Pixels()), Crisp: true}) // nearest neighbour
 		}
 		if i < len(pk.Labels) {
 			c.str(r.X1+12, r.Y1+1, inkWhite, pk.Labels[i])
@@ -778,38 +778,38 @@ func (c *cellPage) iconEditor(ed *FrontIconEditor) {
 }
 
 // iconClick is what a click on cell (cx, cy) of the icon editor does.
-func iconClick(ed *FrontIconEditor, cx, cy int) (FrontAction, bool) {
-	in := func(r FrontCellRect) bool { return cx >= r.X1 && cx <= r.X2 && cy >= r.Y1 && cy <= r.Y2 }
+func iconClick(ed *FrontIconEditor, cx, cy int) (Action, bool) {
+	in := func(r CellRect) bool { return cx >= r.X1 && cx <= r.X2 && cy >= r.Y1 && cy <= r.Y2 }
 	if ed.Custom {
 		if in(ed.Remove) {
-			return FrontAction{Kind: ActIconRemove}, true
+			return Action{Kind: ActIconRemove}, true
 		}
-		return FrontAction{}, false
+		return Action{}, false
 	}
-	head, weapon := FrontAction{Kind: ActPicker, N: FrontPickIconHead}, FrontAction{Kind: ActPicker, N: FrontPickWeapon}
+	head, weapon := Action{Kind: ActPicker, N: PickIconHead}, Action{Kind: ActPicker, N: PickWeapon}
 	switch {
 	case in(ed.Head):
 		return head, true
 	case in(ed.Weapon):
 		return weapon, true
 	case in(ed.Size):
-		return FrontAction{Kind: ActIconSize}, true
+		return Action{Kind: ActIconSize}, true
 	case in(ed.Parts):
-		return FrontAction{Kind: ActIconColour, N: cy - ed.Parts.Y1, X: (cx - ed.Parts.X1) / 3, Y: -1}, true
+		return Action{Kind: ActIconColour, N: cy - ed.Parts.Y1, X: (cx - ed.Parts.X1) / 3, Y: -1}, true
 	case in(ed.Palette):
 		if v := ed.Colours[(cy-ed.Palette.Y1)*8+(cx-ed.Palette.X1)/2]; v >= 0 {
-			return FrontAction{Kind: ActIconColour, N: ed.Part, X: ed.Shade, Y: v}, true
+			return Action{Kind: ActIconColour, N: ed.Part, X: ed.Shade, Y: v}, true
 		}
-		return FrontAction{}, false
+		return Action{}, false
 	}
 	for _, r := range ed.PoseAt { // the head on the poses' upper part, the weapon below
 		mid := r.Y1 + (r.Y2-r.Y1+1)*4/9
-		if in(FrontCellRect{X1: r.X1, Y1: r.Y1, X2: r.X2, Y2: mid - 1}) {
+		if in(CellRect{X1: r.X1, Y1: r.Y1, X2: r.X2, Y2: mid - 1}) {
 			return head, true
 		}
-		if in(FrontCellRect{X1: r.X1, Y1: mid, X2: r.X2, Y2: r.Y2}) {
+		if in(CellRect{X1: r.X1, Y1: mid, X2: r.X2, Y2: r.Y2}) {
 			return weapon, true
 		}
 	}
-	return FrontAction{}, false
+	return Action{}, false
 }

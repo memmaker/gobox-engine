@@ -56,7 +56,7 @@ type Turn struct {
 type CombatOption struct {
 	Label  string
 	Key    byte
-	Kind   Kind
+	DecisionKind   Kind
 	Chords string // more keys that pick it, comma-separated: alt+q, shift+u, space, q
 }
 
@@ -112,28 +112,28 @@ type Unit struct {
 type Kind int
 
 const (
-	CombatActNone Kind = iota
-	CombatActWalk
-	CombatActStep // one keypad step, N = direction 1..9
-	CombatActAttack
-	CombatActAim
-	CombatActPoint
-	CombatActClose
-	CombatActYes
-	CombatActNo
-	CombatActWait
-	CombatActEnd
-	CombatActQuick
-	CombatActGuard
-	CombatActBandage
-	CombatActFlee
-	CombatActTurn
-	CombatActCast
-	CombatActItems
-	CombatActRanged
-	CombatActManeuver
-	CombatActView
-	CombatActOption // the turn's option N (Turn.Options)
+	DecideNone Kind = iota
+	DecideWalk
+	DecideStep // one keypad step, N = direction 1..9
+	DecideAttack
+	DecideAim
+	DecidePoint
+	DecideClose
+	DecideYes
+	DecideNo
+	DecideWait
+	DecideEnd
+	DecideQuick
+	DecideGuard
+	DecideBandage
+	DecideFlee
+	DecideTurn
+	DecideCast
+	DecideItems
+	DecideRanged
+	DecideManeuver
+	DecideView
+	DecideOption // the turn's option N (Turn.Options)
 )
 
 // Decision is what the player chose.

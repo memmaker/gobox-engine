@@ -31,7 +31,7 @@ func TestAdLibRegs(t *testing.T) {
 	a := adlibData(t)
 	var got []string
 	now := 0
-	s := orig.GlbrNew(a.music[1], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, false)
+	s := orig.NewSequencer(a.music[1], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, false)
 	for now < 300 {
 		now = s.Now() + 1
 		if !s.Tick() {
@@ -117,7 +117,7 @@ func TestAdLibNamedSMS(t *testing.T) {
 		if n == 0 {
 			t.Fatalf("%s: not a song", c.name)
 		}
-		s := orig.GlbrNew(named[c.name], 0, func(int, byte) {}, false)
+		s := orig.NewSequencer(named[c.name], 0, func(int, byte) {}, false)
 		ev := s.TrackEvents()
 		a.Start(n)
 		m := make([]byte, 4*adlibRate)
@@ -176,7 +176,7 @@ func TestSIDRegs(t *testing.T) {
 	for blk := 1; blk <= 8; blk++ {
 		var got []string
 		now := 0
-		s := orig.GlbrNew(a.music[blk], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, true)
+		s := orig.NewSequencer(a.music[blk], 0, func(r int, v byte) { got = append(got, fmt.Sprintf("%d %d %d", now, r, v)) }, true)
 		if s == nil {
 			t.Fatalf("block %d: no SID song", blk)
 		}

@@ -72,7 +72,7 @@ func OpenPicker(h RuleHost, pick **PickUI, kind int) {
 
 // PickAct takes a decision a on the picker up (*pick, or one opening it):
 // false leaves it to the front.
-func PickAct(h RuleHost, pick **PickUI, a FrontAction) bool {
+func PickAct(h RuleHost, pick **PickUI, a Action) bool {
 	switch pk := *pick; {
 	case a.Kind == ActPicker:
 		OpenPicker(h, pick, a.N)
@@ -101,7 +101,7 @@ func PickAct(h RuleHost, pick **PickUI, a FrontAction) bool {
 
 // IconAct takes a decision a on the icon editor up (*icon, or one
 // opening it): false leaves it to the front.
-func IconAct(h RuleHost, icon **IconUI, a FrontAction) bool {
+func IconAct(h RuleHost, icon **IconUI, a Action) bool {
 	ic := *icon
 	if ic == nil {
 		if a.Kind != ActIconEdit {

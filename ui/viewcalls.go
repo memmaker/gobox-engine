@@ -15,13 +15,13 @@ import (
 
 // viewPasses are the decisions that go on to the engine over the sheet
 // and the inventory (every screen's).
-var viewPasses = []ActKind{ActHead, ActPortrait, ActFont, ActSound, FrontActResize,
+var viewPasses = []ActKind{ActHead, ActPortrait, ActFont, ActSound, ActResize,
 	ActMainMenu, ActNote, ActNoteRemove, ActIcon,
 	ActTrade, ActHalve, ActJoin, ActTakeMoney, ActLootPool, ActLootShare} // the shop's Take, Pool, Share
 
 // viewAct makes a decision on (or opening) the sheet or the inventory a
 // rule call; false leaves it to the others.
-func (p *Presenter) viewAct(a FrontAction) bool {
+func (p *Presenter) viewAct(a Action) bool {
 	if p.askUp() != nil || p.powerPick() != nil {
 		return false
 	}
@@ -55,7 +55,7 @@ func (p *Presenter) viewAct(a FrontAction) bool {
 			}
 			sel := p.selectedIndex()
 			AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
-				p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActTrade, Item: a.Item, X: t, Y: 1})
+				p.inv.acts = append(p.inv.acts, Action{Kind: ActTrade, Item: a.Item, X: t, Y: 1})
 			})
 		case ActSpells:
 			p.combatCast()
@@ -79,7 +79,7 @@ func (p *Presenter) viewAct(a FrontAction) bool {
 			}
 			sel := p.selectedIndex()
 			AskForMember(p, cmp.Or(Text("Trade to whom?"), "Trade to whom?"), sel, func(t int) {
-				p.inv.acts = append(p.inv.acts, FrontAction{Kind: ActTrade, Item: a.Item, X: t, Y: 1})
+				p.inv.acts = append(p.inv.acts, Action{Kind: ActTrade, Item: a.Item, X: t, Y: 1})
 			})
 		case ActSpells:
 			p.combatCast()
@@ -115,7 +115,7 @@ func (p *Presenter) combatCast() {
 	p.call(func(e *classicGame) {
 		e.CloseSheet()
 		e.CloseItems(true)
-		AskForSpell(p, spells, func(id int) { p.turnCall(FrontAction{Kind: ActCast, N: id}, false) })
+		AskForSpell(p, spells, func(id int) { p.turnCall(Action{Kind: ActCast, N: id}, false) })
 	})
 }
 

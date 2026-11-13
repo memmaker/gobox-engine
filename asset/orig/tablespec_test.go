@@ -10,7 +10,7 @@ import (
 
 func TestGenerate(t *testing.T) {
 	im := &ExeImage{Mem: []byte{1, 0xFF, 2, 0, 0xFE, 0xFF, 2, 'h', 'i', 9, 0, 0, 0, 0, 0, 0}}
-	var tables []TablespecTable
+	var tables []TableSpec
 	err := json.Unmarshal([]byte(`[
 	 {"name":"a","at":0,"len":2,"kind":"signed","doc":"two"},
 	 {"name":"w","at":2,"len":2,"kind":"swords","cols":1},
@@ -35,7 +35,7 @@ func TestGenerate(t *testing.T) {
 	if want := "{\n \"a\": [1,-1],\n \"w\": [[2],[-2]],\n \"s\": [\"hi\",\"\"]\n}\n"; string(js) != want {
 		t.Errorf("JSON %q, want %q", js, want)
 	}
-	if _, err := Generate("p", []TablespecTable{{Name: "x", At: 100, Len: 1}}, im); err == nil {
+	if _, err := Generate("p", []TableSpec{{Name: "x", At: 100, Len: 1}}, im); err == nil {
 		t.Error("out of range accepted")
 	}
 	if String(7).Size() != 7 || Longs.Size() != 4 {

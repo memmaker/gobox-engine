@@ -11,7 +11,7 @@ import (
 func TestYesNoReplies(t *testing.T) {
 	for k, want := range map[ActKind]int{ActYes: 1, ActNo: 0} {
 		r := &fake{st: play.Scene{Common: play.Common{Ask: &play.Question{YesNo: true}}}}
-		NewGame(r, game.Data{}).Answer(FrontAction{Kind: k})
+		NewGame(r, game.Data{}).Answer(Action{Kind: k})
 		if len(r.sent) != 1 || r.sent[0] != (play.Reply{N: want}) {
 			t.Errorf("%v: %#v", k, r.sent)
 		}
@@ -25,7 +25,7 @@ func TestRefusalYesNo(t *testing.T) {
 	r := &fake{st: play.Exploring{}}
 	g := NewGame(r, game.Data{})
 	g.r.refusalAsk = &play.Ask{Kind: game.YesNo, Options: opts}
-	g.Answer(FrontAction{Kind: ActYes})
+	g.Answer(Action{Kind: ActYes})
 	if len(r.sent) != 1 || r.sent[0] != (play.Search{}) {
 		t.Errorf("Yes: %#v", r.sent)
 	}
@@ -33,7 +33,7 @@ func TestRefusalYesNo(t *testing.T) {
 		r = &fake{st: play.Exploring{}}
 		g = NewGame(r, game.Data{})
 		g.r.refusalAsk = &play.Ask{Kind: game.YesNo, Options: opts}
-		g.Answer(FrontAction{Kind: k, N: map[ActKind]int{ActOK: 1}[k]})
+		g.Answer(Action{Kind: k, N: map[ActKind]int{ActOK: 1}[k]})
 		if len(r.sent) != 0 || g.pending() != nil {
 			t.Errorf("%v on No: %#v", k, r.sent)
 		}

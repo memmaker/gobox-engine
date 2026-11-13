@@ -387,18 +387,18 @@ func (p *Presenter) sheetShown() bool {
 
 // portraitBox is the sheet's portrait box in cells (zero: none): Shift-click
 // there takes the next head, a dropped PNG becomes the portrait.
-func (p *Presenter) portraitBox() FrontCellRect {
+func (p *Presenter) portraitBox() CellRect {
 	if sp := p.sheetPage(); sp != nil {
 		return cells(sp.PortraitAt)
 	}
-	return FrontCellRect{}
+	return CellRect{}
 }
 
 // iconBox is the creation sheet's combat icon box in cells (zero: none): a
 // PNG dropped on it becomes the icon.
-func (p *Presenter) iconBox() FrontCellRect {
+func (p *Presenter) iconBox() CellRect {
 	if cr := p.creation(); cr != nil {
 		return cr.Icon
 	}
-	return FrontCellRect{}
+	return CellRect{}
 }

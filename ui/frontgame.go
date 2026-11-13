@@ -36,7 +36,7 @@ func (p *Presenter) Shown() Shown {
 // questionAct takes a while the presenter's question is up, at the gate
 // or while camp rests (AskAct); then the powers and the rule calls of the
 // screens up; false leaves a to the others.
-func (p *Presenter) questionAct(a FrontAction) bool {
+func (p *Presenter) questionAct(a Action) bool {
 	if taken, done := AskAct(p, a); done {
 		return taken
 	}
@@ -65,10 +65,10 @@ func (p *Presenter) OpenSlots() { p.openSlots(false) }
 
 // slotAct takes a decision a on the slot screen: false leaves it to the
 // engine.
-func (p *Presenter) slotAct(a FrontAction) bool {
+func (p *Presenter) slotAct(a Action) bool {
 	sl := p.slots
-	if a.Kind == FrontActCreate || a.Kind == ActModify { // only a new character is asked Roll or Point Buy
-		p.scr.newChar = a.Kind == FrontActCreate
+	if a.Kind == ActCreate || a.Kind == ActModify { // only a new character is asked Roll or Point Buy
+		p.scr.newChar = a.Kind == ActCreate
 	}
 	if sl == nil {
 		if p.gridPick != nil && PickAct(p, &p.gridPick, a) { // a picker up takes its own actions first: none of the screens under it pages or picks for it

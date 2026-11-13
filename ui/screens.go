@@ -52,7 +52,7 @@ type screenUI struct {
 	cur     int            // the picker's cursor
 	at      Rect           // where the page went on the window ...
 	pw, ph  int            // ... and its size in pixels
-	anchor  *FrontCellRect // the drop-down's field: the menu opens on it
+	anchor  *CellRect // the drop-down's field: the menu opens on it
 	newChar bool           // ActCreate sent: the creation sheet coming up asks Roll or Point Buy
 	buy     []int          // scrBuy: the scores bought ...
 	buyStat int            // ... and the one Raise and Lower change
@@ -75,7 +75,7 @@ func (p *Presenter) screenName() string {
 // pageScreen: one of them is up.
 func (p *Presenter) pageScreen() bool { return p.screenName() != "" }
 
-func (p *Presenter) sendA(a FrontAction) {
+func (p *Presenter) sendA(a Action) {
 	if !p.slotAct(a) {
 		p.inv.acts = append(p.inv.acts, a)
 	}
@@ -127,7 +127,7 @@ func (p *Presenter) screenItems() (string, []MenuRow) {
 	case "slots":
 		sl := p.slotsView()
 		named := func(k ActKind, name string) func() {
-			return func() { s.open(scrMain); p.sendA(FrontAction{Kind: k, Text: name}) }
+			return func() { s.open(scrMain); p.sendA(Action{Kind: k, Text: name}) }
 		}
 		var it []MenuRow
 		if sl.CanSave {
@@ -198,7 +198,7 @@ func (p *Presenter) minimal(cr *FrontCreation) {
 				ask()
 				return
 			}
-			p.sendA(FrontAction{Kind: ActRoll, N: 1, Text: strings.Join(got, " ")})
+			p.sendA(Action{Kind: ActRoll, N: 1, Text: strings.Join(got, " ")})
 		}
 	}
 	ask()
@@ -220,7 +220,7 @@ func fieldOrder(fl Field) []int {
 }
 
 // typeAt starts a typed line in place of the sheet's text at r.
-func (p *Presenter) typeAt(r FrontCellRect, prompt string, n int, act ActKind, an int) {
+func (p *Presenter) typeAt(r CellRect, prompt string, n int, act ActKind, an int) {
 	p.typeLine(prompt, "", n, act, an)
 	p.scr.anchor = &r
 }
@@ -350,9 +350,9 @@ func (p *Presenter) slotKey(h byte) {
 	name := sl.Names[i]
 	switch h {
 	case 'L':
-		p.sendA(FrontAction{Kind: ActLoad, Text: name})
+		p.sendA(Action{Kind: ActLoad, Text: name})
 	case 'D':
-		p.askThen("Delete "+name+"?", func() { s.open(scrMain); p.sendA(FrontAction{Kind: ActDeleteSlot, Text: name}) })
+		p.askThen("Delete "+name+"?", func() { s.open(scrMain); p.sendA(Action{Kind: ActDeleteSlot, Text: name}) })
 	}
 }
 
@@ -363,7 +363,7 @@ func (p *Presenter) slotFootAt(x, y int) byte {
 		return 0
 	}
 	for _, w := range slotFooter(sl, s.pw/8) {
-		if image.Pt(x, y).In(p.cellRect(FrontCellRect{X1: w.x, Y1: s.ph/8 - 3, X2: w.x + len(w.label) - 1, Y2: s.ph/8 - 3})) {
+		if image.Pt(x, y).In(p.cellRect(CellRect{X1: w.x, Y1: s.ph/8 - 3, X2: w.x + len(w.label) - 1, Y2: s.ph/8 - 3})) {
 			return w.key
 		}
 	}
@@ -439,19 +439,19 @@ func (p *Presenter) slotList(dst *gpu.Image, lines []string, keys []byte, off []
 		}
 	}
 	p.mc.Img.WritePixels(p.mc.Buf)
-	at := p.cellRect(FrontCellRect{X1: 2, Y1: 3, X2: cols - 3, Y2: 3 + end - s.top - 1})
+	at := p.cellRect(CellRect{X1: 2, Y1: 3, X2: cols - 3, Y2: 3 + end - s.top - 1})
 	op := &gpu.DrawImageOptions{}
 	op.GeoM.Scale(float64(at.Dx())/float64(w*8), float64(at.Dy())/float64((end-s.top)*8))
 	op.GeoM.Translate(float64(at.Min.X), float64(at.Min.Y))
 	dst.DrawImage(p.mc.Img, op)
 	for r := s.top; r < end; r++ {
-		p.winRects = append(p.winRects, p.cellRect(FrontCellRect{X1: 2, Y1: 3 + r - s.top, X2: cols - 3, Y2: 3 + r - s.top}))
+		p.winRects = append(p.winRects, p.cellRect(CellRect{X1: 2, Y1: 3 + r - s.top, X2: cols - 3, Y2: 3 + r - s.top}))
 	}
 	p.menuBar(dst, p.winRects, len(lines), end-s.top, &s.top, &s.sel, float64(at.Dy())/float64((end-s.top)*8))
 }
 
 // cellRect is a cell rectangle of the page on the window.
-func (p *Presenter) cellRect(c FrontCellRect) image.Rectangle {
+func (p *Presenter) cellRect(c CellRect) image.Rectangle {
 	s := &p.scr
 	kx, ky := s.at.W/float64(s.pw), s.at.H/float64(s.ph)
 	return image.Rect(int(s.at.X+float64(c.X1*8)*kx), int(s.at.Y+float64(c.Y1*8)*ky), int(s.at.X+float64((c.X2+1)*8)*kx), int(s.at.Y+float64((c.Y2+1)*8)*ky))
@@ -476,7 +476,7 @@ func (p *Presenter) screenKey(k uint16) bool {
 			s.then(s.text)
 		case done:
 			s.open(s.back)
-			p.sendA(FrontAction{Kind: s.act, N: s.n, Text: s.text})
+			p.sendA(Action{Kind: s.act, N: s.n, Text: s.text})
 		case cancel:
 			s.open(s.back)
 		}
@@ -588,7 +588,7 @@ func (p *Presenter) pickerTake(pk *FrontPicker, i int) {
 // editor's.
 func (p *Presenter) screenMouse(cx, cy int, left bool) bool {
 	s := &p.scr
-	in := func(r FrontCellRect) bool { return image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)) }
+	in := func(r CellRect) bool { return image.Pt(cx, cy).In(image.Rect(r.X1, r.Y1, r.X2+1, r.Y2+1)) }
 	moved := image.Pt(cx, cy) != s.ptr
 	s.ptr = image.Pt(cx, cy)
 	if pk := p.picker(p.ink()); pk != nil && s.sub == scrMain {
@@ -605,9 +605,9 @@ func (p *Presenter) screenMouse(cx, cy int, left bool) bool {
 		}
 		switch {
 		case !left:
-		case pk.Prev != (FrontCellRect{}) && in(pk.Prev) && pk.Page > 0:
+		case pk.Prev != (CellRect{}) && in(pk.Prev) && pk.Page > 0:
 			p.pickerTo(pk, (pk.Page-1)*pk.PerPage)
-		case pk.Next != (FrontCellRect{}) && in(pk.Next) && pk.Page < pk.Pages-1:
+		case pk.Next != (CellRect{}) && in(pk.Next) && pk.Page < pk.Pages-1:
 			p.pickerTo(pk, (pk.Page+1)*pk.PerPage)
 		default:
 			return false
@@ -657,7 +657,7 @@ func (s *screenUI) open(sub int) {
 // editor) the focus goes to: its cells, its hotkey and what it does. The
 // bar's words on the prompt row are spots too.
 type spot struct {
-	r   FrontCellRect
+	r   CellRect
 	key byte
 	do  func()
 }
@@ -668,7 +668,7 @@ var statNames = [6]string{"STR", "INT", "WIS", "DEX", "CON", "CHA"}
 // last; nil on other screens.
 func (p *Presenter) spots() []spot {
 	var sp []spot
-	at := func(r FrontCellRect, key byte, do func()) { sp = append(sp, spot{r, key, do}) }
+	at := func(r CellRect, key byte, do func()) { sp = append(sp, spot{r, key, do}) }
 	send := func(k ActKind, n int) func() { return func() { p.send(k, n) } }
 	switch ed, cr := p.iconEditor(p.ink()), p.creation(); {
 	case p.picker(p.ink()) != nil:
@@ -690,13 +690,13 @@ func (p *Presenter) spots() []spot {
 			for i := range iconParts {
 				for sh := range 2 {
 					x, y := ed.Parts.X1+3*sh, ed.Parts.Y1+i
-					at(FrontCellRect{X1: x, Y1: y, X2: x + 1, Y2: y}, 0, click(x, y))
+					at(CellRect{X1: x, Y1: y, X2: x + 1, Y2: y}, 0, click(x, y))
 				}
 			}
 			for j, c := range ed.Colours {
-				if c >= 0 && ed.Palette != (FrontCellRect{}) {
+				if c >= 0 && ed.Palette != (CellRect{}) {
 					x, y := ed.Palette.X1+2*(j%8), ed.Palette.Y1+j/8
-					at(FrontCellRect{X1: x, Y1: y, X2: x + 1, Y2: y}, 0, click(x, y))
+					at(CellRect{X1: x, Y1: y, X2: x + 1, Y2: y}, 0, click(x, y))
 				}
 			}
 		}
@@ -708,15 +708,15 @@ func (p *Presenter) spots() []spot {
 		for i, r := range cr.Stats {
 			at(r, 0, func() { p.typeAt(r, cr.StatNames[i], 5, ActStat, i) })
 		}
-		at(cr.Head, 0, send(ActPicker, FrontPickHead))
-		at(cr.Body, 0, send(ActPicker, FrontPickBody))
+		at(cr.Head, 0, send(ActPicker, PickHead))
+		at(cr.Body, 0, send(ActPicker, PickBody))
 		at(cr.Icon, 'I', send(ActIconEdit, -1))
 	default:
 		return nil
 	}
 	row := p.scr.ph/8 - 1 // the prompt row
 	for _, w := range p.barWords() {
-		at(FrontCellRect{X1: w.x, Y1: row, X2: w.x + len(w.label) - 1, Y2: row}, w.key, p.barDo(w.key))
+		at(CellRect{X1: w.x, Y1: row, X2: w.x + len(w.label) - 1, Y2: row}, w.key, p.barDo(w.key))
 	}
 	return sp
 }
@@ -797,7 +797,7 @@ func (p *Presenter) spotKey(k uint16, sp []spot) bool {
 // it, the least distance with the sideways part counting double; cur when
 // none is that way.
 func nearest(sp []spot, cur int, d image.Point) int {
-	mid := func(r FrontCellRect) image.Point { return image.Pt(r.X1+r.X2, r.Y1+r.Y2) } // doubled
+	mid := func(r CellRect) image.Point { return image.Pt(r.X1+r.X2, r.Y1+r.Y2) } // doubled
 	c, best, bd := mid(sp[cur].r), cur, 1<<30
 	for i, t := range sp {
 		o := mid(t.r).Sub(c)

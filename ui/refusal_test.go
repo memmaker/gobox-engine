@@ -39,14 +39,14 @@ func TestOffMapStepAsks(t *testing.T) {
 		return nil
 	}}
 	g := NewGame(r, game.Data{})
-	g.Answer(FrontAction{Kind: ActWalk, X: -1, Y: 3})
+	g.Answer(Action{Kind: ActWalk, X: -1, Y: 3})
 	if len(r.sent) != 1 || r.sent[0] != (play.MoveTo{To: image.Pt(-1, 3)}) {
 		t.Fatalf("sent %+v", r.sent)
 	}
 	if q := g.pending(); g.mode() != game.ModeAsk || q == nil || q.Prompt != "Flee:" {
 		t.Fatalf("shown %v %+v", g.mode(), q)
 	}
-	g.Answer(FrontAction{Kind: ActChoose, N: 0})
+	g.Answer(Action{Kind: ActChoose, N: 0})
 	if len(r.sent) != 2 || r.sent[1] != (play.Flee{}) {
 		t.Fatalf("answer sent %+v", r.sent)
 	}

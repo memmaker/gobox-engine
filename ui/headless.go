@@ -7,21 +7,6 @@ import (
 	"gobox/gpu"
 )
 
-// The window's actions and boxes, as a cmd test sends and checks them.
-type (
-	Action   = FrontAction
-	CellRect = FrontCellRect
-)
-
-const (
-	ActResize    = FrontActResize
-	ActCreate    = FrontActCreate
-	PickHead     = FrontPickHead
-	PickBody     = FrontPickBody
-	PickIconHead = FrontPickIconHead
-	PickWeapon   = FrontPickWeapon
-)
-
 // TitleDrawn: the last frame drew the main menu's screen, over the title's
 // picture (Data.TitleBackdrop) when the game has one: never during play.
 func (f *Front) TitleDrawn() bool { return f.P.mm.titleDrawn }

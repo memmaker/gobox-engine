@@ -109,7 +109,7 @@ func (a *AdLib) Len() int { return len(a.music) }
 
 // Has: block n holds a song.
 func (a *AdLib) Has(n int) bool {
-	return n > 0 && n < len(a.music) && orig.GlbrNew(a.music[n], a.tempo, func(int, byte) {}, false) != nil
+	return n > 0 && n < len(a.music) && orig.NewSequencer(a.music[n], a.tempo, func(int, byte) {}, false) != nil
 }
 func (a *AdLib) Song() int     { return a.song }
 func (a *AdLib) Playing() bool { return a.seq != nil || a.fx != nil }
@@ -135,8 +135,8 @@ func (a *AdLib) Start(n int) {
 		a.sc = New(MOS6581, sidClock, adlibRate)
 		w = func(r int, v byte) { a.sc.Write(byte(r), v) }
 	}
-	if a.seq = orig.GlbrNew(a.music[n], a.tempo, w, a.sidOn); a.seq == nil { // a song without SID instruments: the OPL2
-		a.seq = orig.GlbrNew(a.music[n], a.tempo, func(r int, v byte) { a.chip.Write(r, v) }, false)
+	if a.seq = orig.NewSequencer(a.music[n], a.tempo, w, a.sidOn); a.seq == nil { // a song without SID instruments: the OPL2
+		a.seq = orig.NewSequencer(a.music[n], a.tempo, func(r int, v byte) { a.chip.Write(r, v) }, false)
 	}
 	a.song, a.acc = n, 0
 }
@@ -162,7 +162,7 @@ func (a *AdLib) Mix(m []byte, loop bool) {
 				if !a.seq.Tick() {
 					a.seq.Silence()
 					if loop {
-						a.seq = orig.GlbrNew(a.music[a.song], a.tempo, a.seq.Writer(), a.seq.SID())
+						a.seq = orig.NewSequencer(a.music[a.song], a.tempo, a.seq.Writer(), a.seq.SID())
 					} else {
 						a.seq = nil
 					}

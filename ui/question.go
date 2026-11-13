@@ -15,7 +15,7 @@ import (
 // AskYes puts a yes/no question q up (AskConfirm, starting on No); yes
 // runs on Yes.
 func AskYes(h RuleHost, q string, yes func()) {
-	h.Ask(&Question{Ask: FrontAsk{Kind: AskConfirm, Menu: Menu{Prompt: q}}, Answer: func(a FrontAction) bool {
+	h.Ask(&Question{Ask: FrontAsk{Kind: AskConfirm, Menu: Menu{Prompt: q}}, Answer: func(a Action) bool {
 		switch a.Kind {
 		case ActYes:
 			yes()
@@ -32,7 +32,7 @@ func AskYes(h RuleHost, q string, yes func()) {
 func AskForMember(h RuleHost, prompt string, who int, then func(n int)) {
 	q := &Question{Ask: FrontAsk{Kind: AskMember, Menu: Menu{Prompt: prompt,
 		Commands: []Command{{Text: "Select", Key: 'S'}, {Text: "Exit", Key: 'E'}}}}, Cand: max(who, 0)}
-	q.Answer = func(a FrontAction) bool {
+	q.Answer = func(a Action) bool {
 		n := h.Shown().Party
 		switch a.Kind {
 		case ActLead:
@@ -72,7 +72,7 @@ func spellEntries(spells []Spell) []FrontEntry {
 // AskForSpell asks for one of spells (AskSpell); then gets its ID (Close:
 // nothing).
 func AskForSpell(h RuleHost, spells []Spell, then func(id int)) {
-	h.Ask(&Question{Ask: FrontAsk{Kind: AskSpell, Entries: spellEntries(spells)}, Answer: func(a FrontAction) bool {
+	h.Ask(&Question{Ask: FrontAsk{Kind: AskSpell, Entries: spellEntries(spells)}, Answer: func(a Action) bool {
 		switch a.Kind {
 		case ActCast:
 			if slices.ContainsFunc(spells, func(s Spell) bool { return s.ID == a.N }) {
@@ -89,7 +89,7 @@ func AskForSpell(h RuleHost, spells []Spell, then func(id int)) {
 // ShowList shows lines (AskList) until Exit.
 func ShowList(h RuleHost, lines []FrontEntry) {
 	h.Ask(&Question{Ask: FrontAsk{Kind: AskList, Entries: lines, Menu: Menu{Commands: []Command{{Text: "Exit", Key: 'E'}}}},
-		Answer: func(a FrontAction) bool {
+		Answer: func(a Action) bool {
 			return a.Kind == ActChoose || a.Kind == ActClose || a.Kind == ActOK
 		}})
 }
@@ -97,11 +97,11 @@ func ShowList(h RuleHost, lines []FrontEntry) {
 // AskAct takes a while the host's question is up (every other decision
 // waits), and asks "Stop resting?" for one made while camp rests; done
 // false leaves a to the others.
-func AskAct(h RuleHost, a FrontAction) (taken, done bool) {
+func AskAct(h RuleHost, a Action) (taken, done bool) {
 	s := h.Shown()
 	switch q := h.Asking(); {
 	case q != nil:
-		if a.Kind == FrontActResize || a.Kind == ActFont || a.Kind == ActSound {
+		if a.Kind == ActResize || a.Kind == ActFont || a.Kind == ActSound {
 			return false, true
 		}
 		if a.Kind != ActPoint && q.Answer(a) && h.Asking() == q {
@@ -114,7 +114,7 @@ func AskAct(h RuleHost, a FrontAction) (taken, done bool) {
 		if lootAct(h, s.Treasure, a) {
 			return true, true
 		}
-	case s.Resting && !s.Battle && a.Kind != ActPoint && a.Kind != FrontActResize && a.Kind != ActMainMenu: // a fight's turn takes its own decisions
+	case s.Resting && !s.Battle && a.Kind != ActPoint && a.Kind != ActResize && a.Kind != ActMainMenu: // a fight's turn takes its own decisions
 		AskYes(h, "Stop resting?", func() { h.Call(func(e *classicGame) { e.do(play.StopRest{}) }) })
 		return true, true
 	}
@@ -124,7 +124,7 @@ func AskAct(h RuleHost, a FrontAction) (taken, done bool) {
 // PowerAct makes a member's power out of combat (the sheet's, the
 // inventory's, a card's, camp's, the bar's Cast) up a rule call; Magic
 // lists the effects; false: a is no power.
-func PowerAct(h RuleHost, a FrontAction) bool {
+func PowerAct(h RuleHost, a Action) bool {
 	k := a.Kind
 	switch k {
 	case ActCastPick:
@@ -223,7 +223,7 @@ var lootActs = map[ActKind]string{ActLootDetect: "Detect", ActLootShare: "Share"
 
 // lootAct makes a's Gate call on the loot inventory (Exit asks first while
 // treasure is left); false: a is not one.
-func lootAct(h RuleHost, l *FrontLoot, a FrontAction) bool {
+func lootAct(h RuleHost, l *FrontLoot, a Action) bool {
 	_, items := Gate(h, l, nil)
 	for _, it := range items {
 		if lootActs[a.Kind] == it.text {
@@ -249,10 +249,10 @@ func GateQuestion(h RuleHost, d *game.Door) *Question {
 
 // GateAct takes a at a locked door: an option (ActChoose N, Esc Exit) is
 // its rule call.
-func GateAct(h RuleHost, a FrontAction) bool {
+func GateAct(h RuleHost, a Action) bool {
 	_, items := Gate(h, nil, h.Shown().Door)
 	switch a.Kind {
-	case FrontActResize, ActFont, ActSound:
+	case ActResize, ActFont, ActSound:
 		return false
 	case ActChoose:
 		if a.N >= 0 && a.N < len(items) {
