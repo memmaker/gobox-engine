@@ -116,7 +116,7 @@ func artRGBA(b *asset.Block, file string, frame, mask int) *image.RGBA {
 		}
 	default:
 		for i, c := range im.Data {
-			if c < asset.Clear && int(c) != mask {
+			if (c < asset.Clear || c >= ega.AmigaBase) && int(c) != mask { // EGA, or an Amiga block's (ColourBase on)
 				m.SetRGBA(i%w, i/w, pixelRGBA(c, pal))
 			}
 		}

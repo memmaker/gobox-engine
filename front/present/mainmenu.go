@@ -394,7 +394,7 @@ func layersImage(ls []game.Layer) image.Image {
 		if l.Source == game.SourcePNG {
 			f = front.Picture{} // no DAX reference: read below
 		} else if l.Pixels != nil {
-			f = pix0(l.Picture)
+			f = front.PixelsOf(l.Picture)
 		}
 		f.At, box = l.At, box.Union(l.At)
 		pics[i] = f

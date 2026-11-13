@@ -2,6 +2,7 @@ package pool
 
 import (
 	"gobox/ega"
+	"image/color"
 	"path/filepath"
 	"strconv"
 	"sync/atomic"
@@ -16,6 +17,24 @@ var DOSArt atomic.Bool
 // amigaUp is whether the Amiga art is shown: DOSArt off and the adventure
 // has Amiga art (every game's import has it: por, cotab, sotsb, pod).
 func (e *Engine) amigaUp() bool { return !DOSArt.Load() && e.artFolder().Has(asset.Amiga) }
+
+// ownColours is an Amiga block's own colours (cotab, sotsb, pod) as an
+// Image.Palette: the block's from its ColourBase on, EGA below, Clear
+// transparent; nil: none of its own (POR's Amiga art: the ega.Amiga slots).
+// Without it the presenter colours every game's Amiga art in POR's slots.
+func ownColours(b *asset.Block) []color.RGBA {
+	if len(b.Palette) == 0 || b.ColourBase < ega.AmigaBase {
+		return nil
+	}
+	pal := make([]color.RGBA, 256)
+	for i := range 16 {
+		pal[i] = ega.RGBA(i)
+	}
+	for i := 0; i+2 < len(b.Palette) && b.ColourBase+i/3 < len(pal); i += 3 {
+		pal[b.ColourBase+i/3] = color.RGBA{b.Palette[i], b.Palette[i+1], b.Palette[i+2], 255}
+	}
+	return pal
+}
 
 // symFix = DS:2722 / coab symbol_set_fix: first symbol id of each set.
 var symFix = [5]int{0x001, 0x02E, 0x074, 0x0BA, 0x100}
@@ -51,6 +70,9 @@ func (e *Engine) loadPic(name string, id, mask int) *asset.Image {
 		return nil
 	}
 	im := named(b.Image(mask), name, id)
+	if im.Palette == nil { // a VGA block's is set
+		im.Palette = ownColours(b)
+	}
 	if dos != nil && dos.Kind.Pictured() {
 		twin(im, named(dos.Image(mask), name, id))
 	}

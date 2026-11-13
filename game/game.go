@@ -23,8 +23,9 @@ type Picture struct {
 	Block, Frame int
 	Name         string
 	W, H         int
-	Pixels       []byte // palette indices, W*H
-	Clear        int    // with Pixels: the index drawn transparent, -1 none (ignored without Pixels)
+	Pixels       []byte       // palette indices, W*H
+	Palette      []color.RGBA // with Pixels: the art's own colours by index (an Amiga block's palette, a VGA picture's; alpha 0 clear); nil: EGA and ega.Amiga
+	Clear        int          // with Pixels: the index drawn transparent, -1 none (ignored without Pixels)
 }
 
 // PicSource is what a Picture's File names.

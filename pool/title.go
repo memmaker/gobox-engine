@@ -136,7 +136,7 @@ func (e *Engine) titleArt(a importer.Art) (game.Picture, error) {
 		if im == nil {
 			return game.Picture{}, fmt.Errorf("%s %d: %w", a.File, a.Block, errNoArt)
 		}
-		return game.Picture{File: a.File, Block: a.Block, W: im.Width * 8, H: im.Height, Pixels: im.Frame(0), Clear: -1}, nil
+		return game.Picture{File: a.File, Block: a.Block, W: im.Width * 8, H: im.Height, Pixels: im.Frame(0), Palette: im.Palette, Clear: -1}, nil
 	}
 	return game.Picture{}, fmt.Errorf("art kind %d: %w", a.Kind, errNoArt)
 }

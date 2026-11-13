@@ -321,22 +321,13 @@ func (c *cellPage) shipsPic(k int, off image.Point) {
 // gamePic is p as an image (its pixels in ink, else its DAX block).
 func gamePic(p game.Picture, ink [16]color.RGBA) image.Image {
 	if p.Pixels != nil {
-		f := pix0(p)
+		f := front.PixelsOf(p)
 		return pixImage(f, ink)
 	}
 	if p.File == "" {
 		return nil
 	}
 	return daxMasked(p.File, p.Block, p.Frame, -1)
-}
-
-func pix0(p game.Picture) front.Picture {
-	f := front.Picture{Pix: p.Pixels, PixW: p.W}
-	if p.Clear >= 0 {
-		m := uint8(p.Clear)
-		f.Mask = &m
-	}
-	return f
 }
 
 // rjust is s right-justified n wide (1E1D, 1620).

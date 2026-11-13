@@ -216,13 +216,18 @@ func (e *Engine) runs(row []textCell) []PaneRun {
 func (e *Engine) layerPicture(l *layer) Picture {
 	d, w := l.d, l.w
 	at := l.at
-	if a := e.art(l.src, l.frame); a != l.src && len(l.d) == len(l.src.Frame(l.frame)) { // a whole frame: its DOS twin, maybe bigger, at its own size, placed by its own cell offset (the 3D sprites')
+	var pal []color.RGBA // the shown art's own colours (Image.Palette)
+	if l.src != nil {
+		pal = l.src.Palette
+	}
+	if a := e.art(l.src, l.frame); a != l.src && len(l.d) == len(l.src.Frame(l.frame)) {
+		pal = a.Palette // a whole frame: its DOS twin, maybe bigger, at its own size, placed by its own cell offset (the 3D sprites')
 		d, w = a.Frame(l.frame), a.Width*8
 		if b := image.Rect(0, 0, w, len(d)/w); b.Size() != at.Size() {
 			at = b.Add(at.Min.Add(image.Pt(a.X-l.src.X, a.Y-l.src.Y).Mul(8)))
 		}
 	}
-	s := Picture{Pix: d, PixW: w, At: at}
+	s := Picture{Pix: d, PixW: w, At: at, Palette: pal}
 	if l.mask >= 0 && l.mask < 256 {
 		m := uint8(l.mask)
 		s.Mask = &m

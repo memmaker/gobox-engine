@@ -1,6 +1,7 @@
 package present
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -25,9 +26,14 @@ var logoCache struct {
 	img image.Image
 }
 
+// none: the game cuts no lettering (Data.Logo nil, the zero LogoCut): its
+// title backdrop carries its own (COTAB's TITLE 3).
+func (l LogoCut) none() bool { return l.Bottom == 0 }
+
 // logoImage is p's lettering by Data.Logo (nil: none), cut once per picture.
+// A cut that finds no lettering is the game's data wrong: it panics.
 func logoImage(p *front.Picture) image.Image {
-	if p == nil || len(p.Pix) == 0 || p.PixW == 0 {
+	if p == nil || len(p.Pix) == 0 || p.PixW == 0 || logoCut.none() {
 		return nil
 	}
 	if logoCache.pix == &p.Pix[0] {
@@ -67,6 +73,9 @@ func logoImage(p *front.Picture) image.Image {
 				}
 			}
 		}
+	}
+	if r.Empty() {
+		panic(fmt.Sprintf("Data.Logo %+v cuts no lettering from the %d-wide title picture", lc, w))
 	}
 	cut := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
 	draw.Draw(cut, cut.Bounds(), out, r.Min, draw.Src)

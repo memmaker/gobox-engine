@@ -492,7 +492,7 @@ func gamePicture(p Picture) game.Picture {
 	if p.Pix == nil || p.PixW == 0 {
 		return game.Picture{}
 	}
-	g := game.Picture{W: p.PixW, H: len(p.Pix) / p.PixW, Pixels: p.Pix, Clear: -1}
+	g := game.Picture{W: p.PixW, H: len(p.Pix) / p.PixW, Pixels: p.Pix, Palette: p.Palette, Clear: -1}
 	if p.Mask != nil {
 		g.Clear = int(*p.Mask)
 	}

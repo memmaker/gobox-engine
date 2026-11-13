@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"gobox/ega"
+	"gobox/game"
 )
 
 // IndexedRGBA is a Picture's Pix, w wide, as the original blits them:
@@ -35,6 +36,17 @@ func PalettedRGBA(pix []uint8, w int, pal []color.RGBA) *image.RGBA {
 		}
 	}
 	return out
+}
+
+// PixelsOf is game picture p's pixels as a Picture (Pix, Palette, Mask):
+// the one conversion of a game.Picture's Pixels.
+func PixelsOf(p game.Picture) Picture {
+	f := Picture{Pix: p.Pixels, PixW: p.W, Palette: p.Palette}
+	if p.Clear >= 0 {
+		m := uint8(p.Clear)
+		f.Mask = &m
+	}
+	return f
 }
 
 // Converted is p with Img made from its Pix (p itself without Pix).
