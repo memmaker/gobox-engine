@@ -1,6 +1,6 @@
 # gobox/gpu API (the slice of Ebiten the games use; gogpu/wgpu, pure Go)
 
-Names mirror ebiten: swap the import. Subpackage gobox/gpu/vector draws filled and stroked paths.
+Names mirror ebiten: swap the import. gpu.DrawFilledRect and gpu.StrokeRect draw filled and stroked rects.
 
 ## Loop
 - `RunGame(Game) error`: opens a resizable window, blocks. `Game{Update() error; Draw(*Image); Layout(w,h)->(sw,sh)}`.

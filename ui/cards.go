@@ -16,7 +16,6 @@ import (
 	xdraw "golang.org/x/image/draw"
 
 	"gobox/gpu"
-	"gobox/gpu/vector"
 )
 
 // The party's portrait cards: each member's face in the game's window
@@ -303,7 +302,7 @@ func (p *Presenter) label(dst *gpu.Image, s string, x, y int, k float64) {
 func (p *Presenter) keyWindow(screen *gpu.Image, title string, lines []string, keys []byte, off []bool, sel int, bottom bool) float64 {
 	if yesNo(keys) { // every Yes/No question: centred over the dimmed view
 		b := screen.Bounds()
-		vector.DrawFilledRect(screen, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
+		gpu.DrawFilledRect(screen, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
 		bottom = false
 	}
 	b := screen.Bounds()

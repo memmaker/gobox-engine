@@ -15,7 +15,6 @@ import (
 	"math"
 
 	"gobox/gpu"
-	"gobox/gpu/vector"
 )
 
 // meshSrc: the wall shader (look.go's texSrc) for meshes. The vertex's ctr is the face's
@@ -484,7 +483,7 @@ func (g *Game) draw3D(screen *gpu.Image, c cam) {
 		g.drawSky(dst, c)
 		if texWater != nil && (len(Water) > 0 || Sea) { // the sea runs on to the horizon past the last cells drawn
 			hy := float32(horizon(c))
-			vector.DrawFilledRect(dst, 0, hy, float32(W), float32(H)-hy, color.RGBA{40, 98, 160, 255})
+			gpu.DrawFilledRect(dst, 0, hy, float32(W), float32(H)-hy, color.RGBA{40, 98, 160, 255})
 		}
 	}
 	if g.world == nil || g.world.gen != worldGen {

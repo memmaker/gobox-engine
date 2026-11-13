@@ -7,7 +7,6 @@ import (
 	"gobox/asset"
 	"gobox/game"
 	"gobox/gpu"
-	"gobox/gpu/vector"
 	"gobox/ui/blobber"
 	"image"
 	"image/color"
@@ -60,8 +59,8 @@ func (p *Presenter) drawMap(dst *gpu.Image, ink [16]color.RGBA, font func(byte, 
 	r := mapRect(dst)
 	p.mapAt = r
 	a := float32(Host.MapAlpha) // the opacity slider (Esc, Options)
-	vector.StrokeRect(dst, float32(r.Min.X)+.5, float32(r.Min.Y)+.5, float32(r.Dx())-1, float32(r.Dy())-1, 1, color.NRGBA{0x80, 0x80, 0x80, uint8(255 * a)})
-	vector.DrawFilledRect(dst, float32(r.Min.X+1), float32(r.Min.Y+1), float32(r.Dx()-2), float32(r.Dy()-2), color.NRGBA{A: uint8(255 * a)})
+	gpu.StrokeRect(dst, float32(r.Min.X)+.5, float32(r.Min.Y)+.5, float32(r.Dx())-1, float32(r.Dy())-1, 1, color.NRGBA{0x80, 0x80, 0x80, uint8(255 * a)})
+	gpu.DrawFilledRect(dst, float32(r.Min.X+1), float32(r.Min.Y+1), float32(r.Dx()-2), float32(r.Dy()-2), color.NRGBA{A: uint8(255 * a)})
 	k := float64(r.Dx()-2) / float64(mapSide) // any scale: the square keeps the aspect
 	op := &gpu.DrawImageOptions{}
 	op.ColorScale.ScaleAlpha(a)

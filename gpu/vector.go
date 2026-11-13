@@ -1,33 +1,30 @@
-// Package vector draws filled and stroked shapes, like Ebiten's.
-package vector
+package gpu
 
-import (
-	"image/color"
+import "image/color"
 
-	"gobox/gpu"
-)
+// Filled and stroked shapes, like Ebiten's.
 
 // tris draws triangles of one solid colour.
-func tris(dst *gpu.Image, pts [][2]float32, is []uint16, c color.Color) {
+func tris(dst *Image, pts [][2]float32, is []uint16, c color.Color) {
 	r, g, b, a := c.RGBA()
 	k := float32(1) / 0xffff
-	vs := make([]gpu.Vertex, len(pts))
+	vs := make([]Vertex, len(pts))
 	for i, p := range pts {
-		vs[i] = gpu.Vertex{DstX: p[0], DstY: p[1], SrcX: 0.5, SrcY: 0.5,
+		vs[i] = Vertex{DstX: p[0], DstY: p[1], SrcX: 0.5, SrcY: 0.5,
 			ColorR: float32(r) * k, ColorG: float32(g) * k, ColorB: float32(b) * k, ColorA: float32(a) * k}
 	}
 	dst.DrawTriangles(vs, is, nil, nil)
 }
 
-func quad(dst *gpu.Image, x, y, w, h float32, c color.Color) {
+func quad(dst *Image, x, y, w, h float32, c color.Color) {
 	tris(dst, [][2]float32{{x, y}, {x + w, y}, {x, y + h}, {x + w, y + h}}, []uint16{0, 1, 2, 1, 3, 2}, c)
 }
 
 // DrawFilledRect fills a rectangle.
-func DrawFilledRect(dst *gpu.Image, x, y, w, h float32, c color.Color) { quad(dst, x, y, w, h, c) }
+func DrawFilledRect(dst *Image, x, y, w, h float32, c color.Color) { quad(dst, x, y, w, h, c) }
 
 // StrokeRect outlines a rectangle with a line sw wide, centred on its edges.
-func StrokeRect(dst *gpu.Image, x, y, w, h, sw float32, c color.Color) {
+func StrokeRect(dst *Image, x, y, w, h, sw float32, c color.Color) {
 	o := sw / 2
 	quad(dst, x-o, y-o, w+sw, sw, c)
 	quad(dst, x-o, y+h-o, w+sw, sw, c)

@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"gobox/gpu"
-	"gobox/gpu/vector"
 	"gobox/ui/blobber"
 	"image/color"
 )
@@ -442,7 +441,7 @@ func (p *Presenter) drawOptions(dst *gpu.Image) {
 	}
 	if m.confirm == nil { // the game dims under the menu; the window dims under a question itself
 		b := dst.Bounds()
-		vector.DrawFilledRect(dst, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
+		gpu.DrawFilledRect(dst, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
 	}
 	keys := menuKeys(m.menuOptions())
 	if m.page == "Font" && FontGlyph != nil {

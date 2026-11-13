@@ -1,6 +1,6 @@
 # gobox/ui API (window phase 2, first cut)
 
-Imports only gobox/gpu, gobox/gpu/vector. Tests need no window.
+Imports only gobox/gpu. Tests need no window.
 
 ## Widgets (in -> out)
 - ScrollBar{R,N,Rows,Top}: Thumb(), To(y)->top, Draw(fill,BarColors), DrawOn(dst,BarColors).

@@ -12,7 +12,6 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
-	"gobox/gpu/vector"
 )
 
 // The main menu (the party menu, MainMenu): the title's lettering on
@@ -63,7 +62,7 @@ func (m *mainUI) drawMain(h MainHost, dst *gpu.Image, v MainMenu) {
 	dst.DrawImage(m.backdrop.of(bd), op)
 	a := m.fade()
 	dim := uint8(titleDim * 255 * min(max(a, 0), 1)) // the picture darkens as the menu comes, so the lettering reads
-	vector.DrawFilledRect(dst, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: dim})
+	gpu.DrawFilledRect(dst, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: dim})
 	if a >= 1 {
 		m.drawMainUI(h, dst, v)
 		return
