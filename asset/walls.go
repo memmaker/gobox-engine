@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 	"sync"
 )
@@ -34,18 +33,6 @@ var (
 	series = map[string]fs.FS{} // registered (tests) or opened from Dir
 )
 
-// Register sets series' texture files (in place of Dir's).
-func Register(name string, files fs.FS) {
-	mu.Lock()
-	defer mu.Unlock()
-	series[name] = files
-	for k := range images {
-		if k.series == name {
-			delete(images, k)
-		}
-	}
-}
-
 func open(s string) fs.FS {
 	mu.Lock()
 	defer mu.Unlock()
@@ -61,19 +48,6 @@ func open(s string) fs.FS {
 	}
 	series[s] = os.DirFS(d)
 	return series[s]
-}
-
-// Series lists the series under Dir, sorted.
-func Series() []string {
-	es, _ := os.ReadDir(filepath.Join(WallDir, "series"))
-	var out []string
-	for _, e := range es {
-		if e.IsDir() {
-			out = append(out, e.Name())
-		}
-	}
-	sort.Strings(out)
-	return out
 }
 
 var pixel bool // the style: pixel/<name>.png over <name>.png where there is one
@@ -150,32 +124,4 @@ func Has(s, name string) bool {
 	}
 	_, err := fs.Stat(f, name+".png")
 	return err == nil
-}
-
-// WallNames lists every texture name of series, sorted.
-func WallNames(s string) []string {
-	f := open(s)
-	if f == nil {
-		return nil
-	}
-	es, _ := fs.ReadDir(f, ".")
-	var out []string
-	for _, e := range es {
-		if n, ok := strings.CutSuffix(e.Name(), ".png"); ok {
-			out = append(out, n)
-		}
-	}
-	sort.Strings(out)
-	return out
-}
-
-// Textures maps each given name of series to its image, for blobber.View.Textures; absent names are skipped.
-func Textures(series string, names ...string) map[string]image.Image {
-	m := map[string]image.Image{}
-	for _, n := range names {
-		if img := WallImage(series, n); img != nil {
-			m[n] = img
-		}
-	}
-	return m
 }

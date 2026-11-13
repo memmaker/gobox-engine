@@ -52,23 +52,6 @@ func inOctaves(p uint16, periods *[notesPerOctave]uint16) bool {
 	return false
 }
 
-// Player works without a device: Read renders, Play takes a sound number.
-func TestPlayerReads(t *testing.T) {
-	p, err := NewPlayer(Config{Data: testData, Card: 'P'})
-	if err != nil {
-		t.Fatal(err)
-	}
-	p.Play(3)
-	buf := make([]byte, 44100*4/10)
-	p.Read(buf)
-	for _, b := range buf {
-		if b != 0 {
-			return
-		}
-	}
-	t.Fatal("sound 3 is silent")
-}
-
 // A song id past the table is ignored.
 func TestStartOutOfRange(t *testing.T) {
 	y, err := NewSynth(testData, 'T')

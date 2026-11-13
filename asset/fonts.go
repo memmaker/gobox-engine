@@ -7,8 +7,6 @@ package asset
 
 import (
 	"embed"
-	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -38,26 +36,6 @@ func All() []Font {
 func Get(name string) []byte {
 	b, _ := fontFS.ReadFile("fonts/" + name + ".f8")
 	return b
-}
-
-// Load are the game's own .f8 fonts in dir (2048 bytes each), then the
-// embedded ones. A missing dir gives just the embedded fonts.
-func Load(dir string) []Font { return append(FontDir(dir), All()...) }
-
-// FontDir are the .f8 fonts (2048 bytes each) in dir.
-func FontDir(dir string) []Font {
-	var out []Font
-	ents, _ := os.ReadDir(dir)
-	for _, d := range ents {
-		if !strings.EqualFold(filepath.Ext(d.Name()), ".f8") {
-			continue
-		}
-		b, err := os.ReadFile(filepath.Join(dir, d.Name()))
-		if err == nil && len(b) == 256*8 {
-			out = append(out, Font{strings.TrimSuffix(d.Name(), filepath.Ext(d.Name())), b})
-		}
-	}
-	return out
 }
 
 // Find is the index of the font called name in fs, or -1.

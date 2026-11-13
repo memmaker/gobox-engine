@@ -131,12 +131,6 @@ func ReadTableSpec(t TableSpec, imgs ...*ExeImage) (any, error) {
 	return strs, nil
 }
 
-// JSON is every table's values (Read) as one JSON object by name, in spec
-// order: the data a game's importer writes for the ruleset.
-func JSON(tables []TableSpec, imgs ...*ExeImage) ([]byte, error) {
-	return jsonWith(tables, nil, imgs...)
-}
-
 // Extra is a rules.json entry the importer writes from the game's code,
 // not read from the executable's tables (rules1e's creationStart).
 type Extra struct {
@@ -182,14 +176,6 @@ func jsonWith(tables []TableSpec, extra []Extra, imgs ...*ExeImage) ([]byte, err
 
 // RulesFile is the ruleset's tables in an imported game's data folder.
 const RulesFile = "rules.json"
-
-// WriteRules writes the tables of spec (a game's tables.json) to dir/RulesFile
-// (JSON), read from imgs. Only the tables of the executables given are
-// written: one read from another game's executable (Img past imgs) stays
-// the game's literal.
-func WriteRules(spec []byte, dir string, imgs ...*ExeImage) error {
-	return WriteRulesWith(spec, dir, nil, imgs...)
-}
 
 // WriteRulesWith is WriteRules with extra's entries after the tables.
 func WriteRulesWith(spec []byte, dir string, extra []Extra, imgs ...*ExeImage) error {

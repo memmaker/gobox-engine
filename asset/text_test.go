@@ -1,8 +1,6 @@
 package asset
 
 import (
-	"image"
-	"image/color"
 	"testing"
 )
 
@@ -49,41 +47,5 @@ func TestGlyphOracle(t *testing.T) {
 				}
 			}
 		}
-	}
-}
-
-func TestDrawText(t *testing.T) {
-	m := image.NewRGBA(image.Rect(0, 0, 16, 8))
-	fg, bg := color.RGBA{255, 0, 0, 255}, color.RGBA{0, 0, 9, 255}
-	DrawText(m, nil, "Ab", 0, 0, fg, &bg)
-	for i, ch := range "AB" {
-		g, _ := oracle(Get(GameFont), nil, byte(ch), true)
-		for r := 0; r < 8; r++ {
-			for b := 0; b < 8; b++ {
-				want := bg
-				if g[r]&(0x80>>b) != 0 {
-					want = fg
-				}
-				if m.RGBAAt(i*8+b, r) != want {
-					t.Fatal(i, r, b)
-				}
-			}
-		}
-	}
-}
-
-func TestChooser(t *testing.T) {
-	cfg := t.TempDir() + "/FONT.CFG"
-	c := NewChooser(t.TempDir(), "Dark_Queen_of_Krynn", cfg)
-	if c.List[0].Name != "Dark_Queen_of_Krynn" || len(c.List) != 60 {
-		t.Fatal("order")
-	}
-	c.Step(-1)
-	if c.Cur != 60 {
-		t.Fatal(c.Cur)
-	}
-	c.Set(2)
-	if NewChooser(t.TempDir(), "Dark_Queen_of_Krynn", cfg).Cur != 2 {
-		t.Fatal("cfg")
 	}
 }

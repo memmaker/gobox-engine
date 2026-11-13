@@ -18,7 +18,6 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"sync/atomic"
 )
 
 // Entry is one index record.
@@ -119,7 +118,6 @@ type Loader struct {
 	names map[string]string   // lower-case name -> real file name
 	amiga *Loader             // UseAmiga's: Amiga graphics by base name (PIC.DAX for PIC1..8)
 	memo  map[amigaKey][]byte // finished Amiga blocks (name munging and centre done once)
-	dos   atomic.Bool         // SetDOS's: the DOS blocks even where Amiga ones stand in (F12)
 }
 
 type amigaKey struct {
@@ -150,13 +148,6 @@ func (l *Loader) UseAmiga(dir string) {
 
 // HasAmiga reports whether Amiga archives stand in for DOS ones.
 func (l *Loader) HasAmiga() bool { return l != nil && l.amiga != nil }
-
-// SetDOS makes BlockShared give the DOS blocks (true) or the Amiga ones
-// where there are any (false, the default).
-func (l *Loader) SetDOS(dos bool) { l.dos.Store(dos) }
-
-// Amiga reports whether BlockShared gives the Amiga blocks now.
-func (l *Loader) Amiga() bool { return l.HasAmiga() && !l.dos.Load() }
 
 // Path returns the real path for a case-insensitive file name, or "".
 func (l *Loader) Path(name string) string {
@@ -199,10 +190,8 @@ func (l *Loader) BlockShared(name string, id int) []byte {
 	if l == nil {
 		return nil
 	}
-	if !l.dos.Load() {
-		if b := l.AmigaShared(name, id); b != nil {
-			return b
-		}
+	if b := l.AmigaShared(name, id); b != nil {
+		return b
 	}
 	return l.dosBlock(name, id)
 }
@@ -246,7 +235,7 @@ func (l *Loader) AmigaShared(name string, id int) []byte {
 // archive name was drawn in (the import's NAMEPAL.DAX); nil when the DOS
 // art shows or the picture has none.
 func (l *Loader) AmigaPalette(name string, id int) []byte {
-	if l == nil || l.amiga == nil || l.dos.Load() {
+	if l == nil || l.amiga == nil {
 		return nil
 	}
 	base := strings.TrimRight(strings.TrimSuffix(strings.ToUpper(name), ".DAX"), "0123456789")
@@ -259,18 +248,6 @@ func (l *Loader) AmigaPalette(name string, id int) []byte {
 		return f.BlockShared(id)
 	}
 	return nil
-}
-
-// DOSBlock is the DOS block that an Amiga one stands in for in Block; nil
-// when Block gives the DOS one anyway (the Image.Alt twin).
-func (l *Loader) DOSBlock(name string, id int) []byte {
-	if l == nil || l.amiga == nil {
-		return nil
-	}
-	if l.AmigaShared(name, id) == nil {
-		return nil
-	}
-	return l.dosBlock(name, id)
 }
 
 func (l *Loader) dosBlock(name string, id int) []byte {
