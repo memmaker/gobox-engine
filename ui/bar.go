@@ -12,6 +12,7 @@ import (
 	xdraw "golang.org/x/image/draw"
 
 	"gobox/gpu"
+	"gobox/ui/input"
 )
 
 // The action bar, XCOM style: one button per menu item along the bottom
@@ -67,15 +68,15 @@ type barItem struct {
 // (drawn as the hover), Enter and pad A press it.
 // End and Cancel are the table's keys (Backspace, Esc), not letters.
 var hotkeys = map[string]struct {
-	key   uint16 // a letter, raw input
-	act   Act    // or the binding table's key
+	key   uint16    // a letter, raw input
+	act   input.Act // or the binding table's key
 	label string
-}{"Attack": {'f', 0, "F"}, "Ranged": {'m', 0, "M"}, "Guard": {'g', 0, "G"}, "End": {0, EndTurn, "\x1b"}, "Wait": {'p', 0, "P"}, "Cast": {'c', 0, "C"},
-	"Quick": {'u', 0, "U"}, "Items": {'i', 0, "I"}, "Turn": {'t', 0, "T"}, "Bandage": {'b', 0, "B"}, "Flee": {'r', 0, "R"}, "Maneuver": {'v', 0, "V"}, "Yes": {'y', 0, "Y"}, "No": {'n', 0, "N"}, "Cancel": {0, Esc, "Esc"}}
+}{"Attack": {'f', 0, "F"}, "Ranged": {'m', 0, "M"}, "Guard": {'g', 0, "G"}, "End": {0, input.EndTurn, "\x1b"}, "Wait": {'p', 0, "P"}, "Cast": {'c', 0, "C"},
+	"Quick": {'u', 0, "U"}, "Items": {'i', 0, "I"}, "Turn": {'t', 0, "T"}, "Bandage": {'b', 0, "B"}, "Flee": {'r', 0, "R"}, "Maneuver": {'v', 0, "V"}, "Yes": {'y', 0, "Y"}, "No": {'n', 0, "N"}, "Cancel": {0, input.Esc, "Esc"}}
 
 type hotkey struct {
-	key   uint16 // a letter, raw input
-	act   Act    // or the binding table's key
+	key   uint16    // a letter, raw input
+	act   input.Act // or the binding table's key
 	label string
 }
 
@@ -129,9 +130,9 @@ var actWords = map[Kind]string{DecideAttack: "Attack", DecideRanged: "Ranged", D
 	DecideStep: "Move", DecideWalk: "Move", DecideView: "View", DecideAim: "Aim"}
 
 // hotkey is the button whose hotkey is letter k or the table's key a (nil: none).
-func (b *combatBar) hotkey(a Act, k uint16) *barItem {
+func (b *combatBar) hotkey(a input.Act, k uint16) *barItem {
 	for i, h := range hotkeysOf(b.items) {
-		if (h.key != 0 && h.key == k || h.act != None && h.act == a) && i < len(b.rects) {
+		if (h.key != 0 && h.key == k || h.act != input.None && h.act == a) && i < len(b.rects) {
 			return &b.items[i]
 		}
 	}

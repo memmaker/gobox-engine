@@ -13,6 +13,7 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
+	"gobox/ui/input"
 )
 
 // buyDraft is a draft whose sheet has the abilities names (nil: STR .. CHA).
@@ -52,7 +53,7 @@ func TestPointBuy(t *testing.T) {
 			if p.scr.sub != scrBuy || len(p.scr.buy) != len(tc.stats) {
 				t.Fatalf("sub %d buy %v", p.scr.sub, p.scr.buy)
 			}
-			right, left, down := keyOf(InputRight), keyOf(InputLeft), keyOf(Down)
+			right, left, down := keyOf(input.InputRight), keyOf(input.InputLeft), keyOf(input.Down)
 			for range 12 { // STR to 18 (16 points), no further
 				p.Key(right)
 			}

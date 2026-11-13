@@ -7,6 +7,7 @@ package ui
 
 import (
 	"gobox/game"
+	"gobox/ui/input"
 	"image"
 )
 
@@ -121,7 +122,7 @@ func (p *Presenter) mapKey(k uint16) {
 		return
 	}
 	a := actOf(k)
-	if kp := keypad(k); kp != None {
+	if kp := keypad(k); kp != input.None {
 		a = kp
 	}
 	if f.menu {
@@ -133,13 +134,13 @@ func (p *Presenter) mapKey(k uint16) {
 		}
 		return
 	}
-	d := map[Act]image.Point{Up: {0, -1}, Down: {0, 1}, InputLeft: {-1, 0}, InputRight: {1, 0}}[a]
+	d := map[input.Act]image.Point{input.Up: {0, -1}, input.Down: {0, 1}, input.InputLeft: {-1, 0}, input.InputRight: {1, 0}}[a]
 	switch {
 	case d != (image.Point{}):
 		p.mapMove(f.cursor.Add(d))
-	case a == Enter || a == Space || a == PadA:
+	case a == input.Enter || a == input.Space || a == input.PadA:
 		f.menu, p.sel = true, 0
-	case a == Esc || a == InputMap:
+	case a == input.Esc || a == input.InputMap:
 		p.fullMap = nil
 	}
 }

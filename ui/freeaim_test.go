@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/gpu"
+	"gobox/ui/input"
 )
 
 // TestFreeAimSteps: aiming, the arrows step the cursor onto any square, a
@@ -24,14 +25,14 @@ func TestFreeAimSteps(t *testing.T) {
 	p.Draw(dst, board())
 	start := p.b.Cursor
 	for range 3 {
-		p.Key(CursorUp, 0)
+		p.Key(input.CursorUp, 0)
 		p.Draw(dst, board())
 	}
 	if p.b.Cursor == start {
 		t.Fatalf("cursor stayed on %v", p.b.Cursor)
 	}
 	at := p.b.Cursor
-	p.Key(Enter, '\r')
+	p.Key(input.Enter, '\r')
 	p.Actions()
 	p.Draw(dst, board())
 	if p.b.Cursor != at {

@@ -4,6 +4,7 @@ package ui
 
 import (
 	"gobox/gpu"
+	"gobox/ui/input"
 	"image"
 	"math"
 	"slices"
@@ -70,7 +71,7 @@ func (p *Presenter) Key(k uint16) {
 
 // key takes k on the remastered screens; false leaves it to keyAct.
 func (p *Presenter) key(k uint16) bool {
-	if actOf(k) == InputNote { // the text box's "> Notes"
+	if actOf(k) == input.InputNote { // the text box's "> Notes"
 		if !p.noteBtn.Empty() {
 			p.send(ActNote, 0)
 		}
@@ -118,7 +119,7 @@ func (p *Presenter) key(k uint16) bool {
 		return p.fightKey(k)
 	}
 	if p.ctx > 0 { // the card's context menu: the arrows, Enter, a hotkey or Esc, as the game's menus
-		if m, ok := memberKey(k, p.ctx-1, len(p.party()), true); p.campHome() && (ok || actOf(k) == InputPartyMenu || actOf(k) == Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
+		if m, ok := memberKey(k, p.ctx-1, len(p.party()), true); p.campHome() && (ok || actOf(k) == input.InputPartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
 			p.campFocus(k, m)
 			return true
 		}
@@ -150,9 +151,9 @@ func (p *Presenter) key(k uint16) bool {
 	if p.exploring() {
 		if !p.menu {
 			switch actOf(k) {
-			case Enter, PadA:
+			case input.Enter, input.PadA:
 				p.menu, p.sel = true, 0
-			case Esc:
+			case input.Esc:
 				p.view.OpenOptions()
 			default:
 				return p.exploreKey(k)
@@ -181,11 +182,11 @@ func (p *Presenter) key(k uint16) bool {
 		switch {
 		case p.choosing(): // a member pick has no menu: every key goes to the portraits (keyAct)
 			return false
-		case actOf(k) == Enter && p.noChoice(): // "press enter to continue": nothing to pick
+		case actOf(k) == input.Enter && p.noChoice(): // "press enter to continue": nothing to pick
 			return false
-		case actOf(k) == Enter && m != nil:
+		case actOf(k) == input.Enter && m != nil:
 			p.menu, p.menuFor, p.sel = true, menuID(m), 0
-		case actOf(k) == Esc && p.exploring():
+		case actOf(k) == input.Esc && p.exploring():
 			p.view.OpenOptions()
 		default:
 			return false
@@ -397,7 +398,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		p.key(keyOf(Esc)) // a click outside: back, as Esc
+		p.key(keyOf(input.Esc)) // a click outside: back, as Esc
 		return true
 	}
 	return p.fightClick(x, y)

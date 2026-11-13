@@ -6,6 +6,7 @@ import (
 	"gobox/game"
 	"gobox/gpu"
 	"gobox/rules"
+	"gobox/ui/input"
 	"image"
 	"slices"
 	"strings"
@@ -39,45 +40,45 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 	}
 	a := actOf(k)
 	switch a {
-	case PadA, Space: // pad A, Space: as Enter
-		a = Enter
+	case input.PadA, input.Space: // pad A, Space: as Enter
+		a = input.Enter
 	}
 	m, member := memberKey(k, inv.member, inv.count, true)
 	switch {
-	case a == Esc && inv.carry != nil: // the stack goes back where it was
+	case a == input.Esc && inv.carry != nil: // the stack goes back where it was
 		inv.carry = nil
-	case a == Esc:
+	case a == input.Esc:
 		inv.do(ActClose)
-	case a == Minimap && inv.up.kind == invOwn: // Tab, pad Y: the sheet (they toggle)
+	case a == input.Minimap && inv.up.kind == invOwn: // Tab, pad Y: the sheet (they toggle)
 		inv.do(ActSheet)
-	case a == Minimap: // the shop and the loot: the next tab of the highlighted item's list
+	case a == input.Minimap: // the shop and the loot: the next tab of the highlighted item's list
 		pn := &inv.list
 		if inv.ware != rules.NoItem {
 			pn = &inv.wares
 		}
 		pn.tab, pn.top = (pn.tab+1)%len(tabNames), 0
-	case (a == InputLeft || a == InputRight) && inv.up.kind != invOwn: // the shop: Left the goods, Right the member's items
+	case (a == input.InputLeft || a == input.InputRight) && inv.up.kind != invOwn: // the shop: Left the goods, Right the member's items
 		for _, o := range order {
-			if o.ware == (a == InputLeft) {
+			if o.ware == (a == input.InputLeft) {
 				inv.choose(o.ware, o.i)
 				break
 			}
 		}
-	case a == Up:
+	case a == input.Up:
 		step(-1)
-	case a == Down:
+	case a == input.Down:
 		step(1)
-	case a == Home && len(order) > 0: // Home, End: the first and last item
+	case a == input.Home && len(order) > 0: // Home, End: the first and last item
 		inv.choose(order[0].ware, order[0].i)
-	case a == End && len(order) > 0:
+	case a == input.End && len(order) > 0:
 		inv.choose(order[len(order)-1].ware, order[len(order)-1].i)
-	case (a == PgUp || a == PgDn) && len(order) > 0: // PgUp/PgDn, the pad's shoulders: a page of the highlighted pane
+	case (a == input.PgUp || a == input.PgDn) && len(order) > 0: // PgUp/PgDn, the pad's shoulders: a page of the highlighted pane
 		pn := &inv.list
 		if inv.ware != rules.NoItem {
 			pn = &inv.wares
 		}
 		sign := 1
-		if a == PgUp {
+		if a == input.PgUp {
 			sign = -1
 		}
 		d := sign * max(1, pn.rows)
@@ -87,15 +88,15 @@ func (p *Presenter) inventoryKey(k uint16) bool {
 			j -= sign
 		}
 		inv.choose(order[j].ware, order[j].i)
-	case a == Enter && inv.focus > 0:
+	case a == input.Enter && inv.focus > 0:
 		if w := inv.words[inv.focus-1]; w.on {
 			inv.do(w.act)
 		}
-	case a == Enter && inv.ware != rules.NoItem:
+	case a == input.Enter && inv.ware != rules.NoItem:
 		inv.do(ActBuy)
-	case a == Enter && inv.up.kind != invOwn && inv.up.sell:
+	case a == input.Enter && inv.up.kind != invOwn && inv.up.sell:
 		inv.do(ActSell)
-	case a == Enter && inv.up.kind == invOwn:
+	case a == input.Enter && inv.up.kind == invOwn:
 		inv.do(ActReady)
 	case member:
 		if inv.up.switchable {

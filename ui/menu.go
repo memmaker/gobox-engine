@@ -2,6 +2,7 @@ package ui
 
 import (
 	"bytes"
+	"gobox/ui/input"
 	"strings"
 )
 
@@ -57,29 +58,29 @@ func DigitKeys(keys []byte, on func(int) bool) []byte {
 // Space and pad A pick it, a hotkey (either case) picks its row; Esc is
 // back and never picks. It returns the row picked (-1 none), back, and
 // whether k was taken.
-func MenuNav(a Act, k uint16, sel *int, keys []byte) (pick int, back, ok bool) {
+func MenuNav(a input.Act, k uint16, sel *int, keys []byte) (pick int, back, ok bool) {
 	n := len(keys)
 	if n == 0 {
-		return -1, a == Esc, a == Esc
+		return -1, a == input.Esc, a == input.Esc
 	}
 	s := min(max(*sel, 0), n-1)
 	switch {
-	case a == Up:
+	case a == input.Up:
 		s = (s + n - 1) % n
-	case a == Down:
+	case a == input.Down:
 		s = (s + 1) % n
-	case a == PgUp:
+	case a == input.PgUp:
 		s = max(0, s-10)
-	case a == PgDn:
+	case a == input.PgDn:
 		s = min(n-1, s+10)
-	case a == Home:
+	case a == input.Home:
 		s = 0
-	case a == End:
+	case a == input.End:
 		s = n - 1
-	case a == Enter || a == Space || a == PadA:
+	case a == input.Enter || a == input.Space || a == input.PadA:
 		*sel = s
 		return s, false, true
-	case a == Esc:
+	case a == input.Esc:
 		return -1, true, true
 	case k > ' ' && k < 128:
 		h := byte(k)
@@ -99,12 +100,12 @@ func MenuNav(a Act, k uint16, sel *int, keys []byte) (pick int, back, ok bool) {
 }
 
 // MenuNavH is MenuNav for a horizontal bar: Left is Up and Right is Down.
-func MenuNavH(a Act, k uint16, sel *int, keys []byte) (pick int, back, ok bool) {
+func MenuNavH(a input.Act, k uint16, sel *int, keys []byte) (pick int, back, ok bool) {
 	switch a {
-	case InputLeft:
-		a = Up
-	case InputRight:
-		a = Down
+	case input.InputLeft:
+		a = input.Up
+	case input.InputRight:
+		a = input.Down
 	}
 	return MenuNav(a, k, sel, keys)
 }

@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/input"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -196,15 +197,15 @@ func TestBindings(t *testing.T) {
 // resolves to that row's Act in its context (no row shadows another), each
 // such Act is one a screen switches on, and no screen names a key code.
 func TestKeyDispatch(t *testing.T) {
-	names := map[Act]string{} // the Acts by name, from the package's source
-	f, err := parser.ParseFile(token.NewFileSet(), "input_input.go", nil, 0)
+	names := map[input.Act]string{} // the Acts by name, from the package's source
+	f, err := parser.ParseFile(token.NewFileSet(), "input/act.go", nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, d := range f.Decls {
 		if g, ok := d.(*ast.GenDecl); ok && g.Tok == token.CONST && len(g.Specs) > 1 {
 			for i, sp := range g.Specs {
-				names[Act(i)] = sp.(*ast.ValueSpec).Names[0].Name
+				names[input.Act(i)] = sp.(*ast.ValueSpec).Names[0].Name
 			}
 		}
 	}
@@ -213,7 +214,6 @@ func TestKeyDispatch(t *testing.T) {
 		"present_bindings.go": true, // the key table (it was present's bindings.go)
 		"bioskeys.go":         true, // the BIOS key codes of the host's keys
 		"vace.go":             true, // VACE opcodes, not keys
-		"input_input.go":      true, // the Act and key definitions
 	}
 	used := map[string]bool{} // the identifiers the screens use
 	files, _ := filepath.Glob("*.go")
@@ -248,7 +248,7 @@ func TestKeyDispatch(t *testing.T) {
 			if a := look(c.K); a != c.A {
 				t.Errorf("%s %q: key %#x resolves to %s, not %s", b.Ctx, b.Desc, c.K, names[a], names[c.A])
 			}
-			if n := names[c.A]; c.A < Member1 || c.A >= Member1+Members {
+			if n := names[c.A]; c.A < input.Member1 || c.A >= input.Member1+input.Members {
 				if !used[n] {
 					t.Errorf("%s %q: no screen handles %s", b.Ctx, b.Desc, n)
 				}

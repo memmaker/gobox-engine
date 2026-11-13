@@ -5,6 +5,7 @@ package ui
 import (
 	"cmp"
 	"gobox/gpu"
+	"gobox/ui/input"
 	"image"
 	"math"
 	"slices"
@@ -31,15 +32,15 @@ func (p *CombatPresenter) Zoom(in bool, speed float64) {
 //
 // a is what the binding table makes of the
 // key, k the key itself: the digits and the bar's letters are raw input.
-func (p *CombatPresenter) Key(a Act, k uint16) bool {
+func (p *CombatPresenter) Key(a input.Act, k uint16) bool {
 	p.initCamera()
 	if k < 128 && k >= 'A' && k <= 'Z' {
 		k += 'a' - 'A'
 	}
 	b := p.b
 	aiming := b != nil && b.Turn != nil && b.Turn.Aim
-	cycle := a == Tab || a == PgUp || a == PgDn
-	back := a == PgUp || a == Tab && p.Shift
+	cycle := a == input.Tab || a == input.PgUp || a == input.PgDn
+	back := a == input.PgUp || a == input.Tab && p.Shift
 	keyed := combatBar{}
 	if b != nil && !p.Picking {
 		keyed = keyedItems(b, p.Asking) // the buttonless acts' keys (M, V ...), after the bar's
@@ -58,10 +59,10 @@ func (p *CombatPresenter) Key(a Act, k uint16) bool {
 	case table != nil: // the remaster's letter for the same act (F Attack, U Quick), where the game gave its own
 		p.press(*table)
 	case p.Camera(a):
-	case a >= CursorUp && a <= CursorRight && p.stepUnit(cursorDirs[a]): // the arrows step the turn's unit, as the original's
-	case a >= CursorUp && a <= CursorRight: // the square cursor (the pad's d-pad and left stick send these too)
+	case a >= input.CursorUp && a <= input.CursorRight && p.stepUnit(cursorDirs[a]): // the arrows step the turn's unit, as the original's
+	case a >= input.CursorUp && a <= input.CursorRight: // the square cursor (the pad's d-pad and left stick send these too)
 		p.moveCursor(cursorDirs[a])
-	case a == Up || a == Down || a == InputLeft || a == InputRight: // W A S D pan
+	case a == input.Up || a == input.Down || a == input.InputLeft || a == input.InputRight: // W A S D pan
 	case k >= '0' && k <= '9':
 		if i := (int(k) - '0' + 9) % 10; i < len(p.bar.rects) { // 1 is the first button, 0 the tenth
 			p.press(p.bar.items[i])
@@ -70,9 +71,9 @@ func (p *CombatPresenter) Key(a Act, k uint16) bool {
 		p.press(*either(func(b *combatBar) *barItem { return b.hotkey(a, k) }))
 	case cycle && aiming && len(b.Targets) > 0: // Tab, Shift-Tab, the pad's shoulders: the next, previous target
 		p.cycleTarget(back)
-	case a == Space:
-		return p.Key(Enter, k) // Space picks, as Enter
-	case a == Enter && aiming: // a square the game doesn't take leaves the aim up, the view centred on the cursor (the original's Center)
+	case a == input.Space:
+		return p.Key(input.Enter, k) // Space picks, as Enter
+	case a == input.Enter && aiming: // a square the game doesn't take leaves the aim up, the view centred on the cursor (the original's Center)
 		t := vec{float64(b.Cursor.X) + .5, 0, float64(b.Cursor.Y) + .5}
 		p.tabTo = &t
 		p.act(Decision{Kind: DecideAim, X: b.Cursor.X, Y: b.Cursor.Y})
@@ -82,12 +83,12 @@ func (p *CombatPresenter) Key(a Act, k uint16) bool {
 			d = -1
 		}
 		p.bar.moveFocus(d)
-	case a == Enter && p.bar.focus > 0 && p.bar.focus <= len(p.bar.rects):
+	case a == input.Enter && p.bar.focus > 0 && p.bar.focus <= len(p.bar.rects):
 		p.press(p.bar.items[p.bar.focus-1])
-	case a == Enter && p.free != nil: // the square cursor: as a click there
+	case a == input.Enter && p.free != nil: // the square cursor: as a click there
 		return p.clickSquare(*p.free)
-	case a == Enter && p.lookCursor(): // no cursor yet: it starts on the turn's unit (Move had it), the arrows then move it
-	case a == Esc && aiming:
+	case a == input.Enter && p.lookCursor(): // no cursor yet: it starts on the turn's unit (Move had it), the arrows then move it
+	case a == input.Esc && aiming:
 		p.act(Decision{Kind: DecideClose})
 	default:
 		return false
@@ -98,25 +99,25 @@ func (p *CombatPresenter) Key(a Act, k uint16) bool {
 // Camera takes the camera's own acts (Q and E turn, Home brings it back),
 // whatever the fight is doing: its events playing too. It reports whether a
 // was one.
-func (p *CombatPresenter) Camera(a Act) bool {
+func (p *CombatPresenter) Camera(a input.Act) bool {
 	if !CameraAct(a) {
 		return false
 	}
 	p.initCamera()
 	switch a {
-	case TurnLeft:
+	case input.TurnLeft:
 		p.yawTo -= math.Pi / 4
-	case TurnRight:
+	case input.TurnRight:
 		p.yawTo += math.Pi / 4
-	case Home:
+	case input.Home:
 		p.offset = vec{}
 	}
 	return true
 }
 
 // CameraAct is whether a is one of the camera's own acts (Camera).
-func CameraAct(a Act) bool {
-	return a == TurnLeft || a == TurnRight || a == Home
+func CameraAct(a input.Act) bool {
+	return a == input.TurnLeft || a == input.TurnRight || a == input.Home
 }
 
 // cycleTarget moves the aim to the next of the turn's targets (back: the
@@ -178,7 +179,7 @@ func (p *CombatPresenter) moveCursor(d [2]float64) {
 }
 
 // cursorDirs are the arrows' square offsets on screen (moveCursor's d).
-var cursorDirs = map[Act][2]float64{CursorUp: {1, 0}, CursorDown: {-1, 0}, CursorRight: {0, 1}, CursorLeft: {0, -1}}
+var cursorDirs = map[input.Act][2]float64{input.CursorUp: {1, 0}, input.CursorDown: {-1, 0}, input.CursorRight: {0, 1}, input.CursorLeft: {0, -1}}
 
 // screenStep is the board offset of screen direction d as the camera turns.
 func (p *CombatPresenter) screenStep(d [2]float64) image.Point {

@@ -12,6 +12,7 @@ import (
 	"gobox/asset/orig"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/input"
 )
 
 func testFight() *game.SpaceFight {
@@ -111,12 +112,12 @@ func TestSpaceFightLayout(t *testing.T) {
 	cellAt(t, c, 5, 23, "T", 15, 0)
 	cellAt(t, c, 6, 23, "arget", 10, 0)
 	cellAt(t, c, 0, 24, "C", 15, 0)
-	if p.sfKey(keyOf(Down)); p.sf.sel != 5 {
+	if p.sfKey(keyOf(input.Down)); p.sf.sel != 5 {
 		t.Fatalf("Down: highlight %d, want 5 (Command)", p.sf.sel)
 	}
 	c = fightPage(p, v)
 	cellAt(t, c, 0, 24, "Command", 0, 15)
-	p.sfKey(keyOf(Esc))
+	p.sfKey(keyOf(input.Esc))
 	p.sfKey('a')
 	if n := len(p.inv.acts); n != 2 || p.inv.acts[0] != (Action{Kind: ActClose}) || p.inv.acts[1] != (Action{Kind: ActChoose, N: 6}) {
 		t.Fatalf("acts %v, want Esc ActClose and A ActChoose 6", p.inv.acts)

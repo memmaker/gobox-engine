@@ -20,6 +20,7 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
+	"gobox/ui/input"
 )
 
 // Presenter draws the remastered screen. Screens it has no remaster for
@@ -630,9 +631,9 @@ func (p *Presenter) Options() bool { return p.view != nil && p.view.OptionsOpen(
 func (p *Presenter) UpdateOptions() { p.view.UpdateOptions() }
 
 // optionsKeys: the pad's acts as the options page reads them.
-var optionsKeys = map[Act]gpu.Key{Up: gpu.KeyUp, Down: gpu.KeyDown, InputLeft: gpu.KeyLeft, InputRight: gpu.KeyRight,
-	PgUp: gpu.KeyPageUp, PgDn: gpu.KeyPageDown, Home: gpu.KeyHome, End: gpu.KeyEnd,
-	PadA: gpu.KeyEnter, Enter: gpu.KeyEnter, Esc: gpu.KeyEscape}
+var optionsKeys = map[input.Act]gpu.Key{input.Up: gpu.KeyUp, input.Down: gpu.KeyDown, input.InputLeft: gpu.KeyLeft, input.InputRight: gpu.KeyRight,
+	input.PgUp: gpu.KeyPageUp, input.PgDn: gpu.KeyPageDown, input.Home: gpu.KeyHome, input.End: gpu.KeyEnd,
+	input.PadA: gpu.KeyEnter, input.Enter: gpu.KeyEnter, input.Esc: gpu.KeyEscape}
 
 // OptionsPad hands a gamepad key (as PadKeys sends it) to the options page,
 // for the next UpdateOptions.

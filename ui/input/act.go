@@ -1,8 +1,7 @@
-// input_input.go names what a key does. The binding table
-// (present/remaster/bindings.go) gives every key code its Act by context,
+// Package input names what a key does. The binding table
+// (ui/present_bindings.go) gives every key code its Act by context,
 // and the screens (remaster, battle) switch on the Act, never on the code.
-
-package ui
+package input
 
 // Act is what a key does where the table binds it.
 type Act uint8

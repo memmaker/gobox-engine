@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gobox/game/play"
+	"gobox/ui/input"
 )
 
 // TestNoPickEnterAnyPath: Enter and Esc through the real Key handler never
@@ -14,8 +15,8 @@ func TestNoPickEnterAnyPath(t *testing.T) {
 	for i, st := range []play.State{play.Scene{Common: play.Common{Ask: ask}}, play.Scene{Common: play.Common{Ask: ask, Text: chest}},
 		play.Exploring{Common: play.Common{Ask: ask, Text: chest}}} {
 		p, _ := presenterOn(st)
-		p.Key(keyOf(Enter))
-		p.Key(keyOf(Esc))
+		p.Key(keyOf(input.Enter))
+		p.Key(keyOf(input.Esc))
 		if len(p.inv.acts) != 0 {
 			t.Fatalf("view %d: answered %v", i, p.inv.acts)
 		}

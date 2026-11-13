@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"gobox/ui/input"
 	"image"
 	"slices"
 	"testing"
@@ -34,7 +35,7 @@ func TestBarHasNoBoardActs(t *testing.T) {
 	if !slices.Equal(words, []string{"Cast", "Done"}) {
 		t.Errorf("bar %v, want [Cast Done]", words)
 	}
-	if !p.Key(None, 'v') || !slices.Equal(p.Actions(), []Decision{{Kind: DecideView}}) { // View's key stays
+	if !p.Key(input.None, 'v') || !slices.Equal(p.Actions(), []Decision{{Kind: DecideView}}) { // View's key stays
 		t.Error("V: no View")
 	}
 }
@@ -75,18 +76,18 @@ func TestBoardActsMouse(t *testing.T) {
 // TestBoardActsKeys: Enter starts the cursor on the unit, the arrows move it,
 // Enter takes the square; an arrow off the edge from the unit flees.
 func TestBoardActsKeys(t *testing.T) {
-	right, left := CursorRight, CursorLeft // yaw 0: right is +X
+	right, left := input.CursorRight, input.CursorLeft // yaw 0: right is +X
 	for _, c := range []struct {
 		name string
-		keys []Act
+		keys []input.Act
 		want Decision
 	}{
-		{"cursor to empty square: move", []Act{Enter, right, Enter}, Decision{Kind: DecideWalk, X: 1, Y: 8}},
-		{"cursor onto foe: attack", []Act{Enter, right, right, right, Enter}, Decision{Kind: DecideAttack, N: 7}},
-		{"cursor on the unit: view", []Act{Enter, Enter}, Decision{Kind: DecideView, N: -1}},
-		{"step off the edge: flee", []Act{left}, Decision{Kind: DecideFlee}},
-		{"cursor off the edge: flee", []Act{Enter, left}, Decision{Kind: DecideFlee}},
-		{"step: move", []Act{right}, Decision{Kind: DecideWalk, X: 1, Y: 8}},
+		{"cursor to empty square: move", []input.Act{input.Enter, right, input.Enter}, Decision{Kind: DecideWalk, X: 1, Y: 8}},
+		{"cursor onto foe: attack", []input.Act{input.Enter, right, right, right, input.Enter}, Decision{Kind: DecideAttack, N: 7}},
+		{"cursor on the unit: view", []input.Act{input.Enter, input.Enter}, Decision{Kind: DecideView, N: -1}},
+		{"step off the edge: flee", []input.Act{left}, Decision{Kind: DecideFlee}},
+		{"cursor off the edge: flee", []input.Act{input.Enter, left}, Decision{Kind: DecideFlee}},
+		{"step: move", []input.Act{right}, Decision{Kind: DecideWalk, X: 1, Y: 8}},
 	} {
 		p := boardScene()
 		for _, a := range c.keys {

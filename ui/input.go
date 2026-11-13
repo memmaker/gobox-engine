@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"gobox/gpu"
+	"gobox/ui/input"
 )
 
 // memberKey is the member key k picks where a member applies: F1-F8 that
@@ -15,16 +16,16 @@ import (
 // screen has no other use for them). ok: k is a member key.
 func memberKey(k uint16, cur, n int, lr bool) (int, bool) {
 	switch a := actOf(k); {
-	case a >= Member1 && a < Member1+Members:
-		i := int(a - Member1)
+	case a >= input.Member1 && a < input.Member1+input.Members:
+		i := int(a - input.Member1)
 		return i, i < n
 	case n == 0:
-	case a == PrevMember || lr && a == InputLeft:
+	case a == input.PrevMember || lr && a == input.InputLeft:
 		if cur <= 0 {
 			return n - 1, true
 		}
 		return cur - 1, true
-	case a == NextMember || lr && a == InputRight:
+	case a == input.NextMember || lr && a == input.InputRight:
 		return (cur + 1) % n, true
 	}
 	return -1, false
@@ -34,7 +35,7 @@ func memberKey(k uint16, cur, n int, lr bool) (int, bool) {
 // load, the sound, the font. A screen passes it on rather than swallowing it.
 func globalKey(k uint16) bool {
 	switch actOf(k) {
-	case Help, Minimap, SaveLoad, Sound, Font, FontPrev, WallStyle:
+	case input.Help, input.Minimap, input.SaveLoad, input.Sound, input.Font, input.FontPrev, input.WallStyle:
 		return true
 	}
 	return false
@@ -44,7 +45,7 @@ func globalKey(k uint16) bool {
 // overview), which the game never asked for.
 func frontOnly(k uint16) bool {
 	switch actOf(k) {
-	case SaveLoad, InputMap, Overview, Party:
+	case input.SaveLoad, input.InputMap, input.Overview, input.Party:
 		return true
 	}
 	return false
@@ -52,9 +53,9 @@ func frontOnly(k uint16) bool {
 
 // arrow turns a cursor key a into its decision on v: the member pick's candidate (ActLead), else a pager's page
 // (ActPage -1 or +1).
-func (p *Presenter) arrow(a Act) {
-	back := a == Up || a == InputLeft || a == PgUp || a == Home
-	on := a == Down || a == InputRight || a == PgDn || a == End
+func (p *Presenter) arrow(a input.Act) {
+	back := a == input.Up || a == input.InputLeft || a == input.PgUp || a == input.Home
+	on := a == input.Down || a == input.InputRight || a == input.PgDn || a == input.End
 	if n := len(p.party()); n > 0 && p.choosing() && (back || on) {
 		i := p.selectedIndex()
 		switch {
@@ -137,50 +138,50 @@ func (p *Presenter) keyAct(k uint16) {
 		c -= 'a' - 'A'
 	}
 	switch a := actOf(k); {
-	case a == Enter || a == PadA:
+	case a == input.Enter || a == input.PadA:
 		p.send(ActOK, 0)
-	case a == Esc:
+	case a == input.Esc:
 		p.send(ActClose, 0)
-	case a == Minimap:
+	case a == input.Minimap:
 		Host.MapOff = !Host.MapOff // pure UI: the presenter's own option, never the game's
 		if OnSettings != nil {
 			OnSettings(Settings)
 		}
-	case a == Overview && p.exploring():
+	case a == input.Overview && p.exploring():
 		p.overview = true
-	case a == Overview:
+	case a == input.Overview:
 		p.send(ActOverview, 0)
-	case a == Font:
+	case a == input.Font:
 		if !p.cycleFont(1) {
 			p.send(ActFont, 1)
 		}
-	case a == FontPrev:
+	case a == input.FontPrev:
 		if !p.cycleFont(-1) {
 			p.send(ActFont, -1)
 		}
-	case a == Sound:
+	case a == input.Sound:
 		p.send(ActSound, 0)
-	case a == SaveLoad:
+	case a == input.SaveLoad:
 		p.openSlots(false)
-	case a == WallStyle:
+	case a == input.WallStyle:
 		Host.PixelWalls = !Host.PixelWalls // newView puts it in use
 		if OnSettings != nil {             // saved with the host's settings
 			OnSettings(Settings)
 		}
-	case Cursor(a):
+	case input.Cursor(a):
 		p.arrow(a)
-	case a == Help:
+	case a == input.Help:
 		p.openHelp()
 	case k >= 128 || c < ' ': // another key the table binds (or none): nothing here
 	case menuIndex(p.askMenu(), c) >= 0:
 		p.send(ActChoose, menuIndex(p.askMenu(), c))
-	case a == InputMap:
+	case a == input.InputMap:
 		p.openMap()
-	case a == Party && p.exploring():
+	case a == input.Party && p.exploring():
 		p.overview = true
-	case a == Party:
+	case a == input.Party:
 		p.send(ActOverview, 0)
-	case keypad(k) != None:
+	case keypad(k) != input.None:
 		p.arrow(keypad(k))
 	case c == ' ' || p.askMenu() == nil && !p.mainMenuUp(): // "press any key" (the party menu ignores keys it has no row for)
 		p.send(ActOK, 0)
@@ -271,16 +272,16 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int) {
 				break
 			}
 			p.camp.wheeled = now() // a list or menu (camp-style, the list popup, the page's: save slots, drop-downs, the sheet): the wheel moves the highlight, a line a step, up for up
-			k := keyOf(Down)
+			k := keyOf(input.Down)
 			if wheel > 0 {
-				k = keyOf(Up)
+				k = keyOf(input.Up)
 			}
 			p.key(k)
 		}
 	}
 	if p.pageScreen() && (p.pageMenu || p.picker(p.ink()) != nil) { // the page screens' own pointer (screens.go): the right button is Esc
 		if right {
-			p.screenKey(keyOf(Esc))
+			p.screenKey(keyOf(input.Esc))
 			right = false
 		}
 		if p.picker(p.ink()) != nil || p.creation() != nil || p.iconEditor(p.ink()) != nil {
@@ -300,7 +301,7 @@ func (p *Presenter) Mouse(cx, cy int, in, left, right bool, wheel int) {
 	case p.fight && p.pointer.In(p.fightCard): // the active member's sheet
 		p.send(ActMember, 0)
 	case p.fight: // as Esc: cancel, else the options
-		p.fightKey(keyOf(Esc))
+		p.fightKey(keyOf(input.Esc))
 	case p.ctx > 0:
 		p.ctx = 0
 	case p.askMenu() != nil && len(p.askMenu().Commands) == 1 && p.typingAsk() == nil: // "PRESS <ENTER> TO CONTINUE" takes no Esc: the right button continues too
@@ -385,21 +386,21 @@ func editKey(k uint16, text *string, cur *int, max int, digits bool) (done, canc
 		return false, false, true
 	}
 	switch a := actOf(k); {
-	case a == Enter:
+	case a == input.Enter:
 		return true, false, true
-	case a == Esc:
+	case a == input.Esc:
 		return false, true, true
-	case a == InputLeft:
+	case a == input.InputLeft:
 		c = c - min(c, 1)
-	case a == InputRight:
+	case a == input.InputRight:
 		c = min(len(t), c+1)
-	case a == Home:
+	case a == input.Home:
 		c = 0
-	case a == End:
+	case a == input.End:
 		c = len(t)
-	case a == Backspace && c > 0:
+	case a == input.Backspace && c > 0:
 		t, c = t[:c-1]+t[c:], c-1
-	case a == Delete && c < len(t):
+	case a == input.Delete && c < len(t):
 		t = t[:c] + t[c+1:]
 	default:
 		return false, false, false
@@ -477,9 +478,9 @@ func (p *Presenter) askHeld(k uint16) bool {
 		return false
 	}
 	switch actOf(k) {
-	case Esc:
+	case input.Esc:
 		return a.NoEsc
-	case Enter, Up, Down, InputLeft, InputRight, Space, PadA:
+	case input.Enter, input.Up, input.Down, input.InputLeft, input.InputRight, input.Space, input.PadA:
 		return a.NoPick
 	}
 	return false
@@ -498,9 +499,9 @@ func (p *Presenter) confirmKey(k uint16) bool {
 			p.confirmPick(0)
 		case k == 'n' || k == 'N':
 			p.confirmPick(1)
-		case actOf(k) == Esc && !a.NoEsc:
+		case actOf(k) == input.Esc && !a.NoEsc:
 			p.confirmPick(1)
-		case !slices.Contains([]Act{Enter, Up, Down, Esc, InputLeft, InputRight}, actOf(k)):
+		case !slices.Contains([]input.Act{input.Enter, input.Up, input.Down, input.Esc, input.InputLeft, input.InputRight}, actOf(k)):
 			return !globalKey(k)
 		}
 		return true
@@ -527,7 +528,7 @@ func (p *Presenter) confirmPick(i int) {
 }
 
 // keypadDirs are the direction keys as the keypad's digits (ActDir N).
-var keypadDirs = map[Act]int{Up: 8, Down: 2, InputLeft: 4, InputRight: 6, Home: 7, PgUp: 9, End: 1, PgDn: 3}
+var keypadDirs = map[input.Act]int{input.Up: 8, input.Down: 2, input.InputLeft: 4, input.InputRight: 6, input.Home: 7, input.PgUp: 9, input.End: 1, input.PgDn: 3}
 
 // askAnswered sends what key k answers on v's question by its data: a
 // direction (AskMove: ActDir), another member (Ask.Reselect,

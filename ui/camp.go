@@ -11,6 +11,7 @@ import (
 	"gobox/asset"
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/ui/input"
 )
 
 // Camp (Camp): the presenter's own screens over camp's state, each
@@ -245,12 +246,12 @@ func (p *Presenter) campFocus(k uint16, m int) {
 	}
 	n, at := len(order), slices.Index(order, p.ctx)
 	switch a := actOf(k); a {
-	case InputPartyMenu:
+	case input.InputPartyMenu:
 		p.ctx = 0
 		return
-	case InputLeft, PrevMember:
+	case input.InputLeft, input.PrevMember:
 		p.ctx = order[(at+n-1)%n]
-	case InputRight, NextMember, Minimap: // Minimap: Tab
+	case input.InputRight, input.NextMember, input.Minimap: // Minimap: Tab
 		p.ctx = order[(at+1)%n]
 	default:
 		p.ctx = 1 + m
@@ -425,12 +426,12 @@ func (p *Presenter) campKey(k uint16) bool {
 	spells := p.spellList()
 	m, member := memberKey(k, p.selectedIndex(), len(p.party()), true)
 	switch a := actOf(k); {
-	case spells && (a == Less || a == Backspace) && c.sel < n-1: // -, Backspace: one less
+	case spells && (a == input.Less || a == input.Backspace) && c.sel < n-1: // -, Backspace: one less
 		p.campSpellAt(c.sel, -1)
-	case spells && a == More && c.sel < n-1: // +: one more
+	case spells && a == input.More && c.sel < n-1: // +: one more
 		p.campSpellAt(c.sel, 1)
-	case actOf(k) == InputPartyMenu:
-	case (member || actOf(k) == Minimap) && p.campHome(): // another menu takes the keys
+	case actOf(k) == input.InputPartyMenu:
+	case (member || actOf(k) == input.Minimap) && p.campHome(): // another menu takes the keys
 		p.campFocus(k, m)
 	case member && !yesNo(p.campKeys(items)): // the member camp acts for (not under a question about one)
 		p.send(ActLead, m)

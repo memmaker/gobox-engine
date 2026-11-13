@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"gobox/ui/input"
 	"image"
 	"slices"
 	"testing"
@@ -13,13 +14,13 @@ import (
 func TestOptionKeys(t *testing.T) {
 	b := &Board{Turn: &Turn{Options: []CombatOption{{"Attack", 'A', DecideAttack, ""}, {"Quick", 'Q', DecideQuick, ""}, {"Target", 'T', DecideOption, ""}, {"Dodge", 'D', DecideOption, ""}}}}
 	for _, c := range []struct {
-		a    Act
+		a    input.Act
 		k    uint16
 		want Decision
 	}{
-		{None, 'u', Decision{Kind: DecideQuick}},
-		{None, 'f', Decision{Kind: DecideAttack}},
-		{None, 't', Decision{Kind: DecideOption, N: 2}},
+		{input.None, 'u', Decision{Kind: DecideQuick}},
+		{input.None, 'f', Decision{Kind: DecideAttack}},
+		{input.None, 't', Decision{Kind: DecideOption, N: 2}},
 	} {
 		p := &CombatPresenter{b: b}
 		p.bar.items = shownItems(b, false)
@@ -36,7 +37,7 @@ func TestOptionKeys(t *testing.T) {
 		p := &CombatPresenter{b: b}
 		p.bar.items = shownItems(b, false)
 		p.bar.rects = make([]image.Rectangle, len(p.bar.items))
-		p.Key(None, k)
+		p.Key(input.None, k)
 		if got := p.Actions(); len(got) != 0 {
 			t.Errorf("%c: %+v", k, got)
 		}
@@ -50,7 +51,7 @@ func TestMoveOption(t *testing.T) {
 	p := &CombatPresenter{b: b}
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
-	if !p.Key(None, 'm') || len(p.Actions()) != 0 || p.free == nil || *p.free != image.Pt(3, 4) {
+	if !p.Key(input.None, 'm') || len(p.Actions()) != 0 || p.free == nil || *p.free != image.Pt(3, 4) {
 		t.Fatalf("free %v", p.free)
 	}
 }
@@ -82,10 +83,10 @@ func TestOptionChords(t *testing.T) {
 	p.bar.items = shownItems(b, false)
 	p.bar.rects = make([]image.Rectangle, len(p.bar.items))
 	p.Alt = true
-	p.Key(None, 'a')
+	p.Key(input.None, 'a')
 	p.Alt = false
-	p.Key(Space, ' ')
-	p.Key(None, 'u')
+	p.Key(input.Space, ' ')
+	p.Key(input.None, 'u')
 	want := []Decision{{Kind: DecideOption, N: 1}, {Kind: DecideOption, N: 2}, {Kind: DecideQuick}}
 	if got := p.Actions(); !slices.Equal(got, want) {
 		t.Fatalf("%+v", got)
@@ -133,13 +134,13 @@ func TestArrowsStepUnit(t *testing.T) {
 	u := Unit{ID: 1, X: 2, Y: 2, Active: true}
 	b := &Board{Units: []Unit{u}, Reach: []image.Point{{1, 2}}, Turn: &Turn{}}
 	p := &CombatPresenter{b: b}
-	if !p.Key(CursorLeft, 0x4B00) {
+	if !p.Key(input.CursorLeft, 0x4B00) {
 		t.Fatal("left not taken")
 	}
 	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: DecideWalk, X: 1, Y: 2}) {
 		t.Fatalf("left: %+v, want a walk to 1,2", got)
 	}
-	p.Key(CursorRight, 0x4D00) // 3,2 is not in Reach: the cursor starts
+	p.Key(input.CursorRight, 0x4D00) // 3,2 is not in Reach: the cursor starts
 	if got := p.Actions(); len(got) != 0 || p.free == nil {
 		t.Fatalf("blocked right: %+v, cursor %v", got, p.free)
 	}
@@ -175,11 +176,11 @@ func TestMoveThenArrowSteps(t *testing.T) {
 	b := &Board{Units: []Unit{u}, Reach: []image.Point{{1, 2}}, Turn: &Turn{}}
 	p := &CombatPresenter{b: b}
 	p.press(barItem{Kind: DecideWalk})
-	p.Key(CursorLeft, 0x4B00)
+	p.Key(input.CursorLeft, 0x4B00)
 	if got := p.Actions(); len(got) != 1 || got[0] != (Decision{Kind: DecideWalk, X: 1, Y: 2}) {
 		t.Fatalf("M, left: %+v, want a walk to 1,2", got)
 	}
-	p.Key(CursorUp, 0x4800) // not in Reach (off the map): still sent, the game answers (POR: Flee?)
+	p.Key(input.CursorUp, 0x4800) // not in Reach (off the map): still sent, the game answers (POR: Flee?)
 	if got := p.Actions(); len(got) != 1 || got[0].Kind != DecideWalk {
 		t.Fatalf("M, off-Reach step: %+v, want a walk", got)
 	}

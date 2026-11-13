@@ -7,6 +7,7 @@ package ui
 import (
 	"fmt"
 	"gobox/game"
+	"gobox/ui/input"
 	"strconv"
 )
 
@@ -137,7 +138,7 @@ func (p *Presenter) closePager() {
 // page (or scroll) back, every other key on.
 func (p *Presenter) pagerKey(k uint16) {
 	a := actOf(k)
-	if kp := keypad(k); kp != None {
+	if kp := keypad(k); kp != input.None {
 		a = kp
 	}
 	closed, turned := p.pager.Key(a, pageSource{p})

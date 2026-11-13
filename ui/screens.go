@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"gobox/gpu"
+	"gobox/ui/input"
 )
 
 // The page screens taking decisions whose questions are the presenter's:
@@ -494,9 +495,9 @@ func (p *Presenter) screenKey(k uint16) bool {
 			h -= 'a' - 'A'
 		}
 		switch actOf(k) { // the pad's X and Y: L and D
-		case Overview:
+		case input.Overview:
 			h, k = 'L', 'L'
-		case Minimap:
+		case input.Minimap:
 			h, k = 'D', 'D'
 		}
 		if (h == 'L' && !sl.LoadOnly && !sl.NoLoad || h == 'D') && k < 128 {
@@ -531,28 +532,28 @@ func (p *Presenter) pickerKey(k uint16, pk *FrontPicker) bool {
 	s := &p.scr
 	c, n, cols, per := s.cur, pk.N, pk.Cols, pk.PerPage
 	switch actOf(k) {
-	case Up:
+	case input.Up:
 		c = max(c-cols, c%cols)
-	case Down:
+	case input.Down:
 		if c+cols < n {
 			c += cols
 		}
-	case InputLeft:
+	case input.InputLeft:
 		c = max(c-1, 0)
-	case InputRight:
+	case input.InputRight:
 		c = min(c+1, n-1)
-	case Home:
+	case input.Home:
 		c = 0
-	case End:
+	case input.End:
 		c = n - 1
-	case PgUp:
+	case input.PgUp:
 		c = max(c-per, 0)
-	case PgDn:
+	case input.PgDn:
 		c = min(c+per, n-1)
-	case Enter, Space, PadA:
+	case input.Enter, input.Space, input.PadA:
 		p.pickerTake(pk, c)
 		return true
-	case Esc:
+	case input.Esc:
 		p.send(ActClose, 0)
 		return true
 	default:
@@ -767,15 +768,15 @@ func (p *Presenter) barDo(h byte) func() {
 // a hotkey its part, Esc is the bar's Exit.
 func (p *Presenter) spotKey(k uint16, sp []spot) bool {
 	s := &p.scr
-	dir := map[Act]image.Point{Up: {0, -1}, Down: {0, 1}, InputLeft: {-1, 0}, InputRight: {1, 0}}
+	dir := map[input.Act]image.Point{input.Up: {0, -1}, input.Down: {0, 1}, input.InputLeft: {-1, 0}, input.InputRight: {1, 0}}
 	switch a := actOf(k); {
 	case dir[a] != image.Point{}:
 		s.sel = nearest(sp, s.sel, dir[a])
-	case a == Minimap: // Tab, pad Y
+	case a == input.Minimap: // Tab, pad Y
 		s.sel = (s.sel + 1) % len(sp)
-	case a == Enter || a == Space || a == PadA:
+	case a == input.Enter || a == input.Space || a == input.PadA:
 		sp[s.sel].do()
-	case a == Esc:
+	case a == input.Esc:
 		p.barDo('E')()
 	case k < 128:
 		h := byte(k) &^ 0x20

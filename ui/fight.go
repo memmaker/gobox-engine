@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/input"
 	"image"
 	"math"
 	"os"
@@ -280,21 +281,21 @@ func (p *Presenter) fightKey(k uint16) bool {
 		return true
 	}
 	a := combatAct(k)
-	if a == Log || p.fightLog && a == Esc {
-		p.fightLog = !p.fightLog && a != Esc
+	if a == input.Log || p.fightLog && a == input.Esc {
+		p.fightLog = !p.fightLog && a != input.Esc
 		p.logTop = math.MaxInt32 // it opens on the latest lines
 		return true
 	}
-	if d, ok := map[Act]int{Up: -1, Down: 1, PgUp: -logRows, PgDn: logRows, Home: -math.MaxInt32, End: math.MaxInt32}[actOf(k)]; ok && p.fightLog { // Up/Down, PgUp/PgDn, Home/End scroll the Log, as every list
+	if d, ok := map[input.Act]int{input.Up: -1, input.Down: 1, input.PgUp: -logRows, input.PgDn: logRows, input.Home: -math.MaxInt32, input.End: math.MaxInt32}[actOf(k)]; ok && p.fightLog { // Up/Down, PgUp/PgDn, Home/End scroll the Log, as every list
 		p.logTop = max(0, min(p.logTop, math.MaxInt32-logRows)+d) // clamped when drawn
 		return true
 	}
-	if a == InputOptions && p.view != nil {
+	if a == input.InputOptions && p.view != nil {
 		p.view.OpenOptions()
 		return true
 	}
-	if a == PadA { // pad A: as Enter
-		a = Enter
+	if a == input.PadA { // pad A: as Enter
+		a = input.Enter
 	}
 	if p.askedTurn() && p.askUp().Kind == AskMove { // a step at a time, as the original's move mode: the direction keys step, Enter is done, Esc undoes
 		if d, ok := keypadDirs[actOf(k)]; ok {
@@ -302,10 +303,10 @@ func (p *Presenter) fightKey(k uint16) bool {
 			return true
 		}
 		switch a {
-		case Enter:
+		case input.Enter:
 			p.send(ActOK, 0)
 			return true
-		case Esc:
+		case input.Esc:
 			p.send(ActClose, 0)
 			return true
 		}
@@ -314,7 +315,7 @@ func (p *Presenter) fightKey(k uint16) bool {
 	if p.battle.Key(combatAct(k), k) {
 		return true
 	}
-	if a == Esc && p.view != nil { // Esc with nothing to give up: the options
+	if a == input.Esc && p.view != nil { // Esc with nothing to give up: the options
 		p.view.OpenOptions()
 		return true
 	}
