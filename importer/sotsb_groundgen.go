@@ -1,0 +1,19 @@
+package importer
+
+import "gobox/rules1e"
+
+// SotSB's combat ground constants (START.EXE).
+const (
+	// the map cell's flag for rubble in the room
+	sotsbTileOpenGround = 22 // the groundInfo tile of open ground (things may be put there)
+)
+
+// CombatGround is how SotSB lays its combat ground (rules.json combatGround):
+// the dungeon only, outdoors the map stays bare.
+func SotsbCombatGround() rules1e.GroundGen {
+	return rules1e.GroundGen{
+		Corners: rules1e.CornerTiles{NWDoorOpen: 0xD, NEWallOpen: 7, NEDoorOpen: 1},
+		Rubble: &rules1e.RubbleGen{CellFlag: cellRubble, Tile: sotsbTileOpenGround,
+			Heap: groundRubble, Edge: groundRubbleEdge, HeapOdds: 5, EdgeOdds: 9},
+	}
+}

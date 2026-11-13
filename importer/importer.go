@@ -4,6 +4,15 @@
 // the game's formats, nothing at run time may. The folder ends with a
 // manifest (manifest.json) naming the game, its ruleset and the originals it
 // came from (Manifest.Source).
+//
+// The four pool games' importers (Pool of Radiance, Curse of the Azure Bonds,
+// Secret of the Silver Blades, Pools of Darkness) live here too, each
+// registering its Game. Their files are named <game>_<topic>.go for what one
+// game does alone (names there carry the game's prefix where they would
+// clash) and shared_<topic>.go for what the games have in common. A game's
+// embedded data lives in its folder (por/, cotab/, pod/, sotsb/): journals,
+// area script names and layouts, tables.json. The folder's format is package
+// adventure; importer never imports engine.
 package importer
 
 import (
