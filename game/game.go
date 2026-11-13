@@ -317,7 +317,9 @@ func (k Ink) EGA() (n int, ok bool) { return int(k) - int(InkBlack), k != InkNon
 // does not place these yet (REFACTOR N2's remainder).
 type Drawn struct {
 	Picture
-	At image.Rectangle
+	At     image.Rectangle
+	Anim   []Drawn         // the frames it cycles while the game waits (the original's wait-loop animation), the first its own; nil: still
+	Delays []time.Duration // with Anim: each frame's time
 }
 
 // Picker is a grid picker up (the creation's heads and bodies, the icon's

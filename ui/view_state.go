@@ -91,7 +91,7 @@ func (r *frontState) pageOf(ps game.State) *TextPage {
 	c := game.CommonOf(ps)
 	p := &TextPage{}
 	for _, d := range c.Layers {
-		p.Layers = append(p.Layers, drawnPicture(d.Picture, d.At))
+		p.Layers = append(p.Layers, drawnLayer(d))
 	}
 	if c.Picture != nil && len(c.Layers) == 0 { // the front draws a page's layers: the picture is the page's only one
 		p.Layers = []Picture{drawnPicture(*c.Picture, image.Rectangle{})}

@@ -193,28 +193,47 @@ func spriteFrame(pc Picture, now time.Time) (int, bool) {
 	if pc.File == "" || pc.Img != nil || pc.Pix != nil || pc.Name != "" || len(pc.Frames) > 0 || daxArt.art == nil || strings.HasPrefix(strings.ToUpper(pc.File), "SPRIT") {
 		return 0, false
 	}
-	k := daxKey{file: pc.File, block: pc.Block}
-	a, ok := spriteAnims[k]
-	if !ok {
-		a = &spriteAnim{start: now}
-		var fs []asset.Frame
-		loop := 0
+	a := animClock(daxKey{file: pc.File, block: pc.Block}, now, func(a *spriteAnim) {
 		if b := artBlock(pc.File, pc.Block); b != nil && !b.Kind.Pictured() {
-			fs, loop = b.Frames, b.Loop
+			a.loop = b.Loop
+			for _, f := range b.Frames {
+				a.delays = append(a.delays, max(time.Duration(f.Delay)*100*time.Millisecond, 10*time.Millisecond)) // a 0 delay: the next tick (10 ms)
+			}
 		}
-		a.loop = loop
-		for _, f := range fs {
-			a.delays = append(a.delays, max(time.Duration(f.Delay)*100*time.Millisecond, 10*time.Millisecond)) // a 0 delay: the next tick (10 ms)
-		}
-		spriteAnims[k] = a
-	} else if now.Sub(a.seen) > 250*time.Millisecond { // shown again after a while: from its first frame
-		a.start = now
-	}
-	a.seen = now
+	})
 	if len(a.delays) < 2 {
 		return 0, false
 	}
 	return animFrame(a.delays, a.loop, now.Sub(a.start)), true
+}
+
+// gameFrame is pc's game frame (Anim) shown at now, timed like
+// spriteFrame's from when it first showed; false: pc has none.
+func gameFrame(pc Picture, now time.Time) (Picture, bool) {
+	if len(pc.Anim) < 2 || len(pc.Delays) != len(pc.Anim) {
+		return pc, false
+	}
+	a := animClock(daxKey{file: pc.File, block: pc.Block, frame: -1}, now, func(*spriteAnim) {})
+	return pc.Anim[animFrame(pc.Delays, 0, now.Sub(a.start))], true
+}
+
+// animShownAgain is how long an animation may go unshown and still go on
+// where it was; shown again later, it starts from its first frame.
+const animShownAgain = 250 * time.Millisecond
+
+// animClock is the clock of the animation under k, shown at now: made
+// (and filled by fill) when first shown, restarted when shown again.
+func animClock(k daxKey, now time.Time, fill func(*spriteAnim)) *spriteAnim {
+	a, ok := spriteAnims[k]
+	if !ok {
+		a = &spriteAnim{start: now}
+		fill(a)
+		spriteAnims[k] = a
+	} else if now.Sub(a.seen) > animShownAgain {
+		a.start = now
+	}
+	a.seen = now
+	return a
 }
 
 // animFrame is the frame shown t into playing delays once from the first,

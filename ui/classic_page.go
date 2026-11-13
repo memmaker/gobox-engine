@@ -28,6 +28,16 @@ func drawnPicture(p game.Picture, at image.Rectangle) Picture {
 	return f
 }
 
+// drawnLayer is a page layer as the page draws it, with its frames.
+func drawnLayer(d game.Drawn) Picture {
+	f := drawnPicture(d.Picture, d.At)
+	for _, a := range d.Anim {
+		f.Anim = append(f.Anim, drawnPicture(a.Picture, a.At))
+	}
+	f.Delays = d.Delays
+	return f
+}
+
 // msgDelayTicks is the original's frame delay factor: a frame lasts its
 // Delay times (message delay + 3); a MsgDelayed layer's FrameMs is stated
 // at the default message delay, defaultMsgDelay (POR's finale).

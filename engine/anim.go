@@ -1,6 +1,10 @@
 package engine
 
 import (
+	"image"
+	"slices"
+	"time"
+
 	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
@@ -224,4 +228,35 @@ func (e *Engine) animateWhileWaiting() bool {
 		a.last = e.Ticks()
 	}
 	return true
+}
+
+// animFrameTime is an animation frame's Delay unit (tenths of a second);
+// animNextPoll is a 0 delay's time: the wait loop's next poll.
+const (
+	animFrameTime = 100 * time.Millisecond
+	animNextPoll  = 10 * time.Millisecond
+)
+
+// layerAnim is page layer i's frames and their times while the wait
+// cycles it (animating: the view picture's frames at its place); nil: still.
+func (e *Engine) layerAnim(i int) ([]game.Drawn, []time.Duration) {
+	l := e.pg.layers[i]
+	if !e.animating() || !slices.ContainsFunc(e.pic.frames, func(f asset.Frame) bool { return f.Image == l.src }) {
+		return nil, nil
+	}
+	var out []game.Drawn
+	var delays []time.Duration
+	for _, f := range e.pic.frames {
+		im := f.Image
+		fl := l
+		fl.src, fl.frame, fl.w = im, 0, im.Width*8
+		fl.d = im.Frame(0)
+		fl.at = image.Rectangle{Min: l.at.Min, Max: l.at.Min.Add(image.Pt(fl.w, im.Height))}
+		p := e.layerPicture(&fl)
+		g := game.Drawn{Picture: gamePicture(p), At: p.At}
+		g.File, g.Block, g.Frame = p.File, p.Block, p.Frame
+		out = append(out, g)
+		delays = append(delays, max(time.Duration(f.Delay)*animFrameTime, animNextPoll))
+	}
+	return out, delays
 }

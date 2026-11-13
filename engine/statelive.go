@@ -76,9 +76,10 @@ func (e *Engine) statePage() *textPage {
 	for _, l := range e.pageText() {
 		p.View = append(p.View, viewLine(l))
 	}
-	for _, l := range pics {
+	for i, l := range pics {
 		g := game.Drawn{Picture: gamePicture(l), At: l.At}
 		g.File, g.Block, g.Frame = l.File, l.Block, l.Frame
+		g.Anim, g.Delays = e.layerAnim(i)
 		p.Layers = append(p.Layers, g)
 	}
 	return p

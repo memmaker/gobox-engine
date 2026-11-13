@@ -193,7 +193,7 @@ func (p *Presenter) viewText() [][]PaneRun { return p.blinkedLines(p.laid().view
 // animated is whether pc cycles through frames by the clock.
 func animated(pc Picture) bool {
 	_, ok := spriteFrame(pc, now())
-	return ok || len(pc.Frames) > 0 && pc.FrameMs > 0
+	return ok || len(pc.Frames) > 0 && pc.FrameMs > 0 || len(pc.Anim) > 1
 }
 
 // pictures is the page's pictures, bottom first, the animated ones at the
@@ -204,6 +204,11 @@ func (p *Presenter) pictures() []Picture {
 		return ps
 	}
 	for i, pc := range ps {
+		if f, ok := gameFrame(pc, now()); ok { // the game's own frames (game.Drawn.Anim)
+			ps = append(ps[:i:i], ps[i:]...)
+			ps[i] = f
+			pc = f
+		}
 		if f, ok := spriteFrame(pc, now()); ok { // a DAX animation block (PIC, SPRIT, FINAL): its frames at their own delays
 			ps = append(ps[:i:i], ps[i:]...)
 			ps[i].Frame = f

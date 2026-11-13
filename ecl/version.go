@@ -66,6 +66,7 @@ type Behaviour struct {
 	SelectMemberDrop  bool           // SelectMember's bit 7 refreshes and may drop a dead member; otherwise the bit is only masked off
 	NoMonsterCombat   []CombatScreen // Combat with no monsters loaded: the first screen whose word is set opens (it clears the word)
 	AreaMonstersJoin  bool           // Combat with monsters first adds the area's own (GameTables.AreaMonsters)
+	PictureAnimates   bool           // Picture marks the view drawn, so a wait under it cycles the picture's frames (cotab's and sotsb's b8B7D); otherwise only a step does (POR's DS:84E1)
 }
 
 // ProgramFn is a PROGRAM sub-command, by name (ruling S14: each game's
@@ -196,7 +197,7 @@ var V2 = func() *Version {
 		45568: CallDuelSound, 45571: CallDuelSound, 49182: CallStepForward, 49176: CallWallAhead, 26627: CallPause}
 	// PROGRAM: cotab's 0, 3 quit, 8 ending, 9 camp; sotsb uses 0 and 9
 	programs := map[byte]ProgramFn{0: ProgramPartyMenu, 3: ProgramQuit, 8: ProgramEnding, 9: ProgramCamp}
-	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs, Behaviour: V1.Behaviour}
+	return &Version{ID: 2, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Programs: programs, Behaviour: func() Behaviour { b := V1.Behaviour; b.PictureAnimates = true; return b }()}
 }()
 
 // V3 is Pools of Darkness' dialect.

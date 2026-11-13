@@ -439,7 +439,7 @@ func (r *frontState) page(sc game.Scene) *TextPage {
 		p.Layers = append(p.Layers, drawnPicture(pic, image.Rectangle{}))
 	}
 	for _, d := range sc.Layers {
-		p.Layers = append(p.Layers, drawnPicture(d.Picture, d.At))
+		p.Layers = append(p.Layers, drawnLayer(d))
 	}
 	return p
 }

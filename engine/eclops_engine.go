@@ -237,6 +237,9 @@ func (e *Engine) opPicture() {
 	if v != 0xFF {
 		e.es.encounterShown[1] = 1
 		e.es.picShown = 1
+		if e.eclVersion.Behaviour.PictureAnimates {
+			e.es.picAnimating = 1
+		}
 		if face := e.worldWord(rules.WordPortrait); face == 0xFF {
 			if big := e.game().BigPictures; big.First > 0 && v >= big.First {
 				e.showBigPicture(v, big)

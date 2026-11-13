@@ -34,7 +34,7 @@ var errNotAllowed = errors.New("not allowed now")
 // State is where the core is parked, as one of play's states: the one
 // built after the last change (rebuild), shared, read-only.
 func (e *Engine) State() game.State {
-	if e.ps == nil {
+	if e.ps == nil || e.psDOS != DOSArt.Load() { // the art switched (F12): the pictures in the other art
 		e.rebuild()
 	}
 	return e.ps
@@ -43,7 +43,7 @@ func (e *Engine) State() game.State {
 // Version is the build number of the State held: it changes whenever State
 // is built anew (rebuild), and only then.
 func (e *Engine) Version() uint64 {
-	if e.ps == nil {
+	if e.ps == nil || e.psDOS != DOSArt.Load() { // the art switched (F12): the pictures in the other art
 		e.rebuild()
 	}
 	return uint64(e.StateBuilds)
@@ -52,7 +52,7 @@ func (e *Engine) Version() uint64 {
 // rebuild builds State anew: every call that changes the engine (Do, Load,
 // LoadSlot, Start, Step) ends with it.
 func (e *Engine) rebuild() {
-	e.ps = e.build()
+	e.ps, e.psDOS = e.build(), DOSArt.Load()
 	if _, ok := e.ps.(game.Looting); !ok { // a new treasure is announced again
 		e.lootSeen = false
 	}
@@ -138,7 +138,7 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 	// the pane and its layers are Common's (Text, Layers): the Scene adds only its own
 	sc := game.Scene{Common: cm, Kind: game.SceneText, Full: e.snap.full, Placed: pg.View}
 	sc.Layers, sc.Common.Layers = cm.Layers, nil // a Scene's layers are its own (gobox's window is the Scene's)
-	if w := e.mapWalls(); w.Side != nil { // the 3D view the scene is over, also before the party first explores (cotab's opening)
+	if w := e.mapWalls(); w.Side != nil {        // the 3D view the scene is over, also before the party first explores (cotab's opening)
 		sc.Walls = &w
 	}
 	if a := pending; a != nil {
