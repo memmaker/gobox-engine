@@ -4,11 +4,15 @@
 
 ## Decisions and answers
 
-**engine vs game: keep both.** `game` is the contract (`game.Game`: State, Allowed, Do; plus the state, action and data types). It has three implementations: `engine` (the four pool games), `buckrogers-go/rules.Engine` and `buckrogers2-go/rules.Engine`. `ui` reads only `game`, so it never depends on one implementation. Dropping `game` would make `ui` and both BR engines import the pool engine. What does go: `game`'s non-contract parts (journal layout `WrapText`/`JournalBook.Layout`/`JournalPictureSize` → `ui`; `PointBuyCost`/`PointBuySpent` → `rules`; check `held.go`, `memberpage.go`).
+**One state, written in `game` types.** `game` is the contract, so `engine` works on it directly: the engine's state that the player sees lives in `game` types and the engine writes it where it changes. No second copy, no `facts`, no `rebuild()`/`build()` translation (play.go, playfacts.go), no per-mode copy functions. `ui` reads that state.
 
-**facts: cut it.** `known()` (playfacts.go) fills a 36-field `facts` struct (party, purse, shop, temple, combat, vault, picker, page, ...) on every rebuild; `build()` (play.go) then uses one or two of those fields to pick and return one `game.State`. It is an intermediate copy of the engine's state in `game` types, left over from when facts were a separate API for an older presenter. Nothing else reads it. Replacement: `build()` calls the per-mode builders (`placeState`, `itemsState`, `offers`, ...) for the state it returns. Next step after that, per "one authoritative state": the engine writes its `game.State` where it changes instead of rebuilding it.
+**`ui` never imports `engine`.** Today it does not (`go list -deps ./ui` has no `gobox/engine`); a test forbids it from now on.
 
-**Old UI code not yet superseded** (the cut needs these first):
+**engine vs game: keep both.** `game` is the contract (`game.Game`: State, Allowed, Do; plus the state, action and data types). It has three implementations: `engine` (the four pool games), `buckrogers-go/rules.Engine` and `buckrogers2-go/rules.Engine`. `ui` reads only `game`, so it never depends on one implementation. Dropping `game` would make `ui` and both BR engines import the pool engine. What does go: `game`'s non-contract parts: journal layout (`WrapText`, `JournalBook.Layout`, `JournalPictureSize`) → `ui`; point-buy maths (`PointBuyCost`, `PointBuySpent`) → `rules`; check `held.go`, `memberpage.go` the same way.
+
+**facts: removed.** `known()` (playfacts.go) fills a 36-field `facts` struct (party, purse, shop, temple, combat, vault, picker, page, ...) on every rebuild; `build()` (play.go) then uses one or two of those fields to pick and return one `game.State`. It is an intermediate copy of the engine's state in `game` types, left over from when facts were a separate API for an older presenter. Nothing else reads it. It goes with the one-state change above.
+
+**All old UI code goes** (screen drawing, snapshot, picker layout, combat cursor and view, pixel and row sizes), replaced in `ui` where the player still needs it. Where `ui` still reads it today (the fix lands with the cut):
 - `game.Page` (`Pane`, `Prompt`, `View` text runs and `Layers` of pictures): the engine's drawn screen is still in the contract, and `ui` draws it (combat reports `f.Page`, `ui/frame.go` timed pages). Fix: replace each use with typed facts (messages, the report's lines, the picture by ID) and let `ui` lay them out; then `page.go` and `game.Page` go.
 - Picker: `ui/picker.go`, `poolpick.go`, `parts.go`, `act.go`, `game.go`, `rules.go` call the engine's `OpenPicker`/`PickerView`, which lay out columns, rows and pages. Fix: `game.Picker` lists the candidates (ID, name, picture); `ui` lays out the grid and pager; `pickgrid.go` goes.
 - `engine.MapCell` reaches `ui` as `game.Data.MapCell` (pixels per map square, set by `importer/games/por_gamedata.go`). Fix: a `ui` constant; drop the field.
@@ -16,6 +20,7 @@
 
 ## Checklist
 
+- [ ] T1 Test: `ui` does not depend on `gobox/engine` (`go list -deps`), beside TestGameImports
 - [ ] F1 Adventure format out of `engine` into its own package (`GameTables`, `ArtNames`, file and dir names, `WriteGameData`/`ReadGameData`/`ReadGameTables`, the data types `importer/games` uses); corerules keeps only `Ruleset`, renamed (rulesetseam.go)
 - [ ] F2 `importer/games` merges into `importer` (no `engine` import left; its 13 tests that boot `engine.NewPool` move to `engine` or `cmd/gobox`)
 - [ ] S1 Original save import (`saveimport_engine.go`, `importSave`, `importSlots`, `origSaveFile`) → importer, at import time; `legacySave` migration cut
@@ -28,6 +33,7 @@
 - [ ] U2 Picker layout to `ui`; `pickgrid.go` cut
 - [ ] U3 `snapshot.go`, `TextPaneRows`, `MapCell` cut
 - [ ] U4 `ccursor`, `cview` cut
-- [ ] G1 `facts`/`known()` cut; `build()` calls the per-mode builders
-- [ ] G2 `game`'s non-contract parts out (journal layout → `ui`, point-buy → `rules`)
+- [ ] G1 `facts`/`known()` removed
+- [ ] G2 One state: the engine keeps the player-visible state in `game` types and writes it where it changes; `rebuild()`/`build()` and the per-mode copies go
+- [ ] G3 `game`'s non-contract parts out: journal layout → `ui`, point-buy maths → `rules`, `held.go`/`memberpage.go` checked
 - [ ] Final: full build/vet/test, all repos
