@@ -100,7 +100,6 @@ func SetCursorCaptured(on bool) {
 	}
 }
 
-
 // DeviceScaleFactor is framebuffer pixels per window unit.
 func DeviceScaleFactor() float64 {
 	if win.app == nil || win.app.ScaleFactor() == 0 {

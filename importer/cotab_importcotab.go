@@ -127,11 +127,11 @@ func CotabImport(dos, dst string) error {
 // DS:2612 table: 8 a step, 10 the fireball; any other plays a step). The portrait tables stay
 // empty: COTAB's portraits come from the shared collection.
 var cotabGameTables = adventure.GameTables{
-	Walls:      wallTextures("cotab", cotabFloor, cotabSky),
-	GameSet:    2, // START.PAS: gameArea := 2
-	FirstBlock: 1, // the adventure's first script, no last ECL saved
+	Walls:       wallTextures("cotab", cotabFloor, cotabSky),
+	GameSet:     2,                                 // START.PAS: gameArea := 2
+	FirstBlock:  1,                                 // the adventure's first script, no last ECL saved
 	BigPictures: adventure.BigPictures{First: 120}, // O03C:0873
-	Dialect:    rules.DialectCOTAB,
+	Dialect:     rules.DialectCOTAB,
 	ScriptSounds: map[byte]adventure.ScriptSound{
 		8:  {Cue: rules.CueStep},
 		10: {Cue: rules.CueFireball},

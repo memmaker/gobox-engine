@@ -19,7 +19,6 @@ func Sign(n int) int {
 	return 0
 }
 
-
 // Cut limits s to n bytes.
 func Cut(s string, n int) string {
 	if len(s) > n {

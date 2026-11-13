@@ -18,9 +18,9 @@ type RawLayout struct {
 	Count                       int // party size byte
 	Names                       int // Pascal strings of NameSize bytes
 	NameSize                    int
-	GameSymSet                  int            // in Game: the symbol set byte
-	AreaBlock, AreaGeo          int            // in Area: u16 each
-	AreaWallBlock, AreaWallSlot int            // in Area: 3 u16 each
+	GameSymSet                  int         // in Game: the symbol set byte
+	AreaBlock, AreaGeo          int         // in Area: u16 each
+	AreaWallBlock, AreaWallSlot int         // in Area: 3 u16 each
 	Vars                        *ecl.Layout // the game's script fields (layout/global.txt): SetVar's names
 }
 

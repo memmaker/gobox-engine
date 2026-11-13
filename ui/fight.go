@@ -30,7 +30,7 @@ const logRows = 20 // the battle Log's lines shown at a time
 func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 	glyph := note.Glyph
 	b, k := p.fightBoard, scale(dst)
-	ck := max(1, int(k)/2) // the portrait card and the action bar: their own scale (the portrait card's, as before ui.K)
+	ck := max(1, int(k)/2)                                          // the portrait card and the action bar: their own scale (the portrait card's, as before ui.K)
 	p.mapBottom = dst.Bounds().Dy() - int(math.Ceil(k*8*fightRows)) // the line is drawn at k, whole or not
 	if b.Turn != nil {
 		if i := p.selectedIndex(); i >= 0 { // whose turn: the portrait card, bottom left

@@ -14,12 +14,12 @@ var SotsbLayout1e = rules1e.Layout{SlotStride: sotsbSpellLevels, Races: rules1e.
 // the second engine's dialect, an NPC loads its combat icon, the duel sounds
 // (callSound); the portrait tables stay empty.
 var GameTables = adventure.GameTables{
-	Walls:      wallTextures("sotsb", "", ""),
-	GameSet:    2,  // the game's start: gameArea := 2
-	FirstBlock: 17, // firstBlock
+	Walls:       wallTextures("sotsb", "", ""),
+	GameSet:     2,                                              // the game's start: gameArea := 2
+	FirstBlock:  17,                                             // firstBlock
 	BigPictures: adventure.BigPictures{First: 112, Framed: 121}, // O050:08A8
-	Dialect:    rules.DialectCOTAB,
-	AddNPCIcon: true,
+	Dialect:     rules.DialectCOTAB,
+	AddNPCIcon:  true,
 	ScriptSounds: map[byte]adventure.ScriptSound{
 		soundDuelA: {Cue: rules.CueStep},
 		soundDuelB: {Cue: rules.CueFireball},

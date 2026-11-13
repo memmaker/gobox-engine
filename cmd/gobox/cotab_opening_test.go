@@ -3,11 +3,11 @@ package main
 import (
 	"testing"
 
-	"slices"
 	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
 	"gobox/ui"
+	"slices"
 )
 
 // TestCotabArm: the opening's marked sword arm (Picture(10), PIC2 block

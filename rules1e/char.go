@@ -223,7 +223,7 @@ func (c *Character) SetName(s string) {
 // stats is a Character as gobox/rules reads it. POR keeps no multiclass level.
 type stats struct{ c *Character }
 
-func (s stats) AC(i int) int         { return int(s.c.AC[i]) }
+func (s stats) AC(i int) int { return int(s.c.AC[i]) }
 
 // SpellPending marks a memory slot (or plan entry) whose spell is still to
 // be memorised: the DOS byte's +0x80, moved above every unified id. The

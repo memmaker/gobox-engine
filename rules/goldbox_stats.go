@@ -1,8 +1,5 @@
 package rules
 
-
-
-
 // DexAC is the armour class adjustment of a dexterity.
 func DexAC(d byte) int8 {
 	switch {
@@ -73,4 +70,3 @@ func ConSaveHigh(con byte) byte {
 	}
 	return 0
 }
-
