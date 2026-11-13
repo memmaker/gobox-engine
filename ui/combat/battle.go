@@ -822,17 +822,17 @@ func restFocus(last vec, b *Board) vec {
 	if n := float64(len(b.Units)); n > 0 {
 		return vec{sum[0] / n, 0, sum[2] / n}
 	}
-	return vec{float64(b.View.X) + 6, 0, float64(b.View.Y) + 3.5}
+	return vec{6, 0, 3.5} // no units: the map's top left corner
 }
 
-// aimBoard is b with the aim cursor, front state (aimTo), over the game's:
-// it starts on the game's Cursor (which names no squares) and ends with the aim.
+// aimBoard is b with the aim cursor, front state (aimTo): it starts on
+// b's Cursor and ends with the aim.
 func (p *Presenter) aimBoard(b *Board) *Board {
 	if b.Turn == nil || !b.Turn.Aim {
 		p.aimAt = nil
 		return b
 	}
-	if p.aimAt == nil && len(b.CursorAt) > 0 { // the game draws its own aim
+	if p.aimAt == nil && len(b.CursorAt) > 0 { // frontState's aim cursor is already on the board (boardOf)
 		return b
 	}
 	c := *b
@@ -861,7 +861,7 @@ func (p *Presenter) aimBoard(b *Board) *Board {
 		}
 		slices.SortStableFunc(c.Targets, func(a, b int) int { return dist(a) - dist(b) })
 	}
-	if p.aimAt == nil { // the game's Cursor, else the nearest target, else the actor: never a square nobody chose
+	if p.aimAt == nil { // b's Cursor, else the nearest target, else the actor: never a square nobody chose
 		switch {
 		case c.CursorOn:
 			at = c.Cursor

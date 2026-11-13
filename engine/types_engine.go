@@ -275,9 +275,6 @@ type Battle struct {
 	Floor     color.RGBA    // the ground's colour
 	Dungeon   bool          // tiles 0..DungeonTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
 	Units     []Unit
-	Cursor    image.Point                  // the square the cursor was last drawn on
-	CursorOn  bool                         // the cursor icon is up (aiming, looking)
-	CursorAt  []image.Point                // the squares the cursor covers (a large combatant's footprint)
 	Marks     []image.Point                // squares framed for a choice (reach of a move, an area of effect)
 	Reach     []image.Point                // squares a click walks to from the main menu (the active unit's move)
 	Paths     map[image.Point][]rules.Step // the walk to each Reach square, from the unit's own square
@@ -290,7 +287,6 @@ type Battle struct {
 	Skipped   []image.Point                // squares of allies in the area the spell passes over (Bless: an enemy next to them)
 	AimWhy    string                       // aiming: why the aimed square cannot be taken ("" when it can); views draw the aim red
 	Effects   []Effect                     // sprites over the map: a missile, a hit, a fall
-	View      image.Point                  // top left square of the scrolled view window the original showed (what the camera follows)
 	Strike    Strike                       // the last weapon attack
 }
 

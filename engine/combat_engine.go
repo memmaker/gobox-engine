@@ -18,8 +18,6 @@ func (e *Engine) combatEnd() {
 	}
 	e.cs = combatState{}
 	e.snap.cmapOn = false
-	e.cview = image.Point{}
-	e.ccursor = combatCursor{}
 	e.spr = nil
 	e.combatViewEnter()
 }
@@ -34,7 +32,6 @@ func (e *Engine) takeTurn(cID rules.CharID) bool {
 		return false // no cursor erase when the turn is skipped
 	}
 	e.selectChar(cID)
-	e.combatRedrawChar(cID, 2, 1)
 	e.ext.panel = cID
 	if e.fightCard(cID).Delay > 0 {
 		if t.Computer {
@@ -261,7 +258,7 @@ func (e *Engine) endRound() (done bool) {
 		e.BottomMessage(f.(rules.Narrated).Text)
 	}
 	v := e.ruleset().Verdict(rules.Fight{})
-	e.combatCentre(e.cview.X+combatView.W/2, e.cview.Y+3, 0xFF, 8)
+	e.cmapShown()
 	done = v != rules.FightOn
 	return
 }
@@ -287,7 +284,7 @@ func (e *Engine) hitChance(aID, bID rules.CharID) int {
 // centred on the view (extra: no frame drawn: views draw their own).
 func (e *Engine) combatUseHook() {
 	e.combatViewLeave() // ovr32:00E3: the combat palette
-	e.combatCentre(e.cview.X+combatView.W/2, e.cview.Y+3, 0xFF, 8)
+	e.cmapShown()
 }
 
 // fightCard is id's turn record.

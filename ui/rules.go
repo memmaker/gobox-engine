@@ -543,7 +543,7 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 		}
 	}
 	t := &game.Turn{Unit: b.Turn, Aim: r.aim != nil, Moves: b.Moves, Casting: b.Casting, Weapon: b.Weapon, Missile: b.Missile}
-	c.Turn, c.Panel, c.Log, c.CursorOn, c.Cursor = t, b.Turn, r.log, r.aim != nil, r.cursor
+	c.Turn, c.Panel, c.Log = t, b.Turn, r.log
 	if slices.ContainsFunc(f.Text, func(l string) bool { return strings.TrimSpace(l) != "" }) { // the rules' message pane is the fight's log; a blank one never hides the blows
 		c.Log = f.Text
 	}
@@ -638,18 +638,18 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 		if inReach := slices.DeleteFunc(slices.Clone(live), func(u game.Unit) bool { return !covers(u, r.aim.Squares) }); len(inReach) > 0 {
 			live = inReach
 		}
-		best, kept := -1, len(r.aim.ats) > 0 || slices.Contains(r.aim.Squares, r.cursor)
+		cur, best, kept := r.cursor, -1, len(r.aim.ats) > 0 || slices.Contains(r.aim.Squares, r.cursor)
 		for _, u := range live {
 			c.Targets = append(c.Targets, u.ID)
 			kept = kept || covers(u, []image.Point{r.cursor})
 			if d := u.At.Sub(from); best < 0 || d.X*d.X+d.Y*d.Y < best {
-				best, c.Cursor = d.X*d.X+d.Y*d.Y, u.At
+				best, cur = d.X*d.X+d.Y*d.Y, u.At
 			}
 		}
 		if kept || best < 0 {
-			c.Cursor = r.cursor
+			cur = r.cursor
 		}
-		r.cursor = c.Cursor
+		r.cursor = cur
 	}
 	for _, a := range al.Aimed {
 		switch x := a.Action.(type) {

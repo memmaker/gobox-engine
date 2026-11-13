@@ -3,7 +3,6 @@ package engine
 import (
 	"fmt"
 	"gobox/rules"
-	"image"
 )
 
 // aimConfirm = ovr14:2C3D (c, cand, mode): take cand as the target. With
@@ -28,8 +27,6 @@ func (e *Engine) aimConfirm(cID, candID rules.CharID, mode int) (found bool, t a
 		}
 		found = out.TurnOver
 	}
-	e.ccursor.icon = false // the cursor off (no event: the view does not move, the effects stay pending)
-	e.combatCentre(e.cview.X+combatView.W/2, e.cview.Y+3, 3, 8)
 	if !found {
 		t = aimTarget{}
 	}
@@ -105,8 +102,7 @@ func (h *aimRun) point(x, y int) rules.AimCheck {
 	e.as(e.sel)
 	a := e.fact(h.c, rules.AimCheckFact{Near: h.list, At: rules.BoardPos{X: x, Y: y}, Range: h.rng, ShowRange: h.showRange, Ground: h.allowGround != 0}).(rules.AimCheck)
 	why := a.Why
-	e.ccursor = combatCursor{icon: true, size: 1}
-	e.snap.cursor, e.snap.cursorOn, e.snap.aimWhy = image.Pt(x, y), true, why
+	e.snap.aimWhy = why
 	e.aoeMarks(x, y)
 	h.marked = e.ext.aoe != 0
 	return a
@@ -151,8 +147,6 @@ func (h *aimRun) leave() {
 	if h.marked {
 		e.aoeUnmark()
 	}
-	e.ccursor.icon = false
-	e.snap.cursorOn = false
 	e.snap.turn, e.snap.targets, e.snap.hits, e.snap.aimWhy = h.turn, h.targets, h.hits, ""
 	e.aimFinished(h.then, h.found, h.t)
 }

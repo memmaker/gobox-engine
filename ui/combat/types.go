@@ -33,7 +33,6 @@ type Board struct {
 	Skipped   []image.Point
 	AimWhy    string
 	Effects   []Effect
-	View      image.Point // the original's scrolled window, the camera's framing hint
 	Strike    Strike
 	Confirm   string // the question a Yes or No answers ("" none)
 }

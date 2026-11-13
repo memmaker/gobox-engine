@@ -112,9 +112,9 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 	ink := egaInk
 	b := &combat.Board{
 		WallTiles: dungeonTiles, StoneTile: 3, TileNames: slices.Clone(c.Tiles),
-		Floor: c.Floor, Dungeon: c.Dungeon, Cursor: c.Cursor, CursorOn: c.CursorOn, CursorAt: slices.Clone(c.CursorAt),
+		Floor: c.Floor, Dungeon: c.Dungeon,
 		Marks: slices.Clone(c.Marks), Targets: slices.Clone(c.Targets), Panel: c.Panel, Log: slices.Clone(c.Log),
-		Area: c.Area, AreaAt: slices.Clone(c.AreaAt), Skipped: slices.Clone(c.Skipped), AimWhy: c.Why, View: c.View,
+		Area: c.Area, AreaAt: slices.Clone(c.AreaAt), Skipped: slices.Clone(c.Skipped), AimWhy: c.Why,
 		Strike: combat.Strike{Seq: c.Strike.Seq, From: c.Strike.From, To: c.Strike.To, Hit: c.Strike.Hit, Damage: c.Strike.Damage},
 	}
 	grid := image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))
@@ -220,7 +220,8 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 		}
 		b.Units = append(b.Units, u)
 	}
-	if b.CursorOn && len(b.CursorAt) == 0 { // a game that sets only Cursor: the square (a large unit's footprint)
+	if p.eng != nil && p.eng.r.aim != nil { // gobox's aim cursor (frontState): its square, a large unit's footprint
+		b.Cursor, b.CursorOn = p.eng.r.cursor, true
 		b.CursorAt = []image.Point{b.Cursor}
 		for _, u := range b.Units {
 			if slices.Contains(u.Squares, b.Cursor) {

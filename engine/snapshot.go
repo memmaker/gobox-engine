@@ -40,8 +40,6 @@ type snapState struct {
 	win        Window                       // set by whatever drew into the view window last
 	heads      map[int]Picture              // HEAD blocks' pixels by id
 	tiles      [3]Picture                   // DrawBorder style 0's corner, side and top cells, once taken (BorderPix)
-	cursor     image.Point                  // drawCursor's last square
-	cursorOn   bool                         // the cursor icon is on the page (drawn, not yet erased or drawn over)
 	cmapOn     bool                         // the combat map is set up (cmapShown) and shown
 	sheetOn    bool                         // a character sheet is up over the combat map
 	portrait   CellRect                     // the sheet's portrait box while a sheet is up
