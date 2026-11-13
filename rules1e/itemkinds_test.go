@@ -2,8 +2,6 @@ package rules1e
 
 import (
 	"testing"
-
-	"gobox/core/dnd"
 )
 
 // TestItemKinds: an item's kind is the game's numbering, never POR's
@@ -11,11 +9,11 @@ import (
 func TestItemKinds(t *testing.T) {
 	tb := POR
 	e := &RuleState{Tables: &tb}
-	if !e.isKind(ItemLongSword, dnd.ItemLongSword) || e.typeOf(dnd.ItemLongSword) != ItemLongSword {
+	if !e.isKind(ItemLongSword, ItemIDLongSword) || e.typeOf(ItemIDLongSword) != ItemLongSword {
 		t.Fatal("POR's long sword")
 	}
 	tb.Kinds = SotsbItemKinds
-	if e.isKind(0x24, dnd.ItemLongSword) || e.typeOf(dnd.ItemLongSword) != 18 || !e.isBow(26) || e.typeOf(dnd.ItemArrow) != 30 {
+	if e.isKind(0x24, ItemIDLongSword) || e.typeOf(ItemIDLongSword) != 18 || !e.isBow(26) || e.typeOf(ItemIDArrow) != 30 {
 		t.Fatal("SotSB's numbering")
 	}
 }

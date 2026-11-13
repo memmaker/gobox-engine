@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"gobox/core"
-	"gobox/core/dnd"
 )
 
 // TestGameSpellIDs: each game's map covers every number of its spell table
@@ -36,7 +35,7 @@ func TestGameSpellIDs(t *testing.T) {
 
 // TestRaceMap: SotSB's race numbers (0: its placeholder row) come back.
 func TestRaceMap(t *testing.T) {
-	tb := Tables{Races: []core.Race{"", dnd.Elf, dnd.HalfElf, dnd.Dwarf, dnd.Gnome, dnd.Halfling, dnd.Human, dnd.Monster}}
+	tb := Tables{Races: []core.Race{"", CoreRaceElf, CoreRaceHalfElf, CoreRaceDwarf, CoreRaceGnome, CoreRaceHalfling, CoreRaceHuman, CoreRaceMonster}}
 	for n := RaceID(1); n < 8; n++ {
 		id, err := tb.raceID(n)
 		if err != nil {
@@ -46,7 +45,7 @@ func TestRaceMap(t *testing.T) {
 			t.Errorf("%d -> %d -> %d (%v)", n, id, back, err)
 		}
 	}
-	if id, _ := tb.raceID(3); id != RaceID(raceRow[dnd.Dwarf]) {
+	if id, _ := tb.raceID(3); id != RaceID(raceRow[CoreRaceDwarf]) {
 		t.Errorf("dwarf %d", id)
 	}
 	if _, err := tb.raceID(0); err == nil {

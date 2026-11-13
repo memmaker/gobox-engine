@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"gobox/core"
-	"gobox/core/dnd"
 )
 
 // TestGoldenItemPowersSotsb: readying and then unreadying an item with a
@@ -91,7 +90,7 @@ func TestWizardrySotsb(t *testing.T) {
 	it := &Item{}
 	it.Spells[2], it.Readied = ItemPower(id), 1
 	c.Items = []*Item{it}
-	base := r.T().ClassStats(Who{Levels: map[core.Class]int{dnd.Mage: 5}, Int: 18}).MageSlots
+	base := r.T().ClassStats(Who{Levels: map[core.Class]int{CoreClassMage: 5}, Int: 18}).MageSlots
 	r.CallAffect(id, c, &Affect{Item: it}, 0)
 	for l, n := range base {
 		if int(c.SpellSlots[SpellClassMage][l]) != 2*n {

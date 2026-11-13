@@ -4,7 +4,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"slices"
 	"strconv"
 )
@@ -232,7 +231,7 @@ func (e *RuleState) ammoWith(c *Character, w *Item, it **Item) bool {
 			*it = w
 		}
 		if f&8 != 0 {
-			if f&1 != 0 && c.Slots[SlotArrows] != nil && e.isKind(c.Slots[SlotArrows].Type, dnd.ItemArrow) { // not a missile in the slot
+			if f&1 != 0 && c.Slots[SlotArrows] != nil && e.isKind(c.Slots[SlotArrows].Type, ItemIDArrow) { // not a missile in the slot
 				*it = c.Slots[SlotArrows]
 			}
 			if f&0x80 != 0 {

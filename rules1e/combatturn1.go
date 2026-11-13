@@ -8,7 +8,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
 	"strconv"
 )
@@ -587,7 +586,7 @@ func (e *RuleState) FullAttack(a, b *Character, flag int, it *Item) (done bool) 
 	if it != nil {
 		e.attackAnimation(a, b, it)
 	}
-	if a.Slots[SlotWeapon] != nil && e.isKind(a.Slots[SlotWeapon].Type, dnd.ItemSling) {
+	if a.Slots[SlotWeapon] != nil && e.isKind(a.Slots[SlotWeapon].Type, ItemIDSling) {
 		e.attackAnimation(a, b, a.Slots[SlotWeapon])
 	}
 	done = true

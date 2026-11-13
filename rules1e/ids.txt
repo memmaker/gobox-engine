@@ -1,6 +1,6 @@
 # POR's spell numbers (spellNames, spellTable; 57..67 the item and monster powers, por-re magic.pas:1655)
 # and base item types (weapons 0x01..0x2F named as itemWords, the rest as itemtypes.go) to their dnd ids.
-# idgen (gobox/core/dnd/idgen) writes ids.go and core/dnd's spells.go and items.go from it.
+# idgen (rules1e/idgen) writes ids.go, dndspells.go and dnditems.go from it.
 spell 1 Bless
 spell 2 Curse
 spell 3 CureLightWounds

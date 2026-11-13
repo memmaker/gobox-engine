@@ -3,10 +3,10 @@ package pool
 import (
 	"fmt"
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
 	"gobox/ega"
 	"gobox/game/play"
+	"rules1e"
 	"slices"
 )
 
@@ -572,7 +572,7 @@ func (e *Engine) lockedDoor(wizard bool) {
 	if wizard {
 		knock = e.ruleset().Check(core.PartyHasSkill{N: 5}, nil).Yes
 	} else {
-		knock = e.ruleset().Check(core.HasMemorized{Party: e.partyIDs(), Spell: dnd.SpellKnock}, nil).Yes
+		knock = e.ruleset().Check(core.HasMemorized{Party: e.partyIDs(), Spell: rules1e.SpellKnock}, nil).Yes
 	}
 	d.Knock = e.run.doorTry[2] != 0 && knock
 	if d == (DoorOpts{}) {

@@ -3,7 +3,6 @@ package rules1e
 import (
 	"fmt"
 	"gobox/core"
-	"gobox/core/goldbox"
 	"slices"
 	"strings"
 )
@@ -261,15 +260,15 @@ func (r *Rules) factParty(id core.CharID, f core.Fact) (core.Value, bool, error)
 	case core.FactControl:
 		return core.Number(c.Control), true, nil
 	case core.FactRace:
-		if int(c.Race) >= len(goldbox.RecordRace) {
+		if int(c.Race) >= len(RecordRace) {
 			return core.Number(c.Race), true, nil // outside the table: the record's own byte, as the original reads it
 		}
-		return goldbox.RecordRace[c.Race], true, nil
+		return RecordRace[c.Race], true, nil
 	case core.FactAlignment:
-		if int(c.Alignment) >= len(goldbox.RecordAlignment) {
+		if int(c.Alignment) >= len(RecordAlignment) {
 			return core.Number(c.Alignment), true, nil // SpecialReadZ1 $D8 reads the raw byte
 		}
-		return goldbox.RecordAlignment[c.Alignment], true, nil
+		return RecordAlignment[c.Alignment], true, nil
 	case core.FactActive:
 		return core.Yes(c.Okay != 0), true, nil
 	case core.FactLevelReady:

@@ -3,7 +3,6 @@ package rules1e
 import (
 	"fmt"
 	"gobox/core"
-	"gobox/core/dnd"
 	"slices"
 	"strconv"
 	"strings"
@@ -108,7 +107,7 @@ func (e *RuleState) ItemLines(it, vs *Item) []string {
 			}
 		}
 		switch {
-		case e.isKind(typ, dnd.ItemArrow, dnd.ItemQuarrel): // before the flags: quarrels carry the crossbows' 0x80
+		case e.isKind(typ, ItemIDArrow, ItemIDQuarrel): // before the flags: quarrels carry the crossbows' 0x80
 			add("Ammunition")
 		case flags&0x14 == 0x14:
 			add("Thrown, or used in melee")
@@ -144,9 +143,9 @@ func (e *RuleState) ItemLines(it, vs *Item) []string {
 		}
 	}
 	switch {
-	case e.isKind(typ, dnd.ItemHolyWater):
+	case e.isKind(typ, ItemIDHolyWater):
 		add("Hurts undead: 1d6+1 a hit")
-	case e.isKind(typ, dnd.ItemOil):
+	case e.isKind(typ, ItemIDOil):
 		add("Burns some monsters: 3d8")
 	case words(0x76):
 		add("Readied: turns gaze attacks")
@@ -461,9 +460,9 @@ func (e *RuleState) TrainsTo(c *Character, mask byte) []string {
 // has no match: "").
 func (e *RuleState) dollSlotName(it *Item, d int) string {
 	switch {
-	case d == core.DollArrows && e.isKind(it.Type, dnd.ItemArrow):
+	case d == core.DollArrows && e.isKind(it.Type, ItemIDArrow):
 		return "arrows"
-	case d == core.DollArrows && e.isKind(it.Type, dnd.ItemQuarrel):
+	case d == core.DollArrows && e.isKind(it.Type, ItemIDQuarrel):
 		return "bolts"
 	}
 	if d == core.DollArrows {

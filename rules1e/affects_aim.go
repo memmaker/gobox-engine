@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 )
 
 // Monster attacks that aim with a spell's targeting (fold T4d, M1): the
@@ -56,10 +55,10 @@ func (e *RuleState) foeGaze(c *Character, spell SpellID) *Character {
 // one the gaze ends on.
 func (e *RuleState) reflectGaze(c, t *Character) *Character {
 	e.CombatSay(c, "gazes...", true)
-	e.shootAt(c, t, dnd.SpellStoneGaze)
+	e.shootAt(c, t, SpellStoneGaze)
 	if e.FindAffect(c, affReflectableGaze) != nil && e.FindAffect(t, affMirror) != nil {
 		e.CombatSay(t, "reflects it!", true)
-		e.shootAt(t, c, dnd.SpellStoneGaze)
+		e.shootAt(t, c, SpellStoneGaze)
 		return c
 	}
 	return t
@@ -123,7 +122,7 @@ func (e *RuleState) confusingGaze(c *Character, a *Affect, flag byte) {
 	}
 	e.Rv.DmgType = dmgAcid
 	e.CombatSay(c, "gazes...", true)
-	e.shootAt(c, t, dnd.SpellStoneGaze)
+	e.shootAt(c, t, SpellStoneGaze)
 	if !e.SavingThrow(t, SaveVsSpell, gazeSaveBonus) && !e.gazeImmune(t) {
 		e.AddAffectMsg(t, affConfused, e.Dice(1, 10)+2, c.Side, 1, 1, false, "stares blankly")
 	}
@@ -138,7 +137,7 @@ func (e *RuleState) charmGazeLater(c *Character, a *Affect, flag byte) {
 	e.areaSpell = 1
 	e.Rv.DmgType = dmgAcid
 	e.CombatSay(c, "gazes", true)
-	e.faceAndShoot(c, dnd.SpellCharmGaze)
+	e.faceAndShoot(c, SpellCharmGaze)
 	e.CurSpell = spCharmPerson
 	e.spellEffect(spCharmPerson)
 	e.areaSpell = 0
@@ -171,7 +170,7 @@ func (e *RuleState) breathFire(c *Character, a *Affect, flag byte) {
 	}
 	e.TurnTo(c, byte(e.directionTo(c, t)))
 	e.CombatSay(c, "breathes fire", true)
-	e.shootAt(c, t, dnd.SpellBreathWeapon)
+	e.shootAt(c, t, SpellBreathWeapon)
 	e.Damage(t, breathFireNear, saveHalf, e.SavingThrow(t, saveVsBreath, 0))
 }
 
@@ -207,7 +206,7 @@ func (e *RuleState) spitAcidSotsb(c *Character, a *Affect, flag byte) {
 	}
 	if e.Dice(1, 100) <= chance {
 		e.CombatSay(c, "spits...", true)
-		e.shootAt(c, t, dnd.SpellSpitAcid)
+		e.shootAt(c, t, SpellSpitAcid)
 		e.Damage(t, e.RollDice(4, 8), saveHalf, e.SavingThrow(t, saveVsBreath, 0))
 		return
 	}
@@ -284,7 +283,7 @@ func (e *RuleState) coneBreath(c *Character, a *Affect, b breathCone) {
 	}
 	e.CombatSay(c, "breathes "+b.what, true)
 	e.TurnTo(c, byte(e.directionTo(c, e.spellTarget)))
-	e.shootAt(c, e.spellTarget, dnd.SpellBreathWeapon)
+	e.shootAt(c, e.spellTarget, SpellBreathWeapon)
 	dmg := b.damage(e, c)
 	for i := 1; i <= e.NSpellTargets; i++ {
 		if t := e.tgt(i); t != nil {
@@ -309,8 +308,8 @@ func (e *RuleState) lightningBreathPod(c *Character, a *Affect, flag byte) {
 		return
 	}
 	e.CombatSay(c, "breathes lightning", true)
-	e.faceAndShoot(c, dnd.SpellBreathWeapon)
-	e.boltPath(lightningReachPod, int(c.MaxHP), int(saveVsBreath), 0, dnd.SpellBreathWeapon)
+	e.faceAndShoot(c, SpellBreathWeapon)
+	e.boltPath(lightningReachPod, int(c.MaxHP), int(saveVsBreath), 0, SpellBreathWeapon)
 	a.Data--
 	e.ClearCombatInfo(c)
 }

@@ -4,7 +4,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
 	"slices"
 	"strconv"
@@ -77,10 +76,10 @@ func (e *RuleState) ItemName(c *Character, it *Item, readied bool) {
 			typ := it.Type
 			switch {
 			case 1<<(i-1) == mask,
-				i == 1 && mask > 4 && !e.isKind(typ, dnd.ItemOil),
+				i == 1 && mask > 4 && !e.isKind(typ, ItemIDOil),
 				i == 2 && mask&1 == 0,
-				i == 3 && e.isKind(typ, dnd.ItemOil),
-				e.isKind(typ, dnd.ItemArrow, dnd.ItemQuarrel) && it.Words[2] != 0xB1:
+				i == 3 && e.isKind(typ, ItemIDOil),
+				e.isKind(typ, ItemIDArrow, ItemIDQuarrel) && it.Words[2] != 0xB1:
 				s = "s "
 				plural = true
 			}

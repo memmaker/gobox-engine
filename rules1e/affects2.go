@@ -1,8 +1,6 @@
 package rules1e
 
-import (
-	"gobox/core/dnd"
-)
+import ()
 
 // Affect handlers of GAME.OVR overlay 13 from 0x1C00 to the end, and the
 // ovr13:31A2 routine that fills the DS:6828 handler table.
@@ -348,7 +346,7 @@ func (e *RuleState) halveDamage() { e.Rv.Damage >>= 1 }
 func (e *RuleState) stoneGaze(c *Character, a *Affect, flag byte) {
 	t := c.Combat.Target
 	e.CombatSay(c, "gazes...", true)
-	e.shoot(e.CombatX(c), e.CombatY(c), e.CombatX(t), e.CombatY(t), 0, dnd.SpellStoneGaze)
+	e.shoot(e.CombatX(c), e.CombatY(c), e.CombatX(t), e.CombatY(t), 0, SpellStoneGaze)
 	if e.FindAffect(c, affReflectableGaze) != nil {
 		reflected := false
 		for _, p := range e.Carried(t) {
@@ -357,7 +355,7 @@ func (e *RuleState) stoneGaze(c *Character, a *Affect, flag byte) {
 			}
 			if (p.Readied != 0 || e.DollSlot(t, p) < 0) && (p.Words[0] == 0x76 || p.Words[1] == 0x76 || p.Words[2] == 0x76) {
 				e.CombatSay(t, "reflects it!", true)
-				e.shoot(e.CombatX(t), e.CombatY(t), e.CombatX(c), e.CombatY(c), 0, dnd.SpellStoneGaze)
+				e.shoot(e.CombatX(t), e.CombatY(t), e.CombatX(c), e.CombatY(c), 0, SpellStoneGaze)
 				reflected = true
 				t = c
 			}
@@ -380,7 +378,7 @@ func (e *RuleState) CharmGaze(c *Character, a *Affect, flag byte) {
 		return
 	}
 	e.CombatSay(c, "Gazes...", true)
-	e.shoot(e.CombatX(c), e.CombatY(c), e.CombatX(t), e.CombatY(t), 0, dnd.SpellCharmGaze)
+	e.shoot(e.CombatX(c), e.CombatY(c), e.CombatX(t), e.CombatY(t), 0, SpellCharmGaze)
 	was := e.CurSpell
 	e.CurSpell = spCharmPerson
 	data := byte(int(int8(c.Side))<<7 + 0xC)
@@ -653,7 +651,7 @@ func (e *RuleState) halveVsMagicWeapon(c *Character, a *Affect, flag byte) {
 // holyWaterDamage = ovr13:2B20 (c, a, flag): holy water readied by the
 // selected character makes the damage 1d6+1.
 func (e *RuleState) holyWaterDamage(c *Character, a *Affect, flag byte) {
-	if w := e.Acting().Slots[SlotWeapon]; w != nil && e.isKind(w.Type, dnd.ItemHolyWater) {
+	if w := e.Acting().Slots[SlotWeapon]; w != nil && e.isKind(w.Type, ItemIDHolyWater) {
 		e.Rv.Damage = int16(e.RollDice(1, 6) + 1)
 	}
 }
@@ -680,7 +678,7 @@ func (e *RuleState) onlyMagicOrStrong(c *Character, a *Affect, flag byte) {
 // dodgeBoulders = ovr13:2BC8 (c, a, flag): a boulder or giant boulder thrown
 // by the selected character may be avoided (50%) from afar.
 func (e *RuleState) dodgeBoulders(c *Character, a *Affect, flag byte) {
-	if w := e.Acting().Slots[SlotWeapon]; w != nil && e.isKind(w.Type, dnd.ItemBoulder, dnd.ItemGiantBoulder) {
+	if w := e.Acting().Slots[SlotWeapon]; w != nil && e.isKind(w.Type, ItemIDBoulder, ItemIDGiantBoulder) {
 		e.avoidDistantAttack(c, 0x32)
 	}
 }
@@ -697,7 +695,7 @@ func (e *RuleState) SpitAcid(c *Character, a *Affect, flag byte) {
 	}
 	e.ClearCombatInfo(c)
 	e.CombatSay(c, "Spits Acid", true)
-	e.shoot(e.CombatX(c), e.CombatY(c), e.CombatX(t), e.CombatY(t), 0, dnd.SpellSpitAcid)
+	e.shoot(e.CombatX(c), e.CombatY(c), e.CombatX(t), e.CombatY(t), 0, SpellSpitAcid)
 	dmg := e.RollDice(8, 4)
 	saved := e.SavingThrow(t, saveVsBreath, 0)
 	e.Damage(t, dmg, saveHalf, saved)
@@ -708,7 +706,7 @@ func (e *RuleState) SpitAcid(c *Character, a *Affect, flag byte) {
 // oilDamage = ovr13:2D38 (c, a, flag): oil readied by the selected character
 // makes the damage 3d8; fire or magic types (mask 9) add the dice count.
 func (e *RuleState) oilDamage(c *Character, a *Affect, flag byte) {
-	if w := e.Acting().Slots[SlotWeapon]; w != nil && e.isKind(w.Type, dnd.ItemOil) {
+	if w := e.Acting().Slots[SlotWeapon]; w != nil && e.isKind(w.Type, ItemIDOil) {
 		e.Rv.Damage = int16(e.RollDice(3, 8))
 	}
 	if e.Rv.DmgType&(DmgFire|DmgMagic) != 0 {

@@ -3,14 +3,13 @@ package importsotsb
 import (
 	"gobox/char"
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/pool"
 	"rules1e"
 )
 
 // races is the race of each race row of the game's tables ("": the
 // placeholder row 0).
-var races = [...]core.Race{"", dnd.Elf, dnd.HalfElf, dnd.Dwarf, dnd.Gnome, dnd.Halfling, dnd.Human, dnd.Monster}
+var races = [...]core.Race{"", rules1e.CoreRaceElf, rules1e.CoreRaceHalfElf, rules1e.CoreRaceDwarf, rules1e.CoreRaceGnome, rules1e.CoreRaceHalfling, rules1e.CoreRaceHuman, rules1e.CoreRaceMonster}
 
 // Layout1e is the shape of this game's tables (the imported data/rules.json's
 // flat slot tables, the race rows), written as data/layout.json.

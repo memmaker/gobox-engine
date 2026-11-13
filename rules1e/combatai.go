@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"slices"
 )
 
@@ -551,7 +550,7 @@ func (e *RuleState) weaponScore(c *Character, it *Item) int {
 	if int8(t.Bonus) > 0 {
 		s += byte(int(int8(t.Bonus)) << 1)
 	}
-	if e.isKind(it.Type, dnd.ItemHolyWater) && c.Combat.Target != nil && int8(c.Combat.Target.Undead) > 0 {
+	if e.isKind(it.Type, ItemIDHolyWater) && c.Combat.Target != nil && int8(c.Combat.Target.Undead) > 0 {
 		s = 8
 	}
 	if t.Usage&8 != 0 {
@@ -622,7 +621,7 @@ func (e *RuleState) AiPickWeapon(c *Character) {
 			pend = best1
 		}
 		if f&8 != 0 {
-			if f&1 != 0 && c.Slots[SlotArrows] != nil && e.isKind(c.Slots[SlotArrows].Type, dnd.ItemArrow) { // not a missile in the slot
+			if f&1 != 0 && c.Slots[SlotArrows] != nil && e.isKind(c.Slots[SlotArrows].Type, ItemIDArrow) { // not a missile in the slot
 				pend = c.Slots[SlotArrows]
 			}
 			if f&0x80 != 0 {

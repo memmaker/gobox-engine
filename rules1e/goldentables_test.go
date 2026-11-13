@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"gobox/core"
-	"gobox/core/dnd"
 )
 
 // The golden tables: for each of the three imported games (sotsb, pod,
@@ -26,9 +25,9 @@ var updateGolden = flag.Bool("update", false, "rewrite testdata/<game>/tables.go
 var goldenGames = []string{"sotsb", "pod", "cotab"}
 
 var (
-	goldenClasses = []core.Class{dnd.Cleric, dnd.Druid, dnd.Fighter, dnd.Paladin, dnd.Ranger, dnd.Mage, dnd.Thief, dnd.Monk}
-	goldenRaces   = []core.Race{dnd.Monster, dnd.Dwarf, dnd.Elf, dnd.Gnome, dnd.HalfElf, dnd.Halfling, dnd.HalfOrc, dnd.Human}
-	goldenSaves   = []core.Save{dnd.SaveParalysis, dnd.SavePetrify, dnd.SaveRod, dnd.SaveBreath, dnd.SaveSpell}
+	goldenClasses = []core.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
+	goldenRaces   = []core.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
+	goldenSaves   = []core.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
 	goldenSkills  = thiefSkillOrder
 )
 
@@ -126,7 +125,7 @@ func dumpTables(tb *Tables) goldenTables {
 			g.Ability[race] = append(g.Ability[race], [2]int{lo, hi})
 		}
 		g.StrCap[race] = tb.ExceptionalStrengthCap(race)
-		if race != dnd.Monster { // its career row is no list
+		if race != CoreRaceMonster { // its career row is no list
 			g.Careers[race] = tb.RaceCareers(race)
 		}
 		for c := range goldenCareers {
@@ -145,11 +144,11 @@ func dumpTables(tb *Tables) goldenTables {
 		g.CareerMin = append(g.CareerMin, row)
 		g.CareerAl = append(g.CareerAl, tb.CareerAlignments(Career(c)))
 	}
-	for _, class := range []core.Class{dnd.Cleric, dnd.Druid, dnd.Paladin, dnd.Ranger, dnd.Mage} {
+	for _, class := range []core.Class{CoreClassCleric, CoreClassDruid, CoreClassPaladin, CoreClassRanger, CoreClassMage} {
 		for lvl := 1; lvl <= tb.SlotLevels; lvl++ {
 			var byScore [][3][]int
 			for score := 3; score < goldenScores; score++ {
-				s := tb.ClassStats(Who{Levels: map[core.Class]int{class: lvl}, Race: dnd.Human, Wis: score, Int: score})
+				s := tb.ClassStats(Who{Levels: map[core.Class]int{class: lvl}, Race: CoreRaceHuman, Wis: score, Int: score})
 				byScore = append(byScore, [3][]int{s.ClericSlots[:], s.DruidSlots[:], s.MageSlots[:]})
 			}
 			g.Stats[class] = append(g.Stats[class], byScore)

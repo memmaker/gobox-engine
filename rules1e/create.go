@@ -3,7 +3,6 @@ package rules1e
 import (
 	"fmt"
 	"gobox/core"
-	"gobox/core/goldbox"
 	"slices"
 	"strconv"
 	"strings"
@@ -42,7 +41,7 @@ var PickRaces = []RaceID{RaceDwarf, RaceElf, RaceGnome, RaceHalfElf, RaceHalflin
 
 // ClassFor: the race may be the class (DS:3E17).
 func ClassFor(race RaceID, class ClassID) bool {
-	return slices.Contains(RaceCareers(goldbox.RecordRace[race]), Career(class))
+	return slices.Contains(RaceCareers(RecordRace[race]), Career(class))
 }
 
 // AlignFor: the class may be of the alignment (DS:3FE7).
@@ -72,13 +71,13 @@ func (k Kind) Enforce(f int) Kind {
 			k.Race = PickRaces[slices.IndexFunc(PickRaces, func(r RaceID) bool { return ClassFor(r, k.Class) })]
 		}
 	case FAlign:
-		if rc := RaceCareers(goldbox.RecordRace[k.Race]); !AlignFor(k.Class, k.Align) {
+		if rc := RaceCareers(RecordRace[k.Race]); !AlignFor(k.Class, k.Align) {
 			k.Class = ClassID(rc[slices.IndexFunc(rc, func(cl Career) bool { return AlignFor(ClassID(cl), k.Align) })])
 		}
 		return k
 	}
 	if !ClassFor(k.Race, k.Class) {
-		k.Class = ClassID(RaceCareers(goldbox.RecordRace[k.Race])[0])
+		k.Class = ClassID(RaceCareers(RecordRace[k.Race])[0])
 	}
 	if !AlignFor(k.Class, k.Align) {
 		k.Align = byte(CareerAlignments(Career(k.Class))[0])
@@ -201,7 +200,7 @@ func (e *RuleState) startAge(c *Character) int {
 	// maximum.
 	age := 0
 	if class <= ClsMonk {
-		base, count, sides := e.T().StartingAge(goldbox.RecordRace[c.Race], Career(class))
+		base, count, sides := e.T().StartingAge(RecordRace[c.Race], Career(class))
 		age = base + int(byte(e.Dice(count, sides)))
 	} else {
 		o := -1
@@ -214,7 +213,7 @@ func (e *RuleState) startAge(c *Character) int {
 			o = ClsFighter
 		}
 		if o >= 0 {
-			base, count, sides := e.T().StartingAge(goldbox.RecordRace[c.Race], Career(o))
+			base, count, sides := e.T().StartingAge(RecordRace[c.Race], Career(o))
 			age = base + count*sides
 		}
 	}
@@ -224,7 +223,7 @@ func (e *RuleState) startAge(c *Character) int {
 // LimitStat keeps v within the race limits and the class minimum
 // (DS:3DA3.., DS:3F81..); a cleric multi-class has wisdom 13 at least.
 func LimitStat(c *Character, i int, v Score) Score {
-	l, h := AbilityRange(goldbox.RecordRace[c.Race], Ability(i))
+	l, h := AbilityRange(RecordRace[c.Race], Ability(i))
 	lo, hi := Score(l), Score(h)
 	if v < lo {
 		v = lo
@@ -244,7 +243,7 @@ func LimitStat(c *Character, i int, v Score) Score {
 // AdjustStat: age, race limits and class minimums on a rolled stat.
 func AdjustStat(c *Character, i int, v Score) Score {
 	// Age steps DS:3F31 + race*10 (4 words) against the age word.
-	older := func(j int) bool { return AgeStep(goldbox.RecordRace[c.Race], j+1) < int(c.Age) }
+	older := func(j int) bool { return AgeStep(RecordRace[c.Race], j+1) < int(c.Age) }
 	switch i {
 	case 0:
 		if v != 0 && older(0) {
@@ -310,7 +309,7 @@ func bestStats(c *Character) [6]int {
 		if i == 0 {
 			best[0] = StrScore(v, 0)
 			if v == 0x12 && FighterKind(c) {
-				best[0] = StrScore(v, min(100, byte(ExceptionalStrengthCap(goldbox.RecordRace[c.Race]))))
+				best[0] = StrScore(v, min(100, byte(ExceptionalStrengthCap(RecordRace[c.Race]))))
 			}
 		}
 	}
@@ -342,7 +341,7 @@ func (e *RuleState) SetBaseStats(c *Character, base func(i int) byte) {
 		*st = AdjustStat(c, i, Score(base(i)))
 		if i == 0 && *st == 0x12 && FighterKind(c) {
 			c.Str00 = byte(e.Random(100) + 1)
-			if m := byte(e.T().ExceptionalStrengthCap(goldbox.RecordRace[c.Race])); m < c.Str00 {
+			if m := byte(e.T().ExceptionalStrengthCap(RecordRace[c.Race])); m < c.Str00 {
 				c.Str00 = m
 			}
 		}
@@ -477,7 +476,7 @@ func (e *RuleState) SetStat(c *Character, i int, st Score, x byte) {
 		if c.Stats[0] != 18 || !FighterKind(c) {
 			x = 0
 		}
-		c.Str00 = min(x, byte(e.T().ExceptionalStrengthCap(goldbox.RecordRace[c.Race])))
+		c.Str00 = min(x, byte(e.T().ExceptionalStrengthCap(RecordRace[c.Race])))
 	}
 	switch i {
 	case StatWis:

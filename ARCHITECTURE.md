@@ -6,7 +6,7 @@ DRAFT for Felix's review, revision 4: his 11 rulings, the 21 variation rulings, 
 
 ```
  gobox/core        Rules, Adventure, neutral types and id types, RNG; imports nothing of ours
- core/dnd  core/xxvc   the concepts of one world: races, classes, spells, monster and item rosters
+ rules1e     core/xxvc   the concepts of one world: races, classes, spells, monster and item rosters
      |          |
  rules1e    rulesxxvc   adventures: POR, COTAB, SotSB, POD | BR1, BR2     (leaves: core + one world)
      \________ engine (gobox): main loop, one script machine, combat and ship loops, front, saves ________/
@@ -101,7 +101,7 @@ Scripts carry typed ids only: "4 hobgoblins" is `LoadMonster dnd.Hobgoblin, 4`. 
 
 So **141 monster sites and 9 treasure sites need a hand-written list**, each from reading the script or a logging run. Writers often sit in another block, so a whole-script analysis may lower this; not tried. POD has no block operand: it uses `TreasureOf` with the items inline (op 0x8E, 145 sites). BR is unchecked.
 
-`MON*CHA` (records / names / names with differing stat blocks): POR 172/103/12, COTAB 81/68/9, SotSB 70/68/2, POD 122/118/2, BR1 54/49/5, BR2 63/55/6. One id per distinct block; a person names the variants. `core/dnd` and the 1e tables carry every module's NPCs.
+`MON*CHA` (records / names / names with differing stat blocks): POR 172/103/12, COTAB 81/68/9, SotSB 70/68/2, POD 122/118/2, BR1 54/49/5, BR2 63/55/6. One id per distinct block; a person names the variants. `rules1e` (dnd*.go) and the 1e tables carry every module's NPCs.
 
 Party strength stays a number: see "Source check".
 
@@ -266,7 +266,7 @@ Goal: POR runs as engine (gobox) + `~/Projects/rules1e` + its imported folder `a
 
 ### POR onto the architecture (handover, Felix 2026-11-10: "make POR adhere to our architecture first")
 
-Goal (revised 2026-11-11, "One binary, adventures are data"): POR plays in the one `gobox` binary from `adventures/por/`, a folder `gobox import por` writes; `rules1e` implements `core.Rules` and imports only `gobox/core` and `core/dnd`; gobox's one folder reader implements `core.Adventure`; `por-go/rules` and `cmd/por` are gone, POR's decompiler fixes and readers live on gobox's import path. How: two agents in parallel, each step gated and committed, behaviour equal to the pure Pascal where vectors exist (any difference a CHANGES row). Lock: stage only your own paths, and hold `/private/tmp/por-gate.lock` (mkdir; rmdir after) from staging through gate and commit. Core interface changes are reported to Felix, not decided silently. Other games' 1b-e and the BR layouts wait until this is done.
+Goal (revised 2026-11-11, "One binary, adventures are data"): POR plays in the one `gobox` binary from `adventures/por/`, a folder `gobox import por` writes; `rules1e` implements `core.Rules` and imports only `gobox/core` and `rules1e` (dnd*.go); gobox's one folder reader implements `core.Adventure`; `por-go/rules` and `cmd/por` are gone, POR's decompiler fixes and readers live on gobox's import path. How: two agents in parallel, each step gated and committed, behaviour equal to the pure Pascal where vectors exist (any difference a CHANGES row). Lock: stage only your own paths, and hold `/private/tmp/por-gate.lock` (mkdir; rmdir after) from staging through gate and commit. Core interface changes are reported to Felix, not decided silently. Other games' 1b-e and the BR layouts wait until this is done.
 
 **Felix's order (2026-11-10):** "Separate the drawing from the rest first. We need pure functions, like the pascal code. Make sure we only have rules in the engine not in POR. Then do one big refactor and write everything as it should be and then fix the bugs." `Decide` + `Resolve` stay (core). An adventure is data only, read by one small shared piece of code that answers the engine. State the games share becomes a typed engine state variable. A game's own variables become an engine feature (the adventure declares them by name and type, and scripts read and write them). What cannot trivially stay data is to be discussed with Felix before it is built.
 
@@ -307,7 +307,7 @@ Goal (revised 2026-11-11, "One binary, adventures are data"): POR plays in the o
   - [x] computer turn: `computerTurn` and its callees (attacks, spells, items, affects; 467 functions) on `*RuleState`; `CombatRules` and rules4e take it (por-go b4e5abe)
   - [x] spells, effects and items: spell handlers narrate and sound, `combatCentre`, `soundWait`, `combatRedrawChar` and `quietReady` gone from the rules; the player's Ready makes the wield (por-go 7182dfc)
   - [x] characters: chargen, camp (clock, study, rest), training, dual class, purse and buying on `*RuleState` (527 functions); shop Identify, temple Cure and Train stay Engine commands over them (por-go 03013f4). Still open: `Engine` commands over rule functions remain, no move to rules1e (B)
-  - **Felix's decisions (2026-11-11):** (1) ids: typed spell and item ids in `core/dnd` from the tables, one generator (`core/dnd/idgen`, spec per game: por-go `rules/ids.txt`), checked in, numbers assigned once; `SpellID` stays a string (section 4), monster powers that fly get one too (`StoneGaze`, `CharmGaze`, `SpitAcid`, `BreathWeapon`); A4 uses the same ids. (2) rule state: one value of its own, the Go counterpart of gdvars (combatants, positions, party, effects); rule functions become plain functions taking it and `*core.RNG` and returning effects; board positions split off in B
+  - **Felix's decisions (2026-11-11):** (1) ids: typed spell and item ids in `rules1e` (dnd*.go) from the tables, one generator (`rules1e/idgen`, spec per game: por-go `rules/ids.txt`), checked in, numbers assigned once; `SpellID` stays a string (section 4), monster powers that fly get one too (`StoneGaze`, `CharmGaze`, `SpitAcid`, `BreathWeapon`); A4 uses the same ids. (2) rule state: one value of its own, the Go counterpart of gdvars (combatants, positions, party, effects); rule functions become plain functions taking it and `*core.RNG` and returning effects; board positions split off in B
 - [ ] B. One big refactor into the target layout (after S, and after the adventure-data discussion): rules to rules1e behind `core.Rules`, the adventure as data plus the shared reader, the engine loop in gobox
   - **B's partition of `RuleState`** (por-go rulestate.go at a317cc0; the spec of step B, no code moved yet):
     - rules1e state: `RandSeed`, `party`, `pool`, `items`, `loot`, `purse`, `treasure`, `usingItem`, `usedScroll`, `rv`, `thrownCopy`, `spellTarget`, `spellTargets`, `nSpellTargets`, `spellCaster`, `curSpell`, `spellOwnTargets`, `spellValue`, `spellValue2`, `turnValue`, `modMoves`, `affectVeto`, `fleeRoll`, `slotHits`, `slotShots`, `attackedAlly`, `tiedTarget`, `foesHealth`, `magicOn`, `combatRound`, `fight`, `loadouts`, `aiLastDir`, `aiBlocked`, `aiState3`, `aiOpen`, `beginFlag`, `game`, `area`, `camp` (minus `resting.shown`), `effTick`, `training`, `learning`, `minStats`, `debug`, `fx` (the effects out)

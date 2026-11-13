@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"slices"
 	"strings"
 )
@@ -121,7 +120,7 @@ func (e *RuleState) DollSlot(c *Character, it *Item) int {
 	switch s := e.readySlot(it.Type); {
 	case it.Readied == ReadiedOffHand || e.offHand(c, it): // the off hand (extra)
 		return SlotShield
-	case e.isKind(it.Type, dnd.ItemArrow, dnd.ItemQuarrel): // the arrows' and quarrels' slots (11, 12)
+	case e.isKind(it.Type, ItemIDArrow, ItemIDQuarrel): // the arrows' and quarrels' slots (11, 12)
 		return core.DollArrows
 	case s <= 8:
 		return s

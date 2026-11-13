@@ -1,0 +1,91 @@
+package rules1e
+
+import "gobox/core"
+
+// The base items, numbered once (idgen): a number is never reused or changed.
+
+const (
+	ItemIDBattleAxe         core.ItemID = 1
+	ItemIDHandAxe           core.ItemID = 2
+	ItemIDBardiche          core.ItemID = 3
+	ItemIDBecDeCorbin       core.ItemID = 4
+	ItemIDBillGuisarme      core.ItemID = 5
+	ItemIDBoStick           core.ItemID = 6
+	ItemIDClub              core.ItemID = 7
+	ItemIDDagger            core.ItemID = 8
+	ItemIDDart              core.ItemID = 9
+	ItemIDFauchard          core.ItemID = 10
+	ItemIDFauchardFork      core.ItemID = 11
+	ItemIDFlail             core.ItemID = 12
+	ItemIDMilitaryFork      core.ItemID = 13
+	ItemIDGlaive            core.ItemID = 14
+	ItemIDGlaiveGuisarme    core.ItemID = 15
+	ItemIDGuisarme          core.ItemID = 16
+	ItemIDGuisarmeVoulge    core.ItemID = 17
+	ItemIDHalberd           core.ItemID = 18
+	ItemIDLucernHammer      core.ItemID = 19
+	ItemIDHammer            core.ItemID = 20
+	ItemIDJavelin           core.ItemID = 21
+	ItemIDJoStick           core.ItemID = 22
+	ItemIDMace              core.ItemID = 23
+	ItemIDMorningStar       core.ItemID = 24
+	ItemIDPartisan          core.ItemID = 25
+	ItemIDMilitaryPick      core.ItemID = 26
+	ItemIDAwlPike           core.ItemID = 27
+	ItemIDQuarrel           core.ItemID = 28
+	ItemIDRanseur           core.ItemID = 29
+	ItemIDScimitar          core.ItemID = 30
+	ItemIDSpear             core.ItemID = 31
+	ItemIDSpetum            core.ItemID = 32
+	ItemIDQuarterStaff      core.ItemID = 33
+	ItemIDBastardSword      core.ItemID = 34
+	ItemIDBroadSword        core.ItemID = 35
+	ItemIDLongSword         core.ItemID = 36
+	ItemIDShortSword        core.ItemID = 37
+	ItemIDTwoHandedSword    core.ItemID = 38
+	ItemIDTrident           core.ItemID = 39
+	ItemIDVoulge            core.ItemID = 40
+	ItemIDCompositeLongBow  core.ItemID = 41
+	ItemIDCompositeShortBow core.ItemID = 42
+	ItemIDLongBow           core.ItemID = 43
+	ItemIDShortBow          core.ItemID = 44
+	ItemIDHeavyCrossbow     core.ItemID = 45
+	ItemIDLightCrossbow     core.ItemID = 46
+	ItemIDSling             core.ItemID = 47
+	ItemIDLeatherArmor      core.ItemID = 48
+	ItemIDPaddedArmor       core.ItemID = 49
+	ItemIDStuddedLeather    core.ItemID = 50
+	ItemIDRingMail          core.ItemID = 51
+	ItemIDScaleMail         core.ItemID = 52
+	ItemIDChainMail         core.ItemID = 53
+	ItemIDSplintMail        core.ItemID = 54
+	ItemIDBandedMail        core.ItemID = 55
+	ItemIDPlateMail         core.ItemID = 56
+	ItemIDShield            core.ItemID = 57
+	ItemIDMageScroll        core.ItemID = 58
+	ItemIDClericScroll      core.ItemID = 59
+	ItemIDGauntlets         core.ItemID = 60
+	ItemIDCloak             core.ItemID = 61
+	ItemIDRing              core.ItemID = 62
+	ItemIDValuable          core.ItemID = 63
+	ItemIDPotion            core.ItemID = 64
+	ItemIDArrow             core.ItemID = 65
+	ItemIDBracers           core.ItemID = 66
+	ItemIDWand              core.ItemID = 67
+	ItemIDWandOfMissiles    core.ItemID = 68
+	ItemIDStrengthPotion    core.ItemID = 69
+	ItemIDHolyWater         core.ItemID = 70
+	ItemIDOil               core.ItemID = 71
+	ItemIDBoulder           core.ItemID = 72
+	ItemIDGiantBoulder      core.ItemID = 73
+	ItemIDFeatherFallRing   core.ItemID = 74
+	ItemIDCloakDisplacement core.ItemID = 75
+	ItemIDProtectionRing    core.ItemID = 76
+	ItemIDLeatherHolySymbol core.ItemID = 77
+	ItemIDBrassKey          core.ItemID = 78
+	ItemIDEfreetiBottle     core.ItemID = 79
+	ItemIDPass              core.ItemID = 80
+	ItemIDDrowMace          core.ItemID = 81
+	ItemIDDrowChainMail     core.ItemID = 82
+	ItemIDDrowLongSword     core.ItemID = 83
+)

@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
 )
 
@@ -52,9 +51,9 @@ func (e *RuleState) Pay(gold uint64) bool {
 // money there is (the scripts' other coins became gold at import, script.GoldCoins).
 func purseCoin(p *Purse, c core.Coin) (*uint64, bool) {
 	switch c {
-	case dnd.Gold:
+	case Gold:
 		return &p.Gold, true
-	case dnd.Copper:
+	case Copper:
 		return &p.Copper, true
 	}
 	return nil, false

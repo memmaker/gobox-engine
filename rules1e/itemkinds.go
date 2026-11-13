@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 )
 
 // ItemKinds is the dnd id of each of a game's base item types (rules.json
@@ -17,16 +16,16 @@ type ItemKinds map[ItemType]core.ItemID
 // follow itemNames 1..28. 26 is the Fine Composite Long Bow; 29 the staff
 // sling has no dnd id. PoD shares the numbering (pod-re charhlp.pas).
 var SotsbItemKinds = ItemKinds{
-	1: dnd.ItemBattleAxe, 2: dnd.ItemHandAxe, 3: dnd.ItemClub, 4: dnd.ItemDagger, 5: dnd.ItemDart,
-	6: dnd.ItemHammer, 7: dnd.ItemJavelin, 8: dnd.ItemMace, 9: dnd.ItemMorningStar, 10: dnd.ItemMilitaryPick,
-	11: dnd.ItemAwlPike, 12: dnd.ItemQuarrel, 13: dnd.ItemScimitar, 14: dnd.ItemSpear, 15: dnd.ItemQuarterStaff,
-	16: dnd.ItemBastardSword, 17: dnd.ItemBroadSword, 18: dnd.ItemLongSword, 19: dnd.ItemShortSword,
-	20: dnd.ItemTwoHandedSword, 21: dnd.ItemTrident, 22: dnd.ItemCompositeLongBow, 23: dnd.ItemCompositeShortBow,
-	24: dnd.ItemLongBow, 25: dnd.ItemShortBow, 26: dnd.ItemCompositeLongBow, 27: dnd.ItemLightCrossbow,
-	28: dnd.ItemSling, 30: dnd.ItemArrow, 31: dnd.ItemLeatherArmor, 32: dnd.ItemRingMail, 33: dnd.ItemScaleMail,
-	34: dnd.ItemChainMail, 35: dnd.ItemBandedMail, 36: dnd.ItemPlateMail, 37: dnd.ItemShield,
-	39: dnd.ItemMageScroll, 40: dnd.ItemClericScroll, 50: dnd.ItemBracers, 59: dnd.ItemProtectionRing,
-	70: dnd.ItemFlail, 71: dnd.ItemHalberd,
+	1: ItemIDBattleAxe, 2: ItemIDHandAxe, 3: ItemIDClub, 4: ItemIDDagger, 5: ItemIDDart,
+	6: ItemIDHammer, 7: ItemIDJavelin, 8: ItemIDMace, 9: ItemIDMorningStar, 10: ItemIDMilitaryPick,
+	11: ItemIDAwlPike, 12: ItemIDQuarrel, 13: ItemIDScimitar, 14: ItemIDSpear, 15: ItemIDQuarterStaff,
+	16: ItemIDBastardSword, 17: ItemIDBroadSword, 18: ItemIDLongSword, 19: ItemIDShortSword,
+	20: ItemIDTwoHandedSword, 21: ItemIDTrident, 22: ItemIDCompositeLongBow, 23: ItemIDCompositeShortBow,
+	24: ItemIDLongBow, 25: ItemIDShortBow, 26: ItemIDCompositeLongBow, 27: ItemIDLightCrossbow,
+	28: ItemIDSling, 30: ItemIDArrow, 31: ItemIDLeatherArmor, 32: ItemIDRingMail, 33: ItemIDScaleMail,
+	34: ItemIDChainMail, 35: ItemIDBandedMail, 36: ItemIDPlateMail, 37: ItemIDShield,
+	39: ItemIDMageScroll, 40: ItemIDClericScroll, 50: ItemIDBracers, 59: ItemIDProtectionRing,
+	70: ItemIDFlail, 71: ItemIDHalberd,
 }
 
 // kinds is the game's ItemKinds.
@@ -63,5 +62,5 @@ func (e *RuleState) typeOf(id core.ItemID) ItemType {
 
 // isBow: t is one of the four bows (the elves' bonus, Bow).
 func (e *RuleState) isBow(t ItemType) bool {
-	return e.isKind(t, dnd.ItemCompositeLongBow, dnd.ItemCompositeShortBow, dnd.ItemLongBow, dnd.ItemShortBow)
+	return e.isKind(t, ItemIDCompositeLongBow, ItemIDCompositeShortBow, ItemIDLongBow, ItemIDShortBow)
 }

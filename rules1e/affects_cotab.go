@@ -1,7 +1,5 @@
 package rules1e
 
-import "gobox/core/goldbox"
-
 // cotabHandlers are CotAB's affect handlers (fold T4c): its variants of
 // POR's affects and its own, by the names CotabAffectVariants gives them,
 // each ported exactly from cotab-go/rules (affects.go, O064 and O08D) and
@@ -761,7 +759,7 @@ func (e *RuleState) thieveryItemCotab(c *Character, a *Affect, flag byte) {
 	if earlierClassActive(c, ClsMonk) {
 		lvl += int8(c.OldLevels[ClsThief])
 	}
-	skills := e.T().ThiefSkills(int(lvl), goldbox.RecordRace[c.Race], int(c.Stats[StatDex]), p)
+	skills := e.T().ThiefSkills(int(lvl), RecordRace[c.Race], int(c.Stats[StatDex]), p)
 	for i := range skills {
 		c.Thief[i] = Percent(skills[i])
 	}

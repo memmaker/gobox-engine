@@ -2,7 +2,6 @@ package importpod
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	eclscript "gobox/ecl/script"
 	"os"
 	"path/filepath"
@@ -10,7 +9,7 @@ import (
 )
 
 // races is the race of each race row.
-var races = [...]core.Race{dnd.Elf, dnd.HalfElf, dnd.Dwarf, dnd.Gnome, dnd.Halfling, dnd.Human, dnd.Monster}
+var races = [...]core.Race{rules1e.CoreRaceElf, rules1e.CoreRaceHalfElf, rules1e.CoreRaceDwarf, rules1e.CoreRaceGnome, rules1e.CoreRaceHalfling, rules1e.CoreRaceHuman, rules1e.CoreRaceMonster}
 
 // Layout1e is the shape of this game's slot tables (rules1e.Layout).
 func Layout1e() rules1e.Layout {

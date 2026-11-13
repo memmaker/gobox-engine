@@ -1,7 +1,7 @@
 // Package core is the types the engine, a ruleset and an adventure share:
 // the Rules interface, the neutral ids, and the plain data
 // that crosses them. It imports nothing of ours and holds no behaviour but
-// the RNG. Concepts of one world are in core/dnd
+// the RNG. Concepts of one world are in rules1e (dnd.go)
 // and core/xxvc; an adventure and its ruleset share one of them.
 //
 // DRAFT for review, nothing uses it yet. See ../ARCHITECTURE.md.
@@ -109,7 +109,7 @@ type (
 // NoChar is no character: what SelectMember past the party's end selects.
 const NoChar CharID = 0
 
-// SpellID is a spell or an item power that casts like one: core/dnd lists them.
+// SpellID is a spell or an item power that casts like one: rules1e lists them (dndspells.go).
 type SpellID string
 
 // RosterID is a roster character's own stable number, never derived from its
@@ -124,7 +124,7 @@ const NoRoster RosterID = 0
 type PicID string
 
 // Things named by the adventure and given numbers by the ruleset. The
-// constants are in core/dnd and core/xxvc, generated at import. Scripts carry
+// constants are in rules1e and core/xxvc, generated at import. Scripts carry
 // these ids, resolved by the decompiler, no set or index (ARCHITECTURE.md).
 // Their numbers are stable by assignment (saves hold them), never an original's index.
 type (

@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
 )
 
@@ -43,7 +42,7 @@ type Stats struct {
 type LevelSlots [MaxSpellLevel]int
 
 // classOrder is the order later classes overwrite earlier ones' attacks.
-var classOrder = [8]core.Class{dnd.Cleric, dnd.Druid, dnd.Fighter, dnd.Paladin, dnd.Ranger, dnd.Mage, dnd.Thief, dnd.Monk}
+var classOrder = [8]core.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
 
 // ClassStats is ClassCal.RecalcClassStats over POR's tables.
 func ClassStats(w Who) Stats { return POR.ClassStats(w) }
@@ -60,29 +59,29 @@ func (t *Tables) ClassStats(w Who) Stats {
 		s.Thac0Base = max(s.Thac0Base, t.Thac0At(class, lvl))
 		s.Highest = max(s.Highest, lvl)
 		switch class {
-		case dnd.Fighter:
+		case CoreClassFighter:
 			s.Attacks = 2
 			if lvl > 6 {
 				s.Attacks = 3
 			}
-		case dnd.Paladin:
+		case CoreClassPaladin:
 			if lvl > 6 {
 				s.Attacks = 3
 			}
 			if add := rowSum(t.PaladinSpells, lvl); add != ([5]int{}) {
-				if w.Levels[dnd.Cleric] <= 0 {
+				if w.Levels[CoreClassCleric] <= 0 {
 					s.ClericSlots = LevelSlots{}
 				}
 				for i := range add {
 					s.ClericSlots[i] += add[i]
 				}
 			}
-		case dnd.Ranger:
+		case CoreClassRanger:
 			if lvl > 7 {
 				s.Attacks = 3
 			}
 			if add := rowSum(t.RangerSpells, lvl); add != ([5]int{}) {
-				if w.Levels[dnd.Mage] <= 0 {
+				if w.Levels[CoreClassMage] <= 0 {
 					s.MageSlots = LevelSlots{}
 				}
 				fresh = true
@@ -90,12 +89,12 @@ func (t *Tables) ClassStats(w Who) Stats {
 				s.MageSlots[0] += add[3]
 				s.MageSlots[1] += add[4]
 			}
-		case dnd.Cleric:
+		case CoreClassCleric:
 			if lvl = t.slotRow(lvl); lvl > 0 && lvl <= t.SlotLevels {
 				s.ClericSlots = slotsAt(t.ClericSlots, lvl)
 				s.ClericSlots = WisdomBonus(s.ClericSlots, w.Wis)
 			}
-		case dnd.Mage:
+		case CoreClassMage:
 			if lvl = t.slotRow(lvl); lvl > 0 && lvl <= t.SlotLevels {
 				s.MageSlots = IntelligenceLimit(slotsAt(t.MageSlots, lvl), w.Int)
 				fresh = true
@@ -107,14 +106,14 @@ func (t *Tables) ClassStats(w Who) Stats {
 			s.MageSlots[i] *= 2
 		}
 	}
-	for _, save := range []core.Save{dnd.SaveParalysis, dnd.SavePetrify, dnd.SaveRod, dnd.SaveBreath, dnd.SaveSpell} {
+	for _, save := range []core.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell} {
 		s.Saves[save] = 20
 		for _, class := range classOrder {
 			if lvl := w.Levels[class]; lvl > 0 {
 				s.Saves[save] = min(s.Saves[save], t.SaveAt(class, lvl, save))
 			}
 		}
-		if old := w.OldLevels[dnd.Monk]; old < w.Levels[dnd.Monk] && old < len(t.MonkOldSaves) {
+		if old := w.OldLevels[CoreClassMonk]; old < w.Levels[CoreClassMonk] && old < len(t.MonkOldSaves) {
 			s.Saves[save] = min(s.Saves[save], int(t.MonkOldSaves[old][saveColumn[save]]))
 		}
 	}
@@ -122,11 +121,11 @@ func (t *Tables) ClassStats(w Who) Stats {
 	// bonus, subtracted so it helps; POR's roll-time affect 0x5A is not given
 	// and dropped from loaded records, so it counts once).
 	con := byte(w.Con)
-	if w.Race == dnd.Dwarf || w.Race == dnd.Halfling || w.Powers.SaveBonus {
-		s.Saves[dnd.SaveParalysis] -= int(goldbox.ConSaveLow(con))
+	if w.Race == CoreRaceDwarf || w.Race == CoreRaceHalfling || w.Powers.SaveBonus {
+		s.Saves[SaveParalysis] -= int(goldbox.ConSaveLow(con))
 	}
-	s.Saves[dnd.SaveParalysis] -= int(goldbox.ConSaveHigh(con))
-	if lvl := w.Levels[dnd.Thief]; lvl > 0 {
+	s.Saves[SaveParalysis] -= int(goldbox.ConSaveHigh(con))
+	if lvl := w.Levels[CoreClassThief]; lvl > 0 {
 		s.Skills = t.ThiefSkills(lvl, w.Race, w.Dex, w.Powers)
 	}
 	return s

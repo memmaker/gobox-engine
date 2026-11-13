@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"gobox/core"
-	"gobox/core/dnd"
 )
 
 // Human dual-classing (extra, after Secret of the Silver Blades' "Human
@@ -116,7 +115,7 @@ func NewClasses(c *Character) []int {
 		return nil
 	}
 	var out []int
-	for _, b := range RaceCareers(dnd.Human) {
+	for _, b := range RaceCareers(CoreRaceHuman) {
 		cl := int(b)
 		if cl == cur || cl > ClsMonk || !mayTakeClass(c, cur, cl) {
 			continue

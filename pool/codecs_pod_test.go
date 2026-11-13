@@ -2,7 +2,7 @@ package pool
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
+	"rules1e"
 	"testing"
 )
 
@@ -29,7 +29,7 @@ func TestPodCodecs(t *testing.T) {
 		}
 	}
 	coin := func(i int) core.Fact { f, _ := selCoin(i); return f }
-	if c := codecs["PodSelCoins"].element; coin(c(0)) != core.Fact(core.CoinFact{Coin: dnd.Gold}) || coin(c(2)) != core.Fact(core.PiecesFact{}) || coin(c(4)) != core.Fact(core.PiecesFact{Jewel: true}) || c(1)%2 != 1 {
+	if c := codecs["PodSelCoins"].element; coin(c(0)) != core.Fact(core.CoinFact{Coin: rules1e.Gold}) || coin(c(2)) != core.Fact(core.PiecesFact{}) || coin(c(4)) != core.Fact(core.PiecesFact{Jewel: true}) || c(1)%2 != 1 {
 		t.Error("coins: gold (the import's), gems, jewelry")
 	}
 	if codecs["PodSelMemorized"].element(0) != -1 {

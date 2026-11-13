@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"slices"
 	"strconv"
 )
@@ -219,8 +218,8 @@ func (e *RuleState) RangedFacing(c, target *Character) bool {
 	if w != nil {
 		wt = w.Type
 	}
-	if int8(c.Levels[ClsThief]) > 0 && (armor == nil || e.isKind(armor.Type, dnd.ItemLeatherArmor, dnd.ItemBracers)) { // bracers: in the armour's slot (extra, readySlot), not armour
-		if w == nil || e.isKind(wt, dnd.ItemClub, dnd.ItemDagger, dnd.ItemBroadSword, dnd.ItemLongSword, dnd.ItemShortSword) {
+	if int8(c.Levels[ClsThief]) > 0 && (armor == nil || e.isKind(armor.Type, ItemIDLeatherArmor, ItemIDBracers)) { // bracers: in the armour's slot (extra, readySlot), not armour
+		if w == nil || e.isKind(wt, ItemIDClub, ItemIDDagger, ItemIDBroadSword, ItemIDLongSword, ItemIDShortSword) {
 			flag = true
 		}
 	}

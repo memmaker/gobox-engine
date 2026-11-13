@@ -3,11 +3,11 @@ package pool
 import (
 	"fmt"
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/ecl"
 	"gobox/ecl/script"
 	"gobox/ega"
 	"os"
+	"rules1e"
 	"slices"
 	"strconv"
 	"strings"
@@ -522,7 +522,7 @@ func (e *Engine) opCheckParty() {
 func (e *Engine) opPartySurprise() {
 	e.vm.ReadArgs(2)
 	var a byte
-	if e.ruleset().Check(core.HasClass{Party: e.partyIDs(), Class: dnd.Ranger}, nil).Yes {
+	if e.ruleset().Check(core.HasClass{Party: e.partyIDs(), Class: rules1e.CoreClassRanger}, nil).Yes {
 		a = 1
 	}
 	e.host.Set(e.vm.Ref(1), int64(uint16(a)))
@@ -699,9 +699,9 @@ const (
 // (por SelFindTraps 0x6BA7, SelMove 0x6C1B; cotab's census covers all eight
 // thief skills, cvThiefFirst..Last).
 var censusFacts = map[string]core.Fact{
-	"SelPickPockets":  core.SkillFact{Skill: dnd.PickPockets},
-	fieldSelFindTraps: core.SkillFact{Skill: dnd.FindTraps},
-	"SelThiefSkill6":  core.SkillFact{Skill: dnd.Climb},
+	"SelPickPockets":  core.SkillFact{Skill: rules1e.PickPockets},
+	fieldSelFindTraps: core.SkillFact{Skill: rules1e.FindTraps},
+	"SelThiefSkill6":  core.SkillFact{Skill: rules1e.Climb},
 	fieldSelMove:      core.FactMove,
 }
 

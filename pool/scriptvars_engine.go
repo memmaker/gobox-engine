@@ -3,8 +3,8 @@ package pool
 import (
 	"fmt"
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
+	"rules1e"
 	"slices"
 
 	"gobox/ecl/script"
@@ -40,16 +40,16 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			setText: func(s string) { e.setSelValue(core.FactName, core.Text(s)) },
 		},
 		"SelCon":  reads(func() uint16 { return uint16(e.selFact(core.AbilityFact{Ability: core.Constitution})) }),
-		"SelRace": reads(func() uint16 { return uint16(selIndex(e, core.FactRace, goldbox.RecordRace[:])) }), // a fix of the Pascal's (SpecialReadZ1): the race checks read 0
+		"SelRace": reads(func() uint16 { return uint16(selIndex(e, core.FactRace, rules1e.RecordRace[:])) }), // a fix of the Pascal's (SpecialReadZ1): the race checks read 0
 		"SelMemorized": {stored: true, set: func(i int, v int64) { // slot i+1 (slot 0 has no address)
 			if k := i + 1; k < core.MemoSlots {
 				e.setSelValue(core.MemoFact{Slot: k}, core.Number(byte(v))) // the byte as SpecialWriteZ1 stores it
 			}
 		}},
-		"SelSaveVsPetrify": reads(func() uint16 { return uint16(e.selFact(core.SaveFact{Save: dnd.SavePetrify})) }),
-		"SelPickPockets":   reads(func() uint16 { return uint16(e.selFact(core.SkillFact{Skill: dnd.PickPockets})) }),
-		fieldSelFindTraps:  reads(func() uint16 { return uint16(e.selFact(core.SkillFact{Skill: dnd.FindTraps})) }),
-		"SelThiefSkill6":   reads(func() uint16 { return uint16(e.selFact(core.SkillFact{Skill: dnd.Climb})) }),
+		"SelSaveVsPetrify": reads(func() uint16 { return uint16(e.selFact(core.SaveFact{Save: rules1e.SavePetrify})) }),
+		"SelPickPockets":   reads(func() uint16 { return uint16(e.selFact(core.SkillFact{Skill: rules1e.PickPockets})) }),
+		fieldSelFindTraps:  reads(func() uint16 { return uint16(e.selFact(core.SkillFact{Skill: rules1e.FindTraps})) }),
+		"SelThiefSkill6":   reads(func() uint16 { return uint16(e.selFact(core.SkillFact{Skill: rules1e.Climb})) }),
 		"SelControl": {stored: true, get: func(int) (int64, bool) { return e.selFact(core.FactControl), true },
 			set: func(_ int, v int64) {
 				if v > 0xB2 {
@@ -63,7 +63,7 @@ func (e *Engine) newEngineFields() map[string]engineField {
 			}
 		}},
 		"SelAlignment": {stored: true, get: func(int) (int64, bool) {
-			return int64(signedByte(selIndex(e, core.FactAlignment, goldbox.RecordAlignment[:]))), true
+			return int64(signedByte(selIndex(e, core.FactAlignment, rules1e.RecordAlignment[:]))), true
 		}, set: func(_ int, v int64) { e.setSelFact(core.FactAlignment, int64(uint8(v))) }}, // the record's byte (alignmentNameTable index)
 		"SelExpValue": {stored: true, get: func(int) (int64, bool) { return e.selFact(core.FactExpValue), true },
 			set: func(_ int, v int64) { e.setSelFact(core.FactExpValue, v) }},
@@ -399,9 +399,9 @@ func fact(r func() uint16, w func(v uint16)) engineField {
 func selCoin(i int) (core.Fact, bool) {
 	switch i {
 	case 0:
-		return core.CoinFact{Coin: dnd.Copper}, true
+		return core.CoinFact{Coin: rules1e.Copper}, true
 	case 6:
-		return core.CoinFact{Coin: dnd.Gold}, true
+		return core.CoinFact{Coin: rules1e.Gold}, true
 	case 10:
 		return core.PiecesFact{}, true
 	case 12:

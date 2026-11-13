@@ -26,10 +26,10 @@ require (
 	gobox/amiga v0.0.0 // indirect
 	gobox/audio v0.0.0
 	gobox/dax v0.0.0
-	gobox/ega v0.0.0
+	gobox/ega v0.0.0 // indirect
 	gobox/exe v0.0.0
 	gobox/fixture v0.0.0
-	gobox/geo v0.0.0
+	gobox/geo v0.0.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
 
@@ -80,7 +80,7 @@ replace gobox/char => ../../char
 
 require gobox/core v0.0.0
 
-require gobox/rules v0.0.0
+require gobox/rules v0.0.0 // indirect
 
 replace gobox/rules => ../../rules
 
@@ -90,7 +90,7 @@ replace gobox/ecl => ../../ecl
 
 require (
 	gobox/app v0.0.0
-	gobox/front v0.0.0
+	gobox/front v0.0.0 // indirect
 )
 
 replace gobox/app => ../../app
@@ -104,7 +104,7 @@ require (
 	gobox/asset v0.0.0
 	gobox/game v0.0.0
 	gobox/importer v0.0.0
-	gobox/ui v0.0.0
+	gobox/ui v0.0.0 // indirect
 )
 
 replace gobox/game => ../../game
@@ -122,7 +122,7 @@ replace gobox/importer => ../../importer
 replace gobox/core => ../../core
 
 require (
-	gobox/creation v0.0.0
+	gobox/creation v0.0.0 // indirect
 	rules1e v0.0.0
 )
 

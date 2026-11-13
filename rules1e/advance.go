@@ -2,31 +2,30 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 )
 
 // classRow, raceRow, saveColumn and skillColumn say where a concept sits in
 // the tables, so that callers name it and never depend on the order.
 var classRow = map[core.Class]int{
-	dnd.Cleric: 0, dnd.Druid: 1, dnd.Fighter: 2, dnd.Paladin: 3,
-	dnd.Ranger: 4, dnd.Mage: 5, dnd.Thief: 6, dnd.Monk: 7,
+	CoreClassCleric: 0, CoreClassDruid: 1, CoreClassFighter: 2, CoreClassPaladin: 3,
+	CoreClassRanger: 4, CoreClassMage: 5, CoreClassThief: 6, CoreClassMonk: 7,
 }
 
 var raceRow = map[core.Race]int{
-	dnd.Monster: 0, dnd.Dwarf: 1, dnd.Elf: 2, dnd.Gnome: 3,
-	dnd.HalfElf: 4, dnd.Halfling: 5, dnd.HalfOrc: 6, dnd.Human: 7,
+	CoreRaceMonster: 0, CoreRaceDwarf: 1, CoreRaceElf: 2, CoreRaceGnome: 3,
+	CoreRaceHalfElf: 4, CoreRaceHalfling: 5, CoreRaceHalfOrc: 6, CoreRaceHuman: 7,
 }
 
 var saveColumn = map[core.Save]int{
-	dnd.SaveParalysis: 0, dnd.SavePetrify: 1, dnd.SaveRod: 2, dnd.SaveBreath: 3, dnd.SaveSpell: 4,
+	SaveParalysis: 0, SavePetrify: 1, SaveRod: 2, SaveBreath: 3, SaveSpell: 4,
 }
 
 var skillColumn = map[core.Skill]int{
-	dnd.PickPockets: 0, dnd.OpenLocks: 1, dnd.FindTraps: 2, dnd.MoveQuietly: 3,
-	dnd.Hide: 4, dnd.Hear: 5, dnd.Climb: 6, dnd.ReadLanguages: 7,
+	PickPockets: 0, OpenLocks: 1, FindTraps: 2, MoveQuietly: 3,
+	Hide: 4, Hear: 5, Climb: 6, ReadLanguages: 7,
 }
 
-var thiefSkillOrder = [8]core.Skill{dnd.PickPockets, dnd.OpenLocks, dnd.FindTraps, dnd.MoveQuietly, dnd.Hide, dnd.Hear, dnd.Climb, dnd.ReadLanguages}
+var thiefSkillOrder = [8]core.Skill{PickPockets, OpenLocks, FindTraps, MoveQuietly, Hide, Hear, Climb, ReadLanguages}
 
 // xpNone is an experience entry no experience reaches: the class stops at the level before.
 const xpNone = -1
@@ -79,7 +78,7 @@ func (t *Tables) TrainingDie(class core.Class) (count, sides int) {
 
 // SaveAt is the saving throw of class at level. POR's paladin rows are COTAB's.
 func (t *Tables) SaveAt(class core.Class, level int, save core.Save) int {
-	if class == dnd.Paladin && level < len(t.PaladinSaves) {
+	if class == CoreClassPaladin && level < len(t.PaladinSaves) {
 		return int(t.PaladinSaves[level][saveColumn[save]])
 	}
 	return int(t.Saves[classRow[class]*t.SaveRows+level][saveColumn[save]])

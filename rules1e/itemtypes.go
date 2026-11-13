@@ -1,6 +1,6 @@
 package rules1e
 
-//go:generate sh -c "go run gobox/core/dnd/idgen -spec ids.txt -dnd ../gobox-engine/core/dnd -pkg rules1e -spells SpellIDs -items ItemIDs -itemtype ItemType > ids.go"
+//go:generate sh -c "go run ./idgen -spec ids.txt -dir . -spells SpellIDs -items ItemIDs -itemtype ItemType > ids.go"
 
 // ItemType is an item's base type: the Type of an item record and the
 // index into the ITEMS table (itemBase). Weapons 0x01..0x2F follow the

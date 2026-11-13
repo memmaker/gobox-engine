@@ -10,17 +10,16 @@ import (
 	"testing"
 
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
 )
 
 // The vectors come from the pure Pascal (por-re bugfixed-rules, vectors-pure.sh).
 // A difference is a bug, or a row of gobox-engine/CHANGES-FROM-ORIGINAL.md.
 var (
-	vecClass = [8]core.Class{dnd.Cleric, dnd.Druid, dnd.Fighter, dnd.Paladin, dnd.Ranger, dnd.Mage, dnd.Thief, dnd.Monk}
-	vecRace  = [8]core.Race{dnd.Monster, dnd.Dwarf, dnd.Elf, dnd.Gnome, dnd.HalfElf, dnd.Halfling, dnd.HalfOrc, dnd.Human}
+	vecClass = [8]core.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
+	vecRace  = [8]core.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
 	vecCon   = 19 // the Pascal's stat vectors read no constitution; 19 shows the bonus every race gets
-	vecSave  = [5]core.Save{dnd.SaveParalysis, dnd.SavePetrify, dnd.SaveRod, dnd.SaveBreath, dnd.SaveSpell}
+	vecSave  = [5]core.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
 )
 
 // documented says whether a difference is a row of CHANGES-FROM-ORIGINAL.md:
@@ -29,20 +28,20 @@ func documented(key []string, want, got []int) bool {
 	k := ints(key[1:])
 	switch key[0] {
 	case "save":
-		return vecClass[k[0]] == dnd.Paladin && k[1] <= 8
+		return vecClass[k[0]] == CoreClassPaladin && k[1] <= 8
 	case "xp":
 		// Past level 9 the Pascal reads other data. Felix: past its table a class reads POD's
 		// table, then adds POD's step (the thief: 160001, 220001, then +220000); a class that stops before stays at -1.
 		if k[1] > 9 {
 			xp := -1
-			if vecClass[k[0]] == dnd.Thief {
+			if vecClass[k[0]] == CoreClassThief {
 				xp = []int{160001, 220001, 440001, 660001}[k[1]-10]
 			}
 			// the slots of a class without spells are other data too, never read
-			spells := vecClass[k[0]] == dnd.Cleric || vecClass[k[0]] == dnd.Mage
+			spells := vecClass[k[0]] == CoreClassCleric || vecClass[k[0]] == CoreClassMage
 			return got[0] == xp && (!spells || slices.Equal(want[1:], got[1:]))
 		}
-		return (vecClass[k[0]] == dnd.Paladin || vecClass[k[0]] == dnd.Ranger) && want[0] == -1
+		return (vecClass[k[0]] == CoreClassPaladin || vecClass[k[0]] == CoreClassRanger) && want[0] == -1
 	case "damage":
 		// ruling 3 (cotab's DAMAGE for all): with flags 0x80 and 0x10 a made
 		// save still hurts; POR's Pascal reads 0x10 as save bonus only. No
@@ -55,8 +54,8 @@ func documented(key []string, want, got []int) bool {
 	case "stat":
 		return statDocumented(k, want, got)
 	case "careers":
-		return vecRace[k[0]] == dnd.HalfElf && slices.Equal(got, []int{0, 2, 4, 5, 6, 8, 9, 10, 11, 13, 14, 15, 16}) ||
-			vecRace[k[0]] == dnd.Human && slices.Equal(got, []int{0, 2, 3, 4, 5, 6})
+		return vecRace[k[0]] == CoreRaceHalfElf && slices.Equal(got, []int{0, 2, 4, 5, 6, 8, 9, 10, 11, 13, 14, 15, 16}) ||
+			vecRace[k[0]] == CoreRaceHuman && slices.Equal(got, []int{0, 2, 3, 4, 5, 6})
 	case "age":
 		return k[0] == 4 && k[1] == 4 // half-elf ranger takes the half-elf fighter's
 	case "aligns":
@@ -91,23 +90,23 @@ func statDocumented(k, want, got []int) bool {
 		return 0
 	}
 	fixed := slices.Clone(want)
-	if level(dnd.Paladin) > 6 || level(dnd.Ranger) > 7 {
+	if level(CoreClassPaladin) > 6 || level(CoreClassRanger) > 7 {
 		fixed[2] = 3 // COTAB's attacks
 	}
-	copied := level(dnd.Paladin) > 0 && level(dnd.Paladin) <= 8
+	copied := level(CoreClassPaladin) > 0 && level(CoreClassPaladin) <= 8
 	if copied {
 		copy(fixed[9:14], got[9:14]) // COTAB's paladin saves, steps 1 and 4 included
 	}
 	// COTAB's superset (Felix 18:10), one by one:
 	// 1. a monk's saves are also the MonkOldSaves row of its old level (0 here).
-	if level(dnd.Monk) > 0 && !copied {
+	if level(CoreClassMonk) > 0 && !copied {
 		for i := range vecSave {
 			fixed[9+i] = min(fixed[9+i], int(POR.MonkOldSaves[0][i]))
 		}
 	}
 	// 2. a paladin from level 9 gains cleric spells (PaladinSpells); without cleric levels the held slots go.
-	if add := rowSum(POR.PaladinSpells, level(dnd.Paladin)); add != ([5]int{}) {
-		if level(dnd.Cleric) <= 0 {
+	if add := rowSum(POR.PaladinSpells, level(CoreClassPaladin)); add != ([5]int{}) {
+		if level(CoreClassCleric) <= 0 {
 			copy(fixed[3:6], []int{0, 0, 0})
 		}
 		for i := range 3 {
@@ -115,8 +114,8 @@ func statDocumented(k, want, got []int) bool {
 		}
 	}
 	// 3. a ranger from level 8 gains magic-user spells (RangerSpells columns 4, 5); without magic-user levels the held slots go.
-	if add := rowSum(POR.RangerSpells, level(dnd.Ranger)); add != ([5]int{}) {
-		if level(dnd.Mage) <= 0 {
+	if add := rowSum(POR.RangerSpells, level(CoreClassRanger)); add != ([5]int{}) {
+		if level(CoreClassMage) <= 0 {
 			copy(fixed[6:9], []int{0, 0, 0})
 		}
 		fixed[6] += add[3]
@@ -210,7 +209,7 @@ func ours(kind string, k []int) string {
 		if k[2] != k[0] {
 			levels[vecClass[k[2]]] = k[3]
 		}
-		st := ClassStats(Who{Levels: levels, Race: dnd.Human, Dex: 12, Wis: k[4], Con: vecCon,
+		st := ClassStats(Who{Levels: levels, Race: CoreRaceHuman, Dex: 12, Wis: k[4], Con: vecCon,
 			ClericSlots: LevelSlots{7, 7, 7}, MageSlots: LevelSlots{7, 7, 7}})
 		v := []int{st.Thac0Base, st.Highest, st.Attacks}
 		v = append(v, st.ClericSlots[:3]...) // the Pascal has three levels
@@ -260,9 +259,9 @@ func ours(kind string, k []int) string {
 // classSlot: only cleric and mage rows are slots in ours; the Pascal has zeros elsewhere.
 func classSlot(class, level, i int) int {
 	switch vecClass[class] {
-	case dnd.Cleric:
+	case CoreClassCleric:
 		return ClericSlots(level)[i]
-	case dnd.Mage:
+	case CoreClassMage:
 		return MageSlots(level)[i]
 	}
 	return 0

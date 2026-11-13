@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
 )
 
@@ -50,9 +49,9 @@ func who(c *Character) Who {
 	for i, class := range PorClass {
 		levels[class], old[class] = int(int8(c.Levels[i])), int(int8(c.OldLevels[i]))
 	}
-	race := dnd.Monster // monster records carry other race numbers
-	if int(c.Race) < len(goldbox.RecordRace) {
-		race = goldbox.RecordRace[c.Race]
+	race := CoreRaceMonster // monster records carry other race numbers
+	if int(c.Race) < len(RecordRace) {
+		race = RecordRace[c.Race]
 	}
 	var powers ItemPowers
 	for _, it := range c.Items {
@@ -85,7 +84,7 @@ func (e *RuleState) savingThrows(c *Character) {
 // thiefSkills = ovr24:0329: level table DS:3CF3 plus race DS:3D3B, plus
 // dexterity DS:3D4E for the first five skills.
 func (e *RuleState) thiefSkills(c *Character) {
-	skills := e.T().ThiefSkills(int(int8(c.Levels[ClsThief])), goldbox.RecordRace[c.Race], int(c.Stats[StatDex]), ItemPowers{})
+	skills := e.T().ThiefSkills(int(int8(c.Levels[ClsThief])), RecordRace[c.Race], int(c.Stats[StatDex]), ItemPowers{})
 	for i := range skills {
 		c.Thief[i] = Percent(skills[i])
 	}
@@ -170,7 +169,7 @@ func (e *RuleState) Base(typ ItemType) *ItemBase {
 // fills: its base record's, but bracers (extra) wear in the armour's, which
 // they stand in for (itemAC: only the better of the two counts).
 func (e *RuleState) readySlot(typ ItemType) int {
-	if e.isKind(typ, dnd.ItemBracers) {
+	if e.isKind(typ, ItemIDBracers) {
 		return SlotArmor
 	}
 	return int(e.Base(typ).Slot)
@@ -212,10 +211,10 @@ func (e *RuleState) ApplyItems(c *Character) {
 				c.Slots[slotRing2] = it
 			}
 		}
-		if e.isKind(typ, dnd.ItemArrow) {
+		if e.isKind(typ, ItemIDArrow) {
 			c.Slots[SlotArrows] = it
 		}
-		if e.isKind(typ, dnd.ItemQuarrel) {
+		if e.isKind(typ, ItemIDQuarrel) {
 			c.Slots[SlotBolts] = it
 		}
 		c.Hands += e.Base(typ).Hands
@@ -284,11 +283,11 @@ func (e *RuleState) weaponStats(c *Character) {
 	if flags > 0x7F && c.Slots[SlotBolts] != nil {
 		plus += int8(c.Slots[SlotBolts].Plus)
 	}
-	if flags&1 != 0 && c.Slots[SlotArrows] != nil && e.isKind(c.Slots[SlotArrows].Type, dnd.ItemArrow) { // not a missile in the slot
+	if flags&1 != 0 && c.Slots[SlotArrows] != nil && e.isKind(c.Slots[SlotArrows].Type, ItemIDArrow) { // not a missile in the slot
 		plus += int8(c.Slots[SlotArrows].Plus)
 	}
 	c.Bonus[0] += Modifier(plus)
-	if c.Race == RaceElf && (e.isBow(w.Type) || e.isKind(w.Type, dnd.ItemShortSword, dnd.ItemLongSword)) {
+	if c.Race == RaceElf && (e.isBow(w.Type) || e.isKind(w.Type, ItemIDShortSword, ItemIDLongSword)) {
 		plus++ // elves with bows and swords
 	}
 	c.THAC0 += byte(plus)

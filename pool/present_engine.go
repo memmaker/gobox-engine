@@ -2,10 +2,10 @@ package pool
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/game"
 	"gobox/game/play"
 	"image"
+	"rules1e"
 )
 
 // present applies the effects recorded and not yet shown, then fx, in order.
@@ -104,13 +104,13 @@ func (e *Engine) apply(f core.Effect) {
 func (e *Engine) missileArt(f core.Shot) (frames, delay int) {
 	switch f.Spell {
 	case "":
-	case dnd.SpellStoneGaze, dnd.SpellCharmGaze:
+	case rules1e.SpellStoneGaze, rules1e.SpellCharmGaze:
 		e.hitColours(0x12)
 		return 4, 0x2D
-	case dnd.SpellSpitAcid:
+	case rules1e.SpellSpitAcid:
 		e.hitColours(0x17)
 		return 1, 0x1E
-	case dnd.SpellBreathWeapon, dnd.SpellLightningBolt, dnd.SpellJavelinOfLightning:
+	case rules1e.SpellBreathWeapon, rules1e.SpellLightningBolt, rules1e.SpellJavelinOfLightning:
 		e.hitColours(0x13)
 		return 4, 0x32
 	default:
@@ -121,7 +121,7 @@ func (e *Engine) missileArt(f core.Shot) (frames, delay int) {
 	typ := f.Item // an item with no flight art flies as the default
 	frames, delay, base := 1, 0xA, 0xD
 	switch {
-	case typ == dnd.ItemDart || typ == dnd.ItemJavelin || typ == dnd.ItemQuarrel || typ == dnd.ItemSpear || typ == dnd.ItemArrow:
+	case typ == rules1e.ItemIDDart || typ == rules1e.ItemIDJavelin || typ == rules1e.ItemIDQuarrel || typ == rules1e.ItemIDSpear || typ == rules1e.ItemIDArrow:
 		switch {
 		case dir&1 == 1 && (dir == 3 || dir == 5):
 			e.iconToSprite(base+1, 1, 0, dir == 5)
@@ -130,14 +130,14 @@ func (e *Engine) missileArt(f core.Shot) (frames, delay int) {
 		default:
 			e.iconToSprite(base+dir%4, dir>>2, 0, false)
 		}
-	case typ == dnd.ItemHandAxe || typ == dnd.ItemClub || typ == dnd.ItemHammer:
+	case typ == rules1e.ItemIDHandAxe || typ == rules1e.ItemIDClub || typ == rules1e.ItemIDHammer:
 		e.hitColours(base + 3)
 		frames, delay = 4, 0x32
-	case typ == dnd.ItemHolyWater || typ == dnd.ItemOil:
+	case typ == rules1e.ItemIDHolyWater || typ == rules1e.ItemIDOil:
 		e.hitColours(base + 4)
 		frames, delay = 4, 0x32
 	default:
-		if typ == dnd.ItemSling {
+		if typ == rules1e.ItemIDSling {
 			base++
 		}
 		e.iconToSprite(base+7, 0, 0, false)

@@ -10,7 +10,6 @@ package rules1e
 import (
 	"fmt"
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
 )
 
@@ -575,9 +574,9 @@ func (e *RuleState) BreathWeapon(c *Character, a *Affect, flag int) {
 		e.TgtY++
 	}
 	e.removeInvisibility(c)
-	e.shoot(cx, cy, e.TgtX, e.TgtY, 0, dnd.SpellBreathWeapon)
+	e.shoot(cx, cy, e.TgtX, e.TgtY, 0, SpellBreathWeapon)
 	e.strikeSquare(e.TgtX, e.TgtY, int(c.MaxHP), 3)
-	e.boltPath(0xA, int(c.MaxHP), 3, 0, dnd.SpellBreathWeapon)
+	e.boltPath(0xA, int(c.MaxHP), 3, 0, SpellBreathWeapon)
 	if a.Data > 0xFD {
 		a.Data--
 	} else {

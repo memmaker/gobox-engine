@@ -1,30 +1,30 @@
 // Package dnd is the Forgotten Realms / 1st edition concepts: what POR, COTAB,
 // SotSB and POD adventures and the 1e ruleset name. The numbers behind each
 // are the ruleset's. MonsterID and ItemID rosters are generated at import.
-package dnd
+package rules1e
 
 import "gobox/core"
 
 const (
-	Dwarf    core.Race = "dwarf"
-	Elf      core.Race = "elf"
-	Gnome    core.Race = "gnome"
-	HalfElf  core.Race = "half-elf"
-	Halfling core.Race = "halfling"
-	HalfOrc  core.Race = "half-orc"
-	Human    core.Race = "human"
-	Monster  core.Race = "monster" // por Race 0: a record without a player race
+	CoreRaceDwarf    core.Race = "dwarf"
+	CoreRaceElf      core.Race = "elf"
+	CoreRaceGnome    core.Race = "gnome"
+	CoreRaceHalfElf  core.Race = "half-elf"
+	CoreRaceHalfling core.Race = "halfling"
+	CoreRaceHalfOrc  core.Race = "half-orc"
+	CoreRaceHuman    core.Race = "human"
+	CoreRaceMonster  core.Race = "monster" // por Race 0: a record without a player race
 )
 
 const (
-	Cleric  core.Class = "cleric"
-	Druid   core.Class = "druid"
-	Fighter core.Class = "fighter"
-	Paladin core.Class = "paladin"
-	Ranger  core.Class = "ranger"
-	Mage    core.Class = "mage"
-	Thief   core.Class = "thief"
-	Monk    core.Class = "monk"
+	CoreClassCleric  core.Class = "cleric"
+	CoreClassDruid   core.Class = "druid"
+	CoreClassFighter core.Class = "fighter"
+	CoreClassPaladin core.Class = "paladin"
+	CoreClassRanger  core.Class = "ranger"
+	CoreClassMage    core.Class = "mage"
+	CoreClassThief   core.Class = "thief"
+	CoreClassMonk    core.Class = "monk"
 )
 
 const (

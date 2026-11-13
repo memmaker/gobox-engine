@@ -5,11 +5,11 @@ import (
 	"testing"
 )
 
-// TestKebab: a new spell's string follows the rule of every one already in core/dnd.
+// TestKebab: a new spell's string follows the rule of every one already in dndspells.go.
 func TestKebab(t *testing.T) {
-	_, ids, err := existing(filepath.Join("..", "spells.go"), spellLine)
+	_, ids, err := existing(filepath.Join("..", "dndspells.go"), spellLine)
 	if err != nil || len(ids) == 0 {
-		t.Fatalf("spells.go: %d ids, %v", len(ids), err)
+		t.Fatalf("dndspells.go: %d ids, %v", len(ids), err)
 	}
 	for name, s := range ids {
 		if k := kebab(name); k != s {

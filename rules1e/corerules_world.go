@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"slices"
 )
 
@@ -101,7 +100,7 @@ func (e *RuleState) SetLootCoins(coins [7]uint16) { e.Loot = CoinsToPurse(coins)
 // conditionAffects is the affect each Condition a script asks about is
 // (HasCondition): por's CheckParty 19 (0x13).
 // ponytail: the one scripts use; add conditions when a script asks.
-var conditionAffects = map[core.Condition]AffectType{dnd.CondFindTraps: affFindTraps}
+var conditionAffects = map[core.Condition]AffectType{CondFindTraps: affFindTraps}
 
 // partyStrength = opPartyStrength: a tenth of HP + 5 x (AC
 // better than 0) + 5 x (THAC0 better than 0) + 8 x mage level + 4 x cleric
@@ -159,7 +158,7 @@ func (r *Rules) party(p core.Party) []*Character {
 
 // porClassesOf is the record classes that have a class (HasClass).
 // ponytail: ranger only (opPartySurprise); add classes when a script asks.
-var porClassesOf = map[core.Class][]ClassID{dnd.Ranger: {ClsRanger, ClsClericRanger}}
+var porClassesOf = map[core.Class][]ClassID{CoreClassRanger: {ClsRanger, ClsClericRanger}}
 
 // resolveWorld resolves the world's actions; ok: a was one of them.
 func (r *Rules) resolveWorld(s core.Situation, a core.Action) (o core.Outcome, ok bool, err error) {

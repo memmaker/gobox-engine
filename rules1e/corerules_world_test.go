@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"testing"
 )
 
@@ -26,11 +25,11 @@ func TestCheckWorld(t *testing.T) {
 	if c := r.Check(core.Census{Fact: core.FactMove}, nil); c.Low != 0xFF || c.High != 0 || c.Avg != 0 {
 		t.Errorf("empty Census %+v", c)
 	}
-	if !r.Check(core.HasClass{Party: p, Class: dnd.Ranger}, nil).Yes || r.Check(core.HasClass{Party: p[1:], Class: dnd.Ranger}, nil).Yes {
+	if !r.Check(core.HasClass{Party: p, Class: CoreClassRanger}, nil).Yes || r.Check(core.HasClass{Party: p[1:], Class: CoreClassRanger}, nil).Yes {
 		t.Error("HasClass ranger")
 	}
 	b.Items = []*Item{{Type: 0x4B}}
-	if w := r.Check(core.HasItem{Whom: p, Item: dnd.ItemBrassKey}, nil); !w.Yes || w.Who != p[1] || r.Check(core.HasItem{Whom: p[:1], Item: dnd.ItemBrassKey}, nil).Yes {
+	if w := r.Check(core.HasItem{Whom: p, Item: ItemIDBrassKey}, nil); !w.Yes || w.Who != p[1] || r.Check(core.HasItem{Whom: p[:1], Item: ItemIDBrassKey}, nil).Yes {
 		t.Errorf("HasItem brass key %+v", w)
 	}
 }

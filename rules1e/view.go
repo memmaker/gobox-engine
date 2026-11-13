@@ -1,7 +1,6 @@
 package rules1e
 
 import (
-	"gobox/core/dnd"
 	"slices"
 )
 
@@ -115,9 +114,9 @@ func (e *RuleState) InTheWay(c *Character, it *Item) *Item {
 	switch {
 	case e.offHand(c, it):
 		slot = SlotShield
-	case e.isKind(it.Type, dnd.ItemArrow):
+	case e.isKind(it.Type, ItemIDArrow):
 		slot = SlotArrows
-	case e.isKind(it.Type, dnd.ItemQuarrel):
+	case e.isKind(it.Type, ItemIDQuarrel):
 		slot = SlotBolts
 	case slot == 9:
 		slot = slotRing2
@@ -171,7 +170,7 @@ func (e *RuleState) ReadyItem(it *Item) {
 			why = 2
 		}
 	}
-	if e.isKind(typ, dnd.ItemArrow, dnd.ItemQuarrel) {
+	if e.isKind(typ, ItemIDArrow, ItemIDQuarrel) {
 		for _, s := range []int{SlotArrows, SlotBolts} {
 			if c.Slots[s] != nil {
 				why, slot = 2, s

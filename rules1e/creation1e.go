@@ -264,7 +264,7 @@ func (p Creation) DraftOf(c *Character, of core.CharID) core.Draft {
 		Of:   of, Purse: core.Copper(uint64(c.Coins[CoinGold]) * copperPerGold), HitRoll: int32(c.HPRoll) * classCount(c), Ident: uint32(c.RandomID),
 	}
 	d.Head, d.Body = p.Host.Portrait(picsOf(c))
-	d.Sheet.Race, d.Sheet.Sex, d.Sheet.Age = goldbox.RecordRace[c.Race], []core.Sex{core.Male, core.Female}[c.Sex&1], int32(c.Age)
+	d.Sheet.Race, d.Sheet.Sex, d.Sheet.Age = RecordRace[c.Race], []core.Sex{core.Male, core.Female}[c.Sex&1], int32(c.Age)
 	d.Sheet.HP, d.Sheet.MaxHP = int32(c.HP), int32(c.MaxHP)
 	d.Sheet.Scores = map[core.Ability]int32{core.StrengthPercent: int32(c.Str00)}
 	for i, a := range Abilities {

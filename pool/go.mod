@@ -17,6 +17,7 @@ require (
 	github.com/ebitengine/oto/v3 v3.5.0 // indirect
 	github.com/ebitengine/purego v0.11.0 // indirect
 	github.com/go-webgpu/goffi v0.6.3 // indirect
+	github.com/go-webgpu/webgpu v0.5.5 // indirect
 	github.com/gogpu/gogpu v0.54.0 // indirect
 	github.com/gogpu/gpucontext v0.31.3 // indirect
 	github.com/gogpu/gputypes v0.8.0 // indirect

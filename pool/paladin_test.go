@@ -2,7 +2,6 @@ package pool
 
 import (
 	"gobox/char"
-	"gobox/core/dnd"
 	"rules1e"
 	"testing"
 )
@@ -23,10 +22,10 @@ func TestPaladinRanger(t *testing.T) {
 	if rng.BaseAttack[0] != 2 {
 		t.Errorf("ranger 7: attacks %d", rng.BaseAttack[0])
 	}
-	if rules1e.XPForLevel(dnd.Paladin, 9) != -1 || rules1e.XPForLevel(dnd.Ranger, 8) != -1 || rules1e.XPForLevel(dnd.Ranger, 7) != 90001 {
+	if rules1e.XPForLevel(rules1e.CoreClassPaladin, 9) != -1 || rules1e.XPForLevel(rules1e.CoreClassRanger, 8) != -1 || rules1e.XPForLevel(rules1e.CoreClassRanger, 7) != 90001 {
 		t.Error("level caps")
 	}
-	if len(rules1e.RaceCareers(dnd.Human)) != 6 || len(rules1e.RaceCareers(dnd.HalfElf)) != 13 || len(rules1e.CareerAlignments(rules1e.CareerRanger)) != 3 {
+	if len(rules1e.RaceCareers(rules1e.CoreRaceHuman)) != 6 || len(rules1e.RaceCareers(rules1e.CoreRaceHalfElf)) != 13 || len(rules1e.CareerAlignments(rules1e.CareerRanger)) != 3 {
 		t.Error("class lists")
 	}
 	if !rules1e.LevelBlocked(4, 0x11, rules1e.ClsRanger, 7) || rules1e.LevelBlocked(7, 0x11, rules1e.ClsRanger, 7) {

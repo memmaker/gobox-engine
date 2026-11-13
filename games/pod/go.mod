@@ -9,10 +9,10 @@ require (
 	gobox/dax v0.0.0
 	gobox/ecl v0.0.0
 	gobox/exe v0.0.0
-	gobox/front v0.0.0
+	gobox/front v0.0.0 // indirect
 	gobox/game v0.0.0
-	gobox/geo v0.0.0
-	gobox/rules v0.0.0
+	gobox/geo v0.0.0 // indirect
+	gobox/rules v0.0.0 // indirect
 )
 
 require (
@@ -37,7 +37,7 @@ require (
 	github.com/jfreymuth/pulse v0.1.3 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
 	github.com/memmaker/opl2 v0.1.0 // indirect
-	gobox/amiga v0.0.0 // indirect
+	gobox/amiga v0.0.0
 	gobox/amigaimport v0.0.0
 	gobox/asset v0.0.0
 	gobox/audio v0.0.0
@@ -47,7 +47,7 @@ require (
 	gobox/importer v0.0.0
 	gobox/input v0.0.0 // indirect
 	gobox/sprites v0.0.0 // indirect
-	gobox/walls v0.0.0
+	gobox/walls v0.0.0 // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
@@ -90,7 +90,7 @@ replace gobox/importer => ../../importer
 replace gobox/core => ../../core
 
 require (
-	gobox/creation v0.0.0
+	gobox/creation v0.0.0 // indirect
 	rules1e v0.0.0
 )
 

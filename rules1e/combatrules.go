@@ -2,7 +2,6 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/dnd"
 	"gobox/core/goldbox"
 	"slices"
 )
@@ -423,19 +422,19 @@ func (e *RuleState) KindOf(it *Item) WeaponKind {
 		return NoWeapon
 	}
 	switch e.kind(it.Type) {
-	case dnd.ItemDagger:
+	case ItemIDDagger:
 		return Dagger
-	case dnd.ItemShortSword:
+	case ItemIDShortSword:
 		return ShortSword
-	case dnd.ItemHandAxe:
+	case ItemIDHandAxe:
 		return HandAxe
-	case dnd.ItemHammer:
+	case ItemIDHammer:
 		return ThrowingHammer
-	case dnd.ItemHeavyCrossbow, dnd.ItemLightCrossbow:
+	case ItemIDHeavyCrossbow, ItemIDLightCrossbow:
 		return Crossbow
-	case dnd.ItemSling:
+	case ItemIDSling:
 		return Sling
-	case dnd.ItemDart, dnd.ItemJavelin:
+	case ItemIDDart, ItemIDJavelin:
 		return Thrown
 	}
 	b := e.Base(it.Type)
@@ -464,13 +463,13 @@ func (e *RuleState) Wielded(c *Character, off bool) *Item {
 // Staff: c wields a quarterstaff (an implement, PHB p. 221).
 func (e *RuleState) Staff(c *Character) bool {
 	it := e.Wielded(c, false)
-	return it != nil && e.isKind(it.Type, dnd.ItemQuarterStaff)
+	return it != nil && e.isKind(it.Type, ItemIDQuarterStaff)
 }
 
 // Wand: c has a wand readied (an implement).
 func (e *RuleState) Wand(c *Character) bool {
 	return slices.ContainsFunc(c.Items, func(it *Item) bool {
-		return it.Readied != 0 && e.isKind(it.Type, dnd.ItemWand, dnd.ItemWandOfMissiles)
+		return it.Readied != 0 && e.isKind(it.Type, ItemIDWand, ItemIDWandOfMissiles)
 	})
 }
 

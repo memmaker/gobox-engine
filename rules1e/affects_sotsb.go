@@ -1,7 +1,5 @@
 package rules1e
 
-import "gobox/core/dnd"
-
 // sotsbHandlers are SotSB's affect handlers (and the ones SotSB and PoD share) (fold T4c): its variants of
 // POR's affects and its own, by the names SotsbAffectVariants gives them,
 // each ported exactly from sotsb-go/rules and checked against it there.
@@ -606,7 +604,7 @@ func (e *RuleState) breathFireCloseSotsb(c *Character, a *Affect, flag byte) {
 		return
 	}
 	e.CombatSay(c, "Breathes Fire", true)
-	e.shoot(e.CombatX(c), e.CombatY(c), e.CombatX(t), e.CombatY(t), 0, dnd.SpellBreathWeapon)
+	e.shoot(e.CombatX(c), e.CombatY(c), e.CombatX(t), e.CombatY(t), 0, SpellBreathWeapon)
 	e.Damage(t, sotsbCloseBreath, saveHalf, e.SavingThrow(t, saveVsBreath, 0))
 }
 

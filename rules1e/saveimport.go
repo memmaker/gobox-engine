@@ -1,7 +1,5 @@
 package rules1e
 
-import "gobox/core/dnd"
-
 // The import of older saves (ruling U10): everything a save written before
 // a format or rule change needs to load is mended here, once, at load; saves
 // are always written in the current format. This file is the whole of the
@@ -37,7 +35,7 @@ func (e *RuleState) ImportCharacter(c *Character) {
 			continue
 		}
 		off := it
-		if !e.isKind(off.Type, dnd.ItemBracers) {
+		if !e.isKind(off.Type, ItemIDBracers) {
 			off, armour = armour, it
 		}
 		off.Readied = 0

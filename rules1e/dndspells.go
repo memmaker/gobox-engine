@@ -1,4 +1,4 @@
-package dnd
+package rules1e
 
 import "gobox/core"
 
