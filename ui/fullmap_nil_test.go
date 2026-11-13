@@ -1,0 +1,14 @@
+package ui
+
+import (
+	"testing"
+
+	"gobox/game"
+)
+
+// No 16x16 map in the State: no full map, never one without its squares.
+func TestFullMapNoMap(t *testing.T) {
+	if f := FullMap(&FrontFullMap{}, game.Automap{}, game.Where{}); f != nil {
+		t.Fatalf("FullMap without a map = %+v, want nil", f)
+	}
+}

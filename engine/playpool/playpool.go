@@ -18,10 +18,10 @@ import (
 	"gobox/audio"
 	"gobox/char"
 	"gobox/engine"
-	"gobox/front/present"
 	"gobox/game"
 	"gobox/importer"
 	"gobox/rules"
+	"gobox/ui"
 )
 
 // tps: Update runs 120 times a second, so a key waits at most ~8 ms before
@@ -52,7 +52,7 @@ func New(adv, data string) (*engine.Engine, error) {
 func Play(s app.Start, gm Game) error {
 	s.Explore = s.Explore || s.Capture.Slot != "" // -slot starts play from that save (Explore reads it), -explore or not
 
-	host := present.DefaultHostOptions // the settings in use; app.Menu reads them from SETTINGS.JSON
+	host := ui.DefaultHostOptions // the settings in use; app.Menu reads them from SETTINGS.JSON
 	f, err := importer.Read(s.Adventure)
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func Play(s app.Start, gm Game) error {
 		return err
 	}
 	host.FullIntro = f.Manifest.Start != nil && f.Manifest.Start.Full // the adventure's default
-	present.Host = &host.Options
+	ui.Host = &host.Options
 	eng, err := New(s.Adventure, s.Data)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func Play(s app.Start, gm Game) error {
 		return err
 	}
 	am, fx, pack, speaking, vol := eng.SoundParts()
-	drv.Attach(am, fx, present.NewSoundtrack(eng.SoundtrackDir(), engine.SoundtrackFiles), pack, speaking, vol) // the presenter decodes and plays the recordings
+	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), engine.SoundtrackFiles), pack, speaking, vol) // the presenter decodes and plays the recordings
 	eng.SetSound(drv)
 	audio.Output(drv) // speaker and voice share one context
 	audio.Output(eng.VoiceReader())
@@ -153,11 +153,11 @@ func Play(s app.Start, gm Game) error {
 	}
 	data.OpenAt = s.Open
 	data.OwnMusic = filepath.Join(s.Data, "music") // the player's own music, by trigger
-	cg := present.NewGame(eng, data)
-	g := present.NewFront(cg, data, drv) // the rules' data (series, spell tips, overland art); one driver: the rules' calls and the fight's events
+	cg := ui.NewGame(eng, data)
+	g := ui.NewFront(cg, data, drv) // the rules' data (series, spell tips, overland art); one driver: the rules' calls and the fight's events
 	g.OnStart = func() { engine.DOSArt.Store(host.DOSArt) }
 	g.P.Sound = eng.PlayEventSound // a fight's sounds with what they belong to
-	present.Scripted = capt.Scripted()
+	ui.Scripted = capt.Scripted()
 	return app.Run(app.Config{
 		Front: g,
 		Art: &app.Art{ // the Amiga or the DOS art (F12, the Graphics page)
@@ -165,11 +165,11 @@ func Play(s app.Start, gm Game) error {
 			Toggle: func() { host.DOSArt = !host.DOSArt },
 			Set:    func(dos bool) { engine.DOSArt.Store(dos); g.ArtNew = true },
 		},
-		FontPrev: present.KeyFontPrev,
+		FontPrev: ui.KeyFontPrev,
 		Menu: &app.Menu{
 			Prefs:    app.Prefs{Dir: eng.Cfg.SaveDir},
 			Extra:    &host,
-			Rows:     present.HostRows(&host.Options, present.HostOptionRows(&host, eng.ToggleVoice)...),
+			Rows:     ui.HostRows(&host.Options, ui.HostOptionRows(&host, eng.ToggleVoice)...),
 			Apply:    apply,
 			SaveLoad: func() { g.P.OpenSlots() }, // as F10
 			MainMenu: func() { cg.EndGame() },    // through classic, so its view is fresh

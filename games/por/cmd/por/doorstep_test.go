@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/front/present"
 	"gobox/games/por/playpor"
 	"gobox/games/por/porgame"
+	"gobox/ui"
 )
 
 // noTitle fails when a frame of f draws the title's picture: only the main
 // menu (the party menu before play) shows it.
-func noTitle(t *testing.T, f *present.Front, n int) {
+func noTitle(t *testing.T, f *ui.Front, n int) {
 	t.Helper()
 	for i := range n {
 		f.Frame(1280, 800)
@@ -54,7 +54,7 @@ func TestLockedDoorOverView(t *testing.T) {
 	seed := uint32(1)
 	eng.FixedSeed = &seed
 	data := playpor.Data(eng)
-	f := present.NewFront(present.NewGame(eng, data), data)
+	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("back-for-good")
 	f.Frame(1280, 800)
 	f.Game.SequenceDone("intro")
@@ -95,7 +95,7 @@ func TestHallNoTitle(t *testing.T) {
 	seed := uint32(1)
 	eng.FixedSeed = &seed
 	data := playpor.Data(eng)
-	f := present.NewFront(present.NewGame(eng, data), data)
+	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("")
 	f.Frame(1280, 800)
 	f.Game.SequenceDone("intro")

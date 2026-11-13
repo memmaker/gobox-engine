@@ -2,20 +2,18 @@ package ui
 
 import (
 	"testing"
-
-	"gobox/input"
 )
 
 func UITestMenuNav(t *testing.T) {
 	sel := 0
 	keys := []byte{'C', 'E'}
-	if i, back, _ := MenuNav(input.Esc, 27, &sel, keys); i != -1 || !back {
+	if i, back, _ := MenuNav(Esc, 27, &sel, keys); i != -1 || !back {
 		t.Fatal("Esc picked a row")
 	}
-	if i, _, _ := MenuNav(input.None, 'e', &sel, keys); i != 1 || sel != 1 {
+	if i, _, _ := MenuNav(None, 'e', &sel, keys); i != 1 || sel != 1 {
 		t.Fatal("hotkey e did not pick row 1")
 	}
-	if MenuNav(input.Down, 0x5000, &sel, keys); sel != 0 {
+	if MenuNav(Down, 0x5000, &sel, keys); sel != 0 {
 		t.Fatal("Down did not wrap")
 	}
 	if s, at := HotText("Camp", 'E'); s != "[E] Camp" || at != 1 {

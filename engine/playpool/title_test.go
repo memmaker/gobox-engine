@@ -9,7 +9,6 @@ import (
 
 	"gobox/asset"
 	"gobox/ega"
-	"gobox/front/present"
 	"gobox/gpu"
 	"gobox/importer"
 	"gobox/ui"
@@ -17,7 +16,7 @@ import (
 
 // titleFront is game id's Front as Play starts it, headless, on the imported
 // data/<id> (skipped when not imported), the full title on.
-func titleFront(t *testing.T, id string) *present.Front {
+func titleFront(t *testing.T, id string) *ui.Front {
 	t.Helper()
 	adv := "../../data/" + id
 	f, err := importer.Read(adv)
@@ -37,7 +36,7 @@ func titleFront(t *testing.T, id string) *present.Front {
 	if data.Adventure != adv {
 		t.Errorf("%s: Data.Adventure %q, want %q (the presenter's art and Theme.Border)", id, data.Adventure, adv)
 	}
-	fr := present.NewFront(present.NewGame(eng, data), data)
+	fr := ui.NewFront(ui.NewGame(eng, data), data)
 	fr.Start("")
 	return fr
 }

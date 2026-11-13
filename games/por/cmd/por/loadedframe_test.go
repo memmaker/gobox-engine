@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"gobox/front/present"
 	"gobox/games/por/playpor"
 	"gobox/games/por/porgame"
+	"gobox/ui"
 )
 
 // A loaded level-5 party (back-for-good) exploring builds State once per
@@ -42,7 +42,7 @@ func TestLoadedExploreStateBuilds(t *testing.T) {
 	seed := uint32(1)
 	eng.FixedSeed = &seed
 	data := playpor.Data(eng)
-	f := present.NewFront(present.NewGame(eng, data), data)
+	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("back-for-good")
 	f.Frame(1280, 800)
 	f.Game.SequenceDone("intro")

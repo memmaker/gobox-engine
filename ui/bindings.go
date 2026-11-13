@@ -2,7 +2,6 @@ package ui
 
 import (
 	"gobox/gpu"
-	"gobox/input"
 )
 
 // A Table is a game's one list of bindings: what each key, mouse gesture
@@ -21,7 +20,7 @@ type PadKey struct {
 // Code is a key code the row binds and the Act it stands for.
 type Code struct {
 	K uint16
-	A input.Act
+	A Act
 }
 
 // Binding is one action in context Ctx: its keys, mouse and pad as the
@@ -96,12 +95,12 @@ func (t *Table) HelpLines() [][2]string {
 
 // Act is what key k does outside combat; letters match either case. None:
 // the table does not bind k (a hotkey or a typed character).
-func (t *Table) Act(k uint16) input.Act { return t.lookup(k, false) }
+func (t *Table) Act(k uint16) Act { return t.lookup(k, false) }
 
 // CombatAct is what key k does on the combat map (the Combat rows).
-func (t *Table) CombatAct(k uint16) input.Act { return t.lookup(k, true) }
+func (t *Table) CombatAct(k uint16) Act { return t.lookup(k, true) }
 
-func (t *Table) lookup(k uint16, combat bool) input.Act {
+func (t *Table) lookup(k uint16, combat bool) Act {
 	if k >= 'A' && k <= 'Z' {
 		k += 'a' - 'A'
 	}
@@ -115,12 +114,12 @@ func (t *Table) lookup(k uint16, combat bool) input.Act {
 			}
 		}
 	}
-	return input.None
+	return None
 }
 
 // KeyOf is the first key code bound to a outside combat: the mouse's and
 // wheel's way into the key handlers.
-func (t *Table) KeyOf(a input.Act) uint16 {
+func (t *Table) KeyOf(a Act) uint16 {
 	for _, b := range t.Rows {
 		for _, c := range b.Codes {
 			if c.A == a && b.Ctx != t.Combat {
@@ -131,13 +130,13 @@ func (t *Table) KeyOf(a input.Act) uint16 {
 	return 0
 }
 
-var keypadActs = [...]input.Act{input.End, input.Down, input.PgDn, input.InputLeft, input.None, input.InputRight, input.Home, input.Up, input.PgUp}
+var keypadActs = [...]Act{End, Down, PgDn, InputLeft, None, InputRight, Home, Up, PgUp}
 
 // Keypad is digit k as the keypad's key (1 End .. 9 PgUp; None: not a
 // digit 1-9).
-func Keypad(k uint16) input.Act {
+func Keypad(k uint16) Act {
 	if k >= '1' && k <= '9' {
 		return keypadActs[k-'1']
 	}
-	return input.None
+	return None
 }

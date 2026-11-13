@@ -26,13 +26,13 @@ import (
 
 	"buckrogers/playbr1"
 	"buckrogers2/playbr2"
-	"gobox/games/cotab/playcotab"
 	"gobox/app"
-	"gobox/front/present"
-	"gobox/importer"
+	"gobox/games/cotab/playcotab"
 	"gobox/games/pod/playpod"
 	"gobox/games/por/playpor"
 	"gobox/games/sotsb/playsotsb"
+	"gobox/importer"
+	"gobox/ui"
 
 	_ "buckrogers/importbr1"
 	_ "buckrogers2/importbr2"
@@ -59,9 +59,9 @@ var players = map[string]func(app.Start) error{
 func escapes() map[byte]app.Key {
 	esc := map[byte]app.Key{'r': 13, 'e': 27, 'U': 0x4800, 'D': 0x5000, 'L': 0x4B00, 'R': 0x4D00}
 	for n := range 8 { // \1..\8: F1..F8
-		esc['1'+byte(n)] = present.KeyF1 + uint16(n)<<8
+		esc['1'+byte(n)] = ui.KeyF1 + uint16(n)<<8
 	}
-	esc['0'] = present.KeyF1 + 9<<8 // \0: F10
+	esc['0'] = ui.KeyF1 + 9<<8 // \0: F10
 	return esc
 }
 

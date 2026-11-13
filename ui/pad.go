@@ -1,0 +1,30 @@
+package ui
+
+import (
+	"gobox/gpu"
+)
+
+// padKeys are the keys the host's gamepad sent the Esc menu this frame
+// (View.PadKey), its repeat already applied.
+var padKeys = map[gpu.Key]bool{}
+
+// KeyJustPressed reports a key pressed this frame on the keyboard or a gamepad.
+// Shooting makes the view ignore the keyboard (app.Run sets it for -shot captures).
+var Shooting bool
+
+func KeyJustPressed(k gpu.Key) bool {
+	return !Shooting && gpu.IsKeyJustPressed(k) || padKeys[k]
+}
+
+// Repeats reports whether a key held d ticks repeats this tick; a host with its own
+// key repeat sets it, so the Esc menu repeats at the same rate as the rest of the game.
+var Repeats = func(d int) bool { return d > 20 && d%4 == 0 }
+
+// KeyRepeated is KeyJustPressed with auto-repeat while held (Repeats), for moving through lists.
+func KeyRepeated(k gpu.Key) bool {
+	return KeyJustPressed(k) || Held(k) && Repeats(gpu.KeyPressDuration(k))
+}
+
+// Held reports whether a held key may repeat; a host that ignores keys held
+// through a screen change (the host's latch) sets it.
+var Held = func(gpu.Key) bool { return true }

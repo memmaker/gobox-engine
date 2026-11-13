@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gobox/front/present"
+	"gobox/ui"
 	"testing"
 	"time"
 
@@ -24,7 +24,7 @@ func TestPlayFront(t *testing.T) {
 	eng.FixedSeed = &seed
 	eng.Explore = true
 	data := playpor.Data(eng)
-	g := present.NewGame(eng, data)
+	g := ui.NewGame(eng, data)
 	g.Open("")
 	for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ { // the title, as the front ends it
 		g.TitleDone()
@@ -68,7 +68,7 @@ func TestPlayFrontWalk(t *testing.T) {
 	eng.FixedSeed = &seed
 	eng.Explore = true
 	data := playpor.Data(eng)
-	g := present.NewGame(eng, data)
+	g := ui.NewGame(eng, data)
 	g.Open("")
 	for i := 0; g.Mode() == game.ModeTitle && i < 5; i++ {
 		g.TitleDone()

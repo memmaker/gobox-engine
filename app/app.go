@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"gobox/blobber"
 	"gobox/gpu"
+	"gobox/ui"
 )
 
 // Game is what a game gives the shell.
@@ -175,7 +175,7 @@ func Run(cfg Config) error {
 		cfg.TPS = 60
 	}
 	t := cfg.Theme
-	blobber.Shooting = cfg.Capture.Shot != "" // -shot: the 3D view ignores the keyboard
+	ui.Shooting = cfg.Capture.Shot != "" // -shot: the 3D view ignores the keyboard
 	var fg *frontGame
 	if a, ok := cfg.Front.(interface{ Arts() (bool, func(bool)) }); ok && cfg.Art == nil {
 		if dos, set := a.Arts(); set != nil { // the front's own two arts (F12), DOS first
@@ -197,7 +197,7 @@ func Run(cfg Config) error {
 			cfg.Menu.FontNames, cfg.Menu.FontAt, cfg.Menu.SetFont, cfg.Menu.FontGlyph = h.FontMenu()
 		}
 		cfg.Menu.setup(held, cfg.TPS)
-		cfg.Settings.Fullscreen = cfg.Settings.Fullscreen || blobber.Settings.Fullscreen
+		cfg.Settings.Fullscreen = cfg.Settings.Fullscreen || ui.Settings.Fullscreen
 	}
 	if fg != nil && cfg.Art != nil {
 		fg.art = cfg.Art.Want()

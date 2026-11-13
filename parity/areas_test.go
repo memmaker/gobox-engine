@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"gobox/blobber"
 	"gobox/dax"
-	"gobox/walls"
 	"gobox/games/por/presentdata"
 	"gobox/games/por/presentdata/blobberart"
+	"gobox/ui"
+	"gobox/walls"
 )
 
 // Every 3D area of the game (a GEO block) has its remastered map: the
@@ -19,7 +19,7 @@ func TestEveryAreaHasMap(t *testing.T) {
 	if err != nil {
 		t.Skip("no game files")
 	}
-	if _, err := blobber.NewView(walls.Textures("pool", walls.Names("pool")...)); err != nil { // ParseScene checks the names against the current View.Textures
+	if _, err := ui.NewView(walls.Textures("pool", walls.Names("pool")...)); err != nil { // ParseScene checks the names against the current View.Textures
 		t.Skip("no GPU:", err)
 	}
 	for disk := 1; disk <= 8; disk++ {
@@ -41,7 +41,7 @@ func TestEveryAreaHasMap(t *testing.T) {
 				t.Errorf("GEO%d block %d: %v", disk, b, err)
 				continue
 			}
-			if _, _, err := blobber.ParseScene(m); err != nil {
+			if _, _, err := ui.ParseScene(m); err != nil {
 				t.Errorf("%s.map: %v", n, err)
 			}
 			m.Close()

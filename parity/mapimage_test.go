@@ -3,8 +3,7 @@ package parity
 import (
 	"encoding/json"
 	"gobox/ega"
-	"gobox/front"
-	"gobox/front/present"
+	"gobox/ui"
 	"image"
 	"image/color"
 	"image/png"
@@ -30,8 +29,8 @@ func TestMapImage(t *testing.T) {
 	if err != nil {
 		t.Skip("no game files")
 	}
-	e.Init()                      // the font
-	present.UseGameData(e.Data()) // the label inks
+	e.Init()                 // the font
+	ui.UseGameData(e.Data()) // the label inks
 	files, _ := filepath.Glob(filepath.Join(porDir(t), "presentdata", "testdata", "map_*.json"))
 	if len(files) == 0 {
 		t.Fatal("no recorded maps")
@@ -39,8 +38,8 @@ func TestMapImage(t *testing.T) {
 	for _, f := range files {
 		var rec struct { // as recorded: a label's ink, not its kind
 			Squares [16][16]struct {
-				Seen   front.FrontSeen
-				Walls  [4]front.MapWall
+				Seen   ui.FrontSeen
+				Walls  [4]ui.MapWall
 				Ink    int
 				Letter byte
 			}
@@ -50,10 +49,10 @@ func TestMapImage(t *testing.T) {
 		if err := json.Unmarshal(b, &rec); err != nil {
 			t.Fatal(err)
 		}
-		m := front.FrontMapSquares{Party: rec.Party, Ahead: rec.Ahead}
+		m := ui.FrontMapSquares{Party: rec.Party, Ahead: rec.Ahead}
 		for y, row := range rec.Squares {
 			for x, q := range row {
-				m.Squares[y][x] = front.FrontMapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index(e.Data().LabelInks, q.Ink), Letter: q.Letter}
+				m.Squares[y][x] = ui.FrontMapSquare{Seen: q.Seen, Walls: q.Walls, Kind: slices.Index(e.Data().LabelInks, q.Ink), Letter: q.Letter}
 			}
 		}
 		r, err := os.Open(strings.TrimSuffix(f, ".json") + ".png")
@@ -65,11 +64,11 @@ func TestMapImage(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		cell, glyph := want.Bounds().Dx()/16, present.PoolGlyph("Acer710_CGA") // the font the pngs were drawn in
+		cell, glyph := want.Bounds().Dx()/16, ui.PoolGlyph("Acer710_CGA") // the font the pngs were drawn in
 		if strings.HasSuffix(f, "_mini.json") {
 			glyph = nil
 		}
-		got := present.MapImage(&m, cell, ink, glyph)
+		got := ui.MapImage(&m, cell, ink, glyph)
 		for y := range want.Bounds().Dy() {
 			for x := range want.Bounds().Dx() {
 				if w := color.RGBAModel.Convert(want.At(x, y)); got.RGBAAt(x, y) != w {

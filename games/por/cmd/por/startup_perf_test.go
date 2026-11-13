@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"gobox/audio"
-	"gobox/front/present"
 	"gobox/engine"
 	"gobox/games/por/playpor"
 	"gobox/games/por/porgame"
+	"gobox/ui"
 )
 
 // Start-up as main does it, headless: each step and the first frames must be quick.
@@ -39,12 +39,12 @@ func TestStartupTiming(t *testing.T) {
 		t.Fatal(err)
 	}
 	am, fx, pack, speaking, vol := eng.SoundParts()
-	drv.Attach(am, fx, present.NewSoundtrack(eng.SoundtrackDir(), engine.SoundtrackFiles), pack, speaking, vol)
+	drv.Attach(am, fx, ui.NewSoundtrack(eng.SoundtrackDir(), engine.SoundtrackFiles), pack, speaking, vol)
 	eng.SetSound(drv)
 	lap("sound")
 	data := playpor.Data(eng)
 	lap("Data")
-	g := present.NewFront(present.NewGame(eng, data), data, drv)
+	g := ui.NewFront(ui.NewGame(eng, data), data, drv)
 	lap("NewFront")
 	g.Start("")
 	for i := range 5 {

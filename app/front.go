@@ -6,10 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"gobox/blobber"
-	"gobox/front"
 	"gobox/gpu"
-	"gobox/input"
 	"gobox/ui"
 )
 
@@ -36,7 +33,7 @@ type Front interface {
 
 	Free() bool                                   // No Grid's view is up: W A S D and the arrows walk
 	Flow(held Key, ready bool) (send, paced bool) // fluid movement: the held move key, ask whether to send it
-	FreeWalk(in blobber.FreeInput)
+	FreeWalk(in ui.FreeInput)
 
 	InventoryShown() bool
 	InventoryMouse(x, y int, down, right bool, wheel float64)
@@ -72,19 +69,19 @@ type frontGame struct {
 	stickDir  uint16 // left stick direction being held
 	stickHeld int    // ticks it has been held
 
-	wheel     float64     // wheel movement not yet sent as a step
-	rightOnce bool        // \M: the right button pressed this tick
-	leftOnce  bool        // \C: the left button
-	leftHold  bool        // \B: the left button held (a drag)
-	pointer   int         // Capture.Pointer's position in use
-	hoverAt   [3]int      // the pointer as Hover last had it (x, y, 1 once seen): a pointer that never moved moves no highlight
-	latch     front.Latch // the inputs held through a screen change: ignored until let go
-	look      [2]float64  // No Grid: the turn and pitch the mouse and the right stick gave this tick
-	drag      *drag       // No Grid: the left button held to look, nil while up
-	mlook     bool        // No Grid: mouselook is on (right click): the cursor captured, the mouse looks
-	art       bool        // the art shown (Art.Set)
-	old       *gpu.Image  // the last frame in the other art, faded out over the new one
-	fade      time.Time   // when the art changed
+	wheel     float64    // wheel movement not yet sent as a step
+	rightOnce bool       // \M: the right button pressed this tick
+	leftOnce  bool       // \C: the left button
+	leftHold  bool       // \B: the left button held (a drag)
+	pointer   int        // Capture.Pointer's position in use
+	hoverAt   [3]int     // the pointer as Hover last had it (x, y, 1 once seen): a pointer that never moved moves no highlight
+	latch     ui.Latch   // the inputs held through a screen change: ignored until let go
+	look      [2]float64 // No Grid: the turn and pitch the mouse and the right stick gave this tick
+	drag      *drag      // No Grid: the left button held to look, nil while up
+	mlook     bool       // No Grid: mouselook is on (right click): the cursor captured, the mouse looks
+	art       bool       // the art shown (Art.Set)
+	old       *gpu.Image // the last frame in the other art, faded out over the new one
+	fade      time.Time  // when the art changed
 }
 
 func (g *frontGame) scripted() bool { return g.cfg.Capture.Scripted() }
@@ -161,7 +158,7 @@ var repeatKeys = []gpu.Key{
 	gpu.KeyPageUp, gpu.KeyPageDown,
 }
 
-func (g *frontGame) repeats(d int) bool { return input.Repeat(d, g.tps) }
+func (g *frontGame) repeats(d int) bool { return ui.Repeat(d, g.tps) }
 
 // keys passes the keyboard to the screens.
 func (g *frontGame) keys() {
@@ -202,8 +199,8 @@ func (g *frontGame) keys() {
 			g.f.Key(ui.ShiftF12) // the wall style
 		} else if k == gpu.KeyF12 && g.cfg.Art != nil { // the other art (Draw fades it in)
 			g.cfg.Art.Toggle()
-			if blobber.OnSettings != nil {
-				blobber.OnSettings(blobber.Settings)
+			if ui.OnSettings != nil {
+				ui.OnSettings(ui.Settings)
 			}
 		} else if k == gpu.KeyF && gpu.IsKeyPressed(gpu.KeyControl) && gpu.IsKeyPressed(gpu.KeyShift) {
 			if g.cfg.FontPrev != 0 {
@@ -237,7 +234,7 @@ const freeMouse, freeStick = 0.005, 0.05
 // free gives No Grid's camera this tick: W A S D and the arrows walk and
 // turn, the look the mouse and the stick gave turns and pitches.
 func (g *frontGame) free() {
-	var in blobber.FreeInput
+	var in ui.FreeInput
 	if g.f.Free() {
 		key := func(ks ...gpu.Key) float64 {
 			for _, k := range ks {

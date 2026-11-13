@@ -1,0 +1,315 @@
+// run.go: Front, the ready-made front end over a *classicGame: the shell
+// (gobox/app, Config.Front) drives the presenter's screens with it, and the
+// game's rules run on the screens' decisions.
+
+package ui
+
+import (
+	"fmt"
+	"gobox/ui/fonts"
+	"log"
+	"path/filepath"
+	"time"
+
+	"gobox/amiga"
+	"gobox/audio"
+	"gobox/game"
+	"gobox/gpu"
+)
+
+// Front is an app.Front: the presenter's screens over Game.
+type Front struct {
+	Game *classicGame
+	P    Presenter
+
+	// Glyph is a character's pattern in the game's font now, Font a pane
+	// run's (Note.Glyph, Note.Font).
+	Glyph func(byte) [8]byte
+	Font  func(ch byte, upcase bool) [8]byte
+	// OnStart runs as the shell starts, after the settings are loaded
+	// (nil: nothing).
+	OnStart func()
+	ArtNew  bool // the art changed: the game publishes its page again in it (a menu waiting has no tick)
+
+	pic     Rect       // where the picture is drawn, in device pixels
+	slot    string     // the save to start from (Open)
+	started bool       // the game has put its first screen up (Act)
+	off     *gpu.Image // Frame's offscreen picture
+	drawn   string     // screenSig of the View last drawn
+	held    []uint16   // keys pressed on a screen not drawn yet: they act once it is (Draw)
+
+}
+
+// NewFront is a Front over g, with the game's declarative data over what
+// SetData handed in. It plays sound through snd (the game's own driver,
+// one instance shared with its rules), or else through a Driver it builds
+// from Data.Sounds and Data.AmigaSound, on the Tandy, and plays out itself.
+func NewFront(g *Game, data game.Data, snd ...audio.Sound) *Front {
+	gpu.Mark("NewFront")
+	gameData(data)
+	f := &Front{}
+	if font := fonts.Get(theme.Font); font != nil { // the theme's font; a game's own glyphs replace these
+		f.Glyph = func(ch byte) [8]byte { g, _ := fonts.Glyph(font, ch, true); return g }
+		f.Font = func(ch byte, text bool) [8]byte { g, _ := fonts.Glyph(font, ch, text); return g }
+	}
+	f.chooseFonts(data.Fonts)
+	gpu.Mark("NewFront: fonts")
+	f.Game = &classicGame{g, &f.P}
+	if len(snd) > 0 {
+		f.P.Snd = snd[0]
+	} else if d := newDriver(); d != nil {
+		f.P.Snd = d
+		audio.Output(d)
+	}
+	if d, ok := f.P.Snd.(*audio.Driver); ok && len(snd) > 0 && amigaMX != nil { // the game's Music-X set on the driver it was handed (newDriver attaches its own)
+		d.SetAmiga(amigaMX, amigaFx)
+	}
+	if d, ok := f.P.Snd.(*audio.Driver); ok && adLib != nil { // the AdLib songs are the driver's soundtrack, its effects over them
+		if a, err := audio.NewAdLib(*adLib); err == nil {
+			f.P.AdLib = a
+			d.Attach(nil, nil, a, nil, nil, nil)
+			d.SetSoundtrack(true, 0, 0)
+		}
+	}
+	if own := ownMusicDir(data); own != "" && len(snd) == 0 { // the player's own music: data/music/<trigger>
+		var err error
+		if ownMus, err = newOwnMusic(own, data.MusicPlaces); err != nil {
+			log.Printf("own music: %v", err) // NewFront has no error to return; the music found plays
+		}
+		audio.Output(ownMus)
+		if d, ok := f.P.Snd.(*audio.Driver); ok {
+			d.SetOwnMusic(ownMus.Playing)
+		}
+	}
+	f.P.SetEngine(f.Game)
+	gpu.Mark("NewFront: sound out, done")
+	return f
+}
+
+// Start takes the shell's start-up save slot (Capture.Slot).
+func (f *Front) Start(slot string) {
+	if f.OnStart != nil {
+		f.OnStart()
+	}
+	f.slot = slot
+}
+
+// Screen names the screen up: it changes whenever a screen opens or
+// closes, or a question pops up (the latch's Screen).
+func (f *Front) Screen() string {
+	p := f.P
+	ask, kind := AskKind(-1), game.ScreenKind(0)
+	if a := p.askUp(); a != nil {
+		ask = a.Kind
+	}
+	if sc := p.gameScreen(); sc != nil {
+		kind = sc.Kind
+	}
+	return fmt.Sprint(p.Screens(), kind, p.campUp(), p.templeUp(), p.shopUp(), p.trainingUp() != nil, p.powerPick() != nil,
+		p.readUp() != nil, p.results() != nil, p.flags().Credits, ask, p.mainMenuUp())
+}
+func (f *Front) Key(k uint16) {
+	if !f.started { // the game opens (on its -slot) before it takes a key: the first one is not for the screen before
+		f.Act()
+	}
+	if f.stopWalk() {
+		return
+	}
+	if a := actOf(k); f.P.Playing() && a != Space && a != Enter && a != Esc && !f.P.CameraKey(k) { // a key while the fight's events play: kept for the screen after, never dropped (Space, Enter, Esc cut the moment short)
+		f.held = append(f.held, k)
+		return
+	}
+	if f.drawn != "" && f.screenSig() != f.drawn { // the screen changed and is not on show yet: the key waits for it, never acting on the one before
+		f.held = append(f.held, k)
+		return
+	}
+	f.P.Key(k)
+}
+
+// screenSig is what screen v is, as far as keys go: a key acts on the one drawn.
+func (f *Front) screenSig() string {
+	ask := AskKind(-1)
+	if a := f.P.askUp(); a != nil {
+		ask = a.Kind
+	}
+	c := f.P.liveCombat()
+	turn := c != nil && c.Turn != nil
+	return fmt.Sprint(c != nil, turn, ask, f.P.inventoryUp(), f.P.sheetShown(), f.P.campUp(), f.P.templeUp(), f.P.shopUp(), f.P.mainMenuUp(), f.P.exploring(), f.P.trainingUp() != nil)
+}
+func (f *Front) Tick() { Scripted = true; f.P.Tick() } // only a script ticks: its clock is the frames
+
+func (f *Front) Options() bool       { return f.P.Options() }
+func (f *Front) UpdateOptions()      { f.P.UpdateOptions() }
+func (f *Front) OptionsPad(k uint16) { f.P.OptionsPad(k) }
+func (f *Front) OptionsMouse(x, y int, left, right bool, wheel float64) {
+	f.P.OptionsMouse(x, y, left, right, wheel)
+}
+
+func (f *Front) PadKeys() []PadKey     { return PadKeys(f.P.CombatPad()) } // the binding table's buttons (bindings.go)
+func (f *Front) PadStick(x, y float64) { f.P.PadStick(x, y) }
+
+// Idle: the front waits for input; nothing goes on with time (a paced
+// fight, rest, story or walk, a timed pause) and the 3D view stands still.
+// A scripted run (-keys) gives its next key only then.
+func (f *Front) Idle() bool {
+	if f.P.Playing() { // the fight's events still play: a script's next key (or its end) waits for them
+		return false
+	}
+	if pace := f.P.pacing().Pace; pace != game.PaceNone && pace != game.PaceAnim || f.P.askUp() != nil && f.P.askUp().Kind == AskPause {
+		return false
+	}
+	return f.P.view == nil || !f.P.view.Moving()
+}
+
+func (f *Front) Free() bool { return f.P.Free() }
+func (f *Front) Flow(held uint16, ready bool) (bool, bool) {
+	return f.P.Flow(held, ready)
+}
+func (f *Front) FreeWalk(in FreeInput) { f.P.FreeWalk(in) }
+
+func (f *Front) InventoryShown() bool { return f.P.InventoryShown() }
+func (f *Front) InventoryMouse(x, y int, down, right bool, wheel float64) {
+	f.P.InventoryMouse(x, y, down, right, wheel)
+}
+func (f *Front) Hover(x, y int, down bool) { f.P.Hover(x, y, down) }
+
+// Click is a left click at window pixel x, y. On the title or a sequence it
+// is the key Enter is.
+func (f *Front) Click(x, y int) bool {
+	if !f.started {
+		f.Act()
+	}
+	if f.P.sync(); f.P.introUp() != nil || f.P.sequenceUp() != nil {
+		f.Key('\r')
+		return true
+	}
+	if f.stopWalk() {
+		return true
+	}
+	return f.P.Click(x, y)
+}
+func (f *Front) ViewClick(x, y int) {
+	if !f.stopWalk() {
+		f.P.ViewClick(x, y)
+	}
+}
+
+// stopWalk stops the auto-walk under way (any key or click does; that input
+// acts on nothing else); false: none is.
+func (f *Front) stopWalk() bool {
+	if f.P.pacing().Pace != game.PaceWalk {
+		return false
+	}
+	f.P.call(func(e *classicGame) { e.StopWalk() })
+	return true
+}
+func (f *Front) Mouse(cx, cy int, in, left, right bool, wheel int) {
+	f.P.Mouse(cx, cy, in, left, right, wheel)
+}
+func (f *Front) Drop(path string, cx, cy int, in bool) {
+	f.P.Drop(path, cx, cy, in)
+}
+
+// Act runs the game on the screens' decisions (Answer, then Settle, which
+// returns once it waits again), and lets the presenter pace what goes on
+// with time (Pace). The fight's events Settle hands back are played.
+func (f *Front) Act() {
+	g := f.Game
+	if !f.started { // the title, on the render loop's (locked) thread that runs the game
+		f.started = true
+		g.Open(f.slot)
+		f.P.Play(g.Settle())
+	}
+	if f.P.Playing() { // the fight's events play first: the game waits, decisions are held
+		return
+	}
+	as := f.P.Actions() // first: the turn's decisions become rule calls
+	f.P.Pace()
+	calls := f.P.Calls()
+	for _, c := range calls { // the rule calls, then the actions not yet rule calls
+		c(g)
+	}
+	if len(as) > 0 || len(calls) > 0 || f.ArtNew {
+		if f.ArtNew {
+			f.P.ran++ // the picker and icon editor lay their pages out again, in the new art
+		}
+		f.ArtNew = false
+		for _, a := range as {
+			g.Answer(a)
+		}
+		f.P.Play(g.Settle())
+	}
+}
+
+// Cell is the text cell at window pixel x, y: the picture's, or the presenter's.
+func (f *Front) Cell(x, y float64) (int, int, bool) {
+	p := f.pic
+	if p.W <= 0 {
+		return f.P.Cell(int(x), int(y))
+	}
+	if x < p.X || y < p.Y || x >= p.X+p.W || y >= p.Y+p.H {
+		return 0, 0, false
+	}
+	cols, rows := f.Game.r.grid.X, f.Game.r.grid.Y
+	return int((x - p.X) * float64(cols) / p.W), int((y - p.Y) * float64(rows) / p.H), true
+}
+
+// Draw draws the screens, the status line's toast (Note) on the
+// bottom row while it is fresh.
+func (f *Front) Draw(dst *gpu.Image) {
+	if ownMus != nil && f.P.eng != nil { // wanted again when the state or the front's own changes, not every frame
+		f.P.lay.music.get(f.P.uiKey(), func() string { return ownMus.Want(musicChain(f.Game.MusicCue())) })
+	}
+	n := f.P.note()
+	if f.P.fontNote != "" && time.Since(f.P.fontAt) < 2*time.Second { // Ctrl-F's font name
+		n.Text, n.At = f.P.fontNote, f.P.fontAt
+	}
+	note := Note{Text: n.Text, Show: time.Since(n.At) < time.Second+time.Duration(len(n.Text))*80*time.Millisecond, Glyph: f.Glyph, Font: f.Font}
+	if f.P.Inventory(dst, note) { // the inventory screen
+		f.pic = Rect{}
+	} else {
+		f.pic = f.P.Draw(dst, note)
+	}
+	f.drawn = f.screenSig()
+	if held := f.held; len(held) > 0 { // the keys pressed before this screen showed, now on it
+		f.held = nil
+		for _, k := range held {
+			f.Key(k)
+		}
+	}
+}
+
+// newDriver is the Driver over Data.Sounds (nil: none), hooked so sounds play on.
+func newDriver() *audio.Driver {
+	if sounds == nil {
+		return nil
+	}
+	d, err := audio.NewDriver(sounds, 'T')
+	if err != nil {
+		return nil
+	}
+	var am audio.Amiga
+	var fx []int
+	if amigaMX != nil {
+		am, fx = amigaMX, amigaFx
+	} else if len(amigaSound) == amiga.End-amiga.Base {
+		am = amiga.New(amigaSound)
+	}
+	d.Attach(am, fx, nil, nil, nil, nil)
+	d.Wait(0)
+	return d
+}
+
+var _ audio.Sound = (*audio.Driver)(nil)
+
+// ownMusicDir is the player's own music folder: Data.OwnMusic, else beside
+// Data.Files ("": none).
+func ownMusicDir(d game.Data) string {
+	switch {
+	case d.OwnMusic != "":
+		return d.OwnMusic
+	case d.Files != "":
+		return filepath.Join(filepath.Dir(d.Files), "music")
+	}
+	return ""
+}

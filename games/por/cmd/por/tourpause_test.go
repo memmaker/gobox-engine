@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gobox/front/present"
+	"gobox/ui"
 	"testing"
 
 	"gobox/game"
@@ -23,7 +23,7 @@ func TestTourPausesTimed(t *testing.T) {
 	eng.Cfg.SaveDir = t.TempDir()
 	seed := uint32(7)
 	eng.FixedSeed = &seed
-	g := present.NewGame(eng, playpor.Data(eng))
+	g := ui.NewGame(eng, playpor.Data(eng))
 	g.Open("")
 	for i := 0; i < 5; i++ {
 		g.TitleDone()

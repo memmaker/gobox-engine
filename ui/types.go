@@ -1,0 +1,183 @@
+package ui
+
+import (
+	"image"
+	"image/color"
+)
+
+// Board is the combat map as the tabletop shows it: the game's snapshot,
+// translated by the game's own adapter.
+type Board struct {
+	Ground    [25][50]Square
+	Tiles     []image.Image // the tile set by tile number
+	TileNames []string      // Tiles' names ("": none); a tile named so may have a mesh in the presenter's Meshes
+	WallTiles int           // tiles 0..WallTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
+	StoneTile int           // the wall tile whose face is the stone texture (a plain one)
+	Floor     color.RGBA    // the ground's colour
+	FloorTile image.Image   // the plain floor's picture, tiled on every floor square (nil: Floor's colour with grain)
+	Dungeon   bool
+	Units     []Unit
+	Cursor    image.Point
+	CursorOn  bool
+	CursorAt  []image.Point
+	Marks     []image.Point
+	Reach     []image.Point
+	Paths     map[image.Point][]Step
+	Targets   []int // unit IDs an Attack takes; aiming: the foes Tab cycles through
+	Turn      *Turn // nil: no one to act for
+	Panel     int
+	Log       []string
+	Area      bool
+	AreaAt    []image.Point
+	AimArea   int // no AreaAt: radius+1 washed round the hovered square (0 none)
+	Skipped   []image.Point
+	AimWhy    string
+	Effects   []Effect
+	View      image.Point // the original's scrolled window, the camera's framing hint
+	Strike    Strike
+	Confirm   string // the question a Yes or No answers ("" none)
+}
+
+// Turn is what the acting unit may do.
+type Turn struct {
+	Unit       int
+	Can        []Kind // the buttons offered, in the game's menu order
+	Aim        bool
+	Casting    string
+	Moves      int
+	Labels     map[Kind]string // optional button words
+	Keys       map[Kind]int    // optional hotkey letters by button (0 or missing: derived from the word; -1: none)
+	CastDirect bool            // Cast acts at once instead of opening the spell list (no spells to list)
+	Options    []CombatOption  // the game's options in its order: the bar's buttons (none: Can)
+}
+
+// CombatOption is a button the game offers: its word, hotkey (0: derived) and
+// action (ActOption: the game's own, Decision.N its index).
+type CombatOption struct {
+	Label  string
+	Key    byte
+	Kind   Kind
+	Chords string // more keys that pick it, comma-separated: alt+q, shift+u, space, q
+}
+
+// Effect is a sprite over the map for a moment.
+type Effect struct {
+	X, Y float64
+	Pic  image.Image
+}
+
+// Step is one square of a walk; Free: leaving it lets an enemy take a free attack.
+type Step struct {
+	image.Point
+	Free bool
+}
+
+// Strike is one weapon attack: Seq counts attacks, so a new one is a new Seq.
+type Strike struct {
+	Seq      int
+	From, To int
+	Hit      bool
+	Damage   int
+}
+
+// Square is one map square.
+type Square struct {
+	Tile    int
+	Wall    bool
+	Height  int
+	Overlay int // Tiles[Overlay-1] lies flat over the square, under the units (0 none)
+}
+
+// Unit is one combatant on the map.
+type Unit struct {
+	ID         int
+	X, Y, Size int
+	Squares    []image.Point
+	Party      bool
+	Facing     int // 0..7
+	Icon       image.Image
+	IconSize   image.Point // pixels, 24 or 48
+	Active     bool
+	Name       string
+	HP, AC     int
+	MaxHP      int
+	Hit        int
+	Dmg        string
+	Weapon     string
+	Status     string
+	Down       bool // a body: lies on its square, no base
+}
+
+// Kind is what a Decision does.
+type Kind int
+
+const (
+	CombatActNone Kind = iota
+	CombatActWalk
+	CombatActStep // one keypad step, N = direction 1..9
+	CombatActAttack
+	CombatActAim
+	CombatActPoint
+	CombatActClose
+	CombatActYes
+	CombatActNo
+	CombatActWait
+	CombatActEnd
+	CombatActQuick
+	CombatActGuard
+	CombatActBandage
+	CombatActFlee
+	CombatActTurn
+	CombatActCast
+	CombatActItems
+	CombatActRanged
+	CombatActManeuver
+	CombatActView
+	CombatActOption // the turn's option N (Turn.Options)
+)
+
+// Decision is what the player chose.
+type Decision struct {
+	Kind    Kind
+	N, X, Y int
+	Pre     image.Point // a maneuver's pre-aimed square (TODO, not emitted yet)
+}
+
+// CombatTheme is the host's colours for what combat draws besides the board's own.
+// DefaultTheme is por's current look; a game copies and changes it.
+type CombatTheme struct {
+	Backdrop    color.RGBA // behind the table
+	Wood        color.RGBA // the table's plank colour (its grain darkens it)
+	Panel       color.RGBA // a button's face behind its icon
+	Button      color.RGBA // the button's frame
+	Shadow      color.RGBA // darkens what text sits on
+	Letter      color.RGBA // the hotkey and the big letter
+	Accent      color.RGBA // the selection frame and the hovered word
+	Caption     color.RGBA // the casting caption
+	Hurt        color.RGBA // damage numbers
+	TextOutline color.RGBA // round the damage numbers
+	Series      string     // the asset series whose bar icons show (icons/<series>/)
+}
+
+// CombatDefaultTheme is por's current look (EGA colours).
+var CombatDefaultTheme = CombatTheme{
+	Backdrop:    color.RGBA{0x0C, 0x0B, 0x0A, 0xFF},
+	Wood:        color.RGBA{92, 60, 36, 255},
+	Panel:       color.RGBA{0x18, 0x20, 0x38, 0xFF},
+	Button:      color.RGBA{82, 82, 82, 255},
+	Shadow:      color.RGBA{0, 0, 0, 0xB0},
+	Letter:      color.RGBA{255, 255, 255, 255},
+	Accent:      color.RGBA{82, 255, 82, 255},
+	Caption:     color.RGBA{255, 255, 82, 255},
+	Hurt:        color.RGBA{255, 255, 85, 255},
+	TextOutline: color.RGBA{0, 0, 0, 255},
+	Series:      "pool",
+}
+
+// combatSelectOutline fills a frame of colour c, t pixels thick inside r.
+func combatSelectOutline(r image.Rectangle, t int, c color.RGBA, fill func(image.Rectangle, color.RGBA)) {
+	fill(image.Rect(r.Min.X, r.Min.Y, r.Max.X, r.Min.Y+t), c)
+	fill(image.Rect(r.Min.X, r.Max.Y-t, r.Max.X, r.Max.Y), c)
+	fill(image.Rect(r.Min.X, r.Min.Y, r.Min.X+t, r.Max.Y), c)
+	fill(image.Rect(r.Max.X-t, r.Min.Y, r.Max.X, r.Max.Y), c)
+}

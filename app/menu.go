@@ -4,9 +4,8 @@ import (
 	"log"
 	"reflect"
 
-	"gobox/blobber"
 	"gobox/gpu"
-	"gobox/input"
+	"gobox/ui"
 )
 
 // Menu is the Esc menu (blobber's settings) as the game fills it: its own
@@ -14,9 +13,9 @@ import (
 // what the menu's lines do.
 type Menu struct {
 	Prefs Prefs
-	Extra any                      // a pointer to the game's own options struct: loaded and saved beside blobber.Settings (its fields at the file's top level)
-	Rows  map[string][]blobber.Row // blobber.ExtraRows
-	Apply func()                   // the options changed (once after loading too): the game takes them up
+	Extra any                 // a pointer to the game's own options struct: loaded and saved beside blobber.Settings (its fields at the file's top level)
+	Rows  map[string][]ui.Row // blobber.ExtraRows
+	Apply func()              // the options changed (once after loading too): the game takes them up
 
 	SaveLoad, MainMenu func() // blobber.OnSaveLoad, OnMainMenu
 
@@ -38,9 +37,9 @@ type fontHost interface {
 // latch (no key held through a screen change repeats), tps the tick rate.
 func (m *Menu) setup(held func(any) bool, tps int) {
 	if m.FontNames != nil {
-		blobber.FontNames, blobber.FontAt, blobber.SetFont, blobber.FontGlyph = m.FontNames, m.FontAt, m.SetFont, m.FontGlyph
+		ui.FontNames, ui.FontAt, ui.SetFont, ui.FontGlyph = m.FontNames, m.FontAt, m.SetFont, m.FontGlyph
 	}
-	dst := []any{&blobber.Settings}
+	dst := []any{&ui.Settings}
 	if m.Extra != nil {
 		dst = append(dst, m.Extra)
 	}
@@ -48,7 +47,7 @@ func (m *Menu) setup(held func(any) bool, tps int) {
 	if m.Apply != nil {
 		m.Apply()
 	}
-	blobber.OnSettings = func(o blobber.BlobberOptions) {
+	ui.OnSettings = func(o ui.BlobberOptions) {
 		if m.Apply != nil {
 			m.Apply()
 		}
@@ -56,15 +55,15 @@ func (m *Menu) setup(held func(any) bool, tps int) {
 			log.Printf("settings not kept: %v", err)
 		}
 	}
-	blobber.ExtraRows = m.Rows
-	blobber.Repeats = func(d int) bool { return input.Repeat(d, tps) } // held keys and buttons repeat at the game's one rate
-	blobber.OnMainMenu, blobber.OnSaveLoad = m.MainMenu, m.SaveLoad
-	blobber.Held = func(k gpu.Key) bool { return held(k) }
+	ui.ExtraRows = m.Rows
+	ui.Repeats = func(d int) bool { return ui.Repeat(d, tps) } // held keys and buttons repeat at the game's one rate
+	ui.OnMainMenu, ui.OnSaveLoad = m.MainMenu, m.SaveLoad
+	ui.Held = func(k gpu.Key) bool { return held(k) }
 }
 
 // both is o and *Extra as one struct embedding both, so the file holds
 // their fields at its top level in their order.
-func (m *Menu) both(o blobber.BlobberOptions) any {
+func (m *Menu) both(o ui.BlobberOptions) any {
 	if m.Extra == nil {
 		return o
 	}

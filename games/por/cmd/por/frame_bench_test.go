@@ -4,15 +4,15 @@ import (
 	"os"
 	"testing"
 
-	"gobox/front/present"
 	"gobox/game/play"
 	"gobox/games/por/playpor"
 	"gobox/games/por/porgame"
+	"gobox/ui"
 )
 
 // frameFront is por as main starts it, headless, past the title: -explore
 // (a Quick Start party in the 3D view) or a dev scene (autocombat: a fight).
-func frameFront(b *testing.B, dev string) *present.Front {
+func frameFront(b *testing.B, dev string) *ui.Front {
 	if err := os.Chdir("../.."); err != nil {
 		b.Skip(err)
 	}
@@ -30,7 +30,7 @@ func frameFront(b *testing.B, dev string) *present.Front {
 	seed := uint32(1)
 	eng.FixedSeed = &seed
 	data := playpor.Data(eng)
-	f := present.NewFront(present.NewGame(eng, data), data)
+	f := ui.NewFront(ui.NewGame(eng, data), data)
 	f.Start("")
 	f.Frame(1280, 800)
 	f.Game.SequenceDone("intro")

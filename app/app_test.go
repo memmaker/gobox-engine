@@ -2,7 +2,7 @@ package app
 
 import (
 	"encoding/json"
-	"gobox/blobber"
+	"gobox/ui"
 	"os"
 	"slices"
 	"testing"
@@ -38,11 +38,11 @@ func TestPrefs(t *testing.T) {
 func TestMenuBoth(t *testing.T) {
 	type Extra struct{ Zoom float64 }
 	m := Menu{Extra: &Extra{2}}
-	got, _ := json.Marshal(m.both(blobber.BlobberOptions{Torch: 1}))
+	got, _ := json.Marshal(m.both(ui.BlobberOptions{Torch: 1}))
 	want, _ := json.Marshal(struct {
-		blobber.BlobberOptions
+		ui.BlobberOptions
 		Extra
-	}{blobber.BlobberOptions{Torch: 1}, Extra{2}})
+	}{ui.BlobberOptions{Torch: 1}, Extra{2}})
 	if string(got) != string(want) {
 		t.Fatalf("%s\nwant %s", got, want)
 	}
