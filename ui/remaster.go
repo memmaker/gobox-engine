@@ -1,7 +1,8 @@
-// Package remaster shows the game with the Blobber renderer: the 3D view
+// remaster.go shows the game with the Blobber renderer: the 3D view
 // fills the window, and the original's windows are laid over it. It only
 // reads the game, through play.State and the UI, so drawing never touches the
 // game's state.
+
 package ui
 
 import (

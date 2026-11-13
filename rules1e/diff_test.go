@@ -15,7 +15,7 @@ import (
 // The vectors come from the pure Pascal (por-re bugfixed-rules, vectors-pure.sh).
 // A difference is a bug, or a row of gobox-engine/CHANGES-FROM-ORIGINAL.md.
 var (
-	vecClass = [8]rules.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
+	vecClass = [8]rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, ClassRanger, ClassMage, ClassThief, ClassMonk}
 	vecRace  = [8]rules.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
 	vecCon   = 19 // the Pascal's stat vectors read no constitution; 19 shows the bonus every race gets
 	vecSave  = [5]rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
@@ -27,20 +27,20 @@ func documented(key []string, want, got []int) bool {
 	k := ints(key[1:])
 	switch key[0] {
 	case "save":
-		return vecClass[k[0]] == CoreClassPaladin && k[1] <= 8
+		return vecClass[k[0]] == ClassPaladin && k[1] <= 8
 	case "xp":
 		// Past level 9 the Pascal reads other data. Felix: past its table a class reads POD's
 		// table, then adds POD's step (the thief: 160001, 220001, then +220000); a class that stops before stays at -1.
 		if k[1] > 9 {
 			xp := -1
-			if vecClass[k[0]] == CoreClassThief {
+			if vecClass[k[0]] == ClassThief {
 				xp = []int{160001, 220001, 440001, 660001}[k[1]-10]
 			}
 			// the slots of a class without spells are other data too, never read
-			spells := vecClass[k[0]] == CoreClassCleric || vecClass[k[0]] == CoreClassMage
+			spells := vecClass[k[0]] == ClassCleric || vecClass[k[0]] == ClassMage
 			return got[0] == xp && (!spells || slices.Equal(want[1:], got[1:]))
 		}
-		return (vecClass[k[0]] == CoreClassPaladin || vecClass[k[0]] == CoreClassRanger) && want[0] == -1
+		return (vecClass[k[0]] == ClassPaladin || vecClass[k[0]] == ClassRanger) && want[0] == -1
 	case "damage":
 		// ruling 3 (cotab's DAMAGE for all): with flags 0x80 and 0x10 a made
 		// save still hurts; POR's Pascal reads 0x10 as save bonus only. No
@@ -89,23 +89,23 @@ func statDocumented(k, want, got []int) bool {
 		return 0
 	}
 	fixed := slices.Clone(want)
-	if level(CoreClassPaladin) > 6 || level(CoreClassRanger) > 7 {
+	if level(ClassPaladin) > 6 || level(ClassRanger) > 7 {
 		fixed[2] = 3 // COTAB's attacks
 	}
-	copied := level(CoreClassPaladin) > 0 && level(CoreClassPaladin) <= 8
+	copied := level(ClassPaladin) > 0 && level(ClassPaladin) <= 8
 	if copied {
 		copy(fixed[9:14], got[9:14]) // COTAB's paladin saves, steps 1 and 4 included
 	}
 	// COTAB's superset (Felix 18:10), one by one:
 	// 1. a monk's saves are also the MonkOldSaves row of its old level (0 here).
-	if level(CoreClassMonk) > 0 && !copied {
+	if level(ClassMonk) > 0 && !copied {
 		for i := range vecSave {
 			fixed[9+i] = min(fixed[9+i], int(POR.MonkOldSaves[0][i]))
 		}
 	}
 	// 2. a paladin from level 9 gains cleric spells (PaladinSpells); without cleric levels the held slots go.
-	if add := rowSum(POR.PaladinSpells, level(CoreClassPaladin)); add != ([5]int{}) {
-		if level(CoreClassCleric) <= 0 {
+	if add := rowSum(POR.PaladinSpells, level(ClassPaladin)); add != ([5]int{}) {
+		if level(ClassCleric) <= 0 {
 			copy(fixed[3:6], []int{0, 0, 0})
 		}
 		for i := range 3 {
@@ -113,8 +113,8 @@ func statDocumented(k, want, got []int) bool {
 		}
 	}
 	// 3. a ranger from level 8 gains magic-user spells (RangerSpells columns 4, 5); without magic-user levels the held slots go.
-	if add := rowSum(POR.RangerSpells, level(CoreClassRanger)); add != ([5]int{}) {
-		if level(CoreClassMage) <= 0 {
+	if add := rowSum(POR.RangerSpells, level(ClassRanger)); add != ([5]int{}) {
+		if level(ClassMage) <= 0 {
 			copy(fixed[6:9], []int{0, 0, 0})
 		}
 		fixed[6] += add[3]
@@ -258,9 +258,9 @@ func ours(kind string, k []int) string {
 // classSlot: only cleric and mage rows are slots in ours; the Pascal has zeros elsewhere.
 func classSlot(class, level, i int) int {
 	switch vecClass[class] {
-	case CoreClassCleric:
+	case ClassCleric:
 		return ClericSlots(level)[i]
-	case CoreClassMage:
+	case ClassMage:
 		return MageSlots(level)[i]
 	}
 	return 0

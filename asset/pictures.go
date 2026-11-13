@@ -1,7 +1,8 @@
-// Package asset is an adventure's picture table (data/pictures.json): each
+// pictures.go is an adventure's picture table (data/pictures.json): each
 // original DAX picture's entry in the shared portrait and icon collection,
 // from the series' origins (origins/<series>.json, written by sprites'
 // cmd/poolsprites).
+
 package asset
 
 import (

@@ -1,6 +1,7 @@
-// Package dnd is the Forgotten Realms / 1st edition concepts: what POR, COTAB,
+// dnd.go is the Forgotten Realms / 1st edition concepts: what POR, COTAB,
 // SotSB and POD adventures and the 1e ruleset name. The numbers behind each
 // are the ruleset's. MonsterID and ItemID rosters are generated at import.
+
 package rules1e
 
 import "gobox/rules"
@@ -17,14 +18,14 @@ const (
 )
 
 const (
-	CoreClassCleric  rules.Class = "cleric"
-	CoreClassDruid   rules.Class = "druid"
-	CoreClassFighter rules.Class = "fighter"
-	CoreClassPaladin rules.Class = "paladin"
-	CoreClassRanger  rules.Class = "ranger"
-	CoreClassMage    rules.Class = "mage"
-	CoreClassThief   rules.Class = "thief"
-	CoreClassMonk    rules.Class = "monk"
+	ClassCleric  rules.Class = "cleric"
+	ClassDruid   rules.Class = "druid"
+	ClassFighter rules.Class = "fighter"
+	ClassPaladin rules.Class = "paladin"
+	ClassRanger  rules.Class = "ranger"
+	ClassMage    rules.Class = "mage"
+	ClassThief   rules.Class = "thief"
+	ClassMonk    rules.Class = "monk"
 )
 
 const (

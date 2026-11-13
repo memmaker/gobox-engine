@@ -1,5 +1,6 @@
 // rules.go: the front state over a play.Game: what gobox decides itself (the
 // asks, the aiming, the inventory up, the paging and the pacing).
+
 package ui
 
 import (

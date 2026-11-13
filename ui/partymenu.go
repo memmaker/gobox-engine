@@ -1,5 +1,6 @@
-// Package classic is gobox's default front: the Gold Box UI built from a
+// partymenu.go is gobox's default front: the Gold Box UI built from a
 // game's play.State alone (no game imports, no engine access).
+
 package ui
 
 import (

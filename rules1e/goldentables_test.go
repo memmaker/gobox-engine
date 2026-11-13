@@ -25,7 +25,7 @@ var updateGolden = flag.Bool("update", false, "rewrite testdata/<game>/tables.go
 var goldenGames = []string{"sotsb", "pod", "cotab"}
 
 var (
-	goldenClasses = []rules.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
+	goldenClasses = []rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, ClassRanger, ClassMage, ClassThief, ClassMonk}
 	goldenRaces   = []rules.Race{CoreRaceMonster, CoreRaceDwarf, CoreRaceElf, CoreRaceGnome, CoreRaceHalfElf, CoreRaceHalfling, CoreRaceHalfOrc, CoreRaceHuman}
 	goldenSaves   = []rules.Save{SaveParalysis, SavePetrify, SaveRod, SaveBreath, SaveSpell}
 	goldenSkills  = thiefSkillOrder
@@ -144,7 +144,7 @@ func dumpTables(tb *Tables) goldenTables {
 		g.CareerMin = append(g.CareerMin, row)
 		g.CareerAl = append(g.CareerAl, tb.CareerAlignments(Career(c)))
 	}
-	for _, class := range []rules.Class{CoreClassCleric, CoreClassDruid, CoreClassPaladin, CoreClassRanger, CoreClassMage} {
+	for _, class := range []rules.Class{ClassCleric, ClassDruid, ClassPaladin, ClassRanger, ClassMage} {
 		for lvl := 1; lvl <= tb.SlotLevels; lvl++ {
 			var byScore [][3][]int
 			for score := 3; score < goldenScores; score++ {

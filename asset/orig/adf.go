@@ -1,4 +1,5 @@
-// Package orig reads the files of an Amiga OFS/FFS floppy image (.adf).
+// adf.go reads the files of an Amiga OFS/FFS floppy image (.adf).
+
 package orig
 
 import (

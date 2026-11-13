@@ -12,7 +12,7 @@ func TestLevelReady(t *testing.T) {
 	c.Race = RaceHuman
 	c.Stats[StatStr] = 16
 	c.Levels[ClsFighter] = 1
-	need := uint32(XPForLevel(CoreClassFighter, 2))
+	need := uint32(XPForLevel(ClassFighter, 2))
 	c.Exp = need - 1
 	if levelReady(c) {
 		t.Fatal("ready below the experience")

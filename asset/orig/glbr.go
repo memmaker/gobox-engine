@@ -1,7 +1,8 @@
-// Package orig is SOUND.COM's AdLib song sequencer (GLBR/SLBR song blocks,
+// glbr.go is SOUND.COM's AdLib song sequencer (GLBR/SLBR song blocks,
 // pod-go docs/MUSIC.md) and its SID twin, as register writes, and the songs
 // as data (MIDI plus OPLVoice records, midi.go). It needs only the standard
 // library, so importers use it; gobox/audio puts the writes on the chips.
+
 package orig
 
 import "encoding/binary"

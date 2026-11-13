@@ -1,8 +1,9 @@
-// Package engine holds the rules the Gold Box games share, copied from the
+// rules.go holds the rules the Gold Box games share, copied from the
 // games' engines and kept behaviour-identical, including the exact order of
 // RNG calls. The games pass in their side effects (Hooks) and tables; what an
 // original does differently stays in that game. The package never knows which
 // game runs.
+
 package engine
 
 import (

@@ -1,7 +1,8 @@
-// Package asset is the shell's save slots on disk: one folder per slot
+// saves.go is the shell's save slots on disk: one folder per slot
 // under a root, listed newest first, written beside the old one and
 // swapped in only once complete. The game writes its own files into the
 // folder (Write); saves never reads them.
+
 package asset
 
 import (

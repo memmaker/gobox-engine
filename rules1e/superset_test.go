@@ -39,7 +39,7 @@ func TestAffectNames(t *testing.T) {
 // TestConSave pins COTAB's constitution bonus in the stored paralysis save (O0FE:07FB).
 func TestConSave(t *testing.T) {
 	para := func(r Who) int { return ClassStats(r).Saves[SaveParalysis] }
-	lv := map[rules.Class]int{CoreClassFighter: 1}
+	lv := map[rules.Class]int{ClassFighter: 1}
 	base := para(Who{Levels: lv, Race: CoreRaceHuman, Con: 18})
 	if got := para(Who{Levels: lv, Race: CoreRaceDwarf, Con: 18}); got != base-5 {
 		t.Errorf("dwarf con 18: %d, want %d", got, base-5)

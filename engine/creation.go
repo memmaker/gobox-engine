@@ -1,7 +1,8 @@
-// Package engine is gobox's one character-creation flow over a ruleset's
+// creation.go is gobox's one character-creation flow over a ruleset's
 // core.CreationRules, for every game: POR c70cbee's sheet (engine/create.go
 // editSheet). The draft lives here; the ruleset only answers legality, rolls
 // and keeps. Drawing is the front's (front/classic/creation.go).
+
 package engine
 
 import (

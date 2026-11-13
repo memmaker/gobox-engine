@@ -1,5 +1,6 @@
-// Package rules parses GEO and WALLDEF block bytes (already decoded by the
+// geo.go parses GEO and WALLDEF block bytes (already decoded by the
 // caller's DAX reader) into plain values. No engine state, no rendering.
+
 package rules
 
 import (

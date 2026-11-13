@@ -1,7 +1,8 @@
-// Package orig describes data tables to copy out of a game's
+// tablespec.go describes data tables to copy out of a game's
 // unpacked START.EXE (name, place in the data segment, length, kind) and
 // generates them as named Go values. The game owns its list of Tables and
 // passes it to Generate; nothing here knows which game it is.
+
 package orig
 
 import (

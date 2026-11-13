@@ -1,6 +1,7 @@
-// Package orig unpacks the EXEPACK-compressed START.EXE so the engine can read
+// exe.go unpacks the EXEPACK-compressed START.EXE so the engine can read
 // the program's data tables (code wheel, race/class names, item words ...)
 // straight from the original executable at run time.
+
 package orig
 
 import (

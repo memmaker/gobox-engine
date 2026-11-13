@@ -1,5 +1,6 @@
-// Package asset is the shared pool of portraits, combat sprites and item
+// sprites.go is the shared pool of portraits, combat sprites and item
 // icons, keyed by asset series: sprites/series/<series>/<kind>/<name>.png.
+
 package asset
 
 import (

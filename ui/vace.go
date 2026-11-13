@@ -1,7 +1,8 @@
-// Package ui decodes SSI's VACE animations (Pools of Darkness INTRO and
+// vace.go decodes SSI's VACE animations (Pools of Darkness INTRO and
 // FINAL): the .ACF control script, the .BMA frames and the .SMS songs it
 // cues. FORMAT.md has the layouts. No drawing here: frames come out as
 // image.Paletted with their palette and how long each stays up.
+
 package ui
 
 import (

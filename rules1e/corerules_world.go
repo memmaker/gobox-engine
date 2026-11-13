@@ -158,7 +158,7 @@ func (r *Rules) party(p rules.Party) []*Character {
 
 // porClassesOf is the record classes that have a class (HasClass).
 // ponytail: ranger only (opPartySurprise); add classes when a script asks.
-var porClassesOf = map[rules.Class][]ClassID{CoreClassRanger: {ClsRanger, ClsClericRanger}}
+var porClassesOf = map[rules.Class][]ClassID{ClassRanger: {ClsRanger, ClsClericRanger}}
 
 // resolveWorld resolves the world's actions; ok: a was one of them.
 func (r *Rules) resolveWorld(s rules.Situation, a rules.Action) (o rules.Outcome, ok bool, err error) {

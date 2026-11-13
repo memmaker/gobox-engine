@@ -1,4 +1,5 @@
 // view_state.go: what the screens read of the state up, each from play's types.
+
 package ui
 
 import (

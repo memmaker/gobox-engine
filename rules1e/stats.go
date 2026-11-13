@@ -41,7 +41,7 @@ type Stats struct {
 type LevelSlots [MaxSpellLevel]int
 
 // classOrder is the order later classes overwrite earlier ones' attacks.
-var classOrder = [8]rules.Class{CoreClassCleric, CoreClassDruid, CoreClassFighter, CoreClassPaladin, CoreClassRanger, CoreClassMage, CoreClassThief, CoreClassMonk}
+var classOrder = [8]rules.Class{ClassCleric, ClassDruid, ClassFighter, ClassPaladin, ClassRanger, ClassMage, ClassThief, ClassMonk}
 
 // ClassStats is ClassCal.RecalcClassStats over POR's tables.
 func ClassStats(w Who) Stats { return POR.ClassStats(w) }
@@ -58,29 +58,29 @@ func (t *Tables) ClassStats(w Who) Stats {
 		s.Thac0Base = max(s.Thac0Base, t.Thac0At(class, lvl))
 		s.Highest = max(s.Highest, lvl)
 		switch class {
-		case CoreClassFighter:
+		case ClassFighter:
 			s.Attacks = 2
 			if lvl > 6 {
 				s.Attacks = 3
 			}
-		case CoreClassPaladin:
+		case ClassPaladin:
 			if lvl > 6 {
 				s.Attacks = 3
 			}
 			if add := rowSum(t.PaladinSpells, lvl); add != ([5]int{}) {
-				if w.Levels[CoreClassCleric] <= 0 {
+				if w.Levels[ClassCleric] <= 0 {
 					s.ClericSlots = LevelSlots{}
 				}
 				for i := range add {
 					s.ClericSlots[i] += add[i]
 				}
 			}
-		case CoreClassRanger:
+		case ClassRanger:
 			if lvl > 7 {
 				s.Attacks = 3
 			}
 			if add := rowSum(t.RangerSpells, lvl); add != ([5]int{}) {
-				if w.Levels[CoreClassMage] <= 0 {
+				if w.Levels[ClassMage] <= 0 {
 					s.MageSlots = LevelSlots{}
 				}
 				fresh = true
@@ -88,12 +88,12 @@ func (t *Tables) ClassStats(w Who) Stats {
 				s.MageSlots[0] += add[3]
 				s.MageSlots[1] += add[4]
 			}
-		case CoreClassCleric:
+		case ClassCleric:
 			if lvl = t.slotRow(lvl); lvl > 0 && lvl <= t.SlotLevels {
 				s.ClericSlots = slotsAt(t.ClericSlots, lvl)
 				s.ClericSlots = WisdomBonus(s.ClericSlots, w.Wis)
 			}
-		case CoreClassMage:
+		case ClassMage:
 			if lvl = t.slotRow(lvl); lvl > 0 && lvl <= t.SlotLevels {
 				s.MageSlots = IntelligenceLimit(slotsAt(t.MageSlots, lvl), w.Int)
 				fresh = true
@@ -112,7 +112,7 @@ func (t *Tables) ClassStats(w Who) Stats {
 				s.Saves[save] = min(s.Saves[save], t.SaveAt(class, lvl, save))
 			}
 		}
-		if old := w.OldLevels[CoreClassMonk]; old < w.Levels[CoreClassMonk] && old < len(t.MonkOldSaves) {
+		if old := w.OldLevels[ClassMonk]; old < w.Levels[ClassMonk] && old < len(t.MonkOldSaves) {
 			s.Saves[save] = min(s.Saves[save], int(t.MonkOldSaves[old][saveColumn[save]]))
 		}
 	}
@@ -124,7 +124,7 @@ func (t *Tables) ClassStats(w Who) Stats {
 		s.Saves[SaveParalysis] -= int(rules.ConSaveLow(con))
 	}
 	s.Saves[SaveParalysis] -= int(rules.ConSaveHigh(con))
-	if lvl := w.Levels[CoreClassThief]; lvl > 0 {
+	if lvl := w.Levels[ClassThief]; lvl > 0 {
 		s.Skills = t.ThiefSkills(lvl, w.Race, w.Dex, w.Powers)
 	}
 	return s

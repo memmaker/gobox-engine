@@ -2,7 +2,7 @@
 // the Rules interface, the neutral ids, and the plain data
 // that crosses them. It imports nothing of ours and holds no behaviour but
 // the RNG. Concepts of one world are in rules1e (dnd.go)
-// and core/xxvc; an adventure and its ruleset share one of them.
+// and rules/xxvc; an adventure and its ruleset share one of them.
 //
 // DRAFT for review, nothing uses it yet. See ../ARCHITECTURE.md.
 package rules

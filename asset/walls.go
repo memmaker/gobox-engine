@@ -1,8 +1,9 @@
-// Package asset is the shared pool of blobber wall, floor and ceiling
+// walls.go is the shared pool of blobber wall, floor and ceiling
 // textures, keyed by asset series: games of one series (e.g. "pool",
 // "buck-rogers") share series/<series>/; a game names its series as data.
 // The textures are read from disk when first asked for, not embedded: a
 // game's binary carries none, and a map loads only the ones it draws.
+
 package asset
 
 import (

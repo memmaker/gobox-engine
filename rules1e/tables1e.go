@@ -1,4 +1,6 @@
-// Package rules1e is the 1st edition ruleset. It imports only gobox/core.
+// Package rules1e is the 1st edition ruleset: its tables and rules, the Forgotten
+// Realms concepts (dnd.go) and the byte-record character files and layouts
+// (char*.go). It imports only gobox/rules.
 package rules1e
 
 import "gobox/rules"

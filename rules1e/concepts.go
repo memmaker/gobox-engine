@@ -7,8 +7,8 @@ import (
 // The record's class, race, save and thief skill numbers, as the concepts the
 // ruleset is asked about. Save files keep the numbers until the savefile move.
 var (
-	PorClass = [8]rules.Class{ClsCleric: CoreClassCleric, ClsDruid: CoreClassDruid, ClsFighter: CoreClassFighter, ClsPaladin: CoreClassPaladin,
-		ClsRanger: CoreClassRanger, ClsMage: CoreClassMage, ClsThief: CoreClassThief, ClsMonk: CoreClassMonk}
+	PorClass = [8]rules.Class{ClsCleric: ClassCleric, ClsDruid: ClassDruid, ClsFighter: ClassFighter, ClsPaladin: ClassPaladin,
+		ClsRanger: ClassRanger, ClsMage: ClassMage, ClsThief: ClassThief, ClsMonk: ClassMonk}
 	porSave  = SaveOrder
 	porSkill = [8]rules.Skill{PickPockets, OpenLocks, FindTraps, MoveQuietly, Hide, Hear, Climb, ReadLanguages}
 )

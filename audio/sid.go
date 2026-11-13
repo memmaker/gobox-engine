@@ -5,7 +5,7 @@
 // Go port of reSIDuEngine (C++ implementation of the Commodore 64 SID chip).
 // Original: Copyright (c) 2026, Gavin Graham <gavindi@gmail.com>
 
-// Package audio is a pure-Go port of reSIDuEngine, an emulator of the MOS
+// sid.go is a pure-Go port of reSIDuEngine, an emulator of the MOS
 // 6581/8580 SID: 3 voices with band-limited triangle/sawtooth/pulse, 23-bit
 // noise LFSR, combined waveforms, hard sync and ring modulation, ADSR with the
 // 15-bit LFSR rate counter (including the ADSR delay bug), the multimode
@@ -23,6 +23,7 @@
 // Writes may happen between any two calls. Clock, like the original,
 // truncates cycles/clkRatio per call; callers that write once per frame
 // should prefer Samples (or ClockSample) with a sample count they track.
+
 package audio
 
 import "math"

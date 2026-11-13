@@ -1,4 +1,4 @@
-// Package playpool starts a Gold Box game's pool engine (pool.New over
+// Package playpool starts a Gold Box game's pool engine (engine.New over
 // rules1e) on an imported adventure folder for cmd/gobox: the one host loop
 // every game on pool shares. A game's play package only names what differs
 // (Game).

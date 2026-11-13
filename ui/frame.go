@@ -1,6 +1,7 @@
 // frame.go: the switch's skeleton (switch-spec.md). The presenter reads
 // the game's play.State, which the engine built and shares read-only, and
 // UI, the front's own state over it; nothing repacks the State.
+
 package ui
 
 import (

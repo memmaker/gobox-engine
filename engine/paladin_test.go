@@ -21,7 +21,7 @@ func TestPaladinRanger(t *testing.T) {
 	if rng.BaseAttack[0] != 2 {
 		t.Errorf("ranger 7: attacks %d", rng.BaseAttack[0])
 	}
-	if rules1e.XPForLevel(rules1e.CoreClassPaladin, 9) != -1 || rules1e.XPForLevel(rules1e.CoreClassRanger, 8) != -1 || rules1e.XPForLevel(rules1e.CoreClassRanger, 7) != 90001 {
+	if rules1e.XPForLevel(rules1e.ClassPaladin, 9) != -1 || rules1e.XPForLevel(rules1e.ClassRanger, 8) != -1 || rules1e.XPForLevel(rules1e.ClassRanger, 7) != 90001 {
 		t.Error("level caps")
 	}
 	if len(rules1e.RaceCareers(rules1e.CoreRaceHuman)) != 6 || len(rules1e.RaceCareers(rules1e.CoreRaceHalfElf)) != 13 || len(rules1e.CareerAlignments(rules1e.CareerRanger)) != 3 {

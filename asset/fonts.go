@@ -1,7 +1,8 @@
-// Package asset is the shared pool of PC BIOS 8x8 fonts (The Ultimate
+// fonts.go is the shared pool of PC BIOS 8x8 fonts (The Ultimate
 // Oldschool PC Font Pack, CC BY-SA 4.0, see LICENSE.txt): code page 437,
 // 256 glyphs of 8 rows, bit 7 leftmost. They are not game art; a game picks
 // one by name.
+
 package asset
 
 import (

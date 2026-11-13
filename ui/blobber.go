@@ -1,6 +1,7 @@
 // Blobber: a first-person grid crawler ("gridder") in pure 2D, Deepnight style.
 // No 3D pipeline: every surface is a flat quad, transformed by hand, painted far-to-near.
 // The texture shader adds Deepnight's look (look.go): stepped darkness into fog, light maps, glows.
+
 package ui
 
 import (

@@ -1,8 +1,9 @@
-// Package orig plays the Amiga sound: the effects player
+// sound.go plays the Amiga sound: the effects player
 // (hunk 33, 0x90172) and Wally Beben's music player (hunk 27, 0x638a0),
 // translated instruction by instruction over the program's own memory
 // (hunks 27-33, so the songs, instruments, samples and tables are the
 // game's), driving a model of Paula.
+
 package orig
 
 import (

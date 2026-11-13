@@ -1,9 +1,10 @@
-// Package ui draws the combat map as a tabletop: the map is a board
+// battle.go draws the combat map as a tabletop: the map is a board
 // on a wooden table, dungeon walls are stone blocks, outdoor things stand
 // or lie on it, and the combatants are figurines extruded from their combat
 // icons on round painted bases (blue for the party, red for its enemies).
 // The camera turns in eighths like XCOM's. It only reads Board:
 // what it shows is what the original shows, in 3D.
+
 package ui
 
 import (

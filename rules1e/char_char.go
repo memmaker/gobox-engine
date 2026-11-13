@@ -1,7 +1,8 @@
-// Package rules1e is a shared view of a game's byte-record character: the game
+// char_char.go is a shared view of a game's byte-record character: the game
 // describes the record as a Layout (data, JSON-loadable) and Rec reads and
 // writes it. Stats is the small interface the rules package needs, so a
 // game with a Go-struct character (por) implements it directly.
+
 package rules1e
 
 import (

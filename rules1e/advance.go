@@ -7,8 +7,8 @@ import (
 // classRow, raceRow, saveColumn and skillColumn say where a concept sits in
 // the tables, so that callers name it and never depend on the order.
 var classRow = map[rules.Class]int{
-	CoreClassCleric: 0, CoreClassDruid: 1, CoreClassFighter: 2, CoreClassPaladin: 3,
-	CoreClassRanger: 4, CoreClassMage: 5, CoreClassThief: 6, CoreClassMonk: 7,
+	ClassCleric: 0, ClassDruid: 1, ClassFighter: 2, ClassPaladin: 3,
+	ClassRanger: 4, ClassMage: 5, ClassThief: 6, ClassMonk: 7,
 }
 
 var raceRow = map[rules.Race]int{
@@ -78,7 +78,7 @@ func (t *Tables) TrainingDie(class rules.Class) (count, sides int) {
 
 // SaveAt is the saving throw of class at level. POR's paladin rows are COTAB's.
 func (t *Tables) SaveAt(class rules.Class, level int, save rules.Save) int {
-	if class == CoreClassPaladin && level < len(t.PaladinSaves) {
+	if class == ClassPaladin && level < len(t.PaladinSaves) {
 		return int(t.PaladinSaves[level][saveColumn[save]])
 	}
 	return int(t.Saves[classRow[class]*t.SaveRows+level][saveColumn[save]])

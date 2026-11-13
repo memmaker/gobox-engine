@@ -25,7 +25,7 @@ func TestCheckWorld(t *testing.T) {
 	if c := r.Check(rules.Census{Fact: rules.FactMove}, nil); c.Low != 0xFF || c.High != 0 || c.Avg != 0 {
 		t.Errorf("empty Census %+v", c)
 	}
-	if !r.Check(rules.HasClass{Party: p, Class: CoreClassRanger}, nil).Yes || r.Check(rules.HasClass{Party: p[1:], Class: CoreClassRanger}, nil).Yes {
+	if !r.Check(rules.HasClass{Party: p, Class: ClassRanger}, nil).Yes || r.Check(rules.HasClass{Party: p[1:], Class: ClassRanger}, nil).Yes {
 		t.Error("HasClass ranger")
 	}
 	b.Items = []*Item{{Type: 0x4B}}

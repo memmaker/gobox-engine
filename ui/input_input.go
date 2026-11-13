@@ -1,6 +1,7 @@
-// Package ui names what a key does. The binding table
+// input_input.go names what a key does. The binding table
 // (present/remaster/bindings.go) gives every key code its Act by context,
 // and the screens (remaster, battle) switch on the Act, never on the code.
+
 package ui
 
 // Act is what a key does where the table binds it.

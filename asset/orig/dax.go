@@ -1,4 +1,4 @@
-// Package orig reads SSI Gold Box .DAX archives (DOS Pool of Radiance layout).
+// dax.go reads SSI Gold Box .DAX archives (DOS Pool of Radiance layout).
 //
 // File layout: u16 index size, then index entries of 9 bytes
 // (u8 id, i32 offset from data start, u16 raw size, u16 stored size),
@@ -7,6 +7,7 @@
 //	n = int8(next)
 //	n >= 0: copy the following n+1 bytes
 //	n <  0: repeat the following byte -n times
+
 package orig
 
 import (

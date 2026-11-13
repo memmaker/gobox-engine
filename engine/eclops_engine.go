@@ -522,7 +522,7 @@ func (e *Engine) opCheckParty() {
 func (e *Engine) opPartySurprise() {
 	e.vm.ReadArgs(2)
 	var a byte
-	if e.ruleset().Check(rules.HasClass{Party: e.partyIDs(), Class: rules1e.CoreClassRanger}, nil).Yes {
+	if e.ruleset().Check(rules.HasClass{Party: e.partyIDs(), Class: rules1e.ClassRanger}, nil).Yes {
 		a = 1
 	}
 	e.host.Set(e.vm.Ref(1), int64(uint16(a)))

@@ -22,10 +22,10 @@ func TestLoadRules(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tb.Thac0At(CoreClassFighter, 5) != 3 || tb.Thac0At(CoreClassMonk, 1) != 0 {
+	if tb.Thac0At(ClassFighter, 5) != 3 || tb.Thac0At(ClassMonk, 1) != 0 {
 		t.Error("thac0")
 	}
-	if _, s := tb.TrainingDie(CoreClassMage); s != 9 || tb.XPForLevel(CoreClassFighter, 2) != POR.XPForLevel(CoreClassFighter, 2) {
+	if _, s := tb.TrainingDie(ClassMage); s != 9 || tb.XPForLevel(ClassFighter, 2) != POR.XPForLevel(ClassFighter, 2) {
 		t.Error("hit dice or xp")
 	}
 	if _, err := POR.LoadRules(filepath.Join(t.TempDir(), "none.json"), Layout{SlotStride: 5}); err == nil {
