@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/char"
+	"gobox/rules1e"
 	"path/filepath"
 
 	"gobox/asset"
@@ -15,7 +15,7 @@ import (
 const DataDir = "data"
 
 // monsterData is a monster's records (MON<n>CHA, SPC, ITM block id).
-type monsterData = orig.Monster[char.Sheet, char.AffectRecord, char.Item]
+type monsterData = orig.Monster[rules1e.Sheet, rules1e.AffectRecord, rules1e.Item]
 
 // sets are the data sets the engine reads (Set.file).
 const sets = 8
@@ -25,14 +25,14 @@ type gameData struct {
 	dir      string
 	maps     map[string]map[int][]byte
 	monsters map[string]map[int]monsterData
-	items    map[string]map[int][]char.Item
-	table    []char.ItemBase
+	items    map[string]map[int][]rules1e.Item
+	table    []rules1e.ItemBase
 }
 
 // gdata is the engine's imported data, opened on first use.
 func (e *Engine) gdata() *gameData {
 	if e.gd == nil {
-		e.gd = &gameData{dir: filepath.Join(e.adv, DataDir), maps: map[string]map[int][]byte{}, monsters: map[string]map[int]monsterData{}, items: map[string]map[int][]char.Item{}}
+		e.gd = &gameData{dir: filepath.Join(e.adv, DataDir), maps: map[string]map[int][]byte{}, monsters: map[string]map[int]monsterData{}, items: map[string]map[int][]rules1e.Item{}}
 	}
 	return e.gd
 }
@@ -71,7 +71,7 @@ func (d *gameData) firstMonster(file string) (int, bool) {
 }
 
 // itemBlock is ITEM archive file's block id, its records (nil: none).
-func (d *gameData) itemBlock(file string, id int) []char.Item {
+func (d *gameData) itemBlock(file string, id int) []rules1e.Item {
 	m, ok := d.items[file]
 	if !ok {
 		readJSON(d.dir, file, &m)
@@ -81,7 +81,7 @@ func (d *gameData) itemBlock(file string, id int) []char.Item {
 }
 
 // itemTable is the ITEMS table (nil: the game data has none).
-func (d *gameData) itemTable() []char.ItemBase {
+func (d *gameData) itemTable() []rules1e.ItemBase {
 	if d.table == nil {
 		readJSON(d.dir, orig.ItemTableFile, &d.table)
 	}

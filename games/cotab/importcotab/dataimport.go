@@ -9,7 +9,6 @@ import (
 
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/char"
 )
 
 // ImportTo writes the adventure folder dst from the DOS originals in dos
@@ -66,7 +65,7 @@ func ImportDataTo(dos, dst string) error {
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := orig.ImportData[charRecord, affectRecord, Item](l, dst, char.SheetOfRecord[charRecord], char.ItemOfRecord[Item]); err != nil {
+	if err := orig.ImportData[charRecord, affectRecord, Item](l, dst, rules1e.SheetOfRecord[charRecord], rules1e.ItemOfRecord[Item]); err != nil {
 		return err
 	}
 	return orig.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, orig.Counted)

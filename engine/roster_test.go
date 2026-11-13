@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	"gobox/char"
 	"gobox/rules"
 )
 
@@ -37,7 +36,7 @@ func TestRosterIDs(t *testing.T) {
 	e.setRosterNext(1) // and a lost counter: the files' own numbers still win
 	e.BuildCharList()
 	b, _ = os.ReadFile(p)
-	if got := char.ReadPoolIDs(b).Roster; got != 2 {
+	if got := rules1e.ReadPoolIDs(b).Roster; got != 2 {
 		t.Fatalf("migrated id %d, want 2", got)
 	}
 	if e.BuildCharList(); e.rosterNext() != 3 {

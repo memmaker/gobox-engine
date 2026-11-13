@@ -7,7 +7,6 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/char"
 	"gobox/rules"
 )
 
@@ -20,7 +19,7 @@ func TestPorCreation(t *testing.T) {
 	same := func(what string, want *rules1e.Character, d rules.Draft) {
 		t.Helper()
 		got := p.CharOf(d)
-		if !reflect.DeepEqual(char.SheetBytes(got.Sheet), char.SheetBytes(want.Sheet)) || !reflect.DeepEqual(got.Powers, want.Powers) {
+		if !reflect.DeepEqual(rules1e.SheetBytes(got.Sheet), rules1e.SheetBytes(want.Sheet)) || !reflect.DeepEqual(got.Powers, want.Powers) {
 			t.Fatalf("%s: rebuilt record differs\n got %+v\nwant %+v", what, got, want)
 		}
 	}

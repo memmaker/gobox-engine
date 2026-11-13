@@ -1,4 +1,4 @@
-package char
+package rules1e
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 	"reflect"
 
 	"gobox/rules"
-	"gobox/rules1e"
 )
 
 // The layouts (core.RecordLayout), here for the codecs' users.
@@ -72,75 +71,75 @@ type Str00Pair struct {
 // Record285 is Pool of Radiance's 0x11D-byte record (.SAV files, MON*CHA
 // blocks, the imported data's JSON).
 type Record285 struct {
-	PName      [16]byte               // 0x00 Pascal string, max 15
-	Stats      [6]rules1e.Score       // 0x10 str int wis dex con cha
-	Str00      byte                   // 0x16 exceptional strength
-	Memorized  [21]byte               // 0x17 spell numbers, +0x80 = still to be memorised (rules1e.SpellOfByte)
-	Study      byte                   // 0x2C hours of study the pending spells need (0/4/6)
-	Thac0Base  byte                   // 0x2D THAC0 base, from the DS:3C7C table
-	Race       rules1e.RaceID         // 0x2E
-	Class      rules1e.ClassID        // 0x2F
-	Age        uint16                 // 0x30
-	MaxHP      byte                   // 0x32
-	SpellBook  [56]byte               // 0x33 [n-1]: spell n known
-	FightLevel byte                   // 0x6B fighter level (1 for non-fighters)
-	Size       byte                   // 0x6C low bits: icon size; 0x80 flag
-	Saves      [5]rules1e.Score       // 0x6D saving throw targets
-	BaseMove   byte                   // 0x72
-	MaxLevel   byte                   // 0x73 highest class level
-	Kept74     byte                   // 0x74 kept for byte-equality (was the level-drain count; no game drains)
-	Kept75     byte                   // 0x75 kept for byte-equality (was the drained hit points)
-	Undead     byte                   // 0x76 turn undead row
-	Thief      [8]rules1e.Percent     // 0x77 thief skills
-	_          [4]byte                // 0x7F affect list pointer
-	Pad83      byte                   // 0x83
-	Control    byte                   // 0x84 0 party, 0xB3 charmed, > 0x7F hired NPC
-	Share      byte                   // 0x85 hired NPC's treasure shares (& 7)
-	Pad86      [2]byte                // 0x86
-	Coins      [7]uint16              // 0x88 copper .. jewelry: only read when joining the party
-	Levels     [8]rules1e.Level       // 0x96 cleric druid fighter paladin ranger mage thief monk
-	Sex        byte                   // 0x9E
-	Kind       byte                   // 0x9F monster kind (bonuses against it)
-	Alignment  byte                   // 0xA0
-	BaseAttack [2]rules1e.Count       // 0xA1 attacks per hand
-	BaseDice   [2]rules1e.Count       // 0xA3 damage dice count per hand
-	BaseSides  [2]rules1e.Count       // 0xA5 damage dice sides per hand
-	BaseBonus  [2]rules1e.Modifier    // 0xA7 damage bonus per hand
-	BaseAC     byte                   // 0xA9
-	StrBonus   byte                   // 0xAA non-zero: strength modifies hit and damage
-	RandomID   byte                   // 0xAB
-	Exp        uint32                 // 0xAC
-	ClassMask  byte                   // 0xB0 items the classes may use
-	HPRoll     byte                   // 0xB1 rolled hit points
-	SpellSlots [6]rules1e.Count       // 0xB2 cleric levels 1..3, magic-user levels 1..3
-	ExpValue   uint16                 // 0xB8 a monster's worth
-	ExpPerHP   byte                   // 0xBA
-	PortHead   byte                   // 0xBB
-	PortBody   byte                   // 0xBC
-	IconHead   byte                   // 0xBD
-	IconBody   byte                   // 0xBE
-	Order      byte                   // 0xBF
-	IconSize   byte                   // 0xC0
-	IconColour [6]rules1e.Colours     // 0xC1 icon parts, low nibble and high nibble
-	ItemCount  byte                   // 0xC7
-	_          [4]byte                // 0xC8 item list pointer
-	_          [52]byte               // 0xCC readied item pointers
-	Hands      byte                   // 0x100
-	SaveBonus  byte                   // 0x101
-	Weight     uint16                 // 0x102
-	_          [8]byte                // 0x104 party link and combat block pointers
-	Status     byte                   // 0x10C index into DS:1047 names
-	Okay       byte                   // 0x10D non-zero = active
-	Side       byte                   // 0x10E 0 party, 1 monsters (1 also draws the name yellow)
-	Auto       byte                   // 0x10F the computer fights for it
-	THAC0      byte                   // 0x110
-	AC         [2]rules1e.ArmourClass // 0x111 60 - armour class: front, rear
-	Attacks    [2]rules1e.Count       // 0x113 attacks per hand this round
-	Dice       [2]rules1e.Count       // 0x115 damage dice count per hand
-	Sides      [2]rules1e.Count       // 0x117 damage dice sides per hand
-	Bonus      [2]rules1e.Modifier    // 0x119 damage bonus per hand
-	HP         byte                   // 0x11B
-	Move       byte                   // 0x11C
+	PName      [16]byte       // 0x00 Pascal string, max 15
+	Stats      [6]Score       // 0x10 str int wis dex con cha
+	Str00      byte           // 0x16 exceptional strength
+	Memorized  [21]byte       // 0x17 spell numbers, +0x80 = still to be memorised (rules1e.SpellOfByte)
+	Study      byte           // 0x2C hours of study the pending spells need (0/4/6)
+	Thac0Base  byte           // 0x2D THAC0 base, from the DS:3C7C table
+	Race       RaceID         // 0x2E
+	Class      ClassID        // 0x2F
+	Age        uint16         // 0x30
+	MaxHP      byte           // 0x32
+	SpellBook  [56]byte       // 0x33 [n-1]: spell n known
+	FightLevel byte           // 0x6B fighter level (1 for non-fighters)
+	Size       byte           // 0x6C low bits: icon size; 0x80 flag
+	Saves      [5]Score       // 0x6D saving throw targets
+	BaseMove   byte           // 0x72
+	MaxLevel   byte           // 0x73 highest class level
+	Kept74     byte           // 0x74 kept for byte-equality (was the level-drain count; no game drains)
+	Kept75     byte           // 0x75 kept for byte-equality (was the drained hit points)
+	Undead     byte           // 0x76 turn undead row
+	Thief      [8]Percent     // 0x77 thief skills
+	_          [4]byte        // 0x7F affect list pointer
+	Pad83      byte           // 0x83
+	Control    byte           // 0x84 0 party, 0xB3 charmed, > 0x7F hired NPC
+	Share      byte           // 0x85 hired NPC's treasure shares (& 7)
+	Pad86      [2]byte        // 0x86
+	Coins      [7]uint16      // 0x88 copper .. jewelry: only read when joining the party
+	Levels     [8]Level       // 0x96 cleric druid fighter paladin ranger mage thief monk
+	Sex        byte           // 0x9E
+	Kind       byte           // 0x9F monster kind (bonuses against it)
+	Alignment  byte           // 0xA0
+	BaseAttack [2]Count       // 0xA1 attacks per hand
+	BaseDice   [2]Count       // 0xA3 damage dice count per hand
+	BaseSides  [2]Count       // 0xA5 damage dice sides per hand
+	BaseBonus  [2]Modifier    // 0xA7 damage bonus per hand
+	BaseAC     byte           // 0xA9
+	StrBonus   byte           // 0xAA non-zero: strength modifies hit and damage
+	RandomID   byte           // 0xAB
+	Exp        uint32         // 0xAC
+	ClassMask  byte           // 0xB0 items the classes may use
+	HPRoll     byte           // 0xB1 rolled hit points
+	SpellSlots [6]Count       // 0xB2 cleric levels 1..3, magic-user levels 1..3
+	ExpValue   uint16         // 0xB8 a monster's worth
+	ExpPerHP   byte           // 0xBA
+	PortHead   byte           // 0xBB
+	PortBody   byte           // 0xBC
+	IconHead   byte           // 0xBD
+	IconBody   byte           // 0xBE
+	Order      byte           // 0xBF
+	IconSize   byte           // 0xC0
+	IconColour [6]Colours     // 0xC1 icon parts, low nibble and high nibble
+	ItemCount  byte           // 0xC7
+	_          [4]byte        // 0xC8 item list pointer
+	_          [52]byte       // 0xCC readied item pointers
+	Hands      byte           // 0x100
+	SaveBonus  byte           // 0x101
+	Weight     uint16         // 0x102
+	_          [8]byte        // 0x104 party link and combat block pointers
+	Status     byte           // 0x10C index into DS:1047 names
+	Okay       byte           // 0x10D non-zero = active
+	Side       byte           // 0x10E 0 party, 1 monsters (1 also draws the name yellow)
+	Auto       byte           // 0x10F the computer fights for it
+	THAC0      byte           // 0x110
+	AC         [2]ArmourClass // 0x111 60 - armour class: front, rear
+	Attacks    [2]Count       // 0x113 attacks per hand this round
+	Dice       [2]Count       // 0x115 damage dice count per hand
+	Sides      [2]Count       // 0x117 damage dice sides per hand
+	Bonus      [2]Modifier    // 0x119 damage bonus per hand
+	HP         byte           // 0x11B
+	Move       byte           // 0x11C
 }
 
 // Record422 is Curse of the Azure Bonds' 422-byte record (CHRDAT/SAVGAM, MON*CHA). Offsets decimal.

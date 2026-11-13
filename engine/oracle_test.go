@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	"gobox/char"
+	"gobox/rules1e"
 )
 
 // seqRNG replays a seeded sequence and records the calls, so the order of
@@ -57,7 +57,7 @@ type oc struct {
 	Multi, HPRoll, MaxHP, HP, Status, Okay byte
 }
 
-func load(r *char.Rec) *oc {
+func load(r *rules1e.Rec) *oc {
 	c := &oc{SaveBonus: byte(r.SaveBonus()), THAC0: byte(r.THAC0()), Multi: byte(r.MulticlassLevel()),
 		HPRoll: byte(r.HPRoll()), MaxHP: byte(r.MaxHP()), HP: byte(r.HP()), Status: byte(r.Status()), Okay: byte(r.Get("okay", 0))}
 	for i := range c.Saves {
@@ -73,7 +73,7 @@ func load(r *char.Rec) *oc {
 	return c
 }
 
-func (c *oc) same(t *testing.T, r *char.Rec, what string) {
+func (c *oc) same(t *testing.T, r *rules1e.Rec, what string) {
 	t.Helper()
 	if !reflect.DeepEqual(c, load(r)) {
 		t.Fatalf("%s: oracle %+v rules %+v", what, c, load(r))
@@ -199,15 +199,15 @@ func oracleDamage(c *oc, dmg byte) (over byte, dying, down bool) {
 
 // ---- tests ----
 
-func recs(t *testing.T, file string, n int) []*char.Rec {
-	l, err := char.LoadLayout(file)
+func recs(t *testing.T, file string, n int) []*rules1e.Rec {
+	l, err := rules1e.LoadLayout(file)
 	if err != nil {
 		t.Fatal(err)
 	}
 	rnd := rand.New(rand.NewSource(7))
-	var out []*char.Rec
+	var out []*rules1e.Rec
 	for i := 0; i < n; i++ {
-		r := char.New(l)
+		r := rules1e.New(l)
 		rnd.Read(r.B)
 		switch i % 3 { // sane levels / small numbers as well as raw noise
 		case 1:

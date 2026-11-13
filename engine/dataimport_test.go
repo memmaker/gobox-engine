@@ -12,7 +12,6 @@ import (
 	"gobox/asset/orig"
 	"gobox/audio"
 	"gobox/audio/sounddata"
-	"gobox/char"
 	"gobox/rules"
 )
 
@@ -39,13 +38,13 @@ func TestDataEqualsDAX(t *testing.T) {
 			}
 			if ok {
 				var c rules1e.Character
-				c.Sheet = char.SheetOf(b)
+				c.Sheet = rules1e.SheetOf(b)
 				var aff []rules1e.AffectRecord
-				for _, a := range char.ReadRecords[rules1e.AffectFile](l.BlockShared(s.File("MON")+"SPC", id), rules1e.AffectRecSize) {
+				for _, a := range rules1e.ReadRecords[rules1e.AffectFile](l.BlockShared(s.File("MON")+"SPC", id), rules1e.AffectRecSize) {
 					aff = append(aff, a.Record())
 				}
 				var its []rules1e.Item
-				for _, it := range char.ReadItems(l.BlockShared(s.File("MON")+"ITM", id)) {
+				for _, it := range rules1e.ReadItems(l.BlockShared(s.File("MON")+"ITM", id)) {
 					its = append(its, it)
 				}
 				if c.Sheet != m.Record || !reflect.DeepEqual(aff, m.Affects) || !reflect.DeepEqual(its, m.Items) {
@@ -56,7 +55,7 @@ func TestDataEqualsDAX(t *testing.T) {
 			b = l.BlockShared(s.File("ITEM"), id)
 			got := d.itemBlock(s.File("ITEM"), id)
 			want := []rules1e.Item{}
-			for _, it := range char.ReadItems(b) {
+			for _, it := range rules1e.ReadItems(b) {
 				want = append(want, it)
 			}
 			if b == nil {

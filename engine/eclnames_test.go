@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"gobox/char"
 	"gobox/ecl/script"
+	"gobox/rules1e"
 	"testing"
 )
 
@@ -25,4 +25,4 @@ func TestEclOpsByName(t *testing.T) {
 }
 
 // testCode is a code image for an Engine without the game's tables (POR's place and size).
-var testCode = char.SaveLayout{CodeBase: 0x9900, CodeSize: 0x1E00}
+var testCode = rules1e.SaveLayout{CodeBase: 0x9900, CodeSize: 0x1E00}

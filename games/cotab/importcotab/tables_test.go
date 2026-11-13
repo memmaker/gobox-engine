@@ -6,7 +6,6 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/char"
 	"gobox/ecl/script"
 	"gobox/engine"
 	"gobox/game/journal"
@@ -55,7 +54,7 @@ func TestImportedTablesLoad(t *testing.T) {
 	if tb.SlotLevels != Layout1e.SlotLevels {
 		t.Errorf("slot levels %d", tb.SlotLevels)
 	}
-	if r, _ := char.Rules1e("", nil, nil, nil, nil); r == nil {
+	if r, _ := rules1e.Rules1e("", nil, nil, nil, nil); r == nil {
 		t.Error("char.Rules1e builds no rules")
 	}
 

@@ -2,9 +2,8 @@ package engine
 
 import (
 	"bytes"
-	"gobox/char"
-	"os"
 	"gobox/rules1e"
+	"os"
 	"testing"
 )
 
@@ -25,7 +24,7 @@ func TestPoolIDs(t *testing.T) {
 	old.SetName("Olda")
 	e.SaveCharacter(e.charID(old), "olda")
 	c, b := load("olda")
-	if (c.PoolIDs != rules1e.PoolIDs{}) || !bytes.Equal(b, char.SheetBytes(old.Sheet)) {
+	if (c.PoolIDs != rules1e.PoolIDs{}) || !bytes.Equal(b, rules1e.SheetBytes(old.Sheet)) {
 		t.Fatalf("no IDs: got %v, %d bytes (record %d)", c.PoolIDs, len(b), charRecSize)
 	}
 
@@ -40,7 +39,7 @@ func TestPoolIDs(t *testing.T) {
 	if c.PortraitHeadID != "pod/head3" || c.PortraitBodyID != "pod/body3" || c.IconHeadID != "pod/chead2" || c.IconBodyID != "pod/cbody4" {
 		t.Fatalf("round trip: got %v", c.PoolIDs)
 	}
-	if !bytes.Equal(b[:charRecSize], char.SheetBytes(nw.Sheet)) || !bytes.HasPrefix(b[charRecSize:], []byte(rules1e.PoolMagic)) {
+	if !bytes.Equal(b[:charRecSize], rules1e.SheetBytes(nw.Sheet)) || !bytes.HasPrefix(b[charRecSize:], []byte(rules1e.PoolMagic)) {
 		t.Fatal("the original record bytes changed or the trailer is missing")
 	}
 }

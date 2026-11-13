@@ -4,7 +4,7 @@ import (
 	"gobox/rules"
 	"testing"
 
-	"gobox/char"
+	"gobox/rules1e"
 )
 
 type fixedDie int
@@ -12,7 +12,7 @@ type fixedDie int
 func (d fixedDie) Dice(n, sides int) int { return int(d) }
 
 type saveStats struct {
-	char.Stats
+	rules1e.CharStats
 	target int
 }
 

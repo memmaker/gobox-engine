@@ -9,7 +9,6 @@ import (
 
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/char"
 	"gobox/engine"
 	"gobox/importer"
 	"gobox/rules1e"
@@ -58,8 +57,8 @@ func TestOriginals(t *testing.T) {
 		}
 	}
 	b, _ := binary.Append(nil, binary.LittleEndian, data)
-	checked, errs := char.CheckLaterDir[char.Record439](tb, items, dos, 67, char.ReadItems(b),
-		char.LaterSave{Record: ".WHO", Items: ".STF", Affects: ".SFX", IDs: ".IDS"}, char.LaterSave{Record: ".SAV", Items: ".STF", Affects: ".SFX"})
+	checked, errs := rules1e.CheckLaterDir[rules1e.Record439](tb, items, dos, 67, rules1e.ReadItems(b),
+		rules1e.LaterSave{Record: ".WHO", Items: ".STF", Affects: ".SFX", IDs: ".IDS"}, rules1e.LaterSave{Record: ".SAV", Items: ".STF", Affects: ".SFX"})
 	t.Logf("%d character files, %d data items", len(checked), len(data))
 	if len(checked) == 0 {
 		t.Error("no character files under", dos)

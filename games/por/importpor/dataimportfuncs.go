@@ -7,7 +7,6 @@ import (
 	"gobox/asset"
 	"gobox/asset/orig"
 	"gobox/audio/sounddata"
-	"gobox/char"
 	"gobox/engine"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -82,7 +81,7 @@ func ImportDataTo(dos, dst string) error {
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := orig.ImportData[engine.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, char.SheetOfRecord[engine.CharRecord], char.ItemOfRecord[rules1e.ItemFile]); err != nil {
+	if err := orig.ImportData[engine.CharRecord, rules1e.AffectFile, rules1e.ItemFile](l, dst, rules1e.SheetOfRecord[engine.CharRecord], rules1e.ItemOfRecord[rules1e.ItemFile]); err != nil {
 		return err
 	}
 	if err := orig.ImportItemTable[rules1e.ItemBase](l, dst, engine.ItemTypes, orig.Counted); err != nil {
@@ -168,15 +167,15 @@ var porAreaKind = 0x49F2
 
 // porSave is POR's SAVGAMx.DAT (ovr18 LoadGame/SaveGame, char.OriginalSave): the set, the area,
 // game and aux records (rules1e's) at script addresses 0x4900, 0x6B00, 0x9700, the code image.
-var porSave = char.SaveLayout{
-	Lead: char.LeadSet,
-	Records: []char.SaveRecord{
+var porSave = rules1e.SaveLayout{
+	Lead: rules1e.LeadSet,
+	Records: []rules1e.SaveRecord{
 		{Base: 0x4900, Cells: rules1e.AreaWords, CellBytes: 2},
 		{Base: 0x6B00, Cells: rules1e.GameWords, CellBytes: 2},
 		{Base: 0x9700, Cells: len(rules1e.AuxVars{}), CellBytes: 2},
 	},
 	CodeBase:     0x9900, // DS:49DE, ECL code at pc-0x9900
-	CodeSize:     len(char.OriginalSave{}.ECL),
+	CodeSize:     len(rules1e.OriginalSave{}.ECL),
 	CodeSaved:    true,
 	AreaKindAt:   &porAreaKind,
 	RulesRecords: true,

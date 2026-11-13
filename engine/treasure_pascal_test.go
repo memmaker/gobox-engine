@@ -3,9 +3,8 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"gobox/char"
-	"os"
 	"gobox/rules1e"
+	"os"
 	"strings"
 	"testing"
 )
@@ -80,7 +79,7 @@ func TestRandomTreasureAgainstPascal(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			b := char.WriteItems(rec)[0x2E:rules1e.ItemRecSize]
+			b := rules1e.WriteItems(rec)[0x2E:rules1e.ItemRecSize]
 			var parts []string
 			for _, x := range b {
 				parts = append(parts, fmt.Sprint(int8(x)))
@@ -128,7 +127,7 @@ func TestRandomItemAgainstPascal(t *testing.T) {
 			t.Fatal(err)
 		}
 		var parts []string
-		for _, x := range char.WriteItems(rec)[0x2E:rules1e.ItemRecSize] {
+		for _, x := range rules1e.WriteItems(rec)[0x2E:rules1e.ItemRecSize] {
 			parts = append(parts, fmt.Sprint(int8(x)))
 		}
 		if porTreasureRuled[rules1e.ItemType(k[0])] { // the original's slip, fixed by ruling: only the dice match
@@ -178,7 +177,7 @@ func TestFixItemRecordAgainstPascal(t *testing.T) {
 			t.Fatal(err)
 		}
 		var parts []string
-		for _, x := range char.WriteItems(rec)[0x2E:rules1e.ItemRecSize] {
+		for _, x := range rules1e.WriteItems(rec)[0x2E:rules1e.ItemRecSize] {
 			parts = append(parts, fmt.Sprint(int8(x)))
 		}
 		got[string(it.PName[1:1+it.PName[0]])] = strings.Join(parts, ".")

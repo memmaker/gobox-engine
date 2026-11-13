@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"gobox/audio"
-	"gobox/char"
 	"gobox/ecl/script"
 	"gobox/engine"
 	"gobox/game/journal"
@@ -76,7 +75,7 @@ func TestSwitchData(t *testing.T) {
 	if err != nil || !reflect.DeepEqual(l, Layout1e()) {
 		t.Errorf("layout %+v (%v), want %+v", l, err, Layout1e())
 	}
-	char.Rules1e("", nil, nil, nil, nil) // the ruleset the layout and the tables go to builds
+	rules1e.Rules1e("", nil, nil, nil, nil) // the ruleset the layout and the tables go to builds
 
 	es, err := script.ReadEntries(os.DirFS(filepath.Join(dst, "scripts")))
 	if err != nil {

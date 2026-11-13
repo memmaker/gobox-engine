@@ -1,9 +1,8 @@
-package char
+package rules1e
 
 import (
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 	"testing"
 )
 
@@ -16,15 +15,15 @@ func TestRules1eLoadsGameTables(t *testing.T) {
 	if err := os.WriteFile(rules, []byte(`{"thac0Table":[[1],[1],[1],[1],[1],[1],[1],[1]]}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	build := func(path string) (r *rules1e.Rules, panicked any) {
+	build := func(path string) (r *Rules, panicked any) {
 		defer func() { panicked = recover() }()
 		c, _ := Rules1e(path, nil, nil, nil, nil)
-		return c.(*rules1e.Rules), nil
+		return c.(*Rules), nil
 	}
 	if _, p := build(rules); p == nil {
 		t.Fatal("rules.json without layout.json built")
 	}
-	if err := os.WriteFile(filepath.Join(dir, rules1e.LayoutFile), []byte(`{"SlotStride":5}`), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, LayoutFile), []byte(`{"SlotStride":5}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	r, p := build(rules)

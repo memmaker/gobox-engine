@@ -9,7 +9,6 @@ import (
 
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/char"
 	"gobox/engine"
 	"gobox/games/sotsb"
 )
@@ -25,7 +24,7 @@ func ImportDataTo(dos, dst string) error {
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := orig.ImportData[charRecord, affectRecord, itemRecord](l, dst, char.SheetOfRecord[charRecord], char.ItemOfRecord[itemRecord]); err != nil {
+	if err := orig.ImportData[charRecord, affectRecord, itemRecord](l, dst, rules1e.SheetOfRecord[charRecord], rules1e.ItemOfRecord[itemRecord]); err != nil {
 		return err
 	}
 	return orig.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, orig.Counted)

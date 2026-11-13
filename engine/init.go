@@ -2,9 +2,9 @@ package engine
 
 import (
 	"gobox/asset"
-	"gobox/char"
 	"gobox/ega"
 	"gobox/rules"
+	"gobox/rules1e"
 	"log"
 	"slices"
 )
@@ -67,12 +67,12 @@ func (e *Engine) resetAdventure() {
 
 // readItems reads the base item table: skips the 2-byte count and takes up
 // to itemTypes records (a short or missing file leaves blank ones).
-func (e *Engine) readItems() []char.ItemBase {
+func (e *Engine) readItems() []rules1e.ItemBase {
 	items := e.gdata().itemTable()
 	if items == nil {
 		// extra: without the table no class may use any item and nothing has stats
 		log.Println("ITEMS (the base item table) is missing from the game data: import the game again")
-		return make([]char.ItemBase, ItemTypes)
+		return make([]rules1e.ItemBase, ItemTypes)
 	}
 	return slices.Clone(items)
 }

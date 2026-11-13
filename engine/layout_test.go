@@ -3,7 +3,6 @@ package engine
 import (
 	"encoding/binary"
 	"fmt"
-	"gobox/char"
 	"gobox/rules1e"
 	"io/fs"
 	"os"
@@ -251,7 +250,7 @@ func TestSaveKeepsFields(t *testing.T) {
 	check("the canonical save")
 	// an original save's records, by layout address (texts first, so a text
 	// longer than its field gives way to the field after it)
-	f := char.OriginalSave{Area: e.state().Area, Game: e.state().Game}
+	f := rules1e.OriginalSave{Area: e.state().Area, Game: e.state().Game}
 	f.Area.AreaKind = uint16(e.vm.Script.Area)
 	slices.SortStableFunc(saved, func(a, b script.Field) int {
 		return rules1e.B2i(a.Width != script.WidthText) - rules1e.B2i(b.Width != script.WidthText)
@@ -283,7 +282,7 @@ func TestSaveKeepsFields(t *testing.T) {
 }
 
 // testRecordCell is the word of an original save's records at script address a.
-func testRecordCell(f *char.OriginalSave, a int) *uint16 {
+func testRecordCell(f *rules1e.OriginalSave, a int) *uint16 {
 	switch {
 	case a >= areaVarBase && a < areaVarBase+rules1e.AreaWords:
 		return f.Area.Word(a - areaVarBase)

@@ -10,7 +10,6 @@ import (
 	"unicode"
 
 	"gobox/asset/orig"
-	"gobox/char"
 	"gobox/ecl/script"
 )
 
@@ -41,7 +40,7 @@ func DataValues(l *orig.Loader, set int) []script.Value {
 	for id := range 256 {
 		if r := l.BlockShared(fmt.Sprintf("MON%dCHA", set), id); len(r) > 0 {
 			c := &rules1e.Character{}
-			c.Sheet = char.SheetOf(r)
+			c.Sheet = rules1e.SheetOf(r)
 			if n := camelName(c.Name()); n != "" {
 				mons[id] = n
 			}
@@ -50,7 +49,7 @@ func DataValues(l *orig.Loader, set int) []script.Value {
 	add("Monster", mons)
 	items := map[int]string{} // the shortest name of an item of the type
 	for id := range 0x80 {
-		for _, it := range char.ReadItems(l.BlockShared(fmt.Sprintf("ITEM%d", set), id)) {
+		for _, it := range rules1e.ReadItems(l.BlockShared(fmt.Sprintf("ITEM%d", set), id)) {
 			n := camelName(itemFullName(&it))
 			if old, ok := items[int(it.Type)]; n != "" && (!ok || len(n) < len(old)) {
 				items[int(it.Type)] = n
@@ -60,7 +59,7 @@ func DataValues(l *orig.Loader, set int) []script.Value {
 	add("Item", items)
 	for id := range 0x80 { // the stocks, an ITEM block's items by name
 		var s []string
-		for _, it := range char.ReadItems(l.BlockShared(fmt.Sprintf("ITEM%d", set), id)) {
+		for _, it := range rules1e.ReadItems(l.BlockShared(fmt.Sprintf("ITEM%d", set), id)) {
 			n := camelName(itemFullName(&it))
 			if it.Count > 1 {
 				n += "*" + strconv.Itoa(int(it.Count))
@@ -77,7 +76,7 @@ func DataValues(l *orig.Loader, set int) []script.Value {
 // TreasureItems lists the items of set's ITEM block, for a comment.
 func TreasureItems(l *orig.Loader, set, block int) string {
 	var s []string
-	for _, it := range char.ReadItems(l.BlockShared(fmt.Sprintf("ITEM%d", set), block)) {
+	for _, it := range rules1e.ReadItems(l.BlockShared(fmt.Sprintf("ITEM%d", set), block)) {
 		n := itemFullName(&it)
 		if it.Count > 1 {
 			n = strconv.Itoa(int(it.Count)) + " " + n

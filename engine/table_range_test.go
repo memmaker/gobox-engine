@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"gobox/asset/orig"
-	"gobox/char"
 )
 
 // maxTurnKind is the last row of the turn table; a higher record would read past it.
@@ -19,7 +18,7 @@ const maxTurnKind = 10
 func checkRecordInTables(t *testing.T, where string, b []byte) {
 	t.Helper()
 	c := &rules1e.Character{}
-	c.Sheet = char.SheetOf(b)
+	c.Sheet = rules1e.SheetOf(b)
 	(&Engine{}).state().RecomputeCharacter(c)
 	if c.Undead > maxTurnKind {
 		t.Errorf("%s %s: undead kind %d", where, c.Name(), c.Undead)

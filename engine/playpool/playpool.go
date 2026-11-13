@@ -16,7 +16,6 @@ import (
 
 	"gobox/app"
 	"gobox/audio"
-	"gobox/char"
 	"gobox/engine"
 	"gobox/game"
 	"gobox/importer"
@@ -45,7 +44,7 @@ func New(adv, data string) (*engine.Engine, error) {
 	if err != nil {
 		return nil, err
 	}
-	return engine.New(char.Rules1e, tables, adv, data)
+	return engine.New(rules1e.Rules1e, tables, adv, data)
 }
 
 // Play runs the game of s.Adventure until the window closes.
@@ -214,6 +213,6 @@ func HomeRosters(layouts map[string]rules.RecordLayout) func(string) ([]rules.Ch
 		if err != nil {
 			return nil, err
 		}
-		return char.ReadRoster(l, filepath.Join(cfg, "gobox", from))
+		return rules1e.ReadRoster(l, filepath.Join(cfg, "gobox", from))
 	}
 }

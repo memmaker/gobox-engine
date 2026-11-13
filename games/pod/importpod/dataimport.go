@@ -3,7 +3,6 @@ package importpod
 import (
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/char"
 	"gobox/rules1e"
 	"os"
 	"path/filepath"
@@ -20,7 +19,7 @@ func ImportDataTo(dos, dst string) error {
 	if err := os.MkdirAll(dst, 0o755); err != nil {
 		return err
 	}
-	if err := orig.ImportData[charRecord, affectRecord, libraryRecord](l, dst, char.SheetOfRecord[charRecord], char.ItemOfRecord[libraryRecord]); err != nil {
+	if err := orig.ImportData[charRecord, affectRecord, libraryRecord](l, dst, rules1e.SheetOfRecord[charRecord], rules1e.ItemOfRecord[libraryRecord]); err != nil {
 		return err
 	}
 	return orig.ImportItemTable[rules1e.ItemBase](l, dst, itemTypes, orig.Bare)

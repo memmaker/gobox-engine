@@ -5,9 +5,9 @@ import (
 	"os"
 	"slices"
 
-	"gobox/char"
 	"gobox/ecl/script"
 	"gobox/rules"
+	"gobox/rules1e"
 )
 
 // SaveEditor edits a slot's canonical save outside the game: cmd/fixture
@@ -114,10 +114,10 @@ func (s *SaveEditor) Party() []string { return s.g.Party }
 // MakeStrong rewrites a .SAV character record so the character always hits
 // and takes long to die (cmd/fixture -strong: a scripted fight is won).
 func MakeStrong(rec []byte) []byte {
-	c := char.Decode[CharRecord](rec)
+	c := rules1e.Decode[CharRecord](rec)
 	c.Thac0Base = 40 // THAC0 is recomputed from it
 	c.MaxHP, c.HP = 250, 250
 	c.BaseAC, c.AC[0], c.AC[1] = 80, 80, 80 // AC -20 (60 - AC)
 	c.BaseDice[0], c.BaseSides[0] = 6, 12   // unarmed damage 6d12
-	return char.Encode(c)
+	return rules1e.Encode(c)
 }

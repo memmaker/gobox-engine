@@ -1,4 +1,4 @@
-package char
+package rules1e
 
 import (
 	"bytes"
@@ -11,17 +11,6 @@ import (
 	"strings"
 
 	"gobox/rules"
-	"gobox/rules1e"
-)
-
-// The rules' records in their file layouts (encoding/binary): the items of
-// .itm and ITEM blocks, the affects of .spc and MON SPC blocks, the ITEMS
-// table. The rules hold them as their state; this is where the files name them.
-type (
-	Item         = rules1e.Item
-	AffectRecord = rules1e.AffectRecord
-	ItemBase     = rules1e.ItemBase
-	Sheet        = rules1e.Sheet // a record as the rules model it (MON<n>.json's monster records)
 )
 
 // SheetOfRecord is a record of any game's layout as the rules' Sheet, as the importers
@@ -53,22 +42,22 @@ func ItemOfRecord[R any](r R) Item {
 	}
 	rec := make([]byte, ItemSize)
 	copy(rec[ItemSize-b.Len():], b.Bytes())
-	var f rules1e.ItemFile
+	var f ItemFile
 	binary.Read(bytes.NewReader(rec), binary.LittleEndian, &f) // ItemSize bytes into the ItemSize-byte layout: cannot fail
 	return f.Item()
 }
 
 // laterSheet is a later layout's record as the Sheet (PackLater's sheet).
 func laterSheet[R Later](r R) Sheet {
-	var c rules1e.CharacterJSON
+	var c CharacterJSON
 	sheetOfLater(&c, r)
 	return c.Sheet
 }
 
 // The record sizes of Item and AffectRecord.
 const (
-	ItemSize   = rules1e.ItemRecSize
-	AffectSize = rules1e.AffectRecSize
+	ItemSize   = ItemRecSize
+	AffectSize = AffectRecSize
 )
 
 // Files is one Pool of Radiance character as saved, each file's bytes (nil:
@@ -86,11 +75,11 @@ type Files struct {
 
 // Pack285 is f as the canonical character (rules1e.CharacterFile's JSON).
 func Pack285(f Files) (rules.CharacterFile, error) {
-	c := rules1e.CharacterJSON{Sheet: SheetOf(f.Record), PoolIDs: ReadPoolIDs(f.Record), Portrait: f.Portrait, Icon: f.Icon}
+	c := CharacterJSON{Sheet: SheetOf(f.Record), PoolIDs: ReadPoolIDs(f.Record), Portrait: f.Portrait, Icon: f.Icon}
 	c.Items = ReadItems(f.Items)
 	c.Affects = ReadAffects(f.Affects)
 	if f.Plan != nil {
-		c.Plan = new([rules1e.MemorySlots]rules1e.SpellID)
+		c.Plan = new([MemorySlots]SpellID)
 		memoryOf(c.Plan[:], f.Plan)
 	}
 	fromBytes(c.OldLevels[:], f.Dual)
@@ -105,7 +94,7 @@ func Pack285(f Files) (rules.CharacterFile, error) {
 // Unpack285 is the canonical character as its files; a game save's items
 // file (game) carries the shared pack the party's first member holds.
 func Unpack285(b rules.CharacterFile, game bool) (Files, error) {
-	var c rules1e.CharacterJSON
+	var c CharacterJSON
 	if err := json.Unmarshal(b, &c); err != nil {
 		return Files{}, fmt.Errorf("Unpack285: %w", err)
 	}
@@ -126,10 +115,10 @@ func Unpack285(b rules.CharacterFile, game bool) (Files, error) {
 }
 
 // SheetOf reads a record in the 0x11D layout (short data leaves the rest zero).
-func SheetOf(b []byte) rules1e.Sheet { return sheetOf(Decode[Record285](b)) }
+func SheetOf(b []byte) Sheet { return sheetOf(Decode[Record285](b)) }
 
 // SheetBytes is the sheet as a 0x11D record (pointers zero).
-func SheetBytes(s rules1e.Sheet) []byte { return Encode(recordOf(s)) }
+func SheetBytes(s Sheet) []byte { return Encode(recordOf(s)) }
 
 // ReadRecords reads the n-byte records in b (a partial last one is dropped).
 // n must be positive: a zero size would never advance through b.
@@ -161,7 +150,7 @@ func ReadItems(b []byte) []Item { return readItems(b, ItemSize) }
 
 func readItems(b []byte, n int) []Item {
 	var out []Item
-	for _, f := range ReadRecords[rules1e.ItemFile](b, n) {
+	for _, f := range ReadRecords[ItemFile](b, n) {
 		out = append(out, f.Item())
 	}
 	return out
@@ -170,14 +159,14 @@ func readItems(b []byte, n int) []Item {
 // ReadAffects and WriteAffects are a list of affects as its file records.
 func ReadAffects(b []byte) []AffectRecord {
 	var out []AffectRecord
-	for _, f := range ReadRecords[rules1e.AffectFile](b, AffectSize) {
+	for _, f := range ReadRecords[AffectFile](b, AffectSize) {
 		out = append(out, f.Record())
 	}
 	return out
 }
 
 func WriteAffects(affects []AffectRecord) []byte {
-	var files []*rules1e.AffectFile
+	var files []*AffectFile
 	for _, a := range affects {
 		f := a.File()
 		files = append(files, &f)
@@ -186,7 +175,7 @@ func WriteAffects(affects []AffectRecord) []byte {
 }
 
 func WriteItems(items []Item) []byte {
-	var files []*rules1e.ItemFile
+	var files []*ItemFile
 	for _, it := range items {
 		f := it.File()
 		files = append(files, &f)
@@ -203,13 +192,13 @@ func fileBytes[T ~uint8](v []T) []byte {
 
 // memoryOf fills v from a record's memory bytes b (spell number, +0x80
 // pending), as copy does; memoryBytes is its inverse.
-func memoryOf(v []rules1e.SpellID, b []byte) {
+func memoryOf(v []SpellID, b []byte) {
 	for i := range min(len(v), len(b)) {
-		v[i] = rules1e.SpellOfByte(b[i])
+		v[i] = SpellOfByte(b[i])
 	}
 }
 
-func memoryBytes(b []byte, v []rules1e.SpellID) {
+func memoryBytes(b []byte, v []SpellID) {
 	for i := range min(len(v), len(b)) {
 		b[i] = v[i].Byte()
 	}
@@ -217,12 +206,12 @@ func memoryBytes(b []byte, v []rules1e.SpellID) {
 
 // memorySheet and bookSheet are a record's memory and spell book bytes as
 // the Sheet's fields (the rest zero).
-func memorySheet(b []byte) (v [rules1e.MemorySlots]rules1e.SpellID) {
+func memorySheet(b []byte) (v [MemorySlots]SpellID) {
 	memoryOf(v[:], b)
 	return
 }
 
-func bookSheet(b []byte) (v [rules1e.LastSpellID]rules1e.Flag) {
+func bookSheet(b []byte) (v [LastSpellID]Flag) {
 	fromBytes(v[:], b)
 	return
 }
@@ -237,7 +226,7 @@ func fromBytes[T ~uint8](v []T, b []byte) {
 // powerBytes are c's Powers for NAME.pow: the ids, then a 0 and the
 // daily uses spent (Surges, Laid) and the Toughness in MaxHP (Tough), then
 // the reactions' policies.
-func powerBytes(c rules1e.CharacterJSON) []byte {
+func powerBytes(c CharacterJSON) []byte {
 	var b []byte
 	for _, id := range c.Powers {
 		b = append(b, byte(id))
@@ -250,7 +239,7 @@ func powerBytes(c rules1e.CharacterJSON) []byte {
 }
 
 // readPowers reads NAME.pow's bytes into c's Powers and daily uses.
-func readPowers(c *rules1e.CharacterJSON, b []byte) {
+func readPowers(c *CharacterJSON, b []byte) {
 	for i, id := range b {
 		if id == 0 { // the daily uses (an older file has none)
 			if i+2 < len(b) {
@@ -261,9 +250,9 @@ func readPowers(c *rules1e.CharacterJSON, b []byte) {
 			}
 			for j := i + 5; j < len(b); j += 2 { // the reactions' policies (an older file has none)
 				if c.Policies == nil {
-					c.Policies = map[int]rules1e.Policy{}
+					c.Policies = map[int]Policy{}
 				}
-				c.Policies[int(b[j-1])] = rules1e.Policy(b[j])
+				c.Policies[int(b[j-1])] = Policy(b[j])
 			}
 			return
 		}
@@ -282,7 +271,7 @@ func readStr(t []byte) (string, []byte, bool) {
 
 // ReadPoolIDs parses the trailer of a Pool of Radiance character file
 // image; zero when none.
-func ReadPoolIDs(b []byte) rules1e.PoolIDs {
+func ReadPoolIDs(b []byte) PoolIDs {
 	_, p := SplitPoolIDs(b, int(Layout285))
 	return p
 }
@@ -290,23 +279,23 @@ func ReadPoolIDs(b []byte) rules1e.PoolIDs {
 // SplitPoolIDs is a saved record of n bytes (b) without its trailer, and
 // the trailer's ids: PoolTrailer's, the one format written, or an older
 // port's the readers still accept (oldIDs). No trailer: zero ids.
-func SplitPoolIDs(b []byte, n int) ([]byte, rules1e.PoolIDs) {
+func SplitPoolIDs(b []byte, n int) ([]byte, PoolIDs) {
 	if len(b) <= n {
-		return b, rules1e.PoolIDs{}
+		return b, PoolIDs{}
 	}
 	rec, t := b[:n], b[n:]
 	switch {
 	case bytes.HasPrefix(t, []byte(cotabIDMagic)):
 		return rec, oldIDs(t[len(cotabIDMagic)+min(1, len(t)-len(cotabIDMagic)):]) // the count byte
-	case !bytes.HasPrefix(t, []byte(rules1e.PoolMagic)):
+	case !bytes.HasPrefix(t, []byte(PoolMagic)):
 		if n == int(Layout510) { // POD's art trailer has no magic
 			return rec, oldIDs(t)
 		}
-		return rec, rules1e.PoolIDs{}
+		return rec, PoolIDs{}
 	}
-	var p rules1e.PoolIDs
+	var p PoolIDs
 	f := p.Fields()
-	for t = t[len(rules1e.PoolMagic):]; len(t) > 0; {
+	for t = t[len(PoolMagic):]; len(t) > 0; {
 		k, rest, ok := readStr(t)
 		if !ok {
 			break
@@ -317,7 +306,7 @@ func SplitPoolIDs(b []byte, n int) ([]byte, rules1e.PoolIDs) {
 		}
 		if dst := f[k]; dst != nil {
 			*dst = rules.PicID(v)
-		} else if n, err := strconv.ParseUint(v, 10, 32); k == rules1e.RosterKey && err == nil {
+		} else if n, err := strconv.ParseUint(v, 10, 32); k == RosterKey && err == nil {
 			p.Roster = rules.RosterID(n)
 		}
 		t = rest
@@ -331,9 +320,9 @@ const cotabIDMagic = "GOBXID"
 // oldIDs reads the ids of the trailers the ports wrote before PoolTrailer
 // (COTAB's after cotabIDMagic and a count, POD's bare): the four ids in
 // PoolKeys order as uint16 length and bytes, then the RosterID in decimal.
-func oldIDs(t []byte) (p rules1e.PoolIDs) {
+func oldIDs(t []byte) (p PoolIDs) {
 	f := p.Fields()
-	ids := []*rules.PicID{f[rules1e.PoolKeys[0]], f[rules1e.PoolKeys[1]], f[rules1e.PoolKeys[2]], f[rules1e.PoolKeys[3]]}
+	ids := []*rules.PicID{f[PoolKeys[0]], f[PoolKeys[1]], f[PoolKeys[2]], f[PoolKeys[3]]}
 	for i := 0; ; i++ {
 		v, rest, ok := readStr(t)
 		if !ok {
@@ -351,12 +340,12 @@ func oldIDs(t []byte) (p rules1e.PoolIDs) {
 
 // ReadIDsFile reads SotSB's old .ids file (the four ids in PoolKeys order,
 // then the RosterID, one per line); its characters now carry PoolTrailer.
-func ReadIDsFile(b []byte) (p rules1e.PoolIDs) {
+func ReadIDsFile(b []byte) (p PoolIDs) {
 	f := p.Fields()
 	lines := strings.Split(strings.TrimSuffix(string(b), "\n"), "\n")
 	for i, l := range lines {
-		if i < len(rules1e.PoolKeys) {
-			*f[rules1e.PoolKeys[i]] = rules.PicID(l)
+		if i < len(PoolKeys) {
+			*f[PoolKeys[i]] = rules.PicID(l)
 		} else if n, err := strconv.ParseUint(l, 10, 32); err == nil {
 			p.Roster = rules.RosterID(n)
 		}
@@ -369,27 +358,27 @@ func appendStr(b []byte, s string) []byte {
 }
 
 // PoolTrailer is p as the trailer after a record (nil: nothing to keep).
-func PoolTrailer(p rules1e.PoolIDs) []byte {
+func PoolTrailer(p PoolIDs) []byte {
 	var b []byte
 	f := p.Fields()
-	for _, k := range rules1e.PoolKeys {
+	for _, k := range PoolKeys {
 		if v := *f[k]; v != "" {
 			b = appendStr(appendStr(b, k), string(v))
 		}
 	}
 	if p.Roster != rules.NoRoster {
-		b = appendStr(appendStr(b, rules1e.RosterKey), strconv.FormatUint(uint64(p.Roster), 10))
+		b = appendStr(appendStr(b, RosterKey), strconv.FormatUint(uint64(p.Roster), 10))
 	}
 	if b == nil {
 		return nil
 	}
-	return append([]byte(rules1e.PoolMagic), b...)
+	return append([]byte(PoolMagic), b...)
 }
 
 // sheetOf is the record's character fields (the name up to its 15 letters).
-func sheetOf(r Record285) rules1e.Sheet {
+func sheetOf(r Record285) Sheet {
 	n := min(int(r.PName[0]), 15)
-	return rules1e.Sheet{
+	return Sheet{
 		CharName:   string(r.PName[1 : 1+n]),
 		Pad86:      r.Pad86[0],
 		Pad87:      r.Pad86[1],
@@ -460,7 +449,7 @@ func sheetOf(r Record285) rules1e.Sheet {
 }
 
 // recordOf is the sheet in the record's layout (pointers zero).
-func recordOf(s rules1e.Sheet) Record285 {
+func recordOf(s Sheet) Record285 {
 	r := Record285{
 		Pad86:      [2]byte{s.Pad86, s.Pad87},
 		Stats:      s.Stats,
@@ -534,14 +523,14 @@ func recordOf(s rules1e.Sheet) Record285 {
 // slotsOf285 and slots285 move the 0x11D record's slots (cleric 1..3,
 // magic-user 1..3) to and from rules1e's by spell class and level; the
 // record has no room for the rest.
-func slotsOf285(r [6]rules1e.Count) (s rules1e.SpellSlots) {
-	copy(s[rules1e.SpellClassCleric][:3], r[0:3])
-	copy(s[rules1e.SpellClassMage][:3], r[3:6])
+func slotsOf285(r [6]Count) (s SpellSlots) {
+	copy(s[SpellClassCleric][:3], r[0:3])
+	copy(s[SpellClassMage][:3], r[3:6])
 	return s
 }
 
-func slots285(s rules1e.SpellSlots) (r [6]rules1e.Count) {
-	copy(r[0:3], s[rules1e.SpellClassCleric][:3])
-	copy(r[3:6], s[rules1e.SpellClassMage][:3])
+func slots285(s SpellSlots) (r [6]Count) {
+	copy(r[0:3], s[SpellClassCleric][:3])
+	copy(r[3:6], s[SpellClassMage][:3])
 	return r
 }

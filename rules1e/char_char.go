@@ -1,8 +1,8 @@
-// Package char is a shared view of a game's byte-record character: the game
+// Package rules1e is a shared view of a game's byte-record character: the game
 // describes the record as a Layout (data, JSON-loadable) and Rec reads and
 // writes it. Stats is the small interface the rules package needs, so a
 // game with a Go-struct character (por) implements it directly.
-package char
+package rules1e
 
 import (
 	"encoding/binary"
@@ -20,17 +20,17 @@ type Field struct {
 	Signed bool `json:"signed,omitempty"`
 }
 
-// Layout maps field names to Fields. The names rules uses: saves, saveBonus,
+// CharLayout maps field names to Fields. The names rules uses: saves, saveBonus,
 // thac0, ac, hp, maxHP, hpRoll, multiclassLevel, levels, oldLevels, status,
 // okay. Others (score, scoreUse, str00, race, class, alignment, coins, exp,
 // slots ...) are for the game; see testdata/*.json.
-type Layout struct {
+type CharLayout struct {
 	Size   int              `json:"size"`
 	Fields map[string]Field `json:"fields"`
 }
 
 // LoadLayout reads a JSON layout.
-func LoadLayout(path string) (*Layout, error) {
+func LoadLayout(path string) (*CharLayout, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -39,14 +39,14 @@ func LoadLayout(path string) (*Layout, error) {
 }
 
 // ParseLayout parses JSON layout data.
-func ParseLayout(b []byte) (*Layout, error) {
-	l := &Layout{}
+func ParseLayout(b []byte) (*CharLayout, error) {
+	l := &CharLayout{}
 	return l, json.Unmarshal(b, l)
 }
 
-// Stats is what rules needs of a character. Values are the raw stored
+// CharStats is what rules needs of a character. Values are the raw stored
 // bytes (0..255) so the rules apply the original's signed readings.
-type Stats interface {
+type CharStats interface {
 	Classes() int // number of class levels
 	Level(k int) int
 	OldLevel(k int) int
@@ -68,11 +68,11 @@ type Stats interface {
 // Rec is a record and the layout that describes it. It implements Stats.
 type Rec struct {
 	B []byte
-	L *Layout
+	L *CharLayout
 }
 
 // New returns a zero record of the layout's size.
-func New(l *Layout) *Rec { return &Rec{B: make([]byte, l.Size), L: l} }
+func New(l *CharLayout) *Rec { return &Rec{B: make([]byte, l.Size), L: l} }
 
 // Has reports whether the layout has the field.
 func (r *Rec) Has(name string) bool { _, ok := r.L.Fields[name]; return ok }

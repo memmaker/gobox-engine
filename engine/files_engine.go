@@ -5,9 +5,9 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
-	"gobox/char"
 	"gobox/ega"
 	"gobox/rules"
+	"gobox/rules1e"
 	"io/fs"
 	"log"
 	"os"
@@ -126,7 +126,7 @@ func (e *Engine) SaveCharacter(cID rules.CharID, name string) error {
 	if name == "" {
 		list := append(e.BuildCharList(), e.ruleset().Sheet(cID).Name)
 		listFailed = e.WriteCharList(list)
-		if char.ReadPoolIDs(e.exportFiles(cID, false).Record).Roster == rules.NoRoster {
+		if rules1e.ReadPoolIDs(e.exportFiles(cID, false).Record).Roster == rules.NoRoster {
 			id, err := e.newRosterID()
 			listFailed = cmp.Or(listFailed, err)
 			e.do(rules.SetRoster{Who: cID, Roster: id})
@@ -154,12 +154,12 @@ func (e *Engine) SaveCharacter(cID rules.CharID, name string) error {
 }
 
 // exportFiles are cID's files (game: a game save's).
-func (e *Engine) exportFiles(cID rules.CharID, game bool) char.Files {
+func (e *Engine) exportFiles(cID rules.CharID, game bool) rules1e.Files {
 	b, err := e.ruleset().Export(cID)
 	if err != nil {
 		panic(fmt.Sprintf("save: %v", err)) // a member always exports
 	}
-	f, err := char.Unpack285(b, game)
+	f, err := rules1e.Unpack285(b, game)
 	if err != nil {
 		panic(fmt.Sprintf("save: %v", err)) // Export's own JSON
 	}
@@ -175,7 +175,7 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (rules.CharID, bool) {
 		ext = ".sav"
 	}
 	path := e.savePath(nm + ext)
-	var f char.Files
+	var f rules1e.Files
 	var err error
 	if f.Record, err = os.ReadFile(path); err != nil {
 		e.fileError("read", path)
@@ -200,7 +200,7 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (rules.CharID, bool) {
 		f.Icon = nil
 		e.fileError("read", e.savePath(nm+".icon.png"))
 	}
-	b, err := char.Pack285(f)
+	b, err := rules1e.Pack285(f)
 	if err == nil {
 		e.setWorldWord(rules.WordWho, e.sel) // ImportCharacter's member
 		var id rules.CharID
@@ -380,11 +380,11 @@ func (e *Engine) charBase(cID rules.CharID) string {
 // codec): the .SAV files and the MON*CHA blocks (and the imported data's
 // JSON) in their layout. The ruleset holds the record as its Sheet
 // (char.SheetOf, char.SheetBytes).
-type CharRecord = char.Record285
+type CharRecord = rules1e.Record285
 
 // RecordLayout is the layout of the game's character records (its
 // adventure's manifest names it).
-const RecordLayout = char.Layout285
+const RecordLayout = rules1e.Layout285
 
 const charRecSize = int(RecordLayout)
 

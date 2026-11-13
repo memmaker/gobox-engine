@@ -1,4 +1,4 @@
-package char
+package rules1e
 
 import (
 	"bytes"

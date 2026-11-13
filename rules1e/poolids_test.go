@@ -1,15 +1,13 @@
-package char
+package rules1e
 
 import (
 	"testing"
-
-	"gobox/rules1e"
 )
 
 // TestSplitPoolIDs: PoolTrailer, COTAB's old GOBXID, POD's old bare art
 // trailer and SotSB's old .ids file read as the same ids.
 func TestSplitPoolIDs(t *testing.T) {
-	want := rules1e.PoolIDs{PortraitHeadID: "h", IconBodyID: "ib", Roster: 7}
+	want := PoolIDs{PortraitHeadID: "h", IconBodyID: "ib", Roster: 7}
 	old := []byte{1, 0, 'h', 0, 0, 0, 0, 2, 0, 'i', 'b', 1, 0, '7'}
 	for name, c := range map[string]struct {
 		b []byte

@@ -1,7 +1,6 @@
 package importsotsb
 
 import (
-	"gobox/char"
 	"gobox/engine"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -39,9 +38,9 @@ var GameTables = engine.GameTables{
 // OriginalSave is savgamX.dat (saveload.go, O0F8:2813/2FAB): the area byte, the area, game
 // (area2) and aux records at script addresses 19200, 31744, 31232 (eclLayout), no code image,
 // the position and states, the three wall slots.
-var OriginalSave = char.SaveLayout{
-	Lead: char.LeadAreaKind,
-	Records: []char.SaveRecord{
+var OriginalSave = rules1e.SaveLayout{
+	Lead: rules1e.LeadAreaKind,
+	Records: []rules1e.SaveRecord{
 		{Base: int(eclLayout.Area.First), Cells: 1024, CellBytes: 2},
 		{Base: int(eclLayout.Area2.First), Cells: 1024, CellBytes: 2},
 		{Base: int(eclLayout.Aux.First), Cells: 512, CellBytes: 2},

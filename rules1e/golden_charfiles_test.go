@@ -1,11 +1,10 @@
-package char
+package rules1e
 
 import (
 	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 	"testing"
 )
 
@@ -24,7 +23,7 @@ type goldenCharFile struct {
 // byte-equal, and the Sheet carries what the game read.
 func checkGoldenCharFiles[R Later](t *testing.T, game string) {
 	t.Helper()
-	b, err := os.ReadFile(filepath.Join("..", "..", "rules1e", "testdata", game, "charfiles.golden.json"))
+	b, err := os.ReadFile(filepath.Join("testdata", game, "charfiles.golden.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +47,7 @@ func checkGoldenCharFiles[R Later](t *testing.T, game string) {
 		if !bytes.Equal(g.Record, f.Record) || !bytes.Equal(g.Items, f.Items) || !bytes.Equal(g.Affects, f.Affects) {
 			t.Fatalf("%s: round trip differs", f.Name)
 		}
-		var j rules1e.CharacterJSON
+		var j CharacterJSON
 		if err := json.Unmarshal(packed, &j); err != nil {
 			t.Fatal(err)
 		}

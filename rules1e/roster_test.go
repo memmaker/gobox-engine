@@ -1,4 +1,4 @@
-package char
+package rules1e
 
 import (
 	"encoding/json"
@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"gobox/rules"
-	"gobox/rules1e"
 )
 
 // TestReadRoster: a later game's characters in its folder come out as canonical files, by name,
@@ -25,7 +24,7 @@ func TestReadRoster(t *testing.T) {
 	if err != nil || len(got) != 1 {
 		t.Fatalf("%d characters, %v", len(got), err)
 	}
-	var c rules1e.CharacterJSON
+	var c CharacterJSON
 	if err := json.Unmarshal(got[0], &c); err != nil {
 		t.Fatal(err)
 	}

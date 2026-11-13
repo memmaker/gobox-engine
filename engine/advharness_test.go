@@ -5,9 +5,9 @@ import (
 	"slices"
 	"testing"
 
-	"gobox/char"
 	"gobox/game/play"
 	"gobox/importer"
+	"gobox/rules1e"
 )
 
 // The adventure harness: any game's imported folder (gobox import <game>
@@ -35,7 +35,7 @@ func advEngine(t *testing.T, env string) *Engine {
 	if err != nil {
 		t.Fatal(err)
 	}
-	e, err := New(char.Rules1e, tables, adv, t.TempDir())
+	e, err := New(rules1e.Rules1e, tables, adv, t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}

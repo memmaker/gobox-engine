@@ -6,8 +6,8 @@
 package engine
 
 import (
-	"gobox/char"
 	"gobox/rules"
+	"gobox/rules1e"
 )
 
 // Hooks are the game's side effects around a roll. Nil funcs do nothing.
@@ -49,7 +49,7 @@ func hitRoll(rv *rules.Roll, rng rules.GameRNG) bool {
 }
 
 // AttackHits: d20 + THAC0 + adj (the side's modifier) must reach need.
-func AttackHits(rv *rules.Roll, rng rules.GameRNG, att char.Stats, adj int, need int, h Hooks) bool {
+func AttackHits(rv *rules.Roll, rng rules.GameRNG, att rules1e.CharStats, adj int, need int, h Hooks) bool {
 	if h.Begin != nil {
 		h.Begin()
 	}
@@ -64,7 +64,7 @@ func AttackHits(rv *rules.Roll, rng rules.GameRNG, att char.Stats, adj int, need
 }
 
 // TrapHits: a d20 with the defender's affects plus bonus must beat AC 0.
-func TrapHits(rv *rules.Roll, rng rules.GameRNG, c char.Stats, bonus byte, h Hooks) bool {
+func TrapHits(rv *rules.Roll, rng rules.GameRNG, c rules1e.CharStats, bonus byte, h Hooks) bool {
 	if !hitRoll(rv, rng) {
 		return false
 	}
@@ -77,7 +77,7 @@ func TrapHits(rv *rules.Roll, rng rules.GameRNG, c char.Stats, bonus byte, h Hoo
 // SavingThrow: 1 always fails, 20 always saves, otherwise d20 + bonus + the
 // save bonus must reach the target for the type. One path for all games: the
 // total is compared signed (por's fix), so a penalty below 0 does not wrap.
-func SavingThrow(rv *rules.Roll, rng rules.GameRNG, c char.Stats, typ, bonus int, h Hooks) bool {
+func SavingThrow(rv *rules.Roll, rng rules.GameRNG, c rules1e.CharStats, typ, bonus int, h Hooks) bool {
 	rv.SaveMade = true
 	rv.Save = byte(rng.Dice(1, 20))
 	switch rv.Save {
@@ -123,7 +123,7 @@ func StrengthCode(str, str00 byte) byte {
 // reports that the status is now Dying (the game stores over in its combat
 // block); down that the member is out (the game updates its side count and
 // delay when fighting).
-func DamagePlayer(c char.Stats, dmg byte) (over byte, dying, down bool) {
+func DamagePlayer(c rules1e.CharStats, dmg byte) (over byte, dying, down bool) {
 	hp := byte(c.HP())
 	var left byte
 	if hp >= dmg {

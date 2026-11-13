@@ -5,7 +5,7 @@
 // Tests for the Go port of reSIDuEngine.
 // Original: Copyright (c) 2026, Gavin Graham <gavindi@gmail.com>
 
-package sid
+package audio
 
 import (
 	"math"

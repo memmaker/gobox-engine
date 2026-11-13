@@ -1,4 +1,4 @@
-package char
+package rules1e
 
 // Copied from cotab-go/engine/char.go and sotsb-go/engine/char.go (oracles).
 
@@ -259,5 +259,5 @@ func TestSetGet(t *testing.T) {
 	if r.Get("exp", 0) != 0x01020304 || r.HP() != 44 || r.SaveBonus() != -3 || r.Classes() != 8 {
 		t.Fatal("rec")
 	}
-	var _ Stats = r
+	var _ CharStats = r
 }

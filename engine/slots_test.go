@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"gobox/asset"
-	"gobox/char"
 	"gobox/game/play"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -64,14 +63,14 @@ func TestImportSlot(t *testing.T) {
 	e := &Engine{set: 1, data: "../data/por/sources", adv: "../data/por/sources/assets"}
 	e.initVM()
 	e.Cfg.SaveDir = t.TempDir()
-	f := char.OriginalSave{Set: 1, X: 7, Y: 9}
+	f := rules1e.OriginalSave{Set: 1, X: 7, Y: 9}
 	f.Area.AreaKind = 20
 	f.Game.Shop = 1
 	b, err := binary.Append(nil, binary.LittleEndian, &f)
 	if err != nil {
 		t.Fatal(err)
 	}
-	b = char.AppendPurse(b, rules1e.Purse{Gold: 12})
+	b = rules1e.AppendPurse(b, rules1e.Purse{Gold: 12})
 	dir := filepath.Join(e.slotRoot(), "OLD")
 	os.MkdirAll(dir, 0o755)
 	if err := os.WriteFile(filepath.Join(dir, origSaveFile), b, 0o644); err != nil {

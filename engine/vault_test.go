@@ -2,7 +2,6 @@ package engine
 
 import (
 	"encoding/binary"
-	"gobox/char"
 	"gobox/game/play"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -18,12 +17,12 @@ func TestVault(t *testing.T) {
 	e := quickStarted(t)
 	e.selectMember(0)
 	st := e.state()
-	items := []char.Item{*st.RandomItem(rules1e.ItemJavelin), *st.RandomItem(rules1e.ItemArrow)}
+	items := []rules1e.Item{*st.RandomItem(rules1e.ItemJavelin), *st.RandomItem(rules1e.ItemArrow)}
 	head := make([]byte, vaultCoins*4)
 	binary.LittleEndian.PutUint32(head, 3)     // gold
 	binary.LittleEndian.PutUint32(head[4:], 7) // copper
 	path := e.savePath(vaultFile)
-	if err := os.WriteFile(path, slices.Concat(head, char.WriteItems(items)), 0o644); err != nil {
+	if err := os.WriteFile(path, slices.Concat(head, rules1e.WriteItems(items)), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	gold := st.Purse.Gold
@@ -75,7 +74,7 @@ func TestVault(t *testing.T) {
 		t.Errorf("vault.dat holds %d gold %d copper, want the 3 and 7 left", g, c)
 	}
 	// the taken item was the member's first, so it is the one deposited, last in the file
-	left := char.ReadItems(b[vaultCoins*4:]) // the shown name is not the record's: compare types
+	left := rules1e.ReadItems(b[vaultCoins*4:]) // the shown name is not the record's: compare types
 	if len(left) != 2 || left[0].Type != items[1].Type || left[1].Type != items[0].Type {
 		t.Errorf("vault.dat holds %v, want the arrow not taken, then the javelin deposited", left)
 	}

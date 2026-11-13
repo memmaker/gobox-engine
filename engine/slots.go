@@ -6,9 +6,9 @@ import (
 	"encoding/gob"
 	"fmt"
 	"gobox/asset"
-	"gobox/char"
 	"gobox/ecl/script"
 	"gobox/rules"
+	"gobox/rules1e"
 	"os"
 	"path/filepath"
 	"slices"
@@ -98,7 +98,7 @@ func (e *Engine) slotLevel(name string) (lv int) {
 		}
 		for _, nm := range f.Party {
 			if b, err := os.ReadFile(e.savePath(nm + ".sav")); err == nil {
-				for _, l := range char.SheetOf(b).Levels {
+				for _, l := range rules1e.SheetOf(b).Levels {
 					lv = max(lv, int(int8(l)))
 				}
 			}

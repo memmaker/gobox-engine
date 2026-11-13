@@ -3,8 +3,8 @@ package engine
 import (
 	"encoding/binary"
 	"fmt"
-	"gobox/char"
 	"gobox/rules"
+	"gobox/rules1e"
 	"math"
 	"os"
 	"slices"
@@ -27,7 +27,7 @@ const (
 )
 
 // vault is the open vault: its item records, which the treasure reads (vaultBlock).
-type vault struct{ items []char.Item }
+type vault struct{ items []rules1e.Item }
 
 // Vault = pod's vault screen: the treasure screen over vault.dat until the party leaves.
 func (e *Engine) Vault() {
@@ -58,7 +58,7 @@ func (e *Engine) vaultDone() {
 }
 
 // readVault is vault.dat's pool and items; a missing file is an empty vault.
-func readVault(path string) ([vaultCoins]uint64, []char.Item, error) {
+func readVault(path string) ([vaultCoins]uint64, []rules1e.Item, error) {
 	var coins [vaultCoins]uint64
 	b, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
@@ -75,7 +75,7 @@ func readVault(path string) ([vaultCoins]uint64, []char.Item, error) {
 		coins[i] = uint64(max(int32(binary.LittleEndian.Uint32(b[i*4:])), 0))
 	}
 	rest := b[head:]
-	return coins, char.ReadItems(rest[:len(rest)/char.ItemSize*char.ItemSize]), nil
+	return coins, rules1e.ReadItems(rest[:len(rest)/rules1e.ItemSize*rules1e.ItemSize]), nil
 }
 
 // writeVault writes vault.dat: the pool's gold, copper, gems and jewelry, then the item records.

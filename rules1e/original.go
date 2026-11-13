@@ -1,4 +1,4 @@
-package char
+package rules1e
 
 import (
 	"encoding/binary"
@@ -6,16 +6,15 @@ import (
 	"io"
 	"math"
 	"reflect"
-	"gobox/rules1e"
 )
 
 // OriginalSave is the fixed part of SAVGAMx.DAT (ovr18 LoadGame/SaveGame),
 // read with encoding/binary; the party's purse follows it (ReadPurse).
 type OriginalSave struct {
 	Set                      byte
-	Area                     rules1e.AreaVars
-	Game                     rules1e.GameVars
-	Aux                      rules1e.AuxVars
+	Area                     AreaVars
+	Game                     GameVars
+	Aux                      AuxVars
 	ECL                      [0x1E00]byte
 	X, Y, Facing, Pos3, Pos4 byte
 	ViewMode, BeginFlag      byte
@@ -38,21 +37,21 @@ const PurseSize = 16
 
 // ReadPurse reads AppendPurse's format; an older save's purse is gold, gems
 // and jewelry only, before copper came; shorter than that, none.
-func ReadPurse(b []byte) rules1e.Purse {
+func ReadPurse(b []byte) Purse {
 	v := func(i int) uint64 { return uint64(binary.LittleEndian.Uint32(b[4*i:])) }
 	switch {
 	case len(b) >= PurseSize:
-		return rules1e.Purse{Gold: v(0), Gems: v(1), Jewelry: v(2), Copper: v(3)}
+		return Purse{Gold: v(0), Gems: v(1), Jewelry: v(2), Copper: v(3)}
 	case len(b) >= 12:
-		return rules1e.Purse{Gold: v(0), Gems: v(1), Jewelry: v(2)}
+		return Purse{Gold: v(0), Gems: v(1), Jewelry: v(2)}
 	}
-	return rules1e.Purse{}
+	return Purse{}
 }
 
 // AppendPurse keeps the purse after the original save game data.
 // ponytail: the format holds uint32, so a field above 4294967295 is saved as
 // that (the byte format is unchanged); widen the format when it matters.
-func AppendPurse(b []byte, p rules1e.Purse) []byte {
+func AppendPurse(b []byte, p Purse) []byte {
 	for _, v := range []uint64{p.Gold, p.Gems, p.Jewelry, p.Copper} {
 		b = binary.LittleEndian.AppendUint32(b, uint32(min(v, math.MaxUint32)))
 	}
@@ -104,7 +103,7 @@ type ImportedSave struct {
 	AreaKind                 uint16
 	Party                    []string
 	Records                  []RecordCells
-	Purse                    rules1e.Purse // the trailer's
+	Purse                    Purse // the trailer's
 }
 
 // Cell is the record cell at script address a, nil outside the records.
@@ -189,8 +188,8 @@ func ReadOriginalSave(b []byte, l SaveLayout) (ImportedSave, error) {
 	}
 	o.Purse = ReadPurse(b[p:])
 	if l.RulesRecords {
-		s := &rules1e.RuleState{Purse: o.Purse}
-		if len(o.Records) != 3 || len(o.Records[0].Cells) != rules1e.AreaWords || len(o.Records[1].Cells) != rules1e.GameWords || len(o.Records[2].Cells) != len(rules1e.AuxVars{}) {
+		s := &RuleState{Purse: o.Purse}
+		if len(o.Records) != 3 || len(o.Records[0].Cells) != AreaWords || len(o.Records[1].Cells) != GameWords || len(o.Records[2].Cells) != len(AuxVars{}) {
 			return o, fmt.Errorf("%s: RulesRecords needs the area, game and aux records", OriginalSaveFile)
 		}
 		for i, v := range o.Records[0].Cells {
@@ -202,7 +201,7 @@ func ReadOriginalSave(b []byte, l SaveLayout) (ImportedSave, error) {
 		s.Area.ClearScriptWords()
 		s.Game.ClearScriptWords()
 		var err error
-		if o.Rules, err = (&rules1e.Rules{S: s}).Save(); err != nil {
+		if o.Rules, err = (&Rules{S: s}).Save(); err != nil {
 			return o, err
 		}
 	}
@@ -222,8 +221,8 @@ var clockParts = map[string]int{"Clock": 0, "TenMinutes": 2, "Hours": 3, "ClockR
 // RulesFromFields is the ruleset's canonical part of a save whose records are not rules1e's
 // (sotsb, cotab, pod): each canonical field (canonical values, by name) that is a word of
 // rules1e's area or game record goes there; the others are script fields only.
-func RulesFromFields(fields map[string][]int64, p rules1e.Purse) ([]byte, error) {
-	s := &rules1e.RuleState{Purse: p}
+func RulesFromFields(fields map[string][]int64, p Purse) ([]byte, error) {
+	s := &RuleState{Purse: p}
 	words := recordFields(&s.Area)
 	for n, w := range recordFields(&s.Game) {
 		words[n] = w
@@ -243,7 +242,7 @@ func RulesFromFields(fields map[string][]int64, p rules1e.Purse) ([]byte, error)
 			*at[i] = uint16(v)
 		}
 	}
-	return (&rules1e.Rules{S: s}).Save()
+	return (&Rules{S: s}).Save()
 }
 
 // recordFields are a rules1e record's named words (its exported fields but the

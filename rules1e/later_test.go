@@ -1,17 +1,15 @@
-package char
+package rules1e
 
 import (
 	"bytes"
 	"encoding/json"
 	"math/rand/v2"
 	"testing"
-
-	"gobox/rules1e"
 )
 
 // LaterRoundTrip checks f through PackLater and UnpackLater: the record
 // byte-equal (pointers included), the items and affects too.
-func LaterRoundTrip[R Later](t *testing.T, f LaterFiles) rules1e.CharacterJSON {
+func LaterRoundTrip[R Later](t *testing.T, f LaterFiles) CharacterJSON {
 	t.Helper()
 	b, err := PackLater[R](f)
 	if err != nil {
@@ -29,7 +27,7 @@ func LaterRoundTrip[R Later](t *testing.T, f LaterFiles) rules1e.CharacterJSON {
 		}
 		t.Fatalf("%T: round trip differs (items or affects, or length %d/%d)", *new(R), len(g.Record), len(f.Record))
 	}
-	var c rules1e.CharacterJSON
+	var c CharacterJSON
 	json.Unmarshal(b, &c)
 	return c
 }
@@ -60,9 +58,9 @@ func TestLaterWritesSheet(t *testing.T) {
 	r.PName[0], r.PName[1] = 1, 'A'
 	r.HP, r.Exp, r.SpellSlots[18+8], r.Coins[0] = 5, 100, 2, 7
 	b, _ := PackLater[Record510](LaterFiles{Record: Encode(r), ItemSize: ItemSize})
-	var c rules1e.CharacterJSON
+	var c CharacterJSON
 	json.Unmarshal(b, &c)
-	if c.Sheet.SpellSlots[rules1e.SpellClassMage][8] != 2 || c.Sheet.Coins[4] != 7 || c.Sheet.CharName != "A" {
+	if c.Sheet.SpellSlots[SpellClassMage][8] != 2 || c.Sheet.Coins[4] != 7 || c.Sheet.CharName != "A" {
 		t.Fatalf("sheet %+v", c.Sheet)
 	}
 	c.Sheet.HP, c.Sheet.CharName, c.CanTrain = 9, "Bo", true

@@ -2,8 +2,8 @@ package engine
 
 import (
 	"errors"
-	"gobox/char"
 	"gobox/rules"
+	"gobox/rules1e"
 	"io/fs"
 	"log"
 	"os"
@@ -69,7 +69,7 @@ func (e *Engine) importSlots() {
 // out of its record words by their layout addresses (the game's fields, and
 // the locals of the area it was saved in).
 func (e *Engine) importSave(b []byte) (gameSave, error) {
-	o, err := char.ReadOriginalSave(b, e.game().OriginalSave)
+	o, err := rules1e.ReadOriginalSave(b, e.game().OriginalSave)
 	if err != nil {
 		return gameSave{}, err
 	}
@@ -88,7 +88,7 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 		return gameSave{}, err
 	}
 	if !e.game().OriginalSave.RulesRecords {
-		if g.Rules, err = char.RulesFromFields(e.canonFields(&o, l), o.Purse); err != nil {
+		if g.Rules, err = rules1e.RulesFromFields(e.canonFields(&o, l), o.Purse); err != nil {
 			return gameSave{}, err
 		}
 	}
@@ -107,12 +107,12 @@ func (e *Engine) importSave(b []byte) (gameSave, error) {
 
 // origSaveFile is the original's save of a slot (ovr18 SaveGame), read only
 // here: the import turns it into the canonical save (savegame.go).
-const origSaveFile = char.OriginalSaveFile
+const origSaveFile = rules1e.OriginalSaveFile
 
 // decodeCells are field fl's cells in o's records (a text up to its NUL,
 // a text buffer with named elements all its Len);
 // nil when all are zero.
-func decodeCells(o *char.ImportedSave, fl script.Field) []int64 {
+func decodeCells(o *rules1e.ImportedSave, fl script.Field) []int64 {
 	var c []int64
 	n := fl.Len
 	text := fl.Width == script.WidthText && fl.Elements == nil // a text buffer with named elements keeps all its cells
@@ -134,7 +134,7 @@ func decodeCells(o *char.ImportedSave, fl script.Field) []int64 {
 
 // canonFields are the canonical values of l's record fields in o (codecs.go), by name: what
 // a save whose records are not rules1e's hands the ruleset (char.RulesFromFields).
-func (e *Engine) canonFields(o *char.ImportedSave, l *script.Layout) map[string][]int64 {
+func (e *Engine) canonFields(o *rules1e.ImportedSave, l *script.Layout) map[string][]int64 {
 	out := map[string][]int64{}
 	for i := range l.Fields {
 		fl := &l.Fields[i]
@@ -155,10 +155,10 @@ func (e *Engine) canonFields(o *char.ImportedSave, l *script.Layout) map[string]
 // OriginalRules is the ruleset's part of an original save b of the game t whose script
 // fields are l: the import's (importSave), for a game's test against its real saves.
 func OriginalRules(b []byte, t GameTables, l *script.Layout) ([]byte, error) {
-	o, err := char.ReadOriginalSave(b, t.OriginalSave)
+	o, err := rules1e.ReadOriginalSave(b, t.OriginalSave)
 	if err != nil || t.OriginalSave.RulesRecords {
 		return o.Rules, err
 	}
 	e := &Engine{given: &t}
-	return char.RulesFromFields(e.canonFields(&o, l), o.Purse)
+	return rules1e.RulesFromFields(e.canonFields(&o, l), o.Purse)
 }

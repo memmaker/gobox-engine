@@ -1,9 +1,8 @@
-package char
+package rules1e
 
 import (
 	"fmt"
 	"gobox/rules"
-	"gobox/rules1e"
 	"path/filepath"
 )
 
@@ -22,21 +21,21 @@ func Rules1e(
 	treasure func(block int) []Item,
 	host rules.CreationHost,
 ) (rules.Rules, rules.CreationRules) {
-	r := &rules1e.Rules{S: &rules1e.RuleState{}}
+	r := &Rules{S: &RuleState{}}
 	if rulesFile != "" {
-		l, err := rules1e.ReadLayout(filepath.Join(filepath.Dir(rulesFile), rules1e.LayoutFile))
+		l, err := ReadLayout(filepath.Join(filepath.Dir(rulesFile), LayoutFile))
 		if err != nil {
 			panic(fmt.Sprintf("rules1e: %s needs its layout: %v", rulesFile, err))
 		}
-		t, err := rules1e.POR.LoadRules(rulesFile, l)
+		t, err := POR.LoadRules(rulesFile, l)
 		if err != nil {
 			panic(fmt.Sprintf("rules1e: %v", err))
 		}
 		r.S.Tables = t
 	}
-	r.Monsters = func(id rules.MonsterID) (rules1e.Monster, bool) {
+	r.Monsters = func(id rules.MonsterID) (Monster, bool) {
 		rec, affects, its, ok := monster(id)
-		return rules1e.Monster{Sheet: rec, Affects: affects, Items: its}, ok
+		return Monster{Sheet: rec, Affects: affects, Items: its}, ok
 	}
 	r.ItemTable = items
 	r.TreasureBlock = treasure

@@ -8,7 +8,6 @@ import (
 	"github.com/memmaker/opl2"
 
 	"gobox/asset/orig"
-	"gobox/audio/sid"
 )
 
 // AdLib plays the GLBR/SLBR song blocks of SOUND.COM's AdLib driver (pod-go docs/MUSIC.md)
@@ -20,8 +19,8 @@ type AdLib struct {
 	rate          int // effect sample rate (Hz)
 
 	chip  *opl2.Chip
-	sidOn bool      // the songs on the Innovation SSI-2001's SID (SetSID), not the OPL2
-	sc    *sid.Chip // ... that chip
+	sidOn bool  // the songs on the Innovation SSI-2001's SID (SetSID), not the OPL2
+	sc    *Chip // ... that chip
 	rs    *opl2.Resampler
 	song  int            // block playing, 0 none
 	named map[string]int // AdLibData.Named: name -> block
@@ -133,7 +132,7 @@ func (a *AdLib) Start(n int) {
 	a.rs = opl2.NewResampler(a.chip, adlibRate)
 	w := func(r int, v byte) { a.chip.Write(r, v) }
 	if a.sidOn {
-		a.sc = sid.New(sid.MOS6581, sidClock, adlibRate)
+		a.sc = New(MOS6581, sidClock, adlibRate)
 		w = func(r int, v byte) { a.sc.Write(byte(r), v) }
 	}
 	if a.seq = orig.GlbrNew(a.music[n], a.tempo, w, a.sidOn); a.seq == nil { // a song without SID instruments: the OPL2

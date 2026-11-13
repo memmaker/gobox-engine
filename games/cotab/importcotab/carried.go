@@ -2,15 +2,15 @@ package importcotab
 
 import (
 	"embed"
-	"gobox/char"
 	eclscript "gobox/ecl/script"
 	"gobox/game"
+	"gobox/rules1e"
 	"io/fs"
 	"slices"
 )
 
 // RecordLayout is the layout of the game's character records (its adventure's manifest names it).
-const RecordLayout = char.Layout422
+const RecordLayout = rules1e.Layout422
 
 // scriptFS is the scripts' data (gobox ecl/script Library.Data): the
 // layout, made from cotab-re's Pascal (scripts/layout/global.txt).
@@ -31,9 +31,9 @@ func ScriptLayout() (*eclscript.Layout, error) { return eclscript.ReadLayout(scr
 
 // OriginalSave is savgamX.dat as above (unit O0A1): the area byte, the area, area2 and aux
 // records at their script addresses, the script code, the position and states, the wall slots.
-var OriginalSave = char.SaveLayout{
-	Lead: char.LeadAreaKind,
-	Records: []char.SaveRecord{
+var OriginalSave = rules1e.SaveLayout{
+	Lead: rules1e.LeadAreaKind,
+	Records: []rules1e.SaveRecord{
 		{Base: scriptAreaFirst, Cells: scriptAreaLast - scriptAreaFirst + 1, CellBytes: 2},
 		{Base: scriptArea2First, Cells: scriptArea2Last - scriptArea2First + 1, CellBytes: 2},
 		{Base: scriptAuxFirst, Cells: scriptAuxLast - scriptAuxFirst + 1, CellBytes: 2},
@@ -56,7 +56,7 @@ const (
 
 // charRecord is the game's character record, the shared 422-byte layout
 // (gobox/char, field for field: CHRDATA/SAVGAM and the monster records).
-type charRecord = char.Record422
+type charRecord = rules1e.Record422
 
 // Rubble on the dungeon floor.
 const (

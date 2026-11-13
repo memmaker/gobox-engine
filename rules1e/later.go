@@ -1,4 +1,4 @@
-package char
+package rules1e
 
 import (
 	"bytes"
@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"gobox/rules"
-	"gobox/rules1e"
 )
 
 // Later is a layout after Pool of Radiance's: COTAB (422), SotSB (439), POD (510).
@@ -37,7 +36,7 @@ func PackLater[R Later](f LaterFiles) (rules.CharacterFile, error) {
 	n := len(Encode(*new(R)))
 	rec, ids := SplitPoolIDs(f.Record, n)
 	r := Decode[R](rec)
-	c := rules1e.CharacterJSON{PoolIDs: ids, Kept: &rules1e.KeptRecord{Layout: rules.RecordLayout(n), Image: rules.RecordImage(bytes.Clone(rec))}}
+	c := CharacterJSON{PoolIDs: ids, Kept: &KeptRecord{Layout: rules.RecordLayout(n), Image: rules.RecordImage(bytes.Clone(rec))}}
 	sheetOfLater(&c, r)
 	c.Items = readItems(f.Items, f.ItemSize)
 	c.Affects = ReadAffects(f.Affects)
@@ -52,7 +51,7 @@ func PackLater[R Later](f LaterFiles) (rules.CharacterFile, error) {
 // the modelled fields written over it (unchanged ones give the file back
 // byte for byte, the DOS pointers included).
 func UnpackLater[R Later](b rules.CharacterFile, itemSize int) (LaterFiles, error) {
-	var c rules1e.CharacterJSON
+	var c CharacterJSON
 	if err := json.Unmarshal(b, &c); err != nil {
 		return LaterFiles{}, fmt.Errorf("UnpackLater: %w", err)
 	}
@@ -128,11 +127,11 @@ func copySame(dst, src reflect.Value) {
 // slotRuns are where a layout keeps each spell class's slots: offset into
 // SpellSlots and levels (SotSB's paladin/ranger run, 14..20, has no rules1e
 // class and stays in the record).
-func slotRuns(r any) (runs [rules1e.SpellClasses]struct{ at, n int }) {
+func slotRuns(r any) (runs [SpellClasses]struct{ at, n int }) {
 	set := func(cleric, druid, mage, n int) {
-		runs[rules1e.SpellClassCleric] = struct{ at, n int }{cleric, n}
-		runs[rules1e.SpellClassDruid] = struct{ at, n int }{druid, n}
-		runs[rules1e.SpellClassMage] = struct{ at, n int }{mage, n}
+		runs[SpellClassCleric] = struct{ at, n int }{cleric, n}
+		runs[SpellClassDruid] = struct{ at, n int }{druid, n}
+		runs[SpellClassMage] = struct{ at, n int }{mage, n}
 	}
 	switch r.(type) {
 	case *Record422:
@@ -170,13 +169,13 @@ func commonOf(r any) common {
 	panic("char: not a later layout")
 }
 
-func sheetOfLater[R Later](c *rules1e.CharacterJSON, r R) {
+func sheetOfLater[R Later](c *CharacterJSON, r R) {
 	copySame(reflect.ValueOf(&c.Sheet).Elem(), reflect.ValueOf(r))
 	m := commonOf(&r)
 	n := min(int(m.name[0]), 15)
 	c.Sheet.CharName = string(m.name[1 : 1+n])
 	for i, p := range m.stats {
-		c.Sheet.Stats[i], c.Sheet.Base[i] = rules1e.Score(p.Value), rules1e.Score(p.Base)
+		c.Sheet.Stats[i], c.Sheet.Base[i] = Score(p.Value), Score(p.Base)
 	}
 	c.Sheet.Str00, c.Sheet.Str00Base = m.str00.Value, m.str00.Base
 	memoryOf(c.Sheet.Memorized[:], m.memo)
@@ -185,7 +184,7 @@ func sheetOfLater[R Later](c *rules1e.CharacterJSON, r R) {
 	}
 	copy(c.Sheet.Coins[len(c.Sheet.Coins)-len(m.coins):], m.coins)
 	fromBytes(c.OldLevels[:], m.old)
-	c.MulticlassLevel = rules1e.Level(*m.multi)
+	c.MulticlassLevel = Level(*m.multi)
 	if m.train != nil {
 		c.CanTrain = *m.train != 0
 	}
@@ -195,7 +194,7 @@ func sheetOfLater[R Later](c *rules1e.CharacterJSON, r R) {
 	}
 }
 
-func laterOfSheet[R Later](r *R, c rules1e.CharacterJSON) {
+func laterOfSheet[R Later](r *R, c CharacterJSON) {
 	v := reflect.ValueOf(r).Elem()
 	copySame(v, reflect.ValueOf(c.Sheet))
 	m := commonOf(r)
@@ -204,7 +203,7 @@ func laterOfSheet[R Later](r *R, c rules1e.CharacterJSON) {
 		m.name[0] = byte(copy(m.name[1:], c.Sheet.CharName[:min(len(c.Sheet.CharName), 15)]))
 	}
 	base, base00 := c.Sheet.Base, c.Sheet.Str00Base
-	if c.Kept == nil && base == ([6]rules1e.Score{}) { // a character made here: its own scores are those in use
+	if c.Kept == nil && base == ([6]Score{}) { // a character made here: its own scores are those in use
 		base, base00 = c.Sheet.Stats, c.Sheet.Str00
 	}
 	for i := range m.stats {
@@ -234,12 +233,12 @@ func laterOfSheet[R Later](r *R, c rules1e.CharacterJSON) {
 // game's tables tb and base item table items, and UnpackLater: nil when the
 // record, items and affects come back byte-equal. Import fails on a spell,
 // affect or item power number the game's maps (rules.json) lack.
-func CheckLater[R Later](tb *rules1e.Tables, items []ItemBase, f LaterFiles) error {
+func CheckLater[R Later](tb *Tables, items []ItemBase, f LaterFiles) error {
 	b, err := PackLater[R](f)
 	if err != nil {
 		return err
 	}
-	r := &rules1e.Rules{S: &rules1e.RuleState{Tables: tb, Items: items}}
+	r := &Rules{S: &RuleState{Tables: tb, Items: items}}
 	id, err := r.Import(b)
 	if err != nil {
 		return err
@@ -259,7 +258,7 @@ func CheckLater[R Later](tb *rules1e.Tables, items []ItemBase, f LaterFiles) err
 	if gotIDs != wantIDs {
 		return fmt.Errorf("pool ids %+v, want %+v", gotIDs, wantIDs)
 	}
-	if len(f.Record) <= n || bytes.HasPrefix(f.Record[n:], []byte(rules1e.PoolMagic)) {
+	if len(f.Record) <= n || bytes.HasPrefix(f.Record[n:], []byte(PoolMagic)) {
 		gotRec, wantRec = g.Record, f.Record // no trailer or the canonical one: byte for byte
 	}
 	if !bytes.Equal(gotRec, wantRec) {
@@ -309,7 +308,7 @@ type LaterSave struct{ Record, Items, Affects, IDs string }
 // itemSize bytes, and on one character (the first found) holding extra as
 // its items: the game data's items, so every spell, power and affect number
 // they hold meets the maps. It returns the files checked and their failures.
-func CheckLaterDir[R Later](tb *rules1e.Tables, items []ItemBase, dir string, itemSize int, extra []Item, saves ...LaterSave) (checked []string, errs []error) {
+func CheckLaterDir[R Later](tb *Tables, items []ItemBase, dir string, itemSize int, extra []Item, saves ...LaterSave) (checked []string, errs []error) {
 	var first []byte
 	filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {

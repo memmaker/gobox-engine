@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"gobox/char"
 	"gobox/rules1e"
 	"testing"
 )
@@ -40,7 +39,7 @@ func TestPaladinCotabTransfer(t *testing.T) {
 	c := &rules1e.Character{}
 	c.Class, c.Alignment, c.Exp = 3, 0, 175001
 	c.Levels[rules1e.ClsPaladin] = 8
-	b := char.SheetBytes(c.Sheet)
+	b := rules1e.SheetBytes(c.Sheet)
 	if len(b) != 0x11D || b[0x2F] != 3 || b[0x96+3] != 8 || b[0xA0] != 0 || b[0xAC] != 0x99 || b[0xAE] != 0x02 {
 		t.Fatalf("record % x", b[0x2F:0x30])
 	}
@@ -50,7 +49,7 @@ func TestPaladinCotabTransfer(t *testing.T) {
 			t.Errorf("CotAB would import affect %#x", typ)
 		}
 	}
-	if n := len(char.WriteRecords([]*rules1e.AffectFile{{Type: byte(rules1e.AffLaidOnHands), Time: 1440}})); n != 9 {
+	if n := len(rules1e.WriteRecords([]*rules1e.AffectFile{{Type: byte(rules1e.AffLaidOnHands), Time: 1440}})); n != 9 {
 		t.Errorf("affect record %d bytes", n)
 	}
 }

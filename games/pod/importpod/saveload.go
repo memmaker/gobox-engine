@@ -1,7 +1,7 @@
 package importpod
 
 import (
-	"gobox/char"
+	"gobox/rules1e"
 )
 
 // The saved game's layout: the game block (p87F8), the position (x, y,
@@ -19,8 +19,8 @@ const (
 
 // OriginalSave is savgamX.dat as above: no lead byte, the game block's bytes (script address =
 // offset + 1, eclvars.go), no code image, the position and states, the wall set's two words.
-var OriginalSave = char.SaveLayout{
-	Records:   []char.SaveRecord{{Base: 1, Cells: gameBlockSize, CellBytes: 1}},
+var OriginalSave = rules1e.SaveLayout{
+	Records:   []rules1e.SaveRecord{{Base: 1, Cells: gameBlockSize, CellBytes: 1}},
 	CodeBase:  int(eclLayout.Code.First),
 	CodeSize:  scriptCodeSize,
 	WallBytes: 2 * 2,

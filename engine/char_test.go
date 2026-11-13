@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"gobox/asset/orig"
-	"gobox/char"
 	"gobox/rules1e"
 	"testing"
 	"unsafe"
@@ -47,8 +46,8 @@ func TestCharRecordLayout(t *testing.T) {
 	b[0] = 5 // the name: its letters are kept, the bytes past them are not (sheetOf)
 	clear(b[6:0x10])
 	var c rules1e.Character
-	c.Sheet = char.SheetOf(b)
-	if !bytes.Equal(char.SheetBytes(c.Sheet), b) {
+	c.Sheet = rules1e.SheetOf(b)
+	if !bytes.Equal(rules1e.SheetBytes(c.Sheet), b) {
 		t.Fatal("record does not round-trip")
 	}
 }
@@ -66,8 +65,8 @@ func TestItemAffectRecords(t *testing.T) {
 	}
 	clear(b[0x2A:0x2E]) // next pointers are dropped
 	clear(b[rules1e.ItemRecSize+0x2A : rules1e.ItemRecSize+0x2E])
-	items := char.ReadItems(b)
-	if len(items) != 2 || items[1].Price != 0x7A79 || !bytes.Equal(char.WriteItems(items), b) {
+	items := rules1e.ReadItems(b)
+	if len(items) != 2 || items[1].Price != 0x7A79 || !bytes.Equal(rules1e.WriteItems(items), b) {
 		t.Fatal("items do not round-trip")
 	}
 }

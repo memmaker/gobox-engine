@@ -3,9 +3,9 @@ package engine
 import (
 	"fmt"
 	"gobox/asset/orig"
-	"gobox/char"
 	"gobox/ecl/script"
 	"gobox/rules"
+	"gobox/rules1e"
 	"os"
 	"path/filepath"
 	"slices"
@@ -18,9 +18,9 @@ import (
 // needs nothing of this package.
 type Ruleset func(
 	rules string,
-	monster func(rules.MonsterID) (char.Sheet, []char.AffectRecord, []char.Item, bool),
-	items func() []char.ItemBase,
-	treasure func(block int) []char.Item,
+	monster func(rules.MonsterID) (rules1e.Sheet, []rules1e.AffectRecord, []rules1e.Item, bool),
+	items func() []rules1e.ItemBase,
+	treasure func(block int) []rules1e.Item,
 	host rules.CreationHost,
 ) (rules.Rules, rules.CreationRules)
 
@@ -37,7 +37,7 @@ type GameTables struct {
 	ScriptFixes                []script.Fix         // the game's decompiler special cases (script.Library.Fixes): the import's, for the texts' key
 	Natives                    []NativeAt           // the labels a native script runs at (POR: the tavern game, CAST KNOCK); none: no native
 	Quests                     []QuestDef           // the quest journal's quests (POR: the commissions); none: an empty journal
-	OriginalSave               char.SaveLayout      // the game's SAVGAMx.DAT format (the original-save import)
+	OriginalSave               rules1e.SaveLayout   // the game's SAVGAMx.DAT format (the original-save import)
 	PurseWhos                  []PurseWho           // the Who commands that spend the party's one purse (POR: the inn, the tavern)
 	Symbols                    []SymbolLoad         // the 8x8 symbol sets Init loads; nil: POR's, sotsb's and cotab's (PorSymbols)
 	Art                        *ArtNames            // the pictures the Engine loads by role; nil: POR's (PorArt)
@@ -176,11 +176,11 @@ func (e *Engine) ruleset() rules.Rules {
 		if build == nil {
 			build = bareRuleset
 		}
-		monster := func(id rules.MonsterID) (char.Sheet, []char.AffectRecord, []char.Item, bool) {
+		monster := func(id rules.MonsterID) (rules1e.Sheet, []rules1e.AffectRecord, []rules1e.Item, bool) {
 			m, ok := e.gdata().monster(e.monsterSet().File("MON"), int(id))
 			return m.Record, m.Affects, m.Items, ok
 		}
-		treasure := func(n int) []char.Item {
+		treasure := func(n int) []rules1e.Item {
 			if n == vaultBlock {
 				return e.vault.items
 			}

@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"gobox/char"
 	"gobox/rules"
 	"gobox/rules1e"
 )
@@ -16,7 +15,7 @@ var porTables = func() GameTables {
 }()
 
 // A test's bare &Engine{} runs on POR's ruleset and tables.
-func init() { bareRuleset, bareData = char.Rules1e, porTables }
+func init() { bareRuleset, bareData = rules1e.Rules1e, porTables }
 
 // The tests' window into the rules' state: the Engine itself reaches the
 // rules only through core.Rules (fold E-R6).
