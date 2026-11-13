@@ -6,6 +6,8 @@ import (
 	"go/token"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/blobber"
+	"gobox/ui/input"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -19,7 +21,7 @@ import (
 // Esc closes the command menu (Enter opened it).
 func TestEscClosesCommandMenu(t *testing.T) {
 	g, _ := playGame(play.Exploring{})
-	p := &Presenter{active: true, view: &View{}}
+	p := &Presenter{active: true, view: &blobber.View{}}
 	p.SetEngine(g)
 	if !p.key(13) || !p.menu {
 		t.Fatal("Enter did not open the menu")
@@ -196,15 +198,15 @@ func TestBindings(t *testing.T) {
 // resolves to that row's Act in its context (no row shadows another), each
 // such Act is one a screen switches on, and no screen names a key code.
 func TestKeyDispatch(t *testing.T) {
-	names := map[Act]string{} // the Acts by name, from the package's source
-	f, err := parser.ParseFile(token.NewFileSet(), "input_input.go", nil, 0)
+	names := map[input.Act]string{} // the Acts by name, from the package's source
+	f, err := parser.ParseFile(token.NewFileSet(), "input/act.go", nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, d := range f.Decls {
 		if g, ok := d.(*ast.GenDecl); ok && g.Tok == token.CONST && len(g.Specs) > 1 {
 			for i, sp := range g.Specs {
-				names[Act(i)] = sp.(*ast.ValueSpec).Names[0].Name
+				names[input.Act(i)] = sp.(*ast.ValueSpec).Names[0].Name
 			}
 		}
 	}
@@ -213,10 +215,11 @@ func TestKeyDispatch(t *testing.T) {
 		"present_bindings.go": true, // the key table (it was present's bindings.go)
 		"bioskeys.go":         true, // the BIOS key codes of the host's keys
 		"vace.go":             true, // VACE opcodes, not keys
-		"input_input.go":      true, // the Act and key definitions
 	}
 	used := map[string]bool{} // the identifiers the screens use
 	files, _ := filepath.Glob("*.go")
+	sub, _ := filepath.Glob("combat/*.go") // the board takes Acts too
+	files = append(files, sub...)
 	scan := regexp.MustCompile(`0x(3[B-F]|4[0-9A-F]|5[0-3]|E[0-5]|FD)00\b|KeyPad|KeyF[19]|KeyFontPrev|\bk ?[=!]= ?(8|9|13|27)\b|case (8|9|13|27)\b`)
 	for _, name := range files {
 		if strings.HasSuffix(name, "_test.go") || tables[name] {
@@ -248,7 +251,7 @@ func TestKeyDispatch(t *testing.T) {
 			if a := look(c.K); a != c.A {
 				t.Errorf("%s %q: key %#x resolves to %s, not %s", b.Ctx, b.Desc, c.K, names[a], names[c.A])
 			}
-			if n := names[c.A]; c.A < Member1 || c.A >= Member1+Members {
+			if n := names[c.A]; c.A < input.Member1 || c.A >= input.Member1+input.Members {
 				if !used[n] {
 					t.Errorf("%s %q: no screen handles %s", b.Ctx, b.Desc, n)
 				}
@@ -282,7 +285,7 @@ func TestCardClickPicksMember(t *testing.T) {
 // A heading to pick (AskMove) takes the arrows as ActDir, not the command bar.
 func TestDirsAskTakesArrows(t *testing.T) {
 	p := askedOn(&play.Ask{Kind: game.Direction})
-	p.active, p.view, p.menu = true, &View{}, true
+	p.active, p.view, p.menu = true, &blobber.View{}, true
 	if p.key(0x4800) {
 		t.Fatal("the bar took an arrow the question answers")
 	}

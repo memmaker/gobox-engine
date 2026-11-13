@@ -7,6 +7,7 @@ import (
 	"image/color"
 
 	"gobox/asset"
+	"gobox/ui/blobber"
 )
 
 type pixKey struct {
@@ -145,7 +146,7 @@ func texturedOnce(t image.Image) image.Image {
 	if m, ok := flatTiles[c]; ok {
 		return m
 	}
-	m := Tint(tex, c)
+	m := blobber.Tint(tex, c)
 	flatTiles[c] = m
 	return m
 }

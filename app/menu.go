@@ -8,16 +8,16 @@ import (
 	"gobox/ui"
 )
 
-// Menu is the Esc menu (blobber's settings) as the game fills it: its own
-// options kept beside blobber.Settings in the settings file, its rows, and
+// Menu is the Esc menu (the Esc menu's settings) as the game fills it: its own
+// options kept beside ui.Settings in the settings file, its rows, and
 // what the menu's lines do.
 type Menu struct {
 	Prefs Prefs
-	Extra any                 // a pointer to the game's own options struct: loaded and saved beside blobber.Settings (its fields at the file's top level)
-	Rows  map[string][]ui.Row // blobber.ExtraRows
+	Extra any                 // a pointer to the game's own options struct: loaded and saved beside ui.Settings (its fields at the file's top level)
+	Rows  map[string][]ui.Row // ui.ExtraRows
 	Apply func()              // the options changed (once after loading too): the game takes them up
 
-	SaveLoad, MainMenu func() // blobber.OnSaveLoad, OnMainMenu
+	SaveLoad, MainMenu func() // ui.OnSaveLoad, OnMainMenu
 
 	// blobber's Font list (FontNames, FontAt, SetFont, FontGlyph); nil keeps blobber's
 	FontNames func() []string
@@ -47,7 +47,7 @@ func (m *Menu) setup(held func(any) bool, tps int) {
 	if m.Apply != nil {
 		m.Apply()
 	}
-	ui.OnSettings = func(o ui.BlobberOptions) {
+	ui.OnSettings = func(o ui.MenuOptions) {
 		if m.Apply != nil {
 			m.Apply()
 		}
@@ -63,7 +63,7 @@ func (m *Menu) setup(held func(any) bool, tps int) {
 
 // both is o and *Extra as one struct embedding both, so the file holds
 // their fields at its top level in their order.
-func (m *Menu) both(o ui.BlobberOptions) any {
+func (m *Menu) both(o ui.MenuOptions) any {
 	if m.Extra == nil {
 		return o
 	}

@@ -38,11 +38,13 @@ func TestPrefs(t *testing.T) {
 func TestMenuBoth(t *testing.T) {
 	type Extra struct{ Zoom float64 }
 	m := Menu{Extra: &Extra{2}}
-	got, _ := json.Marshal(m.both(ui.BlobberOptions{Torch: 1}))
+	var o ui.MenuOptions
+	o.Torch = 1
+	got, _ := json.Marshal(m.both(o))
 	want, _ := json.Marshal(struct {
-		ui.BlobberOptions
+		ui.MenuOptions
 		Extra
-	}{ui.BlobberOptions{Torch: 1}, Extra{2}})
+	}{o, Extra{2}})
 	if string(got) != string(want) {
 		t.Fatalf("%s\nwant %s", got, want)
 	}

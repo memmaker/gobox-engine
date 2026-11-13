@@ -3,6 +3,7 @@ package ui
 import (
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/ui/input"
 	"image"
 )
 
@@ -77,7 +78,7 @@ func (p *Presenter) runAct(a ActKind) {
 		return
 	case actOptions:
 		p.menu = false
-		p.view.OpenOptions()
+		p.openOptions()
 		return
 	}
 	p.send(a, -1)
@@ -91,17 +92,17 @@ func (p *Presenter) exploreKey(k uint16) bool {
 		c -= 'a' - 'A'
 	}
 	a := actOf(k)
-	if kp := keypad(k); kp != None { // the digits: the keypad's arrows
+	if kp := keypad(k); kp != input.None { // the digits: the keypad's arrows
 		a = kp
 	}
 	if p.window() == game.WindowMap { // the area map: a step each way
-		if d, ok := map[Act]int{Up: 0, InputRight: 1, Down: 2, InputLeft: 3}[a]; ok {
+		if d, ok := map[input.Act]int{input.Up: 0, input.InputRight: 1, input.Down: 2, input.InputLeft: 3}[a]; ok {
 			p.send(ActGo, d)
 			return true
 		}
-	} else if act, ok := map[Act]ActKind{Up: ActForward, Down: ActBackward, InputLeft: ActTurnLeft, InputRight: ActTurnRight}[a]; ok {
-		if gpu.IsKeyPressed(gpu.KeyShift) && (a == InputLeft || a == InputRight) { // Shift: a step aside instead of a turn
-			act = map[Act]ActKind{InputLeft: ActStrafeLeft, InputRight: ActStrafeRight}[a]
+	} else if act, ok := map[input.Act]ActKind{input.Up: ActForward, input.Down: ActBackward, input.InputLeft: ActTurnLeft, input.InputRight: ActTurnRight}[a]; ok {
+		if gpu.IsKeyPressed(gpu.KeyShift) && (a == input.InputLeft || a == input.InputRight) { // Shift: a step aside instead of a turn
+			act = map[input.Act]ActKind{input.InputLeft: ActStrafeLeft, input.InputRight: ActStrafeRight}[a]
 		}
 		p.send(act, 0)
 		return true

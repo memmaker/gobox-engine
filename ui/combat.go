@@ -3,6 +3,7 @@ package ui
 import (
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/combat"
 	"image"
 	"slices"
 
@@ -12,17 +13,17 @@ import (
 
 // The adapter between the engine's combat snapshot and gobox/combat.
 
-var combatKinds = map[ActKind]Kind{
-	ActWalk: DecideWalk, ActAttack: DecideAttack, ActAim: DecideAim, ActPoint: DecidePoint,
-	ActClose: DecideClose, ActYes: DecideYes, ActNo: DecideNo, ActWait: DecideWait,
-	ActEnd: DecideEnd, ActQuick: DecideQuick, ActGuard: DecideGuard, ActBandage: DecideBandage,
-	ActFlee: DecideFlee, ActTurn: DecideTurn, ActCast: DecideCast, ActItems: DecideItems,
-	ActRanged: DecideRanged, ActManeuver: DecideManeuver,
-	ActStep: DecideStep, ActView: DecideView, ActOption: DecideOption,
+var combatKinds = map[ActKind]combat.Kind{
+	ActWalk: combat.DecideWalk, ActAttack: combat.DecideAttack, ActAim: combat.DecideAim, ActPoint: combat.DecidePoint,
+	ActClose: combat.DecideClose, ActYes: combat.DecideYes, ActNo: combat.DecideNo, ActWait: combat.DecideWait,
+	ActEnd: combat.DecideEnd, ActQuick: combat.DecideQuick, ActGuard: combat.DecideGuard, ActBandage: combat.DecideBandage,
+	ActFlee: combat.DecideFlee, ActTurn: combat.DecideTurn, ActCast: combat.DecideCast, ActItems: combat.DecideItems,
+	ActRanged: combat.DecideRanged, ActManeuver: combat.DecideManeuver,
+	ActStep: combat.DecideStep, ActView: combat.DecideView, ActOption: combat.DecideOption,
 }
 
-var engineKinds = func() map[Kind]ActKind {
-	m := map[Kind]ActKind{}
+var engineKinds = func() map[combat.Kind]ActKind {
+	m := map[combat.Kind]ActKind{}
 	for e, c := range combatKinds {
 		m[c] = e
 	}
@@ -31,13 +32,13 @@ var engineKinds = func() map[Kind]ActKind {
 
 // syncBattle gives the tabletop its theme and Shift before it draws or takes a key.
 func (p *Presenter) syncBattle() {
-	p.battle.Theme, p.battle.Shift, p.battle.Alt = CombatDefaultTheme, gpu.IsKeyPressed(gpu.KeyShift), gpu.IsKeyPressed(gpu.KeyAlt)
+	p.battle.Theme, p.battle.Shift, p.battle.Alt = combat.DefaultTheme, gpu.IsKeyPressed(gpu.KeyShift), gpu.IsKeyPressed(gpu.KeyAlt)
 	p.battle.Theme.Series = series
 	p.battle.Meshes, p.battle.Props = asset.Meshes(series), asset.Combat(series)
 }
 
 // toAction is what the player chose as the engine's action.
-func toAction(d Decision) Action {
+func toAction(d combat.Decision) Action {
 	return Action{Kind: engineKinds[d.Kind], N: d.N, X: d.X, Y: d.Y}
 }
 
@@ -55,13 +56,13 @@ func (p *Presenter) askedTurn() bool {
 // askedBoard is b with the active unit's turn the question asks for
 // (askedTurn): an aim, or a move whose reach is the open squares next to the
 // unit and whose End ends it. c is the fight b is of.
-func (p *Presenter) askedBoard(b *Board, c *play.Combat) *Board {
+func (p *Presenter) askedBoard(b *combat.Board, c *play.Combat) *combat.Board {
 	if !p.askedTurn() {
 		return b
 	}
 	o := *b
 	aim := p.askUp().Kind == AskSquare
-	t := &Turn{Aim: aim, Can: []Kind{DecideAim}, CastDirect: true}
+	t := &combat.Turn{Aim: aim, Can: []combat.Kind{combat.DecideAim}, CastDirect: true}
 	if pt := c.Turn; pt != nil { // the game's turn, now aiming (a spell's square): its casting only
 		t.Casting = pt.Spell
 	}
@@ -72,7 +73,7 @@ func (p *Presenter) askedBoard(b *Board, c *play.Combat) *Board {
 		}
 	}
 	if !aim {
-		t.Can, o.Reach, o.Paths = []Kind{DecideEnd}, nil, nil
+		t.Can, o.Reach, o.Paths = []combat.Kind{combat.DecideEnd}, nil, nil
 		for d := range keypadSteps {
 			if q := at.Add(d); q.In(image.Rect(0, 0, len(o.Ground[0]), len(o.Ground))) && !o.Ground[q.Y][q.X].Wall {
 				o.Reach = append(o.Reach, q)
@@ -86,16 +87,16 @@ func (p *Presenter) askedBoard(b *Board, c *play.Combat) *Board {
 // askAction is the tabletop's decision d as the answer to the question up:
 // on a move (askedTurn) a square walked to is that step (ActDir), End is
 // done (ActOK); otherwise toAction's.
-func (p *Presenter) askAction(d Decision) Action {
+func (p *Presenter) askAction(d combat.Decision) Action {
 	if !p.askedTurn() || p.askUp().Kind != AskMove {
 		return toAction(d)
 	}
 	switch d.Kind {
-	case DecideEnd:
+	case combat.DecideEnd:
 		return Action{Kind: ActOK}
-	case DecideStep:
+	case combat.DecideStep:
 		return Action{Kind: ActDir, N: d.N}
-	case DecideWalk:
+	case combat.DecideWalk:
 		for _, u := range p.board.Units {
 			if n, ok := keypadSteps[image.Pt(d.X-u.At.X, d.Y-u.At.Y)]; u.Active && ok {
 				return Action{Kind: ActDir, N: n}

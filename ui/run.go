@@ -7,6 +7,8 @@ package ui
 import (
 	"fmt"
 	"gobox/asset"
+	"gobox/ui/blobber"
+	"gobox/ui/input"
 	"log"
 	"path/filepath"
 	"time"
@@ -115,7 +117,7 @@ func (f *Front) Key(k uint16) {
 	if f.stopWalk() {
 		return
 	}
-	if a := actOf(k); f.P.Playing() && a != Space && a != Enter && a != Esc && !f.P.CameraKey(k) { // a key while the fight's events play: kept for the screen after, never dropped (Space, Enter, Esc cut the moment short)
+	if a := actOf(k); f.P.Playing() && a != input.Space && a != input.Enter && a != input.Esc && !f.P.CameraKey(k) { // a key while the fight's events play: kept for the screen after, never dropped (Space, Enter, Esc cut the moment short)
 		f.held = append(f.held, k)
 		return
 	}
@@ -165,7 +167,7 @@ func (f *Front) Free() bool { return f.P.Free() }
 func (f *Front) Flow(held uint16, ready bool) (bool, bool) {
 	return f.P.Flow(held, ready)
 }
-func (f *Front) FreeWalk(in FreeInput) { f.P.FreeWalk(in) }
+func (f *Front) FreeWalk(in blobber.FreeInput) { f.P.FreeWalk(in) }
 
 func (f *Front) InventoryShown() bool { return f.P.InventoryShown() }
 func (f *Front) InventoryMouse(x, y int, down, right bool, wheel float64) {

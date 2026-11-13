@@ -8,6 +8,7 @@ import (
 
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/blobber"
 )
 
 // A replayed board's tiles are made from the game's art when it is drawn.
@@ -130,7 +131,7 @@ func TestNoFlatSky(t *testing.T) {
 	if !flatsPainted(&game.Walls{Sky: "clouds"}, art) {
 		t.Error("clouds resolve without a floor name")
 	}
-	if _, still := flatColour(Tint(wallImage("ceiling"), color.RGBA{230, 220, 180, 255})); still {
+	if _, still := flatColour(blobber.Tint(wallImage("ceiling"), color.RGBA{230, 220, 180, 255})); still {
 		t.Error("a flat colour stays flat")
 	}
 }

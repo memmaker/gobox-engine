@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/input"
 	"image"
 	"image/color"
 	"image/draw"
@@ -92,7 +93,7 @@ func (p *Presenter) sheetKey(k uint16) bool {
 		p.send(ActMember, m)
 		return true
 	}
-	if actOf(k) == Minimap { // Tab, pad Y: the inventory (they toggle)
+	if actOf(k) == input.Minimap { // Tab, pad Y: the inventory (they toggle)
 		p.send(ActInventory, -1)
 		return true
 	}

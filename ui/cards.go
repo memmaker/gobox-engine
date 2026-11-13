@@ -106,7 +106,7 @@ func greyed(m image.Image) *image.RGBA {
 
 // setup takes this frame's font and border tiles from the game.
 func (p *Presenter) setup(note Note) {
-	p.glyph, Glyph = note.Glyph, note.Glyph
+	p.glyph = note.Glyph
 	if t := p.windowBorder().pieces; t[0] != nil { // none yet: the last tiles stay
 		p.border.get(t, func() borders { return uploadBorders(t) })
 	}

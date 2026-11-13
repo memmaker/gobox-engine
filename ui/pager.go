@@ -1,5 +1,7 @@
 package ui
 
+import "gobox/ui/input"
+
 // PageSource is what a pager pages: page p of its text, with how far its
 // tall picture is scrolled (off). It gives the page reached (p kept in
 // range), how many there are, and the most off can scroll (0: none); ok
@@ -43,11 +45,11 @@ func (pg *Pager) Turn(src PageSource, d int) (closed bool) {
 // closes it, the cursor keys back page (or scroll) back, every other key
 // on. closed is true when the pager is to close; turned when the page
 // changed (to speak it).
-func (pg *Pager) Key(a Act, src PageSource) (closed, turned bool) {
+func (pg *Pager) Key(a input.Act, src PageSource) (closed, turned bool) {
 	switch a {
-	case Esc:
+	case input.Esc:
 		return true, false
-	case Up, InputLeft, PgUp, Home:
+	case input.Up, input.InputLeft, input.PgUp, input.Home:
 		closed = pg.Turn(src, -1)
 	default:
 		closed = pg.Turn(src, 1)

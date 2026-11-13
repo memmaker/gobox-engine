@@ -6,6 +6,7 @@ import (
 
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/ui/blobber"
 )
 
 // Walls.Backdrop fills the whole 3D view with its picture, stretched
@@ -15,24 +16,24 @@ func TestWallsBackdrop(t *testing.T) {
 	m := game.Picture{W: 2, Pixels: []byte{0, 1, 2, 3}, Palette: quad, Clear: -1}
 	fill := color.RGBA{200, 0, 200, 255}
 	open := [][][4]int{{{0, 0, 0, 0}}}
-	dst := gpu.NewImage(W, H)
+	dst := gpu.NewImage(blobber.W, blobber.H)
 	draw := func(w *game.Walls) {
 		var p Presenter
-		p.view.Show(p.wallScene(w, nil), Camera{})
+		p.view.Show(p.wallScene(w, nil), blobber.Camera{})
 		p.view.Draw(dst)
 	}
 	draw(&game.Walls{Key: "bd", Side: open, FloorRGBA: &fill, CeilRGBA: &fill, Backdrop: &m})
-	for y := 0; y < H; y += 7 {
-		for x := 0; x < W; x += 7 {
-			want := quad[(y*2/H)*2+x*2/W]
+	for y := 0; y < blobber.H; y += 7 {
+		for x := 0; x < blobber.W; x += 7 {
+			want := quad[(y*2/blobber.H)*2+x*2/blobber.W]
 			if got := color.RGBAModel.Convert(dst.At(x, y)); got != want {
 				t.Fatalf("(%d,%d) %v, want %v", x, y, got, want)
 			}
 		}
 	}
 	draw(&game.Walls{Key: "nobd", Side: open, FloorRGBA: &fill, CeilRGBA: &fill})
-	if r, g, b, _ := dst.At(W/2, 2).RGBA(); r>>8 < 100 || g != 0 || b>>8 < 100 { // the ceiling's fill, shaded
-		t.Fatalf("nil backdrop: top %v, want the fill", dst.At(W/2, 2))
+	if r, g, b, _ := dst.At(blobber.W/2, 2).RGBA(); r>>8 < 100 || g != 0 || b>>8 < 100 { // the ceiling's fill, shaded
+		t.Fatalf("nil backdrop: top %v, want the fill", dst.At(blobber.W/2, 2))
 	}
 }
 

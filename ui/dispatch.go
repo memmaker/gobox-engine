@@ -4,6 +4,7 @@ package ui
 
 import (
 	"gobox/gpu"
+	"gobox/ui/input"
 	"image"
 	"math"
 	"slices"
@@ -70,7 +71,7 @@ func (p *Presenter) Key(k uint16) {
 
 // key takes k on the remastered screens; false leaves it to keyAct.
 func (p *Presenter) key(k uint16) bool {
-	if actOf(k) == InputNote { // the text box's "> Notes"
+	if actOf(k) == input.InputNote { // the text box's "> Notes"
 		if !p.noteBtn.Empty() {
 			p.send(ActNote, 0)
 		}
@@ -118,7 +119,7 @@ func (p *Presenter) key(k uint16) bool {
 		return p.fightKey(k)
 	}
 	if p.ctx > 0 { // the card's context menu: the arrows, Enter, a hotkey or Esc, as the game's menus
-		if m, ok := memberKey(k, p.ctx-1, len(p.party()), true); p.campHome() && (ok || actOf(k) == InputPartyMenu || actOf(k) == Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
+		if m, ok := memberKey(k, p.ctx-1, len(p.party()), true); p.campHome() && (ok || actOf(k) == input.InputPartyMenu || actOf(k) == input.Minimap) { // camp: another member's menu, or the party's (F9, Left/Right past the ends)
 			p.campFocus(k, m)
 			return true
 		}
@@ -141,7 +142,7 @@ func (p *Presenter) key(k uint16) bool {
 		p.menu = false
 		return false
 	}
-	if p.view.OptionsOpen() {
+	if p.optionsOpen() {
 		return true
 	}
 	if p.screenUp() {
@@ -150,10 +151,10 @@ func (p *Presenter) key(k uint16) bool {
 	if p.exploring() {
 		if !p.menu {
 			switch actOf(k) {
-			case Enter, PadA:
+			case input.Enter, input.PadA:
 				p.menu, p.sel = true, 0
-			case Esc:
-				p.view.OpenOptions()
+			case input.Esc:
+				p.openOptions()
 			default:
 				return p.exploreKey(k)
 			}
@@ -181,12 +182,12 @@ func (p *Presenter) key(k uint16) bool {
 		switch {
 		case p.choosing(): // a member pick has no menu: every key goes to the portraits (keyAct)
 			return false
-		case actOf(k) == Enter && p.noChoice(): // "press enter to continue": nothing to pick
+		case actOf(k) == input.Enter && p.noChoice(): // "press enter to continue": nothing to pick
 			return false
-		case actOf(k) == Enter && m != nil:
+		case actOf(k) == input.Enter && m != nil:
 			p.menu, p.menuFor, p.sel = true, menuID(m), 0
-		case actOf(k) == Esc && p.exploring():
-			p.view.OpenOptions()
+		case actOf(k) == input.Esc && p.exploring():
+			p.openOptions()
 		default:
 			return false
 		}
@@ -366,7 +367,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		if p.screenUp() && p.active && !p.view.OptionsOpen() {
+		if p.screenUp() && p.active && !p.optionsOpen() {
 			for i, r := range p.menuRects {
 				if image.Pt(x, y).In(r) {
 					p.campPick(p.camp.top + i)
@@ -376,14 +377,14 @@ func (p *Presenter) Click(x, y int) bool {
 			p.campBack() // a click outside: back
 			return true
 		}
-		if p.exploring() && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
+		if p.exploring() && !p.menu && p.active && p.view != nil && !p.optionsOpen() { // the view: walk, turn, the command menu
 			if p.Free() { // No Grid: a press on the view may be a drag to look; ViewClick on its release
 				return false
 			}
 			p.exploreClick(x, y)
 			return true
 		}
-		if !p.menu || !p.active || p.view == nil || p.view.OptionsOpen() {
+		if !p.menu || !p.active || p.view == nil || p.optionsOpen() {
 			return false
 		}
 		for i, r := range p.menuRects {
@@ -397,7 +398,7 @@ func (p *Presenter) Click(x, y int) bool {
 				return true
 			}
 		}
-		p.key(keyOf(Esc)) // a click outside: back, as Esc
+		p.key(keyOf(input.Esc)) // a click outside: back, as Esc
 		return true
 	}
 	return p.fightClick(x, y)

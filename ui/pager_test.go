@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"gobox/ui/input"
 	"testing"
 )
 
@@ -14,18 +15,18 @@ func TestPager(t *testing.T) {
 	var pg Pager
 	s := src{3, 40}
 	for _, c := range []struct {
-		a      Act
+		a      input.Act
 		p, off int
 		closed bool
-	}{{Enter, 0, 16, false}, {Down, 0, 32, false}, {Down, 0, 40, false}, {Down, 1, 0, false},
-		{Up, 0, 0, false}, {Up, 0, 0, false}, {Esc, 0, 0, true}} {
+	}{{input.Enter, 0, 16, false}, {input.Down, 0, 32, false}, {input.Down, 0, 40, false}, {input.Down, 1, 0, false},
+		{input.Up, 0, 0, false}, {input.Up, 0, 0, false}, {input.Esc, 0, 0, true}} {
 		closed, _ := pg.Key(c.a, s)
 		if closed != c.closed || pg.P != c.p || pg.Off != c.off {
 			t.Fatalf("%v: %+v closed %v", c.a, pg, closed)
 		}
 	}
 	pg = Pager{P: 2}
-	if closed, _ := pg.Key(Enter, src{3, 0}); !closed {
+	if closed, _ := pg.Key(input.Enter, src{3, 0}); !closed {
 		t.Fatal("past the last page")
 	}
 }

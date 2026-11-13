@@ -8,6 +8,7 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/rules"
+	"gobox/ui/input"
 )
 
 // Down then B on the shop's wares buys the highlighted ware (a rule call);
@@ -19,7 +20,7 @@ func TestInventoryActs(t *testing.T) {
 	var p Presenter
 	p.SetEngine(g)
 	p.inv.up, p.inv.ware, p.inv.sel = in, rules.NoItem, rules.NoItem
-	p.inventoryKey(keyOf(Down))
+	p.inventoryKey(keyOf(input.Down))
 	p.inventoryKey(0x42)
 	as := p.Actions()
 	for _, c := range p.Calls() {
@@ -45,8 +46,8 @@ func TestShopKeys(t *testing.T) {
 	var p Presenter
 	p.SetEngine(g)
 	p.inv.up, p.inv.ware, p.inv.sel = in, rules.NoItem, 1
-	p.inventoryKey(keyOf(InputLeft))
-	p.inventoryKey(keyOf(Enter))
+	p.inventoryKey(keyOf(input.InputLeft))
+	p.inventoryKey(keyOf(input.Enter))
 	p.Actions()
 	for _, c := range p.Calls() {
 		c(g)
@@ -111,14 +112,14 @@ func TestInventoryKeysReachAll(t *testing.T) {
 	p.inv.up, p.inv.ware, p.inv.sel, p.inv.list.rows = in, rules.NoItem, 1, 10
 	seen := map[rules.ItemHandle]bool{}
 	for range 16 {
-		p.inventoryKey(keyOf(Down))
+		p.inventoryKey(keyOf(input.Down))
 		seen[p.inv.sel] = true
 	}
 	if len(seen) != 16 {
 		t.Fatalf("Down reached %d of 16", len(seen))
 	}
 	p.inv.sel = 1
-	p.inventoryKey(keyOf(PgDn))
+	p.inventoryKey(keyOf(input.PgDn))
 	if p.inv.sel != 11 {
 		t.Fatalf("PgDn to %d", p.inv.sel)
 	}

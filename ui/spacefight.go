@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"gobox/game"
+	"gobox/ui/input"
 )
 
 // sfCells is the SHIPS picture table (BR1 DS 23EC, BR2 d253E: the same
@@ -218,11 +219,11 @@ func (p *Presenter) sfKey(k uint16) bool {
 	switch {
 	case a.Kind == AskConfirm:
 		switch {
-		case act == InputLeft || act == InputRight:
+		case act == input.InputLeft || act == input.InputRight:
 			u.sel = 1 - u.sel
-		case act == Enter && u.sel == 0, k < 256 && upper == 'Y':
+		case act == input.Enter && u.sel == 0, k < 256 && upper == 'Y':
 			p.send(ActYes, 0)
-		case act == Enter, k < 256 && upper == 'N':
+		case act == input.Enter, k < 256 && upper == 'N':
 			p.send(ActNo, 0)
 		}
 		return true
@@ -232,13 +233,13 @@ func (p *Presenter) sfKey(k uint16) bool {
 	case a.Kind == AskMenu:
 		n := len(a.Commands)
 		switch act {
-		case InputLeft:
+		case input.InputLeft:
 			u.sel = (u.sel + n - 1) % n
 			return true
-		case InputRight:
+		case input.InputRight:
 			u.sel = (u.sel + 1) % n
 			return true
-		case Up, Down: // 0ED3, 1-based
+		case input.Up, input.Down: // 0ED3, 1-based
 			if r := a.Break; r > 0 {
 				s := u.sel + 1
 				if s <= r {
@@ -249,10 +250,10 @@ func (p *Presenter) sfKey(k uint16) bool {
 				u.sel = s - 1
 			}
 			return true
-		case Enter:
+		case input.Enter:
 			p.send(ActChoose, u.sel)
 			return true
-		case Esc: // 0 (10CD): what it means is the game's (BR1's Target fires untargeted, BR2's cancels, the crew menu asks again)
+		case input.Esc: // 0 (10CD): what it means is the game's (BR1's Target fires untargeted, BR2's cancels, the crew menu asks again)
 			p.send(ActClose, 0)
 			return true
 		}

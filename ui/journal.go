@@ -3,6 +3,7 @@ package ui
 import (
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/input"
 	"image"
 	"image/color"
 	"image/draw"
@@ -122,26 +123,26 @@ func (p *Presenter) journalKey(k uint16) {
 		return
 	}
 	switch a := actOf(k); {
-	case a == Delete || a == Overview || k == 'x' || k == 'X':
+	case a == input.Delete || a == input.Overview || k == 'x' || k == 'X':
 		j.askRemove(p.common())
-	case a == InputLeft || a == InputRight || a == Tab:
+	case a == input.InputLeft || a == input.InputRight || a == input.Tab:
 		j.setTab(1-j.tab, p.common())
-	case a == Up:
+	case a == input.Up:
 		j.pick(-1)
-	case a == Down:
+	case a == input.Down:
 		j.pick(1)
-	case a == Home:
+	case a == input.Home:
 		j.sel = 0
 		j.pick(1)
-	case a == End:
+	case a == input.End:
 		j.sel = len(j.rows) - 1
-	case a == PgUp:
+	case a == input.PgUp:
 		j.y -= 80
-	case a == PgDn:
+	case a == input.PgDn:
 		j.y += 80
-	case a == Esc || k == 'j' || k == 'J':
+	case a == input.Esc || k == 'j' || k == 'J':
 		j.open = false
-	case a == Enter || a == Space || a == PadA:
+	case a == input.Enter || a == input.Space || a == input.PadA:
 		if j.sel < len(j.rows) && j.rows[j.sel] == -2 {
 			j.open = false
 		}

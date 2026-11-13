@@ -20,6 +20,9 @@ import (
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
+	"gobox/ui/blobber"
+	"gobox/ui/combat"
+	"gobox/ui/input"
 )
 
 // Presenter draws the remastered screen. Screens it has no remaster for
@@ -40,8 +43,9 @@ type Presenter struct {
 
 	pauseFrom time.Time // a script's pause (AskPause) began; zero: none up
 
-	view        *View
-	scenes      map[string]*Scene                  // parsed maps by name
+	view        *blobber.View
+	opts        optionsMenu                        // the Esc menu (options.go)
+	scenes      map[string]*blobber.Scene          // parsed maps by name
 	shown       string                             // the scene the view shows
 	last        time.Time                          // when the animation last advanced
 	ticks       float64                            // animation time not yet run, in 1/60 s ticks
@@ -89,7 +93,7 @@ type Presenter struct {
 	noMenu      bool                               // nothing to pick: any click answers
 	pointer     image.Point                        // the mouse, as Hover last saw it (keys move the highlight while it rests)
 	mc          MenuCanvas                         // the vertical menu's images (ui.MenuCanvas.Draw)
-	battle      CombatPresenter                    // the combat map in 3D
+	battle      combat.Presenter                   // the combat map in 3D
 	mapBottom   int                                // screen rows above this are the 3D map
 	fight       bool                               // the last frame was the 3D combat map
 	inv         inventory                          // the inventory screen (inventory.go)
@@ -98,7 +102,7 @@ type Presenter struct {
 	boardParty  []game.Member                      // the party's figures on board
 	noCards     bool                               // a fight's moment plays: the cards are not drawn
 	fightView   *play.Combat                       // board with the fallen kept until their fall plays (keepFallen)
-	fightBoard  *Board                             // fightView as the tabletop draws it, aims put in
+	fightBoard  *combat.Board                      // fightView as the tabletop draws it, aims put in
 	fly         *flight                            // a shot's sprite over board (a replayed missile frame)
 	lastBoard   *play.Combat                       // the fight before the moments now playing (keepFallen)
 	inkAsk      *FrontAsk                          // the question whose menu is being drawn: its colours (asking)
@@ -126,7 +130,7 @@ type Presenter struct {
 	ctx         int                       // 1 + the card whose context menu a right click opened (0 none): drawCardTip
 	ctxSel      int                       // its highlighted line
 	ctxActs     []ActKind                 // its lines' actions, for the member
-	behind      *Scene                    // the last 3D scene shown
+	behind      *blobber.Scene            // the last 3D scene shown
 	ctxKeys     []byte                    // its lines' hotkeys (the first letters)
 	campCtx     [][]image.Rectangle       // in camp every member's context menu lines (drawCampMenus)
 	campImg     []*gpu.Image              // drawCampMenus: each member's menu image
@@ -322,7 +326,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		p.battle.Draw(dst, p.fightBoard)
 		p.drawFight(dst, note)
 		if p.view != nil {
-			p.view.DrawMenu(dst) // the Esc menu over the battle
+			p.drawOptions(dst) // the Esc menu over the battle
 		}
 		return Rect{}
 	}
@@ -451,7 +455,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		}
 	}
 	p.drawParty(dst, p.shownParty(), p.cardSelected(), at)
-	p.view.DrawMenu(dst) // over the map and cards
+	p.drawOptions(dst) // over the map and cards
 	p.layCards(dst)
 	if p.ctx == 0 && !p.campHome() { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
 		p.drawCardTip(dst)
@@ -613,7 +617,7 @@ func (p *Presenter) textPane() string {
 // reports whether to send code now (ready: the game waits for a key), and
 // whether the view paces held keys at all (else they repeat as typed).
 func (p *Presenter) Flow(code uint16, ready bool) (send, paced bool) {
-	if !p.active || p.view == nil || p.menu || p.view.OptionsOpen() {
+	if !p.active || p.view == nil || p.menu || p.optionsOpen() {
 		if p.view != nil {
 			p.view.Flow(false, false)
 		}
@@ -624,21 +628,18 @@ func (p *Presenter) Flow(code uint16, ready bool) (send, paced bool) {
 
 // Options reports whether the renderer's options page is up; while it is,
 // UpdateOptions reads the keyboard for it and the game gets no keys.
-func (p *Presenter) Options() bool { return p.view != nil && p.view.OptionsOpen() }
-
-// UpdateOptions runs the options page for one frame.
-func (p *Presenter) UpdateOptions() { p.view.UpdateOptions() }
+func (p *Presenter) Options() bool { return p.optionsOpen() }
 
 // optionsKeys: the pad's acts as the options page reads them.
-var optionsKeys = map[Act]gpu.Key{Up: gpu.KeyUp, Down: gpu.KeyDown, InputLeft: gpu.KeyLeft, InputRight: gpu.KeyRight,
-	PgUp: gpu.KeyPageUp, PgDn: gpu.KeyPageDown, Home: gpu.KeyHome, End: gpu.KeyEnd,
-	PadA: gpu.KeyEnter, Enter: gpu.KeyEnter, Esc: gpu.KeyEscape}
+var optionsKeys = map[input.Act]gpu.Key{input.Up: gpu.KeyUp, input.Down: gpu.KeyDown, input.InputLeft: gpu.KeyLeft, input.InputRight: gpu.KeyRight,
+	input.PgUp: gpu.KeyPageUp, input.PgDn: gpu.KeyPageDown, input.Home: gpu.KeyHome, input.End: gpu.KeyEnd,
+	input.PadA: gpu.KeyEnter, input.Enter: gpu.KeyEnter, input.Esc: gpu.KeyEscape}
 
 // OptionsPad hands a gamepad key (as PadKeys sends it) to the options page,
 // for the next UpdateOptions.
 func (p *Presenter) OptionsPad(k uint16) {
 	if gk, ok := optionsKeys[actOf(k)]; ok && p.view != nil {
-		p.view.PadKey(gk)
+		padKeys[gk] = true
 	}
 }
 
@@ -652,7 +653,7 @@ func (p *Presenter) OptionsMouse(x, y int, left, right bool, wheel float64) {
 			line = i
 		}
 	}
-	p.view.PointOptions(line, left, right, int(math.Copysign(math.Ceil(math.Abs(wheel)), wheel)))
+	p.pointOptions(line, left, right, int(math.Copysign(math.Ceil(math.Abs(wheel)), wheel)))
 }
 
 // noChoice reports a question with one answer ("press enter to continue"):
@@ -810,7 +811,7 @@ func (s *srcImage) of(src image.Image) *gpu.Image {
 }
 
 // draw3D draws the 3D view of the area and its minimap.
-func (p *Presenter) draw3D(dst *gpu.Image, sc *Scene, note Note) {
+func (p *Presenter) draw3D(dst *gpu.Image, sc *blobber.Scene, note Note) {
 	where := p.where()
 	cam := cameraOf(where)
 	area, _ := strconv.Atoi(where.Area)
@@ -828,9 +829,9 @@ func (p *Presenter) draw3D(dst *gpu.Image, sc *Scene, note Note) {
 	if p.flags().Inside != p.inside { // indoors the original shows the inside sky: here, a ceiling
 		p.inside = p.flags().Inside
 		if p.inside {
-			SetFlats(sc.Floor, "")
+			blobber.SetFlats(sc.Floor, "")
 		} else {
-			SetFlats(sc.Floor, sc.Ceiling)
+			blobber.SetFlats(sc.Floor, sc.Ceiling)
 		}
 	}
 	p.view.Night = !p.flags().Day

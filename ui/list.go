@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"gobox/gpu"
+	"gobox/ui/input"
 )
 
 // Lists (the Ask (AskList)): the presenter scrolls and highlights the lines; the
@@ -148,14 +149,14 @@ func (p *Presenter) listKey(k uint16) bool {
 	if _, ok := memberKey(k, 0, len(p.party()), false); ok { // the member the list is for (keyAct)
 		return false
 	}
-	if a := actOf(k); p.modifying() && (a == InputLeft || a == InputRight) && l.sel < n { // the line highlighted down or up
-		p.raise(l.sel, map[Act]int{InputLeft: -1, InputRight: 1}[a])
+	if a := actOf(k); p.modifying() && (a == input.InputLeft || a == input.InputRight) && l.sel < n { // the line highlighted down or up
+		p.raise(l.sel, map[input.Act]int{input.InputLeft: -1, input.InputRight: 1}[a])
 		return true
 	}
 	keys := p.listKeys()
 	i, back, ok := MenuNav(actOf(k), k, &l.sel, keys)
 	d := 1
-	if a := actOf(k); a == Up || a == PgUp || a == End {
+	if a := actOf(k); a == input.Up || a == input.PgUp || a == input.End {
 		d = -1
 	}
 	for range len(keys) {

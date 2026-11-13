@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"gobox/game"
 	"gobox/game/play"
+	"gobox/ui/input"
 	"slices"
 )
 
@@ -76,9 +77,9 @@ func (p *Presenter) buyKey(k uint16) bool {
 		return false
 	}
 	switch actOf(k) {
-	case InputLeft:
+	case input.InputLeft:
 		p.buyBy(s.sel, -1)
-	case InputRight:
+	case input.InputRight:
 		p.buyBy(s.sel, 1)
 	default:
 		return false
