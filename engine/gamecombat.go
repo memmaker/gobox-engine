@@ -32,12 +32,12 @@ var turnBar = []struct {
 	{VerbEnd, game.Option{Label: "Done", Key: 'D', Do: game.EndTurn{}}},
 }
 
-// combatState is the fight as the View shows it: the combatants with their
+// fightState is the fight as the View shows it: the combatants with their
 // numbers, the turn's menu and spells (with the aims they take), the squares
 // a move reaches, the foes an attack takes and the aim.
-func (e *Engine) combatState(s *facts) {
+func (e *Engine) fightState() *game.Combat {
 	if !e.battleUp() {
-		return
+		return nil
 	}
 	b := e.battle()
 	c := &game.Combat{Size: image.Pt(len(b.Ground[0]), len(b.Ground)), Round: int(e.ruleset().Check(rules.FightRound{}, nil).Value), Dungeon: b.Dungeon,
@@ -122,7 +122,7 @@ func (e *Engine) combatState(s *facts) {
 			}
 		}
 	}
-	s.Combat = c
+	return c
 }
 
 // gameWeapon is a Turn's weapon in the State (nil: none).

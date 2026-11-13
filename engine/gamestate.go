@@ -12,72 +12,13 @@ import (
 	"gobox/game"
 )
 
-// facts are the engine's domain facts, read live, as gobox's data types:
-// what State builds play's states from (play.go).
-type facts struct {
-	Mode                game.Mode
-	ShopMenu            bool           // Pending is the shop's own choices, nothing over them
-	Pending             *game.Question // the question up, its replies in play's order (a yes/no: No, Yes)
-	Party               []game.Member
-	Selected            int
-	Where               game.Where
-	Picture             game.Picture
-	Story               []game.Picture
-	LastText            string
-	Purse               map[string]int
-	Quests              []game.Quest
-	Map                 game.Automap
-	Combat              *game.Combat
-	Shop                *game.Shop
-	Temple              []game.Service
-	TempleName          string
-	Training            *game.Training
-	Loot                *game.Loot
-	Door                *game.Door
-	Vault               *game.Vault
-	Creation            *game.Creation
-	TempleOffers        []game.Offer
-	PartyCap, PoolItems int
-	Picker              *game.Picker
-	IconEditor          *game.IconEditor
-	Page                *textPage
-	Flags               *game.Flags
-	Walls               *game.Walls
-	Intro               *game.Intro
-	Sequence            string
-	Results             *game.Results
-	Read                *game.Read
-	Lore                []game.Lore
-	PowerPick           *game.PowerPick
-	Sheet               *game.Sheet
-	SheetPage           *game.SheetPage
-}
-
-// known is the engine's facts now.
-func (e *Engine) known() facts {
-	note, _ := e.Note()
-	pick := e.powersView() // a pick owed stands in for the commands and the party menu
-	exploring, sweeping := e.exploring(), e.exploring() && e.worldWord(rules.WordSearch)&1 != 0
-	px, py := e.posX, e.posY
-	inside := e.MapCell(px, py) > 0x7F
-	s := facts{
-		Mode:     e.stateMode(),
-		Pending:  e.pendingAsk(),
-		ShopMenu: e.shopMenu(),
-		LastText: note,
-		Page:     e.statePage(),
-		Flags: &game.Flags{Exploring: exploring && pick == nil, Sweeping: sweeping, Interact: exploring && e.interactHere(),
-			CanCast: exploring && pick == nil && e.canCastNow(), Adventure: e.adventure(), Day: e.flagDay(inside), Inside: inside,
-			Ordering: e.campOn(), Full: e.snap.full, IconDrop: e.snap.iconDrop != nil && e.snap.iconBox == (CellRect{})},
-		Where: game.Where{
-			Area: strconv.Itoa(int(AreaID(e.worldWord(rules.WordGeo)))), X: px, Y: py, Facing: int(Dir(e.facing/2&3)) * 2,
-			Inside: inside, Searching: sweeping,
-			Mode: map[bool]string{true: "dungeon", false: "wilderness"}[e.worldWord(rules.WordIn3D) != 0],
-		},
-	}
-	members, quests := e.members(), e.questsView()
+// partyState is the party's cards as State shows them, and the selected
+// member's index: the selected one carries the sheet up (BUG-CLASSES 36).
+func (e *Engine) partyState() (party []game.Member, selected int) {
+	members, chars := e.members(), e.partySide()
 	for i, m := range members {
-		gm := game.Member{Name: m.Name, Class: m.Class, Status: m.Status, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Exp: uint32(m.Exp), Dropped: m.Portrait}
+		gm := game.Member{Name: m.Name, Class: m.Class, Status: m.Status, HP: m.HP, MaxHP: m.MaxHP, AC: m.AC, Exp: uint32(m.Exp), Dropped: m.Portrait,
+			LevelExp: m.LevelExp, NextExp: m.NextExp, SpellsReady: m.Spells, Memo: m.Memo}
 		if i < e.partySize() {
 			id := e.partyIDs()[i]
 			poolState(e.fact(id, rules.PoolPicsFact{}).(rules.PoolPics), &gm)
@@ -128,42 +69,89 @@ func (e *Engine) known() facts {
 				gm.Levels = append(gm.Levels, int(l))
 			}
 		}
+		if i < len(chars) {
+			gm.Page = gameSheetPage(e.sheetPage(chars[i])) // BUG-CLASSES 36: gobox's look-only sheet (a fight's, a shop's View)
+		}
 		if m.Selected {
-			s.Selected = i
+			selected = i
 		}
-		s.Party = append(s.Party, gm)
+		party = append(party, gm)
 	}
-	if e.partySize() > 0 {
-		s.Purse = purseMoney(e.purse(false))
-	}
-	for _, q := range quests {
-		s.Quests = append(s.Quests, game.Quest{ID: q.Name, Text: fmt.Sprint(q.Text), Done: q.Done})
-	}
-	s.PartyCap = int(e.ruleset().Check(rules.PoolCap{}, nil).Value)
-	e.placeState(&s)
-	e.mapState(&s)
-	e.combatState(&s)
-	s.Where.Hour, s.Where.Minute = e.worldWord(rules.WordClockMinutes)/60, e.worldWord(rules.WordClockMinutes)%60
-	s.Where.Hall = e.ext.hall // the party menu is the training hall's
-	if cr := e.creation; cr != nil {
-		s.Creation = e.creationState(cr)
-		if e.question() == nil {
-			s.Mode = game.ModeCreate // the sheet is over the party menu
+	if selected < len(party) { // the selected member's sheet up: its powers, reactions and page
+		pm := &party[selected]
+		if e.sheetUp() {
+			if sh := e.sheetView(); sh != nil {
+				pm.SheetPowers = gameEntries(sh.Powers)
+				for _, r := range sh.Reactions {
+					pm.Reactions = append(pm.Reactions, game.Reaction{ID: r.ID, Name: r.Name, Policy: int(r.Policy)})
+				}
+			}
+		}
+		if pg := gameSheetPage(e.snap.sheet); pg != nil {
+			pm.Page = pg
 		}
 	}
-	if e.waiting(PendDoor) {
-		s.Door = &game.Door{Locked: true}
-	}
-	e.pickState(&s)
-	e.state3(&s)
-	e.fillState2(&s, members, quests, pick)
-	return s
+	return party, selected
 }
 
-// placeState is the shop, temple, treasure or training hall the party is
-// at: what the script waits on (e.pending), the hall while it is open.
-func (e *Engine) placeState(s *facts) {
-	var goods []game.Item // as the wares list them, Wrong for the selected member
+// whereState is where the party is and the map as it knows it.
+func (e *Engine) whereState() (game.Where, game.Automap) {
+	px, py := e.posX, e.posY
+	inside := e.MapCell(px, py) > 0x7F
+	w := game.Where{
+		Area: strconv.Itoa(int(AreaID(e.worldWord(rules.WordGeo)))), X: px, Y: py, Facing: int(Dir(e.facing/2&3)) * 2,
+		Inside: inside, Searching: e.exploring() && e.worldWord(rules.WordSearch)&1 != 0,
+		Mode: map[bool]string{true: "dungeon", false: "wilderness"}[e.worldWord(rules.WordIn3D) != 0],
+	}
+	m := e.mapState(&w)
+	w.Hour, w.Minute = e.worldWord(rules.WordClockMinutes)/60, e.worldWord(rules.WordClockMinutes)%60
+	w.Hall = e.ext.hall // the party menu is the training hall's
+	return w, m
+}
+
+// questsState is the journal's quests.
+func (e *Engine) questsState() []game.Quest {
+	var l []game.Quest
+	for _, q := range e.questsView() {
+		l = append(l, game.Quest{ID: q.Name, Text: fmt.Sprint(q.Text), Done: q.Done, Giver: q.Giver, Place: q.Place, Brief: q.Text})
+	}
+	return l
+}
+
+// loreState is the journal's lore.
+func (e *Engine) loreState() []game.Lore {
+	var l []game.Lore
+	for _, x := range e.loreView() {
+		l = append(l, game.Lore{Title: x.Title, Place: x.Place, Text: x.Text, ID: x.ID})
+	}
+	return l
+}
+
+// powerPickState is the power pick owed, nil for none.
+func (e *Engine) powerPickState() *game.PowerPick {
+	p := e.powersView()
+	if p == nil {
+		return nil
+	}
+	k := &game.PowerPick{Name: p.Name, What: p.What}
+	for _, m := range p.Options {
+		k.Options = append(k.Options, game.PowerOption{ID: int(m.ID), Name: m.Name, Tip: m.Tip, Aim: int(m.Aim), Range: m.Range, Area: m.Area, Move: m.Move})
+	}
+	return k
+}
+
+// doorState is the locked door waiting (Exploring's Door), nil for none.
+func (e *Engine) doorState() *game.Door {
+	if !e.waiting(PendDoor) {
+		return nil
+	}
+	d := e.ext.door.opts
+	return &game.Door{Locked: true, Bash: d.Bash, Pick: d.Pick, Knock: d.Knock}
+}
+
+// goodsState are the wares as they list them, Wrong for the selected member.
+func (e *Engine) goodsState() []game.Item {
+	var goods []game.Item
 	sel := e.selected()
 	for _, h := range e.goods() {
 		none := e.itemCard(rules.NoChar, h) // the goods are named for no one
@@ -175,26 +163,32 @@ func (e *Engine) placeState(s *facts) {
 		}
 		goods = append(goods, g)
 	}
+	return goods
+}
+
+// tradeState is the shop or temple the script waits on (e.pending) and the
+// training hall while it is open, as Trading.
+func (e *Engine) tradeState(mode game.Mode, cm game.Common) game.Trading {
+	t := game.Trading{Common: cm, Kind: tradeKinds[mode]}
 	switch e.pending {
 	case PendShop:
+		goods := e.goodsState()
 		for i := range goods {
 			goods[i].Price = int(e.shopPrice(int32(goods[i].Price), e.itemCard(rules.NoChar, goods[i].Handle).Count))
 		}
-		s.Shop = &game.Shop{Goods: goods, Buys: true}
-		s.Shop.Offers, s.Shop.IdentifyPrice = e.offers(s.Selected), 200
+		t.Goods, t.Buys, t.Offers, t.Identify = goods, true, e.offers(cm.Selected), 200
 		identified := e.snap.identIt
 		for i, id := range e.partyIDs() {
 			l := e.listedItems(id)
 			for _, h := range e.fact(id, rules.IdentifiableFact{}).(rules.Handles) {
-				if !e.itemCard(id, h).Identified && i < len(s.Party) && slices.Contains(l, h) {
-					s.Shop.Unknown = append(s.Shop.Unknown, game.ItemRef{Member: i, Item: h})
+				if !e.itemCard(id, h).Identified && i < len(cm.Party) && slices.Contains(l, h) {
+					t.Unknown = append(t.Unknown, game.ItemRef{Member: i, Item: h})
 				}
 			}
 			if identified != rules.NoItem && slices.Contains(e.fact(id, rules.IdentifiableFact{}).(rules.Handles), identified) {
-				s.Shop.Identified = &game.ItemRef{Member: i, Item: identified}
+				t.Known = &game.ItemRef{Member: i, Item: identified}
 			}
 		}
-		s.Shop.Identifies = e.snap.identN
 	case PendTemple:
 		for i := 0; ; i++ {
 			c, ok := e.templeService(rules.NoChar, i)
@@ -208,22 +202,30 @@ func (e *Engine) placeState(s *facts) {
 				}
 				sv.Not[k] = c.Not // the temple words it so for anyone it would not help
 			}
-			s.Temple = append(s.Temple, sv)
+			t.Services = append(t.Services, sv)
 		}
-		s.TempleOffers = e.offers(s.Selected)
-	case PendLoot:
-		for i := range goods {
-			goods[i].Price = 0 // treasure is taken for nothing
-		}
-		l := e.purse(true)
-		s.Loot = &game.Loot{Items: goods, Money: purseMoney(l)}
+		t.Offers = e.offers(cm.Selected)
 	}
+	t.Training = e.trainingState()
+	return t
+}
+
+// lootState is the treasure the party is at, as Looting.
+func (e *Engine) lootState(cm game.Common) game.Looting {
+	goods := e.goodsState()
+	for i := range goods {
+		goods[i].Price = 0 // treasure is taken for nothing
+	}
+	return game.Looting{Common: cm, Items: goods, Money: purseMoney(e.purse(true)), Announce: !e.lootSeen}
+}
+
+// trainingState is the training hall while it is open, nil when shut.
+func (e *Engine) trainingState() *game.Training {
 	open, learning := e.hallOpen()
 	if !open {
-		return
+		return nil
 	}
 	t := &game.Training{Cost: int(e.ruleset().Check(rules.TrainFee{}, nil).Value), Trains: map[int]string{}, Becomes: map[int][]string{}, Why: map[int]string{}, Learning: learning}
-	s.Training = t
 	for i, id := range e.partyIDs() {
 		card := e.fact(id, rules.TrainFact{}).(rules.TrainCard)
 		if t.Becomes[i] = card.Becomes; card.Why != "" {
@@ -238,6 +240,7 @@ func (e *Engine) placeState(s *facts) {
 			t.Learn = append(t.Learn, game.SpellRef{ID: int(sp.Number), Name: sp.Name, Level: int(sp.Level)})
 		}
 	}
+	return t
 }
 
 // purseMoney is p as gobox's coin map.
@@ -302,7 +305,7 @@ func gameItem(h rules.ItemHandle, card rules.ItemCard) game.Item {
 // (mapView; NoMap where the game refuses its map, gobox's call): the squares seen, walls and doors (Kind 1 a door, 2 a locked
 // one; a wall's Kind is its wall set), the labels (built in and the
 // player's) as Marked and Notes, Area the map's name.
-func (e *Engine) mapState(s *facts) {
+func (e *Engine) mapState(w *game.Where) game.Automap {
 	if !e.mapView() {
 		if e.worldWord(rules.WordIn3D) == 0 && e.adventure() { // the overland: its terrain
 			m := game.Automap{Area: e.mapName(), Size: image.Pt(44, 36)}
@@ -312,11 +315,11 @@ func (e *Engine) mapState(s *facts) {
 					m.Terrain = append(m.Terrain, int(e.ruleset().Check(rules.AreaTileIs{X: int32(x), Y: int32(y)}, nil).Value))
 				}
 			}
-			s.Map = m
-			s.Where.X, s.Where.Y = e.overlandSquare().X, e.overlandSquare().Y
-			s.Where.Square = &image.Point{X: e.posX, Y: e.posY} // the view's own (the dungeon's, stale here)
+			w.X, w.Y = e.overlandSquare().X, e.overlandSquare().Y
+			w.Square = &image.Point{X: e.posX, Y: e.posY} // the view's own (the dungeon's, stale here)
+			return m
 		}
-		return
+		return game.Automap{}
 	}
 	m := game.Automap{Area: e.mapName(), Size: image.Pt(16, 16), NoMap: e.worldWord(rules.WordNoCoords) != 0}
 	seen, mine, built := e.ext.seen[e.areaKey()], e.userLabels(), e.builtinLabels(e.areaKey())
@@ -350,11 +353,11 @@ func (e *Engine) mapState(s *facts) {
 			}
 		}
 	}
-	s.Map = m
+	return m
 }
 
 // creationState is the creation sheet's draft and fields.
-func (e *Engine) creationState(cr *creation) *game.Creation {
+func (e *Engine) creationState(cr *creation) *game.Draft {
 	id := cr.c
 	sh := e.ruleset().Sheet(id)
 	d := game.Member{Name: sh.Name, Race: e.word(id, rules.FactRace), Class: e.word(id, rules.FactClasses), Alignment: e.word(id, rules.FactAlignment),
@@ -375,7 +378,7 @@ func (e *Engine) creationState(cr *creation) *game.Creation {
 			mins[statKeys[k]] = int(v)
 		}
 	}
-	g := &game.Creation{Draft: d, Minimums: mins, Roster: e.BuildCharList()}
+	g := &game.Draft{Member: d, Minimums: mins}
 	for _, f := range cl.Fields(cr.d.D) { // the four, then the power picks (setPower)
 		fl := game.Field{Name: f.Label, Options: slices.Clone(f.Options), Pick: cr.d.D.Picks[f.ID]}
 		for i := range f.Options {

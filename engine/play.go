@@ -59,34 +59,45 @@ func (e *Engine) rebuild() {
 	e.StateBuilds++
 }
 
-// build is where the core is parked now, as one of play's states.
+// build is where the core is parked now, as one of play's states, read
+// from the engine, with the actions it allows.
 func (e *Engine) build() game.State {
-	s := e.known()
-	cm := e.common(s)
+	mode, pending := e.stateMode(), e.pendingAsk()
+	if e.creation != nil && e.question() == nil {
+		mode = game.ModeCreate // the sheet is over the party menu
+	}
+	pg, door, combat := e.statePage(), e.doorState(), e.fightState()
+	st := e.stateOf(mode, pending, pg, door, combat)
+	return withAllowed(st, e.allowed(st, mode, pending, door, combat))
+}
+
+// stateOf is the state for mode, without its Allowed.
+func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, door *game.Door, combat *game.Combat) game.State {
+	cm := e.common(mode, pending, pg, door)
 	switch {
 	case e.ext.ending && e.title.end != nil: // the end's pictures, as the title's steps
 		return e.endScene(cm)
-	case s.Intro != nil:
+	case e.ext.intro: // the title is up: State's Scene is the adventure's Start (SetStart)
 		sc := e.title.short
 		if e.FullIntro.Load() {
 			sc = e.title.full
 		}
 		sc.Common = cm
 		return sc
-	case s.Sequence != "":
-		return game.Scene{Common: cm, Kind: game.SceneSequence, Sequence: s.Sequence}
-	case s.Results != nil:
-		return game.Scene{Common: cm, Kind: game.SceneResults, Results: s.Results}
+	case e.sequence != "":
+		return game.Scene{Common: cm, Kind: game.SceneSequence, Sequence: e.sequence}
+	case e.snap.results != nil:
+		return game.Scene{Common: cm, Kind: game.SceneResults, Results: e.resultsState()}
 	}
-	if s.Read != nil { // a handout over any state: its Scene, Leave puts it away
+	if rd := e.ext.read; rd != nil { // a handout over any state: its Scene, Leave puts it away
 		cm.Ask = nil
-		return game.Scene{Common: cm, Kind: game.SceneHandout, Handout: s.Read.Title, Texts: s.Read.Texts}
+		return game.Scene{Common: cm, Kind: game.SceneHandout, Handout: rd.Title, Texts: rd.Texts}
 	}
-	mode := s.Mode
-	if mode == game.ModeAsk && s.Combat != nil { // a question in a fight is the Fighting's Ask over the field (classic draws it over the map)
-		mode = game.ModeCombat
+	shown := mode
+	if shown == game.ModeAsk && combat != nil { // a question in a fight is the Fighting's Ask over the field (classic draws it over the map)
+		shown = game.ModeCombat
 	}
-	switch mode {
+	switch shown {
 	case game.ModeNone, game.ModeParty, game.ModeCreate:
 		a := game.Assembling{Common: cm}
 		for _, c := range e.gameData.Commands { // the game's own party commands: adding from another game
@@ -95,27 +106,19 @@ func (e *Engine) build() game.State {
 			}
 		}
 		a.Roster = e.BuildCharList()
-		if cr := s.Creation; cr != nil && s.Mode == game.ModeCreate {
-			a.Draft = &game.Draft{Member: cr.Draft, Fields: cr.Fields, MinHP: cr.MinHP, MaxHP: cr.MaxHP, Minimums: cr.Minimums,
-				Step: cr.Step}
-			if len(cr.Choices) > 0 {
-				a.Draft.Ask = &game.Question{Replies: cr.Choices}
-			}
-			if c := e.creation; c != nil && c.naming { // Keep's name question (BUG-CLASSES 59): a Reply with the name keeps it
+		if cr := e.creation; cr != nil && mode == game.ModeCreate {
+			a.Draft = e.creationState(cr)
+			if cr.naming { // Keep's name question (BUG-CLASSES 59): a Reply with the name keeps it
 				a.Draft.Ask = &game.Question{Text: "Character name:", Typed: true, Max: 0xF}
 			}
 		}
 		return a
 	case game.ModeExplore:
-		x := game.Exploring{Common: cm, Map: game.ExploreMap{Automap: s.Map, Walk: e.walkMap(), Overland: e.viewMode != 1}, Door: s.Door,
-			Day: s.Flags != nil && s.Flags.Day, Interact: s.Flags != nil && s.Flags.Interact} // the sky drawView paints, not the clock
-		if w := walls(s); w != nil {
-			x.Map.Walls = *w
-		}
-		return x
+		return game.Exploring{Common: cm, Map: game.ExploreMap{Automap: cm.Automap, Walk: e.walkMap(), Overland: e.viewMode != 1}, Door: door,
+			Day: cm.Day, Interact: e.exploring() && e.interactHere()} // the sky drawView paints, not the clock
 	case game.ModeCombat:
 		f := game.Fighting{Common: cm}
-		if b := s.Combat; b != nil {
+		if b := combat; b != nil {
 			f.Field = game.Battlefield{Size: b.Size, Squares: b.Squares, Tiles: b.Tiles, FloorTile: b.FloorTile,
 				Clouds: b.Effects, Round: b.Round, Dungeon: b.Dungeon}
 			if t := b.Turn; t != nil {
@@ -125,38 +128,17 @@ func (e *Engine) build() game.State {
 		}
 		return f
 	case game.ModeShop, game.ModeTemple, game.ModeTraining, game.ModeVault:
-		t := game.Trading{Common: cm, Kind: tradeKinds[s.Mode], Name: s.TempleName, Services: s.Temple, Training: s.Training, Offers: s.TempleOffers, Vault: s.Vault}
-		if sh := s.Shop; sh != nil {
-			t.Name, t.Goods, t.Buys, t.Offers, t.Pooled = sh.Name, sh.Goods, sh.Buys, sh.Offers, sh.Pooled
-			t.Identify, t.Unknown, t.Known = sh.IdentifyPrice, sh.Unknown, sh.Identified
-		}
-		return t
+		return e.tradeState(mode, cm)
 	case game.ModeLoot:
-		l := game.Looting{Common: cm}
-		if s.Loot != nil {
-			l.Items, l.Money, l.Status = s.Loot.Items, s.Loot.Money, s.Loot.Status
-			l.Announce = !e.lootSeen
-		}
-		return l
+		return e.lootState(cm)
 	case game.ModeCamp:
 		return game.Camping{Common: cm}
 	}
 	cm.Ask = nil // a Scene's own question (below) carries it
-	// the pane, the picture and its layers are Common's (Text, Picture, Layers): the Scene adds only its own
-	sc := game.Scene{Common: cm, Kind: game.SceneText, Full: s.Flags != nil && s.Flags.Full}
-	if pg := s.Page; pg != nil {
-		sc.Placed = pg.View
-	}
-	// a Scene's picture and layers are its own (gobox's window is the Scene's), once: a layer already shows the picture
-	sc.Layers, sc.Common.Layers, sc.Common.Picture = cm.Layers, nil, nil
-	if c := cm.Picture; c != nil && !slices.ContainsFunc(sc.Layers, func(l game.Layer) bool { return l.Picture.File == c.File && l.Picture.Block == c.Block }) {
-		sc.Pictures = append(sc.Pictures, *c)
-	}
-	sc.Pictures = append(sc.Pictures, s.Story...)
-	sc.Walls = walls(s) // the 3D view under the page (the opening's come before any exploring)
-	if s.Read != nil {
-		sc.Kind, sc.Handout, sc.Texts = game.SceneHandout, s.Read.Title, s.Read.Texts
-	} else if a := s.Pending; a != nil {
+	// the pane and its layers are Common's (Text, Layers): the Scene adds only its own
+	sc := game.Scene{Common: cm, Kind: game.SceneText, Full: e.snap.full, Placed: pg.View}
+	sc.Layers, sc.Common.Layers = cm.Layers, nil // a Scene's layers are its own (gobox's window is the Scene's)
+	if a := pending; a != nil {
 		if a.Text != "" {
 			sc.Text = append(sc.Text, a.Text)
 		}
@@ -179,15 +161,52 @@ func (e *Engine) build() game.State {
 	return sc
 }
 
+// withAllowed is st with al as its Allowed.
+func withAllowed(st game.State, al game.Allowed) game.State {
+	switch t := st.(type) {
+	case game.Assembling:
+		t.Allowed = al
+		return t
+	case game.Exploring:
+		t.Allowed = al
+		return t
+	case game.Fighting:
+		t.Allowed = al
+		return t
+	case game.Trading:
+		t.Allowed = al
+		return t
+	case game.Looting:
+		t.Allowed = al
+		return t
+	case game.Camping:
+		t.Allowed = al
+		return t
+	case game.Scene:
+		t.Allowed = al
+		return t
+	}
+	panic(fmt.Sprintf("withAllowed: %T", st))
+}
+
+// resultsState is the after-combat page.
+func (e *Engine) resultsState() *game.Results {
+	r := e.snap.results
+	g := &game.Results{Shares: r.Shares, Outcome: r.Outcome, Exp: r.Exp, Taken: r.Taken, End: r.End}
+	for _, h := range r.Harmed {
+		g.Harmed = append(g.Harmed, game.Harm{Name: h.Name, What: h.What})
+	}
+	return g
+}
+
 // ask is the question over a state (a Scene clears it: its Replies);
 // the door, the party menu and creation's steps are play's Door,
 // Assembling and Draft.
-func ask(s facts) *game.Question {
-	a := s.Pending
-	if s.ShopMenu { // the shop's own Buy, Leave: Trading's Buy and Leave
+func (e *Engine) ask(mode game.Mode, a *game.Question, door *game.Door) *game.Question {
+	if e.shopMenu() { // the shop's own Buy, Leave: Trading's Buy and Leave
 		return nil
 	}
-	if a == nil || s.Door != nil || a.Continue && a.Ms == 0 || s.Mode == game.ModeNone || s.Mode == game.ModeParty || s.Mode == game.ModeCreate {
+	if a == nil || door != nil || a.Continue && a.Ms == 0 || mode == game.ModeNone || mode == game.ModeParty || mode == game.ModeCreate {
 		return nil
 	}
 	q := &game.Question{Text: a.Text, Default: a.Default, Max: a.Max, NoEsc: a.NoEsc, NoPick: a.NoPick, YesNo: a.YesNo,
@@ -213,45 +232,28 @@ func sceneless(m game.Mode) bool {
 var tradeKinds = map[game.Mode]game.TradeKind{game.ModeShop: game.TradeShop, game.ModeTemple: game.TradeTemple,
 	game.ModeTraining: game.TradeTraining, game.ModeVault: game.TradeVault}
 
-// common is what every state shows, with the actions allowed now.
-func (e *Engine) common(s facts) game.Common {
-	cm := game.Common{Selected: s.Selected, Purse: s.Purse, PartyCap: s.PartyCap, PoolItems: s.PoolItems, Where: s.Where, Area: s.Map.Area, Lore: s.Lore, Quests: s.Quests,
-		PowerPick: s.PowerPick, Picker: s.Picker, IconEditor: s.IconEditor, Automap: s.Map}
-	if pg := s.Page; pg != nil {
-		cm.Text, cm.Status = pg.Pane, pg.Prompt
+// common is what every state shows, without the actions allowed.
+func (e *Engine) common(mode game.Mode, pending *game.Question, pg *textPage, door *game.Door) game.Common {
+	where, automap := e.whereState()
+	cm := game.Common{Where: where, Automap: automap, Area: automap.Area, Quests: e.questsState(), Lore: e.loreState(), PowerPick: e.powerPickState(),
+		PartyCap: int(e.ruleset().Check(rules.PoolCap{}, nil).Value), PoolItems: int(e.ruleset().Check(rules.PoolCount{}, nil).Value),
+		Text: pg.Pane, Status: pg.Prompt, Layers: pg.Layers}
+	cm.Party, cm.Selected = e.partyState()
+	if e.partySize() > 0 {
+		cm.Purse = purseMoney(e.purse(false))
 	}
-	if len(cm.Text) == 0 && s.LastText != "" {
-		cm.Text = []string{s.LastText}
+	cm.Picker, cm.IconEditor = e.pickState()
+	if note, _ := e.Note(); len(cm.Text) == 0 && note != "" {
+		cm.Text = []string{note}
 	}
-	if s.Picture.Name != "" || s.Picture.File != "" {
-		cm.Picture = &s.Picture
-	}
-	cm.Ask = ask(s)
+	cm.Ask = e.ask(mode, pending, door)
 	if pq := e.ext.pq; pq != nil {
 		q := pq.q
 		q.Replies = slices.Clone(q.Replies)
 		cm.Ask = &q
 	}
-	cm.Day = s.Flags != nil && s.Flags.Day
-	cm.Adventure = s.Flags != nil && s.Flags.Adventure                                        // the old rule (gamepage.go): explore, an ask, camp
-	cm.NoSave, cm.NoLoad = s.Flags != nil && s.Flags.NoSave, s.Flags != nil && s.Flags.NoLoad // gobox drops Save or Load (and their hint keys) where the rules refuse them
-	if pg := s.Page; pg != nil {
-		cm.Layers = pg.Layers
-	}
-	for i, m := range s.Party {
-		pm := m
-		pm.Page = m.Page // the game's own sheet of each member: what View shows (BUG-CLASSES 36)
-		if i == s.Selected && s.SheetPage != nil {
-			if sh := s.Sheet; sh != nil {
-				pm.SheetPowers, pm.Reactions = sh.Powers, sh.Reactions
-			}
-			pm.Page = s.SheetPage
-		} else if i == s.Selected && s.Sheet != nil {
-			pm.SheetPowers, pm.Reactions = s.Sheet.Powers, s.Sheet.Reactions
-		}
-		cm.Party = append(cm.Party, pm)
-	}
-	cm.Allowed = e.allowed(s)
+	cm.Day = e.flagDay(where.Inside)
+	cm.Adventure = e.adventure() // the old rule (gamepage.go): explore, an ask, camp
 	return cm
 }
 
@@ -265,9 +267,12 @@ func (e *Engine) readyAct(n int, it game.Item) game.Action {
 	return game.Ready{Member: n, Item: it.Handle}
 }
 
-// allowed is what the state lets the player do now.
-func (e *Engine) allowed(s facts) game.Allowed {
+// allowed is what st (built for mode, with pending, door and combat) lets
+// the player do now.
+func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, door *game.Door, combat *game.Combat) game.Allowed {
 	var a game.Allowed
+	cm := game.CommonOf(st)
+	trade, _ := st.(game.Trading)
 	add := func(x ...game.Action) { a.Plain = append(a.Plain, x...) }
 	if pq := e.ext.pq; pq != nil { // a play action's question: its replies, Leave backs out
 		for i := range pq.calls {
@@ -277,7 +282,7 @@ func (e *Engine) allowed(s facts) game.Allowed {
 		return a
 	}
 	items := func() {
-		for n, m := range s.Party {
+		for n, m := range cm.Party {
 			for _, it := range m.Items {
 				add(e.readyAct(n, it), game.Drop{Member: n, Item: it.Handle})
 				if len(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[n], Item: it.Handle}).Offers) > 0 { // an item with no use is not offered Use (UseItem refused it "not now")
@@ -287,31 +292,31 @@ func (e *Engine) allowed(s facts) game.Allowed {
 			add(game.SelectMember{Member: n})
 		}
 	}
-	if s.Read != nil {
+	if e.ext.read != nil {
 		add(game.Leave{})
 		return a
 	}
 	switch {
-	case s.Intro != nil, s.Sequence != "", e.ext.ending, s.Results != nil && s.Pending == nil: // results with a question answer it, as the Scene's Replies say
+	case e.ext.intro, e.sequence != "", e.ext.ending, e.snap.results != nil && pending == nil: // results with a question answer it, as the Scene's Replies say
 		add(game.ContinueAction{})
 		return a
-	case s.Door != nil: // the Locked. menu: its ways, by the old front's numbering (doorWays)
+	case door != nil: // the Locked. menu: its ways, by the old front's numbering (doorWays)
 		for w := range game.DoorWay(4) { // exit, bash, pick, knock: TryDoor checks which are left
 			add(game.TryDoor{Way: w})
 		}
 		return a
 	}
-	mode := s.Mode
-	if mode == game.ModeAsk && s.Combat != nil { // a question in a fight: its replies over the field (as the view)
-		mode = game.ModeCombat
+	shown := mode
+	if shown == game.ModeAsk && combat != nil { // a question in a fight: its replies over the field (as the view)
+		shown = game.ModeCombat
 	}
-	if mode == game.ModeTraining && s.Training == nil { // the hall's party menu before OpenTraining (gobox's PartyMenu reads it so)
-		mode = game.ModeParty
+	if shown == game.ModeTraining && trade.Training == nil { // the hall's party menu before OpenTraining (gobox's PartyMenu reads it so)
+		shown = game.ModeParty
 	}
-	if s.Training != nil && s.Mode == game.ModeTraining {
+	if trade.Training != nil && mode == game.ModeTraining {
 		add(game.CloseTraining{}) // the training box's Exit (and Esc), back to the hall's menu, over any question the box asks
 	}
-	if q := ask(s); q != nil && sceneless(mode) { // a question over the state: its replies and only them (bug class 18)
+	if q := e.ask(mode, pending, door); q != nil && sceneless(shown) { // a question over the state: its replies and only them (bug class 18)
 		if q.Typed || q.Number {
 			add(game.Reply{})
 		}
@@ -320,27 +325,27 @@ func (e *Engine) allowed(s facts) game.Allowed {
 		}
 		return a
 	}
-	if s.PowerPick != nil {
+	if cm.PowerPick != nil {
 		add(game.PickPower{})
 	}
-	if s.Picker != nil {
-		for n := range max(len(s.Picker.Pics), len(s.Picker.Labels)) { // every row on every page
+	if cm.Picker != nil {
+		for n := range max(len(cm.Picker.Pics), len(cm.Picker.Labels)) { // every row on every page
 			add(game.Pick{N: n})
 		}
 		add(game.ClosePicker{})
 	}
-	if s.IconEditor != nil {
+	if cm.IconEditor != nil {
 		add(game.IconSize{}, game.IconColour{}, game.IconPNG{}, game.EndIcon{}, game.EndIcon{Keep: true})
 	}
-	switch mode {
+	switch shown {
 	case game.ModeNone, game.ModeParty, game.ModeCreate:
-		if s.Creation != nil && s.Mode == game.ModeCreate {
+		if as, _ := st.(game.Assembling); as.Draft != nil {
 			if c := e.creation; c != nil && c.naming {
 				add(game.Reply{}) // the name
 				break
 			}
 			add(game.Reroll{}, game.KeepCharacter{}, game.DiscardCharacter{})
-			for _, f := range s.Creation.Fields {
+			for _, f := range as.Draft.Fields {
 				for j := range f.Options {
 					add(game.SetChoice{Field: f.Name, N: j})
 				}
@@ -376,7 +381,7 @@ func (e *Engine) allowed(s facts) game.Allowed {
 			case partyQuit:
 				add(game.Quit{})
 			}
-			for n := range s.Party {
+			for n := range cm.Party {
 				switch k {
 				case partyDrop:
 					add(game.DropMember{Member: n})
@@ -394,7 +399,7 @@ func (e *Engine) allowed(s facts) game.Allowed {
 		}
 	case game.ModeExplore:
 		if m := e.walkMap(); m != nil { // gobox walks: the step's parts as the engine waits for them
-			at, f := image.Pt(s.Where.X, s.Where.Y), s.Where.Facing
+			at, f := image.Pt(cm.Where.X, cm.Where.Y), cm.Where.Facing
 			if e.ext.owed != nil {
 				add(game.RunEvent{})
 			}
@@ -415,7 +420,7 @@ func (e *Engine) allowed(s facts) game.Allowed {
 		for k := range 3 { // RestFix, RestWait, RestUntil
 			add(game.CampRest{Kind: k})
 		}
-		for n, m := range s.Party {
+		for n, m := range cm.Party {
 			if m.CanCast {
 				add(game.Cast{Member: n}, game.Memorize{Member: n}, game.Scribe{Member: n})
 			}
@@ -432,11 +437,11 @@ func (e *Engine) allowed(s facts) game.Allowed {
 		}
 		items()
 	case game.ModeCombat:
-		b := s.Combat
+		b := combat
 		if aim := e.cs.aim; aim != nil && b != nil && aim.turn == nil { // an aim up on its own (a spell cast over rounds going off): its squares
 			var act game.Action = game.Shoot{}
 			if sa := e.cs.sa; aim.then.kind == atSpell && sa != nil {
-				act = game.Cast{Member: s.Selected, Spell: int(sa.spell)}
+				act = game.Cast{Member: cm.Selected, Spell: int(sa.spell)}
 			}
 			a.Aimed = append(a.Aimed, game.Aimed{Action: act, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
 			break
@@ -462,73 +467,67 @@ func (e *Engine) allowed(s facts) game.Allowed {
 		if slices.Contains(can, VerbCast) {
 			for _, sp := range b.Spells { // an aimed spell is only Aimed: cast at a square
 				if !slices.ContainsFunc(b.Aims, func(a game.SpellRef) bool { return a.ID == sp.ID }) {
-					add(game.Cast{Member: s.Selected, Spell: sp.ID})
+					add(game.Cast{Member: cm.Selected, Spell: sp.ID})
 				}
 			}
 			for _, sp := range b.Aims {
-				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Cast{Member: s.Selected, Spell: sp.ID}, Squares: inRange(b, sp.Range), Targets: max(sp.Targets, 1), Area: sp.Area})
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Cast{Member: cm.Selected, Spell: sp.ID}, Squares: inRange(b, sp.Range), Targets: max(sp.Targets, 1), Area: sp.Area})
 			}
 		}
-		if s.Selected >= 0 && s.Selected < len(s.Party) { // the acting member's items (the sheet's View, O089's Use)
+		if sel := cm.Selected; sel >= 0 && sel < len(cm.Party) { // the acting member's items (the sheet's View, O089's Use)
 			if slices.Contains(can, VerbItems) {
-				add(game.UseItem{Member: s.Selected, Item: rules.NoItem})
+				add(game.UseItem{Member: sel, Item: rules.NoItem})
 			}
-			for _, it := range s.Party[s.Selected].Items {
+			for _, it := range cm.Party[sel].Items {
 				if slices.Contains(can, VerbItems) {
-					add(game.UseItem{Member: s.Selected, Item: it.Handle})
+					add(game.UseItem{Member: sel, Item: it.Handle})
 				}
-				add(e.readyAct(s.Selected, it), game.Drop{Member: s.Selected, Item: it.Handle}) // the fight's View: Ready and Drop (BUG-CLASSES 47)
+				add(e.readyAct(sel, it), game.Drop{Member: sel, Item: it.Handle}) // the fight's View: Ready and Drop (BUG-CLASSES 47)
 			}
 		}
 		for _, v := range []struct { // in a fixed order: State is the same on every call (BUG-CLASSES 33)
 			k   TurnVerb
 			act game.Action
 		}{{VerbTurn, game.TurnUndead{}}, {VerbQuick, game.Quick{}}, {VerbGuard, game.Guard{}},
-			{VerbWait, game.Delay{}}, {VerbEnd, game.EndTurn{}}, {VerbBandage, game.Bandage{Member: max(s.Selected, 0)}}} {
+			{VerbWait, game.Delay{}}, {VerbEnd, game.EndTurn{}}, {VerbBandage, game.Bandage{Member: max(cm.Selected, 0)}}} {
 			if slices.Contains(can, v.k) {
 				add(v.act)
 			}
 		}
 	case game.ModeShop, game.ModeTemple, game.ModeTraining, game.ModeVault:
 		add(game.Leave{})
-		if s.Shop != nil {
-			add(game.AppraiseActions(s.Shop.Offers)...)
+		add(game.AppraiseActions(trade.Offers)...)
+		for _, u := range trade.Unknown { // only what the shop can identify (Identify refused the rest "not now")
+			add(game.Identify{Member: u.Member, Item: u.Item})
 		}
-		add(game.AppraiseActions(s.TempleOffers)...)
-		if s.Shop != nil {
-			for _, u := range s.Shop.Unknown { // only what the shop can identify (Identify refused the rest "not now")
-				add(game.Identify{Member: u.Member, Item: u.Item})
-			}
-		}
-		for n, m := range s.Party {
-			if s.Shop != nil {
-				for _, g := range s.Shop.Goods {
+		for n, m := range cm.Party {
+			if trade.Buys { // a shop
+				for _, g := range trade.Goods {
 					add(game.Buy{Member: n, Item: g.Handle})
 				}
 				for _, it := range m.Items {
 					add(game.Sell{Member: n, Item: it.Handle})
 				}
 			}
-			for k, sv := range s.Temple {
+			for k, sv := range trade.Services {
 				if slices.Contains(sv.Needs, n) {
 					add(game.Heal{Service: k, Member: n})
 				}
 			}
-			if t := s.Training; t != nil && slices.Contains(t.Ready, n) {
+			if t := trade.Training; t != nil && slices.Contains(t.Ready, n) {
 				add(game.Train{Member: n})
 			}
 		}
 		items()
 	case game.ModeLoot:
-		if s.Loot != nil && !e.lootSeen { // "You found some loot!" first: Continue opens the treasure
+		loot, _ := st.(game.Looting)
+		if loot.Announce { // "You found some loot!" first: Continue opens the treasure
 			add(game.ContinueAction{})
 			return a
 		}
 		add(game.Leave{}, game.Take{Item: rules.NoItem}, game.Take{Item: rules.NoItem, All: true})
-		if s.Loot != nil {
-			for _, g := range s.Loot.Items {
-				add(game.Take{Item: g.Handle})
-			}
+		for _, g := range loot.Items {
+			add(game.Take{Item: g.Handle})
 		}
 		items()
 		if e.vault == nil { // Drop is the vault's Deposit: no other treasure takes the party's items
@@ -536,15 +535,13 @@ func (e *Engine) allowed(s facts) game.Allowed {
 		}
 	default: // a Scene
 		switch {
-		case s.Read != nil:
-			add(game.Leave{})
-		case s.Pending == nil:
-		case s.Pending.Continue:
+		case pending == nil:
+		case pending.Continue:
 			add(game.ContinueAction{})
-		case s.Pending.Typed, s.Pending.Number:
+		case pending.Typed, pending.Number:
 			add(game.Reply{})
 		default:
-			for i := range s.Pending.Replies {
+			for i := range pending.Replies {
 				add(game.Reply{N: i})
 			}
 		}
@@ -665,7 +662,7 @@ func (e *Engine) Do(a game.Action) (game.Outcome, error) {
 	var out game.Outcome
 	native := func(f func() error) error { // a play action the engine takes itself, run on to its next wait
 		r := e.runNative(f)
-		e.facts(&out, r)
+		e.report(&out, r)
 		return r.Err
 	}
 	if ok, err := e.partyDo(a, st, native); ok {
@@ -764,7 +761,7 @@ func (e *Engine) stepOn(out *game.Outcome, err error) error {
 		e.advance()
 		e.snap.quiet = false
 		r := e.noteResult()
-		e.facts(out, r)
+		e.report(out, r)
 		if r.Err != nil {
 			break
 		}
@@ -882,9 +879,9 @@ func (e *Engine) browsing(n int, f func() error) error {
 	return f()
 }
 
-// facts hands out what the engine did: its note (r, a message), then the
+// report hands out what the engine did: its note (r, a message), then the
 // facts it recorded (e.events).
-func (e *Engine) facts(out *game.Outcome, r game.Result) {
+func (e *Engine) report(out *game.Outcome, r game.Result) {
 	for _, ev := range r.Events {
 		if ev.Text != "" {
 			out.Events = append(out.Events, game.Narrated{Text: ev.Text})
@@ -972,16 +969,6 @@ func (e *Engine) LoadSlot(n int) error {
 		return &game.Refusal{Text: "load: refused"}
 	}
 	return nil
-}
-
-// walls is the state's 3D view as play's, nil none.
-func walls(s facts) *game.MapWalls {
-	w := s.Walls
-	if w == nil {
-		return nil
-	}
-	return &game.MapWalls{Side: w.Side, Fronts: w.Fronts, Pool: w.Pool, Floor: w.Floor, Sky: w.Sky,
-		FloorRGBA: w.FloorRGBA, CeilRGBA: w.CeilRGBA, Backdrop: w.Backdrop, Outside: !s.Where.Inside, Sun: w.Sun, Mountains: w.Mountains, SunAz: w.SunAz, SunEl: w.SunEl}
 }
 
 // native runs f, an engine call a play action names, as Apply runs a
