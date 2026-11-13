@@ -24,13 +24,13 @@ func TestMapImage(t *testing.T) {
 	for i := range ink {
 		ink[i] = color.RGBA{asset.EGAPalette[i][0], asset.EGAPalette[i][1], asset.EGAPalette[i][2], 255}
 	}
-	e, err := engine.NewPool(filepath.Join(porDir(t), "data", "assets"), filepath.Join(porDir(t), "data"))
+	e, err := engine.NewPool(filepath.Join(porSources, "assets"), porSources)
 	if err != nil {
 		t.Skip("no game files")
 	}
 	e.Init()                 // the font
 	ui.UseGameData(e.Data()) // the label inks
-	files, _ := filepath.Glob(filepath.Join(porDir(t), "presentdata", "testdata", "map_*.json"))
+	files, _ := filepath.Glob(filepath.Join("..", "games", "por", "presentdata", "testdata", "map_*.json"))
 	if len(files) == 0 {
 		t.Fatal("no recorded maps")
 	}

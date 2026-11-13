@@ -13,7 +13,7 @@ import (
 // Every 3D area of the game (a GEO block) has its remastered map: the
 // classic page never stands in for one.
 func TestEveryAreaHasMap(t *testing.T) {
-	l, err := orig.NewLoader(filepath.Join(porDir(t), "data", "dos"))
+	l, err := orig.NewLoader(filepath.Join(porSources, "dos"))
 	if err != nil {
 		t.Skip("no game files")
 	}
