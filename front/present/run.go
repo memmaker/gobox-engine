@@ -184,11 +184,11 @@ func (f *Front) Idle() bool {
 	return f.P.view == nil || !f.P.view.Moving()
 }
 
-func (f *Front) Free() bool { return f.P.Free(f.view()) }
+func (f *Front) Free() bool { return f.P.Free() }
 func (f *Front) Flow(held uint16, ready bool) (bool, bool) {
 	return f.P.Flow(held, ready)
 }
-func (f *Front) FreeWalk(in blobber.FreeInput) { f.P.FreeWalk(in, f.view()) }
+func (f *Front) FreeWalk(in blobber.FreeInput) { f.P.FreeWalk(in) }
 
 func (f *Front) InventoryShown() bool { return f.P.InventoryShown() }
 func (f *Front) InventoryMouse(x, y int, down, right bool, wheel float64) {

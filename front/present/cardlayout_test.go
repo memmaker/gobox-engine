@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -24,14 +26,21 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 	for i := range 8 {
 		party = append(party, front.Member{Name: fmt.Sprint("M", i), HP: 1, MaxHP: 1, Powers: pw})
 	}
-	v := front.View{Party: party, Map: &front.MapSquares{}, Exploring: true, Adventure: true, Camp: &front.Camp{}, Sweeping: true, Interact: true,
+	v := front.View{Party: party, Exploring: true, Adventure: true, Camp: &front.Camp{}, Sweeping: true, Interact: true,
 		Walls: &front.Walls{Key: "layout", Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}
+	presenter := func() *Presenter { // over the 3D view and its minimap the state gives
+		g, _ := playGame(play.Exploring{Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
+			Walls: play.Walls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}})
+		p := &Presenter{}
+		p.SetEngine(g)
+		return p
+	}
 	for _, sz := range [][2]int{{1920, 1200}, {1388, 1190}, {1280, 800}} {
 		dst := gpu.NewImage(sz[0], sz[1])
 		for _, row := range []bool{false, true} {
 			for _, off := range []bool{false, true} {
 				Host.PartyRow, Host.MapOff = row, off
-				p := &Presenter{}
+				p := presenter()
 				p.Draw(dst, note, v)
 				dump(t, dst, fmt.Sprintf("camp-%dx%d-row%v-off%v", sz[0], sz[1], row, off))
 				var rs []image.Rectangle // the cards, then each menu's lines
@@ -50,7 +59,7 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 					for i := range w.Ask.Entries {
 						w.Ask.Entries[i] = front.Entry{Text: fmt.Sprint("Spell ", i), Spell: 1 + i}
 					}
-					q := &Presenter{}
+					q := presenter()
 					q.Draw(dst, note, w)
 					m := rs[len(p.cards)+2] // the first card's menu: the list takes its place (ctxBox)
 					q.pickAt = image.Rect(m.Min.X, m.Min.Y, m.Max.X, m.Min.Y)

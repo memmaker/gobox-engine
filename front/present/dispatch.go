@@ -158,11 +158,11 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 			case input.Esc:
 				p.view.OpenOptions()
 			default:
-				return p.exploreKey(k, v)
+				return p.exploreKey(k)
 			}
 			return true
 		}
-		cmds := commands(v)
+		cmds := p.commands()
 		keys := make([]byte, len(cmds))
 		for i, c := range cmds {
 			keys[i] = c.key
@@ -175,7 +175,7 @@ func (p *Presenter) key(k uint16, v front.View) bool {
 			p.runCommand(i)
 		case !ok:
 			p.menu = false
-			return p.exploreKey(k, v)
+			return p.exploreKey(k)
 		}
 		return true
 	}
@@ -379,11 +379,11 @@ func (p *Presenter) Click(x, y int) bool {
 			p.campBack(v) // a click outside: back
 			return true
 		}
-		if v := p.shownView; p.exploring() && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
-			if p.Free(v) { // No Grid: a press on the view may be a drag to look; ViewClick on its release
+		if p.exploring() && !p.menu && p.active && p.view != nil && !p.view.OptionsOpen() { // the view: walk, turn, the command menu
+			if p.Free() { // No Grid: a press on the view may be a drag to look; ViewClick on its release
 				return false
 			}
-			p.exploreClick(x, y, v)
+			p.exploreClick(x, y)
 			return true
 		}
 		if !p.menu || !p.active || p.view == nil || p.view.OptionsOpen() {

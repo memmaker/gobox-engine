@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"gobox/front"
+	"gobox/game"
 )
 
 func TestPlayMakesSnapshotTiles(t *testing.T) {
@@ -123,15 +124,14 @@ func TestBlowFloatsOnce(t *testing.T) {
 func TestNoFlatSky(t *testing.T) {
 	cream := image.NewRGBA(image.Rect(0, 0, 8, 8))
 	draw.Draw(cream, cream.Bounds(), image.NewUniform(color.RGBA{230, 220, 180, 255}), image.Point{}, draw.Src)
-	flat := &front.Picture{Img: cream}
-	for _, w := range []front.Walls{{Backdrop: flat}, {Backdrop: flat, Floor: "nosuch", Sky: "clouds"}, {Backdrop: flat, Floor: "nosuch", Sky: "nosuch"}} {
-		if !flatsPainted(&w) {
+	for _, w := range []game.Walls{{}, {Floor: "nosuch", Sky: "clouds"}, {Floor: "nosuch", Sky: "nosuch"}} {
+		if !flatsPainted(&w, cream) {
 			t.Errorf("%q/%q: flat backdrop shown", w.Floor, w.Sky)
 		}
 	}
 	art := image.NewRGBA(image.Rect(0, 0, 4, 1))
 	art.Pix[0] = 9
-	if !flatsPainted(&front.Walls{Backdrop: &front.Picture{Img: art}, Sky: "clouds"}) {
+	if !flatsPainted(&game.Walls{Sky: "clouds"}, art) {
 		t.Error("clouds resolve without a floor name")
 	}
 	if _, still := flatColour(blobber.Tint(wallImage("ceiling"), color.RGBA{230, 220, 180, 255})); still {

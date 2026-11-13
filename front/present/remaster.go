@@ -310,7 +310,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	if !p.exploring() {
 		p.fullMap = nil
 	}
-	p.cmds = commands(v)
+	p.cmds = p.commands()
 	if !p.active {
 		p.ctx = 0
 	}
@@ -347,7 +347,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if p.main && v.Hall { // the training hall: its menu over the 3D view
 		p.active, p.menu = false, false
-		if sc := p.scene(v); sc != nil {
+		if sc := p.scene(); sc != nil {
 			p.draw3D(dst, v, sc, note)
 		} else {
 			dst.Fill(color.Black)
@@ -376,7 +376,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	}
 	if p.clue != nil { // the clue book's chapters, over the 3D view
 		p.shown, p.active, p.menu, p.cards = "", true, false, nil
-		if sc := p.scene(v); sc != nil {
+		if sc := p.scene(); sc != nil {
 			p.draw3D(dst, v, sc, note)
 		} else {
 			dst.Fill(color.Black)
@@ -390,7 +390,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 		p.drawBestiary(dst, note, v)
 		return Rect{}
 	}
-	sc := p.scene(v)
+	sc := p.scene()
 	area := v.AreaMap != nil                                                                                                                                                                                                                                                                                                // the overland: its map over the whole window (also under its pop-ups), the 3D view's cards and boxes over it
 	if sc == nil && !area && v.Camp == nil || v.Full && len(v.Pictures) > 0 && v.Intro == nil /* a script's whole-screen picture (SotSB's big pictures): the picture, not the 3D view */ || sfOf(v) != nil || v.Results != nil || v.IconEditor != nil || !choosing(v) && !v.Adventure || sheetUp(v) && v.SheetPage != nil { // the sheet: over the 3D view too (Tab from the items, View) // a member pick (Choosing) shows the view and the cards whatever page asked
 		if screenUp(v) { // training from the hall's party menu: over the 3D view
@@ -439,7 +439,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 	p.active = true
 	if area {
 		p.shown = ""
-		p.drawAreaMap(dst, v.AreaMap)
+		p.drawAreaMap(dst)
 	} else if sc != nil {
 		p.draw3D(dst, v, sc, note)
 	} else { // camp with no 3D view (the original shows none there): black under the cards, the picture and the menus
@@ -571,7 +571,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note, v front.View) Rect {
 			p.drawCampMenus(dst, v)
 		}
 	} else if p.exploring() && p.menu { // the command menu (explore.go)
-		cmds := commands(v)
+		cmds := p.commands()
 		lines, keys := make([]string, len(cmds)), make([]byte, len(cmds))
 		for i, c := range cmds {
 			lines[i], keys[i] = c.text, c.key
@@ -846,7 +846,7 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 	cam := blobber.Camera{X: v.X, Y: v.Y, Dir: int(v.Facing)}
 	name := areaMaps[v.Area]
 	if v.Walls != nil {
-		name = sceneName(v)
+		name = p.sceneName()
 	}
 	if name != p.shown {
 		p.view.Show(sc, cam)
@@ -870,7 +870,7 @@ func (p *Presenter) draw3D(dst *gpu.Image, v front.View, sc *blobber.Scene, note
 	}
 	p.animate()
 	p.view.Draw(dst)
-	p.drawMap(dst, v, note.Font)
+	p.drawMap(dst, note.Font)
 }
 
 // ownLayout: v is a page whose screen lays itself out on the page canvas

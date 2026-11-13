@@ -14,7 +14,7 @@ func TestFullMapNoLabelsHeader(t *testing.T) {
 	p := &Presenter{}
 	p.SetEngine(g)
 	p.fullMap = &fullMapUI{}
-	p.shownView = front.View{Cells: image.Pt(40, 25)}
+	p.shownView = front.View{}
 	m := image.NewRGBA(image.Rect(0, 0, 320, 200))
 	full := func(byte, bool) [8]byte { return [8]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF} }
 	p.drawModal(m, p.shownView, Note{Font: full, Glyph: func(byte) [8]byte { return [8]byte{} }})

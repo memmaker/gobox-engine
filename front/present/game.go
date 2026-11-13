@@ -165,10 +165,7 @@ func (g *Game) View() front.View {
 	services, offers := templeOf(ps)
 	training, draft := trainingOf(ps), creationOf(ps)
 	own := OwnSubject(mode, draft, party, sel)
-	v := front.View{Exploring: mode == game.ModeExplore, NoMap: amap.NoMap}
-	if amap.Size == image.Pt(16, 16) {
-		v.Map = &front.MapSquares{}
-	}
+	v := front.View{Exploring: mode == game.ModeExplore}
 	switch r.itemsUp(ps) { // the builders refine a screen the game has up
 	case game.ItemsOwn:
 		v.Inventory = &front.Inventory{}
@@ -193,7 +190,7 @@ func (g *Game) View() front.View {
 	}
 	heals, studies := restOf(ps)
 	v.MainMenu, v.Hall = PartyMenu(mode, training, pending, c.Where.Hall)
-	v.Map, v.Camp = Map(v.Map, amap, c.Where), Camp(v.Camp, party, sel, heals, studies, allowed["NoRest"], nil)
+	v.Camp = Camp(v.Camp, party, sel, heals, studies, allowed["NoRest"], nil)
 	v.Temple, v.Shop = Temple(v.Temple, services, offers, c.Purse, allowed, party, sel), Shop(v.Shop, shop, c.Purse, allowed, party)
 	v.Inventory = Inventory(v.Inventory, mode, party, sel, c.PartyCap, c.PoolItems, c.Purse, allowed, shop, loot)
 	v = askOver(v, mode, pending, loot != nil || training != nil)
@@ -217,9 +214,6 @@ func (g *Game) View() front.View {
 	v.Battle = ViewVerb(v.Battle, g.D)
 	v = Page(v, r.pageOf(ps), storyOf(c))
 	v = Flags(v, r.flagsOf(ps, party), OverMenu(mode, pending))
-	if m := r.mapOf(ps); m != nil {
-		v.Open = openSides(m, c.Where)
-	}
 	v = Place(v, c.Where, windowOf(ps))
 	v.Quests, v.Lore = Quests(c.Quests), Lore(c.Lore)
 	v = Waits(v, game.Hold(holding(ps)), doorOf(ps), c.PowerPick)

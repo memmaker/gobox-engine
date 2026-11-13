@@ -126,7 +126,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 	if screenUp(v) && p.campKey(k, v) {
 		return
 	}
-	if p.exploring() && p.exploreKey(k, v) {
+	if p.exploring() && p.exploreKey(k) {
 		return
 	}
 	if n, ok := memberKey(k, selectedIndex(v), len(v.Party), false); ok { // F1-F8, the stick buttons: select the member (exploring: and open their context menu, as a card's click)
@@ -180,7 +180,7 @@ func (p *Presenter) keyAct(k uint16, v front.View) {
 	case menuIndex(askMenu(v), c) >= 0:
 		p.send(front.ActChoose, menuIndex(askMenu(v), c))
 	case a == input.Map:
-		p.openMap(v)
+		p.openMap()
 	case a == input.Party && p.exploring():
 		p.overview = true
 	case a == input.Party:

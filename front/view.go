@@ -467,7 +467,6 @@ type View struct {
 	Lore          []Lore      // the journal's Notes
 	Exploring     bool        // the party explores: the adventuring decisions (ActForward .. ActCastPick) are taken
 	Sweeping      bool        // ... at the slow, searching pace (ActSweep): the HUD says so
-	Open          [4]bool     // ... the party's square's sides (N E S W) a step may go through: open, or a door to try (No Grid's walls)
 	Interact      bool        // ... on a square whose event waits for ActInteract: the HUD says so
 	CanCast       bool        // ... and the selected member has a spell to cast (ActCastPick)
 	Camp          *Camp       // the party is in camp: the camp decisions (ActRest .. ActIconEdit) are taken; ActClose leaves
@@ -495,8 +494,6 @@ type View struct {
 	Events        []CombatEvent  // what happened in the fight since the last Apply, in order (Apply's View only)
 	Note          Note           // the status line's toast, shown on the bottom row a while after At
 	Inventory     *Inventory     // the inventory screen is up (nil otherwise)
-	Map           *MapSquares    // the current map, drawn by the presenter at MapCell pixels a square (nil where the game has no map)
-	NoMap         bool           // the game marks this area unmappable (game.Automap.NoMap)
 	Pictures      []Picture      // the screen's pictures, symbols and fills, bottom first
 	Adventure     bool           // the party is out in the world: the 3D view (or the overland map) is the screen
 	Prompt        []PaneRun      // the prompt row's text (the last row), X the page's column

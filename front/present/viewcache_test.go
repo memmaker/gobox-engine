@@ -50,22 +50,25 @@ func TestFrontBuildsViewOncePerFrame(t *testing.T) {
 }
 
 // The minimap is drawn and uploaded when the map changes, not for every
-// View (each builds a new MapSquares).
+// frame (each builds a new MapSquares).
 func TestMinimapUploadsOnChange(t *testing.T) {
 	var p Presenter
 	dst := gpu.NewImage(640, 400)
 	font := func(byte, bool) [8]byte { return [8]byte{} }
-	m := &front.MapSquares{Party: image.Pt(1, 1)}
-	p.drawMap(dst, front.View{Map: m}, font)
+	st := func(party image.Point) play.State {
+		return play.Exploring{Common: play.Common{Where: game.Where{X: party.X, Y: party.Y}}, Map: play.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)}}}
+	}
+	g, f := playGame(st(image.Pt(1, 1)))
+	p.SetEngine(g)
+	p.drawMap(dst, font)
 	first := p.mapSrc
-	same := *m
-	p.drawMap(dst, front.View{Map: &same}, font)
+	f.st = st(image.Pt(1, 1))
+	p.drawMap(dst, font)
 	if p.mapSrc != first {
 		t.Error("an unchanged map was drawn again")
 	}
-	moved := *m
-	moved.Party.X = 2
-	p.drawMap(dst, front.View{Map: &moved}, font)
+	f.st = st(image.Pt(2, 1))
+	p.drawMap(dst, font)
 	if p.mapSrc == first {
 		t.Error("a changed map was not drawn again")
 	}

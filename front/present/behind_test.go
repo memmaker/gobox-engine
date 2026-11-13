@@ -6,6 +6,7 @@ import (
 	"image/color"
 
 	"gobox/front"
+	"gobox/game/play"
 	"gobox/gpu"
 )
 
@@ -13,9 +14,11 @@ import (
 // keeps the 3D scene last shown to draw over, never black.
 func TestMenuOverLastScene(t *testing.T) {
 	var p Presenter
-	w := &front.Walls{Key: "town", Side: [][][4]int{{{0, 0, 0, 0}}}}
-	shown := p.scene(front.View{Walls: w, Exploring: true})
-	if p.scene(front.View{Temple: &front.Temple{}}) != nil || p.behind != shown {
+	g, f := playGame(play.Exploring{Map: play.ExploreMap{Walls: play.Walls{Side: [][][4]int{{{0, 0, 0, 0}}}}}})
+	p.SetEngine(g)
+	shown := p.scene()
+	f.st = play.Trading{}
+	if p.scene() != nil || p.behind != shown {
 		t.Fatal("the temple's page lost the town's scene")
 	}
 }
