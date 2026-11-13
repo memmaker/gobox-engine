@@ -2,10 +2,12 @@ package importpod
 
 import (
 	"embed"
+	"encoding/json"
 	"gobox/dax"
 	"gobox/ecl"
 	eclscript "gobox/ecl/script"
 	"io/fs"
+	"testing/fstest"
 )
 
 // scriptFS is the scripts' data (gobox ecl/script Library.Data): the
@@ -19,7 +21,23 @@ func scriptData() fs.FS {
 	if err != nil {
 		panic(err) // a constant, valid path
 	}
-	return d
+	return withEntries{d}
+}
+
+// withEntries adds the journal's entries (JournalEntries, made from the
+// book, not checked in) to the scripts' data as EntriesFile, the file the
+// import writes: every reader of scriptData checks Journal against them.
+type withEntries struct{ fs.FS }
+
+func (w withEntries) Open(name string) (fs.File, error) {
+	if name != eclscript.EntriesFile {
+		return w.FS.Open(name)
+	}
+	b, err := json.Marshal(JournalEntries())
+	if err != nil {
+		return nil, err
+	}
+	return fstest.MapFS{name: {Data: b}}.Open(name)
 }
 
 // The ECL script machine: operands, variables, texts, calls (unit O055 of
