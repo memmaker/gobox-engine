@@ -6,7 +6,7 @@ import (
 	"slices"
 
 	"gobox/core"
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -225,7 +225,7 @@ func (e *Engine) moveActs(to image.Point, reach []game.Reach) ([]TurnAct, error)
 	if c := e.cs.actor; c != core.NoChar && e.battleUp() {
 		at := e.fact(c, core.AtFact{}).(core.BoardPos)
 		for dir := 0; dir < 8; dir++ {
-			if to != image.Pt(at.X+grid.StepX[dir], at.Y+grid.StepY[dir]) {
+			if to != image.Pt(at.X+goldbox.StepX[dir], at.Y+goldbox.StepY[dir]) {
 				continue
 			}
 			st := e.fact(c, core.StepFact{Dir: dir}).(core.StepInfo)

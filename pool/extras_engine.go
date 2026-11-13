@@ -2,7 +2,7 @@ package pool
 
 import (
 	"gobox/core"
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 	"gobox/game"
 	"time"
 )
@@ -29,7 +29,7 @@ func (e *Engine) markSeen() {
 		e.ext.seen[k] = m
 	}
 	x, y := e.posX, e.posY
-	if !grid.OnMap(x, y) {
+	if !goldbox.OnMap(x, y) {
 		return
 	}
 	m[y<<4|x] = seenVisited
@@ -37,8 +37,8 @@ func (e *Engine) markSeen() {
 		if e.WallAt(x, y, e.facing) != 0 {
 			break
 		}
-		x, y = x+grid.StepX[e.facing], y+grid.StepY[e.facing]
-		if !grid.OnMap(x, y) {
+		x, y = x+goldbox.StepX[e.facing], y+goldbox.StepY[e.facing]
+		if !goldbox.OnMap(x, y) {
 			break
 		}
 		if m[y<<4|x] == 0 {

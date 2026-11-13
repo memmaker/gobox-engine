@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gobox/core"
 	"gobox/core/dnd"
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 	"gobox/ega"
 	"gobox/game/play"
 	"slices"
@@ -473,8 +473,8 @@ func (e *Engine) checkEdge() {
 	if e.DoorAt(x, y, e.moveDir()) == 0 {
 		return
 	}
-	x += grid.StepX[e.moveDir()]
-	y += grid.StepY[e.moveDir()]
+	x += goldbox.StepX[e.moveDir()]
+	y += goldbox.StepY[e.moveDir()]
 	if x > 15 {
 		e.posX = 15
 		e.setWorldWord(core.WordLeftMap, 1)
@@ -543,7 +543,7 @@ func (e *Engine) Move() {
 // through it).
 func (e *Engine) moveStep(moved bool) {
 	// extra: a way off the map no script caught bumps (the original wrapped)
-	if moved && grid.OnMap(e.posX+grid.StepX[e.moveDir()], e.posY+grid.StepY[e.moveDir()]) {
+	if moved && goldbox.OnMap(e.posX+goldbox.StepX[e.moveDir()], e.posY+goldbox.StepY[e.moveDir()]) {
 		e.stepAhead()
 	} else {
 		e.cue(core.CueBump)
@@ -623,7 +623,7 @@ func (e *Engine) TryDoor(k play.DoorWay) error {
 // setDoor = ovr15:0000 (state 0) and ovr15:0109 (state 1): set the door
 // bits of one side of a cell. 0109 ignores cells off the map.
 func (e *Engine) setDoor(x, y, dir int, state byte) {
-	if !grid.OnMap(x, y) {
+	if !goldbox.OnMap(x, y) {
 		return
 	}
 	shift := uint(dir) // N 0, E 2, S 4, W 6
@@ -636,9 +636,9 @@ func (e *Engine) setDoor(x, y, dir int, state byte) {
 // save (DOORS.GOB) and put back whenever the map is loaded (reopenDoors).
 func (e *Engine) openDoor() {
 	x, y, d := e.posX, e.posY, e.moveDir()
-	for _, s := range [2][3]int{{x, y, d}, {x + grid.StepX[d], y + grid.StepY[d], (d + 4) % 8}} {
+	for _, s := range [2][3]int{{x, y, d}, {x + goldbox.StepX[d], y + goldbox.StepY[d], (d + 4) % 8}} {
 		e.setDoor(s[0], s[1], s[2], 1)
-		if !grid.OnMap(s[0], s[1]) {
+		if !goldbox.OnMap(s[0], s[1]) {
 			continue
 		}
 		if e.ext.doors == nil {
@@ -713,8 +713,8 @@ func (e *Engine) knock() bool {
 // the original wrapped an off-map step to the far edge; Move blocks it.
 func (e *Engine) stepAhead() {
 	// the step sound plays once the loop sees the square change (ovr04:3395)
-	e.posX += grid.StepX[e.moveDir()]
-	e.posY += grid.StepY[e.moveDir()]
+	e.posX += goldbox.StepX[e.moveDir()]
+	e.posY += goldbox.StepY[e.moveDir()]
 	e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
 	e.run.doorTry = [3]byte{1, 1, 1}
 	e.es.cell = e.MapCell(e.posX, e.posY)
@@ -729,8 +729,8 @@ func (e *Engine) stepAhead() {
 // mapMove = ovr15:0818: one step on the area map, unless the target square
 // is impassable (DS:3648 map, 0x2C bytes a row).
 func (e *Engine) mapMove() {
-	x := min(max(int(int8(byte(e.worldWord(core.WordMapX)+grid.StepX[e.facing]))), 0), 0xF)
-	y := min(max(int(int8(byte(e.worldWord(core.WordMapY)+grid.StepY[e.facing]))), 0), 0x23)
+	x := min(max(int(int8(byte(e.worldWord(core.WordMapX)+goldbox.StepX[e.facing]))), 0), 0xF)
+	y := min(max(int(int8(byte(e.worldWord(core.WordMapY)+goldbox.StepY[e.facing]))), 0), 0x23)
 	col := int(int8(byte(int(ViewModeShift[e.viewMode]) + x)))
 	t := e.ruleset().Check(core.MapTerrain{X: col, Y: y}, nil).Value
 	switch {

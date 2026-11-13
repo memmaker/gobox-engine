@@ -7,7 +7,7 @@ import (
 
 	"gobox/asset"
 	"gobox/core"
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 )
 
 // drawPage = 0464:0D71 draws a frame at page cell (x,y), clipped to the
@@ -228,7 +228,7 @@ func (e *Engine) eraseCursor(x, y int) { e.snap.cursorOn = false }
 
 // combatView is the combat view window (extra): 12 x 7 squares, scrolled as
 // the original scrolled its 7x7 (recentre); the battle view's camera follows it.
-var combatView = grid.View{W: 12, H: 7}
+var combatView = goldbox.View{W: 12, H: 7}
 
 // inView = ovr32:06E9 on map squares: (x, y) lies in the view at cview.
 func (e *Engine) inView(x, y int) bool { return combatView.In(x-e.cview.X, y-e.cview.Y) }
@@ -272,7 +272,7 @@ func (e *Engine) recentre(x, y, r int) bool {
 // combatCentre = ovr32:0996 (x, y, margin, dir): bring the square next to
 // (x,y) in direction dir (8 = itself) into view and put the cursor there.
 func (e *Engine) combatCentre(x, y, r, dir int) {
-	nx, ny := x+grid.StepX[dir], y+grid.StepY[dir]
+	nx, ny := x+goldbox.StepX[dir], y+goldbox.StepY[dir]
 	e.recentre(nx, ny, r)
 	e.eraseCursor(x, y)
 	if !e.inView(nx, ny) {

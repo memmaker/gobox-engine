@@ -1,9 +1,10 @@
-// Package grid is the combat map geometry the Pool games share: the line
-// walker, line of sight, the quarter arcs, the near list order and the
-// direction between two squares. Pure functions on squares; the map, its
-// ground tables and the combatants stay with the game, which passes in what
-// differs (map size, ground heights, slopes) as parameters.
-package grid
+// The combat map geometry the Pool games share: the line walker, line of
+// sight, the quarter arcs, the near list order and the direction between two
+// squares. Pure functions on squares; the map, its ground tables and the
+// combatants stay with the game, which passes in what differs (map size,
+// ground heights, slopes) as parameters.
+
+package goldbox
 
 // StepDirs is the direction taken by a step of (dx, dy) in -1..1, indexed
 // [dy+1][dx+1]; 8 = none. Directions run 0 N, 1 NE, 2 E ... 7 NW.

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gobox/core"
 	"gobox/core/goldbox"
-	"gobox/core/grid"
 	"gobox/ecl/script"
 	"log"
 	"os"
@@ -130,7 +129,7 @@ func (e *Engine) readLabels(path string) {
 			continue
 		}
 		var text string
-		if n, _ := fmt.Sscanf(line, "%d %d %d", &x, &y, &kind); n == 3 && cur != nil && grid.OnMap(x, y) && kind >= 0 && kind <= poiCivic {
+		if n, _ := fmt.Sscanf(line, "%d %d %d", &x, &y, &kind); n == 3 && cur != nil && goldbox.OnMap(x, y) && kind >= 0 && kind <= poiCivic {
 			if f := strings.SplitN(line, " ", 4); len(f) == 4 {
 				text = f[3]
 			}
@@ -167,14 +166,14 @@ func (e *Engine) writeLabels(path string) error {
 // Mark labels square x, y of the current map with text (the player's
 // label; "" marks nothing).
 func (e *Engine) Mark(x, y int, text string) {
-	if text = strings.TrimSpace(text); text != "" && grid.OnMap(x, y) {
+	if text = strings.TrimSpace(text); text != "" && goldbox.OnMap(x, y) {
 		e.userLabels()[y<<4|x] = mapLabel{goldbox.Cut(text, 0x20), poiUser}
 	}
 }
 
 // Unmark removes the player's label from square x, y of the current map.
 func (e *Engine) Unmark(x, y int) {
-	if grid.OnMap(x, y) {
+	if goldbox.OnMap(x, y) {
 		delete(e.userLabels(), y<<4|x)
 	}
 }

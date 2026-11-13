@@ -2,7 +2,7 @@ package rules1e
 
 import (
 	"gobox/core"
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 )
 
 // combat placement directions, by party direction and side (DS:02D2).
@@ -233,7 +233,7 @@ func (r *Rules) placeOne(m core.MapSides, idx int) bool {
 		// line, so no slot is left. The original only stopped at a corner, off both
 		// ways, which its slanted rows always reach; Deskew's rows run straight along
 		// one axis and never do: with every slot taken they ran off for ever (a hang).
-		edge := out && (grid.FormationEdge(x, y, formationW, formationH) || x == bx && y == by)
+		edge := out && (goldbox.FormationEdge(x, y, formationW, formationH) || x == bx && y == by)
 		if state > 1 {
 			full := out && !edge
 			if !full {

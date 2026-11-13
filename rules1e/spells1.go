@@ -12,7 +12,6 @@ import (
 	"gobox/core"
 	"gobox/core/dnd"
 	"gobox/core/goldbox"
-	"gobox/core/grid"
 )
 
 // tgt / setTgt = DS:6C91 + 4*i: the spell target list (1-based). Slot 1 is
@@ -433,7 +432,7 @@ func (e *RuleState) BoltWalk(reach, bounce int, step func(x, y int), strike func
 		x0, y0 := e.TgtX, e.TgtY
 		x1 := int(int16(e.TgtX + (e.TgtX-cx)*dirSign*int(r)))
 		y1 := int(int16(e.TgtY + (e.TgtY-cy)*dirSign*int(r)))
-		l := grid.NewLine(x0, y0, x1, y1)
+		l := goldbox.NewLine(x0, y0, x1, y1)
 		for {
 			lastX, lastY := byte(l.X), byte(l.Y)
 			if !(x0 == x1 && y0 == y1) {
@@ -464,7 +463,7 @@ func (e *RuleState) BoltWalk(reach, bounce int, step func(x, y int), strike func
 			blocked := strike(int(lastX), int(lastY), int(byte(l.X)), int(byte(l.Y)))
 			if blocked {
 				e.TgtX, e.TgtY = int(byte(l.X)), int(byte(l.Y))
-				back := grid.NewLine(e.TgtX, e.TgtY, cx, cy)
+				back := goldbox.NewLine(e.TgtX, e.TgtY, cx, cy)
 				for back.Step() {
 				}
 				if flag != 0 && byte(back.Steps) <= 8 {

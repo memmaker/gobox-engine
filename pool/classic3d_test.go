@@ -3,7 +3,6 @@ package pool
 import (
 	"fmt"
 	"gobox/core/goldbox"
-	"gobox/core/grid"
 	"gobox/ega"
 	"gobox/geo"
 	"image"
@@ -104,7 +103,7 @@ func (e *Engine) classicView(x, y, dir int) {
 				var prev byte
 				for i := 0; i < 4; i++ {
 					front := e.WallAt(px, py, dir)
-					if !grid.OnMap(px, py) && e.WallAt(px, py, (side.dir+4)%8) == 0 {
+					if !goldbox.OnMap(px, py) && e.WallAt(px, py, (side.dir+4)%8) == 0 {
 						prev = 0
 					}
 					if front != 0 {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gobox/core"
 	"gobox/core/goldbox"
-	"gobox/core/grid"
 	"gobox/ecl"
 	"gobox/ecl/script"
 	"gobox/ega"
@@ -79,7 +78,7 @@ func (e *Engine) FreeSteps(x, y, dir int) int {
 // that is the entry square the next area keeps (west out of Phlan, in at
 // the east edge): an area change, not a wrap within the map.
 func (e *Engine) StepForward() {
-	x, y := e.posX+grid.StepX[e.moveDir()], e.posY+grid.StepY[e.moveDir()]
+	x, y := e.posX+goldbox.StepX[e.moveDir()], e.posY+goldbox.StepY[e.moveDir()]
 	if e.worldWord(core.WordLeftMap) != 0 {
 		x, y = (x+16)%16, (y+16)%16
 	}

@@ -15,7 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"gobox/asset"
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 	"gobox/dax"
 	"gobox/ega"
 	"gobox/geo"
@@ -210,7 +210,7 @@ func (v *view) draw(dir, px, py int) {
 				tx, ty, col, prev := x, y, 0, 0
 				for range 4 {
 					w := v.wall(dir, tx, ty)
-					if !grid.OnMap(tx, ty) && v.wall(side.other, tx, ty) == 0 {
+					if !goldbox.OnMap(tx, ty) && v.wall(side.other, tx, ty) == 0 {
 						prev = 0
 					}
 					if w != 0 {

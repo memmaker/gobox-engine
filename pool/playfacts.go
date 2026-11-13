@@ -3,7 +3,7 @@ package pool
 import (
 	"fmt"
 	"gobox/core"
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 	"image"
 	"slices"
 	"strconv"
@@ -434,7 +434,7 @@ func (e *Engine) pendingAsk() *play.Question {
 // dirOf is the direction (0 2 4 6) of a one-square step v, or -1.
 func dirOf(v image.Point) int {
 	for d := 0; d < 8; d += 2 {
-		if v == image.Pt(grid.StepX[d], grid.StepY[d]) {
+		if v == image.Pt(goldbox.StepX[d], goldbox.StepY[d]) {
 			return d
 		}
 	}

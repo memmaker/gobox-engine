@@ -5,7 +5,7 @@ package geo
 import (
 	"errors"
 
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 )
 
 const (
@@ -48,7 +48,7 @@ func wrap(v int) int {
 }
 
 // offSolid: off the map and the edges are solid.
-func (m *Map) offSolid(x, y int) bool { return !grid.OnMap(x, y) && m.SolidEdges }
+func (m *Map) offSolid(x, y int) bool { return !goldbox.OnMap(x, y) && m.SolidEdges }
 
 // WallAt is the wall value 0..15 on side dir (0 N, 2 E, 4 S, 6 W) of a cell.
 func (m *Map) WallAt(x, y, dir int) byte {

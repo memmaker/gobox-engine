@@ -1,12 +1,12 @@
 package pool
 
 import (
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 	"testing"
 )
 
 func TestLine(t *testing.T) {
-	l := grid.NewLine(0, 0, 6, -3)
+	l := goldbox.NewLine(0, 0, 6, -3)
 	var dirs []byte
 	for l.Step() {
 		dirs = append(dirs, l.Dir)

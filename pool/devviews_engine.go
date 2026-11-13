@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gobox/asset"
 	"gobox/core"
-	"gobox/core/grid"
+	"gobox/core/goldbox"
 	"gobox/ecl"
 	"gobox/ega"
 	"os"
@@ -203,13 +203,13 @@ func (e *Engine) DevScene(name string) func() {
 	case "lockeddoor": // a locked door ahead that no one can pick (the Pick menu's failure)
 		return func() {
 			for d := 0; d < 8; d += 2 { // face a wall
-				if e.WallAt(e.posX, e.posY, d) != 0 && grid.OnMap(e.posX+grid.StepX[d], e.posY+grid.StepY[d]) {
+				if e.WallAt(e.posX, e.posY, d) != 0 && goldbox.OnMap(e.posX+goldbox.StepX[d], e.posY+goldbox.StepY[d]) {
 					e.facing = d
 					break
 				}
 			}
 			e.setDoor(e.posX, e.posY, e.facing, 2)
-			e.setDoor(e.posX+grid.StepX[e.facing], e.posY+grid.StepY[e.facing], (e.facing+4)%8, 2)
+			e.setDoor(e.posX+goldbox.StepX[e.facing], e.posY+goldbox.StepY[e.facing], (e.facing+4)%8, 2)
 			e.run.doorTry = [3]byte{1, 1, 1}
 			e.fixture(core.FixtureNoPicker, core.NoChar)
 			e.Redraw()
