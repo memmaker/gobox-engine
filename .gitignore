@@ -16,3 +16,5 @@ crash_logs/
 /gobox
 games/*/bin/
 sprites/cmd/poolsprites/poolsprites
+games/pod/tools/music/render/podmusicrender
+ui/fonts/cmd/fontexport/fontexport

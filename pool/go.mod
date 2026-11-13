@@ -8,6 +8,8 @@ require (
 	gobox/core v0.0.0
 	gobox/creation v0.0.0
 	gobox/exe v0.0.0
+	gobox/gpu v0.0.0
+	gobox/ui v0.0.0
 	rules1e v0.0.0
 )
 
@@ -26,10 +28,8 @@ require (
 	github.com/qmuntal/gltf v0.29.0 // indirect
 	gobox/blobber v0.0.0 // indirect
 	gobox/combat v0.0.0 // indirect
-	gobox/gpu v0.0.0 // indirect
 	gobox/input v0.0.0 // indirect
 	gobox/sprites v0.0.0 // indirect
-	gobox/ui v0.0.0 // indirect
 	gobox/walls v0.0.0 // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect

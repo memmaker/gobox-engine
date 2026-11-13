@@ -3,6 +3,7 @@ module gobox/combat
 go 1.26.2
 
 require (
+	github.com/qmuntal/gltf v0.29.0
 	gobox/gpu v0.0.0
 	gobox/input v0.0.0
 	golang.org/x/image v0.47.0
@@ -16,7 +17,6 @@ require (
 	github.com/gogpu/gputypes v0.8.0 // indirect
 	github.com/gogpu/naga v0.19.0 // indirect
 	github.com/gogpu/wgpu v0.34.5 // indirect
-	github.com/qmuntal/gltf v0.29.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
 
