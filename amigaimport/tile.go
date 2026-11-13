@@ -1,6 +1,9 @@
 package amigaimport
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"slices"
+)
 
 // TILE pictures: BE u16 height, x, y; u8 width in bytes (8-pixel cells);
 // u8 kind. Kind bit 0: masked, bit 1: packed; high nibble 0xe on 32-colour
@@ -249,17 +252,18 @@ const maxFrames = 255
 // tagged "AM" with the palette slot, one byte per pixel when any colour
 // is past 15.
 func encode(frames []*tile, g Gfx) []byte {
-	frames = frames[:min(len(frames), maxFrames)] // ponytail: a DOS block counts frames in a byte; PoD's 8X8D sets hold 256
-	if g.XOR {                                    // later frames are drawn over the first
-		for _, f := range frames[1:] {
-			if f.h != frames[0].h || f.w != frames[0].w {
-				continue
-			}
+	frames = slices.Clone(frames[:min(len(frames), maxFrames)]) // ponytail: a DOS block counts frames in a byte; PoD's 8X8D sets hold 256
+	if g.XOR {                                                  // later frames are drawn over the first, at their offset from it: written whole, the first's size
+		f0 := frames[0]
+		for k, f := range frames[1:] {
+			out := &tile{h: f0.h, w: f0.w, x: f0.x, y: f0.y, px: slices.Clone(f0.px)}
 			for i, c := range f.px {
-				if c == clear {
-					f.px[i] = frames[0].px[i]
+				x, y := i%(f.w*8)+f.x-f0.x, i/(f.w*8)+f.y-f0.y
+				if c != clear && x >= 0 && x < f0.w*8 && y >= 0 && y < f0.h {
+					out.px[y*f0.w*8+x] = c
 				}
 			}
+			frames[k+1] = out
 		}
 	}
 	wide := byte(0)
