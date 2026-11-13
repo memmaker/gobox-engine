@@ -171,3 +171,24 @@ func TestWallsAndMinimapBuiltOncePerChange(t *testing.T) {
 		t.Fatal("a new State did not derive them again")
 	}
 }
+
+// The window border's pieces are decoded from the art once per Version:
+// the frame's setup and every box ask for them again and again.
+func TestBorderBuiltOncePerChange(t *testing.T) {
+	g := &artCounting{fake: &fake{st: play.Exploring{}}}
+	var p Presenter
+	p.SetEngine(&classicGame{Game: NewGame(g, game.Data{})})
+	p.windowBorder()
+	one := g.arts
+	for range 5 {
+		p.windowBorder()
+	}
+	if g.arts != one {
+		t.Fatalf("idle asks read the art again: %d reads, want %d", g.arts, one)
+	}
+	g.st = play.Exploring{Common: play.Common{Where: game.Where{X: 1}}}
+	p.windowBorder()
+	if g.arts != one+1 {
+		t.Fatalf("a new State: %d art reads, want %d", g.arts, one+1)
+	}
+}

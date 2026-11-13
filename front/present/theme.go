@@ -108,14 +108,19 @@ type windowBorder struct {
 	own    bool
 }
 
-// windowBorder is the game's border pieces from its art ("border/<place>",
-// 0..7, ui.TopLeft ..; "border/cap/<n>", 0..3, ui.LeftTopCap ..; in the
-// EGA's colours), or Theme.Border's decoded when the art has none.
+// windowBorder is the border the state's derived reads hold (derived); with
+// no game, Theme.Border's.
 func (p *Presenter) windowBorder() windowBorder {
-	var art map[string]game.Picture
-	if p.eng != nil {
-		art = p.eng.art()
+	if p.eng == nil {
+		return borderOf(nil)
 	}
+	return p.eng.r.derived().border
+}
+
+// borderOf is the game's border pieces from its art ("border/<place>",
+// 0..7, ui.TopLeft ..; "border/cap/<n>", 0..3, ui.LeftTopCap ..; in the
+// EGA's colours), or Theme.Border's decoded when the art has no first piece.
+func borderOf(art map[string]game.Picture) windowBorder {
 	if pix(art["border/0"]).Pix != nil {
 		var t [ui.Places]image.Image
 		for i := range ui.LeftTopCap {

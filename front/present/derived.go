@@ -19,6 +19,7 @@ type derived struct {
 	automap  game.Automap      // the map of where the party is
 	explored game.Automap      // the one last explored (camp)
 	minimap  *front.MapSquares // automap's squares when it is the 16x16 map (nil: not)
+	border   windowBorder      // the window border's decoded pieces
 }
 
 // derived is the State's derived reads, made again when its Version changed.
@@ -27,6 +28,7 @@ func (r *rules) derived() *derived {
 		ps, old := r.g.State(), r.der
 		d := derived{version: v, ok: true, explored: old.explored}
 		d.walls, d.kept = wallsOf(ps, old.kept)
+		d.border = borderOf(r.Art())
 		d.automap = automapOf(ps, old.explored)
 		if _, ok := ps.(play.Exploring); ok {
 			d.explored = d.automap
