@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/gpu"
 )
 
@@ -236,7 +236,7 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *Board, k float64
 			noteLine(im, note, 0)
 		}
 		for _, t := range puts {
-			DrawText(im, glyph, t.s, x, 0, ega.RGBA(t.c))
+			DrawText(im, glyph, t.s, x, 0, asset.EGARGBA(t.c))
 			x += len(t.s)*8 + 8
 		}
 		p.rowsImg.WritePixels(im.Pix)

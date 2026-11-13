@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"gobox/ega"
 	"image/color"
 	"path/filepath"
 	"strconv"
@@ -20,15 +19,15 @@ func (e *Engine) amigaUp() bool { return !DOSArt.Load() && e.artFolder().Has(ass
 
 // ownColours is an Amiga block's own colours (cotab, sotsb, pod) as an
 // Image.Palette: the block's from its ColourBase on, EGA below, Clear
-// transparent; nil: none of its own (POR's Amiga art: the ega.Amiga slots).
+// transparent; nil: none of its own (POR's Amiga art: the asset.Amiga slots).
 // Without it the presenter colours every game's Amiga art in POR's slots.
 func ownColours(b *asset.Block) []color.RGBA {
-	if len(b.Palette) == 0 || b.ColourBase < ega.AmigaBase {
+	if len(b.Palette) == 0 || b.ColourBase < asset.AmigaBase {
 		return nil
 	}
 	pal := make([]color.RGBA, 256)
 	for i := range 16 {
-		pal[i] = ega.RGBA(i)
+		pal[i] = asset.EGARGBA(i)
 	}
 	for i := 0; i+2 < len(b.Palette) && b.ColourBase+i/3 < len(pal); i += 3 {
 		pal[b.ColourBase+i/3] = color.RGBA{b.Palette[i], b.Palette[i+1], b.Palette[i+2], 255}
@@ -51,7 +50,7 @@ func (e *Engine) LoadSymbolSet(l SymbolLoad) {
 	}
 	e.sym[l.Set] = e.LoadPicMasked(file, l.Block, 0xD)
 	if e.sym[l.Set] == nil {
-		e.PromptRow24(ega.White, "Unable to load "+file+"-"+strconv.Itoa(l.Block))
+		e.PromptRow24(asset.EGAWhite, "Unable to load "+file+"-"+strconv.Itoa(l.Block))
 		e.Exit()
 	}
 }

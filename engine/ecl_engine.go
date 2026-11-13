@@ -2,9 +2,9 @@ package engine
 
 import (
 	"fmt"
+	"gobox/asset"
 	"gobox/ecl"
 	"gobox/ecl/script"
-	"gobox/ega"
 	"gobox/rules"
 )
 
@@ -40,7 +40,7 @@ func (e *Engine) InitAreaScript() {
 func (e *Engine) LoadArea(areaID int) {
 	e.loadingMonster = false
 	e.clearPrompt()
-	e.prompt(ega.White, "Loading...Please Wait")
+	e.prompt(asset.EGAWhite, "Loading...Please Wait")
 	e.loadScript(areaID)
 	e.clearPrompt()
 }
@@ -101,7 +101,7 @@ func (e *Engine) HitMessage(h rules.Hurt) {
 		e.pageOn() // the original's "press <enter>/<return> to continue": gobox pages the lots
 	}
 	e.msgCol = 0x26
-	e.paneText(ega.White, false, msg)
+	e.paneText(asset.EGAWhite, false, msg)
 	e.blank(17, 1, paneRight, 15)
 }
 

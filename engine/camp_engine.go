@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/rules"
 	"strconv"
 )
@@ -264,11 +264,11 @@ func (e *Engine) showRest(unit int) {
 	}
 	col[unit] = 0xF
 	r := e.restUnit
-	e.text(1, 17, ega.LightGreen, "Rest time")
+	e.text(1, 17, asset.EGALightGreen, "Rest time")
 	x := 0xB
 	for i := 4; i >= 3; i-- {
 		e.text(x+1, 17, col[i], twoDigits(r(i)))
-		e.text(x+3, 17, ega.LightGreen, ":")
+		e.text(x+3, 17, asset.EGALightGreen, ":")
 		x += 3
 	}
 	e.text(x+1, 17, col[2], twoDigits(10*r(2)+r(1)))
@@ -301,13 +301,13 @@ func (e *Engine) RestStep() error {
 	}
 	if s.healed {
 		e.showRest(0)
-		e.text(1, 19, ega.LightGreen, "The Whole Party Is Healed")
+		e.text(1, 19, asset.EGALightGreen, "The Whole Party Is Healed")
 		e.ClearMessageArea()
 	}
 	if s.interrupted {
 		e.ClearMessageArea()
 		e.showRest(0)
-		e.text(1, 19, ega.White, "The Party is rudely interrupted!")
+		e.text(1, 19, asset.EGAWhite, "The Party is rudely interrupted!")
 	}
 	if s.over {
 		e.resting = nil

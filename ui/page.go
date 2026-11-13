@@ -15,7 +15,6 @@ import (
 
 	xdraw "golang.org/x/image/draw"
 
-	"gobox/ega"
 	"gobox/gpu"
 )
 
@@ -57,7 +56,7 @@ type page struct {
 // 320x200 for a View without any).
 func (p *Presenter) pageSize() (w, h int) {
 	if p.cells().X == 0 || p.cells().Y == 0 {
-		return ega.W, ega.H
+		return asset.ScreenW, asset.ScreenH
 	}
 	return p.cells().X * 8, p.cells().Y * 8
 }

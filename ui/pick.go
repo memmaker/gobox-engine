@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"gobox/asset"
-	"gobox/ega"
 	"gobox/game"
 )
 
@@ -112,7 +111,7 @@ func IconEditor(k *game.IconEditor, palette []color.RGBA, own game.Member, ink *
 	if *ink == ([16]color.RGBA{}) { // unset: the EGA's own (Ink)
 		var egaInk [16]color.RGBA
 		for i := range egaInk {
-			egaInk[i] = ega.RGBA(i)
+			egaInk[i] = asset.EGARGBA(i)
 		}
 		ink = &egaInk
 	}

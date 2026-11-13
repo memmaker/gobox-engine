@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"image/color"
 
-	"gobox/ega"
+	"gobox/asset"
 )
 
 // ParseVGA decodes a VGA picture block (Pools of Darkness): a header (height,
@@ -35,7 +35,7 @@ func ParseVGA(b []byte, masked bool, mask byte) *Image {
 	copy(im.Data, b[pix:])
 	im.Palette = make([]color.RGBA, 256)
 	for i := range im.Palette {
-		im.Palette[i] = ega.RGBA(i & 15)
+		im.Palette[i] = asset.EGARGBA(i & 15)
 	}
 	for k := 0; k < colours && first+k < 256; k++ {
 		c := func(v byte) uint8 { v &= 63; return v<<2 | v>>4 }
@@ -70,7 +70,7 @@ func ParseVGAAnim(b []byte) (frames []SpriteFrame, loop int) {
 	}
 	pal := make([]color.RGBA, 256)
 	for i := range pal {
-		pal[i] = ega.RGBA(i & 15)
+		pal[i] = asset.EGARGBA(i & 15)
 	}
 	for k := 0; k < colours && first+k < 256; k++ {
 		c := func(v byte) uint8 { v &= 63; return v<<2 | v>>4 }

@@ -2,8 +2,8 @@ package engine
 
 import (
 	"bytes"
-	"os"
 	"gobox/rules1e"
+	"os"
 	"testing"
 
 	"gobox/game/play"

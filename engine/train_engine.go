@@ -2,7 +2,6 @@ package engine
 
 import (
 	"gobox/asset"
-	"gobox/ega"
 	"gobox/rules"
 	"slices"
 )
@@ -163,7 +162,7 @@ func recolourIcon(im *asset.Image, to [16]byte) {
 		switch {
 		case v < 16 && int(v) != im.Mask:
 			im.Data[k] = f[v]
-		case v >= ega.AmigaBase:
+		case v >= asset.AmigaBase:
 			im.Data[k] = v&^0xF | am[v&0xF]
 		}
 	}

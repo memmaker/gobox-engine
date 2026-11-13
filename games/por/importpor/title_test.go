@@ -5,13 +5,13 @@ import (
 	"errors"
 	"io/fs"
 	"os"
-	"slices"
 	"reflect"
+	"slices"
 	"testing"
 
 	"gobox/game/play"
-	"gobox/importer"
 	"gobox/games/por/porgame"
+	"gobox/importer"
 )
 
 // TestStartIsPORTitle: the engine shows start() as POR's title (ovr02:0626):

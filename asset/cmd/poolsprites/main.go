@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	"gobox/asset/orig"
-	"gobox/ega"
 )
 
 // source is one kind of picture: the files (per game) it is read from.
@@ -194,7 +193,7 @@ func main() {
 							count[prefix]++
 							seen[key] = en
 							byDir[s.dir] = append(byDir[s.dir], en)
-							if s.masked { // combat art keeps its values (Amiga ones from ega.AmigaBase) for gobox's recolouring
+							if s.masked { // combat art keeps its values (Amiga ones from asset.AmigaBase) for gobox's recolouring
 								write(filepath.Join(pool, s.dir, en.name+".png"), indexed(im, fr, pal))
 							} else {
 								write(filepath.Join(pool, s.dir, en.name+".png"), pix)
@@ -249,21 +248,21 @@ func render(im *orig.Image, fr int) *image.NRGBA {
 	for i, v := range im.Frame(fr)[:w*im.Height] {
 		switch {
 		case v == orig.Clear && im.Palette == nil:
-		case v >= ega.AmigaBase && im.Palette == nil:
-			out.SetNRGBA(i%w, i/w, color.NRGBA(ega.AmigaRGBA(v)))
+		case v >= asset.AmigaBase && im.Palette == nil:
+			out.SetNRGBA(i%w, i/w, color.NRGBA(asset.AmigaRGBA(v)))
 		case im.Palette != nil:
 			if c := im.Palette[v]; c.A != 0 {
 				out.SetNRGBA(i%w, i/w, color.NRGBA(c))
 			}
 		default:
-			out.SetNRGBA(i%w, i/w, color.NRGBA(ega.RGBA(int(v))))
+			out.SetNRGBA(i%w, i/w, color.NRGBA(asset.EGARGBA(int(v))))
 		}
 	}
 	return out
 }
 
 // renderAmiga is an Amiga frame in RGBA as gobox draws it (present.pixelRGBA):
-// EGA below ega.AmigaBase, above it the picture's own palette pal, else ega.Amiga.
+// EGA below asset.AmigaBase, above it the picture's own palette pal, else asset.Amiga.
 func renderAmiga(im *orig.Image, fr int, pal []byte) *image.NRGBA {
 	w := im.Width * 8
 	out := image.NewNRGBA(image.Rect(0, 0, w, im.Height))
@@ -272,13 +271,13 @@ func renderAmiga(im *orig.Image, fr int, pal []byte) *image.NRGBA {
 		switch n := len(pal) / 3; {
 		case v == orig.Clear:
 			continue
-		case v < ega.AmigaBase:
-			c = ega.RGBA(int(v))
+		case v < asset.AmigaBase:
+			c = asset.EGARGBA(int(v))
 		case n > 0:
-			j := int(v-ega.AmigaBase) % n * 3
+			j := int(v-asset.AmigaBase) % n * 3
 			c = color.RGBA{pal[j], pal[j+1], pal[j+2], 255}
 		default:
-			c = ega.AmigaRGBA(v)
+			c = asset.AmigaRGBA(v)
 		}
 		out.SetNRGBA(i%w, i/w, color.NRGBA(c))
 	}
@@ -287,27 +286,27 @@ func renderAmiga(im *orig.Image, fr int, pal []byte) *image.NRGBA {
 
 // indexed is frame fr as a paletted image keeping the DAX indices: EGA art
 // has 17 palette entries (the 16 colours, then transparent for Clear), VGA
-// art its own palette, Amiga art (values from ega.AmigaBase) those 17 padded
+// art its own palette, Amiga art (values from asset.AmigaBase) those 17 padded
 // with transparent up to the Amiga colours, so it keeps its values too.
 func indexed(im *orig.Image, fr int, apal []byte) *image.Paletted {
 	w := im.Width * 8
 	var pal color.Palette
 	amiga := false
 	for _, v := range im.Frame(fr)[:w*im.Height] {
-		amiga = amiga || im.Palette == nil && v >= ega.AmigaBase && v != orig.Clear
+		amiga = amiga || im.Palette == nil && v >= asset.AmigaBase && v != orig.Clear
 	}
 	if amiga {
-		for i := 0; i < ega.AmigaBase+16*len(ega.Amiga); i++ {
+		for i := 0; i < asset.AmigaBase+16*len(asset.AmigaPalettes); i++ {
 			switch {
 			case i < 16:
-				pal = append(pal, color.NRGBA(ega.RGBA(i)))
-			case i < ega.AmigaBase:
+				pal = append(pal, color.NRGBA(asset.EGARGBA(i)))
+			case i < asset.AmigaBase:
 				pal = append(pal, color.NRGBA{})
 			case len(apal) >= 3: // the game's own palette (its *PAL.DAX), as renderAmiga
-				j := (i - ega.AmigaBase) % (len(apal) / 3) * 3
+				j := (i - asset.AmigaBase) % (len(apal) / 3) * 3
 				pal = append(pal, color.NRGBA{apal[j], apal[j+1], apal[j+2], 255})
 			default:
-				pal = append(pal, color.NRGBA(ega.AmigaRGBA(uint8(i))))
+				pal = append(pal, color.NRGBA(asset.AmigaRGBA(uint8(i))))
 			}
 		}
 		out := image.NewPaletted(image.Rect(0, 0, w, im.Height), pal)
@@ -320,7 +319,7 @@ func indexed(im *orig.Image, fr int, apal []byte) *image.Paletted {
 		}
 	} else {
 		for i := 0; i < 16; i++ {
-			pal = append(pal, color.NRGBA(ega.RGBA(i)))
+			pal = append(pal, color.NRGBA(asset.EGARGBA(i)))
 		}
 		pal = append(pal, color.NRGBA{})
 	}

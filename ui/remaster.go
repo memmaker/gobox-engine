@@ -17,7 +17,6 @@ import (
 
 	"gobox/asset"
 	"gobox/audio"
-	"gobox/ega"
 	"gobox/game"
 	"gobox/game/play"
 	"gobox/gpu"
@@ -473,7 +472,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		pic = viewWindow.Framed()
 	}
 	ph, th := float64(pic.Pixels().Dy()), float64(txt.Pixels().Dy())
-	pk := min(k, max(1, float64(min(int(float64(b.Dy())/2/(ph+th/2)), b.Dx()/ega.W))))
+	pk := min(k, max(1, float64(min(int(float64(b.Dy())/2/(ph+th/2)), b.Dx()/asset.ScreenW))))
 	// the text box and the menus at their sizes (Esc, Graphics), as far as they fit between the cards
 	bw, bh := float64(b.Dx()), float64(b.Dy())
 	tk := fitScale(k, 1, func(k float64) bool { return k*float64(txt.Pixels().Dx()) <= bw && k*th <= bh/2 })

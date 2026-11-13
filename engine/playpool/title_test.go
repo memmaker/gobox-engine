@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/ega"
 	"gobox/gpu"
 	"gobox/importer"
 	"gobox/ui"
@@ -59,7 +58,7 @@ func lit(dst *gpu.Image) image.Rectangle {
 // TestTitleScreens plays each imported game's full title headless, a key a
 // step, to the main menu (cotab's crashed there on an empty logo cut): an
 // Amiga title picture whose block has its own palette carries it (cotab's
-// were drawn in POR's ega.Amiga slots), and the credits page's frame sits
+// were drawn in POR's asset.Amiga slots), and the credits page's frame sits
 // on the window's edges at K (cotab's and sotsb's had none: Theme.Border
 // did not decode without Data.Adventure).
 func TestTitleScreens(t *testing.T) {
@@ -90,7 +89,7 @@ func TestTitleScreens(t *testing.T) {
 				for _, l := range pg.Layers {
 					pc := l.Picture
 					b := art.Block(asset.Amiga, pc.File, pc.Block)
-					if pc.Pixels == nil || b == nil || len(b.Palette) == 0 || b.ColourBase < ega.AmigaBase {
+					if pc.Pixels == nil || b == nil || len(b.Palette) == 0 || b.ColourBase < asset.AmigaBase {
 						continue
 					}
 					for i := 0; i < len(b.Palette)/3; i++ {

@@ -4,7 +4,7 @@ import (
 	"image"
 	"testing"
 
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -20,7 +20,7 @@ func TestTitleFlash(t *testing.T) {
 	}{{nil, 1}, {[]int{15, 11}, 15}} {
 		p, _ := presenterOn(play.Scene{Kind: play.SceneTitle, Intro: &game.Intro{}, Steps: map[int]play.TitleStep{0: {Layers: []game.Layer{pic}}}})
 		p.intro.Flash = c.flash
-		if got := p.pictures()[0].Img.At(0, 0); got != ega.RGBA(c.want) {
+		if got := p.pictures()[0].Img.At(0, 0); got != asset.EGARGBA(c.want) {
 			t.Errorf("flash %v: %v, want EGA %d", c.flash, got, c.want)
 		}
 	}

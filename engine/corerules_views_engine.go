@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/rules"
 )
 
@@ -84,11 +84,11 @@ func (e *Engine) paladinCures(cID rules.CharID) bool {
 func (e *Engine) nameColour(id rules.CharID) int {
 	switch {
 	case !bool(e.fact(id, rules.FactActive).(rules.Yes)):
-		return ega.LightRed
+		return asset.EGALightRed
 	case e.fact(id, rules.FactSide).(rules.Side) == rules.SideMonsters:
-		return ega.Yellow
+		return asset.EGAYellow
 	}
-	return ega.LightCyan
+	return asset.EGALightCyan
 }
 
 // rosterColour is the roster's colour for id's name when it is not the one
@@ -96,7 +96,7 @@ func (e *Engine) nameColour(id rules.CharID) int {
 func (e *Engine) rosterColour(id rules.CharID) int {
 	if e.fact(id, rules.FactActive).(rules.Yes) && e.fact(id, rules.FactSide).(rules.Side) != rules.SideMonsters &&
 		e.fact(id, rules.FactLevelReady).(rules.Yes) {
-		return ega.LightMagenta
+		return asset.EGALightMagenta
 	}
 	return e.nameColour(id)
 }

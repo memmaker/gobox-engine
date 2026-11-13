@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"image"
 	"gobox/rules1e"
+	"image"
 	"testing"
 
 	"gobox/game"

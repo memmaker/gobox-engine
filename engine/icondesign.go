@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/rules"
 	"slices"
 )
@@ -75,7 +75,7 @@ func (e *Engine) iconCells() (cells [16]byte, amiga bool) {
 	im := e.icons[0xC][0]
 	amiga = e.amigaUp() // no combat picture in the slot (the pool composes the icon): the art set says
 	if im != nil {
-		amiga = slices.ContainsFunc(im.Data, func(v byte) bool { return v >= ega.AmigaBase })
+		amiga = slices.ContainsFunc(im.Data, func(v byte) bool { return v >= asset.AmigaBase })
 	}
 	if amiga {
 		for n, s := range amigaIconColour {
@@ -87,7 +87,7 @@ func (e *Engine) iconCells() (cells [16]byte, amiga bool) {
 		return cells, true
 	}
 	lum := func(i byte) int {
-		c := ega.Identity.RGBA(i)
+		c := asset.EGAIdentity.RGBA(i)
 		return int(c.R) + int(c.G) + int(c.B)
 	}
 	for k := 0; k < 8; k++ {

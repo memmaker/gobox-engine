@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/rules"
 	"time"
 )
@@ -19,7 +19,7 @@ func (e *Engine) Run() {
 // Apply puts the party menu up, then the adventure.
 func (e *Engine) Play() {
 	if e.ruleset().Check(rules.ItemTableMissing{}, nil).Yes {
-		e.PromptRow24(ega.Yellow, "ITEMS missing: import the game again") // extra (readItems): shown until a key
+		e.PromptRow24(asset.EGAYellow, "ITEMS missing: import the game again") // extra (readItems): shown until a key
 	}
 }
 

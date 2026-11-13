@@ -2,7 +2,7 @@ package orig
 
 import (
 	"encoding/binary"
-	"gobox/ega"
+	"gobox/asset"
 	"sort"
 )
 
@@ -126,7 +126,7 @@ func chunky(src []byte, h, w, stride, plane int) []byte {
 func be16(b []byte, i int) int { return int(binary.BigEndian.Uint16(b[i:])) }
 
 // AmigaImage converts a plain picture block to the DOS layout ParseImage
-// reads, tagged with the ega.Amiga palette slot its colours come from.
+// reads, tagged with the asset.Amiga palette slot its colours come from.
 // split is for the tile sheets: each frame holds two side-by-side tiles,
 // and each bitplane runs through all frames before the next one starts.
 func AmigaImage(b []byte, split bool, slot byte) []byte {
@@ -226,7 +226,7 @@ func WriteDOS(blocks map[int][]byte) []byte {
 }
 
 // amigaTag: an "AM" mark and palette slot in a picture header's unused
-// bytes moves its colours to ega.AmigaBase+16*slot, all but mask (the
+// bytes moves its colours to asset.AmigaBase+16*slot, all but mask (the
 // mask colour, or -1), which clearMask turns Clear afterwards. A fourth
 // byte of 8 marks a wide picture: one byte per pixel, 32 colours over
 // slots slot and slot+1.
@@ -234,7 +234,7 @@ func amigaTag(hdr, px []byte, mask int) {
 	if len(hdr) < 3 || hdr[0] != 'A' || hdr[1] != 'M' {
 		return
 	}
-	base := byte(ega.AmigaBase + 16*int(hdr[2]))
+	base := byte(asset.AmigaBase + 16*int(hdr[2]))
 	for i, c := range px {
 		if c < 32 && int(c) != mask {
 			px[i] = base + c

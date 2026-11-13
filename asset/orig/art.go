@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"gobox/asset"
-	"gobox/ega"
 )
 
 // ArtFormat changes when the sheets an import writes change: an older art
@@ -272,7 +271,7 @@ func colourBase(hdr []byte) int {
 	if len(hdr) < 3 || hdr[0] != 'A' || hdr[1] != 'M' {
 		return 0
 	}
-	return ega.AmigaBase + 16*int(hdr[2])
+	return asset.AmigaBase + 16*int(hdr[2])
 }
 
 // sheetPalette colours a sheet's PNG: the EGA colours, the rest grey (an
@@ -283,7 +282,7 @@ func sheetPalette() color.Palette {
 		p[i] = color.Gray{Y: byte(i)}
 	}
 	for i := range 16 {
-		p[i] = ega.RGBA(i)
+		p[i] = asset.EGARGBA(i)
 	}
 	return p
 }

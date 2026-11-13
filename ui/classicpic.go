@@ -6,7 +6,7 @@ import (
 	"image"
 	"image/color"
 
-	"gobox/ega"
+	"gobox/asset"
 )
 
 type pixKey struct {
@@ -22,7 +22,7 @@ var pixPics = map[pixKey]image.Image{}
 // egaInk is the EGA's own colours, for the pictures given in them.
 var egaInk = func() (k [16]color.RGBA) {
 	for i := range k {
-		k[i] = ega.RGBA(i)
+		k[i] = asset.EGARGBA(i)
 	}
 	return k
 }()

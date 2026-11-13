@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/ega"
 )
 
 const amigaDir = "/Users/felix/Desktop/Games/Goldbox/Amiga"
@@ -107,7 +107,7 @@ func TestWide(t *testing.T) {
 	}
 	fs := orig.ParseSprite(f.BlockShared(f.Entries[0].ID), false, 0, true)
 	for _, c := range fs[0].Image.Data {
-		if c >= ega.AmigaBase+16 {
+		if c >= asset.AmigaBase+16 {
 			return
 		}
 	}
@@ -164,8 +164,8 @@ func TestFixedPalette(t *testing.T) {
 					t.Fatalf("block %d: no picture or palette", e.ID)
 				}
 				for i := 0; i < len(a.Data); i += 97 {
-					c := int(a.Data[i]) - ega.AmigaBase
-					got, want := p[c*3:c*3+3], ega.Palette[d.Data[i]&15]
+					c := int(a.Data[i]) - asset.AmigaBase
+					got, want := p[c*3:c*3+3], asset.EGAPalette[d.Data[i]&15]
 					for k := range 3 {
 						if diff := int(got[k]) - int(want[k]); diff < -0x40 || diff > 0x40 {
 							t.Fatalf("block %d pixel %d: %x, DOS %x", e.ID, i, got, want)

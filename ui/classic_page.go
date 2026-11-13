@@ -4,7 +4,7 @@ import (
 	"image"
 	"image/color"
 
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/game"
 )
 
@@ -12,7 +12,7 @@ func paneRuns(l []game.TextRun) []PaneRun {
 	var r []PaneRun
 	for _, t := range l {
 		if t.Fg == (color.RGBA{}) { // unset: the body text's colour (gobox's, as every font colour)
-			t.Fg = ega.RGBA(10)
+			t.Fg = asset.EGARGBA(10)
 		}
 		r = append(r, PaneRun{X: t.X, Text: t.Text, Fg: t.Fg, Bg: t.Bg, Upcase: t.Upcase, Blink: t.Blink})
 	}

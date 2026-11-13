@@ -5,7 +5,6 @@ import (
 	"slices"
 
 	"gobox/asset"
-	"gobox/ega"
 	"gobox/rules"
 )
 
@@ -96,7 +95,7 @@ func (e *Engine) picPix(im *asset.Image, f int, flip bool, ground int) Picture {
 		switch {
 		case p == asset.Clear || int(p) == ground:
 			p = asset.Clear
-		case p > asset.Clear && p < ega.AmigaBase:
+		case p > asset.Clear && p < asset.AmigaBase:
 			p &= 15
 		}
 		out[i-i%w+x] = p

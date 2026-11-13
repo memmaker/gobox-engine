@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/ega"
+	"gobox/asset"
 )
 
 // The journal pageCut's lines (a Read's Lines): "\x00T" a title, "\x01N" a
@@ -33,7 +33,7 @@ func JournalPage(title string, lines []string, n, off, cols, rows int, ink [16]c
 	p := pageCut{cols: max(cols, 40), rows: max(rows, 25), ink: ink}
 	if ink == ([16]color.RGBA{}) {
 		for i := range p.ink {
-			p.ink[i] = ega.RGBA(i)
+			p.ink[i] = asset.EGARGBA(i)
 		}
 	}
 	pages := p.pages(lines)

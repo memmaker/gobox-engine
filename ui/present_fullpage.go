@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"image/draw"
 
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/gpu"
 )
 
@@ -37,5 +37,5 @@ func (p *Presenter) fullPage(dst *gpu.Image, sc *sheetCanvas, note Note, title s
 
 // textAt writes s at cell x, y of m in EGA colour c.
 func textAt(m *image.RGBA, note Note, s string, x, y, c int) {
-	DrawText(m, note.Glyph, s, x*8, y*8, ega.RGBA(c))
+	DrawText(m, note.Glyph, s, x*8, y*8, asset.EGARGBA(c))
 }

@@ -2,8 +2,8 @@ package engine
 
 import (
 	"fmt"
+	"gobox/asset"
 	"gobox/ecl/script"
-	"gobox/ega"
 	"gobox/game/play"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -24,7 +24,7 @@ func (e *Engine) opTreasure() {
 	switch {
 	case v < 0x80:
 		if _, err := e.ruleset().Resolve(nil, rules.AddTreasureBlock{Block: int32(v)}, nil); err != nil {
-			e.PromptRow24(ega.White, "Unable to find item file")
+			e.PromptRow24(asset.EGAWhite, "Unable to find item file")
 			e.Exit()
 		}
 		return
@@ -138,13 +138,13 @@ func (e *Engine) encApproach() bool {
 }
 
 func (e *Engine) encWaitMsg() {
-	e.paneText(ega.LightGreen, true, "Both sides wait.")
+	e.paneText(asset.EGALightGreen, true, "Both sides wait.")
 }
 
 func (e *Engine) encFlee() {
 	e.host.Set(e.es.enc.dst, 0)
 	e.msgCol, e.msgRow = 1, 0x11
-	e.paneText(ega.LightGreen, true, "The monsters flee.")
+	e.paneText(asset.EGALightGreen, true, "The monsters flee.")
 }
 
 // encRound shows the monsters' text for the distance and asks the menu
@@ -185,7 +185,7 @@ func (e *Engine) encRound() {
 	if txt == "" {
 		clear = false
 	}
-	e.paneText(ega.LightGreen, clear, txt)
+	e.paneText(asset.EGALightGreen, clear, txt)
 	en.parlay = dist() == 0 || e.worldWord(rules.WordIn3D) == 0
 	menu := "~COMBAT ~WAIT ~FLEE ~ADVANCE"
 	if en.parlay {
@@ -656,7 +656,7 @@ func (e *Engine) opProtection() {
 		if v <= 1 {
 			break
 		}
-		e.char(e.msgCol, e.msgRow, ega.White, runeLetter(v), true)
+		e.char(e.msgCol, e.msgRow, asset.EGAWhite, runeLetter(v), true)
 		e.msgCol++
 	}
 	e.msgRow++

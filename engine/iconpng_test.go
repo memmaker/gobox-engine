@@ -1,9 +1,9 @@
 package engine
 
 import (
+	"gobox/rules1e"
 	"image"
 	"image/color"
-	"gobox/rules1e"
 	"testing"
 )
 

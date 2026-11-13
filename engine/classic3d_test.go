@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/rules"
 	"gobox/rules1e"
 	"image"
@@ -50,7 +50,7 @@ func (e *Engine) classicFillRect(x, y, w, h int, colour byte) {
 	if colour == 16 { // fill's: 16 black, 17 up to the Amiga colours nothing
 		colour = 0
 	}
-	if colour >= 16 && colour < ega.AmigaBase {
+	if colour >= 16 && colour < asset.AmigaBase {
 		return
 	}
 	d := make([]byte, w*8*h)
@@ -225,11 +225,11 @@ func (e *Engine) pageRGBA() *image.RGBA {
 			im := image.NewRGBA(image.Rect(0, 0, s.PixW, len(s.Pix)/s.PixW))
 			for i, p := range s.Pix {
 				switch {
-				case s.Mask != nil && p == *s.Mask, p > 16 && p < ega.AmigaBase:
+				case s.Mask != nil && p == *s.Mask, p > 16 && p < asset.AmigaBase:
 				case p == 16:
 					im.SetRGBA(i%s.PixW, i/s.PixW, ink[0])
-				case p >= ega.AmigaBase:
-					im.SetRGBA(i%s.PixW, i/s.PixW, ega.AmigaRGBA(p))
+				case p >= asset.AmigaBase:
+					im.SetRGBA(i%s.PixW, i/s.PixW, asset.AmigaRGBA(p))
 				default:
 					im.SetRGBA(i%s.PixW, i/s.PixW, ink[p])
 				}

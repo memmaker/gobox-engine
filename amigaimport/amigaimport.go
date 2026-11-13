@@ -30,7 +30,7 @@ var Logf = log.Printf
 
 // Gfx is how one archive converts.
 type Gfx struct {
-	Slot   byte // ega.Amiga palette (a 32-colour picture uses Slot and Slot+1)
+	Slot   byte // asset.Amiga palette (a 32-colour picture uses Slot and Slot+1)
 	Split  bool // frames pack two tiles side by side (.dax)
 	Sprite bool // animation block
 	XOR    bool // .dax: sprite frames XORed against the first; .TLB: frames after the first are drawn over it (written whole)

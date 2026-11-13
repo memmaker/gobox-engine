@@ -12,7 +12,7 @@ package orig
 
 import (
 	"encoding/binary"
-	"gobox/ega"
+	"gobox/asset"
 	"os"
 	"path/filepath"
 	"slices"
@@ -307,5 +307,5 @@ func (l *Loader) Block(name string, id int) []byte {
 	return slices.Clone(l.BlockShared(name, id)) // an empty block stays non-nil
 }
 
-// Palette is the 16-colour EGA palette the pictures index (a copy of ega.Palette).
-var Palette = ega.Palette
+// Palette is the 16-colour EGA palette the pictures index (a copy of asset.Palette).
+var Palette = asset.EGAPalette

@@ -5,21 +5,20 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/ega"
 )
 
 // TestArtKeepsPalette: where an Amiga image becomes View pixels (combat icons
 // and tiles, the border's pieces; the icon editor's poses and portrait heads
 // the same way) it carries the image's own colours (Image.Palette, set by
 // loadPic from the block): without them the presenter draws cotab/sotsb/pod's
-// Amiga art in POR's ega.Amiga slots.
+// Amiga art in POR's asset.Amiga slots.
 func TestArtKeepsPalette(t *testing.T) {
 	pal := make([]color.RGBA, 256)
-	pal[ega.AmigaBase] = color.RGBA{1, 2, 3, 255}
+	pal[asset.AmigaBase] = color.RGBA{1, 2, 3, 255}
 	im := &asset.Image{Height: 2, Width: 1, Count: 1, BPP: 16, Data: make([]byte, 16), Palette: pal}
 	same := func(what string, got []color.RGBA) {
 		t.Helper()
-		if len(got) != len(pal) || got[ega.AmigaBase] != pal[ega.AmigaBase] {
+		if len(got) != len(pal) || got[asset.AmigaBase] != pal[asset.AmigaBase] {
 			t.Errorf("%s: palette lost", what)
 		}
 	}

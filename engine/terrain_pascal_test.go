@@ -2,8 +2,8 @@ package engine
 
 import (
 	"bufio"
-	"os"
 	"gobox/rules1e"
+	"os"
 	"strconv"
 	"strings"
 	"testing"

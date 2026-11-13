@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"gobox/asset"
-	"gobox/ega"
 )
 
 // TestLogoNone: a game with no Data.Logo (cotab, sotsb, pod: their backdrop
@@ -18,7 +17,7 @@ func TestLogoNone(t *testing.T) {
 	if m := logoImage(pic); m != nil {
 		t.Fatalf("no Data.Logo: lettering %v", m.Bounds())
 	}
-	logoCut = LogoCut{Sub: 108, Bottom: 160, Keep: []uint8{ega.Yellow}, SubInk: ega.LightMagenta}
+	logoCut = LogoCut{Sub: 108, Bottom: 160, Keep: []uint8{asset.EGAYellow}, SubInk: asset.EGALightMagenta}
 	defer func() {
 		if recover() == nil {
 			t.Error("an empty cut did not panic")
@@ -35,7 +34,7 @@ func TestAmigaRef(t *testing.T) {
 	daxArt.art, daxArt.amiga = asset.OpenArt("../data/cotab/art"), true
 	clear(daxPics)
 	b := artBlock("TITLE", 1)
-	if b == nil || b.ColourBase < ega.AmigaBase || len(b.Palette) == 0 {
+	if b == nil || b.ColourBase < asset.AmigaBase || len(b.Palette) == 0 {
 		t.Skip("no imported cotab Amiga TITLE 1")
 	}
 	m, _ := daxImage("TITLE", 1, 0).(*image.RGBA)

@@ -4,22 +4,22 @@ import (
 	"image"
 	"image/color"
 
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/game"
 )
 
 // IndexedRGBA is a Picture's Pix, w wide, as the original blits them:
-// EGA 0..15 in ink, 16 ink[0], 17 up to ega.AmigaBase and mask (-1:
-// none) left out, from ega.AmigaBase the Amiga colours.
+// EGA 0..15 in ink, 16 ink[0], 17 up to asset.AmigaBase and mask (-1:
+// none) left out, from asset.AmigaBase the Amiga colours.
 func IndexedRGBA(pix []uint8, w, mask int, ink *[16]color.RGBA) *image.RGBA {
 	out := image.NewRGBA(image.Rect(0, 0, w, len(pix)/w))
 	for i, p := range pix {
 		switch {
-		case int(p) == mask, p > 16 && p < ega.AmigaBase:
+		case int(p) == mask, p > 16 && p < asset.AmigaBase:
 		case p == 16:
 			out.SetRGBA(i%w, i/w, ink[0])
-		case p >= ega.AmigaBase:
-			out.SetRGBA(i%w, i/w, ega.AmigaRGBA(p))
+		case p >= asset.AmigaBase:
+			out.SetRGBA(i%w, i/w, asset.AmigaRGBA(p))
 		default:
 			out.SetRGBA(i%w, i/w, ink[p])
 		}

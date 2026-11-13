@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/rules"
 )
 
@@ -23,7 +23,7 @@ func (e *Engine) CharMessage(cID rules.CharID, msg string, wait bool) {
 		}
 		e.blank(1, r, paneRight, paneBottom)
 		e.text(1, r+1, e.nameColour(cID), e.ruleset().Sheet(cID).Name)
-		e.textBlock(1, r+2, paneRight, paneBottom, ega.LightGreen, true, msg)
+		e.textBlock(1, r+2, paneRight, paneBottom, asset.EGALightGreen, true, msg)
 	}
 	if wait {
 		e.ClearMessageArea()

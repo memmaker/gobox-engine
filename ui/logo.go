@@ -6,7 +6,7 @@ import (
 	"image/color"
 	"image/draw"
 
-	"gobox/ega"
+	"gobox/asset"
 )
 
 // LogoCut says how the main menu's lettering is cut out of the title
@@ -53,7 +53,7 @@ func logoImage(p *Picture) image.Image {
 		x, y := i%w, i/w
 		c &= 15
 		if y < lc.Sub && keep(c) {
-			out.Set(x, y, ega.RGBA(int(c)))
+			out.Set(x, y, asset.EGARGBA(int(c)))
 			r = r.Union(image.Rect(x, y, x+1, y+1))
 		} else if y >= lc.Sub && y < lc.Bottom && c == lc.SubInk {
 			out.Set(x, y, lc.Gold)

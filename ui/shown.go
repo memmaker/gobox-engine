@@ -10,7 +10,7 @@ import (
 	"slices"
 	"time"
 
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -54,7 +54,7 @@ func (p *Presenter) replaying() bool {
 func (p *Presenter) ink() [16]color.RGBA {
 	k := egaInk
 	if p.introUp() != nil && len(p.intro.Flash) > 0 {
-		k[1] = ega.RGBA(p.intro.Flash[0])
+		k[1] = asset.EGARGBA(p.intro.Flash[0])
 	}
 	return k
 }

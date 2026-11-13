@@ -5,7 +5,7 @@ import (
 
 	"gobox/amigaimport"
 	"gobox/app"
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/engine"
 	"gobox/games/por"
 	"gobox/games/por/importpor"
@@ -42,9 +42,9 @@ func importScripts(dst string) error {
 // ponytail: 8X8D (the 3D-view symbols) stays DOS; the Amiga set is laid out
 // for its own wall renderer and does not match WALLDEF's symbol numbers.
 var amigaGfx = map[string]amigaimport.Gfx{
-	"icon": {Slot: ega.AmigaTerrain}, "comspr": {Slot: ega.AmigaTerrain}, "cpic": {Slot: ega.AmigaTerrain},
-	"bacpac": {Slot: ega.AmigaTerrain, Split: true}, "sqrpaci": {Slot: ega.AmigaTerrain, Split: true}, "wildcom": {Slot: ega.AmigaTerrain, Split: true},
-	"dungcom": {Slot: ega.AmigaTerrain, Split: true}, "randcom": {Slot: ega.AmigaTerrain, Split: true},
-	"head": {Slot: ega.AmigaPortrait}, "body": {Slot: ega.AmigaPortrait}, "chead": {Slot: ega.AmigaTerrain}, "cbody": {Slot: ega.AmigaTerrain},
-	"pic": {Slot: ega.AmigaView, Sprite: true, XOR: true}, "final": {Slot: ega.AmigaView, Sprite: true, XOR: true}, "sprit": {Slot: ega.AmigaPortrait, Sprite: true},
+	"icon": {Slot: asset.AmigaTerrain}, "comspr": {Slot: asset.AmigaTerrain}, "cpic": {Slot: asset.AmigaTerrain},
+	"bacpac": {Slot: asset.AmigaTerrain, Split: true}, "sqrpaci": {Slot: asset.AmigaTerrain, Split: true}, "wildcom": {Slot: asset.AmigaTerrain, Split: true},
+	"dungcom": {Slot: asset.AmigaTerrain, Split: true}, "randcom": {Slot: asset.AmigaTerrain, Split: true},
+	"head": {Slot: asset.AmigaPortrait}, "body": {Slot: asset.AmigaPortrait}, "chead": {Slot: asset.AmigaTerrain}, "cbody": {Slot: asset.AmigaTerrain},
+	"pic": {Slot: asset.AmigaView, Sprite: true, XOR: true}, "final": {Slot: asset.AmigaView, Sprite: true, XOR: true}, "sprit": {Slot: asset.AmigaPortrait, Sprite: true},
 }

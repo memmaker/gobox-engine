@@ -13,7 +13,6 @@ import (
 
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/ega"
 )
 
 // CopyFS writes the files under root in fsys into dst (root's own path cut
@@ -53,12 +52,12 @@ func WriteCover(dosDir, out string) error {
 	}
 	cp := make(color.Palette, 16)
 	for i := range cp {
-		cp[i] = ega.RGBA(i)
+		cp[i] = asset.EGARGBA(i)
 	}
-	img := image.NewPaletted(image.Rect(0, 0, ega.W, ega.H), cp)
+	img := image.NewPaletted(image.Rect(0, 0, asset.ScreenW, asset.ScreenH), cp)
 	d, w := im.Frame(0), im.Width*8
-	for y := 0; y < im.Height && y < ega.H; y++ {
-		for x := 0; x < w && x < ega.W; x++ {
+	for y := 0; y < im.Height && y < asset.ScreenH; y++ {
+		for x := 0; x < w && x < asset.ScreenW; x++ {
 			img.SetColorIndex(x, y, d[y*w+x]&15)
 		}
 	}

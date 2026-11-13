@@ -2,9 +2,9 @@ package engine
 
 import (
 	"fmt"
+	"gobox/asset"
 	"gobox/ecl"
 	"gobox/ecl/script"
-	"gobox/ega"
 	"gobox/rules"
 	"gobox/rules1e"
 	"os"
@@ -170,7 +170,7 @@ func (e *Engine) addMonsters(idx, count, icon int) {
 		panic(err)
 	}
 	if _, err := r.Spawn(rules.MonsterID(idx), nil); err != nil { // ovr08:0411
-		e.PromptRow24(ega.White, "Unable to load monster")
+		e.PromptRow24(asset.EGAWhite, "Unable to load monster")
 		e.Exit()
 		return
 	}
@@ -291,7 +291,7 @@ func (e *Engine) scriptText(clear bool, s string) {
 	if clear {
 		e.msgRow, e.msgCol = 0x11, 1
 	}
-	e.paneText(ega.LightGreen, clear, s)
+	e.paneText(asset.EGALightGreen, clear, s)
 	e.speak(voiceKey(orig)) // the narration was recorded from the scripts' own text
 	if clear {
 		e.ext.printed = ""
@@ -310,7 +310,7 @@ func (e *Engine) opVMenu() {
 	e.vm.ReadArgs(n)
 	list := newList(n)
 	e.msgCol, e.msgRow = 1, 0x11
-	e.paneText(ega.LightGreen, true, prompt)
+	e.paneText(asset.EGALightGreen, true, prompt)
 	for i, p := range list {
 		s := e.strAt(i + 1)
 		if len(s) > 0x28 {

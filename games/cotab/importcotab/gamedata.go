@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/game"
 	"gobox/game/play"
 )
@@ -64,7 +64,7 @@ func StaticData() game.Data {
 	}
 	d.VerbOrder = []string{"Move", "View", "Aim", "Use", "Cast", "Turn", "Quick", "Done"} // combatMenu's words; Done's otherMenu is its own Question
 	d.MusicPlaces = MusicPlaces()
-	for _, c := range ega.Palette {
+	for _, c := range asset.EGAPalette {
 		d.Palette = append(d.Palette, c[:]...)
 	}
 	return d

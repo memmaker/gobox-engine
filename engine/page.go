@@ -5,7 +5,6 @@ import (
 	"image/color"
 
 	"gobox/asset"
-	"gobox/ega"
 )
 
 // The page (extra): what the original drew on its 320x200 screen, kept as
@@ -79,7 +78,7 @@ func (e *Engine) picture(x0, y0, w, h int, d []byte, mask int, src *asset.Image,
 	d = d[:w*h]
 	opaque := true
 	for _, p := range d {
-		if int(p) == mask || p > 16 && p < ega.AmigaBase {
+		if int(p) == mask || p > 16 && p < asset.AmigaBase {
 			opaque = false
 			break
 		}

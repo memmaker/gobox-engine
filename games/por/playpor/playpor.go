@@ -5,10 +5,10 @@ package playpor
 
 import (
 	"gobox/app"
-	"gobox/ega"
-	"gobox/game"
+	"gobox/asset"
 	"gobox/engine"
 	"gobox/engine/playpool"
+	"gobox/game"
 	"gobox/games/por/presentdata"
 	"gobox/games/por/presentdata/blobberart"
 	"gobox/games/por/rules4e"
@@ -17,7 +17,7 @@ import (
 // Play runs the game of s.Adventure until the window closes.
 func Play(s app.Start) error {
 	return playpool.Play(s, playpool.Game{
-		Title: "Pool of Radiance", W: ega.W, H: ega.H, Record: engine.RecordLayout,
+		Title: "Pool of Radiance", W: asset.ScreenW, H: asset.ScreenH, Record: engine.RecordLayout,
 		Combat4e: rules4e.New(), // the Gameplay page's "4e Combat"; swapped in and out mid-fight
 		Data:     Data,
 	})

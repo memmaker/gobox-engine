@@ -24,7 +24,7 @@ type Picture struct {
 	Name         string
 	W, H         int
 	Pixels       []byte       // palette indices, W*H
-	Palette      []color.RGBA // with Pixels: the art's own colours by index (an Amiga block's palette, a VGA picture's; alpha 0 clear); nil: EGA and ega.Amiga
+	Palette      []color.RGBA // with Pixels: the art's own colours by index (an Amiga block's palette, a VGA picture's; alpha 0 clear); nil: EGA and asset.Amiga
 	Clear        int          // with Pixels: the index drawn transparent, -1 none (ignored without Pixels)
 }
 

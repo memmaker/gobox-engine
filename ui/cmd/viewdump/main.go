@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/ega"
 	"image"
 	"image/color"
 	"image/draw"
@@ -133,7 +132,7 @@ func writeWall(path string, def []byte, sets [4]*orig.Image, scale int, ground b
 	img := image.NewNRGBA(image.Rect(0, 0, partW[nearFront]*8*scale, partH[nearFront]*8*scale))
 	if ground {
 		for _, band := range groundRows {
-			p := ega.Palette[band.colour]
+			p := asset.EGAPalette[band.colour]
 			r := image.Rect(0, band.from*scale, img.Rect.Dx(), img.Rect.Dy())
 			draw.Draw(img, r, image.NewUniform(color.NRGBA{p[0], p[1], p[2], 255}), image.Point{}, draw.Src)
 		}
@@ -166,7 +165,7 @@ func writeWall(path string, def []byte, sets [4]*orig.Image, scale int, ground b
 				} else if c >= orig.Clear {
 					continue
 				} else {
-					p := ega.Palette[c&15]
+					p := asset.EGAPalette[c&15]
 					col = color.NRGBA{p[0], p[1], p[2], 255}
 				}
 				x, y := ox+cx*8+j%8, cy*8+j/8

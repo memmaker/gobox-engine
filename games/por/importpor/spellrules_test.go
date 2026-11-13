@@ -2,9 +2,9 @@ package importpor
 
 import (
 	"gobox/engine"
+	"gobox/rules1e"
 	"path/filepath"
 	"reflect"
-	"gobox/rules1e"
 	"strings"
 	"testing"
 )

@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"image/draw"
 
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/gpu"
 	"gobox/gpu/vector"
 )
@@ -58,7 +58,7 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 	sparkle := []int{inkMagenta, inkYellow, inkCyan, inkWhite, inkGreen, inkRed} // the title's letters in turn: light magenta, yellow, cyan, white, green, red
 	x0 := centre(title)
 	for i := 0; i < len(title); i++ {
-		DrawText(m, glyph, title[i:i+1], x0+8*i, 8, ega.RGBA(sparkle[i%len(sparkle)]))
+		DrawText(m, glyph, title[i:i+1], x0+8*i, 8, asset.EGARGBA(sparkle[i%len(sparkle)]))
 	}
 	y := 24
 	if ic := p.inv.iconImage(it.Name, it.Words); ic != nil { // the icon on the pop-up's black
@@ -74,14 +74,14 @@ func (p *Presenter) drawIdentified(dst *gpu.Image, glyph func(byte) [8]byte, it 
 		}
 	}
 	y += iconH + 8
-	DrawText(m, glyph, it.Name, centre(it.Name), y, ega.RGBA(inkYellow))
+	DrawText(m, glyph, it.Name, centre(it.Name), y, asset.EGARGBA(inkYellow))
 	y += 16
 	for _, l := range it.Look {
 		DrawText(m, glyph, "*", 16, y, col(inkMagenta))
 		DrawText(m, glyph, l, 32, y, col(inkCyan))
 		y += 8
 	}
-	DrawText(m, glyph, hint, centre(hint), y+8, ega.RGBA(inkWhite))
+	DrawText(m, glyph, hint, centre(hint), y+8, asset.EGARGBA(inkWhite))
 
 	img := upload(&p.idImg, m)
 	window(img, p.border.val.tiles, gpu.GeoM{}, cw, ch, nil)

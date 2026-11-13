@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"gobox/asset"
 	"gobox/asset/orig"
-	"gobox/ega"
 	"gobox/rules"
 	"image"
 	"image/color"
@@ -131,7 +130,7 @@ func load(l *orig.Loader, m mapKey) (*view, error) {
 	return v, nil
 }
 
-func rgb(c byte) color.NRGBA { p := ega.Palette[c&15]; return color.NRGBA{p[0], p[1], p[2], 255} }
+func rgb(c byte) color.NRGBA { p := asset.EGAPalette[c&15]; return color.NRGBA{p[0], p[1], p[2], 255} }
 
 func (v *view) fill(y0, h int, c byte) {
 	for y := y0; y < y0+h; y++ {

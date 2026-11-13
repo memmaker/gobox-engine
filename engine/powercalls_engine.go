@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"gobox/ega"
+	"gobox/asset"
 	"slices"
 
 	"gobox/game"
@@ -37,9 +37,9 @@ func (e *Engine) UsePower(n int, k game.PowerKind, spell, target int, sure bool)
 			return err
 		}
 		if len(out.Effects) > 0 {
-			e.DisplayMessageWait(ega.LightGreen, name+" feels better")
+			e.DisplayMessageWait(asset.EGALightGreen, name+" feels better")
 		} else {
-			e.DisplayMessageWait(ega.LightGreen, name+" is unaffected")
+			e.DisplayMessageWait(asset.EGALightGreen, name+" is unaffected")
 		}
 	case game.PowerCure: // CotAB PaladinCureDisease: the temple's diseases go
 		if target0 == rules.NoChar {
@@ -52,7 +52,7 @@ func (e *Engine) UsePower(n int, k game.PowerKind, spell, target int, sure bool)
 		if _, err := e.ruleset().Resolve(nil, rules.PaladinCure{Who: who, Target: target0}, nil); err != nil {
 			return err
 		}
-		e.DisplayMessageWait(ega.LightGreen, name+" is cured")
+		e.DisplayMessageWait(asset.EGALightGreen, name+" is cured")
 	case game.PowerCast: // CastMenu = ovr16:04A1, one cast (extra: the pick list, as the combat's Cast)
 		if _, err := e.ruleset().Resolve(nil, rules.OpenCast{Who: who}, nil); err != nil {
 			return rules.ErrNotNow
@@ -102,11 +102,11 @@ func (e *Engine) castAsk(spell int, usingItem bool, target int, sure bool, p pen
 		if !sure {
 			prompt := "Lose it?"
 			if !usingItem {
-				e.text(1, 19, ega.LightGreen, card.Name)
-				e.text(1, 20, ega.LightGreen, "is a combat-only spell...")
+				e.text(1, 19, asset.EGALightGreen, card.Name)
+				e.text(1, 20, asset.EGALightGreen, "is a combat-only spell...")
 			} else {
-				e.text(1, 19, ega.LightGreen, "That Item")
-				e.text(1, 20, ega.LightGreen, "is a combat-only item...")
+				e.text(1, 19, asset.EGALightGreen, "That Item")
+				e.text(1, 20, asset.EGALightGreen, "is a combat-only item...")
 				prompt = "Use it?"
 			}
 			return false, rules.NoChar, e.askSure(prompt, p)

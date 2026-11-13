@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"gobox/asset"
-	"gobox/ega"
 )
 
 type daxKey struct {
@@ -115,7 +114,7 @@ func artRGBA(b *asset.Block, file string, frame, mask int) *image.RGBA {
 		}
 	default:
 		for i, c := range im.Data {
-			if (c < asset.Clear || c >= ega.AmigaBase) && int(c) != mask { // EGA, or an Amiga block's (ColourBase on)
+			if (c < asset.Clear || c >= asset.AmigaBase) && int(c) != mask { // EGA, or an Amiga block's (ColourBase on)
 				m.SetRGBA(i%w, i/w, pixelRGBA(c, pal))
 			}
 		}
@@ -162,19 +161,19 @@ func daxPictures(ps []Picture) []Picture {
 	return out
 }
 
-// pixelRGBA is pixel value c in the EGA colours, or past ega.AmigaBase in
+// pixelRGBA is pixel value c in the EGA colours, or past asset.AmigaBase in
 // its picture's own Amiga palette pal (8-bit RGB triplets), else the shared
-// ega.Amiga slots.
+// asset.Amiga slots.
 // ponytail: a 32-colour picture's index is taken modulo its palette, so its archive's Slot must be even.
 func pixelRGBA(c uint8, pal []byte) color.RGBA {
-	if c < ega.AmigaBase {
-		return ega.RGBA(int(c))
+	if c < asset.AmigaBase {
+		return asset.EGARGBA(int(c))
 	}
 	if n := len(pal) / 3; n > 0 {
-		i := int(c-ega.AmigaBase) % n * 3
+		i := int(c-asset.AmigaBase) % n * 3
 		return color.RGBA{pal[i], pal[i+1], pal[i+2], 255}
 	}
-	return ega.AmigaRGBA(c)
+	return asset.AmigaRGBA(c)
 }
 
 // spriteAnim is an animation block's frame delays and when it came up.

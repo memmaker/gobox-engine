@@ -2,7 +2,6 @@ package engine
 
 import (
 	"gobox/asset"
-	"gobox/ega"
 	"gobox/rules"
 	"gobox/rules1e"
 	"log"
@@ -17,7 +16,7 @@ func (e *Engine) Init() {
 	e.set = 1 // DS:5376 = 1
 	e.resetAdventure()
 	e.clearPrompt()
-	e.prompt(ega.LightGreen, "Loading...Please Wait")
+	e.prompt(asset.EGALightGreen, "Loading...Please Wait")
 	symbols := e.game().Symbols
 	if symbols == nil {
 		symbols = PorSymbols

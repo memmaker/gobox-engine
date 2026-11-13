@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/game/play"
 	"gobox/rules"
 	"gobox/rules1e"
@@ -597,7 +597,7 @@ func (e *Engine) TryDoor(k play.DoorWay) error {
 	case play.DoorBash:
 		if w.through = e.bashDoor(); !w.through {
 			e.emit(rules.Sounded{Cue: rules.SoundCue("hitwall")})
-			e.DisplayMessageWait(ega.Yellow, "The door holds.") // extra: the original only bumped
+			e.DisplayMessageWait(asset.EGAYellow, "The door holds.") // extra: the original only bumped
 		} else {
 			e.emit(rules.Sounded{Cue: rules.SoundCue("shutdoor")}) // a slam
 		}
@@ -607,7 +607,7 @@ func (e *Engine) TryDoor(k play.DoorWay) error {
 			e.run.doorTry[1] = 0
 		case !e.pickLock():
 			e.emit(rules.Sounded{Cue: rules.SoundCue("lockpick_fail")})
-			e.DisplayMessageWait(ega.Yellow, "The lock holds.") // extra: the original only bumped
+			e.DisplayMessageWait(asset.EGAYellow, "The lock holds.") // extra: the original only bumped
 		default:
 			e.emit(rules.Sounded{Cue: rules.SoundCue("lockpick")})
 			w.through = true
@@ -739,7 +739,7 @@ func (e *Engine) mapMove() {
 		return
 	case t >= 0x66 && t <= 0x6C, t == 0x72:
 		if e.worldWord(rules.WordRiverOpen) == 0 {
-			e.DisplayMessageWait(ega.Yellow, "The river's stench drives you back.")
+			e.DisplayMessageWait(asset.EGAYellow, "The river's stench drives you back.")
 			return
 		}
 	}

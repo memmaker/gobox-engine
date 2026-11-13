@@ -2,11 +2,11 @@ package engine
 
 import (
 	"bytes"
+	"gobox/rules1e"
 	"image"
 	"image/png"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 	"testing"
 )
 

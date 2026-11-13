@@ -2,8 +2,8 @@ package engine
 
 import (
 	"fmt"
-	"os"
 	"gobox/rules1e"
+	"os"
 	"strings"
 	"testing"
 )

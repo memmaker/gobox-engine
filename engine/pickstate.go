@@ -4,7 +4,7 @@ import (
 	"image"
 	"slices"
 
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
 )
@@ -63,7 +63,7 @@ func (e *Engine) iconEditorState(edit *iconEdit) *game.IconEditor {
 	for n := range k.Looks {
 		k.Looks[n] = byte(n)
 		if amiga {
-			k.Looks[n] = byte(ega.AmigaBase + 16*ega.AmigaTerrain + amigaIconColour[n])
+			k.Looks[n] = byte(asset.AmigaBase + 16*asset.AmigaTerrain + amigaIconColour[n])
 		}
 	}
 	for i, v := range cells {

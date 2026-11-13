@@ -26,8 +26,8 @@ var dev struct {
 
 	enc  *wgpu.CommandEncoder
 	pass *wgpu.RenderPassEncoder
-	on   *texture // the pass's target
-	pdep bool     // the pass has the target's depth buffer
+	on   *texture   // the pass's target
+	pdep bool       // the pass has the target's depth buffer
 	used []*texture // what the open encoder draws from or into (texture.use)
 
 	uniforms, vertices stream

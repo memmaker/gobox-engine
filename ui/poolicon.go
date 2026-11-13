@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"gobox/asset"
-	"gobox/ega"
 	"gobox/game"
 )
 
@@ -228,7 +227,7 @@ func PickIcon(own game.Member, head, body string) image.Image {
 	}
 	var ink [16]color.RGBA
 	for i := range ink {
-		ink[i] = ega.RGBA(i)
+		ink[i] = asset.EGARGBA(i)
 	}
 	return IndexedRGBA(pic.Pix, pic.PixW, -1, &ink)
 }

@@ -5,7 +5,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/rules"
 	"gobox/rules1e"
 	"io/fs"
@@ -43,7 +43,7 @@ func (e *Engine) fileError(verb, path string) {
 	if len(s) > 40 {
 		s = s[:40]
 	}
-	e.PromptRow24(ega.Yellow, s)
+	e.PromptRow24(asset.EGAYellow, s)
 }
 
 // writeFile writes data to path (its folder made first). A failure shows
@@ -215,7 +215,7 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (rules.CharID, bool) {
 // new character.
 func (e *Engine) LoadMonster(index int) (rules.CharID, bool) {
 	if _, ok := e.gdata().monster(e.monsterSet().File("MON"), index); !ok {
-		e.PromptRow24(ega.White, "Unable to load monster")
+		e.PromptRow24(asset.EGAWhite, "Unable to load monster")
 		e.Exit()
 		return rules.NoChar, false
 	}
@@ -265,7 +265,7 @@ func (e *Engine) loadSlot() bool {
 		return false
 	}
 	e.clearPrompt()
-	e.prompt(ega.LightGreen, "Loading...Please Wait")
+	e.prompt(asset.EGALightGreen, "Loading...Please Wait")
 	e.set = f.Set
 	if err := e.ruleset().Load(f.Rules); err != nil {
 		log.Printf("load: %v", err)
@@ -332,7 +332,7 @@ func (e *Engine) loadSlot() bool {
 // the slot folder (saveTo).
 func (e *Engine) saveSlot() error {
 	e.clearPrompt()
-	e.prompt(ega.LightGreen, "Saving...Please Wait")
+	e.prompt(asset.EGALightGreen, "Saving...Please Wait")
 	e.setWorldWord(rules.WordMsgDelay, int(e.msgDelay))
 	e.setWorldWord(rules.WordViewFlags, int(e.viewBit1)*2+int(e.viewBit0))
 	e.setWorldWord(rules.WordSymbolSet, int(e.set))

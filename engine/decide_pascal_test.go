@@ -3,8 +3,8 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"gobox/rules1e"
+	"os"
 	"slices"
 	"strconv"
 	"strings"

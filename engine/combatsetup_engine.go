@@ -2,7 +2,7 @@ package engine
 
 import (
 	"fmt"
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/rules"
 	"image"
 	"slices"
@@ -16,7 +16,7 @@ func (e *Engine) combatSetup() {
 	e.port = portrait{headID: 0xFF, bodyID: 0xFF} // 0464:2595 x2
 	e.clearPrompt()
 	e.ext.note = "" // extra's note goes with the row the original clears (camp's "rudely interrupted")
-	e.prompt(ega.LightGreen, "A battle begins...")
+	e.prompt(asset.EGALightGreen, "A battle begins...")
 	e.battleMusic()
 	e.combatMapSetup()
 	e.placeCombatants()

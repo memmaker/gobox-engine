@@ -1,15 +1,15 @@
 package importpor
 
 import (
-	"gobox/ega"
-	"gobox/game"
+	"gobox/asset"
 	"gobox/engine"
+	"gobox/game"
 	"image/color"
 )
 
 // doorColour is a light brown (Amiga palette 0xA84): it stands out
 // against the white walls and the grey, black and blue floors.
-const doorColour = ega.AmigaBase + 16*ega.AmigaPortrait + 6
+const doorColour = asset.AmigaBase + 16*asset.AmigaPortrait + 6
 
 // gameData is POR's declarative data for gobox (game.Data), written as
 // data/gamedata.json: the series, the game id and the spell tips (SpellRules by spell id).
@@ -35,11 +35,11 @@ func gameData() game.Data {
 		{Text: "Wait an hour", Key: 'W', N: engine.RestWait},
 		{Text: "Until night", Key: 'N', N: engine.RestUntil, Night: "Until day", NightKey: 'D'},
 	}
-	d.DoorInk, d.SelectInk = ega.Identity.RGBA(doorColour), ega.RGBA(10)
+	d.DoorInk, d.SelectInk = asset.EGAIdentity.RGBA(doorColour), asset.EGARGBA(10)
 	// TITLE picture 2's "Pool of Radiance" (yellow with a light blue shadow, above row 108)
 	// and its subtitle (light magenta, rows 108 to 160) in the Amiga intro's colours: gold
 	// (0xF90) with a dark red (0x600) outline, the intro's credits palette entries 2 and 1.
-	d.Logo = &game.Logo{Sub: 108, Bottom: 160, Keep: []uint8{ega.Yellow, ega.LightBlue}, SubInk: ega.LightMagenta,
+	d.Logo = &game.Logo{Sub: 108, Bottom: 160, Keep: []uint8{asset.EGAYellow, asset.EGALightBlue}, SubInk: asset.EGALightMagenta,
 		Gold: color.RGBA{0xff, 0x99, 0, 0xff}, Outline: color.RGBA{0x66, 0, 0, 0xff}}
 	d.Bindings = []game.Binding{{Ctx: "Any time", Keys: "F12", Desc: "art: Amiga, DOS", Mouse: "Esc>Graphics", Pad: "B, then pick"}}
 	for id, t := range SpellRules {

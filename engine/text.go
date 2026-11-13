@@ -1,9 +1,8 @@
 package engine
 
 import (
-	"gobox/ega"
+	"gobox/asset"
 	"image"
-
 )
 
 // The game's text (extra): the engine draws no text. What its routines
@@ -83,7 +82,7 @@ func (e *Engine) unwrite(r image.Rectangle) {
 // ch at cell (x,y) in colour on black. Glyph index = upcase(ch) mod 0x40
 // into 8X8D1 block 201 (the presenter's: gobox's font).
 func (e *Engine) char(x, y, colour int, ch byte, upcase bool) {
-	e.put(x, y, colour, ega.Black, ch, upcase)
+	e.put(x, y, colour, asset.EGABlack, ch, upcase)
 }
 
 // text = 0709:0626 displayString(x, y, colour, str): characters left to
@@ -120,7 +119,7 @@ func (e *Engine) textBlock(x1, y1, x2, y2, colour int, clear bool, s string) {
 			e.pageOn()
 			return
 		}
-		e.PromptRow24(ega.LightMagenta, "Press any key to continue")
+		e.PromptRow24(asset.EGALightMagenta, "Press any key to continue")
 		e.blank(x1, y1, x2, y2)
 	})
 }

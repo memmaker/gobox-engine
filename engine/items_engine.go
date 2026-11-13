@@ -1,18 +1,18 @@
 package engine
 
 import (
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/rules"
 )
 
 // Items: names, lists and the START helpers around them.
 
 // BottomMessage = 00BA:1693: the string on row 24 for the message delay.
-func (e *Engine) BottomMessage(s string) { e.bottomMessage(s, ega.LightGreen) }
+func (e *Engine) BottomMessage(s string) { e.bottomMessage(s, asset.EGALightGreen) }
 
 // refuse (extra): BottomMessage for a refusal, the text red on the combat
 // status row; outside combat the original's green on row 24.
-func (e *Engine) refuse(s string) { e.bottomMessage(s, ega.LightRed) }
+func (e *Engine) refuse(s string) { e.bottomMessage(s, asset.EGALightRed) }
 
 // bottomMessage: BottomMessage with the colour of the combat status row.
 // Extra: in combat the message goes to the View's Log, elsewhere it is the

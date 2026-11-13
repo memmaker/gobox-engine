@@ -2,7 +2,7 @@ package parity
 
 import (
 	"encoding/json"
-	"gobox/ega"
+	"gobox/asset"
 	"gobox/ui"
 	"image"
 	"image/color"
@@ -23,7 +23,7 @@ import (
 func TestMapImage(t *testing.T) {
 	var ink [16]color.RGBA
 	for i := range ink {
-		ink[i] = color.RGBA{ega.Palette[i][0], ega.Palette[i][1], ega.Palette[i][2], 255}
+		ink[i] = color.RGBA{asset.EGAPalette[i][0], asset.EGAPalette[i][1], asset.EGAPalette[i][2], 255}
 	}
 	e, err := porgame.New(filepath.Join(porDir(t), "data", "assets"), filepath.Join(porDir(t), "data"))
 	if err != nil {

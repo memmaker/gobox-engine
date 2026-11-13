@@ -1,4 +1,4 @@
-# gobox/asset/orig (dax; needs gobox/ega)
+# gobox/asset/orig
 Superset of por's dax. Loader: `NewLoader(dir)` (no Amiga auto-detect),
 `UseAmiga(dir)` (por), `Path`, `Exists`, `File(name)`, `Block(name,id)`, `BlockShared(name,id)`, `DOSBlock(name,id)`.
 File: `Open`, `Block(id)`, `BlockShared(id)`, `Entries`. Also `Decode`, `WriteDOS`, `OpenAmiga`,

@@ -6,7 +6,6 @@ package engine
 import (
 	"gobox/ecl"
 	"gobox/ecl/script"
-	"gobox/ega"
 	"gobox/game"
 	"gobox/rules"
 	"image"
@@ -61,7 +60,7 @@ type Engine struct {
 	sounds   []byte         // the imported sound tables (SoundData)
 	listed   []string       // the roster list migrateRoster last saw: each new list is numbered once (it reads every .cha)
 
-	pal         ega.Regs // EGA palette registers (SetPaletteColor)
+	pal         asset.EGARegs // EGA palette registers (SetPaletteColor)
 	Cfg         Config
 	FixedSeed   *uint32                        // if set, Randomize uses it instead of the clock (-seed)
 	Dasp        atomic.Bool                    // extra: the Dubtrain sound pack's effects (dasp.go), the Esc menu's "DASP Sfx"
@@ -187,7 +186,7 @@ const (
 // reads no original file: the config is the original's POOL.CFG defaults.
 // rules builds the ruleset and d is the game's GameTables.
 func New(ruleset Ruleset, d GameTables, adv, data string) (*Engine, error) {
-	e := &Engine{newRules: ruleset, given: &d, adv: adv, data: data, pal: ega.Identity, set: 1, start: time.Now()}
+	e := &Engine{newRules: ruleset, given: &d, adv: adv, data: data, pal: asset.EGAIdentity, set: 1, start: time.Now()}
 	var err error
 	e.initVM()
 	e.Cfg = Config{Graphics: 'E', Sound: 'P', SaveDir: filepath.Join(data, SaveDir)}

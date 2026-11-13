@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	eclscript "gobox/ecl/script"
 	"gobox/engine"
+	"gobox/rules1e"
 	"os"
 	"path/filepath"
-	"gobox/rules1e"
 	"testing"
 )
 
