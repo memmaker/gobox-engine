@@ -767,11 +767,17 @@ func (r *frontState) openItems(member int) game.Result {
 	return game.Result{}
 }
 
-// closeItems takes the inventory down; without all, to the member's sheet.
+// closeItems takes the inventory down; without all (Tab), to the member's
+// sheet in its place; with all (Esc, Exit), the sheet goes too: the two
+// replace each other, they never stack.
 func (r *frontState) closeItems(all bool) game.Result {
 	ps := r.g.State()
 	r.items = game.ItemsNone
-	if _, fight := ps.(game.Fighting); !all && !fight {
+	_, fight := ps.(game.Fighting)
+	switch {
+	case all:
+		r.sheet = -1
+	case !fight:
 		r.sheet = who(-1, ps)
 	}
 	return game.Result{}
