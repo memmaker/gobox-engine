@@ -101,7 +101,7 @@ const (
 	ItemIDStaffSling        rules.ItemID = 94
 	ItemIDMiscMagic         rules.ItemID = 95
 	ItemIDMirror            rules.ItemID = 96
-	ItemIDCanary            rules.ItemID = 97
+	ItemIDYellowCanary      rules.ItemID = 97
 	ItemIDCloakProtection   rules.ItemID = 98
 	ItemIDVorpalLongSword   rules.ItemID = 99
 	ItemIDBlessedBolt       rules.ItemID = 100

@@ -248,7 +248,7 @@ item 0x64 HornetsNestDart
 item 0x65 StaffSling
 item - MiscMagic
 item - Mirror
-item - Canary
+item - YellowCanary
 item - CloakProtection
 item - VorpalLongSword
 item - BlessedBolt

@@ -389,8 +389,8 @@ name: Mirror
 icon: 384
 
 internal_name: 97
-name: Canary
-icon: -1
+name: Yellow Canary
+icon: 502
 
 internal_name: 98
 name: Cloak Protection

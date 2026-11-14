@@ -28,7 +28,7 @@ var SotsbItemKinds = ItemKinds{
 	// named after the items of each type in SotSB's and PoD's ITEM blocks
 	29: ItemIDStaffSling, 38: ItemIDProtectionScroll, 41: ItemIDHelm, 42: ItemIDBelt, 43: ItemIDRobe,
 	44: ItemIDCloak, 45: ItemIDBoots, 46: ItemIDRing, 47: ItemIDMiscMagic, 48: ItemIDMirror,
-	51: ItemIDWand, 52: ItemIDWand, 53: ItemIDStrengthPotion, 54: ItemIDCanary, 58: ItemIDCloakDisplacement,
+	51: ItemIDWand, 52: ItemIDWand, 53: ItemIDStrengthPotion, 54: ItemIDYellowCanary, 58: ItemIDCloakDisplacement,
 	61: ItemIDElvenChainMail, 62: ItemIDDrowChainMail, 63: ItemIDDrowLongSword, 65: ItemIDWizardryRing,
 	66: ItemIDHornetsNestDart, 72: ItemIDGauntlets, 73: ItemIDVorpalLongSword, 74: ItemIDBlessedBolt,
 	75: ItemIDCloakProtection,
