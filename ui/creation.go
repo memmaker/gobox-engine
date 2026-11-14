@@ -80,7 +80,7 @@ func Creation(mode game.Mode, c *game.Creation, pending *game.Ask, cols, rows in
 		}
 	}
 	sc := max(1, min((winRight-statLongCol-7)/11, (winBottom-3)/14)) // the abilities reach past their value column, the bottom rows stay free
-	left := winRight - 11*sc + 1                          // the portrait's 11x11 cells at 1x
+	left := winRight - 11*sc + 1                                     // the portrait's 11x11 cells at 1x
 	v.Head = CellRect{X1: left, Y1: 1, X2: winRight, Y2: 5 * sc}
 	v.Body = CellRect{X1: left, Y1: 5*sc + 1, X2: winRight, Y2: 11 * sc}
 	x, y := winRight-10*sc+1, 2+11*sc
