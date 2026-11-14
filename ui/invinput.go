@@ -200,6 +200,10 @@ func (p *Presenter) InventoryMouse(x, y int, down, right bool, wheel float64) {
 		inv.acts = append(inv.acts, Action{Kind: ActHead, N: -1})
 		return
 	}
+	if pressed && inv.up.kind == invOwn && inv.carry == nil && inv.hover.In(inv.face) { // a click on the portrait: the sheet, as Tab
+		inv.do(ActSheet)
+		return
+	}
 	if right && inv.up.kind == invOwn { // a stack on the cursor: one of it (Shift: half) is dropped where the pointer is; else one of the stack under the pointer (Shift: half) is picked up; elsewhere the screen closes
 		switch c := inv.carry; {
 		case c != nil && shift:

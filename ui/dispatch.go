@@ -263,6 +263,10 @@ func (p *Presenter) Click(x, y int) bool {
 		p.send(ActHead, -1)
 		return true
 	}
+	if p.sheetUp() && p.q == nil && image.Pt(x, y).In(p.sheet.faceAt) { // a click on the sheet's portrait: the inventory, as Tab
+		p.send(ActInventory, -1)
+		return true
+	}
 	if p.journal.open { // the journal's own pointer (Mouse)
 		p.journalMouse(image.Pt(x, y), true, false, 0)
 		return true
