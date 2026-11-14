@@ -544,6 +544,9 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 		}
 	}
 	for _, o := range turnVerbs {
+		if o.new == "UseItem" && len(c.Items) == 0 { // nothing to pick: no Items command
+			continue
+		}
 		if allowed[o.new] || o.new == "MoveTo" && len(al.Moves) > 0 {
 			l := cmp.Or(r.data.Texts[o.label], o.label)
 			k, ok := r.data.VerbKeys[o.label]

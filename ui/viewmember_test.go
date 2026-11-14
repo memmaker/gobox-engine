@@ -155,7 +155,7 @@ func TestSpeedMenu(t *testing.T) {
 // Done) places gobox's Items, Wait and End; an Aim in it adds nothing (the
 // free-cursor Aim is gone).
 func TestVerbOrderWords(t *testing.T) {
-	fight := game.Fighting{Common: game.Common{Party: []game.Member{{Name: "ARIN"}}, Allowed: allow(game.EndTurn{}, game.UseItem{}, game.Delay{}).Allowed},
+	fight := game.Fighting{Common: game.Common{Party: []game.Member{{Name: "ARIN", Items: []game.Item{{Handle: 1, Name: "Wand"}}}}, Allowed: allow(game.EndTurn{}, game.UseItem{Member: 0, Item: 1}, game.Delay{}).Allowed},
 		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}}}}
 	o := turnOptsOf(NewGame(&fake{st: fight}, game.Data{VerbOrder: []string{"Aim", "Done", "Delay", "Use"}}))
 	var ls []string
