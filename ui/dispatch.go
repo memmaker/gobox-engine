@@ -530,12 +530,8 @@ func menuID(m *Menu) string {
 	return id
 }
 
-// ctxSend acts line j of the context menu for its member and closes it; a
-// spell pick opens where the menu was.
+// ctxSend acts line j of the context menu for its member and closes it.
 func (p *Presenter) ctxSend(j int) {
-	if p.ctxActs[j] == ActSpells {
-		p.pickAt = p.ctxBox
-	}
 	n := p.ctx - 1
 	p.ctx = 0
 	p.memberAct(p.ctxActs[j], n)

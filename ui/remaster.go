@@ -139,11 +139,9 @@ type Presenter struct {
 	menuGrey    bool                         // drawMenu's border grey: a menu without the focus
 	menuTight   bool                         // drawMenu without the blank column inside the border
 	ctxRects    []image.Rectangle            // its lines on screen, as last drawn
-	ctxBox      image.Rectangle              // where its box went: the spell pick opens there
 	pick        []Spell                      // the Ask (AskSpell) as last drawn: a spell to cast is being picked on this screen
 	picBottom   int                          // the bottom of the picture box drawn this frame (0: none): menus go under it
 	labelAt     []image.Rectangle            // the top labels drawn this frame (Sweeping, <act>)
-	pickAt      image.Rectangle              // the context menu's box the pick list replaces (zero: the top middle, the bar's scale)
 	pickSel     int                          // the pick list's highlight ...
 	picking     bool                         // ... reset when it opens
 	command     bool                         // the party explores (Exploring), as last drawn
@@ -196,7 +194,7 @@ type Presenter struct {
 // (zero when it is not on screen: the mouse then points at nothing).
 func (p *Presenter) Draw(dst *gpu.Image, note Note) Rect {
 	p.sync()
-	p.scr.at, p.scr.pw, p.scr.ph = Rect{}, 0, 0 // drawPage sets them: no page drawn, none to map the pointer on
+	p.scr.at, p.scr.pw, p.scr.ph = Rect{}, 0, 0                                                 // drawPage sets them: no page drawn, none to map the pointer on
 	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && p.AdLib.SID() != Host.SIDMusic { // the Music card option
 		d.Do(func() { p.AdLib.SetSID(Host.SIDMusic) })
 	}
@@ -251,27 +249,15 @@ func (p *Presenter) Draw(dst *gpu.Image, note Note) Rect {
 	if up := p.pickList() != nil; up != p.picking { // a pick list opens on its first spell
 		p.picking, p.pickSel = up, 0
 	}
-	if p.pick == nil {
-		p.pickAt = image.Rectangle{}
-	} else { // the spell pick (the combat's Cast list) over whatever screen is up
+	if p.pick != nil { // the spell pick (the combat's Cast list) over whatever screen is up
 		k := scale(dst)
 		cx, top := dst.Bounds().Dx()/2, int(k)*16
+		if !p.fight { // out of a fight in the middle of the screen, as the other menus
+			top = max(top, (dst.Bounds().Dy()-int(k)*8*(len(p.pick)+4))/2)
+		}
 		if p.picBottom > 0 { // a picture up: under it, not over it, as far as the list fits
 			h := int(k) * 8 * (len(p.pick) + 4) // drawMenu's box: the border, the title and a blank line
 			top = max(top, min(p.picBottom+int(k)*4, dst.Bounds().Dy()-h))
-		}
-		if at := p.pickAt; at != (image.Rectangle{}) { // from a card's context menu: in its place at its scale (the card's), the edge next to the card kept
-			k = cardScale(dst)
-			w := 0
-			for _, s := range p.pick {
-				w = max(w, int(k)*8*(len(s.Name)+4)) // as drawMenu's box: a border and a blank column each side
-			}
-			cx, top = at.Min.X+w/2, at.Min.Y
-			if at.Min.X > dst.Bounds().Dx()/2 { // the right column: the box grows to the left
-				cx = at.Max.X - w/2
-			}
-			cx = min(max(cx, w/2), dst.Bounds().Dx()-w/2)
-			top = max(0, min(top, p.listFloor(dst)-int(k)*8*(len(p.pick)+4))) // the row: above the cards, not down over them
 		}
 		p.drawPickList(dst, note.Glyph, k, cx, top)
 	}

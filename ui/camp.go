@@ -219,12 +219,12 @@ func (p *Presenter) drawCampMenus(dst *gpu.Image) {
 		if p.ctx != 1+i {
 			shown = nil
 		}
-		rs, box := p.cardMenu(dst, i, lines, shown, sel)
+		rs := p.cardMenu(dst, i, lines, shown, sel)
 		p.tipImg, p.tipBuf, p.campImg[i], p.campBuf[i] = p.campImg[i], p.campBuf[i], p.tipImg, p.tipBuf
 		p.menuGrey = false
 		p.campCtx = append(p.campCtx, rs)
 		if p.ctx == 1+i {
-			p.ctxActs, p.ctxKeys, p.ctxRects, p.ctxBox = acts, keys, append(p.ctxRects[:0], rs...), box
+			p.ctxActs, p.ctxKeys, p.ctxRects = acts, keys, append(p.ctxRects[:0], rs...)
 		}
 	}
 }

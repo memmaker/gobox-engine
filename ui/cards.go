@@ -206,9 +206,9 @@ func (p *Presenter) drawCardTip(dst *gpu.Image) {
 			return
 		}
 	}
-	rs, box := p.cardMenu(dst, i, lines, keys, sel)
+	rs := p.cardMenu(dst, i, lines, keys, sel)
 	if p.ctx > 0 {
-		p.ctxRects, p.ctxBox = append(p.ctxRects[:0], rs...), box
+		p.ctxRects = append(p.ctxRects[:0], rs...)
 	}
 }
 
@@ -234,8 +234,8 @@ func powerLines(ps []Power) (lines []string, acts []ActKind, keys []byte) {
 
 // cardMenu draws lines (with hotkeys keys, line sel highlighted) in a
 // box beside member i's card, on the side away from the edge; it returns
-// the lines' rectangles and the box's top edge.
-func (p *Presenter) cardMenu(dst *gpu.Image, i int, lines []string, keys []byte, sel int) ([]image.Rectangle, image.Rectangle) {
+// the lines' rectangles.
+func (p *Presenter) cardMenu(dst *gpu.Image, i int, lines []string, keys []byte, sel int) []image.Rectangle {
 	r, k := p.cards[i], cardScale(dst) // part of the card layout (each card's slot holds its menu, camp shows them all): at the card's scale, not K
 	w := 0
 	for _, l := range lines {
@@ -251,7 +251,7 @@ func (p *Presenter) cardMenu(dst *gpu.Image, i int, lines []string, keys []byte,
 		cx, top = (r.Min.X+r.Max.X)/2, max(0, r.Min.Y-gap-int(k*8*float64(len(lines)+2)))
 	}
 	// always beside its card: an overlap is the layout's to fix, not the menu's to dodge
-	return p.tipMenu(dst, "", lines, keys, sel, k, cx, top), image.Rect(cx-w/2, top, cx+w/2, top)
+	return p.tipMenu(dst, "", lines, keys, sel, k, cx, top)
 }
 
 // tipMenu draws a menu box that is not the game's menu (a tooltip, a

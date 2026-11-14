@@ -53,16 +53,13 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 					}
 					rs = append(rs, u)
 				}
-				if row { // a spell list from the first card's menu: above the cards, on screen
+				if row { // a spell list: in the middle, on screen, clear of the cards
 					spells := FrontAsk{Kind: AskSpell, Entries: make([]FrontEntry, 9)}
 					for i := range spells.Entries {
 						spells.Entries[i] = FrontEntry{Text: fmt.Sprint("Spell ", i), Spell: 1 + i}
 					}
 					q := presenter()
 					q.q = &Question{Ask: spells}
-					q.Draw(dst, note)
-					m := rs[len(p.cards)+2] // the first card's menu: the list takes its place (ctxBox)
-					q.pickAt = image.Rect(m.Min.X, m.Min.Y, m.Max.X, m.Min.Y)
 					q.Draw(dst, note)
 					dump(t, dst, fmt.Sprintf("pick-%dx%d-off%v", sz[0], sz[1], off))
 					var list image.Rectangle
@@ -71,6 +68,9 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 					}
 					if list.Empty() || !list.In(dst.Bounds()) {
 						t.Errorf("%v mapOff %v: spell list %v off screen", sz, off, list)
+					}
+					if c, mid := list.Min.Add(list.Max).Div(2), dst.Bounds().Max.Div(2); max(c.X-mid.X, mid.X-c.X) > list.Dx()/2 || max(c.Y-mid.Y, mid.Y-c.Y) > list.Dy() { // out of a fight: in the middle, as the other menus
+						t.Errorf("%v mapOff %v: spell list %v not in the middle %v", sz, off, list, mid)
 					}
 					for j, c := range q.cards {
 						if list.Overlaps(c) {
