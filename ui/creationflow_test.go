@@ -386,3 +386,46 @@ func TestForgetPicker(t *testing.T) {
 	flowClick(f, p.picker(p.ink()).Prev)
 	drawnPortraits(t, p, "prev")
 }
+
+// The icon editor's weapon picker draws every tile of its page, in the
+// DOS art and the Amiga's (the Amiga's composed icon carries its own
+// palette; a tile without one was dropped, the page left black).
+func TestWeaponTilesDrawn(t *testing.T) {
+	f, _ := flowFront(t, "")
+	p := &f.P
+	flowKey(f, 'c')
+	flowKey(f, 'r')
+	flowClick(f, p.creation().Icon)
+	for _, amiga := range []bool{false, true} {
+		if amiga && !hasAmiga() {
+			continue
+		}
+		switchArt(amiga)
+		flowKey(f, 0)
+		ed := p.iconEditor(p.ink())
+		if ed == nil {
+			t.Fatalf("amiga %v: no icon editor", amiga)
+		}
+		flowClick(f, ed.Weapon)
+		pk := p.picker(p.ink())
+		if pk == nil || len(pk.Cells) == 0 || len(pk.Pics) != len(pk.Cells) {
+			t.Fatalf("amiga %v: picker %+v: a picture a cell", amiga, pk)
+		}
+		for k, r := range pk.Cells {
+			lit := 0
+			px := r.Pixels()
+			for y := px.Min.Y; y < px.Max.Y; y++ {
+				for x := px.Min.X; x < px.Max.X; x++ {
+					if c := p.pg.px.RGBAAt(x, y); c.R|c.G|c.B != 0 {
+						lit++
+					}
+				}
+			}
+			if lit == 0 {
+				t.Errorf("amiga %v: tile %d black", amiga, k)
+			}
+		}
+		flowKey(f, keyEsc)
+	}
+	switchArt(false)
+}
