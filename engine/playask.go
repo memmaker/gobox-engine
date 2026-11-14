@@ -28,15 +28,6 @@ const (
 	callCastChoice                 // the reply to a spell's own question (SpellAim.Choose): the waiting cast goes off
 )
 
-// askOf is what a pending question picks: a menu entry, a spell, a member.
-type askOf int
-
-const (
-	askMenu askOf = iota
-	askSpell
-	askMember
-)
-
 // pendingCall is one rule call with its arguments.
 type pendingCall struct {
 	kind                  callKind
@@ -52,7 +43,6 @@ type pendingCall struct {
 // playQuestion is the question up and the call each reply makes.
 type playQuestion struct {
 	q     game.Question
-	of    askOf
 	calls []pendingCall
 }
 
@@ -118,28 +108,26 @@ func (e *Engine) askSure(text string, p pendingCall) error {
 	return errAsked
 }
 
-// askSpell asks which of spells call p goes on with.
+// askSpell refuses call p (a power's or an item's) with the pick of
+// spells: gobox puts up its spell pick and makes the call again with the
+// one picked (Ask.Options' Do carry each spell).
 func (e *Engine) askSpell(spells []Spell, p pendingCall) error {
-	pq := &playQuestion{q: game.Question{Text: "Which spell?"}, of: askSpell}
+	a := &game.Ask{Kind: game.PickSpell, Prompt: "Which spell?"}
 	for _, sp := range spells {
-		c := p
-		c.spell = sp.ID
-		pq.q.Replies, pq.calls = append(pq.q.Replies, sp.Name), append(pq.calls, c)
+		var do game.Action = game.UsePower{Member: p.member, Kind: p.power, Spell: sp.ID, Target: p.target}
+		if p.kind == callItem {
+			do = game.UseItem{Member: p.member, Item: p.item, Spell: sp.ID, Target: p.target}
+		}
+		a.Options = append(a.Options, game.Option{Label: sp.Name, Do: do})
 	}
-	e.ext.pq = pq
-	return errAsked
+	return &game.Refusal{Ask: a}
 }
 
-// askTarget asks text: the member call p goes on.
+// askTarget refuses call p with text, the pick of the member it goes on:
+// gobox's member pick (the names, the cards, F1-F8; Esc gives up), and the
+// call made again with the member's index as its Target.
 func (e *Engine) askTarget(text string, p pendingCall) error {
-	pq := &playQuestion{q: game.Question{Text: text, List: true}, of: askMember}
-	for i, id := range e.partyIDs() {
-		c := p
-		c.target = i
-		pq.q.Replies, pq.calls = append(pq.q.Replies, e.name(id)), append(pq.calls, c)
-	}
-	e.ext.pq = pq
-	return errAsked
+	return &game.Refusal{Ask: &game.Ask{Kind: game.PickMember, Prompt: text}}
 }
 
 // askClass asks member n's new class among the rules' offers (newClass, "Pick New Class:").

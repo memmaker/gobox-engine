@@ -35,3 +35,25 @@ func TestWhoTakesCard(t *testing.T) {
 		}
 	}
 }
+
+// TestWhoCancels: Esc and a right click give a spell's "Who?" up: no
+// member is taken and the question is gone.
+func TestWhoCancels(t *testing.T) {
+	for _, how := range []string{"esc", "right"} {
+		p := partyOn(game.Member{Name: "A"}, game.Member{Name: "B"})
+		p.active = true
+		got := -1
+		AskForMember(p, "Who?", 0, func(n int) { got = n })
+		if how == "esc" {
+			p.Key(27)
+		} else {
+			p.Mouse(5, 5, true, false, true, 0)
+		}
+		for _, a := range p.inv.acts {
+			AskAct(p, a)
+		}
+		if got != -1 || p.choosing() {
+			t.Errorf("%s: picked %d, still asking %v", how, got, p.choosing())
+		}
+	}
+}

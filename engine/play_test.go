@@ -478,8 +478,8 @@ func TestPlayCampCast(t *testing.T) {
 	e := quickStarted(t)
 	e.CampMenu()
 	e.state().Party[0].Memorized[0] = rules1e.SpCureLightWounds
-	if _, err := e.doNow(game.Cast{Member: 0, Spell: rules1e.SpCureLightWounds}); err != nil {
-		t.Fatal(err)
+	if _, err := e.doNow(game.Cast{Member: 0, Spell: rules1e.SpCureLightWounds}); !isPick(err, game.PickMember) {
+		t.Fatalf("%v, want the pick of whom it goes on", err)
 	}
 }
 

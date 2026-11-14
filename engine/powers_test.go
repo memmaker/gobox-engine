@@ -68,23 +68,6 @@ func TestPowerSlots(t *testing.T) {
 	}
 }
 
-// Cast out of combat (a card's or the sheet's): the pick list comes back
-// as the question to put (pending data), each spell making the call again with it.
-func TestCastAsksSpell(t *testing.T) {
-	e := quickStarted(t)
-	i := 0
-	e.state().Party[i].Memorized[0] = 1 // a spell memorized
-	if _, err := e.doNow(game.UsePower{Member: i, Kind: game.PowerCast, Target: -1}); err != nil {
-		t.Fatal(err)
-	}
-	if q := commonOf(e.build()).Ask; q == nil || e.ext.pq.of != askSpell || len(q.Replies) == 0 {
-		t.Fatalf("want a spell pick, got %+v", q)
-	}
-	if pq := e.ext.pq; pq == nil || pq.calls[0].kind != callPower || pq.calls[0].spell == 0 || pq.calls[0].member != i {
-		t.Errorf("option 0 makes %+v, want the cast again with its spell", pq)
-	}
-}
-
 // Quick Start's power picks come answered: each open one its first free option.
 func TestDefaultPowers(t *testing.T) {
 	e, c := &Engine{}, &rules1e.Character{}
@@ -96,7 +79,7 @@ func TestDefaultPowers(t *testing.T) {
 }
 
 // TestPaladinPowerAllowed: in camp, where Cast is, a paladin's Heal is allowed
-// as game.UsePower and asks whom through Do.
+// as game.UsePower and is refused with the pick of whom.
 func TestPaladinPowerAllowed(t *testing.T) {
 	e := testEngine(t)
 	seed := uint32(7)
@@ -113,10 +96,13 @@ func TestPaladinPowerAllowed(t *testing.T) {
 	if !slices.Contains(e.build().(game.Camping).Allowed.Plain, game.Action(heal)) {
 		t.Fatal("Heal not allowed in camp")
 	}
-	if _, err := e.doNow(heal); err != nil {
-		t.Fatal(err)
+	if _, err := e.doNow(heal); !isPick(err, game.PickMember) {
+		t.Fatalf("Heal: %v, want the member pick", err)
 	}
-	if e.ext.pq == nil {
-		t.Fatal("Heal asked no one")
-	}
+}
+
+// isPick: err is a refusal with gobox's pick of kind k.
+func isPick(err error, k game.AskKind) bool {
+	r, ok := err.(*game.Refusal)
+	return ok && r.Ask != nil && r.Ask.Kind == k
 }

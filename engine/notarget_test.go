@@ -10,24 +10,31 @@ import (
 
 // TestNoTargetAsks (BUG-CLASSES 67): a UsePower cast or a UseItem sent with
 // Target -1 (gobox's first, before any pick) goes through (the caster's or
-// the party's spell) or is asks the pick it needs (pending), a spell's then a
-// member's (castAsk: "Cast Spell on whom"), never a bare error.
+// the party's spell) or is refused with the pick it needs (Refusal.Ask), a
+// spell's then a member's (castAsk: "Cast Spell on whom"), never a bare error.
 func TestNoTargetAsks(t *testing.T) {
 	check := func(name string, e *Engine, a game.Action) {
 		t.Helper()
-		if _, err := e.doNow(a); err != nil {
-			t.Errorf("%s: %v, want it taken or a pick", name, err)
-			return
-		}
-		for range 3 {
+		for range 4 {
+			_, err := e.doNow(a)
+			if r, ok := err.(*game.Refusal); ok && r.Ask != nil { // a pick gobox puts up
+				switch r.Ask.Kind {
+				case game.PickMember:
+					return
+				case game.PickSpell:
+					a = r.Ask.Options[len(r.Ask.Options)-1].Do // a spell, as gobox's pick makes the call again
+					continue
+				}
+			}
+			if err != nil {
+				t.Errorf("%s: %v, want it taken or a pick", name, err)
+				return
+			}
 			pq := e.ext.pq
-			if pq == nil || pq.of == askMember {
+			if pq == nil {
 				return
 			}
-			if _, err := e.doNow(game.Reply{N: len(pq.calls) - 1}); err != nil { // a spell; a yes/no's Yes
-				t.Errorf("%s: reply: %v", name, err)
-				return
-			}
+			a = game.Reply{N: len(pq.calls) - 1} // a yes/no's Yes
 		}
 	}
 	e := quickStarted(t)

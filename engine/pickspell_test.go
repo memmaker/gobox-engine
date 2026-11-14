@@ -1,38 +1,35 @@
 package engine
 
 import (
-	"gobox/rules1e"
-	"slices"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules1e"
 )
 
-// TestPickSpell: Cast out of combat asks for a spell among the member's
-// memorized ones, each once (the pending question); a wrong one asks
-// again; Cure Light Wounds then asks whom it goes on.
+// TestPickSpell: Cast out of combat is refused with gobox's spell pick
+// among the member's memorized ones, each once; a wrong one is refused
+// with it again; Cure Light Wounds then with the pick of whom it goes on.
 func TestPickSpell(t *testing.T) {
 	e := quickStarted(t)
 	c := e.member(e.selected())
 	c.Memorized[0], c.Memorized[1] = rules1e.SpCureLightWounds, rules1e.SpCureLightWounds
-	call := func(spell int) *playQuestion {
+	call := func(spell int) *game.Ask {
 		t.Helper()
-		e.ext.pq = nil
-		if err := e.runCall(pendingCall{kind: callPower, member: -1, power: game.PowerCast, spell: spell, target: -1}); err != nil {
-			t.Fatal(err)
+		err := e.runCall(pendingCall{kind: callPower, member: -1, power: game.PowerCast, spell: spell, target: -1})
+		r, ok := err.(*game.Refusal)
+		if !ok || r.Ask == nil {
+			t.Fatalf("spell %d: %v, want a pick", spell, err)
 		}
-		return e.ext.pq
+		return r.Ask
 	}
-	if pq := call(0); pq == nil || pq.of != askSpell || len(pq.q.Replies) != 1 {
-		t.Fatalf("got %+v, want one spell to pick", pq)
+	if a := call(0); a.Kind != game.PickSpell || len(a.Options) != 1 || a.Options[0].Do.(game.UsePower).Spell != rules1e.SpCureLightWounds {
+		t.Fatalf("got %+v, want Cure Light Wounds to pick", a)
 	}
-	if pq := call(99); pq == nil || pq.of != askSpell {
-		t.Errorf("a wrong spell: %+v", pq)
+	if a := call(99); a.Kind != game.PickSpell {
+		t.Errorf("a wrong spell: %+v", a)
 	}
-	if pq := call(rules1e.SpCureLightWounds); pq == nil || pq.of != askMember || len(pq.q.Replies) != len(e.state().Party) {
-		t.Fatalf("no target asked: %+v", pq)
-	}
-	if !slices.Contains(commonOf(e.build()).Allowed.Plain, game.Action(game.Reply{N: 0})) {
-		t.Error("the target question's reply not allowed")
+	if a := call(rules1e.SpCureLightWounds); a.Kind != game.PickMember {
+		t.Fatalf("no target asked: %+v", a)
 	}
 }
