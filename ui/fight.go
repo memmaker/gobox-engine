@@ -434,7 +434,7 @@ func (p *Presenter) playing() *frame {
 		if ev := &r.q[0]; r.from.IsZero() {
 			switch {
 			case ev.Kind == game.EvSound && p.Sound != nil:
-				p.Sound(soundNo(ev.Moment), ev.Text)
+				p.Sound(soundNo(ev.Moment), ev.Sound) // the cue: the pack's event, or the sound's number
 			case ev.Kind == game.EvSound && p.adLibEffect(soundNo(ev.Moment)):
 			case ev.Kind == game.EvSound && p.Snd != nil:
 				p.Snd.Effect(soundNo(ev.Moment), false)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"gobox/adventure"
 	"gobox/game"
@@ -185,8 +186,12 @@ func (e *Engine) cue(c rules.SoundCue) {
 // playSound is PlaySound with the sound pack's event (extra) in place of
 // sound n: the pack plays it, and the pacing stays the original's.
 func (e *Engine) playSound(n int, event string) {
-	if e.inFight() && !e.soundNow && n > sndUnmute && n != sndStop { // in a fight: when the presenter plays the events up to here
-		e.emit(rules.Sounded{Cue: rules.SoundCue(event)})
+	if e.inFight() && !e.soundNow && n > sndUnmute && n != sndStop { // in a fight: when the presenter plays the events up to here (PlayEventSound)
+		cue := rules.SoundCue(event)
+		if cue == "" { // no pack event (a step): the number itself
+			cue = rules.SoundCue(strconv.Itoa(n))
+		}
+		e.emit(rules.Sounded{Cue: cue})
 		return
 	}
 	s := &e.snd

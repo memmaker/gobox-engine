@@ -364,7 +364,29 @@ func (e *Engine) members() []Member {
 // PlayEventSound plays an EvSound when the presenter reaches it, so a
 // fight's sounds go with what they belong to (a blow with its lunge),
 // not all at once when the rules ran.
+// event is the cue the fight queued: the number itself (playSound's, a
+// step), an original sound's pack event (daspFx), or one only the pack has
+// (the rules' "mon_hit", "death" ...: the pack plays it, as out of a fight).
 func (e *Engine) PlayEventSound(n int, event string) {
+	if event == string(rules.CueStep) {
+		e.playNow(sndStep, "")
+		return
+	}
+	if k, err := strconv.Atoi(event); err == nil {
+		e.playNow(k, "")
+		return
+	}
+	for k, c := range daspFx {
+		if string(c) == event {
+			e.playNow(k, event)
+			return
+		}
+	}
+	e.dasp(event)
+}
+
+// playNow is playSound(n, event) now, not queued as a fight's event.
+func (e *Engine) playNow(n int, event string) {
 	e.soundNow = true
 	e.playSound(n, event)
 	e.soundNow = false

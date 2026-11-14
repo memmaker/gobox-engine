@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 )
 
@@ -72,4 +73,18 @@ func (e *Engine) soundWait(n int) {
 	}
 	s.d.Wait(n)
 	s.wait = n
+}
+
+// TestEventSoundCue: a fight's queued cue plays as the original's sound
+// (the step's empty cue, a numeric one), not as sound 0 (mute).
+func TestEventSoundCue(t *testing.T) {
+	e, f := soundEngine(t, 'P')
+	e.PlayEventSound(0, "")
+	e.PlayEventSound(0, strconv.Itoa(sndHit))
+	want, w := soundEngine(t, 'P')
+	want.PlaySound(sndStep)
+	want.PlaySound(sndHit)
+	if got, w := fmt.Sprint(f.calls), fmt.Sprint(w.calls); got != w || got == "[]" {
+		t.Errorf("calls %s, want %s", got, w)
+	}
 }
