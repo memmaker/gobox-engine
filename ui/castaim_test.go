@@ -1,11 +1,11 @@
 package ui
 
 import (
-	"image"
 	"testing"
 
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/rules"
 )
 
 // castGame is a fight whose turn offers an aimed spell; lone: the aim is all
@@ -18,13 +18,13 @@ type castGame struct {
 func (r *castGame) Version() uint64 { return fresh() }
 
 func (r *castGame) State() game.State {
-	sq := []image.Point{{1, 1}, {2, 1}, {3, 1}, {4, 1}}
+	sq := []rules.BoardPos{{X: 1, Y: 1}, {X: 2, Y: 1}, {X: 3, Y: 1}, {X: 4, Y: 1}}
 	al := game.Allowed{Aimed: []game.Aimed{{Action: game.Cast{Spell: 7}, Squares: sq, Targets: 1}}, Plain: []game.Action{game.EndTurn{}}}
 	if r.lone {
 		al = game.Allowed{Aimed: []game.Aimed{{Action: game.Shoot{}, Squares: sq, Targets: 1}}}
 	}
 	return game.Fighting{Common: game.Common{Allowed: al, Party: []game.Member{{Spells: []game.SpellRef{{ID: 7, Name: "Magic Missile", Range: 6}}}}},
-		Field: game.Battlefield{Size: image.Pt(6, 6), Turn: 1, Units: []game.Unit{{ID: 1, Member: 0, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(3, 1), Foe: true}}}}
+		Field: game.Battlefield{Size: rules.Size{W: 6, H: 6}, Turn: 1, Units: []game.Unit{{ID: 1, Member: 0, At: rules.BoardPos{X: 1, Y: 1}}, {ID: 2, Member: -1, At: rules.BoardPos{X: 3, Y: 1}, Foe: true}}}}
 }
 func (r *castGame) Do(a game.Action) (game.Outcome, error) {
 	r.sent = append(r.sent, a)

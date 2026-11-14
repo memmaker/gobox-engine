@@ -417,7 +417,8 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			for _, d := range [4]int{0, 2, 4, 6} {
 				add(game.RunEvent{Before: true, Side: d})
 				if p := e.ext.pre; p != nil && p.ran && p.side == d && m.Edge(at, d).Kind != game.EdgeWall {
-					add(game.Arrive{From: at, To: at.Add(sideSteps[d]), Facing: f})
+					to := at.Add(sideSteps[d])
+					add(game.Arrive{From: rules.MapPos{X: at.X, Y: at.Y}, To: rules.MapPos{X: to.X, Y: to.Y}, Facing: f})
 				}
 				if d != f && e.viewMode == 1 { // the 3D view turns; the map's walk has no facing to change (verbTurn* there do nothing)
 					add(game.Face{Facing: d})
@@ -457,7 +458,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			if sa := e.cs.sa; aim.then.kind == atSpell && sa != nil {
 				act = game.Cast{Member: cm.Selected, Spell: int(sa.spell)}
 			}
-			a.Aimed = append(a.Aimed, game.Aimed{Action: act, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
+			a.Aimed = append(a.Aimed, game.Aimed{Action: act, Squares: inRange(b, max(b.Size.W, b.Size.H)), Targets: 1})
 			break
 		}
 		if aim := e.cs.aim; aim != nil && b != nil { // a maneuver's aim up mid-turn (its move square, its attack, its target): Do aims it
@@ -484,7 +485,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			for _, t := range b.Targets {
 				add(game.Attack{Target: t})
 			}
-			a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
+			a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: inRange(b, max(b.Size.W, b.Size.H)), Targets: 1})
 		}
 		if slices.Contains(can, VerbManeuver) {
 			for _, m := range e.battle().Turn.Maneuvers { // by ID: self and weapon ones go on their own (a weapon one's aim follows), the rest at a square
@@ -587,18 +588,19 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 var sideSteps = map[int]image.Point{0: {0, -1}, 2: {1, 0}, 4: {0, 1}, 6: {-1, 0}}
 
 // inRange are the battlefield's squares within r of the turn's unit.
-func inRange(b *game.Combat, r int) []image.Point {
-	var me image.Point
+func inRange(b *game.Combat, r int) []rules.BoardPos {
+	var me rules.BoardPos
 	for _, u := range b.Units {
 		if b.Turn != nil && u.ID == b.Turn.Unit {
 			me = u.At
 		}
 	}
-	var out []image.Point
-	for y := range b.Size.Y {
-		for x := range b.Size.X {
-			if d := image.Pt(x, y).Sub(me); max(d.X, -d.X, d.Y, -d.Y) <= r {
-				out = append(out, image.Pt(x, y))
+	var out []rules.BoardPos
+	for y := range b.Size.H {
+		for x := range b.Size.W {
+			at := rules.BoardPos{X: x, Y: y}
+			if d := at.Sub(me); max(d.X, -d.X, d.Y, -d.Y) <= r {
+				out = append(out, at)
 			}
 		}
 	}
@@ -737,7 +739,7 @@ func (e *Engine) Do(a game.Action) (game.Outcome, error) {
 	switch a := a.(type) {
 	case game.Arrive:
 		if err = native(func() error { return e.arrive(a.From, a.To, a.Facing) }); err == nil {
-			out.Events = append(out.Events, game.Moved{To: image.Pt(e.posX, e.posY), Facing: int(Dir(e.facing/2&3)) * 2})
+			out.Events = append(out.Events, game.Moved{To: rules.MapPos{X: e.posX, Y: e.posY}, Facing: int(Dir(e.facing/2&3)) * 2})
 		}
 	case game.RunEvent:
 		err = native(func() error { return e.runEvent(a.Before, a.Side) })

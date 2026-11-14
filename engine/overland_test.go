@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // TestOverlandIsTheMap: on the overland the state says so (ExploreMap.Overland),
@@ -24,11 +25,11 @@ func TestOverlandIsTheMap(t *testing.T) {
 	if !x.Map.Overland {
 		t.Fatal("overland: ExploreMap.Overland false")
 	}
-	from := image.Pt(x.Where.X, x.Where.Y)
+	from := rules.MapPos{X: x.Where.X, Y: x.Where.Y}
 	if _, err := e.doNow(game.RunEvent{Before: true, Side: 2}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := e.doNow(game.Arrive{From: from, To: from.Add(image.Pt(1, 0)), Facing: x.Where.Facing}); err != nil {
+	if _, err := e.doNow(game.Arrive{From: from, To: rules.MapPos{X: from.X + 1, Y: from.Y}, Facing: x.Where.Facing}); err != nil {
 		t.Fatal(err)
 	}
 	w := commonOf(e.build()).Where

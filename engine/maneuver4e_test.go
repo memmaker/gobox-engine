@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"image"
 	"slices"
 	"testing"
 
@@ -82,10 +81,10 @@ func TestManeuvers4e(t *testing.T) {
 		if e.cs.aim == nil {
 			return
 		}
-		if _, err := e.Do(game.Shoot{Ats: []image.Point{foe}}); err != nil {
+		if _, err := e.Do(game.Shoot{Ats: []rules.BoardPos{foe}}); err != nil {
 			t.Fatal("its attack:", err)
 		}
-	} else if _, err := e.Do(game.DoManeuver{ID: id, Ats: []image.Point{aimAt(f, id, foe)}}); err != nil {
+	} else if _, err := e.Do(game.DoManeuver{ID: id, Ats: []rules.BoardPos{aimAt(f, id, foe)}}); err != nil {
 		t.Fatal("aimed maneuver:", err)
 	}
 	if e.cs.aim != nil {
@@ -117,7 +116,7 @@ func TestWeaponManeuver4e(t *testing.T) {
 	if len(fighting(e).Allowed.Aimed) == 0 {
 		t.Fatal("the aim is up but not published")
 	}
-	if _, err := e.Do(game.Shoot{Ats: []image.Point{f.Field.Units[i].At}}); err != nil {
+	if _, err := e.Do(game.Shoot{Ats: []rules.BoardPos{f.Field.Units[i].At}}); err != nil {
 		t.Fatal("its attack:", err)
 	}
 	if e.cs.aim != nil {
@@ -138,7 +137,7 @@ func TestManeuversClassic(t *testing.T) {
 
 // aimAt is where maneuver id of f's turn aims: an ally one at the actor
 // itself, the rest at foe.
-func aimAt(f game.Fighting, id int, foe image.Point) image.Point {
+func aimAt(f game.Fighting, id int, foe rules.BoardPos) rules.BoardPos {
 	for _, m := range f.Field.Maneuvers {
 		if m.ID == id && rules.ManeuverAim(m.Aim) == rules.AimAlly {
 			for _, u := range f.Field.Units {

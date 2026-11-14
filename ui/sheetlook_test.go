@@ -1,12 +1,12 @@
 package ui
 
 import (
-	"image"
 	"strings"
 	"testing"
 
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/rules"
 )
 
 // TestSheetDraftPage: the sheet drawn while a character is being made is the
@@ -33,8 +33,8 @@ func TestSheetDraftPage(t *testing.T) {
 // the one the items show, not the acting one.
 func TestLookMemberItems(t *testing.T) {
 	st := game.Fighting{Common: game.Common{Party: []game.Member{{Name: "A", Items: []game.Item{{Handle: 1, Name: "Mace"}}}, {Name: "B", Items: []game.Item{{Handle: 2, Name: "Sling"}}}}},
-		Field: game.Battlefield{Size: image.Pt(6, 6), Turn: 1,
-			Units: []game.Unit{{ID: 1, Member: 0, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(3, 1), Foe: true}}}}
+		Field: game.Battlefield{Size: rules.Size{W: 6, H: 6}, Turn: 1,
+			Units: []game.Unit{{ID: 1, Member: 0, At: rules.BoardPos{X: 1, Y: 1}}, {ID: 2, Member: -1, At: rules.BoardPos{X: 3, Y: 1}, Foe: true}}}}
 	g, _ := playGame(st)
 	g.r.items, g.r.lookSheet = game.ItemsOwn, 2
 	in := g.r.inventoryOf(g.r.g.State())

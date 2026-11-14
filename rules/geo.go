@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Size        = 0x402           // GEO block: 2-byte header + 4 planes
+	GeoSize     = 0x402           // GEO block: 2-byte header + 4 planes
 	WallSize    = 0x9C            // one wall's symbol ids
 	SetWalls    = 5               // walls in one WALLDEF chunk (a wall slot's)
 	SetSize     = SetWalls * 0x9C // 0x30C: one WALLDEF chunk (5 walls)
@@ -26,10 +26,10 @@ type Map struct {
 
 var ErrSize = errors.New("geo: bad GEO block size")
 
-// ParseMap reads a GEO block; bytes past Size are ignored (the games report
+// ParseMap reads a GEO block; bytes past GeoSize are ignored (the games report
 // a long block themselves). SolidEdges is left false for the caller to set.
 func ParseMap(b []byte) (*Map, error) {
-	if len(b) < Size {
+	if len(b) < GeoSize {
 		return nil, ErrSize
 	}
 	m := &Map{}

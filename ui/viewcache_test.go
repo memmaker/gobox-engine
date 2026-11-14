@@ -5,6 +5,7 @@ import (
 
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/rules"
 	"image"
 )
 
@@ -49,7 +50,7 @@ func TestMinimapUploadsOnChange(t *testing.T) {
 	dst := gpu.NewImage(640, 400)
 	font := func(byte, bool) [8]byte { return [8]byte{} }
 	st := func(party image.Point) game.State {
-		return game.Exploring{Common: game.Common{Where: game.Where{X: party.X, Y: party.Y}}, Map: game.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)}}}
+		return game.Exploring{Common: game.Common{Where: game.Where{X: party.X, Y: party.Y}}, Map: game.ExploreMap{Automap: game.Automap{Size: rules.Size{W: 16, H: 16}}}}
 	}
 	g, f := playGame(st(image.Pt(1, 1)))
 	p.SetEngine(g)
@@ -108,7 +109,7 @@ func (f *artCounting) Art() map[string]game.Picture { f.arts++; return nil }
 // a new State of the game (its Version) builds it again.
 func TestFightBoardBuiltOncePerChange(t *testing.T) {
 	fight := game.Fighting{Common: allow(game.EndTurn{}),
-		Field: game.Battlefield{Turn: 1, Size: image.Pt(8, 8), Units: []game.Unit{{ID: 1, Member: -1}}}}
+		Field: game.Battlefield{Turn: 1, Size: rules.Size{W: 8, H: 8}, Units: []game.Unit{{ID: 1, Member: -1}}}}
 	g := &artCounting{fake: &fake{st: fight}}
 	f := &Front{Game: &classicGame{Game: NewGame(g, game.Data{})}, started: true}
 	f.Glyph, f.Font = func(byte) [8]byte { return [8]byte{} }, func(byte, bool) [8]byte { return [8]byte{} }
@@ -137,7 +138,7 @@ func TestFightBoardBuiltOncePerChange(t *testing.T) {
 // once per Version: idle frames read the same ones, a new State builds them again.
 func TestWallsAndMinimapBuiltOncePerChange(t *testing.T) {
 	st := func(x int) game.State {
-		return game.Exploring{Common: game.Common{Where: game.Where{X: x}}, Map: game.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
+		return game.Exploring{Common: game.Common{Where: game.Where{X: x}}, Map: game.ExploreMap{Automap: game.Automap{Size: rules.Size{W: 16, H: 16}},
 			Walls: game.MapWalls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}}
 	}
 	g, f := playGame(st(1))

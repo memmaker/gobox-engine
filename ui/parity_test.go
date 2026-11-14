@@ -2,12 +2,12 @@ package ui
 
 import (
 	"gobox/adventure"
-	"image"
 	"slices"
 	"testing"
 	"time"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // slottedFake is fake with the game's own save slots (game.Slots).
@@ -67,9 +67,9 @@ func TestParity(t *testing.T) {
 				return s.Page.Prompt[0].Text == "Searching" && len(s.Page.Pane) == 2 && s.LastText == "b" && s.Picture.File == pic.File
 			}},
 		{"camp flags and automap", game.Camping{Common: game.Common{Adventure: true, Allowed: game.Allowed{Plain: []game.Action{game.Order{}}},
-			Automap: game.Automap{Size: image.Pt(16, 16)}, Party: []game.Member{{CanCast: true}}}}, game.Data{}, nil, nil,
+			Automap: game.Automap{Size: rules.Size{W: 16, H: 16}}, Party: []game.Member{{CanCast: true}}}}, game.Data{}, nil, nil,
 			func(s shown, _ game.Result) bool {
-				return s.Flags.Adventure && s.Flags.Ordering && s.Flags.CanCast && s.Map.Size.X == 16
+				return s.Flags.Adventure && s.Flags.Ordering && s.Flags.CanCast && s.Map.Size.W == 16
 			}},
 		{"sweeping", game.Exploring{Common: game.Common{Where: game.Where{Searching: true}}}, game.Data{}, nil, nil,
 			func(s shown, _ game.Result) bool { return s.Flags.Sweeping }},
@@ -127,7 +127,7 @@ func TestParity(t *testing.T) {
 				}
 				return true
 			}},
-		{"free aim is gobox's", game.Fighting{}, game.Data{}, []any{game.Aim{At: image.Pt(3, 4)}}, nil,
+		{"free aim is gobox's", game.Fighting{}, game.Data{}, []any{game.Aim{At: rules.BoardPos{X: 3, Y: 4}}}, nil,
 			func(s shown, res game.Result) bool { return res.Err == nil }},
 		{"a creation list has no keys", game.Assembling{Draft: &game.Draft{Step: "race", Ask: &game.Question{Replies: []string{"Martian", "Mercurian"}}}}, game.Data{}, nil, nil,
 			func(s shown, _ game.Result) bool {
@@ -199,8 +199,8 @@ func TestParity(t *testing.T) {
 			func(s shown, _ game.Result) bool {
 				return slices.Equal(s.Combat.Log, []string{"YOU GET INTO A BRAWL."})
 			}},
-		{"aimed attack", game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: game.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}}, // the series names Aim: no extra verb for it
-			[]any{game.Attack{}, game.Aim{At: image.Pt(2, 3)}}, []game.Action{game.Attack{At: &image.Point{2, 3}}},
+		{"aimed attack", game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: game.Attack{}, Squares: []rules.BoardPos{{X: 2, Y: 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}}, // the series names Aim: no extra verb for it
+			[]any{game.Attack{}, game.Aim{At: rules.BoardPos{X: 2, Y: 3}}}, []game.Action{game.Attack{At: &rules.BoardPos{X: 2, Y: 3}}},
 			func(s shown, _ game.Result) bool {
 				var att, aim bool
 				for _, o := range s.Combat.Turn.Options {

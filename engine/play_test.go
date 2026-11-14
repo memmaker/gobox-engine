@@ -254,7 +254,7 @@ func TestPlayFightQuestion(t *testing.T) {
 	if !ok || f.Ask == nil || !f.Ask.YesNo || e.ext.pq == nil {
 		t.Fatalf("after Flee %T, ask %+v: want the Flee question", e.build(), f.Ask)
 	}
-	if _, err := e.doNow(game.MoveTo{To: image.Pt(0, 0)}); err == nil {
+	if _, err := e.doNow(game.MoveTo{To: rules.BoardPos{X: 0, Y: 0}}); err == nil {
 		t.Error("a move with the question up: no refusal")
 	}
 	actor := e.member(e.cs.actor)
@@ -346,7 +346,7 @@ func TestPlayWalk(t *testing.T) {
 		}
 		var arr game.Action
 		for _, a := range x.Allowed.Plain {
-			if v, ok := a.(game.Arrive); ok && v.To == from.Add(sideSteps[d]) {
+			if v, ok := a.(game.Arrive); ok && v.To == (rules.MapPos{X: from.X + sideSteps[d].X, Y: from.Y + sideSteps[d].Y}) {
 				arr = v
 			}
 		}

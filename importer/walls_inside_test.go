@@ -19,10 +19,10 @@ func TestAreaSkyInside(t *testing.T) {
 	}
 	for _, a := range wallTextures("por", "", "").Areas {
 		b := l.BlockShared(a.Set.File("GEO"), a.Geo)
-		if len(b) < rules.Size {
+		if len(b) < rules.GeoSize {
 			t.Fatalf("set %d: no GEO block %d", a.Set, a.Geo)
 		}
-		m, err := rules.ParseMap(b[:rules.Size])
+		m, err := rules.ParseMap(b[:rules.GeoSize])
 		if err != nil {
 			t.Fatal(err)
 		}

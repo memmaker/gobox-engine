@@ -1,10 +1,10 @@
 package ui
 
 import (
-	"image"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 	"gobox/ui/combat"
 )
 
@@ -22,7 +22,7 @@ func (r *endRules) Do(a game.Action) (game.Outcome, error) {
 
 func newEnd(es ...game.Event) *endRules {
 	r := &endRules{events: es}
-	r.st = game.Fighting{Common: allow(game.Quick{}), Field: game.Battlefield{Size: image.Pt(4, 4), Units: []game.Unit{{ID: 1, Member: -1}, {ID: 2, Member: -1, Foe: true}}}}
+	r.st = game.Fighting{Common: allow(game.Quick{}), Field: game.Battlefield{Size: rules.Size{W: 4, H: 4}, Units: []game.Unit{{ID: 1, Member: -1}, {ID: 2, Member: -1, Foe: true}}}}
 	return r
 }
 
@@ -47,8 +47,8 @@ func TestEndingEventsPlayClassic(t *testing.T) {
 // TestEndingEventsMove: the ending events play on the board the ones before
 // them left: the walker stands where it walked, the fallen is gone.
 func TestEndingEventsMove(t *testing.T) {
-	r := newEnd(game.Walked{Unit: 1, Path: []game.Step{{At: image.Pt(2, 1)}}}, game.Attacked{From: 1, To: 2}, game.Fell{Unit: 2},
-		game.Shot{From: 1, To: image.Pt(3, 3)})
+	r := newEnd(game.Walked{Unit: 1, Path: []game.Step{{At: rules.BoardPos{X: 2, Y: 1}}}}, game.Attacked{From: 1, To: 2}, game.Fell{Unit: 2},
+		game.Shot{From: 1, To: rules.BoardPos{X: 3, Y: 3}})
 	g := NewGame(r, game.Data{})
 	g.Settle()
 	g.Answer(Action{Kind: ActQuick})
@@ -73,7 +73,7 @@ func TestEndingEventsMove(t *testing.T) {
 	if u := unit(boardOfFrame(es[4]), 2); u != nil {
 		t.Errorf("fallen still on the board: %+v", u)
 	}
-	if es[4].Kind != game.EvMissile || es[4].To != image.Pt(3, 3) {
+	if es[4].Kind != game.EvMissile || es[4].To != (rules.BoardPos{X: 3, Y: 3}) {
 		t.Errorf("shot %+v", es[4])
 	}
 }

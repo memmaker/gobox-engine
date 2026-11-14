@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // yard is an open map of 4x1 unless locked or walled; a script waits on the
@@ -38,7 +39,7 @@ type walkGame struct {
 	event  map[image.Point][]game.Event // what the square's event says
 	before map[image.Point][]game.Event // what the script ahead says
 	onEv   map[image.Point]func(*game.Exploring)
-	land   map[image.Point]image.Point // a step to the key lands on the value instead
+	land   map[rules.MapPos]rules.MapPos // a step to the key lands on the value instead
 	sent   []game.Action
 }
 
@@ -121,13 +122,13 @@ func TestWalkScriptOnUnvisited(t *testing.T) {
 func TestWalkTextOnVisited(t *testing.T) {
 	sq := image.Pt(1, 0)
 	g := yardGame(yard{script: map[image.Point]bool{sq: true}})
-	g.x.Map.Automap.Walked = []image.Point{sq}
+	g.x.Map.Automap.Walked = []rules.MapPos{{X: sq.X, Y: sq.Y}}
 	g.event = map[image.Point][]game.Event{sq: {game.Narrated{Text: "A voice calls."}}}
 	if at := walkOn(t, g, image.Pt(3, 0)); at != image.Pt(3, 0) {
 		t.Fatalf("at %v, the walk stopped on visited text", at)
 	}
 	g = yardGame(yard{script: map[image.Point]bool{sq: true}})
-	g.x.Map.Automap.Walked = []image.Point{sq}
+	g.x.Map.Automap.Walked = []rules.MapPos{{X: sq.X, Y: sq.Y}}
 	g.event = map[image.Point][]game.Event{sq: {game.Shown{}}}
 	if at := walkOn(t, g, image.Pt(3, 0)); at != sq {
 		t.Fatalf("at %v, a picture must stop it", at)
@@ -180,7 +181,7 @@ func (m *moveAhead) Do(a game.Action) (game.Outcome, error) {
 // TestWalkLanding: a step that lands elsewhere stops the walk.
 func TestWalkLanding(t *testing.T) {
 	g := yardGame(yard{})
-	g.land = map[image.Point]image.Point{{1, 0}: {0, 0}} // the step is refused by the rules' door, say
+	g.land = map[rules.MapPos]rules.MapPos{{X: 1, Y: 0}: {X: 0, Y: 0}} // the step is refused by the rules' door, say
 	if at := walkOn(t, g, image.Pt(3, 0)); at != (image.Point{}) {
 		t.Fatalf("at %v", at)
 	}
@@ -197,7 +198,7 @@ func TestWalkMenu(t *testing.T) {
 		func(x *game.Exploring) { x.Door = &game.Door{} },
 	} {
 		g := yardGame(yard{script: map[image.Point]bool{sq: true}})
-		g.x.Map.Automap.Walked = []image.Point{sq}
+		g.x.Map.Automap.Walked = []rules.MapPos{{X: sq.X, Y: sq.Y}}
 		g.onEv = map[image.Point]func(*game.Exploring){sq: up}
 		if at := walkOn(t, g, image.Pt(3, 0)); at != sq {
 			t.Fatalf("at %v", at)

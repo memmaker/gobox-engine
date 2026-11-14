@@ -366,8 +366,8 @@ type ScrollSpell struct {
 type Where struct {
 	Area      string
 	X, Y      int
-	Square    *image.Point // the square the 3D view stands on where X, Y is another map's (the overland); nil: X, Y
-	Facing    int          // 0 N, 2 E, 4 S, 6 W
+	Square    *rules.MapPos // the square the 3D view stands on where X, Y is another map's (the overland); nil: X, Y
+	Facing    int           // 0 N, 2 E, 4 S, 6 W
 	Inside    bool
 	Day       int
 	Hour      int
@@ -477,16 +477,16 @@ type Quest struct {
 // Automap is what the party knows of the map.
 type Automap struct {
 	Area      string // the area's name as the player knows it ("New Phlan", "Valjevo Castle 3"): the map shows it top left
-	Size      image.Point
-	Known     []image.Point // squares seen; empty: nothing is known
-	Marked    []image.Point
-	Notes     []string      // the player's text for each Marked square
-	NoteKinds []string      // a Label.Kind for each Marked square, \"\" none
-	Walls     []Wall        // by square
-	Doors     []Wall        // State says what each door is
-	Walked    []image.Point // squares walked on (Known also holds those only seen)
-	Labels    []Label       // the map's own labels; the player's are Marked/Notes
-	Marker    string        // the party marker's art prefix on this map (Data.Art "<Marker>/<facing>"); "" is "marker"
+	Size      rules.Size
+	Known     []rules.MapPos // squares seen; empty: nothing is known
+	Marked    []rules.MapPos
+	Notes     []string       // the player's text for each Marked square
+	NoteKinds []string       // a Label.Kind for each Marked square, \"\" none
+	Walls     []Wall         // by square
+	Doors     []Wall         // State says what each door is
+	Walked    []rules.MapPos // squares walked on (Known also holds those only seen)
+	Labels    []Label        // the map's own labels; the player's are Marked/Notes
+	Marker    string         // the party marker's art prefix on this map (Data.Art "<Marker>/<facing>"); "" is "marker"
 	// Terrain is the overland map's terrain id per square, row by row over
 	// Size; its art is Data.Art["terrain/<id>"] (a game numbers each
 	// remapped variant as its own id and gives its Pixels), the party marker
@@ -500,7 +500,7 @@ type Automap struct {
 
 // Label is a named place on the automap.
 type Label struct {
-	At   image.Point
+	At   rules.MapPos
 	Text string
 	Kind string // "shop", "temple", "inn", "civic", ...
 }
@@ -541,7 +541,7 @@ const (
 
 // Wall is a wall or door on one side of a square. Side as Facing; Kind is the game's wall/door kind.
 type Wall struct {
-	At         image.Point
+	At         rules.MapPos
 	Side, Kind int
 	State      DoorState // a door's state; walls leave it zero
 }
@@ -572,20 +572,20 @@ type Strike struct {
 
 // Step is one square of a walk; Free: leaving it lets an enemy take a free attack.
 type Step struct {
-	At   image.Point
+	At   rules.BoardPos
 	Free bool
 }
 
 // Reach is a square the unit can walk to and the steps it costs.
 type Reach struct {
-	At    image.Point
+	At    rules.BoardPos
 	Steps int
 	Path  []Step // the walk there from the unit's own square
 }
 
 // Ground is one battlefield square.
 type Ground struct {
-	At      image.Point
+	At      rules.BoardPos
 	Art     Picture
 	Block   bool
 	Height  int     // the square's height (a wall, a tree)
@@ -598,14 +598,14 @@ type Ground struct {
 type Unit struct {
 	ID         int
 	Name       string
-	At         image.Point
+	At         rules.BoardPos
 	Facing     int
 	Foe        bool
 	HP, MaxHP  int
 	Art        Picture
 	Dead, Gone bool
-	Size       int           // footprint edge in squares
-	Squares    []image.Point // squares covered
+	Size       int              // footprint edge in squares
+	Squares    []rules.BoardPos // squares covered
 	AC         int
 	Status     string
 	Dmg        string // the unit's damage, e.g. "1d8+6"
@@ -1118,7 +1118,7 @@ type Blink struct {
 // three sizes by five frames) at the cell the game rolled.
 type Blast struct {
 	K  int
-	At image.Point
+	At rules.BoardPos
 }
 
 // Message is a line of a screen's message window.

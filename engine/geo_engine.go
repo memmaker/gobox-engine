@@ -69,7 +69,7 @@ func (e *Engine) LoadGeo(n int) {
 	e.reopenDoors()
 }
 
-const geoSize = rules.Size // GEO block: 2-byte header + 4 planes
+const geoSize = rules.GeoSize // GEO block: 2-byte header + 4 planes
 
 type geoState struct {
 	geo      rules.Map // DS:6A5C

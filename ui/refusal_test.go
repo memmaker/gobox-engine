@@ -2,10 +2,10 @@ package ui
 
 import (
 	"errors"
-	"image"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // TestRefusalNotes: a refusal from any call (Buy from a shop's list) is the
@@ -39,7 +39,7 @@ func TestOffMapStepAsks(t *testing.T) {
 	}}
 	g := NewGame(r, game.Data{})
 	g.Answer(Action{Kind: ActWalk, X: -1, Y: 3})
-	if len(r.sent) != 1 || r.sent[0] != (game.MoveTo{To: image.Pt(-1, 3)}) {
+	if len(r.sent) != 1 || r.sent[0] != (game.MoveTo{To: rules.BoardPos{X: -1, Y: 3}}) {
 		t.Fatalf("sent %+v", r.sent)
 	}
 	if q := g.pending(); g.mode() != game.ModeAsk || q == nil || q.Prompt != "Flee:" {

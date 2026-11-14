@@ -1,23 +1,23 @@
 package ui
 
 import (
-	"image"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // BR2's T: a pending square with one Aimed and Leave starts aiming at once,
 // the cursor on the first target; Enter (ActAim there) answers it with the
 // Attack at that square, Esc is Leave.
 func TestLoneAimWithLeave(t *testing.T) {
-	foe := image.Pt(4, 2)
+	foe := rules.BoardPos{X: 4, Y: 2}
 	fight := game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.Leave{}},
-		Aimed: []game.Aimed{{Action: game.Attack{}, Squares: []image.Point{foe, {5, 2}}, Targets: 1}}}},
+		Aimed: []game.Aimed{{Action: game.Attack{}, Squares: []rules.BoardPos{foe, {X: 5, Y: 2}}, Targets: 1}}}},
 		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: foe}}}}
 	f := &fake{st: fight}
 	g := NewGame(f, game.Data{})
-	if b := liveBoard(g); b == nil || b.Turn == nil || !b.Turn.Aim || b.Cursor != foe {
+	if b := liveBoard(g); b == nil || b.Turn == nil || !b.Turn.Aim || b.Cursor != pt(foe) {
 		t.Fatalf("not aiming at the first target: %+v", b)
 	}
 	if err := g.Answer(Action{Kind: ActAim, X: foe.X, Y: foe.Y}); err != nil {
@@ -37,10 +37,10 @@ func TestLoneAimWithLeave(t *testing.T) {
 // A big foe whose At lies outside the aim's reach but one of whose squares
 // is in it is a target Tab cycles, the cursor on it.
 func TestAimTargetsBigFoe(t *testing.T) {
-	in := image.Pt(5, 2)
+	in := rules.BoardPos{X: 5, Y: 2}
 	fight := game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.Leave{}},
-		Aimed: []game.Aimed{{Action: game.Attack{}, Squares: []image.Point{in}, Targets: 1}}}},
-		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: image.Pt(4, 2), Squares: []image.Point{{4, 2}, in}, Size: 2}}}}
+		Aimed: []game.Aimed{{Action: game.Attack{}, Squares: []rules.BoardPos{in}, Targets: 1}}}},
+		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}, {ID: 2, Member: -1, Foe: true, At: rules.BoardPos{X: 4, Y: 2}, Squares: []rules.BoardPos{{X: 4, Y: 2}, in}, Size: 2}}}}
 	g := NewGame(&fake{st: fight}, game.Data{})
 	if b := liveBoard(g); b == nil || len(b.Targets) != 1 {
 		t.Fatalf("targets %+v", b)

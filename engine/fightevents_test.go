@@ -2,10 +2,10 @@ package engine
 
 import (
 	"gobox/rules1e"
-	"image"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // TestFightEventsOut (BUG-CLASSES 20): a headless fight (the computer for
@@ -100,7 +100,7 @@ func testFightEventsOut(t *testing.T, mk func(*testing.T) *Engine) {
 					t.Errorf("missile to %v has no shooter", ev.To)
 				}
 			case game.CastSpell:
-				if len(ev.Ats) == 0 || ev.Ats[0] == (image.Point{}) {
+				if len(ev.Ats) == 0 || ev.Ats[0] == (rules.BoardPos{}) {
 					t.Errorf("spell %d by %d aimed at (0,0)", ev.Spell, ev.From)
 				}
 				for _, p := range out.Events[:j] { // 37b: the cast's pose before its flight

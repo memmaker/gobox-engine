@@ -3,12 +3,12 @@ package ui
 import (
 	"errors"
 	"gobox/adventure"
-	"image"
 	"reflect"
 	"slices"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // fake is a game.Game whose state and outcome the test sets; it keeps what
@@ -58,9 +58,9 @@ func TestAdapter(t *testing.T) {
 		check func(t *testing.T, f *fake, r *frontState, res game.Result)
 	}{
 		{"wall refused", &fake{st: game.Exploring{}, err: wall},
-			game.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)},
+			game.Arrive{From: rules.MapPos{X: 3, Y: 3}, To: rules.MapPos{X: 3, Y: 2}},
 			func(t *testing.T, f *fake, r *frontState, res game.Result) {
-				if res.Err != wall || !slices.Equal(f.sent, []game.Action{game.Arrive{From: image.Pt(3, 3), To: image.Pt(3, 2)}}) {
+				if res.Err != wall || !slices.Equal(f.sent, []game.Action{game.Arrive{From: rules.MapPos{X: 3, Y: 3}, To: rules.MapPos{X: 3, Y: 2}}}) {
 					t.Fatalf("err %v sent %v", res.Err, f.sent)
 				}
 			}},
@@ -77,7 +77,7 @@ func TestAdapter(t *testing.T) {
 				}
 			}},
 		{"end turn events", &fake{st: fight, out: game.Outcome{Events: []game.Event{
-			game.Walked{Unit: 2, Path: []game.Step{{At: image.Pt(1, 1)}}},
+			game.Walked{Unit: 2, Path: []game.Step{{At: rules.BoardPos{X: 1, Y: 1}}}},
 			game.Attacked{From: 2, To: 1, Hit: true, Damage: 4}, game.Fell{Unit: 1}}}},
 			game.EndTurn{},
 			func(t *testing.T, f *fake, r *frontState, res game.Result) {
@@ -121,17 +121,17 @@ func TestAdapter(t *testing.T) {
 func TestAimAndSlots(t *testing.T) {
 	cast := game.Cast{Spell: 7}
 	f := &fake{st: game.Fighting{Common: game.Common{Allowed: game.Allowed{
-		Aimed: []game.Aimed{{Action: cast, Squares: []image.Point{{2, 2}}, Targets: 1}}}}}}
+		Aimed: []game.Aimed{{Action: cast, Squares: []rules.BoardPos{{X: 2, Y: 2}}, Targets: 1}}}}}}
 	r := newRules(f, game.Data{})
 	r.dir = t.TempDir()
 	if res := r.send(game.Cast{Spell: 7}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
 	}
-	if res := r.send(game.Aim{At: image.Pt(5, 5)}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim { // not offered: no word, the aim stays (the original's Center)
+	if res := r.send(game.Aim{At: rules.BoardPos{X: 5, Y: 5}}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim { // not offered: no word, the aim stays (the original's Center)
 		t.Fatalf("aim out of range: %+v sent %v", res, f.sent)
 	}
-	r.send(game.Aim{At: image.Pt(2, 2)})
-	if len(f.sent) != 1 || f.sent[0].(game.Cast).Ats[0] != image.Pt(2, 2) {
+	r.send(game.Aim{At: rules.BoardPos{X: 2, Y: 2}})
+	if len(f.sent) != 1 || f.sent[0].(game.Cast).Ats[0] != (rules.BoardPos{X: 2, Y: 2}) {
 		t.Fatalf("sent %v", f.sent)
 	}
 	if res := r.send(tSave{Name: "one"}); res.Err != nil {

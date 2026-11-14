@@ -1,23 +1,23 @@
 package ui
 
 import (
-	"image"
 	"slices"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // TestAttackAims: Attack before a target (the bar's, F) aims at the foes the
 // game offers by id, the cursor on the first; a square there attacks that id.
 func TestAttackAims(t *testing.T) {
 	f := &fake{st: game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.Attack{Target: 2}, game.EndTurn{}}}},
-		Field: game.Battlefield{Units: []game.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(5, 3), Foe: true}}}}}
+		Field: game.Battlefield{Units: []game.Unit{{ID: 1, At: rules.BoardPos{X: 1, Y: 1}}, {ID: 2, At: rules.BoardPos{X: 5, Y: 3}, Foe: true}}}}}
 	r := newRules(f, game.Data{})
-	if res := r.send(game.Attack{Target: 0}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim || r.cursor != image.Pt(5, 3) {
+	if res := r.send(game.Attack{Target: 0}); res.Err != nil || len(f.sent) != 0 || !shownOf(r).Combat.Turn.Aim || r.cursor != (rules.BoardPos{X: 5, Y: 3}) {
 		t.Fatalf("aim start %+v sent %v", res, f.sent)
 	}
-	r.send(game.Aim{At: image.Pt(5, 3)})
+	r.send(game.Aim{At: rules.BoardPos{X: 5, Y: 3}})
 	if len(f.sent) != 1 || f.sent[0] != game.Action(game.Attack{Target: 2}) {
 		t.Fatalf("sent %v", f.sent)
 	}
@@ -34,12 +34,12 @@ func TestFledLeaves(t *testing.T) {
 // and the cursor is on the nearest, never (0,0).
 func TestShootTargets(t *testing.T) {
 	shoot := game.Shoot{}
-	f := &fake{st: game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: shoot, Squares: []image.Point{{4, 4}, {6, 6}, {9, 9}}, Targets: 1}}}},
-		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(6, 6), Foe: true}}}}}
+	f := &fake{st: game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: shoot, Squares: []rules.BoardPos{{X: 4, Y: 4}, {X: 6, Y: 6}, {X: 9, Y: 9}}, Targets: 1}}}},
+		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, At: rules.BoardPos{X: 1, Y: 1}}, {ID: 2, At: rules.BoardPos{X: 9, Y: 9}, Foe: true}, {ID: 3, At: rules.BoardPos{X: 6, Y: 6}, Foe: true}}}}}
 	r := newRules(f, game.Data{})
 	r.send(game.Shoot{})
 	c := shownOf(r).Combat
-	if c == nil || !c.Turn.Aim || len(c.Targets) != 2 || r.cursor != image.Pt(6, 6) {
+	if c == nil || !c.Turn.Aim || len(c.Targets) != 2 || r.cursor != (rules.BoardPos{X: 6, Y: 6}) {
 		t.Fatalf("%+v", c)
 	}
 }
@@ -60,12 +60,12 @@ func TestQuickAllOption(t *testing.T) {
 // cycles every foe and the cursor is drawn on the nearest, not lost.
 func TestAimNoFoeInReach(t *testing.T) {
 	shoot := game.Shoot{}
-	f := &fake{st: game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: shoot, Squares: []image.Point{{2, 1}}, Targets: 1}}}},
-		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, At: image.Pt(1, 1)}, {ID: 2, At: image.Pt(9, 9), Foe: true}, {ID: 3, At: image.Pt(4, 3), Foe: true}}}}}
+	f := &fake{st: game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: shoot, Squares: []rules.BoardPos{{X: 2, Y: 1}}, Targets: 1}}}},
+		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, At: rules.BoardPos{X: 1, Y: 1}}, {ID: 2, At: rules.BoardPos{X: 9, Y: 9}, Foe: true}, {ID: 3, At: rules.BoardPos{X: 4, Y: 3}, Foe: true}}}}}
 	r := newRules(f, game.Data{})
 	r.send(game.Shoot{})
 	c := shownOf(r).Combat
-	if c == nil || !c.Turn.Aim || len(c.Targets) != 2 || r.cursor != image.Pt(4, 3) {
+	if c == nil || !c.Turn.Aim || len(c.Targets) != 2 || r.cursor != (rules.BoardPos{X: 4, Y: 3}) {
 		t.Fatalf("%+v", c)
 	}
 }

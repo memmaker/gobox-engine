@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // shown is a test's bag of what the screens read: what each reader of
@@ -105,7 +106,7 @@ type (
 	tAnswer struct {
 		N    int
 		Text string
-		At   image.Point
+		At   rules.BoardPos
 	}
 	tWalkTo       struct{ At image.Point }
 	tRest         struct{ Minutes int }
@@ -142,7 +143,7 @@ func (r *frontState) send(d any) game.Result {
 		return r.apply(d)
 	case tAnswer:
 		ps := r.g.State()
-		if d.At != (image.Point{}) {
+		if d.At != (rules.BoardPos{}) {
 			return r.answer(ps, game.Reply{N: d.N, Text: d.Text}, d.At)
 		}
 		return r.apply(game.Reply{N: d.N, Text: d.Text})

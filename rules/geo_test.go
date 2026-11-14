@@ -8,7 +8,7 @@ import (
 )
 
 func TestMap(t *testing.T) {
-	b := make([]byte, Size)
+	b := make([]byte, GeoSize)
 	i := 2 + 3<<4 + 4 // x=4,y=3
 	b[i] = 0x12
 	b[0x100+i] = 0x34
@@ -123,10 +123,10 @@ func daxBlocks(t *testing.T, path string) map[int][]byte {
 }
 
 func TestMapLength(t *testing.T) {
-	if _, err := ParseMap(make([]byte, Size+10)); err != nil {
+	if _, err := ParseMap(make([]byte, GeoSize+10)); err != nil {
 		t.Fatal("a long GEO block is refused:", err)
 	}
-	if _, err := ParseMap(make([]byte, Size-1)); err != ErrSize {
+	if _, err := ParseMap(make([]byte, GeoSize-1)); err != ErrSize {
 		t.Fatal("a short GEO block is accepted")
 	}
 }

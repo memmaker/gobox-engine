@@ -1,8 +1,6 @@
 package game
 
-import (
-	"image"
-)
+import "gobox/rules"
 
 // The questions, turns and results the rules and the classic front share:
 // what carries an Action lives here, beside Action.
@@ -57,7 +55,7 @@ type Turn struct {
 
 // Combat is a fight. Squares hold art refs, not cells.
 type Combat struct {
-	Size    image.Point
+	Size    rules.Size
 	Squares []Ground
 	Units   []Unit
 	Turn    *Turn
@@ -72,7 +70,7 @@ type Combat struct {
 	// Marks are the squares framed for a choice: with Area, a spell's area
 	// (AreaAt the squares it covers round the aimed square, Skipped the allies
 	// in it that it passes over), else the units an aim would hit.
-	Marks, AreaAt, Skipped []image.Point
+	Marks, AreaAt, Skipped []rules.BoardPos
 	Area                   bool
 	Why                    string // aiming: why the aimed square cannot be taken, "" when it can
 
@@ -99,7 +97,7 @@ type Report struct {
 	Picture      Picture // EvDown: the body the unit leaves on its square (a ground Overlay), for the fight's last blow, when no Combat follows
 	Sound        string  // sound ref for EvSound / song ref for EvSong
 	Unit, Target int
-	At, To       image.Point
+	At, To       rules.BoardPos
 	Sprite       []Picture
 	StepMs       int     // EvMissile with Sprite: the flight's time per third of a square (0: Ms shared out)
 	Ms           int     // >0: the moment holds this many milliseconds (with Screen: a timed moment outside a fight)
@@ -118,10 +116,10 @@ func (r *Refusal) Error() string { return r.Text }
 // The actions only the front answers: a game may name them as an Option's Do
 // or a Question's Do; Do never receives them.
 type (
-	Cancel    struct{}                 // Esc: the question or screen up is given up
-	Aim       struct{ At image.Point } // the free cursor, or the square picked
-	OpenItems struct{ Member int }     // the inventory screen (-1: the selected or acting member)
-	SpeedMenu struct{}                 // the game speed menu
+	Cancel    struct{}                    // Esc: the question or screen up is given up
+	Aim       struct{ At rules.BoardPos } // the free cursor, or the square picked
+	OpenItems struct{ Member int }        // the inventory screen (-1: the selected or acting member)
+	SpeedMenu struct{}                    // the game speed menu
 )
 
 func (Cancel) action()    {}

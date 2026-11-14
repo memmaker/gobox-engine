@@ -10,7 +10,6 @@ package game
 
 import (
 	"gobox/rules"
-	"image"
 	"time"
 )
 
@@ -71,7 +70,7 @@ type Allowed struct {
 // of Squares (each Area squares round), then sends Action with Ats filled.
 type Aimed struct {
 	Action  Action // Cast, UseItem, Shoot or DoManeuver with Ats empty
-	Squares []image.Point
+	Squares []rules.BoardPos
 	Targets int // squares to pick, 1 for one
 	Area    int // radius hit round each, 0 the square alone
 }
@@ -240,7 +239,7 @@ type Fighting struct {
 
 // Battlefield is the battle as the rules hold it.
 type Battlefield struct {
-	Size      image.Point
+	Size      rules.Size
 	Squares   []Ground
 	Tiles     []string // Ground.Tile's Data.Art names
 	FloorTile string
@@ -393,13 +392,13 @@ type (
 	}
 	Shot struct {
 		From   int
-		To     image.Point
+		To     rules.BoardPos
 		Art    Picture
 		StepMs int // the flight's time per third of a square, the original's (10 pointed, 20 tumbling, 50 spinning, 30 a spell; 0: gobox's); gobox scales it by the player's speed
 	}
 	CastSpell struct {
 		From, Spell int
-		Ats         []image.Point
+		Ats         []rules.BoardPos
 	}
 	Engaged struct{ At Fighting }      // a fight began: it before the first turn, board and party (the step's fight events play from it)
 	Struck  struct{ Unit, Damage int } // harm without an attack (a spell, a trap)
@@ -410,7 +409,7 @@ type (
 	} // down or dead
 	Fled  struct{ Unit int }
 	Moved struct {
-		To     image.Point
+		To     rules.MapPos
 		Facing int
 	} // the party, exploring
 	TimePassed struct{ D time.Duration }
@@ -489,12 +488,12 @@ type (
 		Member int
 		Item   rules.ItemHandle
 		Target int
-		Ats    []image.Point
+		Ats    []rules.BoardPos
 		Spell  int // a scroll's spell, 0 the first
 	}
 	Cast struct {
 		Member, Spell, Target int
-		Ats                   []image.Point
+		Ats                   []rules.BoardPos
 	}
 	SelectMember struct{ Member int }
 	Order        struct{ From, To int }
@@ -551,7 +550,7 @@ type (
 
 	// Exploring.
 	Arrive struct {
-		From, To image.Point
+		From, To rules.MapPos
 		Facing   int
 	} // the party steps from From to To; the game may refuse (a locked door) and runs no event
 	RunEvent struct {
@@ -561,10 +560,10 @@ type (
 	Face    struct{ Facing int }
 	TryDoor struct{ Way DoorWay } // a way through Exploring.Door
 	Mark    struct {
-		At   image.Point
+		At   rules.MapPos
 		Text string
 	} // a note on the automap
-	Unmark        struct{ At image.Point }
+	Unmark        struct{ At rules.MapPos }
 	Search        struct{}
 	Look          struct{}
 	MakeCamp      struct{}
@@ -585,15 +584,15 @@ type (
 
 	// Fighting. EndTurn's outcome carries the monsters' moves up to the
 	// next member's turn.
-	MoveTo struct{ To image.Point }
+	MoveTo struct{ To rules.BoardPos }
 	Attack struct {
 		Target int
-		At     *image.Point // aimed (Allowed.Aimed, squares): the square picked, nil by Target
+		At     *rules.BoardPos // aimed (Allowed.Aimed, squares): the square picked, nil by Target
 	}
-	Shoot      struct{ Ats []image.Point }
+	Shoot      struct{ Ats []rules.BoardPos }
 	DoManeuver struct {
 		ID  int
-		Ats []image.Point
+		Ats []rules.BoardPos
 	}
 	TurnUndead struct{}
 	Guard      struct{}

@@ -10,6 +10,7 @@ import (
 
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/rules"
 )
 
 // In camp every member's context menu is up at once: in the row and down
@@ -26,7 +27,7 @@ func TestCampCardsAndMenusApart(t *testing.T) {
 	}
 	presenter := func() *Presenter { // camp over the 3D view and its minimap the state gave
 		common := game.Common{Party: members, Allowed: allowed, Adventure: true, Where: game.Where{Searching: true}} // the Sweeping label
-		g, f := playGame(game.Exploring{Common: common, Map: game.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16)},
+		g, f := playGame(game.Exploring{Common: common, Map: game.ExploreMap{Automap: game.Automap{Size: rules.Size{W: 16, H: 16}},
 			Walls: game.MapWalls{Side: [][][4]int{{{1, 1, 1, 1}}}, Pool: map[int]string{1: "w"}}}})
 		p := &Presenter{}
 		p.SetEngine(g)

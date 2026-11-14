@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // partyOf is ps's party as the screens show it.
@@ -66,7 +67,7 @@ func allowedOf(ps game.State) map[string]bool {
 func automapOf(ps game.State, explored game.Automap) game.Automap {
 	c := game.CommonOf(ps)
 	a := c.Automap
-	if x, ok := ps.(game.Exploring); ok && a.Size == (image.Point{}) {
+	if x, ok := ps.(game.Exploring); ok && a.Size == (rules.Size{}) {
 		a = x.Map.Automap
 	}
 	if _, ok := ps.(game.Camping); ok && len(a.Known) == 0 && len(explored.Known) > 0 {

@@ -1,10 +1,10 @@
 package ui
 
 import (
-	"image"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // TestEndedFightBody: the last blow ends the fight (no Combat after it):
@@ -13,7 +13,7 @@ import (
 func TestEndedFightBody(t *testing.T) {
 	r := &fightRules{}
 	g := NewGame(r, game.Data{})
-	g.lastCombat = &game.Combat{Size: image.Pt(8, 8), Units: []game.Unit{{ID: 4, At: image.Pt(3, 2), HP: 1}}}
+	g.lastCombat = &game.Combat{Size: rules.Size{W: 8, H: 8}, Units: []game.Unit{{ID: 4, At: rules.BoardPos{X: 3, Y: 2}, HP: 1}}}
 	body := game.Picture{W: 1, H: 1, Pixels: []byte{5}, Clear: -1}
 	g.events = []game.Report{{Kind: game.EvDown, Unit: 4, Picture: body, Ms: 1}, {Kind: game.EvMessage, Text: "won", Ms: 100}}
 	evs := settled(g)
@@ -30,9 +30,9 @@ func TestEndedFightBody(t *testing.T) {
 func TestEndedFightTileBody(t *testing.T) {
 	r := &fightRules{}
 	g := NewGame(r, game.Data{})
-	g.lastCombat = &game.Combat{Size: image.Pt(8, 8), Tiles: []string{"grass", "venuscom_tile_003"},
-		Squares: []game.Ground{{At: image.Pt(3, 2), Tile: 0}},
-		Units:   []game.Unit{{ID: 1, At: image.Pt(3, 2), Size: 2, HP: 1}}}
+	g.lastCombat = &game.Combat{Size: rules.Size{W: 8, H: 8}, Tiles: []string{"grass", "venuscom_tile_003"},
+		Squares: []game.Ground{{At: rules.BoardPos{X: 3, Y: 2}, Tile: 0}},
+		Units:   []game.Unit{{ID: 1, At: rules.BoardPos{X: 3, Y: 2}, Size: 2, HP: 1}}}
 	g.events = []game.Report{{Kind: game.EvDown, Unit: 1, Picture: game.Picture{Name: "venuscom_tile_003"}, Ms: 1}, {Kind: game.EvMessage, Text: "won", Ms: 100}}
 	evs := settled(g)
 	if len(evs) != 2 || boardOfFrame(evs[1]) == nil {
@@ -50,8 +50,8 @@ func TestEndedFightTileBody(t *testing.T) {
 func TestEndedFightBeastStays(t *testing.T) {
 	r := &fightRules{}
 	g := NewGame(r, game.Data{})
-	g.lastCombat = &game.Combat{Size: image.Pt(8, 8), Tiles: []string{"grass", "venuscom_tile_003"},
-		Units: []game.Unit{{ID: 5, At: image.Pt(1, 1), HP: 9}, {ID: 7, At: image.Pt(3, 2), Size: 2, HP: 3, Foe: true}}}
+	g.lastCombat = &game.Combat{Size: rules.Size{W: 8, H: 8}, Tiles: []string{"grass", "venuscom_tile_003"},
+		Units: []game.Unit{{ID: 5, At: rules.BoardPos{X: 1, Y: 1}, HP: 9}, {ID: 7, At: rules.BoardPos{X: 3, Y: 2}, Size: 2, HP: 3, Foe: true}}}
 	g.events = []game.Report{{Kind: game.EvMove, Unit: 7, N: 2, Turn: true},
 		{Kind: game.EvAttack, Unit: 5, Target: 7, Pose: 1, Ms: 400}, {Kind: game.EvDamage, Unit: 7, Target: 7, N: 3},
 		{Kind: game.EvDown, Unit: 7, Target: 7, Picture: game.Picture{Name: "venuscom_tile_003"}, Ms: 500}, {Kind: game.EvMessage, Text: "won", Ms: 100}}
@@ -79,9 +79,9 @@ func TestEndedFightBeastStays(t *testing.T) {
 // last blow: the page came straight after, Mirelle standing to the end).
 func TestLiveFallBody(t *testing.T) {
 	r := &fightRules{}
-	r.st = game.Fighting{Field: game.Battlefield{Size: image.Pt(8, 8), Units: []game.Unit{{ID: 9, Member: -1, At: image.Pt(5, 5), HP: 9, Foe: true}}}}
+	r.st = game.Fighting{Field: game.Battlefield{Size: rules.Size{W: 8, H: 8}, Units: []game.Unit{{ID: 9, Member: -1, At: rules.BoardPos{X: 5, Y: 5}, HP: 9, Foe: true}}}}
 	g := NewGame(r, game.Data{})
-	g.lastCombat = &game.Combat{Size: image.Pt(8, 8), Units: []game.Unit{{ID: 2, At: image.Pt(3, 2), HP: 1}, {ID: 9, At: image.Pt(5, 5), HP: 9, Foe: true}}}
+	g.lastCombat = &game.Combat{Size: rules.Size{W: 8, H: 8}, Units: []game.Unit{{ID: 2, At: rules.BoardPos{X: 3, Y: 2}, HP: 1}, {ID: 9, At: rules.BoardPos{X: 5, Y: 5}, HP: 9, Foe: true}}}
 	body := game.Picture{W: 1, H: 1, Pixels: []byte{5}, Clear: -1}
 	g.events = []game.Report{{Kind: game.EvDown, Unit: 2, Picture: body}}
 	evs := settled(g)

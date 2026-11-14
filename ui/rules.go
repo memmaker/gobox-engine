@@ -19,6 +19,7 @@ import (
 	"unicode"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // Dir is the slot folder when the game names none and the user has no
@@ -65,8 +66,8 @@ func (r *frontState) build() stateBuild { return stateBuild{r.g.Version(), daxAr
 // squareAim is an Aimed action whose squares the player is picking.
 type squareAim struct {
 	game.Aimed
-	ats    []image.Point
-	byUnit map[image.Point]int // an Attack aimed at a unit the game offers by id: its squares' ids
+	ats    []rules.BoardPos
+	byUnit map[rules.BoardPos]int // an Attack aimed at a unit the game offers by id: its squares' ids
 }
 
 // newRules is the front state over g; d is the game's Data.
@@ -598,14 +599,14 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 	}
 	if r.aim != nil { // aiming: the foes on the aim's squares are what Tab cycles (none in reach: every foe), the cursor on the nearest
 		c.Targets = nil
-		var from image.Point
+		var from rules.BoardPos
 		for _, u := range c.Units {
 			if u.Active {
 				from = u.At
 			}
 		}
-		covers := func(u game.Unit, sq []image.Point) bool { // any square it covers (a big foe's At may lie outside the reach)
-			return slices.ContainsFunc(append([]image.Point{u.At}, u.Squares...), func(q image.Point) bool { return slices.Contains(sq, q) })
+		covers := func(u game.Unit, sq []rules.BoardPos) bool { // any square it covers (a big foe's At may lie outside the reach)
+			return slices.ContainsFunc(append([]rules.BoardPos{u.At}, u.Squares...), func(q rules.BoardPos) bool { return slices.Contains(sq, q) })
 		}
 		var live []game.Unit
 		for _, u := range c.Units {
@@ -619,7 +620,7 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 		cur, best, kept := r.cursor, -1, len(r.aim.ats) > 0 || slices.Contains(r.aim.Squares, r.cursor)
 		for _, u := range live {
 			c.Targets = append(c.Targets, u.ID)
-			kept = kept || covers(u, []image.Point{r.cursor})
+			kept = kept || covers(u, []rules.BoardPos{r.cursor})
 			if d := u.At.Sub(from); best < 0 || d.X*d.X+d.Y*d.Y < best {
 				best, cur = d.X*d.X+d.Y*d.Y, u.At
 			}
@@ -691,7 +692,7 @@ func (r *frontState) apply(a game.Action) game.Result {
 				}
 			}
 		}
-		return r.answer(ps, d, image.Point{})
+		return r.answer(ps, d, rules.BoardPos{})
 	case game.Cancel:
 		return r.cancel()
 	case game.Aim:
@@ -763,7 +764,7 @@ func (r *frontState) cancel() game.Result {
 	lone := r.aim != nil && r.ask == nil && slices.Contains(game.CommonOf(ps).Allowed.Plain, game.Action(game.Leave{}))
 	if q := game.CommonOf(ps).Ask; q != nil && r.ask == nil && r.aim == nil { // Esc on the rules' menu: the reply it names (its Exit, as the originals')
 		if i, ok := q.Esc.Reply(); ok && i < len(q.Replies) {
-			return r.answer(ps, game.Reply{N: i}, image.Point{})
+			return r.answer(ps, game.Reply{N: i}, rules.BoardPos{})
 		}
 	}
 	bare := r.ask == nil && r.aim == nil
@@ -908,7 +909,7 @@ func (r *frontState) setField(field, option int) game.Result {
 // facing is the step from a to b as a facing, else f (a step off the map).
 
 // answer answers gobox's own ask, or the scene's.
-func (r *frontState) answer(ps game.State, d game.Reply, at image.Point) game.Result {
+func (r *frontState) answer(ps game.State, d game.Reply, at rules.BoardPos) game.Result {
 	if r.speedUp { // Faster, Slower (one step, the menu stays), Exit
 		switch d.N {
 		case 0:
@@ -1006,7 +1007,7 @@ func (r *frontState) aimOrDo(al game.Allowed, a game.Action) game.Result {
 	return r.do(a)
 }
 
-func (r *frontState) aimAt(at image.Point) game.Result {
+func (r *frontState) aimAt(at rules.BoardPos) game.Result {
 	m := r.aim
 	if m == nil { // free cursor (looking): gobox's own, the game is not told
 		r.cursor = at
@@ -1033,12 +1034,12 @@ func (r *frontState) attackAim(plain []game.Action) *squareAim {
 	if c == nil {
 		return nil
 	}
-	m := &squareAim{Aimed: game.Aimed{Action: game.Attack{}, Targets: 1}, byUnit: map[image.Point]int{}}
+	m := &squareAim{Aimed: game.Aimed{Action: game.Attack{}, Targets: 1}, byUnit: map[rules.BoardPos]int{}}
 	for _, a := range plain {
 		if at, ok := a.(game.Attack); ok {
 			for _, u := range c.Units {
 				if u.ID == at.Target {
-					for _, sq := range append([]image.Point{u.At}, u.Squares...) {
+					for _, sq := range append([]rules.BoardPos{u.At}, u.Squares...) {
 						m.byUnit[sq] = u.ID
 						m.Squares = append(m.Squares, sq)
 					}
@@ -1052,7 +1053,7 @@ func (r *frontState) attackAim(plain []game.Action) *squareAim {
 	return m
 }
 
-func ats(a game.Action) []image.Point {
+func ats(a game.Action) []rules.BoardPos {
 	switch a := a.(type) {
 	case game.Cast:
 		return a.Ats
@@ -1064,13 +1065,13 @@ func ats(a game.Action) []image.Point {
 		return a.Ats
 	case game.Attack:
 		if a.At != nil {
-			return []image.Point{*a.At}
+			return []rules.BoardPos{*a.At}
 		}
 	}
 	return nil
 }
 
-func withAts(a game.Action, at []image.Point) game.Action {
+func withAts(a game.Action, at []rules.BoardPos) game.Action {
 	switch x := a.(type) {
 	case game.Cast:
 		x.Ats = at
@@ -1220,8 +1221,8 @@ func (w *walking) stands(ps game.State, at image.Point, facing int) bool {
 }
 
 // walked is the map's squares walked on so far.
-func walked(x game.Exploring) []image.Point {
-	if x.Automap.Size != (image.Point{}) {
+func walked(x game.Exploring) []rules.MapPos {
+	if x.Automap.Size != (rules.Size{}) {
 		return x.Automap.Walked
 	}
 	return x.Map.Automap.Walked
@@ -1283,7 +1284,8 @@ func (r *frontState) walkStep() game.Result {
 		r.walk = nil
 		return game.Result{}
 	}
-	to, visited := from.Add(walkOffset(side)), slices.Contains(walked(x), from.Add(walkOffset(side)))
+	to := from.Add(walkOffset(side))
+	visited := slices.Contains(walked(x), rules.MapPos{X: to.X, Y: to.Y})
 	var res game.Result
 	var facts []game.Event
 	act := func(a game.Action) bool {
@@ -1300,7 +1302,7 @@ func (r *frontState) walkStep() game.Result {
 	if x.Map.Walk.Departure(from, side) && (!act(game.RunEvent{Before: true, Side: side}) || !w.stands(r.g.State(), from, side)) {
 		return res
 	}
-	if !act(allowedArrive(game.CommonOf(r.g.State()).Allowed, from, to, side)) {
+	if !act(allowedArrive(game.CommonOf(r.g.State()).Allowed, rules.MapPos{X: from.X, Y: from.Y}, rules.MapPos{X: to.X, Y: to.Y}, side)) {
 		return res
 	}
 	ps := r.g.State()
@@ -1319,7 +1321,7 @@ func (r *frontState) walkStep() game.Result {
 
 // allowedArrive is the step as the rules allow it from and to there, with
 // their facing, else with facing.
-func allowedArrive(al game.Allowed, from, to image.Point, facing int) game.Action {
+func allowedArrive(al game.Allowed, from, to rules.MapPos, facing int) game.Action {
 	for _, a := range al.Plain {
 		if s, ok := a.(game.Arrive); ok && s.From == from && s.To == to {
 			return s
@@ -1407,7 +1409,7 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 		case game.Fled: // a unit that flees or surrenders leaves the field as one that falls does
 			out = append(out, game.Report{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit})
 		case game.Moved:
-			out = append(out, game.Report{Kind: game.EvMove, Unit: -1, To: e.To, N: e.Facing})
+			out = append(out, game.Report{Kind: game.EvMove, Unit: -1, To: rules.BoardPos(e.To), N: e.Facing})
 		case game.Refused:
 			out = append(out, game.Report{Kind: game.EvRefused, Text: e.Why})
 		case game.Ended:

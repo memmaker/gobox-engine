@@ -5,12 +5,13 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 func TestMap(t *testing.T) {
-	s := shown{Where: game.Where{X: 2, Y: 3, Facing: 2}, Map: game.Automap{Size: image.Pt(16, 16),
-		Walls: []game.Wall{{At: image.Pt(1, 1), Side: 6}}, Doors: []game.Wall{{At: image.Pt(1, 1), Side: 0, State: game.DoorLocked}},
-		Marked: []image.Point{{4, 4}, {5, 5}}, Notes: []string{"inn", "Bank"}}}
+	s := shown{Where: game.Where{X: 2, Y: 3, Facing: 2}, Map: game.Automap{Size: rules.Size{W: 16, H: 16},
+		Walls: []game.Wall{{At: rules.MapPos{X: 1, Y: 1}, Side: 6}}, Doors: []game.Wall{{At: rules.MapPos{X: 1, Y: 1}, Side: 0, State: game.DoorLocked}},
+		Marked: []rules.MapPos{{X: 4, Y: 4}, {X: 5, Y: 5}}, Notes: []string{"inn", "Bank"}}}
 	m := Map(&MapSquares{}, s.Map, s.Where)
 	if q := m.Squares[1][1]; q.Walls != [4]MapWall{LockedDoor, 0, 0, Wall} || m.Party != image.Pt(2, 3) || m.Ahead != image.Pt(1, 0) {
 		t.Errorf("%+v %v %v", q, m.Party, m.Ahead)
@@ -26,7 +27,7 @@ func TestMap(t *testing.T) {
 // TestFullMapNoSquares: the front's M asks FullMap with no squares yet; a
 // 16x16 map up must still come back with squares (nil crashed present.mapImage).
 func TestFullMapNoSquares(t *testing.T) {
-	s := shown{Map: game.Automap{Size: image.Pt(16, 16)}}
+	s := shown{Map: game.Automap{Size: rules.Size{W: 16, H: 16}}}
 	if f := FullMap(&FrontFullMap{}, s.Map, s.Where); f == nil || f.Map == nil {
 		t.Fatalf("FullMap: %+v", f)
 	}

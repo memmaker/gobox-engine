@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 func allow(a ...game.Action) game.Common { return game.Common{Allowed: game.Allowed{Plain: a}} }
@@ -66,8 +67,8 @@ func TestGaps(t *testing.T) {
 			func(s shown) bool { return s.PowerPick != nil && s.PowerPick.Name == "Bob" }},
 		{"use power", game.Camping{}, game.UsePower{Member: 1, Kind: game.PowerDisplay}, game.UsePower{Member: 1, Kind: game.PowerDisplay}, nil},
 		{"policy", game.Camping{}, game.SetPolicy{ID: 1, Policy: 2}, game.SetPolicy{ID: 1, Policy: 2}, nil},
-		{"mark", game.Exploring{}, game.Mark{At: image.Pt(1, 2), Text: "x"}, game.Mark{At: image.Pt(1, 2), Text: "x"}, nil},
-		{"unmark", game.Exploring{}, game.Unmark{At: image.Pt(1, 2)}, game.Unmark{At: image.Pt(1, 2)}, nil},
+		{"mark", game.Exploring{}, game.Mark{At: rules.MapPos{X: 1, Y: 2}, Text: "x"}, game.Mark{At: rules.MapPos{X: 1, Y: 2}, Text: "x"}, nil},
+		{"unmark", game.Exploring{}, game.Unmark{At: rules.MapPos{X: 1, Y: 2}}, game.Unmark{At: rules.MapPos{X: 1, Y: 2}}, nil},
 		{"rename", game.Assembling{}, game.Rename{Name: "Al"}, game.Rename{Name: "Al"}, nil},
 		{"quit", game.Over{Text: "The end"}, game.Quit{}, game.Quit{},
 			func(s shown) bool { return s.LastText == "The end" }},
@@ -248,11 +249,11 @@ func TestCardItems(t *testing.T) {
 
 // TestCampKeepsMap: camp keeps the map last explored.
 func TestCampKeepsMap(t *testing.T) {
-	f := &fake{st: game.Exploring{Map: game.ExploreMap{Automap: game.Automap{Size: image.Pt(2, 2), Known: []image.Point{{0, 0}}}}}}
+	f := &fake{st: game.Exploring{Map: game.ExploreMap{Automap: game.Automap{Size: rules.Size{W: 2, H: 2}, Known: []rules.MapPos{{X: 0, Y: 0}}}}}}
 	r := newRules(f, game.Data{})
 	shownOf(r)
 	f.st = game.Camping{}
-	if shownOf(r).Map.Size != image.Pt(2, 2) {
+	if shownOf(r).Map.Size != (rules.Size{W: 2, H: 2}) {
 		t.Fatal("camp lost the map")
 	}
 }
@@ -260,11 +261,11 @@ func TestCampKeepsMap(t *testing.T) {
 // TestCampBareMap: a camp map with nothing known (the party's square
 // only) is the map last explored, not a black minimap.
 func TestCampBareMap(t *testing.T) {
-	known := []image.Point{{0, 0}, {1, 0}}
-	f := &fake{st: game.Exploring{Map: game.ExploreMap{Automap: game.Automap{Size: image.Pt(16, 16), Known: known}}}}
+	known := []rules.MapPos{{X: 0, Y: 0}, {X: 1, Y: 0}}
+	f := &fake{st: game.Exploring{Map: game.ExploreMap{Automap: game.Automap{Size: rules.Size{W: 16, H: 16}, Known: known}}}}
 	r := newRules(f, game.Data{})
 	shownOf(r)
-	f.st = game.Camping{Common: game.Common{Automap: game.Automap{Size: image.Pt(16, 16)}}}
+	f.st = game.Camping{Common: game.Common{Automap: game.Automap{Size: rules.Size{W: 16, H: 16}}}}
 	if got := shownOf(r).Map.Known; len(got) != 2 {
 		t.Fatalf("camp map knows %v", got)
 	}
@@ -273,7 +274,7 @@ func TestCampBareMap(t *testing.T) {
 // TestArriveAsAllowed: a step goes as the rules allow it, with their
 // facing (a step back that turns the party), never refused for gobox's.
 func TestArriveAsAllowed(t *testing.T) {
-	step := game.Arrive{From: image.Pt(0, 6), To: image.Pt(0, 7), Facing: 4}
+	step := game.Arrive{From: rules.MapPos{X: 0, Y: 6}, To: rules.MapPos{X: 0, Y: 7}, Facing: 4}
 	f := &fake{st: game.Exploring{Common: allow(step)}}
 	newRules(f, game.Data{}).send(game.Arrive{From: step.From, To: step.To})
 	if len(f.sent) != 1 || f.sent[0] != step {

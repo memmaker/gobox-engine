@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"image"
-
 	"gobox/game"
+	"gobox/rules"
 )
 
 // derived is what the screens read of the game's State that is made from it,
@@ -38,7 +37,7 @@ func (r *frontState) derived() *derived {
 		if _, ok := ps.(game.Exploring); ok {
 			d.explored = d.automap
 		}
-		if am := d.automap; am.Size == image.Pt(16, 16) {
+		if am := d.automap; am.Size == (rules.Size{W: 16, H: 16}) {
 			d.minimap = Map(&MapSquares{}, am, game.CommonOf(ps).Where)
 			if old != nil && old.minimap != nil && *d.minimap == *old.minimap { // the same map: the one uploaded
 				d.minimap = old.minimap

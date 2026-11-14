@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // ahead is the step towards each facing (N E S W).
@@ -64,24 +65,24 @@ func letters(ls []label) (texts []string, l map[string]byte) {
 // square is seen, the party's square and step ahead, the walls and doors
 // and the labels' kinds and letters. nil where m is.
 func Map(m *MapSquares, a game.Automap, where game.Where) *MapSquares {
-	if m == nil || a.Size != image.Pt(16, 16) {
+	if m == nil || a.Size != (rules.Size{W: 16, H: 16}) {
 		return m
 	}
 	c := MapSquares{Party: image.Pt(where.X, where.Y), Ahead: ahead[where.Facing/2&3]}
 	on := image.Rect(0, 0, 16, 16)
 	for _, p := range a.Known {
-		if p.In(on) {
+		if pt(p).In(on) {
 			c.Squares[p.Y][p.X].Seen = SeenFar
 		}
 	}
 	for _, p := range a.Walked {
-		if p.In(on) {
+		if pt(p).In(on) {
 			c.Squares[p.Y][p.X].Seen = Visited
 		}
 	}
 	set := func(ws []game.Wall, k func(game.Wall) MapWall) {
 		for _, w := range ws {
-			if w.At.In(on) {
+			if pt(w.At).In(on) {
 				c.Squares[w.At.Y][w.At.X].Walls[w.Side/2&3] = k(w)
 			}
 		}
@@ -96,7 +97,7 @@ func Map(m *MapSquares, a game.Automap, where game.Where) *MapSquares {
 	ls := labels(a)
 	_, l := letters(ls)
 	for _, b := range ls {
-		if b.At.In(on) {
+		if pt(b.At).In(on) {
 			q := &c.Squares[b.At.Y][b.At.X]
 			q.Kind, q.Letter = labelKinds[b.Kind], l[b.Text]
 		}
@@ -115,7 +116,7 @@ func pix(p game.Picture) Picture {
 // FullMap is f (the game's) with its map (Map), name, legend, and the
 // cursor's square and label from s. nil where f is.
 func FullMap(f *FrontFullMap, a game.Automap, where game.Where) *FrontFullMap {
-	if f == nil || a.Size != image.Pt(16, 16) {
+	if f == nil || a.Size != (rules.Size{W: 16, H: 16}) {
 		return nil // no 16x16 map up: nothing to draw (a FullMap without Map crashed the presenter)
 	}
 	c := *f
@@ -127,14 +128,14 @@ func FullMap(f *FrontFullMap, a game.Automap, where game.Where) *FrontFullMap {
 	ls := labels(a)
 	texts, l := letters(ls)
 	for _, b := range ls {
-		if b.At == f.Cursor {
+		if pt(b.At) == f.Cursor {
 			c.Info += " " + b.Text
 			c.Labelled, c.Mine = true, b.mine
 		}
 	}
 	for _, t := range texts {
 		i := slices.IndexFunc(ls, func(b label) bool { return b.Text == t })
-		c.Legend = append(c.Legend, MapLabel{Letter: l[t], Text: t, Kind: labelKinds[ls[i].Kind], First: ls[i].At})
+		c.Legend = append(c.Legend, MapLabel{Letter: l[t], Text: t, Kind: labelKinds[ls[i].Kind], First: pt(ls[i].At)})
 	}
 	return &c
 }

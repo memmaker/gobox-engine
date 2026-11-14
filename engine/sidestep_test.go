@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // Sidestep{4} after a step forward walks back to the square, the facing kept.
@@ -66,11 +67,11 @@ func TestSidestepAside(t *testing.T) {
 // RunEvent{Before}, then an Arrive.
 func stepBy(e *Engine, by int) error {
 	d := (e.facing + by) % 8
-	from := image.Pt(e.posX, e.posY)
+	from := rules.MapPos{X: e.posX, Y: e.posY}
 	if _, err := e.doNow(game.RunEvent{Before: true, Side: d}); err != nil {
 		return err
 	}
-	_, err := e.doNow(game.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[d], rules1e.DirDY[d])), Facing: e.facing})
+	_, err := e.doNow(game.Arrive{From: from, To: rules.MapPos{X: from.X + rules1e.DirDX[d], Y: from.Y + rules1e.DirDY[d]}, Facing: e.facing})
 	return err
 }
 
@@ -120,8 +121,8 @@ func TestArriveNeedsBefore(t *testing.T) {
 	e.Explore = true
 	e.Init()
 	e.Start(e.Play)
-	from := image.Pt(e.posX, e.posY)
-	_, err := e.doNow(game.Arrive{From: from, To: from.Add(image.Pt(rules1e.DirDX[e.facing], rules1e.DirDY[e.facing])), Facing: e.facing})
+	from := rules.MapPos{X: e.posX, Y: e.posY}
+	_, err := e.doNow(game.Arrive{From: from, To: rules.MapPos{X: from.X + rules1e.DirDX[e.facing], Y: from.Y + rules1e.DirDY[e.facing]}, Facing: e.facing})
 	if err == nil || e.posX != from.X || e.posY != from.Y {
 		t.Fatalf("Arrive alone: err %v, at %d,%d", err, e.posX, e.posY)
 	}

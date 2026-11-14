@@ -2,7 +2,6 @@ package engine
 
 import (
 	"cmp"
-	"image"
 	"math"
 	"slices"
 	"strconv"
@@ -40,14 +39,14 @@ func (e *Engine) fightState() *game.Combat {
 		return nil
 	}
 	b := e.battle()
-	c := &game.Combat{Size: image.Pt(len(b.Ground[0]), len(b.Ground)), Round: int(e.ruleset().Check(rules.FightRound{}, nil).Value), Dungeon: b.Dungeon,
+	c := &game.Combat{Size: rules.Size{W: len(b.Ground[0]), H: len(b.Ground)}, Round: int(e.ruleset().Check(rules.FightRound{}, nil).Value), Dungeon: b.Dungeon,
 		Targets: slices.Clone(b.Targets), Panel: b.Panel, Marks: slices.Clone(b.Marks), Area: b.Area,
 		AreaAt: slices.Clone(b.AreaAt), Skipped: slices.Clone(b.Skipped), Why: b.AimWhy,
 		Strike: game.Strike{Seq: b.Strike.Seq, From: b.Strike.From, To: b.Strike.To, Hit: b.Strike.Hit, Damage: b.Strike.Damage},
 		Log:    slices.Clone(b.Log)}
 	for y := range b.Ground {
 		for x, q := range b.Ground[y] {
-			c.Squares = append(c.Squares, game.Ground{At: image.Pt(x, y), Block: q.Wall, Height: q.Height, Tile: q.Tile, Crown: q.Crown})
+			c.Squares = append(c.Squares, game.Ground{At: rules.BoardPos{X: x, Y: y}, Block: q.Wall, Height: q.Height, Tile: q.Tile, Crown: q.Crown})
 		}
 	}
 	art := e.overlandArt() // the map Art() gives: the tile set joins it
@@ -63,7 +62,7 @@ func (e *Engine) fightState() *game.Combat {
 		c.Effects = append(c.Effects, game.Effect{X: int(math.Round(f.X * 3)), Y: int(math.Round(f.Y * 3)), Art: gamePicture(b.EffectPix[i])})
 	}
 	for i, u := range b.Units {
-		g := game.Unit{ID: u.ID, Name: u.Name, At: image.Pt(u.X, u.Y), Facing: u.Facing, Foe: !u.Party, HP: u.HP, MaxHP: u.MaxHP,
+		g := game.Unit{ID: u.ID, Name: u.Name, At: rules.BoardPos{X: u.X, Y: u.Y}, Facing: u.Facing, Foe: !u.Party, HP: u.HP, MaxHP: u.MaxHP,
 			Size: u.Size, Squares: slices.Clone(u.Squares), AC: u.AC, Status: u.Status, Dmg: u.Dmg, Member: -1, Active: u.Active, Hit: u.Hit}
 		if !u.Party { // a member's icon is the front's to compose from its icon numbers
 			g.Art = gamePicture(b.IconPix[i])
@@ -81,7 +80,7 @@ func (e *Engine) fightState() *game.Combat {
 	for _, r := range b.Reach {
 		rc := game.Reach{At: r, Steps: len(b.Paths[r])}
 		for _, st := range b.Paths[r] {
-			rc.Path = append(rc.Path, game.Step{At: point(st.At), Free: st.Free})
+			rc.Path = append(rc.Path, game.Step{At: st.At, Free: st.Free})
 		}
 		c.Reach = append(c.Reach, rc)
 	}

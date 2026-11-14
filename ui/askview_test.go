@@ -1,11 +1,11 @@
 package ui
 
 import (
-	"image"
 	"testing"
 	"time"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // With Ask.View the View action on a highlighted member reaches the rules' ViewMember; without, it does not.
@@ -40,7 +40,7 @@ func TestTempleView(t *testing.T) {
 // TestAimAnswersInFight: a lone aim in a fight (BR1's Target) takes the
 // clicked square as its answer, not as an Aim the ask refuses.
 func TestAimAnswersInFight(t *testing.T) {
-	st := game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: game.Shoot{}, Squares: []image.Point{{14, 8}}, Targets: 1}}}}}
+	st := game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: game.Shoot{}, Squares: []rules.BoardPos{{X: 14, Y: 8}}, Targets: 1}}}}}
 	f := &fake{st: st}
 	g := NewGame(f, game.Data{})
 	g.Answer(Action{Kind: ActAim, X: 14, Y: 8})

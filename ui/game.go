@@ -35,7 +35,7 @@ type Game struct {
 // aiming is the squares picked so far for spell, up to n.
 type aiming struct {
 	spell, n int
-	ats      []image.Point
+	ats      []rules.BoardPos
 }
 
 // NewGame is the *classicGame over p and d.
@@ -252,7 +252,7 @@ func (g *Game) stepBoard(e game.Report) (*game.Combat, []game.Member) {
 func hasPic(p game.Picture) bool { return p.File != "" || p.Name != "" || p.Pixels != nil }
 
 // withOverlay is sq with o lying on the square at.
-func withOverlay(sq []game.Ground, at image.Point, o game.Picture) []game.Ground {
+func withOverlay(sq []game.Ground, at rules.BoardPos, o game.Picture) []game.Ground {
 	if i := slices.IndexFunc(sq, func(q game.Ground) bool { return q.At == at }); i >= 0 {
 		sq[i].Overlay = o
 		return sq
@@ -613,8 +613,8 @@ func (g *Game) TrainingView() *FrontTraining {
 func (g *Game) FullMapView(cursor image.Point, label *string) *FrontFullMap {
 	return g.FullMapOf(&FrontFullMap{Cursor: cursor})
 }
-func (g *Game) Mark(x, y int, text string) { g.do(game.Mark{At: image.Pt(x, y), Text: text}) }
-func (g *Game) Unmark(x, y int)            { g.do(game.Unmark{At: image.Pt(x, y)}) }
+func (g *Game) Mark(x, y int, text string) { g.do(game.Mark{At: rules.MapPos{X: x, Y: y}, Text: text}) }
+func (g *Game) Unmark(x, y int)            { g.do(game.Unmark{At: rules.MapPos{X: x, Y: y}}) }
 func (g *Game) WalkTo(x, y int) bool {
 	return g.run("walkTo", func() game.Result { return g.r.walkTo(g.r.g.State(), image.Pt(x, y)) }) == nil
 }
@@ -657,7 +657,7 @@ func (g *Game) Answer(a Action) error {
 	if m := g.r.spellAim; m != nil { // up to n squares, then the cast; Enter casts on those picked, Esc gives up
 		switch {
 		case a.Kind == ActAim:
-			if m.ats = append(m.ats, image.Pt(a.X, a.Y)); len(m.ats) < m.n {
+			if m.ats = append(m.ats, rules.BoardPos{X: a.X, Y: a.Y}); len(m.ats) < m.n {
 				return nil
 			}
 		case a.Kind == ActOK && len(m.ats) > 0:
@@ -726,7 +726,7 @@ func (g *Game) act(a Action) func() error {
 	own := func(what string, step func() game.Result) func() error {
 		return func() error { return g.run(what, step) }
 	}
-	at := image.Pt(a.X, a.Y)
+	at := rules.BoardPos{X: a.X, Y: a.Y}
 	m := g.sel(a.N)
 	if q := g.pending(); q != nil && q.Kind == game.Square && a.Kind == ActAim { // the square answers the square question, in any mode (a fight's Target asks in ModeCombat)
 		return own("aim", func() game.Result { return g.r.answer(g.r.g.State(), game.Reply{}, at) })

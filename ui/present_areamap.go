@@ -144,23 +144,23 @@ func (p *Presenter) drawAreaMap(dst *gpu.Image) {
 		return
 	}
 	am, art, where := p.eng.r.derived().automap, p.eng.art(), p.where()
-	if len(am.Terrain) == 0 || len(art) == 0 || len(am.Terrain) != am.Size.X*am.Size.Y {
+	if len(am.Terrain) == 0 || len(art) == 0 || len(am.Terrain) != am.Size.W*am.Size.H {
 		return
 	}
 	a := &p.areaPic
-	a.resolve(am.Terrain, am.Size, art)
+	a.resolve(am.Terrain, image.Pt(am.Size.W, am.Size.H), art)
 	mk := am.Marker
 	if mk == "" {
 		mk = "marker"
 	}
 	var seen [][]bool
 	if len(am.Known) < len(am.Terrain) { // else every square is seen
-		seen = make([][]bool, am.Size.Y)
+		seen = make([][]bool, am.Size.H)
 		for y := range seen {
-			seen[y] = make([]bool, am.Size.X)
+			seen[y] = make([]bool, am.Size.W)
 		}
 		for _, q := range am.Known {
-			if q.In(image.Rectangle{Max: am.Size}) {
+			if pt(q).In(image.Rect(0, 0, am.Size.W, am.Size.H)) {
 				seen[q.Y][q.X] = true
 			}
 		}

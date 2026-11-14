@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // walks are the moves gobox makes on the game's Map: a step's side
@@ -74,7 +75,7 @@ func (g *Game) stepThrough(m game.Map, side int) error {
 	if m.Edge(from, side).Kind == game.EdgeWall {
 		return nil
 	}
-	if err := g.do(game.Arrive{From: from, To: from.Add(steps[side]), Facing: where.Facing}); err != nil || g.r.refusalAsk != nil {
+	if err := g.do(game.Arrive{From: rules.MapPos{X: from.X, Y: from.Y}, To: rules.MapPos{X: from.X + steps[side].X, Y: from.Y + steps[side].Y}, Facing: where.Facing}); err != nil || g.r.refusalAsk != nil {
 		return err
 	}
 	if m := g.walkMap(); m != nil && m.Event(at(g.Where())) { // the square's event: run it

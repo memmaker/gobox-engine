@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gobox/rules"
 	"gobox/rules1e"
-	"image"
 	"reflect"
 	"slices"
 	"strings"
@@ -126,7 +125,7 @@ func noSilentDo(t *testing.T, states map[string]func(t *testing.T) *Engine) {
 			if len(a.Squares) == 0 {
 				continue
 			}
-			at := []image.Point{a.Squares[0]}
+			at := []rules.BoardPos{a.Squares[0]}
 			switch x := a.Action.(type) {
 			case game.Cast:
 				x.Ats = at

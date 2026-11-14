@@ -3,7 +3,6 @@ package engine
 import (
 	"gobox/rules"
 	"gobox/rules1e"
-	"image"
 	"slices"
 	"strings"
 	"testing"
@@ -122,7 +121,7 @@ func TestFleeOffEdge(t *testing.T) {
 			continue
 		}
 		a := e.member(e.cs.actor)
-		at := image.Pt(e.state().CombatX(a), e.state().CombatY(a))
+		at := rules.BoardPos{X: e.state().CombatX(a), Y: e.state().CombatY(a)}
 		for dir := 0; dir < 8; dir++ {
 			if who, g := e.state().GroundAt(a, dir); who == 0 && g == 0 {
 				if _, err := e.doNow(game.Flee{}); err != nil {
@@ -147,7 +146,7 @@ func TestFleeOffEdge(t *testing.T) {
 			}
 		}
 		b := f.Field
-		edge := func(p image.Point) int { return min(p.X, p.Y, b.Size.X-1-p.X, b.Size.Y-1-p.Y) }
+		edge := func(p rules.BoardPos) int { return min(p.X, p.Y, b.Size.W-1-p.X, b.Size.H-1-p.Y) }
 		best := at
 		for _, q := range f.Allowed.Moves {
 			if edge(q.At) < edge(best) {
@@ -389,9 +388,11 @@ func TestMoveStep(t *testing.T) {
 		t.Skip("no party turn")
 	}
 	a := e.member(e.cs.actor)
-	at := image.Pt(e.state().CombatX(a), e.state().CombatY(a))
-	step := func(dir int) image.Point { return at.Add(image.Pt(rules1e.DirDX[dir], rules1e.DirDY[dir])) }
-	inReach := func(p image.Point) bool { return playAllows(e.build(), game.MoveTo{To: p}) }
+	at := rules.BoardPos{X: e.state().CombatX(a), Y: e.state().CombatY(a)}
+	step := func(dir int) rules.BoardPos {
+		return at.Add(rules.BoardPos{X: rules1e.DirDX[dir], Y: rules1e.DirDY[dir]})
+	}
+	inReach := func(p rules.BoardPos) bool { return playAllows(e.build(), game.MoveTo{To: p}) }
 	free, walled := -1, -1
 	for dir := 0; dir < 8; dir++ {
 		who, g := e.state().GroundAt(a, dir)
@@ -442,11 +443,11 @@ func TestAllyBump(t *testing.T) { testAllyBump(t, testEngine) }
 func testAllyBump(t *testing.T, mk func(*testing.T) *Engine) {
 	e := partyTurnSceneOn(t, mk(t))
 	a := e.member(e.cs.actor)
-	var to image.Point
+	var to rules.BoardPos
 	found := false
 	for dir := 0; dir < 8 && !found; dir++ {
 		if who, _ := e.state().GroundAt(a, dir); who > 0 && e.state().Combatant(who).Side == a.Side {
-			to, found = image.Pt(e.state().CombatX(a)+rules1e.DirDX[dir], e.state().CombatY(a)+rules1e.DirDY[dir]), true
+			to, found = rules.BoardPos{X: e.state().CombatX(a) + rules1e.DirDX[dir], Y: e.state().CombatY(a) + rules1e.DirDY[dir]}, true
 		}
 	}
 	if !found {

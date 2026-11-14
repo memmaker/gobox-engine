@@ -308,24 +308,24 @@ func gameItem(h rules.ItemHandle, card rules.ItemCard) game.Item {
 func (e *Engine) mapState(w *game.Where) game.Automap {
 	if !e.mapView() {
 		if e.worldWord(rules.WordIn3D) == 0 && e.adventure() { // the overland: its terrain
-			m := game.Automap{Area: e.mapName(), Size: image.Pt(44, 36)}
+			m := game.Automap{Area: e.mapName(), Size: rules.Size{W: 44, H: 36}}
 			for y := range 36 {
 				for x := range 44 {
-					m.Known = append(m.Known, image.Pt(x, y)) // the whole map is shown
+					m.Known = append(m.Known, rules.MapPos{X: x, Y: y}) // the whole map is shown
 					m.Terrain = append(m.Terrain, int(e.ruleset().Check(rules.AreaTileIs{X: int32(x), Y: int32(y)}, nil).Value))
 				}
 			}
 			w.X, w.Y = e.overlandSquare().X, e.overlandSquare().Y
-			w.Square = &image.Point{X: e.posX, Y: e.posY} // the view's own (the dungeon's, stale here)
+			w.Square = &rules.MapPos{X: e.posX, Y: e.posY} // the view's own (the dungeon's, stale here)
 			return m
 		}
 		return game.Automap{}
 	}
-	m := game.Automap{Area: e.mapName(), Size: image.Pt(16, 16), NoMap: e.worldWord(rules.WordNoCoords) != 0}
+	m := game.Automap{Area: e.mapName(), Size: rules.Size{W: 16, H: 16}, NoMap: e.worldWord(rules.WordNoCoords) != 0}
 	seen, mine, built := e.ext.seen[e.areaKey()], e.userLabels(), e.builtinLabels(e.areaKey())
 	for y := range 16 {
 		for x := range 16 {
-			at := image.Pt(x, y)
+			at := rules.MapPos{X: x, Y: y}
 			if seen != nil && seen[y<<4|x] != 0 {
 				m.Known = append(m.Known, at)
 			}

@@ -56,7 +56,7 @@ func (e *Engine) battle() *Battle {
 			b.Panel = i
 		}
 		for _, q := range p.Squares {
-			u.Squares = append(u.Squares, image.Pt(q.X, q.Y))
+			u.Squares = append(u.Squares, q)
 		}
 		u.IconSize = image.Pt(24, 24)
 		var icon Picture

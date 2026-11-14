@@ -3,7 +3,6 @@ package engine
 import (
 	"gobox/rules"
 	"gobox/rules1e"
-	"image"
 	"testing"
 
 	"gobox/game"
@@ -112,7 +111,7 @@ func TestAllyAskKeepsAim(t *testing.T) {
 	if ally == nil {
 		t.Skip("no ally next to the actor")
 	}
-	at := image.Pt(e.state().CombatX(ally), e.state().CombatY(ally))
+	at := rules.BoardPos{X: e.state().CombatX(ally), Y: e.state().CombatY(ally)}
 	ask := func() *game.Question {
 		t.Helper()
 		if _, err := e.doNow(game.Attack{At: &at}); err != nil {

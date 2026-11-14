@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"gobox/game"
+	"gobox/rules"
 	"gobox/ui/combat"
 	"gobox/ui/input"
 	"image"
@@ -675,7 +676,7 @@ type fightSource struct {
 	version stateBuild
 	aim     *squareAim
 	ats     int
-	cursor  image.Point
+	cursor  rules.BoardPos
 	log     int
 }
 

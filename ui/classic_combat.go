@@ -114,13 +114,13 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 	b := &combat.Board{
 		WallTiles: dungeonTiles, StoneTile: 3, TileNames: slices.Clone(c.Tiles),
 		Floor: combatGround(), Dungeon: c.Dungeon,
-		Marks: slices.Clone(c.Marks), Targets: slices.Clone(c.Targets), Panel: c.Panel, Log: slices.Clone(c.Log),
-		Area: c.Area, AreaAt: slices.Clone(c.AreaAt), Skipped: slices.Clone(c.Skipped), AimWhy: c.Why,
+		Marks: pts(c.Marks), Targets: slices.Clone(c.Targets), Panel: c.Panel, Log: slices.Clone(c.Log),
+		Area: c.Area, AreaAt: pts(c.AreaAt), Skipped: pts(c.Skipped), AimWhy: c.Why,
 		Strike: combat.Strike{Seq: c.Strike.Seq, From: c.Strike.From, To: c.Strike.To, Hit: c.Strike.Hit, Damage: c.Strike.Damage},
 	}
 	grid := image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))
 	for _, g := range c.Squares {
-		if g.At.In(grid) {
+		if pt(g.At).In(grid) {
 			b.Ground[g.At.Y][g.At.X] = combat.Square{Tile: g.Tile, Wall: g.Block, Height: g.Height, Crown: g.Crown}
 		}
 	}
@@ -151,7 +151,7 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 		return t, ok
 	}
 	for _, g := range c.Squares {
-		if !g.At.In(grid) {
+		if !pt(g.At).In(grid) {
 			continue
 		}
 		if g.Art.File != "" || g.Art.Pixels != nil {
@@ -179,21 +179,21 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 		b.Effects = append(b.Effects, combat.Effect{X: fly.X, Y: fly.Y, Pic: picImage(pix(fly.Art), ink)})
 	}
 	for _, r := range c.Reach {
-		b.Reach = append(b.Reach, r.At)
+		b.Reach = append(b.Reach, pt(r.At))
 		if b.Paths == nil {
 			b.Paths = map[image.Point][]combat.Step{}
 		}
 		var path []combat.Step
 		for _, st := range r.Path {
-			path = append(path, combat.Step{Point: st.At, Free: st.Free})
+			path = append(path, combat.Step{Point: pt(st.At), Free: st.Free})
 		}
-		b.Paths[r.At] = path
+		b.Paths[pt(r.At)] = path
 	}
 	for _, g := range c.Units {
 		if g.Gone {
 			continue
 		}
-		u := combat.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: slices.Clone(g.Squares), Party: !g.Foe, Facing: g.Facing,
+		u := combat.Unit{ID: g.ID, X: g.At.X, Y: g.At.Y, Size: g.Size, Squares: pts(g.Squares), Party: !g.Foe, Facing: g.Facing,
 			Active: g.Active, Name: g.Name, HP: g.HP, MaxHP: g.MaxHP, AC: g.AC, Hit: g.Hit, Dmg: g.Dmg, Status: g.Status, Down: g.Dead}
 		if g.Member >= 0 && g.Member < len(party) {
 			for _, it := range party[g.Member].Items {
@@ -222,7 +222,7 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 		b.Units = append(b.Units, u)
 	}
 	if p.eng != nil && p.eng.r.aim != nil { // gobox's aim cursor (frontState): its square, a large unit's footprint
-		b.Cursor, b.CursorOn = p.eng.r.cursor, true
+		b.Cursor, b.CursorOn = pt(p.eng.r.cursor), true
 		b.CursorAt = []image.Point{b.Cursor}
 		for _, u := range b.Units {
 			if slices.Contains(u.Squares, b.Cursor) {

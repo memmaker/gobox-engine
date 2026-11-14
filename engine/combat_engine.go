@@ -6,7 +6,6 @@ import (
 	"cmp"
 	"fmt"
 	"gobox/rules"
-	"image"
 	"slices"
 )
 
@@ -210,10 +209,10 @@ func (e *Engine) turnChoices(cID rules.CharID) map[int]rules.BoardPos {
 		}
 		return out
 	}
-	e.snap.reach, e.snap.paths = nil, map[image.Point][]rules.Step{}
+	e.snap.reach, e.snap.paths = nil, map[rules.BoardPos][]rules.Step{}
 	for _, w := range allowed.Moves {
-		e.snap.reach = append(e.snap.reach, image.Pt(w.At.X, w.At.Y))
-		e.snap.paths[image.Pt(w.At.X, w.At.Y)] = steps(w)
+		e.snap.reach = append(e.snap.reach, w.At)
+		e.snap.paths[w.At] = steps(w)
 	}
 	walks := map[int]rules.BoardPos{}
 	e.snap.targets, e.snap.hits = nil, map[int]int{}
@@ -228,7 +227,7 @@ func (e *Engine) turnChoices(cID rules.CharID) map[int]rules.BoardPos {
 		if t.Walk != nil { // hovering the foe shows the walk up to it
 			walks[i] = t.Walk.At
 			for _, sq := range t.Squares {
-				e.snap.paths[image.Pt(sq.X, sq.Y)] = steps(*t.Walk)
+				e.snap.paths[sq] = steps(*t.Walk)
 			}
 		}
 	}

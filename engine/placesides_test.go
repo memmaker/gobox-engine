@@ -44,11 +44,11 @@ func TestSidesApart(t *testing.T) {
 func foesInParty(us []game.Unit) (in int, box image.Rectangle) {
 	for _, u := range us {
 		if !u.Foe {
-			box = box.Union(image.Rectangle{u.At, u.At.Add(image.Pt(1, 1))})
+			box = box.Union(image.Rect(u.At.X, u.At.Y, u.At.X+1, u.At.Y+1))
 		}
 	}
 	for _, u := range us {
-		if u.Foe && u.At.In(box) {
+		if u.Foe && image.Pt(u.At.X, u.At.Y).In(box) {
 			in++
 		}
 	}

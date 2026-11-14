@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"image"
 	"path/filepath"
 	"slices"
 	"testing"
@@ -50,7 +49,7 @@ func TestMarkUnmark(t *testing.T) {
 	e.Init()
 	e.Start(e.Play)
 	e.Advance()
-	at := image.Pt(3, 4)
+	at := rules.MapPos{X: 3, Y: 4}
 	if _, err := e.doNow(game.Mark{At: at, Text: "secret door"}); err != nil {
 		t.Fatal("Mark:", err)
 	}

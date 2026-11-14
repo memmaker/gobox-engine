@@ -277,26 +277,26 @@ type Battle struct {
 	EffectPix []Picture     // Effects' pictures so, by effect; used where Pic is nil
 	Dungeon   bool          // tiles 0..DungeonTiles-1 are stone wall pieces (else outdoor things: trees, water ...)
 	Units     []Unit
-	Marks     []image.Point                // squares framed for a choice (reach of a move, an area of effect)
-	Reach     []image.Point                // squares a click walks to from the main menu (the active unit's move)
-	Paths     map[image.Point][]rules.Step // the walk to each Reach square, from the unit's own square
-	Targets   []int                        // units (by ID) verbAttack takes on the turn; aiming: the foes Tab cycles through
-	Turn      *Turn                        // the player's turn waits for an action (nil: no one to act for). The game fills it on every player's turn, even one whose only offer is Can: the presenter builds a Turn itself only for an AskSquare or AskMove question (askedBattle), since pace, the bar, the Cast list and the status row all read this one field
-	Panel     int                          // the unit the status row shows (who acts, or is being hit)
-	Log       []string                     // this battle's messages, oldest first
-	Area      bool                         // Marks are a spell's area (else a move's reach or a choice)
-	AreaAt    []image.Point                // the squares a spell's area covers round the aimed square
-	Skipped   []image.Point                // squares of allies in the area the spell passes over (Bless: an enemy next to them)
-	AimWhy    string                       // aiming: why the aimed square cannot be taken ("" when it can); views draw the aim red
-	Effects   []Effect                     // sprites over the map: a missile, a hit, a fall
-	Strike    Strike                       // the last weapon attack
+	Marks     []rules.BoardPos                // squares framed for a choice (reach of a move, an area of effect)
+	Reach     []rules.BoardPos                // squares a click walks to from the main menu (the active unit's move)
+	Paths     map[rules.BoardPos][]rules.Step // the walk to each Reach square, from the unit's own square
+	Targets   []int                           // units (by ID) verbAttack takes on the turn; aiming: the foes Tab cycles through
+	Turn      *Turn                           // the player's turn waits for an action (nil: no one to act for). The game fills it on every player's turn, even one whose only offer is Can: the presenter builds a Turn itself only for an AskSquare or AskMove question (askedBattle), since pace, the bar, the Cast list and the status row all read this one field
+	Panel     int                             // the unit the status row shows (who acts, or is being hit)
+	Log       []string                        // this battle's messages, oldest first
+	Area      bool                            // Marks are a spell's area (else a move's reach or a choice)
+	AreaAt    []rules.BoardPos                // the squares a spell's area covers round the aimed square
+	Skipped   []rules.BoardPos                // squares of allies in the area the spell passes over (Bless: an enemy next to them)
+	AimWhy    string                          // aiming: why the aimed square cannot be taken ("" when it can); views draw the aim red
+	Effects   []Effect                        // sprites over the map: a missile, a hit, a fall
+	Strike    Strike                          // the last weapon attack
 }
 
 // Unit is one combatant on the map.
 type Unit struct {
 	ID         int // its place on the combat list: the same unit from snapshot to snapshot
 	X, Y, Size int
-	Squares    []image.Point // the squares it stands on (a large combatant's footprint)
+	Squares    []rules.BoardPos // the squares it stands on (a large combatant's footprint)
 	Party      bool
 	Facing     int         // 0..7
 	IconSize   image.Point // the built icon's size in pixels, 24 a square: what the figure's size and footprint follow (a PNG icon keeps it at its own resolution)

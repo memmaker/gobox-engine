@@ -2,7 +2,6 @@ package engine
 
 import (
 	"errors"
-	"image"
 	"slices"
 
 	"gobox/game"
@@ -219,11 +218,11 @@ func (e *Engine) withItems(n int, f func() error) error {
 // moveActs are a fight's step to to as turn actions: a step off the map
 // flees, into a foe attacks it, into an ally aims at it (which asks
 // Attack Ally?, BUG-CLASSES 41), as moveAttack's (ovr09:09DF).
-func (e *Engine) moveActs(to image.Point, reach []game.Reach) ([]TurnAct, error) {
+func (e *Engine) moveActs(to rules.BoardPos, reach []game.Reach) ([]TurnAct, error) {
 	if c := e.cs.actor; c != rules.NoChar && e.battleUp() {
 		at := e.fact(c, rules.AtFact{}).(rules.BoardPos)
 		for dir := 0; dir < 8; dir++ {
-			if to != image.Pt(at.X+rules.StepX[dir], at.Y+rules.StepY[dir]) {
+			if to != at.Add(rules.BoardPos{X: rules.StepX[dir], Y: rules.StepY[dir]}) {
 				continue
 			}
 			st := e.fact(c, rules.StepFact{Dir: dir}).(rules.StepInfo)

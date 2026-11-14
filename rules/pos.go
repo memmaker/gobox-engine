@@ -11,3 +11,6 @@ type BoardPos struct{ X, Y int }
 func (p BoardPos) Add(q BoardPos) BoardPos { return BoardPos{p.X + q.X, p.Y + q.Y} }
 func (p BoardPos) Sub(q BoardPos) BoardPos { return BoardPos{p.X - q.X, p.Y - q.Y} }
 func (p BoardPos) Mul(k int) BoardPos      { return BoardPos{p.X * k, p.Y * k} }
+
+// Size is a width and height in squares.
+type Size struct{ W, H int }

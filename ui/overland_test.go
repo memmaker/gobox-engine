@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // TestOverlandGoesEachWay: on the overland the arrows are ActGo, a step
@@ -18,12 +19,12 @@ func TestOverlandGoesEachWay(t *testing.T) {
 	if w := windowOf(x); w != game.WindowMap {
 		t.Fatalf("overland window %v, want WindowMap", w)
 	}
-	for dir, to := range []image.Point{{4, 3}, {5, 4}, {4, 5}, {3, 4}} {
+	for dir, to := range []rules.MapPos{{X: 4, Y: 3}, {X: 5, Y: 4}, {X: 4, Y: 5}, {X: 3, Y: 4}} {
 		r := &fake{st: x}
 		if err := NewGame(r, game.Data{}).Answer(Action{Kind: ActGo, N: dir}); err != nil {
 			t.Fatal(err)
 		}
-		if len(r.sent) != 1 || r.sent[0] != (game.Arrive{From: image.Pt(4, 4), To: to, Facing: 6}) {
+		if len(r.sent) != 1 || r.sent[0] != (game.Arrive{From: rules.MapPos{X: 4, Y: 4}, To: to, Facing: 6}) {
 			t.Errorf("ActGo %d sent %v, want Arrive to %v", dir, r.sent, to)
 		}
 	}

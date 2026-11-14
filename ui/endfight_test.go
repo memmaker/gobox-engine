@@ -1,11 +1,11 @@
 package ui
 
 import (
-	"image"
 	"testing"
 
 	"gobox/game"
 	"gobox/gpu"
+	"gobox/rules"
 )
 
 // endGame is a fight one Quick ends: the Outcome carries its blows and the
@@ -18,8 +18,8 @@ func (r *endGame) State() game.State {
 	if r.over {
 		return game.Scene{Common: game.Common{Status: "DONE"}}
 	}
-	return game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.Quick{}}}}, Field: game.Battlefield{Size: image.Pt(4, 4),
-		Units: []game.Unit{{ID: 1, Member: -1, At: image.Pt(1, 1)}, {ID: 2, Member: -1, At: image.Pt(2, 1), Foe: true}}}}
+	return game.Fighting{Common: game.Common{Allowed: game.Allowed{Plain: []game.Action{game.Quick{}}}}, Field: game.Battlefield{Size: rules.Size{W: 4, H: 4},
+		Units: []game.Unit{{ID: 1, Member: -1, At: rules.BoardPos{X: 1, Y: 1}}, {ID: 2, Member: -1, At: rules.BoardPos{X: 2, Y: 1}, Foe: true}}}}
 }
 func (r *endGame) Do(a game.Action) (game.Outcome, error) {
 	if _, ok := a.(game.Quick); !ok {

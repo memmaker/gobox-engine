@@ -4,7 +4,6 @@ import (
 	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
-	"image"
 )
 
 // present applies the effects recorded and not yet shown, then fx, in order.
@@ -45,11 +44,11 @@ func (e *Engine) apply(f rules.Effect) {
 		e.event(game.Turned{Unit: int(f.Unit), Facing: int(f.Facing)})
 	case rules.Casting:
 		e.ext.panel = e.unitChar(f.From) // the side pane shows the caster
-		e.event(game.CastSpell{From: int(f.From), Spell: e.spellNumber(f.Spell), Ats: points(f.Ats)})
+		e.event(game.CastSpell{From: int(f.From), Spell: e.spellNumber(f.Spell), Ats: f.Ats})
 	case rules.Shot:
 		frames, delay := e.missileArt(f)
-		ev := game.Shot{From: int(f.From), To: point(f.To), StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
-		if frames > 0 && e.spr != nil {                                    // the original's art choice, the frame hitColours put in the sprite
+		ev := game.Shot{From: int(f.From), To: f.To, StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
+		if frames > 0 && e.spr != nil {                             // the original's art choice, the frame hitColours put in the sprite
 			ev.Art = gamePicture(e.picPix(e.spr, 0, false, nil))
 		}
 		e.event(ev)
@@ -62,7 +61,7 @@ func (e *Engine) apply(f rules.Effect) {
 	case rules.Walked:
 		w := game.Walked{Unit: int(f.Unit)}
 		for _, p := range f.Path {
-			w.Path = append(w.Path, game.Step{At: point(p)})
+			w.Path = append(w.Path, game.Step{At: p})
 		}
 		e.event(w)
 	case rules.Attacked:
@@ -150,18 +149,6 @@ func (e *Engine) spellNumber(id rules.SpellID) int {
 		panic("present: no spell number for " + string(id))
 	}
 	return int(n.Value)
-}
-
-// point is a board square as the presenter's image.Point.
-func point(p rules.BoardPos) image.Point { return image.Pt(p.X, p.Y) }
-
-// points are board squares as the presenter's.
-func points(ps []rules.BoardPos) []image.Point {
-	var out []image.Point
-	for _, p := range ps {
-		out = append(out, point(p))
-	}
-	return out
 }
 
 // unitChar is who board unit u is (core.UnitCharFact; NoChar: none).

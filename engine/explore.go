@@ -27,9 +27,9 @@ func (e *Engine) runEvent(before bool, side int) error {
 
 // arrive is gobox's move of the party one square from from to to, facing:
 // the move (the door, the clock); RunEvent then runs its events.
-func (e *Engine) arrive(from, to image.Point, facing int) error {
+func (e *Engine) arrive(from, to rules.MapPos, facing int) error {
 	e.ext.owed = nil
-	way := dirOf(to.Sub(from))
+	way := dirOf(image.Pt(to.X-from.X, to.Y-from.Y))
 	if p := e.ext.pre; p == nil || !p.ran || p.x != e.posX || p.y != e.posY || p.side != way {
 		return rules.ErrNotNow // no RunEvent{Before} ran the pre-step script for this step: Arrive runs none
 	}

@@ -3,7 +3,6 @@ package engine
 import (
 	"gobox/rules"
 	"gobox/rules1e"
-	"image"
 	"testing"
 
 	"gobox/game"
@@ -81,7 +80,7 @@ func TestDevMeleeAndFlee(t *testing.T) {
 			found := false
 			for dir := 0; dir < 8 && !found; dir++ {
 				who, g := e.state().GroundAt(a, dir)
-				to := image.Pt(e.state().CombatX(a)+rules1e.DirDX[dir], e.state().CombatY(a)+rules1e.DirDY[dir])
+				to := rules.BoardPos{X: e.state().CombatX(a) + rules1e.DirDX[dir], Y: e.state().CombatY(a) + rules1e.DirDY[dir]}
 				switch {
 				case name == "meleefight" && who > 0 && e.state().Combatant(who).Side != a.Side:
 					found = true
@@ -168,7 +167,7 @@ func TestDevMissileShoots(t *testing.T) {
 		if rng < 3 {
 			t.Fatalf("%s's launcher reaches %d squares", a.Name(), rng)
 		}
-		out, err := e.doNow(game.Shoot{Ats: []image.Point{image.Pt(e.state().CombatX(foe), e.state().CombatY(foe))}})
+		out, err := e.doNow(game.Shoot{Ats: []rules.BoardPos{rules.BoardPos{X: e.state().CombatX(foe), Y: e.state().CombatY(foe)}}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -205,7 +204,7 @@ func TestFightAsksKeepCombat(t *testing.T) {
 	a := e.member(e.cs.actor)
 	for dir := 0; dir < 8; dir++ {
 		if who, _ := e.state().GroundAt(a, dir); who > 0 && e.state().Combatant(who).Side == a.Side {
-			at := image.Pt(e.state().CombatX(a)+rules1e.DirDX[dir], e.state().CombatY(a)+rules1e.DirDY[dir])
+			at := rules.BoardPos{X: e.state().CombatX(a) + rules1e.DirDX[dir], Y: e.state().CombatY(a) + rules1e.DirDY[dir]}
 			_, err := e.doNow(game.Attack{At: &at})
 			inFight("Attack Ally?", e, err)
 			e.doNow(no(fightQ(e.build())))
@@ -404,8 +403,8 @@ func testLootEscLeaves(t *testing.T, mk func(*testing.T) *Engine) {
 func TestTimedCastTaken(t *testing.T) {
 	e := devFirstTurn(t, "castfight", false)
 	a := e.member(e.cs.actor)
-	at := image.Pt(e.state().CombatX(a), e.state().CombatY(a))
-	if _, err := e.doNow(game.Cast{Member: -1, Spell: 3, Ats: []image.Point{at}}); err != nil || a.Combat.Spell == 0 {
+	at := rules.BoardPos{X: e.state().CombatX(a), Y: e.state().CombatY(a)}
+	if _, err := e.doNow(game.Cast{Member: -1, Spell: 3, Ats: []rules.BoardPos{at}}); err != nil || a.Combat.Spell == 0 {
 		t.Fatalf("Cast: %v, casting %d", err, a.Combat.Spell)
 	}
 	for range 200 {
@@ -420,7 +419,7 @@ func TestTimedCastTaken(t *testing.T) {
 			}
 			act := f.Allowed.Aimed[0].Action
 			if c, ok := act.(game.Cast); ok {
-				c.Ats = []image.Point{at}
+				c.Ats = []rules.BoardPos{at}
 				act = c
 			}
 			if _, err := e.doNow(act); err != nil {
@@ -465,7 +464,7 @@ func TestOpeningStepsAlone(t *testing.T) {
 func TestMovesHaveSquares(t *testing.T) {
 	e := devFirstTurn(t, "combat", false)
 	n := 0
-	at := map[int]image.Point{}
+	at := map[int]rules.BoardPos{}
 	for range 400 {
 		s := e.build()
 		f, ok := s.(game.Fighting)
@@ -497,7 +496,7 @@ func TestMovesHaveSquares(t *testing.T) {
 			for _, st := range w.Path {
 				from, known := at[w.Unit]
 				d := st.At.Sub(from)
-				if st.At == (image.Point{}) || known && (d.X < -1 || d.X > 1 || d.Y < -1 || d.Y > 1 || d == (image.Point{})) {
+				if st.At == (rules.BoardPos{}) || known && (d.X < -1 || d.X > 1 || d.Y < -1 || d.Y > 1 || d == (rules.BoardPos{})) {
 					t.Fatalf("unit %d walked %v -> %v", w.Unit, from, st.At)
 				}
 				at[w.Unit] = st.At

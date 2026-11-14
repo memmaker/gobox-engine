@@ -366,7 +366,7 @@ func (c *cellPage) fightLeft(sf *game.SpaceFight, alt func(bool, int, int) int) 
 		c.pics = append(c.pics, Picture{File: sf.Foe.File, Block: sf.Foe.Block, Img: m, At: image.Rect(0, 0, 192, 88)})
 	}
 	if b := sf.Blast; b != nil && b.K >= 1 && b.K <= 15 {
-		c.shipsPic(b.K, b.At)
+		c.shipsPic(b.K, pt(b.At))
 	}
 	// 22E2 / 23EB
 	c.put(1, 1, 12, 0, sf.Status)

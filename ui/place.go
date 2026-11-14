@@ -18,9 +18,24 @@ func (p *Presenter) where() game.Where {
 // squareOf is the square the party stands on: Square where X, Y is another map's.
 func squareOf(w game.Where) image.Point {
 	if q := w.Square; q != nil {
-		return *q
+		return pt(*q)
 	}
 	return image.Pt(w.X, w.Y)
+}
+
+// pt is a map or board square as the drawing's image.Point (the ui boundary).
+func pt[P ~struct{ X, Y int }](p P) image.Point {
+	q := struct{ X, Y int }(p)
+	return image.Pt(q.X, q.Y)
+}
+
+// pts are map or board squares as the drawing's image.Points.
+func pts[P ~struct{ X, Y int }](ps []P) []image.Point {
+	var out []image.Point
+	for _, p := range ps {
+		out = append(out, pt(p))
+	}
+	return out
 }
 
 // cameraOf is the 3D view's camera at w.
