@@ -397,7 +397,10 @@ func card(m game.Member, al game.Allowed, n int) []game.Entry {
 			has["drop"] = has["drop"] || t.Member == n
 		}
 	}
-	for _, e := range []game.Entry{{Name: "Items", Verb: "items"}, {Name: "Cast", Verb: "cast"}, {Name: "Heal", Verb: "heal"}, {Name: "Memorize", Verb: "memorize"},
+	for _, pw := range m.Powers { // the member's own powers, as the inventory offers them
+		has[powerVerbs[pw.Kind]] = true
+	}
+	for _, e := range []game.Entry{{Name: "Items", Verb: "items"}, {Name: "Cast", Verb: "cast"}, {Name: "Magic", Verb: "magic"}, {Name: "Heal", Verb: "heal"}, {Name: "Cure", Verb: "cure"}, {Name: "Memorize", Verb: "memorize"},
 		{Name: "Scribe", Verb: "scribe"}, {Name: "Icon", Verb: "icon"}, {Name: "Drop", Verb: "drop"}} {
 		if has[e.Verb] {
 			es = append(es, e)
@@ -405,6 +408,9 @@ func card(m game.Member, al game.Allowed, n int) []game.Entry {
 	}
 	return es
 }
+
+// powerVerbs are the menu verbs (kinds) of a member's powers.
+var powerVerbs = map[game.PowerKind]string{game.PowerCast: "cast", game.PowerDisplay: "magic", game.PowerHeal: "heal", game.PowerCure: "cure"}
 
 func aimedActions(al game.Allowed) []game.Action {
 	var out []game.Action
