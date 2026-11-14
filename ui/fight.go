@@ -698,12 +698,13 @@ type boardKey struct {
 	queued int          // the moments still to play (keepFallen)
 	ask    AskKind      // the question over the board (-1: none): an aim or a move
 	aim    *aiming      // the spell being aimed
+	ran    int          // the art changed (F12): the units' pictures are composed from it
 }
 
 // drawnBoard makes fightView and fightBoard from p.board, when what they
 // are made from has changed.
 func (p *Presenter) drawnBoard() {
-	k := boardKey{live: p.fightSource(), board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim}
+	k := boardKey{live: p.fightSource(), board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim, ran: p.ran}
 	if q := p.askUp(); q != nil {
 		k.ask = q.Kind
 	}
