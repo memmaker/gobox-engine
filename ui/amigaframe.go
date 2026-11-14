@@ -38,7 +38,11 @@ func amigaFrame(a *game.AmigaFrame, set int) (pieces [LeftTopCap]image.Image, ed
 			return nil
 		}
 		r := image.Rect(c.Col*frameCell, c.Row*frameCell, (c.Col+1)*frameCell, (c.Row+1)*frameCell)
-		return screens[c.Screen].SubImage(r)
+		m := screens[c.Screen].SubImage(r).(*image.RGBA)
+		if c.FlipY {
+			return flippedY(m)
+		}
+		return m
 	}
 	for i, c := range a.Pieces {
 		pieces[i] = cell(c)
@@ -81,5 +85,17 @@ func composeFrame(a *game.AmigaFrame, set int) []*image.RGBA {
 		out = append(out, scr)
 	}
 	amigaScreens[k] = out
+	return out
+}
+
+// flippedY is m upside down.
+func flippedY(m *image.RGBA) *image.RGBA {
+	b := m.Bounds()
+	out := image.NewRGBA(b)
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			out.SetRGBA(x, b.Max.Y-1-(y-b.Min.Y), m.RGBAAt(x, y))
+		}
+	}
 	return out
 }

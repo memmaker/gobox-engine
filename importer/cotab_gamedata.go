@@ -141,6 +141,13 @@ const (
 	cotabRightFoot  = 106 // 8x16
 )
 
+// The rows of a side's two chain links (the side pieces' cells, clear of
+// the joint at row 4 and of the feet).
+const (
+	cotabChainLinkA = 5
+	cotabChainLinkB = 6
+)
+
 // cotabAmigaFrame is the Amiga Curse's frame, its cells where the DOS frame's are.
 func cotabAmigaFrame() *game.AmigaFrame {
 	at := func(entry, x, y int) game.FrameBlit { return game.FrameBlit{Block: entry, X: x, Y: y} }
@@ -161,6 +168,25 @@ func cotabAmigaFrame() *game.AmigaFrame {
 	edges["view.bottom"] = frameRow(cotabViewFrame, 14, 2, 14)
 	edges["view.left"] = frameCol(cotabViewFrame, 2, 2, 14)
 	edges["view.right"] = frameCol(cotabViewFrame, 14, 2, 14)
+	// every other box (the portrait cards, the menus, the text): the chain
+	// alone, the top bar's corners and links, the bottom its links upside down
+	at8 := func(col, row int, flip bool) game.FrameCell {
+		return game.FrameCell{Screen: cotabFullFrame, Col: col, Row: row, FlipY: flip}
+	}
+	last := frameCols - 1
+	for _, e := range []struct {
+		key  string
+		cell func(col, row int) game.FrameCell
+		ends [2][2]int // the corner cells (col, row)
+		link [2][2]int // the two links the edge repeats
+	}{
+		{"box.top", func(c, r int) game.FrameCell { return at8(c, r, false) }, [2][2]int{{0, 0}, {last, 0}}, [2][2]int{{1, 0}, {2, 0}}},
+		{"box.bottom", func(c, r int) game.FrameCell { return at8(c, r, true) }, [2][2]int{{0, 0}, {last, 0}}, [2][2]int{{1, 0}, {2, 0}}},
+		{"box.left", func(c, r int) game.FrameCell { return at8(c, r, false) }, [2][2]int{{0, 1}, {0, cotabChainLinkA}}, [2][2]int{{0, cotabChainLinkA}, {0, cotabChainLinkB}}},
+		{"box.right", func(c, r int) game.FrameCell { return at8(c, r, false) }, [2][2]int{{last, 1}, {last, cotabChainLinkA}}, [2][2]int{{last, cotabChainLinkA}, {last, cotabChainLinkB}}},
+	} {
+		edges[e.key] = []game.FrameCell{e.cell(e.ends[0][0], e.ends[0][1]), e.cell(e.link[0][0], e.link[0][1]), e.cell(e.link[1][0], e.link[1][1]), e.cell(e.ends[1][0], e.ends[1][1])}
+	}
 	return &game.AmigaFrame{File: "ALWAYS", Screens: [][]game.FrameBlit{full, view, rule}, Pieces: framePieces(cotabFullFrame), Edges: edges, Mask: alwaysMask}
 }
 

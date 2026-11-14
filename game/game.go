@@ -978,8 +978,12 @@ type FrameBlit struct {
 	Masked             bool `json:",omitempty"`
 }
 
-// FrameCell is the 8x8 cell at column Col, row Row of screen Screen.
-type FrameCell struct{ Screen, Col, Row int }
+// FrameCell is the 8x8 cell at column Col, row Row of screen Screen,
+// upside down when FlipY (a top edge's cell as a bottom edge's).
+type FrameCell struct {
+	Screen, Col, Row int
+	FlipY            bool `json:",omitempty"`
+}
 
 // QuickPick is one Quick Start member: the creation answers by the names the
 // game's sheet shows, the abilities rerolled for (StatKeys key -> minimum),

@@ -714,6 +714,18 @@ var (
 	edgePrefix string
 )
 
+// boxEdges is the prefix of the edges every box but the 3D view's is drawn
+// with, where the theme has them (the Amiga Curse's chain alone).
+const boxEdges = "box."
+
+// boxPrefix is the edges' prefix of the box being drawn: edgePrefix, else boxEdges.
+func boxPrefix() string {
+	if edgePrefix != "" {
+		return edgePrefix
+	}
+	return boxEdges
+}
+
 type edgeSet struct {
 	for_  Ribbon
 	edges map[string][]*gpu.Image
@@ -739,7 +751,7 @@ func sizedEdges(edgeMap map[string][]*gpu.Image, cw, ch int) Edges {
 		key string
 		n   int
 	}{{&e.Top, "top", cw}, {&e.Bottom, "bottom", cw}, {&e.Left, "left", ch}, {&e.Right, "right", ch}, {&e.Divider, "divider", ch}} {
-		if t := edgeMap[edgePrefix+s.key]; edgePrefix != "" && len(t) > 0 {
+		if t := edgeMap[boxPrefix()+s.key]; len(t) > 0 {
 			*s.seq = t
 		} else if t := edgeMap[s.key+"@"+strconv.Itoa(s.n)]; len(t) > 0 {
 			*s.seq = t

@@ -77,7 +77,7 @@ func uploadBorders(wb windowBorder) (b borders) {
 			edgeSets = append(edgeSets, edgeSet{set.for_, m})
 		}
 		m := edgeSets[0].edges
-		edgeTiles = Edges{Top: m["top"], Bottom: m["bottom"], Left: m["left"], Right: m["right"], Divider: m["divider"]}
+		edgeTiles = sizedEdges(m, 0, 0) // the menus': the boxes' own edges where the theme has them
 	}()
 	for i, m := range t {
 		if m == nil { // an end cap the game leaves out
