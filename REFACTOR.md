@@ -64,6 +64,13 @@
   - [x] P1f The classic 3D renderer (engine/classic3d_test.go, TestClassicViews for phlan-poc/compare/compare.py) moves out of the engine into its own test/debug tool; it stays for comparison sheets only
   - [ ] P1c image building out of the engine (E1 remainder): engine no longer depends on image/draw via `asset`
   - [ ] P1d full suites, screenshots of titles, endings, story scenes per game
+- [ ] Q1 Open items carried from ONE-BINARY.md and ARCHITECTURE.md (checked 2026-11-14):
+  - [ ] `NativeCastKnock` (engine/native.go) as a script patch; native scripts gone (ARCHITECTURE section 3)
+  - [ ] name the unnamed script cells (`WordXXXX`, 585 distinct in COTAB, SotSB, POD scripts) from their script use
+  - [ ] `WriteGbvm($2CB, …)` in cotab-re and sotsb-re EclCombat writes outside every zone (likely a Pascal bug): investigate
+  - [ ] `ui/blobber` `FloorRGBA`/`CeilRGBA`: palette index, not RGBA (ruling 7)
+  - [ ] restore every por-go c70cbee feature in the shared engine; exit hints (`Question.Esc`) for POD, COTAB, SotSB, BR script menus
+  - [ ] unverified, needs a run: in-fight sounds by cue name silent; fall-sound PC/AdLib fallback outside fights; toasts replacing pane lines outside fights; rest-time line refresh only on the 5-step tick; song 6 overland / song 4 entering Phlan; camp fire animation; wiped party back to the party menu
 - [x] K1 `TestKeyDispatch` fails since the app → ui merge: `ui/shell.go` (`ScriptTimed`) and `ui/shellfront.go` (F12, Shift-F12) name key codes instead of dispatching through the key table
 - [x] K2 `SOUND.OFF` is read at start (engine/sound.go) but nothing writes it since `soundToggle` was cut as unreachable: drop the read or wire the toggle
 - [x] C1 Credits: `Credit.X/Y/Colour`, `Data.CreditBoxes`, `CreditGaps` (original two-column credits; ruling needed)
