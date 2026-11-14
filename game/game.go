@@ -946,7 +946,9 @@ type RestKind struct {
 // ("top", "bottom", "rule", "left", "right", "divider"; see gobox's present).
 // Sets, when set, are the frame sets' blocks by Common.SymbolSet (pod's
 // BORDERS 0..3; Block is set 0's); Amiga is the Amiga release's frame, the
-// border under Amiga art (nil: the Amiga shows this one).
+// border under Amiga art (nil: the Amiga shows this one). MarkShift, when
+// set, is the selected member's card's border: every piece's and edge's
+// frame plus MarkShift (cotab's yellow 3D-view box), not the others' grey.
 type Border struct {
 	File   string
 	Block  int
@@ -956,6 +958,8 @@ type Border struct {
 	Edges  map[string][]int
 	Sets   []int       `json:",omitempty"`
 	Amiga  *AmigaFrame `json:",omitempty"`
+
+	MarkShift int `json:",omitempty"`
 }
 
 // AmigaFrame is the Amiga release's window frame as its program draws it:

@@ -57,6 +57,10 @@ type Border struct {
 	// edge draws the Pieces.
 	Edges map[string][]int
 
+	// MarkShift, when set, draws the selected member's card with every
+	// piece's and edge's frame plus MarkShift (game.Border.MarkShift).
+	MarkShift int
+
 	// Sets are the frame sets' blocks by the game's symbol set
 	// (game.Border.Sets; nil: Block); Amiga the frame under Amiga art
 	// (game.Border.Amiga; nil: this one).
@@ -89,7 +93,7 @@ func applyTheme(t Theme) {
 
 // borderEdges is Theme.Border.Edges decoded for symbol set set, by edge
 // (nil: none): the Amiga frame's cells under Amiga art (borderAmiga).
-func borderEdges(set int) map[string][]image.Image {
+func borderEdges(set, shift int) map[string][]image.Image {
 	b := theme.Border
 	if a := b.Amiga; a != nil && amigaShown() {
 		_, edges := amigaFrame(a, set)
@@ -106,7 +110,7 @@ func borderEdges(set int) map[string][]image.Image {
 	out := map[string][]image.Image{}
 	for k, fs := range b.Edges {
 		for _, f := range fs {
-			out[k] = append(out[k], daxMasked(b.File, block, f, mask))
+			out[k] = append(out[k], daxMasked(b.File, block, f+shift, mask))
 		}
 	}
 	return out
@@ -127,6 +131,9 @@ type windowBorder struct {
 	pieces [Places]image.Image
 	own    bool
 	edges  map[string][]image.Image // Theme.Border's edges (borderEdges; nil: none)
+
+	marked      [Places]image.Image // the selected card's pieces and edges (Border.MarkShift; nil: pieces)
+	markedEdges map[string][]image.Image
 }
 
 // windowBorder is the border the state's derived reads hold (derived); with
@@ -155,12 +162,16 @@ func borderOf(art map[string]game.Picture, set int) windowBorder {
 		}
 		return windowBorder{pieces: t, own: true}
 	}
-	return windowBorder{pieces: themeBorder(set), edges: borderEdges(set)}
+	wb := windowBorder{pieces: themeBorder(set, 0), edges: borderEdges(set, 0)}
+	if s := theme.Border.MarkShift; s != 0 && !amigaFrameShown {
+		wb.marked, wb.markedEdges = themeBorder(set, s), borderEdges(set, s)
+	}
+	return wb
 }
 
 // themeBorder is Theme.Border's pieces of symbol set set, decoded: the
 // Amiga frame's cells under Amiga art (amigaFrame).
-func themeBorder(set int) [Places]image.Image {
+func themeBorder(set, shift int) [Places]image.Image {
 	var t [Places]image.Image
 	if a := theme.Border.Amiga; a != nil && amigaShown() {
 		pieces, _ := amigaFrame(a, set)
@@ -185,7 +196,7 @@ func themeBorder(set int) [Places]image.Image {
 			if theme.Border.Mask != nil {
 				mask = int(*theme.Border.Mask)
 			}
-			if m := daxMasked(theme.Border.File, setBlock(theme.Border.Sets, theme.Border.Block, set), f, mask); m != nil {
+			if m := daxMasked(theme.Border.File, setBlock(theme.Border.Sets, theme.Border.Block, set), f+shift, mask); m != nil {
 				t[i] = m
 			}
 		}

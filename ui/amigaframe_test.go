@@ -3,6 +3,7 @@ package ui
 import (
 	"bytes"
 	"image"
+	"image/color"
 	"image/draw"
 	"path/filepath"
 	"testing"
@@ -154,4 +155,53 @@ func pixels(m image.Image) []byte {
 	r := image.NewRGBA(m.Bounds().Sub(m.Bounds().Min))
 	draw.Draw(r, r.Bounds(), m, m.Bounds().Min, draw.Src)
 	return r.Pix
+}
+
+// TestCotabMarkedBorder: cotab's DOS frame is black and white (greying
+// marks nothing), so the selected card's border is its yellow twin
+// (Border.MarkShift): every piece has yellow, the plain pieces none.
+func TestCotabMarkedBorder(t *testing.T) {
+	defer func(a *asset.Art, am bool, th Theme) {
+		daxArt.art, daxArt.amiga = a, am
+		clear(daxPics)
+		applyTheme(th)
+	}(daxArt.art, daxArt.amiga, theme)
+	adv := filepath.Join("..", "data", "cotab")
+	d, err := adventure.ReadGameData(adv)
+	if err != nil {
+		t.Skipf("cotab: %v", err)
+	}
+	b := d.Border
+	daxArt.art, daxArt.amiga = asset.OpenArt(filepath.Join(adv, "art")), false
+	clear(daxPics)
+	th := theme
+	th.Border = Border{File: b.File, Block: b.Block, Pieces: b.Pieces, Caps: b.Caps, Mask: b.Mask, Edges: b.Edges, Sets: b.Sets, MarkShift: b.MarkShift}
+	applyTheme(th)
+	wb := borderOf(nil, 0)
+	yellow := func(m image.Image) bool {
+		r := m.Bounds()
+		for y := r.Min.Y; y < r.Max.Y; y++ {
+			for x := r.Min.X; x < r.Max.X; x++ {
+				if c := color.RGBAModel.Convert(m.At(x, y)).(color.RGBA); c.A > 0 && c.R > 0xC0 && c.G > 0xC0 && c.B < 0x80 {
+					return true
+				}
+			}
+		}
+		return false
+	}
+	for i := range LeftTopCap {
+		if wb.marked[i] == nil || !yellow(wb.marked[i]) || yellow(wb.pieces[i]) {
+			t.Errorf("piece %d: marked yellow %v, plain yellow %v", i, wb.marked[i] != nil && yellow(wb.marked[i]), yellow(wb.pieces[i]))
+		}
+	}
+	for k, cells := range wb.markedEdges {
+		if k[:min(len(k), 5)] == "view." {
+			continue // the 3D view's own box: never a card's
+		}
+		for i, m := range cells {
+			if m == nil || !yellow(m) {
+				t.Errorf("edge %q cell %d not yellow", k, i)
+			}
+		}
+	}
 }

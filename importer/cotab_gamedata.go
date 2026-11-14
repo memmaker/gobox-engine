@@ -113,7 +113,8 @@ var border = game.Border{File: "8X8D1", Block: 202, Mask: &cotabBorderMask,
 		"view.left":   {20, 22, 27, 22, 22, 22, 22, 25, 22, 22, 22, 22, 21},
 		"view.right":  {22, 25, 29, 22, 22, 22, 27, 25, 22, 22, 22, 22, 23},
 	},
-	Amiga: cotabAmigaFrame(),
+	Amiga:     cotabAmigaFrame(),
+	MarkShift: -10, // the selected card: frames 20..29, the 3D view's yellow box (white 30..39 in yellow)
 }
 
 // The Amiga Curse's frame screens (Curse, code hunk 0): ALWAYS.TLB entries

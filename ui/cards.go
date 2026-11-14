@@ -40,9 +40,10 @@ var (
 )
 
 // borders are the window border's tiles (Border) on the GPU, in
-// colour and in grey.
+// colour, in grey and as the selected card's (marked: tiles, or the
+// theme's MarkShift frames).
 type borders struct {
-	tiles, grey Ribbon
+	tiles, grey, marked Ribbon
 }
 
 // uploadBorders uploads the game's border wb (p.border builds it when its tiles change).
@@ -54,27 +55,17 @@ func uploadBorders(wb windowBorder) (b borders) {
 		if es == nil {
 			return
 		}
-		up := func(ms []image.Image, grey bool) (out []*gpu.Image) {
-			for _, m := range ms {
-				var g *gpu.Image
-				if m != nil && grey {
-					g = gpu.NewImageFromImage(greyed(m))
-				} else if m != nil {
-					g = gpu.NewImageFromImage(m)
-				}
-				out = append(out, g)
-			}
-			return out
-		}
-		for _, set := range []struct {
-			for_ Ribbon
-			grey bool
-		}{{b.tiles, false}, {b.grey, true}} { // the grey cards are cracked too, greyed alike
+		set := func(r Ribbon, es map[string][]image.Image, grey bool) {
 			m := map[string][]*gpu.Image{}
 			for k, ms := range es {
-				m[k] = up(ms, set.grey)
+				m[k] = upEdges(ms, grey)
 			}
-			edgeSets = append(edgeSets, edgeSet{set.for_, m})
+			edgeSets = append(edgeSets, edgeSet{r, m})
+		}
+		set(b.tiles, es, false)
+		set(b.grey, es, true) // the grey cards are cracked too, greyed alike
+		if b.marked != b.tiles {
+			set(b.marked, wb.markedEdges, false)
 		}
 	}()
 	for i, m := range t {
@@ -85,7 +76,30 @@ func uploadBorders(wb windowBorder) (b borders) {
 		b.tiles[i] = gpu.NewImageFromImage(m)
 		b.grey[i] = gpu.NewImageFromImage(greyed(m))
 	}
+	b.marked = b.tiles
+	if wb.marked[0] != nil {
+		for i, m := range wb.marked {
+			b.marked[i] = nil
+			if m != nil {
+				b.marked[i] = gpu.NewImageFromImage(m)
+			}
+		}
+	}
 	return b
+}
+
+// upEdges uploads edge cells ms, greyed when grey.
+func upEdges(ms []image.Image, grey bool) (out []*gpu.Image) {
+	for _, m := range ms {
+		var g *gpu.Image
+		if m != nil && grey {
+			g = gpu.NewImageFromImage(greyed(m))
+		} else if m != nil {
+			g = gpu.NewImageFromImage(m)
+		}
+		out = append(out, g)
+	}
+	return out
 }
 
 // greyed is m in grey (the unselected cards' border).
@@ -355,7 +369,7 @@ type cardKey struct {
 // drawCard draws m's card into d (scale 1): border, face, status, bars.
 func (p *Presenter) drawCard(d *gpu.Image, m game.Member, key cardKey) {
 	d.Clear()
-	t := p.border.val.tiles
+	t := p.border.val.marked
 	if !key.selected {
 		t = p.border.val.grey
 	}
