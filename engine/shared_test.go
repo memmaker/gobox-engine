@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"gobox/game"
 	"gobox/rules1e"
 	"slices"
 	"testing"
@@ -37,6 +38,20 @@ func TestSharedPurseAndItems(t *testing.T) {
 			if it.Readied == 0 {
 				t.Errorf("%s holds an unreadied %s", m.Name(), it.Name())
 			}
+		}
+	}
+}
+
+// TestNoSplitPurseActions: under the shared inventory and purse, Halve, Join,
+// PoolCoins and LootShare are not offered, and Do refuses them.
+func TestNoSplitPurseActions(t *testing.T) {
+	e := quickStarted(t)
+	for _, a := range []game.Action{game.Halve{}, game.Join{}, game.PoolCoins{}, game.LootShare{}} {
+		if playAllows(e.build(), a) {
+			t.Errorf("%T allowed", a)
+		}
+		if _, err := e.Do(a); err == nil {
+			t.Errorf("%T done", a)
 		}
 	}
 }

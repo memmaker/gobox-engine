@@ -635,7 +635,7 @@ func allows(al game.Allowed, a game.Action) bool {
 	case game.EndGame: // gobox's Back to Main Menu, any time: Do refuses it where there is no game to drop
 		return true
 	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Order, game.AddNote, game.RemoveNote, game.Give,
-		game.Memorize, game.Forget, game.Scribe, game.LayOnHands, game.Halve, game.Join, game.PoolCoins, game.SetDifficulty:
+		game.Memorize, game.Forget, game.Scribe, game.LayOnHands, game.SetDifficulty: // Halve, Join, PoolCoins, LootShare: only offered without the shared inventory and purse (never today), so by Allowed
 		return true
 	}
 	if c, ok := base.(game.Cast); ok && c.Spell != 0 { // camp offers a caster's Cast{Member}, the spell the rules' check

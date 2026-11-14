@@ -16,12 +16,7 @@ func Loot(mode game.Mode, l *game.Loot, allowed map[string]bool, party []game.Me
 		return nil
 	}
 	v := &FrontLoot{Take: len(l.Items) > 0}
-	for _, n := range l.Money { // Share: only Game has LootShare (*classicGame's other makers lack it)
-		v.Share = v.Share || n > 0
-	}
-	if on, set := allowed["LootShare"]; set { // a game that has no Share says so (Silver Blades)
-		v.Share = v.Share && on
-	}
+	v.Share = allowed["LootShare"] // the rules' (none under the shared purse)
 	v.Pool = allowed["PoolCoins"]
 	v.Drop = allowed["Drop"]
 	v.Status = l.Status
