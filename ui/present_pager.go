@@ -53,6 +53,9 @@ func (p *Presenter) openHelp() {
 	p.pager = &pager{}
 }
 
+// helpUp: the pager shows the help (not a Read).
+func (p *Presenter) helpUp() bool { return p.pager != nil && p.pager.read == nil && p.pager.left == nil }
+
 // syncRead opens the pager on a Read the engine waits for, and drops one
 // the engine no longer waits for.
 func (p *Presenter) syncRead() {
