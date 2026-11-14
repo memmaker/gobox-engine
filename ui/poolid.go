@@ -58,7 +58,7 @@ func withPoolPortrait(pics []Picture, cr *FrontCreation, own game.Member) []Pict
 		box  CellRect
 		name string
 	}{{head, cr.Head, m.PortraitHeadID}, {body, cr.Body, m.PortraitBodyID}} {
-		at := p.box.Pixels().Min
+		at := port.Min.Add(p.box.Pixels().Min.Sub(port.Min).Div(max(1, cr.Scale))) // at 1x from the portrait's corner: scaled scales it
 		keep = append(keep, Picture{Name: p.name, Img: p.im, At: image.Rectangle{at, at.Add(p.im.Bounds().Size())}})
 	}
 	return keep

@@ -236,7 +236,7 @@ func withPoolIcon(pics []Picture, cr *FrontCreation, own game.Member, sheet *gam
 		if composed { // composed from the original numbers: drawn from CBODY's block (+128: the action pose)
 			pic.File, pic.Block = "CBODY", m.Icon["body"]+128*pose
 		}
-		x := box.Min.X + 40*max(1, cr.Scale)*pose // the poses 5 cells apart
+		x := box.Min.X + 40*pose // the poses 5 cells apart at 1x: scaled scales it
 		pic.Name = head
 		pic.At = image.Rectangle{image.Pt(x, box.Min.Y), image.Pt(x+pic.PixW, box.Min.Y+len(pic.Pix)/pic.PixW)}
 		keep = append(keep, pic)
