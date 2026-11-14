@@ -138,7 +138,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 
 	// the member: the pane the inventory shares, then HP and experience under the portrait
 	lx, lw := 8, (leftCells-2)*8
-	vr := lx + lw - 8 // the values' right edge: a cell clear of the pane's border (a thick one, COTAB's, overhangs it)
+	vr := lx + lw // the values' right edge: the pane's inner edge, touching the border
 	face, png := p.memberPane(sc.px, note.Glyph, m, (ch-2)*8)
 	y := face.Max.Y + 6
 	hpY, expY := y+10, y+36

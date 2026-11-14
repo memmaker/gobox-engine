@@ -7,9 +7,9 @@ import (
 	"gobox/gpu"
 )
 
-// TestSheetLeftValuesClearBorder: the left pane's values (HP, Status)
-// end a cell short of the pane's border, never touching it.
-func TestSheetLeftValuesClearBorder(t *testing.T) {
+// TestSheetLeftValuesTouchBorder: the left pane's values (HP, Status)
+// end at the pane's border, touching it, never under it.
+func TestSheetLeftValuesTouchBorder(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
 	g := func(c byte) [8]byte {
@@ -22,11 +22,14 @@ func TestSheetLeftValuesClearBorder(t *testing.T) {
 	p := sheetOn(&game.SheetPage{Status: "####", THAC0: 9})
 	p.drawSheet(dst, note)
 	px, edge := p.sheet.px, (leftCells-1)*8 // the border's inner edge
+	touch := false
 	for y := px.Rect.Min.Y; y < px.Rect.Max.Y; y++ {
-		for x := edge - 8; x < edge; x++ {
-			if c := px.RGBAAt(x, y); c == green {
-				t.Fatalf("a value at x %d, within a cell of the border at %d", x, edge)
-			}
+		touch = touch || px.RGBAAt(edge-1, y) == green
+		if px.RGBAAt(edge, y) == green {
+			t.Fatalf("a value at x %d, under the border", edge)
 		}
+	}
+	if !touch {
+		t.Fatalf("no value touches the border at %d", edge)
 	}
 }
