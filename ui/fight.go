@@ -150,7 +150,7 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *combat.Board, k 
 	w, h := max(40, int(float64(dst.Bounds().Dx())/k)/8)*8, fightRows*8 // as many cells as the window has
 	glyph := note.Glyph
 	if p.rowsImg == nil || p.rowsImg.Bounds().Dx() != w {
-		p.rowsKey = ""
+		p.rowsKey = rowsKey{}
 		p.rowsImg = gpu.NewImage(w, h)
 	}
 	var puts []struct { // the line's pieces: drawn only when they change (a texture upload a frame otherwise)
@@ -226,7 +226,7 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *combat.Board, k 
 			}
 		}
 	}
-	if key := fmt.Sprint(note.Show, note.Text, puts); key != p.rowsKey {
+	if key := (rowsKey{fmt.Sprint(note.Show, note.Text, puts), p.glyphs()}); key != p.rowsKey {
 		p.rowsKey = key
 		im := image.NewRGBA(image.Rect(0, 0, w, h))
 		for i := 3; i < len(im.Pix); i += 4 {
@@ -745,4 +745,10 @@ func (p *Presenter) aimPreview(b *combat.Board) *combat.Board {
 		}
 	}
 	return b
+}
+
+// rowsKey is what the combat rows show: their text and its glyphs.
+type rowsKey struct {
+	text   string
+	glyphs glyphGen
 }

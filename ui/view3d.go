@@ -47,13 +47,9 @@ func (p *Presenter) drawMap(dst *gpu.Image, ink [16]color.RGBA, font func(byte, 
 	if p.mapImg == nil {
 		p.mapImg = gpu.NewImage(mapSide, mapSide)
 	}
-	cur := -1
-	if p.fonts != nil {
-		cur = p.fonts.Cur
-	}
-	if m != p.mapSrc || ink != p.mapInk || cur != p.mapFont || daxArt.gen != p.mapArt { // the map changed: upload it once (not every frame)
+	if g := p.glyphs(); m != p.mapSrc || ink != p.mapInk || g != p.mapIn { // the map changed: upload it once (not every frame)
 		p.mapImg.WritePixels(mapImage(m, mapCell, ink, font).Pix)
-		p.mapSrc, p.mapInk, p.mapFont, p.mapArt = m, ink, cur, daxArt.gen
+		p.mapSrc, p.mapInk, p.mapIn = m, ink, g
 	}
 	r := mapRect(dst)
 	p.mapAt = r

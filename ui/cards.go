@@ -134,7 +134,7 @@ func (p *Presenter) drawParty(dst *gpu.Image, ms []game.Member, sel int, at func
 		if i == 0 && stand != nil {
 			own = stand
 		}
-		key := cardKey{i == sel, m.HP, m.MaxHP, m.Status, p.portrait(m, own), own != nil, 0, 0, p.border.val.tiles[0], daxArt.gen, m.Memo}
+		key := cardKey{i == sel, m.HP, m.MaxHP, m.Status, p.portrait(m, own), own != nil, 0, 0, p.border.val.tiles[0], p.glyphs(), m.Memo}
 		if m.NextExp > 0 && (p.expShown || gpu.IsKeyPressed(gpu.KeyControl)) {
 			key.exp, key.nextExp = expOf(m)-m.LevelExp, m.NextExp-m.LevelExp
 		}
@@ -283,9 +283,9 @@ func (p *Presenter) bar(dst *gpu.Image, x, y, w, v, maxV int, fill image.Rectang
 // label writes s in the game's font, white on black, at (x, y), k times
 // its size.
 func (p *Presenter) label(dst *gpu.Image, s string, x, y int, k float64) {
-	if p.labelsArt != daxArt.gen { // the font follows the art (F12)
+	if g := p.glyphs(); p.labelsIn != g { // another font (F12's art, the font menu)
 		clear(p.labels)
-		p.labelsArt = daxArt.gen
+		p.labelsIn = g
 	}
 	img, ok := p.labels[s]
 	if !ok {
@@ -348,8 +348,8 @@ type cardKey struct {
 	png          bool
 	exp, nextExp int // the experience bar while Ctrl is held (0: no bar)
 	tiles        *gpu.Image
-	art          artGen // the art shown: its font draws the card's words
-	memo         string // camp: the spells ready over the slots, on the bottom border
+	glyphs       glyphGen // the card's words are drawn in
+	memo         string   // camp: the spells ready over the slots, on the bottom border
 }
 
 // drawCard draws m's card into d (scale 1): border, face, status, bars.

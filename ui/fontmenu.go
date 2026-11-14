@@ -78,6 +78,23 @@ func (f *Front) FontMenu() (names func() []string, at func() int, set func(int),
 		func(i int, ch byte) [8]byte { g, _ := c.Glyph(i, ch, true); return g }
 }
 
+// glyphGen is the glyphs text is drawn in: the art shown (the game's own
+// font follows it) and the font chosen. Every cache holding glyphs keys on
+// it (glyphs). Detect the bug class: TestGlyphKeys.
+type glyphGen struct {
+	art  artGen
+	font int // fonts.Cur, -1: the game's own
+}
+
+// glyphs is the glyphs text is drawn in now: the one read of fonts.Cur.
+func (p *Presenter) glyphs() glyphGen {
+	g := glyphGen{daxArt.gen, -1}
+	if p.fonts != nil {
+		g.font = p.fonts.Cur
+	}
+	return g
+}
+
 // cycleFont moves to the next font (d 1) or the one before (-1) and shows
 // its name for a moment; false: the game has no font list here.
 func (p *Presenter) cycleFont(d int) bool {
@@ -85,7 +102,7 @@ func (p *Presenter) cycleFont(d int) bool {
 		return false
 	}
 	p.fonts.Step(d)
-	p.fontNote, p.fontAt = p.fonts.Names(p.fontLabel)[p.fonts.Cur], time.Now()
+	p.fontNote, p.fontAt = p.fonts.Names(p.fontLabel)[p.glyphs().font], time.Now()
 	return true
 }
 

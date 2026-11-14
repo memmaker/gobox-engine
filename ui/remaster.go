@@ -57,7 +57,7 @@ type Presenter struct {
 	faceImgs    map[image.Image]*gpu.Image         // the faces on the GPU
 	hiFaces     map[image.Image]*gpu.Image         // the PNG portraits at the cards' window resolution
 	labels      map[string]*gpu.Image              // card labels in the game's font
-	labelsArt   artGen                             // ... of this art (its font)
+	labelsIn    glyphGen                           // ... in these glyphs
 	glyph       func(byte) [8]byte                 // the game's font
 	main        bool                               // the main menu is up (mainmenu.go)
 	mm          mainUI                             // ... its state
@@ -79,8 +79,7 @@ type Presenter struct {
 	mapAt       image.Rectangle                    // where drawMap last put the minimap (a click there opens the full map)
 	mapSrc      *MapSquares                        // the derived minimap it holds (derived)
 	mapInk      [16]color.RGBA                     // the ink it was drawn in
-	mapFont     int                                // and the font (fonts.Cur, -1: the game's own)
-	mapArt      artGen                             // and the art (the game's own font follows it)
+	mapIn       glyphGen                           // and the glyphs of its labels
 	menuRects   []image.Rectangle                  // the vertical menu's items on screen, as last drawn
 	scrolls     Bars                               // the scroll bars drawn this frame (scrollbar.go) and the drag
 	logTop      int                                // the battle Log's first line shown
@@ -115,7 +114,7 @@ type Presenter struct {
 	blowAt      time.Time
 	fightCard   image.Rectangle              // the active member's card (fight.go): a click the sheet
 	rowsImg     *gpu.Image                   // the combat rows, drawn at scale 1
-	rowsKey     string                       // what they show
+	rowsKey     rowsKey                      // what they show
 	typing      bool                         // a line is being typed (input.go) ...
 	typed       string                       // ... and reads this ...
 	typedCur    int                          // ... its cursor here
