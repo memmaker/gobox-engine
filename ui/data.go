@@ -143,10 +143,11 @@ type Options struct {
 	NoMapZones    bool    // a game may take the minimap and full map away in areas it marks (game.Automap.NoMap)
 	SIDMusic      bool    // the AdLib songs on the Innovation SSI-2001's SID (audio.AdLib.SetSID), where they have its instruments
 	PixelWalls    bool    // the 3D view: the pixel-art walls instead of the hi-def ones (Shift-F12)
+	TipDelay      float64 // seconds the pointer rests before a tooltip shows (tipShown)
 }
 
 // DefaultOptions are the settings before the game's are loaded.
-var DefaultOptions = Options{MapAlpha: 1, Zoom: 0.5, Cards: 1, Map: 1, Pic: 1, DamageNumbers: true, NoMapZones: true}
+var DefaultOptions = Options{MapAlpha: 1, Zoom: 0.5, Cards: 1, Map: 1, Pic: 1, DamageNumbers: true, NoMapZones: true, TipDelay: 0.5}
 
 // Host is the presenter's settings in use: the shared engine settings' (HostSettings.Options).
 var Host = &HostSettings.Options

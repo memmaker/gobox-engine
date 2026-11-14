@@ -310,7 +310,7 @@ func (p *Presenter) drawSheet(dst *gpu.Image, note Note) {
 		op.GeoM.Translate(float64(face.Min.X)*kx, float64(face.Min.Y)*ky)
 		dst.DrawImage(p.hiFace(png, int(float64(face.Dx())*kx)), op)
 	}
-	if x, y := gpu.CursorPosition(); p.askMenu() == nil { // the tooltip of the line under the pointer
+	if x, y := gpu.CursorPosition(); p.askMenu() == nil && tipShown() { // the tooltip of the line under the pointer
 		pt := image.Pt(int(float64(x)/kx), int(float64(y)/ky))
 		for _, t := range tips {
 			if pt.In(t.r) && len(t.help) > 0 {

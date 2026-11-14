@@ -450,7 +450,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 	p.drawParty(dst, p.shownParty(), p.cardSelected(), at, nil)
 	p.drawOptions(dst) // over the map and cards
 	p.layCards(dst)
-	if p.ctx == 0 && !p.campHome() { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
+	if p.ctx == 0 && !p.campHome() && tipShown() { // the tooltip (camp shows the members' menus); a context menu goes over everything (below)
 		p.drawCardTip(dst)
 	}
 	k := scale(dst)

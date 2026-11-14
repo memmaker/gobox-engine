@@ -100,6 +100,7 @@ func OptionRows(o *Options) map[string][]Row {
 		"Gameplay": {
 			SliderRow("Zoom speed", 4, &o.Zoom, 0.25, 2, 0.25, " %.2fx", false),
 			SwitchRow("No Map Zones", 4, &o.NoMapZones),
+			SliderRow("Tooltip delay", 4, &o.TipDelay, 0, 2, 0.1, " %.1fs", false),
 		},
 	}
 }

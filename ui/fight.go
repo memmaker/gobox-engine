@@ -72,7 +72,7 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 	p.syncBattle()
 	p.battle.Pointer = p.pointer
 	p.battle.DrawBar(dst, glyph, b, ck, p.mapBottom) // the bar and its words at the portrait card's scale
-	if ck, r, ok := p.battle.Hovered(); ok && b.Turn != nil {
+	if ck, r, ok := p.battle.Hovered(); ok && b.Turn != nil && tipShown() {
 		kind := engineKinds[ck] // the readied weapon over Attack and Ranged: what it does, its rules
 		if it := map[ActKind]*InvItem{ActAttack: weap, ActRanged: shot}[kind]; it != nil {
 			p.drawTipOver(dst, it.Name, append(slices.Clone(it.Look), it.Rules...), int(k), r)

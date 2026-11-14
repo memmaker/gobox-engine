@@ -272,7 +272,7 @@ func (p *Presenter) Inventory(dst *gpu.Image, note Note) bool {
 	}
 	onBorder(inv.img, inv.glyph, rx, 0, true, []string{head}, []color.RGBA{white})
 	onBorder(inv.img, inv.glyph, rr, 0, false, []string{fill}, []color.RGBA{fillc})
-	if box == nil && !inv.dragging {
+	if box == nil && !inv.dragging && tipShown() {
 		inv.tooltip(t)
 	}
 

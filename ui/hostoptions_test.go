@@ -15,7 +15,7 @@ func TestHostOptionRows(t *testing.T) {
 	}
 	want := map[string][]string{
 		"Graphics": {"Fullscreen", "Dithered darkness", "Torch intensity", "Portraits", "Party layout", "Minimap", "Minimap opacity", "Minimap size", "Picture box", "Damage Numbers", "Font", "Artwork"},
-		"Gameplay": {"Smooth movement", "Fluid movement", "No Grid", "Explicit Interactions", "Walk speed", "Deskew combat maps", "4e Combat", "Path search", "Quick search", "Day sky by clock", "Full intro", "Zoom speed", "No Map Zones"},
+		"Gameplay": {"Smooth movement", "Fluid movement", "No Grid", "Explicit Interactions", "Walk speed", "Deskew combat maps", "4e Combat", "Path search", "Quick search", "Day sky by clock", "Full intro", "Zoom speed", "No Map Zones", "Tooltip delay"},
 		"Audio":    {"Voice-over", "Music", "DASP Sfx", "Step sounds", "Music volume", "Effects volume", "Voice volume"},
 	}
 	h := DefaultHostOptions
