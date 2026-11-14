@@ -355,6 +355,7 @@ func (r *Rules) ground() rules.Ground {
 		for y := range g.Squares {
 			for x := range g.Squares[y] {
 				g.Squares[y][x] = s.GroundSquare(byte(s.Cmap.Ground[y][x]))
+				g.Squares[y][x].Crown = y+1 < len(g.Squares) && s.T().Gen.Wild.crownOver(s.Cmap.Ground[y][x], s.Cmap.Ground[y+1][x])
 			}
 		}
 	}

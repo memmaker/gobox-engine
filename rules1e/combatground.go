@@ -441,7 +441,7 @@ func (r *Rules) groves(w *WildGen) {
 				v = r.S.Dice(1, 3) + 3
 			}
 			g[y][x] = gg.Base + Ground(v)
-			if v < 5 {
+			if v <= groveTopSizes {
 				g[y-1][x] = gg.Top + Ground(v)
 			}
 		}

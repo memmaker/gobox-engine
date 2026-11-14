@@ -107,6 +107,7 @@ type Square struct {
 	Tile   int
 	Wall   bool // nobody walks onto it
 	Height int  // blocking height
+	Crown  bool // its picture stands on the square south's: the top of a two-square thing (a tree's crown over its trunk)
 }
 
 // Step is one step of a walk: where it ends and whether a foe gets a free

@@ -30,7 +30,7 @@ func TestMapMesh(t *testing.T) {
 	}
 	// a tree: the crown stands on the blocked square, the trunk below it joins it
 	var o [25][50]Square
-	o[3][4], o[4][4] = Square{Tile: 1, Wall: true, Height: 2}, Square{Tile: 2}
+	o[3][4], o[4][4] = Square{Tile: 1, Wall: true, Height: 2, Crown: true}, Square{Tile: 2}
 	tiles := make([]image.Image, 3)
 	for i := range tiles {
 		tiles[i] = image.NewRGBA(image.Rect(0, 0, tilePx, tilePx))

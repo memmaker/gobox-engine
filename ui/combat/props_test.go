@@ -33,6 +33,16 @@ func TestProps(t *testing.T) {
 	if k, _ := layout(&g, 0, none, none, nil); k[3][4] != flat {
 		t.Errorf("unlisted Height 0 crown is %v, want flat (inferred)", k[3][4])
 	}
+	// a tall sprite over a flat cut one is two things unless the rules mark it a Crown
+	all := func(int) bool { return true }
+	g[3][4], g[4][4] = Square{Tile: 1, Wall: true, Height: 1}, Square{Tile: 4}
+	if k, foot := layout(&g, 0, none, all, nil); k[3][4] != stand || k[4][4] != flat || foot[3][4] != 0 {
+		t.Errorf("lone plant %v grass %v foot %v, want stand, flat, 0", k[3][4], k[4][4], foot[3][4])
+	}
+	g[3][4].Crown = true
+	if k, foot := layout(&g, 0, none, all, nil); k[3][4] != stand || k[4][4] != plain || foot[3][4] != 5 {
+		t.Errorf("crown %v trunk %v foot %v, want stand, plain, 5", k[3][4], k[4][4], foot[3][4])
+	}
 	tiles := make([]image.Image, 6)
 	for i := range tiles {
 		im := image.NewRGBA(image.Rect(0, 0, tilePx, tilePx))

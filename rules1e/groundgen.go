@@ -209,3 +209,24 @@ func terrainTable(kinds []struct {
 	}
 	return t
 }
+
+// groveTopSizes: a grove of size up to this has a top over its trunk.
+const groveTopSizes = 4
+
+// crownOver: the generator puts top over bottom as one two-square thing (a
+// grove's top over its trunk of the same size, a tree's top over a trunk, a
+// tall plant's Top over its Bottom). Nil w (no wild ground): never.
+func (w *WildGen) crownOver(top, bottom Ground) bool {
+	in := func(g, base Ground, n int) bool { return g > base && g <= base+Ground(n) }
+	switch {
+	case w == nil:
+		return false
+	case w.Groves != nil && in(top, w.Groves.Top, groveTopSizes) && bottom == w.Groves.Base+(top-w.Groves.Top):
+		return true
+	case w.Trees != nil && in(top, w.Trees.Top, w.Trees.TreeN) && in(bottom, w.Trees.Trunk, w.Trees.TreeN):
+		return true // top and trunk roll 1d(TreeN) each: any top over any trunk
+	case w.Plants != nil && top == w.Plants.Tiles.Top && bottom == w.Plants.Tiles.Bottom:
+		return true
+	}
+	return false
+}

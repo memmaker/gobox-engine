@@ -71,8 +71,8 @@ func kindOf(s Square, walls int, empty, cut func(int) bool, ps *propSet) kind {
 
 // layout is every square's kind, and the trunk tile under each standing
 // crown, +1 (0: none); a trunk's square is plain floor. A crown with listed
-// trunks takes whichever is south of it; any other stands on a trunk only
-// when it is tall (Height > 0) and a flat sprite lies south.
+// trunks takes whichever is south of it; any other stands on the square
+// south only when the rules mark it a Crown.
 func layout(g *[25][50]Square, walls int, empty, cut func(int) bool, ps *propSet) (kinds [25][50]kind, foot [25][50]int) {
 	for z := range g {
 		for x := range g[z] {
@@ -82,8 +82,7 @@ func layout(g *[25][50]Square, walls int, empty, cut func(int) bool, ps *propSet
 	for z := range 24 {
 		for x := range 50 {
 			t, tr := g[z+1][x].Tile, ps.trunkOf(g[z][x].Tile)
-			if kinds[z][x] == stand && (tr != nil && slices.Contains(tr, t) ||
-				tr == nil && g[z][x].Height > 0 && kinds[z+1][x] == flat && cut(t)) {
+			if kinds[z][x] == stand && (tr != nil && slices.Contains(tr, t) || g[z][x].Crown) {
 				foot[z][x], kinds[z+1][x] = t+1, plain
 			}
 		}

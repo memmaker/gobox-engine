@@ -121,7 +121,7 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 	grid := image.Rect(0, 0, len(b.Ground[0]), len(b.Ground))
 	for _, g := range c.Squares {
 		if g.At.In(grid) {
-			b.Ground[g.At.Y][g.At.X] = combat.Square{Tile: g.Tile, Wall: g.Block, Height: g.Height}
+			b.Ground[g.At.Y][g.At.X] = combat.Square{Tile: g.Tile, Wall: g.Block, Height: g.Height, Crown: g.Crown}
 		}
 	}
 	tiles := make([]Picture, 0x100)

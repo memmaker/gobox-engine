@@ -589,6 +589,7 @@ type Ground struct {
 	Block   bool
 	Height  int     // the square's height (a wall, a tree)
 	Tile    int     // the tile number (Combat.Tiles)
+	Crown   bool    // the top of a two-square thing: it stands on the square south's picture
 	Overlay Picture // drawn on the ground over the tile, under the units (a cloud, a body); none: no File, Name or Pixels
 }
 

@@ -47,7 +47,7 @@ func (e *Engine) fightState() *game.Combat {
 		Log:    slices.Clone(b.Log)}
 	for y := range b.Ground {
 		for x, q := range b.Ground[y] {
-			c.Squares = append(c.Squares, game.Ground{At: image.Pt(x, y), Block: q.Wall, Height: q.Height, Tile: q.Tile})
+			c.Squares = append(c.Squares, game.Ground{At: image.Pt(x, y), Block: q.Wall, Height: q.Height, Tile: q.Tile, Crown: q.Crown})
 		}
 	}
 	art := e.overlandArt() // the map Art() gives: the tile set joins it
