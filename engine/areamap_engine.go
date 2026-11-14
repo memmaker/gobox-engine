@@ -25,7 +25,7 @@ func (e *Engine) terrainPix(v byte) Picture {
 	if im == nil || f >= im.Count {
 		return Picture{}
 	}
-	return e.picPix(im, f, false, -1)
+	return e.picPix(im, f, false, nil)
 }
 
 // drawAreaMapParty = ovr27:0000: the party marker on the area map. The

@@ -26,11 +26,10 @@ func (e *Engine) battle() *Battle {
 	}
 	g := e.fact(rules.NoChar, rules.GroundFact{}).(rules.Ground)
 	b.Ground = g.Squares
-	ground := e.groundOf(e.art(e.sqrpaci[0], 0)) // the shown art's (F12): 0 on DOS, a grey on the Amiga
 	b.TilePix = make([]Picture, 0x100)
 	for t, im := range e.sqrpaci {
 		for f := 0; im != nil && f < min(im.Count, 0x80); f++ {
-			b.TilePix[t*0x80+f] = e.tilePix(im, f, int(ground))
+			b.TilePix[t*0x80+f] = e.tilePix(im, f, e.sqrpaci[0]) // its ground: 0 on DOS, a grey on the Amiga
 		}
 	}
 	active := rules.NoChar
@@ -62,7 +61,7 @@ func (e *Engine) battle() *Battle {
 		u.IconSize = image.Pt(24, 24)
 		var icon Picture
 		if im := e.icons[p.Icon][0]; im != nil {
-			icon, u.IconSize = e.picPix(im, 0, u.Facing > 3, -1), image.Pt(im.Width*8, im.Height)
+			icon, u.IconSize = e.picPix(im, 0, u.Facing > 3, nil), image.Pt(im.Width*8, im.Height)
 		}
 		b.Units = append(b.Units, u)
 		b.IconPix = append(b.IconPix, icon)
@@ -74,8 +73,31 @@ func (e *Engine) battle() *Battle {
 // current palette (Ink; combat swaps colours 0 and 8), mirrored with
 // flip: Clear pixels (and with ground, that colour) transparent, the
 // values 17..AmigaBase-1 their colour register's, as the screen shows them.
-func (e *Engine) picPix(im *asset.Image, f int, flip bool, ground int) Picture {
-	im = e.art(im, f)
+//
+// ground is the picture whose commonest colour is the bare ground (nil:
+// none); the DOS twin (Alt) takes its twin's.
+func (e *Engine) picPix(im *asset.Image, f int, flip bool, ground *asset.Image) Picture {
+	p := e.pixOf(im, f, flip, e.groundIn(ground))
+	if a := im.Alt; a != nil && f < a.Count {
+		if ground != nil && ground.Alt != nil {
+			ground = ground.Alt
+		}
+		alt := e.pixOf(a, f, flip, e.groundIn(ground))
+		p.Alt = &alt
+	}
+	return p
+}
+
+// groundIn is im's ground colour (groundOf), -1 for none.
+func (e *Engine) groundIn(im *asset.Image) int {
+	if im == nil {
+		return -1
+	}
+	return int(e.groundOf(im))
+}
+
+// pixOf is picPix of im itself (no twin).
+func (e *Engine) pixOf(im *asset.Image, f int, flip bool, ground int) Picture {
 	w := im.Width * 8
 	d := im.Frame(f)
 	out := make([]uint8, len(d))
@@ -99,8 +121,8 @@ func (e *Engine) picPix(im *asset.Image, f int, flip bool, ground int) Picture {
 // tilePix is picPix of a combat ground tile, converted once per tile set:
 // the board is rebuilt every frame; laying or recolouring frames in place
 // drops the conversions (tilesChanged).
-func (e *Engine) tilePix(im *asset.Image, f, ground int) Picture {
-	k := tileKey{e.art(im, f), f, ground}
+func (e *Engine) tilePix(im *asset.Image, f int, ground *asset.Image) Picture {
+	k := tileKey{im, f, ground}
 	if p, ok := e.tiles[k]; ok {
 		return p
 	}
@@ -131,8 +153,9 @@ func (e *Engine) groundOf(im *asset.Image) uint8 {
 func (e *Engine) tilesChanged() { e.tiles, e.grounds = nil, nil; e.tileGen++ }
 
 type tileKey struct {
-	art       *asset.Image // the shown art (DOS or Amiga)
-	f, ground int
+	im     *asset.Image
+	f      int
+	ground *asset.Image
 }
 
 // cmapShown notes the combat map is drawn: the view shows it from then on.

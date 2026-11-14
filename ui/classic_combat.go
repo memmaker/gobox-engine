@@ -274,8 +274,8 @@ func weapon(w *game.Weapon) *InvItem {
 // when it has no icon of its own.
 func figureOf(g game.Unit, party []game.Member) (icon Picture, size image.Point) {
 	icon = pix(g.Art)
-	if g.Art.W > 0 { // a DAX ref's size is the decoded picture's (the presenter's nativeSize)
-		size = image.Pt(g.Art.W, g.Art.H)
+	if a := shownPic(g.Art); a.W > 0 { // a DAX ref's size is the decoded picture's (the presenter's nativeSize)
+		size = image.Pt(a.W, a.H)
 	}
 	if m := g.Member; g.IconPNG == nil && !g.Foe && m >= 0 && m < len(party) {
 		if pic, sz, ok := memberPicture(party[m], g, g.Pose); ok {
@@ -292,7 +292,8 @@ func figureOf(g game.Unit, party []game.Member) (icon Picture, size image.Point)
 // one way a member's figure is made: the live board and every replayed one.
 func memberPicture(m game.Member, g game.Unit, pose int) (pic Picture, size image.Point, ok bool) {
 	if own := m.IconHeadID != "" || m.Icon != nil; !own && hasPic(g.Art) {
-		return pix(g.Art), image.Pt(g.Art.W, g.Art.H), true
+		a := shownPic(g.Art)
+		return pix(a), image.Pt(a.W, a.H), true
 	}
 	pm := defaultIcon(m)
 	head, body := memberIcon(pm)

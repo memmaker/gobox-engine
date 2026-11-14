@@ -194,19 +194,25 @@ func (e *Engine) runs(row []textCell) []PaneRun {
 // layerPicture is l as the page shows it: its pixels (or its DOS twin's),
 // the presenter's to colour (Picture.Pix).
 func (e *Engine) layerPicture(l *layer) Picture {
-	d, w := l.d, l.w
-	at := l.at
-	var pal []color.RGBA // the shown art's own colours (Image.Palette)
+	var pal []color.RGBA // the art's own colours (Image.Palette)
 	if l.src != nil {
 		pal = l.src.Palette
 	}
-	if a := e.art(l.src, l.frame); a != l.src && len(l.d) == len(l.src.Frame(l.frame)) {
-		pal = a.Palette // a whole frame: its DOS twin, maybe bigger, at its own size, placed by its own cell offset (the 3D sprites')
-		d, w = a.Frame(l.frame), a.Width*8
+	s := layerPix(l, l.d, l.w, l.at, pal)
+	if a := l.src; a != nil && a.Alt != nil && l.frame < a.Alt.Count && len(l.d) == len(a.Frame(l.frame)) {
+		t := a.Alt // a whole frame: its DOS twin, maybe bigger, at its own size, placed by its own cell offset (the 3D sprites')
+		d, w, at := t.Frame(l.frame), t.Width*8, l.at
 		if b := image.Rect(0, 0, w, len(d)/w); b.Size() != at.Size() {
-			at = b.Add(at.Min.Add(image.Pt(a.X-l.src.X, a.Y-l.src.Y).Mul(8)))
+			at = b.Add(at.Min.Add(image.Pt(t.X-a.X, t.Y-a.Y).Mul(8)))
 		}
+		alt := layerPix(l, d, w, at, t.Palette)
+		s.Alt = &alt
 	}
+	return s
+}
+
+// layerPix is layer l as the page shows it with pixels d, w wide, at at.
+func layerPix(l *layer, d []uint8, w int, at image.Rectangle, pal []color.RGBA) Picture {
 	s := Picture{Pix: d, PixW: w, At: at, Palette: pal}
 	if l.mask >= 0 && l.mask < 256 {
 		m := uint8(l.mask)

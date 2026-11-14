@@ -25,8 +25,7 @@ type picker struct {
 	chars        []rules.CharID                          // ... the characters (core.NoChar where the files are gone)
 	ask          string                                  // asked before a pick (%s: the label)
 
-	state    *game.Picker // pickState's pictures, built once (nil: again)
-	stateDOS bool         // the art set they were built in
+	state *game.Picker // pickState's pictures, built once (nil: again)
 }
 
 // OpenPicker readies picker kind for the presenter: false when it has

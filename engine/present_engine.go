@@ -50,7 +50,7 @@ func (e *Engine) apply(f rules.Effect) {
 		frames, delay := e.missileArt(f)
 		ev := game.Shot{From: int(f.From), To: point(f.To), StepMs: delay} // the original's pace: 10 pointed, 20 tumbling, 50 spinning, 30 a spell
 		if frames > 0 && e.spr != nil {                                    // the original's art choice, the frame hitColours put in the sprite
-			ev.Art = gamePicture(e.picPix(e.spr, 0, false, -1))
+			ev.Art = gamePicture(e.picPix(e.spr, 0, false, nil))
 		}
 		e.event(ev)
 	case rules.Sounded: // in a fight: when the presenter plays the events up to here; else now
@@ -85,7 +85,7 @@ func (e *Engine) apply(f rules.Effect) {
 		ev := game.Fell{Unit: int(f.Unit)}
 		b := e.ruleset().Check(rules.UnitBody{Unit: f.Unit}, nil)
 		if t := int(b.Value); b.Yes && t/0x80 < len(e.sqrpaci) && e.sqrpaci[t/0x80] != nil {
-			ev.Body = gamePicture(e.picPix(e.sqrpaci[t/0x80], t%0x80, false, int(groundColour(e.art(e.sqrpaci[0], 0)))))
+			ev.Body = gamePicture(e.picPix(e.sqrpaci[t/0x80], t%0x80, false, e.sqrpaci[0]))
 		}
 		e.event(ev)
 

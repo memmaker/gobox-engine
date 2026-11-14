@@ -493,6 +493,12 @@ func gamePicture(p Picture) game.Picture {
 	if p.Mask != nil {
 		g.Clear = int(*p.Mask)
 	}
+	if p.Alt != nil {
+		if a := gamePicture(*p.Alt); a.Pixels != nil {
+			a.Off = p.Alt.At.Min.Sub(p.At.Min)
+			g.Alt = &a
+		}
+	}
 	return g
 }
 

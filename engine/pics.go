@@ -77,9 +77,6 @@ func (e *Engine) charHead(cID rules.CharID) Picture {
 // set; none if missing).
 func (e *Engine) head(p rules.PortraitPic) Picture {
 	id := int(p.Id)
-	if DOSArt.Load() {
-		id |= 1 << 16 // the DOS twin's
-	}
 	if pc, ok := e.snap.heads[id]; ok {
 		return pc
 	}
@@ -87,9 +84,15 @@ func (e *Engine) head(p rules.PortraitPic) Picture {
 		e.snap.heads = map[int]Picture{}
 	}
 	var out Picture
-	im := e.art(e.LoadPic(p.Set.File("HEAD"), int(p.Id)), 0)
-	if im != nil && im.Count > 0 {
-		out = Picture{Pix: slices.Clone(im.Frame(0)), PixW: im.Width * 8, Palette: im.Palette}
+	frame := func(im *asset.Image) Picture {
+		return Picture{Pix: slices.Clone(im.Frame(0)), PixW: im.Width * 8, Palette: im.Palette}
+	}
+	if im := e.LoadPic(p.Set.File("HEAD"), int(p.Id)); im != nil && im.Count > 0 {
+		out = frame(im)
+		if a := im.Alt; a != nil && a.Count > 0 { // the DOS twin (F12)
+			alt := frame(a)
+			out.Alt = &alt
+		}
 	}
 	e.snap.heads[id] = out
 	return out

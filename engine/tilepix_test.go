@@ -11,8 +11,8 @@ import (
 func TestTilePixOnce(t *testing.T) {
 	var e Engine
 	im := &asset.Image{Height: 2, Width: 1, Count: 1, BPP: 16, Data: make([]byte, 16)}
-	a := e.tilePix(im, 0, 0)
-	if b := e.tilePix(im, 0, 0); &a.Pix[0] != &b.Pix[0] {
+	a := e.tilePix(im, 0, nil)
+	if b := e.tilePix(im, 0, nil); &a.Pix[0] != &b.Pix[0] {
 		t.Error("tile converted again")
 	}
 	if e.groundOf(im) != e.groundOf(im) || len(e.grounds) != 1 {
@@ -24,10 +24,10 @@ func TestTilePixOnce(t *testing.T) {
 func TestTilePixRelaid(t *testing.T) {
 	var e Engine
 	im := &asset.Image{Height: 2, Width: 1, Count: 1, BPP: 16, Data: make([]byte, 16)}
-	a := e.tilePix(im, 0, 0)
+	a := e.tilePix(im, 0, nil)
 	im.Data[0] = 0x11
 	e.tilesChanged()
-	if b := e.tilePix(im, 0, 0); &a.Pix[0] == &b.Pix[0] || len(e.grounds) != 0 {
+	if b := e.tilePix(im, 0, nil); &a.Pix[0] == &b.Pix[0] || len(e.grounds) != 0 {
 		t.Error("stale tile after the frames changed")
 	}
 }

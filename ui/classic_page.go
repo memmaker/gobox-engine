@@ -30,8 +30,10 @@ func drawnPicture(p game.Picture, at image.Rectangle) Picture {
 
 // drawnLayer is a page layer as the page draws it, with its frames.
 func drawnLayer(d game.Drawn) Picture {
+	d = shownDrawn(d)
 	f := drawnPicture(d.Picture, d.At)
 	for _, a := range d.Anim {
+		a = shownDrawn(a)
 		f.Anim = append(f.Anim, drawnPicture(a.Picture, a.At))
 	}
 	f.Delays = d.Delays

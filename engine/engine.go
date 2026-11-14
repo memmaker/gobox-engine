@@ -123,7 +123,6 @@ type Engine struct {
 	resets         int                        // unwindReset calls: a continuation dropped the game
 	cs             combatState                // the fight's rounds and turn (combatflow.go)
 	ps             game.State                 // State: built after each change (rebuild)
-	psDOS          bool                       // DOSArt when ps was built
 	lootSeen       bool                       // the treasure's "You found some loot!" was acknowledged (Continue); cleared when the treasure goes
 	StateBuilds    int                        // the States built (the frame tests count them)
 	events         []game.Event               // the facts not yet handed out (Do's outcome)

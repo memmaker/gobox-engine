@@ -181,6 +181,7 @@ type Picture struct {
 	At           image.Rectangle
 	Fill         bool
 	Colour       color.RGBA
+	Alt          *Picture // the DOS twin's pixels (F12) where the art has one, At its own place: the front shows one (game.Picture.Alt)
 }
 
 // PowerKind is what a member's power is (Power.Kind, play.UsePower.Kind).

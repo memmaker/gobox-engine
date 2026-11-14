@@ -41,6 +41,7 @@ func PalettedRGBA(pix []uint8, w int, pal []color.RGBA) *image.RGBA {
 // PixelsOf is game picture p's pixels as a Picture (Pix, Palette, Mask):
 // the one conversion of a game.Picture's Pixels.
 func PixelsOf(p game.Picture) Picture {
+	p = shownPic(p)
 	f := Picture{Pix: p.Pixels, PixW: p.W, Palette: p.Palette}
 	if p.Clear >= 0 {
 		m := uint8(p.Clear)

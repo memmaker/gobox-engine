@@ -29,6 +29,8 @@ type Picture struct {
 	Pixels       []byte       // palette indices, W*H
 	Palette      []color.RGBA // with Pixels: the art's own colours by index (an Amiga block's palette, a VGA picture's; alpha 0 clear); nil: EGA and asset.Amiga
 	Clear        int          // with Pixels: the index drawn transparent, -1 none (ignored without Pixels)
+	Alt          *Picture     // with Pixels: the DOS art's twin (F12) where it differs, the front shows one; nil: the same in both
+	Off          image.Point  // in an Alt: its place's offset from the picture it stands in for (a bigger twin centred)
 }
 
 // PicSource is what a Picture's File names.

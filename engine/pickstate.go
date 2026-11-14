@@ -13,8 +13,8 @@ import (
 // them (game.Picker, game.IconEditor): the front lays them out.
 func (e *Engine) pickState() (pk *game.Picker, ed *game.IconEditor) {
 	if p := e.picker; p != nil {
-		if p.state == nil || p.stateDOS != DOSArt.Load() { // the pictures follow the art set
-			p.state, p.stateDOS = e.pickerState(p), DOSArt.Load()
+		if p.state == nil {
+			p.state = e.pickerState(p)
 		}
 		k := *p.state
 		k.Cur = p.cur

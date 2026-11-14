@@ -23,8 +23,8 @@ func TestArtKeepsPalette(t *testing.T) {
 		}
 	}
 	var e Engine
-	same("picPix", e.picPix(im, 0, false, -1).Palette)
-	same("tilePix", e.tilePix(im, 0, 0).Palette)
+	same("picPix", e.picPix(im, 0, false, nil).Palette)
+	same("tilePix", e.tilePix(im, 0, nil).Palette)
 	sym := *im
 	sym.Count, sym.Data = 0x17, make([]byte, 16*0x17)
 	e.sym[4] = &sym

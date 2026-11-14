@@ -10,8 +10,10 @@ import (
 	"gobox/game"
 )
 
-// DOSArt (extra) shows the DOS pictures, portraits, animations and combat
-// icons in place of the Amiga ones (F12, the Graphics page; Image.Alt).
+// DOSArt (extra) is the DOS art shown (F12, the Graphics page). State is
+// art-independent (Picture.Alt carries the DOS twin, the front picks);
+// only the title sequence's steps and the icon designer's colours with no
+// combat picture (amigaUp) read it.
 var DOSArt atomic.Bool
 
 // amigaUp is whether the Amiga art is shown: DOSArt off and the adventure
@@ -87,15 +89,6 @@ func twin(im, alt *asset.Image) {
 		alt = alt.Fit(im.Width, im.Height)
 	}
 	im.Alt = alt
-}
-
-// art is the picture shown for frame f of im: its DOS twin while DOSArt is
-// on (F12 and the Graphics page switch the Amiga art for the DOS art).
-func (e *Engine) art(im *asset.Image, f int) *asset.Image {
-	if im != nil && im.Alt != nil && f < im.Alt.Count && DOSArt.Load() {
-		return im.Alt
-	}
-	return im
 }
 
 // named records where im came from (Pictures' File and Block).

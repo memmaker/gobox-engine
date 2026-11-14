@@ -16,7 +16,7 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 	for _, id := range e.partySide() {
 		heads = append(heads, byte(e.fact(id, rules.PortraitFact{}).(rules.Portrait).Head))
 	}
-	k := artKey{e.sqrpaci, e.icons[9][0], e.tileGen, DOSArt.Load(), border[0].Pix != nil, string(heads)}
+	k := artKey{e.sqrpaci, e.icons[9][0], e.tileGen, border[0].Pix != nil, string(heads)}
 	if e.ext.art != nil && e.ext.artKey == k {
 		return e.ext.art
 	}
@@ -28,7 +28,7 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 	}
 	if im := e.icons[9][0]; im != nil {
 		for f := 0; f < 8; f += 2 {
-			art["marker/"+strconv.Itoa(f)] = gamePicture(e.picPix(im, 0, f > 3, -1))
+			art["marker/"+strconv.Itoa(f)] = gamePicture(e.picPix(im, 0, f > 3, nil))
 		}
 	}
 	for i, p := range border { // the window border's pieces
@@ -45,12 +45,11 @@ func (e *Engine) overlandArt() map[string]game.Picture {
 	return art
 }
 
-// artKey is what overlandArt builds from: the tiles, the marker and the art set.
+// artKey is what overlandArt builds from: the tiles, the marker (both art sets: Picture.Alt).
 type artKey struct {
 	tiles  [2]*asset.Image
 	marker *asset.Image
-	gen    int // Engine.tileGen: the images above written in place
-	dos    bool
+	gen    int    // Engine.tileGen: the images above written in place
 	border bool   // the border's tiles are loaded
 	heads  string // the party's PortHead numbers
 }

@@ -76,7 +76,7 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *FrontPicke
 	for i := first; i < n && i < first+per; i++ {
 		x, y := x0+i%nc*(cw+gap), y0+(i/nc-page*nr)*ch
 		v.Cells = append(v.Cells, CellRect{X1: x, Y1: y, X2: x + cw - 1, Y2: y + ch - 1})
-		if p := k.Pics[i]; p.Pixels != nil && p.W > 0 {
+		if p := shownPic(k.Pics[i]); p.Pixels != nil && p.W > 0 {
 			f := pix(p)
 			f.File, f.Block, f.Frame, f.Name = p.File, p.Block, p.Frame, p.Name
 			f.At = image.Rect(x*8, y*8, x*8+p.W, y*8+p.H)
