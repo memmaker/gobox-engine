@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"image"
 	"os"
 	"path/filepath"
 	"slices"
@@ -231,14 +232,61 @@ func TestCreationIconEditor(t *testing.T) {
 		t.Fatalf("Keep: editor up %v, sheet up %v", p.icon != nil, p.creation() != nil)
 	}
 	m := f.Game.Subject()
-	if m.IconHeadID != head {
-		t.Errorf("draft icon head %q, want %q", m.IconHeadID, head)
+	if h, _ := memberIcon(subject(m)); h != head {
+		t.Errorf("draft icon head %q, want %q", h, head)
 	}
 	if len(m.IconColors) < 3 || m.IconColors[2]>>4 != 5 {
 		t.Errorf("draft icon colours %v, want part 2's high colour 5", m.IconColors)
 	}
 	if _, ok := eng.State().(game.Assembling); !ok {
 		t.Errorf("state %T after the editor", eng.State())
+	}
+}
+
+// The icon head picker lists only heads that compose with the draft's body:
+// ready poses of its size class, in pictures of its palette (the other
+// class's sit off the neck, another art's do not show at all); a head picked
+// leaves the body as it was, and the action pose is a picture of its own.
+func TestIconHeadPickerFitsBody(t *testing.T) {
+	f, _ := flowFront(t, "")
+	p := &f.P
+	defer switchArt(daxArt.amiga)
+	switchArt(os.Getenv("FLOW_AMIGA") != "") // the other art: FLOW_AMIGA=1
+	flowKey(f, 'c')
+	flowKey(f, 'r')
+	head, body := memberIcon(subject(f.Game.Subject()))
+	ready, _ := composeIcon(head, body, nil, 0, false)
+	action, ok := composeIcon(head, body, nil, 1, false)
+	if !ok || slices.Equal(ready.Pix, action.Pix) {
+		t.Errorf("%s over %s: the action pose is the ready one", head, body)
+	}
+	flowKey(f, 'i')
+	flowClick(f, p.iconEditor(p.ink()).Head)
+	if p.eng.p.pool == nil {
+		t.Fatal("no icon head picker")
+	}
+	names := p.eng.p.pool.names
+	if !slices.Contains(names, poolEntryID(head)) {
+		t.Fatalf("the draft's own head %s is not among %v", head, names)
+	}
+	bp := poolPicture("combat", body).(*image.Paletted)
+	for _, n := range names {
+		im := poolPicture("combat", n).(*image.Paletted)
+		if part, ok := poolParts()[n]; !ok || part.small != poolParts()[poolEntryID(body)].small {
+			t.Errorf("%s: not a ready head of %s's size class", n, body)
+		}
+		if len(im.Palette) != len(bp.Palette) {
+			t.Errorf("%s: %d colours, the draft's body %d", n, len(im.Palette), len(bp.Palette))
+		}
+	}
+	i := slices.IndexFunc(names, func(n string) bool { return n != poolEntryID(head) })
+	pk := p.picker(p.ink())
+	if i < 0 || i >= len(pk.Cells) {
+		t.Fatalf("no other head on the first page: %v", names)
+	}
+	flowClick(f, pk.Cells[i])
+	if h, b := memberIcon(subject(f.Game.Subject())); poolEntryID(h) != names[i] || b != body {
+		t.Errorf("after picking %s: icon %s over %s, want it over %s", names[i], h, b, body)
 	}
 }
 

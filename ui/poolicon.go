@@ -1,8 +1,10 @@
 package ui
 
 import (
+	"cmp"
 	"image"
 	"image/color"
+	"maps"
 	"slices"
 	"strconv"
 	"sync"
@@ -64,7 +66,7 @@ var poolIcons struct {
 func composeIcon(head, body string, colours []byte, pose int, flip bool) (pic Picture, ok bool) {
 	load := func(name string) *image.Paletted {
 		if pose == 1 {
-			if p := asset.Pose(Series, name); p != "" {
+			if p := poolParts()[poolEntryID(name)].pose; p != "" {
 				name = p
 			}
 		}
@@ -152,18 +154,43 @@ func gameOrigins() map[string]map[string]string {
 	return iconOrigins()[GameID]
 }
 
-// memberIcon is m's combat icon head and body pool names: its pool ids, else
-// its original CHEAD and CBODY numbers (Icon "head", "body") through origins.json.
+// memberIcon is m's combat icon head and body pool names: each its pool id,
+// else its original CHEAD or CBODY number (Icon "head", "body") through
+// origins.json (a member with only a head picked keeps its own body).
 func memberIcon(m game.Member) (head, body string) {
-	if m.IconHeadID != "" {
-		return m.IconHeadID, m.IconBodyID
+	head, body = m.IconHeadID, m.IconBodyID
+	if o := gameOrigins(); o != nil && m.Icon != nil {
+		head = cmp.Or(head, o["CHEAD.DAX"][strconv.Itoa(m.Icon["head"])])
+		body = cmp.Or(body, o["CBODY.DAX"][strconv.Itoa(m.Icon["body"])])
 	}
-	o := gameOrigins()
-	if o == nil || m.Icon == nil {
-		return "", ""
-	}
-	return o["CHEAD.DAX"][strconv.Itoa(m.Icon["head"])], o["CBODY.DAX"][strconv.Itoa(m.Icon["body"])]
+	return head, body
 }
+
+// poolPart is a pool combat head or body in its ready pose.
+type poolPart struct {
+	small bool   // its size class: the archives hold two figures, 64 blocks apart; a head fits a body of its own
+	pose  string // the action pose's pool name ("": none of its own)
+}
+
+// poolParts are the ready-pose heads and bodies by pool name, from every
+// game's origins: a CHEAD or CBODY block below 128 is a ready pose, 128
+// blocks on its action pose. A name not in it is an action pose's picture.
+var poolParts = sync.OnceValue(func() map[string]poolPart {
+	parts := map[string]poolPart{}
+	o := iconOrigins()
+	for _, g := range slices.Sorted(maps.Keys(o)) { // the same part every run where games share a name
+		for _, f := range []string{"CHEAD.DAX", "CBODY.DAX"} {
+			for _, ref := range slices.Sorted(maps.Keys(o[g][f])) {
+				b, err := strconv.Atoi(ref)
+				if _, done := parts[o[g][f][ref]]; err != nil || b >= 128 || done {
+					continue
+				}
+				parts[o[g][f][ref]] = poolPart{small: b&64 != 0, pose: o[g][f][strconv.Itoa(b+128)]}
+			}
+		}
+	}
+	return parts
+})
 
 // withPoolIcon is pics with the creation draft's combat icon (pool ids, else its Icon numbers) in the
 // sheet's Icon box, in place of the game's picture there (pics itself when the draft has none).

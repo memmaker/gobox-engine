@@ -7,6 +7,7 @@ package ui
 
 import (
 	"image"
+	"slices"
 
 	"gobox/game"
 )
@@ -40,7 +41,7 @@ func (g classicGame) OpenPicker(kind int) bool {
 		g.p.pool = &pp
 		return true
 	}
-	pp.list()
+	pp.list(g.Game.Subject())
 	if len(pp.names) == 0 {
 		return g.Game.OpenPicker(kind)
 	}
@@ -49,8 +50,27 @@ func (g classicGame) OpenPicker(kind int) bool {
 }
 
 // list fills names with the pool's entry IDs of pp's field: art-neutral,
-// each drawn in the art shown, so F12 while it is up only redraws.
-func (pp *poolPick) list() { pp.names = poolEntries(pp.kind, poolPrefix[pp.field]) }
+// each drawn in the art shown, so F12 while it is up only redraws. An icon
+// part is composed with own's other one, so only the ready poses of its
+// body's size class, in pictures of that body's palette, are listed.
+// ponytail: the palette is the art's shown when it opens; F12 while an icon picker is up keeps that list.
+func (pp *poolPick) list(own game.Member) {
+	pp.names = poolEntries(pp.kind, poolPrefix[pp.field])
+	if pp.kind != "combat" {
+		return
+	}
+	_, body := memberIcon(subject(own))
+	if body == "" {
+		body = "combat_body_000" // as PickIcon
+	}
+	class, ready := poolParts()[poolEntryID(body)]
+	bp, _ := poolPicture(pp.kind, body).(*image.Paletted)
+	pp.names = slices.DeleteFunc(pp.names, func(n string) bool {
+		part, ok := poolParts()[n]
+		im, _ := poolPicture(pp.kind, n).(*image.Paletted)
+		return !ok || !ready || part.small != class.small || im == nil || bp == nil || len(im.Palette) != len(bp.Palette)
+	})
+}
 
 func (g classicGame) PickerView(page int) *FrontPicker {
 	if pp := g.p.pool; pp != nil {
