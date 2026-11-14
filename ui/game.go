@@ -223,14 +223,17 @@ func (g *Game) stepBoard(e game.Report) (*game.Combat, []game.Member) {
 			}
 		}
 	}
-	if b := e.Picture; e.Kind == game.EvDown && hasPic(b) { // the body the game leaves (Event.Picture): the fall's moment shows it in the unit's place (standing on it, the figure hid it)
-		for k := range g.ended.Units {
-			u := &g.ended.Units[k]
-			if u.ID != e.Unit {
-				continue
+	for k := range g.ended.Units { // the blow's damage and the fall show on their own moment, as they happen
+		u := &g.ended.Units[k]
+		switch {
+		case u.ID != e.Unit:
+		case e.Kind == game.EvDamage: // N: hit points lost (a heal: gained)
+			u.HP = min(max(u.HP-e.N, 0), max(u.MaxHP, u.HP))
+		case e.Kind == game.EvDown:
+			if hasPic(e.Picture) { // the body the game leaves: in the unit's place (standing on it, the figure hid it)
+				g.ended.Squares = withOverlay(g.ended.Squares, u.At, e.Picture)
 			}
-			g.ended.Squares = withOverlay(g.ended.Squares, u.At, b)
-			u.Dead, u.Gone, u.HP = true, true, 0
+			u.Dead, u.Gone, u.HP = true, true, 0 // off the map: the figure sinks away (combat's departure)
 		}
 	}
 	c := *g.ended
@@ -245,8 +248,6 @@ func (g *Game) stepBoard(e game.Report) (*game.Combat, []game.Member) {
 		switch u := &g.ended.Units[k]; {
 		case u.ID == e.Unit && e.Kind == game.EvMove && e.Turn:
 			u.Facing = e.N
-		case u.ID == e.Unit && e.Kind == game.EvDown:
-			u.Dead, u.Gone, u.HP = true, true, 0 // off the map, as EvDied plays it
 		}
 	}
 	return &c, party
@@ -296,8 +297,10 @@ func (g *Game) moments(es []game.Report, fight bool, posed func(game.Report) (*g
 			if b, p := posed(e); e.Ms > 0 {
 				m.Ms, m.Board, m.Party = e.Ms, b, p
 			}
-		case e.Kind == game.EvDown && hasPic(e.Picture): // a fall that leaves a body is held with the body down (with no moment, the shot before it kept the figure standing up to the page)
+		case e.Kind == game.EvDown: // a fall is held with the unit down, right after the blow (with no moment, the figure stood until the next one; one that leaves a body shows it)
 			hold(cmp.Or(e.Ms, holdMs))
+		case e.Kind == game.EvDamage: // the blow's damage held with the bar down, as its number floats
+			hold(stepMs(holdMs))
 		case e.Kind == game.EvMove && !e.Turn: // a step held on the board it leaves, so a walk plays square by square (the figure walks it: combat.Presenter.StepTime)
 			hold(stepMs(holdMs))
 		case e.Pose > 0 && e.Ms > 0: // the moment held with the unit in its pose

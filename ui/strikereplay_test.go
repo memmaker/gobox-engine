@@ -38,3 +38,31 @@ func TestStepMovesSquares(t *testing.T) {
 		t.Error("the step moved the squares of the board before it")
 	}
 }
+
+// TestBlowShowsAtOnce: a blow's damage lowers the unit's hit points on its
+// own moment, and a killing blow's fall (no body: a monster) takes the unit
+// off the board on its own moment, held, right after the blow.
+func TestBlowShowsAtOnce(t *testing.T) {
+	g := NewGame(&fake{st: game.Exploring{}}, game.Data{})
+	g.ended = &game.Combat{Units: []game.Unit{{ID: 1, HP: 10, MaxHP: 10}, {ID: 2, HP: 4, MaxHP: 8}}}
+	ms := g.moments([]game.Report{
+		{Kind: game.EvAttack, Unit: 1, Target: 2, Hit: true, Pose: 1, Ms: 100},
+		{Kind: game.EvDamage, Unit: 2, Target: 2, N: 3},
+		{Kind: game.EvDamage, Unit: 2, Target: 2, N: 3},
+		{Kind: game.EvDown, Unit: 2, Target: 2},
+	}, true, g.stepBoard, 500)
+	hp := func(m Moment) int {
+		if m.Board == nil {
+			t.Fatalf("moment %v not held", m.Kind)
+		}
+		for _, u := range m.Board.Units {
+			if u.ID == 2 && !u.Gone {
+				return u.HP
+			}
+		}
+		return -1 // off the board
+	}
+	if got := []int{hp(ms[0]), hp(ms[1]), hp(ms[2]), hp(ms[3])}; !slices.Equal(got, []int{4, 1, 0, -1}) {
+		t.Errorf("unit 2's hit points over the moments %v, want [4 1 0 -1]", got)
+	}
+}

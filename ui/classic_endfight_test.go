@@ -45,7 +45,8 @@ func TestEndingEventsPlayClassic(t *testing.T) {
 }
 
 // TestEndingEventsMove: the ending events play on the board the ones before
-// them left: the walker stands where it walked, the fallen is gone.
+// them left: the walker stands where it walked, the fallen is gone from
+// its own fall's moment on.
 func TestEndingEventsMove(t *testing.T) {
 	r := newEnd(game.Walked{Unit: 1, Path: []game.Step{{At: rules.BoardPos{X: 2, Y: 1}}}}, game.Attacked{From: 1, To: 2}, game.Fell{Unit: 2},
 		game.Shot{From: 1, To: rules.BoardPos{X: 3, Y: 3}})
@@ -67,8 +68,8 @@ func TestEndingEventsMove(t *testing.T) {
 	if u := unit(boardOfFrame(es[1]), 1); u == nil || u.X != 2 || u.Y != 1 {
 		t.Errorf("walker %+v, want at 2,1", u)
 	}
-	if unit(boardOfFrame(es[3]), 2) == nil {
-		t.Error("the fall's own moment has no faller")
+	if boardOfFrame(es[3]) == nil || unit(boardOfFrame(es[3]), 2) != nil { // the fall plays at once: dropped on its own moment, the figure sinks away then
+		t.Error("the fall's own moment is not held with the fallen off the board")
 	}
 	if u := unit(boardOfFrame(es[4]), 2); u != nil {
 		t.Errorf("fallen still on the board: %+v", u)
