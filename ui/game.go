@@ -619,14 +619,14 @@ func (g *Game) WalkTo(x, y int) bool {
 	return g.run("walkTo", func() game.Result { return g.r.walkTo(g.r.g.State(), image.Pt(x, y)) }) == nil
 }
 
-// JournalPage is the journal text laid out on the page (Data.Scans has its pictures).
-func (g *Game) JournalPage(title string, texts []game.ReadText, p, off int) (*Pages, int) {
-	return JournalPage(title, texts, p, off, g.r.grid.X, g.r.grid.Y, [16]color.RGBA{}, g.D.Scans)
+// JournalPage is the journal text laid out on a page of cells (Data.Scans has its pictures).
+func (g *Game) JournalPage(title string, texts []game.ReadText, p, off int, cells image.Point) (*Pages, int) {
+	return JournalPage(title, texts, p, off, cells.X, cells.Y, [16]color.RGBA{}, g.D.Scans)
 }
 
-// SpeakPage has the game voice the page, in place of the page voiced before.
-func (g *Game) SpeakPage(texts []game.ReadText, p int) {
-	g.run("speak", func() game.Result { return g.r.speak(SpeakKeys(texts, g.D.Scans, p, g.r.grid.X, g.r.grid.Y)) })
+// SpeakPage has the game voice page p of the text laid out on a page of cells, in place of the page voiced before.
+func (g *Game) SpeakPage(texts []game.ReadText, p int, cells image.Point) {
+	g.run("speak", func() game.Result { return g.r.speak(SpeakKeys(texts, g.D.Scans, p, cells.X, cells.Y)) })
 }
 
 // ClueChapters and ClueRead are Data.Clues.

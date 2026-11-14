@@ -77,9 +77,9 @@ func gridOf(b image.Rectangle) image.Point {
 
 // cells is the page's size in text cells: the credits fill the window at K
 // (grid), whatever page the game keeps, never the 40x25 page scaled up;
-// the help too; every other page is the original's (none given: 40x25).
+// the pager too; every other page is the original's (none given: 40x25).
 func (p *Presenter) cells() image.Point {
-	if !p.flags().Credits && p.slotsView() == nil && !p.helpUp() {
+	if !p.flags().Credits && p.slotsView() == nil && p.pager == nil {
 		return image.Point{}
 	}
 	return gridOf(p.screen)

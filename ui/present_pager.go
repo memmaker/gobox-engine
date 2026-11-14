@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"gobox/game"
 	"gobox/ui/input"
+	"image"
 	"strconv"
 )
 
@@ -36,13 +37,8 @@ func (p *Presenter) pageKey() string {
 	return p.Screens()
 }
 
-// gridCols is the page's width in cells (40 at least; 40 with no game).
-func (p *Presenter) gridCols() int {
-	if u := p.ui(); u != nil {
-		return max(u.grid.X, 40)
-	}
-	return 40
-}
+// pagerCells is the pager's page in cells: the window's grid at K.
+func (p *Presenter) pagerCells() image.Point { return gridOf(p.screen) }
 
 // openHelp puts the help up over the screen, unless a line is being
 // typed or a page over the whole window is up already.
@@ -52,9 +48,6 @@ func (p *Presenter) openHelp() {
 	}
 	p.pager = &pager{}
 }
-
-// helpUp: the pager shows the help (not a Read).
-func (p *Presenter) helpUp() bool { return p.pager != nil && p.pager.read == nil && p.pager.left == nil }
 
 // syncRead opens the pager on a Read the engine waits for, and drops one
 // the engine no longer waits for.
@@ -75,7 +68,7 @@ func (p *Presenter) syncRead() {
 // speak voices the journal page up (the engine's SpeakPage).
 func (p *Presenter) speak() {
 	if r, n := p.pager.read, p.pager.P; r != nil {
-		p.call(func(e *classicGame) { e.SpeakPage(r.Texts, n) })
+		p.call(func(e *classicGame) { e.SpeakPage(r.Texts, n, p.pagerCells()) })
 	}
 }
 
@@ -95,11 +88,12 @@ func (p *Presenter) pagesAt(n, off int) (*Pages, int) {
 	case pg == nil:
 		return nil, 0
 	case pg.read != nil && p.eng != nil:
-		return p.eng.JournalPage(pg.read.Title, pg.read.Texts, n, off)
+		return p.eng.JournalPage(pg.read.Title, pg.read.Texts, n, off, p.pagerCells())
 	case pg.read != nil:
 		return nil, 0
 	}
-	return helpPage(p.gridCols(), n), 0
+	c := p.pagerCells()
+	return helpPage(c.X, c.Y, n), 0
 }
 
 // pageSource is the pager's text for ui.Pager: front.Pages.Page is the
@@ -165,8 +159,8 @@ const (
 
 // helpPage is page n of the help (HelpLines) on a page cols cells wide: headings in
 // white, keys in yellow, descriptions in light green.
-func helpPage(cols, n int) *Pages {
-	pages := HelpPages(HelpLines(), helpRows)
+func helpPage(cols, rows, n int) *Pages {
+	pages := HelpPages(HelpLines(), max(helpRows, rows-5)) // the title's rows over the lines, the hint's under
 	n = max(min(n, len(pages)-1), 0)
 	run := func(x, c int, s string) PaneRun {
 		s = s[:max(0, min(len(s), cols-x))]
