@@ -413,7 +413,7 @@ func (r *Rules) Held(h rules.ItemHandle) *Item { return r.items[h] }
 // extra: the halves are kept as copper where the original dropped them.
 func (it *Item) SellValue() uint32 {
 	v := uint32(it.Price) * 100
-	if it.Count > 1 {
+	if it.Count > 0 { // a stackable item's Price is a bundle of 20's; the original's Count > 1 sold a lone one at the whole bundle's price
 		// (the arrows/quarrels branch of the original can never be taken)
 		v = uint32(it.Count) * v / 0x14
 	}

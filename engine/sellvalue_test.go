@@ -17,4 +17,8 @@ func TestSellValue(t *testing.T) {
 	if v := arrows.SellValue(); v != 150*100 {
 		t.Errorf("20 arrows sell for %d copper, want %d", v, 150*100)
 	}
+	one, two := &rules1e.Item{Price: 20, Count: 1}, &rules1e.Item{Price: 20, Count: 2}
+	if a, b := one.SellValue(), two.SellValue(); 2*a != b {
+		t.Errorf("1 flask sells for %d copper, 2 for %d: a lone one must sell at its share of the bundle", a, b)
+	}
 }
