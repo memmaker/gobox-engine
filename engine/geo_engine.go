@@ -18,14 +18,6 @@ func (e *Engine) DoorAt(x, y, dir int) byte { return e.gmap().DoorAt(x, y, dir) 
 // MapCell = ovr30:057A (x, y): the cell byte (plane 2).
 func (e *Engine) MapCell(x, y int) byte { return e.gmap().MapCell(x, y) }
 
-// Draw3DView = ovr30:05FD (x, y, dir): the first-person view from cell
-// (x,y). The remaster draws it (the page's view window stays black under
-// it); here the window is set to it.
-func (e *Engine) Draw3DView(x, y, dir int) {
-	e.setWin(WinThreeD)
-	e.unwrite(InnerWindow.Pixels())
-}
-
 // LoadWalldef = ovr30:0E08 (block, slot): WALLDEF<n>.DAX block into wall
 // slot 1..3. A block of several wall sets (chunks) fills the slots from
 // slot on, each cleared, and only slot records the block (por-re view3d.pas

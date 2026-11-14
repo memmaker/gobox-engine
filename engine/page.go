@@ -40,6 +40,13 @@ func (e *Engine) setWin(w Window) {
 	}
 }
 
+// show3D makes the view window the first-person view (ovr30:05FD
+// Draw3DView); the text over the picture frame goes.
+func (e *Engine) show3D() {
+	e.setWin(WinThreeD)
+	e.unwrite(InnerWindow.Pixels())
+}
+
 // showPic puts im in the view window.
 func (e *Engine) showPic(im *asset.Image) {
 	e.setWin(WinPicture)

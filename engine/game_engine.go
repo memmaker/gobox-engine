@@ -467,7 +467,7 @@ func (e *Engine) turn(d int, sound bool) {
 		e.cue(rules.CueStep)
 	}
 	e.es.wallAhead = e.WallAt(e.posX, e.posY, e.facing)
-	e.Draw3DView(e.posX, e.posY, e.facing)
+	e.show3D() // ovr30:05FD Draw3DView: the remaster draws the view
 	e.viewDrawn()
 }
 

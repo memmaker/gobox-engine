@@ -14,7 +14,7 @@ func (e *Engine) Redraw() {
 	switch {
 	case mode == 1:
 		e.es.cell = e.MapCell(e.posX, e.posY)
-		e.Draw3DView(e.posX, e.posY, e.facing)
+		e.show3D() // ovr30:05FD Draw3DView: the remaster draws the view
 		e.viewDrawn()
 	case mode >= 2 && mode <= 4: // ovr27:0250: the area map round the party, its marker (ovr27:0000) on it
 		e.DrawAreaMap()
