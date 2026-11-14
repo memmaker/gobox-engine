@@ -18,11 +18,11 @@ func TestPartyIconHead(t *testing.T) {
 	}
 }
 
-// TestInventoryListsReadied: a readied item is on the doll and in the
-// list, marked readied, so the keys reach it.
+// TestInventoryListsReadied: a readied item is on the doll, not in the
+// party inventory's list.
 func TestInventoryListsReadied(t *testing.T) {
 	in := upOf(game.Exploring{Common: game.Common{Party: []game.Member{{Items: []game.Item{{Name: "Gun", Kind: "weapon", Slot: "weapon", Readied: true}}}}}}, game.ItemsOwn)
-	if in.doll[0] == nil || len(in.pool) != 1 || !in.pool[0].Readied {
+	if in.doll[0] == nil || len(in.pool) != 0 {
 		t.Fatalf("doll %v pool %+v", in.doll[0], in.pool)
 	}
 }

@@ -98,11 +98,11 @@ func TestTradeAsksOverItems(t *testing.T) {
 	}
 }
 
-// Down walks every item once, readied ones too (they are on the doll and
-// in the list); PgDn moves a page.
+// Down walks every item once, the doll's readied ones too (they are not in
+// the list); PgDn moves a page.
 func TestInventoryKeysReachAll(t *testing.T) {
 	gun := game.Item{Handle: 1, Name: "Gun", Readied: true}
-	pool := []game.Item{gun}
+	var pool []game.Item
 	for i := 1; i < 16; i++ {
 		pool = append(pool, game.Item{Handle: rules.ItemHandle(i + 1), Name: "Knife"})
 	}

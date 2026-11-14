@@ -7,8 +7,8 @@ import (
 	"gobox/gpu"
 )
 
-// TestReadyKeepsItemHighlighted: readying moves the item (readied gear
-// first); the highlight follows the item, not its old row.
+// TestReadyKeepsItemHighlighted: a readied item leaves the list for the
+// doll; the highlight stays on its row, now the next item.
 func TestReadyKeepsItemHighlighted(t *testing.T) {
 	dst := gpu.NewImage(1280, 800)
 	defer dst.Deallocate()
@@ -25,10 +25,10 @@ func TestReadyKeepsItemHighlighted(t *testing.T) {
 	p.Inventory(dst, note)
 	p.inv.choose(false, 2)
 	p.inv.removeX(ActReady, 2, 0)
-	sling.Readied = true // the rules list readied gear first (each keeps its handle)
-	f.st = party(sling, mace)
+	sling.Readied = true
+	f.st = party(mace, sling)
 	p.Inventory(dst, note)
-	if it := p.inv.itemAt(p.inv.sel); it == nil || it.Name != "Sling" {
-		t.Fatalf("highlight on %+v, want the Sling", it)
+	if it := p.inv.itemAt(p.inv.sel); it == nil || it.Name != "Mace" {
+		t.Fatalf("highlight on %+v, want the Mace", it)
 	}
 }

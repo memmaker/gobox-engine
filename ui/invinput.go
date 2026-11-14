@@ -3,7 +3,6 @@
 package ui
 
 import (
-	"gobox/game"
 	"gobox/gpu"
 	"gobox/rules"
 	"gobox/ui/input"
@@ -127,7 +126,7 @@ func (inv *inventory) order() []pick {
 		order = append(order, pick{true, it.Handle})
 	}
 	for _, it := range inv.up.doll {
-		if it != nil && !slices.ContainsFunc(inv.up.pool, func(x game.Item) bool { return x.Handle == it.Handle }) { // a readied item in the list is stepped to there, once
+		if it != nil {
 			order = append(order, pick{false, it.Handle})
 		}
 	}

@@ -239,9 +239,6 @@ func (inv *inventory) removeX(k ActKind, i rules.ItemHandle, x int) {
 	shown := inv.list.shown(inv.up.pool) // a readied item on the doll is not in it: row -1
 	inv.keep.row, inv.keep.n, inv.keep.i = slices.IndexFunc(shown, func(it game.Item) bool { return it.Handle == i }), len(shown), i
 	inv.keep.id = ""
-	if k == ActReady && inv.keep.row >= 0 { // readying keeps the item in the list, moved (readied gear first): the highlight follows it
-		inv.keep.id = itemID(shown[inv.keep.row])
-	}
 }
 
 // itemID is what tells an item from the others whatever its row or Index.
@@ -322,7 +319,12 @@ func (r *frontState) inventoryOf(ps game.State) *invUp {
 		return u
 	}
 	m, allowed, shop, loot, mode := party[sel], allowedOf(ps), shopOf(ps), lootOf(ps), r.modeOf(ps)
-	u.member, u.pool = sel, m.Items
+	u.member = sel
+	for _, it := range m.Items { // the readied items are on the doll, not in the party inventory
+		if !it.Readied {
+			u.pool = append(u.pool, it)
+		}
+	}
 	u.use, u.sell, u.reload, u.switchable = allowed["UseItem"], allowed["Sell"], shop != nil && shop.Reloads, allowed["Select"]
 	u.trade, u.halve, u.join, u.pooled = allowed["Trade"], allowed["Halve"], allowed["Join"], shop != nil && allowed["PoolCoins"]
 	u.ac, u.thac0, u.stats = m.AC, m.THAC0, m.THAC0 != 0
