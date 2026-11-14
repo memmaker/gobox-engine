@@ -250,14 +250,7 @@ func (p *Presenter) cardMenu(dst *gpu.Image, i int, lines []string, keys []byte,
 	if Host.PartyRow { // the row: right above the card (cardAt spaces the cards so these never meet)
 		cx, top = (r.Min.X+r.Max.X)/2, max(0, r.Min.Y-gap-int(k*8*float64(len(lines)+2)))
 	}
-	if f := p.menuFloor; f > 0 { // never over the text pane
-		top = max(0, min(top, f-int(k*8*float64(len(lines)+2))))
-	}
-	if h, pr := int(k*8*float64(len(lines)+2)), p.paneRect; !pr.Empty() && cx-w/2 < pr.Max.X && cx+w/2 > pr.Min.X && top < pr.Max.Y && top+h > pr.Min.Y {
-		if top = pr.Min.Y - h; top < 0 { // no room above the pane: under it
-			top = pr.Max.Y
-		}
-	}
+	// always beside its card: an overlap is the layout's to fix, not the menu's to dodge
 	return p.tipMenu(dst, "", lines, keys, sel, k, cx, top), image.Rect(cx-w/2, top, cx+w/2, top)
 }
 
