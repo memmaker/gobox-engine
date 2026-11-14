@@ -105,7 +105,7 @@ func (p *Presenter) clueMouse(pt image.Point, left, right bool, wheel int) {
 }
 
 // drawClue draws the list over the view: as many rows as fit, scrolled to
-// the highlight.
+// the highlight, a scroll bar when they don't all fit.
 func (p *Presenter) drawClue(dst *gpu.Image) {
 	c := p.clue
 	rows := p.clueRows()
@@ -114,6 +114,7 @@ func (p *Presenter) drawClue(dst *gpu.Image) {
 	c.sel = min(max(c.sel, 0), len(rows)-1)
 	c.top = min(max(c.top, c.sel-fit+1), c.sel, max(0, len(rows)-fit))
 	end := min(len(rows), c.top+fit)
-	p.keyWindow(dst, "Clue Book", rows[c.top:end], keys[c.top:end], nil, c.sel-c.top, false)
+	k := p.keyWindow(dst, "Clue Book", rows[c.top:end], keys[c.top:end], nil, c.sel-c.top, false)
 	c.at = slices.Clone(p.winRects)
+	p.menuBar(dst, p.winRects, len(rows), end-c.top, &c.top, &c.sel, k) // more chapters than fit: the bar
 }
