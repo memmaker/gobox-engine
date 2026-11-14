@@ -126,7 +126,7 @@ func (p *Presenter) keyAct(k uint16) {
 		return
 	}
 	if n, ok := memberKey(k, p.selectedIndex(), len(p.party()), false); ok { // F1-F8, the stick buttons: select the member (exploring: and open their context menu, as a card's click)
-		if p.command {
+		if p.command || p.choosing() { // a member pick (Who?): the member is the pick, as its card
 			p.cardClick(n)
 			return
 		}

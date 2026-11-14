@@ -520,8 +520,11 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 	}
 	if p.choosing() && p.askMenu() != nil { // a member pick: the question alone in the middle, the cards round it take the pick (a click, F1-F8, the arrows and Enter; Esc or a right click give up)
 		p.menu = false
-		p.drawMenu(dst, note.Glyph, "", []string{strings.TrimSpace(p.askMenu().Prompt)}, nil, nil, -1, mk, cx, b.Dy()/2-int(mk*12))
-		p.menuRects = p.menuRects[:0]
+		var names []string // the members by name too: a line, a card or F1-F8 picks
+		for _, m := range p.party() {
+			names = append(names, m.Name)
+		}
+		p.drawMenu(dst, note.Glyph, strings.TrimSpace(p.askMenu().Prompt), names, nil, nil, p.selectedIndex(), mk, cx, b.Dy()/2-int(mk*float64(len(names)+4)*4))
 	} else if ask { // the question over the line being typed, its cursor blinking
 		p.drawTyping(dst, note, mk, cx, picBottom+int(pk*4))
 	} else if p.askList() != nil && p.askMenu() != nil { // a list and its question (list.go)
