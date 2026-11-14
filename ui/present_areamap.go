@@ -22,16 +22,17 @@ type areaPic struct {
 	size    image.Point     // ... and its size
 	pics    [][]image.Image // terrain's square pictures
 	srcs    []game.Picture  // ... and the art they were made of (F12 gives other art for the same terrain)
+	gen     artGen          // ... and the art shown then (daxArt.gen: F12 shows the other twin of the same art)
 	pixels  int             // the largest square's side
 	markers map[string]markerPic
 }
 
 // resolve fills pics and pixels for terrain t of size sz from the art (square pictures "terrain/<id>").
 func (a *areaPic) resolve(t []int, sz image.Point, art map[string]game.Picture) {
-	if a.pics != nil && a.size == sz && slices.Equal(a.terrain, t) && a.sameArt(art) {
+	if a.pics != nil && a.size == sz && slices.Equal(a.terrain, t) && a.gen == daxArt.gen && a.sameArt(art) {
 		return
 	}
-	a.terrain, a.size, a.pixels, a.srcs = slices.Clone(t), sz, 0, make([]game.Picture, len(t))
+	a.terrain, a.size, a.pixels, a.srcs, a.gen = slices.Clone(t), sz, 0, make([]game.Picture, len(t)), daxArt.gen
 	a.pics = make([][]image.Image, sz.Y)
 	for y := range a.pics {
 		a.pics[y] = make([]image.Image, sz.X)
@@ -56,6 +57,7 @@ func (a *areaPic) sameArt(art map[string]game.Picture) bool {
 // markerPic is a marker's picture and the art it was made of.
 type markerPic struct {
 	src game.Picture
+	gen artGen // the art shown then (daxArt.gen)
 	img image.Image
 }
 
@@ -63,13 +65,13 @@ type markerPic struct {
 // picture (the game builds its art again: other pixels, or the marker back).
 func (a *areaPic) marker(name string, art map[string]game.Picture) image.Image {
 	pc := art[name]
-	if m, ok := a.markers[name]; ok && samePicture(m.src, pc) {
+	if m, ok := a.markers[name]; ok && m.gen == daxArt.gen && samePicture(m.src, pc) {
 		return m.img
 	}
 	if a.markers == nil {
 		a.markers = map[string]markerPic{}
 	}
-	a.markers[name] = markerPic{pc, wallPic(pc)}
+	a.markers[name] = markerPic{pc, daxArt.gen, wallPic(pc)}
 	return a.markers[name].img
 }
 
