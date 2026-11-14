@@ -225,7 +225,8 @@ func (r *frontState) pacingOf(ps game.State) *game.Pacing {
 }
 
 // wallsOf is the 3D view up (shown) and the one last explored (kept): camp
-// and a scene keep it; a fight or the party menu drops it.
+// a scene and the party menu keep it (the party menu: the engine's own
+// when it gives one, a loaded game's hall); a fight drops it.
 func wallsOf(ps game.State, kept *game.Walls) (shown, keep *game.Walls) {
 	switch t := ps.(type) {
 	case game.Exploring:
@@ -237,6 +238,10 @@ func wallsOf(ps game.State, kept *game.Walls) (shown, keep *game.Walls) {
 	case game.Scene:
 		if t.Walls != nil && t.Walls.Side != nil {
 			return gameWalls(*t.Walls), kept
+		}
+	case game.Assembling: // the party menu never drops the 3D view
+		if t.Walls != nil && t.Walls.Side != nil {
+			kept = gameWalls(*t.Walls)
 		}
 	case game.Camping:
 	case game.Trading: // a shop, temple, hall or vault stays over the 3D view it was entered from
