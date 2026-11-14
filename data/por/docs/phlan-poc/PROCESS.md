@@ -200,8 +200,8 @@ map's square without a save.
   first pass take 15-20 random reachable squares and facings
   (`random.Random(seed).sample(land, n)`), then add targeted views.
 - The original's views come from the test-only copy of its renderer
-  (`rules/classic3d_test.go`, `POR_CLASSIC="SET GEO KIND WALLS VIEWS OUT"
-  go test ./engine -run TestClassicViews`), fed the area's GEO, wall sets
+  (`tools/classic3d`, `POR_CLASSIC="SET GEO KIND WALLS VIEWS OUT"
+  go test ./tools/classic3d -run TestClassicViews`), fed the area's GEO, wall sets
   and area kind from `areas.py`; the remaster's from the game itself
   (`-open map:NAME:X:Y:D -shot ... -keys '\w\w\w\w' ./por -window
   -scale 3`, built as `./por` in the repo root, one instance at a time, 60 s

@@ -20,9 +20,6 @@ var DOSArt atomic.Bool
 // has Amiga art (every game's import has it: por, cotab, sotsb, pod).
 func (e *Engine) amigaUp() bool { return !DOSArt.Load() && e.artFolder().Has(asset.Amiga) }
 
-// symFix = DS:2722 / coab symbol_set_fix: first symbol id of each set.
-var symFix = [5]int{0x001, 0x02E, 0x074, 0x0BA, 0x100}
-
 // LoadSymbolSet = ovr35:003B — load 8X8D<n>.DAX block into set index,
 // masked on colour 13.
 func (e *Engine) LoadSymbolSet(l adventure.SymbolLoad) {

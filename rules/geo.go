@@ -115,3 +115,7 @@ func (w *Walldef) Wall(k, i int) []byte { return w.Sets[k][i*WallSize : (i+1)*Wa
 
 // ValidWallSlot is the set {1,2,3}.
 func ValidWallSlot(s int) bool { return s >= 1 && s <= 3 }
+
+// SymFix = DS:2722 / coab symbol_set_fix: first symbol id of each of the
+// five 8x8 symbol sets.
+var SymFix = [5]int{0x001, 0x02E, 0x074, 0x0BA, 0x100}
