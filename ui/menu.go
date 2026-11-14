@@ -9,9 +9,10 @@ import (
 // MenuRow is one line of every menu: its text, its hotkey (0 none) and what
 // picking it does (nil: nothing to pick).
 type MenuRow struct {
-	Text string
-	Key  byte
-	Do   func()
+	Text  string
+	Key   byte
+	Do    func()
+	NoKey bool // no hotkey at all, not even a digit (a list picked by moving, as the temple's cures)
 }
 
 // RowKeys are the rows' hotkeys: a row that can be picked and has no
@@ -21,7 +22,7 @@ func RowKeys(rows []MenuRow) []byte {
 	for i, r := range rows {
 		k[i] = r.Key
 	}
-	return DigitKeys(k, func(i int) bool { return rows[i].Do != nil })
+	return DigitKeys(k, func(i int) bool { return rows[i].Do != nil && !rows[i].NoKey })
 }
 
 // RowsOff are the rows with nothing to pick (Do nil).

@@ -26,7 +26,7 @@ func (p *Presenter) templeItems() (string, []MenuRow) {
 				cost = price(Money{Gold: cu.Price})
 			}
 			needed := serviceNeeded(cu, party, sel)
-			row := MenuRow{Text: fmt.Sprintf("%-20s %6s", cu.Name, cost), Key: 0, Do: func() {
+			row := MenuRow{Text: fmt.Sprintf("%-20s %6s", cu.Name, cost), NoKey: true, Do: func() { // no digit: the prices stay in one column, the greyed rows' too
 				c.pick = i
 				if needed {
 					c.to(templePay, 1)()
