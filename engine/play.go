@@ -358,6 +358,9 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			}
 			break
 		}
+		for n := range cm.Party { // the cards: the member the functions are for
+			add(game.SelectMember{Member: n})
+		}
 		for _, k := range e.partyFunctions() {
 			switch k {
 			case partyBegin:

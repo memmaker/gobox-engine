@@ -137,9 +137,9 @@ func (m *mainUI) items(h MainHost, v MainMenu) (string, []MenuRow) {
 	case askDrop:
 		return "Drop " + v.Name + " forever?", []MenuRow{{Text: "Yes", Key: 'Y', Do: ask(askSure)}, no}
 	case askRemove:
-		return "Remove " + v.Name + " from the party?", []MenuRow{{Text: "Yes", Key: 'Y', Do: func() { m.ask = askNone; h.Send(ActRemove, -1) }}, no}
+		return "Remove " + v.Name + " from the party?", []MenuRow{{Text: "Yes", Key: 'Y', Do: func() { m.ask = askNone; h.Send(ActRemove, v.Selected) }}, no}
 	case askSure:
-		return "Are you sure?", []MenuRow{{Text: "Yes", Key: 'Y', Do: func() { m.ask = askNone; h.Send(ActDropMember, -1) }}, no}
+		return "Are you sure?", []MenuRow{{Text: "Yes", Key: 'Y', Do: func() { m.ask = askNone; h.Send(ActDropMember, v.Selected) }}, no}
 	}
 	open := func(k ActKind) bool { return slices.Contains(v.Open, k) }
 	var it []MenuRow
@@ -147,7 +147,7 @@ func (m *mainUI) items(h MainHost, v MainMenu) (string, []MenuRow) {
 		if !open(k) {
 			return
 		}
-		do := func() { h.Send(k, -1) }
+		do := func() { h.Send(k, v.Selected) } // a member's function: the selected one's (the State offers each by its index)
 		switch k {
 		case ActQuit:
 			do = ask(askQuit)
@@ -428,7 +428,7 @@ func (p *Presenter) layoutMainMenu() MainMenu {
 	r, s := p.eng.r, p.state()
 	mode := r.modeOf(s)
 	c := game.CommonOf(s)
-	if p.training && trainingOf(s) != nil || p.creating && Drafting(mode, creationOf(s)) {
+	if p.training && trainingOf(s) != nil || p.creating && Drafting(mode, creationOf(s)) || r.sheetUpOf(s) { // View's sheet is gobox's own, over the menu the State still asks
 		return MainMenu{}
 	}
 	open, hall := PartyMenu(mode, trainingOf(s), r.asking(s), c.Where.Hall)
