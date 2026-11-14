@@ -154,17 +154,15 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *combat.Board, k 
 		p.rowsKey = rowsKey{}
 		p.rowsImg = gpu.NewImage(w, h)
 	}
-	var puts []struct { // the line's pieces: drawn only when they change (a texture upload a frame otherwise)
-		s string
-		c int
+	type piece struct {
+		s    string
+		c, x int // its colour and where it starts
 	}
+	var puts []piece // the line's pieces: drawn only when they change (a texture upload a frame otherwise)
 	x := 0
 	put := func(s string, c int, y int) {
 		s = s[:min(len(s), max(0, (w-x)/8))]
-		puts = append(puts, struct {
-			s string
-			c int
-		}{s, c})
+		puts = append(puts, piece{s, c, x})
 		x += len(s)*8 + 8
 	}
 	panel := b.Panel
@@ -233,13 +231,11 @@ func (p *Presenter) drawFightRows(dst *gpu.Image, note Note, b *combat.Board, k 
 		for i := 3; i < len(im.Pix); i += 4 {
 			im.Pix[i] = 255
 		}
-		x = 0
 		if note.Show {
 			noteLine(im, note, 0)
 		}
-		for _, t := range puts {
-			DrawText(im, glyph, t.s, x, 0, asset.EGARGBA(t.c))
-			x += len(t.s)*8 + 8
+		for _, t := range puts { // each where put placed it (pair's spacing)
+			DrawText(im, glyph, t.s, t.x, 0, asset.EGARGBA(t.c))
 		}
 		p.rowsImg.WritePixels(im.Pix)
 	}
