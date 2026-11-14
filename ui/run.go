@@ -244,6 +244,9 @@ func (f *Front) Cell(x, y float64) (int, int, bool) {
 		return 0, 0, false
 	}
 	cols, rows := f.Game.r.grid.X, f.Game.r.grid.Y
+	if s := &f.P.scr; s.at == p && s.pw > 0 { // a page of its own (drawPage): its grid, 40x25 unless it is laid out on the window's
+		cols, rows = s.pw/8, s.ph/8
+	}
 	return int((x - p.X) * float64(cols) / p.W), int((y - p.Y) * float64(rows) / p.H), true
 }
 

@@ -196,6 +196,7 @@ type Presenter struct {
 // (zero when it is not on screen: the mouse then points at nothing).
 func (p *Presenter) Draw(dst *gpu.Image, note Note) Rect {
 	p.sync()
+	p.scr.at, p.scr.pw, p.scr.ph = Rect{}, 0, 0 // drawPage sets them: no page drawn, none to map the pointer on
 	if d, ok := p.Snd.(*audio.Driver); ok && p.AdLib != nil && p.AdLib.SID() != Host.SIDMusic { // the Music card option
 		d.Do(func() { p.AdLib.SetSID(Host.SIDMusic) })
 	}
@@ -311,8 +312,6 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 	if p.overview || p.pager != nil || p.fullMap != nil || p.slots != nil { // the party overview, help, a Read, the full map, the slots: a page of its own over the whole window
 		p.shown, p.active, p.menu, p.cards = "", false, false, nil
 		r := p.drawPage(dst, note)
-		p.scr.at = r
-		p.scr.pw, p.scr.ph = p.pageSize()
 		if p.fullMap != nil || p.slots != nil {
 			p.drawPageMenu(dst, note)
 		}
@@ -402,8 +401,6 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 			return p.drawGeneric(dst, note)
 		}
 		r := p.drawPage(dst, note)
-		p.scr.at = r
-		p.scr.pw, p.scr.ph = p.pageSize()
 		p.drawPageMenu(dst, note)
 		return r
 	}

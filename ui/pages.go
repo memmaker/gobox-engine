@@ -687,7 +687,11 @@ func (c *cellPage) picker(pk *FrontPicker) {
 	for k, r := range pk.Cells {
 		i := pk.Page*pk.PerPage + k
 		if i < len(pk.Portraits) && pk.Portraits[i] != nil {
-			c.overs = append(c.overs, overlay{Img: pk.Portraits[i], At: fit(pk.Portraits[i].Bounds(), CellRect{X1: r.X1, Y1: r.Y1, X2: r.X1 + 10, Y2: r.Y1 + 4}.Pixels()), Crisp: true}) // nearest neighbour
+			box := r // a pool picture fills its whole cell (a body's is 6 rows, not the head's 5)
+			if len(pk.Labels) > 0 { // a roster: the 11 by 5 portrait left of the name and class
+				box = CellRect{X1: r.X1, Y1: r.Y1, X2: r.X1 + 10, Y2: r.Y1 + 4}
+			}
+			c.overs = append(c.overs, overlay{Img: pk.Portraits[i], At: fit(pk.Portraits[i].Bounds(), box.Pixels()), Crisp: true}) // nearest neighbour
 		}
 		if i < len(pk.Labels) {
 			c.str(r.X1+12, r.Y1+1, inkWhite, pk.Labels[i])

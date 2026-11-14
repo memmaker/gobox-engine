@@ -490,6 +490,7 @@ func (p *Presenter) drawPage(dst *gpu.Image, note Note) Rect {
 		}
 	}
 	p.drawOverlays(dst, os, r, w, h)
+	p.scr.at, p.scr.pw, p.scr.ph = r, w, h // the page's own grid: the pointer's cells (Front.Cell) and the frames (cellRect) on it
 	return r
 }
 
