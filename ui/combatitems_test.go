@@ -19,3 +19,17 @@ func TestCombatItemsList(t *testing.T) {
 		t.Fatalf("items %+v, want the wand only", c.Items)
 	}
 }
+
+// TestNoItemsIcon: with nothing usable (no UseItem allowed) the bar has
+// no Items.
+func TestNoItemsIcon(t *testing.T) {
+	f := game.Fighting{Common: game.Common{Party: []game.Member{{Name: "A", Items: []game.Item{{Handle: 2, Name: "Sword"}}}},
+		Allowed: game.Allowed{Plain: []game.Action{game.Guard{}}}},
+		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}}}}
+	var r frontState
+	for _, o := range r.combat(f).Turn.Options {
+		if _, ok := o.Do.(game.OpenItems); ok {
+			t.Fatalf("Items on the bar: %+v", o)
+		}
+	}
+}

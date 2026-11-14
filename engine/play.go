@@ -478,14 +478,16 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			}
 		}
 		if sel := cm.Selected; sel >= 0 && sel < len(cm.Party) { // the acting member's items (the sheet's View, O089's Use)
-			if slices.Contains(can, VerbItems) {
-				add(game.UseItem{Member: sel, Item: rules.NoItem})
-			}
+			usable := false
 			for _, it := range cm.Party[sel].Items {
 				if slices.Contains(can, VerbItems) && usableNow(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[sel], Item: it.Handle})) { // only what the rules let it use now
 					add(game.UseItem{Member: sel, Item: it.Handle})
+					usable = true
 				}
 				add(e.readyAct(sel, it), game.Drop{Member: sel, Item: it.Handle}) // the fight's View: Ready and Drop (BUG-CLASSES 47)
+			}
+			if usable { // the bar's Items: only with something to use
+				add(game.UseItem{Member: sel, Item: rules.NoItem})
 			}
 		}
 		for _, v := range []struct { // in a fixed order: State is the same on every call (BUG-CLASSES 33)
