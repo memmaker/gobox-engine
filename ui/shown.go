@@ -118,18 +118,6 @@ func linesOf(pn *Pane) [][]PaneRun {
 	return pn.Lines
 }
 
-// linesText is the pane's lines as one string (a change of text).
-func linesText(pn *Pane) string {
-	var b []byte
-	for _, l := range linesOf(pn) {
-		for _, r := range l {
-			b = append(b, r.Text...)
-		}
-		b = append(b, '\n')
-	}
-	return string(b)
-}
-
 // blinking is whether the Blink runs show in the highlight colour now: from
 // their first showing, swapping blinkSwaps times to end on their own ink.
 func (p *Presenter) blinking() bool {

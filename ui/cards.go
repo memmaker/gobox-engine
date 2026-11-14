@@ -656,13 +656,6 @@ var barsPNG []byte
 // barArt is the cards' bar art.
 func barArt() image.Image { return decodePNG(barsPNG) }
 
-// crop is the part r of img, at its own origin.
-func crop(img image.Image, r image.Rectangle) image.Image {
-	c := image.NewRGBA(image.Rect(0, 0, r.Dx(), r.Dy()))
-	draw.Draw(c, c.Rect, img, r.Min, draw.Src)
-	return c
-}
-
 // nameLines is name wrapped at word breaks into at most rows lines of w
 // characters (a longer word cut).
 func nameLines(name string, w, rows int) []string {

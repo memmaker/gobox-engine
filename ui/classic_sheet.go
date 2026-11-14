@@ -7,10 +7,6 @@ import (
 	"gobox/game"
 )
 
-func cells(r image.Rectangle) CellRect {
-	return CellRect{X1: r.Min.X, Y1: r.Min.Y, X2: r.Max.X, Y2: r.Max.Y}
-}
-
 // sheetPortraitBox is the sheet's portrait box: 11x11 cells against the
 // right border at the top (the head 5 rows, the body 6), as the original's
 // SheetPortrait (ovr29:04F9); zero when the member has no portrait.

@@ -19,3 +19,4 @@ asset/cmd/fontexport/fontexport
 sprites/cmd/poolsprites/poolsprites
 .claude/worktrees/
 bin/
+.claude-progress*

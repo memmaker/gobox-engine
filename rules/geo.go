@@ -109,10 +109,6 @@ func ParseWalldef(b []byte) (*Walldef, error) {
 	return w, nil
 }
 
-// Wall returns wall i (0..4) of chunk k as WallSize symbol ids
-// (wall value v: chunk (v-1)/5 of the slot set, index (v-1)%5).
-func (w *Walldef) Wall(k, i int) []byte { return w.Sets[k][i*WallSize : (i+1)*WallSize] }
-
 // ValidWallSlot is the set {1,2,3}.
 func ValidWallSlot(s int) bool { return s >= 1 && s <= 3 }
 

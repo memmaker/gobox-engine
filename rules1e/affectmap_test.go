@@ -63,28 +63,20 @@ func TestAffectHandlersFull(t *testing.T) {
 		powers   PowerMap
 		variants map[AffectType]HandlerName
 	}{"cotab": {CotabAffectIDs, CotabItemPowers, CotabAffectVariants}, "sotsb": {SotsbAffectIDs, SotsbItemPowers, SotsbAffectVariants}, "pod": {PodAffectIDs, PodItemPowers, PodAffectVariants}} {
-		unported := UnportedAffectHandlers[name]
 		a := maps.Clone(POR.Affects)
 		for id, h := range g.variants {
-			if _, listed := unported[h]; listed {
-				if affectHandler[h] != nil {
-					t.Errorf("%s: %q has a handler now: take it off UnportedAffectHandlers", name, h)
-				}
-				continue
-			}
 			if affectHandler[h] == nil {
 				t.Errorf("%s: affectVariants %#x names no handler %q", name, id, h)
 			}
 			a[id] = h
 		}
-		skip := func(id AffectType) bool { _, listed := unported[g.variants[id]]; return listed }
 		for b, id := range g.ids {
-			if !skip(id) && affectHandler[a[id]] == nil {
+			if affectHandler[a[id]] == nil {
 				t.Errorf("%s: affect %d (id %#x) has no handler", name, b, id)
 			}
 		}
 		for b, p := range g.powers {
-			if !skip(AffectType(p)) && affectHandler[a[AffectType(p)]] == nil {
+			if affectHandler[a[AffectType(p)]] == nil {
 				t.Errorf("%s: item power %d (%#x) has no handler", name, b, p)
 			}
 		}

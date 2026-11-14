@@ -473,21 +473,10 @@ func ReadLayout(path string) (Layout, error) {
 func withVariants(affects, variants map[AffectType]HandlerName) (map[AffectType]HandlerName, error) {
 	a := maps.Clone(affects)
 	for id, name := range variants {
-		if affectHandler[name] == nil && !unported(name) {
+		if affectHandler[name] == nil {
 			return nil, fmt.Errorf("rules1e: affectVariants %#x names no handler %q", id, name)
 		}
 		a[id] = name
 	}
 	return a, nil
-}
-
-// unported tells whether name is on UnportedAffectHandlers: its id plays
-// nothing until it is ported (the list only shrinks).
-func unported(name HandlerName) bool {
-	for _, m := range UnportedAffectHandlers {
-		if _, ok := m[name]; ok {
-			return true
-		}
-	}
-	return false
 }
