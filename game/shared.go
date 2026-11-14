@@ -65,6 +65,7 @@ type Combat struct {
 	Dungeon bool
 	Reach   []Reach    // squares the turn's unit may walk to
 	Spells  []SpellRef // castable by the turn's unit
+	Items   []Item     // the turn's member's items it may use now (Allowed UseItem)
 	Aims    []SpellRef // spells that take a square, with their Range, Targets and Area
 	Targets []int      // unit IDs the turn's Attack takes; while aiming, the foes Tab cycles through
 	Panel   int        // the unit ID the status row shows (who acts, or is being hit), 0 none

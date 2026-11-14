@@ -514,6 +514,11 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 		c.Units = append(c.Units, g)
 		if u.ID == b.Turn && u.Member >= 0 && u.Member < len(f.Party) {
 			spells = f.Party[u.Member].Spells
+			for _, it := range f.Party[u.Member].Items { // the fight's Items list: what the rules let it use now
+				if slices.ContainsFunc(al.Plain, func(a game.Action) bool { x, ok := a.(game.UseItem); return ok && x.Member == u.Member && x.Item == it.Handle }) {
+					c.Items = append(c.Items, it)
+				}
+			}
 		}
 	}
 	t := &game.Turn{Unit: b.Turn, Aim: r.aim != nil, Moves: b.Moves, Casting: b.Casting, Weapon: b.Weapon, Missile: b.Missile}

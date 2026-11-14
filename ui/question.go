@@ -8,6 +8,7 @@ package ui
 import (
 	"errors"
 	"gobox/game"
+	"gobox/rules"
 	"slices"
 )
 
@@ -83,6 +84,27 @@ func AskForSpell(h RuleHost, spells []Spell, then func(id int)) {
 		}
 		return false
 	}})
+}
+
+// AskForItem asks for one of items (AskList: Use, Exit); then gets its
+// handle (Exit: nothing).
+func AskForItem(h RuleHost, items []game.Item, then func(rules.ItemHandle)) {
+	lines := make([]FrontEntry, len(items))
+	for i, it := range items {
+		lines[i] = FrontEntry{Text: it.Name}
+	}
+	const use, exit = 0, 1 // the commands' order
+	h.Ask(&Question{Ask: FrontAsk{Kind: AskList, Entries: lines, Menu: Menu{Commands: []Command{{Text: "Use", Key: 'U'}, {Text: "Exit", Key: 'E'}}}},
+		Answer: func(a Action) bool {
+			switch {
+			case a.Kind == ActChoose && (a.N == -1 || a.N == use) && a.X >= 0 && a.X < len(items):
+				then(items[a.X].Handle)
+				return true
+			case a.Kind == ActChoose && a.N == exit, a.Kind == ActClose:
+				return true
+			}
+			return false
+		}})
 }
 
 // ShowList shows lines (AskList) until Exit.

@@ -93,8 +93,10 @@ func (p *Presenter) viewAct(a Action) bool {
 		do(func(e *classicGame) error { return e.OpenSheet(n) })
 	case k == ActInventory && (p.exploring() || p.campUp()):
 		do(func(e *classicGame) error { return e.do(game.OpenItems{Member: n}) })
-	case k == ActItems && turn:
-		do(func(e *classicGame) error { return e.do(game.OpenItems{Member: -1}) })
+	case k == ActItems && turn: // the items usable in the fight, not the inventory
+		if c := p.board; c != nil && len(c.Items) > 0 {
+			AskForItem(p, c.Items, func(h rules.ItemHandle) { p.useCall(h, 0, -1, false) })
+		}
 	default:
 		return false
 	}

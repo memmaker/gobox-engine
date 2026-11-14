@@ -482,7 +482,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				add(game.UseItem{Member: sel, Item: rules.NoItem})
 			}
 			for _, it := range cm.Party[sel].Items {
-				if slices.Contains(can, VerbItems) {
+				if slices.Contains(can, VerbItems) && usableNow(e.ruleset().Allowed(rules.UsingItem{Who: e.partyIDs()[sel], Item: it.Handle})) { // only what the rules let it use now
 					add(game.UseItem{Member: sel, Item: it.Handle})
 				}
 				add(e.readyAct(sel, it), game.Drop{Member: sel, Item: it.Handle}) // the fight's View: Ready and Drop (BUG-CLASSES 47)
@@ -1323,4 +1323,10 @@ func (e *Engine) itemDo(a game.Action, native func(func() error) error) (bool, e
 		return true, native(func() error { return e.TakeLoot(a.Item, a.All) })
 	}
 	return false, nil
+}
+
+// usableNow: the rules offer a use of the item (not only a refusal, such
+// as "Must be Readied").
+func usableNow(a rules.Allowed) bool {
+	return slices.ContainsFunc(a.Offers, func(o rules.Offer) bool { return o.Not == "" })
 }
