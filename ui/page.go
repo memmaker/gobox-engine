@@ -75,11 +75,13 @@ func gridOf(b image.Rectangle) image.Point {
 	return image.Pt(max(40, b.Dx()/(8*k)), max(25, b.Dy()/(8*k)))
 }
 
-// cells is the page's size in text cells: the credits fill the window at K
-// (grid), whatever page the game keeps, never the 40x25 page scaled up;
-// the pager too; every other page is the original's (none given: 40x25).
+// cells is the page's size in text cells: every page the presenter lays
+// out (the credits, the page screens, the pager, the full map, the
+// overview, the sheet's page) fills the window at K (grid), never the
+// 40x25 page scaled up; the space fight keeps the original's (none
+// given: 40x25), its panels at fixed cells.
 func (p *Presenter) cells() image.Point {
-	if !p.flags().Credits && p.slotsView() == nil && p.pager == nil {
+	if p.sfOf() != nil && !p.modal() || !p.flags().Credits && !p.pageScreen() && !p.modal() && p.sheetPage() == nil {
 		return image.Point{}
 	}
 	return gridOf(p.screen)

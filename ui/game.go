@@ -651,7 +651,7 @@ func (g *Game) Answer(a Action) error {
 	}
 	if a.Kind == ActResize {
 		err := error(nil)
-		g.r.grid = image.Pt(40, 25) // the page the game shows: its Cells, else the original's (a game that keeps its page lays nothing out wider)
+		g.r.grid = image.Pt(max(40, a.X), max(25, a.Y)) // the window's grid at K: the screens the presenter lays out fill it
 		return err
 	}
 	if m := g.r.spellAim; m != nil { // up to n squares, then the cast; Enter casts on those picked, Esc gives up
