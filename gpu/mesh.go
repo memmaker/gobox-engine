@@ -22,6 +22,7 @@ type Mesh struct {
 	buf      *wgpu.Buffer
 	off      uint64 // where in buf the vertices start (Set: a slice of the frame's stream)
 	n, first int    // the vertices drawn
+	own      bool   // buf is the mesh's own (NewMesh), not the frame's stream or another mesh's (Set, Sub): Dispose and Set release it
 }
 
 // NewMesh uploads a triangle list.
@@ -39,13 +40,20 @@ func NewMesh(vs []MeshVertex) *Mesh {
 			panic(err)
 		}
 	}
-	return &Mesh{buf: b, n: len(vs)}
+	return &Mesh{buf: b, n: len(vs), own: true}
 }
 
 // Dispose frees the mesh.
-func (m *Mesh) Dispose() {
+func (m *Mesh) Dispose() { m.release() }
+
+// release frees the mesh's own buffer (none: nothing).
+func (m *Mesh) release() {
+	if !m.own {
+		return
+	}
 	submit()
 	m.buf.Release()
+	m.buf, m.own = nil, false
 }
 
 // Mat4 is a column-major 4x4 matrix with WebGPU's clip space (z 0..1).
@@ -157,6 +165,7 @@ func (m *Mesh) Set(vs []MeshVertex) {
 		return
 	}
 	c, off := dev.vertices.alloc(data, 0)
+	m.release() // its own buffer from NewMesh: the stream's slice replaces it
 	m.buf, m.off = c.buf, uint64(off)
 }
 
