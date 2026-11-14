@@ -10,15 +10,10 @@ import (
 	"gobox/asset"
 )
 
-// AmigaArt reports whether the Amiga art is showing (F12); nil: never.
-// The front sets it; the members' pool ids stay the DOS names, only the
-// drawing swaps them for their Amiga twins (amigaTwin).
-var AmigaArt func() bool
-
 // poolImage is pool picture name of kind, its Amiga twin while the Amiga art
 // shows and it has one.
 func poolPicture(kind, name string) image.Image {
-	if AmigaArt != nil && AmigaArt() {
+	if amigaShown() { // the members' pool ids stay the DOS names: only the drawing swaps them for their Amiga twins
 		if t := amigaTwin(name); t != "" {
 			if im := asset.SpriteImage(Series, kind, t); im != nil {
 				return im

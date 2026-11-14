@@ -17,7 +17,7 @@ import (
 // uiKey is what the screens' derivations read besides the game's State:
 // its build (Version) and the front's own state over it.
 type uiKey struct {
-	version                   uint64
+	version                   stateBuild
 	items                     game.ItemsUp
 	itemsOf, sheet, lookSheet int
 	ask, refusal              *game.Ask
@@ -26,13 +26,12 @@ type uiKey struct {
 
 func (p *Presenter) uiKey() uiKey {
 	r := p.eng.r
-	return uiKey{p.eng.G.Version(), r.items, r.itemsOf, r.sheet, r.lookSheet, r.ask, r.refusalAsk, r.speedUp}
+	return uiKey{p.eng.r.build(), r.items, r.itemsOf, r.sheet, r.lookSheet, r.ask, r.refusalAsk, r.speedUp}
 }
 
 // menuKey is what the party menu is made of.
 type menuKey struct {
 	ui                 uiKey
-	ran                int // the art changed (F12, a new series): the logo
 	training, creating bool
 	slots, picker      bool
 	selected           int
@@ -44,9 +43,9 @@ type layouts struct {
 	slots     memo[slotsFrom, *Slots]         // the slot screen as the game lists it
 	combat    memo[fightSource, *game.Combat] // the live fight read from the State
 	board     memo[boardKey, fightDrawn]      // the drawn fight board
-	party     memo[uint64, []game.Member]     // partyOf, by the State's build
-	powers    memo[uint64, [][]Power]         // each card's context menu
-	menuChars memo[uint64, int]               // the widest line of them
+	party     memo[stateBuild, []game.Member] // partyOf, by the State's build
+	powers    memo[stateBuild, [][]Power]     // each card's context menu
+	menuChars memo[stateBuild, int]           // the widest line of them
 	inventory memo[uiKey, *invUp]
 	sheet     memo[uiKey, *game.SheetPage]
 	sheetUp   memo[uiKey, bool]
@@ -63,13 +62,13 @@ type layouts struct {
 
 // flagsKey is what the status flags are read from: the build and the title's step.
 type flagsKey struct {
-	version uint64
+	version stateBuild
 	title   titleStep
 }
 
 // creationKey is what the creation sheet's layout is made of.
 type creationKey struct {
-	version uint64
+	version stateBuild
 	grid    image.Point
 	ask     *game.Ask // gobox's own question (Abandon's words)
 	refusal *game.Ask
@@ -77,7 +76,7 @@ type creationKey struct {
 
 // pageKey is what a picker's or the icon editor's layout is made of.
 type pageKey struct {
-	version uint64
+	version stateBuild
 	ran     int // the picker's and editor's calls run
 	grid    image.Point
 	ink     [16]color.RGBA
@@ -100,7 +99,7 @@ func (p *Presenter) layoutCreation() *FrontCreation {
 		return nil
 	}
 	r, s := p.eng.r, p.state()
-	k := creationKey{p.eng.G.Version(), r.grid, r.ask, r.refusalAsk}
+	k := creationKey{p.eng.r.build(), r.grid, r.ask, r.refusalAsk}
 	return p.lay.creation.get(k, func() *FrontCreation {
 		return Creation(r.modeOf(s), creationOf(s), r.pending(s), r.grid.X, r.grid.Y)
 	})
@@ -112,7 +111,7 @@ func (p *Presenter) picker(ink [16]color.RGBA) *FrontPicker {
 	if p.eng == nil {
 		return nil
 	}
-	k := pageKey{version: p.eng.G.Version(), ran: p.ran, grid: p.eng.r.grid, ink: ink}
+	k := pageKey{version: p.eng.r.build(), ran: p.ran, grid: p.eng.r.grid, ink: ink}
 	if pk := p.gridPick; pk != nil {
 		return pk.Layout(p.eng, k)
 	}
@@ -128,7 +127,7 @@ func (p *Presenter) iconEditor(ink [16]color.RGBA) *FrontIconEditor {
 	if p.eng == nil || p.gridPick != nil {
 		return nil
 	}
-	k := pageKey{version: p.eng.G.Version(), ran: p.ran, grid: p.eng.r.grid, ink: ink}
+	k := pageKey{version: p.eng.r.build(), ran: p.ran, grid: p.eng.r.grid, ink: ink}
 	if ic := p.icon; ic != nil {
 		return ic.Layout(p.eng, k)
 	}
@@ -153,7 +152,7 @@ func (p *Presenter) party() []game.Member {
 	if p.eng == nil {
 		return nil
 	}
-	return p.lay.party.get(p.eng.G.Version(), func() []game.Member { return partyOf(p.state()) })
+	return p.lay.party.get(p.eng.r.build(), func() []game.Member { return partyOf(p.state()) })
 }
 
 // cardPowers are the cards' context menus, by member.
@@ -161,7 +160,7 @@ func (p *Presenter) cardPowers() [][]Power {
 	if p.eng == nil {
 		return nil
 	}
-	return p.lay.powers.get(p.eng.G.Version(), func() (out [][]Power) {
+	return p.lay.powers.get(p.eng.r.build(), func() (out [][]Power) {
 		for _, c := range cardsOf(p.state()) {
 			out = append(out, powers(c.Menu))
 		}
@@ -174,7 +173,7 @@ func (p *Presenter) cardMenuChars() int {
 	if p.eng == nil {
 		return 0
 	}
-	return p.lay.menuChars.get(p.eng.G.Version(), func() (n int) {
+	return p.lay.menuChars.get(p.eng.r.build(), func() (n int) {
 		for _, ps := range p.cardPowers() {
 			lines, _, _ := powerLines(ps)
 			for _, l := range lines {

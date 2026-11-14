@@ -32,7 +32,7 @@ type laidPage struct {
 // laidKey is what the text page is laid out from: the build, the moment
 // played, the creation sheet's boxes the pool pictures go in and the ink.
 type laidKey struct {
-	version  uint64
+	version  stateBuild
 	creation *FrontCreation
 	ink      [16]color.RGBA
 }
@@ -67,7 +67,7 @@ func (p *Presenter) laid() *laidPage {
 	if !p.creating {
 		cr = nil
 	}
-	k := laidKey{p.eng.G.Version(), cr, p.ink()}
+	k := laidKey{p.eng.r.build(), cr, p.ink()}
 	return p.lay.page.update(k, func(old *laidPage) *laidPage {
 		s := p.state()
 		pg, portrait := p.eng.r.pageOf(s), storyOf(game.CommonOf(s))

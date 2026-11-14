@@ -14,7 +14,7 @@ import (
 // still is a game.Game held at one State: the backdrop's, which takes no action.
 type still struct {
 	st  game.State
-	ver uint64
+	ver uint64 // its build
 }
 
 var errStill = errors.New("the backdrop takes no action")
@@ -31,7 +31,7 @@ func (p *Presenter) keepBackdrop() {
 	if p.eng == nil || p.backdrop || p.screenUp() || p.inventoryUp() || p.shopUp() || p.templeUp() {
 		return
 	}
-	p.backAt = still{p.state(), p.eng.G.Version()}
+	p.backAt = still{p.state(), p.eng.r.build().version}
 }
 
 // backP is the presenter drawing the backdrop (nil: none kept), made again
@@ -40,9 +40,9 @@ func (p *Presenter) backP() *Presenter {
 	if p.backAt.st == nil {
 		return nil
 	}
-	return p.back.get(p.backAt.ver, func() *Presenter {
+	return p.back.get(stateBuild{p.backAt.ver, daxArt.gen}, func() *Presenter { // F12 under a menu: the backdrop in the new art
 		c := *p
-		c.pg, c.mapImg, c.mapSrc, c.back, c.backdrop, c.q = page{}, nil, nil, memo[uint64, *Presenter]{}, true, nil
+		c.pg, c.mapImg, c.mapSrc, c.back, c.backdrop, c.q = page{}, nil, nil, memo[stateBuild, *Presenter]{}, true, nil
 		c.SetEngine(&classicGame{Game: NewGame(p.backAt, p.eng.D), p: &c})
 		return &c
 	})

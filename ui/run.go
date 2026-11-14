@@ -226,9 +226,6 @@ func (f *Front) Act() {
 		c(g)
 	}
 	if len(as) > 0 || len(calls) > 0 || f.ArtNew {
-		if f.ArtNew {
-			f.P.ran++ // the picker and icon editor lay their pages out again, in the new art
-		}
 		f.ArtNew = false
 		for _, a := range as {
 			g.Answer(a)

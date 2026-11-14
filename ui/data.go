@@ -280,8 +280,7 @@ func gameData(g game.Data) {
 		texts[k] = v
 	}
 	filesDir, advDir = g.AnimDir(), g.Adventure
-	GameID, Amiga = g.ID, amigaShown
-	AmigaArt = Amiga // the members' pool portraits follow F12 too (SetData set it only for a game giving Data.DAX)
+	GameID = g.ID
 	if g.Series != "" {
 		series = g.Series
 	}
@@ -292,12 +291,13 @@ func gameData(g game.Data) {
 		t.Border = Border{File: b.File, Block: b.Block, Pieces: b.Pieces, Caps: b.Caps, Mask: b.Mask, Edges: b.Edges, Sets: b.Sets, Amiga: b.Amiga}
 		applyTheme(t)
 	}
-	switch { // the game's imported art (its import: dax.ImportArt)
-	case daxArt.art != nil:
+	switch { // the game's imported art (its import: dax.ImportArt), the engine's own (Engine.artFolder)
 	case g.Adventure != "":
-		daxArt.art = asset.OpenArt(filepath.Join(g.Adventure, "art"))
+		daxArt.art = asset.OpenArt(filepath.Join(g.Adventure, adventure.ArtDir))
+		switchArt(daxArt.amiga) // another game's art: nothing decoded from the last one stays
 	case g.Files != "":
 		daxArt.art = asset.OpenArt(asset.Dir(g.Files))
+		switchArt(daxArt.amiga)
 	}
 	if dir := g.SoundDir(); g.AdLib != nil && dir != "" && adLib == nil {
 		music, _ := os.ReadFile(filePath(dir, g.AdLib.Music))

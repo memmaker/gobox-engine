@@ -25,7 +25,7 @@ var iconPartRows = [6]int{1, 2, 3, 4, 6, 7}
 // fewer than six: as drawn; VGA art the same, by index). EGA art comes back as indices (Palette nil),
 // other art as indices into its own Palette. ok is false when a picture is missing.
 func poolIcon(head, body string, colours []byte, pose int, flip bool) (Picture, bool) {
-	k := poolIconKey{Series, AmigaArt != nil && AmigaArt(), head, body, string(colours), pose, flip}
+	k := poolIconKey{Series, amigaShown(), head, body, string(colours), pose, flip}
 	poolIcons.Lock()
 	defer poolIcons.Unlock()
 	if r, ok := poolIcons.m[k]; ok {
@@ -135,7 +135,7 @@ func composeIcon(head, body string, colours []byte, pose int, flip bool) (pic Pi
 var GameID string
 
 // Amiga reports whether the Amiga art shows now (F12): icons then come from <GameID>-amiga only.
-var Amiga = func() bool { return false }
+func Amiga() bool { return amigaShown() }
 
 // Series is game.Data.Series, the asset series whose shared pool the members' ids name ("pool" when unset).
 var Series = "pool"

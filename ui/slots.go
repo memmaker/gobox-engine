@@ -17,15 +17,16 @@ func (p *Presenter) slotsView() *Slots {
 	if p.slots == nil || p.eng == nil {
 		return nil
 	}
-	k := slotsFrom{p.eng.G.Version(), p.eng.r.ran, p.slots.LoadOnly}
+	k := slotsFrom{p.eng.r.build(), p.eng.r.ran, p.slots.LoadOnly}
 	return p.lay.slots.get(k, func() *Slots { return p.eng.SlotsView(k.loadOnly) })
 }
 
 // slotsFrom is what the slot screen is listed from: the game's State, the
 // steps done (they may write the saves) and whether it only loads.
 type slotsFrom struct {
-	version, ran uint64
-	loadOnly     bool
+	version  stateBuild
+	ran      uint64
+	loadOnly bool
 }
 
 // SlotsUI is the slot screen up.

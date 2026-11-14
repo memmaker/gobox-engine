@@ -416,7 +416,7 @@ func (p *Presenter) mainMenu() MainMenu {
 	if p.eng == nil || p.slots != nil || p.pickerOver() {
 		return MainMenu{}
 	}
-	k := menuKey{p.uiKey(), p.ran, p.training, p.creating, p.slots != nil, p.pickerOver(), p.cardSelected()}
+	k := menuKey{p.uiKey(), p.training, p.creating, p.slots != nil, p.pickerOver(), p.cardSelected()}
 	return p.lay.menu.get(k, p.layoutMainMenu)
 }
 

@@ -57,6 +57,7 @@ type Presenter struct {
 	faceImgs    map[image.Image]*gpu.Image         // the faces on the GPU
 	hiFaces     map[image.Image]*gpu.Image         // the PNG portraits at the cards' window resolution
 	labels      map[string]*gpu.Image              // card labels in the game's font
+	labelsArt   artGen                             // ... of this art (its font)
 	glyph       func(byte) [8]byte                 // the game's font
 	main        bool                               // the main menu is up (mainmenu.go)
 	mm          mainUI                             // ... its state
@@ -79,6 +80,7 @@ type Presenter struct {
 	mapSrc      *MapSquares                        // the derived minimap it holds (derived)
 	mapInk      [16]color.RGBA                     // the ink it was drawn in
 	mapFont     int                                // and the font (fonts.Cur, -1: the game's own)
+	mapArt      artGen                             // and the art (the game's own font follows it)
 	menuRects   []image.Rectangle                  // the vertical menu's items on screen, as last drawn
 	scrolls     Bars                               // the scroll bars drawn this frame (scrollbar.go) and the drag
 	logTop      int                                // the battle Log's first line shown
@@ -86,6 +88,7 @@ type Presenter struct {
 	journal     journalUI                          // the quest journal (journal.go)
 	resultsPage sheetCanvas                        // the after-combat page (drawResults)
 	area        AreaMapPainter                     // the overland's map and marker last uploaded (drawAreaMap)
+	viewArt     artGen                             // the art the 3D view's textures and scenes are of (wallStyle)
 	areaPic     areaPic                            // the overland's picture built from its squares (drawAreaMap)
 	fightAskAt  []image.Rectangle                  // the fight pop-up menu's lines on screen
 	winRects    []image.Rectangle                  // the Esc menu's lines on screen, as last drawn
@@ -110,84 +113,84 @@ type Presenter struct {
 	fightLog    bool                               // the battle Log is up (fight.go)
 	blowLine    string                             // the last line a blow's replay said, shown on the pane a while
 	blowAt      time.Time
-	fightCard   image.Rectangle           // the active member's card (fight.go): a click the sheet
-	rowsImg     *gpu.Image                // the combat rows, drawn at scale 1
-	rowsKey     string                    // what they show
-	typing      bool                      // a line is being typed (input.go) ...
-	typed       string                    // ... and reads this ...
-	typedCur    int                       // ... its cursor here
-	cardHover   int                       // 1 + the card the pointer is on (0 none): its name and class show beside it
-	dragFrom    int                       // 1 + the card pressed while the party is being ordered (Ordering), it follows the pointer to the card it is dropped on (0 none)
-	dragAt      image.Point               // where the pointer is while a card is dragged
-	Sound       func(n int, event string) // plays a fight's EvSound n (the sound pack's event) when its turn comes (Engine.PlayEventSound)
-	Snd         game.Sound                // the sound driver EvSound and EvSong play through when Sound is nil (NewFront)
-	AdLib       *audio.AdLib              // Data.AdLib's player: EvSong and EvSound go to it first (NewFront)
-	dragStart   image.Point               // where it was pressed
-	dragged     bool                      // it has moved far enough from dragStart to be a drag
-	ordering    bool                      // Ordering
-	tipping     bool                      // tipMenu is drawing: drawMenuIcons keeps the box on the window
-	ctx         int                       // 1 + the card whose context menu a right click opened (0 none): drawCardTip
-	ctxSel      int                       // its highlighted line
-	ctxActs     []ActKind                 // its lines' actions, for the member
-	behind      *blobber.Scene            // the last 3D scene shown
-	ctxKeys     []byte                    // its lines' hotkeys (the first letters)
-	campCtx     [][]image.Rectangle       // in camp every member's context menu lines (drawCampMenus)
-	campImg     []*gpu.Image              // drawCampMenus: each member's menu image
-	campBuf     [][]byte                  // and its pixels
-	menuGrey    bool                      // drawMenu's border grey: a menu without the focus
-	menuTight   bool                      // drawMenu without the blank column inside the border
-	ctxRects    []image.Rectangle         // its lines on screen, as last drawn
-	ctxBox      image.Rectangle           // where its box went: the spell pick opens there
-	pick        []Spell                   // the Ask (AskSpell) as last drawn: a spell to cast is being picked on this screen
-	picBottom   int                       // the bottom of the picture box drawn this frame (0: none): menus go under it
-	labelAt     []image.Rectangle         // the top labels drawn this frame (Sweeping, <act>)
-	pickAt      image.Rectangle           // the context menu's box the pick list replaces (zero: the top middle, the bar's scale)
-	pickSel     int                       // the pick list's highlight ...
-	picking     bool                      // ... reset when it opens
-	command     bool                      // the party explores (Exploring), as last drawn
-	cmds        []command                 // the command menu's commands (explore.go), as last drawn
-	camp        campUI                    // the camp screens (camp.go)
-	screenWas   bool                      // a camp-style screen was up when last drawn: one opening starts on its main screen
-	backAt      still                     // the location as last shown: what a menu screen draws over (backdrop.go)
-	back        memo[uint64, *Presenter]  // draws backAt, keyed on its Version
-	backdrop    bool                      // this presenter draws a backdrop: no question, no text
-	listWas     bool                      // a list was asked when last drawn (openList)
-	played      *frame                    // the moment Draw plays (nil: none)
-	list        listUI                    // the Ask (AskList)'s highlight (list.go)
-	pageMenu    bool                      // a page's question is up (list.go)
-	mapPointer  image.Point               // the full map: the pointer's last cell (a move there moves the cursor)
-	fullMap     *fullMapUI                // the full map up (fullmap.go)
-	resets      int                       // the engine's Resets when own last looked
-	lay         layouts                   // the page screens laid out from the state (layout.go)
-	gridPick    *PickUI                   // a grid picker up (picker.go)
-	creating    bool                      // the creation sheet up (creation.go)
-	training    bool                      // the training hall up over the party menu (shop.go serviceAct)
-	icon        *IconUI                   // the icon editor up
-	ran         int                       // the picker's and editor's calls run: their pages are laid out again
-	slots       *SlotsUI                  // the save slots up (slots.go)
-	intro       IntroUI                   // the title being played (title.go)
-	seqSong     string                    // the song the animation loaded last (vace cue "load")
-	seq         SequenceUI                // the full-screen animation being played (Sequence)
-	seqImg      srcImage                  // its frame on the GPU
-	clue        *clueUI                   // the clue book's chapter list up (cluebook.go)
-	clueRead    *Read                     // the clue book last read, at the page left
-	clueEnd     bool                      // ... read to its end: B gives the list
-	clueSel     int                       // the chapter last read
-	tipImg      *gpu.Image                // the card tip's box, drawn at scale 1 (drawMenu's image, swapped in)
-	tipBuf      []byte                    // its pixels
-	spellTipImg *gpu.Image                // the camp spell lists' rules tooltip (drawSpellTip), its own image
-	spellTipBuf []byte                    // its pixels
-	scr         screenUI                  // the page screens' questions (screens.go)
-	screen      image.Rectangle           // the window, as last drawn
-	confirmFor  string                    // the yes/no question (the Ask, AskConfirm) up, as last drawn ...
-	paneRect    image.Rectangle           // the page's text pane as drawn this frame: card menus keep clear of it
-	menuFloor   int                       // the page's text pane's top: a bottom menu stops above it (drawGeneric; 0 none)
-	confirmSel  int                       // ... its highlight (Yes 0, No 1) ...
-	confirmAt   []image.Rectangle         // ... and its rows on screen
-	noteBtn     image.Rectangle           // the text box's "> Notes" on the window (empty: no text box)
-	q           *Question                 // the presenter's question up (pace.go)
-	blinkAt     time.Time                 // ... and when they began
-	sf          sfUI                      // the ship fight's window page, blink and bar (spacefight.go)
+	fightCard   image.Rectangle              // the active member's card (fight.go): a click the sheet
+	rowsImg     *gpu.Image                   // the combat rows, drawn at scale 1
+	rowsKey     string                       // what they show
+	typing      bool                         // a line is being typed (input.go) ...
+	typed       string                       // ... and reads this ...
+	typedCur    int                          // ... its cursor here
+	cardHover   int                          // 1 + the card the pointer is on (0 none): its name and class show beside it
+	dragFrom    int                          // 1 + the card pressed while the party is being ordered (Ordering), it follows the pointer to the card it is dropped on (0 none)
+	dragAt      image.Point                  // where the pointer is while a card is dragged
+	Sound       func(n int, event string)    // plays a fight's EvSound n (the sound pack's event) when its turn comes (Engine.PlayEventSound)
+	Snd         game.Sound                   // the sound driver EvSound and EvSong play through when Sound is nil (NewFront)
+	AdLib       *audio.AdLib                 // Data.AdLib's player: EvSong and EvSound go to it first (NewFront)
+	dragStart   image.Point                  // where it was pressed
+	dragged     bool                         // it has moved far enough from dragStart to be a drag
+	ordering    bool                         // Ordering
+	tipping     bool                         // tipMenu is drawing: drawMenuIcons keeps the box on the window
+	ctx         int                          // 1 + the card whose context menu a right click opened (0 none): drawCardTip
+	ctxSel      int                          // its highlighted line
+	ctxActs     []ActKind                    // its lines' actions, for the member
+	behind      *blobber.Scene               // the last 3D scene shown
+	ctxKeys     []byte                       // its lines' hotkeys (the first letters)
+	campCtx     [][]image.Rectangle          // in camp every member's context menu lines (drawCampMenus)
+	campImg     []*gpu.Image                 // drawCampMenus: each member's menu image
+	campBuf     [][]byte                     // and its pixels
+	menuGrey    bool                         // drawMenu's border grey: a menu without the focus
+	menuTight   bool                         // drawMenu without the blank column inside the border
+	ctxRects    []image.Rectangle            // its lines on screen, as last drawn
+	ctxBox      image.Rectangle              // where its box went: the spell pick opens there
+	pick        []Spell                      // the Ask (AskSpell) as last drawn: a spell to cast is being picked on this screen
+	picBottom   int                          // the bottom of the picture box drawn this frame (0: none): menus go under it
+	labelAt     []image.Rectangle            // the top labels drawn this frame (Sweeping, <act>)
+	pickAt      image.Rectangle              // the context menu's box the pick list replaces (zero: the top middle, the bar's scale)
+	pickSel     int                          // the pick list's highlight ...
+	picking     bool                         // ... reset when it opens
+	command     bool                         // the party explores (Exploring), as last drawn
+	cmds        []command                    // the command menu's commands (explore.go), as last drawn
+	camp        campUI                       // the camp screens (camp.go)
+	screenWas   bool                         // a camp-style screen was up when last drawn: one opening starts on its main screen
+	backAt      still                        // the location as last shown: what a menu screen draws over (backdrop.go)
+	back        memo[stateBuild, *Presenter] // draws backAt, keyed on its build
+	backdrop    bool                         // this presenter draws a backdrop: no question, no text
+	listWas     bool                         // a list was asked when last drawn (openList)
+	played      *frame                       // the moment Draw plays (nil: none)
+	list        listUI                       // the Ask (AskList)'s highlight (list.go)
+	pageMenu    bool                         // a page's question is up (list.go)
+	mapPointer  image.Point                  // the full map: the pointer's last cell (a move there moves the cursor)
+	fullMap     *fullMapUI                   // the full map up (fullmap.go)
+	resets      int                          // the engine's Resets when own last looked
+	lay         layouts                      // the page screens laid out from the state (layout.go)
+	gridPick    *PickUI                      // a grid picker up (picker.go)
+	creating    bool                         // the creation sheet up (creation.go)
+	training    bool                         // the training hall up over the party menu (shop.go serviceAct)
+	icon        *IconUI                      // the icon editor up
+	ran         int                          // the picker's and editor's calls run: their pages are laid out again
+	slots       *SlotsUI                     // the save slots up (slots.go)
+	intro       IntroUI                      // the title being played (title.go)
+	seqSong     string                       // the song the animation loaded last (vace cue "load")
+	seq         SequenceUI                   // the full-screen animation being played (Sequence)
+	seqImg      srcImage                     // its frame on the GPU
+	clue        *clueUI                      // the clue book's chapter list up (cluebook.go)
+	clueRead    *Read                        // the clue book last read, at the page left
+	clueEnd     bool                         // ... read to its end: B gives the list
+	clueSel     int                          // the chapter last read
+	tipImg      *gpu.Image                   // the card tip's box, drawn at scale 1 (drawMenu's image, swapped in)
+	tipBuf      []byte                       // its pixels
+	spellTipImg *gpu.Image                   // the camp spell lists' rules tooltip (drawSpellTip), its own image
+	spellTipBuf []byte                       // its pixels
+	scr         screenUI                     // the page screens' questions (screens.go)
+	screen      image.Rectangle              // the window, as last drawn
+	confirmFor  string                       // the yes/no question (the Ask, AskConfirm) up, as last drawn ...
+	paneRect    image.Rectangle              // the page's text pane as drawn this frame: card menus keep clear of it
+	menuFloor   int                          // the page's text pane's top: a bottom menu stops above it (drawGeneric; 0 none)
+	confirmSel  int                          // ... its highlight (Yes 0, No 1) ...
+	confirmAt   []image.Rectangle            // ... and its rows on screen
+	noteBtn     image.Rectangle              // the text box's "> Notes" on the window (empty: no text box)
+	q           *Question                    // the presenter's question up (pace.go)
+	blinkAt     time.Time                    // ... and when they began
+	sf          sfUI                         // the ship fight's window page, blink and bar (spacefight.go)
 }
 
 // Draw shows the game on dst and returns where the whole page went

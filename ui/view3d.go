@@ -51,9 +51,9 @@ func (p *Presenter) drawMap(dst *gpu.Image, ink [16]color.RGBA, font func(byte, 
 	if p.fonts != nil {
 		cur = p.fonts.Cur
 	}
-	if m != p.mapSrc || ink != p.mapInk || cur != p.mapFont { // the map changed: upload it once (not every frame)
+	if m != p.mapSrc || ink != p.mapInk || cur != p.mapFont || daxArt.gen != p.mapArt { // the map changed: upload it once (not every frame)
 		p.mapImg.WritePixels(mapImage(m, mapCell, ink, font).Pix)
-		p.mapSrc, p.mapInk, p.mapFont = m, ink, cur
+		p.mapSrc, p.mapInk, p.mapFont, p.mapArt = m, ink, cur, daxArt.gen
 	}
 	r := mapRect(dst)
 	p.mapAt = r
@@ -190,7 +190,7 @@ func (p *Presenter) wallTexture(w *game.Walls, art map[string]game.Picture, n in
 // decoded when first drawn.
 func wallImage(name string) image.Image { return asset.WallImage(series, name) }
 
-// wallStyle puts Host.PixelWalls' wall style in use (newView: every scene
+// wallStyle puts Host.PixelWalls' wall style and the art shown (F12) in use (newView: every scene
 // lookup, so a saved style holds from the first frame): the 3D view drops its
 // textures and scenes (props hold their images), so the next frame draws the
 // other set, each texture decoded again when first drawn.
@@ -199,10 +199,11 @@ func (p *Presenter) wallStyle() {
 	if Host.PixelWalls {
 		style = "pixel"
 	}
-	if asset.Style() == style {
+	if asset.Style() == style && p.viewArt == daxArt.gen { // F12: the walls' own pictures (no pool texture) and backdrops are the other art's
 		return
 	}
 	asset.SetStyle(style)
+	p.viewArt = daxArt.gen
 	if p.view != nil {
 		p.view.ResetTextures()
 		clear(p.scenes)

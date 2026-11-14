@@ -54,7 +54,7 @@ func (p *Presenter) flags() *game.Flags {
 		return &game.Flags{}
 	}
 	r := p.eng.r
-	return p.lay.flags.get(flagsKey{p.eng.G.Version(), r.title}, func() *game.Flags { s := p.state(); return r.flagsOf(s, partyOf(s)) })
+	return p.lay.flags.get(flagsKey{p.eng.r.build(), r.title}, func() *game.Flags { s := p.state(); return r.flagsOf(s, partyOf(s)) })
 }
 
 // minimap is the automap of the state up and its squares, when it is a 16x16 map to draw.

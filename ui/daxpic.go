@@ -25,6 +25,24 @@ var daxPics = map[daxKey]image.Image{} // decoded once; nil: not decodable
 var daxArt struct {
 	art   *asset.Art // nil: no art
 	amiga bool       // the Amiga version shows (F12)
+	gen   artGen     // bumped on every change of the art shown (switchArt)
+}
+
+// artGen is the art shown's generation: every cache whose content depends
+// on the art shown (pictures, borders, fonts that follow the art) keys on
+// it, through stateBuild (the State's build and the art). Detect the bug
+// class: TestArtKeys; a memo keyed by Version() alone (grep "Version()" in
+// ui outside rules.go's build).
+type artGen uint64
+
+// switchArt shows the Amiga art (or the DOS art) from now on and drops the
+// pictures cut from the other.
+func switchArt(amiga bool) {
+	daxArt.amiga = amiga
+	daxArt.gen++
+	clear(daxPics)
+	clear(amigaScreens) // cut from the other art's pictures
+	clear(spriteAnims)  // the other art's frames and delays
 }
 
 // amigaShown reports whether the Amiga art shows.
@@ -56,10 +74,7 @@ func (f *Front) Arts() (dos bool, set func(bool)) {
 		return true, nil
 	}
 	return true, func(dos bool) {
-		daxArt.amiga = !dos
-		clear(daxPics)
-		clear(amigaScreens) // cut from the other art's pictures
-		clear(spriteAnims)  // the other art's frames and delays
+		switchArt(!dos)
 		f.ArtNew = true
 	}
 }

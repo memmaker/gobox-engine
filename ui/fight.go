@@ -672,7 +672,7 @@ type lists struct {
 // build number) and gobox's own part of it, the aim, its cursor and the log
 // (rules.combat folds them in).
 type fightSource struct {
-	version uint64
+	version stateBuild
 	aim     *squareAim
 	ats     int
 	cursor  image.Point
@@ -682,7 +682,7 @@ type fightSource struct {
 // fightSource is the source of the fight now.
 func (p *Presenter) fightSource() fightSource {
 	r := p.eng.r
-	k := fightSource{version: p.eng.G.Version(), aim: r.aim, cursor: r.cursor, log: len(r.log)}
+	k := fightSource{version: p.eng.r.build(), aim: r.aim, cursor: r.cursor, log: len(r.log)}
 	if r.aim != nil {
 		k.ats = len(r.aim.ats)
 	}
@@ -698,13 +698,12 @@ type boardKey struct {
 	queued int          // the moments still to play (keepFallen)
 	ask    AskKind      // the question over the board (-1: none): an aim or a move
 	aim    *aiming      // the spell being aimed
-	ran    int          // the art changed (F12): the units' pictures are composed from it
 }
 
 // drawnBoard makes fightView and fightBoard from p.board, when what they
 // are made from has changed.
 func (p *Presenter) drawnBoard() {
-	k := boardKey{live: p.fightSource(), board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim, ran: p.ran}
+	k := boardKey{live: p.fightSource(), board: p.board, fly: p.fly, queued: len(p.replay.q), ask: -1, aim: p.ui().spellAim}
 	if q := p.askUp(); q != nil {
 		k.ask = q.Kind
 	}

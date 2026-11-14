@@ -43,12 +43,24 @@ type frontState struct {
 	g    game.Game
 	dir  string
 	now  func() time.Time
-	held heldStore              // the slot list read while the game waits (saves); run drops it
-	data game.Data              // the series' data (verb keys, texts)
-	ran  uint64                 // the steps done: each drops the held saves (Game.run)
-	der  memo[uint64, *derived] // what is made from the State, at its Version (derived)
+	held heldStore                  // the slot list read while the game waits (saves); run drops it
+	data game.Data                  // the series' data (verb keys, texts)
+	ran  uint64                     // the steps done: each drops the held saves (Game.run)
+	der  memo[stateBuild, *derived] // what is made from the State, at its build (derived)
 	UI
 }
+
+// stateBuild is what every derivation of the State is made at: its build
+// (Version) and the art shown (F12 changes the pictures, the borders and the
+// font without the game's State changing for the front). The one way the ui
+// reads the game's Version: a cache keyed by it follows the art too.
+type stateBuild struct {
+	version uint64
+	art     artGen
+}
+
+// build is the State's build now.
+func (r *frontState) build() stateBuild { return stateBuild{r.g.Version(), daxArt.gen} }
 
 // squareAim is an Aimed action whose squares the player is picking.
 type squareAim struct {

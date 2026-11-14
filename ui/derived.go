@@ -21,7 +21,7 @@ type derived struct {
 
 // derived is the State's derived reads, made again when its Version changed.
 func (r *frontState) derived() *derived {
-	return r.der.update(r.g.Version(), func(old *derived) *derived {
+	return r.der.update(r.build(), func(old *derived) *derived {
 		ps := r.g.State()
 		d := &derived{}
 		if old != nil {
