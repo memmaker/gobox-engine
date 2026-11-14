@@ -45,9 +45,9 @@ func TestGameImports(t *testing.T) {
 }
 
 // TestUINotEngine: ui reads games only through this contract, never the pool
-// engine (REFACTOR.md).
+// engine (REFACTOR.md). Production code only: ui's tests may drive a real engine.
 func TestUINotEngine(t *testing.T) {
-	out, err := exec.Command("go", "list", "-test", "-deps", "gobox/ui").Output()
+	out, err := exec.Command("go", "list", "-deps", "gobox/ui").Output()
 	if err != nil {
 		t.Fatal(err)
 	}
