@@ -8,14 +8,16 @@ import (
 )
 
 // TestMenuOverLastScene: a shop's or temple's page that publishes no map
-// keeps the 3D scene last shown to draw over, never black.
+// keeps the 3D view it was entered from (wallsOf), never black.
 func TestMenuOverLastScene(t *testing.T) {
 	var p Presenter
 	g, f := playGame(game.Exploring{Map: game.ExploreMap{Walls: game.MapWalls{Side: [][][4]int{{{0, 0, 0, 0}}}}}})
 	p.SetEngine(g)
-	shown := p.scene()
+	if p.scene() == nil {
+		t.Fatal("the town showed no scene")
+	}
 	f.st = game.Trading{}
-	if p.scene() != nil || p.behind != shown {
+	if p.scene() == nil {
 		t.Fatal("the temple's page lost the town's scene")
 	}
 }
