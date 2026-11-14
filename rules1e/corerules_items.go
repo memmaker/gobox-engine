@@ -324,9 +324,14 @@ func (r *Rules) itemCard(c *Character, it *Item) rules.ItemCard {
 }
 
 // DamageText is c's weapon damage as the sheet words it (por combat_engine damageText).
+// A hand without dice gives way to the other: a monster's bite is its second hand's record (the giant snake: 3d6+2 in hand 1).
 func DamageText(c *Character) string {
-	d := strconv.Itoa(int(c.Dice[0])) + "d" + strconv.Itoa(int(c.Sides[0]))
-	if b := int8(c.Bonus[0]); b > 0 {
+	h := 0
+	if c.Dice[0] == 0 && c.Dice[1] != 0 {
+		h = 1
+	}
+	d := strconv.Itoa(int(c.Dice[h])) + "d" + strconv.Itoa(int(c.Sides[h]))
+	if b := int8(c.Bonus[h]); b > 0 {
 		d += "+" + strconv.Itoa(int(b))
 	} else if b < 0 {
 		d += "-" + strconv.Itoa(-int(b)) // abs in 16 bits: -128 shows 128
