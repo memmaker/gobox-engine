@@ -859,7 +859,7 @@ func (g *Game) act(a Action) func() error {
 	case ActTraining:
 		return send(game.OpenTraining{Member: m})
 	case ActNewClass:
-		return send(game.ChangeClass{Member: m, Class: -1}) // the game asks which (its Refusal's Ask)
+		return send(game.ChangeClass{Member: m, Class: game.ClassAsked}) // the game asks which (its Refusal's Ask)
 	case ActQuickStart:
 		return send(game.QuickStart{})
 	case ActCommand: // a game's own party command (Assembling.Commands)

@@ -13,7 +13,7 @@ var partyFunctions = map[string]ActKind{
 	"Create Character": ActCreate, "Add Character": ActAdd, "Remove Character": ActRemove,
 	"Modify Character": ActModify, "Train Character": ActTraining, "View Character": ActMember,
 	"Load Saved Game": ActLoad, "Begin Adventuring": ActBegin, "Exit to DOS": ActQuit,
-	"Drop Character": ActDropMember, "Human Change Class": ActNewClass, "Quick Start": ActQuickStart,
+	"Drop Character": ActDropMember, game.ChangeClassFunction.Label: ActNewClass, "Quick Start": ActQuickStart,
 	"Forget Character": ActForget, "Purge Character": ActRemove,
 	"Icon Select": ActIconEdit, "Save Current Game": ActSaveGame,
 }

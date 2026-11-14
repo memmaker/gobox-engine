@@ -383,6 +383,8 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				add(game.QuickStart{})
 			case partyQuit:
 				add(game.Quit{})
+			case partyNewClass: // the selected member's, offered only when it qualifies (partyFunctions)
+				add(game.ChangeClass{Member: e.sel, Class: game.ClassAsked})
 			}
 			for n := range cm.Party {
 				switch k {
@@ -621,6 +623,9 @@ func allows(al game.Allowed, a game.Action) bool {
 		base = game.IconPNG{}
 	case game.AdvanceTimeBy: // any length: gobox paces camp's rest in chunks
 		base = game.AdvanceTimeBy{D: time.Hour}
+	case game.ChangeClass: // any class: the hall asks which (askClass)
+		v.Class = game.ClassAsked
+		base = v
 	case game.UseItem:
 		v.Ats, v.Target, v.Spell = nil, 0, 0
 		base = v
@@ -629,7 +634,7 @@ func allows(al game.Allowed, a game.Action) bool {
 		base = v
 	case game.EndGame: // gobox's Back to Main Menu, any time: Do refuses it where there is no game to drop
 		return true
-	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Order, game.AddNote, game.RemoveNote, game.Give, game.ChangeClass,
+	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Order, game.AddNote, game.RemoveNote, game.Give,
 		game.Memorize, game.Forget, game.Scribe, game.LayOnHands, game.Halve, game.Join, game.PoolCoins, game.SetDifficulty:
 		return true
 	}

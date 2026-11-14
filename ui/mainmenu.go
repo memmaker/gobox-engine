@@ -105,7 +105,7 @@ func (m *mainUI) skip(hall bool) bool {
 var mainNames = map[ActKind]string{
 	ActBegin: "BEGIN Adventuring", ActLoad: "Load Game", ActQuickStart: "Quick Start", ActQuit: QuitRow,
 	ActAdd: "Add", ActCreate: "Create", ActForget: "Forget", ActDropMember: "Drop",
-	ActModify: "Modify", ActTraining: "Train", ActNewClass: "New Class", ActMember: "View", ActRemove: "Remove",
+	ActModify: "Modify", ActTraining: "Train", ActNewClass: game.ChangeClassFunction.Label, ActMember: "View", ActRemove: "Remove",
 }
 
 // mainLong are the party menu's functions by their full names, the keys
@@ -161,8 +161,11 @@ func (m *mainUI) items(h MainHost, v MainMenu) (string, []MenuRow) {
 			name, _, _ = strings.Cut(t, " ")
 		}
 		key := name[0]
-		if k == ActQuit { // Q is Quick Start's
+		switch k {
+		case ActQuit: // Q is Quick Start's
 			key = 'D'
+		case ActNewClass: // C is Create's
+			key = byte(game.ChangeClassFunction.Key)
 		}
 		it = append(it, MenuRow{Text: name, Key: key, Do: do})
 	}

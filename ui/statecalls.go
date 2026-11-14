@@ -1,6 +1,6 @@
 // statecalls.go: camp and the party menu are the presenter's: their
 // decisions are rule calls (CampRest, PlanSpell, Scribe, DropMember,
-// LeaveCamp; Begin, RemoveMember, NewClass, QuickStart, QuitGame; Lead).
+// LeaveCamp; Begin, RemoveMember, QuickStart, QuitGame; Lead).
 
 package ui
 
@@ -59,8 +59,6 @@ func StateAct(h RuleHost, a Action) bool {
 			})
 		case ActQuickStart:
 			h.Call(func(e *classicGame) { e.do(game.QuickStart{}) })
-		case ActNewClass:
-			NewClass(h, n, -1)
 		default:
 			return false
 		}
@@ -68,9 +66,4 @@ func StateAct(h RuleHost, a Action) bool {
 		return false
 	}
 	return true
-}
-
-// NewClass calls NewClass (the game asks for the class itself).
-func NewClass(h RuleHost, n, class int) {
-	h.Call(func(e *classicGame) { e.do(game.ChangeClass{Member: n, Class: class}) })
 }

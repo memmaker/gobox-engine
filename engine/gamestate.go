@@ -394,7 +394,7 @@ var mainMenuLabels = map[partyFn]string{
 	partyCreate: "Create Character", partyAdd: "Add Character", partyRemove: "Remove Character",
 	partyModify: "Modify Character", partyTraining: "Train Character", partyView: "View Character",
 	partyLoad: "Load Saved Game", partyBegin: "Begin Adventuring", partyQuit: "Exit to DOS",
-	partyDrop: "Drop Character", partyNewClass: "Human Change Class", partyQuickStart: "Quick Start",
+	partyDrop: "Drop Character", partyNewClass: game.ChangeClassFunction.Label, partyQuickStart: "Quick Start",
 	partyForget: "Forget Character",
 }
 

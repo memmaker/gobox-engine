@@ -87,11 +87,15 @@ func musicPlaceList() []string {
 // Start before Exit; gobox shows the entries the rules allow.
 func partyMenuOrder() []game.MenuKey {
 	var o []game.MenuKey
-	for _, l := range []string{"Create Character", "Drop Character", "Modify Character", "Train Character",
-		"Human Change Class", "View Character", "Add Character", "Remove Character", "Load Saved Game",
-		"Save Current Game", "Begin Adventuring", quickStartLabel, "Exit to DOS"} {
-		o = append(o, game.MenuKey{Label: l, Key: rune(l[0])})
+	keyed := func(ls ...string) {
+		for _, l := range ls {
+			o = append(o, game.MenuKey{Label: l, Key: rune(l[0])})
+		}
 	}
+	keyed("Create Character", "Drop Character", "Modify Character", "Train Character")
+	o = append(o, game.ChangeClassFunction)
+	keyed("View Character", "Add Character", "Remove Character", "Load Saved Game",
+		"Save Current Game", "Begin Adventuring", quickStartLabel, "Exit to DOS")
 	return o
 }
 

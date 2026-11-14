@@ -5,13 +5,8 @@ import (
 	"slices"
 )
 
-// NewClass = the hall's New Class (front.Game): member n (< 0: the selected
-// one) changes to por class number class (< 0: not picked yet, asked).
-func (e *Engine) NewClass(n, class int) error {
-	return e.newClass(n, e.fact(rules.NoChar, rules.ClassByNumber{N: class}).(rules.Class))
-}
-
-// newClass is NewClass to class (ClassNone: asked, askClass).
+// newClass = the hall's Change Class: member n (< 0: the selected one)
+// changes to class (ClassNone: asked, askClass).
 func (e *Engine) newClass(n int, class rules.Class) error {
 	if !e.inParty() || !slices.Contains(e.partyFunctions(), partyNewClass) {
 		return rules.ErrNotNow

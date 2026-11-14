@@ -219,7 +219,7 @@ func (e *Engine) DevScene(name string) func() {
 			e.fixture(rules.FixtureNoPicker, rules.NoChar)
 			e.Redraw()
 		}
-	case "dual": // the training hall with a human fighter who may change class (NewClass)
+	case "dual": // the training hall with a human fighter who may change class (newClass)
 		return func() {
 			e.fixture(rules.FixtureDual, rules.NoChar)
 			e.DevScene("hall")()

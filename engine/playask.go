@@ -25,7 +25,7 @@ const (
 	callPower                      // UsePower
 	callLoot                       // LootLeave
 	callDrop                       // dropping a member, target the questions still to ask
-	callClass                      // NewClass, target the class
+	callClass                      // newClass, target the class
 	callCastChoice                 // the reply to a spell's own question (SpellAim.Choose): the waiting cast goes off
 )
 
@@ -143,7 +143,7 @@ func (e *Engine) askTarget(text string, p pendingCall) error {
 	return errAsked
 }
 
-// askClass asks member n's new class among the rules' offers (NewClass, "Pick New Class:").
+// askClass asks member n's new class among the rules' offers (newClass, "Pick New Class:").
 func (e *Engine) askClass(offers []rules.Offer, n int) error {
 	pq := &playQuestion{q: game.Question{Text: "Pick New Class:"}}
 	for _, o := range offers {

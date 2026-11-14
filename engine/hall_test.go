@@ -8,6 +8,7 @@ import (
 
 	"gobox/asset"
 	"gobox/game"
+	"gobox/rules1e"
 )
 
 // The training hall (opProgram 0) puts the party menu up; Train shows the
@@ -201,4 +202,65 @@ func (e *Engine) fullPicture(pic *asset.Image) {
 	e.ClearScreen()
 	e.DrawPicture((textCols-minCols)/2, (textRows-minRows)/2, pic, 0)
 	e.snap.full = true
+}
+
+// Change Class is the training hall's only, offered for the selected
+// member when it qualifies (classOffers), absent on the title's party menu.
+func TestHallChangeClass(t *testing.T) {
+	e := testEngine(t)
+	seed := uint32(7)
+	e.FixedSeed = &seed
+	e.Explore = true
+	e.Init()
+	e.Start(e.Play)
+	if len(e.state().Party) < 2 {
+		t.Fatalf("party of %d, want two", len(e.state().Party))
+	}
+	dual, plain := e.state().Party[0], e.state().Party[1]
+	dual.Race, dual.Class, dual.Alignment = rules1e.RaceHuman, rules1e.ClsFighter, 0
+	dual.Stats = [6]rules1e.Score{17, 17, 17, 17, 17, 17}
+	plain.Race = rules1e.RaceDwarf
+	if len(rules1e.NewClasses(dual)) == 0 || len(rules1e.NewClasses(plain)) != 0 {
+		t.Fatalf("fixture: dual %v, plain %v", rules1e.NewClasses(dual), rules1e.NewClasses(plain))
+	}
+	offered := func() bool {
+		e.Advance()
+		as, ok := e.build().(game.Assembling)
+		if !ok {
+			t.Fatalf("party menu: %T", e.build())
+		}
+		in := slices.ContainsFunc(as.Allowed.Plain, func(a game.Action) bool { _, ok := a.(game.ChangeClass); return ok })
+		q := e.pendingAsk()
+		if q != nil && slices.Contains(q.Replies, game.ChangeClassFunction.Label) != in {
+			t.Errorf("menu %v disagrees with Allowed %v", q.Replies, in)
+		}
+		return in
+	}
+	e.push(cont{kind: kDrawMain})
+	e.partyMenu(false, true)
+	e.selectMember(0)
+	if offered() {
+		t.Error("Change Class on the title's party menu")
+	}
+	if _, err := e.doNow(game.ChangeClass{Member: 0, Class: game.ClassAsked}); err == nil {
+		t.Error("Change Class done on the title's party menu")
+	}
+	e.push(cont{kind: kDrawMain})
+	e.partyMenu(true, true)
+	e.selectMember(0)
+	if !offered() {
+		t.Error("hall: a qualifying member is not offered Change Class")
+	}
+	e.selectMember(1)
+	if offered() {
+		t.Error("hall: a non-qualifying member is offered Change Class")
+	}
+	e.selectMember(0)
+	offered()
+	if _, err := e.doNow(game.ChangeClass{Member: 0, Class: game.ClassAsked}); err != nil {
+		t.Fatalf("Change Class: %v", err)
+	}
+	if pq := e.ext.pq; pq == nil || len(pq.calls) == 0 || pq.calls[0].kind != callClass {
+		t.Errorf("Change Class asks %+v, want the class", pq)
+	}
 }

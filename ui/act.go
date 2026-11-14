@@ -91,7 +91,7 @@ const (
 	ActForget     // forget a saved character
 	ActRemove     // member N goes back to the saved characters
 	ActTraining   // the training hall for member N
-	ActNewClass   // (extra) member N, a human, changes class (dualclass.go)
+	ActNewClass   // (extra) the training hall's Change Class: member N, a human, changes class (dualclass.go)
 	ActLoad       // load a saved game
 	ActQuickStart // a ready-made party
 	ActBegin      // begin adventuring

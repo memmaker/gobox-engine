@@ -233,7 +233,7 @@ var partyFuncs = []struct {
 }{
 	{"Create Character", 'C', "NewCharacter"}, {"Add Character", 'A', "AddCharacter"},
 	{"Remove Character", 'R', "RemoveCharacter"}, {"Forget Character", 'F', "Forget"}, {"Modify Character", 'M', "Modify"},
-	{"Train Character", 'T', "OpenTraining"}, {"Human Change Class", 'H', "ChangeClass"},
+	{"Train Character", 'T', "OpenTraining"}, {game.ChangeClassFunction.Label, game.ChangeClassFunction.Key, "ChangeClass"},
 	{"View Character", 'V', ""}, {"Icon Select", 'I', "EditIcon"}, {"Drop Character", 'D', "DropMember"},
 	{"Load Saved Game", 'L', ""}, {"Save Current Game", 'S', ""},
 	{"Quick Start", 'Q', "QuickStart"}, {"Begin Adventuring", 'B', "Begin"}, {"Exit to DOS", 'E', "Quit"},
