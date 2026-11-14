@@ -174,8 +174,8 @@ func (p *Presenter) screenPage() *cellPage {
 	if ed != nil || pk != nil {               // also a picker over the icon editor, in its palette: no grey cells
 		ink[inkBlack] = color.RGBA{A: 255} // the combat palette shows black dark grey (for the icon's black): the page black as every screen
 	}
-	if cr != nil && pk == nil && sl == nil { // the combat icon on grey, as in the icon editor: its black parts show
-		pics = append([]Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: col(inkDark)}}, pics...)
+	if cr != nil && pk == nil && sl == nil { // the combat icon on iconGround, as in the icon editor: its black parts show
+		pics = append([]Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: iconGround}}, pics...)
 	}
 	c := newCellPage(p.cells(), ink, pics)
 	if cr != nil && cr.Scale > 1 && pk == nil && sl == nil {
@@ -702,12 +702,17 @@ func (c *cellPage) picker(pk *FrontPicker) {
 	}
 }
 
+// iconGround is the ground a combat icon is shown on (the creation sheet,
+// the icon editor's poses): an off-black in no EGA colour, so the icon's
+// black and dark grey parts both show against it.
+var iconGround = color.RGBA{0x1C, 0x1C, 0x24, 0xFF}
+
 // iconEditor lays the combat icon editor's page out: the frame, the poses,
 // the words, the swatches and the palette (their colours the engine's).
 func (c *cellPage) iconEditor(ed *FrontIconEditor) {
 	c.border(1, 1, c.cols-2, c.rows-3) // the bar under it
 	for p, r := range ed.PoseAt {
-		c.pics = append(c.pics, Picture{At: r.Pixels(), Fill: true, Colour: col(inkDark)}) // the pose on grey (the page's, not the combat palette's dark): its black parts show
+		c.pics = append(c.pics, Picture{At: r.Pixels(), Fill: true, Colour: iconGround}) // the pose on iconGround: its black parts show
 		img := ed.Poses[p]
 		if ed.Indexed {
 			img = picImage(ed.PosePix[p], c.ink)
