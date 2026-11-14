@@ -79,7 +79,7 @@ func gridOf(b image.Rectangle) image.Point {
 // (grid), whatever page the game keeps, never the 40x25 page scaled up;
 // every other page is the original's (none given: 40x25).
 func (p *Presenter) cells() image.Point {
-	if !p.flags().Credits {
+	if !p.flags().Credits && p.slotsView() == nil {
 		return image.Point{}
 	}
 	return gridOf(p.screen)

@@ -216,3 +216,16 @@ func TestShopUnknownAndSlotsBuiltOncePerChange(t *testing.T) {
 		t.Fatal("a new State did not derive them again")
 	}
 }
+
+// The save/load screen is laid out on the window's grid at K, not the
+// 40x25 page scaled up.
+func TestSlotsPageAtK(t *testing.T) {
+	g, _ := playGame(game.Trading{Kind: game.TradeShop})
+	var p Presenter
+	p.SetEngine(g)
+	p.screen = image.Rect(0, 0, 1920, 1080)
+	p.slots = &SlotsUI{}
+	if c, want := p.cells(), gridOf(p.screen); c != want {
+		t.Errorf("slots cells %v, want %v", c, want)
+	}
+}
