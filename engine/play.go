@@ -473,7 +473,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				}
 			}
 			a.Aimed = append(a.Aimed, game.Aimed{Action: act, Squares: sq, Targets: 1})
-			add(game.Leave{}) // Leave gives the aim up (VerbClose): back to the turn's menu, or, the menu gone (the bar's Cast), the aim taken as nothing found
+			add(game.Leave{}) // Leave gives the aim up (VerbClose): back to the turn's menu, the spell not cast (aimSpellTaken)
 			break
 		}
 		if aim := e.cs.aim; aim != nil && b != nil { // a maneuver's aim up mid-turn (its move square, its attack, its target): Do aims it

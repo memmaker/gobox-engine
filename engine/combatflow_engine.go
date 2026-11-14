@@ -238,6 +238,10 @@ func (e *Engine) aimsDone() {
 func (e *Engine) aimSpellTaken(found bool, t aimTarget) {
 	sa := e.cs.sa
 	e.ext.aoe, e.ext.aoeSpell, e.ext.enemiesOnly = 0, 0, false
+	if !found && len(sa.aims) == 0 && sa.cast.kind != cwInfo { // extra: the first aim given up drops a cast chosen this turn (the menu's, an item's): nothing spent, the menu again; one begun rounds ago (cwInfo) goes off at nothing
+		e.cs.sa = nil
+		return
+	}
 	sa.aims = append(sa.aims, rules.Aim{Found: found, Target: t.C, At: t.At})
 	switch {
 	case sa.kind == rules.SpellAimOne, sa.kind == rules.SpellAimArea:

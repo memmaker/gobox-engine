@@ -1,9 +1,11 @@
 package engine
 
 import (
+	"slices"
 	"testing"
 
 	"gobox/game"
+	"gobox/rules"
 )
 
 // areaAimUp is castfight with Stinking Cloud's aim up (its Cast sent
@@ -45,11 +47,39 @@ func TestAreaAimTaken(t *testing.T) {
 
 // TestAreaAimLeft: Leave gives the area spell's aim up (the bar's Cast: no menu to go back to).
 func TestAreaAimLeft(t *testing.T) {
-	e, _ := areaAimUp(t)
+	e, cloud := areaAimUp(t)
+	caster := e.cs.actor
 	if _, err := e.doNow(game.Leave{}); err != nil {
 		t.Fatal("Leave:", err)
 	}
-	if e.cs.aim != nil {
+	if e.cs.aim != nil || e.cs.sa != nil {
 		t.Fatal("the aim is still up after Leave")
 	}
+	if e.cs.turn == nil || e.cs.actor != caster {
+		t.Fatal("Leave ended the turn: want its menu again")
+	}
+	if !slices.ContainsFunc(commonOf(e.build()).Allowed.Aimed, func(x game.Aimed) bool {
+		c, ok := x.Action.(game.Cast)
+		return ok && c.Spell == cloud.Action.(game.Cast).Spell
+	}) {
+		t.Fatal("Leave spent the spell: want it offered again")
+	}
+}
+
+// TestAreaAimGround: an area spell is aimed at an empty square in reach.
+func TestAreaAimGround(t *testing.T) {
+	e, x := areaAimUp(t)
+	b := e.build().(game.Fighting).Field
+	for _, at := range x.Squares {
+		if slices.ContainsFunc(b.Units, func(u game.Unit) bool { return u.At == at || slices.Contains(u.Squares, at) }) {
+			continue
+		}
+		c := x.Action.(game.Cast)
+		c.Ats = []rules.BoardPos{at}
+		if _, err := e.doNow(c); err != nil || e.cs.aim != nil {
+			t.Fatalf("Cast at the empty %v: %v, aim up %v (why %q)", at, err, e.cs.aim != nil, e.snap.aimWhy)
+		}
+		return
+	}
+	t.Fatal("no empty square offered")
 }
