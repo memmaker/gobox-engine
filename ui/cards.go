@@ -606,11 +606,14 @@ func wholeScale(sw, sh, tw, th int) int {
 	return 0
 }
 
-// face is the card art for a head: the square of the head's height at its
-// middle (the face, hair and shoulders: a Gold Box head is a wide strip, the
-// face centred over the body) scaled to fill a PortraitSize square, every
-// head at the one scale (nil without a head). Not the lit pixels' bounds: a
-// stray pixel at a strip's edge (a staff's tip) shrank the face to a sliver.
+// face is the card art for a head: its middle (the face, hair and
+// shoulders: a Gold Box head is a wide strip, the face centred over the
+// body) at a whole number of pixels per head pixel, the largest whose head
+// still fits the PortraitSize square's height, cut to the square's width
+// and set on its bottom edge (nil without a head). Never a fractional
+// scale: an 88x40 head stretched to 48 doubled every fifth row and column.
+// Not the lit pixels' bounds: a stray pixel at a strip's edge (a staff's
+// tip) shrank the face to a sliver.
 func (p *Presenter) face(head image.Image) image.Image {
 	if head == nil {
 		return nil
@@ -620,11 +623,13 @@ func (p *Presenter) face(head image.Image) image.Image {
 	}
 	const n = portraitSize
 	b := head.Bounds()
-	side := min(b.Dx(), b.Dy())
-	x := b.Min.X + (b.Dx()-side)/2
+	s := max(1, n/b.Dy())                      // the whole scale the head's height allows
+	w, h := min(b.Dx(), n/s), min(b.Dy(), n/s) // the head's part that fits, in head pixels
+	src := image.Rect(b.Min.X+(b.Dx()-w)/2, b.Max.Y-h, b.Min.X+(b.Dx()-w)/2+w, b.Max.Y)
 	f := image.NewRGBA(image.Rect(0, 0, n, n))
 	draw.Draw(f, f.Bounds(), image.Black, image.Point{}, draw.Src)
-	draw.Draw(f, f.Bounds(), fitSquare(crop(head, image.Rect(x, b.Max.Y-side, x+side, b.Max.Y)), n), image.Point{}, draw.Over)
+	at := image.Rect((n-s*w)/2, n-s*h, (n-s*w)/2+s*w, n)
+	xdraw.NearestNeighbor.Scale(f, at, head, src, draw.Over, nil) // whole pixels: exact
 	p.faces[head] = f
 	return f
 }
