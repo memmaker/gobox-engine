@@ -521,7 +521,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				}
 			}
 			for _, sp := range b.Aims {
-				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Cast{Member: cm.Selected, Spell: sp.ID}, Squares: inRange(b, sp.Range), Targets: max(sp.Targets, 1), Area: sp.Area})
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Cast{Member: cm.Selected, Spell: sp.ID}, Squares: e.spellReach(b, sp.ID), Targets: max(sp.Targets, 1), Area: sp.Area})
 			}
 		}
 		if sel := cm.Selected; sel >= 0 && sel < len(cm.Party) { // the acting member's items (the sheet's View, O089's Use)
@@ -622,6 +622,19 @@ func inRange(b *game.Combat, r int) []rules.BoardPos {
 		}
 	}
 	return out
+}
+
+// spellReach is the squares the turn's caster can aim spell at: only those
+// the aim's own check takes (playerAim's, as aimOne sets it up), so none
+// offered is refused ("Out of sight").
+func (e *Engine) spellReach(b *game.Combat, spell int) []rules.BoardPos {
+	c := e.unitID(b.Turn.Unit)
+	e.as(e.sel)
+	aim := e.fact(c, rules.SpellAimFact{Spell: e.spellID(spell)}).(rules.SpellAim)
+	o := e.fact(c, rules.AimFact{Range: aim.Range, FoesOnly: aim.FoesOnly}).(rules.AimOffer)
+	return slices.DeleteFunc(inRange(b, o.Range), func(at rules.BoardPos) bool {
+		return e.fact(c, rules.AimCheckFact{Near: o.Near, At: at, Range: o.Range, Ground: aim.Kind == rules.SpellAimArea}).(rules.AimCheck).Why != ""
+	})
 }
 
 // allows: the state publishes a (Plain by value; Aimed by its action with

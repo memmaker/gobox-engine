@@ -83,3 +83,29 @@ func TestAreaAimGround(t *testing.T) {
 	}
 	t.Fatal("no empty square offered")
 }
+
+// TestAreaAimOffered: every square the turn's Cast offers for the area
+// spell is taken (the corner ones were "Out of sight": the aim stayed up,
+// the cast silently not sent).
+func TestAreaAimOffered(t *testing.T) {
+	var squares []rules.BoardPos
+	for _, x := range commonOf(devFirstTurn(t, "castfight", false).build()).Allowed.Aimed {
+		if _, ok := x.Action.(game.Cast); ok && x.Area > 0 {
+			squares = x.Squares
+		}
+	}
+	if len(squares) == 0 {
+		t.Fatal("no area spell offered")
+	}
+	for _, at := range squares {
+		e := devFirstTurn(t, "castfight", false)
+		for _, x := range commonOf(e.build()).Allowed.Aimed {
+			if c, ok := x.Action.(game.Cast); ok && x.Area > 0 {
+				c.Ats = []rules.BoardPos{at}
+				if _, err := e.doNow(c); err != nil || e.cs.aim != nil {
+					t.Fatalf("Cast at %v: %v, aim up %v (why %q)", at, err, e.cs.aim != nil, e.snap.aimWhy)
+				}
+			}
+		}
+	}
+}
