@@ -22,7 +22,7 @@ func TestDataEqualsDAX(t *testing.T) {
 	if err != nil {
 		t.Skip("no game files")
 	}
-	e := &Engine{adv: filepath.Join(data, adventure.AssetsDir)}
+	e := &Engine{adv: filepath.Join("..", "data", "por")}
 	d := e.gdata()
 	n := 0
 	for s := rules.Set(1); s <= sets; s++ {

@@ -137,7 +137,7 @@ func withLayout(t *testing.T, e *Engine) {
 func TestSavedFields(t *testing.T) {
 	e := &Engine{}
 	e.initVM()
-	data := os.DirFS(filepath.Join("..", "data", "por", "sources", adventure.AssetsDir, "scripts"))
+	data := os.DirFS(filepath.Join("..", "data", "por", "scripts"))
 	names, err := fs.Glob(data, "layout/area*.txt")
 	if err != nil {
 		t.Fatal(err)
@@ -152,6 +152,9 @@ func TestSavedFields(t *testing.T) {
 		l, err := ecl.ReadLayout(data, a)
 		if err != nil {
 			t.Fatal(err)
+		}
+		if l == nil {
+			t.Fatalf("area %d: no layout in the script data", a)
 		}
 		for _, f := range l.Fields {
 			if f.Owner == ecl.OwnerCall {

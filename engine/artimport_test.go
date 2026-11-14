@@ -22,7 +22,7 @@ func TestArtEqualsDAX(t *testing.T) {
 		t.Skip("no game files")
 	}
 	l.UseAmiga(filepath.Join(data, adventure.AmigaDir))
-	art := asset.OpenArt(filepath.Join(data, adventure.AssetsDir, adventure.ArtDir))
+	art := asset.OpenArt(filepath.Join("..", "data", "por", adventure.ArtDir))
 	n := 0
 	for _, f := range artFiles() {
 		for _, v := range []asset.Version{asset.DOS, asset.Amiga} {
