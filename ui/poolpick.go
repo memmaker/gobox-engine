@@ -8,7 +8,6 @@ package ui
 import (
 	"image"
 
-	"gobox/asset"
 	"gobox/game"
 )
 
@@ -18,14 +17,13 @@ type poolPick struct {
 	names       []string
 	cell        image.Point
 	tiles       bool // the bodies by original ref (TilePicker)
-	amiga       bool // names lists the Amiga set (F12 when it was listed)
 }
 
 var poolPicks = map[int]poolPick{
-	PickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5), false, false},
-	PickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6), false, false},
-	PickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5), false, false},
-	PickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6), false, false},
+	PickHead:     {"portraithead", "portraits", nil, image.Pt(11, 5), false},
+	PickBody:     {"portraitbody", "portraits", nil, image.Pt(11, 6), false},
+	PickIconHead: {"iconhead", "combat", nil, image.Pt(11, 5), false},
+	PickWeapon:   {"iconbody", "combat", nil, image.Pt(11, 6), false},
 }
 
 // poolPrefix is what the names of a field start with.
@@ -51,26 +49,12 @@ func (g classicGame) OpenPicker(kind int) bool {
 	return true
 }
 
-// list fills names with the pool's pictures of pp's field in the art shown:
-// F12's Amiga set alone, never mixed with the DOS one.
-func (pp *poolPick) list() {
-	prefix := poolPrefix[pp.field]
-	if pp.amiga = amigaShown(); pp.amiga {
-		prefix = "amiga_" + prefix
-	}
-	pp.names = pp.names[:0]
-	for _, n := range asset.SpriteNames(series, pp.kind) {
-		if len(n) > len(prefix) && n[:len(prefix)] == prefix {
-			pp.names = append(pp.names, n)
-		}
-	}
-}
+// list fills names with the pool's entry IDs of pp's field: art-neutral,
+// each drawn in the art shown, so F12 while it is up only redraws.
+func (pp *poolPick) list() { pp.names = poolEntries(pp.kind, poolPrefix[pp.field]) }
 
 func (g classicGame) PickerView(page int) *FrontPicker {
 	if pp := g.p.pool; pp != nil {
-		if !pp.tiles && pp.amiga != amigaShown() { // F12 while it is up: the other set's list
-			pp.list()
-		}
 		if pp.tiles {
 			return g.Game.TilesOf(page, g.r.grid.X, g.r.grid.Y)
 		}
@@ -88,7 +72,7 @@ func (g classicGame) PickerView(page int) *FrontPicker {
 				case "iconbody":
 					v.Portraits[i] = PickIcon(g.Game.Subject(), "", n)
 				default:
-					v.Portraits[i] = asset.SpriteImage(series, pp.kind, n)
+					v.Portraits[i] = poolPicture(pp.kind, n)
 				}
 			}
 		}
