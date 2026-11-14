@@ -1376,7 +1376,7 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 		case game.Turned:
 			out = append(out, game.Report{Kind: game.EvMove, Unit: e.Unit, N: e.Facing, Turn: true})
 		case game.Attacked:
-			out = append(out, game.Report{Kind: game.EvAttack, Unit: e.From, Target: e.To, Pose: 1, Ms: strikeMs})
+			out = append(out, game.Report{Kind: game.EvAttack, Unit: e.From, Target: e.To, Hit: e.Hit, Pose: 1, Ms: strikeMs})
 			if !e.Hit {
 				out = append(out, game.Report{Kind: game.EvMiss, Unit: e.From, Target: e.To})
 				break

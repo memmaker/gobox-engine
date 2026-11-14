@@ -213,6 +213,9 @@ func (g *Game) messageMs() int {
 // (a walk moved, a fall dropped), with its unit in its pose; and the
 // party's figures then.
 func (g *Game) stepBoard(e game.Report) (*game.Combat, []game.Member) {
+	if e.Kind == game.EvAttack { // the blow's lunge plays on its own moment: the live board after the replay has the same Seq, so it never lunges again there (with the next member up)
+		g.ended.Strike = game.Strike{Seq: g.ended.Strike.Seq + 1, From: e.Unit, To: e.Target, Hit: e.Hit}
+	}
 	if e.Kind == game.EvMove && !e.Turn { // a step: held on the square it reaches
 		for k := range g.ended.Units {
 			if u := &g.ended.Units[k]; u.ID == e.Unit {
