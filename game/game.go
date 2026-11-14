@@ -603,6 +603,7 @@ type Unit struct {
 	Hit        int    // the active unit's chance in percent to hit it with one blow, 0 not a target
 	Pose       int    // its icon's pose: 0 ready, 1 action
 	IconPNG    []byte // a member's own PNG icon's bytes: gobox cuts the pose and faces it by Facing (nil: composed from its icon picks)
+	Approach   []Step // the walk the turn's Attack on it takes first, from the attacker's square (nil: none, in reach or no target)
 }
 
 // Weapon is a Turn's weapon: its icon (Type, Words) and tooltip.

@@ -189,6 +189,19 @@ func (p *Presenter) boardOf(c *game.Combat, party []game.Member, fly *flight) *c
 		}
 		b.Paths[pt(r.At)] = path
 	}
+	for _, g := range c.Units { // hovering a foe shows the walk an attack on it takes
+		for _, sq := range g.Squares {
+			if len(g.Approach) == 0 || g.Gone {
+				break
+			}
+			if b.Paths == nil {
+				b.Paths = map[image.Point][]combat.Step{}
+			}
+			for _, st := range g.Approach {
+				b.Paths[pt(sq)] = append(b.Paths[pt(sq)], combat.Step{Point: pt(st.At), Free: st.Free})
+			}
+		}
+	}
 	for _, g := range c.Units {
 		if g.Gone {
 			continue

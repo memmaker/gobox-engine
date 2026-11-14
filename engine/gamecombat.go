@@ -75,6 +75,11 @@ func (e *Engine) fightState() *game.Combat {
 			}
 			g.IconPNG = e.iconPics(id).PNG // a dropped PNG: the front cuts the pose the blow shows, facing as the unit
 		}
+		if len(u.Squares) > 0 && !u.Party { // a foe's squares carry the walk an attack on it takes (combatTurn's walks)
+			for _, st := range b.Paths[u.Squares[0]] {
+				g.Approach = append(g.Approach, game.Step{At: st.At, Free: st.Free})
+			}
+		}
 		c.Units = append(c.Units, g)
 	}
 	for _, r := range b.Reach {
