@@ -21,9 +21,9 @@ func (e *Engine) CharMessage(cID rules.CharID, msg string, wait bool) {
 		if e.restLine {
 			r = 0x12
 		}
-		e.blank(1, r, paneRight, paneBottom)
-		e.text(1, r+1, e.nameColour(cID), e.ruleset().Sheet(cID).Name)
-		e.textBlock(1, r+2, paneRight, paneBottom, game.InkLightGreen, true, msg)
+		e.clearPaneFrom(r - msgTop)
+		e.paneWrite(r+1-msgTop, 1, e.nameColour(cID), e.ruleset().Sheet(cID).Name)
+		e.paneFlow(r+2, game.InkLightGreen, true, msg)
 	}
 	if wait {
 		e.ClearMessageArea()
@@ -33,6 +33,6 @@ func (e *Engine) CharMessage(cID rules.CharID, msg string, wait bool) {
 // ClearMessageArea = 00BA:17E3.
 func (e *Engine) ClearMessageArea() {
 	if e.beginFlag() != 5 {
-		e.blank(1, 18, winRight, winBottom)
+		e.clearPaneFrom(18 - msgTop)
 	}
 }

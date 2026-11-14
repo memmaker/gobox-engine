@@ -480,7 +480,7 @@ func (e *Engine) opDamage() {
 	if e.run.quit {
 		e.Music(5) // Amiga 0x416C2
 		e.newPage()
-		e.blank(1, 1, winRight, winBottom)
+		e.clearWindow()
 		e.endPage("The entire party is killed!", CellRect{X1: 1, Y1: 1, X2: winRight, Y2: winBottom})
 	}
 	e.sel = sel
@@ -656,8 +656,7 @@ func (e *Engine) opProtection() {
 		if v <= 1 {
 			break
 		}
-		e.char(e.msgCol, e.msgRow, game.InkWhite, runeLetter(v), true)
-		e.msgCol++
+		e.cursorWrite(game.InkWhite, runeLetter(v))
 	}
 	e.msgRow++
 }
@@ -666,7 +665,7 @@ func (e *Engine) opProtection() {
 func (e *Engine) opClearBox() {
 	e.vm.PC++
 	e.setWin(WinText)
-	e.blank(1, 1, 15, 15)
+	e.clearView()
 	e.run.textInBox = 1
 }
 

@@ -265,14 +265,14 @@ func (e *Engine) showRest(unit int) {
 	}
 	col[unit] = game.InkWhite
 	r := e.restUnit
-	e.text(1, 17, game.InkLightGreen, "Rest time")
+	e.paneWrite(0, 1, game.InkLightGreen, "Rest time")
 	x := 0xB
 	for i := 4; i >= 3; i-- {
-		e.text(x+1, 17, col[i], twoDigits(r(i)))
-		e.text(x+3, 17, game.InkLightGreen, ":")
+		e.paneWrite(0, x+1, col[i], twoDigits(r(i)))
+		e.paneWrite(0, x+3, game.InkLightGreen, ":")
 		x += 3
 	}
-	e.text(x+1, 17, col[2], twoDigits(10*r(2)+r(1)))
+	e.paneWrite(0, x+1, col[2], twoDigits(10*r(2)+r(1)))
 }
 
 // Rest = ovr21:0C9A: rest in five-minute steps until the time is up, a key
@@ -302,13 +302,13 @@ func (e *Engine) RestStep() error {
 	}
 	if s.healed {
 		e.showRest(0)
-		e.text(1, 19, game.InkLightGreen, "The Whole Party Is Healed")
+		e.paneWrite(2, 1, game.InkLightGreen, "The Whole Party Is Healed")
 		e.ClearMessageArea()
 	}
 	if s.interrupted {
 		e.ClearMessageArea()
 		e.showRest(0)
-		e.text(1, 19, game.InkWhite, "The Party is rudely interrupted!")
+		e.paneWrite(2, 1, game.InkWhite, "The Party is rudely interrupted!")
 	}
 	if s.over {
 		e.resting = nil

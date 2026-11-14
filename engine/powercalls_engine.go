@@ -101,11 +101,11 @@ func (e *Engine) castAsk(spell int, usingItem bool, target int, sure bool, p pen
 		if !sure {
 			prompt := "Lose it?"
 			if !usingItem {
-				e.text(1, 19, game.InkLightGreen, card.Name)
-				e.text(1, 20, game.InkLightGreen, "is a combat-only spell...")
+				e.paneWrite(2, 1, game.InkLightGreen, card.Name)
+				e.paneWrite(3, 1, game.InkLightGreen, "is a combat-only spell...")
 			} else {
-				e.text(1, 19, game.InkLightGreen, "That Item")
-				e.text(1, 20, game.InkLightGreen, "is a combat-only item...")
+				e.paneWrite(2, 1, game.InkLightGreen, "That Item")
+				e.paneWrite(3, 1, game.InkLightGreen, "is a combat-only item...")
 				prompt = "Use it?"
 			}
 			return false, rules.NoChar, e.askSure(prompt, p)

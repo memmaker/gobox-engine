@@ -286,7 +286,7 @@ func (e *Engine) areaStart(sel rules.CharID) {
 		}
 	}
 	if e.prevViewMode > 1 && e.viewMode == 1 {
-		e.blank(3, 3, 13, 13)
+		e.clearView() // the picture frame's text
 	}
 	if (e.prevViewMode > 1 || e.viewMode == 1) && r.scriptLoad != 0 ||
 		e.prevViewMode == 1 && e.viewMode == 1 {

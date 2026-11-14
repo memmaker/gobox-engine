@@ -50,7 +50,7 @@ func (e *Engine) hiredShare() {
 		return
 	}
 	e.newPage()
-	e.blank(1, 1, winRight, winBottom)
+	e.clearWindow()
 	r := &Results{}
 	for _, id := range e.ac.sharers {
 		r.Shares = append(r.Shares, e.ruleset().Sheet(id).Name+" takes and hides his share.")
@@ -62,7 +62,7 @@ func (e *Engine) hiredShare() {
 // showResult = ovr06:0916 (exp): the page (Results).
 func (e *Engine) showResult(exp int32) {
 	e.newPage()
-	e.blank(1, 1, winRight, winBottom)
+	e.clearWindow()
 	r := &Results{}
 	switch {
 	case e.ac.monsters || e.duel():
@@ -206,7 +206,7 @@ func (e *Engine) pushAfterCombat() {
 	e.setWorldWord(rules.WordCombatEnd, 0x80)
 	e.Music(5) // Amiga 0x4602E
 	e.newPage()
-	e.blank(1, 1, winRight, winBottom)
+	e.clearWindow()
 	e.endPage("The monsters rejoice for the party has been destroyed", CellRect{X1: 2, Y1: 5, X2: 37, Y2: winBottom})
 	e.push(cont{kind: kAfterEnd})
 	e.keyWait(cont{kind: kNop}) // was PromptRow24's any key: its pause is only a fight event, so the page never waited and the menu came at once

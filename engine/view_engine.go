@@ -112,7 +112,6 @@ func (e *Engine) SheetPortrait() {
 	if e.creation != nil {
 		box = sheetPortraitBox() // larger as the page has room (the presenter scales the pictures)
 	}
-	e.blank(box.X1, box.Y1, box.X2, box.Y2)
 	e.snap.portrait = box // Shift-click and a dropped PNG land here
 	if sp := e.snap.sheet; sp != nil {
 		sp.PortraitAt, sp.Portrait = box, pt.PNG // extra: the dropped PNG, fitted into the box at the window's resolution; the head and body the presenter's (sheetPortrait)

@@ -6,7 +6,7 @@ import (
 
 // waitData is what a wait keeps for its page.
 type waitData struct {
-	greeting [paneRows][]textCell // PendShop, PendTemple: the keeper's greeting, kept on the pane
+	greeting [paneRows]line // PendShop, PendTemple: the keeper's greeting, kept on the pane
 	anim     bool                 // PendLoot: the animation setting to put back
 }
 
@@ -40,7 +40,8 @@ func (e *Engine) leaveWait() {
 	case PendShop:
 		e.emit(rules.Sounded{Cue: rules.SoundCue("store_leave")})
 	case PendTemple:
-		e.blank(0, 0, lastCol, promptRow) // ovr05:0C18
+		e.clearWindow() // ovr05:0C18: the whole screen
+		e.clearPrompt()
 		e.DrawMainScreen()
 	}
 }

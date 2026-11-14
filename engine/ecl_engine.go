@@ -102,7 +102,6 @@ func (e *Engine) HitMessage(h rules.Hurt) {
 	}
 	e.msgCol = 0x26
 	e.paneText(game.InkWhite, false, msg)
-	e.blank(17, 1, paneRight, 15)
 }
 
 // initVM makes the script machine: the game's dialect (POR's by default), ecl.Default and its own ops,

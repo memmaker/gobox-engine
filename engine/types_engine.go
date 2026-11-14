@@ -143,11 +143,6 @@ const (
 // harms it.
 type Harm = game.Harm
 
-// Pixels is the rectangle in screen pixels.
-func (r CellRect) Pixels() image.Rectangle {
-	return image.Rect(r.X1*8, r.Y1*8, r.X2*8+8, r.Y2*8+8)
-}
-
 // Framed is the box with its border.
 func (r CellRect) Framed() CellRect { return CellRect{r.X1 - 1, r.Y1 - 1, r.X2 + 1, r.Y2 + 1} }
 

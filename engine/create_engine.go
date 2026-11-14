@@ -4,7 +4,6 @@ import (
 	"errors"
 	"gobox/game"
 	"gobox/rules"
-	"image"
 )
 
 // tempSel is a selection selectTemp replaced: the selected member and the party's size.
@@ -43,12 +42,8 @@ func (e *Engine) creationSheet(cID rules.CharID) {
 			return nil
 		})
 	}
-	for p := 0; p < 2; p++ {
-		r := iconRect(sheetIconCol(p), sheetIconRow())
-		e.unwrite(r)
-		if sp := e.snap.sheet; sp != nil && ic.PNG != nil { // a PNG: the presenter's, over the page at the window's resolution; the original icon too (creationArt)
-			sp.IconPNG = ic.PNG
-		}
+	if sp := e.snap.sheet; sp != nil && ic.PNG != nil { // a PNG: the presenter's, over the page at the window's resolution; the original icon too (creationArt)
+		sp.IconPNG = ic.PNG
 	}
 }
 
@@ -265,6 +260,3 @@ type creation struct {
 	idx     int
 	orig    rules.CharID // the member modified, as it was held (core.HoldCopy)
 }
-
-// iconRect is the page rectangle of a combat icon pose drawn at cell (x, y).
-func iconRect(x, y int) image.Rectangle { return image.Rect(x*8, y*8, x*8+24, y*8+24) }

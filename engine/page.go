@@ -44,7 +44,7 @@ func (e *Engine) setWin(w Window) {
 // Draw3DView); the text over the picture frame goes.
 func (e *Engine) show3D() {
 	e.setWin(WinThreeD)
-	e.unwrite(InnerWindow.Pixels())
+	e.clearView() // the picture frame's text
 }
 
 // showPic puts im in the view window.

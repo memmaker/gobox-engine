@@ -22,9 +22,7 @@ func (e *Engine) terrainPix(v byte) Picture {
 // areaMapInit = ovr28:0207: the three frames of the area map screen.
 func (e *Engine) areaMapInit() {
 	e.newPage()
-	e.blank(1, 1, 15, 15)
-	e.blank(17, 1, winRight, 15)
-	e.blank(1, msgTop, winRight, winBottom)
+	e.clearWindow()
 }
 
 // areaMapIcons = 00BA:2B5E: switch to the area map view and draw it.

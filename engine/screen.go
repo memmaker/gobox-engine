@@ -26,7 +26,7 @@ func (e *Engine) DrawMainScreen() {
 	switch e.beginFlag() {
 	case 0:
 		e.newPage()
-		e.blank(1, 1, winRight, winBottom)
+		e.clearWindow()
 	case 1:
 		e.newPage()
 		e.LoadPortrait(e.set, int(e.es.picHead), int(e.es.picBody))

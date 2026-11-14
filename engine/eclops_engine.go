@@ -91,10 +91,7 @@ func (e *Engine) takeover() {
 func (e *Engine) opExit() {
 	if e.es.textInView != 0 {
 		e.newPage()
-		e.blank(1, 1, 15, 15)
-		if e.worldWord(rules.WordIn3D) != 0 {
-			e.blank(3, 3, 13, 13)
-		}
+		e.clearView()
 	}
 	if e.run.restoreSel {
 		e.selectChar(e.run.savedSel)
@@ -232,7 +229,7 @@ func (e *Engine) opPicture() {
 	e.vm.ReadArgs(1)
 	v := int(byte(e.vm.Arg(1, e.host)))
 	if e.worldWord(rules.WordIn3D) == 0 && v != 0xFF {
-		e.blank(3, 3, 13, 13)
+		e.clearView() // the picture frame's text
 	}
 	if v != 0xFF {
 		e.es.encounterShown[1] = 1
