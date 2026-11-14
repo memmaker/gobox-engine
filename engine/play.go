@@ -938,17 +938,19 @@ func (e *Engine) browsing(n int, f func() error) error {
 	return f()
 }
 
-// report hands out what the engine did: its note (r, a message), then the
-// facts it recorded (e.events).
+// report hands out what the engine did: the facts it recorded (e.events),
+// then its note (r, a message) as it stands after them. The note last: a
+// fight's message holds the game-speed delay, so ahead of the facts it held
+// a walk-up's start and played "Attacks" before the walk.
 func (e *Engine) report(out *game.Outcome, r game.Result) {
+	e.present()
+	out.Events = append(out.Events, e.events...)
+	e.events = nil
 	for _, ev := range r.Events {
 		if ev.Text != "" {
 			out.Events = append(out.Events, game.Narrated{Text: ev.Text})
 		}
 	}
-	e.present()
-	out.Events = append(out.Events, e.events...)
-	e.events = nil
 }
 
 // maxSteps bounds Do's run of the engine's own steps.
