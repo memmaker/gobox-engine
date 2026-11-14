@@ -330,7 +330,7 @@ func (p *Presenter) draw(dst *gpu.Image, note Note) Rect {
 		}
 		return Rect{}
 	}
-	if sc := p.scene(); p.main && (sc != nil || p.mainMenu().Hall) { // the party menu over the 3D view, whenever there is one (the training hall's too)
+	if sc := p.scene(); p.main && p.mainMenu().Hall { // the training hall's party menu over the 3D view (the title's party menu stays over the title picture)
 		p.active, p.menu = false, false
 		if sc != nil {
 			p.draw3D(dst, sc, note)
