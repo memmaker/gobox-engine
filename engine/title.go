@@ -49,7 +49,7 @@ func (e *Engine) graphics() adventure.Graphics {
 // titleScene is s's title Scene (full: the Full intro option), its
 // pictures checked to be in the adventure's art.
 func (e *Engine) titleScene(s adventure.Sequence, full bool) (game.Scene, error) {
-	in, whole, err := adventure.TitleIntro(s, full, e.amigaUp(), e.graphics())
+	in, whole, err := adventure.TitleIntro(s, full, e.graphics())
 	if err != nil {
 		return game.Scene{}, err
 	}
@@ -94,11 +94,8 @@ func (e *Engine) SetStart(s *adventure.Sequence) error {
 		s = &adventure.Sequence{}
 	}
 	t := title{start: *s, endAnim: e.title.endAnim, end: e.title.end, after: e.title.after, note: e.title.note} // SetEnd's stay
-	for _, full := range []bool{true, false} {                                                                  // its pictures checked with the art showing now, its steps with either art
+	for _, full := range []bool{true, false} {
 		if _, err := e.titleScene(*s, full); err != nil {
-			return err
-		}
-		if _, _, err := adventure.TitleIntro(*s, full, !e.amigaUp(), e.graphics()); err != nil {
 			return err
 		}
 	}
@@ -134,10 +131,10 @@ func (e *Engine) hasArt(a adventure.Art) error {
 }
 
 // startScene is the title Scene of the Start as it plays now: with the Full
-// intro option, and the steps of the art showing (an Amiga-only step not
-// with the DOS art). SetStart checked the sequence.
+// intro option, every edition's steps (the front skips those of the art not
+// shown: Sequence.Plays). SetStart checked the sequence.
 func (e *Engine) startScene() game.Scene {
-	in, whole, err := adventure.TitleIntro(e.title.start, e.FullIntro.Load(), e.amigaUp(), e.graphics())
+	in, whole, err := adventure.TitleIntro(e.title.start, e.FullIntro.Load(), e.graphics())
 	if err != nil {
 		panic(fmt.Sprintf("title checked by SetStart: %v", err)) // SetStart refuses a sequence TitleIntro fails on
 	}

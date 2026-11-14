@@ -141,20 +141,18 @@ var ErrNotCarried = errors.New("sequence field not carried yet")
 
 // TitleIntro is the title of sequence s as played: step N of Pictures is
 // s.Steps[N-1] (gobox reads the step from the script), -N credits page N-1.
-// Without full (the host's Full intro option) only s.Short's steps play;
-// without amiga (the Amiga art up) no EditionAmiga step. A step whose
+// Without full (the host's Full intro option) only s.Short's steps play.
+// Every edition's steps are in it: the front skips those of an art not
+// shown (Plays), so the title follows F12 without being built again. A step whose
 // Lightning is On in graphics mode g makes the intro flash. whole: the
 // picture steps are whole-screen pages. A leading StepAnim is not a title
 // step: it plays before the title (LeadingAnim).
-func TitleIntro(s Sequence, full, amiga bool, g Graphics) (in *game.Intro, whole bool, err error) {
+func TitleIntro(s Sequence, full bool, g Graphics) (in *game.Intro, whole bool, err error) {
 	in = &game.Intro{Full: true}
 	pics, wholes := 0, 0
 	for i, st := range s.Steps {
 		n := i + 1
 		if i == 0 && st.Kind == StepAnim {
-			continue
-		}
-		if st.Edition == EditionAmiga && !amiga {
 			continue
 		}
 		if !full && s.Short != nil && !slices.Contains(s.Short, i) {
@@ -186,6 +184,14 @@ func TitleIntro(s Sequence, full, amiga bool, g Graphics) (in *game.Intro, whole
 		return nil, false, fmt.Errorf("Whole on some picture steps only: %w", ErrNotCarried)
 	}
 	return in, wholes != 0, nil
+}
+
+// Plays reports whether title step n (TitleIntro's numbering: > 0 a
+// step, < 0 a credits page) plays with the Amiga art shown (amiga) or not:
+// an EditionAmiga step only with it.
+func (s *Sequence) Plays(n int, amiga bool) bool {
+	st := s.Step(n)
+	return n < 0 || st == nil || st.Edition != EditionAmiga || amiga
 }
 
 // LeadingAnim is s's leading StepAnim (nil: s is nil or starts with no animation).

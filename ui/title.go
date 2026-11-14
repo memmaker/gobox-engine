@@ -46,8 +46,8 @@ func IntroStep(h RuleHost, in *IntroUI, intro *game.Intro, key bool) {
 	} else if in.cut { // one key cuts one phase, however often it is delivered
 		return
 	}
-	pics := intro.Pictures
-	if pics == nil {
+	pics := slices.DeleteFunc(slices.Clone(intro.Pictures), func(n int) bool { return !scriptOf(intro).Plays(n, amigaShown()) }) // the steps of the art shown (F12)
+	if intro.Pictures == nil {
 		pics = []int{1}
 		if intro.Full {
 			pics = []int{1, 2}

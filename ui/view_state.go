@@ -132,7 +132,7 @@ func (r *frontState) flagsOf(ps game.State, party []game.Member) *game.Flags {
 		if t.Kind == game.SceneTitle {
 			f.Credits, f.CreditPage = r.title.credits, r.title.page
 			st := scriptOf(t.Intro).Step(r.titleStep(t))
-			f.CreditsPic = !r.title.credits && st != nil && st.Credits
+			f.CreditsPic = !r.title.credits && st != nil && st.Credits && scriptOf(t.Intro).Plays(r.titleStep(t), amigaShown())
 		}
 	}
 	return f
