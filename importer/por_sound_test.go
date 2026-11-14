@@ -22,7 +22,7 @@ func TestSoundEqualsEXE(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := os.ReadFile(filepath.Join(data, adventure.AssetsDir, adventure.DataDir, adventure.SoundFile))
+	got, err := os.ReadFile(filepath.Join("..", "data", "por", adventure.DataDir, adventure.SoundFile)) // the imported tables, in the game's data folder
 	if err != nil {
 		t.Fatal(err)
 	}

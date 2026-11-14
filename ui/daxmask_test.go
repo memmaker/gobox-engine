@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"gobox/asset"
 	"gobox/asset/orig"
 )
 
@@ -16,6 +17,9 @@ func TestDaxMask(t *testing.T) {
 	l, err := orig.NewLoader(filepath.Join(home, "Projects", "buckrogers-go", "data", "dos"))
 	if err != nil || !l.Exists("CHARS.DAX") {
 		t.Skip("no buckrogers data")
+	}
+	if _, err := os.Stat(filepath.Join(asset.Dir(l.Dir), "dos", "CHARS.png")); err != nil { // the presenter draws the imported art, as TestArtEqualsDAX
+		t.Skip("no imported buckrogers art")
 	}
 	useArt(t, l.Dir)
 	defer func(m map[string]int) { daxMask = m }(daxMask)

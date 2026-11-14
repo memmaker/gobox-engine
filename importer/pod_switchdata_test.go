@@ -77,7 +77,7 @@ func TestSwitchData(t *testing.T) {
 	}
 	rules1e.Rules1e("", nil, nil, nil, nil) // the ruleset the layout and the tables go to builds
 
-	es, err := ecl.ReadEntries(os.DirFS(filepath.Join(dst, "scripts")))
+	es, err := ecl.ReadEntries(podScriptData()) // the entries are the script import's (ImportScripts), not writeSwitchData's
 	if err != nil {
 		t.Fatal(err)
 	}

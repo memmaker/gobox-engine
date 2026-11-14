@@ -152,7 +152,8 @@ func TestSpeedMenu(t *testing.T) {
 }
 
 // TestVerbOrderWords: a VerbOrder in the Gold Box menus' words (Use, Delay,
-// Done) places gobox's Items, Wait and End; naming Aim gives gobox's free Aim.
+// Done) places gobox's Items, Wait and End; an Aim in it adds nothing (the
+// free-cursor Aim is gone).
 func TestVerbOrderWords(t *testing.T) {
 	fight := game.Fighting{Common: game.Common{Party: []game.Member{{Name: "ARIN"}}, Allowed: allow(game.EndTurn{}, game.UseItem{}, game.Delay{}).Allowed},
 		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}}}}
@@ -161,19 +162,8 @@ func TestVerbOrderWords(t *testing.T) {
 	for _, x := range o {
 		ls = append(ls, x.Label)
 	}
-	if !slices.Equal(ls, []string{"Aim", "End", "Wait", "Items"}) {
-		t.Errorf("bar %v, want Aim End Wait Items", ls)
-	}
-}
-
-// TestFreeAimInOrder: gobox's free Aim takes its VerbOrder place (COTAB's
-// third), not the bar's end.
-func TestFreeAimInOrder(t *testing.T) {
-	fight := game.Fighting{Common: game.Common{Party: []game.Member{{Name: "ARIN"}}, Allowed: allow(game.EndTurn{}, game.UseItem{}).Allowed},
-		Field: game.Battlefield{Turn: 1, Units: []game.Unit{{ID: 1, Member: 0}}}}
-	o := turnOptsOf(NewGame(&fake{st: fight}, game.Data{VerbKeys: map[string]rune{"Aim": 'A'}, VerbOrder: []string{"Aim", "Use", "Done"}}))
-	if len(o) == 0 || o[0].Label != "Aim" {
-		t.Errorf("bar %+v, want Aim first", o)
+	if !slices.Equal(ls, []string{"End", "Wait", "Items"}) {
+		t.Errorf("bar %v, want End Wait Items", ls)
 	}
 }
 
