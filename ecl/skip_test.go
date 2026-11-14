@@ -9,13 +9,13 @@ func TestSkipCounts(t *testing.T) {
 	// counted commands: parse_command reads none of a counted list
 	counted := []byte{21, 37, 38, 43}
 	// 52 Clock, 54 AddNPC: the handlers read 2, parse_command steps over 1.
-	// 66 Quest: the port's, unknown to the originals.
-	v2 := byteSet(append(counted, 52, 54, 66,
+	// 66 Quest, 67 CastKnock, 68 TavernGame: the port's, unknown to the originals.
+	v2 := byteSet(append(counted, 52, 54, 66, 67, 68,
 		31)...) // the port's pager (1 operand) where the original's table has 2
-	v3 := byteSet(append(counted, 52, 54, 66,
+	v3 := byteSet(append(counted, 52, 54, 66, 67, 68,
 		39, 49)...) // TreasureOf, MenuKeys: counted in POD
 	known := map[VersionID]map[byte]bool{
-		1: byteSet(append(counted, 52, 54, 66, 31, 12)...), // 12 SetupMonster: SkipEclCmd steps over 2 of its 3
+		1: byteSet(append(counted, 52, 54, 66, 67, 68, 31, 12)...), // 12 SetupMonster: SkipEclCmd steps over 2 of its 3
 		2: v2,
 		3: v3,
 	}

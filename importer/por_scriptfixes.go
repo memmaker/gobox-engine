@@ -775,7 +775,7 @@ ImpostorsAccused:
 WallSquare:
 `},
 	// 30: area 14 OpenLockMenu. Original: `CastKnock:`; `Spell(31, Scratch5, Scratch6)`; `if Scratch5 != 255 { goto KnockOpens }`; `Text("NO ONE IN THE PARTY HAS THE KNOCK SPELL!  HOW WILL YOU OPEN THE LOCK?")`; `goto OpenLockMenu`; `SelMemorized[Scratch5] = 0`.
-	// Why: engine (castKnock): the first okay member with Knock memorized casts it, the slot spent, and goes on at KnockOpens with Scratch6 its place in the party; with none at NoKnock. Was Spell(31, Scratch5, Scratch6) and the script clearing the slot.
+	// Why: Scratch6 = CastKnock() (Felix d3): the first okay member with Knock memorized casts it, the slot spent, Scratch6 its place in the party; with none (255) at NoKnock. Was Spell(31, Scratch5, Scratch6) and the script clearing the slot.
 	// CHANGES: Cabinets' CAST KNOCK (area 14).
 	{Area: 14, Old: `    goto [PickLock, BreakLock, CastKnock, LeaveLock][Scratch1]
     goto CastKnock
@@ -795,8 +795,9 @@ CastKnock:
 `, New: `    goto [PickLock, BreakLock, CastKnock, LeaveLock][Scratch1]
     goto CastKnock
 
-CastKnock: # engine (castKnock): the first okay member with Knock memorized casts it, the slot spent, and goes on at KnockOpens with Scratch6 its place in the party; with none at NoKnock. Was Spell(31, Scratch5, Scratch6) and the script clearing the slot
-    goto NoKnock
+CastKnock:
+    Scratch6 = CastKnock() # the first okay member with Knock memorized casts it, the slot spent; Scratch6 its place in the party, 255 none. Was Spell(31, Scratch5, Scratch6) and the script clearing the slot
+    if Scratch6 == 255 { goto NoKnock }
 
     KnockOpens:
     SelectMember(Scratch6)
@@ -1903,5 +1904,59 @@ RelaxOrWalk:
 `, New: `    CheckParty(SelMove, 0, Scratch9, Scratch1, Scratch1, Scratch1)
     Scratch1 = 0 # the original's fourth result after a census (found, never set); the count is the party size
     if AuxEncResult < Scratch1 {
+`},
+	// 58: area 0 TavernGamble. Original: the selected member's platinum in a 16-bit word, wagers to 1000 PP.
+	// Why: TavernGame(): the top spun for gold wagers over the party purse in 64-bit gold (a coin field is 16 bits), house limit 5000 GP; on at TavernEvent when the gambler looks too bad, else at ResetVisits. Was the engine's native script at this label.
+	// CHANGES: POR script, area 0 tavern wager in gold.
+	{Area: 0, Old: `    TavernGamble:
+    if SelStatus != Okay { goto TooHurtToGamble }
+    GamblerIndex = SelPartyIndex
+    &GamblerPlatinum = &SelCoins_6 # coins: rewritten to gold/copper; operands not converted by value
+    goto WagerPrompt
+
+WagerPrompt:
+    Text("YOU HAVE ")
+    Print(&GamblerPlatinum)
+    Print(" PP.")
+    WaitReturnPressed()
+    Text("HOW MANY PLATINUM PIECES WILL YOU WAGER? (HOUSE LIMIT IS 1000)")
+    &Wager = InputNumber(4)
+    if &GamblerPlatinum < &Wager { goto WagerRefused }
+    if &Wager > 1000 { goto WagerRefused }
+    if &Wager == 0 { goto WagerRefused }
+    Scratch9 = Random(9)
+    if Scratch9 >= 8 {
+        Text("IT'S GREEN.  YOU GET DOUBLE YOUR MONEY BACK.")
+        &GamblerPlatinum += &Wager
+        goto GambleAgainAsk
+    }
+    if Scratch9 > 2 {
+        Text("IT'S BLUE.  YOU WIN.")
+        goto GambleAgainAsk
+    }
+    Text("RED. SORRY, YOU LOSE.")
+    &GamblerPlatinum -= &Wager
+    goto GambleAgainAsk
+
+GambleAgainAsk:
+    WaitReturnPressed()
+    Text("WILL YOU GO AGAIN?")
+    YesNoMenu()
+    goto [WagerPrompt][Scratch1]
+    SelectMember(GamblerIndex)
+    &SelCoins_6 = &GamblerPlatinum # coins: rewritten to gold/copper; operands not converted by value
+    Wager = 128 + GamblerIndex
+    SelectMember(Wager)
+    goto ResetVisits
+
+TooHurtToGamble:
+    Text("NO ONE IS WILLING TO GAMBLE WITH SOMEONE WHO LOOKS THAT BAD.")
+    goto TavernEvent
+
+WagerRefused:
+    Text("I CAN'T ACCEPT THAT WAGER.")
+    goto GambleAgainAsk
+`, New: `    TavernGamble:
+    TavernGame() # the top spun for gold wagers over the party purse in 64-bit gold, house limit 5000 GP; on at TavernEvent (too hurt) or ResetVisits
 `},
 }

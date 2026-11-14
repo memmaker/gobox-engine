@@ -106,8 +106,8 @@ func escOf(q *game.Question) (int, bool) {
 	return q.Esc.Reply()
 }
 
-// TestTavernGambleEnds: New Phlan's gambler (10,8; the native TavernGamble,
-// the script's WagerPrompt copy never runs) takes a wager, and Esc on
+// TestTavernGambleEnds: New Phlan's gambler (10,8; the TavernGame command,
+// the import fix's, over the party purse) takes a wager, and Esc on
 // WILL YOU GO AGAIN? (its No) ends the game: the party explores again.
 // A walker answering Yes (Reply 0) gambles on, as the original.
 func TestTavernGambleEnds(t *testing.T) {

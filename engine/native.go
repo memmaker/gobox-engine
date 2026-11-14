@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"gobox/adventure"
 	"gobox/rules"
 	"math"
 	"slices"
@@ -12,43 +11,35 @@ import (
 	"gobox/game"
 )
 
-// Native scripts (extra): stretches of the ECL scripts rewritten in Go,
-// where the script's own logic cannot follow the port (one party purse in
-// gold and copper). RunECL runs one instead of the commands at its label;
-// it leaves vm.PC at the label the script would have gone on to.
-
-// natives are the engine's native scripts by name.
-var natives = map[adventure.Native]func(*Engine){
-	adventure.NativeTavernGamble: (*Engine).tavernGamble,
-	adventure.NativeCastKnock:    (*Engine).castKnock,
-}
+// The port's own script commands (extra, gobox ecl V1), placed by POR's
+// import fixes where the script's own logic cannot follow the port (one
+// party purse in 64-bit gold; Knock spent the rules' way, Felix d3).
 
 // The layout fields the engine names itself (layout/global.txt).
 const (
-	fieldScratch6 = "Scratch6" // castKnock's answer
-	fieldHours    = "Hours"    // the day-sky option's comparison (opCompare)
+	fieldHours = "Hours" // the day-sky option's comparison (opCompare)
 )
 
 // field is the running script's field called name.
-// castKnock is the cabinets' CAST KNOCK (area 14, Felix d3): Knock cast the
-// native way (spendKnock), on at KnockOpens with the caster's place in the
-// party in Scratch6, or at NoKnock. It was the Spell command and the script
-// clearing the slot itself.
-func (e *Engine) castKnock() {
+// opCastKnock is the cabinets' CastKnock(v) (area 14, Felix d3): Knock cast
+// the rules' way (SpendKnock), the slot spent; v is the caster's place in
+// the party, or 255 when no okay member has Knock memorized. It was the
+// Spell command and the script clearing the slot itself.
+func (e *Engine) opCastKnock() {
+	e.vm.ReadArgs(1)
 	out, err := e.ruleset().Resolve(nil, rules.SpendKnock{}, nil)
 	if err != nil {
-		panic(fmt.Sprintf("native: Knock: %v", err)) // the action never refuses
+		panic(fmt.Sprintf("CastKnock: %v", err)) // the action never refuses
 	}
-	if len(out.Effects) == 0 {
-		e.vm.PC = uint16(e.scriptLabel("NoKnock"))
-		return
+	r := int64(noKnock)
+	if len(out.Effects) > 0 {
+		r = int64(slices.Index(e.partyIDs(), out.Effects[0].(rules.KnockCast).Who))
 	}
-	c := out.Effects[0].(rules.KnockCast).Who
-	if r, ok := e.layoutField(fieldScratch6); ok {
-		e.host.Set(r, int64(uint16(slices.Index(e.partyIDs(), c))))
-	}
-	e.vm.PC = uint16(e.scriptLabel("KnockOpens"))
+	e.host.Set(e.vm.Ref(1), r)
 }
+
+// noKnock is CastKnock's answer when no one casts.
+const noKnock = 255
 
 // gold is the party's gold pieces.
 func (e *Engine) gold() uint64 {
@@ -58,8 +49,6 @@ func (e *Engine) gold() uint64 {
 	}
 	return v.(rules.Purse).Gold
 }
-
-func (e *Engine) nativeScript() func(*Engine) { return e.native[int(e.vm.PC)] }
 
 // New Phlan's tavern game labels (area 0): TavernEvent is the "pickpocket"
 // check and tavern tales, ResetVisits clears the visit flags, closes the
@@ -74,6 +63,13 @@ const tavernHouseLimit = 5000
 // a gold wager. 8-9 of a d10 (from 0) is green, the wager won; 3-7 blue,
 // the wager back; 0-2 red, the wager lost. The script counted the selected
 // member's platinum in a 16-bit word; here it is the party's gold.
+// opTavernGamble is TavernGame(): the asks run from the next instruction
+// on, and the game goes on at TavernEvent or ResetVisits.
+func (e *Engine) opTavernGamble() {
+	e.vm.PC++
+	e.tavernGamble()
+}
+
 func (e *Engine) tavernGamble() {
 	if !e.ruleset().Check(rules.Fit{Who: e.selected()}, nil).Yes { // [6C00] is 1 for an okay member
 		e.scriptText(true, "NO ONE IS WILLING TO GAMBLE WITH SOMEONE WHO LOOKS THAT BAD.")

@@ -43,16 +43,6 @@ func (e *Engine) loadScript(area int) {
 			e.purseWho[i+w.By] = true
 		}
 	}
-	e.native = map[int]func(*Engine){}
-	for _, n := range e.game().Natives {
-		f, ok := natives[n.Native]
-		if !ok {
-			panic(fmt.Sprintf("gametables.json: no native script %q", n.Native))
-		}
-		if i, ok := s.Labels[n.Label]; ok && n.Area == area {
-			e.native[i] = f
-		}
-	}
 }
 
 func (e *Engine) parseScriptFile(area int) (*ecl.Script, error) {

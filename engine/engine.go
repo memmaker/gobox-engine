@@ -91,7 +91,6 @@ type Engine struct {
 	loadedLocals       fieldCells             // a loaded game's locals until its area's script is in
 	vm                 *ecl.VM                // the script machine (DS:49ED its PC, here an instruction number)
 	host               eclHost                // what vm asks of the engine
-	native             map[int]func(*Engine)  // the native scripts at instructions of script
 	purseWho           map[int]bool           // the Who instructions of script that ask who spends the party purse (opWho)
 	viewMode           int                    // DS:49FA (1 = 3D view)
 	prevViewMode       int                    // DS:49F9

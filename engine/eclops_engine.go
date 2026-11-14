@@ -35,9 +35,7 @@ func (e *Engine) eclRun() {
 		e.vm.LastCommand = e.vm.Command
 		e.vm.Fetch()
 		m, base, takes := e.ext.opened, len(e.k), e.es.takes
-		if f := e.nativeScript(); f != nil {
-			f(e)
-		} else if op := e.vm.Ops[e.vm.Command]; op != nil {
+		if op := e.vm.Ops[e.vm.Command]; op != nil {
 			op(e.vm, e.host)
 		} else {
 			// Not ported yet: report it and end this script run.
@@ -765,7 +763,8 @@ func init() {
 		ecl.OpLoadMap: (*Engine).opLoadFiles, ecl.OpPartySurprise: (*Engine).opPartySurprise, ecl.OpSurprise: (*Engine).opSurprise,
 		ecl.OpCombat: (*Engine).opCombat, ecl.OpGetTable: (*Engine).opGetTable, ecl.OpHMenu: (*Engine).opHMenu,
 		ecl.OpLoadWalls: (*Engine).opLoadFiles, ecl.OpLoadArea: (*Engine).opLoadArea,
-		ecl.OpQuest: (*Engine).opQuest, // the port's (gobox ecl V1)
+		ecl.OpQuest:     (*Engine).opQuest,                                                 // the port's (gobox ecl V1)
+		ecl.OpCastKnock: (*Engine).opCastKnock, ecl.OpTavernGamble: (*Engine).opTavernGamble, // the port's (gobox ecl V1)
 		// ovr04 0x25..0x3D (eclops2_engine.go)
 		ecl.OpRob: (*Engine).opRob, ecl.OpEncounterMenu: (*Engine).opEncounterMenu, ecl.OpParlay: (*Engine).opParlay,
 		ecl.OpCall: (*Engine).opCall, ecl.OpDamage: (*Engine).opDamage, ecl.OpRedrawView: (*Engine).opRedrawView,

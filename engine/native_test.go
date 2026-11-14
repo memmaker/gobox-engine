@@ -19,9 +19,4 @@ func TestTavernSpin(t *testing.T) {
 			t.Errorf("tavernSpin(%d, %d, %d) = %d, want %d", c.gold, c.wager, c.r, got, c.want)
 		}
 	}
-	e := &Engine{set: 3}
-	e.initVM()
-	if e.nativeScript() != nil {
-		t.Fatal("native script at pc 0")
-	}
 }

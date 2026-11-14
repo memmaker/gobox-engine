@@ -36,10 +36,6 @@ var porGameTables = adventure.GameTables{GameSet: 3, // DS:5376 = 3
 	MapLabels:    porMapLabels,
 	Music:        &porMusic,
 	Walls:        wallTextures("por", "", ""), // the floor and sky are the areas' own (walls/por_areas.txt)
-	Natives: []adventure.NativeAt{
-		{ScriptAt: adventure.ScriptAt{Area: 0, Label: "TavernGamble"}, Native: adventure.NativeTavernGamble},
-		{ScriptAt: adventure.ScriptAt{Area: 14, Label: "CastKnock"}, Native: adventure.NativeCastKnock},
-	},
 	PurseWhos: []adventure.PurseWho{
 		{ScriptAt: adventure.ScriptAt{Area: 0, Label: "PayPlatinum"}, By: 0},
 		{ScriptAt: adventure.ScriptAt{Area: 0, Label: "TavernGamble"}, By: -1},

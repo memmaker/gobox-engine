@@ -88,6 +88,8 @@ Plan: (1) widen `gobox/ecl` to int32 and width, all four Pool games unchanged; (
 
 ## 3. POR's native scripts become scripts
 
+Done (2026-11-14): the script changes are import fixes in the decompiler (importer/por_scriptfixes.go); what script cannot express (Knock spent the rules' way, the tavern over 64-bit gold) is a gobox ecl command the fix places, never an engine hook on a label. The table below was the plan.
+
 `nativeScripts` and `purseWhos` (por-go/rules/native.go, eclops.go:83, eclops2.go:553, script.go:36-45) go. Patches in the area text, using typed facts:
 
 | Native | Script |

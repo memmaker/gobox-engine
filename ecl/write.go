@@ -783,6 +783,8 @@ func (w *scriptWriter) simple(i int) (string, error) {
 		return fmt.Sprintf("%s = Random(%s)", plain(1), plain(0)), nil
 	case in.Op == OpPartyStr && n == 1:
 		return plain(0) + " = PartyStrength()", nil
+	case in.Op == OpCastKnock && n == 1:
+		return plain(0) + " = CastKnock()", nil
 	case (in.Op == OpInputNumber || in.Op == OpInputString) && n == 2:
 		return fmt.Sprintf("%s = %s(%s)", plain(1), OpName(in.Op), plain(0)), nil
 	case in.Op == OpParlay && n == 6:

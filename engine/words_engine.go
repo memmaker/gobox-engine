@@ -45,7 +45,7 @@ func (e *Engine) setLastBlock(block int) {
 // BoundFields are the canonical script field names the engine gives a meaning: a game's
 // layout names a field so when, and only when, it has that field (each game's layout test).
 func BoundFields() []string {
-	names := []string{fieldLastBlock, fieldRemainder, fieldPriceScale, fieldScratch6, fieldHours, tourDone}
+	names := []string{fieldLastBlock, fieldRemainder, fieldPriceScale, fieldHours, tourDone}
 	for n := range (&Engine{}).newEngineFields() {
 		names = append(names, n)
 	}

@@ -563,6 +563,9 @@ func (p *parser) labelList() ([]string, error) {
 // call parses a call after Name(: a section (Gosub), an engine routine
 // (Call) or a command with its operands.
 func (p *parser) call(name string) error {
+	if _, cmd := opByName[name]; cmd && p.labels[name] {
+		return fmt.Errorf("%s() is both a section and a command: rename the label", name) // it would run as a Gosub
+	}
 	if p.labels[name] {
 		if err := p.expect(")"); err != nil {
 			return err
@@ -945,11 +948,11 @@ func (p *parser) assign() error {
 				return err
 			}
 			p.emit(map[string]byte{"Random": OpRandom, "InputNumber": OpInputNumber, "InputString": OpInputString}[a.name], n, dest)
-		case "PartyStrength":
+		case "PartyStrength", "CastKnock":
 			if err := p.expect(")"); err != nil {
 				return err
 			}
-			p.emit(OpPartyStr, dest)
+			p.emit(map[string]byte{"PartyStrength": OpPartyStr, "CastKnock": OpCastKnock}[a.name], dest)
 		case "Parlay", "Menu", "VMenu":
 			pa, err := p.callArgs()
 			if err != nil {

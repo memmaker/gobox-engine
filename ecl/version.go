@@ -152,6 +152,12 @@ var V1 = func() *Version {
 	// a quest handed over (the quest journal; Felix 2026-11-11: never by
 	// matching its printed text): unused by every Gold Box dialect
 	set(&t, 66, OpQuest, 1, 0)
+	// POR's cabinets' CAST KNOCK (Felix d3: the Spell command is gone): unused
+	// by every Gold Box dialect
+	set(&t, 67, OpCastKnock, 1, 0)
+	// POR's tavern game, over the party purse in 64-bit gold (a coin field is
+	// 16 bits): unused by every Gold Box dialect
+	set(&t, 68, OpTavernGamble, 0, 0)
 	// SkipEclCmd's counts (por-re src/eclmenu.pas:1041; Felix 2026-11-11:
 	// POR steps over a command as the original did)
 	skip := skips(map[byte][]byte{

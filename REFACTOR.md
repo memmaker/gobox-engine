@@ -65,11 +65,11 @@
   - [ ] P1c image building out of the engine (E1 remainder): engine no longer depends on image/draw via `asset`
   - [ ] P1d full suites, screenshots of titles, endings, story scenes per game
 - [ ] Q1 Open items carried from ONE-BINARY.md and ARCHITECTURE.md (checked 2026-11-14):
-  - [ ] `NativeCastKnock` (engine/native.go) as a script patch; native scripts gone (ARCHITECTURE section 3)
+  - [x] native scripts gone: CastKnock and the tavern game are script commands (`Scratch6 = CastKnock()`, `TavernGame()`, gobox ecl V1 67/68) placed by POR's import fixes 30 and 58; the label hijack (`GameTables.Natives`) is cut. Bug class found: a call named like a label parsed as a Gosub to it (TavernGamble() looped); the parser now refuses a name that is both
   - [ ] name the unnamed script cells (`WordXXXX`, 585 distinct in COTAB, SotSB, POD scripts) from their script use
   - [x] `WriteGbvm($2CB, …)` in cotab-re and sotsb-re EclSurprise: a reconstruction bug (the zone-1 offset, not $7ECB; WriteGbvm dropped it). Fixed cotab-re 5c1d47c, sotsb-re 4f469e9; the Go engine was right (`WordSurprise` at 7ECB). Detect: literal Read/WriteGbvm addresses below a game's lowest zone; none left
   - [x] `ui/blobber` `FloorRGBA`/`CeilRGBA`: no change needed; ruling 7 holds, `game` carries `FloorInk`/`CeilInk` (Ink), and `ui` resolves the RGBA for the renderer
-  - [ ] restore every por-go c70cbee feature in the shared engine; exit hints (`Question.Esc`) for POD, COTAB, SotSB, BR script menus
+  - [ ] exit hints (`Question.Esc`) for POD, COTAB, SotSB, BR script menus (por-go parity dropped, Felix 2026-11-14: mostly there)
   - [ ] unverified, needs a run: in-fight sounds by cue name silent; fall-sound PC/AdLib fallback outside fights; toasts replacing pane lines outside fights; rest-time line refresh only on the 5-step tick; song 6 overland / song 4 entering Phlan; camp fire animation; wiped party back to the party menu
 - [x] K1 `TestKeyDispatch` fails since the app → ui merge: `ui/shell.go` (`ScriptTimed`) and `ui/shellfront.go` (F12, Shift-F12) name key codes instead of dispatching through the key table
 - [x] K2 `SOUND.OFF` is read at start (engine/sound.go) but nothing writes it since `soundToggle` was cut as unreachable: drop the read or wire the toggle

@@ -26,45 +26,47 @@ const (
 )
 
 const (
-	OpLoadWalls  byte = 0x37
-	OpProtection byte = 0x3C
-	OpClearExit  byte = 0x80 // clear, redraw and stop
-	OpPressKey   byte = 0x81
-	OpJournal    byte = 0x82
-	OpYesNo      byte = 0x83
-	OpNoOp       byte = 0x84
-	OpSound      byte = 0x85
-	OpMenuKeys   byte = 0x86 // HMenu that also takes the key held
-	OpFindNPC    byte = 0x87
-	OpItemSet    byte = 0x88
-	OpSpriteOff  byte = 0x89
-	OpDump       byte = 0x8A
-	OpFindAffect byte = 0x8B
-	OpDestroy    byte = 0x8C
-	OpGainExp    byte = 0x8D
-	OpTreasureOf byte = 0x8E // Treasure with a counted list
-	OpShade      byte = 0x8F
-	OpPartyStat  byte = 0x90
-	OpSpaceFight byte = 0x91
-	OpSkill      byte = 0x92
-	OpSkillAll   byte = 0x93
-	OpHasItem    byte = 0x94
-	OpNPCJoin    byte = 0x95
-	OpMenuCall   byte = 0x96
-	OpPickMember byte = 0x97
-	OpLogbook    byte = 0x98
-	OpOp64       byte = 0x99
-	OpWallDist   byte = 0x9A
-	OpFor        byte = 0x9B
-	OpNext       byte = 0x9C
-	OpOp72       byte = 0x9D
-	OpDuel       byte = 0x9E
-	OpShop       byte = 0x9F
-	OpAreaKind   byte = 0xA0
-	OpDamage6    byte = 0xA1
-	OpNothing    byte = 0xA2
-	OpLoadArea   byte = 0xA3 // LoadMap with no icons
-	OpQuest      byte = 0xA4 // a quest handed over: the adventure's Quest value
+	OpLoadWalls    byte = 0x37
+	OpProtection   byte = 0x3C
+	OpClearExit    byte = 0x80 // clear, redraw and stop
+	OpPressKey     byte = 0x81
+	OpJournal      byte = 0x82
+	OpYesNo        byte = 0x83
+	OpNoOp         byte = 0x84
+	OpSound        byte = 0x85
+	OpMenuKeys     byte = 0x86 // HMenu that also takes the key held
+	OpFindNPC      byte = 0x87
+	OpItemSet      byte = 0x88
+	OpSpriteOff    byte = 0x89
+	OpDump         byte = 0x8A
+	OpFindAffect   byte = 0x8B
+	OpDestroy      byte = 0x8C
+	OpGainExp      byte = 0x8D
+	OpTreasureOf   byte = 0x8E // Treasure with a counted list
+	OpShade        byte = 0x8F
+	OpPartyStat    byte = 0x90
+	OpSpaceFight   byte = 0x91
+	OpSkill        byte = 0x92
+	OpSkillAll     byte = 0x93
+	OpHasItem      byte = 0x94
+	OpNPCJoin      byte = 0x95
+	OpMenuCall     byte = 0x96
+	OpPickMember   byte = 0x97
+	OpLogbook      byte = 0x98
+	OpOp64         byte = 0x99
+	OpWallDist     byte = 0x9A
+	OpFor          byte = 0x9B
+	OpNext         byte = 0x9C
+	OpOp72         byte = 0x9D
+	OpDuel         byte = 0x9E
+	OpShop         byte = 0x9F
+	OpAreaKind     byte = 0xA0
+	OpDamage6      byte = 0xA1
+	OpNothing      byte = 0xA2
+	OpLoadArea     byte = 0xA3 // LoadMap with no icons
+	OpQuest        byte = 0xA4 // a quest handed over: the adventure's Quest value
+	OpCastKnock    byte = 0xA5 // Knock cast by the first able member: its party place, or 255
+	OpTavernGamble byte = 0xA6 // POR's tavern top spun for gold wagers
 )
 
 // opNames are the commands' names in script text.
@@ -85,7 +87,7 @@ var opNames = map[byte]string{
 	OpPartyStat: "PartyStat", OpSpaceFight: "SpaceFight", OpSkill: "Skill", OpSkillAll: "SkillAll", OpHasItem: "HasItem",
 	OpNPCJoin: "NPCJoin", OpMenuCall: "MenuCall", OpPickMember: "PickMember", OpLogbook: "Logbook", OpOp64: "Op64",
 	OpWallDist: "WallDistance", OpFor: "For", OpNext: "Next", OpOp72: "Op72", OpDuel: "Duel", OpShop: "Shop", OpAreaKind: "AreaKind",
-	OpDamage6: "Damage6", OpNothing: "Nothing", OpLoadArea: "LoadArea", OpQuest: "Quest",
+	OpDamage6: "Damage6", OpNothing: "Nothing", OpLoadArea: "LoadArea", OpQuest: "Quest", OpCastKnock: "CastKnock", OpTavernGamble: "TavernGame",
 }
 
 // OpName is the command's name in script text.

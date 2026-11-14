@@ -6,9 +6,9 @@ import (
 	"testing"
 )
 
-// The cabinets' CAST KNOCK: the first okay member with Knock memorized, in
-// any slot, casts it (the slot spent) and the script goes on at KnockOpens
-// with that member's place; with none (the dead do not cast) at NoKnock.
+// The cabinets' CastKnock(Scratch6): the first okay member with Knock
+// memorized, in any slot, casts it (the slot spent) and Scratch6 is that
+// member's place; with none (the dead do not cast) 255.
 func TestCastKnock(t *testing.T) {
 	e := quickStarted(t)
 	e.loadScript(14)
@@ -20,13 +20,17 @@ func TestCastKnock(t *testing.T) {
 	e.state().Party[0].Status = rules1e.StatusDead
 	e.state().Party[0].Memorized[3] = rules1e.SpKnock
 	e.state().Party[2].Memorized[5] = rules1e.SpKnock
-	e.castKnock()
-	if e.vm.PC != uint16(e.scriptLabel("KnockOpens")) || e.host.Get(e.field(fieldScratch6)) != 2 || e.state().Party[2].Memorized[5] != 0 || e.state().Party[0].Memorized[3] != rules1e.SpKnock {
-		t.Errorf("cast: pc %d, Scratch6 %d, slots %v %v", e.vm.PC, e.host.Get(e.field(fieldScratch6)), e.state().Party[0].Memorized, e.state().Party[2].Memorized)
+	knock := func() int64 { // CastKnock(Scratch6) at its label
+		e.vm.PC = uint16(e.scriptLabel("CastKnock"))
+		e.vm.Fetch()
+		e.opCastKnock()
+		return e.host.Get(e.field("Scratch6"))
 	}
-	e.castKnock()
-	if e.vm.PC != uint16(e.scriptLabel("NoKnock")) {
-		t.Errorf("none: pc %d", e.vm.PC)
+	if got := knock(); got != 2 || e.state().Party[2].Memorized[5] != 0 || e.state().Party[0].Memorized[3] != rules1e.SpKnock {
+		t.Errorf("cast: Scratch6 %d, slots %v %v", got, e.state().Party[0].Memorized, e.state().Party[2].Memorized)
+	}
+	if got := knock(); got != noKnock {
+		t.Errorf("none: Scratch6 %d", got)
 	}
 }
 

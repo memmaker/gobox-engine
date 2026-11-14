@@ -19,7 +19,6 @@ type GameTables struct {
 	Dialect                    rules.Dialect        // the game's script byte-code dialect (ReadGameTables sets Script from it)
 	TreasureSets               [][]int32            // ItemSet's sets: set number -> its library item ids (pod: 1..11; [0] unused)
 	ScriptFixes                []ecl.Fix            // the game's decompiler special cases (ecl.Library.Fixes): the import's, for the texts' key
-	Natives                    []NativeAt           // the labels a native script runs at (POR: the tavern game, CAST KNOCK); none: no native
 	Quests                     []QuestDef           // the quest journal's quests (POR: the commissions); none: an empty journal
 	OriginalSave               rules1e.SaveLayout   // the game's SAVGAMx.DAT format (the original-save import)
 	PurseWhos                  []PurseWho           // the Who commands that spend the party's one purse (POR: the inn, the tavern)
@@ -153,24 +152,10 @@ type ScriptSound struct {
 	Cue   rules.SoundCue // the sound pack's event
 }
 
-// Native names one of the engine's native scripts (GameTables.Natives).
-type Native string
-
-const (
-	NativeTavernGamble Native = "TavernGamble" // POR's New Phlan tavern game
-	NativeCastKnock    Native = "CastKnock"    // POR's cabinets' CAST KNOCK
-)
-
 // ScriptAt is a label of an area script.
 type ScriptAt struct {
 	Area  int    // the area script
 	Label string // its label
-}
-
-// NativeAt runs Native in place of the commands at its label (GameTables.Natives).
-type NativeAt struct {
-	ScriptAt
-	Native Native
 }
 
 // PurseWho is a Who command that spends the party's one purse: the label's
