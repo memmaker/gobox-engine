@@ -186,16 +186,6 @@ func OwnSubject(mode game.Mode, c *game.Creation, party []game.Member, sel int) 
 	return game.Member{}
 }
 
-// pictured: a picture of the game's (not a fill) already covers part of r.
-func pictured(pics []Picture, r image.Rectangle) bool {
-	for _, pc := range pics {
-		if !pc.Fill && pc.At.Overlaps(r) {
-			return true
-		}
-	}
-	return false
-}
-
 // defaultPortrait is m with a pool head and body filled in where it names none,
 // picked by its race and class so the same kind of character gets the same
 // face; the game never chooses one.

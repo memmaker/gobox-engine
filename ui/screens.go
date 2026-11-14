@@ -325,8 +325,23 @@ func (p *Presenter) drawScreen(dst *gpu.Image) {
 		p.menuBar(dst, p.winRects, len(lines), end-s.top, &s.top, &s.sel, k)
 		return
 	}
-	k := p.keyWindow(dst, title, lines[s.top:end], keys[s.top:end], off[s.top:end], sel, false)
+	k := p.keyWindowIn(dst, p.screenFree(), title, lines[s.top:end], keys[s.top:end], off[s.top:end], sel, false)
 	p.menuBar(dst, p.winRects, len(lines), end-s.top, &s.top, &s.sel, k)
+}
+
+// screenFree is the part of the window a page screen's menu may cover: on
+// the creation sheet the rows under its figures, left of the portrait and
+// above the bottom's AC, THAC0 and Damage; elsewhere the whole window.
+func (p *Presenter) screenFree() image.Rectangle {
+	cr := p.creation()
+	if p.screenName() != "creation" || cr == nil {
+		return p.screen
+	}
+	top := 17 // under HP and Movement
+	if d := p.sheetDraft(); d != nil && d.Derived != nil {
+		top += (len(d.Derived) + 1) / 2 // the game's figures, two to a row
+	}
+	return p.cellRect(CellRect{X1: 0, Y1: top, X2: cr.Head.X1 - 1, Y2: p.cells().Y - 6})
 }
 
 // slotKey does the slot page's footer key h on the selected save: Enter

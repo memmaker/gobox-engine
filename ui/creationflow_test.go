@@ -197,8 +197,8 @@ func TestCreationIconEditor(t *testing.T) {
 		t.Fatal("no creation sheet")
 	}
 	icons := 0
-	for _, pc := range p.screenPage().pics {
-		if !pc.Fill && pc.Img != nil && pc.At.In(cr.Icon.Pixels()) {
+	for _, o := range p.screenPage().overs {
+		if o.At.In(cr.Icon.Pixels()) {
 			icons++
 		}
 	}

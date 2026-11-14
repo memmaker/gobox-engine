@@ -315,19 +315,25 @@ func (p *Presenter) label(dst *gpu.Image, s string, x, y int, k float64) {
 // keyWindow is Blobber's text window (its Esc menu, the options, prompts) as
 // the game's own menu box, the lines' hotkeys (keys[i] in lines[i]) in white.
 func (p *Presenter) keyWindow(screen *gpu.Image, title string, lines []string, keys []byte, off []bool, sel int, bottom bool) float64 {
+	return p.keyWindowIn(screen, screen.Bounds(), title, lines, keys, off, sel, bottom)
+}
+
+// keyWindowIn is keyWindow centred in the window's region in (the free
+// part of a screen of the presenter's, so it covers none of its content).
+func (p *Presenter) keyWindowIn(screen *gpu.Image, in image.Rectangle, title string, lines []string, keys []byte, off []bool, sel int, bottom bool) float64 {
 	if yesNo(keys) { // every Yes/No question: centred over the dimmed view
 		b := screen.Bounds()
 		gpu.DrawFilledRect(screen, 0, 0, float32(b.Dx()), float32(b.Dy()), color.NRGBA{A: 0xA0})
-		bottom = false
+		bottom, in = false, b
 	}
-	b := screen.Bounds()
+	b := image.Rect(0, 0, in.Dx(), in.Dy())
 	if bottom && p.menuFloor > 0 {
-		b.Max.Y = p.menuFloor
+		b.Max.Y = min(b.Max.Y, p.menuFloor-in.Min.Y)
 	}
-	k, top := yesNoFit(b, p.picBottom, yesNo(keys), scale(screen), title, lines, bottom)
+	k, top := yesNoFit(b, p.picBottom-in.Min.Y, yesNo(keys), scale(screen), title, lines, bottom)
 	rects := slices.Clone(p.menuRects) // not the game's menu: its clicks stay
 	defer func() { p.menuRects = rects }()
-	p.drawMenu(screen, p.glyph, title, lines, keys, off, sel, k, b.Dx()/2, top)
+	p.drawMenu(screen, p.glyph, title, lines, keys, off, sel, k, in.Min.X+b.Dx()/2, in.Min.Y+top)
 	p.winRects = slices.Clone(p.menuRects) // its lines, for the Esc menu's mouse
 	return k
 }

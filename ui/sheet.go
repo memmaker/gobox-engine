@@ -341,14 +341,20 @@ func (p *Presenter) memberPane(px *image.RGBA, glyph func(byte) [8]byte, m game.
 	}
 	n := max(0, min(lw, bottom-y-4-p.inv.doll.Bounds().Dy()-8))
 	face = image.Rect(lx+(lw-n)/2, y+4, lx+(lw+n)/2, y+4+n)
-	png = ownPNG(m.Dropped)
-	if png == nil { // the pool's head over its chest, else the card's face
-		d := defaultPortrait(m)
-		if png = poolID("portraits", d.PortraitHeadID, d.PortraitBodyID); png == nil {
-			png = p.portrait(m, nil)
-		}
+	return face, p.fullPortrait(m)
+}
+
+// fullPortrait is m's whole portrait: the PNG dropped on it, else the
+// pool's head over its chest, else the card's face.
+func (p *Presenter) fullPortrait(m game.Member) image.Image {
+	if png := ownPNG(m.Dropped); png != nil {
+		return png
 	}
-	return face, png
+	d := defaultPortrait(m)
+	if png := poolID("portraits", d.PortraitHeadID, d.PortraitBodyID); png != nil {
+		return png
+	}
+	return p.portrait(m, nil)
 }
 
 // paneName writes the member's name on the left pane's top border, centred.

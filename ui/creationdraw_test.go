@@ -6,20 +6,28 @@ import (
 	"gobox/game"
 )
 
-// The pool's portrait and icon on the creation sheet (a Name, no File) are
-// content the screen draws, as the game's DAX pictures there are.
-func TestContentPoolPictures(t *testing.T) {
+// The creation sheet's portrait and icon are the presenter's (the pool's,
+// placed on its own layout); no picture of the engine's page reaches it.
+func TestCreationArtPresenterPlaced(t *testing.T) {
 	m := game.Member{PortraitHeadID: "head_000", PortraitBodyID: "body_000", IconHeadID: "combat_head_000", IconBodyID: "combat_body_000"}
 	if poolPicture("portraits", m.PortraitHeadID) == nil {
 		t.Skip("no pool art")
 	}
-	p, _ := draftOn(&game.Draft{Member: m}) // the page's default layout: the portrait at 28,1, the icon at 29,13
+	p, _ := draftOn(&game.Draft{Member: m})
 	p.creating = true
-	names := map[string]bool{}
-	for _, pc := range p.contentPictures() {
-		names[pc.Name] = true
+	if pics := p.contentPictures(); len(pics) != 0 {
+		t.Fatalf("engine pictures on the sheet: %+v", pics)
 	}
-	if !names[m.PortraitHeadID] || !names[m.PortraitBodyID] || !names[m.IconHeadID] || names[""] {
-		t.Fatalf("content pictures %v, want the pool's portrait and icon only", names)
+	cr, port, icons := p.creation(), 0, 0
+	for _, o := range p.screenPage().overs {
+		switch {
+		case o.At.In(cr.Head.Pixels().Union(cr.Body.Pixels())):
+			port++
+		case o.At.In(cr.Icon.Pixels()):
+			icons++
+		}
+	}
+	if port != 1 || icons != 2 {
+		t.Fatalf("%d portraits and %d icon poses placed, want 1 and 2", port, icons)
 	}
 }

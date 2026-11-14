@@ -36,22 +36,16 @@ func (p *Presenter) sheetDraft() *game.Creation {
 	return nil
 }
 
-// sheetPortrait is the PNG dropped on the sheet, else the pool's head and
-// body of its member in an empty portrait box (v's pictures are the game's:
-// a default fills an empty box only).
+// sheetPortrait is the PNG dropped on the sheet, else its member's whole
+// portrait (fullPortrait): the presenter's, never the game's page picture.
 func (p *Presenter) sheetPortrait(sp *game.SheetPage) image.Image {
-	if sp == nil || sp.Portrait != nil {
-		if sp == nil {
-			return nil
-		}
-		return ownPNG(sp.Portrait)
-	}
-	own := p.sheetOwn()
-	if own.PortraitHeadID == "" && pictured(p.pictures(), sheetPortraitBox(sp).Pixels()) {
+	if sp == nil {
 		return nil
 	}
-	m := subject(own)
-	return poolID("portraits", m.PortraitHeadID, m.PortraitBodyID)
+	if sp.Portrait != nil {
+		return ownPNG(sp.Portrait)
+	}
+	return p.fullPortrait(p.sheetOwn())
 }
 
 // draftPage is the creation sheet's page from c's draft (the rules publish

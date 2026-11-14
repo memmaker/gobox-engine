@@ -125,38 +125,14 @@ func (c *cellPage) box(x1, y1, x2, y2, colour int, title string) {
 
 // screenPage is v's page as the presenter draws it: the page's pictures
 // and boxes and the screens' text over them.
-// contentPictures are the original art a screen of its own shows from the
-// engine's page: the picker's pictures in their cells, the portrait and
-// combat icon on the sheets; never a frame or a fill (the credits sit on
-// black, not over the title picture).
+// contentPictures are the art a screen of its own shows: the picker's
+// pictures in its cells. Never the engine's page: the presenter places
+// every picture on its screens itself (the sheet's portrait and icon too).
 func (p *Presenter) contentPictures() []Picture {
-	var in []image.Rectangle
-	pk, ed := p.picker(p.ink()), p.iconEditor(p.ink())
-	switch {
-	case p.slotsView() != nil, ed != nil && pk == nil:
-	case pk != nil:
+	if pk := p.picker(p.ink()); pk != nil && p.slotsView() == nil {
 		return pk.Pics
-	default:
-		var boxes []CellRect
-		if cr := p.creation(); cr != nil {
-			boxes = append(boxes, cr.Head, cr.Body, cr.Icon)
-		}
-		for _, b := range boxes {
-			if b != (CellRect{}) { // a box the screen has: not one at the origin
-				in = append(in, b.Pixels())
-			}
-		}
 	}
-	var out []Picture
-	for _, pc := range p.pictures() {
-		if pc.Img == nil && pc.Pix == nil || pc.File == "" && pc.Name == "" { // the pool's (withPoolPortrait, withPoolIcon) have a Name, no File
-			continue
-		}
-		if slices.ContainsFunc(in, func(r image.Rectangle) bool { return !r.Empty() && pc.At.Overlaps(r) }) {
-			out = append(out, pc)
-		}
-	}
-	return out
+	return nil
 }
 
 func (p *Presenter) screenPage() *cellPage {
@@ -178,8 +154,9 @@ func (p *Presenter) screenPage() *cellPage {
 		pics = append([]Picture{{At: cr.Icon.Pixels(), Fill: true, Colour: iconGround}}, pics...)
 	}
 	c := newCellPage(p.cells(), ink, pics)
-	if cr != nil && cr.Scale > 1 && pk == nil && sl == nil {
-		c.pics = c.scaled(cr)
+	if cr != nil && pk == nil && sl == nil {
+		own := p.sheetOwn()
+		c.creationArt(cr, p.fullPortrait(own), memberPoses(own), sp)
 	}
 	c.texts(p.prompt(), p.flags(), p.barShown(sl))
 	if sp != nil {
@@ -670,30 +647,23 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 	}
 }
 
-// scaled takes the creation sheet's portrait and icon pictures, which the
-// engine draws at 1x from the portrait box's and the icon box's corners,
-// off the page as crisp overlays cr.Scale times their size; the rest stay.
-func (c *cellPage) scaled(cr *FrontCreation) []Picture {
-	port := cr.Head.Pixels().Union(cr.Body.Pixels())
-	var keep []Picture
-	for _, pc := range c.pics {
-		var from image.Point
-		switch {
-		case pc.Fill || pc.Img == nil:
-			keep = append(keep, pc)
-			continue
-		case pc.At.Overlaps(port):
-			from = port.Min
-		case pc.At.Overlaps(cr.Icon.Pixels()):
-			from = cr.Icon.Pixels().Min
-		default:
-			keep = append(keep, pc)
-			continue
-		}
-		min := from.Add(pc.At.Min.Sub(from).Mul(cr.Scale))
-		c.overs = append(c.overs, overlay{Img: pc.Img, At: image.Rectangle{min, min.Add(pc.At.Size().Mul(cr.Scale))}, Crisp: true})
+// creationArt places the creation sheet's portrait over its Head and Body
+// boxes and the combat icon's two poses in its Icon box, cr.Scale times
+// their size (a PNG dropped on the icon: the sheet draws it).
+func (c *cellPage) creationArt(cr *FrontCreation, portrait image.Image, poses [2]image.Image, sp *game.SheetPage) {
+	if portrait != nil {
+		c.overs = append(c.overs, overlay{Img: portrait, At: fit(portrait.Bounds(), cr.Head.Pixels().Union(cr.Body.Pixels())), Crisp: true})
 	}
-	return keep
+	if sp != nil && sp.IconPNG != nil {
+		return
+	}
+	k, box := max(1, cr.Scale), cr.Icon.Pixels()
+	for pose, im := range poses {
+		if im != nil {
+			at := box.Min.Add(image.Pt(40*k*pose, 0)) // the poses 5 cells apart
+			c.overs = append(c.overs, overlay{Img: im, At: image.Rectangle{at, at.Add(im.Bounds().Size().Mul(k))}, Crisp: true})
+		}
+	}
 }
 
 // picker lays a grid picker's page out (showPicker): the box, the pager,

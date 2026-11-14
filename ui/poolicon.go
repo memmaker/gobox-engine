@@ -202,48 +202,6 @@ var poolParts = sync.OnceValue(func() map[string]poolPart {
 	return parts
 })
 
-// withPoolIcon is pics with the creation draft's combat icon (pool ids, else its Icon numbers) in the
-// sheet's Icon box, in place of the game's picture there (pics itself when the draft has none).
-func withPoolIcon(pics []Picture, cr *FrontCreation, own game.Member, sheet *game.SheetPage) []Picture {
-	m := subject(own)
-	if cr == nil {
-		return pics
-	}
-	if p := sheet; p != nil && p.IconPNG != nil { // a dropped PNG: the sheet draws it
-		return pics
-	}
-	box := cr.Icon.Pixels()
-	head, body := memberIcon(m)
-	composed := m.IconHeadID == "" && head != ""
-	if head == "" || body == "" {
-		if slices.ContainsFunc(pics, func(pc Picture) bool { return !pc.Fill && pc.At.Overlaps(box) }) {
-			return pics // the game's own icon
-		}
-		head, body = "combat_head_000", "combat_body_000" // nothing picked yet: the box still shows an icon, the pool's first
-	}
-	var keep []Picture
-	for _, pc := range pics {
-		if !pc.Fill && pc.At.Overlaps(box) {
-			continue
-		}
-		keep = append(keep, pc)
-	}
-	for pose := range 2 {
-		pic, ok := poolIcon(head, body, m.IconColors, pose, false)
-		if !ok {
-			return pics
-		}
-		if composed { // composed from the original numbers: drawn from CBODY's block (+128: the action pose)
-			pic.File, pic.Block = "CBODY", m.Icon["body"]+128*pose
-		}
-		x := box.Min.X + 40*pose // the poses 5 cells apart at 1x: scaled scales it
-		pic.Name = head
-		pic.At = image.Rectangle{image.Pt(x, box.Min.Y), image.Pt(x+pic.PixW, box.Min.Y+len(pic.Pix)/pic.PixW)}
-		keep = append(keep, pic)
-	}
-	return keep
-}
-
 // PickIcon is the subject's combat icon (ready pose) with head or body swapped
 // for the named one ("": its own), for a picker cell.
 func PickIcon(own game.Member, head, body string) image.Image {
@@ -257,7 +215,26 @@ func PickIcon(own game.Member, head, body string) image.Image {
 	if body != "" {
 		b = body
 	}
-	pic, ok := poolIcon(h, b, subject(own).IconColors, 0, false)
+	return iconImage(h, b, subject(own).IconColors, 0)
+}
+
+// memberPoses are own's combat icon in its two poses (the pool's first
+// while nothing is picked).
+func memberPoses(own game.Member) (out [2]image.Image) {
+	m := subject(own)
+	h, b := memberIcon(m)
+	if h == "" || b == "" {
+		h, b = "combat_head_000", "combat_body_000"
+	}
+	for pose := range out {
+		out[pose] = iconImage(h, b, m.IconColors, pose)
+	}
+	return out
+}
+
+// iconImage is the pool icon of head and body in pose, as an image (nil: none).
+func iconImage(h, b string, colors []byte, pose int) image.Image {
+	pic, ok := poolIcon(h, b, colors, pose, false)
 	if !ok {
 		return nil
 	}
