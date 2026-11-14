@@ -604,7 +604,6 @@ func (e *Engine) TryDoor(k game.DoorWay) error {
 	case game.DoorBash:
 		if w.through = e.bashDoor(); !w.through {
 			e.emit(rules.Sounded{Cue: rules.SoundCue("hitwall")})
-			e.DisplayMessageWait(game.InkYellow, "The door holds.") // extra: the original only bumped
 		} else {
 			e.emit(rules.Sounded{Cue: rules.SoundCue("shutdoor")}) // a slam
 		}
@@ -614,7 +613,6 @@ func (e *Engine) TryDoor(k game.DoorWay) error {
 			e.run.doorTry[1] = 0
 		case !e.pickLock():
 			e.emit(rules.Sounded{Cue: rules.SoundCue("lockpick_fail")})
-			e.DisplayMessageWait(game.InkYellow, "The lock holds.") // extra: the original only bumped
 		default:
 			e.emit(rules.Sounded{Cue: rules.SoundCue("lockpick")})
 			w.through = true
@@ -622,6 +620,7 @@ func (e *Engine) TryDoor(k game.DoorWay) error {
 	case game.DoorKnock:
 		w.through = e.knock()
 	}
+	e.event(game.DoorTried{Way: k, Through: w.through}) // gobox flashes the outcome (the original only bumped)
 	e.resume()
 	return nil
 }

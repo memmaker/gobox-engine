@@ -432,6 +432,10 @@ type (
 	}
 	JournalNote struct{ ID int }     // a Lore entry was added
 	Refused     struct{ Why string } // a step blocked by the rules (a wall, a locked door)
+	DoorTried   struct {
+		Way     DoorWay
+		Through bool
+	} // a locked door was tried (TryDoor), Exit included
 	Ended       struct{ Won bool }
 	SaveOffered struct{} // a script offers to save the game
 	ShipShown   struct {
@@ -460,6 +464,7 @@ func (Gained) event()      {}
 func (Lost) event()        {}
 func (JournalNote) event() {}
 func (Refused) event()     {}
+func (DoorTried) event()   {}
 func (Ended) event()       {}
 func (SaveOffered) event() {}
 func (ShipShown) event()   {}

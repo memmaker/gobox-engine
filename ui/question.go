@@ -284,3 +284,19 @@ func GateAct(h RuleHost, a Action) bool {
 	}
 	return true
 }
+
+// doorNote is the flash message for a locked door's try: every way says
+// what came of it, so a try that changes nothing still answers.
+func doorNote(d game.DoorTried) string {
+	switch d.Way {
+	case game.DoorExit:
+		return "You leave the door."
+	case game.DoorBash:
+		return Choice(d.Through, "The door holds.", "The door bursts open.")
+	case game.DoorPick:
+		return Choice(d.Through, "The lock holds.", "The lock clicks open.")
+	case game.DoorKnock:
+		return Choice(d.Through, "Nothing happens.", "The door swings open.")
+	}
+	return ""
+}

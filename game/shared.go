@@ -99,10 +99,11 @@ type Report struct {
 	Unit, Target int
 	At, To       rules.BoardPos
 	Sprite       []Picture
-	StepMs       int     // EvMissile with Sprite: the flight's time per third of a square (0: Ms shared out)
-	Ms           int     // >0: the moment holds this many milliseconds (with Screen: a timed moment outside a fight)
-	Pose         int     // >0 with Ms in a fight: Unit's icon pose (1 action) while this moment shows
-	Screen       *Screen // with Ms: the typed screen as it stood for this moment (a blink, a blast frame), shown for Ms milliseconds
+	StepMs       int        // EvMissile with Sprite: the flight's time per third of a square (0: Ms shared out)
+	Ms           int        // >0: the moment holds this many milliseconds (with Screen: a timed moment outside a fight)
+	Pose         int        // >0 with Ms in a fight: Unit's icon pose (1 action) while this moment shows
+	Screen       *Screen    // with Ms: the typed screen as it stood for this moment (a blink, a blast frame), shown for Ms milliseconds
+	Door         *DoorTried // EvDoor
 }
 
 // Result is what one Apply or Step did. Err refuses the decision; nothing changed.

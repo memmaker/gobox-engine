@@ -843,6 +843,7 @@ const (
 	EvReset   // the state changed wholesale (load, new game): redraw from State
 	EvSaves   // gobox puts its save screen up (a script's "save the game?" choice)
 	EvEngaged // a fight began: Combat is its board before the first turn (the step's events play from it)
+	EvDoor    // a locked door was tried: Door says how and whether the party got through
 )
 
 // Data is declarative overrides only; no drawing, no positions (the

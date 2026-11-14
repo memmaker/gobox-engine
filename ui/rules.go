@@ -1407,6 +1407,8 @@ func eventsAt(es []game.Event, ms int, engaged func(game.Fighting) game.Report) 
 			out = append(out, game.Report{Kind: game.EvDown, Unit: e.Unit, Target: e.Unit})
 		case game.Moved:
 			out = append(out, game.Report{Kind: game.EvMove, Unit: -1, To: rules.BoardPos(e.To), N: e.Facing})
+		case game.DoorTried:
+			out = append(out, game.Report{Kind: game.EvDoor, Door: &e})
 		case game.Refused:
 			out = append(out, game.Report{Kind: game.EvRefused, Text: e.Why})
 		case game.Ended:

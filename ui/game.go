@@ -73,6 +73,9 @@ func (g *Game) run(what string, step func() game.Result) error {
 		if e.Kind == game.EvReset {
 			g.resets++
 		}
+		if e.Kind == game.EvDoor && e.Door != nil { // every way tried says what came of it, even Exit
+			g.r.toast = FrontNote{Text: doorNote(*e.Door), At: time.Now()}
+		}
 		if e.Kind == game.EvMessage && strings.TrimSpace(e.Text) != "" && g.combat() == nil && g.itemsUp() { // over the items (the shop's "Brann buys a Broad Sword"): the toast on its bottom row, as a refusal's; the inventory plays no message
 			g.r.toast = FrontNote{Text: strings.TrimSpace(e.Text), At: time.Now()}
 		}

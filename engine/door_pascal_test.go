@@ -69,6 +69,16 @@ func TestDoorAgainstPascal(t *testing.T) {
 			}
 		}
 		through := e.ext.doorThrough
+		if !walled { // every try, Exit included, reports what came of it (gobox flashes it)
+			var d game.DoorTried
+			ok := false
+			if n := len(e.events); n > 0 {
+				d, ok = e.events[n-1].(game.DoorTried)
+			}
+			if !ok || d.Through != through {
+				t.Fatalf("%s: no DoorTried{Through: %v} reported: %v", line, through, e.events)
+			}
+		}
 		if w[4] == 1 { // the Pascal's Knock opened the door ahead (1): so must Go's
 			x, y, d := e.posX, e.posY, e.moveDir()
 			if !rules.OnMap(x, y) || e.gs.geo.Plane[0x300+y<<4+x]>>uint(d)&3 != 1 {
