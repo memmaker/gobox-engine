@@ -265,9 +265,9 @@ func (r *Rules) fixture(f rules.Fixture) error {
 			}
 			s.ApplyItems(c)
 		}
-	case rules.FixtureCastFight: // every member has Cure Light Wounds memorized
+	case rules.FixtureCastFight: // every member has Cure Light Wounds and Stinking Cloud (an area aim) memorized
 		for _, c := range s.Party {
-			c.Memorized[0] = SpCureLightWounds
+			c.Memorized[0], c.Memorized[1] = SpCureLightWounds, spStinkingCloud
 		}
 	case rules.FixtureAutoCombat: // as Quick for everyone
 		for _, c := range s.Party {

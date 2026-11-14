@@ -93,6 +93,11 @@ type aimRun struct {
 	then                   aimThen
 }
 
+// check is the rules' word on the aim at at: who would be the target and why not.
+func (h *aimRun) check(at rules.BoardPos) rules.AimCheck {
+	return h.e.fact(h.c, rules.AimCheckFact{Near: h.list, At: at, Range: h.rng, ShowRange: h.showRange, Ground: h.allowGround != 0}).(rules.AimCheck)
+}
+
 // point moves the aim to (x, y): who would be the target and why not.
 func (h *aimRun) point(x, y int) rules.AimCheck {
 	e := h.e
@@ -100,7 +105,7 @@ func (h *aimRun) point(x, y int) rules.AimCheck {
 		e.aoeUnmark()
 	}
 	e.as(e.sel)
-	a := e.fact(h.c, rules.AimCheckFact{Near: h.list, At: rules.BoardPos{X: x, Y: y}, Range: h.rng, ShowRange: h.showRange, Ground: h.allowGround != 0}).(rules.AimCheck)
+	a := h.check(rules.BoardPos{X: x, Y: y})
 	why := a.Why
 	e.snap.aimWhy = why
 	e.aoeMarks(x, y)

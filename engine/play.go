@@ -458,22 +458,22 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			if sa := e.cs.sa; aim.then.kind == atSpell && sa != nil {
 				act = game.Cast{Member: cm.Selected, Spell: int(sa.spell)}
 			}
+			// only the squares the rules take: one out of range or sight is refused, so it is not offered
+			reach := slices.DeleteFunc(inRange(b, aim.rng), func(at rules.BoardPos) bool { return aim.check(at).Why != "" })
 			var sq []rules.BoardPos // the aim's targets first: gobox's cursor starts on the first square (a corner of the map was "Out of sight")
 			for _, u := range b.Units {
-				if slices.Contains(b.Targets, u.ID) {
+				if slices.Contains(b.Targets, u.ID) && slices.Contains(reach, u.At) {
 					sq = append(sq, u.At)
 				}
 			}
 			targets := len(sq)
-			for _, p := range inRange(b, max(b.Size.W, b.Size.H)) {
+			for _, p := range reach {
 				if !slices.Contains(sq[:targets], p) {
 					sq = append(sq, p)
 				}
 			}
 			a.Aimed = append(a.Aimed, game.Aimed{Action: act, Squares: sq, Targets: 1})
-			if aim.turn != nil { // in the turn: Leave gives the aim up, back to its menu (an item's aim was up with nothing published: Items did nothing)
-				add(game.Leave{})
-			}
+			add(game.Leave{}) // Leave gives the aim up (VerbClose): back to the turn's menu, or, the menu gone (the bar's Cast), the aim taken as nothing found
 			break
 		}
 		if aim := e.cs.aim; aim != nil && b != nil { // a maneuver's aim up mid-turn (its move square, its attack, its target): Do aims it

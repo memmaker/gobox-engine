@@ -25,7 +25,7 @@ const (
 	FixtureTemple                          // a wounded member and gold for healing
 	FixtureAppraise                        // gems and jewelry to appraise
 	FixtureMissile                         // missile weapons readied by everyone who may
-	FixtureCastFight                       // Cure Light Wounds memorized by everyone
+	FixtureCastFight                       // Cure Light Wounds and Stinking Cloud memorized by everyone
 	FixtureAutoCombat                      // the computer fights for everyone
 	FixtureWinFight                        // the placed foes at 1 hp
 	FixtureLoseFight                       // the placed foes strong, the party at 1 hp
