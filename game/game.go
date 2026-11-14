@@ -870,7 +870,6 @@ type Data struct {
 	VerbOrder   []string          `json:",omitempty"` // the series' order of the turn's verbs by label (POR: Move View Aim Use Cast Turn Quick Done); those it leaves out follow in gobox's
 	PartyMenu   []MenuKey         `json:",omitempty"` // the series' party menu: gobox's function labels in its order with its hotkeys (nil: gobox's)
 	Texts       map[string]string
-	AimsShots   bool               `json:",omitempty"` // the series' Ranged verb is its Aim (Texts["Ranged"]): Shoot is offered as it, no extra Aim cursor
 	Confirms    map[string]Confirm `json:",omitempty"` // gobox's own confirms in the original's words, by act: "Drop", "DropScribe", "Sell", "SellMany", "SellFree", "SellFreeMany", "DropMember" (nil: gobox's)
 	Credits     []string           `json:"-"`
 	SpellRules  map[int]string     // what each spell does, by spell id (the spell tip text)

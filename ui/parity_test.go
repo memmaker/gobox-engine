@@ -199,7 +199,7 @@ func TestParity(t *testing.T) {
 			func(s shown, _ game.Result) bool {
 				return slices.Equal(s.Combat.Log, []string{"YOU GET INTO A BRAWL."})
 			}},
-		{"aimed attack", game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: game.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}}, // the series has Aim: gobox's free cursor
+		{"aimed attack", game.Fighting{Common: game.Common{Allowed: game.Allowed{Aimed: []game.Aimed{{Action: game.Attack{}, Squares: []image.Point{{2, 3}}}}}}}, game.Data{VerbOrder: []string{"Attack", "Aim"}}, // the series names Aim: no extra verb for it
 			[]any{game.Attack{}, game.Aim{At: image.Pt(2, 3)}}, []game.Action{game.Attack{At: &image.Point{2, 3}}},
 			func(s shown, _ game.Result) bool {
 				var att, aim bool
@@ -208,7 +208,7 @@ func TestParity(t *testing.T) {
 					_, b := o.Do.(game.Aim)
 					att, aim = att || a, aim || b
 				}
-				return att && aim
+				return att && !aim // no free-cursor Aim verb
 			}},
 		{"door over exploring", game.Exploring{Door: &game.Door{}}, game.Data{}, nil, nil,
 			func(s shown, _ game.Result) bool { return s.Mode == game.ModeAsk && s.Holding == game.HoldDoor }},

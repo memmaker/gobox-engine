@@ -515,7 +515,10 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 		if u.ID == b.Turn && u.Member >= 0 && u.Member < len(f.Party) {
 			spells = f.Party[u.Member].Spells
 			for _, it := range f.Party[u.Member].Items { // the fight's Items list: what the rules let it use now
-				if slices.ContainsFunc(al.Plain, func(a game.Action) bool { x, ok := a.(game.UseItem); return ok && x.Member == u.Member && x.Item == it.Handle }) {
+				if slices.ContainsFunc(al.Plain, func(a game.Action) bool {
+					x, ok := a.(game.UseItem)
+					return ok && x.Member == u.Member && x.Item == it.Handle
+				}) {
 					c.Items = append(c.Items, it)
 				}
 			}
@@ -563,10 +566,6 @@ func (r *frontState) combat(f game.Fighting) *game.Combat {
 	if k, ok := r.data.VerbKeys["View"]; ok && activeMember(b) >= 0 && len(t.Options) > 0 && !allowed["ViewTarget"] { // the series' View (keyed in VerbKeys): the active member's sheet, front state (BR's View is its rules' ViewTarget)
 		l, m := cmp.Or(r.data.Texts["View"], "View"), activeMember(b)
 		t.Options = append(t.Options, game.Option{Label: l, Key: k, Do: game.ViewMember{Member: m}})
-	}
-	called := r.data.AimsShots && slices.ContainsFunc(t.Options, func(o game.Option) bool { _, shoot := o.Do.(game.Shoot); return shoot }) // the series' Data calls its Ranged verb Aim (SotSB), and it is offered
-	if _, keyed := r.data.VerbKeys["Aim"]; len(t.Options) > 0 && !called && (keyed || slices.Contains(r.data.VerbOrder, "Aim")) {          // the series names Aim (keyed or placed): gobox's free cursor; no menu ("Continue battle?"): no Aim either
-		t.Options = append(t.Options, game.Option{Label: "Aim", Do: game.Aim{}}) // the free cursor, gobox's own
 	}
 	if ord := r.data.VerbOrder; len(ord) > 0 { // the series' order; the verbs it leaves out after, as gobox has them
 		at := func(o game.Option) int {
