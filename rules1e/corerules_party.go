@@ -93,6 +93,13 @@ func (r *Rules) resolveParty(a rules.Action) (rules.Outcome, bool, error) {
 		for i, k := range p.Colours {
 			c.IconColour[i] = Colours(k.Low&0xF | k.High<<4)
 		}
+	case rules.ResetIcon:
+		c := r.chars[a.Who]
+		if c == nil {
+			return rules.Outcome{}, true, errNoChar
+		}
+		c.Icon, c.IconColour = nil, defaultIconSet()
+		c.IconSize = iconSizeOf(c.Race)
 	case rules.SetPortrait:
 		c := r.chars[a.Who]
 		if c == nil {

@@ -250,11 +250,8 @@ type Monster struct {
 func (e *RuleState) MakeMonster(c *Character, m Monster) {
 	c.Sheet = m.Sheet
 	c.Items, c.Affects = nil, nil
-	switch c.Race {
-	case RaceDwarf, RaceGnome, RaceHalfling:
-		c.IconSize = 1
-	case RaceElf, RaceHalfElf, RaceHalfOrc, RaceHuman:
-		c.IconSize = 2
+	if n := iconSizeOf(c.Race); n != 0 {
+		c.IconSize = n
 	}
 	for i := 1; i <= 3; i++ {
 		r := byte(e.Dice(1, 6))
@@ -549,4 +546,30 @@ func setMemo(t *Tables, c *Character, slot int, v rules.Value) error {
 		return errBadValue
 	}
 	return nil
+}
+
+// Icon sizes (Character.IconSize).
+const (
+	iconSmall byte = 1
+	iconLarge byte = 2
+)
+
+// iconSizeOf is race's icon size (ovr18:0EC4); 0: the race has none.
+func iconSizeOf(r rules.Race) byte {
+	switch r {
+	case RaceDwarf, RaceGnome, RaceHalfling:
+		return iconSmall
+	case RaceElf, RaceHalfElf, RaceHalfOrc, RaceHuman:
+		return iconLarge
+	}
+	return 0
+}
+
+// defaultIconSet is a fresh character's icon colours (defaultIconColours).
+func defaultIconSet() (out [len(defaultIconColours) - 1]Colours) {
+	for i := range out {
+		t := defaultIconColours[i+1]
+		out[i] = Colours((t+8)<<4 + t)
+	}
+	return out
 }

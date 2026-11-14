@@ -99,10 +99,7 @@ func (e *RuleState) Fresh(k Kind, keep *Character) *Character {
 // follows from the kind alone, so a kept draft rebuilds it (porCreation.Make).
 func (e *RuleState) KindRecord(k Kind, keep *Character) *Character {
 	c := &Character{}
-	for i := 1; i <= 6; i++ {
-		t := defaultIconColours[i]
-		c.IconColour[i-1] = Colours((t+8)<<4 + t)
-	}
+	c.IconColour = defaultIconSet()
 	c.BaseAC = AcTen
 	c.Thac0Base = 0x28
 	c.Status = StatusOkay

@@ -297,6 +297,12 @@ type SetIconPics struct {
 
 func (SetIconPics) action() {}
 
+// ResetIcon: Who's combat icon is the ruleset's own again: no dropped PNG,
+// the default colours and the race's size (the icon editor's Remove).
+type ResetIcon struct{ Who CharID }
+
+func (ResetIcon) action() {}
+
 func (PoolPicsFact) fact() {}
 func (PoolPics) value()    {}
 func (SetPoolPic) action() {}

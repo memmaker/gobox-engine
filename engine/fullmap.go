@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gobox/adventure"
 	"gobox/ecl"
+	"gobox/game"
 	"gobox/rules"
 	"log"
 	"os"
@@ -107,18 +108,24 @@ func (e *Engine) writeLabels(path string) error {
 }
 
 // Mark labels square x, y of the current map with text (the player's
-// label; "" marks nothing).
-func (e *Engine) Mark(x, y int, text string) {
-	if text = strings.TrimSpace(text); text != "" && rules.OnMap(x, y) {
-		e.userLabels()[y<<4|x] = mapLabel{rules.Cut(text, 0x20), adventure.PoiUser}
+// label); nothing typed or a square off the map is refused.
+func (e *Engine) Mark(x, y int, text string) error {
+	if text = strings.TrimSpace(text); text == "" || !rules.OnMap(x, y) {
+		return &game.Refusal{} // nothing to mark: refused, no toast
 	}
+	e.userLabels()[y<<4|x] = mapLabel{rules.Cut(text, 0x20), adventure.PoiUser}
+	return nil
 }
 
-// Unmark removes the player's label from square x, y of the current map.
-func (e *Engine) Unmark(x, y int) {
-	if rules.OnMap(x, y) {
-		delete(e.userLabels(), y<<4|x)
+// Unmark removes the player's label from square x, y of the current map;
+// a square without one is refused.
+func (e *Engine) Unmark(x, y int) error {
+	m := e.userLabels()
+	if _, ok := m[y<<4|x]; !ok || !rules.OnMap(x, y) {
+		return refuseIf(true, "no mark there")
 	}
+	delete(m, y<<4|x)
+	return nil
 }
 
 // mapName is the current map's name in words, from the scripts' names of

@@ -338,7 +338,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 		add(game.ClosePicker{})
 	}
 	if cm.IconEditor != nil {
-		add(game.IconSize{}, game.IconColour{}, game.IconPNG{}, game.EndIcon{}, game.EndIcon{Keep: true})
+		add(game.IconSize{}, game.IconColour{}, game.IconRemove{}, game.IconPNG{}, game.EndIcon{}, game.EndIcon{Keep: true})
 	}
 	switch shown {
 	case game.ModeNone, game.ModeParty, game.ModeCreate:
@@ -417,6 +417,9 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			}
 		}
 		add(game.Search{}, game.Look{}, game.MakeCamp{})
+		if e.mapView() { // the automap's marks: any square and text (allows)
+			add(game.Mark{}, game.Unmark{})
+		}
 		items()
 	case game.ModeCamp:
 		add(game.AdvanceTimeBy{D: time.Hour}, game.BreakCamp{}, game.Order{})
@@ -604,6 +607,10 @@ func allows(al game.Allowed, a game.Action) bool {
 		base = game.Shoot{}
 	case game.Rename: // any name: the rules take it or refuse it
 		base = game.Rename{}
+	case game.Mark: // any square and text: Engine.Mark checks them
+		base = game.Mark{}
+	case game.Unmark:
+		base = game.Unmark{}
 	case game.Attack: // at a square (a bump, an ally): any Attack offered, the rules check the square
 		if v.At != nil {
 			return slices.ContainsFunc(al.Plain, func(x game.Action) bool { _, ok := x.(game.Attack); return ok })
@@ -711,6 +718,10 @@ func (e *Engine) Do(a game.Action) (game.Outcome, error) {
 		err = native(func() error { return e.exploreVerb(e.lookCmd) })
 	case game.AddNote:
 		err = native(func() error { return e.noteAdd(a.Text) })
+	case game.Mark:
+		err = native(func() error { return e.Mark(a.At.X, a.At.Y, a.Text) })
+	case game.Unmark:
+		err = native(func() error { return e.Unmark(a.At.X, a.At.Y) })
 	case game.RemoveNote: // BUG-CLASSES 31: a refusal, not a silent no-op
 		err = native(func() error {
 			n := len(e.ext.notes)
@@ -1140,6 +1151,8 @@ func (e *Engine) frontDo(a game.Action, native func(func() error) error) (bool, 
 			e.IconPNG(a.Path)
 			return nil
 		})
+	case game.IconRemove:
+		return true, native(func() error { e.IconRemove(); return nil })
 	case game.EndIcon:
 		return true, native(func() error { e.EndIcon(a.Keep); return nil })
 	case game.OpenTraining:

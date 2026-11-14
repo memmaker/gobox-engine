@@ -94,10 +94,13 @@ func (e *Engine) IconColour(part, shade, v int) {
 	}
 }
 
-// IconRemove drops the PNG icon: the game's own icon again (the save
-// drops NAME.icon.png).
+// IconRemove drops the custom icon (a dropped PNG, colours, size): the
+// ruleset's own again (the save drops NAME.icon.png); EndIcon(false) still
+// puts the old one back.
 func (e *Engine) IconRemove() {
-	e.editIcon(func(p *rules.IconPics) { p.PNG = nil })
+	if ed := e.iconEd; ed != nil {
+		e.do(rules.ResetIcon{Who: ed.who})
+	}
 }
 
 // EndIcon ends the designer: keep takes the icon, else the old one is
