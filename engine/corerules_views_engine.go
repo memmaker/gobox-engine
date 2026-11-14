@@ -36,14 +36,6 @@ func (e *Engine) itemID(n int) (rules.ItemID, error) {
 	return v.(rules.ItemID), nil
 }
 
-// weapon is the item cID has readied as its weapon, core.NoItem none.
-func (e *Engine) weapon(cID rules.CharID) rules.ItemHandle {
-	if w := e.fact(cID, rules.WeaponFact{}).(rules.Handles); len(w) > 0 {
-		return w[0]
-	}
-	return rules.NoItem
-}
-
 // loadChar loads the saved character named, core.NoChar when its files are gone.
 func (e *Engine) loadChar(name string) rules.CharID {
 	id, _ := e.LoadCharacter(name, false)

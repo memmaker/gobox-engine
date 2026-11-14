@@ -16,7 +16,7 @@ const (
 	ActLead               // make party member N the selected one (the command bar's member): F1-F8, the member keys; in a member pick the candidate
 	ActReady              // inventory: ready or unready item Item
 	ActUse                // inventory: use item Item
-	ActRanged             // combat: throw the Missiles slot's weapon (aims as Attack)
+	ActRanged             // combat: shoot the Launcher slot's weapon or throw the Missiles slot's (aims as Attack)
 	ActDrop               // inventory: drop item Item (the player already confirmed)
 	ActSell               // inventory: sell item Item (confirmed)
 	ActWalk               // combat: walk to square X, Y (one of Battle.Reach)

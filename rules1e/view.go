@@ -52,7 +52,7 @@ func (e *RuleState) SwapReady(c *Character, it *Item) {
 	if it.Readied == 0 && e.Base(it.Type).Classes&c.ClassMask != 0 {
 		for _, s := range []int{SlotWeapon, SlotShield} {
 			o := c.Slots[s]
-			if o == nil || o == it || int(e.Base(it.Type).Hands)+int(c.Hands) <= 2 {
+			if o == nil || o == it || int(e.handsFor(it.Type))+int(c.Hands) <= 2 {
 				continue
 			}
 			e.ReadyItem(o)
@@ -114,10 +114,9 @@ func (e *RuleState) InTheWay(c *Character, it *Item) *Item {
 	switch {
 	case e.offHand(c, it):
 		slot = SlotShield
-	case e.isKind(it.Type, ItemIDArrow):
-		slot = SlotArrows
-	case e.isKind(it.Type, ItemIDQuarrel):
-		slot = SlotBolts
+	case e.isKind(it.Type, ItemIDArrow, ItemIDQuarrel) || slot == SlotMissiles: // extra: the one Missiles box
+		return e.missileReadied(c)
+	case slot == SlotLauncher:
 	case slot == 9:
 		slot = slotRing2
 	case slot > 8:
@@ -152,7 +151,7 @@ func (e *RuleState) ReadyItem(it *Item) {
 	}
 	why := 0
 	typ := it.Type
-	if int(e.Base(typ).Hands)+int(c.Hands) > 2 {
+	if int(e.handsFor(typ))+int(c.Hands) > 2 {
 		why = 3
 	}
 	slot := e.readySlot(typ)
@@ -161,7 +160,7 @@ func (e *RuleState) ReadyItem(it *Item) {
 		slot = SlotShield
 	}
 	switch {
-	case slot <= 8:
+	case slot <= 8 || slot == SlotLauncher:
 		if c.Slots[slot] != nil {
 			why = 2
 		}
@@ -170,8 +169,8 @@ func (e *RuleState) ReadyItem(it *Item) {
 			why = 2
 		}
 	}
-	if e.isKind(typ, ItemIDArrow, ItemIDQuarrel) {
-		for _, s := range []int{SlotArrows, SlotBolts} {
+	if e.isKind(typ, ItemIDArrow, ItemIDQuarrel) || slot == SlotMissiles { // extra: a thrown weapon shares the arrows' box
+		for _, s := range missileSlots {
 			if c.Slots[s] != nil {
 				why, slot = 2, s
 			}

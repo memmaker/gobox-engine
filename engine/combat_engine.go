@@ -95,7 +95,7 @@ func (e *Engine) turnChoice(cID rules.CharID, a TurnAct, walks map[int]rules.Boa
 		return false
 	}
 	e.snap.turn = nil
-	if !slices.Contains(turn.Can, a.Verb) && a.Verb != VerbWalk { // a walk is no bar button
+	if verb := a.Verb; !slices.Contains(turn.Can, verb) && verb != VerbWalk && !(verb == VerbShoot && slices.Contains(turn.Can, VerbAttack)) { // a walk is no bar button; Ranged is Attack's
 		return false
 	}
 	switch a.Verb {
@@ -103,6 +103,9 @@ func (e *Engine) turnChoice(cID rules.CharID, a TurnAct, walks map[int]rules.Boa
 		done = e.turnVerb(cID, rules.Move{To: rules.BoardPos{X: a.X, Y: a.Y}})
 	case VerbAttack:
 		done = e.attackUnit(cID, a.N, walks)
+	case VerbShoot: // extra: Attack's aim with the Launcher or Missiles slot's weapon in hand
+		e.must(rules.Draw{Who: cID, Ranged: true})
+		done = e.attackUnit(cID, 0, walks)
 	case VerbManeuver:
 		done = e.maneuver(cID, a.N, walks)
 	case VerbCast:
@@ -141,6 +144,21 @@ func (e *Engine) turnChoice(cID rules.CharID, a TurnAct, walks map[int]rules.Boa
 	return done
 }
 
+// turnWeapons (extra) sets t's weapons: the one in hand (Attack) and the
+// one Ranged shoots or throws.
+func (e *Engine) turnWeapons(cID rules.CharID, t *Turn) {
+	t.Weapon, t.Missile = nil, nil
+	for _, w := range []struct {
+		to     **rules.ItemCard
+		ranged bool
+	}{{&t.Weapon, false}, {&t.Missile, true}} {
+		if h := e.fact(cID, rules.WeaponFact{Ranged: w.ranged}).(rules.Handles); len(h) > 0 {
+			*w.to = e.invItem(cID, h[0])
+			(*w.to).Rules = e.fact(cID, rules.WeaponRulesFact{Ranged: w.ranged}).(rules.Lines)
+		}
+	}
+}
+
 // turnChoices = ovr09:0666 (combatMenu)'s offer, published as the View's
 // Turn with the squares a walk reaches (with their steps) and the foes
 // verbAttack takes (in reach of the weapon, or a walk away: returned, by
@@ -148,12 +166,10 @@ func (e *Engine) turnChoice(cID rules.CharID, a TurnAct, walks map[int]rules.Boa
 func (e *Engine) turnChoices(cID rules.CharID) map[int]rules.BoardPos {
 	e.as(e.sel)
 	e.resolve(rules.OpenTurn{Actor: cID}) // the menu runs affect group 0xF and disarms first
+	e.must(rules.Draw{Who: cID})          // extra: the menu offers with the weapon in hand (a Ranged attack drew another)
 	allowed := e.ruleset().Allowed(rules.Fight{Actor: cID})
 	t := &Turn{Unit: e.unit(cID), Moves: e.fightCard(cID).Moves >> 1}
-	if w := e.fact(cID, rules.WeaponFact{}).(rules.Handles); len(w) > 0 {
-		t.Weapon = e.invItem(cID, w[0])
-		t.Weapon.Rules = e.fact(cID, rules.WeaponRulesFact{}).(rules.Lines)
-	}
+	e.turnWeapons(cID, t)
 	for _, o := range allowed.Offers {
 		switch a := o.Action.(type) {
 		case rules.Attack:

@@ -9,19 +9,15 @@ import (
 )
 
 // DollSlots are the paper doll's slots by Inventory.Doll index, by
-// game.Item.Slot name: core.DollNames (arrows and bolts share the Missiles
-// slot), then the Launcher slot a launcher takes when the weapon slot is taken.
-var DollSlots = append(rules.DollNames[:], "launcher")
+// game.Item.Slot name: core.DollNames (arrows, bolts and missiles share the
+// Missiles slot).
+var DollSlots = rules.DollNames[:]
 
 // dollSlot is the Doll index for it, -1 for none.
-func dollSlot(it game.Item, weaponTaken bool) int {
+func dollSlot(it game.Item) int {
 	switch it.Slot {
-	case "bolts":
+	case "bolts", "missiles":
 		return slices.Index(DollSlots, "arrows")
-	case "weapon":
-		if weaponTaken {
-			return slices.Index(DollSlots, "launcher")
-		}
 	}
 	return slices.Index(DollSlots, it.Slot)
 }

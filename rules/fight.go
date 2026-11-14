@@ -39,11 +39,12 @@ func (IconFact) fact() {}
 type UnitFact struct{}
 
 // WeaponFact is the weapon a fighter holds ready: Handles, empty or one.
-type WeaponFact struct{}
+// Ranged (extra): the one its Ranged action shoots or throws instead.
+type WeaponFact struct{ Ranged bool }
 
 // WeaponRulesFact is the rule lines of the readied weapon (por
-// WeaponRules); its Value is Lines, nil without a weapon.
-type WeaponRulesFact struct{}
+// WeaponRules); its Value is Lines, nil without a weapon. Ranged: as WeaponFact.
+type WeaponRulesFact struct{ Ranged bool }
 
 // TargetWhyFact is why the fighter cannot attack Target this turn, as the
 // status row words it (por TargetWhy in weapon range); its Value is Text.

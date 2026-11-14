@@ -44,6 +44,13 @@ func (r *Rules) resolveFight(sit rules.Situation, a rules.Action) (rules.Outcome
 	case rules.CombatSay:
 		s.CombatSay(r.chars[a.Who], a.Text, true)
 		return rules.Outcome{}, true, nil
+	case rules.Draw:
+		c := r.chars[a.Who]
+		if c == nil {
+			return rules.Outcome{}, true, errNoChar
+		}
+		s.Draw(c, a.Ranged)
+		return rules.Outcome{}, true, nil
 	case rules.AutoTurn:
 		o, err := r.autoTurn(sit, a)
 		return o, true, err
@@ -248,6 +255,16 @@ func (r *Rules) fightFact(c *Character, f rules.Fact) (rules.Value, error) {
 	s := r.S
 	w := c.Slots[SlotWeapon]
 	switch f := f.(type) {
+	case rules.WeaponFact:
+		if f.Ranged {
+			w = s.rangedItem(c)
+		}
+	case rules.WeaponRulesFact:
+		if f.Ranged {
+			w = s.rangedItem(c)
+		}
+	}
+	switch f := f.(type) {
 	case rules.UnitFact:
 		return rules.Number(s.CombatIndex(c)), nil
 	case rules.WeaponFact:
@@ -383,6 +400,7 @@ func (r *Rules) openTurn(a rules.OpenTurn) error {
 	if c == nil {
 		return nil // as Allowed: nobody to offer to
 	}
+	r.S.undraw() // extra: a turn begins with the weapon in hand
 	r.S.AffectGroup(c, 0xF)
 	r.S.Fight.Armed = Armed{}
 	return nil

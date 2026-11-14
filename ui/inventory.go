@@ -334,7 +334,7 @@ func (r *frontState) inventoryOf(ps game.State) *invUp {
 		}
 	}
 	for i, it := range m.Items {
-		if d := dollSlot(it, u.doll[rules.DollWeapon] != nil); it.Readied && d >= 0 && u.doll[d] == nil {
+		if d := dollSlot(it); it.Readied && d >= 0 && u.doll[d] == nil {
 			u.doll[d] = &m.Items[i]
 		}
 	}

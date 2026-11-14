@@ -486,12 +486,12 @@ func (e *RuleState) StrikeOff(a, b *Character) bool {
 }
 
 // offHand: it, unreadied, would go into c's off hand: a one-handed weapon
-// with one already in hand, the shield slot free, the rule set allowing it;
-// before the Missiles slot a thrown one (a dagger) would go to.
+// of the weapon hand (not a launcher or thrown-only one: their own slots)
+// with one already in hand, the shield slot free, the rule set allowing it.
 func (e *RuleState) offHand(c *Character, it *Item) bool {
 	w := c.Slots[SlotWeapon]
-	return it.Readied == 0 && w != nil && w != it && c.Slots[SlotShield] == nil && e.Base(it.Type).Slot == SlotWeapon &&
-		e.Base(it.Type).Hands == 1 && e.Base(w.Type).Hands == 1 && !(e.Base(it.Type).Usage&8 != 0 && e.Base(it.Type).Range > 1) && e.Rules().OffHand(e, c, it)
+	return it.Readied == 0 && w != nil && w != it && c.Slots[SlotShield] == nil && e.readySlot(it.Type) == SlotWeapon &&
+		e.Base(it.Type).Hands == 1 && e.Base(w.Type).Hands == 1 && e.Rules().OffHand(e, c, it)
 }
 
 // Reach is how many squares c's weapon in hand strikes (1: next to it).

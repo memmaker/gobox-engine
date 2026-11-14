@@ -47,7 +47,13 @@ type (
 		At     *BoardPos
 	}
 	Shoot struct{ Ats []BoardPos }
-	Cast  struct {
+	// Draw (extra): Who's attacks this turn use its Launcher or Missiles
+	// slot (Ranged), or the weapon in hand again.
+	Draw struct {
+		Who    CharID
+		Ranged bool
+	}
+	Cast struct {
 		Caster CharID
 		Spell  SpellID
 		Target CharID
@@ -333,6 +339,7 @@ func (BuildGround) action()   {}
 func (TakeLoot) action()      {}
 func (Attack) action()        {}
 func (Shoot) action()         {}
+func (Draw) action()          {}
 func (Cast) action()          {}
 func (UseItem) action()       {}
 func (Maneuver) action()      {}

@@ -45,53 +45,99 @@ func quickStartedOn(t *testing.T, e *Engine) *Engine {
 	return e
 }
 
-// TestNoMissileSlot: the Missiles and Launcher slots were por additions.
-// A thrown weapon or a launcher readies in hand, as the original's, and
-// Attack aims with it; arrows go beside the bow. An old save's Readied 2
-// or 3 item goes back to the pack.
-func TestNoMissileSlot(t *testing.T) {
-	e := quickStarted(t)
-	i := slices.IndexFunc(e.state().Party, func(c *rules1e.Character) bool {
-		return e.state().Base(rules1e.ItemShortBow).Classes&e.state().Base(rules1e.ItemJavelin).Classes&c.ClassMask != 0
+// fighterWith: a Quick Start member who may use all of types, selected
+// and acting, its hands emptied.
+func fighterWith(t *testing.T, e *Engine, types ...rules1e.ItemType) (*rules1e.RuleState, *rules1e.Character) {
+	t.Helper()
+	r := e.state()
+	i := slices.IndexFunc(r.Party, func(c *rules1e.Character) bool {
+		return !slices.ContainsFunc(types, func(ty rules1e.ItemType) bool { return r.Base(ty).Classes&c.ClassMask == 0 })
 	})
 	if i < 0 {
-		t.Fatal("nobody for a bow and a javelin")
+		t.Fatal("nobody for the items")
 	}
 	e.selectMember(i)
 	c := e.member(e.selected())
-	e.as(e.sel) // the rules, c acting
-	r := e.state()
+	e.as(e.sel)
 	r.ApplyItems(c)
-	for _, s := range []int{rules1e.SlotWeapon, rules1e.SlotShield, rules1e.SlotArrows, rules1e.SlotBolts} {
-		if c.Slots[s] != nil {
-			r.ReadyItem(c.Slots[s])
+	for _, it := range slices.Clone(c.Items) {
+		if it.Readied != 0 {
+			r.ReadyItem(it)
 			r.ApplyItems(c)
 		}
 	}
-	j := e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemJavelin))
-	if e.state().DollSlot(c, j) != rules.DollWeapon {
-		t.Errorf("javelin: doll slot %d, want the weapon hand", e.state().DollSlot(c, j))
-	}
-	r.ReadyItem(j)
+	return r, c
+}
+
+// ready adds a copy of type ty to c and readies it.
+func ready(r *rules1e.RuleState, c *rules1e.Character, ty rules1e.ItemType) *rules1e.Item {
+	it := r.AddItemCopy(c, r.RandomItem(ty))
+	r.ReadyItem(it)
 	r.ApplyItems(c)
-	if j.Readied != 1 || c.Slots[rules1e.SlotWeapon] != j {
-		t.Errorf("javelin readied %d, in hand %v", j.Readied, c.Slots[rules1e.SlotWeapon] == j)
+	return it
+}
+
+// TestLauncherMissilesSlots (extra): a bow readies into the Launcher slot
+// and a thrown-only weapon into the Missiles slot, by their base records,
+// beside sword and shield (they take no hands); Attack uses the sword,
+// Ranged (Draw) the bow with its arrows, or the thrown flask once it has
+// taken the arrows' Missiles box.
+func TestLauncherMissilesSlots(t *testing.T) {
+	e := quickStarted(t)
+	r, c := fighterWith(t, e, rules1e.ItemLongSword, rules1e.ItemShield, rules1e.ItemShortBow, rules1e.ItemOil)
+	sword, shield := ready(r, c, rules1e.ItemLongSword), ready(r, c, rules1e.ItemShield)
+	bow, arrows := ready(r, c, rules1e.ItemShortBow), ready(r, c, rules1e.ItemArrow)
+	if c.Slots[rules1e.SlotWeapon] != sword || c.Slots[rules1e.SlotShield] != shield || c.Slots[rules1e.SlotLauncher] != bow || c.Slots[rules1e.SlotArrows] != arrows {
+		t.Fatalf("sword %v shield %v bow %v arrows %v", c.Slots[rules1e.SlotWeapon] == sword, c.Slots[rules1e.SlotShield] == shield, c.Slots[rules1e.SlotLauncher] == bow, c.Slots[rules1e.SlotArrows] == arrows)
 	}
-	r.ReadyItem(j)
-	r.ApplyItems(c)
-	bow, arrows := e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemShortBow)), e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemArrow))
-	r.ReadyItem(bow)
-	r.ReadyItem(arrows)
-	r.ApplyItems(c)
-	if bow.Readied != 1 || c.Slots[rules1e.SlotWeapon] != bow || c.Slots[rules1e.SlotArrows] != arrows {
-		t.Errorf("bow readied %d in hand %v, arrows %v (%s)", bow.Readied, c.Slots[rules1e.SlotWeapon] == bow, c.Slots[rules1e.SlotArrows] == arrows, e.ext.note)
+	if d := r.DollSlot(c, bow); d != rules.DollLauncher {
+		t.Errorf("bow on doll slot %d", d)
 	}
-	// an old save's Missiles/Launcher items: its import puts them back in the
-	// pack (saveimport.go, U10; ApplyItems reads the current format only)
-	bow.Readied, arrows.Readied = rules1e.ReadiedOldLauncher, rules1e.ReadiedOldMissiles
+	r.BeginFlag = 5 // in a fight
+	cID := e.charID(c)
+	tw := &Turn{}
+	e.turnWeapons(cID, tw)
+	if tw.Weapon == nil || tw.Missile == nil || tw.Weapon.Item != e.r1e().Handle(sword) || tw.Missile.Item != e.r1e().Handle(bow) {
+		t.Errorf("turn weapons %+v / %+v", tw.Weapon, tw.Missile)
+	}
+	e.must(rules.Draw{Who: cID, Ranged: true})
+	var ammo *rules1e.Item
+	if c.Slots[rules1e.SlotWeapon] != bow || !r.AmmoFor(c, &ammo) || ammo != arrows {
+		t.Errorf("Ranged: bow in hand %v, ammo arrows %v", c.Slots[rules1e.SlotWeapon] == bow, ammo == arrows)
+	}
+	e.must(rules.Draw{Who: cID})
+	if c.Slots[rules1e.SlotWeapon] != sword {
+		t.Error("Attack: the sword not in hand")
+	}
+	oil := r.AddItemCopy(c, r.RandomItem(rules1e.ItemOil))
+	r.SwapReady(c, oil) // the Missiles box: the arrows come off
+	r.ApplyItems(c)
+	if c.Slots[rules1e.SlotMissiles] != oil || c.Slots[rules1e.SlotArrows] != nil || c.Slots[rules1e.SlotWeapon] != sword || c.Slots[rules1e.SlotShield] != shield {
+		t.Fatalf("oil in Missiles %v, arrows %v, sword %v (%s)", c.Slots[rules1e.SlotMissiles] == oil, c.Slots[rules1e.SlotArrows], c.Slots[rules1e.SlotWeapon] == sword, e.ext.note)
+	}
+	e.must(rules.Draw{Who: cID, Ranged: true})
+	if c.Slots[rules1e.SlotWeapon] != oil || !r.AmmoFor(c, &ammo) || ammo != oil {
+		t.Errorf("Ranged: the flask in hand %v, used up %v", c.Slots[rules1e.SlotWeapon] == oil, ammo == oil)
+	}
+	e.must(rules.OpenTurn{Actor: cID}) // the next turn: the weapon in hand again
+	if c.Slots[rules1e.SlotWeapon] != sword {
+		t.Error("a new turn kept the flask in hand")
+	}
+}
+
+// TestOldSaveMissileSlots: an old save's Readied 2/3 items load into the
+// Missiles and Launcher slots their base records name; anything else
+// there goes back to the pack (saveimport.go, U10).
+func TestOldSaveMissileSlots(t *testing.T) {
+	e := quickStarted(t)
+	r, c := fighterWith(t, e, rules1e.ItemLongSword, rules1e.ItemShortBow, rules1e.ItemJavelin)
+	sword := ready(r, c, rules1e.ItemLongSword)
+	bow, jav, extra := r.RandomItem(rules1e.ItemShortBow), r.RandomItem(rules1e.ItemJavelin), r.RandomItem(rules1e.ItemLongSword)
+	c.Items = append(c.Items, bow, jav, extra) // as a save holds them
+	bow.Readied, jav.Readied, extra.Readied = rules1e.ReadiedOldLauncher, rules1e.ReadiedOldMissiles, rules1e.ReadiedOldLauncher
 	r.ImportCharacter(c)
 	r.ApplyItems(c)
-	if bow.Readied != 0 || arrows.Readied != 0 || c.Slots[rules1e.SlotWeapon] != nil || c.Slots[rules1e.SlotArrows] != nil {
-		t.Errorf("old save: bow %d, arrows %d, weapon %v", bow.Readied, arrows.Readied, c.Slots[rules1e.SlotWeapon])
+	if c.Slots[rules1e.SlotLauncher] != bow || c.Slots[rules1e.SlotMissiles] != jav || c.Slots[rules1e.SlotWeapon] != sword || extra.Readied != 0 {
+		t.Errorf("bow %v javelin %v sword %v, second sword readied %d", c.Slots[rules1e.SlotLauncher] == bow, c.Slots[rules1e.SlotMissiles] == jav, c.Slots[rules1e.SlotWeapon] == sword, extra.Readied)
 	}
 }

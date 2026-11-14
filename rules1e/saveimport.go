@@ -5,18 +5,23 @@ package rules1e
 // are always written in the current format. This file is the whole of the
 // backwards compatibility and can be cut as one piece.
 
-// Readied values an older save may hold for slots that no longer exist.
+// Readied values an older save may hold for the Missiles and Launcher
+// slots it kept apart: the slots are back (extra), set by the item's base
+// record (readySlot), so the item is simply readied.
 const (
-	ReadiedOldMissiles = 2 // the Missiles slot
-	ReadiedOldLauncher = 3 // the Launcher slot
+	ReadiedOldMissiles = 2
+	ReadiedOldLauncher = 3
 )
 
 // ImportCharacter mends a character read from a save file.
 func (e *RuleState) ImportCharacter(c *Character) {
 	var armour *Item
 	for _, it := range c.Items {
-		if it.Readied == ReadiedOldMissiles || it.Readied == ReadiedOldLauncher { // back in the pack
+		if it.Readied == ReadiedOldMissiles || it.Readied == ReadiedOldLauncher { // into the slot its base record names, else back in the pack
 			it.Readied = 0
+			if s := e.readySlot(it.Type); s == SlotMissiles || s == SlotLauncher || e.isKind(it.Type, ItemIDArrow, ItemIDQuarrel) {
+				it.Readied = 1
+			}
 		}
 		// items saved before MendItem are mended; a readied one that only
 		// now grants its affect gets it as readying would have

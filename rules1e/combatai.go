@@ -578,6 +578,7 @@ func (e *RuleState) weaponScore(c *Character, it *Item) int {
 // weapon, and the best second item, and ready them.
 func (e *RuleState) AiPickWeapon(c *Character) {
 	e.saveLoadout(c)
+	e.undraw() // extra: the weapon in hand, as the scoring expects
 	b := func(it *Item) *ItemBase { return e.Base(it.Type) }
 	if w := c.Slots[SlotWeapon]; w != nil {
 		c.Hands -= b(w).Hands
@@ -634,6 +635,9 @@ func (e *RuleState) AiPickWeapon(c *Character) {
 	if best1 != nil && int(bs1) > int(bs2)>>1 && ok && (ranged || e.NearEnemies(c, 1) == 0) {
 		chosen = best1
 	}
+	if chosen != nil && e.aiDrawRanged(c, chosen) {
+		return
+	}
 	done := false
 	ok = true
 	if w := c.Slots[SlotWeapon]; w != nil && (w == chosen || w.Cursed != 0) {
@@ -685,6 +689,26 @@ func (e *RuleState) AiPickWeapon(c *Character) {
 	e.ApplyItems(c)
 	if done {
 	}
+}
+
+// aiDrawRanged (extra): a chosen launcher or thrown-only weapon readies
+// into its own slot (no hands: the weapon in hand and the shield stay) and
+// is drawn for the turn's attacks (Draw); false for a weapon of the hand.
+func (e *RuleState) aiDrawRanged(c *Character, chosen *Item) bool {
+	if s := e.readySlot(chosen.Type); s != SlotLauncher && s != SlotMissiles {
+		return false
+	}
+	if chosen.Readied == 0 {
+		if o := e.InTheWay(c, chosen); o != nil {
+			e.ReadyItem(o)
+			e.ApplyItems(c)
+		}
+		e.ReadyItem(chosen)
+	}
+	e.ApplyItems(c)
+	e.Draw(c, true)
+	e.SetSpeed(c)
+	return true
 }
 
 // AiPathDir (extra) is the first step of the cheapest walk (A*, in

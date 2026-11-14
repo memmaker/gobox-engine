@@ -321,12 +321,12 @@ func (e *RuleState) PathNextTo(c, t *Character, reach map[[2]int][]int) []int {
 
 // loadout (extra): a party member's weapon, shield and Missiles slot items
 // and how they were readied, as they were when the computer took over.
-type loadout [5]struct {
+type loadout [len(loadoutSlots)]struct {
 	it *Item
 	r  byte
 }
 
-var loadoutSlots = [4]int{SlotWeapon, SlotShield, SlotArrows, SlotBolts}
+var loadoutSlots = [6]int{SlotWeapon, SlotShield, SlotArrows, SlotBolts, SlotMissiles, SlotLauncher}
 
 // saveLoadout (extra) keeps c's loadout the first time the computer picks
 // a weapon for it this battle (Quick, charmed ...), for restoreLoadouts.
@@ -352,6 +352,7 @@ func (e *RuleState) saveLoadout(c *Character) {
 // RestoreLoadouts (extra): after the battle everyone the computer fought
 // for gets the weapons it had back (those not used up); cursed ones stay.
 func (e *RuleState) RestoreLoadouts() {
+	e.undraw() // extra: the weapons in hand, not a drawn launcher
 	for c, l := range e.loadouts {
 		keep := func(it *Item) bool {
 			for _, x := range l {

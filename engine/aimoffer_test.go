@@ -63,15 +63,16 @@ func testAimOffersAccepted(t *testing.T, mk func(*testing.T) *Engine) {
 		}
 	}
 	e.state().ApplyItems(c)
-	j := e.state().AddItemCopy(c, e.state().RandomItem(weaponFor(t, e, c, rules1e.ItemJavelin, true))) // readied in hand, Attack throws it: an aim, nobody in range needed
+	j := e.state().AddItemCopy(c, e.state().RandomItem(weaponFor(t, e, c, rules1e.ItemJavelin, true))) // readied in the Missiles slot (thrown only) or in hand (melee too), Ranged throws it: an aim, nobody in range needed
 	e.state().ReadyItem(j)
 	e.state().ApplyItems(c)
-	if c.Slots[rules1e.SlotWeapon] != j {
-		t.Fatalf("javelin readied %d, not in hand", j.Readied)
+	if c.Slots[rules1e.SlotMissiles] != j && c.Slots[rules1e.SlotWeapon] != j {
+		t.Fatalf("thrown weapon readied %d, not in the Missiles slot or in hand", j.Readied)
 	}
+	e.must(rules.Draw{Who: e.charID(c), Ranged: true})
 	e.attackUnit(e.charID(c), 0, nil)
-	if e.cs.aim == nil {
-		t.Fatal("Attack with a javelin opened no aim")
+	if e.cs.aim == nil || c.Slots[rules1e.SlotWeapon] != j {
+		t.Fatal("Ranged with a thrown weapon opened no aim")
 	}
 	e.aimApply(TurnAct{Verb: VerbClose})
 	check("spell range 3", 3, 0, 1)

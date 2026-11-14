@@ -22,7 +22,7 @@ type Character struct {
 	Items           []*Item              // list at +0xC8 (0x3F-byte nodes)
 	Affects         []*Affect            // list at +0x7F (9-byte nodes)
 	Combat          *CombatInfo          // block at +0x108 while fighting
-	Slots           [14]*Item            // readied items, +0xCC (set by ApplyItems)
+	Slots           [slotCount]*Item     // readied items, +0xCC (set by ApplyItems; extra: 13, 14 the Missiles and Launcher slots)
 }
 
 // Sheet is a character's record: the fields of the DOS record (the codec,

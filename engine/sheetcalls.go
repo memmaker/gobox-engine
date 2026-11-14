@@ -187,11 +187,7 @@ func (e *Engine) Ready(h rules.ItemHandle, x int) error {
 		return err
 	}
 	if t := e.snap.turn; t != nil && cID == e.cs.actor { // the turn's weapon follows (BUG-CLASSES 40), as turnChoices sets it
-		t.Weapon = nil
-		if w := e.weapon(cID); w != rules.NoItem {
-			t.Weapon = e.invItem(cID, w)
-			t.Weapon.Rules = []string(e.fact(cID, rules.WeaponRulesFact{}).(rules.Lines))
-		}
+		e.turnWeapons(cID, t)
 	}
 	return nil
 }

@@ -436,7 +436,7 @@ type Item struct {
 	Base                        rules.ItemID   // its base kind (picks the icon; 0 none)
 	Kind                        string         // "weapon", "armor", "ring", ...
 	Count                       int            // stack size, 0 or 1 for one
-	Slot                        string         // readied in: weapon, shield, armor, helm, belt, robe, cloak, boots, gauntlets, ring, ring2, arrows, bolts; "" none
+	Slot                        string         // readied in: weapon, shield, armor, helm, belt, robe, cloak, boots, gauntlets, ring, ring2, arrows, bolts, missiles, launcher; "" none
 	Wrong                       bool           // the holder may not use it (class, race)
 	Text                        string         // what Look tells of it
 	Spell                       int            // a scroll's first spell id, 0 none (all of them: Scroll)

@@ -14,7 +14,7 @@ const (
 	TabArmor
 )
 
-// Doll slots: where a readied item shows on the paper doll. 0..12 are the
+// Doll slots: where a readied item shows on the paper doll. 0..11 are the
 // game's own slots (rules1e Character.Slots); bracers take the armour's (readySlot).
 const (
 	DollWeapon = iota
@@ -28,14 +28,15 @@ const (
 	DollBoots
 	DollRing1
 	DollRing2
-	DollArrows // arrows or quarrels beside the bow or crossbow in hand
+	DollArrows   // the Missiles slot: arrows, quarrels or (extra) a thrown weapon
+	DollLauncher // extra: the Launcher slot, a bow, crossbow or sling
 	DollSlots
 )
 
 // DollNames are the doll slots' names by slot (game.Item.Slot); the arrows
-// slot is shared by arrows and bolts.
+// (Missiles) slot is shared by arrows, bolts and missiles (a thrown weapon).
 var DollNames = [DollSlots]string{DollWeapon: "weapon", DollShield: "shield", DollArmor: "armor", DollGauntlets: "gauntlets", DollHelm: "helm",
-	DollBelt: "belt", DollRobe: "robe", DollCloak: "cloak", DollBoots: "boots", DollRing1: "ring", DollRing2: "ring2", DollArrows: "arrows"}
+	DollBelt: "belt", DollRobe: "robe", DollCloak: "cloak", DollBoots: "boots", DollRing1: "ring", DollRing2: "ring2", DollArrows: "arrows", DollLauncher: "launcher"}
 
 // UsingItem: Who would use Item out of the inventory (por's UseItem before
 // its questions). Allowed lists the uses: the item's own spell (one UseItem

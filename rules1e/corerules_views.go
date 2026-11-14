@@ -235,7 +235,7 @@ func (r *Rules) fixture(f rules.Fixture) error {
 	case rules.FixtureAppraise:
 		s.Purse.Gems, s.Purse.Jewelry = 3, 2
 	case rules.FixtureMissile: // items for everyone: a sling, a bow and arrows, javelins
-		launchers := []ItemType{ItemSling, ItemShortBow} // the first two who may: a sling, a bow with arrows (hands freed)
+		launchers := []ItemType{ItemSling, ItemShortBow} // the first two who may: a sling, a bow with arrows (the Launcher slot: hands kept)
 		fits := func(t ItemType, c *Character) bool {    // the game's type of t's kind is c's
 			g, ok := s.devType(t)
 			return ok && s.Base(g).Classes&c.ClassMask != 0
@@ -247,12 +247,6 @@ func (r *Rules) fixture(f rules.Fixture) error {
 				continue
 			}
 			if len(launchers) > 0 && fits(launchers[0], c) {
-				for _, sl := range []int{SlotWeapon, SlotShield} {
-					if c.Slots[sl] != nil {
-						s.ReadyItem(c.Slots[sl])
-						s.ApplyItems(c)
-					}
-				}
 				for _, it := range s.devItems(launchers[0]) {
 					s.ReadyItem(s.AddItemCopy(c, it))
 				}
@@ -264,7 +258,7 @@ func (r *Rules) fixture(f rules.Fixture) error {
 				}
 				launchers = launchers[1:]
 			}
-			if c.Slots[SlotWeapon] == nil || s.Base(c.Slots[SlotWeapon].Type).Usage&8 == 0 { // else a javelin beside the weapon
+			if c.Slots[SlotLauncher] == nil { // else javelins in the Missiles slot
 				for _, it := range s.devItems(ItemJavelin) {
 					s.ReadyItem(s.AddItemCopy(c, it))
 				}
@@ -455,18 +449,16 @@ func (e *RuleState) TrainsTo(c *Character, mask byte) []string {
 	return to
 }
 
-// dollSlotName is the shared Item.Slot of it in doll slot d: a launcher
-// is the weapon, a missile arrows or bolts by its kind (a thrown weapon
-// has no match: "").
+// dollSlotName is the shared Item.Slot of it in doll slot d: in the
+// Missiles box arrows, bolts or (extra) missiles, a thrown weapon.
 func (e *RuleState) dollSlotName(it *Item, d int) string {
 	switch {
 	case d == rules.DollArrows && e.isKind(it.Type, ItemIDArrow):
 		return "arrows"
 	case d == rules.DollArrows && e.isKind(it.Type, ItemIDQuarrel):
 		return "bolts"
-	}
-	if d == rules.DollArrows {
-		return "" // a thrown weapon has no ammunition slot name
+	case d == rules.DollArrows:
+		return "missiles"
 	}
 	return rules.DollNames[d]
 }
@@ -475,7 +467,7 @@ func (e *RuleState) dollSlotName(it *Item, d int) string {
 // ammunition), what is worn, else the rest (rings among them).
 func (e *RuleState) ItemKindOf(c *Character, it *Item) rules.InvTab {
 	switch d := e.DollSlot(c, it); {
-	case d == rules.DollWeapon || d == rules.DollArrows:
+	case d == rules.DollWeapon || d == rules.DollArrows || d == rules.DollLauncher:
 		return rules.TabWeapon
 	case d >= 0 && d != rules.DollRing1 && d != rules.DollRing2:
 		return rules.TabArmor

@@ -89,7 +89,7 @@ func (e *Engine) fightState() *game.Combat {
 		return cmp.Or(cmp.Compare(a.At.Y, b.At.Y), cmp.Compare(a.At.X, b.At.X))
 	})
 	if t := b.Turn; t != nil {
-		c.Turn = &game.Turn{Unit: t.Unit, Moves: t.Moves, Aim: t.Aim, Spell: t.Casting, Weapon: gameWeapon(t.Weapon)}
+		c.Turn = &game.Turn{Unit: t.Unit, Moves: t.Moves, Aim: t.Aim, Spell: t.Casting, Weapon: gameWeapon(t.Weapon), Missile: gameWeapon(t.Missile)}
 		for _, m := range t.Maneuvers {
 			c.Turn.Maneuvers = append(c.Turn.Maneuvers, game.TurnManeuver{ID: int(m.ID), Name: m.Name, Tip: m.Tip, Aim: int(m.Aim), Range: m.Range, Area: m.Area, Shift: m.Move})
 		}

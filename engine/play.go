@@ -797,7 +797,7 @@ func (e *Engine) combatDo(a game.Action, al game.Allowed, native func(func() err
 		if e.cs.aim != nil { // the aim up already
 			return turn(TurnAct{Verb: VerbAim, X: a.Ats[0].X, Y: a.Ats[0].Y})
 		}
-		return turn(TurnAct{Verb: VerbAttack}, TurnAct{Verb: VerbAim, X: a.Ats[0].X, Y: a.Ats[0].Y})
+		return turn(TurnAct{Verb: VerbShoot}, TurnAct{Verb: VerbAim, X: a.Ats[0].X, Y: a.Ats[0].Y})
 	case game.Guard:
 		return turn(TurnAct{Verb: VerbGuard})
 	case game.Delay:

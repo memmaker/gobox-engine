@@ -246,6 +246,7 @@ type Turn struct {
 	Aim       bool                 // aiming: verbAim takes a square, verbPoint previews one, verbClose gives up
 	Casting   string               // extra: aiming a spell, its name (a delayed one goes off turns after it was chosen)
 	Weapon    *rules.ItemCard      // extra: the weapon in hand (its icon on the Attack button), or nil
+	Missile   *rules.ItemCard      // extra: what Ranged shoots or throws (the Launcher or Missiles slot's), or nil
 	Moves     int                  // squares of move left
 }
 
@@ -386,6 +387,7 @@ const (
 	VerbPoint // the aim: preview a square
 	VerbAim   // the aim: take a square
 	VerbClose // the aim: give up
+	VerbShoot // extra: Ranged, an attack with the Launcher or Missiles slot's weapon (rules.Draw), aimed
 )
 
 // TurnAct is one decision of the turn: Verb with its unit, spell or

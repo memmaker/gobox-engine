@@ -98,7 +98,31 @@ const (
 	slotRing2      = 10
 	SlotArrows     = 11
 	SlotBolts      = 12
+	// extra: the Missiles slot (a thrown-only weapon: a dart, a javelin, a
+	// flask of oil) and the Launcher slot (a bow, crossbow or sling). Both
+	// take no hands; the Ranged action shoots or throws from them (Draw).
+	SlotMissiles = 13
+	SlotLauncher = 14
+	slotCount    = 15
 )
+
+// Base item Usage flags (+0xB) the slots go by.
+const (
+	usageMeleeToo = 0x04 // with usageThrown: also a melee weapon (a spear, a hand axe)
+	usageShoots   = 0x08 // fires (a launcher; with usageThrown the throw itself)
+	usageThrown   = 0x10 // thrown
+)
+
+// launcher (extra): a bow, crossbow or sling, readied into the Launcher slot.
+func (b *ItemBase) launcher() bool {
+	return b.Usage&usageShoots != 0 && b.Usage&usageThrown == 0 && b.Range > 1
+}
+
+// thrownOnly (extra): a weapon only thrown, readied into the Missiles slot
+// (one also used in melee stays in the weapon hand).
+func (b *ItemBase) thrownOnly() bool {
+	return b.Usage&usageThrown != 0 && b.Usage&usageMeleeToo == 0
+}
 
 // ItemBase is the 16-byte base record of an item type (DS:5582 + 16*type,
 // from the ITEMS file).
@@ -162,12 +186,73 @@ func (e *RuleState) Base(typ ItemType) *ItemBase {
 
 // readySlot is the slot (Character.Slots) a readied item of type typ
 // fills: its base record's, but bracers (extra) wear in the armour's, which
-// they stand in for (itemAC: only the better of the two counts).
+// they stand in for (itemAC: only the better of the two counts), and
+// (extra) a launcher and a thrown-only weapon take the Launcher and
+// Missiles slots instead of the weapon hand.
 func (e *RuleState) readySlot(typ ItemType) int {
-	if e.isKind(typ, ItemIDBracers) {
+	b := e.Base(typ)
+	switch {
+	case e.isKind(typ, ItemIDBracers):
 		return SlotArmor
+	case b.launcher():
+		return SlotLauncher
+	case b.thrownOnly():
+		return SlotMissiles
 	}
-	return int(e.Base(typ).Slot)
+	return int(b.Slot)
+}
+
+// handsFor is the hands a readied item of type typ takes: its base
+// record's, none in the Launcher and Missiles slots (extra).
+func (e *RuleState) handsFor(typ ItemType) byte {
+	if s := e.readySlot(typ); s == SlotLauncher || s == SlotMissiles {
+		return 0
+	}
+	return e.Base(typ).Hands
+}
+
+// missileSlots (extra) are the slots behind the doll's one Missiles box:
+// one of them holds a readied stack at a time.
+var missileSlots = [3]int{SlotMissiles, SlotArrows, SlotBolts}
+
+// missileReadied (extra) is c's item in the Missiles box, nil for none.
+func (e *RuleState) missileReadied(c *Character) *Item {
+	for _, s := range missileSlots {
+		if c.Slots[s] != nil {
+			return c.Slots[s]
+		}
+	}
+	return nil
+}
+
+// rangedItem (extra) is what c's Ranged action uses: the launcher when it
+// has its ammunition (or needs none), else the Missiles slot's thrown
+// weapon, else the launcher (refused for want of ammunition); nil for none.
+func (e *RuleState) rangedItem(c *Character) *Item {
+	l, m := c.Slots[SlotLauncher], c.Slots[SlotMissiles]
+	var ammo *Item
+	if l != nil && (e.ammoWith(c, l, &ammo) || m == nil) {
+		return l
+	}
+	return m
+}
+
+// Draw (extra) makes c's attacks this turn ranged (the Ranged action: the
+// launcher or the thrown weapon stands in the weapon hand) or melee again.
+func (e *RuleState) Draw(c *Character, ranged bool) {
+	e.undraw()
+	if ranged && e.rangedItem(c) != nil {
+		e.drawn = c
+		e.ApplyItems(c)
+	}
+}
+
+// undraw (extra): whoever drew a ranged weapon (Draw) holds the melee one again.
+func (e *RuleState) undraw() {
+	if d := e.drawn; d != nil {
+		e.drawn = nil
+		e.ApplyItems(d)
+	}
 }
 
 // ApplyItems = 00BA:0BB8: everything that follows from the items carried
@@ -177,7 +262,7 @@ func (e *RuleState) ApplyItems(c *Character) {
 	if e.partyMember(c) { // extra: unreadied items belong to the party inventory
 		e.stow(c)
 	}
-	c.Slots = [14]*Item{}
+	c.Slots = [slotCount]*Item{}
 	c.ItemCount = 0
 	c.Hands = 0
 	c.Weight = 0 // extra: items weigh nothing
@@ -197,6 +282,8 @@ func (e *RuleState) ApplyItems(c *Character) {
 			continue
 		}
 		switch s := e.readySlot(typ); {
+		case s == SlotLauncher || s == SlotMissiles: // extra
+			c.Slots[s] = it
 		case s <= 8:
 			c.Slots[s] = it
 		case s == 9:
@@ -212,7 +299,12 @@ func (e *RuleState) ApplyItems(c *Character) {
 		if e.isKind(typ, ItemIDQuarrel) {
 			c.Slots[SlotBolts] = it
 		}
-		c.Hands += e.Base(typ).Hands
+		c.Hands += e.handsFor(typ)
+	}
+	if e.drawn == c && e.BeginFlag == 5 { // extra: the Ranged action's launcher or thrown weapon in hand
+		if r := e.rangedItem(c); r != nil {
+			c.Slots[SlotWeapon] = r
+		}
 	}
 	c.Dice, c.Sides, c.Bonus = c.BaseDice, c.BaseSides, c.BaseBonus
 	var ac [5]int8

@@ -150,6 +150,7 @@ func TestDevMissileShoots(t *testing.T) {
 			continue
 		}
 		a := e.member(e.cs.actor)
+		e.must(rules.Draw{Who: e.cs.actor, Ranged: true}) // the Launcher slot's weapon, as Shoot draws it
 		rng := e.state().WeaponRange(a)
 		var foe *rules1e.Character
 		for i := 1; i <= e.state().Ncomb; i++ {

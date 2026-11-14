@@ -120,8 +120,10 @@ func (e *RuleState) DollSlot(c *Character, it *Item) int {
 	switch s := e.readySlot(it.Type); {
 	case it.Readied == ReadiedOffHand || e.offHand(c, it): // the off hand (extra)
 		return SlotShield
-	case e.isKind(it.Type, ItemIDArrow, ItemIDQuarrel): // the arrows' and quarrels' slots (11, 12)
+	case e.isKind(it.Type, ItemIDArrow, ItemIDQuarrel) || s == SlotMissiles: // the arrows' and quarrels' slots (11, 12), extra: the thrown weapon's
 		return rules.DollArrows
+	case s == SlotLauncher: // extra
+		return rules.DollLauncher
 	case s <= 8:
 		return s
 	case s == 9:
