@@ -112,6 +112,10 @@ func (r *Rules) EndFight(f rules.Fight, _ *rules.RNG) rules.FightResult {
 			continue
 		}
 		c.Combat = nil
+		// extra: the fight's Quick ends with it (as Manual, AiKeyTakeOver)
+		if c.Control < 0x80 && c.Status != StatusAnimated {
+			c.Auto = 0
+		}
 		i++
 	}
 	res.Beaten = int32(s.Game.Beaten)
