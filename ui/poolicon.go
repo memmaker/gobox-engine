@@ -163,13 +163,23 @@ func memberIcon(m game.Member) (head, body string) {
 		head = cmp.Or(head, o["CHEAD.DAX"][strconv.Itoa(m.Icon["head"])])
 		body = cmp.Or(body, o["CBODY.DAX"][strconv.Itoa(m.Icon["body"])])
 	}
+	parts := poolParts()
+	if hp, bp := parts[poolEntryID(head)], parts[poolEntryID(body)]; hp.large != bp.large { // a pool id is of one size: it follows the other part's (the game's Size moves only its own numbers)
+		switch {
+		case m.IconHeadID != "" && hp.other != "":
+			head = hp.other
+		case m.IconBodyID != "" && bp.other != "":
+			body = bp.other
+		}
+	}
 	return head, body
 }
 
 // poolPart is a pool combat head or body in its ready pose.
 type poolPart struct {
-	small bool   // its size class: the archives hold two figures, 64 blocks apart; a head fits a body of its own
+	large bool   // its size class: the archives hold two figures, the large one 64 blocks on (IconSize 2); a head fits a body of its own
 	pose  string // the action pose's pool name ("": none of its own)
+	other string // the same part in the other size ("": none)
 }
 
 // poolParts are the ready-pose heads and bodies by pool name, from every
@@ -185,7 +195,7 @@ var poolParts = sync.OnceValue(func() map[string]poolPart {
 				if _, done := parts[o[g][f][ref]]; err != nil || b >= 128 || done {
 					continue
 				}
-				parts[o[g][f][ref]] = poolPart{small: b&64 != 0, pose: o[g][f][strconv.Itoa(b+128)]}
+				parts[o[g][f][ref]] = poolPart{large: b&64 != 0, pose: o[g][f][strconv.Itoa(b+128)], other: o[g][f][strconv.Itoa(b^64)]}
 			}
 		}
 	}

@@ -138,7 +138,7 @@ func (p *Presenter) pageImage(note Note) *gpu.Image {
 	if gpu.Sized(&pg.img, w, h) {
 		pg.px, pg.drawn = image.NewRGBA(image.Rect(0, 0, w, h)), false
 	}
-	own := p.pageKey()
+	own := p.pageKey() + fmt.Sprint(daxArt.gen) // the art shown: F12 over a screen of the presenter's own changes no State
 	var sh sfShown
 	sf := p.sfOf()
 	if sf != nil && !p.modal() {

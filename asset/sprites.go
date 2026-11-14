@@ -6,7 +6,6 @@ package asset
 import (
 	"bytes"
 	"embed"
-	"encoding/json"
 	"image"
 	"image/png"
 	"io/fs"
@@ -78,17 +77,6 @@ func SpriteNames(series, kind string) []string {
 	sort.Strings(out)
 	names.Store(dir, out)
 	return out
-}
-
-// Pose is the series' combat head or body name drawn in the action pose when name is the ready one ("": none).
-func Pose(series, name string) string {
-	b, err := fsys.ReadFile("sprites/series/" + series + "/combat/poses.json")
-	if err != nil {
-		return ""
-	}
-	var m map[string]string
-	json.Unmarshal(b, &m)
-	return m[name]
 }
 
 // ItemIcons is a series' item icon sheet (itemicons/atlas.png) and its

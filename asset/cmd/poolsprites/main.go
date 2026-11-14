@@ -215,21 +215,7 @@ func main() {
 	games = append(games, games2...)
 	b, _ := json.MarshalIndent(origins, "", " ")
 	check(os.WriteFile(filepath.Join(*out, "..", "origins", *series+".json"), append(b, '\n'), 0o644)) // the picture table's (gobox/asset)
-	poses := map[string]string{}                                                                       // combat head/body frame 0 -> its pose-1 frame (the first origin's)
-	for _, files := range origins {
-		for _, refs := range files {
-			for ref, name := range refs {
-				if b, ok := strings.CutSuffix(ref, ".0"); ok && (strings.HasPrefix(name, "combat_head_") || strings.HasPrefix(name, "combat_body_")) {
-					if p := refs[b+".1"]; p != "" && poses[name] == "" {
-						poses[name] = p
-					}
-				}
-			}
-		}
-	}
 	if *series == "pool" {
-		b, _ = json.MarshalIndent(poses, "", " ")
-		check(os.WriteFile(filepath.Join(pool, "combat", "poses.json"), append(b, '\n'), 0o644))
 		index(filepath.Join(*out, "INDEX.md"), byDir)
 	}
 	for _, r := range runs {

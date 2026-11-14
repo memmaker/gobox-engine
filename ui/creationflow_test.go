@@ -272,7 +272,7 @@ func TestIconHeadPickerFitsBody(t *testing.T) {
 	bp := poolPicture("combat", body).(*image.Paletted)
 	for _, n := range names {
 		im := poolPicture("combat", n).(*image.Paletted)
-		if part, ok := poolParts()[n]; !ok || part.small != poolParts()[poolEntryID(body)].small {
+		if part, ok := poolParts()[n]; !ok || part.large != poolParts()[poolEntryID(body)].large {
 			t.Errorf("%s: not a ready head of %s's size class", n, body)
 		}
 		if len(im.Palette) != len(bp.Palette) {
@@ -287,6 +287,48 @@ func TestIconHeadPickerFitsBody(t *testing.T) {
 	flowClick(f, pk.Cells[i])
 	if h, b := memberIcon(subject(f.Game.Subject())); poolEntryID(h) != names[i] || b != body {
 		t.Errorf("after picking %s: icon %s over %s, want it over %s", names[i], h, b, body)
+	}
+}
+
+// A part held as a pool id (a pick the game has no number for) follows the
+// size of the part the game numbers, and F12 while the icon picker is up
+// lists the parts that compose in the art then shown.
+func TestIconPartFollowsSizeAndArt(t *testing.T) {
+	f, _ := flowFront(t, "")
+	p := &f.P
+	defer switchArt(daxArt.amiga)
+	switchArt(false)
+	o := gameOrigins()
+	small, large := o["CHEAD.DAX"]["5"], o["CHEAD.DAX"]["69"]
+	for _, m := range []game.Member{
+		{Icon: map[string]int{"head": 0, "body": 24}, IconHeadID: large},
+		{Icon: map[string]int{"head": 64, "body": 88}, IconHeadID: small},
+	} {
+		h, b := memberIcon(m)
+		if hp, bp := poolParts()[h], poolParts()[b]; h == "" || hp.large != bp.large {
+			t.Errorf("head id %s over body %d: %s (large %v) over %s (large %v)", m.IconHeadID, m.Icon["body"], h, hp.large, b, bp.large)
+		}
+	}
+	flowKey(f, 'c')
+	flowKey(f, 'r')
+	flowKey(f, 'i')
+	flowClick(f, p.iconEditor(p.ink()).Head)
+	_, setArt := f.Arts()
+	for _, amiga := range []bool{true, false} {
+		setArt(!amiga) // F12
+		f.Frame(flowW, flowH)
+		_, body := memberIcon(subject(f.Game.Subject()))
+		bp := poolPicture("combat", body).(*image.Paletted)
+		names := p.eng.p.pool.names
+		if pk := p.picker(p.ink()); pk == nil || pk.N != len(names) || len(names) == 0 {
+			t.Fatalf("amiga %v: picker %+v for %d names", amiga, pk, len(names))
+		}
+		for _, n := range names {
+			if im := poolPicture("combat", n).(*image.Paletted); len(im.Palette) != len(bp.Palette) {
+				t.Fatalf("amiga %v: %s has %d colours, the body %d", amiga, n, len(im.Palette), len(bp.Palette))
+			}
+		}
+		drawnPortraits(t, p, "art switched")
 	}
 }
 
