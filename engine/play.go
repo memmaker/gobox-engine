@@ -500,7 +500,9 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			for _, t := range b.Targets {
 				add(game.Attack{Target: t})
 			}
-			a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: inRange(b, max(b.Size.W, b.Size.H)), Targets: 1})
+			if e.battle().Turn.Missile != nil { // Ranged: only with a launcher and its ammunition, or a missile, readied (WeaponFact Ranged)
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: inRange(b, max(b.Size.W, b.Size.H)), Targets: 1})
+			}
 		}
 		if slices.Contains(can, VerbManeuver) {
 			for _, m := range e.battle().Turn.Maneuvers { // by ID: self and weapon ones go on their own (a weapon one's aim follows), the rest at a square

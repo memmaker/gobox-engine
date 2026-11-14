@@ -571,13 +571,15 @@ func (r *Rules) fightAllowed(f rules.Fight) rules.Allowed {
 	for _, m := range s.Rules().Maneuvers(s, c) {
 		offer(rules.Maneuver{ID: rules.ManeuverID(m.ID)}, m.Name)
 	}
-	if int8(c.Levels[ClsCleric]) > 0 && ci.TurnUsed == 0 { // ovr09:0782: a cleric's level (+0x96), Turn not used (+0x11)
+	if int8(c.Levels[ClsCleric]) > 0 && ci.TurnUsed == 0 && s.canTurn(c) { // ovr09:0782: a cleric's level (+0x96), Turn not used (+0x11); extra (Felix's ruling): only with undead it can turn
 		offer(rules.TurnUndead{}, "")
 	}
 	if s.Bandage(false) {
 		offer(rules.Bandage{Who: f.Actor}, "")
 	}
-	offer(rules.Delay{}, "")
+	if slices.ContainsFunc(s.Party, func(o *Character) bool { return o != c && int8(o.Combat.Delay) > 0 }) { // extra (Felix's ruling): Wait only with someone still to act this round (NextCombatant); the last one came straight back
+		offer(rules.Delay{}, "")
+	}
 	offer(rules.EndTurn{}, "")
 	offer(rules.Quick{}, "")
 	if ci.Moves > 1 && s.FleeDir(c) >= 0 {

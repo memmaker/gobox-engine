@@ -8,6 +8,7 @@ package rules1e
 
 import (
 	"gobox/rules"
+	"slices"
 	"strconv"
 )
 
@@ -458,6 +459,24 @@ func (e *RuleState) weakestUnturned(c *Character, out **Character) bool {
 	}
 	return found
 }
+
+// canTurn (extra) is whether c's turning can do anything: an undead in
+// reach not yet turned that its level's roll can turn (ClericTurnUndead
+// stops at the weakest it fails on; none: "Nothing Happens..."). A pure
+// query: the near list is put back.
+func (e *RuleState) canTurn(c *Character) bool {
+	near, targets := slices.Clone(e.Near), e.Targets
+	defer func() { e.Near, e.Targets = near, targets }()
+	var t *Character
+	if !e.weakestUnturned(c, &t) {
+		return false
+	}
+	need := e.T().TurnNeed(int(t.Undead), TurnColumn(int(int8(c.Levels[ClsCleric]))))
+	return max(need, -need) <= turnDie
+}
+
+// turnDie is the die ClericTurnUndead rolls against the table.
+const turnDie = 0x14
 
 // attackSlots = ovr14:1406 (att, vic, w, var done): the attacker's attack slots against the
 // victim; done is 1 when the attacker has used all its attacks.

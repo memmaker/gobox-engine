@@ -227,11 +227,11 @@ func (e *RuleState) missileReadied(c *Character) *Item {
 
 // rangedItem (extra) is what c's Ranged action uses: the launcher when it
 // has its ammunition (or needs none), else the Missiles slot's thrown
-// weapon, else the launcher (refused for want of ammunition); nil for none.
+// weapon; nil for none (a launcher without ammunition is none).
 func (e *RuleState) rangedItem(c *Character) *Item {
 	l, m := c.Slots[SlotLauncher], c.Slots[SlotMissiles]
 	var ammo *Item
-	if l != nil && (e.ammoWith(c, l, &ammo) || m == nil) {
+	if l != nil && e.ammoWith(c, l, &ammo) { // a launcher without its ammunition shoots nothing: no Ranged
 		return l
 	}
 	return m

@@ -298,18 +298,59 @@ func TestBarConditions(t *testing.T) {
 	c.Combat.CanCast = 1
 	c.Levels[rules1e.ClsCleric] = 1
 	c.Combat.TurnUsed = 0
-	if v := offered(); v.use || !v.cast || !v.turn {
-		t.Errorf("an item with no use, a spell, a cleric (no undead needed): %+v", v)
+	if v := offered(); v.use || !v.cast || v.turn {
+		t.Errorf("an item with no use, a spell, a cleric with no undead about: %+v", v)
 	}
 	e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemWand))
 	if v := offered(); !v.use {
 		t.Errorf("a wand carried: %+v", v)
 	}
-	o, err := e.doNow(game.TurnUndead{}) // with no undead about: the original's turn, no hang
-	t.Logf("Turn with no undead: %v, said %q", err, said(o))
+	var foes []*rules1e.Character
+	for _, o := range e.state().Party {
+		if o.Side != c.Side {
+			foes = append(foes, o)
+		}
+	}
+	for _, o := range foes {
+		o.Undead = 1 // the weakest row of the turning table
+	}
+	if v := offered(); !v.turn {
+		t.Errorf("a cleric with undead about: %+v", v)
+	}
 	c.Combat.TurnUsed = 1
 	if v := offered(); v.turn {
 		t.Errorf("Turn once used: %+v", v)
+	}
+}
+
+// TestWaitAndRanged: Wait only with someone still to act this round (the
+// last one would come straight back), Ranged only with a launcher and its
+// ammunition, or a missile, readied.
+func TestWaitAndRanged(t *testing.T) {
+	e := partyTurnScene(t)
+	c := e.member(e.cs.actor)
+	offered := func() (wait, ranged bool) {
+		e.turnChoices(e.charID(c))
+		f := fighting(e)
+		return playAllows(f, game.Delay{}), slices.ContainsFunc(f.Allowed.Aimed, func(a game.Aimed) bool { _, ok := a.Action.(game.Shoot); return ok })
+	}
+	c.Slots[rules1e.SlotLauncher], c.Slots[rules1e.SlotMissiles] = nil, nil
+	if wait, ranged := offered(); !wait || ranged {
+		t.Errorf("others to act, nothing to shoot: wait %v ranged %v", wait, ranged)
+	}
+	for _, o := range e.state().Party {
+		if o != c {
+			o.Combat.Delay = 0
+		}
+	}
+	bow := e.state().RandomItem(rules1e.ItemShortBow)
+	c.Slots[rules1e.SlotLauncher], c.Slots[rules1e.SlotArrows] = bow, nil
+	if wait, ranged := offered(); wait || ranged {
+		t.Errorf("the last to act, a bow without arrows: wait %v ranged %v", wait, ranged)
+	}
+	c.Slots[rules1e.SlotArrows] = e.state().RandomItem(rules1e.ItemArrow)
+	if _, ranged := offered(); !ranged {
+		t.Error("a bow with arrows: no Ranged")
 	}
 }
 
