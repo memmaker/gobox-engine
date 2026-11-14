@@ -1,163 +1,155 @@
 # Buck Rogers series (BR1 and BR2) item icons, 64x64 cells, 24 a row: 3 variants per item
-# side by side; icon is the chosen one. Edit with: scripts/remap_items.sh buck-rogers (from the repo root)
+# side by side; icon is the chosen one. internal_name is the base item kind
+# (rules/xxvc ItemKinds: the item type, BR1 and BR2 alike), name its label. Edit with: scripts/remap_items.sh buck-rogers (from the repo root)
 
-internal_name: Knife
+internal_name: 1
 name: Knife
 icon: 0
 
-internal_name: Mono Knife
+internal_name: 2
 name: Mono Knife
 icon: 3
 
-internal_name: Cutlass
+internal_name: 3
 name: Cutlass
 icon: 6
 
-internal_name: Sword
+internal_name: 4
 name: Sword
 icon: 9
 
-internal_name: Mono Sword
-name: Mono Sword
-icon: 12
-
-internal_name: Polearm
-name: Polearm
-icon: 15
-
-internal_name: X-bow
+internal_name: 5
 name: X-bow
 icon: 18
 
-internal_name: Needle Gun
+internal_name: 6
 name: Needle Gun
 icon: 21
 
-internal_name: Bolt Gun
+internal_name: 7
 name: Bolt Gun
 icon: 24
 
-internal_name: Laser Pistol
+internal_name: 8
+name: Mono Sword
+icon: 12
+
+internal_name: 9
 name: Laser Pistol
 icon: 27
 
-internal_name: Laser Rifle
-name: Laser Rifle
-icon: 30
-
-internal_name: Rocket Pistol
+internal_name: 10
 name: Rocket Pistol
 icon: 33
 
-internal_name: Rocket Rifle
+internal_name: 11
 name: Rocket Rifle
 icon: 36
 
-internal_name: Microwave Gun
+internal_name: 12
 name: Microwave Gun
 icon: 39
 
-internal_name: Heat Gun
+internal_name: 13
+name: Laser Rifle
+icon: 30
+
+internal_name: 14
 name: Heat Gun
 icon: 42
 
-internal_name: Sonic Stunner
+internal_name: 15
 name: Sonic Stunner
 icon: 45
 
-internal_name: Grenade Lnchr
+internal_name: 16
 name: Grenade Lnchr
 icon: 48
 
-internal_name: Plasma Thrwr
+internal_name: 17
 name: Plasma Thrwr
 icon: 51
 
-internal_name: Rocket Lnchr
+internal_name: 18
 name: Rocket Lnchr
 icon: 54
 
-internal_name: Sword Gun
-name: Sword Gun
-icon: 57
+internal_name: 19
+name: Polearm
+icon: 15
 
-internal_name: Mono Bolt
-name: Mono Bolt
-icon: 60
-
-internal_name: Spacesuit
+internal_name: 20
 name: Spacesuit
 icon: 63
 
-internal_name: Smartsuit
+internal_name: 21
 name: Smartsuit
 icon: 66
 
-internal_name: Heavy Body Armor
+internal_name: 22
 name: Heavy Body Armor
 icon: 69
 
-internal_name: Battle armor
+internal_name: 23
 name: Battle armor
 icon: 72
 
-internal_name: Battle armor w/fields
+internal_name: 24
 name: Battle armor w/fields
 icon: 75
 
-internal_name: Explosive Grenade
-name: Explosive Grenade
-icon: 78
-
-internal_name: mini Explosive Grenade
-name: mini Explosive Grenade
-icon: 81
-
-internal_name: Gas Grenade
-name: Gas Grenade
-icon: 84
-
-internal_name: Stun Grenade
-name: Stun Grenade
-icon: 87
-
-internal_name: Dazzle Grenade
-name: Dazzle Grenade
-icon: 90
-
-internal_name: Chaff Grenade
-name: Chaff Grenade
-icon: 93
-
-internal_name: Aerosol Mist Grenade
-name: Aerosol Mist Grenade
-icon: 96
-
-internal_name: Demo Charge
+internal_name: 25
 name: Demo Charge
 icon: 99
 
-internal_name: ECM package
+internal_name: 26
 name: ECM package
 icon: 102
 
-internal_name: Goggles
+internal_name: 27
 name: Goggles
 icon: 105
 
-internal_name: Breathing Mask
+internal_name: 28
 name: Breathing Mask
 icon: 108
 
-internal_name: Rope
+internal_name: 29
 name: Rope
 icon: 111
 
-internal_name: Jetpack
+internal_name: 30
 name: Jetpack
 icon: 114
 
-internal_name: Poison Antidote
+internal_name: 31
 name: Poison Antidote
 icon: 117
 
+internal_name: 32
+name: mini Explosive Grenade
+icon: 81
+
+internal_name: 33
+name: Explosive Grenade
+icon: 78
+
+internal_name: 34
+name: Gas Grenade
+icon: 84
+
+internal_name: 35
+name: Stun Grenade
+icon: 87
+
+internal_name: 36
+name: Dazzle Grenade
+icon: 90
+
+internal_name: 37
+name: Chaff Grenade
+icon: 93
+
+internal_name: 38
+name: Aerosol Mist Grenade
+icon: 96

@@ -3,6 +3,7 @@ package ui
 import (
 	"bufio"
 	"gobox/asset"
+	"gobox/rules/xxvc"
 	"strconv"
 	"strings"
 	"testing"
@@ -10,8 +11,8 @@ import (
 
 // TestItemIconRecs: each series' items.rec is in remapper's classic format
 // (every record has internal_name, name and icon), its ids are unique and
-// every icon is a cell of its atlas (-1: no picture yet). The pool's parse
-// as rules.ItemIDs (readIcons).
+// every icon is a cell of its atlas (-1: no picture yet). Each parses as
+// rules.ItemIDs (readIcons); every Buck Rogers kind (xxvc.ItemKinds) has a cell.
 func TestItemIconRecs(t *testing.T) {
 	for _, s := range []string{"pool", "buck-rogers"} {
 		atlas, rec, err := asset.ItemIcons(s)
@@ -52,9 +53,15 @@ func TestItemIconRecs(t *testing.T) {
 			}
 		}
 		check(r)
-		if s == "pool" {
-			if _, err := readIcons(rec); err != nil {
-				t.Error(err)
+		icons, err := readIcons(rec)
+		if err != nil {
+			t.Error(s, err)
+		}
+		if s == "buck-rogers" {
+			for ty, k := range xxvc.ItemKinds {
+				if n, ok := icons[k]; !ok || n < 0 {
+					t.Errorf("buck-rogers item type %d (kind %d): no icon", ty, k)
+				}
 			}
 		}
 	}
