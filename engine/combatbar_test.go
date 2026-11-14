@@ -268,7 +268,8 @@ func testTurnWeapon(t *testing.T, mk func(*testing.T) *Engine) {
 }
 
 // TestBarConditions: the turn offers each verb on the original's condition
-// (combatMenu ovr09:069E-07D4): Use with any item carried (+0xC7), Cast
+// (combatMenu ovr09:069E-07D4; Use only with an item to use now, Felix's
+// ruling: the original offers it with any item carried, +0xC7), Cast
 // with any of the 20 memorized (+0x17, may cast, no no-magic area), Turn
 // for a cleric (+0x96) who has not turned (+0x11), undead about or not.
 func TestBarConditions(t *testing.T) {
@@ -297,8 +298,12 @@ func TestBarConditions(t *testing.T) {
 	c.Combat.CanCast = 1
 	c.Levels[rules1e.ClsCleric] = 1
 	c.Combat.TurnUsed = 0
-	if v := offered(); !v.use || !v.cast || !v.turn {
-		t.Errorf("an item, a spell, a cleric (no undead needed): %+v", v)
+	if v := offered(); v.use || !v.cast || !v.turn {
+		t.Errorf("an item with no use, a spell, a cleric (no undead needed): %+v", v)
+	}
+	e.state().AddItemCopy(c, e.state().RandomItem(rules1e.ItemWand))
+	if v := offered(); !v.use {
+		t.Errorf("a wand carried: %+v", v)
 	}
 	o, err := e.doNow(game.TurnUndead{}) // with no undead about: the original's turn, no hang
 	t.Logf("Turn with no undead: %v, said %q", err, said(o))

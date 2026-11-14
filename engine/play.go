@@ -453,12 +453,27 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 		items()
 	case game.ModeCombat:
 		b := combat
-		if aim := e.cs.aim; aim != nil && b != nil && aim.turn == nil { // an aim up on its own (a spell cast over rounds going off): its squares
+		if aim := e.cs.aim; aim != nil && b != nil && (aim.turn == nil || aim.then.kind == atSpell) { // an aim up on its own (a spell cast over rounds going off, an item's spell in the turn): its squares
 			var act game.Action = game.Shoot{}
 			if sa := e.cs.sa; aim.then.kind == atSpell && sa != nil {
 				act = game.Cast{Member: cm.Selected, Spell: int(sa.spell)}
 			}
-			a.Aimed = append(a.Aimed, game.Aimed{Action: act, Squares: inRange(b, max(b.Size.W, b.Size.H)), Targets: 1})
+			var sq []rules.BoardPos // the aim's targets first: gobox's cursor starts on the first square (a corner of the map was "Out of sight")
+			for _, u := range b.Units {
+				if slices.Contains(b.Targets, u.ID) {
+					sq = append(sq, u.At)
+				}
+			}
+			targets := len(sq)
+			for _, p := range inRange(b, max(b.Size.W, b.Size.H)) {
+				if !slices.Contains(sq[:targets], p) {
+					sq = append(sq, p)
+				}
+			}
+			a.Aimed = append(a.Aimed, game.Aimed{Action: act, Squares: sq, Targets: 1})
+			if aim.turn != nil { // in the turn: Leave gives the aim up, back to its menu (an item's aim was up with nothing published: Items did nothing)
+				add(game.Leave{})
+			}
 			break
 		}
 		if aim := e.cs.aim; aim != nil && b != nil { // a maneuver's aim up mid-turn (its move square, its attack, its target): Do aims it
