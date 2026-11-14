@@ -66,7 +66,7 @@ func (e *Engine) maneuver(cID rules.CharID, id int, walks map[int]rules.BoardPos
 		e.playerAim(cID, m.Range, 0, 1, aimThen{kind: atArea, c: cID, id: id})
 	default:
 		e.ext.enemiesOnly = m.Aim == rules.AimFoe
-		e.playerAim(cID, m.Range, 1, 0, aimThen{kind: atTarget, c: cID, id: id})
+		e.playerAim(cID, m.Range, 0, 0, aimThen{kind: atTarget, c: cID, id: id}) // showRange 0, as a spell's: 1 is a weapon aim, its square strikes (aimConfirm)
 	}
 	return false
 }

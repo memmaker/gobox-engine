@@ -454,6 +454,14 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 			a.Aimed = append(a.Aimed, game.Aimed{Action: act, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
 			break
 		}
+		if aim := e.cs.aim; aim != nil && b != nil { // a maneuver's aim up mid-turn (its move square, its attack, its target): Do aims it
+			switch aim.then.kind {
+			case atManeuverMove, atManeuverAttack, atArea, atTarget:
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.DoManeuver{ID: aim.then.id}, Squares: inRange(b, aim.rng), Targets: 1})
+			case atTurn: // an armed weapon maneuver's attack (attackUnit): Shoot aims it
+				a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: inRange(b, aim.rng), Targets: 1})
+			}
+		}
 		if e.battleUp() && e.ruleset().Check(rules.PartyAuto{}, nil).Yes && (b == nil || b.Turn == nil) { // the keys a computer turn polls (aiKeys): Space and Alt-M
 			add(game.Manual{}, game.QuickMagic{})
 		}
@@ -471,6 +479,16 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				add(game.Attack{Target: t})
 			}
 			a.Aimed = append(a.Aimed, game.Aimed{Action: game.Shoot{}, Squares: inRange(b, max(b.Size.X, b.Size.Y)), Targets: 1})
+		}
+		if slices.Contains(can, VerbManeuver) {
+			for _, m := range e.battle().Turn.Maneuvers { // by ID: self and weapon ones go on their own (a weapon one's aim follows), the rest at a square
+				switch m.Aim {
+				case rules.AimSelf, rules.AimWeapon:
+					add(game.DoManeuver{ID: int(m.ID)})
+				default:
+					a.Aimed = append(a.Aimed, game.Aimed{Action: game.DoManeuver{ID: int(m.ID)}, Squares: inRange(b, m.Range), Targets: 1, Area: m.Area})
+				}
+			}
 		}
 		if slices.Contains(can, VerbCast) {
 			for _, sp := range b.Spells { // an aimed spell is only Aimed: cast at a square
@@ -607,6 +625,8 @@ func allows(al game.Allowed, a game.Action) bool {
 		}
 	case game.Shoot:
 		base = game.Shoot{}
+	case game.DoManeuver: // Plain by ID, Aimed with the square cleared
+		base = game.DoManeuver{ID: v.ID}
 	case game.Rename: // any name: the rules take it or refuse it
 		base = game.Rename{}
 	case game.Mark: // any square and text: Engine.Mark checks them
@@ -821,6 +841,14 @@ func (e *Engine) combatDo(a game.Action, al game.Allowed, native func(func() err
 			return turn(TurnAct{Verb: VerbAim, X: a.Ats[0].X, Y: a.Ats[0].Y})
 		}
 		return turn(TurnAct{Verb: VerbShoot}, TurnAct{Verb: VerbAim, X: a.Ats[0].X, Y: a.Ats[0].Y})
+	case game.DoManeuver:
+		if len(a.Ats) == 0 {
+			return turn(TurnAct{Verb: VerbManeuver, N: a.ID})
+		}
+		if e.cs.aim != nil { // the maneuver's aim up already
+			return turn(TurnAct{Verb: VerbAim, X: a.Ats[0].X, Y: a.Ats[0].Y})
+		}
+		return turn(TurnAct{Verb: VerbManeuver, N: a.ID}, TurnAct{Verb: VerbAim, X: a.Ats[0].X, Y: a.Ats[0].Y})
 	case game.Guard:
 		return turn(TurnAct{Verb: VerbGuard})
 	case game.Delay:
