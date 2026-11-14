@@ -134,12 +134,12 @@ func (g *Game) Subject() game.Member {
 
 // PickerOf is the game's grid picker, page page on cols by rows cells.
 func (g *Game) PickerOf(k *game.Picker, page, cols, rows int) *FrontPicker {
-	return Picker(k, image.Point{}, page, cols, rows)
+	return Picker(k, page, cols, rows)
 }
 
 // TilesOf is the weapon's pool bodies' picker.
 func (g *Game) TilesOf(page, cols, rows int) *FrontPicker {
-	return TilePicker(g.Subject(), image.Point{}, page, cols, rows)
+	return TilePicker(g.Subject(), page, cols, rows)
 }
 
 // Art is the game's art as it is now.

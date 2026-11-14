@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"image"
 	"sort"
 	"strconv"
 
@@ -32,7 +31,7 @@ func BodyTiles(own game.Member) (names []string, blocks []int) {
 
 // TilePicker is page page of BodyTiles' picker: each tile the member's icon
 // with that body, carrying the original ref (File CBODY, its block, frame 0).
-func TilePicker(own game.Member, cells image.Point, page, cols, rows int) *FrontPicker {
+func TilePicker(own game.Member, page, cols, rows int) *FrontPicker {
 	names, blocks := BodyTiles(own)
 	m := subject(own)
 	head, _ := memberIcon(m)
@@ -47,7 +46,7 @@ func TilePicker(own game.Member, cells image.Point, page, cols, rows int) *Front
 			k.Cur = i
 		}
 	}
-	return Picker(k, cells, page, cols, rows)
+	return Picker(k, page, cols, rows)
 }
 
 // PickTile is tile i's pool body name ("": none).

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"testing"
 
 	"gobox/engine"
@@ -359,13 +360,16 @@ func TestPoolIconComposesInBothArts(t *testing.T) {
 // The Forget picker's cards each show a portrait and its pages turn on the
 // page drawn; charlist.txt's duplicates of a name are one roster character.
 func TestForgetPicker(t *testing.T) {
-	names := ""
-	for _, n := range []string{"Aldric", "Brann", "Corwin", "Elowen", "Ilvan", "Maren", "Osric", "Pip", "Sylvaine", "Tilly", "Pip", "Pip"} {
+	names, roster := "", []string{"Aldric", "Brann", "Corwin", "Elowen", "Ilvan", "Maren", "Osric", "Pip", "Sylvaine", "Tilly", "Pip", "Pip"}
+	for i := range 40 { // more than a page of the window's grid holds
+		roster = append(roster, "Hero"+strconv.Itoa(i))
+	}
+	for _, n := range roster {
 		names += n + "\r\n"
 	}
 	f, eng := flowFront(t, names)
 	p := &f.P
-	if l := eng.BuildCharList(); len(l) != 10 {
+	if l := eng.BuildCharList(); len(l) != 50 {
 		t.Fatalf("roster %q, want Pip once", l)
 	}
 	flowKey(f, 'f')

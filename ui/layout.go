@@ -117,7 +117,7 @@ func (p *Presenter) picker(ink [16]color.RGBA) *FrontPicker {
 	}
 	s := p.state()
 	return p.lay.picker.get(k, func() *FrontPicker {
-		return Picker(game.CommonOf(s).Picker, image.Point{}, 0, p.eng.r.grid.X, p.eng.r.grid.Y)
+		return Picker(game.CommonOf(s).Picker, 0, p.eng.r.grid.X, p.eng.r.grid.Y)
 	})
 }
 

@@ -16,7 +16,7 @@ import (
 // the picture it opened on; nil: none up) on a page of cols by rows cells:
 // as many columns and rows as the box holds, centred, the rest on further
 // pages with a pageCut line at the bottom.
-func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *FrontPicker {
+func Picker(k *game.Picker, page, cols, rows int) *FrontPicker {
 	n := 0
 	if k != nil {
 		n = len(k.Pics)
@@ -24,7 +24,6 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *FrontPicke
 	if n == 0 {
 		return nil
 	}
-	cols, rows = shownPage(cells)
 	textCols, textRows := max(cols, 40), max(rows, 25)
 	winRight, bot := textCols-2, textRows-2 // bot: the box's inner bottom, the page's last row holds its border
 	cw, ch := 1, 1                          // the cell: the largest picture, in text cells
@@ -97,16 +96,6 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *FrontPicke
 		v.Prev, v.Next = CellRect{X1: x, Y1: pageCut, X2: x + h - 1, Y2: pageCut}, CellRect{X1: x + h, Y1: pageCut, X2: x + len(t) - 1, Y2: pageCut}
 	}
 	return v
-}
-
-// shownPage is the page the game shows, whatever page was asked for: its Cells,
-// else the original's 40 by 25 when it keeps its own (it never took the
-// resize, so a wider layout runs off the page it draws).
-func shownPage(c image.Point) (int, int) {
-	if c.X > 0 && c.Y > 0 {
-		return c.X, c.Y
-	}
-	return 40, 25
 }
 
 // IconEditor is the combat icon designer's page from s (nil: none up) on a
