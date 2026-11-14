@@ -23,8 +23,25 @@ func PodImportDataTo(dos, dst string) error {
 	if err := orig.ImportData[podCharRecord, affectRecord, libraryRecord](l, dst, rules1e.SheetOfRecord[podCharRecord], rules1e.ItemOfRecord[libraryRecord]); err != nil {
 		return err
 	}
-	return orig.ImportItemTable[rules1e.ItemBase](l, dst, adventure.ItemTypes, orig.Bare)
+	if !l.Exists("ITEMS") {
+		return nil
+	}
+	items, err := orig.Table[rules1e.ItemBase](l.Path("ITEMS"), adventure.ItemTypes, orig.Bare)
+	if err != nil {
+		return err
+	}
+	items[podHalberd] = podHalberdBase
+	return adventure.WriteJSON(dst, adventure.ItemTableFile, items)
 }
+
+// podHalberd is PoD's halberd type (word "Halberd"). The original's ITEMS
+// row for it is the flail's with the gauntlets' slot (3) and every class:
+// a halberd that readies on the hands and strikes as a flail. Its import
+// is the series' halberd, Silver Blades' row 71: two-handed, 1d10 / 2d6,
+// fighters' classes, strength bonus.
+const podHalberd = 71
+
+var podHalberdBase = rules1e.ItemBase{Hands: 2, LargeDice: 2, LargeSides: 6, Dice: 1, Sides: 10, Classes: 248, Usage: 4}
 
 // The originals' sound and animation files the folder carries as they are
 // (gobox reads them from sound/ and anim/: game.Data.SoundDir, AnimDir):
