@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"gobox/asset"
 	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
@@ -166,34 +167,34 @@ func (e *Engine) eclLayout() ecl.AddrLayout {
 
 // eclState mirrors the DS globals used by the interpreter.
 type eclState struct {
-	enc                                *encounter // the approach menu while it is asked
-	takes                              int        // ops that took the script over (takeover)
-	hold                               holdKind   // extra: the instruction opened something the script waits on (the party menu, camp)
-	holdPC                             int        // holdEncamp: the instruction's pc, where the script exits
-	groundShade                        byte       // DS:6F68 (init 0x41)
-	skyShade                           byte       // DS:6F69 (init 9)
-	specialFB                          uint16     // read-only specials 0xFB/0xFC/0xB1; DS:6F6A
-	specialFC                          uint16     // DS:6F6C
-	specialB1                          uint16     // DS:6F6E
-	cloneIcon                          byte       // CPIC id for ROLF clone (8); DS:6F83
-	events                             [5]int     // DS:49E3,49E5,49E7,49E9,49EB
-	wallAhead                          byte       // DS:6AB0
-	cell                               byte       // DS:6AB1
-	encounterShown                     [2]byte    // DS:84C8
-	soundVar, scriptVarB8, scriptVarB9 uint16     // DS:84CC/84CE/84D0
-	memberDied, memberGone             byte       // DS:84D2/84D3 (DS:84D4 is run.duelMode)
-	memberMissing                      bool       // the last SELECT MEMBER matched nobody (cotab characterNotFound: CotabSelStatus reads 0 once)
-	picShown                           byte       // DS:84E0
-	bigPic                             uint64     // the big picture's page layer (0: none up)
-	picAnimating                       byte       // DS:84E1
-	textInView                         byte       // DS:84E2
-	spriteLoaded                       byte       // DS:84E3
-	skyChanged                         byte       // DS:84E5
-	posChanged                         byte       // DS:84E6
-	portraitChanged                    byte       // DS:84E8
-	inEncounterMenu                    byte       // DS:84E9
-	shownFace                          byte       // DS:84EA
-	picHead, picBody                   byte       // DS:49FD/49FE
+	enc                                *encounter   // the approach menu while it is asked
+	takes                              int          // ops that took the script over (takeover)
+	hold                               holdKind     // extra: the instruction opened something the script waits on (the party menu, camp)
+	holdPC                             int          // holdEncamp: the instruction's pc, where the script exits
+	groundShade                        byte         // DS:6F68 (init 0x41)
+	skyShade                           byte         // DS:6F69 (init 9)
+	specialFB                          uint16       // read-only specials 0xFB/0xFC/0xB1; DS:6F6A
+	specialFC                          uint16       // DS:6F6C
+	specialB1                          uint16       // DS:6F6E
+	cloneIcon                          byte         // CPIC id for ROLF clone (8); DS:6F83
+	events                             [5]int       // DS:49E3,49E5,49E7,49E9,49EB
+	wallAhead                          byte         // DS:6AB0
+	cell                               byte         // DS:6AB1
+	encounterShown                     [2]byte      // DS:84C8
+	soundVar, scriptVarB8, scriptVarB9 uint16       // DS:84CC/84CE/84D0
+	memberDied, memberGone             byte         // DS:84D2/84D3 (DS:84D4 is run.duelMode)
+	memberMissing                      bool         // the last SELECT MEMBER matched nobody (cotab characterNotFound: CotabSelStatus reads 0 once)
+	picShown                           byte         // DS:84E0
+	bigPic                             *asset.Image // the big picture up (nil: none)
+	picAnimating                       byte         // DS:84E1
+	textInView                         byte         // DS:84E2
+	spriteLoaded                       byte         // DS:84E3
+	skyChanged                         byte         // DS:84E5
+	posChanged                         byte         // DS:84E6
+	portraitChanged                    byte         // DS:84E8
+	inEncounterMenu                    byte         // DS:84E9
+	shownFace                          byte         // DS:84EA
+	picHead, picBody                   byte         // DS:49FD/49FE
 }
 
 // holdKind is what an instruction opened that the script waits for.

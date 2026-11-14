@@ -10,12 +10,11 @@ import (
 
 // TestOverlandGoesEachWay: on the overland the arrows are ActGo, a step
 // north, east, south or west whatever the facing (the 3D view's forward and
-// turns do not apply there), and the screen is the map even with the page's
-// own small map in its layers, never a picture window (por 31bbc79, d9bc3f9).
+// turns do not apply there), and the screen is the map, never a picture
+// window (por 31bbc79, d9bc3f9).
 func TestOverlandGoesEachWay(t *testing.T) {
 	x := game.Exploring{Map: game.ExploreMap{Walk: yard{size: image.Pt(9, 9)}, Overland: true}}
 	x.Where = game.Where{X: 4, Y: 4, Facing: 6}
-	x.Layers = []game.Drawn{{}}
 	if w := windowOf(x); w != game.WindowMap {
 		t.Fatalf("overland window %v, want WindowMap", w)
 	}

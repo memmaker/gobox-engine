@@ -57,12 +57,10 @@ func TestSotsbOpeningBigPicture(t *testing.T) {
 		if !sc.Full {
 			t.Errorf("the opening's page is not Full")
 		}
-		for _, l := range sc.Layers {
-			if strings.HasPrefix(l.File, "BIGPIC") && l.Block == 119 {
-				return
-			}
+		if l := sc.Picture; l != nil && strings.HasPrefix(l.File, "BIGPIC") && l.Block == 119 {
+			return
 		}
-		t.Fatalf("the opening's page has no BIGPIC 119: layers %+v", sc.Layers)
+		t.Fatalf("the opening's page has no BIGPIC 119: picture %+v", sc.Picture)
 	}
 	t.Fatalf("no opening page: state %T", eng.State())
 }

@@ -54,20 +54,17 @@ func (e *Engine) stateMode() game.Mode {
 	return game.ModeNone
 }
 
-// textPage is the text the game wrote and the pictures it showed: the
-// pane's lines (earlier lots first), the prompt row, the lines over the
-// view window (Scene.Placed) and the pictures, bottom first.
+// textPage is the text the game wrote: the pane's lines (earlier lots
+// first), the prompt row, the lines over the view window (Scene.Placed).
 type textPage struct {
 	Pane   []string
 	Prompt string
 	View   [][]game.TextRun
-	Layers []game.Drawn
 }
 
 // statePage is the text page as the state shows it.
 func (e *Engine) statePage() *textPage {
-	pics := e.pagePictures()
-	p := &textPage{Prompt: runsText(e.runs(e.pg.tx.prompt)), Layers: make([]game.Drawn, 0, len(pics))}
+	p := &textPage{Prompt: runsText(e.runs(e.pg.tx.prompt))}
 	if pane := e.pagePane(); pane != nil {
 		for _, l := range append(slices.Clone(e.pg.tx.more), pane.Lines...) {
 			p.Pane = append(p.Pane, runsText(l))
@@ -75,12 +72,6 @@ func (e *Engine) statePage() *textPage {
 	}
 	for _, l := range e.pageText() {
 		p.View = append(p.View, viewLine(l))
-	}
-	for i, l := range pics {
-		g := game.Drawn{Picture: gamePicture(l), At: l.At}
-		g.File, g.Block, g.Frame = l.File, l.Block, l.Frame
-		g.Anim, g.Delays = e.layerAnim(i)
-		p.Layers = append(p.Layers, g)
 	}
 	return p
 }

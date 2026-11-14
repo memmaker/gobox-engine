@@ -45,13 +45,9 @@ func (e *Engine) creationSheet(cID rules.CharID) {
 	}
 	for p := 0; p < 2; p++ {
 		r := iconRect(sheetIconCol(p), sheetIconRow())
-		e.erase(r)
-		if ic.PNG != nil { // a PNG: the presenter's, over the page at the window's resolution
-			if sp := e.snap.sheet; sp != nil {
-				sp.IconPNG = ic.PNG
-			}
-		} else if im := e.icons[e.fact(cID, rules.IconFact{}).(rules.Number)][p]; im != nil {
-			e.picture(sheetIconCol(p)*8, sheetIconRow()*8, im.Width*8, im.Height, im.Frame(0), im.Mask, im, 0)
+		e.unwrite(r)
+		if sp := e.snap.sheet; sp != nil && ic.PNG != nil { // a PNG: the presenter's, over the page at the window's resolution; the original icon too (creationArt)
+			sp.IconPNG = ic.PNG
 		}
 	}
 }

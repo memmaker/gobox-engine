@@ -218,7 +218,7 @@ func TestParity(t *testing.T) {
 			func(s shown, _ game.Result) bool { return s.Window == game.WindowPicture && len(s.Story) == 2 }},
 		{"no free aim", game.Fighting{}, game.Data{}, nil, nil,
 			func(s shown, _ game.Result) bool { return len(s.Combat.Turn.Options) == 0 }},
-		{"camp layers and day", game.Camping{Common: game.Common{Day: true, Layers: []game.Drawn{{}}}}, game.Data{}, nil, nil,
+		{"camp picture and day", game.Camping{Common: game.Common{Day: true, Picture: pic}}, game.Data{}, nil, nil,
 			func(s shown, _ game.Result) bool {
 				return s.Window == game.WindowPicture && len(s.Page.Layers) == 1 && s.Flags.Day
 			}},

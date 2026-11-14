@@ -4,7 +4,6 @@ package ui
 
 import (
 	"cmp"
-	"image"
 	"reflect"
 
 	"gobox/game"
@@ -91,12 +90,8 @@ func storyOf(c game.Common) []game.Picture {
 func (r *frontState) pageOf(ps game.State) *TextPage {
 	c := game.CommonOf(ps)
 	p := &TextPage{}
-	for _, d := range c.Layers {
-		p.Layers = append(p.Layers, drawnLayer(d))
-	}
-	if c.Picture != nil && len(c.Layers) == 0 { // the front draws a page's layers: the picture is the page's only one
-		p.Layers = []Picture{drawnPicture(*c.Picture, image.Rectangle{})}
-	}
+	sc, scene := ps.(game.Scene)
+	p.Layers = viewPictures(c, scene && sc.Full)
 	for _, t := range c.Text {
 		p.Pane = append(p.Pane, r.run(t))
 	}
@@ -142,7 +137,7 @@ func (r *frontState) flagsOf(ps game.State, party []game.Member) *game.Flags {
 // windowOf is what the view window shows.
 func windowOf(ps game.State) game.Window {
 	c := game.CommonOf(ps)
-	pictured := c.Picture != nil || len(c.Layers) > 0 || c.Portrait != nil
+	pictured := hasPicture(c)
 	switch t := ps.(type) {
 	case game.Exploring:
 		switch {
@@ -158,7 +153,7 @@ func windowOf(ps game.State) game.Window {
 		switch {
 		case t.Kind == game.SceneTitle, t.Kind == game.SceneSequence:
 			return game.WindowScene
-		case len(t.Pictures)+len(t.Layers) > 0:
+		case len(t.Pictures) > 0 || pictured:
 			return game.WindowPicture
 		case len(t.Placed) > 0: // text over the view window (opClearBox, the runes)
 			return game.WindowText

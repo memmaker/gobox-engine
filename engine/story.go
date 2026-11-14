@@ -72,17 +72,17 @@ func (e *Engine) EndgameHook(n int) {
 			e.recolourSquare(EndFrom[:], to2[:], EndTiles2[j], random)
 		}
 	}
+	// ponytail: the original draws the area map at fixed map origins
+	// (0x11,0xF; EndMapX/Y; 0x17,0x19) between the recolourings: placement
+	// the State cannot say, so nothing is drawn here; the recolouring and
+	// the flow stay. It belongs in the importer's ending script (title/ending exception).
 	if n != 0 {
-		e.DrawAreaMap(0x11, 0xF)
+		e.DrawAreaMap()
 		for k := 0; k <= 8; k++ {
 			tiles(&EndTo1, &EndTo2, true)
-			e.DrawAreaMap(int(EndMapX[k]), int(EndMapY[k]))
 		}
 	}
 	tiles(&EndTo1, &EndTo2, false)
-	if n != 0 {
-		e.DrawAreaMap(0x17, 0x19)
-	}
 }
 
 // recolourSquare recolours one SQRPACI frame: values above 0x7F select the

@@ -20,13 +20,7 @@ func TestOutdoorPicture(t *testing.T) {
 	e.LoadAnimPic("PIC", 1, false)
 	e.DrawAnimFirst()
 	e.Advance()
-	var got []Picture
-	for _, p := range e.pagePictures() {
-		if p.File != "" && p.Block == 1 && strings.HasPrefix(p.File, "PIC") {
-			got = append(got, p)
-		}
-	}
-	if len(got) != 1 {
-		t.Fatalf("outdoor picture: %d layers of PIC block 1 (want 1); pictures %d", len(got), len(e.pagePictures()))
+	if p := commonOf(e.build()).Picture; p == nil || p.Block != 1 || !strings.HasPrefix(p.File, "PIC") || p.Pixels == nil {
+		t.Fatalf("outdoor picture: %+v, want PIC block 1", p)
 	}
 }

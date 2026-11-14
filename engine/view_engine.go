@@ -115,19 +115,8 @@ func (e *Engine) SheetPortrait() {
 	e.blank(box.X1, box.Y1, box.X2, box.Y2)
 	e.snap.portrait = box // Shift-click and a dropped PNG land here
 	if sp := e.snap.sheet; sp != nil {
-		sp.PortraitAt, sp.Portrait = box, pt.PNG // extra: the dropped PNG, fitted into the box at the window's resolution
+		sp.PortraitAt, sp.Portrait = box, pt.PNG // extra: the dropped PNG, fitted into the box at the window's resolution; the head and body the presenter's (sheetPortrait)
 	}
-	if pt.PNG != nil {
-		return
-	}
-	heads, bodies := e.portraitPics("HEAD"), e.portraitPics("BODY")
-	if len(heads) == 0 || len(bodies) == 0 { // a game with no DOS portrait tables (cotab, sotsb, pod: GameTables leaves them empty) draws only the shared collection's PNG
-		return
-	}
-	h, b := heads[byte(pt.Head)%byte(len(heads))], bodies[byte(pt.Body)%byte(len(bodies))]
-	e.LoadPortrait(h.Set, int(h.Id), 0xFF)
-	e.LoadPortrait(b.Set, 0xFF, int(b.Id))
-	e.DrawPortrait(box.X1, 1, true)
 }
 
 // identifyItem = ovr20:1F52 (item): 200 gp shows the hidden words (the

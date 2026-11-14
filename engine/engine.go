@@ -149,9 +149,8 @@ type Engine struct {
 	eclWait        *eclWait               // the script instruction waiting for its answer (eclask.go)
 
 	// H
-	areaIconTick byte       // DS:6DDC area map party icon pose counter
-	snd          sound      // PC speaker driver (08AE)
-	vox          game.Voice // voice.go: the voice-over (nil: silent)
+	snd sound      // PC speaker driver (08AE)
+	vox game.Voice // voice.go: the voice-over (nil: silent)
 
 	entryTable map[ecl.EntryID]ecl.Entry    // the long texts by id (entries)
 	books      map[string]*game.JournalBook // the game's journal books by file name (book); nil: none
@@ -211,7 +210,8 @@ type snapState struct {
 	identN   int                             // ... counted: a new reveal is a new number
 	identIt  rules.ItemHandle                // ... the item itself (State's Shop.Identified)
 	saves    bool                            // there are saved games (the party menu's Load)
-	win      Window                          // set by whatever drew into the view window last
+	win      Window                          // set by whatever drew into the view window last (setWin)
+	shown    viewShown                       // the picture or portrait in the view window
 	heads    map[int]Picture                 // HEAD blocks' pixels by id
 	tiles    [3]Picture                      // DrawBorder style 0's corner, side and top cells, once taken (BorderPix)
 	cmapOn   bool                            // the combat map is set up (cmapShown) and shown

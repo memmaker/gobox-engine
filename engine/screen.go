@@ -16,12 +16,8 @@ func (e *Engine) Redraw() {
 		e.es.cell = e.MapCell(e.posX, e.posY)
 		e.Draw3DView(e.posX, e.posY, e.facing)
 		e.viewDrawn()
-	case mode >= 2 && mode <= 4:
-		// ovr27:0250/0272: byte locals, signed clamps
-		x := min(max(int(int8(int(ViewModeShift[mode])+e.worldWord(rules.WordMapX)-2)), 0), 0x27)
-		y := min(max(int(int8(e.worldWord(rules.WordMapY)-2)), 0), 0x1F)
-		e.DrawAreaMap(x, y)
-		e.drawAreaMapParty()
+	case mode >= 2 && mode <= 4: // ovr27:0250: the area map round the party, its marker (ovr27:0000) on it
+		e.DrawAreaMap()
 	}
 }
 
@@ -34,7 +30,7 @@ func (e *Engine) DrawMainScreen() {
 	case 1:
 		e.newPage()
 		e.LoadPortrait(e.set, int(e.es.picHead), int(e.es.picBody))
-		e.DrawPortrait(3, 3, true)
+		e.DrawPortrait()
 	case 2:
 		e.newPage()
 		e.LoadAnimPic("PIC", 0x1D, false)

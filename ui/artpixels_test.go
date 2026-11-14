@@ -44,7 +44,7 @@ func TestArtPixels(t *testing.T) {
 		if i == 20 {
 			f.Key('\r')
 		}
-		if x, ok := eng.State().(game.Scene); ok && len(x.Layers) > 0 && x.Layers[0].Block == 10 {
+		if x, ok := eng.State().(game.Scene); ok && x.Picture != nil && x.Picture.Block == 10 {
 			break
 		}
 	}

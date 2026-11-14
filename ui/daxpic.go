@@ -48,7 +48,7 @@ func switchArt(amiga bool) {
 
 // shownPic is p in the art shown: its DOS twin (game.Picture.Alt) while
 // the Amiga art does not show, its reference kept. Every read of a game
-// picture's pixels or size goes through it (PixelsOf, shownDrawn), so a
+// picture's pixels or size goes through it (PixelsOf, placedPicture), so a
 // cache keyed on the art generation follows F12.
 func shownPic(p game.Picture) game.Picture {
 	if p.Alt == nil || amigaShown() {
@@ -57,17 +57,6 @@ func shownPic(p game.Picture) game.Picture {
 	a := *p.Alt
 	a.Source, a.File, a.Block, a.Frame, a.Name = p.Source, p.File, p.Block, p.Frame, p.Name
 	return a
-}
-
-// shownDrawn is d in the art shown (shownPic), placed where its twin is.
-func shownDrawn(d game.Drawn) game.Drawn {
-	if d.Alt == nil || amigaShown() {
-		return d
-	}
-	off := d.Alt.Off
-	d.Picture = shownPic(d.Picture)
-	d.At = image.Rect(0, 0, d.W, d.H).Add(d.At.Min.Add(off))
-	return d
 }
 
 // amigaShown reports whether the Amiga art shows.

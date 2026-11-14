@@ -1,95 +1,16 @@
 package engine
 
-import (
-	"image"
-	"image/color"
+import "gobox/asset"
 
-	"gobox/asset"
-)
-
-// The page (extra): what the original drew on its 320x200 screen, kept as
-// typed layers (pictures, symbols and fills in drawing order) under the text
-// cells, so a presenter draws the screen from the View.
-
-// layer is one drawing call: w by h pixels d at at (mask: the value left
-// out, -1 none).
-type layer struct {
-	at     image.Rectangle
-	d      []byte
-	w      int
-	mask   int
-	opaque bool            // it hides everything under it
-	clip   image.Rectangle // drawn only inside (empty: all of it)
-	id     uint64
-	src    *asset.Image // what d is a frame of (nil: the engine's own pixels)
-	frame  int          // its frame
-}
+// The page (extra): the text the original wrote on its screen, in cells
+// (text.go); what the view window shows is a fact of its own (viewShown).
 
 type pageState struct {
-	layers []layer
-	ids    uint64 // layers drawn
-	tx     texts  // the text the game wrote (text.go)
-}
-
-// draw records l over the page: layers it hides go, and the text it
-// covers.
-func (e *Engine) draw(l layer) {
-	pg := &e.pg
-	r := l.at.Intersect(image.Rect(0, 0, textCols*8, textRows*8))
-	if r.Empty() {
-		return
-	}
-	if l.opaque {
-		keep := pg.layers[:0]
-		for _, o := range pg.layers {
-			if !o.at.Intersect(r).Eq(o.at) {
-				keep = append(keep, o)
-			}
-		}
-		clear(pg.layers[len(keep):])
-		pg.layers = keep
-	}
-	pg.ids++
-	l.id = pg.ids
-	pg.layers = append(pg.layers, l)
-	e.unwrite(r)
-
-}
-
-// erase takes what is drawn inside r off the page, and its text. A
-// picture reaching into the cell round r goes too: the original cleared
-// boxes inside their frames, and the frame's cells covered the rest.
-func (e *Engine) erase(r image.Rectangle) {
-	pg := &e.pg
-	keep := pg.layers[:0]
-	for _, o := range pg.layers {
-		if !o.at.In(r.Inset(-8)) {
-			keep = append(keep, o)
-		}
-	}
-	clear(pg.layers[len(keep):])
-	pg.layers = keep
-	e.unwrite(r)
-}
-
-// picture records a blit of w by h pixels d, frame frame of src, at x0,
-// y0 (mask as blit's).
-func (e *Engine) picture(x0, y0, w, h int, d []byte, mask int, src *asset.Image, frame int) {
-	d = d[:w*h]
-	opaque := true
-	for _, p := range d {
-		if int(p) == mask || p > 16 && p < asset.AmigaBase {
-			opaque = false
-			break
-		}
-	}
-	e.draw(layer{at: image.Rect(x0, y0, x0+w, y0+h), d: d, w: w, mask: mask, opaque: opaque, src: src, frame: frame})
+	tx texts // the text the game wrote (text.go)
 }
 
 // clearPage starts an empty page (ClearScreen).
 func (e *Engine) clearPage() {
-	clear(e.pg.layers)
-	e.pg.layers = e.pg.layers[:0]
 	e.newPage()
 	e.pg.tx = texts{}
 }
@@ -98,6 +19,31 @@ func (e *Engine) clearPage() {
 // page (its portrait box), the icon's drop.
 func (e *Engine) newPage() {
 	e.snap.portrait, e.snap.iconDrop, e.snap.iconBox, e.snap.sheet, e.snap.results, e.snap.full = CellRect{}, nil, CellRect{}, nil, nil, false
+	e.snap.shown, e.es.bigPic = viewShown{}, nil
+}
+
+// viewShown is what the original last put in the view window: a picture
+// (an animation's frame, the approaching sprite's, a still) or the
+// encounter portrait (Engine.port); zero: nothing (the 3D view, the area
+// map, text). The page replaced and the window showing anything else end it.
+type viewShown struct {
+	pic      *asset.Image
+	portrait bool
+}
+
+// setWin makes w what the view window shows; a picture shown goes with
+// any other.
+func (e *Engine) setWin(w Window) {
+	e.snap.win = w
+	if w != WinPicture {
+		e.snap.shown = viewShown{}
+	}
+}
+
+// showPic puts im in the view window.
+func (e *Engine) showPic(im *asset.Image) {
+	e.setWin(WinPicture)
+	e.snap.shown = viewShown{pic: im}
 }
 
 // redrawKind is a screen that draws itself up again at the page's size.
@@ -130,15 +76,6 @@ func (e *Engine) redrawNow() {
 			}
 		}
 	}
-}
-
-// pagePictures are the page's layers as pixels.
-func (e *Engine) pagePictures() []Picture {
-	out := make([]Picture, 0, len(e.pg.layers))
-	for i := range e.pg.layers {
-		out = append(out, e.layerPicture(&e.pg.layers[i]))
-	}
-	return out
 }
 
 // pagePane is the text pane out adventuring or when it holds text (nil otherwise).
@@ -189,52 +126,6 @@ func (e *Engine) runs(row []textCell) []PaneRun {
 		l = append(l, PaneRun{X: x, Text: string(c.c), Fg: fg, Bg: bg, Upcase: c.upcase})
 	}
 	return l
-}
-
-// layerPicture is l as the page shows it: its pixels (or its DOS twin's),
-// the presenter's to colour (Picture.Pix).
-func (e *Engine) layerPicture(l *layer) Picture {
-	var pal []color.RGBA // the art's own colours (Image.Palette)
-	if l.src != nil {
-		pal = l.src.Palette
-	}
-	s := layerPix(l, l.d, l.w, l.at, pal)
-	if a := l.src; a != nil && a.Alt != nil && l.frame < a.Alt.Count && len(l.d) == len(a.Frame(l.frame)) {
-		t := a.Alt // a whole frame: its DOS twin, maybe bigger, at its own size, placed by its own cell offset (the 3D sprites')
-		d, w, at := t.Frame(l.frame), t.Width*8, l.at
-		if b := image.Rect(0, 0, w, len(d)/w); b.Size() != at.Size() {
-			at = b.Add(at.Min.Add(image.Pt(t.X-a.X, t.Y-a.Y).Mul(8)))
-		}
-		alt := layerPix(l, d, w, at, t.Palette)
-		s.Alt = &alt
-	}
-	return s
-}
-
-// layerPix is layer l as the page shows it with pixels d, w wide, at at.
-func layerPix(l *layer, d []uint8, w int, at image.Rectangle, pal []color.RGBA) Picture {
-	s := Picture{Pix: d, PixW: w, At: at, Palette: pal}
-	if l.mask >= 0 && l.mask < 256 {
-		m := uint8(l.mask)
-		s.Mask = &m
-	}
-	if l.src != nil {
-		s.File, s.Block, s.Frame = l.src.File, l.src.Block, l.src.Base+l.frame
-	}
-	if !l.clip.Empty() {
-		s.At = at.Intersect(l.clip)
-		s.Pix, s.PixW = crop(d, w, s.At.Sub(at.Min)), s.At.Dx()
-	}
-	return s
-}
-
-// crop is the pixels of r in d, w wide.
-func crop(d []byte, w int, r image.Rectangle) []byte {
-	out := make([]byte, 0, r.Dx()*r.Dy())
-	for y := r.Min.Y; y < r.Max.Y; y++ {
-		out = append(out, d[y*w+r.Min.X:y*w+r.Max.X]...)
-	}
-	return out
 }
 
 // adventure: the party is out in the world (not the party menu, the

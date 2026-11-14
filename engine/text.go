@@ -97,7 +97,7 @@ func (e *Engine) text(x, y int, colour game.Ink, s string) {
 // blank = ClearCells (03F1:0137), ClearBox (0709:0DD3), 0709:00B7: the
 // cells [x1..x2] x [y1..y2] black, their text gone.
 func (e *Engine) blank(x1, y1, x2, y2 int) {
-	e.erase(image.Rect(x1*8, y1*8, x2*8+8, y2*8+8))
+	e.unwrite(image.Rect(x1*8, y1*8, x2*8+8, y2*8+8))
 }
 
 // textBlock = 0709:0768 DisplayTextBlock (x1, y1, x2, y2, colour, clear,

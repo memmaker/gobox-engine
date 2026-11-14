@@ -449,10 +449,7 @@ func (r *frontState) page(sc game.Scene) *TextPage {
 		p.Pane = append(p.Pane, r.run(t))
 	}
 	for _, pic := range sc.Pictures {
-		p.Layers = append(p.Layers, drawnPicture(pic, image.Rectangle{}))
-	}
-	for _, d := range sc.Layers {
-		p.Layers = append(p.Layers, drawnLayer(d))
+		p.Layers = append(p.Layers, drawnPicture(pic))
 	}
 	return p
 }
@@ -1259,7 +1256,7 @@ func newText(was, now []string) bool {
 
 // hasPicture is whether c holds a picture up.
 func hasPicture(c game.Common) bool {
-	return c.Picture != nil || len(c.Layers) > 0 || c.Portrait != nil
+	return c.Picture != nil || c.Portrait != nil
 }
 
 // walkStep walks the next square when it is time: the turn, the script ahead

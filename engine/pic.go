@@ -102,28 +102,32 @@ func named(im *asset.Image, file string, block int) *asset.Image {
 // LoadPic = 0464:0111 (no masking).
 func (e *Engine) LoadPic(name string, id int) *asset.Image { return e.loadPic(name, id, asset.NoMask) }
 
-// DrawPicture = 0464:1951 draw_picture(x, y, pic): blit frame at cell (x,y).
-func (e *Engine) DrawPicture(x, y int, im *asset.Image, frame int) {
-	if im == nil || frame >= im.Count {
-		return
+// framePicture is frame f of im as the game shows it (mask: the colour
+// left out, -1 none), with its DOS twin's whole frame (F12); the
+// presenter's to colour and place. nil im: none.
+func framePicture(im *asset.Image, f, mask int) game.Picture {
+	if im == nil || f >= im.Count {
+		return game.Picture{}
 	}
-	d := im.Frame(frame)
-	w := im.Width * 8
-	e.picture(x*8, y*8, w, im.Height, d, -1, im, frame)
+	g := framePix(im, f, mask)
+	g.File, g.Block, g.Frame = im.File, im.Block, im.Base+f
+	if a := im.Alt; a != nil && f < a.Count {
+		alt := framePix(a, f, mask)
+		if a.Width == im.Width && a.Height == im.Height { // fitted to im (twin): in its place
+			alt.CellX, alt.CellY = g.CellX, g.CellY
+		}
+		g.Alt = &alt
+	}
+	return g
 }
 
-// DrawPictureMasked = 0464:08D4 (x, y, frame, mode): like DrawPicture;
-// with mode bit 0 and a masked picture the mask pixels are not drawn.
-func (e *Engine) DrawPictureMasked(x, y int, im *asset.Image, frame, mode int) {
-	masked := mode&1 != 0
-	if im == nil || frame >= im.Count {
-		return
-	}
-	d := im.Frame(frame)
+// framePix is frame f of im's own pixels and offset (framePicture).
+func framePix(im *asset.Image, f, mask int) game.Picture {
 	w := im.Width * 8
-	m := -1
-	if masked {
-		m = im.Mask
+	d := im.Frame(f)
+	g := game.Picture{W: w, H: len(d) / w, Pixels: d, Palette: im.Palette, Clear: -1, CellX: im.X, CellY: im.Y}
+	if mask >= 0 && mask < 256 {
+		g.Clear = mask
 	}
-	e.picture(x*8, y*8, w, im.Height, d, m, im, frame)
+	return g
 }

@@ -200,7 +200,7 @@ func (p *Presenter) pictures() []Picture {
 		return ps
 	}
 	for i, pc := range ps {
-		if f, ok := gameFrame(pc, now()); ok { // the game's own frames (game.Drawn.Anim)
+		if f, ok := gameFrame(pc, now()); ok { // the game's own frames (game.Common.Frames)
 			ps = append(ps[:i:i], ps[i:]...)
 			ps[i] = f
 			pc = f

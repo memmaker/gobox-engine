@@ -48,26 +48,26 @@ func TestCotabArm(t *testing.T) {
 		f.Frame(1280, 800)
 	}
 	f.Key('b')
-	var arm *game.Drawn
+	var arm *game.Common
 	for i := 0; i < 400 && arm == nil; i++ {
 		f.Frame(1280, 800)
 		if i == 20 {
 			f.Key('\r') // past the waking page
 		}
-		if x, ok := eng.State().(game.Scene); ok && len(x.Layers) > 0 && x.Layers[0].Block == 10 {
-			arm = &x.Layers[0]
+		if x, ok := eng.State().(game.Scene); ok && x.Picture != nil && x.Picture.Block == 10 {
+			arm = &x.Common
 		}
 	}
 	if arm == nil {
 		t.Fatal("no arm picture")
 	}
-	if len(arm.Anim) != 3 || len(arm.Delays) != 3 || slices.Equal(arm.Anim[0].Pixels, arm.Anim[1].Pixels) {
-		t.Fatalf("arm frames %d, delays %v: want 3 different frames", len(arm.Anim), arm.Delays)
+	if len(arm.Frames) != 3 || len(arm.Delays) != 3 || slices.Equal(arm.Frames[0].Pixels, arm.Frames[1].Pixels) {
+		t.Fatalf("arm frames %d, delays %v: want 3 different frames", len(arm.Frames), arm.Delays)
 	}
 	engine.DOSArt.Store(!engine.DOSArt.Load())
 	defer engine.DOSArt.Store(!engine.DOSArt.Load())
 	x, _ := eng.State().(game.Scene)
-	if len(x.Layers) == 0 || slices.Equal(x.Layers[0].Pixels, arm.Pixels) {
+	if x.Picture == nil || slices.Equal(x.Picture.Pixels, arm.Picture.Pixels) {
 		t.Error("the other art (F12) leaves the waiting page's picture as it was")
 	}
 }

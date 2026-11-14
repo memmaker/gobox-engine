@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"image"
 	"slices"
 	"time"
 
@@ -80,19 +79,14 @@ func (e *Engine) FreeAnimPic() {
 	e.pic = animPic{block: -1}
 }
 
-// drawPicAt = ovr29:0000 (x, y, overlay, pic): an overlay picture goes
-// through 0464:0D71 at page cell (x-1,y-1), which is screen cell (x,y)
-// (the page starts one cell in); otherwise 0464:1951.
-func (e *Engine) drawPicAt(x, y int, overlay bool, im *asset.Image) {
+// drawPicAt = ovr29:0000 (x, y, overlay, pic): the picture in the view
+// window (the original's cell (x,y) and overlay are where and how it drew
+// it: the presenter's).
+func (e *Engine) drawPicAt(im *asset.Image) {
 	if im == nil {
 		return
 	}
-	e.snap.win = WinPicture
-	if overlay {
-		e.drawPage(x-1, y-1, im, 0, true)
-	} else {
-		e.DrawPicture(x, y, im, 0)
-	}
+	e.showPic(im)
 }
 
 // nextPictureFrame = pod's CALL 3: the view picture steps to its next frame, wrapping at the
@@ -103,7 +97,7 @@ func (e *Engine) nextPictureFrame() {
 		return
 	}
 	a.cur = a.cur%len(a.frames) + 1
-	e.drawPicAt(3, 3, true, a.frames[a.cur-1].Image)
+	e.drawPicAt(a.frames[a.cur-1].Image)
 }
 
 // DrawAnimFrame = ovr29:0708 (pic, frame): frame 1..3 of a sprite at its
@@ -117,16 +111,14 @@ func (e *Engine) DrawAnimFrame(frame int) {
 	if frame > len(e.pic.frames) {
 		return
 	}
-	im := e.pic.frames[frame-1].Image
-	e.snap.win = WinPicture
-	e.drawPage(im.X+2, im.Y+2, im, 0, true) // 0464:0D71 at (x+3-1, y+3-1)
+	e.drawPicAt(e.pic.frames[frame-1].Image) // 0464:0D71 at (x+3-1, y+3-1): the art's own cell offset (game.Picture.CellX)
 }
 
 // DrawAnimFirst draws frame 1 of the loaded picture the way the PICTURE
 // and APPROACH code does: ovr29:0000(3, 3, overlay, frame 1).
 func (e *Engine) DrawAnimFirst() {
 	if len(e.pic.frames) > 0 {
-		e.drawPicAt(3, 3, true, e.pic.frames[0].Image)
+		e.drawPicAt(e.pic.frames[0].Image)
 	}
 }
 
@@ -144,13 +136,14 @@ func (e *Engine) LoadPortrait(set rules.Set, head, body int) {
 	}
 }
 
-// DrawPortrait = ovr29:0697 (x, y, both): the head at (x,y) and, when both
-// is set, the body five rows below (nested drawers ovr29:0050 / ovr29:0070).
-func (e *Engine) DrawPortrait(x, y int, both bool) {
-	e.drawPicAt(x, y, false, e.port.head)
-	if both {
-		e.drawPicAt(x, y+5, false, e.port.body)
+// DrawPortrait = ovr29:0697 (3, 3, both): the head and the body under it
+// in the view window (nested drawers ovr29:0050 / ovr29:0070).
+func (e *Engine) DrawPortrait() {
+	if e.port.head == nil && e.port.body == nil {
+		return
 	}
+	e.setWin(WinPicture)
+	e.snap.shown = viewShown{portrait: true}
 }
 
 // ShowPortrait = ovr08:0511 (head, body).
@@ -158,7 +151,7 @@ func (e *Engine) ShowPortrait(head, body int) {
 	e.es.picAnimating = 0
 	e.es.picHead, e.es.picBody = byte(head), byte(body)
 	e.LoadPortrait(e.set, head, body)
-	e.DrawPortrait(3, 3, true)
+	e.DrawPortrait()
 }
 
 // ShowEncounter = ovr08:054E (sprite, pic, dist, flags): draw the approaching
@@ -219,7 +212,7 @@ func (e *Engine) animateWhileWaiting() bool {
 		return false
 	}
 	// ovr26:04CC: the current frame is redrawn on every poll
-	e.drawPicAt(3, 3, e.animInput, a.frames[a.cur-1].Image)
+	e.drawPicAt(a.frames[a.cur-1].Image)
 	if e.Ticks()-a.last >= int64(a.frames[a.cur-1].Delay)*10 || force {
 		a.cur++
 		if a.cur > len(a.frames) {
@@ -237,26 +230,28 @@ const (
 	animNextPoll  = 10 * time.Millisecond
 )
 
-// layerAnim is page layer i's frames and their times while the wait
-// cycles it (animating: the view picture's frames at its place); nil: still.
-func (e *Engine) layerAnim(i int) ([]game.Drawn, []time.Duration) {
-	l := e.pg.layers[i]
-	if !e.animating() || !slices.ContainsFunc(e.pic.frames, func(f asset.Frame) bool { return f.Image == l.src }) {
-		return nil, nil
+// viewState is what the view window shows as the State says it: the
+// picture up (the big picture over it), the frames it cycles while the
+// wait animates it, or the encounter portrait.
+func (e *Engine) viewState() (pic *game.Picture, frames []game.Picture, delays []time.Duration, pt *game.Portrait) {
+	if im := e.es.bigPic; im != nil {
+		g := framePicture(im, 0, -1)
+		return &g, nil, nil, nil
 	}
-	var out []game.Drawn
-	var delays []time.Duration
+	sh := e.snap.shown
+	if sh.portrait {
+		return nil, nil, nil, &game.Portrait{Head: framePicture(e.port.head, 0, -1), Body: framePicture(e.port.body, 0, -1)}
+	}
+	if sh.pic == nil {
+		return nil, nil, nil, nil
+	}
+	g := framePicture(sh.pic, 0, sh.pic.Mask)
+	if !e.animating() || !slices.ContainsFunc(e.pic.frames, func(f asset.Frame) bool { return f.Image == sh.pic }) {
+		return &g, nil, nil, nil
+	}
 	for _, f := range e.pic.frames {
-		im := f.Image
-		fl := l
-		fl.src, fl.frame, fl.w = im, 0, im.Width*8
-		fl.d = im.Frame(0)
-		fl.at = image.Rectangle{Min: l.at.Min, Max: l.at.Min.Add(image.Pt(fl.w, im.Height))}
-		p := e.layerPicture(&fl)
-		g := game.Drawn{Picture: gamePicture(p), At: p.At}
-		g.File, g.Block, g.Frame = p.File, p.Block, p.Frame
-		out = append(out, g)
+		frames = append(frames, framePicture(f.Image, 0, f.Image.Mask))
 		delays = append(delays, max(time.Duration(f.Delay)*animFrameTime, animNextPoll))
 	}
-	return out, delays
+	return &g, frames, delays, nil
 }

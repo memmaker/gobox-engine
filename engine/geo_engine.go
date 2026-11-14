@@ -22,8 +22,8 @@ func (e *Engine) MapCell(x, y int) byte { return e.gmap().MapCell(x, y) }
 // (x,y). The remaster draws it (the page's view window stays black under
 // it); here the window is set to it.
 func (e *Engine) Draw3DView(x, y, dir int) {
-	e.snap.win = WinThreeD
-	e.erase(InnerWindow.Pixels())
+	e.setWin(WinThreeD)
+	e.unwrite(InnerWindow.Pixels())
 }
 
 // LoadWalldef = ovr30:0E08 (block, slot): WALLDEF<n>.DAX block into wall

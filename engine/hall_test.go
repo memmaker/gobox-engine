@@ -1,12 +1,10 @@
 package engine
 
 import (
-	"image"
 	"slices"
 	"strings"
 	"testing"
 
-	"gobox/asset"
 	"gobox/game"
 	"gobox/rules1e"
 )
@@ -63,31 +61,19 @@ func TestPicturesAreArt(t *testing.T) {
 				t.Fatalf("%T: %v", a, err)
 			}
 		}
-		for _, p := range e.pagePictures() {
-			if p.Fill || p.Img == nil && p.Pix == nil {
-				t.Fatalf("after %T: a fill or empty picture at %v", a, p.At)
+		c := commonOf(e.build())
+		pics := c.Frames
+		if c.Picture != nil {
+			pics = append(pics, *c.Picture)
+		}
+		if pt := c.Portrait; pt != nil {
+			pics = append(pics, pt.Head, pt.Body)
+		}
+		for _, p := range pics {
+			if p.Pixels == nil {
+				t.Fatalf("after %T: an empty picture %+v", a, p)
 			}
 		}
-	}
-}
-
-// The title's pictures are whole-screen pictures (Flags.Full), 320x200.
-func TestTitleFull(t *testing.T) {
-	e := testEngine(t)
-	e.Init()
-	e.ext.intro = true // as Run
-	e.fullPicture(e.LoadPic(e.artNames().Title, 1))
-	e.Advance()
-	pics := e.pagePictures()
-	if !e.snap.full || len(pics) == 0 {
-		t.Fatalf("title: full %v, %d pictures", e.snap.full, len(pics))
-	}
-	var box image.Rectangle
-	for _, p := range pics {
-		box = box.Union(p.At)
-	}
-	if box.Dx() != 320 || box.Dy() != 200 {
-		t.Errorf("title picture %v, want 320x200", box)
 	}
 }
 
@@ -194,15 +180,6 @@ func TestTempleWords(t *testing.T) {
 
 // invUp: the inventory screen is up (not under a modal).
 func (e *Engine) invUp() bool { return e.snap.invOn }
-
-// fullPicture draws a whole-screen picture (320x200) in the middle of the
-// page: on a page of another shape (a full screen) it gets black bars,
-// never a crop or a stretch.
-func (e *Engine) fullPicture(pic *asset.Image) {
-	e.ClearScreen()
-	e.DrawPicture((textCols-minCols)/2, (textRows-minRows)/2, pic, 0)
-	e.snap.full = true
-}
 
 // Change Class is the training hall's only, offered for the selected
 // member when it qualifies (classOffers), absent on the title's party menu.

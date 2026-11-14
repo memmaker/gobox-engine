@@ -189,7 +189,7 @@ func (e *Engine) DevScene(name string) func() {
 		}
 	case "runes": // the Sokal Keep elf's scroll (ECL1 block 21, 9BD7): opClearBox, three opProtection lines
 		return func() {
-			e.snap.win = WinText // as opClearBox
+			e.setWin(WinText) // as opClearBox
 			e.blank(1, 1, 15, 15)
 			e.run.textInBox = 1
 			e.msgCol, e.msgRow = 2, 5

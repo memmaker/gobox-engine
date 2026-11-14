@@ -3,7 +3,6 @@ package engine
 import (
 	"gobox/adventure"
 	"gobox/rules"
-	"image"
 	"slices"
 	"strings"
 
@@ -75,12 +74,6 @@ func (e *Engine) OpenPicker(kind int) bool {
 	p.cur = min(max(p.cur, 0), max(p.n-1, 0))
 	e.picker = p
 	return true
-}
-
-// pictureOf is frame f of im at page pixel (x, y) as the page would show
-// it (pageView), without drawing it on the page.
-func (e *Engine) pictureOf(x, y int, im *asset.Image, f, mask int) Picture {
-	return e.layerPicture(&layer{at: image.Rect(x, y, x+im.Width*8, y+im.Height), d: im.Frame(f), w: im.Width * 8, mask: mask, src: im, frame: f})
 }
 
 // Pick takes picture i of the picker readied; done when the picker goes

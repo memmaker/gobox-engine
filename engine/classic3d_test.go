@@ -7,7 +7,6 @@ import (
 	"gobox/rules"
 	"gobox/rules1e"
 	"image"
-	"image/color"
 	"image/draw"
 	"image/png"
 	"os"
@@ -59,7 +58,34 @@ func (e *Engine) classicFillRect(x, y, w, h int, colour byte) {
 	for i := range d {
 		d[i] = colour
 	}
-	e.picture(x*8+8, y+8, w*8, h, d, -1, nil, 0)
+	e.classicBlit(x*8+8, y+8, w*8, d, -1)
+}
+
+// classicPage is the test's own 320x200 page the classic view draws on
+// (the engine draws nothing).
+var classicPage *image.RGBA
+
+// classicClear starts an empty classic page.
+func classicClear() {
+	classicPage = image.NewRGBA(image.Rect(0, 0, textCols*8, textRows*8))
+	draw.Draw(classicPage, classicPage.Bounds(), image.Black, image.Point{}, draw.Src)
+}
+
+// classicBlit draws pixels d, w wide, at page pixel (x0, y0) in the EGA
+// ink (mask: the value left out, -1 none; 17 up to the Amiga colours: nothing).
+func (e *Engine) classicBlit(x0, y0, w int, d []byte, mask int) {
+	for i, p := range d {
+		x, y := x0+i%w, y0+i/w
+		switch {
+		case int(p) == mask, p > 16 && p < asset.AmigaBase:
+		case p == 16:
+			classicPage.SetRGBA(x, y, e.pal.RGBA(0))
+		case p >= asset.AmigaBase:
+			classicPage.SetRGBA(x, y, asset.AmigaRGBA(p))
+		default:
+			classicPage.SetRGBA(x, y, e.pal.RGBA(p))
+		}
+	}
 }
 
 // classicSkyBands = ovr30:0174: the four colour bands behind the walls.
@@ -81,7 +107,9 @@ func (e *Engine) classicWallPart(x, y int, wall byte, part int) {
 					for set < 4 && int(id) >= symFix[set+1] {
 						set++
 					}
-					e.DrawPictureMasked(xx+viewX, yy+viewY, e.sym[set], int(id)-symFix[set], 1)
+					if im, f := e.sym[set], int(id)-symFix[set]; im != nil && f < im.Count { // 0464:08D4 masked
+						e.classicBlit((xx+viewX)*8, (yy+viewY)*8, im.Width*8, im.Frame(f), im.Mask)
+					}
 				}
 			}
 			s++
@@ -217,37 +245,6 @@ func (e *Engine) classicWalldefLoad(block, slot int) error {
 	return nil
 }
 
-// pageRGBA rasterises the page's pictures as the presenter does.
-func (e *Engine) pageRGBA() *image.RGBA {
-	var ink [16]color.RGBA
-	for i := range ink {
-		ink[i] = e.pal.RGBA(byte(i))
-	}
-	m := image.NewRGBA(image.Rect(0, 0, textCols*8, textRows*8))
-	draw.Draw(m, m.Bounds(), image.Black, image.Point{}, draw.Src)
-	for _, s := range e.pagePictures() {
-		if s.Img == nil && s.Pix != nil { // the game's EGA pixels in ink
-			im := image.NewRGBA(image.Rect(0, 0, s.PixW, len(s.Pix)/s.PixW))
-			for i, p := range s.Pix {
-				switch {
-				case s.Mask != nil && p == *s.Mask, p > 16 && p < asset.AmigaBase:
-				case p == 16:
-					im.SetRGBA(i%s.PixW, i/s.PixW, ink[0])
-				case p >= asset.AmigaBase:
-					im.SetRGBA(i%s.PixW, i/s.PixW, asset.AmigaRGBA(p))
-				default:
-					im.SetRGBA(i%s.PixW, i/s.PixW, ink[p])
-				}
-			}
-			s.Img = im
-		}
-		if s.Img != nil {
-			draw.Draw(m, s.At, s.Img, s.Img.Bounds().Min, draw.Over)
-		}
-	}
-	return m
-}
-
 // TestClassicViews writes the original's 88x88 view of squares as PNGs for
 // the remaster's comparison sheets. POR_CLASSIC names them:
 // "SET GEO KIND WALLS VIEWS OUT", WALLS as block:slot,block:slot (the
@@ -288,9 +285,9 @@ func TestClassicViews(t *testing.T) {
 		if d < 0 {
 			t.Fatalf("view %q", v)
 		}
-		e.clearPage()
+		classicClear()
 		e.classicView(x, y, d)
-		m := e.pageRGBA()
+		m := classicPage
 		r := image.Rect(viewX*8, viewY*8, viewX*8+88, viewY*8+88)
 		out, err := os.Create(fmt.Sprintf("%s/%02d_por.png", f[5], i+1))
 		if err != nil {

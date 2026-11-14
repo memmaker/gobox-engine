@@ -4,8 +4,7 @@
 // drawn: no cells, rects or positions, and colours only as the original's
 // text inks by EGA name (Ink) and art's own palettes. The title, ending
 // and credits are the adventure folder's scripts (gobox/adventure.Sequence),
-// which gobox composes; State names only the step up (Intro). Not yet so: the live page's
-// pictures where the original drew them (Drawn). Modelled on pod's
+// which gobox composes; State names only the step up (Intro). Modelled on pod's
 // rules.State / Decision / Apply / Pending / Event. Stdlib only.
 package game
 
@@ -30,7 +29,7 @@ type Picture struct {
 	Palette      []color.RGBA // with Pixels: the art's own colours by index (an Amiga block's palette, a VGA picture's; alpha 0 clear); nil: EGA and asset.Amiga
 	Clear        int          // with Pixels: the index drawn transparent, -1 none (ignored without Pixels)
 	Alt          *Picture     // with Pixels: the DOS art's twin (F12) where it differs, the front shows one; nil: the same in both
-	Off          image.Point  // in an Alt: its place's offset from the picture it stands in for (a bigger twin centred)
+	CellX, CellY int          // the art's own offset in cells (a DAX block's X, Y): where a sprite sits in the view window
 }
 
 // PicSource is what a Picture's File names.
@@ -313,16 +312,6 @@ func EGAInk(n int) Ink { return InkBlack + Ink(n&15) }
 
 // EGA is the ink's EGA colour number (0..15); ok false for InkNone.
 func (k Ink) EGA() (n int, ok bool) { return int(k) - int(InkBlack), k != InkNone }
-
-// Drawn is a picture where the original drew it on its 320x200 page, At
-// in that page's pixels: the live script's page (Common.Layers). gobox
-// does not place these yet (REFACTOR N2's remainder).
-type Drawn struct {
-	Picture
-	At     image.Rectangle
-	Anim   []Drawn         // the frames it cycles while the game waits (the original's wait-loop animation), the first its own; nil: still
-	Delays []time.Duration // with Anim: each frame's time
-}
 
 // Picker is a grid picker up (the creation's heads and bodies, the icon's
 // parts, the saved characters): every picture it holds, in order; the front

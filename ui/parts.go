@@ -243,7 +243,7 @@ type Picture struct {
 	Colour       color.RGBA
 	Frames       []int // with FrameMs: the presenter cycles Frame through these (empty: static)
 	FrameMs      int
-	Anim         []Picture       // the game's frames the presenter cycles by the clock, each for its Delays (game.Drawn.Anim); nil: none
+	Anim         []Picture       // the game's frames the presenter cycles by the clock, each for its Delays (game.Common.Frames); nil: none
 	Delays       []time.Duration // with Anim
 }
 

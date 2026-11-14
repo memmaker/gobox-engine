@@ -6,17 +6,15 @@ import (
 	"testing"
 )
 
-// eventPic is the first layer of s's page drawn from a scripted picture
-// (PIC, or a HEAD/BODY portrait), "" none.
+// eventPic is s's scripted picture up (PIC, or a HEAD/BODY portrait's
+// head), "" none.
 func eventPic(s game.State) string {
-	layers := commonOf(s).Layers
-	if sc, ok := s.(game.Scene); ok {
-		layers = sc.Layers
+	c := commonOf(s)
+	if pt := c.Portrait; pt != nil {
+		return pt.Head.File
 	}
-	for _, l := range layers {
-		if f := strings.ToUpper(l.File); strings.HasPrefix(f, "PIC") || strings.HasPrefix(f, "HEAD") {
-			return l.File
-		}
+	if p := c.Picture; p != nil && strings.HasPrefix(strings.ToUpper(p.File), "PIC") {
+		return p.File
 	}
 	return ""
 }

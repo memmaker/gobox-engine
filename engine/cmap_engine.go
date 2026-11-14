@@ -1,55 +1,12 @@
 package engine
 
 import (
-	"image"
-
 	"strings"
 
 	"gobox/adventure"
 	"gobox/asset"
 	"gobox/rules"
 )
-
-// drawPage = 0464:0D71 draws a frame at page cell (x,y), clipped to the
-// page (which starts a cell in). masked skips the image's mask colour.
-// Outside combat only (pictures, animations, the area map, the icon
-// editor): the combat page is gone.
-func (e *Engine) drawPage(x, y int, im *asset.Image, frame int, masked bool) {
-	if im == nil || frame >= im.Count {
-		return
-	}
-	m := -1
-	if masked {
-		m = im.Mask
-	}
-	e.picture(8+x*8, 8+y*8, im.Width*8, im.Height, im.Frame(frame), m, im, frame)
-	e.pg.layers[len(e.pg.layers)-1].clip = image.Rect(8, 8, 8+pageCells*8, 8+pageCells*8)
-}
-
-// drawTile = ovr33:00F1 (x, y, tile, page): a ground tile from the tile
-// sets (DS:5E52, tiles from 0x80 in DS:5E56); the area map's icons.
-func (e *Engine) drawTile(x, y int, t byte) {
-	im, f := e.sqrpaci[0], int(t)
-	if t > 0x7F {
-		im, f = e.sqrpaci[1], int(t&0x7F)
-	}
-	e.drawPage(x, y, im, f, false)
-}
-
-// drawIcon = ovr33:04FC (x, y, dir, pose, slot): a combat icon on page
-// square (x,y), mirrored when facing directions 4..7 (the area map's party
-// marker, the icon editor).
-func (e *Engine) drawIcon(x, y int, dir, pose, slot byte) {
-	im := e.icons[slot][pose&1]
-	if im == nil {
-		return
-	}
-	if dir > 3 {
-		im = im.Clone()
-		im.FlipLeftToRight()
-	}
-	e.drawPage(x*3, y*3, im, 0, true)
-}
 
 // LayTiles = ovr33:0022 LoadBackpacIcons (name, first, n): block l.Block
 // of l.File copied into the tile set from tile l.First on, frames 0..l.Last
@@ -208,5 +165,3 @@ func (e *Engine) combatViewLeave() {
 		e.SetPaletteColor(0, 8)
 	}
 }
-
-const pageCells = 21 // the drawing page, 21x21 cells (outside combat)

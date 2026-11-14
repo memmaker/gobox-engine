@@ -21,23 +21,50 @@ type TextPage struct {
 	Layers []Picture // placed: At on the 320x200 page
 }
 
-// drawnPicture is p where At says, as the page draws it (its DAX reference kept).
-func drawnPicture(p game.Picture, at image.Rectangle) Picture {
+// drawnPicture is p as the page draws it, no place given: the whole
+// picture area (its DAX reference kept).
+func drawnPicture(p game.Picture) Picture {
 	f := pix(p)
-	f.File, f.Block, f.Frame, f.At = p.File, p.Block, p.Frame, at
+	f.File, f.Block, f.Frame = p.File, p.Block, p.Frame
 	return f
 }
 
-// drawnLayer is a page layer as the page draws it, with its frames.
-func drawnLayer(d game.Drawn) Picture {
-	d = shownDrawn(d)
-	f := drawnPicture(d.Picture, d.At)
-	for _, a := range d.Anim {
-		a = shownDrawn(a)
-		f.Anim = append(f.Anim, drawnPicture(a.Picture, a.At))
+// placedPicture is the game's picture up as the page draws it, in the art
+// shown (shownPic): one of no known size fills the picture area; a
+// whole-screen one (full), or one too big for the view window, at the
+// page's top left at its own size; else in the view window at its art's
+// own cell offset (a sprite's).
+func placedPicture(p game.Picture, full bool) Picture {
+	f := drawnPicture(p)
+	s := shownPic(p)
+	if s.W == 0 || s.H == 0 {
+		return f
 	}
-	f.Delays = d.Delays
+	f.At = image.Rect(0, 0, s.W, s.H)
+	if v := innerWindow.Pixels(); !full && s.W <= v.Dx() && s.H <= v.Dy() {
+		f.At = f.At.Add(v.Min.Add(image.Pt(s.CellX, s.CellY).Mul(8)))
+	}
 	return f
+}
+
+// viewPictures are c's picture up with its frames and its mark, as the
+// page draws them (full: a whole-screen picture), bottom first.
+func viewPictures(c game.Common, full bool) []Picture {
+	if c.Picture == nil {
+		return nil
+	}
+	f := placedPicture(*c.Picture, full)
+	for _, a := range c.Frames {
+		f.Anim = append(f.Anim, placedPicture(a, full))
+	}
+	f.Delays = c.Delays
+	out := []Picture{f}
+	if m := c.Mark; m != nil && !f.At.Empty() { // on the picture's own cells
+		k := drawnPicture(m.Picture)
+		k.At = image.Rect(0, 0, m.Picture.W, m.Picture.H).Add(f.At.Min.Add(image.Pt(m.At.X, m.At.Y).Mul(8)))
+		out = append(out, k)
+	}
+	return out
 }
 
 // msgDelayTicks is the original's frame delay factor: a frame lasts its

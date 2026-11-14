@@ -92,13 +92,15 @@ type Common struct {
 	Lore      []Lore // the journal, newest first
 	Quests    []Quest
 	Allowed   Allowed
-	Status    string    // the rules' status line (plain text; "" none)
-	Text      []string  // the rules' message lines in the text pane, oldest first
-	Picture   *Picture  // the picture or portrait up (in the view while exploring); nil none
-	Layers    []Drawn   // a picture built of layers, as Picture
-	Day       bool      // daylight as the rules see it, in every state
-	Automap   Automap   // the map of where the party is (the overland, the starmap, ...), any state
-	Ask       *Question // a question over this state (the view stays); Reply answers it
+	Status    string          // the rules' status line (plain text; "" none)
+	Text      []string        // the rules' message lines in the text pane, oldest first
+	Picture   *Picture        // the picture up (in the view while exploring: a script's picture, an animation's frame, the approaching sprite; a big picture); nil none
+	Frames    []Picture       // with Picture: the frames it cycles while the game waits (the original's wait-loop animation), in order, Picture among them; nil: still
+	Delays    []time.Duration // with Frames: each frame's time
+	Mark      *PictureMark    // a mark on the Picture (the party's square on a map drawn whole); nil none
+	Day       bool            // daylight as the rules see it, in every state
+	Automap   Automap         // the map of where the party is (the overland, the starmap, ...), any state
+	Ask       *Question       // a question over this state (the view stays); Reply answers it
 
 	// Overlays any state may carry: a question only the rules can put
 	// (a power to choose), the grid picker and the icon designer the
@@ -113,6 +115,14 @@ type Common struct {
 type Portrait struct {
 	Head, Body     Picture
 	HeadID, BodyID string
+}
+
+// PictureMark is a picture marking a square of the Picture up (the party on a
+// map shown as one picture: BR2's overland cursor), At in the picture's
+// own 8-pixel cells.
+type PictureMark struct {
+	Picture Picture
+	At      rules.MapPos
 }
 
 // Question is what the rules ask over a state: the text and the answers
@@ -279,7 +289,6 @@ type Scene struct {
 	Text     []string    // plain paragraphs; colours are gobox's
 	Handout  string      // SceneHandout: the title
 	Texts    []ReadText  // SceneHandout: the Read's
-	Layers   []Drawn     // pictures where the original drew them (Pictures: gobox places them)
 	Placed   [][]TextRun // the lines over the view window in the original's order and wrapping, a blank row an empty line (Text: the message lines); gobox places them
 	Intro    *Intro      // SceneTitle
 	Sequence string      // SceneSequence: the animation's name (adventure.SeqIntro, SeqEnding)

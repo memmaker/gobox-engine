@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"image"
 	"reflect"
 	"slices"
 	"testing"
@@ -39,7 +38,7 @@ func TestGaps(t *testing.T) {
 			func(s shown) bool { return s.Shop.IdentifyPrice == 20 && len(s.Shop.Unknown) == 1 }},
 		{"training learn", game.Trading{Kind: game.TradeTraining, Training: &game.Training{Learning: true}}, game.Learn{Spell: 4}, game.Learn{Spell: 4},
 			func(s shown) bool { return s.Mode == game.ModeTraining && s.Training.Learning }},
-		{"handout esc leaves", game.Scene{Kind: game.SceneHandout, Handout: "Journal", Layers: []game.Drawn{{}}, Common: allow(game.Leave{})}, game.Cancel{}, game.Leave{},
+		{"handout esc leaves", game.Scene{Kind: game.SceneHandout, Handout: "Journal", Common: pictured(allow(game.Leave{}))}, game.Cancel{}, game.Leave{},
 			func(s shown) bool { return s.Read != nil && len(s.Page.Layers) == 1 && s.Holding == game.HoldNone }},
 		{"handout read out", game.Scene{Kind: game.SceneHandout, Common: allow(game.Leave{})}, tAnswer{N: 2}, game.Leave{}, nil},
 		{"story page", game.Scene{Text: []string{"hi"}, Common: allow(game.ContinueAction{})}, tAnswer{}, game.ContinueAction{},
@@ -97,10 +96,10 @@ func TestGaps(t *testing.T) {
 		{"results", game.Scene{Kind: game.SceneResults, Results: res}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool { return s.Results == res && s.Pending.Kind == game.Continue }},
 		{"placed text", game.Scene{Placed: [][]game.TextRun{nil, {{Text: "Hull", Fg: game.InkLightRed}}},
-			Layers: []game.Drawn{{At: image.Rect(1, 1, 5, 5)}}}, tAnswer{}, game.ContinueAction{},
+			Common: pictured(game.Common{})}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool {
 				v := s.Page.View
-				return len(v) == 2 && v[1][0].Text == "Hull" && v[1][0].Fg == game.InkLightRed && s.Page.Layers[0].At.Max.X == 5
+				return len(v) == 2 && v[1][0].Text == "Hull" && v[1][0].Fg == game.InkLightRed && len(s.Page.Layers) == 1
 			}},
 		{"screen", game.Scene{Kind: game.SceneScreen, Screen: &game.Screen{Kind: game.ScreenStarmap}}, tAnswer{}, game.ContinueAction{},
 			func(s shown) bool { return s.Screen.Kind == game.ScreenStarmap }},
@@ -224,6 +223,12 @@ func TestDraftAsks(t *testing.T) {
 	}(); a != nil {
 		t.Fatalf("the sheet asks %+v", a)
 	}
+}
+
+// pictured is c with a picture up.
+func pictured(c game.Common) game.Common {
+	c.Picture = &game.Picture{}
+	return c
 }
 
 // TestPictureIsLayer: Common.Picture reaches the front as the page's layer

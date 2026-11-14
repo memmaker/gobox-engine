@@ -137,8 +137,7 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 	cm.Ask = nil // a Scene's own question (below) carries it
 	// the pane and its layers are Common's (Text, Layers): the Scene adds only its own
 	sc := game.Scene{Common: cm, Kind: game.SceneText, Full: e.snap.full, Placed: pg.View}
-	sc.Layers, sc.Common.Layers = cm.Layers, nil // a Scene's layers are its own (gobox's window is the Scene's)
-	if w := e.mapWalls(); w.Side != nil {        // the 3D view the scene is over, also before the party first explores (cotab's opening)
+	if w := e.mapWalls(); w.Side != nil { // the 3D view the scene is over, also before the party first explores (cotab's opening)
 		sc.Walls = &w
 	}
 	if a := pending; a != nil {
@@ -240,7 +239,8 @@ func (e *Engine) common(mode game.Mode, pending *game.Question, pg *textPage, do
 	where, automap := e.whereState()
 	cm := game.Common{Where: where, Automap: automap, Area: automap.Area, Quests: e.questsState(), Lore: e.loreState(), PowerPick: e.powerPickState(),
 		PartyCap: int(e.ruleset().Check(rules.PoolCap{}, nil).Value), PoolItems: int(e.ruleset().Check(rules.PoolCount{}, nil).Value),
-		Text: pg.Pane, Status: pg.Prompt, Layers: pg.Layers, SymbolSet: e.worldWord(rules.WordSymbolSet)}
+		Text: pg.Pane, Status: pg.Prompt, SymbolSet: e.worldWord(rules.WordSymbolSet)}
+	cm.Picture, cm.Frames, cm.Delays, cm.Portrait = e.viewState()
 	cm.Party, cm.Selected = e.partyState()
 	if e.partySize() > 0 {
 		cm.Purse = purseMoney(e.purse(false))

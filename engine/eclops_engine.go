@@ -272,21 +272,16 @@ func (e *Engine) showBigPicture(n int, big adventure.BigPictures) {
 	if im == nil {
 		return
 	}
-	e.DrawPicture(0, 0, im, 0)
-	e.es.bigPic = e.pg.ids
+	e.es.bigPic = im
 	e.snap.full = n != big.Framed && !(big.NotOverland && e.worldWord(rules.WordIn3D) == 0)
 }
 
 // bigPicFile is the big pictures' file family (BIGPIC<set>.DAX).
 const bigPicFile = "BIGPIC"
 
-// hideBigPicture takes the big picture up, if any, off the page.
+// hideBigPicture takes the big picture up, if any, down.
 func (e *Engine) hideBigPicture() {
-	if e.es.bigPic == 0 {
-		return
-	}
-	e.pg.layers = slices.DeleteFunc(e.pg.layers, func(l layer) bool { return l.id == e.es.bigPic })
-	e.es.bigPic, e.snap.full = 0, false
+	e.es.bigPic, e.snap.full = nil, false
 }
 
 // opInputNumber = ovr04:0951.

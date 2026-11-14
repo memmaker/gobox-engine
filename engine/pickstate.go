@@ -39,9 +39,7 @@ func (e *Engine) pickerState(p *picker) *game.Picker {
 	for i := range p.n {
 		var g game.Picture
 		if im, mask := p.pic(i); im != nil && im.Count > 0 {
-			lp := e.pictureOf(0, 0, im, 0, mask)
-			g = gamePicture(lp)
-			g.File, g.Block, g.Frame = lp.File, lp.Block, lp.Frame
+			g = framePicture(im, 0, mask)
 		}
 		k.Pics = append(k.Pics, g)
 	}
