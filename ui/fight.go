@@ -91,7 +91,10 @@ func (p *Presenter) drawFight(dst *gpu.Image, note Note) {
 	p.drawFightRows(dst, note, b, k)
 	cx := dst.Bounds().Dx() / 2
 	p.fightAskAt = nil
-	if m := p.askMenu(); m != nil && len(m.Commands) > 0 {
+	if p.askList() != nil { // a list over the board (the turn's Items): drawn as on every screen, its keys and clicks list.go's
+		rows := min(len(p.askList()), listRows) + len(p.askMenu().Commands) + 6
+		p.asking(func() { p.drawList(dst, glyph, k, cx, max(0, dst.Bounds().Dy()/2-int(k*float64(rows)*4))) })
+	} else if m := p.askMenu(); m != nil && len(m.Commands) > 0 {
 		lines, keys := make([]string, len(m.Commands)), make([]byte, len(m.Commands))
 		for i, it := range m.Commands {
 			lines[i], keys[i] = it.Text, it.Key
