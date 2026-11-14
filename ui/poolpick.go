@@ -82,11 +82,16 @@ func (g classicGame) PickerView(page int) *FrontPicker {
 				pp.names = was
 			}
 		}
-		k := &game.Picker{Pics: make([]game.Picture, len(pp.names))}
-		for i := range k.Pics { // present, no pixels: the cell's size, the PNG fills it
-			k.Pics[i].W, k.Pics[i].H = pp.cell.X*8, pp.cell.Y*8
+		var v *FrontPicker
+		for sc := max(1, g.r.grid.Y/pp.cell.Y); sc >= 1; sc-- { // the largest whole scale that keeps every picture on one page
+			k := &game.Picker{Pics: make([]game.Picture, len(pp.names))}
+			for i := range k.Pics { // present, no pixels: the cell's size, the PNG fills it
+				k.Pics[i].W, k.Pics[i].H = sc*pp.cell.X*8, sc*pp.cell.Y*8
+			}
+			if v = g.Game.PickerOf(k, page, g.r.grid.X, g.r.grid.Y); v == nil || v.Pages == 1 {
+				break
+			}
 		}
-		v := g.Game.PickerOf(k, page, g.r.grid.X, g.r.grid.Y)
 		if v != nil {
 			v.Portraits = make([]image.Image, len(pp.names))
 			for i, n := range pp.names {
