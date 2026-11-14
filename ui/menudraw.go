@@ -29,7 +29,7 @@ type MenuTheme struct {
 type MenuStyle struct {
 	Theme    MenuTheme
 	Tiles    Ribbon
-	Edges    Edges // the cracked edges over Tiles (empty: none)
+	Edges    map[string][]*gpu.Image // the cracked edges over Tiles by key, "edge@n" tables too (nil: none): sized to the menu as every box's (sizedEdges)
 	Glyph    func(byte) [8]byte
 	RowGlyph func(row int, c byte) [8]byte
 	Tight    bool
@@ -51,8 +51,8 @@ type MenuCanvas struct {
 }
 
 // same says whether Img already holds this Buf with this border and foot.
-func (m *MenuCanvas) same(st MenuStyle, foot string) bool {
-	e, d := st.Edges, m.dEdges
+func (m *MenuCanvas) same(st MenuStyle, e Edges, foot string) bool {
+	d := m.dEdges
 	return m.drawn != nil && m.dImg == m.Img && bytes.Equal(m.drawn, m.Buf) && m.dFoot == foot && m.dTiles == st.Tiles &&
 		slices.Equal(e.Top, d.Top) && slices.Equal(e.Bottom, d.Bottom) && slices.Equal(e.Left, d.Left) && slices.Equal(e.Right, d.Right) && slices.Equal(e.Divider, d.Divider)
 }
@@ -185,11 +185,12 @@ func (m *MenuCanvas) Draw(dst *gpu.Image, st MenuStyle, title string, items []st
 			col++
 		}
 	}
-	if !m.same(st, foot) {
+	edges := sizedEdges(st.Edges, cw, ch)
+	if !m.same(st, edges, foot) {
 		m.Img.WritePixels(m.Buf)
 
 		Window(m.Img, st.Tiles, gpu.GeoM{}, cw, ch, nil)
-		WindowEdges(m.Img, st.Edges, gpu.GeoM{}, cw, ch)
+		WindowEdges(m.Img, edges, gpu.GeoM{}, cw, ch)
 		if foot != "" { // gold on black, right on the bottom border
 			fw := len(foot) * 8
 			if gpu.Sized(&m.footImg, fw, 8) {
@@ -215,7 +216,7 @@ func (m *MenuCanvas) Draw(dst *gpu.Image, st MenuStyle, title string, items []st
 			fo.GeoM.Translate(float64((cw-1)*8-fw), float64((ch-1)*8))
 			m.Img.DrawImage(m.footImg, fo)
 		}
-		m.drawn, m.dImg, m.dFoot, m.dTiles, m.dEdges = append(m.drawn[:0], m.Buf...), m.Img, foot, st.Tiles, st.Edges
+		m.drawn, m.dImg, m.dFoot, m.dTiles, m.dEdges = append(m.drawn[:0], m.Buf...), m.Img, foot, st.Tiles, edges
 	}
 
 	if st.Tip { // a tooltip: wholly on the window, whatever its anchor

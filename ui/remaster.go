@@ -704,11 +704,10 @@ func divider(dst *gpu.Image, t Ribbon, g gpu.GeoM, ch int) {
 	}
 }
 
-// edgeTiles are Theme.Border.Edges on the GPU (the menus'); edgeSets all
-// of them by key, the "edge@n" tables too, for the colour ribbon and its grey.
+// edgeSets are Theme.Border.Edges on the GPU by key, the "edge@n" tables
+// too, for the colour ribbon and its grey.
 var (
-	edgeTiles Edges
-	edgeSets  []edgeSet
+	edgeSets []edgeSet
 	// edgePrefix names the box being drawn's own edges ("view.": the 3D
 	// view's inner box), tried before the general ones.
 	edgePrefix string
@@ -741,7 +740,7 @@ func edgesOf(t Ribbon) map[string][]*gpu.Image {
 	return nil
 }
 
-// sizedEdges is edgeTiles with the box's own edges (edgePrefix+"edge"),
+// sizedEdges is edgeMap's general edges with the box's own edges (edgePrefix+"edge"),
 // else each edge's table for its length ("edge@n", the original's
 // per-length arrays), where the theme has them.
 func sizedEdges(edgeMap map[string][]*gpu.Image, cw, ch int) Edges {

@@ -49,7 +49,7 @@ type borders struct {
 func uploadBorders(wb windowBorder) (b borders) {
 	t := wb.pieces
 	defer func() { // the theme's cracked edges go with these tiles
-		edgeTiles, edgeSets = Edges{}, nil
+		edgeSets = nil
 		es := wb.edges
 		if es == nil {
 			return
@@ -76,8 +76,6 @@ func uploadBorders(wb windowBorder) (b borders) {
 			}
 			edgeSets = append(edgeSets, edgeSet{set.for_, m})
 		}
-		m := edgeSets[0].edges
-		edgeTiles = sizedEdges(m, 0, 0) // the menus': the boxes' own edges where the theme has them
 	}()
 	for i, m := range t {
 		if m == nil { // an end cap the game leaves out
