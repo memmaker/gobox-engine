@@ -23,12 +23,17 @@ func (p *Presenter) sheetItems() []MenuRow {
 	if _, ok := r.lookMember(s); ok { // the look-only sheet: no powers
 		return it
 	}
-	sh := r.sheetOf(game.CommonOf(s))
+	c := game.CommonOf(s)
+	if n := r.selectedOf(s); n >= 0 && n < len(c.Party) {
+		for _, pw := range c.Party[n].Powers { // the member's powers, as the inventory and the card offer them
+			if k, ok := powerActs[pw.Kind]; ok && pw.Label != "" {
+				it = append(it, MenuRow{Text: pw.Label, Key: pw.Label[0], Do: func() { p.send(k, -1) }})
+			}
+		}
+	}
+	sh := r.sheetOf(c)
 	if sh == nil {
 		return it
-	}
-	for _, pw := range powers(sh.Powers) {
-		it = append(it, MenuRow{Text: pw.Name, Key: pw.Name[0], Do: func() { p.send(pw.Kind, -1) }})
 	}
 	for _, re := range sh.Reactions {
 		pol := Policy(re.Policy)
