@@ -219,7 +219,7 @@ func (g *Game) stepBoard(e game.Report) (*game.Combat, []game.Member) {
 	if e.Kind == game.EvMove && !e.Turn { // a step: held on the square it reaches
 		for k := range g.ended.Units {
 			if u := &g.ended.Units[k]; u.ID == e.Unit {
-				u.At = e.To
+				stepTo(u, e.To)
 			}
 		}
 	}
@@ -245,13 +245,23 @@ func (g *Game) stepBoard(e game.Report) (*game.Combat, []game.Member) {
 		switch u := &g.ended.Units[k]; {
 		case u.ID == e.Unit && e.Kind == game.EvMove && e.Turn:
 			u.Facing = e.N
-		case u.ID == e.Unit && e.Kind == game.EvMove:
-			u.At = e.To
 		case u.ID == e.Unit && e.Kind == game.EvDown:
 			u.Dead, u.Gone, u.HP = true, true, 0 // off the map, as EvDied plays it
 		}
 	}
 	return &c, party
+}
+
+// stepTo puts u on to, the squares it covers with it (the figure stands on
+// its Squares: left behind, it walked only once the replay was over, after
+// its blow).
+func stepTo(u *game.Unit, to rules.BoardPos) {
+	d := rules.BoardPos{X: to.X - u.At.X, Y: to.Y - u.At.Y}
+	sq := make([]rules.BoardPos, len(u.Squares)) // a new slice: the board before the step keeps its own
+	for i, s := range u.Squares {
+		sq[i] = rules.BoardPos{X: s.X + d.X, Y: s.Y + d.Y}
+	}
+	u.At, u.Squares = to, sq
 }
 
 // hasPic is whether p is a picture at all.
