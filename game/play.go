@@ -161,8 +161,9 @@ func (e EscReply) Reply() (int, bool) { return int(e) - 1, e != NoEscReply }
 type Assembling struct {
 	Commands []Option // the game's own party commands (Do, with a label)
 	Common
-	Roster []string // saved characters
-	Draft  *Draft   // a character being made or changed; nil none
+	Roster []string  // saved characters
+	Draft  *Draft    // a character being made or changed; nil none
+	Walls  *MapWalls // the 3D view the party menu is over; nil: the one last explored, if any
 }
 
 // Draft is a character being made or changed: the member so far, the

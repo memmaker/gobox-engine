@@ -103,6 +103,9 @@ func (e *Engine) stateOf(mode game.Mode, pending *game.Question, pg *textPage, d
 			}
 		}
 		a.Roster = e.BuildCharList()
+		if w := e.mapWalls(); w.Side != nil { // the party menu is over the 3D view (the training hall's over the hall)
+			a.Walls = &w
+		}
 		if cr := e.creation; cr != nil && mode == game.ModeCreate {
 			a.Draft = e.creationState(cr)
 			if cr.naming { // Keep's name question (BUG-CLASSES 59): a Reply with the name keeps it
