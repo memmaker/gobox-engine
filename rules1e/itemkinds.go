@@ -13,19 +13,22 @@ type ItemKinds map[ItemType]rules.ItemID
 // SotsbItemKinds are SotSB's base item types (sotsb-re: money.pas
 // GenerateRandomItem, charhlp.pas's elf bonus 18, 19, 22..26, cbtacts.pas's
 // missiles 2, 3, 5, 6, 7, 12, 28, 30, backstab 3, 4, 17..19); the weapons
-// follow itemNames 1..28. 26 is the Fine Composite Long Bow. PoD shares the numbering (pod-re charhlp.pas).
+// follow itemNames 1..28. 26 is the Fine Long Bow (words "Fine" "Long Bow", base stats as 24). PoD shares the numbering (pod-re charhlp.pas).
 var SotsbItemKinds = ItemKinds{
 	1: ItemIDBattleAxe, 2: ItemIDHandAxe, 3: ItemIDClub, 4: ItemIDDagger, 5: ItemIDDart,
 	6: ItemIDHammer, 7: ItemIDJavelin, 8: ItemIDMace, 9: ItemIDMorningStar, 10: ItemIDMilitaryPick,
 	11: ItemIDAwlPike, 12: ItemIDQuarrel, 13: ItemIDScimitar, 14: ItemIDSpear, 15: ItemIDQuarterStaff,
 	16: ItemIDBastardSword, 17: ItemIDBroadSword, 18: ItemIDLongSword, 19: ItemIDShortSword,
 	20: ItemIDTwoHandedSword, 21: ItemIDTrident, 22: ItemIDCompositeLongBow, 23: ItemIDCompositeShortBow,
-	24: ItemIDLongBow, 25: ItemIDShortBow, 26: ItemIDCompositeLongBow, 27: ItemIDLightCrossbow,
+	24: ItemIDLongBow, 25: ItemIDShortBow, 26: ItemIDLongBow, 27: ItemIDLightCrossbow,
 	28: ItemIDSling, 30: ItemIDArrow, 31: ItemIDLeatherArmor, 32: ItemIDRingMail, 33: ItemIDScaleMail,
 	34: ItemIDChainMail, 35: ItemIDBandedMail, 36: ItemIDPlateMail, 37: ItemIDShield,
 	39: ItemIDMageScroll, 40: ItemIDClericScroll, 50: ItemIDBracers, 59: ItemIDProtectionRing,
 	70: ItemIDFlail, 71: ItemIDHalberd,
-	// named after the items of each type in SotSB's and PoD's ITEM blocks
+	// named after the items of each type in SotSB's and PoD's ITEM blocks, checked against the base
+	// table's slot (ITEMS: 41..46 slots 4..9, 72 slot 3) and pod-re (74 blessed bolt: effhndlr.pas effect 82;
+	// 29 staff sling: cbtacts.pas with 28; 66 hornet's nest dart: cbtacts.pas missiles). 73 is SotSB's bundle
+	// (Ord('I')), PoD's vorpal long sword.
 	29: ItemIDStaffSling, 38: ItemIDProtectionScroll, 41: ItemIDHelm, 42: ItemIDBelt, 43: ItemIDRobe,
 	44: ItemIDCloak, 45: ItemIDBoots, 46: ItemIDRing, 47: ItemIDMiscMagic, 48: ItemIDMirror,
 	51: ItemIDWand, 52: ItemIDWand, 53: ItemIDStrengthPotion, 54: ItemIDYellowCanary, 58: ItemIDCloakDisplacement,
