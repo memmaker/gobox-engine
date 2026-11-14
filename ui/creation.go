@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+// statLongNames are the creation sheet's abilities written out, padded
+// to statLongCol, the column their values start at.
+var statLongNames = [6]string{"Strength    ", "Intelligence", "Wisdom      ", "Dexterity   ", "Constitution", "Charisma    "}
+
+const statLongCol = 14
+
 // Creation is the creation sheet's parts from s (nil: none up) on a page
 // of cols by rows cells: the sheet's text from the top left, the portrait
 // against the right border and the combat icon under it, both at the
@@ -62,16 +68,18 @@ func Creation(mode game.Mode, c *game.Creation, pending *game.Ask, cols, rows in
 			v.Stats = append(v.Stats, CellRect{X1: 1, Y1: 7 + i, X2: x2, Y2: 7 + i})
 		}
 	} else {
-		v.StatNames = []string{"STR", "INT", "WIS", "DEX", "CON", "CHA"}
+		for _, n := range statLongNames {
+			v.StatNames = append(v.StatNames, strings.TrimSpace(n))
+		}
 		for i := range v.StatNames {
-			x1 := 6 // "STR 18", "(00)" after an exceptional strength
+			x1 := statLongCol + 1 // "Strength      18", "(00)" after an exceptional strength
 			if i == 0 && d.Stats["str"] == 18 && d.Str00 != 0 {
 				x1 += len("(00)")
 			}
 			v.Stats = append(v.Stats, CellRect{X1: 1, Y1: 7 + i, X2: x1, Y2: 7 + i})
 		}
 	}
-	sc := max(1, min((winRight-37)/11, (winBottom-3)/14)) // the combat stats reach column 37, the prompt row stays free
+	sc := max(1, min((winRight-statLongCol-7)/11, (winBottom-3)/14)) // the abilities reach past their value column, the bottom rows stay free
 	left := winRight - 11*sc + 1                          // the portrait's 11x11 cells at 1x
 	v.Head = CellRect{X1: left, Y1: 1, X2: winRight, Y2: 5 * sc}
 	v.Body = CellRect{X1: left, Y1: 5*sc + 1, X2: winRight, Y2: 11 * sc}

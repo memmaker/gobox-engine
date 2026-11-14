@@ -99,9 +99,10 @@ func (p *Presenter) layoutCreation() *FrontCreation {
 		return nil
 	}
 	r, s := p.eng.r, p.state()
-	k := creationKey{p.eng.r.build(), r.grid, r.ask, r.refusalAsk}
+	g := gridOf(p.screen) // the page the sheet is drawn on (cells), not the engine's last told grid: a fullscreen switch lands before its ActResize
+	k := creationKey{p.eng.r.build(), g, r.ask, r.refusalAsk}
 	return p.lay.creation.get(k, func() *FrontCreation {
-		return Creation(r.modeOf(s), creationOf(s), r.pending(s), r.grid.X, r.grid.Y)
+		return Creation(r.modeOf(s), creationOf(s), r.pending(s), g.X, g.Y)
 	})
 }
 

@@ -545,17 +545,21 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 		c.str(1, 5, inkWhite, s.Class)
 	}
 	if d == nil || len(d.Stats) == 0 {
-		for i, l := range []string{"STR ", "INT ", "WIS ", "DEX ", "CON ", "CHA "} { // and showStat
+		names, vx := []string{"STR ", "INT ", "WIS ", "DEX ", "CON ", "CHA "}, 5 // and showStat
+		if s.Creating {
+			names, vx = statLongNames[:], statLongCol
+		}
+		for i, l := range names {
 			y := i + 7
 			c.str(1, y, inkGreen, l)
-			c.clear(5, y, 11, y)
-			x := 5
+			c.clear(vx, y, vx+6, y)
+			x := vx
 			if s.Stats[i] < 10 {
 				x++
 			}
 			c.str(x, y, inkGreen, strconv.Itoa(s.Stats[i]))
 			if i == 0 {
-				c.str(7, 7, inkGreen, s.Str00)
+				c.str(vx+2, 7, inkGreen, s.Str00)
 			}
 		}
 	}
@@ -592,6 +596,24 @@ func (c *cellPage) sheet(s *game.SheetPage, d *game.Creation, nameColour int, po
 			x, fy := 1+16*(i%2), y+i/2
 			c.str(x, fy, inkWhite, f.Label)
 			c.str(x+len(f.Label)+1, fy, inkGreen, f.Value)
+		}
+	} else if s.Creating { // HP and Movement under the abilities, AC, THAC0 and Damage on the bottom as the in-game sheet
+		hp := inkGreen
+		if s.HP < s.MaxHP {
+			hp = inkYellow
+		}
+		c.str(1, 14, inkWhite, "HP")
+		c.str(statLongCol, 14, hp, strconv.Itoa(s.HP))
+		c.str(1, 15, inkWhite, "Movement")
+		c.str(statLongCol, 15, inkGreen, strconv.Itoa(s.Move))
+		w := (c.cols - 2) / 3
+		if cr != nil {
+			w = (cr.Head.X1 - 1) / 3 // left of the portrait and the icon
+		}
+		for j, f := range [][2]string{{"AC", strconv.Itoa(s.AC)}, {"THAC0", strconv.Itoa(s.THAC0)}, {"Damage", s.Damage}} {
+			mid := 1 + w*j + w/2
+			c.str(mid-len(f[0])/2, bottom-1, inkWhite, f[0])
+			c.str(mid-len(f[1])/2, bottom, inkGreen, f[1])
 		}
 	} else {
 		c.str(1, y, inkWhite, "AC    ")
