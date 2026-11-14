@@ -67,8 +67,8 @@
 - [ ] Q1 Open items carried from ONE-BINARY.md and ARCHITECTURE.md (checked 2026-11-14):
   - [ ] `NativeCastKnock` (engine/native.go) as a script patch; native scripts gone (ARCHITECTURE section 3)
   - [ ] name the unnamed script cells (`WordXXXX`, 585 distinct in COTAB, SotSB, POD scripts) from their script use
-  - [ ] `WriteGbvm($2CB, …)` in cotab-re and sotsb-re EclCombat writes outside every zone (likely a Pascal bug): investigate
-  - [ ] `ui/blobber` `FloorRGBA`/`CeilRGBA`: palette index, not RGBA (ruling 7)
+  - [x] `WriteGbvm($2CB, …)` in cotab-re and sotsb-re EclSurprise: a reconstruction bug (the zone-1 offset, not $7ECB; WriteGbvm dropped it). Fixed cotab-re 5c1d47c, sotsb-re 4f469e9; the Go engine was right (`WordSurprise` at 7ECB). Detect: literal Read/WriteGbvm addresses below a game's lowest zone; none left
+  - [x] `ui/blobber` `FloorRGBA`/`CeilRGBA`: no change needed; ruling 7 holds, `game` carries `FloorInk`/`CeilInk` (Ink), and `ui` resolves the RGBA for the renderer
   - [ ] restore every por-go c70cbee feature in the shared engine; exit hints (`Question.Esc`) for POD, COTAB, SotSB, BR script menus
   - [ ] unverified, needs a run: in-fight sounds by cue name silent; fall-sound PC/AdLib fallback outside fights; toasts replacing pane lines outside fights; rest-time line refresh only on the 5-step tick; song 6 overland / song 4 entering Phlan; camp fire animation; wiped party back to the party menu
 - [x] K1 `TestKeyDispatch` fails since the app → ui merge: `ui/shell.go` (`ScriptTimed`) and `ui/shellfront.go` (F12, Shift-F12) name key codes instead of dispatching through the key table
