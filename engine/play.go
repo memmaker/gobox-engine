@@ -347,7 +347,7 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				add(game.Reply{}) // the name
 				break
 			}
-			add(game.Reroll{}, game.KeepCharacter{}, game.DiscardCharacter{})
+			add(game.Reroll{}, game.KeepCharacter{}, game.DiscardCharacter{}, game.Rename{}) // Rename: the sheet's name, any typed (allows)
 			for _, f := range as.Draft.Fields {
 				for j := range f.Options {
 					add(game.SetChoice{Field: f.Name, N: j})
@@ -602,6 +602,8 @@ func allows(al game.Allowed, a game.Action) bool {
 		}
 	case game.Shoot:
 		base = game.Shoot{}
+	case game.Rename: // any name: the rules take it or refuse it
+		base = game.Rename{}
 	case game.Attack: // at a square (a bump, an ally): any Attack offered, the rules check the square
 		if v.At != nil {
 			return slices.ContainsFunc(al.Plain, func(x game.Action) bool { _, ok := x.(game.Attack); return ok })
@@ -1067,6 +1069,8 @@ func (e *Engine) partyDo(a game.Action, st game.State, native func(func() error)
 		return true, native(func() error { return e.pointBuy(a.Scores) })
 	case game.SetStat:
 		return true, native(func() error { return e.setStat(a.Stat, a.Text) })
+	case game.Rename: // the creation sheet's name
+		return true, native(func() error { return e.rename(a.Name) })
 	case game.KeepCharacter:
 		return true, native(func() error {
 			if cr := e.creation; cr != nil && cr.unnamed { // no name typed yet: ask it before saving (BUG-CLASSES 59)
