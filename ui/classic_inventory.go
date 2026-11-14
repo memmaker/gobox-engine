@@ -43,7 +43,7 @@ func lines(t string) []string {
 // invItem is it as the inventory shows it: its icon's type and words, its
 // tab.
 func invItem(it game.Item) InvItem {
-	return InvItem{Item: it.Handle, Name: it.Name, Type: byte(it.Type), Words: it.Words, Count: it.Count,
+	return InvItem{Item: it.Handle, Name: it.Name, Type: byte(it.Type), Base: it.Base, Words: it.Words, Count: it.Count,
 		Kind: itemKinds[it.Kind]}
 }
 

@@ -13,8 +13,7 @@ type ItemKinds map[ItemType]rules.ItemID
 // SotsbItemKinds are SotSB's base item types (sotsb-re: money.pas
 // GenerateRandomItem, charhlp.pas's elf bonus 18, 19, 22..26, cbtacts.pas's
 // missiles 2, 3, 5, 6, 7, 12, 28, 30, backstab 3, 4, 17..19); the weapons
-// follow itemNames 1..28. 26 is the Fine Composite Long Bow; 29 the staff
-// sling has no dnd id. PoD shares the numbering (pod-re charhlp.pas).
+// follow itemNames 1..28. 26 is the Fine Composite Long Bow. PoD shares the numbering (pod-re charhlp.pas).
 var SotsbItemKinds = ItemKinds{
 	1: ItemIDBattleAxe, 2: ItemIDHandAxe, 3: ItemIDClub, 4: ItemIDDagger, 5: ItemIDDart,
 	6: ItemIDHammer, 7: ItemIDJavelin, 8: ItemIDMace, 9: ItemIDMorningStar, 10: ItemIDMilitaryPick,
@@ -26,6 +25,13 @@ var SotsbItemKinds = ItemKinds{
 	34: ItemIDChainMail, 35: ItemIDBandedMail, 36: ItemIDPlateMail, 37: ItemIDShield,
 	39: ItemIDMageScroll, 40: ItemIDClericScroll, 50: ItemIDBracers, 59: ItemIDProtectionRing,
 	70: ItemIDFlail, 71: ItemIDHalberd,
+	// named after the items of each type in SotSB's and PoD's ITEM blocks
+	29: ItemIDStaffSling, 38: ItemIDProtectionScroll, 41: ItemIDHelm, 42: ItemIDBelt, 43: ItemIDRobe,
+	44: ItemIDCloak, 45: ItemIDBoots, 46: ItemIDRing, 47: ItemIDMiscMagic, 48: ItemIDMirror,
+	51: ItemIDWand, 52: ItemIDWand, 53: ItemIDStrengthPotion, 54: ItemIDCanary, 58: ItemIDCloakDisplacement,
+	61: ItemIDElvenChainMail, 62: ItemIDDrowChainMail, 63: ItemIDDrowLongSword, 65: ItemIDWizardryRing,
+	66: ItemIDHornetsNestDart, 72: ItemIDGauntlets, 73: ItemIDVorpalLongSword, 74: ItemIDBlessedBolt,
+	75: ItemIDCloakProtection,
 }
 
 // kinds is the game's ItemKinds.

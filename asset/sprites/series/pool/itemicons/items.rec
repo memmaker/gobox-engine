@@ -1,842 +1,405 @@
-# Pool series item icons, shared by every game of the series: internal_name is
-# an item name (or part of one: the longest that an item's name contains wins,
-# ignoring case). icon is the cell of atlas.png (20x20, 24 a row; -1: no
-# picture yet, drawn red in the remapper). Seeded from POR's.
-# Edit with: remapper 20 20 atlas.png items.rec
+# Pool series item icons, shared by every game of the series, by base item
+# kind: internal_name is the rules.ItemID (rules1e/dnditems.go), name its
+# label in the remapper. icon is the cell of atlas.png (20x20, 24 a row; -1:
+# no picture yet, drawn red in the remapper). Seeded from POR's.
+# Edit with: scripts/remap_items.sh pool (from the repo root)
 
-internal_name: Battle Axe
+internal_name: 1
 name: Battle Axe
 icon: 920
 
-internal_name: Hand Axe
+internal_name: 2
 name: Hand Axe
 icon: 44
 
-internal_name: Bardiche
+internal_name: 3
 name: Bardiche
 icon: 180
 
-internal_name: Bec De Corbin
+internal_name: 4
 name: Bec De Corbin
 icon: 1061
 
-internal_name: Bill-Guisarme
-name: Bill-Guisarme
+internal_name: 5
+name: Bill Guisarme
 icon: 886
 
-internal_name: Bo Stick
+internal_name: 6
 name: Bo Stick
 icon: 600
 
-internal_name: Club
+internal_name: 7
 name: Club
 icon: 133
 
-internal_name: Dagger
+internal_name: 8
 name: Dagger
 icon: 155
 
-internal_name: Dart
+internal_name: 9
 name: Dart
 icon: 161
 
-internal_name: Fauchard
+internal_name: 10
 name: Fauchard
 icon: 695
 
-internal_name: Fauchard-Fork
-name: Fauchard-Fork
+internal_name: 11
+name: Fauchard Fork
 icon: 887
 
-internal_name: Flail
+internal_name: 12
 name: Flail
 icon: 211
 
-internal_name: Military Fork
+internal_name: 13
 name: Military Fork
 icon: 723
 
-internal_name: Glaive
+internal_name: 14
 name: Glaive
 icon: 862
 
-internal_name: Glaive-Guisarme
-name: Glaive-Guisarme
+internal_name: 15
+name: Glaive Guisarme
 icon: 742
 
-internal_name: Guisarme
+internal_name: 16
 name: Guisarme
 icon: 695
 
-internal_name: Guisarme-Voulge
-name: Guisarme-Voulge
+internal_name: 17
+name: Guisarme Voulge
 icon: 742
 
-internal_name: Halberd
+internal_name: 18
 name: Halberd
 icon: 1063
 
-internal_name: Lucern Hammer
+internal_name: 19
 name: Lucern Hammer
 icon: 941
 
-internal_name: Hammer
+internal_name: 20
 name: Hammer
 icon: 264
 
-internal_name: Javelin
+internal_name: 21
 name: Javelin
 icon: 693
 
-internal_name: Jo Stick
+internal_name: 22
 name: Jo Stick
 icon: 696
 
-internal_name: Mace
+internal_name: 23
 name: Mace
 icon: 947
 
-internal_name: Morning Star
+internal_name: 24
 name: Morning Star
 icon: 360
 
-internal_name: Partisan
+internal_name: 25
 name: Partisan
 icon: 910
 
-internal_name: Military Pick
+internal_name: 26
 name: Military Pick
 icon: 931
 
-internal_name: Awl Pike
+internal_name: 27
 name: Awl Pike
 icon: 765
 
-internal_name: Quarrel
+internal_name: 28
 name: Quarrel
 icon: 41
 
-internal_name: Ranseur
+internal_name: 29
 name: Ranseur
 icon: 694
 
-internal_name: Scimitar
+internal_name: 30
 name: Scimitar
 icon: 764
 
-internal_name: Spear
+internal_name: 31
 name: Spear
 icon: 813
 
-internal_name: Spetum
+internal_name: 32
 name: Spetum
 icon: 773
 
-internal_name: Quarter Staff
+internal_name: 33
 name: Quarter Staff
 icon: 604
 
-internal_name: Bastard Sword
+internal_name: 34
 name: Bastard Sword
 icon: 684
 
-internal_name: Broad Sword
+internal_name: 35
 name: Broad Sword
 icon: 733
 
-internal_name: Long Sword
+internal_name: 36
 name: Long Sword
 icon: 729
 
-internal_name: Short Sword
+internal_name: 37
 name: Short Sword
 icon: 553
 
-internal_name: Two-Handed Sword
-name: Two-Handed Sword
+internal_name: 38
+name: Two Handed Sword
 icon: 900
 
-internal_name: Trident
+internal_name: 39
 name: Trident
 icon: 771
 
-internal_name: Voulge
+internal_name: 40
 name: Voulge
 icon: 886
 
-internal_name: Composite Long Bow
+internal_name: 41
 name: Composite Long Bow
 icon: 1174
 
-internal_name: Composite Short Bow
+internal_name: 42
 name: Composite Short Bow
 icon: 191
 
-internal_name: Long Bow
+internal_name: 43
 name: Long Bow
 icon: 85
 
-internal_name: Short Bow
+internal_name: 44
 name: Short Bow
 icon: 552
 
-internal_name: Heavy Crossbow
+internal_name: 45
 name: Heavy Crossbow
 icon: 1162
 
-internal_name: Fine Composite Long Bow (a Heavy Crossbow in the game data)
-name: Fine Composite Long Bow (a Heavy Crossbow in the game data)
-icon: 1174
-
-internal_name: Light Crossbow
+internal_name: 46
 name: Light Crossbow
 icon: 148
 
-internal_name: Sling
+internal_name: 47
 name: Sling
 icon: 574
 
-internal_name: Leather Armor
+internal_name: 48
 name: Leather Armor
 icon: 337
 
-internal_name: Padded Armor
+internal_name: 49
 name: Padded Armor
 icon: 98
 
-internal_name: Studded Leather Armor
-name: Studded Leather Armor
+internal_name: 50
+name: Studded Leather
 icon: 336
 
-internal_name: Ring Mail
+internal_name: 51
 name: Ring Mail
 icon: 478
 
-internal_name: Scale Mail
+internal_name: 52
 name: Scale Mail
 icon: 518
 
-internal_name: Chain Mail
+internal_name: 53
 name: Chain Mail
 icon: 112
 
-internal_name: Splint Mail
+internal_name: 54
 name: Splint Mail
 icon: 53
 
-internal_name: Banded Mail
+internal_name: 55
 name: Banded Mail
 icon: 54
 
-internal_name: Plate Mail
+internal_name: 56
 name: Plate Mail
 icon: 432
 
-internal_name: Shield
+internal_name: 57
 name: Shield
 icon: 543
 
-internal_name: Magic User Scroll
-name: Magic User Scroll
-icon: 525
-
-internal_name: Clerical Scroll
-name: Clerical Scroll
-icon: 527
-
-internal_name: Gauntlets of Ogre Power
-name: Gauntlets of Ogre Power
-icon: 228
-
-internal_name: Helm
-name: Helm
-icon: 270
-
-internal_name: Belt
-name: Belt
-icon: 257
-
-internal_name: Robe
-name: Robe
-icon: 485
-
-internal_name: Cloak
-name: Cloak
-icon: 127
-
-internal_name: Cloak of Displacement
-name: Cloak of Displacement
-icon: 128
-
-internal_name: Dust Covered Boots
-name: Dust Covered Boots
-icon: 84
-
-internal_name: Ring
-name: Ring
-icon: 474
-
-internal_name: Valuable (generic)
-name: Valuable (generic)
-icon: 231
-
-internal_name: Brass Dragon / Gold Lightning Figurine
-name: Brass Dragon / Gold Lightning Figurine
-icon: 1189
-
-internal_name: Diamond/Pearl Necklace
-name: Diamond/Pearl Necklace
-icon: 392
-
-internal_name: Dust of Disappearance
-name: Dust of Disappearance
-icon: 366
-
-internal_name: Electrum Decanter
-name: Electrum Decanter
-icon: 404
-
-internal_name: Emerald Broach / Silver Brooch
-name: Emerald Broach / Silver Brooch
-icon: 383
-
-internal_name: Fine Opal Pendant
-name: Fine Opal Pendant
-icon: 22
-
-internal_name: Fine/Huge Tapestry
-name: Fine/Huge Tapestry
-icon: 556
-
-internal_name: Gold Banded Wand
-name: Gold Banded Wand
-icon: 522
-
-internal_name: Gold Chain
-name: Gold Chain
-icon: 391
-
-internal_name: Gold/Silver Scarab
-name: Gold/Silver Scarab
-icon: 1231
-
-internal_name: Gold/Silver Dragon Statuette
-name: Gold/Silver Dragon Statuette
-icon: 1189
-
-internal_name: Incense / Bag of Holding
-name: Incense / Bag of Holding
-icon: 1166
-
-internal_name: Jewel Studded Bowl
-name: Jewel Studded Bowl
-icon: 1171
-
-internal_name: Jewelled Silver Wings
-name: Jewelled Silver Wings
-icon: 1234
-
-internal_name: Manual of Bodily Health
-name: Manual of Bodily Health
-icon: 0
-
-internal_name: Potion (in 46)
-name: Potion (in 46)
-icon: 444
-
-internal_name: Sheet of Gold
-name: Sheet of Gold
-icon: 242
-
-internal_name: Platinum Sphere
-name: Platinum Sphere
-icon: 620
-
-internal_name: Silver Ring
-name: Silver Ring
-icon: 563
-
-internal_name: Woods Holy Symbol
-name: Woods Holy Symbol
-icon: 610
-
-internal_name: Keoghtum's Ointment
-name: Keoghtum's Ointment
-icon: 73
-
-internal_name: Potion
-name: Potion
-icon: 450
-
-internal_name: Brass / Silver Mirror
-name: Brass / Silver Mirror
-icon: 384
-
-internal_name: Holy Symbol (Tempus/Sune/Tyr/Wooden)
-name: Holy Symbol (Tempus/Sune/Tyr/Wooden)
-icon: 282
-
-internal_name: Javelin of Lightning
-name: Javelin of Lightning
-icon: 789
-
-internal_name: Curio
-name: Curio
-icon: 297
-
-internal_name: Chain of Bone
-name: Chain of Bone
-icon: 185
-
-internal_name: Copper Brazier
-name: Copper Brazier
-icon: 221
-
-internal_name: (Fungus Covered) Tapestry
-name: (Fungus Covered) Tapestry
-icon: 556
-
-internal_name: Rotting Leather Saddle
-name: Rotting Leather Saddle
-icon: 1250
-
-internal_name: Rotting Rug
-name: Rotting Rug
-icon: 131
-
-internal_name: Stone Statuette
-name: Stone Statuette
-icon: 1214
-
-internal_name: Arrow
-name: Arrow
-icon: 42
-
-internal_name: Leather Holy Symbol
-name: Leather Holy Symbol
-icon: 283
-
-internal_name: Brass Key
-name: Brass Key
-icon: 94
-
-internal_name: Cursed Necklace
-name: Cursed Necklace
-icon: 29
-
-internal_name: Bracers
-name: Bracers
-icon: 88
-
-internal_name: Wand
-name: Wand
-icon: 660
-
-internal_name: Wand of Magic Missiles
-name: Wand of Magic Missiles
-icon: 662
-
-internal_name: Efreeti Bottle
-name: Efreeti Bottle
-icon: 246
-
-internal_name: Potion of Giant Strength
-name: Potion of Giant Strength
-icon: 446
-
-internal_name: Holy Water vial
-name: Holy Water vial
-icon: 125
-
-internal_name: Flask of Oil
-name: Flask of Oil
-icon: 400
-
-internal_name: Boulder
-name: Boulder
-icon: 491
-
-internal_name: Giant Boulder
-name: Giant Boulder
-icon: 493
-
-internal_name: Ring of Feather Falling
-name: Ring of Feather Falling
-icon: 482
-
-internal_name: Pass
-name: Pass
-icon: 530
-
-internal_name: Ring of Protection
-name: Ring of Protection
-icon: 481
-
-internal_name: Bolt
-name: Bolt
-icon: 41
-
-internal_name: Blessed Bolt
-name: Blessed Bolt
-icon: 41
-
-internal_name: Scroll Of Prot
-name: Scroll Of Prot
-icon: 525
-
-internal_name: Mage Scroll
+internal_name: 58
 name: Mage Scroll
 icon: 525
 
-internal_name: Cleric Scroll
+internal_name: 59
 name: Cleric Scroll
 icon: 527
 
-internal_name: Girdle of Giant Strength
-name: Girdle of Giant Strength
-icon: 257
-
-internal_name: Boots
-name: Boots
-icon: 84
-
-internal_name: Mirror
-name: Mirror
-icon: 384
-
-internal_name: Elfin Chain
-name: Elfin Chain
-icon: 112
-
-internal_name: Drow Chain
-name: Drow Chain
-icon: 112
-
-internal_name: Necklace of Missiles
-name: Necklace of Missiles
-icon: 392
-
-internal_name: Periapt of Health
-name: Periapt of Health
-icon: 22
-
-internal_name: Ring Of Prot
-name: Ring Of Prot
-icon: 481
-
-internal_name: Elixir of Youth
-name: Elixir of Youth
-icon: 450
-
-internal_name: Eyes of Charming
-name: Eyes of Charming
-icon: -1
-
-internal_name: Stone of Good Luck
-name: Stone of Good Luck
-icon: -1
-
-# Silver Blades names no record above matched:
-internal_name: Banded Armor
-name: Banded Armor
-icon: 54
-
-internal_name: Cler Scroll
-name: Cler Scroll
-icon: 527
-
-internal_name: Elixer of Youth
-name: Elixer of Youth
-icon: 450
-
-internal_name: Necklace
-name: Necklace
-icon: 392
-
-internal_name: Gauntlets
+internal_name: 60
 name: Gauntlets
 icon: 228
 
-internal_name: Cute Yellow Canary
-name: Cute Yellow Canary
-icon: -1
+internal_name: 61
+name: Cloak
+icon: 127
 
-internal_name: Leather
-name: Leather (Curse)
-icon: 337
+internal_name: 62
+name: Ring
+icon: 474
 
-internal_name: Padded
-name: Padded (Curse)
-icon: 98
+internal_name: 63
+name: Valuable
+icon: 231
 
-internal_name: Studded
-name: Studded (Curse)
-icon: 336
+internal_name: 64
+name: Potion
+icon: 450
 
-internal_name: Scale
-name: Scale (Curse)
-icon: 518
+internal_name: 65
+name: Arrow
+icon: 42
 
-internal_name: Chain
-name: Chain (Curse)
-icon: 112
+internal_name: 66
+name: Bracers
+icon: 88
 
-internal_name: Splint
-name: Splint (Curse)
-icon: 53
-
-internal_name: Banded
-name: Banded (Curse)
-icon: 54
-
-internal_name: Plate
-name: Plate (Curse)
-icon: 432
-
-internal_name: Scroll
-name: Scroll (Curse)
-icon: 525
-
-internal_name: MU Scroll
-name: MU Scroll (Curse)
-icon: 525
-
-internal_name: Prot. Scroll
-name: Prot. Scroll (Curse)
-icon: 525
-
-internal_name: Clrc Scroll
-name: Clrc Scroll (Curse)
-icon: 527
-
-internal_name: Gloves
-name: Gloves (Curse)
-icon: 228
-
-internal_name: Girdle
-name: Girdle (Curse)
-icon: 257
-
-internal_name: Hat
-name: Hat (Curse)
-icon: 270
-
-internal_name: Amulet
-name: Amulet (Curse)
-icon: 22
-
-internal_name: Talisman
-name: Talisman (Curse)
-icon: 22
-
-internal_name: Pendant
-name: Pendant (Curse)
-icon: 22
-
-internal_name: Brooch
-name: Brooch (Curse)
-icon: 383
-
-internal_name: Broach
-name: Broach (Curse)
-icon: 383
-
-internal_name: Decanter
-name: Decanter (Curse)
-icon: 404
-
-internal_name: Jug
-name: Jug (Curse)
-icon: 404
-
-internal_name: Dust
-name: Dust (Curse)
-icon: 366
-
-internal_name: Incense
-name: Incense (Curse)
-icon: 1166
-
-internal_name: Bag
-name: Bag (Curse)
-icon: 1166
-
-internal_name: Manual
-name: Manual (Curse)
-icon: 0
-
-internal_name: Book
-name: Book (Curse)
-icon: 0
-
-internal_name: Tome
-name: Tome (Curse)
-icon: 0
-
-internal_name: Grimoire
-name: Grimoire (Curse)
-icon: 0
-
-internal_name: Scarab
-name: Scarab (Curse)
-icon: 1231
-
-internal_name: Sphere
-name: Sphere (Curse)
-icon: 620
-
-internal_name: Wings
-name: Wings (Curse)
-icon: 1234
-
-internal_name: Ointment
-name: Ointment (Curse)
-icon: 73
-
-internal_name: Tapestry
-name: Tapestry (Curse)
-icon: 556
-
-internal_name: Statuette
-name: Statuette (Curse)
-icon: 1214
-
-internal_name: Sheet
-name: Sheet (Curse)
-icon: 242
-
-internal_name: Holy Symbol
-name: Holy Symbol (Curse)
-icon: 610
-
-internal_name: Vial
-name: Vial (Curse)
-icon: 125
-
-internal_name: Flask
-name: Flask (Curse)
-icon: 400
-
-internal_name: Bottle
-name: Bottle (Curse)
-icon: 246
-
-internal_name: Saddle
-name: Saddle (Curse)
-icon: 1250
-
-internal_name: Key
-name: Key (Curse)
-icon: 94
-
-internal_name: Rod
-name: Rod (Curse)
+internal_name: 67
+name: Wand
 icon: 660
 
-internal_name: Staff
-name: Staff (Curse)
-icon: 604
+internal_name: 68
+name: Wand Of Missiles
+icon: 662
 
-internal_name: Stave
-name: Stave (Curse)
-icon: 604
+internal_name: 69
+name: Strength Potion
+icon: 446
 
-internal_name: Gem
-name: Gem (Curse)
+internal_name: 70
+name: Holy Water
+icon: 125
+
+internal_name: 71
+name: Oil
+icon: 400
+
+internal_name: 72
+name: Boulder
+icon: 491
+
+internal_name: 73
+name: Giant Boulder
+icon: 493
+
+internal_name: 74
+name: Feather Fall Ring
+icon: 482
+
+internal_name: 75
+name: Cloak Displacement
+icon: 128
+
+internal_name: 76
+name: Protection Ring
+icon: 481
+
+internal_name: 77
+name: Leather Holy Symbol
+icon: 283
+
+internal_name: 78
+name: Brass Key
+icon: 94
+
+internal_name: 79
+name: Efreeti Bottle
+icon: 246
+
+internal_name: 80
+name: Pass
+icon: 530
+
+internal_name: 81
+name: Drow Mace
+icon: 947
+
+internal_name: 82
+name: Drow Chain Mail
+icon: 112
+
+internal_name: 83
+name: Drow Long Sword
+icon: 729
+
+internal_name: 84
+name: Protection Scroll
+icon: 525
+
+internal_name: 85
+name: Helm
+icon: 270
+
+internal_name: 86
+name: Belt
+icon: 257
+
+internal_name: 87
+name: Robe
+icon: 485
+
+internal_name: 88
+name: Boots
+icon: 84
+
+internal_name: 89
+name: Curio
+icon: 297
+
+internal_name: 90
+name: Necklace
+icon: 392
+
+internal_name: 91
+name: Elven Chain Mail
+icon: 112
+
+internal_name: 92
+name: Wizardry Ring
+icon: 474
+
+internal_name: 93
+name: Hornets Nest Dart
+icon: 161
+
+internal_name: 94
+name: Staff Sling
+icon: 574
+
+internal_name: 95
+name: Misc Magic
 icon: 231
 
-internal_name: Jewel
-name: Jewel (Curse)
-icon: 231
+internal_name: 96
+name: Mirror
+icon: 384
 
-internal_name: Jewelry
-name: Jewelry (Curse)
-icon: 391
-
-internal_name: Diamond
-name: Diamond (Curse)
-icon: 231
-
-internal_name: Emerald
-name: Emerald (Curse)
-icon: 231
-
-internal_name: Opal
-name: Opal (Curse)
-icon: 231
-
-internal_name: Saphire
-name: Saphire (Curse)
-icon: 231
-
-internal_name: Pearl
-name: Pearl (Curse)
-icon: 231
-
-internal_name: Crystal
-name: Crystal (Curse)
-icon: 231
-
-internal_name: Chime
-name: Chime (Curse)
+internal_name: 97
+name: Canary
 icon: -1
 
-internal_name: Cube
-name: Cube (Curse)
-icon: -1
+internal_name: 98
+name: Cloak Protection
+icon: 127
 
-internal_name: Drums
-name: Drums (Curse)
-icon: -1
+internal_name: 99
+name: Vorpal Long Sword
+icon: 729
 
-internal_name: Horn
-name: Horn (Curse)
-icon: -1
-
-internal_name: Pipes
-name: Pipes (Curse)
-icon: -1
-
-internal_name: Rope
-name: Rope (Curse)
-icon: -1
-
-internal_name: 10 ft. Pole
-name: 10 ft. Pole (Curse)
-icon: -1
-
-internal_name: Spade
-name: Spade (Curse)
-icon: -1
-
-internal_name: Lantern
-name: Lantern (Curse)
-icon: -1
-
-internal_name: Thf Prickly Tools
-name: Thf Prickly Tools (Curse)
-icon: -1
-
-internal_name: Iron Rations
-name: Iron Rations (Curse)
-icon: -1
-
-internal_name: Standard Rations
-name: Standard Rations (Curse)
-icon: -1
-
-internal_name: Barding
-name: Barding (Curse)
-icon: -1
-
-internal_name: Wagon
-name: Wagon (Curse)
-icon: -1
-
-internal_name: Torches
-name: Torches (Curse)
-icon: -1
-
-internal_name: Ioun Stone
-name: Ioun Stone (Curse)
-icon: -1
+internal_name: 100
+name: Blessed Bolt
+icon: 41

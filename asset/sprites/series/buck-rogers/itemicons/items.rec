@@ -1,5 +1,5 @@
 # Buck Rogers series (BR1 and BR2) item icons, 64x64 cells, 24 a row: 3 variants per item
-# side by side; icon is the chosen one. Edit with ../../remap_items.sh
+# side by side; icon is the chosen one. Edit with: scripts/remap_items.sh buck-rogers (from the repo root)
 
 internal_name: Knife
 name: Knife

@@ -88,4 +88,21 @@ const (
 	ItemIDDrowMace          rules.ItemID = 81
 	ItemIDDrowChainMail     rules.ItemID = 82
 	ItemIDDrowLongSword     rules.ItemID = 83
+	ItemIDProtectionScroll  rules.ItemID = 84
+	ItemIDHelm              rules.ItemID = 85
+	ItemIDBelt              rules.ItemID = 86
+	ItemIDRobe              rules.ItemID = 87
+	ItemIDBoots             rules.ItemID = 88
+	ItemIDCurio             rules.ItemID = 89
+	ItemIDNecklace          rules.ItemID = 90
+	ItemIDElvenChainMail    rules.ItemID = 91
+	ItemIDWizardryRing      rules.ItemID = 92
+	ItemIDHornetsNestDart   rules.ItemID = 93
+	ItemIDStaffSling        rules.ItemID = 94
+	ItemIDMiscMagic         rules.ItemID = 95
+	ItemIDMirror            rules.ItemID = 96
+	ItemIDCanary            rules.ItemID = 97
+	ItemIDCloakProtection   rules.ItemID = 98
+	ItemIDVorpalLongSword   rules.ItemID = 99
+	ItemIDBlessedBolt       rules.ItemID = 100
 )

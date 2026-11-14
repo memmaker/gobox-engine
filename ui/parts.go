@@ -48,6 +48,7 @@ type InvItem struct {
 	Item    rules.ItemHandle // names it (Action.Item)
 	Name    string           // as the list shows it
 	Type    byte             // base item type
+	Base    rules.ItemID     // its base kind: picks the icon
 	Words   []string         // the item's name words, known or not (for its icon)
 	Count   int
 	Readied bool     // it is readied (shown with readiedMark)

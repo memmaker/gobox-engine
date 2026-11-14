@@ -128,5 +128,5 @@ func gameWeapon(w *rules.ItemCard) *game.Weapon {
 	if w == nil {
 		return nil
 	}
-	return &game.Weapon{Name: w.Name, Type: int(w.Type), Words: w.Words, Look: w.Look, Rules: w.Rules}
+	return &game.Weapon{Name: w.Name, Type: int(w.Type), Base: w.Kind, Words: w.Words, Look: w.Look, Rules: w.Rules}
 }

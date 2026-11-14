@@ -431,6 +431,7 @@ type Item struct {
 	Readied, Identified, Cursed bool
 	Charges, Price, Weight      int
 	Type                        int            // item type id (picks the icon)
+	Base                        rules.ItemID   // its base kind (picks the icon; 0 none)
 	Kind                        string         // "weapon", "armor", "ring", ...
 	Count                       int            // stack size, 0 or 1 for one
 	Slot                        string         // readied in: weapon, shield, armor, helm, belt, robe, cloak, boots, gauntlets, ring, ring2, arrows, bolts; "" none
@@ -615,6 +616,7 @@ type Unit struct {
 type Weapon struct {
 	Name        string
 	Type        int
+	Base        rules.ItemID // its base kind (picks the icon)
 	Words       []string
 	Look, Rules []string // what it is, how it attacks
 }

@@ -266,7 +266,7 @@ func weapon(w *game.Weapon) *InvItem {
 	if w == nil {
 		return nil
 	}
-	return &InvItem{Name: w.Name, Type: byte(w.Type), Words: w.Words, Look: w.Look, Rules: w.Rules}
+	return &InvItem{Name: w.Name, Type: byte(w.Type), Base: w.Base, Words: w.Words, Look: w.Look, Rules: w.Rules}
 }
 
 // figureOf is the picture unit g shows, and its size in the original's

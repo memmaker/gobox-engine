@@ -5,6 +5,7 @@ package ui
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
@@ -101,7 +102,7 @@ func (inv *inventory) drawPane(pn *pane, items []game.Item, sel rules.ItemHandle
 		case inv.hover.In(r) && !busy: // the row under the pointer: the selection's ink as an outline, never a second selection
 			selectOutline(r, 1, func(r image.Rectangle, _ color.RGBA) { inv.fill(r, col(inkBlue)) })
 		}
-		inv.drawIcon(it.Name, it.Words, image.Rect(x0, y, x0+rowH, y+rowH))
+		inv.drawIcon(it.Base, image.Rect(x0, y, x0+rowH, y+rowH))
 		tc := green
 		if it.Wrong {
 			tc = red
@@ -164,11 +165,13 @@ func decodePNG(b []byte) image.Image {
 	return im
 }
 
-// readIcons parses items.rec: records of "field: value" lines between
-// blank lines, comments starting with #.
-func readIcons(rec string) map[string]int {
-	m := map[string]int{}
-	name := ""
+// readIcons parses items.rec (remapper's classic format): records of
+// "field: value" lines between blank lines, comments starting with #;
+// internal_name is the rules.ItemID, icon its atlas cell (name, the
+// remapper's label, is not read).
+func readIcons(rec string) (map[rules.ItemID]int, error) {
+	m := map[rules.ItemID]int{}
+	id := rules.ItemID(0)
 	s := bufio.NewScanner(strings.NewReader(rec))
 	for s.Scan() {
 		k, v, ok := strings.Cut(s.Text(), ":")
@@ -176,45 +179,52 @@ func readIcons(rec string) map[string]int {
 		switch {
 		case !ok || strings.HasPrefix(k, "#"):
 		case k == "internal_name":
-			name = strings.ToLower(v)
-		case k == "icon":
-			if n, err := strconv.Atoi(v); err == nil && name != "" {
-				m[name] = n
+			n, err := strconv.Atoi(v)
+			if err != nil {
+				return nil, fmt.Errorf("items.rec: internal_name %q: %w", v, err)
 			}
+			id = rules.ItemID(n)
+		case k == "icon":
+			n, err := strconv.Atoi(v)
+			if err != nil {
+				return nil, fmt.Errorf("items.rec: item %d icon %q: %w", id, v, err)
+			}
+			if _, dup := m[id]; dup {
+				return nil, fmt.Errorf("items.rec: item %d twice", id)
+			}
+			m[id] = n
 		}
 	}
-	return m
+	return m, s.Err()
 }
 
 func (inv *inventory) load() {
 	if inv.doll != nil {
 		return
 	}
-	atlas, rec := asset.ItemIcons(series)
+	atlas, rec, err := asset.ItemIcons(series)
+	if err != nil {
+		panic(err) // the series' icons are embedded: a missing or broken sheet is a build bug
+	}
 	inv.doll, inv.atlas = decodePNG(dollPNG), decodePNG(atlas)
-	inv.icons = readIcons(rec)
+	if inv.icons, err = readIcons(rec); err != nil {
+		panic(err)
+	}
 }
 
-// icon is the atlas cell of an item: the longest items.rec name its name
-// (or one of its words) contains, ignoring case; -1 for none. Of two as
-// long, the later in the name (the noun: a Staff Sling is a sling).
-func (inv *inventory) icon(itemName string, words []string) int {
-	name := strings.ToLower(itemName + "\n" + strings.Join(words, " "))
-	n, best, at, bk := -1, 0, -1, ""
-	for k, c := range inv.icons { // the longest; of two as long the later in the name (a Staff Sling is a sling), then the first in order: never the map's order
-		i := strings.LastIndex(name, k)
-		if i >= 0 && (len(k) > best || len(k) == best && (i > at || i == at && k < bk)) {
-			n, best, at, bk = c, len(k), i, k
-		}
+// icon is the atlas cell of an item of base kind k; -1 for none.
+func (inv *inventory) icon(k rules.ItemID) int {
+	if n, ok := inv.icons[k]; ok {
+		return n
 	}
-	return n
+	return -1
 }
 
 // iconImage is the item's atlas cell (nil: none), at the atlas's size:
 // a cell is the atlas's width / atlasCols, whatever the series draws.
-func (inv *inventory) iconImage(name string, words []string) image.Image {
+func (inv *inventory) iconImage(k rules.ItemID) image.Image {
 	inv.load()
-	n := inv.icon(name, words)
+	n := inv.icon(k)
 	if n < 0 || inv.atlas == nil {
 		return nil
 	}
@@ -226,8 +236,8 @@ func (inv *inventory) iconImage(name string, words []string) image.Image {
 }
 
 // drawIcon draws the item's atlas cell scaled to iconSlot, in the middle of r (cut to r).
-func (inv *inventory) drawIcon(name string, words []string, r image.Rectangle) {
-	ic := inv.iconImage(name, words)
+func (inv *inventory) drawIcon(k rules.ItemID, r image.Rectangle) {
+	ic := inv.iconImage(k)
 	if ic == nil {
 		inv.text("?", r.Min.X+r.Dx()/2-4, r.Min.Y+r.Dy()/2-4, gray)
 		return

@@ -92,9 +92,11 @@ func Pose(series, name string) string {
 }
 
 // ItemIcons is a series' item icon sheet (itemicons/atlas.png) and its
-// records (itemicons/items.rec: item name -> cell), one for every game of the series.
-func ItemIcons(series string) (atlas []byte, rec string) {
-	atlas, _ = fsys.ReadFile("sprites/series/" + series + "/itemicons/atlas.png")
-	b, _ := fsys.ReadFile("sprites/series/" + series + "/itemicons/items.rec")
-	return atlas, string(b)
+// records (itemicons/items.rec: base item kind -> cell), one for every game of the series.
+func ItemIcons(series string) (atlas []byte, rec string, err error) {
+	if atlas, err = fsys.ReadFile("sprites/series/" + series + "/itemicons/atlas.png"); err != nil {
+		return nil, "", err
+	}
+	b, err := fsys.ReadFile("sprites/series/" + series + "/itemicons/items.rec")
+	return atlas, string(b), err
 }

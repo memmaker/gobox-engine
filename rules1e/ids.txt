@@ -233,3 +233,22 @@ item 0x5D ProtectionRing
 item 0x5E DrowMace
 item 0x60 DrowChainMail
 item 0x61 DrowLongSword
+# the base types no dnd id named yet (2026-11-14): POR's and cotab's by their number (cotab numbers as POR),
+# named after the items of that type in the games' ITEM blocks; then SotSB's and PoD's (rules.json itemKinds)
+item 0x3C ProtectionScroll
+item 0x40 Helm
+item 0x41 Belt
+item 0x42 Robe
+item 0x44 Boots
+item 0x48 Curio
+item 0x4C Necklace
+item 0x5F ElvenChainMail
+item 0x63 WizardryRing
+item 0x64 HornetsNestDart
+item 0x65 StaffSling
+item - MiscMagic
+item - Mirror
+item - Canary
+item - CloakProtection
+item - VorpalLongSword
+item - BlessedBolt

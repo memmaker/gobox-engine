@@ -138,6 +138,7 @@ type ItemCard struct {
 	Rules               []string   // extra: how it attacks in combat (the bar's tooltip), set on the Turn's Weapon and Missile
 	Name                string
 	Type, Count, Price  int32
+	Kind                ItemID // its base kind, the game's item type through its kind table (0: none): picks the icon
 	Weight              int32
 	Readied, Identified bool
 	Usable              bool // it has a Use

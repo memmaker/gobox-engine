@@ -297,7 +297,7 @@ func (e *Engine) itemsState(id rules.CharID) []game.Item {
 // tells of it, whether it is used, and its real name while unidentified.
 func gameItem(h rules.ItemHandle, card rules.ItemCard) game.Item {
 	return game.Item{Handle: h, Name: card.Name, Readied: card.Readied, Identified: card.Identified, Price: int(card.Price), Weight: int(card.Weight),
-		Type: int(card.Type), Count: int(card.Count), Text: strings.Join(card.Look, "\n"), Usable: card.Usable,
+		Type: int(card.Type), Base: card.Kind, Count: int(card.Count), Text: strings.Join(card.Look, "\n"), Usable: card.Usable,
 		Kind: card.Tab, Slot: card.Slot, Words: card.Words, Hidden: card.Hidden}
 }
 
