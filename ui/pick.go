@@ -60,16 +60,23 @@ func Picker(k *game.Picker, cells image.Point, page, cols, rows int) *FrontPicke
 	page = min(max(page, 0), pages-1)
 	v := &FrontPicker{N: n, Page: page, Pages: pages, PerPage: per, Cols: nc, Cur: cur, Bottom: bot, Labels: k.Labels, Ask: k.Ask,
 		Classes: k.Classes}
-	for _, b := range k.Portraits {
-		v.Portraits = append(v.Portraits, ownPNG(b))
-	}
 	if len(k.Labels) > 0 {
 		v.Title = "Saved Characters"
-	}
-	if len(k.Labels) > 0 && len(k.Portraits) == 0 { // the game shows no faces: gobox's default by name, as a member without one
 		v.Portraits = make([]image.Image, len(k.Labels))
-		for i, l := range k.Labels {
-			v.Portraits[i] = poolPicture("portraits", poolPickName(game.Member{Name: l}, "portraits", "head_"))
+	}
+	for i, l := range k.Labels { // a roster's faces: the dropped PNG, else the pool head picked, else gobox's default, as a member without one
+		switch {
+		case i < len(k.Portraits) && k.Portraits[i] != nil:
+			v.Portraits[i] = ownPNG(k.Portraits[i])
+		case i < len(k.Heads) && k.Heads[i] != "":
+			v.Portraits[i] = poolPicture("portraits", k.Heads[i])
+		}
+		if v.Portraits[i] == nil {
+			m := game.Member{Name: l}
+			if i < len(k.Classes) {
+				m.Class = k.Classes[i]
+			}
+			v.Portraits[i] = poolPicture("portraits", defaultPortrait(m).PortraitHeadID)
 		}
 	}
 	first := page * per

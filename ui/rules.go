@@ -950,6 +950,9 @@ func (r *frontState) answer(ps game.State, d game.Reply, at image.Point) game.Re
 		return r.do(game.Reply{N: d.N, Text: d.Text})
 	}
 	if a, ok := ps.(game.Assembling); ok && a.Draft != nil && a.Draft.Ask != nil {
+		if a.Draft.Step == "" { // a question over the sheet, no step of the draft (Keep's name): its Reply
+			return r.do(game.Reply{N: d.N, Text: d.Text})
+		}
 		return r.do(game.SetChoice{Field: a.Draft.Step, N: d.N, Text: d.Text})
 	}
 	if _, ok := ps.(game.ShipFight); ok {

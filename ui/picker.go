@@ -108,7 +108,10 @@ func IconAct(h RuleHost, icon **IconUI, a Action) bool {
 			return false
 		}
 		h.Edit(func(e *classicGame) {
-			e.EditIcon(a.N)
+			if err := e.EditIcon(a.N); err != nil { // no editor came up: none to show
+				refused(e, err)
+				return
+			}
 			*icon = &IconUI{}
 		})
 		return true

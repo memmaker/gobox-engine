@@ -212,9 +212,19 @@ func (e *Engine) creationEdit(edit func(cr *creation) error) error {
 	if cr == nil {
 		return nil
 	}
+	ed := e.iconEd
+	if ed != nil && ed.who != cr.c {
+		ed = nil
+	}
+	if ed != nil { // the icon designed is the draft's: the edit keeps its colours and size so far
+		cr.d.D.Icon = e.fact(cr.c, rules.DraftIconFact{}).(rules.Icon)
+	}
 	err := edit(cr)
 	c := e.sheetDraft(cr.d.D)
 	e.creationReplaced(cr, c)
+	if ed != nil { // the designer follows the draft's fresh character
+		ed.who = c
+	}
 	cr.c = c
 	e.creationSheet(c)
 	return err

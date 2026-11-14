@@ -31,10 +31,9 @@ var poolPrefix = map[string]string{"portraithead": "head_", "portraitbody": "bod
 
 func (g classicGame) OpenPicker(kind int) bool {
 	g.p.pool = nil
-	ok := g.Game.OpenPicker(kind)
 	pp, has := poolPicks[kind]
-	if !has { // the game's own pictures; a portrait or icon part comes from the shared pool, whatever the game offers
-		return ok
+	if !has { // the game's own pictures; a portrait or icon part comes from the shared pool, the game is not asked
+		return g.Game.OpenPicker(kind)
 	}
 	if names, _ := BodyTiles(g.Game.Subject()); kind == PickWeapon && len(names) > 0 {
 		pp.names, pp.tiles = names, true
@@ -43,7 +42,7 @@ func (g classicGame) OpenPicker(kind int) bool {
 	}
 	pp.list()
 	if len(pp.names) == 0 {
-		return ok
+		return g.Game.OpenPicker(kind)
 	}
 	g.p.pool = &pp
 	return true
@@ -93,11 +92,13 @@ func (g classicGame) Pick(i int) bool {
 		return false
 	}
 	g.p.pool = nil
-	g.Game.ClosePicker()
 	return true
 }
 
 func (g classicGame) ClosePicker() {
-	g.p.pool = nil
+	if g.p.pool != nil { // gobox's own: the game has none up
+		g.p.pool = nil
+		return
+	}
 	g.Game.ClosePicker()
 }

@@ -81,13 +81,17 @@ func (e *Engine) BuildCharList() []string {
 		return nil
 	}
 	defer f.Close()
-	var list []string
+	var list, raw []string
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		name := strings.TrimRight(sc.Text(), "\r")
 		if len(name) > 40 {
 			name = name[:40]
 		}
+		if slices.Contains(raw, name) { // a name is one roster character (its .cha): listed once
+			continue
+		}
+		raw = append(raw, name)
 		for _, id := range e.partyIDs() {
 			if e.ruleset().Sheet(id).Name == name {
 				name = "* " + name
@@ -126,7 +130,10 @@ func (e *Engine) SaveCharacter(cID rules.CharID, name string) error {
 	var base, ext string
 	var listFailed error
 	if name == "" {
-		list := append(e.BuildCharList(), e.ruleset().Sheet(cID).Name)
+		list := e.BuildCharList()
+		if n := e.ruleset().Sheet(cID).Name; !slices.Contains(list, n) { // saved over its own .cha: listed already
+			list = append(list, n)
+		}
 		listFailed = e.WriteCharList(list)
 		if rules1e.ReadPoolIDs(e.exportFiles(cID, false).Record).Roster == rules.NoRoster {
 			id, err := e.newRosterID()

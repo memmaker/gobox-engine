@@ -30,6 +30,9 @@ func (p *Presenter) pageKey() string {
 	if f := p.fullMap; f != nil {
 		return p.Screens() + fmt.Sprint(f.cursor)
 	}
+	if pk := p.gridPick; pk != nil { // its page is the presenter's own: no State changes when it turns
+		return p.Screens() + fmt.Sprint(pk.Page)
+	}
 	return p.Screens()
 }
 

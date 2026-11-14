@@ -348,6 +348,9 @@ func (e *Engine) allowed(st game.State, mode game.Mode, pending *game.Question, 
 				break
 			}
 			add(game.Reroll{}, game.KeepCharacter{}, game.DiscardCharacter{}, game.Rename{}) // Rename: the sheet's name, any typed (allows)
+			if e.iconEd == nil {
+				add(game.EditIcon{Member: -1}) // the draft's combat icon
+			}
 			for _, f := range as.Draft.Fields {
 				for j := range f.Options {
 					add(game.SetChoice{Field: f.Name, N: j})

@@ -458,9 +458,9 @@ func (g *Game) SetChoice(field, id string) error {
 	_, err := g.r.g.Do(game.SetChoice{Field: field, Text: id})
 	return err
 }
-func (g *Game) ClosePicker()   { g.r.tiles = false; g.do(game.ClosePicker{}) }
-func (g *Game) EditIcon(n int) { g.do(game.EditIcon{Member: n}) }
-func (g *Game) IconSize()      { g.do(game.IconSize{}) }
+func (g *Game) ClosePicker()         { g.r.tiles = false; g.do(game.ClosePicker{}) }
+func (g *Game) EditIcon(n int) error { return g.do(game.EditIcon{Member: n}) }
+func (g *Game) IconSize()            { g.do(game.IconSize{}) }
 func (g *Game) IconColour(part, shade, v int) {
 	g.do(game.IconColour{Part: part, Shade: shade, Value: v})
 }

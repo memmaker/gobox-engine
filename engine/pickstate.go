@@ -30,11 +30,11 @@ func (e *Engine) pickState() (pk *game.Picker, ed *game.IconEditor) {
 func (e *Engine) pickerState(p *picker) *game.Picker {
 	k := &game.Picker{Labels: slices.Clone(p.labels), Ask: p.ask}
 	for _, id := range p.chars {
-		cl, im := "", []byte(nil)
+		cl, im, head := "", []byte(nil), ""
 		if pt, ok := e.portrait(id); ok {
-			cl, im = e.word(id, rules.FactClasses), pt.PNG
+			cl, im, head = e.word(id, rules.FactClasses), pt.PNG, string(e.poolPics(id).PortraitHead)
 		}
-		k.Classes, k.Portraits = append(k.Classes, cl), append(k.Portraits, im)
+		k.Classes, k.Portraits, k.Heads = append(k.Classes, cl), append(k.Portraits, im), append(k.Heads, head)
 	}
 	for i := range p.n {
 		var g game.Picture

@@ -20,7 +20,7 @@ var iconPartRows = [6]int{1, 2, 3, 4, 6, 7}
 
 // poolIcon is the combat icon of pool head and body names in pose (0 ready,
 // 1 action), mirrored when flip: the body with the head OR'd over it by
-// palette index (a transparent pixel takes the other's), the six parts
+// palette index among the sixteen colours, laid over it past them (a transparent pixel takes the other's), the six parts
 // recoloured by colours (low nibble the low colour, high nibble the high one;
 // fewer than six: as drawn; VGA art the same, by index). EGA art comes back as indices (Palette nil),
 // other art as indices into its own Palette. ok is false when a picture is missing.
@@ -87,8 +87,10 @@ func composeIcon(head, body string, colours []byte, pose int, flip bool) (pic Pi
 		case i >= len(d) || clear(h, v):
 		case clear(b, d[i]):
 			d[i] = v
-		default:
+		case v < 16 && d[i] < 16: // the sixteen colours' bit planes
 			d[i] |= v
+		default: // another palette's colours are no bit planes (OR'd they leave the palette): the head's pixel shows
+			d[i] = v
 		}
 	}
 	to := [16]uint8{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}

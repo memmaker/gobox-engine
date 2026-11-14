@@ -333,6 +333,7 @@ type Picker struct {
 	Labels    []string  // the pictures' names (saved characters)
 	Classes   []string  // ... their classes ("": the files are gone)
 	Portraits [][]byte  // ... their PNG portraits' bytes (nil: none; the DAX head is among Pics)
+	Heads     []string  // ... their pool portrait heads ("": none picked)
 	Ask       string    // the question before a pick (%s: the label), "" none
 }
 

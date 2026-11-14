@@ -75,6 +75,7 @@ func (p *Presenter) laid() *laidPage {
 		if cr != nil {
 			own := p.eng.Subject()
 			l.pictures = withPoolIcon(withPoolPortrait(l.pictures, cr, own), cr, own, p.eng.r.sheetPageOf(s, p.party()))
+			l.pictures = indexedPictures(l.pictures, k.ink) // the pool icon comes as pixels
 		}
 		if l.blinks != "" && (old == nil || old.blinks != l.blinks) {
 			p.blinkAt = now()
