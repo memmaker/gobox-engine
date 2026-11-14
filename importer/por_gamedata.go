@@ -12,8 +12,8 @@ import (
 // data/gamedata.json: the series, the game id and the spell tips (SpellRules by spell id).
 func porGameData() game.Data {
 	d := game.Data{Series: "pool", ID: "por", SpellRules: map[int]string{}}
-	d.VerbChords = map[string]string{"Manual": "space", "Magic": "alt+m"}  // the computer turn's poll (ovr10:0FC1): Space takes the party back, Alt-M switches its casting
-	d.VerbOrder = []string{"Move", "Use", "Cast", "Turn", "Quick", "Done"} // combatMenu's bar (ovr09:069E-07D4) less View and Aim (Felix 2026-11-13)
+	d.VerbChords = map[string]string{"Manual": "space", "Magic": "alt+m"} // the computer turn's poll (ovr10:0FC1): Space takes the party back, Alt-M switches its casting
+	// No VerbOrder: the bar keeps gobox's menu order (Move Attack Ranged Guard Cast Items Maneuver Turn Bandage Wait Quick Flee End), the one POR ran with before 11-06 (e88a7404 added VerbOrder).
 	// Quick Start: two fighters in front, two clerics, two magic-users (Sleep is
 	// the spell that wins the early fights) and a thief for locks and traps.
 	d.QuickParty = []game.QuickPick{
