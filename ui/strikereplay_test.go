@@ -66,3 +66,20 @@ func TestBlowShowsAtOnce(t *testing.T) {
 		t.Errorf("unit 2's hit points over the moments %v, want [4 1 0 -1]", got)
 	}
 }
+
+// TestReplayNoTurn: the moments a step plays are nobody's turn: the turn
+// that was up is gone from their boards (no bar, no portrait card).
+func TestReplayNoTurn(t *testing.T) {
+	r := newEnd(game.Attacked{From: 1, To: 2})
+	f := r.st.(game.Fighting)
+	f.Field.Turn = 1
+	r.st = f
+	g := NewGame(r, game.Data{})
+	g.Settle()
+	g.Answer(Action{Kind: ActQuick})
+	for _, e := range settled(g) {
+		if e.Board != nil && e.Board.Turn != nil {
+			t.Fatalf("moment %v shows a turn: %+v", e.Kind, e.Board.Turn)
+		}
+	}
+}

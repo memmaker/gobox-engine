@@ -171,6 +171,7 @@ func (g *Game) Settle() []Moment {
 	if g.lastCombat != nil { // the events play from the board before the step, each on the board the ones before it left (one step is many turns: the dead stand until they fall, a walk starts where it starts); a fight they ended: the page after them
 		c := *g.lastCombat
 		c.Units, c.Squares = slices.Clone(c.Units), slices.Clone(c.Squares)
+		c.Turn = nil // the turn that was up is over: no bar, no card while what followed plays
 		g.ended = &c
 		posed = g.stepBoard
 	}
@@ -335,6 +336,7 @@ func (g *Game) posedBoard(e game.Report) (*game.Combat, []game.Member) {
 	}
 	c := *now
 	c.Units, c.Squares = slices.Clone(c.Units), slices.Clone(c.Squares)
+	c.Turn = nil // a moment played is nobody's turn: no bar, no card
 	for k := range c.Units {
 		if c.Units[k].ID == e.Unit {
 			c.Units[k].Pose = e.Pose
