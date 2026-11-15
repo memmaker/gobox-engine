@@ -245,7 +245,13 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
     engine with `gobox/rulesxxvc`, the BR engine as the oracle (the same inputs to both, the
     states compared). Slice 1 the opening; then walking and a new block; a fight; shop and loot;
     the team menu and creation; the overland and the rocket; the space fight.
-    - [ ] B1f0 RULING NEEDED (Felix): who owns the world words (see the session's question)
+    - [ ] B1f0 the world words are the engine's (RULING, Felix, 2026-11-15): the 57 `rules.Word*`
+      (where the party is, 3D or overland, clock, search, encounter distance, ...) leave the
+      1e ruleset's records; the engine keeps one store and hands a ruleset the values a fight,
+      a rest or a check needs; `WordIs`/`SetWord` go. Not: a store each ruleset embeds.
+      - [ ] B1f0a inventory: per word who writes it (engine, script, rules), who reads it, stored
+        or computed, saved where; the 1e rules' own reads and writes
+      - [ ] B1f0b..: per the inventory
     - [ ] B1f1 slice 1, the opening: the import's engine files and the full layout for the shared
       engine; a builder for `rulesxxvc` with its tables; the start-up actions; the words;
       a roster from the imported characters; the facts the state build asks; the op AreaKind and
