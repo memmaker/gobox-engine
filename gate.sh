@@ -17,9 +17,9 @@ games=()
 for mod in "$projects"/*/go.mod; do
   repo="$(basename "$(dirname "$mod")")"
   case "$repo" in rulesxxvc|gobox-engine) continue ;; esac
-  grep -q 'gobox-engine/' "$mod" && games+=("$repo")
+  grep -q '\.\./gobox-engine' "$mod" && games+=("$repo") # replace gobox => ../gobox-engine
 done
-for repo in rulesxxvc gobox-engine "${games[@]}"; do
+for repo in rulesxxvc gobox-engine ${games[@]+"${games[@]}"}; do # no game: an empty list, not an unbound one (bash 3.2)
   mkdir "$out/$repo"
   tree="$(git -C "$projects/$repo" write-tree)"
   git -C "$projects/$repo" archive "$tree" | tar -x -C "$out/$repo"
@@ -41,7 +41,7 @@ link_data() {
     [ -e "$out/$1/data/$(basename "$d")" ] || ln -s "$d" "$out/$1/data/"
   done
 }
-for repo in "${games[@]}"; do link_data "$repo"; done
+for repo in ${games[@]+"${games[@]}"}; do link_data "$repo"; done
 for d in "$projects"/gobox-engine/data/*/; do
   g="$(basename "$d")"; mkdir -p "$out/gobox-engine/data/$g"
   for e in "$d"*; do [ -e "$out/gobox-engine/data/$g/$(basename "$e")" ] || ln -s "$e" "$out/gobox-engine/data/$g/"; done
@@ -95,7 +95,7 @@ fixed='Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
 (cd "$out/gobox-engine" && go run ./games/por/cmd/importstale)
 check gobox-engine/engine . -run "$fixed"
 (cd "$out/gobox-engine/engine" && go test . -run "$slow")
-check gobox-engine/games/por ./rules4e -run "$fixed"
+check gobox-engine/rules4e . -run "$fixed"
 test_touched gobox-engine
 
 # Other games build against gobox-engine outside core, from what is staged in them (their HEAD when nothing is).
@@ -103,7 +103,7 @@ if [ -n "${GATE_ALL:-}" ] || git -C "$projects/gobox-engine" diff --cached --nam
   # The games, rules and the rest are packages of the one gobox module.
   echo "== gobox-engine (all packages)"
   (cd "$out/gobox-engine" && go build ./... && go vet ./...)
-  for repo in "${games[@]}"; do
+  for repo in ${games[@]+"${games[@]}"}; do
     echo "== $repo"
     t=$SECONDS
     (cd "$out/$repo" && go build ./... && go vet ./...)

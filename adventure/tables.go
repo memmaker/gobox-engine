@@ -109,7 +109,7 @@ type TileFrom int
 const (
 	TileBlockFixed   TileFrom = iota // TileLoad.Block
 	TileBlockWalls                   // the low byte of the loaded wall set's id (pod's DungCom)
-	TileBlockAreaSet                 // the area's tile set when 1 or 2, else 0 (pod's WildCom)
+	TileBlockAreaSet                 // the area's symbol set when 1 or 2, else 0 (pod's WildCom, by its tileSet)
 )
 
 // Files are every file a names (TestArtNamesImported).

@@ -38,7 +38,7 @@ func TilePicker(own game.Member, page, cols, rows int) *FrontPicker {
 	k := &game.Picker{Pics: make([]game.Picture, len(names))}
 	for i, n := range names {
 		p := game.Picture{File: "CBODY", Block: blocks[i], Clear: -1, W: 24, H: 24} // a 3 by 3 cell tile
-		if pic, ok := poolIcon(head, n, m.IconColors, 0, false); ok { // EGA indices, or the Amiga's into its own palette
+		if pic, ok := poolIcon(head, n, m.IconColors, 0, false); ok {               // EGA indices, or the Amiga's into its own palette
 			p.W, p.H, p.Pixels, p.Clear, p.Palette = pic.PixW, len(pic.Pix)/pic.PixW, pic.Pix, clearPix, pic.Palette
 		}
 		k.Pics[i] = p

@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"slices"
 	"testing"
 
 	"gobox/engine"
@@ -12,12 +13,9 @@ var devScenes = []string{"shop", "hall", "hallpoor", "temple", "appraise", "comb
 	"talljournal", "runes", "inventory", "lockeddoor", "dual", "camp", "resting", "sheet", "items", "usable", "paladin", "drop", "learn",
 	"loot", "lootdetect"}
 
-// sceneBroken are the dev scenes that panic before a frame is drawn, by
-// game/scene with the panic: open bugs of the scene or the game, not walked.
-var sceneBroken = map[string]string{
-	"pod/wildcombat": "rules keep no world word 58 (Engine.tileBlock reads rules.WordAreaScreen, POD's rules keep none)",
-	"pod/journal":    "no text entry TavernTale3 (the scene names a POR tale)",
-}
+// porScenes are the dev scenes that name POR's own data (a tavern tale):
+// no screen of the other games.
+var porScenes = []string{"journal"}
 
 // TestNoUnseenQuestion: in every dev scene of every Pool game imported
 // here, and on each screen Enter and then Esc lead to from it, a question
@@ -31,8 +29,7 @@ func TestNoUnseenQuestion(t *testing.T) {
 
 func noUnseenQuestion(t *testing.T, g string) {
 	for _, name := range devScenes {
-		if why := sceneBroken[g+"/"+name]; why != "" {
-			t.Logf("%s %s not walked: %s", g, name, why)
+		if g != "por" && slices.Contains(porScenes, name) {
 			continue
 		}
 		for _, key := range []uint16{13, 27} {

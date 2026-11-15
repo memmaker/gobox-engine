@@ -13,7 +13,7 @@ func TestBoundFieldsPOR(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := []string{fieldRemainder, fieldLastBlock, fieldPriceScale}; !slices.Equal(got, want) {
+	if want := []string{fieldRemainder, fieldLastBlock, fieldPriceScale, fieldVault}; !slices.Equal(got, want) {
 		t.Errorf("unbound %v, want %v", got, want)
 	}
 }

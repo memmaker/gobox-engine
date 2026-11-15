@@ -18,7 +18,7 @@ its own; else the generic question window). Drawing and answering both go by it.
       game's question is unseen (`Presenter.unseen`), in `Presenter.send`
 - [x] D: invariant test over every dev scene: no state with an unseen question
 - [x] C: `askOf` draws every question no screen claims (no mode whitelist)
-- [x] Full suites: ui, cmd/gobox pass after C; engine last run before B (B, D, C touch ui only). gate.sh not usable: "games[@]: unbound variable" (finds no game repo)
+- [x] Full suites: ui, cmd/gobox pass after C; engine last run before B (B, D, C touch ui only). gate.sh repaired later (passes)
 
 ## Round 2: close the gaps
 - [x] 1: Enter / "any key" (ActOK) never chooses: Game.Answer drops it on a yes/no or
@@ -30,8 +30,11 @@ its own; else the generic question window). Drawing and answering both go by it.
       TestNoUnseenQuestion walks por, cotab, sotsb, pod (ui, cmd/gobox suites pass)
 
 ## Open
-- pod dev scenes that panic before a frame, not walked (unseen_test.go sceneBroken):
-  wildcombat ("rules keep no world word 58", Engine.tileBlock), journal (POR's tale).
+- POD's scripted fights still crash, one step after the words fixed here:
+  Engine.addAreaMonsters sets status 9 (pod-re CharFightsAlone: ten reserve monsters,
+  out of play until a summoning gates them in), "rules1e: fact not held". The reserve
+  is not ported: status 9 at setup (combatst.pas:822), morale (cbtacts.pas:1326),
+  the summoning (magic.pas:2893), experience (postcbt.pas:97).
 - "Shown" is "this frame drew choices", not "drew this very question".
 - buckrogers (ShipFight) and other repos' games run no frame of these checks here.
 

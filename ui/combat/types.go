@@ -86,7 +86,7 @@ type Square struct {
 	Wall    bool
 	Height  int
 	Crown   bool // the top of a two-square thing: it stands on the square south's tile
-	Overlay int // Tiles[Overlay-1] lies flat over the square, under the units (0 none)
+	Overlay int  // Tiles[Overlay-1] lies flat over the square, under the units (0 none)
 }
 
 // Unit is one combatant on the map.

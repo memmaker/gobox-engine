@@ -612,11 +612,9 @@ func (e *Engine) opCombat() {
 // whose word is set (it clears the word); nil: none.
 func (e *Engine) noMonsterScreen() func() {
 	for _, s := range e.eclVersion.Behaviour.NoMonsterCombat {
-		w := combatScreenWords[s]
-		if e.worldWord(w) != 1 {
+		if !e.takeScreenRequest(s) {
 			continue
 		}
-		e.setWorldWord(w, 0)
 		switch s {
 		case ecl.CombatShop:
 			return e.Shop // ovr07:053E
@@ -631,14 +629,33 @@ func (e *Engine) noMonsterScreen() func() {
 	return nil
 }
 
-// combatScreenWords is the world word that asks for each screen.
-var combatScreenWords = map[ecl.CombatScreen]rules.WorldWord{
-	ecl.CombatShop: rules.WordShop, ecl.CombatTemple: rules.WordTemple, ecl.CombatVault: rules.WordVault}
+// combatScreenWords is the world word that asks for each screen; the
+// vault's is a field of the game's layout (fieldVault), the rules keep none.
+var combatScreenWords = map[ecl.CombatScreen]rules.WorldWord{ecl.CombatShop: rules.WordShop, ecl.CombatTemple: rules.WordTemple}
+
+// takeScreenRequest: a script asked for screen s (its word or field is 1);
+// the request is cleared, as the original's Combat does before opening it.
+func (e *Engine) takeScreenRequest(s ecl.CombatScreen) bool {
+	if s == ecl.CombatVault { // pod-re EclCombat: zone0.vaultRequest
+		r, ok := e.layoutField(fieldVault)
+		if !ok || e.host.Get(r) != 1 {
+			return false
+		}
+		e.host.Set(r, 0)
+		return true
+	}
+	w := combatScreenWords[s]
+	if e.worldWord(w) != 1 {
+		return false
+	}
+	e.setWorldWord(w, 0)
+	return true
+}
 
 // addAreaMonsters = pod O055:1740: the area screen's own monsters join the fight, standing aside.
 func (e *Engine) addAreaMonsters() {
 	t := e.game().AreaMonsters
-	m, ok := t.For(e.worldWord(rules.WordAreaScreen))
+	m, ok := t.For(e.worldWord(rules.WordSymbolSet)) // pod-re CharFightsAlone: mirrorMonId[zone0.tileSet], the layout's SymbolSet (a write of 4 is set 0: the table's entry 4 is entry 0's)
 	if !ok {
 		return
 	}
@@ -763,7 +780,7 @@ func init() {
 		ecl.OpLoadMap: (*Engine).opLoadFiles, ecl.OpPartySurprise: (*Engine).opPartySurprise, ecl.OpSurprise: (*Engine).opSurprise,
 		ecl.OpCombat: (*Engine).opCombat, ecl.OpGetTable: (*Engine).opGetTable, ecl.OpHMenu: (*Engine).opHMenu,
 		ecl.OpLoadWalls: (*Engine).opLoadFiles, ecl.OpLoadArea: (*Engine).opLoadArea,
-		ecl.OpQuest:     (*Engine).opQuest,                                                 // the port's (gobox ecl V1)
+		ecl.OpQuest:     (*Engine).opQuest,                                                   // the port's (gobox ecl V1)
 		ecl.OpCastKnock: (*Engine).opCastKnock, ecl.OpTavernGamble: (*Engine).opTavernGamble, // the port's (gobox ecl V1)
 		// ovr04 0x25..0x3D (eclops2_engine.go)
 		ecl.OpRob: (*Engine).opRob, ecl.OpEncounterMenu: (*Engine).opEncounterMenu, ecl.OpParlay: (*Engine).opParlay,

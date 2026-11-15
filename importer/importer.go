@@ -276,6 +276,13 @@ func Main(args []string) error {
 // files under b (names and bytes), nil when they hold the same: an
 // importer's equality test against the decode the game reads today.
 func SameTree(a, b string) error {
+	for _, root := range []*string{&a, &b} { // a tree given by a link is the tree it points to (WalkDir reads a linked root as a file)
+		r, err := filepath.EvalSymlinks(*root)
+		if err != nil {
+			return err
+		}
+		*root = r
+	}
 	want := map[string][]byte{}
 	err := filepath.WalkDir(b, func(p string, d os.DirEntry, err error) error {
 		if err != nil || d.IsDir() {

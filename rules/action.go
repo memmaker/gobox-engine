@@ -49,7 +49,7 @@ type (
 		Ranged bool // extra: with the Launcher or Missiles slot's weapon (the Ranged action), not the one in hand
 	}
 	Shoot struct{ Ats []BoardPos }
-	Cast struct {
+	Cast  struct {
 		Caster CharID
 		Spell  SpellID
 		Target CharID

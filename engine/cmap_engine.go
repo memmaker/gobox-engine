@@ -36,7 +36,7 @@ func (e *Engine) tileBlock(l adventure.TileLoad) int {
 	case adventure.TileBlockWalls:
 		return e.mapPairA[0] & 0xFF
 	case adventure.TileBlockAreaSet:
-		if s := e.worldWord(rules.WordAreaScreen); s == 1 || s == 2 {
+		if s := e.worldWord(rules.WordSymbolSet); s == 1 || s == 2 { // pod-re LoadCombatTileSet: zone0.tileSet, the layout's SymbolSet
 			return s
 		}
 		return 0
