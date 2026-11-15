@@ -217,6 +217,40 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
     first: every run deleted buckrogers-go's 46 tracked pictures (restored from git; the tests
     decode into a temp folder now). An agent's `git add -A` in a worktree then committed such
     a run; that commit was not landed. Detect: `git status` after a test run shows changes
+  - Survey for B1b4/B1e/B1f (2026-11-15, an agent's read; nothing run on the shared engine).
+    Target of the first slice: BR1's opening as buckrogers-go's TestOpening has it (a saved
+    character added, Begin, block 16's init: ten texts with pictures, a nine-step march to 5,6,
+    then three steps north with the officer and the heat). Its 25 commands: the shared engine
+    has an op for 24 (AreaKind is missing); by reading, about 14 do the same, 9 nearly, 2 not
+    (LoadWalls reads WALLDEF, BR has none; Delay always pauses, BR only when its speed is set).
+    Blockers in the order a start on data/br1 hits them:
+    1. the folder lacks what `engine.New` reads: gametables.json (dialect 4, first block 16, the
+       code's base and size, big pictures from 112, sounds, art, symbols), gamedata.json,
+       portraits.json, sound.json; the full layout is not what the import writes
+    2. no `rules.Builder` for `rulesxxvc`; its tables (tables.json) are not a `rules.Source`
+       table and nobody calls `Rules.Begin`; it has no `rules.CreationRules`, no `rules.FileFormat`
+    3. the engine's start-up actions (NewAdventure, LoadItemTable, InitRules, SetSeed) are not
+       ported in `rulesxxvc`: `e.do` panics
+    4. the world words: the engine reads and writes 57 through the ruleset (`WordIs`, `SetWord`);
+       `rulesxxvc` keeps none, and `worldWord` panics on the first
+    5. the state build asks PoolCap, PoolCount, PurseFact, BookFact, IsDay; joining asks JoinParty
+    Scale: the engine uses 55 Fact kinds, 49 Check kinds, 119 Action kinds, 57 words;
+    `rulesxxvc` answers about 13 facts, 0 of those checks, about 12 actions, 0 words. Sixteen
+    BR commands have no engine op (AreaKind 85 uses, Skill 34, Logbook 31, PickMember 28,
+    Nothing 19, Shop 15, SkillAll 13, NPCJoin 9, Stash 7, HasItem 7, WallDistance 5, TakeItem 5,
+    MenuCall 3, Duel 3, Damage6 2, SpaceFight 2). The entries and the chain of a new block are
+    the same in both engines (0 before a step, 1 after, 2 camp, 3 rest, 4 init); BR's move on the
+    overland and by rocket has no counterpart.
+  - Plan: vertical slices, each ending in one of the BR engine's own tests passing on the shared
+    engine with `gobox/rulesxxvc`, the BR engine as the oracle (the same inputs to both, the
+    states compared). Slice 1 the opening; then walking and a new block; a fight; shop and loot;
+    the team menu and creation; the overland and the rocket; the space fight.
+    - [ ] B1f0 RULING NEEDED (Felix): who owns the world words (see the session's question)
+    - [ ] B1f1 slice 1, the opening: the import's engine files and the full layout for the shared
+      engine; a builder for `rulesxxvc` with its tables; the start-up actions; the words;
+      a roster from the imported characters; the facts the state build asks; the op AreaKind and
+      BR's differences in Picture, LoadMap, LoadWalls, Delay, Sound as data of the dialect;
+      TestOpening's assertions as an engine test
   - [ ] B1e what only BR has, into `engine` (space fight, ships, skills, jetpack, throw), switched
     on by adventure data and the ruleset, never by game name; `ui` parts exist (spacefight.go,
     shipsheet.go)
