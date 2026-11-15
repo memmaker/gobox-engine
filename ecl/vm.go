@@ -90,6 +90,15 @@ type VM struct {
 	// Remainder is the field DIVIDE leaves its remainder in; the zero Ref:
 	// its dialect's DIVIDE keeps none.
 	Remainder Ref
+	// LoopCounter and LoopLimit are the fields FOR/NEXT count in (BR: Area
+	// cells 502, 503), set by the layout like Remainder; the zero Ref: the
+	// layout has none and FOR/NEXT stop the run. LoopAt is the command after
+	// the FOR (the one loop slot: a second FOR overwrites it).
+	LoopCounter, LoopLimit Ref
+	LoopAt                 uint16
+	// ReturnEndsScript: RETURN with no caller ends the script
+	// (SetVersion: the dialect's Behaviour); otherwise the host's Exit runs.
+	ReturnEndsScript bool
 	// Trace, if set, is called after each readArgs with the decoded operands.
 	Trace func(vm *VM, n int)
 
@@ -112,6 +121,7 @@ func (vm *VM) SetVersion(v *Version) {
 		}
 	}
 	vm.Args = v.Skip
+	vm.ReturnEndsScript = v.Behaviour.ReturnEndsScript
 }
 
 // Fetch starts the command at PC: Command, and its operands from the first.
@@ -214,13 +224,15 @@ func (vm *VM) Arg(k int, h Host) int64 {
 	switch vm.ArgType[k] {
 	case ArgByte:
 		return int64(byte(vm.ArgN[k]))
-	case ArgVar, ArgVarWord:
+	case ArgVar, ArgVarWord, ArgVarLong:
 		if vm.ArgRef[k] == (Ref{}) { // a label (ReadArgs resolves every variable to a field): its address
 			return int64(uint16(vm.ArgN[k]))
 		}
 		return h.Get(vm.ArgRef[k])
 	case ArgWord:
 		return int64(uint16(vm.ArgN[k]))
+	case ArgLong: // the decoder sign-extends the top byte (walk.go)
+		return int64(int32(vm.ArgN[k]))
 	}
 	// A text or text variable has no number. It cannot be asked for: in every
 	// shipped script of POR, COTAB, SotSB and POD a text operand stands only

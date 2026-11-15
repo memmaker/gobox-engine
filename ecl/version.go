@@ -61,6 +61,7 @@ const (
 // Behaviour is the per-dialect behaviour of the commands whose encoding or
 // effect differs between the games (one named behaviour each, decoded here).
 type Behaviour struct {
+	ReturnEndsScript  bool           // RETURN with no caller ends the script (BR's exitScript); otherwise the host's Exit hook runs and the script continues
 	SetupMonsterSides bool           // SetupMonster has a 4th operand, the sides (bits 0..3) the monsters come from, and an area outdoors is 2 squares away
 	InputTextOperand  bool           // InputString's first operand is the maximum length; otherwise the text window's width
 	SelectMemberDrop  bool           // SelectMember's bit 7 refreshes and may drop a dead member; otherwise the bit is only masked off
@@ -86,15 +87,17 @@ const (
 type CallFn int
 
 const (
-	CallNone        CallFn = iota
-	CallRedrawView         // redraw the view if the script changed it
-	CallStepForward        // the party steps one square ahead
-	CallWallAhead          // the wall the party faces into the wall variable
-	CallDuelWin            // the duel's winning setup
-	CallDuelLose           // the duel's losing setup
-	CallDuelSound          // the duel's sound, by the sound variable
-	CallPause              // a message pause (cotab, sotsb)
-	CallNextFrame          // the picture's next frame (pod)
+	CallNone             CallFn = iota
+	CallRedrawView              // redraw the view if the script changed it
+	CallStepForward             // the party steps one square ahead
+	CallWallAhead               // the wall the party faces into the wall variable
+	CallDuelWin                 // the duel's winning setup
+	CallDuelLose                // the duel's losing setup
+	CallDuelSound               // the duel's sound, by the sound variable
+	CallPause                   // a message pause (cotab, sotsb)
+	CallNextFrame               // the picture's next frame (pod)
+	CallSound                   // a sound (Buck Rogers: 45571)
+	CallPictureAnimation        // the picture's animation, the front's (Buck Rogers: 26627)
 )
 
 // skips makes a Skip table of the groups: operand count -> commands.
@@ -256,7 +259,20 @@ var V4 = func() *Version {
 	} {
 		set(&t, c.b, c.op, c.fixed, c.count)
 	}
-	return &Version{ID: 4, Base: 32768, Cmds: t}
+	// BR's skip() (buckrogers-go/rules/ecl.go, pO0B8_1BEB): the counts its
+	// table gives, not the commands' Fixed; every other command steps on by 0.
+	skip := skips(map[byte][]byte{
+		1: {1, 2, 10, 14, 17, 18, 32, 45, 50, 52, 54, 56, 57, 60, 67, 72, 75},
+		2: {3, 8, 9, 15, 16, 31, 65, 64, 29, 63, 69, 70, 76},
+		3: {4, 5, 6, 7, 11, 12, 33, 40, 42, 47, 48, 53, 55, 59, 34, 35},
+		4: {20}, 5: {46}, 6: {30, 73},
+	})
+	// opSpecial's addresses (buckrogers-go/rules/eclops.go): 11723 redraws the
+	// view, 49182 steps ahead, 49176 sets the wall ahead (V2's routines); 45571
+	// is the sound and 26627 the picture's animation, which V2 maps to
+	// CallDuelSound and CallPause: BR's own meaning, so named separately.
+	calls := map[uint16]CallFn{11723: CallRedrawView, 49182: CallStepForward, 49176: CallWallAhead, 45571: CallSound, 26627: CallPictureAnimation}
+	return &Version{ID: 4, Base: 32768, Cmds: t, Skip: skip, Calls: calls, Behaviour: Behaviour{ReturnEndsScript: true}}
 }()
 
 // Versions are the dialects by ID.

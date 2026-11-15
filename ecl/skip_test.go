@@ -18,6 +18,11 @@ func TestSkipCounts(t *testing.T) {
 		1: byteSet(append(counted, 52, 54, 66, 67, 68, 31, 12)...), // 12 SetupMonster: SkipEclCmd steps over 2 of its 3
 		2: v2,
 		3: v3,
+		// BR's skip() (buckrogers-go/rules/ecl.go): 12, 31, 52, 54, 59, 60 differ from
+		// Fixed, and the counted 21, 37, 38, 39, 43, 49 step over none
+		// of their operands. 59 and 60 stand for OpNothing (Fixed 0) in the
+		// command table, so skip's 3 and 1 are the original's.
+		4: byteSet(12, 31, 52, 54, 59, 60, 21, 37, 38, 39, 43, 49),
 	}
 	for id, ok := range known {
 		if ok == nil {

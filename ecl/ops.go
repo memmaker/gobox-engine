@@ -1,5 +1,7 @@
 package ecl
 
+import "fmt"
+
 // Command numbers (the first byte of each command), the same in both games.
 const (
 	CmdExit       = 0
@@ -22,6 +24,8 @@ const (
 	CmdAnd        = 47
 	CmdOr         = 48
 	CmdSaveTable  = 53
+	CmdFor        = 70 // Buck Rogers' only (OpFor)
+	CmdNext       = 71 // OpNext
 )
 
 // Default is the opcode set that cotab and sotsb run identically. The game
@@ -48,6 +52,8 @@ func Default() (t [256]Op) {
 	t[CmdAnd] = opAndOr
 	t[CmdOr] = opAndOr
 	t[CmdSaveTable] = opSaveTable
+	t[CmdFor] = opFor
+	t[CmdNext] = opNext
 	return
 }
 
@@ -125,7 +131,41 @@ func opReturn(vm *VM, h Host) {
 		vm.Calls = vm.Calls[:n-1]
 		return
 	}
+	if vm.ReturnEndsScript { // BR's exitScript
+		vm.Stop = true
+		vm.Calls = nil
+		return
+	}
 	h.Exit(vm)
+}
+
+// loopRefs panics when the layout gave no loop fields (as ReadArgs does for
+// an unresolved operand): FOR/NEXT cannot run silently without them.
+func loopRefs(vm *VM) {
+	if vm.LoopCounter == (Ref{}) || vm.LoopLimit == (Ref{}) {
+		panic(fmt.Sprintf("ecl: command %d (FOR/NEXT) needs the layout's loop counter and limit fields", vm.Cur()))
+	}
+}
+
+// opFor: counter := from, limit := to; the command after it starts the loop
+// (BR 2903; one slot, no nesting).
+func opFor(vm *VM, h Host) {
+	loopRefs(vm)
+	vm.ReadArgs(2)
+	vm.LoopAt = vm.PC
+	h.Set(vm.LoopCounter, vm.Arg(1, h))
+	h.Set(vm.LoopLimit, vm.Arg(2, h))
+}
+
+// opNext: counter++; back to the loop start while counter <= limit (BR 293A).
+func opNext(vm *VM, h Host) {
+	loopRefs(vm)
+	vm.PC++
+	c := h.Get(vm.LoopCounter) + 1
+	h.Set(vm.LoopCounter, c)
+	if c <= h.Get(vm.LoopLimit) {
+		vm.PC = vm.LoopAt
+	}
 }
 
 // opCompareAnd: equal when both pairs are.
