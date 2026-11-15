@@ -691,7 +691,13 @@ type (
 
 	// Over and anywhere in play: back to Assembling.
 	EndGame struct{}
+
+	// Speak voices a journal page gobox laid out: its speech clips Keys, in
+	// order, in place of the page voiced before (none: silence).
+	Speak struct{ Keys []string }
 )
+
+func (Speak) action() {}
 
 func (Ready) action()            {}
 func (Unready) action()          {}

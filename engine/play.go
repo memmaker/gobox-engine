@@ -695,6 +695,8 @@ func allows(al game.Allowed, a game.Action) bool {
 		base = v
 	case game.EndGame: // gobox's Back to Main Menu, any time: Do refuses it where there is no game to drop
 		return true
+	case game.Speak: // the page gobox shows: speak knows the recordings
+		return true
 	case game.UsePower, game.SetStat, game.Adjust, game.PointBuy, game.Order, game.AddNote, game.RemoveNote, game.Give,
 		game.Memorize, game.Forget, game.Scribe, game.LayOnHands, game.SetDifficulty: // Halve, Join, PoolCoins, LootShare: only offered without the shared inventory and purse (never today), so by Allowed
 		return true
@@ -734,6 +736,13 @@ func (e *Engine) Do(a game.Action) (game.Outcome, error) {
 	}
 	if !allows(al, a) {
 		return game.Outcome{}, errNotAllowed
+	}
+	if v, ok := a.(game.Speak); ok { // the journal page up, in place of the one voiced before
+		e.stopVoice()
+		for _, k := range v.Keys {
+			e.speak(k)
+		}
+		return game.Outcome{}, nil
 	}
 	if l, ok := st.(game.Looting); ok && l.Announce { // allows: Continue only
 		e.lootSeen = true

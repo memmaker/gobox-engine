@@ -855,11 +855,8 @@ func (r *frontState) sequenceDone() game.Result {
 
 // speak voices a page: gobox's own.
 func (r *frontState) speak(keys []string) game.Result {
-	var res game.Result
-	for _, k := range keys {
-		res.Events = append(res.Events, game.Report{Kind: game.EvSound, Sound: k})
-	}
-	return res
+	_, err := r.g.Do(game.Speak{Keys: keys}) // the game's voice: no outcome to play, the screen stays as it is
+	return game.Result{Err: err}
 }
 
 // restFor rests minutes (0: the study's time, else 8 hours): gobox paces it
