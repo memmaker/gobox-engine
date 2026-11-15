@@ -24,7 +24,56 @@
 
 ## Checklist
 
-- [ ] B1 Buck Rogers as data folders (above): plan it as its own checklist once this refactor is done; until then the BR repos keep building against gobox
+### Order of work (Felix, 2026-11-15): R2, then G2, then B1
+
+Handover: each item below is one commit or one track (`foldwt.sh new <track>`, landed with
+`foldwt.sh land <track>`, which gates). Sonnet agents take the mechanical items, one track each, on
+disjoint files; their work is read and gated before it lands. Guards that keep rules and UI out of
+the engine: `engine/importguard_test.go` (no ruleset import; a list of the files still to fix that may
+only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui` never imports
+`engine` (T1). A new concern in the engine must fail one of them.
+
+- [ ] R2 `engine` reaches the rules only through `rules`. 2026-11-15: 55 uses of `rules1e` left in 17
+  non-test files (the guard was dead: it matched `rules1e`, the import is `gobox/rules1e`). Rule for
+  every item: the knowledge moves into `rules1e` behind a typed `rules` Fact, Check or Action; the
+  engine names no 1e spell, item, class, save, skill or record layout.
+  - [ ] R2a what the engine names of the 1e rules: skills, saves, coins, race and alignment numbers,
+    Ranger, Knock, the save order (scriptvars_engine.go, eclops_engine.go, eclops2_engine.go,
+    game_engine.go, view_engine.go)
+  - [ ] R2b what a spell or an item looks like in flight, and a monster's kind (present_engine.go,
+    bestiary.go)
+  - [ ] R2c character files: roster and save records, the pool ids (files_engine.go, roster.go,
+    savefile.go, slots.go)
+  - [ ] R2d the ruleset's own data: monsters, items, treasure, the vault's items are read by the
+    ruleset from the adventure folder, not handed over in `rules1e` types (rulesetseam.go,
+    dataimport.go, init.go, vault_engine.go); `NewPool`, `Settings`, `ReadRoster` leave the engine
+    (newpool.go, combatrules_engine.go). After a, b, c.
+  - [ ] R2e the guard's list is empty; `engine`'s tests that reach into `rules1e` state are counted
+    and listed (they stay until G2)
+- [ ] G2 One state (as below). Plan first: which change events the rules emit (party, items, purse,
+  clock, position), then automap, then combat, then `build`/`stateOf`/`allowed` go.
+  - [ ] G2a plan: list every field `build()` copies and where it changes; rulings where unclear
+  - [ ] G2b..: per the plan
+- [ ] B1 Buck Rogers as data folders (decision above; survey 2026-11-15). BR1 and BR2 are two engines
+  of ~15k lines each (near copies), `buckrogers-core` (2.6k: its own script VM, combat map, ships,
+  space, the importer) and `rulesxxvc` (8k, already a `rules` ruleset, but not what runs: the BR
+  engines carry their own rule code). They run in the one binary on `ui`, not on `engine`.
+  - [ ] B1a pin what must survive: the 19 combat meshes (asset/sprites/series/buck-rogers/combat/meshes,
+    12 hitek, 7 lotek) and `props.json` are found by tile name (`hitek_tile_037`); a test in gobox
+    that every mesh and prop names a tile the BR1 combat map can produce
+  - [ ] B1b one script machine (ARCHITECTURE.md section 2): widen `gobox/ecl` to int32 and width;
+    dialect tables for V4 and FOR/NEXT; BR's ops as engine ops; `ecl-br`'s VM deleted
+  - [ ] B1c the importer: `ecl-br/importbr`, `importbr1`, `importbr2` into `importer`; `data/br1`,
+    `data/br2`; nothing read from the originals at run time (BR2's START.EXE and GAME.OVR, BR1's
+    data segment become import output)
+  - [ ] B1d `rulesxxvc` into the gobox module beside `rules1e`; it is what runs. Every difference
+    from the BR engines' rule code is listed; ruling per difference (default: open, ask Felix)
+  - [ ] B1e what only BR has, into `engine` (space fight, ships, skills, jetpack, throw), switched
+    on by adventure data and the ruleset, never by game name; `ui` parts exist (spacefight.go,
+    shipsheet.go)
+  - [ ] B1f BR1 on `engine`; its tests moved or replaced; then BR2
+  - [ ] B1g `playbr1`, `playbr2`, the two BR engines, `buckrogers-core`, the four repos deleted;
+    `go.mod` has no replace to a sibling game; gate.sh and foldwt.sh without them
 
 - [x] T2 Audit `game` for every presentation field (sizes, cells, positions, colours, drawn text runs); list them here, each with its `ui` replacement
 - [x] T1 Test: `ui` does not depend on `gobox/engine` (`go list -deps`), beside TestGameImports
@@ -42,7 +91,7 @@
 - [x] U3 `snapshot.go`, `TextPaneRows`, `MapCell` cut
 - [x] U4 `ccursor`, `cview` cut
 - [x] G1 `facts`/`known()` removed
-- [ ] G2 One state: the engine keeps the player-visible state in `game` types and writes it where it changes; `rebuild()`/`build()` and the per-mode copies go. Deferred (G1 agent): the visible state lives in rules, script words and battle structs; writing it where it changes needs change events from rules (party, items, purse, clock, position), then automap, then combat, then replacing build/stateOf/allowed. Today rebuild runs once per action, not per frame
+- (G2, open: see the order of work above) One state: the engine keeps the player-visible state in `game` types and writes it where it changes; `rebuild()`/`build()` and the per-mode copies go. Deferred (G1 agent): the visible state lives in rules, script words and battle structs; writing it where it changes needs change events from rules (party, items, purse, clock, position), then automap, then combat, then replacing build/stateOf/allowed. Today rebuild runs once per action, not per frame
 - [x] G3 `game`'s non-contract parts out: journal layout → `ui`, point-buy maths → `rules`, `held.go`/`memberpage.go` checked
 - [x] N1 Shared font pool: the importer adds each game's fonts to one pool; `ui` cycles through all; `Data.Font`/`Fonts`, `TextRun.Upcase` leave `game` (ruling 2)
 - [x] N2 Title, ending and story screens as declarative scripts plus exported picture elements; `ui` composes them (ruling 3); `Layer` leaves `game`
@@ -55,7 +104,7 @@
 - [x] E2 `engine` stops importing `audio`: it publishes which song/cue/voice line plays as typed facts in `game`; `ui` (host) drives `audio` (sound.go's `audio.Driver` use, voice.go's Vorbis decoding). A test forbids it
 - [x] R1 `cmd/gobox` stops importing `rules1e` (`rules1e.Settings{PathSearch}`, `rules1e.ReadRoster`): behind `rules`/`engine`
 - [x] R3 `rules4e` imports `engine` (so `engine` cannot pick the 4e combat rules itself and `cmd/gobox` hands it in): a ruleset must depend on `rules` only; then `cmd/gobox` passes a `Combat4e` setting
-- [ ] R2 `engine` reaches the rules only through `rules` (today ~600 uses of `rules1e` types: `Character`, `Item`, classes, slots, directions). Needs its own plan: a ruleset-neutral character and item model in `rules`
+- (R2, open: see the order of work above) `engine` reaches the rules only through `rules` (today ~600 uses of `rules1e` types: `Character`, `Item`, classes, slots, directions). Needs its own plan: a ruleset-neutral character and item model in `rules`
 - [x] D2 `game` and `adventure` both define `Sequence`, `Layer`, `Credit`: one canonical definition (with N2)
 - [ ] P1 The engine places and draws nothing (2026-11-14, Felix). Goal: the game contract cannot express a screen position, and no engine-side package (game, engine, ecl, adventure, rules1e, rules4e) depends on drawing. Enforced by `game/noui_test.go` (TestEngineDrawsNothing, TestEnginePlacesNothing), no allowlist. Rulings: world squares use `rules.MapPos`/`rules.BoardPos` (sizes too), never `image.Point`; sequences and scenes say placement declaratively ("centred", new lines); the one exception is stacking over a background (title text on a picture): normalised 0..1 coordinates; pre-wrapped text (`[][]TextRun`) is allowed, it keeps the original's design; image building leaves the engine (E1's remainder); wherever the presenter can place a thing itself it does, and the engine says only what is shown (a sprite's offset is its art's own data). Steps:
   - [x] P1a `game` fields: world coordinates to MapPos/BoardPos

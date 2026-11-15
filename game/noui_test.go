@@ -12,12 +12,12 @@ import (
 
 // engineSide are the packages behind the game contract: they decide what
 // happens, never where or how it is shown.
-var engineSide = []string{"game", "engine", "ecl", "adventure", "rules1e", "rules4e"}
+var engineSide = []string{"game", "engine", "ecl", "adventure", "rules", "rules1e", "rules4e"}
 
 // TestEngineDrawsNothing: no engine-side package reaches a drawing or
 // presenting package, directly or not.
 func TestEngineDrawsNothing(t *testing.T) {
-	drawing := []string{"gobox/gpu", "gobox/ui", "image/draw", "golang.org/x/image/draw", "github.com/ebitengine"}
+	drawing := []string{"gobox/gpu", "gobox/ui", "gobox/audio", "image/draw", "golang.org/x/image/draw", "github.com/ebitengine"}
 	for _, pkg := range engineSide {
 		out, err := exec.Command("go", "list", "-deps", "gobox/"+pkg).Output()
 		if err != nil {
