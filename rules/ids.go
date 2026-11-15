@@ -65,6 +65,14 @@ const (
 	StatusGone        Status = "gone"
 	StatusTempGone    Status = "tempgone" // por statusTempGone: away for now
 	StatusReserve     Status = "reserve"  // in a fight's reserve: off the map until an effect reinforces a side with it (HoldInReserve)
+	// XXVc's (types.pas TStatus). Poisoned: struck down by a lethal poison (effhndlr.pas EffLethalPoison,
+	// the Pascal's KillCreature), helpless, 0 HP and not enabled; a medic's treatment or an antidote cures it to
+	// unconscious, else postcbt.pas makes it comatose. Comatose: past dying (charhlp.pas: overkill 10..29, or ten
+	// rounds dying), helpless; gametime.pas RestAndHeal wakes only the unconscious, so rest does not
+	// heal it (nor the poisoned). NotHere: not in the party's place; the Pascal and the BR1 scripts set it nowhere.
+	StatusPoisoned Status = "poisoned"
+	StatusComatose Status = "comatose"
+	StatusNotHere  Status = "nothere"
 	// StatusInactive: out of the active members, the record's status kept
 	// (por SpecialWriteZ1 0x100 with a value >= 0x80 but 0x87).
 	StatusInactive Status = "inactive"

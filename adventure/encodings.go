@@ -49,13 +49,14 @@ var SotsbStatus = map[rules.Status]int64{
 // engine's binding turns it back into the typed rules.Status at once); a game's
 // encoding maps its own numbers to and from it.
 var StatusKinds = []rules.Status{rules.StatusOkay, rules.StatusAnimated, rules.StatusRunning, rules.StatusUnconscious,
-	rules.StatusDying, rules.StatusDead, rules.StatusStoned, rules.StatusGone, rules.StatusTempGone, rules.StatusReserve}
+	rules.StatusDying, rules.StatusDead, rules.StatusStoned, rules.StatusGone, rules.StatusTempGone, rules.StatusReserve,
+	rules.StatusPoisoned, rules.StatusComatose, rules.StatusNotHere}
 
-// BRStatus is types.pas TStatus's number for each rules status BR has one for (StNoStatus 0, StPoisoned 7,
-// StComatose 8, StNotHere 9 and the fight's own states 10..14 have none: rules has no such status).
+// BRStatus is types.pas TStatus's number for each rules status BR has one for (StNoStatus 0 and the fight's own
+// states 10..14 have none: no BR1 script reads or writes them, 0 reads while no character is selected).
 var BRStatus = map[rules.Status]int64{
 	rules.StatusOkay: 1, rules.StatusGone: 2, rules.StatusDead: 3, rules.StatusDying: 4,
-	rules.StatusUnconscious: 5, rules.StatusRunning: 6,
+	rules.StatusUnconscious: 5, rules.StatusRunning: 6, rules.StatusPoisoned: 7, rules.StatusComatose: 8, rules.StatusNotHere: 9,
 }
 
 // BRStatusMask is what setChar keeps of a status write (ecl.go: r[212] = v & 127).

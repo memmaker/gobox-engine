@@ -57,7 +57,7 @@ func TestMemberFacts(t *testing.T) {
 }
 
 // TestStatusFact: a status write keeps isEnabled beside it (setChar r[213] = 1 only for StOkay), and the
-// statuses with no rules name read as the rules' nearest (coreStatus).
+// every BR status with a rules name round-trips through Fact and SetFact (the fight's own states read okay).
 func TestStatusFact(t *testing.T) {
 	r := New()
 	id := r.Add(Character{Status: StDead})
@@ -75,9 +75,22 @@ func TestStatusFact(t *testing.T) {
 	if err := r.SetFact(id, rules.FactStatus, rules.StatusStoned); err == nil {
 		t.Error("stoned has no BR status and was set")
 	}
-	r.chars[id].Status = StComatose
-	if v, _ := r.Fact(id, rules.FactStatus); v != rules.StatusUnconscious {
-		t.Errorf("comatose reads %v", v)
+	for st, want := range map[Status]rules.Status{StPoisoned: rules.StatusPoisoned, StComatose: rules.StatusComatose, StNotHere: rules.StatusNotHere, StDodging: rules.StatusOkay} {
+		r.chars[id].Status = st
+		if v, _ := r.Fact(id, rules.FactStatus); v != want {
+			t.Errorf("%d reads %v", st, v)
+		}
+	}
+	for _, st := range []rules.Status{rules.StatusPoisoned, rules.StatusComatose, rules.StatusNotHere} {
+		if err := r.SetFact(id, rules.FactStatus, st); err != nil {
+			t.Fatal(err)
+		}
+		if r.chars[id].Enabled || coreStatus[r.chars[id].Status] != st {
+			t.Errorf("%s: stored %d enabled %v", st, r.chars[id].Status, r.chars[id].Enabled)
+		}
+		if h := health(r.chars[id].Status); h != rules.Disabled {
+			t.Errorf("%s is %v", st, h)
+		}
 	}
 }
 

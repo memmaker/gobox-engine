@@ -20,7 +20,12 @@ func TestBRStatusEncoding(t *testing.T) {
 	if BRStatus[rules.StatusOkay] != 1 || BRStatus[rules.StatusDead] != 3 {
 		t.Errorf("okay %d dead %d: the clinic tests 1 and 3", BRStatus[rules.StatusOkay], BRStatus[rules.StatusDead])
 	}
-	for _, g := range []int64{0, 7, 8, 9} { // StNoStatus, StPoisoned, StComatose, StNotHere: no rules status
+	for st, b := range map[rules.Status]int64{rules.StatusPoisoned: 7, rules.StatusComatose: 8, rules.StatusNotHere: 9} {
+		if BRStatus[st] != b || StatusKinds[Canonical("BrSelStatus", b, 0)] != st {
+			t.Errorf("%s is not byte %d both ways", st, b)
+		}
+	}
+	for _, g := range []int64{0, 10, 14} { // StNoStatus and the fight's own states: no rules status
 		func() {
 			defer func() {
 				if recover() == nil {

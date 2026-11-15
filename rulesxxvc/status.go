@@ -24,12 +24,11 @@ const (
 )
 
 // coreStatus is how a sheet and a script see s. The fight's own states
-// (dodging .. using a jetpack) are okay; poisoned and comatose are helpless.
-// ponytail: poisoned and comatose shown as unconscious; core has no names for them.
+// (dodging .. using a jetpack) are okay.
 var coreStatus = map[Status]rules.Status{
 	StNoStatus: rules.StatusOkay, StOkay: rules.StatusOkay, StGone: rules.StatusGone, StDead: rules.StatusDead,
 	StDying: rules.StatusDying, StUnconscious: rules.StatusUnconscious, StFleeing: rules.StatusRunning,
-	StPoisoned: rules.StatusUnconscious, StComatose: rules.StatusUnconscious, StNotHere: rules.StatusGone,
+	StPoisoned: rules.StatusPoisoned, StComatose: rules.StatusComatose, StNotHere: rules.StatusNotHere,
 	StDodging: rules.StatusOkay, StSprinting: rules.StatusOkay, StFailedZeroG: rules.StatusOkay,
 	StUsedJetpack: rules.StatusOkay, StUsingJetpack: rules.StatusOkay,
 }
@@ -38,4 +37,5 @@ var coreStatus = map[Status]rules.Status{
 var fromCore = map[rules.Status]Status{
 	rules.StatusOkay: StOkay, rules.StatusGone: StGone, rules.StatusDead: StDead, rules.StatusDying: StDying,
 	rules.StatusUnconscious: StUnconscious, rules.StatusRunning: StFleeing,
+	rules.StatusPoisoned: StPoisoned, rules.StatusComatose: StComatose, rules.StatusNotHere: StNotHere,
 }
