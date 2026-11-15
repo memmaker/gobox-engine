@@ -16,10 +16,10 @@ mkdir "$HOME"
 games=()
 for mod in "$projects"/*/go.mod; do
   repo="$(basename "$(dirname "$mod")")"
-  case "$repo" in rulesxxvc|gobox-engine) continue ;; esac
+  case "$repo" in gobox-engine) continue ;; esac
   grep -q '\.\./gobox-engine' "$mod" && games+=("$repo") # replace gobox => ../gobox-engine
 done
-for repo in rulesxxvc gobox-engine ${games[@]+"${games[@]}"}; do # no game: an empty list, not an unbound one (bash 3.2)
+for repo in gobox-engine ${games[@]+"${games[@]}"}; do # no game: an empty list, not an unbound one (bash 3.2)
   mkdir "$out/$repo"
   tree="$(git -C "$projects/$repo" write-tree)"
   git -C "$projects/$repo" archive "$tree" | tar -x -C "$out/$repo"
@@ -104,7 +104,7 @@ unformatted="$(cd "$out/gobox-engine" && gofmt -l .)"
 [ -z "$unformatted" ] || { echo "gofmt needed:"; echo "$unformatted"; exit 1; }
 
 check gobox-engine/rules1e ./...
-check rulesxxvc ./...
+check gobox-engine/rulesxxvc ./...
 check gobox-engine/rules ./...
 fixed='Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
 # POR's engine (gobox-engine/engine): the fixed set, and the slow tests the touched run skips.

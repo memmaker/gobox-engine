@@ -6,7 +6,7 @@
 # Land gates before taking the lock; under it only a main that moved meanwhile is gated again.
 set -euo pipefail
 projects="$HOME/Projects"
-repos=(rulesxxvc gobox-engine buckrogers-core buckrogers-go buckrogers2-go)
+repos=(gobox-engine buckrogers-core buckrogers-go buckrogers2-go)
 cmd="${1:?new|land}"; track="${2:?track}"
 tree="$projects/fold-wt/$track"
 case "$cmd" in

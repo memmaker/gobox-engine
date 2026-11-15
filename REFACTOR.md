@@ -169,15 +169,28 @@ only shrink), `game/noui_test.go` (no drawing package, no screen position), `ui`
       poke of any Area byte is refused. Not: all of BR's memory as byte arrays; not: rewriting
       the scripts at import.
       Still to do here: BR2's layout; the layouts wired into the importer (with B1c)
-    - [ ] B1b3 the store by dialect (16-bit cell, or the operand's width) as data of the Version
+    - [x] B1b3 the store by dialect (track b1b3, landed): `Ref.As` is the operand's width
+      (`Ref.Cell()` for "the same cell"); `Behaviour.StoreByOperand` (V4): a store keeps the
+      operand's bytes, a read takes them (1 and 2 zero-extended, 4 signed); the layout's `bytes`
+      width is a raw byte buffer read and written at the operand's width (past its end: a
+      panic; refused in a dialect without the flag); `LoopCounter`/`LoopLimit` bound from the
+      layout. Pool unchanged (its tests untouched). No real BR script run yet
     - [ ] B1b4 BR's waits and frames as engine continuations; with B1f
     - [ ] B1b5 one random generator (`rules.RNG`); BR's seeded expectations derived again
     - [ ] B1b6 `eclbr.VM` deleted
   - [ ] B1c the importer: `ecl-br/importbr`, `importbr1`, `importbr2` into `importer`; `data/br1`,
     `data/br2`; nothing read from the originals at run time (BR2's START.EXE and GAME.OVR, BR1's
     data segment become import output)
-  - [ ] B1d `rulesxxvc` into the gobox module beside `rules1e`; it is what runs. Every difference
-    from the BR engines' rule code is listed; ruling per difference (default: open, ask Felix)
+  - [~] B1d `rulesxxvc` into the gobox module beside `rules1e`; it is what runs. Every difference
+    from the BR engines' rule code is listed; ruling per difference (default: open, ask Felix).
+    Done (track b1d1): the package is `gobox/rulesxxvc` (50 files, identical but its import
+    test); the three BR repos import it; gate.sh and foldwt.sh no longer know the old repo.
+    The directory ~/Projects/rulesxxvc is unused and still there: delete only when Felix says.
+    Found on the way (bug class: a test writes into its repo): BR1's and BR2's import tests
+    decoded the art into `asset.Dir(dos)`, the repo's own art/, which `ImportArtIfStale` empties
+    first: every run deleted buckrogers-go's 46 tracked pictures (restored from git; the tests
+    decode into a temp folder now). An agent's `git add -A` in a worktree then committed such
+    a run; that commit was not landed. Detect: `git status` after a test run shows changes
   - [ ] B1e what only BR has, into `engine` (space fight, ships, skills, jetpack, throw), switched
     on by adventure data and the ruleset, never by game name; `ui` parts exist (spacefight.go,
     shipsheet.go)
