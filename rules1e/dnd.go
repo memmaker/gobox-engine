@@ -22,7 +22,7 @@ const (
 	ClassDruid   rules.Class = "druid"
 	ClassFighter rules.Class = "fighter"
 	ClassPaladin rules.Class = "paladin"
-	ClassMage    rules.Class = "mage"
+	ClassMage                = rules.ClassMage // the scripts read its level by name (rules/adnd.go)
 	ClassThief   rules.Class = "thief"
 	ClassMonk    rules.Class = "monk"
 )
@@ -39,16 +39,14 @@ const (
 	ChaoticEvil    rules.Alignment = "chaotic-evil"
 )
 
-// por Thief[0..7].
+// por Thief[0..7]: the names are rules', the scripts read them by field.
 const (
-	OpenLocks     rules.Skill = "open-locks"
-	MoveQuietly   rules.Skill = "move-quietly"
-	Hide          rules.Skill = "hide"
-	Hear          rules.Skill = "hear"
-	ReadLanguages rules.Skill = "read-languages"
+	OpenLocks     = rules.OpenLocks
+	MoveQuietly   = rules.MoveQuietly
+	Hide          = rules.Hide
+	Hear          = rules.Hear
+	ReadLanguages = rules.ReadLanguages
 )
-
-const ()
 
 // The conditions scripts ask about; the 125-142 others stay private to the ruleset.
 const (

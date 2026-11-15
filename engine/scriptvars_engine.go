@@ -5,6 +5,7 @@ import (
 	"gobox/adventure"
 	"gobox/rules"
 	"log"
+	"maps"
 	"slices"
 
 	"gobox/ecl"
@@ -212,6 +213,7 @@ func (e *Engine) newEngineFields() map[string]engineField {
 		// area 2's well: the party's affects (the Pascal's fix, effectTable)
 		fieldEffectTable: {stored: true, get: func(i int) (int64, bool) { v, ok := e.effect(i); return int64(v), ok }},
 	}
+	maps.Copy(m, e.memberFields())
 	for i, name := range selFlagFields {
 		f := rules.FlagFact{Slot: i}
 		m[name] = engineField{get: func(int) (int64, bool) { return e.selFact(f), true },

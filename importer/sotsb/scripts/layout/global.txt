@@ -215,10 +215,10 @@
 7BC3 = Word7BC3
 7C00 1 text member SelName
 7C18 1 byte member SelCon  # SpecialReadZ1 $18 conCur
-7C19 1 byte member SelWindow019
+7C19 1 byte member SelCha  # SpecialReadZ1 $19 chaCur
 7C1B 75 byte member SelMemorized enc=SotsbSelMemorized  # memorizedSpells[address-$1B], slots 0..74 (SpecialWriteZ1 $1B..$65)
 7C72 1 byte member SelRace
-7C76 1 byte member SelWindow076
+7C76 1 byte member SelHpMax  # SpecialReadZ1 $76 hpMaxV1
 7C9B 1 byte member SelSaveVsPetrify  # $9B petrificationSave
 7C9E 1 byte game Word7C9E
 7CA5 1 byte member SelPickPockets  # $A5 thiefSkills[1]
@@ -227,15 +227,15 @@
 7CB8 1 byte member SelControl  # $B8 npc (write >$B2 minus $32)
 7CBB 9 word member SelCoins coins=c,-,10c,-,100c,-,g,-,5g  # the import rewrites silver and electrum to copper, platinum to gold, by value (script.GoldCoins); copper..platinum at $BB,$BD,$BF,$C1,$C3 (SpecialReadZ1/WriteZ1); the odd ones are high bytes
 7CC4 1 byte game Word7CC4
-7CC5 1 word member SelWindow0C5
+7CC5 1 word member SelGems  # SpecialReadZ1/WriteZ1 $C5 coinsA[GEMS]: the unappraised gems
 7CC6 1 byte game Word7CC6
-7CD0 1 byte member SelWindow0D0
+7CD0 1 byte member SelRangerLevel  # SpecialReadZ1 $D0 rangerLevel + rangerOldLevel while the earlier class is active
 7CD8 1 byte member SelAlignment  # $D8 alignment
 7CF7 1 word member SelExpValue  # $F7 xpAward
 7CF9 1 byte member SelExpPerHP  # $F9 pcHpRolled
 7D00 1 byte member SelStatus enc=SotsbSelStatus  # SpecialReadZ1 $100: 1 okay, 2 gone, 3 dead, 4 dying, 5 unconscious, 6 running, 7 petrified; write 1 = okay+enabled
 7D0C 1 byte member SelSide  # $10C: 0, $80, $81 (hostileV1/quickfight)
-7D19 1 byte member SelWindow119
+7D19 1 byte member SelHpCur  # SpecialReadZ1/WriteZ1 $119 hpCurrent
 7D1B 1 byte member SelMove  # $11B movementCur
 7EA8 1 byte game PartyExp
 7EB1 1 byte member SelPartyIndex

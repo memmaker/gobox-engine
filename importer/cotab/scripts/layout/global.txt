@@ -235,7 +235,7 @@
 7C18 1 byte member SelCon  # SpecialReadZ1 $18: Constitution
 7C20 20 byte member SelMemorized
 7C72 1 byte member SelRace
-7C73 1 byte member SelClass
+7C73 1 byte member SelCharClass  # SpecialReadZ1 $73 charClass
 7C9B 1 byte member SelSaveVsPetrify  # SpecialReadZ1 $9B: saves[1]
 7CA5 1 byte member SelPickPockets
 7CA7 1 byte member SelFindTraps
@@ -246,7 +246,7 @@
 7CC9 1 byte member SelMageLevel
 7CD6 1 byte member SelGender
 7CD8 1 byte member SelAlignment
-7CE4 1 byte member SelScriptFlag
+7CE4 1 byte member SelFlag1 enc=CotabSelFlag1  # SpecialReadZ1 $E4 scriptFlags[0] and 1
 7CEB 1 byte game Word7CEB
 7CF7 1 word member SelExpValue  # SpecialReadZ1/WriteZ1 $F7: xpAward
 7CF9 1 byte member SelExpPerHP  # SpecialReadZ1/WriteZ1 $F9: xpBonusPerHp

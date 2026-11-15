@@ -35,3 +35,24 @@ func TestCasterLevelRules(t *testing.T) {
 		}
 	}
 }
+
+// TestEffectiveLevel: the level a class counts at while the earlier class is active, by the game's rule (the
+// scripts' SelMageLevel: cotab-re SpecialReadZ1 $C9 adds, pod's higher), and its own when it is not.
+func TestEffectiveLevel(t *testing.T) {
+	c := &Character{}
+	c.Race = RaceHuman
+	c.Levels[ClsMage], c.OldLevels[ClsMage] = 3, 2
+	for _, tc := range []struct {
+		name string
+		r    CasterLevelRule
+		want int8
+	}{{"cotab adds", CotabCasterLevel, 5}, {"pod takes the higher", PodCasterLevel, 3}, {"por ignores the old", CasterLevelRule{}, 3}} {
+		if got := effectiveLevel(tc.r, c, ClsMage); got != tc.want {
+			t.Errorf("%s: %d, want %d", tc.name, got, tc.want)
+		}
+	}
+	c.MulticlassLevel = 3 // the earlier class is not active yet
+	if got := effectiveLevel(CotabCasterLevel, c, ClsMage); got != 3 {
+		t.Errorf("earlier class inactive: %d, want 3", got)
+	}
+}

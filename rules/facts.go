@@ -6,16 +6,19 @@ package rules
 type Fact interface{ fact() }
 
 type (
-	AbilityFact struct{ Ability Ability } // por 0x18 con; cotab cvIntelligence
-	SkillFact   struct{ Skill Skill }     // por 0xA5..0xAC; BR 76+s
-	SaveFact    struct{ Save Save }       // por 0x9B
-	LevelFact   struct{ Class Class }     // cotab cvMageLevel
-	CoinFact    struct{ Coin Coin }       // the party's one purse, whoever is selected. por 0xBB..0xC3, also computed (area 9)
-	KnownFact   struct{ Skill Skill }     // has the skill at all: BR 76 reads 128 or 0
-	MemoFact    struct{ Slot int }        // por 0x1F..0x70: Knock in area 14
-	PlainFact   int                       // the rest, one each
-	FlagFact    struct{ Slot int }        // BR 161+Slot: a script's flag byte kept on the character (rulesxxvc ScriptFlags)
-	HitFact     struct{ Target CharID }   // a's chance in percent to hit Target with one blow of the readied attack (por hover text)
+	AbilityFact     struct{ Ability Ability } // por 0x18 con; cotab cvIntelligence
+	SkillFact       struct{ Skill Skill }     // por 0xA5..0xAC; BR 76+s
+	SaveFact        struct{ Save Save }       // por 0x9B
+	LevelFact       struct{ Class Class }     // the level the class counts at: its own plus the class left behind while that one is active (cotab cvMageLevel, sotsb $C9..$D0)
+	OwnLevelFact    struct{ Class Class }     // the level in the class itself, a class left behind not counted (pod classLevels[])
+	FormerLevelFact struct{ Class Class }     // the level the class had before a dual-class change (pod oldLevels[])
+	OwnScoreFact    struct{ Ability Ability } // the score before items and spells (pod stats[].base); AbilityFact is the one in use
+	CoinFact        struct{ Coin Coin }       // the party's one purse, whoever is selected. por 0xBB..0xC3, also computed (area 9)
+	KnownFact       struct{ Skill Skill }     // has the skill at all: BR 76 reads 128 or 0
+	MemoFact        struct{ Slot int }        // por 0x1F..0x70: Knock in area 14
+	PlainFact       int                       // the rest, one each
+	FlagFact        struct{ Slot int }        // BR 161+Slot: a script's flag byte kept on the character (rulesxxvc ScriptFlags)
+	HitFact         struct{ Target CharID }   // a's chance in percent to hit Target with one blow of the readied attack (por hover text)
 )
 
 // The plain facts.
@@ -31,8 +34,8 @@ const (
 	FactSideLock    // BR 268 bit 7, r[215]; meaning to confirm at migration
 	FactControl     // por 0xB8 (charmed, hired)
 	FactMove        // por 0x11B
-	FactHP          // BR 281
-	FactMaxHP       // BR 69; sotsb cvMaxHP
+	FactHP          // BR 281; pod hpCur (a write stores the byte)
+	FactMaxHP       // BR 69; sotsb cvMaxHP; pod hpMax
 	FactMaxLevel    // por 0xA0
 	FactExpValue    // por 0xF7: what killing it gives
 	FactExpPerHP    // por 0xF9
@@ -46,17 +49,20 @@ const (
 	FactCompanion   // BR 76 (isCompanion): a party member the player does not command (Yes)
 )
 
-func (AbilityFact) fact() {}
-func (SkillFact) fact()   {}
-func (SaveFact) fact()    {}
-func (LevelFact) fact()   {}
-func (CoinFact) fact()    {}
-func (PiecesFact) fact()  {}
-func (MemoFact) fact()    {}
-func (KnownFact) fact()   {}
-func (PlainFact) fact()   {}
-func (FlagFact) fact()    {}
-func (HitFact) fact()     {}
+func (AbilityFact) fact()     {}
+func (SkillFact) fact()       {}
+func (SaveFact) fact()        {}
+func (LevelFact) fact()       {}
+func (OwnLevelFact) fact()    {}
+func (FormerLevelFact) fact() {}
+func (OwnScoreFact) fact()    {}
+func (CoinFact) fact()        {}
+func (PiecesFact) fact()      {}
+func (MemoFact) fact()        {}
+func (KnownFact) fact()       {}
+func (PlainFact) fact()       {}
+func (FlagFact) fact()        {}
+func (HitFact) fact()         {}
 
 // Value is what a Fact holds.
 type Value interface{ value() }

@@ -7,13 +7,21 @@ package rules
 // puts them behind facts the ruleset gives by script field. The strings
 // are the ids the rulesets key their tables by.
 
-const ClassRanger Class = "ranger"
-
-// por Thief[0..7] (the three the scripts read).
 const (
-	PickPockets Skill = "pick-pockets"
-	FindTraps   Skill = "find-traps"
-	Climb       Skill = "climb"
+	ClassMage   Class = "mage"
+	ClassRanger Class = "ranger"
+)
+
+// por Thief[0..7].
+const (
+	PickPockets   Skill = "pick-pockets"
+	OpenLocks     Skill = "open-locks"
+	FindTraps     Skill = "find-traps"
+	MoveQuietly   Skill = "move-quietly"
+	Hide          Skill = "hide"
+	Hear          Skill = "hear"
+	Climb         Skill = "climb"
+	ReadLanguages Skill = "read-languages"
 )
 
 const (

@@ -15,6 +15,21 @@ var (
 		NeutralEvil, ChaoticGood, ChaoticNeutral, ChaoticEvil}
 )
 
+// RecordSex is the record's gender byte (genderNameTable).
+var RecordSex = [2]rules.Sex{rules.Male, rules.Female}
+
+// RecordClassSets is each class byte's classes (the order of ClassNames, pod C_Class): the single
+// classes 0..7, then the multi-class combinations.
+var RecordClassSets = [len(ClassNames)]rules.ClassSet{
+	ClsCleric: {ClassCleric}, ClsDruid: {ClassDruid}, ClsFighter: {ClassFighter}, ClsPaladin: {ClassPaladin},
+	ClsRanger: {rules.ClassRanger}, ClsMage: {ClassMage}, ClsThief: {ClassThief}, ClsMonk: {ClassMonk},
+	clsClericFighter: {ClassCleric, ClassFighter}, clsClericFighterMage: {ClassCleric, ClassFighter, ClassMage},
+	ClsClericRanger: {ClassCleric, rules.ClassRanger}, clsClericMage: {ClassCleric, ClassMage},
+	clsClericThief: {ClassCleric, ClassThief}, clsFighterMage: {ClassFighter, ClassMage},
+	ClsFighterThief: {ClassFighter, ClassThief}, clsFighterMageThief: {ClassFighter, ClassMage, ClassThief},
+	clsMageThief: {ClassMage, ClassThief},
+}
+
 // SaveOrder is the saving throws in the Gold Box games' order: a record's
 // save bytes and a script's save number (DAMAGE) index it.
 var SaveOrder = [5]rules.Save{rules.SaveParalysis, rules.SavePetrify, rules.SaveRod, rules.SaveBreath, rules.SaveSpell}

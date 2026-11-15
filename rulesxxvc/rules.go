@@ -117,11 +117,12 @@ func New() *Rules { return &Rules{chars: map[rules.CharID]*Character{}, next: 1}
 
 func (r *Rules) Catalog() rules.Catalog {
 	return rules.Catalog{
-		Races:    xxvc.Races,
-		Classes:  xxvc.Careers,
-		Skills:   xxvc.Skills,
-		Saves:    xxvc.Saves,
-		Features: []rules.Feature{rules.FeatureSpaceCombat},
+		Races:     xxvc.Races,
+		Classes:   xxvc.Careers,
+		ClassSets: careerSets,
+		Skills:    xxvc.Skills,
+		Saves:     xxvc.Saves,
+		Features:  []rules.Feature{rules.FeatureSpaceCombat},
 	}
 }
 
@@ -288,3 +289,12 @@ func (r *Rules) Load(b []byte) error {
 func (r *Rules) Draft() *rules.Draft                      { return nil }
 func (r *Rules) Shared() []rules.Carried                  { return nil }
 func (r *Rules) Spell(rules.SpellID) (rules.Spell, error) { return rules.Spell{}, ErrNotPorted }
+
+// careerSets are the class combinations a character can have: one career each, in the catalog's order.
+var careerSets = func() []rules.ClassSet {
+	sets := make([]rules.ClassSet, len(xxvc.Careers))
+	for i, c := range xxvc.Careers {
+		sets[i] = rules.ClassSet{c}
+	}
+	return sets
+}()

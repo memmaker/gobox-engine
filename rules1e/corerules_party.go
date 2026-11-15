@@ -236,6 +236,32 @@ func (r *Rules) factParty(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 			return rules.ClassNone, true, nil
 		}
 		return PorClass[f.N], true, nil
+	case rules.AbilityFact:
+		if c == nil {
+			return nil, true, errNoChar
+		}
+		if a := slices.Index(Abilities[:], f.Ability); a >= 0 {
+			return rules.Number(c.Stats[a]), true, nil
+		}
+		return nil, true, errNoFact
+	case rules.OwnScoreFact:
+		if c == nil {
+			return nil, true, errNoChar
+		}
+		if a := slices.Index(Abilities[:], f.Ability); a >= 0 {
+			return rules.Number(ownScore(c, a)), true, nil
+		}
+		return nil, true, errNoFact
+	case rules.LevelFact, rules.OwnLevelFact, rules.FormerLevelFact:
+		return r.levelFact(c, f)
+	case rules.FlagFact: // COTAB's script flags byte; the rest of XXVc's flag slots are no fact here
+		if c == nil {
+			return nil, true, errNoChar
+		}
+		if f.Slot != 0 {
+			return nil, true, errNoFact
+		}
+		return rules.Number(c.ScriptFlag), true, nil
 	case rules.ModFact:
 		if c == nil {
 			return nil, true, errNoChar
@@ -247,17 +273,27 @@ func (r *Rules) factParty(id rules.CharID, f rules.Fact) (rules.Value, bool, err
 		return rules.Number(s.Mod(c, Ability(a))), true, nil
 	}
 	switch f {
-	case rules.AbilityFact{Ability: rules.Constitution}, rules.AbilityFact{Ability: rules.Charisma}, rules.FactExpValue, rules.FactExpPerHP,
+	case rules.FactHP, rules.FactMaxHP, rules.FactSex, rules.FactClasses, rules.FactExpValue, rules.FactExpPerHP,
 		rules.FactMove, rules.FactControl, rules.FactRace, rules.FactAlignment, rules.FactActive, rules.FactLevelReady, rules.FactSide:
 		if c == nil {
 			return nil, true, errNoChar
 		}
 	}
 	switch f {
-	case rules.AbilityFact{Ability: rules.Constitution}:
-		return rules.Number(c.Stats[StatCon]), true, nil
-	case rules.AbilityFact{Ability: rules.Charisma}:
-		return rules.Number(c.Stats[StatCha]), true, nil
+	case rules.FactHP:
+		return rules.Number(c.HP), true, nil
+	case rules.FactMaxHP:
+		return rules.Number(c.MaxHP), true, nil
+	case rules.FactSex:
+		if int(c.Sex) >= len(RecordSex) {
+			return rules.Number(c.Sex), true, nil // outside the table: the record's own byte, as SpecialReadZ1 reads it
+		}
+		return RecordSex[c.Sex], true, nil
+	case rules.FactClasses:
+		if int(c.Class) >= len(RecordClassSets) {
+			return rules.Number(c.Class), true, nil
+		}
+		return RecordClassSets[c.Class], true, nil
 	case rules.FactExpValue:
 		return rules.Number(c.ExpValue), true, nil
 	case rules.FactExpPerHP:
@@ -461,4 +497,32 @@ func (r *Rules) inPartyAt(who rules.CharID) int {
 		}
 	}
 	return -1
+}
+
+// levelFact answers a class-level Fact: the level in the class's column of the record, its own,
+// the class left behind, or what the game's rule counts it at (effectiveLevel).
+func (r *Rules) levelFact(c *Character, f rules.Fact) (rules.Value, bool, error) {
+	if c == nil {
+		return nil, true, errNoChar
+	}
+	var class rules.Class
+	switch f := f.(type) {
+	case rules.LevelFact:
+		class = f.Class
+	case rules.OwnLevelFact:
+		class = f.Class
+	case rules.FormerLevelFact:
+		class = f.Class
+	}
+	k := slices.Index(PorClass[:], class)
+	if k < 0 {
+		return nil, true, errNoFact
+	}
+	switch f.(type) {
+	case rules.OwnLevelFact:
+		return rules.Number(c.Levels[k]), true, nil
+	case rules.FormerLevelFact:
+		return rules.Number(c.OldLevels[k]), true, nil
+	}
+	return rules.Number(uint8(effectiveLevel(r.S.T().CasterLevel, c, k))), true, nil
 }

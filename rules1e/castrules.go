@@ -59,6 +59,19 @@ func earlierClassActive(c *Character, scan int) bool {
 	return int8(c.MulticlassLevel) < first
 }
 
+// effectiveLevel is c's level in class column k by the game's rule r: its own,
+// with the class left behind counted while the earlier class is active.
+func effectiveLevel(r CasterLevelRule, c *Character, k int) int8 {
+	l := int8(c.Levels[k])
+	if r.OldLevels == OldLevelsNone || !earlierClassActive(c, r.DualScanClasses) {
+		return l
+	}
+	if r.OldLevels == OldLevelsAdd {
+		return l + int8(c.OldLevels[k])
+	}
+	return max(l, int8(c.OldLevels[k]))
+}
+
 // casterLevel = POR 00BA:26C2, CotAB O0ED:286F, SotSB/PoD GetCasterLevel
 // (spell): the level the selected character casts the spell at, by the
 // game's CasterLevelRule. Items cast cleric, druid and mage spells at 6,
@@ -66,16 +79,7 @@ func earlierClassActive(c *Character, scan int) bool {
 func (e *RuleState) casterLevel(spell int) int {
 	r := e.T().CasterLevel
 	c := e.Acting()
-	level := func(k int) int8 {
-		l := int8(c.Levels[k])
-		if r.OldLevels == OldLevelsNone || !earlierClassActive(c, r.DualScanClasses) {
-			return l
-		}
-		if r.OldLevels == OldLevelsAdd {
-			return l + int8(c.OldLevels[k])
-		}
-		return max(l, int8(c.OldLevels[k]))
-	}
+	level := func(k int) int8 { return effectiveLevel(r, c, k) }
 	check := func(k int) int8 { // PoD's test reads the effective levels, the others the current
 		if r.OldLevels == OldLevelsHigher {
 			return level(k)

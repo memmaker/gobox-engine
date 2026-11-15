@@ -75,9 +75,9 @@ var _ rules.Rules = (*Rules)(nil)
 // ErrNotPorted is a core.Rules method whose por code is still in the Engine.
 var ErrNotPorted = errors.New("rules1e: not behind core.Rules yet")
 
-// Catalog: what the records number (the engine reads the tables by place): the races and alignments in record order, the saving throws in sheet order.
+// Catalog: what the records number (the engine reads the tables by place): the races, alignments and class combinations in record order, the classes in the order of a record's level columns, the saving throws in sheet order.
 func (r *Rules) Catalog() rules.Catalog {
-	return rules.Catalog{Races: RecordRace[:], Alignments: RecordAlignment[:], Saves: SaveOrder[:]}
+	return rules.Catalog{Races: RecordRace[:], Alignments: RecordAlignment[:], Classes: PorClass[:], ClassSets: RecordClassSets[:], Saves: SaveOrder[:]}
 }
 
 func (r *Rules) Begin(c rules.Campaign, o rules.Options) { r.campaign, r.options = c, o }
@@ -403,6 +403,8 @@ func (r *Rules) SetFact(id rules.CharID, f rules.Fact, v rules.Value) error {
 		return nil
 	}
 	switch f {
+	case rules.FactHP: // SpecialWriteZ1 hpCur := Byte(value)
+		c.HP = byte(n)
 	case rules.FactExpValue:
 		c.ExpValue = uint16(n)
 	case rules.FactExpPerHP:

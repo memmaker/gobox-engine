@@ -9,6 +9,7 @@ type Catalog struct {
 	Races      []Race
 	Alignments []Alignment
 	Classes    []Class
+	ClassSets  []ClassSet // the class combinations a character can have, in the ruleset's own order (1e: the record's class byte; XXVc: one career each)
 	Skills     []Skill
 	Saves      []Save
 	Features   []Feature
