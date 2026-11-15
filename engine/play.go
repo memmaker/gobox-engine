@@ -1102,7 +1102,7 @@ func (e *Engine) Load(b []byte) (err error) {
 func (e *Engine) Slots() []game.SaveSlot {
 	var l []game.SaveSlot
 	for _, sl := range e.slots() {
-		l = append(l, game.SaveSlot{Name: sl.Name, Time: sl.At.Format("Jan 02 15:04"), Level: e.slotLevelOf(sl)})
+		l = append(l, game.SaveSlot{Name: sl.Name, At: sl.At, Level: e.slotLevelOf(sl)})
 	}
 	return l
 }

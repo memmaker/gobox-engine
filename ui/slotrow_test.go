@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"gobox/game"
 )
@@ -43,6 +44,35 @@ func TestSlotRowLevelDate(t *testing.T) {
 		}
 		if !strings.HasSuffix(r, sl.Times[i]) {
 			t.Errorf("row %d %q does not end with its date %q", i, r, sl.Times[i])
+		}
+	}
+}
+
+// timedSlot is a fake with one game save that tells when it was saved.
+type timedSlot struct{ fake }
+
+func (timedSlot) Slots() []game.SaveSlot {
+	return []game.SaveSlot{{Name: "GAME", At: time.Date(2026, 11, 13, 20, 13, 0, 0, time.Local)}}
+}
+func (timedSlot) LoadSlot(int) error { return nil }
+
+// TestSlotDatesAlike: gobox's own slot files and the game's slots show
+// their time of saving in the one format (game.SlotTime).
+func TestSlotDatesAlike(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "mine.sav"), nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	g := &classicGame{Game: NewGame(&timedSlot{fake{st: game.Exploring{}}}, game.Data{SaveDir: dir})}
+	p := &Presenter{slots: &SlotsUI{LoadOnly: true}}
+	p.SetEngine(g)
+	sl := p.slotsView()
+	if len(sl.Times) != 2 || sl.Times[1] != "2026-11-13 20:13" {
+		t.Fatalf("times %q, want the game's as 2026-11-13 20:13", sl.Times)
+	}
+	for _, s := range sl.Times {
+		if _, err := time.Parse(game.SlotTime, s); err != nil {
+			t.Errorf("%q is not in the slot list's format: %v", s, err)
 		}
 	}
 }

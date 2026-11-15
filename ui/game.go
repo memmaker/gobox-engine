@@ -498,7 +498,7 @@ func (g *Game) SlotsView(loadOnly bool) *Slots {
 	}
 	v := &Slots{CanSave: canSave, LoadOnly: loadOnly, NoLoad: c.NoLoad}
 	for _, sl := range g.r.saves() {
-		v.Names, v.Times, v.Levels = append(v.Names, sl.Name), append(v.Times, sl.Time), append(v.Levels, sl.Level)
+		v.Names, v.Times, v.Levels = append(v.Names, sl.Name), append(v.Times, sl.When()), append(v.Levels, sl.Level)
 		v.Overwrites = append(v.Overwrites, sl.Overwrite)
 	}
 	if len(v.Names) > 0 {

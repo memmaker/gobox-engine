@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"gobox/adventure"
 	"gobox/ecl"
+	"gobox/game"
 	"gobox/rules"
 	"gobox/rules1e"
 	"io/fs"
@@ -312,7 +313,7 @@ func (e *Engine) SlotsView(loadOnly bool) *rules.Slots {
 	}
 	v := &rules.Slots{CanSave: e.canSave(loadOnly), LoadOnly: loadOnly}
 	for _, sl := range e.slots() {
-		v.Names, v.Times = append(v.Names, sl.Name), append(v.Times, sl.At.Format("Jan 02 15:04"))
+		v.Names, v.Times = append(v.Names, sl.Name), append(v.Times, sl.At.Format(game.SlotTime))
 		v.Levels = append(v.Levels, e.slotLevel(sl.Name))
 	}
 	if len(v.Names) > 0 {

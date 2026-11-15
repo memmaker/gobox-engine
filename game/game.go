@@ -763,9 +763,21 @@ type Field struct {
 // slot list shows it) and the highest level in its party (0: none read).
 type SaveSlot struct {
 	Name, Info string
-	Time       string
+	At         time.Time // when it was saved: gobox words it (SlotTime), the same for every slot
+	Time       string    // a game that keeps no time of its own gives its words for it (At zero)
 	Level      int
 	Overwrite  string // the game's own words for saving over it ("": "Overwrite NAME?")
+}
+
+// SlotTime is how a slot's time of saving reads on the slot list.
+const SlotTime = "2006-01-02 15:04"
+
+// When is the slot's time as the list shows it.
+func (s SaveSlot) When() string {
+	if s.At.IsZero() {
+		return s.Time
+	}
+	return s.At.Format(SlotTime)
 }
 
 // Confirm is one of gobox's yes/no confirms as the game words it: Asks

@@ -1607,7 +1607,7 @@ func (r *frontState) ownSaves() []game.SaveSlot {
 		if err != nil {
 			continue
 		}
-		sl = append(sl, slot{game.SaveSlot{Name: n, Time: fi.ModTime().Format("2006-01-02 15:04"), Level: r.saveLevel(e.Name(), fi.ModTime())}, fi.ModTime()})
+		sl = append(sl, slot{game.SaveSlot{Name: n, At: fi.ModTime(), Level: r.saveLevel(e.Name(), fi.ModTime())}, fi.ModTime()})
 	}
 	slices.SortFunc(sl, func(a, b slot) int { return b.t.Compare(a.t) })
 	out := make([]game.SaveSlot, len(sl))
