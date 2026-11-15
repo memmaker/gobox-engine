@@ -52,8 +52,9 @@ func straightCellOf(x, y int) image.Point { return image.Pt((x-20+50)/5-10, (y-0
 
 // TestStraightIsOriginalUnskewed: the Deskew board is the original's with
 // the skew taken out and its cells made square (rules1e.StraightX): the same
-// floor, and everyone the original placed is placed in the same cell, on a
-// square of their own and never in a wall, whatever stands ahead. The foes
+// floor, and everyone the original placed is placed, in its cell or (its
+// square a post here) the next, on a square of their own and never in a
+// wall, whatever stands ahead. The foes
 // were once put a cell ahead through walls and doors, on a map of its own.
 func TestStraightIsOriginalUnskewed(t *testing.T) {
 	for _, c := range []struct {
@@ -87,8 +88,8 @@ func TestStraightIsOriginalUnskewed(t *testing.T) {
 				t.Errorf("%s: combatant %d stands in a wall at %v", c.name, i, at)
 			case taken[at] != 0:
 				t.Errorf("%s: combatants %d and %d share %v", c.name, taken[at], i, at)
-			case straightCellOf(at.X, at.Y) != straightCellOf(was.X, was.Y):
-				t.Errorf("%s: combatant %d in cell %v, the original's %v", c.name, i, straightCellOf(at.X, at.Y), straightCellOf(was.X, was.Y))
+			case !straightCellOf(at.X, at.Y).In(image.Rectangle{Min: straightCellOf(was.X, was.Y), Max: straightCellOf(was.X, was.Y)}.Inset(-1)):
+				t.Errorf("%s: combatant %d in cell %v, far from the original's %v", c.name, i, straightCellOf(at.X, at.Y), straightCellOf(was.X, was.Y))
 			}
 			taken[at] = i
 			if at == was {
@@ -102,20 +103,19 @@ func TestStraightIsOriginalUnskewed(t *testing.T) {
 // TestStraightWalls: on the Deskew board a cell is a 5x5 block, its walls
 // one square thick: a walled cell's west wall is its block's column 0, its
 // north wall its row 0, its floor 4x4; a west door is rows 2 and 3 of the
-// wall. No one is walled in or over.
+// wall, whoever is placed beside it.
 func TestStraightWalls(t *testing.T) {
 	s := straightFight(t, true, 1, 0)
-	stands := func(x, y int) bool { who, _ := s.MapAt(x, y); return who != 0 }
 	wall := func(x, y int) bool { return s.GroundInfo(s.Cmap.Ground[y][x])[0] == 0xFF }
 	for y := 0xA + 5; y < 0xA+10; y++ { // cell (8,9): walled all round
 		for x := 20; x < 25; x++ {
-			if want := y == 0xA+5 || x == 20; wall(x, y) != want && !stands(x, y) {
+			if want := y == 0xA+5 || x == 20; wall(x, y) != want {
 				t.Errorf("(%d,%d): wall %v, want %v", x, y, wall(x, y), want)
 			}
 		}
 	}
 	for y := 0xA + 1; y < 0xA+5; y++ { // cell (8,8): its west side a door
-		if want := y != 0xA+2 && y != 0xA+3; wall(20, y) != want && !stands(20, y) {
+		if want := y != 0xA+2 && y != 0xA+3; wall(20, y) != want {
 			t.Errorf("door (20,%d): wall %v, want %v", y, wall(20, y), want)
 		}
 	}

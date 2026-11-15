@@ -907,9 +907,10 @@ cut from their combat icons.
   by 5 (west walls two wide). The port takes the skew out and makes a cell
   a square 5x5 block (`rules1e.StraightX`): the original's 4x4 floor, walls
   one square thick both ways, a door two squares between posts, a corner at
-  every wall end (`squareWalls`). Placement is the original's, on the same
-  squares; where two of its squares fall on one (a wall line open to the
-  west) the second combatant takes the formation's next free square.
+  every wall end (`squareWalls`). Then the original's placement, on the same
+  squares; where one is a wall or post here, or two of its squares fall on
+  one (a wall line open to the west), the combatant takes the formation's
+  next free square.
 - **Custom icons:** a PNG dropped on the icon editor is the member's combat
   icon (`Character.Icon`, saved as `NAME.icon.png`): a square picture is both
   poses, one twice as wide as high is cut in the middle, left ready, right

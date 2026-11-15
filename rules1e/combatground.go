@@ -21,12 +21,12 @@ func StraightX(x, y int) int {
 	return straightParty + (sx/6-10)*straightCell + max(sx%6-1, 0)
 }
 
-// squareWalls (extra, Deskew) lays the straight board's walls, once
-// everyone is placed: one square thick with square corners (the original's
-// west wall is two wide, its door posts and wall ends a square apart along
-// the slant). A cell's west wall is its block's first column, its north
-// wall the first row, a door the two middle squares between posts. A
-// square someone stands on stays open.
+// squareWalls (extra, Deskew) lays the straight board's walls over the
+// original's pieces, before anyone is placed: one square thick with square
+// corners (the original's west wall is two wide, its door posts and wall
+// ends a square apart along the slant). A cell's west wall is its block's
+// first column, its north wall the first row, a door the two middle squares
+// between posts.
 func (r *Rules) squareWalls(m rules.MapSides) {
 	const west, north, corner = 3, 5, 2 // the pieces' tiles (ovr11:02BA, :0377, :040F)
 	floor := r.S.grounds().Floor
@@ -34,9 +34,8 @@ func (r *Rules) squareWalls(m rules.MapSides) {
 		if x < 0 || x > 0x31 || y < 0 || y > 0x18 {
 			return
 		}
-		who, g := r.S.MapAt(x, y)
-		switch is := r.S.GroundInfo(g)[0] == 0xFF; {
-		case wall && !is && who == 0:
+		switch is := r.S.GroundInfo(r.S.Cmap.Ground[y][x])[0] == 0xFF; {
+		case wall && !is:
 			r.S.Cmap.Ground[y][x] = Ground(tile + 1)
 		case !wall && is:
 			r.S.Cmap.Ground[y][x] = floor
@@ -206,6 +205,9 @@ func (r *Rules) dungeonMap(g rules.BuildGround) {
 				r.dungeonRubble(gen.Rubble, g.Walls.MapCell(x, y)&gen.Rubble.CellFlag != 0, c, dr, n, ea, CellEdge(g.Walls, r.S.PosY, x, y, 4), w)
 			}
 		}
+	}
+	if r.straight {
+		r.squareWalls(g.Walls)
 	}
 	r.floorClutter(g)
 }
