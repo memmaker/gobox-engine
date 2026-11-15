@@ -89,7 +89,10 @@ func (r *Rules) placeCombatants(m rules.MapSides) []rules.Effect {
 	p.Ox[0], p.Oy[0] = 0, 0
 	p.Dir[0] = Dir(byte(r.S.Facing / 2))
 	dist := int(r.S.Game.MonsterDist)
-	if r.straight && dist == 0 { // extra: deskewed, a side's formation is its own cell's floor, so the foes take the cell ahead (they shared the party's 5x4 floor, among it)
+	// extra: deskewed, a side's formation is its own cell's floor, so the foes take the cell ahead
+	// (they shared the party's 5x4 floor, among it); never through a wall or a door, as the
+	// original's distance (FreeSteps) never is: there they share the floor still
+	if r.straight && dist == 0 && (m == nil || CellEdge(m, r.S.PosY, r.S.PosX, r.S.PosY, r.S.Facing) == 0) {
 		dist = 1
 	}
 	p.Ox[1] = int8(dist*DirDX[r.S.Facing] + int(p.Ox[0]))
