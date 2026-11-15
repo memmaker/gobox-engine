@@ -13,9 +13,17 @@ import (
 // (REFACTOR.md R2). The list only shrinks: a file not on it may not import
 // one, and a file that no longer does must leave it.
 var rulesetFiles = []string{
-	"combatrules_engine.go", "dataimport.go", "eclops2_engine.go", "eclops_engine.go",
-	"files_engine.go", "game_engine.go", "init.go", "newpool.go", "roster.go",
-	"rulesetseam.go", "savefile.go", "scriptvars_engine.go", "slots.go", "vault_engine.go", "view_engine.go",
+	"combatrules_engine.go",
+	"dataimport.go",
+	"eclops2_engine.go",
+	"eclops_engine.go",
+	"game_engine.go",
+	"init.go",
+	"newpool.go",
+	"rulesetseam.go",
+	"scriptvars_engine.go",
+	"vault_engine.go",
+	"view_engine.go",
 }
 
 // TestPoolImportsNoRuleset: the engine reaches the rules only through

@@ -10,7 +10,6 @@ import (
 	"gobox/ecl"
 	"gobox/game"
 	"gobox/rules"
-	"gobox/rules1e"
 	"io/fs"
 	"log"
 	"maps"
@@ -126,8 +125,8 @@ func (e *Engine) partyLevelHere() (lv int) {
 	}
 	for _, nm := range f.Party {
 		if b, err := os.ReadFile(e.savePath(nm + ".sav")); err == nil {
-			for _, l := range rules1e.SheetOf(b).Levels {
-				lv = max(lv, int(int8(l)))
+			for _, l := range e.fileFormat().SavedLevels(b) {
+				lv = max(lv, l)
 			}
 		}
 	}

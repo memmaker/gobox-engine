@@ -131,7 +131,7 @@ func porGame() fixture.Game {
 		Member: func(_, name, ext string) ([]byte, error) {
 			return os.ReadFile(filepath.Join(slotDir, name+ext))
 		},
-		Strong: engine.MakeStrong,
+		Strong: func(b []byte) []byte { return rules1e.MakeStrong(b) },
 	}
 }
 

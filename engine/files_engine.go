@@ -9,7 +9,6 @@ import (
 	"gobox/asset"
 	"gobox/game"
 	"gobox/rules"
-	"gobox/rules1e"
 	"io/fs"
 	"log"
 	"os"
@@ -135,7 +134,7 @@ func (e *Engine) SaveCharacter(cID rules.CharID, name string) error {
 			list = append(list, n)
 		}
 		listFailed = e.WriteCharList(list)
-		if rules1e.ReadPoolIDs(e.exportFiles(cID, false).Record).Roster == rules.NoRoster {
+		if e.fileFormat().RosterOf(e.exportFiles(cID, false).Record) == rules.NoRoster {
 			id, err := e.newRosterID()
 			listFailed = cmp.Or(listFailed, err)
 			e.do(rules.SetRoster{Who: cID, Roster: id})
@@ -162,13 +161,17 @@ func (e *Engine) SaveCharacter(cID rules.CharID, name string) error {
 	return cmp.Or(listFailed, failed)
 }
 
+// fileFormat is the ruleset's file format (a ruleset that saves characters
+// as files has one).
+func (e *Engine) fileFormat() rules.FileFormat { return e.ruleset().(rules.FileFormat) }
+
 // exportFiles are cID's files (game: a game save's).
-func (e *Engine) exportFiles(cID rules.CharID, game bool) rules1e.Files {
+func (e *Engine) exportFiles(cID rules.CharID, game bool) rules.CharacterFiles {
 	b, err := e.ruleset().Export(cID)
 	if err != nil {
 		panic(fmt.Sprintf("save: %v", err)) // a member always exports
 	}
-	f, err := rules1e.Unpack285(b, game)
+	f, err := e.fileFormat().Unpack(b, game)
 	if err != nil {
 		panic(fmt.Sprintf("save: %v", err)) // Export's own JSON
 	}
@@ -184,7 +187,7 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (rules.CharID, bool) {
 		ext = ".sav"
 	}
 	path := e.savePath(nm + ext)
-	var f rules1e.Files
+	var f rules.CharacterFiles
 	var err error
 	if f.Record, err = os.ReadFile(path); err != nil {
 		e.fileError("read", path)
@@ -209,7 +212,7 @@ func (e *Engine) LoadCharacter(name string, useSav bool) (rules.CharID, bool) {
 		f.Icon = nil
 		e.fileError("read", e.savePath(nm+".icon.png"))
 	}
-	b, err := rules1e.Pack285(f)
+	b, err := e.fileFormat().Pack(f)
 	if err == nil {
 		e.setWorldWord(rules.WordWho, e.sel) // ImportCharacter's member
 		var id rules.CharID

@@ -8,7 +8,6 @@ import (
 
 	"gobox/adventure"
 	"gobox/rules"
-	"gobox/rules1e"
 )
 
 // The roster's RosterIDs (core.RosterID, approved 2026-11-11): each roster
@@ -56,7 +55,7 @@ func (e *Engine) migrateRoster(names []string) {
 		if err != nil || len(b) < charRecSize {
 			continue
 		}
-		if id := rules1e.ReadPoolIDs(b).Roster; id == rules.NoRoster {
+		if id := e.fileFormat().RosterOf(b); id == rules.NoRoster {
 			old[p] = b
 		} else {
 			most = max(most, id)
@@ -75,13 +74,11 @@ func (e *Engine) migrateRoster(names []string) {
 			continue
 		}
 		delete(old, p)
-		ids := rules1e.ReadPoolIDs(b)
 		id, err := e.newRosterID()
 		if err != nil {
 			continue // the counter is not kept (it showed "Cannot write"): no number is handed out
 		}
-		ids.Roster = id
-		e.writeFile(p, append(b[:charRecSize:charRecSize], rules1e.PoolTrailer(ids)...)) // failures show "Cannot write"; BuildCharList has no error channel
+		e.writeFile(p, e.fileFormat().WithRoster(b, id)) // failures show "Cannot write"; BuildCharList has no error channel
 	}
 }
 
@@ -89,7 +86,7 @@ func (e *Engine) migrateRoster(names []string) {
 func (e *Engine) joinRoster(id rules.RosterID) (rules.CharID, error) {
 	for _, n := range e.BuildCharList() {
 		b, err := os.ReadFile(e.rosterFile(n))
-		if err != nil || rules1e.ReadPoolIDs(b).Roster != id {
+		if err != nil || e.fileFormat().RosterOf(b) != id {
 			continue
 		}
 		c, ok := e.LoadCharacter(strings.TrimPrefix(n, "* "), false) // ovr18:0AEC

@@ -60,19 +60,6 @@ const (
 	AffectSize = AffectRecSize
 )
 
-// Files is one Pool of Radiance character as saved, each file's bytes (nil:
-// the file is not there).
-type Files struct {
-	Record   []byte // .cha (roster) or .sav (game): the 0x11D record, then the pool trailer
-	Items    []byte // .itm
-	Affects  []byte // .spc
-	Plan     []byte // .mem
-	Dual     []byte // .dual
-	Powers   []byte // .pow
-	Portrait []byte // .png
-	Icon     []byte // .icon.png
-}
-
 // Pack285 is f as the canonical character (rules1e.CharacterFile's JSON).
 func Pack285(f Files) (rules.CharacterFile, error) {
 	c := CharacterJSON{Sheet: SheetOf(f.Record), PoolIDs: ReadPoolIDs(f.Record), Portrait: f.Portrait, Icon: f.Icon}
