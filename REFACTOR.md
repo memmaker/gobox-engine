@@ -303,7 +303,7 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
         `rules.EnterShop` is gone, the engine sets the shop's phase. `rulesxxvc` accepts
         `EnterPhase`; `ActFor`, `SetMemberCount`, `ClockIs` it does not answer yet (B1f1).
         `engine/sessionwords_test.go`, recorded before the change
-    - [ ] B1f1 slice 1, the opening: the import's engine files and the full layout for the shared
+    - [x] B1f1 slice 1, the opening: the import's engine files and the full layout for the shared
       engine; a builder for `rulesxxvc` with its tables; the start-up actions; the words;
       a roster from the imported characters; the facts the state build asks; the op AreaKind and
       BR's differences in Picture, LoadMap, LoadWalls, Delay, Sound as data of the dialect;
@@ -325,11 +325,20 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       - [x] S1c1 `TestBR1Opening` (`engine/br1opening_test.go`): import into a temp dir, engine
         with `rulesxxvc.Builder`, party menu, a roster character added, Begin, `game.Exploring`.
         `rules.Pending` is optional; the sheet's saves are the catalog's count.
-      - [ ] S1c2 the script runs: V4 76 (area kind) stops it today, printed on stderr, not an error
-        (the engine prints an unported command and goes on, for every game: make it fail the test).
-        Then Picture's file by number, LoadMap, LoadWalls, Delay, Sound, the layout names
-        (`CellHere`, facing, `LastBlock`, `ForwardHeld`, area kind), and the oracle's assertions
-        (texts, pictures PIC9/62, square 5,6 facing 0, the walk north, driven back).
+      - [x] S1c2 the opening runs: `TestBR1Opening` carries the assertions of buckrogers-go
+        `TestOpening` (pages, picture 62 from PIC9, square 5,6 north, the officer, no step under a
+        question, the heat, driven back). V4 76 sets the 3D or overland view and the picture;
+        an unported command panics (every game); `GameTables.PictureSets`; VGA animation blocks
+        load; layout names `FacingOrRaw` + `TravelKind`, `Cell`; `Behaviour.ClearExitText`;
+        `rulesxxvc` `AdvanceClock`. B1f1 is done with this.
+      - Open after slice 1, for the walking/new block slice: V4 76's rocket view (2) and kind 3
+        panic (B1e); `ScriptBlock` (4BF2) is unbound: BR writes the current block at every step and a
+        loaded game starts from it, the engine's `LastBlock` is what NewECL left; `Word7EB1`
+        (selected member), `ForwardHeld` unbound; Delay pauses by the engine's message speed, BR's
+        is 100 ms a unit and none at speed 0; Sound(5), Sound(131) have no table (`sound.json`);
+        the command's name `AreaKind` in `ecl` is wrong (it is the view's kind) and collides with
+        the engine's AreaKind (the block); the walls are slots only, nothing draws BR's (no
+        WALLDEF); a year's carry does not age (a `Character` has no age).
       - Seen wrong in the state after Begin, to fix with the sheet/team menu slice: `AC` is BR's
         raw value (58), `Health` 0 and `Okay` false for an okay member, `SlotsMax` lists AD&D spell
         slots, the ui's save labels are AD&D's five, the sheet has six abilities (XXVc has Tech).
