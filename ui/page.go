@@ -9,6 +9,7 @@ import (
 	"image/color"
 	"image/draw"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -282,7 +283,8 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 		str((cols-1-len(title))/2, 1, inkWhite, title)
 		y := 3
 		// Spells and XP to the next level only where the window has room for them
-		str(2, y, inkWhite, "Name")
+		str(2, y, inkWhite, "Lv")
+		str(overviewName, y, inkWhite, "Name")
 		str(19, y, inkWhite, "HP")
 		str(27, y, inkWhite, "AC")
 		str(31, y, inkWhite, "Status")
@@ -301,7 +303,10 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 			if i == p.selectedIndex() {
 				colour = inkWhite
 			}
-			str(2, y, colour, c.Name[:min(len(c.Name), 15)])
+			if lv := slices.Max(append([]int{0}, c.Levels...)); lv > 0 { // the highest of its classes, right aligned under "Lv"
+				str(2, y, inkGreen, fmt.Sprintf("%2d", lv))
+			}
+			str(overviewName, y, colour, c.Name[:min(len(c.Name), 19-1-overviewName)])
 			hpc := inkGreen
 			switch {
 			case c.HP <= 0:
@@ -332,8 +337,8 @@ func (p *Presenter) drawModal(m *image.RGBA, note Note) {
 			y += 2
 		}
 		if c := game.CommonOf(p.state()); c.Purse != nil { // a blank row between the pairs and before the items
-			str(2, rows-7, inkYellow, fmt.Sprintf("%d gold  %d copper", c.Purse[Coin], c.Purse[game.Copper]))
-			str(2, rows-5, inkYellow, fmt.Sprintf("%d gems  %d jewelry", c.Purse[game.Gems], c.Purse[game.Jewelry]))
+			str(2, rows-7, inkYellow, fmt.Sprintf("%s gold  %s copper", thousands(c.Purse[Coin]), thousands(c.Purse[game.Copper])))
+			str(2, rows-5, inkYellow, fmt.Sprintf("%s gems  %s jewelry", thousands(c.Purse[game.Gems]), thousands(c.Purse[game.Jewelry])))
 			str(2, rows-3, inkCyan, fmt.Sprintf("Party items %d/%d", c.PoolItems, c.PartyCap))
 		}
 		// no prompt: the frame runs round the whole page, any key still closes it
@@ -627,4 +632,19 @@ func (p *Presenter) paneBox(dst *gpu.Image, note Note, k float64, cx, cy int) {
 	op.GeoM.Translate(x, y)
 	dst.DrawImage(upload(&p.pg.notes, m), op)
 	p.noteBtn = image.Rect(int(x), int(y), int(x+k*float64(m.Rect.Dx())), int(y+k*8))
+}
+
+// overviewName is the party overview's name column: after the level's.
+const overviewName = 5
+
+// thousands is n with a comma between its thousands ("51,211").
+func thousands(n int) string {
+	s := strconv.Itoa(max(n, -n))
+	for i := len(s) - 3; i > 0; i -= 3 {
+		s = s[:i] + "," + s[i:]
+	}
+	if n < 0 {
+		return "-" + s
+	}
+	return s
 }
