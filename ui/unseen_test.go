@@ -52,7 +52,7 @@ func noUnseenQuestion(t *testing.T, g string) {
 			f.Game.TitleDone()
 			f.Game.Settle()
 			for step := range 8 {
-				for range 10 {
+				for range 3 { // as flowKey: the state settles and the screen is drawn
 					f.Frame(flowW, flowH)
 					f.Tick()
 				}

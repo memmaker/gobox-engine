@@ -45,13 +45,15 @@ func TestWallStyleSwapsTextures(t *testing.T) {
 			p.shown = "s"
 		}
 		p.view.Draw(dst)
+		px := make([]byte, 4*blobber.W*blobber.H) // one read of the frame: At reads the texture back per pixel (93 s of the suite)
+		dst.ReadPixels(px)
 		for y := 0; y < blobber.H; y += 10 {
 			for x := 0; x < blobber.W; x += 10 {
-				r, _, b, _ := dst.At(x, y).RGBA()
-				if r>>8 > 150 && b == 0 { // lit or in the torch's shade
+				r, b := px[4*(y*blobber.W+x)], px[4*(y*blobber.W+x)+2]
+				if r > 150 && b == 0 { // lit or in the torch's shade
 					red++
 				}
-				if b>>8 > 150 && r == 0 {
+				if b > 150 && r == 0 {
 					blue++
 				}
 			}

@@ -75,15 +75,28 @@ touched() {
     if [ "$d" = "$mod" ]; then echo "$mod ."; else echo "$mod ./${d#"$mod"/}"; fi
   done | sort -u
 }
+# One go test per module over all its touched packages: go runs the packages side by side
+# (ui and engine, minutes each, no longer one after the other).
 test_touched() {
-  local repo="$1" mod pkg
-  touched "$repo" | while read -r mod pkg; do
-    echo "== $repo: $pkg (touched)"
+  local repo="$1" mod pkgs
+  touched "$repo" | awk '{p[$1] = p[$1] " " $2} END {for (m in p) print m p[m]}' | while read -r mod pkgs; do
+    echo "== $repo:$pkgs (touched)"
     local t=$SECONDS
-    (cd "$mod" && go test -skip "$slow" "$pkg") || exit 1
-    echo "-- $repo: $pkg $((SECONDS - t))s"
+    # shellcheck disable=SC2086  # pkgs is a list of package paths
+    (cd "$mod" && go test -skip "$slow" $pkgs) || exit 1
+    echo "-- $repo:$pkgs $((SECONDS - t))s"
   done
 }
+# is_touched repo pkg: the staged change touches the package (./engine).
+is_touched() {
+  local t
+  t="$(touched "$1")" # not piped into grep -q: it leaves early, and pipefail would call that a failure
+  grep -q " $2\$" <<<"$t"
+}
+
+# The whole engine repo's format, once (check formats only the directory it is given).
+unformatted="$(cd "$out/gobox-engine" && gofmt -l .)"
+[ -z "$unformatted" ] || { echo "gofmt needed:"; echo "$unformatted"; exit 1; }
 
 check gobox-engine/rules1e ./...
 check rulesxxvc ./...
@@ -93,9 +106,10 @@ fixed='Monster|Thac0|Save|Train|Level|Turn|Charcalc|Recompute|AgainstPascal'
 # Its tests read POR's imported data (scripts, data/assets/data) and fail without it: the import
 # (games/por cmd/importstale, a no-op without the game files) runs first, here, not in the tests.
 (cd "$out/gobox-engine" && go run ./games/por/cmd/importstale)
-check gobox-engine/engine . -run "$fixed"
+# A touched package runs whole below (test_touched): its fixed set is not run twice.
+is_touched gobox-engine ./engine || check gobox-engine/engine . -run "$fixed"
 (cd "$out/gobox-engine/engine" && go test . -run "$slow")
-check gobox-engine/rules4e . -run "$fixed"
+is_touched gobox-engine ./rules4e || check gobox-engine/rules4e . -run "$fixed"
 test_touched gobox-engine
 
 # Other games build against gobox-engine outside core, from what is staged in them (their HEAD when nothing is).
