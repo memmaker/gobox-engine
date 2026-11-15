@@ -51,8 +51,8 @@ func frontOnly(k uint16) bool {
 	return false
 }
 
-// arrow turns a cursor key a into its decision on v: the member pick's candidate (ActLead), else a pager's page
-// (ActPage -1 or +1).
+// arrow turns a cursor key a into its decision on v: the member pick's candidate (ActLead), else the page
+// (ActPage -1 or +1) of the question up (askRest's Add and Subtract).
 func (p *Presenter) arrow(a input.Act) {
 	back := a == input.Up || a == input.InputLeft || a == input.PgUp || a == input.Home
 	on := a == input.Down || a == input.InputRight || a == input.PgDn || a == input.End
@@ -71,6 +71,7 @@ func (p *Presenter) arrow(a input.Act) {
 	}
 	switch {
 	case p.picker(p.ink()) != nil: // a picker pages to an absolute page (pickerKey), never by -1 and +1
+	case p.q == nil: // no question up to page: the game applies no ActPage
 	case back:
 		p.send(ActPage, -1)
 	case on:

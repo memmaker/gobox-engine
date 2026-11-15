@@ -786,7 +786,9 @@ func (g *Game) act(a Action) func() error {
 	case ActText: // a number typed is N as well (a Number ask's amount), the Text kept
 		n, _ := strconv.Atoi(strings.TrimSpace(a.Text))
 		return send(game.Reply{N: n, Text: a.Text})
-	case ActSearch:
+	case ActSearch: // this square once: the original's Look
+		return send(game.Look{})
+	case ActSweep: // the searching pace on or off: the original's Search
 		return send(game.Search{})
 	case ActCamp:
 		return send(game.MakeCamp{})
