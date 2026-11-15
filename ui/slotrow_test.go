@@ -76,3 +76,22 @@ func TestSlotDatesAlike(t *testing.T) {
 		}
 	}
 }
+
+// TestLoadIsNoJournalNews: a loaded game's journal notes are not "Added to
+// journal" (the party menu had none before the load); one gained after is.
+func TestLoadIsNoJournalNews(t *testing.T) {
+	f := &timedSlot{fake{st: game.Assembling{}}}
+	g := NewGame(f, game.Data{SaveDir: t.TempDir()})
+	g.loreNews() // the party menu, no notes
+	f.st = game.Exploring{Common: game.Common{Lore: make([]game.Lore, 3)}}
+	if res := g.r.load(0); res.Err != nil {
+		t.Fatal(res.Err)
+	}
+	if g.loreNews(); g.r.toast.Text != "" {
+		t.Fatalf("after the load: toast %q", g.r.toast.Text)
+	}
+	f.st = game.Exploring{Common: game.Common{Lore: make([]game.Lore, 4)}}
+	if g.loreNews(); g.r.toast.Text == "" {
+		t.Fatal("a note gained in play is not said")
+	}
+}

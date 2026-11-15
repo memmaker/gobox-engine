@@ -1555,6 +1555,7 @@ func (r *frontState) load(slot int) game.Result {
 		return game.Result{Err: err}
 	}
 	r.ask, r.moves, r.aim, r.items, r.read = nil, nil, nil, game.ItemsNone, nil
+	r.lore = 0 // the loaded game's journal is no news (loreNews counts from it)
 	return game.Result{Events: []game.Report{{Kind: game.EvReset}}}
 }
 
