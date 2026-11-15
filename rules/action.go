@@ -130,6 +130,7 @@ type (
 		Who   CharID
 		Item  ItemHandle
 		Count int32
+		To    ReadyTo
 	}
 	Unready struct {
 		Who  CharID
@@ -426,4 +427,14 @@ const (
 	PolicyAlways Policy = iota // the zero value
 	PolicyNever
 	PolicyOnHit // only when it turns a hit (the ruleset says which way)
+)
+
+// ReadyTo is where Ready puts an item that has the choice (a weapon thrown
+// or used in melee: a spear); any other item goes where it always does.
+type ReadyTo int
+
+const (
+	ReadyAnywhere   ReadyTo = iota // the rules choose
+	ReadyToHand                    // the weapon hand
+	ReadyToMissiles                // the Missiles slot
 )

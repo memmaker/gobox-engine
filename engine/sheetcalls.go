@@ -177,13 +177,14 @@ func (e *Engine) carriedBy(h rules.ItemHandle) (rules.CharID, rules.ItemHandle) 
 	return id, h
 }
 
-// Ready readies or unreadies item h (x of the stack, 0: all of it).
-func (e *Engine) Ready(h rules.ItemHandle, x int) error {
+// Ready readies or unreadies item h (x of the stack, 0: all of it); to is
+// where a weapon with the choice goes (rules.ReadyTo).
+func (e *Engine) Ready(h rules.ItemHandle, x int, to rules.ReadyTo) error {
 	cID, h := e.carriedBy(h)
 	if h == rules.NoItem {
 		return rules.ErrNotNow
 	}
-	if _, err := e.ruleset().Resolve(nil, rules.Ready{Who: cID, Item: h, Count: int32(x)}, nil); err != nil {
+	if _, err := e.ruleset().Resolve(nil, rules.Ready{Who: cID, Item: h, Count: int32(x), To: to}, nil); err != nil {
 		return err
 	}
 	if t := e.snap.turn; t != nil && cID == e.cs.actor { // the turn's weapon follows (BUG-CLASSES 40), as turnChoices sets it
@@ -197,7 +198,7 @@ func (e *Engine) Unready(h rules.ItemHandle) error {
 	if id, h := e.carriedBy(h); h != rules.NoItem && !e.itemCard(id, h).Readied {
 		return errors.New("not readied")
 	}
-	return e.Ready(h, 0)
+	return e.Ready(h, 0, rules.ReadyAnywhere)
 }
 
 // drop drops item h (the front asked ovr20's "drop It?").

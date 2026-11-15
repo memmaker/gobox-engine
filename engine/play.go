@@ -688,7 +688,10 @@ func allows(al game.Allowed, a game.Action) bool {
 		v.Ats, v.Target, v.Spell = nil, 0, 0
 		base = v
 	case game.Ready:
-		v.Count = 0
+		if v.To != rules.ReadyAnywhere && slices.Contains(al.Plain, game.Action(game.Unready{Member: v.Member, Item: v.Item})) { // readied already: it moves between the hand and the Missiles slot
+			return true
+		}
+		v.Count, v.To = 0, rules.ReadyAnywhere
 		base = v
 	case game.EndGame: // gobox's Back to Main Menu, any time: Do refuses it where there is no game to drop
 		return true
@@ -1365,7 +1368,7 @@ func (e *Engine) itemDo(a game.Action, native func(func() error) error) (bool, e
 	}
 	switch a := a.(type) {
 	case game.Ready:
-		return shown(a.Member, func() error { return e.Ready(a.Item, a.Count) })
+		return shown(a.Member, func() error { return e.Ready(a.Item, a.Count, a.To) })
 	case game.Unready:
 		return shown(a.Member, func() error { return e.Unready(a.Item) })
 	case game.Drop: // ovr20's "Drop It?" is gobox's (BUG-CLASSES 47)

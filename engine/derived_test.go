@@ -2,6 +2,7 @@ package engine
 
 import (
 	"gobox/game"
+	"gobox/rules"
 	"gobox/rules1e"
 	"slices"
 	"testing"
@@ -74,5 +75,32 @@ func TestSpearEitherSlot(t *testing.T) {
 	}
 	if _, err := e.doNow(game.Unready{Member: m, Item: e.itemHandle(spear)}); err != nil || spear.Readied != 0 || c.Slots[rules1e.SlotMissiles] != nil {
 		t.Fatalf("Unready from the Missiles slot: %v, readied %d", err, spear.Readied)
+	}
+	// the player's choice (the doll box it is dropped on)
+	to := func(it *rules1e.Item, to rules.ReadyTo) {
+		t.Helper()
+		if _, err := e.doNow(game.Ready{Member: m, Item: e.itemHandle(it), To: to}); err != nil {
+			t.Fatalf("Ready to %d: %v", to, err)
+		}
+	}
+	to(spear, rules.ReadyToHand) // in place of the sword
+	if c.Slots[rules1e.SlotWeapon] != spear || sword.Readied != 0 {
+		t.Fatalf("to the hand: weapon %v, sword readied %d", c.Slots[rules1e.SlotWeapon], sword.Readied)
+	}
+	to(spear, rules.ReadyToMissiles) // readied: it moves
+	if c.Slots[rules1e.SlotMissiles] != spear || c.Slots[rules1e.SlotWeapon] != nil {
+		t.Fatalf("moved to the Missiles slot: weapon %v, missiles %v", c.Slots[rules1e.SlotWeapon], c.Slots[rules1e.SlotMissiles])
+	}
+	to(sword, rules.ReadyToMissiles) // no weapon of both: the hand
+	to(spear, rules.ReadyToHand)     // moves back, the sword coming off
+	if c.Slots[rules1e.SlotWeapon] != spear || c.Slots[rules1e.SlotMissiles] != nil || sword.Readied != 0 {
+		t.Fatalf("moved to the hand: weapon %v, missiles %v, sword readied %d", c.Slots[rules1e.SlotWeapon], c.Slots[rules1e.SlotMissiles], sword.Readied)
+	}
+	if _, err := e.doNow(game.Unready{Member: m, Item: e.itemHandle(spear)}); err != nil {
+		t.Fatal(err)
+	}
+	to(spear, rules.ReadyToMissiles) // with the hand free too
+	if c.Slots[rules1e.SlotMissiles] != spear || c.Slots[rules1e.SlotWeapon] != nil {
+		t.Fatalf("to the Missiles slot: weapon %v, missiles %v", c.Slots[rules1e.SlotWeapon], c.Slots[rules1e.SlotMissiles])
 	}
 }

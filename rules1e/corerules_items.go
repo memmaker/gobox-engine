@@ -39,13 +39,13 @@ func (r *Rules) resolveItems(sit rules.Situation, a rules.Action) (o rules.Outco
 		if c == nil || it == nil {
 			return o, true, ErrNotNow
 		}
-		return r.ready(c, it, int(a.Count)), true, nil
+		return r.ready(c, it, int(a.Count), a.To), true, nil
 	case rules.Unready:
 		c, it := r.chars[a.Who], r.items[a.Item]
 		if c == nil || it == nil || it.Readied == 0 {
 			return o, true, ErrNotNow
 		}
-		return r.ready(c, it, 0), true, nil
+		return r.ready(c, it, 0, rules.ReadyAnywhere), true, nil
 	case rules.DropItem:
 		c, it := r.chars[a.Who], r.items[a.Item]
 		if c == nil || it == nil {
@@ -138,11 +138,19 @@ func (r *Rules) resolveItems(sit rules.Situation, a rules.Action) (o rules.Outco
 
 // ready readies or unreadies n of it (0: all), as the player's wield: a
 // sound when the slots changed (the computer readies in silence, aiPickWeapon).
-func (r *Rules) ready(c *Character, it *Item, n int) rules.Outcome {
+// to is where a weapon thrown or used in melee goes; readied already, it
+// moves there.
+func (r *Rules) ready(c *Character, it *Item, n int, to rules.ReadyTo) rules.Outcome {
 	s := r.S
 	s.Who = s.PartyIndex(c)
 	slots := c.Slots
-	s.ReadySome(c, it, n)
+	if it.Readied != 0 && to != rules.ReadyAnywhere {
+		s.moveReadied(c, it, to)
+	} else {
+		s.readyTo = to
+		s.ReadySome(c, it, n)
+		s.readyTo = rules.ReadyAnywhere
+	}
 	s.ApplyItems(c)
 	if c.Slots != slots {
 		s.Sound("wield")

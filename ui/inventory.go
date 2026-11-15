@@ -151,16 +151,37 @@ func (inv *inventory) put(n int) {
 		return
 	}
 	n = max(1, min(n, c.n))
+	box, to := inv.dropTo()
 	if onDoll := inv.hover.In(inv.dollAt); onDoll != (c.doll || it.Readied) { // a readied item from the list is on the doll already
 		x := n
 		if n >= max(it.Count, 1) {
 			x = 0 // the whole stack
 		}
-		inv.removeX(ActReady, it.Handle, x)
+		inv.removeAct(Action{Kind: ActReady, Item: it.Handle, X: x, To: to})
+	} else if onDoll && to != rules.ReadyAnywhere && box != dollSlot(*it) { // a readied one onto the other box: the rules move a weapon of both there
+		inv.removeAct(Action{Kind: ActReady, Item: it.Handle, To: to})
 	}
 	if c.n -= n; c.n <= 0 {
 		inv.carry = nil
 	}
+}
+
+// dropTo is the doll box under the pointer (-1 none) and where it readies
+// a weapon of the hand or the Missiles slot.
+func (inv *inventory) dropTo() (int, rules.ReadyTo) {
+	for i, r := range dollBoxes {
+		if !inv.hover.In(r.Add(inv.dollAt.Min)) {
+			continue
+		}
+		switch i {
+		case rules.DollWeapon:
+			return i, rules.ReadyToHand
+		case rules.DollArrows:
+			return i, rules.ReadyToMissiles
+		}
+		return i, rules.ReadyAnywhere
+	}
+	return -1, rules.ReadyAnywhere
 }
 
 type hit struct {
@@ -232,7 +253,13 @@ func (inv *inventory) remove(k ActKind, i rules.ItemHandle) {
 
 // removeX is remove with the action's X (Ready's count).
 func (inv *inventory) removeX(k ActKind, i rules.ItemHandle, x int) {
-	inv.acts = append(inv.acts, Action{Kind: k, Item: i, X: x})
+	inv.removeAct(Action{Kind: k, Item: i, X: x})
+}
+
+// removeAct is remove with the whole action.
+func (inv *inventory) removeAct(a Action) {
+	k, i := a.Kind, a.Item
+	inv.acts = append(inv.acts, a)
 	if k != ActSell && k != ActDrop && k != ActReady {
 		return
 	}

@@ -749,7 +749,7 @@ func (r *frontState) apply(a game.Action) game.Result {
 			}
 		}
 	case game.Ready: // on a readied item it unreadies it, as the originals' Ready toggles
-		if pt := game.CommonOf(ps).Party; d.Member >= 0 && d.Member < len(pt) && slices.ContainsFunc(pt[d.Member].Items, func(it game.Item) bool { return it.Handle == d.Item && it.Readied }) {
+		if pt := game.CommonOf(ps).Party; d.To == rules.ReadyAnywhere && d.Member >= 0 && d.Member < len(pt) && slices.ContainsFunc(pt[d.Member].Items, func(it game.Item) bool { return it.Handle == d.Item && it.Readied }) {
 			return r.do(game.Unready{Member: d.Member, Item: d.Item})
 		}
 	}

@@ -221,11 +221,54 @@ func (b *ItemBase) meleeToo() bool {
 }
 
 // asMissile (extra): it, unreadied, would go into c's Missiles slot: a
-// thrown weapon also used in melee, the weapon hand holding another and
-// the Missiles box free.
+// thrown weapon also used in melee, where the player's Ready says
+// (readyTo), else with the weapon hand holding another and the Missiles
+// box free.
 func (e *RuleState) asMissile(c *Character, it *Item) bool {
+	if it.Readied != 0 || !e.Base(it.Type).meleeToo() {
+		return false
+	}
+	switch e.readyTo {
+	case rules.ReadyToMissiles:
+		return true
+	case rules.ReadyToHand:
+		return false
+	}
 	w := c.Slots[SlotWeapon]
-	return it.Readied == 0 && w != nil && w != it && e.Base(it.Type).meleeToo() && e.missileReadied(c) == nil
+	return w != nil && w != it && e.missileReadied(c) == nil
+}
+
+// moveReadied (extra): c's readied weapon it, thrown or used in melee,
+// changes between the weapon hand and the Missiles slot (to), what holds
+// the place coming off first; any other item stays where it is.
+func (e *RuleState) moveReadied(c *Character, it *Item, to rules.ReadyTo) {
+	missiles := to == rules.ReadyToMissiles
+	if !e.Base(it.Type).meleeToo() || missiles == (it.Readied == ReadiedMissiles) {
+		return
+	}
+	if it.Cursed != 0 {
+		e.notice("It's Cursed")
+		return
+	}
+	off := func(o *Item) bool { // o comes off: false when it stays (cursed, no room)
+		e.ReadyItem(o)
+		e.ApplyItems(c)
+		return o.Readied == 0
+	}
+	if missiles {
+		if o := e.missileReadied(c); o != nil && !off(o) {
+			return
+		}
+		it.Readied = ReadiedMissiles
+		return
+	}
+	if o := c.Slots[SlotWeapon]; o != nil && !off(o) {
+		return
+	}
+	if o := c.Slots[SlotShield]; o != nil && int(e.handsFor(it.Type))+int(c.Hands) > 2 && !off(o) { // a two-handed one takes the shield off too
+		return
+	}
+	it.Readied = 1
 }
 
 // itemSlot is the slot c's item it fills, readied (or would, unreadied):

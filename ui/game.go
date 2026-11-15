@@ -810,7 +810,7 @@ func (g *Game) act(a Action) func() error {
 	case ActJoin:
 		return send(game.Join{Member: g.sel(-1), Item: a.Item})
 	case ActReady:
-		return send(game.Ready{Member: g.sel(-1), Item: a.Item, Count: a.X})
+		return send(game.Ready{Member: g.sel(-1), Item: a.Item, Count: a.X, To: a.To})
 	case ActUse:
 		return send(game.UseItem{Member: g.sel(-1), Item: a.Item})
 	case ActDrop:

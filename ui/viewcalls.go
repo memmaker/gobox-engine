@@ -38,7 +38,9 @@ func (p *Presenter) viewAct(a Action) bool {
 		case ActMember:
 			do(func(e *classicGame) error { return e.ShowMember(n) })
 		case ActReady:
-			do(func(e *classicGame) error { return e.do(game.Ready{Member: e.sel(-1), Item: a.Item, Count: a.X}) })
+			do(func(e *classicGame) error {
+				return e.do(game.Ready{Member: e.sel(-1), Item: a.Item, Count: a.X, To: a.To})
+			})
 		case ActUse:
 			p.useCall(a.Item, 0, -1, false)
 		case ActDrop:

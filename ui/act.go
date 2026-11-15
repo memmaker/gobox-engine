@@ -137,5 +137,6 @@ type Action struct {
 	N    int
 	Item rules.ItemHandle // the item of an item act (ActReady, ActUse, ActDrop, ActSell, ActBuy, ActTrade, ActHalve, ActJoin, ActReload)
 	X, Y int              // a combat map square, a text cell (ActSpot)
+	To   rules.ReadyTo    // ActReady: the doll box it was dropped on, for a weapon of the hand or the Missiles slot
 	Text string           // ActText
 }

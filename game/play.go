@@ -476,7 +476,8 @@ type (
 	Ready struct {
 		Member int
 		Item   rules.ItemHandle
-		Count  int // of a stack (0: all)
+		Count  int           // of a stack (0: all)
+		To     rules.ReadyTo // a weapon thrown or used in melee: the hand or the Missiles slot; readied already, it moves there
 	}
 	Unready struct {
 		Member int
