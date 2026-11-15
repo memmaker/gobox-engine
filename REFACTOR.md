@@ -338,6 +338,26 @@ when a test deletes or changes a tracked file of its repo (`unchanged_exports`).
       panic); `Logbook` (V4 63) with BR1's Log Book as `importer/br1/journal` and
       `GameTables.Logbook`; V4 56 is `Program` (0 the team menu); layout name `ScriptBlock`
       (`markScriptBlock`, `runMoveEntry`); a script that does not parse panics.
+    - [x] B1f3 the selected member's fields: BR1's layout names `SelName`, `SelSex`, `SelCareer`,
+      `SelHitPoints`, `SelHitPointsMax`, `SelCompanion`, `SelFlag1..3`, `SelStatusKind`,
+      `SelSideFlags`, `SelPartyIndex`, bound to typed facts `rulesxxvc` answers (`rules.FlagFact`,
+      `FactCompanion` new); encodings `BrSelStatus`, `BrSelCompanion` (`engine/codecs_br.go`,
+      `adventure/encodings.go`); command 59 runs as nothing; `TestBR1Clinic`, `TestBR1NoMember`.
+    - Open after B1f3:
+      - two names for one thing: the Pool layouts' `SelHpMax`, `SelHpCur`, `SelGender`,
+        `SelCharClass` (pod: `SelRace` too) are NOT bound: a Pool script reading them reads one
+        global cell, not the member. BR got new bound names so the Pool games did not change.
+        Check the Pool scripts' uses against the originals, bind, and keep one name each;
+        likewise `SelStatus` (active or not) beside `SelStatusKind` (the typed status)
+      - `rules.Status` has no poisoned, comatose, not-here: BR1 areas 32 and 33 write status 8
+        (`SelStatusKind = 136`) and panic in the encoding; reads of 7 and 8 come back as 5
+      - `Purse` (7C2B) is a plain cell: scripts do not see the ruleset's credits (read:
+        `CoinFact`; write: a lower value is paid across the members, a higher one goes to the
+        selected member: a rule, needs an Action)
+      - `PickMember` (V4 57) has no handler: panics as not ported; it also ends "no member"
+      - `ConvertBRCharacter` drops `isQuickfight`; a quickfight member imports as the party's side
+      - `adventure.StatusKinds` is a number by place in a list between an encoding and its
+        binding: reorder it and both still agree, but it is an untyped channel
     - Open after slice 2:
       - V4 76's rocket view (2) and Program 9 (BR's rest menu: holds the script, which goes on;
         the Pool games' camp ends it) panic as not ported
