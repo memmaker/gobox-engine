@@ -206,6 +206,7 @@ func (e *Engine) playSound(n int, event string) {
 	}
 	quiet := n > sndUnmute && n != sndStop && e.dasp(event) || // extra: the sound pack's instead
 		n == sndStep && s.d.Sounding() // extra: a step does not take the channels from a song
+	traceSound("driver effect %d (event %q) quiet=%v", n, event, quiet)
 	s.d.Effect(n, quiet)
 	if s.wait > 0 {
 		s.d.CutAfter(sndRate / 10) // ten hundredths

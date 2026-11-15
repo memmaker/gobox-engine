@@ -1159,6 +1159,9 @@ func (r *frontState) keep(a game.Action) game.Result {
 func (r *frontState) outcome(a game.Action, out game.Outcome, err error) game.Result {
 	if traceOn {
 		fmt.Fprintf(os.Stderr, "trace %s game.Do %T%+v err=%v events=%d\n", time.Now().Format("15:04:05.000"), a, a, err, len(out.Events))
+		for _, e := range out.Events { // each fact by type and content: what a sound or a stop came with
+			fmt.Fprintf(os.Stderr, "trace %s   event %T %.120v\n", time.Now().Format("15:04:05.000"), e, e)
+		}
 	}
 	if err != nil { // no toast: the old path's refusals were silent unless the rules said (Refused)
 		return game.Result{Err: err}
@@ -1361,7 +1364,21 @@ func (r *frontState) walkStep() game.Result {
 		}
 		ps = r.g.State()
 	}
-	if !w.stands(ps, to, side) || walkHalts(facts, visited) || hasPicture(game.CommonOf(ps)) && !hasPicture(x.Common) || !visited && newText(x.Text, game.CommonOf(ps).Text) {
+	why := ""
+	switch {
+	case !w.stands(ps, to, side):
+		why = "the party does not stand where the step led"
+	case walkHalts(facts, visited):
+		why = "a fact of the step's scripts"
+	case hasPicture(game.CommonOf(ps)) && !hasPicture(x.Common):
+		why = "a picture came up"
+	case !visited && newText(x.Text, game.CommonOf(ps).Text):
+		why = "new text on a square not visited before"
+	}
+	if why != "" {
+		if traceOn {
+			fmt.Fprintf(os.Stderr, "trace %s walk to %v stopped at %v: %s\n", time.Now().Format("15:04:05.000"), w.to, to, why)
+		}
 		return res
 	}
 	r.walk = w

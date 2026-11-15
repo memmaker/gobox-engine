@@ -84,6 +84,7 @@ func (e *Engine) speak(key string) {
 	if e.vox == nil {
 		return // headless: nothing plays
 	}
+	traceSound("voice %q", key)
 	if err := e.vox.Say(b); err != nil {
 		log.Printf("voice %s: %v", key, err)
 	}
