@@ -97,7 +97,8 @@ func (v *View) Show(s *Scene, c Camera) {
 
 // Follow moves the camera to c: a step to a neighbouring cell or a turn is
 // animated like the player's own (moves that come while one runs follow it
-// without stopping), anything further is a jump.
+// without stopping), a turn and a step at once (the auto-walk's corner) as
+// the turn, then the step; anything further is a jump.
 func (v *View) Follow(c Camera) {
 	g := v.g
 	last := Camera{g.x, g.y, g.dir}
@@ -105,6 +106,11 @@ func (v *View) Follow(c Camera) {
 		last = g.next[n-1]
 	}
 	if c == last {
+		return
+	}
+	if turn := (Camera{last.X, last.Y, c.Dir}); !opt.NoGrid && !oneMove(last, c) && oneMove(turn, c) { // both at once: never a cut, the way walked stays in view
+		v.Follow(turn)
+		v.Follow(c)
 		return
 	}
 	g.asked = false // the move asked for came

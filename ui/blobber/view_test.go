@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// Follow animates a step or a turn and jumps anything further; held keys never move a View.
+// Follow animates a step or a turn, a turn and a step at once as the two, and jumps anything further; held keys never move a View.
 func TestViewFollow(t *testing.T) {
 	defer func(s bool) { opt.Smooth = s }(opt.Smooth)
 	opt.Smooth = false // snapping moves
@@ -27,9 +27,34 @@ func TestViewFollow(t *testing.T) {
 	if g.sway != 1 {
 		t.Fatalf("sidestep sway %v", g.sway)
 	}
-	v.Follow(Camera{3, 2, 2}) // a step and a turn at once: a jump
-	if g.moving || g.x != 3 || g.dir != 2 {
+	v.Follow(Camera{3, 2, 2}) // a turn and a step at once: the two moves
+	if !g.moving || g.x != 3 || g.dir != 2 {
+		t.Fatalf("turn and step: moving %v at %d facing %d", g.moving, g.x, g.dir)
+	}
+	v.Follow(Camera{1, 1, 0}) // further: a jump
+	if g.moving || g.x != 1 || g.dir != 0 {
 		t.Fatalf("jump: moving %v at %d facing %d", g.moving, g.x, g.dir)
+	}
+}
+
+// A turn and a step that come at once (the auto-walk's corner) are shown as
+// the turn, then the step: no cut to the next square.
+func TestViewFollowCorner(t *testing.T) {
+	defer func(s bool) { opt.Smooth = s }(opt.Smooth)
+	opt.Smooth = true
+	g := &Game{t: 1}
+	theGame = g
+	v := &View{g: g}
+	v.Show(&Scene{Rows: []string{"#####", "#...#", "#...#", "#####"}}, Camera{1, 1, 1})
+	v.Follow(Camera{1, 2, 2}) // turned south and stepped
+	if !g.moving || g.x != 1 || g.y != 1 || g.dir != 2 || len(g.next) != 1 {
+		t.Fatalf("the turn should run first, the step queued: moving %v at %d,%d facing %d queued %d", g.moving, g.x, g.y, g.dir, len(g.next))
+	}
+	for i := 0; i < 600 && v.Moving(); i++ {
+		v.Update()
+	}
+	if g.x != 1 || g.y != 2 || g.dir != 2 || g.tz != 2.5 {
+		t.Fatalf("should end on 1,2 facing south: %d,%d facing %d tz %v", g.x, g.y, g.dir, g.tz)
 	}
 }
 
