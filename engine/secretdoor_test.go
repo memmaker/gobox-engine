@@ -10,7 +10,7 @@ import (
 
 // TestSecretDoorOnMap: the Hobgoblin Barracks' secret door (13,2 east: a
 // door behind a wall that looks solid) is a wall on the automap until the
-// party has gone through it, then a door from both its cells; a door that
+// party has gone through it or searched beside it, then a door from both its cells; a door that
 // looks like one is a door from the start. Kept with the save.
 func TestSecretDoorOnMap(t *testing.T) {
 	e := testEngine(t)
@@ -48,6 +48,12 @@ func TestSecretDoorOnMap(t *testing.T) {
 	e.StepForward() // a script's step, from the far side
 	if !door(13, 2, 2) || !door(14, 2, 6) {
 		t.Error("the secret door a script took the party through does not show")
+	}
+	e.ext.secrets = nil
+	e.posX, e.posY = 13, 2
+	e.searchSecrets() // Search on the square beside it; sweeping does the same each step
+	if !door(13, 2, 2) || !door(14, 2, 6) {
+		t.Error("the secret door searched for does not show")
 	}
 	found := e.ext.secrets
 	if err := e.saveTo("A"); err != nil {

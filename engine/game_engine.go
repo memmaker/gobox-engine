@@ -448,6 +448,7 @@ func (e *Engine) interactCmd() (ends, encamp bool) {
 // lookCmd is the original's Look: search this square once.
 func (e *Engine) lookCmd() (ends, encamp bool) {
 	e.setWorldWord(rules.WordSearch, int(e.worldWord(rules.WordSearch)|2))
+	e.searchSecrets()
 	e.searchTime()
 	e.vm.PC = uint16(e.es.events[1])
 	return true, false
@@ -725,6 +726,7 @@ func (e *Engine) stepAhead() {
 	e.run.doorTry = [3]byte{1, 1, 1}
 	e.es.cell = e.MapCell(e.posX, e.posY)
 	if e.worldWord(rules.WordSearch)&1 != 0 {
+		e.searchSecrets() // sweeping: every square stepped on is searched
 		e.searchTime()
 	} else {
 		e.as(e.sel)

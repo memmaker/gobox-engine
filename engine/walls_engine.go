@@ -80,6 +80,14 @@ func (e *Engine) foundSecret(x, y, d int) {
 	}
 }
 
+// searchSecrets (extra): a search of the party's square finds the secret
+// doors on its sides.
+func (e *Engine) searchSecrets() {
+	for _, d := range [4]int{0, 2, 4, 6} {
+		e.foundSecret(e.posX, e.posY, d)
+	}
+}
+
 // mapWalls is the 3D view's walls: every square's wall values by side
 // (WallAt), each value's remastered texture from the game's
 // GameTables.Walls and the area's scenery (WallTextures.Areas, by set and

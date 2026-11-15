@@ -15,5 +15,5 @@ used by the ground's `put`, the rubble and `placeAt`. Invariant test:
 - [x] Walls and doors = the original's squares (west wall 2 thick, door = the original's opening)
 - [x] Tests: TestStraightIsOriginalUnskewed, TestStraightWalls; TestSidesApart, TestDeskewPlacement and the watch fight's "sides apart" check removed (BUG-CLASSES 29 is superseded: the original mixes the front rows at distance 0)
 - [ ] Clutter: its dice fall by board square, so the straight board's clutter differs from the skewed one's (same odds)
-- [x] Secret doors on the automap only once found: `WallTexture.Solid` (importer/walls/solid.txt, marked by Felix per texture), a passable side behind a solid-looking wall is secret until gone through (`foundSecret`, SECRETS.GOB); TestSecretDoorOnMap
+- [x] Secret doors on the automap only once found: `WallTexture.Solid` (importer/walls/solid.txt, marked by Felix per texture), a passable side behind a solid-looking wall is secret until gone through or searched beside (Search, or a step while sweeping: `searchSecrets`; `foundSecret`, SECRETS.GOB); TestSecretDoorOnMap
 - [ ] Full suite + a real fight looked at in the game
