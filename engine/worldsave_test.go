@@ -155,12 +155,16 @@ func TestShippedSlotsLoad(t *testing.T) {
 			}
 			got := engineWords(e)
 			if record {
+				fmt.Printf("RECORDSESSIONSLOT %q: %v,\n", key, strings.NewReplacer("[", "{", "]", "}", " ", ", ").Replace(fmt.Sprint(sessionSlotWords(e))))
 				fmt.Printf("RECORD %q: %v,\n", key, strings.NewReplacer("[", "{", "]", "}", " ", ", ").Replace(fmt.Sprint(got)))
 				fmt.Printf("RECORDPLACE %q: %v,\n", key, strings.NewReplacer("[", "{", "]", "}", " ", ", ").Replace(fmt.Sprint(enginePlaceWords(e))))
 				return
 			}
 			if want, ok := shippedPlaceWords[key]; !ok || enginePlaceWords(e) != want {
 				t.Errorf("place words %v, want %v (recorded)", enginePlaceWords(e), want)
+			}
+			if want, ok := shippedSessionWords[key]; !ok || sessionSlotWords(e) != want {
+				t.Errorf("session words %v, want %v (recorded)", sessionSlotWords(e), want)
 			}
 			if want, ok := shippedWords[key]; !ok || got != want {
 				t.Errorf("words %v, want %v (recorded)", got, want)
@@ -181,6 +185,9 @@ func TestShippedSlotsLoad(t *testing.T) {
 			}
 			if again := engineWords(e); again != got {
 				t.Errorf("after save and load: %v, want %v", again, got)
+			}
+			if again := sessionSlotWords(e); again != shippedSessionWords[key] {
+				t.Errorf("after save and load, session words %v, want %v", again, shippedSessionWords[key])
 			}
 			if again := enginePlaceWords(e); again != shippedPlaceWords[key] {
 				t.Errorf("after save and load, place words %v, want %v", again, shippedPlaceWords[key])
@@ -247,4 +254,30 @@ func TestLoadWorldMergesOldBlob(t *testing.T) {
 	if e.world != (rules.World{Geo: 9}) {
 		t.Errorf("a save with no ruleset part: %+v", e.world)
 	}
+}
+
+// sessionNames are the words of the game's session, in the order of shippedSessionWords.
+var sessionNames = [...]string{"minuteOfDay", "partyCount", "phase"}
+
+// sessionSlotWords are the clock's minute of the day, the party's count and the game's phase.
+func sessionSlotWords(e *Engine) [len(sessionNames)]int {
+	return [...]int{obsMinute(e), obsCount(e), obsPhase(e)}
+}
+
+// shippedSessionWords is each shipped slot's session words as the engine saw them before the
+// generic words left the ruleset (recorded with RECORD_WORLD=1), in sessionNames' order.
+var shippedSessionWords = map[string][len(sessionNames)]int{
+	"por/CAPTURE":       {0, 6, 4},
+	"por/Hobgoblins":    {840, 8, 4},
+	"por/Podol":         {263, 8, 4},
+	"por/SHOPPING":      {426, 6, 4},
+	"por/STARTER":       {551, 6, 4},
+	"por/Sokol Keep":    {778, 6, 4},
+	"por/WORLDMAP":      {465, 8, 3},
+	"por/back-for-good": {818, 8, 4},
+	"por/in-Slums":      {1113, 8, 4},
+	"por/library":       {1115, 8, 4},
+	"por/tavern":        {442, 6, 4},
+	"por/weird-scribe":  {797, 6, 4},
+	"sotsb/GAME A":      {0, 6, 0},
 }
